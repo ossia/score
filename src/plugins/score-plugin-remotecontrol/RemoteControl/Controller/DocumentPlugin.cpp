@@ -397,26 +397,70 @@ void DocumentPlugin::offsetControl(
             dmin = 0.;
             dmax = 1.;
           }
+          auto offset_number = [&](double f) {
+            double v = (f - dmin) / (dmax - dmin);
+            v += 0.01f * offset;
+            v = std::clamp(v, 0., 1.);
+            return v * (dmax - dmin) + dmin;
+          };
           switch(orig.get_type())
           {
             case ossia::val_type::INT: {
-              double v = (*orig.target<int>() - dmin) / (dmax - dmin);
-              v += 0.01 * offset;
-              v = std::clamp(v, 0., 1.);
-              inl->setValue(int(v * (dmax - dmin) + dmin));
+              inl->setValue(offset_number(*orig.target<int>()));
               break;
             }
             case ossia::val_type::FLOAT: {
-              double v = (*orig.target<float>() - dmin) / (dmax - dmin);
-              v += 0.01f * offset;
-              v = std::clamp(v, 0., 1.);
-              inl->setValue(v * (dmax - dmin) + dmin);
+              inl->setValue(offset_number(*orig.target<float>()));
+              break;
+            }
+            case ossia::val_type::VEC2F: {
+              auto v = *orig.target<ossia::vec2f>();
+              v[0] = offset_number(v[0]);
+              v[1] = offset_number(v[1]);
+              inl->setValue(v);
+              break;
+            }
+            case ossia::val_type::VEC3F: {
+              auto v = *orig.target<ossia::vec3f>();
+              v[0] = offset_number(v[0]);
+              v[1] = offset_number(v[1]);
+              v[2] = offset_number(v[2]);
+              inl->setValue(v);
+              break;
+            }
+            case ossia::val_type::VEC4F: {
+              auto v = *orig.target<ossia::vec4f>();
+              v[0] = offset_number(v[0]);
+              v[1] = offset_number(v[1]);
+              v[2] = offset_number(v[2]);
+              v[3] = offset_number(v[3]);
+              inl->setValue(v);
               break;
             }
             case ossia::val_type::BOOL: {
               inl->setValue(bool(offset >= 0));
               break;
             }
+
+              // FIXME a bit rough but this case is pretty much inexisting anyways
+            case ossia::val_type::LIST: {
+              auto& v = *orig.target<std::vector<ossia::value>>();
+              for(ossia::value& e : v)
+                e = (float)offset_number(ossia::convert<float>(e));
+              inl->setValue(std::move(v));
+              break;
+            }
+            case ossia::val_type::MAP: {
+              auto& v = *orig.target<ossia::value_map_type>();
+              for(auto& [k, e] : v)
+                e = (float)offset_number(ossia::convert<float>(e));
+              inl->setValue(std::move(v));
+              break;
+            }
+            case ossia::val_type::STRING:
+            case ossia::val_type::IMPULSE:
+            case ossia::val_type::NONE:
+              break;
           }
           break;
         }
