@@ -131,6 +131,12 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   endif()
 endif()
 
+if (NOT EMSCRIPTEN)
+  if(NOT ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8"))
+    message(FATAL_ERROR "score depends on kfrlib which only supports 64-bit systems.")
+  endif()
+endif()
+
 check_cxx_compiler_flag(-Wno-gnu-anonymous-struct has_w_gnu_anonymous_struct_flag)
 check_cxx_compiler_flag(-Wno-nested-anon-types has_w_nested_anon_types_flag)
 check_cxx_compiler_flag(-Wno-dtor-name has_w_dtor_name_flag)
