@@ -1,7 +1,7 @@
 #include "GfxInputDevice.hpp"
 
 #include <Gfx/Graph/VideoNode.hpp>
-#include <Video/CameraInput.hpp>
+#include <Video/ExternalInput.hpp>
 
 #include <ossia/network/generic/generic_node.hpp>
 

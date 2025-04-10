@@ -3,7 +3,7 @@
 #include <Gfx/GfxExecContext.hpp>
 #include <Gfx/GfxInputDevice.hpp>
 #include <Gfx/SharedInputSettings.hpp>
-#include <Video/CameraInput.hpp>
+#include <Video/ExternalInput.hpp>
 #include <Video/FrameQueue.hpp>
 
 #include <ossia/detail/lockfree_queue.hpp>

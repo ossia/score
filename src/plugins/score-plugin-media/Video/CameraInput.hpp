@@ -2,9 +2,10 @@
 #include <Media/Libav.hpp>
 #if SCORE_HAS_LIBAV
 
+#include <Video/ExternalInput.hpp>
 #include <Video/FrameQueue.hpp>
 #include <Video/Rescale.hpp>
-#include <Video/VideoInterface.hpp>
+
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
@@ -15,20 +16,10 @@ extern "C" {
 #include <score_plugin_media_export.h>
 
 #include <atomic>
-#include <condition_variable>
-#include <mutex>
 #include <string>
 #include <thread>
 namespace Video
 {
-
-class SCORE_PLUGIN_MEDIA_EXPORT ExternalInput : public VideoInterface
-{
-public:
-  virtual ~ExternalInput();
-  virtual bool start() noexcept = 0;
-  virtual void stop() noexcept = 0;
-};
 
 class SCORE_PLUGIN_MEDIA_EXPORT CameraInput final
     : public ExternalInput

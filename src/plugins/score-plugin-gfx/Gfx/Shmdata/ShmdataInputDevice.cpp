@@ -6,7 +6,7 @@
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxExecContext.hpp>
 #include <Gfx/Graph/VideoNode.hpp>
-#include <Video/CameraInput.hpp>
+#include <Video/ExternalInput.hpp>
 #include <Video/FrameQueue.hpp>
 #include <Video/GStreamerCompatibility.hpp>
 #include <Video/GpuFormats.hpp>

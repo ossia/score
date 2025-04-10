@@ -1,6 +1,6 @@
 #include <Gfx/Graph/VideoNode.hpp>
 #include <Gfx/Graph/VideoNodeRenderer.hpp>
-#include <Video/CameraInput.hpp>
+#include <Video/ExternalInput.hpp>
 #include <Video/FrameQueue.hpp>
 
 #include <score/tools/Debug.hpp>
