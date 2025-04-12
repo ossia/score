@@ -447,7 +447,7 @@ static void setup_opengl(bool& enable_opengl_ui)
 #ifndef QT_NO_OPENGL
 #if defined(__arm__)
   QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
-  fmt.setProfile(QSurfaceFormat::CoreProfile);
+  fmt.setRenderableType(QSurfaceFormat::OpenGLES);
   fmt.setSwapInterval(1);
   fmt.setMajorVersion(3);
   fmt.setMinorVersion(2);
