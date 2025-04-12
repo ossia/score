@@ -34,7 +34,12 @@ endif()
 find_package(Clang PATHS
   ${LLVM_DIR}
   ${LLVM_DIR}/../Clang
+  ${LLVM_DIR}/../clang
   ${LLVM_DIR}/lib/cmake/clang
+  ${LLVM_PREFIX}
+  ${LLVM_PREFIX}/../Clang
+  ${LLVM_PREFIX}/../clang
+  ${LLVM_PREFIX}/lib/cmake/clang
 )
 if(NOT Clang_FOUND)
   message(" -- libclang was not found, skipping JIT plug-in")
@@ -44,7 +49,12 @@ endif()
 find_package(Polly PATHS
   ${LLVM_DIR}
   ${LLVM_DIR}/../Polly
-  ${LLVM_DIR}/lib/cmake/clang
+  ${LLVM_DIR}/../polly
+  ${LLVM_DIR}/lib/cmake/polly
+  ${LLVM_PREFIX}
+  ${LLVM_PREFIX}/../Polly
+  ${LLVM_PREFIX}/../polly
+  ${LLVM_PREFIX}/lib/cmake/polly
 )
 if(NOT Polly_FOUND)
   message(" -- Polly was not found, not all optimizations may be available")
