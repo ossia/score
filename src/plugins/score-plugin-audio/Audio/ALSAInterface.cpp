@@ -311,6 +311,7 @@ bool ALSAFactory::available() const noexcept
     return false;
   }
 }
+
 void ALSAFactory::rescan()
 {
   devices.clear();
@@ -408,7 +409,7 @@ void ALSAFactory::rescan()
 
 QString ALSAFactory::prettyName() const
 {
-  return QObject::tr("ALSA (raw, output only)");
+  return QObject::tr("ALSA (raw)");
 }
 
 std::shared_ptr<ossia::audio_engine> ALSAFactory::make_engine(

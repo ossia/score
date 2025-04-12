@@ -4,6 +4,7 @@
 #include "score_plugin_audio.hpp"
 
 #include <Audio/ALSAInterface.hpp>
+#include <Audio/ALSAMiniAudioInterface.hpp>
 #include <Audio/ALSAPortAudioInterface.hpp>
 #include <Audio/ASIOPortAudioInterface.hpp>
 #include <Audio/AudioApplicationPlugin.hpp>
@@ -145,6 +146,13 @@ std::vector<score::InterfaceBase*> score_plugin_audio::factories(
       return vec;
 #endif
     }
+    else if(forced_backend == "alsa_miniaudio")
+    {
+#if defined(__linux__) && defined(OSSIA_AUDIO_MINIAUDIO)
+      add_factories<FW<Audio::AudioFactory, Audio::ALSAMiniAudioFactory>>(vec, ctx, key);
+      return vec;
+#endif
+    }
     else if(forced_backend == "dummy")
     {
       add_factories<FW<Audio::AudioFactory, Audio::DummyFactory>>(vec, ctx, key);
@@ -186,6 +194,10 @@ std::vector<score::InterfaceBase*> score_plugin_audio::factories(
 #if __has_include(<pa_linux_alsa.h>)
          ,
          Audio::ALSAPortAudioFactory
+#endif
+#if defined(__linux__) && defined(OSSIA_AUDIO_MINIAUDIO)
+         ,
+         Audio::ALSAMiniAudioFactory
 #endif
 #if !__has_include(<pa_asio.h>) && \
     !__has_include(<pa_win_wdmks.h>) && \

@@ -228,7 +228,7 @@ void ALSAPortAudioFactory::rescan()
 
 QString ALSAPortAudioFactory::prettyName() const
 {
-  return QObject::tr("ALSA (through PortAudio)");
+  return QObject::tr("ALSA (PortAudio)");
 }
 
 std::shared_ptr<ossia::audio_engine> ALSAPortAudioFactory::make_engine(
