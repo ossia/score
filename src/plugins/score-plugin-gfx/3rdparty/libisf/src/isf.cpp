@@ -31,7 +31,6 @@ static constexpr struct glsl45_t
   static constexpr auto vertexPrelude = R"_(
 layout(location = 0) in vec2 position;
 layout(location = 1) in vec2 texcoord;
-//layout(location = 0) out vec2 isf_TexCoord;
 layout(location = 0) out vec2 isf_FragNormCoord;
 
 )_";
@@ -39,8 +38,12 @@ layout(location = 0) out vec2 isf_FragNormCoord;
 void isf_vertShaderInit()
 {
   gl_Position = clipSpaceCorrMatrix * vec4( position, 0.0, 1.0 );
-//  isf_TexCoord = texcoord;
+#if defined(QSHADER_SPIRV)
+  gl_Position.y = - gl_Position.y;
+  isf_FragNormCoord = vec2((gl_Position.x+1.0)/2.0, (1 - gl_Position.y)/2.0);
+#else
   isf_FragNormCoord = vec2((gl_Position.x+1.0)/2.0, (gl_Position.y+1.0)/2.0);
+#endif
 }
 )_";
 
@@ -52,7 +55,6 @@ void main()
 )_";
 
   static constexpr auto fragmentPrelude = R"_(
-//layout(location = 0) in vec2 isf_TexCoord;
 layout(location = 0) in vec2 isf_FragNormCoord;
 layout(location = 0) out vec4 isf_FragColor;
 )_";
@@ -99,68 +101,23 @@ vec4 DATE = isf_process_uniforms.DATE;
   static constexpr auto defaultFunctions =
       R"_(
 #define TEX_DIMENSIONS(tex) isf_material_uniforms._ ## tex ## _imgRect.zw
-//#define IMG_THIS_PIXEL(tex) texture(tex, isf_FragNormCoord * TEX_DIMENSIONS(tex))
-//#define IMG_THIS_NORM_PIXEL(tex) texture(tex, isf_FragNormCoord * TEX_DIMENSIONS(tex))
-//#define IMG_PIXEL(tex, coord) texture(tex, coord * TEX_DIMENSIONS(tex) / RENDERSIZE)
-//#define IMG_NORM_PIXEL(tex, coord) texture(tex, coord * TEX_DIMENSIONS(tex))
+#define IMG_SIZE(tex) isf_material_uniforms._ ## tex ## _imgRect.zw
 
-//#define IMG_THIS_PIXEL(tex) texture(tex, isf_FragNormCoord * TEX_DIMENSIONS(tex) / RENDERSIZE)
-//#define IMG_THIS_NORM_PIXEL(tex) texture(tex, isf_FragNormCoord * TEX_DIMENSIONS(tex) / RENDERSIZE)
-//#define IMG_PIXEL(tex, coord) texture(tex, coord * TEX_DIMENSIONS(tex) / RENDERSIZE)
-//#define IMG_NORM_PIXEL(tex, coord) texture(tex, coord * TEX_DIMENSIONS(tex) / RENDERSIZE)
-
+#if defined(QSHADER_SPIRV)
+#define ISF_FIXUP_TEXCOORD(coord) vec2((coord).x, 1. - (coord).y)
+#define IMG_THIS_PIXEL(tex) texture(tex, ISF_FIXUP_TEXCOORD(isf_FragNormCoord))
+#define IMG_THIS_NORM_PIXEL(tex) texture(tex, ISF_FIXUP_TEXCOORD(isf_FragNormCoord))
+#define IMG_PIXEL(tex, coord) texture(tex, ISF_FIXUP_TEXCOORD(coord) / isf_process_uniforms.RENDERSIZE)
+#define IMG_NORM_PIXEL(tex, coord) texture(tex, ISF_FIXUP_TEXCOORD(coord))
+#else
 #define IMG_THIS_PIXEL(tex) texture(tex, isf_FragNormCoord)
 #define IMG_THIS_NORM_PIXEL(tex) texture(tex, isf_FragNormCoord)
-#define IMG_PIXEL(tex, coord) texture(tex, coord / RENDERSIZE)
+#define IMG_PIXEL(tex, coord) texture(tex, (coord) / isf_process_uniforms.RENDERSIZE)
 #define IMG_NORM_PIXEL(tex, coord) texture(tex, coord)
+#endif
 )_";
 
 } GLSL45;
-
-static constexpr struct glsl3_t
-{
-  static constexpr auto defaultVertexShader = R"_(#version 330
-in vec2 position;
-uniform vec2 RENDERSIZE;
-out vec2 isf_FragNormCoord;
-
-void main(void) {
-  gl_Position = vec4( position, 0.0, 1.0 );
-  isf_FragNormCoord = vec2((gl_Position.x+1.0)/2.0, (gl_Position.y+1.0)/2.0);
-}
-)_";
-
-  static constexpr auto vertexPrelude =
-      R"_(#version 330
-in vec2 position;
-uniform vec2 RENDERSIZE;
-out vec2 isf_FragNormCoord;
-
-void isf_vertShaderInit(void) {
-  gl_Position = vec4( position, 0.0, 1.0 );
-  isf_FragNormCoord = vec2((gl_Position.x+1.0)/2.0, (gl_Position.y+1.0)/2.0);
-}
-)_";
-
-  static constexpr auto fragmentPrelude = R"_(#version 330
-
-in vec2 isf_FragNormCoord;
-out vec4 isf_FragColor;
-)_";
-
-  static constexpr auto defaultUniforms = R"_(
-uniform vec2 RENDERSIZE;
-
-uniform float TIME;
-uniform float TIMEDELTA;
-uniform float PROGRESS;
-uniform int FRAMEINDEX;
-uniform vec4 DATE;
-
-uniform int PASSINDEX;
-)_";
-
-} GLSL3;
 }
 
 parser::parser(std::string geom)
@@ -837,37 +794,6 @@ void parser::parse_isf()
   // Create the GLSL prelude
   switch(m_version)
   {
-    case 330: {
-      // Setup vertex shader
-      if(m_sourceVertex.empty())
-      {
-        m_vertex = GLSL3.defaultVertexShader;
-      }
-      else if(m_sourceVertex.find("isf_vertShaderInit()") != std::string::npos)
-      {
-        m_vertex = GLSL3.vertexPrelude;
-        m_vertex += m_sourceVertex;
-      }
-      else
-      {
-        m_vertex = m_sourceVertex;
-      }
-
-      // Setup fragment shader
-      m_fragment = GLSL3.fragmentPrelude;
-      m_fragment += GLSL3.defaultUniforms;
-
-      for(const isf::input& val : d.inputs)
-      {
-        m_fragment += ossia::visit(create_val_visitor{}, val.data);
-        m_fragment += ' ';
-        m_fragment += val.name;
-        m_fragment += ";\n";
-      }
-
-      break;
-    }
-
     case 450: {
       // Setup vertex shader
       {
