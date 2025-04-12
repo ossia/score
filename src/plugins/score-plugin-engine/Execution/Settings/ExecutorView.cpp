@@ -59,7 +59,7 @@ View::View()
   m_Threads->setRange(2, 128);
   if(!m_Parallel->isChecked())
     m_Threads->setEnabled(false);
-  connect(m_Parallel, &QCheckBox::stateChanged, this, [this] {
+  connect(m_Parallel, SignalUtils::QCheckBox_checkStateChanged(), this, [this] {
     m_Threads->setEnabled(m_Parallel->isChecked());
   });
 

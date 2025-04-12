@@ -1,9 +1,19 @@
 #pragma once
+#include <QCheckBox>
 #include <QComboBox>
 #include <QSpinBox>
 
 struct SignalUtils
 {
+  static constexpr auto QCheckBox_checkStateChanged()
+  {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
+    return static_cast<void (QCheckBox::*)(Qt::CheckState)>(
+        &QCheckBox::checkStateChanged);
+#else
+    return static_cast<void (QCheckBox::*)(int)>(&QCheckBox::stateChanged);
+#endif
+  }
   static constexpr auto QSpinBox_valueChanged_int()
   {
     return static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged);

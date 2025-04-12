@@ -2,6 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ProtocolSettingsWidget.hpp"
 
+#include <score/widgets/SignalUtils.hpp>
+
 #include <QCheckBox>
 #include <QCodeEditor>
 #include <QComboBox>
@@ -39,7 +41,9 @@ void ProtocolSettingsWidget::checkForChanges(QTextEdit* w)
 }
 void ProtocolSettingsWidget::checkForChanges(QCheckBox* w)
 {
-  connect(w, &QCheckBox::stateChanged, this, &ProtocolSettingsWidget::changed);
+  connect(
+      w, SignalUtils::QCheckBox_checkStateChanged(), this,
+      &ProtocolSettingsWidget::changed);
 }
 Device::Node ProtocolSettingsWidget::getDevice() const
 {

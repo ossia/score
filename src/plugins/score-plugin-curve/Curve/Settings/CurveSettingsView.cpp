@@ -36,7 +36,7 @@ View::View()
     m_simpl = new QCheckBox{tr("Simplify")};
     score::setHelp(m_simpl, tr("Enable simplification of recorded data."));
 
-    connect(m_simpl, &QCheckBox::stateChanged, this, [&](int t) {
+    connect(m_simpl, SignalUtils::QCheckBox_checkStateChanged(), this, [&](int t) {
       switch(t)
       {
         case Qt::Unchecked:
@@ -59,7 +59,7 @@ View::View()
         m_simpl, tr("When simplifying, interpolate between recorded events instead of "
                     "maintaining the last received value until a change occurs."));
 
-    connect(m_mode, &QCheckBox::stateChanged, this, [&](int t) {
+    connect(m_mode, SignalUtils::QCheckBox_checkStateChanged(), this, [&](int t) {
       switch(t)
       {
         case Qt::Unchecked:
@@ -81,7 +81,7 @@ View::View()
     score::setHelp(
         m_simpl, tr("Enable playback of the rest of the score while recording."));
 
-    connect(m_playWhileRecording, &QCheckBox::stateChanged, this, [&](int t) {
+    connect(m_playWhileRecording, SignalUtils::QCheckBox_checkStateChanged(), this, [&](int t) {
       switch(t)
       {
         case Qt::Unchecked:

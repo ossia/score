@@ -2,6 +2,7 @@
 #include "ValueWidget.hpp"
 
 #include <score/widgets/MarginLess.hpp>
+#include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/SpinBoxes.hpp>
 #include <score/widgets/TextLabel.hpp>
 
@@ -149,10 +150,10 @@ public:
     m_min->setEnabled(false);
     m_max->setEnabled(false);
 
-    connect(m_minCB, &QCheckBox::stateChanged, this, [this](int st) {
+    connect(m_minCB, SignalUtils::QCheckBox_checkStateChanged(), this, [this](int st) {
       m_min->setEnabled(bool(st));
     });
-    connect(m_maxCB, &QCheckBox::stateChanged, this, [this](int st) {
+    connect(m_maxCB, SignalUtils::QCheckBox_checkStateChanged(), this, [this](int st) {
       m_max->setEnabled(bool(st));
     });
     auto pb = new QPushButton{tr("Values"), this};

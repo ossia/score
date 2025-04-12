@@ -1,6 +1,7 @@
 #include "View.hpp"
 
 #include <score/widgets/FormWidget.hpp>
+#include <score/widgets/SignalUtils.hpp>
 
 #include <QCheckBox>
 #include <QFormLayout>
@@ -20,7 +21,7 @@ View::View()
   {
     m_enabled = new QCheckBox{tr("Enabled")};
 
-    connect(m_enabled, &QCheckBox::stateChanged, this, [&](int t) {
+    connect(m_enabled, SignalUtils::QCheckBox_checkStateChanged(), this, [&](int t) {
       switch(t)
       {
         case Qt::Unchecked:

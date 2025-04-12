@@ -47,7 +47,7 @@ if("${Qt_LibType}" STREQUAL "STATIC_LIBRARY")
   set(SCORE_STATIC_PLUGINS True)
 endif()
 
-add_definitions(-DQT_DISABLE_DEPRECATED_BEFORE=0x0608ff)
+add_definitions(-DQT_DISABLE_DEPRECATED_BEFORE=0x0609ff)
 add_definitions(-DQT_NO_KEYWORDS)
 
 if(UNIX AND NOT APPLE AND SCORE_DEPLOYMENT_BUILD)
@@ -222,7 +222,7 @@ if(EMSCRIPTEN)
     endif()
     unset(__linker_help)
   endif()
-  
+
   ## WHOLE_ARCHIVE: Force loading all members of an archive
   if(_CMAKE_LINKER_PUSHPOP_STATE_SUPPORTED)
     set(CMAKE_LINK_LIBRARY_USING_WHOLE_ARCHIVE "LINKER:--push-state,--whole-archive"
@@ -234,7 +234,7 @@ if(EMSCRIPTEN)
                                                "LINKER:--no-whole-archive")
   endif()
   set(CMAKE_LINK_LIBRARY_USING_WHOLE_ARCHIVE_SUPPORTED TRUE)
-  
+
   # Features for LINK_GROUP generator expression
   ## RESCAN: request the linker to rescan static libraries until there is
   ## no pending undefined symbols
