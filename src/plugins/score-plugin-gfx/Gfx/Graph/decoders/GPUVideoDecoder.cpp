@@ -61,7 +61,7 @@ void main()
 {
   v_texcoord = texcoord;
   gl_Position = renderer.clipSpaceCorrMatrix * vec4(position.x * mat.scale.x, position.y * mat.scale.y, 0.0, 1.);
-#if defined(QSHADER_HLSL)
+#if defined(QSHADER_HLSL) || defined(QSHADER_MSL)
   gl_Position.y = - gl_Position.y;
 #endif
 }

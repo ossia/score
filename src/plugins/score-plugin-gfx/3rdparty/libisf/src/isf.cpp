@@ -38,11 +38,9 @@ layout(location = 0) out vec2 isf_FragNormCoord;
 void isf_vertShaderInit()
 {
   gl_Position = clipSpaceCorrMatrix * vec4( position, 0.0, 1.0 );
-#if defined(QSHADER_SPIRV) || defined(QSHADER_HLSL)
-  gl_Position.y = - gl_Position.y;
-  isf_FragNormCoord = vec2((gl_Position.x+1.0)/2.0, (1 - gl_Position.y)/2.0);
-#else
   isf_FragNormCoord = vec2((gl_Position.x+1.0)/2.0, (gl_Position.y+1.0)/2.0);
+#if defined(QSHADER_SPIRV) || defined(QSHADER_HLSL) || defined(QSHADER_MSL)
+  gl_Position.y = - gl_Position.y;
 #endif
 }
 )_";
