@@ -18,7 +18,6 @@
 #include <version>
 #if OSSIA_ENABLE_MINIAUDIO
 
-#include <magic_enum/magic_enum.hpp>
 namespace Audio
 {
 struct MiniAudioCard
