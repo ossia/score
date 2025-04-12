@@ -128,7 +128,8 @@ void ensureDyldPath()
         "If using Qt Creator, simply go in Projects and\n"
         "uncheck the 'Add library search path to DYLD_LIBRARY_PATH and "
         "DYLD_FRAMEWORK_PATH'\n"
-        "checkbox on the execution tab.\n\n",
+        "checkbox on the execution tab.\n\n"
+        "Current DYLD_LIBRARY_PATH: %s",
         e.toStdString().c_str());
 
     // If you see this comment, you are allowed to remove it on your dev

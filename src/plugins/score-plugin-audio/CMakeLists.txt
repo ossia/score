@@ -11,11 +11,13 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/JackInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/ALSAInterface.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Audio/ALSAMiniAudioInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/ALSAPortAudioInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/ASIOPortAudioInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/CoreAudioInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/CoreAudioPortAudioInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/DummyInterface.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Audio/GenericMiniAudioInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/GenericPortAudioInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/MMEPortAudioInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/PipeWireInterface.hpp"
@@ -92,8 +94,10 @@ if(OSSIA_ENABLE_SDL)
   list(APPEND SCORE_FEATURES_LIST sdl)
 endif()
 
-if(APPLE)
+if(LINUX OR BSD OR APPLE)
   target_include_directories(${PROJECT_NAME} PRIVATE "${OSSIA_3RDPARTY_FOLDER}/miniaudio")
-  target_link_libraries(${PROJECT_NAME} PRIVATE "-framework AudioUnit" "$<BUILD_INTERFACE:kfr>")
+  if(APPLE)
+    target_link_libraries(${PROJECT_NAME} PRIVATE "-framework AudioUnit" "$<BUILD_INTERFACE:kfr>")
+  endif()
 endif()
 setup_score_plugin(${PROJECT_NAME})
