@@ -48,7 +48,8 @@ Window::Window(GraphicsApi graphicsApi)
 
 #if defined(_WIN32)
     case D3D11:
-      setSurfaceType(OpenGLSurface); // not a typo
+    case D3D12:
+      setSurfaceType(Direct3DSurface);
       break;
 #endif
 
@@ -76,7 +77,7 @@ Window::Window(GraphicsApi graphicsApi)
       break;
   }
 
-  const int samples = settings.getSamples();
+  const int samples = settings.resolveSamples(m_api);
   fmt.setSamples(samples);
 
   setFormat(fmt);

@@ -19,7 +19,8 @@ enum GraphicsApi
   OpenGL,
   Vulkan,
   D3D11,
-  Metal
+  Metal,
+  D3D12
 };
 
 class Window;

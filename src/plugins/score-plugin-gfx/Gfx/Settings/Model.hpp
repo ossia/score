@@ -16,6 +16,7 @@ struct GraphicsApis
   const QString Vulkan{"Vulkan"};
   const QString Metal{"Metal"};
   const QString D3D11{"Direct3D 11"};
+  const QString D3D12{"Direct3D 12"};
   operator QStringList() const noexcept;
 };
 
@@ -63,6 +64,9 @@ public:
   void GraphicsApiChanged(QString arg)
       E_SIGNAL(SCORE_PLUGIN_GFX_EXPORT, GraphicsApiChanged, arg)
   SCORE_SETTINGS_PROPERTY(QString, GraphicsApi)
+
+  // Required as D3D12 requires a minimum of 2 samples
+  int resolveSamples(score::gfx::GraphicsApi) const noexcept;
 };
 
 SCORE_SETTINGS_PARAMETER(Model, GraphicsApi)

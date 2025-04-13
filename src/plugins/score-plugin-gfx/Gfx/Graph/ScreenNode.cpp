@@ -48,7 +48,7 @@ createRenderState(QWindow& window, GraphicsApi graphicsApi)
   state.api = graphicsApi;
 
   const auto& settings = score::AppContext().settings<Gfx::Settings::Model>();
-  state.samples = settings.getSamples();
+  state.samples = settings.resolveSamples(graphicsApi);
 
   QRhi::Flags flags{};
 #ifndef NDEBUG
@@ -105,6 +105,24 @@ createRenderState(QWindow& window, GraphicsApi graphicsApi)
     state.renderSize = window.size();
     return st;
   }
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
+  else if(graphicsApi == D3D12)
+  {
+    QRhiD3D12InitParams params;
+#if !defined(NDEBUG)
+    params.enableDebugLayer = true;
+#endif
+    // if (framesUntilTdr > 0)
+    // {
+    //   params.framesUntilKillingDeviceViaTdr = framesUntilTdr;
+    //   params.repeatDeviceKill = true;
+    // }
+    state.version = QShaderVersion(50);
+    state.rhi = QRhi::create(QRhi::D3D12, &params, flags);
+    state.renderSize = window.size();
+    return st;
+  }
+#endif
 #endif
 
 #ifdef Q_OS_DARWIN
@@ -467,7 +485,7 @@ void ScreenNode::updateGraphicsAPI(GraphicsApi api)
     if(this->m_window->state)
     {
       const int samples
-          = score::AppContext().settings<Gfx::Settings::Model>().getSamples();
+          = score::AppContext().settings<Gfx::Settings::Model>().resolveSamples(api);
 
       if(this->m_window->state->samples != samples)
       {

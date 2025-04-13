@@ -65,6 +65,9 @@ Gfx::Settings::GraphicsApis::operator QStringList() const noexcept
 
 #ifdef Q_OS_WIN
   lst += D3D11;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
+  lst += D3D12;
+#endif
 #endif
 
 #if defined(Q_OS_MACOS) || defined(Q_OS_IOS)
@@ -115,6 +118,23 @@ Model::Model(QSettings& set, const score::ApplicationContext& ctx)
   score::setupDefaultSettings(set, Parameters::list(), *this);
 }
 
+int Model::resolveSamples(score::gfx::GraphicsApi api) const noexcept
+{
+#if !defined(_WIN32)
+  return m_Samples;
+#else
+  if(api != score::gfx::GraphicsApi::D3D12)
+  {
+    [[likely]];
+    return m_Samples;
+  }
+  else
+  {
+    return std::max(m_Samples, 2);
+  }
+#endif
+}
+
 score::gfx::GraphicsApi Model::graphicsApiEnum() const noexcept
 {
   const auto apis = GraphicsApis{};
@@ -135,6 +155,10 @@ score::gfx::GraphicsApi Model::graphicsApiEnum() const noexcept
   else if(m_GraphicsApi == apis.D3D11)
   {
     return score::gfx::D3D11;
+  }
+  else if(m_GraphicsApi == apis.D3D12)
+  {
+    return score::gfx::D3D12;
   }
   else
   {

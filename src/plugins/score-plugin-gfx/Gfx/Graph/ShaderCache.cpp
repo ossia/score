@@ -66,6 +66,7 @@ ShaderCache::Baker::Baker(GraphicsApi api, const QShaderVersion& version)
       baker.setGeneratedShaders({{QShader::SpirvShader, version}});
       break;
     case GraphicsApi::D3D11:
+    case GraphicsApi::D3D12:
       baker.setGeneratedShaders({{QShader::HlslShader, version}});
       break;
     case GraphicsApi::Metal:
