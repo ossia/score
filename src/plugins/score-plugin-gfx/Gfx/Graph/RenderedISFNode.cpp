@@ -294,6 +294,7 @@ std::pair<Pass, Pass> RenderedISFNode::createPass(
   // Create the main pass
   {
     // Render target for the pass
+    bool createdRt{};
     TextureRenderTarget renderTarget;
     if(auto rt = ossia::get_if<TextureRenderTarget>(&target))
     {
@@ -309,13 +310,29 @@ std::pair<Pass, Pass> RenderedISFNode::createPass(
       renderTarget.texture->setName("RenderedISFNode::createPass::renderTarget.texture");
       renderTarget.renderTarget->setName(
           "RenderedISFNode::createPass::renderTarget.renderTarget");
+      createdRt = true;
     }
 
-    auto [v, s] = score::gfx::makeShaders(renderer.state, n.m_vertexS, n.m_fragmentS);
-    auto pip = score::gfx::buildPipeline(
-        renderer, renderer.defaultTriangle(), v, s, renderTarget, pubo, m_materialUBO,
-        allSamplers(passSamplers, 1));
-    ret.first = Pass{renderTarget, pip, pubo};
+    try
+    {
+      auto [v, s] = score::gfx::makeShaders(renderer.state, n.m_vertexS, n.m_fragmentS);
+      auto pip = score::gfx::buildPipeline(
+          renderer, renderer.defaultTriangle(), v, s, renderTarget, pubo, m_materialUBO,
+          allSamplers(passSamplers, 1));
+
+      ret.first = Pass{renderTarget, pip, pubo};
+    }
+    catch(...)
+    {
+      pubo->destroy();
+      delete pubo;
+      if(createdRt)
+      {
+        renderTarget.release();
+        m_innerPassTargets.pop_back();
+      }
+      return {};
+    }
   }
 
   // If necessary create the alternative pass
@@ -391,8 +408,8 @@ void RenderedISFNode::initPasses(
     }
     else
     {
-      passes.samplers.push_back(
-          initPassSampler(n, pass, renderer, cur_pos, mainTexSize, res));
+      auto sampler = initPassSampler(n, pass, renderer, cur_pos, mainTexSize, res);
+      passes.samplers.push_back(sampler);
     }
   }
 
@@ -402,10 +419,43 @@ void RenderedISFNode::initPasses(
     auto& pass = passes.samplers[i];
     const auto [p1, p2]
         = createPass(renderer, passes.samplers, pass, previousPassIsPersistent);
-    passes.passes.push_back(p1);
-    passes.altPasses.push_back(p2);
+    if(p1.p.pipeline)
+    {
+      passes.passes.push_back(p1);
+      passes.altPasses.push_back(p2);
 
-    previousPassIsPersistent = model_passes[i].persistent;
+      previousPassIsPersistent = model_passes[i].persistent;
+    }
+    else
+    {
+      int n = passes.passes.size();
+      for(int i = 0; i < n; i++)
+      {
+        auto& pass = passes.passes[i];
+        auto& altpass = passes.altPasses[i];
+
+        if(pass.p.srb != altpass.p.srb)
+        {
+          altpass.p.srb->deleteLater();
+        }
+
+        pass.p.release();
+
+        if(pass.processUBO)
+          pass.processUBO->deleteLater();
+        if(pass.p.srb != altpass.p.srb)
+        {
+          altpass.p.srb->deleteLater();
+        }
+
+        if(auto p = ossia::get_if<PersistSampler>(&passes.samplers[i]))
+          delete p->sampler;
+
+        pass.p.release();
+      }
+
+      return;
+    }
   }
 
   SCORE_ASSERT(passes.passes.size() == passes.samplers.size());
@@ -660,14 +710,14 @@ void RenderedISFNode::runInitialPasses(
   // Even with a single output if a node renders to two "edges"..
 
   // Check if we just have one pass (thus nothing to render here).
-  SCORE_ASSERT(!this->m_passes.empty());
   if(this->m_passes[0].second.passes.size() == 1)
-  {
     return;
-  }
 
   auto it = ossia::find_if(this->m_passes, [&](auto& p) { return p.first == &edge; });
-  SCORE_ASSERT(it != this->m_passes.end());
+  // Maybe the shader could not be created
+  if(it == this->m_passes.end())
+    return;
+
   auto& [passes, altPasses, _] = it->second;
 
   // Draw the passes
@@ -717,7 +767,9 @@ void RenderedISFNode::runRenderPass(
     RenderList& renderer, QRhiCommandBuffer& cb, Edge& edge)
 {
   auto it = ossia::find_if(this->m_passes, [&](auto& p) { return p.first == &edge; });
-  SCORE_ASSERT(it != this->m_passes.end());
+  // Maybe the shader could not be created
+  if(it == this->m_passes.end())
+    return;
   auto& [passes, altPasses, _] = it->second;
 
   // Draw the last pass
@@ -930,10 +982,16 @@ void SimpleRenderedISFNode::initPass(
   pubo->create();
 
   // Create the main pass
-  auto [v, s] = score::gfx::makeShaders(renderer.state, n.m_vertexS, n.m_fragmentS);
-  auto pip = score::gfx::buildPipeline(
-      renderer, *m_mesh, v, s, renderTarget, pubo, m_materialUBO, allSamplers());
-  m_passes.emplace_back(&edge, Pass{renderTarget, pip, pubo});
+  try
+  {
+    auto [v, s] = score::gfx::makeShaders(renderer.state, n.m_vertexS, n.m_fragmentS);
+    auto pip = score::gfx::buildPipeline(
+        renderer, *m_mesh, v, s, renderTarget, pubo, m_materialUBO, allSamplers());
+    m_passes.emplace_back(&edge, Pass{renderTarget, pip, pubo});
+  }
+  catch(...)
+  {
+  }
 }
 
 void SimpleRenderedISFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
@@ -990,8 +1048,6 @@ void SimpleRenderedISFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& 
 void SimpleRenderedISFNode::update(
     RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge)
 {
-  SCORE_ASSERT(m_passes.size() > 0);
-
   n.standardUBO.passIndex = 0;
   n.standardUBO.frameIndex++;
   auto sz = renderer.renderSize(edge);
@@ -1100,8 +1156,10 @@ void SimpleRenderedISFNode::runRenderPass(
     RenderList& renderer, QRhiCommandBuffer& cb, Edge& edge)
 {
   auto it = ossia::find_if(this->m_passes, [&](auto& p) { return p.first == &edge; });
-  SCORE_ASSERT(m_passes.size() > 0);
-  SCORE_ASSERT(it != this->m_passes.end());
+  // Maybe the shader could not be created
+  if(it == this->m_passes.end())
+    return;
+
   auto& pass = it->second;
 
   // Draw the last pass
