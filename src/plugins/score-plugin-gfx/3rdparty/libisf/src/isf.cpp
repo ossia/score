@@ -104,12 +104,14 @@ vec4 DATE = isf_process_uniforms.DATE;
 #define IMG_SIZE(tex) isf_material_uniforms._ ## tex ## _imgRect.zw
 
 #if defined(QSHADER_SPIRV)
+#define isf_FragCoord vec2(gl_FragCoord.x, isf_process_uniforms.RENDERSIZE.y - gl_FragCoord.y)
 #define ISF_FIXUP_TEXCOORD(coord) vec2((coord).x, 1. - (coord).y)
 #define IMG_THIS_PIXEL(tex) texture(tex, ISF_FIXUP_TEXCOORD(isf_FragNormCoord))
 #define IMG_THIS_NORM_PIXEL(tex) texture(tex, ISF_FIXUP_TEXCOORD(isf_FragNormCoord))
-#define IMG_PIXEL(tex, coord) texture(tex, ISF_FIXUP_TEXCOORD(coord) / isf_process_uniforms.RENDERSIZE)
+#define IMG_PIXEL(tex, coord) texture(tex, ISF_FIXUP_TEXCOORD(coord / isf_process_uniforms.RENDERSIZE))
 #define IMG_NORM_PIXEL(tex, coord) texture(tex, ISF_FIXUP_TEXCOORD(coord))
 #else
+#define isf_FragCoord gl_FragCoord
 #define IMG_THIS_PIXEL(tex) texture(tex, isf_FragNormCoord)
 #define IMG_THIS_NORM_PIXEL(tex) texture(tex, isf_FragNormCoord)
 #define IMG_PIXEL(tex, coord) texture(tex, (coord) / isf_process_uniforms.RENDERSIZE)
@@ -776,6 +778,9 @@ void parser::parse_isf()
   using namespace std::literals;
 
   auto fragWithoutISF = parse_isf_header(m_sourceFragment);
+
+  static const std::regex gl_FragCoord("gl_FragCoord");
+  fragWithoutISF = std::regex_replace(fragWithoutISF, gl_FragCoord, "isf_FragCoord");
 
   // There is always one pass at least
   if(m_desc.passes.empty())
