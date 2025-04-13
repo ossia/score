@@ -342,8 +342,9 @@ void ProcessNode::process(int32_t port, const ossia::geometry_spec& v)
 {
   if(this->geometry != v || this->geometryChanged == 0)
   {
+    qDebug() << (typeid(*this)).name() << " geometry change ";
     this->geometry = v;
-    ++this->geometryChanged;
+    geometryChange();
   }
 }
 

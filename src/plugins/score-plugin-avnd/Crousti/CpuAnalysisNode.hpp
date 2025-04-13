@@ -2,6 +2,7 @@
 
 #if SCORE_PLUGIN_GFX
 #include <Crousti/GfxNode.hpp>
+#include <Gfx/Graph/VideoNode.hpp>
 
 namespace oscr
 {
@@ -40,7 +41,7 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
     return it->second;
   }
 
-  template <typename Tex>
+  template <avnd::cpu_fixed_format_texture Tex>
   void createInput(
       score::gfx::RenderList& renderer, int k, const Tex& texture_spec, QSize size)
   {
@@ -49,6 +50,20 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
         = QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource;
     auto texture = renderer.state.rhi->newTexture(
         gpp::qrhi::textureFormat<Tex>(), size, 1, flags);
+    SCORE_ASSERT(texture->create());
+    m_rts[port]
+        = score::gfx::createRenderTarget(renderer.state, texture, renderer.samples());
+  }
+
+  template <avnd::cpu_raw_texture Tex>
+  void createInput(
+      score::gfx::RenderList& renderer, int k, const Tex& texture_spec, QSize size)
+  {
+    auto port = parent.input[k];
+    static constexpr auto flags
+        = QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource;
+    auto texture
+        = renderer.state.rhi->newTexture(QRhiTexture::R32F, size, 1, flags); // FIXME
     SCORE_ASSERT(texture->create());
     m_rts[port]
         = score::gfx::createRenderTarget(renderer.state, texture, renderer.samples());
@@ -63,7 +78,7 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
     return it->second.texture;
   }
 
-  void loadInputTexture(avnd::cpu_texture auto& cpu_tex, int k)
+  void loadInputTexture(avnd::cpu_fixed_format_texture auto& cpu_tex, int k)
   {
     auto& buf = m_readbacks[k].data;
     if(buf.size() != 4 * cpu_tex.width * cpu_tex.height)
@@ -74,6 +89,30 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
     {
       cpu_tex.bytes = reinterpret_cast<unsigned char*>(buf.data());
       cpu_tex.changed = true;
+    }
+  }
+
+  std::vector<std::shared_ptr<score::gfx::RefcountedFrame>> m_texFrame;
+  void loadInputTexture(avnd::cpu_raw_texture auto& cpu_tex, int k)
+  {
+    SCORE_ASSERT(this->parent.input.size() > k);
+    if(m_texFrame.size() <= k)
+      m_texFrame.resize(k + 1);
+    for(score::gfx::Edge* edge : this->parent.input[k]->edges)
+    {
+      if(auto buf = dynamic_cast<score::gfx::BufferNode*>(edge->source->node))
+      {
+        auto old_frame = m_texFrame[k];
+        auto texFrame = buf->reader.currentFrame();
+        if(texFrame && texFrame->frame)
+        {
+          cpu_tex.bytesize = texFrame->frame->linesize[0];
+          cpu_tex.bytes = texFrame->frame->data[0];
+          cpu_tex.changed = true;
+        }
+        if(old_frame)
+          old_frame->use_count--;
+      }
     }
   }
 
@@ -91,6 +130,7 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
     avnd::cpu_texture_input_introspection<Node_T>::for_all(
         avnd::get_inputs<Node_T>(state), [&]<typename F>(F& t) {
       QSize sz = renderer.state.renderSize;
+      using texture_type = std::remove_cvref_t<decltype(t.texture)>;
       if constexpr(requires {
                      t.request_width;
                      t.request_height;
@@ -99,8 +139,9 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
         sz.rwidth() = t.request_width;
         sz.rheight() = t.request_height;
       }
+
       createInput(renderer, k, t.texture, sz);
-      if constexpr(avnd::cpu_fixed_format_texture<decltype(t.texture)>)
+      if constexpr(avnd::cpu_fixed_format_texture<texture_type>)
       {
         t.texture.width = sz.width();
         t.texture.height = sz.height();
@@ -156,6 +197,10 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
     for(auto [port, rt] : m_rts)
       rt.release();
     m_rts.clear();
+
+    for(auto texFrame : m_texFrame)
+      texFrame->use_count--;
+    m_texFrame.clear();
   }
 
   void inputAboutToFinish(

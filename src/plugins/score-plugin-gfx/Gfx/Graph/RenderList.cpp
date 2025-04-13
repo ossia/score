@@ -365,6 +365,10 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
 
   update(*updateBatch);
 
+  // FIXME if we want to do more complicated things this is not correct
+  // We should do a proper topological sort, and group together all the nodes that are going
+  // to be part of the same render pass
+
   // For each texture input port
   //  For all previous node
   //   Update
@@ -463,6 +467,24 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
           SCORE_ASSERT(updateBatch);
         }
         node_was_rendered = true;
+      }
+      else if(input->type == Types::Geometry)
+      {
+        for(auto edge : input->edges)
+        {
+          // TODO: PCL: we could sum the geometries technically
+          auto renderer = edge->source->node->renderedNodes[this];
+          qDebug() << "geometry: " << typeid(*renderer).name();
+        }
+      }
+      else if(input->type == Types::Buffer)
+      {
+        for(auto edge : input->edges)
+        {
+          // TODO: PCL: we could sum the geometries technically
+          auto renderer = edge->source->node->renderedNodes[this];
+          qDebug() << "buffer: " << typeid(*renderer).name();
+        }
       }
     }
 
