@@ -37,9 +37,7 @@ void LibraryHandler::addPath(std::string_view path)
   Library::ProcessData pdata;
   pdata.prettyName
       = QString::fromUtf8(file.completeBaseName.data(), file.completeBaseName.size());
-
   pdata.key = Metadata<ConcreteKey_k, Filter::Model>::get();
-  pdata.author = "ISF";
   pdata.customData = QString::fromUtf8(path.data(), path.size());
   categories.add(file, std::move(pdata));
 }

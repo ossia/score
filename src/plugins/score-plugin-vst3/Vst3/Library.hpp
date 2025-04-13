@@ -21,15 +21,9 @@ class LibraryHandler final
     constexpr static const auto key = Metadata<ConcreteKey_k, Model>::get();
 
     auto name = QString::fromStdString(cls.name());
-    auto vendor = QString::fromStdString(cls.vendor());
-    auto desc = QString::fromStdString(cls.version());
     auto uid = QString::fromStdString(cls.ID().toString());
 
-    //qDebug() << "UID: " << name << uid << (int)cls.ID().data()[0]<< (int)cls.ID().data()[1]<< (int)cls.ID().data()[12];
-
-    Library::ProcessData classdata{{key, name, uid}, {}, vendor, desc};
-    if(parent.author.isEmpty())
-      parent.author = vendor;
+    Library::ProcessData classdata{{key, name, uid}, {}};
     if(vst.classInfo.size() == 1)
       parent.customData = uid;
     Library::addToLibrary(parent, std::move(classdata));
@@ -55,7 +49,7 @@ class LibraryHandler final
       {
         if(vst.isValid)
         {
-          Library::ProcessData parent_data{{key, vst.name, QString{}}, {}, {}, {}};
+          Library::ProcessData parent_data{{key, vst.name, QString{}}, {}};
 
           const int numClasses = vst.classInfo.size();
           switch(numClasses)

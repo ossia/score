@@ -41,12 +41,12 @@ class LibraryHandler final : public Library::LibraryInterface
     {
       // Already sorted through the map
       auto& cat = parent.emplace_back(
-          Library::ProcessData{Process::ProcessData{{}, category.first, {}}, {}, {}},
+          Library::ProcessData{Process::ProcessData{{}, category.first, {}}, {}},
           &parent);
       for(auto& plug : category.second)
       {
         Library::addToLibrary(
-            cat, Library::ProcessData{Process::ProcessData{key, plug, plug}, {}, {}});
+            cat, Library::ProcessData{Process::ProcessData{key, plug, plug}, {}});
       }
     }
   }

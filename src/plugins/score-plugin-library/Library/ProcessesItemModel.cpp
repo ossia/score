@@ -55,7 +55,7 @@ ProcessNode& ProcessesItemModel::addCategory(const QString& c)
       continue;
 
     // Otherwise add it
-    auto new_node = &node->emplace_back(ProcessData{{{}, cat, {}}, icon, {}, {}}, node);
+    auto new_node = &node->emplace_back(ProcessData{{{}, cat, {}}, icon}, node);
     node = new_node;
     icon = {}; // Icon only the first time
   }
@@ -88,7 +88,7 @@ void ProcessesItemModel::rescan()
     for(auto p : e.second)
     {
       cat.emplace_back(
-          ProcessData{{p->concreteKey(), p->prettyName(), {}}, QIcon{}, {}, {}}, &cat);
+          ProcessData{{p->concreteKey(), p->prettyName(), {}}, QIcon{}}, &cat);
     }
   }
   endResetModel();
@@ -127,19 +127,16 @@ void ProcessesItemModel::on_newPlugin(const Process::ProcessModelFactory& fact)
   {
     auto& cat = *it;
     cat.emplace_back(
-        ProcessData{{fact.concreteKey(), fact.prettyName(), {}}, QIcon{}, {}, {}}, &cat);
+        ProcessData{{fact.concreteKey(), fact.prettyName(), {}}, QIcon{}}, &cat);
   }
   else
   {
     auto& cat = m_root.emplace_back(
         ProcessData{
-            {{}, fact.category(), {}},
-            Process::getCategoryIcon(fact.category()),
-            {},
-            {}},
+            {{}, fact.category(), {}}, Process::getCategoryIcon(fact.category())},
         &m_root);
     cat.emplace_back(
-        ProcessData{{fact.concreteKey(), fact.prettyName(), {}}, QIcon{}, {}, {}}, &cat);
+        ProcessData{{fact.concreteKey(), fact.prettyName(), {}}, QIcon{}}, &cat);
   }
 }
 

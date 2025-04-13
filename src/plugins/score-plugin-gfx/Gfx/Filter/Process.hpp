@@ -73,8 +73,11 @@ private:
   ProcessedProgram m_processedProgram;
 };
 
-using ProcessFactory = Process::ProcessFactory_T<Gfx::Filter::Model>;
-
+struct ProcessFactory final : Process::ProcessFactory_T<Gfx::Filter::Model>
+{
+public:
+  Process::Descriptor descriptor(QString) const noexcept override;
+};
 }
 
 #include <Scenario/Commands/ScriptEditCommand.hpp>

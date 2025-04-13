@@ -358,6 +358,31 @@ void Model::setupIsf(
 
   // m_inlets.push_back(new GeometryInlet{Id<Process::Port>(i), this});
 }
+
+Process::Descriptor ProcessFactory::descriptor(QString path) const noexcept
+{
+  auto base = Metadata<Process::Descriptor_k, Filter::Model>::get();
+
+  QFile f{path};
+  if(!f.open(QIODevice::ReadOnly))
+    return base;
+
+  try
+  {
+    auto [_, desc] = isf::parser::parse_isf_header(score::readFileAsString(f));
+    if(!desc.credits.empty())
+      base.author = QString::fromStdString(desc.credits);
+    if(!desc.description.empty())
+      base.description = QString::fromStdString(desc.credits);
+    for(auto& cat : desc.categories)
+      base.tags.push_back(QString::fromStdString(cat));
+  }
+  catch(...)
+  {
+  }
+
+  return base;
+}
 }
 
 template <>

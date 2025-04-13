@@ -31,8 +31,6 @@ namespace Library
 struct ProcessData : Process::ProcessData
 {
   QIcon icon;
-  QString author;
-  QString description;
 };
 
 using ProcessNode = TreeNode<ProcessData>;
@@ -115,7 +113,7 @@ struct Subcategories
       else
       {
         auto& category = Library::addToLibrary(
-            *parent, Library::ProcessData{{{}, parentFolder, {}}, {}, {}, {}});
+            *parent, Library::ProcessData{{{}, parentFolder, {}}, {}});
         Library::addToLibrary(category, std::move(pdata));
         categories[parentFolder] = &category;
       }
@@ -139,7 +137,7 @@ struct Subcategories
       else
       {
         auto& category = Library::addToLibrary(
-            *parent, Library::ProcessData{{{}, parentFolder, {}}, {}, {}, {}});
+            *parent, Library::ProcessData{{{}, parentFolder, {}}, {}});
         Library::addToLibrary(category, std::move(pdata));
         categories[parentFolder] = &category;
       }
