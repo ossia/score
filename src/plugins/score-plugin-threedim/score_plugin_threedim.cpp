@@ -56,7 +56,6 @@ class SSynthLibraryHandler final
     Library::ProcessData pdata;
     pdata.prettyName = file.completeBaseName();
     pdata.key = Metadata<ConcreteKey_k, proc>::get();
-    pdata.author = "Structure Synth";
     pdata.customData = score::readFileAsQString(f);
     categories.add(file, std::move(pdata));
   }
@@ -122,7 +121,6 @@ class OBJLibraryHandler final
     Library::ProcessData pdata;
     pdata.prettyName = file.completeBaseName();
     pdata.key = Metadata<ConcreteKey_k, proc>::get();
-    pdata.author = "OBJ 3D File";
     pdata.customData = p;
     categories.add(file, std::move(pdata));
   }

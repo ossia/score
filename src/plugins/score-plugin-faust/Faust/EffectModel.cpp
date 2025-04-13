@@ -75,6 +75,8 @@ EffectProcessFactory_T<Faust::FaustEffectModel>::descriptor(QString txt) const n
     d.author = desc.author;
   else if(!desc.copyright.isEmpty())
     d.author = desc.copyright;
+  else
+    d.author = "Faust DSP author";
 
   if(!desc.description.isEmpty())
     d.description = desc.description;

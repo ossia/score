@@ -33,18 +33,17 @@ class LibraryHandler final
     auto& plug = ctx.applicationPlugin<vst::ApplicationPlugin>();
 
     auto reset_plugs = [=, &plug, &parent] {
-      auto& fx = parent.emplace_back(
-          Library::ProcessData{{{}, "Effects", {}}, {}, {}, {}}, &parent);
+      auto& fx
+          = parent.emplace_back(Library::ProcessData{{{}, "Effects", {}}, {}}, &parent);
       auto& inst = parent.emplace_back(
-          Library::ProcessData{{{}, "Instruments", {}}, {}, {}, {}}, &parent);
+          Library::ProcessData{{{}, "Instruments", {}}, {}}, &parent);
       for(const auto& vst : plug.vst_infos)
       {
         if(vst.isValid)
         {
           const auto& name
               = vst.displayName.isEmpty() ? vst.prettyName : vst.displayName;
-          Library::ProcessData pdata{
-              {key, name, QString::number(vst.uniqueID)}, {}, vst.author, {}};
+          Library::ProcessData pdata{{key, name, QString::number(vst.uniqueID)}, {}};
           if(vst.isSynth)
           {
             Library::addToLibrary(inst, std::move(pdata));

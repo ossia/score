@@ -75,14 +75,10 @@ public:
         else
           m_name.setText(desc.prettyName);
 
-        if(!d->author.isEmpty())
-          m_author.setText(tr("Provided by ") + d->author);
-        else if(!desc.author.isEmpty())
+        if(!desc.author.isEmpty())
           m_author.setText(tr("Provided by ") + desc.author);
 
-        if(!d->description.isEmpty())
-          m_description.setText(d->description);
-        else if(!desc.description.isEmpty())
+        if(!desc.description.isEmpty())
           m_description.setText(desc.description);
 
         QString io;

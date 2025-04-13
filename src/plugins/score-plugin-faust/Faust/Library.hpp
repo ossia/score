@@ -56,30 +56,11 @@ class LibraryHandler final
       pdata.key = Metadata<ConcreteKey_k, FaustEffectModel>::get();
       pdata.customData = QString::fromUtf8(
           file.absoluteFilePath.data(), file.absoluteFilePath.size());
-      pdata.author = "Faust standard library";
-
+      /*
       auto desc = initDescriptor(pdata.customData);
       if(!desc.prettyName.isEmpty())
         pdata.prettyName = desc.prettyName;
-
-      if(!desc.author.isEmpty())
-        pdata.author = desc.author;
-      else if(!desc.copyright.isEmpty())
-        pdata.author = desc.copyright;
-
-      if(!desc.description.isEmpty())
-        pdata.description = desc.description;
-      if(!desc.version.isEmpty())
-      {
-        pdata.description += "\n";
-        pdata.description += desc.version;
-      }
-      if(!desc.license.isEmpty())
-      {
-        pdata.description += "\n";
-        pdata.description += desc.license;
-      }
-
+*/
       QMetaObject::invokeMethod(
           qApp, [this, path = std::move(path), pdata = std::move(pdata)]() mutable {
         score::PathInfo file{path};
