@@ -191,12 +191,16 @@ void Graph::createSingleRenderList(
 }
 
 void Graph::createOutputRenderList(OutputNode& output)
+try
 {
   if(output.renderState())
   {
     if(auto rl = createRenderList(&output, output.renderState()))
       m_renderers.push_back(std::move(rl));
   }
+}
+catch(...)
+{
 }
 
 void Graph::recreateOutputRenderList(OutputNode& output)

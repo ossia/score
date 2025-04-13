@@ -10,6 +10,7 @@
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/tools/DeleteAll.hpp>
+#include <score/tools/File.hpp>
 
 #include <QFileInfo>
 
