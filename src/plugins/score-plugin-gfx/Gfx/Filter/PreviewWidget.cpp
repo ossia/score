@@ -3,6 +3,9 @@
 #include <Gfx/Filter/PreviewWidget.hpp>
 #include <Gfx/Graph/ISFNode.hpp>
 #include <Gfx/Graph/ScreenNode.hpp>
+#include <Gfx/Settings/Model.hpp>
+
+#include <score/application/ApplicationContext.hpp>
 
 #include <ossia/network/value/value.hpp>
 
@@ -122,10 +125,7 @@ ShaderPreviewWidget::ShaderPreviewWidget(const QString& path, QWidget* parent)
 {
   ShaderSource program = programFromFragmentShaderPath(path, {});
 
-  score::gfx::GraphicsApi api = score::gfx::GraphicsApi::OpenGL;
-  QShaderVersion version = QShaderVersion(330);
-  if(const auto& [processed, error]
-     = ProgramCache::instance().get(api, version, program);
+  if(const auto& [processed, error] = ProgramCache::instance().get(program);
      bool(processed))
   {
     m_program = *processed;
@@ -145,10 +145,7 @@ ShaderPreviewWidget::ShaderPreviewWidget(const Process::Preset& preset, QWidget*
   auto vert = obj["Vertex"].GetString();
   ShaderSource program{vert, frag};
 
-  score::gfx::GraphicsApi api = score::gfx::GraphicsApi::Vulkan;
-  QShaderVersion version = QShaderVersion(100);
-  if(const auto& [processed, error]
-     = ProgramCache::instance().get(api, version, program);
+  if(const auto& [processed, error] = ProgramCache::instance().get(program);
      bool(processed))
   {
     m_program = *std::move(processed);
@@ -205,7 +202,8 @@ void ShaderPreviewWidget::setup()
     i++;
   }
 
-  m_graph.createAllRenderLists(score::gfx::GraphicsApi::OpenGL);
+  const auto& settings = score::AppContext().settings<Gfx::Settings::Model>();
+  m_graph.createAllRenderLists(settings.graphicsApiEnum());
 
   // UI setup
   auto lay = new QHBoxLayout(this);

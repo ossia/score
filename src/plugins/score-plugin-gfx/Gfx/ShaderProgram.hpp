@@ -125,8 +125,7 @@ struct SCORE_PLUGIN_GFX_EXPORT ProgramCache
 {
   static ProgramCache& instance() noexcept;
   std::pair<std::optional<ProcessedProgram>, QString>
-  get(const score::gfx::GraphicsApi api, QShaderVersion version,
-      const ShaderSource& program) noexcept;
+  get(const ShaderSource& program) noexcept;
 
   ossia::hash_map<ShaderSource, ProcessedProgram> programs;
 };

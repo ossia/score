@@ -73,9 +73,7 @@ Model::~Model() { }
 
 bool Model::validate(const ShaderSource& txt) const noexcept
 {
-  score::gfx::GraphicsApi api = score::gfx::GraphicsApi::Vulkan;
-  QShaderVersion version = QShaderVersion(100);
-  const auto& [_, error] = ProgramCache::instance().get(api, version, txt);
+  const auto& [_, error] = ProgramCache::instance().get(txt);
   if(!error.isEmpty())
   {
     this->errorMessage(error);
@@ -106,13 +104,9 @@ void Model::setFragment(QString f)
 
 Process::ScriptChangeResult Model::setProgram(const ShaderSource& f)
 {
-  score::gfx::GraphicsApi api = score::gfx::GraphicsApi::Vulkan;
-  QShaderVersion version = QShaderVersion(100);
-
   setVertex(f.vertex);
   setFragment(f.fragment);
-  if(const auto& [processed, error] = ProgramCache::instance().get(api, version, f);
-     bool(processed))
+  if(const auto& [processed, error] = ProgramCache::instance().get(f); bool(processed))
   {
     ossia::flat_map<QString, ossia::value> previous_values;
     for(auto inl : m_inlets)
