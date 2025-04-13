@@ -18,6 +18,7 @@ struct Preset;
 }
 namespace Gfx
 {
+class ShaderPreviewManager;
 class ShaderPreviewWidget : public QWidget
 {
 public:
@@ -29,12 +30,7 @@ private:
   void setup();
   void timerEvent(QTimerEvent* event) override;
 
-  std::vector<score::gfx::Node*> m_previewInputs;
-  std::unique_ptr<score::gfx::ISFNode> m_isf{};
-  std::unique_ptr<score::gfx::ScreenNode> m_screen{};
-  std::vector<std::unique_ptr<score::gfx::Node>> m_textures;
-  score::gfx::Graph m_graph{};
-  ProcessedProgram m_program;
+  std::shared_ptr<QWindow> m_window;
 };
 
 }
