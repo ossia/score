@@ -3,6 +3,8 @@
 source ci/common.setup.sh
 
 export CLANG_VERSION=19
+echo "deb http://deb.debian.org/debian bookworm-backports main" | $SUDO tee -a /etc/apt/sources.list
+
 $SUDO apt-get update -qq
 $SUDO apt-get install -qq --force-yes wget lsb-release software-properties-common gnupg
 wget https://apt.llvm.org/llvm.sh
@@ -12,7 +14,7 @@ $SUDO ./llvm.sh $CLANG_VERSION
 # libsdl2-dev libsdl2-2.0-0
 $SUDO apt-get update -qq
 $SUDO apt-get install -qq --force-yes \
-     binutils gcc g++ cmake \
+     binutils gcc g++ cmake/bookworm-backports \
      libasound-dev \
      ninja-build \
      libclang-$CLANG_VERSION-dev llvm-$CLANG_VERSION-dev \
