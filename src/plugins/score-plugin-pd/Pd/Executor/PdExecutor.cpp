@@ -249,18 +249,24 @@ PdGraphNode::PdGraphNode(
 
   SCORE_ASSERT(pd_this);
   libpd_set_floathook([](const char* recv, float f) {
+    if(!m_currentInstance)
+      return;
     if(auto v = m_currentInstance->get_value_port(recv))
     {
       v->write_value(f, {}); // TODO set correct offset
     }
   });
   libpd_set_banghook([](const char* recv) {
+    if(!m_currentInstance)
+      return;
     if(auto v = m_currentInstance->get_value_port(recv))
     {
       v->write_value(ossia::impulse{}, {}); // TODO set correct offset
     }
   });
   libpd_set_symbolhook([](const char* recv, const char* sym) {
+    if(!m_currentInstance)
+      return;
     if(auto v = m_currentInstance->get_value_port(recv))
     {
       v->write_value(std::string(sym), {}); // TODO set correct offset
@@ -268,6 +274,8 @@ PdGraphNode::PdGraphNode(
   });
 
   libpd_set_listhook([](const char* recv, int argc, t_atom* argv) {
+    if(!m_currentInstance)
+      return;
     if(auto v = m_currentInstance->get_value_port(recv))
     {
       v->write_value(
@@ -275,6 +283,8 @@ PdGraphNode::PdGraphNode(
     }
   });
   libpd_set_messagehook([](const char* recv, const char* msg, int argc, t_atom* argv) {
+    if(!m_currentInstance)
+      return;
     if(auto v = m_currentInstance->get_value_port(recv))
     {
       v->write_value(
@@ -283,6 +293,8 @@ PdGraphNode::PdGraphNode(
   });
 
   libpd_set_noteonhook([](int channel, int pitch, int velocity) {
+    if(!m_currentInstance)
+      return;
     if(auto v = m_currentInstance->get_midi_out())
     {
       v->messages.push_back(
@@ -291,6 +303,8 @@ PdGraphNode::PdGraphNode(
     }
   });
   libpd_set_controlchangehook([](int channel, int controller, int value) {
+    if(!m_currentInstance)
+      return;
     if(auto v = m_currentInstance->get_midi_out())
     {
       v->messages.push_back(
@@ -299,30 +313,40 @@ PdGraphNode::PdGraphNode(
   });
 
   libpd_set_programchangehook([](int channel, int value) {
+    if(!m_currentInstance)
+      return;
     if(auto v = m_currentInstance->get_midi_out())
     {
       v->messages.push_back(libremidi::from_midi1::program_change(channel, value));
     }
   });
   libpd_set_pitchbendhook([](int channel, int value) {
+    if(!m_currentInstance)
+      return;
     if(auto v = m_currentInstance->get_midi_out())
     {
       v->messages.push_back(libremidi::from_midi1::pitch_bend(channel, value));
     }
   });
   libpd_set_aftertouchhook([](int channel, int value) {
+    if(!m_currentInstance)
+      return;
     if(auto v = m_currentInstance->get_midi_out())
     {
       v->messages.push_back(libremidi::from_midi1::aftertouch(channel, value));
     }
   });
   libpd_set_polyaftertouchhook([](int channel, int pitch, int value) {
+    if(!m_currentInstance)
+      return;
     if(auto v = m_currentInstance->get_midi_out())
     {
       v->messages.push_back(libremidi::from_midi1::poly_pressure(channel, pitch, value));
     }
   });
   libpd_set_midibytehook([](int port, int byte) {
+    if(!m_currentInstance)
+      return;
     // TODO
   });
 }

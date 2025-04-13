@@ -912,7 +912,10 @@ Process::ScriptChangeResult ProcessModel::setScript(const QString& script)
   libpd_set_instance(m_instance->instance);
 
   if(m_instance->file_handle)
+  {
     libpd_closefile(m_instance->file_handle);
+    m_instance->file_handle = nullptr;
+  }
 
   // Enable audio
   libpd_init_audio(
