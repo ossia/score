@@ -60,40 +60,40 @@ layout(location = 0) out vec4 isf_FragColor;
   static constexpr auto defaultUniforms = R"_(
 // Shared uniform buffer for the whole render window
 layout(std140, binding = 0) uniform renderer_t {
-  mat4 clipSpaceCorrMatrix;
+  mat4 clipSpaceCorrMatrix_;
 
-  vec2 RENDERSIZE;
+  vec2 RENDERSIZE_;
 } isf_renderer_uniforms;
 
 // This dance is needed because otherwise
 // spirv-cross may generate different struct names in the vertex & fragment, causing crashes..
 // but we have to keep compat with ISF
-mat4 clipSpaceCorrMatrix = isf_renderer_uniforms.clipSpaceCorrMatrix;
+#define clipSpaceCorrMatrix isf_renderer_uniforms.clipSpaceCorrMatrix_
 
 // Time-dependent uniforms, only relevant during execution
 layout(std140, binding = 1) uniform process_t {
-  float TIME;
-  float TIMEDELTA;
-  float PROGRESS;
+  float TIME_;
+  float TIMEDELTA_;
+  float PROGRESS_;
 
-  int PASSINDEX;
-  int FRAMEINDEX;
+  int PASSINDEX_;
+  int FRAMEINDEX_;
 
-  vec2 RENDERSIZE;
-  vec4 DATE;
-  vec4 MOUSE;
-  vec4 CHANNEL_TIME;
-  float SAMPLERATE;
+  vec2 RENDERSIZE_;
+  vec4 DATE_;
+  vec4 MOUSE_;
+  vec4 CHANNEL_TIME_;
+  float SAMPLERATE_;
 } isf_process_uniforms;
  
-float TIME = isf_process_uniforms.TIME;
-float TIMEDELTA = isf_process_uniforms.TIMEDELTA;
-float PROGRESS = isf_process_uniforms.PROGRESS;
-int PASSINDEX = isf_process_uniforms.PASSINDEX;
-int FRAMEINDEX = isf_process_uniforms.FRAMEINDEX;
-vec2 RENDERSIZE = isf_process_uniforms.RENDERSIZE;
-vec4 MOUSE = isf_process_uniforms.MOUSE;
-vec4 DATE = isf_process_uniforms.DATE;
+#define TIME isf_process_uniforms.TIME_
+#define TIMEDELTA isf_process_uniforms.TIMEDELTA_
+#define PROGRESS isf_process_uniforms.PROGRESS_
+#define PASSINDEX isf_process_uniforms.PASSINDEX_
+#define FRAMEINDEX isf_process_uniforms.FRAMEINDEX_
+#define RENDERSIZE isf_process_uniforms.RENDERSIZE_
+#define MOUSE isf_process_uniforms.MOUSE_
+#define DATE isf_process_uniforms.DATE_
 )_";
 
   static constexpr auto defaultFunctions =
@@ -102,17 +102,17 @@ vec4 DATE = isf_process_uniforms.DATE;
 #define IMG_SIZE(tex) isf_material_uniforms._ ## tex ## _imgRect.zw
 
 #if defined(QSHADER_SPIRV)
-#define isf_FragCoord vec2(gl_FragCoord.x, isf_process_uniforms.RENDERSIZE.y - gl_FragCoord.y)
+#define isf_FragCoord vec2(gl_FragCoord.x, RENDERSIZE.y - gl_FragCoord.y)
 #define ISF_FIXUP_TEXCOORD(coord) vec2((coord).x, 1. - (coord).y)
 #define IMG_THIS_PIXEL(tex) texture(tex, ISF_FIXUP_TEXCOORD(isf_FragNormCoord))
 #define IMG_THIS_NORM_PIXEL(tex) texture(tex, ISF_FIXUP_TEXCOORD(isf_FragNormCoord))
-#define IMG_PIXEL(tex, coord) texture(tex, ISF_FIXUP_TEXCOORD(coord / isf_process_uniforms.RENDERSIZE))
+#define IMG_PIXEL(tex, coord) texture(tex, ISF_FIXUP_TEXCOORD(coord / RENDERSIZE))
 #define IMG_NORM_PIXEL(tex, coord) texture(tex, ISF_FIXUP_TEXCOORD(coord))
 #else
 #define isf_FragCoord gl_FragCoord
 #define IMG_THIS_PIXEL(tex) texture(tex, isf_FragNormCoord)
 #define IMG_THIS_NORM_PIXEL(tex) texture(tex, isf_FragNormCoord)
-#define IMG_PIXEL(tex, coord) texture(tex, (coord) / isf_process_uniforms.RENDERSIZE)
+#define IMG_PIXEL(tex, coord) texture(tex, (coord) / RENDERSIZE)
 #define IMG_NORM_PIXEL(tex, coord) texture(tex, coord)
 #endif
 )_";
@@ -610,18 +610,15 @@ struct create_val_visitor_450
   return_type operator()(const audioFFT_input&) { return {"uniform sampler2D", true}; }
 };
 
-std::string parser::parse_isf_header(std::string_view source)
+std::pair<int, descriptor> parser::parse_isf_header(std::string_view source)
 {
   using namespace std::literals;
-
   auto start = source.find("/*");
   if(start == std::string::npos)
     throw invalid_file{"Missing start comment"};
   auto end = source.find("*/", start);
   if(end == std::string::npos)
     throw invalid_file{"Unfinished comment"};
-  std::string fragWithoutISF = std::string(source);
-  fragWithoutISF.erase(0, end + 2);
 
   // First comes the json part
   auto doc = sajson::parse(
@@ -654,9 +651,7 @@ std::string parser::parse_isf_header(std::string_view source)
       (it->second)(d, root.get_object_value(i));
     }
   }
-  m_desc = d;
-
-  return fragWithoutISF;
+  return {end, std::move(d)};
 }
 
 static ossia::flat_set<std::string>
@@ -717,7 +712,11 @@ void parser::parse_geometry_filter()
 {
   using namespace std::literals;
 
-  auto geomWithoutISF = parse_isf_header(m_source_geometry_filter);
+  auto [end, desc] = parse_isf_header(m_source_geometry_filter);
+  m_desc = std::move(desc);
+
+  std::string& geomWithoutISF = m_source_geometry_filter;
+  geomWithoutISF.erase(0, end + 2);
 
   // There is always one pass at least
   if(m_desc.passes.empty())
@@ -775,7 +774,11 @@ void parser::parse_isf()
 {
   using namespace std::literals;
 
-  auto fragWithoutISF = parse_isf_header(m_sourceFragment);
+  auto [end, desc] = parse_isf_header(m_sourceFragment);
+  m_desc = std::move(desc);
+
+  std::string& fragWithoutISF = m_sourceFragment;
+  fragWithoutISF.erase(0, end + 2);
 
   boost::replace_all(fragWithoutISF, "gl_FragCoord", "isf_FragCoord");
 
@@ -914,9 +917,6 @@ void parser::parse_isf()
   m_fragment += fragWithoutISF;
 
   // Replace the special ISF stuff
-  static const boost::regex img_size("IMG_SIZE\\((.+?)\\)");
-
-  m_fragment = boost::regex_replace(m_fragment, img_size, "_$1_imgRect.zw");
   boost::replace_all(m_fragment, "gl_FragColor", "isf_FragColor");
   boost::replace_all(m_fragment, "vv_Frag", "isf_Frag");
 }

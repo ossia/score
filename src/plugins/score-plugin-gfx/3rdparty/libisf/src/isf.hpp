@@ -148,13 +148,12 @@ public:
   std::string vertex() const;
   std::string fragment() const;
   std::string geometry_filter() const;
+  static std::pair<int, descriptor> parse_isf_header(std::string_view source);
 
 private:
   void parse_isf();
   void parse_shadertoy();
   void parse_glsl_sandbox();
   void parse_geometry_filter();
-
-  std::string parse_isf_header(std::string_view source);
 };
 }
