@@ -67,19 +67,28 @@ inline std::string_view mapAsStringView(QFile& f) noexcept
   }
 }
 
-inline QString readFileAsQString(QFile& f) noexcept
+inline std::string readFileAsString(QFile& f) noexcept
 {
+  std::string str;
   const auto sz = f.size();
   if(auto data = f.map(0, sz))
   {
-    auto str = QString::fromUtf8(reinterpret_cast<const char*>(data), sz);
+    str = std::string(reinterpret_cast<const char*>(data), sz);
     f.unmap(data);
-    return str;
   }
-  else
+  return str;
+}
+
+inline QString readFileAsQString(QFile& f) noexcept
+{
+  QString str;
+  const auto sz = f.size();
+  if(auto data = f.map(0, sz))
   {
-    return {};
+    str = QString::fromUtf8(reinterpret_cast<const char*>(data), sz);
+    f.unmap(data);
   }
+  return str;
 }
 
 }
