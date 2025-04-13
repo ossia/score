@@ -123,18 +123,26 @@ struct PreviewPresetVisitor
 };
 }
 
+ShaderPreviewManager* g_shaderPreview{};
+bool g_shaderPreviewScheduledForDeletion{};
+
 // Creating and destroying QRhi is fairly expensive, so
 // we keep one around when we are showing ISF previews
 class ShaderPreviewManager : public QObject
 {
 public:
   ShaderPreviewManager()
+      : QObject{qApp}
   {
     m_screen = std::make_unique<score::gfx::ScreenNode>(true);
     m_graph.addNode(m_screen.get());
   }
 
-  ~ShaderPreviewManager() { }
+  ~ShaderPreviewManager()
+  {
+    g_shaderPreview = nullptr;
+    g_shaderPreviewScheduledForDeletion = false;
+  }
 
   void load(const QString& path)
   {
@@ -201,9 +209,9 @@ public:
     m_previewEdges.clear();
 
     // FIXME memleak ?
-    for(auto in : m_previewInputs)
+    for(auto& in : m_textures)
     {
-      m_graph.removeNode(in);
+      m_graph.removeNode(in.get());
     }
 
     if(m_isf)
@@ -218,8 +226,7 @@ public:
     m_graph.createAllRenderLists(settings.graphicsApiEnum());
 
     m_isf.reset();
-    qDeleteAll(m_previewInputs);
-    m_previewInputs.clear();
+    m_textures.clear();
 
     // Recreate what we need
     m_graph.addNode(m_screen.get());
@@ -240,9 +247,7 @@ public:
       auto node = ossia::visit(PreviewInputVisitor{image_i}, input.data);
       if(node)
       {
-
         m_graph.addNode(node);
-        m_previewInputs.push_back(node);
 
         m_graph.addEdge(node->output[0], m_isf->input[i]);
         m_previewEdges.emplace_back(node->output[0], m_isf->input[i]);
@@ -301,7 +306,6 @@ public:
   }
 
 private:
-  std::vector<score::gfx::Node*> m_previewInputs;
   std::unique_ptr<score::gfx::ISFNode> m_isf{};
   std::unique_ptr<score::gfx::ScreenNode> m_screen{};
   std::vector<std::unique_ptr<score::gfx::Node>> m_textures;
@@ -309,16 +313,13 @@ private:
   ProcessedProgram m_program;
 };
 
-ShaderPreviewManager* g_shaderPreview{};
-bool g_shaderPreviewScheduledForDeletion{};
-
 ShaderPreviewWidget::ShaderPreviewWidget(const QString& path, QWidget* parent)
     : QWidget{parent}
 {
+  g_shaderPreviewScheduledForDeletion = false;
   if(!g_shaderPreview)
   {
     g_shaderPreview = new ShaderPreviewManager;
-    g_shaderPreviewScheduledForDeletion = false;
   }
   g_shaderPreview->load(path);
   setup();
@@ -327,10 +328,10 @@ ShaderPreviewWidget::ShaderPreviewWidget(const QString& path, QWidget* parent)
 ShaderPreviewWidget::ShaderPreviewWidget(const Process::Preset& preset, QWidget* parent)
     : QWidget{parent}
 {
+  g_shaderPreviewScheduledForDeletion = false;
   if(!g_shaderPreview)
   {
     g_shaderPreview = new ShaderPreviewManager;
-    g_shaderPreviewScheduledForDeletion = false;
   }
   g_shaderPreview->load(preset);
   setup();
