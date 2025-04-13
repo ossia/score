@@ -168,7 +168,7 @@ void GfxContext::recompute_graph()
   recompute_edges();
 
   auto& settings = m_context.app.settings<Gfx::Settings::Model>();
-  auto api = settings.graphicsApiEnum();
+  const auto api = settings.graphicsApiEnum();
 
   m_graph->createAllRenderLists(api);
 
