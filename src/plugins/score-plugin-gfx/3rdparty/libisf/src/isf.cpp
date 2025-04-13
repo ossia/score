@@ -5,10 +5,10 @@
 #include <ossia/detail/flat_set.hpp>
 
 #include <boost/algorithm/string.hpp>
+#include <boost/regex.hpp>
 
 #include <array>
 #include <iostream>
-#include <regex>
 #include <sstream>
 #include <unordered_map>
 #include <vector>
@@ -777,8 +777,7 @@ void parser::parse_isf()
 
   auto fragWithoutISF = parse_isf_header(m_sourceFragment);
 
-  static const std::regex gl_FragCoord("gl_FragCoord");
-  fragWithoutISF = std::regex_replace(fragWithoutISF, gl_FragCoord, "isf_FragCoord");
+  boost::replace_all(fragWithoutISF, "gl_FragCoord", "isf_FragCoord");
 
   // There is always one pass at least
   if(m_desc.passes.empty())
@@ -915,13 +914,11 @@ void parser::parse_isf()
   m_fragment += fragWithoutISF;
 
   // Replace the special ISF stuff
-  static const std::regex img_size("IMG_SIZE\\((.+?)\\)");
-  static const std::regex gl_FragColor("gl_FragColor");
-  static const std::regex vv_Frag("vv_Frag");
+  static const boost::regex img_size("IMG_SIZE\\((.+?)\\)");
 
-  m_fragment = std::regex_replace(m_fragment, img_size, "_$1_imgRect.zw");
-  m_fragment = std::regex_replace(m_fragment, gl_FragColor, "isf_FragColor");
-  m_fragment = std::regex_replace(m_fragment, vv_Frag, "isf_Frag");
+  m_fragment = boost::regex_replace(m_fragment, img_size, "_$1_imgRect.zw");
+  boost::replace_all(m_fragment, "gl_FragColor", "isf_FragColor");
+  boost::replace_all(m_fragment, "vv_Frag", "isf_Frag");
 }
 
 void parser::parse_shadertoy()
@@ -952,26 +949,17 @@ void parser::parse_shadertoy()
 
   m_fragment += m_sourceFragment;
 
-  m_fragment
-      = std::regex_replace(m_fragment, std::regex("iGlobalTime"), "TIME"); // float
-  m_fragment
-      = std::regex_replace(m_fragment, std::regex("iGlobalDelta"), "TIMEDELTA"); // float
-  m_fragment = std::regex_replace(
-      m_fragment, std::regex("iGlobalFrame"), "FRAMEINDEX"); // float -> int
-  m_fragment = std::regex_replace(m_fragment, std::regex("iDate"), "DATE"); // vec4
-  m_fragment
-      = std::regex_replace(m_fragment, std::regex("iSampleRate"), "SAMPLERATE"); // float
-  m_fragment = std::regex_replace(
-      m_fragment, std::regex("iResolution"), "RENDERSIZE"); // vec3 -> vec2
+  boost::replace_all(m_fragment, "iGlobalTime", "TIME");        // float
+  boost::replace_all(m_fragment, "iGlobalDelta", "TIMEDELTA");  // float
+  boost::replace_all(m_fragment, "iGlobalFrame", "FRAMEINDEX"); // float -> int
+  boost::replace_all(m_fragment, "iDate", "DATE");              // vec4
+  boost::replace_all(m_fragment, "iSampleRate", "SAMPLERATE");  // float
+  boost::replace_all(m_fragment, "iResolution", "RENDERSIZE");  // vec3 -> vec2
 
-  m_fragment = std::regex_replace(m_fragment, std::regex("iMouse"), "MOUSE"); // vec4
-  m_fragment = std::regex_replace(
-      m_fragment, std::regex("iChannelTime"), "CHANNELTIME"); // float[4]
-  m_fragment = std::regex_replace(
-      m_fragment, std::regex("iChannelResolution"),
-      "CHANNELRESOLUTION"); // vec3[4]
-  m_fragment = std::regex_replace(
-      m_fragment, std::regex("iChannel0"), "CHANNEL"); // sampler2D / 3D
+  boost::replace_all(m_fragment, "iMouse", "MOUSE");                         // vec4
+  boost::replace_all(m_fragment, "iChannelTime", "CHANNELTIME");             // float[4]
+  boost::replace_all(m_fragment, "iChannelResolution", "CHANNELRESOLUTION"); // vec3[4]
+  boost::replace_all(m_fragment, "iChannel0", "CHANNEL"); // sampler2D / 3D
 
   m_fragment +=
       R"_(
@@ -1002,9 +990,9 @@ void parser::parse_glsl_sandbox()
 
   m_fragment += m_sourceFragment;
 
-  m_fragment = std::regex_replace(m_fragment, std::regex("time"), "TIME");
-  m_fragment = std::regex_replace(m_fragment, std::regex("resolution"), "RENDERSIZE");
-  m_fragment = std::regex_replace(m_fragment, std::regex("mouse"), "MOUSE");
+  boost::replace_all(m_fragment, "time", "TIME");
+  boost::replace_all(m_fragment, "resolution", "RENDERSIZE");
+  boost::replace_all(m_fragment, "mouse", "MOUSE");
 
   m_vertex =
       R"_(
