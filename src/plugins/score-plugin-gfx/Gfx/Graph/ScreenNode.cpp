@@ -578,7 +578,11 @@ public:
 
       void main()
       {
+#if defined(QSHADER_SPIRV)
+        fragColor = texture(tex, vec2(v_texcoord.x, 1. - v_texcoord.y));
+#else
         fragColor = texture(tex, vec2(v_texcoord.x, v_texcoord.y));
+#endif
       }
       )_";
 
