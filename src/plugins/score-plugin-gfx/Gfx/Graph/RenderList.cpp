@@ -79,7 +79,6 @@ void RenderList::init()
 
   m_minTexSize = state.rhi->resourceLimit(QRhi::ResourceLimit::TextureSizeMin);
   m_maxTexSize = state.rhi->resourceLimit(QRhi::ResourceLimit::TextureSizeMax);
-  m_flip = state.rhi->isYUpInFramebuffer();
 
   m_outputUBO
       = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(OutputUBO));

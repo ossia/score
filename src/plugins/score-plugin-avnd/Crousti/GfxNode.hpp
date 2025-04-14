@@ -34,6 +34,11 @@ void main()
 {
   v_texcoord = texcoord;
   gl_Position = renderer.clipSpaceCorrMatrix * vec4(position.xy, 0.0, 1.);
+  // Note: here we want to invert the input CPU image in GPU in every case,
+  // so we actually do the opposite than other vertex shaders
+#if !(defined(QSHADER_HLSL) || defined(QSHADER_MSL))
+  gl_Position.y = - gl_Position.y;
+#endif
 }
 )_";
 

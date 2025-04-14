@@ -1216,6 +1216,27 @@ inline void initGfxPorts(auto* self, auto& input, auto& output)
     output.push_back(new score::gfx::Port{self, {}, type, {}});
   });
 }
+
+inline void inplaceMirror(unsigned char* bytes, int width, int height)
+{
+  if(width < 1 || height <= 1)
+    return;
+  const size_t row_size = width * 4;
+
+  auto temp_row = (unsigned char*)alloca(row_size);
+  auto top = bytes;
+  auto bottom = bytes + (height - 1) * row_size;
+
+  while(top < bottom)
+  {
+    memcpy(temp_row, top, row_size);
+    memcpy(top, bottom, row_size);
+    memcpy(bottom, temp_row, row_size);
+
+    top += row_size;
+    bottom -= row_size;
+  }
+}
 }
 
 #endif
