@@ -107,6 +107,29 @@ void main ()
 }
 )_";
 
+static const constexpr auto images_tiled_vertex_shader = R"_(#version 450
+layout(location = 0) in vec2 position;
+layout(location = 1) in vec2 texcoord;
+
+layout(location = 0) out vec2 v_texcoord;
+
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+out gl_PerVertex { vec4 gl_Position; };
+
+void main()
+{
+  v_texcoord = texcoord;
+  gl_Position = renderer.clipSpaceCorrMatrix * vec4(position.xy, 0.0, 1.);
+#if defined(QSHADER_HLSL) || defined(QSHADER_MSL)
+  gl_Position.y = - gl_Position.y;
+#endif
+}
+)_";
+
 static const constexpr auto images_tiled_fragment_shader = R"_(#version 450
 layout(std140, binding = 0) uniform renderer_t {
   mat4 clipSpaceCorrMatrix;
@@ -354,7 +377,7 @@ private:
           rs, images_single_vertex_shader, images_single_fragment_shader);
     else
       std::tie(v, f) = score::gfx::makeShaders(
-          rs, TexturedTriangle{}.defaultVertexShader(), images_tiled_fragment_shader);
+          rs, images_tiled_vertex_shader, images_tiled_fragment_shader);
 
     // Create the sampler in which we are going to put the texture
     {
@@ -369,7 +392,7 @@ private:
     // Initialize the passes for the "tiled" case
     {
       auto [v, f] = score::gfx::makeShaders(
-          rs, TexturedTriangle{}.defaultVertexShader(), images_tiled_fragment_shader);
+          rs, images_tiled_vertex_shader, images_tiled_fragment_shader);
       for(Edge* edge : this->node.output[0]->edges)
       {
         auto rt = renderer.renderTargetForOutput(*edge);
@@ -556,7 +579,7 @@ private:
           rs, images_single_vertex_shader, images_single_fragment_shader);
     else
       std::tie(v, f) = score::gfx::makeShaders(
-          rs, TexturedTriangle{}.defaultVertexShader(), images_tiled_fragment_shader);
+          rs, images_tiled_vertex_shader, images_tiled_fragment_shader);
 
     // Create the sampler in which we are going to put the texture
     {
@@ -574,7 +597,7 @@ private:
     // Initialize the passes for the "tiled" case
     {
       auto [v, f] = score::gfx::makeShaders(
-          rs, TexturedTriangle{}.defaultVertexShader(), images_tiled_fragment_shader);
+          rs, images_tiled_vertex_shader, images_tiled_fragment_shader);
       for(Edge* edge : this->node.output[0]->edges)
       {
         auto rt = renderer.renderTargetForOutput(*edge);
