@@ -417,20 +417,23 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
         // For nodes that perform multiple rendering passes,
         // pre-computations in compute shaders, etc... run them now.
         // Most nodes don't do anything there.
-        for(auto [edge, renderer] : prevRenderers)
+        for(auto [edge, prev_renderer] : prevRenderers)
         {
           commands.resourceUpdate(updateBatch);
           updateBatch = state.rhi->nextResourceUpdateBatch();
 
-          renderer->runInitialPasses(*this, commands, updateBatch, *edge);
+          prev_renderer->runInitialPasses(*this, commands, updateBatch, *edge);
         }
 
         // Then do the final render of each node on the edge sink's render target
         // We *have* to do that in a single beginPass / endPass as every beginPass
         // issues a clearBuffers command.
         {
-          SCORE_ASSERT(node->renderedNodes.find(this) != node->renderedNodes.end());
-          auto rt = node->renderedNodes.find(this)->second->renderTargetForInput(*input);
+          auto rendered = node->renderedNodes.find(this);
+          SCORE_ASSERT(rendered != node->renderedNodes.end());
+
+          NodeRenderer* renderer = rendered->second;
+          auto rt = renderer->renderTargetForInput(*input);
 
           SCORE_ASSERT(rt.renderTarget);
 
@@ -438,17 +441,14 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
           updateBatch = nullptr;
 
           QRhiResourceUpdateBatch* res{};
-          for(auto [edge, node] : prevRenderers)
+          for(auto [edge, prev_renderer] : prevRenderers)
           {
-            node->runRenderPass(*this, commands, *edge);
+            prev_renderer->runRenderPass(*this, commands, *edge);
           }
 
           // Allow the node to do some actions, for instance if a readback
           // of a node's input is going to be needed.
           {
-            SCORE_ASSERT(node->renderedNodes.find(this) != node->renderedNodes.end());
-            NodeRenderer* renderer = node->renderedNodes.find(this)->second;
-
             renderer->inputAboutToFinish(*this, *input, res);
           }
           commands.endPass(res);
@@ -508,6 +508,8 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
   if(renderdoc_api)
     renderdoc_api->EndFrameCapture(NULL, NULL);
 #endif
+
+  frame++;
 }
 
 void RenderList::update(QRhiResourceUpdateBatch& res)

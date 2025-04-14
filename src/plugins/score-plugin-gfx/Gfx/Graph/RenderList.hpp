@@ -135,6 +135,8 @@ public:
 
   QSize renderSize(const Edge* e) const noexcept;
 
+  int64_t frame = 0;
+
 private:
   OutputUBO m_outputUBOData;
 
