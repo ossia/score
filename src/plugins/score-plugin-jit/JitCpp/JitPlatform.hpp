@@ -126,7 +126,7 @@ static inline void
 populateCompileOptions(std::vector<std::string>& args, CompilerOptions opts)
 {
   args.push_back("-triple");
-  args.push_back(llvm::sys::getDefaultTargetTriple());
+  args.push_back(llvm::sys::getProcessTriple());
 
   args.push_back("-target-cpu");
   args.push_back(llvm::sys::getHostCPUName().lower());
