@@ -71,20 +71,25 @@ cp "$APP_DIR/usr/share/pixmaps/ossia-score.png" "$APP_DIR/"
 (
   cd "$APP_DIR"
   mkdir -p ./usr/lib/qt6/qml
-  
+
   # Fonts
   mkdir -p ./usr/bin/lib/fonts
   cp -rf $SOURCE_DIR/src/lib/resources/*.otf ./usr/bin/lib/fonts/
   cp -rf $SOURCE_DIR/src/lib/resources/*.ttf ./usr/bin/lib/fonts/
-  
+
   ldd usr/bin/ossia-score | grep "=>" | awk '{print $3}' | grep so |  xargs -I '{}' cp -v '{}' ./usr/lib || true
-  
+
   find "$BUILD_DIR" -name 'libsuil-0.so.0' -exec cp -rf '{}' ./usr/lib/ \;
   mkdir -p ./usr/lib/suil-0
   find "$BUILD_DIR" -name 'libsuil_x11_in_qt6.so' -exec cp -rf '{}' ./usr/lib/suil-0/ \;
-  
+
   # Taken from Subsurface appimage
   # The following are assumed to be part of the base system
+  rm -f usr/lib/libGL* || true
+  rm -f usr/lib/libgbm* || true
+  rm -f usr/lib/libv4l2* || true
+  rm -f usr/lib/libwayland* || true
+  rm -f usr/lib/libjpeg* || true
   rm -f usr/lib/libcom_err.so.2 || true
   rm -f usr/lib/libcrypt.so.1 || true
   rm -f usr/lib/libdl.so.2 || true
@@ -161,20 +166,20 @@ cp "$APP_DIR/usr/share/pixmaps/ossia-score.png" "$APP_DIR/"
   rm -f usr/lib/libsystemd.so.0 || true
   rm -f usr/lib/libOpenGL.so.0 || true
   # rm -f usr/lib/libtinfo.so.5 || true
-  
+
   rm -rf usr/lib/cmake || true
   rm -rf usr/lib/qt6 || true
-  
+
   ls ./usr/lib/
-  
+
   # Delete potentially dangerous libraries
   rm -f usr/lib/libgobject* usr/lib/libc.so.* || true
-  
+
   find . -name '*.a' -exec rm -rf {} \;
   find . -name '*.cmake' -exec rm -rf {} \;
   find . -name 'build' -exec rm -rf {} \;
   rm -rf usr/Ossia
-  
+
   cd usr/ ; find . -type f -exec sed -i -e 's|/usr/lib|././/lib|g' {} \; ; cd ..
   cd usr/ ; find . -type f -exec sed -i -e "s|$QTDIR/lib|././/lib|g" {} \; ; cd ..
 )
