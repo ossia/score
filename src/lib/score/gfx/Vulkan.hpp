@@ -11,7 +11,7 @@ class QVulkanInstance;
 namespace score::gfx
 {
 SCORE_LIB_BASE_EXPORT
-QVulkanInstance* staticVulkanInstance();
+QVulkanInstance* staticVulkanInstance(bool create = true);
 }
 #else
 #define QT_HAS_VULKAN 0
