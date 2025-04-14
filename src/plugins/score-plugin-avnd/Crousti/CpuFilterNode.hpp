@@ -261,18 +261,17 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
     auto& parent = node();
     auto& rhi = *renderer.state.rhi;
 
+    // Insert a synchronisation point to allow readbacks to complete
+    rhi.finish();
+
     // If we are paused, we don't run the processor implementation.
     if(parent.last_message.token.date == m_last_time)
-    {
       return;
-    }
+
     m_last_time = parent.last_message.token.date;
 
     // Fetch input textures (if any)
     {
-      // Insert a synchronisation point to allow readbacks to complete
-      rhi.finish();
-
       // Copy the readback output inside the structure
       // TODO it would be much better to do this inside the readback's
       // "completed" callback.
