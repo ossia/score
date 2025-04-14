@@ -286,6 +286,13 @@ Application::~Application()
   svc.taskpool.reset();
   svc.threadpool.reset();
 
+#if QT_HAS_VULKAN
+  if(auto vk = score::gfx::staticVulkanInstance(false))
+  {
+    delete vk;
+  }
+
+#endif
   delete m_app;
 }
 
