@@ -213,7 +213,7 @@ void VideoNodeRenderer::createPipelines(RenderList& r)
     auto shaders = m_gpu->init(r);
     SCORE_ASSERT(m_p.empty());
     score::gfx::defaultPassesInit(
-        m_p, this->node().output[0]->edges, r, r.defaultTriangle(), shaders.first,
+        m_p, this->node().output[0]->edges, r, r.defaultQuad(), shaders.first,
         shaders.second, m_processUBO, m_materialUBO, m_gpu->samplers);
   }
 }

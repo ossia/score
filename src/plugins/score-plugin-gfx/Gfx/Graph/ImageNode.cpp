@@ -141,6 +141,7 @@ void main ()
   // Aspect ratio
   // Our mesh is: -1, -1;  1, -1;  -1, 1;  1, 1;
 
+  // FIXME incorrect
   pos.x /= viewportAspect;
   pos.y /= imageAspect;
 

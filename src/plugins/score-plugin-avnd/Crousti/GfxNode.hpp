@@ -32,13 +32,12 @@ out gl_PerVertex { vec4 gl_Position; };
 
 void main()
 {
+#if defined(QSHADER_SPIRV) || defined(QSHADER_GLSL)
+  v_texcoord = vec2(texcoord.x, 1. - texcoord.y);
+#else
   v_texcoord = texcoord;
-  gl_Position = renderer.clipSpaceCorrMatrix * vec4(position.xy, 0.0, 1.);
-  // Note: here we want to invert the input CPU image in GPU in every case,
-  // so we actually do the opposite than other vertex shaders
-#if !(defined(QSHADER_HLSL) || defined(QSHADER_MSL))
-  gl_Position.y = - gl_Position.y;
 #endif
+  gl_Position = renderer.clipSpaceCorrMatrix * vec4(position.xy, 0.0, 1.);
 }
 )_";
 
@@ -52,7 +51,6 @@ vec2 renderSize;
 } renderer;
 
 layout(binding=3) uniform sampler2D y_tex;
-
 
 void main ()
 {
