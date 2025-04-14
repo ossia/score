@@ -4,6 +4,7 @@
 
 #include <score/application/ApplicationServices.hpp>
 #include <score/command/Validity/ValidityChecker.hpp>
+#include <score/gfx/Vulkan.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/Skin.hpp>
 #include <score/model/path/ObjectIdentifier.hpp>
