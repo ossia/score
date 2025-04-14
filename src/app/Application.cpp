@@ -4,7 +4,6 @@
 
 #include <score/application/ApplicationServices.hpp>
 #include <score/command/Validity/ValidityChecker.hpp>
-#include <score/gfx/Vulkan.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/Skin.hpp>
 #include <score/model/path/ObjectIdentifier.hpp>
@@ -39,11 +38,18 @@
 #include <QUrl>
 #include <qconfig.h>
 #include <qobjectdefs.h>
+
 #if defined(QT_FEATURE_thread)
 #if QT_FEATURE_thread == 1
 #include <QThreadPool>
 #endif
 #endif
+
+#include <score/gfx/Vulkan.hpp>
+#if QT_HAS_VULKAN && __has_include(<QVulkanInstance>)
+#include <QVulkanInstance>
+#endif
+
 #include <spdlog/sinks/stdout_sinks.h>
 #include <spdlog/spdlog.h>
 
