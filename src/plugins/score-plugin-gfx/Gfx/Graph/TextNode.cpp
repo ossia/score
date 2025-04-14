@@ -158,9 +158,11 @@ private:
     // If images haven't been uploaded yet, upload them.
 
     auto& n = static_cast<const TextNode&>(this->node);
-    if(n.mustRerender)
+    if(int val = n.mustRerender.load(std::memory_order_acquire);
+       val != this->m_renderIndex)
     {
       rerender();
+      this->m_renderIndex = val;
     }
 
     if(!m_uploaded)
@@ -190,6 +192,7 @@ private:
 
   QImage m_img;
   std::vector<std::pair<score::gfx::Edge*, QRhiTexture*>> m_textures;
+  int m_renderIndex{-1};
   bool m_uploaded = false;
 };
 
@@ -213,7 +216,7 @@ void TextNode::process(Message&& msg)
           // Text
           {
             text = QString::fromStdString(ossia::convert<std::string>(*val));
-            mustRerender = true;
+            mustRerender++;
           }
           break;
         }
@@ -221,7 +224,7 @@ void TextNode::process(Message&& msg)
           // Font
           {
             font.setFamily(QString::fromStdString(ossia::convert<std::string>(*val)));
-            mustRerender = true;
+            mustRerender++;
           }
           break;
         }
@@ -229,7 +232,7 @@ void TextNode::process(Message&& msg)
           // Point size
           {
             font.setPointSizeF(ossia::convert<float>(*val));
-            mustRerender = true;
+            mustRerender++;
           }
           break;
         }
@@ -274,7 +277,7 @@ void TextNode::process(Message&& msg)
           {
             auto rgba = ossia::convert<ossia::vec4f>(*val);
             pen.setColor(QColor::fromRgbF(rgba[0], rgba[1], rgba[2], rgba[3]));
-            mustRerender = true;
+            mustRerender++;
           }
           break;
         }

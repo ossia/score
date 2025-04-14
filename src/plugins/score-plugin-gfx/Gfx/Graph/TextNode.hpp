@@ -35,7 +35,7 @@ public:
   QFont font;
   QPen pen;
 
-  std::atomic_bool mustRerender{true};
+  std::atomic_int64_t mustRerender{0};
 
 private:
 };
