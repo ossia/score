@@ -52,6 +52,10 @@ void on_uiMessage(
 
 uint32_t port_index(SuilController controller, const char* symbol)
 {
+  // Seen with cardinal, causes a crash in lilv_plugin_get_port_by_symbol
+  if(symbol == std::string_view{"lv2_enabled"})
+    return LV2UI_INVALID_PORT_INDEX;
+
   auto& p = score::GUIAppContext().applicationPlugin<LV2::ApplicationPlugin>();
   Model& fx = (Model&)controller;
   auto n = lilv_new_uri(p.lilv.me, symbol);
