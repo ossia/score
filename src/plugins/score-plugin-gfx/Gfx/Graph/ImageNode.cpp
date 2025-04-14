@@ -28,6 +28,7 @@ static int imageIndex(int idx, int size)
     return 0;
   }
 }
+
 static const constexpr auto images_single_vertex_shader = R"_(#version 450
 layout(location = 0) in vec2 position;
 layout(location = 1) in vec2 texcoord;
