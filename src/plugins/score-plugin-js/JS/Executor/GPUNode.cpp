@@ -256,6 +256,9 @@ void main()
 {
   v_texcoord = texcoord;
   gl_Position = renderer.clipSpaceCorrMatrix * vec4(position, 0.0, 1.);
+#if defined(QSHADER_GLSL) //defined(QSHADER_HLSL) || defined(QSHADER_MSL)
+  gl_Position.y = - gl_Position.y;
+#endif
 }
 )_";
 
@@ -272,7 +275,7 @@ layout(location = 0) out vec4 fragColor;
 
 void main ()
 {
-  fragColor = texture(y_tex, vec2(v_texcoord.x, 1. - v_texcoord.y));
+  fragColor = texture(y_tex, vec2(v_texcoord.x, v_texcoord.y));
 }
 )_";
 
