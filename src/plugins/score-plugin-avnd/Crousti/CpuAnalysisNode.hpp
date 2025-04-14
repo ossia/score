@@ -63,7 +63,7 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
     return it->second.texture;
   }
 
-  void loadInputTexture(avnd::cpu_texture auto& cpu_tex, int k)
+  void loadInputTexture(QRhi& rhi, avnd::cpu_texture auto& cpu_tex, int k)
   {
     auto& buf = m_readbacks[k].data;
     if(buf.size() != 4 * cpu_tex.width * cpu_tex.height)
@@ -73,6 +73,11 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
     else
     {
       cpu_tex.bytes = reinterpret_cast<unsigned char*>(buf.data());
+
+      if(rhi.isYUpInFramebuffer())
+        if(cpu_tex.width * cpu_tex.height > 0)
+          inplaceMirror(cpu_tex.bytes, cpu_tex.width, cpu_tex.height);
+
       cpu_tex.changed = true;
     }
   }
@@ -200,9 +205,9 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
       int k = 0;
       avnd::cpu_texture_input_introspection<Node_T>::for_all(
           avnd::get_inputs<Node_T>(state), [&](auto& t) {
-            loadInputTexture(t.texture, k);
-            k++;
-          });
+        loadInputTexture(rhi, t.texture, k);
+        k++;
+      });
     }
 
     parent.processControlIn(
