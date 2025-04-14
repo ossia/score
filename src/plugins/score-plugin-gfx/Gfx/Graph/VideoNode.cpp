@@ -199,7 +199,10 @@ void VideoFrameShare::releaseFramesToFree()
   m_framesToFree.clear();
 }
 
-VideoFrameReader::VideoFrameReader() { }
+VideoFrameReader::VideoFrameReader()
+{
+  m_timer.start();
+}
 
 VideoFrameReader::~VideoFrameReader()
 {

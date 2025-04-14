@@ -93,7 +93,9 @@ void LayerView::setData(const std::shared_ptr<AudioFile>& data)
 
 void LayerView::recompute() const
 {
-  if(Q_UNLIKELY(!m_data || width() < 2. || height() < 2. || m_zoom <= 0.))
+  if(Q_UNLIKELY(
+         !m_data || width() < 2. || height() < 2. || m_zoom <= 0.
+         || m_model.file()->sampleRate() < 1.))
     return;
 
   if(auto view = getView(*this))
