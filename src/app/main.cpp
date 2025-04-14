@@ -247,6 +247,8 @@ static void setup_suil()
       return;
 
     path = path.substr(0, last_slash);
+    if(path.ends_with("/bin"))
+      path.resize(path.size() - 3);
 
     path += "/lib/suil-0";
     if(QDir{}.exists(QString::fromStdString(path)))
