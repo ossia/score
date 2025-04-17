@@ -4,6 +4,7 @@
 #include <score/application/ApplicationContext.hpp>
 #include <score/gfx/Vulkan.hpp>
 
+#include <QGuiApplication>
 #include <QPlatformSurfaceEvent>
 #include <QTimer>
 #include <QtGui/private/qrhigles2_p.h>
@@ -81,6 +82,10 @@ Window::Window(GraphicsApi graphicsApi)
   fmt.setSamples(samples);
 
   setFormat(fmt);
+
+  if(auto platform = qGuiApp->platformName();
+     platform.contains("eglfs") || platform.contains("vkkhr"))
+    m_embeddedFullscreen = true;
 }
 
 Window::~Window()
@@ -278,6 +283,10 @@ bool Window::event(QEvent* e)
       auto ev = static_cast<QKeyEvent*>(e);
       this->key(ev->key(), ev->text());
       this->interactiveEvent(e);
+      if(ev->key() == Qt::Key_Escape)
+        if(m_embeddedFullscreen)
+          QMetaObject::invokeMethod(qGuiApp, &QCoreApplication::quit);
+
       break;
     }
     case QEvent::KeyRelease: {

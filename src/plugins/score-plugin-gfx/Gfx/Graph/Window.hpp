@@ -64,6 +64,7 @@ private:
   bool m_notExposed = false;
   bool m_newlyExposed = false;
   bool m_hasSwapChain = false;
+  bool m_embeddedFullscreen = false;
 };
 }
 
