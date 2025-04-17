@@ -257,7 +257,7 @@ void main ()
 
 const constexpr auto model_display_vertex_shader_triplanar = R"_(#version 450
 layout(location = 0) in vec3 position;
-layout(location = 1) in vec3 normal;
+layout(location = 3) in vec3 normal;
 
 layout(location = 0) out vec3 v_normal;
 layout(location = 1) out vec3 v_coords;
