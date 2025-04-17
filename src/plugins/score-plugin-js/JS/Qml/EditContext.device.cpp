@@ -110,25 +110,32 @@ void EditJsContext::createDevice(QString name, QString uuid, QJSValue obj)
   if (!doc)
     return;
 
+  auto& pl = score::AppContext().interfaces<Device::ProtocolFactoryList>();
   auto& plug = doc->plugin<Explorer::DeviceDocumentPlugin>();
+
   Device::DeviceSettings set;
   set.name = name;
   set.protocol = UuidKey<Device::ProtocolFactory>::fromString(uuid);
-  auto json = QJsonDocument::fromVariant(obj.toVariant().value<QVariantMap>()).toJson();
-
-  auto& pl = score::AppContext().interfaces<Device::ProtocolFactoryList>();
-
-  if(auto prot = pl.get(set.protocol))
+  const QVariant& var = obj.toVariant();
+  if(var.canConvert<QVariantMap>())
   {
-    auto json_doc = readJson(json);
-    JSONWriter wrt{json_doc};
-    set.deviceSpecificSettings = prot->makeProtocolSpecificSettings(wrt.toVariant());
-    if(set.deviceSpecificSettings != QVariant{})
+    auto json = QJsonDocument::fromVariant(var.value<QVariantMap>()).toJson();
+
+    if(auto prot = pl.get(set.protocol))
     {
-      auto [m, _] = macro(*doc);
-      submit(*m, new Explorer::Command::LoadDevice{plug, std::move(set)});
+      auto json_doc = readJson(json);
+      JSONWriter wrt{json_doc};
+      set.deviceSpecificSettings = prot->makeProtocolSpecificSettings(wrt.toVariant());
     }
   }
+  else if(var.canConvert<Device::DeviceSettings>())
+  {
+    set.deviceSpecificSettings
+        = var.value<Device::DeviceSettings>().deviceSpecificSettings;
+  }
+
+  auto [m, _] = macro(*doc);
+  submit(*m, new Explorer::Command::LoadDevice{plug, std::move(set)});
 }
 
 void EditJsContext::createQMLWebSocketDevice(QString name, QString text)

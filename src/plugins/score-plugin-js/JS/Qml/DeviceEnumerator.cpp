@@ -106,24 +106,25 @@ void GlobalDeviceEnumerator::reprocess()
         continue;
 
     auto enums = protocol.getEnumerators(doc);
-    for(auto& [name, enumerator] : enums)
+    for(auto& [category, enumerator] : enums)
     {
+      auto on_deviceAdded
+          = [this, category, proto = &protocol](
+                const QString& name, const Device::DeviceSettings& devs) {
+        this->deviceAdded(proto, category, name, devs);
+        this->m_known_devices[proto].emplace_back(category, name, devs);
+        m_raw_list.push_back(new DeviceIdentifier{category, name, devs, proto});
+      };
       connect(
-          enumerator, &Device::DeviceEnumerator::deviceAdded, this,
-          [this,
-           proto = &protocol](const QString& name, const Device::DeviceSettings& devs) {
-        this->deviceAdded(proto, name, devs);
-        this->m_known_devices[proto].emplace_back(name, devs);
-        m_raw_list.push_back(new DeviceIdentifier{name, devs, proto});
-      },
+          enumerator, &Device::DeviceEnumerator::deviceAdded, this, on_deviceAdded,
           Qt::QueuedConnection);
       connect(
           enumerator, &Device::DeviceEnumerator::deviceRemoved, this,
-          [this, proto = &protocol](const QString& name) {
+          [this, category, proto = &protocol](const QString& name) {
         this->deviceRemoved(proto, name);
         {
           auto& vec = this->m_known_devices[proto];
-          auto it = ossia::find_key(vec, name);
+          auto it = ossia::find_key_2(vec, category, name);
           if(it != vec.end())
             vec.erase(it);
         }
@@ -138,6 +139,8 @@ void GlobalDeviceEnumerator::reprocess()
           }
         }
       }, Qt::QueuedConnection);
+
+      enumerator->enumerate(on_deviceAdded);
     }
   }
 }

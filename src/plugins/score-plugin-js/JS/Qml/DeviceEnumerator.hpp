@@ -27,16 +27,19 @@ struct DeviceIdentifier : public QObject
   W_OBJECT(DeviceIdentifier)
 public:
   explicit DeviceIdentifier(
-      QString a, Device::DeviceSettings b, Device::ProtocolFactory* c)
-      : name{std::move(a)}
+      QString cat, QString a, Device::DeviceSettings b, Device::ProtocolFactory* c)
+      : category{std::move(cat)}
+      , name{std::move(a)}
       , settings{std::move(b)}
       , protocol{c}
   {
   }
+  QString category;
   QString name;
   Device::DeviceSettings settings;
   Device::ProtocolFactory* protocol{};
 
+  W_PROPERTY(QString, category MEMBER category)
   W_PROPERTY(QString, name MEMBER name)
   W_PROPERTY(Device::DeviceSettings, settings MEMBER settings)
   W_PROPERTY(Device::ProtocolFactory*, protocol MEMBER protocol)
@@ -55,8 +58,9 @@ public:
   W_SLOT(setContext)
 
   void deviceAdded(
-      Device::ProtocolFactory* factory, const QString& name,
-      Device::DeviceSettings settings) W_SIGNAL(deviceAdded, factory, name, settings)
+      Device::ProtocolFactory* factory, const QString& category, const QString& name,
+      Device::DeviceSettings settings)
+      W_SIGNAL(deviceAdded, factory, category, name, settings)
   void deviceRemoved(Device::ProtocolFactory* factory, const QString& name)
       W_SIGNAL(deviceRemoved, factory, name)
   QQmlListProperty<JS::DeviceIdentifier> devices();
@@ -73,7 +77,8 @@ private:
   const score::DocumentContext* doc{};
 
   std::unordered_map<
-      Device::ProtocolFactory*, std::vector<std::pair<QString, Device::DeviceSettings>>>
+      Device::ProtocolFactory*,
+      std::vector<std::tuple<QString, QString, Device::DeviceSettings>>>
       m_known_devices;
   std::unordered_map<Device::ProtocolFactory*, Device::DeviceEnumerators>
       m_current_enums;
