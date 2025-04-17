@@ -488,7 +488,8 @@ void TextureOutletFactory::setupOutletInspector(
   lay.addRow(Process::makeDeviceCombo(cond, device.list(), port, ctx, parent));
 
   auto& outlet = safe_cast<const TextureOutlet&>(port);
-  lay.addRow(new GraphPreviewWidget{outlet, ctx.plugin<Gfx::DocumentPlugin>()});
+  if(!qEnvironmentVariableIsSet("SCORE_DISABLE_SHADER_PREVIEW"))
+    lay.addRow(new GraphPreviewWidget{outlet, ctx.plugin<Gfx::DocumentPlugin>()});
 }
 }
 

@@ -45,13 +45,19 @@ void LibraryHandler::addPath(std::string_view path)
 QWidget*
 LibraryHandler::previewWidget(const QString& path, QWidget* parent) const noexcept
 {
-  return new ShaderPreviewWidget{path, parent};
+  if(!qEnvironmentVariableIsSet("SCORE_DISABLE_SHADER_PREVIEW"))
+    return new ShaderPreviewWidget{path, parent};
+  else
+    return nullptr;
 }
 
 QWidget* LibraryHandler::previewWidget(
     const Process::Preset& path, QWidget* parent) const noexcept
 {
-  return new ShaderPreviewWidget{path, parent};
+  if(!qEnvironmentVariableIsSet("SCORE_DISABLE_SHADER_PREVIEW"))
+    return new ShaderPreviewWidget{path, parent};
+  else
+    return nullptr;
 }
 
 QSet<QString> DropHandler::fileExtensions() const noexcept
