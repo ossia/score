@@ -19,7 +19,7 @@ void InvertYRenderer::init(
 {
   m_renderTarget = score::gfx::createRenderTarget(
       renderer.state, QRhiTexture::Format::RGBA8, m_inputTarget.texture->pixelSize(),
-      renderer.samples());
+      renderer.samples(), renderer.requiresDepth());
 
   const auto& mesh = renderer.defaultTriangle();
   m_mesh = renderer.initMeshBuffer(mesh, res);

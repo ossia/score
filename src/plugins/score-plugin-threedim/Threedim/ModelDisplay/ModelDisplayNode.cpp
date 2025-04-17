@@ -572,6 +572,8 @@ void main ()
 
 ModelDisplayNode::ModelDisplayNode()
 {
+  this->requiresDepth = true;
+
   input.push_back(new Port{this, nullptr, Types::Image, {}});
   input.push_back(new Port{this, nullptr, Types::Geometry, {}});
   input.push_back(new Port{this, nullptr, Types::Camera, {}});
@@ -1022,6 +1024,7 @@ private:
 
     m_inputTarget = score::gfx::createRenderTarget(
         renderer.state, rt_spec.format, rt_spec.size, renderer.samples(),
+        renderer.requiresDepth(),
         QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips);
 
     auto texture = m_inputTarget.texture;

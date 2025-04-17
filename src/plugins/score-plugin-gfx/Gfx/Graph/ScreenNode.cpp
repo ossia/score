@@ -566,7 +566,7 @@ public:
     // FIXME RGBA32F for hdr ?
     m_inputTarget = score::gfx::createRenderTarget(
         renderer.state, QRhiTexture::Format::RGBA8, renderer.state.renderSize,
-        renderer.samples());
+        renderer.samples(), renderer.requiresDepth());
 
     const auto& mesh = renderer.defaultTriangle();
     m_mesh = renderer.initMeshBuffer(mesh, res);

@@ -146,7 +146,8 @@ static std::pair<std::vector<Sampler>, int> initInputSamplers(
         SCORE_ASSERT(sampler->create());
 
         auto rt = score::gfx::createRenderTarget(
-            renderer.state, spec.format, spec.size, renderer.samples());
+            renderer.state, spec.format, spec.size, renderer.samples(),
+            renderer.requiresDepth());
         auto texture = rt.texture;
         samplers.push_back({sampler, texture});
 
@@ -305,7 +306,7 @@ std::pair<Pass, Pass> RenderedISFNode::createPass(
     {
       // Intermediary pass
       renderTarget = score::gfx::createRenderTarget(
-          renderer.state, psampler->textures[0], renderer.samples());
+          renderer.state, psampler->textures[0], renderer.samples(), false);
       m_innerPassTargets.push_back(renderTarget);
       renderTarget.texture->setName("RenderedISFNode::createPass::renderTarget.texture");
       renderTarget.renderTarget->setName(
@@ -360,7 +361,7 @@ std::pair<Pass, Pass> RenderedISFNode::createPass(
         ret.second.processUBO = ret.first.processUBO;
         ret.second.p = ret.first.p;
         ret.second.renderTarget = score::gfx::createRenderTarget(
-            renderer.state, psampler->textures[1], renderer.samples());
+            renderer.state, psampler->textures[1], renderer.samples(), false);
         m_innerPassTargets.push_back(ret.second.renderTarget);
         ret.second.renderTarget.texture->setName(
             "RenderedISFNode::createPass::ret.second.renderTarget.texture");

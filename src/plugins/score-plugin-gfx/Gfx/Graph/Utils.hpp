@@ -153,7 +153,7 @@ struct Image
  */
 SCORE_PLUGIN_GFX_EXPORT
 TextureRenderTarget
-createRenderTarget(const RenderState& state, QRhiTexture* tex, int samples);
+createRenderTarget(const RenderState& state, QRhiTexture* tex, int samples, bool depth);
 
 /**
  * @brief Create a render target from a texture format and size.
@@ -162,7 +162,7 @@ createRenderTarget(const RenderState& state, QRhiTexture* tex, int samples);
  */
 SCORE_PLUGIN_GFX_EXPORT
 TextureRenderTarget createRenderTarget(
-    const RenderState& state, QRhiTexture::Format fmt, QSize sz, int samples,
+    const RenderState& state, QRhiTexture::Format fmt, QSize sz, int samples, bool depth,
     QRhiTexture::Flags = {});
 
 SCORE_PLUGIN_GFX_EXPORT

@@ -292,7 +292,7 @@ void main ()
     // Init the texture on which we are going to render
     m_internalTex = score::gfx::createRenderTarget(
         renderer.state, QRhiTexture::RGBA32F, renderer.state.renderSize,
-        renderer.state.samples);
+        renderer.state.samples, renderer.requiresDepth());
 
     // Init basic rendering ubos
     const auto& mesh = renderer.defaultQuad();

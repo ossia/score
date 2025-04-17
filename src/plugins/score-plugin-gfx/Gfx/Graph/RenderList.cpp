@@ -135,6 +135,7 @@ void RenderList::release()
     m_initialBatch = nullptr;
   }
 
+  m_requiresDepth = false;
   m_ready = false;
   m_built = false;
 }
@@ -152,6 +153,10 @@ bool RenderList::maybeRebuild(bool force)
     // be processed
 
     init();
+
+    m_requiresDepth = false;
+    for(auto node : nodes)
+      m_requiresDepth |= node->requiresDepth;
 
     // We init the nodes in reverse orders as
     // the render targets of subsequent nodes must be initialized

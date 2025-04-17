@@ -50,8 +50,8 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
     auto texture = renderer.state.rhi->newTexture(
         gpp::qrhi::textureFormat<Tex>(), size, 1, flags);
     SCORE_ASSERT(texture->create());
-    m_rts[port]
-        = score::gfx::createRenderTarget(renderer.state, texture, renderer.samples());
+    m_rts[port] = score::gfx::createRenderTarget(
+        renderer.state, texture, renderer.samples(), renderer.requiresDepth());
   }
 
   QRhiTexture* texture(int k) const noexcept

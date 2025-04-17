@@ -7,26 +7,38 @@
 namespace score::gfx
 {
 TextureRenderTarget
-createRenderTarget(const RenderState& state, QRhiTexture* tex, int samples)
+createRenderTarget(const RenderState& state, QRhiTexture* tex, int samples, bool depth)
 {
   TextureRenderTarget ret;
+  SCORE_ASSERT(tex);
   ret.texture = tex;
 
-  ret.colorRenderBuffer = state.rhi->newRenderBuffer(
-      QRhiRenderBuffer::Color, tex->pixelSize(), samples, {}, tex->format());
-  ret.colorRenderBuffer->setName("createRenderTarget::ret.colorRenderBuffer");
-  SCORE_ASSERT(ret.colorRenderBuffer->create());
-
-  ret.depthRenderBuffer = state.rhi->newRenderBuffer(
-      QRhiRenderBuffer::DepthStencil, tex->pixelSize(), samples);
-  ret.depthRenderBuffer->setName("createRenderTarget::ret.colorRenderBuffer");
-  SCORE_ASSERT(ret.depthRenderBuffer->create());
-
   QRhiTextureRenderTargetDescription desc;
-  QRhiColorAttachment color0(ret.colorRenderBuffer);
-  color0.setResolveTexture(tex);
-  desc.setDepthStencilBuffer(ret.depthRenderBuffer);
-  desc.setColorAttachments({color0});
+  if(samples == 1)
+  {
+    QRhiColorAttachment color0(tex);
+    desc.setColorAttachments({color0});
+  }
+  else
+  {
+    ret.colorRenderBuffer = state.rhi->newRenderBuffer(
+        QRhiRenderBuffer::Color, tex->pixelSize(), samples, {}, tex->format());
+    ret.colorRenderBuffer->setName("createRenderTarget::ret.colorRenderBuffer");
+    SCORE_ASSERT(ret.colorRenderBuffer->create());
+
+    QRhiColorAttachment color0(ret.colorRenderBuffer);
+    color0.setResolveTexture(tex);
+    desc.setColorAttachments({color0});
+  }
+  if(depth)
+  {
+    ret.depthRenderBuffer = state.rhi->newRenderBuffer(
+        QRhiRenderBuffer::DepthStencil, tex->pixelSize(), samples);
+    ret.depthRenderBuffer->setName("createRenderTarget::ret.colorRenderBuffer");
+    SCORE_ASSERT(ret.depthRenderBuffer->create());
+
+    desc.setDepthStencilBuffer(ret.depthRenderBuffer);
+  }
 
   auto renderTarget = state.rhi->newTextureRenderTarget(desc);
   renderTarget->setName("createRenderTarget::renderTarget");
@@ -45,13 +57,13 @@ createRenderTarget(const RenderState& state, QRhiTexture* tex, int samples)
 }
 
 TextureRenderTarget createRenderTarget(
-    const RenderState& state, QRhiTexture::Format fmt, QSize sz, int samples,
+    const RenderState& state, QRhiTexture::Format fmt, QSize sz, int samples, bool depth,
     QRhiTexture::Flags flags)
 {
   auto texture = state.rhi->newTexture(fmt, sz, 1, QRhiTexture::RenderTarget | flags);
   texture->setName("createRenderTarget::texture");
   SCORE_ASSERT(texture->create());
-  return createRenderTarget(state, texture, samples);
+  return createRenderTarget(state, texture, samples, depth);
 }
 
 void replaceBuffer(
@@ -274,6 +286,12 @@ Pipeline buildPipeline(
   ps->setSampleCount(renderer.samples());
 
   mesh.preparePipeline(*ps);
+
+  if(!renderer.requiresDepth())
+  {
+    ps->setDepthTest(false);
+    ps->setDepthWrite(false);
+  }
 
   ps->setShaderStages(
       {{QRhiShaderStage::Vertex, vertexS}, {QRhiShaderStage::Fragment, fragmentS}});

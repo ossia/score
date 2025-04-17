@@ -129,6 +129,13 @@ public:
    */
   const score::gfx::Mesh& defaultTriangle() const noexcept;
 
+  /**
+   * @brief Whether this list of rendering actions requires depth testing at all
+   * 
+   * e.g. it's not needed if we're just doing some generative shaders.
+   */
+  bool requiresDepth() const noexcept { return m_requiresDepth; }
+
   int samples() const noexcept { return m_samples; }
 
   bool canRender() const noexcept { return m_ready; }
@@ -141,6 +148,7 @@ private:
   OutputUBO m_outputUBOData;
 
   QRhiResourceUpdateBatch* m_initialBatch{};
+
   // Material
   QRhiBuffer* m_outputUBO{};
   QRhiTexture* m_emptyTexture{};
@@ -161,6 +169,7 @@ private:
   int m_maxTexSize{};
   int m_samples{1};
 
+  bool m_requiresDepth{};
   bool m_ready{};
   bool m_built{};
 };
