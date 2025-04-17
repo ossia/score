@@ -49,6 +49,12 @@ public:
     screenId = plug.context.register_preview_node(std::move(window));
     if(screenId != -1)
     {
+      if(outlet.nodeId != -1)
+      {
+        nodeId = outlet.nodeId;
+        e = {{nodeId, 0}, {screenId, 0}};
+        plug.context.connect_preview_node(*e);
+      }
       timerId = startTimer(16);
     }
   }
@@ -111,7 +117,13 @@ public:
     // We "garbage collect" the window
     QTimer::singleShot(1, [w = this->window] { });
     if(plug)
+    {
+      if(e)
+      {
+        plug->context.disconnect_preview_node(*e);
+      }
       plug->context.unregister_preview_node(screenId);
+    }
   }
 
 private:

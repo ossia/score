@@ -120,19 +120,7 @@ Model::Model(QSettings& set, const score::ApplicationContext& ctx)
 
 int Model::resolveSamples(score::gfx::GraphicsApi api) const noexcept
 {
-#if !defined(_WIN32)
   return m_Samples;
-#else
-  if(api != score::gfx::GraphicsApi::D3D12)
-  {
-    [[likely]];
-    return m_Samples;
-  }
-  else
-  {
-    return std::max(m_Samples, 2);
-  }
-#endif
 }
 
 score::gfx::GraphicsApi Model::graphicsApiEnum() const noexcept
