@@ -90,6 +90,7 @@ void AudioDevice::disconnect()
   auto d = std::move(m_dev);
   deviceChanged(d.get(), nullptr);
   m_dev.reset();
+  m_protocol = nullptr;
 }
 
 bool AudioDevice::reconnect()
