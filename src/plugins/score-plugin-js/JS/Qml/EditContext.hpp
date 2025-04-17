@@ -207,6 +207,9 @@ public:
   QObject* document();
   W_SLOT(document)
 
+  QObject* rootInterval();
+  W_SLOT(rootInterval)
+
   /// Execution ///
   void play();
   W_SLOT(play, ())

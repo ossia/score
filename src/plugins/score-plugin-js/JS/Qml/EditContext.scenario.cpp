@@ -3,6 +3,7 @@
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
 #include <Scenario/Commands/State/AddMessagesToState.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 
 #include <JS/Commands/ScriptMacro.hpp>
@@ -38,6 +39,17 @@ void EditJsContext::endMacro()
 void EditJsContext::submit(Macro& m, score::Command* c)
 {
   m.submit(c);
+}
+
+QObject* EditJsContext::rootInterval()
+{
+  auto doc = ctx();
+  if(!doc)
+    return {};
+
+  auto& root = score::IDocument::get<Scenario::ScenarioDocumentModel>(doc->document);
+
+  return &root.baseInterval();
 }
 
 void EditJsContext::automate(QObject* interval, QString addr)
