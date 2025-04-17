@@ -80,16 +80,16 @@ struct WindowContainer
   {
     if(view.canResize() != Steinberg::kResultTrue)
       return;
+    return;
 
+    int qw = sz.width();
+    int qh = sz.height();
     Steinberg::ViewRect r;
     r.top = 0;
     r.left = 0;
-    r.right = sz.width();
-    r.bottom = sz.height();
+    r.right = sz.width() / qtScaleFactor;
+    r.bottom = sz.height() / qtScaleFactor;
     view.checkSizeConstraint(&r);
-
-    int qw = r.getWidth() * qtScaleFactor;
-    int qh = r.getHeight() * qtScaleFactor;
 
     parentWindow.resize(QSize(qw, qh));
 
