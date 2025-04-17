@@ -109,7 +109,7 @@ void GlobalDeviceEnumerator::reprocess()
     for(auto& [category, enumerator] : enums)
     {
       auto on_deviceAdded
-          = [this, category, proto = &protocol](
+          = [this, category = category, proto = &protocol](
                 const QString& name, const Device::DeviceSettings& devs) {
         this->deviceAdded(proto, category, name, devs);
         this->m_known_devices[proto].emplace_back(category, name, devs);
@@ -120,11 +120,11 @@ void GlobalDeviceEnumerator::reprocess()
           Qt::QueuedConnection);
       connect(
           enumerator, &Device::DeviceEnumerator::deviceRemoved, this,
-          [this, category, proto = &protocol](const QString& name) {
+          [this, category = category, proto = &protocol](const QString& name) {
         this->deviceRemoved(proto, name);
         {
           auto& vec = this->m_known_devices[proto];
-          auto it = ossia::find_key_2(vec, category, name);
+          auto it = ossia::find_key(vec, category, name);
           if(it != vec.end())
             vec.erase(it);
         }
