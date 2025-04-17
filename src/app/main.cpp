@@ -448,7 +448,7 @@ static void setup_opengl(bool& enable_opengl_ui)
     return;
 
 #ifndef QT_NO_OPENGL
-#if defined(__arm__)
+#if defined(__arm__) && !defined(_WIN32) && !defined(__APPLE__)
   QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
   fmt.setRenderableType(QSurfaceFormat::OpenGLES);
   fmt.setSwapInterval(1);
@@ -714,7 +714,7 @@ int main(int argc, char** argv)
   if(failsafe)
     app.appSettings.opengl = false;
 
-#if defined(__linux__)
+#if defined(__linux__) && !defined(__arm__)
   // On linux under offscreen, etc it crashes inside
   // QOffscreenSurface::create
   // so we check if we set --no-opengl explicitly

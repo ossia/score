@@ -14,6 +14,13 @@ GLCapabilities::GLCapabilities()
   surf.create();
 
   QOpenGLContext ctx;
+#if defined(__arm__) && !defined(_WIN32) && !defined(__APPLE__)
+  {
+    auto fmt = ctx.format();
+    fmt.setRenderableType(QSurfaceFormat::OpenGLES);
+    ctx.setFormat(fmt);
+  }
+#endif
   ctx.create();
   ctx.makeCurrent(&surf);
 
@@ -24,6 +31,7 @@ GLCapabilities::GLCapabilities()
 
 #if __has_include(<private/qshader_p.h>)
   qShaderVersion.setVersion(shaderVersion);
+
   if(type == QSurfaceFormat::OpenGLES)
     qShaderVersion.setFlags(QShaderVersion::GlslEs);
 #endif
@@ -36,7 +44,12 @@ void GLCapabilities::setupFormat(QSurfaceFormat& fmt)
 {
   fmt.setMajorVersion(major);
   fmt.setMinorVersion(minor);
+
+#if defined(__arm__) && !defined(_WIN32) && !defined(__APPLE__)
+  fmt.setRenderableType(QSurfaceFormat::OpenGLES);
+#else
   fmt.setProfile(QSurfaceFormat::CoreProfile);
+#endif
 }
 
 int GLCapabilities::glShaderVersion() noexcept
