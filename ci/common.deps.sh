@@ -27,6 +27,7 @@ clone_addon https://github.com/ossia/iscore-addon-network
 clone_addon https://github.com/ossia/score-addon-synthimi
 clone_addon https://github.com/ossia/score-addon-jk
 clone_addon https://github.com/ossia/score-addon-puara
+clone_addon https://github.com/ossia/GBAP
 
 CI_PLATFORM="${1:-DEFAULT}"
 
