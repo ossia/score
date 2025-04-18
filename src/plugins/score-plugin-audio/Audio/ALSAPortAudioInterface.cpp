@@ -247,5 +247,5 @@ QWidget* ALSAPortAudioFactory::make_settings(
   return new ALSAPortAudioWidget{*this, m, v, m_disp, parent};
 }
 
-}
 #endif
+}
