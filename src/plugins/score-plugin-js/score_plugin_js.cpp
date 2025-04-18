@@ -70,6 +70,7 @@ score_plugin_js::score_plugin_js()
   qmlRegisterType<JS::VideoFileChooser>("Score", 1, 0, "VideoFileChooser");
 
   qmlRegisterType<JS::Enum>("Score", 1, 0, "Enum");
+  qmlRegisterType<JS::ComboBox>("Score", 1, 0, "ComboBox");
   qmlRegisterType<JS::Toggle>("Score", 1, 0, "Toggle");
   qmlRegisterType<JS::Impulse>("Score", 1, 0, "Impulse");
   qmlRegisterType<JS::Button>("Score", 1, 0, "Button");

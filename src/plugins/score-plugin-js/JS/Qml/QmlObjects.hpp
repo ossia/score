@@ -328,6 +328,39 @@ public:
   W_INLINE_PROPERTY_CREF(QStringList, choices, {}, choices, setChoices, choicesChanged)
 };
 
+class SCORE_PLUGIN_JS_EXPORT ComboBox : public ControlInlet
+{
+  W_OBJECT(ComboBox)
+
+public:
+  using ControlInlet::ControlInlet;
+  virtual ~ComboBox() override;
+  bool isEvent() const override { return true; }
+
+  Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
+  {
+    std::vector<std::pair<QString, ossia::value>> choices;
+    choices.reserve(m_choices.size());
+    for(auto& c : m_choices)
+      choices.emplace_back(c, c.toStdString());
+    return new Process::ComboBox{choices, current(), objectName(), id, parent};
+  }
+
+  auto getValues() const { return choices(); }
+
+  std::string current() const
+  {
+    if(!m_choices.isEmpty() && ossia::valid_index(m_index, m_choices))
+    {
+      return m_choices[m_index].toStdString();
+    }
+    return {};
+  }
+
+  W_INLINE_PROPERTY_VALUE(int, index, {}, index, setIndex, indexChanged)
+  W_INLINE_PROPERTY_CREF(QStringList, choices, {}, choices, setChoices, choicesChanged)
+};
+
 class SCORE_PLUGIN_JS_EXPORT Toggle : public ControlInlet
 {
   W_OBJECT(Toggle)

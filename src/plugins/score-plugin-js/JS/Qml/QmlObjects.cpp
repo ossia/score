@@ -22,6 +22,7 @@ W_OBJECT_IMPL(JS::AudioOutlet)
 W_OBJECT_IMPL(JS::TextureOutlet)
 #endif
 W_OBJECT_IMPL(JS::Enum)
+W_OBJECT_IMPL(JS::ComboBox)
 W_OBJECT_IMPL(JS::FloatRangeSpinBox)
 W_OBJECT_IMPL(JS::IntRangeSlider)
 W_OBJECT_IMPL(JS::IntRangeSpinBox)
@@ -285,5 +286,6 @@ Toggle::~Toggle() = default;
 Button::~Button() = default;
 Impulse::~Impulse() = default;
 Enum::~Enum() = default;
+ComboBox::~ComboBox() = default;
 LineEdit::~LineEdit() = default;
 }
