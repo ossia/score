@@ -23,7 +23,7 @@ jobs:
 
       - name: Continuous tag
         uses: rickstaa/action-create-tag@v1
-        if: github.event_name != 'pull_request'
+        if: ${{ ! startsWith(github.ref, 'refs/tags/') }} && github.event_name != 'pull_request'
         with:
           tag: "continuous"
           tag_exists_error: false
@@ -54,7 +54,7 @@ jobs:
 
       - name: Continuous
         uses: softprops/action-gh-release@v2
-        if: github.event_name != 'pull_request'
+        if: ${{ ! startsWith(github.ref, 'refs/tags/') }} && github.event_name != 'pull_request'
         with:
           name: "Continuous"
           tag_name: "continuous"

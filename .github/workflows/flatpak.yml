@@ -14,18 +14,16 @@ concurrency:
 jobs:
   flatpak:
     name: "Flatpak"
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.image }}
     strategy:
       matrix:
-        arch:
-          - x86_64
-          - aarch64
-        exclude:
-          - arch: ${{ github.event_name == 'pull_request' && 'aarch64' }}
+        include:
+          - { image: ubuntu-24.04, arch: x86_64 }
+          - { image: ubuntu-24.04-arm, arch: aarch64 }
       fail-fast: false
 
     container:
-      image: bilelmoussaoui/flatpak-github-actions:kde-6.7
+      image: ghcr.io/flathub-infra/flatpak-github-actions:kde-6.9
       options: --privileged
 
     steps:
@@ -34,19 +32,7 @@ jobs:
       with:
         submodules: 'recursive'
 
-    - name: Install deps
-      if: ${{ matrix.arch != 'x86_64' }}
-      run: |
-        dnf -y install docker
-
-    - name: Set up QEMU
-      if: ${{ matrix.arch != 'x86_64' }}
-      id: qemu
-      uses: docker/setup-qemu-action@v2
-      with:
-        platforms: arm64
-
-    - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+    - uses: flathub-infra/flatpak-github-actions/flatpak-builder@9386d85446c0f8c6b93dea3774002af2abcac3d5
       with:
         bundle: io.ossia.score.${{ matrix.arch }}.flatpak
         manifest-path: ./cmake/Deployment/Linux/Flatpak/io.ossia.score.yml
@@ -55,7 +41,7 @@ jobs:
 
     - name: Continuous
       uses: softprops/action-gh-release@v2
-      if: github.event_name != 'pull_request'
+      if: ${{ ! startsWith(github.ref, 'refs/tags/') }} && github.event_name != 'pull_request'
       with:
         name: "Continuous"
         tag_name: "continuous"
