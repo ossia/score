@@ -18,7 +18,8 @@ cmake -S "$SCORE_DIR" -B build \
   -DCMAKE_CXX_USE_RESPONSE_FILE_FOR_OBJECTS=1 \
   -DCMAKE_NINJA_FORCE_RESPONSE_FILE=1 \
   -DSCORE_DISABLE_SNMALLOC=1 \
-  -DSCORE_PCH=1
+  -DSCORE_PCH=1 \
+  -DFETCHCONTENT_FULLY_DISCONNECTED=1
 
 cmake --build build
 cmake --build build --target install
