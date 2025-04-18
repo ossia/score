@@ -41,13 +41,13 @@
     </screenshot>
   </screenshots>
   <releases>
-    <release version="3.4.2" date="2025-01-16">
+    <release version="3.5.0" date="2025-01-16">
       <url type="details">https://github.com/ossia/score/releases/tag/v3.5.0</url>
       <description>
-        <p>ossia score 3.5.0 is a large upgrade which paves the way towards future improvements.</p>
+        <p>ossia score 3.5.0 is a large upgrade which paves the way towards many future improvements.</p>
         <p>Major platform changes</p>
         <ul>
-          <li>Official releases now assume an AVX2 CPU and 64-bit on x86-64. This does not apply to releases from various packages managers such as MSYS2, NixPkgs, FreeBSD ports.</li>
+          <li>Official releases now assume an AVX2 CPU and 64-bit on Intel and AMD CPUs. This does not apply to releases from various packages managers such as MSYS2, NixPkgs, Flathub, FreeBSD ports, only to official binaries from the official ossia website</li>
           <li>Updated libraries: Qt to 6.9, FFMPEG to 7.1.1, etc.</li>
           <li>On macOS, at least macOS 12.0 is now required as it is the minimum for recent Qt versions.</li>
           <li>On macOS, score will abort if DYLD_LIBRARY_PATH is set as this usually cause spurious crashes when using the app due to loading Homebrew libs such as libpng over Apple ones.</li>
@@ -58,93 +58,95 @@
 
         <p>New features</p>
         <ul>
-          <li>Allow to open code in external editors. Thanks @samamou! For this feature to work an editor must be set in the settings.</li>
-          <li>UI: indicate when an address is not found in the tree to help with error understanding</li>
-          <li>UI: make address search recursive and fix some unhandled cases</li>
-          
-          <li>Model display: implement a basic fulldome projection mode suitable for point clouds and detailed geometry</li>
-          <li>ISF: support shader controls with inverted min / max</li>
-          <li>Graphics: enable NVidia and AMD card by default if available over integrated graphics</li>
-          <li>Graphics: enable Vulkan 1.1+ if available</li>
-          <li>DMX: work-in-progress UI for defining LED fixtures (strips, panes)</li>
-          <li>DMX: many interface improvements and features when creating a device. Allow to set universe length for special cases (DMX LEDs with 510 channels per universe). DMX addresses are more easily editable. Allow to add directly simple dimmers and RGB pars.</li>
-          <li>HTTP device: add support for POST requests</li>
-          <li>HTTP device: add onRead and onReadString to allow to handle streaming input</li>
+          <li>Audio: add ALSA support through Miniaudio to handle some cases where MMAP (Alsa Raw) and PortAudio both cause issues, e.g. for the pulse ALSA plugin</li>
           <li>Audio: add an env var to force a global audio decoding method</li>
           <li>Core: support building in C++23 and C++26 mode.</li>
-          <li>MIDI: add a MIDI to array plug-in</li>
+          <li>DMX: many interface improvements and features when creating a device. Allow to set universe length for special cases (DMX LEDs with 510 channels per universe). DMX addresses are more easily editable. Allow to add directly simple dimmers and RGB pars.</li>
+          <li>DMX: work-in-progress UI for defining LED fixtures (strips, panes)</li>
+          <li>Graphics: add a SCORE_DISABLE_SHADER_PREVIEW environment variable to disable shader preview widgets in the main score UI, as depending on the pipelines they can cause unwanted graphics lags in live performances.</li>
+          <li>Graphics: add support for the Qt RHI D3D12 backend</li>
           <li>Graphics: allow running on the vkkhrdisplay backend, to support Vulkan rendering without any graphics server.</li>
           <li>Graphics: allow setting single, double or triple buffering in the settings.</li>
+          <li>Graphics: enable NVidia and AMD card by default if available over integrated graphics</li>
+          <li>Graphics: enable Vulkan 1.1+ if available</li>
           <li>Graphics: texture inlets can now specify a custom rendering resolution and filtering mode (ne.g. earest or linear).</li>
-          <li>Graphics: add support for the Qt RHI D3D12 backend</li>
-          
-          <li>UI: add new widget useful for spatialization trajectories. Thanks @D3mh4!</li>
+          <li>HTTP device: add onRead and onReadString to allow to handle streaming input</li>
+          <li>HTTP device: add support for POST requests</li>
+          <li>ISF: support shader controls with inverted min / max</li>
+          <li>JS: add an UI mode to run a score with a custom Qt Quick user interface, through `--ui` command line flag.</li>
           <li>JS: add functions useful for creating and looking up devices from the console.</li>
           <li>JS: texture inlets will now receive mouse, touch and key events to enable user interaction with e.g. MouseArea.</li>
-          <li>JS: add an UI mode to run a score with a custom Qt Quick user interface, through `--ui` command line flag.</li>
-          <li>Audio: add ALSA support through Miniaudio to handle some cases where MMAP (Alsa Raw) and PortAudio both cause issues, e.g. for the pulse ALSA plugin</li>
-          <li>Graphics: add a SCORE_DISABLE_SHADER_PREVIEW environment variable to disable shader preview widgets in the main score UI, as depending on the pipelines they can cause unwanted graphics lags in live performances.</li>
+          <li>MIDI: add a MIDI to array plug-in</li>
+          <li>Model display: implement a basic fulldome projection mode suitable for point clouds and detailed geometry</li>
+          <li>Spatialization: add the GBAP add-on which allows to generate grid-based spatialization coefficients. Thanks @bltzr @D3mh4!</li>
+          <li>Spatialization: add the Matrix audio object which spatializes a source to a number of channels according to a list of coefficients.</li>
+          <li>UI: add new widgets useful for spatialization trajectories: Multi-cursor and Path generator. Thanks @D3mh4!</li>
+          <li>UI: Allow to open code in external editors. Thanks @samamou! For this feature to work an editor must be set in the settings.</li>
+          <li>UI: indicate when an address is not found in the tree to help with error understanding</li>
+          <li>UI: make address search recursive and fix some unhandled cases</li>
         </ul>
 
         <p>Changes and bugfixes</p>
         <ul>
-          <li>Fix conversion of int addresses into float nodes ; fix midi mapping of CCs into e.g. ISF shaders</li>
-          <li>OSC: fix invalid widget for OSC over serial port</li>
+          <li>AI models: many improvements to support of the various ONNX models. Thanks @samamou!</li>
+          <li>Audio: better handling of denormals across the board, allow to specifiy that some nodes actually needs denormals</li>
+          <li>Audio: fix that dummy plug-in was always set back to 1024 buffer size</li>
+          <li>Audio: fix using ossia with soundcards with more than 128 channels on Mac.</li>
           <li>Build fixes for various LV2 and Suil corner cases</li>
+          <li>Camera: fix that custom camera type was not being saved</li>
+          <li>coreaudio: fix device names in selector and no device not coming back</li>
+          <li>DMX: remove libartnet dependency which fixes a lot of ArtNet spurious errors</li>
+          <li>engine: fix play / pause remote control in no-gui mode</li>
+          <li>GPIOs: add a timer to regularly poll inputs</li>
+          <li>Graphics: add a way for render nodes to have a parent renderer, to allow synchronized multi-viewport</li>
+          <li>Graphics: create less surfaces when scrolling ISF presets which makes interaction much smoother.</li>
+          <li>Graphics: fix OpenGL support on Flatpak on GLES platforms.</li>
           <li>Graphics: fix window not coming back up for rendering once closed</li>
-          <li>Vel to Note: fix that notes were killed instantly when no quantification</li>
-          <li>ISF: set default range to 0-1 to not break mappings if the shader does not provide a range</li>
+          <li>Graphics: many compatibility fixes for Spout and Syphon support</li>
           <li>Graphics: many fixes to Y being inverted in some cases with back-ends other than OpenGL.</li>
           <li>Graphics: more leniency towards invalid shaders, try to avoid crashes in much more cases.</li>
-          <li>RMS: fix that computation was broken when in stereo</li>
-          <li>Audio: better handling of denormals across the board, allow to specifiy that some nodes actually needs denormals</li>
-          <li>UI: fix that inspector comboboxes would not update when creating a new device</li>
-          <li>Graphics: many compatibility fixes for Spout and Syphon support</li>
-          <li>UI: fix splash screen scaling on hidpi screens</li>
-          <li>Micromap: fix that time-related variables were broken in non-array cases</li>
-          <li>DMX: remove libartnet dependency which fixes a lot of ArtNet spurious errors</li>
-          <li>audio: fix that dummy plug-in was always set back to 1024 buffer size</li>
-          <li>GPIOs: add a timer to regularly poll inputs</li>
-          <li>Graphics:add a way for render nodes to have a parent renderer, to allow synchronized multi-viewport</li>
-          <li>MIDI control surfaces: fix support for hardware BCF2000 protocol</li>
-          <li>Local device: fix changing port</li>
-          <li>engine: fix play / pause remote control in no-gui mode</li>
-          <li>coreaudio: fix device names in selector and no device not coming back</li>
-          <li>macOS: reenable JIT on AArch64</li>
-          <li>VST: look for plugins into $HOME/.vst</li>
-          <li>LV2: look for plugins into $HOME/.lv2</li>
-          <li>UX: show address widgets if an address is set</li>
-          <li>UX: fix copy-paste position of multiple nodes in nodal view</li>
-          <li>Graphics: create less surfaces when scrolling ISF presets which makes interaction much smoother.</li>
-          <li>Processes: fix that kurtosis analysis process had disappeared.</li>
-          <li>Numerous smaller code improvements, many fixes to the graphics pipeline.</li>
-          <li>Camera: fix that custom camera type was not being saved</li>
-          <li>Audio: fix using ossia with soundcards with more than 128 channels on Mac.</li>
-          <li>Library: improve startup times by deferring parsing of many file formats to when they get selected on the library.</li>
+          <li>ISF: set default range to 0-1 to not break mappings if the shader does not provide a range</li>
           <li>JIT: fix target triple especially on Apple</li>
-
+          <li>Library: improve startup times by deferring parsing of many file formats to when they get selected on the library.</li>
+          <li>Local device: fix changing port</li>
+          <li>LV2: look for plugins into $HOME/.lv2</li>
+          <li>macOS: reenable JIT on AArch64</li>
+          <li>Mappings: Fix conversion of int addresses into float nodes ; fix midi mapping of CCs into e.g. ISF shaders</li>
+          <li>Micromap: fix that time-related variables were broken in non-array cases</li>
+          <li>MIDI control surfaces: fix support for hardware BCF2000 protocol</li>
+          <li>OSC: fix invalid widget for OSC over serial port</li>
+          <li>Processes: fix that kurtosis analysis process had disappeared.</li>
+          <li>RMS: fix that computation was broken when in stereo</li>
+          <li>UI: fix copy-paste position of multiple nodes in nodal view</li>
+          <li>UI: fix splash screen scaling on hidpi screens</li>
+          <li>UI: fix that inspector comboboxes would not update when creating a new device</li>
+          <li>UI: show address widgets if an address is set</li>
+          <li>Vel to Note: fix that notes were killed instantly when no quantification</li>
+          <li>VST: fix that resizeable plug-ins would not show up if a global UI scale factor was set in score.</li>
+          <li>VST: look for plugins into $HOME/.vst</li>
         </ul>
+        And of course numerous smaller bugfixes, code and performance improvements, in particular many fixes to the graphics pipeline.
       </description>
     </release>
     <release version="3.4.1" date="2025-01-16">
       <url type="details">https://github.com/ossia/score/releases/tag/v3.4.1</url>
       <description>
-        <p>ossia score 3.4.0 is a feature-packed release for the start of 2025.</p>
+        <p>ossia score 3.4.1 is a feature-packed release for the start of 2025.</p>
         <p>New features</p>
         <ul>
           <li>Bitfocus: handle regexes better in fields, fix that some configuration fields could not be typed into.</li>
-          <li>CI: fix missing env. var when building tarballs.</li>
-          <li>CI: fix build on Qt 6.2</li>
-          <li>Scenario: disable min / max bounds when connecting to a trigger</li>
-          <li>Local tree: add port min/max metadata for parameters</li>
-          <li>Local tree: allow copy-paste of local tree address of inlets and objects</li>
-          <li>Mapper device: safety fix, implement #1672 (Device.read and Device.write)</li>
           <li>BSD: look explicitly for linux/gpio.h as it seems that some BSDs have linux/types.h and not linux/gpio.h</li>
-          <li>Tooling: developer.sh: fix that it would clone addons with sudo leading to end-user confusion</li>
+          <li>CI: fix build on Qt 6.2</li>
+          <li>CI: fix missing env. var when building tarballs.</li>
           <li>Gfx: Fix cpu filter ports with multiple inputs</li>
           <li>Linux: disable custom qt.conf in distro builds</li>
-          <li>Poles: fix count which had an improptu off-by-one error</li>
+          <li>Local tree: add port min/max metadata for parameters</li>
+          <li>Local tree: allow copy-paste of local tree address of inlets and objects</li>
           <li>macOS: more Coreaudio fixes, for some devices such as Blackhole</li>
+          <li>Mapper device: safety fix, implement #1672 (Device.read and Device.write)</li>
+          <li>Poles: fix count which had an improptu off-by-one error</li>
+          <li>Scenario: disable min / max bounds when connecting to a trigger</li>
+          <li>Tooling: developer.sh: fix that it would clone addons with sudo leading to end-user confusion</li>
         </ul>
       </description>
     </release>
