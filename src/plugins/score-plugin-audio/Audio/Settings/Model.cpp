@@ -74,8 +74,14 @@ void Model::initDriver(Audio::AudioFactory::ConcreteKey val)
       uid = "28b88e91-c5f0-4f13-834f-aa333d14aa81";
     else if(env == "pipewire")
       uid = "687d49cf-b58d-430f-8358-ec02cb50be36";
+    else if(env == "coreaudio")
+      uid = "85115103-694a-4a3b-9274-76ef47aec5a9";
     else if(env == "alsa")
       uid = "a390218a-a951-4cda-b4ee-c41d2df44236";
+    else if(env == "alsa_portaudio")
+      uid = "3533ee88-9a8d-486c-b20b-6c966cf4eaa0";
+    else if(env == "alsa_miniaudio")
+      uid = "e0c533da-a1f4-4795-90b5-a805cdfcb79f";
 
     if(!uid.isEmpty())
     {
