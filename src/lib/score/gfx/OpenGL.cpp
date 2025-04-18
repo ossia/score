@@ -14,7 +14,7 @@ GLCapabilities::GLCapabilities()
   surf.create();
 
   QOpenGLContext ctx;
-#if defined(__arm__) && !defined(_WIN32) && !defined(__APPLE__)
+#if (defined(__arm__) || defined(__aarch64__)) && !defined(_WIN32) && !defined(__APPLE__)
   {
     auto fmt = ctx.format();
     fmt.setRenderableType(QSurfaceFormat::OpenGLES);
@@ -45,7 +45,7 @@ void GLCapabilities::setupFormat(QSurfaceFormat& fmt)
   fmt.setMajorVersion(major);
   fmt.setMinorVersion(minor);
 
-#if defined(__arm__) && !defined(_WIN32) && !defined(__APPLE__)
+#if (defined(__arm__) || defined(__aarch64__)) && !defined(_WIN32) && !defined(__APPLE__)
   fmt.setRenderableType(QSurfaceFormat::OpenGLES);
 #else
   fmt.setProfile(QSurfaceFormat::CoreProfile);

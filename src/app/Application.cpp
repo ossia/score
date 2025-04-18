@@ -324,7 +324,7 @@ void Application::init()
     }
     else
     {
-#if !defined(__arm__)
+#if !((defined(__arm__) || defined(__aarch64__)))
       QOpenGLContext ctx;
       appSettings.opengl = ctx.create() && ctx.format().majorVersion() > 1;
 #else

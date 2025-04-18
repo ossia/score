@@ -13,18 +13,6 @@
 
 #include <faust/dsp/llvm-dsp.h>
 
-// Undefine macros defined by Qt / Verdigris
-#if defined(__arm__)
-#undef READ
-#undef WRITE
-#undef RESET
-#undef OPTIONAL
-
-#include <llvm/Support/TargetRegistry.h>
-#include <llvm/Support/TargetSelect.h>
-#include <llvm/Target/TargetMachine.h>
-#endif
-
 #include "Guitarix/tables.cpp"
 #include "STK/tables.cpp"
 
@@ -47,13 +35,6 @@ auto do_registerCustomForeignFunction(const T& str)
 }
 score_plugin_faust::score_plugin_faust()
 {
-#if defined(__arm__)
-  llvm::InitializeAllTargets();
-  llvm::InitializeAllTargetMCs();
-  llvm::InitializeAllAsmPrinters();
-  llvm::InitializeAllAsmParsers();
-#endif
-
   // cmath
   do_registerCustomForeignFunction("signbit");
   

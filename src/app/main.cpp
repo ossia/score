@@ -37,6 +37,7 @@ extern "C" void sincos(double x, double* sin, double* cos)
 
 #include <ossia/detail/config.hpp>
 
+#include <ossia/detail/disable_fpe.hpp>
 #include <ossia/detail/thread.hpp>
 
 #include <QApplication>
@@ -383,28 +384,6 @@ struct increase_timer_precision
   }
 };
 
-static void disable_denormals()
-{
-#if defined(__EMSCRIPTEN__)
-  // do nothing
-#elif defined(__SSE3__)
-  // See https://en.wikipedia.org/wiki/Denormal_number
-  // and
-  // http://stackoverflow.com/questions/9314534/why-does-changing-0-1f-to-0-slow-down-performance-by-10x
-  _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
-  _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
-#elif defined(__arm__)
-  int x;
-  asm("vmrs %[result],FPSCR \r\n"
-      "bic %[result],%[result],#16777216 \r\n"
-      "vmsr FPSCR,%[result]"
-      : [result] "=r"(x)
-      :
-      :);
-  printf("ARM FPSCR: %08x\n", x);
-#endif
-}
-
 static void setup_faust_path()
 {
   if(!qEnvironmentVariableIsEmpty("FAUST_LIB_PATH"))
@@ -448,7 +427,7 @@ static void setup_opengl(bool& enable_opengl_ui)
     return;
 
 #ifndef QT_NO_OPENGL
-#if defined(__arm__) && !defined(_WIN32) && !defined(__APPLE__)
+#if (defined(__arm__) || defined(__aarch64__)) && !defined(_WIN32) && !defined(__APPLE__)
   QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
   fmt.setRenderableType(QSurfaceFormat::OpenGLES);
   fmt.setSwapInterval(1);
@@ -692,7 +671,6 @@ int main(int argc, char** argv)
   setup_x11(argc, argv);
   setup_gtk();
   setup_suil();
-  disable_denormals();
   setup_faust_path();
   setup_locale();
   setup_app_flags();
@@ -714,7 +692,7 @@ int main(int argc, char** argv)
   if(failsafe)
     app.appSettings.opengl = false;
 
-#if defined(__linux__) && !defined(__arm__)
+#if defined(__linux__) && !(defined(__arm__) || defined(__aarch64__))
   // On linux under offscreen, etc it crashes inside
   // QOffscreenSurface::create
   // so we check if we set --no-opengl explicitly
@@ -740,6 +718,7 @@ int main(int argc, char** argv)
   });*/
 #endif
 
+  ossia::disable_fpe();
   int res = app.exec();
 
   return res;
