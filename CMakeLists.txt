@@ -18,7 +18,7 @@ if(OSSIA_SDK)
   if(UNIX AND NOT APPLE)
     set_property(GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS TRUE)
   endif()
- 
+
   set(CMAKE_PREFIX_PATH
       "${OSSIA_SDK}"
       "${OSSIA_SDK}/SDL2"
@@ -221,6 +221,10 @@ find_package(${QT_VERSION} REQUIRED
 
 if(EMSCRIPTEN)
   find_package(${QT_VERSION} REQUIRED COMPONENTS QmlIntegration)
+endif()
+
+if(UNIX AND NOT APPLE AND NOT WIN32 AND NOT EMSCRIPTEN)
+  find_package(X11 QUIET)
 endif()
 
 enable_testing()

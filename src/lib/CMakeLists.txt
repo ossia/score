@@ -8,7 +8,6 @@ score_common_setup()
 
 # Packages
 find_package(${QT_VERSION} QUIET OPTIONAL_COMPONENTS Svg)
-find_package(X11 QUIET)
 
 file(GENERATE
   OUTPUT
