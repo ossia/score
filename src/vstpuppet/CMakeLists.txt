@@ -1,15 +1,10 @@
 project(vstpuppet CXX)
-if(NOT TARGET ${QT_PREFIX}::WebSockets)
-  message("VST loading requires QtWebSockets.")
-  return()
-endif()
 add_executable(ossia-score-vstpuppet vstpuppet.cpp "${SCORE_SRC}/plugins/score-plugin-vst/Vst/Loader.cpp")
 target_compile_definitions(ossia-score-vstpuppet PRIVATE HAS_VST2)
 target_link_libraries(
   ossia-score-vstpuppet
   PRIVATE
-    ${QT_PREFIX}::Core
-    ${QT_PREFIX}::WebSockets
+    $<COMPILE_ONLY:ossia>
     ${CMAKE_DL_LIBS})
 
 if(APPLE)
@@ -62,6 +57,3 @@ else()
     RUNTIME DESTINATION bin
     COMPONENT OssiaScore)
 endif()
-
-disable_qt_plugins(ossia-score-vstpuppet)
-enable_minimal_qt_plugins(ossia-score-vstpuppet 0)

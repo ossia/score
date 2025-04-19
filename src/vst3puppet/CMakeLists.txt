@@ -1,11 +1,6 @@
 project(vst3puppet CXX)
 set(VST3_SDK_ROOT "${3RDPARTY_FOLDER}/vst3")
-if(NOT TARGET ${QT_PREFIX}::WebSockets)
-  message("VST loading requires QtWebSockets.")
-  return()
-endif()
 add_executable(ossia-score-vst3puppet vst3puppet.cpp)
-
 
 if(WIN32)
   target_sources(ossia-score-vst3puppet PRIVATE
@@ -31,8 +26,7 @@ target_compile_definitions(ossia-score-vst3puppet PUBLIC HAS_VST3)
 target_link_libraries(
   ossia-score-vst3puppet
   PRIVATE
-    ${QT_PREFIX}::Core
-    ${QT_PREFIX}::WebSockets
+    $<COMPILE_ONLY:ossia>
     ${CMAKE_DL_LIBS}
     sdk_common sdk_hosting
     )
@@ -87,6 +81,3 @@ else()
     RUNTIME DESTINATION bin
     COMPONENT OssiaScore)
 endif()
-
-disable_qt_plugins(ossia-score-vst3puppet)
-enable_minimal_qt_plugins(ossia-score-vst3puppet 0)

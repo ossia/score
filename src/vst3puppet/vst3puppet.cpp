@@ -1,16 +1,10 @@
-#include <QCoreApplication>
-#include <QFile>
-#include <QJsonArray>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QTimer>
-#include <QUrl>
-#include <QWebSocket>
 
 #include <pluginterfaces/base/funknown.h>
 #include <pluginterfaces/vst/ivstaudioprocessor.h>
 #include <pluginterfaces/vst/ivstcomponent.h>
 
+#include <filesystem>
+#include <format>
 #include <iostream>
 
 #include <public.sdk/source/vst/hosting/hostclasses.h>
@@ -18,62 +12,80 @@
 #include <public.sdk/source/vst/hosting/plugprovider.h>
 
 // clang-format off
+#include <ossia/network/sockets/websocket.hpp>
 #include <score/tools/InvisibleWindow.hpp>
 #undef OK
 #undef NO
 #undef Status
+// clang-format on
 using namespace Steinberg;
-QString load_vst(const QString& path, int id)
+std::string load_vst(const std::string& path, int id)
 {
   try
   {
-    bool isFile = QFile(QUrl(path).toString(QUrl::PreferLocalFile)).exists();
+    const bool isFile = std::filesystem::exists(path);
     if(!isFile)
     {
-      std::cerr << "Invalid path: " << path.toStdString() << std::endl;
+      std::cerr << "Invalid path: " << path << std::endl;
       return {};
     }
 
     std::string err;
-    auto module = VST3::Hosting::Module::create(path.toStdString(), err);
+    auto module = VST3::Hosting::Module::create(path, err);
 
     if(!module)
     {
-      std::cerr << "Failed to load VST3 " << path.toStdString() << err << std::endl;
+      std::cerr << "Failed to load VST3 " << path << err << std::endl;
     }
 
-    QJsonObject root;
+    std::string root;
 
-    QJsonArray arr;
+    std::vector<std::string> arr;
     const auto& fac = module->getFactory();
     const auto& fi = fac.info();
     for(const auto& cls : fac.classInfos())
     {
       if(cls.category() == kVstAudioEffectClass)
       {
-        QJsonObject obj;
+        auto str = std::format(
+            R"_({{
+"UID":"{}",
+"Cardinality":{},
+"Category":"{}",
+"Name":"{}",
+"Vendor":"{}",
+"Version":"{}",
+"SDKVersion":"{}",
+"Subcategories":"{}",
+"ClassFlags":{}
+}})_",
+            cls.ID().toString(), cls.cardinality(), cls.category(), cls.name(),
+            cls.vendor(), cls.version(), cls.sdkVersion(), cls.subCategoriesString(),
+            (double)cls.classFlags());
 
-        obj["UID"] = QString::fromStdString(cls.ID().toString());
-        obj["Cardinality"] = cls.cardinality();
-        obj["Category"] = QString::fromStdString(cls.category());
-        obj["Name"] = QString::fromStdString(cls.name());
-        obj["Vendor"] = QString::fromStdString(cls.vendor());
-        obj["Version"] = QString::fromStdString(cls.version());
-        obj["SDKVersion"] = QString::fromStdString(cls.sdkVersion());
-        obj["Subcategories"] = QString::fromStdString(cls.subCategoriesString());
-        obj["ClassFlags"] = (double)cls.classFlags();
-
-        arr.push_back(obj);
+        arr.push_back(str);
       }
     }
-    root["Name"] = QString::fromStdString(module->getName());
-    root["Url"] = QString::fromStdString(fi.url());
-    root["Email"] = QString::fromStdString(fi.email());
-    root["Path"] = path;
-    root["Request"] = id;
-    root["Classes"] = arr;
 
-    return QJsonDocument{root}.toJson();
+    root = std::format(
+        R"_({{
+"Name":"{}",
+"Url":"{}",
+"Email":"{}",
+"Path":"{}",
+"Request":"{}",
+"Classes":[
+)_",
+        module->getName(), fi.url(), fi.email(), path, id);
+    for(int i = 0; i < arr.size(); i++)
+    {
+      root += arr[i];
+      if(i < arr.size() - 1)
+        root += ',';
+    }
+    root += "]\n}";
+
+    return root;
   }
   catch(const std::runtime_error& e)
   {
@@ -82,68 +94,78 @@ QString load_vst(const QString& path, int id)
   return {};
 }
 
+struct app
+{
+
+  boost::asio::io_context ctx;
+  ossia::net::websocket_simple_client socket{{.url = "ws://127.0.0.1:37588"}, ctx};
+
+  bool socket_ready{}, vst_ready{};
+  std::string json_ret;
+
+  app()
+  {
+    socket.on_open.connect<&app::on_open>(*this);
+    socket.on_fail.connect<&app::on_error>(*this);
+    socket.on_close.connect<&app::on_error>(*this);
+
+    socket.websocket_client::connect("ws://127.0.0.1:37588");
+  }
+
+  void on_ready()
+  {
+    if(socket_ready && vst_ready)
+    {
+      socket.send_message(json_ret);
+      socket.close();
+      boost::asio::post(ctx, [&] { exit(json_ret.empty() ? 1 : 0); });
+    }
+  }
+
+  void on_error()
+  {
+    std::cerr << "Socket error\n";
+    exit(1);
+  }
+
+  void load(const std::string& vst, int id)
+  {
+    json_ret = load_vst(vst, id);
+    std::cout << json_ret << "\n";
+    vst_ready = true;
+    on_ready();
+  }
+
+  void on_open()
+  {
+    socket_ready = true;
+    on_ready();
+  }
+};
+
 int main(int argc, char** argv)
 {
-  if(argc > 1)
-  {
-    int id = 0;
-    if(argc > 2)
-    {
-      id = QString(argv[2]).toInt();
-    }
-    QCoreApplication app(argc, argv);
-    invisible_window w;
+  if(argc <= 1)
+    return 1;
 
-    QWebSocket socket;
+  int id = 0;
+  if(argc > 2)
+    id = std::atoi(argv[2]);
 
-    bool socket_ready{}, vst_ready{};
-    QString json_ret;
+  app a;
+  invisible_window w;
 
-    auto onReady = [&] {
-      if(socket_ready && vst_ready)
-      {
-        socket.sendTextMessage(json_ret);
-        socket.flush();
-        socket.close();
-        app.exit(json_ret.isEmpty() ? 1 : 0);
-      }
-    };
+  boost::asio::post(a.ctx, [&] { a.load(argv[1], id); });
 
-    QTimer::singleShot(32, [&] {
-      json_ret = load_vst(argv[1], id);
-      std::cout << json_ret.toStdString();
-      vst_ready = true;
-      onReady();
-    });
+  boost::asio::steady_timer tm{a.ctx};
+  tm.expires_after(std::chrono::seconds(10));
+  tm.async_wait([](auto ec) {
+    std::cerr << "Timeout\n";
+    exit(1);
+  });
 
-    QObject::connect(&socket, &QWebSocket::connected, &app, [&] {
-      socket_ready = true;
-      onReady();
-    });
-
-    QObject::connect(
-        &socket,
-#if QT_VERSION < QT_VERSION_CHECK(6, 5, 0)
-        QOverload<QAbstractSocket::SocketError>::of(&QWebSocket::error),
-#else
-        &QWebSocket::errorOccurred,
-#endif
-        &app, [&] {
-          qDebug() << socket.errorString();
-          app.exit(1);
-        });
-    QObject::connect(&socket, &QWebSocket::disconnected, &app, [&] {
-      qDebug() << socket.errorString();
-      app.exit(1);
-    });
-
-    QTimer::singleShot(10000, [&] {
-      qDebug() << "timeout";
-      qApp->exit(1);
-    });
-
-    socket.open(QUrl("ws://127.0.0.1:37588"));
-    app.exec();
-  }
-  return 1;
+  a.ctx.run();
+  a.ctx.restart();
+  a.ctx.run();
+  return a.json_ret.empty() ? 1 : 0;
 }

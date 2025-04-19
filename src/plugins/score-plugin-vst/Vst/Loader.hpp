@@ -4,8 +4,6 @@
 
 #include <Vst/vst-compat.hpp>
 
-#include <QString>
-
 #include <string>
 
 namespace vst
