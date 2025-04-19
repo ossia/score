@@ -68,7 +68,7 @@ public:
     if(auto dev = d->getDevice())
       m_devices.push_back(dev);
 
-    rootsChanged(roots());
+    QTimer::singleShot(1, this, [this] { rootsChanged(roots()); });
   }
 
   void
@@ -77,7 +77,8 @@ public:
     ossia::remove_erase(m_devices, oldd);
     if(newd)
       m_devices.push_back(newd);
-    rootsChanged(roots());
+
+    QTimer::singleShot(1, this, [this] { rootsChanged(roots()); });
   }
 
   void on_deviceRemoved(const Device::DeviceInterface* d)
@@ -86,7 +87,8 @@ public:
         d, &Device::DeviceInterface::deviceChanged, this,
         &observable_device_roots::on_deviceAddedCallback);
     ossia::remove_erase(m_devices, d->getDevice());
-    rootsChanged(roots());
+
+    QTimer::singleShot(1, this, [this] { rootsChanged(roots()); });
   }
 
   void rootsChanged(std::vector<ossia::net::node_base*> a) W_SIGNAL(rootsChanged, a);
@@ -397,7 +399,7 @@ public:
       obj->devices = cache;
       m_roots = std::move(r);
       reset_tree();
-    });
+    }, Qt::QueuedConnection);
 
     QObject::connect(
         m_component, &QQmlComponent::statusChanged, this,
