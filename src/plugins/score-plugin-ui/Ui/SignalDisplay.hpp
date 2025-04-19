@@ -143,7 +143,7 @@ struct Node
         const Process::PortFactoryList& portFactory
             = doc.app.interfaces<Process::PortFactoryList>();
 
-        auto inl = safe_cast<Process::ControlInlet*>(process.inlets().front());
+        auto inl = process.inlets().front();
 
         auto fact = portFactory.get(inl->concreteKey());
         auto port = fact->makePortItem(*inl, doc, this, this);
