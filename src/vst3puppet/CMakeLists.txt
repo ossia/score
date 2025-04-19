@@ -28,6 +28,7 @@ target_link_libraries(
   PRIVATE
     $<COMPILE_ONLY:ossia>
     $<BUILD_INTERFACE:fmt::fmt>
+    Threads::Threads
     ${CMAKE_DL_LIBS}
     sdk_common sdk_hosting
     )
