@@ -39,7 +39,7 @@ if(APPLE)
         ${Cocoa_FK}
         )
 elseif(WIN32)
-  target_link_libraries(ossia-score-vst3puppet PRIVATE user32 gdi32)
+  target_link_libraries(ossia-score-vst3puppet PRIVATE user32 gdi32 ws2_32)
 else()
   target_include_directories(ossia-score-vstpuppet PRIVATE "${X11_X11_INCLUDE_PATH}")
 endif()
