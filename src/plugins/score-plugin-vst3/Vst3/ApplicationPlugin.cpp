@@ -260,6 +260,7 @@ void ApplicationPlugin::rescan(const QStringList& paths)
 #endif
 }
 
+static int vst3_in_flight = 0;
 void ApplicationPlugin::processIncomingMessage(const QString& txt)
 {
 #if QT_CONFIG(process)
@@ -278,6 +279,7 @@ void ApplicationPlugin::processIncomingMessage(const QString& txt)
         m_processes[id].process->close();
         if(m_processes[id].process->state() == QProcess::ProcessState::NotRunning)
         {
+          vst3_in_flight--;
           m_processes[id] = {};
         }
         else
@@ -285,7 +287,10 @@ void ApplicationPlugin::processIncomingMessage(const QString& txt)
           connect(
               m_processes[id].process.get(),
               qOverload<int, QProcess::ExitStatus>(&QProcess::finished), this,
-              [this, id] { m_processes[id] = {}; });
+              [this, id] {
+            m_processes[id] = {};
+            vst3_in_flight--;
+          });
         }
       }
     }
@@ -390,7 +395,6 @@ void ApplicationPlugin::scanVSTsEvent()
 {
 #if QT_CONFIG(process)
   constexpr int max_in_flight = 8;
-  int in_flight = 0;
 
   for(auto& proc : m_processes)
   {
@@ -400,25 +404,28 @@ void ApplicationPlugin::scanVSTsEvent()
 
     if(!proc.scanning)
     {
-      proc.process->start(QProcess::ReadOnly);
-      proc.scanning = true;
-      proc.timer.start();
+      if(vst3_in_flight < max_in_flight)
+      {
+        proc.process->start(QProcess::ReadOnly);
+        proc.scanning = true;
+        proc.timer.start();
+        vst3_in_flight++;
+      }
     }
     else
     {
       if(proc.timer.elapsed() > 10000)
       {
         addInvalidVST(proc.path);
+        proc.process->kill();
         proc.process.reset();
 
-        in_flight--;
+        vst3_in_flight--;
         continue;
       }
     }
 
-    in_flight++;
-
-    if(in_flight == max_in_flight)
+    if(vst3_in_flight == max_in_flight)
     {
       QTimer::singleShot(1000, this, &ApplicationPlugin::scanVSTsEvent);
       return;
