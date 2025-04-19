@@ -1,17 +1,50 @@
 #include <Vst/Loader.hpp>
 
+#include <ossia/detail/fmt.hpp>
+#include <ossia/network/sockets/websocket.hpp>
+
 #include <filesystem>
-#include <format>
 #include <iostream>
 #include <set>
 
+#if defined(_MSC_VER)
+#include <boost/asio/impl/src.hpp>
+#endif
+
+// https://svn.boost.org/trac10/ticket/3605
+#if defined(_MSC_VER)
+#include <boost/asio/detail/winsock_init.hpp>
+#pragma warning(push)
+#pragma warning(disable : 4073)
+#pragma init_seg(lib)
+boost::asio::detail::winsock_init<2, 2>::manual manual_winsock_init;
+#pragma warning(pop)
+#elif defined(_WIN32)
+#include <boost/asio/detail/winsock_init.hpp>
+#endif
+
+#if !defined(__cpp_exceptions)
+#include <boost/throw_exception.hpp>
+namespace boost
+{
+void throw_exception(std::exception const& e)
+{
+  std::terminate();
+}
+void throw_exception(std::exception const& e, boost::source_location const& loc)
+{
+  std::terminate();
+}
+}
+#endif
+
 // clang-format off
-#include <ossia/network/sockets/websocket.hpp>
 #include <score/tools/InvisibleWindow.hpp>
 #undef OK
 #undef NO
 #undef Status
 // clang-format on
+
 intptr_t vst_host_callback(
     AEffect* effect, int32_t opcode, int32_t index, intptr_t value, void* ptr, float opt)
 {
@@ -138,7 +171,7 @@ std::string load_vst(const std::string& path, int id)
     {
       if(auto p = (AEffect*)m(vst_host_callback))
       {
-        auto str = std::format(
+        auto str = fmt::format(
             R"_({{
 "UniqueID":{},
 "Controls":{},
