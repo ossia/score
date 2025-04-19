@@ -5,6 +5,7 @@ target_link_libraries(
   ossia-score-vstpuppet
   PRIVATE
     $<COMPILE_ONLY:ossia>
+    $<BUILD_INTERFACE:fmt::fmt>
     ${CMAKE_DL_LIBS})
 
 if(APPLE)

@@ -27,6 +27,7 @@ target_link_libraries(
   ossia-score-vst3puppet
   PRIVATE
     $<COMPILE_ONLY:ossia>
+    $<BUILD_INTERFACE:fmt::fmt>
     ${CMAKE_DL_LIBS}
     sdk_common sdk_hosting
     )
