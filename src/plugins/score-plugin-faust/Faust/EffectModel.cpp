@@ -566,11 +566,12 @@ FaustEffectComponent::FaustEffectComponent(
       QObject::disconnect(c);
     m_controlConnections.clear();
 
-    auto& ctx = system();
+    const Execution::Context& ctx = system();
     Execution::SetupContext& setup = ctx.setup;
     auto old_node = this->node;
 
-    Execution::Transaction commands{ctx};
+    SCORE_ASSERT(ctx.transaction);
+    Execution::Transaction& commands = *ctx.transaction;
     if(old_node)
     {
       setup.unregister_node(process(), this->node, commands);
@@ -583,8 +584,6 @@ FaustEffectComponent::FaustEffectComponent(
       setup.register_node(process(), this->node, commands);
       nodeChanged(old_node, this->node, &commands);
     }
-
-    commands.run_all();
   },
       Qt::DirectConnection);
 
