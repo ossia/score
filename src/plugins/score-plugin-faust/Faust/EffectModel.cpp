@@ -251,6 +251,12 @@ Process::ScriptChangeResult FaustEffectModel::reload()
   score::delete_later<Process::Inlets>& inlets_to_clear = res.inlets;
   score::delete_later<Process::Outlets>& outlets_to_clear = res.outlets;
 
+  // Needed because Faust crashes without FPE
+  struct on_finished
+  {
+    ~on_finished() { ossia::disable_fpe(); }
+  } fpe_guard;
+
   auto fx_text = m_script.toUtf8();
   if(fx_text.isEmpty())
   {
@@ -315,8 +321,6 @@ Process::ScriptChangeResult FaustEffectModel::reload()
 
   fac = createDSPFactoryFromString(
       "score", str, argv.size(), argv.data(), triple, err, -1);
-
-  ossia::disable_fpe();
 
   if(err[0] != 0)
   {
