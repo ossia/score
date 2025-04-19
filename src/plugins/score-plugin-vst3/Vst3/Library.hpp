@@ -78,9 +78,12 @@ class LibraryHandler final
 
     con(plug, &vst3::ApplicationPlugin::vstChanged, this,
         [&plug, &model, node, &parent, reset_plugs] {
-      model.beginRemoveRows(node, 0, parent.childCount());
-      parent.resize(0);
-      model.endRemoveRows();
+      if(parent.childCount() > 0)
+      {
+        model.beginRemoveRows(node, 0, parent.childCount() - 1);
+        parent.resize(0);
+        model.endRemoveRows();
+      }
 
       int k = 0;
       for(const auto& vst : plug.vst_infos)
