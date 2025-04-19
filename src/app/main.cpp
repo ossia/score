@@ -559,9 +559,13 @@ static void setup_app_flags()
   // Else things look horrible on KDE plasma, etc
   qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
 
-  // https://github.com/ossia/score/issues/953
-  // https://github.com/ossia/score/issues/1046
-  QCoreApplication::setAttribute(Qt::AA_DontUseNativeDialogs);
+  if(!qEnvironmentVariableIsSet("FLATPAK_ID"))
+  {
+    // https://github.com/ossia/score/issues/953
+    // https://github.com/ossia/score/issues/1046
+    // https://github.com/ossia/score/issues/1725 for the flatpak reenablement
+    QCoreApplication::setAttribute(Qt::AA_DontUseNativeDialogs, true);
+  }
   QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts, false);
 #endif
 }
