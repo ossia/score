@@ -65,6 +65,8 @@ QVariant PresetItemModel::data(const QModelIndex& index, int role) const
   return {};
 }
 
+PresetListView::~PresetListView() = default;
+auto preset_list_view_symbol_for_shlib_bug = &PresetListView::doubleClicked;
 void PresetListView::mouseDoubleClickEvent(QMouseEvent* event)
 {
   auto proxy_index = indexAt(event->pos());

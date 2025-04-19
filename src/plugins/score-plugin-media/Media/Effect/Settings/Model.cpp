@@ -33,6 +33,7 @@ static auto list()
 }
 }
 
+auto VstPathsChanged_symbol_for_shlib_bug = &Media::Settings::Model::VstPathsChanged;
 Model::Model(QSettings& set, const score::ApplicationContext& ctx)
 {
   score::setupDefaultSettings(set, Parameters::list(), *this);

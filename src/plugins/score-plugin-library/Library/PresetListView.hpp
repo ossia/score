@@ -14,6 +14,7 @@ class SCORE_PLUGIN_LIBRARY_EXPORT PresetListView : public QListView
   W_OBJECT(PresetListView)
 public:
   using QListView::QListView;
+  ~PresetListView();
   void mouseDoubleClickEvent(QMouseEvent* event);
 
   void selected(std::optional<Process::Preset> p)

@@ -19,7 +19,8 @@
 W_OBJECT_IMPL(vst::SettingsWidget)
 namespace vst
 {
-SettingsWidget::SettingsWidget() { }
+
+SettingsWidget::SettingsWidget() = default;
 
 void SettingsWidget::setVstPaths(QStringList val)
 {
