@@ -41,6 +41,31 @@
     </screenshot>
   </screenshots>
   <releases>
+    <release version="3.5.1" date="2025-04-19">
+      <url type="details">https://github.com/ossia/score/releases/tag/v3.5.1</url>
+      <description>
+        <p>ossia score 3.5.1 is a series of small bugfixes and improvements after the large 3.5.0 release.</p>
+        <p>New features and changes</p>
+        <ul>
+          <li>CI: use native ARM64 runners for building AArch64 flatpaks.</li>
+          <li>JS: add support for ComboBox inlet.</li>
+        </ul>
+        <p>Bugfixes</p>
+        <ul>
+          <li>CoreAudio and ALSA: bugfixes for high channel count soundcards. Raise limit to 1024.</li>
+          <li>Faust: fix potential errors due to disabled floating-point exceptions when instantiating instruments.</li>
+          <li>Flatpak: use native dialogs as it seems Flatpak does not supports Qt dialogs.</li>
+          <li>JS: fix that TextureOutlet was using an expensive RGBA32F texture instead of a RGBA8 one.</li>
+          <li>Linux: improve GLES support on AArch64.</li>
+          <li>Mapper device: fix a concurrency issue when closing a score.</li>
+          <li>Signal display: fix a potential crash when reloading scores from older versions using it.</li>
+          <li>VST: many small VST / VST3-related fixes in library scanning.</li>
+          <li>VST: limit parallel processes being launched for VST scans.</li>
+          <li>VST: make VST scanners much more lightweight.</li>
+          <li>Video: update HAP library to support newer formats.</li>
+        </ul>
+      </description>
+    </release>
     <release version="3.5.0" date="2025-01-16">
       <url type="details">https://github.com/ossia/score/releases/tag/v3.5.0</url>
       <description>
