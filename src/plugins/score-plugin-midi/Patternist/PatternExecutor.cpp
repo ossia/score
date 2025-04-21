@@ -40,7 +40,7 @@ public:
   bool legato(int note) const noexcept
   {
     for(const Lane& lane : pattern.lanes)
-      if(lane.note == note)
+      if(lane.note == note && ossia::valid_index(current, lane.pattern))
         return lane.pattern[current] == Note::Legato;
     return false;
   }
@@ -88,7 +88,7 @@ public:
 
       for(Lane& lane : pattern.lanes)
       {
-        if(lane.note <= 127)
+        if(lane.note <= 127 && ossia::valid_index(current, lane.pattern))
         {
           switch(lane.pattern[current])
           {
@@ -119,19 +119,22 @@ public:
 
       for(Lane& lane : pattern.lanes)
       {
-        if(lane.note == 255)
+        if(ossia::valid_index(current, lane.pattern))
         {
-          if(lane.pattern[current] != Note::Rest)
-            accent_out->write_value(1., date);
-          else
-            accent_out->write_value(0., date);
-        }
-        else if(lane.note == 254)
-        {
-          if(lane.pattern[current] != Note::Rest)
-            slide_out->write_value(1., date);
-          else
-            slide_out->write_value(0., date);
+          if(lane.note == 255)
+          {
+            if(lane.pattern[current] != Note::Rest)
+              accent_out->write_value(1., date);
+            else
+              accent_out->write_value(0., date);
+          }
+          else if(lane.note == 254)
+          {
+            if(lane.pattern[current] != Note::Rest)
+              slide_out->write_value(1., date);
+            else
+              slide_out->write_value(0., date);
+          }
         }
       }
 
