@@ -540,15 +540,7 @@ void PluginSettingsView::installAddon(const Package& addon)
 
 void PluginSettingsView::installSDK()
 {
-  constexpr const char* platform =
-#if defined(_WIN32)
-      "windows"
-#elif defined(__APPLE__)
-      "mac"
-#else
-      "linux"
-#endif
-      ;
+  auto platform = score::addonArchitecture();
 
   const QString sdk_path{
       score::AppContext().settings<Library::Settings::Model>().getSDKPath() + '/'
@@ -556,7 +548,7 @@ void PluginSettingsView::installSDK()
   QDir{}.mkpath(sdk_path);
 
   const QUrl sdk_url
-      = QString("https://github.com/ossia/score/releases/download/%1/%2-sdk.zip")
+      = QString("https://github.com/ossia/score/releases/download/%1/sdk-%2.zip")
             .arg(SCORE_TAG)
             .arg(platform);
 

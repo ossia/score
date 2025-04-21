@@ -20,5 +20,5 @@ export SDK_DIR="$PWD/build/SDK"
 # Copy SDK
 (
     cd build/SDK
-    7z a "$BUILD_ARTIFACTSTAGINGDIRECTORY/windows-sdk.zip" usr
+    7z a "$BUILD_ARTIFACTSTAGINGDIRECTORY/sdk-windows-x86_64.zip" usr
 )

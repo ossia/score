@@ -16,17 +16,19 @@ QString addonArchitecture()
   arch += "linux-";
 #elif BOOST_OS_MACOS
   arch += "darwin-";
+#elif BOOST_OS_FREEBSD
+  arch += "freebsd-";
 #else
   arch += "unknown-";
 #endif
 
 #if BOOST_ARCH_X86_64
-  arch += "amd64";
+  arch += "x86_64";
 #elif BOOST_ARCH_X86
   arch += "x86";
 #elif BOOST_ARCH_ARM
 #if BOOST_ARCH_WORD_BITS_64
-  arch += "arm64";
+  arch += "aarch64";
 #else
   arch += "arm";
 #endif
