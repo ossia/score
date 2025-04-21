@@ -1,4 +1,5 @@
 include(CheckCXXCompilerFlag)
+include(CheckLinkerFlag)
 include(CheckCXXSymbolExists)
 
 # Options
@@ -188,6 +189,13 @@ if(MSVC)
   add_compile_options(-openmp:experimental)
 elseif(has_fopenmp_simd_flag)
   add_compile_options(-fopenmp-simd)
+endif()
+
+if(UNIX AND NOT APPLE AND NOT WIN32 AND NOT EMSCRIPTEN)
+  check_linker_flag(CXX "LINKER:-zexecstack" has_zexecstack_flag)
+  if(has_zexecstack_flag)
+    add_link_options(-Wl,-zexecstack)
+  endif()
 endif()
 
 # https://github.com/llvm/llvm-project/issues/131007
