@@ -32,7 +32,7 @@ jobs:
       with:
         submodules: 'recursive'
 
-    - uses: flathub-infra/flatpak-github-actions/flatpak-builder@9386d85446c0f8c6b93dea3774002af2abcac3d5
+    - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
       with:
         bundle: io.ossia.score.${{ matrix.arch }}.flatpak
         manifest-path: ./cmake/Deployment/Linux/Flatpak/io.ossia.score.yml
