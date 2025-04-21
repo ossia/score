@@ -1,6 +1,7 @@
 #!/bin/bash
 export BUILD_FOLDER=/tmp/build
 export SOURCE_FOLDER="$PWD"
+export NO_STRIP=1
 
 if [[ "${CPU_ARCH}" == "aarch64" ]]; then
   export CPU_ARCH_SUFFIX="-aarch64"
@@ -24,7 +25,7 @@ ln -s $BUILD_FOLDER build
 
 docker run \
 -v "$SOURCE_FOLDER/cmake/Deployment/Linux/AppImage/Recipe.llvm:/Recipe" \
--e TOOLCHAIN=appimage \
+-e TOOLCHAIN=appimage-debug \
 -e TAG="$GITTAGNOV" \
 -e OSSIA_SDK="$OSSIA_SDK" \
 -e CPU_ARCH="$CPU_ARCH" \
