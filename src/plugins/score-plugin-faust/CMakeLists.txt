@@ -62,19 +62,22 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${FAUST_INCLUDE_DIR})
 
 setup_score_plugin(${PROJECT_NAME})
 
-message("Downloading Faust libs...")
 
-ExternalProject_Add(
-    faustlibs
-    PREFIX ""
-    GIT_REPOSITORY https://github.com/grame-cncm/faustlibraries
-    GIT_TAG 730eff6dc336973553829235e0b31b24c47a2f69
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND ""
-    INSTALL_COMMAND ""
-)
+if(NOT SCORE_USE_SYSTEM_LIBRARIES)
+  message("Downloading Faust libs...")
 
-add_dependencies(${PROJECT_NAME} faustlibs)
+  ExternalProject_Add(
+      faustlibs
+      PREFIX ""
+      GIT_REPOSITORY https://github.com/grame-cncm/faustlibraries
+      GIT_TAG 730eff6dc336973553829235e0b31b24c47a2f69
+      CONFIGURE_COMMAND ""
+      BUILD_COMMAND ""
+      INSTALL_COMMAND ""
+  )
+
+  add_dependencies(${PROJECT_NAME} faustlibs)
+endif()
 
 if(WIN32)
   target_link_libraries(${PROJECT_NAME} PRIVATE ws2_32)

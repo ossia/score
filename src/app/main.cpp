@@ -413,7 +413,8 @@ static void setup_faust_path()
   path += "/src/plugins/score-plugin-faust/faustlibs-prefix/src/faustlibs";
 #endif
 
-  qputenv("FAUST_LIB_PATH", path.c_str());
+  if(QFileInfo{QString::fromUtf8(path)}.isDir())
+    qputenv("FAUST_LIB_PATH", path.c_str());
 }
 
 static void setup_opengl(bool& enable_opengl_ui)
