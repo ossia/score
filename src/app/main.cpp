@@ -535,7 +535,6 @@ static void setup_locale()
 
 static void setup_app_flags()
 {
-  qputenv("QT_NO_GLIB", "1");
   qputenv("QSG_USE_SIMPLE_ANIMATION_DRIVER", "1");
   qputenv("QSG_RENDER_LOOP", "basic");
   // Consistency in looks across macOS, Windows (which prevents the horrible 125% scaling) and Linux
@@ -559,6 +558,7 @@ static void setup_app_flags()
 #if defined(__linux__)
   // Else things look horrible on KDE plasma, etc
   qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
+  // qputenv("QT_NO_GLIB", "1"); // looks like it actually prevents the app from starting on GNOME
 
   if(!qEnvironmentVariableIsSet("FLATPAK_ID"))
   {
