@@ -1,6 +1,6 @@
 project(vst3puppet CXX)
 set(VST3_SDK_ROOT "${3RDPARTY_FOLDER}/vst3")
-add_executable(ossia-score-vst3puppet vst3puppet.cpp)
+add_executable(ossia-score-vst3puppet WIN32 vst3puppet.cpp ../vstpuppet/window.cpp)
 
 if(WIN32)
   target_sources(ossia-score-vst3puppet PRIVATE

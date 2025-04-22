@@ -44,13 +44,6 @@ void throw_exception(std::exception const& e, boost::source_location const& loc)
 }
 #endif
 
-// clang-format off
-#include <score/tools/InvisibleWindow.hpp>
-#undef OK
-#undef NO
-#undef Status
-// clang-format on
-
 using namespace Steinberg;
 std::string load_vst(const std::string& path, int id)
 {
@@ -176,17 +169,19 @@ struct app
   }
 };
 
+void init_invisible_window();
 int main(int argc, char** argv)
 {
   if(argc <= 1)
     return 1;
+
+  init_invisible_window();
 
   int id = 0;
   if(argc > 2)
     id = std::atoi(argv[2]);
 
   app a;
-  invisible_window w;
 
   boost::asio::post(a.ctx, [&] { a.load(argv[1], id); });
 

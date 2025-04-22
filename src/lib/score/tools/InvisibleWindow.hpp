@@ -118,7 +118,6 @@ struct invisible_window
     wc.cbSize = sizeof(WNDCLASSEX);
     wc.style = CS_VREDRAW | CS_HREDRAW;
     wc.lpfnWndProc = [](HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) -> LRESULT {
-      struct uwindow* f = (struct uwindow*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
       switch(msg)
       {
         case WM_CLOSE:
@@ -141,10 +140,8 @@ struct invisible_window
         WS_EX_TRANSPARENT, "window", "window", WS_POPUP, 0, 0, 0, 0, nullptr, nullptr,
         hInstance, nullptr);
 
-    if(!hwnd)
-      throw;
-    SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)this);
-    UpdateWindow(hwnd);
+    if(hwnd)
+      UpdateWindow(hwnd);
 
 #elif __has_include(<X11/Xlib.h>)
     if(!x11)

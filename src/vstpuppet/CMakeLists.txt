@@ -1,5 +1,9 @@
 project(vstpuppet CXX)
-add_executable(ossia-score-vstpuppet vstpuppet.cpp "${SCORE_SRC}/plugins/score-plugin-vst/Vst/Loader.cpp")
+add_executable(ossia-score-vstpuppet WIN32
+  vstpuppet.cpp
+  window.cpp
+  "${SCORE_SRC}/plugins/score-plugin-vst/Vst/Loader.cpp"
+)
 target_compile_definitions(ossia-score-vstpuppet PRIVATE HAS_VST2)
 target_link_libraries(
   ossia-score-vstpuppet
