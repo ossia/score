@@ -352,6 +352,17 @@ else()
   target_compile_definitions(score_plugin_avnd PUBLIC AVND_DISABLE_COROUTINES)
 endif()
 
+# https://github.com/llvm/llvm-project/issues/136635
+if(DEFINED ENV{GITHUB_REF})
+  if(NOT MSVC)
+    target_compile_options(
+      score_plugin_avnd
+      PUBLIC
+        -g0
+    )
+  endif()
+endif()
+
 setup_score_plugin(score_plugin_avnd)
 
 if(SCORE_PCH)
@@ -381,7 +392,7 @@ set(AVND_ADDITIONAL_CLASSES)
 set(AVND_CUSTOM_FACTORIES)
 function(avnd_make_score)
 
-  cmake_parse_arguments(AVND "DEVICE" "TARGET;MAIN_CLASS;NAMESPACE" "SOURCES" ${ARGN})
+  cmake_parse_arguments(AVND "DEVICE;OPTIMIZED" "TARGET;MAIN_CLASS;NAMESPACE" "SOURCES" ${ARGN})
 
   if(AVND_NAMESPACE)
     set(AVND_QUALIFIED "${AVND_NAMESPACE}::${AVND_MAIN_CLASS}")
@@ -417,6 +428,19 @@ function(avnd_make_score)
     ${AVND_SOURCES}
     "${CMAKE_BINARY_DIR}/${AVND_TARGET}_avnd.cpp"
   )
+
+  if(NOT MSVC AND NOT SCORE_DEPLOYMENT_BUILD)
+    if(AVND_OPTIMIZED)
+      set_source_files_properties(
+          ${AVND_SOURCES}
+          "${CMAKE_BINARY_DIR}/${AVND_TARGET}_avnd.cpp"
+        PROPERTIES
+          COMPILE_OPTIONS "-O3;-march=native;-g0"
+          SKIP_PRECOMPILE_HEADERS ON
+          SKIP_UNITY_BUILD_INCLUSION ON
+      )
+    endif()
+  endif()
 
   if(TARGET avnd_source_parser)
     target_sources(score_plugin_avnd PRIVATE
@@ -829,16 +853,17 @@ avnd_make_score(
     NAMESPACE ao
 )
 
-# avnd_make_score(
-#   SOURCES
-#     "${AVND_FOLDER}/examples/Advanced/Kabang/Kabang.hpp"
-#     "${AVND_FOLDER}/examples/Advanced/Kabang/Kabang.cpp"
-#     "${AVND_FOLDER}/examples/Advanced/Kabang/Sampler.hpp"
-#     "${AVND_FOLDER}/examples/Advanced/Kabang/Sampler.cpp"
-#   TARGET kabang
-#   MAIN_CLASS Kabang
-#   NAMESPACE kbng
-# )
+avnd_make_score(
+  SOURCES
+    "${AVND_FOLDER}/examples/Advanced/Kabang/Kabang.hpp"
+    "${AVND_FOLDER}/examples/Advanced/Kabang/Kabang.cpp"
+    "${AVND_FOLDER}/examples/Advanced/Kabang/Sampler.hpp"
+    "${AVND_FOLDER}/examples/Advanced/Kabang/Sampler.cpp"
+  TARGET kabang
+  MAIN_CLASS Kabang
+  NAMESPACE kbng
+  OPTIMIZED
+)
 
 file(CONFIGURE OUTPUT
      "${CMAKE_BINARY_DIR}/include.avnd.cpp"
