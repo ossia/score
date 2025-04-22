@@ -865,6 +865,18 @@ avnd_make_score(
   OPTIMIZED
 )
 
+avnd_make_score(
+  SOURCES
+    "${AVND_FOLDER}/examples/Advanced/Kabang/Minibang.hpp"
+    "${AVND_FOLDER}/examples/Advanced/Kabang/Kabang.cpp"
+    "${AVND_FOLDER}/examples/Advanced/Kabang/Sampler.hpp"
+    "${AVND_FOLDER}/examples/Advanced/Kabang/Sampler.cpp"
+  TARGET minibang
+  MAIN_CLASS Minibang
+  NAMESPACE kbng
+  OPTIMIZED
+)
+
 file(CONFIGURE OUTPUT
      "${CMAKE_BINARY_DIR}/include.avnd.cpp"
      CONTENT "${AVND_ADDITIONAL_CLASSES}\nstatic void all_custom_factories(auto& fx, auto& ctx, auto& key) { ${AVND_CUSTOM_FACTORIES} }\n"
