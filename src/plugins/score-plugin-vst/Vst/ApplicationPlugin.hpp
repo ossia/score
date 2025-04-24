@@ -38,6 +38,7 @@ public:
   void initialize() override;
   ~ApplicationPlugin() override;
 
+  void clearVSTs();
   void rescanVSTs(QStringList);
   void processIncomingMessage(const QString& txt);
   void addInvalidVST(const QString& path);

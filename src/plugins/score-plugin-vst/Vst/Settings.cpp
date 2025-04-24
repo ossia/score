@@ -116,7 +116,10 @@ QWidget* SettingsWidget::make(const score::ApplicationContext& ctx)
   });
   auto& app_plug = score::GUIAppContext().applicationPlugin<vst::ApplicationPlugin>();
 
-  connect(rescan, &QPushButton::clicked, this, [&] { app_plug.rescanVSTs(m_curitems); });
+  connect(rescan, &QPushButton::clicked, this, [&] {
+    app_plug.clearVSTs();
+    app_plug.rescanVSTs(m_curitems);
+  });
 
   auto reloadVSTs = [=, &app_plug] {
     vst_ok->clearContents();

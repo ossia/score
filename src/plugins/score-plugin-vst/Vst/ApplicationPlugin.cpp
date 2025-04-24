@@ -186,6 +186,12 @@ static const QString& vstPuppetPath()
   return path;
 }
 
+void ApplicationPlugin::clearVSTs()
+{
+  vst_infos.clear();
+  vstChanged();
+}
+
 void ApplicationPlugin::rescanVSTs(QStringList paths)
 {
 #if QT_CONFIG(process)
