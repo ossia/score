@@ -36,6 +36,7 @@
 #include <QQmlContext>
 #include <QQmlEngine>
 #include <QThread>
+#include <QTimer>
 #include <QTimerEvent>
 #include <QUrl>
 

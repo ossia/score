@@ -160,6 +160,32 @@ void ApplicationPlugin::unregisterRunningVST(Model* m)
   }
 }
 
+static const QString& vstPuppetPath()
+{
+  static const QString path = [] {
+    auto app = qApp->applicationDirPath();
+#if defined(__APPLE__)
+    auto bundle_path
+        = "/ossia-score-vstpuppet.app/Contents/MacOS/"
+          "ossia-score-vstpuppet";
+    QString bundle_vstpuppet = app + bundle_path;
+    if(QFile::exists(bundle_vstpuppet))
+      return bundle_vstpuppet;
+    else if(QFile::exists(app + "/ossia-score-vstpuppet"))
+      return QString(app + "/ossia-score-vstpuppet");
+    else if(QFile::exists(app + "/../../ossia-score-vstpuppet"))
+      return QString(path + "/../../ossia-score-vstpuppet");
+    else if(QFile::exists(app + "/../../" + bundle_path))
+      return QString(app + "/../../" + bundle_path);
+    else
+      return QStringLiteral("ossia-score-vstpuppet");
+#else
+    return app + "/ossia-score-vstpuppet";
+#endif
+  }();
+  return path;
+}
+
 void ApplicationPlugin::rescanVSTs(QStringList paths)
 {
 #if QT_CONFIG(process)
@@ -236,21 +262,13 @@ void ApplicationPlugin::rescanVSTs(QStringList paths)
       continue;
 
     auto proc = std::make_unique<QProcess>();
+    connect(proc.get(), &QProcess::errorOccurred, this, [proc = proc.get(), path] {
+      qDebug() << " == VST: error => " << path;
+      qDebug() << " -- VST out: " << proc->readAllStandardOutput().constData();
+      qDebug() << " -- VST error: " << proc->readAllStandardError().constData();
+    });
 
-#if defined(__APPLE__)
-    {
-      QString bundle_vstpuppet
-          = qApp->applicationDirPath()
-            + "/ossia-score-vstpuppet.app/Contents/MacOS/"
-              "ossia-score-vstpuppet";
-      if(QFile::exists(bundle_vstpuppet))
-        proc->setProgram(bundle_vstpuppet);
-      else
-        proc->setProgram(qApp->applicationDirPath() + "/ossia-score-vstpuppet");
-    }
-#else
-    proc->setProgram(qApp->applicationDirPath() + "/ossia-score-vstpuppet");
-#endif
+    proc->setProgram(vstPuppetPath());
     proc->setArguments({path, QString::number(i)});
     m_processes.push_back({path, std::move(proc), false, {}});
     i++;

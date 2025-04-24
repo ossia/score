@@ -47,7 +47,7 @@ if(APPLE AND SCORE_DEPLOYMENT_BUILD)
       PROPERTIES
         MACOSX_BUNDLE TRUE
         MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in"
-        RUNTIME_OUTPUT_DIRECTORY "ossia score.app/Contents/MacOS")
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/ossia score.app/Contents/MacOS")
   install(
     TARGETS ossia-score-vstpuppet
     BUNDLE DESTINATION "ossia score.app/Contents/MacOS"

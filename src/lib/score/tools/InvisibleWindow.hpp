@@ -94,8 +94,12 @@ struct invisible_window
   invisible_window()
   {
 #if defined(__APPLE__)
+    auto pool = msg(id, cls("NSAutoreleasePool"), "alloc");
+    msg(void, pool, "init");
+
     msg(id, cls("NSApplication"), "sharedApplication");
 
+    assert(NSApp);
     // Prevent activation
     msg1(
         void, NSApp, "setActivationPolicy:", NSInteger,
@@ -106,6 +110,7 @@ struct invisible_window
         id, msg(id, cls("NSWindow"), "alloc"),
         "initWithContentRect:styleMask:backing:defer:", CGRect, CGRectMake(0, 0, 1, 1),
         NSUInteger, 3, NSUInteger, 2, BOOL, NO);
+    assert(wnd);
 
     // Make the window transparent
     msg1(void, wnd, "setOpaque:", NSInteger, NO);

@@ -161,6 +161,32 @@ void ApplicationPlugin::rescan()
   rescan(paths);
 }
 
+static const QString& vst3PuppetPath()
+{
+  static const QString path = [] {
+    auto app = qApp->applicationDirPath();
+#if defined(__APPLE__)
+    auto bundle_path
+        = "/ossia-score-vst3puppet.app/Contents/MacOS/"
+          "ossia-score-vst3puppet";
+    QString bundle_vst3puppet = app + bundle_path;
+    if(QFile::exists(bundle_vst3puppet))
+      return bundle_vst3puppet;
+    else if(QFile::exists(app + "/ossia-score-vst3puppet"))
+      return QString(app + "/ossia-score-vst3puppet");
+    else if(QFile::exists(app + "/../../ossia-score-vst3puppet"))
+      return QString(path + "/../../ossia-score-vst3puppet");
+    else if(QFile::exists(app + "/../../" + bundle_path))
+      return QString(app + "/../../" + bundle_path);
+    else
+      return QStringLiteral("ossia-score-vst3puppet");
+#else
+    return app + "/ossia-score-vst3puppet";
+#endif
+  }();
+  return path;
+}
+
 void ApplicationPlugin::rescan(const QStringList& paths)
 {
 #if QT_CONFIG(process)
@@ -210,26 +236,14 @@ void ApplicationPlugin::rescan(const QStringList& paths)
   for(const QString& path : newPlugins)
   {
     auto proc = std::make_unique<QProcess>();
-
-#if defined(__APPLE__)
-    {
-      QString bundle_vstpuppet
-          = qApp->applicationDirPath()
-            + "/ossia-score-vst3puppet.app/Contents/MacOS/ossia-score-vst3puppet";
-      if(QFile::exists(bundle_vstpuppet))
-        proc->setProgram(bundle_vstpuppet);
-      else
-        proc->setProgram(qApp->applicationDirPath() + "/ossia-score-vst3puppet");
-    }
-#else
-    proc->setProgram(qApp->applicationDirPath() + "/ossia-score-vst3puppet");
-#endif
-    proc->setArguments({path, QString::number(i)});
     connect(proc.get(), &QProcess::errorOccurred, this, [proc = proc.get(), path] {
       qDebug() << " == VST3: error => " << path;
-      qDebug() << "VST3 out: " << proc->readAllStandardOutput().constData();
-      qDebug() << "VST3 error: " << proc->readAllStandardError().constData();
+      qDebug() << " -- VST3 out: " << proc->readAllStandardOutput().constData();
+      qDebug() << " -- VST3 error: " << proc->readAllStandardError().constData();
     });
+
+    proc->setProgram(vst3PuppetPath());
+    proc->setArguments({path, QString::number(i)});
     m_processes.push_back({path, std::move(proc), false, {}});
     i++;
   }

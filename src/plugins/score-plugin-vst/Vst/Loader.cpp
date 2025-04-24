@@ -37,21 +37,46 @@ using PluginLoader = WinLoader;
 #elif defined(__APPLE__)
 struct AppleLoader
 {
+  static std::string cf_to_stdstring(CFStringRef res)
+  {
+    char err[512];
+    CFStringGetCString(res, err, sizeof(err), kCFStringEncodingUTF8);
+    err[511] = 0;
+    return err;
+  }
+
   static void* load(const char* name)
   {
     CFStringRef fileNameString
         = CFStringCreateWithCString(nullptr, name, kCFStringEncodingUTF8);
     if(fileNameString == 0)
       throw std::runtime_error("Couldn't load plug-in" + std::string(name));
+
     CFURLRef url = CFURLCreateWithFileSystemPath(
         nullptr, fileNameString, kCFURLPOSIXPathStyle, false);
     CFRelease(fileNameString);
     if(url == 0)
       throw std::runtime_error("Couldn't load plug-in" + std::string(name));
+
     auto module = CFBundleCreate(nullptr, url);
     CFRelease(url);
-    if(module && CFBundleLoadExecutable((CFBundleRef)module) == false)
-      throw std::runtime_error("Couldn't load plug-in" + std::string(name));
+    if(!module)
+      throw std::runtime_error("Couldn't create bundle: " + std::string(name));
+
+    CFErrorRef err = {};
+    if(!CFBundleLoadExecutableAndReturnError((CFBundleRef)module, &err))
+    {
+      std::string sstr;
+      if(auto str = CFErrorCopyFailureReason(err))
+      {
+        sstr = cf_to_stdstring(str);
+        CFRelease(str);
+      }
+
+      throw std::runtime_error(
+          "Couldn't load plug-in" + std::string(name) + ": " + sstr);
+    }
+
     return module;
   }
 
@@ -141,6 +166,9 @@ Module::~Module()
 
 PluginEntryProc Module::getMain()
 {
-  return PluginLoader::getMain(module);
+  if(module)
+    return PluginLoader::getMain(module);
+  else
+    return {};
 }
 }
