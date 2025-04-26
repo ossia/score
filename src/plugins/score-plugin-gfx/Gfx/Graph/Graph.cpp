@@ -216,13 +216,12 @@ void Graph::recreateOutputRenderList(OutputNode& output)
     if(renderer.get() == output.renderer())
     {
       auto old_renderer = renderer;
+      old_renderer->release();
+      old_renderer.reset();
+
       auto new_renderer = createRenderList(&output, output.renderState());
 
-      old_renderer->release();
-
       renderer = new_renderer;
-
-      old_renderer.reset();
 
       if(!renderer)
       {
