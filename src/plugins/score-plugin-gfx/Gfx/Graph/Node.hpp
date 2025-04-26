@@ -115,6 +115,13 @@ public:
   ossia::flat_map<RenderList*, score::gfx::NodeRenderer*> renderedNodes;
 
   /**
+   * @brief Render target info
+   * 
+   * Each texture inlet will have a matching spec
+   */
+  ossia::flat_map<int32_t, ossia::render_target_spec> renderTargetSpecs;
+
+  /**
    * @brief Used to notify a material change from the model to the renderers.
    */
   void materialChange() noexcept
@@ -174,6 +181,12 @@ public:
   int32_t id = -1;
   bool requiresDepth{};
   bool addedToGraph{};
+
+  QSize resolveRenderTargetSize(int32_t port, RenderList& renderer) const noexcept;
+  RenderTargetSpecs
+  resolveRenderTargetSpecs(int32_t port, RenderList& renderer) const noexcept;
+
+  void process(int32_t port, const ossia::render_target_spec& v);
 };
 
 /**
@@ -199,26 +212,15 @@ public:
    */
   ossia::geometry_spec geometry;
 
-  /**
-   * @brief Render target info
-   * 
-   * Each texture inlet will have a matching spec
-   */
-  ossia::flat_map<int32_t, ossia::render_target_spec> renderTargetSpecs;
-
   void process(Message&& msg) override;
   void process(Timings tk);
   void process(int32_t port, const ossia::value& v);
   void process(int32_t port, const ossia::audio_vector& v);
   void process(int32_t port, const ossia::geometry_spec& v);
-  void process(int32_t port, const ossia::render_target_spec& v);
   void process(int32_t port, const ossia::transform3d& v);
   void process(int32_t port, ossia::monostate) const noexcept { }
   void process(int32_t port, const FunctionMessage&);
-
-  QSize resolveRenderTargetSize(int32_t port, RenderList& renderer) const noexcept;
-  RenderTargetSpecs
-  resolveRenderTargetSpecs(int32_t port, RenderList& renderer) const noexcept;
+  using Node::process;
 };
 
 /**

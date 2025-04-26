@@ -221,6 +221,7 @@ public:
 
     // Create the controls, inputs outputs etc.
     std::size_t i = 0;
+
     for(auto& ctl : element.inlets())
     {
       if(auto ctrl = qobject_cast<Process::ControlInlet*>(ctl))
@@ -246,7 +247,8 @@ public:
       }
       else if(auto ctrl = qobject_cast<Gfx::TextureInlet*>(ctl))
       {
-        ctrl->setupExecution(*node->add_texture(), this);
+        ossia::texture_inlet& inl = *node->add_texture();
+        ctrl->setupExecution(inl, this);
       }
     }
 
@@ -287,6 +289,18 @@ public:
       auto gpu_node
           = new GfxNode<Node>(element, qex_ptr, node->control_outs, id, ctx.doc);
       ptr.reset(gpu_node);
+    }
+
+    i = 0;
+    for(auto& ctl : element.inlets())
+    {
+      if(auto ctrl = qobject_cast<Gfx::TextureInlet*>(ctl))
+      {
+        ossia::texture_inlet& inl
+            = static_cast<ossia::texture_inlet&>(*node->root_inputs()[i]);
+        ptr->process(i, inl.data); // Setup render_target_spec
+      }
+      i++;
     }
     node->id = gfx_exec.ui->register_node(std::move(ptr));
     node_id = node->id;
