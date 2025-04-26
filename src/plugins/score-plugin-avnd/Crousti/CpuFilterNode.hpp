@@ -44,14 +44,15 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
 
   template <typename Tex>
   void createInput(
-      score::gfx::RenderList& renderer, int k, const Tex& texture_spec, QSize size)
+      score::gfx::RenderList& renderer, int k, const Tex& texture_spec,
+      const score::gfx::RenderTargetSpecs& spec)
   {
     auto& parent = node();
     auto port = parent.input[k];
     static constexpr auto flags
         = QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource;
     auto texture = renderer.state.rhi->newTexture(
-        gpp::qrhi::textureFormat<Tex>(), size, 1, flags);
+        gpp::qrhi::textureFormat<Tex>(), spec.size, 1, flags);
     SCORE_ASSERT(texture->create());
     m_rts[port] = score::gfx::createRenderTarget(
         renderer.state, texture, renderer.samples(), renderer.requiresDepth());
@@ -185,20 +186,24 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
       int k = 0;
       avnd::cpu_texture_input_introspection<Node_T>::for_all(
           avnd::get_inputs<Node_T>(state), [&]<typename F>(F& t) {
-            auto sz = renderer.state.renderSize;
-            if constexpr(requires {
-                           t.request_width;
-                           t.request_height;
-                         })
-            {
-              sz.rwidth() = t.request_width;
-              sz.rheight() = t.request_height;
-            }
-            createInput(renderer, k, t.texture, sz);
-            t.texture.width = sz.width();
-            t.texture.height = sz.height();
-            k++;
-          });
+        // FIXME k isn't the port index, it's the texture port index
+        auto spec = this->node().resolveRenderTargetSpecs(k, renderer);
+        if constexpr(requires {
+                       t.request_width;
+                       t.request_height;
+                     })
+        {
+          spec.size.rwidth() = t.request_width;
+          spec.size.rheight() = t.request_height;
+        }
+        createInput(renderer, k, t.texture, spec);
+        if constexpr(avnd::cpu_fixed_format_texture<decltype(t.texture)>)
+        {
+          t.texture.width = spec.size.width();
+          t.texture.height = spec.size.height();
+        }
+        k++;
+      });
     }
 
     {

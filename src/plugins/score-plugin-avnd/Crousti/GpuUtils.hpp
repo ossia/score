@@ -933,7 +933,18 @@ struct GpuProcessIns
   }
 #endif
 
-  void operator()(auto& t, auto field_index) { }
+  template <avnd::texture_port Field, std::size_t NField>
+  void operator()(Field& t, avnd::field_index<NField> field_index)
+  {
+    using node_type = std::remove_cvref_t<decltype(gpu.node())>;
+    auto& node = const_cast<node_type&>(gpu.node());
+    auto val = ossia::get_if<ossia::render_target_spec>(&mess.input[field_index]);
+    if(!val)
+      return;
+    node.process(NField, *val);
+  }
+
+  void operator()(auto& t, auto field_index) = delete;
 };
 
 struct GpuControlIns
@@ -1014,6 +1025,7 @@ struct SCORE_PLUGIN_AVND_EXPORT CustomGfxNodeBase : score::gfx::NodeModel
   const score::DocumentContext& m_ctx;
   score::gfx::Message last_message;
   void process(score::gfx::Message&& msg) override;
+  using score::gfx::NodeModel::process;
 };
 struct SCORE_PLUGIN_AVND_EXPORT CustomGfxOutputNodeBase : score::gfx::OutputNode
 {
@@ -1063,6 +1075,7 @@ struct SCORE_PLUGIN_AVND_EXPORT CustomGpuOutputNodeBase
   QString vertex, fragment, compute;
   score::gfx::Message last_message;
   void process(score::gfx::Message&& msg) override;
+  using score::gfx::Node::process;
 
   void setRenderer(std::shared_ptr<score::gfx::RenderList>) override;
   score::gfx::RenderList* renderer() const override;

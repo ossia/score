@@ -320,7 +320,7 @@ void ProcessNode::process(int32_t port, const ossia::audio_vector& v)
   }
 }
 
-void ProcessNode::process(int32_t port, const ossia::render_target_spec& v)
+void Node::process(int32_t port, const ossia::render_target_spec& v)
 {
   auto it = this->renderTargetSpecs.find(port);
   if(it != this->renderTargetSpecs.end())
@@ -349,8 +349,7 @@ void ProcessNode::process(int32_t port, const ossia::geometry_spec& v)
 
 void ProcessNode::process(int32_t port, const ossia::transform3d& v) { }
 
-QSize ProcessNode::resolveRenderTargetSize(
-    int32_t port, RenderList& renderer) const noexcept
+QSize Node::resolveRenderTargetSize(int32_t port, RenderList& renderer) const noexcept
 {
   auto it = this->renderTargetSpecs.find(port);
   if(it != this->renderTargetSpecs.end())
@@ -409,7 +408,7 @@ static constexpr QRhiTexture::Format ossia_format_to_rhi(ossia::texture_format f
 }
 
 RenderTargetSpecs
-ProcessNode::resolveRenderTargetSpecs(int32_t port, RenderList& renderer) const noexcept
+Node::resolveRenderTargetSpecs(int32_t port, RenderList& renderer) const noexcept
 {
   RenderTargetSpecs spec;
   auto it = this->renderTargetSpecs.find(port);
