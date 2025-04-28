@@ -1,13 +1,22 @@
 #pragma once
 
+#include <State/Address.hpp>
+
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
+
+#include <ossia-qt/value_metatypes.hpp>
 
 #include <QQmlListProperty>
 
 #include <unordered_map>
 #include <verdigris>
 
+namespace ossia::net
+{
+class node_base;
+class parameter_base;
+}
 namespace Explorer
 {
 class DeviceDocumentPlugin;
@@ -51,7 +60,7 @@ class GlobalDeviceEnumerator : public QObject
 
 public:
   explicit GlobalDeviceEnumerator();
-  explicit GlobalDeviceEnumerator(const QString& uuid);
+  //  explicit GlobalDeviceEnumerator(const QString& uuid);
   ~GlobalDeviceEnumerator();
 
   void setContext(const score::DocumentContext* doc);
@@ -72,6 +81,12 @@ public:
   void enumerateChanged(bool b) W_SIGNAL(enumerateChanged, b)
   W_PROPERTY(bool, enumerate READ enumerate WRITE setEnumerate NOTIFY enumerateChanged)
 
+  QString deviceType() { return m_uuid; }
+  void setDeviceType(const QString& b);
+  void deviceTypeChanged(const QString& b) W_SIGNAL(deviceTypeChanged, b)
+  W_PROPERTY(
+      QString, deviceType READ deviceType WRITE setDeviceType NOTIFY deviceTypeChanged)
+
 private:
   void reprocess();
   const score::DocumentContext* doc{};
@@ -84,11 +99,60 @@ private:
       m_current_enums;
 
   std::vector<DeviceIdentifier*> m_raw_list;
-  Device::ProtocolFactory::ConcreteKey m_filter{};
-
+  QString m_uuid;
+  Device::ProtocolFactory::ConcreteKey m_deviceType{};
   bool m_enumerate{};
 };
+
+class DeviceListener
+    : public QObject
+    , public Nano::Observer
+{
+  W_OBJECT(DeviceListener)
+
+public:
+  explicit DeviceListener();
+  ~DeviceListener();
+
+  QString deviceName() { return m_uuid; }
+  void setDeviceName(const QString& b);
+  void deviceNameChanged(const QString& b) W_SIGNAL(deviceNameChanged, b)
+  W_PROPERTY(
+      QString, deviceName READ deviceName WRITE setDeviceName NOTIFY deviceNameChanged)
+
+  QString deviceType() { return m_uuid; }
+  void setDeviceType(const QString& b);
+  void deviceTypeChanged(const QString& b) W_SIGNAL(deviceTypeChanged, b)
+  W_PROPERTY(
+      QString, deviceType READ deviceType WRITE setDeviceType NOTIFY deviceTypeChanged)
+
+  bool listen() { return m_listen; }
+  void setListen(bool b);
+  void listenChanged(bool b) W_SIGNAL(listenChanged, b)
+  W_PROPERTY(bool, listen READ listen WRITE setListen NOTIFY listenChanged)
+
+  // To QML
+  void message(const QString& address, QVariant value) W_SIGNAL(message, address, value);
+  void parameterCreated(const QString& address) W_SIGNAL(parameterCreated, address);
+
+private:
+  const score::DocumentContext* ctx{};
+  void init();
+  void on_deviceAdded(Device::DeviceInterface& dev);
+  void on_nodeCreated(const ossia::net::node_base&);
+  void on_parameterCreated(const ossia::net::parameter_base&);
+
+  QString m_name;
+  QString m_uuid;
+  Device::ProtocolFactory::ConcreteKey m_deviceType{};
+
+  bool m_listen{};
+};
+
+QString addressFromParameter(const ossia::net::parameter_base& p);
 }
 
+Q_DECLARE_METATYPE(JS::DeviceListener*)
 Q_DECLARE_METATYPE(JS::GlobalDeviceEnumerator*)
+W_REGISTER_ARGTYPE(JS::DeviceListener*)
 W_REGISTER_ARGTYPE(Device::ProtocolFactory*)

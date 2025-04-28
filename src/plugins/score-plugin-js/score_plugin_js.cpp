@@ -81,6 +81,7 @@ score_plugin_js::score_plugin_js()
   qmlRegisterType<JS::PortSource>("Score.UI", 1, 0, "PortSource");
   qmlRegisterType<JS::PortSink>("Score.UI", 1, 0, "PortSink");
   qmlRegisterType<JS::GlobalDeviceEnumerator>("Score.UI", 1, 0, "DeviceEnumerator");
+  qmlRegisterType<JS::DeviceListener>("Score.UI", 1, 0, "DeviceListener");
 
   qRegisterMetaType<QVector<JS::MidiMessage>>();
 

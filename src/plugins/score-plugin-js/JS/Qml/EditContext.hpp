@@ -24,6 +24,7 @@ class Macro;
 namespace JS
 {
 class GlobalDeviceEnumerator;
+class DeviceListener;
 class SCORE_PLUGIN_JS_EXPORT EditJsContext : public QObject
 {
   W_OBJECT(EditJsContext)
@@ -47,6 +48,9 @@ public:
   const score::DocumentContext* ctx();
   W_INVOKABLE(ctx);
 
+  ///////////////
+  /// Devices ///
+  ///////////////
   QString deviceToJson(QString addr);
   W_SLOT(deviceToJson)
 
@@ -58,6 +62,9 @@ public:
 
   void createOSCDevice(QString name, QString host, int in, int out);
   W_SLOT(createOSCDevice)
+
+  void connectOSCQueryDevice(QString name, QString host);
+  W_SLOT(connectOSCQueryDevice)
 
   void removeDevice(QString name);
   W_SLOT(removeDevice)
@@ -74,6 +81,17 @@ public:
   GlobalDeviceEnumerator* enumerateDevices(const QString& uuid);
   W_SLOT(enumerateDevices, (const QString&))
 
+  DeviceListener* listenDevice(const QString& name);
+  W_SLOT(listenDevice, (const QString&))
+
+  void iterateDevice(const QString& name, const QJSValue& op);
+  W_SLOT(iterateDevice, (const QString&, const QJSValue&))
+
+  void setDeviceLearn(const QString& name, bool learn);
+  W_SLOT(setDeviceLearn, (const QString&, bool))
+  /////////////////
+  /// Processes ///
+  /////////////////
   void createAddress(QString addr, QString type);
   W_SLOT(createAddress)
 
@@ -186,6 +204,9 @@ public:
   void automate(QObject* interval, QObject* port);
   W_SLOT(automate, (QObject*, QObject*))
 
+  /////////////////
+  /// Undo-redo ///
+  /////////////////
   void startMacro();
   W_SLOT(startMacro)
 
@@ -198,6 +219,9 @@ public:
   void redo();
   W_SLOT(redo)
 
+  ////////////////
+  /// Document ///
+  ////////////////
   QObject* find(QString p);
   W_SLOT(find)
 
@@ -210,7 +234,9 @@ public:
   QObject* rootInterval();
   W_SLOT(rootInterval)
 
+  /////////////////
   /// Execution ///
+  /////////////////
   void play();
   W_SLOT(play, ())
 
@@ -229,11 +255,14 @@ public:
   void scrub(double z);
   W_SLOT(scrub)
 
+  ////////////////
   /// File API ///
   QString readFile(QString path);
   W_SLOT(readFile)
 
+  ////////////////
   /// Score UI ///
+  ////////////////
   QObject* selectedObject();
   W_SLOT(selectedObject)
 

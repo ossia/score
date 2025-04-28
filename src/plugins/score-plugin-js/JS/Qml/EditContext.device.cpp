@@ -3,8 +3,12 @@
 #include <JS/Qml/DeviceEnumerator.hpp>
 #include <JS/Qml/EditContext.hpp>
 #include <Protocols/OSC/OSCProtocolFactory.hpp>
+#include <Protocols/OSCQuery/OSCQueryProtocolFactory.hpp>
+#include <Protocols/OSCQuery/OSCQuerySpecificSettings.hpp>
 
 #include <score/application/ApplicationContext.hpp>
+
+#include <QQmlContext>
 
 #include <ossia-config.hpp>
 #if defined(OSSIA_PROTOCOL_WEBSOCKETS)
@@ -49,16 +53,76 @@ GlobalDeviceEnumerator* EditJsContext::enumerateDevices()
   // e->setEnumerate(true);
   return e;
 }
+
 GlobalDeviceEnumerator* EditJsContext::enumerateDevices(const QString& uuid)
 {
   auto doc = ctx();
   if(!doc)
     return nullptr;
 
-  auto e = new GlobalDeviceEnumerator{uuid};
+  auto e = new GlobalDeviceEnumerator{};
+  e->setDeviceType(uuid);
   e->setContext(doc);
   // e->setEnumerate(true);
   return e;
+}
+
+void EditJsContext::setDeviceLearn(const QString& name, bool fun)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+
+  auto& plug = doc->plugin<Explorer::DeviceDocumentPlugin>();
+
+  // FIXME: put learned things in a command
+  // auto cmd = new Explorer::Command::RemoveNodes;
+  for(auto& node : plug.explorer().rootNode().children())
+  {
+    if(node.is<Device::DeviceSettings>())
+    {
+      Device::DeviceInterface& dev = plug.list().device(node.displayName());
+      dev.setLearning(fun);
+      //cmd->addCommand(new Explorer::Command::Remove{plug, node});
+    }
+  }
+}
+
+void EditJsContext::iterateDevice(const QString& name, const QJSValue& fun)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+
+  if(!fun.isCallable())
+    return;
+
+  auto& plug = doc->plugin<Explorer::DeviceDocumentPlugin>();
+  auto& list = plug.list();
+  for(auto& node : plug.explorer().rootNode().children())
+  {
+    if(node.is<Device::DeviceSettings>())
+    {
+      if(node.displayName() == name)
+      {
+        auto& dev = list.device(name);
+        if(auto device = dev.getDevice())
+        {
+          QJSEngine* engine = qjsEngine(this);
+          if(!engine)
+            return;
+
+          ossia::net::iterate_all_children(
+              &device->get_root_node(), [&fun, engine](ossia::net::parameter_base& p) {
+            auto addr = addressFromParameter(p);
+
+            auto val = p.value().apply(ossia::qt::js_value_outbound_visitor{*engine});
+            fun.call({addr, val});
+          });
+        }
+      }
+    }
+  }
 }
 
 void EditJsContext::removeDevice(QString name)
@@ -104,10 +168,55 @@ void EditJsContext::createOSCDevice(QString name, QString ip, int i, int o)
   submit(*m, new Explorer::Command::LoadDevice{plug, std::move(set)});
 }
 
+void EditJsContext::connectOSCQueryDevice(QString name, QString ip)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+
+  auto& plug = doc->plugin<Explorer::DeviceDocumentPlugin>();
+  Device::DeviceSettings set;
+  set.name = name;
+  set.protocol = Protocols::OSCQueryProtocolFactory::static_concreteKey();
+
+  Protocols::OSCQuerySpecificSettings osc;
+  osc.host = ip;
+  set.deviceSpecificSettings = QVariant::fromValue(osc);
+
+  auto [m, _] = macro(*doc);
+  submit(*m, new Explorer::Command::LoadDevice{plug, std::move(set)});
+
+  auto* dev = plug.list().findDevice(name);
+  QTimer::singleShot(100, this, [doc, dev, name] {
+    if(dev->connected())
+    {
+      auto old_name = name;
+      auto new_node = dev->refresh();
+      if(new_node.hasChildren())
+      {
+        auto& doc_plugin = doc->plugin<Explorer::DeviceDocumentPlugin>();
+        auto& explorer = doc_plugin.explorer();
+        const auto& cld = explorer.rootNode().children();
+        for(auto it = cld.begin(); it != cld.end(); ++it)
+        {
+          auto ds = it->get<Device::DeviceSettings>();
+          if(ds.name == old_name)
+          {
+            explorer.removeNode(it);
+            break;
+          }
+        }
+
+        explorer.addDevice(std::move(new_node));
+      }
+    }
+  });
+}
+
 void EditJsContext::createDevice(QString name, QString uuid, QJSValue obj)
 {
   auto doc = ctx();
-  if (!doc)
+  if(!doc)
     return;
 
   auto& pl = score::AppContext().interfaces<Device::ProtocolFactoryList>();
@@ -261,5 +370,15 @@ void EditJsContext::createAddress(QString addr, QString type)
     }
   }
   submit(*m, new Explorer::Command::AddWholeAddress{plug, std::move(set)});
+}
+
+JS::DeviceListener* EditJsContext::listenDevice(const QString& name)
+{
+  auto doc = ctx();
+  if(!doc)
+    return nullptr;
+  auto listener = new DeviceListener{};
+
+  return listener;
 }
 }

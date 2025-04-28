@@ -7,11 +7,14 @@
 
 #include <score/application/GUIApplicationContext.hpp>
 
+#include <ossia-qt/js_utilities.hpp>
+
 #include <QtQml>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(JS::GlobalDeviceEnumerator)
 W_OBJECT_IMPL(JS::DeviceIdentifier)
+W_OBJECT_IMPL(JS::DeviceListener)
 namespace JS
 {
 /**
@@ -21,7 +24,8 @@ namespace JS
  */
 
 GlobalDeviceEnumerator::GlobalDeviceEnumerator() { }
-GlobalDeviceEnumerator::GlobalDeviceEnumerator(const QString& uid)
+
+void GlobalDeviceEnumerator::setDeviceType(const QString& uid)
 {
   // Convert the textual UUID in a strongly typed UUID
   try
@@ -30,13 +34,16 @@ GlobalDeviceEnumerator::GlobalDeviceEnumerator(const QString& uid)
     auto score_uid = score::uuids::string_generator::compute(uuid.begin(), uuid.end());
     if(score_uid.is_nil())
       return;
-    this->m_filter = UuidKey<Device::ProtocolFactory>{score_uid};
+    this->m_deviceType = UuidKey<Device::ProtocolFactory>{score_uid};
   }
   catch(...)
   {
+    qDebug("Error while parsing device type");
     return;
   }
+  reprocess();
 }
+
 GlobalDeviceEnumerator::~GlobalDeviceEnumerator()
 {
   m_enumerate = false;
@@ -77,7 +84,7 @@ void GlobalDeviceEnumerator::setEnumerate(bool b)
   m_enumerate = b;
   enumerateChanged(b);
 
-  reprocess();
+  QMetaObject::invokeMethod(this, &GlobalDeviceEnumerator::reprocess);
 }
 
 void GlobalDeviceEnumerator::reprocess()
@@ -94,15 +101,19 @@ void GlobalDeviceEnumerator::reprocess()
   m_raw_list.clear();
 
   if(!this->doc)
-    return;
+  {
+    doc = score::GUIAppContext().currentDocument();
+    if(!doc)
+      return;
+  }
   if(!this->m_enumerate)
     return;
 
   auto& doc = *this->doc;
   for(auto& protocol : doc.app.interfaces<Device::ProtocolFactoryList>())
   {
-    if(m_filter != Device::ProtocolFactory::ConcreteKey{})
-      if(m_filter != protocol.concreteKey())
+    if(m_deviceType != Device::ProtocolFactory::ConcreteKey{})
+      if(m_deviceType != protocol.concreteKey())
         continue;
 
     auto enums = protocol.getEnumerators(doc);
@@ -143,5 +154,100 @@ void GlobalDeviceEnumerator::reprocess()
       enumerator->enumerate(on_deviceAdded);
     }
   }
+}
+
+DeviceListener::DeviceListener()
+{
+  auto doc = score::GUIAppContext().currentDocument();
+  if(!doc)
+    return;
+  ctx = doc;
+}
+
+void DeviceListener::init()
+{
+  auto& plug = ctx->plugin<Explorer::DeviceDocumentPlugin>();
+  auto& list = plug.list();
+  for(auto& dev : list.devices())
+  {
+    on_deviceAdded(*dev);
+  }
+
+  connect(
+      &list, &Device::DeviceList::deviceAdded, this,
+      [this](Device::DeviceInterface* dev) { on_deviceAdded(*dev); });
+  connect(
+      &list, &Device::DeviceList::deviceRemoved, this,
+      [](Device::DeviceInterface* dev) { });
+}
+
+QString addressFromParameter(const ossia::net::parameter_base& p)
+{
+  auto& dev = p.get_node().get_device();
+  auto nm = QString::fromStdString(dev.get_name());
+  auto str = QString::fromStdString(p.get_node().osc_address());
+  return nm + ":" + str;
+}
+
+void DeviceListener::on_deviceAdded(Device::DeviceInterface& dev)
+{
+  auto ossia_dev = dev.getDevice();
+  if(!ossia_dev)
+  {
+    return;
+  }
+
+  if(!this->m_name.isEmpty())
+    if(ossia_dev->get_name() != this->m_name.toStdString())
+      return;
+
+  ossia_dev->on_node_created.connect<&DeviceListener::on_nodeCreated>(*this);
+  ossia_dev->on_parameter_created.connect<&DeviceListener::on_parameterCreated>(*this);
+}
+
+void DeviceListener::on_nodeCreated(const ossia::net::node_base& n)
+{
+  if(auto param = n.get_parameter())
+  {
+    on_parameterCreated(*param);
+  }
+}
+
+void DeviceListener::on_parameterCreated(const ossia::net::parameter_base& p)
+{
+  auto addr = addressFromParameter(p);
+  parameterCreated(addr);
+  const_cast<ossia::net::parameter_base&>(p).add_callback(
+      [this, addr](const ossia::value& v) {
+    auto vv = v.apply(ossia::qt::ossia_to_qvariant{});
+    message(addr, vv);
+  });
+}
+
+DeviceListener::~DeviceListener() { }
+
+void DeviceListener::setDeviceName(const QString& b)
+{
+  if(b == m_name)
+    return;
+  m_name = b;
+  deviceNameChanged(m_name);
+}
+
+void DeviceListener::setDeviceType(const QString& b)
+{
+  if(b == m_uuid)
+    return;
+  m_uuid = b;
+  deviceTypeChanged(m_uuid);
+}
+void DeviceListener::setListen(bool b)
+{
+  if(b == m_listen)
+    return;
+  m_listen = b;
+  listenChanged(m_listen);
+
+  init();
 }
 }
