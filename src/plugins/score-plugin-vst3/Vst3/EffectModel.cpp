@@ -250,7 +250,7 @@ void Model::initControl(ControlInlet* ctrl, const Steinberg::Vst::ParameterInfo*
     auto it = m_paramToIndex.find(ctrl->fxNum);
     if(it != m_paramToIndex.end())
     {
-      if(fx.controller->getParameterInfo(ctrl->fxNum, p) == Steinberg::kResultOk)
+      if(fx.controller->getParameterInfo(it->second, p) == Steinberg::kResultOk)
         info = &p;
     }
   }
