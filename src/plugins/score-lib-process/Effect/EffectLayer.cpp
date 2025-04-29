@@ -176,50 +176,57 @@ score::QGraphicsDraggablePixmap* makePresetButton(
       mime.setData(score::mime::processpreset(), proc.savePreset().toJson());
     };
 
-    ui_btn->click = [&proc, &context](QPointF screenPos) {
+    ui_btn->click = [&proc, &context](Qt::MouseButton btn, QPointF screenPos) {
       auto& pplug = context.app.applicationPlugin<Process::ApplicationPlugin>();
       const auto& presets = pplug.presets;
 
-      auto menu = new QMenu;
-      menu->addAction(
-          "Save current preset", menu, [&proc, &pplug] { pplug.savePreset(&proc); });
-
-      std::vector<const Process::Preset*> goodPresets;
-      const auto& k = proc.concreteKey();
-      const auto& e = proc.effect();
-      for(auto& preset : presets)
+      switch(btn)
       {
-        if(preset.key.key == k && preset.key.effect == e)
-          goodPresets.push_back(&preset);
-      }
+        case Qt::LeftButton: {
+          // Preset menu
+          auto menu = new QMenu;
+          menu->addAction(
+              "Save current preset", menu, [&proc, &pplug] { pplug.savePreset(&proc); });
 
-      menu->addSeparator();
+          std::vector<const Process::Preset*> goodPresets;
+          const auto& k = proc.concreteKey();
+          const auto& e = proc.effect();
+          for(auto& preset : presets)
+          {
+            if(preset.key.key == k && preset.key.effect == e)
+              goodPresets.push_back(&preset);
+          }
 
-      for(auto p : goodPresets)
-      {
-        menu->addAction(p->name, menu, [p, &proc, &context] {
-          CommandDispatcher<> c{context.commandStack};
-          c.submit(new LoadPreset{proc, *p});
-        });
-      }
-
-      if(auto proc_builtins = proc.builtinPresets(); !proc_builtins.empty())
-      {
-        if(!goodPresets.empty())
           menu->addSeparator();
 
-        for(auto& p : proc_builtins)
-        {
-          // FIXME try to understand why just p.name does not work here
-          menu->addAction("" + p.name, menu, [p = std::move(p), &proc, &context] {
-            CommandDispatcher<> c{context.commandStack};
-            c.submit(new LoadPreset{proc, std::move(p)});
-          });
+          for(auto p : goodPresets)
+          {
+            menu->addAction(p->name, menu, [p, &proc, &context] {
+              CommandDispatcher<> c{context.commandStack};
+              c.submit(new LoadPreset{proc, *p});
+            });
+          }
+
+          if(auto proc_builtins = proc.builtinPresets(); !proc_builtins.empty())
+          {
+            if(!goodPresets.empty())
+              menu->addSeparator();
+
+            for(auto& p : proc_builtins)
+            {
+              // FIXME try to understand why just p.name does not work here
+              menu->addAction("" + p.name, menu, [p = std::move(p), &proc, &context] {
+                CommandDispatcher<> c{context.commandStack};
+                c.submit(new LoadPreset{proc, std::move(p)});
+              });
+            }
+          }
+
+          menu->exec(screenPos.toPoint());
+          menu->deleteLater();
+          break;
         }
       }
-
-      menu->exec(screenPos.toPoint());
-      menu->deleteLater();
     };
 
     return ui_btn;

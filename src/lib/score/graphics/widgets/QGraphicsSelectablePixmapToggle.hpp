@@ -58,7 +58,7 @@ public:
   QGraphicsDraggablePixmap(QPixmap pressed, QPixmap released, QGraphicsItem* parent);
 
   std::function<void(QMimeData&)> createDrag;
-  std::function<void(QPointF)> click;
+  std::function<void(Qt::MouseButton, QPointF)> click;
 
 protected:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
