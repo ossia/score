@@ -226,6 +226,43 @@ score::QGraphicsDraggablePixmap* makePresetButton(
           menu->deleteLater();
           break;
         }
+
+        case Qt::ForwardButton:
+        case Qt::BackButton: {
+          std::vector<const Process::Preset*> goodPresets;
+          const auto& k = proc.concreteKey();
+          const auto& e = proc.effect();
+          for(auto& preset : presets)
+            if(preset.key.key == k && preset.key.effect == e)
+              goodPresets.push_back(&preset);
+          auto bps = proc.builtinPresets();
+          for(auto& bp : bps)
+            goodPresets.push_back(&bp);
+
+          if(goodPresets.size() < 2)
+            return;
+          int i = 0;
+          for(auto& fx : goodPresets)
+          {
+            if(fx->key.effect == e)
+              break;
+            i++;
+          }
+
+          if(btn == Qt::ForwardButton)
+            i++;
+          else
+            i--;
+
+          if(i >= std::ssize(goodPresets))
+            i = 0;
+          else if(i < 0)
+            i = std::ssize(goodPresets) - 1;
+
+          CommandDispatcher<> c{context.commandStack};
+          c.submit(new LoadPreset{proc, *goodPresets[i]});
+          break;
+        }
       }
     };
 
