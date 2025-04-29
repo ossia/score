@@ -43,6 +43,7 @@ then
   clone_addon https://github.com/ossia/score-addon-spatgris
   clone_addon https://github.com/ossia/score-addon-hdf5
   clone_addon https://github.com/ossia/score-addon-onnx
+  clone_addon https://github.com/ossia/score-addon-deuterium
 fi
 
 )
