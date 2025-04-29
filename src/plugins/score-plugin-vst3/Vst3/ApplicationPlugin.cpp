@@ -163,7 +163,7 @@ void ApplicationPlugin::rescan()
 
 static const QString& vst3PuppetPath()
 {
-  static const QString path = [] {
+  static const QString path = []() -> QString {
     auto app = qApp->applicationDirPath();
 #if defined(__APPLE__)
     auto bundle_path

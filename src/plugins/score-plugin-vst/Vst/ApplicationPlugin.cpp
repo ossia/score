@@ -162,7 +162,7 @@ void ApplicationPlugin::unregisterRunningVST(Model* m)
 
 static const QString& vstPuppetPath()
 {
-  static const QString path = [] {
+  static const QString path = []() -> QString {
     auto app = qApp->applicationDirPath();
 #if defined(__APPLE__)
     auto bundle_path
