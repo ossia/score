@@ -122,7 +122,7 @@ void QGraphicsDraggablePixmap::mouseReleaseEvent(QGraphicsSceneMouseEvent* event
 {
   if(!m_didDrag && this->click)
   {
-    this->click(event->screenPos());
+    this->click(event->button(), event->screenPos());
   }
   m_didDrag = false;
   setPixmap(m_released);
