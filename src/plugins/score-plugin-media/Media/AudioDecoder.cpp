@@ -432,7 +432,11 @@ AVFormatContext_ptr open_audio(const QString& path)
 
   AVDictionaryEntry* tag = NULL;
   while((tag = av_dict_get(fmt_ctx_ptr->metadata, "", tag, AV_DICT_IGNORE_SUFFIX)))
-    qDebug() << tag->key << "=" << tag->value;
+  {
+    using namespace std::literals;
+    if(tag->key != "Comment"sv)
+      qDebug() << tag->key << "=" << tag->value;
+  }
 
   return AVFormatContext_ptr{fmt_ctx_ptr};
 #else
