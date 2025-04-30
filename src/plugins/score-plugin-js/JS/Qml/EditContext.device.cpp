@@ -135,7 +135,7 @@ void EditJsContext::removeDevice(QString name)
   auto cmd = new Explorer::Command::RemoveNodes;
   for(auto& node : plug.explorer().rootNode().children())
   {
-    if(node.is<Device::DeviceSettings>())
+    if(node.is<Device::DeviceSettings>() && node.displayName() == name)
     {
       cmd->addCommand(new Explorer::Command::Remove{plug, node});
     }
