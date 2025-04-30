@@ -9,6 +9,8 @@
 
 #include <QQmlListProperty>
 
+#include <nano_observer.hpp>
+
 #include <unordered_map>
 #include <verdigris>
 
