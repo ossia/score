@@ -40,6 +40,7 @@
 #include <ossia/preset/preset.hpp>
 
 #include <QJsonDocument>
+#include <QTimer>
 namespace JS
 {
 GlobalDeviceEnumerator* EditJsContext::enumerateDevices()
