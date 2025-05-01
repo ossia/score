@@ -62,6 +62,13 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
       "");
   parser.addOption(uiOpt);
 
+  QCommandLineOption uiOptDebug(
+      "ui-debug",
+      QCoreApplication::translate(
+          "main", "Specify an UI file to load (debug mode, opens the score UI)."),
+      "file", "");
+  parser.addOption(uiOptDebug);
+
 #if defined(__APPLE__)
   // Bogus macOS gatekeeper BS:
   // https://stackoverflow.com/questions/55562155/qt-application-for-mac-not-being-launched
@@ -115,6 +122,11 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
   if(parser.isSet(uiOpt))
   {
     gui = false;
+    ui = parser.value(uiOpt);
+  }
+  else if(parser.isSet(uiOptDebug))
+  {
+    gui = true;
     ui = parser.value(uiOpt);
   }
   if(parser.isSet(GL))
