@@ -127,7 +127,7 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
   else if(parser.isSet(uiOptDebug))
   {
     gui = true;
-    ui = parser.value(uiOpt);
+    ui = parser.value(uiOptDebug);
   }
   if(parser.isSet(GL))
     opengl = true;
