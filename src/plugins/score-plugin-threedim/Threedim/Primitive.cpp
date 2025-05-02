@@ -24,9 +24,11 @@ void loadTriMesh(TMesh& mesh, std::vector<float>& complete, PrimitiveOutputs& ou
   vcg::tri::RequirePerVertexTexCoord(mesh);
 
   complete.clear();
-  const auto vertices = mesh.vert.size();
+  const auto vertices = mesh.face.size() * 3;
   const auto floats
-      = vertices * (3 + 3 + 2); // 3 float for pos, 3 float for normal, 2 float for UV
+      = vertices
+        * (3 + 3
+           + 2); // 3 float for pos, 3 float for normal, 2 float for UV. Times 3 as three vertices per face.
   complete.resize(floats);
   float* pos_start = complete.data();
   float* norm_start = complete.data() + vertices * 3;
