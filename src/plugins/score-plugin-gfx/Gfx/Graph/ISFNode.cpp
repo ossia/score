@@ -1,5 +1,6 @@
 #include <Gfx/Graph/ISFNode.hpp>
 #include <Gfx/Graph/ISFVisitors.hpp>
+#include <Gfx/Graph/RenderedComputeNode.hpp>
 #include <Gfx/Graph/RenderedISFNode.hpp>
 
 #include <score/tools/Debug.hpp>
@@ -257,23 +258,44 @@ QSize ISFNode::computeTextureSize(const isf::pass& pass, QSize origSize)
 
 score::gfx::NodeRenderer* ISFNode::createRenderer(RenderList& r) const noexcept
 {
-  switch(this->m_descriptor.passes.size())
+#if 0
+  if(this->m_descriptor.compute)
   {
-    case 0:
-      return nullptr;
-    case 1:
-      if(!this->m_descriptor.passes[0].persistent)
-      {
-        return new SimpleRenderedISFNode{*this};
+    [[unlikely]];
+    switch(this->m_descriptor.passes.size())
+    {
+      case 0:
+        return nullptr;
+      case 1:
+        return new SimpleRenderedComputeNode{*this};
+        break;
+      default: {
+        return new RenderedComputeNode{*this};
+        break;
       }
-      else
-      {
+    }
+  }
+  else
+#endif
+  {
+    switch(this->m_descriptor.passes.size())
+    {
+      case 0:
+        return nullptr;
+      case 1:
+        if(!this->m_descriptor.passes[0].persistent)
+        {
+          return new SimpleRenderedISFNode{*this};
+        }
+        else
+        {
+          return new RenderedISFNode{*this};
+        }
+        break;
+      default: {
         return new RenderedISFNode{*this};
+        break;
       }
-      break;
-    default: {
-      return new RenderedISFNode{*this};
-      break;
     }
   }
 }
