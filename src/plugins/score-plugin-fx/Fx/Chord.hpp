@@ -1,4 +1,5 @@
 #pragma once
+#include <ossia/detail/flat_map.hpp>
 #include <ossia/detail/string_map.hpp>
 
 #include <halp/audio.hpp>
@@ -30,10 +31,10 @@ struct Node
     Dim,
     Aug
   };
-  using midi_out = halp::midi_out_bus<"out", libremidi::message>;
+  using midi_out = halp::midi_out_bus<"out", halp::midi_msg>;
   struct
   {
-    halp::midi_bus<"in", libremidi::message> midi;
+    halp::midi_bus<"in", halp::midi_msg> midi;
     halp::hslider_i32<"Num. Notes", halp::irange{1, 5, 3}> num;
     halp::enum_t<Chord, "Chord"> chord;
   } inputs;
@@ -43,7 +44,7 @@ struct Node
   } outputs;
   struct chord_type
   {
-    std::string_view ch{};
+    Chord ch{};
     int notes{};
   };
   ossia::flat_map<uint8_t, std::vector<chord_type>> chords;
@@ -58,7 +59,8 @@ struct Node
   static const constexpr std::array<int, 5> aug{0, 4, 8, 10, 12};
 
   template <typename T>
-  static void startChord(const T& chord, const libremidi::message& m, const std::size_t num, midi_out& op)
+  static void startChord(
+      const T& chord, const halp::midi_msg& m, const std::size_t num, midi_out& op)
   {
     for(std::size_t i = 0; i < std::min(num, chord.size()); i++)
     {
@@ -66,12 +68,13 @@ struct Node
       if(new_note > 127)
         break;
 
-      op.note_on(m.get_channel(), new_note, m.bytes[2]).timestamp = m.timestamp;
+      op.note_on(1, new_note, m.bytes[2]).timestamp = m.timestamp;
     }
   }
 
   template <typename T>
-  static void stopChord(const T& chord, const libremidi::message& m, const std::size_t num, midi_out& op)
+  static void
+  stopChord(const T& chord, const halp::midi_msg& m, const std::size_t num, midi_out& op)
   {
     for(std::size_t i = 0; i < std::min(num, chord.size()); i++)
     {
@@ -79,34 +82,56 @@ struct Node
       if(new_note > 127)
         break;
 
-      op.note_off(m.get_channel(), new_note, m.bytes[2]).timestamp = m.timestamp;
+      op.note_off(1, new_note, m.bytes[2]).timestamp = m.timestamp;
     }
   }
 
   template <typename F>
-  static void dispatchChord(std::string_view chord, const libremidi::message& m, int num, midi_out& op, F&& f)
+  static void
+  dispatchChord(Chord chord, const halp::midi_msg& m, int num, midi_out& op, F&& f)
   {
-    static const ossia::string_view_map<std::array<int, 5>> chords{{"Maj", major7}, {"Min", minor7}, {"Sus2", sus2}, {"Sus4", sus4}, {"Dim", dim}, {"Aug", aug}};
-    auto it = chords.find(chord);
-    if(it != chords.end())
-      f(it->second, m, num, op);
+    switch(chord)
+    {
+      case Chord::Maj:
+        f(major7, m, num, op);
+        break;
+      case Chord::Min:
+        f(minor7, m, num, op);
+        break;
+      case Chord::Sus2:
+        f(sus2, m, num, op);
+        break;
+      case Chord::Sus4:
+        f(sus4, m, num, op);
+        break;
+      case Chord::Dim:
+        f(dim, m, num, op);
+        break;
+      case Chord::Aug:
+        f(aug, m, num, op);
+        break;
+      default:
+        return;
+    }
   }
 
   // FIXME here we want precise ticking, e.g. call for each change in any parameter
   using tick = halp::tick_musical;
   void operator()(const halp::tick_musical& tk)
   {
-    for(const libremidi::message& m : inputs.midi)
+    for(const halp::midi_msg& m : inputs.midi)
     {
       int lastNum = inputs.num;
-      std::string_view lastCh = magic_enum::enum_name<Chord>(inputs.chord);
-      if(m.get_message_type() == libremidi::message_type::NOTE_ON)
+
+      if((m.bytes[0] & 0xF0) == 0x90) // note on
       {
         auto cur = m.bytes[1];
-        this->chords[cur].push_back({lastCh, lastNum});
-        dispatchChord(lastCh, m, lastNum, outputs.midi, [](auto&&... args) { startChord(args...); });
+        this->chords[cur].push_back({inputs.chord, lastNum});
+        dispatchChord(inputs.chord, m, lastNum, outputs.midi, [](auto&&... args) {
+          startChord(args...);
+        });
       }
-      else if(m.get_message_type() == libremidi::message_type::NOTE_OFF)
+      else if((m.bytes[0] & 0xF0) == 0x80) // note off
       {
         auto it = this->chords.find(m.bytes[1]);
         if(it != this->chords.end())
@@ -116,6 +141,7 @@ struct Node
             dispatchChord(chord.ch, m, chord.notes, outputs.midi, [](auto&&... args) { stopChord(args...); });
           }
           const_cast<std::vector<chord_type>&>(it->second).clear();
+          this->chords.erase(it);
         }
       }
       else

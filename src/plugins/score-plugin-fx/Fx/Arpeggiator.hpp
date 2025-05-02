@@ -51,14 +51,14 @@ struct Node
   // FIXME "note" bus instead of midi bus ; the host handles passing all the non note messages
   struct
   {
-    halp::midi_bus<"in", libremidi::message> midi;
+    halp::midi_bus<"in", halp::midi_msg> midi;
     Arpeggios arpeggios;
     halp::hslider_i32<"Octave", halp::irange{1, 7, 1}> octave;
     halp::hslider_i32<"Quantification", halp::irange{1, 32, 8}> quantification;
   } inputs;
   struct
   {
-    halp::midi_out_bus<"out", libremidi::message> midi;
+    halp::midi_out_bus<"out", halp::midi_msg> midi;
   } outputs;
 
   using byte = unsigned char;
@@ -169,11 +169,11 @@ struct Node
       // Update the "running" notes
       for(auto& note : msgs)
       {
-        if(note.get_message_type() == libremidi::message_type::NOTE_ON)
+        if((note.bytes[0] & 0xF0) == 0x90) // note on
         {
           self.notes.insert({note.bytes[1], note.bytes[2]});
         }
-        else if(note.get_message_type() == libremidi::message_type::NOTE_OFF)
+        else if((note.bytes[0] & 0xF0) == 0x80) // note off
         {
           self.notes.erase(note.bytes[1]);
         }
