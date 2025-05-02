@@ -34,7 +34,7 @@ export SCORE_DIR=/score
 
 export INSTALL_ROOT=$(cd "$APP_DIR/usr"; pwd)
 
-cninja -S "$SOURCE_DIR" -B "$BUILD_DIR" "$TOOLCHAIN" -- \
+cninja -S "$SOURCE_DIR" -B "$BUILD_DIR" "$TOOLCHAIN" debugsyms -- \
 -DCMAKE_INSTALL_PREFIX="$INSTALL_ROOT" \
 -DOSSIA_SDK="$OSSIA_SDK" \
 -DCMAKE_PREFIX_PATH="$OSSIA_SDK/qt6-static" \
