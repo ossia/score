@@ -1,4 +1,5 @@
 #pragma once
+#include <score/command/CommandStackFacade.hpp>
 #include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/Dispatchers/SendStrategy.hpp>
 #include <score/plugins/StringFactoryKey.hpp>

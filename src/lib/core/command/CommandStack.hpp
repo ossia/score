@@ -11,7 +11,7 @@
 namespace score
 {
 class Document;
-
+struct CommandTransaction;
 /**
  * \class score::CommandStack
  *
@@ -123,6 +123,9 @@ public:
   void redoQuiet();
   W_INVOKABLE(redoQuiet)
 
+  void beginTransaction() E_SIGNAL(SCORE_LIB_BASE_EXPORT, beginTransaction)
+  void endTransaction() E_SIGNAL(SCORE_LIB_BASE_EXPORT, endTransaction)
+
   /**
    * @brief push Pushes a command on the stack
    * @param cmd The command
@@ -205,14 +208,48 @@ public:
 
   void validateDocument() const;
 
+  CommandTransaction transaction();
+
 private:
+  friend struct CommandTransaction;
   QStack<score::Command*> m_undoable;
   QStack<score::Command*> m_redoable;
 
   int m_savedIndex{};
+  int m_inTransaction{};
 
   DocumentValidator m_checker;
   const score::DocumentContext& m_ctx;
+};
+
+struct CommandTransaction
+{
+  CommandStack& self;
+
+  explicit CommandTransaction(CommandStack& self)
+      : self{self}
+  {
+    if(self.m_inTransaction == 0)
+    {
+      self.beginTransaction();
+    }
+    self.m_inTransaction++;
+  }
+  CommandTransaction(const CommandTransaction& other) = delete;
+  CommandTransaction(CommandTransaction&& other) = delete;
+  CommandTransaction& operator=(const CommandTransaction& other) = delete;
+  CommandTransaction& operator=(CommandTransaction&& other) = delete;
+
+  ~CommandTransaction()
+  {
+    SCORE_ASSERT(self.m_inTransaction > 0);
+
+    self.m_inTransaction--;
+    if(self.m_inTransaction == 0)
+    {
+      self.endTransaction();
+    }
+  }
 };
 }
 W_REGISTER_ARGTYPE(score::Command*)
