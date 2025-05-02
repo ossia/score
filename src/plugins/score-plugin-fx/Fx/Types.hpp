@@ -1,6 +1,5 @@
 #pragma once
 #include <ossia/detail/enum_map.hpp>
-#include <ossia/network/value/value.hpp>
 
 #include <array>
 namespace Control::Widgets
@@ -64,31 +63,21 @@ enum Waveform
   Noise3
 };
 
-#if 0
-static constexpr auto WaveformChooser()
+enum Path
 {
-  return Control::make_enum(
-      "Waveform", 0U,
-      ossia::make_array(
-          "Sin", "Triangle", "Saw", "Square", "Sample & Hold", "Noise 1", "Noise 2",
-          "Noise 3"),
-      std::array<const char*, 16>{
-          ":/icons/wave_sin_off.png", ":/icons/wave_sin_on.png",
-          ":/icons/wave_triangle_off.png", ":/icons/wave_triangle_on.png",
-          ":/icons/wave_saw_off.png", ":/icons/wave_saw_on.png",
-          ":/icons/wave_square_off.png", ":/icons/wave_square_on.png",
-          ":/icons/wave_sample_and_hold_off.png", ":/icons/wave_sample_and_hold_on.png",
-          ":/icons/wave_noise1_off.png", ":/icons/wave_noise1_on.png",
-          ":/icons/wave_noise2_off.png", ":/icons/wave_noise2_on.png",
-          ":/icons/wave_noise3_off.png", ":/icons/wave_noise3_on.png"});
+  Linear,
+  Circle,
+  Spiral
+
+};
+
 }
 
-#endif
-}
-
+#include <ossia/detail/enum_map.hpp>
 #include <ossia/detail/pod_vector.hpp>
 #include <ossia/detail/small_vector.hpp>
 #include <ossia/detail/variant.hpp>
+#include <ossia/network/value/value.hpp>
 
 #include <halp/audio.hpp>
 #include <halp/callback.hpp>
@@ -98,6 +87,8 @@ static constexpr auto WaveformChooser()
 #include <halp/polyfill.hpp>
 #include <halp/static_string.hpp>
 #include <libremidi/message.hpp>
+
+#include <array>
 
 namespace Nodes
 {

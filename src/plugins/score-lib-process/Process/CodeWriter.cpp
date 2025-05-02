@@ -133,8 +133,10 @@ std::string AvndCodeWriter::initializer() const noexcept
     if(auto c = qobject_cast<const Process::ControlInlet*>(in))
     {
       PortValueToInitString str;
-      auto dom = c->domain().get();
-      ossia::apply(str, dom.v, c->value().v);
+      if(auto dom = c->domain().get())
+        ossia::apply(str, dom.v, c->value().v);
+      else
+        str.res = "";
       // qDebug() << ossia::value_to_pretty_string(c->value()) << " => " << str.res;
       auto name = c->exposed();
 
