@@ -70,22 +70,26 @@ public:
     pwms.emplace_back(
         SimpleIOData{
             {.control = SimpleIO::PWM{}, .name = "external", .path = ""},
-            .tree_name = "External PWM"},
+            "External PWM",
+            ""},
         &pwms);
     adcs.emplace_back(
         SimpleIOData{
             {.control = SimpleIO::ADC{}, .name = "external", .path = ""},
-            .tree_name = "External ADC"},
+            "External ADC",
+            ""},
         &adcs);
     dacs.emplace_back(
         SimpleIOData{
             {.control = SimpleIO::DAC{}, .name = "external", .path = ""},
-            .tree_name = "External DAC"},
+            "External DAC",
+            ""},
         &dacs);
     gpios.emplace_back(
         SimpleIOData{
             {.control = SimpleIO::GPIO{}, .name = "external", .path = ""},
-            .tree_name = "External GPIO"},
+            "External GPIO",
+            ""},
         &gpios);
 
     enumeratePWMs(pwms);
