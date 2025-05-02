@@ -5,6 +5,7 @@
 
 #include <ossia/detail/algorithms.hpp>
 #include <ossia/network/value/value_conversion.hpp>
+#include <ossia/network/domain/domain.hpp>
 
 #include <fmt/format.h>
 namespace Process
