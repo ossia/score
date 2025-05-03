@@ -156,10 +156,16 @@ void TransportActions::makeGUIElements(score::GUIElements& ref)
           setTextFormat(Qt::PlainText);
           QFont time_font("Ubuntu", 18, QFont::Weight::DemiBold);
           setFont(time_font);
-          setText("00:00:00.000");
+          setAlignment(Qt::AlignRight);
 
           QFontMetrics mf{time_font};
-          sz = mf.boundingRect(text()).size();
+          sz = mf.boundingRect("0000:00:00.000").size();
+
+          // Necessary to avoid constant relayout,
+          // see QWidgetPrivate::updateGeometry_helper
+          setMinimumSize(sz);
+          setMaximumSize(sz);
+          setText("00:00:00.000");
         }
 
         QSize sizeHint() const override { return sz; }
