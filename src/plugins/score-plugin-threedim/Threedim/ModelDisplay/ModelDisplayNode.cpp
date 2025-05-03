@@ -142,7 +142,11 @@ void main()
 
   esVertex = in_position;
   esNormal = in_normal;
+#if !defined(QSHADER_SPIRV)
   v_texcoord = in_uv;
+#else
+  v_texcoord = vec2(in_uv.x, 1. - in_uv.y);
+#endif
 
   %vtx_do_projection%
 
@@ -226,7 +230,11 @@ void main()
 
   %vtx_do_filters%
 
+#if !defined(QSHADER_SPIRV)
   v_texcoord = in_uv;
+#else
+  v_texcoord = vec2(in_uv.x, 1. - in_uv.y);
+#endif
 
   %vtx_do_projection%
 
