@@ -366,6 +366,10 @@ void ScreenNode::createOutput(
     if(onKey)
       onKey(k, t);
   });
+  QObject::connect(m_window.get(), &Window::keyRelease, [this](int k, const QString& t) {
+    if(onKeyRelease)
+      onKeyRelease(k, t);
+  });
   m_window->onUpdate = std::move(onUpdate);
   m_window->onWindowReady = [this, graphicsApi, onReady = std::move(onReady)] {
     m_window->state = createRenderState(*m_window, graphicsApi);

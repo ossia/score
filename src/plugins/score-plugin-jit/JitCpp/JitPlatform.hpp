@@ -17,10 +17,10 @@
 #include <llvm/Support/Host.h>
 #endif
 
-#include <ciso646>
 #include <iostream>
 #include <string>
 #include <vector>
+#include <version>
 #if __has_include(<llvm/Config/llvm-config-64.h>)
 #include <llvm/Config/llvm-config-64.h>
 #elif __has_include(<llvm/Config/llvm-config.h>)

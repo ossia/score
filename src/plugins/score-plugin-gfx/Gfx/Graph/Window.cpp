@@ -290,6 +290,8 @@ bool Window::event(QEvent* e)
       break;
     }
     case QEvent::KeyRelease: {
+      auto ev = static_cast<QKeyEvent*>(e);
+      this->keyRelease(ev->key(), ev->text());
       this->interactiveEvent(e);
       break;
     }

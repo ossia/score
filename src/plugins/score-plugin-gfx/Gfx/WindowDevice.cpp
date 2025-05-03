@@ -50,6 +50,7 @@ public:
     m_screen->onMouseMove = [](QPointF, QPointF) {};
     m_screen->onTabletMove = [](QTabletEvent*) {};
     m_screen->onKey = [](int, const QString&) {};
+    m_screen->onKeyRelease = [](int, const QString&) { };
     m_protocol->stop();
 
     m_root.clear_children();
@@ -317,26 +318,57 @@ public:
     // Keyboard input
     {
       auto node = std::make_unique<ossia::net::generic_node>("key", *this, m_root);
-      ossia::net::parameter_base* press_param{};
-      ossia::net::parameter_base* text_param{};
       {
         auto press_node
-            = std::make_unique<ossia::net::generic_node>("code", *this, *node);
-        press_param = press_node->create_parameter(ossia::val_type::INT);
-        press_param->push_value(ossia::vec2f{0.f, 0.f});
+            = std::make_unique<ossia::net::generic_node>("press", *this, *node);
+        ossia::net::parameter_base* press_param{};
+        ossia::net::parameter_base* text_param{};
+        {
+          auto code_node
+              = std::make_unique<ossia::net::generic_node>("code", *this, *press_node);
+          press_param = code_node->create_parameter(ossia::val_type::INT);
+          press_param->push_value(ossia::vec2f{0.f, 0.f});
+          press_node->add_child(std::move(code_node));
+        }
+        {
+          auto text_node
+              = std::make_unique<ossia::net::generic_node>("text", *this, *press_node);
+          text_param = text_node->create_parameter(ossia::val_type::STRING);
+          press_node->add_child(std::move(text_node));
+        }
+
+        m_screen->onKey = [press_param, text_param](int key, const QString& text) {
+          press_param->push_value(key);
+          text_param->push_value(text.toStdString());
+        };
         node->add_child(std::move(press_node));
       }
       {
-        auto text_node
-            = std::make_unique<ossia::net::generic_node>("text", *this, *node);
-        text_param = text_node->create_parameter(ossia::val_type::STRING);
-        node->add_child(std::move(text_node));
-      }
+        auto release_node
+            = std::make_unique<ossia::net::generic_node>("release", *this, *node);
+        ossia::net::parameter_base* press_param{};
+        ossia::net::parameter_base* text_param{};
+        {
+          auto code_node
+              = std::make_unique<ossia::net::generic_node>("code", *this, *release_node);
+          press_param = code_node->create_parameter(ossia::val_type::INT);
+          press_param->push_value(ossia::vec2f{0.f, 0.f});
+          release_node->add_child(std::move(code_node));
+        }
+        {
+          auto text_node
+              = std::make_unique<ossia::net::generic_node>("text", *this, *release_node);
+          text_param = text_node->create_parameter(ossia::val_type::STRING);
+          release_node->add_child(std::move(text_node));
+        }
 
-      m_screen->onKey = [press_param, text_param](int key, const QString& text) {
-        press_param->push_value(key);
-        text_param->push_value(text.toStdString());
-      };
+        m_screen->onKeyRelease
+            = [press_param, text_param](int key, const QString& text) {
+          press_param->push_value(key);
+          text_param->push_value(text.toStdString());
+        };
+        node->add_child(std::move(release_node));
+      }
 
       m_root.add_child(std::move(node));
     }

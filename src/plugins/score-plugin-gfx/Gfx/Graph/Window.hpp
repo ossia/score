@@ -52,6 +52,7 @@ public:
       E_SIGNAL(SCORE_PLUGIN_GFX_EXPORT, interactiveEvent, event);
 
   void key(int key, const QString& t) W_SIGNAL(key, key, t);
+  void keyRelease(int key, const QString& t) W_SIGNAL(keyRelease, key, t);
 
 private:
   std::shared_ptr<RenderState> state;
