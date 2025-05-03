@@ -47,12 +47,13 @@ layout(std140, binding = 2) uniform material_t {
   vec2 position;
   vec2 scale;
   vec2 _imageSize;
+  vec2 renderSize;
 } mat;
 out gl_PerVertex { vec4 gl_Position; };
 
 void main()
 {
-  float viewportAspect = renderer.renderSize.x / renderer.renderSize.y;
+  float viewportAspect = mat.renderSize.x / mat.renderSize.y;
   float imageAspect = mat._imageSize.x / mat._imageSize.y;
 
   vec2 pos = position;
@@ -88,6 +89,7 @@ layout(std140, binding = 2) uniform material_t {
   vec2 position;
   vec2 scale;
   vec2 _imageSize;
+  vec2 renderSize;
 } mat;
 
 layout(binding=3) uniform sampler2D y_tex;
@@ -142,6 +144,7 @@ layout(std140, binding = 2) uniform material_t {
   vec2 position;
   vec2 scale;
   vec2 _imageSize;
+  vec2 renderSize;
 } mat;
 
 layout(binding=3) uniform sampler2D y_tex;
@@ -157,7 +160,7 @@ vec2 norm_texcoord(vec2 tc)
 
 void main ()
 {
-  float viewportAspect = renderer.renderSize.x / renderer.renderSize.y;
+  float viewportAspect = mat.renderSize.x / mat.renderSize.y;
   float imageAspect = mat._imageSize.x / mat._imageSize.y;
 
   vec2 pos = v_texcoord;
@@ -179,6 +182,7 @@ ImagesNode::ImagesNode()
   input.push_back(new Port{this, &ubo.position[0], Types::Vec2, {}});
   input.push_back(new Port{this, &ubo.scale[0], Types::Vec2, {}});
   input.push_back(new Port{this, &ubo.imageSize[0], Types::Vec2, {}});
+  input.push_back(new Port{this, &ubo.renderSize[0], Types::Vec2, {}});
   output.push_back(new Port{this, {}, Types::Image, {}});
 
   m_materialData.reset((char*)&ubo);
@@ -357,9 +361,10 @@ private:
   TextureRenderTarget renderTargetForInput(const Port& p) override { return {}; }
   void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
-    auto& n = static_cast<const ImagesNode&>(this->node);
+    auto& n = const_cast<ImagesNode&>(static_cast<const ImagesNode&>(this->node));
     const auto& rs = renderer.state;
     const Mesh& mesh = renderer.defaultQuad();
+
     defaultMeshInit(renderer, mesh, res);
     processUBOInit(renderer);
     m_material.init(renderer, node.input, m_samplers);
@@ -409,8 +414,7 @@ private:
 
   void update(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge) override
   {
-    auto& n = static_cast<const ImagesNode&>(this->node);
-
+    auto& n = const_cast<ImagesNode&>(static_cast<const ImagesNode&>(this->node));
     if(n.tile != tile)
     {
       tile = n.tile;
@@ -489,6 +493,20 @@ private:
       m_prev_ubo.currentImageIndex = n.ubo.currentImageIndex;
     }
 
+    if(edge)
+    {
+      auto rt = renderer.renderTargetForOutput(*edge);
+      if(rt.renderTarget)
+      {
+        const auto sz = rt.renderTarget->pixelSize();
+        if(sz.width() != n.ubo.renderSize[0] || sz.height() != n.ubo.renderSize[1])
+        {
+          n.ubo.renderSize[0] = sz.width();
+          n.ubo.renderSize[1] = sz.height();
+          materialChanged = true;
+        }
+      }
+    }
     GenericNodeRenderer::update(renderer, res, edge);
   }
 

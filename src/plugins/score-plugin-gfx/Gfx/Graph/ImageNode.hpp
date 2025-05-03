@@ -34,6 +34,7 @@ public:
     float position[2]{0.5, 0.5};
     float scale[2]{1., 1.};
     float imageSize[2]{1., 1.};
+    float renderSize[2]{1280., 720.};
   } ubo;
 #pragma pack(pop)
 
