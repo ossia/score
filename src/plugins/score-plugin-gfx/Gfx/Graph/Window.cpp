@@ -281,18 +281,24 @@ bool Window::event(QEvent* e)
     }
     case QEvent::KeyPress: {
       auto ev = static_cast<QKeyEvent*>(e);
-      this->key(ev->key(), ev->text());
-      this->interactiveEvent(e);
-      if(ev->key() == Qt::Key_Escape)
-        if(m_embeddedFullscreen)
-          QMetaObject::invokeMethod(qGuiApp, &QCoreApplication::quit);
+      if(!ev->isAutoRepeat())
+      {
+        this->key(ev->key(), ev->text());
+        this->interactiveEvent(e);
+        if(ev->key() == Qt::Key_Escape)
+          if(m_embeddedFullscreen)
+            QMetaObject::invokeMethod(qGuiApp, &QCoreApplication::quit);
+      }
 
       break;
     }
     case QEvent::KeyRelease: {
       auto ev = static_cast<QKeyEvent*>(e);
-      this->keyRelease(ev->key(), ev->text());
-      this->interactiveEvent(e);
+      if(!ev->isAutoRepeat())
+      {
+        this->keyRelease(ev->key(), ev->text());
+        this->interactiveEvent(e);
+      }
       break;
     }
     case QEvent::PlatformSurface:
