@@ -8,8 +8,7 @@
 
 namespace Threedim
 {
-
-void loadTriMesh(TMesh& mesh, std::vector<float>& complete, PrimitiveOutputs& outputs)
+static auto createMesh(TMesh& mesh, std::vector<float>& complete)
 {
   vcg::tri::Clean<TMesh>::RemoveUnreferencedVertex(mesh);
   vcg::tri::Clean<TMesh>::RemoveZeroAreaFace(mesh);
@@ -34,7 +33,7 @@ void loadTriMesh(TMesh& mesh, std::vector<float>& complete, PrimitiveOutputs& ou
   float* norm_start = complete.data() + vertices * 3;
   float* uv_start = complete.data() + vertices * 3 + vertices * 3;
 
-  for (auto& fi : mesh.face)
+  for(auto& fi : mesh.face)
   { // iterate each faces
 
     auto v0 = fi.V(0);
@@ -93,6 +92,13 @@ void loadTriMesh(TMesh& mesh, std::vector<float>& complete, PrimitiveOutputs& ou
     (*uv_start++) = p2.X();
     (*uv_start++) = p2.Y();
   }
+
+  return std::make_tuple(vertices, pos_start, norm_start, uv_start);
+}
+
+void loadTriMesh(TMesh& mesh, std::vector<float>& complete, PrimitiveOutputs& outputs)
+{
+  auto [vertices, pos_start, norm_start, uv_start] = createMesh(mesh, complete);
   outputs.geometry.mesh.buffers.main_buffer.data = complete.data();
   outputs.geometry.mesh.buffers.main_buffer.size = complete.size();
   outputs.geometry.mesh.buffers.main_buffer.dirty = true;
@@ -133,7 +139,16 @@ void Plane::update()
   */
   mesh.Clear();
   vcg::tri::Grid(mesh, inputs.hdivs, inputs.vdivs, 1., 1.);
-  loadTriMesh(mesh, complete, outputs);
+  auto [vertices, pos_start, norm_start, uv_start] = createMesh(mesh, complete);
+  outputs.geometry.mesh.buffers.main_buffer.data = complete.data();
+  outputs.geometry.mesh.buffers.main_buffer.size = complete.size();
+  outputs.geometry.mesh.buffers.main_buffer.dirty = true;
+
+  outputs.geometry.mesh.input.input0.offset = 0;
+  outputs.geometry.mesh.input.input1.offset = sizeof(float) * vertices * 3;
+  outputs.geometry.mesh.input.input2.offset = sizeof(float) * vertices * (3 + 3);
+  outputs.geometry.mesh.vertices = vertices;
+  outputs.geometry.dirty_mesh = true;
 }
 
 void Cube::update()

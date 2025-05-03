@@ -18,9 +18,14 @@ struct Primitive
   std::vector<float> complete;
 };
 
-struct Plane : Primitive
+// Plane is a special case due to needing a different geometry type
+// to disable back-face culling
+struct Plane
 {
 public:
+  halp_meta(category, "Visuals/3D/Primitives")
+  halp_meta(author, "Jean-Michaël Celerier, vcglib")
+  halp_meta(manual_url, "https://ossia.io/score-docs/processes/meshes.html#primitive")
   halp_meta(name, "Plane")
   halp_meta(c_name, "3d_plane")
   halp_meta(uuid, "1e923d52-3494-49e8-8698-b001405000da")
@@ -34,8 +39,23 @@ public:
     halp::spinbox_i32<"V divs.", halp::range{1, 1000, 16}> vdivs;
   } inputs;
 
+  struct
+  {
+    struct
+    {
+      halp_meta(name, "Geometry");
+      halp::position_normals_texcoords_geometry_plane mesh;
+      float transform[16]{};
+      bool dirty_mesh = false;
+      bool dirty_transform = false;
+    } geometry;
+  } outputs;
+
   void prepare(halp::setup) { update(); }
   void update();
+  void operator()() { }
+
+  std::vector<float> complete;
 };
 
 struct Cube : Primitive

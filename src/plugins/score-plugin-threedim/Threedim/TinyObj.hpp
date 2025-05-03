@@ -83,7 +83,7 @@ struct PrimitiveOutputs
   struct
   {
     halp_meta(name, "Geometry");
-    halp::position_normals_texcoords_geometry mesh;
+    halp::position_normals_texcoords_geometry_volume mesh;
     float transform[16]{};
     bool dirty_mesh = false;
     bool dirty_transform = false;
