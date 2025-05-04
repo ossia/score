@@ -128,15 +128,18 @@ RemoveCable::RemoveCable(
 void RemoveCable::undo(const score::DocumentContext& ctx) const
 {
   auto& model = m_model.find(ctx);
-  auto cbl = new Process::Cable{m_cable, m_data, &model};
-  model.cables.add(cbl);
-  auto& source = cbl->source().find(ctx);
-  source.addCable(*cbl);
-  cbl->sink().find(ctx).addCable(*cbl);
+  auto cable = new Process::Cable{m_cable, m_data, &model};
+  model.cables.add(cable);
+  auto source = cable->source().try_find(ctx);
+  auto sink = cable->sink().try_find(ctx);
+  SCORE_ASSERT(source);
+  SCORE_ASSERT(sink);
+  source->addCable(*cable);
+  sink->addCable(*cable);
 
   if(m_previousPropagate && !m_previousPropagate)
   {
-    static_cast<Process::AudioOutlet&>(source).setPropagate(false);
+    static_cast<Process::AudioOutlet&>(*source).setPropagate(false);
   }
 }
 
@@ -147,14 +150,18 @@ void RemoveCable::redo(const score::DocumentContext& ctx) const
   if(cable_it != cables.end())
   {
     auto& cable = *cable_it;
-    auto& source = cable.source().find(ctx);
-    source.removeCable(cable);
-    cable.sink().find(ctx).removeCable(cable);
-    m_model.find(ctx).cables.remove(m_cable);
+    auto source = cable.source().try_find(ctx);
+    auto sink = cable.sink().try_find(ctx);
+    SCORE_ASSERT(source);
+    SCORE_ASSERT(sink);
+    source->removeCable(cable);
+    sink->removeCable(cable);
 
-    if(m_previousPropagate && source.cables().size() == 0)
+    cables.remove(m_cable);
+
+    if(m_previousPropagate && source->cables().size() == 0)
     {
-      static_cast<Process::AudioOutlet&>(source).setPropagate(true);
+      static_cast<Process::AudioOutlet&>(*source).setPropagate(true);
     }
   }
 }
