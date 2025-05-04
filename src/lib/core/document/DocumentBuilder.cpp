@@ -186,22 +186,25 @@ Document* DocumentBuilder::restoreDocument(
 
     doclist.push_back(doc);
 
-    // We restore the pre-crash command stack.
-    DataStream::Deserializer writer(restore.commands);
-    loadCommandStack(
-        ctx.components, writer, doc->commandStack(), [doc](score::Command* cmd) {
-      try
-      {
-        cmd->redo(doc->context());
-        return true;
-      }
-      catch(...)
-      {
-        qDebug() << "Error while replaying: " << cmd->key().toString().c_str()
-                 << cmd->description();
-        return false;
-      }
-    });
+    QMetaObject::invokeMethod(doc, [doc, restore] {
+      // We restore the pre-crash command stack.
+      DataStream::Deserializer writer(restore.commands);
+      loadCommandStack(
+          doc->context().app.components, writer, doc->commandStack(),
+          [doc](score::Command* cmd) {
+        try
+        {
+          cmd->redo(doc->context());
+          return true;
+        }
+        catch(...)
+        {
+          qDebug() << "Error while replaying: " << cmd->key().toString().c_str()
+                   << cmd->description();
+          return false;
+        }
+      });
+    }, Qt::QueuedConnection);
 
     return doc;
   }
