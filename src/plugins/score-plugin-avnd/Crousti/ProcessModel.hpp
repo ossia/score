@@ -466,7 +466,11 @@ private:
         if constexpr(!avnd::dynamic_ports_port<P>)
         {
           using inlets_type = typename avnd::inputs_type<Info>::type;
-          if constexpr(avnd::inputs_type<Info>::size > 0)
+          // FIXME: N < ... check should be unnecessary  but it causes issues
+          // with recursive groups for now
+          if constexpr(
+              avnd::inputs_type<Info>::size > 0
+              && N < boost::pfr::tuple_size_v<inlets_type>)
           {
             static constexpr std::string_view name
                 = boost::pfr::get_name<N, inlets_type>();
@@ -479,7 +483,9 @@ private:
         if constexpr(!avnd::dynamic_ports_port<P>)
         {
           using outlets_type = typename avnd::outputs_type<Info>::type;
-          if constexpr(avnd::outputs_type<Info>::size > 0)
+          if constexpr(
+              avnd::outputs_type<Info>::size > 0
+              && N < boost::pfr::tuple_size_v<outlets_type>)
           {
             static constexpr std::string_view name
                 = boost::pfr::get_name<N, outlets_type>();
