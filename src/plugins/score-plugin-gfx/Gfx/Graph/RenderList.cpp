@@ -397,7 +397,7 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
     {
       // For each edge incoming to each image input ports of this node,
       // we render the edge source's content.
-      if(input->type == Types::Image)
+      if(input->type == Types::Image && !input->edges.empty())
       {
         prevRenderers.clear();
         prevRenderers.reserve(input->edges.size());
