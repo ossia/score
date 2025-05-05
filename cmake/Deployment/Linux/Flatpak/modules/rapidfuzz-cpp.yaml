@@ -1,0 +1,13 @@
+# Used for fuzzy-matching of various objects in text fields, etc.
+name: rapidfuzz-cpp
+buildsystem: cmake-ninja
+builddir: true
+config-opts:
+  - -Wno-dev
+  - -DCMAKE_BUILD_TYPE=RelWithDebInfo
+  - -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+  - -DBUILD_SHARED_LIBS=ON
+sources:
+  - type: archive
+    url: https://github.com/rapidfuzz/rapidfuzz-cpp/archive/refs/tags/v3.0.4.tar.gz
+    sha256: 18d1c41575ceddd6308587da8befc98c85d3b5bc2179d418daffed6d46b8cb0a

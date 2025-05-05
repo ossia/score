@@ -1,0 +1,15 @@
+# JSFX audio plug-in support
+name: ysfx
+buildsystem: cmake-ninja
+config-opts:
+  - -Wno-dev
+  - -DCMAKE_BUILD_TYPE=RelWithDebInfo
+  - -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+  - -DBUILD_SHARED_LIBS=ON
+  - -DYSFX_PLUGIN=OFF
+  - -DYSFX_DEEP_STRIP=OFF
+
+sources:
+  - type: archive
+    url: https://github.com/jpcima/ysfx/archive/8077347ccf4115567aed81400281dca57acbb0cc.zip
+    sha256: d76d082a33a20c3fa8f4f7c9cd279e36d41e976036001b58c51322b71f964d10

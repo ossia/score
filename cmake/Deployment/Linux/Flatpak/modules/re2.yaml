@@ -1,0 +1,13 @@
+# Regex engine used within ossia
+name: re2
+buildsystem: cmake-ninja
+builddir: true
+config-opts:
+  - -Wno-dev
+  - -DCMAKE_BUILD_TYPE=RelWithDebInfo
+  - -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+  - -DBUILD_SHARED_LIBS=ON
+sources:
+  - type: archive
+    url: https://github.com/google/re2/archive/refs/tags/2023-06-01.tar.gz
+    sha256: 8b4a8175da7205df2ad02e405a950a02eaa3e3e0840947cd598e92dca453199b

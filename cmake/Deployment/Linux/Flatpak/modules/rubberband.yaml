@@ -1,0 +1,16 @@
+# Time-stretch support
+name: rubberband
+buildsystem: meson
+config-opts:
+  - -Ddefault_library=shared
+  - -Dbuildtype=release
+  - -Dtests=disabled
+  - -Dcmdline=disabled
+  - -Dladspa=disabled
+  - -Dlv2=disabled
+  - -Dfft=fftw
+  - -Dresampler=libsamplerate
+sources:
+  - type: archive
+    url: https://github.com/breakfastquay/rubberband/archive/refs/tags/v3.3.0.tar.gz
+    sha256: 2bb837fe00932442ca90e185af8a468f7591df0c002b4a9e27a1bced1563ac84

@@ -1,0 +1,40 @@
+# Faust audio plug-in support
+name: faust
+buildsystem: cmake-ninja
+subdir: build
+config-opts:
+  - -Wno-dev
+  - -DCMAKE_BUILD_TYPE=RelWithDebInfo
+  - -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+  - -DCMAKE_PREFIX_PATH=/usr/lib/sdk/llvm20
+  - -DLLVM_CONFIG=/usr/lib/sdk/llvm20/bin/llvm-config
+  - -DBUILD_SHARED_LIBS=ON
+  - -DINCLUDE_OSC=0
+  - -DINCLUDE_HTTP=0
+  - -DINCLUDE_EXECUTABLE=0
+  - -DINCLUDE_STATIC=0
+  - -DINCLUDE_DYNAMIC=1
+  - -DINCLUDE_WASM_GLUE=0
+  - -DLINK_LLVM_STATIC=0
+  - -DINCLUDE_LLVM=1
+  - -DC_BACKEND=COMPILER
+  - -DCODEBOX_BACKEND=OFF
+  - -DCPP_BACKEND=COMPILER
+  - -DCMAJOR_BACKEND=OFF
+  - -DCSHARP_BACKEND=OFF
+  - -DFIR_BACKEND=OFF
+  - -DINTERP_BACKEND=OFF
+  - -DJAVA_BACKEND=OFF
+  - -DJAX_BACKEND=OFF
+  - -DJSFX_BACKEND=OFF
+  - -DJULIA_BACKEND=OFF
+  - -DLLVM_BACKEND="COMPILER;DYNAMIC"
+  - -DOLDCPP_BACKEND=OFF
+  - -DRUST_BACKEND=OFF
+  - -DSDF3_BACKEND=OFF
+  - -DVHDL_BACKEND=OFF
+  - -DWASM_BACKEND=OFF
+sources:
+  - type: archive
+    url: https://github.com/grame-cncm/faust/releases/download/2.79.3/faust-2.79.3.tar.gz
+    sha256: ca2171cb136f135960be10fee2c1728304865a5d5190e9a03cace88b4936c558

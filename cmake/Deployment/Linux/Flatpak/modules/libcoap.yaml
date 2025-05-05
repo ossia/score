@@ -1,0 +1,20 @@
+# Needed for CoAP protocol support
+name: libcoap
+buildsystem: cmake-ninja
+builddir: true
+config-opts:
+  - -Wno-dev
+  - -DCMAKE_BUILD_TYPE=RelWithDebInfo
+  - -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+  - -DBUILD_SHARED_LIBS=ON
+  - -DENABLE_WS=1
+  - -DENABLE_DTLS=0
+  - -DENABLE_EXAMPLES=0
+  - -DENABLE_DOCS=0
+  - -DENABLE_OSCORE=0
+  - -DENABLE_SERVER_MODE=0
+  - -DMAX_LOGGING_LEVEL=0
+sources:
+  - type: archive
+    url: https://github.com/obgm/libcoap/archive/refs/tags/v4.3.4a.tar.gz
+    sha256: 45f1aabbb5f710e841c91d65fc3f37c906d42e8fc44dd04979e767d3960a77cf

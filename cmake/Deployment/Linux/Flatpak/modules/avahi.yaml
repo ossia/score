@@ -1,0 +1,29 @@
+# ossia uses mDNS for multiple protocol discovery mechanisms
+name: avahi
+builddir: true
+config-opts:
+  - --with-distro=none
+  - --disable-qt3
+  - --disable-qt4
+  - --disable-qt5
+  - --disable-gtk
+  - --disable-gtk3
+  - --disable-glib
+  - --disable-gobject
+  - --disable-python
+  - --disable-mono
+  - --disable-monodoc
+  - --disable-libevent
+  - --disable-libdaemon
+  - --disable-dbm
+  - --disable-gdbm
+  - --disable-manpage
+
+post-install:
+  - make -C avahi-common install
+  - make -C avahi-client install
+
+sources:
+  - type: archive
+    url: https://github.com/avahi/avahi/releases/download/v0.8/avahi-0.8.tar.gz
+    sha256: 060309d7a333d38d951bc27598c677af1796934dbd98e1024e7ad8de798fedda

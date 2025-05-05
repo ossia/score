@@ -1,0 +1,14 @@
+# Audio I/O
+name: portaudio
+buildsystem: cmake-ninja
+config-opts:
+  - -Wno-dev
+  - -DCMAKE_BUILD_TYPE=RelWithDebInfo
+  - -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+  - -DBUILD_SHARED_LIBS=ON
+  - -DPA_ALSA_DYNAMIC=ON
+  - -DPA_USE_JACK=OFF
+sources:
+  - type: archive
+    url: https://github.com/PortAudio/portaudio/archive/refs/tags/v19.7.0.tar.gz
+    sha256: 5af29ba58bbdbb7bbcefaaecc77ec8fc413f0db6f4c4e286c40c3e1b83174fa0

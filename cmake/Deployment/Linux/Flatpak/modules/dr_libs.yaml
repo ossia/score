@@ -1,0 +1,15 @@
+# dr_libs needed by ysfx and score
+name: dr_libs
+buildsystem: simple
+no-make-install: true
+
+sources:
+  - type: archive
+    url: https://github.com/mackron/dr_libs/archive/9cb7092ac8c75a82b5c6ea72652ca8d0091d7ffa.zip
+    sha256: 16775423774daf692c6665b89a5ed38e65fb60b42e5864d646debafc3f52e98d
+
+build-commands: []
+post-install:
+  - install -Dm644 -t ${FLATPAK_DEST}/include/ dr_mp3.h
+  - install -Dm644 -t ${FLATPAK_DEST}/include/ dr_flac.h
+  - install -Dm644 -t ${FLATPAK_DEST}/include/ dr_wav.h

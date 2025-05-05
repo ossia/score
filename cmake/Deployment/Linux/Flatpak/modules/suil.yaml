@@ -1,0 +1,8 @@
+# suil, necessary for LV2 availability
+name: suil
+buildsystem: meson
+
+sources:
+  - type: archive
+    url: https://download.drobilla.net/suil-0.10.22.tar.xz
+    sha256: d720969e0f44a99d5fba35c733a43ed63a16b0dab867970777efca4b25387eb7
