@@ -853,6 +853,8 @@ avnd_make_score(
     NAMESPACE ao
 )
 
+# Too much binary size
+if(NOT EMSCRIPTEN)
 avnd_make_score(
   SOURCES
     "${AVND_FOLDER}/examples/Advanced/Kabang/Kabang.hpp"
@@ -876,6 +878,18 @@ avnd_make_score(
   NAMESPACE kbng
   OPTIMIZED
 )
+endif()
+# avnd_score_plugin_add(
+#     BASE_TARGET score_plugin_avnd
+#     SOURCES
+#       AvndDevices/HTTPServer.hpp
+#     TARGET http_server_device
+#     MAIN_CLASS HTTPServer
+#     NAMESPACE ad
+#     DEVICE
+# )
+# find_package(OpenSSL)
+# target_link_libraries(score_plugin_avnd PRIVATE OpenSSL::SSL OpenSSL::Crypto)
 
 file(CONFIGURE OUTPUT
      "${CMAKE_BINARY_DIR}/include.avnd.cpp"
