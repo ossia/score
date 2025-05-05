@@ -1,12 +1,12 @@
 id: io.ossia.score
 runtime: org.kde.Platform
-runtime-version: "6.8"
+runtime-version: "6.9"
 sdk: org.kde.Sdk
 sdk-extensions:
-  - org.freedesktop.Sdk.Extension.llvm19
+  - org.freedesktop.Sdk.Extension.llvm20
 build-options:
   env:
-    CXX: /usr/lib/sdk/llvm19/bin/clang++
+    CXX: /usr/lib/sdk/llvm20/bin/clang++
 command: ossia-score
 rename-desktop-file: ossia-score.desktop
 rename-icon: ossia-score
@@ -62,9 +62,38 @@ add-extensions:
 
 cleanup:
   - /bin/avahi*
-  - /include
   - "*.a"
   - "*.la"
+  - "*.java"
+  - "*.d"
+  - "*.cs"
+  - "/share/faust/*.cpp"
+  - "/share/faust/*.h"
+  - /share/faust/api
+  - /share/faust/AU
+  - /share/faust/audiokit
+  - /share/faust/autodiff
+  - /share/faust/chaos-stratus
+  - /share/faust/cmajor
+  - /share/faust/daisy
+  - /share/faust/esp32
+  - /share/faust/examples
+  - /share/faust/iOS
+  - /share/faust/juce
+  - /share/faust/julia
+  - /share/faust/max-msp
+  - /share/faust/nodejs
+  - /share/faust/osclib
+  - /share/faust/sam
+  - /share/faust/smartKeyboard
+  - /share/faust/juce
+  - /share/faust/svgplot
+  - /share/faust/teensy
+  - /share/faust/unity
+  - /share/faust/rust
+  - /share/faust/vcvrack
+  - /share/faust/webaudio
+  - /share/faust/js
   - /lib/cmake
   - /lib/girepository-1.0
   - /lib/pkgconfig
@@ -85,6 +114,22 @@ modules:
   # LV2 audio plugin support
   - shared-modules/linux-audio/lv2.json
   - shared-modules/linux-audio/lilv.json
+
+  # dr_libs needed by ysfx and score
+  - name: dr_libs
+    buildsystem: simple
+    no-make-install: true
+
+    sources:
+      - type: archive
+        url: https://github.com/mackron/dr_libs/archive/9cb7092ac8c75a82b5c6ea72652ca8d0091d7ffa.zip
+        sha256: 16775423774daf692c6665b89a5ed38e65fb60b42e5864d646debafc3f52e98d
+
+    build-commands: [ ]
+    post-install:
+      - install -Dm644 -t ${FLATPAK_DEST}/include/ dr_mp3.h
+      - install -Dm644 -t ${FLATPAK_DEST}/include/ dr_flac.h
+      - install -Dm644 -t ${FLATPAK_DEST}/include/ dr_wav.h
 
   # Audio I/O
   - name: portaudio
@@ -203,8 +248,8 @@ modules:
       - cp -rf boost "${FLATPAK_DEST}/include/"
     sources:
       - type: archive
-        url: https://archives.boost.io/release/1.86.0/source/boost_1_86_0.tar.bz2
-        sha256: 1bed88e40401b2cb7a1f76d4bab499e352fa4d0c5f31c0dbae64e24d34d7513b
+        url: https://archives.boost.io/release/1.87.0/source/boost_1_87_0.tar.bz2
+        sha256: af57be25cb4c4f4b413ed692fe378affb4352ea50fbe294a11ef548f4d527d89
 
   # HAP video decoding
   - name: snappy
@@ -258,8 +303,8 @@ modules:
 
     sources:
       - type: archive
-        url: http://download.drobilla.net/suil-0.10.20.tar.xz
-        sha256: 334a3ed3e73d5e17ff400b3db9801f63809155b0faa8b1b9046f9dd3ffef934e
+        url: https://download.drobilla.net/suil-0.10.22.tar.xz
+        sha256: d720969e0f44a99d5fba35c733a43ed63a16b0dab867970777efca4b25387eb7
 
   # fmt
   - name: fmtlib
@@ -267,8 +312,8 @@ modules:
 
     sources:
       - type: archive
-        url: https://github.com/fmtlib/fmt/releases/download/11.0.2/fmt-11.0.2.zip
-        sha256: 40fc58bebcf38c759e11a7bd8fdc163507d2423ef5058bba7f26280c5b9c5465
+        url: https://github.com/fmtlib/fmt/releases/download/11.1.4/fmt-11.1.4.zip
+        sha256: 49b039601196e1a765e81c5c9a05a61ed3d33f23b3961323d7322e4fe213d3e6
 
   # spdlog
   - name: spdlog
@@ -276,8 +321,8 @@ modules:
 
     sources:
       - type: archive
-        url: https://github.com/gabime/spdlog/archive/refs/tags/v1.15.0.tar.gz
-        sha256: 9962648c9b4f1a7bbc76fd8d9172555bad1871fdb14ff4f842ef87949682caa5
+        url: https://github.com/gabime/spdlog/archive/refs/tags/v1.15.2.tar.gz
+        sha256: 7a80896357f3e8e920e85e92633b14ba0f229c506e6f978578bdc35ba09e9a5d
 
   # hdf5
   - name: hdf5
@@ -328,6 +373,63 @@ modules:
         url: https://github.com/BlueBrain/HighFive/archive/refs/tags/v2.10.0.tar.gz
         sha256: c29e8e1520e7298fabb26545f804e35bb3af257005c1c2df62e39986458d7c38
 
+  # JSFX audio plug-in support
+  - name: ysfx
+    buildsystem: cmake-ninja
+    config-opts:
+      - -Wno-dev
+      - -DCMAKE_BUILD_TYPE=RelWithDebInfo
+      - -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+      - -DBUILD_SHARED_LIBS=ON
+      - -DYSFX_PLUGIN=OFF
+      - -DYSFX_DEEP_STRIP=OFF
+
+    sources:
+      - type: archive
+        url: https://github.com/jpcima/ysfx/archive/8077347ccf4115567aed81400281dca57acbb0cc.zip
+        sha256: d76d082a33a20c3fa8f4f7c9cd279e36d41e976036001b58c51322b71f964d10
+
+  # Faust audio plug-in support
+  - name: faust
+    buildsystem: cmake-ninja
+    subdir: build
+    config-opts:
+      - -Wno-dev
+      - -DCMAKE_BUILD_TYPE=RelWithDebInfo
+      - -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+      - -DCMAKE_PREFIX_PATH=/usr/lib/sdk/llvm20
+      - -DLLVM_CONFIG=/usr/lib/sdk/llvm20/bin/llvm-config
+      - -DBUILD_SHARED_LIBS=ON
+      - -DINCLUDE_OSC=0
+      - -DINCLUDE_HTTP=0
+      - -DINCLUDE_EXECUTABLE=0
+      - -DINCLUDE_STATIC=0
+      - -DINCLUDE_DYNAMIC=1
+      - -DINCLUDE_WASM_GLUE=0
+      - -DLINK_LLVM_STATIC=0
+      - -DINCLUDE_LLVM=1
+      - -DC_BACKEND=COMPILER
+      - -DCODEBOX_BACKEND=OFF
+      - -DCPP_BACKEND=COMPILER
+      - -DCMAJOR_BACKEND=OFF
+      - -DCSHARP_BACKEND=OFF
+      - -DFIR_BACKEND=OFF
+      - -DINTERP_BACKEND=OFF
+      - -DJAVA_BACKEND=OFF
+      - -DJAX_BACKEND=OFF
+      - -DJSFX_BACKEND=OFF
+      - -DJULIA_BACKEND=OFF
+      - -DLLVM_BACKEND="COMPILER;DYNAMIC"
+      - -DOLDCPP_BACKEND=OFF
+      - -DRUST_BACKEND=OFF
+      - -DSDF3_BACKEND=OFF
+      - -DVHDL_BACKEND=OFF
+      - -DWASM_BACKEND=OFF
+    sources:
+      - type: archive
+        url: https://github.com/grame-cncm/faust/releases/download/2.79.3/faust-2.79.3.tar.gz
+        sha256: ca2171cb136f135960be10fee2c1728304865a5d5190e9a03cace88b4936c558
+
   - name: ossia-score
     buildsystem: cmake-ninja
     builddir: true
@@ -345,6 +447,8 @@ modules:
       # Note: don't use RelWithDebInfo as ossia release builds explicitly expect Release build type.
       - -DCMAKE_BUILD_TYPE=Release
       - -Wno-dev
+      - -DCMAKE_PREFIX_PATH=/usr/lib/sdk/llvm20
+      - -DLLVM_CONFIG=/usr/lib/sdk/llvm20/bin/llvm-config
       - -DSCORE_DEPLOYMENT_BUILD=1
       - -DSCORE_STATIC_PLUGINS=1
       - -DSCORE_FHS_BUILD=1
@@ -356,6 +460,10 @@ modules:
 
     post-install:
       - install -Dm755 "${FLATPAK_DEST}/bin/ossia-score" "${FLATPAK_DEST}/bin/ossia-score.bin"
+      - install -Dm755 /usr/lib/sdk/llvm20/lib/libLLVM.so.20.1 "${FLATPAK_DEST}/lib/"
+      - install -Dm755 /usr/lib/sdk/llvm20/lib/libclang-cpp.so.20.1 "${FLATPAK_DEST}/lib/"
+      - cp -rf /usr/lib/sdk/llvm20/include/* "${FLATPAK_DEST}/include/"
+      - cp -rf /usr/include/* "${FLATPAK_DEST}/include/"
       - install -Dm755 ../run "${FLATPAK_DEST}/bin/ossia-score"
       - install -d /app/extensions/Plugins
       - install -d /app/lib/ffmpeg
