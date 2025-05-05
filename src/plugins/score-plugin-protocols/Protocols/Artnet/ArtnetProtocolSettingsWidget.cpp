@@ -371,7 +371,7 @@ void ArtnetProtocolSettingsWidget::updateHosts(int idx)
   switch(idx)
   {
     case 0: {
-      auto ips = score::list_ipv4();
+      auto ips = score::list_ipv4_for_listening();
       ips.removeAll("0.0.0.0");
       m_host->addItems(ips);      
       m_host->setCurrentIndex(0);
@@ -385,7 +385,7 @@ void ArtnetProtocolSettingsWidget::updateHosts(int idx)
       break;
     }
     case 1:
-      m_host->addItems(score::list_ipv4());
+      m_host->addItems(score::list_ipv4_for_listening());
       m_host->setCurrentIndex(0);
 
       m_universe->setRange(1, 65539);

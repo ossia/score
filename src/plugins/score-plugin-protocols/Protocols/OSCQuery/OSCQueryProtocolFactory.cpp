@@ -11,6 +11,8 @@
 #include <Protocols/OSCQuery/OSCQueryProtocolSettingsWidget.hpp>
 #include <Protocols/OSCQuery/OSCQuerySpecificSettings.hpp>
 
+#include <score/tools/ListNetworkAddresses.hpp>
+
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 
@@ -32,9 +34,11 @@ namespace Protocols
 class OSCQueryEnumerator final : public DNSSDEnumerator
 {
 public:
+  QStringList local_ips;
   OSCQueryEnumerator()
       : DNSSDEnumerator{"_oscjson._tcp"}
   {
+    local_ips = score::list_ipv4_for_connecting();
     start();
   }
   ~OSCQueryEnumerator() { stop(); }
@@ -44,46 +48,135 @@ private:
       const QString& instance, const QString& ip, const QString& port,
       const QMap<QString, QString>& keys) noexcept override
   {
-    using namespace std::literals;
+    const bool websockets = keys.value("WebSockets", "false").toLower() == "true";
+    if(local_ips.size() > 1 && local_ips.contains(ip))
+    {
+      do_addNewDevice_localip(instance, websockets, port);
+    }
+    else
+    {
+      do_addNewDevice_other(instance, websockets, ip, port);
+    }
+  }
 
+  void
+  do_addNewDevice_localip(const QString& instance, bool websockets, const QString& port)
+  {
+    auto done = std::make_shared<bool>(false);
+
+    // We do this as some software inadvertently bind on only one local IP...
+    for(const auto& ip : local_ips)
+    {
+      // Launch non-=1 version as some hosts don't like that
+      make_request(
+          QUrl(QString("http://%1:%2/?HOST_INFO").arg(ip).arg(port)), instance,
+          websockets, ip, port, done);
+
+      // This one's OSCQuery server crashes if being sent a =1
+      if(instance.startsWith("Chromatik"))
+        continue;
+
+      // Launch =1 version as some webservers don't like non k=v queries
+      make_request(
+          QUrl(QString("http://%1:%2/?HOST_INFO=1").arg(ip).arg(port)), instance,
+          websockets, ip, port, done);
+    }
+  }
+
+  void do_addNewDevice_other(
+      const QString& instance, bool websockets, const QString& ip, const QString& port)
+  {
+    auto done = std::make_shared<bool>(false);
+    using namespace std::literals;
+    make_request(
+        QUrl(QString("http://%1:%2/?HOST_INFO").arg(ip).arg(port)), instance, websockets,
+        ip, port, done);
+
+    // This one's OSCQuery server crashes if being sent a =1
+    if(instance.startsWith("Chromatik"))
+      return;
+
+    make_request(
+        QUrl(QString("http://%1:%2/?HOST_INFO=1").arg(ip).arg(port)), instance,
+        websockets, ip, port, done);
+  }
+
+  void make_request(
+      QUrl req, const QString& instance, bool websockets, const QString& ip,
+      const QString& port, const std::shared_ptr<bool>& done)
+  {
+    QNetworkRequest qreq{req};
+    qreq.setTransferTimeout(1000);
+    QPointer<QNetworkReply> ret = m_http.get(qreq);
+
+    connect(
+        ret, &QNetworkReply::errorOccurred, this,
+        [req, ret](QNetworkReply::NetworkError err) {
+      ret->deleteLater();
+      qDebug() << req << err;
+    });
+
+#if QT_CONFIG(ssl)
+    connect(
+        ret, &QNetworkReply::sslErrors, this,
+        [req, ret](const QList<QSslError>& errors) {
+      ret->deleteLater();
+      qDebug() << req << errors;
+    });
+#endif
+
+    connect(
+        ret, &QNetworkReply::finished, this,
+        [this, req, ret, instance, websockets, ip, port, done]() mutable {
+      do_request(ret, instance, websockets, ip, port, *done);
+      ret->deleteLater();
+    });
+  }
+
+  void do_request(
+      QPointer<QNetworkReply> ret, const QString& instance, bool websockets,
+      const QString& ip, const QString& port, bool& done)
+  {
+    if(done)
+      return;
+
+    auto doc = QJsonDocument::fromJson(ret->readAll());
+
+    if(!doc.isObject())
+      return;
+
+    auto obj = doc.object();
+    if(obj.contains("FULL_PATH"))
+      return;
+
+    done = true;
+
+    on_finished(obj, instance, websockets, ip, port);
+  }
+
+  void on_finished(
+      QJsonObject obj, const QString& instance, bool websockets, const QString& ip,
+      const QString& port)
+  {
     Device::DeviceSettings set;
     set.name = instance;
     set.protocol = OSCQueryProtocolFactory::static_concreteKey();
 
-    bool websockets = keys.value("WebSockets", "false").toLower() == "true";
+    QString newName = obj["NAME"].toString();
 
-    {
-      QString req = QString("http://%1:%2/?HOST_INFO=1").arg(ip).arg(port);
-
-      QNetworkRequest qreq{QUrl(req)};
-      qreq.setTransferTimeout(1000);
-      QPointer<QNetworkReply> ret = m_http.get(qreq);
-      connect(ret, &QNetworkReply::errorOccurred, this, [] {});
-#if QT_CONFIG(ssl)
-      connect(ret, &QNetworkReply::sslErrors, this, [] {});
-#endif
-      connect(
-          ret, &QNetworkReply::finished, this,
-          [this, ret, set, websockets, ip, port]() mutable {
-        auto doc = QJsonDocument::fromJson(ret->readAll());
-        QString newName = doc.object()["NAME"].toString();
-
-        if(!newName.isEmpty())
-          set.name = newName;
-        QString ws_ip = doc.object()["WS_IP"].toString();
-        QString ws_port = doc.object()["WS_PORT"].toString();
-        websockets |= (!ws_ip.isEmpty() || !ws_port.isEmpty());
-        OSCQuerySpecificSettings sub;
-        sub.host = QString("%1://%2:%3")
-                       .arg(websockets ? "ws" : "http")
-                       .arg(ws_ip.isEmpty() ? ip : ws_ip)
-                       .arg(ws_port.isEmpty() ? port : ws_port);
-        sub.dense = doc.object()["EXTENSIONS"].toObject()["DENSE"].toBool();
-        set.deviceSpecificSettings = QVariant::fromValue(std::move(sub));
-        deviceAdded(set.name, set);
-        ret->deleteLater();
-          });
-    }
+    if(!newName.isEmpty())
+      set.name = newName;
+    QString ws_ip = obj["WS_IP"].toString();
+    QString ws_port = obj["WS_PORT"].toString();
+    websockets |= (!ws_ip.isEmpty() || !ws_port.isEmpty());
+    OSCQuerySpecificSettings sub;
+    sub.host = QString("%1://%2:%3")
+                   .arg(websockets ? "ws" : "http")
+                   .arg(ws_ip.isEmpty() ? ip : ws_ip)
+                   .arg(ws_port.isEmpty() ? port : ws_port);
+    sub.dense = obj["EXTENSIONS"].toObject()["DENSE"].toBool();
+    set.deviceSpecificSettings = QVariant::fromValue(std::move(sub));
+    deviceAdded(set.name, set);
   }
 
   mutable QNetworkAccessManager m_http;

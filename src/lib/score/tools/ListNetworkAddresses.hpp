@@ -6,5 +6,7 @@
 namespace score
 {
 SCORE_LIB_BASE_EXPORT
-QStringList list_ipv4() noexcept;
+QStringList list_ipv4_for_connecting() noexcept;
+SCORE_LIB_BASE_EXPORT
+QStringList list_ipv4_for_listening() noexcept;
 }
