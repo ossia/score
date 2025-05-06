@@ -1,5 +1,4 @@
 #pragma once
-#include "Engine/Node/CommonWidgets.hpp"
 #include <Process/Dataflow/WidgetInlets.hpp>
 #include <Process/ProcessFlags.hpp>
 #include <Process/ProcessMetadata.hpp>
