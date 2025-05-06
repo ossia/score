@@ -25,6 +25,7 @@ QByteArray JsUtils::readFile(QString path)
 
 void JsUtils::shell(QString cmd, QJSValue onFinish)
 {
+#if QT_CONFIG(process)
   const QString sh = "bash";
 
   QString filename;
@@ -66,6 +67,7 @@ void JsUtils::shell(QString cmd, QJSValue onFinish)
     });
   });
   //Util.shell("echo toto", (code, stdout, stderr) => { console.log(code, stdout, stderr); })
+#endif
 }
 
 QString JsUtils::layoutTextLines(QString text, QString font, int pointSize, int maxWidth)

@@ -194,7 +194,7 @@ void MultiScriptDialog::clearError()
 
 void ScriptDialog::openInExternalEditor(const QString& editorPath)
 {
-
+#if QT_CONFIG(process)
   if(editorPath.isEmpty())
   {
     QMessageBox::warning(
@@ -234,6 +234,7 @@ void ScriptDialog::openInExternalEditor(const QString& editorPath)
   {
     QMessageBox::warning(this, tr("Error"), tr("failed to launch external editor"));
   }
+#endif
 }
 
 void ScriptDialog::stopWatchingFile(const QString& tempFile)
@@ -247,8 +248,10 @@ void ScriptDialog::stopWatchingFile(const QString& tempFile)
   w.remove(tempFile, m_fileHandle);
   m_fileHandle.reset();
 }
+
 void MultiScriptDialog::openInExternalEditor(const QString& editorPath)
 {
+#if QT_CONFIG(process)
   if(editorPath.isEmpty())
   {
     QMessageBox::warning(
@@ -295,6 +298,7 @@ void MultiScriptDialog::openInExternalEditor(const QString& editorPath)
   {
     QMessageBox::warning(this, tr("Error"), tr("Failed to launch external editor"));
   }
+#endif
 }
 
 }

@@ -761,6 +761,7 @@ avnd_make_score(
   NAMESPACE examples
 )
 
+if(NOT EMSCRIPTEN)
 avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Raw/ProcessLauncher.hpp"
   TARGET avnd_process
@@ -774,6 +775,7 @@ avnd_make_score(
   MAIN_CLASS Shell
   NAMESPACE examples
 )
+endif()
 
 avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Helpers/ValueDelay.hpp"

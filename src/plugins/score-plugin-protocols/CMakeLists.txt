@@ -407,14 +407,16 @@ if(LINUX)
   list(APPEND SCORE_FEATURES_LIST protocol_evdev)
 endif()
 
-target_sources(${PROJECT_NAME} PRIVATE ${BITFOCUS_HDRS} ${BITFOCUS_SRCS})
-if(WIN32)
-    target_sources(${PROJECT_NAME} PRIVATE  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Bitfocus/BitfocusContext.win32.cpp")
-else()
-    target_sources(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Bitfocus/BitfocusContext.unix.cpp")
+if(NOT EMSCRIPTEN)
+  target_sources(${PROJECT_NAME} PRIVATE ${BITFOCUS_HDRS} ${BITFOCUS_SRCS})
+  if(WIN32)
+      target_sources(${PROJECT_NAME} PRIVATE  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Bitfocus/BitfocusContext.win32.cpp")
+  else()
+      target_sources(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Bitfocus/BitfocusContext.unix.cpp")
+  endif()
+  target_compile_definitions(${PROJECT_NAME} PRIVATE OSSIA_PROTOCOL_BITFOCUS)
+  list(APPEND SCORE_FEATURES_LIST protocol_bitfocus)
 endif()
-target_compile_definitions(${PROJECT_NAME} PRIVATE OSSIA_PROTOCOL_BITFOCUS)
-list(APPEND SCORE_FEATURES_LIST protocol_bitfocus)
 
 target_link_libraries(${PROJECT_NAME}
         PUBLIC
