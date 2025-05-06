@@ -5,7 +5,6 @@
 
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 
-#include <Protocols/Bitfocus/BitfocusProtocolFactory.hpp>
 #include <Protocols/ProtocolLibrary.hpp>
 #include <Protocols/Settings/Factory.hpp>
 
@@ -14,6 +13,9 @@
 #include <score/plugins/StringFactoryKey.hpp>
 
 #include <ossia-config.hpp>
+#if defined(OSSIA_PROTOCOL_BITFOCUS)
+#include <Protocols/Bitfocus/BitfocusProtocolFactory.hpp>
+#endif
 #if defined(OSSIA_PROTOCOL_MINUIT)
 #include <Protocols/Minuit/MinuitProtocolFactory.hpp>
 #endif
@@ -92,7 +94,12 @@ std::vector<score::InterfaceBase*> score_plugin_protocols::factories(
 {
   return instantiate_factories<
       score::ApplicationContext,
-      FW<Device::ProtocolFactory, Protocols::BitfocusProtocolFactory
+      FW<Device::ProtocolFactory
+
+#if defined(OSSIA_PROTOCOL_BITFOCUS)
+         ,
+         Protocols::BitfocusProtocolFactory
+#endif
 #if __has_include(<QQmlEngine>)
          ,
          Protocols::MapperProtocolFactory
