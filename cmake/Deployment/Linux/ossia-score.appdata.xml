@@ -41,6 +41,40 @@
     </screenshot>
   </screenshots>
   <releases>
+    <release version="3.5.2" date="2025-05-05">
+      <url type="details">https://github.com/ossia/score/releases/tag/v3.5.2</url>
+      <description>
+        <p>ossia score 3.5.2 is another series of small bugfixes and improvements after the large 3.5.0 release.</p>
+        <p>New features and changes</p>
+        <ul>
+          <li>New process: Deuterium is a drum machine specialized in loading Hydrogen drumkits.</li>
+          <li>New process: Kabang is a more controllable drum machine with 8 potential samples, pitch shift, etc.</li>
+          <li>New process: Minibang is a basic lo-fi vintage one-sample sampler.</li>
+          <li>UI: owners of a mouse with a forward / backward button can now use it to scroll through presets on the preset button of processes.</li>
+          <li>UI: double-clicking on a 2D pad will center it.</li>
+          <li>Breaking change: the address for key press on Window devices has changed. A key release event has been added, too.</li>
+          <li>Core: add an --ui-debug option to enable visualizing the score backend when creating a custom QML UI.</li>
+          <li>Core: add a few new API functions to enable building more powerful apps accessing all the devices.</li>
+          <li>Packaging: use distro Faust libraries when system libraries are requested.</li>
+        </ul>
+        <p>Bugfixes</p>
+        <ul>
+          <li>Packaging: various flatpak-related fixes.</li>
+          <li>OSCQuery: many compatibility improvements for various kinds of HTTP and mDNS implementations which may not always support all features.</li>
+          <li>Graphics: performance optimization: do not render empty passes in unconnected ports, etc.</li>
+          <li>JS: fix that TextureOutlet was using an expensive RGBA32F texture instead of a RGBA8 one.</li>
+          <li>Core: fix a deep logic bug which caused weird errors when restoring a document that had cables being edited.</li>
+          <li>Graphics: fix auto-repeat blocking key input on Window device.</li>
+          <li>Graphics: disable back-face culling on plane primitive.</li>
+          <li>Graphics: fix an invalid vertex count issue with some primitive.</li>
+          <li>Graphics: fix UV maps on model display with Vulkan.</li>
+          <li>Core: UI performance optimization during execution of the score.</li>
+          <li>Graphics: fix avnd graphics processes with custom render target size.</li>
+          <li>VST: fix that reloading VSTs had broken on Windows and macOS.</li>
+          <li>VST: enable -execstack flag on Linux as otherwise with newer glibc this break some proprietary VSTs.</li>
+        </ul>
+      </description>
+    </release>
     <release version="3.5.1" date="2025-04-19">
       <url type="details">https://github.com/ossia/score/releases/tag/v3.5.1</url>
       <description>
