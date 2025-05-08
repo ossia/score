@@ -39,7 +39,10 @@ public:
 #pragma pack(pop)
 
   std::atomic_int imagesChanged{};
-  std::atomic<ImageMode> tile{};
+  std::atomic<ImageMode> tileMode{};
+  score::gfx::ScaleMode scaleMode{score::gfx::ScaleMode::Original};
+  float scale_w{1.0f};
+  float scale_h{1.0f};
 
 private:
   void process(Message&& msg) override;

@@ -51,7 +51,7 @@ ProcessExecutorComponent::ProcessExecutorComponent(
   }
 
   // Normal controls
-  for(std::size_t i = 0; i < 7; i++)
+  for(std::size_t i = 0; i < 8; i++)
   {
     auto ctrl = qobject_cast<Process::ControlInlet*>(element.inlets()[i]);
     auto& p = n->add_control();

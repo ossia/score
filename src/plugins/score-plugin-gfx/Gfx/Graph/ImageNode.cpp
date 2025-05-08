@@ -46,31 +46,13 @@ layout(std140, binding = 2) uniform material_t {
   float opacity;
   vec2 position;
   vec2 scale;
-  vec2 _imageSize;
-  vec2 renderSize;
 } mat;
 out gl_PerVertex { vec4 gl_Position; };
 
 void main()
 {
-  float viewportAspect = mat.renderSize.x / mat.renderSize.y;
-  float imageAspect = mat._imageSize.x / mat._imageSize.y;
-
-  vec2 pos = position;
-  // Aspect ratio
-  // Our mesh is: -1, -1;  1, -1;  -1, 1;  1, 1;
-
-  pos.x /= viewportAspect;
-  pos.y /= imageAspect;
-
-  // User scale
-  pos *= mat.scale;
-
-  // User displacement
-  pos += mat.position;
-
   v_texcoord = texcoord;
-  gl_Position = renderer.clipSpaceCorrMatrix * vec4(pos, 0.0, 1.);
+  gl_Position = renderer.clipSpaceCorrMatrix * vec4(position * mat.scale + mat.position, 0.0, 1.);
 #if defined(QSHADER_HLSL) || defined(QSHADER_MSL)
   gl_Position.y = - gl_Position.y;
 #endif
@@ -88,8 +70,6 @@ layout(std140, binding = 2) uniform material_t {
   float opacity;
   vec2 position;
   vec2 scale;
-  vec2 _imageSize;
-  vec2 renderSize;
 } mat;
 
 layout(binding=3) uniform sampler2D y_tex;
@@ -97,15 +77,9 @@ layout(binding=3) uniform sampler2D y_tex;
 layout(location = 0) in vec2 v_texcoord;
 layout(location = 0) out vec4 fragColor;
 
-vec2 norm_texcoord(vec2 tc)
-{
-  vec2 tex_sz = textureSize(y_tex, 0);
-  return tc * mat._imageSize / tex_sz;
-}
-
 void main ()
 {
-  fragColor = texture(y_tex, norm_texcoord(v_texcoord)) * mat.opacity;
+  fragColor = texture(y_tex, v_texcoord) * mat.opacity;
 }
 )_";
 
@@ -119,6 +93,14 @@ layout(std140, binding = 0) uniform renderer_t {
   mat4 clipSpaceCorrMatrix;
   vec2 renderSize;
 } renderer;
+
+layout(std140, binding = 2) uniform material_t {
+  int idx;
+  float opacity;
+  vec2 position;
+  vec2 scale;
+} mat;
+
 
 out gl_PerVertex { vec4 gl_Position; };
 
@@ -143,8 +125,6 @@ layout(std140, binding = 2) uniform material_t {
   float opacity;
   vec2 position;
   vec2 scale;
-  vec2 _imageSize;
-  vec2 renderSize;
 } mat;
 
 layout(binding=3) uniform sampler2D y_tex;
@@ -152,27 +132,9 @@ layout(binding=3) uniform sampler2D y_tex;
 layout(location = 0) in vec2 v_texcoord;
 layout(location = 0) out vec4 fragColor;
 
-vec2 norm_texcoord(vec2 tc)
-{
-  vec2 tex_sz = textureSize(y_tex, 0);
-  return tc * mat._imageSize / tex_sz;
-}
-
 void main ()
 {
-  float viewportAspect = mat.renderSize.x / mat.renderSize.y;
-  float imageAspect = mat._imageSize.x / mat._imageSize.y;
-
-  vec2 pos = v_texcoord;
-  // Aspect ratio
-  // Our mesh is: -1, -1;  1, -1;  -1, 1;  1, 1;
-
-  // FIXME incorrect
-  pos.x /= viewportAspect;
-  pos.y /= imageAspect;
-
-  vec4 tex = texture(y_tex, norm_texcoord(pos / mat.scale + mat.position));
-  fragColor = tex * mat.opacity;
+  fragColor = texture(y_tex, v_texcoord * mat.scale + (1.0f - mat.scale) / 2.0f + vec2(-mat.position.x, mat.position.y)) * mat.opacity;
 }
 )_";
 ImagesNode::ImagesNode()
@@ -236,7 +198,7 @@ void ImagesNode::process(Message&& msg)
         {
           {
             auto scale = ossia::convert<float>(*val);
-            this->ubo.scale[0] = scale;
+            this->scale_w = scale;
             this->materialChange();
           }
           break;
@@ -245,7 +207,7 @@ void ImagesNode::process(Message&& msg)
         {
           {
             auto scale = ossia::convert<float>(*val);
-            this->ubo.scale[1] = scale;
+            this->scale_h = scale;
             this->materialChange();
           }
           break;
@@ -281,7 +243,16 @@ void ImagesNode::process(Message&& msg)
         case 6: // Tile
         {
           {
-            this->tile = (ImageMode)ossia::convert<int>(*val);
+            this->tileMode = (ImageMode)ossia::convert<int>(*val);
+            this->materialChange();
+          }
+          break;
+        }
+
+        case 7: // Scale
+        {
+          {
+            this->scaleMode = (ScaleMode)ossia::convert<int>(*val);
             this->materialChange();
           }
           break;
@@ -336,6 +307,11 @@ private:
 
   int imagesChanged = -1;
   ImageMode tile{};
+  ScaleMode scale{score::gfx::ScaleMode::Original};
+  QSizeF lastRenderSize;
+  bool mustRecomputeSize{true};
+  float scale_w{1.f};
+  float scale_h{1.f};
 
   void recreateTextures(QRhi& rhi)
   {
@@ -375,14 +351,9 @@ private:
     // Create GPU textures for each image
     recreateTextures(rhi);
 
-    tile = n.tile;
-    QShader &v = m_vertexS, &f = m_fragmentS;
-    if(!tile)
-      std::tie(v, f) = score::gfx::makeShaders(
-          rs, images_single_vertex_shader, images_single_fragment_shader);
-    else
-      std::tie(v, f) = score::gfx::makeShaders(
-          rs, images_tiled_vertex_shader, images_tiled_fragment_shader);
+    tile = n.tileMode;
+    std::tie(m_vertexS, m_fragmentS) = score::gfx::makeShaders(
+        rs, images_single_vertex_shader, images_single_fragment_shader);
 
     // Create the sampler in which we are going to put the texture
     {
@@ -415,9 +386,9 @@ private:
   void update(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge) override
   {
     auto& n = const_cast<ImagesNode&>(static_cast<const ImagesNode&>(this->node));
-    if(n.tile != tile)
+    if(n.tileMode != tile)
     {
-      tile = n.tile;
+      tile = n.tileMode;
       auto [s, tex] = m_samplers[0];
       m_samplers.clear();
 
@@ -435,6 +406,8 @@ private:
       replace_sampler(m_altPasses, s, new_sampler);
 
       // Release the old sampler
+      mustRecomputeSize = true;
+      imagesChanged = -1;
       s->deleteLater();
     }
 
@@ -467,6 +440,7 @@ private:
 
     // If the current image being displayed by this renderer (in m_prev_ubo)
     // is out of date with the image in the data model, we switch the texture
+    int currentImageIndex = -1;
     if(updateCurrentTexture || m_prev_ubo.currentImageIndex != n.ubo.currentImageIndex)
     {
       auto replace_texture
@@ -475,12 +449,12 @@ private:
           score::gfx::replaceTexture(*pass.second.srb, sampler, tex);
       };
 
-      const int idx = imageIndex(n.ubo.currentImageIndex, m_textures.size());
+      currentImageIndex = imageIndex(n.ubo.currentImageIndex, m_textures.size());
       QRhiSampler* sampler = m_samplers[0].sampler;
       QRhiTexture* new_tex{};
-      if(ossia::valid_index(idx, m_textures))
+      if(ossia::valid_index(currentImageIndex, m_textures))
       {
-        new_tex = m_textures[idx];
+        new_tex = m_textures[currentImageIndex];
       }
       else
       {
@@ -491,20 +465,42 @@ private:
       replace_texture(m_altPasses, sampler, new_tex);
 
       m_prev_ubo.currentImageIndex = n.ubo.currentImageIndex;
+      mustRecomputeSize = true;
     }
 
     if(edge)
     {
-      auto rt = renderer.renderTargetForOutput(*edge);
-      if(rt.renderTarget)
+      const QSizeF renderSize = renderer.renderSize(edge);
+      if(mustRecomputeSize || lastRenderSize != renderSize || scale != n.scaleMode
+         || scale_w != n.scale_w || scale_h != n.scale_h)
       {
-        const auto sz = rt.renderTarget->pixelSize();
-        if(sz.width() != n.ubo.renderSize[0] || sz.height() != n.ubo.renderSize[1])
+        scale = n.scaleMode;
+        lastRenderSize = renderSize;
+        scale_w = n.scale_w;
+        scale_h = n.scale_h;
+
+        QSizeF textureSize{1, 1};
+
+        if(currentImageIndex == -1)
+          currentImageIndex = imageIndex(n.ubo.currentImageIndex, m_textures.size());
+        if(currentImageIndex < std::ssize(m_textures))
+          textureSize = m_textures[currentImageIndex]->pixelSize();
+
+        if(tile == score::gfx::Single)
         {
-          n.ubo.renderSize[0] = sz.width();
-          n.ubo.renderSize[1] = sz.height();
-          materialChanged = true;
+          auto sz = computeScaleForMeshSizing(scale, renderSize, textureSize);
+          n.ubo.scale[0] = sz.width() * scale_w;
+          n.ubo.scale[1] = sz.height() * scale_h;
         }
+        else
+        {
+          auto sz = computeScaleForTexcoordSizing(scale, renderSize, textureSize);
+          n.ubo.scale[0] = sz.width() / scale_w;
+          n.ubo.scale[1] = sz.height() / scale_h;
+        }
+
+        materialChanged = true;
+        mustRecomputeSize = false;
       }
     }
     GenericNodeRenderer::update(renderer, res, edge);
@@ -590,7 +586,7 @@ private:
     m_prev_ubo.currentImageIndex = -1;
     QRhi& rhi = *renderer.state.rhi;
 
-    tile = n.tile;
+    tile = n.tileMode;
     QShader &v = m_vertexS, &f = m_fragmentS;
     if(!tile)
       std::tie(v, f) = score::gfx::makeShaders(
@@ -634,9 +630,9 @@ private:
   {
     auto& n = static_cast<const ImagesNode&>(this->node);
 
-    if(n.tile != tile)
+    if(n.tileMode != tile)
     {
-      tile = n.tile;
+      tile = n.tileMode;
       auto [s, tex] = m_samplers[0];
 
       m_samplers.clear();

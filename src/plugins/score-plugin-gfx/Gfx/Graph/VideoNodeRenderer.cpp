@@ -297,7 +297,7 @@ void VideoNodeRenderer::update(
   if(m_recomputeScale || m_currentScaleMode != this->node().m_scaleMode)
   {
     m_currentScaleMode = this->node().m_scaleMode;
-    auto sz = computeScale(
+    auto sz = computeScaleForMeshSizing(
         m_currentScaleMode, renderer.renderSize(edge),
         QSizeF(m_frameFormat.width, m_frameFormat.height));
     Material mat;

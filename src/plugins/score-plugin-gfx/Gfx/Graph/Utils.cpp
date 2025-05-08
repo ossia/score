@@ -561,8 +561,10 @@ QImage resizeTexture(const QImage& img, int min, int max) noexcept
   return img.scaled(rescaled, Qt::KeepAspectRatio);
 }
 
-QSizeF computeScale(ScaleMode mode, QSizeF viewport, QSizeF texture)
+QSizeF computeScaleForMeshSizing(ScaleMode mode, QSizeF viewport, QSizeF texture)
 {
+  if(viewport.isEmpty() || texture.isEmpty())
+    return QSizeF{1., 1.};
   switch(mode)
   {
     case score::gfx::ScaleMode::BlackBars: {
@@ -598,4 +600,46 @@ QSizeF computeScale(ScaleMode mode, QSizeF viewport, QSizeF texture)
   }
 }
 
+QSizeF
+computeScaleForTexcoordSizing(ScaleMode mode, QSizeF renderSize, QSizeF textureSize)
+{
+  if(renderSize.isEmpty() || textureSize.isEmpty())
+    return QSizeF{1., 1.};
+  switch(mode)
+  {
+    // Fits the viewport at the original texture aspect ratio, with black bars around
+    case score::gfx::ScaleMode::BlackBars: {
+      const auto textureAspect = textureSize.width() / textureSize.height();
+      const auto renderAspect = renderSize.width() / renderSize.height();
+
+      if(textureAspect > renderAspect)
+        return {1.0, textureAspect / renderAspect};
+      else
+        return {renderAspect / textureAspect, 1.0};
+    }
+
+    // Fits the viewport by stretching
+    case score::gfx::ScaleMode::Stretch:
+      return {1., 1.};
+
+    // Fits the viewport by filling, maintaining aspect ratio and cropping if necessary
+    case score::gfx::ScaleMode::Fill: {
+      const auto textureAspect = textureSize.width() / textureSize.height();
+      const auto renderAspect = renderSize.width() / renderSize.height();
+
+      if(textureAspect > renderAspect)
+        return {renderAspect / textureAspect, 1.0};
+      else
+        return {1.0, textureAspect / renderAspect};
+    }
+
+    case score::gfx::ScaleMode::Original: {
+      return {
+          renderSize.width() / textureSize.width(),
+          renderSize.height() / textureSize.height()};
+    }
+    default:
+      return {};
+  }
+}
 }

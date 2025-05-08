@@ -286,5 +286,12 @@ inline void copyMatrix(const QMatrix3x3& mat, float* ptr) noexcept
  * @brief Comput the scale to apply to a texture so that it fits in a GL viewport.
  */
 SCORE_PLUGIN_GFX_EXPORT
-QSizeF computeScale(score::gfx::ScaleMode mode, QSizeF viewport, QSizeF texture);
+QSizeF computeScaleForMeshSizing(score::gfx::ScaleMode mode, QSizeF viewport, QSizeF texture);
+
+/**
+ * @brief Comput the scale to apply to a texture rendered to a quad the size of viewport
+ */
+SCORE_PLUGIN_GFX_EXPORT
+QSizeF computeScaleForTexcoordSizing(
+    score::gfx::ScaleMode mode, QSizeF viewport, QSizeF texture);
 }

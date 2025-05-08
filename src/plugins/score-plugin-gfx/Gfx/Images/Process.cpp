@@ -103,6 +103,16 @@ Model::Model(
     m_inlets.push_back(tile);
   }
 
+  {
+    std::vector<std::pair<QString, ossia::value>> combo{
+        {"Original", (int)score::gfx::ScaleMode::Original},
+        {"Black bars", (int)score::gfx::ScaleMode::BlackBars},
+        {"Fill", (int)score::gfx::ScaleMode::Fill},
+        {"Stretch", (int)score::gfx::ScaleMode::Stretch},
+    };
+    auto tile = new Process::ComboBox{combo, 0, tr("Scale"), Id<Process::Port>(7), this};
+    m_inlets.push_back(tile);
+  }
   m_outlets.push_back(new TextureOutlet{Id<Process::Port>(0), this});
 }
 
@@ -322,9 +332,24 @@ void JSONWriter::write(Gfx::Images::Model& proc)
         {"Tile", (int)score::gfx::ImageMode::Tiled},
         {"Mirror", (int)score::gfx::ImageMode::Mirrored},
     };
-    auto tile = new Process::ComboBox{
+    auto port = new Process::ComboBox{
         combo, 0, QObject::tr("Tile"), Id<Process::Port>(6), &proc};
-    proc.m_inlets.push_back(tile);
+    proc.m_inlets.push_back(port);
+  }
+
+  if(proc.m_inlets.size() < 8)
+  {
+    {
+      std::vector<std::pair<QString, ossia::value>> combo{
+          {"Original", (int)score::gfx::ScaleMode::Original},
+          {"Black bars", (int)score::gfx::ScaleMode::BlackBars},
+          {"Fill", (int)score::gfx::ScaleMode::Fill},
+          {"Stretch", (int)score::gfx::ScaleMode::Stretch},
+      };
+      auto port = new Process::ComboBox{
+          combo, 0, QObject::tr("Scale"), Id<Process::Port>(7), &proc};
+      proc.m_inlets.push_back(port);
+    }
   }
 
   proc.on_imagesChanged(((Process::ControlInlet*)(proc.m_inlets[5]))->value());
