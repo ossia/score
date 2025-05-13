@@ -1,4 +1,5 @@
 #pragma once
+#include <Fx/ExprtkToCpp.hpp>
 #include <Fx/MathHelpers.hpp>
 #include <Fx/Types.hpp>
 

@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/Dataflow/PortForward.hpp>
+#include <Process/CodeFormat.hpp>
 #include <Process/ExpandMode.hpp>
 #include <Process/Preset.hpp>
 #include <Process/ProcessFlags.hpp>
@@ -49,6 +50,7 @@ class ProcessModel;
 class LayerFactory;
 struct Inlets;
 struct Outlets;
+class CodeWriter;
 
 /**
  * @brief The Process class
@@ -83,6 +85,7 @@ public:
   virtual QString category() const noexcept = 0;
   virtual QStringList tags() const noexcept = 0;
   virtual ProcessFlags flags() const noexcept = 0;
+  virtual std::unique_ptr<CodeWriter> codeWriter(CodeFormat) const noexcept;
 
   //// Features of a process
   /// Duration

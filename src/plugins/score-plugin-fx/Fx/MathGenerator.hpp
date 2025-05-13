@@ -25,6 +25,8 @@ struct Node
         "See the documentation at http://www.partow.net/programming/exprtk";
   halp_meta(uuid, "d757bd0d-c0a1-4aec-bf72-945b722ab85b")
 
+  using code_writer = Nodes::MathMappingCodeWriter;
+
   struct ins
   {
     halp::lineedit<"Expression (ExprTK)", "cos(t) + log(pos * (1+abs(x)) / dt)"> expr;

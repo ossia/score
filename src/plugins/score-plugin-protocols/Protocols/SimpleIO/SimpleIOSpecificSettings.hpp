@@ -4,10 +4,10 @@
 #include <score/tools/std/StringHash.hpp>
 
 #include <ossia/detail/variant.hpp>
+#include <ossia/protocols/osc/osc_factory.hpp>
 
 #include <QString>
 
-#include <utility>
 #include <vector>
 #include <verdigris>
 
@@ -23,7 +23,7 @@ struct GPIO
   int32_t flags{};
   int32_t events{};
   int32_t state{};
-  bool direction{};
+  bool direction{}; // false: input, true: output
 };
 struct PWM
 {
@@ -64,6 +64,8 @@ struct Port
 struct SimpleIOSpecificSettings
 {
   std::vector<SimpleIO::Port> ports;
+  QString board;
+  std::optional<ossia::net::osc_protocol_configuration> osc_configuration;
 };
 }
 
