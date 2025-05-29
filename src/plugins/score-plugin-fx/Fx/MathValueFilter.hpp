@@ -22,6 +22,8 @@ struct Node
         "See the documentation at http://www.partow.net/programming/exprtk";
   halp_meta(uuid, "ae84e8b6-74ff-4259-aeeb-305d95cdfcab")
 
+  using code_writer = Nodes::MathMappingCodeWriter;
+
   // FIXME only correct way is to tick the entire graph more granularly
   // in the meantime, make it so that event port gets triggered for every value
   struct ins
@@ -31,7 +33,7 @@ struct Node
       // Messages to this port trigger a new computation cycle with updated timestamps
       halp_flag(active_port);
       void update(Node& self) { self.trigger = true; }
-    } port;
+    } in;
     halp::lineedit<"Expression (ExprTK)", "cos(t) + log(pos * (1+abs(x)) / dt)"> expr;
     halp::hslider_f32<"Param (a)", halp::range{0., 1., 0.5}> a;
     halp::hslider_f32<"Param (b)", halp::range{0., 1., 0.5}> b;
@@ -121,10 +123,10 @@ struct Node
 
     if(self.expr.has_variable("xv"))
       GenericMathMapping<State>::run_array(
-          inputs.port.value, outputs.port.call, tk, state);
+          inputs.in.value, outputs.port.call, tk, state);
     else
       GenericMathMapping<State>::run_scalar(
-          inputs.port.value, outputs.port.call, tk, state);
+          inputs.in.value, outputs.port.call, tk, state);
 
     self.pa = self.a;
     self.pb = self.b;

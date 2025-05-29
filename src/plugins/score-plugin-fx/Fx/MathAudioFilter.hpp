@@ -24,6 +24,8 @@ struct Node
         "See the documentation at http://www.partow.net/programming/exprtk";
   halp_meta(uuid, "13e1f4b0-1c2c-40e6-93ad-dfc91aac5335")
 
+  using code_writer = Nodes::MathMappingCodeWriter;
+
   struct ins
   {
     halp::dynamic_audio_bus<"in", double> audio;

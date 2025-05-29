@@ -58,6 +58,8 @@ public:
   void request_stop_interval(Scenario::IntervalModel&);
   void request_stop();
 
+  void register_execution_filter(exec_setup_fun setup) noexcept;
+
 private:
   // If the transport interface answers: these functions will "press" the Play, etc...
   // buttons programmatically to put them in the right state, and start the playback
@@ -109,6 +111,8 @@ private:
     ::TimeVal t;
   };
   std::vector<IntervalToPlay> m_intervalsToPlay;
+
+  std::vector<exec_setup_fun> m_filters;
 
   bool m_playing{false};
   bool m_paused{false};
