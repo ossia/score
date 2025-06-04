@@ -14,8 +14,8 @@ SETTINGS_PARAMETER_IMPL(Driver)
       Audio::AudioFactory::ConcreteKey{score::uuids::string_generator::compute(
           "afcd9c64-0367-4fa1-b2bb-ee65b1c5e5a7")} // WASAPI
 #elif defined(__APPLE__)
-      Audio::AudioFactory::ConcreteKey{score::uuids::string_generator::compute(
-          "e75cb711-613f-4f15-834f-398ab1807470")}
+    Audio::AudioFactory::ConcreteKey{
+        score::uuids::string_generator::compute("85115103-694a-4a3b-9274-76ef47aec5a9")}
 #elif defined(__linux__)
       Audio::AudioFactory::ConcreteKey{score::uuids::string_generator::compute(
           "687d49cf-b58d-430f-8358-ec02cb50be36")} // PipeWire
@@ -53,6 +53,13 @@ static auto list()
 Model::Model(QSettings& set, const score::ApplicationContext& ctx)
 {
   score::setupDefaultSettings(set, Parameters::list(), *this);
+  using namespace std::literals;
+  if(m_Driver
+     == Audio::AudioFactory::ConcreteKey::fromString(
+         "85115103-694a-4a3b-9274-76ef47aec5a9"s))
+  {
+    m_Driver = Parameters::Driver.def;
+  }
 }
 
 Audio::AudioFactory::ConcreteKey Model::getDriver() const
