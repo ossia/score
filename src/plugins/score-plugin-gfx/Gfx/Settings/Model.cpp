@@ -71,7 +71,8 @@ Gfx::Settings::GraphicsApis::operator QStringList() const noexcept
 #endif
 
 #if defined(Q_OS_MACOS) || defined(Q_OS_IOS)
-  lst += Metal;
+  // https://github.com/ossia/score/issues/1807
+  lst = {Metal};
 #endif
   return lst;
 }
@@ -116,6 +117,11 @@ Gfx::Settings::HardwareVideoDecoder::operator QStringList() const noexcept
 Model::Model(QSettings& set, const score::ApplicationContext& ctx)
 {
   score::setupDefaultSettings(set, Parameters::list(), *this);
+
+  // https://github.com/ossia/score/issues/1807
+#if defined(Q_OS_MACOS) || defined(Q_OS_IOS)
+  m_GraphicsApi = GraphicsApis{}.Metal;
+#endif
 }
 
 int Model::resolveSamples(score::gfx::GraphicsApi api) const noexcept
@@ -131,6 +137,11 @@ score::gfx::GraphicsApi Model::graphicsApiEnum() const noexcept
     return score::gfx::OpenGL;
   else if(platform == "vkkhrdisplay")
     return score::gfx::Vulkan;
+
+  // https://github.com/ossia/score/issues/1807
+#if defined(Q_OS_MACOS) || defined(Q_OS_IOS)
+  return score::gfx::Metal;
+#endif
 
   if(m_GraphicsApi == apis.Vulkan)
   {
