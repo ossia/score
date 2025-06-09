@@ -79,6 +79,7 @@ struct Node
   void operator()(const halp::tick_flicks& tk)
   {
     constexpr const double sine_ratio = ossia::two_pi / ossia::flicks_per_second<double>;
+
     const auto elapsed = tk.model_read_duration();
 
     const auto quantif = inputs.quant.value;
@@ -90,11 +91,13 @@ struct Node
     const auto type = inputs.waveform.value;
     if(quantif)
     {
+#ifndef TEENSY_31
       // Determine the frequency with the quantification
       if(tk.unexpected_bar_change())
       {
         this->phase = 0;
       }
+#endif
 
       // If quantif == 1, we quantize to the bar
       //   => f = 0.5 hz

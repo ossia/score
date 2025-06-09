@@ -66,6 +66,10 @@ public:
 
   QString prettyName() const noexcept override;
   QString prettyValue(double x, double y) const noexcept override;
+
+  std::unique_ptr<Process::CodeWriter>
+      codeWriter(Process::CodeFormat) const noexcept override;
+
   std::unique_ptr<Process::Outlet> outlet;
 
 public:

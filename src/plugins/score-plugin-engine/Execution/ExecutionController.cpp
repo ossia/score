@@ -197,6 +197,11 @@ void ExecutionController::request_stop()
   m_transport->requestStop();
 }
 
+void ExecutionController::register_execution_filter(exec_setup_fun setup) noexcept
+{
+  m_filters.push_back(std::move(setup));
+}
+
 void ExecutionController::trigger_play()
 {
   if(!m_intervalsToPlay.empty())
@@ -254,7 +259,18 @@ void ExecutionController::on_play_global(bool b)
   {
     if(b)
     {
-      play_interval(scenar->baseInterval(), {}, TimeVal::zero());
+      exec_setup_fun filter;
+
+      qDebug() << m_filters.size();
+      if(!m_filters.empty())
+      {
+        filter = [this](auto&&... args) {
+          for(auto& filt : m_filters)
+            filt(args...);
+        };
+      }
+
+      play_interval(scenar->baseInterval(), filter, TimeVal::zero());
     }
     else
     {
