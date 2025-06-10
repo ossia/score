@@ -116,11 +116,11 @@ public:
       m_screen->onWindowMove = [this, pos_param](QPointF pos) {
         if(const auto& w = m_screen->window())
         {
-          #if !defined(_WIN32)
+#if 0
           auto geom = w->geometry();
           pos_param->set_value(
               ossia::vec2f{float(pos.x()), float(pos.y())});
-          #endif
+#endif
         }
       };
       m_root.add_child(std::move(pos_node));
