@@ -35,15 +35,15 @@ public:
 
   std::vector<ossia::value> tab;
 
-  static constexpr double width() { return 400.; }
-  static constexpr double height() { return 400.; }
+  static constexpr double width() { return 200.; }
+  static constexpr double height() { return 200.; }
 
   halp::xy_type<float> cursorSize{0.04, 0.04};
 
   int selectedCursor;
   bool isSelected;
 
-  double min{0.}, max{1.};
+  double min{-1.}, max{1.};
 
   int m_grab{-1};
   ossia::value m_value{};
