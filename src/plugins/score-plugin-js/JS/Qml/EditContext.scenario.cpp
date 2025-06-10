@@ -423,7 +423,9 @@ void EditJsContext::remove(QObject* obj)
 
   if(auto proc = qobject_cast<Process::ProcessModel*>(obj))
   {
-    SCORE_TODO_("Delete processes from console");
+    auto [m, _] = macro(*doc);
+    if(auto itv = qobject_cast<Scenario::IntervalModel*>(proc->parent()))
+      m->removeProcess(*itv, proc->id());
   }
   else if(auto p = obj->parent())
   {
