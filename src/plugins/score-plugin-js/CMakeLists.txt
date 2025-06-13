@@ -64,6 +64,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/EditContext.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/EditContext.curve.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/EditContext.device.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/EditContext.introspection.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/EditContext.metaobject.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/EditContext.ossia.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/EditContext.port.cpp"

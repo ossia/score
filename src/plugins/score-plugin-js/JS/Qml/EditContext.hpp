@@ -279,6 +279,14 @@ public:
   QVariant prompt(QVariant v);
   W_SLOT(prompt)
 
+  /////////////////////
+  /// Introspection ///
+  /////////////////////
+  QVariant availableProcesses() const noexcept;
+  W_SLOT(availableProcesses)
+  QVariant availableProtocols() const noexcept;
+  W_SLOT(availableProtocols)
+
 private:
   void submit(Macro& m, score::Command* c);
 };
