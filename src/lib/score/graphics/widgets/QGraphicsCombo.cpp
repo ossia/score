@@ -241,7 +241,10 @@ void QGraphicsCombo::paint(
   painter->setPen(skin.Base4.main.pen2);
   painter->setRenderHint(QPainter::Antialiasing, false);
   painter->setFont(skin.Medium10Pt);
-  painter->drawText(brect, array[value()], QTextOption(Qt::AlignCenter));
+  if(int n = value(); n >= 0 && n < array.size())
+  {
+    painter->drawText(brect, array[value()], QTextOption(Qt::AlignCenter));
+  }
 
   painter->drawLine(2, 2, 2, boundingRect().height() - 2);
 }
