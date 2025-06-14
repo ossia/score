@@ -613,7 +613,7 @@ public:
     std::tie(m_vertexS, m_fragmentS)
         = score::gfx::makeShaders(renderer.state, mesh.defaultVertexShader(), gl_filter);
 
-    m_samplers = {};
+    m_samplers = {};
     // Put the input texture, where all the input nodes are rendering, in a sampler.
     {
       auto sampler = renderer.state.rhi->newSampler(
