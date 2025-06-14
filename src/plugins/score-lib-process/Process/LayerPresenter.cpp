@@ -11,6 +11,7 @@
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
 
 #include <wobjectimpl.h>
 
