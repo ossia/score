@@ -166,19 +166,30 @@ void Plugin::loadEditController(Model& model, ApplicationPlugin& ctx)
       contrICP->connect(compICP);
     }
   }
+}
+
+void Plugin::loadView(Model& model)
+{
+  if(model.fx.view)
+    return;
 
   // Try to instantiate a view
   // r i d i c u l o u s
+
+  this->ui_available = false;
+  this->ui_owned = false;
+
   Steinberg::IPlugView* view{};
   if(!(view = controller->createView(Steinberg::Vst::ViewType::kEditor)))
   {
     if(!(view = controller->createView(nullptr)))
     {
-      if(controller->queryInterface(IPlugView::iid, (void**)&view)
-         == Steinberg::kResultOk)
+      if((controller->queryInterface(IPlugView::iid, (void**)&view)
+          == Steinberg::kResultOk)
+         && view)
       {
         view->addRef();
-        // TODO don't forget to unref in that case *_*
+        this->ui_owned = true;
       }
     }
   }
@@ -187,7 +198,7 @@ void Plugin::loadEditController(Model& model, ApplicationPlugin& ctx)
   if(view)
   {
     this->view = view;
-    this->hasUI
+    this->ui_available
         = view->isPlatformTypeSupported(currentPlatform()) == Steinberg::kResultTrue;
   }
 }
@@ -212,6 +223,8 @@ void Plugin::load(
 
   loadEditController(model, ctx);
 
+  loadView(model);
+
   loadBuses();
 
   loadPresets();
@@ -227,7 +240,7 @@ void Plugin::start(double_t sample_rate, int max_bs)
      == Steinberg::kResultTrue)
   {
     sampleSize = Steinberg::Vst::kSample64;
-    supportsDouble = true;
+    supports_double = true;
   }
 
   Steinberg::Vst::ProcessSetup setup{

@@ -90,6 +90,11 @@ EffectProcessFactory_T<vst3::Model>::descriptor(QString d) const noexcept
   if(!uid)
     return desc;
   const auto& [plug, cls] = app.classInfo(*uid);
+  if(!cls)
+  {
+    qDebug() << "No class for VST3:" << d;
+    return {};
+  }
 
   desc.prettyName = QString::fromStdString(cls->name());
   desc.author = QString::fromStdString(cls->vendor());
@@ -154,7 +159,7 @@ bool Model::hasExternalUI() const noexcept
     return false;
 #endif
 
-  return fx.hasUI;
+  return fx.ui_available;
 }
 
 void Model::removeControl(Steinberg::Vst::ParamID fxNum)

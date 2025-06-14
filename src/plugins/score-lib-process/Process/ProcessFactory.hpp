@@ -83,8 +83,7 @@ public:
       const Process::ProcessModel& proc,
       const score::DocumentContext& ctx) const noexcept;
   virtual QWidget* makeExternalUI(
-      const Process::ProcessModel&, const score::DocumentContext& ctx,
-      QWidget* parent) const;
+      Process::ProcessModel&, const score::DocumentContext& ctx, QWidget* parent) const;
 
   virtual HeaderDelegate* makeHeaderDelegate(
       const ProcessModel& model, const Process::Context& ctx,

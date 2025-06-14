@@ -65,6 +65,7 @@ struct Plugin
 
   void loadAudioProcessor(ApplicationPlugin& ctx);
   void loadEditController(Model& model, ApplicationPlugin& ctx);
+  void loadView(Model& model);
   void loadBuses();
   void loadPresets();
 
@@ -73,8 +74,9 @@ struct Plugin
   void start(double sample_rate, int max_bs);
   void stop();
 
-  bool supportsDouble{};
-  bool hasUI{};
+  bool supports_double{};
+  bool ui_available{};
+  bool ui_owned{};
   int audio_ins = 0;
   int event_ins = 0;
   int audio_outs = 0;

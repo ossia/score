@@ -118,7 +118,7 @@ Executor::Executor(vst3::Model& proc, const Execution::Context& ctx, QObject* pa
   if(!proc.fx)
     throw std::runtime_error("Unable to load VST");
 
-  if(proc.fx.supportsDouble)
+  if(proc.fx.supports_double)
   {
     auto n = vst3::make_vst_fx<true>(*ctx.execState, proc.fx, ctx.execState->sampleRate);
     setupNode(n);

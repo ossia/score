@@ -17,7 +17,7 @@ QWidget* InspectorWidgetDelegateFactory::makeProcess(
     const Process::ProcessModel& process, const score::DocumentContext& doc,
     QWidget* parent) const
 {
-  return wrap(process, doc, nullptr, parent);
+  return wrap(const_cast<Process::ProcessModel&>(process), doc, nullptr, parent);
 }
 
 bool InspectorWidgetDelegateFactory::matchesProcess(

@@ -82,7 +82,7 @@ void EffectLayerPresenter::fillContextMenu(
 }
 
 void setupExternalUI(
-    const Process::ProcessModel& proc, const Process::LayerFactory& fact,
+    Process::ProcessModel& proc, const Process::LayerFactory& fact,
     const score::DocumentContext& ctx, bool show)
 {
   if(show)
@@ -108,7 +108,7 @@ void setupExternalUI(
 }
 
 void setupExternalUI(
-    const Process::ProcessModel& proc, const score::DocumentContext& ctx, bool show)
+    Process::ProcessModel& proc, const score::DocumentContext& ctx, bool show)
 {
   auto& facts = ctx.app.interfaces<Process::LayerFactoryList>();
 
@@ -120,7 +120,7 @@ void setupExternalUI(
 }
 
 QGraphicsItem* makeExternalUIButton(
-    const ProcessModel& effect, const score::DocumentContext& context, QObject* self,
+    ProcessModel& effect, const score::DocumentContext& context, QObject* self,
     QGraphicsItem* root)
 {
   auto& pixmaps = Process::Pixmaps::instance();

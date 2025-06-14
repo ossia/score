@@ -109,14 +109,14 @@ private:
   }
 
   QWidget* makeExternalUI(
-      const Process::ProcessModel& proc, const score::DocumentContext& ctx,
+      Process::ProcessModel& proc, const score::DocumentContext& ctx,
       QWidget* parent) const final override
   {
     (void)parent;
     try
     {
       if constexpr(!std::is_same_v<ExtView_T, void>)
-        return new ExtView_T{safe_cast<const Model_T&>(proc), ctx, parent};
+        return new ExtView_T{safe_cast<Model_T&>(proc), ctx, parent};
     }
     catch(...)
     {

@@ -44,8 +44,8 @@ public:
 
 protected:
   QWidget* wrap(
-      const Process::ProcessModel& process, const score::DocumentContext& doc,
-      QWidget* widg, QWidget* parent) const;
+      Process::ProcessModel& process, const score::DocumentContext& doc, QWidget* widg,
+      QWidget* parent) const;
 };
 
 template <typename Process_T, typename Widget_T>
@@ -58,7 +58,7 @@ private:
   {
     auto w = new Widget_T{safe_cast<const Process_T&>(process), doc, nullptr};
 
-    return wrap(process, doc, w, parent);
+    return wrap(const_cast<Process::ProcessModel&>(process), doc, w, parent);
   }
 
   bool matchesProcess(const Process::ProcessModel& process) const override

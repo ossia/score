@@ -112,7 +112,8 @@ void NodeItem::createWithDecorations()
       = new score::QGraphicsPixmapToggle{pixmaps.unroll_small, pixmaps.roll_small, this};
   m_fold->setState(!startFolded);
 
-  m_uiButton = Process::makeExternalUIButton(process, ctx, this, this);
+  m_uiButton = Process::makeExternalUIButton(
+      const_cast<Process::ProcessModel&>(process), ctx, this, this);
   m_presetButton = Process::makePresetButton(process, ctx, this, this);
 
   auto& skin = score::Skin::instance();

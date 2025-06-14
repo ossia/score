@@ -97,7 +97,8 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(
   m_portStartX = 0.;
   const auto flags = m.flags();
   auto& pixmaps = Process::Pixmaps::instance();
-  m_ui = Process::makeExternalUIButton(m_model, m_context, this, this);
+  m_ui = Process::makeExternalUIButton(
+      const_cast<Process::ProcessModel&>(m_model), m_context, this, this);
   if(m_ui)
   {
     m_ui->setPos({m_portStartX, 2});

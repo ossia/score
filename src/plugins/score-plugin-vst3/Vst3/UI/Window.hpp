@@ -19,11 +19,11 @@ WindowContainer createVstWindowContainer(
 
 class Window : public score::PluginWindow
 {
-  const Model& m_model;
+  Model& m_model;
   WindowContainer container;
 
 public:
-  Window(const Model& e, const score::DocumentContext& ctx, QWidget* parent);
+  Window(Model& e, const score::DocumentContext& ctx, QWidget* parent);
   ~Window();
 
   void resizeEvent(QResizeEvent* event) override;

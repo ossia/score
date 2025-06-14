@@ -77,10 +77,10 @@ class InspectorWidget : public QWidget
 public:
   QHBoxLayout* m_buttons{};
   InspectorWidget(
-      const ProcessModel& process, const score::DocumentContext& doc, QWidget* w,
+      ProcessModel& process, const score::DocumentContext& doc, QWidget* w,
       QWidget* parent)
       : QWidget{parent}
-      , m_proc{&const_cast<Process::ProcessModel&>(process)}
+      , m_proc{&process}
   {
     setObjectName("Process::InspectorWidget");
     auto lay = new Inspector::VBoxLayout{this};
@@ -263,7 +263,7 @@ public:
 }
 
 QWidget* InspectorWidgetDelegateFactory::wrap(
-    const ProcessModel& process, const score::DocumentContext& doc, QWidget* w,
+    ProcessModel& process, const score::DocumentContext& doc, QWidget* w,
     QWidget* parent) const
 {
   auto widg = new InspectorWidget{process, doc, w, parent};

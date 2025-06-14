@@ -53,16 +53,16 @@ private:
 
 SCORE_LIB_PROCESS_EXPORT
 void setupExternalUI(
-    const Process::ProcessModel& proc, const Process::LayerFactory& factory,
+    Process::ProcessModel& proc, const Process::LayerFactory& factory,
     const score::DocumentContext& ctx, bool show);
 
 SCORE_LIB_PROCESS_EXPORT
 void setupExternalUI(
-    const Process::ProcessModel& proc, const score::DocumentContext& ctx, bool show);
+    Process::ProcessModel& proc, const score::DocumentContext& ctx, bool show);
 
 SCORE_LIB_PROCESS_EXPORT
 QGraphicsItem* makeExternalUIButton(
-    const Process::ProcessModel& proc, const score::DocumentContext& ctx, QObject* self,
+    Process::ProcessModel& proc, const score::DocumentContext& ctx, QObject* self,
     QGraphicsItem* parent);
 
 SCORE_LIB_PROCESS_EXPORT

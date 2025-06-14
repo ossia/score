@@ -124,7 +124,7 @@ FooterDelegate* LayerFactory::makeFooterDelegate(
 }
 
 QWidget* LayerFactory::makeExternalUI(
-    const ProcessModel&, const score::DocumentContext& ctx, QWidget* parent) const
+    ProcessModel&, const score::DocumentContext& ctx, QWidget* parent) const
 {
   return nullptr;
 }

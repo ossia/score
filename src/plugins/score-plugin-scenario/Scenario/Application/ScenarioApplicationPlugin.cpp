@@ -254,7 +254,7 @@ void ScenarioApplicationPlugin::initialize()
           const Process::ProcessModel& process, const score::DocumentContext& doc,
           QWidget* parent) const override
       {
-        return wrap(process, doc, nullptr, parent);
+        return wrap(const_cast<Process::ProcessModel&>(process), doc, nullptr, parent);
       }
 
       bool matchesProcess(const Process::ProcessModel& process) const override
