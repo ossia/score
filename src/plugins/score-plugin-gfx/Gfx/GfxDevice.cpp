@@ -46,7 +46,10 @@ QMimeData* GfxInputDevice::mimeData() const
 
 void GfxInputDevice::addAddress(const Device::FullAddressSettings& settings) { }
 
-void GfxInputDevice::disconnect() { }
+void GfxInputDevice::disconnect()
+{
+  Device::DeviceInterface::disconnect();
+}
 
 void GfxInputDevice::recreate(const Device::Node& n) { }
 
@@ -129,7 +132,10 @@ QMimeData* GfxOutputDevice::mimeData() const
 
 void GfxOutputDevice::addAddress(const Device::FullAddressSettings& settings) { }
 
-void GfxOutputDevice::disconnect() { }
+void GfxOutputDevice::disconnect()
+{
+  Device::DeviceInterface::disconnect();
+}
 
 void GfxOutputDevice::recreate(const Device::Node& n) { }
 

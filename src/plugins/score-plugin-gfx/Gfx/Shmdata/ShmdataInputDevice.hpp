@@ -31,12 +31,4 @@ public:
   Device::ProtocolSettingsWidget* makeSettingsWidget() override;
 };
 
-class InputSettingsWidget final : public SharedInputSettingsWidget
-{
-public:
-  InputSettingsWidget(QWidget* parent = nullptr);
-
-  Device::DeviceSettings getSettings() const override;
-};
-
 }

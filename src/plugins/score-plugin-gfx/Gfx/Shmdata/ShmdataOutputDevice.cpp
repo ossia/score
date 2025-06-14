@@ -37,6 +37,7 @@ public:
   ~ShmdataOutputDevice();
 
 private:
+  void disconnect() override;
   bool reconnect() override;
   ossia::net::device_base* getDevice() const override { return m_dev.get(); }
 
@@ -236,6 +237,14 @@ ShmdataOutputNode::createRenderer(score::gfx::RenderList& r) const noexcept
 
 ShmdataOutputDevice::~ShmdataOutputDevice() { }
 
+void ShmdataOutputDevice::disconnect()
+{
+  GfxOutputDevice::disconnect();
+  auto prev = std::move(m_dev);
+  m_dev = {};
+  deviceChanged(prev.get(), nullptr);
+}
+
 bool ShmdataOutputDevice::reconnect()
 {
   disconnect();
@@ -250,6 +259,7 @@ bool ShmdataOutputDevice::reconnect()
       m_dev = std::make_unique<shmdata_output_device>(
           set, std::unique_ptr<gfx_protocol_base>(m_protocol),
           m_settings.name.toStdString());
+      deviceChanged(nullptr, m_dev.get());
     }
   }
   catch(std::exception& e)

@@ -176,8 +176,9 @@ void VideoNodeRenderer::createGpuDecoder()
 
       if(!m_gpu)
       {
-        qDebug() << "Unhandled pixel format: "
-                 << av_get_pix_fmt_name(m_frameFormat.pixel_format);
+        qDebug() << "Unhandled pixel format: '"
+                 << av_get_pix_fmt_name(m_frameFormat.pixel_format) << "'"
+                 << (uint32_t)(m_frameFormat.pixel_format);
         m_gpu = std::make_unique<EmptyDecoder>();
       }
       break;

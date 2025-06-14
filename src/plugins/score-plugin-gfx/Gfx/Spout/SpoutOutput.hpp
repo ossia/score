@@ -36,6 +36,7 @@ public:
   ~SpoutDevice();
 
 private:
+  void disconnect() override;
   bool reconnect() override;
   ossia::net::device_base* getDevice() const override { return m_dev.get(); }
 

@@ -52,6 +52,13 @@ public:
   ~InputDevice();
 
 private:
+  void disconnect() override
+  {
+    Gfx::GfxInputDevice::disconnect();
+    auto prev = std::move(m_dev);
+    m_dev = {};
+    deviceChanged(prev.get(), nullptr);
+  }
   bool reconnect() override;
   ossia::net::device_base* getDevice() const override { return m_dev.get(); }
 
@@ -293,6 +300,7 @@ bool InputDevice::reconnect()
       m_dev = std::make_unique<Gfx::video_texture_input_device>(
           std::unique_ptr<ossia::net::protocol_base>(m_protocol),
           this->settings().name.toStdString());
+      deviceChanged(nullptr, m_dev.get());
     }
   }
   catch(std::exception& e)

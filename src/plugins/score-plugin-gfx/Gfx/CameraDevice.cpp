@@ -20,6 +20,30 @@
 #include <QMimeData>
 
 #include <wobjectimpl.h>
+namespace Gfx
+{
+class CameraDevice final : public GfxInputDevice
+{
+  W_OBJECT(CameraDevice)
+public:
+  using GfxInputDevice::GfxInputDevice;
+  ~CameraDevice();
+
+private:
+  void disconnect() override
+  {
+    Gfx::GfxInputDevice::disconnect();
+    auto prev = std::move(m_dev);
+    m_dev = {};
+    deviceChanged(prev.get(), nullptr);
+  }
+  bool reconnect() override;
+  ossia::net::device_base* getDevice() const override { return m_dev.get(); }
+
+  Gfx::video_texture_input_protocol* m_protocol{};
+  mutable std::unique_ptr<Gfx::video_texture_input_device> m_dev;
+};
+}
 
 W_OBJECT_IMPL(Gfx::CameraDevice)
 
@@ -50,6 +74,7 @@ bool CameraDevice::reconnect()
       m_dev = std::make_unique<video_texture_input_device>(
           std::unique_ptr<ossia::net::protocol_base>(m_protocol),
           this->settings().name.toStdString());
+      deviceChanged(nullptr, m_dev.get());
     }
     // TODOengine->reload(&proto);
 

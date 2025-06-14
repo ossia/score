@@ -169,6 +169,7 @@ public:
   ~LibavOutputDevice();
 
 private:
+  void disconnect() override;
   bool reconnect() override;
   ossia::net::device_base* getDevice() const override { return m_dev.get(); }
 
@@ -264,6 +265,14 @@ static const std::map<QString, LibavOutputSettings> libav_preset_list{
     // av_dict_set(&opt, "movflags", "frag_keyframe+empty_moov+default_base_moof", 0);
 };
 
+void LibavOutputDevice::disconnect()
+{
+  GfxOutputDevice::disconnect();
+  auto prev = std::move(m_dev);
+  m_dev = {};
+  deviceChanged(prev.get(), nullptr);
+}
+
 bool LibavOutputDevice::reconnect()
 {
   disconnect();
@@ -278,6 +287,7 @@ bool LibavOutputDevice::reconnect()
       m_dev = std::make_unique<libav_output_device>(
           set, m_protocol->encoder, std::unique_ptr<libav_output_protocol>(m_protocol),
           this->settings().name.toStdString());
+      deviceChanged(nullptr, m_dev.get());
     }
   }
   catch(std::exception& e)

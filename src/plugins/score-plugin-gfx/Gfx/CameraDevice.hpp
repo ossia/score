@@ -44,21 +44,6 @@ class CameraProtocolFactory final : public Device::ProtocolFactory
       const Device::DeviceSettings& a,
       const Device::DeviceSettings& b) const noexcept override;
 };
-
-class CameraDevice final : public GfxInputDevice
-{
-  W_OBJECT(CameraDevice)
-public:
-  using GfxInputDevice::GfxInputDevice;
-  ~CameraDevice();
-
-private:
-  bool reconnect() override;
-  ossia::net::device_base* getDevice() const override { return m_dev.get(); }
-
-  Gfx::video_texture_input_protocol* m_protocol{};
-  mutable std::unique_ptr<Gfx::video_texture_input_device> m_dev;
-};
 }
 
 SCORE_SERIALIZE_DATASTREAM_DECLARE(, Gfx::CameraSettings);

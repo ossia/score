@@ -184,6 +184,14 @@ private:
 
 SpoutDevice::~SpoutDevice() { }
 
+void SpoutDevice::disconnect()
+{
+  GfxOutputDevice::disconnect();
+  auto prev = std::move(m_dev);
+  m_dev = {};
+  deviceChanged(prev.get(), nullptr);
+}
+
 bool SpoutDevice::reconnect()
 {
   disconnect();
@@ -216,6 +224,7 @@ bool SpoutDevice::reconnect()
       m_dev = std::make_unique<spout_device>(
           set, std::unique_ptr<gfx_protocol_base>(m_protocol),
           m_settings.name.toStdString());
+      deviceChanged(nullptr, m_dev.get());
     }
     // TODOengine->reload(&proto);
 

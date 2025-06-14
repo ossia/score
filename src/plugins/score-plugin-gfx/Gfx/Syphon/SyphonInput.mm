@@ -299,7 +299,15 @@ public:
   using GfxInputDevice::GfxInputDevice;
   ~InputDevice(){ }
 
-private:
+  private:
+  void disconnect() override
+  {
+      Gfx::GfxInputDevice::disconnect();
+      auto prev = std::move(m_dev);
+      m_dev = {};
+      deviceChanged(prev.get(), nullptr);
+  }
+
   bool reconnect() override
   {
     disconnect();
@@ -318,6 +326,7 @@ private:
                   &plug->exec,
                   std::move(protocol),
                   this->settings().name.toStdString());
+        deviceChanged(nullptr, m_dev.get());
       }
     }
     catch (std::exception& e)
