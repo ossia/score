@@ -657,10 +657,12 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
     nodeItemInteraction = Interaction::Move;
   }
 
-  if(m_presenter)
+  if(m_presenter && m_model.flags() & Process::ProcessFlags::ItemRequiresUniqueFocus)
+  {
     m_context.focusDispatcher.focus(m_presenter);
-
+  }
   score::SelectionDispatcher{m_context.selectionStack}.select(m_model);
+
   event->accept();
 }
 namespace

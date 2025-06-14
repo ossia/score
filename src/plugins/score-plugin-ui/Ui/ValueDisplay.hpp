@@ -45,7 +45,7 @@ struct Node
         QGraphicsItem* parent)
         : Process::EffectLayerView{parent}
     {
-      setAcceptedMouseButtons({});
+      setAcceptedMouseButtons(Qt::NoButton);
 
       const Process::PortFactoryList& portFactory
           = doc.app.interfaces<Process::PortFactoryList>();

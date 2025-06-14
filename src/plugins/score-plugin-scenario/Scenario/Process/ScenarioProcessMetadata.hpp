@@ -14,4 +14,5 @@ PROCESS_METADATA(
     Process::ProcessCategory::Structure, "Structure", "Temporal structure",
     "ossia score", {}, {}, {},
     QUrl("https://ossia.io/score-docs/processes/scenario.html#scenario"),
-    Process::ProcessFlags::SupportsTemporal | Process::ProcessFlags::PutInNewSlot)
+    Process::ProcessFlags::SupportsTemporal | Process::ProcessFlags::PutInNewSlot
+        | Process::ProcessFlags::ItemRequiresUniqueFocus)
