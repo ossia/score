@@ -564,7 +564,7 @@ public:
 
   QShader m_vertexS, m_fragmentS;
 
-  std::vector<score::gfx::Sampler> m_samplers;
+  std::array<score::gfx::Sampler, 1> m_samplers;
 
   score::gfx::Pipeline m_p;
 
@@ -613,6 +613,7 @@ public:
     std::tie(m_vertexS, m_fragmentS)
         = score::gfx::makeShaders(renderer.state, mesh.defaultVertexShader(), gl_filter);
 
+    m_samplers = {};
     // Put the input texture, where all the input nodes are rendering, in a sampler.
     {
       auto sampler = renderer.state.rhi->newSampler(
@@ -622,7 +623,7 @@ public:
       sampler->setName("FullScreenImageNode::sampler");
       sampler->create();
 
-      m_samplers.push_back({sampler, this->m_inputTarget.texture});
+      m_samplers[0] = {sampler, this->m_inputTarget.texture};
     }
 
     m_renderTarget.renderTarget = node().m_swapChain->currentFrameRenderTarget();
@@ -669,7 +670,7 @@ public:
     {
       delete s.sampler;
     }
-    m_samplers.clear();
+    m_samplers = {};
     m_renderTarget.release();
   }
 };

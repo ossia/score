@@ -61,7 +61,7 @@ SCORE_PLUGIN_GFX_EXPORT
 void defaultPassesInit(
     PassMap& passes, const std::vector<Edge*>& edges, RenderList& renderer,
     const Mesh& mesh, const QShader& v, const QShader& f, QRhiBuffer* processUBO,
-    QRhiBuffer* matUBO, const std::vector<Sampler>& samplers,
+    QRhiBuffer* matUBO, std::span<const Sampler> samplers,
     std::span<QRhiShaderResourceBinding> additionalBindings = {});
 
 SCORE_PLUGIN_GFX_EXPORT
@@ -91,7 +91,7 @@ public:
   TextureRenderTarget renderTargetForInput(const Port& p) override;
   virtual ~GenericNodeRenderer() { }
 
-  std::vector<Sampler> m_samplers;
+  ossia::small_vector<Sampler, 8> m_samplers;
 
   QShader m_vertexS;
   QShader m_fragmentS;

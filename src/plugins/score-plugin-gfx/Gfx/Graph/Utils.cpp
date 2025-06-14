@@ -312,7 +312,7 @@ Pipeline buildPipeline(
 
 QRhiShaderResourceBindings* createDefaultBindings(
     const RenderList& renderer, const TextureRenderTarget& rt, QRhiBuffer* processUBO,
-    QRhiBuffer* materialUBO, const std::vector<Sampler>& samplers,
+    QRhiBuffer* materialUBO, std::span<const Sampler> samplers,
     std::span<QRhiShaderResourceBinding> additionalBindings)
 {
   auto& rhi = *renderer.state.rhi;
@@ -379,7 +379,7 @@ QRhiShaderResourceBindings* createDefaultBindings(
 Pipeline buildPipeline(
     const RenderList& renderer, const Mesh& mesh, const QShader& vertexS,
     const QShader& fragmentS, const TextureRenderTarget& rt, QRhiBuffer* processUBO,
-    QRhiBuffer* materialUBO, const std::vector<Sampler>& samplers,
+    QRhiBuffer* materialUBO, std::span<const Sampler> samplers,
     std::span<QRhiShaderResourceBinding> additionalBindings)
 {
   auto bindings = createDefaultBindings(
@@ -428,7 +428,7 @@ QShader makeCompute(const RenderState& v, QString compute)
 
 void DefaultShaderMaterial::init(
     RenderList& renderer, const std::vector<Port*>& input,
-    std::vector<Sampler>& samplers)
+    ossia::small_vector<Sampler, 8>& samplers)
 {
   auto& rhi = *renderer.state.rhi;
 

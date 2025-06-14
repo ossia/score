@@ -263,17 +263,17 @@ void main ()
     SCORE_ASSERT(last_sampler->textures[0]);
     SCORE_ASSERT(last_sampler->textures[1]);
 
+    Sampler samplers1[1] = {Sampler{last_sampler->sampler, last_sampler->textures[1]}};
     auto pip = score::gfx::buildPipeline(
         renderer, renderer.defaultTriangle(), vertexS, fragmentS, renderTarget, nullptr,
-        m_materialUBO,
-        std::vector<Sampler>{Sampler{last_sampler->sampler, last_sampler->textures[1]}});
+        m_materialUBO, samplers1);
     ret.first = Pass{renderTarget, pip, nullptr};
     ret.second = ret.first;
 
-    // Then we have to use the textures the "main" passes are rendering to
+    // Then we have to use the textures the "main" passes are rendering
+    Sampler samplers2[1] = {Sampler{last_sampler->sampler, last_sampler->textures[0]}};
     ret.second.p.srb = score::gfx::createDefaultBindings(
-        renderer, ret.second.renderTarget, nullptr, m_materialUBO,
-        std::vector<Sampler>{Sampler{last_sampler->sampler, last_sampler->textures[0]}});
+        renderer, ret.second.renderTarget, nullptr, m_materialUBO, samplers2);
   }
 
   return ret;
@@ -988,7 +988,10 @@ void SimpleRenderedISFNode::initPass(
     auto [v, s] = score::gfx::makeShaders(renderer.state, n.m_vertexS, n.m_fragmentS);
     auto pip = score::gfx::buildPipeline(
         renderer, *m_mesh, v, s, renderTarget, pubo, m_materialUBO, allSamplers());
-    m_passes.emplace_back(&edge, Pass{renderTarget, pip, pubo});
+    if(pip.pipeline)
+      m_passes.emplace_back(&edge, Pass{renderTarget, pip, pubo});
+    else
+      delete pubo;
   }
   catch(...)
   {
