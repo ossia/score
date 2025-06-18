@@ -107,8 +107,7 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
       {
         // Upload it
         {
-          QRhiTextureSubresourceUploadDescription sd(
-              cpu_tex.bytes, cpu_tex.width * cpu_tex.height * 4);
+          QRhiTextureSubresourceUploadDescription sd(cpu_tex.bytes, cpu_tex.bytesize());
           QRhiTextureUploadDescription desc{QRhiTextureUploadEntry{0, 0, sd}};
 
           res->uploadTexture(texture, desc);

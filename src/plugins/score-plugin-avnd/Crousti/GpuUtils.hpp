@@ -1230,11 +1230,12 @@ inline void initGfxPorts(auto* self, auto& input, auto& output)
   });
 }
 
-inline void inplaceMirror(unsigned char* bytes, int width, int height)
+inline void
+inplaceMirror(unsigned char* bytes, int width, int height, int bytes_per_pixel)
 {
   if(width < 1 || height <= 1)
     return;
-  const size_t row_size = width * 4;
+  const size_t row_size = width * bytes_per_pixel;
 
   auto temp_row = (unsigned char*)alloca(row_size);
   auto top = bytes;
