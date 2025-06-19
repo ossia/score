@@ -12,6 +12,7 @@ struct Node
   halp_meta(c_name, "PitchToValue")
   halp_meta(category, "Midi")
   halp_meta(author, "ossia score")
+  halp_flag(deprecated);
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/midi-utilities.html#midi-pitch")
   halp_meta(description, "Extract a MIDI pitch")
   halp_meta(uuid, "29ce484f-cb56-4501-af79-88768fa261c3")
