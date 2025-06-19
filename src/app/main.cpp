@@ -237,17 +237,10 @@ static void setup_suil()
   // nrelative to the executable
   if(qEnvironmentVariableIsEmpty("SUIL_MODULE_DIR"))
   {
-    auto path = ossia::get_exe_path();
-    auto last_slash =
-#if defined(_WIN32)
-        path.find_last_of('\\');
-#else
-        path.find_last_of('/');
-#endif
-    if(last_slash == std::string::npos)
+    auto path = ossia::get_exe_folder();
+    if(path.empty())
       return;
 
-    path = path.substr(0, last_slash);
     if(path.ends_with("/bin"))
       path.resize(path.size() - 3);
 
@@ -389,17 +382,9 @@ static void setup_faust_path()
   if(!qEnvironmentVariableIsEmpty("FAUST_LIB_PATH"))
     return;
 
-  auto path = ossia::get_exe_path();
-  auto last_slash =
-#if defined(_WIN32)
-      path.find_last_of('\\');
-#else
-      path.find_last_of('/');
-#endif
-  if(last_slash == std::string::npos)
+  auto path = ossia::get_exe_folder();
+  if(path.empty())
     return;
-
-  path = path.substr(0, last_slash);
 
 #if defined(SCORE_DEPLOYMENT_BUILD)
 #if defined(__APPLE__)
