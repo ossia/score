@@ -72,7 +72,7 @@ Gfx::Settings::GraphicsApis::operator QStringList() const noexcept
 
 #if defined(Q_OS_MACOS) || defined(Q_OS_IOS)
   // https://github.com/ossia/score/issues/1807
-  lst = {Metal};
+  lst += Metal;
 #endif
   return lst;
 }
@@ -117,11 +117,6 @@ Gfx::Settings::HardwareVideoDecoder::operator QStringList() const noexcept
 Model::Model(QSettings& set, const score::ApplicationContext& ctx)
 {
   score::setupDefaultSettings(set, Parameters::list(), *this);
-
-  // https://github.com/ossia/score/issues/1807
-#if defined(Q_OS_MACOS) || defined(Q_OS_IOS)
-  m_GraphicsApi = GraphicsApis{}.Metal;
-#endif
 }
 
 int Model::resolveSamples(score::gfx::GraphicsApi api) const noexcept
