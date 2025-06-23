@@ -40,8 +40,8 @@
 
 namespace score::gfx
 {
-static std::shared_ptr<RenderState>
-createRenderState(QWindow& window, GraphicsApi graphicsApi)
+std::shared_ptr<RenderState>
+createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
 {
   auto st = std::make_shared<RenderState>();
   RenderState& state = *st;
@@ -60,16 +60,19 @@ createRenderState(QWindow& window, GraphicsApi graphicsApi)
   {
     state.surface = QRhiGles2InitParams::newFallbackSurface();
     QRhiGles2InitParams params;
-    params.format = window.format();
+    if(window)
+    {
+      params.format = window->format();
+      params.window = window;
+    }
     params.fallbackSurface = state.surface;
-    params.window = &window;
 
     score::GLCapabilities caps;
     caps.setupFormat(params.format);
     params.format.setSamples(state.samples);
     state.version = caps.qShaderVersion;
     state.rhi = QRhi::create(QRhi::OpenGLES2, &params, flags);
-    state.renderSize = window.size();
+    state.renderSize = sz;
     return st;
   }
 #endif
@@ -78,12 +81,19 @@ createRenderState(QWindow& window, GraphicsApi graphicsApi)
   if(graphicsApi == Vulkan)
   {
     QRhiVulkanInitParams params;
-    params.inst = window.vulkanInstance();
-    params.window = &window;
+    if(window)
+    {
+      params.inst = window->vulkanInstance();
+      params.window = window;
+    }
+    else
+    {
+      params.inst = score::gfx::staticVulkanInstance();
+    }
     // Note: QShaderVersion still hardcoded to 100 in qrhvulkan.cpp as of qt 6.9
     state.version = QShaderVersion(100);
     state.rhi = QRhi::create(QRhi::Vulkan, &params, flags);
-    state.renderSize = window.size();
+    state.renderSize = sz;
     return st;
   }
 #endif
@@ -102,7 +112,7 @@ createRenderState(QWindow& window, GraphicsApi graphicsApi)
     // }
     state.version = QShaderVersion(50);
     state.rhi = QRhi::create(QRhi::D3D11, &params, flags);
-    state.renderSize = window.size();
+    state.renderSize = sz;
     return st;
   }
 #if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
@@ -119,7 +129,7 @@ createRenderState(QWindow& window, GraphicsApi graphicsApi)
     // }
     state.version = QShaderVersion(50);
     state.rhi = QRhi::create(QRhi::D3D12, &params, flags);
-    state.renderSize = window.size();
+    state.renderSize = sz;
     return st;
   }
 #endif
@@ -131,7 +141,7 @@ createRenderState(QWindow& window, GraphicsApi graphicsApi)
     QRhiMetalInitParams params;
     state.version = QShaderVersion(12);
     state.rhi = QRhi::create(QRhi::Metal, &params, flags);
-    state.renderSize = window.size();
+    state.renderSize = sz;
     return st;
   }
 #endif
@@ -143,12 +153,18 @@ createRenderState(QWindow& window, GraphicsApi graphicsApi)
     QRhiNullInitParams params;
     state.version = QShaderVersion(120);
     state.rhi = QRhi::create(QRhi::Null, &params, flags);
-    state.renderSize = window.size();
+    state.renderSize = sz;
     state.api = GraphicsApi::Null;
     return st;
   }
 
   return st;
+}
+
+static std::shared_ptr<RenderState>
+createRenderState(QWindow& window, GraphicsApi graphicsApi)
+{
+  return createRenderState(graphicsApi, window.size(), &window);
 }
 
 ScreenNode::ScreenNode(bool embedded, bool fullScreen)

@@ -42,22 +42,8 @@ CustomGpuOutputNodeBase::CustomGpuOutputNodeBase(
     : GpuControlOuts{std::move(q), std::move(ctls)}
     , m_ctx{ctx}
 {
-  m_renderState = std::make_shared<score::gfx::RenderState>();
-
-  m_renderState->surface = QRhiGles2InitParams::newFallbackSurface();
-  score::GLCapabilities caps;
-
-  {
-    QRhiGles2InitParams params;
-    params.fallbackSurface = m_renderState->surface;
-    caps.setupFormat(params.format);
-    m_renderState->rhi = QRhi::create(QRhi::OpenGLES2, &params);
-  }
-
-  m_renderState->renderSize = QSize(200, 200);
-  m_renderState->outputSize = QSize(200, 200);
-  m_renderState->api = score::gfx::GraphicsApi::OpenGL;
-  m_renderState->version = caps.qShaderVersion;
+  m_renderState = score::gfx::createRenderState(
+      score::gfx::GraphicsApi::OpenGL, QSize(200, 200), nullptr);
 }
 
 CustomGpuOutputNodeBase::~CustomGpuOutputNodeBase()

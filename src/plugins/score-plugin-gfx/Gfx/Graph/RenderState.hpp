@@ -2,11 +2,14 @@
 #include <QOffscreenSurface>
 #include <QtGui/private/qrhi_p.h>
 
+#include <score_plugin_gfx_export.h>
+
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
 using QRhiBufferReadbackResult = QRhiReadbackResult;
 #endif
 
 class QOffscreenSurface;
+class QWindow;
 namespace score::gfx
 {
 class RenderList;
@@ -60,4 +63,8 @@ struct RenderState
     surface = nullptr;
   }
 };
+
+SCORE_PLUGIN_GFX_EXPORT
+std::shared_ptr<RenderState>
+createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window);
 }
