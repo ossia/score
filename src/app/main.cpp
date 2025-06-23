@@ -116,7 +116,7 @@ void disableAppRestore()
 void ensureDyldPath()
 {
   auto e = qEnvironmentVariable("DYLD_LIBRARY_PATH");
-  if(e.isEmpty())
+  if(e.isEmpty() || e == "/usr/lib/system/introspection")
   {
     return;
   }
@@ -130,7 +130,7 @@ void ensureDyldPath()
         "uncheck the 'Add library search path to DYLD_LIBRARY_PATH and "
         "DYLD_FRAMEWORK_PATH'\n"
         "checkbox on the execution tab.\n\n"
-        "Current DYLD_LIBRARY_PATH: %s",
+        "Current DYLD_LIBRARY_PATH: '%s'\n",
         e.toStdString().c_str());
 
     // If you see this comment, you are allowed to remove it on your dev
