@@ -153,7 +153,7 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
     {
       cpu_tex.bytes = reinterpret_cast<unsigned char*>(buf.data());
 
-      if(rhi.isYUpInFramebuffer())
+      if(rhi.isYUpInNDC())
         if(cpu_tex.width * cpu_tex.height > 0)
           inplaceMirror(
               cpu_tex.bytes, cpu_tex.width, cpu_tex.height, cpu_tex.bytes_per_pixel);
