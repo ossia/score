@@ -163,6 +163,7 @@ function(get_git_head_revision _refspecvar _hashvar)
     set(HEAD_FILE "${GIT_DATA}/HEAD")
     configure_file("${HEAD_SOURCE_FILE}" "${HEAD_FILE}" COPYONLY)
 
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${_gitdescmoddir}/GetGitRevisionDescription.cmake.in")
     file(READ "${_gitdescmoddir}/GetGitRevisionDescription.cmake.in" GRABREF_CMAKE_RAW_CONTENT)
     string(CONFIGURE "${GRABREF_CMAKE_RAW_CONTENT}" GRABREF_CMAKE_CONTENT @ONLY)
     cmake_language(EVAL CODE "${GRABREF_CMAKE_CONTENT}")
