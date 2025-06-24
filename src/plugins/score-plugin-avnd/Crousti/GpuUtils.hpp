@@ -1122,10 +1122,17 @@ void prepareNewState(Node_T& eff, const Node& parent)
 
   if constexpr(avnd::can_prepare<Node_T>)
   {
-    using prepare_type = avnd::first_argument<&Node_T::prepare>;
-    prepare_type t;
-    if_possible(t.instance = parent.instance);
-    eff.prepare(t);
+    if constexpr(avnd::function_reflection<&Node_T::prepare>::count == 1)
+    {
+      using prepare_type = avnd::first_argument<&Node_T::prepare>;
+      prepare_type t;
+      if_possible(t.instance = parent.instance);
+      eff.prepare(t);
+    }
+    else
+    {
+      eff.prepare();
+    }
   }
 }
 

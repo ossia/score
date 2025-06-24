@@ -8,12 +8,12 @@
 #include <QFile>
 
 #include <AvndProcesses/AddressTools.hpp>
+#include <AvndProcesses/Utils.hpp>
 #include <csv2/csv2.hpp>
 #include <halp/audio.hpp>
 
 namespace avnd_tools
 {
-
 /** Records the input into a CSV.
  *  To record an entire device: can be a pattern expression such as foo://
  *  
@@ -32,6 +32,11 @@ struct DeviceRecorder : PatternObject
   // Threaded worker
   struct recorder_thread
   {
+    explicit recorder_thread(const score::DocumentContext& context)
+        : context{context}
+    {
+    }
+    const score::DocumentContext& context;
     QFile f{};
     std::string filename;
     std::vector<ossia::net::node_base*> roots;
@@ -54,10 +59,8 @@ struct DeviceRecorder : PatternObject
     {
       f.close();
 
-      auto filename = QByteArray::fromStdString(this->filename);
-      filename.replace("%t", QDateTime::currentDateTimeUtc().toString().toUtf8());
-      f.setFileName(filename);
-      if(filename.isEmpty())
+      f.setFileName(filter_filename(this->filename, context));
+      if(f.fileName().isEmpty())
         return;
 
       if(!active)
@@ -131,6 +134,11 @@ struct DeviceRecorder : PatternObject
 
   struct player_thread
   {
+    explicit player_thread(const score::DocumentContext& context)
+        : context{context}
+    {
+    }
+    const score::DocumentContext& context;
     QFile f{};
     std::string filename;
     std::vector<ossia::net::node_base*> roots;
@@ -160,10 +168,8 @@ struct DeviceRecorder : PatternObject
     {
       f.close();
 
-      auto filename = QByteArray::fromStdString(this->filename).trimmed();
-      filename.replace("%t", QDateTime::currentDateTimeUtc().toString().toUtf8());
-      f.setFileName(filename);
-      if(filename.isEmpty())
+      f.setFileName(filter_filename(this->filename, context));
+      if(f.fileName().isEmpty())
         return;
 
       if(!active)
@@ -410,8 +416,6 @@ struct DeviceRecorder : PatternObject
       }
     }
   };
-  std::shared_ptr<recorder_thread> record_impl = std::make_shared<recorder_thread>();
-  std::shared_ptr<player_thread> play_impl = std::make_shared<player_thread>();
 
   // Object definition
   struct inputs_t
@@ -526,10 +530,22 @@ struct DeviceRecorder : PatternObject
 
   void setMode()
   {
+    if(!record_impl)
+      return;
     worker.request(activate_message{record_impl, play_impl, inputs.mode.value});
   }
+
+  void prepare()
+  {
+    SCORE_ASSERT(ossia_document_context);
+    record_impl = std::make_shared<recorder_thread>(*ossia_document_context);
+    play_impl = std::make_shared<player_thread>(*ossia_document_context);
+  }
+
   void update()
   {
+    if(!record_impl)
+      return;
     worker.request(
         reset_path_message{record_impl, play_impl, inputs.filename, inputs.timestamped});
   }
@@ -570,8 +586,11 @@ struct DeviceRecorder : PatternObject
     }
   }
 
-  bool started{};
+  const score::DocumentContext* ossia_document_context{};
+  std::shared_ptr<recorder_thread> record_impl;
+  std::shared_ptr<player_thread> play_impl;
   std::optional<int64_t> first_message_sent_pos;
   std::optional<int64_t> last_message_sent_pos;
+  bool started{};
 };
 }

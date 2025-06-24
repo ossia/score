@@ -8,6 +8,7 @@
 #include <QDateTime>
 
 #include <AvndProcesses/AddressTools.hpp>
+#include <AvndProcesses/Utils.hpp>
 #include <halp/audio.hpp>
 #include <halp/callback.hpp>
 
@@ -51,12 +52,11 @@ struct AudioRecorder
       if(must_record)
       {
         // Open the file with the correct substitutions
-        auto fname = QString::fromStdString(this->filename);
+        auto fname = filter_filename(this->filename, context);
+        if(fname.isEmpty())
+          return false;
 
-        fname.replace("%t", QDateTime::currentDateTimeUtc().toString());
-        fname = score::locateFilePath(fname, context);
-        actual_filename = fname.toStdString();
-        f.open(actual_filename, channels, rate, 16);
+        f.open(fname.toStdString(), channels, rate, 16);
         return false;
       }
       else
