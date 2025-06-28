@@ -101,26 +101,35 @@ public:
     }
 
     {
+      struct move_window_lock
+      {
+        bool locked{};
+      };
+      auto lock = std::make_shared<move_window_lock>();
+
       auto pos_node
           = std::make_unique<ossia::net::generic_node>("position", *this, m_root);
       auto pos_param = pos_node->create_parameter(ossia::val_type::VEC2F);
-      pos_param->add_callback([this](const ossia::value& v) {
+      pos_param->add_callback([this, lock](const ossia::value& v) {
+        if(lock->locked)
+          return;
         if(auto val = v.target<ossia::vec2f>())
         {
-          ossia::qt::run_async(&m_qtContext, [screen = this->m_screen, v = *val] {
+          ossia::qt::run_async(&m_qtContext, [screen = this->m_screen, v = *val, lock] {
             screen->setPosition({(int)v[0], (int)v[1]});
           });
         }
       });
 
-      m_screen->onWindowMove = [this, pos_param](QPointF pos) {
+      m_screen->onWindowMove = [this, pos_param, lock](QPointF pos) {
+        if(lock->locked)
+          return;
         if(const auto& w = m_screen->window())
         {
-#if 0
           auto geom = w->geometry();
-          pos_param->set_value(
-              ossia::vec2f{float(pos.x()), float(pos.y())});
-#endif
+          lock->locked = true;
+          pos_param->set_value(ossia::vec2f{float(pos.x()), float(pos.y())});
+          lock->locked = false;
         }
       };
       m_root.add_child(std::move(pos_node));
