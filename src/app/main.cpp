@@ -28,6 +28,8 @@ extern "C" void sincos(double x, double* sin, double* cos)
   *cos = std::cos(x);
 }
 #endif
+
+#include <winrt/Windows.Foundation.h>
 #endif
 // clang-format on
 
@@ -647,6 +649,11 @@ struct failsafe
 
 int main(int argc, char** argv)
 {
+#if defined(_WIN32)
+  winrt::uninit_apartment();
+  winrt::init_apartment(winrt::apartment_type::single_threaded);
+#endif
+
   struct failsafe failsafe;
 
 #if defined(__APPLE__)
@@ -668,6 +675,11 @@ int main(int argc, char** argv)
 
   QPixmapCache::setCacheLimit(819200);
   Application app(argc, argv);
+
+#if defined(_WIN32)
+  winrt::uninit_apartment();
+  winrt::init_apartment(winrt::apartment_type::single_threaded);
+#endif
 
   setup_gdk();
 
