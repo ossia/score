@@ -1,4 +1,4 @@
-add_library(dspfilters STATIC
+add_library(dspfilters
     "${CMAKE_CURRENT_LIST_DIR}/DSPFilters/DSPFilters/source/Bessel.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/DSPFilters/DSPFilters/source/Biquad.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/DSPFilters/DSPFilters/source/Butterworth.cpp"
