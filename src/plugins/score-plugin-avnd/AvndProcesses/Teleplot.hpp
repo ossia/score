@@ -1,4 +1,5 @@
 #pragma once
+#include <ossia/network/resolve.hpp>
 #include <ossia/network/sockets/udp_socket.hpp>
 
 #include <boost/asio/ip/basic_resolver.hpp>
@@ -39,44 +40,12 @@ struct Teleplot : PatternObject
 
   ~Teleplot() { clear(); }
 
-  std::pair<std::string, uint16_t> resolve_ip(const std::string& host)
+  std::pair<std::string, uint16_t> resolve_ip(const std::string& url)
   {
-    try
+    auto [host, port] = ossia::url_to_host_and_port(url);
+    if(auto resolved = ossia::resolve_sync_v4<boost::asio::ip::udp>(host, port))
     {
-      std::string m_queryPort;
-      auto m_queryHost = host;
-      auto port_idx = m_queryHost.find_last_of(':');
-      if(port_idx != std::string::npos)
-      {
-        m_queryPort = m_queryHost.substr(port_idx + 1);
-        m_queryHost = m_queryHost.substr(0, port_idx);
-      }
-      else
-        m_queryPort = "80";
-
-      boost::asio::io_context io_service;
-      boost::asio::ip::udp::resolver resolver(io_service);
-
-      auto results = resolver.resolve(
-          boost::asio::ip::udp::v4(), m_queryHost, m_queryPort,
-          boost::asio::ip::resolver_base::numeric_service);
-
-      if(!results.empty())
-      {
-        auto addr = results.begin()->endpoint().address().to_string();
-
-        return {addr, std::stoi(m_queryPort)};
-      }
-      else
-      {
-        return {};
-      }
-    }
-    catch(const std::exception& e)
-    {
-    }
-    catch(...)
-    {
+      return {resolved->host, std::stoi(resolved->port)};
     }
     return {};
   }

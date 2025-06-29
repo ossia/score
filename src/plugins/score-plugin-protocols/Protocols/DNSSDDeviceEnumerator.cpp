@@ -1,6 +1,8 @@
 #include "DNSSDDeviceEnumerator.hpp"
 
 #if defined(OSSIA_DNSSD)
+#include <ossia/network/resolve.hpp>
+
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/basic_resolver.hpp>
 #include <boost/asio/ip/tcp.hpp>
@@ -47,32 +49,11 @@ public:
 
     std::string port = m_serv.get(instance, "servus_port");
 
-    try
-    {
-      boost::asio::io_context io_service;
-
-      boost::asio::ip::tcp::resolver resolver(io_service);
-      auto results = resolver.resolve(
-          boost::asio::ip::tcp::v4(), ip, port,
-          boost::asio::ip::resolver_base::numeric_service);
-
-      for(auto& result :results)
-      {
-        if(result.endpoint().address().is_loopback())
-        {
-          ip = "localhost";
-          break;
-        }
-        else if(result.endpoint().address().is_v4())
-        {
-          ip = result.endpoint().address().to_string();
-        }
-      }
-    }
-    catch(const std::exception& e)
-    {
-      qDebug() << "could not resolve host:" << ip.c_str() << " => " << e.what();
-    }
+    auto res = ossia::resolve_sync_v4(ip, port);
+    if(res)
+      ip = res->host;
+    else
+      qDebug() << "could not resolve host:" << ip.c_str();
 
     QMap<QString, QString> keys;
 

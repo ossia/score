@@ -6,6 +6,8 @@
 
 #include <score/widgets/MarginLess.hpp>
 
+#include <ossia/network/resolve.hpp>
+
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/basic_resolver.hpp>
 #include <boost/asio/ip/tcp.hpp>
@@ -157,25 +159,11 @@ void ZeroconfBrowser::accept()
     }
   }
 
-  try
-  {
-    boost::asio::io_context io_service;
-    boost::asio::ip::tcp::resolver resolver(io_service);
-    auto results = resolver.resolve(
-        boost::asio::ip::tcp::v4(), ip.toStdString(), std::to_string(port),
-                                    boost::asio::ip::resolver_base::numeric_service);
-    for(auto& result : results)
-    {
-      if(result.endpoint().address().is_loopback())
-      {
-        ip = "localhost";
-        break;
-      }
-    }
-  }
-  catch(...)
-  {
-  }
+  auto res = ossia::resolve_sync_v4(ip.toStdString(), std::to_string(port));
+  if(res)
+    ip = QByteArray::fromStdString(res->host);
+  else
+    qDebug() << "could not resolve host:" << ip;
 
   if(!ip.isEmpty() && port > 0)
   {

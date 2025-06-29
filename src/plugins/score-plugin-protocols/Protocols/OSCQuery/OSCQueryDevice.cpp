@@ -15,6 +15,7 @@
 #include <ossia/network/local/local.hpp>
 #include <ossia/network/oscquery/oscquery_mirror.hpp>
 #include <ossia/network/rate_limiting_protocol.hpp>
+#include <ossia/network/resolve.hpp>
 #include <ossia/protocols/oscquery/oscquery_mirror_asio.hpp>
 #include <ossia/protocols/oscquery/oscquery_mirror_asio_dense.hpp>
 
@@ -31,44 +32,9 @@
 
 #include <memory>
 W_OBJECT_IMPL(Protocols::OSCQueryDevice)
-
-static bool resolve_ip(const std::string& host)
-{
-  try
-  {
-    std::string queryPort;
-    auto queryHost = host;
-    auto port_idx = queryHost.find_last_of(':');
-    if(port_idx != std::string::npos)
-    {
-      queryPort = queryHost.substr(port_idx + 1);
-      queryHost = queryHost.substr(0, port_idx);
-    }
-    else
-      queryPort = "80";
-
-    if(boost::starts_with(queryHost, "http://"))
-      queryHost.erase(queryHost.begin(), queryHost.begin() + 7);
-    else if(boost::starts_with(queryHost, "ws://"))
-      queryHost.erase(queryHost.begin(), queryHost.begin() + 5);
-
-    boost::asio::io_context io_service;
-    boost::asio::ip::tcp::resolver resolver(io_service);
-    auto res = resolver.resolve(
-        boost::asio::ip::tcp::v4(), queryHost, queryPort, boost::asio::ip::resolver_base::numeric_service);
-    return !res.empty();
-  }
-  catch(const std::exception& e)
-  {
-  }
-  catch(...)
-  {
-  }
-  return false;
-}
-
 namespace Protocols
 {
+
 OSCQueryDevice::OSCQueryDevice(
     const Device::DeviceSettings& settings, const ossia::net::network_context_ptr& ctx)
     : OwningDeviceInterface{settings}
@@ -157,8 +123,9 @@ bool OSCQueryDevice::reconnect()
   disconnect();
 
   // TODO put this in the io_context thread instead
-  std::thread resolver([self = QPointer{this}, host = stgs.host.toStdString()] {
-    bool ok = resolve_ip(host);
+  std::thread resolver([self = QPointer{this}, url = stgs.host.toStdString()] {
+    auto [host, port] = ossia::url_to_host_and_port(url);
+    bool ok = bool(ossia::resolve_sync_v4<boost::asio::ip::tcp>(host, port));
     QMetaObject::invokeMethod(qApp, [self, ok] {
       if(self)
       {
