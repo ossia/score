@@ -152,7 +152,7 @@ Device::DeviceEnumerators
 CameraProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
 {
   Device::DeviceEnumerators enums;
-#if !defined(__linux__) && !defined(__APPLE__)
+#if !defined(__linux__) && !defined(__APPLE__) && !defined(_WIN32)
   enums.push_back({"Cameras", new CameraEnumerator});
 #else
   auto devices = Gfx::make_camera_enumerator();
