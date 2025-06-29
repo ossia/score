@@ -49,7 +49,7 @@ public:
 
     std::string port = m_serv.get(instance, "servus_port");
 
-    auto res = ossia::resolve_sync_v4(ip, port);
+    auto res = ossia::resolve_sync_v4<boost::asio::ip::tcp>(ip, port);
     if(res)
       ip = res->host;
     else

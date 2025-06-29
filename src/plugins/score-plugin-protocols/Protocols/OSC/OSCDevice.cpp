@@ -17,6 +17,7 @@
 #include <ossia/network/generic/generic_parameter.hpp>
 #include <ossia/network/local/local.hpp>
 #include <ossia/network/rate_limiting_protocol.hpp>
+#include <ossia/network/resolve_transport.hpp>
 #include <ossia/protocols/osc/osc_factory.hpp>
 #include <ossia/protocols/oscquery/oscquery_server_asio.hpp>
 
@@ -88,12 +89,15 @@ osc_protocols make_osc_protocol(
     const ossia::net::network_context_ptr& m_ctx, const OSCSpecificSettings& stgs)
 {
   osc_protocols protos;
+  auto resolved_configuration = stgs.configuration;
+  ossia::resolve_host_in_transport(resolved_configuration.transport);
+
   if(stgs.oscquery)
   {
     auto multiplex = std::make_unique<ossia::net::multiplex_protocol>();
     protos.multiplex = multiplex.get();
 
-    if(auto proto = ossia::net::make_osc_protocol(m_ctx, stgs.configuration))
+    if(auto proto = ossia::net::make_osc_protocol(m_ctx, resolved_configuration))
     {
       protos.osc = proto.get();
       multiplex->expose_to(std::move(proto));
@@ -106,7 +110,7 @@ osc_protocols make_osc_protocol(
     ossia::visit([&](const auto& elt) {
       if(auto t = convert_osc_transport_to_server{}(elt))
         conf.push_back(std::move(*t));
-    }, stgs.configuration.transport);
+    }, resolved_configuration.transport);
 
     if(auto proto
        = std::make_unique<ossia::oscquery_asio::oscquery_server_protocol_base>(
@@ -117,7 +121,7 @@ osc_protocols make_osc_protocol(
     }
     protos.ret = std::move(multiplex);
   }
-  else if(auto proto = ossia::net::make_osc_protocol(m_ctx, stgs.configuration))
+  else if(auto proto = ossia::net::make_osc_protocol(m_ctx, resolved_configuration))
   {
     protos.osc = proto.get();
     protos.ret = std::move(proto);

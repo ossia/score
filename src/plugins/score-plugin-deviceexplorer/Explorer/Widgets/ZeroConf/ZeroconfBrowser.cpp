@@ -159,7 +159,8 @@ void ZeroconfBrowser::accept()
     }
   }
 
-  auto res = ossia::resolve_sync_v4(ip.toStdString(), std::to_string(port));
+  auto res = ossia::resolve_sync_v4<boost::asio::ip::tcp>(
+      ip.toStdString(), std::to_string(port));
   if(res)
     ip = QByteArray::fromStdString(res->host);
   else
