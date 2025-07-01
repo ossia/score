@@ -85,6 +85,16 @@ cp "$APP_DIR/usr/share/pixmaps/ossia-score.png" "$APP_DIR/"
 
   # Taken from Subsurface appimage
   # The following are assumed to be part of the base system
+  rm -f usr/lib/libLLVM* || true
+  rm -f usr/lib/libdrm* || true
+  rm -f usr/lib/libedit* || true
+  rm -f usr/lib/libffi* || true
+  rm -f usr/lib/libgl* || true
+  rm -f usr/lib/libtinfo* || true
+  rm -f usr/lib/libxml* || true
+  rm -f usr/lib/libzstd* || true
+
+  rm -f usr/lib/libstdc* || true
   rm -f usr/lib/libGL* || true
   rm -f usr/lib/libgbm* || true
   rm -f usr/lib/libv4l2* || true

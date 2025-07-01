@@ -26,7 +26,12 @@ if(APPLE OR WIN32 OR TARGET X11::X11)
   endif()
 endif()
 
+if(LINUX)
+  add_subdirectory(linuxcheck)
+endif()
+
 add_subdirectory(app)
+
 
 if(SCORE_PLAYER)
   add_subdirectory(player)
