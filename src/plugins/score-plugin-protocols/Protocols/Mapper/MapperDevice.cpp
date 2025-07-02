@@ -336,12 +336,14 @@ class mapper_protocol final
 public:
   mapper_protocol(const QByteArray& code, Device::DeviceList& roots)
       : protocol_base{flags{}}
+      , m_thread{std::make_shared<QThread>()}
       , m_code{code}
       , m_devices{roots}
       , m_roots{m_devices.roots()}
   {
-    this->moveToThread(&m_thread);
-    m_thread.start();
+    this->moveToThread(m_thread.get());
+    m_thread->start();
+    m_hasInit++;
     QMetaObject::invokeMethod(this, &mapper_protocol::init_engine, Qt::QueuedConnection);
   }
 
@@ -355,23 +357,37 @@ public:
 
   void stop() override
   {
-    QMetaObject::invokeMethod(
-        this, &mapper_protocol::teardown_engine, Qt::QueuedConnection);
-    m_thread.wait();
+    // Necessary for the case where we're quickly redoing a full undo stack
+    // which creates and then deletes the Mapper.
+    // - otherwise there's a race between this and init_engine - we have to wait
+    // for init_engine to complete so that we can delete everything safely, as we cannot
+    // delete m_engine on another thread than our m_thread.
+    while(m_hasInit > 0)
+      std::this_thread::yield();
+
+    auto engine = m_engine.load();
+    auto comp = m_component.load();
+    m_engine = nullptr;
+    m_component = nullptr;
+    SCORE_ASSERT(m_thread->isRunning());
+
+    QMetaObject::invokeMethod(this, [this, comp, engine, t = QThread::currentThread()] {
+      delete comp;
+      delete engine;
+      if(t)
+        this->moveToThread(t);
+
+      m_thread->exit();
+    }, Qt::QueuedConnection);
+
+    m_thread->wait();
   }
 
-  void teardown_engine()
-  {
-    delete m_component;
-    delete m_engine;
-    m_thread.exit();
-    m_component = nullptr;
-    m_engine = nullptr;
-  }
+  void teardown_engine(QThread* t) { }
 
   void init_engine()
   {
-    m_engine = new QQmlEngine{this};
+    m_engine = new QQmlEngine{};
     m_component = new QQmlComponent{m_engine};
 
     auto obj = new ossia::qt::qml_device_engine_functions{
@@ -385,7 +401,7 @@ public:
     for(auto dev : m_devices.devices())
       obj->devices.push_back(dev);
 
-    m_engine->rootContext()->setContextProperty("Device", obj);
+    m_engine.load()->rootContext()->setContextProperty("Device", obj);
 
     QObject::connect(
         this, &mapper_protocol::sig_push, this, &mapper_protocol::slot_push);
@@ -411,9 +427,9 @@ public:
       switch(status)
       {
         case QQmlComponent::Status::Ready: {
-          if((m_object = m_component->create()))
+          if((m_object = m_component.load()->create()))
           {
-            m_object->setParent(m_engine->rootContext());
+            m_object->setParent(m_engine.load()->rootContext());
 
             QVariant ret;
             QMetaObject::invokeMethod(
@@ -432,10 +448,12 @@ public:
           return;
         case QQmlComponent::Status::Null:
         case QQmlComponent::Status::Error:
-          qDebug() << m_component->errorString();
+          qDebug() << m_component.load()->errorString();
           return;
       }
     });
+
+    m_hasInit--;
   }
 
   void sig_push(mapper_parameter* p, const ossia::value& v) W_SIGNAL(sig_push, p, v);
@@ -650,13 +668,17 @@ private:
   void set_device(device_base& dev) override
   {
     m_device = &dev;
-    ossia::qt::run_async(this, [this] { m_component->setData(m_code, QUrl{}); });
+    ossia::qt::run_async(this, [this] {
+      if(m_component)
+        m_component.load()->setData(m_code, QUrl{});
+    });
   }
 
 private:
-  QThread m_thread;
-  QQmlEngine* m_engine{};
-  QQmlComponent* m_component{};
+  std::shared_ptr<QThread> m_thread;
+  std::atomic_int m_hasInit = 0;
+  std::atomic<QQmlEngine*> m_engine{};
+  std::atomic<QQmlComponent*> m_component{};
 
   ossia::net::device_base* m_device{};
   QObject* m_object{};
