@@ -98,6 +98,12 @@ static struct
 #include <pmmintrin.h>
 #endif
 
+#if defined(__has_feature)
+#if __has_feature(address_sanitizer) && !defined(__SANITIZE_ADDRESS__)
+#define __SANITIZE_ADDRESS__ 1
+#endif
+#endif
+
 #if defined(__APPLE__)
 struct NSAutoreleasePool;
 
@@ -598,8 +604,23 @@ static void setup_limits()
   }
 #endif
 }
+
 namespace
 {
+static void setup_qml()
+{
+#if defined(__SANITIZE_ADDRESS__)
+  if(!qEnvironmentVariableIsSet("QV4_FORCE_INTERPRETER"))
+    qputenv("QV4_FORCE_INTERPRETER", "1");
+  if(!qEnvironmentVariableIsSet("QV4_MM_AGGRESSIVE_GC"))
+    qputenv("QV4_MM_AGGRESSIVE_GC", "1");
+#endif
+  if(!qEnvironmentVariableIsSet("QV4_JS_MAX_STACK_SIZE"))
+    qputenv("QV4_JS_MAX_STACK_SIZE", "16777216");
+  if(!qEnvironmentVariableIsSet("QV4_GC_MAX_STACK_SIZE"))
+    qputenv("QV4_GC_MAX_STACK_SIZE", "16777216");
+}
+
 struct failsafe
 {
   const bool fs = this->read();
@@ -672,6 +693,7 @@ int main(int argc, char** argv)
   setup_locale();
   setup_app_flags();
   setup_fftw();
+  setup_qml();
 
   QPixmapCache::setCacheLimit(819200);
   Application app(argc, argv);
