@@ -174,8 +174,6 @@ static ossia::small_vector<ossia::net::parameter_base*, 4> setup_sources(
   return res;
 }
 
-static void setup_timer() { }
-
 static void apply_reply(
     ossia::net::node_base& self, const std::vector<ossia::net::node_base*>& roots,
     const QJSValue& arr)

@@ -157,7 +157,6 @@ static std::optional<QByteArray> resolveFile_brackets(
 
 static void removeIncludesInComments(QByteArray& data)
 {
-  static constexpr uint8_t MARKER = 1;
   // very basic implementation as there does not seem to be any easily integratable one
   if(data.size() < 2)
     return;

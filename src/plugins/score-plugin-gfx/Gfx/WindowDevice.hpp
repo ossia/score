@@ -73,10 +73,6 @@ public:
 
 private:
   QLineEdit* m_deviceNameEdit{};
-  QSpinBox* m_width{};
-  QSpinBox* m_height{};
-  QSpinBox* m_rate{};
-  QCheckBox* m_viewportSize{};
 };
 
 }

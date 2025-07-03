@@ -807,7 +807,7 @@ void ScenarioDocumentPresenter::on_executionTimer()
   {
     n->on_executionTimer();
   }
-  else if(auto i = ossia::get_if<CentralIntervalDisplay>(&this->m_centralDisplay))
+  else if(ossia::get_if<CentralIntervalDisplay>(&this->m_centralDisplay))
   {
     if(m_autoScroll)
       autoScroll();

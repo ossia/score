@@ -100,10 +100,10 @@ Gfx::Settings::HardwareVideoDecoder::operator QStringList() const noexcept
     lst += V4L2;
 #endif
 
-  if(auto c = avcodec_find_decoder_by_name("h264_vdpau"))
+  if(avcodec_find_decoder_by_name("h264_vdpau"))
     lst += VDPAU;
 
-  if(auto c = avcodec_find_decoder_by_name("mjpeg_vaapi"))
+  if(avcodec_find_decoder_by_name("mjpeg_vaapi"))
     lst += VAAPI;
 #endif
 

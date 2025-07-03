@@ -41,10 +41,10 @@ JitEffectModel::JitEffectModel(
 {
   init();
   if(jitProgram.isEmpty())
-    setScript(
+    (void)setScript(
         Process::EffectProcessFactory_T<Jit::JitEffectModel>{}.customConstructionData());
   else
-    setScript(jitProgram);
+    (void)setScript(jitProgram);
 }
 
 JitEffectModel::~JitEffectModel() { }
@@ -394,7 +394,7 @@ template <>
 void DataStreamWriter::write(Jit::JitEffectModel& eff)
 {
   m_stream >> eff.m_text;
-  eff.reload();
+  (void)eff.reload();
 
   writePorts(
       *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets,
@@ -412,7 +412,7 @@ template <>
 void JSONWriter::write(Jit::JitEffectModel& eff)
 {
   eff.m_text = obj["Text"].toString();
-  eff.reload();
+  (void)eff.reload();
 
   writePorts(
       *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets,

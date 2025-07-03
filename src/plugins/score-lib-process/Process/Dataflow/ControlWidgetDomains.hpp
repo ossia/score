@@ -152,7 +152,7 @@ struct LinearNormalizer
     std::array<float, N> res;
     const auto min = getMin<std::array<double, N>>(slider);
     const auto max = getMax<std::array<double, N>>(slider);
-    for(int i = 0; i < N; i++)
+    for(std::size_t i = 0; i < N; i++)
       res[i] = from01(min[i], max[i] - min[i], val[i]);
     return res;
   }

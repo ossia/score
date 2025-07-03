@@ -43,10 +43,10 @@ TexgenModel::TexgenModel(
   this->m_outlets.push_back(audio_out);
   init();
   if(jitProgram.isEmpty())
-    setScript(
+    (void)setScript(
         Process::EffectProcessFactory_T<Jit::TexgenModel>{}.customConstructionData());
   else
-    setScript(jitProgram);
+    (void)setScript(jitProgram);
 }
 
 TexgenModel::~TexgenModel() { }
@@ -225,7 +225,7 @@ template <>
 void DataStreamWriter::write(Jit::TexgenModel& eff)
 {
   m_stream >> eff.m_text;
-  eff.reload();
+  (void)eff.reload();
 
   writePorts(
       *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets,
@@ -243,7 +243,7 @@ template <>
 void JSONWriter::write(Jit::TexgenModel& eff)
 {
   eff.m_text = obj["Text"].toString();
-  eff.reload();
+  (void)eff.reload();
   writePorts(
       *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets,
       eff.m_outlets, &eff);

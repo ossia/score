@@ -275,11 +275,11 @@ bool ScenarioEditor::paste(
         return pasteInInterval(*obj, newProcessPosition(*obj), mime, ctx);
       }
     }
-    else if(auto obj = qobject_cast<StateModel*>(sel.at(0)))
+    else if(qobject_cast<StateModel*>(sel.at(0)))
     {
       // Try to paste messages in state? Should be done elsewhere..
     }
-    else if(auto obj = qobject_cast<Scenario::ProcessModel*>(sel.at(0)))
+    else if(qobject_cast<Scenario::ProcessModel*>(sel.at(0)))
     {
       // Do nothing, handled below as we really need the position in the view
       // FIXME if we're in nodal view and pasting just a process and

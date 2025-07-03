@@ -18,7 +18,7 @@ Noise::~Noise()
   }
 }
 
-const siv::BasicPerlinNoise<double> engine{4u}; // chosen by fair dice roll
+static const siv::BasicPerlinNoise<double> engine{4u}; // chosen by fair dice roll
 void Noise::operator()(tick tt)
 {
   auto old_bufs = outputs.geometry.mesh.buffers;
@@ -29,7 +29,7 @@ void Noise::operator()(tick tt)
     int old_buf_idx = 0;
     for (auto& buf : outputs.geometry.mesh.buffers)
     {
-      if (old_buf_idx < old_bufs.size())
+      if(old_buf_idx < std::ssize(old_bufs))
       {
         auto old = old_bufs[old_buf_idx];
         auto cur = (float*)buf.data;
@@ -81,13 +81,13 @@ void Noise::operator()(tick tt)
   const int binding = it->binding;
   auto& ins = mesh.input;
   assert(binding >= 0);
-  assert(binding < ins.size());
+  assert(binding < std::ssize(ins));
 
   const int buffer = ins[binding].buffer;
 
   auto& bufs = mesh.buffers;
   assert(buffer >= 0);
-  assert(buffer < bufs.size());
+  assert(buffer < std::ssize(bufs));
 
   auto& buf = bufs[buffer];
 

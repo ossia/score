@@ -45,7 +45,7 @@ public:
     connect(m_unit, &State::UnitWidget::unitChanged, this, [this](const State::Unit& u) {
       auto dom = ossia::get_unit_default_domain(u.get());
 
-      if(auto p = dom.v.target<ossia::domain_base<float>>())
+      if([[maybe_unused]] auto p = dom.v.target<ossia::domain_base<float>>())
       {
         m_domainEdit->set_domain(dom);
       }

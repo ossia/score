@@ -166,7 +166,7 @@ Component::on_gpuScriptChange(const QString& script, Execution::Transaction& com
         if(!inlet && !outlet)
           continue;
 
-        if(auto val_in = qobject_cast<ValueInlet*>(inlet))
+        if([[maybe_unused]] auto val_in = qobject_cast<ValueInlet*>(inlet))
         {
           // NOTE! we do not use add_control() here as it changes the internal arrays,
           // while we will replace them after in ossia::recabler
@@ -182,7 +182,7 @@ Component::on_gpuScriptChange(const QString& script, Execution::Transaction& com
           control_index++;
         }
 
-        else if(auto ctrl_in = qobject_cast<JS::ControlInlet*>(inlet))
+        else if([[maybe_unused]] auto ctrl_in = qobject_cast<JS::ControlInlet*>(inlet))
         {
           auto inletport = new ossia::value_inlet;
           auto control = std::make_shared<Gfx::gfx_exec_node::control>();
@@ -288,15 +288,15 @@ Component::on_gpuScriptChange(const QString& script, Execution::Transaction& com
         }
 */
 
-        else if(auto tex_out = qobject_cast<TextureOutlet*>(outlet))
+        else if([[maybe_unused]] auto tex_out = qobject_cast<TextureOutlet*>(outlet))
         {
           outls.push_back(new ossia::texture_outlet);
         }
 
         if(inlet)
           inlet_idx++;
-        else if(outlet)
-          outlet_idx++;
+        // else if(outlet)
+        //   outlet_idx++;
       }
     }
   }
@@ -328,7 +328,7 @@ Component::on_gpuScriptChange(const QString& script, Execution::Transaction& com
 std::tuple<ossia::inlets, ossia::outlets, std::vector<Execution::ExecutionCommand>>
 Component::on_cpuScriptChange(const QString& script, Execution::Transaction& commands)
 {
-  auto& setup = system().setup;
+  [[maybe_unused]] auto& setup = system().setup;
   auto node = std::dynamic_pointer_cast<js_node>(this->node);
 
   // 1. Create new inlet & outlet arrays
@@ -348,7 +348,7 @@ Component::on_cpuScriptChange(const QString& script, Execution::Transaction& com
           vp.domain = ctrl->domain().get();
 
           disconnect(ctrl, nullptr, this, nullptr);
-          if(auto impulse = qobject_cast<Process::ImpulseButton*>(ctrl))
+          if([[maybe_unused]] auto impulse = qobject_cast<Process::ImpulseButton*>(ctrl))
           {
             connect(
                 ctrl, &Process::ControlInlet::valueChanged, this,
@@ -374,7 +374,7 @@ Component::on_cpuScriptChange(const QString& script, Execution::Transaction& com
       };
       for(auto n : object->children())
       {
-        if(auto ctrl_in = qobject_cast<ControlInlet*>(n))
+        if(qobject_cast<ControlInlet*>(n))
         {
           inls.push_back(new ossia::value_inlet);
           auto& vp = *inls.back()->target<ossia::value_port>();
@@ -394,27 +394,27 @@ Component::on_cpuScriptChange(const QString& script, Execution::Transaction& com
 
           ++idx;
         }
-        else if(auto aud_in = qobject_cast<AudioInlet*>(n))
+        else if(qobject_cast<AudioInlet*>(n))
         {
           inls.push_back(new ossia::audio_inlet);
 
           ++idx;
         }
-        else if(auto mid_in = qobject_cast<MidiInlet*>(n))
+        else if(qobject_cast<MidiInlet*>(n))
         {
           inls.push_back(new ossia::midi_inlet);
 
           ++idx;
         }
-        else if(auto val_out = qobject_cast<ValueOutlet*>(n))
+        else if(qobject_cast<ValueOutlet*>(n))
         {
           outls.push_back(new ossia::value_outlet);
         }
-        else if(auto aud_out = qobject_cast<AudioOutlet*>(n))
+        else if(qobject_cast<AudioOutlet*>(n))
         {
           outls.push_back(new ossia::audio_outlet);
         }
-        else if(auto mid_out = qobject_cast<MidiOutlet*>(n))
+        else if(qobject_cast<MidiOutlet*>(n))
         {
           outls.push_back(new ossia::midi_outlet);
         }

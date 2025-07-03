@@ -26,7 +26,7 @@ class GUIApplicationPlugin;
 class PanelDelegate;
 
 using FindCommandKey = std::pair<CommandGroupKey, CommandKey>;
-struct CommandKeyHash : std::hash<std::string>
+struct CommandKeyHash : ossia::hash<std::string>
 {
   std::size_t operator()(const FindCommandKey& val) const noexcept
   {
@@ -36,10 +36,10 @@ struct CommandKeyHash : std::hash<std::string>
     return seed;
   }
 };
-struct CommandStore : score::hash_map<FindCommandKey, CommandFactory, CommandKeyHash>
+struct CommandStore : ossia::hash_map<FindCommandKey, CommandFactory, CommandKeyHash>
 {
 public:
-  using score::hash_map<FindCommandKey, CommandFactory, CommandKeyHash>::hash_map;
+  using ossia::hash_map<FindCommandKey, CommandFactory, CommandKeyHash>::hash_map;
 };
 
 struct SCORE_LIB_BASE_EXPORT ApplicationComponentsData

@@ -36,7 +36,7 @@ bool CurveEditor::copy(
   {
     if(auto s = qobject_cast<Curve::SegmentModel*>(obj.data()))
       segments.push_back(s);
-    else if(auto s = qobject_cast<Curve::PointModel*>(obj.data()))
+    else if(qobject_cast<Curve::PointModel*>(obj.data()))
       continue;
     else
       return false;
@@ -285,7 +285,7 @@ bool CurveEditor::remove(const Selection& s, const score::DocumentContext& ctx)
           segmentsToDelete.insert(*point->following());
         }
       }
-      else if(auto segmt = qobject_cast<const SegmentModel*>(elt.data()))
+      else if(qobject_cast<const SegmentModel*>(elt.data()))
       {
         continue;
       }

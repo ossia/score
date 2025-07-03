@@ -505,14 +505,9 @@ void rerootAddress(
 
 std::size_t std::hash<State::Address>::operator()(const State::Address& k) const
 {
-  using std::hash;
-  using std::size_t;
-  using std::string;
-
-  // Compute individual hash values for first,
-  // second and third and combine them using XOR
-  // and bit shifting:
-  return ((qHash(k.device) ^ (qHashRange(k.path.begin(), k.path.end()) << 1)) >> 1);
+  std::size_t r = qHash(k.device);
+  ossia::hash_combine(r, qHashRange(k.path.begin(), k.path.end()));
+  return r;
 }
 
 namespace std

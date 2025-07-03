@@ -45,7 +45,7 @@ ProcessModel::ProcessModel(
 {
   if(data.isEmpty())
   {
-    setScript(
+    (void)setScript(
         R"_(import Score 1.0
 Script {
   ValueInlet { id: in1 }
@@ -66,7 +66,7 @@ Script {
   }
   else
   {
-    setScript(data);
+    (void)setScript(data);
   }
   metadata().setInstanceName(*this);
 }
@@ -262,7 +262,6 @@ Script* ComponentCache::tryGet(const QByteArray& str, bool isFile) const noexcep
   }
 }
 
-static std::once_flag qml_dummy_engine_setup{};
 Script* ComponentCache::get(
     const ProcessModel& process, const QByteArray& str, bool isFile) noexcept
 {
