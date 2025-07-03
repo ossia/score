@@ -9,7 +9,6 @@
 
 #include <ossia/detail/config.hpp>
 
-#include <ossia/detail/dylib_loader.hpp>
 #include <ossia/detail/timer.hpp>
 #include <ossia/network/base/protocol.hpp>
 #include <ossia/network/common/complex_type.hpp>

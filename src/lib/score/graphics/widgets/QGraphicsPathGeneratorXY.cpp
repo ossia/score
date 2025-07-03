@@ -34,7 +34,8 @@ void score::QGraphicsPathGeneratorXY::paint(
   painter->fillRect(QRectF(0, 0, width(), height()), QColor(skin.Dark.color()));
 
   // Draw cursors
-  for (size_t s = std::ssize(tab); s-- > 0;) {
+  for(int64_t s = std::ssize(tab); s-- > 0;)
+  {
     auto& source = tab[s].get<std::vector<ossia::value>>();
     bool isSelectedSource = (s == selectedSource);
 

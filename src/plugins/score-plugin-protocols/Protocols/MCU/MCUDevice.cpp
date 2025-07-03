@@ -298,7 +298,7 @@ public:
         if(!m_fader_grab.test(idx))
         {
           // TODO
-          boost::asio::post(m_context->context, [this] { });
+          // boost::asio::post(m_context->context, [] { });
         }
       }
     }
@@ -711,6 +711,8 @@ public:
         }
       }
         break;
+        default:
+          break;
     }
   }
 

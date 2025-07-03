@@ -26,7 +26,7 @@ Model::Model(
   m_inlets.push_back(new GeometryInlet{Id<Process::Port>(0), this});
   m_outlets.push_back(new GeometryOutlet{Id<Process::Port>(1), this});
 
-  setScript("");
+  (void)setScript("");
 }
 
 Model::Model(
@@ -38,7 +38,7 @@ Model::Model(
   m_inlets.push_back(new GeometryInlet{Id<Process::Port>(0), this});
   m_outlets.push_back(new GeometryOutlet{Id<Process::Port>(1), this});
 
-  setScript(init);
+  (void)setScript(init);
 }
 
 Model::~Model() { }
@@ -106,7 +106,7 @@ void main()
 
   try
   {
-    QString processed = txt;
+    const QString processed = txt;
 
     // 1. Process the glsl and prefix all the functions
     std::string str = processed.toStdString();
@@ -206,10 +206,12 @@ void Model::loadPreset(const Process::Preset& preset)
   if(!obj.HasMember("Shader"))
     return;
 
-  this->setScript(obj["Shader"].GetString());
+  (void)this->setScript(obj["Shader"].GetString());
 
   auto controls = obj["Controls"].GetArray();
   Process::loadFixedControls(controls, *this);
+
+  programChanged();
 }
 
 Process::Preset Model::savePreset() const noexcept
@@ -405,7 +407,7 @@ void DataStreamWriter::write(Gfx::GeometryFilter::Model& proc)
 {
   QString s;
   m_stream >> s;
-  proc.setScript(s);
+  (void)proc.setScript(s);
   writePorts(
       *this, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,
       proc.m_outlets, &proc);
@@ -424,7 +426,7 @@ template <>
 void JSONWriter::write(Gfx::GeometryFilter::Model& proc)
 {
   QString s = obj["Script"].toString();
-  proc.setScript(s);
+  (void)proc.setScript(s);
   writePorts(
       *this, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,
       proc.m_outlets, &proc);

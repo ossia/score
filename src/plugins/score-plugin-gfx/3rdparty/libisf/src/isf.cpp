@@ -3,6 +3,7 @@
 #include "sajson.h"
 
 #include <ossia/detail/flat_set.hpp>
+#include <ossia/detail/string_map.hpp>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/regex.hpp>
@@ -421,8 +422,8 @@ input parse(const sajson::value& v)
 
 using root_fun = void (*)(descriptor&, const sajson::value&);
 using input_fun = input (*)(const sajson::value&);
-static const std::unordered_map<std::string, root_fun>& root_parse{[] {
-  static std::unordered_map<std::string, root_fun> p;
+static const ossia::string_map<root_fun>& root_parse{[] {
+  static ossia::string_map<root_fun> p;
   p.insert({"DESCRIPTION", [](descriptor& d, const sajson::value& v) {
               if(v.get_type() == sajson::TYPE_STRING)
                 d.description = v.as_string();

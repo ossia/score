@@ -186,7 +186,7 @@ struct DeviceRecorder : PatternObject
       num_params = 0;
       for(auto in : this->roots)
       {
-        if(auto p = in->get_parameter())
+        if([[maybe_unused]] auto p = in->get_parameter())
         {
           num_params++;
         }

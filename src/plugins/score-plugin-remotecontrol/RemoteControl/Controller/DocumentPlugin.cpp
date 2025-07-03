@@ -321,7 +321,7 @@ void DocumentPlugin::nextChannel(RemoteControlImpl& b)
 std::shared_ptr<Process::RemoteControlInterface> DocumentPlugin::acquireRemoteControlInterface()
 {
   auto impl = std::make_shared<RemoteControlImpl>(*this);
-  m_controllers.push_back({impl});
+  m_controllers.push_back({.controller = impl, .handles = {}, .maps = {}});
   connectToEngine();
 
   return impl;

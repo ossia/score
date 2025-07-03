@@ -199,7 +199,8 @@ struct v4l2_format_enumeration
   void list_all_formats(const std::function<void(CameraSettings, QString)>& func)
   {
     // First loop level: the image formats: MJPEG, YUYV..
-    struct v4l2_fmtdesc vfd = {.type = V4L2_BUF_TYPE_VIDEO_CAPTURE};
+    struct v4l2_fmtdesc vfd = {};
+    vfd.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     while(!v4l2.ioctl(fd, VIDIOC_ENUM_FMT, &vfd))
     {
       current.codec = ff_fmt_v4l2codec(vfd.pixelformat);

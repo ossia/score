@@ -99,8 +99,6 @@ public:
 
   void setupTimeInfo(const ossia::token_request& tk, ossia::exec_state_facade st)
   {
-    static const constexpr double ppq_reference = 960.;
-
     auto& time_info = fx->info;
     time_info.samplePos = this->m_processed_frames;
     time_info.sampleRate = st.sampleRate();

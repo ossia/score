@@ -647,7 +647,7 @@ ProcessModel::ProcessModel(
 {
   metadata().setInstanceName(*this);
   init();
-  setScript(pdpatch);
+  (void)setScript(pdpatch);
 }
 
 bool ProcessModel::hasExternalUI() const noexcept
@@ -986,7 +986,7 @@ void DataStreamWriter::write(Pd::ProcessModel& proc)
   QString script;
   m_stream >> script >> proc.m_audioInputs >> proc.m_audioOutputs >> proc.m_midiInput
       >> proc.m_midiOutput;
-  proc.setScript(script);
+  (void)proc.setScript(script);
 
   writePorts(
       *this, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,
@@ -1010,7 +1010,7 @@ void JSONReader::read(const Pd::ProcessModel& proc)
 template <>
 void JSONWriter::write(Pd::ProcessModel& proc)
 {
-  proc.setScript(obj["Script"].toString());
+  (void)proc.setScript(obj["Script"].toString());
   proc.m_audioInputs = obj["AudioInputs"].toInt();
   proc.m_audioOutputs = obj["AudioOutputs"].toInt();
   proc.m_midiInput = obj["MidiInput"].toBool();

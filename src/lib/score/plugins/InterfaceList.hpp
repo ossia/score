@@ -164,6 +164,8 @@ public:
    * instance a null pointer).
    */
   template <typename Fun, typename... Args>
+    requires std::is_invocable_v<
+        Fun, typename score::InterfaceList<T>::factory_type&, Args...>
   auto make(Fun f, Args&&... args) const noexcept
   {
     using val_t = decltype(*this->begin());

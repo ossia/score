@@ -66,7 +66,7 @@ Process::ProcessModel* closestParentProcessBeforeInterval(const QObject* obj)
 {
   if(auto p = qobject_cast<const Process::ProcessModel*>(obj))
     return const_cast<Process::ProcessModel*>(p);
-  else if(auto p = qobject_cast<const Scenario::IntervalModel*>(obj))
+  else if(qobject_cast<const Scenario::IntervalModel*>(obj))
     return nullptr;
   else if(auto parent = obj->parent())
     return closestParentProcessBeforeInterval(parent);

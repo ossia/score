@@ -406,7 +406,6 @@ public:
       std::shared_ptr<safe_node<Node>>& ptr)
   {
     safe_node<Node>& node = *ptr;
-    avnd::effect_container<Node>& eff = node.impl;
 
     using soundfile_inputs_type = avnd::soundfile_input_introspection<Node>;
 

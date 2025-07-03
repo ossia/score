@@ -76,7 +76,7 @@ int LibavEncoder::start()
   // Dump all streams
   {
     int k = 0;
-    for(auto& stream : streams)
+    for([[maybe_unused]] auto& stream : streams)
     {
       av_dump_format(m_formatContext, k++, filename.c_str(), true);
     }

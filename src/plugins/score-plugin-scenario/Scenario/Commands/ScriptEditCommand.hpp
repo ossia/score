@@ -4,8 +4,6 @@
 #include <Process/Script/ScriptEditor.hpp>
 #include <Process/Script/ScriptProcess.hpp>
 
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-
 #include <Dataflow/Commands/CableHelpers.hpp>
 
 #include <ossia/detail/algorithms.hpp>
@@ -28,9 +26,11 @@ public:
     m_oldCables = Dataflow::saveCables({const_cast<Process_T*>(&model)}, ctx);
 
     for(auto& port : model.inlets())
-      m_oldInlets.emplace_back(SavedPort{port->name(), port->type(), port->saveData()});
+      m_oldInlets.emplace_back(
+          Dataflow::SavedPort{port->name(), port->type(), port->saveData()});
     for(auto& port : model.outlets())
-      m_oldOutlets.emplace_back(SavedPort{port->name(), port->type(), port->saveData()});
+      m_oldOutlets.emplace_back(
+          Dataflow::SavedPort{port->name(), port->type(), port->saveData()});
   }
 
 private:
@@ -111,22 +111,3 @@ private:
   Dataflow::SerializedCables m_oldCables;
 };
 }
-
-template <>
-struct is_custom_serialized<Scenario::SavedPort> : std::true_type
-{
-};
-
-template <>
-struct TSerializer<DataStream, Scenario::SavedPort>
-{
-  static void readFrom(DataStream::Serializer& s, const Scenario::SavedPort& tv)
-  {
-    s.stream() << tv.name << tv.type << tv.data;
-  }
-
-  static void writeTo(DataStream::Deserializer& s, Scenario::SavedPort& tv)
-  {
-    s.stream() >> tv.name >> tv.type >> tv.data;
-  }
-};

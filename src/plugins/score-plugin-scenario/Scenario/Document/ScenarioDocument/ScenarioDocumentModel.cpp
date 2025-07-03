@@ -99,7 +99,7 @@ void ScenarioDocumentModel::finishLoading()
     {
       if(auto it = cables.find(cbl->id()); it != cables.end())
       {
-        Process::Cable& ccbl = *it;
+        // Process::Cable& ccbl = *it;
         // qDebug() << "warning : cable already exists";
         // qDebug() << "Existing: " << ccbl.source().unsafePath().toString()
         //          << ccbl.sink().unsafePath().toString();

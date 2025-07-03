@@ -145,7 +145,7 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
   void loadInputTexture(QRhi& rhi, avnd::cpu_texture auto& cpu_tex, int k)
   {
     auto& buf = m_readbacks[k].data;
-    if(buf.size() != cpu_tex.bytesize())
+    if(buf.size() != (qsizetype)cpu_tex.bytesize())
     {
       cpu_tex.bytes = nullptr;
     }
