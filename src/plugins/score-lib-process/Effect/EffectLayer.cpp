@@ -2,6 +2,7 @@
 
 #include <Process/ApplicationPlugin.hpp>
 #include <Process/Commands/LoadPreset.hpp>
+#include <Process/Commands/LoadPresetCommandFactory.hpp>
 #include <Process/Dataflow/CableCopy.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/Process.hpp>
@@ -154,121 +155,145 @@ score::QGraphicsDraggablePixmap* makePresetButton(
     QGraphicsItem* root)
 {
   auto& pixmaps = Process::Pixmaps::instance();
-  {
-    auto ui_btn = new score::QGraphicsDraggablePixmap{
-        pixmaps.preset_on, pixmaps.preset_off, root};
-    ui_btn->setToolTip(
-        QObject::tr("Presets\nDrag to the library to save the current preset. If there "
-                    "are existing presets, they will be shown in a menu."));
-    ui_btn->createDrag = [&proc](QMimeData& mime) {
-      QByteArray data;
-      {
-        JSONReader r;
-        r.stream.StartObject();
-        copyProcess(r, proc);
-        r.obj["Path"] = score::IDocument::path(proc);
-        r.obj["View"] = QStringLiteral("Nodal");
-        r.stream.EndObject();
-        data = r.toByteArray();
-      }
+  auto ui_btn
+      = new score::QGraphicsDraggablePixmap{pixmaps.preset_on, pixmaps.preset_off, root};
+  ui_btn->setToolTip(
+      QObject::tr(
+          "Presets\nDrag to the library to save the current preset. If there "
+          "are existing presets, they will be shown in a menu."));
+  ui_btn->createDrag = [&proc](QMimeData& mime) {
+    QByteArray data;
+    {
+      JSONReader r;
+      r.stream.StartObject();
+      copyProcess(r, proc);
+      r.obj["Path"] = score::IDocument::path(proc);
+      r.obj["View"] = QStringLiteral("Nodal");
+      r.stream.EndObject();
+      data = r.toByteArray();
+    }
 
-      mime.setData(score::mime::layerdata(), data);
-      mime.setData(score::mime::processpreset(), proc.savePreset().toJson());
-    };
+    mime.setData(score::mime::layerdata(), data);
+    mime.setData(score::mime::processpreset(), proc.savePreset().toJson());
+  };
 
-    ui_btn->click = [&proc, &context](Qt::MouseButton btn, QPointF screenPos) {
-      auto& pplug = context.app.applicationPlugin<Process::ApplicationPlugin>();
-      const auto& presets = pplug.presets;
+  ui_btn->click = [&proc, &context](Qt::MouseButton btn, QPointF screenPos) {
+    auto& pplug = context.app.applicationPlugin<Process::ApplicationPlugin>();
+    const auto& presets = pplug.presets;
 
-      switch(btn)
-      {
-        case Qt::LeftButton: {
-          // Preset menu
-          auto menu = new QMenu;
-          menu->addAction(
-              "Save current preset", menu, [&proc, &pplug] { pplug.savePreset(&proc); });
+    switch(btn)
+    {
+      default:
+        break;
+      case Qt::LeftButton: {
+        // Preset menu
+        auto menu = new QMenu;
+        menu->addAction(
+            "Save current preset", menu, [&proc, &pplug] { pplug.savePreset(&proc); });
 
-          std::vector<const Process::Preset*> goodPresets;
-          const auto& k = proc.concreteKey();
-          const auto& e = proc.effect();
-          for(auto& preset : presets)
-          {
-            if(preset.key.key == k && preset.key.effect == e)
-              goodPresets.push_back(&preset);
-          }
+        std::vector<const Process::Preset*> goodPresets;
+        const auto& k = proc.concreteKey();
+        const auto& e = proc.effect();
+        for(auto& preset : presets)
+        {
+          if(preset.key.key == k && preset.key.effect == e)
+            goodPresets.push_back(&preset);
+        }
 
-          menu->addSeparator();
+        menu->addSeparator();
 
-          for(auto p : goodPresets)
-          {
-            menu->addAction(p->name, menu, [p, &proc, &context] {
+        for(auto p : goodPresets)
+        {
+          menu->addAction(p->name, menu, [p, &proc, &context] {
+            auto& load_preset_ifaces
+                = context.app.interfaces<LoadPresetCommandFactoryList>();
+
+            auto cmd = load_preset_ifaces.make(
+                &LoadPresetCommandFactory::make, proc, *p, context);
+            if(cmd)
+            {
               CommandDispatcher<> c{context.commandStack};
-              c.submit(new LoadPreset{proc, *p});
+              c.submit(cmd);
+            }
+          });
+        }
+
+        if(auto proc_builtins = proc.builtinPresets(); !proc_builtins.empty())
+        {
+          if(!goodPresets.empty())
+            menu->addSeparator();
+
+          for(auto& p : proc_builtins)
+          {
+            // FIXME try to understand why just p.name does not work here
+            menu->addAction("" + p.name, menu, [p = std::move(p), &proc, &context] {
+              auto& load_preset_ifaces
+                  = context.app.interfaces<LoadPresetCommandFactoryList>();
+
+              auto cmd = load_preset_ifaces.make(
+                  &LoadPresetCommandFactory::make, proc, std::move(p), context);
+              if(cmd)
+              {
+                CommandDispatcher<> c{context.commandStack};
+                c.submit(cmd);
+              }
             });
           }
-
-          if(auto proc_builtins = proc.builtinPresets(); !proc_builtins.empty())
-          {
-            if(!goodPresets.empty())
-              menu->addSeparator();
-
-            for(auto& p : proc_builtins)
-            {
-              // FIXME try to understand why just p.name does not work here
-              menu->addAction("" + p.name, menu, [p = std::move(p), &proc, &context] {
-                CommandDispatcher<> c{context.commandStack};
-                c.submit(new LoadPreset{proc, std::move(p)});
-              });
-            }
-          }
-
-          menu->exec(screenPos.toPoint());
-          menu->deleteLater();
-          break;
         }
 
-        case Qt::ForwardButton:
-        case Qt::BackButton: {
-          std::vector<const Process::Preset*> goodPresets;
-          const auto& k = proc.concreteKey();
-          const auto& e = proc.effect();
-          for(auto& preset : presets)
-            if(preset.key.key == k && preset.key.effect == e)
-              goodPresets.push_back(&preset);
-          auto bps = proc.builtinPresets();
-          for(auto& bp : bps)
-            goodPresets.push_back(&bp);
-
-          if(goodPresets.size() < 2)
-            return;
-          int i = 0;
-          for(auto& fx : goodPresets)
-          {
-            if(fx->key.effect == e)
-              break;
-            i++;
-          }
-
-          if(btn == Qt::ForwardButton)
-            i++;
-          else
-            i--;
-
-          if(i >= std::ssize(goodPresets))
-            i = 0;
-          else if(i < 0)
-            i = std::ssize(goodPresets) - 1;
-
-          CommandDispatcher<> c{context.commandStack};
-          c.submit(new LoadPreset{proc, *goodPresets[i]});
-          break;
-        }
+        menu->exec(screenPos.toPoint());
+        menu->deleteLater();
+        break;
       }
-    };
 
-    return ui_btn;
-  }
-  return nullptr;
+      case Qt::ForwardButton:
+      case Qt::BackButton: {
+        std::vector<const Process::Preset*> goodPresets;
+        const auto& k = proc.concreteKey();
+        const auto& e = proc.effect();
+        for(auto& preset : presets)
+          if(preset.key.key == k && preset.key.effect == e)
+            goodPresets.push_back(&preset);
+        auto bps = proc.builtinPresets();
+        for(auto& bp : bps)
+          goodPresets.push_back(&bp);
+
+        if(goodPresets.size() < 2)
+          return;
+        int i = 0;
+        for(auto& fx : goodPresets)
+        {
+          if(fx->key.effect == e)
+            break;
+          i++;
+        }
+
+        if(btn == Qt::ForwardButton)
+          i++;
+        else
+          i--;
+
+        if(i >= std::ssize(goodPresets))
+          i = 0;
+        else if(i < 0)
+          i = std::ssize(goodPresets) - 1;
+
+        auto& load_preset_ifaces
+            = context.app.interfaces<LoadPresetCommandFactoryList>();
+
+        auto cmd = load_preset_ifaces.make(
+            &LoadPresetCommandFactory::make, proc, *goodPresets[i], context);
+        if(cmd)
+        {
+          CommandDispatcher<> c{context.commandStack};
+          c.submit(cmd);
+        }
+        break;
+      }
+    }
+  };
+
+  return ui_btn;
 }
 
 void copyProcess(JSONReader& r, const Process::ProcessModel& proc)

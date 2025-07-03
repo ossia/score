@@ -1,4 +1,5 @@
 #include <Process/ApplicationPlugin.hpp>
+#include <Process/Commands/LoadPresetCommandFactory.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/DocumentPlugin.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
@@ -52,6 +53,7 @@ Dataflow::CableItem* DataflowManager::createCable(
   return nullptr;
 }
 }
+
 score_lib_process::score_lib_process()
 {
   qRegisterMetaType<TimeVal>();
@@ -73,7 +75,8 @@ score_lib_process::factoryFamilies()
       Process::LayerFactoryList, Process::ProcessFactoryList,
       Process::ProcessDropHandlerList, Process::MagnetismAdjuster,
       Process::OfflineActionList, Execution::ExecutionActionList,
-      LocalTree::ProcessComponentFactoryList, Process::RemoteControlProviderList>();
+      LocalTree::ProcessComponentFactoryList, Process::RemoteControlProviderList,
+      Process::LoadPresetCommandFactoryList>();
 }
 
 std::pair<const CommandGroupKey, CommandGeneratorMap> score_lib_process::make_commands()

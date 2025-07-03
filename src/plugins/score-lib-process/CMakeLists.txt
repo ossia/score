@@ -11,6 +11,7 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/EditPort.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/SetControlValue.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/Properties.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/LoadPresetCommandFactory.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ApplicationPlugin.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ControlMessage.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Instantiations.hpp"
@@ -110,6 +111,7 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/EditPort.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/MoveNodes.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/SetControlValue.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/LoadPresetCommandFactory.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Instantiations.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessModelSerialization.cpp"

@@ -153,7 +153,6 @@ Component::on_gpuScriptChange(const QString& script, Execution::Transaction& com
   std::vector<Execution::ExecutionCommand> controlSetups;
 
   int inlet_idx = 0;
-  int outlet_idx = 0;
   std::size_t control_index = 0;
   {
     const Execution::Context& ctx = system();
