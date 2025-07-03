@@ -55,6 +55,9 @@ enum ProcessFlags : int64_t
   //! The process has an editable widget which must unfocus & unselect other items
   ItemRequiresUniqueFocus = SCORE_FLAG(12),
 
+  //! The process has a variable structure, e.g. its ports can change dynamically
+  DynamicPorts = SCORE_FLAG(13),
+
   SupportsLasting = SupportsTemporal | TimeIndependent,
   ExternalEffect
   = SupportsTemporal | TimeIndependent | RequiresCustomData | ControlSurface,
