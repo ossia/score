@@ -126,7 +126,6 @@ public:
           return;
         if(const auto& w = m_screen->window())
         {
-          auto geom = w->geometry();
           lock->locked = true;
           pos_param->set_value(ossia::vec2f{float(pos.x()), float(pos.y())});
           lock->locked = false;

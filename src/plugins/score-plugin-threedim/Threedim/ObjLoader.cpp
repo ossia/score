@@ -147,7 +147,7 @@ static bool check_file_extension(std::string_view filename, std::string_view exp
   if (filename.size() < expected.size())
     return false;
   auto ext = filename.substr(filename.size() - expected.size(), expected.size());
-  for (int i = 0; i < expected.size(); i++)
+  for(std::size_t i = 0; i < expected.size(); i++)
     if (std::tolower(ext[i]) != std::tolower(expected[i]))
       return false;
   return true;

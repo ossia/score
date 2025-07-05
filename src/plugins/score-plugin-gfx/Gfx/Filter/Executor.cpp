@@ -206,7 +206,7 @@ ProcessExecutorComponent::setup_node(Execution::Transaction& commands)
 
       control_index++;
     }
-    else if(auto ctrl = qobject_cast<Process::AudioInlet*>(ctl))
+    else if([[maybe_unused]] auto ctrl = qobject_cast<Process::AudioInlet*>(ctl))
     {
       inls.push_back(new ossia::audio_inlet);
     }

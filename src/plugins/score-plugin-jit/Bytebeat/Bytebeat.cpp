@@ -84,10 +84,10 @@ BytebeatModel::BytebeatModel(
   this->m_outlets.push_back(audio_out);
   init();
   if(jitProgram.isEmpty())
-    setScript(
+    (void)setScript(
         Process::EffectProcessFactory_T<Jit::BytebeatModel>{}.customConstructionData());
   else
-    setScript(jitProgram);
+    (void)setScript(jitProgram);
 
   metadata().setInstanceName(*this);
 }
@@ -267,7 +267,7 @@ template <>
 void DataStreamWriter::write(Jit::BytebeatModel& eff)
 {
   m_stream >> eff.m_text;
-  eff.reload();
+  (void)eff.reload();
   writePorts(
       *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets,
       eff.m_outlets, &eff);
@@ -284,7 +284,7 @@ template <>
 void JSONWriter::write(Jit::BytebeatModel& eff)
 {
   eff.m_text = obj["Text"].toString();
-  eff.reload();
+  (void)eff.reload();
   writePorts(
       *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets,
       eff.m_outlets, &eff);

@@ -234,9 +234,9 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
   void postprocess_geometry(Field& ctrl)
   {
     using namespace avnd;
-    bool mesh_dirty{};
-    bool tform_dirty{};
-    mesh_dirty = ctrl.dirty_mesh;
+    // bool mesh_dirty{};
+    // bool tform_dirty{};
+    // mesh_dirty = ctrl.dirty_mesh;
 
     if(ctrl.dirty_mesh)
     {

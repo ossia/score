@@ -252,9 +252,6 @@ void ObjectMenuActions::makeGUIElements(score::GUIElements& e)
   auto& actions = e.actions;
   auto& base_menus = m_parent->context.menus.get();
 
-  auto& scenariofocus_cond
-      = m_parent->context.actions
-            .condition<Process::EnableWhenFocusedProcessIs<Scenario::ProcessModel>>();
   auto& scenariomodel_cond
       = m_parent->context.actions.condition<EnableWhenScenarioModelObject>();
   auto& scenarioiface_cond

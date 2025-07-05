@@ -106,11 +106,12 @@ bool NoteEditor::remove(const Selection& s, const score::DocumentContext& ctx)
   if(!s.empty())
   {
     std::vector<Id<Note>> noteIdList;
-    for(auto item : s)
+    for(const auto& item : s)
     {
       if(auto model = qobject_cast<const Midi::Note*>(item.data()))
       {
-        if(auto parent = qobject_cast<const Midi::ProcessModel*>(model->parent()))
+        if([[maybe_unused]] auto parent
+           = qobject_cast<const Midi::ProcessModel*>(model->parent()))
         {
           noteIdList.push_back(model->id());
         }

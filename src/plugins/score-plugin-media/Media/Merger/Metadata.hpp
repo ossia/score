@@ -16,6 +16,6 @@ PROCESS_METADATA(
     {std::vector<Process::PortType>{Process::PortType::Audio}},
     {std::vector<Process::PortType>{Process::PortType::Audio}},
     QUrl("https://ossia.io/score-docs/processes/audio-utilities.html#stereo-merger"),
-    Process::ProcessFlags::SupportsLasting)
+    Process::ProcessFlags::SupportsLasting | Process::ProcessFlags::DynamicPorts)
 
 UNDO_NAME_METADATA(EMPTY_MACRO, Media::Merger::Model, "Audio Merger")

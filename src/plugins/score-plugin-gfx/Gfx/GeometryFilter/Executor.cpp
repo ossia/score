@@ -302,7 +302,7 @@ ProcessExecutorComponent::setup_node(Execution::Transaction& commands)
 
       control_index++;
     }
-    else if(auto ctrl = qobject_cast<Process::AudioInlet*>(ctl))
+    else if([[maybe_unused]] auto ctrl = qobject_cast<Process::AudioInlet*>(ctl))
     {
       inls.push_back(new ossia::audio_inlet);
     }
@@ -312,7 +312,7 @@ ProcessExecutorComponent::setup_node(Execution::Transaction& commands)
       inls.push_back(tex);
       ctrl->setupExecution(*tex, this);
     }
-    else if(auto ctrl = qobject_cast<Gfx::GeometryInlet*>(ctl))
+    else if([[maybe_unused]] auto ctrl = qobject_cast<Gfx::GeometryInlet*>(ctl))
     {
       inls.push_back(new ossia::geometry_inlet);
     }

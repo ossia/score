@@ -41,10 +41,10 @@ Model::Model(
 {
   init();
   if(jitProgram.isEmpty())
-    setScript(
+    (void)setScript(
         Process::EffectProcessFactory_T<AvndJit::Model>{}.customConstructionData());
   else
-    setScript(jitProgram);
+    (void)setScript(jitProgram);
 }
 
 Model::~Model() { }
@@ -413,7 +413,7 @@ template <>
 void DataStreamWriter::write(AvndJit::Model& eff)
 {
   m_stream >> eff.m_text;
-  eff.reload();
+  (void)eff.reload();
 
   writePorts(
       *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets,
@@ -431,7 +431,7 @@ template <>
 void JSONWriter::write(AvndJit::Model& eff)
 {
   eff.m_text = obj["Text"].toString();
-  eff.reload();
+  (void)eff.reload();
 
   writePorts(
       *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets,

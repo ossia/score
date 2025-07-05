@@ -100,7 +100,7 @@ public:
       {
         for(int i = 0; i < d.info.nativeDataFormatCount; i++)
         {
-          auto fmt = d.info.nativeDataFormats[i];
+          // auto fmt = d.info.nativeDataFormats[i];
           // qDebug() << "Format: " << magic_enum::enum_name(fmt.format) << fmt.channels
           //          << fmt.flags << fmt.sampleRate;
         }
@@ -337,7 +337,7 @@ public:
     {
       lay->addRow(QObject::tr("Capture"), card_list_in);
 
-      auto update_dev_in = [=, &m, &m_disp](const MiniAudioCard& dev) {
+      auto update_dev_in = [this, &m, &m_disp](const MiniAudioCard& dev) {
         if(!compareDeviceId(dev.id, m.getCardIn()))
         {
           m_disp.submitDeferredCommand<Audio::Settings::SetModelCardIn>(
@@ -349,7 +349,7 @@ public:
 
       QObject::connect(
           card_list_in, SignalUtils::QComboBox_currentIndexChanged_int(), &v,
-          [=](int i) {
+          [this, card_list_in, update_dev_in](int i) {
         auto& device = devices[card_list_in->itemData(i).toInt()];
         update_dev_in(device);
       });
@@ -370,7 +370,7 @@ public:
     {
       lay->addRow(QObject::tr("Playback"), card_list_out);
 
-      auto update_dev_out = [=, &m, &m_disp](const MiniAudioCard& dev) {
+      auto update_dev_out = [this, &m, &m_disp](const MiniAudioCard& dev) {
         if(!compareDeviceId(dev.id, m.getCardOut()))
         {
           m_disp.submitDeferredCommand<Audio::Settings::SetModelCardOut>(
@@ -382,7 +382,7 @@ public:
 
       QObject::connect(
           card_list_out, SignalUtils::QComboBox_currentIndexChanged_int(), &v,
-          [=](int i) {
+          [this, card_list_out, update_dev_out](int i) {
         auto& device = devices[card_list_out->itemData(i).toInt()];
         update_dev_out(device);
       });
@@ -403,7 +403,7 @@ public:
     addBufferSizeWidget(*w, m, v);
     addSampleRateWidget(*w, m, v);
 
-    con(m, &Model::changed, w, [=, &m] {
+    con(m, &Model::changed, w, [this, card_list_in, card_list_out, &m] {
       setCard(card_list_in, ma_device_type_capture, m.getCardIn());
       setCard(card_list_out, ma_device_type_playback, m.getCardOut());
     });

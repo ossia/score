@@ -4,9 +4,10 @@
 
 #include "LayerView.hpp"
 
-#include <Process/Commands/LoadPreset.hpp>
+#include <Process/Commands/LoadPresetCommandFactory.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/Preset.hpp>
+#include <Process/Process.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
@@ -51,13 +52,19 @@ void LayerPresenter::handlePresetDrop(const QPointF&, const QMimeData& mime)
 {
   auto data = mime.data(score::mime::processpreset());
   auto& procs = m_context.context.app.interfaces<Process::ProcessFactoryList>();
+  auto& load_preset_ifaces
+      = this->m_context.context.app.interfaces<LoadPresetCommandFactoryList>();
+  if(load_preset_ifaces.empty())
+    return;
   if(auto preset = Process::Preset::fromJson(procs, data))
   {
     // TODO effect
     if(preset->key.key == m_process.concreteKey())
     {
-      CommandDispatcher<>{m_context.context.commandStack}.submit<Process::LoadPreset>(
-          m_process, *preset);
+      auto cmd = load_preset_ifaces.make(
+          &LoadPresetCommandFactory::make, m_process, *preset, m_context.context);
+      if(cmd)
+        CommandDispatcher<>{m_context.context.commandStack}.submit(cmd);
     }
   }
 }

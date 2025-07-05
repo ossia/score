@@ -164,7 +164,6 @@ void BitfocusProtocolSettingsWidget::updateFields()
     }
     else if(field.type == "number")
     {
-      bool ok = false;
       auto tmin = field.min.typeId();
       auto tmax = field.max.typeId();
       if((tmin == QMetaType::LongLong && tmax == QMetaType::LongLong))
@@ -182,7 +181,6 @@ void BitfocusProtocolSettingsWidget::updateFields()
         }, .setValue = [widg](ossia::value v) {
           widg->setValue(ossia::convert<float>(v));
         }};
-        ok = true;
       }
       else if(tmin == QMetaType::Double && tmax == QMetaType::Double)
       {
@@ -196,7 +194,6 @@ void BitfocusProtocolSettingsWidget::updateFields()
         }, .setValue = [widg](ossia::value v) {
           widg->setValue(ossia::convert<float>(v));
         }};
-        ok = true;
       }
       else if(!field.regex.isEmpty())
       {

@@ -556,34 +556,6 @@ void Model::reload()
 }
 }
 
-static const void*
-get_port_value(const char* port_symbol, void* user_data, uint32_t* size, uint32_t* type)
-{
-  return nullptr;
-  /*
-  TestContext* ctx = (TestContext*)user_data;
-
-  if (!strcmp(port_symbol, "input")) {
-    *size = sizeof(float);
-    *type = ctx->atom_Float;
-    return &ctx->in;
-  } else if (!strcmp(port_symbol, "output")) {
-    *size = sizeof(float);
-    *type = ctx->atom_Float;
-    return &ctx->out;
-  } else if (!strcmp(port_symbol, "control")) {
-    *size = sizeof(float);
-    *type = ctx->atom_Float;
-    return &ctx->control;
-  } else {
-    fprintf(
-      stderr, "error: get_port_value for nonexistent port `%s'\n", port_symbol);
-    *size = *type = 0;
-    return NULL;
-  }
-  */
-}
-
 #include <Process/Dataflow/PortFactory.hpp>
 
 static LilvState* state_from_instance(const LV2::Model& ctx)

@@ -100,6 +100,7 @@ void CentralNodalDisplay::on_addProcessFromLibrary(const Library::ProcessData& d
   }
   // Else try to see if a port is selected.
   {
+    // FIXME does not work if we select the port by clicking on its name
     auto sel = filterSelectionByType<Process::Port>(
         parent.context().selectionStack.currentSelection());
     if(sel.size() == 1)

@@ -1,6 +1,12 @@
 
 #include "lv2_atom_helpers.hpp"
 
+#if defined(__clang__) && defined(__has_warning)
+#pragma clang diagnostic push
+#if __has_warning("-Wdeprecated-declarations")
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#endif
+#endif
 #include <LV2/Context.hpp>
 
 #include <score/tools/Debug.hpp>
@@ -437,3 +443,7 @@ LV2Data::LV2Data(HostContext& h, EffectContext& ctx)
   }
 }
 }
+
+#if defined(__clang__) && defined(__has_warning)
+#pragma clang diagnostic pop
+#endif

@@ -162,7 +162,6 @@ void View::drawOptimized(QPainter* painter)
   double x0 = mapFromScene(view->mapToScene(0, 0)).x();
   double xf = mapFromScene(view->mapToScene(view->width(), 0)).x();
   auto& pts = m_model->points();
-  auto& style = m_presenter->m_style;
 
   auto sz = m_presenter->m_localRect.size();
   int prev_x = INT_MIN;

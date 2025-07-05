@@ -18,5 +18,6 @@ PROCESS_METADATA(
     {},                                                        // Inputs
     {},                                                        // Outputs
     QUrl("https://isf.video"),
-    Process::ProcessFlags::SupportsAll | Process::ProcessFlags::ControlSurface // Flags
+    Process::ProcessFlags::SupportsAll | Process::ProcessFlags::ControlSurface
+        | Process::ProcessFlags::DynamicPorts // Flags
 )

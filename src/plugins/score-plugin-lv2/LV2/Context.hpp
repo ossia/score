@@ -1,4 +1,11 @@
 #pragma once
+#if defined(__clang__) && defined(__has_warning)
+#pragma clang diagnostic push
+#if __has_warning("-Wdeprecated-declarations")
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#endif
+#endif
+
 #include <lv2/lv2plug.in/ns/ext/atom/atom.h>
 #include <lv2/lv2plug.in/ns/ext/atom/forge.h>
 #include <lv2/lv2plug.in/ns/ext/buf-size/buf-size.h>
@@ -232,3 +239,7 @@ struct Message
 
 QString get_lv2_plugin_name(const Lilv::Plugin& node);
 }
+
+#if defined(__clang__) && defined(__has_warning)
+#pragma clang diagnostic pop
+#endif

@@ -240,7 +240,7 @@ void View::dropEvent(QGraphicsSceneDragDropEvent* event)
       for(const auto& mess : msgs)
       {
         auto& u = mess.address.qualifiers.get().unit;
-        if(auto col = u.v.target<ossia::color_u>())
+        if(u.v.target<ossia::color_u>())
         {
           m = &mess;
           res = ossia::make_value(mess.value, u);

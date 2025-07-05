@@ -6,10 +6,8 @@
 #include <ossia/detail/hash_map.hpp>
 namespace score
 {
-template <
-    class Key, class T, class Hash = std::hash<Key>, class KeyEqual = std::equal_to<Key>,
-    class AllocatorOrContainer = std::allocator<std::pair<Key, T>>>
-using hash_map = ossia::hash_map<Key, T, Hash, KeyEqual, AllocatorOrContainer>;
+template <class Key, class T>
+using hash_map = ossia::hash_map<Key, T>;
 
 template <typename Map>
 void optimize_hash_map(Map& map)

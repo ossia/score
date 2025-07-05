@@ -56,7 +56,7 @@ void main() {
 }
 )_");
 
-  setProgram({QByteArray{}, defaultFrag});
+  (void)setProgram({QByteArray{}, defaultFrag});
 }
 
 Model::Model(
@@ -67,7 +67,7 @@ Model::Model(
   metadata().setInstanceName(*this);
   m_outlets.push_back(new TextureOutlet{Id<Process::Port>(1), this});
 
-  setProgram(programFromFragmentShaderPath(init, {}));
+  (void)setProgram(programFromFragmentShaderPath(init, {}));
 }
 
 Model::~Model() { }
@@ -118,7 +118,7 @@ Process::ScriptChangeResult Model::setProgram(const ShaderSource& f)
     m_processedProgram = *processed;
 
     setupIsf(m_processedProgram.descriptor, previous_values);
-    return {.valid = true, .inlets = std::move(inls)};
+    return {.valid = true, .inlets = std::move(inls), .outlets = {}};
   }
   return {};
 }
@@ -133,7 +133,7 @@ void Model::loadPreset(const Process::Preset& preset)
     return;
   auto frag = obj["Fragment"].GetString();
   auto vert = obj["Vertex"].GetString();
-  this->setProgram(ShaderSource{vert, frag});
+  (void)this->setProgram(ShaderSource{vert, frag});
 
   auto controls = obj["Controls"].GetArray();
   Process::loadFixedControls(controls, *this);
@@ -413,7 +413,7 @@ void DataStreamWriter::write(Gfx::Filter::Model& proc)
 {
   Gfx::ShaderSource s;
   m_stream >> s;
-  proc.setProgram(s);
+  (void)proc.setProgram(s);
 
   writePorts(
       *this, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,
@@ -437,7 +437,7 @@ void JSONWriter::write(Gfx::Filter::Model& proc)
   Gfx::ShaderSource s;
   s.vertex = obj["Vertex"].toString();
   s.fragment = obj["Fragment"].toString();
-  proc.setProgram(s);
+  (void)proc.setProgram(s);
 
   writePorts(
       *this, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,

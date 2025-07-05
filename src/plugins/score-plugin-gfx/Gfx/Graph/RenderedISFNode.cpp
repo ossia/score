@@ -338,7 +338,7 @@ std::pair<Pass, Pass> RenderedISFNode::createPass(
 
   // If necessary create the alternative pass
   {
-    if(auto rt = ossia::get_if<TextureRenderTarget>(&target))
+    if([[maybe_unused]] auto rt = ossia::get_if<TextureRenderTarget>(&target))
     {
       // Non-persistent last pass
       // assert (!persistent);

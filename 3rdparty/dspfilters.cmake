@@ -27,6 +27,6 @@ endif()
 
 target_include_directories(
   dspfilters
-  PUBLIC SYSTEM
+  SYSTEM PUBLIC
     "${CMAKE_CURRENT_LIST_DIR}/DSPFilters/DSPFilters/include"
 )

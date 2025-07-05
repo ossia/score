@@ -212,14 +212,20 @@ static const std::map<QString, LibavOutputSettings> libav_preset_list{
          .width = 1280,
          .height = 720,
          .rate = 30,
+         .audio_encoder_short = {},
+         .audio_encoder_long = {},
+         .audio_converted_smpfmt = {},
          .video_encoder_short = "mjpeg",
+         .video_encoder_long = {},
          .video_render_pixfmt = "rgba",
          .video_converted_pixfmt = "yuv420p",
          .muxer = "mjpeg",
+         .muxer_long = {},
          .options
          = {{"fflags", "+nobuffer+genpts"},
             {"flags", "+low_delay"},
-            {"flush_packets", "1"}}}},
+            {"flush_packets", "1"}},
+         .threads = 0}},
 
     {"MKV H.264 recording",
      LibavOutputSettings{
@@ -227,25 +233,38 @@ static const std::map<QString, LibavOutputSettings> libav_preset_list{
          .width = 1280,
          .height = 720,
          .rate = 30,
+         .audio_encoder_short = {},
+         .audio_encoder_long = {},
+         .audio_converted_smpfmt = {},
          .video_encoder_short = "libx265",
+         .video_encoder_long = {},
          .video_render_pixfmt = "rgba",
          .video_converted_pixfmt = "yuv420p",
-         .muxer = "matroska"}},
+         .muxer = "matroska",
+         .muxer_long = {},
+         .options = {},
+         .threads = 0}},
 
     // clang-format off
     // Read with:
     // ffplay -an -fflags nobuffer -flags low_delay -probesize 32 -analyzeduration 1 -strict experimental -framedrop -vf setpts=0  'srt://127.0.0.1:40052?mode=caller
     {"SRT streaming",
      LibavOutputSettings{
-                             .path = "srt://:40052?mode=listener&latency=2000&transtype=live&recv_buffer_size=0",
-                             .width = 1280,
-                             .height = 720,
-                             .rate = 30,
+                         .path = "srt://:40052?mode=listener&latency=2000&transtype=live&recv_buffer_size=0",
+                         .width = 1280,
+                         .height = 720,
+                         .rate = 30,
+                         .audio_encoder_short = {},
+                         .audio_encoder_long = {},
+                         .audio_converted_smpfmt = {},
                          .video_encoder_short = "libx264",
+                         .video_encoder_long = {},
                          .video_render_pixfmt = "rgba",
                          .video_converted_pixfmt = "yuv420p",
                          .muxer = "mpegts",
-                         .options = { {"preset", "ultrafast"}, {"tune", "zerolatency"}, {"flush_packets", "1"}}}},
+                         .muxer_long = {},
+                         .options = { {"preset", "ultrafast"}, {"tune", "zerolatency"}, {"flush_packets", "1"}},
+                         .threads = 0}},
     // clang-format on
 
     {"WAV recording",
@@ -256,9 +275,14 @@ static const std::map<QString, LibavOutputSettings> libav_preset_list{
          .rate = 30,
          .audio_encoder_short = "pcm_s16le",
          .audio_encoder_long = "",
+         .audio_converted_smpfmt = {},
          .video_encoder_short = "",
          .video_encoder_long = "",
+         .video_render_pixfmt = "",
+         .video_converted_pixfmt = "",
          .muxer = "wav",
+         .muxer_long = {},
+         .options = {},
          .threads = 0,
      }}
 
@@ -572,7 +596,19 @@ Device::DeviceSettings LibavOutputSettingsWidget::getSettings() const
       .path = base_s.path,
       .width = base_s.width,
       .height = base_s.height,
-      .rate = base_s.rate};
+      .rate = base_s.rate,
+      .audio_encoder_short = {},
+      .audio_encoder_long = {},
+      .audio_converted_smpfmt = {},
+      .video_encoder_short = {},
+      .video_encoder_long = {},
+      .video_render_pixfmt = {},
+      .video_converted_pixfmt = {},
+      .muxer = {},
+      .muxer_long = {},
+      .options = {},
+      .threads = {},
+  };
 
   auto muxer = (AVOutputFormat*)this->m_muxer->currentData().value<void*>();
   auto vcodec = (AVCodec*)this->m_vencoder->currentData().value<void*>();

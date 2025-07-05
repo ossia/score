@@ -1089,7 +1089,7 @@ displayNameForPort(const Process::Port& outlet, const score::DocumentContext& do
         {
           name += " (" + process->prettyName() + ")";
         }
-        else if(auto port = qobject_cast<Process::Port*>(inlet_parent))
+        else if(qobject_cast<Process::Port*>(inlet_parent))
         {
           if(auto process = qobject_cast<Process::ProcessModel*>(inlet_parent->parent()))
           {

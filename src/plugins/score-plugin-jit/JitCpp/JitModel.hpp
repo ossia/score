@@ -24,7 +24,7 @@ PROCESS_METADATA(
     Process::ProcessCategory::Script, "Script", "JIT compilation process", "ossia score",
     QStringList{}, {}, {},
     QUrl("https://ossia.io/score-docs/processes/cpp_jit.html#c-jit"),
-    Process::ProcessFlags::SupportsAll)
+    Process::ProcessFlags::SupportsAll | Process::ProcessFlags::DynamicPorts)
 namespace Jit
 {
 struct Driver;

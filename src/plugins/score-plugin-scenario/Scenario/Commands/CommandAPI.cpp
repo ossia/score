@@ -1,5 +1,6 @@
 #include <Process/Commands/EditPort.hpp>
 #include <Process/Commands/LoadPreset.hpp>
+#include <Process/Commands/LoadPresetCommandFactory.hpp>
 
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 
@@ -229,7 +230,17 @@ Process::ProcessModel* Macro::loadProcessFromPreset(
   if(auto process
      = this->createProcessInNewSlot(interval, preset.key.key, preset.key.effect, pos))
   {
-    m.submit(new Process::LoadPreset{*process, preset});
+    {
+      auto& load_preset_ifaces
+          = interval.context().app.interfaces<Process::LoadPresetCommandFactoryList>();
+
+      auto cmd = load_preset_ifaces.make(
+          &Process::LoadPresetCommandFactory::make, *process, preset,
+          interval.context());
+      if(cmd)
+        m.submit(cmd);
+    }
+
     m.submit(new ChangeElementName{*process, preset.name});
     return process;
   }

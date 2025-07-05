@@ -144,6 +144,7 @@ check_cxx_compiler_flag(-Wno-dtor-name has_w_dtor_name_flag)
 check_cxx_compiler_flag(-Wno-null-conversion has_w_null_conversion_flag)
 check_cxx_compiler_flag(-Wno-unneeded-internal-declaration has_w_unneeded_internal_declaration_flag)
 check_cxx_compiler_flag(-Wno-error=missing-exception-spec has_w_missing_exception_spec)
+check_cxx_compiler_flag(-Wno-sign-compare has_w_sign_compare)
 
 if(has_w_gnu_anonymous_struct_flag)
   add_compile_options(-Wno-gnu-anonymous-struct)
@@ -163,6 +164,10 @@ endif()
 
 if(has_w_missing_exception_spec)
   add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-Wno-error=missing-exception-spec>)
+endif()
+
+if(has_w_sign_compare)
+  add_compile_options(-Wno-sign-compare)
 endif()
 
 check_cxx_compiler_flag(-std=c++26 has_std_26_flag)

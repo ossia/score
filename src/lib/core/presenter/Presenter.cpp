@@ -109,7 +109,7 @@ void Presenter::setupGUI()
   // 2. Show the toolbars
   // Put them in a matrix corresponding to their organization
   {
-    std::unordered_map<Qt::ToolBarArea, std::vector<Toolbar>> toolbars;
+    ossia::hash_map<Qt::ToolBarArea, std::vector<Toolbar>> toolbars;
 
     for(auto& tb : m_toolbars.get())
     {

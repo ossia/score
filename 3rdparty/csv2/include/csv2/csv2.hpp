@@ -396,7 +396,7 @@ public:
   {
     const auto& h = header();
     int n = 0;
-    for(const auto& e : h)
+    for([[maybe_unused]] const auto& e : h)
     {
       n++;
     }

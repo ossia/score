@@ -95,7 +95,6 @@ Durations computeDurations(ossia::time_signature sig, double zoom)
   const double res = whole / (30. * zoom);
   double pow2
       = /*std::floor*/ (std::pow(2, std::floor(std::clamp(log2(res), -16., 16.))));
-  double pow2_floor = std::floor(std::pow(2, std::clamp(log2(res), -16., 16.)));
 
   ossia::bar_time b{};
   int64_t main_div_source = whole;

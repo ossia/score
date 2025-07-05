@@ -156,7 +156,7 @@ void IntervalActions::addProcessInInterval(
   using namespace Scenario::Command;
 
   Macro m{new AddProcessInNewSlot, m_parent->currentDocument()->context()};
-  if(auto p = m.createProcessInNewSlot(**selectedIntervals.begin(), processName, data))
+  if(m.createProcessInNewSlot(**selectedIntervals.begin(), processName, data))
   {
     m.commit();
   }

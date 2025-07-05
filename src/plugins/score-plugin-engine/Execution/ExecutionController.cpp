@@ -621,7 +621,8 @@ void ExecutionController::stop_clock()
     auto clock = std::move(m_clock);
     m_clock.reset();
     if(auto scenar = currentScenarioModel())
-      if(auto exec_plug = scenar->context().findPlugin<Execution::DocumentPlugin>())
+      if(auto exec_plug = scenar->context().findPlugin<Execution::DocumentPlugin>();
+         bool(exec_plug))
       {
         try
         {

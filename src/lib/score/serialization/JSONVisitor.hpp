@@ -711,7 +711,6 @@ struct ArraySerializer
       typename... Args>
   static void writeTo(JSONObject::Deserializer& s, T<Arg, Arg2, Args...>& vec)
   {
-    using type = T<Arg, Arg2, Args...>;
     using arg_type = std::remove_cvref_t<Arg>;
     const auto& array = s.base.GetArray();
 

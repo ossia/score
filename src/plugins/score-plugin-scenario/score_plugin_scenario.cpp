@@ -10,6 +10,7 @@
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Application/ScenarioValidity.hpp>
 #include <Scenario/Commands/Interval/ResizeInterval.hpp>
+#include <Scenario/Commands/LoadPresetCommand.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveEventClassicFactory.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveEventList.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
@@ -244,6 +245,7 @@ std::vector<score::InterfaceBase*> score_plugin_scenario::factories(
          ScenarioDisplayedElementsToolPaletteFactory>,
       FW<TriggerCommandFactory, ScenarioTriggerCommandFactory,
          BaseScenarioTriggerCommandFactory>,
+      FW<Process::LoadPresetCommandFactory, Scenario::Command::LoadPresetCommandFactory>,
       FW<DisplayedElementsProvider, DefaultDisplayedElementsProvider,
          ScenarioDisplayedElementsProvider, BaseScenarioDisplayedElementsProvider>,
       FW<score::DocumentDelegateFactory, Scenario::ScenarioDocumentFactory>,

@@ -3,6 +3,9 @@
 #include <Process/Dataflow/CableData.hpp>
 #include <Process/Dataflow/PortType.hpp>
 
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/IsTemplate.hpp>
+
 #include <ossia/detail/json.hpp>
 
 #include <score_plugin_scenario_export.h>
@@ -85,3 +88,22 @@ void reloadPortsInNewProcess(
     const std::vector<SavedPort>& m_oldInlets,
     const std::vector<SavedPort>& m_oldOutlets, Process::ProcessModel& cmt);
 }
+
+template <>
+struct is_custom_serialized<Dataflow::SavedPort> : std::true_type
+{
+};
+
+template <>
+struct TSerializer<DataStream, Dataflow::SavedPort>
+{
+  static void readFrom(DataStream::Serializer& s, const Dataflow::SavedPort& tv)
+  {
+    s.stream() << tv.name << tv.type << tv.data;
+  }
+
+  static void writeTo(DataStream::Deserializer& s, Dataflow::SavedPort& tv)
+  {
+    s.stream() >> tv.name >> tv.type >> tv.data;
+  }
+};

@@ -95,7 +95,7 @@ if(OSSIA_ENABLE_SDL)
 endif()
 
 if(LINUX OR BSD OR APPLE)
-  target_include_directories(${PROJECT_NAME} PRIVATE "${OSSIA_3RDPARTY_FOLDER}/miniaudio")
+  target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE "${OSSIA_3RDPARTY_FOLDER}/miniaudio")
   if(APPLE)
     target_link_libraries(${PROJECT_NAME} PRIVATE "-framework AudioUnit" "$<BUILD_INTERFACE:kfr>")
   endif()
