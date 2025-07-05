@@ -54,7 +54,7 @@ struct LoadedPluginVersions
 }
 
 using LocalPluginVersionsMap
-    = std::unordered_map<UuidKey<score::Plugin>, score::Plugin_QtInterface*>;
+    = ossia::hash_map<UuidKey<score::Plugin>, score::Plugin_QtInterface*>;
 namespace std
 {
 template <>
