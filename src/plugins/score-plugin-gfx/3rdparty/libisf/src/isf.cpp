@@ -444,8 +444,8 @@ static const ossia::string_map<root_fun>& root_parse{[] {
               }
             }});
 
-  static const std::unordered_map<std::string, input_fun>& input_parse{[] {
-    static std::unordered_map<std::string, input_fun> i;
+  static const ossia::hash_map<std::string, input_fun>& input_parse{[] {
+    static ossia::hash_map<std::string, input_fun> i;
     i.insert({"float", [](const auto& s) { return parse<float_input>(s); }});
     i.insert({"long", [](const auto& s) { return parse<long_input>(s); }});
     i.insert({"bool", [](const auto& s) { return parse<bool_input>(s); }});

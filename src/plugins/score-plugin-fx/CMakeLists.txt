@@ -64,7 +64,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 if(WIN32 AND NOT MSVC AND NOT SCORE_PCH)
-  target_compile_options(score_plugin_fx PRIVATE -Ofast -fno-finite-math-only -Wa,-mbig-obj)
+  target_compile_options(score_plugin_fx PRIVATE -O3 -ffast-math -fno-finite-math-only -Wa,-mbig-obj)
 endif()
 
 if(0)#BUILD_TESTING AND NOT SCORE_DYNAMIC_PLUGINS)

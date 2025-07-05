@@ -93,11 +93,11 @@ private:
   void reprocess();
   const score::DocumentContext* doc{};
 
-  std::unordered_map<
+  ossia::hash_map<
       Device::ProtocolFactory*,
       std::vector<std::tuple<QString, QString, Device::DeviceSettings>>>
       m_known_devices;
-  std::unordered_map<Device::ProtocolFactory*, Device::DeviceEnumerators>
+  ossia::hash_map<Device::ProtocolFactory*, Device::DeviceEnumerators>
       m_current_enums;
 
   std::vector<DeviceIdentifier*> m_raw_list;
