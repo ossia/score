@@ -681,6 +681,27 @@ XYSpinboxes::XYSpinboxes(
   setDomain(ossia::make_domain(min, max));
 }
 
+XYSpinboxes::XYSpinboxes(DataStream::Deserializer& vis, QObject* parent)
+    : ControlInlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+XYSpinboxes::XYSpinboxes(JSONObject::Deserializer& vis, QObject* parent)
+    : ControlInlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+XYSpinboxes::XYSpinboxes(DataStream::Deserializer&& vis, QObject* parent)
+    : ControlInlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+XYSpinboxes::XYSpinboxes(JSONObject::Deserializer&& vis, QObject* parent)
+    : ControlInlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+
 XYSpinboxes::~XYSpinboxes() { }
 
 void XYSpinboxes::setupExecution(ossia::inlet& inl, QObject* exec_context) const noexcept
@@ -1415,22 +1436,27 @@ SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read(const Process::XYSpinboxes& p)
 {
   read((const Process::ControlInlet&)p);
+  m_stream << p.integral;
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
 DataStreamWriter::write(Process::XYSpinboxes& p)
 {
+  m_stream >> p.integral;
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
 JSONReader::read(const Process::XYSpinboxes& p)
 {
   read((const Process::ControlInlet&)p);
+  obj["Integral"] = p.integral;
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
 JSONWriter::write(Process::XYSpinboxes& p)
 {
+  if(auto val = obj.tryGet("Integral"))
+    p.integral = val->toBool();
 }
 
 template <>
