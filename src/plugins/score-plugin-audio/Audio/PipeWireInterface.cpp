@@ -167,6 +167,11 @@ void PipeWireAudioFactory::setupSettingsWidget(
     }
   }
 
+  lay->addRow(new QLabel{tr(
+      "To configure buffer size and sample rate with pipewire, set the PIPEWIRE_QUANTUM "
+      "environment variable before starting ossia:\n\n"
+      "    #Set buffer size to 256 and sample rate to 48000\n"
+      "    export PIPEWIRE_QUANTUM=256/48000\n")});
   /*
   {
     auto rate = jack_get_sample_rate(clt);
