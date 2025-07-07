@@ -117,14 +117,24 @@ static const QPainterPathStroker& cableStroker()
   }()};
   return cable_stroker;
 }
+
+void CableItem::updateStroke() const
+{
+  if(!m_stroke.isEmpty())
+    return;
+  m_stroke = cableStroker().createStroke(m_path);
+}
+
 QRectF CableItem::boundingRect() const
 {
-  return cableStroker().createStroke(m_path).boundingRect();
+  updateStroke();
+  return m_stroke.boundingRect();
 }
 
 bool CableItem::contains(const QPointF& point) const
 {
-  return cableStroker().createStroke(m_path).contains(point);
+  updateStroke();
+  return m_stroke.contains(point);
   // return m_path.contains(point);
 }
 
@@ -188,6 +198,7 @@ void CableItem::resize()
 {
   prepareGeometryChange();
 
+  m_stroke.clear();
   m_path.clear();
   if(m_p1 && m_p2)
   {

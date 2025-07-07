@@ -62,10 +62,12 @@ private:
   void keyPressEvent(QKeyEvent* event) override;
   void keyReleaseEvent(QKeyEvent* event) override;
 
+  void updateStroke() const;
   const Process::Cable& m_cable;
   const Process::Context& m_context;
   QPointer<PortItem> m_p1, m_p2;
   QPainterPath m_path;
+  mutable QPainterPath m_stroke;
   Process::PortType m_type{};
 };
 }
