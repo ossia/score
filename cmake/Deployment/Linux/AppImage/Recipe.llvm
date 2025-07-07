@@ -93,6 +93,8 @@ cp "$APP_DIR/usr/share/pixmaps/ossia-score.png" "$APP_DIR/"
   rm -f usr/lib/libtinfo* || true
   rm -f usr/lib/libxml* || true
   rm -f usr/lib/libzstd* || true
+  rm -f usr/lib/libgallium* || true
+  rm -f usr/lib/libudev* || true
 
   rm -f usr/lib/libstdc* || true
   rm -f usr/lib/libGL* || true
