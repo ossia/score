@@ -559,9 +559,7 @@ FaustEffectComponent::FaustEffectComponent(
     Faust::FaustEffectModel& proc, const Execution::Context& ctx, QObject* parent)
     : ProcessComponent_T{proc, ctx, "FaustComponent", parent}
 {
-  connect(
-      &proc, &Faust::FaustEffectModel::programChanged, this,
-      [this, &ctx] {
+  connect(&proc, &Faust::FaustEffectModel::programChanged, this, [this] {
     for(auto& c : this->m_controlConnections)
       QObject::disconnect(c);
     m_controlConnections.clear();
@@ -585,8 +583,7 @@ FaustEffectComponent::FaustEffectComponent(
     }
 
     commands.run_all();
-  },
-      Qt::DirectConnection);
+  }, Qt::DirectConnection);
 
   Execution::Transaction commands{ctx};
   reload(commands);
