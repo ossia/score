@@ -1,6 +1,8 @@
 #pragma once
 #include <Process/Preset.hpp>
 
+#include <score/command/Command.hpp>
+#include <score/document/DocumentContext.hpp>
 #include <score/plugins/Interface.hpp>
 #include <score/plugins/InterfaceList.hpp>
 #include <score/tools/Unused.hpp>
