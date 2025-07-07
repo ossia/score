@@ -146,9 +146,12 @@ void PipeWireAudioFactory::setupSettingsWidget(
     return;
   }
 
-  if(auto str = qgetenv("PIPEWIRE_LATENCY"); !str.isEmpty())
+  auto lat = qgetenv("PIPEWIRE_LATENCY");
+  if(lat.isEmpty())
+    lat = qgetenv("PIPEWIRE_QUANTUM");
+  if(!lat.isEmpty())
   {
-    if(auto ss = str.split('/'); ss.size() == 2)
+    if(auto ss = lat.split('/'); ss.size() == 2)
     {
       bool ok{};
       int buffer_size = ss[0].toInt(&ok);
