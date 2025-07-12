@@ -5,12 +5,18 @@
 #include <JS/Qml/Utils.hpp>
 #include <Library/LibrarySettings.hpp>
 
+#include <ossia/detail/thread.hpp>
+
+#include <ossia-qt/invoke.hpp>
+#include <ossia-qt/qml_protocols.hpp>
+
 #if __has_include(<QQuickWindow>)
 #include <QGuiApplication>
 #include <QQuickItem>
 #include <QQuickWindow>
 #endif
 
+#include <ossia/network/context.hpp>
 namespace JS
 {
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
@@ -19,9 +25,27 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
   m_engine.globalObject().setProperty("Score", m_engine.newQObject(new EditJsContext));
   m_engine.globalObject().setProperty("Util", m_engine.newQObject(new JsUtils));
   m_engine.globalObject().setProperty("Device", m_engine.newQObject(new DeviceContext));
+
+  m_asioContext = std::make_shared<ossia::net::network_context>();
+  m_processMessages = true;
+  m_engine.globalObject().setProperty(
+      "Protocols",
+      m_engine.newQObject(new ossia::qt::qml_protocols{m_asioContext, this}));
+  m_asioThread = std::thread{[this] {
+    ossia::set_thread_name("ossia app asio");
+    while(m_processMessages)
+    {
+      m_asioContext->run();
+    }
+  }};
 }
 
-ApplicationPlugin::~ApplicationPlugin() { }
+ApplicationPlugin::~ApplicationPlugin()
+{
+  m_processMessages = false;
+  m_asioContext->context.stop();
+  m_asioThread.join();
+}
 
 void ApplicationPlugin::afterStartup()
 {

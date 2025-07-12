@@ -1,6 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
+#include <ossia-qt/qml_protocols.hpp>
 #if __has_include(<QQmlEngine>)
 #include <Process/Script/ScriptWidget.hpp>
 
@@ -330,9 +331,12 @@ class mapper_protocol final
 {
   W_OBJECT(mapper_protocol)
 public:
-  mapper_protocol(const QByteArray& code, Device::DeviceList& roots)
+  mapper_protocol(
+      const QByteArray& code, ossia::net::network_context_ptr ctx,
+      Device::DeviceList& roots)
       : protocol_base{flags{}}
       , m_thread{std::make_shared<QThread>()}
+      , m_context{ctx}
       , m_code{code}
       , m_devices{roots}
       , m_roots{m_devices.roots()}
@@ -386,32 +390,34 @@ public:
     m_engine = new QQmlEngine{};
     m_component = new QQmlComponent{m_engine};
 
-    auto obj = new ossia::qt::qml_device_engine_functions{
+    auto device_obj = new ossia::qt::qml_device_engine_functions{
         {}, [](ossia::net::parameter_base& param, const ossia::value_port& v) {
       if(v.get_data().empty())
         return;
       auto& last = v.get_data().back().value;
       param.push_value(last);
     }, m_engine};
-    obj->setDevice(m_device);
+    device_obj->setDevice(m_device);
     for(auto dev : m_devices.devices())
-      obj->devices.push_back(dev);
+      device_obj->devices.push_back(dev);
+
+    auto protocols_obj = new ossia::qt::qml_protocols{this->m_context, this};
 
     auto ctx = m_engine.load()->rootContext();
-
-    ctx->setContextProperty("Device", obj);
+    ctx->setContextProperty("Device", device_obj);
+    ctx->setContextProperty("Protocols", protocols_obj);
 
     QObject::connect(
         this, &mapper_protocol::sig_push, this, &mapper_protocol::slot_push);
     QObject::connect(
         this, &mapper_protocol::sig_recv, this, &mapper_protocol::slot_recv);
     con(m_devices, &observable_device_roots::rootsChanged, this,
-        [this, obj](std::vector<ossia::net::node_base*> r) {
+        [this, device_obj](std::vector<ossia::net::node_base*> r) {
       ossia::qt::qml_device_cache cache;
       for(auto node : r)
         cache.push_back(&node->get_device());
       ossia::remove_duplicates(cache);
-      obj->devices = cache;
+      device_obj->devices = cache;
       m_roots = std::move(r);
       reset_tree();
     }, Qt::QueuedConnection);
@@ -678,6 +684,7 @@ private:
   std::atomic<QQmlEngine*> m_engine{};
   std::atomic<QQmlComponent*> m_component{};
 
+  ossia::net::network_context_ptr m_context{};
   ossia::net::device_base* m_device{};
   QObject* m_object{};
   QByteArray m_code;
@@ -729,9 +736,12 @@ class MapperDevice final : public Device::OwningDeviceInterface
   W_OBJECT(MapperDevice)
 
 public:
-  MapperDevice(const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
+  MapperDevice(
+      const Device::DeviceSettings& settings, const ossia::net::network_context_ptr& ctx,
+      const score::DocumentContext& cctx)
       : OwningDeviceInterface{settings}
-      , context{ctx}
+      , net_context{ctx}
+      , context{cctx}
       , m_list{}
   {
     m_capas.canRefreshTree = true;
@@ -755,8 +765,8 @@ public:
       const auto& stgs
           = settings().deviceSpecificSettings.value<MapperSpecificSettings>();
 
-      auto proto
-          = std::make_unique<ossia::net::mapper_protocol>(stgs.text.toUtf8(), *devlist);
+      auto proto = std::make_unique<ossia::net::mapper_protocol>(
+          stgs.text.toUtf8(), this->net_context, *devlist);
       auto nm = settings().name.toStdString();
       m_dev = std::make_unique<ossia::net::mapper_device>(
           static_cast<std::unique_ptr<ossia::net::mapper_protocol>&&>(proto), nm);
@@ -793,6 +803,7 @@ private:
 
     return m_list;
   }
+  ossia::net::network_context_ptr net_context;
   const score::DocumentContext& context;
   Device::DeviceList* m_list{};
 };
@@ -831,7 +842,7 @@ Device::DeviceInterface* MapperProtocolFactory::makeDevice(
     const Device::DeviceSettings& settings, const Explorer::DeviceDocumentPlugin& plugin,
     const score::DocumentContext& ctx)
 {
-  return new MapperDevice{settings, ctx};
+  return new MapperDevice{settings, plugin.networkContext(), ctx};
 }
 
 const Device::DeviceSettings& MapperProtocolFactory::defaultSettings() const noexcept
