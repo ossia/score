@@ -41,6 +41,7 @@ public:
   ossia::net::tcp_server_configuration settings() const noexcept
   {
     ossia::net::tcp_server_configuration conf;
+    conf.bind = "0.0.0.0";
     conf.port = m_remotePort->value();
     return conf;
   }

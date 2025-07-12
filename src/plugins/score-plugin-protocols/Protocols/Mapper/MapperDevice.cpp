@@ -42,8 +42,6 @@
 
 #include <wobjectimpl.h>
 
-#include <iomanip>
-#include <sstream>
 #include <verdigris>
 namespace ossia::net
 {
@@ -399,7 +397,9 @@ public:
     for(auto dev : m_devices.devices())
       obj->devices.push_back(dev);
 
-    m_engine.load()->rootContext()->setContextProperty("Device", obj);
+    auto ctx = m_engine.load()->rootContext();
+
+    ctx->setContextProperty("Device", obj);
 
     QObject::connect(
         this, &mapper_protocol::sig_push, this, &mapper_protocol::slot_push);
