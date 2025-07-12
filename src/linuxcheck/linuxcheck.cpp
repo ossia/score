@@ -6,9 +6,12 @@
 
 int draw_text_on_x11(std::string_view txt);
 int draw_text_on_wayland(std::string_view txt);
-int main()
+int main(int argc, char** argv)
 {
-  auto text = linuxcheck::diagnostics();
+  if(argc < 2)
+    return 1;
+
+  auto text = linuxcheck::diagnostics(argv[1]);
   if(text.empty())
     return 0;
   else
@@ -23,23 +26,24 @@ int main()
 
   if(!system("command -v kdialog > /dev/null 2>&1"))
     if(!system(fmt::format("kdialog --msgbox \"{}\"", text).c_str()))
-      return 0;
+      return 1;
   if(!system("command -v zenity > /dev/null 2>&1"))
     if(!system(fmt::format("zenity --warning --text=\"{}\"", text).c_str()))
-      return 0;
+      return 1;
   if(!system("command -v Xdialog > /dev/null 2>&1"))
     if(!system(fmt::format("Xdialog --smooth  --msgbox \"{}\" 200 100", text).c_str()))
-      return 0;
+      return 1;
 
   if(getenv("WAYLAND_DISPLAY"))
   {
     if(draw_text_on_wayland(text) == 0)
-      return 0;
+      return 1;
   }
 
   if(getenv("DISPLAY"))
   {
     if(draw_text_on_x11(text) == 0)
-      return 0;
+      return 1;
   }
+  return 1;
 }
