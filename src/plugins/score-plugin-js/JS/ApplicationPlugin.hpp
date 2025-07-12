@@ -8,6 +8,13 @@
 #include <QQmlContext>
 #include <QQmlEngine>
 
+#include <thread>
+
+namespace ossia::net
+{
+struct network_context;
+using network_context_ptr = std::shared_ptr<network_context>;
+}
 class QQuickWindow;
 namespace JS
 {
@@ -25,5 +32,9 @@ public:
   QQmlEngine m_dummyEngine;
   QQmlComponent* m_comp{};
   QQuickWindow* m_window{};
+
+  std::atomic_bool m_processMessages{};
+  std::thread m_asioThread;
+  ossia::net::network_context_ptr m_asioContext;
 };
 }
