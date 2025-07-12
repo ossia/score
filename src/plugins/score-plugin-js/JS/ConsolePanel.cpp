@@ -34,6 +34,12 @@ PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
   m_lineEdit = new QLineEdit{m_widget};
   lay->addWidget(m_lineEdit, 0);
 
+  m_edit->appendPlainText(
+      "Welcome to the ossia score scripting console!\n"
+      "The console provides a JavaScript ES7 environment.\n"
+      "Read more about the avaiable functions here:\n"
+      "-> https://ossia.io/score-docs/panels/console.html\n\n");
+
   // TODO ctrl-space !
   connect(m_lineEdit, &QLineEdit::editingFinished, this, [this] {
     auto txt = m_lineEdit->text();
@@ -167,7 +173,8 @@ void PanelDelegate::importModule(const QString& path)
 
   auto obj = m_engine.globalObject();
   obj.setProperty(QFileInfo{path}.baseName(), mod);
-  m_edit->appendPlainText(mod.toString());
+  if(mod.isString() || mod.isError())
+    m_edit->appendPlainText(mod.toString());
 }
 
 QWidget* PanelDelegate::widget()
