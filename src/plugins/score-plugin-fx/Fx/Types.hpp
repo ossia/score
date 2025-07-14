@@ -1,9 +1,83 @@
 #pragma once
-#include <Engine/Node/CommonWidgets.hpp>
+#include <ossia/detail/enum_map.hpp>
 
+#include <array>
+namespace Control::Widgets
+{
+static const constexpr std::array<std::pair<const char*, float>, 14> durations{
+    {{"Inf", -1.},
+     {"Whole", 1.},
+     {"Half", 1. / 2.},
+     {"4th", 1. / 4.},
+     {"8th", 1. / 8.},
+     {"16th", 1. / 16.},
+     {"32th", 1. / 32.},
+     {"64th", 1. / 64.},
+     {"Dotted Half", 3. / 4.},
+     {"Dotted 4th", 3. / 8.},
+     {"Dotted 8th", 3. / 16.},
+     {"Dotted 16th", 3. / 32.},
+     {"Dotted 32th", 3. / 64.},
+     {"None", 0.}}};
+static const constexpr std::array<std::pair<const char*, float>, 13> notes{
+    {{"None", 0.},
+     {"Whole", 1.},
+     {"Half", 1. / 2.},
+     {"4th", 1. / 4.},
+     {"8th", 1. / 8.},
+     {"16th", 1. / 16.},
+     {"32th", 1. / 32.},
+     {"64th", 1. / 64.},
+     {"Dotted Half", 3. / 4.},
+     {"Dotted 4th", 3. / 8.},
+     {"Dotted 8th", 3. / 16.},
+     {"Dotted 16th", 3. / 32.},
+     {"Dotted 32th", 3. / 64.}}};
+
+static const constexpr std::array<std::pair<const char*, float>, 12> nonnull_notes{
+    {{"Whole", 1.},
+     {"Half", 1. / 2.},
+     {"4th", 1. / 4.},
+     {"8th", 1. / 8.},
+     {"16th", 1. / 16.},
+     {"32th", 1. / 32.},
+     {"64th", 1. / 64.},
+     {"Dotted Half", 3. / 4.},
+     {"Dotted 4th", 3. / 8.},
+     {"Dotted 8th", 3. / 16.},
+     {"Dotted 16th", 3. / 32.},
+     {"Dotted 32th", 3. / 64.}}};
+
+static const constexpr std::array<std::pair<const char*, int>, 5> arpeggios{
+    {{"Forward", 0}, {"Backward", 1}, {"F->B", 2}, {"B->F", 3}, {"Chord", 4}}};
+
+enum Waveform
+{
+  Sin,
+  Triangle,
+  Saw,
+  Square,
+  SampleAndHold,
+  Noise1,
+  Noise2,
+  Noise3
+};
+
+enum Path
+{
+  Linear,
+  Circle,
+  Spiral
+
+};
+
+}
+
+#include <ossia/detail/enum_map.hpp>
 #include <ossia/detail/pod_vector.hpp>
 #include <ossia/detail/small_vector.hpp>
 #include <ossia/detail/variant.hpp>
+#include <ossia/network/value/value.hpp>
 
 #include <halp/audio.hpp>
 #include <halp/callback.hpp>
@@ -13,6 +87,8 @@
 #include <halp/polyfill.hpp>
 #include <halp/static_string.hpp>
 #include <libremidi/message.hpp>
+
+#include <array>
 
 namespace Nodes
 {

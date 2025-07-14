@@ -22,32 +22,33 @@ namespace oscr
 {
 
 template <typename T>
-inline void setupNewPort(Process::Port* obj)
+inline void setupNewPort(std::string_view exposed_name, Process::Port* obj)
 {
   //FIXME
 #if !defined(__APPLE__)
-  constexpr auto name = avnd::get_name<T>();
-  obj->setName(fromStringView(name));
-  if constexpr(avnd::has_description<T>)
-    obj->setDescription(fromStringView(avnd::get_description<T>()));
+  static constexpr auto name = avnd::get_name<T>();
 #else
   auto name = avnd::get_name<T>();
-  obj->setName(fromStringView(name));
+#endif
+  if(obj->name().isEmpty())
+    obj->setName(fromStringView(name));
+  if(!exposed_name.empty())
+    obj->setExposed(QString::fromUtf8(exposed_name.data(), exposed_name.size()));
   if constexpr(avnd::has_description<T>)
     obj->setDescription(fromStringView(avnd::get_description<T>()));
-#endif
 }
 
 template <std::size_t N, typename T>
-inline void setupNewPort(const avnd::field_reflection<N, T>& spec, Process::Port* obj)
+inline void setupNewPort(
+    const avnd::field_reflection<N, T>& spec, std::string_view name, Process::Port* obj)
 {
-  setupNewPort<T>(obj);
+  setupNewPort<T>(name, obj);
 }
 
 template <typename T>
-inline void setupNewPort(const T& spec, Process::Port* obj)
+inline void setupNewPort(const T& spec, std::string_view name, Process::Port* obj)
 {
-  setupNewPort<T>(obj);
+  setupNewPort<T>(name, obj);
 }
 
 template <typename Node>
@@ -55,37 +56,38 @@ struct InletInitFunc
 {
   Process::ProcessModel& self;
   Process::Inlets& ins;
+  std::string_view name;
   int inlet = 0;
 
   void operator()(const oscr::ossia_value_port auto& in, auto idx)
   {
     auto p = new Process::ValueInlet(Id<Process::Port>(inlet++), &self);
-    setupNewPort(in, p);
+    setupNewPort(in, name, p);
     ins.push_back(p);
   }
   void operator()(const oscr::ossia_audio_port auto& in, auto idx)
   {
     auto p = new Process::AudioInlet(Id<Process::Port>(inlet++), &self);
-    setupNewPort(in, p);
+    setupNewPort(in, name, p);
     ins.push_back(p);
   }
   void operator()(const oscr::ossia_midi_port auto& in, auto idx)
   {
     auto p = new Process::MidiInlet(Id<Process::Port>(inlet++), &self);
-    setupNewPort(in, p);
+    setupNewPort(in, name, p);
     ins.push_back(p);
   }
 
   void operator()(const avnd::audio_port auto& in, auto idx)
   {
     auto p = new Process::AudioInlet(Id<Process::Port>(inlet++), &self);
-    setupNewPort(in, p);
+    setupNewPort(in, name, p);
     ins.push_back(p);
   }
   void operator()(const avnd::midi_port auto& in, auto idx)
   {
     auto p = new Process::MidiInlet(Id<Process::Port>(inlet++), &self);
-    setupNewPort(in, p);
+    setupNewPort(in, name, p);
     ins.push_back(p);
   }
 
@@ -170,6 +172,7 @@ struct InletInitFunc
           Id<Process::Port>(inlet++), &self};
     }
 
+    setupNewPort(in, name, p);
     p->hidden = true;
     ins.push_back(p);
 
@@ -188,6 +191,8 @@ struct InletInitFunc
     auto p = new Process::FileChooser{
         "", getFilters(in), QString::fromUtf8(name.data(), name.size()),
         Id<Process::Port>(inlet++), &self};
+
+    setupNewPort(in, name, p);
     p->hidden = true;
     ins.push_back(p);
 
@@ -215,20 +220,21 @@ struct InletInitFunc
           avnd::field_index<N>{}, Id<Process::Port>(inlet), &self);
       if constexpr(!std::is_same_v<std::decay_t<decltype(p)>, std::nullptr_t>)
       {
+        setupNewPort(in, name, p);
         p->hidden = true;
         ins.push_back(p);
       }
       else
       {
         auto vp = new Process::ValueInlet(Id<Process::Port>(inlet), &self);
-        setupNewPort(in, vp);
+        setupNewPort(in, name, vp);
         ins.push_back(vp);
       }
     }
     else
     {
       auto vp = new Process::ValueInlet(Id<Process::Port>(inlet), &self);
-      setupNewPort(in, vp);
+      setupNewPort(in, name, vp);
       ins.push_back(vp);
     }
     inlet++;
@@ -238,13 +244,13 @@ struct InletInitFunc
   void operator()(const avnd::texture_port auto& in, auto idx)
   {
     auto p = new Gfx::TextureInlet(Id<Process::Port>(inlet++), &self);
-    setupNewPort(in, p);
+    setupNewPort(in, name, p);
     ins.push_back(p);
   }
   void operator()(const avnd::geometry_port auto& in, auto idx)
   {
     auto p = new Gfx::GeometryInlet(Id<Process::Port>(inlet++), &self);
-    setupNewPort(in, p);
+    setupNewPort(in, name, p);
     ins.push_back(p);
   }
 #endif
@@ -253,7 +259,7 @@ struct InletInitFunc
   void operator()(const avnd::field_reflection<Idx, T>& in, auto dummy)
   {
     auto p = new Process::ValueInlet(Id<Process::Port>(inlet++), &self);
-    setupNewPort(in, p);
+    setupNewPort(in, name, p);
     ins.push_back(p);
   }
 
@@ -261,7 +267,7 @@ struct InletInitFunc
   void operator()(const avnd::field_reflection<Idx, T>& in, auto dummy)
   {
     auto p = new Process::ValueInlet(Id<Process::Port>(inlet++), &self);
-    setupNewPort(in, p);
+    setupNewPort(in, name, p);
     ins.push_back(p);
   }
 
@@ -277,24 +283,25 @@ struct OutletInitFunc
 {
   Process::ProcessModel& self;
   Process::Outlets& outs;
+  std::string_view name;
   int outlet = 0;
 
   void operator()(const oscr::ossia_value_port auto& out, auto idx)
   {
     auto p = new Process::ValueOutlet(Id<Process::Port>(outlet++), &self);
-    setupNewPort(out, p);
+    setupNewPort(out, name, p);
     outs.push_back(p);
   }
   void operator()(const oscr::ossia_audio_port auto& out, auto idx)
   {
     auto p = new Process::AudioOutlet(Id<Process::Port>(outlet++), &self);
-    setupNewPort(out, p);
+    setupNewPort(out, name, p);
     outs.push_back(p);
   }
   void operator()(const oscr::ossia_midi_port auto& out, auto idx)
   {
     auto p = new Process::MidiOutlet(Id<Process::Port>(outlet++), &self);
-    setupNewPort(out, p);
+    setupNewPort(out, name, p);
     outs.push_back(p);
   }
 
@@ -309,7 +316,7 @@ struct OutletInitFunc
   void operator()(const avnd::audio_port auto& out, auto idx)
   {
     auto p = new Process::AudioOutlet(Id<Process::Port>(outlet++), &self);
-    setupNewPort(out, p);
+    setupNewPort(out, name, p);
     if(outlet == 1)
       p->setPropagate(true);
     outs.push_back(p);
@@ -318,7 +325,7 @@ struct OutletInitFunc
   void operator()(const avnd::midi_port auto& out, auto idx)
   {
     auto p = new Process::MidiOutlet(Id<Process::Port>(outlet++), &self);
-    setupNewPort(out, p);
+    setupNewPort(out, name, p);
     outs.push_back(p);
   }
 
@@ -331,6 +338,7 @@ struct OutletInitFunc
       if(auto p = oscr::make_control_out<T>(
              avnd::field_index<N>{}, Id<Process::Port>(outlet), &self))
       {
+        setupNewPort(out, name, p);
         p->hidden = true;
         outs.push_back(p);
       }
@@ -338,14 +346,14 @@ struct OutletInitFunc
       {
         // FIXME ControlOutlet?
         auto vp = new Process::ValueOutlet(Id<Process::Port>(outlet), &self);
-        setupNewPort(out, vp);
+        setupNewPort(out, name, vp);
         outs.push_back(vp);
       }
     }
     else
     {
       auto vp = new Process::ValueOutlet(Id<Process::Port>(outlet), &self);
-      setupNewPort(out, vp);
+      setupNewPort(out, name, vp);
       outs.push_back(vp);
     }
     outlet++;
@@ -355,13 +363,13 @@ struct OutletInitFunc
   void operator()(const avnd::texture_port auto& out, auto idx)
   {
     auto p = new Gfx::TextureOutlet(Id<Process::Port>(outlet++), &self);
-    setupNewPort(out, p);
+    setupNewPort(out, name, p);
     outs.push_back(p);
   }
   void operator()(const avnd::geometry_port auto& out, auto idx)
   {
     auto p = new Gfx::GeometryOutlet(Id<Process::Port>(outlet++), &self);
-    setupNewPort(out, p);
+    setupNewPort(out, name, p);
     outs.push_back(p);
   }
 #endif
@@ -369,7 +377,7 @@ struct OutletInitFunc
   void operator()(const avnd::curve_port auto& out, auto idx)
   {
     auto p = new Process::ValueOutlet(Id<Process::Port>(outlet++), &self);
-    setupNewPort(out, p);
+    setupNewPort(out, name, p);
     outs.push_back(p);
   }
 
@@ -381,6 +389,7 @@ struct OutletInitFunc
       if(auto p = oscr::make_control_out<T>(
              avnd::field_index<N>{}, Id<Process::Port>(outlet), &self))
       {
+        setupNewPort(out, name, p);
         p->hidden = true;
         outs.push_back(p);
       }
@@ -388,7 +397,7 @@ struct OutletInitFunc
       {
         // FIXME ControlOutlet?
         auto vp = new Process::ValueOutlet(Id<Process::Port>(outlet), &self);
-        setupNewPort(out, vp);
+        setupNewPort(out, name, vp);
         outs.push_back(vp);
       }
     }
@@ -396,13 +405,13 @@ struct OutletInitFunc
     {
       // FIXME remove this duplication
       auto p = new Process::ControlOutlet(Id<Process::Port>(outlet), &self);
-      setupNewPort(out, p);
+      setupNewPort(out, name, p);
       outs.push_back(p);
     }
     else
     {
       auto p = new Process::ValueOutlet(Id<Process::Port>(outlet), &self);
-      setupNewPort(out, p);
+      setupNewPort(out, name, p);
       outs.push_back(p);
     }
     outlet++;

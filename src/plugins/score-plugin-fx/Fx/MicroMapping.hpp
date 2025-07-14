@@ -19,6 +19,8 @@ struct Node
   halp_meta(description, "Applies a math expression to an input.")
   halp_meta(uuid, "25c64b87-a44a-4fed-9f60-0a48906fd3ec")
 
+  using code_writer = Nodes::MathMappingCodeWriter;
+
   struct ins
   {
     struct : halp::val_port<"in", ossia::value>
@@ -27,7 +29,7 @@ struct Node
       // FIXME not implemented yet
       halp_flag(active_port);
       void update(Node& self) { self.trigger = true; }
-    } port;
+    } in;
     halp::lineedit<"Expression", "x / 127"> expr;
   } inputs;
 
@@ -93,10 +95,10 @@ struct Node
 
     if(self.expr.has_variable("xv"))
       GenericMathMapping<State>::run_array(
-          inputs.port.value, outputs.port.call, tk, state);
+          inputs.in.value, outputs.port.call, tk, state);
     else
       GenericMathMapping<State>::run_scalar(
-          inputs.port.value, outputs.port.call, tk, state);
+          inputs.in.value, outputs.port.call, tk, state);
   }
 
   struct ui

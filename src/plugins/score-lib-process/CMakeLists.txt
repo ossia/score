@@ -13,6 +13,7 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/Properties.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/LoadPresetCommandFactory.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ApplicationPlugin.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/CodeWriter.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ControlMessage.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Instantiations.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ExecutionFunctions.hpp"
@@ -118,6 +119,7 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/MessageNodeSerialization.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ApplicationPlugin.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/CodeWriter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ControlMessage.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/HeaderDelegate.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessFactory.cpp"

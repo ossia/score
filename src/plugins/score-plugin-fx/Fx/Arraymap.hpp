@@ -21,6 +21,8 @@ struct Node
   halp_meta(description, "Applies a math expression to each member of an input.");
   halp_meta(uuid, "1fe9c806-b601-4ee0-9fbb-0ab817c4dd87");
 
+  using code_writer = Nodes::MathMappingCodeWriter;
+
   struct ins
   {
     struct : halp::val_port<"in", ossia::value>
@@ -28,7 +30,7 @@ struct Node
       // Messages to this port trigger a new computation cycle with updated timestamps
       halp_flag(active_port);
       void update(Node& self) { self.trigger = true; }
-    } port;
+    } in;
     halp::lineedit<"Expression", "x"> expr;
   } inputs;
 
@@ -84,7 +86,7 @@ struct Node
     if(!std::exchange(trigger, false))
       return;
     GenericMathMapping<State>::run_polyphonic(
-        inputs.port.value, outputs.port.call, inputs.expr.value, tk, state);
+        inputs.in.value, outputs.port.call, inputs.expr.value, tk, state);
   }
 
   struct ui

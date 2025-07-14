@@ -166,6 +166,7 @@ add_library(
 
   AvndDevices/AvndDevice.hpp
   Crousti/Attributes.hpp
+  Crousti/CodeWriter.hpp
   Crousti/Concepts.hpp
   Crousti/CpuAnalysisNode.hpp
   Crousti/CpuFilterNode.hpp
@@ -692,6 +693,13 @@ avnd_make_score(
 )
 
 avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/ControlToCV.hpp"
+  TARGET control_to_cv
+  MAIN_CLASS ControlToCV
+  NAMESPACE ao
+)
+
+avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Calibrator.hpp"
   TARGET calibrator
   MAIN_CLASS Calibrator
@@ -892,6 +900,21 @@ endif()
 # )
 # find_package(OpenSSL)
 # target_link_libraries(score_plugin_avnd PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+
+
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Wavecycle.hpp"
+  TARGET wavecycle
+  MAIN_CLASS Wavecycle
+  NAMESPACE ao
+)
+
+# avnd_make_score(
+#   SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Automation.hpp"
+#   TARGET automation
+#   MAIN_CLASS Automation
+#   NAMESPACE ao
+# )
 
 file(CONFIGURE OUTPUT
      "${CMAKE_BINARY_DIR}/include.avnd.cpp"

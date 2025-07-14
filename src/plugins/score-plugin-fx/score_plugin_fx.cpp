@@ -39,6 +39,7 @@
 #include <Fx/Smooth.hpp>
 #include <Fx/Smooth_v2.hpp>
 #include <Fx/VelToNote.hpp>
+#include <Fx/VelToNote_mono.hpp>
 /*
 #include <Fx/FactorOracle.hpp>
 #include <Fx/FactorOracle2.hpp>
@@ -72,6 +73,7 @@ std::vector<score::InterfaceBase*> score_plugin_fx::factories(
   oscr::instantiate_fx<Nodes::EmptyAudioMapping::Node>(fx, ctx, key);
   oscr::instantiate_fx<Nodes::Envelope::Node>(fx, ctx, key);
   oscr::instantiate_fx<Nodes::PulseToNote::Node>(fx, ctx, key);
+  oscr::instantiate_fx<Nodes::PulseToNoteMono::Node>(fx, ctx, key);
   oscr::instantiate_fx<Nodes::LFO::v1::Node>(fx, ctx, key);
   oscr::instantiate_fx<Nodes::LFO::v2::Node>(fx, ctx, key);
   oscr::instantiate_fx<Nodes::MidiHiRes::Input>(fx, ctx, key);

@@ -19,6 +19,8 @@ struct Node
   halp_meta(description, "Applies a math expression to each member of an input.");
   halp_meta(uuid, "cf3df02f-a563-4e92-a739-b321d3a84252");
 
+  using code_writer = Nodes::MathMappingCodeWriter;
+
   struct ins
   {
     halp::lineedit<"Expression", "i"> expr;
