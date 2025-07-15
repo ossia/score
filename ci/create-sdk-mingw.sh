@@ -24,4 +24,5 @@ mkdir -p "$DST/usr/lib/clang/$LLVM_VER/include"
 
 cp -rf "$OSSIA_SDK/llvm-libs/lib/clang/$LLVM_VER/include" "$LIB/clang/$LLVM_VER/"
 
+source $SCRIPTDIR/cleanup-sdk-common.sh
 

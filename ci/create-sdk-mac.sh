@@ -46,3 +46,5 @@ for fw in IOKit CFNetwork CoreFoundation CoreAudio CoreText Foundation DiskArbit
     done
   fi
 done
+
+source $SCRIPTDIR/cleanup-sdk-common.sh

@@ -30,3 +30,5 @@ rsync -ar "$OSSIA_SDK/llvm/lib/clang/$LLVM_VER/include/" "$LIB/clang/$LLVM_VER/i
 
 find "$LIB" -name "libossia*.a" -delete
 
+source $SCRIPTDIR/cleanup-sdk-common.sh
+
