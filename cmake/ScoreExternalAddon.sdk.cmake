@@ -139,6 +139,8 @@ target_compile_definitions(score_lib_base INTERFACE
   QT_STATIC=1
 )
 
+include(ScoreFunctions.cmake)
+
 function(setup_score_plugin PluginName)
   set_target_properties(${PluginName} PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/"
