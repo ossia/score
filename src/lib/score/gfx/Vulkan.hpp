@@ -6,7 +6,6 @@
 #if defined(QT_FEATURE_vulkan) && QT_CONFIG(vulkan) \
 && __has_include(<vulkan/vulkan.h>) && !defined(_MSC_VER) && __has_include(<QtGui/private/qrhivulkan_p.h>) && __has_include(<QVulkanInstance>)
 #define QT_HAS_VULKAN 1
-#include <QtGui/qvulkanfunctions.h>
 struct QRhiVulkanNativeHandles;
 
 class QVulkanInstance;

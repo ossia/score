@@ -1,9 +1,8 @@
 #include <score/gfx/Vulkan.hpp>
 
 #if defined(QT_FEATURE_vulkan) && QT_CONFIG(vulkan) && __has_include(<vulkan/vulkan.h>)
-#include "QRhiGles2.hpp"
-#include <QVulkanInstance>
-
+#include <rhi/qrhi.h>
+#include <QtGui/qvulkanfunctions.h>
 #include <mutex>
 namespace score::gfx
 {
@@ -236,8 +235,5 @@ QRhiVulkanNativeHandles* createRayTracingRhi(QVulkanInstance* inst)
 
   return handles;
 }
-
-
-
 }
 #endif
