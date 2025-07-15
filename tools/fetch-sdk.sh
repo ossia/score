@@ -22,7 +22,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
   export BASE_SDK=https://github.com/ossia/score-sdk/releases/download/$SDK_VERSION
 
   # First download the compiler and base libraries
-  if [[ "$(uame -m)" == "arm64" ]]; then
+  if [[ "$(uname -m)" == "arm64" ]]; then
     SDK_ARCH=aarch64
   else
     SDK_ARCH=x86_64
