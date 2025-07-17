@@ -370,7 +370,7 @@ Process::ScriptChangeResult FaustEffectModel::reload()
         {
           // updating an existing DSP
           // Try to reuse controls
-          Faust::UpdateUI<decltype(*this), true> ui{*this, toRemove, toRemoveO};
+          Faust::UpdateUI<decltype(*this), true, true> ui{*this, toRemove, toRemoveO};
           ui.i = 2;
           ui.o = 1;
           faust_poly_object->buildUserInterface(&ui);
@@ -393,7 +393,7 @@ Process::ScriptChangeResult FaustEffectModel::reload()
         else if((!m_inlets.empty() || !m_outlets.empty()) && !had_poly_dsp && !had_dsp)
         {
           // Try to reuse controls
-          Faust::UpdateUI<decltype(*this), false> ui{*this, toRemove, toRemoveO};
+          Faust::UpdateUI<decltype(*this), false, true> ui{*this, toRemove, toRemoveO};
           ui.i = 2;
           ui.o = 1;
           faust_poly_object->buildUserInterface(&ui);
@@ -433,7 +433,7 @@ Process::ScriptChangeResult FaustEffectModel::reload()
     if(had_dsp)
     {
       // Try to reuse controls
-      Faust::UpdateUI<decltype(*this), true> ui{*this, toRemove, toRemoveO};
+      Faust::UpdateUI<decltype(*this), true, false> ui{*this, toRemove, toRemoveO};
       faust_object->buildUserInterface(&ui);
 
       for(std::size_t i = ui.i; i < m_inlets.size(); i++)
@@ -454,7 +454,7 @@ Process::ScriptChangeResult FaustEffectModel::reload()
     else if((!m_inlets.empty() || !m_outlets.empty()) && !had_dsp && !had_poly_dsp)
     {
       // loading - controls already exist but not linked to the dsp
-      Faust::UpdateUI<decltype(*this), false> ui{*this, toRemove, toRemoveO};
+      Faust::UpdateUI<decltype(*this), false, false> ui{*this, toRemove, toRemoveO};
       faust_object->buildUserInterface(&ui);
     }
     else

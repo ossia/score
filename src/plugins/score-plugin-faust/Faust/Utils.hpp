@@ -118,7 +118,7 @@ struct UI
   }
 };
 
-template <typename Proc, bool SetInit>
+template <typename Proc, bool SetInit, bool Synth>
 struct UpdateUI
     : ::UI
     , MetaDataUI
@@ -163,6 +163,13 @@ struct UpdateUI
 
   void addButton(const char* label, FAUSTFLOAT* zone) override
   {
+    if constexpr(Synth)
+    {
+      using namespace std::literals;
+      if(label == "Panic"sv || label == "gate"sv)
+        return;
+    }
+
     if(i < fx.inlets().size())
     {
       if(auto inlet = dynamic_cast<Process::Button*>(fx.inlets()[i]))
@@ -213,6 +220,16 @@ struct UpdateUI
       const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
       FAUSTFLOAT max, FAUSTFLOAT step) override
   {
+    using namespace std::literals;
+    if constexpr(Synth)
+    {
+      if(label == "gain"sv || label == "freq"sv || label == "sustain"sv)
+        return;
+    }
+
+    if(label == "0x00"sv)
+      label = "Control";
+
     if(i < fx.inlets().size())
     {
       if(Process::FloatSlider
