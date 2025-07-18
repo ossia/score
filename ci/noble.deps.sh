@@ -10,7 +10,7 @@ $SUDO apt-get install -y \
     --allow-downgrades \
     --allow-remove-essential \
     --allow-unauthenticated \
-     binutils gcc-14 g++-14 clang lld \
+     binutils gcc-14 g++-14 clang-19 lld-19 \
      software-properties-common wget \
      libasound-dev \
      ninja-build cmake \
