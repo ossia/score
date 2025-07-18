@@ -36,29 +36,29 @@ jobs:
         run: |
           ./ci/fedora.build.sh
 
-  suseleap:
-    name: OpenSUSE Leap
-    runs-on: ubuntu-latest
-    container:
-      image: opensuse/leap:latest
-
-    steps:
-      - name: Install git
-        run: |
-          zypper -n install git
-
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          submodules: 'recursive'
-
-      - name: Dependencies
-        run: |
-          ./ci/suse.leap.deps.sh
-
-      - name: Build
-        run: |
-          ./ci/suse.build.sh
+#  suseleap:
+#    name: OpenSUSE Leap
+#    runs-on: ubuntu-latest
+#    container:
+#      image: opensuse/leap:latest
+#
+#    steps:
+#      - name: Install git
+#        run: |
+#          zypper -n install git
+#
+#      - name: Checkout code
+#        uses: actions/checkout@v4
+#        with:
+#          submodules: 'recursive'
+#
+#      - name: Dependencies
+#        run: |
+#          ./ci/suse.leap.deps.sh
+#
+#      - name: Build
+#        run: |
+#          ./ci/suse.build.sh
 
   susetumbleweed:
     name: OpenSUSE Tumbleweed

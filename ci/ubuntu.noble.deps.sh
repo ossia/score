@@ -33,6 +33,7 @@ $SUDO apt-get install -y \
      libvulkan-dev \
      libavcodec-dev libavdevice-dev libavutil-dev libavfilter-dev libavformat-dev libswresample-dev \
      file \
-     dpkg-dev
+     dpkg-dev \
+     lsb-release
 
 source ci/common.deps.sh
