@@ -83,7 +83,7 @@ jobs:
       - name: Build
         shell: cmd
         run: |
-          call "%cd%\ci\win32store.build.cmd"
+          call "%cd%\ci\win32.store.build.cmd"
 
       - name: Create certificate
         if: github.event_name != 'pull_request'
@@ -92,7 +92,7 @@ jobs:
           OSSIA_WIN32_CERT_SUBJECT: ${{ secrets.OSSIA_WIN32_CERT_SUBJECT }}
           OSSIA_WIN32_CERT_PASSWORD: ${{ secrets.OSSIA_WIN32_CERT_PASSWORD }}
         run: |
-          .\ci\win32store.cert.ps1
+          .\ci\win32.store.cert.ps1
 
       - name: Set up Visual Studio shell
         uses: egor-tensin/vs-shell@v2
@@ -106,7 +106,7 @@ jobs:
           OSSIA_WIN32_CERT_SUBJECT: ${{ secrets.OSSIA_WIN32_CERT_SUBJECT }}
           OSSIA_WIN32_CERT_PASSWORD: ${{ secrets.OSSIA_WIN32_CERT_PASSWORD }}
         run: |
-          call "%cd%\ci\win32store.deploy.cmd"
+          call "%cd%\ci\win32.store.deploy.cmd"
 
       - name: Upload build
         uses: actions/upload-artifact@v4
@@ -155,7 +155,7 @@ jobs:
       - name: Dependencies
         shell: bash
         run: |
-          ./ci/mingw.deps.sh
+          ./ci/win32.mingw.deps.sh
 
       - name: Setup msys2 and mingw-w64
         uses: msys2/setup-msys2@v2
@@ -183,7 +183,7 @@ jobs:
       - name: Build
         shell: msys2 {0}
         run: |
-          ./ci/mingw.build.sh
+          ./ci/win32.mingw.build.sh
 
   winmvsc:
     name: MSVC
@@ -208,10 +208,10 @@ jobs:
       - name: Dependencies
         shell: bash
         run: |
-          ./ci/win32msvc.deps.sh
+          ./ci/win32.msvc.deps.sh
 
       - name: Build
         shell: cmd
         run: |
-          call "%cd%\ci\win32msvc.build.cmd"
+          call "%cd%\ci\win32.msvc.build.cmd"
 

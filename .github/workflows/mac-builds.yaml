@@ -26,7 +26,7 @@ jobs:
           xcode-version: latest-stable
 
       - name: Dependencies
-        run: ./ci/osx-package.deps.sh
+        run: ./ci/osx.package.deps.sh
         env:
           MACOS_ARCH: "x86_64"
           MAC_CERT_B64: ${{ secrets.MAC_CERT_B64 }}
@@ -38,7 +38,7 @@ jobs:
           p12-password: ${{ secrets.MAC_CERT_PASSWORD }}
 
       - name: Build
-        run: ./ci/osx-package.build.sh
+        run: ./ci/osx.package.build.sh
         env:
           MACOS_ARCH: "x86_64"
 
@@ -46,7 +46,7 @@ jobs:
           export GITTAGNOV=$(echo "$GITHUB_REF" | sed "s/.*\///;s/^v//")
           export BUILD_ARTIFACTSTAGINGDIRECTORY=$PWD/staging
           mkdir -p $BUILD_ARTIFACTSTAGINGDIRECTORY
-          source ci/osx-package.deploy.sh
+          source ci/osx.package.deploy.sh
         env:
           MACOS_ARCH: "x86_64"
           MAC_ALTOOL_PASSWORD: ${{ secrets.MAC_ALTOOL_PASSWORD }}
@@ -97,11 +97,11 @@ jobs:
 
       - name: Dependencies
         run: |
-          ./ci/osx-brew.deps.sh
+          ./ci/osx.brew.deps.sh
 
       - name: Build
         run: |
-          ./ci/osx-brew.build.sh
+          ./ci/osx.brew.build.sh
 
   brew-m1:
     name: macOS (Release, Brew, AppleSilicon)
@@ -119,11 +119,11 @@ jobs:
 
       - name: Dependencies
         run: |
-          ./ci/osx-brew.deps.sh
+          ./ci/osx.brew.deps.sh
 
       - name: Build
         run: |
-          ./ci/osx-brew.build.sh
+          ./ci/osx.brew.build.sh
 
   brew-m1-dev:
     name: macOS (Dev, Brew, AppleSilicon)
@@ -141,7 +141,7 @@ jobs:
 
       - name: Dependencies
         run: |
-          ./ci/osx-brew.deps.sh
+          ./ci/osx.brew.deps.sh
 
       - name: Build
         run: |
@@ -161,7 +161,7 @@ jobs:
           xcode-version: '>=16'
 
       - run: |
-          source ci/osx-package.deps.sh
+          source ci/osx.package.deps.sh
         env:
           MACOS_ARCH: "aarch64"
           MAC_CERT_B64: ${{ secrets.MAC_CERT_B64 }}
@@ -173,7 +173,7 @@ jobs:
           p12-password: ${{ secrets.MAC_CERT_PASSWORD }}
 
       - run: |
-          source ci/osx-package.build.sh
+          source ci/osx.package.build.sh
         env:
           MACOS_ARCH: "aarch64"
 
@@ -181,7 +181,7 @@ jobs:
           export GITTAGNOV=$(echo "$GITHUB_REF" | sed "s/.*\///;s/^v//")
           export BUILD_ARTIFACTSTAGINGDIRECTORY=$PWD/staging
           mkdir -p $BUILD_ARTIFACTSTAGINGDIRECTORY
-          source ci/osx-package.deploy.sh
+          source ci/osx.package.deploy.sh
         env:
           MACOS_ARCH: "aarch64"
           MAC_ALTOOL_PASSWORD: ${{ secrets.MAC_ALTOOL_PASSWORD }}
