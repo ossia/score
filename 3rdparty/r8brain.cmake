@@ -3,7 +3,7 @@ add_library(r8brain STATIC
 )
 
 if(NOT MSVC AND NOT CMAKE_CROSSCOMPILING)
-  if(CMAKE_BUILD_TYPE MATCHES ".*Deb.*")
+  if(CMAKE_BUILD_TYPE MATCHES ".*Debug.*")
     target_compile_options(r8brain PRIVATE -O3 -march=native)
   endif()
 endif()

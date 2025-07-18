@@ -30,7 +30,7 @@ jobs:
 
       - name: Dependencies
         run: |
-          ./ci/fedora-qt6.deps.sh
+          ./ci/fedora.deps.sh
 
       - name: Build
         run: |
@@ -54,7 +54,7 @@ jobs:
 
       - name: Dependencies
         run: |
-          ./ci/suse-leap.deps.sh
+          ./ci/suse.leap.deps.sh
 
       - name: Build
         run: |
@@ -79,7 +79,7 @@ jobs:
 
       - name: Dependencies
         run: |
-          ./ci/suse-tumbleweed.deps.sh
+          ./ci/suse.tumbleweed.deps.sh
 
       - name: Build
         run: |
@@ -105,11 +105,11 @@ jobs:
 
       - name: Dependencies
         run: |
-          ./ci/archlinux-qt6.deps.sh
+          ./ci/archlinux.deps.sh
 
       - name: Build
         run: |
-          ./ci/archlinux-qt6.build.sh
+          ./ci/archlinux.build.sh
 
 
   archqt6system:
@@ -132,8 +132,8 @@ jobs:
 
       - name: Dependencies
         run: |
-          ./ci/archlinux-qt6-system.deps.sh
+          ./ci/archlinux.system.deps.sh
 
       - name: Build
         run: |
-          ./ci/archlinux-qt6-system.build.sh
+          ./ci/archlinux.system.build.sh
