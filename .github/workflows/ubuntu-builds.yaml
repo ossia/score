@@ -20,12 +20,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { deploy: true , distro: jammy, CC: gcc-12,    CXX: g++-12,     LDFLAGS: "" }
-          - { deploy: false, distro: jammy, CC: clang-14,  CXX: clang++-14, LDFLAGS: "-fuse-ld=lld" }
-          - { deploy: true,  distro: noble, CC: gcc,       CXX: g++,     LDFLAGS: "-fuse-ld=lld" }
-          - { deploy: false, distro: noble, CC: clang,     CXX: clang++, LDFLAGS: "-fuse-ld=lld" }
-          - { deploy: true,  distro: oracular, CC: gcc,    CXX: g++,     LDFLAGS: "-fuse-ld=lld" }
-          - { deploy: false, distro: oracular, CC: clang,  CXX: clang++, LDFLAGS: "-fuse-ld=lld" }
+          - { deploy: true , distro: jammy,    CC: /opt/gcc-14/bin/gcc, CXX: /opt/gcc-14/bin/g++, LDFLAGS: "" }
+          - { deploy: false, distro: jammy,    CC: clang-14,            CXX: clang++-14,          LDFLAGS: "-fuse-ld=lld" }
+          - { deploy: true,  distro: noble,    CC: gcc-14,              CXX: g++-14,              LDFLAGS: "-fuse-ld=lld" }
+          - { deploy: false, distro: noble,    CC: clang,               CXX: clang++,             LDFLAGS: "-fuse-ld=lld" }
+          - { deploy: true,  distro: oracular, CC: gcc,                 CXX: g++,                 LDFLAGS: "-fuse-ld=lld" }
+          - { deploy: false, distro: oracular, CC: clang,               CXX: clang++,             LDFLAGS: "-fuse-ld=lld" }
 
     container:
       image: ubuntu:${{ matrix.distro }}

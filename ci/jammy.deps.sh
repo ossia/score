@@ -14,6 +14,11 @@ $SUDO apt-get update -qq
 $SUDO rm /usr/share/keyrings/kitware-archive-keyring.gpg
 $SUDO apt-get install -y kitware-archive-keyring
 
+wget -nv https://github.com/xpack-dev-tools/gcc-xpack/releases/download/v14.2.0-2/xpack-gcc-14.2.0-2-linux-x64.tar.gz
+tar xaf xpack-gcc-14.2.0-2-linux-x64.tar.gz
+rm xpack-gcc-14.2.0-2-linux-x64.tar.gz
+$SUDO mv xpack-gcc-14.2.0-2 /opt/gcc-14
+
 $SUDO apt-get install -y \
     --allow-change-held-packages \
     --allow-downgrades \

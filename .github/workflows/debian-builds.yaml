@@ -22,11 +22,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { distro: bookworm     , image: bookworm, CC: clang-19,  CXX: clang++-19, PACKAGES: "clang-19" }
-          - { distro: bookworm     , image: bookworm, CC: gcc,       CXX: g++,        PACKAGES: "build-essential" }
-          - { distro: trixie       , image: trixie, CC: gcc,         CXX: g++,        PACKAGES: "build-essential gcc-14 g++-14 llvm-19-dev libclang-19-dev " }
-          - { distro: trixie-system, image: trixie, CC: gcc,         CXX: g++,        PACKAGES: "build-essential gcc-14 g++-14 llvm-19-dev libclang-19-dev " }
-          - { distro: trixie       , image: trixie, CC: clang-19,    CXX: clang++-19, PACKAGES: "build-essential clang-19 llvm-19-dev libclang-19-dev lld-19 " }
+          - { distro: bookworm     , image: bookworm, CC: clang-19,            CXX: clang++-19,          PACKAGES: "clang-19" }
+          - { distro: bookworm     , image: bookworm, CC: /opt/gcc-14/bin/gcc, CXX: /opt/gcc-14/bin/g++, PACKAGES: "build-essential" }
+          - { distro: trixie       , image: trixie,   CC: gcc,                 CXX: g++,                 PACKAGES: "build-essential gcc-14 g++-14 llvm-19-dev libclang-19-dev " }
+          - { distro: trixie-system, image: trixie,   CC: gcc,                 CXX: g++,                 PACKAGES: "build-essential gcc-14 g++-14 llvm-19-dev libclang-19-dev " }
+          - { distro: trixie       , image: trixie,   CC: clang-19,            CXX: clang++-19,          PACKAGES: "build-essential clang-19 llvm-19-dev libclang-19-dev lld-19 " }
     steps:
       - name: Install git
         run: |

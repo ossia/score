@@ -4,6 +4,11 @@ source ci/common.setup.sh
 
 echo 'debconf debconf/frontend select Noninteractive' | $SUDO debconf-set-selections
 
+wget -nv https://github.com/xpack-dev-tools/gcc-xpack/releases/download/v14.2.0-2/xpack-gcc-14.2.0-2-linux-x64.tar.gz
+tar xaf xpack-gcc-14.2.0-2-linux-x64.tar.gz
+rm xpack-gcc-14.2.0-2-linux-x64.tar.gz
+$SUDO mv xpack-gcc-14.2.0-2 /opt/gcc-14
+
 $SUDO apt-get update -qq
 $SUDO apt-get install -y \
     --allow-change-held-packages \
