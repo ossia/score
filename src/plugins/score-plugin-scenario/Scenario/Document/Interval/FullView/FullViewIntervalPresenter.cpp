@@ -7,6 +7,7 @@
 
 #include <Process/Dataflow/NodeItem.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
+#include <Process/ApplicationPlugin.hpp>
 #include <Process/HeaderDelegate.hpp>
 #include <Process/LayerView.hpp>
 #include <Process/ProcessContext.hpp>
@@ -349,7 +350,7 @@ void FullViewIntervalPresenter::requestSlotMenu(int slot, QPoint pos, QPointF sp
 
   auto menu = new QMenu;
   auto& reg = score::GUIAppContext()
-                  .guiApplicationPlugin<ScenarioApplicationPlugin>()
+                  .applicationPlugin<Process::ApplicationPlugin>()
                   .layerContextMenuRegistrar();
 
   slt->layers.front().fillContextMenu(*menu, pos, sp, reg);

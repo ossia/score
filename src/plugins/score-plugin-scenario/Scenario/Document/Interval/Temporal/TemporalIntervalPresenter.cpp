@@ -5,6 +5,7 @@
 #include "TemporalIntervalHeader.hpp"
 #include "TemporalIntervalView.hpp"
 
+#include <Process/ApplicationPlugin.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/LayerView.hpp>
 #include <Process/ProcessContext.hpp>
@@ -1059,7 +1060,7 @@ void TemporalIntervalPresenter::requestSlotMenu(int slot, QPoint pos, QPointF sp
       {
         auto menu = new QMenu;
         auto& reg = score::GUIAppContext()
-                        .guiApplicationPlugin<ScenarioApplicationPlugin>()
+                        .applicationPlugin<Process::ApplicationPlugin>()
                         .layerContextMenuRegistrar();
         p.fillContextMenu(*menu, pos, sp, reg);
         menu->exec(pos);

@@ -13,6 +13,7 @@
 #include <Effect/EffectLayer.hpp>
 #include <Effect/EffectPainting.hpp>
 
+#include <Process/ApplicationPlugin.hpp>
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -30,6 +31,7 @@
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
 #include <QKeyEvent>
+#include <QMenu>
 #include <QPainter>
 #include <QTimer>
 
@@ -68,7 +70,8 @@ NodeItem::NodeItem(
     , m_context{ctx}
     , m_parentDuration{parentDur}
 {
-  setAcceptedMouseButtons(Qt::LeftButton);
+  setObjectName("NodeItem");
+  setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
   setAcceptHoverEvents(true);
   setFlag(ItemIsFocusable, true);
   setFlag(ItemClipsChildrenToShape, true);
@@ -382,6 +385,20 @@ void NodeItem::createContentItem()
           if(s != m_contentSize)
             setSize(s);
         });
+          connect(m_presenter, &Process::LayerPresenter::contextMenuRequested, this, [this] (QPoint pos, QPointF sp) {
+              auto menu = new QMenu;
+              auto& reg = score::GUIAppContext()
+                              .applicationPlugin<Process::ApplicationPlugin>()
+                              .layerContextMenuRegistrar();
+
+              m_presenter->fillContextMenu(*menu, pos, sp, reg);
+              if(menu->actions().size() > 0) {
+                menu->exec(pos);
+                menu->close();
+              }
+
+              menu->deleteLater();
+          }, Qt::QueuedConnection);
       }
     }
   }
@@ -638,6 +655,7 @@ namespace
 {
 enum Interaction
 {
+  None,
   Move,
   Resize
 } nodeItemInteraction{};
@@ -647,24 +665,31 @@ bool nodeDidMove{};
 
 void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  nodeDidMove = false;
-  if(m_presenter && isInSelectionCorner(event->pos(), boundingRect()))
+  nodeItemInteraction = Interaction::None;
+  if(event->button() == Qt::LeftButton)
   {
-    nodeItemInteraction = Interaction::Resize;
-    origNodeSize = m_model.size();
+    nodeDidMove = false;
+    if(m_presenter && isInSelectionCorner(event->pos(), boundingRect()))
+    {
+      nodeItemInteraction = Interaction::Resize;
+      origNodeSize = m_model.size();
+    }
+    else
+    {
+      nodeItemInteraction = Interaction::Move;
+    }
+
+    if(m_presenter && m_model.flags() & Process::ProcessFlags::ItemRequiresUniqueFocus)
+    {
+      m_context.focusDispatcher.focus(m_presenter);
+    }
+    score::SelectionDispatcher{m_context.selectionStack}.select(m_model);
+    event->accept();
   }
   else
   {
-    nodeItemInteraction = Interaction::Move;
+    return QGraphicsItem::mousePressEvent(event);
   }
-
-  if(m_presenter && m_model.flags() & Process::ProcessFlags::ItemRequiresUniqueFocus)
-  {
-    m_context.focusDispatcher.focus(m_presenter);
-  }
-  score::SelectionDispatcher{m_context.selectionStack}.select(m_model);
-
-  event->accept();
 }
 namespace
 {
@@ -682,6 +707,9 @@ selectedProcesses(const score::DocumentContext& ctx)
 }
 void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
+  if(nodeItemInteraction == Interaction::None)
+    return QGraphicsItem::mouseMoveEvent(event);
+
   auto parent = this->parentItem();
 
   auto origp = parent->mapFromScene(event->buttonDownScenePos(Qt::LeftButton));
@@ -712,6 +740,9 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
 void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
+  if(nodeItemInteraction == Interaction::None)
+    return QGraphicsItem::mouseReleaseEvent(event);
+
   mouseMoveEvent(event);
   if(nodeDidMove)
     m_context.dispatcher.commit();

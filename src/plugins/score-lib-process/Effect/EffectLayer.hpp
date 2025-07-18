@@ -27,7 +27,7 @@ private:
   void paint_impl(QPainter*) const override;
 };
 
-class SCORE_LIB_PROCESS_EXPORT EffectLayerPresenter final
+class SCORE_LIB_PROCESS_EXPORT EffectLayerPresenter
     : public Process::LayerPresenter
 {
   W_OBJECT(EffectLayerPresenter)
@@ -45,9 +45,9 @@ public:
   void parentGeometryChanged() override;
   void fillContextMenu(
       QMenu& menu, QPoint pos, QPointF scenepos,
-      const Process::LayerContextMenuManager&) final override;
+      const Process::LayerContextMenuManager&) override;
 
-private:
+protected:
   Process::EffectLayerView* m_view{};
 };
 

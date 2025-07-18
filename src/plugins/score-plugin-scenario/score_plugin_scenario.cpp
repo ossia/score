@@ -79,6 +79,7 @@
 #include <QMetaType>
 #include <QPainterPath>
 
+#include <score_lib_process.hpp>
 #include <score_plugin_library.hpp>
 
 // #include <Interpolation/InterpolationFactory.hpp>
@@ -304,7 +305,7 @@ std::vector<score::InterfaceBase*> score_plugin_scenario::guiFactories(
 
 std::vector<score::PluginKey> score_plugin_scenario::required() const
 {
-  return {score_plugin_library::static_key()};
+  return {score_lib_process::static_key(), score_plugin_library::static_key()};
 }
 
 #include <score/plugins/PluginInstances.hpp>

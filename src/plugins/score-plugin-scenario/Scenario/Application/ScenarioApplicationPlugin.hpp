@@ -57,15 +57,6 @@ public:
   Scenario::EditionSettings& editionSettings() { return m_editionSettings; }
 
   Process::ProcessFocusManager* processFocusManager() const;
-  Process::LayerContextMenuManager& layerContextMenuRegistrar()
-  {
-    return m_layerCtxMenuManager;
-  }
-  const Process::LayerContextMenuManager& layerContextMenuRegistrar() const
-  {
-    return m_layerCtxMenuManager;
-  }
-
   Scenario::ScenarioExecution& execution() { return m_execution; }
 
   TransportActions& transportActions() { return m_transportActions; };
@@ -90,7 +81,6 @@ private:
       m_contextMenuConnection, m_keyPressConnection, m_keyReleaseConnection;
 
   Scenario::EditionSettings m_editionSettings;
-  Process::LayerContextMenuManager m_layerCtxMenuManager;
   ScenarioExecution m_execution;
 
   ObjectMenuActions m_objectActions{this};

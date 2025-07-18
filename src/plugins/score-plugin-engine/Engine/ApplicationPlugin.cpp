@@ -22,6 +22,7 @@
 #include <score/widgets/SetIcons.hpp>
 #include <score/widgets/TimeSpinBox.hpp>
 
+#include <Process/ApplicationPlugin.hpp>
 #include <core/application/ApplicationInterface.hpp>
 #include <core/application/ApplicationSettings.hpp>
 #include <core/presenter/DocumentManager.hpp>
@@ -45,7 +46,8 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
 {
   if(ctx.applicationSettings.gui)
   {
-    auto& ctrl = ctx.guiApplicationPlugin<Scenario::ScenarioApplicationPlugin>();
+    auto& ctrl = ctx
+            .applicationPlugin<Process::ApplicationPlugin>();
     m_playActions.setupContextMenu(ctrl.layerContextMenuRegistrar());
   }
 }

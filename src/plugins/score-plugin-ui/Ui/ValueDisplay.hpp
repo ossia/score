@@ -4,11 +4,15 @@
 #include <Effect/EffectLayer.hpp>
 #include <Effect/EffectLayout.hpp>
 
+#include <score/application/ApplicationContext.hpp>
 #include <score/model/Skin.hpp>
 
 #include <ossia/network/value/format_value.hpp>
 
 #include <QPainter>
+#include <QMenu>
+#include <QClipboard>
+#include <QApplication>
 
 #include <halp/controls.hpp>
 #include <halp/meta.hpp>
@@ -82,6 +86,21 @@ struct Node
 
       p->setRenderHint(QPainter::Antialiasing, false);
     }
+  };
+
+  struct Presenter : public Process::EffectLayerPresenter
+  {
+      using Process::EffectLayerPresenter::EffectLayerPresenter;
+      void fillContextMenu(
+          QMenu& menu, QPoint pos, QPointF scenepos,
+          const Process::LayerContextMenuManager& ) override
+      {
+        auto cp = menu.addAction(tr("Copy value"));
+        connect(cp, &QAction::triggered, this, [this] {
+            auto& v = static_cast<Layer*>(this->m_view)->m_value;
+            qApp->clipboard()->setText(QString::fromStdString(fmt::format("{}", v)));
+        });
+      }
   };
 };
 }

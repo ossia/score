@@ -7,6 +7,7 @@
 #include <Process/Dataflow/PortItem.hpp>
 #include <Process/DocumentPlugin.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
+#include <Process/ApplicationPlugin.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/Process.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
@@ -112,7 +113,8 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
 
   if(context.applicationSettings.gui)
   {
-    m_objectActions.setupContextMenu(m_layerCtxMenuManager);
+    auto& proc = context.applicationPlugin<Process::ApplicationPlugin>();
+    m_objectActions.setupContextMenu(proc.m_layerCtxMenuManager);
 
     {
       // Dataflow
@@ -323,8 +325,9 @@ void ScenarioApplicationPlugin::on_presenterFocused(Process::LayerPresenter* pre
     m_contextMenuConnection = QObject::connect(
         pres, &Process::LayerPresenter::contextMenuRequested, this,
         [this, pres](const QPoint& pos, const QPointF& pt2) {
+      auto& proc = context.applicationPlugin<Process::ApplicationPlugin>();
       QMenu menu(qApp->activeWindow());
-      pres->fillContextMenu(menu, pos, pt2, m_layerCtxMenuManager);
+      pres->fillContextMenu(menu, pos, pt2, proc.m_layerCtxMenuManager);
       menu.exec(pos);
       menu.close();
         });

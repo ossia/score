@@ -46,7 +46,11 @@ private:
       const Process::Context& context, QObject* parent) const final override
   {
     auto view = static_cast<typename T::Layer*>(v);
-    return new Process::EffectLayerPresenter{lm, view, context, parent};
+    if constexpr(requires { sizeof(typename T::Presenter); }) {
+      return new T::Presenter{lm, view, context, parent};
+    } else {
+      return new Process::EffectLayerPresenter{lm, view, context, parent};
+    }
   }
 
   score::ResizeableItem* makeItem(
