@@ -60,11 +60,13 @@ static void loadCMakeAddon(const QString& addon, AddonData& data, QString cm)
       R"_(target_compile_definitions\(\s*[[:graph:]]+\s*[[:graph:]]+([a-zA-Z0-9_"= ]+)\))_"};
   static const QRegularExpression includes{
       R"_(target_include_directories\(\s*[[:graph:]]+\s*[[:graph:]]+([a-zA-Z0-9_\/ ]+)\))_"};
+  static const QRegularExpression avnd{
+      R"_(avnd_score_plugin_add\(([a-zA-Z0-9_\/.\n ]+)\))_"};
 
   auto files = sourceFiles.globalMatch(cm);
   auto defs = definitions.globalMatch(cm);
   auto incs = includes.globalMatch(cm);
-
+  auto avnds = avnd.globalMatch(cm);
   while(files.hasNext())
   {
     auto m = files.next();
