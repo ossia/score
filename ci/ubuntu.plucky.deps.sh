@@ -23,7 +23,7 @@ $SUDO apt-get install -y \
      libqt6opengl6-dev \
      libqt6websockets6-dev \
      qt6-serialport-dev \
-     libqt6shadertools6-dev \
+     qt6-shadertools-dev \
      libbluetooth-dev libsdl2-dev libsdl2-2.0-0 \
      libglu1-mesa-dev libglu1-mesa libgles2-mesa-dev \
      libavahi-compat-libdnssd-dev libsamplerate0-dev \
