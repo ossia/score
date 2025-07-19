@@ -2,7 +2,9 @@
 #include <score/tools/std/Optional.hpp>
 
 #include <QPointer>
-
+#if __cplusplus > 202302L
+#include <QObject>
+#endif
 #include <type_traits>
 
 namespace score
