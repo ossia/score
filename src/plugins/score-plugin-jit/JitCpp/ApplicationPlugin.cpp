@@ -26,6 +26,7 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
 
   {
     // Command-line option parsing
+    // This part is only used for testing nodes on CI
     QCommandLineParser parser;
 
     QCommandLineOption compile_node(
@@ -43,26 +44,27 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
 
     if((!node_to_compile.isEmpty() || !addon_to_compile.isEmpty()))
     {
-      qDebug() << node_to_compile << addon_to_compile;
       if(QFile::exists(node_to_compile))
       {
         con(m_compiler, &AddonCompiler::jobCompleted, this, [this](auto addon) {
           registerAddon(addon);
-          exit(0);
+          QTimer::singleShot(1000, qApp, &QCoreApplication::quit);
         });
 
-        setupNode(node_to_compile);
+        if(!setupNode(node_to_compile))
+          exit(1);
       }
       else if(QFile::exists(addon_to_compile))
       {
         con(m_compiler, &AddonCompiler::jobCompleted, this, [this](auto addon) {
           registerAddon(addon);
-          qApp->exit(0);
+          QTimer::singleShot(1000, qApp, &QCoreApplication::quit);
         });
 
-        setupAddon(addon_to_compile);
+        if(!setupAddon(addon_to_compile))
+          exit(1);
       }
-      con(m_compiler, &AddonCompiler::jobFailed, this, [] { qApp->exit(1); });
+      con(m_compiler, &AddonCompiler::jobFailed, this, [] { exit(1); });
     }
     else
     {
@@ -141,20 +143,20 @@ void ApplicationPlugin::registerAddon(score::Plugin_QtInterface* p)
   qDebug() << "JIT addon registered" << p;
 }
 
-void ApplicationPlugin::setupAddon(const QString& addon)
+bool ApplicationPlugin::setupAddon(const QString& addon)
 {
   qDebug() << "Registering JIT addon" << addon;
   QFileInfo addonInfo{addon};
   auto addonFolderName = addonInfo.fileName();
   if(addonFolderName == "Nodes")
-    return;
+    return false;
 
   auto [json, cpp_files, files, flags] = loadAddon(addon);
 
   if(cpp_files.empty())
   {
     qDebug() << "Add-on has no cpp files";
-    return;
+    return false;
   }
 
   auto addon_files_path = generateAddonFiles(addonFolderName, addon, files);
@@ -169,9 +171,10 @@ void ApplicationPlugin::setupAddon(const QString& addon)
 
   qDebug() << "Submittin JIT addon build job";
   m_compiler.submitJob(id, cpp_files, flags, CompilerOptions{false});
+  return true;
 }
 
-void ApplicationPlugin::setupNode(const QString& f)
+bool ApplicationPlugin::setupNode(const QString& f)
 {
   QFileInfo fi{f};
   if(fi.suffix() == "hpp" || fi.suffix() == "cpp")
@@ -182,15 +185,15 @@ void ApplicationPlugin::setupNode(const QString& f)
       constexpr auto make_uuid_s = "make_uuid";
       auto make_uuid = node.indexOf(make_uuid_s);
       if(make_uuid == -1)
-        return;
+        return false;
       int umin = node.indexOf('"', make_uuid + 9);
       if(umin == -1)
-        return;
+        return false;
       int umax = node.indexOf('"', umin + 1);
       if(umax == -1)
-        return;
+        return false;
       if((umax - umin) != 37)
-        return;
+        return false;
       auto uuid = QString{node.mid(umin + 1, 36)};
       uuid.remove(QChar('-'));
 
@@ -204,8 +207,10 @@ void ApplicationPlugin::setupNode(const QString& f)
       qDebug() << "Registering JIT node" << f;
       m_compiler.submitJob(
           uuid.toStdString(), node.toStdString(), {}, CompilerOptions{false});
+      return true;
     }
   }
+  return false;
 }
 
 void ApplicationPlugin::updateAddon(const QString& f)

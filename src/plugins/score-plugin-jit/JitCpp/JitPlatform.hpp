@@ -149,7 +149,7 @@ populateCompileOptions(std::vector<std::string>& args, CompilerOptions opts)
     }
   }
 
-  args.push_back("-std=c++2b");
+  args.push_back("-std=c++23");
   args.push_back("-disable-free");
   args.push_back("-fdeprecated-macro");
   args.push_back("-fmath-errno");
@@ -211,7 +211,7 @@ populateCompileOptions(std::vector<std::string>& args, CompilerOptions opts)
 
   // // tls:
   args.push_back("-ftls-model=local-exec");
-  // args.push_back("-fno-emulated-tls");
+  args.push_back("-femulated-tls");
 
   // if fsanitize:
   args.push_back("-mrelax-all");
@@ -290,18 +290,6 @@ static inline void populateDefinitions(std::vector<std::string>& args)
   args.push_back("-DQT_WIDGETS_LIB");
   args.push_back("-DQT_XML_LIB");
   args.push_back("-DRAPIDJSON_HAS_STDSTRING=1");
-
-  // TLS apparently not yet well supported by lljit :
-  // - undefined references to ___emutls_add_address
-  // - MachO TLV relocations not yet supported
-#if __APPLE__
-  args.push_back("-DSPDLOG_NO_TLS=1");
-  args.push_back("-DMOODYCAMEL_NO_THREAD_LOCAL=1");
-
-  args.push_back("-D__thread=__do_not_use_thread_local__");
-  args.push_back("-Dthread_local=__do_not_use_thread_local__");
-  args.push_back("-D_Thread_local=__do_not_use_thread_local__");
-#endif
 
 #if defined(SCORE_DEBUG)
   args.push_back("-DSCORE_DEBUG");
@@ -541,15 +529,19 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
   ///build/score.AppDir/usr/include/
 
   auto include = [&](const std::string& path) {
-    args.push_back("-I" + sdk + "/include/" + path);
+    args.push_back("-isystem" + sdk + "/include/" + path);
   };
 
 #if defined(__linux__)
   include("x86_64-linux-gnu"); // #debian
 #endif
   // include(""); // /usr/include
+  std::string qt_folder = "qt";
+  if(QFile::exists(qsdk + "/include/qt6/QtCore"))
+    qt_folder = "qt6";
+
   QDirIterator qtVersionFolder{
-      qsdk + "/include/qt/QtCore",
+      qsdk + "/include/" + QString::fromStdString(qt_folder) + "/QtCore",
       {},
       QDir::Filter::Dirs | QDir::Filter::NoDotAndDotDot,
       {}};
@@ -559,29 +551,29 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
     QDir sub = qtVersionFolder.next();
     qt_version = sub.dirName().toStdString();
   }
-  include("qt");
-  include("qt/QtCore");
-  include("qt/QtCore/" + qt_version);
-  include("qt/QtCore/" + qt_version + "/QtCore");
-  include("qt/QtGui");
-  include("qt/QtGui/" + qt_version);
-  include("qt/QtGui/" + qt_version + "/QtGui");
-  include("qt/QtWidgets");
-  include("qt/QtWidgets/" + qt_version);
-  include("qt/QtWidgets/" + qt_version + "/QtWidgets");
-  include("qt/QtQml");
-  include("qt/QtQml/" + qt_version);
-  include("qt/QtQml/" + qt_version + "/QtQml");
-  include("qt/QtXml");
-  include("qt/QtNetwork");
-  include("qt/QtSvg");
-  include("qt/QtSql");
-  include("qt/QtOpenGL");
-  include("qt/QtShaderTools");
-  include("qt/QtShaderTools/" + qt_version);
-  include("qt/QtShaderTools/" + qt_version + "/QtShaderTools");
-  include("qt/QtSerialBus");
-  include("qt/QtSerialPort");
+  include(qt_folder + "");
+  include(qt_folder + "/QtCore");
+  include(qt_folder + "/QtCore/" + qt_version);
+  include(qt_folder + "/QtCore/" + qt_version + "/QtCore");
+  include(qt_folder + "/QtGui");
+  include(qt_folder + "/QtGui/" + qt_version);
+  include(qt_folder + "/QtGui/" + qt_version + "/QtGui");
+  include(qt_folder + "/QtWidgets");
+  include(qt_folder + "/QtWidgets/" + qt_version);
+  include(qt_folder + "/QtWidgets/" + qt_version + "/QtWidgets");
+  include(qt_folder + "/QtQml");
+  include(qt_folder + "/QtQml/" + qt_version);
+  include(qt_folder + "/QtQml/" + qt_version + "/QtQml");
+  include(qt_folder + "/QtXml");
+  include(qt_folder + "/QtNetwork");
+  include(qt_folder + "/QtSvg");
+  include(qt_folder + "/QtSql");
+  include(qt_folder + "/QtOpenGL");
+  include(qt_folder + "/QtShaderTools");
+  include(qt_folder + "/QtShaderTools/" + qt_version);
+  include(qt_folder + "/QtShaderTools/" + qt_version + "/QtShaderTools");
+  include(qt_folder + "/QtSerialBus");
+  include(qt_folder + "/QtSerialPort");
 
 #if !SCORE_FHS_BUILD
   bool deploying = true;
@@ -595,28 +587,35 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
   }
   else
   {
+    auto thirdparty_include_dirs = {
+        "/3rdparty/libossia/3rdparty/boost_1_88_0",
+        "/3rdparty/libossia/3rdparty/nano-signal-slot/include",
+        "/3rdparty/libossia/3rdparty/spdlog/include",
+        "/3rdparty/libossia/3rdparty/dr_libs",
+        "/3rdparty/libossia/3rdparty/Flicks",
+        "/3rdparty/libossia/3rdparty/fmt/include",
+        "/3rdparty/libossia/3rdparty/magic_enum/include",
+        "/3rdparty/libossia/3rdparty/readerwriterqueue",
+        "/3rdparty/libossia/3rdparty/concurrentqueue",
+        "/3rdparty/libossia/3rdparty/SmallFunction/smallfun/include",
+        "/3rdparty/libossia/3rdparty/websocketpp",
+        "/3rdparty/libossia/3rdparty/rapidjson/include",
+        "/3rdparty/libossia/3rdparty/libremidi/include",
+        "/3rdparty/libossia/3rdparty/oscpack",
+        "/3rdparty/libossia/3rdparty/rnd/include",
+        "/3rdparty/libossia/3rdparty/span/include",
+        "/3rdparty/libossia/3rdparty/tuplet/include",
+        "/3rdparty/libossia/3rdparty/unordered_dense/include",
+        "/3rdparty/libossia/3rdparty/multi_index/include",
+        "/3rdparty/libossia/3rdparty/verdigris/src",
+        "/3rdparty/libossia/3rdparty/weakjack",
+    };
+    for(auto path : thirdparty_include_dirs)
+    {
+      args.push_back("-isystem" + std::string(SCORE_ROOT_SOURCE_DIR) + path);
+    }
     auto src_include_dirs
         = {"/3rdparty/libossia/src",
-           "/3rdparty/libossia/3rdparty/boost_1_82_0",
-           "/3rdparty/libossia/3rdparty/nano-signal-slot/include",
-           "/3rdparty/libossia/3rdparty/spdlog/include",
-           "/3rdparty/libossia/3rdparty/brigand/include",
-           "/3rdparty/libossia/3rdparty/Flicks",
-           "/3rdparty/libossia/3rdparty/fmt/include",
-           "/3rdparty/libossia/3rdparty/readerwriterqueue",
-           "/3rdparty/libossia/3rdparty/concurrentqueue",
-           "/3rdparty/libossia/3rdparty/SmallFunction/smallfun/include",
-           "/3rdparty/libossia/3rdparty/websocketpp",
-           "/3rdparty/libossia/3rdparty/rapidjson/include",
-           "/3rdparty/libossia/3rdparty/libremidi/include",
-           "/3rdparty/libossia/3rdparty/oscpack",
-           "/3rdparty/libossia/3rdparty/rnd/include",
-           "/3rdparty/libossia/3rdparty/span/include",
-           "/3rdparty/libossia/3rdparty/tuplet/include",
-           "/3rdparty/libossia/3rdparty/unordered_dense/include",
-           "/3rdparty/libossia/3rdparty/multi_index/include",
-           "/3rdparty/libossia/3rdparty/verdigris/src",
-           "/3rdparty/libossia/3rdparty/weakjack",
            "/3rdparty/avendish/include",
            "/src/lib",
            "/src/plugins/score-lib-state",

@@ -16,11 +16,11 @@ struct ApplicationPlugin final
 {
   ApplicationPlugin(const score::GUIApplicationContext& ctx);
 
-  void setupAddon(const QString& addon);
+  bool setupAddon(const QString& addon);
   void registerAddon(score::Plugin_QtInterface*);
   void updateAddon(const QString& addon);
 
-  void setupNode(const QString& addon);
+  bool setupNode(const QString& addon);
   void initialize() override;
 
   void rescanAddons();
