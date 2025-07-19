@@ -36,7 +36,12 @@ jobs:
           mkdir configure
           mkdir docs/Doxygen/headers
           cd configure
-          cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_C_COMPILER=/usr/bin/clang-19 -DCMAKE_CXX_COMPILER=/usr/bin/clang++-19
+          cmake .. \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=1 \
+            -DCMAKE_C_COMPILER=/usr/bin/clang-19 \
+            -DCMAKE_CXX_COMPILER=/usr/bin/clang++-19
+
           find . -name '*.h' -exec mv {} ../docs/Doxygen/headers/ \;
           find . -name '*.hpp' -exec mv {} ../docs/Doxygen/headers/ \;
 

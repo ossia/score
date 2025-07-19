@@ -29,11 +29,15 @@ $SUDO apt-get install -y \
      libavahi-compat-libdnssd-dev libsamplerate0-dev \
      portaudio19-dev \
      libpipewire-0.3-dev \
-     libclang-dev llvm-dev \
+     libclang-19-dev llvm-19-dev \
      libvulkan-dev \
      libavcodec-dev libavdevice-dev libavutil-dev libavfilter-dev libavformat-dev libswresample-dev \
      file \
      dpkg-dev \
      lsb-release
+
+# needed because GCC does not support -fuse-ld=lld-19
+ln -s /usr/bin/lld-19 /usr/bin/lld
+ln -s /usr/bin/ld.lld-19 /usr/bin/ld.lld
 
 source ci/common.deps.sh
