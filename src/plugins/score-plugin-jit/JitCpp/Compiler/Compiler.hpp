@@ -3,6 +3,7 @@
 
 #include <QDebug>
 
+#include <llvm/ExecutionEngine/JITLink/JITLink.h>
 #include <llvm/ExecutionEngine/Orc/ExecutionUtils.h>
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
 #include <llvm/ExecutionEngine/Orc/ThreadSafeModule.h>
@@ -43,13 +44,11 @@ public:
   {
     return m_errors;
   }
-
-private:
+  std::unique_ptr<llvm::jitlink::InProcessMemoryManager> m_memmgr;
   ClangCC1Driver m_driver;
   std::unique_ptr<llvm::orc::LLJIT> m_jit;
 
   llvm::orc::MangleAndInterner m_mangler;
-  llvm::orc::LocalCXXRuntimeOverrides m_overrides;
 
   QString m_errors;
 
