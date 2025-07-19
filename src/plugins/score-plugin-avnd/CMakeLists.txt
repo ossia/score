@@ -553,6 +553,15 @@ avnd_make_score(
 )
 
 avnd_make_score(
+  SOURCES
+    "${AVND_FOLDER}/examples/Ports/BarrVerb/BarrVerb.hpp"
+    "${AVND_FOLDER}/examples/Ports/BarrVerb/rom.h"
+  TARGET barrverb
+  MAIN_CLASS BarrVerb
+  NAMESPACE ao
+)
+
+avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Advanced/Patternal/Patternal.hpp"
   TARGET patternal
   MAIN_CLASS Processor
