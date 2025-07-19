@@ -62,11 +62,16 @@ static void loadCMakeAddon(const QString& addon, AddonData& data, QString cm)
       R"_(target_include_directories\(\s*[[:graph:]]+\s*[[:graph:]]+([a-zA-Z0-9_\/ ]+)\))_"};
   static const QRegularExpression avnd{
       R"_(avnd_score_plugin_add\(([a-zA-Z0-9_\/.\n ]+)\))_"};
+  static const QRegularExpression avnd_finalize{
+      R"_(avnd_score_plugin_finalize\(([a-zA-Z0-9_\/.\n" -]+)\))_"};
 
+  auto avnds = avnd.globalMatch(cm);
+  auto avnd_finalizes = avnd_finalize.globalMatch(cm);
+
+  // Process classic CMake libraries
   auto files = sourceFiles.globalMatch(cm);
   auto defs = definitions.globalMatch(cm);
   auto incs = includes.globalMatch(cm);
-  auto avnds = avnd.globalMatch(cm);
   while(files.hasNext())
   {
     auto m = files.next();
@@ -105,6 +110,212 @@ static void loadCMakeAddon(const QString& addon, AddonData& data, QString cm)
     {
       data.flags.push_back(QString{R"_(-I%1/%2)_"}.arg(addon).arg(path).toStdString());
     }
+  }
+
+  // Process avendish wrappers
+  struct avnd_plugin
+  {
+    QString base_target;
+    QString main_class;
+    QString target;
+    QString avnd_namespace;
+    struct source_file
+    {
+      QString path;
+      QString filename;
+      QString file;
+    };
+    std::vector<source_file> files;
+  };
+
+  struct avnd_plugin_group
+  {
+    QString base_target;
+    QString version;
+    QString uuid;
+    std::vector<avnd_plugin> plugins;
+  };
+
+  std::vector<avnd_plugin_group> groups;
+  qDebug() << "Found avnd finalize? " << avnd_finalizes.hasNext();
+  while(avnd_finalizes.hasNext())
+  {
+    auto m = avnd_finalizes.next();
+    auto res = m.captured(1).replace('\n', ' ').split(space, Qt::SkipEmptyParts);
+    qDebug() << res;
+    avnd_plugin_group plug;
+    for(auto it = res.begin(); it != res.end(); ++it)
+    {
+      if(*it == "BASE_TARGET")
+      {
+        ++it;
+        if(it != res.end())
+          plug.base_target = *it;
+      }
+      else if(*it == "PLUGIN_VERSION")
+      {
+        ++it;
+        if(it != res.end())
+          plug.version = *it;
+      }
+      else if(*it == "PLUGIN_UUID")
+      {
+        ++it;
+        if(it != res.end())
+          plug.uuid = *it;
+      }
+    }
+
+    if(!plug.base_target.isEmpty())
+      groups.push_back(std::move(plug));
+  }
+
+  while(avnds.hasNext())
+  {
+    auto m = avnds.next();
+    auto res = m.captured(1).replace('\n', ' ').split(space, Qt::SkipEmptyParts);
+    avnd_plugin plug;
+    for(auto it = res.begin(); it != res.end(); ++it)
+    {
+      if(*it == "BASE_TARGET")
+      {
+        ++it;
+        if(it != res.end())
+          plug.base_target = *it;
+      }
+      else if(*it == "SOURCES")
+      {
+        ++it;
+        while(it != res.end() && QFile::exists(QString{"%1/%2"}.arg(addon).arg(*it)))
+        {
+          avnd_plugin::source_file sf;
+          sf.filename = QString{"%1/%2"}.arg(addon).arg(*it);
+          sf.path = QString{"#include \"%1/%2\"\n"}.arg(addon).arg(*it);
+
+          QFile f{sf.filename};
+          if(f.open(QIODevice::ReadOnly))
+          {
+            sf.file = score::readFileAsQString(f);
+            data.files.push_back({sf.filename, sf.file});
+            data.unity_cpp.append(sf.path.toStdString());
+            plug.files.push_back(std::move(sf));
+          }
+          ++it;
+        }
+
+        --it;
+      }
+      else if(*it == "MAIN_CLASS")
+      {
+        ++it;
+        if(it != res.end())
+          plug.main_class = *it;
+      }
+      else if(*it == "TARGET")
+      {
+        ++it;
+        if(it != res.end())
+          plug.target = *it;
+      }
+      else if(*it == "NAMESPACE")
+      {
+        ++it;
+        if(it != res.end())
+          plug.avnd_namespace = *it;
+      }
+    }
+
+    if(plug.files.empty())
+    {
+      qDebug() << "no files found";
+      return;
+    }
+
+    for(auto& gp : groups)
+    {
+      if(plug.base_target == gp.base_target)
+        gp.plugins.push_back(std::move(plug));
+    }
+  }
+
+  for(auto& gp : groups)
+  {
+    auto avnd_plugin_version = gp.version.toUtf8();
+    auto avnd_plugin_uuid = gp.uuid.toUtf8();
+    avnd_plugin_uuid.removeIf([](char c) { return c == '"'; });
+    auto avnd_base_target = gp.base_target.toUtf8();
+
+    QFile proto_file = QFile(
+        "/home/jcelerier/ossia/score/src/plugins/score-plugin-avnd/"
+        "prototype.cpp.in");
+    proto_file.open(QIODevice::ReadOnly);
+    auto proto = proto_file.readAll();
+
+    QFile cpp_proto_file = QFile(
+        "/home/jcelerier/ossia/score/src/plugins/score-plugin-avnd/"
+        "plugin_prototype.cpp.in");
+    cpp_proto_file.open(QIODevice::ReadOnly);
+    auto cpp_proto = cpp_proto_file.readAll();
+
+    QFile hpp_proto_file = QFile(
+        "/home/jcelerier/ossia/score/src/plugins/score-plugin-avnd/"
+        "plugin_prototype.hpp.in");
+    hpp_proto_file.open(QIODevice::ReadOnly);
+    auto hpp_proto = hpp_proto_file.readAll();
+
+    QByteArray cpp_proto_replaced = cpp_proto;
+    cpp_proto_replaced.replace(R"_(#include "@AVND_BASE_TARGET@.hpp")_", "");
+    QByteArray hpp_proto_replaced = hpp_proto;
+
+    QString avnd_additional_classes;
+    QString avnd_custom_factories;
+    QByteArray protos;
+    for(auto& plug : gp.plugins)
+    {
+      QByteArray proto_replaced = proto;
+      proto_replaced.replace(R"_(#cmakedefine AVND_REFLECTION_HELPERS)_", "");
+      auto avnd_main_file = plug.files[0].filename.toUtf8();
+      auto avnd_qualified = (plug.avnd_namespace + "::" + plug.main_class).toUtf8();
+      proto_replaced.replace("@AVND_MAIN_FILE@", avnd_main_file);
+      proto_replaced.replace("@AVND_QUALIFIED@", avnd_qualified);
+      proto_replaced.replace("@AVND_BASE_TARGET@", avnd_base_target);
+      if(!plug.avnd_namespace.isEmpty())
+      {
+        avnd_additional_classes.append(QString("namespace %1 { struct %2; }\n")
+                                           .arg(plug.avnd_namespace)
+                                           .arg(plug.main_class)
+                                           .toUtf8());
+        avnd_custom_factories.append(
+            QString("::oscr::custom_factories<%1>(fx, ctx, key); \n")
+                .arg(avnd_qualified)
+                .toUtf8());
+      }
+      else
+      {
+        avnd_additional_classes.append(
+            QString("struct %1; \n").arg(plug.main_class).toUtf8());
+        avnd_custom_factories.append(
+            QString("::oscr::custom_factories<%1>(fx, ctx, key); \n")
+                .arg(plug.main_class)
+                .toUtf8());
+      }
+      protos.append(proto_replaced);
+    }
+    for(QByteArray& f : {std::ref(cpp_proto_replaced), std::ref(hpp_proto_replaced)})
+    {
+      f.replace("@AVND_PLUGIN_VERSION@", avnd_plugin_version);
+      f.replace("@AVND_PLUGIN_UUID@", avnd_plugin_uuid);
+      f.replace("@AVND_BASE_TARGET@", avnd_base_target);
+      f.replace("@AVND_ADDITIONAL_CLASSES@", avnd_additional_classes.toUtf8());
+      f.replace("@AVND_CUSTOM_FACTORIES@", avnd_custom_factories.toUtf8());
+    }
+
+    data.unity_cpp.append(hpp_proto_replaced);
+    data.unity_cpp.append(protos);
+    data.unity_cpp.append(cpp_proto_replaced);
+
+    qDebug().noquote().nospace() << "===============================================\n"
+                                 << data.unity_cpp.data();
   }
 }
 
