@@ -21,7 +21,7 @@ jobs:
       matrix:
         include:
           - { deploy: true , distro: ubuntu.jammy,  image: jammy, CC: /opt/gcc-14/bin/gcc, CXX: /opt/gcc-14/bin/g++, LDFLAGS: "" }
-          - { deploy: false, distro: ubuntu.jammy,  image: jammy, CC: clang-14,            CXX: clang++-14,          LDFLAGS: "-fuse-ld=lld-20" }
+          - { deploy: false, distro: ubuntu.jammy,  image: jammy, CC: clang-20,            CXX: clang++-20,          LDFLAGS: "-fuse-ld=lld-20" }
           - { deploy: true,  distro: ubuntu.noble,  image: noble, CC: gcc-14,              CXX: g++-14,              LDFLAGS: "-fuse-ld=lld" }
           - { deploy: false, distro: ubuntu.noble,  image: noble, CC: clang-19,            CXX: clang++-19,          LDFLAGS: "-fuse-ld=lld-19" }
           - { deploy: true,  distro: ubuntu.plucky, image: plucky, CC: gcc,                CXX: g++,                 LDFLAGS: "-fuse-ld=lld" }
