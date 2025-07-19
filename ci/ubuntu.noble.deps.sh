@@ -37,7 +37,9 @@ $SUDO apt-get install -y \
      lsb-release
 
 # needed because GCC does not support -fuse-ld=lld-19
-ln -s /usr/bin/lld-19 /usr/bin/lld
-ln -s /usr/bin/ld.lld-19 /usr/bin/ld.lld
+$SUDO rm /usr/bin/lld /usr/bin/ld.lld
+
+$SUDO ln -s /usr/bin/lld-19 /usr/bin/lld
+$SUDO ln -s /usr/bin/ld.lld-19 /usr/bin/ld.lld
 
 source ci/common.deps.sh
