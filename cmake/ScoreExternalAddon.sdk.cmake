@@ -1,3 +1,12 @@
+set(CMAKE_MODULE_PATH
+    "${CMAKE_MODULE_PATH}"
+    "${SCORE_SDK}"
+    "${SCORE_SDK}/lib"
+    "${SCORE_SDK}/lib/cmake"
+    "${SCORE_SDK}/lib/cmake/ossia"
+    "${SCORE_SDK}/lib/cmake/score"
+)
+
 # Useful variables
 set(SCORE_AVND_SOURCE_DIR "${SCORE_SDK}/lib/cmake/score")
 
@@ -139,7 +148,7 @@ target_compile_definitions(score_lib_base INTERFACE
   QT_STATIC=1
 )
 
-include(ScoreFunctions.cmake)
+include(ScoreFunctions)
 
 function(setup_score_plugin PluginName)
   set_target_properties(${PluginName} PROPERTIES
