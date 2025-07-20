@@ -11,6 +11,11 @@ if(NOT X11_FOUND)
   return()
 endif()
 
+file(
+  GENERATE
+  OUTPUT "include/suil-0/suil/suil.h"
+  INPUT "${3RDPARTY_FOLDER}/suil/include/suil/suil.h")
+
 set(Suil_INCLUDE_DIR "${3RDPARTY_FOLDER}/suil/include")
 
 add_library(Suil SHARED "${3RDPARTY_FOLDER}/suil/src/host.c"
@@ -30,16 +35,23 @@ target_include_directories(
   PUBLIC "${Suil_INCLUDE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/include"
   PRIVATE "${3RDPARTY_FOLDER}/suil/src" "${LV2_PATH}")
 
-add_library(suil_x11_in_qt6 MODULE "${3RDPARTY_FOLDER}/suil/src/x11.c"
-                                   "${3RDPARTY_FOLDER}/suil/src/x11_in_qt.cpp")
-set_target_properties(
-  suil_x11_in_qt6 PROPERTIES LIBRARY_OUTPUT_DIRECTORY
-                             "${CMAKE_BINARY_DIR}/lib/suil-0")
+# suil_x11
+add_library(suil_x11 MODULE "${3RDPARTY_FOLDER}/suil/src/x11.c")
 
-file(
-  GENERATE
-  OUTPUT "include/suil-0/suil/suil.h"
-  INPUT "${3RDPARTY_FOLDER}/suil/include/suil/suil.h")
+set_target_properties(suil_x11 PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/suil-0"
+)
+
+target_include_directories(suil_x11
+                           PRIVATE "${3RDPARTY_FOLDER}/suil/src" "${LV2_PATH}")
+
+target_link_libraries(suil_x11 PRIVATE Suil X11::X11)
+
+# suil_x11_in_qt6
+add_library(suil_x11_in_qt6 MODULE "${3RDPARTY_FOLDER}/suil/src/x11_in_qt.cpp")
+set_target_properties(suil_x11_in_qt6 PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/suil-0"
+)
 
 target_include_directories(suil_x11_in_qt6
                            PRIVATE "${3RDPARTY_FOLDER}/suil/src" "${LV2_PATH}")

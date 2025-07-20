@@ -163,7 +163,7 @@ void ApplicationPlugin::unregisterRunningVST(Model* m)
 static const QString& vstPuppetPath()
 {
   static const QString path = []() -> QString {
-    auto app = qApp->applicationDirPath();
+    auto app = QCoreApplication::instance()->applicationDirPath();
 #if defined(__APPLE__)
     auto bundle_path
         = "/ossia-score-vstpuppet.app/Contents/MacOS/"

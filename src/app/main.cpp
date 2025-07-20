@@ -177,8 +177,8 @@ static void setup_gpu()
 static void setup_x11(int argc, char** argv)
 {
 #if defined(__linux__)
-  static const bool x11 = !qgetenv("DISPLAY").isEmpty();
-  static const bool wayland = !qgetenv("WAYLAND_DISPLAY").isEmpty();
+  static const bool x11 = !qEnvironmentVariableIsEmpty("DISPLAY");
+  static const bool wayland = !qEnvironmentVariableIsEmpty("WAYLAND_DISPLAY");
   const auto platform = qgetenv("QT_QPA_PLATFORM");
   const auto platform_in_args = std::any_of(argv, argv + argc, [](std::string_view str) {
     return str == "-platform" || str == "--platform";
@@ -241,42 +241,64 @@ using suil_init_t = void (*)(int* argc, char*** argv, SuilArg key, ...);
 static void setup_suil()
 {
 #if defined(__linux__)
+  if(qEnvironmentVariableIsSet("SCORE_DISABLE_AUDIOPLUGINS"))
+    return;
+  if(qEnvironmentVariableIsSet("SCORE_DISABLE_LV2"))
+    return;
+  if(!helper_dylibs.run_under_x11)
+    return;
+
+  auto path = ossia::get_exe_folder();
+  if(path.ends_with("/bin"))
+    path.resize(path.size() - 4);
+
   // 1. In the appimage case we have to tell suil that libsuil_x11_in_qt6.so is
   // nrelative to the executable
-  if(qEnvironmentVariableIsEmpty("SUIL_MODULE_DIR"))
+  if(qEnvironmentVariableIsEmpty("SUIL_MODULE_DIR") && !path.empty())
   {
-    auto path = ossia::get_exe_folder();
-    if(path.empty())
-      return;
-
-    if(path.ends_with("/bin"))
-      path.resize(path.size() - 3);
-
-    path += "/lib/suil-0";
-    if(QDir{}.exists(QString::fromStdString(path)))
+    auto suil_module_dir = path + "/lib/suil-0";
+    if(QDir{}.exists(QString::fromStdString(suil_module_dir)))
     {
-      qputenv("SUIL_MODULE_DIR", path.c_str());
+      qputenv("SUIL_MODULE_DIR", suil_module_dir.c_str());
     }
   }
 
-  // 2. Init suil if necessary
-  if(auto lib = dlopen("libsuil-0.so.0", RTLD_LAZY | RTLD_LOCAL))
-  {
-    if(auto sym = reinterpret_cast<suil_init_t>(dlsym(lib, "suil_init")))
-    {
-      static int argc{0};
-      static char** argv{nullptr};
-      sym(&argc, &argv, SUIL_ARG_NONE);
-    }
-  }
-  else if(auto self = dlopen(nullptr, RTLD_LAZY | RTLD_LOCAL))
-  {
+  // 2. Init suil if necessary. We need to do this before QApplication
+  // and thus before loading libscore_plugin_lv2.so which links to the right
+  // libsuil-0.so...
+  auto init_suil = [](void* self) {
     if(auto sym = reinterpret_cast<suil_init_t>(dlsym(self, "suil_init")))
     {
       static int argc{0};
       static char** argv{nullptr};
       sym(&argc, &argv, SUIL_ARG_NONE);
+      return true;
     }
+    return false;
+  };
+
+  if(auto self = dlopen(nullptr, RTLD_LAZY | RTLD_LOCAL))
+  {
+    if(init_suil(self))
+      return;
+  }
+
+  if(QDir{}.exists(
+         QString::fromStdString(path + "/src/plugins/score-plugin-lv2/libsuil-0.so.0")))
+  {
+    if(auto lib = dlopen(
+           (path + "/src/plugins/score-plugin-lv2/libsuil-0.so.0").c_str(),
+           RTLD_LAZY | RTLD_LOCAL))
+    {
+      if(init_suil(lib))
+        return;
+    }
+  }
+
+  if(auto lib = dlopen("libsuil-0.so.0", RTLD_LAZY | RTLD_LOCAL))
+  {
+    if(init_suil(lib))
+      return;
   }
 #endif
 }
