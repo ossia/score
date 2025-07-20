@@ -20,12 +20,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { deploy: true , distro: ubuntu.jammy,  image: jammy, CC: /opt/gcc-14/bin/gcc, CXX: /opt/gcc-14/bin/g++, LDFLAGS: "" }
-          - { deploy: false, distro: ubuntu.jammy,  image: jammy, CC: clang-20,            CXX: clang++-20,          LDFLAGS: "-fuse-ld=lld-20" }
-          - { deploy: true,  distro: ubuntu.noble,  image: noble, CC: gcc-14,              CXX: g++-14,              LDFLAGS: "-fuse-ld=lld" }
-          - { deploy: false, distro: ubuntu.noble,  image: noble, CC: clang-19,            CXX: clang++-19,          LDFLAGS: "-fuse-ld=lld-19" }
-          - { deploy: true,  distro: ubuntu.plucky, image: plucky, CC: gcc,                CXX: g++,                 LDFLAGS: "-fuse-ld=lld" }
-          - { deploy: false, distro: ubuntu.plucky, image: plucky, CC: clang,              CXX: clang++,             LDFLAGS: "-fuse-ld=lld" }
+          - { deploy: false, distro: ubuntu.jammy,  image: jammy,  CC: /opt/gcc-14/bin/gcc, CXX: /opt/gcc-14/bin/g++, CFLAGS: "-O0", LDFLAGS: "" }
+          - { deploy: true,  distro: ubuntu.jammy,  image: jammy,  CC: clang-20,            CXX: clang++-20,          CFLAGS: "-O3", LDFLAGS: "-fuse-ld=lld-20" }
+          - { deploy: false, distro: ubuntu.noble,  image: noble,  CC: gcc-14,              CXX: g++-14,              CFLAGS: "-O0", LDFLAGS: "-fuse-ld=lld" }
+          - { deploy: true,  distro: ubuntu.noble,  image: noble,  CC: clang-19,            CXX: clang++-19,          CFLAGS: "-O3", LDFLAGS: "-fuse-ld=lld-19" }
+          - { deploy: false, distro: ubuntu.plucky, image: plucky, CC: gcc,                 CXX: g++,                 CFLAGS: "-O0", LDFLAGS: "-fuse-ld=lld" }
+          - { deploy: true,  distro: ubuntu.plucky, image: plucky, CC: clang-20,            CXX: clang++-20,          CFLAGS: "-O3", LDFLAGS: "-fuse-ld=lld-20" }
 
     container:
       image: ubuntu:${{ matrix.image }}
@@ -49,6 +49,7 @@ jobs:
         env:
           CC: ${{ matrix.CC }}
           CXX: ${{ matrix.CXX }}
+          CFLAGS: ${{ matrix.CFLAGS }}
           LDFLAGS: ${{ matrix.LDFLAGS }}
         run: |
           ./ci/${{ matrix.distro }}.build.sh
@@ -67,7 +68,7 @@ jobs:
 
       - name: Continuous
         uses: softprops/action-gh-release@v2
-        if: ${{ ! startsWith(github.ref, 'refs/tags/') }} && github.event_name != 'pull_request'
+        if: matrix.deploy && ${{ ! startsWith(github.ref, 'refs/tags/') }} && github.event_name != 'pull_request'
         with:
           name: "Continuous"
           tag_name: "continuous"
@@ -79,7 +80,7 @@ jobs:
 
       - name: Release
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/') && github.event_name != 'pull_request'
+        if: matrix.deploy && startsWith(github.ref, 'refs/tags/') && github.event_name != 'pull_request'
         with:
           body: ""
           append_body: true
