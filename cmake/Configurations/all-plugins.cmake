@@ -94,6 +94,7 @@ else()
   score-plugin-vst
   score-plugin-vst3
   score-plugin-lv2
+  score-plugin-clap
   score-plugin-faust
   score-plugin-pd
   score-plugin-ysfx

@@ -100,3 +100,6 @@
 [submodule "3rdparty/suil"]
 	path = 3rdparty/suil
 	url = https://github.com/lv2/suil
+[submodule "3rdparty/clap"]
+	path = 3rdparty/clap
+	url = https://github.com/free-audio/clap
