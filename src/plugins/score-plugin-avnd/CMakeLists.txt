@@ -865,7 +865,7 @@ avnd_make_score(
 )
 
 # Too much binary size
-if(NOT EMSCRIPTEN)
+if(NOT EMSCRIPTEN AND NOT CXX_IS_GCC)
 avnd_make_score(
   SOURCES
     "${AVND_FOLDER}/examples/Advanced/Kabang/Kabang.hpp"
