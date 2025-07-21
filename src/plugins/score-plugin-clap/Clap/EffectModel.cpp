@@ -12,8 +12,8 @@
 
 #include <clap/all.h>
 
+#include <score_git_info.hpp>
 #include <wobjectimpl.h>
-
 #if defined(_WIN32)
 #include <windows.h>
 #else
@@ -24,7 +24,6 @@ W_OBJECT_IMPL(Clap::Model)
 
 namespace Clap
 {
-
 PluginHandle::PluginHandle()
 {
   host.clap_version = CLAP_VERSION;
@@ -32,7 +31,7 @@ PluginHandle::PluginHandle()
   host.name = "ossia score";
   host.vendor = "ossia.io";
   host.url = "https://ossia.io";
-  host.version = "3.0.0";
+  host.version = SCORE_TAG_NO_V;
   host.get_extension
       = [](const clap_host* host, const char* extension_id) -> const void* {
     return nullptr; // TODO: implement host extensions
@@ -75,6 +74,7 @@ PluginHandle::~PluginHandle()
     library = nullptr;
   }
 }
+
 Model::Model(
     const TimeVal& duration, const QString& pluginId,
     const Id<Process::ProcessModel>& id, QObject* parent)
@@ -123,26 +123,6 @@ Model::Model(JSONObject::Deserializer&& vis, QObject* parent)
 }
 
 Model::~Model() = default;
-
-void Model::setPluginPath(const QString& path)
-{
-  if(m_pluginPath != path)
-  {
-    m_pluginPath = path;
-    reload();
-    pluginPathChanged(path);
-  }
-}
-
-void Model::setPluginId(const QString& id)
-{
-  if(m_pluginId != id)
-  {
-    m_pluginId = id;
-    reload();
-    pluginIdChanged(id);
-  }
-}
 
 bool Model::hasExternalUI() const noexcept
 {
@@ -209,6 +189,7 @@ void Model::createControls()
   // Clear existing inlets/outlets
   m_inlets.clear();
   m_outlets.clear();
+  m_parameters.clear();
 
   if(!m_plugin->plugin)
     return;
@@ -216,9 +197,11 @@ void Model::createControls()
   // Get audio ports extension
   auto audio_ports = (const clap_plugin_audio_ports_t*)m_plugin->plugin->get_extension(m_plugin->plugin, CLAP_EXT_AUDIO_PORTS);
   m_supports64 = true;
+  m_inputs_info.clear();
+  m_outputs_info.clear();
   if(audio_ports)
   {
-    uint32_t input_count = audio_ports->count(m_plugin->plugin, true);
+    auto input_count = audio_ports->count(m_plugin->plugin, true);
     for(uint32_t i = 0; i < input_count; ++i)
     {
       clap_audio_port_info_t info;
@@ -227,9 +210,10 @@ void Model::createControls()
         m_supports64 &= (info.flags & CLAP_AUDIO_PORT_SUPPORTS_64BITS);
         m_inlets.push_back(
             new Process::AudioInlet(Id<Process::Port>(getStrongId(m_inlets)), this));
+        m_inputs_info.push_back(info);
       }
     }
-    uint32_t output_count = audio_ports->count(m_plugin->plugin, false);
+    auto output_count = audio_ports->count(m_plugin->plugin, false);
     for(uint32_t i = 0; i < output_count; ++i)
     {
       clap_audio_port_info_t info;
@@ -243,6 +227,35 @@ void Model::createControls()
           out->setPropagate(true);
         }
         m_outlets.push_back(out);
+        m_outputs_info.push_back(info);
+      }
+    }
+  }
+
+  // Get note ports extension
+  auto note_ports = (const clap_plugin_note_ports_t*)m_plugin->plugin->get_extension(m_plugin->plugin, CLAP_EXT_NOTE_PORTS);
+  if(note_ports)
+  {
+    uint32_t input_count = note_ports->count(m_plugin->plugin, true);
+    for(uint32_t i = 0; i < input_count; ++i)
+    {
+      clap_note_port_info_t info;
+      if(note_ports->get(m_plugin->plugin, i, true, &info))
+      {
+        auto inlet = new Process::MidiInlet(Id<Process::Port>(getStrongId(m_inlets)), this);
+        inlet->setName(QString::fromUtf8(info.name));
+        m_inlets.push_back(inlet);
+      }
+    }
+    uint32_t output_count = note_ports->count(m_plugin->plugin, false);
+    for(uint32_t i = 0; i < output_count; ++i)
+    {
+      clap_note_port_info_t info;
+      if(note_ports->get(m_plugin->plugin, i, false, &info))
+      {
+        auto outlet = new Process::MidiOutlet(Id<Process::Port>(getStrongId(m_outlets)), this);
+        outlet->setName(QString::fromUtf8(info.name));
+        m_outlets.push_back(outlet);
       }
     }
   }
@@ -260,7 +273,20 @@ void Model::createControls()
         auto inlet = new Process::ControlInlet(Id<Process::Port>(getStrongId(m_inlets)), this);
         inlet->setName(QString::fromUtf8(info.name));
         inlet->hidden = true; //(info.flags & CLAP_PARAM_IS_HIDDEN) != 0;
+        
+        // Set default value, min, and max for the control inlet
+        inlet->setValue(info.default_value);
+        inlet->setDomain(ossia::make_domain(info.min_value, info.max_value));
+        
         m_inlets.push_back(inlet);
+        
+        // Store parameter info for executor
+        ParameterInfo param_info;
+        param_info.param_id = info.id;
+        param_info.min_value = info.min_value;
+        param_info.max_value = info.max_value;
+        param_info.default_value = info.default_value;
+        m_parameters.push_back(param_info);
       }
     }
   }
