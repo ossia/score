@@ -20,12 +20,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { deploy: false, distro: ubuntu.jammy,  image: jammy,  CC: /opt/gcc-14/bin/gcc, CXX: /opt/gcc-14/bin/g++, CFLAGS: "-O0", LDFLAGS: "" }
-          - { deploy: true,  distro: ubuntu.jammy,  image: jammy,  CC: clang-20,            CXX: clang++-20,          CFLAGS: "-O3", LDFLAGS: "-fuse-ld=lld-20" }
-          - { deploy: false, distro: ubuntu.noble,  image: noble,  CC: gcc-14,              CXX: g++-14,              CFLAGS: "-O0", LDFLAGS: "-fuse-ld=lld" }
-          - { deploy: true,  distro: ubuntu.noble,  image: noble,  CC: clang-19,            CXX: clang++-19,          CFLAGS: "-O3", LDFLAGS: "-fuse-ld=lld-19" }
-          - { deploy: false, distro: ubuntu.plucky, image: plucky, CC: gcc,                 CXX: g++,                 CFLAGS: "-O0", LDFLAGS: "-fuse-ld=lld" }
-          - { deploy: true,  distro: ubuntu.plucky, image: plucky, CC: clang-20,            CXX: clang++-20,          CFLAGS: "-O3", LDFLAGS: "-fuse-ld=lld-20" }
+          - { deploy: false, distro: ubuntu.jammy,  image: jammy,  CMAKEFLAGS: "-DSCORE_PCH=1",         CC: /opt/gcc-14/bin/gcc, CXX: /opt/gcc-14/bin/g++, CFLAGS: "-O0", LDFLAGS: "" }
+          - { deploy: true,  distro: ubuntu.jammy,  image: jammy,  CMAKEFLAGS: "-DCMAKE_UNITY_BUILD=1", CC: clang-20,            CXX: clang++-20,          CFLAGS: "-O3", LDFLAGS: "-fuse-ld=lld-20" }
+          - { deploy: false, distro: ubuntu.noble,  image: noble,  CMAKEFLAGS: "-DSCORE_PCH=1",         CC: gcc-14,              CXX: g++-14,              CFLAGS: "-O0", LDFLAGS: "-fuse-ld=lld" }
+          - { deploy: true,  distro: ubuntu.noble,  image: noble,  CMAKEFLAGS: "-DCMAKE_UNITY_BUILD=1", CC: clang-19,            CXX: clang++-19,          CFLAGS: "-O3", LDFLAGS: "-fuse-ld=lld-19" }
+          - { deploy: false, distro: ubuntu.plucky, image: plucky, CMAKEFLAGS: "-DSCORE_PCH=1",         CC: gcc,                 CXX: g++,                 CFLAGS: "-O0", LDFLAGS: "" }
+          - { deploy: true,  distro: ubuntu.plucky, image: plucky, CMAKEFLAGS: "-DCMAKE_UNITY_BUILD=1", CC: clang-20,            CXX: clang++-20,          CFLAGS: "-O3", LDFLAGS: "-fuse-ld=lld-20" }
 
     container:
       image: ubuntu:${{ matrix.image }}
@@ -47,6 +47,7 @@ jobs:
 
       - name: Build
         env:
+          CMAKEFLAGS: ${{ matrix.CMAKEFLAGS }}
           CC: ${{ matrix.CC }}
           CXX: ${{ matrix.CXX }}
           CFLAGS: ${{ matrix.CFLAGS }}

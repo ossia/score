@@ -39,7 +39,8 @@ cninja -S "$SOURCE_DIR" -B "$BUILD_DIR" "$TOOLCHAIN" -- \
 -DOSSIA_SDK="$OSSIA_SDK" \
 -DCMAKE_PREFIX_PATH="$OSSIA_SDK/qt6-static" \
 -DCMAKE_C_COMPILER="$CC" \
--DCMAKE_CXX_COMPILER="$CXX"
+-DCMAKE_CXX_COMPILER="$CXX" \
+-DCMAKE_CXX_FLAGS="-D_FORTIFY_SOURCE=0" # https://github.com/llvm/llvm-project/issues/145745
 
 
 if [[ "$TOOLCHAIN" =~ ".*debug.*" ]]; then
@@ -81,6 +82,7 @@ cp "$APP_DIR/usr/share/pixmaps/ossia-score.png" "$APP_DIR/"
 
   find "$BUILD_DIR" -name 'libsuil-0.so.0' -exec cp -rf '{}' ./usr/lib/ \;
   mkdir -p ./usr/lib/suil-0
+  find "$BUILD_DIR" -name 'libsuil_x11.so' -exec cp -rf '{}' ./usr/lib/suil-0/ \;
   find "$BUILD_DIR" -name 'libsuil_x11_in_qt6.so' -exec cp -rf '{}' ./usr/lib/suil-0/ \;
 
   # Taken from Subsurface appimage
