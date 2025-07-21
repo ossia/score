@@ -10,6 +10,8 @@
 
 #include <QDebug>
 
+#include <libremidi/detail/conversion.hpp>
+
 #if defined(_WIN32)
 #include <windows.h>
 #else
@@ -18,19 +20,57 @@
 
 namespace Clap
 {
+static auto dummy_audio_buffer() noexcept
+{
+  clap_audio_buffer_t buffer{};
+  buffer.data32 = nullptr;
+  buffer.data64 = nullptr;
+  buffer.channel_count = 0;
+  buffer.latency = 0;
+  buffer.constant_mask = 0;
+  return buffer;
+}
 
-class clap_node : public ossia::graph_node
+struct event_storage
+{
+  std::vector<clap_event_midi_t> midi_events;
+  std::vector<clap_event_param_value_t> param_events;
+  std::vector<clap_event_header_t*> all_events;
+
+  void clear()
+  {
+    midi_events.clear();
+    param_events.clear();
+    all_events.clear();
+  }
+
+  void reserve(size_t n)
+  {
+    midi_events.reserve(n);
+    param_events.reserve(n);
+    all_events.reserve(n);
+  }
+};
+
+class clap_node_base : public ossia::graph_node
 {
 public:
-  clap_node(const Clap::Model& proc, Clap::PluginHandle& handle)
-      : m_instance{handle}
+  std::vector<ossia::audio_inlet*> audio_ins;
+  std::vector<ossia::audio_outlet*> audio_outs;
+  clap_node_base(const Clap::Model& proc)
+      : m_param_info{proc.parameterInfo()}
   {
-    // Create audio ports based on the model
+    // Create ports based on the model
     for(auto inlet : proc.inlets())
     {
       if(auto audio_in = qobject_cast<Process::AudioInlet*>(inlet))
       {
-        m_inlets.push_back(new ossia::audio_inlet);
+        audio_ins.push_back(new ossia::audio_inlet);
+        m_inlets.push_back(audio_ins.back());
+      }
+      else if(auto midi_in = qobject_cast<Process::MidiInlet*>(inlet))
+      {
+        m_inlets.push_back(new ossia::midi_inlet);
       }
       else if(auto ctrl_in = qobject_cast<Process::ControlInlet*>(inlet))
       {
@@ -42,52 +82,136 @@ public:
     {
       if(auto audio_out = qobject_cast<Process::AudioOutlet*>(outlet))
       {
-        m_outlets.push_back(new ossia::audio_outlet);
+        audio_outs.push_back(new ossia::audio_outlet);
+        m_outlets.push_back(audio_outs.back());
+      }
+      else if(auto midi_out = qobject_cast<Process::MidiOutlet*>(outlet))
+      {
+        m_outlets.push_back(new ossia::midi_outlet);
       }
     }
   }
-  ~clap_node()
-  {
-    if(m_activated)
-      deactivate_plugin();
-  }
-  std::string label() const noexcept override { return "clap"; }
 
-protected:
-  void activate_plugin(double sample_rate, uint32_t max_buffer_size)
+  std::string label() const noexcept override
+  { //FIXME
+    return "clap";
+  }
+
+  [[nodiscard]]
+  bool activate_plugin(
+      const clap_plugin_t* plugin, double sample_rate, uint32_t max_buffer_size)
   {
-    if(!m_instance.plugin || m_activated)
-      return;
+    if(!plugin)
+      return false;
 
     m_sample_rate = sample_rate;
     m_buffer_size = max_buffer_size;
 
-    if(m_instance.plugin->activate(m_instance.plugin, sample_rate, 1, max_buffer_size))
+    if(plugin->activate(plugin, sample_rate, 1, max_buffer_size))
     {
-      m_activated = true;
-      qDebug() << m_instance.plugin->start_processing(m_instance.plugin);
+      plugin->start_processing(plugin);
+
+      init_parameter_values(plugin);
+      return true;
     }
+    return false;
   }
-  void deactivate_plugin()
+
+  void init_parameter_values(const clap_plugin_t* plugin)
   {
-    if(!m_instance.plugin || !m_activated)
+    if(!plugin)
       return;
 
-    m_instance.plugin->stop_processing(m_instance.plugin);
-    m_instance.plugin->deactivate(m_instance.plugin);
-    m_activated = false;
+    // Get parameter extension to set initial values
+    auto params
+        = (const clap_plugin_params_t*)plugin->get_extension(plugin, CLAP_EXT_PARAMS);
+    if(params)
+    {
+      for(const auto& param_info : m_param_info)
+      {
+        // Create parameter value event with default value
+        clap_event_param_value_t param_event{};
+        param_event.header.size = sizeof(clap_event_param_value_t);
+        param_event.header.time = 0;
+        param_event.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
+        param_event.header.type = CLAP_EVENT_PARAM_VALUE;
+        param_event.header.flags = 0;
+        param_event.param_id = param_info.param_id;
+        param_event.cookie = nullptr;
+        param_event.note_id = -1;
+        param_event.port_index = -1;
+        param_event.channel = -1;
+        param_event.key = -1;
+        param_event.value = param_info.default_value;
+
+        // Create temporary input events structure to send the parameter
+        event_storage temp_events;
+        temp_events.param_events.push_back(param_event);
+        temp_events.all_events.push_back(
+            reinterpret_cast<clap_event_header_t*>(&temp_events.param_events.back()));
+
+        // Create input events interface
+        clap_input_events evs{
+            .ctx = &temp_events,
+            .size = +[](const clap_input_events* list) -> uint32_t {
+          auto* storage = static_cast<event_storage*>(list->ctx);
+          return storage->all_events.size();
+        },
+            .get = +[](const clap_input_events* list,
+                       uint32_t index) -> const clap_event_header_t* {
+          auto* storage = static_cast<event_storage*>(list->ctx);
+          if(index < storage->all_events.size())
+            return storage->all_events[index];
+          return nullptr;
+        }};
+
+        // Create dummy output events
+        event_storage temp_output;
+        clap_output_events_t o_evs{
+            .ctx = &temp_output,
+            .try_push = [](const struct clap_output_events* list,
+                           const clap_event_header_t* event) -> bool {
+          return false; // Ignore output events during initialization
+        }};
+
+        // Create minimal process structure just for parameter setting
+        clap_process_t process{};
+        process.frames_count = 0;
+        process.audio_inputs = nullptr;
+        process.audio_outputs = nullptr;
+        process.audio_inputs_count = 0;
+        process.audio_outputs_count = 0;
+        process.steady_time = -1;
+        process.in_events = &evs;
+        process.out_events = &o_evs;
+        process.transport = nullptr;
+
+        // Send the parameter to the plugin
+        plugin->process(plugin, &process);
+      }
+    }
   }
 
-  void do_process(clap_process_t& process)
+  [[nodiscard]]
+  bool deactivate_plugin(const clap_plugin_t* plugin)
   {
-    // Process audio
-    process.steady_time = -1;
+    if(!plugin)
+      return false;
+
+    plugin->stop_processing(plugin);
+    plugin->deactivate(plugin);
+    return true;
+  }
+
+  auto make_transport()
+  {
+
     clap_event_transport_t transport{
                                      .header
                                      = {
                                          .size = sizeof(clap_event_transport_t),
                                          .time = 0,
-                                         .space_id = 0,
+                                         .space_id = CLAP_CORE_EVENT_SPACE_ID,
                                          .type = CLAP_EVENT_TRANSPORT,
                                          .flags = 0,
                                      },
@@ -105,28 +229,224 @@ protected:
                                      .tsig_num = 4,
                                      .tsig_denom = 4};
 
+    return transport;
+  }
+
+  void process_controls(uint32_t samples)
+  {
+    // Process control inlets and create parameter events
+    size_t param_idx = 0;
+
+    for(size_t i = 0; i < m_inlets.size(); ++i)
+    {
+      if(auto ctrl_in = m_inlets[i]->target<ossia::value_port>())
+      {
+        const auto& data = ctrl_in->get_data();
+        if(!data.empty() && param_idx < m_param_info.size())
+        {
+          auto& param_info = m_param_info[param_idx];
+          double value = ossia::convert<double>(data.back().value);
+
+          // Clamp value to parameter range
+          value = std::clamp(value, param_info.min_value, param_info.max_value);
+
+          clap_event_param_value_t param_event{};
+          param_event.header.size = sizeof(clap_event_param_value_t);
+          param_event.header.time = 0; // Beginning of buffer for now
+          param_event.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
+          param_event.header.type = CLAP_EVENT_PARAM_VALUE;
+          param_event.header.flags = 0;
+          param_event.param_id = param_info.param_id;
+          param_event.cookie = nullptr;
+          param_event.note_id = -1;
+          param_event.port_index = -1;
+          param_event.channel = -1;
+          param_event.key = -1;
+          param_event.value = value;
+
+          m_input_events.param_events.push_back(param_event);
+        }
+        param_idx++;
+      }
+    }
+  }
+
+  void finalize_input_events()
+  {
+    // Add parameter events to the all_events list
+    for(auto& evt : m_input_events.param_events)
+    {
+      m_input_events.all_events.push_back(reinterpret_cast<clap_event_header_t*>(&evt));
+    }
+
+    // Add MIDI events to the all_events list
+    for(auto& evt : m_input_events.midi_events)
+    {
+      m_input_events.all_events.push_back(reinterpret_cast<clap_event_header_t*>(&evt));
+    }
+
+    // Sort all events by timestamp
+    std::sort(
+        m_input_events.all_events.begin(), m_input_events.all_events.end(),
+        [](const clap_event_header_t* a, const clap_event_header_t* b) {
+      return a->time < b->time;
+    });
+  }
+
+  void process_events(int samples)
+  {
+    m_input_events.clear();
+    m_output_events.clear();
+
+    // Process parameter changes
+    process_controls(samples);
+
+    // Process MIDI input
+    uint16_t midi_port_index = 0;
+    for(size_t i = 0; i < m_inlets.size(); ++i)
+    {
+      if(auto midi_in = m_inlets[i]->target<ossia::midi_port>())
+      {
+        const auto& msgs = midi_in->messages;
+        m_input_events.reserve(msgs.size());
+
+        for(const auto& msg : msgs)
+        {
+          // Convert UMP to MIDI 1.0
+          uint8_t midi_bytes[16];
+          auto bytes_written = cmidi2_convert_single_ump_to_midi1(
+              midi_bytes, sizeof(midi_bytes), (cmidi2_ump*)msg.data);
+
+          if(bytes_written > 0 && bytes_written <= 3)
+          {
+            clap_event_midi_t midi_event{};
+            midi_event.header.size = sizeof(clap_event_midi_t);
+            midi_event.header.time = msg.timestamp;
+            midi_event.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
+            midi_event.header.type = CLAP_EVENT_MIDI;
+            midi_event.header.flags = 0;
+            midi_event.port_index = midi_port_index;
+            std::memcpy(midi_event.data, midi_bytes, 3);
+
+            m_input_events.midi_events.push_back(midi_event);
+          }
+        }
+        midi_port_index++;
+      }
+    }
+
+    // Finalize all input events (sort and prepare event pointers)
+    finalize_input_events();
+  }
+
+  event_storage m_input_events;
+  event_storage m_output_events;
+
+  const std::vector<ParameterInfo>& m_param_info;
+  double m_sample_rate{44100.0};
+  uint32_t m_buffer_size{512};
+};
+
+// Normal implementation
+class clap_node : public clap_node_base
+{
+public:
+  clap_node(const Clap::Model& proc, Clap::PluginHandle& handle)
+      : clap_node_base{proc}
+      , m_instance{handle}
+  {
+    m_expected_audio_inputs = proc.audioInputs();
+    m_expected_audio_outputs = proc.audioOutputs();
+  }
+
+  ~clap_node()
+  {
+    if(m_activated)
+    {
+      (void)deactivate_plugin(m_instance.plugin);
+      m_activated = false;
+    }
+  }
+
+protected:
+  void do_process(
+      clap_process_t& process, event_storage& input_storage,
+      event_storage& output_storage)
+  {
+    // Process audio
+    process.steady_time = -1;
+    clap_event_transport_t transport = make_transport();
     process.transport = &transport;
+
+    // Setup input events
     clap_input_events evs{
-        .ctx = this,
-        .size = +[](const clap_input_events* list) -> uint32_t { return 0; },
+        .ctx = &input_storage,
+        .size = +[](const clap_input_events* list) -> uint32_t {
+      auto* storage = static_cast<event_storage*>(list->ctx);
+      return storage->all_events.size();
+    },
         .get = +[](const clap_input_events* list,
-                   uint32_t index) -> const clap_event_header_t* { return nullptr; }};
+                   uint32_t index) -> const clap_event_header_t* {
+      auto* storage = static_cast<event_storage*>(list->ctx);
+      if(index < storage->all_events.size())
+        return storage->all_events[index];
+      return nullptr;
+    }};
+
+    // Setup output events
     clap_output_events_t o_evs{
-        .ctx = this,
+        .ctx = &output_storage,
         .try_push = [](const struct clap_output_events* list,
-                       const clap_event_header_t* event) -> bool { return false; }};
+                       const clap_event_header_t* event) -> bool {
+      auto* storage = static_cast<event_storage*>(list->ctx);
+      if(event->type == CLAP_EVENT_MIDI && event->size == sizeof(clap_event_midi_t))
+      {
+        storage->midi_events.push_back(
+            *reinterpret_cast<const clap_event_midi_t*>(event));
+        return true;
+      }
+      return false;
+    }};
+
     process.in_events = &evs;
     process.out_events = &o_evs;
 
     m_instance.plugin->process(m_instance.plugin, &process);
-  }
-  PluginHandle& m_instance;
 
-  bool m_activated{false};
-  double m_sample_rate{44100.0};
-  uint32_t m_buffer_size{512};
+    // Process MIDI output
+    std::size_t midi_port_index = 0;
+    for(size_t i = 0; i < m_outlets.size(); ++i)
+    {
+      if(auto midi_out = m_outlets[i]->target<ossia::midi_port>())
+      {
+        auto& port_messages = midi_out->messages;
+        port_messages.clear();
+
+        for(const auto& midi_event : m_output_events.midi_events)
+        {
+          if(midi_event.port_index == midi_port_index)
+          {
+            libremidi::ump msg;
+            if(cmidi2_midi1_channel_voice_to_midi2(midi_event.data, 3, msg.data))
+            {
+              msg.timestamp = midi_event.header.time;
+              port_messages.push_back(msg);
+            }
+          }
+        }
+        midi_port_index++;
+      }
+    }
+  }
+
+  PluginHandle& m_instance;
+  std::vector<clap_audio_port_info_t> m_expected_audio_inputs{};
+  std::vector<clap_audio_port_info_t> m_expected_audio_outputs{};
+
   std::vector<clap_audio_buffer_t> input_buffers;
   std::vector<clap_audio_buffer_t> output_buffers;
+
+  bool m_activated{};
 };
 
 class clap_node_32 final : public clap_node
@@ -147,7 +467,7 @@ public:
     // Activate plugin if needed
     if(!m_activated)
     {
-      activate_plugin(e.sampleRate(), e.bufferSize());
+      m_activated = activate_plugin(m_instance.plugin, e.sampleRate(), e.bufferSize());
       if(!m_activated)
         return;
     }
@@ -164,93 +484,85 @@ public:
     input_channel_ptrs.clear();
     output_channel_ptrs.clear();
 
-    // Setup input buffers
-    for(size_t i = 0; i < m_inlets.size(); ++i)
+    process_events(samples);
+
+    // Setup audio input buffers
+    // We must create exactly the number of buffers the plugin expects
+    int audio_in_idx = 0;
+    for(ossia::audio_inlet* audio_in : audio_ins)
     {
-      if(auto audio_in = m_inlets[i]->target<ossia::audio_port>())
+      const auto& audio_info = this->m_expected_audio_inputs[audio_in_idx];
+      clap_audio_buffer_t buffer = dummy_audio_buffer();
+      buffer.channel_count = audio_info.channel_count;
+
+      audio_in->data.set_channels(buffer.channel_count);
+      const auto& channels = audio_in->data.get();
+      if(!channels.empty())
       {
-        clap_audio_buffer_t buffer{};
-        buffer.data32 = nullptr;
-        buffer.data64 = nullptr;
-        buffer.channel_count = 2; // stereo by default
-        buffer.latency = 0;
-        buffer.constant_mask = 0;
-
-        audio_in->set_channels(buffer.channel_count);
-        const auto& channels = audio_in->get();
-        if(!channels.empty())
-        {
-          buffer.channel_count = std::min((uint32_t)channels.size(), 2u);
-
-          // Allocate float storage for input conversion
-          auto& storage = input_channel_storage.emplace_back();
-          storage.resize(buffer.channel_count);
-          
-          auto& ptrs = input_channel_ptrs.emplace_back();
-          ptrs.resize(buffer.channel_count);
-
-          storage.resize(samples * buffer.channel_count + 16);
-          for(uint32_t c = 0; c < buffer.channel_count; ++c)
-          {
-            ptrs[c] = storage.data() + c * samples;
-
-            // Convert from double to float
-            if(c < channels.size() && channels[c].size() >= samples + offset)
-            {
-              const double* src = channels[c].data() + offset;
-              float* dst = ptrs[c];
-              for(uint32_t s = 0; s < samples; ++s)
-              {
-                dst[s] = static_cast<float>(src[s]);
-              }
-            }
-            else
-            {
-              // Zero fill if no input data
-              std::fill(ptrs[c], ptrs[c] + samples, 0.0f);
-            }
-          }
-
-          buffer.data32 = ptrs.data();
-        }
-
-        input_buffers.push_back(buffer);
-      }
-    }
-
-    // Setup output buffers
-    for(size_t i = 0; i < m_outlets.size(); ++i)
-    {
-      if(auto audio_out = m_outlets[i]->target<ossia::audio_port>())
-      {
-        clap_audio_buffer_t buffer{};
-        buffer.data32 = nullptr;
-        buffer.data64 = nullptr;
-        buffer.channel_count = 2; // stereo by default
-        buffer.latency = 0;
-        buffer.constant_mask = 0;
-
-        audio_out->set_channels(buffer.channel_count);
-        auto& channels = audio_out->get();
-
-        // Allocate float storage for output
-        auto& storage = output_channel_storage.emplace_back();
+        auto& storage = input_channel_storage.emplace_back();
         storage.resize(buffer.channel_count);
-        
-        auto& ptrs = output_channel_ptrs.emplace_back();
+
+        auto& ptrs = input_channel_ptrs.emplace_back();
         ptrs.resize(buffer.channel_count);
 
-        storage.clear();
         storage.resize(samples * buffer.channel_count + 16);
         for(uint32_t c = 0; c < buffer.channel_count; ++c)
         {
-          channels[c].resize(e.bufferSize());
           ptrs[c] = storage.data() + c * samples;
+
+          // Convert from double to float
+          if(c < channels.size() && channels[c].size() >= samples + offset)
+          {
+            const double* src = channels[c].data() + offset;
+            float* dst = ptrs[c];
+            for(uint32_t s = 0; s < samples; ++s)
+            {
+              dst[s] = static_cast<float>(src[s]);
+            }
+          }
+          else
+          {
+            // Zero fill if no input data
+            std::fill(ptrs[c], ptrs[c] + samples, 0.0f);
+          }
         }
 
         buffer.data32 = ptrs.data();
-        output_buffers.push_back(buffer);
       }
+
+      input_buffers.push_back(buffer);
+      audio_in_idx++;
+    }
+
+    // Setup output buffers
+    int audio_out_idx = 0;
+    for(ossia::audio_outlet* audio_out : audio_outs)
+    {
+      const auto& audio_info = this->m_expected_audio_outputs[audio_out_idx];
+      clap_audio_buffer_t buffer = dummy_audio_buffer();
+      buffer.channel_count = audio_info.channel_count;
+
+      audio_out->data.set_channels(buffer.channel_count);
+      auto& channels = audio_out->data.get();
+
+      // Allocate float storage for output
+      auto& storage = output_channel_storage.emplace_back();
+      storage.resize(buffer.channel_count);
+
+      auto& ptrs = output_channel_ptrs.emplace_back();
+      ptrs.resize(buffer.channel_count);
+
+      storage.clear();
+      storage.resize(samples * buffer.channel_count + 16);
+      for(uint32_t c = 0; c < buffer.channel_count; ++c)
+      {
+        channels[c].resize(e.bufferSize());
+        ptrs[c] = storage.data() + c * samples;
+      }
+
+      buffer.data32 = ptrs.data();
+      output_buffers.push_back(buffer);
+      audio_out_idx++;
     }
 
     // Process audio through CLAP plugin
@@ -258,33 +570,42 @@ public:
     process.frames_count = samples;
     process.audio_inputs = input_buffers.data();
     process.audio_outputs = output_buffers.data();
-    process.audio_inputs_count = input_buffers.size();
-    process.audio_outputs_count = output_buffers.size();
-    do_process(process);
-
-    // Convert output from float back to double
-    size_t audio_outlet_idx = 0;
-    for(size_t i = 0; i < m_outlets.size(); ++i)
+    // Ensure we have exactly the number of buffers the plugin expects
+    while(input_buffers.size() < m_expected_audio_inputs.size())
     {
-      if(auto audio_out = m_outlets[i]->target<ossia::audio_port>())
+      input_buffers.push_back(dummy_audio_buffer());
+    }
+
+    while(output_buffers.size() < m_expected_audio_outputs.size())
+    {
+      output_buffers.push_back(dummy_audio_buffer());
+    }
+
+    process.audio_inputs_count = m_expected_audio_inputs.size();
+    process.audio_outputs_count = m_expected_audio_outputs.size();
+    do_process(process, m_input_events, m_output_events);
+
+    // Convert audio output from float back to double
+    audio_out_idx = 0;
+    for(ossia::audio_outlet* audio_out : audio_outs)
+    {
+      if(audio_out_idx < output_channel_storage.size())
       {
-        if(audio_outlet_idx < output_channel_storage.size())
+        auto& channels = audio_out->data.get();
+        const auto& storage = output_channel_storage[audio_out_idx];
+
+        for(uint32_t c = 0;
+            c < std::min((uint32_t)channels.size(), (uint32_t)storage.size()); ++c)
         {
-          auto& channels = audio_out->get();
-          const auto& storage = output_channel_storage[audio_outlet_idx];
-          
-          for(uint32_t c = 0; c < std::min((uint32_t)channels.size(), (uint32_t)storage.size()); ++c)
+          const float* src = storage.data() + c * samples;
+          double* dst = channels[c].data() + offset;
+          for(uint32_t s = 0; s < samples; ++s)
           {
-            const float* src = storage.data() + c * samples;
-            double* dst = channels[c].data() + offset;
-            for(uint32_t s = 0; s < samples; ++s)
-            {
-              dst[s] = static_cast<double>(src[s]);
-            }
+            dst[s] = static_cast<double>(src[s]);
           }
         }
-        audio_outlet_idx++;
       }
+      audio_out_idx++;
     }
   }
 };
@@ -304,7 +625,7 @@ public:
     // Activate plugin if needed
     if(!m_activated)
     {
-      activate_plugin(e.sampleRate(), e.bufferSize());
+      m_activated = activate_plugin(m_instance.plugin, e.sampleRate(), e.bufferSize());
       if(!m_activated)
         return;
     }
@@ -313,96 +634,341 @@ public:
     if(samples == 0)
       return;
 
-    // Prepare audio buffers
+    // Prepare buffers
     input_buffers.clear();
     output_buffers.clear();
+    m_input_events.clear();
+    m_output_events.clear();
 
-    // Setup input buffers
-    size_t audio_inlet_idx = 0;
-    for(size_t i = 0; i < m_inlets.size(); ++i)
+    // Process parameter changes
+    process_events(samples);
+
+    // Setup audio input buffers
+    size_t audio_in_idx = 0;
+    for(ossia::audio_inlet* audio_in : audio_ins)
     {
-      if(auto audio_in = m_inlets[i]->target<ossia::audio_port>())
+      const auto& audio_info = this->m_expected_audio_inputs[audio_in_idx];
+      clap_audio_buffer_t buffer = dummy_audio_buffer();
+      buffer.channel_count = audio_info.channel_count;
+
+      audio_in->data.set_channels(buffer.channel_count);
+      const auto& channels = audio_in->data.get();
+      if(!channels.empty())
       {
-        if(audio_inlet_idx < this->input_buffers.size())
-          continue;
+        buffer.channel_count = std::min((uint32_t)channels.size(), 2u);
 
-        clap_audio_buffer_t buffer{};
-        buffer.data32 = nullptr;
-        buffer.data64 = nullptr;
-        buffer.channel_count = 2; // stereo by default
-        buffer.latency = 0;
-        buffer.constant_mask = 0;
-
-        audio_in->set_channels(buffer.channel_count);
-        const auto& channels = audio_in->get();
-        if(!channels.empty())
-        {
-          buffer.channel_count = std::min((uint32_t)channels.size(), 2u);
-
-          auto& ptrs = input_channel_ptrs.emplace_back();
-          ptrs.resize(buffer.channel_count);
-
-          for(uint32_t c = 0; c < buffer.channel_count; ++c)
-          {
-            if(c < channels.size() && channels[c].size() >= samples)
-            {
-              ptrs[c] = const_cast<double*>(channels[c].data() + offset);
-            }
-            else
-            {
-              ptrs[c] = nullptr;
-            }
-          }
-
-          buffer.data64 = ptrs.data();
-        }
-
-        this->input_buffers.push_back(buffer);
-        audio_inlet_idx++;
-      }
-    }
-
-    // Setup output buffers
-    size_t audio_outlet_idx = 0;
-    for(size_t i = 0; i < m_outlets.size(); ++i)
-    {
-      if(auto audio_out = m_outlets[i]->target<ossia::audio_port>()) //FIXME
-      {
-        if(audio_outlet_idx < this->output_buffers.size())
-          continue;
-
-        clap_audio_buffer_t buffer{};
-        buffer.data32 = nullptr;
-        buffer.data64 = nullptr;
-        buffer.channel_count = 2; // stereo by default
-        buffer.latency = 0;
-        buffer.constant_mask = 0;
-
-        audio_out->set_channels(buffer.channel_count);
-        auto& channels = audio_out->get();
-
-        auto& ptrs = output_channel_ptrs.emplace_back();
+        auto& ptrs = input_channel_ptrs.emplace_back();
         ptrs.resize(buffer.channel_count);
 
         for(uint32_t c = 0; c < buffer.channel_count; ++c)
         {
-          channels[c].resize(e.bufferSize());
-          ptrs[c] = channels[c].data() + offset;
+          if(c < channels.size() && channels[c].size() >= samples)
+          {
+            ptrs[c] = const_cast<double*>(channels[c].data() + offset);
+          }
+          else
+          {
+            ptrs[c] = nullptr;
+          }
         }
 
         buffer.data64 = ptrs.data();
-        this->output_buffers.push_back(buffer);
-        audio_outlet_idx++;
       }
+
+      this->input_buffers.push_back(buffer);
+      audio_in_idx++;
+    }
+
+    // Setup output buffers
+    size_t audio_out_idx = 0;
+    for(ossia::audio_outlet* audio_out : audio_outs)
+    {
+      const auto& audio_info = this->m_expected_audio_outputs[audio_out_idx];
+      clap_audio_buffer_t buffer = dummy_audio_buffer();
+      buffer.channel_count = audio_info.channel_count;
+
+      audio_out->data.set_channels(buffer.channel_count);
+      auto& channels = audio_out->data.get();
+
+      auto& ptrs = output_channel_ptrs.emplace_back();
+      ptrs.resize(buffer.channel_count);
+
+      for(uint32_t c = 0; c < buffer.channel_count; ++c)
+      {
+        channels[c].resize(e.bufferSize());
+        ptrs[c] = channels[c].data() + offset;
+      }
+
+      buffer.data64 = ptrs.data();
+      this->output_buffers.push_back(buffer);
+      audio_out_idx++;
     }
 
     clap_process_t process{};
     process.frames_count = samples;
     process.audio_inputs = this->input_buffers.data();
     process.audio_outputs = this->output_buffers.data();
-    process.audio_inputs_count = this->input_buffers.size();
-    process.audio_outputs_count = this->output_buffers.size();
-    do_process(process);
+    while(this->input_buffers.size() < m_expected_audio_inputs.size())
+      this->input_buffers.push_back(dummy_audio_buffer());
+
+    while(this->output_buffers.size() < m_expected_audio_outputs.size())
+      this->input_buffers.push_back(dummy_audio_buffer());
+
+    process.audio_inputs_count = m_expected_audio_inputs.size();
+    process.audio_outputs_count = m_expected_audio_outputs.size();
+    do_process(process, m_input_events, m_output_events);
+  }
+};
+
+// Special case for monophonic nodes
+
+class clap_node_mono : public clap_node_base
+{
+public:
+  clap_node_mono(const Clap::Model& proc, Clap::PluginHandle& handle)
+      : clap_node_base{proc}
+      , m_instance{handle}
+  {
+    m_poly.reserve(8);
+    m_poly.push_back({handle.plugin, false});
+    for(int i = 0; i < 7; i++)
+    {
+      poly_plugin p{nullptr, false};
+      p.plugin = handle.factory->create_plugin(
+          handle.factory, &handle.host, proc.pluginId().toUtf8().data());
+      if(!p.plugin)
+        throw std::runtime_error("Could not create plug-in instance");
+
+      if(!p.plugin->init(p.plugin))
+      {
+        p.plugin->destroy(p.plugin);
+        throw std::runtime_error("Could not init plug-in instance");
+      }
+      m_poly.push_back(p);
+    }
+  }
+
+  ~clap_node_mono()
+  {
+    for(int i = 0; i < m_poly.size(); i++)
+    {
+      if(m_poly[i].activated)
+      {
+        (void)deactivate_plugin(m_instance.plugin);
+        m_poly[i].activated = false;
+      }
+
+      if(i > 0)
+      {
+        m_poly[i].plugin->destroy(m_poly[i].plugin);
+      }
+    }
+  }
+
+protected:
+  void do_process(
+      const clap_plugin_t* plug, clap_process_t& process, event_storage& input_storage,
+      event_storage& output_storage)
+  {
+    // Process audio
+    process.steady_time = -1;
+    clap_event_transport_t transport = make_transport();
+    process.transport = &transport;
+
+    // Setup input events
+    clap_input_events evs{
+        .ctx = &input_storage,
+        .size = +[](const clap_input_events* list) -> uint32_t {
+      auto* storage = static_cast<event_storage*>(list->ctx);
+      return storage->all_events.size();
+    },
+        .get = +[](const clap_input_events* list,
+                   uint32_t index) -> const clap_event_header_t* {
+      auto* storage = static_cast<event_storage*>(list->ctx);
+      if(index < storage->all_events.size())
+        return storage->all_events[index];
+      return nullptr;
+    }};
+
+    // No output events in poly mode, it does not make sense
+    clap_output_events_t o_evs{
+        .ctx = &output_storage,
+        .try_push = [](const struct clap_output_events* list,
+                       const clap_event_header_t* event) -> bool { return false; }};
+
+    process.in_events = &evs;
+    process.out_events = &o_evs;
+
+    plug->process(plug, &process);
+  }
+
+  PluginHandle& m_instance;
+  struct poly_plugin
+  {
+    const clap_plugin_t* plugin{};
+    bool activated{};
+    operator const clap_plugin_t*() const noexcept { return plugin; }
+  };
+
+  std::vector<poly_plugin> m_poly;
+};
+
+class clap_node_mono_32 final : public clap_node_mono
+{
+  std::vector<float> input_channel_storage;
+  std::vector<float> output_channel_storage;
+
+public:
+  using clap_node_mono::clap_node_mono;
+
+  void run(const ossia::token_request& t, ossia::exec_state_facade e) noexcept override
+  {
+    if(!m_instance.plugin)
+      return;
+
+    auto [offset, samples] = e.timings(t);
+    if(samples == 0)
+      return;
+
+    // Clear previous data
+    input_channel_storage.clear();
+    output_channel_storage.clear();
+    input_channel_storage.resize(samples);
+    output_channel_storage.resize(samples);
+
+    process_events(samples);
+
+    float* ins_pointer[1]{input_channel_storage.data()};
+    float* outs_pointer[1]{output_channel_storage.data()};
+
+    // Setup audio input buffers
+    const auto audio_in = audio_ins[0];
+    const auto audio_out = audio_outs[0];
+    const auto poly_channels = audio_in->data.channels();
+    if(poly_channels == 0)
+      return;
+    audio_out->data.set_channels(poly_channels);
+    clap_audio_buffer_t in_buffer = dummy_audio_buffer();
+    clap_audio_buffer_t out_buffer = dummy_audio_buffer();
+    in_buffer.channel_count = 1;
+    in_buffer.data32 = ins_pointer;
+    out_buffer.channel_count = 1;
+    out_buffer.data32 = outs_pointer;
+
+    const auto& in_channels = audio_in->data.get();
+    auto& out_channels = audio_out->data.get();
+    int current_channel = 0;
+    for(auto& channel : in_channels)
+    {
+      // 0. Activate plug-in if necessary
+      auto& cur = m_poly[current_channel];
+      if(!cur.activated)
+      {
+        cur.activated = activate_plugin(cur.plugin, e.sampleRate(), e.bufferSize());
+        if(!cur.activated)
+          return;
+      }
+
+      // 1. Copy input
+      {
+        const double* src = channel.data() + offset;
+        float* dst = input_channel_storage.data();
+        for(uint32_t s = 0; s < samples; ++s)
+          dst[s] = static_cast<float>(src[s]);
+      }
+
+      // 2. Clear output
+      std::fill_n(output_channel_storage.data(), samples, 0);
+
+      // 3. Process this channel
+      clap_process_t process{};
+      process.frames_count = samples;
+      process.audio_inputs = &in_buffer;
+      process.audio_outputs = &out_buffer;
+      process.audio_inputs_count = 1;
+      process.audio_outputs_count = 1;
+      do_process(cur, process, m_input_events, m_output_events);
+
+      // 4. Copy double back to matching output channel
+      {
+        const float* src = output_channel_storage.data();
+        out_channels[current_channel].resize(samples);
+        double* dst = out_channels[current_channel].data() + offset;
+        for(uint32_t s = 0; s < samples; ++s)
+          dst[s] = static_cast<double>(src[s]);
+      }
+
+      current_channel++;
+    }
+  }
+};
+
+class clap_node_mono_64 final : public clap_node_mono
+{
+public:
+  using clap_node_mono::clap_node_mono;
+  void run(const ossia::token_request& t, ossia::exec_state_facade e) noexcept override
+  {
+    if(!m_instance.plugin)
+      return;
+
+    auto [offset, samples] = e.timings(t);
+    if(samples == 0)
+      return;
+
+    // Clear previous data
+    process_events(samples);
+
+    double* ins_pointer[1]{};
+    double* outs_pointer[1]{};
+
+    // Setup audio input buffers
+    const auto audio_in = audio_ins[0];
+    const auto audio_out = audio_outs[0];
+    const auto poly_channels = audio_in->data.channels();
+    if(poly_channels == 0)
+      return;
+    audio_out->data.set_channels(poly_channels);
+    clap_audio_buffer_t in_buffer = dummy_audio_buffer();
+    clap_audio_buffer_t out_buffer = dummy_audio_buffer();
+    in_buffer.channel_count = 1;
+    in_buffer.data64 = ins_pointer;
+    out_buffer.channel_count = 1;
+    out_buffer.data64 = outs_pointer;
+
+    const auto& in_channels = audio_in->data.get();
+    auto& out_channels = audio_out->data.get();
+    int current_channel = 0;
+    for(auto& channel : in_channels)
+    {
+      // 0. Activate plug-in if necessary
+      auto& cur = m_poly[current_channel];
+      if(!cur.activated)
+      {
+        cur.activated = activate_plugin(cur.plugin, e.sampleRate(), e.bufferSize());
+        if(!cur.activated)
+          return;
+      }
+
+      // 1. Clear output
+      auto in_chan = channel.data();
+      ins_pointer[0] = const_cast<double*>(in_chan);
+      out_channels[current_channel].resize(samples);
+      auto out_chan = out_channels[current_channel].data();
+      outs_pointer[0] = out_chan;
+      std::fill_n(out_chan, samples, 0);
+
+      // 2. Process this channel
+      clap_process_t process{};
+      process.frames_count = samples;
+      process.audio_inputs = &in_buffer;
+      process.audio_outputs = &out_buffer;
+      process.audio_inputs_count = 1;
+      process.audio_outputs_count = 1;
+      do_process(cur, process, m_input_events, m_output_events);
+
+      current_channel++;
+    }
   }
 };
 
@@ -414,17 +980,39 @@ Executor::Executor(Clap::Model& proc, const Execution::Context& ctx, QObject* pa
   if(!h)
     throw std::runtime_error("Plug-in unavailable");
 
-  if(proc.supports64())
+  const bool monophonic
+      = proc.audioInputs().size() == 1 && proc.audioInputs()[0].channel_count == 1
+        && proc.audioOutputs().size() == 1 && proc.audioOutputs()[0].channel_count == 1;
+
+  if(monophonic)
   {
-    auto node = ossia::make_node<clap_node_64>(*ctx.execState, proc, *h);
-    this->node = node;
-    m_ossia_process = std::make_shared<ossia::node_process>(node);
+    if(proc.supports64())
+    {
+      auto node = ossia::make_node<clap_node_mono_64>(*ctx.execState, proc, *h);
+      this->node = node;
+      m_ossia_process = std::make_shared<ossia::node_process>(node);
+    }
+    else
+    {
+      auto node = ossia::make_node<clap_node_mono_32>(*ctx.execState, proc, *h);
+      this->node = node;
+      m_ossia_process = std::make_shared<ossia::node_process>(node);
+    }
   }
   else
   {
-    auto node = ossia::make_node<clap_node_32>(*ctx.execState, proc, *h);
-    this->node = node;
-    m_ossia_process = std::make_shared<ossia::node_process>(node);
+    if(proc.supports64())
+    {
+      auto node = ossia::make_node<clap_node_64>(*ctx.execState, proc, *h);
+      this->node = node;
+      m_ossia_process = std::make_shared<ossia::node_process>(node);
+    }
+    else
+    {
+      auto node = ossia::make_node<clap_node_32>(*ctx.execState, proc, *h);
+      this->node = node;
+      m_ossia_process = std::make_shared<ossia::node_process>(node);
+    }
   }
 }
 }

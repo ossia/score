@@ -31,6 +31,12 @@ PROCESS_METADATA(
 namespace Clap
 {
 
+struct ParameterInfo
+{
+  clap_id param_id;
+  double min_value, max_value, default_value;
+};
+
 struct PluginHandle
 {
   PluginHandle();
@@ -77,20 +83,21 @@ public:
   }
   QStringList tags() const noexcept override { return Metadata<Tags_k, Model>::get(); }
   Process::ProcessFlags flags() const noexcept override;
-
-  const QString& pluginPath() const noexcept { return m_pluginPath; }
-  const QString& pluginId() const noexcept { return m_pluginId; }
-
-  void setPluginPath(const QString& path);
-  void setPluginId(const QString& id);
-
   bool hasExternalUI() const noexcept;
   PluginHandle* handle() const noexcept { return m_plugin.get(); }
 
-  void pluginPathChanged(const QString& path) W_SIGNAL(pluginPathChanged, path);
-  void pluginIdChanged(const QString& id) W_SIGNAL(pluginIdChanged, id);
-
+  const QString& pluginId() const noexcept { return m_pluginId; }
   bool supports64() const noexcept { return m_supports64; }
+  
+  const std::vector<ParameterInfo>& parameterInfo() const noexcept { return m_parameters; }
+  const std::vector<clap_audio_port_info_t>& audioInputs() const noexcept
+  {
+    return m_inputs_info;
+  }
+  const std::vector<clap_audio_port_info_t>& audioOutputs() const noexcept
+  {
+    return m_outputs_info;
+  }
 
 private:
   void reload();
@@ -104,6 +111,9 @@ private:
   std::unique_ptr<PluginHandle> m_plugin;
 
   bool m_supports64{};
+  std::vector<ParameterInfo> m_parameters;
+  std::vector<clap_audio_port_info_t> m_inputs_info;
+  std::vector<clap_audio_port_info_t> m_outputs_info;
 };
 
 using ProcessFactory = Process::ProcessFactory_T<Clap::Model>;
