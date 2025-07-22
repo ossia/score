@@ -959,6 +959,11 @@ public:
     const auto poly_channels = audio_in->data.channels();
     if(poly_channels == 0)
       return;
+    // FIXME constant mode of audio inputs
+    if(std::all_of(
+           audio_in->data.begin(), audio_in->data.end(),
+           [](const auto& channel) { return channel.size() == 0; }))
+      return;
     audio_out->data.set_channels(poly_channels);
     clap_audio_buffer_t in_buffer = dummy_audio_buffer();
     clap_audio_buffer_t out_buffer = dummy_audio_buffer();
@@ -985,6 +990,8 @@ public:
       {
         const double* src = channel.data() + offset;
         float* dst = input_channel_storage.data();
+        SCORE_ASSERT(channel.size() >= samples);
+        SCORE_ASSERT(input_channel_storage.size() >= samples);
         for(uint32_t s = 0; s < samples; ++s)
           dst[s] = static_cast<float>(src[s]);
       }
@@ -1041,6 +1048,11 @@ public:
     const auto audio_out = audio_outs[0];
     const auto poly_channels = audio_in->data.channels();
     if(poly_channels == 0)
+      return;
+    // FIXME constant mode of audio inputs
+    if(std::all_of(
+           audio_in->data.begin(), audio_in->data.end(),
+           [](const auto& channel) { return channel.size() == 0; }))
       return;
     audio_out->data.set_channels(poly_channels);
     clap_audio_buffer_t in_buffer = dummy_audio_buffer();

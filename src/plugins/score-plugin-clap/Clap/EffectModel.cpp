@@ -1,7 +1,5 @@
 #include "EffectModel.hpp"
 
-#include "Clap/ApplicationPlugin.hpp"
-
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 
@@ -12,10 +10,13 @@
 #include <QDebug>
 #include <QTimer>
 
+#include <Clap/ApplicationPlugin.hpp>
+#include <Clap/Window.hpp>
 #include <clap/all.h>
 
 #include <score_git_info.hpp>
 #include <wobjectimpl.h>
+
 #if defined(_WIN32)
 #include <windows.h>
 #else
@@ -26,17 +27,114 @@ W_OBJECT_IMPL(Clap::Model)
 
 namespace Clap
 {
+// Host GUI callbacks
+extern "C" {
+static void CLAP_ABI resize_hints_changed(const clap_host_t* host)
+{
+  // Handle resize hints change if needed
+}
+
+static bool CLAP_ABI
+request_resize(const clap_host_t* host, uint32_t width, uint32_t height)
+{
+  auto* window = static_cast<Clap::Model*>(host->host_data)->window;
+  if(window)
+  {
+    window->resize(width, height);
+    return true;
+  }
+  return false;
+}
+
+static bool CLAP_ABI request_show(const clap_host_t* host)
+{
+  auto* window = static_cast<Clap::Model*>(host->host_data)->window;
+  if(window)
+  {
+    window->show();
+    return true;
+  }
+  return false;
+}
+
+static bool CLAP_ABI request_hide(const clap_host_t* host)
+{
+  auto* window = static_cast<Clap::Model*>(host->host_data)->window;
+  if(window)
+  {
+    window->hide();
+    return true;
+  }
+  return false;
+}
+
+static void CLAP_ABI closed(const clap_host_t* host, bool was_destroyed)
+{
+  auto* window = static_cast<Clap::Model*>(host->host_data)->window;
+  if(window && was_destroyed)
+  {
+    // The plugin GUI was destroyed, we need to clean up
+    window->close();
+  }
+}
+
+static std::atomic<uint32_t> g_next_timer_id{};
+CLAP_ABI bool
+register_timer(const clap_host_t* host, uint32_t period_ms, clap_id* timer_id)
+{
+  auto& m = *static_cast<Clap::Model*>(host->host_data);
+  SCORE_ASSERT(m.timer_support);
+  auto tm = new QTimer{};
+  tm->setInterval(period_ms);
+  *timer_id = g_next_timer_id.fetch_add(1, std::memory_order_relaxed);
+  QObject::connect(tm, &QTimer::timeout, &m, [&m, tid = *timer_id] {
+    m.timer_support->on_timer(m.handle()->plugin, tid);
+  });
+  m.timers.push_back({*timer_id, tm});
+  return true;
+}
+
+// Returns true on success.
+// [main-thread]
+CLAP_ABI bool unregister_timer(const clap_host_t* host, clap_id timer_id)
+{
+  auto& m = *static_cast<Clap::Model*>(host->host_data);
+  for(auto it = m.timers.begin(); it != m.timers.end(); ++it)
+  {
+    if(it->first == timer_id)
+    {
+      m.timers.erase(it);
+      return true;
+    }
+  }
+  return false;
+}
+}
+
+static constexpr clap_host_timer_support_t host_timer_ext
+    = {.register_timer = register_timer, .unregister_timer = unregister_timer};
+
+static constexpr clap_host_gui_t host_gui_ext
+    = {.resize_hints_changed = resize_hints_changed,
+       .request_resize = request_resize,
+       .request_show = request_show,
+       .request_hide = request_hide,
+       .closed = closed};
+
 PluginHandle::PluginHandle()
 {
   host.clap_version = CLAP_VERSION;
-  host.host_data = this;
   host.name = "ossia score";
   host.vendor = "ossia.io";
   host.url = "https://ossia.io";
   host.version = SCORE_TAG_NO_V;
   host.get_extension
       = [](const clap_host* host, const char* extension_id) -> const void* {
-    return nullptr; // TODO: implement host extensions
+    if(strcmp(extension_id, CLAP_EXT_GUI) == 0)
+      return &host_gui_ext;
+    if(strcmp(extension_id, CLAP_EXT_TIMER_SUPPORT) == 0)
+      return &host_timer_ext;
+    return nullptr;
   };
   host.request_restart = [](const clap_host* host) {
     // TODO: handle restart request
@@ -124,7 +222,10 @@ Model::Model(JSONObject::Deserializer&& vis, QObject* parent)
   loadPlugin();
 }
 
-Model::~Model() = default;
+Model::~Model()
+{
+  closeUI();
+}
 
 bool Model::hasExternalUI() const noexcept
 {
@@ -133,6 +234,12 @@ bool Model::hasExternalUI() const noexcept
     
   auto gui = (const clap_plugin_gui_t*)m_plugin->plugin->get_extension(m_plugin->plugin, CLAP_EXT_GUI);
   return gui != nullptr;
+}
+
+void Model::closeUI() const
+{
+  if(this->externalUI)
+    this->externalUI->close();
 }
 
 void Model::reload()
@@ -167,6 +274,7 @@ void Model::loadPlugin()
   if(!m_plugin->factory)
     return;
 
+  m_plugin->host.host_data = this;
   m_plugin->plugin = m_plugin->factory->create_plugin(m_plugin->factory, &m_plugin->host, m_pluginId.toUtf8().data());
   if(!m_plugin->plugin)
     return;
@@ -179,6 +287,9 @@ void Model::loadPlugin()
   }
 
   m_plugin->desc = m_plugin->plugin->desc;
+
+  timer_support = (const clap_plugin_timer_support_t*)m_plugin->plugin->get_extension(
+      m_plugin->plugin, CLAP_EXT_TIMER_SUPPORT);
 }
 
 void Model::unloadPlugin()
