@@ -90,13 +90,21 @@ public:
   bool supports64() const noexcept { return m_supports64; }
   
   const std::vector<ParameterInfo>& parameterInfo() const noexcept { return m_parameters; }
+  const std::vector<clap_note_port_info_t>& midiInputs() const noexcept
+  {
+    return m_midi_inputs_info;
+  }
+  const std::vector<clap_note_port_info_t>& midiOutputs() const noexcept
+  {
+    return m_midi_outputs_info;
+  }
   const std::vector<clap_audio_port_info_t>& audioInputs() const noexcept
   {
-    return m_inputs_info;
+    return m_audio_inputs_info;
   }
   const std::vector<clap_audio_port_info_t>& audioOutputs() const noexcept
   {
-    return m_outputs_info;
+    return m_audio_outputs_info;
   }
 
 private:
@@ -112,8 +120,10 @@ private:
 
   bool m_supports64{};
   std::vector<ParameterInfo> m_parameters;
-  std::vector<clap_audio_port_info_t> m_inputs_info;
-  std::vector<clap_audio_port_info_t> m_outputs_info;
+  std::vector<clap_audio_port_info_t> m_audio_inputs_info;
+  std::vector<clap_audio_port_info_t> m_audio_outputs_info;
+  std::vector<clap_note_port_info_t> m_midi_inputs_info;
+  std::vector<clap_note_port_info_t> m_midi_outputs_info;
 };
 
 using ProcessFactory = Process::ProcessFactory_T<Clap::Model>;
