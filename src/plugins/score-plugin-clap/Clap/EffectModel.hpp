@@ -31,7 +31,7 @@ DESCRIPTION_METADATA(, Clap::Model, "Clap")
 
 namespace Clap
 {
-
+class Window;
 struct ParameterInfo
 {
   clap_id param_id;
@@ -86,6 +86,8 @@ public:
   Process::ProcessFlags flags() const noexcept override;
   bool hasExternalUI() const noexcept;
   PluginHandle* handle() const noexcept { return m_plugin.get(); }
+  
+  void closeUI() const;
 
   const QString& pluginId() const noexcept { return m_pluginId; }
   bool supports64() const noexcept { return m_supports64; }
@@ -107,6 +109,10 @@ public:
   {
     return m_audio_outputs_info;
   }
+
+  Clap::Window* window{};
+  const clap_plugin_timer_support_t* timer_support{};
+  std::vector<std::pair<clap_id, QTimer*>> timers;
 
 private:
   void reload();
@@ -140,9 +146,10 @@ EffectProcessFactory_T<Clap::Model>::descriptor(QString d) const noexcept;
 
 namespace Clap
 {
+class Window;
 using ProcessFactory = Process::EffectProcessFactory_T<Clap::Model>;
-// using EffectLayerFactory = Process::EffectLayerFactory_T<
-//     Clap::Model,
-//     Process::DefaultEffectItem,
-//     Process::ProcessModel>;
+using EffectLayerFactory = Process::EffectLayerFactory_T<
+    Clap::Model,
+    Process::DefaultEffectItem,
+    Window>;
 }
