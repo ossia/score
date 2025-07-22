@@ -14,13 +14,13 @@ namespace Clap
 
 class LibraryHandler final : public QObject, public Library::LibraryInterface
 {
-  SCORE_CONCRETE("4a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d")
+  SCORE_CONCRETE("c820b32d-8971-4d0e-9238-2b3d4e942d23")
 public:
   void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
       override;
 
 private:
-  QString getClapCategory(const std::vector<QString>& features) const;
+  QString getClapCategory(const QList<QString>& features) const;
 };
 
 }

@@ -1,5 +1,7 @@
 #include "EffectModel.hpp"
 
+#include "Clap/ApplicationPlugin.hpp"
+
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 
@@ -304,6 +306,51 @@ Process::ProcessFlags Model::flags() const noexcept
   auto flags = Metadata<Process::ProcessFlags_k, Model>::get();
   return flags;
 }
+}
+
+template <>
+QString
+Process::EffectProcessFactory_T<Clap::Model>::customConstructionData() const noexcept
+{
+  return "";
+}
+template <>
+Process::Descriptor
+Process::EffectProcessFactory_T<Clap::Model>::descriptor(QString txt) const noexcept
+{
+  Process::Descriptor d;
+
+  auto t = txt.split(":::");
+  if(t.size() != 2)
+    return d;
+  auto pluginPath = t[0];
+  auto pluginId = t[1];
+
+  auto& plug = score::GUIAppContext().guiApplicationPlugin<Clap::ApplicationPlugin>();
+  for(const auto& plugin : plug.plugins())
+  {
+    if(plugin.path == pluginPath && plugin.id == pluginId)
+    {
+      d.author = plugin.vendor;
+      d.prettyName = plugin.name;
+      d.description = plugin.description;
+      d.documentationLink = plugin.manual_url;
+      if(d.documentationLink.isEmpty())
+        d.documentationLink = plugin.url;
+      if(d.documentationLink.isEmpty())
+        d.documentationLink = plugin.support_url;
+      d.tags = plugin.features;
+      break;
+    }
+  }
+  return d;
+}
+template <>
+Process::Descriptor Process::EffectProcessFactory_T<Clap::Model>::descriptor(
+    const Process::ProcessModel& d) const noexcept
+{
+  Process::Descriptor desc;
+  return descriptor(d.effect());
 }
 
 template <>

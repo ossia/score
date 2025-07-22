@@ -34,7 +34,12 @@ public:
     QString name;
     QString vendor;
     QString version;
-    std::vector<QString> features;
+    QString url;
+    QString manual_url;
+    QString support_url;
+    QString description;
+
+    QList<QString> features;
   };
 
   const std::vector<PluginInfo>& plugins() const noexcept { return m_plugins; }
