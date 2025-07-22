@@ -7,6 +7,8 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
+#include <ossia/network/domain/domain.hpp>
+
 #include <QDebug>
 #include <QTimer>
 
