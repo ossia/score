@@ -34,62 +34,71 @@ static auto dummy_audio_buffer() noexcept
 struct event_storage
 {
   std::vector<clap_event_midi_t> midi_events;
+  std::vector<clap_event_midi2_t> midi2_events;
+  std::vector<clap_event_note_t> note_events;
   std::vector<clap_event_param_value_t> param_events;
   std::vector<clap_event_header_t*> all_events;
 
   void clear()
   {
     midi_events.clear();
+    midi2_events.clear();
+    note_events.clear();
     param_events.clear();
     all_events.clear();
-  }
-
-  void reserve(size_t n)
-  {
-    midi_events.reserve(n);
-    param_events.reserve(n);
-    all_events.reserve(n);
   }
 };
 
 class clap_node_base : public ossia::graph_node
 {
 public:
-  std::vector<ossia::audio_inlet*> audio_ins;
-  std::vector<ossia::audio_outlet*> audio_outs;
-  clap_node_base(const Clap::Model& proc)
+  explicit clap_node_base(const Clap::Model& proc)
       : m_param_info{proc.parameterInfo()}
+      , m_midi_in_info{proc.midiInputs()}
+      , m_midi_out_info{proc.midiOutputs()}
   {
+    controls.reserve(m_param_info.size());
+    m_input_events.all_events.reserve(4096);
+
     // Create ports based on the model
     for(auto inlet : proc.inlets())
     {
-      if(auto audio_in = qobject_cast<Process::AudioInlet*>(inlet))
+      if(qobject_cast<Process::AudioInlet*>(inlet))
       {
         audio_ins.push_back(new ossia::audio_inlet);
         m_inlets.push_back(audio_ins.back());
       }
-      else if(auto midi_in = qobject_cast<Process::MidiInlet*>(inlet))
+      else if(qobject_cast<Process::MidiInlet*>(inlet))
       {
-        m_inlets.push_back(new ossia::midi_inlet);
+        midi_ins.push_back(new ossia::midi_inlet);
+        m_inlets.push_back(midi_ins.back());
       }
-      else if(auto ctrl_in = qobject_cast<Process::ControlInlet*>(inlet))
+      else if(qobject_cast<Process::ControlInlet*>(inlet))
       {
-        m_inlets.push_back(new ossia::value_inlet);
+        controls.push_back(new ossia::value_inlet);
+        m_inlets.push_back(controls.back());
       }
     }
 
     for(auto outlet : proc.outlets())
     {
-      if(auto audio_out = qobject_cast<Process::AudioOutlet*>(outlet))
+      if(qobject_cast<Process::AudioOutlet*>(outlet))
       {
         audio_outs.push_back(new ossia::audio_outlet);
         m_outlets.push_back(audio_outs.back());
       }
-      else if(auto midi_out = qobject_cast<Process::MidiOutlet*>(outlet))
+      else if(qobject_cast<Process::MidiOutlet*>(outlet))
       {
-        m_outlets.push_back(new ossia::midi_outlet);
+        midi_outs.push_back(new ossia::midi_outlet);
+        m_outlets.push_back(midi_outs.back());
       }
     }
+
+    SCORE_ASSERT(controls.size() == m_param_info.size());
+    SCORE_ASSERT(audio_ins.size() == proc.audioInputs().size());
+    SCORE_ASSERT(audio_outs.size() == proc.audioOutputs().size());
+    SCORE_ASSERT(midi_ins.size() == proc.midiInputs().size());
+    SCORE_ASSERT(midi_outs.size() == proc.midiOutputs().size());
   }
 
   std::string label() const noexcept override
@@ -142,7 +151,7 @@ public:
         param_event.port_index = -1;
         param_event.channel = -1;
         param_event.key = -1;
-        param_event.value = param_info.default_value;
+        param_event.value = param_info.default_value; // FIXME use value set in score
 
         // Create temporary input events structure to send the parameter
         event_storage temp_events;
@@ -203,41 +212,50 @@ public:
     return true;
   }
 
-  auto make_transport()
+  auto make_transport(const ossia::token_request& tk, ossia::exec_state_facade st)
   {
+    const double song_pos_beats = tk.musical_start_position;
+    const double song_pos_seconds = tk.prev_date.impl * st.samplesToModel();
+    uint32_t transport_flags = 0;
+    if(tk.prev_date != tk.date)
+      transport_flags |= CLAP_TRANSPORT_IS_PLAYING;
+
+    // Bar information
+    const double bar_start = tk.musical_start_last_bar;
+    const int32_t bar_number = static_cast<int32_t>(
+        tk.musical_start_last_bar / (4.0 * tk.signature.upper / tk.signature.lower));
 
     clap_event_transport_t transport{
-                                     .header
-                                     = {
-                                         .size = sizeof(clap_event_transport_t),
-                                         .time = 0,
-                                         .space_id = CLAP_CORE_EVENT_SPACE_ID,
-                                         .type = CLAP_EVENT_TRANSPORT,
-                                         .flags = 0,
-                                     },
-                                     .flags = 0,
-                                     .song_pos_beats = 0,
-                                     .song_pos_seconds = 0,
-                                     .tempo = 0,
-                                     .tempo_inc = 0,
-                                     .loop_start_beats = 0,
-                                     .loop_end_beats = 0,
-                                     .loop_start_seconds = 0,
-                                     .loop_end_seconds = 0,
-                                     .bar_start = 0,
-                                     .bar_number = 0,
-                                     .tsig_num = 4,
-                                     .tsig_denom = 4};
+        .header = {
+            .size = sizeof(clap_event_transport_t),
+            .time = 0,
+            .space_id = CLAP_CORE_EVENT_SPACE_ID,
+            .type = CLAP_EVENT_TRANSPORT,
+            .flags = 0,
+        },
+        .flags = transport_flags,
+        .song_pos_beats = (clap_beattime)std::floor(song_pos_beats),
+        .song_pos_seconds = (clap_sectime)std::floor(song_pos_seconds),
+        .tempo = tk.tempo,
+        .tempo_inc = 0.0, // FIXME
+        .loop_start_beats = 0,
+        .loop_end_beats = 0,
+        .loop_start_seconds = 0,
+        .loop_end_seconds = 0,
+        .bar_start = (clap_beattime) std::floor(bar_start),
+        .bar_number = bar_number,
+        .tsig_num = static_cast<uint16_t>(tk.signature.upper),
+        .tsig_denom = static_cast<uint16_t>(tk.signature.lower)
+    };
 
     return transport;
   }
-
   void process_controls(uint32_t samples)
   {
     // Process control inlets and create parameter events
-    size_t param_idx = 0;
+    std::size_t param_idx = 0;
 
-    for(size_t i = 0; i < m_inlets.size(); ++i)
+    for(std::size_t i = 0; i < m_inlets.size(); ++i)
     {
       if(auto ctrl_in = m_inlets[i]->target<ossia::value_port>())
       {
@@ -265,27 +283,153 @@ public:
           param_event.value = value;
 
           m_input_events.param_events.push_back(param_event);
+          m_input_events.all_events.push_back(
+              reinterpret_cast<clap_event_header_t*>(
+                  &m_input_events.param_events.back()));
         }
         param_idx++;
       }
     }
   }
 
-  void finalize_input_events()
+  void process_midi()
   {
-    // Add parameter events to the all_events list
-    for(auto& evt : m_input_events.param_events)
+    uint16_t midi_port_index = 0;
+    for(ossia::midi_inlet* midi_in : midi_ins)
     {
-      m_input_events.all_events.push_back(reinterpret_cast<clap_event_header_t*>(&evt));
-    }
+      const auto& spec = m_midi_in_info[midi_port_index];
+      const auto& msgs = midi_in->data.messages;
 
-    // Add MIDI events to the all_events list
-    for(auto& evt : m_input_events.midi_events)
-    {
-      m_input_events.all_events.push_back(reinterpret_cast<clap_event_header_t*>(&evt));
-    }
+      if(spec.supported_dialects & clap_note_dialect::CLAP_NOTE_DIALECT_MIDI2)
+      {
+        for(const auto& m : msgs)
+        {
+          clap_event_midi2_t ev{};
+          ev.header.size = sizeof(clap_event_midi2_t);
+          ev.header.time = m.timestamp;
+          ev.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
+          ev.header.type = CLAP_EVENT_MIDI2;
+          ev.header.flags = 0;
+          ev.port_index = midi_port_index;
+          ev.data[0] = m.data[0];
+          ev.data[1] = m.data[1];
+          ev.data[2] = m.data[2];
+          ev.data[3] = m.data[3];
 
-    // Sort all events by timestamp
+          m_input_events.midi2_events.push_back(ev);
+          m_input_events.all_events.push_back(
+              reinterpret_cast<clap_event_header_t*>(
+                  &m_input_events.midi2_events.back()));
+        }
+      }
+      else if(spec.supported_dialects & clap_note_dialect::CLAP_NOTE_DIALECT_CLAP)
+      {
+        for(const auto& m : msgs)
+        {
+          if(m.get_type() != libremidi::midi2::message_type::MIDI_2_CHANNEL)
+            continue;
+          clap_event_note_t ev{};
+          ev.header.size = sizeof(clap_event_note_t);
+          ev.header.time = m.timestamp;
+          ev.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
+          ev.header.flags = 0;
+          ev.port_index = midi_port_index;
+          ev.note_id = -1;
+          switch(libremidi::message_type(m.get_status_code()))
+          {
+            case libremidi::message_type::NOTE_ON: {
+              auto [channel, note, value] = libremidi::as_01::note_off(m);
+              if(value > 0)
+              {
+                ev.header.type = CLAP_EVENT_NOTE_ON;
+                ev.channel = channel;
+                ev.key = note;
+                ev.velocity = value;
+              }
+              else
+              {
+                ev.header.type = CLAP_EVENT_NOTE_OFF;
+                ev.channel = channel;
+                ev.key = note;
+                ev.velocity = 0.0;
+              }
+              m_input_events.note_events.push_back(ev);
+              m_input_events.all_events.push_back(
+                  reinterpret_cast<clap_event_header_t*>(
+                      &m_input_events.note_events.back()));
+              break;
+            }
+            case libremidi::message_type::NOTE_OFF: {
+              auto [channel, note, value] = libremidi::as_01::note_off(m);
+              ev.header.type = CLAP_EVENT_NOTE_OFF;
+              ev.channel = channel;
+              ev.key = note;
+              ev.velocity = value;
+              m_input_events.note_events.push_back(ev);
+              m_input_events.all_events.push_back(
+                  reinterpret_cast<clap_event_header_t*>(
+                      &m_input_events.note_events.back()));
+              break;
+            }
+            default:
+              break;
+          }
+        }
+      }
+      else if(spec.supported_dialects & clap_note_dialect::CLAP_NOTE_DIALECT_MIDI)
+      {
+        for(const auto& m : msgs)
+        {
+          // Convert UMP to MIDI 1.0
+          uint8_t midi_bytes[16];
+          auto bytes_written = cmidi2_convert_single_ump_to_midi1(
+              midi_bytes, sizeof(midi_bytes), (cmidi2_ump*)m.data);
+
+          if(bytes_written > 0 && bytes_written <= 3)
+          {
+            clap_event_midi_t ev{};
+            ev.header.size = sizeof(clap_event_midi_t);
+            ev.header.time = m.timestamp;
+            ev.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
+            ev.header.type = CLAP_EVENT_MIDI;
+            ev.header.flags = 0;
+            ev.port_index = midi_port_index;
+            std::memcpy(ev.data, midi_bytes, bytes_written);
+
+            m_input_events.midi_events.push_back(ev);
+            m_input_events.all_events.push_back(
+                reinterpret_cast<clap_event_header_t*>(
+                    &m_input_events.midi_events.back()));
+          }
+        }
+      }
+      // FIXME sysex
+      midi_port_index++;
+    }
+  }
+
+  void prepare_input_events(int samples)
+  {
+    m_input_events.clear();
+    m_output_events.clear();
+
+    int param_event_count = 0;
+    int midi_event_count = 0;
+    for(auto port : this->controls)
+      param_event_count += port->data.get_data().size();
+    for(auto port : this->midi_ins)
+      midi_event_count += port->data.messages.size();
+    m_input_events.midi_events.reserve(midi_event_count * 1.1);
+    m_input_events.midi2_events.reserve(midi_event_count * 1.1);
+    m_input_events.note_events.reserve(midi_event_count * 1.1);
+    m_input_events.param_events.reserve(param_event_count * 1.1);
+    m_input_events.all_events.reserve((param_event_count + midi_event_count + 1) * 1.1);
+
+    // Process parameter changes
+    process_controls(samples);
+    process_midi();
+
+    // Events need to be sorted
     std::sort(
         m_input_events.all_events.begin(), m_input_events.all_events.end(),
         [](const clap_event_header_t* a, const clap_event_header_t* b) {
@@ -293,56 +437,19 @@ public:
     });
   }
 
-  void process_events(int samples)
-  {
-    m_input_events.clear();
-    m_output_events.clear();
-
-    // Process parameter changes
-    process_controls(samples);
-
-    // Process MIDI input
-    uint16_t midi_port_index = 0;
-    for(size_t i = 0; i < m_inlets.size(); ++i)
-    {
-      if(auto midi_in = m_inlets[i]->target<ossia::midi_port>())
-      {
-        const auto& msgs = midi_in->messages;
-        m_input_events.reserve(msgs.size());
-
-        for(const auto& msg : msgs)
-        {
-          // Convert UMP to MIDI 1.0
-          uint8_t midi_bytes[16];
-          auto bytes_written = cmidi2_convert_single_ump_to_midi1(
-              midi_bytes, sizeof(midi_bytes), (cmidi2_ump*)msg.data);
-
-          if(bytes_written > 0 && bytes_written <= 3)
-          {
-            clap_event_midi_t midi_event{};
-            midi_event.header.size = sizeof(clap_event_midi_t);
-            midi_event.header.time = msg.timestamp;
-            midi_event.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
-            midi_event.header.type = CLAP_EVENT_MIDI;
-            midi_event.header.flags = 0;
-            midi_event.port_index = midi_port_index;
-            std::memcpy(midi_event.data, midi_bytes, 3);
-
-            m_input_events.midi_events.push_back(midi_event);
-          }
-        }
-        midi_port_index++;
-      }
-    }
-
-    // Finalize all input events (sort and prepare event pointers)
-    finalize_input_events();
-  }
+  ossia::small_vector<ossia::audio_inlet*, 2> audio_ins;
+  ossia::small_vector<ossia::audio_outlet*, 2> audio_outs;
+  ossia::small_vector<ossia::midi_inlet*, 2> midi_ins;
+  ossia::small_vector<ossia::midi_outlet*, 2> midi_outs;
+  std::vector<ossia::value_inlet*> controls;
+  clap_event_transport_t m_current_transport;
 
   event_storage m_input_events;
   event_storage m_output_events;
 
   const std::vector<ParameterInfo>& m_param_info;
+  const std::vector<clap_note_port_info_t>& m_midi_in_info;
+  const std::vector<clap_note_port_info_t>& m_midi_out_info;
   double m_sample_rate{44100.0};
   uint32_t m_buffer_size{512};
 };
@@ -375,8 +482,7 @@ protected:
   {
     // Process audio
     process.steady_time = -1;
-    clap_event_transport_t transport = make_transport();
-    process.transport = &transport;
+    process.transport = &m_current_transport;
 
     // Setup input events
     clap_input_events evs{
@@ -405,6 +511,7 @@ protected:
             *reinterpret_cast<const clap_event_midi_t*>(event));
         return true;
       }
+      // FIXME else if note...
       return false;
     }};
 
@@ -415,7 +522,7 @@ protected:
 
     // Process MIDI output
     std::size_t midi_port_index = 0;
-    for(size_t i = 0; i < m_outlets.size(); ++i)
+    for(std::size_t i = 0; i < m_outlets.size(); ++i)
     {
       if(auto midi_out = m_outlets[i]->target<ossia::midi_port>())
       {
@@ -476,6 +583,8 @@ public:
     if(samples == 0)
       return;
 
+    m_current_transport = make_transport(t, e);
+
     // Clear previous data
     input_buffers.clear();
     output_buffers.clear();
@@ -484,7 +593,7 @@ public:
     input_channel_ptrs.clear();
     output_channel_ptrs.clear();
 
-    process_events(samples);
+    prepare_input_events(samples);
 
     // Setup audio input buffers
     // We must create exactly the number of buffers the plugin expects
@@ -634,6 +743,8 @@ public:
     if(samples == 0)
       return;
 
+    m_current_transport = make_transport(t, e);
+
     // Prepare buffers
     input_buffers.clear();
     output_buffers.clear();
@@ -641,10 +752,10 @@ public:
     m_output_events.clear();
 
     // Process parameter changes
-    process_events(samples);
+    prepare_input_events(samples);
 
     // Setup audio input buffers
-    size_t audio_in_idx = 0;
+    std::size_t audio_in_idx = 0;
     for(ossia::audio_inlet* audio_in : audio_ins)
     {
       const auto& audio_info = this->m_expected_audio_inputs[audio_in_idx];
@@ -680,7 +791,7 @@ public:
     }
 
     // Setup output buffers
-    size_t audio_out_idx = 0;
+    std::size_t audio_out_idx = 0;
     for(ossia::audio_outlet* audio_out : audio_outs)
     {
       const auto& audio_info = this->m_expected_audio_outputs[audio_out_idx];
@@ -754,7 +865,7 @@ public:
     {
       if(m_poly[i].activated)
       {
-        (void)deactivate_plugin(m_instance.plugin);
+        (void)deactivate_plugin(m_poly[i].plugin);
         m_poly[i].activated = false;
       }
 
@@ -772,8 +883,7 @@ protected:
   {
     // Process audio
     process.steady_time = -1;
-    clap_event_transport_t transport = make_transport();
-    process.transport = &transport;
+    process.transport = &m_current_transport;
 
     // Setup input events
     clap_input_events evs{
@@ -830,13 +940,15 @@ public:
     if(samples == 0)
       return;
 
+    m_current_transport = make_transport(t, e);
+
     // Clear previous data
     input_channel_storage.clear();
     output_channel_storage.clear();
     input_channel_storage.resize(samples);
     output_channel_storage.resize(samples);
 
-    process_events(samples);
+    prepare_input_events(samples);
 
     float* ins_pointer[1]{input_channel_storage.data()};
     float* outs_pointer[1]{output_channel_storage.data()};
@@ -916,8 +1028,10 @@ public:
     if(samples == 0)
       return;
 
+    m_current_transport = make_transport(t, e);
+
     // Clear previous data
-    process_events(samples);
+    prepare_input_events(samples);
 
     double* ins_pointer[1]{};
     double* outs_pointer[1]{};

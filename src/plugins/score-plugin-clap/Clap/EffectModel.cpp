@@ -197,8 +197,8 @@ void Model::createControls()
   // Get audio ports extension
   auto audio_ports = (const clap_plugin_audio_ports_t*)m_plugin->plugin->get_extension(m_plugin->plugin, CLAP_EXT_AUDIO_PORTS);
   m_supports64 = true;
-  m_inputs_info.clear();
-  m_outputs_info.clear();
+  m_audio_inputs_info.clear();
+  m_audio_outputs_info.clear();
   if(audio_ports)
   {
     auto input_count = audio_ports->count(m_plugin->plugin, true);
@@ -210,7 +210,7 @@ void Model::createControls()
         m_supports64 &= (info.flags & CLAP_AUDIO_PORT_SUPPORTS_64BITS);
         m_inlets.push_back(
             new Process::AudioInlet(Id<Process::Port>(getStrongId(m_inlets)), this));
-        m_inputs_info.push_back(info);
+        m_audio_inputs_info.push_back(info);
       }
     }
     auto output_count = audio_ports->count(m_plugin->plugin, false);
@@ -227,12 +227,14 @@ void Model::createControls()
           out->setPropagate(true);
         }
         m_outlets.push_back(out);
-        m_outputs_info.push_back(info);
+        m_audio_outputs_info.push_back(info);
       }
     }
   }
 
   // Get note ports extension
+  m_midi_inputs_info.clear();
+  m_midi_outputs_info.clear();
   auto note_ports = (const clap_plugin_note_ports_t*)m_plugin->plugin->get_extension(m_plugin->plugin, CLAP_EXT_NOTE_PORTS);
   if(note_ports)
   {
@@ -245,6 +247,7 @@ void Model::createControls()
         auto inlet = new Process::MidiInlet(Id<Process::Port>(getStrongId(m_inlets)), this);
         inlet->setName(QString::fromUtf8(info.name));
         m_inlets.push_back(inlet);
+        m_midi_inputs_info.push_back(info);
       }
     }
     uint32_t output_count = note_ports->count(m_plugin->plugin, false);
@@ -256,6 +259,7 @@ void Model::createControls()
         auto outlet = new Process::MidiOutlet(Id<Process::Port>(getStrongId(m_outlets)), this);
         outlet->setName(QString::fromUtf8(info.name));
         m_outlets.push_back(outlet);
+        m_midi_outputs_info.push_back(info);
       }
     }
   }
