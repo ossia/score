@@ -27,6 +27,7 @@ PROCESS_METADATA(
         "https://ossia.io/score-docs/processes/"
         "audio-plugins.html#common-formats-vst-vst3-lv2-jsfx"),
     Process::ProcessFlags::ExternalEffect)
+DESCRIPTION_METADATA(, Clap::Model, "Clap")
 
 namespace Clap
 {
@@ -125,11 +126,23 @@ private:
   std::vector<clap_note_port_info_t> m_midi_inputs_info;
   std::vector<clap_note_port_info_t> m_midi_outputs_info;
 };
+}
 
-using ProcessFactory = Process::ProcessFactory_T<Clap::Model>;
+namespace Process
+{
+template <>
+QString EffectProcessFactory_T<Clap::Model>::customConstructionData() const noexcept;
+
+template <>
+Process::Descriptor
+EffectProcessFactory_T<Clap::Model>::descriptor(QString d) const noexcept;
+}
+
+namespace Clap
+{
+using ProcessFactory = Process::EffectProcessFactory_T<Clap::Model>;
 // using EffectLayerFactory = Process::EffectLayerFactory_T<
 //     Clap::Model,
 //     Process::DefaultEffectItem,
 //     Process::ProcessModel>;
 }
-

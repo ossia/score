@@ -141,7 +141,11 @@ void ApplicationPlugin::scanClapPlugins()
         info.name = QString::fromUtf8(desc->name);
         info.vendor = QString::fromUtf8(desc->vendor ? desc->vendor : "");
         info.version = QString::fromUtf8(desc->version ? desc->version : "");
-        
+        info.url = QString::fromUtf8(desc->url ? desc->url : "");
+        info.manual_url = QString::fromUtf8(desc->manual_url ? desc->manual_url : "");
+        info.support_url = QString::fromUtf8(desc->support_url ? desc->support_url : "");
+        info.description = QString::fromUtf8(desc->description ? desc->description : "");
+
         if(desc->features)
         {
           for(const char* const* feature = desc->features; *feature; ++feature)

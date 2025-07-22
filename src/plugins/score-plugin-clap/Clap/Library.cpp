@@ -39,17 +39,9 @@ void LibraryHandler::setup(
         categories[category] = &cat_node;
       }
 
-      // Create display name
-      QString displayName = plugin.name;
-      if(!plugin.vendor.isEmpty())
-      {
-        displayName = QString("%1 - %2").arg(plugin.vendor, plugin.name);
-      }
-
-      // Create the plugin identifier (path:::id format expected by CLAP Model constructor)
       QString pluginIdentifier = QString("%1:::%2").arg(plugin.path, plugin.id);
 
-      Library::ProcessData pdata{{key, displayName, pluginIdentifier}, {}};
+      Library::ProcessData pdata{{key, plugin.name, pluginIdentifier}, {}};
       Library::addToLibrary(*categories[category], std::move(pdata));
     }
   };
@@ -58,7 +50,7 @@ void LibraryHandler::setup(
   connect(&plug, &Clap::ApplicationPlugin::pluginsChanged, this, reset_plugs);
 }
 
-QString LibraryHandler::getClapCategory(const std::vector<QString>& features) const
+QString LibraryHandler::getClapCategory(const QList<QString>& features) const
 {
   // Map CLAP features to score categories
   // Based on CLAP feature IDs from clap/plugin-features.h
