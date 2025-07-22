@@ -106,8 +106,9 @@ public:
     return "clap";
   }
 
-  [[nodiscard]]
-  bool activate_plugin(
+  virtual void reset_execution() = 0;
+
+  [[nodiscard]] bool activate_plugin(
       const clap_plugin_t* plugin, double sample_rate, uint32_t max_buffer_size)
   {
     if(!plugin)
@@ -467,6 +468,15 @@ public:
   }
 
   ~clap_node()
+  {
+    if(m_activated)
+    {
+      (void)deactivate_plugin(m_instance.plugin);
+      m_activated = false;
+    }
+  }
+
+  void reset_execution() override
   {
     if(m_activated)
     {
@@ -839,24 +849,30 @@ public:
   clap_node_mono(const Clap::Model& proc, Clap::PluginHandle& handle)
       : clap_node_base{proc}
       , m_instance{handle}
+      , m_plugin_id{proc.pluginId().toUtf8()}
   {
     m_poly.reserve(8);
     m_poly.push_back({handle.plugin, false});
     for(int i = 0; i < 7; i++)
     {
-      poly_plugin p{nullptr, false};
-      p.plugin = handle.factory->create_plugin(
-          handle.factory, &handle.host, proc.pluginId().toUtf8().data());
-      if(!p.plugin)
-        throw std::runtime_error("Could not create plug-in instance");
-
-      if(!p.plugin->init(p.plugin))
-      {
-        p.plugin->destroy(p.plugin);
-        throw std::runtime_error("Could not init plug-in instance");
-      }
-      m_poly.push_back(p);
+      add_poly_instance();
     }
+  }
+
+  void add_poly_instance()
+  {
+    poly_plugin p{nullptr, false};
+    p.plugin = m_instance.factory->create_plugin(
+        m_instance.factory, &m_instance.host, m_plugin_id.data());
+    if(!p.plugin)
+      throw std::runtime_error("Could not create plug-in instance");
+
+    if(!p.plugin->init(p.plugin))
+    {
+      p.plugin->destroy(p.plugin);
+      throw std::runtime_error("Could not init plug-in instance");
+    }
+    m_poly.push_back(p);
   }
 
   ~clap_node_mono()
@@ -872,6 +888,18 @@ public:
       if(i > 0)
       {
         m_poly[i].plugin->destroy(m_poly[i].plugin);
+      }
+    }
+  }
+
+  void reset_execution() override
+  {
+    for(int i = 0; i < m_poly.size(); i++)
+    {
+      if(m_poly[i].activated)
+      {
+        (void)deactivate_plugin(m_poly[i].plugin);
+        m_poly[i].activated = false;
       }
     }
   }
@@ -921,6 +949,7 @@ protected:
   };
 
   std::vector<poly_plugin> m_poly;
+  std::string m_plugin_id;
 };
 
 class clap_node_mono_32 final : public clap_node_mono
@@ -956,9 +985,13 @@ public:
     // Setup audio input buffers
     const auto audio_in = audio_ins[0];
     const auto audio_out = audio_outs[0];
+    const auto& in_channels = audio_in->data.get();
+    auto& out_channels = audio_out->data.get();
     const auto poly_channels = audio_in->data.channels();
     if(poly_channels == 0)
       return;
+    while(m_poly.size() < poly_channels)
+      add_poly_instance();
     // FIXME constant mode of audio inputs
     if(std::all_of(
            audio_in->data.begin(), audio_in->data.end(),
@@ -972,8 +1005,6 @@ public:
     out_buffer.channel_count = 1;
     out_buffer.data32 = outs_pointer;
 
-    const auto& in_channels = audio_in->data.get();
-    auto& out_channels = audio_out->data.get();
     int current_channel = 0;
     for(auto& channel : in_channels)
     {
@@ -1049,6 +1080,8 @@ public:
     const auto poly_channels = audio_in->data.channels();
     if(poly_channels == 0)
       return;
+    while(m_poly.size() < poly_channels)
+      add_poly_instance();
     // FIXME constant mode of audio inputs
     if(std::all_of(
            audio_in->data.begin(), audio_in->data.end(),
@@ -1110,17 +1143,20 @@ Executor::Executor(Clap::Model& proc, const Execution::Context& ctx, QObject* pa
       = proc.audioInputs().size() == 1 && proc.audioInputs()[0].channel_count == 1
         && proc.audioOutputs().size() == 1 && proc.audioOutputs()[0].channel_count == 1;
 
+  std::shared_ptr<clap_node_base> clap{};
   if(monophonic)
   {
     if(proc.supports64())
     {
       auto node = ossia::make_node<clap_node_mono_64>(*ctx.execState, proc, *h);
+      clap = node;
       this->node = node;
       m_ossia_process = std::make_shared<ossia::node_process>(node);
     }
     else
     {
       auto node = ossia::make_node<clap_node_mono_32>(*ctx.execState, proc, *h);
+      clap = node;
       this->node = node;
       m_ossia_process = std::make_shared<ossia::node_process>(node);
     }
@@ -1130,15 +1166,51 @@ Executor::Executor(Clap::Model& proc, const Execution::Context& ctx, QObject* pa
     if(proc.supports64())
     {
       auto node = ossia::make_node<clap_node_64>(*ctx.execState, proc, *h);
+      clap = node;
       this->node = node;
       m_ossia_process = std::make_shared<ossia::node_process>(node);
     }
     else
     {
       auto node = ossia::make_node<clap_node_32>(*ctx.execState, proc, *h);
+      clap = node;
       this->node = node;
       m_ossia_process = std::make_shared<ossia::node_process>(node);
     }
   }
+
+  SCORE_ASSERT(clap);
+
+  // Connect control inlet changes to the executor
+  std::size_t control_idx = 0;
+  for(auto* inlet : proc.inlets())
+  {
+    if(auto* control = qobject_cast<Process::ControlInlet*>(inlet))
+    {
+      auto* inl = clap->controls[control_idx];
+      connect(
+          control, &Process::ControlInlet::valueChanged, this,
+          [this, inl](const ossia::value& v) {
+        auto weak_self = std::weak_ptr{this->node};
+        in_exec([inl, val = v, node = weak_self]() mutable {
+          if(auto n = node.lock())
+            inl->target<ossia::value_port>()->write_value(std::move(val), 0);
+        });
+      });
+      control_idx++;
+    }
+  }
+
+  // Connect the restart signal
+  connect(
+      &proc, &Process::ProcessModel::resetExecution, this,
+      [this, weak_self = std::weak_ptr{clap}] {
+    in_exec([weak_self]() mutable {
+      if(auto n = weak_self.lock())
+      {
+        n->reset_execution();
+      }
+    });
+  });
 }
 }

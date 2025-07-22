@@ -27,10 +27,9 @@ private:
   void closeEvent(QCloseEvent* event) override;
   void showEvent(QShowEvent* event) override;
   void hideEvent(QHideEvent* event) override;
-  
+
   static void setup_rect(QWidget* container, int width, int height);
-  void refreshTimer();
-  
+
   bool queryExtensions();
   void initializeGui();
   

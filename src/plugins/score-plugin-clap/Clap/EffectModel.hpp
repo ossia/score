@@ -9,13 +9,14 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
+#include <ossia/detail/hash_map.hpp>
+
+#include <QSocketNotifier>
+
 #include <clap/all.h>
 
 #include <memory>
-#include <unordered_map>
 #include <verdigris>
-
-#include <QSocketNotifier>
 
 namespace Clap
 {
@@ -113,17 +114,18 @@ public:
     return m_audio_outputs_info;
   }
 
+  void restartPlugin() W_SIGNAL(restartPlugin);
   Clap::Window* window{};
   const clap_plugin_timer_support_t* timer_support{};
   std::vector<std::pair<clap_id, QTimer*>> timers;
-  
-  // POSIX fd support
-  struct FdNotifiers {
+
+  struct FdNotifiers
+  {
     std::unique_ptr<QSocketNotifier> read;
     std::unique_ptr<QSocketNotifier> write;
     std::unique_ptr<QSocketNotifier> error;
   };
-  std::unordered_map<int, std::unique_ptr<FdNotifiers>> fd_notifiers;
+  ossia::hash_map<int, std::unique_ptr<FdNotifiers>> fd_notifiers;
 
 private:
   void reload();

@@ -316,16 +316,22 @@ PluginHandle::PluginHandle()
     return nullptr;
   };
   host.request_restart = [](const clap_host* host) {
-    // TODO: handle restart request
-    qDebug() << "request_restart ";
+    auto& m = *static_cast<Clap::Model*>(host->host_data);
+    QMetaObject::invokeMethod(&m, [&m] {
+      auto plug = m.handle()->plugin;
+      plug->on_main_thread(plug);
+    }, Qt::QueuedConnection);
   };
   host.request_process = [](const clap_host* host) {
-    // TODO: handle process request
-    qDebug() << "request_process ";
+    auto& m = *static_cast<Clap::Model*>(host->host_data);
+    // unused in score
   };
   host.request_callback = [](const clap_host* host) {
-    // TODO: handle callback request
-    qDebug() << "request_callback ";
+    auto& m = *static_cast<Clap::Model*>(host->host_data);
+    QMetaObject::invokeMethod(&m, [&m] {
+      auto plug = m.handle()->plugin;
+      plug->on_main_thread(plug);
+    }, Qt::QueuedConnection);
   };
 }
 

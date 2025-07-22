@@ -23,12 +23,8 @@ Window::Window(const Model& e, const score::DocumentContext& ctx, QWidget* paren
 
   if(!queryExtensions())
     throw std::runtime_error("Plugin does not support GUI extension");
-    
+
   initializeGui();
-  
-  connect(
-      &ctx.coarseUpdateTimer, &QTimer::timeout, this, &Window::refreshTimer,
-      Qt::UniqueConnection);
 }
 
 Window::~Window()
@@ -73,8 +69,6 @@ void Window::initializeGui()
     api = CLAP_WINDOW_API_X11;
 #endif
   }
-
-  qDebug() << api;
 
   // Check if the selected API is supported for embedded mode
   if(!m_gui_ext->is_api_supported(m_handle->plugin, api, false))
@@ -191,7 +185,6 @@ void Window::showEvent(QShowEvent* event)
       qWarning() << "Failed to set parent window for CLAP plugin";
       return;
     }
-    qDebug("oki 1");
   }
   else
   {
@@ -213,17 +206,14 @@ void Window::showEvent(QShowEvent* event)
     
     // Suggest window title
     if(m_gui_ext->suggest_title)
-    {
-      m_gui_ext->suggest_title(m_handle->plugin, m_model.prettyName().toStdString().c_str());
-    }
-    qDebug("oki 2");
+      m_gui_ext->suggest_title(
+          m_handle->plugin, m_model.prettyName().toStdString().c_str());
   }
   
   // Show the GUI
   if(m_gui_ext->show(m_handle->plugin))
   {
     m_gui_visible = true;
-    qDebug("oki 3");
   }
 }
 
@@ -288,11 +278,4 @@ void Window::setup_rect(QWidget* container, int width, int height)
   height = height / container->devicePixelRatio();
   container->setFixedSize(width, height);
 }
-
-void Window::refreshTimer()
-{
-  // CLAP doesn't have an idle callback like VST2
-  // But we keep this for potential future use
-}
-
 }
