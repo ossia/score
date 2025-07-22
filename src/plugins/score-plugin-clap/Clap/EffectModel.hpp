@@ -12,7 +12,10 @@
 #include <clap/all.h>
 
 #include <memory>
+#include <unordered_map>
 #include <verdigris>
+
+#include <QSocketNotifier>
 
 namespace Clap
 {
@@ -113,6 +116,14 @@ public:
   Clap::Window* window{};
   const clap_plugin_timer_support_t* timer_support{};
   std::vector<std::pair<clap_id, QTimer*>> timers;
+  
+  // POSIX fd support
+  struct FdNotifiers {
+    std::unique_ptr<QSocketNotifier> read;
+    std::unique_ptr<QSocketNotifier> write;
+    std::unique_ptr<QSocketNotifier> error;
+  };
+  std::unordered_map<int, std::unique_ptr<FdNotifiers>> fd_notifiers;
 
 private:
   void reload();

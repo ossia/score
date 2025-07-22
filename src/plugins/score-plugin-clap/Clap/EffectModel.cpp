@@ -83,15 +83,22 @@ CLAP_ABI bool
 register_timer(const clap_host_t* host, uint32_t period_ms, clap_id* timer_id)
 {
   auto& m = *static_cast<Clap::Model*>(host->host_data);
-  SCORE_ASSERT(m.timer_support);
-  auto tm = new QTimer{};
-  tm->setInterval(period_ms);
-  *timer_id = g_next_timer_id.fetch_add(1, std::memory_order_relaxed);
-  QObject::connect(tm, &QTimer::timeout, &m, [&m, tid = *timer_id] {
-    m.timer_support->on_timer(m.handle()->plugin, tid);
-  });
-  m.timers.push_back({*timer_id, tm});
-  return true;
+  if(m.timer_support)
+  {
+    auto tm = new QTimer{};
+    tm->setInterval(period_ms);
+    *timer_id = g_next_timer_id.fetch_add(1, std::memory_order_relaxed);
+    QObject::connect(tm, &QTimer::timeout, &m, [&m, tid = *timer_id] {
+      m.timer_support->on_timer(m.handle()->plugin, tid);
+    });
+    m.timers.push_back({*timer_id, tm});
+    tm->start();
+    return true;
+  }
+  else
+  {
+    return false;
+  }
 }
 
 // Returns true on success.
@@ -103,16 +110,184 @@ CLAP_ABI bool unregister_timer(const clap_host_t* host, clap_id timer_id)
   {
     if(it->first == timer_id)
     {
+      delete it->second;
       m.timers.erase(it);
       return true;
     }
   }
   return false;
 }
+
+// POSIX fd support host extension
+CLAP_ABI bool register_fd(const clap_host_t* host, int fd, clap_posix_fd_flags_t flags)
+{
+  auto& m = *static_cast<Clap::Model*>(host->host_data);
+  
+  // Check if fd is already registered
+  auto it = m.fd_notifiers.find(fd);
+  if(it != m.fd_notifiers.end())
+  {
+    qWarning() << "CLAP: Attempted to register already registered fd" << fd;
+    return false;
+  }
+  
+  // Create notifier structure
+  auto notifiers = std::make_unique<Model::FdNotifiers>();
+  
+  // Set up read notifier
+  if(flags & CLAP_POSIX_FD_READ)
+  {
+    qDebug("READ FD");
+    notifiers->read = std::make_unique<QSocketNotifier>(fd, QSocketNotifier::Read);
+    QObject::connect(notifiers->read.get(), &QSocketNotifier::activated, &m, [&m, fd]() {
+      if(auto* plugin_fd_ext = static_cast<const clap_plugin_posix_fd_support_t*>(
+           m.handle()->plugin->get_extension(m.handle()->plugin, CLAP_EXT_POSIX_FD_SUPPORT)))
+      {
+        qDebug("R FD !!!");
+        plugin_fd_ext->on_fd(m.handle()->plugin, fd, CLAP_POSIX_FD_READ);
+      }
+    });
+    notifiers->read->setEnabled(true);
+  }
+  
+  // Set up write notifier
+  if(flags & CLAP_POSIX_FD_WRITE)
+  {
+    qDebug("W FD");
+    notifiers->write = std::make_unique<QSocketNotifier>(fd, QSocketNotifier::Write);
+    QObject::connect(notifiers->write.get(), &QSocketNotifier::activated, &m, [&m, fd]() {
+      if(auto* plugin_fd_ext = static_cast<const clap_plugin_posix_fd_support_t*>(
+           m.handle()->plugin->get_extension(m.handle()->plugin, CLAP_EXT_POSIX_FD_SUPPORT)))
+      {
+        qDebug("W FD !!!");
+        plugin_fd_ext->on_fd(m.handle()->plugin, fd, CLAP_POSIX_FD_WRITE);
+      }
+    });
+    notifiers->write->setEnabled(true);
+  }
+  
+  // Set up error/exception notifier
+  if(flags & CLAP_POSIX_FD_ERROR)
+  {
+    qDebug("E FD");
+    notifiers->error = std::make_unique<QSocketNotifier>(fd, QSocketNotifier::Exception);
+    QObject::connect(notifiers->error.get(), &QSocketNotifier::activated, &m, [&m, fd]() {
+      if(auto* plugin_fd_ext = static_cast<const clap_plugin_posix_fd_support_t*>(
+           m.handle()->plugin->get_extension(m.handle()->plugin, CLAP_EXT_POSIX_FD_SUPPORT)))
+      {
+        qDebug("E FD !!!");
+        plugin_fd_ext->on_fd(m.handle()->plugin, fd, CLAP_POSIX_FD_ERROR);
+      }
+    });
+    notifiers->error->setEnabled(true);
+  }
+
+  // Store the notifiers
+  m.fd_notifiers[fd] = std::move(notifiers);
+  return true;
+}
+
+CLAP_ABI bool modify_fd(const clap_host_t* host, int fd, clap_posix_fd_flags_t flags)
+{
+  auto& m = *static_cast<Clap::Model*>(host->host_data);
+  
+  auto it = m.fd_notifiers.find(fd);
+  if(it == m.fd_notifiers.end())
+  {
+    qWarning() << "CLAP: Attempted to modify unregistered fd" << fd;
+    return false;
+  }
+  
+  auto& notifiers = it->second;
+  
+  // Update read notifier
+  if(flags & CLAP_POSIX_FD_READ)
+  {
+    if(!notifiers->read)
+    {
+      notifiers->read = std::make_unique<QSocketNotifier>(fd, QSocketNotifier::Read);
+      QObject::connect(notifiers->read.get(), &QSocketNotifier::activated, &m, [&m, fd]() {
+        if(auto* plugin_fd_ext = static_cast<const clap_plugin_posix_fd_support_t*>(
+             m.handle()->plugin->get_extension(m.handle()->plugin, CLAP_EXT_POSIX_FD_SUPPORT)))
+        {
+          plugin_fd_ext->on_fd(m.handle()->plugin, fd, CLAP_POSIX_FD_READ);
+        }
+      });
+    }
+    notifiers->read->setEnabled(true);
+  }
+  else if(notifiers->read)
+  {
+    notifiers->read->setEnabled(false);
+  }
+  
+  // Update write notifier
+  if(flags & CLAP_POSIX_FD_WRITE)
+  {
+    if(!notifiers->write)
+    {
+      notifiers->write = std::make_unique<QSocketNotifier>(fd, QSocketNotifier::Write);
+      QObject::connect(notifiers->write.get(), &QSocketNotifier::activated, &m, [&m, fd]() {
+        if(auto* plugin_fd_ext = static_cast<const clap_plugin_posix_fd_support_t*>(
+             m.handle()->plugin->get_extension(m.handle()->plugin, CLAP_EXT_POSIX_FD_SUPPORT)))
+        {
+          plugin_fd_ext->on_fd(m.handle()->plugin, fd, CLAP_POSIX_FD_WRITE);
+        }
+      });
+    }
+    notifiers->write->setEnabled(true);
+  }
+  else if(notifiers->write)
+  {
+    notifiers->write->setEnabled(false);
+  }
+  
+  // Update error notifier
+  if(flags & CLAP_POSIX_FD_ERROR)
+  {
+    if(!notifiers->error)
+    {
+      notifiers->error = std::make_unique<QSocketNotifier>(fd, QSocketNotifier::Exception);
+      QObject::connect(notifiers->error.get(), &QSocketNotifier::activated, &m, [&m, fd]() {
+        if(auto* plugin_fd_ext = static_cast<const clap_plugin_posix_fd_support_t*>(
+             m.handle()->plugin->get_extension(m.handle()->plugin, CLAP_EXT_POSIX_FD_SUPPORT)))
+        {
+          plugin_fd_ext->on_fd(m.handle()->plugin, fd, CLAP_POSIX_FD_ERROR);
+        }
+      });
+    }
+    notifiers->error->setEnabled(true);
+  }
+  else if(notifiers->error)
+  {
+    notifiers->error->setEnabled(false);
+  }
+  
+  return true;
+}
+
+CLAP_ABI bool unregister_fd(const clap_host_t* host, int fd)
+{
+  auto& m = *static_cast<Clap::Model*>(host->host_data);
+  
+  auto it = m.fd_notifiers.find(fd);
+  if(it == m.fd_notifiers.end())
+  {
+    qWarning() << "CLAP: Attempted to unregister unregistered fd" << fd;
+    return false;
+  }
+  
+  // QSocketNotifier objects will be automatically destroyed by unique_ptr
+  m.fd_notifiers.erase(it);
+  return true;
+}
 }
 
 static constexpr clap_host_timer_support_t host_timer_ext
     = {.register_timer = register_timer, .unregister_timer = unregister_timer};
+
+static constexpr clap_host_posix_fd_support_t host_posix_fd_ext
+    = {.register_fd = register_fd, .modify_fd = modify_fd, .unregister_fd = unregister_fd};
 
 static constexpr clap_host_gui_t host_gui_ext
     = {.resize_hints_changed = resize_hints_changed,
@@ -134,6 +309,8 @@ PluginHandle::PluginHandle()
       return &host_gui_ext;
     if(strcmp(extension_id, CLAP_EXT_TIMER_SUPPORT) == 0)
       return &host_timer_ext;
+    if(strcmp(extension_id, CLAP_EXT_POSIX_FD_SUPPORT) == 0)
+      return &host_posix_fd_ext;
     return nullptr;
   };
   host.request_restart = [](const clap_host* host) {
@@ -225,6 +402,16 @@ Model::Model(JSONObject::Deserializer&& vis, QObject* parent)
 Model::~Model()
 {
   closeUI();
+  
+  // Clean up timers
+  for(auto& [id, timer] : timers)
+  {
+    delete timer;
+  }
+  timers.clear();
+  
+  // Clean up fd notifiers (automatically handled by unique_ptr destructors)
+  fd_notifiers.clear();
 }
 
 bool Model::hasExternalUI() const noexcept
@@ -279,6 +466,9 @@ void Model::loadPlugin()
   if(!m_plugin->plugin)
     return;
 
+  timer_support = (const clap_plugin_timer_support_t*)m_plugin->plugin->get_extension(
+      m_plugin->plugin, CLAP_EXT_TIMER_SUPPORT);
+
   if(!m_plugin->plugin->init(m_plugin->plugin))
   {
     m_plugin->plugin->destroy(m_plugin->plugin);
@@ -287,13 +477,21 @@ void Model::loadPlugin()
   }
 
   m_plugin->desc = m_plugin->plugin->desc;
-
-  timer_support = (const clap_plugin_timer_support_t*)m_plugin->plugin->get_extension(
-      m_plugin->plugin, CLAP_EXT_TIMER_SUPPORT);
 }
 
 void Model::unloadPlugin()
 {
+  // Clean up timers
+  for(auto& [id, timer] : timers)
+  {
+    delete timer;
+  }
+  timers.clear();
+  
+  // Clean up fd notifiers
+  fd_notifiers.clear();
+  
+  // Reset plugin handle
   m_plugin = std::make_unique<PluginHandle>();
 }
 
