@@ -58,6 +58,14 @@ enum ProcessFlags : int64_t
   //! The process has a variable structure, e.g. its ports can change dynamically
   DynamicPorts = SCORE_FLAG(13),
 
+  //! The process can be used in polyphonic mode.
+  //! This means that mono DSP processors (e.g. with one channel of audio input and output)
+  //! will instead be scaled to the actual number of input channels of the object.
+  PolyphonySupported = SCORE_FLAG(14),
+
+  //! Polyphonic mode is enabled
+  PolyphonyEnabled = SCORE_FLAG(15),
+
   SupportsLasting = SupportsTemporal | TimeIndependent,
   ExternalEffect
   = SupportsTemporal | TimeIndependent | RequiresCustomData | ControlSurface,

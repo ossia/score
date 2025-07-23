@@ -9,6 +9,7 @@
 #include <ossia/dataflow/port.hpp>
 
 #include <QDebug>
+#include <QThread>
 
 #include <libremidi/detail/conversion.hpp>
 
@@ -52,8 +53,10 @@ struct event_storage
 class clap_node_base : public ossia::graph_node
 {
 public:
+  Clap::PluginHandle& handle;
   explicit clap_node_base(const Clap::Model& proc)
-      : m_param_info{proc.parameterInfo()}
+      : handle{*proc.handle()}
+      , m_param_info{proc.parameterInfo()}
       , m_midi_in_info{proc.midiInputs()}
       , m_midi_out_info{proc.midiOutputs()}
   {
@@ -119,13 +122,22 @@ public:
 
     if(plugin->activate(plugin, sample_rate, 1, max_buffer_size))
     {
-      plugin->start_processing(plugin);
+      return true;
+    }
+    return false;
+  }
 
+  [[nodiscard]] bool start_plugin(const clap_plugin_t* plugin)
+  {
+    if(plugin->start_processing(plugin))
+    {
       init_parameter_values(plugin);
       return true;
     }
     return false;
   }
+
+  void stop_plugin(const clap_plugin_t* plugin) { plugin->stop_processing(plugin); }
 
   void init_parameter_values(const clap_plugin_t* plugin)
   {
@@ -133,72 +145,67 @@ public:
       return;
 
     // Get parameter extension to set initial values
-    auto params
-        = (const clap_plugin_params_t*)plugin->get_extension(plugin, CLAP_EXT_PARAMS);
-    if(params)
+    for(const auto& param_info : m_param_info)
     {
-      for(const auto& param_info : m_param_info)
-      {
-        // Create parameter value event with default value
-        clap_event_param_value_t param_event{};
-        param_event.header.size = sizeof(clap_event_param_value_t);
-        param_event.header.time = 0;
-        param_event.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
-        param_event.header.type = CLAP_EVENT_PARAM_VALUE;
-        param_event.header.flags = 0;
-        param_event.param_id = param_info.param_id;
-        param_event.cookie = nullptr;
-        param_event.note_id = -1;
-        param_event.port_index = -1;
-        param_event.channel = -1;
-        param_event.key = -1;
-        param_event.value = param_info.default_value; // FIXME use value set in score
+      // Create parameter value event with default value
+      clap_event_param_value_t param_event{};
+      param_event.header.size = sizeof(clap_event_param_value_t);
+      param_event.header.time = 0;
+      param_event.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
+      param_event.header.type = CLAP_EVENT_PARAM_VALUE;
+      param_event.header.flags = 0;
+      param_event.param_id = param_info.id;
+      param_event.cookie = param_info.cookie;
+      param_event.note_id = -1;
+      param_event.port_index = -1;
+      param_event.channel = -1;
+      param_event.key = -1;
+      param_event.value = param_info.default_value; // FIXME use value set in score
 
-        // Create temporary input events structure to send the parameter
-        event_storage temp_events;
-        temp_events.param_events.push_back(param_event);
-        temp_events.all_events.push_back(
-            reinterpret_cast<clap_event_header_t*>(&temp_events.param_events.back()));
+      // Create temporary input events structure to send the parameter
+      event_storage temp_events;
+      temp_events.param_events.push_back(param_event);
+      temp_events.all_events.push_back(
+          reinterpret_cast<clap_event_header_t*>(&temp_events.param_events.back()));
 
-        // Create input events interface
-        clap_input_events evs{
-            .ctx = &temp_events,
-            .size = +[](const clap_input_events* list) -> uint32_t {
-          auto* storage = static_cast<event_storage*>(list->ctx);
-          return storage->all_events.size();
-        },
-            .get = +[](const clap_input_events* list,
-                       uint32_t index) -> const clap_event_header_t* {
-          auto* storage = static_cast<event_storage*>(list->ctx);
-          if(index < storage->all_events.size())
-            return storage->all_events[index];
-          return nullptr;
-        }};
+      // Create input events interface
+      clap_input_events evs{
+          .ctx = &temp_events,
+          .size = +[](const clap_input_events* list) -> uint32_t {
+        auto* storage = static_cast<event_storage*>(list->ctx);
+        return storage->all_events.size();
+      },
+          .get = +[](const clap_input_events* list,
+                     uint32_t index) -> const clap_event_header_t* {
+        auto* storage = static_cast<event_storage*>(list->ctx);
+        if(index < storage->all_events.size())
+          return storage->all_events[index];
+        return nullptr;
+      }};
 
-        // Create dummy output events
-        event_storage temp_output;
-        clap_output_events_t o_evs{
-            .ctx = &temp_output,
-            .try_push = [](const struct clap_output_events* list,
-                           const clap_event_header_t* event) -> bool {
-          return false; // Ignore output events during initialization
-        }};
+      // Create dummy output events
+      event_storage temp_output;
+      clap_output_events_t o_evs{
+          .ctx = &temp_output,
+          .try_push = [](const struct clap_output_events* list,
+                         const clap_event_header_t* event) -> bool {
+        return false; // Ignore output events during initialization
+      }};
 
-        // Create minimal process structure just for parameter setting
-        clap_process_t process{};
-        process.frames_count = 0;
-        process.audio_inputs = nullptr;
-        process.audio_outputs = nullptr;
-        process.audio_inputs_count = 0;
-        process.audio_outputs_count = 0;
-        process.steady_time = -1;
-        process.in_events = &evs;
-        process.out_events = &o_evs;
-        process.transport = nullptr;
+      // Create minimal process structure just for parameter setting
+      clap_process_t process{};
+      process.frames_count = 0;
+      process.audio_inputs = nullptr;
+      process.audio_outputs = nullptr;
+      process.audio_inputs_count = 0;
+      process.audio_outputs_count = 0;
+      process.steady_time = -1;
+      process.in_events = &evs;
+      process.out_events = &o_evs;
+      process.transport = nullptr;
 
-        // Send the parameter to the plugin
-        plugin->process(plugin, &process);
-      }
+      // Send the parameter to the plugin
+      plugin->process(plugin, &process);
     }
   }
 
@@ -208,7 +215,6 @@ public:
     if(!plugin)
       return false;
 
-    plugin->stop_processing(plugin);
     plugin->deactivate(plugin);
     return true;
   }
@@ -275,8 +281,8 @@ public:
           param_event.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
           param_event.header.type = CLAP_EVENT_PARAM_VALUE;
           param_event.header.flags = 0;
-          param_event.param_id = param_info.param_id;
-          param_event.cookie = nullptr;
+          param_event.param_id = param_info.id;
+          param_event.cookie = param_info.cookie;
           param_event.note_id = -1;
           param_event.port_index = -1;
           param_event.channel = -1;
@@ -448,7 +454,7 @@ public:
   event_storage m_input_events;
   event_storage m_output_events;
 
-  const std::vector<ParameterInfo>& m_param_info;
+  const std::vector<clap_param_info_t>& m_param_info;
   const std::vector<clap_note_port_info_t>& m_midi_in_info;
   const std::vector<clap_note_port_info_t>& m_midi_out_info;
   double m_sample_rate{44100.0};
@@ -459,16 +465,23 @@ public:
 class clap_node : public clap_node_base
 {
 public:
-  clap_node(const Clap::Model& proc, Clap::PluginHandle& handle)
+  clap_node(const Clap::Model& proc, Clap::PluginHandle& handle, int sampleRate, int bs)
       : clap_node_base{proc}
       , m_instance{handle}
   {
     m_expected_audio_inputs = proc.audioInputs();
     m_expected_audio_outputs = proc.audioOutputs();
+
+    m_activated = activate_plugin(m_instance.plugin, sampleRate, bs);
   }
 
   ~clap_node()
   {
+    if(m_processing)
+    {
+      // FIXME wrong thread
+      stop_plugin(m_instance.plugin);
+    }
     if(m_activated)
     {
       (void)deactivate_plugin(m_instance.plugin);
@@ -478,6 +491,7 @@ public:
 
   void reset_execution() override
   {
+    // FIXME wrong thread
     if(m_activated)
     {
       (void)deactivate_plugin(m_instance.plugin);
@@ -564,6 +578,7 @@ protected:
   std::vector<clap_audio_buffer_t> output_buffers;
 
   bool m_activated{};
+  bool m_processing{};
 };
 
 class clap_node_32 final : public clap_node
@@ -583,9 +598,11 @@ public:
 
     // Activate plugin if needed
     if(!m_activated)
+      return;
+    if(!m_processing)
     {
-      m_activated = activate_plugin(m_instance.plugin, e.sampleRate(), e.bufferSize());
-      if(!m_activated)
+      m_processing = start_plugin(m_instance.plugin);
+      if(!m_processing)
         return;
     }
 
@@ -736,6 +753,7 @@ class clap_node_64 final : public clap_node
 
 public:
   using clap_node::clap_node;
+  ~clap_node_64() { }
   void run(const ossia::token_request& t, ossia::exec_state_facade e) noexcept override
   {
     if(!m_instance.plugin)
@@ -743,9 +761,11 @@ public:
 
     // Activate plugin if needed
     if(!m_activated)
+      return;
+    if(!m_processing)
     {
-      m_activated = activate_plugin(m_instance.plugin, e.sampleRate(), e.bufferSize());
-      if(!m_activated)
+      m_processing = start_plugin(m_instance.plugin);
+      if(!m_processing)
         return;
     }
 
@@ -846,7 +866,8 @@ public:
 class clap_node_mono : public clap_node_base
 {
 public:
-  clap_node_mono(const Clap::Model& proc, Clap::PluginHandle& handle)
+  clap_node_mono(
+      const Clap::Model& proc, Clap::PluginHandle& handle, int sampleRate, int bs)
       : clap_node_base{proc}
       , m_instance{handle}
       , m_plugin_id{proc.pluginId().toUtf8()}
@@ -855,11 +876,11 @@ public:
     m_poly.push_back({handle.plugin, false});
     for(int i = 0; i < 7; i++)
     {
-      add_poly_instance();
+      add_poly_instance(sampleRate, bs);
     }
   }
 
-  void add_poly_instance()
+  void add_poly_instance(int sampleRate, int bs)
   {
     poly_plugin p{nullptr, false};
     p.plugin = m_instance.factory->create_plugin(
@@ -872,6 +893,7 @@ public:
       p.plugin->destroy(p.plugin);
       throw std::runtime_error("Could not init plug-in instance");
     }
+    p.activated = activate_plugin(p.plugin, sampleRate, bs);
     m_poly.push_back(p);
   }
 
@@ -879,8 +901,14 @@ public:
   {
     for(int i = 0; i < m_poly.size(); i++)
     {
+      if(m_poly[i].processing)
+      {
+        stop_plugin(m_poly[i].plugin);
+        m_poly[i].processing = false;
+      }
       if(m_poly[i].activated)
       {
+        // FIXME
         (void)deactivate_plugin(m_poly[i].plugin);
         m_poly[i].activated = false;
       }
@@ -894,6 +922,7 @@ public:
 
   void reset_execution() override
   {
+    // FIXME
     for(int i = 0; i < m_poly.size(); i++)
     {
       if(m_poly[i].activated)
@@ -945,6 +974,7 @@ protected:
   {
     const clap_plugin_t* plugin{};
     bool activated{};
+    bool processing{};
     operator const clap_plugin_t*() const noexcept { return plugin; }
   };
 
@@ -990,8 +1020,9 @@ public:
     const auto poly_channels = audio_in->data.channels();
     if(poly_channels == 0)
       return;
+    // FIXME should be in main thread
     while(m_poly.size() < poly_channels)
-      add_poly_instance();
+      add_poly_instance(e.sampleRate(), e.bufferSize());
     // FIXME constant mode of audio inputs
     if(std::all_of(
            audio_in->data.begin(), audio_in->data.end(),
@@ -1011,9 +1042,12 @@ public:
       // 0. Activate plug-in if necessary
       auto& cur = m_poly[current_channel];
       if(!cur.activated)
+        return;
+
+      if(!cur.processing)
       {
-        cur.activated = activate_plugin(cur.plugin, e.sampleRate(), e.bufferSize());
-        if(!cur.activated)
+        cur.processing = start_plugin(cur.plugin);
+        if(!cur.processing)
           return;
       }
 
@@ -1080,8 +1114,9 @@ public:
     const auto poly_channels = audio_in->data.channels();
     if(poly_channels == 0)
       return;
+    // FIXME should be in main thread
     while(m_poly.size() < poly_channels)
-      add_poly_instance();
+      add_poly_instance(e.sampleRate(), e.bufferSize());
     // FIXME constant mode of audio inputs
     if(std::all_of(
            audio_in->data.begin(), audio_in->data.end(),
@@ -1103,9 +1138,12 @@ public:
       // 0. Activate plug-in if necessary
       auto& cur = m_poly[current_channel];
       if(!cur.activated)
+        return;
+
+      if(!cur.processing)
       {
-        cur.activated = activate_plugin(cur.plugin, e.sampleRate(), e.bufferSize());
-        if(!cur.activated)
+        cur.processing = start_plugin(cur.plugin);
+        if(!cur.processing)
           return;
       }
 
@@ -1143,19 +1181,22 @@ Executor::Executor(Clap::Model& proc, const Execution::Context& ctx, QObject* pa
       = proc.audioInputs().size() == 1 && proc.audioInputs()[0].channel_count == 1
         && proc.audioOutputs().size() == 1 && proc.audioOutputs()[0].channel_count == 1;
 
+  auto& e = *ctx.execState;
   std::shared_ptr<clap_node_base> clap{};
   if(monophonic)
   {
     if(proc.supports64())
     {
-      auto node = ossia::make_node<clap_node_mono_64>(*ctx.execState, proc, *h);
+      auto node = ossia::make_node<clap_node_mono_64>(
+          *ctx.execState, proc, *h, e.sampleRate, e.bufferSize);
       clap = node;
       this->node = node;
       m_ossia_process = std::make_shared<ossia::node_process>(node);
     }
     else
     {
-      auto node = ossia::make_node<clap_node_mono_32>(*ctx.execState, proc, *h);
+      auto node = ossia::make_node<clap_node_mono_32>(
+          *ctx.execState, proc, *h, e.sampleRate, e.bufferSize);
       clap = node;
       this->node = node;
       m_ossia_process = std::make_shared<ossia::node_process>(node);
@@ -1165,14 +1206,16 @@ Executor::Executor(Clap::Model& proc, const Execution::Context& ctx, QObject* pa
   {
     if(proc.supports64())
     {
-      auto node = ossia::make_node<clap_node_64>(*ctx.execState, proc, *h);
+      auto node = ossia::make_node<clap_node_64>(
+          *ctx.execState, proc, *h, e.sampleRate, e.bufferSize);
       clap = node;
       this->node = node;
       m_ossia_process = std::make_shared<ossia::node_process>(node);
     }
     else
     {
-      auto node = ossia::make_node<clap_node_32>(*ctx.execState, proc, *h);
+      auto node = ossia::make_node<clap_node_32>(
+          *ctx.execState, proc, *h, e.sampleRate, e.bufferSize);
       clap = node;
       this->node = node;
       m_ossia_process = std::make_shared<ossia::node_process>(node);
@@ -1182,6 +1225,8 @@ Executor::Executor(Clap::Model& proc, const Execution::Context& ctx, QObject* pa
   SCORE_ASSERT(clap);
 
   // Connect control inlet changes to the executor
+  // Note: only reelvant for the polyphonic mode as the main mode is done on the
+  // main thread
   std::size_t control_idx = 0;
   for(auto* inlet : proc.inlets())
   {
@@ -1202,15 +1247,64 @@ Executor::Executor(Clap::Model& proc, const Execution::Context& ctx, QObject* pa
   }
 
   // Connect the restart signal
-  connect(
-      &proc, &Process::ProcessModel::resetExecution, this,
-      [this, weak_self = std::weak_ptr{clap}] {
-    in_exec([weak_self]() mutable {
-      if(auto n = weak_self.lock())
+  // FIXME threads are wrong
+  // connect(
+  //     &proc, &Process::ProcessModel::resetExecution, this,
+  //     [this, weak_self = std::weak_ptr{clap}] {
+  //   in_exec([weak_self]() mutable {
+  //     if(auto n = weak_self.lock())
+  //     {
+  //       n->reset_execution();
+  //     }
+  //   });
+  // });
+
+  // Connect parameter value feedback from executor to GUI
+  auto c = connect(
+      &ctx.doc.coarseUpdateTimer, &QTimer::timeout, this,
+      [weak_clap = std::weak_ptr{clap}, &proc] {
+    if(auto node = weak_clap.lock())
+    {
+      const clap_plugin_t* plugin = nullptr;
+      
+      // Get the plugin instance depending on node type
+      if(auto regular_node = std::dynamic_pointer_cast<clap_node>(node))
       {
-        n->reset_execution();
+        plugin = proc.handle()->plugin;
       }
-    });
+      else if(auto mono_node = std::dynamic_pointer_cast<clap_node_mono>(node))
+      {
+        plugin = proc.handle()->plugin;
+      }
+      
+      if(plugin)
+      {
+        // Get parameter extension to read current values
+        auto params = (const clap_plugin_params_t*)plugin->get_extension(plugin, CLAP_EXT_PARAMS);
+        if(params)
+        {
+          std::size_t control_idx = 0;
+          for(auto* inlet : proc.inlets())
+          {
+            if(auto* control = qobject_cast<Process::ControlInlet*>(inlet))
+            {
+              if(control_idx < node->m_param_info.size())
+              {
+                const auto& param_info = node->m_param_info[control_idx];
+                double current_value = 0.0;
+                
+                // Read current parameter value from plugin
+                if(params->get_value(plugin, param_info.id, &current_value))
+                {
+                  control->setExecutionValue(current_value);
+                }
+              }
+              control_idx++;
+            }
+          }
+        }
+      }
+    }
   });
 }
 }
