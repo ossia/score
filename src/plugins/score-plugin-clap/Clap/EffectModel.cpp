@@ -397,7 +397,7 @@ static constexpr clap_host_log_t host_log_ext
       qCritical() << msg;
       break;
     case CLAP_LOG_FATAL:
-      qFatal() << msg;
+      qFatal("%s", msg);
       break;
   }
 }};
