@@ -31,24 +31,29 @@ void score::QGraphicsMultiSliderXY::setPoint(const QPointF& r)
 void score::QGraphicsMultiSliderXY::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-
-  tab = m_value.get<std::vector<ossia::value>>();
-
   auto& skin = score::Skin::instance();
 
   // Draw the background
   painter->fillRect(boundingRect(), skin.Dark);
 
-  // Draw cursors
-  for (const ossia::value& v : tab)
+  int i = 0;
+  const auto& font = skin.MonoFontSmall;
+  painter->setFont(font);
+  painter->setBrush(skin.Base4.darker.brush);
+
+  static const QTextOption p = QTextOption{Qt::AlignCenter};
+  for (const ossia::vec2f& cursor : tab)
   {
-    auto& cursor = v.get<ossia::vec2f>();
-    painter->fillRect(
-        QRectF((cursor[0] - cursorSize.x / 2) * width(),
-               (1-cursor[1] - cursorSize.y / 2) * height(),
-               cursorSize.x * width(),
-               cursorSize.y * height()),
-        skin.Base2);
+      const auto rect = QRectF((cursor[0] - cursorSize.x / 2) * width(),
+              (1-cursor[1] - cursorSize.y / 2) * height(),
+              cursorSize.x * width(),
+              cursorSize.y * height());
+      painter->setPen(skin.Base4.main.pen0);
+      painter->drawRect(rect);
+
+
+      painter->setPen(skin.Light.lighter180.pen0);
+      painter->drawText(rect, QString::number(i++), p);
   }
 }
 
@@ -76,7 +81,11 @@ void score::QGraphicsMultiSliderXY::setRange(const ossia::domain& dom)
 void score::QGraphicsMultiSliderXY::setValue(ossia::value v)
 {
   prepareGeometryChange();
-  m_value = std::move(v);
+  m_value = ossia::convert<std::vector<ossia::value>>(std::move(v));
+  tab.clear();
+  for(auto& vec : m_value) {
+    tab.push_back(ossia::convert<ossia::vec2f>(vec));
+  }
   update();
 }
 
@@ -102,7 +111,7 @@ void score::QGraphicsMultiSliderXY::mousePressEvent(QGraphicsSceneMouseEvent* ev
   {
     for (int v = 0; v < std::ssize(tab) ; v++)
     {
-      auto& point = tab[v].get<ossia::vec2f>();
+      auto& point = tab[v];
       if ((point[0] - 0.02f) * width() <= (float)x &&
          (float)x <= (point[0] + 0.02f) * width() &&
          (1-point[1] - 0.02f) * height() <= (float)y &&
@@ -127,7 +136,7 @@ void score::QGraphicsMultiSliderXY::mousePressEvent(QGraphicsSceneMouseEvent* ev
     m_grab = false;
     for (int v = 0; v < std::ssize(tab); v++)
     {
-      auto& point = tab[v].get<ossia::vec2f>();
+      auto& point = tab[v];
       if ((point[0] - 0.02f) * width() <= (float)x &&
          (float)x <= (point[0] + 0.02f) * width() &&
          (1-point[1] - 0.02f) * height() <= (float)y &&

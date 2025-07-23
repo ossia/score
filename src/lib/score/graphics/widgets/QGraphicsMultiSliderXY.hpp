@@ -33,7 +33,7 @@ public:
   template <typename T>
   friend struct GridWidget;
 
-  std::vector<ossia::value> tab;
+  std::vector<ossia::vec2f> tab;
 
   static constexpr double width() { return 400.; }
   static constexpr double height() { return 400.; }
@@ -46,8 +46,8 @@ public:
   double min{0.}, max{1.};
 
   int m_grab{-1};
-  ossia::value m_value{};
-  ossia::value m_execValue{};
+  std::vector<ossia::value> m_value{};
+  std::vector<ossia::value> m_execValue{};
   bool m_hasExec{};
   bool moving = false;
   RightClickImpl* impl{};
