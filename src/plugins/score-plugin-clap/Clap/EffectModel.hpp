@@ -36,12 +36,7 @@ DESCRIPTION_METADATA(, Clap::Model, "Clap")
 namespace Clap
 {
 class Window;
-struct ParameterInfo
-{
-  clap_id param_id;
-  double min_value, max_value, default_value;
-};
-
+class Model;
 struct PluginHandle
 {
   PluginHandle();
@@ -50,6 +45,8 @@ struct PluginHandle
   PluginHandle& operator=(const PluginHandle&) = delete;
   PluginHandle& operator=(PluginHandle&&) = delete;
   ~PluginHandle();
+
+  void load(Model& context, QByteArray path, QByteArray id);
   void* library{};
   const clap_plugin_entry_t* entry{};
   const clap_plugin_factory_t* factory{};
@@ -57,6 +54,10 @@ struct PluginHandle
   const clap_plugin_descriptor_t* desc{};
 
   clap_host_t host;
+
+  // Common plugin extensions
+  const clap_plugin_params_t* ext_params{};
+  const clap_plugin_timer_support_t* ext_timer_support{};
 };
 
 class Model final : public Process::ProcessModel
@@ -95,8 +96,12 @@ public:
 
   const QString& pluginId() const noexcept { return m_pluginId; }
   bool supports64() const noexcept { return m_supports64; }
-  
-  const std::vector<ParameterInfo>& parameterInfo() const noexcept { return m_parameters; }
+  bool executing() const noexcept { return m_executing; }
+
+  const std::vector<clap_param_info_t>& parameterInfo() const noexcept
+  {
+    return m_parameters;
+  }
   const std::vector<clap_note_port_info_t>& midiInputs() const noexcept
   {
     return m_midi_inputs_info;
@@ -116,7 +121,6 @@ public:
 
   void restartPlugin() W_SIGNAL(restartPlugin);
   Clap::Window* window{};
-  const clap_plugin_timer_support_t* timer_support{};
   std::vector<std::pair<clap_id, QTimer*>> timers;
 
   struct FdNotifiers
@@ -128,22 +132,26 @@ public:
   ossia::hash_map<int, std::unique_ptr<FdNotifiers>> fd_notifiers;
 
 private:
-  void reload();
   void loadPlugin();
-  void unloadPlugin();
-  void createControls();
+  void createControls(bool loading);
+  void setupControlInlet(
+      const clap_plugin_params_t&, const clap_param_info_t& info, int index,
+      Process::ControlInlet* ctl);
 
   QString m_pluginPath;
   QString m_pluginId;
 
   std::unique_ptr<PluginHandle> m_plugin;
+  QByteArray m_loadedState;
 
-  bool m_supports64{};
-  std::vector<ParameterInfo> m_parameters;
+  std::vector<clap_param_info_t> m_parameters;
   std::vector<clap_audio_port_info_t> m_audio_inputs_info;
   std::vector<clap_audio_port_info_t> m_audio_outputs_info;
   std::vector<clap_note_port_info_t> m_midi_inputs_info;
   std::vector<clap_note_port_info_t> m_midi_outputs_info;
+
+  bool m_supports64{};
+  bool m_executing{};
 };
 }
 
