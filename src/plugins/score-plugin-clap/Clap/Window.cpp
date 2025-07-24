@@ -173,6 +173,7 @@ void Window::showEvent(QShowEvent* event)
     // Set the platform-specific window handle
 #if defined(__APPLE__)
     // Will be handled in platform-specific code
+    m_clap_window.cocoa = reinterpret_cast<clap_nsview>(windowHandle()->winId());
 #elif defined(_WIN32)
     m_clap_window.win32 = reinterpret_cast<clap_hwnd>(windowHandle()->winId());
 #else
@@ -195,7 +196,7 @@ void Window::showEvent(QShowEvent* event)
       clap_window_t parent_window;
       parent_window.api = m_gui_api.c_str();
 #if defined(__APPLE__)
-      // Will be handled in platform-specific code
+      parent_window.cocoa = reinterpret_cast<clap_nsview>(windowHandle()->winId());
 #elif defined(_WIN32)
       parent_window.win32 = reinterpret_cast<clap_hwnd>(windowHandle()->winId());
 #else

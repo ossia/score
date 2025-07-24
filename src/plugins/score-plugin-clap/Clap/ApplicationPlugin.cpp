@@ -87,26 +87,32 @@ void ApplicationPlugin::scanClapPlugins()
     filters << "*.clap";
 #endif
 
-    for(const QString& fileName : dir.entryList(filters, QDir::Files))
+    for(const QString& fileName : dir.entryList(filters, QDir::Files | QDir::Dirs))
     {
+      // FIXME some are recursive
       QString fullPath = dir.absoluteFilePath(fileName);
-      
+#if defined(__APPLE__)
+      if(QFileInfo{fullPath}.isDir())
+        fullPath = fullPath
+                   + QString{"/Contents/MacOS/%1"}.arg(QFileInfo{fileName}.baseName());
+#endif
+
       // Load the plugin library
 #if defined(_WIN32)
-      HMODULE handle = LoadLibraryA(fullPath.toLocal8Bit().data());
+      HMODULE handle = LoadLibraryA(fullPath.toUtf8().data());
       if(!handle)
         continue;
         
       auto entry_fn = (const clap_plugin_entry_t*)GetProcAddress(handle, "clap_entry");
 #else
-      void* handle = dlopen(fullPath.toLocal8Bit().data(), RTLD_LAZY);
+      void* handle = dlopen(fullPath.toUtf8().data(), RTLD_LAZY);
       if(!handle)
         continue;
         
       auto entry_fn = (const clap_plugin_entry_t*)dlsym(handle, "clap_entry");
 #endif
 
-      if(!entry_fn || !entry_fn->init(fullPath.toLocal8Bit().data()))
+      if(!entry_fn || !entry_fn->init(fullPath.toUtf8().data()))
       {
 #if defined(_WIN32)
         FreeLibrary(handle);

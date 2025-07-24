@@ -24,7 +24,7 @@ set(SRCS
 )
 
 # Platform-specific window implementations
-if(APPLE)
+if(0)
   set(SRCS ${SRCS}
     Clap/AppleUI/ClapWindow.mm
   )
