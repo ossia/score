@@ -39,8 +39,11 @@ if(IS_DIRECTORY "${SCORE_SDK}/include/x86_64-unknown-linux-gnu/c++/v1")
   )
 endif()
 
+set(CXX_VERSION_FLAG cxx_std_23)
+set(CMAKE_CXX_STANDARD 23)
+
 target_compile_options(score_lib_base INTERFACE
-  -std=c++20
+  -std=c++23
   -fPIC
 )
 target_compile_options(score_lib_base INTERFACE
