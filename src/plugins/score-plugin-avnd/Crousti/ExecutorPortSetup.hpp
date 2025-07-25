@@ -73,14 +73,20 @@ struct setup_control_for_exec_base
   const std::shared_ptr<ExecNode>& node_ptr;
   QObject* parent;
 
-  void invoke_update(Field& param)
+  void invoke_update(Field& param, int k)
   {
     avnd::effect_container<Node>& eff = node_ptr->impl;
     {
       for(auto state : eff.full_state())
       {
-        // FIXME dynamic_ports
-        if_possible(param.update(state.effect));
+        if constexpr(avnd::dynamic_ports_port<Field>)
+        {
+          if_possible(param.ports[k].update(state.effect));
+        }
+        else
+        {
+          if_possible(param.update(state.effect));
+        }
       }
     }
   }
@@ -366,7 +372,7 @@ struct dispatch_control_setup
 
         setup.initialize_control(param, inlet, k);
 
-        setup.invoke_update(param);
+        setup.invoke_update(param, k);
 
         setup.connect_control_to_ui(param, inlet, k);
       }
