@@ -61,8 +61,6 @@ jobs:
               os: windows-latest,
               path: "/c/ossia-sdk/llvm/bin",
               common_flags: "-GNinja -DCMAKE_C_COMPILER=c:/ossia-sdk/llvm/bin/clang.exe -DCMAKE_CXX_COMPILER=c:/ossia-sdk/llvm/bin/clang++.exe -DCMAKE_UNITY_BUILD=1",
-              debug_flags: "-DCMAKE_BUILD_TYPE=Debug",
-              release_flags: "-DCMAKE_BUILD_TYPE=Release",
               dependencies: "choco install -y ninja",
               sdk: "/c/ossia-sdk",
             }
@@ -71,18 +69,14 @@ jobs:
               os: ubuntu-latest,
               path: "/opt/ossia-sdk/llvm/bin",
               common_flags: "-DCMAKE_C_COMPILER=/opt/ossia-sdk/llvm/bin/clang -DCMAKE_CXX_COMPILER=/opt/ossia-sdk/llvm/bin/clang++ -DCMAKE_UNITY_BUILD=1",
-              debug_flags: "-DCMAKE_BUILD_TYPE=Debug",
-              release_flags: "-DCMAKE_BUILD_TYPE=Release",
               dependencies: "sudo apt-get -yq update; sudo apt-get -yq install libgl-dev libegl-dev libdrm-dev libxcomposite-dev libxkbcommon-dev libxkbcommon-x11-dev libwayland-dev libxcb-*-dev libX11-*-dev libz-dev libtinfo-dev libxext-dev",
               sdk: "/opt/ossia-sdk",
             }
           - {
-              name: "macOS",
+              name: "macOS (AArch64)",
               os: macos-latest,
               common_flags: "-DCMAKE_UNITY_BUILD=1",
-              debug_flags: "-DCMAKE_BUILD_TYPE=Debug",
-              release_flags: "-DCMAKE_BUILD_TYPE=Release",
-              sdk: "/opt/ossia-sdk-x86_64",
+              sdk: "/opt/ossia-sdk-aarch64",
             }
 
         template:
@@ -128,36 +122,32 @@ jobs:
       - name: Build debug
         shell: bash
         run: |
-          mkdir build-debug
-          cd build-debug
-
           if [[ "${{ matrix.config.path }}" != "" ]]; then
             export PATH=${{ matrix.config.path }}:$PATH
           fi
 
-          cmake ../score-addon-build \
-            -DSCORE_SOURCE_DIR=../score \
+          cmake -S score-addon-build -B build-debug \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DSCORE_SOURCE_DIR=$PWD/score \
+            -DCMAKE_MODULE_PATH=$PWD/score/cmake \
             -DOSSIA_SDK=${{ matrix.config.sdk }} \
-            ${{ matrix.config.common_flags }} \
-            ${{ matrix.config.debug_flags }}
+            ${{ matrix.config.common_flags }} 
 
-          cmake --build .
+          cmake --build build-debug
 
       - name: Build release
         shell: bash
         run: |
-          mkdir build-release
-          cd build-release
-
           if [[ "${{ matrix.config.path }}" != "" ]]; then
             export PATH=${{ matrix.config.path }}:$PATH
           fi
 
-          cmake ../score-addon-build \
-            -DSCORE_SOURCE_DIR=../score \
+          cmake -S score-addon-build -B build-release \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSCORE_SOURCE_DIR=$PWD/score \
+            -DCMAKE_MODULE_PATH=$PWD/score/cmake \
             -DOSSIA_SDK=${{ matrix.config.sdk }} \
-            ${{ matrix.config.common_flags }} \
-            ${{ matrix.config.release_flags }}
+            ${{ matrix.config.common_flags }}
 
-          cmake --build .
+          cmake --build build-release
 
