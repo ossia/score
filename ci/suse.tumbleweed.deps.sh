@@ -4,7 +4,8 @@ source ci/common.setup.sh
 
 # Disabling libSDL2-devel until -fPIC problem is sorted...
 
-# removing busybox-which removes git
+$SUDO zypper -n install awk
+
 source ci/common.deps.sh
 
 # $SUDO zypper -n remove busybox-which
