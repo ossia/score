@@ -169,6 +169,11 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
           layout->update();
         });
       }
+
+      if constexpr(requires { item.set = {}; })
+      {
+        item.set = [inl](const auto& val) { inl->setValue(oscr::to_ossia_value(val)); };
+      }
     }
 
     if constexpr(requires { Item::dynamic_size; })
