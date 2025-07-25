@@ -14,23 +14,30 @@ struct Serializer
   DataStreamReader& r;
 
   template <typename F>
-  requires std::is_aggregate_v<F>
-  void operator()(const F& f) { boost::pfr::for_each_field(f, *this); }
-
-  template <typename F>
-  requires(std::is_arithmetic_v<F>) void operator()(const F& f)
+  void operator()(const F& f)
   {
-    r.stream().stream << f;
+    if constexpr(std::is_arithmetic_v<F>)
+      r.stream().stream << f;
+    else if constexpr(std::is_aggregate_v<F>)
+      boost::pfr::for_each_field(f, *this);
+    else if constexpr(avnd::list_ish<F>)
+    {
+      r.stream().stream << (int64_t)std::ssize(f);
+      for(const auto& val : f)
+      {
+        (*this)(val);
+      }
+    }
+    else
+      r.stream() << f;
   }
 
   template <typename... Args>
   void operator()(const std::variant<Args...>& f)
   {
-    r.stream() << (int)f.index();
-    std::visit([&](const auto& arg) { r.stream() << arg; }, f);
+    r.stream().stream << (int)f.index();
+    std::visit(*this, f);
   }
-
-  void operator()(const auto& f) { r.stream() << f; }
 };
 
 struct MessageBusSender
@@ -46,7 +53,8 @@ struct MessageBusSender
   }
 
   template <typename T>
-    requires(!std::is_trivial_v<T> && avnd::relocatable<T>)
+    requires(
+        !std::is_trivial_v<T> && avnd::relocatable<T> && alignof(T) <= alignof(void*))
   void operator()(const T& msg)
   {
     QByteArray b(msg.size(), Qt::Uninitialized);
@@ -57,7 +65,8 @@ struct MessageBusSender
   }
 
   template <typename T>
-    requires(!std::is_trivial_v<T> && avnd::relocatable<T>)
+    requires(
+        !std::is_trivial_v<T> && avnd::relocatable<T> && alignof(T) <= alignof(void*))
   void operator()(T&& msg)
   {
     QByteArray b(sizeof(msg), Qt::Uninitialized);
@@ -103,13 +112,33 @@ struct Deserializer
   void operator()(F& f) { boost::pfr::for_each_field(f, *this); }
 
   template <typename F>
-  requires(std::is_arithmetic_v<F>) void operator()(F& f) { r.stream().stream >> f; }
+    requires(std::is_arithmetic_v<F>)
+  void operator()(F& f)
+  {
+    r.stream().stream >> f;
+  }
+
+  template <typename F>
+    requires avnd::list_ish<F>
+  void operator()(F& f)
+  {
+    int64_t sz;
+    r.stream().stream >> sz;
+    SCORE_ASSERT(sz >= 0);
+    for(int64_t i = 0; i < sz; i++)
+    {
+      using type = typename F::value_type;
+      type val;
+      (*this)(val);
+      f.push_back(std::move(val));
+    }
+  }
 
   template <std::size_t I, typename... Args>
   bool write_variant(std::variant<Args...>& f)
   {
     auto& elt = f.template emplace<I>();
-    r.stream() >> elt;
+    (*this)(elt);
     return true;
   }
 
@@ -117,8 +146,10 @@ struct Deserializer
   void operator()(std::variant<Args...>& f)
   {
     int index{};
-    r.stream() >> index;
+    r.stream().stream >> index;
 
+    SCORE_ASSERT(index >= 0);
+    SCORE_ASSERT(index < sizeof...(Args));
     [&]<std::size_t... I>(std::index_sequence<I...>)
     {
       (((index == I) && write_variant<I>(f)) || ...);
@@ -141,7 +172,8 @@ struct MessageBusReader
     memcpy(&msg, mess.data(), mess.size());
   }
   template <typename T>
-    requires(!std::is_trivial_v<T> && avnd::relocatable<T>)
+    requires(
+        !std::is_trivial_v<T> && avnd::relocatable<T> && alignof(T) <= alignof(void*))
   void operator()(T& msg)
   {
     auto src = reinterpret_cast<T*>(mess.data());
