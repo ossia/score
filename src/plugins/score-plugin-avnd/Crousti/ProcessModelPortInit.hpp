@@ -213,9 +213,13 @@ struct InletInitFunc
     {
       auto p = oscr::make_control_in<Node, T>(
           avnd::field_index<N>{}, Id<Process::Port>(inlet), &self);
-      if constexpr(!std::is_same_v<std::decay_t<decltype(p)>, std::nullptr_t>)
+      using port_ptr_type = std::decay_t<decltype(p)>;
+      if constexpr(!std::is_same_v<port_ptr_type, std::nullptr_t>)
       {
-        p->hidden = true;
+        if constexpr(
+            !std::is_same_v<port_ptr_type, Process::ControlInlet*>
+            && !std::is_same_v<port_ptr_type, Process::ValueInlet*>)
+          p->hidden = true;
         ins.push_back(p);
       }
       else

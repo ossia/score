@@ -127,13 +127,14 @@ struct setup_control_for_exec : setup_control_for_exec_base<Node, Field>
 
         // Notify the UI if the object has the power
         // to actually change the value of the control
-        // FIXME better to use in_edit queue ?
-        // FIXME not too efficient but which choice do we have ?
-        static thread_local const Field field;
-        ossia::qt::run_async(
-            qApp, [self, inlet, val = oscr::to_ossia_value(field, value)] {
+        ossia::qt::run_async(qApp, [self, inlet, val = std::move(value)] {
           if(!self || !inlet)
             return;
+
+          // FIXME better to use in_edit queue ?
+          // FIXME not too efficient but which choice do we have ?
+          static const Field field;
+          oscr::to_ossia_value(field, val);
           inlet->setValue(val);
         });
       };

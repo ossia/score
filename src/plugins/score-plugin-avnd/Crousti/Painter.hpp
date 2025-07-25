@@ -53,6 +53,7 @@ struct QPainterAdapter
   void reset_transform() { painter.resetTransform(); }
 
   // Colors:
+  void unset_stroke() { painter.setPen(score::Skin::instance().NoPen); }
   void set_stroke_color(rgba_color c)
   {
     QPen p = painter.pen();
@@ -117,6 +118,17 @@ struct QPainterAdapter
     path.addText(x, y, painter.font(), QString::fromUtf8(str.data(), str.size()));
   }
 
+  void draw_text(double x, double y, double w, double h, std::string_view str)
+  {
+    QRectF rect{x, y, w, h};
+    const auto& m = painter.fontMetrics();
+    auto txt = QString::fromUtf8(str.data(), str.size());
+    auto text_rect = m.boundingRect(txt);
+    auto text_half_diagonal = (text_rect.center() - text_rect.topLeft()) / 2.;
+    auto pos = rect.center() + text_half_diagonal;
+    path.addText(pos.x(), pos.y(), painter.font(), txt);
+  }
+
   // Drawing
   void draw_line(double x1, double y1, double x2, double y2)
   {
@@ -176,11 +188,12 @@ struct QPainterAdapter
   }
 
   void draw_bytes(
-      int x, int y, int w, int h, const unsigned char* image, int img_w, int img_h)
+      int x, int y, int w, int h, const unsigned char* image, int img_w, int img_h,
+      bool smooth = false)
   {
     auto img = QImage(image, img_w, img_h, QImage::Format_RGBA8888);
     auto prev = painter.renderHints() & QPainter::SmoothPixmapTransform;
-    painter.setRenderHint(QPainter::SmoothPixmapTransform, false);
+    painter.setRenderHint(QPainter::SmoothPixmapTransform, smooth);
     painter.drawImage(
         QRect(x, y, w, h), img, QRect(0, 0, img_w, img_h), Qt::ImageConversionFlags{});
 

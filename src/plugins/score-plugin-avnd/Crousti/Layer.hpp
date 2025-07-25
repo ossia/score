@@ -489,6 +489,25 @@ private:
     setupRecursiveLayout<ui_type>(new_l);
     if constexpr(requires { sizeof(typename Info::ui::bus); })
       init_bus(proc, *new_l);
+
+    if constexpr(requires { new_l->ui.start(); })
+    {
+      QObject::connect(&proc, &Process::ProcessModel::startExecution, new_l, [new_l] {
+        new_l->ui.start();
+      });
+    }
+    if constexpr(requires { new_l->ui.stop(); })
+    {
+      QObject::connect(&proc, &Process::ProcessModel::stopExecution, new_l, [new_l] {
+        new_l->ui.stop();
+      });
+    }
+    if constexpr(requires { new_l->ui.reset(); })
+    {
+      QObject::connect(&proc, &Process::ProcessModel::resetExecution, new_l, [new_l] {
+        new_l->ui.reset();
+      });
+    }
     return new_l;
   }
 
