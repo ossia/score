@@ -103,3 +103,12 @@
 [submodule "3rdparty/clap"]
 	path = 3rdparty/clap
 	url = https://github.com/free-audio/clap
+[submodule "3rdparty/xtensor"]
+	path = 3rdparty/xtensor
+	url = https://github.com/xtensor-stack/xtensor
+[submodule "3rdparty/xsimd"]
+	path = 3rdparty/xsimd
+	url = https://github.com/xtensor-stack/xsimd
+[submodule "3rdparty/xtl"]
+	path = 3rdparty/xtl
+	url = https://github.com/xtensor-stack/xtl

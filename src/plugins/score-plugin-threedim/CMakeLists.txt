@@ -79,9 +79,11 @@ setup_score_plugin(score_plugin_threedim)
 
 target_include_directories(
   score_plugin_threedim SYSTEM
-  PRIVATE "${3RDPARTY_FOLDER}/libssynth/src" "${3RDPARTY_FOLDER}/vcglib"
-          "${3RDPARTY_FOLDER}/eigen" "${3RDPARTY_FOLDER}/miniply")
+  PRIVATE
+    "${3RDPARTY_FOLDER}/libssynth/src"
+    "${3RDPARTY_FOLDER}/vcglib"
+    "${3RDPARTY_FOLDER}/miniply")
 
 target_link_libraries(
   score_plugin_threedim PRIVATE score_plugin_engine score_plugin_avnd
-                                score_plugin_gfx fmt::fmt ssynth)
+                                score_plugin_gfx fmt::fmt ssynth Eigen3::Eigen)

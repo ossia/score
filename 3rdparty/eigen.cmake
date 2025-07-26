@@ -1,0 +1,5 @@
+if(SCORE_USE_SYSTEM_LIBRARIES)
+  find_package(eigen 3.4 GLOBAL CONFIG)
+else()
+  add_subdirectory(3rdparty/eigen)
+endif()
