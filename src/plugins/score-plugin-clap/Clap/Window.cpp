@@ -6,6 +6,7 @@
 #include <QTimer>
 #include <QWindow>
 #include <QResizeEvent>
+#include <QContextMenuEvent>
 
 #include <wobjectimpl.h>
 
@@ -278,5 +279,29 @@ void Window::setup_rect(QWidget* container, int width, int height)
   width = width / container->devicePixelRatio();
   height = height / container->devicePixelRatio();
   container->setFixedSize(width, height);
+}
+
+void Window::contextMenuEvent(QContextMenuEvent* event)
+{
+  if(!m_handle || !m_handle->plugin)
+    return;
+    
+  // Get the context menu extension from the host
+  auto* host_context_menu = static_cast<const clap_host_context_menu_t*>(
+      m_handle->host.get_extension(&m_handle->host, CLAP_EXT_CONTEXT_MENU));
+      
+  if(!host_context_menu || !host_context_menu->can_popup(&m_handle->host))
+    return;
+    
+  // Show the context menu at the event position
+  clap_context_menu_target_t target = {
+    .kind = CLAP_CONTEXT_MENU_TARGET_KIND_GLOBAL,
+    .id = 0
+  };
+  
+  QPoint globalPos = event->globalPos();
+  host_context_menu->popup(&m_handle->host, &target, 0, globalPos.x(), globalPos.y());
+  
+  event->accept();
 }
 }

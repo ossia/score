@@ -16,6 +16,7 @@
 #include <ossia/network/domain/domain.hpp>
 
 #include <QDebug>
+#include <QMenu>
 #include <QThread>
 #include <QTimer>
 
@@ -26,6 +27,8 @@
 
 #include <score_git_info.hpp>
 #include <wobjectimpl.h>
+
+#include <clap/ext/context-menu.h>
 
 #if defined(_WIN32)
 #include <windows.h>
@@ -126,7 +129,7 @@ CLAP_ABI bool unregister_timer(const clap_host_t* host, clap_id timer_id)
 CLAP_ABI bool register_fd(const clap_host_t* host, int fd, clap_posix_fd_flags_t flags)
 {
   auto& m = *static_cast<Clap::Model*>(host->host_data);
-  
+
   // Check if fd is already registered
   auto it = m.fd_notifiers.find(fd);
   if(it != m.fd_notifiers.end())
@@ -134,10 +137,10 @@ CLAP_ABI bool register_fd(const clap_host_t* host, int fd, clap_posix_fd_flags_t
     qWarning() << "CLAP: Attempted to register already registered fd" << fd;
     return false;
   }
-  
+
   // Create notifier structure
   auto notifiers = std::make_unique<Model::FdNotifiers>();
-  
+
   // Set up read notifier
   if(flags & CLAP_POSIX_FD_READ)
   {
@@ -145,7 +148,8 @@ CLAP_ABI bool register_fd(const clap_host_t* host, int fd, clap_posix_fd_flags_t
     notifiers->read = std::make_unique<QSocketNotifier>(fd, QSocketNotifier::Read);
     QObject::connect(notifiers->read.get(), &QSocketNotifier::activated, &m, [&m, fd]() {
       if(auto* plugin_fd_ext = static_cast<const clap_plugin_posix_fd_support_t*>(
-           m.handle()->plugin->get_extension(m.handle()->plugin, CLAP_EXT_POSIX_FD_SUPPORT)))
+             m.handle()->plugin->get_extension(
+                 m.handle()->plugin, CLAP_EXT_POSIX_FD_SUPPORT)))
       {
         qDebug("R FD !!!");
         plugin_fd_ext->on_fd(m.handle()->plugin, fd, CLAP_POSIX_FD_READ);
@@ -153,15 +157,17 @@ CLAP_ABI bool register_fd(const clap_host_t* host, int fd, clap_posix_fd_flags_t
     });
     notifiers->read->setEnabled(true);
   }
-  
+
   // Set up write notifier
   if(flags & CLAP_POSIX_FD_WRITE)
   {
     qDebug("W FD");
     notifiers->write = std::make_unique<QSocketNotifier>(fd, QSocketNotifier::Write);
-    QObject::connect(notifiers->write.get(), &QSocketNotifier::activated, &m, [&m, fd]() {
+    QObject::connect(
+        notifiers->write.get(), &QSocketNotifier::activated, &m, [&m, fd]() {
       if(auto* plugin_fd_ext = static_cast<const clap_plugin_posix_fd_support_t*>(
-           m.handle()->plugin->get_extension(m.handle()->plugin, CLAP_EXT_POSIX_FD_SUPPORT)))
+             m.handle()->plugin->get_extension(
+                 m.handle()->plugin, CLAP_EXT_POSIX_FD_SUPPORT)))
       {
         qDebug("W FD !!!");
         plugin_fd_ext->on_fd(m.handle()->plugin, fd, CLAP_POSIX_FD_WRITE);
@@ -169,15 +175,17 @@ CLAP_ABI bool register_fd(const clap_host_t* host, int fd, clap_posix_fd_flags_t
     });
     notifiers->write->setEnabled(true);
   }
-  
+
   // Set up error/exception notifier
   if(flags & CLAP_POSIX_FD_ERROR)
   {
     qDebug("E FD");
     notifiers->error = std::make_unique<QSocketNotifier>(fd, QSocketNotifier::Exception);
-    QObject::connect(notifiers->error.get(), &QSocketNotifier::activated, &m, [&m, fd]() {
+    QObject::connect(
+        notifiers->error.get(), &QSocketNotifier::activated, &m, [&m, fd]() {
       if(auto* plugin_fd_ext = static_cast<const clap_plugin_posix_fd_support_t*>(
-           m.handle()->plugin->get_extension(m.handle()->plugin, CLAP_EXT_POSIX_FD_SUPPORT)))
+             m.handle()->plugin->get_extension(
+                 m.handle()->plugin, CLAP_EXT_POSIX_FD_SUPPORT)))
       {
         qDebug("E FD !!!");
         plugin_fd_ext->on_fd(m.handle()->plugin, fd, CLAP_POSIX_FD_ERROR);
@@ -194,25 +202,27 @@ CLAP_ABI bool register_fd(const clap_host_t* host, int fd, clap_posix_fd_flags_t
 CLAP_ABI bool modify_fd(const clap_host_t* host, int fd, clap_posix_fd_flags_t flags)
 {
   auto& m = *static_cast<Clap::Model*>(host->host_data);
-  
+
   auto it = m.fd_notifiers.find(fd);
   if(it == m.fd_notifiers.end())
   {
     qWarning() << "CLAP: Attempted to modify unregistered fd" << fd;
     return false;
   }
-  
+
   auto& notifiers = it->second;
-  
+
   // Update read notifier
   if(flags & CLAP_POSIX_FD_READ)
   {
     if(!notifiers->read)
     {
       notifiers->read = std::make_unique<QSocketNotifier>(fd, QSocketNotifier::Read);
-      QObject::connect(notifiers->read.get(), &QSocketNotifier::activated, &m, [&m, fd]() {
+      QObject::connect(
+          notifiers->read.get(), &QSocketNotifier::activated, &m, [&m, fd]() {
         if(auto* plugin_fd_ext = static_cast<const clap_plugin_posix_fd_support_t*>(
-             m.handle()->plugin->get_extension(m.handle()->plugin, CLAP_EXT_POSIX_FD_SUPPORT)))
+               m.handle()->plugin->get_extension(
+                   m.handle()->plugin, CLAP_EXT_POSIX_FD_SUPPORT)))
         {
           plugin_fd_ext->on_fd(m.handle()->plugin, fd, CLAP_POSIX_FD_READ);
         }
@@ -224,16 +234,18 @@ CLAP_ABI bool modify_fd(const clap_host_t* host, int fd, clap_posix_fd_flags_t f
   {
     notifiers->read->setEnabled(false);
   }
-  
+
   // Update write notifier
   if(flags & CLAP_POSIX_FD_WRITE)
   {
     if(!notifiers->write)
     {
       notifiers->write = std::make_unique<QSocketNotifier>(fd, QSocketNotifier::Write);
-      QObject::connect(notifiers->write.get(), &QSocketNotifier::activated, &m, [&m, fd]() {
+      QObject::connect(
+          notifiers->write.get(), &QSocketNotifier::activated, &m, [&m, fd]() {
         if(auto* plugin_fd_ext = static_cast<const clap_plugin_posix_fd_support_t*>(
-             m.handle()->plugin->get_extension(m.handle()->plugin, CLAP_EXT_POSIX_FD_SUPPORT)))
+               m.handle()->plugin->get_extension(
+                   m.handle()->plugin, CLAP_EXT_POSIX_FD_SUPPORT)))
         {
           plugin_fd_ext->on_fd(m.handle()->plugin, fd, CLAP_POSIX_FD_WRITE);
         }
@@ -245,16 +257,19 @@ CLAP_ABI bool modify_fd(const clap_host_t* host, int fd, clap_posix_fd_flags_t f
   {
     notifiers->write->setEnabled(false);
   }
-  
+
   // Update error notifier
   if(flags & CLAP_POSIX_FD_ERROR)
   {
     if(!notifiers->error)
     {
-      notifiers->error = std::make_unique<QSocketNotifier>(fd, QSocketNotifier::Exception);
-      QObject::connect(notifiers->error.get(), &QSocketNotifier::activated, &m, [&m, fd]() {
+      notifiers->error
+          = std::make_unique<QSocketNotifier>(fd, QSocketNotifier::Exception);
+      QObject::connect(
+          notifiers->error.get(), &QSocketNotifier::activated, &m, [&m, fd]() {
         if(auto* plugin_fd_ext = static_cast<const clap_plugin_posix_fd_support_t*>(
-             m.handle()->plugin->get_extension(m.handle()->plugin, CLAP_EXT_POSIX_FD_SUPPORT)))
+               m.handle()->plugin->get_extension(
+                   m.handle()->plugin, CLAP_EXT_POSIX_FD_SUPPORT)))
         {
           plugin_fd_ext->on_fd(m.handle()->plugin, fd, CLAP_POSIX_FD_ERROR);
         }
@@ -266,21 +281,21 @@ CLAP_ABI bool modify_fd(const clap_host_t* host, int fd, clap_posix_fd_flags_t f
   {
     notifiers->error->setEnabled(false);
   }
-  
+
   return true;
 }
 
 CLAP_ABI bool unregister_fd(const clap_host_t* host, int fd)
 {
   auto& m = *static_cast<Clap::Model*>(host->host_data);
-  
+
   auto it = m.fd_notifiers.find(fd);
   if(it == m.fd_notifiers.end())
   {
     qWarning() << "CLAP: Attempted to unregister unregistered fd" << fd;
     return false;
   }
-  
+
   // QSocketNotifier objects will be automatically destroyed by unique_ptr
   m.fd_notifiers.erase(it);
   return true;
@@ -290,8 +305,8 @@ CLAP_ABI bool unregister_fd(const clap_host_t* host, int fd)
 static constexpr clap_host_timer_support_t host_timer_ext
     = {.register_timer = register_timer, .unregister_timer = unregister_timer};
 
-static constexpr clap_host_posix_fd_support_t host_posix_fd_ext
-    = {.register_fd = register_fd, .modify_fd = modify_fd, .unregister_fd = unregister_fd};
+static constexpr clap_host_posix_fd_support_t host_posix_fd_ext = {
+    .register_fd = register_fd, .modify_fd = modify_fd, .unregister_fd = unregister_fd};
 
 static constexpr clap_host_state_t host_state_ext
     = {.mark_dirty = [](const clap_host_t*) {
@@ -456,6 +471,167 @@ static constexpr clap_host_voice_info_t host_voice_info_ext
   // TODO
 }};
 
+// Context menu builder implementation
+struct context_menu_builder_impl
+{
+  QMenu* menu;
+  QMenu* root_menu;
+  const clap_plugin_t* plugin;
+  const clap_plugin_context_menu_t* plugin_context_menu;
+  const clap_context_menu_target_t* target;
+
+  context_menu_builder_impl(
+      QMenu* m, const clap_plugin_t* p, const clap_plugin_context_menu_t* pcm,
+      const clap_context_menu_target_t* t)
+      : menu(m)
+      , root_menu(m)
+      , plugin(p)
+      , plugin_context_menu(pcm)
+      , target(t)
+  {
+  }
+};
+
+static bool context_menu_add_item(
+    const clap_context_menu_builder_t* builder, clap_context_menu_item_kind_t item_kind,
+    const void* item_data)
+{
+  auto* impl = static_cast<context_menu_builder_impl*>(builder->ctx);
+  if(!impl || !impl->menu)
+    return false;
+
+  switch(item_kind)
+  {
+    case CLAP_CONTEXT_MENU_ITEM_ENTRY: {
+      auto* entry = static_cast<const clap_context_menu_entry_t*>(item_data);
+      auto* action = impl->menu->addAction(QString::fromUtf8(entry->label));
+      action->setEnabled(entry->is_enabled);
+
+      clap_id action_id = entry->action_id;
+      QObject::connect(action, &QAction::triggered, [action_id, builder]() {
+        auto* impl = static_cast<context_menu_builder_impl*>(builder->ctx);
+        if(impl && impl->plugin_context_menu)
+        {
+          impl->plugin_context_menu->perform(impl->plugin, impl->target, action_id);
+        }
+      });
+      return true;
+    }
+
+    case CLAP_CONTEXT_MENU_ITEM_CHECK_ENTRY: {
+      auto* entry = static_cast<const clap_context_menu_check_entry_t*>(item_data);
+      auto* action = impl->menu->addAction(QString::fromUtf8(entry->label));
+      action->setEnabled(entry->is_enabled);
+      action->setCheckable(true);
+      action->setChecked(entry->is_checked);
+
+      clap_id action_id = entry->action_id;
+      QObject::connect(action, &QAction::triggered, [action_id, builder]() {
+        auto* impl = static_cast<context_menu_builder_impl*>(builder->ctx);
+        if(impl && impl->plugin_context_menu)
+        {
+          impl->plugin_context_menu->perform(impl->plugin, impl->target, action_id);
+        }
+      });
+      return true;
+    }
+
+    case CLAP_CONTEXT_MENU_ITEM_SEPARATOR: {
+      impl->menu->addSeparator();
+      return true;
+    }
+
+    case CLAP_CONTEXT_MENU_ITEM_BEGIN_SUBMENU: {
+      auto* submenu_data = static_cast<const clap_context_menu_submenu_t*>(item_data);
+      auto* submenu = impl->menu->addMenu(QString::fromUtf8(submenu_data->label));
+      submenu->setEnabled(submenu_data->is_enabled);
+      impl->menu = submenu; // Switch context to submenu
+      return true;
+    }
+
+    case CLAP_CONTEXT_MENU_ITEM_END_SUBMENU: {
+      // Switch back to parent menu
+      if(impl->menu != impl->root_menu)
+      {
+        // Find parent menu by traversing up the object hierarchy
+        QObject* parent = impl->menu->parent();
+        while(parent && !qobject_cast<QMenu*>(parent))
+          parent = parent->parent();
+        if(parent)
+          impl->menu = static_cast<QMenu*>(parent);
+        else
+          impl->menu = impl->root_menu;
+      }
+      return true;
+    }
+
+    case CLAP_CONTEXT_MENU_ITEM_TITLE: {
+      auto* title = static_cast<const clap_context_menu_item_title_t*>(item_data);
+      auto* action = impl->menu->addAction(QString::fromUtf8(title->title));
+      action->setEnabled(false); // Titles are not clickable
+      auto font = action->font();
+      font.setBold(true);
+      action->setFont(font);
+      return true;
+    }
+  }
+  return false;
+}
+
+static bool context_menu_supports(
+    const clap_context_menu_builder_t* builder, clap_context_menu_item_kind_t item_kind)
+{
+  // We support all standard context menu item types
+  return item_kind == CLAP_CONTEXT_MENU_ITEM_ENTRY
+         || item_kind == CLAP_CONTEXT_MENU_ITEM_CHECK_ENTRY
+         || item_kind == CLAP_CONTEXT_MENU_ITEM_SEPARATOR
+         || item_kind == CLAP_CONTEXT_MENU_ITEM_BEGIN_SUBMENU
+         || item_kind == CLAP_CONTEXT_MENU_ITEM_END_SUBMENU
+         || item_kind == CLAP_CONTEXT_MENU_ITEM_TITLE;
+}
+
+static constexpr clap_host_context_menu_t host_context_menu_ext = {
+    .populate = [](const clap_host_t* host, const clap_context_menu_target_t* target,
+                   const clap_context_menu_builder_t* builder) -> bool { return true; },
+
+    .perform = [](const clap_host_t* host, const clap_context_menu_target_t* target,
+                  clap_id action_id) -> bool { return false; },
+
+    .can_popup = [](const clap_host_t* host) -> bool { return true; },
+
+    .popup = [](const clap_host_t* host, const clap_context_menu_target_t* target,
+                int32_t screen_index, int32_t x, int32_t y) -> bool {
+  auto& model = *static_cast<Clap::Model*>(host->host_data);
+  // Get the plugin's context menu extension
+  auto* plugin_context_menu = static_cast<const clap_plugin_context_menu_t*>(
+      model.handle()->plugin->get_extension(
+          model.handle()->plugin, CLAP_EXT_CONTEXT_MENU));
+
+  if(!plugin_context_menu)
+    return false;
+
+  // Create a QMenu
+  auto menu = std::make_unique<QMenu>();
+
+  // Create builder context
+  context_menu_builder_impl builder_ctx(
+      menu.get(), model.handle()->plugin, plugin_context_menu, target);
+  clap_context_menu_builder_t builder
+      = {.ctx = &builder_ctx,
+         .add_item = context_menu_add_item,
+         .supports = context_menu_supports};
+
+  // Let the plugin populate the menu
+  if(!plugin_context_menu->populate(model.handle()->plugin, target, &builder))
+    return false;
+
+  // Show the menu at the specified position
+  QPoint pos(x, y);
+  menu->exec(pos);
+
+  return true;
+}};
+
 PluginHandle::PluginHandle()
 {
   host.clap_version = CLAP_VERSION;
@@ -503,6 +679,10 @@ PluginHandle::PluginHandle()
       return &host_thread_pool_ext;
     if(strcmp(extension_id, CLAP_EXT_VOICE_INFO) == 0)
       return &host_voice_info_ext;
+    if(strcmp(extension_id, CLAP_EXT_CONTEXT_MENU) == 0)
+      return &host_context_menu_ext;
+    if(strcmp(extension_id, CLAP_EXT_CONTEXT_MENU_COMPAT) == 0)
+      return &host_context_menu_ext;
     return nullptr;
   };
   host.request_restart = [](const clap_host* host) {
@@ -656,7 +836,7 @@ Model::~Model()
     delete timer;
   }
   timers.clear();
-  
+
   // Clean up fd notifiers (automatically handled by unique_ptr destructors)
   fd_notifiers.clear();
 }
@@ -665,8 +845,9 @@ bool Model::hasExternalUI() const noexcept
 {
   if(!m_plugin->plugin)
     return false;
-    
-  auto gui = (const clap_plugin_gui_t*)m_plugin->plugin->get_extension(m_plugin->plugin, CLAP_EXT_GUI);
+
+  auto gui = (const clap_plugin_gui_t*)m_plugin->plugin->get_extension(
+      m_plugin->plugin, CLAP_EXT_GUI);
   return gui != nullptr;
 }
 
@@ -844,7 +1025,8 @@ void Model::createControls(bool loading)
   int cur_outlet = 0;
 
   // Get audio ports extension
-  auto audio_ports = (const clap_plugin_audio_ports_t*)m_plugin->plugin->get_extension(m_plugin->plugin, CLAP_EXT_AUDIO_PORTS);
+  auto audio_ports = (const clap_plugin_audio_ports_t*)m_plugin->plugin->get_extension(
+      m_plugin->plugin, CLAP_EXT_AUDIO_PORTS);
   m_supports64 = true;
   m_audio_ins.clear();
   m_audio_outs.clear();
@@ -899,7 +1081,8 @@ void Model::createControls(bool loading)
   // Get note ports extension
   m_midi_ins.clear();
   m_midi_outs.clear();
-  auto note_ports = (const clap_plugin_note_ports_t*)m_plugin->plugin->get_extension(m_plugin->plugin, CLAP_EXT_NOTE_PORTS);
+  auto note_ports = (const clap_plugin_note_ports_t*)m_plugin->plugin->get_extension(
+      m_plugin->plugin, CLAP_EXT_NOTE_PORTS);
   if(note_ports)
   {
     uint32_t input_count = note_ports->count(m_plugin->plugin, true);
@@ -941,7 +1124,8 @@ void Model::createControls(bool loading)
   }
 
   // Get params extension
-  auto params = (const clap_plugin_params_t*)m_plugin->plugin->get_extension(m_plugin->plugin, CLAP_EXT_PARAMS);
+  auto params = (const clap_plugin_params_t*)m_plugin->plugin->get_extension(
+      m_plugin->plugin, CLAP_EXT_PARAMS);
   if(params)
   {
     uint32_t param_count = params->count(m_plugin->plugin);
@@ -1065,33 +1249,35 @@ Process::Descriptor Process::EffectProcessFactory_T<Clap::Model>::descriptor(
 static QByteArray readCLAPState(const clap_plugin_t& plugin)
 {
   QByteArray dat;
-  
+
   // Get state extension
   auto state = (const clap_plugin_state_t*)plugin.get_extension(&plugin, CLAP_EXT_STATE);
   if(!state)
     return dat;
-  
+
   // Create a stream to capture the state
-  struct stream_context {
+  struct stream_context
+  {
     QByteArray* data;
   };
-  
+
   stream_context ctx{&dat};
-  
+
   clap_ostream_t stream{};
   stream.ctx = &ctx;
-  stream.write = [](const clap_ostream_t* stream, const void* buffer, uint64_t size) -> int64_t {
+  stream.write
+      = [](const clap_ostream_t* stream, const void* buffer, uint64_t size) -> int64_t {
     auto* ctx = static_cast<stream_context*>(stream->ctx);
     auto old_size = ctx->data->size();
     ctx->data->resize(old_size + size);
     std::memcpy(ctx->data->data() + old_size, buffer, size);
     return size;
   };
-  
+
   // Save plugin state
   if(!state->save(&plugin, &stream))
     dat.clear();
-  
+
   return dat;
 }
 
@@ -1103,9 +1289,9 @@ void DataStreamReader::read(const Clap::Model& proc)
   {
     state = readCLAPState(*proc.m_plugin->plugin);
   }
-  
+
   m_stream << proc.m_pluginPath << proc.m_pluginId << state;
-  
+
   readPorts(*this, proc.m_inlets, proc.m_outlets);
   insertDelimiter();
 }
@@ -1136,7 +1322,7 @@ void JSONReader::read(const Clap::Model& proc)
     state = readCLAPState(*proc.m_plugin->plugin);
   }
   obj["State"] = state.toBase64();
-  
+
   readPorts(*this, proc.m_inlets, proc.m_outlets);
 }
 
