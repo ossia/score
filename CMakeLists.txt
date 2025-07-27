@@ -205,18 +205,26 @@ if(MSYS OR MINGW)
 endif()
 
 find_package(${QT_VERSION} REQUIRED
-             COMPONENTS
-               Core
-               Widgets
-               Gui
-               Network
-               Xml
-               StateMachine
-               OpenGL
-               OpenGLWidgets
-               Qml
-               ShaderTools Quick QmlModels
-             OPTIONAL_COMPONENTS WebSockets Svg
+  COMPONENTS
+    Core
+    Widgets
+    Gui
+    Network
+    Xml
+    StateMachine
+    OpenGL
+    OpenGLWidgets
+    Qml
+    ShaderTools Quick QmlModels
+  OPTIONAL_COMPONENTS
+    WebSockets
+    Svg
+    CorePrivate
+    WidgetsPrivate
+    GuiPrivate
+    QmlPrivate
+    QuickPrivate
+    ShaderToolsPrivate
 )
 
 if(EMSCRIPTEN)

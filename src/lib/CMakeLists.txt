@@ -605,6 +605,8 @@ target_link_libraries(score_lib_base
     ossia
     QCodeEditor
     magic_enum::magic_enum
+    Eigen3::Eigen
+    xtensor
 )
 
 if(TARGET ${QT_PREFIX}::Svg)

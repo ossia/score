@@ -7,7 +7,7 @@ set(SCORE_SRC "${SCORE_SOURCE_DIR}/src")
 set(SCORE_AVND_SOURCE_DIR "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd")
 
 if(WIN32)
-  # On Windows there's no such thing as undefined dynamic lookup, and 
+  # On Windows there's no such thing as undefined dynamic lookup, and
   # in developer builds we don't have an implib so we can just build a static library.
   set(BUILD_SHARED_LIBS 0)
 endif()
@@ -246,6 +246,10 @@ include_directories(SYSTEM "${3RDPARTY_FOLDER}/magicitems/include/")
 
 include_directories(SYSTEM "${SCORE_SOURCE_DIR}/3rdparty/libossia/src")
 include_directories(SYSTEM "${SCORE_SOURCE_DIR}/3rdparty/avendish/include")
+include_directories(SYSTEM "${SCORE_SOURCE_DIR}/3rdparty/eigen")
+include_directories(SYSTEM "${SCORE_SOURCE_DIR}/3rdparty/xtl/include")
+include_directories(SYSTEM "${SCORE_SOURCE_DIR}/3rdparty/xsimd/include")
+include_directories(SYSTEM "${SCORE_SOURCE_DIR}/3rdparty/xtensor/include")
 include_directories(SYSTEM "${SCORE_SOURCE_DIR}/src/lib")
 
 function(ossia_set_visibility TheTarget)
