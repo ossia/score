@@ -11,6 +11,7 @@
 #include <QCoreApplication>
 #include <QDebug>
 #include <QThread>
+#include <QTimer>
 
 #include <libremidi/detail/conversion.hpp>
 

@@ -4,6 +4,9 @@
 #include <JS/Qml/EditContext.hpp>
 #include <JS/Qml/Utils.hpp>
 #include <Library/LibrarySettings.hpp>
+#include <LocalTree/LocalTreeDocumentPlugin.hpp>
+
+#include <core/document/Document.hpp>
 
 #include <ossia/detail/thread.hpp>
 

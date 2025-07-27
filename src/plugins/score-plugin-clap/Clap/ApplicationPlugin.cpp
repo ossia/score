@@ -1,5 +1,6 @@
 #include "ApplicationPlugin.hpp"
 
+#include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/Bind.hpp>
 
 #include <QApplication>
