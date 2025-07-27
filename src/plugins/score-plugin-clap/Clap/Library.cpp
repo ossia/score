@@ -29,8 +29,10 @@ void LibraryHandler::setup(
 
     for(const auto& plugin : plug.plugins())
     {
+      if(!plugin.valid)
+        continue;
       QString category = getClapCategory(plugin.features);
-      
+
       // Create category if it doesn't exist
       if(!categories.contains(category))
       {
@@ -47,7 +49,27 @@ void LibraryHandler::setup(
   };
 
   reset_plugs();
-  connect(&plug, &Clap::ApplicationPlugin::pluginsChanged, this, reset_plugs);
+
+  con(plug, &Clap::ApplicationPlugin::pluginsChanged, this,
+      [&plug, &model, node, &parent, reset_plugs] {
+    if(parent.childCount() > 0)
+    {
+      model.beginRemoveRows(node, 0, parent.childCount() - 1);
+      parent.resize(0);
+      model.endRemoveRows();
+    }
+
+    int k = 0;
+    for(const auto& clap : plug.plugins())
+      if(!clap.valid)
+        k++;
+    if(k > 0)
+    {
+      model.beginInsertRows(node, 0, k - 1);
+      reset_plugs();
+      model.endInsertRows();
+    }
+  });
 }
 
 QString LibraryHandler::getClapCategory(const QList<QString>& features) const

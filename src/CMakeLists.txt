@@ -24,6 +24,10 @@ if(APPLE OR WIN32 OR TARGET X11::X11)
   if(TARGET score_plugin_vst3)
     add_subdirectory(vst3puppet)
   endif()
+
+  if(TARGET score_plugin_clap)
+    add_subdirectory(clappuppet)
+  endif()
 endif()
 
 if(LINUX)
