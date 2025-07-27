@@ -469,6 +469,13 @@ avnd_make_score(
 )
 
 avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/AI/PromptComposer.hpp"
+  TARGET prompt_interpolator
+  MAIN_CLASS PromptInterpolator
+  NAMESPACE ai
+)
+
+avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/ADSR.hpp"
   TARGET adsr
   MAIN_CLASS ADSR
