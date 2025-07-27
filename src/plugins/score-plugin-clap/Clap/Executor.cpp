@@ -8,6 +8,7 @@
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/dataflow/port.hpp>
 
+#include <QCoreApplication>
 #include <QDebug>
 #include <QThread>
 
@@ -887,6 +888,10 @@ public:
   {
     m_poly.reserve(8);
     m_poly.push_back({handle.plugin, false});
+    if(handle.activated)
+      (void)deactivate_plugin(handle.plugin);
+    m_poly.back().activated = activate_plugin(m_instance.plugin, sampleRate, bs);
+
     for(int i = 0; i < 7; i++)
     {
       add_poly_instance(sampleRate, bs);
@@ -919,18 +924,21 @@ public:
         stop_plugin(m_poly[i].plugin);
         m_poly[i].processing = false;
       }
-      if(m_poly[i].activated)
-      {
-        // FIXME
-        (void)deactivate_plugin(m_poly[i].plugin);
-        m_poly[i].activated = false;
-      }
-
-      if(i > 0)
-      {
-        m_poly[i].plugin->destroy(m_poly[i].plugin);
-      }
     }
+
+    // FIXME not RT-friendly
+    QMetaObject::invokeMethod(
+        QCoreApplication::instance(), [poly = std::move(m_poly)]() {
+      for(int i = 1; i < poly.size(); i++)
+      {
+        auto& p = poly[i];
+        if(p.activated)
+          if(p.plugin)
+            p.plugin->deactivate(p.plugin);
+
+        p.plugin->destroy(p.plugin);
+      }
+    });
   }
 
   void reset_execution() override
