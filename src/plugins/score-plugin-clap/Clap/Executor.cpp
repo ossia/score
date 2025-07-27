@@ -493,12 +493,6 @@ public:
 
   ~clap_node()
   {
-    if(m_processing)
-    {
-      // audio thread
-      stop_plugin(m_instance.plugin);
-    }
-
     // We do not deactivate in the audio thread where the dtor of clap_node runs
     // but later in the main thread
   }
@@ -513,7 +507,6 @@ public:
     }
   }
 
-protected:
   void do_process(
       clap_process_t& process, event_storage& input_storage,
       event_storage& output_storage)
@@ -954,7 +947,6 @@ public:
     }
   }
 
-protected:
   void do_process(
       const clap_plugin_t* plug, clap_process_t& process, event_storage& input_storage,
       event_storage& output_storage)
@@ -1190,6 +1182,42 @@ public:
   }
 };
 
+struct clap_process final : public ossia::node_process
+{
+  using ossia::node_process::node_process;
+  void start() override { }
+  void stop() override
+  {
+    auto* clap = static_cast<clap_node*>(this->node.get());
+
+    if(clap->m_processing)
+    {
+      clap->stop_plugin(clap->m_instance.plugin);
+      clap->m_processing = false;
+    }
+  }
+  void pause() override { }
+  void resume() override { }
+};
+struct clap_mono_process final : public ossia::node_process
+{
+  using ossia::node_process::node_process;
+  void start() override { }
+  void stop() override
+  {
+    auto* clap = static_cast<clap_node_mono*>(this->node.get());
+
+    for(auto& plug : clap->m_poly)
+      if(plug.processing)
+      {
+        clap->stop_plugin(clap->m_instance.plugin);
+        plug.processing = false;
+      }
+  }
+  void pause() override { }
+  void resume() override { }
+};
+
 Executor::Executor(Clap::Model& proc, const Execution::Context& ctx, QObject* parent)
     : Execution::ProcessComponent_T<Clap::Model, ossia::node_process>{
           proc, ctx, "ClapComponent", parent}
@@ -1208,38 +1236,42 @@ Executor::Executor(Clap::Model& proc, const Execution::Context& ctx, QObject* pa
   {
     if(proc.supports64())
     {
+      qDebug() << "CLAP: clap_node_mono_64";
       auto node = ossia::make_node<clap_node_mono_64>(
           *ctx.execState, proc, *h, e.sampleRate, e.bufferSize);
       clap = node;
       this->node = node;
-      m_ossia_process = std::make_shared<ossia::node_process>(node);
+      m_ossia_process = std::make_shared<clap_mono_process>(node);
     }
     else
     {
+      qDebug() << "CLAP: clap_node_mono_32";
       auto node = ossia::make_node<clap_node_mono_32>(
           *ctx.execState, proc, *h, e.sampleRate, e.bufferSize);
       clap = node;
       this->node = node;
-      m_ossia_process = std::make_shared<ossia::node_process>(node);
+      m_ossia_process = std::make_shared<clap_mono_process>(node);
     }
   }
   else
   {
     if(proc.supports64())
     {
+      qDebug() << "CLAP: clap_node_64";
       auto node = ossia::make_node<clap_node_64>(
           *ctx.execState, proc, *h, e.sampleRate, e.bufferSize);
       clap = node;
       this->node = node;
-      m_ossia_process = std::make_shared<ossia::node_process>(node);
+      m_ossia_process = std::make_shared<clap_process>(node);
     }
     else
     {
+      qDebug() << "CLAP: clap_node_32";
       auto node = ossia::make_node<clap_node_32>(
           *ctx.execState, proc, *h, e.sampleRate, e.bufferSize);
       clap = node;
       this->node = node;
-      m_ossia_process = std::make_shared<ossia::node_process>(node);
+      m_ossia_process = std::make_shared<clap_process>(node);
     }
   }
 
