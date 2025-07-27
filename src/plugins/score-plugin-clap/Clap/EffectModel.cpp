@@ -12,6 +12,7 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
+#include <ossia/detail/json.hpp>
 #include <ossia/detail/thread.hpp>
 #include <ossia/network/domain/domain.hpp>
 
@@ -24,6 +25,8 @@
 #include <Clap/Window.hpp>
 #include <clap/all.h>
 #include <clap/ext/state.h>
+#include <clap/ext/preset-load.h>
+#include <clap/factory/preset-discovery.h>
 
 #include <score_git_info.hpp>
 #include <wobjectimpl.h>
@@ -144,14 +147,12 @@ CLAP_ABI bool register_fd(const clap_host_t* host, int fd, clap_posix_fd_flags_t
   // Set up read notifier
   if(flags & CLAP_POSIX_FD_READ)
   {
-    qDebug("READ FD");
     notifiers->read = std::make_unique<QSocketNotifier>(fd, QSocketNotifier::Read);
     QObject::connect(notifiers->read.get(), &QSocketNotifier::activated, &m, [&m, fd]() {
       if(auto* plugin_fd_ext = static_cast<const clap_plugin_posix_fd_support_t*>(
              m.handle()->plugin->get_extension(
                  m.handle()->plugin, CLAP_EXT_POSIX_FD_SUPPORT)))
       {
-        qDebug("R FD !!!");
         plugin_fd_ext->on_fd(m.handle()->plugin, fd, CLAP_POSIX_FD_READ);
       }
     });
@@ -161,7 +162,6 @@ CLAP_ABI bool register_fd(const clap_host_t* host, int fd, clap_posix_fd_flags_t
   // Set up write notifier
   if(flags & CLAP_POSIX_FD_WRITE)
   {
-    qDebug("W FD");
     notifiers->write = std::make_unique<QSocketNotifier>(fd, QSocketNotifier::Write);
     QObject::connect(
         notifiers->write.get(), &QSocketNotifier::activated, &m, [&m, fd]() {
@@ -169,7 +169,6 @@ CLAP_ABI bool register_fd(const clap_host_t* host, int fd, clap_posix_fd_flags_t
              m.handle()->plugin->get_extension(
                  m.handle()->plugin, CLAP_EXT_POSIX_FD_SUPPORT)))
       {
-        qDebug("W FD !!!");
         plugin_fd_ext->on_fd(m.handle()->plugin, fd, CLAP_POSIX_FD_WRITE);
       }
     });
@@ -179,7 +178,6 @@ CLAP_ABI bool register_fd(const clap_host_t* host, int fd, clap_posix_fd_flags_t
   // Set up error/exception notifier
   if(flags & CLAP_POSIX_FD_ERROR)
   {
-    qDebug("E FD");
     notifiers->error = std::make_unique<QSocketNotifier>(fd, QSocketNotifier::Exception);
     QObject::connect(
         notifiers->error.get(), &QSocketNotifier::activated, &m, [&m, fd]() {
@@ -187,7 +185,6 @@ CLAP_ABI bool register_fd(const clap_host_t* host, int fd, clap_posix_fd_flags_t
              m.handle()->plugin->get_extension(
                  m.handle()->plugin, CLAP_EXT_POSIX_FD_SUPPORT)))
       {
-        qDebug("E FD !!!");
         plugin_fd_ext->on_fd(m.handle()->plugin, fd, CLAP_POSIX_FD_ERROR);
       }
     });
@@ -299,6 +296,41 @@ CLAP_ABI bool unregister_fd(const clap_host_t* host, int fd)
   // QSocketNotifier objects will be automatically destroyed by unique_ptr
   m.fd_notifiers.erase(it);
   return true;
+}
+
+static QByteArray readCLAPState(const clap_plugin_t& plugin)
+{
+  QByteArray dat;
+
+  // Get state extension
+  auto state = (const clap_plugin_state_t*)plugin.get_extension(&plugin, CLAP_EXT_STATE);
+  if(!state)
+    return dat;
+
+  // Create a stream to capture the state
+  struct stream_context
+  {
+    QByteArray* data;
+  };
+
+  stream_context ctx{&dat};
+
+  clap_ostream_t stream{};
+  stream.ctx = &ctx;
+  stream.write
+      = [](const clap_ostream_t* stream, const void* buffer, uint64_t size) -> int64_t {
+    auto* ctx = static_cast<stream_context*>(stream->ctx);
+    auto old_size = ctx->data->size();
+    ctx->data->resize(old_size + size);
+    std::memcpy(ctx->data->data() + old_size, buffer, size);
+    return size;
+  };
+
+  // Save plugin state
+  if(!state->save(&plugin, &stream))
+    dat.clear();
+
+  return dat;
 }
 }
 
@@ -432,11 +464,16 @@ static constexpr clap_host_preset_load_t host_preset_load_ext
     = {.on_error =
            [](const clap_host_t* host, uint32_t location_kind, const char* location,
               const char* load_key, int32_t os_error, const char* msg) {
-  // TODO
+  qWarning() << "CLAP preset load error:" << (msg ? msg : "Unknown error")
+             << "Location:" << (location ? location : "null")  
+             << "Load key:" << (load_key ? load_key : "null")
+             << "OS error:" << os_error;
 },
        .loaded = [](const clap_host_t* host, uint32_t location_kind,
                     const char* location, const char* load_key) {
-  // TODO
+  qDebug() << "CLAP preset loaded successfully:"
+           << "Location:" << (location ? location : "null")
+           << "Load key:" << (load_key ? load_key : "null");
 }};
 
 static constexpr clap_host_remote_controls_t host_remote_control_ext
@@ -681,8 +718,12 @@ PluginHandle::PluginHandle()
       return &host_voice_info_ext;
     if(strcmp(extension_id, CLAP_EXT_CONTEXT_MENU) == 0)
       return &host_context_menu_ext;
-    if(strcmp(extension_id, CLAP_EXT_CONTEXT_MENU_COMPAT) == 0)
+    if(strcmp(extension_id, "clap.context-menu.draft/0") == 0)
       return &host_context_menu_ext;
+    if(strcmp(extension_id, CLAP_EXT_PRESET_LOAD) == 0)
+      return &host_preset_load_ext;
+    if(strcmp(extension_id, "clap.preset-load.draft/2") == 0)
+      return &host_preset_load_ext;
     return nullptr;
   };
   host.request_restart = [](const clap_host* host) {
@@ -1199,6 +1240,304 @@ Process::ProcessFlags Model::flags() const noexcept
   auto flags = Metadata<Process::ProcessFlags_k, Model>::get();
   return flags;
 }
+
+void Model::loadPreset(const Process::Preset& preset)
+{
+  if(!m_plugin || !m_plugin->plugin)
+    return;
+
+  const rapidjson::Document doc = readJson(preset.data);
+  if(!doc.IsObject())
+    return;
+  auto obj = doc.GetObject();
+
+  // Try to load using CLAP state (preferred method)
+  if(auto it = obj.FindMember("State"); it != obj.MemberEnd())
+  {
+    QByteArray data = QByteArray::fromBase64(JsonValue{it->value}.toByteArray());
+    if(!data.isEmpty())
+    {
+      // Get state extension and load the state
+      auto state = (const clap_plugin_state_t*)m_plugin->plugin->get_extension(
+          m_plugin->plugin, CLAP_EXT_STATE);
+      if(state)
+      {
+        struct stream_context
+        {
+          const char* data;
+          size_t size;
+          size_t pos;
+        };
+
+        stream_context ctx{data.constData(), static_cast<size_t>(data.size()), 0};
+
+        clap_istream_t stream{};
+        stream.ctx = &ctx;
+        stream.read
+            = [](const clap_istream_t* stream, void* buffer, uint64_t size) -> int64_t {
+          auto* ctx = static_cast<stream_context*>(stream->ctx);
+          if(ctx->pos >= ctx->size)
+            return 0;
+
+          uint64_t to_read = std::min(size, ctx->size - ctx->pos);
+          std::memcpy(buffer, ctx->data + ctx->pos, to_read);
+          ctx->pos += to_read;
+          return static_cast<int64_t>(to_read);
+        };
+
+        // Load the state
+        if(state->load(m_plugin->plugin, &stream))
+        {
+          // Update parameters after loading state
+          auto params = (const clap_plugin_params_t*)m_plugin->plugin->get_extension(
+              m_plugin->plugin, CLAP_EXT_PARAMS);
+          if(params)
+          {
+            for(auto& inlet : m_inlets)
+            {
+              if(auto ctl = qobject_cast<Process::ControlInlet*>(inlet))
+              {
+                // Find parameter by ID and update inlet value
+                for(const auto& param_info : m_parameters_ins)
+                {
+                  if(param_info.id == ctl->id().val())
+                  {
+                    double value;
+                    if(params->get_value(m_plugin->plugin, param_info.id, &value))
+                    {
+                      ctl->setValue(value);
+                    }
+                    break;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  // Try preset load extension (for file-based and builtin presets)
+  else if(auto loc_it = obj.FindMember("PresetLocation"); loc_it != obj.MemberEnd())
+  {
+    auto preset_load = (const clap_plugin_preset_load_t*)m_plugin->plugin->get_extension(
+        m_plugin->plugin, CLAP_EXT_PRESET_LOAD);
+    if(!preset_load)
+      preset_load = (const clap_plugin_preset_load_t*)m_plugin->plugin->get_extension(
+          m_plugin->plugin, "clap.preset-load.draft/2");
+    if(preset_load)
+    {
+      QString location = JsonValue{loc_it->value}.toString();
+      QString load_key;
+      uint32_t location_kind = CLAP_PRESET_DISCOVERY_LOCATION_FILE; // Default to file
+
+      // Check for location kind (for builtin presets)
+      if(auto kind_it = obj.FindMember("LocationKind"); kind_it != obj.MemberEnd())
+      {
+        location_kind = static_cast<uint32_t>(JsonValue{kind_it->value}.toInt());
+      }
+
+      if(auto key_it = obj.FindMember("LoadKey"); key_it != obj.MemberEnd())
+      {
+        load_key = JsonValue{key_it->value}.toString();
+      }
+
+      // For builtin presets, location should be null/empty
+      const char* location_str = "";
+      if(location_kind == CLAP_PRESET_DISCOVERY_LOCATION_FILE && !location.isEmpty())
+      {
+        location_str = location.toUtf8().constData();
+      }
+
+      preset_load->from_location(
+          m_plugin->plugin, location_kind, location_str,
+          load_key.isEmpty() ? "" : load_key.toUtf8().constData());
+    }
+  }
+}
+
+Process::Preset Model::savePreset() const noexcept
+{
+  Process::Preset p;
+  p.name = this->metadata().getName();
+  p.key.key = this->concreteKey();
+  p.key.effect = this->effect();
+
+  if(!m_plugin || !m_plugin->plugin)
+  {
+    p.data = "{}";
+    return p;
+  }
+
+  // Save using CLAP state extension
+  QByteArray data = readCLAPState(*m_plugin->plugin);
+
+  JSONReader r;
+  r.stream.StartObject();
+  r.obj["State"] = data.toBase64();
+  r.stream.EndObject();
+  p.data = r.toByteArray();
+  return p;
+}
+
+std::vector<Process::Preset> Model::builtinPresets() const noexcept
+{
+  std::vector<Process::Preset> presets;
+
+  if(!m_plugin || !m_plugin->plugin || !m_plugin->entry)
+    return presets;
+
+  // Get the preset discovery factory from the plugin entry
+  auto preset_discovery_factory = static_cast<const clap_preset_discovery_factory_t*>(
+      m_plugin->entry->get_factory(CLAP_PRESET_DISCOVERY_FACTORY_ID));
+  
+  if(!preset_discovery_factory)
+  {
+    // Try the compatibility ID as fallback
+    preset_discovery_factory = static_cast<const clap_preset_discovery_factory_t*>(
+        m_plugin->entry->get_factory("clap.preset-discovery-factory/draft-2"));
+  }
+
+  if(!preset_discovery_factory)
+    return presets;
+
+  // Create a temporary indexer to receive preset metadata
+  struct preset_metadata_collector
+  {
+    std::vector<Process::Preset>* target_presets;
+    QString plugin_name;
+    UuidKey<Process::ProcessModel> process_key;
+    QString effect_name;
+  };
+
+  preset_metadata_collector collector{&presets, this->prettyName(), this->concreteKey(), this->effect()};
+
+  clap_preset_discovery_indexer_t indexer{};
+  indexer.clap_version = CLAP_VERSION;
+  indexer.name = "ossia score";
+  indexer.vendor = "ossia.io";
+  indexer.url = "https://ossia.io";
+  indexer.version = SCORE_TAG_NO_V;
+  indexer.indexer_data = &collector;
+
+  // Implement required indexer callbacks
+  indexer.declare_filetype = [](const clap_preset_discovery_indexer_t* indexer,
+                                const clap_preset_discovery_filetype_t* filetype) -> bool {
+    return true; // Accept all filetypes for builtin presets
+  };
+
+  indexer.declare_location = [](const clap_preset_discovery_indexer_t* indexer,
+                                const clap_preset_discovery_location_t* location) -> bool {
+    return true; // Accept all locations for builtin presets
+  };
+
+  indexer.declare_soundpack = [](const clap_preset_discovery_indexer_t* indexer,
+                                 const clap_preset_discovery_soundpack_t* soundpack) -> bool {
+    return true; // Accept all soundpacks
+  };
+
+  indexer.get_extension = [](const clap_preset_discovery_indexer_t* indexer,
+                             const char* extension_id) -> const void* {
+    return nullptr; // No extensions needed for basic preset discovery
+  };
+
+  // Create metadata receiver to collect preset information
+  clap_preset_discovery_metadata_receiver_t metadata_receiver{};
+  metadata_receiver.receiver_data = &collector;
+
+  metadata_receiver.on_error = [](const clap_preset_discovery_metadata_receiver_t* receiver,
+                                  int32_t os_error,
+                                  const char* error_message) {
+    qWarning() << "CLAP preset discovery error:" << (error_message ? error_message : "Unknown error");
+  };
+
+  metadata_receiver.begin_preset = [](const clap_preset_discovery_metadata_receiver_t* receiver,
+                                      const char* name,
+                                      const char* load_key) -> bool {
+    auto* collector = static_cast<preset_metadata_collector*>(receiver->receiver_data);
+    
+    Process::Preset preset;
+    preset.name = QString::fromUtf8(name ? name : "Unnamed Preset");
+    preset.key.key = collector->process_key;
+    preset.key.effect = collector->effect_name;
+
+    // Store preset location information for loading later
+    JSONReader r;
+    r.stream.StartObject();
+    r.obj["LocationKind"] = static_cast<int>(CLAP_PRESET_DISCOVERY_LOCATION_PLUGIN);
+    r.obj["PresetLocation"] = QString{}; // Empty for builtin presets
+    if(load_key)
+      r.obj["LoadKey"] = QString::fromUtf8(load_key);
+    r.stream.EndObject();
+    preset.data = r.toByteArray();
+
+    collector->target_presets->push_back(std::move(preset));
+    return true;
+  };
+
+  metadata_receiver.add_plugin_id
+      = [](const clap_preset_discovery_metadata_receiver_t* receiver,
+           const clap_universal_plugin_id_t* plugin_id) { SCORE_TODO; };
+
+  metadata_receiver.set_soundpack_id
+      = [](const clap_preset_discovery_metadata_receiver_t* receiver,
+           const char* soundpack_id) { SCORE_TODO; };
+
+  metadata_receiver.set_flags
+      = [](const clap_preset_discovery_metadata_receiver_t* receiver, uint32_t flags) {
+    SCORE_TODO;
+  };
+
+  metadata_receiver.add_creator
+      = [](const clap_preset_discovery_metadata_receiver_t* receiver,
+           const char* creator) { SCORE_TODO; };
+
+  metadata_receiver.set_description
+      = [](const clap_preset_discovery_metadata_receiver_t* receiver,
+           const char* description) { SCORE_TODO; };
+
+  metadata_receiver.set_timestamps =
+      [](const clap_preset_discovery_metadata_receiver_t* receiver,
+         clap_timestamp creation_time, clap_timestamp modification_time) { SCORE_TODO; };
+
+  metadata_receiver.add_feature
+      = [](const clap_preset_discovery_metadata_receiver_t* receiver,
+           const char* feature) { SCORE_TODO; };
+
+  metadata_receiver.add_extra_info
+      = [](const clap_preset_discovery_metadata_receiver_t* receiver, const char* key,
+           const char* value) { SCORE_TODO; };
+
+  // Enumerate all preset providers
+  uint32_t provider_count = preset_discovery_factory->count(preset_discovery_factory);
+  for(uint32_t i = 0; i < provider_count; ++i)
+  {
+    auto provider_desc = preset_discovery_factory->get_descriptor(preset_discovery_factory, i);
+    if(!provider_desc)
+      continue;
+
+    auto provider = preset_discovery_factory->create(preset_discovery_factory, &indexer, provider_desc->id);
+    if(!provider)
+      continue;
+
+    // Initialize the provider
+    if(provider->init && provider->init(provider))
+    {
+      // Query for builtin presets (CLAP_PRESET_DISCOVERY_LOCATION_PLUGIN)
+      if(provider->get_metadata)
+      {
+        provider->get_metadata(
+            provider, CLAP_PRESET_DISCOVERY_LOCATION_PLUGIN, "", &metadata_receiver);
+      }
+    }
+
+    // Clean up the provider
+    if(provider->destroy)
+      provider->destroy(provider);
+  }
+
+  return presets;
+}
 }
 
 template <>
@@ -1246,48 +1585,13 @@ Process::Descriptor Process::EffectProcessFactory_T<Clap::Model>::descriptor(
   return descriptor(d.effect());
 }
 
-static QByteArray readCLAPState(const clap_plugin_t& plugin)
-{
-  QByteArray dat;
-
-  // Get state extension
-  auto state = (const clap_plugin_state_t*)plugin.get_extension(&plugin, CLAP_EXT_STATE);
-  if(!state)
-    return dat;
-
-  // Create a stream to capture the state
-  struct stream_context
-  {
-    QByteArray* data;
-  };
-
-  stream_context ctx{&dat};
-
-  clap_ostream_t stream{};
-  stream.ctx = &ctx;
-  stream.write
-      = [](const clap_ostream_t* stream, const void* buffer, uint64_t size) -> int64_t {
-    auto* ctx = static_cast<stream_context*>(stream->ctx);
-    auto old_size = ctx->data->size();
-    ctx->data->resize(old_size + size);
-    std::memcpy(ctx->data->data() + old_size, buffer, size);
-    return size;
-  };
-
-  // Save plugin state
-  if(!state->save(&plugin, &stream))
-    dat.clear();
-
-  return dat;
-}
-
 template <>
 void DataStreamReader::read(const Clap::Model& proc)
 {
   QByteArray state;
   if(proc.m_plugin && proc.m_plugin->plugin)
   {
-    state = readCLAPState(*proc.m_plugin->plugin);
+    state = Clap::readCLAPState(*proc.m_plugin->plugin);
   }
 
   m_stream << proc.m_pluginPath << proc.m_pluginId << state;
@@ -1319,7 +1623,7 @@ void JSONReader::read(const Clap::Model& proc)
   QByteArray state;
   if(proc.m_plugin && proc.m_plugin->plugin)
   {
-    state = readCLAPState(*proc.m_plugin->plugin);
+    state = Clap::readCLAPState(*proc.m_plugin->plugin);
   }
   obj["State"] = state.toBase64();
 

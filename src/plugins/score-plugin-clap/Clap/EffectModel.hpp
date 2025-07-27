@@ -125,6 +125,11 @@ public:
     return m_audio_outs;
   }
 
+  // Preset functionality
+  void loadPreset(const Process::Preset& preset) override;
+  Process::Preset savePreset() const noexcept override;
+  std::vector<Process::Preset> builtinPresets() const noexcept override;
+
   void restartPlugin() W_SIGNAL(restartPlugin);
   Clap::Window* window{};
   std::vector<std::pair<clap_id, QTimer*>> timers;
