@@ -12,6 +12,9 @@
 
 #include <score/tools/ThreadPool.hpp>
 
+#include <ossia-qt/invoke.hpp>
+
+#include <QCoreApplication>
 #include <QTimer>
 #include <QtGui/private/qrhi_p.h>
 
@@ -848,7 +851,9 @@ struct GpuWorker
             if(!res || !ptr)
               return;
 
-            ossia::qt::run_async(qApp, [res = std::move(res), &state, ptr]() mutable {
+            ossia::qt::run_async(
+                QCoreApplication::instance(),
+                [res = std::move(res), &state, ptr]() mutable {
               if(ptr)
                 res(state);
             });
