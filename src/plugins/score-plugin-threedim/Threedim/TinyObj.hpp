@@ -6,6 +6,7 @@
 #include <ossia/detail/pod_vector.hpp>
 
 #include <QMatrix4x4>
+#include <QQuaternion>
 
 #include <cstring>
 #include <vector>

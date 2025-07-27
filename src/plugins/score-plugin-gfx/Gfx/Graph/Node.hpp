@@ -71,7 +71,7 @@ struct RenderTargetSpecs
 /**
  * @brief Root data model for visual nodes.
  */
-class SCORE_PLUGIN_GFX_EXPORT Node
+class SCORE_PLUGIN_GFX_EXPORT Node : public QObject
 {
 public:
   explicit Node();

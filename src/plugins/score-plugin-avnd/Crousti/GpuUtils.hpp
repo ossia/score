@@ -10,6 +10,8 @@
 #include <Gfx/Graph/OutputNode.hpp>
 #include <Gfx/Graph/RenderState.hpp>
 
+#include <score/tools/ThreadPool.hpp>
+
 #include <QTimer>
 #include <QtGui/private/qrhi_p.h>
 
@@ -822,28 +824,36 @@ namespace oscr
 {
 struct GpuWorker
 {
-  template <typename Node>
-  static void initWorker(Node& state) noexcept
+  template <typename T>
+  void initWorker(this auto& self, T& state) noexcept
   {
-    if constexpr(avnd::has_worker<Node>)
+    if constexpr(avnd::has_worker<T>)
     {
+      auto ptr = QPointer{&self};
+      auto& tq = score::TaskPool::instance();
       using worker_type = decltype(state.worker);
 
-      state.worker.request = [&state]<typename... Args>(Args&&... f) {
+      state.worker.request = [ptr, &tq, &state]<typename... Args>(Args&&... f) {
         using type_of_result = decltype(worker_type::work(std::forward<Args>(f)...));
-        if constexpr(std::is_void_v<type_of_result>)
-        {
-          worker_type::work(std::forward<Args>(f)...);
-        }
-        else
-        {
-          // If the worker returns a std::function, it
-          // is to be invoked back in the processor DSP thread
-          auto res = worker_type::work(std::forward<Args>(f)...);
-          if(!res)
-            return;
-          res(state);
-        }
+        tq.post([... ff = std::forward<Args>(f), &state, ptr]() mutable {
+          if constexpr(std::is_void_v<type_of_result>)
+          {
+            worker_type::work(std::forward<decltype(ff)>(ff)...);
+          }
+          else
+          {
+            // If the worker returns a std::function, it
+            // is to be invoked back in the processor DSP thread
+            auto res = worker_type::work(std::forward<decltype(ff)>(ff)...);
+            if(!res || !ptr)
+              return;
+
+            ossia::qt::run_async(qApp, [res = std::move(res), &state, ptr]() mutable {
+              if(ptr)
+                res(state);
+            });
+          }
+        });
       };
     }
   }
