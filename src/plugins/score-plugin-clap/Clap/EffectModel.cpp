@@ -6,6 +6,8 @@
 
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 
+#include <Audio/Settings/Model.hpp>
+
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
@@ -295,6 +297,10 @@ static constexpr clap_host_state_t host_state_ext
     = {.mark_dirty = [](const clap_host_t*) {
   qDebug(Q_FUNC_INFO);
   // TODO
+
+  // FIXME likely we want to accumulate and serialize the state of the plugin
+  // so that we can restore in case of a crash.
+  // But plug-ins may spam things so we need some debounce.
 }};
 static constexpr clap_host_params_t host_params_ext
     = {.rescan = [](const clap_host_t* host, clap_param_rescan_flags flags) {
@@ -638,7 +644,12 @@ Model::Model(JSONObject::Deserializer&& vis, QObject* parent)
 Model::~Model()
 {
   closeUI();
-  
+
+  if(m_plugin->plugin && m_plugin->activated)
+  {
+    m_plugin->plugin->deactivate(m_plugin->plugin);
+  }
+
   // Clean up timers
   for(auto& [id, timer] : timers)
   {
@@ -716,7 +727,7 @@ void Model::loadPlugin()
   connect(this, &Process::ProcessModel::startExecution, this, [this] {
     m_executing = true;
   });
-  connect(this, &Process::ProcessModel::startExecution, this, [this] {
+  connect(this, &Process::ProcessModel::stopExecution, this, [this] {
     m_executing = false;
   });
 
@@ -726,6 +737,11 @@ void Model::loadPlugin()
   {
     loadCLAPState(*m_plugin->plugin, m_loadedState);
   }
+
+  auto& audio_stgs = score::AppContext().settings<Audio::Settings::Model>();
+
+  m_plugin->activated = m_plugin->plugin->activate(
+      m_plugin->plugin, audio_stgs.getRate(), 1, audio_stgs.getBufferSize());
 }
 
 void Model::setupControlInlet(
@@ -748,6 +764,7 @@ void Model::setupControlInlet(
   {
     inlet->setValue(info.default_value);
   }
+
   inlet->setDomain(ossia::make_domain(info.min_value, info.max_value));
 
   connect(
@@ -756,8 +773,8 @@ void Model::setupControlInlet(
     if(this->m_executing)
       return;
     auto plugin = this->handle()->plugin;
-    SCORE_ASSERT(this->parameterInfo().size() > i);
-    auto& param_info = this->parameterInfo()[i];
+    SCORE_ASSERT(this->parameterInputs().size() > i);
+    auto& param_info = this->parameterInputs()[i];
     double val = ossia::convert<double>(v);
 
     clap_event_param_value_t param_event{};
@@ -794,6 +811,30 @@ void Model::setupControlInlet(
   });
 }
 
+void Model::setupControlOutlet(
+    const clap_plugin_params_t& params, const clap_param_info_t& info, int index,
+    Process::ControlOutlet* port)
+{
+  port->setName(QString::fromUtf8(info.name));
+  port->hidden = true; //(info.flags & CLAP_PARAM_IS_HIDDEN) != 0;
+
+  // Set default value, min, and max for the control inlet
+  double val{};
+  // FIXME if we load we do not want to change the GUI inlet value, instead we
+  // want to reapply it to the state (so that an inlet with a LFO as input does not
+  // change its value randomly on every load
+  if(params.get_value && params.get_value(m_plugin->plugin, info.id, &val))
+  {
+    port->setValue(val);
+  }
+  else
+  {
+    port->setValue(info.default_value);
+  }
+
+  port->setDomain(ossia::make_domain(info.min_value, info.max_value));
+}
+
 void Model::createControls(bool loading)
 {
   if(!m_plugin->plugin)
@@ -805,8 +846,8 @@ void Model::createControls(bool loading)
   // Get audio ports extension
   auto audio_ports = (const clap_plugin_audio_ports_t*)m_plugin->plugin->get_extension(m_plugin->plugin, CLAP_EXT_AUDIO_PORTS);
   m_supports64 = true;
-  m_audio_inputs_info.clear();
-  m_audio_outputs_info.clear();
+  m_audio_ins.clear();
+  m_audio_outs.clear();
   if(audio_ports)
   {
     auto input_count = audio_ports->count(m_plugin->plugin, true);
@@ -825,7 +866,7 @@ void Model::createControls(bool loading)
           m_inlets.push_back(inlet);
         }
 
-        m_audio_inputs_info.push_back(info);
+        m_audio_ins.push_back(info);
         cur_inlet++;
       }
     }
@@ -849,15 +890,15 @@ void Model::createControls(bool loading)
           m_outlets.push_back(outlet);
         }
 
-        m_audio_outputs_info.push_back(info);
+        m_audio_outs.push_back(info);
         cur_outlet++;
       }
     }
   }
 
   // Get note ports extension
-  m_midi_inputs_info.clear();
-  m_midi_outputs_info.clear();
+  m_midi_ins.clear();
+  m_midi_outs.clear();
   auto note_ports = (const clap_plugin_note_ports_t*)m_plugin->plugin->get_extension(m_plugin->plugin, CLAP_EXT_NOTE_PORTS);
   if(note_ports)
   {
@@ -875,7 +916,7 @@ void Model::createControls(bool loading)
           m_inlets.push_back(inlet);
         }
 
-        m_midi_inputs_info.push_back(info);
+        m_midi_ins.push_back(info);
         cur_inlet++;
       }
     }
@@ -893,7 +934,7 @@ void Model::createControls(bool loading)
           m_outlets.push_back(outlet);
         }
 
-        m_midi_outputs_info.push_back(info);
+        m_midi_outs.push_back(info);
         cur_outlet++;
       }
     }
@@ -909,30 +950,58 @@ void Model::createControls(bool loading)
       clap_param_info_t info;
       if(params->get_info(m_plugin->plugin, i, &info))
       {
-        if(!loading)
+        if(info.flags & CLAP_PARAM_IS_HIDDEN)
+          continue;
+        if(!(info.flags & CLAP_PARAM_IS_READONLY))
         {
-          Process::ControlInlet* inlet{};
-          if(info.flags & CLAP_PARAM_IS_STEPPED)
-            inlet
-                = new Process::IntSlider(Id<Process::Port>(getStrongId(m_inlets)), this);
+          if(!loading)
+          {
+            Process::ControlInlet* inlet{};
+            if(info.flags & CLAP_PARAM_IS_STEPPED)
+              inlet = new Process::IntSlider(
+                  Id<Process::Port>(getStrongId(m_inlets)), this);
+            else
+              inlet = new Process::FloatSlider(
+                  Id<Process::Port>(getStrongId(m_inlets)), this);
+
+            setupControlInlet(*params, info, i, inlet);
+
+            m_inlets.push_back(inlet);
+          }
           else
-            inlet = new Process::FloatSlider(
-                Id<Process::Port>(getStrongId(m_inlets)), this);
+          {
+            setupControlInlet(
+                *params, info, i,
+                qobject_cast<Process::ControlInlet*>(m_inlets[cur_inlet]));
+          }
 
-          setupControlInlet(*params, info, i, inlet);
-
-          m_inlets.push_back(inlet);
+          // Store parameter info for executor
+          m_parameters_ins.push_back(info);
+          cur_inlet++;
         }
         else
         {
-          setupControlInlet(
-              *params, info, i,
-              qobject_cast<Process::ControlInlet*>(m_inlets[cur_inlet]));
-        }
+          if(!loading)
+          {
+            Process::ControlOutlet* port{};
+            port
+                = new Process::Bargraph(Id<Process::Port>(getStrongId(m_outlets)), this);
 
-        // Store parameter info for executor
-        m_parameters.push_back(info);
-        cur_inlet++;
+            setupControlOutlet(*params, info, i, port);
+
+            m_outlets.push_back(port);
+          }
+          else
+          {
+            setupControlOutlet(
+                *params, info, i,
+                qobject_cast<Process::ControlOutlet*>(m_inlets[cur_outlet]));
+          }
+
+          // Store parameter info for executor
+          m_parameters_outs.push_back(info);
+          cur_outlet++;
+        }
       }
     }
   }

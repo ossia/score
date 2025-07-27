@@ -56,11 +56,15 @@ public:
   Clap::PluginHandle& handle;
   explicit clap_node_base(const Clap::Model& proc)
       : handle{*proc.handle()}
-      , m_param_info{proc.parameterInfo()}
-      , m_midi_in_info{proc.midiInputs()}
-      , m_midi_out_info{proc.midiOutputs()}
+      , m_param_ins{proc.parameterInputs()}
+      , m_param_outs{proc.parameterOutputs()}
+      , m_midi_ins{proc.midiInputs()}
+      , m_midi_outs{proc.midiOutputs()}
   {
-    controls.reserve(m_param_info.size());
+    midi_ins.reserve(m_midi_ins.size());
+    midi_outs.reserve(m_midi_outs.size());
+    parameter_ins.reserve(m_param_ins.size());
+    parameter_outs.reserve(m_param_outs.size());
     m_input_events.all_events.reserve(4096);
 
     // Create ports based on the model
@@ -78,8 +82,8 @@ public:
       }
       else if(qobject_cast<Process::ControlInlet*>(inlet))
       {
-        controls.push_back(new ossia::value_inlet);
-        m_inlets.push_back(controls.back());
+        parameter_ins.push_back(new ossia::value_inlet);
+        m_inlets.push_back(parameter_ins.back());
       }
     }
 
@@ -95,9 +99,15 @@ public:
         midi_outs.push_back(new ossia::midi_outlet);
         m_outlets.push_back(midi_outs.back());
       }
+      else if(qobject_cast<Process::ControlOutlet*>(outlet))
+      {
+        parameter_outs.push_back(new ossia::value_outlet);
+        m_outlets.push_back(parameter_outs.back());
+      }
     }
 
-    SCORE_ASSERT(controls.size() == m_param_info.size());
+    SCORE_ASSERT(parameter_ins.size() == m_param_ins.size());
+    SCORE_ASSERT(parameter_outs.size() == m_param_outs.size());
     SCORE_ASSERT(audio_ins.size() == proc.audioInputs().size());
     SCORE_ASSERT(audio_outs.size() == proc.audioOutputs().size());
     SCORE_ASSERT(midi_ins.size() == proc.midiInputs().size());
@@ -145,7 +155,7 @@ public:
       return;
 
     // Get parameter extension to set initial values
-    for(const auto& param_info : m_param_info)
+    for(const auto& param_info : m_param_ins)
     {
       // Create parameter value event with default value
       clap_event_param_value_t param_event{};
@@ -267,9 +277,9 @@ public:
       if(auto ctrl_in = m_inlets[i]->target<ossia::value_port>())
       {
         const auto& data = ctrl_in->get_data();
-        if(!data.empty() && param_idx < m_param_info.size())
+        if(!data.empty() && param_idx < m_param_ins.size())
         {
-          auto& param_info = m_param_info[param_idx];
+          auto& param_info = m_param_ins[param_idx];
           double value = ossia::convert<double>(data.back().value);
 
           // Clamp value to parameter range
@@ -304,7 +314,7 @@ public:
     uint16_t midi_port_index = 0;
     for(ossia::midi_inlet* midi_in : midi_ins)
     {
-      const auto& spec = m_midi_in_info[midi_port_index];
+      const auto& spec = m_midi_ins[midi_port_index];
       const auto& msgs = midi_in->data.messages;
 
       if(spec.supported_dialects & clap_note_dialect::CLAP_NOTE_DIALECT_MIDI2)
@@ -422,7 +432,7 @@ public:
 
     int param_event_count = 0;
     int midi_event_count = 0;
-    for(auto port : this->controls)
+    for(auto port : this->parameter_ins)
       param_event_count += port->data.get_data().size();
     for(auto port : this->midi_ins)
       midi_event_count += port->data.messages.size();
@@ -448,15 +458,17 @@ public:
   ossia::small_vector<ossia::audio_outlet*, 2> audio_outs;
   ossia::small_vector<ossia::midi_inlet*, 2> midi_ins;
   ossia::small_vector<ossia::midi_outlet*, 2> midi_outs;
-  std::vector<ossia::value_inlet*> controls;
+  std::vector<ossia::value_inlet*> parameter_ins;
+  std::vector<ossia::value_outlet*> parameter_outs;
   clap_event_transport_t m_current_transport;
 
   event_storage m_input_events;
   event_storage m_output_events;
 
-  const std::vector<clap_param_info_t>& m_param_info;
-  const std::vector<clap_note_port_info_t>& m_midi_in_info;
-  const std::vector<clap_note_port_info_t>& m_midi_out_info;
+  const std::vector<clap_param_info_t>& m_param_ins;
+  const std::vector<clap_param_info_t>& m_param_outs;
+  const std::vector<clap_note_port_info_t>& m_midi_ins;
+  const std::vector<clap_note_port_info_t>& m_midi_outs;
   double m_sample_rate{44100.0};
   uint32_t m_buffer_size{512};
 };
@@ -472,21 +484,22 @@ public:
     m_expected_audio_inputs = proc.audioInputs();
     m_expected_audio_outputs = proc.audioOutputs();
 
+    if(handle.activated)
+      (void)deactivate_plugin(handle.plugin);
     m_activated = activate_plugin(m_instance.plugin, sampleRate, bs);
+    handle.activated = m_activated;
   }
 
   ~clap_node()
   {
     if(m_processing)
     {
-      // FIXME wrong thread
+      // audio thread
       stop_plugin(m_instance.plugin);
     }
-    if(m_activated)
-    {
-      (void)deactivate_plugin(m_instance.plugin);
-      m_activated = false;
-    }
+
+    // We do not deactivate in the audio thread where the dtor of clap_node runs
+    // but later in the main thread
   }
 
   void reset_execution() override
@@ -1232,7 +1245,8 @@ Executor::Executor(Clap::Model& proc, const Execution::Context& ctx, QObject* pa
   {
     if(auto* control = qobject_cast<Process::ControlInlet*>(inlet))
     {
-      auto* inl = clap->controls[control_idx];
+      auto* inl = clap->parameter_ins[control_idx];
+      control->setupExecution(*inl, this);
       connect(
           control, &Process::ControlInlet::valueChanged, this,
           [this, inl](const ossia::value& v) {
@@ -1288,9 +1302,9 @@ Executor::Executor(Clap::Model& proc, const Execution::Context& ctx, QObject* pa
           {
             if(auto* control = qobject_cast<Process::ControlInlet*>(inlet))
             {
-              if(control_idx < node->m_param_info.size())
+              if(control_idx < node->m_param_ins.size())
               {
-                const auto& param_info = node->m_param_info[control_idx];
+                const auto& param_info = node->m_param_ins[control_idx];
                 double current_value = 0.0;
                 
                 // Read current parameter value from plugin

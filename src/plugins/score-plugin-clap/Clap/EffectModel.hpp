@@ -58,6 +58,8 @@ struct PluginHandle
   // Common plugin extensions
   const clap_plugin_params_t* ext_params{};
   const clap_plugin_timer_support_t* ext_timer_support{};
+
+  bool activated{};
 };
 
 class Model final : public Process::ProcessModel
@@ -98,25 +100,29 @@ public:
   bool supports64() const noexcept { return m_supports64; }
   bool executing() const noexcept { return m_executing; }
 
-  const std::vector<clap_param_info_t>& parameterInfo() const noexcept
+  const std::vector<clap_param_info_t>& parameterInputs() const noexcept
   {
-    return m_parameters;
+    return m_parameters_ins;
+  }
+  const std::vector<clap_param_info_t>& parameterOutputs() const noexcept
+  {
+    return m_parameters_outs;
   }
   const std::vector<clap_note_port_info_t>& midiInputs() const noexcept
   {
-    return m_midi_inputs_info;
+    return m_midi_ins;
   }
   const std::vector<clap_note_port_info_t>& midiOutputs() const noexcept
   {
-    return m_midi_outputs_info;
+    return m_midi_outs;
   }
   const std::vector<clap_audio_port_info_t>& audioInputs() const noexcept
   {
-    return m_audio_inputs_info;
+    return m_audio_ins;
   }
   const std::vector<clap_audio_port_info_t>& audioOutputs() const noexcept
   {
-    return m_audio_outputs_info;
+    return m_audio_outs;
   }
 
   void restartPlugin() W_SIGNAL(restartPlugin);
@@ -137,6 +143,9 @@ private:
   void setupControlInlet(
       const clap_plugin_params_t&, const clap_param_info_t& info, int index,
       Process::ControlInlet* ctl);
+  void setupControlOutlet(
+      const clap_plugin_params_t&, const clap_param_info_t& info, int index,
+      Process::ControlOutlet* ctl);
 
   QString m_pluginPath;
   QString m_pluginId;
@@ -144,11 +153,12 @@ private:
   std::unique_ptr<PluginHandle> m_plugin;
   QByteArray m_loadedState;
 
-  std::vector<clap_param_info_t> m_parameters;
-  std::vector<clap_audio_port_info_t> m_audio_inputs_info;
-  std::vector<clap_audio_port_info_t> m_audio_outputs_info;
-  std::vector<clap_note_port_info_t> m_midi_inputs_info;
-  std::vector<clap_note_port_info_t> m_midi_outputs_info;
+  std::vector<clap_param_info_t> m_parameters_ins;
+  std::vector<clap_param_info_t> m_parameters_outs;
+  std::vector<clap_audio_port_info_t> m_audio_ins;
+  std::vector<clap_audio_port_info_t> m_audio_outs;
+  std::vector<clap_note_port_info_t> m_midi_ins;
+  std::vector<clap_note_port_info_t> m_midi_outs;
 
   bool m_supports64{};
   bool m_executing{};
