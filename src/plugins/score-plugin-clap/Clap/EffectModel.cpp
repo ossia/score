@@ -1279,7 +1279,7 @@ void Model::loadPreset(const Process::Preset& preset)
           if(ctx->pos >= ctx->size)
             return 0;
 
-          uint64_t to_read = std::min(size, ctx->size - ctx->pos);
+          uint64_t to_read = std::min(int64_t(size), int64_t(ctx->size - ctx->pos));
           std::memcpy(buffer, ctx->data + ctx->pos, to_read);
           ctx->pos += to_read;
           return static_cast<int64_t>(to_read);
