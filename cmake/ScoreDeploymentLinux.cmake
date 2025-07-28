@@ -128,6 +128,6 @@ set(CPACK_DEB_COMPONENT_INSTALL ON)
 # disabled as it cannot work in any reasonable way with onnxruntime
 # set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 
-set(CPACK_STRIP_FILES "bin/ossia-score;bin/ossia-score-vstpuppet;bin/ossia-score-vst3puppet")
+set(CPACK_STRIP_FILES "bin/ossia-score;bin/ossia-score-clappuppet;bin/ossia-score-vstpuppet;bin/ossia-score-vst3puppet")
 set(CPACK_COMPONENTS_ALL OssiaScore)
 endif()

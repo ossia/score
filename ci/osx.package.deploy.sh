@@ -39,6 +39,9 @@ else
   fi
 fi
 
+echo "... clappuppet "
+sign_app "$SRC_PATH/src/clappuppet/entitlements.plist" "ossia score.app/Contents/MacOS/ossia-score-clappuppet.app"
+
 echo "... vstpuppet "
 sign_app "$SRC_PATH/src/vstpuppet/entitlements.plist" "ossia score.app/Contents/MacOS/ossia-score-vstpuppet.app"
 

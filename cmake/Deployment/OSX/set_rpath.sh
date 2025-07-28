@@ -18,6 +18,8 @@ do
 done
 install_name_tool -add_rpath @executable_path/plugins "$1/MacOS/ossia score"
 install_name_tool -add_rpath @executable_path/../Frameworks "$1/MacOS/ossia score"
+install_name_tool -add_rpath @executable_path/plugins "$1/MacOS/ossia-score-clappuppet"
+install_name_tool -add_rpath @executable_path/../Frameworks "$1/MacOS/ossia-score-clappuppet"
 install_name_tool -add_rpath @executable_path/plugins "$1/MacOS/ossia-score-vstpuppet"
 install_name_tool -add_rpath @executable_path/../Frameworks "$1/MacOS/ossia-score-vstpuppet"
 install_name_tool -add_rpath @executable_path/plugins "$1/MacOS/ossia-score-vst3puppet"
