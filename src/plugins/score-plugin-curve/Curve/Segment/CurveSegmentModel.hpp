@@ -11,6 +11,8 @@
 
 #include <ossia/editor/curve/curve_segment.hpp>
 
+#include <boost/align/aligned_allocator.hpp>
+
 #include <QPoint>
 #include <QVariant>
 
@@ -31,7 +33,8 @@ class SCORE_PLUGIN_CURVE_EXPORT SegmentModel
 
   SCORE_SERIALIZE_FRIENDS
 public:
-  using data_vector = std::vector<QPointF>;
+  using data_vector
+      = std::vector<QPointF, boost::alignment::aligned_allocator<QPointF, 32>>;
   Selectable selection{this};
   SegmentModel(const Id<SegmentModel>& id, QObject* parent);
   SegmentModel(const SegmentData& id, QObject* parent);
