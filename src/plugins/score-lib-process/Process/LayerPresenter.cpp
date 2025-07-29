@@ -73,7 +73,6 @@ void LayerPresenter::requestFocus()
 {
   if(this->m_process.flags() & Process::ProcessFlags::ItemRequiresUniqueFocus)
     m_context.context.focusDispatcher.focus(this);
-  score::SelectionDispatcher{m_context.context.selectionStack}.select(m_process);
 }
 
 bool LayerPresenter::focused() const
