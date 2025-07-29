@@ -213,7 +213,7 @@ struct DShowCameraEnumerator : public Device::DeviceEnumerator
         str = av_get_pix_fmt_name((AVPixelFormat)settings.pixelformat);
 
       QString desc = QString("%1: %2x%3@%4")
-                         .arg(str)
+                         .arg(str.c_str())
                          .arg(settings.size.width())
                          .arg(settings.size.height())
                          .arg(std::round(settings.fps));

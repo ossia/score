@@ -45,13 +45,12 @@ namespace Clap
 {
 // Host GUI callbacks
 extern "C" {
-static void CLAP_ABI resize_hints_changed(const clap_host_t* host)
+static void resize_hints_changed(const clap_host_t* host)
 {
   // Handle resize hints change if needed
 }
 
-static bool CLAP_ABI
-request_resize(const clap_host_t* host, uint32_t width, uint32_t height)
+static bool request_resize(const clap_host_t* host, uint32_t width, uint32_t height)
 {
   auto* window = static_cast<Clap::Model*>(host->host_data)->window;
   if(window)
@@ -62,7 +61,7 @@ request_resize(const clap_host_t* host, uint32_t width, uint32_t height)
   return false;
 }
 
-static bool CLAP_ABI request_show(const clap_host_t* host)
+static bool request_show(const clap_host_t* host)
 {
   auto* window = static_cast<Clap::Model*>(host->host_data)->window;
   if(window)
@@ -73,7 +72,7 @@ static bool CLAP_ABI request_show(const clap_host_t* host)
   return false;
 }
 
-static bool CLAP_ABI request_hide(const clap_host_t* host)
+static bool request_hide(const clap_host_t* host)
 {
   auto* window = static_cast<Clap::Model*>(host->host_data)->window;
   if(window)
@@ -84,7 +83,7 @@ static bool CLAP_ABI request_hide(const clap_host_t* host)
   return false;
 }
 
-static void CLAP_ABI closed(const clap_host_t* host, bool was_destroyed)
+static void closed(const clap_host_t* host, bool was_destroyed)
 {
   auto* window = static_cast<Clap::Model*>(host->host_data)->window;
   if(window && was_destroyed)
@@ -95,8 +94,7 @@ static void CLAP_ABI closed(const clap_host_t* host, bool was_destroyed)
 }
 
 static std::atomic<uint32_t> g_next_timer_id{};
-CLAP_ABI bool
-register_timer(const clap_host_t* host, uint32_t period_ms, clap_id* timer_id)
+bool register_timer(const clap_host_t* host, uint32_t period_ms, clap_id* timer_id)
 {
   auto& m = *static_cast<Clap::Model*>(host->host_data);
   auto tm = new QTimer{};
@@ -113,7 +111,7 @@ register_timer(const clap_host_t* host, uint32_t period_ms, clap_id* timer_id)
 
 // Returns true on success.
 // [main-thread]
-CLAP_ABI bool unregister_timer(const clap_host_t* host, clap_id timer_id)
+bool unregister_timer(const clap_host_t* host, clap_id timer_id)
 {
   auto& m = *static_cast<Clap::Model*>(host->host_data);
   for(auto it = m.timers.begin(); it != m.timers.end(); ++it)
@@ -129,7 +127,7 @@ CLAP_ABI bool unregister_timer(const clap_host_t* host, clap_id timer_id)
 }
 
 // POSIX fd support host extension
-CLAP_ABI bool register_fd(const clap_host_t* host, int fd, clap_posix_fd_flags_t flags)
+bool register_fd(const clap_host_t* host, int fd, clap_posix_fd_flags_t flags)
 {
   auto& m = *static_cast<Clap::Model*>(host->host_data);
 
@@ -196,7 +194,7 @@ CLAP_ABI bool register_fd(const clap_host_t* host, int fd, clap_posix_fd_flags_t
   return true;
 }
 
-CLAP_ABI bool modify_fd(const clap_host_t* host, int fd, clap_posix_fd_flags_t flags)
+bool modify_fd(const clap_host_t* host, int fd, clap_posix_fd_flags_t flags)
 {
   auto& m = *static_cast<Clap::Model*>(host->host_data);
 
@@ -282,7 +280,7 @@ CLAP_ABI bool modify_fd(const clap_host_t* host, int fd, clap_posix_fd_flags_t f
   return true;
 }
 
-CLAP_ABI bool unregister_fd(const clap_host_t* host, int fd)
+bool unregister_fd(const clap_host_t* host, int fd)
 {
   auto& m = *static_cast<Clap::Model*>(host->host_data);
 
