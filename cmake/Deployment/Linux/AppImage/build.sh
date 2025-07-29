@@ -9,11 +9,7 @@ sudo rm -rf *AppImage
 docker build --squash --compress --force-rm  --build-arg CPU_ARCH="${CPU_ARCH}" -f Dockerfile.llvm -t ossia/score-linux-llvm .
 
 export SOURCE=$(git rev-parse --show-toplevel)
-if [[ "${CPU_ARCH}" == "aarch64" ]]; then
-  export OSSIA_SDK=/opt/ossia-sdk-aarch64
-else
-  export OSSIA_SDK=/opt/ossia-sdk
-fi
+export OSSIA_SDK=/opt/ossia-sdk-${CPU_ARCH}
 
 docker run --rm -it \
 -v "$(pwd)"/Recipe.llvm:/Recipe \

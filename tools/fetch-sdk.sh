@@ -18,9 +18,6 @@ export CMAKE_VERSION=4.0.3
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
 (
-  SDK_VERSION=sdk33
-  export BASE_SDK=https://github.com/ossia/score-sdk/releases/download/$SDK_VERSION
-
   # First download the compiler and base libraries
   if [[ "$(uname -m)" == "arm64" ]]; then
     SDK_ARCH=aarch64
@@ -53,12 +50,13 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
 (
   # First download the compiler and base libraries
-  SDK_DIR=/opt/ossia-sdk
+  SDK_ARCH="$(uname -m)"
+  SDK_DIR=/opt/ossia-sdk-$SDK_ARCH
   sudo mkdir -p "$SDK_DIR"
   sudo chown -R $(whoami) "$SDK_DIR"
 
   (
-    SDK_ARCHIVE=sdk-linux.tar.xz
+    SDK_ARCHIVE=sdk-linux-$SDK_ARCH.tar.xz
     wget -nv "$BASE_SDK/$SDK_ARCHIVE" -O "$SDK_ARCHIVE"
     tar xaf "$SDK_ARCHIVE" --strip-components=2 --directory "$SDK_DIR"
     rm -rf "$SDK_ARCHIVE"
@@ -78,7 +76,7 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
 else
 (
   # First download the compiler and base libraries
-  SDK_DIR=/c/ossia-sdk
+  SDK_DIR=/c/ossia-sdk-x86_64
   mkdir "$SDK_DIR"
   cd "$SDK_DIR"
 
@@ -98,7 +96,7 @@ else
 
   if [[ ! -f "$SDK_DIR/llvm/bin/clang.exe" ]] ; then
   (
-    SDK_ARCHIVE=sdk-mingw.7z
+    SDK_ARCHIVE=sdk-mingw-x86_64.7z
     echo "<< downloading sdk >>"
     curl -L -O "$BASE_SDK/$SDK_ARCHIVE"
 
@@ -106,9 +104,9 @@ else
     curl -L "https://www.7-zip.org/a/7zr.exe" -o 7z.exe
     
     echo "<< extracting sdk >>"
-    ./7z.exe x sdk-mingw.7z
+    ./7z.exe x sdk-mingw-x86_64.7z
     
-    rm "sdk-mingw.7z" "7z.exe"
+    rm "sdk-mingw-x86_64.7z" "7z.exe"
   )
   fi
   ls "$SDK_DIR"

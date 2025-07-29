@@ -24,86 +24,61 @@ fi
 detect_deps_script() {
     case "$CODENAME" in
       bookworm)
-        DEPS=bookworm
-        QT=6
+        DEPS=debian.bookworm
+        return 0;;
+      trixie)
+        DEPS=debian.trixie
+        return 0;;
+      sid)
+        DEPS=debian.trixie
         return 0;;
       jammy)
-        DEPS=jammy
-        QT=6
+        DEPS=ubuntu.jammy
         return 0;;
       noble)
-        DEPS=noble
-        QT=6
+        DEPS=ubuntu.noble
+        return 0;;
+      lunar)
+        DEPS=ubuntu.lunar
+        return 0;;
+      oracular)
+        DEPS=ubuntu.oracular
+        return 0;;
+      plucky)
+        DEPS=ubuntu.plucky
         return 0;;
       leap)
         DEPS=suse-leap
-        QT=6
         return 0;;
       tumbleweed)
         DEPS=suse-tumbleweed
-        QT=6
         return 0;;
     esac
 
     case "$DISTRO" in
       arch)
-        DEPS=archlinux-qt6
+        DEPS=archlinux
         QT=6
         return 0;;
       debian)
-        DEPS=bookworm
+        DEPS=debian.bookworm
         QT=6
         return 0;;
       ubuntu)
-        DEPS=jammy
-        QT=6
+        DEPS=ubuntu.noble
         return 0;;
       fedora)
-        DEPS=fedora-qt6
-        QT=6
+        DEPS=fedora
         return 0;;
       centos)
-        DEPS=fedora-qt6
-        QT=6
+        DEPS=fedora
         return 0;;
       suse)
         DEPS=suse-leap
-        QT=6
         return 0;;
     esac
 
     echo "[developer.sh] Could not detect the build script to use."
-    return 1
-}
-
-detect_linux_qt_version() {
-    QT=6
-    case "$DISTRO" in
-      arch)
-        $SUDO pacman -Syyu
-        return 0;;
-      debian)
-        $SUDO apt update
-        (apt-cache show qt6-base-dev 2>/dev/null | grep 'Version: 6.[23456789]' > /dev/null) || exit 1
-        return 0;;
-      ubuntu)
-        $SUDO apt update
-        (apt-cache show qt6-base-dev 2>/dev/null | grep 'Version: 6.[23456789]' > /dev/null) || exit 1
-        return 0;;
-      fedora)
-        $SUDO dnf update
-        (dnf info qt6-qtbase-devel 2>/dev/null | grep 'Version.*: 6.[23456789]') || exit 1
-        return 0;;
-      centos)
-        $SUDO dnf update
-        (dnf info qt6-qtbase-devel 2>/dev/null | grep 'Version.*: 6.[23456789]') || exit 1
-        return 0;;
-      suse)
-        $SUDO zypper update
-        return 0;;
-    esac
-
-    echo "[developer.sh] Could not detect the Qt version to install."
     return 1
 }
 
@@ -226,27 +201,21 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
   detect_deps_script
   "ci/$DEPS.deps.sh"
 
-  if command -v clang++-19 ; then
+  if command -v clang++-22 ; then
+    CC=clang-22
+    CXX=clang++-22
+  elif command -v clang++-21 ; then
+    CC=clang-21
+    CXX=clang++-21
+  elif command -v clang++-20 ; then
+    CC=clang-20
+    CXX=clang++-20
+  elif command -v clang++-19 ; then
     CC=clang-19
     CXX=clang++-19
   elif command -v clang++-18 ; then
     CC=clang-18
     CXX=clang++-18
-  elif command -v clang++-17 ; then
-    CC=clang-17
-    CXX=clang++-17
-  elif command -v clang++-16 ; then
-    CC=clang-16
-    CXX=clang++-16
-  elif command -v clang++-15 ; then
-    CC=clang-15
-    CXX=clang++-15
-  elif command -v clang++-14 ; then
-    CC=clang-14
-    CXX=clang++-14
-  elif command -v clang++-13 ; then
-    CC=clang-13
-    CXX=clang++-13
   elif command -v clang++ ; then
     CC=clang
     CXX=clang++
@@ -341,27 +310,27 @@ else
   else
     source tools/fetch-sdk.sh
     
-    PATH="$PATH:/c/ossia-sdk/llvm/bin"
-    if [[ -d /c/ossia-sdk/cmake/bin ]]; then
-      PATH="$PATH:/c/ossia-sdk/cmake/bin"
+    PATH="$PATH:/c/ossia-sdk-x86_64/llvm/bin"
+    if [[ -d /c/ossia-sdk-x86_64/cmake/bin ]]; then
+      PATH="$PATH:/c/ossia-sdk-x86_64/cmake/bin"
     fi 
     
     echo "[developer.sh] Configuring (SDK)"
     mkdir -p $BUILD_DIR
     cd $BUILD_DIR
     
-    cp -f /c/ossia-sdk/llvm/bin/libunwind.dll .
-    cp -f /c/ossia-sdk/llvm/bin/libc++.dll .
-    cp -f /c/ossia-sdk/llvm/x86_64-w64-mingw32/bin/libwinpthread-1.dll .
+    cp -f /c/ossia-sdk-x86_64/llvm/bin/libunwind.dll .
+    cp -f /c/ossia-sdk-x86_64/llvm/bin/libc++.dll .
+    cp -f /c/ossia-sdk-x86_64/llvm/x86_64-w64-mingw32/bin/libwinpthread-1.dll .
     if [[ ! -f ./ossia-score ]]; then
       echo "[developer.sh] Configuring in $PWD"
       cmake -Wno-dev \
           $SCORE_PATH \
           -GNinja \
-          -DOSSIA_SDK=c:/ossia-sdk \
+          -DOSSIA_SDK=c:/ossia-sdk-x86_64 \
           -DCMAKE_CXX_FLAGS="-fexperimental-library" \
-          -DCMAKE_C_COMPILER=c:/ossia-sdk/llvm/bin/clang.exe \
-          -DCMAKE_CXX_COMPILER=c:/ossia-sdk/llvm/bin/clang++.exe \
+          -DCMAKE_C_COMPILER=c:/ossia-sdk-x86_64/llvm/bin/clang.exe \
+          -DCMAKE_CXX_COMPILER=c:/ossia-sdk-x86_64/llvm/bin/clang++.exe \
           -DCMAKE_BUILD_TYPE=Debug \
           -DSCORE_PCH=1 \
           -DCMAKE_COLOR_DIAGNOSTICS=1 \

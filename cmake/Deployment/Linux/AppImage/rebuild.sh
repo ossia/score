@@ -7,7 +7,7 @@ docker run --rm -it \
            -e TOOLCHAIN=appimage-debug \
            --mount type=bind,source=$SOURCE,target=/score \
            --mount type=bind,source="/tmp/build",target=/build \
-           --mount type=bind,source="/opt/ossia-sdk",target=/opt/ossia-sdk \
+           --mount type=bind,source="/opt/ossia-sdk-x86_64",target=/opt/ossia-sdk-x86_64 \
            -w="/" \
            ossia/score-linux-llvm \
            /bin/bash Recipe
