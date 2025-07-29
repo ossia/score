@@ -3,7 +3,7 @@
 
 #include <ossia/dataflow/geometry_port.hpp>
 #include <ossia/detail/small_vector.hpp>
-#include <ossia/detail/span.hpp>
+#include <span>
 
 #include <private/qrhi_p.h>
 
@@ -91,7 +91,7 @@ struct SCORE_PLUGIN_GFX_EXPORT BasicMesh : Mesh
   ossia::small_vector<QRhiVertexInputBinding, 2> vertexBindings;
   ossia::small_vector<QRhiVertexInputAttribute, 2> vertexAttributes;
 
-  tcb::span<const float> vertexArray;
+  std::span<const float> vertexArray;
   int vertexCount{};
 };
 
@@ -100,7 +100,7 @@ struct SCORE_PLUGIN_GFX_EXPORT BasicMesh : Mesh
  */
 struct SCORE_PLUGIN_GFX_EXPORT PlainMesh : BasicMesh
 {
-  explicit PlainMesh(tcb::span<const float> vtx, int count);
+  explicit PlainMesh(std::span<const float> vtx, int count);
   [[nodiscard]] Flags flags() const noexcept override { return HasPosition; }
   const char* defaultVertexShader() const noexcept override;
   void
@@ -112,7 +112,7 @@ struct SCORE_PLUGIN_GFX_EXPORT PlainMesh : BasicMesh
  */
 struct SCORE_PLUGIN_GFX_EXPORT TexturedMesh : BasicMesh
 {
-  explicit TexturedMesh(tcb::span<const float> vtx, int count);
+  explicit TexturedMesh(std::span<const float> vtx, int count);
   [[nodiscard]] Flags flags() const noexcept override
   {
     return HasPosition | HasTexCoord;

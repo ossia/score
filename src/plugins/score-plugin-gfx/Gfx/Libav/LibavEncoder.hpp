@@ -6,7 +6,7 @@
 
 #include <ossia/detail/pod_vector.hpp>
 
-#include <tcb/span.hpp>
+#include <span>
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavdevice/avdevice.h>
@@ -25,7 +25,7 @@ struct LibavEncoder
   void enumerate();
 
   int start();
-  int add_frame(tcb::span<ossia::float_vector>);
+  int add_frame(std::span<ossia::float_vector>);
   int add_frame(const unsigned char* data, AVPixelFormat fmt, int width, int height);
   int stop();
 

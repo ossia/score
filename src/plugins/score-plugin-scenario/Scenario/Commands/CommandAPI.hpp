@@ -11,7 +11,7 @@
 #include <score/command/PropertyCommand.hpp>
 #include <score/document/DocumentContext.hpp>
 
-#include <ossia/detail/span.hpp>
+#include <span>
 
 #include <memory>
 
@@ -174,7 +174,7 @@ public:
   void addMessages(const Scenario::StateModel& state, State::MessageList msgs);
 
   void findAndReplace(
-      tcb::span<QObject*> sel, const State::Address& oldRoot,
+      std::span<QObject*> sel, const State::Address& oldRoot,
       const State::Address& newRoot);
 
   std::vector<Process::ProcessModel*>

@@ -34,14 +34,14 @@ void AudioFile::load_libav(int rate)
           &r.decoder, &AudioDecoder::newData, this,
           [this] {
         const auto& r = **m_impl.target<std::shared_ptr<LibavReader>>();
-        std::vector<tcb::span<const audio_sample>> samples;
+        std::vector<std::span<const audio_sample>> samples;
         auto& handle = r.handle->data;
         const auto decoded = r.decoder.decoded;
 
         for(auto& channel : handle)
         {
           samples.emplace_back(
-              channel.data(), tcb::span<ossia::audio_sample>::size_type(decoded));
+              channel.data(), std::span<ossia::audio_sample>::size_type(decoded));
         }
         m_rms->decode(samples);
 
@@ -53,14 +53,14 @@ void AudioFile::load_libav(int rate)
           &r.decoder, &AudioDecoder::finishedDecoding, this,
           [this] {
         const auto& r = **m_impl.target<std::shared_ptr<LibavReader>>();
-        std::vector<tcb::span<const audio_sample>> samples;
+        std::vector<std::span<const audio_sample>> samples;
         auto& handle = r.handle->data;
         auto decoded = r.decoder.decoded;
 
         for(auto& channel : handle)
         {
           samples.emplace_back(
-              channel.data(), tcb::span<ossia::audio_sample>::size_type(decoded));
+              channel.data(), std::span<ossia::audio_sample>::size_type(decoded));
         }
         m_rms->decodeLast(samples);
 

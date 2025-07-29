@@ -20,7 +20,7 @@ struct AudioFrameEncoder
 
   // We assume that vec has correct channel count here
   // Also that vec.size() > 0
-  virtual void add_frame(AVFrame& frame, const tcb::span<ossia::float_vector> vec) = 0;
+  virtual void add_frame(AVFrame& frame, const std::span<ossia::float_vector> vec) = 0;
   virtual ~AudioFrameEncoder() = default;
   int target_buffer_size{};
 };
@@ -31,7 +31,7 @@ struct S16IAudioFrameEncoder final : AudioFrameEncoder
 
   boost::container::vector<int16_t> data;
 
-  void add_frame(AVFrame& frame, const tcb::span<ossia::float_vector> vec) override
+  void add_frame(AVFrame& frame, const std::span<ossia::float_vector> vec) override
   {
     const int channels = vec.size();
     const int frames = vec[0].size();
@@ -52,7 +52,7 @@ struct S24IAudioFrameEncoder final : AudioFrameEncoder
   using AudioFrameEncoder::AudioFrameEncoder;
 
   boost::container::vector<int32_t> data;
-  void add_frame(AVFrame& frame, const tcb::span<ossia::float_vector> vec) override
+  void add_frame(AVFrame& frame, const std::span<ossia::float_vector> vec) override
   {
     const int channels = vec.size();
     const int frames = vec[0].size();
@@ -73,7 +73,7 @@ struct S32IAudioFrameEncoder final : AudioFrameEncoder
   using AudioFrameEncoder::AudioFrameEncoder;
 
   boost::container::vector<int32_t> data;
-  void add_frame(AVFrame& frame, const tcb::span<ossia::float_vector> vec) override
+  void add_frame(AVFrame& frame, const std::span<ossia::float_vector> vec) override
   {
     const int channels = vec.size();
     const int frames = vec[0].size();
@@ -95,7 +95,7 @@ struct FltIAudioFrameEncoder final : AudioFrameEncoder
 
   boost::container::vector<float> data;
 
-  void add_frame(AVFrame& frame, const tcb::span<ossia::float_vector> vec) override
+  void add_frame(AVFrame& frame, const std::span<ossia::float_vector> vec) override
   {
     const int channels = vec.size();
     const int frames = vec[0].size();
@@ -117,7 +117,7 @@ struct DblIAudioFrameEncoder final : AudioFrameEncoder
 
   boost::container::vector<double> data;
 
-  void add_frame(AVFrame& frame, const tcb::span<ossia::float_vector> vec) override
+  void add_frame(AVFrame& frame, const std::span<ossia::float_vector> vec) override
   {
     const int channels = vec.size();
     const int frames = vec[0].size();
@@ -137,7 +137,7 @@ struct FltPAudioFrameEncoder final : AudioFrameEncoder
 {
   using AudioFrameEncoder::AudioFrameEncoder;
 
-  void add_frame(AVFrame& frame, const tcb::span<ossia::float_vector> vec) override
+  void add_frame(AVFrame& frame, const std::span<ossia::float_vector> vec) override
   {
     const int channels = vec.size();
     if(channels <= AV_NUM_DATA_POINTERS)

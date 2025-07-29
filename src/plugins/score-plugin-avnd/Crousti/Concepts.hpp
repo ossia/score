@@ -11,7 +11,7 @@
 #include <ossia/dataflow/audio_port.hpp>
 #include <ossia/dataflow/port.hpp>
 #include <ossia/dataflow/safe_nodes/tick_policies.hpp>
-#include <ossia/detail/span.hpp>
+#include <span>
 
 #include <boost/container/vector.hpp>
 
@@ -499,14 +499,14 @@ struct multichannel_audio_view
   int64_t offset{};
   int64_t duration{};
 
-  tcb::span<const double> operator[](std::size_t i) const noexcept
+  std::span<const double> operator[](std::size_t i) const noexcept
   {
     auto& chan = (*buffer)[i];
     int64_t min_dur = std::min(int64_t(chan.size()) - offset, duration);
     if(min_dur < 0)
       min_dur = 0;
 
-    return tcb::span<const double>{chan.data() + offset, std::size_t(min_dur)};
+    return std::span<const double>{chan.data() + offset, std::size_t(min_dur)};
   }
 
   std::size_t channels() const noexcept { return buffer->size(); }
@@ -525,14 +525,14 @@ struct multichannel_audio
   int64_t offset{};
   int64_t duration{};
 
-  tcb::span<double> operator[](std::size_t i) const noexcept
+  std::span<double> operator[](std::size_t i) const noexcept
   {
     auto& chan = (*buffer)[i];
     int64_t min_dur = std::min(int64_t(chan.size()) - offset, duration);
     if(min_dur < 0)
       min_dur = 0;
 
-    return tcb::span<double>{chan.data() + offset, std::size_t(min_dur)};
+    return std::span<double>{chan.data() + offset, std::size_t(min_dur)};
   }
 
   std::size_t channels() const noexcept { return buffer->size(); }

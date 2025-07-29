@@ -29,6 +29,7 @@ extern "C" void sincos(double x, double* sin, double* cos)
 }
 #endif
 
+#include <exception>
 #include <winrt/Windows.Foundation.h>
 #endif
 // clang-format on

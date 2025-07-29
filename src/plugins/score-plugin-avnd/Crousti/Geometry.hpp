@@ -60,7 +60,7 @@ public:
         });
   }
 
-  void update(tcb::span<const float> vtx, int count)
+  void update(std::span<const float> vtx, int count)
   {
     vertexArray = vtx;
     vertexCount = count;

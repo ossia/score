@@ -58,7 +58,7 @@ void BasicMesh::draw(const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexc
 }
 
 
-PlainMesh::PlainMesh(tcb::span<const float> vtx, int count)
+PlainMesh::PlainMesh(std::span<const float> vtx, int count)
 {
   vertexBindings.push_back({2 * sizeof(float)});
   vertexAttributes.push_back({0, 0, QRhiVertexInputAttribute::Float2, 0});
@@ -93,7 +93,7 @@ void main()
 )_";
 }
 
-TexturedMesh::TexturedMesh(tcb::span<const float> vtx, int count)
+TexturedMesh::TexturedMesh(std::span<const float> vtx, int count)
 {
   vertexBindings.push_back({2 * sizeof(float)});
   vertexBindings.push_back({2 * sizeof(float)});

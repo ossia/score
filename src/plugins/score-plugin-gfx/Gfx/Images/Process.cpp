@@ -9,7 +9,7 @@
 #include <Gfx/TexturePort.hpp>
 
 #include <ossia/detail/logger.hpp>
-#include <ossia/detail/span.hpp>
+#include <span>
 #include <ossia/network/value/format_value.hpp>
 
 #include <QFileInfo>
@@ -20,7 +20,7 @@
 W_OBJECT_IMPL(Gfx::Images::Model)
 namespace Gfx
 {
-ossia::value fromImageSet(const tcb::span<score::gfx::Image>& images)
+ossia::value fromImageSet(const std::span<score::gfx::Image>& images)
 {
   std::vector<ossia::value> v;
   for(auto& img : images)

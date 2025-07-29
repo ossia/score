@@ -408,7 +408,7 @@ void Macro::addMessages(const StateModel& state, State::MessageList msgs)
 }
 
 void Macro::findAndReplace(
-    tcb::span<QObject*> sel, const State::Address& m_oldAddress,
+    std::span<QObject*> sel, const State::Address& m_oldAddress,
     const State::Address& m_newAddress)
 {
   if(!m_newAddress.isSet())

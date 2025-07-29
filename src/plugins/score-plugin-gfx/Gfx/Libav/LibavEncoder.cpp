@@ -107,7 +107,7 @@ int LibavEncoder::start()
   return 0;
 }
 
-int LibavEncoder::add_frame(tcb::span<ossia::float_vector> vec)
+int LibavEncoder::add_frame(std::span<ossia::float_vector> vec)
 {
 #if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 24, 100)
   if(!m_formatContext)
