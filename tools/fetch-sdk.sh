@@ -3,7 +3,7 @@
 if [[ $# > 0 ]]; then
   export SDK_VERSION=$1
 else
-  export SDK_VERSION=sdk32
+  export SDK_VERSION=sdk33
 fi
 
 echo "Running on OSTYPE: '$OSTYPE'"
@@ -12,13 +12,13 @@ export LATEST_TAG=$(git describe --tags --abbrev=0)
 export LATEST_TAG_NOV=$(echo "$LATEST_TAG" | sed "s/v//")
 export BASE_SDK=https://github.com/ossia/score-sdk/releases/download/$SDK_VERSION
 export BOOST_SDK=https://github.com/ossia/score-sdk/releases/download/sdk31
-export BOOST_VER=boost_1_87_0
+export BOOST_VER=boost_1_88_0
 export LATEST_RELEASE=https://github.com/ossia/score/releases/download/$LATEST_TAG
-export CMAKE_VERSION=3.31.6
+export CMAKE_VERSION=4.0.3
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
 (
-  SDK_VERSION=sdk30
+  SDK_VERSION=sdk33
   export BASE_SDK=https://github.com/ossia/score-sdk/releases/download/$SDK_VERSION
 
   # First download the compiler and base libraries
@@ -135,7 +135,7 @@ else
   if [[ ! -f "$SDK_DIR/llvm/bin/ninja.exe" ]] ; then
     if ! command -v ninja >/dev/null 2>&1 ; then
     (
-      curl -L -0 https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-win.zip --output ninja-win.zip
+      curl -L -0 https://github.com/ninja-build/ninja/releases/download/v1.13.1/ninja-win.zip --output ninja-win.zip
       tar xaf ninja-win.zip
       mv ninja.exe "$SDK_DIR/llvm/bin/"
       rm ninja-win.zip
