@@ -1408,6 +1408,7 @@ std::vector<Process::Preset> Model::builtinPresets() const noexcept
     QString plugin_name;
     UuidKey<Process::ProcessModel> process_key;
     QString effect_name;
+    std::vector<const clap_preset_discovery_location_t*> locations;
   };
 
   preset_metadata_collector collector{&presets, this->prettyName(), this->concreteKey(), this->effect()};
@@ -1426,8 +1427,11 @@ std::vector<Process::Preset> Model::builtinPresets() const noexcept
     return true; // Accept all filetypes for builtin presets
   };
 
-  indexer.declare_location = [](const clap_preset_discovery_indexer_t* indexer,
-                                const clap_preset_discovery_location_t* location) -> bool {
+  indexer.declare_location
+      = [](const clap_preset_discovery_indexer_t* indexer,
+           const clap_preset_discovery_location_t* location) -> bool {
+    auto& self = *(preset_metadata_collector*)indexer->indexer_data;
+    self.locations.push_back(location);
     return true; // Accept all locations for builtin presets
   };
 
@@ -1523,11 +1527,23 @@ std::vector<Process::Preset> Model::builtinPresets() const noexcept
     // Initialize the provider
     if(provider->init && provider->init(provider))
     {
-      // Query for builtin presets (CLAP_PRESET_DISCOVERY_LOCATION_PLUGIN)
-      if(provider->get_metadata)
+      for(auto loc : collector.locations)
       {
-        provider->get_metadata(
-            provider, CLAP_PRESET_DISCOVERY_LOCATION_PLUGIN, "", &metadata_receiver);
+        if(provider->get_metadata)
+        {
+          if(loc->location && strlen(loc->location))
+          {
+            provider->get_metadata(
+                provider, CLAP_PRESET_DISCOVERY_LOCATION_FILE, loc->location,
+                &metadata_receiver);
+          }
+          else
+          {
+            provider->get_metadata(
+                provider, CLAP_PRESET_DISCOVERY_LOCATION_PLUGIN, nullptr,
+                &metadata_receiver);
+          }
+        }
       }
     }
 
