@@ -240,11 +240,11 @@ if(EMSCRIPTEN)
   if(_CMAKE_LINKER_PUSHPOP_STATE_SUPPORTED)
     set(CMAKE_LINK_LIBRARY_USING_WHOLE_ARCHIVE "LINKER:--push-state,--whole-archive"
                                                "<LINK_ITEM>"
-                                               "LINKER:--pop-state")
+                                               "LINKER:--pop-state" CACHE "" INTERNAL)
   else()
     set(CMAKE_LINK_LIBRARY_USING_WHOLE_ARCHIVE "LINKER:--whole-archive"
                                                "<LINK_ITEM>"
-                                               "LINKER:--no-whole-archive")
+                                               "LINKER:--no-whole-archive"  CACHE "" INTERNAL)
   endif()
   set(CMAKE_LINK_LIBRARY_USING_WHOLE_ARCHIVE_SUPPORTED TRUE)
 

@@ -54,7 +54,8 @@ struct MessageBusSender
 
   template <typename T>
     requires(
-        !std::is_trivial_v<T> && avnd::relocatable<T> && alignof(T) <= alignof(void*))
+        !std::is_trivial_v<T> && avnd::relocatable<T>
+        && alignof(T) <= alignof(max_align_t))
   void operator()(const T& msg)
   {
     QByteArray b(msg.size(), Qt::Uninitialized);
@@ -66,7 +67,8 @@ struct MessageBusSender
 
   template <typename T>
     requires(
-        !std::is_trivial_v<T> && avnd::relocatable<T> && alignof(T) <= alignof(void*))
+        !std::is_trivial_v<T> && avnd::relocatable<T>
+        && alignof(T) <= alignof(max_align_t))
   void operator()(T&& msg)
   {
     QByteArray b(sizeof(msg), Qt::Uninitialized);
@@ -77,7 +79,9 @@ struct MessageBusSender
   }
 
   template <typename T>
-    requires(!std::is_trivial_v<T> && !avnd::relocatable<T>)
+    requires(
+        !std::is_trivial_v<T>
+        && (!avnd::relocatable<T> || (alignof(T) > alignof(max_align_t))))
   void operator()(const T& msg)
   {
     // Here we gotta serialize... :D
@@ -173,7 +177,8 @@ struct MessageBusReader
   }
   template <typename T>
     requires(
-        !std::is_trivial_v<T> && avnd::relocatable<T> && alignof(T) <= alignof(void*))
+        !std::is_trivial_v<T> && avnd::relocatable<T>
+        && alignof(T) <= alignof(max_align_t))
   void operator()(T& msg)
   {
     auto src = reinterpret_cast<T*>(mess.data());
@@ -182,7 +187,9 @@ struct MessageBusReader
   }
 
   template <typename T>
-    requires(!std::is_trivial_v<T> && !avnd::relocatable<T>)
+    requires(
+        !std::is_trivial_v<T>
+        && (!avnd::relocatable<T> || (alignof(T) > alignof(max_align_t))))
   void operator()(T& msg)
   {
     // Deserialize... :D
