@@ -1,14 +1,7 @@
 #!/bin/bash
 export BUILD_FOLDER=/tmp/build
 export SOURCE_FOLDER="$PWD"
-
-if [[ "${CPU_ARCH}" == "aarch64" ]]; then
-  export CPU_ARCH_SUFFIX="-aarch64"
-  export OSSIA_SDK=/opt/ossia-sdk-aarch64
-else
-  export CPU_ARCH_SUFFIX=""
-  export OSSIA_SDK=/opt/ossia-sdk
-fi
+export OSSIA_SDK="/opt/ossia-sdk-${CPU_ARCH}"
 
 
 mkdir -p $BUILD_FOLDER

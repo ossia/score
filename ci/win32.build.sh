@@ -1,11 +1,11 @@
 #!/bin/bash -eux
 
-export PATH="$PATH:/c/ossia-sdk/cmake/bin:/c/ossia-sdk/llvm/bin"
+export PATH="$PATH:/c/ossia-sdk-x86_64/cmake/bin:/c/ossia-sdk-x86_64/llvm/bin"
 date
 cmake -GNinja -S "$PWD" -B build \
-  -DCMAKE_C_COMPILER=c:/ossia-sdk/llvm/bin/clang.exe \
-  -DCMAKE_CXX_COMPILER=c:/ossia-sdk/llvm/bin/clang++.exe \
-  -DOSSIA_SDK=c:/ossia-sdk \
+  -DCMAKE_C_COMPILER=c:/ossia-sdk-x86_64/llvm/bin/clang.exe \
+  -DCMAKE_CXX_COMPILER=c:/ossia-sdk-x86_64/llvm/bin/clang++.exe \
+  -DOSSIA_SDK=c:/ossia-sdk-x86_64 \
   -DCMAKE_INSTALL_PREFIX=install \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_UNITY_BUILD=1 \
