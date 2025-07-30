@@ -68,16 +68,31 @@ set(CMAKE_PREFIX_PATH
 set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:${OSSIA_SDK}/ffmpeg/lib/pkgconfig")
 
 
-find_package(Qt6 6.2 REQUIRED COMPONENTS
-  Core
-  Widgets
-  Gui
-  Network
-  Qml
-  StateMachine
-)
 
-find_package(Qt6 6.2 OPTIONAL_COMPONENTS ShaderTools)
+find_package(6.2 REQUIRED
+  COMPONENTS
+    Core
+    Widgets
+    Gui
+    Network
+    Xml
+    OpenGL
+    Qml
+    Quick
+  OPTIONAL_COMPONENTS
+    StateMachine
+    OpenGLWidgets
+    QmlModels
+    WebSockets
+    Svg
+    ShaderTools
+    CorePrivate
+    WidgetsPrivate
+    GuiPrivate
+    QmlPrivate
+    QuickPrivate
+    ShaderToolsPrivate
+)
 
 find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVDEVICE AVUTIL SWRESAMPLE SWSCALE POSTPROC)
 
