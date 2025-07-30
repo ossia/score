@@ -69,7 +69,7 @@ set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:${OSSIA_SDK}/ffmpeg/lib/pkgconfi
 
 
 
-find_package(6.2 REQUIRED
+find_package(Qt 6.2 REQUIRED
   COMPONENTS
     Core
     Widgets
