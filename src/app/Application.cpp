@@ -229,7 +229,6 @@ Application::Application(int& argc, char** argv)
   QCoreApplication::setOrganizationDomain("ossia.io");
   QCoreApplication::setApplicationName("score");
 
-#if !defined(__EMSCRIPTEN__)
   if(!qEnvironmentVariableIsSet("QT_SCALE_FACTOR"))
   {
     QSettings s;
@@ -244,7 +243,6 @@ Application::Application(int& argc, char** argv)
       }
     }
   }
-#endif
 
   m_app = createApplication(appSettings, argc, argv);
 }
@@ -260,7 +258,6 @@ Application::Application(
   QCoreApplication::setOrganizationDomain("ossia.io");
   QCoreApplication::setApplicationName("score");
 
-#if !defined(__EMSCRIPTEN__)
   QSettings s;
   if(s.contains("Skin/Zoom"))
   {
@@ -271,7 +268,6 @@ Application::Application(
       qputenv("QT_SCALE_FACTOR", QString("%1").arg(zoom).toLatin1());
     }
   }
-#endif
 
   m_app = createApplication(appSettings, argc, argv);
 }

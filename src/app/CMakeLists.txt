@@ -66,6 +66,7 @@ set(SRCS
 
 if(EMSCRIPTEN)
   qt_add_executable(${APPNAME} MANUAL_FINALIZATION ${SRCS})
+  set_target_properties(${APPNAME} PROPERTIES QT_WASM_EXTRA_EXPORTED_METHODS "UTF16ToString,stringToUTF16,JSEvents,specialHTMLTargets,FS,callMain,ENV") 
 else()
   add_executable(score WIN32 ${SRCS})
 endif()
@@ -243,9 +244,9 @@ endif()
 
 include(ScoreDeployment)
 
-disable_qt_plugins(${APPNAME})
-enable_minimal_qt_plugins(${APPNAME} 1)
-
 if(EMSCRIPTEN)
   qt_finalize_executable(${APPNAME})
+else()  
+  disable_qt_plugins(${APPNAME})
+  enable_minimal_qt_plugins(${APPNAME} 1)
 endif()

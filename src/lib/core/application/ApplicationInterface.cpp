@@ -89,15 +89,7 @@ void GUIApplicationInterface::loadPluginData(
   presenter.optimize();
 
   // Load the settings
-#if defined(__EMSCRIPTEN__)
-  // please don't look... currently (5.15) crash in
-  // QSettings::QSettings so we disable settings and give a fake instance
-  QSettings* ss = (QSettings*)alloca(sizeof(QSettings));
-  memset(ss, 0, sizeof(QSettings));
-  QSettings& s = *ss;
-#else
   QSettings s;
-#endif
   for(auto& elt : ctx.interfaces<score::SettingsDelegateFactoryList>())
   {
     settings.setupSettingsPlugin(s, ctx, elt);
@@ -221,15 +213,7 @@ void GUIApplicationInterface::registerPlugin(Plugin_QtInterface& p)
   for(auto plug : gap)
     plug->initialize();
 
-#if defined(__EMSCRIPTEN__)
-  // please don't look... currently (5.15) crash in
-  // QSettings::QSettings so we disable settings and give a fake instance
-  QSettings* ss = (QSettings*)alloca(sizeof(QSettings));
-  memset(ss, 0, sizeof(QSettings));
-  QSettings& s = *ss;
-#else
   QSettings s;
-#endif
   auto& settings = presenter->settings();
   for(auto& elt : settings_ifaces)
   {

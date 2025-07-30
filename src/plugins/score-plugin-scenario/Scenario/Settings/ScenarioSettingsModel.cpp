@@ -125,10 +125,8 @@ void Model::setSkin(const QString& skin)
 
   initSkin(skin);
 
-#if !defined(__EMSCRIPTEN__)
   QSettings s;
   s.setValue(Parameters::Skin.key, m_Skin);
-#endif
 }
 
 TimeVal Model::getDefaultDuration() const
@@ -151,10 +149,8 @@ void Model::setDefaultDuration(TimeVal val)
 {
   initDefaultDuration(val);
 
-#if !defined(__EMSCRIPTEN__)
   QSettings s;
   s.setValue(Parameters::DefaultDuration.key, QVariant::fromValue(m_DefaultDuration));
-#endif
 }
 
 SCORE_SETTINGS_PARAMETER_CPP(double, Model, GraphicZoom)

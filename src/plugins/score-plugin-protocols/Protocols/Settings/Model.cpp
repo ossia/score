@@ -16,7 +16,7 @@ MidiAPI::operator QStringList() const
 {
   return {"ALSA (sequencer)", "ALSA (raw)", "JACK", "PipeWire"};
 }
-#elif defined(__emscripten__)
+#elif defined(__EMSCRIPTEN__)
 MidiAPI::operator QStringList() const
 {
   return {"Emscripten"};

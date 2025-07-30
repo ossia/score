@@ -279,7 +279,7 @@ Process::ScriptChangeResult FaustEffectModel::reload()
   const char* triple =
 #if defined(_WIN32)
       "x86_64-pc-windows-msvc"
-#elif defined(__emscripten__)
+#elif defined(__EMSCRIPTEN__)
       "wasm32-unknown-unknown-wasm"
 #elif defined(__aarch64__)
       "aarch64-none-linux-gnueabi"
