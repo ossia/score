@@ -62,7 +62,7 @@ jobs:
               path: "/c/ossia-sdk-x86_64/llvm/bin",
               common_flags: "-GNinja -DCMAKE_C_COMPILER=c:/ossia-sdk-x86_64/llvm/bin/clang.exe -DCMAKE_CXX_COMPILER=c:/ossia-sdk-x86_64/llvm/bin/clang++.exe -DCMAKE_UNITY_BUILD=1",
               dependencies: "choco install -y ninja",
-              sdk: "/c/ossia-sdk",
+              sdk: "/c/ossia-sdk-x86_64",
             }
           - {
               name: "Ubuntu",
@@ -70,7 +70,7 @@ jobs:
               path: "/opt/ossia-sdk-x86_64/llvm/bin",
               common_flags: "-DCMAKE_C_COMPILER=/opt/ossia-sdk-x86_64/llvm/bin/clang -DCMAKE_CXX_COMPILER=/opt/ossia-sdk-x86_64/llvm/bin/clang++ -DCMAKE_UNITY_BUILD=1",
               dependencies: "sudo apt-get -yq update; sudo apt-get -yq install libgl-dev libegl-dev libdrm-dev libxcomposite-dev libxkbcommon-dev libxkbcommon-x11-dev libwayland-dev libxcb-*-dev libX11-*-dev libz-dev libtinfo-dev libxext-dev",
-              sdk: "/opt/ossia-sdk",
+              sdk: "/opt/ossia-sdk-x86_64",
             }
           - {
               name: "macOS (AArch64)",
