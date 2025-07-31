@@ -30,20 +30,20 @@ void setTargetOptions(llvm::TargetOptions& opts)
 {
   opts.EmulatedTLS = true;
 
-#if LLVM_VERSION_MAJOR < 17
-  opts.ExplicitEmulatedTLS = false;
-#endif
+  //opts.ExplicitEmulatedTLS = false;
+
   opts.UnsafeFPMath = true;
   opts.NoInfsFPMath = true;
   opts.NoNaNsFPMath = true;
   opts.NoTrappingFPMath = true;
   opts.NoSignedZerosFPMath = true;
+  opts.ApproxFuncFPMath = true;
   opts.HonorSignDependentRoundingFPMathOption = false;
-  opts.EnableIPRA = false;
+  opts.EnableIPRA = true;
   opts.setFPDenormalMode(llvm::DenormalMode::getPositiveZero());
   opts.setFP32DenormalMode(llvm::DenormalMode::getPositiveZero());
-  opts.EnableFastISel = false;
-  opts.EnableGlobalISel = false;
+  opts.EnableFastISel = true;
+  opts.EnableGlobalISel = true;
 }
 }
 
@@ -97,7 +97,7 @@ public:
 
   llvm::Error notifyFailed(llvm::orc::MaterializationResponsibility& MR) override
   {
-    qDebug() << "JITLink failed for " + MR.getTargetJITDylib().getName();
+    qDebug() << "JITLink failed for " << MR.getTargetJITDylib().getName().c_str();
     return llvm::Error::success();
   }
 
@@ -174,7 +174,7 @@ public:
 
   llvm::Error notifyFailed(llvm::orc::MaterializationResponsibility& MR) override
   {
-    qDebug() << "JITLink failed for " + MR.getTargetJITDylib().getName();
+    qDebug() << "JITLink failed for " << MR.getTargetJITDylib().getName().c_str();
     return llvm::Error::success();
   }
 
@@ -200,11 +200,7 @@ static std::unique_ptr<llvm::orc::LLJIT> jitBuilder(JitCompiler& self)
 
   llvm::orc::LLJITBuilder builder;
 
-#if LLVM_VERSION_MAJOR < 18
-  JTMB->setCodeGenOptLevel(llvm::CodeGenOpt::Aggressive);
-#else
   JTMB->setCodeGenOptLevel(llvm::CodeGenOptLevel::Aggressive);
-#endif
 
   setTargetOptions(JTMB->getOptions());
 
