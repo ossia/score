@@ -31,6 +31,13 @@ export LLVM_VER=$(ls $OSSIA_SDK/llvm-libs/lib/clang | sort -r | head -1)
 mkdir -p "$LIB/clang/$LLVM_VER"
 rsync -ar "$OSSIA_SDK/llvm-libs/lib/clang/$LLVM_VER/include" "$LIB/clang/$LLVM_VER/"
 
+# Copy Qt frameworks
+QT_FRAMEWORKS=$(find "$OSSIA_SDK/qt6-static/lib" -name '*.framework' | grep -E --only-matching 'Qt[a-zA-Z0-9_]+') 
+
+for qt_framework in $QT_FRAMEWORKS; do
+  cp -rf "$OSSIA_SDK/qt6-static/lib/$qt_framework.framework/Versions/A/Headers" "$INCLUDE/qt/$qt_framework"
+done
+
 # Copy frameworks
 for fw in IOKit CFNetwork CoreFoundation CoreAudio CoreText Foundation DiskArbitration Accelerate AudioToolbox Security SystemConfiguration CoreGraphics ApplicationServices CoreServices Carbon Cocoa; do
   echo "$fw"
