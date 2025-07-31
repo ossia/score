@@ -272,54 +272,221 @@ static inline void populateDefinitions(std::vector<std::string>& args)
   // needed because otherwise readerwriterqueue includes CoreFoundation.h ...
   args.push_back("-DMOODYCAMEL_MAYBE_ALIGN_TO_CACHELINE=");
 #endif
-  args.push_back("-DBOOST_MATH_DISABLE_FLOAT128=1");
-  args.push_back("-DBOOST_ASIO_DISABLE_CONCEPTS=1");
+
+#define XSTR(X) #X
+
+#if defined(BOOST_ASIO_ENABLE_BUFFER_DEBUGGING)
+  args.push_back("-DBOOST_ASIO_ENABLE_BUFFER_DEBUGGING");
+#endif
+#if defined(BOOST_ASIO_HAS_STD_INVOKE_RESULT)
+  args.push_back(
+      "-DBOOST_ASIO_HAS_STD_INVOKE_RESULT=" XSTR(BOOST_ASIO_HAS_STD_INVOKE_RESULT));
+#endif
+#if defined(BOOST_MATH_DISABLE_FLOAT128)
+  args.push_back("-DBOOST_MATH_DISABLE_FLOAT128=" XSTR(BOOST_MATH_DISABLE_FLOAT128));
+#endif
+#if defined(BOOST_MULTI_INDEX_ENABLE_INVARIANT_CHECKING)
   args.push_back("-DBOOST_MULTI_INDEX_ENABLE_INVARIANT_CHECKING");
+#endif
+#if defined(BOOST_MULTI_INDEX_ENABLE_SAFE_MODE)
   args.push_back("-DBOOST_MULTI_INDEX_ENABLE_SAFE_MODE");
+#endif
+#if defined(BOOST_NO_RTTI)
+  args.push_back("-DBOOST_NO_RTTI=" XSTR(BOOST_NO_RTTI));
+#endif
+#if defined(FMT_SHARED)
+  args.push_back("-DFMT_SHARED=" XSTR(FMT_SHARED));
+#endif
+#if defined(FMT_STATIC_THOUSANDS_SEPARATOR)
+  args.push_back(
+      "-DFMT_STATIC_THOUSANDS_SEPARATOR=" XSTR(FMT_STATIC_THOUSANDS_SEPARATOR));
+#endif
+#if defined(FMT_USE_FLOAT128)
+  args.push_back("-DFMT_USE_FLOAT128=" XSTR(FMT_USE_FLOAT128));
+#endif
+#if defined(FMT_USE_INT128)
+  args.push_back("-DFMT_USE_INT128=" XSTR(FMT_USE_INT128));
+#endif
+#if defined(FMT_USE_LONG_DOUBLE)
+  args.push_back("-DFMT_USE_LONG_DOUBLE=" XSTR(FMT_USE_LONG_DOUBLE));
+#endif
+#if defined(LIBREMIDI_ALSA)
+  args.push_back("-DLIBREMIDI_ALSA");
+#endif
+#if defined(LIBREMIDI_HAS_JACK_GET_VERSION)
+  args.push_back("-DLIBREMIDI_HAS_JACK_GET_VERSION");
+#endif
+#if defined(LIBREMIDI_HAS_UDEV)
+  args.push_back("-DLIBREMIDI_HAS_UDEV");
+#endif
+#if defined(LIBREMIDI_JACK)
+  args.push_back("-DLIBREMIDI_JACK");
+#endif
+#if defined(LIBREMIDI_KEYBOARD)
+  args.push_back("-DLIBREMIDI_KEYBOARD");
+#endif
+#if defined(LIBREMIDI_PIPEWIRE)
+  args.push_back("-DLIBREMIDI_PIPEWIRE");
+#endif
+#if defined(LIBREMIDI_PIPEWIRE_UMP)
+  args.push_back("-DLIBREMIDI_PIPEWIRE_UMP");
+#endif
+#if defined(LIBREMIDI_USE_BOOST)
+  args.push_back("-DLIBREMIDI_USE_BOOST");
+#endif
+#if defined(LIBREMIDI_WEAKJACK)
+  args.push_back("-DLIBREMIDI_WEAKJACK");
+#endif
+#if defined(QT_CORE_LIB)
   args.push_back("-DQT_CORE_LIB");
-  args.push_back("-DQT_DISABLE_DEPRECATED_BEFORE=0x050800");
+#endif
+#if defined(QT_DISABLE_DEPRECATED_BEFORE)
+  args.push_back("-DQT_DISABLE_DEPRECATED_BEFORE=" XSTR(QT_DISABLE_DEPRECATED_BEFORE));
+#endif
+#if defined(QT_GUI_LIB)
   args.push_back("-DQT_GUI_LIB");
+#endif
+#if defined(QT_NETWORK_LIB)
   args.push_back("-DQT_NETWORK_LIB");
+#endif
+#if defined(QT_NO_JAVA_STYLE_ITERATORS)
+  args.push_back("-DQT_NO_JAVA_STYLE_ITERATORS");
+#endif
+#if defined(QT_NO_KEYWORDS)
   args.push_back("-DQT_NO_KEYWORDS");
+#endif
+#if defined(QT_NO_LINKED_LIST)
+  args.push_back("-DQT_NO_LINKED_LIST");
+#endif
+#if defined(QT_NO_NARROWING_CONVERSIONS_IN_CONNECT)
+  args.push_back("-DQT_NO_NARROWING_CONVERSIONS_IN_CONNECT");
+#endif
+#if defined(QT_NO_USING_NAMESPACE)
+  args.push_back("-DQT_NO_USING_NAMESPACE");
+#endif
+#if defined(QT_OPENGL_LIB)
+  args.push_back("-DQT_OPENGL_LIB");
+#endif
+#if defined(QT_QMLINTEGRATION_LIB)
+  args.push_back("-DQT_QMLINTEGRATION_LIB");
+#endif
+#if defined(QT_QML_LIB)
   args.push_back("-DQT_QML_LIB");
-  args.push_back("-DQT_QUICK_LIB");
+#endif
+#if defined(QT_SERIALPORT_LIB)
   args.push_back("-DQT_SERIALPORT_LIB");
-  args.push_back("-DQT_STATICPLUGIN");
-  args.push_back("-DQT_SVG_LIB");
+#endif
+#if defined(QT_SHADERTOOLS_LIB)
+  args.push_back("-DQT_SHADERTOOLS_LIB");
+#endif
+#if defined(QT_STATEMACHINE_LIB)
+  args.push_back("-DQT_STATEMACHINE_LIB");
+#endif
+#if defined(QT_USE_QSTRINGBUILDER)
+  args.push_back("-DQT_USE_QSTRINGBUILDER");
+#endif
+#if defined(QT_WEBSOCKETS_LIB)
   args.push_back("-DQT_WEBSOCKETS_LIB");
+#endif
+#if defined(QT_WIDGETS_LIB)
   args.push_back("-DQT_WIDGETS_LIB");
-  args.push_back("-DQT_XML_LIB");
-  args.push_back("-DRAPIDJSON_HAS_STDSTRING=1");
+#endif
+#if defined(RAPIDJSON_HAS_STDSTRING)
+  args.push_back("-DRAPIDJSON_HAS_STDSTRING=" XSTR(RAPIDJSON_HAS_STDSTRING));
+#endif
+#if defined(SCORE_DEBUG)
+  args.push_back("-DSCORE_DEBUG");
+#endif
+#if defined(SCORE_LIB_BASE)
+  args.push_back("-DSCORE_LIB_BASE");
+#endif
+#if defined(SCORE_LIB_DEVICE)
+  args.push_back("-DSCORE_LIB_DEVICE");
+#endif
+#if defined(SCORE_LIB_INSPECTOR)
+  args.push_back("-DSCORE_LIB_INSPECTOR");
+#endif
+#if defined(SCORE_LIB_LOCALTREE)
+  args.push_back("-DSCORE_LIB_LOCALTREE");
+#endif
+#if defined(SCORE_LIB_PROCESS)
+  args.push_back("-DSCORE_LIB_PROCESS");
+#endif
+#if defined(SCORE_LIB_STATE)
+  args.push_back("-DSCORE_LIB_STATE");
+#endif
+#if defined(SCORE_PLUGIN_AUDIO)
+  args.push_back("-DSCORE_PLUGIN_AUDIO");
+#endif
+#if defined(SCORE_PLUGIN_AUTOMATION)
+  args.push_back("-DSCORE_PLUGIN_AUTOMATION");
+#endif
+#if defined(SCORE_PLUGIN_AVND)
+  args.push_back("-DSCORE_PLUGIN_AVND");
+#endif
+#if defined(SCORE_PLUGIN_CURVE)
+  args.push_back("-DSCORE_PLUGIN_CURVE");
+#endif
+#if defined(SCORE_PLUGIN_DATAFLOW)
+  args.push_back("-DSCORE_PLUGIN_DATAFLOW");
+#endif
+#if defined(SCORE_PLUGIN_DEVICEEXPLORER)
+  args.push_back("-DSCORE_PLUGIN_DEVICEEXPLORER");
+#endif
+#if defined(SCORE_PLUGIN_ENGINE)
+  args.push_back("-DSCORE_PLUGIN_ENGINE");
+#endif
+#if defined(SCORE_PLUGIN_GFX)
+  args.push_back("-DSCORE_PLUGIN_GFX");
+#endif
+#if defined(SCORE_PLUGIN_LIBRARY)
+  args.push_back("-DSCORE_PLUGIN_LIBRARY");
+#endif
+#if defined(SCORE_PLUGIN_MEDIA)
+  args.push_back("-DSCORE_PLUGIN_MEDIA");
+#endif
+#if defined(SCORE_PLUGIN_SCENARIO)
+  args.push_back("-DSCORE_PLUGIN_SCENARIO");
+#endif
+#if defined(SCORE_PLUGIN_TRANSPORT)
+  args.push_back("-DSCORE_PLUGIN_TRANSPORT");
+#endif
+#if defined(SERVUS_USE_AVAHI_CLIENT)
+  args.push_back("-DSERVUS_USE_AVAHI_CLIENT");
+#endif
+#if defined(SPDLOG_COMPILED_LIB)
+  args.push_back("-DSPDLOG_COMPILED_LIB=" XSTR(BOOST_MATH_DISABLE_FLOAT128));
+#endif
+#if defined(SPDLOG_DEBUG_ON)
+  args.push_back("-DSPDLOG_DEBUG_ON=" XSTR(BOOST_MATH_DISABLE_FLOAT128));
+#endif
+#if defined(SPDLOG_FMT_EXTERNAL)
+  args.push_back("-DSPDLOG_FMT_EXTERNAL=" XSTR(BOOST_MATH_DISABLE_FLOAT128));
+#endif
+#if defined(SPDLOG_NO_DATETIME)
+  args.push_back("-DSPDLOG_NO_DATETIME=" XSTR(BOOST_MATH_DISABLE_FLOAT128));
+#endif
+#if defined(SPDLOG_NO_NAME)
+  args.push_back("-DSPDLOG_NO_NAME=" XSTR(BOOST_MATH_DISABLE_FLOAT128));
+#endif
+#if defined(SPDLOG_NO_THREAD_ID)
+  args.push_back("-DSPDLOG_NO_THREAD_ID=" XSTR(BOOST_MATH_DISABLE_FLOAT128));
+#endif
+#if defined(SPDLOG_SHARED_LIB)
+  args.push_back("-DSPDLOG_SHARED_LIB=" XSTR(BOOST_MATH_DISABLE_FLOAT128));
+#endif
+#if defined(SPDLOG_TRACE_ON)
+  args.push_back("-DSPDLOG_TRACE_ON=" XSTR(BOOST_MATH_DISABLE_FLOAT128));
+#endif
+#if defined(TINYSPLINE_DOUBLE_PRECISION)
+  args.push_back("-DTINYSPLINE_DOUBLE_PRECISION");
+#endif
 
 #if defined(SCORE_DEBUG)
   args.push_back("-DSCORE_DEBUG");
 #endif
-  args.push_back("-DSCORE_LIB_BASE");
-  args.push_back("-DSCORE_LIB_DEVICE");
-  args.push_back("-DSCORE_LIB_INSPECTOR");
-  args.push_back("-DSCORE_LIB_LOCALTREE");
-  args.push_back("-DSCORE_LIB_PROCESS");
-  args.push_back("-DSCORE_LIB_STATE");
-  args.push_back("-DSCORE_PLUGIN_GFX");
-  args.push_back("-DSCORE_PLUGIN_REMOTECONTROL");
-  args.push_back("-DSCORE_PLUGIN_NODAL");
-  args.push_back("-DSCORE_PLUGIN_AUDIO");
-  args.push_back("-DSCORE_PLUGIN_AUTOMATION");
-  args.push_back("-DSCORE_PLUGIN_CURVE");
-  args.push_back("-DSCORE_PLUGIN_DATAFLOW");
-  args.push_back("-DSCORE_PLUGIN_DEVICEEXPLORER");
-  args.push_back("-DSCORE_PLUGIN_ENGINE");
-  args.push_back("-DSCORE_PLUGIN_LIBRARY");
-  args.push_back("-DSCORE_PLUGIN_MAPPING");
-  args.push_back("-DSCORE_PLUGIN_MEDIA");
-  args.push_back("-DSCORE_PLUGIN_PROTOCOLS");
-  args.push_back("-DSCORE_PLUGIN_SCENARIO");
-  args.push_back("-DSCORE_PLUGIN_MIDI");
-  args.push_back("-DSCORE_PLUGIN_PROTOCOLS");
-  args.push_back("-DSCORE_PLUGIN_RECORDING");
-  args.push_back("-DSCORE_PLUGIN_TRANSPORT");
+
   // args.push_back("-DSCORE_STATIC_PLUGINS");
-  args.push_back("-DTINYSPLINE_DOUBLE_PRECISION");
   args.push_back("-D_GNU_SOURCE=1");
   args.push_back("-D__STDC_CONSTANT_MACROS");
   args.push_back("-D__STDC_FORMAT_MACROS");
@@ -564,6 +731,9 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
   include(qt_folder + "/QtQml");
   include(qt_folder + "/QtQml/" + qt_version);
   include(qt_folder + "/QtQml/" + qt_version + "/QtQml");
+  include(qt_folder + "/QtQuick");
+  include(qt_folder + "/QtQuick/" + qt_version);
+  include(qt_folder + "/QtQuick/" + qt_version + "/QtQuick");
   include(qt_folder + "/QtXml");
   include(qt_folder + "/QtNetwork");
   include(qt_folder + "/QtSvg");
