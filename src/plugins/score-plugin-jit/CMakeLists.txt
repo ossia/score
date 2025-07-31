@@ -18,17 +18,12 @@ if(NOT LLVM_FOUND)
   return()
 endif()
 
-if(LLVM_VERSION VERSION_GREATER_EQUAL "15.0")
+if(LLVM_VERSION VERSION_GREATER_EQUAL "20.0")
   message(" -- LLVM version: ${LLVM_VERSION}")
+  # LLVM 20 required for EHFrameRegistrationPlugin
 else()
   message(" -- LLVM Version ${LLVM_VERSION} incompatible, skipping JIT plug-in")
   return()
-endif()
-
-if(SCORE_ENABLE_CXX23 OR SCORE_ENABLE_CXX26)
-  if(LLVM_VERSION VERSION_LESS "19.0")
-    return()
-  endif()
 endif()
 
 find_package(Clang PATHS
