@@ -18,12 +18,447 @@
 #include <wobjectimpl.h>
 
 #include <iostream>
+static const auto safe_int_header = QStringLiteral(R"_(
+namespace ossia_bytebeat
+{
+struct [[clang::trivial_abi]] safe_int
+{
+  using T = int;
+  T m_value{};
+
+  constexpr safe_int() noexcept = default;
+  constexpr safe_int(const safe_int& other) noexcept = default;
+  constexpr safe_int& operator=(const safe_int& other) noexcept = default;
+  constexpr safe_int(safe_int&& other) noexcept = default;
+  constexpr safe_int& operator=(safe_int& other) noexcept = default;
+  constexpr explicit safe_int(T value) noexcept
+      : m_value{value}
+  {
+  }
+
+  constexpr safe_int& operator=(T value) noexcept
+  {
+    m_value = value;
+    return *this;
+  }
+
+  constexpr operator T() const noexcept { return m_value; }
+  constexpr operator double() const noexcept { return m_value; }
+  constexpr operator bool() const noexcept { return m_value; }
+  constexpr operator signed char() const noexcept { return m_value; }
+
+  constexpr safe_int operator+() const noexcept { return *this; }
+  constexpr safe_int operator-() const noexcept { return safe_int(-m_value); }
+
+  constexpr safe_int& operator+=(safe_int rhs) noexcept
+  {
+    m_value += rhs.m_value;
+    return *this;
+  }
+
+  constexpr safe_int& operator-=(safe_int rhs) noexcept
+  {
+    m_value -= rhs.m_value;
+    return *this;
+  }
+
+  constexpr safe_int& operator*=(safe_int rhs) noexcept
+  {
+    m_value *= rhs.m_value;
+    return *this;
+  }
+
+  constexpr safe_int& operator/=(safe_int rhs) noexcept
+  {
+    if(rhs.m_value != 0)
+    {
+      [[likely]];
+      m_value /= rhs.m_value;
+    }
+    else
+    {
+      [[unlikely]];
+      m_value = 0;
+    }
+    return *this;
+  }
+
+  constexpr safe_int& operator%=(safe_int rhs) noexcept
+  {
+    if(rhs.m_value != 0)
+    {
+      [[likely]];
+      m_value %= rhs.m_value;
+    }
+    else
+    {
+      m_value = 0;
+    }
+    return *this;
+  }
+
+  constexpr safe_int& operator<<=(T rhs) noexcept
+  {
+    m_value <<= rhs;
+    return *this;
+  }
+
+  constexpr safe_int& operator>>=(T rhs) noexcept
+  {
+    m_value >>= rhs;
+    return *this;
+  }
+
+  constexpr safe_int& operator++() noexcept
+  {
+    ++m_value;
+    return *this;
+  }
+
+  constexpr safe_int& operator--() noexcept
+  {
+    --m_value;
+    return *this;
+  }
+
+  constexpr safe_int operator++(int) noexcept
+  {
+    safe_int temp = *this;
+    ++m_value;
+    return temp;
+  }
+
+  constexpr safe_int operator--(int) noexcept
+  {
+    safe_int temp = *this;
+    --m_value;
+    return temp;
+  }
+};
+
+constexpr safe_int operator+(safe_int lhs, safe_int rhs) noexcept
+{
+  return lhs += rhs;
+}
+constexpr safe_int operator+(safe_int lhs, int rhs) noexcept
+{
+  return safe_int(lhs.m_value += rhs);
+}
+constexpr safe_int operator+(int lhs, safe_int rhs) noexcept
+{
+  return safe_int(lhs += rhs.m_value);
+}
+constexpr safe_int operator+(safe_int lhs, double rhs) noexcept
+{
+  return safe_int(lhs.m_value += rhs);
+}
+constexpr safe_int operator+(double lhs, safe_int rhs) noexcept
+{
+  return safe_int(lhs += rhs.m_value);
+}
+
+constexpr safe_int operator-(safe_int lhs, safe_int rhs) noexcept
+{
+  return lhs -= rhs;
+}
+constexpr safe_int operator-(safe_int lhs, int rhs) noexcept
+{
+  return safe_int(lhs.m_value -= rhs);
+}
+constexpr safe_int operator-(int lhs, safe_int rhs) noexcept
+{
+  return safe_int(lhs -= rhs.m_value);
+}
+constexpr safe_int operator-(safe_int lhs, double rhs) noexcept
+{
+  return safe_int(lhs.m_value -= rhs);
+}
+constexpr safe_int operator-(double lhs, safe_int rhs) noexcept
+{
+  return safe_int(lhs -= rhs.m_value);
+}
+
+constexpr safe_int operator*(safe_int lhs, safe_int rhs) noexcept
+{
+  return lhs *= rhs;
+}
+constexpr safe_int operator*(safe_int lhs, int rhs) noexcept
+{
+  return safe_int(lhs.m_value *= rhs);
+}
+constexpr safe_int operator*(int lhs, safe_int rhs) noexcept
+{
+  return safe_int(lhs *= rhs.m_value);
+}
+constexpr safe_int operator*(safe_int lhs, double rhs) noexcept
+{
+  return safe_int(lhs.m_value *= rhs);
+}
+constexpr safe_int operator*(double lhs, safe_int rhs) noexcept
+{
+  return safe_int(lhs *= rhs.m_value);
+}
+
+constexpr safe_int operator/(safe_int lhs, safe_int rhs) noexcept
+{
+  return lhs /= rhs;
+}
+constexpr safe_int operator/(safe_int lhs, int rhs) noexcept
+{
+  if(rhs != 0)
+  {
+    [[likely]];
+    return safe_int(lhs.m_value / rhs);
+  }
+  else
+  {
+    return safe_int(0);
+  }
+}
+constexpr safe_int operator/(int lhs, safe_int rhs) noexcept
+{
+  if(rhs.m_value != 0)
+  {
+    [[likely]];
+    return safe_int(lhs / rhs.m_value);
+  }
+  else
+  {
+    return safe_int(0);
+  }
+}
+constexpr safe_int operator/(safe_int lhs, double rhs) noexcept
+{
+  if(rhs != 0)
+  {
+    [[likely]];
+    return safe_int(lhs.m_value / rhs);
+  }
+  else
+  {
+    return safe_int(0);
+  }
+}
+constexpr safe_int operator/(double lhs, safe_int rhs) noexcept
+{
+  if(rhs.m_value != 0)
+  {
+    [[likely]];
+    return safe_int(lhs / rhs.m_value);
+  }
+  else
+  {
+    return safe_int(0);
+  }
+}
+
+constexpr safe_int operator%(safe_int lhs, safe_int rhs) noexcept
+{
+  return lhs %= rhs;
+}
+constexpr safe_int operator%(safe_int lhs, int rhs) noexcept
+{
+  if(rhs != 0)
+  {
+    [[likely]];
+    return safe_int(lhs.m_value % rhs);
+  }
+  else
+  {
+    return safe_int(0);
+  }
+}
+constexpr safe_int operator%(int lhs, safe_int rhs) noexcept
+{
+  if(rhs.m_value != 0)
+  {
+    [[likely]];
+    return safe_int(lhs % rhs.m_value);
+  }
+  else
+  {
+    return safe_int(0);
+  }
+}
+constexpr safe_int operator%(safe_int lhs, double rhs) noexcept
+{
+  if(rhs != 0)
+  {
+    [[likely]];
+    return safe_int(lhs.m_value % int(rhs));
+  }
+  else
+  {
+    return safe_int(0);
+  }
+}
+constexpr safe_int operator%(double lhs, safe_int rhs) noexcept
+{
+  if(rhs.m_value != 0)
+  {
+    [[likely]];
+    return safe_int(int(lhs) % rhs.m_value);
+  }
+  else
+  {
+    return safe_int(0);
+  }
+}
+
+constexpr safe_int operator<<(safe_int lhs, safe_int rhs)
+{
+  return safe_int(lhs.m_value <<= rhs.m_value);
+}
+constexpr safe_int operator<<(safe_int lhs, int rhs)
+{
+  return safe_int(lhs.m_value <<= rhs);
+}
+constexpr safe_int operator<<(int lhs, safe_int rhs)
+{
+  return safe_int(lhs <<= rhs.m_value);
+}
+
+constexpr safe_int operator>>(safe_int lhs, safe_int rhs)
+{
+  return safe_int(lhs.m_value >>= rhs.m_value);
+}
+constexpr safe_int operator>>(safe_int lhs, int rhs)
+{
+  return safe_int(lhs.m_value >>= rhs);
+}
+constexpr safe_int operator>>(int lhs, safe_int rhs)
+{
+  return safe_int(lhs >>= rhs.m_value);
+}
+
+constexpr safe_int operator&(safe_int lhs, safe_int rhs) noexcept
+{
+  return safe_int(lhs.m_value & rhs.m_value);
+}
+constexpr safe_int operator&(safe_int lhs, int rhs) noexcept
+{
+  return safe_int(lhs.m_value & rhs);
+}
+constexpr safe_int operator&(int lhs, safe_int rhs) noexcept
+{
+  return safe_int(rhs.m_value & lhs);
+}
+
+constexpr safe_int operator|(safe_int lhs, safe_int rhs) noexcept
+{
+  return safe_int(lhs.m_value | rhs.m_value);
+}
+constexpr safe_int operator|(safe_int lhs, int rhs) noexcept
+{
+  return safe_int(lhs.m_value | rhs);
+}
+constexpr safe_int operator|(int lhs, safe_int rhs) noexcept
+{
+  return safe_int(rhs.m_value | lhs);
+}
+
+constexpr safe_int operator^(safe_int lhs, safe_int rhs) noexcept
+{
+  return safe_int(lhs.m_value ^ rhs.m_value);
+}
+constexpr safe_int operator^(safe_int lhs, int rhs) noexcept
+{
+  return safe_int(lhs.m_value ^ rhs);
+}
+constexpr safe_int operator^(int lhs, safe_int rhs) noexcept
+{
+  return safe_int(rhs.m_value ^ lhs);
+}
+
+constexpr bool operator==(safe_int lhs, safe_int rhs) noexcept
+{
+  return lhs.m_value == rhs.m_value;
+}
+constexpr bool operator==(safe_int lhs, int rhs) noexcept
+{
+  return lhs.m_value == rhs;
+}
+constexpr bool operator==(int lhs, safe_int rhs) noexcept
+{
+  return lhs == rhs.m_value;
+}
+
+constexpr bool operator!=(safe_int lhs, safe_int rhs) noexcept
+{
+  return lhs.m_value != rhs.m_value;
+}
+constexpr bool operator!=(safe_int lhs, int rhs) noexcept
+{
+  return lhs.m_value != rhs;
+}
+constexpr bool operator!=(int lhs, safe_int rhs) noexcept
+{
+  return lhs != rhs.m_value;
+}
+
+constexpr bool operator<(safe_int lhs, safe_int rhs) noexcept
+{
+  return lhs.m_value < rhs.m_value;
+}
+constexpr bool operator<(safe_int lhs, int rhs) noexcept
+{
+  return lhs.m_value < rhs;
+}
+constexpr bool operator<(int lhs, safe_int rhs) noexcept
+{
+  return lhs < rhs.m_value;
+}
+
+constexpr bool operator<=(safe_int lhs, safe_int rhs) noexcept
+{
+  return lhs.m_value <= rhs.m_value;
+}
+constexpr bool operator<=(safe_int lhs, int rhs) noexcept
+{
+  return lhs.m_value <= rhs;
+}
+constexpr bool operator<=(int lhs, safe_int rhs) noexcept
+{
+  return lhs <= rhs.m_value;
+}
+
+constexpr bool operator>(safe_int lhs, safe_int rhs) noexcept
+{
+  return lhs.m_value > rhs.m_value;
+}
+constexpr bool operator>(safe_int lhs, int rhs) noexcept
+{
+  return lhs.m_value > rhs;
+}
+constexpr bool operator>(int lhs, safe_int rhs) noexcept
+{
+  return lhs > rhs.m_value;
+}
+
+constexpr bool operator>=(safe_int lhs, safe_int rhs) noexcept
+{
+  return lhs.m_value >= rhs.m_value;
+}
+constexpr bool operator>=(safe_int lhs, int rhs) noexcept
+{
+  return lhs.m_value >= rhs;
+}
+constexpr bool operator>=(int lhs, safe_int rhs) noexcept
+{
+  return lhs >= rhs.m_value;
+}
+}
+)_");
 
 W_OBJECT_IMPL(Jit::BytebeatModel)
 namespace Jit
 {
 QString generateBytebeatFunction(QString bb)
 {
+  bool safe = true;
+  if(bb.contains("/") || bb.contains("%"))
+    safe = false;
+
   QString computed = "(";
   static const QRegularExpression cpp_comm_1(
       "/\\*(.*?)\\*/", QRegularExpression::DotMatchesEverythingOption);
@@ -52,9 +487,85 @@ QString generateBytebeatFunction(QString bb)
     computed = "0.";
   }
 
+  QString type = safe ? "int" : "ossia_bytebeat::safe_int";
   auto res = QStringLiteral(R"_(
+%1
+
 #if __has_include(<cmath>)
 #include <cmath>
+#include <numbers>
+
+template <typename T>
+struct Math_t
+{
+  static constexpr T max(auto a, auto b) { return T{a} < T{b} ? T{b} : T{a}; }
+  static constexpr T min(auto a, auto b) { return T{a} < T{b} ? T{a} : T{b}; }
+  static constexpr T abs(auto a) { return T{a} < T(0) ? T{-a} : T{a}; }
+
+  static constexpr T pow(auto base, auto exp)
+  {
+    auto bbase = T{base};
+    auto bexp = T{exp};
+    T res{1};
+    while(bexp > 0)
+    {
+      if(bexp % 2 == 1)
+        res *= bbase;
+      bbase *= bbase;
+      bexp = bexp / 2;
+    }
+    return res;
+  }
+
+  static constexpr int internal_isqrt(int n)
+  {
+    if(n < 0)
+      return 0;
+    if(n == 0)
+      return 0;
+    using calc_t = long long int;
+    calc_t x = n;
+    calc_t y = (x + 1) / 2;
+    while(y < x)
+    {
+      x = y;
+      y = (x + n / x) / 2;
+    }
+    return x;
+  }
+
+  static constexpr T sqrt(T n) { return T(internal_isqrt(int(n))); }
+
+  static constexpr T floor(T n) { return n; }
+  static constexpr T ceil(T n) { return n; }
+  static constexpr T round(T n) { return n; }
+  static T sin(T n) { return T(std::sin(double(n))); }
+  static T cos(T n) { return T(std::cos(double(n))); }
+  static T tan(T n) { return T(std::tan(double(n))); }
+  static T sinh(T n) { return T(std::sinh(double(n))); }
+  static T cosh(T n) { return T(std::cosh(double(n))); }
+  static T tanh(T n) { return T(std::tanh(double(n))); }
+  static T asin(T n) { return T(std::asin(double(n))); }
+  static T acos(T n) { return T(std::acos(double(n))); }
+  static T atan(T n) { return T(std::atan(double(n))); }
+  static T asinh(T n) { return T(std::asinh(double(n))); }
+  static T acosh(T n) { return T(std::acosh(double(n))); }
+  static T atanh(T n) { return T(std::atanh(double(n))); }
+
+  static constexpr double E = std::numbers::e;
+  static constexpr double LN10 = std::numbers::ln10;
+  static constexpr double LN2 = std::numbers::ln2;
+  static constexpr double LOG10E = std::numbers::log10e;
+  static constexpr double LOG2E = std::numbers::log2e;
+  static constexpr double PI = std::numbers::pi;
+  static constexpr double SQRT1_2
+      = 0.7071067811865475244008443621048490392848359376884740365883398689953L;
+  static constexpr double SQRT2 = std::numbers::sqrt2;
+};
+
+
+static constexpr Math_t<%2> Math;
+
 #endif
 
 using signed_char = signed char;
@@ -63,13 +574,15 @@ void score_bytebeat(double* input, int size, int T)
 {
   for(auto end = input + size; input < end; ++input, ++T)
   {
-    const int t = T / 4;
+    const %2 t{T / 4};
     {
-      *(input) = %1;
+      *(input) = %3;
     }
   }
 }
 )_")
+                 .arg(safe ? "" : safe_int_header)
+                 .arg(type)
                  .arg(computed);
   return res;
 }
