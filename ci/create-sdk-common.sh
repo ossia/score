@@ -19,6 +19,16 @@ if [[ -d "$OSSIA_SDK/openssl/include" ]]; then
 fi
 
 cp -rf "$SCORE_DIR/3rdparty/avendish/include/." "$INCLUDE/"
+cp -rf "$SCORE_DIR/3rdparty/csv2/include/." "$INCLUDE/"
+cp -rf "$SCORE_DIR/3rdparty/DSPFilters/include/." "$INCLUDE/"
+cp -rf "$SCORE_DIR/3rdparty/xsimd/include/." "$INCLUDE/"
+cp -rf "$SCORE_DIR/3rdparty/xtensor/include/." "$INCLUDE/"
+cp -rf "$SCORE_DIR/3rdparty/xtl/include/." "$INCLUDE/"
+cp -rf "$SCORE_DIR/3rdparty/eigen/Eigen" "$INCLUDE/"
+cp -rf "$SCORE_DIR/3rdparty/Gamma/Gamma" "$INCLUDE/"
+cp -rf "$SCORE_DIR/3rdparty/vcglib/vcg" "$INCLUDE/"
+cp -rf "$SCORE_DIR/3rdparty/vcglib/wrap" "$INCLUDE/"
+
 
 BOOST=$(find "$SCORE_DIR/3rdparty/libossia/3rdparty/" -maxdepth 2 -name boost -type d | sort | tail -1)
 if [[ -d "$BOOST" ]]; then
