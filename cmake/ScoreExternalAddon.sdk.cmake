@@ -68,6 +68,7 @@ endif()
 if(WIN32)
   target_link_libraries(score_lib_base INTERFACE
     "${SCORE_SDK}/lib/libscore.dll.a"
+    ws2_32
   )
 elseif(APPLE)
   target_link_libraries(score_lib_base INTERFACE
