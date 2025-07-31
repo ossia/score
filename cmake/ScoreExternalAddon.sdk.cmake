@@ -151,7 +151,13 @@ target_compile_definitions(score_lib_base INTERFACE
   QT_STATIC=1
 )
 
-include(ScoreFunctions)
+function(score_common_setup)
+  enable_testing()
+  set(CMAKE_INCLUDE_CURRENT_DIR ON)
+  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+  set(CMAKE_AUTOUIC OFF)
+  set(CMAKE_AUTOMOC OFF)
+endfunction()
 
 function(setup_score_plugin PluginName)
   set_target_properties(${PluginName} PROPERTIES
