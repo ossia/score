@@ -85,9 +85,9 @@ set(SCORE_PLUGINS
 )
 
 if(EXISTS "${SCORE_SDK}")
-  include(${CMAKE_CURRENT_LIST_DIR}/ScoreExternalAddon.sdk.cmake)
+  include(ScoreExternalAddon.sdk)
 else()
-  include(${CMAKE_CURRENT_LIST_DIR}/ScoreExternalAddon.developer.cmake)
+  include(ScoreExternalAddon.developer)
 endif()
 
 foreach(_lib ${SCORE_PLUGINS})
