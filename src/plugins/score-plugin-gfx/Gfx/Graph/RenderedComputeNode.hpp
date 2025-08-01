@@ -4,16 +4,16 @@
 
 namespace score::gfx
 {
-struct RenderedISFNode : score::gfx::NodeRenderer
+struct RenderedComputeNode : score::gfx::NodeRenderer
 {
-  explicit RenderedISFNode(const ISFNode& node) noexcept;
+  explicit RenderedComputeNode(const ISFNode& node) noexcept;
 
-  virtual ~RenderedISFNode();
+  virtual ~RenderedComputeNode();
 
   TextureRenderTarget renderTargetForInput(const Port& p) override;
 
   void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
-  void update(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* e) override;
+  void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
   void release(RenderList& r) override;
 
   void runInitialPasses(
@@ -65,22 +65,23 @@ private:
 
   QRhiBuffer* m_materialUBO{};
   int m_materialSize{};
+  int64_t materialChangedIndex{-1};
 
   AudioTextureUpload m_audioTex;
 };
 
 // Used for the simple case of a single, non-persistent pass (the most common case)
 
-struct SimpleRenderedISFNode : score::gfx::NodeRenderer
+struct SimpleRenderedComputeNode : score::gfx::NodeRenderer
 {
-  explicit SimpleRenderedISFNode(const ISFNode& node) noexcept;
+  explicit SimpleRenderedComputeNode(const ISFNode& node) noexcept;
 
-  virtual ~SimpleRenderedISFNode();
+  virtual ~SimpleRenderedComputeNode();
 
   TextureRenderTarget renderTargetForInput(const Port& p) override;
 
   void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
-  void update(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge) override;
+  void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
   void release(RenderList& r) override;
 
   void runInitialPasses(
@@ -90,26 +91,35 @@ struct SimpleRenderedISFNode : score::gfx::NodeRenderer
   void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& edge) override;
 
 private:
+  QRhiTexture* createInput(
+      score::gfx::RenderList& renderer, int k, QRhiTexture::Format fmt, QSize size);
+  QRhiComputePipeline* createComputePipeline(score::gfx::RenderList& renderer);
+
+  QRhiShaderResourceBindings* initBindings(score::gfx::RenderList& renderer);
   ossia::small_flat_map<const Port*, TextureRenderTarget, 2> m_rts;
 
-  void initPass(const TextureRenderTarget& rt, RenderList& renderer, Edge& edge);
+  // void initPass(const TextureRenderTarget& rt, RenderList& renderer, Edge& edge);
 
-  std::vector<Sampler> allSamplers() const noexcept;
+  // std::vector<Sampler> allSamplers() const noexcept;
 
   ossia::small_vector<std::pair<Edge*, Pass>, 2> m_passes;
 
   ISFNode& n;
 
-  std::vector<Sampler> m_inputSamplers;
-  std::vector<Sampler> m_audioSamplers;
-
-  const Mesh* m_mesh{};
-  QRhiBuffer* m_meshBuffer{};
-  QRhiBuffer* m_idxBuffer{};
-
-  QRhiBuffer* m_materialUBO{};
-  int m_materialSize{};
-
-  std::optional<AudioTextureUpload> m_audioTex;
+  QRhiShaderResourceBindings* m_srb{};
+  QRhiComputePipeline* m_pipeline{};
+  //
+  //   std::vector<Sampler> m_inputSamplers;
+  //   std::vector<Sampler> m_audioSamplers;
+  //
+  //   const Mesh* m_mesh{};
+  //   QRhiBuffer* m_meshBuffer{};
+  //   QRhiBuffer* m_idxBuffer{};
+  //
+  //   QRhiBuffer* m_materialUBO{};
+  //   int m_materialSize{};
+  //   int64_t materialChangedIndex{-1};
+  //
+  //   std::optional<AudioTextureUpload> m_audioTex;
 };
 }

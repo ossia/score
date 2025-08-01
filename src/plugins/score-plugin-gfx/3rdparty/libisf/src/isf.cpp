@@ -443,6 +443,13 @@ static const ossia::string_map<root_fun>& root_parse{[] {
                 }
               }
             }});
+  p.insert({"MODE", [](descriptor& d, const sajson::value& v) {
+    if(v.get_type() == sajson::TYPE_STRING)
+    {
+      if(v.as_string() == "COMPUTE")
+        d.compute = true;
+    }
+  }});
 
   static const ossia::hash_map<std::string, input_fun>& input_parse{[] {
     static ossia::hash_map<std::string, input_fun> i;
