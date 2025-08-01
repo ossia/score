@@ -16,6 +16,7 @@
 #include <Curve/Segment/CurveSegmentList.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Curve/Segment/CurveSegmentView.hpp>
+#include <Curve/Segment/PointArray/PointArraySegment.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
 
 #include <score/application/ApplicationContext.hpp>
@@ -119,7 +120,17 @@ void Presenter::setupSignals()
       m_view->setDirectDraw(true);
       return;
     }
-    addSegment(new SegmentView{segment, m_style, m_view});
+
+    if(auto pa = qobject_cast<const PointArraySegment*>(segment))
+    {
+      // FIXME
+      addSegment(new SegmentView{segment, m_style, m_view});
+    }
+    else
+    {
+
+      addSegment(new SegmentView{segment, m_style, m_view});
+    }
   });
 
   con(m_model, &Model::pointAdded, this, [&](const PointModel* point) {
