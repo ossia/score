@@ -120,8 +120,11 @@ void ApplicationPlugin::rescanPlugins()
 #else
   searchPaths << "/usr/lib/clap"
               << "/usr/local/lib/clap"
+              << "/usr/lib64/clap"
+              << "/usr/local/lib64/clap"
               << "~/.clap"
-              << QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/.clap";
+              << QStandardPaths::writableLocation(QStandardPaths::HomeLocation)
+                     + "/.clap";
 #endif
 
   ossia::hash_set<QString> known_plugins_paths;

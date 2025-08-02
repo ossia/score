@@ -257,6 +257,12 @@ void LV2::GlobalContext::loadPlugins()
 
     if(QFile::exists("/usr/lib/lv2"))
       lv2_paths.push_back("/usr/lib/lv2");
+    if(QFile::exists("/usr/local/lib/lv2"))
+      lv2_paths.push_back("/usr/local/lib/lv2");
+    if(QFile::exists("/usr/lib64/lv2"))
+      lv2_paths.push_back("/usr/lib64/lv2");
+    if(QFile::exists("/usr/local/lib64/lv2"))
+      lv2_paths.push_back("/usr/local/lib64/lv2");
 
     QProcess proc;
     proc.setProgram("ldconfig");
