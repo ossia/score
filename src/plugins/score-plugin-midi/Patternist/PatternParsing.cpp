@@ -14,9 +14,26 @@
 
 namespace Patternist
 {
-Pattern parsePattern(const QByteArray& data) noexcept
+/*
+  36 BD Bass drum
+  37 RS Rim shot
+  38 SD Snare drum
+  39 CP Clap
+  42 CH Closed hihat
+  43 LT Low tom
+  46 OH Open hihat
+  47 MT Mid tom
+  49 CY Crash cymbal
+  50 HT High tom
+  56 CB Cowbell
+  AC Accent
+  SL Slide
+  GH Ghost
+*/
+std::vector<Pattern> parsePatterns(const QByteArray& data) noexcept
 {
-  static const QRegularExpression exp{QStringLiteral("[0-9][0-9] [-xXfF012]+")};
+  static const QRegularExpression exp{QStringLiteral("[0-9A-Z][0-9A-Z] [-xXfF012]+")};
+  std::vector<Pattern> patterns;
   Pattern p;
 
   for(QString lane : data.split('\n'))
@@ -31,15 +48,54 @@ Pattern parsePattern(const QByteArray& data) noexcept
       Lane lane;
       bool ok = false;
       lane.note = split[0].toInt(&ok);
-      if(!ok && split[0] == "AC")
+      if(!ok)
       {
-        lane.note = 255;
         ok = true;
+        if(split[0] == "AC")
+          lane.note = 255;
+        else if(split[0] == "SL")
+          lane.note = 254;
+        else if(split[0] == "BD")
+          lane.note = 36;
+        else if(split[0] == "RS")
+          lane.note = 37;
+        else if(split[0] == "SD")
+          lane.note = 38;
+        else if(split[0] == "CP")
+          lane.note = 39;
+        else if(split[0] == "CH")
+          lane.note = 42;
+        else if(split[0] == "LT")
+          lane.note = 43;
+        else if(split[0] == "OH")
+          lane.note = 46;
+        else if(split[0] == "MT")
+          lane.note = 47;
+        else if(split[0] == "CY")
+          lane.note = 49;
+        else if(split[0] == "HT")
+          lane.note = 50;
+        else if(split[0] == "CB")
+          lane.note = 56;
+        else
+          ok = false;
       }
-      if(!ok && split[0] == "SL")
+
+      bool is_new_pattern = false;
+      for(auto& other_lane : p.lanes)
       {
-        lane.note = 254;
-        ok = true;
+        if(lane.note == other_lane.note)
+        {
+          is_new_pattern = true;
+          break;
+        }
+      }
+
+      if(is_new_pattern)
+      {
+        if(!p.lanes.empty() && p.length > 0)
+          patterns.push_back(std::move(p));
+        p = Pattern{};
       }
 
       if(ok)
@@ -77,33 +133,39 @@ Pattern parsePattern(const QByteArray& data) noexcept
     }
   }
 
-  return p;
+  if(!p.lanes.empty() && p.length > 0)
+    patterns.push_back(std::move(p));
+
+  for(auto& pat : patterns)
+    std::sort(pat.lanes.begin(), pat.lanes.end(), [](const Lane& lhs, const Lane& rhs) {
+      return char(lhs.note) > char(rhs.note);
+    });
+
+  return patterns;
 }
 
-Pattern parsePatternFile(const QString& path) noexcept
+std::vector<Pattern> parsePatternFile(const QString& path) noexcept
 {
   QFile f{path};
-  if(!QFileInfo{f}.suffix().toLower().contains(QStringLiteral("pat")))
+  const auto suffix = QFileInfo{f}.suffix().toLower();
+  if(!(suffix.contains(QStringLiteral("pat")) || suffix.contains(QStringLiteral("txt"))))
     return {};
 
   if(!f.open(QIODevice::ReadOnly))
     return {};
 
-  auto res = parsePattern(score::mapAsByteArray(f));
-  if(!res.lanes.empty() && res.length > 0)
-    return res;
-  return {};
+  return parsePatterns(score::mapAsByteArray(f));
 }
 
-std::vector<Pattern> parsePatternFiles(const QMimeData& mime) noexcept
+std::vector<std::vector<Pattern>> parsePatternFiles(const QMimeData& mime) noexcept
 {
-  std::vector<Pattern> pat;
+  std::vector<std::vector<Pattern>> pat;
 
   if(mime.hasUrls())
   {
     for(auto& url : mime.urls())
     {
-      if(auto res = parsePatternFile(url.toLocalFile()); !res.lanes.empty())
+      if(auto res = parsePatternFile(url.toLocalFile()); !res.empty())
       {
         pat.push_back(std::move(res));
       }
@@ -115,7 +177,7 @@ std::vector<Pattern> parsePatternFiles(const QMimeData& mime) noexcept
     Process::ProcessData p = des.deserialize();
     if(p.key == Metadata<ConcreteKey_k, Patternist::ProcessModel>::get())
     {
-      if(auto res = parsePatternFile(p.customData); !res.lanes.empty())
+      if(auto res = parsePatternFile(p.customData); !res.empty())
       {
         pat.push_back(std::move(res));
       }

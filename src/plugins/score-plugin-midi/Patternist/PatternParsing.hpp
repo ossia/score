@@ -8,6 +8,6 @@ class QByteArray;
 
 namespace Patternist
 {
-Pattern parsePattern(const QByteArray& data) noexcept;
-std::vector<Pattern> parsePatternFiles(const QMimeData& mime) noexcept;
+std::vector<Pattern> parsePatterns(const QByteArray& data) noexcept;
+std::vector<std::vector<Pattern>> parsePatternFiles(const QMimeData& mime) noexcept;
 }

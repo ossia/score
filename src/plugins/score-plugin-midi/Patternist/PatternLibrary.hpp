@@ -60,8 +60,8 @@ class DropHandler final : public Process::ProcessDropHandler
   {
     const auto& [filename, content] = data;
 
-    auto pat = parsePattern(content);
-    if(pat.lanes.size() > 0)
+    auto pat = parsePatterns(content);
+    if(!pat.empty())
     {
       Process::ProcessDropHandler::ProcessDrop p;
       p.creation.key = Metadata<ConcreteKey_k, Patternist::ProcessModel>::get();
@@ -69,7 +69,7 @@ class DropHandler final : public Process::ProcessDropHandler
       p.setup = [pat = std::move(pat)](
                     Process::ProcessModel& m, score::Dispatcher& disp) mutable {
         auto& proc = static_cast<Patternist::ProcessModel&>(m);
-        disp.submit(new Patternist::UpdatePattern{proc, 0, std::move(pat)});
+        disp.submit(new Patternist::UpdatePatterns{proc, std::move(pat)});
       };
       vec.push_back(std::move(p));
     }

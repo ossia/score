@@ -54,6 +54,40 @@ private:
   Pattern m_new;
 };
 
+class UpdatePatterns final : public score::Command
+{
+  SCORE_COMMAND_DECL(Midi::CommandFactoryName(), UpdatePatterns, "Update patterns")
+public:
+  UpdatePatterns(const ProcessModel& model, std::vector<Pattern> pat)
+      : m_model{model}
+      , m_old{model.patterns()}
+      , m_new{std::move(pat)}
+  {
+  }
+
+  void undo(const score::DocumentContext& ctx) const override
+  {
+    m_model.find(ctx).setPatterns(m_old);
+  }
+
+  void redo(const score::DocumentContext& ctx) const override
+  {
+    m_model.find(ctx).setPatterns(m_new);
+  }
+
+protected:
+  void serializeImpl(DataStreamInput& s) const override
+  {
+    s << m_model << m_old << m_new;
+  }
+
+  void deserializeImpl(DataStreamOutput& s) override { s >> m_model >> m_old >> m_new; }
+
+private:
+  Path<ProcessModel> m_model;
+  std::vector<Pattern> m_old;
+  std::vector<Pattern> m_new;
+};
 }
 PROPERTY_COMMAND_T(
     Patternist, SetPatternChannel, ProcessModel::p_channel, "Change channel")

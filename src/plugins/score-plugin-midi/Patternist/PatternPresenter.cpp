@@ -87,9 +87,11 @@ void Presenter::on_drop(const QPointF& pos, const QMimeData& md)
   auto patterns = parsePatternFiles(md);
   if(patterns.empty())
     return;
+  if(patterns[0].empty())
+    return;
 
   auto& model = static_cast<const Patternist::ProcessModel&>(this->model());
   CommandDispatcher<> disp{m_context.context.commandStack};
-  disp.submit<UpdatePattern>(model, model.currentPattern(), patterns[0]);
+  disp.submit<UpdatePattern>(model, model.currentPattern(), patterns[0][0]);
 }
 }
