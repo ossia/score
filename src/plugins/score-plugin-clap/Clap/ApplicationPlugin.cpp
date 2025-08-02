@@ -118,11 +118,9 @@ void ApplicationPlugin::rescanPlugins()
   searchPaths << "C:/Program Files/Common Files/CLAP"
               << QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/CLAP";
 #else
-  searchPaths << "/usr/lib/clap"
-              << "/usr/local/lib/clap"
-              << "/usr/lib64/clap"
-              << "/usr/local/lib64/clap"
-              << "~/.clap"
+  searchPaths << QStringLiteral("/usr/lib/clap") << QStringLiteral("/usr/local/lib/clap")
+              << QStringLiteral("/usr/lib64/clap")
+              << QStringLiteral("/usr/local/lib64/clap")
               << QStandardPaths::writableLocation(QStandardPaths::HomeLocation)
                      + "/.clap";
 #endif

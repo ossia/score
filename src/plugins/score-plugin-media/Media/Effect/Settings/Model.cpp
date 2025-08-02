@@ -15,9 +15,10 @@ SETTINGS_PARAMETER_IMPL(VstPaths){
      QStringLiteral("/usr/lib/vst"), QStringLiteral("/usr/lib/lxvst"),
      QStringLiteral("/usr/lib64/vst"), QStringLiteral("/usr/lib64/lxvst")
 #elif defined(_WIN32)
-     "C:\\Program Files\\VSTPlugins", "C:\\Program Files\\Steinberg\\VSTPlugins",
-     "C:\\Program Files\\Common Files\\VST2",
-     "C:\\Program Files\\Common Files\\Steinberg\\VST2"
+     QStringLiteral("C:\\Program Files\\VSTPlugins"),
+     QStringLiteral("C:\\Program Files\\Steinberg\\VSTPlugins"),
+     QStringLiteral("C:\\Program Files\\Common Files\\VST2"),
+     QStringLiteral("C:\\Program Files\\Common Files\\Steinberg\\VST2")
 #else
 
      "/usr/lib/vst"

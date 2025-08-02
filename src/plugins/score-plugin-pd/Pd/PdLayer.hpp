@@ -93,7 +93,8 @@ struct UiWrapper : public QWidget
   {
 #if defined(__linux__)
     for(auto path :
-        {"/usr/lib64/puredata", "/usr/lib64/pd", "/usr/lib/puredata", "/usr/lib/pd"})
+        {QStringLiteral("/usr/lib64/puredata"), QStringLiteral("/usr/lib64/pd"),
+         QStringLiteral("/usr/lib/puredata"), QStringLiteral("/usr/lib/pd")})
       if(QFile::exists(path))
         return path;
 #endif

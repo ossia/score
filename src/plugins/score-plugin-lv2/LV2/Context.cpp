@@ -255,14 +255,14 @@ void LV2::GlobalContext::loadPlugins()
     if(auto home = QString::fromUtf8(qgetenv("HOME")); QFile::exists(home + ".lv2"))
       lv2_paths.push_back(home + ".lv2");
 
-    if(QFile::exists("/usr/lib/lv2"))
-      lv2_paths.push_back("/usr/lib/lv2");
-    if(QFile::exists("/usr/local/lib/lv2"))
-      lv2_paths.push_back("/usr/local/lib/lv2");
-    if(QFile::exists("/usr/lib64/lv2"))
-      lv2_paths.push_back("/usr/lib64/lv2");
-    if(QFile::exists("/usr/local/lib64/lv2"))
-      lv2_paths.push_back("/usr/local/lib64/lv2");
+    if(QFile::exists(QStringLiteral("/usr/lib/lv2")))
+      lv2_paths.push_back(QStringLiteral("/usr/lib/lv2"));
+    if(QFile::exists(QStringLiteral("/usr/local/lib/lv2")))
+      lv2_paths.push_back(QStringLiteral("/usr/local/lib/lv2"));
+    if(QFile::exists(QStringLiteral("/usr/lib64/lv2")))
+      lv2_paths.push_back(QStringLiteral("/usr/lib64/lv2"));
+    if(QFile::exists(QStringLiteral("/usr/local/lib64/lv2")))
+      lv2_paths.push_back(QStringLiteral("/usr/local/lib64/lv2"));
 
     QProcess proc;
     proc.setProgram("ldconfig");
@@ -275,7 +275,7 @@ void LV2::GlobalContext::loadPlugins()
     {
       if(l.contains("libc.so.6"))
       {
-#if __x86_64__
+#if defined(__LP64__)
         if(!l.contains("64"))
           continue;
 #endif

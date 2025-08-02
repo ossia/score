@@ -121,7 +121,7 @@ QStringList pluginsDir()
 #elif defined(__linux__)
   l << QCoreApplication::applicationDirPath() + plugins
     << QCoreApplication::applicationDirPath() + "/../lib/score"
-    << "/usr/lib/score";
+    << QStringLiteral("/usr/lib/score");
 #elif defined(__APPLE__) && defined(__MACH__)
   l << QCoreApplication::applicationDirPath() + plugins
     << QCoreApplication::applicationDirPath() + "../Frameworks/score" + plugins;
