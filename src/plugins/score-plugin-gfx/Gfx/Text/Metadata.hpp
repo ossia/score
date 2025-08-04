@@ -11,7 +11,7 @@ PROCESS_METADATA(
     "text",                           // Internal name
     "Text",                           // Pretty name
     Process::ProcessCategory::Visual, // Category
-    "Visuals",                        // Category
+    "Visuals/Textures",               // Category
     "Display text",                   // Description
     "ossia team",                     // Author
     (QStringList{"gfx", "text"}),     // Tags

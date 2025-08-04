@@ -26,7 +26,7 @@ class TexgenModel;
 }
 PROCESS_METADATA(
     , Jit::TexgenModel, "b9a20181-2925-4ade-925e-a2fd05fcbf9b", "Jit",
-    "Texture generator", Process::ProcessCategory::Script, "Visuals",
+    "C++ texture generator", Process::ProcessCategory::Script, "Visuals/Textures",
     "Generate a texture", "ossia score", QStringList{}, {}, {},
     QUrl("https://ossia.io/score-docs/processes/texgen.html#texture-generator"),
     Process::ProcessFlags::SupportsAll)

@@ -51,7 +51,7 @@ const QIcon& getCategoryIcon(const QString& category) noexcept
       {"Structure", makeIcon(QStringLiteral(":/icons/structure.png"))},
       {"Network", makeIcon(QStringLiteral(":/icons/sync.png"))},
       {"Monitoring", makeIcon(QStringLiteral(":/icons/ui.png"))},
-      {"Spatial", makeIcon(QStringLiteral(":/icons/spatial.png"))},
+      {"Spatialization", makeIcon(QStringLiteral(":/icons/spatial.png"))},
   };
   static const QIcon invalid;
   if(auto it = categoryIcon.find(category); it != categoryIcon.end())

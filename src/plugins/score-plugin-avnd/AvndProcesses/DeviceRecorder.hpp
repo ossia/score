@@ -21,9 +21,9 @@ namespace avnd_tools
  */
 struct DeviceRecorder : PatternObject
 {
-  halp_meta(name, "CSV recorder")
+  halp_meta(name, "CSV")
   halp_meta(author, "ossia team")
-  halp_meta(category, "Control/Recording")
+  halp_meta(category, "Control/Data files")
   halp_meta(description, "Record the messages of a device at regular interval")
   halp_meta(c_name, "avnd_device_recorder")
   halp_meta(uuid, "7161ca22-5684-48f2-bde7-88933500a7fb")
