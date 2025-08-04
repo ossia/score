@@ -1,4 +1,6 @@
 #pragma once
+#include <JitCpp/JitPlatform.hpp>
+
 #include <score/tools/File.hpp>
 
 #include <QDir>
@@ -238,6 +240,19 @@ static void loadCMakeAddon(const QString& addon, AddonData& data, QString cm)
     }
   }
 
+  auto sdk_location = locateSDKWithFallback();
+  auto qsdk = QString::fromStdString(sdk_location.path);
+  QString prototypes_folders;
+  if(sdk_location.sdk_kind == located_sdk::official && sdk_location.deploying)
+  {
+    prototypes_folders = qsdk + "/lib/cmake/score";
+  }
+  else
+  {
+    prototypes_folders
+        = QString::fromUtf8(SCORE_ROOT_SOURCE_DIR) + "/src/plugins/score-plugin-avnd/";
+  }
+
   for(auto& gp : groups)
   {
     auto avnd_plugin_version = gp.version.toUtf8();
@@ -245,21 +260,15 @@ static void loadCMakeAddon(const QString& addon, AddonData& data, QString cm)
     avnd_plugin_uuid.removeIf([](char c) { return c == '"'; });
     auto avnd_base_target = gp.base_target.toUtf8();
 
-    QFile proto_file = QFile(
-        "/home/jcelerier/ossia/score/src/plugins/score-plugin-avnd/"
-        "prototype.cpp.in");
+    QFile proto_file = QFile(prototypes_folders + "/prototype.cpp.in");
     proto_file.open(QIODevice::ReadOnly);
     auto proto = proto_file.readAll();
 
-    QFile cpp_proto_file = QFile(
-        "/home/jcelerier/ossia/score/src/plugins/score-plugin-avnd/"
-        "plugin_prototype.cpp.in");
+    QFile cpp_proto_file = QFile(prototypes_folders + "/plugin_prototype.cpp.in");
     cpp_proto_file.open(QIODevice::ReadOnly);
     auto cpp_proto = cpp_proto_file.readAll();
 
-    QFile hpp_proto_file = QFile(
-        "/home/jcelerier/ossia/score/src/plugins/score-plugin-avnd/"
-        "plugin_prototype.hpp.in");
+    QFile hpp_proto_file = QFile(prototypes_folders + "/plugin_prototype.hpp.in");
     hpp_proto_file.open(QIODevice::ReadOnly);
     auto hpp_proto = hpp_proto_file.readAll();
 

@@ -122,6 +122,58 @@ static inline std::string locateSDK()
 #endif
 }
 
+struct located_sdk
+{
+  std::string path;
+  enum
+  {
+    none,     // Nothing was found
+    platform, // Building against /usr/include, useful for dev builds
+    official  // The SDK obtained from official score releases
+  } sdk_kind
+      = none;
+
+// Do we use the score source dir or the headers from the SDK
+#if !SCORE_FHS_BUILD
+  static constexpr bool deploying = true;
+#else
+  static constexpr bool deploying = false;
+#endif
+};
+
+inline located_sdk locateSDKWithFallback()
+{
+  located_sdk ret;
+  ret.path = locateSDK();
+  if(ret.path.empty())
+    ret.sdk_kind = located_sdk::none;
+  if(ret.path.starts_with("/usr") || ret.path.starts_with("/Applications"))
+    ret.sdk_kind = located_sdk::official;
+  else
+    ret.sdk_kind = located_sdk::platform;
+
+  {
+    QDir dir(QString::fromStdString(ret.path));
+    if(!dir.exists())
+      ret.sdk_kind = located_sdk::none;
+
+    if(!dir.cd("include") || !dir.cd("c++"))
+    {
+      qDebug() << "Unable to locate standard headers, fallback to /usr";
+      ret.path = "/usr";
+      dir.setPath("/usr");
+      if(!dir.cd("include") || !dir.cd("c++"))
+      {
+        qDebug() << "Unable to locate any standard headers, install C++ development "
+                    "toolchain";
+        throw std::runtime_error("Unable to compile");
+      }
+      ret.sdk_kind = located_sdk::platform;
+    }
+  }
+  return ret;
+}
+
 static inline void
 populateCompileOptions(std::vector<std::string>& args, CompilerOptions opts)
 {
@@ -580,29 +632,9 @@ static inline auto getPotentialTriples()
  */
 static inline void populateIncludeDirs(std::vector<std::string>& args)
 {
-  auto sdk = locateSDK();
+  auto sdk_location = locateSDKWithFallback();
+  auto& sdk = sdk_location.path;
   auto qsdk = QString::fromStdString(sdk);
-  std::cerr << "\nLooking for sdk in: " << sdk << "\n";
-  qDebug() << "Looking for sdk in: " << qsdk;
-
-  bool sdk_found = true;
-
-  {
-    QDir dir(qsdk);
-    if(!dir.cd("include") || !dir.cd("c++"))
-    {
-      qDebug() << "Unable to locate standard headers, fallback to /usr";
-      qsdk = "/usr";
-      sdk = "/usr";
-      dir.setPath("/usr");
-      if(!dir.cd("include") || !dir.cd("c++"))
-      {
-        qDebug() << "Unable to locate standard headers++";
-        throw std::runtime_error("Unable to compile");
-      }
-      sdk_found = false;
-    }
-  }
 
   qDebug() << "SDK located: " << qsdk;
   std::string llvm_lib_version = SCORE_LLVM_VERSION;
@@ -699,12 +731,27 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
   ///build/score.AppDir/usr/include/
 
   auto include = [&](const std::string& path) {
-    args.push_back("-isystem" + sdk + "/include/" + path);
+    std::string path_to_include = sdk + "/include/" + path;
+    auto qpath = QString::fromStdString(path_to_include);
+    if(!QFileInfo{qpath}.isDir())
+    {
+      qDebug() << "Trying to include non-existent path: " << qpath;
+    }
+    else
+    {
+      args.push_back("-isystem" + sdk + "/include/" + path);
+    }
   };
 
 #if defined(__linux__)
-  include("x86_64-linux-gnu"); // #debian
+// #debian
+#if defined(__x86_64__)
+  include("x86_64-linux-gnu");
+#else
+  include("aarch64-linux-gnu");
 #endif
+#endif
+
   // include(""); // /usr/include
   std::string qt_folder = "qt";
   if(QFile::exists(qsdk + "/include/qt6/QtCore"))
@@ -745,16 +792,9 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
   include(qt_folder + "/QtShaderTools");
   include(qt_folder + "/QtShaderTools/" + qt_version);
   include(qt_folder + "/QtShaderTools/" + qt_version + "/QtShaderTools");
-  include(qt_folder + "/QtSerialBus");
   include(qt_folder + "/QtSerialPort");
 
-#if !SCORE_FHS_BUILD
-  bool deploying = true;
-#else
-  bool deploying = false;
-#endif
-
-  if(deploying && sdk_found)
+  if(sdk_location.sdk_kind == located_sdk::official && sdk_location.deploying)
   {
     include("score");
   }
