@@ -272,8 +272,8 @@ static inline void populateDefinitions(std::vector<std::string>& args)
   // needed because otherwise readerwriterqueue includes CoreFoundation.h ...
   args.push_back("-DMOODYCAMEL_MAYBE_ALIGN_TO_CACHELINE=");
 #endif
-
-#define XSTR(X) #X
+#define XSTR(s) STR(s)
+#define STR(s) #s
 
 #if defined(BOOST_ASIO_ENABLE_BUFFER_DEBUGGING)
   args.push_back("-DBOOST_ASIO_ENABLE_BUFFER_DEBUGGING");

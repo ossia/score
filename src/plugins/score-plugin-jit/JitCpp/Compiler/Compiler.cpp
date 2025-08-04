@@ -43,7 +43,7 @@ void setTargetOptions(llvm::TargetOptions& opts)
   opts.setFPDenormalMode(llvm::DenormalMode::getPositiveZero());
   opts.setFP32DenormalMode(llvm::DenormalMode::getPositiveZero());
   opts.EnableFastISel = true;
-  opts.EnableGlobalISel = true;
+  opts.EnableGlobalISel = false;
 }
 }
 
