@@ -73,38 +73,118 @@ auto get_kind()
     return Process::ProcessCategory::Other;
 }
 
+struct ProcessPortVisitor
+{
+  std::vector<Process::PortType> port;
+  void audio() { port.push_back(Process::PortType::Audio); }
+  void midi() { port.push_back(Process::PortType::Midi); }
+  void value() { port.push_back(Process::PortType::Message); }
+  void texture() { port.push_back(Process::PortType::Texture); }
+  void geometry() { port.push_back(Process::PortType::Geometry); }
+
+  template <std::size_t N, oscr::ossia_value_port Port>
+  void operator()(const avnd::field_reflection<N, Port>)
+  {
+    this->value();
+  }
+  template <std::size_t N, oscr::ossia_audio_port Port>
+  void operator()(const avnd::field_reflection<N, Port>)
+  {
+    this->audio();
+  }
+
+  template <std::size_t N, oscr::ossia_midi_port Port>
+  void operator()(const avnd::field_reflection<N, Port>)
+  {
+    this->midi();
+  }
+
+  template <std::size_t N, avnd::dynamic_ports_port Port>
+  void operator()(const avnd::field_reflection<N, Port>)
+  {
+    using port_type = typename decltype(std::declval<Port>().ports)::value_type;
+    (*this)(avnd::field_reflection<std::size_t{0}, port_type>{});
+  }
+
+  template <std::size_t N, avnd::audio_port Port>
+  void operator()(const avnd::field_reflection<N, Port>)
+  {
+    this->audio();
+  }
+
+  template <std::size_t N, avnd::midi_port Port>
+  void operator()(const avnd::field_reflection<N, Port>)
+  {
+    this->midi();
+  }
+
+  template <std::size_t N, avnd::parameter Port>
+    requires(!oscr::ossia_port<Port>)
+  void operator()(const avnd::field_reflection<N, Port>)
+  {
+    this->value();
+  }
+
+  template <std::size_t N, avnd::file_port Port>
+  void operator()(const avnd::field_reflection<N, Port>)
+  {
+    this->value();
+  }
+
+  template <std::size_t N, avnd::soundfile_port Port>
+  void operator()(const avnd::field_reflection<N, Port>)
+  {
+    this->value();
+  }
+
+  template <std::size_t N, avnd::midifile_port Port>
+  void operator()(const avnd::field_reflection<N, Port>)
+  {
+    this->value();
+  }
+
+#if SCORE_PLUGIN_GFX
+  template <std::size_t N, avnd::texture_port Port>
+  void operator()(const avnd::field_reflection<N, Port>)
+  {
+    this->texture();
+  }
+  template <std::size_t N, avnd::geometry_port Port>
+  void operator()(const avnd::field_reflection<N, Port>)
+  {
+    this->geometry();
+  }
+#endif
+
+  template <std::size_t N, avnd::curve_port Port>
+  void operator()(const avnd::field_reflection<N, Port>)
+  {
+    this->value();
+  }
+
+  template <std::size_t N, avnd::callback Port>
+  void operator()(const avnd::field_reflection<N, Port>)
+  {
+    this->value();
+  }
+
+  void operator()(auto&&) = delete;
+};
+
 template <typename Info>
 struct Metadata<Process::Descriptor_k, oscr::ProcessModel<Info>>
 {
   static std::vector<Process::PortType> inletDescription()
   {
-    std::vector<Process::PortType> port;
-    /*
-    for (std::size_t i = 0; i < info::audio_in_count; i++)
-      port.push_back(Process::PortType::Audio);
-    for (std::size_t i = 0; i < info::midi_in_count; i++)
-      port.push_back(Process::PortType::Midi);
-    for (std::size_t i = 0; i < info::value_in_count; i++)
-      port.push_back(Process::PortType::Message);
-    for (std::size_t i = 0; i < info::control_in_count; i++)
-      port.push_back(Process::PortType::Message);
-    */
-    return port;
+    ProcessPortVisitor vis;
+    avnd::input_introspection<Info>::for_all(vis);
+    return vis.port;
   }
   static std::vector<Process::PortType> outletDescription()
   {
-    std::vector<Process::PortType> port;
-    /*
-    for (std::size_t i = 0; i < info::audio_out_count; i++)
-      port.push_back(Process::PortType::Audio);
-    for (std::size_t i = 0; i < info::midi_out_count; i++)
-      port.push_back(Process::PortType::Midi);
-    for (std::size_t i = 0; i < info::value_out_count; i++)
-      port.push_back(Process::PortType::Message);
-    for (std::size_t i = 0; i < info::control_out_count; i++)
-      port.push_back(Process::PortType::Message);
-    */
-    return port;
+    ProcessPortVisitor vis;
+    avnd::output_introspection<Info>::for_all(vis);
+    return vis.port;
   }
   static Process::ProcessCategory kind() noexcept
   {
