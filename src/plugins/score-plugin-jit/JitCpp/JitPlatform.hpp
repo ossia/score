@@ -505,6 +505,7 @@ static inline auto getPotentialTriples()
   triples.push_back(LLVM_HOST_TRIPLE);
 #if defined(__x86_64__)
   triples.push_back("x86_64-pc-linux-gnu");
+  triples.push_back("x86_64-unknown-linux-gnu");
 #elif defined(__i686__)
   triples.push_back("i686-pc-linux-gnu");
 #elif defined(__i586__)
@@ -529,8 +530,10 @@ static inline auto getPotentialTriples()
 #elif defined(__aarch64__)
   triples.push_back("aarch64-none-linux-gnueabi");
   triples.push_back("aarch64-pc-linux-gnueabi");
+  triples.push_back("aarch64-unknown-linux-gnueabi");
   triples.push_back("aarch64-none-linux-gnu");
   triples.push_back("aarch64-pc-linux-gnu");
+  triples.push_back("aarch64-unknown-linux-gnu");
   triples.push_back("aarch64-redhat-linux");
 #endif
 
