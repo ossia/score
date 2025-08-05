@@ -32,5 +32,9 @@ class DropHandler final : public Process::ProcessDropHandler
   void dropPath(
       std::vector<ProcessDrop>&, const score::FilePath& data,
       const score::DocumentContext& ctx) const noexcept override;
+
+  void dropCustom(
+      std::vector<ProcessDrop>& drops, const QMimeData& mime,
+      const score::DocumentContext& ctx) const noexcept override;
 };
 }
