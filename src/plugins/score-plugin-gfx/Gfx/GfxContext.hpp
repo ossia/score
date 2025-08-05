@@ -67,7 +67,7 @@ private:
 
   void timerEvent(QTimerEvent*) override;
   const score::DocumentContext& m_context;
-  int32_t index{};
+  std::atomic_int32_t index{};
   ossia::hash_map<int32_t, NodePtr> nodes;
 
   score::gfx::Graph* m_graph{};

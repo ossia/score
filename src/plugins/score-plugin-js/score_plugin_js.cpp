@@ -17,6 +17,7 @@
 #include <JS/Qml/PortSink.hpp>
 #include <JS/Qml/PortSource.hpp>
 #include <JS/Qml/QmlObjects.hpp>
+#include <JS/Qml/TextureSource.hpp>
 #include <JS/Qml/Utils.hpp>
 #include <JS/Qml/ValueTypes.Qt6.hpp>
 
@@ -79,6 +80,7 @@ score_plugin_js::score_plugin_js()
 
   qmlRegisterType<JS::AddressSource>("Score.UI", 1, 0, "AddressSource");
   qmlRegisterType<JS::PortSource>("Score.UI", 1, 0, "PortSource");
+  qmlRegisterType<JS::TextureSource>("Score.UI", 1, 0, "TextureSource");
   qmlRegisterType<JS::PortSink>("Score.UI", 1, 0, "PortSink");
   qmlRegisterType<JS::GlobalDeviceEnumerator>("Score.UI", 1, 0, "DeviceEnumerator");
   qmlRegisterType<JS::DeviceListener>("Score.UI", 1, 0, "DeviceListener");
