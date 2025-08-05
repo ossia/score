@@ -15,10 +15,11 @@
 namespace Patternist
 {
 /*
+ * https://docs.google.com/spreadsheets/d/11BHkbCAcndX9THTIpN03ySzx13Z0HJu6PfuCdKf5Eq8/htmlview
   36 BD Bass drum
   37 RS Rim shot
   38 SD Snare drum
-  39 CP Clap
+  39 CP/HC Clap
   42 CH Closed hihat
   43 LT Low tom
   46 OH Open hihat
@@ -26,9 +27,19 @@ namespace Patternist
   49 CY Crash cymbal
   50 HT High tom
   56 CB Cowbell
+
+  64 LC Low Conga
+  65 MC Mid Conga -> Mute Hi Conga / Lo Timbale? 
+  66 HC Hi Conga -> Open Hi Conga / Hi Timbale?
+
+  70 MA Maracas
+
+  75 CL Claves
+
   AC Accent
   SL Slide
   GH Ghost
+
 */
 std::vector<Pattern> parsePatterns(const QByteArray& data) noexcept
 {
@@ -51,32 +62,43 @@ std::vector<Pattern> parsePatterns(const QByteArray& data) noexcept
       if(!ok)
       {
         ok = true;
-        if(split[0] == "AC")
+        split[0] = split[0].toLower();
+        if(split[0] == "ac")
           lane.note = 255;
-        else if(split[0] == "SL")
+        else if(split[0] == "sl")
           lane.note = 254;
-        else if(split[0] == "BD")
+        else if(split[0] == "bd")
           lane.note = 36;
-        else if(split[0] == "RS")
+        else if(split[0] == "rs")
           lane.note = 37;
-        else if(split[0] == "SD")
+        else if(split[0] == "sd")
           lane.note = 38;
-        else if(split[0] == "CP")
+        else if(split[0] == "cp" || split[0] == "hc")
           lane.note = 39;
-        else if(split[0] == "CH")
+        else if(split[0] == "ch")
           lane.note = 42;
-        else if(split[0] == "LT")
+        else if(split[0] == "lt")
           lane.note = 43;
-        else if(split[0] == "OH")
+        else if(split[0] == "oh")
           lane.note = 46;
-        else if(split[0] == "MT")
+        else if(split[0] == "mt")
           lane.note = 47;
-        else if(split[0] == "CY")
+        else if(split[0] == "cy")
           lane.note = 49;
-        else if(split[0] == "HT")
+        else if(split[0] == "ht")
           lane.note = 50;
-        else if(split[0] == "CB")
+        else if(split[0] == "cb")
           lane.note = 56;
+        else if(split[0] == "lc")
+          lane.note = 64;
+        else if(split[0] == "mc")
+          lane.note = 65;
+        else if(split[0] == "hc")
+          lane.note = 66;
+        else if(split[0] == "ma")
+          lane.note = 70;
+        else if(split[0] == "cl")
+          lane.note = 75;
         else
           ok = false;
       }
