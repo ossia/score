@@ -86,7 +86,7 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandlerList::getDrop(
 
   initCaches();
 
-  auto handleCustomDrop = [&](auto& handler) {
+  auto handleCustomDrop = [&](Process::ProcessDropHandler& handler) {
     auto before = res.size();
     handler.getCustomDrops(res, mime, ctx);
     auto after = res.size();

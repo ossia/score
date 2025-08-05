@@ -149,6 +149,9 @@ public:
   std::string fragment() const;
   std::string geometry_filter() const;
   static std::pair<int, descriptor> parse_isf_header(std::string_view source);
+  void parse_shadertoy_json(const std::string& json);
+
+  std::string write_isf() const;
 
 private:
   void parse_isf();

@@ -144,6 +144,8 @@ parser::parser(std::string vert, std::string frag, int glslVersion, ShaderType t
 
     return str[0] == '/' && str[1] == '*';
   };
+  static const auto is_shadertoy_json
+      = [](const std::string& str) { return str.starts_with("[{\"ver\":\""); };
   static const auto is_shadertoy = [](const std::string& str) {
     return str.find("void mainImage(") != std::string::npos;
   };
@@ -155,7 +157,9 @@ parser::parser(std::string vert, std::string frag, int glslVersion, ShaderType t
   switch(t)
   {
     case ShaderType::Autodetect: {
-      if(is_shadertoy(m_sourceFragment))
+      if(is_shadertoy_json(m_sourceFragment))
+        parse_shadertoy_json(m_sourceFragment);
+      else if(is_shadertoy(m_sourceFragment))
         parse_shadertoy();
       else if(is_isf(m_sourceFragment))
         parse_isf();
@@ -171,7 +175,10 @@ parser::parser(std::string vert, std::string frag, int glslVersion, ShaderType t
       break;
     }
     case ShaderType::ShaderToy: {
-      parse_shadertoy();
+      if(is_shadertoy_json(m_sourceFragment))
+        parse_shadertoy_json(m_sourceFragment);
+      else
+        parse_shadertoy();
       break;
     }
     case ShaderType::GLSLSandBox: {
@@ -924,62 +931,96 @@ void parser::parse_isf()
 
 void parser::parse_shadertoy()
 {
-  /* isf uniforms:
-  uniform vec3 iResolution;
-  uniform float iGlobalTime;
-  uniform float iGlobalDelta;
-  uniform float iGlobalFrame;
-  uniform float iChannelTime[4];
-  uniform vec4 iMouse;
-  uniform vec4 iDate;
-  uniform float iSampleRate;
-  uniform vec3 iChannelResolution[4];
-  uniform samplerXX iChanneli;
+  /* Shadertoy uniforms mapping:
+  uniform vec3 iResolution;           // viewport resolution (in pixels)
+  uniform float iTime;                // shader playback time (in seconds)
+  uniform float iTimeDelta;           // render time (in seconds)
+  uniform int iFrame;                 // shader playback frame
+  uniform float iChannelTime[4];      // channel playback time (in seconds)
+  uniform vec3 iChannelResolution[4]; // channel resolution (in pixels)
+  uniform vec4 iMouse;                // mouse pixel coords. xy: current (if MLB down), zw: click
+  uniform samplerXX iChannel0..3;     // input channel. XX = 2D/Cube
+  uniform vec4 iDate;                 // (year, month, day, time in seconds)
+  uniform float iSampleRate;          // sound sample rate (i.e., 44100)
   */
 
-  m_fragment += "uniform int PASSINDEX;\n";
-  m_fragment += "uniform vec2 RENDERSIZE;\n";
-  m_fragment += "uniform float TIME;\n";
-  m_fragment += "uniform float TIMEDELTA;\n";
-  m_fragment += "uniform float SAMPLERATE;\n";
-  m_fragment += "uniform vec4 DATE;\n";
-  m_fragment += "uniform vec2 MOUSE;\n";
-  m_fragment += "uniform vec4 CHANNELTIME;\n";
-  m_fragment += "uniform vec4 CHANNELRESOLUTION;\n";
-  m_fragment += "out vec2 isf_FragNormCoord;\n";
+  {
+    m_fragment = GLSL45.versionPrelude;
+    m_fragment += GLSL45.fragmentPrelude;
+    m_fragment += GLSL45.defaultUniforms;
+    m_fragment += GLSL45.defaultFunctions;
+    
+    // Add Shadertoy compatibility layer
+    m_fragment += R"_(
+// Shadertoy compatibility uniforms
+#define iResolution vec3(RENDERSIZE, 1.0)
+#define iTime TIME
+#define iTimeDelta TIMEDELTA
+#define iFrame FRAMEINDEX
+#define iMouse MOUSE
+#define iDate DATE
+#define iSampleRate SAMPLERATE
 
+// For now, we'll use simple defines for channel time/resolution
+#define iChannelTime vec4(TIME, TIME, TIME, TIME)
+#define iChannelResolution mat4(vec4(RENDERSIZE, 1.0, 0.0), vec4(RENDERSIZE, 1.0, 0.0), vec4(RENDERSIZE, 1.0, 0.0), vec4(RENDERSIZE, 1.0, 0.0))
+
+// Compatibility macros for older shaders
+#define iGlobalTime iTime
+#define iGlobalDelta iTimeDelta
+#define iGlobalFrame iFrame
+)_";
+  }
+
+  // Add the original Shadertoy code
   m_fragment += m_sourceFragment;
 
-  boost::replace_all(m_fragment, "iGlobalTime", "TIME");        // float
-  boost::replace_all(m_fragment, "iGlobalDelta", "TIMEDELTA");  // float
-  boost::replace_all(m_fragment, "iGlobalFrame", "FRAMEINDEX"); // float -> int
-  boost::replace_all(m_fragment, "iDate", "DATE");              // vec4
-  boost::replace_all(m_fragment, "iSampleRate", "SAMPLERATE");  // float
-  boost::replace_all(m_fragment, "iResolution", "RENDERSIZE");  // vec3 -> vec2
+  // Add main function wrapper for mainImage
+  {
+    m_fragment += R"_(
+void main(void)
+{
+    vec4 fragColor = vec4(0.0);
+    mainImage(fragColor, isf_FragCoord.xy);
+    isf_FragColor = fragColor;
+}
+)_";
+  }
 
-  boost::replace_all(m_fragment, "iMouse", "MOUSE");                         // vec4
-  boost::replace_all(m_fragment, "iChannelTime", "CHANNELTIME");             // float[4]
-  boost::replace_all(m_fragment, "iChannelResolution", "CHANNELRESOLUTION"); // vec3[4]
-  boost::replace_all(m_fragment, "iChannel0", "CHANNEL"); // sampler2D / 3D
+  // Generate vertex shader
+  {
+    m_vertex = GLSL45.versionPrelude;
+    m_vertex += GLSL45.vertexPrelude;
+    m_vertex += GLSL45.defaultUniforms;
+    m_vertex += GLSL45.vertexInitFunc;
+    m_vertex += GLSL45.vertexDefaultMain;
+  }
 
-  m_fragment +=
-      R"_(
-            void main(void)
-            {
-              mainImage(gl_FragColor, gl_FragCoord.xy);
-            }
-            )_";
-  m_vertex =
-      R"_(
-            in vec2 position;
-            uniform vec2 RENDERSIZE;
-            out vec2 isf_FragNormCoord;
+  // Check if shader uses mainSound or mainVR and add descriptor info
+  if(m_sourceFragment.find("vec2 mainSound(") != std::string::npos
+     || m_sourceFragment.find("vec2 mainSound (") != std::string::npos)
+  {
+    // This is a sound shader
+    m_desc.categories.push_back("Shadertoy Sound");
+  }
 
-            void main(void) {
-            gl_Position = vec4( position, 0.0, 1.0 );
-            isf_FragNormCoord = vec2((gl_Position.x+1.0)/2.0, (gl_Position.y+1.0)/2.0);
-            }
-            )_";
+  if(m_sourceFragment.find("void mainVR(") != std::string::npos
+     || m_sourceFragment.find("void mainVR (") != std::string::npos)
+  {
+    // This is a VR shader
+    m_desc.categories.push_back("Shadertoy VR");
+  }
+
+  // Add channel inputs to descriptor
+  for(int i = 0; i < 4; ++i) {
+    input channel_input;
+    channel_input.name = "iChannel" + std::to_string(i);
+    if(!m_sourceFragment.contains(channel_input.name))
+      continue;
+    channel_input.label = "Channel " + std::to_string(i);
+    channel_input.data = image_input{};
+    m_desc.inputs.push_back(channel_input);
+  }
 }
 
 void parser::parse_glsl_sandbox()
@@ -1006,6 +1047,569 @@ void parser::parse_glsl_sandbox()
             isf_FragNormCoord = vec2((gl_Position.x+1.0)/2.0, (gl_Position.y+1.0)/2.0);
             }
    )_";
+}
+
+void parser::parse_shadertoy_json(const std::string& json)
+{
+  descriptor desc;
+  
+  // Parse the JSON
+  auto doc = sajson::parse(sajson::dynamic_allocation(), sajson::mutable_string_view(json.length(), const_cast<char*>(json.data())));
+  if(!doc.is_valid()) {
+    throw invalid_file{"Invalid JSON: " + std::string(doc.get_error_message())};
+  }
+  
+  auto root = doc.get_root();
+  if(root.get_type() != sajson::TYPE_ARRAY) {
+    throw invalid_file{"Expected JSON array at root"};
+  }
+  
+  if(root.get_length() == 0) {
+    throw invalid_file{"Empty shader array"};
+  }
+  
+  // Get the first shader
+  auto shader = root.get_array_element(0);
+  if(shader.get_type() != sajson::TYPE_OBJECT) {
+    throw invalid_file{"Expected shader object"};
+  }
+  
+  // Extract shader info
+  if(auto info_k = shader.find_object_key(sajson::literal("info"));
+     info_k != shader.get_length())
+  {
+    auto info = shader.get_object_value(info_k);
+    if(info.get_type() == sajson::TYPE_OBJECT) {
+      // Get shader name
+      if(auto name_k = info.find_object_key(sajson::literal("name"));
+         name_k != info.get_length())
+      {
+        auto name = info.get_object_value(name_k);
+        if(name.get_type() == sajson::TYPE_STRING) {
+          desc.description = "Shadertoy: " + std::string(name.as_string());
+        }
+      }
+
+      // Get shader description
+      if(auto desc_k = info.find_object_key(sajson::literal("description"));
+         desc_k != info.get_length())
+      {
+        auto description = info.get_object_value(desc_k);
+        if(description.get_type() == sajson::TYPE_STRING) {
+          if(!desc.description.empty()) desc.description += "\n";
+          desc.description += description.as_string();
+        }
+      }
+
+      // Get author info
+      if(auto user_k = info.find_object_key(sajson::literal("username"));
+         user_k != info.get_length())
+      {
+        auto username = info.get_object_value(user_k);
+        if(username.get_type() == sajson::TYPE_STRING) {
+          desc.credits = "By " + std::string(username.as_string()) + " on Shadertoy";
+        }
+      }
+
+      // Add tags as categories
+      if(auto tags_k = info.find_object_key(sajson::literal("tags"));
+         tags_k != info.get_length())
+      {
+        auto tags = info.get_object_value(tags_k);
+        if(tags.get_type() == sajson::TYPE_ARRAY) {
+          for(std::size_t i = 0; i < tags.get_length(); i++) {
+            auto tag = tags.get_array_element(i);
+            if(tag.get_type() == sajson::TYPE_STRING) {
+              desc.categories.push_back(tag.as_string());
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Process render passes
+  if(auto passes_k = shader.find_object_key(sajson::literal("renderpass"));
+     passes_k != shader.get_length())
+  {
+    auto renderpasses = shader.get_object_value(passes_k);
+    if(renderpasses.get_type() == sajson::TYPE_ARRAY) {
+      // Count passes and check for special types
+      int imagePassCount = 0;
+      bool hasSound = false;
+      bool hasCubemap = false;
+      bool hasBuffer = false;
+      
+      for(std::size_t i = 0; i < renderpasses.get_length(); i++) {
+        auto pass = renderpasses.get_array_element(i);
+        if(pass.get_type() == sajson::TYPE_OBJECT) {
+          if(auto type_k = pass.find_object_key(sajson::literal("type"));
+             type_k != pass.get_length())
+          {
+            auto type = pass.get_object_value(type_k);
+            if(type.get_type() == sajson::TYPE_STRING) {
+              std::string typeStr = type.as_string();
+              if(typeStr == "image") imagePassCount++;
+              else if(typeStr == "sound") hasSound = true;
+              else if(typeStr == "cubemap") hasCubemap = true;
+              else if(typeStr == "buffer") hasBuffer = true;
+            }
+          }
+        }
+      }
+      
+      // Add appropriate categories
+      if(hasSound) desc.categories.push_back("Shadertoy Sound");
+      if(hasCubemap) desc.categories.push_back("Shadertoy Cubemap");
+      if(hasBuffer || imagePassCount > 1) desc.categories.push_back("Shadertoy Multipass");
+      
+      // Process inputs from all passes
+      ossia::flat_set<std::string> processedChannels;
+      
+      for(std::size_t pass_i = 0; pass_i < renderpasses.get_length(); pass_i++) {
+        auto pass = renderpasses.get_array_element(pass_i);
+        if(pass.get_type() == sajson::TYPE_OBJECT) {
+          // Get inputs for this pass
+          if(auto inputs_k = pass.find_object_key(sajson::literal("inputs"));
+             inputs_k != pass.get_length())
+          {
+            auto inputs = pass.get_object_value(inputs_k);
+            if(inputs.get_type() == sajson::TYPE_ARRAY) {
+              for(std::size_t inp_i = 0; inp_i < inputs.get_length(); inp_i++) {
+                auto input_obj = inputs.get_array_element(inp_i);
+                if(input_obj.get_type() == sajson::TYPE_OBJECT) {
+                  // Get channel number
+                  int channel = -1;
+                  if(auto chan_k = input_obj.find_object_key(sajson::literal("channel"));
+                     chan_k != input_obj.get_length())
+                  {
+                    auto chan = input_obj.get_object_value(chan_k);
+                    if(chan.get_type() == sajson::TYPE_INTEGER) {
+                      channel = chan.get_integer_value();
+                    }
+                  }
+
+                  if(channel >= 0 && channel < 4)
+                  {
+                    std::string channelName = "iChannel" + std::to_string(channel);
+                    
+                    // Only add if not already processed
+                    if(processedChannels.find(channelName) == processedChannels.end()) {
+                      processedChannels.insert(channelName);
+                      
+                      // Get input type
+                      std::string inputType = "texture";
+                      if(auto type_k
+                         = input_obj.find_object_key(sajson::literal("ctype"));
+                         type_k != input_obj.get_length())
+                      {
+                        auto ctype = input_obj.get_object_value(type_k);
+                        if(ctype.get_type() == sajson::TYPE_STRING) {
+                          inputType = ctype.as_string();
+                        }
+                      }
+
+                      // Create appropriate input based on type
+                      input inp;
+                      inp.name = channelName;
+                      inp.label = "Channel " + std::to_string(channel);
+                      
+                      if(inputType == "texture" || inputType == "cubemap" || inputType == "buffer" || inputType == "video") {
+                        inp.data = image_input{};
+                      } else if(inputType == "music" || inputType == "musicstream") {
+                        inp.data = audio_input{};
+                      } else if(inputType == "mic" || inputType == "webcam") {
+                        inp.data = image_input{}; // Treat as image input for now
+                        inp.label += " (" + inputType + ")";
+                      } else {
+                        inp.data = image_input{}; // Default to image
+                      }
+                      
+                      desc.inputs.push_back(inp);
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      
+      // If no specific inputs were found, add the default 4 channels
+      if(desc.inputs.empty()) {
+        if(json.contains("iChannel"))
+          for(int i = 0; i < 4; ++i)
+          {
+            input channel_input;
+            channel_input.name = "iChannel" + std::to_string(i);
+            channel_input.label = "Channel " + std::to_string(i);
+            channel_input.data = image_input{};
+            desc.inputs.push_back(channel_input);
+          }
+      }
+    }
+  }
+
+  // Mark as Shadertoy shader
+  if(desc.categories.empty()) {
+    desc.categories.push_back("Shadertoy");
+  }
+
+  m_desc = desc;
+  
+  // Extract shader code from the first image pass
+  std::string mainImageCode;
+  if(auto passes_k = shader.find_object_key(sajson::literal("renderpass"));
+     passes_k != shader.get_length())
+  {
+    auto renderpasses = shader.get_object_value(passes_k);
+    if(renderpasses.get_type() == sajson::TYPE_ARRAY) {
+      for(std::size_t i = 0; i < renderpasses.get_length(); i++) {
+        auto pass = renderpasses.get_array_element(i);
+        if(pass.get_type() == sajson::TYPE_OBJECT) {
+          // Check if this is an image pass
+          bool isImagePass = false;
+          if(auto type_k = pass.find_object_key(sajson::literal("type"));
+             type_k != pass.get_length())
+          {
+            auto type = pass.get_object_value(type_k);
+            if(type.get_type() == sajson::TYPE_STRING && 
+               std::string(type.as_string()) == "image") {
+              isImagePass = true;
+            }
+          }
+          
+          if(isImagePass) {
+            // Extract the shader code
+            if(auto code_k = pass.find_object_key(sajson::literal("code"));
+               code_k != pass.get_length())
+            {
+              auto code = pass.get_object_value(code_k);
+              if(code.get_type() == sajson::TYPE_STRING) {
+                mainImageCode = code.as_string();
+                break; // Take the first image pass
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  // Generate ISF-compatible shaders
+  if(!mainImageCode.empty()) {
+    // Generate fragment shader with ISF compatibility
+    {
+      // Add Shadertoy compatibility layer
+      m_fragment += R"_(
+// Shadertoy compatibility uniforms
+vec3 iResolution  = vec3(RENDERSIZE, 1.0);
+float iTime = TIME;
+float iTimeDelta = TIMEDELTA;
+int iFrame = FRAMEINDEX;
+vec4 iMouse = MOUSE;
+vec4 iDate = DATE;
+float iSampleRate = isf_process_uniforms.SAMPLERATE_;
+
+// For now, we'll use simple defines for channel time/resolution
+vec4 iChannelTime = vec4(TIME, TIME, TIME, TIME);
+mat4 iChannelResolution = mat4(vec4(RENDERSIZE, 1.0, 0.0), vec4(RENDERSIZE, 1.0, 0.0), vec4(RENDERSIZE, 1.0, 0.0), vec4(RENDERSIZE, 1.0, 0.0));
+
+// Compatibility macros for older shaders
+float iGlobalTime = iTime;
+float iGlobalDelta = iTimeDelta;
+int iGlobalFrame = iFrame;
+)_";
+
+      // Add the main Shadertoy code
+      m_fragment += mainImageCode;
+      
+      // Add main function wrapper
+      m_fragment += R"_(
+
+void main(void)
+{
+    vec4 fragColor = vec4(0.0);
+    mainImage(fragColor, isf_FragCoord.xy);
+    isf_FragColor = fragColor;
+}
+)_";
+      
+      // Generate vertex shader
+      m_vertex = GLSL45.versionPrelude;
+      m_vertex += GLSL45.vertexPrelude;
+      m_vertex += GLSL45.defaultUniforms;
+      m_vertex += GLSL45.vertexInitFunc;
+      m_vertex += GLSL45.vertexDefaultMain;
+    }
+  } else {
+    throw invalid_file{"No valid image shader code found in Shadertoy JSON"};
+  }
+}
+
+// Helper function to escape JSON strings
+static auto escape_json(const std::string& str) -> std::string
+{
+  std::string result;
+  for(char c : str)
+  {
+    switch(c)
+    {
+      case '"':
+        result += "\\\"";
+        break;
+      case '\\':
+        result += "\\\\";
+        break;
+      case '\n':
+        result += "\\n";
+        break;
+      case '\r':
+        result += "\\r";
+        break;
+      case '\t':
+        result += "\\t";
+        break;
+      default:
+        result += c;
+        break;
+    }
+  }
+  return result;
+};
+std::string parser::write_isf() const
+{
+  std::ostringstream oss;
+
+  // Generate ISF JSON header
+  oss << "/*\n{\n";
+  
+  // Add description if present
+  if(!m_desc.description.empty()) {
+    oss << "  \"DESCRIPTION\": \"" << escape_json(m_desc.description) << "\",\n";
+  }
+  
+  // Add credits if present
+  if(!m_desc.credits.empty()) {
+    oss << "  \"CREDIT\": \"" << escape_json(m_desc.credits) << "\",\n";
+  }
+  
+  // Add categories if present
+  if(!m_desc.categories.empty()) {
+    oss << "  \"CATEGORIES\": [\n";
+    for(size_t i = 0; i < m_desc.categories.size(); ++i) {
+      oss << "    \"" << escape_json(m_desc.categories[i]) << "\"";
+      if(i < m_desc.categories.size() - 1)
+        oss << ",";
+      oss << "\n";
+    }
+    oss << "  ]";
+    if(!m_desc.inputs.empty() || !m_desc.passes.empty())
+      oss << ",";
+    oss << "\n";
+  }
+  
+  // Add inputs
+  if(!m_desc.inputs.empty()) {
+    oss << "  \"INPUTS\": [\n";
+    
+    for(size_t i = 0; i < m_desc.inputs.size(); ++i) {
+      const auto& input = m_desc.inputs[i];
+      oss << "    {\n";
+      oss << "      \"NAME\": \"" << escape_json(input.name) << "\",\n";
+      
+      if(!input.label.empty()) {
+        oss << "      \"LABEL\": \"" << escape_json(input.label) << "\",\n";
+      }
+      
+      // Handle different input types
+      struct input_serializer {
+        std::ostringstream& oss;
+        
+        void operator()(const float_input& f) {
+          oss << "      \"TYPE\": \"float\",\n";
+          oss << "      \"MIN\": " << f.min << ",\n";
+          oss << "      \"MAX\": " << f.max << ",\n";
+          oss << "      \"DEFAULT\": " << f.def << "\n";
+        }
+        
+        void operator()(const long_input& l) {
+          oss << "      \"TYPE\": \"long\",\n";
+          if(!l.values.empty()) {
+            oss << "      \"VALUES\": [";
+            for(size_t i = 0; i < l.values.size(); ++i) {
+              oss << l.values[i];
+              if(i < l.values.size() - 1) oss << ", ";
+            }
+            oss << "],\n";
+          }
+          if(!l.labels.empty()) {
+            oss << "      \"LABELS\": [";
+            for(size_t i = 0; i < l.labels.size(); ++i) {
+              oss << "\"" << escape_json(l.labels[i]) << "\"";
+              if(i < l.labels.size() - 1) oss << ", ";
+            }
+            oss << "],\n";
+          }
+          oss << "      \"DEFAULT\": " << l.def << "\n";
+        }
+        
+        void operator()(const bool_input& b) {
+          oss << "      \"TYPE\": \"bool\",\n";
+          oss << "      \"DEFAULT\": " << (b.def ? "true" : "false") << "\n";
+        }
+        
+        void operator()(const event_input&) {
+          oss << "      \"TYPE\": \"event\"\n";
+        }
+        
+        void operator()(const point2d_input& p) {
+          oss << "      \"TYPE\": \"point2D\"";
+          if(p.min) {
+            oss << ",\n      \"MIN\": [" << (*p.min)[0] << ", " << (*p.min)[1] << "]";
+          }
+          if(p.max) {
+            oss << ",\n      \"MAX\": [" << (*p.max)[0] << ", " << (*p.max)[1] << "]";
+          }
+          if(p.def) {
+            oss << ",\n      \"DEFAULT\": [" << (*p.def)[0] << ", " << (*p.def)[1] << "]";
+          }
+          oss << "\n";
+        }
+        
+        void operator()(const point3d_input& p) {
+          oss << "      \"TYPE\": \"point3D\"";
+          if(p.min) {
+            oss << ",\n      \"MIN\": [" << (*p.min)[0] << ", " << (*p.min)[1] << ", " << (*p.min)[2] << "]";
+          }
+          if(p.max) {
+            oss << ",\n      \"MAX\": [" << (*p.max)[0] << ", " << (*p.max)[1] << ", " << (*p.max)[2] << "]";
+          }
+          if(p.def) {
+            oss << ",\n      \"DEFAULT\": [" << (*p.def)[0] << ", " << (*p.def)[1] << ", " << (*p.def)[2] << "]";
+          }
+          oss << "\n";
+        }
+        
+        void operator()(const color_input& c) {
+          oss << "      \"TYPE\": \"color\"";
+          if(c.min) {
+            oss << ",\n      \"MIN\": [" << (*c.min)[0] << ", " << (*c.min)[1] << ", " << (*c.min)[2] << ", " << (*c.min)[3] << "]";
+          }
+          if(c.max) {
+            oss << ",\n      \"MAX\": [" << (*c.max)[0] << ", " << (*c.max)[1] << ", " << (*c.max)[2] << ", " << (*c.max)[3] << "]";
+          }
+          if(c.def) {
+            oss << ",\n      \"DEFAULT\": [" << (*c.def)[0] << ", " << (*c.def)[1] << ", " << (*c.def)[2] << ", " << (*c.def)[3] << "]";
+          }
+          oss << "\n";
+        }
+        
+        void operator()(const image_input&) {
+          oss << "      \"TYPE\": \"image\"\n";
+        }
+        
+        void operator()(const audio_input& a) {
+          oss << "      \"TYPE\": \"audio\"";
+          if(a.max > 0) {
+            oss << ",\n      \"MAX\": " << a.max;
+          }
+          oss << "\n";
+        }
+        
+        void operator()(const audioFFT_input& a) {
+          oss << "      \"TYPE\": \"audioFFT\"";
+          if(a.max > 0) {
+            oss << ",\n      \"MAX\": " << a.max;
+          }
+          oss << "\n";
+        }
+      };
+      
+      ossia::visit(input_serializer{oss}, input.data);
+      
+      oss << "    }";
+      if(i < m_desc.inputs.size() - 1)
+        oss << ",";
+      oss << "\n";
+    }
+    
+    oss << "  ]";
+    
+    // Add comma if there are passes
+    if(!m_desc.passes.empty()) {
+      oss << ",";
+    }
+    oss << "\n";
+  }
+  
+  // Add passes if present
+  if(!m_desc.passes.empty()) {
+    oss << "  \"PASSES\": [\n";
+    
+    for(size_t i = 0; i < m_desc.passes.size(); ++i) {
+      const auto& pass = m_desc.passes[i];
+      oss << "    {\n";
+      
+      if(!pass.target.empty()) {
+        oss << "      \"TARGET\": \"" << escape_json(pass.target) << "\",\n";
+      }
+      
+      if(pass.persistent) {
+        oss << "      \"PERSISTENT\": true,\n";
+      }
+      
+      if(pass.float_storage) {
+        oss << "      \"FLOAT\": true,\n";
+      }
+      
+      if(pass.nearest_filter) {
+        oss << "      \"FILTER\": \"NEAREST\",\n";
+      }
+      
+      if(!pass.width_expression.empty()) {
+        // Check if it's a numeric value or expression
+        try {
+          std::stod(pass.width_expression);
+          oss << "      \"WIDTH\": " << pass.width_expression << ",\n";
+        } catch(...) {
+          oss << "      \"WIDTH\": \"" << escape_json(pass.width_expression) << "\",\n";
+        }
+      }
+      
+      if(!pass.height_expression.empty()) {
+        // Check if it's a numeric value or expression
+        try {
+          std::stod(pass.height_expression);
+          oss << "      \"HEIGHT\": " << pass.height_expression;
+        } catch(...) {
+          oss << "      \"HEIGHT\": \"" << escape_json(pass.height_expression) << "\"";
+        }
+      }
+      
+      // Remove trailing comma if last property
+      auto str = oss.str();
+      if(str.size() > 2 && str[str.size() - 2] == ',') {
+        oss.str(str.substr(0, str.size() - 2) + "\n");
+      }
+      
+      oss << "    }";
+      if(i < m_desc.passes.size() - 1)
+        oss << ",";
+      oss << "\n";
+    }
+    
+    oss << "  ]\n";
+  }
+  
+  oss << "}\n*/\n\n";
+  
+  // Add the fragment shader code
+  if(!m_fragment.empty()) {
+    oss << m_fragment;
+  }
+  
+  return oss.str();
 }
 
 }
