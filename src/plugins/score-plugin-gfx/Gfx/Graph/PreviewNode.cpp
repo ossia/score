@@ -30,10 +30,12 @@ std::shared_ptr<RenderState> importRenderState(QSize sz, QRhi* rhi)
       state.api = score::gfx::D3D11;
       state.version = QShaderVersion(50);
       break;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
     case QRhi::D3D12:
       state.api = score::gfx::D3D12;
       state.version = QShaderVersion(50);
       break;
+#endif
     case QRhi::Null:
       state.api = score::gfx::Null;
       state.version = QShaderVersion(120);

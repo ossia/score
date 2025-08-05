@@ -80,7 +80,10 @@ score_plugin_js::score_plugin_js()
 
   qmlRegisterType<JS::AddressSource>("Score.UI", 1, 0, "AddressSource");
   qmlRegisterType<JS::PortSource>("Score.UI", 1, 0, "PortSource");
+
+#if defined(SCORE_HAS_GPU_JS)
   qmlRegisterType<JS::TextureSource>("Score.UI", 1, 0, "TextureSource");
+#endif
   qmlRegisterType<JS::PortSink>("Score.UI", 1, 0, "PortSink");
   qmlRegisterType<JS::GlobalDeviceEnumerator>("Score.UI", 1, 0, "DeviceEnumerator");
   qmlRegisterType<JS::DeviceListener>("Score.UI", 1, 0, "DeviceListener");
