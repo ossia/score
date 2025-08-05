@@ -37,6 +37,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/Metatypes.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/PortSource.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/PortSink.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/TextureSource.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/Utils.hpp"
 
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/ApplicationPlugin.hpp"
@@ -73,6 +74,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/PortSource.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/PortSink.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/QmlObjects.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/TextureSource.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/ValueTypes.Qt6.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/Utils.cpp"
 

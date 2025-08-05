@@ -102,27 +102,28 @@ set(HDRS
     Gfx/Graph/DepthNode.hpp
     Gfx/Graph/GeometryFilterNode.hpp
     Gfx/Graph/GeometryFilterNodeRenderer.hpp
-    Gfx/Graph/OutputNode.hpp
-    Gfx/Graph/Scale.hpp
-    Gfx/Graph/Window.hpp
-    Gfx/Graph/RenderState.hpp
-    Gfx/Graph/Node.hpp
-    Gfx/Graph/ISFNode.hpp
-    Gfx/Graph/RenderedISFNode.hpp
     Gfx/Graph/Graph.hpp
-    Gfx/Graph/Uniforms.hpp
+    Gfx/Graph/ISFNode.hpp
+    Gfx/Graph/ImageNode.hpp
     Gfx/Graph/Mesh.hpp
-    Gfx/Graph/RenderList.hpp
+    Gfx/Graph/Node.hpp
     Gfx/Graph/NodeRenderer.hpp
+    Gfx/Graph/OutputNode.hpp
+    Gfx/Graph/PhongNode.hpp
+    Gfx/Graph/PreviewNode.hpp
+    Gfx/Graph/RenderList.hpp
+    Gfx/Graph/RenderState.hpp
+    Gfx/Graph/RenderedISFNode.hpp
+    Gfx/Graph/Scale.hpp
+    Gfx/Graph/ScreenNode.hpp
+    Gfx/Graph/ShaderCache.hpp
+    Gfx/Graph/TexgenNode.hpp
+    Gfx/Graph/TextNode.hpp
+    Gfx/Graph/Uniforms.hpp
+    Gfx/Graph/Utils.hpp
     Gfx/Graph/VideoNode.hpp
     Gfx/Graph/VideoNodeRenderer.hpp
-    Gfx/Graph/PhongNode.hpp
-    Gfx/Graph/ImageNode.hpp
-    Gfx/Graph/TexgenNode.hpp
-    Gfx/Graph/ScreenNode.hpp
-    Gfx/Graph/TextNode.hpp
-    Gfx/Graph/ShaderCache.hpp
-    Gfx/Graph/Utils.hpp
+    Gfx/Graph/Window.hpp
     Gfx/Graph/decoders/GPUVideoDecoder.hpp
     Gfx/Graph/decoders/HAP.hpp
     Gfx/Graph/decoders/NV12.hpp
@@ -193,22 +194,23 @@ set(SRCS
     Gfx/Graph/decoders/HAP.cpp
     Gfx/Graph/GeometryFilterNode.cpp
     Gfx/Graph/GeometryFilterNodeRenderer.cpp
-    Gfx/Graph/Node.cpp
     Gfx/Graph/Graph.cpp
-    Gfx/Graph/RenderList.cpp
-    Gfx/Graph/Mesh.cpp
-    Gfx/Graph/ImageNode.cpp
     Gfx/Graph/ISFNode.cpp
-    Gfx/Graph/RenderedISFNode.cpp
-    Gfx/Graph/VideoNode.cpp
-    Gfx/Graph/VideoNodeRenderer.cpp
+    Gfx/Graph/ImageNode.cpp
+    Gfx/Graph/Mesh.cpp
+    Gfx/Graph/Node.cpp
     Gfx/Graph/NodeRenderer.cpp
     Gfx/Graph/OutputNode.cpp
+    Gfx/Graph/PhongNode.cpp
+    Gfx/Graph/PreviewNode.cpp
+    Gfx/Graph/RenderList.cpp
+    Gfx/Graph/RenderedISFNode.cpp
     Gfx/Graph/ScreenNode.cpp
     Gfx/Graph/ShaderCache.cpp
     Gfx/Graph/TextNode.cpp
-    Gfx/Graph/PhongNode.cpp
     Gfx/Graph/Utils.cpp
+    Gfx/Graph/VideoNode.cpp
+    Gfx/Graph/VideoNodeRenderer.cpp
     Gfx/Graph/Window.cpp
 
     Gfx/GfxApplicationPlugin.cpp
