@@ -6,6 +6,46 @@
 #include <score/gfx/OpenGL.hpp>
 namespace score::gfx
 {
+std::shared_ptr<RenderState> importRenderState(QSize sz, QRhi* rhi)
+{
+  auto st = std::make_shared<RenderState>();
+  RenderState& state = *st;
+  switch(rhi->backend())
+  {
+    case QRhi::OpenGLES2:
+      state.api = score::gfx::OpenGL;
+#ifndef QT_NO_OPENGL
+      state.version = score::GLCapabilities{}.qShaderVersion;
+#endif
+      break;
+    case QRhi::Vulkan:
+      state.api = score::gfx::Vulkan;
+      state.version = QShaderVersion(100);
+      break;
+    case QRhi::Metal:
+      state.api = score::gfx::Metal;
+      state.version = QShaderVersion(12);
+      break;
+    case QRhi::D3D11:
+      state.api = score::gfx::D3D11;
+      state.version = QShaderVersion(50);
+      break;
+    case QRhi::D3D12:
+      state.api = score::gfx::D3D12;
+      state.version = QShaderVersion(50);
+      break;
+    case QRhi::Null:
+      state.api = score::gfx::Null;
+      state.version = QShaderVersion(120);
+      break;
+  }
+
+  state.rhi = rhi;
+  state.samples = 1; // FIXME
+  state.renderSize = sz;
+  state.outputSize = sz;
+  return st;
+}
 
 PreviewNode::PreviewNode(
     Gfx::SharedOutputSettings s, QRhi* rhi, QRhiRenderTarget* tgt, QRhiTexture* tex)
@@ -71,22 +111,9 @@ void PreviewNode::createOutput(
   m_renderState = std::make_shared<score::gfx::RenderState>();
   m_update = onUpdate;
 
-  m_renderState->surface = QRhiGles2InitParams::newFallbackSurface();
-  QRhiGles2InitParams params;
-  params.fallbackSurface = m_renderState->surface;
-  score::GLCapabilities caps;
-  caps.setupFormat(params.format);
-  // m_rhi = QRhi::create(QRhi::OpenGLES2, &params, {});
-
-  m_renderState->rhi = m_rhi;
-  m_renderState->renderSize = QSize(m_settings.width, m_settings.height);
-  m_renderState->outputSize = m_renderState->renderSize;
-  m_renderState->api = score::gfx::GraphicsApi::OpenGL;
-  m_renderState->version = caps.qShaderVersion; // FIXME works only for GL
-
+  m_renderState = importRenderState(QSize(m_settings.width, m_settings.height), m_rhi);
   m_renderState->renderPassDescriptor = m_renderTarget->renderPassDescriptor();
 
-  qDebug(Q_FUNC_INFO);
   onReady();
 }
 
