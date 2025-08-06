@@ -48,7 +48,9 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
       {
         con(m_compiler, &AddonCompiler::jobCompleted, this, [this](auto addon) {
           registerAddon(addon);
-          QTimer::singleShot(1000, qApp, &QCoreApplication::quit);
+          QTimer::singleShot(1000, qApp, [] {
+            score::GUIApplicationInterface::instance().forceExit();
+          });
         });
 
         if(!setupNode(node_to_compile))
@@ -58,13 +60,18 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
       {
         con(m_compiler, &AddonCompiler::jobCompleted, this, [this](auto addon) {
           registerAddon(addon);
-          QTimer::singleShot(1000, qApp, &QCoreApplication::quit);
+          QTimer::singleShot(1000, qApp, [] {
+            score::GUIApplicationInterface::instance().forceExit();
+          });
         });
 
         if(!setupAddon(addon_to_compile))
           exit(1);
       }
-      con(m_compiler, &AddonCompiler::jobFailed, this, [] { exit(1); });
+      con(m_compiler, &AddonCompiler::jobFailed, this, [] {
+        score::GUIApplicationInterface::instance().requestExit();
+        QTimer::singleShot(500, [] { QCoreApplication::exit(1); });
+      });
     }
     else
     {

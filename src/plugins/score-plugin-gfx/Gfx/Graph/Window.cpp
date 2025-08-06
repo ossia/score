@@ -4,6 +4,8 @@
 #include <score/application/ApplicationContext.hpp>
 #include <score/gfx/Vulkan.hpp>
 
+#include <core/application/ApplicationInterface.hpp>
+
 #include <QGuiApplication>
 #include <QPlatformSurfaceEvent>
 #include <QTimer>
@@ -288,7 +290,7 @@ bool Window::event(QEvent* e)
         if(ev->key() == Qt::Key_Escape)
           if(m_embeddedFullscreen)
             QMetaObject::invokeMethod(
-                qGuiApp, [] { QCoreApplication::instance()->exit(0); });
+                qGuiApp, [] { score::GUIApplicationInterface::instance().forceExit(); });
       }
 
       break;
