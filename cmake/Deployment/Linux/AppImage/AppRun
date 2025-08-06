@@ -4,13 +4,39 @@ export LD_LIBRARY_PATH="${APPIMAGE_LIBRARY_PATH}:${APPDIR}/usr/lib:${LD_LIBRARY_
 
 APP_SUFFIX=""
 
-[[ "$@" =~ '--platform=cli' ]] && APP_SUFFIX=-cli
-[[ "$@" =~ '--platform=x11' ]] && APP_SUFFIX=-x11
-[[ "$@" =~ '--platform=wayland' ]] && APP_SUFFIX=-wayland
-[[ "$@" =~ '--platform=eglfs' ]] && APP_SUFFIX=-eglfs
-[[ "$@" =~ '--platform=vkkhrdisplay' ]] && APP_SUFFIX=-vkkhrdisplay
-[[ "$@" =~ '--platform=vulkan' ]] && APP_SUFFIX=-vkkhrdisplay
-[[ "$@" =~ '--platform=vnc' ]] && APP_SUFFIX=-vnc
-[[ "$@" =~ '--platform=help' ]] && echo "Valid options for --platform: cli, x11, wayland, eglfs, vkkhrdisplay, vnc" && exit 1
-
+for arg in "$@"; do
+  case "$arg" in
+    --platform=cli)
+      APP_SUFFIX=-cli
+      ;;
+    --platform=x11)
+      APP_SUFFIX=-x11
+      ;;
+    --platform=wayland)
+      APP_SUFFIX=-wayland
+      ;;
+    --platform=eglfs)
+      APP_SUFFIX=-eglfs
+      ;;
+    --platform=vkkhrdisplay)
+      APP_SUFFIX=-vkkhrdisplay
+      ;;
+    --platform=vnc)
+      APP_SUFFIX=-vnc
+      ;;
+    --platform=vstpuppet)
+      APP_SUFFIX=-vstpuppet
+      ;;
+    --platform=vst3puppet)
+      APP_SUFFIX=-vst3puppet
+      ;;
+    --platform=clappuppet)
+      APP_SUFFIX=-clappuppet
+      ;;
+    --platform=help)
+      echo "Valid options for --platform: cli, x11, wayland, eglfs, vkkhrdisplay, vnc"
+      exit 1
+      ;;
+  esac
+done
 exec "${APPDIR}/usr/bin/ossia-score${APP_SUFFIX}" "$@"
