@@ -11,6 +11,6 @@ APP_SUFFIX=""
 [[ "$@" =~ '--platform=vkkhrdisplay' ]] && APP_SUFFIX=-vkkhrdisplay
 [[ "$@" =~ '--platform=vulkan' ]] && APP_SUFFIX=-vkkhrdisplay
 [[ "$@" =~ '--platform=vnc' ]] && APP_SUFFIX=-vnc
-[[ "$@" =~ '--platform=help' ]] && echo "Valid options for --ui-mode: cli, x11, wayland, eglfs, vkkhrdisplay, vnc" && exit 1
+[[ "$@" =~ '--platform=help' ]] && echo "Valid options for --platform: cli, x11, wayland, eglfs, vkkhrdisplay, vnc" && exit 1
 
 exec "${APPDIR}/usr/bin/ossia-score${APP_SUFFIX}" "$@"
