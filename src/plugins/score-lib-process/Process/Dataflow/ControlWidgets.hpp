@@ -12,6 +12,7 @@
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/graphics/RectItem.hpp>
 #include <score/graphics/TextItem.hpp>
+#include <score/tools/FilePath.hpp>
 #include <score/tools/Unused.hpp>
 #include <score/widgets/ComboBox.hpp>
 #include <score/widgets/ControlWidgets.hpp>
@@ -991,12 +992,13 @@ struct FileChooser
     score::setHelp(act, QObject::tr("Opening a File"));
     act->setIcon(QIcon(":/icons/search.png"));
     sl->setPlaceholderText(QObject::tr("Open File"));
-    auto on_open = [=, &inlet] {
+    auto on_open = [=, &ctx, &inlet] {
       auto filename
           = QFileDialog::getOpenFileName(nullptr, "Open File", {}, inlet.filters());
       if(filename.isEmpty())
         return;
-      sl->setText(filename);
+      auto path = score::relativizeFilePath(filename, ctx);
+      sl->setText(path);
     };
 
     QObject::connect(sl, &QLineEdit::returnPressed, on_open);
@@ -1008,8 +1010,9 @@ struct FileChooser
     //sl->setMaximumWidth(70);
 
     QObject::connect(sl, &QLineEdit::editingFinished, context, [sl, &inlet, &ctx]() {
+      auto path = score::relativizeFilePath(sl->text(), ctx);
       CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<T>>(
-          inlet, sl->text().toStdString());
+          inlet, path.toStdString());
     });
     QObject::connect(&inlet, &T::valueChanged, sl, [sl](const ossia::value& val) {
       sl->setText(QString::fromStdString(ossia::convert<std::string>(val)));
@@ -1030,15 +1033,17 @@ struct FileChooser
       if(filename.isEmpty())
         return;
 
+      auto path = score::relativizeFilePath(filename, ctx);
       CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
-          inlet, filename.toStdString());
+          inlet, path.toStdString());
     };
     auto on_set = [&inlet, &ctx](const QString& filename) {
       if(filename.isEmpty())
         return;
 
+      auto path = score::relativizeFilePath(filename, ctx);
       CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
-          inlet, filename.toStdString());
+          inlet, path.toStdString());
     };
     QObject::connect(
         bt, &score::QGraphicsTextButton::pressed, &inlet, on_open, Qt::QueuedConnection);
