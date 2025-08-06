@@ -911,6 +911,63 @@ avnd_make_score(
   OPTIMIZED
 )
 endif()
+
+avnd_make_score(
+  SOURCES
+    "${AVND_FOLDER}/examples/Advanced/UI/Widgets.hpp"
+  TARGET ui_impulse
+  MAIN_CLASS Impulse
+  NAMESPACE uo
+)
+avnd_make_score(
+  SOURCES
+    "${AVND_FOLDER}/examples/Advanced/UI/Widgets.hpp"
+  TARGET ui_float
+  MAIN_CLASS Float
+  NAMESPACE uo
+)
+avnd_make_score(
+  SOURCES
+    "${AVND_FOLDER}/examples/Advanced/UI/Widgets.hpp"
+  TARGET ui_int
+  MAIN_CLASS Integer
+  NAMESPACE uo
+)
+avnd_make_score(
+  SOURCES
+    "${AVND_FOLDER}/examples/Advanced/UI/Widgets.hpp"
+  TARGET ui_string
+  MAIN_CLASS String
+  NAMESPACE uo
+)
+
+avnd_make_score(
+  SOURCES
+    "${AVND_FOLDER}/examples/Advanced/UI/Widgets.hpp"
+  TARGET ui_knob
+  MAIN_CLASS Knob
+  NAMESPACE uo
+)
+avnd_make_score(
+  SOURCES
+    "${AVND_FOLDER}/examples/Advanced/UI/Widgets.hpp"
+  TARGET ui_multislider
+  MAIN_CLASS Multislider
+  NAMESPACE uo
+)
+
+if(0)
+avnd_make_score(
+  SOURCES
+    "${AVND_FOLDER}/examples/Advanced/UI/MultiCursor.hpp"
+  TARGET ui_multicursor
+  MAIN_CLASS MultiCursor
+  NAMESPACE uo
+)
+endif()
+
+
+
 # avnd_score_plugin_add(
 #     BASE_TARGET score_plugin_avnd
 #     SOURCES
