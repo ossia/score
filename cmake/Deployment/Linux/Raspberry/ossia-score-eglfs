@@ -22,5 +22,6 @@ if [[ -n MESA_GLSL_VERSION_OVERRIDE ]]; then
 fi
 
 export QT_QPA_PLATFORM=eglfs
+export QSG_RHI_BACKEND=opengl
 
 "$DIR/ossia-score" $@ --no-opengl
