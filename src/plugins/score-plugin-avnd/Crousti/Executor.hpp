@@ -480,7 +480,7 @@ public:
         {
           self->in_edit(
               [proc = QPointer{&self->process()}, bb = std::move(b)]() mutable {
-            if(proc->to_ui)
+            if(proc && proc->to_ui)
               MessageBusSender{proc->to_ui}(std::move(bb));
           });
         }
@@ -489,7 +489,7 @@ public:
           self->in_edit(
               [proc = QPointer{&self->process()},
                bb = std::make_unique<std::decay_t<T>>(std::move(b))]() mutable {
-            if(proc->to_ui)
+            if(proc && proc->to_ui)
               MessageBusSender{proc->to_ui}(*std::move(bb));
           });
         }
