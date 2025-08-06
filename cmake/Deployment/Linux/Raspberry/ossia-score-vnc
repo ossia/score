@@ -9,9 +9,8 @@ DIR=$(dirname "$DIR")
 
 source "$DIR/setup-dependencies.sh"
 
-export MESA_GLES_VERSION_OVERRIDE=3.2
-export MESA_GLSL_VERSION_OVERRIDE=320
-export LD_LIBRARY_PATH="$DIR/lib"
+# GL does not work in VNC so let's not bother too much with it
+export SCORE_DISABLE_SHADER_PREVIEW=1
 export QT_QPA_PLATFORM="vnc:size=1280x720"
 
-"$DIR/bin/ossia-score" $@
+"$DIR/ossia-score" $@ --no-opengl

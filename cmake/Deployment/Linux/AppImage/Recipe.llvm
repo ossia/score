@@ -61,7 +61,8 @@ cmake --install . --component Devel --prefix "$SDK_DIR/usr"
   find . -name '*.a' -exec rm -rf {} \;
 )
 
-
+# Copy helper scripts
+cp "$SOURCE_DIR/cmake/Deployment/Linux/Raspberry/*" "$APP_DIR/usr/bin/"
 
 # Copy pixmaps
 cp "$APP_DIR/usr/share/applications/ossia-score.desktop" "$APP_DIR/"

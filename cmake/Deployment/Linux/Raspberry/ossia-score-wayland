@@ -6,9 +6,13 @@ DIR=$(dirname "$DIR")
 
 source "$DIR/setup-dependencies.sh"
 
-export MESA_GLES_VERSION_OVERRIDE=3.2
-export MESA_GLSL_VERSION_OVERRIDE=320
-export LD_LIBRARY_PATH="$DIR/lib"
+if [[ -n MESA_GLES_VERSION_OVERRIDE ]]; then
+  export MESA_GLES_VERSION_OVERRIDE=3.2
+fi
+if [[ -n MESA_GLSL_VERSION_OVERRIDE ]]; then
+  export MESA_GLSL_VERSION_OVERRIDE=3.2
+fi
+
 export QT_QPA_PLATFORM=wayland
 
-"$DIR/bin/ossia-score" $@
+"$DIR/ossia-score" $@

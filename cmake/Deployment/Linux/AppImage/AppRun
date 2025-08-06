@@ -1,4 +1,16 @@
 #!/bin/sh
 export LD_LIBRARY_PATH="${APPIMAGE_LIBRARY_PATH}:${APPDIR}/usr/lib:${LD_LIBRARY_PATH}"
 "${APPDIR}/usr/bin/linuxcheck" "${APPDIR}/usr/bin/ossia-score"
-exec "${APPDIR}/usr/bin/ossia-score" "$@"
+
+APP_SUFFIX=""
+
+[[ "$@" =~ '--platform=cli' ]] && APP_SUFFIX=-cli
+[[ "$@" =~ '--platform=x11' ]] && APP_SUFFIX=-x11
+[[ "$@" =~ '--platform=wayland' ]] && APP_SUFFIX=-wayland
+[[ "$@" =~ '--platform=eglfs' ]] && APP_SUFFIX=-eglfs
+[[ "$@" =~ '--platform=vkkhrdisplay' ]] && APP_SUFFIX=-vkkhrdisplay
+[[ "$@" =~ '--platform=vulkan' ]] && APP_SUFFIX=-vkkhrdisplay
+[[ "$@" =~ '--platform=vnc' ]] && APP_SUFFIX=-vnc
+[[ "$@" =~ '--platform=help' ]] && echo "Valid options for --ui-mode: cli, x11, wayland, eglfs, vkkhrdisplay, vnc" && exit 1
+
+exec "${APPDIR}/usr/bin/ossia-score${APP_SUFFIX}" "$@"
