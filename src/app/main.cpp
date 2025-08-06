@@ -78,6 +78,14 @@ extern "C" void sincos(double x, double* sin, double* cos)
 #define HAS_RLIMIT 1
 #endif
 
+#if __has_include(<linux/kd.h>)
+#include <linux/kd.h>
+#include <sys/ioctl.h>
+
+#include <fcntl.h>
+#include <unistd.h>
+#endif
+
 #if defined(__linux__)
 using X11ErrorHandler = int (*)(void*, void*);
 using XSetErrorHandler_ptr = X11ErrorHandler (*)(X11ErrorHandler);
@@ -610,6 +618,33 @@ static void setup_fftw()
 static void setup_fftw() { }
 #endif
 
+// tty functions needed because when exiting with
+// eglfs and vkkhrdisplay we cannot use the keyboard anymore
+// https://stackoverflow.com/a/66526943
+#if defined(KDSKBMODE)
+static int linux_tty_k_mode = -1;
+static void read_linux_tty()
+{
+  int tfd = open("/dev/tty", O_RDWR);
+  if(tfd == -1)
+    return;
+  ioctl(tfd, KDGKBMODE, &linux_tty_k_mode);
+  close(tfd);
+}
+static void restore_linux_tty()
+{
+  int tfd = open("/dev/tty", O_RDWR);
+  if(tfd == -1)
+    return;
+  ioctl(tfd, KDSETMODE, KD_TEXT);          // return to text mode from graphics mode
+  ioctl(tfd, 0x4b51, 0);                   // 0x4b51=KDKBMUTE, from qfbvthandler.cpp
+  ioctl(tfd, KDSKBMODE, linux_tty_k_mode); // set keyboard mode back
+  linux_tty_k_mode = -1;
+  const auto blink_on = "\033[9;15]\033[?33h\033[?25h\033[?0c"; // from qfbvthandler.cpp
+  write(tfd, blink_on, strlen(blink_on) + 1); // enable blanking and cursor
+  close(tfd);
+}
+#endif
 static void setup_limits()
 {
 #if HAS_RLIMIT
@@ -711,6 +746,10 @@ int main(int argc, char** argv)
   // FIXME broken in qt6 qputenv("QT_MAC_WANTS_LAYER", "1");
 #endif
 
+#if defined(KDSKBMODE)
+  read_linux_tty();
+#endif
+
   setup_limits();
   setup_gpu();
   setup_x11(argc, argv);
@@ -728,6 +767,15 @@ int main(int argc, char** argv)
 #if defined(_WIN32)
   winrt::uninit_apartment();
   winrt::init_apartment(winrt::apartment_type::single_threaded);
+#endif
+
+#if defined(KDSKBMODE)
+  {
+    const auto& plat = QGuiApplication::platformName();
+    const bool linux_tty_needs_restore = plat == "eglfs" || plat == "vkkhrdisplay";
+    if(linux_tty_needs_restore)
+      qAddPostRoutine([] { restore_linux_tty(); });
+  }
 #endif
 
   setup_gdk();

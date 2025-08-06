@@ -287,7 +287,8 @@ bool Window::event(QEvent* e)
         this->interactiveEvent(e);
         if(ev->key() == Qt::Key_Escape)
           if(m_embeddedFullscreen)
-            QMetaObject::invokeMethod(qGuiApp, &QCoreApplication::exit);
+            QMetaObject::invokeMethod(
+                qGuiApp, [] { QCoreApplication::instance()->exit(0); });
       }
 
       break;
