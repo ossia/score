@@ -5,6 +5,7 @@
 
 #include <QString>
 
+#include <avnd/binding/ossia/port_base.hpp>
 #include <avnd/concepts/all.hpp>
 #include <avnd/wrappers/metadatas.hpp>
 
