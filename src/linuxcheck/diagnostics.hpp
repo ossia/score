@@ -158,7 +158,6 @@ inline std::string diagnostics(std::string_view path_to_binary)
     if(auto lib = dlopen(dylib.data(), RTLD_LAZY))
     {
       dlclose(lib);
-      break;
     }
     else
     {

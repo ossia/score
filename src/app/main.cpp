@@ -187,7 +187,11 @@ static void setup_x11(int argc, char** argv)
   const bool has_platform = !platform.isEmpty() || platform_in_args;
 
   if(!x11 && !wayland)
+  {
+    // Try eglfs
+    qputenv("QT_QPA_PLATFORM", "eglfs");
     return;
+  }
   static constexpr auto setup_x11_error_handling = [] {
     helper_dylibs.x11 = dlopen("libX11.so.6", RTLD_LAZY | RTLD_LOCAL);
     if(helper_dylibs.x11)
