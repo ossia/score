@@ -41,6 +41,65 @@
     </screenshot>
   </screenshots>
   <releases>
+    <release version="3.6.0" date="2025-08-07">
+      <url type="details">https://github.com/ossia/score/releases/tag/v3.6.0</url>
+      <description>
+        <p>ossia score 3.6.0 is a major release introducing useful new features and objects.</p>
+        <p>New features and changes</p>
+        <ul>
+          <li>AI: new model support: FastVLM for video-to-text real-time inference.</li>
+          <li>AI: new model support: GAN image generation e.g. with MobileStyleGAN, FBAnimeGAN. More to come!</li>
+          <li>AI: new model support: GAN image processing e.g. with AnimeGANv3, DeblurGAN, FSRGan. More to come!</li>
+          <li>AI: new model support: LLM inference with Qwen3.</li>
+          <li>Audio: add initial support for CLAP plug-ins on Mac, Windows and Linux. Testing and feedback needed!</li>
+          <li>Audio: new reverber inspired from vintage Alesis MIDIVerb (BarrVerb, ported from github.com/ErroneousBosh/BarrVerb).</li>
+          <li>Avnd: improvements to the available APIs for UI to enable more use-cases with cross-controls interactions.</li>
+          <li>Bytebeat: implement a safe mode to try and avoid SIGFPE errors when a division by zero happens due to wrong bytebeat code.</li>
+          <li>Core: add xtensor, xsimd and xtl and eigen as official built-in libraries accessible to score addons.</li>
+          <li>Core: AI prompt composer.</li>
+          <li>Core: AI prompt tweener.</li>
+          <li>Core: the codebase now officially requires C++23 to build.</li>
+          <li>EGLFS / vkkhrdisplay: allow to exit the app with esc when running without X11 or Wayland for unattended installations.</li>
+          <li>Gfx: add support for Shadertoy effects, by drag'n'drop of Shadertoy URLs into a score which will trigger an automated conversion to ISF.</li>
+          <li>JIT: port to jitlink which fixes a lot of limitations when JIT-compiling plug-ins.</li>
+          <li>Linux: add a --platform argument to the appimage, to replicate the functionality of the previous Raspberry Pi scripts (ossia-score-eglfs, etc).</li>
+          <li>LV2: fixes for finding plug-ins in /usr/ with the AppImage.</li>
+          <li>Patterns: add support for patterns from drumpatterns.onether.com.</li>
+          <li>Processes: new data processing tool: Classifier (based on RapidLib, similar to Wekinator).</li>
+          <li>Processes: new data processing tool: Regressor (based on RapidLib, similar to Wekinator).</li>
+          <li>Processes: new object: interpolator. From a set of weights and a set of values, provides the linear interpolation of each values. Useful for navigating latent spaces!</li>
+          <li>Processes: new object: Nodes, to allow interpolation across multiple states. Features both a "circular node" mode, as well as a Voronoi mode.</li>
+          <li>Processes: new objects in the Puara toolkit: Correlation, Compass, Binarize, ERP, Clustering, PCA, Power Band. Thanks @pyandcpp-coder!</li>
+          <li>Processes: new objects: Impulse, String, Float, Integer to force the casting of a value type.</li>
+          <li>Processes: new objects: Knob, Multislider to have simple UI affordances to control parameters.</li>
+          <li>QML UI: add a TextureSource object to allow custom UI to import a texture from the output of a process.</li>
+          <li>QML UI: Qt Quick and Qt Quick Controls are now available to use for external UIs with official releases, which allows to make custom software with advanced UIs backed by a given score.</li>
+          <li>Script console, mapper device: add objects to allow low-level access to TCP and UDP sockets (#1798) as well as OSC.</li>
+          <li>Script editor: syntax highlighting for Faust code.</li>
+          <li>SDK: update the platform to LLVM 20, Qt 6.10.</li>
+          <li>UI: allow to copy the value of a Value Display easily.</li>
+        </ul>
+        <p>Bugfixes and improvements</p>
+        <ul>
+
+          <li>#1720: CMake issues with concurrentqueue on FreeBSD.</li>
+          <li>#1831: Missing includes.</li>
+          <li>#1833: Sporadic macOS crash when inferring AI models.</li>
+          <li>Avnd: processes with file ports will now relativize paths correctly to allow easier project portability across computers.</li>
+          <li>Avnd: put message bus things in a thread for GUI objects.</li>
+          <li>CI: a few hundred fixes as always.</li>
+          <li>Core: use std::span everywhere consistently.</li>
+          <li>Faust: fix live-coding a synth (#1829).</li>
+          <li>Fix missing port count in process library.</li>
+          <li>LV2: fixes to Suil and LV2 integration.</li>
+          <li>Reworked categories.</li>
+          <li>SDK: many bugfixes to features to allow building addons against the score SDK.</li>
+          <li>SDK: rework the CI infrastructure to allow repos building score addons to use a shared set of Github actions on github.com/ossia/actions.</li>
+          <li>UI: improve multi-xy pad rendering.</li>
+          <li>UI: improve reliability of script editor GUI.</li>
+        </ul>
+      </description>
+    </release>
     <release version="3.5.3" date="2025-07-07">
       <url type="details">https://github.com/ossia/score/releases/tag/v3.5.3</url>
       <description>
@@ -81,7 +140,7 @@
           <li>Camera: fix #1814.</li>
           <li>UI: improvement to Graphics Combo ui widget.</li>
           <li>Scripting: add Score.availableProcesses() and Score.availableProtocols() for introspection of available features and processes.</li>
-          <li>Scrpiting: implement removal of processes.</li>
+          <li>Scripting: implement removal of processes.</li>
           <li>Audio: update Miniaudio on macOS and set it as default backend. Fix #1797.</li>
           <li>Core: improvements to the quantization algorithm.</li>
           <li>Core: lots of work to prevent bogus UBSAN warnings on hash functions.</li>
@@ -195,7 +254,7 @@
         <p>Changes and bugfixes</p>
         <ul>
           <li>AI models: many improvements to support of the various ONNX models. Thanks @samamou!</li>
-          <li>Audio: better handling of denormals across the board, allow to specifiy that some nodes actually needs denormals</li>
+          <li>Audio: better handling of denormals across the board, allow to specify that some nodes actually needs denormals</li>
           <li>Audio: fix that dummy plug-in was always set back to 1024 buffer size</li>
           <li>Audio: fix using ossia with soundcards with more than 128 channels on Mac.</li>
           <li>Build fixes for various LV2 and Suil corner cases</li>
