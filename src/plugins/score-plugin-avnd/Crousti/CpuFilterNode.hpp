@@ -14,7 +14,7 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
 {
   using texture_inputs = avnd::texture_input_introspection<Node_T>;
   using texture_outputs = avnd::texture_output_introspection<Node_T>;
-  Node_T state;
+  std::shared_ptr<Node_T> state;
   score::gfx::Message m_last_message{};
   ossia::small_flat_map<const score::gfx::Port*, score::gfx::TextureRenderTarget, 2>
       m_rts;
@@ -29,9 +29,10 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
 
   GfxRenderer(const GfxNode<Node_T>& p)
       : score::gfx::GenericNodeRenderer{p}
+      , state{std::make_shared<Node_T>()}
       , m_readbacks(texture_inputs::size)
   {
-    prepareNewState(state, p);
+    prepareNewState<Node_T>(state, p);
   }
 
   score::gfx::TextureRenderTarget
@@ -165,11 +166,11 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
   void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
     auto& parent = node();
-    if constexpr(requires { state.prepare(); })
+    if constexpr(requires { state->prepare(); })
     {
       parent.processControlIn(
-          *this, state, m_last_message, parent.last_message, parent.m_ctx);
-      state.prepare();
+          *this, *state, m_last_message, parent.last_message, parent.m_ctx);
+      state->prepare();
     }
 
     const auto& mesh = renderer.defaultTriangle();
@@ -185,7 +186,8 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
       // Init input render targets
       int k = 0;
       avnd::cpu_texture_input_introspection<Node_T>::for_all(
-          avnd::get_inputs<Node_T>(state), [&]<typename F>(F& t) {
+          avnd::get_inputs<Node_T>(*state),
+          [&]<typename F>(F& t) {
         // FIXME k isn't the port index, it's the texture port index
         auto spec = this->node().resolveRenderTargetSpecs(k, renderer);
         if constexpr(requires {
@@ -203,13 +205,13 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
           t.texture.height = spec.size.height();
         }
         k++;
-      });
+          });
     }
 
     {
       // Init textures for the outputs
       avnd::cpu_texture_output_introspection<Node_T>::for_all(
-          avnd::get_outputs<Node_T>(state), [&](auto& t) {
+          avnd::get_outputs<Node_T>(*state), [&](auto& t) {
             createOutput(renderer, t.texture, QSize{t.texture.width, t.texture.height});
           });
     }
@@ -282,23 +284,23 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
       // "completed" callback.
       int k = 0;
       avnd::cpu_texture_input_introspection<Node_T>::for_all(
-          avnd::get_inputs<Node_T>(state), [&](auto& t) {
-        loadInputTexture(rhi, t.texture, k);
-        k++;
-      });
+          avnd::get_inputs<Node_T>(*state), [&](auto& t) {
+            loadInputTexture(rhi, t.texture, k);
+            k++;
+          });
     }
 
     parent.processControlIn(
-        *this, state, m_last_message, parent.last_message, parent.m_ctx);
+        *this, *state, m_last_message, parent.last_message, parent.m_ctx);
 
     // Run the processor
-    state();
+    (*state)();
 
     // Upload output textures
     {
       int k = 0;
       avnd::cpu_texture_output_introspection<Node_T>::for_all(
-          avnd::get_outputs<Node_T>(state), [&](auto& t) {
+          avnd::get_outputs<Node_T>(*state), [&](auto& t) {
             uploadOutputTexture(renderer, k, t.texture, res);
             k++;
           });
@@ -308,7 +310,7 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
     }
 
     // Copy the data to the model node
-    parent.processControlOut(this->state);
+    parent.processControlOut(*this->state);
   }
 };
 

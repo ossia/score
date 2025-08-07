@@ -1,8 +1,13 @@
 #pragma once
+#include <ossia/network/value/value.hpp>
+
 #include <halp/controls.hpp>
 #include <halp/dynamic_port.hpp>
 #include <halp/meta.hpp>
-#include <ossia/network/value/value.hpp>
+
+#include <cmath>
+
+#include <algorithm>
 
 namespace avnd_tools
 {

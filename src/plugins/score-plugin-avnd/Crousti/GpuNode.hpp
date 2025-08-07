@@ -18,7 +18,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
 {
   using texture_inputs = avnd::texture_input_introspection<Node_T>;
   using texture_outputs = avnd::texture_output_introspection<Node_T>;
-  std::vector<Node_T> states;
+  std::vector<std::shared_ptr<Node_T>> states;
   score::gfx::Message m_last_message{};
   ossia::small_flat_map<const score::gfx::Port*, score::gfx::TextureRenderTarget, 2>
       m_rts;
@@ -201,7 +201,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
       for(auto& state : states)
       {
         parent.processControlIn(
-            *this, state, m_last_message, parent.last_message, parent.m_ctx);
+            *this, *state, m_last_message, parent.last_message, parent.m_ctx);
         state.prepare();
       }
     }
@@ -229,7 +229,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
       auto rt = renderer.renderTargetForOutput(*edge);
       if(rt.renderTarget)
       {
-        states.push_back({});
+        states.push_back(std::make_shared<Node_T>());
         prepareNewState(states.back(), parent);
 
         auto ps = createRenderPipeline(renderer, rt);
@@ -256,7 +256,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
     // First copy all the "public" uniforms to their space in memory
     if(states.size() > 0)
     {
-      auto& state = states[0];
+      auto& state = *states[0];
 
       avnd::gpu_uniform_introspection<Node_T>::for_all(
           avnd::get_inputs<Node_T>(state), [&]<avnd::uniform_port F>(const F& t) {
@@ -286,7 +286,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
       //SCORE_SOFT_ASSERT(state.size() == edges);
       for(int k = 0; k < states.size(); k++)
       {
-        auto& state = states[k];
+        auto& state = *states[k];
         auto& pass = m_p[k].second;
 
         bool srb_touched{false};
@@ -327,7 +327,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
     {
       for(auto& state : states)
       {
-        for(auto& promise : state.release())
+        for(auto& promise : state->release())
         {
           gpp::qrhi::handle_release handler{*r.state.rhi};
           visit(handler, promise.current_command);
@@ -387,7 +387,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
     for(auto& state : states)
     {
       parent.processControlIn(
-          *this, state, m_last_message, parent.last_message, parent.m_ctx);
+          *this, *state, m_last_message, parent.last_message, parent.m_ctx);
     }
   }
 
@@ -402,7 +402,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
 
     // Copy the data to the model node
     if(!this->states.empty())
-      parent.processControlOut(this->states[0]);
+      parent.processControlOut(*this->states[0]);
   }
 };
 

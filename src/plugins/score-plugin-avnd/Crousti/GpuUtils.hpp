@@ -828,17 +828,18 @@ namespace oscr
 struct GpuWorker
 {
   template <typename T>
-  void initWorker(this auto& self, T& state) noexcept
+  void initWorker(this auto& self, std::shared_ptr<T>& state) noexcept
   {
     if constexpr(avnd::has_worker<T>)
     {
       auto ptr = QPointer{&self};
       auto& tq = score::TaskPool::instance();
-      using worker_type = decltype(state.worker);
+      using worker_type = decltype(state->worker);
 
-      state.worker.request = [ptr, &tq, &state]<typename... Args>(Args&&... f) {
+      auto wk_state = std::weak_ptr{state};
+      state->worker.request = [ptr, &tq, wk_state]<typename... Args>(Args&&... f) {
         using type_of_result = decltype(worker_type::work(std::forward<Args>(f)...));
-        tq.post([... ff = std::forward<Args>(f), &state, ptr]() mutable {
+        tq.post([... ff = std::forward<Args>(f), wk_state, ptr]() mutable {
           if constexpr(std::is_void_v<type_of_result>)
           {
             worker_type::work(std::forward<decltype(ff)>(ff)...);
@@ -853,10 +854,11 @@ struct GpuWorker
 
             ossia::qt::run_async(
                 QCoreApplication::instance(),
-                [res = std::move(res), &state, ptr]() mutable {
+                [res = std::move(res), wk_state, ptr]() mutable {
               if(ptr)
-                res(state);
-            });
+                if(auto state = wk_state.lock())
+                  res(*state);
+                });
           }
         });
       };
@@ -1112,7 +1114,7 @@ struct SCORE_PLUGIN_AVND_EXPORT CustomGpuOutputNodeBase
 };
 
 template <typename Node_T, typename Node>
-void prepareNewState(Node_T& eff, const Node& parent)
+void prepareNewState(std::shared_ptr<Node_T>& eff, const Node& parent)
 {
   if constexpr(avnd::has_worker<Node_T>)
   {
@@ -1121,7 +1123,7 @@ void prepareNewState(Node_T& eff, const Node& parent)
   if constexpr(avnd::has_processor_to_gui_bus<Node_T>)
   {
     auto& process = parent.processModel;
-    eff.send_message = [&process](auto&& b) mutable {
+    eff->send_message = [&process](auto&& b) mutable {
       // FIXME right now all the rendering is done in the UI thread, which is very MEH
       //    this->in_edit([&process, bb = std::move(b)]() mutable {
 
@@ -1133,7 +1135,7 @@ void prepareNewState(Node_T& eff, const Node& parent)
     // FIXME GUI -> engine. See executor.hpp
   }
 
-  avnd::init_controls(eff);
+  avnd::init_controls(*eff);
 
   if constexpr(avnd::can_prepare<Node_T>)
   {
@@ -1142,11 +1144,11 @@ void prepareNewState(Node_T& eff, const Node& parent)
       using prepare_type = avnd::first_argument<&Node_T::prepare>;
       prepare_type t;
       if_possible(t.instance = parent.instance);
-      eff.prepare(t);
+      eff->prepare(t);
     }
     else
     {
-      eff.prepare();
+      eff->prepare();
     }
   }
 }

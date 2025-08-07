@@ -52,7 +52,7 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
 {
   using texture_inputs = avnd::gpu_image_input_introspection<Node_T>;
   using texture_outputs = avnd::gpu_image_output_introspection<Node_T>;
-  Node_T state;
+  std::shared_ptr<Node_T> state;
   score::gfx::Message m_last_message{};
   ossia::small_flat_map<const score::gfx::Port*, score::gfx::TextureRenderTarget, 2>
       m_rts;
@@ -84,8 +84,9 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
 
   GpuComputeRenderer(const GpuComputeNode<Node_T>& p)
       : ComputeRendererBaseType<Node_T>{p}
+      , state{std::make_shared<Node_T>()}
   {
-    prepareNewState(state, p);
+    prepareNewState<Node_T>(state, p);
   }
 
   score::gfx::TextureRenderTarget
@@ -229,11 +230,11 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
   void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
     auto& parent = node();
-    if constexpr(requires { state.prepare(); })
+    if constexpr(requires { state->prepare(); })
     {
       parent.processControlIn(
-          *this, state, m_last_message, parent.last_message, parent.m_ctx);
-      state.prepare();
+          *this, *state, m_last_message, parent.last_message, parent.m_ctx);
+      state->prepare();
     }
 
     // Create the global shared inputs
@@ -260,7 +261,7 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
   {
     // First copy all the "public" uniforms to their space in memory
     avnd::gpu_uniform_introspection<Node_T>::for_all(
-        avnd::get_inputs<Node_T>(state), [&]<avnd::uniform_port F>(const F& t) {
+        avnd::get_inputs<Node_T>(*state), [&]<avnd::uniform_port F>(const F& t) {
           using uniform_type =
               typename avnd::member_reflection<F::uniform()>::member_type;
           using ubo_type = typename avnd::member_reflection<F::uniform()>::class_type;
@@ -284,7 +285,7 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
     {
       bool srb_touched{false};
       tmp.assign(m_srb->cbeginBindings(), m_srb->cendBindings());
-      for(auto& promise : state.update())
+      for(auto& promise : state->update())
       {
         using ret_type = decltype(promise.feedback_value);
         gpp::qrhi::handle_update<GpuComputeRenderer, ret_type> handler{
@@ -340,12 +341,12 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
     // Release the object's internal states
     if constexpr(requires { &Node_T::release; })
     {
-      for(auto& promise : state.release())
+      for(auto& promise : state->release())
       {
         gpp::qrhi::handle_release handler{*r.state.rhi};
         visit(handler, promise.current_command);
       }
-      state.release();
+      state->release();
     }
 
     // Release the allocated textures
@@ -393,13 +394,13 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
 
     // Apply the controls
     parent.processControlIn(
-        *this, this->state, m_last_message, parent.last_message, parent.m_ctx);
+        *this, *this->state, m_last_message, parent.last_message, parent.m_ctx);
 
     // Run the compute shader
     {
       SCORE_ASSERT(this->m_pipeline);
       SCORE_ASSERT(this->m_pipeline->shaderResourceBindings());
-      for(auto& promise : this->state.dispatch())
+      for(auto& promise : this->state->dispatch())
       {
         using ret_type = decltype(promise.feedback_value);
         gpp::qrhi::handle_dispatch<GpuComputeRenderer, ret_type> handler{
@@ -419,7 +420,7 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
     this->texReadbacks.clear();
 
     // Copy the data to the model node
-    parent.processControlOut(this->state);
+    parent.processControlOut(*this->state);
   }
 
   void runInitialPasses(

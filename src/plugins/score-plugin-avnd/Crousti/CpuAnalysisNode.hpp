@@ -13,7 +13,7 @@ template <typename Node_T>
 struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
 {
   using texture_inputs = avnd::texture_input_introspection<Node_T>;
-  Node_T state;
+  std::shared_ptr<Node_T> state;
   score::gfx::Message m_last_message{};
   ossia::small_flat_map<const score::gfx::Port*, score::gfx::TextureRenderTarget, 2>
       m_rts;
@@ -27,9 +27,10 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
   }
   GfxRenderer(const GfxNode<Node_T>& p)
       : score::gfx::OutputNodeRenderer{p}
+      , state{std::make_shared<Node_T>()}
       , m_readbacks(texture_inputs::size)
   {
-    prepareNewState(state, p);
+    prepareNewState<Node_T>(state, p);
   }
 
   score::gfx::TextureRenderTarget
@@ -86,17 +87,18 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
 
   void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
-    if constexpr(requires { state.prepare(); })
+    if constexpr(requires { state->prepare(); })
     {
       this->node().processControlIn(
-          *this, state, m_last_message, this->node().last_message, this->node().m_ctx);
-      state.prepare();
+          *this, *state, m_last_message, this->node().last_message, this->node().m_ctx);
+      state->prepare();
     }
 
     // Init input render targets
     int k = 0;
     avnd::cpu_texture_input_introspection<Node_T>::for_all(
-        avnd::get_inputs<Node_T>(state), [&]<typename F>(F& t) {
+        avnd::get_inputs<Node_T>(*state),
+        [&]<typename F>(F& t) {
       // FIXME k isn't the port index, it's the texture port index
       auto spec = this->node().resolveRenderTargetSpecs(k, renderer);
       if constexpr(requires {
@@ -114,7 +116,7 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
         t.texture.height = spec.size.height();
       }
       k++;
-    });
+        });
   }
 
   void update(
@@ -207,28 +209,28 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
       // "completed" callback.
       int k = 0;
       avnd::cpu_texture_input_introspection<Node_T>::for_all(
-          avnd::get_inputs<Node_T>(state), [&](auto& t) {
-        loadInputTexture(rhi, t.texture, k);
-        k++;
-      });
+          avnd::get_inputs<Node_T>(*state), [&](auto& t) {
+            loadInputTexture(rhi, t.texture, k);
+            k++;
+          });
     }
 
     parent.processControlIn(
-        *this, state, m_last_message, parent.last_message, parent.m_ctx);
+        *this, *state, m_last_message, parent.last_message, parent.m_ctx);
 
     // Run the processor
-    state();
+    (*state)();
 
     // Copy the data to the model node
-    parent.processControlOut(this->state);
+    parent.processControlOut(*this->state);
 
     // Copy the geometry
     // FIXME we need something such as port_run_{pre,post}process for GPU nodes
     avnd::geometry_output_introspection<Node_T>::for_all_n2(
-        state.outputs, [&]<std::size_t F, std::size_t P>(
-                           auto& t, avnd::predicate_index<P>, avnd::field_index<F>) {
-      postprocess_geometry(t);
-    });
+        state->outputs, [&]<std::size_t F, std::size_t P>(
+                            auto& t, avnd::predicate_index<P>, avnd::field_index<F>) {
+          postprocess_geometry(t);
+        });
   }
   template <avnd::geometry_port Field>
   void postprocess_geometry(Field& ctrl)
