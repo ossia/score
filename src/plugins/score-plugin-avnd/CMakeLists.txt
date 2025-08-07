@@ -950,21 +950,11 @@ avnd_make_score(
 )
 avnd_make_score(
   SOURCES
-    "${AVND_FOLDER}/examples/Advanced/UI/Widgets.hpp"
+    "${AVND_FOLDER}/examples/Advanced/UI/Multislider.hpp"
   TARGET ui_multislider
   MAIN_CLASS Multislider
   NAMESPACE uo
 )
-
-if(0)
-avnd_make_score(
-  SOURCES
-    "${AVND_FOLDER}/examples/Advanced/UI/MultiCursor.hpp"
-  TARGET ui_multicursor
-  MAIN_CLASS MultiCursor
-  NAMESPACE uo
-)
-endif()
 
 
 
