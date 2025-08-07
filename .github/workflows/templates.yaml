@@ -90,7 +90,7 @@ jobs:
       - uses: maxim-lobanov/setup-xcode@v1
         if: ${{ matrix.config.os == 'macos-latest' }}
         with:
-          xcode-version: '>=16'
+          xcode-version: '>=16.4'
 
       - name: Checkout score
         uses: actions/checkout@v4
