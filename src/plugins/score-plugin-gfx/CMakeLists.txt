@@ -78,6 +78,7 @@ set(HDRS
     Gfx/GeometryFilter/Metadata.hpp
     Gfx/GeometryFilter/Process.hpp
     Gfx/GeometryFilter/Layer.hpp
+    Gfx/GeometryFilter/Library.hpp
 
     Gfx/Video/Executor.hpp
     Gfx/Video/Inspector.hpp
@@ -176,6 +177,7 @@ set(SRCS
 
     Gfx/GeometryFilter/Executor.cpp
     Gfx/GeometryFilter/Process.cpp
+    Gfx/GeometryFilter/Library.cpp
 
     Gfx/Video/Executor.cpp
     Gfx/Video/Inspector.cpp

@@ -38,7 +38,9 @@ Model::Model(
   m_inlets.push_back(new GeometryInlet{Id<Process::Port>(0), this});
   m_outlets.push_back(new GeometryOutlet{Id<Process::Port>(1), this});
 
-  (void)setScript(init);
+  QFile f{init};
+  if(f.open(QIODevice::ReadOnly))
+    (void)setScript(f.readAll());
 }
 
 Model::~Model() { }
@@ -275,18 +277,54 @@ void Model::setupIsf(const isf::descriptor& desc)
     Process::Inlet* operator()(const long_input& v)
     {
       std::vector<std::pair<QString, ossia::value>> alternatives;
-      std::size_t value_idx = 0;
-      for(; value_idx < v.values.size() && value_idx < v.labels.size(); value_idx++)
+      if(v.labels.size() == v.values.size())
       {
-        alternatives.emplace_back(
-            QString::fromStdString(v.labels[value_idx]), (int)v.values[value_idx]);
+        // Sane, respectful example
+        for(std::size_t value_idx = 0; value_idx < v.values.size(); value_idx++)
+        {
+          auto& val = v.values[value_idx];
+          if(auto int_ptr = ossia::get_if<int64_t>(&val))
+          {
+            alternatives.emplace_back(
+                QString::fromStdString(v.labels[value_idx]), int(*int_ptr));
+          }
+          else if(auto dbl_ptr = ossia::get_if<double>(&val))
+          {
+            alternatives.emplace_back(
+                QString::fromStdString(v.labels[value_idx]), int(*dbl_ptr));
+          }
+          else
+          {
+            alternatives.emplace_back(
+                QString::fromStdString(v.labels[value_idx]), int(value_idx));
+          }
+        }
+      }
+      else
+      {
+        for(std::size_t value_idx = 0; value_idx < v.values.size(); value_idx++)
+        {
+          auto& val = v.values[value_idx];
+          if(auto int_ptr = ossia::get_if<int64_t>(&val))
+          {
+            alternatives.emplace_back(QString::number(*int_ptr), int(*int_ptr));
+          }
+          else if(auto dbl_ptr = ossia::get_if<double>(&val))
+          {
+            alternatives.emplace_back(QString::number(*dbl_ptr), int(*dbl_ptr));
+          }
+          else if(auto str_ptr = ossia::get_if<std::string>(&val))
+          {
+            alternatives.emplace_back(QString::fromStdString(*str_ptr), int(value_idx));
+          }
+        }
       }
 
-      // If there are more values than labels:
-      for(; value_idx < v.values.size(); value_idx++)
+      if(alternatives.empty())
       {
-        int val = (int)v.values[value_idx];
-        alternatives.emplace_back(QString::number(val), val);
+        alternatives.emplace_back("0", 0);
+        alternatives.emplace_back("1", 1);
+        alternatives.emplace_back("2", 2);
       }
 
       auto port = new Process::ComboBox(
@@ -318,9 +356,9 @@ void Model::setupIsf(const isf::descriptor& desc)
     }
     Process::Inlet* operator()(const point2d_input& v)
     {
-      ossia::vec2f min{0., 0.};
-      ossia::vec2f max{1., 1.};
-      ossia::vec2f init{0.5, 0.5};
+      ossia::vec2f min{-100., -100.};
+      ossia::vec2f max{100., 100.};
+      ossia::vec2f init{0.0, 0.0};
       if(v.def)
         std::copy_n(v.def->begin(), 2, init.begin());
       if(v.min)
@@ -342,7 +380,18 @@ void Model::setupIsf(const isf::descriptor& desc)
 
     Process::Inlet* operator()(const point3d_input& v)
     {
-      auto port = new Process::ControlInlet{Id<Process::Port>(i), &self};
+      ossia::vec3f min{-100., -100., -100.};
+      ossia::vec3f max{100., 100., 100.};
+      ossia::vec3f init{0., 0., 0.};
+      if(v.def)
+        std::copy_n(v.def->begin(), 3, init.begin());
+      if(v.min)
+        std::copy_n(v.min->begin(), 3, min.begin());
+      if(v.max)
+        std::copy_n(v.max->begin(), 3, max.begin());
+      auto port = new Process::XYZSpinboxes{
+          min,  max, init, QString::fromStdString(input.name), Id<Process::Port>(i),
+          &self};
 
       self.m_inlets.push_back(port);
       self.controlAdded(port->id());

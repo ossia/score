@@ -5,6 +5,8 @@
 #include <Library/ProcessesItemModel.hpp>
 
 #include <score/tools/File.hpp>
+
+#include <QFile>
 namespace Gfx::GeometryFilter
 {
 
@@ -15,14 +17,14 @@ QSet<QString> DropHandler::mimeTypes() const noexcept
 
 QSet<QString> LibraryHandler::acceptedFiles() const noexcept
 {
-  return {"fs"};
+  return {"glsl"};
 }
 
 void LibraryHandler::setup(
     Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
 {
   // TODO relaunch whenever library path changes...
-  const auto& key = Metadata<ConcreteKey_k, Filter::Model>::get();
+  const auto& key = Metadata<ConcreteKey_k, GeometryFilter::Model>::get();
   QModelIndex node = model.find(key);
   if(node == QModelIndex{})
     return;
@@ -33,32 +35,25 @@ void LibraryHandler::setup(
 void LibraryHandler::addPath(std::string_view path)
 {
   score::PathInfo file{path};
+  QFile f{path.data()};
+  if(!f.open(QIODevice::ReadOnly))
+    return;
+  if(!f.read(512).contains("\"GEOMETRY_FILTER\""))
+    return;
 
   Library::ProcessData pdata;
+
   pdata.prettyName
       = QString::fromUtf8(file.completeBaseName.data(), file.completeBaseName.size());
 
-  pdata.key = Metadata<ConcreteKey_k, Filter::Model>::get();
-  pdata.author = "ISF";
+  pdata.key = Metadata<ConcreteKey_k, GeometryFilter::Model>::get();
   pdata.customData = QString::fromUtf8(path.data(), path.size());
   categories.add(file, std::move(pdata));
 }
 
-QWidget*
-LibraryHandler::previewWidget(const QString& path, QWidget* parent) const noexcept
-{
-  return new ShaderPreviewWidget{path, parent};
-}
-
-QWidget* LibraryHandler::previewWidget(
-    const Process::Preset& path, QWidget* parent) const noexcept
-{
-  return new ShaderPreviewWidget{path, parent};
-}
-
 QSet<QString> DropHandler::fileExtensions() const noexcept
 {
-  return {"frag", "glsl", "fs"};
+  return {"glsl"};
 }
 
 void DropHandler::dropPath(

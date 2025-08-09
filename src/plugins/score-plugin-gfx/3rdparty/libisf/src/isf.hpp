@@ -30,7 +30,7 @@ struct long_input
 {
   using value_type = int64_t;
   using has_minmax = std::true_type;
-  std::vector<int64_t> values;
+  std::vector<ossia::variant<int64_t, double, std::string>> values;
   std::vector<std::string> labels;
   std::size_t def{}; // index of default value
 };
