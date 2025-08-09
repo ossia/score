@@ -332,7 +332,15 @@ static void parse_input(long_input& inp, const sajson::value& v)
           auto arr_value = val.get_array_element(i);
           if(arr_value.get_type() == sajson::TYPE_INTEGER)
           {
-            inp.values.push_back(arr_value.get_integer_value());
+            inp.values.push_back(int64_t(arr_value.get_integer_value()));
+          }
+          if(arr_value.get_type() == sajson::TYPE_DOUBLE)
+          {
+            inp.values.push_back(arr_value.get_double_value());
+          }
+          else if(arr_value.get_type() == sajson::TYPE_STRING)
+          {
+            inp.values.push_back(arr_value.as_string());
           }
         }
       }
@@ -368,8 +376,8 @@ static void parse_input(long_input& inp, const sajson::value& v)
     inp.values.resize(min_size);
 }
 
-template <
-    typename Input_T, typename std::enable_if_t<Input_T::has_minmax::value>* = nullptr>
+template <typename Input_T>
+  requires Input_T::has_minmax::value
 static void parse_input(Input_T& inp, const sajson::value& v)
 {
   std::size_t N = v.get_length();
@@ -399,8 +407,8 @@ static void parse_input(Input_T& inp, const sajson::value& v)
     std::swap(inp.min, inp.max);
 }
 
-template <
-    typename Input_T, typename std::enable_if_t<Input_T::has_default::value>* = nullptr>
+template <typename Input_T>
+  requires Input_T::has_default::value
 static void parse_input(Input_T& inp, const sajson::value& v)
 {
   std::size_t N = v.get_length();

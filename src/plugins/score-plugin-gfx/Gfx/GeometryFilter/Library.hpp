@@ -8,7 +8,7 @@ namespace Gfx::GeometryFilter
 {
 class LibraryHandler final : public Library::LibraryInterface
 {
-  SCORE_CONCRETE("e62ed6f6-a2c1-4d27-a9c3-1c3bc576bfeb")
+  SCORE_CONCRETE("1261a519-06ce-4ae8-9584-d005ee5c9eb2")
 
   QSet<QString> acceptedFiles() const noexcept override;
 
@@ -16,16 +16,13 @@ class LibraryHandler final : public Library::LibraryInterface
       override;
 
   void addPath(std::string_view path) override;
-  QWidget* previewWidget(const QString& path, QWidget* parent) const noexcept override;
-  QWidget*
-  previewWidget(const Process::Preset& path, QWidget* parent) const noexcept override;
 
   Library::Subcategories categories;
 };
 
 class DropHandler final : public Process::ProcessDropHandler
 {
-  SCORE_CONCRETE("d1e16bba-4c53-4d24-8b6b-71b94daef68d")
+  SCORE_CONCRETE("e3a8ec68-262a-419a-b4bb-a7e0400f4c24")
 
   QSet<QString> mimeTypes() const noexcept override;
   QSet<QString> fileExtensions() const noexcept override;

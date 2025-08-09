@@ -9,6 +9,7 @@
 #include <Gfx/Filter/Process.hpp>
 #include <Gfx/GeometryFilter/Executor.hpp>
 #include <Gfx/GeometryFilter/Layer.hpp>
+#include <Gfx/GeometryFilter/Library.hpp>
 #include <Gfx/GeometryFilter/Process.hpp>
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxDevice.hpp>
@@ -120,7 +121,8 @@ std::vector<score::InterfaceBase*> score_plugin_gfx::factories(
       FW<Process::ProcessDropHandler, Gfx::Filter::DropHandler, Gfx::Video::DropHandler,
          Gfx::Images::DropHandler>,
       FW<Library::LibraryInterface, Gfx::Filter::LibraryHandler,
-         Gfx::Video::LibraryHandler, Gfx::Images::LibraryHandler>,
+         Gfx::Video::LibraryHandler, Gfx::Images::LibraryHandler,
+         Gfx::GeometryFilter::LibraryHandler>,
       FW<score::SettingsDelegateFactory, Gfx::Settings::Factory>>(ctx, key);
 }
 
