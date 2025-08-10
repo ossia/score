@@ -616,6 +616,13 @@ public:
   int m_curShader{0};
   int m_draw_mode{0};
   int m_camera_mode{0};
+  int m_blend_color_src{0};
+  int m_blend_color_dst{0};
+  int m_blend_color_op{0};
+  int m_blend_alpha_src{0};
+  int m_blend_alpha_dst{0};
+  int m_blend_alpha_op{0};
+  bool m_blend_enabled{false};
 
 private:
   ~Renderer() = default;
@@ -852,6 +859,14 @@ private:
     m_draw_mode = n.draw_mode;
     m_camera_mode = n.camera_mode;
 
+    m_blend_color_src = n.blend_color_src;
+    m_blend_color_dst = n.blend_color_dst;
+    m_blend_color_op = n.blend_color_op;
+    m_blend_alpha_src = n.blend_alpha_src;
+    m_blend_alpha_dst = n.blend_alpha_dst;
+    m_blend_alpha_op = n.blend_alpha_op;
+    m_blend_enabled = n.blend_enabled;
+
     switch(m_draw_mode)
     {
       case 0:
@@ -879,32 +894,35 @@ private:
         break;
     }
 
-    switch (m_draw_mode)
+    QRhiGraphicsPipeline::TargetBlend blend;
+    blend.enable = m_blend_enabled;
+    blend.srcColor = (QRhiGraphicsPipeline::BlendFactor)m_blend_color_src;
+    blend.dstColor = (QRhiGraphicsPipeline::BlendFactor)m_blend_color_dst;
+    blend.opColor = (QRhiGraphicsPipeline::BlendOp)m_blend_color_op;
+    blend.srcAlpha = (QRhiGraphicsPipeline::BlendFactor)m_blend_alpha_src;
+    blend.dstAlpha = (QRhiGraphicsPipeline::BlendFactor)m_blend_alpha_dst;
+    blend.opAlpha = (QRhiGraphicsPipeline::BlendOp)m_blend_alpha_op;
+
+    for(auto& [e, pass] : this->m_p)
     {
-      case 0:
-        for (auto& [e, pass] : this->m_p)
-        {
-          pass.pipeline->destroy();
+      pass.pipeline->destroy();
+
+      pass.pipeline->setTargetBlends({blend});
+
+      switch(m_draw_mode)
+      {
+        case 0:
           pass.pipeline->setTopology(QRhiGraphicsPipeline::Triangles);
-          pass.pipeline->create();
-        }
-        break;
-      case 1:
-        for (auto& [e, pass] : this->m_p)
-        {
-          pass.pipeline->destroy();
+          break;
+        case 1:
           pass.pipeline->setTopology(QRhiGraphicsPipeline::Points);
-          pass.pipeline->create();
-        }
-        break;
-      case 2:
-        for (auto& [e, pass] : this->m_p)
-        {
-          pass.pipeline->destroy();
+          break;
+        case 2:
           pass.pipeline->setTopology(QRhiGraphicsPipeline::Lines);
-          pass.pipeline->create();
-        }
-        break;
+          break;
+      }
+
+      pass.pipeline->create();
     }
   }
 
@@ -1112,6 +1130,20 @@ private:
         mustRecreatePasses = true;
       if(m_camera_mode != n.camera_mode)
         mustRecreatePasses = true;
+      if(m_blend_color_src != n.blend_color_src)
+        mustRecreatePasses = true;
+      if(m_blend_color_dst != n.blend_color_dst)
+        mustRecreatePasses = true;
+      if(m_blend_color_op != n.blend_color_op)
+        mustRecreatePasses = true;
+      if(m_blend_alpha_src != n.blend_alpha_src)
+        mustRecreatePasses = true;
+      if(m_blend_alpha_dst != n.blend_alpha_dst)
+        mustRecreatePasses = true;
+      if(m_blend_alpha_op != n.blend_alpha_op)
+        mustRecreatePasses = true;
+      if(m_blend_enabled != n.blend_enabled)
+        mustRecreatePasses = true;
     }
 
     res.updateDynamicBuffer(m_processUBO, 0, sizeof(ProcessUBO), &n.standardUBO);
@@ -1220,6 +1252,41 @@ void ModelDisplayNode::process(Message&& msg)
         }
         case 9: {
           this->camera_mode = ossia::convert<int>(*val);
+          this->materialChange();
+          break;
+        }
+        case 10: {
+          this->blend_enabled = ossia::convert<bool>(*val);
+          this->materialChange();
+          break;
+        }
+        case 11: {
+          this->blend_color_src = ossia::convert<int>(*val);
+          this->materialChange();
+          break;
+        }
+        case 12: {
+          this->blend_color_dst = ossia::convert<int>(*val);
+          this->materialChange();
+          break;
+        }
+        case 13: {
+          this->blend_color_op = ossia::convert<int>(*val);
+          this->materialChange();
+          break;
+        }
+        case 14: {
+          this->blend_alpha_src = ossia::convert<int>(*val);
+          this->materialChange();
+          break;
+        }
+        case 15: {
+          this->blend_alpha_dst = ossia::convert<int>(*val);
+          this->materialChange();
+          break;
+        }
+        case 16: {
+          this->blend_alpha_op = ossia::convert<int>(*val);
           this->materialChange();
           break;
         }

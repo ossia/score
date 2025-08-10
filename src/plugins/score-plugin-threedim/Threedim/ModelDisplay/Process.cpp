@@ -87,6 +87,47 @@ void Model::init()
     m_inlets.push_back(
         new Process::ComboBox{projmodes, 0, "Camera", Id<Process::Port>(9), this});
   }
+
+  if(m_inlets.size() <= 10)
+  {
+    std::vector<std::pair<QString, ossia::value>> blend_factors{
+
+        {"Zero", 0},
+        {"One", 1},
+        {"SrcColor", 2},
+        {"OneMinusSrcColor", 3},
+        {"DstColor", 4},
+        {"OneMinusDstColor", 5},
+        {"SrcAlpha", 6},
+        {"OneMinusSrcAlpha", 7},
+        {"DstAlpha", 8},
+        {"OneMinusDstAlpha", 9},
+        {"ConstantColor", 10},
+        {"OneMinusConstantColor", 11},
+        {"ConstantAlpha", 12},
+        {"OneMinusConstantAlpha", 13},
+        {"SrcAlphaSaturate", 14},
+    };
+
+    std::vector<std::pair<QString, ossia::value>> blend_op{
+        {"Add", 0}, {"Substract", 1}, {"Reverse Substract", 2}, {"Min", 3}, {"Max", 4},
+    };
+
+    m_inlets.push_back(
+        new Process::Toggle{false, "Enable blend", Id<Process::Port>(10), this});
+    m_inlets.push_back(new Process::ComboBox{
+        blend_factors, 1, "Src Color", Id<Process::Port>(11), this});
+    m_inlets.push_back(new Process::ComboBox{
+        blend_factors, 1, "Dst Color", Id<Process::Port>(12), this});
+    m_inlets.push_back(
+        new Process::ComboBox{blend_op, 0, "Op Color", Id<Process::Port>(13), this});
+    m_inlets.push_back(new Process::ComboBox{
+        blend_factors, 1, "Src Alpha", Id<Process::Port>(14), this});
+    m_inlets.push_back(new Process::ComboBox{
+        blend_factors, 1, "Dst Alpha", Id<Process::Port>(15), this});
+    m_inlets.push_back(
+        new Process::ComboBox{blend_op, 0, "Op alpha", Id<Process::Port>(16), this});
+  }
 }
 
 QString Model::prettyName() const noexcept

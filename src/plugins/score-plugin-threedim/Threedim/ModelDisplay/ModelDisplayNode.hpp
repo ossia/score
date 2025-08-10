@@ -56,6 +56,13 @@ public:
   int texture_projection{};
   int draw_mode{};
   int camera_mode{};
+  int blend_color_src{};
+  int blend_color_dst{};
+  int blend_color_op{};
+  int blend_alpha_src{};
+  int blend_alpha_dst{};
+  int blend_alpha_op{};
+  bool blend_enabled{};
 };
 
 }
