@@ -59,10 +59,10 @@ struct AudioTickHelper
   ~AudioTickHelper()
   {
     auto scenar = m_scenar;
-    std::atomic_bool done{};
+    auto ptr = std::make_shared<std::atomic_int32_t>(10000);
     m_context->context.executionQueue.enqueue([ctx = m_context, scenar = m_scenar,
                                                graph = m_context->execGraph,
-                                               &done]() mutable {
+                                               ptr]() mutable {
       auto& q = ctx->m_execQueue;
       runAllCommands(q);
       runAllCommands(q);
@@ -76,9 +76,9 @@ struct AudioTickHelper
       scenar.reset();
 
       ctx.reset();
-      done = true;
+      *ptr = 0;
     });
-    while(!done)
+    while((*ptr)-- > 0)
       std::this_thread::yield();
   }
 
