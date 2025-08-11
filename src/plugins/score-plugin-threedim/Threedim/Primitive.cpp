@@ -138,7 +138,10 @@ void Plane::update()
   outputs.geometry.dirty_mesh = true;
   */
   mesh.Clear();
-  vcg::tri::Grid(mesh, inputs.hdivs, inputs.vdivs, 1., 1.);
+
+  const int hdivs = std::max(2, (int)inputs.hdivs);
+  const int vdivs = std::max(2, (int)inputs.vdivs);
+  vcg::tri::Grid(mesh, hdivs, vdivs, 1., 1.);
   auto [vertices, pos_start, norm_start, uv_start] = createMesh(mesh, complete);
   outputs.geometry.mesh.buffers.main_buffer.data = complete.data();
   outputs.geometry.mesh.buffers.main_buffer.size = complete.size();
@@ -149,13 +152,14 @@ void Plane::update()
   outputs.geometry.mesh.input.input2.offset = sizeof(float) * vertices * (3 + 3);
   outputs.geometry.mesh.vertices = vertices;
   outputs.geometry.dirty_mesh = true;
+  qDebug("recreate plane");
 }
 
 void Cube::update()
 {
   mesh.Clear();
   vcg::Box3<float> box;
-  box.min = {-1, -1, -1};
+  box.min = {0, 0, 0};
   box.max = {1, 1, 1};
   vcg::tri::Box(mesh, box);
   loadTriMesh(mesh, complete, outputs);

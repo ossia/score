@@ -35,8 +35,8 @@ public:
     PositionControl position;
     RotationControl rotation;
     ScaleControl scale;
-    halp::spinbox_i32<"H divs.", halp::range{1, 1000, 16}> hdivs;
-    halp::spinbox_i32<"V divs.", halp::range{1, 1000, 16}> vdivs;
+    struct : halp::spinbox_i32<"H divs.", halp::range{2, 200, 16}>, Update {} hdivs;
+    struct : halp::spinbox_i32<"V divs.", halp::range{2, 200, 16}>, Update {} vdivs;
   } inputs;
 
   struct
@@ -165,12 +165,12 @@ struct Cylinder : Primitive
     RotationControl rotation;
     ScaleControl scale;
     struct
-        : halp::hslider_i32<"Slices", halp::range{1, 1000, 64}>
+        : halp::hslider_i32<"Slices", halp::range{1, 64, 16}>
         , Update
     {
     } slices;
     struct
-        : halp::hslider_i32<"Stacks", halp::range{1, 1000, 64}>
+        : halp::hslider_i32<"Stacks", halp::range{1, 64, 16}>
         , Update
     {
     } stacks;
