@@ -44,4 +44,16 @@ QVariant EditJsContext::availableProtocols() const noexcept
   }
   return v;
 }
+
+QByteArray EditJsContext::serializeAsJson() noexcept
+{
+  auto doc = (score::Document*)document();
+  if(!doc)
+    return {};
+  JSONReader w;
+  w.buffer.Reserve(1024 * 1024 * 16);
+
+  doc->saveAsJson(w);
+  return w.toByteArray();
+}
 }

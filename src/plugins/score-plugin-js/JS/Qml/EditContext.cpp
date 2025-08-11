@@ -44,6 +44,9 @@ void EditJsContext::redo()
 QObject* EditJsContext::find(QString p)
 {
   auto doc = document();
+  if(!doc)
+    return nullptr;
+
   const auto meta = doc->findChildren<score::ModelMetadata*>();
   for(auto m : meta)
   {

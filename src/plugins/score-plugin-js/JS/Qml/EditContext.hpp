@@ -287,6 +287,8 @@ public:
   QVariant availableProtocols() const noexcept;
   W_SLOT(availableProtocols)
 
+  QByteArray serializeAsJson() noexcept;
+  W_SLOT(serializeAsJson)
 private:
   void submit(Macro& m, score::Command* c);
 };

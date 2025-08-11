@@ -1,5 +1,6 @@
 #include <JS/Qml/Utils.hpp>
 
+#include <score/tools/File.hpp>
 #include <score/tools/ThreadPool.hpp>
 
 #include <ossia/detail/algorithms.hpp>
@@ -17,6 +18,9 @@ namespace JS
 
 QByteArray JsUtils::readFile(QString path)
 {
+  if(auto doc = score::AppContext().currentDocument())
+    path = score::locateFilePath(path, *doc);
+
   QFile f(path);
   if(f.open(QIODevice::ReadOnly))
     return f.readAll();
