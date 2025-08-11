@@ -41,6 +41,24 @@
     </screenshot>
   </screenshots>
   <releases>
+    <release version="3.6.1" date="2025-08-11">
+      <url type="details">https://github.com/ossia/score/releases/tag/v3.6.1</url>
+      <description>
+        <p>ossia score 3.6.1 is a small series of bugfix on top of 3.6.0. Special SIGGRAPH2025 edition!</p>
+        <p>New features and changes</p>
+        <ul>
+          <li>Audio: Integrate the great Airwindows audio plug-ins.</li>
+          <li>Primitives: plane can now have varying number of subdivisions.</li>
+          <li>JS API: add a function to allow getting the current save file.</li>
+          <li>Model display: add support for controlling blending options to enable better particle effects.</li>
+          <li>Geometry filter: add support for reading .glsl files from the library directly. Check the new examples!</li>
+        </ul>
+        <p>Bugfixes</p>
+        <ul>
+          <li>Core: fix an execution bug due to concurrency and threading in GPU threads.</li>
+        </ul>
+      </description>
+    </release>
     <release version="3.6.0" date="2025-08-07">
       <url type="details">https://github.com/ossia/score/releases/tag/v3.6.0</url>
       <description>
