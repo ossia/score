@@ -885,6 +885,14 @@ avnd_make_score(
     NAMESPACE ao
 )
 
+
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/RepetitionFilter.hpp"
+  TARGET repetition_filter
+  MAIN_CLASS RepetitionFilter
+  NAMESPACE ao
+)
+
 # Too much binary size
 if(NOT EMSCRIPTEN AND NOT CXX_IS_GCC)
 avnd_make_score(
