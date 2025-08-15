@@ -190,12 +190,14 @@ void FrameQueue::release(AVFrame* frame) noexcept
 
 void FrameQueue::drain()
 {
+  thread_local ossia::flat_set<AVFrame*> frames_to_free;
+  frames_to_free.clear();
   {
     AVFrame* frame{};
     while(available.try_dequeue(frame))
     {
       SCORE_LIBAV_FRAME_DEALLOC_CHECK(frame);
-      av_frame_free(&frame);
+      frames_to_free.insert(frame);
     }
   }
 
@@ -207,16 +209,20 @@ void FrameQueue::drain()
     while(released.try_dequeue(frame))
     {
       SCORE_LIBAV_FRAME_DEALLOC_CHECK(frame);
-      av_frame_free(&frame);
+      frames_to_free.insert(frame);
     }
   }
 
   for(auto frame : m_decodeThreadFrameBuffer)
   {
     SCORE_LIBAV_FRAME_DEALLOC_CHECK(frame);
-    av_frame_free(&frame);
+    frames_to_free.insert(frame);
   }
   m_decodeThreadFrameBuffer.clear();
+
+  for(auto frame : frames_to_free)
+    av_frame_free(&frame);
+  frames_to_free.clear();
 }
 
 }
