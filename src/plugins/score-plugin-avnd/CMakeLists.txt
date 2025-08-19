@@ -793,6 +793,13 @@ avnd_make_score(
 
 if(NOT EMSCRIPTEN)
 avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Gpu/FilterGeometryGpu.hpp"
+  TARGET jiggle_positions
+  MAIN_CLASS JigglePositions
+  NAMESPACE examples::helpers
+)
+
+avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Raw/ProcessLauncher.hpp"
   TARGET avnd_process
   MAIN_CLASS ProcessLauncher
