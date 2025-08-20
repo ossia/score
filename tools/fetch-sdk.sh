@@ -52,8 +52,9 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
   # First download the compiler and base libraries
   SDK_ARCH="$(uname -m)"
   SDK_DIR=/opt/ossia-sdk-$SDK_ARCH
-  sudo mkdir -p "$SDK_DIR"
-  sudo chown -R $(whoami) "$SDK_DIR"
+  SUDO=$(command -v sudo 2>/dev/null || true)
+  $SUDO mkdir -p "$SDK_DIR"
+  $SUDO chown -R $(whoami) "$SDK_DIR"
 
   (
     SDK_ARCHIVE=sdk-linux-$SDK_ARCH.tar.xz
