@@ -4,6 +4,7 @@
 #include <Video/FrameQueue.hpp>
 #include <Video/VideoInterface.hpp>
 
+#include <ossia/detail/flat_set.hpp>
 #if defined(SCORE_LIBAV_FRAME_DEBUGGING)
 #include <score/tools/Debug.hpp>
 
