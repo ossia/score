@@ -4,6 +4,7 @@
 
 #include <Process/ProcessList.hpp>
 
+#include <core/document/Document.hpp>
 #include <core/presenter/Presenter.hpp>
 
 #include <QGuiApplication>

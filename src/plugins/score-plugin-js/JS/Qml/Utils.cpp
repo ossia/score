@@ -1,5 +1,6 @@
 #include <JS/Qml/Utils.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/tools/File.hpp>
 #include <score/tools/ThreadPool.hpp>
 
