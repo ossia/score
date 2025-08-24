@@ -103,7 +103,7 @@ void QGraphicsWaveformButton::dropEvent(QGraphicsSceneDragDropEvent* event)
   if(m->hasUrls())
   {
     auto url = m->urls().front().toLocalFile();
-    if(QFileInfo(url).exists())
+    if(QFileInfo::exists(url))
     {
       dropped(url);
     }

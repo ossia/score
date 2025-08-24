@@ -114,7 +114,7 @@ QString ProcessModel::effect() const noexcept
 
   auto path = score::locateFilePath(trimmed, score::IDocument::documentContext(*this));
 
-  if(QFileInfo{path}.exists())
+  if(QFileInfo::exists(path))
   {
     /* Disabling the watch feature for now :
      * it does not fix the cables, etc.

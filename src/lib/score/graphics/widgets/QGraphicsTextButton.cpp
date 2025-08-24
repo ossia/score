@@ -78,8 +78,9 @@ void QGraphicsTextButton::dropEvent(QGraphicsSceneDragDropEvent* event)
   auto m = event->mimeData();
   if(m->hasUrls())
   {
-    auto url = m->urls().front().toLocalFile();
-    if(QFileInfo(url).exists())
+    const auto& urls = m->urls();
+    auto url = urls.front().toLocalFile();
+    if(QFileInfo::exists(url))
     {
       dropped(url);
     }
@@ -95,6 +96,9 @@ void QGraphicsTextButton::paint(
   auto& skin = score::Skin::instance();
 
   const QRectF brect = boundingRect().adjusted(1, 1, -1, -1);
+
+  painter->setPen(skin.NoPen);
+  painter->setBrush(skin.Emphasis2.main.brush);
   painter->drawRoundedRect(brect, 1, 1);
 
   if(!m_string.isEmpty())
@@ -105,6 +109,7 @@ void QGraphicsTextButton::paint(
     painter->drawText(brect, m_string, QTextOption(Qt::AlignCenter));
   }
 }
+
 void QGraphicsTextButton::updateBounds()
 {
   auto& skin = score::Skin::instance();

@@ -92,8 +92,7 @@ void FileWatch::timerEvent(QTimerEvent* ev)
 
     for(auto& [path, watch] : cur_map)
     {
-      QFileInfo f{path};
-      if(!f.exists())
+      if(!QFileInfo::exists(path))
         continue;
 
       if(auto mtime = get_mtime(path); mtime > watch.mtime)

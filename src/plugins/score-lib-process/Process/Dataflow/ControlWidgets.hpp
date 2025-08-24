@@ -77,8 +77,8 @@ struct FloatControl
   {
     using namespace Process;
     if constexpr(
-        std::is_same_v<score::QGraphicsKnob, ControlUI>
-        || std::is_same_v<score::QGraphicsLogKnob, ControlUI>)
+        std::is_base_of_v<score::QGraphicsKnob, ControlUI>
+        || std::is_base_of_v<score::QGraphicsLogKnob, ControlUI>)
     {
       return DefaultControlLayouts::knob();
     }

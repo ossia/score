@@ -92,7 +92,7 @@ void QGraphicsKnob::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 
 QRectF QGraphicsKnob::boundingRect() const
 {
-  return m_rect;
+  return QRectF{0., 0., 35., 42.};
 }
 
 void QGraphicsKnob::paint(

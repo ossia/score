@@ -36,16 +36,20 @@ public:
     array.reserve(N);
     for(auto str : arr)
       array.push_back(str);
+
+    init();
   }
 
   QGraphicsCombo(QStringList arr, QGraphicsItem* parent)
       : QGraphicsCombo{parent}
   {
     array = std::move(arr);
+    init();
   }
 
-  QGraphicsCombo(QGraphicsItem* parent);
+  explicit QGraphicsCombo(QGraphicsItem* parent);
 
+  void init();
   void setRect(const QRectF& r);
   void setValue(int v);
   int value() const;

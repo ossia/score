@@ -182,6 +182,22 @@ QGraphicsCombo::QGraphicsCombo(QGraphicsItem* parent)
   this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
 }
 
+void QGraphicsCombo::init()
+{
+  prepareGeometryChange();
+
+  auto& skin = score::Skin::instance();
+  QFontMetricsF metrics{skin.Medium10Pt};
+  double maxW = m_rect.width();
+
+  for(auto& value : this->array)
+  {
+    auto r = metrics.boundingRect(value);
+    maxW = std::max(r.width() + 8., maxW);
+  }
+  m_rect.setWidth(maxW);
+}
+
 void QGraphicsCombo::setRect(const QRectF& r)
 {
   prepareGeometryChange();

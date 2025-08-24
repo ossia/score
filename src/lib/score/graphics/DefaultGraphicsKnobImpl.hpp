@@ -1,6 +1,7 @@
 #pragma once
 #include <score/graphics/DefaultControlImpl.hpp>
 #include <score/graphics/InfiniteScroller.hpp>
+#include <score/graphics/widgets/Constants.hpp>
 #include <score/model/Skin.hpp>
 #include <score/tools/Cursor.hpp>
 #include <score/widgets/DoubleSpinBox.hpp>
@@ -34,7 +35,7 @@ struct DefaultGraphicsKnobImpl
     constexpr const double start = (270. - space) * 16.;
     constexpr const double totalSpan = (360. - 2. * space) * 16.;
 
-    const QRectF srect = self.boundingRect();
+    const QRectF srect = defaultKnobSize;
     const QRectF r = srect.adjusted(adj, adj, -adj, -adj);
     const double rw = r.width();
 

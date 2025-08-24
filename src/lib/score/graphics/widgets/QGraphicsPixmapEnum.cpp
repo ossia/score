@@ -75,11 +75,7 @@ void QGraphicsPixmapEnum::updateRect()
     return;
 
   m_actualColumns = std::min(N, columns);
-  auto& style = score::Skin::instance();
 
-  const QFont& textFont = style.MonoFontSmall;
-
-  QFontMetricsF metrics{textFont};
   double maxW = 10.;
   double maxH = N > columns ? 20. : 15;
 

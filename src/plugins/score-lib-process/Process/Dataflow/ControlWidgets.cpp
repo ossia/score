@@ -5,8 +5,8 @@ namespace Process
 PortItemLayout DefaultControlLayouts::knob() noexcept
 {
   return Process::PortItemLayout{
-      .port = QPointF{0., 22.},
-      .control = QPointF{10., 12.},
+      .port = QPointF{0., 17.},
+      .control = QPointF{10., 6.},
       .labelAlignment = Qt::AlignCenter};
 }
 

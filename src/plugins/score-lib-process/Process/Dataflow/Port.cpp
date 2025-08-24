@@ -815,7 +815,8 @@ static auto makeFullItemImpl(
   {
     lab = Dataflow::makePortLabel(portModel, &item);
     lab->setPos(layout.label);
-    if(layout.labelAlignment == Qt::AlignCenter)
+    if(lab->boundingRect().width() < control.boundingRect().width()
+       && layout.labelAlignment == Qt::AlignCenter)
     {
       auto widg_r = control.boundingRect();
       auto lab_r = lab->boundingRect();
