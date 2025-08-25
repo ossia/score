@@ -412,8 +412,8 @@ struct CustomGpuNode final
     , GpuNodeElements<Node_T>
 {
   CustomGpuNode(
-      std::weak_ptr<Execution::ExecutionCommandQueue> q, Gfx::exec_controls ctls, int id,
-      const score::DocumentContext& ctx)
+      std::weak_ptr<Execution::ExecutionCommandQueue> q, Gfx::exec_controls ctls,
+      int64_t id, const score::DocumentContext& ctx)
       : CustomGpuNodeBase{std::move(q), std::move(ctls), ctx}
   {
     this->instance = id;

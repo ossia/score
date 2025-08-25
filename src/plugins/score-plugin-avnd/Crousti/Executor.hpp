@@ -199,7 +199,7 @@ public:
   {
 #if SCORE_PLUGIN_GFX
     // FIXME net context for gpu node ?
-    const auto id
+    const int64_t id
         = std::hash<ObjectPath>{}(Path<Process::ProcessModel>{element}.unsafePath());
 
     auto& gfx_exec = ctx.doc.plugin<Gfx::DocumentPlugin>().exec;

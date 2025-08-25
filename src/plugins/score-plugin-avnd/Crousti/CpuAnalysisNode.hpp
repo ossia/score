@@ -292,8 +292,8 @@ struct GfxNode<Node_T> final
   oscr::ProcessModel<Node_T>& processModel;
   GfxNode(
       oscr::ProcessModel<Node_T>& element,
-      std::weak_ptr<Execution::ExecutionCommandQueue> q, Gfx::exec_controls ctls, int id,
-      const score::DocumentContext& ctx)
+      std::weak_ptr<Execution::ExecutionCommandQueue> q, Gfx::exec_controls ctls,
+      int64_t id, const score::DocumentContext& ctx)
       : CustomGpuOutputNodeBase{std::move(q), std::move(ctls), ctx}
       , processModel{element}
   {

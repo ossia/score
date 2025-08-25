@@ -984,7 +984,7 @@ struct GpuControlOuts
   std::weak_ptr<Execution::ExecutionCommandQueue> queue;
   Gfx::exec_controls control_outs;
 
-  int instance{};
+  int64_t instance{};
 
   template <typename Node_T>
   void processControlOut(Node_T& state) const noexcept

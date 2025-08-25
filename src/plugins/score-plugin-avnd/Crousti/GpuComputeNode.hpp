@@ -28,8 +28,8 @@ template <typename Node_T>
 struct GpuComputeNode final : ComputeNodeBaseType<Node_T>
 {
   GpuComputeNode(
-      std::weak_ptr<Execution::ExecutionCommandQueue> q, Gfx::exec_controls ctls, int id,
-      const score::DocumentContext& ctx)
+      std::weak_ptr<Execution::ExecutionCommandQueue> q, Gfx::exec_controls ctls,
+      int64_t id, const score::DocumentContext& ctx)
       : ComputeNodeBaseType<Node_T>{std::move(q), std::move(ctls), ctx}
   {
     this->instance = id;
