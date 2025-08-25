@@ -1054,7 +1054,11 @@ struct FileChooser
       if(str != bt->text())
       {
         if(!str.isEmpty())
-          bt->setText(str.split("/").back());
+        {
+          auto no_colon = str.split(":").back();
+          auto no_slash = no_colon.split("/").back();
+          bt->setText(no_slash);
+        }
         else
           bt->setText("Choose a file...");
       }
