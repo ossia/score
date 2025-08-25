@@ -84,7 +84,7 @@ class LibraryHandler final
 
   QSet<QString> acceptedFiles() const noexcept override { return {"qml"}; }
 
-  static inline const QRegularExpression scoreImport{"import Score [0-9].[0-9]"};
+  static inline const QRegularExpression scoreImport{"import Score"};
 
   Library::Subcategories categories;
 
