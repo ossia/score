@@ -129,6 +129,45 @@ void EditJsContext::setValue(QObject* obj, double value)
   m->setProperty<Process::ControlInlet::p_value>(*port, float(value));
 }
 
+void EditJsContext::setValue(QObject* obj, QVector2D value)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+  auto port = qobject_cast<Process::ControlInlet*>(obj);
+  if(!port)
+    return;
+  auto [m, _] = macro(*doc);
+  m->setProperty<Process::ControlInlet::p_value>(
+      *port, ossia::vec2f{value.x(), value.y()});
+}
+
+void EditJsContext::setValue(QObject* obj, QVector3D value)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+  auto port = qobject_cast<Process::ControlInlet*>(obj);
+  if(!port)
+    return;
+  auto [m, _] = macro(*doc);
+  m->setProperty<Process::ControlInlet::p_value>(
+      *port, ossia::vec3f{value.x(), value.y(), value.z()});
+}
+
+void EditJsContext::setValue(QObject* obj, QVector4D value)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+  auto port = qobject_cast<Process::ControlInlet*>(obj);
+  if(!port)
+    return;
+  auto [m, _] = macro(*doc);
+  m->setProperty<Process::ControlInlet::p_value>(
+      *port, ossia::vec4f{value.x(), value.y(), value.z(), value.w()});
+}
+
 void EditJsContext::setValue(QObject* obj, QString value)
 {
   auto doc = ctx();

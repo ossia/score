@@ -138,6 +138,15 @@ public:
   void setValue(QObject* obj, double value);
   W_SLOT(setValue, (QObject*, double))
 
+  void setValue(QObject* obj, QVector2D value);
+  W_SLOT(setValue, (QObject*, QVector2D))
+
+  void setValue(QObject* obj, QVector3D value);
+  W_SLOT(setValue, (QObject*, QVector3D))
+
+  void setValue(QObject* obj, QVector4D value);
+  W_SLOT(setValue, (QObject*, QVector4D))
+
   void setValue(QObject* obj, QString value);
   W_SLOT(setValue, (QObject*, QString))
 
