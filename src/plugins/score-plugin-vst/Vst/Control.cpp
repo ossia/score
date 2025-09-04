@@ -42,6 +42,11 @@ bool ControlPortItem::on_createAutomation(
     const Scenario::IntervalModel& cst, std::function<void(score::Command*)> macro,
     const score::DocumentContext& ctx)
 {
+  // Important note: AddLayerInNewSlot will recompute all the ports
+  // in the UI, deleting / recreating them, including that one. So
+  // we have to make sur that by this point we aren't using this portitem's data anymore
+  auto& inlet = m_port;
+
   auto make_cmd = new Scenario::Command::AddOnlyProcessToInterval{
       cst, Metadata<ConcreteKey_k, Automation::ProcessModel>::get(), {}, {}};
   macro(make_cmd);
@@ -58,7 +63,7 @@ bool ControlPortItem::on_createAutomation(
 
   macro(new Dataflow::CreateCable{
       plug, getStrongId(plug.cables), Process::CableType::ImmediateGlutton,
-      *autom.outlet, port()});
+      *autom.outlet, inlet});
   return true;
 }
 
