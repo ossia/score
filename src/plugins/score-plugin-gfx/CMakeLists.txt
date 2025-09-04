@@ -381,6 +381,7 @@ endif()
 
 if(WIN32)
   target_sources(${PROJECT_NAME} PRIVATE Gfx/CameraDevice.win32.cpp)
+  target_link_libraries(${PROJECT_NAME} PRIVATE dxguid)
 elseif(APPLE)
   target_sources(${PROJECT_NAME} PRIVATE Gfx/CameraDevice.avf.mm)
 
