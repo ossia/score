@@ -24,16 +24,58 @@ struct PropertyWrapper final : public BaseCallbackWrapper
   using model_t = typename Property::model_type;
   using param_t = typename Property::param_type;
   model_t& m_model;
-  std::shared_ptr<bool> active = std::make_shared<bool>(true);
+  struct shared_state
+  {
+    bool active{};
+    bool in_push_from_qt{};
+    bool in_push_from_ossia{};
+    auto push_from_qt() noexcept
+    {
+      struct res
+      {
+        shared_state& self;
+        res(shared_state& self)
+            : self{self}
+        {
+          self.in_push_from_qt = true;
+        }
+        ~res() { self.in_push_from_qt = false; }
+      };
+      return res{*this};
+    }
+    auto push_from_ossia() noexcept
+    {
+      struct res
+      {
+        shared_state& self;
+        res(shared_state& self)
+            : self{self}
+        {
+          self.in_push_from_ossia = true;
+        }
+        ~res() { self.in_push_from_ossia = false; }
+      };
+      return res{*this};
+    }
+  };
+
+  std::shared_ptr<shared_state> state
+      = std::make_shared<shared_state>(shared_state{.active = true});
   using converter_t = ossia::qt_property_converter<typename Property::param_type>;
   PropertyWrapper(ossia::net::parameter_base& param_addr, model_t& obj, QObject* context)
       : BaseCallbackWrapper{param_addr}
       , m_model{obj}
   {
     qtCallback
-        = QObject::connect(&m_model, Property::notify, context, [this, active = active] {
-      if(!*active)
+        = QObject::connect(&m_model, Property::notify, context, [this, state = state] {
+      if(!state->active)
         return;
+      if(state->in_push_from_qt)
+        return;
+      if(state->in_push_from_ossia)
+        return;
+      auto push = state->push_from_qt();
+
       auto newVal = converter_t::convert((m_model.*Property::get)());
       try
       {
@@ -41,8 +83,7 @@ struct PropertyWrapper final : public BaseCallbackWrapper
 
         if(newVal != res)
         {
-          addr.set_value_quiet(newVal);
-          addr.push_value();
+          addr.push_value(newVal);
         }
       }
       catch(...)
@@ -51,19 +92,26 @@ struct PropertyWrapper final : public BaseCallbackWrapper
     }, Qt::QueuedConnection);
 
     addr.set_value(converter_t::convert((m_model.*Property::get)()));
-    callbackIt
-        = addr.add_callback([=, m = QPointer<model_t>{&m_model}](const ossia::value& v) {
-            ossia::qt::run_async(qApp, [m, v] {
-              if(m)
-                ((*m).*Property::set)(::State::convert::value<param_t>(v));
-            });
-          });
+    callbackIt = addr.add_callback(
+        [=, m = QPointer<model_t>{&m_model}, state = state](const ossia::value& v) {
+      if(!state->active)
+        return;
+      if(state->in_push_from_qt)
+        return;
+      if(state->in_push_from_ossia)
+        return;
+      auto push = state->push_from_ossia();
+      ossia::qt::run_async(qApp, [m, v] {
+        if(m)
+          ((*m).*Property::set)(::State::convert::value<param_t>(v));
+      });
+    });
   }
 
   ~PropertyWrapper()
   {
     this->clear();
-    *active = false;
+    state->active = false;
     auto& node = this->addr.get_node();
     auto par = node.get_parent();
     if(par)
