@@ -88,51 +88,88 @@ public:
       const score::DocumentContext& doc, QObject* parent)
       : ProcessComponent{node, proc, doc, "ProcessComponent", parent}
   {
-    for(Process::Inlet* inlet : proc.inlets())
-    {
+    recompute();
+
+    connect(
+        &proc, &Process::ProcessModel::controlAdded, this,
+        &DefaultProcessComponent::recompute);
+    connect(
+        &proc, &Process::ProcessModel::controlRemoved, this,
+        &DefaultProcessComponent::recompute);
+    connect(
+        &proc, &Process::ProcessModel::controlOutletAdded, this,
+        &DefaultProcessComponent::recompute);
+    connect(
+        &proc, &Process::ProcessModel::controlOutletRemoved, this,
+        &DefaultProcessComponent::recompute);
+    connect(
+        &proc, &Process::ProcessModel::inletsChanged, this,
+        &DefaultProcessComponent::recompute);
+    connect(
+        &proc, &Process::ProcessModel::outletsChanged, this,
+        &DefaultProcessComponent::recompute);
+  }
+
+  void recompute()
+  {
+    // important: we have to remove things in reverse order than they were added.
+    // otherwise a parent property wrapper gets deleted before its children, which
+    // will still try to access its parent in its own destructor.
+    for(int i = 2, n = m_properties.size(); i < n; i++)
+      m_properties[i].get()->clear();
+
+    while(m_properties.size() > 2)
+      m_properties.pop_back();
+    auto& proc = process();
+    for(auto& inlet : proc.inlets())
       if(auto control = qobject_cast<Process::ControlInlet*>(inlet))
-      {
-        if(!inlet->exposed().isEmpty())
-        {
-          try
-          {
-            m_properties.push_back(add_property<Process::Inlet::p_address>(
-                this->node(), *inlet, inlet->exposed().toStdString(), this));
-            auto& port_node = m_properties.back()->addr.get_node();
-            auto prop = add_value_property<Process::ControlInlet::p_value>(
-                port_node, *control, "value", this);
-            auto& p = prop->addr;
-            p.set_domain(control->domain());
-            m_properties.push_back(std::move(prop));
-          }
-          catch(...)
-          {
-          }
-        }
-      }
-    }
+        add_inlet(*control);
 
     for(auto& outlet : proc.outlets())
-    {
       if(auto control = qobject_cast<Process::ControlOutlet*>(outlet))
+        add_outlet(*control);
+  }
+
+  void add_inlet(Process::ControlInlet& control)
+  {
+    if(!control.exposed().isEmpty())
+    {
+      try
       {
-        if(!outlet->exposed().isEmpty())
-        {
-          try
-          {
-            m_properties.push_back(add_property<Process::Outlet::p_address>(
-                this->node(), *outlet, outlet->exposed().toStdString(), this));
-            auto& port_node = m_properties.back()->addr.get_node();
-            auto prop = add_value_property<Process::ControlOutlet::p_value>(
-                port_node, *control, "value", this);
-            auto& p = prop->addr;
-            p.set_domain(control->domain());
-            m_properties.push_back(std::move(prop));
-          }
-          catch(...)
-          {
-          }
-        }
+        m_properties.push_back(
+            add_property<Process::Inlet::p_address>(
+                this->node(), control, control.exposed().toStdString(), this));
+        auto& port_node = m_properties.back()->addr.get_node();
+        auto prop = add_value_property<Process::ControlInlet::p_value>(
+            port_node, control, "value", this);
+        auto& p = prop->addr;
+        p.set_domain(control.domain());
+        m_properties.push_back(std::move(prop));
+      }
+      catch(...)
+      {
+      }
+    }
+  }
+
+  void add_outlet(Process::ControlOutlet& control)
+  {
+    if(!control.exposed().isEmpty())
+    {
+      try
+      {
+        m_properties.push_back(
+            add_property<Process::Outlet::p_address>(
+                this->node(), control, control.exposed().toStdString(), this));
+        auto& port_node = m_properties.back()->addr.get_node();
+        auto prop = add_value_property<Process::ControlOutlet::p_value>(
+            port_node, control, "value", this);
+        auto& p = prop->addr;
+        p.set_domain(control.domain());
+        m_properties.push_back(std::move(prop));
+      }
+      catch(...)
+      {
       }
     }
   }

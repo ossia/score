@@ -125,7 +125,12 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(
     update();
   });
 
-  con(m_model, &Process::ProcessModel::inletsChanged, this, [this] { updatePorts(); });
+  con(m_model, &Process::ProcessModel::controlAdded, this,
+      &DefaultHeaderDelegate::updatePorts);
+  con(m_model, &Process::ProcessModel::controlRemoved, this,
+      &DefaultHeaderDelegate::updatePorts);
+  con(m_model, &Process::ProcessModel::inletsChanged, this,
+      &DefaultHeaderDelegate::updatePorts);
   updatePorts();
 
   con(m_model, &Process::ProcessModel::benchmark, this,
@@ -261,7 +266,12 @@ DefaultFooterDelegate::DefaultFooterDelegate(
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorScaleV);
   setFlag(ItemHasNoContents, true);
-  con(model, &Process::ProcessModel::outletsChanged, this, [this] { updatePorts(); });
+  con(m_model, &Process::ProcessModel::controlOutletAdded, this,
+      &DefaultFooterDelegate::updatePorts);
+  con(m_model, &Process::ProcessModel::controlOutletRemoved, this,
+      &DefaultFooterDelegate::updatePorts);
+  con(model, &Process::ProcessModel::outletsChanged, this,
+      &DefaultFooterDelegate::updatePorts);
   updatePorts();
 }
 

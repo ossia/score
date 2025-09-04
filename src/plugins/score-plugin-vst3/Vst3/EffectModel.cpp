@@ -221,6 +221,7 @@ void Model::removeControl(const Id<Process::Port>& id)
   m_inlets.erase(it);
 
   controlRemoved(*ctrl);
+  // FIXME inletsChanged
   delete ctrl;
 }
 
@@ -245,6 +246,7 @@ void Model::on_addControl_impl(
   m_inlets.push_back(ctrl);
   initControl(ctrl, info);
   controlAdded(ctrl->id());
+  // FIXME inletsChanged
 }
 
 void Model::initControl(ControlInlet* ctrl, const Steinberg::Vst::ParameterInfo* info)

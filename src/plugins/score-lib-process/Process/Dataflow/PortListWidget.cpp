@@ -35,8 +35,12 @@ PortListWidget::PortListWidget(
   setLayout(new Inspector::Layout);
   reload();
 
-  con(proc, &Process::ProcessModel::inletsChanged, this, [this] { reload(); });
-  con(proc, &Process::ProcessModel::outletsChanged, this, [this] { reload(); });
+  con(proc, &Process::ProcessModel::controlAdded, this, &PortListWidget::reload);
+  con(proc, &Process::ProcessModel::controlRemoved, this, &PortListWidget::reload);
+  con(proc, &Process::ProcessModel::controlOutletAdded, this, &PortListWidget::reload);
+  con(proc, &Process::ProcessModel::controlOutletRemoved, this, &PortListWidget::reload);
+  con(proc, &Process::ProcessModel::inletsChanged, this, &PortListWidget::reload);
+  con(proc, &Process::ProcessModel::outletsChanged, this, &PortListWidget::reload);
 }
 
 void PortListWidget::reload()

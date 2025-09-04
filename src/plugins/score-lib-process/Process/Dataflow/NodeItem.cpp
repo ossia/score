@@ -98,6 +98,10 @@ NodeItem::NodeItem(
     updateZoomRatio();
     updateTitlePos();
   };
+  connect(&process, &Process::ProcessModel::controlAdded, this, on_sizeChanged);
+  connect(&process, &Process::ProcessModel::controlRemoved, this, on_sizeChanged);
+  connect(&process, &Process::ProcessModel::controlOutletAdded, this, on_sizeChanged);
+  connect(&process, &Process::ProcessModel::controlOutletRemoved, this, on_sizeChanged);
   connect(&process, &Process::ProcessModel::inletsChanged, this, on_sizeChanged);
   connect(&process, &Process::ProcessModel::outletsChanged, this, on_sizeChanged);
 }
@@ -167,6 +171,15 @@ void NodeItem::createWithDecorations()
     resetInlets();
     resetOutlets();
   });
+  connect(&process, &Process::ProcessModel::controlAdded, this, &NodeItem::resetInlets);
+  connect(
+      &process, &Process::ProcessModel::controlRemoved, this, &NodeItem::resetInlets);
+  connect(
+      &process, &Process::ProcessModel::controlOutletAdded, this,
+      &NodeItem::resetOutlets);
+  connect(
+      &process, &Process::ProcessModel::controlOutletRemoved, this,
+      &NodeItem::resetOutlets);
   connect(&process, &Process::ProcessModel::inletsChanged, this, &NodeItem::resetInlets);
   connect(
       &process, &Process::ProcessModel::outletsChanged, this, &NodeItem::resetOutlets);

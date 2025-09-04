@@ -308,6 +308,7 @@ void Model::on_addControl_impl(ControlInlet* ctrl)
   controls.insert({ctrl->fxNum, ctrl});
   SCORE_ASSERT(controls.find(ctrl->fxNum) != controls.end());
   controlAdded(ctrl->id());
+  // FIXME inletsChanged
 }
 
 void Model::on_controlChangedFromScore(int i, float newval)
