@@ -110,6 +110,14 @@ public:
         &DefaultProcessComponent::recompute);
   }
 
+  ~DefaultProcessComponent()
+  {
+    for(int i = 2, n = m_properties.size(); i < n; i++)
+      m_properties[i].get()->clear();
+    while(m_properties.size() > 2)
+      m_properties.pop_back();
+  }
+
   void recompute()
   {
     // important: we have to remove things in reverse order than they were added.
