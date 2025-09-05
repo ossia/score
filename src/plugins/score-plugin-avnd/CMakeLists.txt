@@ -672,10 +672,24 @@ avnd_make_score(
   NAMESPACE ao
 )
 avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/ValueFilter.hpp"
+  TARGET value_filter
+  MAIN_CLASS ValueFilter
+  NAMESPACE ao
+)
+
+avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Raw/Interpolator.hpp"
   TARGET exponential_smoothing
   MAIN_CLASS ExponentialSmoothing
   NAMESPACE examples
+)
+
+avnd_make_score(
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/Easetanbul.hpp"
+  TARGET easetanbul
+  MAIN_CLASS Easetanbul
+  NAMESPACE ao
 )
 
 avnd_make_score(
