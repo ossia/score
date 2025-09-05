@@ -88,6 +88,11 @@ set(HDRS
     Gfx/Video/View.hpp
     Gfx/Video/Layer.hpp
 
+    Gfx/VSA/Executor.hpp
+    Gfx/VSA/Library.hpp
+    Gfx/VSA/Metadata.hpp
+    Gfx/VSA/Process.hpp
+
     Gfx/Images/Executor.hpp
     Gfx/Images/Metadata.hpp
     Gfx/Images/Process.hpp
@@ -150,6 +155,9 @@ set(HDRS
     Gfx/GfxDevice.hpp
     Gfx/GfxInputDevice.hpp
     Gfx/InvertYRenderer.hpp
+    Gfx/ISFProcess.hpp
+    Gfx/ISFExecutor.hpp
+    Gfx/ISFExecutorNode.hpp
     Gfx/TexturePort.hpp
     Gfx/ShaderProgram.hpp
     Gfx/SharedInputSettings.hpp
@@ -184,6 +192,10 @@ set(SRCS
     Gfx/Video/Presenter.cpp
     Gfx/Video/Process.cpp
     Gfx/Video/View.cpp
+
+    Gfx/VSA/Executor.cpp
+    Gfx/VSA/Library.cpp
+    Gfx/VSA/Process.cpp
 
     Gfx/Images/Executor.cpp
     Gfx/Images/Process.cpp
@@ -220,6 +232,7 @@ set(SRCS
     Gfx/GfxExecutionAction.cpp
     Gfx/GfxContext.cpp
     Gfx/GfxDevice.cpp
+    Gfx/ISFExecutor.cpp
     Gfx/TexturePort.cpp
     Gfx/ShaderProgram.cpp
     Gfx/SharedInputSettings.cpp
