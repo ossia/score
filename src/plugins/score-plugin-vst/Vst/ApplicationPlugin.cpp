@@ -201,6 +201,22 @@ void ApplicationPlugin::rescanVSTs(QStringList paths)
     paths += vst_env_path.absoluteFilePath();
   }
 
+  for(auto it = paths.begin(); it != paths.end();)
+  {
+    auto& path = *it;
+    auto fi = QFileInfo{path};
+    if(!fi.exists())
+    {
+      it = paths.erase(it);
+    }
+    else
+    {
+      path = QFileInfo{path}.canonicalFilePath();
+      ++it;
+    }
+  }
+  paths.removeDuplicates();
+
   // 1. List all plug-ins in new paths
   QStringList exploredPaths;
   QSet<QString> newPlugins;
