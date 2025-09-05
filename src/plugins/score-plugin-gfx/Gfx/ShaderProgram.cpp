@@ -316,8 +316,7 @@ ProgramCache::get(const ShaderSource& program) noexcept
 
     // Parse ISF and get GLSL shaders
     isf::parser parser{
-        source_vert.toStdString(), source_frag.toStdString(), 450,
-        isf::parser::ShaderType::ISF};
+        source_vert.toStdString(), source_frag.toStdString(), 450, program.type};
 
     auto isfVert = QByteArray::fromStdString(parser.vertex());
     auto isfFrag = QByteArray::fromStdString(parser.fragment());
@@ -340,7 +339,8 @@ ProgramCache::get(const ShaderSource& program) noexcept
 
     if(isfVert != source_vert || isfFrag != source_frag)
     {
-      ProcessedProgram processed{ShaderSource{isfVert, isfFrag}, parser.data()};
+      ProcessedProgram processed{
+          ShaderSource{ShaderSource::ProgramType::ISF, isfVert, isfFrag}, parser.data()};
 
       // Add layout, location, etc
       updateToGlsl45(processed);
@@ -390,7 +390,8 @@ ProgramCache::get(const ShaderSource& program) noexcept
   return {std::nullopt, "Unknown error"};
 }
 
-ShaderSource programFromFragmentShaderPath(const QString& fsFilename, QByteArray fsData)
+ShaderSource
+programFromISFFragmentShaderPath(const QString& fsFilename, QByteArray fsData)
 {
   // ISF works by storing a vertex shader next to the fragment shader.
   QString vertexName = fsFilename;
@@ -432,6 +433,19 @@ ShaderSource programFromFragmentShaderPath(const QString& fsFilename, QByteArray
   resolveGLSLIncludes(fsData, shaderIncludePath, file.absolutePath(), 0);
   resolveGLSLIncludes(vertexData, shaderIncludePath, file.absolutePath(), 0);
   */
-  return {vertexData, fsData};
+  return {ShaderSource::ProgramType::ISF, vertexData, fsData};
+}
+ShaderSource
+programFromVSAVertexShaderPath(const QString& vertexFilename, QByteArray vertexData)
+{
+  if(vertexData.isEmpty())
+  {
+    if(QFile file{vertexFilename}; file.exists() && file.open(QIODevice::ReadOnly))
+    {
+      vertexData = file.readAll();
+    }
+  }
+
+  return {ShaderSource::ProgramType::VertexShaderArt, vertexData, ""};
 }
 }

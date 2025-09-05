@@ -94,6 +94,18 @@ struct SCORE_PLUGIN_GFX_EXPORT BasicMesh : Mesh
   std::span<const float> vertexArray;
   int vertexCount{};
 };
+/*
+* @brief A dummy mesh for only accessing a gl_VertexId without caring about attributes
+*/
+struct SCORE_PLUGIN_GFX_EXPORT DummyMesh : BasicMesh
+{
+  explicit DummyMesh(int count);
+  [[nodiscard]] Flags flags() const noexcept override { return Flags{}; }
+  const char* defaultVertexShader() const noexcept override;
+  void
+  setupBindings(const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexcept override;
+  void draw(const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexcept override;
+};
 
 /**
  * @brief A mesh with only position attributes.

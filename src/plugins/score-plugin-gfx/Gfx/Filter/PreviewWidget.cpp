@@ -52,6 +52,8 @@ struct PreviewInputVisitor
   score::gfx::NodeModel* operator()(const isf::audio_input& v) { return nullptr; }
 
   score::gfx::NodeModel* operator()(const isf::audioFFT_input& v) { return nullptr; }
+
+  score::gfx::NodeModel* operator()(const isf::audioHist_input& v) { return nullptr; }
 };
 
 struct PreviewPresetVisitor
@@ -120,6 +122,8 @@ struct PreviewPresetVisitor
   void operator()(const isf::audio_input& v) { }
 
   void operator()(const isf::audioFFT_input& v) { }
+
+  void operator()(const isf::audioHist_input& v) { }
 };
 }
 
@@ -146,7 +150,11 @@ public:
 
   void load(const QString& path)
   {
-    ShaderSource program = programFromFragmentShaderPath(path, {});
+    ShaderSource program;
+    if(path.contains(".fs") || path.contains(".frag"))
+      program = programFromISFFragmentShaderPath(path, {});
+    if(path.contains(".vs") || path.contains(".vert"))
+      program = programFromVSAVertexShaderPath(path, {});
 
     if(const auto& [processed, error] = ProgramCache::instance().get(program);
        bool(processed))
@@ -164,9 +172,12 @@ public:
     auto obj = doc.GetObject();
     if(!obj.HasMember("Fragment") || !obj.HasMember("Vertex"))
       return;
+    ShaderSource::ProgramType type = ShaderSource::ProgramType::ISF;
+    if(obj.HasMember("Type"))
+      type = (ShaderSource::ProgramType)obj["Type"].GetInt();
     auto frag = obj["Fragment"].GetString();
     auto vert = obj["Vertex"].GetString();
-    ShaderSource program{vert, frag};
+    ShaderSource program{type, vert, frag};
 
     if(const auto& [processed, error] = ProgramCache::instance().get(program);
        bool(processed))

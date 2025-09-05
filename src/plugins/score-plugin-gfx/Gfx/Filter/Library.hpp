@@ -37,4 +37,22 @@ class DropHandler final : public Process::ProcessDropHandler
       std::vector<ProcessDrop>& drops, const QMimeData& mime,
       const score::DocumentContext& ctx) const noexcept override;
 };
+
+class VSALibraryHandler final : public Library::LibraryInterface
+{
+  SCORE_CONCRETE("e924dec9-21e7-4b4c-b81a-0813c22db4ea")
+
+  QSet<QString> acceptedFiles() const noexcept override;
+
+  void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
+      override;
+
+  void addPath(std::string_view path) override;
+
+  QWidget* previewWidget(const QString& path, QWidget* parent) const noexcept override;
+  QWidget*
+  previewWidget(const Process::Preset& path, QWidget* parent) const noexcept override;
+
+  Library::Subcategories categories;
+};
 }

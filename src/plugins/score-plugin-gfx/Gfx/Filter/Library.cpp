@@ -7,7 +7,7 @@
 #include <score/tools/File.hpp>
 
 #include <QDir>
-#include <QGuiApplication>>
+#include <QGuiApplication>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -73,7 +73,6 @@ public:
         waiting = true;
       }
     }
-    qDebug() << "finished parsing sahder" << response.size();
   }
 
   QNetworkAccessManager* m_networkManager{};
@@ -152,6 +151,7 @@ void DropHandler::dropCustom(
     std::vector<ProcessDrop>& vec, const QMimeData& mime,
     const score::DocumentContext& ctx) const noexcept
 {
+  // FIXME handle multipass / multibuffer
   for(const auto& uri : mime.urls())
   {
     const auto& host = uri.host();
@@ -198,6 +198,53 @@ void DropHandler::dropCustom(
       }
     }
   }
+}
+
+QSet<QString> VSALibraryHandler::acceptedFiles() const noexcept
+{
+  return {"vs", "vert"};
+}
+
+void VSALibraryHandler::setup(
+    Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
+{
+  // TODO relaunch whenever library path changes...
+  const auto& key = Metadata<ConcreteKey_k, Filter::Model>::get();
+  QModelIndex node = model.find(key);
+  if(node == QModelIndex{})
+    return;
+
+  categories.init(node, ctx);
+}
+
+void VSALibraryHandler::addPath(std::string_view path)
+{
+  score::PathInfo file{path};
+
+  Library::ProcessData pdata;
+  pdata.prettyName
+      = QString::fromUtf8(file.completeBaseName.data(), file.completeBaseName.size());
+  pdata.key = Metadata<ConcreteKey_k, Filter::Model>::get();
+  pdata.customData = QString::fromUtf8(path.data(), path.size());
+  categories.add(file, std::move(pdata));
+}
+
+QWidget*
+VSALibraryHandler::previewWidget(const QString& path, QWidget* parent) const noexcept
+{
+  if(!qEnvironmentVariableIsSet("SCORE_DISABLE_SHADER_PREVIEW"))
+    return new ShaderPreviewWidget{path, parent};
+  else
+    return nullptr;
+}
+
+QWidget* VSALibraryHandler::previewWidget(
+    const Process::Preset& path, QWidget* parent) const noexcept
+{
+  if(!qEnvironmentVariableIsSet("SCORE_DISABLE_SHADER_PREVIEW"))
+    return new ShaderPreviewWidget{path, parent};
+  else
+    return nullptr;
 }
 }
 

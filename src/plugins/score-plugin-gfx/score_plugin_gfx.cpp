@@ -121,8 +121,8 @@ std::vector<score::InterfaceBase*> score_plugin_gfx::factories(
       FW<Process::ProcessDropHandler, Gfx::Filter::DropHandler, Gfx::Video::DropHandler,
          Gfx::Images::DropHandler>,
       FW<Library::LibraryInterface, Gfx::Filter::LibraryHandler,
-         Gfx::Video::LibraryHandler, Gfx::Images::LibraryHandler,
-         Gfx::GeometryFilter::LibraryHandler>,
+         Gfx::Filter::VSALibraryHandler, Gfx::Video::LibraryHandler,
+         Gfx::Images::LibraryHandler, Gfx::GeometryFilter::LibraryHandler>,
       FW<score::SettingsDelegateFactory, Gfx::Settings::Factory>>(ctx, key);
 }
 

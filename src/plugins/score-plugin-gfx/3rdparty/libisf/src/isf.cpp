@@ -153,6 +153,14 @@ parser::parser(std::string vert, std::string frag, int glslVersion, ShaderType t
     return str.find("uniform float time;") != std::string::npos
            || str.find("glslsandbox") != std::string::npos;
   };
+  static const auto is_vsa = [](const std::string& str) {
+    // Check for common VSA patterns
+    bool has_vertexId = str.find("vertexId") != std::string::npos;
+    bool has_v_color = str.find("v_color") != std::string::npos;
+    bool no_frag_color = str.find("_FragColor") == std::string::npos;
+
+    return (has_vertexId || has_v_color) && (no_frag_color);
+  };
 
   switch(t)
   {
@@ -161,6 +169,8 @@ parser::parser(std::string vert, std::string frag, int glslVersion, ShaderType t
         parse_shadertoy_json(m_sourceFragment);
       else if(is_shadertoy(m_sourceFragment))
         parse_shadertoy();
+      else if(is_vsa(m_sourceVertex))
+        parse_vsa();
       else if(is_isf(m_sourceFragment))
         parse_isf();
       else if(is_glslsandbox(m_sourceFragment))
@@ -183,6 +193,10 @@ parser::parser(std::string vert, std::string frag, int glslVersion, ShaderType t
     }
     case ShaderType::GLSLSandBox: {
       parse_glsl_sandbox();
+      break;
+    }
+    case ShaderType::VertexShaderArt: {
+      parse_vsa();
       break;
     }
     default:
@@ -278,6 +292,24 @@ static void parse_input(image_input& inp, const sajson::value& v) { }
 static void parse_input(event_input& inp, const sajson::value& v) { }
 
 static void parse_input(audio_input& inp, const sajson::value& v)
+{
+  std::size_t N = v.get_length();
+
+  for(std::size_t i = 0; i < N; i++)
+  {
+    auto k = v.get_object_key(i).as_string();
+    if(k == "MAX")
+    {
+      auto val = v.get_object_value(i);
+      if(val.get_type() == sajson::TYPE_INTEGER)
+      {
+        inp.max = val.get_integer_value();
+      }
+    }
+  }
+}
+
+static void parse_input(audioHist_input& inp, const sajson::value& v)
 {
   std::size_t N = v.get_length();
 
@@ -471,6 +503,8 @@ static const ossia::string_map<root_fun>& root_parse{[] {
     i.insert({"color", [](const auto& s) { return parse<color_input>(s); }});
     i.insert({"audio", [](const auto& s) { return parse<audio_input>(s); }});
     i.insert({"audioFFT", [](const auto& s) { return parse<audioFFT_input>(s); }});
+    i.insert(
+        {"audioHistogram", [](const auto& s) { return parse<audioHist_input>(s); }});
 
     return i;
   }()};
@@ -590,6 +624,21 @@ static const ossia::string_map<root_fun>& root_parse{[] {
     }
        }});
 
+  p.insert({"POINT_COUNT", [](descriptor& d, const sajson::value& v) {
+    if(v.get_type() == sajson::TYPE_INTEGER)
+      d.point_count = v.get_integer_value();
+  }});
+
+  p.insert({"PRIMITIVE_MODE", [](descriptor& d, const sajson::value& v) {
+    if(v.get_type() == sajson::TYPE_STRING)
+      d.primitive_mode = v.as_string();
+  }});
+
+  p.insert({"LINE_SIZE", [](descriptor& d, const sajson::value& v) {
+    if(v.get_type() == sajson::TYPE_STRING)
+      d.line_size = v.as_string();
+  }});
+
   return p;
 }()};
 
@@ -605,6 +654,7 @@ struct create_val_visitor
   std::string operator()(const image_input&) { return "uniform sampler2D"; }
   std::string operator()(const audio_input&) { return "uniform sampler2D"; }
   std::string operator()(const audioFFT_input&) { return "uniform sampler2D"; }
+  std::string operator()(const audioHist_input&) { return "uniform sampler2D"; }
 };
 
 struct create_val_visitor_450
@@ -624,6 +674,7 @@ struct create_val_visitor_450
   return_type operator()(const image_input&) { return {"uniform sampler2D", true}; }
   return_type operator()(const audio_input&) { return {"uniform sampler2D", true}; }
   return_type operator()(const audioFFT_input&) { return {"uniform sampler2D", true}; }
+  return_type operator()(const audioHist_input&) { return {"uniform sampler2D", true}; }
 };
 
 std::pair<int, descriptor> parser::parse_isf_header(std::string_view source)
@@ -1524,10 +1575,22 @@ std::string parser::write_isf() const
           }
           oss << "\n";
         }
-        
-        void operator()(const audioFFT_input& a) {
+
+        void operator()(const audioFFT_input& a)
+        {
           oss << "      \"TYPE\": \"audioFFT\"";
-          if(a.max > 0) {
+          if(a.max > 0)
+          {
+            oss << ",\n      \"MAX\": " << a.max;
+          }
+          oss << "\n";
+        }
+
+        void operator()(const audioHist_input& a)
+        {
+          oss << "      \"TYPE\": \"audioHistogram\"";
+          if(a.max > 0)
+          {
             oss << ",\n      \"MAX\": " << a.max;
           }
           oss << "\n";
@@ -1618,6 +1681,167 @@ std::string parser::write_isf() const
   }
   
   return oss.str();
+}
+
+void parser::parse_vsa()
+{
+  // VSA shaders are vertex shaders, so we process the vertex source
+
+  auto [end, desc] = parse_isf_header(m_sourceVertex);
+  m_desc = std::move(desc);
+
+  std::string& fragWithoutISF = m_sourceVertex;
+  fragWithoutISF.erase(0, end + 2);
+
+  // There is always one pass at least
+  if(m_desc.passes.empty())
+  {
+    m_desc.passes.push_back(isf::pass{});
+  }
+
+  std::string vsaSource = m_sourceVertex;
+
+  // Set up descriptor for VSA
+  m_desc.mode = isf::descriptor::VSA;
+  m_desc.description = "Vertex Shader Art";
+  m_desc.categories.push_back("VSA");
+  m_desc.default_vertex_shader = false;
+  
+  // Add standard VSA inputs to descriptor
+  // Vertex count control
+  {
+    input vertexCount;
+    vertexCount.name = "vertexCount";
+    vertexCount.label = "Vertex Count";
+    float_input vc;
+    vc.min = 3.0;
+    vc.max = 100000.0;
+    vc.def = 10000.0;
+    if(m_desc.point_count > 0)
+      vc.def = m_desc.point_count;
+    vertexCount.data = vc;
+    m_desc.inputs.insert(m_desc.inputs.begin(), vertexCount);
+  }
+
+  // Primitive type
+  {
+    input primitiveType;
+    primitiveType.name = "primitiveType";
+    primitiveType.label = "Primitive Type";
+    long_input vc;
+    vc.values.push_back("POINTS");
+    vc.values.push_back("LINE_STRIP");
+    vc.values.push_back("LINE_LOOP");
+    vc.values.push_back("LINES");
+    vc.values.push_back("TRI_STRIP");
+    vc.values.push_back("TRI_FAN");
+    vc.values.push_back("TRIANGLES");
+    vc.def = 6;
+    if(!m_desc.primitive_mode.empty())
+    {
+      for(int i = 0; i < 7; i++)
+        if(m_desc.primitive_mode == ossia::get<std::string>(vc.values[i]))
+        {
+          vc.def = i;
+          break;
+        }
+    }
+    primitiveType.data = vc;
+    m_desc.inputs.insert(m_desc.inputs.begin() + 1, primitiveType);
+  }
+
+  // Generate GLSL 4.5 vertex shader
+  m_vertex = GLSL45.versionPrelude;
+
+  // Add uniforms
+  m_vertex += GLSL45.defaultUniforms;
+
+  {
+    int sampler_binding = 3;
+    auto& d = m_desc;
+    std::string material_ubos;
+    std::string samplers;
+    std::string globalvars;
+    material_ubos += "layout(std140, binding = 2) uniform material_t {\n";
+    for(const isf::input& val : d.inputs)
+    {
+      auto [type, isSampler] = ossia::visit(create_val_visitor_450{}, val.data);
+
+      if(isSampler)
+      {
+        samplers += "layout(binding = ";
+        samplers += std::to_string(sampler_binding);
+        samplers += ") ";
+        samplers += type;
+        samplers += ' ';
+        samplers += val.name;
+        samplers += ";\n";
+
+        auto imgRect_varname = "_" + val.name + "_imgRect";
+        material_ubos += "vec4 " + imgRect_varname + ";\n";
+        // See comment above regarding little dance to make spirv-cross happy
+        globalvars += "vec4 ";
+        globalvars += imgRect_varname;
+        globalvars += " = isf_material_uniforms.";
+        globalvars += imgRect_varname;
+        globalvars += ";\n";
+
+        sampler_binding++;
+      }
+      else
+      {
+        material_ubos += type;
+        material_ubos += ' ';
+        material_ubos += val.name;
+        material_ubos += ";\n";
+
+        // See comment above regarding little dance to make spirv-cross happy
+        globalvars += type;
+        globalvars += ' ';
+        globalvars += val.name;
+        globalvars += " = isf_material_uniforms.";
+        globalvars += val.name;
+        globalvars += ";\n";
+      }
+    }
+
+    material_ubos += "} isf_material_uniforms;\n";
+    material_ubos += "\n";
+    material_ubos += globalvars;
+    material_ubos += "\n";
+
+    material_ubos += samplers;
+    m_vertex += material_ubos;
+  }
+
+  // Add material uniforms for VSA
+  m_vertex += R"_(
+// Compatibility defines for VSA
+float time = TIME;
+vec2 resolution = RENDERSIZE;
+vec2 mouse = MOUSE.xy;
+)_";
+
+  // Add vertex input - using gl_VertexIndex for simplicity
+  m_vertex += R"_(
+// VSA Vertex Shader inputs
+#define vertexId float(gl_VertexIndex)
+#define vertexCount isf_material_uniforms.vertexCount
+
+layout(location = 0) out vec4 v_color;
+)_";
+  // Add the processed VSA code
+  m_vertex += vsaSource;
+
+  m_fragment = GLSL45.versionPrelude;
+  m_fragment += R"_(
+layout(location = 0) in vec4 v_color;
+layout(location = 0) out vec4 isf_FragColor;
+
+void main() {
+  isf_FragColor = v_color;
+}
+)_";
 }
 
 }
