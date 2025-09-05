@@ -819,13 +819,13 @@ void AudioTextureUpload::process(
 {
   switch(audio.mode)
   {
-    case audio.Waveform:
+    case AudioTexture::Mode::Waveform:
       processTemporal(audio, res, rhiTexture);
       break;
-    case audio.FFT:
+    case AudioTexture::Mode::FFT:
       processSpectral(audio, res, rhiTexture);
       break;
-    case audio.Histogram:
+    case AudioTexture::Mode::Histogram:
       processHistogram(audio, res, rhiTexture);
       break;
   }
@@ -940,13 +940,13 @@ std::optional<Sampler> AudioTextureUpload::updateAudioTexture(
       int pixelWidth = 0;
       switch(audio.mode)
       {
-        case audio.Waveform:
+        case AudioTexture::Mode::Waveform:
           pixelWidth = samples;
           break;
-        case audio.FFT:
+        case AudioTexture::Mode::FFT:
           pixelWidth = samples / 2;
           break;
-        case audio.Histogram:
+        case AudioTexture::Mode::Histogram:
           pixelWidth = 240;
           break;
       }
