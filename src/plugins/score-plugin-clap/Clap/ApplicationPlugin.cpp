@@ -109,27 +109,42 @@ void ApplicationPlugin::rescanPlugins()
   std::vector<QString> pluginsToScan;
   
   // Standard CLAP plugin directories
-  QStringList searchPaths;
-  
+  QStringList paths;
+
 #if defined(__APPLE__)
-  searchPaths << "/Library/Audio/Plug-Ins/CLAP"
-              << "~/Library/Audio/Plug-Ins/CLAP";
+  paths << "/Library/Audio/Plug-Ins/CLAP"
+        << (QStandardPaths::writableLocation(QStandardPaths::HomeLocation)
+            + "/Library/Audio/Plug-Ins/CLAP");
 #elif defined(_WIN32)
-  searchPaths << "C:/Program Files/Common Files/CLAP"
-              << QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/CLAP";
+  paths << "C:/Program Files/Common Files/CLAP"
+        << QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)
+               + "/CLAP";
 #else
-  searchPaths << QStringLiteral("/usr/lib/clap") << QStringLiteral("/usr/local/lib/clap")
-              << QStringLiteral("/usr/lib64/clap")
-              << QStringLiteral("/usr/local/lib64/clap")
-              << QStandardPaths::writableLocation(QStandardPaths::HomeLocation)
-                     + "/.clap";
+  paths << QStringLiteral("/usr/lib/clap") << QStringLiteral("/usr/local/lib/clap")
+        << QStringLiteral("/usr/lib64/clap") << QStringLiteral("/usr/local/lib64/clap");
 #endif
 
+  paths << QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/.clap";
+  for(auto it = paths.begin(); it != paths.end();)
+  {
+    auto& path = *it;
+    auto fi = QFileInfo{path};
+    if(!fi.exists())
+    {
+      it = paths.erase(it);
+    }
+    else
+    {
+      path = QFileInfo{path}.canonicalFilePath();
+      ++it;
+    }
+  }
+  paths.removeDuplicates();
   ossia::hash_set<QString> known_plugins_paths;
   for(auto& plug : this->m_plugins)
     known_plugins_paths.insert(plug.path);
 
-  for(const QString& searchPath : searchPaths)
+  for(const QString& searchPath : paths)
   {
     QDir dir(searchPath);
     if(!dir.exists())

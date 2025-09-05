@@ -1,6 +1,7 @@
 #include <Media/Effect/Settings/Model.hpp>
 
 #include <QDir>
+#include <QStandardPaths>
 namespace Media::Settings
 {
 namespace Parameters
@@ -8,7 +9,8 @@ namespace Parameters
 
 SETTINGS_PARAMETER_IMPL(VstPaths){
     QStringLiteral("Effect/VstPaths"),
-    {(QString::fromUtf8(qgetenv("HOME")) + QDir::separator() + ".vst"),
+    {(QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + QDir::separator()
+      + ".vst"),
 #if defined(__APPLE__)
      "/Library/Audio/Plug-Ins/VST"
 #elif defined(__linux__)

@@ -17,6 +17,7 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QProcess>
+#include <QStandardPaths>
 #include <QTimer>
 
 #include <lilv/lilv.h>
@@ -252,7 +253,8 @@ void LV2::GlobalContext::loadPlugins()
   {
     QStringList lv2_paths;
 
-    if(auto home = QString::fromUtf8(qgetenv("HOME")); QFile::exists(home + ".lv2"))
+    if(auto home = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
+       QFile::exists(home + ".lv2"))
       lv2_paths.push_back(home + ".lv2");
 
     if(QFile::exists(QStringLiteral("/usr/lib/lv2")))

@@ -15,6 +15,7 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QSettings>
+#include <QStandardPaths>
 #include <QTimer>
 #include <QWebSocket>
 #include <QWebSocketServer>
@@ -148,16 +149,32 @@ void ApplicationPlugin::rescan()
 #elif defined(_WIN32)
   const QString local_app_data = qgetenv("LOCALAPPDATA");
   paths.prepend(QString("%1/Programs/Common/VST3/").arg(local_app_data));
-#else
-  const QString home = qgetenv("HOME");
-  paths.prepend(QString("%1/.vst3/").arg(home));
 #endif
+
+  const QString home = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
+  paths.prepend(QString("%1/.vst3/").arg(home));
 
   // VST3_PATH
   if(QFileInfo vst_env_path{QString(qgetenv("VST3_PATH"))}; vst_env_path.isDir())
   {
     paths += vst_env_path.absoluteFilePath();
   }
+
+  for(auto it = paths.begin(); it != paths.end();)
+  {
+    auto& path = *it;
+    auto fi = QFileInfo{path};
+    if(!fi.exists())
+    {
+      it = paths.erase(it);
+    }
+    else
+    {
+      path = QFileInfo{path}.canonicalFilePath();
+      ++it;
+    }
+  }
+  paths.removeDuplicates();
   rescan(paths);
 }
 
