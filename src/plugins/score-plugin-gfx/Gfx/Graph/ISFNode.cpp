@@ -147,7 +147,7 @@ struct isf_input_port_vis
     self.m_audio_textures.push_back({});
     auto& data = self.m_audio_textures.back();
     data.fixedSize = audio.max;
-    data.mode = data.FFT;
+    data.mode = AudioTexture::Mode::FFT;
     self.input.push_back(new Port{&self, &data, Types::Audio, {}});
     add_texture_imgrect();
     data.rectUniformOffset = this->sz - 4 * 4;
