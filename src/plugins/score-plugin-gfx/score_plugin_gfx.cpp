@@ -23,6 +23,10 @@
 #include <Gfx/Text/Executor.hpp>
 #include <Gfx/Text/Process.hpp>
 #include <Gfx/TexturePort.hpp>
+#include <Gfx/VSA/Executor.hpp>
+#include <Gfx/VSA/Layer.hpp>
+#include <Gfx/VSA/Library.hpp>
+#include <Gfx/VSA/Process.hpp>
 #include <Gfx/Video/Executor.hpp>
 #include <Gfx/Video/Inspector.hpp>
 #include <Gfx/Video/Layer.hpp>
@@ -103,15 +107,18 @@ std::vector<score::InterfaceBase*> score_plugin_gfx::factories(
          >,
       FW<Process::ProcessModelFactory, Gfx::Filter::ProcessFactory,
          Gfx::GeometryFilter::ProcessFactory, Gfx::Video::ProcessFactory,
-         Gfx::Text::ProcessFactory, Gfx::Images::ProcessFactory>,
+         Gfx::Text::ProcessFactory, Gfx::Images::ProcessFactory,
+         Gfx::VSA::ProcessFactory>,
       FW<Process::LayerFactory, Gfx::Filter::LayerFactory,
-         Gfx::GeometryFilter::LayerFactory, Gfx::Video::LayerFactory>,
+         Gfx::GeometryFilter::LayerFactory, Gfx::Video::LayerFactory,
+         Gfx::VSA::LayerFactory>,
       FW<Execution::ProcessComponentFactory,
          Gfx::Filter::ProcessExecutorComponentFactory,
          Gfx::GeometryFilter::ProcessExecutorComponentFactory,
          Gfx::Video::ProcessExecutorComponentFactory,
          Gfx::Text::ProcessExecutorComponentFactory,
-         Gfx::Images::ProcessExecutorComponentFactory>,
+         Gfx::Images::ProcessExecutorComponentFactory,
+         Gfx::VSA::ProcessExecutorComponentFactory>,
       FW<Inspector::InspectorWidgetFactory, Gfx::Video::InspectorFactory>,
       FW<Process::PortFactory,
          Dataflow::WidgetInletFactory<
@@ -121,7 +128,7 @@ std::vector<score::InterfaceBase*> score_plugin_gfx::factories(
       FW<Process::ProcessDropHandler, Gfx::Filter::DropHandler, Gfx::Video::DropHandler,
          Gfx::Images::DropHandler>,
       FW<Library::LibraryInterface, Gfx::Filter::LibraryHandler,
-         Gfx::Filter::VSALibraryHandler, Gfx::Video::LibraryHandler,
+         Gfx::VSA::LibraryHandler, Gfx::Video::LibraryHandler,
          Gfx::Images::LibraryHandler, Gfx::GeometryFilter::LibraryHandler>,
       FW<score::SettingsDelegateFactory, Gfx::Settings::Factory>>(ctx, key);
 }

@@ -25,12 +25,13 @@ class LibraryHandler final
       override
   {
     // TODO relaunch whenever library path changes...
-    const auto& key = Metadata<ConcreteKey_k, ProcessModel>::get();
+    const auto& key = Metadata<ConcreteKey_k, Pd::ProcessModel>::get();
     QModelIndex node = model.find(key);
     if(node == QModelIndex{})
       return;
 
-    categories.init(node, ctx);
+    categories.init(
+        Metadata<PrettyName_k, Pd::ProcessModel>::get().toStdString(), node, ctx);
   }
 
   void addPath(std::string_view path) override

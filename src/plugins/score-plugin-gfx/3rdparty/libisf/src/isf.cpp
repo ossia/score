@@ -1755,6 +1755,7 @@ void parser::parse_vsa()
 
   // Add uniforms
   m_vertex += GLSL45.defaultUniforms;
+  m_vertex += GLSL45.defaultFunctions;
 
   {
     int sampler_binding = 3;

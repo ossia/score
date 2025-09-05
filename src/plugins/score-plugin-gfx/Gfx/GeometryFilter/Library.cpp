@@ -29,7 +29,8 @@ void LibraryHandler::setup(
   if(node == QModelIndex{})
     return;
 
-  categories.init(node, ctx);
+  categories.init(
+      Metadata<PrettyName_k, GeometryFilter::Model>::get().toStdString(), node, ctx);
 }
 
 void LibraryHandler::addPath(std::string_view path)

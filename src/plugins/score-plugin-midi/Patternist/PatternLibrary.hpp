@@ -34,7 +34,9 @@ class LibraryHandler final
     if(node == QModelIndex{})
       return;
 
-    categories.init(node, ctx);
+    categories.init(
+        Metadata<PrettyName_k, Patternist::ProcessModel>::get().toStdString(), node,
+        ctx);
   }
 
   void addPath(std::string_view path) override

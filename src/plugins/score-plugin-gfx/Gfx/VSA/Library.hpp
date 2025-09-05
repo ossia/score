@@ -4,11 +4,11 @@
 #include <Library/LibraryInterface.hpp>
 #include <Library/ProcessesItemModel.hpp>
 
-namespace Gfx::Filter
+namespace Gfx::VSA
 {
 class LibraryHandler final : public Library::LibraryInterface
 {
-  SCORE_CONCRETE("e62ed6f6-a2c1-4d27-a9c3-1c3bc576bfeb")
+  SCORE_CONCRETE("e924dec9-21e7-4b4c-b81a-0813c22db4ea")
 
   QSet<QString> acceptedFiles() const noexcept override;
 
@@ -25,7 +25,7 @@ class LibraryHandler final : public Library::LibraryInterface
 
 class DropHandler final : public Process::ProcessDropHandler
 {
-  SCORE_CONCRETE("d1e16bba-4c53-4d24-8b6b-71b94daef68d")
+  SCORE_CONCRETE("78977726-e594-4d78-a9b2-09fc0f41afe3")
 
   QSet<QString> mimeTypes() const noexcept override;
   QSet<QString> fileExtensions() const noexcept override;

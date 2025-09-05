@@ -1,63 +1,55 @@
-#include "Executor.hpp"
+#include "ISFExecutor.hpp"
 
 #include <Process/Dataflow/Port.hpp>
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionSetup.hpp>
 
-#include <Gfx/Filter/Process.hpp>
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxContext.hpp>
 #include <Gfx/ISFExecutorNode.hpp>
+#include <Gfx/ShaderProgram.hpp>
 #include <Gfx/TexturePort.hpp>
 
 #include <score/document/DocumentContext.hpp>
 
 #include <ossia/dataflow/graph_edge_helpers.hpp>
 #include <ossia/dataflow/port.hpp>
-namespace Gfx::Filter
+namespace Gfx
 {
-ProcessExecutorComponent::ProcessExecutorComponent(
-    Gfx::Filter::Model& element, const Execution::Context& ctx, QObject* parent)
-    : ProcessComponent_T{element, ctx, "isfExecutorComponent", parent}
+void ISFExecutorComponent::init(
+    const Gfx::ProcessedProgram& shader, const Execution::Context& ctx)
+try
 {
-  try
+  const auto& desc = shader.descriptor;
+
+  auto n = ossia::make_node<filter_node>(
+      *ctx.execState, desc, shader.vertex, shader.fragment,
+      ctx.doc.plugin<DocumentPlugin>().exec);
+
+  for(auto* outlet : process().outlets())
   {
-    const auto& shader = element.processedProgram();
-    const auto& desc = shader.descriptor;
-
-    auto n = ossia::make_node<filter_node>(
-        *ctx.execState, desc, shader.vertex, shader.fragment,
-        ctx.doc.plugin<DocumentPlugin>().exec);
-
-    for(auto* outlet : element.outlets())
+    if(auto out = qobject_cast<TextureOutlet*>(outlet))
     {
-      if(auto out = qobject_cast<TextureOutlet*>(outlet))
-      {
-        out->nodeId = n->id;
-      }
+      out->nodeId = n->id;
     }
-
-    this->node = n;
-
-    Execution::Transaction commands{system()};
-    setup_node(commands);
-    commands.run_all_in_exec();
-
-    m_ossia_process = std::make_shared<ossia::node_process>(this->node);
-
-    m_oldInlets = process().inlets();
-    m_oldOutlets = process().outlets();
-
-    connect(
-        &element, &Filter::Model::programChanged, this,
-        &ProcessExecutorComponent::on_shaderChanged, Qt::DirectConnection);
   }
-  catch(...)
-  {
-  }
+
+  this->node = n;
+
+  Execution::Transaction commands{system()};
+  setup_node(commands);
+  commands.run_all_in_exec();
+
+  m_ossia_process = std::make_shared<ossia::node_process>(this->node);
+
+  m_oldInlets = process().inlets();
+  m_oldOutlets = process().outlets();
+}
+catch(...)
+{
 }
 
-void ProcessExecutorComponent::cleanup()
+void ISFExecutorComponent::cleanup()
 {
   for(auto* outlet : this->process().outlets())
   {
@@ -68,10 +60,9 @@ void ProcessExecutorComponent::cleanup()
   }
 }
 
-void ProcessExecutorComponent::on_shaderChanged()
+void ISFExecutorComponent::on_shaderChanged(const Gfx::ProcessedProgram& shader)
 {
   auto& setup = system().setup;
-  auto& element = this->process();
   Execution::Transaction commands{system()};
   auto n = std::dynamic_pointer_cast<filter_node>(this->node);
 
@@ -82,7 +73,6 @@ void ProcessExecutorComponent::on_shaderChanged()
   auto [inls, outls] = setup_node(commands);
 
   // 2. Change the script
-  const auto& shader = element.processedProgram();
   commands.push_back([n, shader = std::make_unique<ProcessedProgram>(shader)] {
     n->set_script(shader->descriptor, shader->vertex, shader->fragment);
   });
@@ -104,7 +94,7 @@ void ProcessExecutorComponent::on_shaderChanged()
 }
 
 std::pair<ossia::inlets, ossia::outlets>
-ProcessExecutorComponent::setup_node(Execution::Transaction& commands)
+ISFExecutorComponent::setup_node(Execution::Transaction& commands)
 {
   const Execution::Context& ctx = system();
   auto& element = this->process();

@@ -85,20 +85,28 @@ struct Subcategories
   Library::ProcessNode* parent{};
   QDir libraryFolder;
   std::string libraryFolderPath{};
+  std::string defaultPresetsPath{};
   ossia::hash_map<QString, Library::ProcessNode*> categories;
 
-  void init(const QModelIndex& idx, const score::ApplicationContext& ctx)
+  void init(
+      std::string process_name, const QModelIndex& idx,
+      const score::ApplicationContext& ctx)
   {
     categories.clear();
     parent = reinterpret_cast<Library::ProcessNode*>(idx.internalPointer());
+    SCORE_ASSERT(parent);
 
     // We use the parent folder as category...
     libraryFolder.setPath(ctx.settings<Library::Settings::Model>().getPackagesPath());
     libraryFolderPath = libraryFolder.absolutePath().toStdString();
+
+    // Also so that stuff in Presets/<Name of the process> does not needlessly go into a subfolder
+    defaultPresetsPath = "Presets/" + process_name;
   }
 
   [[deprecated]] void add(const QFileInfo& file, Library::ProcessData&& pdata)
   {
+    SCORE_ASSERT(parent);
     auto parentFolder = file.dir().dirName();
     if(auto it = categories.find(parentFolder); it != categories.end())
     {
@@ -106,7 +114,8 @@ struct Subcategories
     }
     else
     {
-      if(file.dir() == libraryFolder)
+      if(file.dir() == libraryFolder
+         || file.absolutePath().endsWith(defaultPresetsPath.c_str()))
       {
         Library::addToLibrary(*parent, std::move(pdata));
       }
@@ -122,6 +131,7 @@ struct Subcategories
 
   void add(const score::PathInfo& file, Library::ProcessData&& pdata)
   {
+    SCORE_ASSERT(parent);
     auto parentFolder
         = QString::fromUtf8(file.parentDirName.data(), file.parentDirName.size());
     if(auto it = categories.find(parentFolder); it != categories.end())
@@ -130,7 +140,8 @@ struct Subcategories
     }
     else
     {
-      if(file.absolutePath == libraryFolderPath)
+      if(file.absolutePath == libraryFolderPath
+         || file.absolutePath.ends_with(defaultPresetsPath))
       {
         Library::addToLibrary(*parent, std::move(pdata));
       }

@@ -17,9 +17,9 @@
 
 #include <wobjectimpl.h>
 
-W_OBJECT_IMPL(Gfx::Filter::Model)
+W_OBJECT_IMPL(Gfx::VSA::Model)
 
-namespace Gfx::Filter
+namespace Gfx::VSA
 {
 Model::Model(
     const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
@@ -28,7 +28,7 @@ Model::Model(
   metadata().setInstanceName(*this);
   m_outlets.push_back(new TextureOutlet{Id<Process::Port>(1), this});
 
-  const auto defaultFrag = QStringLiteral(R"_(/*{
+  const auto defaultVert = QStringLiteral(R"_(/*{
 "CREDIT": "ossia score",
 "ISFVSN": "2",
 "DESCRIPTION": "Colorize",
@@ -57,7 +57,8 @@ void main() {
 }
 )_");
 
-  (void)setProgram({ShaderSource::ProgramType::ISF, QByteArray{}, defaultFrag});
+  (void)setProgram(
+      {ShaderSource::ProgramType::VertexShaderArt, defaultVert, QByteArray{}});
 }
 
 Model::Model(
@@ -68,53 +69,37 @@ Model::Model(
   metadata().setInstanceName(*this);
   m_outlets.push_back(new TextureOutlet{Id<Process::Port>(1), this});
 
-  if(init.endsWith("fs") || init.endsWith("frag"))
-  {
-    (void)setProgram(programFromISFFragmentShaderPath(init, {}));
-  }
-  else if(init.endsWith("vs") || init.endsWith("vert"))
-  {
-    (void)setProgram(programFromVSAVertexShaderPath(init, {}));
-  }
+  (void)setProgram(programFromVSAVertexShaderPath(init, {}));
 }
 
 Model::~Model() { }
 
-bool Model::validate(const ShaderSource& txt) const noexcept
+bool Model::validate(const QString& txt) const noexcept
 {
-  const auto& [_, error] = ProgramCache::instance().get(txt);
-  if(!error.isEmpty())
-  {
-    this->errorMessage(error);
-    return false;
-  }
   return true;
+  //  const auto& [_, error] = ProgramCache::instance().get(txt);
+  //  if(!error.isEmpty())
+  //  {
+  //    this->errorMessage(error);
+  //    return false;
+  //  }
+  //  return true;
 }
 
-void Model::setVertex(QString f)
+Process::ScriptChangeResult Model::setVertex(QString f)
 {
   if(f == m_program.vertex)
-    return;
+    return {};
   m_program.vertex = std::move(f);
   m_processedProgram.vertex.clear();
 
   vertexChanged(m_program.vertex);
-}
-
-void Model::setFragment(QString f)
-{
-  if(f == m_program.fragment)
-    return;
-  m_program.fragment = std::move(f);
-  m_processedProgram.fragment.clear();
-
-  fragmentChanged(m_program.fragment);
+  return {};
 }
 
 Process::ScriptChangeResult Model::setProgram(const ShaderSource& f)
 {
   setVertex(f.vertex);
-  setFragment(f.fragment);
   if(const auto& [processed, error] = ProgramCache::instance().get(f); bool(processed))
   {
     ossia::flat_map<QString, ossia::value> previous_values;
@@ -131,7 +116,7 @@ Process::ScriptChangeResult Model::setProgram(const ShaderSource& f)
   }
   else
   {
-    qDebug() << "Erroe while processingp rogram: " << error;
+    qDebug() << "Error while processing program: " << error;
   }
   return {};
 }
@@ -142,14 +127,11 @@ void Model::loadPreset(const Process::Preset& preset)
   if(!doc.IsObject())
     return;
   auto obj = doc.GetObject();
-  if(!obj.HasMember("Fragment") || !obj.HasMember("Vertex"))
+  if(!obj.HasMember("Vertex"))
     return;
-  ShaderSource::ProgramType type = ShaderSource::ProgramType::ISF;
-  if(obj.HasMember("Type"))
-    type = (ShaderSource::ProgramType)obj["Type"].GetInt();
-  auto frag = obj["Fragment"].GetString();
   auto vert = obj["Vertex"].GetString();
-  (void)this->setProgram(ShaderSource{type, vert, frag});
+  (void)this->setProgram(
+      ShaderSource{ShaderSource::ProgramType::VertexShaderArt, vert, ""});
 
   auto controls = obj["Controls"].GetArray();
   Process::loadFixedControls(controls, *this);
@@ -164,7 +146,6 @@ Process::Preset Model::savePreset() const noexcept
   JSONReader r;
   {
     r.stream.StartObject();
-    r.obj["Fragment"] = this->m_program.fragment;
     r.obj["Vertex"] = this->m_program.vertex;
 
     r.stream.Key("Controls");
@@ -178,29 +159,17 @@ Process::Preset Model::savePreset() const noexcept
 
 QString Model::prettyName() const noexcept
 {
-  return tr("GFX Filter");
+  return tr("Vertex Shader Art");
 }
 
 Process::Descriptor ProcessFactory::descriptor(QString path) const noexcept
 {
-  return ISFHelpers::descriptorFromISFFile<Filter::Model>(path);
+  return ISFHelpers::descriptorFromISFFile<VSA::Model>(path);
 }
 }
 
 template <>
-void DataStreamReader::read(const Gfx::ShaderSource& p)
-{
-  m_stream << p.vertex << p.fragment;
-}
-
-template <>
-void DataStreamWriter::write(Gfx::ShaderSource& p)
-{
-  m_stream >> p.vertex >> p.fragment;
-}
-
-template <>
-void DataStreamReader::read(const Gfx::Filter::Model& proc)
+void DataStreamReader::read(const Gfx::VSA::Model& proc)
 {
   m_stream << proc.m_program;
 
@@ -210,7 +179,7 @@ void DataStreamReader::read(const Gfx::Filter::Model& proc)
 }
 
 template <>
-void DataStreamWriter::write(Gfx::Filter::Model& proc)
+void DataStreamWriter::write(Gfx::VSA::Model& proc)
 {
   Gfx::ShaderSource s;
   m_stream >> s;
@@ -224,20 +193,18 @@ void DataStreamWriter::write(Gfx::Filter::Model& proc)
 }
 
 template <>
-void JSONReader::read(const Gfx::Filter::Model& proc)
+void JSONReader::read(const Gfx::VSA::Model& proc)
 {
   obj["Vertex"] = proc.vertex();
-  obj["Fragment"] = proc.fragment();
 
   readPorts(*this, proc.m_inlets, proc.m_outlets);
 }
 
 template <>
-void JSONWriter::write(Gfx::Filter::Model& proc)
+void JSONWriter::write(Gfx::VSA::Model& proc)
 {
   Gfx::ShaderSource s;
   s.vertex = obj["Vertex"].toString();
-  s.fragment = obj["Fragment"].toString();
   (void)proc.setProgram(s);
 
   writePorts(
