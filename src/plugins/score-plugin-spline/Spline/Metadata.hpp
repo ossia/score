@@ -17,4 +17,4 @@ PROCESS_METADATA(
     (QStringList{"Curve", "Automation", "2D"}), {},
     {std::vector<Process::PortType>{Process::PortType::Message}},
     QUrl("https://ossia.io/score-docs/processes/2Dspline.html#2d-spline-x-y-automation"),
-    Process::ProcessFlags::SupportsLasting)
+    Process::ProcessFlags::SupportsTemporal)
