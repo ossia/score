@@ -38,7 +38,12 @@ struct AudioTexture
   int channels{};
   int fixedSize{0};
   int rectUniformOffset{};
-  bool fft{};
+  enum Mode
+  {
+    Waveform,
+    FFT,
+    Histogram
+  } mode{};
 };
 
 /**

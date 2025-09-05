@@ -56,7 +56,7 @@ void main() {
 }
 )_");
 
-  (void)setProgram({QByteArray{}, defaultFrag});
+  (void)setProgram({ShaderSource::ProgramType::ISF, QByteArray{}, defaultFrag});
 }
 
 Model::Model(
@@ -67,7 +67,14 @@ Model::Model(
   metadata().setInstanceName(*this);
   m_outlets.push_back(new TextureOutlet{Id<Process::Port>(1), this});
 
-  (void)setProgram(programFromFragmentShaderPath(init, {}));
+  if(init.endsWith("fs") || init.endsWith("frag"))
+  {
+    (void)setProgram(programFromISFFragmentShaderPath(init, {}));
+  }
+  else if(init.endsWith("vs") || init.endsWith("vert"))
+  {
+    (void)setProgram(programFromVSAVertexShaderPath(init, {}));
+  }
 }
 
 Model::~Model() { }
@@ -120,6 +127,10 @@ Process::ScriptChangeResult Model::setProgram(const ShaderSource& f)
     setupIsf(m_processedProgram.descriptor, previous_values);
     return {.valid = true, .inlets = std::move(inls), .outlets = {}};
   }
+  else
+  {
+    qDebug() << "Erroe while processingp rogram: " << error;
+  }
   return {};
 }
 
@@ -131,9 +142,12 @@ void Model::loadPreset(const Process::Preset& preset)
   auto obj = doc.GetObject();
   if(!obj.HasMember("Fragment") || !obj.HasMember("Vertex"))
     return;
+  ShaderSource::ProgramType type = ShaderSource::ProgramType::ISF;
+  if(obj.HasMember("Type"))
+    type = (ShaderSource::ProgramType)obj["Type"].GetInt();
   auto frag = obj["Fragment"].GetString();
   auto vert = obj["Vertex"].GetString();
-  (void)this->setProgram(ShaderSource{vert, frag});
+  (void)this->setProgram(ShaderSource{type, vert, frag});
 
   auto controls = obj["Controls"].GetArray();
   Process::loadFixedControls(controls, *this);
@@ -381,6 +395,12 @@ void Model::setupIsf(
       return port;
     }
     Process::Inlet* operator()(const audioFFT_input& v)
+    {
+      auto port = new Process::AudioInlet(Id<Process::Port>(i), &self);
+      self.m_inlets.push_back(port);
+      return port;
+    }
+    Process::Inlet* operator()(const audioHist_input& v)
     {
       auto port = new Process::AudioInlet(Id<Process::Port>(i), &self);
       self.m_inlets.push_back(port);

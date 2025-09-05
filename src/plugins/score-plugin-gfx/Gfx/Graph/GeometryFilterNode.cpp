@@ -101,12 +101,14 @@ struct geometry_input_port_vis
 
   void operator()(const isf::image_input& in) noexcept
   {
+    // FIXME
     // self.input.push_back(new Port{&self, {}, Types::Image, {}});
     // add_texture_imgrect();
   }
 
   void operator()(const isf::audio_input& audio) noexcept
   {
+    // FIXME
     // self.m_audio_textures.push_back({});
     // auto& data = self.m_audio_textures.back();
     // data.fixedSize = audio.max;
@@ -125,6 +127,7 @@ struct geometry_input_port_vis
     // add_texture_imgrect();
     // data.rectUniformOffset = this->sz - 4 * 4;
   }
+  void operator()(const isf::audioHist_input& audio) noexcept { }
 };
 
 GeometryFilterNode::GeometryFilterNode(const isf::descriptor& desc, const QString& vert)

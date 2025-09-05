@@ -131,12 +131,23 @@ struct isf_input_port_vis
     data.rectUniformOffset = this->sz - 4 * 4;
   }
 
+  void operator()(const isf::audioHist_input& audio) noexcept
+  {
+    self.m_audio_textures.push_back({});
+    auto& data = self.m_audio_textures.back();
+    data.fixedSize = audio.max;
+    data.mode = data.Histogram;
+    self.input.push_back(new Port{&self, &data, Types::Audio, {}});
+    add_texture_imgrect();
+    data.rectUniformOffset = this->sz - 4 * 4;
+  }
+
   void operator()(const isf::audioFFT_input& audio) noexcept
   {
     self.m_audio_textures.push_back({});
     auto& data = self.m_audio_textures.back();
     data.fixedSize = audio.max;
-    data.fft = true;
+    data.mode = data.FFT;
     self.input.push_back(new Port{&self, &data, Types::Audio, {}});
     add_texture_imgrect();
     data.rectUniformOffset = this->sz - 4 * 4;
@@ -257,6 +268,9 @@ QSize ISFNode::computeTextureSize(const isf::pass& pass, QSize origSize)
 
 score::gfx::NodeRenderer* ISFNode::createRenderer(RenderList& r) const noexcept
 {
+  if(this->m_descriptor.mode == isf::descriptor::VSA)
+    return new SimpleRenderedVSANode{*this};
+
   switch(this->m_descriptor.passes.size())
   {
     case 0:

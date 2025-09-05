@@ -33,6 +33,9 @@ struct AudioTextureUpload
   void processTemporal(
       AudioTexture& audio, QRhiResourceUpdateBatch& res, QRhiTexture* rhiTexture);
 
+  void processHistogram(
+      AudioTexture& audio, QRhiResourceUpdateBatch& res, QRhiTexture* rhiTexture);
+
   void processSpectral(
       AudioTexture& audio, QRhiResourceUpdateBatch& res, QRhiTexture* rhiTexture);
 
@@ -43,6 +46,7 @@ struct AudioTextureUpload
 private:
   std::vector<float> m_scratchpad;
   ossia::fft m_fft;
+  int m_histogramIndex{};
 };
 
 struct RenderedISFNode : score::gfx::NodeRenderer
@@ -152,5 +156,47 @@ private:
   int m_materialSize{};
 
   std::optional<AudioTextureUpload> m_audioTex;
+};
+
+struct SimpleRenderedVSANode : score::gfx::NodeRenderer
+{
+  SimpleRenderedVSANode(const ISFNode& node) noexcept;
+
+  virtual ~SimpleRenderedVSANode();
+
+  TextureRenderTarget renderTargetForInput(const Port& p) override;
+
+  void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
+  void update(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge) override;
+  void release(RenderList& r) override;
+
+  void runInitialPasses(
+      RenderList&, QRhiCommandBuffer& commands, QRhiResourceUpdateBatch*& res,
+      Edge& edge) override;
+
+  void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& edge) override;
+
+private:
+  ossia::small_flat_map<const Port*, TextureRenderTarget, 2> m_rts;
+
+  void initPass(const TextureRenderTarget& rt, RenderList& renderer, Edge& edge);
+
+  std::vector<Sampler> allSamplers() const noexcept;
+
+  ossia::small_vector<std::pair<Edge*, Pass>, 2> m_passes;
+
+  ISFNode& n;
+
+  std::vector<Sampler> m_inputSamplers;
+  std::vector<Sampler> m_audioSamplers;
+
+  Mesh* m_mesh{};
+
+  QRhiBuffer* m_materialUBO{};
+  int m_materialSize{};
+
+  std::optional<AudioTextureUpload> m_audioTex;
+
+  int m_prevFormat{};
 };
 }

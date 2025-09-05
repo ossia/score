@@ -430,6 +430,12 @@ void Model::setupIsf(const isf::descriptor& desc)
       self.m_inlets.push_back(port);
       return port;
     }
+    Process::Inlet* operator()(const audioHist_input& v)
+    {
+      auto port = new Process::AudioInlet(Id<Process::Port>(i), &self);
+      self.m_inlets.push_back(port);
+      return port;
+    }
   };
 
   for(const isf::input& input : desc.inputs)

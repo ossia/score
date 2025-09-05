@@ -57,7 +57,36 @@ void BasicMesh::draw(const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexc
   cb.draw(vertexCount);
 }
 
+DummyMesh::DummyMesh(int count)
+{
+  vertexCount = count;
+}
 
+void DummyMesh::setupBindings(
+    const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexcept
+{
+  cb.setVertexInput(0, 0, nullptr, nullptr);
+}
+
+const char* DummyMesh::defaultVertexShader() const noexcept
+{
+  return R"_(#version 450
+out gl_PerVertex { vec4 gl_Position; };
+
+void main()
+{
+  gl_Position.x = gl_VertexID;
+  gl_Position.y = gl_VertexID;
+  gl_Position.z = gl_VertexID;
+}
+)_";
+}
+
+void DummyMesh::draw(const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexcept
+{
+  cb.setVertexInput(0, 0, nullptr, nullptr);
+  cb.draw(vertexCount);
+}
 PlainMesh::PlainMesh(std::span<const float> vtx, int count)
 {
   vertexBindings.push_back({2 * sizeof(float)});

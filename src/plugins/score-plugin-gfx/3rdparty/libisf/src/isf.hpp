@@ -84,11 +84,15 @@ struct audioFFT_input
   int max{};
 };
 
+struct audioHist_input
+{
+  int max{};
+};
 struct input
 {
   using input_impl = ossia::variant<
       float_input, long_input, event_input, bool_input, color_input, point2d_input,
-      point3d_input, image_input, audio_input, audioFFT_input>;
+      point3d_input, image_input, audio_input, audioFFT_input, audioHist_input>;
 
   std::string name;
   std::string label;
@@ -108,6 +112,11 @@ struct pass
 
 struct descriptor
 {
+  enum Mode
+  {
+    ISF,
+    VSA
+  } mode{ISF};
   std::string description;
   std::string credits;
   std::vector<std::string> categories;
@@ -115,6 +124,11 @@ struct descriptor
   std::vector<pass> passes;
   std::vector<std::string> pass_targets;
   bool default_vertex_shader{};
+
+  // For VSA
+  int point_count{};
+  std::string primitive_mode;
+  std::string line_size;
 };
 
 class parser
@@ -137,7 +151,8 @@ public:
     ISF,
     ShaderToy,
     GLSLSandBox,
-    GeometryFilter
+    GeometryFilter,
+    VertexShaderArt
   };
   parser(
       std::string vert, std::string frag, int glslVersion = 450,
@@ -158,5 +173,6 @@ private:
   void parse_shadertoy();
   void parse_glsl_sandbox();
   void parse_geometry_filter();
+  void parse_vsa();
 };
 }

@@ -25,13 +25,15 @@ namespace Gfx
 {
 struct SCORE_PLUGIN_GFX_EXPORT ShaderSource
 {
+  using ProgramType = isf::parser::ShaderType;
   ShaderSource() = default;
   ~ShaderSource() = default;
   ShaderSource(const ShaderSource&) = default;
   ShaderSource(ShaderSource&&) = default;
 
   ShaderSource(const QString& vert, const QString& frag)
-      : vertex{vert}
+      : type{isf::parser::ShaderType::ISF}
+      , vertex{vert}
       , fragment{frag}
   {
   }
@@ -39,13 +41,29 @@ struct SCORE_PLUGIN_GFX_EXPORT ShaderSource
   ShaderSource(const std::vector<QString>& vec)
   {
     SCORE_ASSERT(vec.size() == 2);
+    type = isf::parser::ShaderType::ISF;
+    fragment = vec[0];
+    vertex = vec[1];
+  }
+  ShaderSource(ProgramType tp, const QString& vert, const QString& frag)
+      : type{tp}
+      , vertex{vert}
+      , fragment{frag}
+  {
+  }
+
+  ShaderSource(ProgramType tp, const std::vector<QString>& vec)
+  {
+    SCORE_ASSERT(vec.size() == 2);
+    type = tp;
     fragment = vec[0];
     vertex = vec[1];
   }
 
-  ShaderSource(std::vector<QString>&& vec)
+  ShaderSource(ProgramType tp, std::vector<QString>&& vec)
   {
     SCORE_ASSERT(vec.size() == 2);
+    type = tp;
     fragment = std::move(vec[0]);
     vertex = std::move(vec[1]);
   }
@@ -53,6 +71,7 @@ struct SCORE_PLUGIN_GFX_EXPORT ShaderSource
   ShaderSource& operator=(const ShaderSource&) = default;
   ShaderSource& operator=(ShaderSource&&) = default;
 
+  ProgramType type{};
   QString vertex;
   QString fragment;
 
@@ -95,7 +114,9 @@ struct SCORE_PLUGIN_GFX_EXPORT ShaderSource
   }
 };
 
-ShaderSource programFromFragmentShaderPath(const QString& fsFilename, QByteArray fsData);
+ShaderSource programFromISFFragmentShaderPath(const QString& fsFilename, QByteArray fsData);
+ShaderSource
+programFromVSAVertexShaderPath(const QString& vertexFilename, QByteArray vertexData);
 }
 
 namespace std
