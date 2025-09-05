@@ -43,7 +43,7 @@ class SSynthLibraryHandler final
       return;
     }
 
-    categories.init(node, ctx);
+    categories.init("Structure Synth", node, ctx);
   }
 
   void addPath(std::string_view path) override
@@ -96,7 +96,7 @@ class OBJLibraryHandler final
 {
   SCORE_CONCRETE("da4af155-3cb6-41df-8c10-5a002b9d97ca")
 
-  QSet<QString> acceptedFiles() const noexcept override { return {"obj"}; }
+  QSet<QString> acceptedFiles() const noexcept override { return {"obj", "ply"}; }
 
   Library::Subcategories categories;
 
@@ -110,7 +110,7 @@ class OBJLibraryHandler final
     if (node == QModelIndex{})
       return;
 
-    categories.init(node, ctx);
+    categories.init("Object Loader", node, ctx);
   }
 
   void addPath(std::string_view path) override
@@ -130,7 +130,7 @@ class OBJDropHandler final : public Process::ProcessDropHandler
 {
   SCORE_CONCRETE("1d6cac56-2059-4fb8-9cef-19301a1fba3d")
 
-  QSet<QString> fileExtensions() const noexcept override { return {"obj"}; }
+  QSet<QString> fileExtensions() const noexcept override { return {"obj", "ply"}; }
 
   using proc = oscr::ProcessModel<ObjLoader>;
   void dropData(
