@@ -49,7 +49,7 @@ private:
   int m_histogramIndex{};
 };
 
-struct RenderedISFNode : score::gfx::NodeRenderer
+struct SCORE_PLUGIN_GFX_EXPORT RenderedISFNode : score::gfx::NodeRenderer
 {
   RenderedISFNode(const ISFNode& node) noexcept;
 
@@ -116,7 +116,7 @@ private:
 
 // Used for the simple case of a single, non-persistent pass (the most common case)
 
-struct SimpleRenderedISFNode : score::gfx::NodeRenderer
+struct SCORE_PLUGIN_GFX_EXPORT SimpleRenderedISFNode : score::gfx::NodeRenderer
 {
   SimpleRenderedISFNode(const ISFNode& node) noexcept;
 
@@ -134,7 +134,6 @@ struct SimpleRenderedISFNode : score::gfx::NodeRenderer
 
   void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& edge) override;
 
-private:
   ossia::small_flat_map<const Port*, TextureRenderTarget, 2> m_rts;
 
   void initPass(const TextureRenderTarget& rt, RenderList& renderer, Edge& edge);
