@@ -9,10 +9,12 @@
 
 #include <ossia/network/value/format_value.hpp>
 
-#include <QPainter>
-#include <QMenu>
-#include <QClipboard>
+#include <boost/container/devector.hpp>
+
 #include <QApplication>
+#include <QClipboard>
+#include <QMenu>
+#include <QPainter>
 
 #include <halp/controls.hpp>
 #include <halp/meta.hpp>
@@ -37,13 +39,24 @@ struct Node
         control
       };
     } port;
+
+    halp::spinbox_i32<"Log", halp::range{1, 100, 1}> log;
   } inputs;
 
   struct Layer : public Process::EffectLayerView
   {
   public:
-    ossia::value m_value;
+    boost::container::devector<ossia::value> values;
 
+    Process::ControlInlet* value_inlet;
+    Process::ControlInlet* log_inlet;
+
+    mutable QString txt_cache;
+
+    int logging() const noexcept
+    {
+      return std::max(1, ossia::convert<int>(log_inlet->value()));
+    }
     Layer(
         const Process::ProcessModel& process, const Process::Context& doc,
         QGraphicsItem* parent)
@@ -54,35 +67,52 @@ struct Node
       const Process::PortFactoryList& portFactory
           = doc.app.interfaces<Process::PortFactoryList>();
 
-      auto inl = static_cast<Process::ControlInlet*>(process.inlets().front());
+      value_inlet = static_cast<Process::ControlInlet*>(process.inlets()[0]);
+      log_inlet = static_cast<Process::ControlInlet*>(process.inlets()[1]);
 
-      auto fact = portFactory.get(inl->concreteKey());
-      auto port = fact->makePortItem(*inl, doc, this, this);
+      auto fact = portFactory.get(value_inlet->concreteKey());
+      auto port = fact->makePortItem(*value_inlet, doc, this, this);
       port->setPos(0, 5);
 
       connect(
-          inl, &Process::ControlInlet::executionValueChanged, this,
+          value_inlet, &Process::ControlInlet::executionValueChanged, this,
           [this](const ossia::value& v) {
-        m_value = v;
+        if(values.size() >= logging())
+          values.pop_back();
+        values.push_front(v);
+        update();
+      });
+
+      connect(
+          log_inlet, &Process::ControlInlet::valueChanged, this,
+          [this](const ossia::value& v) {
+        const int N = std::max(1, ossia::convert<int>(v));
+        if(values.size() >= N)
+          values.resize(N);
         update();
       });
     }
 
     void reset()
     {
-      m_value = ossia::value{};
+      values.clear();
       update();
     }
 
     void paint_impl(QPainter* p) const override
     {
-      if(!m_value.valid())
+      if(values.empty())
         return;
 
       p->setRenderHint(QPainter::Antialiasing, true);
       p->setPen(score::Skin::instance().Light.main.pen1_solid_flat_miter);
 
-      p->drawText(boundingRect(), QString::fromStdString(fmt::format("{}", m_value)));
+      {
+        txt_cache.clear();
+        for(auto& line : this->values)
+          txt_cache += QString::fromStdString(fmt::format("{}\n", line));
+        p->drawText(boundingRect().adjusted(10, 0, 0, 0), txt_cache);
+      }
 
       p->setRenderHint(QPainter::Antialiasing, false);
     }
@@ -97,8 +127,8 @@ struct Node
       {
         auto cp = menu.addAction(tr("Copy value"));
         connect(cp, &QAction::triggered, this, [this] {
-            auto& v = static_cast<Layer*>(this->m_view)->m_value;
-            qApp->clipboard()->setText(QString::fromStdString(fmt::format("{}", v)));
+          auto& v = *static_cast<Layer*>(this->m_view);
+          qApp->clipboard()->setText(v.txt_cache);
         });
       }
   };
