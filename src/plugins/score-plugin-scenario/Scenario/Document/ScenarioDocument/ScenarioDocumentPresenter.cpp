@@ -208,6 +208,7 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
   }
 
   setDisplayedInterval(&model().baseInterval());
+  QTimer::singleShot(0, [this] { view().minimap().zoom(0.0); });
 
   model().cables.mutable_added.connect<&ScenarioDocumentPresenter::on_cableAdded>(*this);
   model().cables.removing.connect<&ScenarioDocumentPresenter::on_cableRemoving>(*this);
