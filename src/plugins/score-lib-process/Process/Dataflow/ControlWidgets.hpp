@@ -574,7 +574,7 @@ struct TimeChooser
   {
     auto sl = new score::QGraphicsTimeChooser{nullptr};
     initWidgetProperties(inlet, *sl);
-    // bindFloatDomain(slider, inlet, *sl);
+    bindFloatDomain(slider, inlet, sl->knob);
     sl->setValue(ossia::convert<ossia::vec2f>(inlet.value()));
 
     QObject::connect(
