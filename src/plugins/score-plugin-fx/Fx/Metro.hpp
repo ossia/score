@@ -71,6 +71,8 @@ struct Node
       // in samples:
       const auto period = get_period(
           inputs.quantify, inputs.dur.value, inputs.frequency, tk.tempo, setup.rate);
+      if(period <= 0)
+        return;
 
       const auto next = next_date(tk.position_in_frames, period);
       if(tk.in_range(next))
