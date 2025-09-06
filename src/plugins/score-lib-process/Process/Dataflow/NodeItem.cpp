@@ -170,6 +170,7 @@ void NodeItem::createWithDecorations()
   ossia::qt::run_async(this, [this] {
     resetInlets();
     resetOutlets();
+    updateSize();
   });
   connect(&process, &Process::ProcessModel::controlAdded, this, &NodeItem::resetInlets);
   connect(
@@ -465,12 +466,21 @@ void NodeItem::createContentItem()
 double NodeItem::minimalContentWidth() const noexcept
 {
   if(Q_UNLIKELY(!m_label))
-    return 30.;
+  {
+    if((m_inlets.size() + m_outlets.size()) <= 1)
+      return 10.;
+    else
+      return 20.;
+  }
   else
     return std::max(75.0, TitleWithUiX0 + m_label->boundingRect().width() + 6.);
 }
 double NodeItem::minimalContentHeight() const noexcept
 {
+  if(Q_UNLIKELY(!m_label))
+    if(std::max(m_inlets.size(), m_outlets.size()) <= 1)
+      return 10.;
+
   double h = 22.;
   if(!m_inlets.empty())
     h = std::max(h, m_inlets.back()->y() + 10.);
