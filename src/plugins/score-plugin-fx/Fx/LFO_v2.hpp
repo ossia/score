@@ -163,7 +163,7 @@ struct Node
     struct
     {
       halp_meta(layout, halp::layouts::vbox)
-      halp_meta(background, halp::colors::mid)
+      halp_meta(background, halp::colors::background_mid)
       struct
       {
         halp_meta(layout, halp::layouts::hbox)
@@ -177,14 +177,14 @@ struct Node
     struct
     {
       halp_meta(layout, halp::layouts::vbox)
-      halp_meta(background, halp::colors::mid)
+      halp_meta(background, halp::colors::background_mid)
       halp::control<&ins::ampl> a;
       halp::control<&ins::offset> o;
     } ampl;
     struct
     {
       halp_meta(layout, halp::layouts::vbox)
-      halp_meta(background, halp::colors::mid)
+      halp_meta(background, halp::colors::background_mid)
       halp::control<&ins::jitter> j;
       halp::control<&ins::phase> p;
     } modulation;

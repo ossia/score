@@ -9,6 +9,7 @@
 #include <QPolygon>
 
 #include <avnd/concepts/painter.hpp>
+#include <avnd/wrappers/colors.hpp>
 
 #include <cmath>
 
@@ -23,6 +24,7 @@ struct QPainterAdapter
   QPainter& painter;
   QGraphicsItem& item;
   QPainterPath path;
+  score::Skin& skin = score::Skin::instance();
 
   void begin_path() { path = QPainterPath{}; }
   void close_path() { path.closeSubpath(); }
@@ -54,11 +56,75 @@ struct QPainterAdapter
 
   // Colors:
   void unset_stroke() { painter.setPen(score::Skin::instance().NoPen); }
+
+  rgba_color to_rgba(auto c)
+  {
+    const auto standard_color = avnd::get_color(c);
+    static constexpr auto convert = [](QColor c) constexpr -> rgba_color {
+      const auto rgba = c.rgba();
+      return {
+          (uint8_t)qRed(rgba),
+          (uint8_t)qGreen(rgba),
+          (uint8_t)qBlue(rgba),
+          (uint8_t)qAlpha(rgba),
+      };
+    };
+
+    using enum avnd::color_type;
+    switch(standard_color)
+    {
+      case dark:
+        return convert(skin.Dark.main.brush.color());
+      case darker:
+        return convert(skin.HalfDark.main.brush.color());
+      case mid:
+        return convert(skin.Gray.main.brush.color());
+      case lighter:
+        return convert(skin.HalfLight.main.brush.color());
+      case light:
+        return convert(skin.Light.main.brush.color());
+
+      case background_darker:
+        return convert(skin.Background2.darker300.brush.color());
+      case background_dark:
+        return convert(skin.Background2.darker.brush.color());
+      case background_mid:
+        return convert(skin.Background2.main.brush.color());
+      case background_light:
+        return convert(skin.Background2.lighter.brush.color());
+      case background_lighter:
+        return convert(skin.Background2.lighter180.brush.color());
+
+      case runtime_value_dark:
+        return convert(skin.Base4.darker.brush.color());
+      case runtime_value_mid:
+        return convert(skin.Base4.main.brush.color());
+      case runtime_value_light:
+        return convert(skin.Base4.lighter.brush.color());
+
+      case editable_value_dark:
+        return convert(skin.Emphasis2.darker.brush.color());
+      case editable_value_mid:
+        return convert(skin.Emphasis2.main.brush.color());
+      case editable_value_light:
+        return convert(skin.Emphasis2.lighter.brush.color());
+    }
+
+    return {};
+  }
+
   void set_stroke_color(rgba_color c)
   {
     QPen p = painter.pen();
-    p.setColor(qRgba(c.r, c.g, c.b, c.a));
+    p.setColor(QColor::fromRgb(c.r, c.g, c.b, c.a));
     painter.setPen(p);
+  }
+
+  template <typename E>
+    requires std::is_enum_v<E>
+  void set_stroke_color(E c)
+  {
+    set_stroke_color(to_rgba(c));
   }
 
   void set_stroke_width(double w)
@@ -70,32 +136,108 @@ struct QPainterAdapter
 
   void set_fill_color(rgba_color c)
   {
-    painter.setBrush(QColor(qRgba(c.r, c.g, c.b, c.a)));
+    painter.setBrush(QColor::fromRgb(c.r, c.g, c.b, c.a));
+  }
+
+  template <typename E>
+    requires std::is_enum_v<E>
+  void set_fill_color(E c)
+  {
+    set_fill_color(to_rgba(c));
   }
 
   void set_linear_gradient(
       double x1, double y1, double x2, double y2, rgba_color c1, rgba_color c2)
   {
     QLinearGradient gradient(QPointF(x1, y1), QPointF(x2, y2));
-    gradient.setColorAt(0, QColor(qRgba(c1.r, c1.g, c1.b, c1.a)));
-    gradient.setColorAt(1, QColor(qRgba(c2.r, c2.g, c2.b, c2.a)));
+    gradient.setColorAt(0, QColor::fromRgb(c1.r, c1.g, c1.b, c1.a));
+    gradient.setColorAt(1, QColor::fromRgb(c2.r, c2.g, c2.b, c2.a));
     painter.setBrush(gradient);
   }
 
   void set_radial_gradient(double cx, double cy, double cr, rgba_color c1, rgba_color c2)
   {
     QRadialGradient gradient(cx, cy, cr);
-    gradient.setColorAt(0, QColor(qRgba(c1.r, c1.g, c1.b, c1.a)));
-    gradient.setColorAt(1, QColor(qRgba(c2.r, c2.g, c2.b, c2.a)));
+    gradient.setColorAt(0, QColor::fromRgb(c1.r, c1.g, c1.b, c1.a));
+    gradient.setColorAt(1, QColor::fromRgb(c2.r, c2.g, c2.b, c2.a));
     painter.setBrush(gradient);
   }
 
   void set_conical_gradient(double x, double y, double a, rgba_color c1, rgba_color c2)
   {
     QConicalGradient gradient(x, y, a);
-    gradient.setColorAt(0, QColor(qRgba(c1.r, c1.g, c1.b, c1.a)));
-    gradient.setColorAt(1, QColor(qRgba(c2.r, c2.g, c2.b, c2.a)));
+    gradient.setColorAt(0, QColor::fromRgb(c1.r, c1.g, c1.b, c1.a));
+    gradient.setColorAt(1, QColor::fromRgb(c2.r, c2.g, c2.b, c2.a));
     painter.setBrush(gradient);
+  }
+
+  template <typename E>
+    requires std::is_enum_v<E>
+  void
+  set_linear_gradient(double x1, double y1, double x2, double y2, E c1, rgba_color c2)
+  {
+    set_linear_gradient(x1, y1, x2, y2, to_rgba(c1), c2);
+  }
+
+  template <typename E>
+    requires std::is_enum_v<E>
+  void
+  set_linear_gradient(double x1, double y1, double x2, double y2, rgba_color c1, E c2)
+  {
+    set_linear_gradient(x1, y1, x2, y2, c1, to_rgba(c2));
+  }
+
+  template <typename E1, typename E2>
+    requires std::is_enum_v<E1> && std::is_enum_v<E2>
+  void set_linear_gradient(double x1, double y1, double x2, double y2, E1 c1, E2 c2)
+  {
+    set_linear_gradient(x1, y1, x2, y2, to_rgba(c1), to_rgba(c2));
+  }
+
+  template <typename E>
+    requires std::is_enum_v<E>
+  void
+  set_radial_gradient(double x1, double y1, double x2, double y2, E c1, rgba_color c2)
+  {
+    set_radial_gradient(x1, y1, x2, y2, to_rgba(c1), c2);
+  }
+
+  template <typename E>
+    requires std::is_enum_v<E>
+  void
+  set_radial_gradient(double x1, double y1, double x2, double y2, rgba_color c1, E c2)
+  {
+    set_radial_gradient(x1, y1, x2, y2, c1, to_rgba(c2));
+  }
+
+  template <typename E1, typename E2>
+    requires std::is_enum_v<E1> && std::is_enum_v<E2>
+  void set_radial_gradient(double x1, double y1, double x2, double y2, E1 c1, E2 c2)
+  {
+    set_radial_gradient(x1, y1, x2, y2, to_rgba(c1), to_rgba(c2));
+  }
+
+  template <typename E>
+    requires std::is_enum_v<E>
+  void
+  set_conical_gradient(double x1, double y1, double x2, double y2, E c1, rgba_color c2)
+  {
+    set_conical_gradient(x1, y1, x2, y2, to_rgba(c1), c2);
+  }
+
+  template <typename E>
+    requires std::is_enum_v<E>
+  void
+  set_conical_gradient(double x1, double y1, double x2, double y2, rgba_color c1, E c2)
+  {
+    set_conical_gradient(x1, y1, x2, y2, c1, to_rgba(c2));
+  }
+
+  template <typename E1, typename E2>
+    requires std::is_enum_v<E1> && std::is_enum_v<E2>
+  void set_conical_gradient(double x1, double y1, double x2, double y2, E1 c1, E2 c2)
+  {
+    set_conical_gradient(x1, y1, x2, y2, to_rgba(c1), to_rgba(c2));
   }
 
   // Text:

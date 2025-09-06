@@ -44,28 +44,28 @@ struct SCORE_LIB_PROCESS_EXPORT LayoutBuilderBase
   {
     auto& skin = score::Skin::instance();
     {
-      if constexpr(requires { T::darker; })
-        if(cur == T::darker)
+      if constexpr(requires { T::background_darker; })
+        if(cur == T::background_darker)
           return skin.Background2.darker300;
     }
     {
-      if constexpr(requires { T::dark; })
-        if(cur == T::dark)
+      if constexpr(requires { T::background_dark; })
+        if(cur == T::background_dark)
           return skin.Background2.darker;
     }
     {
-      if constexpr(requires { T::mid; })
-        if(cur == T::mid)
+      if constexpr(requires { T::background_mid; })
+        if(cur == T::background_mid)
           return skin.Background2.main;
     }
     {
-      if constexpr(requires { T::light; })
-        if(cur == T::light)
+      if constexpr(requires { T::background_light; })
+        if(cur == T::background_light)
           return skin.Background2.lighter;
     }
     {
-      if constexpr(requires { T::lighter; })
-        if(cur == T::lighter)
+      if constexpr(requires { T::background_lighter; })
+        if(cur == T::background_lighter)
           return skin.Background2.lighter180;
     }
     return skin.Background2.main;

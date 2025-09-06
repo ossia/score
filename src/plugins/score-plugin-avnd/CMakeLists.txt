@@ -876,16 +876,29 @@ avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Advanced/UI/LEDView.hpp"
   TARGET led_view
   MAIN_CLASS LEDView
-  NAMESPACE ao
+  NAMESPACE uo
+)
+
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/UI/PulseView.hpp"
+  TARGET pulse_view
+  MAIN_CLASS PulseView
+  NAMESPACE uo
 )
 
 avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Advanced/UI/2DView.hpp"
   TARGET point2d_view
   MAIN_CLASS Point2DView
-  NAMESPACE ao
+  NAMESPACE uo
 )
 
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Raw/TimingSplitter.hpp"
+  TARGET timing_splitter
+  MAIN_CLASS TimingSplitter
+  NAMESPACE examples
+)
 avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Advanced/Spatialization/DBAP.hpp"
   TARGET avnd_dbap_2d

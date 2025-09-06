@@ -636,7 +636,7 @@ struct Node
     struct
     {
       halp_meta(layout, halp::layouts::vbox)
-      halp_meta(background, halp::colors::mid)
+      halp_meta(background, halp::colors::background_mid)
       halp::control<&ins::mode> f;
       halp::control<&ins::quantif> q;
       halp::control<&ins::passthrough> p;
@@ -644,7 +644,7 @@ struct Node
     struct
     {
       halp_meta(layout, halp::layouts::vbox)
-      halp_meta(background, halp::colors::mid)
+      halp_meta(background, halp::colors::background_mid)
       halp::control<&ins::postaction> p;
       halp::control<&ins::postaction_bars> b;
     } right;
