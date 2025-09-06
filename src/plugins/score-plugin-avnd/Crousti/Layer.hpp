@@ -282,6 +282,10 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
         {
           auto qitem = new oscr::CustomControl<Item&>{item, *port, this->doc};
           Process::ControlLayout lay{.container = qitem};
+          if(auto* f = portFactory.get(port->concreteKey()))
+          {
+            lay.port_item = f->makePortItem(*port, this->doc, this->layout, &context);
+          }
           setupControl(this->layout, port, lay, item);
           setupItem(item, *qitem);
         }
@@ -299,6 +303,10 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
         {
           auto qitem = new oscr::CustomControl<Item&>{item, *port, this->doc};
           Process::ControlLayout lay{.container = qitem};
+          if(auto* f = portFactory.get(port->concreteKey()))
+          {
+            lay.port_item = f->makePortItem(*port, this->doc, this->layout, &context);
+          }
           setupControl(this->layout, port, lay, item);
           setupItem(item, *qitem);
         }
