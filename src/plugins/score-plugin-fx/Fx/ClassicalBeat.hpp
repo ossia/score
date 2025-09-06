@@ -17,6 +17,7 @@ struct Node
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/control-utilities.html#impulse-metronome")
   halp_meta(description, "A simple metronome - outputs a bang on the current tick")
   halp_meta(uuid, "1c185139-04f9-492f-8b4a-000dd4428990")
+  halp_flag(deprecated); // use TimingSplitter instead
 
   struct
   {

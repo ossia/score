@@ -78,7 +78,7 @@ struct Node
   struct ui
   {
     halp_meta(layout, halp::layouts::hbox)
-    halp_meta(background, halp::colors::mid)
+    halp_meta(background, halp::colors::background_mid)
     halp::control<&ins::quantification> q;
     halp::control<&ins::ms> t;
   };
