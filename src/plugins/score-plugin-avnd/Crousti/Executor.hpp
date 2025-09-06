@@ -471,29 +471,44 @@ public:
 
     if constexpr(avnd::has_processor_to_gui_bus<Node>)
     {
-      eff.send_message = [self = QPointer{this}]<typename T>(T&& b) mutable {
-        if(!self)
-          return;
-        if constexpr(
-            sizeof(QPointer<QObject>) + sizeof(b)
-            < Execution::ExecutionCommand::max_storage)
-        {
-          self->in_edit(
-              [proc = QPointer{&self->process()}, bb = std::move(b)]() mutable {
+      if constexpr(requires { eff.send_message = [](auto&&) { }; })
+      {
+        eff.send_message = [self = QPointer{this}]<typename T>(T&& b) mutable {
+          if(!self)
+            return;
+          if constexpr(
+              sizeof(QPointer<QObject>) + sizeof(b)
+              < Execution::ExecutionCommand::max_storage)
+          {
+            self->in_edit(
+                [proc = QPointer{&self->process()}, bb = std::move(b)]() mutable {
+              if(proc && proc->to_ui)
+                MessageBusSender{proc->to_ui}(std::move(bb));
+            });
+          }
+          else
+          {
+            self->in_edit(
+                [proc = QPointer{&self->process()},
+                 bb = std::make_unique<std::decay_t<T>>(std::move(b))]() mutable {
+              if(proc && proc->to_ui)
+                MessageBusSender{proc->to_ui}(*std::move(bb));
+            });
+          }
+        };
+      }
+      else if constexpr(requires { eff.send_message = []() { }; })
+      {
+        eff.send_message = [self = QPointer{this}]() mutable {
+          if(!self)
+            return;
+
+          self->in_edit([proc = QPointer{&self->process()}]() mutable {
             if(proc && proc->to_ui)
-              MessageBusSender{proc->to_ui}(std::move(bb));
+              MessageBusSender{proc->to_ui}();
           });
-        }
-        else
-        {
-          self->in_edit(
-              [proc = QPointer{&self->process()},
-               bb = std::make_unique<std::decay_t<T>>(std::move(b))]() mutable {
-            if(proc && proc->to_ui)
-              MessageBusSender{proc->to_ui}(*std::move(bb));
-          });
-        }
-      };
+        };
+      }
     }
   }
 

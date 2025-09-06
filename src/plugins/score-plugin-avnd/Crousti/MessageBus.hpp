@@ -44,8 +44,11 @@ struct MessageBusSender
 {
   std::function<void(QByteArray)>& bus;
 
+  // Case for zero-argument message bus (e.g. just a ping)
+  void operator()() { this->bus(QByteArray{}); }
+
   template <typename T>
-  requires std::is_trivial_v<T>
+    requires std::is_trivial_v<T>
   void operator()(const T& msg)
   {
     // Here we can just do a memcpy
@@ -167,6 +170,9 @@ struct Deserializer
 struct MessageBusReader
 {
   QByteArray& mess;
+
+  // Case for zero-argument message bus (e.g. just a ping)
+  void operator()() { }
 
   template <typename T>
   requires std::is_trivial_v<T>
