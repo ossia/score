@@ -67,14 +67,15 @@ void ProcessesItemModel::rescan()
 {
   auto& procs = context.interfaces<Process::ProcessFactoryList>();
 
-  ossia::flat_map<QString, std::vector<Process::ProcessModelFactory*>> sorted;
+  ossia::flat_map<QString, ossia::flat_map<QString, Process::ProcessModelFactory*>>
+      sorted;
   for(Process::ProcessModelFactory& proc : procs)
   {
     static_assert((1LL << 63) == (1ULL << 63));
     static_assert(sizeof(Process::ProcessCategory::Deprecated) == sizeof(1ULL));
     static_assert(sizeof(1ULL) == sizeof(uint64_t));
     if(!(proc.descriptor({}).category & Process::ProcessCategory::Deprecated))
-      sorted[proc.category()].push_back(&proc);
+      sorted[proc.category()][proc.prettyName()] = &proc;
   }
 
   beginResetModel();
@@ -85,7 +86,7 @@ void ProcessesItemModel::rescan()
 
     auto& cat = addCategory(e.first);
 
-    for(auto p : e.second)
+    for(auto [_, p] : e.second)
     {
       cat.emplace_back(
           ProcessData{{p->concreteKey(), p->prettyName(), {}}, QIcon{}}, &cat);
