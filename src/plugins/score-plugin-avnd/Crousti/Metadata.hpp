@@ -7,6 +7,8 @@
 
 #include <avnd/binding/ossia/port_base.hpp>
 #include <avnd/concepts/all.hpp>
+#include <avnd/introspection/input.hpp>
+#include <avnd/introspection/output.hpp>
 #include <avnd/wrappers/metadatas.hpp>
 
 #include <string_view>
@@ -144,7 +146,6 @@ struct ProcessPortVisitor
     this->value();
   }
 
-#if SCORE_PLUGIN_GFX
   template <std::size_t N, avnd::texture_port Port>
   void operator()(const avnd::field_reflection<N, Port>)
   {
@@ -155,7 +156,6 @@ struct ProcessPortVisitor
   {
     this->geometry();
   }
-#endif
 
   template <std::size_t N, avnd::curve_port Port>
   void operator()(const avnd::field_reflection<N, Port>)

@@ -127,13 +127,13 @@ public:
       : Execution::ProcessComponent_T<ProcessModel<Node>, ossia::node_process>{
           element, ctx, "Executor::ProcessModel<Info>", p}
   {
-#if SCORE_PLUGIN_GFX
     if constexpr(is_gpu<Node>)
     {
+#if SCORE_PLUGIN_GFX
       setup_gpu(element, ctx, p);
+#endif
     }
     else
-#endif
     {
       setup_cpu(element, ctx, p);
     }

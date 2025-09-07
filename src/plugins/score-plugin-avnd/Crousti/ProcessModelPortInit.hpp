@@ -238,20 +238,22 @@ struct InletInitFunc
     inlet++;
   }
 
-#if SCORE_PLUGIN_GFX
   void operator()(const avnd::texture_port auto& in, auto idx)
   {
+#if SCORE_PLUGIN_GFX
     auto p = new Gfx::TextureInlet(Id<Process::Port>(inlet++), &self);
     setupNewPort(in, p);
     ins.push_back(p);
+#endif
   }
   void operator()(const avnd::geometry_port auto& in, auto idx)
   {
+#if SCORE_PLUGIN_GFX
     auto p = new Gfx::GeometryInlet(Id<Process::Port>(inlet++), &self);
     setupNewPort(in, p);
     ins.push_back(p);
-  }
 #endif
+  }
 
   template <std::size_t Idx, avnd::message T>
   void operator()(const avnd::field_reflection<Idx, T>& in, auto dummy)
@@ -355,20 +357,22 @@ struct OutletInitFunc
     outlet++;
   }
 
-#if SCORE_PLUGIN_GFX
   void operator()(const avnd::texture_port auto& out, auto idx)
   {
+#if SCORE_PLUGIN_GFX
     auto p = new Gfx::TextureOutlet(Id<Process::Port>(outlet++), &self);
     setupNewPort(out, p);
     outs.push_back(p);
+#endif
   }
   void operator()(const avnd::geometry_port auto& out, auto idx)
   {
+#if SCORE_PLUGIN_GFX
     auto p = new Gfx::GeometryOutlet(Id<Process::Port>(outlet++), &self);
     setupNewPort(out, p);
     outs.push_back(p);
-  }
 #endif
+  }
 
   void operator()(const avnd::curve_port auto& out, auto idx)
   {
