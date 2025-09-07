@@ -129,6 +129,7 @@ struct descriptor
   int point_count{};
   std::string primitive_mode;
   std::string line_size;
+  std::array<double, 4> background_color;
 };
 
 class parser

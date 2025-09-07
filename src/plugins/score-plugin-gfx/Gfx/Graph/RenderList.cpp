@@ -446,6 +446,7 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
           updateBatch = nullptr;
 
           QRhiResourceUpdateBatch* res{};
+          // FIXME z-sort
           for(auto [edge, prev_renderer] : prevRenderers)
           {
             prev_renderer->runRenderPass(*this, commands, *edge);

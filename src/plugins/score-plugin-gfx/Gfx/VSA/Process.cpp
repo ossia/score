@@ -94,12 +94,13 @@ Process::ScriptChangeResult Model::setVertex(QString f)
   m_processedProgram.vertex.clear();
 
   vertexChanged(m_program.vertex);
-  return {};
+  return setProgram(m_program);
 }
 
 Process::ScriptChangeResult Model::setProgram(const ShaderSource& f)
 {
-  setVertex(f.vertex);
+  m_program.fragment.clear();
+  m_processedProgram.fragment.clear();
   if(const auto& [processed, error] = ProgramCache::instance().get(f); bool(processed))
   {
     ossia::flat_map<QString, ossia::value> previous_values;

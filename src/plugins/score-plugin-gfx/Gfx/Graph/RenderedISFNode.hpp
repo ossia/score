@@ -46,7 +46,6 @@ struct AudioTextureUpload
 private:
   std::vector<float> m_scratchpad;
   ossia::fft m_fft;
-  int m_histogramIndex{};
 };
 
 struct RenderedISFNode : score::gfx::NodeRenderer
@@ -179,11 +178,23 @@ struct SimpleRenderedVSANode : score::gfx::NodeRenderer
 private:
   ossia::small_flat_map<const Port*, TextureRenderTarget, 2> m_rts;
 
-  void initPass(const TextureRenderTarget& rt, RenderList& renderer, Edge& edge);
+  void initPass(
+      const TextureRenderTarget& rt, RenderList& renderer, Edge& edge,
+      QRhiResourceUpdateBatch& res);
 
   std::vector<Sampler> allSamplers() const noexcept;
 
-  ossia::small_vector<std::pair<Edge*, Pass>, 2> m_passes;
+  struct PassData
+  {
+    Edge* edge;
+    Pass main_pass;
+    QRhiGraphicsPipeline* background_pipeline{};
+    QRhiShaderResourceBindings* background_srb{};
+    QRhiBuffer* background_ubo{};
+    MeshBuffers background_tri{};
+  };
+
+  ossia::small_vector<PassData, 2> m_passes;
 
   ISFNode& n;
 
