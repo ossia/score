@@ -736,6 +736,13 @@ avnd_make_score(
 )
 
 avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Accumulator.hpp"
+  TARGET accumulator
+  MAIN_CLASS Accumulator
+  NAMESPACE ao
+)
+
+avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Calibrator.hpp"
   TARGET calibrator
   MAIN_CLASS Calibrator
