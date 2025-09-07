@@ -639,6 +639,23 @@ static const ossia::string_map<root_fun>& root_parse{[] {
       d.line_size = v.as_string();
   }});
 
+  p.insert({"BACKGROUND_COLOR", [](descriptor& d, const sajson::value& v) {
+    if(v.get_type() == sajson::TYPE_ARRAY && v.get_length() == 4)
+    {
+      if(auto e = v.get_array_element(0);
+         e.get_type() == sajson::TYPE_DOUBLE || e.get_type() == sajson::TYPE_INTEGER)
+        d.background_color[0] = e.get_number_value();
+      if(auto e = v.get_array_element(1);
+         e.get_type() == sajson::TYPE_DOUBLE || e.get_type() == sajson::TYPE_INTEGER)
+        d.background_color[1] = e.get_number_value();
+      if(auto e = v.get_array_element(2);
+         e.get_type() == sajson::TYPE_DOUBLE || e.get_type() == sajson::TYPE_INTEGER)
+        d.background_color[2] = e.get_number_value();
+      if(auto e = v.get_array_element(3);
+         e.get_type() == sajson::TYPE_DOUBLE || e.get_type() == sajson::TYPE_INTEGER)
+        d.background_color[3] = e.get_number_value();
+    }
+  }});
   return p;
 }()};
 

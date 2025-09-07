@@ -1245,6 +1245,25 @@ SimpleRenderedISFNode::~SimpleRenderedISFNode() { }
 namespace score::gfx
 {
 
+static const constexpr auto quad_vertex_shader = R"_(#version 450
+layout(location = 0) in vec2 position;
+out gl_PerVertex { vec4 gl_Position; };
+
+void main() {
+  gl_Position = vec4(position, 0.0, 1.);
+}
+)_";
+
+static const constexpr auto quad_fragment_shader = R"_(#version 450
+layout(location = 0) out vec4 fragColor;
+
+layout(std140, binding = 0) uniform bgcolor_t {
+  vec4 color;
+} bgcolor;
+void main() {
+  fragColor = bgcolor.color;
+}
+)_";
 SimpleRenderedVSANode::SimpleRenderedVSANode(const ISFNode& node) noexcept
     : score::gfx::NodeRenderer{node}
     , n{const_cast<ISFNode&>(node)}
@@ -1269,12 +1288,41 @@ std::vector<Sampler> SimpleRenderedVSANode::allSamplers() const noexcept
 }
 
 void SimpleRenderedVSANode::initPass(
-    const TextureRenderTarget& renderTarget, RenderList& renderer, Edge& edge)
+    const TextureRenderTarget& renderTarget, RenderList& renderer, Edge& edge,
+    QRhiResourceUpdateBatch& res)
 {
+  QRhi& rhi = *renderer.state.rhi;
+  // Background color quad pass
+  static const auto& bg_mesh = PlainTriangle::instance();
+  QRhiGraphicsPipeline* bg_pip = rhi.newGraphicsPipeline();
+  QRhiBuffer* bg_ubo
+      = rhi.newBuffer(QRhiBuffer::Static, QRhiBuffer::UniformBuffer, 4 * sizeof(float));
+  QRhiShaderResourceBindings* bg_srb = rhi.newShaderResourceBindings();
+  MeshBuffers bg_tri;
+  {
+    bg_ubo->create();
+    bg_srb->setBindings({QRhiShaderResourceBinding::uniformBuffer(
+        0, QRhiShaderResourceBinding::FragmentStage, bg_ubo)});
+
+    auto [v, f] = score::gfx::makeShaders(
+        renderer.state, quad_vertex_shader, quad_fragment_shader);
+    bg_pip->setShaderStages(
+        {{QRhiShaderStage::Vertex, v}, {QRhiShaderStage::Fragment, f}});
+    bg_pip->setRenderPassDescriptor(renderTarget.renderPass);
+    bg_pip->setDepthTest(false);
+    bg_pip->setDepthWrite(false);
+    bg_pip->setSampleCount(1);
+    bg_mesh.preparePipeline(*bg_pip);
+    bg_tri = renderer.initMeshBuffer(bg_mesh, res);
+    bg_pip->setRenderPassDescriptor(renderTarget.renderPass);
+    bg_pip->setShaderResourceBindings(bg_srb);
+
+    SCORE_ASSERT(bg_pip->create());
+  }
+
+  // Main rendering
   auto& model_passes = n.descriptor().passes;
   SCORE_ASSERT(model_passes.size() == 1);
-
-  QRhi& rhi = *renderer.state.rhi;
 
   QRhiBuffer* pubo{};
   pubo = rhi.newBuffer(
@@ -1289,7 +1337,14 @@ void SimpleRenderedVSANode::initPass(
     auto pip = score::gfx::buildPipeline(
         renderer, *m_mesh, v, s, renderTarget, pubo, m_materialUBO, allSamplers());
     if(pip.pipeline)
-      m_passes.emplace_back(&edge, Pass{renderTarget, pip, pubo});
+    {
+      QRhiGraphicsPipeline::TargetBlend t{};
+      t.enable = true;
+      pip.pipeline->setTargetBlends({t});
+      pip.pipeline->create();
+      m_passes.emplace_back(
+          &edge, Pass{renderTarget, pip, pubo}, bg_pip, bg_srb, bg_ubo, bg_tri);
+    }
     else
       delete pubo;
   }
@@ -1361,7 +1416,7 @@ void SimpleRenderedVSANode::init(RenderList& renderer, QRhiResourceUpdateBatch& 
     auto rt = renderer.renderTargetForOutput(*edge);
     if(rt.renderTarget)
     {
-      initPass(rt, renderer, *edge);
+      initPass(rt, renderer, *edge, res);
     }
   }
 }
@@ -1404,10 +1459,10 @@ void SimpleRenderedVSANode::update(
       audioChanged = true;
 
       auto& [rhiSampler, tex] = *sampl;
-      for(auto& [e, pass] : m_passes)
+      for(auto& pass : m_passes)
       {
         score::gfx::replaceTexture(
-            *pass.p.srb, rhiSampler, tex ? tex : &renderer.emptyTexture());
+            *pass.main_pass.p.srb, rhiSampler, tex ? tex : &renderer.emptyTexture());
       }
     }
   }
@@ -1420,10 +1475,16 @@ void SimpleRenderedVSANode::update(
   }
 
   // Update all the process UBOs
-  for(auto& [e, pass] : m_passes)
+  for(auto& pass : m_passes)
   {
+    float color[4]{
+        (float)n.m_descriptor.background_color[0],
+        (float)n.m_descriptor.background_color[1],
+        (float)n.m_descriptor.background_color[2],
+        (float)n.m_descriptor.background_color[3]};
+    res.updateDynamicBuffer(pass.background_ubo, 0, 4 * sizeof(float), color);
     res.updateDynamicBuffer(
-        pass.processUBO, 0, sizeof(ProcessUBO), &this->n.standardUBO);
+        pass.main_pass.processUBO, 0, sizeof(ProcessUBO), &this->n.standardUBO);
   }
 }
 
@@ -1450,12 +1511,21 @@ void SimpleRenderedVSANode::release(RenderList& r)
       }
     }
 
-    for(auto& [edge, pass] : m_passes)
+    for(auto& pass : m_passes)
     {
-      pass.p.release();
+      pass.main_pass.p.release();
 
-      if(pass.processUBO)
-        pass.processUBO->deleteLater();
+      if(pass.main_pass.processUBO)
+        pass.main_pass.processUBO->deleteLater();
+
+      pass.background_pipeline->destroy();
+      pass.background_pipeline->deleteLater();
+
+      pass.background_srb->destroy();
+      pass.background_srb->deleteLater();
+
+      pass.background_ubo->destroy();
+      pass.background_ubo->deleteLater();
     }
 
     m_passes.clear();
@@ -1490,33 +1560,49 @@ void SimpleRenderedVSANode::runInitialPasses(
 void SimpleRenderedVSANode::runRenderPass(
     RenderList& renderer, QRhiCommandBuffer& cb, Edge& edge)
 {
-  auto it = ossia::find_if(this->m_passes, [&](auto& p) { return p.first == &edge; });
+  auto it = ossia::find_if(this->m_passes, [&](auto& p) { return p.edge == &edge; });
   // Maybe the shader could not be created
   if(it == this->m_passes.end())
     return;
 
-  auto& pass = it->second;
+  auto& pass = it->main_pass;
+  auto texture = pass.renderTarget.texture;
 
-  // Draw the last pass
-
+  // Draw the background color
   {
-    SCORE_ASSERT(pass.renderTarget.renderTarget);
-    SCORE_ASSERT(pass.p.pipeline);
-    SCORE_ASSERT(pass.p.srb);
-    // TODO : combine all the uniforms..
+    auto pipeline = it->background_pipeline;
 
-    auto pipeline = pass.p.pipeline;
-    auto srb = pass.p.srb;
-    auto texture = pass.renderTarget.texture;
+    cb.setGraphicsPipeline(pipeline);
+    cb.setShaderResources(it->background_srb);
+    cb.setViewport(
+        QRhiViewport(0, 0, texture->pixelSize().width(), texture->pixelSize().height()));
 
-    // TODO need to free stuff
+    const QRhiCommandBuffer::VertexInput bindings[] = {{it->background_tri.mesh, 0}};
+
+    cb.setVertexInput(0, 1, bindings, 0);
+    cb.draw(3);
+  }
+  // Draw the last pass
+  {
+
     {
-      cb.setGraphicsPipeline(pipeline);
-      cb.setShaderResources(srb);
-      cb.setViewport(QRhiViewport(
-          0, 0, texture->pixelSize().width(), texture->pixelSize().height()));
+      SCORE_ASSERT(pass.renderTarget.renderTarget);
+      SCORE_ASSERT(pass.p.pipeline);
+      SCORE_ASSERT(pass.p.srb);
+      // TODO : combine all the uniforms..
 
-      m_mesh->draw({}, cb);
+      auto pipeline = pass.p.pipeline;
+      auto srb = pass.p.srb;
+
+      // TODO need to free stuff
+      {
+        cb.setGraphicsPipeline(pipeline);
+        cb.setShaderResources(srb);
+        cb.setViewport(QRhiViewport(
+            0, 0, texture->pixelSize().width(), texture->pixelSize().height()));
+
+        m_mesh->draw({}, cb);
+      }
     }
   }
 }
