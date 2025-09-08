@@ -1,4 +1,5 @@
 #include <Gfx/Graph/RenderedISFNode.hpp>
+#include <Gfx/Graph/RenderedISFSamplerUtils.hpp>
 #include <Gfx/Graph/ShaderCache.hpp>
 
 #include <score/tools/Debug.hpp>
@@ -6,22 +7,6 @@
 #include <ossia/detail/algorithms.hpp>
 namespace score::gfx
 {
-
-
-static void storeTextureRectUniform(char* buffer, int& cur_pos, QSize texSize)
-{
-  while(cur_pos % 16 != 0)
-  {
-    cur_pos += 4;
-  }
-
-  *(float*)(buffer + cur_pos + 0) = 0.0f;
-  *(float*)(buffer + cur_pos + 4) = 0.0f;
-  *(float*)(buffer + cur_pos + 8) = texSize.width();
-  *(float*)(buffer + cur_pos + 12) = texSize.height();
-
-  cur_pos += 16;
-}
 
 RenderedISFNode::~RenderedISFNode() { }
 PassOutput RenderedISFNode::initPassSampler(
@@ -47,12 +32,6 @@ PassOutput RenderedISFNode::initPassSampler(
   tex->setName("ISFNode::initPassSamplers::tex");
   SCORE_ASSERT(tex->create());
   res.uploadTexture(tex, clear_texture);
-
-  if(!pass.target.empty())
-  {
-    // If the target has a name, it has an associated size variable
-    storeTextureRectUniform(n.m_material_data.get(), cur_pos, texSize);
-  }
 
   // Persistent texture means that frame N can access the output of this pass at frame N-1,
   // thus we need two textures, two render targets...
@@ -95,96 +74,6 @@ std::vector<Sampler> RenderedISFNode::allSamplers(
     }
   }
 
-  return samplers;
-}
-
-static std::pair<std::vector<Sampler>, int> initInputSamplers(
-    const ProcessNode& node, RenderList& renderer, const std::vector<Port*>& ports,
-    ossia::small_flat_map<const Port*, TextureRenderTarget, 2>& m_rts,
-    char* materialData)
-{
-  std::vector<Sampler> samplers;
-  QRhi& rhi = *renderer.state.rhi;
-  int cur_pos = 0;
-
-  int cur_port = 0;
-  for(Port* in : ports)
-  {
-    switch(in->type)
-    {
-      case Types::Empty:
-        break;
-      case Types::Int:
-      case Types::Float:
-        cur_pos += 4;
-        break;
-      case Types::Vec2:
-        cur_pos += 8;
-        if(cur_pos % 8 != 0)
-          cur_pos += 4;
-        break;
-      case Types::Vec3:
-        while(cur_pos % 16 != 0)
-        {
-          cur_pos += 4;
-        }
-        cur_pos += 12;
-        break;
-      case Types::Vec4:
-        while(cur_pos % 16 != 0)
-        {
-          cur_pos += 4;
-        }
-        cur_pos += 16;
-        break;
-      case Types::Image: {
-        auto spec = node.resolveRenderTargetSpecs(cur_port, renderer);
-        auto sampler = rhi.newSampler(
-            spec.mag_filter, spec.min_filter, spec.mipmap_mode, spec.address_u,
-            spec.address_v, spec.address_w);
-        sampler->setName("ISFNode::initInputSamplers::sampler");
-        SCORE_ASSERT(sampler->create());
-
-        auto rt = score::gfx::createRenderTarget(
-            renderer.state, spec.format, spec.size, renderer.samples(),
-            renderer.requiresDepth());
-        auto texture = rt.texture;
-        samplers.push_back({sampler, texture});
-
-        m_rts[in] = std::move(rt);
-
-        // Allocate some space for the vec4 _imgRect in the uniform
-        storeTextureRectUniform(materialData, cur_pos, spec.size);
-        break;
-      }
-
-      case Types::Audio:
-        storeTextureRectUniform(materialData, cur_pos, QSize{1024, 2});
-        break;
-      default:
-        break;
-    }
-    cur_port++;
-  }
-  return {samplers, cur_pos};
-}
-
-static std::vector<Sampler>
-initAudioTextures(RenderList& renderer, std::list<AudioTexture>& textures)
-{
-  std::vector<Sampler> samplers;
-  QRhi& rhi = *renderer.state.rhi;
-  for(auto& texture : textures)
-  {
-    auto sampler = rhi.newSampler(
-        QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
-        QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
-    sampler->setName("ISFNode::initAudioTextures::sampler");
-    sampler->create();
-
-    samplers.push_back({sampler, &renderer.emptyTexture()});
-    texture.samplers[&renderer] = {sampler, nullptr};
-  }
   return samplers;
 }
 

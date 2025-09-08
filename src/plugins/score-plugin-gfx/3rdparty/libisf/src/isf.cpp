@@ -99,8 +99,8 @@ layout(std140, binding = 1) uniform process_t {
 
   static constexpr auto defaultFunctions =
       R"_(
-#define TEX_DIMENSIONS(tex) isf_material_uniforms._ ## tex ## _imgRect.zw
-#define IMG_SIZE(tex) isf_material_uniforms._ ## tex ## _imgRect.zw
+#define TEX_DIMENSIONS(tex) textureSize(tex, 0)
+#define IMG_SIZE(tex) textureSize(tex, 0)
 
 #if defined(QSHADER_SPIRV)
 #define isf_FragCoord vec2(gl_FragCoord.x, RENDERSIZE.y - gl_FragCoord.y)
@@ -912,9 +912,11 @@ void parser::parse_isf()
 
       if(!d.inputs.empty() || !d.pass_targets.empty())
       {
+        std::string uniforms;
         std::string samplers;
         std::string globalvars;
-        material_ubos += "layout(std140, binding = 2) uniform material_t {\n";
+        int num_uniform = 0;
+        uniforms += "layout(std140, binding = 2) uniform material_t {\n";
         for(const isf::input& val : d.inputs)
         {
           auto [type, isSampler] = ossia::visit(create_val_visitor_450{}, val.data);
@@ -929,23 +931,15 @@ void parser::parse_isf()
             samplers += val.name;
             samplers += ";\n";
 
-            auto imgRect_varname = "_" + val.name + "_imgRect";
-            material_ubos += "vec4 " + imgRect_varname + ";\n";
-            // See comment above regarding little dance to make spirv-cross happy
-            globalvars += "vec4 ";
-            globalvars += imgRect_varname;
-            globalvars += " = isf_material_uniforms.";
-            globalvars += imgRect_varname;
-            globalvars += ";\n";
-
             sampler_binding++;
           }
           else
           {
-            material_ubos += type;
-            material_ubos += ' ';
-            material_ubos += val.name;
-            material_ubos += ";\n";
+            num_uniform++;
+            uniforms += type;
+            uniforms += ' ';
+            uniforms += val.name;
+            uniforms += ";\n";
 
             // See comment above regarding little dance to make spirv-cross happy
             globalvars += type;
@@ -964,16 +958,19 @@ void parser::parse_isf()
           samplers += ") uniform sampler2D ";
           samplers += target;
           samplers += ";\n";
-
-          material_ubos += "vec4 _" + target + "_imgRect;\n";
-
           sampler_binding++;
         }
 
-        material_ubos += "} isf_material_uniforms;\n";
-        material_ubos += "\n";
-        material_ubos += globalvars;
-        material_ubos += "\n";
+        // empty uniform blocks are not allowed
+        if(num_uniform > 0)
+        {
+          uniforms += "} isf_material_uniforms;\n";
+          uniforms += "\n";
+          uniforms += globalvars;
+          uniforms += "\n";
+
+          material_ubos += uniforms;
+        }
 
         material_ubos += samplers;
       }
@@ -1794,15 +1791,6 @@ void parser::parse_vsa()
         samplers += ' ';
         samplers += val.name;
         samplers += ";\n";
-
-        auto imgRect_varname = "_" + val.name + "_imgRect";
-        material_ubos += "vec4 " + imgRect_varname + ";\n";
-        // See comment above regarding little dance to make spirv-cross happy
-        globalvars += "vec4 ";
-        globalvars += imgRect_varname;
-        globalvars += " = isf_material_uniforms.";
-        globalvars += imgRect_varname;
-        globalvars += ";\n";
 
         sampler_binding++;
       }

@@ -160,28 +160,6 @@ GeometryFilterNode::GeometryFilterNode(const isf::descriptor& desc, const QStrin
   geometry_input_port_vis visitor{*this, cur};
   for(const isf::input& input : desc.inputs)
     ossia::visit(visitor, input.data);
-
-  // Handle the pass textures size uniforms
-  {
-    char* data = visitor.data;
-    int sz = visitor.sz;
-    for(std::size_t i = 0; i < desc.pass_targets.size(); i++)
-    {
-      // Passes also need an _imgRect uniform
-      while(sz % 16 != 0)
-      {
-        sz += 4;
-        data += 4;
-      }
-
-      *reinterpret_cast<float*>(data + 0) = 0.f;
-      *reinterpret_cast<float*>(data + 4) = 0.f;
-      *reinterpret_cast<float*>(data + 8) = 640.f; // FIXME
-      *reinterpret_cast<float*>(data + 12) = 480.f;
-      data += 4 * 4;
-      sz += 4 * 4;
-    }
-  }
 }
 
 GeometryFilterNode::~GeometryFilterNode() { }

@@ -98,27 +98,9 @@ struct isf_input_port_vis
     sz += 4 * 4;
   }
 
-  void add_texture_imgrect()
-  {
-    // Also add the vec4 imgRect uniform:
-    while(sz % 16 != 0)
-    {
-      sz += 4;
-      data += 4;
-    }
-
-    *reinterpret_cast<float*>(data + 0) = 0.f;
-    *reinterpret_cast<float*>(data + 4) = 0.f;
-    *reinterpret_cast<float*>(data + 8) = 640.f;
-    *reinterpret_cast<float*>(data + 12) = 480.f;
-    data += 4 * 4;
-    sz += 4 * 4;
-  }
-
   void operator()(const isf::image_input& in) noexcept
   {
     self.input.push_back(new Port{&self, {}, Types::Image, {}});
-    add_texture_imgrect();
   }
 
   void operator()(const isf::audio_input& audio) noexcept
@@ -127,7 +109,6 @@ struct isf_input_port_vis
     auto& data = self.m_audio_textures.back();
     data.fixedSize = audio.max;
     self.input.push_back(new Port{&self, &data, Types::Audio, {}});
-    add_texture_imgrect();
     data.rectUniformOffset = this->sz - 4 * 4;
   }
 
@@ -138,7 +119,6 @@ struct isf_input_port_vis
     data.fixedSize = audio.max;
     data.mode = data.Histogram;
     self.input.push_back(new Port{&self, &data, Types::Audio, {}});
-    add_texture_imgrect();
     data.rectUniformOffset = this->sz - 4 * 4;
   }
 
@@ -149,7 +129,6 @@ struct isf_input_port_vis
     data.fixedSize = audio.max;
     data.mode = AudioTexture::Mode::FFT;
     self.input.push_back(new Port{&self, &data, Types::Audio, {}});
-    add_texture_imgrect();
     data.rectUniformOffset = this->sz - 4 * 4;
   }
 };
@@ -168,10 +147,6 @@ ISFNode::ISFNode(const isf::descriptor& desc, const QString& vert, const QString
     ossia::visit(sz_vis, input.data);
   }
 
-  // Size of the pass textures (vec4)
-  for(std::size_t i = 0; i < desc.pass_targets.size(); i++)
-    sz_vis(isf::color_input{});
-
   m_materialSize = sz_vis.sz;
 
   // Allocate the required memory
@@ -184,28 +159,6 @@ ISFNode::ISFNode(const isf::descriptor& desc, const QString& vert, const QString
   isf_input_port_vis visitor{*this, cur};
   for(const isf::input& input : desc.inputs)
     ossia::visit(visitor, input.data);
-
-  // Handle the pass textures size uniforms
-  {
-    char* data = visitor.data;
-    int sz = visitor.sz;
-    for(std::size_t i = 0; i < desc.pass_targets.size(); i++)
-    {
-      // Passes also need an _imgRect uniform
-      while(sz % 16 != 0)
-      {
-        sz += 4;
-        data += 4;
-      }
-
-      *reinterpret_cast<float*>(data + 0) = 0.f;
-      *reinterpret_cast<float*>(data + 4) = 0.f;
-      *reinterpret_cast<float*>(data + 8) = 640.f;
-      *reinterpret_cast<float*>(data + 12) = 480.f;
-      data += 4 * 4;
-      sz += 4 * 4;
-    }
-  }
 
   output.push_back(new Port{this, {}, Types::Image, {}});
 }

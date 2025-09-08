@@ -45,11 +45,11 @@ struct isf_input_size_vis
     sz += 4 * 4;
   }
 
-  void operator()(const isf::image_input&) noexcept { (*this)(isf::color_input{}); }
+  void operator()(const isf::image_input&) noexcept { }
 
-  void operator()(const isf::audio_input&) noexcept { (*this)(isf::color_input{}); }
-  void operator()(const isf::audioFFT_input&) noexcept { (*this)(isf::color_input{}); }
-  void operator()(const isf::audioHist_input&) noexcept { (*this)(isf::color_input{}); }
+  void operator()(const isf::audio_input&) noexcept { }
+  void operator()(const isf::audioFFT_input&) noexcept { }
+  void operator()(const isf::audioHist_input&) noexcept { }
 };
 
 }
