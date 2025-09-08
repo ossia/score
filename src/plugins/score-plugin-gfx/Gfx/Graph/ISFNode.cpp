@@ -109,7 +109,6 @@ struct isf_input_port_vis
     auto& data = self.m_audio_textures.back();
     data.fixedSize = audio.max;
     self.input.push_back(new Port{&self, &data, Types::Audio, {}});
-    data.rectUniformOffset = this->sz - 4 * 4;
   }
 
   void operator()(const isf::audioHist_input& audio) noexcept
@@ -119,7 +118,6 @@ struct isf_input_port_vis
     data.fixedSize = audio.max;
     data.mode = data.Histogram;
     self.input.push_back(new Port{&self, &data, Types::Audio, {}});
-    data.rectUniformOffset = this->sz - 4 * 4;
   }
 
   void operator()(const isf::audioFFT_input& audio) noexcept
@@ -129,7 +127,6 @@ struct isf_input_port_vis
     data.fixedSize = audio.max;
     data.mode = AudioTexture::Mode::FFT;
     self.input.push_back(new Port{&self, &data, Types::Audio, {}});
-    data.rectUniformOffset = this->sz - 4 * 4;
   }
 };
 ISFNode::ISFNode(const isf::descriptor& desc, const QString& vert, const QString& frag)

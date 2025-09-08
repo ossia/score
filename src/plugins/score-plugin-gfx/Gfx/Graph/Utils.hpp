@@ -37,7 +37,6 @@ struct AudioTexture
   std::vector<float> data;
   int channels{};
   int fixedSize{0};
-  int rectUniformOffset{};
   enum Mode
   {
     Waveform,

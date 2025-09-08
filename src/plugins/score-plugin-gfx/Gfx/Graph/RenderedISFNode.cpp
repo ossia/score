@@ -506,7 +506,6 @@ void RenderedISFNode::release(RenderList& r)
 {
   // customRelease
   {
-
     for(auto [edge, rt] : m_rts)
     {
       rt.release();
@@ -585,7 +584,6 @@ void RenderedISFNode::release(RenderList& r)
   m_materialUBO = nullptr;
 
   m_meshBuffer = nullptr;
-
 }
 
 void RenderedISFNode::runInitialPasses(
@@ -772,26 +770,35 @@ void AudioTextureUpload::processHistogram(
 void AudioTextureUpload::processSpectral(
     AudioTexture& audio, QRhiResourceUpdateBatch& res, QRhiTexture* rhiTexture)
 {
-  if(m_scratchpad.size() < audio.data.size())
-    m_scratchpad.resize(audio.data.size() / 2);
-  std::size_t bufferSize = audio.data.size() / audio.channels;
-  std::size_t fftSize = bufferSize / 2;
-  const float norm = 1. / (2. * bufferSize);
+  std::size_t audioBufferSize = audio.data.size() / audio.channels;
+  std::size_t fftSize = audioBufferSize / 2;
+  std::size_t outputSize = fftSize * audio.channels;
+
+  if(m_scratchpad.size() < outputSize)
+    m_scratchpad.resize(outputSize);
+
+  const float norm = 1. / (2. * audioBufferSize);
   for(int i = 0; i < audio.channels; i++)
   {
-    float* inputData = audio.data.data() + i * bufferSize;
-    auto spectrum = m_fft.execute(inputData, bufferSize);
+    float* inputData = audio.data.data() + i * audioBufferSize;
+    auto spectrum = m_fft.execute(inputData, audioBufferSize);
 
     float* outputSpectrum = m_scratchpad.data() + i * fftSize;
     for(std::size_t k = 0; k < fftSize; k++)
     {
-      outputSpectrum[k] = 0.5f + spectrum[k][0] * norm;
+      outputSpectrum[k]
+          = 1.
+            * std::sqrt(
+                spectrum[k][0] * spectrum[k][0] + spectrum[k][1] * spectrum[k][1])
+            * norm;
     }
   }
 
   // Copy it
   QRhiTextureSubresourceUploadDescription subdesc(
-      m_scratchpad.data(), (audio.data.size() / 2) * sizeof(float));
+      m_scratchpad.data(), m_scratchpad.size() * sizeof(float));
+  subdesc.setSourceSize(QSize(fftSize, audio.channels));
+
   QRhiTextureUploadEntry entry{0, 0, subdesc};
   QRhiTextureUploadDescription desc{entry};
   res.uploadTexture(rhiTexture, desc);
@@ -812,14 +819,7 @@ std::optional<Sampler> AudioTextureUpload::updateAudioTexture(
   auto& [rhiSampler, rhiTexture] = it->second;
   const auto curSz = (rhiTexture) ? rhiTexture->pixelSize() : QSize{};
   int numSamples = curSz.width() * curSz.height();
-  if(numSamples != int(audio.data.size()))
-  {
-    delete rhiTexture;
-    rhiTexture = nullptr;
-    textureChanged = true;
-  }
-
-  if(!rhiTexture)
+  if(numSamples != int(audio.data.size()) || !rhiTexture)
   {
     if(audio.channels > 0)
     {
@@ -840,25 +840,40 @@ std::optional<Sampler> AudioTextureUpload::updateAudioTexture(
           break;
       }
 
-      float* rectUniform
-          = reinterpret_cast<float*>(materialData + audio.rectUniformOffset);
-      rectUniform[0] = 0.f;
-      rectUniform[1] = 0.f;
-      rectUniform[2] = pixelWidth;
-      rectUniform[3] = audio.channels;
-
       m_fft.reset(samples);
 
-      rhiTexture = rhi.newTexture(
-          QRhiTexture::R32F, {pixelWidth, audio.channels}, 1, QRhiTexture::Flag{});
-      rhiTexture->setName("AudioTextureUpload::rhiTexture");
-      rhiTexture->create();
-      textureChanged = true;
+      if(rhiTexture)
+      {
+        rhiTexture->destroy();
+        rhiTexture->setPixelSize({pixelWidth, audio.channels});
+        rhiTexture->create();
+      }
+      else
+      {
+        rhiTexture = rhi.newTexture(
+            QRhiTexture::R32F, {pixelWidth, audio.channels}, 1, QRhiTexture::Flag{});
+        rhiTexture->setName("AudioTextureUpload::rhiTexture");
+        auto created = rhiTexture->create();
+        SCORE_ASSERT(created);
+        textureChanged = true;
+      }
     }
     else
     {
-      rhiTexture = nullptr;
-      textureChanged = true;
+      if(rhiTexture)
+      {
+        rhiTexture->destroy();
+        rhiTexture->setPixelSize({1, 1});
+        rhiTexture->create();
+      }
+      else
+      {
+        rhiTexture = rhi.newTexture(QRhiTexture::R32F, {1, 1}, 1, QRhiTexture::Flag{});
+        rhiTexture->setName("AudioTextureUpload::rhiTexture");
+        auto created = rhiTexture->create();
+        SCORE_ASSERT(created);
+        textureChanged = true;
+      }
     }
   }
 
