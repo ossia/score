@@ -40,6 +40,7 @@ set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/ProcessTreeView.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/ProcessWidget.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/ProjectLibraryWidget.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Library/RecursiveFilterProxy.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/SystemLibraryWidget.cpp"
 
 )
