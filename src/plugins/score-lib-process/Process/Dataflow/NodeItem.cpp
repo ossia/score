@@ -36,7 +36,7 @@
 #include <QTimer>
 
 #include <wobjectimpl.h>
-
+W_OBJECT_IMPL(Process::NodeItem)
 namespace Process
 {
 
@@ -73,6 +73,7 @@ NodeItem::NodeItem(
   setObjectName("NodeItem");
   setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
   setAcceptHoverEvents(true);
+  setAcceptDrops(true);
   setFlag(ItemIsFocusable, true);
   setFlag(ItemClipsChildrenToShape, true);
   const auto& pf
@@ -654,7 +655,8 @@ void NodeItem::paint(
   const auto& brush = m_selected ? skin.Base2.darker
                       : m_hover  ? bset.lighter
                                  : bset.main;
-  const auto& pen = brush.pen2_solid_round_round;
+  const auto& pen = m_dropping ? skin.Warn2.main.pen3_solid_round_round
+                               : brush.pen2_solid_round_round;
 
   painter->setRenderHint(QPainter::Antialiasing, true);
 
@@ -851,5 +853,23 @@ void NodeItem::keyPressEvent(QKeyEvent* event)
 void NodeItem::keyReleaseEvent(QKeyEvent* event)
 {
   event->accept();
+}
+void NodeItem::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
+{
+  m_dropping = true;
+  update();
+}
+
+void NodeItem::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
+{
+  m_dropping = false;
+  update();
+}
+
+void NodeItem::dropEvent(QGraphicsSceneDragDropEvent* event)
+{
+  m_dropping = false;
+  dropReceived(event->pos(), *event->mimeData());
+  update();
 }
 }

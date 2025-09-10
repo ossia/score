@@ -44,5 +44,11 @@ private:
   Rack m_smallView;
   bool m_smallViewVisible{};
 };
+
+class RemoveProcessAndKeepLinked final : public score::AggregateCommand
+{
+  SCORE_COMMAND_DECL(
+      CommandFactoryName(), RemoveProcessAndKeepLinked, "Remove process from chain")
+};
 }
 }

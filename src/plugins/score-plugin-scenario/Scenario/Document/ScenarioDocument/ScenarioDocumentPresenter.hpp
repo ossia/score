@@ -149,6 +149,9 @@ private:
   void on_addProcessFromLibrary(const Library::ProcessData& dat);
   void on_addPresetFromLibrary(const Process::Preset& dat);
 
+  void on_cableItemCreated(Dataflow::CableItem* item);
+  void on_dropOnCable(const QPointF& pos, const QMimeData& mime);
+
   Process::DataflowManager m_dataflow;
   CentralDisplay m_centralDisplay;
   score::SelectionDispatcher m_selectionDispatcher;

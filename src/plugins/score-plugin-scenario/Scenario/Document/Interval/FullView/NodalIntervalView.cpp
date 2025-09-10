@@ -1,6 +1,8 @@
 #include "NodalIntervalView.hpp"
 
+#include <Scenario/Application/Drops/DropOnCable.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
@@ -37,6 +39,8 @@ NodalIntervalView::NodalIntervalView(
       continue;
     auto item = new Process::NodeItem{proc, m_context, r, m_container};
     m_nodeItems.push_back(item);
+    connect(
+        item, &Process::NodeItem::dropReceived, this, &NodalIntervalView::on_dropOnNode);
   }
   m_model.processes.added.connect<&NodalIntervalView::on_processAdded>(*this);
   m_model.processes.removing.connect<&NodalIntervalView::on_processRemoving>(*this);
@@ -189,6 +193,8 @@ void NodalIntervalView::on_processAdded(const Process::ProcessModel& proc)
 
   auto item = new Process::NodeItem{
       proc, m_context, m_model.duration.defaultDuration(), m_container};
+  connect(
+      item, &Process::NodeItem::dropReceived, this, &NodalIntervalView::on_dropOnNode);
   m_nodeItems.push_back(item);
 }
 
@@ -301,5 +307,18 @@ void NodalIntervalView::mouseReleaseEvent(QGraphicsSceneMouseEvent* e)
 void NodalIntervalView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
   event->accept();
+}
+
+void NodalIntervalView::on_dropOnNode(const QPointF& pos, const QMimeData& mime)
+{
+  auto item = static_cast<Process::NodeItem*>(QObject::sender());
+  if(!item)
+    return;
+
+  auto& doc = score::IDocument::modelDelegate<Scenario::ScenarioDocumentModel>(
+      m_context.document);
+  auto drop = new Scenario::DropOnNode{*item, doc, m_context};
+  drop->drop(mime);
+  drop->deleteLater();
 }
 }

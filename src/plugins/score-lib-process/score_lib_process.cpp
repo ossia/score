@@ -41,6 +41,7 @@ Dataflow::CableItem* DataflowManager::createCable(
     m_cableMap.insert({ptr, item});
     if(!item->parentItem() && scene)
       scene->addItem(item);
+    cableItemCreated(item);
     return item;
   }
   else if(it->second == nullptr)
@@ -49,6 +50,7 @@ Dataflow::CableItem* DataflowManager::createCable(
     it->second = item;
     if(!item->parentItem() && scene)
       scene->addItem(item);
+    cableItemCreated(item);
     return item;
   }
 

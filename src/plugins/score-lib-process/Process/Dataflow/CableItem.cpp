@@ -40,6 +40,7 @@ CableItem::CableItem(
   this->setCursor(Qt::CrossCursor);
   this->setFlag(QGraphicsItem::ItemClipsToShape);
   this->setFlag(QGraphicsItem::ItemIsFocusable);
+  this->setAcceptDrops(true);
   this->setToolTip(tr("Cable\n"));
 
   SCORE_ASSERT(canCreateCable(c, plug));
@@ -145,8 +146,31 @@ void CableItem::paint(
   {
     painter->setRenderHint(QPainter::Antialiasing, true);
     auto& style = Process::Style::instance();
-    if(!m_cable.selection.get())
+    if(m_dropping)
     {
+      [[unlikely]];
+      switch(m_type)
+      {
+        case Process::PortType::Message:
+          painter->setPen(style.DragDropDataCablePen());
+          break;
+        case Process::PortType::Audio:
+          painter->setPen(style.DragDropAudioCablePen());
+          break;
+        case Process::PortType::Midi:
+          painter->setPen(style.DragDropMidiCablePen());
+          break;
+        case Process::PortType::Texture:
+          painter->setPen(style.DragDropTextureCablePen());
+          break;
+        case Process::PortType::Geometry:
+          painter->setPen(style.DragDropGeometryCablePen());
+          break;
+      }
+    }
+    else if(!m_cable.selection.get())
+    {
+      [[likely]]
       switch(m_type)
       {
         case Process::PortType::Message:
@@ -159,10 +183,10 @@ void CableItem::paint(
           painter->setPen(style.MidiCablePen());
           break;
         case Process::PortType::Texture:
-          painter->setPen(style.skin.LightGray.main.pen3_solid_round_round);
+          painter->setPen(style.TextureCablePen());
           break;
         case Process::PortType::Geometry:
-          painter->setPen(style.skin.Emphasis3.main.pen3_solid_round_round);
+          painter->setPen(style.GeometryCablePen());
           break;
       }
     }
@@ -180,10 +204,10 @@ void CableItem::paint(
           painter->setPen(style.SelectedMidiCablePen());
           break;
         case Process::PortType::Texture:
-          painter->setPen(style.skin.LightGray.lighter.pen3_solid_round_round);
+          painter->setPen(style.SelectedTextureCablePen());
           break;
         case Process::PortType::Geometry:
-          painter->setPen(style.skin.Emphasis3.lighter.pen3_solid_round_round);
+          painter->setPen(style.SelectedGeometryCablePen());
           break;
       }
     }
@@ -378,8 +402,28 @@ void CableItem::keyPressEvent(QKeyEvent* event)
 
 void CableItem::keyReleaseEvent(QKeyEvent* event)
 {
-
   event->accept();
 }
 
+void CableItem::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
+{
+  m_dropping = true;
+  event->accept();
+  update();
+}
+
+void CableItem::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
+{
+  m_dropping = false;
+  event->accept();
+  update();
+}
+
+void CableItem::dropEvent(QGraphicsSceneDragDropEvent* event)
+{
+  m_dropping = false;
+  dropReceived(event->pos(), *event->mimeData());
+  event->accept();
+  update();
+}
 }

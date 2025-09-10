@@ -48,8 +48,8 @@ public:
   void setSource(PortItem* p);
   void setTarget(PortItem* p);
 
-public:
-  void removeRequested() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, removeRequested)
+  void dropReceived(const QPointF& pos, const QMimeData& arg_2)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, dropReceived, pos, arg_2)
 
 private:
   QRectF boundingRect() const override;
@@ -61,6 +61,9 @@ private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;
+  void dragLeaveEvent(QGraphicsSceneDragDropEvent* event) override;
+  void dropEvent(QGraphicsSceneDragDropEvent* event) override;
   void keyPressEvent(QKeyEvent* event) override;
   void keyReleaseEvent(QKeyEvent* event) override;
 
@@ -71,5 +74,6 @@ private:
   QPainterPath m_path;
   mutable QPainterPath m_stroke;
   Process::PortType m_type{};
+  bool m_dropping{};
 };
 }

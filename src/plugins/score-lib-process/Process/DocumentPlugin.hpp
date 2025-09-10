@@ -26,8 +26,12 @@ public:
   cable_map& cables() noexcept { return m_cableMap; }
   port_map& ports() noexcept { return m_portMap; }
 
+  void cableItemCreated(Dataflow::CableItem* item)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, cableItemCreated, item);
+
 private:
   cable_map m_cableMap;
   port_map m_portMap;
 };
 }
+W_REGISTER_ARGTYPE(Dataflow::CableItem*)

@@ -44,6 +44,7 @@ private:
   void on_processAdded(const Process::ProcessModel& proc);
   void on_processRemoving(const Process::ProcessModel& model);
   void on_zoomRatioChanged(ZoomRatio ratio);
+  void on_dropOnNode(const QPointF& pt, const QMimeData& mime);
 
   void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;
   void dragLeaveEvent(QGraphicsSceneDragDropEvent* event) override;

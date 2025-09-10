@@ -36,6 +36,7 @@ class SCORE_LIB_PROCESS_EXPORT NodeItem
     : public QObject
     , public QGraphicsItem
 {
+  W_OBJECT(NodeItem)
 public:
   NodeItem(
       const Process::ProcessModel& model, const Process::Context& ctx, TimeVal parentDur,
@@ -50,6 +51,9 @@ public:
   qreal height() const;
 
   const Process::ProcessModel& model() const noexcept;
+
+  void dropReceived(const QPointF& pos, const QMimeData& arg_2)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, dropReceived, pos, arg_2)
 
 private:
   void createWithDecorations();
@@ -74,6 +78,10 @@ private:
   void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
   void hoverMoveEvent(QGraphicsSceneHoverEvent* event) override;
   void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
+
+  void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;
+  void dragLeaveEvent(QGraphicsSceneDragDropEvent* event) override;
+  void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 
   void keyPressEvent(QKeyEvent* event) override;
   void keyReleaseEvent(QKeyEvent* event) override;
@@ -114,5 +122,6 @@ private:
 
   bool m_hover{false};
   bool m_selected{false};
+  bool m_dropping{};
 };
 }

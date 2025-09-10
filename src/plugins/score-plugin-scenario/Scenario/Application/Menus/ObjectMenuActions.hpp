@@ -49,6 +49,7 @@ private:
   IntervalActions m_cstrActions;
 
   QAction* m_removeElements{};
+  QAction* m_removeElementsKeepLinked{};
   QAction* m_copyContent{};
   QAction* m_cutContent{};
   QAction* m_pasteElements{};

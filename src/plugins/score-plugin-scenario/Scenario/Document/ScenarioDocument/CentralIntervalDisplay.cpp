@@ -102,7 +102,7 @@ void CentralIntervalDisplay::on_addProcessFromLibrary(const Library::ProcessData
     if(sel.size() == 1)
     {
       const Process::Cable& cbl = *sel.front();
-      createProcessInCable(parent, dat, cbl);
+      createProcessInCable(parent.context(), parent.model(), dat, {}, {}, cbl);
       return;
     }
   }
@@ -117,7 +117,7 @@ void CentralIntervalDisplay::on_addProcessFromLibrary(const Library::ProcessData
       if(!parentProcess.outlets().empty())
       {
         createProcessAfterPort(
-            parent, dat, parentProcess, *parentProcess.outlets().front());
+            parent, dat, {}, {}, parentProcess, *parentProcess.outlets().front());
       }
       else
       {
@@ -139,9 +139,9 @@ void CentralIntervalDisplay::on_addProcessFromLibrary(const Library::ProcessData
       if(parentProcess)
       {
         if(auto inl = qobject_cast<const Process::Inlet*>(&p))
-          createProcessBeforePort(parent, dat, *parentProcess, *inl);
+          createProcessBeforePort(parent, dat, {}, {}, *parentProcess, *inl);
         else if(auto inl = qobject_cast<const Process::Outlet*>(&p))
-          createProcessAfterPort(parent, dat, *parentProcess, *inl);
+          createProcessAfterPort(parent, dat, {}, {}, *parentProcess, *inl);
       }
       else if(createInParentInterval())
         return;
@@ -178,7 +178,7 @@ void CentralIntervalDisplay::on_addPresetFromLibrary(const Process::Preset& dat)
     if(sel.size() == 1)
     {
       const Process::Cable& cbl = *sel.front();
-      loadPresetInCable(parent, dat, cbl);
+      loadPresetInCable(parent.context(), parent.model(), dat, cbl);
       return;
     }
   }
