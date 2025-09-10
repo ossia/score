@@ -4,6 +4,7 @@
 
 #include <Dataflow/Commands/CableHelpers.hpp>
 
+#include <score/command/AggregateCommand.hpp>
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
