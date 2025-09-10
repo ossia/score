@@ -397,8 +397,11 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
     {
       // For each edge incoming to each image input ports of this node,
       // we render the edge source's content.
-      if(input->type == Types::Image && !input->edges.empty())
-      {
+      if(input->edges.empty())
+        continue;
+
+      const auto prepare_render
+          = [this, &prevRenderers, input, &commands, &updateBatch] {
         prevRenderers.clear();
         prevRenderers.reserve(input->edges.size());
 
@@ -429,6 +432,11 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
 
           prev_renderer->runInitialPasses(*this, commands, updateBatch, *edge);
         }
+      };
+
+      if(input->type == Types::Image)
+      {
+        prepare_render();
 
         // Then do the final render of each node on the edge sink's render target
         // We *have* to do that in a single beginPass / endPass as every beginPass
@@ -438,28 +446,48 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
           SCORE_ASSERT(rendered != node->renderedNodes.end());
 
           NodeRenderer* renderer = rendered->second;
-          auto rt = renderer->renderTargetForInput(*input);
-
-          SCORE_ASSERT(rt.renderTarget);
-
-          commands.beginPass(rt.renderTarget, Qt::black, {1.0f, 0}, updateBatch);
-          updateBatch = nullptr;
-
-          QRhiResourceUpdateBatch* res{};
-          // FIXME z-sort
-          for(auto [edge, prev_renderer] : prevRenderers)
+          if(auto rt = renderer->renderTargetForInput(*input))
           {
-            prev_renderer->runRenderPass(*this, commands, *edge);
-          }
+            // Normal drawing node
+            commands.beginPass(rt.renderTarget, Qt::black, {1.0f, 0}, updateBatch);
+            updateBatch = nullptr;
 
-          // Allow the node to do some actions, for instance if a readback
-          // of a node's input is going to be needed.
-          {
-            renderer->inputAboutToFinish(*this, *input, res);
+            QRhiResourceUpdateBatch* res{};
+            // FIXME z-sort
+            for(auto [edge, prev_renderer] : prevRenderers)
+            {
+              prev_renderer->runRenderPass(*this, commands, *edge);
+            }
+
+            // Allow the node to do some actions, for instance if a readback
+            // of a node's input is going to be needed.
+            {
+              renderer->inputAboutToFinish(*this, *input, res);
+            }
+            commands.endPass(res);
+            res = nullptr;
           }
-          commands.endPass(res);
-          res = nullptr;
+          else
+          {
+            commands.resourceUpdate(updateBatch);
+            updateBatch = nullptr;
+          }
         }
+
+        if(node != &output)
+        {
+          SCORE_ASSERT(!updateBatch);
+          updateBatch = state.rhi->nextResourceUpdateBatch();
+          SCORE_ASSERT(updateBatch);
+        }
+        node_was_rendered = true;
+      }
+      else if(input->type == Types::Geometry)
+      {
+        prepare_render();
+
+        commands.resourceUpdate(updateBatch);
+        updateBatch = nullptr;
 
         if(node != &output)
         {
