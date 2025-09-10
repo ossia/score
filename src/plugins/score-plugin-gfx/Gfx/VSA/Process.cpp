@@ -99,6 +99,7 @@ Process::ScriptChangeResult Model::setVertex(QString f)
 
 Process::ScriptChangeResult Model::setProgram(const ShaderSource& f)
 {
+  m_program.vertex = f.vertex;
   m_program.fragment.clear();
   m_processedProgram.fragment.clear();
   if(const auto& [processed, error] = ProgramCache::instance().get(f); bool(processed))
@@ -184,7 +185,7 @@ void DataStreamWriter::write(Gfx::VSA::Model& proc)
 {
   Gfx::ShaderSource s;
   m_stream >> s;
-  (void)proc.setProgram(s);
+  (void)proc.setVertex(s.vertex);
 
   writePorts(
       *this, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,
@@ -206,7 +207,7 @@ void JSONWriter::write(Gfx::VSA::Model& proc)
 {
   Gfx::ShaderSource s;
   s.vertex = obj["Vertex"].toString();
-  (void)proc.setProgram(s);
+  (void)proc.setVertex(s.vertex);
 
   writePorts(
       *this, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,
