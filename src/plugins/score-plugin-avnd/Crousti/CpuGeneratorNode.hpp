@@ -44,7 +44,7 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
     if(size.width() > 0 && size.height() > 0)
     {
       texture = rhi.newTexture(
-          gpp::qrhi::textureFormat<Tex>(), size, 1, QRhiTexture::Flag{});
+          gpp::qrhi::textureFormat(texture_spec), size, 1, QRhiTexture::Flag{});
 
       texture->create();
     }
@@ -73,7 +73,7 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
     {
       QRhiTexture* oldtex = texture;
       QRhiTexture* newtex = renderer.state.rhi->newTexture(
-          gpp::qrhi::textureFormat<Tex>(), QSize{cpu_tex.width, cpu_tex.height}, 1,
+          gpp::qrhi::textureFormat(cpu_tex), QSize{cpu_tex.width, cpu_tex.height}, 1,
           QRhiTexture::Flag{});
       newtex->create();
       for(auto& [edge, pass] : this->m_p)
@@ -183,7 +183,7 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
         *this, *state, m_last_message, parent.last_message, parent.m_ctx);
 
     // Run the processor
-    (*state)();
+    if_possible((*state)());
 
     // Upload output textures
     int k = 0;
