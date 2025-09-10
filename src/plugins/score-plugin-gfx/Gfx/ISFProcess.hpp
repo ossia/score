@@ -7,6 +7,8 @@
 
 #include <score/tools/File.hpp>
 
+#include <ossia/detail/flat_map.hpp>
+
 #include <QFile>
 
 #include <isf.hpp>
@@ -19,6 +21,8 @@ struct ISFHelpers
   static Process::Descriptor descriptorFromISFFile(QString path)
   {
     auto base = Metadata<Process::Descriptor_k, T>::get();
+    if(path.isEmpty())
+      return base;
 
     QFile f{path};
     if(!f.open(QIODevice::ReadOnly))
@@ -76,8 +80,7 @@ struct ISFHelpers
       {
         auto nm = QString::fromStdString(input.name);
         auto port = new Process::FloatSlider(
-            v.min, v.max, v.def, QString::fromStdString(input.name),
-            Id<Process::Port>(i), &self);
+            v.min, v.max, v.def, nm, Id<Process::Port>(i), &self);
 
         self.m_inlets.push_back(port);
         if(auto it = previous_values.find(nm);
@@ -254,24 +257,28 @@ struct ISFHelpers
       Process::Inlet* operator()(const image_input& v)
       {
         auto port = new Gfx::TextureInlet(Id<Process::Port>(i), &self);
+        port->setName(QString::fromStdString(input.name));
         self.m_inlets.push_back(port);
         return port;
       }
       Process::Inlet* operator()(const audio_input& v)
       {
         auto port = new Process::AudioInlet(Id<Process::Port>(i), &self);
+        port->setName(QString::fromStdString(input.name));
         self.m_inlets.push_back(port);
         return port;
       }
       Process::Inlet* operator()(const audioFFT_input& v)
       {
         auto port = new Process::AudioInlet(Id<Process::Port>(i), &self);
+        port->setName(QString::fromStdString(input.name));
         self.m_inlets.push_back(port);
         return port;
       }
       Process::Inlet* operator()(const audioHist_input& v)
       {
         auto port = new Process::AudioInlet(Id<Process::Port>(i), &self);
+        port->setName(QString::fromStdString(input.name));
         self.m_inlets.push_back(port);
         return port;
       }
