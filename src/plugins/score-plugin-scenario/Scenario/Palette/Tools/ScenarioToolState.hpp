@@ -90,7 +90,8 @@ protected:
         tryFun(ev_fun, itemToEventId(item, parent));
         break;
 
-      case ItemType::Interval:
+      case ItemType::FullViewInterval:
+      case ItemType::TemporalInterval:
         tryFun(cst_fun, itemToIntervalId(item, parent));
         break;
       case ItemType::GraphInterval:

@@ -12,7 +12,8 @@ public:
   {
     Type = 1,
     UserType = 65536, // See QGraphicsItem
-    Interval,
+    FullViewInterval,
+    TemporalInterval,
     LeftBrace,
     RightBrace,
     SlotHeader,

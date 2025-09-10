@@ -28,6 +28,9 @@ public:
   TemporalIntervalView(TemporalIntervalPresenter& presenter, QGraphicsItem* parent);
   ~TemporalIntervalView() override;
 
+  static const constexpr int Type = ItemType::TemporalInterval;
+  int type() const final override { return Type; }
+
   QRectF boundingRect() const override;
 
   const TemporalIntervalPresenter& presenter() const;

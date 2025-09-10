@@ -278,17 +278,19 @@ static bool isPortActuallyVisible(QGraphicsItem* port)
   return true;
 }
 
-static bool cableMustBeShown(PortItem* p1, PortItem* p2)
+static bool cableMustBeShown(CableItem& self, PortItem* p1, PortItem* p2)
 {
   if(!p1 || !p2)
     return false;
+
   if(!p1->isVisible() || !p2->isVisible())
     return false;
 
   auto proc_p1 = Process::parentProcess(&p1->port());
   auto proc_p2 = Process::parentProcess(&p2->port());
 
-  if(proc_p1 && proc_p2 && proc_p1->parent() == proc_p2->parent())
+  if(proc_p1 && proc_p2 && proc_p1->parent() == proc_p2->parent() && self.parentItem()
+     && self.parentItem()->type() == 65537)
     return true;
 
   return isPortActuallyVisible(p1) && isPortActuallyVisible(p2);
@@ -296,7 +298,7 @@ static bool cableMustBeShown(PortItem* p1, PortItem* p2)
 
 void CableItem::check()
 {
-  if(g_cables_enabled && cableMustBeShown(m_p1, m_p2))
+  if(g_cables_enabled && cableMustBeShown(*this, m_p1, m_p2))
   {
     if(!isEnabled())
     {

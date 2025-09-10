@@ -18,6 +18,7 @@ class NodalIntervalView final
     : public score::EmptyRectItem
     , public Nano::Observer
 {
+  W_OBJECT(NodalIntervalView)
 public:
   enum ItemsToShow
   {

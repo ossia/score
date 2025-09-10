@@ -39,9 +39,6 @@ public:
   IntervalView(IntervalPresenter& presenter, QGraphicsItem* parent);
   virtual ~IntervalView();
 
-  static const constexpr int Type = ItemType::Interval;
-  int type() const final override { return Type; }
-
   const IntervalPresenter& presenter() const { return m_presenter; }
 
   void setInfinite(bool);

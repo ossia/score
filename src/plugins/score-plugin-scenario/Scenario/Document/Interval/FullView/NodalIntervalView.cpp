@@ -15,6 +15,9 @@
 #include <QGraphicsView>
 #include <QTimer>
 
+#include <wobjectimpl.h>
+
+W_OBJECT_IMPL(Scenario::NodalIntervalView)
 namespace Scenario
 {
 
