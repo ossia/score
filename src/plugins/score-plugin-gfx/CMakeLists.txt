@@ -109,6 +109,11 @@ set(HDRS
     Gfx/Text/Process.hpp
     Gfx/Text/Layer.hpp
 
+    Gfx/BufferGeometry/Metadata.hpp
+    Gfx/BufferGeometry/Process.hpp
+    Gfx/BufferGeometry/Executor.hpp
+
+    Gfx/Graph/BufferGeometryNode.hpp
     Gfx/Graph/CommonUBOs.hpp
     Gfx/Graph/CustomMesh.hpp
     Gfx/Graph/DepthNode.hpp
@@ -220,8 +225,12 @@ set(SRCS
     Gfx/Text/Executor.cpp
     Gfx/Text/Process.cpp
 
+    Gfx/BufferGeometry/Process.cpp
+    Gfx/BufferGeometry/Executor.cpp
+
     Gfx/Graph/decoders/GPUVideoDecoder.cpp
     Gfx/Graph/decoders/HAP.cpp
+    Gfx/Graph/BufferGeometryNode.cpp
     Gfx/Graph/GeometryFilterNode.cpp
     Gfx/Graph/GeometryFilterNodeRenderer.cpp
     Gfx/Graph/RenderedCSFNode.cpp

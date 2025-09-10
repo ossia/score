@@ -1,6 +1,10 @@
 #include "score_plugin_gfx.hpp"
 
 #include <Dataflow/WidgetInletFactory.hpp>
+#include <Gfx/CSF/Executor.hpp>
+#include <Gfx/CSF/Layer.hpp>
+#include <Gfx/CSF/Library.hpp>
+#include <Gfx/CSF/Process.hpp>
 #include <Gfx/CameraDevice.hpp>
 #include <Gfx/CommandFactory.hpp>
 #include <Gfx/Filter/Executor.hpp>
@@ -22,15 +26,13 @@
 #include <Gfx/SharedOutputSettings.hpp>
 #include <Gfx/Text/Executor.hpp>
 #include <Gfx/Text/Process.hpp>
+#include <Gfx/BufferGeometry/Executor.hpp>
+#include <Gfx/BufferGeometry/Process.hpp>
 #include <Gfx/TexturePort.hpp>
 #include <Gfx/VSA/Executor.hpp>
 #include <Gfx/VSA/Layer.hpp>
 #include <Gfx/VSA/Library.hpp>
 #include <Gfx/VSA/Process.hpp>
-#include <Gfx/CSF/Executor.hpp>
-#include <Gfx/CSF/Layer.hpp>
-#include <Gfx/CSF/Library.hpp>
-#include <Gfx/CSF/Process.hpp>
 #include <Gfx/Video/Executor.hpp>
 #include <Gfx/Video/Inspector.hpp>
 #include <Gfx/Video/Layer.hpp>
@@ -112,6 +114,7 @@ std::vector<score::InterfaceBase*> score_plugin_gfx::factories(
       FW<Process::ProcessModelFactory, Gfx::Filter::ProcessFactory,
          Gfx::GeometryFilter::ProcessFactory, Gfx::Video::ProcessFactory,
          Gfx::Text::ProcessFactory, Gfx::Images::ProcessFactory,
+         Gfx::BufferGeometry::ProcessFactory,
          Gfx::VSA::ProcessFactory, Gfx::CSF::ProcessFactory>,
       FW<Process::LayerFactory, Gfx::Filter::LayerFactory,
          Gfx::GeometryFilter::LayerFactory, Gfx::Video::LayerFactory,
@@ -122,6 +125,7 @@ std::vector<score::InterfaceBase*> score_plugin_gfx::factories(
          Gfx::Video::ProcessExecutorComponentFactory,
          Gfx::Text::ProcessExecutorComponentFactory,
          Gfx::Images::ProcessExecutorComponentFactory,
+         Gfx::BufferGeometry::ProcessExecutorComponentFactory,
          Gfx::VSA::ProcessExecutorComponentFactory,
          Gfx::CSF::ProcessExecutorComponentFactory>,
       FW<Inspector::InspectorWidgetFactory, Gfx::Video::InspectorFactory>,
