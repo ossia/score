@@ -160,7 +160,7 @@ bool AutomationDropHandler::drop(
     const QMimeData& mime)
 {
   // TODO refactor with AddressEditWidget
-  if(mime.formats().contains(score::mime::nodelist()))
+  if(mime.hasFormat(score::mime::nodelist()))
   {
     Mime<Device::FreeNodeList>::Deserializer des{mime};
     Device::FreeNodeList nl = des.deserialize();

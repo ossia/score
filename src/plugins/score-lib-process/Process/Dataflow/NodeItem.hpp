@@ -3,11 +3,14 @@
 #include <Process/ZoomHelper.hpp>
 
 #include <score/model/Identifier.hpp>
+#include <score/widgets/MimeData.hpp>
 
 #include <QGraphicsItem>
 #include <QObject>
 
 #include <score_lib_process_export.h>
+
+#include <verdigris>
 namespace score
 {
 struct DocumentContext;

@@ -60,7 +60,7 @@ private:
       CommandDispatcher<>{context().context.commandStack}.submit(
           new ChangeAddress{model(), *addr});
     }
-    else if(mime.formats().contains(score::mime::processpreset()))
+    else if(mime.hasFormat(score::mime::processpreset()))
     {
       handlePresetDrop(pos, mime);
     }

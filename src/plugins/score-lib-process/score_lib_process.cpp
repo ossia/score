@@ -21,6 +21,8 @@
 
 #include <score_lib_process.hpp>
 #include <score_lib_process_commands_files.hpp>
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Process::DataflowManager)
 namespace Process
 {
 DataflowManager::DataflowManager() { }

@@ -3,7 +3,7 @@
 
 #include <Process/LayerView.hpp>
 
-#include <QMimeData>
+#include <score/widgets/MimeData.hpp>
 namespace Process
 {
 class Port;
@@ -38,5 +38,3 @@ private:
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 };
 }
-
-W_REGISTER_ARGTYPE(const QMimeData*)

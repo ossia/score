@@ -532,5 +532,10 @@ void Macro::commit()
 {
   m.commit();
 }
+
+void Macro::release()
+{
+  m.release();
+}
 }
 }

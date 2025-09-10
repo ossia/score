@@ -6,10 +6,12 @@
 
 #include <ossia/detail/ptr_set.hpp>
 
+#include <verdigris>
 namespace Process
 {
 class SCORE_LIB_PROCESS_EXPORT DataflowManager final : public QObject
 {
+  W_OBJECT(DataflowManager)
 public:
   DataflowManager();
   ~DataflowManager();

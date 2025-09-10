@@ -7,6 +7,7 @@
 #include <score/graphics/ArrowDialog.hpp>
 #include <score/graphics/GraphicsProxyObject.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
+#include <score/widgets/MimeData.hpp>
 
 #include <QGraphicsView>
 #include <QMimeData>
@@ -167,6 +168,3 @@ private:
   int m_timer{};
 };
 }
-
-Q_DECLARE_METATYPE(const QMimeData*)
-W_REGISTER_ARGTYPE(const QMimeData*)

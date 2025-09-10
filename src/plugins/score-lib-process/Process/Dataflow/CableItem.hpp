@@ -2,6 +2,8 @@
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/Dataflow/Port.hpp>
 
+#include <score/widgets/MimeData.hpp>
+
 #include <ossia/detail/ptr_set.hpp>
 
 #include <QGraphicsItem>

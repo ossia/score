@@ -199,6 +199,7 @@ public:
 
   void submit(score::Command* cmd);
   void commit();
+  void release();
 };
 }
 }
