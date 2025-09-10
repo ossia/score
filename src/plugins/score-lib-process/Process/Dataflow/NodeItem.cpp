@@ -583,15 +583,30 @@ void NodeItem::setParentDuration(TimeVal r)
 
 void NodeItem::setPlayPercentage(float f, TimeVal parent_dur)
 {
-  // Comes from the interval -> if we are looping we make a small modulo of it
-  if(m_model.loops())
+  if(m_playPercentage != f)
   {
-    auto loopDur = m_model.loopDuration().impl;
-    double playdur = f * parent_dur.impl;
-    f = std::fmod(playdur, loopDur) / loopDur;
+    // Comes from the interval -> if we are looping we make a small modulo of it
+    if(m_model.loops())
+    {
+      auto loopDur = m_model.loopDuration().impl;
+      double playdur = double(f) * parent_dur.impl;
+      f = std::fmod(playdur, loopDur) / loopDur;
+      if(m_playPercentage != f)
+      {
+        m_playPercentage = f;
+        update({12., -1., (m_contentSize.width() - 24.), 3.});
+      }
+    }
+    else
+    {
+      f = ossia::clamp(f, 0.f, 1.f);
+      if(m_playPercentage != f)
+      {
+        m_playPercentage = f;
+        update({12., -1., (m_contentSize.width() - 24.) * f + 1., 3.});
+      }
+    }
   }
-  m_playPercentage = f;
-  update({0., -1., m_contentSize.width() * f, 3.});
 }
 
 qreal NodeItem::width() const noexcept
@@ -652,10 +667,11 @@ void NodeItem::paint(
   painter->setRenderHint(QPainter::Antialiasing, false);
 
   // Exec
-  if(m_playPercentage != 0.)
+  if(m_playPercentage > 0.)
   {
     painter->setPen(style.IntervalPlayFill().main.pen1_solid_flat_miter);
-    painter->drawLine(QPointF{0., 0.}, QPointF{width() * m_playPercentage, 0.});
+    painter->drawLine(
+        QPointF{12., 0.}, QPointF{12. + (width() - 24.) * m_playPercentage, 0.});
   }
 
   // Resizing handle

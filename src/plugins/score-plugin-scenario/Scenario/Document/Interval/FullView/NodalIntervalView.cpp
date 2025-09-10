@@ -161,7 +161,7 @@ void NodalIntervalView::on_drop(QPointF pos, const QMimeData* data)
 
 void NodalIntervalView::on_playPercentageChanged(double t, TimeVal parent_dur)
 {
-  t = ossia::clamp(t, 0., 1.);
+  t = ossia::max(t, 0.);
   for(Process::NodeItem* node : m_nodeItems)
   {
     node->setPlayPercentage(t, parent_dur);

@@ -37,7 +37,7 @@ Presenter::Presenter(
     auto& dur = itv->duration;
     con(ctx.execTimer, &QTimer::timeout, this, [&] {
       {
-        float p = ossia::clamp((float)dur.playPercentage(), 0.f, 1.f);
+        float p = ossia::max((float)dur.playPercentage(), 0.f);
         for(Process::NodeItem& node : m_nodes)
         {
           node.setPlayPercentage(p, dur.defaultDuration());

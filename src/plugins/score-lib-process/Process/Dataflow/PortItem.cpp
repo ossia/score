@@ -120,8 +120,8 @@ struct Ellipses
     const auto& audiopen = skin.AudioPortPen();
     const auto& datapen = skin.DataPortPen();
     const auto& midipen = skin.MidiPortPen();
-    const auto& texturepen = skin.skin.LightGray.main.pen1_5;
-    const auto& geometrypen = skin.skin.Emphasis3.main.pen1_5;
+    const auto& texturepen = skin.TexturePortPen();
+    const auto& geometrypen = skin.GeometryPortPen();
     const auto& audiopen_light = skin.skin.Port1.lighter180.pen1_5;
     const auto& datapen_light = skin.skin.Port2.lighter180.pen1_5;
     const auto& midipen_light = skin.skin.Port3.lighter180.pen1_5;
