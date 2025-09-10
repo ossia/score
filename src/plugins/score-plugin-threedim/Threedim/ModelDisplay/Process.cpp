@@ -46,6 +46,34 @@ void Model::init()
     m_inlets.push_back(new Process::FloatSlider{
         0.001, 10000., 100000., "Far", Id<Process::Port>(6), this});
   }
+  else
+  {
+    // Old save format
+    if(m_inlets[3]->name() == "Rotation")
+    {
+      delete m_inlets[2];
+      delete m_inlets[3];
+      delete m_inlets[4];
+      if(m_inlets.size() > 5)
+        delete m_inlets[5];
+      m_inlets.resize(2);
+
+      m_inlets.push_back(new Process::XYZSpinboxes{
+          ossia::vec3f{-10000., -10000., -10000.}, ossia::vec3f{10000., 10000., 10000.},
+          ossia::vec3f{-1., -1., -1.}, "Position", Id<Process::Port>(2), this});
+      m_inlets.push_back(new Process::XYZSpinboxes{
+          ossia::vec3f{-10000., -10000., -10000.}, ossia::vec3f{10000., 10000., 10000.},
+          ossia::vec3f{}, "Center", Id<Process::Port>(3), this});
+
+      m_inlets.push_back(new Process::FloatSlider{
+          0.01, 359.999, 90., "FOV", Id<Process::Port>(4), this});
+      m_inlets.push_back(new Process::FloatSlider{
+          0.001, 1000., 0.001, "Near", Id<Process::Port>(5), this});
+      m_inlets.push_back(new Process::FloatSlider{
+          0.001, 10000., 100000., "Far", Id<Process::Port>(6), this});
+    }
+  }
+
   if(m_inlets.size() <= 7)
   {
     std::vector<std::pair<QString, ossia::value>> projs{
