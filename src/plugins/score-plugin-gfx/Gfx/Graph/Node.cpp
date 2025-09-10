@@ -284,11 +284,16 @@ void ProcessNode::process(int32_t port, const ossia::value& v)
     void operator()(const ossia::value_map_type& v) const noexcept { }
   };
 
-  assert(int(this->input.size()) > port);
-
-  auto& in = this->input[port];
-  v.apply(value_visitor{in->type, in->value});
-  this->materialChange();
+  if(int(this->input.size()) > port)
+  {
+    auto& in = this->input[port];
+    v.apply(value_visitor{in->type, in->value});
+    this->materialChange();
+  }
+  else
+  {
+    qDebug() << (typeid(*this).name()) << port << " > " << this->input.size();
+  }
 }
 
 void ProcessNode::process(int32_t port, const ossia::audio_vector& v)
@@ -296,7 +301,11 @@ void ProcessNode::process(int32_t port, const ossia::audio_vector& v)
   if(v.empty() || v[0].empty())
     return;
 
-  assert(int(this->input.size()) > port);
+  if(int(this->input.size()) <= port)
+  {
+    qDebug() << (typeid(*this).name()) << port << " > " << this->input.size();
+    return;
+  }
   auto& in = this->input[port];
   assert(in->type == score::gfx::Types::Audio);
   score::gfx::AudioTexture& tex = *(score::gfx::AudioTexture*)in->value;

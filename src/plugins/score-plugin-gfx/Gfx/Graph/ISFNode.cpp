@@ -313,18 +313,22 @@ QSize ISFNode::computeTextureSize(const isf::pass& pass, QSize origSize)
 
 score::gfx::NodeRenderer* ISFNode::createRenderer(RenderList& r) const noexcept
 {
+  if(this->m_descriptor.passes.empty() && this->m_descriptor.csf_passes.empty())
+  {
+    return nullptr;
+  }
+
   switch(this->m_descriptor.mode)
   {
-    case isf::descriptor::VSA:
+    case isf::descriptor::VSA: {
       return new SimpleRenderedVSANode{*this};
+    }
     case isf::descriptor::CSF:
       return new RenderedCSFNode{*this};
 
     case isf::descriptor::ISF:
       switch(this->m_descriptor.passes.size())
       {
-        case 0:
-          return nullptr;
         case 1:
           if(!this->m_descriptor.passes[0].persistent)
           {

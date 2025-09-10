@@ -128,21 +128,9 @@ int RenderedCSFNode::calculateStorageBufferSize(const std::vector<isf::storage_i
 QRhiBuffer* RenderedCSFNode::createStorageBuffer(RenderList& renderer, const QString& name, const QString& access, int size)
 {
   QRhi& rhi = *renderer.state.rhi;
-  QRhiBuffer* buffer = nullptr;
-  
-  if(access == "read_write")
-  {
-    // Persistent buffer for read-write access
-    buffer = rhi.newBuffer(
-        QRhiBuffer::Static, QRhiBuffer::StorageBuffer | QRhiBuffer::UniformBuffer, size);
-  }
-  else
-  {
-    // Dynamic buffer for read-only or write-only access
-    buffer = rhi.newBuffer(
-        QRhiBuffer::Dynamic, QRhiBuffer::StorageBuffer, size);
-  }
-  
+  QRhiBuffer* buffer
+      = rhi.newBuffer(QRhiBuffer::Static, QRhiBuffer::StorageBuffer, size);
+
   if(buffer)
   {
     buffer->setName(QStringLiteral("CSF_StorageBuffer_%1").arg(name).toLocal8Bit());
@@ -209,11 +197,10 @@ int RenderedCSFNode::getArraySizeFromUI(const QString& bufferName) const
     
     // The array size port comes after the regular input ports
     portIndex++; // Move to the array size port
-    
-    if(portIndex < static_cast<int>(n.input.size()) && n.input[portIndex]->value)
+
+    if(portIndex < n.input.size() && n.input[portIndex]->value)
     {
-      // Array size is stored as int64_t in ISF
-      int arraySize = static_cast<int>(*(int64_t*)n.input[portIndex]->value);
+      int arraySize = *(int*)n.input[portIndex]->value;
       return std::max(1, arraySize); // Ensure at least 1 element
     }
   }
@@ -236,10 +223,6 @@ void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpd
     // Check if buffer needs to be resized
     if(requiredSize != storageBuffer.lastKnownSize || !storageBuffer.buffer)
     {
-      qDebug() << "Resizing storage buffer" << storageBuffer.name 
-               << "from" << storageBuffer.lastKnownSize << "to" << requiredSize << "bytes"
-               << "for" << currentArraySize << "elements";
-      
       // Delete old buffer if it exists
       if(storageBuffer.buffer)
       {
@@ -277,33 +260,20 @@ void RenderedCSFNode::initComputePass(
     
   // Ensure storage buffers are created before setting up bindings
   updateStorageBuffers(renderer, res);
-    
+
   // Create shader resource bindings
-  QRhiShaderResourceBindings* srb = rhi.newShaderResourceBindings();
   QList<QRhiShaderResourceBinding> bindings;
   
   // Binding 0: Renderer UBO (part of ProcessUBO in defaultUniforms)
   bindings.append(QRhiShaderResourceBinding::uniformBuffer(
       0, QRhiShaderResourceBinding::ComputeStage, &renderer.outputUBO()));
-  
+
   // Binding 1: Process UBO (time, passIndex, etc.)
-  // This will be created per-pass, so we need to create it now
-  QRhiBuffer* processUBO = rhi.newBuffer(
-      QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(ProcessUBO));
-  processUBO->setName("RenderedCSFNode::initComputePass::processUBO");
-  if(!processUBO->create())
-  {
-    qWarning() << "Failed to create per-pass process uniform buffer";
-    delete processUBO;
-    processUBO = nullptr;
-  }
-  
-  if(processUBO)
-  {
-    bindings.append(QRhiShaderResourceBinding::uniformBuffer(
-        1, QRhiShaderResourceBinding::ComputeStage, processUBO));
-  }
-  
+  // Per-pass: actual pointer will be set later
+  bindings.append(
+      QRhiShaderResourceBinding::uniformBuffer(
+          1, QRhiShaderResourceBinding::ComputeStage, nullptr));
+
   // Binding 2: Material UBO (custom inputs)
   int bindingIndex = 2;
   if(m_materialUBO)
@@ -314,11 +284,8 @@ void RenderedCSFNode::initComputePass(
   
   // Process all resources in the order they appear in the descriptor
   // This ensures the binding indices match what the shader expects
-  qDebug() << "CSF Processing" << n.m_descriptor.inputs.size() << "inputs for bindings:";
   for(const auto& input : n.m_descriptor.inputs)
   {
-    qDebug() << "  - Input:" << QString::fromStdString(input.name) << "Type:" << input.data.index() << "Current binding:" << bindingIndex;
-    
     // Storage buffers
     if(ossia::get_if<isf::storage_input>(&input.data))
     {
@@ -348,11 +315,6 @@ void RenderedCSFNode::initComputePass(
               bindingIndex++, QRhiShaderResourceBinding::ComputeStage, 
               it->buffer));
         }
-        qDebug() << "    Added storage buffer" << QString::fromStdString(input.name) << "at binding" << (bindingIndex-1);
-      }
-      else
-      {
-        qDebug() << "    Storage buffer" << QString::fromStdString(input.name) << "not found or not created";
       }
     }
     // Regular textures (sampled)
@@ -361,14 +323,10 @@ void RenderedCSFNode::initComputePass(
       // Regular sampled textures from m_inputSamplers
       if(!m_inputSamplers.empty() && m_inputSamplers[0].texture)
       {
-        bindings.append(QRhiShaderResourceBinding::sampledTexture(
-            bindingIndex++, QRhiShaderResourceBinding::ComputeStage,
-            m_inputSamplers[0].texture, m_inputSamplers[0].sampler));
-        qDebug() << "    Added texture" << QString::fromStdString(input.name) << "at binding" << (bindingIndex-1);
-      }
-      else
-      {
-        qDebug() << "    Texture" << QString::fromStdString(input.name) << "not available";
+        bindings.append(
+            QRhiShaderResourceBinding::sampledTexture(
+                bindingIndex++, QRhiShaderResourceBinding::ComputeStage,
+                m_inputSamplers[0].texture, m_inputSamplers[0].sampler));
       }
     }
     // CSF storage images
@@ -424,14 +382,12 @@ void RenderedCSFNode::initComputePass(
         }
         else if(it->access == "write_only" && it->texture)
         {
-          qDebug() << "Binding write_only image" << it->name << "at binding" << bindingIndex << "texture ptr:" << it->texture;
           bindings.append(QRhiShaderResourceBinding::imageStore(
               bindingIndex++, QRhiShaderResourceBinding::ComputeStage, 
               it->texture, 0));
         }
         else if(it->access == "read_write" && it->texture)
         {
-          qDebug() << "Binding read_write image" << it->name << "at binding" << bindingIndex << "texture ptr:" << it->texture;
           bindings.append(QRhiShaderResourceBinding::imageLoadStore(
               bindingIndex++, QRhiShaderResourceBinding::ComputeStage, 
               it->texture, 0));
@@ -439,66 +395,59 @@ void RenderedCSFNode::initComputePass(
       }
     }
   }
-  
-  srb->setBindings(bindings.begin(), bindings.end());
-  if(srb->create())
+
+  // Set the SRB on the pipeline and create it
   {
-    // Set the SRB on the pipeline and create it
-    m_computePipeline->setShaderResourceBindings(srb);
-    if(m_computePipeline->create())
+    QRhiShaderResourceBindings* passSRB{};
+    // Create one ComputePass entry for each CSF pass, all sharing the same pipeline
+    // but each with their own ProcessUBO and SRB
+    for(std::size_t passIdx = 0; passIdx < n.m_descriptor.csf_passes.size(); passIdx++)
     {
-      // Create one ComputePass entry for each CSF pass, all sharing the same pipeline
-      // but each with their own ProcessUBO and SRB
-      for(std::size_t passIdx = 0; passIdx < n.m_descriptor.csf_passes.size(); passIdx++)
+      // Create a separate ProcessUBO for this pass
+      QRhiBuffer* passProcessUBO = rhi.newBuffer(
+          QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(ProcessUBO));
+      passProcessUBO->setName(QStringLiteral("RenderedCSFNode::pass%1::processUBO")
+                                  .arg(passIdx)
+                                  .toLocal8Bit());
+      if(!passProcessUBO->create())
       {
-        // Create a separate ProcessUBO for this pass
-        QRhiBuffer* passProcessUBO = rhi.newBuffer(
-            QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(ProcessUBO));
-        passProcessUBO->setName(QStringLiteral("RenderedCSFNode::pass%1::processUBO").arg(passIdx).toLocal8Bit());
-        if(!passProcessUBO->create())
-        {
-          qWarning() << "Failed to create ProcessUBO for CSF pass" << passIdx;
-          delete passProcessUBO;
-          continue;
-        }
-        
-        // Create separate SRB for this pass with the specific ProcessUBO
-        QRhiShaderResourceBindings* passSRB = rhi.newShaderResourceBindings();
-        QList<QRhiShaderResourceBinding> passBindings = bindings; // Copy base bindings
-        
-        // Replace the ProcessUBO binding (binding 1) with this pass's ProcessUBO
-        // We know binding 1 is the ProcessUBO because we created it that way
-        if(passBindings.size() > 1)
-        {
-          passBindings[1] = QRhiShaderResourceBinding::uniformBuffer(
-              1, QRhiShaderResourceBinding::ComputeStage, passProcessUBO);
-        }
-        
-        passSRB->setBindings(passBindings.cbegin(), passBindings.cend());
-        if(!passSRB->create())
-        {
-          qWarning() << "Failed to create SRB for CSF pass" << passIdx;
-          delete passSRB;
-          delete passProcessUBO;
-          continue;
-        }
-        
-        m_computePasses.emplace_back(&edge, ComputePass{m_computePipeline, passSRB, passProcessUBO});
+        qWarning() << "Failed to create ProcessUBO for CSF pass" << passIdx;
+        delete passProcessUBO;
+        continue;
       }
-      
-      // Also create the graphics pass for rendering the compute output
-      createGraphicsPass(rt, renderer, edge, res);
+
+      // Create separate SRB for this pass with the specific ProcessUBO
+      passSRB = rhi.newShaderResourceBindings();
+
+      // Replace the ProcessUBO binding (binding 1) with this pass's ProcessUBO
+      // We know binding 1 is the ProcessUBO because we created it that way
+      {
+        bindings[1] = QRhiShaderResourceBinding::uniformBuffer(
+            1, QRhiShaderResourceBinding::ComputeStage, passProcessUBO);
+      }
+
+      passSRB->setBindings(bindings.cbegin(), bindings.cend());
+      if(!passSRB->create())
+      {
+        qWarning() << "Failed to create SRB for CSF pass" << passIdx;
+        delete passSRB;
+        delete passProcessUBO;
+        passSRB = nullptr;
+        continue;
+      }
+
+      m_computePasses.emplace_back(
+          &edge, ComputePass{m_computePipeline, passSRB, passProcessUBO});
     }
-    else
-    {
-      qWarning() << "Failed to create compute pipeline with SRB";
-      delete srb;
-    }
-  }
-  else
-  {
-    qWarning() << "Failed to create shader resource bindings";
-    delete srb;
+
+    if(!passSRB)
+      return;
+    // We set any passSRB - they are all the same, the only change is the processUBO.
+    m_computePipeline->setShaderResourceBindings(passSRB);
+    m_computePipeline->create();
+
+    // Also create the graphics pass for rendering the compute output
+    createGraphicsPass(rt, renderer, edge, res);
   }
 }
 
@@ -560,16 +509,11 @@ void main()
          (storageImage.access == "write_only" || storageImage.access == "read_write"))
       {
         textureToRender = storageImage.texture;
-        qDebug() << "Using storage image" << storageImage.name << "for graphics pass, texture ptr:" << storageImage.texture;
         break;
       }
     }
   }
-  else
-  {
-    qDebug() << "Using m_outputTexture for graphics pass, texture ptr:" << m_outputTexture;
-  }
-  
+
   // If we still don't have a texture, we can't create the graphics pass
   if(!textureToRender)
   {
@@ -677,8 +621,6 @@ void RenderedCSFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
       sb.access = QString::fromStdString(storage->access);
       sb.layout = storage->layout; // Store layout for size calculation
       m_storageBuffers.push_back(sb);
-      
-      qDebug() << "Registered storage buffer" << sb.name << "with" << sb.layout.size() << "fields";
     }
     // Handle CSF images
     else if(auto* image = ossia::get_if<isf::csf_image_input>(&input.data))
@@ -868,7 +810,16 @@ void RenderedCSFNode::release(RenderList& r)
   }
   
   // Clean up samplers
+  for(auto sampler : m_inputSamplers)
+  {
+    delete sampler.sampler;
+    // texture isdeleted elsewhere
+  }
   m_inputSamplers.clear();
+  for(auto [edge, rt] : m_rts)
+  {
+    rt.release();
+  }
   m_rts.clear();
 }
 
@@ -902,14 +853,6 @@ void RenderedCSFNode::runInitialPasses(
     RenderList& renderer, QRhiCommandBuffer& commands, QRhiResourceUpdateBatch*& res,
     Edge& edge)
 {
-  // Update resources before running the compute pass
-  // if(res)
-  // {
-  //   update(renderer, *res, &edge);
-  //   commands.resourceUpdate(res);
-  //   res = nullptr;
-  // }
-
   // Run all passes sequentially
   for(std::size_t passIndex = 0; passIndex < n.m_descriptor.csf_passes.size(); passIndex++)
   {
@@ -924,12 +867,10 @@ void RenderedCSFNode::runInitialPasses(
     }
     
     const auto& pass = m_computePasses[passIndex].second;
-    
-    // ProcessUBO is already updated per-pass in the update() method
-    // No need to update it here
-    
+
     // Begin compute pass (outside of any render pass)
     commands.beginComputePass(res);
+    res = nullptr;
 
     // Set compute pipeline
     commands.setComputePipeline(pass.pipeline);
@@ -978,19 +919,12 @@ void RenderedCSFNode::runInitialPasses(
       dispatchY = (textureSize.height() + workgroupY - 1) / workgroupY;
       dispatchZ = 1;
     }
-    
+
     // Dispatch compute shader
     commands.dispatch(dispatchX, dispatchY, dispatchZ);
     
     // End compute pass
     commands.endComputePass();
-
-    // // Add memory barrier between passes if we have multiple passes
-    // if(passIndex < n.m_descriptor.csf_passes.size() - 1)
-    // {
-    //   // Memory barrier to ensure pass N completes before pass N+1 starts
-    //   commands.resourceUpdate(renderer.state.rhi->nextResourceUpdateBatch());
-    // }
   }
 }
 }

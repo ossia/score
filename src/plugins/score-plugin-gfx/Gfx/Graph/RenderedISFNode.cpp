@@ -739,29 +739,40 @@ void AudioTextureUpload::processTemporal(
 void AudioTextureUpload::processHistogram(
     AudioTexture& audio, QRhiResourceUpdateBatch& res, QRhiTexture* rhiTexture)
 {
-  if(m_scratchpad.size() < 240)
-    m_scratchpad.resize(240);
+  m_scratchpad.resize(240 * std::max(rhiTexture->pixelSize().height(), audio.channels));
+  if(m_scratchpad.empty())
+    return;
 
-  m_scratchpad.pop_back();
-  if(audio.data.size() > 0)
+  int channel = 0;
+
+  ossia::small_vector<float, 8> channel_rms(audio.channels);
+
+  if(audio.data.size() != 0)
   {
-    float rms = 0;
-
-    for(std::size_t i = 0; i < audio.data.size(); i++)
+    std::size_t audioBufferSize = audio.data.size() / audio.channels;
+    for(int channel = 0; channel < audio.channels; channel++)
     {
-      rms += audio.data[i] * audio.data[i];
+      float rms = 0;
+
+      for(std::size_t i = 0; i < audio.data.size(); i++)
+      {
+        rms += audio.data[i] * audio.data[i];
+      }
+      rms = std::clamp(std::sqrt(rms / audio.data.size()), 0.f, 1.f);
+      channel_rms[channel] = rms;
     }
-    rms = std::clamp(std::sqrt(rms / audio.data.size()), 0.f, 1.f);
-    m_scratchpad.insert(m_scratchpad.begin(), rms);
   }
-  else
+
+  for(int channel = 0; channel < audio.channels; channel++)
   {
-    m_scratchpad.insert(m_scratchpad.begin(), 0.0f);
+    auto channel_begin = m_scratchpad.begin() + channel * 240;
+    std::rotate(channel_begin, channel_begin + 1, channel_begin + 240);
+    *(channel_begin + 239) = channel_rms[channel];
   }
 
   // Copy it
   QRhiTextureSubresourceUploadDescription subdesc(
-      m_scratchpad.data(), m_scratchpad.size() * sizeof(float));
+      m_scratchpad.data(), rhiTexture->pixelSize().height() * 240 * sizeof(float));
   QRhiTextureUploadEntry entry{0, 0, subdesc};
   QRhiTextureUploadDescription desc{entry};
   res.uploadTexture(rhiTexture, desc);

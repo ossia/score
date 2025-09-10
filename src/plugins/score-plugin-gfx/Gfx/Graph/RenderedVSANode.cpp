@@ -60,7 +60,7 @@ void SimpleRenderedVSANode::initPass(
   static const auto& bg_mesh = PlainTriangle::instance();
   QRhiGraphicsPipeline* bg_pip = rhi.newGraphicsPipeline();
   QRhiBuffer* bg_ubo
-      = rhi.newBuffer(QRhiBuffer::Static, QRhiBuffer::UniformBuffer, 4 * sizeof(float));
+      = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 4 * sizeof(float));
   QRhiShaderResourceBindings* bg_srb = rhi.newShaderResourceBindings();
   MeshBuffers bg_tri;
   {
@@ -123,7 +123,7 @@ void SimpleRenderedVSANode::init(RenderList& renderer, QRhiResourceUpdateBatch& 
 {
   QRhi& rhi = *renderer.state.rhi;
 
-  m_prevFormat = *(int64_t*)n.input[1]->value;
+  m_prevFormat = *(int*)n.input[1]->value;
   // Create the mesh
   {
     auto m = new DummyMesh(3); // Set in update
@@ -192,7 +192,7 @@ void SimpleRenderedVSANode::update(
 {
   {
     SCORE_ASSERT(n.input.size() >= 2);
-    const auto primitiveType = *(int64_t*)n.input[1]->value;
+    const auto primitiveType = *(int*)n.input[1]->value;
     if(primitiveType != m_prevFormat)
     {
       release(renderer);
