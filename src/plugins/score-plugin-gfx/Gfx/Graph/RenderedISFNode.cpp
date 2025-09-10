@@ -761,7 +761,7 @@ void AudioTextureUpload::processHistogram(
 
   // Copy it
   QRhiTextureSubresourceUploadDescription subdesc(
-      m_scratchpad.data(), audio.data.size() * sizeof(float));
+      m_scratchpad.data(), m_scratchpad.size() * sizeof(float));
   QRhiTextureUploadEntry entry{0, 0, subdesc};
   QRhiTextureUploadDescription desc{entry};
   res.uploadTexture(rhiTexture, desc);
@@ -819,7 +819,7 @@ std::optional<Sampler> AudioTextureUpload::updateAudioTexture(
   auto& [rhiSampler, rhiTexture] = it->second;
   const auto curSz = (rhiTexture) ? rhiTexture->pixelSize() : QSize{};
   int numSamples = curSz.width() * curSz.height();
-  if(numSamples != int(audio.data.size()) || !rhiTexture)
+  if(numSamples != std::min(1, int(audio.data.size())) || !rhiTexture)
   {
     if(audio.channels > 0)
     {
@@ -879,6 +879,9 @@ std::optional<Sampler> AudioTextureUpload::updateAudioTexture(
 
   if(rhiTexture)
   {
+    auto sz = rhiTexture->pixelSize();
+    if(sz.width() * sz.height() <= 1)
+      return {};
     // Process the audio data
     this->process(audio, res, rhiTexture);
   }
