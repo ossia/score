@@ -419,18 +419,25 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
           renderer->update(*this, *updateBatch, edge);
         }
 
-        commands.resourceUpdate(updateBatch);
-        updateBatch = state.rhi->nextResourceUpdateBatch();
-
-        // For nodes that perform multiple rendering passes,
-        // pre-computations in compute shaders, etc... run them now.
-        // Most nodes don't do anything there.
-        for(auto [edge, prev_renderer] : prevRenderers)
+        if(prevRenderers.size() == 0)
         {
           commands.resourceUpdate(updateBatch);
           updateBatch = state.rhi->nextResourceUpdateBatch();
+          SCORE_ASSERT(updateBatch);
+        }
+        else
+        {
+          // For nodes that perform multiple rendering passes,
+          // pre-computations in compute shaders, etc... run them now.
+          // Most nodes don't do anything there.
+          for(auto [edge, prev_renderer] : prevRenderers)
+          {
+            commands.resourceUpdate(updateBatch);
+            updateBatch = state.rhi->nextResourceUpdateBatch();
+            SCORE_ASSERT(updateBatch);
 
-          prev_renderer->runInitialPasses(*this, commands, updateBatch, *edge);
+            prev_renderer->runInitialPasses(*this, commands, updateBatch, *edge);
+          }
         }
       };
 
