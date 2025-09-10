@@ -49,6 +49,36 @@ catch(...)
 {
 }
 
+void ISFExecutorComponent::init(
+    const QString& shader, const isf::descriptor& desc, const Execution::Context& ctx)
+try
+{
+  auto n = ossia::make_node<filter_node>(
+      *ctx.execState, desc, shader, ctx.doc.plugin<DocumentPlugin>().exec);
+
+  for(auto* outlet : process().outlets())
+  {
+    if(auto out = qobject_cast<TextureOutlet*>(outlet))
+    {
+      out->nodeId = n->id;
+    }
+  }
+
+  this->node = n;
+
+  Execution::Transaction commands{system()};
+  setup_node(commands);
+  commands.run_all_in_exec();
+
+  m_ossia_process = std::make_shared<ossia::node_process>(this->node);
+
+  m_oldInlets = process().inlets();
+  m_oldOutlets = process().outlets();
+}
+catch(...)
+{
+}
+
 void ISFExecutorComponent::cleanup()
 {
   for(auto* outlet : this->process().outlets())
@@ -93,6 +123,40 @@ void ISFExecutorComponent::on_shaderChanged(const Gfx::ProcessedProgram& shader)
   m_oldOutlets = process().outlets();
 }
 
+void ISFExecutorComponent::on_shaderChanged(
+    const QString& shader, const isf::descriptor& desc)
+{
+  auto& setup = system().setup;
+  Execution::Transaction commands{system()};
+  auto n = std::dynamic_pointer_cast<filter_node>(this->node);
+
+  // 0. Unregister all the previous inlets / outlets
+  setup.unregister_node_soft(m_oldInlets, m_oldOutlets, node, commands);
+
+  // 1. Recreate ports
+  auto [inls, outls] = setup_node(commands);
+
+  // 2. Change the script
+  commands.push_back(
+      [n, shader = std::move(shader), desc = std::make_unique<isf::descriptor>(desc)] {
+    n->set_script(*desc, shader);
+  });
+
+  // 3. Register the inlets / outlets
+  for(std::size_t i = 0; i < inls.size(); i++)
+  {
+    setup.register_inlet(*process().inlets()[i], inls[i], node, commands);
+  }
+  for(std::size_t i = 0; i < outls.size(); i++)
+  {
+    setup.register_outlet(*process().outlets()[i], outls[i], node, commands);
+  }
+
+  commands.run_all();
+
+  m_oldInlets = process().inlets();
+  m_oldOutlets = process().outlets();
+}
 std::pair<ossia::inlets, ossia::outlets>
 ISFExecutorComponent::setup_node(Execution::Transaction& commands)
 {

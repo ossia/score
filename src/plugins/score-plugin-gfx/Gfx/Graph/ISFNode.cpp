@@ -1,6 +1,9 @@
 #include <Gfx/Graph/ISFNode.hpp>
 #include <Gfx/Graph/ISFVisitors.hpp>
+#include <Gfx/Graph/RenderedCSFNode.hpp>
 #include <Gfx/Graph/RenderedISFNode.hpp>
+#include <Gfx/Graph/RenderedVSANode.hpp>
+#include <Gfx/Graph/SimpleRenderedISFNode.hpp>
 
 #include <score/tools/Debug.hpp>
 
@@ -128,7 +131,65 @@ struct isf_input_port_vis
     data.mode = AudioTexture::Mode::FFT;
     self.input.push_back(new Port{&self, &data, Types::Audio, {}});
   }
+
+  // CSF-specific input handlers
+  void operator()(const isf::storage_input& in) noexcept
+  {
+    // According to the spec:
+    // - read_only: input port
+    // - write_only: output port
+    // - read_write: output port only, buffer is persistent
+
+    if(in.access == "read_only")
+    {
+      // Create input port for read-only storage buffer
+      self.input.push_back(new Port{&self, {}, Types::Image, {}});
+    }
+    else if(in.access.contains("write"))
+    {
+      // Create output port for write-only storage buffer
+      self.output.push_back(new Port{&self, {}, Types::Image, {}});
+
+      // Check for flexible array member
+      if(!in.layout.empty())
+      {
+        const auto& lastField = in.layout.back();
+        if(lastField.type.find("[]") != std::string::npos)
+        {
+          (*this)(isf::long_input{.values = {}, .labels = {}, .def = 1024});
+        }
+      }
+    }
+  }
+
+  void operator()(const isf::texture_input& in) noexcept
+  {
+    // Texture inputs are always input ports (sampled textures)
+    self.input.push_back(new Port{&self, {}, Types::Image, {}});
+  }
+
+  void operator()(const isf::csf_image_input& in) noexcept
+  {
+    // CSF image inputs - these can be read-only, write-only, or read-write
+    if(in.access == "read_only")
+    {
+      // Input port for read-only image
+      self.input.push_back(new Port{&self, {}, Types::Image, {}});
+    }
+    else if(in.access == "write_only" || in.access == "read_write")
+    {
+      // Texture size
+      (*this)(isf::point2d_input{.def = std::array<double, 2>{512, 512}});
+
+      // Format
+      (*this)(isf::long_input{.values = {}, .labels = {}, .def = 0});
+
+      // Output port for the image
+      self.output.push_back(new Port{&self, {}, Types::Image, {}});
+    }
+  }
 };
+
 ISFNode::ISFNode(const isf::descriptor& desc, const QString& vert, const QString& frag)
     : m_descriptor{desc}
 {
@@ -158,6 +219,40 @@ ISFNode::ISFNode(const isf::descriptor& desc, const QString& vert, const QString
     ossia::visit(visitor, input.data);
 
   output.push_back(new Port{this, {}, Types::Image, {}});
+}
+
+ISFNode::ISFNode(const isf::descriptor& desc, const QString& comp)
+    : m_descriptor{desc}
+{
+  m_computeS = comp;
+
+  // Compoute the size required for the materials
+  isf_input_size_vis sz_vis{};
+
+  // Size of the inputs
+  for(const isf::input& input : desc.inputs)
+  {
+    ossia::visit(sz_vis, input.data);
+  }
+
+  m_materialSize = sz_vis.sz;
+
+  // Allocate the required memory
+  // TODO : this must be per-renderer, as the texture sizes may depend on the renderer....
+  m_material_data.reset(new char[m_materialSize]);
+  std::fill_n(m_material_data.get(), m_materialSize, 0);
+  char* cur = m_material_data.get();
+
+  // Create ports pointing to the data used for the UBO
+  isf_input_port_vis visitor{*this, cur};
+  for(const isf::input& input : desc.inputs)
+    ossia::visit(visitor, input.data);
+
+  // For CSF, if no output ports were created by the inputs, create a default one
+  if(desc.mode == isf::descriptor::CSF && output.empty())
+  {
+    output.push_back(new Port{this, {}, Types::Image, {}});
+  }
 }
 
 ISFNode::~ISFNode() { }
@@ -218,27 +313,35 @@ QSize ISFNode::computeTextureSize(const isf::pass& pass, QSize origSize)
 
 score::gfx::NodeRenderer* ISFNode::createRenderer(RenderList& r) const noexcept
 {
-  if(this->m_descriptor.mode == isf::descriptor::VSA)
-    return new SimpleRenderedVSANode{*this};
-
-  switch(this->m_descriptor.passes.size())
+  switch(this->m_descriptor.mode)
   {
-    case 0:
-      return nullptr;
-    case 1:
-      if(!this->m_descriptor.passes[0].persistent)
+    case isf::descriptor::VSA:
+      return new SimpleRenderedVSANode{*this};
+    case isf::descriptor::CSF:
+      return new RenderedCSFNode{*this};
+
+    case isf::descriptor::ISF:
+      switch(this->m_descriptor.passes.size())
       {
-        return new SimpleRenderedISFNode{*this};
-      }
-      else
-      {
-        return new RenderedISFNode{*this};
+        case 0:
+          return nullptr;
+        case 1:
+          if(!this->m_descriptor.passes[0].persistent)
+          {
+            return new SimpleRenderedISFNode{*this};
+          }
+          else
+          {
+            return new RenderedISFNode{*this};
+          }
+          break;
+        default: {
+          return new RenderedISFNode{*this};
+          break;
+        }
       }
       break;
-    default: {
-      return new RenderedISFNode{*this};
-      break;
-    }
   }
+  return nullptr;
 }
 }

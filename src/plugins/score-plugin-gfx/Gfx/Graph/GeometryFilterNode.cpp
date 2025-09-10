@@ -123,6 +123,25 @@ struct geometry_input_port_vis
     // self.input.push_back(new Port{&self, &data, Types::Audio, {}});
   }
   void operator()(const isf::audioHist_input& audio) noexcept { }
+  
+  // CSF-specific input handlers
+  void operator()(const isf::storage_input& in) noexcept
+  {
+    // Storage buffers are typically managed by the system
+    // No UI controls or uniform buffer data needed
+  }
+  
+  void operator()(const isf::texture_input& in) noexcept
+  {
+    // Texture inputs don't contribute to uniform buffer
+    // They're handled as texture bindings
+  }
+  
+  void operator()(const isf::csf_image_input& in) noexcept
+  {
+    // CSF image inputs don't contribute to uniform buffer
+    // They're handled as image bindings
+  }
 };
 
 GeometryFilterNode::GeometryFilterNode(const isf::descriptor& desc, const QString& vert)

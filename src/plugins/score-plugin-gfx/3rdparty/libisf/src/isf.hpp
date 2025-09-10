@@ -88,11 +88,38 @@ struct audioHist_input
 {
   int max{};
 };
+
+// CSF-specific input types
+struct storage_input
+{
+  std::string access; // "read_only", "write_only", "read_write"
+
+  struct layout_field
+  {
+    std::string name;
+    std::string type;
+  };
+
+  std::vector<layout_field> layout;
+};
+
+struct texture_input
+{
+  // For sampled textures in CSF
+};
+
+struct csf_image_input
+{
+  std::string access; // "read_only", "write_only", "read_write"
+  std::string format; // "RGBA8", "R32F", etc.
+};
+
 struct input
 {
   using input_impl = ossia::variant<
       float_input, long_input, event_input, bool_input, color_input, point2d_input,
-      point3d_input, image_input, audio_input, audioFFT_input, audioHist_input>;
+      point3d_input, image_input, audio_input, audioFFT_input, audioHist_input,
+      storage_input, texture_input, csf_image_input>;
 
   std::string name;
   std::string label;
@@ -115,7 +142,8 @@ struct descriptor
   enum Mode
   {
     ISF,
-    VSA
+    VSA,
+    CSF
   } mode{ISF};
   std::string description;
   std::string credits;
@@ -130,6 +158,23 @@ struct descriptor
   std::string primitive_mode;
   std::string line_size;
   std::array<double, 4> background_color;
+
+  // For CSF
+  struct type_definition
+  {
+    std::string name;
+    std::vector<storage_input::layout_field> layout;
+  };
+  std::vector<type_definition> types;
+
+  struct dispatch_info
+  {
+    std::array<int, 3> local_size{16, 16, 1};
+    std::string execution_type{"2D_IMAGE"}; // "2D_IMAGE", "1D_BUFFER", "MANUAL", etc.
+    std::string target_resource;
+    std::array<int, 3> workgroups{1, 1, 1}; // For MANUAL mode
+  };
+  std::vector<dispatch_info> csf_passes;
 };
 
 class parser
@@ -153,17 +198,20 @@ public:
     ShaderToy,
     GLSLSandBox,
     GeometryFilter,
-    VertexShaderArt
+    VertexShaderArt,
+    CSF
   };
   parser(
       std::string vert, std::string frag, int glslVersion = 450,
       ShaderType = ShaderType::Autodetect);
-  explicit parser(std::string isf_geom_filter);
+  explicit parser(std::string isf_geom_filter, ShaderType t);
 
   descriptor data() const;
+  descriptor::Mode mode() const;
   std::string vertex() const;
   std::string fragment() const;
   std::string geometry_filter() const;
+  std::string compute_shader() const;
   static std::pair<int, descriptor> parse_isf_header(std::string_view source);
   void parse_shadertoy_json(const std::string& json);
 
@@ -175,5 +223,6 @@ private:
   void parse_glsl_sandbox();
   void parse_geometry_filter();
   void parse_vsa();
+  void parse_csf();
 };
 }

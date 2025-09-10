@@ -282,6 +282,11 @@ struct ISFHelpers
         self.m_inlets.push_back(port);
         return port;
       }
+      
+      // CSF-specific input handlers
+      Process::Inlet* operator()(const storage_input& v) { return nullptr; }
+      Process::Inlet* operator()(const texture_input& v) { return nullptr; }
+      Process::Inlet* operator()(const csf_image_input& v) { return nullptr; }
     };
 
     for(const isf::input& input : desc.inputs)

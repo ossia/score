@@ -54,6 +54,39 @@ struct PreviewInputVisitor
   score::gfx::NodeModel* operator()(const isf::audioFFT_input& v) { return nullptr; }
 
   score::gfx::NodeModel* operator()(const isf::audioHist_input& v) { return nullptr; }
+  
+  // CSF-specific input handlers
+  score::gfx::NodeModel* operator()(const isf::storage_input& v) { return nullptr; }
+  
+  score::gfx::NodeModel* operator()(const isf::texture_input& v)
+  {
+    static std::array<QImage, 3> images{
+        QImage{":/gfx/testcard-1.png"}.scaled(
+            300, 200, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation),
+        QImage{":/gfx/testcard-2.jpeg"}.scaled(
+            300, 200, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation),
+        QImage{":/gfx/testcard-3.png"}.scaled(
+            300, 200, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation)};
+    auto image_node = new score::gfx::FullScreenImageNode{images[img_count]};
+    img_count++;
+    img_count = img_count % 3;
+    return image_node;
+  }
+  
+  score::gfx::NodeModel* operator()(const isf::csf_image_input& v)
+  {
+    static std::array<QImage, 3> images{
+        QImage{":/gfx/testcard-1.png"}.scaled(
+            300, 200, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation),
+        QImage{":/gfx/testcard-2.jpeg"}.scaled(
+            300, 200, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation),
+        QImage{":/gfx/testcard-3.png"}.scaled(
+            300, 200, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation)};
+    auto image_node = new score::gfx::FullScreenImageNode{images[img_count]};
+    img_count++;
+    img_count = img_count % 3;
+    return image_node;
+  }
 };
 
 struct PreviewPresetVisitor
@@ -124,6 +157,13 @@ struct PreviewPresetVisitor
   void operator()(const isf::audioFFT_input& v) { }
 
   void operator()(const isf::audioHist_input& v) { }
+  
+  // CSF-specific input handlers
+  void operator()(const isf::storage_input& v) { }
+  
+  void operator()(const isf::texture_input& v) { }
+  
+  void operator()(const isf::csf_image_input& v) { }
 };
 }
 

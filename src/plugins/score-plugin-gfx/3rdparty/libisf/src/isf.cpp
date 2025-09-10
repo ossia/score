@@ -121,10 +121,20 @@ layout(std140, binding = 1) uniform process_t {
 } GLSL45;
 }
 
-parser::parser(std::string geom)
-    : m_source_geometry_filter{std::move(geom)}
+parser::parser(std::string geom, ShaderType t)
 {
-  parse_geometry_filter();
+  switch(t)
+  {
+    case ShaderType::GeometryFilter:
+
+      m_source_geometry_filter = std::move(geom);
+      parse_geometry_filter();
+      break;
+    case ShaderType::CSF:
+      m_sourceFragment = std::move(geom);
+      parse_csf();
+      break;
+  }
 }
 
 parser::parser(std::string vert, std::string frag, int glslVersion, ShaderType t)
@@ -161,11 +171,20 @@ parser::parser(std::string vert, std::string frag, int glslVersion, ShaderType t
 
     return (has_vertexId || has_v_color) && (no_frag_color);
   };
+  static const auto is_csf = [](const std::string& str) {
+    bool has_dispatch = str.find("\"DISPATCH\"") != std::string::npos;
+    bool has_local_size = str.find("\"LOCAL_SIZE\"") != std::string::npos;
+    bool has_resources = str.find("\"RESOURCES\"") != std::string::npos;
+
+    return has_dispatch && has_local_size && (has_resources || is_isf(str));
+  };
 
   switch(t)
   {
     case ShaderType::Autodetect: {
-      if(is_shadertoy_json(m_sourceFragment))
+      if(is_csf(m_sourceFragment))
+        parse_csf();
+      else if(is_shadertoy_json(m_sourceFragment))
         parse_shadertoy_json(m_sourceFragment);
       else if(is_shadertoy(m_sourceFragment))
         parse_shadertoy();
@@ -182,6 +201,10 @@ parser::parser(std::string vert, std::string frag, int glslVersion, ShaderType t
 
     case ShaderType::ISF: {
       parse_isf();
+      break;
+    }
+    case ShaderType::CSF: {
+      parse_csf();
       break;
     }
     case ShaderType::ShaderToy: {
@@ -323,6 +346,88 @@ static void parse_input(audioHist_input& inp, const sajson::value& v)
       {
         inp.max = val.get_integer_value();
       }
+    }
+  }
+}
+
+// CSF-specific parsing functions
+static void parse_input(storage_input& inp, const sajson::value& v)
+{
+  std::size_t N = v.get_length();
+
+  for(std::size_t i = 0; i < N; i++)
+  {
+    auto k = v.get_object_key(i).as_string();
+    if(k == "ACCESS")
+    {
+      auto val = v.get_object_value(i);
+      if(val.get_type() == sajson::TYPE_STRING)
+        inp.access = val.as_string();
+    }
+    else if(k == "LAYOUT")
+    {
+      auto val = v.get_object_value(i);
+      if(val.get_type() == sajson::TYPE_ARRAY)
+      {
+        std::size_t layout_size = val.get_length();
+        inp.layout.reserve(layout_size);
+
+        for(std::size_t j = 0; j < layout_size; j++)
+        {
+          auto field = val.get_array_element(j);
+          if(field.get_type() == sajson::TYPE_OBJECT)
+          {
+            storage_input::layout_field lf;
+
+            // Parse NAME and TYPE
+            for(std::size_t f = 0; f < field.get_length(); f++)
+            {
+              auto field_key = field.get_object_key(f).as_string();
+              if(field_key == "NAME")
+              {
+                auto name_val = field.get_object_value(f);
+                if(name_val.get_type() == sajson::TYPE_STRING)
+                  lf.name = name_val.as_string();
+              }
+              else if(field_key == "TYPE")
+              {
+                auto type_val = field.get_object_value(f);
+                if(type_val.get_type() == sajson::TYPE_STRING)
+                  lf.type = type_val.as_string();
+              }
+            }
+
+            inp.layout.push_back(lf);
+          }
+        }
+      }
+    }
+  }
+}
+
+static void parse_input(texture_input& inp, const sajson::value& v)
+{
+  // Texture inputs don't need additional parsing for basic CSF
+}
+
+static void parse_input(csf_image_input& inp, const sajson::value& v)
+{
+  std::size_t N = v.get_length();
+
+  for(std::size_t i = 0; i < N; i++)
+  {
+    auto k = v.get_object_key(i).as_string();
+    if(k == "ACCESS")
+    {
+      auto val = v.get_object_value(i);
+      if(val.get_type() == sajson::TYPE_STRING)
+        inp.access = val.as_string();
+    }
+    else if(k == "FORMAT")
+    {
+      auto val = v.get_object_value(i);
+      if(val.get_type() == sajson::TYPE_STRING)
+        inp.format = val.as_string();
     }
   }
 }
@@ -472,24 +577,24 @@ using input_fun = input (*)(const sajson::value&);
 static const ossia::string_map<root_fun>& root_parse{[] {
   static ossia::string_map<root_fun> p;
   p.insert({"DESCRIPTION", [](descriptor& d, const sajson::value& v) {
-              if(v.get_type() == sajson::TYPE_STRING)
-                d.description = v.as_string();
-            }});
+    if(v.get_type() == sajson::TYPE_STRING)
+      d.description = v.as_string();
+  }});
   p.insert({"CREDIT", [](descriptor& d, const sajson::value& v) {
-              if(v.get_type() == sajson::TYPE_STRING)
-                d.credits = v.as_string();
-            }});
+    if(v.get_type() == sajson::TYPE_STRING)
+      d.credits = v.as_string();
+  }});
   p.insert({"CATEGORIES", [](descriptor& d, const sajson::value& v) {
-              if(v.get_type() == sajson::TYPE_ARRAY)
-              {
-                std::size_t n = v.get_length();
-                for(std::size_t i = 0; i < n; i++)
-                {
-                  if(v.get_type() == sajson::TYPE_STRING)
-                    d.categories.push_back(v.as_string());
-                }
-              }
-            }});
+    if(v.get_type() == sajson::TYPE_ARRAY)
+    {
+      std::size_t n = v.get_length();
+      for(std::size_t i = 0; i < n; i++)
+      {
+        if(v.get_type() == sajson::TYPE_STRING)
+          d.categories.push_back(v.as_string());
+      }
+    }
+  }});
 
   static const ossia::hash_map<std::string, input_fun>& input_parse{[] {
     static ossia::hash_map<std::string, input_fun> i;
@@ -498,42 +603,22 @@ static const ossia::string_map<root_fun>& root_parse{[] {
     i.insert({"bool", [](const auto& s) { return parse<bool_input>(s); }});
     i.insert({"event", [](const auto& s) { return parse<event_input>(s); }});
     i.insert({"image", [](const auto& s) { return parse<image_input>(s); }});
-    i.insert({"point2D", [](const auto& s) { return parse<point2d_input>(s); }});
-    i.insert({"point3D", [](const auto& s) { return parse<point3d_input>(s); }});
+    i.insert({"point2d", [](const auto& s) { return parse<point2d_input>(s); }});
+    i.insert({"point3d", [](const auto& s) { return parse<point3d_input>(s); }});
     i.insert({"color", [](const auto& s) { return parse<color_input>(s); }});
     i.insert({"audio", [](const auto& s) { return parse<audio_input>(s); }});
-    i.insert({"audioFFT", [](const auto& s) { return parse<audioFFT_input>(s); }});
+    i.insert({"audiofft", [](const auto& s) { return parse<audioFFT_input>(s); }});
     i.insert(
-        {"audioHistogram", [](const auto& s) { return parse<audioHist_input>(s); }});
+        {"audiohistogram", [](const auto& s) { return parse<audioHist_input>(s); }});
+
+    // CSF-specific types - note: 'image' in CSF context is csf_image_input, not image_input
+    i.insert({"storage", [](const auto& s) { return parse<storage_input>(s); }});
+    i.insert({"texture", [](const auto& s) { return parse<texture_input>(s); }});
 
     return i;
   }()};
 
   p.insert({"INPUTS", [](descriptor& d, const sajson::value& v) {
-              using namespace std::literals;
-              if(v.get_type() == sajson::TYPE_ARRAY)
-              {
-                std::size_t n = v.get_length();
-                for(std::size_t i = 0; i < n; i++)
-                {
-                  auto obj = v.get_array_element(i);
-                  if(obj.get_type() == sajson::TYPE_OBJECT)
-                  {
-                    auto k = obj.find_object_key_insensitive(sajson::literal("TYPE"));
-                    if(k != obj.get_length())
-                    {
-                      auto inp = input_parse.find(obj.get_object_value(k).as_string());
-                      if(inp != input_parse.end())
-                        d.inputs.push_back((inp->second)(obj));
-                    }
-                  }
-                }
-              }
-            }});
-
-  p.insert(
-      {"PASSES",
-       [](descriptor& d, const sajson::value& v) {
     using namespace std::literals;
     if(v.get_type() == sajson::TYPE_ARRAY)
     {
@@ -543,86 +628,310 @@ static const ossia::string_map<root_fun>& root_parse{[] {
         auto obj = v.get_array_element(i);
         if(obj.get_type() == sajson::TYPE_OBJECT)
         {
-          // PASS object
-          pass p;
-          if(auto target_k = obj.find_object_key_insensitive(sajson::literal("TARGET"));
-             target_k != obj.get_length())
+          auto k = obj.find_object_key_insensitive(sajson::literal("TYPE"));
+          if(k != obj.get_length())
           {
-            p.target = obj.get_object_value(target_k).as_string();
-            if(!p.target.empty())
-            {
-              d.pass_targets.push_back(p.target);
-            }
+            std::string type_str = obj.get_object_value(k).as_string();
+            boost::algorithm::to_lower(type_str);
+            auto inp = input_parse.find(type_str);
+            if(inp != input_parse.end())
+              d.inputs.push_back((inp->second)(obj));
           }
-
-          if(auto persistent_k
-             = obj.find_object_key_insensitive(sajson::literal("PERSISTENT"));
-             persistent_k != obj.get_length())
+          else
           {
-            p.persistent
-                = obj.get_object_value(persistent_k).get_type() == sajson::TYPE_TRUE;
           }
-
-          if(auto float_k = obj.find_object_key_insensitive(sajson::literal("FLOAT"));
-             float_k != obj.get_length())
-          {
-            p.float_storage
-                = obj.get_object_value(float_k).get_type() == sajson::TYPE_TRUE;
-          }
-
-          if(auto float_k = obj.find_object_key_insensitive(sajson::literal("FILTER"));
-             float_k != obj.get_length())
-          {
-            const auto& val = obj.get_object_value(float_k);
-            p.nearest_filter = val.get_type() == sajson::TYPE_STRING
-                               && val.as_string() == std::string_view("NEAREST");
-          }
-
-          if(auto width_k = obj.find_object_key_insensitive(sajson::literal("WIDTH"));
-             width_k != obj.get_length())
-          {
-            auto t = obj.get_object_value(width_k).get_type();
-            if(t == sajson::TYPE_STRING)
-            {
-              p.width_expression = obj.get_object_value(width_k).as_string();
-            }
-            else if(t == sajson::TYPE_DOUBLE)
-            {
-              p.width_expression
-                  = std::to_string(obj.get_object_value(width_k).get_double_value());
-            }
-            else if(t == sajson::TYPE_INTEGER)
-            {
-              p.width_expression
-                  = std::to_string(obj.get_object_value(width_k).get_integer_value());
-            }
-          }
-
-          if(auto height_k = obj.find_object_key_insensitive(sajson::literal("HEIGHT"));
-             height_k != obj.get_length())
-          {
-            auto t = obj.get_object_value(height_k).get_type();
-            if(t == sajson::TYPE_STRING)
-            {
-              p.height_expression = obj.get_object_value(height_k).as_string();
-            }
-            else if(t == sajson::TYPE_DOUBLE)
-            {
-              p.height_expression
-                  = std::to_string(obj.get_object_value(height_k).get_double_value());
-            }
-            else if(t == sajson::TYPE_INTEGER)
-            {
-              p.height_expression
-                  = std::to_string(obj.get_object_value(height_k).get_integer_value());
-            }
-          }
-
-          d.passes.push_back(std::move(p));
         }
       }
     }
-       }});
+  }});
+
+  // Add RESOURCES parsing for CSF (which can contain both inputs and resources)
+  p.insert({"RESOURCES", [](descriptor& d, const sajson::value& v) {
+    using namespace std::literals;
+    if(v.get_type() == sajson::TYPE_ARRAY)
+    {
+      std::size_t n = v.get_length();
+      for(std::size_t i = 0; i < n; i++)
+      {
+        auto obj = v.get_array_element(i);
+        if(obj.get_type() == sajson::TYPE_OBJECT)
+        {
+          auto k = obj.find_object_key_insensitive(sajson::literal("TYPE"));
+          if(k != obj.get_length())
+          {
+            std::string type_str = obj.get_object_value(k).as_string();
+
+            boost::algorithm::to_lower(type_str);
+            // Handle special case for CSF image type
+            if(type_str == "image")
+            {
+              input inp;
+              parse_input_base(inp, obj);
+              csf_image_input ci;
+              parse_input(ci, obj);
+              inp.data = ci;
+              d.inputs.push_back(inp);
+            }
+            else
+            {
+              // Try to parse as regular input type
+              auto inp_parser = input_parse.find(type_str);
+              if(inp_parser != input_parse.end())
+              {
+                d.inputs.push_back((inp_parser->second)(obj));
+              }
+              else
+              {
+              }
+            }
+          }
+          else
+          {
+          }
+        }
+      }
+    }
+  }});
+
+  // Add DISPATCH parsing for CSF (backward compatibility)
+  p.insert({"DISPATCH", [](descriptor& d, const sajson::value& v) {
+    if(v.get_type() == sajson::TYPE_OBJECT)
+    {
+      d.mode = descriptor::CSF;
+
+      descriptor::dispatch_info dispatch;
+
+      // Parse LOCAL_SIZE
+      if(auto ls_k = v.find_object_key_insensitive(sajson::literal("LOCAL_SIZE"));
+         ls_k != v.get_length())
+      {
+        auto ls_val = v.get_object_value(ls_k);
+        if(ls_val.get_type() == sajson::TYPE_ARRAY && ls_val.get_length() >= 3)
+        {
+          for(int i = 0; i < 3; i++)
+          {
+            auto elem = ls_val.get_array_element(i);
+            if(elem.get_type() == sajson::TYPE_INTEGER)
+              dispatch.local_size[i] = elem.get_integer_value();
+          }
+        }
+      }
+
+      // Parse EXECUTION_MODEL
+      if(auto em_k = v.find_object_key_insensitive(sajson::literal("EXECUTION_MODEL"));
+         em_k != v.get_length())
+      {
+        auto em_val = v.get_object_value(em_k);
+        if(em_val.get_type() == sajson::TYPE_OBJECT)
+        {
+          // Parse TYPE
+          if(auto type_k = em_val.find_object_key_insensitive(sajson::literal("TYPE"));
+             type_k != em_val.get_length())
+          {
+            auto type_val = em_val.get_object_value(type_k);
+            if(type_val.get_type() == sajson::TYPE_STRING)
+              dispatch.execution_type = type_val.as_string();
+          }
+
+          // Parse TARGET
+          if(auto target_k
+             = em_val.find_object_key_insensitive(sajson::literal("TARGET"));
+             target_k != em_val.get_length())
+          {
+            auto target_val = em_val.get_object_value(target_k);
+            if(target_val.get_type() == sajson::TYPE_STRING)
+              dispatch.target_resource = target_val.as_string();
+          }
+
+          // Parse WORKGROUPS
+          if(auto wg_k
+             = em_val.find_object_key_insensitive(sajson::literal("WORKGROUPS"));
+             wg_k != em_val.get_length())
+          {
+            auto wg_val = em_val.get_object_value(wg_k);
+            if(wg_val.get_type() == sajson::TYPE_ARRAY && wg_val.get_length() >= 3)
+            {
+              for(int i = 0; i < 3; i++)
+              {
+                auto elem = wg_val.get_array_element(i);
+                if(elem.get_type() == sajson::TYPE_INTEGER)
+                  dispatch.workgroups[i] = elem.get_integer_value();
+              }
+            }
+          }
+        }
+      }
+
+      // Add single dispatch as first pass for backward compatibility
+      d.csf_passes.push_back(dispatch);
+    }
+  }});
+
+  p.insert({"PASSES", [](descriptor& d, const sajson::value& v) {
+    using namespace std::literals;
+    if(v.get_type() == sajson::TYPE_ARRAY)
+    {
+      std::size_t n = v.get_length();
+      for(std::size_t i = 0; i < n; i++)
+      {
+        auto obj = v.get_array_element(i);
+        if(obj.get_type() == sajson::TYPE_OBJECT)
+        {
+          // Check if this looks like a CSF dispatch pass (has LOCAL_SIZE)
+          if(auto ls_k = obj.find_object_key_insensitive(sajson::literal("LOCAL_SIZE"));
+             ls_k != obj.get_length())
+          {
+            // This is a CSF dispatch pass
+            d.mode = descriptor::CSF;
+
+            descriptor::dispatch_info dispatch;
+
+            // Parse LOCAL_SIZE
+            auto ls_val = obj.get_object_value(ls_k);
+            if(ls_val.get_type() == sajson::TYPE_ARRAY && ls_val.get_length() >= 3)
+            {
+              for(int idx = 0; idx < 3; idx++)
+              {
+                auto elem = ls_val.get_array_element(idx);
+                if(elem.get_type() == sajson::TYPE_INTEGER)
+                  dispatch.local_size[idx] = elem.get_integer_value();
+              }
+            }
+
+            // Parse EXECUTION_MODEL
+            if(auto em_k
+               = obj.find_object_key_insensitive(sajson::literal("EXECUTION_MODEL"));
+               em_k != obj.get_length())
+            {
+              auto em_val = obj.get_object_value(em_k);
+              if(em_val.get_type() == sajson::TYPE_OBJECT)
+              {
+                // Parse TYPE
+                if(auto type_k
+                   = em_val.find_object_key_insensitive(sajson::literal("TYPE"));
+                   type_k != em_val.get_length())
+                {
+                  auto type_val = em_val.get_object_value(type_k);
+                  if(type_val.get_type() == sajson::TYPE_STRING)
+                    dispatch.execution_type = type_val.as_string();
+                }
+
+                // Parse TARGET
+                if(auto target_k
+                   = em_val.find_object_key_insensitive(sajson::literal("TARGET"));
+                   target_k != em_val.get_length())
+                {
+                  auto target_val = em_val.get_object_value(target_k);
+                  if(target_val.get_type() == sajson::TYPE_STRING)
+                    dispatch.target_resource = target_val.as_string();
+                }
+
+                // Parse WORKGROUPS
+                if(auto wg_k
+                   = em_val.find_object_key_insensitive(sajson::literal("WORKGROUPS"));
+                   wg_k != em_val.get_length())
+                {
+                  auto wg_val = em_val.get_object_value(wg_k);
+                  if(wg_val.get_type() == sajson::TYPE_ARRAY && wg_val.get_length() >= 3)
+                  {
+                    for(int idx = 0; idx < 3; idx++)
+                    {
+                      auto elem = wg_val.get_array_element(idx);
+                      if(elem.get_type() == sajson::TYPE_INTEGER)
+                        dispatch.workgroups[idx] = elem.get_integer_value();
+                    }
+                  }
+                }
+              }
+            }
+
+            d.csf_passes.push_back(dispatch);
+          }
+          else
+          {
+            // This is an ISF pass
+            pass p;
+            if(auto target_k
+               = obj.find_object_key_insensitive(sajson::literal("TARGET"));
+               target_k != obj.get_length())
+            {
+              p.target = obj.get_object_value(target_k).as_string();
+              if(!p.target.empty())
+              {
+                d.pass_targets.push_back(p.target);
+              }
+            }
+
+            if(auto persistent_k
+               = obj.find_object_key_insensitive(sajson::literal("PERSISTENT"));
+               persistent_k != obj.get_length())
+            {
+              p.persistent
+                  = obj.get_object_value(persistent_k).get_type() == sajson::TYPE_TRUE;
+            }
+
+            if(auto float_k = obj.find_object_key_insensitive(sajson::literal("FLOAT"));
+               float_k != obj.get_length())
+            {
+              p.float_storage
+                  = obj.get_object_value(float_k).get_type() == sajson::TYPE_TRUE;
+            }
+
+            if(auto float_k = obj.find_object_key_insensitive(sajson::literal("FILTER"));
+               float_k != obj.get_length())
+            {
+              const auto& val = obj.get_object_value(float_k);
+              p.nearest_filter = val.get_type() == sajson::TYPE_STRING
+                                 && val.as_string() == std::string_view("NEAREST");
+            }
+
+            if(auto width_k = obj.find_object_key_insensitive(sajson::literal("WIDTH"));
+               width_k != obj.get_length())
+            {
+              auto t = obj.get_object_value(width_k).get_type();
+              if(t == sajson::TYPE_STRING)
+              {
+                p.width_expression = obj.get_object_value(width_k).as_string();
+              }
+              else if(t == sajson::TYPE_DOUBLE)
+              {
+                p.width_expression
+                    = std::to_string(obj.get_object_value(width_k).get_double_value());
+              }
+              else if(t == sajson::TYPE_INTEGER)
+              {
+                p.width_expression
+                    = std::to_string(obj.get_object_value(width_k).get_integer_value());
+              }
+            }
+
+            if(auto height_k
+               = obj.find_object_key_insensitive(sajson::literal("HEIGHT"));
+               height_k != obj.get_length())
+            {
+              auto t = obj.get_object_value(height_k).get_type();
+              if(t == sajson::TYPE_STRING)
+              {
+                p.height_expression = obj.get_object_value(height_k).as_string();
+              }
+              else if(t == sajson::TYPE_DOUBLE)
+              {
+                p.height_expression
+                    = std::to_string(obj.get_object_value(height_k).get_double_value());
+              }
+              else if(t == sajson::TYPE_INTEGER)
+              {
+                p.height_expression
+                    = std::to_string(obj.get_object_value(height_k).get_integer_value());
+              }
+            }
+
+            d.passes.push_back(std::move(p));
+          }
+        }
+      }
+    }
+  }});
 
   p.insert({"POINT_COUNT", [](descriptor& d, const sajson::value& v) {
     if(v.get_type() == sajson::TYPE_INTEGER)
@@ -656,6 +965,69 @@ static const ossia::string_map<root_fun>& root_parse{[] {
         d.background_color[3] = e.get_number_value();
     }
   }});
+
+  p.insert({"TYPES", [](descriptor& d, const sajson::value& v) {
+    using namespace std::literals;
+    if(v.get_type() == sajson::TYPE_ARRAY)
+    {
+      std::size_t n = v.get_length();
+      for(std::size_t i = 0; i < n; i++)
+      {
+        auto obj = v.get_array_element(i);
+        if(obj.get_type() == sajson::TYPE_OBJECT)
+        {
+          descriptor::type_definition type_def;
+
+          // Parse NAME field
+          auto name_key = obj.find_object_key_insensitive(sajson::literal("NAME"));
+          if(name_key != obj.get_length())
+          {
+            type_def.name = obj.get_object_value(name_key).as_string();
+          }
+
+          // Parse LAYOUT field
+          auto layout_key = obj.find_object_key_insensitive(sajson::literal("LAYOUT"));
+          if(layout_key != obj.get_length())
+          {
+            auto layout_array = obj.get_object_value(layout_key);
+            if(layout_array.get_type() == sajson::TYPE_ARRAY)
+            {
+              std::size_t layout_count = layout_array.get_length();
+              for(std::size_t j = 0; j < layout_count; j++)
+              {
+                auto field_obj = layout_array.get_array_element(j);
+                if(field_obj.get_type() == sajson::TYPE_OBJECT)
+                {
+                  storage_input::layout_field field;
+
+                  // Parse field NAME
+                  auto field_name_key
+                      = field_obj.find_object_key_insensitive(sajson::literal("NAME"));
+                  if(field_name_key != field_obj.get_length())
+                  {
+                    field.name = field_obj.get_object_value(field_name_key).as_string();
+                  }
+
+                  // Parse field TYPE
+                  auto field_type_key
+                      = field_obj.find_object_key_insensitive(sajson::literal("TYPE"));
+                  if(field_type_key != field_obj.get_length())
+                  {
+                    field.type = field_obj.get_object_value(field_type_key).as_string();
+                  }
+
+                  type_def.layout.push_back(field);
+                }
+              }
+            }
+          }
+
+          d.types.push_back(type_def);
+        }
+      }
+    }
+  }});
+
   return p;
 }()};
 
@@ -672,6 +1044,9 @@ struct create_val_visitor
   std::string operator()(const audio_input&) { return "uniform sampler2D"; }
   std::string operator()(const audioFFT_input&) { return "uniform sampler2D"; }
   std::string operator()(const audioHist_input&) { return "uniform sampler2D"; }
+  std::string operator()(const storage_input&) { return "buffer"; }
+  std::string operator()(const texture_input&) { return "uniform sampler2D"; }
+  std::string operator()(const csf_image_input&) { return "image2D"; }
 };
 
 struct create_val_visitor_450
@@ -692,6 +1067,9 @@ struct create_val_visitor_450
   return_type operator()(const audio_input&) { return {"uniform sampler2D", true}; }
   return_type operator()(const audioFFT_input&) { return {"uniform sampler2D", true}; }
   return_type operator()(const audioHist_input&) { return {"uniform sampler2D", true}; }
+  return_type operator()(const storage_input&) { return {"buffer", true}; }
+  return_type operator()(const texture_input&) { return {"uniform sampler2D", true}; }
+  return_type operator()(const csf_image_input&) { return {"uniform image2D", true}; }
 };
 
 std::pair<int, descriptor> parser::parse_isf_header(std::string_view source)
@@ -1022,7 +1400,7 @@ void parser::parse_shadertoy()
     m_fragment += GLSL45.fragmentPrelude;
     m_fragment += GLSL45.defaultUniforms;
     m_fragment += GLSL45.defaultFunctions;
-    
+
     // Add Shadertoy compatibility layer
     m_fragment += R"_(
 // Shadertoy compatibility uniforms
@@ -1085,7 +1463,8 @@ void main(void)
   }
 
   // Add channel inputs to descriptor
-  for(int i = 0; i < 4; ++i) {
+  for(int i = 0; i < 4; ++i)
+  {
     input channel_input;
     channel_input.name = "iChannel" + std::to_string(i);
     if(!m_sourceFragment.contains(channel_input.name))
@@ -1125,40 +1504,48 @@ void parser::parse_glsl_sandbox()
 void parser::parse_shadertoy_json(const std::string& json)
 {
   descriptor desc;
-  
+
   // Parse the JSON
-  auto doc = sajson::parse(sajson::dynamic_allocation(), sajson::mutable_string_view(json.length(), const_cast<char*>(json.data())));
-  if(!doc.is_valid()) {
+  auto doc = sajson::parse(
+      sajson::dynamic_allocation(),
+      sajson::mutable_string_view(json.length(), const_cast<char*>(json.data())));
+  if(!doc.is_valid())
+  {
     throw invalid_file{"Invalid JSON: " + std::string(doc.get_error_message())};
   }
-  
+
   auto root = doc.get_root();
-  if(root.get_type() != sajson::TYPE_ARRAY) {
+  if(root.get_type() != sajson::TYPE_ARRAY)
+  {
     throw invalid_file{"Expected JSON array at root"};
   }
-  
-  if(root.get_length() == 0) {
+
+  if(root.get_length() == 0)
+  {
     throw invalid_file{"Empty shader array"};
   }
-  
+
   // Get the first shader
   auto shader = root.get_array_element(0);
-  if(shader.get_type() != sajson::TYPE_OBJECT) {
+  if(shader.get_type() != sajson::TYPE_OBJECT)
+  {
     throw invalid_file{"Expected shader object"};
   }
-  
+
   // Extract shader info
   if(auto info_k = shader.find_object_key(sajson::literal("info"));
      info_k != shader.get_length())
   {
     auto info = shader.get_object_value(info_k);
-    if(info.get_type() == sajson::TYPE_OBJECT) {
+    if(info.get_type() == sajson::TYPE_OBJECT)
+    {
       // Get shader name
       if(auto name_k = info.find_object_key(sajson::literal("name"));
          name_k != info.get_length())
       {
         auto name = info.get_object_value(name_k);
-        if(name.get_type() == sajson::TYPE_STRING) {
+        if(name.get_type() == sajson::TYPE_STRING)
+        {
           desc.description = "Shadertoy: " + std::string(name.as_string());
         }
       }
@@ -1168,8 +1555,10 @@ void parser::parse_shadertoy_json(const std::string& json)
          desc_k != info.get_length())
       {
         auto description = info.get_object_value(desc_k);
-        if(description.get_type() == sajson::TYPE_STRING) {
-          if(!desc.description.empty()) desc.description += "\n";
+        if(description.get_type() == sajson::TYPE_STRING)
+        {
+          if(!desc.description.empty())
+            desc.description += "\n";
           desc.description += description.as_string();
         }
       }
@@ -1179,7 +1568,8 @@ void parser::parse_shadertoy_json(const std::string& json)
          user_k != info.get_length())
       {
         auto username = info.get_object_value(user_k);
-        if(username.get_type() == sajson::TYPE_STRING) {
+        if(username.get_type() == sajson::TYPE_STRING)
+        {
           desc.credits = "By " + std::string(username.as_string()) + " on Shadertoy";
         }
       }
@@ -1189,10 +1579,13 @@ void parser::parse_shadertoy_json(const std::string& json)
          tags_k != info.get_length())
       {
         auto tags = info.get_object_value(tags_k);
-        if(tags.get_type() == sajson::TYPE_ARRAY) {
-          for(std::size_t i = 0; i < tags.get_length(); i++) {
+        if(tags.get_type() == sajson::TYPE_ARRAY)
+        {
+          for(std::size_t i = 0; i < tags.get_length(); i++)
+          {
             auto tag = tags.get_array_element(i);
-            if(tag.get_type() == sajson::TYPE_STRING) {
+            if(tag.get_type() == sajson::TYPE_STRING)
+            {
               desc.categories.push_back(tag.as_string());
             }
           }
@@ -1206,58 +1599,75 @@ void parser::parse_shadertoy_json(const std::string& json)
      passes_k != shader.get_length())
   {
     auto renderpasses = shader.get_object_value(passes_k);
-    if(renderpasses.get_type() == sajson::TYPE_ARRAY) {
+    if(renderpasses.get_type() == sajson::TYPE_ARRAY)
+    {
       // Count passes and check for special types
       int imagePassCount = 0;
       bool hasSound = false;
       bool hasCubemap = false;
       bool hasBuffer = false;
-      
-      for(std::size_t i = 0; i < renderpasses.get_length(); i++) {
+
+      for(std::size_t i = 0; i < renderpasses.get_length(); i++)
+      {
         auto pass = renderpasses.get_array_element(i);
-        if(pass.get_type() == sajson::TYPE_OBJECT) {
+        if(pass.get_type() == sajson::TYPE_OBJECT)
+        {
           if(auto type_k = pass.find_object_key(sajson::literal("type"));
              type_k != pass.get_length())
           {
             auto type = pass.get_object_value(type_k);
-            if(type.get_type() == sajson::TYPE_STRING) {
+            if(type.get_type() == sajson::TYPE_STRING)
+            {
               std::string typeStr = type.as_string();
-              if(typeStr == "image") imagePassCount++;
-              else if(typeStr == "sound") hasSound = true;
-              else if(typeStr == "cubemap") hasCubemap = true;
-              else if(typeStr == "buffer") hasBuffer = true;
+              if(typeStr == "image")
+                imagePassCount++;
+              else if(typeStr == "sound")
+                hasSound = true;
+              else if(typeStr == "cubemap")
+                hasCubemap = true;
+              else if(typeStr == "buffer")
+                hasBuffer = true;
             }
           }
         }
       }
-      
+
       // Add appropriate categories
-      if(hasSound) desc.categories.push_back("Shadertoy Sound");
-      if(hasCubemap) desc.categories.push_back("Shadertoy Cubemap");
-      if(hasBuffer || imagePassCount > 1) desc.categories.push_back("Shadertoy Multipass");
-      
+      if(hasSound)
+        desc.categories.push_back("Shadertoy Sound");
+      if(hasCubemap)
+        desc.categories.push_back("Shadertoy Cubemap");
+      if(hasBuffer || imagePassCount > 1)
+        desc.categories.push_back("Shadertoy Multipass");
+
       // Process inputs from all passes
       ossia::flat_set<std::string> processedChannels;
-      
-      for(std::size_t pass_i = 0; pass_i < renderpasses.get_length(); pass_i++) {
+
+      for(std::size_t pass_i = 0; pass_i < renderpasses.get_length(); pass_i++)
+      {
         auto pass = renderpasses.get_array_element(pass_i);
-        if(pass.get_type() == sajson::TYPE_OBJECT) {
+        if(pass.get_type() == sajson::TYPE_OBJECT)
+        {
           // Get inputs for this pass
           if(auto inputs_k = pass.find_object_key(sajson::literal("inputs"));
              inputs_k != pass.get_length())
           {
             auto inputs = pass.get_object_value(inputs_k);
-            if(inputs.get_type() == sajson::TYPE_ARRAY) {
-              for(std::size_t inp_i = 0; inp_i < inputs.get_length(); inp_i++) {
+            if(inputs.get_type() == sajson::TYPE_ARRAY)
+            {
+              for(std::size_t inp_i = 0; inp_i < inputs.get_length(); inp_i++)
+              {
                 auto input_obj = inputs.get_array_element(inp_i);
-                if(input_obj.get_type() == sajson::TYPE_OBJECT) {
+                if(input_obj.get_type() == sajson::TYPE_OBJECT)
+                {
                   // Get channel number
                   int channel = -1;
                   if(auto chan_k = input_obj.find_object_key(sajson::literal("channel"));
                      chan_k != input_obj.get_length())
                   {
                     auto chan = input_obj.get_object_value(chan_k);
-                    if(chan.get_type() == sajson::TYPE_INTEGER) {
+                    if(chan.get_type() == sajson::TYPE_INTEGER)
+                    {
                       channel = chan.get_integer_value();
                     }
                   }
@@ -1265,11 +1675,12 @@ void parser::parse_shadertoy_json(const std::string& json)
                   if(channel >= 0 && channel < 4)
                   {
                     std::string channelName = "iChannel" + std::to_string(channel);
-                    
+
                     // Only add if not already processed
-                    if(processedChannels.find(channelName) == processedChannels.end()) {
+                    if(processedChannels.find(channelName) == processedChannels.end())
+                    {
                       processedChannels.insert(channelName);
-                      
+
                       // Get input type
                       std::string inputType = "texture";
                       if(auto type_k
@@ -1277,7 +1688,8 @@ void parser::parse_shadertoy_json(const std::string& json)
                          type_k != input_obj.get_length())
                       {
                         auto ctype = input_obj.get_object_value(type_k);
-                        if(ctype.get_type() == sajson::TYPE_STRING) {
+                        if(ctype.get_type() == sajson::TYPE_STRING)
+                        {
                           inputType = ctype.as_string();
                         }
                       }
@@ -1286,18 +1698,26 @@ void parser::parse_shadertoy_json(const std::string& json)
                       input inp;
                       inp.name = channelName;
                       inp.label = "Channel " + std::to_string(channel);
-                      
-                      if(inputType == "texture" || inputType == "cubemap" || inputType == "buffer" || inputType == "video") {
+
+                      if(inputType == "texture" || inputType == "cubemap"
+                         || inputType == "buffer" || inputType == "video")
+                      {
                         inp.data = image_input{};
-                      } else if(inputType == "music" || inputType == "musicstream") {
+                      }
+                      else if(inputType == "music" || inputType == "musicstream")
+                      {
                         inp.data = audio_input{};
-                      } else if(inputType == "mic" || inputType == "webcam") {
+                      }
+                      else if(inputType == "mic" || inputType == "webcam")
+                      {
                         inp.data = image_input{}; // Treat as image input for now
                         inp.label += " (" + inputType + ")";
-                      } else {
+                      }
+                      else
+                      {
                         inp.data = image_input{}; // Default to image
                       }
-                      
+
                       desc.inputs.push_back(inp);
                     }
                   }
@@ -1307,9 +1727,10 @@ void parser::parse_shadertoy_json(const std::string& json)
           }
         }
       }
-      
+
       // If no specific inputs were found, add the default 4 channels
-      if(desc.inputs.empty()) {
+      if(desc.inputs.empty())
+      {
         if(json.contains("iChannel"))
           for(int i = 0; i < 4; ++i)
           {
@@ -1324,41 +1745,48 @@ void parser::parse_shadertoy_json(const std::string& json)
   }
 
   // Mark as Shadertoy shader
-  if(desc.categories.empty()) {
+  if(desc.categories.empty())
+  {
     desc.categories.push_back("Shadertoy");
   }
 
   m_desc = desc;
-  
+
   // Extract shader code from the first image pass
   std::string mainImageCode;
   if(auto passes_k = shader.find_object_key(sajson::literal("renderpass"));
      passes_k != shader.get_length())
   {
     auto renderpasses = shader.get_object_value(passes_k);
-    if(renderpasses.get_type() == sajson::TYPE_ARRAY) {
-      for(std::size_t i = 0; i < renderpasses.get_length(); i++) {
+    if(renderpasses.get_type() == sajson::TYPE_ARRAY)
+    {
+      for(std::size_t i = 0; i < renderpasses.get_length(); i++)
+      {
         auto pass = renderpasses.get_array_element(i);
-        if(pass.get_type() == sajson::TYPE_OBJECT) {
+        if(pass.get_type() == sajson::TYPE_OBJECT)
+        {
           // Check if this is an image pass
           bool isImagePass = false;
           if(auto type_k = pass.find_object_key(sajson::literal("type"));
              type_k != pass.get_length())
           {
             auto type = pass.get_object_value(type_k);
-            if(type.get_type() == sajson::TYPE_STRING && 
-               std::string(type.as_string()) == "image") {
+            if(type.get_type() == sajson::TYPE_STRING
+               && std::string(type.as_string()) == "image")
+            {
               isImagePass = true;
             }
           }
-          
-          if(isImagePass) {
+
+          if(isImagePass)
+          {
             // Extract the shader code
             if(auto code_k = pass.find_object_key(sajson::literal("code"));
                code_k != pass.get_length())
             {
               auto code = pass.get_object_value(code_k);
-              if(code.get_type() == sajson::TYPE_STRING) {
+              if(code.get_type() == sajson::TYPE_STRING)
+              {
                 mainImageCode = code.as_string();
                 break; // Take the first image pass
               }
@@ -1368,9 +1796,10 @@ void parser::parse_shadertoy_json(const std::string& json)
       }
     }
   }
-  
+
   // Generate ISF-compatible shaders
-  if(!mainImageCode.empty()) {
+  if(!mainImageCode.empty())
+  {
     // Generate fragment shader with ISF compatibility
     {
       // Add Shadertoy compatibility layer
@@ -1396,7 +1825,7 @@ int iGlobalFrame = iFrame;
 
       // Add the main Shadertoy code
       m_fragment += mainImageCode;
-      
+
       // Add main function wrapper
       m_fragment += R"_(
 
@@ -1407,7 +1836,7 @@ void main(void)
     isf_FragColor = fragColor;
 }
 )_";
-      
+
       // Generate vertex shader
       m_vertex = GLSL45.versionPrelude;
       m_vertex += GLSL45.vertexPrelude;
@@ -1415,7 +1844,9 @@ void main(void)
       m_vertex += GLSL45.vertexInitFunc;
       m_vertex += GLSL45.vertexDefaultMain;
     }
-  } else {
+  }
+  else
+  {
     throw invalid_file{"No valid image shader code found in Shadertoy JSON"};
   }
 }
@@ -1456,21 +1887,25 @@ std::string parser::write_isf() const
 
   // Generate ISF JSON header
   oss << "/*\n{\n";
-  
+
   // Add description if present
-  if(!m_desc.description.empty()) {
+  if(!m_desc.description.empty())
+  {
     oss << "  \"DESCRIPTION\": \"" << escape_json(m_desc.description) << "\",\n";
   }
-  
+
   // Add credits if present
-  if(!m_desc.credits.empty()) {
+  if(!m_desc.credits.empty())
+  {
     oss << "  \"CREDIT\": \"" << escape_json(m_desc.credits) << "\",\n";
   }
-  
+
   // Add categories if present
-  if(!m_desc.categories.empty()) {
+  if(!m_desc.categories.empty())
+  {
     oss << "  \"CATEGORIES\": [\n";
-    for(size_t i = 0; i < m_desc.categories.size(); ++i) {
+    for(size_t i = 0; i < m_desc.categories.size(); ++i)
+    {
       oss << "    \"" << escape_json(m_desc.categories[i]) << "\"";
       if(i < m_desc.categories.size() - 1)
         oss << ",";
@@ -1481,110 +1916,140 @@ std::string parser::write_isf() const
       oss << ",";
     oss << "\n";
   }
-  
+
   // Add inputs
-  if(!m_desc.inputs.empty()) {
+  if(!m_desc.inputs.empty())
+  {
     oss << "  \"INPUTS\": [\n";
-    
-    for(size_t i = 0; i < m_desc.inputs.size(); ++i) {
+
+    for(size_t i = 0; i < m_desc.inputs.size(); ++i)
+    {
       const auto& input = m_desc.inputs[i];
       oss << "    {\n";
       oss << "      \"NAME\": \"" << escape_json(input.name) << "\",\n";
-      
-      if(!input.label.empty()) {
+
+      if(!input.label.empty())
+      {
         oss << "      \"LABEL\": \"" << escape_json(input.label) << "\",\n";
       }
-      
+
       // Handle different input types
-      struct input_serializer {
+      struct input_serializer
+      {
         std::ostringstream& oss;
-        
-        void operator()(const float_input& f) {
+
+        void operator()(const float_input& f)
+        {
           oss << "      \"TYPE\": \"float\",\n";
           oss << "      \"MIN\": " << f.min << ",\n";
           oss << "      \"MAX\": " << f.max << ",\n";
           oss << "      \"DEFAULT\": " << f.def << "\n";
         }
-        
-        void operator()(const long_input& l) {
+
+        void operator()(const long_input& l)
+        {
           oss << "      \"TYPE\": \"long\",\n";
-          if(!l.values.empty()) {
+          if(!l.values.empty())
+          {
             oss << "      \"VALUES\": [";
-            for(size_t i = 0; i < l.values.size(); ++i) {
+            for(size_t i = 0; i < l.values.size(); ++i)
+            {
               oss << l.values[i];
-              if(i < l.values.size() - 1) oss << ", ";
+              if(i < l.values.size() - 1)
+                oss << ", ";
             }
             oss << "],\n";
           }
-          if(!l.labels.empty()) {
+          if(!l.labels.empty())
+          {
             oss << "      \"LABELS\": [";
-            for(size_t i = 0; i < l.labels.size(); ++i) {
+            for(size_t i = 0; i < l.labels.size(); ++i)
+            {
               oss << "\"" << escape_json(l.labels[i]) << "\"";
-              if(i < l.labels.size() - 1) oss << ", ";
+              if(i < l.labels.size() - 1)
+                oss << ", ";
             }
             oss << "],\n";
           }
           oss << "      \"DEFAULT\": " << l.def << "\n";
         }
-        
-        void operator()(const bool_input& b) {
+
+        void operator()(const bool_input& b)
+        {
           oss << "      \"TYPE\": \"bool\",\n";
           oss << "      \"DEFAULT\": " << (b.def ? "true" : "false") << "\n";
         }
-        
-        void operator()(const event_input&) {
-          oss << "      \"TYPE\": \"event\"\n";
-        }
-        
-        void operator()(const point2d_input& p) {
+
+        void operator()(const event_input&) { oss << "      \"TYPE\": \"event\"\n"; }
+
+        void operator()(const point2d_input& p)
+        {
           oss << "      \"TYPE\": \"point2D\"";
-          if(p.min) {
+          if(p.min)
+          {
             oss << ",\n      \"MIN\": [" << (*p.min)[0] << ", " << (*p.min)[1] << "]";
           }
-          if(p.max) {
+          if(p.max)
+          {
             oss << ",\n      \"MAX\": [" << (*p.max)[0] << ", " << (*p.max)[1] << "]";
           }
-          if(p.def) {
-            oss << ",\n      \"DEFAULT\": [" << (*p.def)[0] << ", " << (*p.def)[1] << "]";
+          if(p.def)
+          {
+            oss << ",\n      \"DEFAULT\": [" << (*p.def)[0] << ", " << (*p.def)[1]
+                << "]";
           }
           oss << "\n";
         }
-        
-        void operator()(const point3d_input& p) {
+
+        void operator()(const point3d_input& p)
+        {
           oss << "      \"TYPE\": \"point3D\"";
-          if(p.min) {
-            oss << ",\n      \"MIN\": [" << (*p.min)[0] << ", " << (*p.min)[1] << ", " << (*p.min)[2] << "]";
+          if(p.min)
+          {
+            oss << ",\n      \"MIN\": [" << (*p.min)[0] << ", " << (*p.min)[1] << ", "
+                << (*p.min)[2] << "]";
           }
-          if(p.max) {
-            oss << ",\n      \"MAX\": [" << (*p.max)[0] << ", " << (*p.max)[1] << ", " << (*p.max)[2] << "]";
+          if(p.max)
+          {
+            oss << ",\n      \"MAX\": [" << (*p.max)[0] << ", " << (*p.max)[1] << ", "
+                << (*p.max)[2] << "]";
           }
-          if(p.def) {
-            oss << ",\n      \"DEFAULT\": [" << (*p.def)[0] << ", " << (*p.def)[1] << ", " << (*p.def)[2] << "]";
+          if(p.def)
+          {
+            oss << ",\n      \"DEFAULT\": [" << (*p.def)[0] << ", " << (*p.def)[1]
+                << ", " << (*p.def)[2] << "]";
           }
           oss << "\n";
         }
-        
-        void operator()(const color_input& c) {
+
+        void operator()(const color_input& c)
+        {
           oss << "      \"TYPE\": \"color\"";
-          if(c.min) {
-            oss << ",\n      \"MIN\": [" << (*c.min)[0] << ", " << (*c.min)[1] << ", " << (*c.min)[2] << ", " << (*c.min)[3] << "]";
+          if(c.min)
+          {
+            oss << ",\n      \"MIN\": [" << (*c.min)[0] << ", " << (*c.min)[1] << ", "
+                << (*c.min)[2] << ", " << (*c.min)[3] << "]";
           }
-          if(c.max) {
-            oss << ",\n      \"MAX\": [" << (*c.max)[0] << ", " << (*c.max)[1] << ", " << (*c.max)[2] << ", " << (*c.max)[3] << "]";
+          if(c.max)
+          {
+            oss << ",\n      \"MAX\": [" << (*c.max)[0] << ", " << (*c.max)[1] << ", "
+                << (*c.max)[2] << ", " << (*c.max)[3] << "]";
           }
-          if(c.def) {
-            oss << ",\n      \"DEFAULT\": [" << (*c.def)[0] << ", " << (*c.def)[1] << ", " << (*c.def)[2] << ", " << (*c.def)[3] << "]";
+          if(c.def)
+          {
+            oss << ",\n      \"DEFAULT\": [" << (*c.def)[0] << ", " << (*c.def)[1]
+                << ", " << (*c.def)[2] << ", " << (*c.def)[3] << "]";
           }
           oss << "\n";
         }
-        
-        void operator()(const image_input&) {
-          oss << "      \"TYPE\": \"image\"\n";
-        }
-        
-        void operator()(const audio_input& a) {
+
+        void operator()(const image_input&) { oss << "      \"TYPE\": \"image\"\n"; }
+
+        void operator()(const audio_input& a)
+        {
           oss << "      \"TYPE\": \"audio\"";
-          if(a.max > 0) {
+          if(a.max > 0)
+          {
             oss << ",\n      \"MAX\": " << a.max;
           }
           oss << "\n";
@@ -1609,91 +2074,139 @@ std::string parser::write_isf() const
           }
           oss << "\n";
         }
+
+        // CSF-specific input handlers
+        void operator()(const storage_input& s)
+        {
+          oss << "      \"TYPE\": \"storage\",\n";
+          oss << "      \"ACCESS\": \"" << s.access << "\"";
+          if(!s.layout.empty())
+          {
+            oss << ",\n      \"LAYOUT\": [\n";
+            for(size_t i = 0; i < s.layout.size(); ++i)
+            {
+              const auto& field = s.layout[i];
+              oss << "        {\"name\": \"" << escape_json(field.name)
+                  << "\", \"type\": \"" << escape_json(field.type) << "\"}";
+              if(i < s.layout.size() - 1)
+                oss << ",";
+              oss << "\n";
+            }
+            oss << "      ]";
+          }
+          oss << "\n";
+        }
+
+        void operator()(const texture_input&) { oss << "      \"TYPE\": \"texture\"\n"; }
+
+        void operator()(const csf_image_input& img)
+        {
+          oss << "      \"TYPE\": \"image\",\n";
+          oss << "      \"ACCESS\": \"" << img.access << "\",\n";
+          oss << "      \"FORMAT\": \"" << img.format << "\"\n";
+        }
       };
-      
+
       ossia::visit(input_serializer{oss}, input.data);
-      
+
       oss << "    }";
       if(i < m_desc.inputs.size() - 1)
         oss << ",";
       oss << "\n";
     }
-    
+
     oss << "  ]";
-    
+
     // Add comma if there are passes
-    if(!m_desc.passes.empty()) {
+    if(!m_desc.passes.empty())
+    {
       oss << ",";
     }
     oss << "\n";
   }
-  
+
   // Add passes if present
-  if(!m_desc.passes.empty()) {
+  if(!m_desc.passes.empty())
+  {
     oss << "  \"PASSES\": [\n";
-    
-    for(size_t i = 0; i < m_desc.passes.size(); ++i) {
+
+    for(size_t i = 0; i < m_desc.passes.size(); ++i)
+    {
       const auto& pass = m_desc.passes[i];
       oss << "    {\n";
-      
-      if(!pass.target.empty()) {
+
+      if(!pass.target.empty())
+      {
         oss << "      \"TARGET\": \"" << escape_json(pass.target) << "\",\n";
       }
-      
-      if(pass.persistent) {
+
+      if(pass.persistent)
+      {
         oss << "      \"PERSISTENT\": true,\n";
       }
-      
-      if(pass.float_storage) {
+
+      if(pass.float_storage)
+      {
         oss << "      \"FLOAT\": true,\n";
       }
-      
-      if(pass.nearest_filter) {
+
+      if(pass.nearest_filter)
+      {
         oss << "      \"FILTER\": \"NEAREST\",\n";
       }
-      
-      if(!pass.width_expression.empty()) {
+
+      if(!pass.width_expression.empty())
+      {
         // Check if it's a numeric value or expression
-        try {
+        try
+        {
           std::stod(pass.width_expression);
           oss << "      \"WIDTH\": " << pass.width_expression << ",\n";
-        } catch(...) {
+        }
+        catch(...)
+        {
           oss << "      \"WIDTH\": \"" << escape_json(pass.width_expression) << "\",\n";
         }
       }
-      
-      if(!pass.height_expression.empty()) {
+
+      if(!pass.height_expression.empty())
+      {
         // Check if it's a numeric value or expression
-        try {
+        try
+        {
           std::stod(pass.height_expression);
           oss << "      \"HEIGHT\": " << pass.height_expression;
-        } catch(...) {
+        }
+        catch(...)
+        {
           oss << "      \"HEIGHT\": \"" << escape_json(pass.height_expression) << "\"";
         }
       }
-      
+
       // Remove trailing comma if last property
       auto str = oss.str();
-      if(str.size() > 2 && str[str.size() - 2] == ',') {
+      if(str.size() > 2 && str[str.size() - 2] == ',')
+      {
         oss.str(str.substr(0, str.size() - 2) + "\n");
       }
-      
+
       oss << "    }";
       if(i < m_desc.passes.size() - 1)
         oss << ",";
       oss << "\n";
     }
-    
+
     oss << "  ]\n";
   }
-  
+
   oss << "}\n*/\n\n";
-  
+
   // Add the fragment shader code
-  if(!m_fragment.empty()) {
+  if(!m_fragment.empty())
+  {
     oss << m_fragment;
   }
-  
+
   return oss.str();
 }
 
@@ -1720,7 +2233,7 @@ void parser::parse_vsa()
   m_desc.description = "Vertex Shader Art";
   m_desc.categories.push_back("VSA");
   m_desc.default_vertex_shader = false;
-  
+
   // Add standard VSA inputs to descriptor
   // Vertex count control
   {
@@ -1848,6 +2361,210 @@ void main() {
   isf_FragColor = v_color;
 }
 )_";
+}
+
+void parser::parse_csf()
+{
+  using namespace std::literals;
+
+  auto [end, desc] = parse_isf_header(m_sourceFragment);
+  m_desc = std::move(desc);
+  m_desc.mode = descriptor::CSF;
+
+  std::string& compWithoutCSF = m_sourceFragment;
+  compWithoutCSF.erase(0, end + 2);
+
+  // Generate compute shader
+  m_fragment.clear();
+
+  // Add version
+  m_fragment += "#version 450\n\n";
+
+  // Add standard ProcessUBO uniforms (same as ISF/VSA)
+  m_fragment += GLSL45.defaultUniforms;
+  m_fragment += "\n";
+
+  // Add local_size declaration from first pass info
+  if(!m_desc.csf_passes.empty())
+  {
+    const auto& first_pass = m_desc.csf_passes[0];
+    m_fragment += "layout(local_size_x = ";
+    m_fragment += std::to_string(first_pass.local_size[0]);
+    m_fragment += ", local_size_y = ";
+    m_fragment += std::to_string(first_pass.local_size[1]);
+    m_fragment += ", local_size_z = ";
+    m_fragment += std::to_string(first_pass.local_size[2]);
+    m_fragment += ") in;\n\n";
+  }
+
+  // Generate struct definitions from TYPES section
+  if(!m_desc.types.empty())
+  {
+    m_fragment += "// Struct definitions from TYPES section\n";
+    for(const auto& type_def : m_desc.types)
+    {
+      m_fragment += "struct " + type_def.name + " \n{\n";
+
+      for(const auto& field : type_def.layout)
+      {
+        m_fragment += "  " + field.type + " " + field.name + ";\n";
+      }
+
+      // Add padding calculation for struct alignment
+      // This is a simplified approach - proper padding would require more complex size calculations
+      int field_count = type_def.layout.size();
+      int padding_needed
+          = (4 - (field_count % 4)) % 4; // Simple 16-byte alignment padding
+      for(int i = 0; i < padding_needed; i++)
+      {
+        m_fragment += "  float pad" + std::to_string(i) + ";\n";
+      }
+
+      m_fragment += "};\n\n";
+    }
+  }
+
+  // Generate uniform buffer for ISF-style inputs
+  int binding = 2; // Start at 2 since ProcessUBO takes slots 0 and 1
+  bool has_uniforms = false;
+
+  // Count ISF-style inputs (non-resource types)
+  for(const auto& inp : m_desc.inputs)
+  {
+    if(!ossia::get_if<storage_input>(&inp.data)
+       && !ossia::get_if<texture_input>(&inp.data)
+       && !ossia::get_if<csf_image_input>(&inp.data))
+    {
+      has_uniforms = true;
+      break;
+    }
+  }
+
+  if(has_uniforms)
+  {
+    m_fragment += "// Automatically generated uniform block from INPUTS\n";
+    m_fragment += "layout(std140, binding = 2) uniform Params {\n";
+
+    for(const auto& inp : m_desc.inputs)
+    {
+      // Generate uniform declarations for ISF-style inputs
+      if(ossia::get_if<float_input>(&inp.data))
+      {
+        m_fragment += "    float " + inp.name + ";\n";
+      }
+      else if(ossia::get_if<long_input>(&inp.data))
+      {
+        m_fragment += "    int " + inp.name + ";\n";
+      }
+      else if(ossia::get_if<bool_input>(&inp.data))
+      {
+        m_fragment += "    bool " + inp.name + ";\n";
+      }
+      else if(ossia::get_if<point2d_input>(&inp.data))
+      {
+        m_fragment += "    vec2 " + inp.name + ";\n";
+      }
+      else if(ossia::get_if<point3d_input>(&inp.data))
+      {
+        m_fragment += "    vec3 " + inp.name + ";\n";
+      }
+      else if(ossia::get_if<color_input>(&inp.data))
+      {
+        m_fragment += "    vec4 " + inp.name + ";\n";
+      }
+      else if(ossia::get_if<event_input>(&inp.data))
+      {
+        m_fragment += "    bool " + inp.name + ";\n";
+      }
+    }
+
+    m_fragment += "};\n\n";
+    binding++;
+  }
+
+  // Generate resource bindings
+  m_fragment += "// From RESOURCES - bindings assigned automatically\n";
+  for(const auto& inp : m_desc.inputs)
+  {
+    if(auto* storage_ptr = ossia::get_if<storage_input>(&inp.data))
+    {
+      const auto& storage = *storage_ptr;
+
+      m_fragment += "layout(binding = " + std::to_string(binding) + ", std430) ";
+
+      if(storage.access == "read_only")
+        m_fragment += "readonly ";
+      else if(storage.access == "write_only")
+        m_fragment += "writeonly ";
+      else
+        m_fragment += "restrict ";
+
+      m_fragment += "buffer " + inp.name + " {\n";
+
+      // Add struct members based on layout
+      for(const auto& field : storage.layout)
+      {
+        m_fragment += "    " + field.type + " " + field.name + ";\n";
+      }
+
+      m_fragment += "};\n\n";
+
+      binding++;
+    }
+    else if(auto* img_ptr = ossia::get_if<csf_image_input>(&inp.data))
+    {
+      const auto& img = *img_ptr;
+
+      m_fragment += "layout(binding = " + std::to_string(binding);
+
+      // Add format qualifier
+      if(!img.format.empty())
+      {
+        std::string format = img.format;
+        boost::algorithm::to_lower(format);
+        m_fragment += ", " + format;
+      }
+      else
+      {
+        m_fragment += ", rgba8"; // Default format
+      }
+
+      m_fragment += ") ";
+
+      // Add access qualifiers
+      if(img.access == "read_only")
+        m_fragment += "readonly ";
+      else if(img.access == "write_only")
+        m_fragment += "writeonly ";
+      else
+        m_fragment += "restrict ";
+
+      m_fragment += "uniform image2D " + inp.name + ";\n";
+      binding++;
+    }
+    else if(ossia::get_if<texture_input>(&inp.data))
+    {
+      m_fragment += "layout(binding = " + std::to_string(binding) + ") ";
+      m_fragment += "uniform sampler2D " + inp.name + ";\n";
+      binding++;
+    }
+  }
+
+  m_fragment += "\n";
+
+  // Add the user's compute shader code (without the JSON header)
+  boost::algorithm::trim(compWithoutCSF);
+  m_fragment += compWithoutCSF;
+}
+
+descriptor::Mode parser::mode() const
+{
+  return m_desc.mode;
+}
+
+std::string parser::compute_shader() const
+{
+  return m_fragment;
 }
 
 }
