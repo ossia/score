@@ -54,6 +54,8 @@ add_library(
   Threedim/TinyObj.cpp
   Threedim/Ply.hpp
   Threedim/Ply.cpp
+  Threedim/ArrayToBuffer.hpp
+  Threedim/ArrayToBuffer.cpp
   Threedim/ArrayToGeometry.hpp
   Threedim/ArrayToGeometry.cpp
   Threedim/StructureSynth.hpp
