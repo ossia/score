@@ -95,6 +95,7 @@ private:
 
   void updateTitlePos();
   QRectF boundingRect() const final override;
+  QRectF contentRect() const noexcept;
 
   double minimalContentWidth() const noexcept;
   double minimalContentHeight() const noexcept;

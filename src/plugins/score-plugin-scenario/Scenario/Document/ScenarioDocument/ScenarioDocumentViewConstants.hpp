@@ -29,6 +29,7 @@ public:
     StateOverlay,
     GraphInterval,
     ScenarioProcess,
+    NodalIntervalView,
 
     SlotFooterDelegate = UserType + 10000
   };

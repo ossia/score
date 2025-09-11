@@ -339,7 +339,7 @@ void NodeItem::setSelected(bool s)
   update();
 }
 
-QRectF NodeItem::boundingRect() const
+QRectF NodeItem::contentRect() const noexcept
 {
   if(!m_label)
   {
@@ -365,6 +365,11 @@ QRectF NodeItem::boundingRect() const
     }
     return {x, y, w, h};
   }
+}
+
+QRectF NodeItem::boundingRect() const
+{
+  return contentRect().adjusted(-2., -2., 2., 2.);
 }
 
 void NodeItem::createContentItem()
@@ -646,7 +651,7 @@ void NodeItem::paint(
 {
   auto& style = Process::Style::instance();
   const auto& skin = style.skin;
-  const auto rect = boundingRect();
+  const auto rect = contentRect();
   //painter->fillRect(boundingRect(), Qt::red);
   // return;
 

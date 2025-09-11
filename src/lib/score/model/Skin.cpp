@@ -510,6 +510,7 @@ BrushSet::BrushSet(const BrushSet& other) noexcept
     , pen0{other.pen0}
     , pen0_solid_round{other.pen0_solid_round}
     , pen1{other.pen1}
+    , pen1_dotted{other.pen1_dotted}
     , pen1_solid_flat_miter{other.pen1_solid_flat_miter}
     , pen1_5{other.pen1_5}
     , pen2{other.pen2}
@@ -530,6 +531,7 @@ BrushSet::BrushSet(BrushSet&& other) noexcept
     , pen0{other.pen0}
     , pen0_solid_round{other.pen0_solid_round}
     , pen1{other.pen1}
+    , pen1_dotted{other.pen1_dotted}
     , pen1_solid_flat_miter{other.pen1_solid_flat_miter}
     , pen1_5{other.pen1_5}
     , pen2{other.pen2}
@@ -551,6 +553,7 @@ BrushSet& BrushSet::operator=(const BrushSet& other) noexcept
   pen0 = other.pen0;
   pen0_solid_round = other.pen0_solid_round;
   pen1 = other.pen1;
+  pen1_dotted = other.pen1_dotted;
   pen1_solid_flat_miter = other.pen1_solid_flat_miter;
   pen1_5 = other.pen1_5;
   pen2 = other.pen2;
@@ -572,6 +575,7 @@ BrushSet& BrushSet::operator=(BrushSet&& other) noexcept
   pen0 = other.pen0;
   pen0_solid_round = other.pen0_solid_round;
   pen1 = other.pen1;
+  pen1_dotted = other.pen1_dotted;
   pen1_solid_flat_miter = other.pen1_solid_flat_miter;
   pen1_5 = other.pen1_5;
   pen2 = other.pen2;
@@ -616,6 +620,10 @@ void BrushSet::setupPens()
 
   pen1.setBrush(brush);
   pen1.setWidth(1);
+
+  pen1_dotted.setBrush(brush);
+  pen1_dotted.setWidthF(1.5);
+  pen1_dotted.setStyle(Qt::DotLine);
 
   pen1_solid_flat_miter.setBrush(brush);
   pen1_solid_flat_miter.setWidth(1);

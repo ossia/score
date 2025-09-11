@@ -22,6 +22,7 @@ struct SCORE_LIB_BASE_EXPORT BrushSet
   QPen pen0;
   QPen pen0_solid_round;
   QPen pen1;
+  QPen pen1_dotted;
   QPen pen1_solid_flat_miter;
   QPen pen1_5;
   QPen pen2;

@@ -134,85 +134,145 @@ QRectF CableItem::boundingRect() const
 
 bool CableItem::contains(const QPointF& point) const
 {
+  if(m_mode == None)
+    return false;
   updateStroke();
   return m_stroke.contains(point);
-  // return m_path.contains(point);
+}
+
+void CableItem::setPen(QPainter& painter, const Process::Style& style)
+{
+  switch(m_mode)
+  {
+    case Full: {
+      if(m_dropping)
+      {
+        [[unlikely]];
+        switch(m_type)
+        {
+          case Process::PortType::Message:
+            painter.setPen(style.DragDropDataCablePen());
+            break;
+          case Process::PortType::Audio:
+            painter.setPen(style.DragDropAudioCablePen());
+            break;
+          case Process::PortType::Midi:
+            painter.setPen(style.DragDropMidiCablePen());
+            break;
+          case Process::PortType::Texture:
+            painter.setPen(style.DragDropTextureCablePen());
+            break;
+          case Process::PortType::Geometry:
+            painter.setPen(style.DragDropGeometryCablePen());
+            break;
+        }
+      }
+      else if(!m_cable.selection.get())
+      {
+        [[likely]]
+        switch(m_type)
+        {
+          case Process::PortType::Message:
+            painter.setPen(style.DataCablePen());
+            break;
+          case Process::PortType::Audio:
+            painter.setPen(style.AudioCablePen());
+            break;
+          case Process::PortType::Midi:
+            painter.setPen(style.MidiCablePen());
+            break;
+          case Process::PortType::Texture:
+            painter.setPen(style.TextureCablePen());
+            break;
+          case Process::PortType::Geometry:
+            painter.setPen(style.GeometryCablePen());
+            break;
+        }
+      }
+      else
+      {
+        switch(m_type)
+        {
+          case Process::PortType::Message:
+            painter.setPen(style.SelectedDataCablePen());
+            break;
+          case Process::PortType::Audio:
+            painter.setPen(style.SelectedAudioCablePen());
+            break;
+          case Process::PortType::Midi:
+            painter.setPen(style.SelectedMidiCablePen());
+            break;
+          case Process::PortType::Texture:
+            painter.setPen(style.SelectedTextureCablePen());
+            break;
+          case Process::PortType::Geometry:
+            painter.setPen(style.SelectedGeometryCablePen());
+            break;
+        }
+      }
+      break;
+    }
+    case Partial_P1:
+    case Partial_P2: {
+      if(!m_cable.selection.get())
+      {
+        [[likely]]
+        switch(m_type)
+        {
+          case Process::PortType::Message:
+            painter.setPen(style.skin.Cable2.main.pen1_dotted);
+            break;
+          case Process::PortType::Audio:
+            painter.setPen(style.skin.Cable1.main.pen1_dotted);
+            break;
+          case Process::PortType::Midi:
+            painter.setPen(style.skin.Cable3.main.pen1_dotted);
+            break;
+          case Process::PortType::Texture:
+            painter.setPen(style.skin.LightGray.main.pen1_dotted);
+            break;
+          case Process::PortType::Geometry:
+            painter.setPen(style.skin.Emphasis3.main.pen1_dotted);
+            break;
+        }
+      }
+      else
+      {
+        switch(m_type)
+        {
+          case Process::PortType::Message:
+            painter.setPen(style.skin.SelectedCable2.lighter.pen1_dotted);
+            break;
+          case Process::PortType::Audio:
+            painter.setPen(style.skin.SelectedCable1.lighter.pen1_dotted);
+            break;
+          case Process::PortType::Midi:
+            painter.setPen(style.skin.SelectedCable3.lighter.pen1_dotted);
+            break;
+          case Process::PortType::Texture:
+            painter.setPen(style.skin.LightGray.lighter.pen1_dotted);
+            break;
+          case Process::PortType::Geometry:
+            painter.setPen(style.skin.Emphasis3.lighter.pen1_dotted);
+            break;
+        }
+      }
+      break;
+    }
+    default:
+      break;
+  }
 }
 
 void CableItem::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  if(m_p1 && m_p2)
+  if(m_p1 && m_p2 && m_mode != CableDisplayMode::None)
   {
-    painter->setRenderHint(QPainter::Antialiasing, true);
     auto& style = Process::Style::instance();
-    if(m_dropping)
-    {
-      [[unlikely]];
-      switch(m_type)
-      {
-        case Process::PortType::Message:
-          painter->setPen(style.DragDropDataCablePen());
-          break;
-        case Process::PortType::Audio:
-          painter->setPen(style.DragDropAudioCablePen());
-          break;
-        case Process::PortType::Midi:
-          painter->setPen(style.DragDropMidiCablePen());
-          break;
-        case Process::PortType::Texture:
-          painter->setPen(style.DragDropTextureCablePen());
-          break;
-        case Process::PortType::Geometry:
-          painter->setPen(style.DragDropGeometryCablePen());
-          break;
-      }
-    }
-    else if(!m_cable.selection.get())
-    {
-      [[likely]]
-      switch(m_type)
-      {
-        case Process::PortType::Message:
-          painter->setPen(style.DataCablePen());
-          break;
-        case Process::PortType::Audio:
-          painter->setPen(style.AudioCablePen());
-          break;
-        case Process::PortType::Midi:
-          painter->setPen(style.MidiCablePen());
-          break;
-        case Process::PortType::Texture:
-          painter->setPen(style.TextureCablePen());
-          break;
-        case Process::PortType::Geometry:
-          painter->setPen(style.GeometryCablePen());
-          break;
-      }
-    }
-    else
-    {
-      switch(m_type)
-      {
-        case Process::PortType::Message:
-          painter->setPen(style.SelectedDataCablePen());
-          break;
-        case Process::PortType::Audio:
-          painter->setPen(style.SelectedAudioCablePen());
-          break;
-        case Process::PortType::Midi:
-          painter->setPen(style.SelectedMidiCablePen());
-          break;
-        case Process::PortType::Texture:
-          painter->setPen(style.SelectedTextureCablePen());
-          break;
-        case Process::PortType::Geometry:
-          painter->setPen(style.SelectedGeometryCablePen());
-          break;
-      }
-    }
-
+    painter->setRenderHint(QPainter::Antialiasing, true);
     painter->setBrush(style.TransparentBrush());
+    setPen(*painter, style);
     painter->drawPath(m_path);
     painter->setRenderHint(QPainter::Antialiasing, false);
   }
@@ -229,27 +289,39 @@ void CableItem::resize()
     auto p1 = m_p1->scenePos() + QPointF(6., 6.) * m_p1->sceneTransform().m11();
     auto p2 = m_p2->scenePos() + QPointF(6., 6.) * m_p2->sceneTransform().m11();
 
-    auto rect = QRectF{p1, p2};
-    auto nrect = rect.normalized();
-    this->setPos(nrect.topLeft());
-    nrect.translate(-nrect.topLeft().x(), -nrect.topLeft().y());
+    this->setPos(QRectF{p1, p2}.normalized().topLeft());
 
     p1 = mapFromScene(p1);
     p2 = mapFromScene(p2);
-
     bool x_dir = p1.x() > p2.x();
-    auto first = x_dir ? p1 : p2;
-    auto last = !x_dir ? p1 : p2;
 
-    int half_length = std::floor(0.5 * (last.x() - first.x()));
+    if(m_mode == Full)
+    {
+      auto first = x_dir ? p1 : p2;
+      auto last = !x_dir ? p1 : p2;
 
-    auto y_direction = last.y() > first.y() ? 1 : -1;
-    auto offset_y = y_direction * half_length / 10.f;
+      int half_length = std::floor(0.5 * (last.x() - first.x()));
 
-    m_path.moveTo(first.x(), first.y());
-    m_path.cubicTo(
-        first.x() + half_length, first.y() + offset_y, last.x() - half_length,
-        last.y() - offset_y, last.x(), last.y());
+      auto y_direction = last.y() > first.y() ? 1 : -1;
+      auto offset_y = y_direction * half_length / 10.f;
+
+      m_path.moveTo(first.x(), first.y());
+      m_path.cubicTo(
+          first.x() + half_length, first.y() + offset_y, last.x() - half_length,
+          last.y() - offset_y, last.x(), last.y());
+    }
+    else if(m_mode == Partial_P1)
+    {
+      auto dir = (p2 - p1) / QLineF(p1, p2).length();
+      m_path.moveTo(p1.x(), p1.y());
+      m_path.lineTo(p1 + 50. * dir);
+    }
+    else if(m_mode == Partial_P2)
+    {
+      auto dir = (p1 - p2) / QLineF(p1, p2).length();
+      m_path.moveTo(p2.x(), p2.y());
+      m_path.lineTo(p2 + 50. * dir);
+    }
   }
 
   update();
@@ -278,41 +350,75 @@ static bool isPortActuallyVisible(QGraphicsItem* port)
   return true;
 }
 
-static bool cableMustBeShown(CableItem& self, PortItem* p1, PortItem* p2)
+static CableDisplayMode cableMustBeShown(CableItem& self, PortItem* p1, PortItem* p2)
 {
   if(!p1 || !p2)
-    return false;
+    return None;
 
-  if(!p1->isVisible() || !p2->isVisible())
-    return false;
+  {
+    const bool p1_vis = p1->isVisible();
+    const bool p2_vis = p2->isVisible();
+    if(p1_vis && !p2_vis)
+      return Partial_P1;
+    else if(!p1_vis && p2_vis)
+      return Partial_P2;
+    else if(!p1_vis && !p2_vis)
+      return None;
+  }
 
   auto proc_p1 = Process::parentProcess(&p1->port());
   auto proc_p2 = Process::parentProcess(&p2->port());
 
-  if(proc_p1 && proc_p2 && proc_p1->parent() == proc_p2->parent() && self.parentItem()
-     && self.parentItem()->type() == 65537)
-    return true;
+  if(proc_p1 && proc_p2 && proc_p1->parent() == proc_p2->parent())
+  {
+    if(self.parentItem() && self.parentItem()->type() == 65537) // We're in full view
+      return Full;
 
-  return isPortActuallyVisible(p1) && isPortActuallyVisible(p2);
+    // Ideal heuritstic: find the closest {interval, nodalcontainer} item for p1 and p2.
+    // But too slow so we approximate - there is a potential issue if both are in different
+    // intervals themselves in a scenario, itself in a single nodal view
+    auto ancestor = p1->commonAncestorItem(p2);
+    if(ancestor
+       && ancestor->type()
+              == (QGraphicsItem::UserType + 5555)) // we're in the same NodalContainer
+      return Full;
+  }
+
+  {
+    const bool p1_vis = isPortActuallyVisible(p1);
+    const bool p2_vis = isPortActuallyVisible(p2);
+    if(p1_vis && p2_vis)
+      return Full;
+    else if(p1_vis && !p2_vis)
+      return Partial_P1;
+    else if(!p1_vis && p2_vis)
+      return Partial_P2;
+    else
+      return None;
+  }
 }
 
 void CableItem::check()
 {
-  if(g_cables_enabled && cableMustBeShown(*this, m_p1, m_p2))
+  if(g_cables_enabled)
   {
-    if(!isEnabled())
+    m_mode = cableMustBeShown(*this, m_p1, m_p2);
+    if(m_mode != CableDisplayMode::None)
     {
-      setVisible(true);
-      setEnabled(true);
+      if(!isEnabled())
+      {
+        setVisible(true);
+        setEnabled(true);
+      }
+      else if(!isVisible())
+      {
+        setVisible(true);
+      }
+      m_type = m_p1->port().type();
+      if(auto c_o = m_p1->commonAncestorItem(m_p2))
+        setParentItem(c_o);
+      resize();
     }
-    else if(!isVisible())
-    {
-      setVisible(true);
-    }
-    m_type = m_p1->port().type();
-    if(auto c_o = m_p1->commonAncestorItem(m_p2))
-      setParentItem(c_o);
-    resize();
   }
   else if(isEnabled())
   {
@@ -346,12 +452,18 @@ void CableItem::setTarget(PortItem* p)
 
 QPainterPath CableItem::shape() const
 {
-  return cableStroker().createStroke(m_path);
+  if(m_mode == None)
+    return {};
+  updateStroke();
+  return m_stroke;
 }
 
 QPainterPath CableItem::opaqueArea() const
 {
-  return cableStroker().createStroke(m_path);
+  if(m_mode == None)
+    return {};
+  updateStroke();
+  return m_stroke;
 }
 
 void CableItem::mousePressEvent(QGraphicsSceneMouseEvent* event)

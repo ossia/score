@@ -18,9 +18,18 @@ class CableItem;
 namespace Process
 {
 struct Context;
+struct Style;
 }
 namespace Dataflow
 {
+enum CableDisplayMode : uint8_t
+{
+  None,
+  Partial_P1,
+  Partial_P2,
+  Full
+};
+
 class PortItem;
 class SCORE_LIB_PROCESS_EXPORT CableItem final
     : public QObject
@@ -67,13 +76,15 @@ private:
   void keyPressEvent(QKeyEvent* event) override;
   void keyReleaseEvent(QKeyEvent* event) override;
 
+  void setPen(QPainter& painter, const Process::Style& style);
   void updateStroke() const;
   const Process::Cable& m_cable;
   const Process::Context& m_context;
   QPointer<PortItem> m_p1, m_p2;
   QPainterPath m_path;
   mutable QPainterPath m_stroke;
-  Process::PortType m_type{};
-  bool m_dropping{};
+  Process::PortType m_type : 4 {};
+  bool m_dropping : 1 {};
+  CableDisplayMode m_mode : 2 {CableDisplayMode::None};
 };
 }

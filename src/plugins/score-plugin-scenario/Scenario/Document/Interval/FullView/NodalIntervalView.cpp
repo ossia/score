@@ -1,6 +1,9 @@
 #include "NodalIntervalView.hpp"
 
 #include <Scenario/Application/Drops/DropOnCable.hpp>
+#include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/IntervalPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
@@ -10,6 +13,9 @@
 #include <score/graphics/ZoomItem.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/selection/SelectionStack.hpp>
+#include <score/tools/Bind.hpp>
+
+#include <ossia/detail/math.hpp>
 
 #include <QGraphicsSceneDragDropEvent>
 #include <QGraphicsView>
@@ -17,10 +23,21 @@
 
 #include <wobjectimpl.h>
 
-W_OBJECT_IMPL(Scenario::NodalIntervalView)
 namespace Scenario
 {
+struct NodalContainer : public score::EmptyRectItem
+{
+  W_OBJECT(NodalContainer)
+public:
+  using score::EmptyRectItem::EmptyRectItem;
 
+  int type() const noexcept { return QGraphicsItem::UserType + 5555; }
+};
+}
+W_OBJECT_IMPL(Scenario::NodalIntervalView)
+W_OBJECT_IMPL(Scenario::NodalContainer)
+namespace Scenario
+{
 NodalIntervalView::NodalIntervalView(
     NodalIntervalView::ItemsToShow sh, const IntervalModel& model,
     const Process::Context& ctx, QGraphicsItem* parent)
@@ -28,7 +45,7 @@ NodalIntervalView::NodalIntervalView(
     , m_model{model}
     , m_context{ctx}
     , m_itemsToShow{sh}
-    , m_container{new score::EmptyRectItem{this}}
+    , m_container{new NodalContainer{this}}
 {
   setAcceptDrops(true);
   setAcceptedMouseButtons(Qt::AllButtons);
