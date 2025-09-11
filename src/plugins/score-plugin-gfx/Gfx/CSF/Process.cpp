@@ -45,13 +45,11 @@ static const auto defaultCSF = QStringLiteral(R"_(/*{
     "FORMAT": "RGBA8"
   }
 ],
-"DISPATCH": {
+"PASSES": [{
   "LOCAL_SIZE": [16, 16, 1],
   "EXECUTION_MODEL": { "TYPE": "2D_IMAGE", "TARGET": "OutputImage" }
-}
+}]
 }*/
-
-layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
 void main() {
     ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
@@ -68,7 +66,7 @@ Model::Model(
     : Process::ProcessModel{duration, id, "gfxProcess", parent}
 {
   metadata().setInstanceName(*this);
-  (void)setScript(defaultCSF);
+  (void)setCompute(defaultCSF);
 }
 
 Model::Model(
@@ -80,7 +78,7 @@ Model::Model(
 
   QFile f{init};
   if(f.open(QIODevice::ReadOnly))
-    (void)setScript(f.readAll());
+    (void)setCompute(f.readAll());
 }
 
 Model::~Model() { }
@@ -472,14 +470,20 @@ void Model::setupCSF(const isf::descriptor& desc)
         alternatives.emplace_back("RGBA8", (int)QRhiTexture::RGBA8);
         alternatives.emplace_back("BGRA8", (int)QRhiTexture::BGRA8);
         alternatives.emplace_back("R8", (int)QRhiTexture::R8);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
         alternatives.emplace_back("RG8", (int)QRhiTexture::RG8);
+#endif
         alternatives.emplace_back("R16", (int)QRhiTexture::R16);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
         alternatives.emplace_back("RG16", (int)QRhiTexture::RG16);
+#endif
         alternatives.emplace_back("RGBA16F", (int)QRhiTexture::RGBA16F);
         alternatives.emplace_back("RGBA32F", (int)QRhiTexture::RGBA32F);
         alternatives.emplace_back("R16F", (int)QRhiTexture::R16F);
         alternatives.emplace_back("R32F", (int)QRhiTexture::R32F);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
         alternatives.emplace_back("RGB10A2", (int)QRhiTexture::RGB10A2);
+#endif
 
         auto format_inl = new Process::ComboBox{
             alternatives, (int)0, QString::fromStdString(input.name) + " format",

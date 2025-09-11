@@ -382,12 +382,19 @@ static constexpr QRhiTexture::Format ossia_format_to_rhi(ossia::texture_format f
       return QRhiTexture::Format::BGRA8;
     case ossia::texture_format::R8:
       return QRhiTexture::Format::R8;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
     case ossia::texture_format::RG8:
       return QRhiTexture::Format::RG8;
+#endif
+
     case ossia::texture_format::R16:
       return QRhiTexture::Format::R16;
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
     case ossia::texture_format::RG16:
       return QRhiTexture::Format::RG16;
+#endif
+
     case ossia::texture_format::RED_OR_ALPHA8:
       return QRhiTexture::Format::RED_OR_ALPHA8;
 
@@ -400,7 +407,7 @@ static constexpr QRhiTexture::Format ossia_format_to_rhi(ossia::texture_format f
     case ossia::texture_format::R32F:
       return QRhiTexture::Format::R32F;
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
     case ossia::texture_format::RGB10A2:
       return QRhiTexture::Format::RGB10A2;
 #endif

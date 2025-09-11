@@ -41,19 +41,29 @@ QRhiTexture::Format RenderedCSFNode::getTextureFormat(const QString& format) con
     return QRhiTexture::BGRA8;
   else if(format == "R8")
     return QRhiTexture::R8;
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
   else if(format == "RG8")
     return QRhiTexture::RG8;
+#endif
   else if(format == "R16")
     return QRhiTexture::R16;
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
   else if(format == "RG16")
     return QRhiTexture::RG16;
+#endif
   else if(format == "RGBA16F") return QRhiTexture::RGBA16F;
   else if(format == "RGBA32F") return QRhiTexture::RGBA32F;
   else if(format == "R16F")
     return QRhiTexture::R16F;
   else if(format == "R32F")
     return QRhiTexture::R32F;
-  else if(format == "RGB10A2") return QRhiTexture::RGB10A2;
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
+  else if(format == "RGB10A2")
+    return QRhiTexture::RGB10A2;
+#endif
   // Default to RGBA8 if format not recognized
   return QRhiTexture::RGBA8;
 }
