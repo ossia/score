@@ -242,7 +242,7 @@ void AutomatablePortItem::dropEvent(QGraphicsSceneDragDropEvent* event)
   auto& mime = *event->mimeData();
 
   auto& ctx = score::IDocument::documentContext(m_port);
-  if(mime.formats().contains(score::mime::port()))
+  if(mime.hasFormat(score::mime::port()))
   {
     if(clickedPort && this != clickedPort)
     {
@@ -253,7 +253,7 @@ void AutomatablePortItem::dropEvent(QGraphicsSceneDragDropEvent* event)
 
   CommandDispatcher<> disp{ctx.commandStack};
 
-  if(mime.formats().contains(score::mime::nodelist()))
+  if(mime.hasFormat(score::mime::nodelist()))
   {
     Mime<Device::FreeNodeList>::Deserializer des{mime};
     Device::FreeNodeList nl = des.deserialize();
@@ -273,7 +273,7 @@ void AutomatablePortItem::dropEvent(QGraphicsSceneDragDropEvent* event)
     disp.submit(new Process::ChangePortSettings{
         m_port, {State::AddressAccessor{nl[0].first}, std::move(*addr)}});
   }
-  else if(mime.formats().contains(score::mime::messagelist()))
+  else if(mime.hasFormat(score::mime::messagelist()))
   {
     Mime<State::MessageList>::Deserializer des{mime};
     State::MessageList ml = des.deserialize();

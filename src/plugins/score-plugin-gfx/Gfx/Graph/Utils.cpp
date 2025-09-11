@@ -60,7 +60,10 @@ TextureRenderTarget createRenderTarget(
     const RenderState& state, QRhiTexture::Format fmt, QSize sz, int samples, bool depth,
     QRhiTexture::Flags flags)
 {
-  auto texture = state.rhi->newTexture(fmt, sz, 1, QRhiTexture::RenderTarget | flags);
+  auto texture = state.rhi->newTexture(
+      fmt, sz, 1,
+      QRhiTexture::RenderTarget | QRhiTexture::UsedWithLoadStore | QRhiTexture::MipMapped
+          | QRhiTexture::UsedWithGenerateMips | flags);
   texture->setName("createRenderTarget::texture");
   SCORE_ASSERT(texture->create());
   return createRenderTarget(state, texture, samples, depth);

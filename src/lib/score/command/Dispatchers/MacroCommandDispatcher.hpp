@@ -64,6 +64,8 @@ public:
     }
   }
 
+  void release() { m_aggregateCommand.release(); }
+
   auto command() const { return m_aggregateCommand.get(); }
 
 protected:

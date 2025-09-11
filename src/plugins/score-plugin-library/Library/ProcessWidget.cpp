@@ -143,7 +143,7 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
                   "and sometimes in effect chains."));
 
   {
-    auto processFilterProxy = new RecursiveFilterProxy{this};
+    auto processFilterProxy = new ProcessFilterProxy{this};
     processFilterProxy->setSourceModel(m_processModel);
     processFilterProxy->setFilterKeyColumn(0);
     slay->addWidget(new ItemModelFilterLineEdit{*processFilterProxy, m_tv, this});

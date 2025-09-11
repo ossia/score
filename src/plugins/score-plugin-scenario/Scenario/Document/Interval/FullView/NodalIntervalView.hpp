@@ -1,23 +1,20 @@
 #pragma once
 #include <Process/Dataflow/NodeItem.hpp>
 
-#include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Interval/IntervalPresenter.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 
 #include <score/graphics/RectItem.hpp>
-#include <score/tools/Bind.hpp>
-
-#include <ossia/detail/math.hpp>
 
 #include <nano_observer.hpp>
 
 namespace Scenario
 {
+class IntervalModel;
 class NodalIntervalView final
     : public score::EmptyRectItem
     , public Nano::Observer
 {
+  W_OBJECT(NodalIntervalView)
 public:
   enum ItemsToShow
   {
@@ -39,11 +36,13 @@ public:
   QRectF enclosingRect() const noexcept;
 
   QGraphicsItem& nodeContainer() const noexcept { return *m_container; }
+  int type() const override { return ItemType::Type::NodalIntervalView; }
 
 private:
   void on_processAdded(const Process::ProcessModel& proc);
   void on_processRemoving(const Process::ProcessModel& model);
   void on_zoomRatioChanged(ZoomRatio ratio);
+  void on_dropOnNode(const QPointF& pt, const QMimeData& mime);
 
   void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;
   void dragLeaveEvent(QGraphicsSceneDragDropEvent* event) override;

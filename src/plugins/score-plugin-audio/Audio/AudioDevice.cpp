@@ -131,7 +131,6 @@ bool AudioDevice::reconnect()
     // TODO save the reason of the non-connection.
   }
 
-  qDebug() << "Audio device emits changed:" << this;
   if(m_dev.get() != old_dev)
     deviceChanged(old_dev, m_dev.get());
 

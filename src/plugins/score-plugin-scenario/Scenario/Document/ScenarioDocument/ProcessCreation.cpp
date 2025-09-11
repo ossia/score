@@ -9,22 +9,25 @@
 
 #include <Library/ProcessesItemModel.hpp>
 
+#include <score/command/Dispatchers/RuntimeDispatcher.hpp>
 #include <score/selection/SelectionStack.hpp>
 
 namespace Scenario
 {
 void createProcessInCable(
-    Scenario::ScenarioDocumentPresenter& parent, const Library::ProcessData& dat,
+    const Process::Context& context, const Scenario::ScenarioDocumentModel& model,
+    const Process::ProcessData& dat, std::optional<TimeVal> tv,
+    std::function<void(Process::ProcessModel&, score::Dispatcher&)> setup,
     const Process::Cable& cbl)
 {
-  auto& orig_source = cbl.source().find(parent.context());
-  auto& orig_sink = cbl.sink().find(parent.context());
+  auto& orig_source = cbl.source().find(context);
+  auto& orig_sink = cbl.sink().find(context);
   SCORE_ASSERT(orig_source.type() == orig_sink.type());
   auto type = orig_source.type();
 
   if(auto parent_itv = Scenario::closestParentInterval(&orig_source))
   {
-    Command::Macro m{new Command::DropProcessInIntervalMacro, parent.context()};
+    Command::Macro m{new Command::DropProcessInIntervalMacro, context};
 
     auto pos = QPointF{};
     if(auto parent_source_proc
@@ -37,6 +40,12 @@ void createProcessInCable(
     auto proc = m.createProcessInNewSlot(*parent_itv, dat, pos);
     if(proc)
     {
+      if(setup)
+      {
+        score::Dispatcher_T<Scenario::Command::Macro> disp{m};
+        setup(*proc, disp);
+      }
+
       // TODO all of this should be made atomic...
       if(!proc->inlets().empty() && !proc->outlets().empty())
       {
@@ -47,12 +56,12 @@ void createProcessInCable(
         {
           // orig_source goes into new_inlet
           // new_outlet goes into orig_sink
-          m.removeCable(parent.model(), cbl);
-          m.createCable(parent.model(), orig_source, *new_inlet);
-          m.createCable(parent.model(), *new_outlet, orig_sink);
+          m.removeCable(model, cbl);
+          m.createCable(model, orig_source, *new_inlet);
+          m.createCable(model, *new_outlet, orig_sink);
         }
 
-        parent.context().selectionStack.pushNewSelection({proc});
+        context.selectionStack.pushNewSelection({proc});
       }
     }
 
@@ -61,17 +70,17 @@ void createProcessInCable(
 }
 
 void loadPresetInCable(
-    Scenario::ScenarioDocumentPresenter& parent, const Process::Preset& dat,
-    const Process::Cable& cbl)
+    const Process::Context& context, const Scenario::ScenarioDocumentModel& model,
+    const Process::Preset& dat, const Process::Cable& cbl)
 {
-  auto& orig_source = cbl.source().find(parent.context());
-  auto& orig_sink = cbl.sink().find(parent.context());
+  auto& orig_source = cbl.source().find(context);
+  auto& orig_sink = cbl.sink().find(context);
   SCORE_ASSERT(orig_source.type() == orig_sink.type());
   auto type = orig_source.type();
 
   if(auto parent_itv = Scenario::closestParentInterval(&orig_source))
   {
-    Command::Macro m{new Command::DropProcessInIntervalMacro, parent.context()};
+    Command::Macro m{new Command::DropProcessInIntervalMacro, context};
 
     auto pos = QPointF{};
     if(auto parent_source_proc
@@ -94,12 +103,12 @@ void loadPresetInCable(
         {
           // orig_source goes into new_inlet
           // new_outlet goes into orig_sink
-          m.removeCable(parent.model(), cbl);
-          m.createCable(parent.model(), orig_source, *new_inlet);
-          m.createCable(parent.model(), *new_outlet, orig_sink);
+          m.removeCable(model, cbl);
+          m.createCable(model, orig_source, *new_inlet);
+          m.createCable(model, *new_outlet, orig_sink);
         }
 
-        parent.context().selectionStack.pushNewSelection({proc});
+        context.selectionStack.pushNewSelection({proc});
       }
     }
 
@@ -108,7 +117,9 @@ void loadPresetInCable(
 }
 
 void createProcessBeforePort(
-    Scenario::ScenarioDocumentPresenter& parent, const Library::ProcessData& dat,
+    Scenario::ScenarioDocumentPresenter& parent, const Process::ProcessData& dat,
+    std::optional<TimeVal> tv,
+    std::function<void(Process::ProcessModel&, score::Dispatcher&)> setup,
     const Process::ProcessModel& parentProcess, const Process::Inlet& p)
 {
   if(auto parent_itv = Scenario::closestParentInterval(const_cast<Process::Inlet*>(&p)))
@@ -118,6 +129,12 @@ void createProcessBeforePort(
     auto proc = m.createProcessInNewSlot(*parent_itv, dat, QPointF{});
     if(proc)
     {
+      if(setup)
+      {
+        score::Dispatcher_T<Scenario::Command::Macro> disp{m};
+        setup(*proc, disp);
+      }
+
       auto pos = parentProcess.position();
       pos.rx() -= proc->size().width() + 40;
       m.setProperty<Process::ProcessModel::p_position>(*proc, pos);
@@ -153,7 +170,9 @@ void createProcessBeforePort(
 }
 
 void createProcessAfterPort(
-    Scenario::ScenarioDocumentPresenter& parent, const Library::ProcessData& dat,
+    Scenario::ScenarioDocumentPresenter& parent, const Process::ProcessData& dat,
+    std::optional<TimeVal> tv,
+    std::function<void(Process::ProcessModel&, score::Dispatcher&)> setup,
     const Process::ProcessModel& parentProcess, const Process::Outlet& p)
 {
   if(auto parent_itv = Scenario::closestParentInterval(const_cast<Process::Outlet*>(&p)))
@@ -165,6 +184,12 @@ void createProcessAfterPort(
     auto proc = m.createProcessInNewSlot(*parent_itv, dat, pos);
     if(proc)
     {
+      if(setup)
+      {
+        score::Dispatcher_T<Scenario::Command::Macro> disp{m};
+        setup(*proc, disp);
+      }
+
       // TODO all of this should be made atomic...
       if(!proc->inlets().empty())
       {

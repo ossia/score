@@ -113,7 +113,7 @@ void main()
     // 1. Process the glsl and prefix all the functions
     std::string str = processed.toStdString();
 
-    isf::parser p{str};
+    isf::parser p{str, isf::parser::ShaderType::GeometryFilter};
     auto res = p.geometry_filter();
     auto r = QString::fromStdString(res);
     r.replace("%next%", "4");
@@ -184,7 +184,7 @@ Process::ScriptChangeResult Model::setScript(const QString& f)
     {
       m_inlets.push_back(new GeometryInlet{Id<Process::Port>(0), this});
 
-      isf::parser p{processed.toStdString()};
+      isf::parser p{processed.toStdString(), isf::parser::ShaderType::GeometryFilter};
       m_processedProgram.descriptor = p.data();
       m_processedProgram.shader = QString::fromStdString(p.geometry_filter());
 
@@ -433,6 +433,28 @@ void Model::setupIsf(const isf::descriptor& desc)
     Process::Inlet* operator()(const audioHist_input& v)
     {
       auto port = new Process::AudioInlet(Id<Process::Port>(i), &self);
+      self.m_inlets.push_back(port);
+      return port;
+    }
+    
+    // CSF-specific input handlers
+    Process::Inlet* operator()(const storage_input& v)
+    {
+      // Storage buffers are typically not user-controllable inputs
+      // They're managed by the system, so we don't create a UI control
+      return nullptr;
+    }
+    
+    Process::Inlet* operator()(const texture_input& v)
+    {
+      auto port = new Gfx::TextureInlet(Id<Process::Port>(i), &self);
+      self.m_inlets.push_back(port);
+      return port;
+    }
+    
+    Process::Inlet* operator()(const csf_image_input& v)
+    {
+      auto port = new Gfx::TextureInlet(Id<Process::Port>(i), &self);
       self.m_inlets.push_back(port);
       return port;
     }

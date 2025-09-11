@@ -87,13 +87,13 @@ void DropHandler::dropData(
 std::vector<MidiTrack::MidiSong>
 MidiTrack::parse(const QMimeData& mime, const score::DocumentContext& ctx)
 {
-  if(mime.formats().contains("audio/midi"))
+  if(mime.hasFormat("audio/midi"))
   {
     auto res = parse(mime.data("audio/midi"), ctx);
     if(!res.tracks.empty())
       return {std::move(res)};
   }
-  else if(mime.formats().contains("audio/x-midi"))
+  else if(mime.hasFormat("audio/x-midi"))
   {
     auto res = parse(mime.data("audio/x-midi"), ctx);
     if(!res.tracks.empty())

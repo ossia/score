@@ -5,6 +5,7 @@
 #include "ZoomPolicy.hpp"
 
 #include <Process/DocumentPlugin.hpp>
+#include <Process/Drop/ProcessDropHandler.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/LayerView.hpp>
 #include <Process/Process.hpp>
@@ -12,6 +13,7 @@
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Process/TimeValue.hpp>
 
+#include <Scenario/Application/Drops/DropOnCable.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
@@ -210,8 +212,41 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
   setDisplayedInterval(&model().baseInterval());
   QTimer::singleShot(0, [this] { view().minimap().zoom(0.0); });
 
+  // Drop on cables
+  connect(
+      &m_dataflow, &Process::DataflowManager::cableItemCreated, this,
+      &ScenarioDocumentPresenter::on_cableItemCreated);
   model().cables.mutable_added.connect<&ScenarioDocumentPresenter::on_cableAdded>(*this);
   model().cables.removing.connect<&ScenarioDocumentPresenter::on_cableRemoving>(*this);
+
+  // Need to reset cables & ports in case of drop
+  // due to https://bugreports.qt.io/browse/QTBUG-140114
+  con(view().view(), &ProcessGraphicsView::dropFinished, this,
+      &ScenarioDocumentPresenter::on_dropFinished);
+}
+
+void ScenarioDocumentPresenter::on_dropFinished()
+{
+  for(auto& [model, item] : this->m_dataflow.cables())
+  {
+    if(!item)
+      continue;
+    item->resetDrop();
+  }
+  for(auto& [model, item] : this->m_dataflow.ports())
+  {
+    if(!item)
+      continue;
+    item->resetDrop();
+    QGraphicsItem* parent = item->parentItem();
+    Process::NodeItem* node{};
+    while(parent && !(node = qgraphicsitem_cast<Process::NodeItem*>(parent)))
+    {
+      parent = parent->parentItem();
+    }
+    if(node)
+      node->resetDrop();
+  }
 }
 
 void ScenarioDocumentPresenter::recenterNodal()
@@ -638,6 +673,24 @@ void ScenarioDocumentPresenter::on_addPresetFromLibrary(const Process::Preset& d
     void operator()(ossia::monostate) const noexcept { }
   } vis{dat};
   ossia::visit(vis, m_centralDisplay);
+}
+
+void ScenarioDocumentPresenter::on_cableItemCreated(Dataflow::CableItem* item)
+{
+  connect(
+      item, &Dataflow::CableItem::dropReceived, this,
+      &ScenarioDocumentPresenter::on_dropOnCable);
+}
+
+void ScenarioDocumentPresenter::on_dropOnCable(const QPointF& pos, const QMimeData& mime)
+{
+  auto item = qobject_cast<Dataflow::CableItem*>(QObject::sender());
+  if(!item)
+    return;
+
+  auto dropOnCable = new Scenario::DropOnCable{*item, model(), m_context};
+  dropOnCable->drop(pos, mime);
+  dropOnCable->deleteLater();
 }
 
 void ScenarioDocumentPresenter::restoreZoom()

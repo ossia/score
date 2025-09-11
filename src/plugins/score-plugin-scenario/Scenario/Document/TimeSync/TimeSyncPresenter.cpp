@@ -123,7 +123,7 @@ TriggerView& TimeSyncPresenter::trigger() const noexcept
 void TimeSyncPresenter::handleDrop(const QPointF& pos, const QMimeData& mime)
 {
   // If the mime data has states in it we can handle it.
-  if(mime.formats().contains(score::mime::messagelist()))
+  if(mime.hasFormat(score::mime::messagelist()))
   {
     Mime<State::MessageList>::Deserializer des{mime};
     State::MessageList ml = des.deserialize();

@@ -78,6 +78,13 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
       m_removeElements, &QAction::triggered, this,
       &ObjectMenuActions::removeSelectedElements);
 
+  m_removeElementsKeepLinked = new QAction{tr("Remove cable (keep link)"), this};
+  // NOTE : the shortcut is defined in ScenarioActions.hpp
+  m_removeElementsKeepLinked->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+  connect(
+      m_removeElementsKeepLinked, &QAction::triggered, this,
+      &ObjectMenuActions::removeSelectedElements);
+
   // COPY/CUT
   m_copyContent = new QAction{tr("Copy"), this};
   m_copyContent->setShortcut(QKeySequence::Copy);
@@ -262,6 +269,7 @@ void ObjectMenuActions::makeGUIElements(score::GUIElements& e)
             .condition<score::EnableWhenDocumentIs<Scenario::ScenarioDocumentModel>>();
 
   actions.add<Actions::RemoveElements>(m_removeElements);
+  actions.add<Actions::RemoveElementsKeepLinked>(m_removeElementsKeepLinked);
   actions.add<Actions::CopyContent>(m_copyContent);
   actions.add<Actions::CutContent>(m_cutContent);
   actions.add<Actions::PasteElements>(m_pasteElements);
@@ -285,6 +293,7 @@ void ObjectMenuActions::makeGUIElements(score::GUIElements& e)
   Menu& object = base_menus.at(Menus::Object());
   object.menu()->addAction(m_elementsToJson);
   object.menu()->addAction(m_removeElements);
+  object.menu()->addAction(m_removeElementsKeepLinked);
   object.menu()->addSeparator();
   object.menu()->addAction(m_copyContent);
   object.menu()->addAction(m_cutContent);

@@ -21,6 +21,8 @@
 
 #include <score_lib_process.hpp>
 #include <score_lib_process_commands_files.hpp>
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Process::DataflowManager)
 namespace Process
 {
 DataflowManager::DataflowManager() { }
@@ -39,6 +41,7 @@ Dataflow::CableItem* DataflowManager::createCable(
     m_cableMap.insert({ptr, item});
     if(!item->parentItem() && scene)
       scene->addItem(item);
+    cableItemCreated(item);
     return item;
   }
   else if(it->second == nullptr)
@@ -47,6 +50,7 @@ Dataflow::CableItem* DataflowManager::createCable(
     it->second = item;
     if(!item->parentItem() && scene)
       scene->addItem(item);
+    cableItemCreated(item);
     return item;
   }
 

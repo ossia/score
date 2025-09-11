@@ -1,5 +1,7 @@
 #include "ScenarioEditor.hpp"
 
+#include <Process/Commands/EditPort.hpp>
+
 #include <Scenario/Application/Drops/DropLayerInInterval.hpp>
 #include <Scenario/Application/Menus/ScenarioCopy.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
@@ -314,11 +316,11 @@ bool ScenarioEditor::remove(const Selection& s, const score::DocumentContext& ct
 {
   if(s.size() == 1)
   {
-    CommandDispatcher<> d{ctx.commandStack};
 
     auto first = s.begin()->data();
     if(auto c = qobject_cast<const Process::Cable*>(first))
     {
+      CommandDispatcher<> d{ctx.commandStack};
       auto& doc = score::IDocument::get<ScenarioDocumentModel>(ctx.document);
       d.submit<Dataflow::RemoveCable>(doc, *c);
       return true;
@@ -329,11 +331,79 @@ bool ScenarioEditor::remove(const Selection& s, const score::DocumentContext& ct
       auto p = proc->parent();
       if(auto itv = qobject_cast<IntervalModel*>(p))
       {
-        d.submit<RemoveProcessFromInterval>(*itv, proc->id());
-        return true;
+        auto& doc = score::IDocument::get<ScenarioDocumentModel>(ctx.document);
+        if(qApp->keyboardModifiers() & Qt::ShiftModifier)
+        {
+          // 1. Is the process part of a chain
+          auto& is = proc->inlets();
+          auto& os = proc->outlets();
+          if(is.empty() || os.empty() || is[0]->type() != os[0]->type()
+             || (is[0]->cables().empty() && os[0]->cables().empty()))
+          {
+            // Not a mapping, we don't copy anything
+            CommandDispatcher<> d{ctx.commandStack};
+            d.submit<RemoveProcessFromInterval>(*itv, proc->id());
+            return true;
+          }
+          else
+          {
+            Scenario::Command::Macro m{
+                new Scenario::Command::RemoveProcessAndKeepLinked, ctx};
+
+            if(!is[0]->cables().empty() && !os[0]->cables().empty())
+            {
+              // Copy the cables
+              for(auto& in_cbl : is[0]->cables())
+              {
+                auto& src = in_cbl.find(ctx).source().find(ctx);
+                for(auto& out_cbl : os[0]->cables())
+                {
+                  auto& sink = out_cbl.find(ctx).sink().find(ctx);
+                  m.createCable(doc, src, sink);
+                }
+              }
+            }
+            else if(
+                !is[0]->cables().empty() && os[0]->cables().empty()
+                && os[0]->address().isSet())
+            {
+              // Copy out address to previous inputs
+              auto& addr = os[0]->address();
+              for(auto& in_cbl : is[0]->cables())
+              {
+                auto& src = in_cbl.find(ctx).source().find(ctx);
+                m.setProperty<Process::Port::p_address>(src, addr);
+              }
+            }
+            else if(
+                is[0]->cables().empty() && !os[0]->cables().empty()
+                && is[0]->address().isSet())
+            {
+              // Copy in address to next outputs
+              auto& addr = is[0]->address();
+              for(auto& out_cbl : os[0]->cables())
+              {
+                auto& src = out_cbl.find(ctx).sink().find(ctx);
+                m.setProperty<Process::Port::p_address>(src, addr);
+              }
+            }
+
+            // Remove the process
+            m.removeProcess(*itv, proc->id());
+            m.commit();
+          }
+          return true;
+        }
+        else
+        {
+          CommandDispatcher<> d{ctx.commandStack};
+          d.submit<RemoveProcessFromInterval>(*itv, proc->id());
+          return true;
+        }
       }
       else if(auto st = qobject_cast<StateModel*>(p))
       {
+        CommandDispatcher<> d{ctx.commandStack};
         d.submit<RemoveStateProcess>(*st, proc->id());
         return true;
       }

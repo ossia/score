@@ -103,7 +103,6 @@ struct geometry_input_port_vis
   {
     // FIXME
     // self.input.push_back(new Port{&self, {}, Types::Image, {}});
-    // add_texture_imgrect();
   }
 
   void operator()(const isf::audio_input& audio) noexcept
@@ -113,8 +112,6 @@ struct geometry_input_port_vis
     // auto& data = self.m_audio_textures.back();
     // data.fixedSize = audio.max;
     // self.input.push_back(new Port{&self, &data, Types::Audio, {}});
-    // add_texture_imgrect();
-    // data.rectUniformOffset = this->sz - 4 * 4;
   }
 
   void operator()(const isf::audioFFT_input& audio) noexcept
@@ -124,10 +121,27 @@ struct geometry_input_port_vis
     // data.fixedSize = audio.max;
     // data.fft = true;
     // self.input.push_back(new Port{&self, &data, Types::Audio, {}});
-    // add_texture_imgrect();
-    // data.rectUniformOffset = this->sz - 4 * 4;
   }
   void operator()(const isf::audioHist_input& audio) noexcept { }
+  
+  // CSF-specific input handlers
+  void operator()(const isf::storage_input& in) noexcept
+  {
+    // Storage buffers are typically managed by the system
+    // No UI controls or uniform buffer data needed
+  }
+  
+  void operator()(const isf::texture_input& in) noexcept
+  {
+    // Texture inputs don't contribute to uniform buffer
+    // They're handled as texture bindings
+  }
+  
+  void operator()(const isf::csf_image_input& in) noexcept
+  {
+    // CSF image inputs don't contribute to uniform buffer
+    // They're handled as image bindings
+  }
 };
 
 GeometryFilterNode::GeometryFilterNode(const isf::descriptor& desc, const QString& vert)
@@ -160,28 +174,6 @@ GeometryFilterNode::GeometryFilterNode(const isf::descriptor& desc, const QStrin
   geometry_input_port_vis visitor{*this, cur};
   for(const isf::input& input : desc.inputs)
     ossia::visit(visitor, input.data);
-
-  // Handle the pass textures size uniforms
-  {
-    char* data = visitor.data;
-    int sz = visitor.sz;
-    for(std::size_t i = 0; i < desc.pass_targets.size(); i++)
-    {
-      // Passes also need an _imgRect uniform
-      while(sz % 16 != 0)
-      {
-        sz += 4;
-        data += 4;
-      }
-
-      *reinterpret_cast<float*>(data + 0) = 0.f;
-      *reinterpret_cast<float*>(data + 4) = 0.f;
-      *reinterpret_cast<float*>(data + 8) = 640.f; // FIXME
-      *reinterpret_cast<float*>(data + 12) = 480.f;
-      data += 4 * 4;
-      sz += 4 * 4;
-    }
-  }
 }
 
 GeometryFilterNode::~GeometryFilterNode() { }

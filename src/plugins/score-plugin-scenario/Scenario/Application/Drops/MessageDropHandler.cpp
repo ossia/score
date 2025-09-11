@@ -39,7 +39,7 @@ bool MessageDropHandler::drop(
 
   // If the mime data has states in it we can handle it.
   State::MessageList ml;
-  if(mime.formats().contains(score::mime::messagelist()))
+  if(mime.hasFormat(score::mime::messagelist()))
   {
     Mime<State::MessageList>::Deserializer des{mime};
     ml = des.deserialize();

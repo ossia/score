@@ -130,7 +130,7 @@ bool DropLayerInInterval::drop(
     const score::DocumentContext& ctx, const IntervalModel& interval, QPointF p,
     const QMimeData& mime)
 {
-  if(mime.formats().contains(score::mime::layerdata()))
+  if(mime.hasFormat(score::mime::layerdata()))
   {
     Scenario::Command::Macro m{new Scenario::Command::DropProcessInIntervalMacro, ctx};
 

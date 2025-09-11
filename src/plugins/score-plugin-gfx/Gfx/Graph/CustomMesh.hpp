@@ -27,6 +27,46 @@ public:
     reload(g, f);
   }
 
+  [[nodiscard]]
+  QRhiBuffer* init_vbo(const ossia::geometry::cpu_buffer& buf, QRhi& rhi) const noexcept
+  {
+    const auto vtx_buf_size = buf.size;
+    auto mesh_buf
+        = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::VertexBuffer, vtx_buf_size);
+    mesh_buf->setName("Mesh::mesh_buf");
+    mesh_buf->create();
+
+    return mesh_buf;
+  }
+
+  [[nodiscard]]
+  QRhiBuffer* init_vbo(const ossia::geometry::gpu_buffer& buf, QRhi& rhi) const noexcept
+  {
+    return static_cast<QRhiBuffer*>(buf.handle);
+  }
+  [[nodiscard]]
+  QRhiBuffer*
+  init_index(const ossia::geometry::cpu_buffer& buf, QRhi& rhi) const noexcept
+  {
+    QRhiBuffer* idx_buf{};
+    if(const auto idx_buf_size = buf.size; idx_buf_size > 0)
+    {
+      idx_buf
+          = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::IndexBuffer, idx_buf_size);
+      idx_buf->setName("Mesh::idx_buf");
+      idx_buf->create();
+    }
+
+    return idx_buf;
+  }
+
+  [[nodiscard]]
+  QRhiBuffer*
+  init_index(const ossia::geometry::gpu_buffer& buf, QRhi& rhi) const noexcept
+  {
+    return static_cast<QRhiBuffer*>(buf.handle);
+  }
+
   [[nodiscard]] MeshBuffers init(QRhi& rhi) const noexcept override
   {
     if(geom.meshes.empty())
@@ -34,47 +74,42 @@ public:
     if(geom.meshes[0].buffers.empty())
       return {};
 
-    const auto vtx_buf_size = geom.meshes[0].buffers[0].size;
-    auto mesh_buf
-        = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::VertexBuffer, vtx_buf_size);
-    mesh_buf->setName("Mesh::mesh_buf");
-    mesh_buf->create();
-
-    QRhiBuffer* idx_buf{};
+    MeshBuffers ret;
+    ret.mesh = ossia::visit(
+        [&](auto& buf) { return init_vbo(buf, rhi); }, geom.meshes[0].buffers[0].data);
     if(geom.meshes[0].buffers.size() > 1)
-    {
-      if(const auto idx_buf_size = geom.meshes[0].buffers[1].size; idx_buf_size > 0)
-      {
-        idx_buf
-            = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::IndexBuffer, idx_buf_size);
-        idx_buf->setName("Mesh::idx_buf");
-        idx_buf->create();
-      }
-    }
-
-    MeshBuffers ret{mesh_buf, idx_buf};
+      ret.index = ossia::visit([&](auto& buf) {
+        return init_index(buf, rhi);
+      }, geom.meshes[0].buffers[1].data);
     return ret;
   }
 
-  void update(MeshBuffers& meshbuf, QRhiResourceUpdateBatch& rb) const noexcept override
+  void update_vbo(
+      const ossia::geometry::cpu_buffer& vtx_buf, MeshBuffers& meshbuf,
+      QRhiResourceUpdateBatch& rb) const noexcept
   {
-    if(geom.meshes.empty())
-      return;
-    if(geom.meshes[0].buffers.empty())
-      return;
-
-    void* idx_buf_data = nullptr;
-    const auto vtx_buf = geom.meshes[0].buffers[0];
     if(auto sz = vtx_buf.size; sz != meshbuf.mesh->size())
     {
       meshbuf.mesh->destroy();
       meshbuf.mesh->setSize(sz);
       meshbuf.mesh->create();
     }
+    rb.updateDynamicBuffer(meshbuf.mesh, 0, meshbuf.mesh->size(), vtx_buf.data.get());
+  }
 
+  void update_vbo(
+      const ossia::geometry::gpu_buffer& vtx_buf, MeshBuffers& meshbuf,
+      QRhiResourceUpdateBatch& rb) const noexcept
+  {
+  }
+
+  void update_index(
+      const ossia::geometry::cpu_buffer& idx_buf, MeshBuffers& meshbuf,
+      QRhiResourceUpdateBatch& rb) const noexcept
+  {
+    void* idx_buf_data = nullptr;
     if(meshbuf.index)
     {
-      const auto idx_buf = geom.meshes[0].buffers[1];
       if(geom.meshes[0].buffers.size() > 1)
       {
         if(const auto idx_buf_size = idx_buf.size; idx_buf_size > 0)
@@ -98,13 +133,32 @@ public:
       // FIXME what if index appears
     }
 
-    rb.updateDynamicBuffer(meshbuf.mesh, 0, meshbuf.mesh->size(), vtx_buf.data.get());
-    if(meshbuf.index)
+    if(meshbuf.index && idx_buf_data)
     {
       rb.updateDynamicBuffer(meshbuf.index, 0, meshbuf.index->size(), idx_buf_data);
     }
   }
 
+  void update_index(
+      const ossia::geometry::gpu_buffer& idx_buf, MeshBuffers& meshbuf,
+      QRhiResourceUpdateBatch& rb) const noexcept
+  {
+  }
+  void update(MeshBuffers& meshbuf, QRhiResourceUpdateBatch& rb) const noexcept override
+  {
+    if(geom.meshes.empty())
+      return;
+    if(geom.meshes[0].buffers.empty())
+      return;
+    ossia::visit([&](auto& buf) {
+      return update_vbo(buf, meshbuf, rb);
+    }, geom.meshes[0].buffers[0].data);
+
+    if(geom.meshes[0].buffers.size() > 1)
+      ossia::visit([&](auto& buf) {
+        return update_index(buf, meshbuf, rb);
+      }, geom.meshes[0].buffers[1].data);
+  }
   Flags flags() const noexcept override
   {
     Flags f{};

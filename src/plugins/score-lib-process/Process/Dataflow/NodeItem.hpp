@@ -3,11 +3,14 @@
 #include <Process/ZoomHelper.hpp>
 
 #include <score/model/Identifier.hpp>
+#include <score/widgets/MimeData.hpp>
 
 #include <QGraphicsItem>
 #include <QObject>
 
 #include <score_lib_process_export.h>
+
+#include <verdigris>
 namespace score
 {
 struct DocumentContext;
@@ -33,6 +36,8 @@ class SCORE_LIB_PROCESS_EXPORT NodeItem
     : public QObject
     , public QGraphicsItem
 {
+  W_OBJECT(NodeItem)
+  Q_INTERFACES(QGraphicsItem)
 public:
   NodeItem(
       const Process::ProcessModel& model, const Process::Context& ctx, TimeVal parentDur,
@@ -47,6 +52,18 @@ public:
   qreal height() const;
 
   const Process::ProcessModel& model() const noexcept;
+
+  void dropReceived(const QPointF& pos, const QMimeData& arg_2)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, dropReceived, pos, arg_2)
+
+  void resetDrop()
+  {
+    m_dropping = false;
+    update();
+  }
+
+  static const constexpr int Type = QGraphicsItem::UserType + 5000;
+  int type() const override { return Type; }
 
 private:
   void createWithDecorations();
@@ -72,6 +89,11 @@ private:
   void hoverMoveEvent(QGraphicsSceneHoverEvent* event) override;
   void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
 
+  void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;
+  void dragMoveEvent(QGraphicsSceneDragDropEvent* event) override;
+  void dragLeaveEvent(QGraphicsSceneDragDropEvent* event) override;
+  void dropEvent(QGraphicsSceneDragDropEvent* event) override;
+
   void keyPressEvent(QKeyEvent* event) override;
   void keyReleaseEvent(QKeyEvent* event) override;
 
@@ -84,6 +106,7 @@ private:
 
   void updateTitlePos();
   QRectF boundingRect() const final override;
+  QRectF contentRect() const noexcept;
 
   double minimalContentWidth() const noexcept;
   double minimalContentHeight() const noexcept;
@@ -111,5 +134,6 @@ private:
 
   bool m_hover{false};
   bool m_selected{false};
+  bool m_dropping{};
 };
 }

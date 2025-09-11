@@ -131,7 +131,7 @@ bool GhostIntervalDropHandler::dragMove(
   if(!canDrop(mime))
   {
     bool mimeTypes = ossia::any_of(m_acceptableMimeTypes, [&](const auto& mimeType) {
-      return mime.formats().contains(mimeType);
+      return mime.hasFormat(mimeType);
     });
 
     bool suffixes = false;

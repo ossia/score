@@ -93,6 +93,12 @@ set(HDRS
     Gfx/VSA/Metadata.hpp
     Gfx/VSA/Process.hpp
 
+    Gfx/CSF/Executor.hpp
+    Gfx/CSF/Library.hpp
+    Gfx/CSF/Metadata.hpp
+    Gfx/CSF/Process.hpp
+    Gfx/CSF/Layer.hpp
+
     Gfx/Images/Executor.hpp
     Gfx/Images/Metadata.hpp
     Gfx/Images/Process.hpp
@@ -103,11 +109,17 @@ set(HDRS
     Gfx/Text/Process.hpp
     Gfx/Text/Layer.hpp
 
+    Gfx/BufferGeometry/Metadata.hpp
+    Gfx/BufferGeometry/Process.hpp
+    Gfx/BufferGeometry/Executor.hpp
+
+    Gfx/Graph/BufferGeometryNode.hpp
     Gfx/Graph/CommonUBOs.hpp
     Gfx/Graph/CustomMesh.hpp
     Gfx/Graph/DepthNode.hpp
     Gfx/Graph/GeometryFilterNode.hpp
     Gfx/Graph/GeometryFilterNodeRenderer.hpp
+    Gfx/Graph/RenderedCSFNode.hpp
     Gfx/Graph/Graph.hpp
     Gfx/Graph/ISFNode.hpp
     Gfx/Graph/ImageNode.hpp
@@ -120,9 +132,13 @@ set(HDRS
     Gfx/Graph/RenderList.hpp
     Gfx/Graph/RenderState.hpp
     Gfx/Graph/RenderedISFNode.hpp
+    Gfx/Graph/RenderedISFSamplerUtils.hpp
+    Gfx/Graph/RenderedISFUtils.hpp
+    Gfx/Graph/RenderedVSANode.hpp
     Gfx/Graph/Scale.hpp
     Gfx/Graph/ScreenNode.hpp
     Gfx/Graph/ShaderCache.hpp
+    Gfx/Graph/SimpleRenderedISFNode.hpp
     Gfx/Graph/TexgenNode.hpp
     Gfx/Graph/TextNode.hpp
     Gfx/Graph/Uniforms.hpp
@@ -197,6 +213,11 @@ set(SRCS
     Gfx/VSA/Library.cpp
     Gfx/VSA/Process.cpp
 
+    Gfx/CSF/Executor.cpp
+    Gfx/CSF/Library.cpp
+    Gfx/CSF/Process.cpp
+    Gfx/CSF/Layer.cpp
+
     Gfx/Images/Executor.cpp
     Gfx/Images/Process.cpp
     Gfx/Images/ImageListChooser.cpp
@@ -204,10 +225,15 @@ set(SRCS
     Gfx/Text/Executor.cpp
     Gfx/Text/Process.cpp
 
+    Gfx/BufferGeometry/Process.cpp
+    Gfx/BufferGeometry/Executor.cpp
+
     Gfx/Graph/decoders/GPUVideoDecoder.cpp
     Gfx/Graph/decoders/HAP.cpp
+    Gfx/Graph/BufferGeometryNode.cpp
     Gfx/Graph/GeometryFilterNode.cpp
     Gfx/Graph/GeometryFilterNodeRenderer.cpp
+    Gfx/Graph/RenderedCSFNode.cpp
     Gfx/Graph/Graph.cpp
     Gfx/Graph/ISFNode.cpp
     Gfx/Graph/ImageNode.cpp
@@ -219,8 +245,10 @@ set(SRCS
     Gfx/Graph/PreviewNode.cpp
     Gfx/Graph/RenderList.cpp
     Gfx/Graph/RenderedISFNode.cpp
+    Gfx/Graph/RenderedVSANode.cpp
     Gfx/Graph/ScreenNode.cpp
     Gfx/Graph/ShaderCache.cpp
+    Gfx/Graph/SimpleRenderedISFNode.cpp
     Gfx/Graph/TextNode.cpp
     Gfx/Graph/Utils.cpp
     Gfx/Graph/VideoNode.cpp

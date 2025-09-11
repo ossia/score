@@ -11,7 +11,7 @@ DropPortInScenario::DropPortInScenario() { }
 
 bool DropPortInScenario::canDrop(const QMimeData& mime) const noexcept
 {
-  if(mime.formats().contains(score::mime::port()))
+  if(mime.hasFormat(score::mime::port()))
   {
     auto base_port = Dataflow::PortItem::clickedPort;
     if(!base_port || base_port->port().type() != Process::PortType::Message
@@ -26,7 +26,7 @@ bool DropPortInScenario::canDrop(const QMimeData& mime) const noexcept
 bool DropPortInScenario::drop(
     const Scenario::ScenarioPresenter& pres, QPointF pos, const QMimeData& mime)
 {
-  if(mime.formats().contains(score::mime::port()))
+  if(mime.hasFormat(score::mime::port()))
   {
     auto base_port = Dataflow::PortItem::clickedPort;
     if(!base_port || base_port->port().type() != Process::PortType::Message
@@ -71,7 +71,7 @@ bool DropPortInInterval::drop(
     const score::DocumentContext& ctx, const Scenario::IntervalModel& interval,
     QPointF p, const QMimeData& mime)
 {
-  if(mime.formats().contains(score::mime::port()))
+  if(mime.hasFormat(score::mime::port()))
   {
     auto base_port = Dataflow::PortItem::clickedPort;
     if(!base_port || base_port->port().type() != Process::PortType::Message

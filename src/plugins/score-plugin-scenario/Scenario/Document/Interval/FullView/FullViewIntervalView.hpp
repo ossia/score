@@ -22,6 +22,9 @@ public:
 
   ~FullViewIntervalView() override;
 
+  static const constexpr int Type = ItemType::FullViewInterval;
+  int type() const final override { return Type; }
+
   void drawPaths(
       QPainter& p, QRectF visibleRect, const score::Brush& defaultColor,
       const Process::Style& skin);

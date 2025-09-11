@@ -11,71 +11,24 @@ class RecursiveFilterProxy : public QSortFilterProxyModel
 public:
   using QSortFilterProxyModel::QSortFilterProxyModel;
 
-  const QString& pattern() const noexcept { return m_textPattern; }
-  void setPattern(const QString& p)
-  {
-    beginResetModel();
-    // auto old = m_textPattern;
-    m_textPattern = p;
-    endResetModel();
-    // if(!p.contains(old))
-    //  invalidateFilter();
-  }
+  const QString& pattern() const noexcept;
+  void setPattern(const QString& p);
 
 protected:
   QString m_textPattern;
 
-  int columnCount(const QModelIndex& parent = QModelIndex()) const override { return 1; }
-  bool filterAcceptsRow(int srcRow, const QModelIndex& srcParent) const override
-  {
-    if(filterAcceptsRowItself(srcRow, srcParent))
-    {
-      return true;
-    }
+  int columnCount(const QModelIndex& parent = QModelIndex()) const override;
+  bool filterAcceptsRow(int srcRow, const QModelIndex& srcParent) const override;
+  virtual bool filterAcceptsRowItself(int srcRow, const QModelIndex& srcParent) const
+      = 0;
+  bool hasAcceptedChildren(int srcRow, const QModelIndex& srcParent) const;
+};
 
-    // Accept if any of the parents is accepted on its own
-    for(QModelIndex parent = srcParent; parent.isValid(); parent = parent.parent())
-      if(filterAcceptsRowItself(parent.row(), parent.parent()))
-      {
-        return true;
-      }
-
-    // Accept if any of the children is accepted on its own
-    return hasAcceptedChildren(srcRow, srcParent);
-  }
-
-  bool filterAcceptsRowItself(int srcRow, const QModelIndex& srcParent) const
-  {
-    QModelIndex index = sourceModel()->index(srcRow, 0, srcParent);
-    const QVariant& data = sourceModel()->data(index);
-
-    return data.toString().contains(m_textPattern, Qt::CaseInsensitive);
-  }
-
-  bool hasAcceptedChildren(int srcRow, const QModelIndex& srcParent) const
-  {
-    QModelIndex index = sourceModel()->index(srcRow, 0, srcParent);
-
-    if(!index.isValid())
-      return false;
-
-    SCORE_ASSERT(index.model());
-    const int childCount = index.model()->rowCount(index);
-
-    if(childCount == 0)
-      return false;
-
-    for(int i = 0; i < childCount; ++i)
-    {
-      if(filterAcceptsRowItself(i, index))
-        return true;
-
-      if(hasAcceptedChildren(i, index))
-        return true;
-    }
-
-    return false;
-  }
+class ProcessFilterProxy : public RecursiveFilterProxy
+{
+public:
+  using RecursiveFilterProxy::RecursiveFilterProxy;
+  bool filterAcceptsRowItself(int srcRow, const QModelIndex& srcParent) const final;
 };
 
 class FileSystemRecursiveFilterProxy final : public RecursiveFilterProxy
@@ -108,6 +61,15 @@ private:
   {
     return static_cast<QFileSystemModel*>(QSortFilterProxyModel::sourceModel());
   }
+
+  bool filterAcceptsRowItself(int srcRow, const QModelIndex& srcParent) const override
+  {
+    QModelIndex index = sourceModel()->index(srcRow, 0, srcParent);
+    const QVariant& data = sourceModel()->data(index);
+
+    return data.toString().contains(m_textPattern, Qt::CaseInsensitive);
+  }
+
   bool filterAcceptsRow(int srcRow, const QModelIndex& srcParent) const override
   {
     const QModelIndex index = sourceModel()->index(srcRow, 0, srcParent);

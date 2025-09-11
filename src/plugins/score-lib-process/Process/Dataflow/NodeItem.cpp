@@ -36,7 +36,7 @@
 #include <QTimer>
 
 #include <wobjectimpl.h>
-
+W_OBJECT_IMPL(Process::NodeItem)
 namespace Process
 {
 
@@ -73,6 +73,7 @@ NodeItem::NodeItem(
   setObjectName("NodeItem");
   setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
   setAcceptHoverEvents(true);
+  setAcceptDrops(true);
   setFlag(ItemIsFocusable, true);
   setFlag(ItemClipsChildrenToShape, true);
   const auto& pf
@@ -338,7 +339,7 @@ void NodeItem::setSelected(bool s)
   update();
 }
 
-QRectF NodeItem::boundingRect() const
+QRectF NodeItem::contentRect() const noexcept
 {
   if(!m_label)
   {
@@ -364,6 +365,11 @@ QRectF NodeItem::boundingRect() const
     }
     return {x, y, w, h};
   }
+}
+
+QRectF NodeItem::boundingRect() const
+{
+  return contentRect().adjusted(-2., -2., 2., 2.);
 }
 
 void NodeItem::createContentItem()
@@ -583,15 +589,30 @@ void NodeItem::setParentDuration(TimeVal r)
 
 void NodeItem::setPlayPercentage(float f, TimeVal parent_dur)
 {
-  // Comes from the interval -> if we are looping we make a small modulo of it
-  if(m_model.loops())
+  if(m_playPercentage != f)
   {
-    auto loopDur = m_model.loopDuration().impl;
-    double playdur = f * parent_dur.impl;
-    f = std::fmod(playdur, loopDur) / loopDur;
+    // Comes from the interval -> if we are looping we make a small modulo of it
+    if(m_model.loops())
+    {
+      auto loopDur = m_model.loopDuration().impl;
+      double playdur = double(f) * parent_dur.impl;
+      f = std::fmod(playdur, loopDur) / loopDur;
+      if(m_playPercentage != f)
+      {
+        m_playPercentage = f;
+        update({12., -1., (m_contentSize.width() - 24.), 3.});
+      }
+    }
+    else
+    {
+      f = ossia::clamp(f, 0.f, 1.f);
+      if(m_playPercentage != f)
+      {
+        m_playPercentage = f;
+        update({12., -1., (m_contentSize.width() - 24.) * f + 1., 3.});
+      }
+    }
   }
-  m_playPercentage = f;
-  update({0., -1., m_contentSize.width() * f, 3.});
 }
 
 qreal NodeItem::width() const noexcept
@@ -630,7 +651,7 @@ void NodeItem::paint(
 {
   auto& style = Process::Style::instance();
   const auto& skin = style.skin;
-  const auto rect = boundingRect();
+  const auto rect = contentRect();
   //painter->fillRect(boundingRect(), Qt::red);
   // return;
 
@@ -639,7 +660,8 @@ void NodeItem::paint(
   const auto& brush = m_selected ? skin.Base2.darker
                       : m_hover  ? bset.lighter
                                  : bset.main;
-  const auto& pen = brush.pen2_solid_round_round;
+  const auto& pen = m_dropping ? skin.Warn2.main.pen3_solid_round_round
+                               : brush.pen2_solid_round_round;
 
   painter->setRenderHint(QPainter::Antialiasing, true);
 
@@ -652,10 +674,11 @@ void NodeItem::paint(
   painter->setRenderHint(QPainter::Antialiasing, false);
 
   // Exec
-  if(m_playPercentage != 0.)
+  if(m_playPercentage > 0.)
   {
     painter->setPen(style.IntervalPlayFill().main.pen1_solid_flat_miter);
-    painter->drawLine(QPointF{0., 0.}, QPointF{width() * m_playPercentage, 0.});
+    painter->drawLine(
+        QPointF{12., 0.}, QPointF{12. + (width() - 24.) * m_playPercentage, 0.});
   }
 
   // Resizing handle
@@ -835,5 +858,33 @@ void NodeItem::keyPressEvent(QKeyEvent* event)
 void NodeItem::keyReleaseEvent(QKeyEvent* event)
 {
   event->accept();
+}
+void NodeItem::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
+{
+  m_dropping = true;
+  event->accept();
+  update();
+}
+
+void NodeItem::dragMoveEvent(QGraphicsSceneDragDropEvent* event)
+{
+  m_dropping = true;
+  event->accept();
+  update();
+}
+
+void NodeItem::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
+{
+  m_dropping = false;
+  event->accept();
+  update();
+}
+
+void NodeItem::dropEvent(QGraphicsSceneDragDropEvent* event)
+{
+  m_dropping = false;
+  event->accept();
+  dropReceived(event->pos(), *event->mimeData());
+  update();
 }
 }

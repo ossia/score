@@ -99,8 +99,14 @@ SCORE_DECLARE_ACTION(Scale, "&Scale mode", Scenario, QKeySequence{})
 // Object
 #if defined(__APPLE__)
 SCORE_DECLARE_ACTION(RemoveElements, "&Remove elements", Scenario, Qt::Key_Backspace)
+SCORE_DECLARE_ACTION(
+    RemoveElementsKeepLinked, "&Remove cable (keep link)", Scenario,
+    QKeySequence(QObject::tr("Shift+Backspace")))
 #else
 SCORE_DECLARE_ACTION(RemoveElements, "&Remove elements", Scenario, Qt::Key_Delete)
+SCORE_DECLARE_ACTION(
+    RemoveElementsKeepLinked, "&Remove cable (keep link)", Scenario,
+    QKeySequence(QObject::tr("Shift+Delete")))
 #endif
 SCORE_DECLARE_ACTION(CopyContent, "C&opy", Scenario, QKeySequence::Copy)
 SCORE_DECLARE_ACTION(CutContent, "C&ut", Scenario, QKeySequence::Cut)

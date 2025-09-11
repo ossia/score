@@ -7,6 +7,7 @@
 #include <score/graphics/ArrowDialog.hpp>
 #include <score/graphics/GraphicsProxyObject.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
+#include <score/widgets/MimeData.hpp>
 
 #include <QGraphicsView>
 #include <QMimeData>
@@ -78,6 +79,8 @@ public:
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dropRequested, pos, mime)
   void emptyContextMenuRequested(QPoint pos)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, emptyContextMenuRequested, pos)
+
+  void dropFinished() W_SIGNAL(dropFinished);
 
 private:
   void resizeEvent(QResizeEvent* ev) override;
@@ -167,6 +170,3 @@ private:
   int m_timer{};
 };
 }
-
-Q_DECLARE_METATYPE(const QMimeData*)
-W_REGISTER_ARGTYPE(const QMimeData*)

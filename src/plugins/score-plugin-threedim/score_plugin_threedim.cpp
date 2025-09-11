@@ -9,6 +9,7 @@
 #include <score/plugins/FactorySetup.hpp>
 
 #include <Avnd/Factories.hpp>
+#include <Threedim/ArrayToBuffer.hpp>
 #include <Threedim/ArrayToGeometry.hpp>
 #include <Threedim/ModelDisplay/Executor.hpp>
 #include <Threedim/ModelDisplay/Process.hpp>
@@ -168,16 +169,9 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
 {
   std::vector<score::InterfaceBase*> fx;
   Avnd::instantiate_fx<
-      Threedim::ArrayToMesh,
-      Threedim::Noise,
-      Threedim::StrucSynth,
-      Threedim::ObjLoader,
-      Threedim::Plane,
-      Threedim::Cube,
-      Threedim::Sphere,
-      Threedim::Icosahedron,
-      Threedim::Cylinder,
-      Threedim::Cone,
+      Threedim::ArrayToMesh, Threedim::ArrayToTexture, Threedim::Noise,
+      Threedim::StrucSynth, Threedim::ObjLoader, Threedim::Plane, Threedim::Cube,
+      Threedim::Sphere, Threedim::Icosahedron, Threedim::Cylinder, Threedim::Cone,
       Threedim::Torus>(fx, ctx, key);
   auto add = instantiate_factories<
       score::ApplicationContext,

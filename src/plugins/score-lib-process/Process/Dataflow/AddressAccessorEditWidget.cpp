@@ -305,7 +305,7 @@ void AddressAccessorEditWidget::dropEvent(QDropEvent* ev)
   auto& mime = *ev->mimeData();
 
   // TODO refactor this with AutomationPresenter and AddressLineEdit
-  if(mime.formats().contains(score::mime::nodelist()))
+  if(mime.hasFormat(score::mime::nodelist()))
   {
     Mime<Device::FreeNodeList>::Deserializer des{mime};
     Device::FreeNodeList nl = des.deserialize();
@@ -326,7 +326,7 @@ void AddressAccessorEditWidget::dropEvent(QDropEvent* ev)
       addressChanged(m_address);
     }
   }
-  else if(mime.formats().contains(score::mime::messagelist()))
+  else if(mime.hasFormat(score::mime::messagelist()))
   {
     Mime<State::MessageList>::Deserializer des{mime};
     State::MessageList ml = des.deserialize();

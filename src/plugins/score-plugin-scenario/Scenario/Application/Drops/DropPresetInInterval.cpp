@@ -39,7 +39,7 @@ bool DropPresetInInterval::drop(
     const score::DocumentContext& ctx, const IntervalModel& interval, QPointF pos,
     const QMimeData& mime)
 {
-  if(mime.formats().contains(score::mime::processpreset()))
+  if(mime.hasFormat(score::mime::processpreset()))
   {
     Scenario::Command::Macro m{new Scenario::Command::DropProcessInIntervalMacro, ctx};
 

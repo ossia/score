@@ -123,7 +123,7 @@ void EventPresenter::handleDrop(const QPointF& pos, const QMimeData& mime)
   // todo Maybe the drop should be handled by the scenario presenter ?? or not
 
   // If the mime data has states in it we can handle it.
-  if(scenar && mime.formats().contains(score::mime::messagelist()))
+  if(scenar && mime.hasFormat(score::mime::messagelist()))
   {
     Mime<State::MessageList>::Deserializer des{mime};
     State::MessageList ml = des.deserialize();

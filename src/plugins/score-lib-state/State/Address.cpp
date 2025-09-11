@@ -404,7 +404,7 @@ QString toString(const ossia::destination_qualifiers& qualifiers)
 std::optional<State::AddressAccessor>
 onUpdatableAddress(const State::AddressAccessor& current, const QMimeData& mime)
 {
-  if(mime.formats().contains(score::mime::messagelist()))
+  if(mime.hasFormat(score::mime::messagelist()))
   {
     Mime<State::MessageList>::Deserializer des{mime};
     State::MessageList ml = des.deserialize();
@@ -427,7 +427,7 @@ onUpdatableAddress(const State::AddressAccessor& current, const QMimeData& mime)
 std::optional<State::Address>
 onUpdatableAddress(const State::Address& current, const QMimeData& mime)
 {
-  if(mime.formats().contains(score::mime::messagelist()))
+  if(mime.hasFormat(score::mime::messagelist()))
   {
     Mime<State::MessageList>::Deserializer des{mime};
     State::MessageList ml = des.deserialize();

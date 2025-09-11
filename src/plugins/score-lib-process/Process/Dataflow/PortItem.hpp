@@ -50,6 +50,16 @@ public:
   void setPortVisible(bool b);
   void resetPortVisible();
 
+  void resetDrop()
+  {
+    if(m_diam != 8.)
+    {
+      prepareGeometryChange();
+      m_diam = 8.;
+    }
+    update();
+  }
+
   void setHighlight(bool b);
 
   using QGraphicsItem::dropEvent;

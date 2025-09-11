@@ -20,6 +20,7 @@ class ISFNode : public score::gfx::ProcessNode
 {
 public:
   ISFNode(const isf::descriptor& desc, const QString& vert, const QString& frag);
+  ISFNode(const isf::descriptor& desc, const QString& comp);
 
   virtual ~ISFNode();
   QSize computeTextureSize(const isf::pass& pass, QSize origSize);
@@ -40,6 +41,8 @@ public:
 
   QString m_vertexS;
   QString m_fragmentS;
+  QString m_computeS;
+
   int m_materialSize{};
 };
 }

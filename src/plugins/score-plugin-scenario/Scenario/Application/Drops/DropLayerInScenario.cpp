@@ -23,7 +23,7 @@ bool DropLayerInScenario::drop(
 {
   rapidjson::Document json;
   QString filename;
-  if(mime.formats().contains(score::mime::layerdata()))
+  if(mime.hasFormat(score::mime::layerdata()))
   {
     json = readJson(mime.data(score::mime::layerdata()));
   }
