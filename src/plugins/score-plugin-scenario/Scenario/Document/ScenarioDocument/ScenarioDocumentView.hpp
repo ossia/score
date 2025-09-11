@@ -80,6 +80,8 @@ public:
   void emptyContextMenuRequested(QPoint pos)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, emptyContextMenuRequested, pos)
 
+  void dropFinished() W_SIGNAL(dropFinished);
+
 private:
   void resizeEvent(QResizeEvent* ev) override;
   void scrollContentsBy(int dx, int dy) override;

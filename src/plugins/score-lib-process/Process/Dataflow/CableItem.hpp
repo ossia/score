@@ -56,6 +56,11 @@ public:
   PortItem* target() const noexcept;
   void setSource(PortItem* p);
   void setTarget(PortItem* p);
+  void resetDrop()
+  {
+    m_dropping = false;
+    update();
+  }
 
   void dropReceived(const QPointF& pos, const QMimeData& arg_2)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, dropReceived, pos, arg_2)

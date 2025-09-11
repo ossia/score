@@ -862,18 +862,28 @@ void NodeItem::keyReleaseEvent(QKeyEvent* event)
 void NodeItem::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
 {
   m_dropping = true;
+  event->accept();
+  update();
+}
+
+void NodeItem::dragMoveEvent(QGraphicsSceneDragDropEvent* event)
+{
+  m_dropping = true;
+  event->accept();
   update();
 }
 
 void NodeItem::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
 {
   m_dropping = false;
+  event->accept();
   update();
 }
 
 void NodeItem::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
   m_dropping = false;
+  event->accept();
   dropReceived(event->pos(), *event->mimeData());
   update();
 }

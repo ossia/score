@@ -392,6 +392,7 @@ void ProcessGraphicsView::dropEvent(QDropEvent* event)
   {
     QGraphicsView::dropEvent(event);
   }
+  dropFinished();
 }
 
 void ProcessGraphicsView::contextMenuEvent(QContextMenuEvent* event)

@@ -218,6 +218,35 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
       &ScenarioDocumentPresenter::on_cableItemCreated);
   model().cables.mutable_added.connect<&ScenarioDocumentPresenter::on_cableAdded>(*this);
   model().cables.removing.connect<&ScenarioDocumentPresenter::on_cableRemoving>(*this);
+
+  // Need to reset cables & ports in case of drop
+  // due to https://bugreports.qt.io/browse/QTBUG-140114
+  con(view().view(), &ProcessGraphicsView::dropFinished, this,
+      &ScenarioDocumentPresenter::on_dropFinished);
+}
+
+void ScenarioDocumentPresenter::on_dropFinished()
+{
+  for(auto& [model, item] : this->m_dataflow.cables())
+  {
+    if(!item)
+      continue;
+    item->resetDrop();
+  }
+  for(auto& [model, item] : this->m_dataflow.ports())
+  {
+    if(!item)
+      continue;
+    item->resetDrop();
+    QGraphicsItem* parent = item->parentItem();
+    Process::NodeItem* node{};
+    while(parent && !(node = qgraphicsitem_cast<Process::NodeItem*>(parent)))
+    {
+      parent = parent->parentItem();
+    }
+    if(node)
+      node->resetDrop();
+  }
 }
 
 void ScenarioDocumentPresenter::recenterNodal()

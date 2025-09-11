@@ -37,6 +37,7 @@ class SCORE_LIB_PROCESS_EXPORT NodeItem
     , public QGraphicsItem
 {
   W_OBJECT(NodeItem)
+  Q_INTERFACES(QGraphicsItem)
 public:
   NodeItem(
       const Process::ProcessModel& model, const Process::Context& ctx, TimeVal parentDur,
@@ -54,6 +55,15 @@ public:
 
   void dropReceived(const QPointF& pos, const QMimeData& arg_2)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, dropReceived, pos, arg_2)
+
+  void resetDrop()
+  {
+    m_dropping = false;
+    update();
+  }
+
+  static const constexpr int Type = QGraphicsItem::UserType + 5000;
+  int type() const override { return Type; }
 
 private:
   void createWithDecorations();
@@ -80,6 +90,7 @@ private:
   void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
 
   void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;
+  void dragMoveEvent(QGraphicsSceneDragDropEvent* event) override;
   void dragLeaveEvent(QGraphicsSceneDragDropEvent* event) override;
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 
