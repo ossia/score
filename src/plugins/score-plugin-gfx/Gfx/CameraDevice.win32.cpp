@@ -7,6 +7,11 @@ extern "C" {
 #include <libavutil/pixdesc.h>
 #include <libavutil/pixfmt.h>
 }
+
+// !
+#include <initguid.h>
+// ! Needs to be present before, to ensure uuids get enumerated
+
 #include <dshow.h>
 #include <dvdmedia.h>
 #include <wmcodecdsp.h>
