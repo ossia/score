@@ -349,9 +349,9 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
       state->release();
     }
 
-    // Release the allocated textures
-    for(auto& [id, tex] : this->createdTexs)
-      tex->deleteLater();
+    // Allocated textures are all inside RTs which are released a little bit later.
+    // for(auto& [id, tex] : this->createdTexs)
+    //   tex->deleteLater();
     this->createdTexs.clear();
 
     // Release the allocated ubos
