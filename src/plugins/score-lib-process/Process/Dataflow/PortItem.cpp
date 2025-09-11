@@ -378,6 +378,8 @@ PortItem::~PortItem()
 
   for(const auto& cable : cables)
   {
+    if(!cable)
+      continue;
     if(cable->source() == this)
       cable->setSource(nullptr);
     if(cable->target() == this)
