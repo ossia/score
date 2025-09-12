@@ -1,13 +1,11 @@
 #pragma once
 #include <Process/ProcessFactory.hpp>
 
+#include <Crousti/Metadatas.hpp>
 #include <Effect/EffectLayer.hpp>
 
 namespace oscr
 {
-template <typename T>
-concept has_ossia_layer = requires { sizeof(typename T::Layer); };
-
 template <has_ossia_layer T>
 class ScoreLayerFactory final : public Process::LayerFactory
 {

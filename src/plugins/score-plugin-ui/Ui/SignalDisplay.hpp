@@ -1,4 +1,6 @@
 #pragma once
+#include <Process/Dataflow/NodeItem.hpp>
+
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 
 #include <Effect/EffectLayer.hpp>
@@ -40,6 +42,7 @@ struct Node
   halp_flag(fully_custom_item);
   halp_flag(temporal);
   halp_flag(loops_by_default);
+  halp_flag(ossia_show_ports_by_default);
 
   using vec_type = boost::container::small_vector<float, 8>;
   struct
@@ -145,9 +148,18 @@ struct Node
 
         auto inl = process.inlets().front();
 
-        auto fact = portFactory.get(inl->concreteKey());
-        auto port = fact->makePortItem(*inl, doc, this, this);
-        port->setPos(0, 5);
+        // Signal Display has two dispaly mode, one time-line mode and one
+        if(parent->type() == Process::NodeItem::Type)
+        {
+          inl->hidden = true;
+          auto fact = portFactory.get(inl->concreteKey());
+          auto port = fact->makePortItem(*inl, doc, this, this);
+          port->setPos(0, 5);
+        }
+        else
+        {
+          inl->hidden = false;
+        }
 
         connect(
             m_interval, &Scenario::IntervalModel::executionEvent, this,

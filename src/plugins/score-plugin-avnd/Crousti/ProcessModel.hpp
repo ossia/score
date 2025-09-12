@@ -3,7 +3,6 @@
 #include <Process/Process.hpp>
 #include <Process/ProcessFactory.hpp>
 
-#include <Crousti/Attributes.hpp>
 #include <Crousti/Concepts.hpp>
 #include <Crousti/MessageBus.hpp>
 #include <Crousti/Metadata.hpp>
@@ -70,6 +69,14 @@ struct MessageBusWrapperFromUi<Info>
 {
   std::function<void(QByteArray)> from_ui = dummy_ui_callback{};
 };
+
+inline void hideAllInlets(Process::ProcessModel& proc)
+{
+  for(auto& p : proc.inlets())
+    p->hidden = true;
+  for(auto& p : proc.outlets())
+    p->hidden = true;
+}
 
 template <typename Info>
 class ProcessModel final
@@ -465,6 +472,10 @@ private:
       if constexpr(!avnd::dynamic_ports_port<P>)
         outlets(port, idx);
     });
+
+    if(!requires { Info::ossia_show_ports_by_default; })
+      if constexpr(oscr::has_ossia_layer<Info>)
+        hideAllInlets(*this);
   }
 
 public:

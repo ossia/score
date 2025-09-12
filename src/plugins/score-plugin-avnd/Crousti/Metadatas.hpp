@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Crousti/Attributes.hpp>
 #include <Crousti/Concepts.hpp>
 
 #include <ossia/dataflow/safe_nodes/port.hpp>
@@ -30,4 +29,7 @@ concept GpuComputeNode2 = requires
 
 template <typename T>
 concept is_gpu = GpuNode<T> || GpuGraphicsNode2<T> || GpuComputeNode2<T>;
+
+template <typename T>
+concept has_ossia_layer = requires { sizeof(typename T::Layer); };
 }

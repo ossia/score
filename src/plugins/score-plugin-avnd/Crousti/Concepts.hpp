@@ -1,17 +1,16 @@
 #pragma once
-#include "Engine/Node/CommonWidgets.hpp"
 #include <Process/Dataflow/WidgetInlets.hpp>
 #include <Process/ProcessFlags.hpp>
 #include <Process/ProcessMetadata.hpp>
 
 #include <Dataflow/CurveInlet.hpp>
+#include <Engine/Node/CommonWidgets.hpp>
 
 #include <score/plugins/UuidKey.hpp>
 
 #include <ossia/dataflow/audio_port.hpp>
 #include <ossia/dataflow/port.hpp>
 #include <ossia/dataflow/safe_nodes/tick_policies.hpp>
-#include <span>
 
 #include <boost/container/vector.hpp>
 
@@ -31,6 +30,7 @@
 
 #include <cmath>
 
+#include <span>
 #include <type_traits>
 
 #define make_uuid(text) score::uuids::string_generator::compute((text))
