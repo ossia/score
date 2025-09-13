@@ -8,3 +8,5 @@ brew install ninja qt boost ffmpeg@7 fftw portaudio jack sdl lv2 lilv suil freet
 brew uninstall --ignore-dependencies qt@5 || true
 
 source ci/common.deps.sh
+
+echo PKG_CONFIG_PATH="/opt/homebrew/opt/ffmpeg@7/lib/pkgconfig" >> "$GITHUB_ENV"

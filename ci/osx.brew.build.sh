@@ -3,8 +3,6 @@
 mkdir build
 cd build
 
-export PKG_CONFIG_PATH="/opt/homebrew/opt/ffmpeg@7/lib/pkgconfig"
-
 cmake .. \
   -GNinja \
   -DCMAKE_BUILD_TYPE=Release \
