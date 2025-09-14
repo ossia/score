@@ -170,6 +170,7 @@ struct ISFHelpers
         self.controlAdded(port->id());
         return port;
       }
+
       Process::Inlet* operator()(const bool_input& v)
       {
         auto nm = QString::fromStdString(input.name);
@@ -184,6 +185,7 @@ struct ISFHelpers
         self.controlAdded(port->id());
         return port;
       }
+
       Process::Inlet* operator()(const point2d_input& v)
       {
         auto nm = QString::fromStdString(input.name);

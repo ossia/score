@@ -100,14 +100,14 @@ layout(std140, binding = 1) uniform process_t {
 #define IMG_SIZE(tex) textureSize(tex, 0)
 
 #if defined(QSHADER_SPIRV)
-#define isf_FragCoord vec2(gl_FragCoord.x, RENDERSIZE.y - gl_FragCoord.y)
+#define isf_FragCoord vec4(gl_FragCoord.x, RENDERSIZE.y - gl_FragCoord.y, gl_FragCoord.z, gl_FragCoord.w)
 #define ISF_FIXUP_TEXCOORD(coord) vec2((coord).x, 1. - (coord).y)
 #define IMG_THIS_PIXEL(tex) texture(tex, ISF_FIXUP_TEXCOORD(isf_FragNormCoord))
 #define IMG_THIS_NORM_PIXEL(tex) texture(tex, ISF_FIXUP_TEXCOORD(isf_FragNormCoord))
 #define IMG_PIXEL(tex, coord) texture(tex, ISF_FIXUP_TEXCOORD(coord / RENDERSIZE))
 #define IMG_NORM_PIXEL(tex, coord) texture(tex, ISF_FIXUP_TEXCOORD(coord))
 #else
-#define isf_FragCoord gl_FragCoord.xy
+#define isf_FragCoord gl_FragCoord
 #define IMG_THIS_PIXEL(tex) texture(tex, isf_FragNormCoord)
 #define IMG_THIS_NORM_PIXEL(tex) texture(tex, isf_FragNormCoord)
 #define IMG_PIXEL(tex, coord) texture(tex, (coord) / RENDERSIZE)
@@ -607,6 +607,9 @@ static const ossia::string_map<root_fun>& root_parse{[] {
     i.insert({"audiofft", [](const auto& s) { return parse<audioFFT_input>(s); }});
     i.insert(
         {"audiohistogram", [](const auto& s) { return parse<audioHist_input>(s); }});
+    i.insert({"audiofloathistogram", [](const auto& s) {
+      return parse<audioHist_input>(s);
+    }});
 
     // CSF-specific types - note: 'image' in CSF context is csf_image_input, not image_input
     i.insert({"storage", [](const auto& s) { return parse<storage_input>(s); }});
@@ -2340,8 +2343,7 @@ vec2 resolution = RENDERSIZE;
   // Add vertex input - using gl_VertexIndex for simplicity
   m_vertex += R"_(
 // VSA Vertex Shader inputs
-#define vertexId float(gl_VertexIndex)
-#define vertexCount isf_material_uniforms.vertexCount
+float vertexId = float(gl_VertexIndex);
 
 layout(location = 0) out vec4 v_color;
 )_";

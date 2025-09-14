@@ -98,9 +98,15 @@ void updateToGlsl45(ShaderSource& program)
   }
 
   // Remove lowp, highp, etc
+  program.vertex.remove("precision highp float;");
+  program.vertex.remove("precision mediump float;");
+  program.vertex.remove("precision lowp float;");
   program.vertex.remove("lowp ");
   program.vertex.remove("mediump ");
   program.vertex.remove("highp ");
+  program.fragment.remove("precision highp float;");
+  program.fragment.remove("precision mediump float;");
+  program.fragment.remove("precision lowp float;");
   program.fragment.remove("lowp ");
   program.fragment.remove("mediump ");
   program.fragment.remove("highp ");

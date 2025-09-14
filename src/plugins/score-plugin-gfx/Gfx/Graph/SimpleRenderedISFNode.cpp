@@ -52,12 +52,17 @@ void SimpleRenderedISFNode::initPass(
     auto pip = score::gfx::buildPipeline(
         renderer, *m_mesh, v, s, renderTarget, pubo, m_materialUBO, allSamplers());
     if(pip.pipeline)
+    {
       m_passes.emplace_back(&edge, Pass{renderTarget, pip, pubo});
+    }
     else
+    {
       delete pubo;
+    }
   }
   catch(...)
   {
+    delete pubo;
   }
 }
 
@@ -188,7 +193,9 @@ void SimpleRenderedISFNode::release(RenderList& r)
       pass.p.release();
 
       if(pass.processUBO)
+      {
         pass.processUBO->deleteLater();
+      }
     }
 
     m_passes.clear();
