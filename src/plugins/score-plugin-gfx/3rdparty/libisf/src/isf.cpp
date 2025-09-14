@@ -2338,7 +2338,6 @@ void parser::parse_vsa()
 // Compatibility defines for VSA
 float time = TIME;
 vec2 resolution = RENDERSIZE;
-vec2 mouse = MOUSE.xy;
 )_";
 
   // Add vertex input - using gl_VertexIndex for simplicity

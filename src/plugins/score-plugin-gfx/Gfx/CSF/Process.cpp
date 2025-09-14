@@ -133,8 +133,6 @@ bool Model::validate(const QString& txt) const noexcept
 Process::ScriptChangeResult Model::setScript(const QString& f)
 {
   m_compute = f;
-  if(m_compute.isEmpty())
-    m_compute = defaultCSF;
 
   QString processed = m_compute;
   {

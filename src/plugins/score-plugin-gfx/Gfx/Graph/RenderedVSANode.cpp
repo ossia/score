@@ -344,8 +344,9 @@ void SimpleRenderedVSANode::runRenderPass(
 
   auto& pass = it->main_pass;
   auto texture = pass.renderTarget.texture;
-  /*
-  // Draw the background color
+
+  // Draw the background color unless its alpha == 0
+  if(n.m_descriptor.background_color[3] > 0.0)
   {
     auto pipeline = it->background_pipeline;
 
@@ -358,28 +359,26 @@ void SimpleRenderedVSANode::runRenderPass(
 
     cb.setVertexInput(0, 1, bindings, 0);
     cb.draw(3);
-  }*/
-  // Draw the last pass
+  }
+
+  // Draw the main pass
   {
+    SCORE_ASSERT(pass.renderTarget.renderTarget);
+    SCORE_ASSERT(pass.p.pipeline);
+    SCORE_ASSERT(pass.p.srb);
+    // TODO : combine all the uniforms..
 
+    auto pipeline = pass.p.pipeline;
+    auto srb = pass.p.srb;
+
+    // TODO need to free stuff
     {
-      SCORE_ASSERT(pass.renderTarget.renderTarget);
-      SCORE_ASSERT(pass.p.pipeline);
-      SCORE_ASSERT(pass.p.srb);
-      // TODO : combine all the uniforms..
+      cb.setGraphicsPipeline(pipeline);
+      cb.setShaderResources(srb);
+      cb.setViewport(QRhiViewport(
+          0, 0, texture->pixelSize().width(), texture->pixelSize().height()));
 
-      auto pipeline = pass.p.pipeline;
-      auto srb = pass.p.srb;
-
-      // TODO need to free stuff
-      {
-        cb.setGraphicsPipeline(pipeline);
-        cb.setShaderResources(srb);
-        cb.setViewport(QRhiViewport(
-            0, 0, texture->pixelSize().width(), texture->pixelSize().height()));
-
-        m_mesh->draw({}, cb);
-      }
+      m_mesh->draw({}, cb);
     }
   }
 }
