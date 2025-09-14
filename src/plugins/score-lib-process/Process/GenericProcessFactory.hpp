@@ -70,6 +70,11 @@ Model_T* ProcessFactory_T<Model_T>::make(
                             Model_T, Id<Process::ProcessModel>,
                             const score::DocumentContext&, QObject*>)
       {
+        return new Model_T{id, ctx, parent};
+      }
+      else if constexpr(std::is_constructible_v<
+                            Model_T, TimeVal, Id<Process::ProcessModel>, QObject*>)
+      {
         return new Model_T{duration, id, parent};
       }
       else
