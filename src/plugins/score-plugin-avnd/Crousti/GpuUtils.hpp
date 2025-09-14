@@ -166,6 +166,9 @@ constexpr QRhiTexture::Format textureFormat(F f) noexcept
   if constexpr(requires { F::ASTC_12X12; })
     if(f == F::ASTC_12x12)
       return QRhiTexture::ASTC_12x12;
+  if constexpr(requires { F::RGB; })
+    if(f == F::RGB)
+      return QRhiTexture::RGBA8; // we'll have a CPU step to go to rgb
 
   return QRhiTexture::RGBA8;
 }
@@ -268,6 +271,8 @@ constexpr QRhiTexture::Format textureFormat() noexcept
     return QRhiTexture::ASTC_12x10;
   else if(fmt == "astc_12x12")
     return QRhiTexture::ASTC_12x12;
+  else if(fmt == "rgb")
+    return QRhiTexture::RGBA8;
   else
     return QRhiTexture::RGBA8;
   }
@@ -363,6 +368,8 @@ constexpr QRhiTexture::Format textureFormat() noexcept
       return QRhiTexture::ASTC_12x10;
     else if constexpr(requires { F::ASTC_12X12; })
       return QRhiTexture::ASTC_12x12;
+    else if constexpr(requires { F::RGB; })
+      return QRhiTexture::RGBA8;
     else
       return QRhiTexture::RGBA8;
   }

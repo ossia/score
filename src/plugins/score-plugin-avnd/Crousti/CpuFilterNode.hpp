@@ -122,17 +122,39 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
     }
   }
 
+  template <avnd::cpu_texture Tex>
   void uploadOutputTexture(
-      score::gfx::RenderList& renderer, int k, avnd::cpu_texture auto& cpu_tex,
+      score::gfx::RenderList& renderer, int k, Tex& cpu_tex,
       QRhiResourceUpdateBatch* res)
   {
     if(cpu_tex.changed)
     {
       if(auto texture = updateTexture(renderer, k, cpu_tex))
       {
+        QByteArray buf
+            = QByteArray::fromRawData((const char*)cpu_tex.bytes, cpu_tex.bytesize());
+        if constexpr(requires { Tex::RGB; })
+        {
+          // RGB -> RGBA
+          const QByteArray rgb = buf;
+          QByteArray rgba;
+          rgba.resize(cpu_tex.width * cpu_tex.height * 4);
+          auto src = (const unsigned char*)rgb.constData();
+          auto dst = (unsigned char*)rgba.data();
+          for(int rgb_byte = 0, rgba_byte = 0, N = rgb.size(); rgb_byte < N;)
+          {
+            dst[rgba_byte + 0] = src[rgb_byte + 0];
+            dst[rgba_byte + 1] = src[rgb_byte + 1];
+            dst[rgba_byte + 2] = src[rgb_byte + 2];
+            dst[rgba_byte + 3] = 255;
+            rgb_byte += 3;
+            rgba_byte += 4;
+          }
+          buf = rgba;
+        }
         // Upload it (mirroring is done in shader generic_texgen_fs if necessary)
         {
-          QRhiTextureSubresourceUploadDescription sd(cpu_tex.bytes, cpu_tex.bytesize());
+          QRhiTextureSubresourceUploadDescription sd(buf);
           QRhiTextureUploadDescription desc{QRhiTextureUploadEntry{0, 0, sd}};
           res->uploadTexture(texture, desc);
         }
@@ -143,15 +165,35 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
     }
   }
 
-  void loadInputTexture(QRhi& rhi, avnd::cpu_texture auto& cpu_tex, int k)
+  template <avnd::cpu_texture Tex>
+  void loadInputTexture(QRhi& rhi, Tex& cpu_tex, int k)
   {
     auto& buf = m_readbacks[k].data;
-    if(buf.size() != (qsizetype)cpu_tex.bytesize())
+    if(buf.size() < (qsizetype)cpu_tex.bytesize())
     {
       cpu_tex.bytes = nullptr;
     }
     else
     {
+      if constexpr(requires { Tex::RGB; })
+      {
+        // RGBA -> RGB
+        const QByteArray rgba = buf;
+        QByteArray rgb;
+        rgb.resize(cpu_tex.width * cpu_tex.height * 3);
+        auto src = rgba.constData();
+        auto dst = rgb.data();
+        for(int rgb_byte = 0, rgba_byte = 0, N = rgb.size(); rgb_byte < N;)
+        {
+          dst[rgb_byte + 0] = src[rgba_byte + 0];
+          dst[rgb_byte + 1] = src[rgba_byte + 1];
+          dst[rgb_byte + 2] = src[rgba_byte + 2];
+          rgb_byte += 3;
+          rgba_byte += 4;
+        }
+        buf = rgb;
+      }
+
       cpu_tex.bytes = reinterpret_cast<unsigned char*>(buf.data());
 
       if(rhi.isYUpInNDC())
