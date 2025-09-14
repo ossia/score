@@ -106,6 +106,17 @@ void SimpleRenderedVSANode::initPass(
       QRhiGraphicsPipeline::TargetBlend t{};
       t.enable = true;
       pip.pipeline->destroy();
+      switch(renderer.state.api)
+      {
+        default:
+        case GraphicsApi::Vulkan:
+          pip.pipeline->setCullMode(QRhiGraphicsPipeline::CullMode::Back);
+          break;
+        case GraphicsApi::OpenGL:
+          pip.pipeline->setCullMode(QRhiGraphicsPipeline::CullMode::Front);
+          break;
+      }
+      pip.pipeline->setFrontFace(QRhiGraphicsPipeline::FrontFace::CW);
       pip.pipeline->setTargetBlends({t});
       pip.pipeline->create();
       m_passes.emplace_back(

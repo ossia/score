@@ -13,7 +13,7 @@ PROCESS_METADATA(
     "CSF",            // Internal name
     "Compute Shader", // Pretty name
     Process::ProcessCategory::Visual,
-    "GPU",                                   // Category
+    "Visuals",                               // Category
     "Compute shaders",                       // Description
     "ossia team",                            // Author
     (QStringList{"gfx", "compute", "glsl"}), // Tags

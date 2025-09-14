@@ -63,7 +63,7 @@ void main() {
 
 Model::Model(
     const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
-    : Process::ProcessModel{duration, id, "gfxProcess", parent}
+    : Process::ProcessModel{duration, id, "CSF", parent}
 {
   metadata().setInstanceName(*this);
   (void)setCompute(defaultCSF);
@@ -72,7 +72,7 @@ Model::Model(
 Model::Model(
     const TimeVal& duration, const QString& init, const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : Process::ProcessModel{duration, id, "gfxProcess", parent}
+    : Process::ProcessModel{duration, id, "CSF", parent}
 {
   metadata().setInstanceName(*this);
 
