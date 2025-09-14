@@ -516,7 +516,7 @@ EventComponent* ScenarioComponentBase::make<EventComponent, Scenario::EventModel
       if(auto sc = thisP.lock())
       {
         if(auto q = qed_ptr.lock())
-          q->enqueue([sc, elt, st] { sc->sig_eventCallback(elt, st); });
+          q->enqueue([sc, elt, st] { sc->sig_eventCallback(sc, elt, st); });
       }
     }
   };
@@ -654,8 +654,12 @@ void ScenarioComponentBase::stopIntervalExecution(const Id<Scenario::IntervalMod
 }
 
 void ScenarioComponentBase::eventCallback(
-    std::shared_ptr<EventComponent> ev, ossia::time_event::status newStatus)
+    std::weak_ptr<ScenarioComponentBase> self, std::shared_ptr<EventComponent> ev,
+    ossia::time_event::status newStatus)
 {
+  auto p = self.lock();
+  if(!p)
+    return;
   auto the_event = const_cast<Scenario::EventModel*>(ev->scoreEvent());
   if(!the_event)
     return;

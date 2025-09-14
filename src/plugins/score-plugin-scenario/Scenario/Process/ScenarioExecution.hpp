@@ -19,8 +19,14 @@
 #include <memory>
 #include <verdigris>
 
+namespace Execution
+{
+class ScenarioComponentBase;
+}
 Q_DECLARE_METATYPE(std::shared_ptr<Execution::EventComponent>)
 W_REGISTER_ARGTYPE(std::shared_ptr<Execution::EventComponent>)
+Q_DECLARE_METATYPE(std::weak_ptr<Execution::ScenarioComponentBase>)
+W_REGISTER_ARGTYPE(std::weak_ptr<Execution::ScenarioComponentBase>)
 Q_DECLARE_METATYPE(ossia::time_event::status)
 W_REGISTER_ARGTYPE(ossia::time_event::status)
 namespace Device
@@ -106,17 +112,19 @@ public:
   std::function<void()> removing(const Scenario::StateModel& e, StateComponent& c);
 
 public:
-  void
-  sig_eventCallback(std::shared_ptr<EventComponent> arg_1, ossia::time_event::status st)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, sig_eventCallback, arg_1, st)
+  void sig_eventCallback(
+      std::weak_ptr<ScenarioComponentBase> self, std::shared_ptr<EventComponent> arg_1,
+      ossia::time_event::status st)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, sig_eventCallback, self, arg_1, st)
 
 protected:
   void startIntervalExecution(const Id<Scenario::IntervalModel>&);
   void stopIntervalExecution(const Id<Scenario::IntervalModel>&);
   void disableIntervalExecution(const Id<Scenario::IntervalModel>& id);
 
-  void
-  eventCallback(std::shared_ptr<EventComponent> ev, ossia::time_event::status newStatus);
+  void eventCallback(
+      std::weak_ptr<ScenarioComponentBase> self, std::shared_ptr<EventComponent> ev,
+      ossia::time_event::status newStatus);
 
   score::hash_map<Id<Scenario::IntervalModel>, std::shared_ptr<IntervalComponent>>
       m_ossia_intervals;
