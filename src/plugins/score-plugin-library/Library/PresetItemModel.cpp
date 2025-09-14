@@ -19,6 +19,7 @@
 #include <ossia/detail/ssize.hpp>
 
 #include <QFile>
+#include <QPainter>
 
 namespace Library
 {
@@ -85,6 +86,18 @@ void PresetListView::mouseDoubleClickEvent(QMouseEvent* event)
 
   event->accept();
 }
+
+void PresetListView::paintEvent(QPaintEvent* e)
+{
+  QListView::paintEvent(e);
+
+  if(model() && model()->rowCount(rootIndex()) > 0)
+    return;
+
+  QPainter p{this->viewport()};
+  p.drawText(rect(), Qt::AlignLeft, "<No presets>");
+}
+
 static bool isValidForFilename(const QString& name)
 {
   if(name.isEmpty())

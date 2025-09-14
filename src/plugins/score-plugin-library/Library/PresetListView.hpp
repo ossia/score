@@ -9,13 +9,14 @@
 
 namespace Library
 {
-class SCORE_PLUGIN_LIBRARY_EXPORT PresetListView : public QListView
+class SCORE_PLUGIN_LIBRARY_EXPORT PresetListView final : public QListView
 {
   W_OBJECT(PresetListView)
 public:
   using QListView::QListView;
   ~PresetListView();
-  void mouseDoubleClickEvent(QMouseEvent* event);
+  void mouseDoubleClickEvent(QMouseEvent* event) override;
+  void paintEvent(QPaintEvent* e) override;
 
   void selected(std::optional<Process::Preset> p)
       E_SIGNAL(SCORE_PLUGIN_LIBRARY_EXPORT, selected, p)
