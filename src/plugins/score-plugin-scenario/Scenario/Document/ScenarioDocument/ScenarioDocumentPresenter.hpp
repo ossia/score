@@ -93,6 +93,7 @@ public:
   void on_viewModelDefocused(const Process::ProcessModel* vm);
   void on_viewModelFocused(const Process::ProcessModel* vm);
 
+  void on_dropInEmptyFullView(QPoint viewPos, const QMimeData* data);
   void focusFrontProcess();
   void goUpALevel();
 

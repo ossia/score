@@ -24,6 +24,24 @@ CentralIntervalDisplay::CentralIntervalDisplay(ScenarioDocumentPresenter& p)
 
 CentralIntervalDisplay::~CentralIntervalDisplay()
 {
+  auto& view = parent.view();
+  auto& gv = view.view();
+  if(auto itv_p = presenter.intervalPresenter())
+  {
+    QObject::disconnect(
+        itv_p, &FullViewIntervalPresenter::intervalSelected, &parent,
+        &ScenarioDocumentPresenter::setDisplayedInterval);
+  }
+  QObject::disconnect(
+      &gv, &ProcessGraphicsView::dropRequested, &parent,
+      &ScenarioDocumentPresenter::on_dropInEmptyFullView);
+
+  QObject::disconnect(
+      &presenter, &DisplayedElementsPresenter::requestFocusedPresenterChange,
+      &parent.focusManager(),
+      static_cast<void (Process::ProcessFocusManager::*)(
+          QPointer<Process::LayerPresenter>)>(&Process::ProcessFocusManager::focus));
+
   presenter.remove();
 }
 
@@ -48,7 +66,7 @@ void CentralIntervalDisplay::init()
   SCORE_ASSERT(itv_p);
   QObject::connect(
       itv_p, &FullViewIntervalPresenter::intervalSelected, &parent,
-      &ScenarioDocumentPresenter::setDisplayedInterval);
+      &ScenarioDocumentPresenter::setDisplayedInterval, Qt::UniqueConnection);
 
   parent.on_viewReady();
   parent.updateMinimap();
@@ -59,7 +77,14 @@ void CentralIntervalDisplay::init()
       &presenter, &DisplayedElementsPresenter::requestFocusedPresenterChange,
       &parent.focusManager(),
       static_cast<void (Process::ProcessFocusManager::*)(
-          QPointer<Process::LayerPresenter>)>(&Process::ProcessFocusManager::focus));
+          QPointer<Process::LayerPresenter>)>(&Process::ProcessFocusManager::focus),
+      Qt::UniqueConnection);
+
+  // In case we drop in the emptiness in the interval view, we want to
+  // create a node there and an appropriately-sized slot
+  QObject::connect(
+      &gv, &ProcessGraphicsView::dropRequested, &parent,
+      &ScenarioDocumentPresenter::on_dropInEmptyFullView, Qt::UniqueConnection);
 }
 
 Process::ProcessModel* closestParentProcessBeforeInterval(const QObject* obj)

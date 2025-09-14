@@ -14,6 +14,7 @@
 #include <Process/TimeValue.hpp>
 
 #include <Scenario/Application/Drops/DropOnCable.hpp>
+#include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
@@ -392,6 +393,14 @@ void ScenarioDocumentPresenter::setZoomRatio(ZoomRatio newRatio)
     if(cbl.second)
       cbl.second->resize();
   }
+}
+
+void ScenarioDocumentPresenter::on_dropInEmptyFullView(
+    QPoint viewPos, const QMimeData* data)
+{
+  auto& ctx = m_context;
+  ctx.app.interfaces<Scenario::IntervalDropHandlerList>().drop(
+      ctx, this->displayedInterval(), QPointF{}, *data);
 }
 
 void ScenarioDocumentPresenter::on_horizontalZoom(QPointF zoom, QPointF scenePoint)
