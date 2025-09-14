@@ -654,6 +654,12 @@ avnd_make_score(
 )
 
 avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Counter.hpp"
+  TARGET counter
+  MAIN_CLASS Counter
+  NAMESPACE examples
+)
+avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Trigger.hpp"
   TARGET trigger
   MAIN_CLASS Trigger
