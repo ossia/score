@@ -76,15 +76,13 @@ layout(std140, binding = 1) uniform process_t {
   float TIME_;
   float TIMEDELTA_;
   float PROGRESS_;
+  float SAMPLERATE_;
 
   int PASSINDEX_;
   int FRAMEINDEX_;
 
   vec2 RENDERSIZE_;
   vec4 DATE_;
-  vec4 MOUSE_;
-  vec4 CHANNEL_TIME_;
-  float SAMPLERATE_;
 } isf_process_uniforms;
  
 #define TIME isf_process_uniforms.TIME_
@@ -93,7 +91,6 @@ layout(std140, binding = 1) uniform process_t {
 #define PASSINDEX isf_process_uniforms.PASSINDEX_
 #define FRAMEINDEX isf_process_uniforms.FRAMEINDEX_
 #define RENDERSIZE isf_process_uniforms.RENDERSIZE_
-#define MOUSE isf_process_uniforms.MOUSE_
 #define DATE isf_process_uniforms.DATE_
 )_";
 
@@ -110,7 +107,7 @@ layout(std140, binding = 1) uniform process_t {
 #define IMG_PIXEL(tex, coord) texture(tex, ISF_FIXUP_TEXCOORD(coord / RENDERSIZE))
 #define IMG_NORM_PIXEL(tex, coord) texture(tex, ISF_FIXUP_TEXCOORD(coord))
 #else
-#define isf_FragCoord gl_FragCoord
+#define isf_FragCoord gl_FragCoord.xy
 #define IMG_THIS_PIXEL(tex) texture(tex, isf_FragNormCoord)
 #define IMG_THIS_NORM_PIXEL(tex) texture(tex, isf_FragNormCoord)
 #define IMG_PIXEL(tex, coord) texture(tex, (coord) / RENDERSIZE)
@@ -1408,7 +1405,7 @@ void parser::parse_shadertoy()
 #define iTime TIME
 #define iTimeDelta TIMEDELTA
 #define iFrame FRAMEINDEX
-#define iMouse MOUSE
+#define iMouse vec2(0.0, 0.0) // fixme MOUSE 
 #define iDate DATE
 #define iSampleRate SAMPLERATE
 
@@ -1809,7 +1806,7 @@ vec3 iResolution  = vec3(RENDERSIZE, 1.0);
 float iTime = TIME;
 float iTimeDelta = TIMEDELTA;
 int iFrame = FRAMEINDEX;
-vec4 iMouse = MOUSE;
+vec4 iMouse = vec2(0.0, 0.0); // FIXME 
 vec4 iDate = DATE;
 float iSampleRate = isf_process_uniforms.SAMPLERATE_;
 

@@ -126,7 +126,11 @@ struct hash<Gfx::ShaderSource>
 {
   std::size_t operator()(const Gfx::ShaderSource& program) const noexcept
   {
-    constexpr const QtPrivate::QHashCombine combine;
+    constexpr const QtPrivate::QHashCombine combine{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 11, 0)
+        0
+#endif
+    };
     std::size_t seed{};
     seed = combine(seed, program.vertex);
     seed = combine(seed, program.fragment);
