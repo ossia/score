@@ -214,6 +214,7 @@ void DataStreamWriter::write(Gfx::Filter::Model& proc)
 {
   Gfx::ShaderSource s;
   m_stream >> s;
+  s.type = isf::parser::ShaderType::ISF;
   (void)proc.setProgram(s);
 
   writePorts(
@@ -238,6 +239,7 @@ void JSONWriter::write(Gfx::Filter::Model& proc)
   Gfx::ShaderSource s;
   s.vertex = obj["Vertex"].toString();
   s.fragment = obj["Fragment"].toString();
+  s.type = isf::parser::ShaderType::ISF;
   (void)proc.setProgram(s);
 
   writePorts(

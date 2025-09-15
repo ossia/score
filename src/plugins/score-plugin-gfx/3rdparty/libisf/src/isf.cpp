@@ -153,7 +153,7 @@ parser::parser(std::string vert, std::string frag, int glslVersion, ShaderType t
     if(start_pos == std::string::npos)
       return false;
 
-    auto start_json_pos = str.find("{", start_pos);
+    auto start_json_pos = str.find('{', start_pos);
     if(start_json_pos == std::string::npos || ((start_json_pos - start_pos) > 10))
       return false;
     return true;
@@ -434,6 +434,40 @@ static void parse_input(csf_image_input& inp, const sajson::value& v)
       auto val = v.get_object_value(i);
       if(val.get_type() == sajson::TYPE_STRING)
         inp.format = val.as_string();
+    }
+    else if(k == "WIDTH")
+    {
+      auto val = v.get_object_value(i);
+      auto t = val.get_type();
+      if(t == sajson::TYPE_STRING)
+      {
+        inp.width_expression = val.as_string();
+      }
+      else if(t == sajson::TYPE_DOUBLE)
+      {
+        inp.width_expression = std::to_string(val.get_double_value());
+      }
+      else if(t == sajson::TYPE_INTEGER)
+      {
+        inp.width_expression = std::to_string(val.get_integer_value());
+      }
+    }
+    else if(k == "HEIGHT")
+    {
+      auto val = v.get_object_value(i);
+      auto t = val.get_type();
+      if(t == sajson::TYPE_STRING)
+      {
+        inp.height_expression = val.as_string();
+      }
+      else if(t == sajson::TYPE_DOUBLE)
+      {
+        inp.height_expression = std::to_string(val.get_double_value());
+      }
+      else if(t == sajson::TYPE_INTEGER)
+      {
+        inp.height_expression = std::to_string(val.get_integer_value());
+      }
     }
   }
 }

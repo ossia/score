@@ -112,6 +112,9 @@ struct csf_image_input
 {
   std::string access; // "read_only", "write_only", "read_write"
   std::string format; // "RGBA8", "R32F", etc.
+
+  std::string width_expression;
+  std::string height_expression;
 };
 
 struct input
@@ -201,9 +204,7 @@ public:
     VertexShaderArt,
     CSF
   };
-  parser(
-      std::string vert, std::string frag, int glslVersion = 450,
-      ShaderType = ShaderType::Autodetect);
+  parser(std::string vert, std::string frag, int glslVersion, ShaderType);
   explicit parser(std::string isf_geom_filter, ShaderType t);
 
   descriptor data() const;

@@ -428,6 +428,7 @@ void RenderedCSFNode::initComputePass(
 
       // Create separate SRB for this pass with the specific ProcessUBO
       passSRB = rhi.newShaderResourceBindings();
+      passSRB->setName(QString("passSRB.%1").arg(passIdx).toUtf8());
 
       // Replace the ProcessUBO binding (binding 1) with this pass's ProcessUBO
       // We know binding 1 is the ProcessUBO because we created it that way
@@ -535,6 +536,7 @@ void main()
   QRhiSampler* outputSampler = renderer.state.rhi->newSampler(
     QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
     QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
+  outputSampler->setName("RenderedCSFNode::OutputSampler");
   outputSampler->create();
     
   // Initialize mesh buffers

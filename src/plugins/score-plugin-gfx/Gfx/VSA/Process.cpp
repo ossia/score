@@ -257,6 +257,7 @@ void DataStreamWriter::write(Gfx::VSA::Model& proc)
 {
   Gfx::ShaderSource s;
   m_stream >> s;
+  s.type = isf::parser::ShaderType::VertexShaderArt;
   (void)proc.setVertex(s.vertex);
 
   writePorts(
@@ -279,6 +280,7 @@ void JSONWriter::write(Gfx::VSA::Model& proc)
 {
   Gfx::ShaderSource s;
   s.vertex = obj["Vertex"].toString();
+  s.type = isf::parser::ShaderType::VertexShaderArt;
   (void)proc.setVertex(s.vertex);
 
   writePorts(
