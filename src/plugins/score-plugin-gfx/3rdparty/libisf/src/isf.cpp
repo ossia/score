@@ -154,11 +154,13 @@ parser::parser(std::string vert, std::string frag, int glslVersion, ShaderType t
   static const auto is_shadertoy_json
       = [](const std::string& str) { return str.starts_with("[{\"ver\":\""); };
   static const auto is_shadertoy = [](const std::string& str) {
-    return str.find("void mainImage(") != std::string::npos;
+    return str.find("void mainImage(") != std::string::npos
+           && str.find("\"ISFVSN\"") == std::string::npos;
   };
   static const auto is_glslsandbox = [](const std::string& str) {
-    return str.find("uniform float time;") != std::string::npos
-           || str.find("glslsandbox") != std::string::npos;
+    return (str.find("uniform float time;") != std::string::npos
+            || str.find("glslsandbox") != std::string::npos)
+           && str.find("\"ISFVSN\"") == std::string::npos;
   };
   static const auto is_vsa = [](const std::string& str) {
     // Check for common VSA patterns
