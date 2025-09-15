@@ -121,7 +121,6 @@ void BaseScenarioElement::init(bool forcePlay, BaseScenarioRefContainer element)
       main_end_event, m_ossia_endEvent->makeExpression(),
       (ossia::time_event::offset_behavior)element.endEvent().offsetBehavior());
 
-  m_ossia_startState->onSetup();
   main_start_node->set_start(true);
 
   // Important: we do not setup the end state in order to not have it
@@ -161,13 +160,13 @@ void BaseScenarioElement::cleanup()
   if(m_ossia_endState)
     m_ossia_endState->cleanup(m_ossia_startState);
   if(m_ossia_startEvent)
-    m_ossia_startEvent->cleanup();
+    m_ossia_startEvent->cleanup(m_ossia_startEvent);
   if(m_ossia_endEvent)
-    m_ossia_endEvent->cleanup();
+    m_ossia_endEvent->cleanup(m_ossia_endEvent);
   if(m_ossia_startTimeSync)
-    m_ossia_startTimeSync->cleanup();
+    m_ossia_startTimeSync->cleanup(m_ossia_startTimeSync);
   if(m_ossia_endTimeSync)
-    m_ossia_endTimeSync->cleanup();
+    m_ossia_endTimeSync->cleanup(m_ossia_endTimeSync);
   m_ossia_interval.reset();
   m_ossia_startState.reset();
   m_ossia_endState.reset();

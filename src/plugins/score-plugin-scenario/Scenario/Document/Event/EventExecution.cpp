@@ -1,6 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Process/ExecutionContext.hpp>
+#include <Process/ExecutionTransaction.hpp>
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
@@ -33,9 +34,13 @@ EventComponent::EventComponent(
   });
 }
 
-void EventComponent::cleanup()
+void EventComponent::cleanup(const std::shared_ptr<EventComponent>& self)
 {
-  in_exec([ev = m_ossia_event] { ev->cleanup(); });
+  in_exec([self, ev = m_ossia_event] {
+    ev->cleanup();
+    // And then we want it to be cleared in the main thread
+    self->in_edit(gc(self));
+  });
   m_ossia_event.reset();
 }
 
@@ -60,6 +65,7 @@ void EventComponent::onSetup(
     std::shared_ptr<ossia::time_event> event, ossia::expression_ptr expr,
     ossia::time_event::offset_behavior b)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   m_ossia_event = event;
   m_ossia_event->set_expression(std::move(expr));
   m_ossia_event->set_offset_behavior(b);

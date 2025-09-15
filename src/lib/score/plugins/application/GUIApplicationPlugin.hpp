@@ -142,6 +142,12 @@ public:
   virtual void on_initDocument(score::Document& doc);
 
   /**
+   * @brief on_closeDocument
+   * Will be called before closing the document.
+   */
+  virtual void on_closeDocument(score::Document& doc);
+
+  /**
    * @brief on_newDocument
    * Will be called only when a new, empty document is created;
    * classes inheriting from SerializableDocumentPlugin should be

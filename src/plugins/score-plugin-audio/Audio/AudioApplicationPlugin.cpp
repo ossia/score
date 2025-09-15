@@ -53,10 +53,16 @@ void ApplicationPlugin::initialize()
 
 ApplicationPlugin::~ApplicationPlugin() { }
 
+void ApplicationPlugin::on_closeDocument(score::Document& old)
+{
+  stop_engine();
+}
+
 void ApplicationPlugin::on_documentChanged(
     score::Document* olddoc, score::Document* newdoc)
 {
-  restart_engine();
+  if(newdoc)
+    restart_engine();
 }
 
 void ApplicationPlugin::timerEvent(QTimerEvent*)

@@ -14,12 +14,14 @@ struct update_control_in_value_in_ui
   using Model = ProcessModel<Node>;
 
   typename ExecNode::control_input_values_type& arr;
-  Model& element;
+  QPointer<Model> element;
 
   template <avnd::dynamic_ports_port Field, std::size_t N, std::size_t NField>
   void operator()(Field& field, avnd::predicate_index<N>, avnd::field_index<NField>)
   {
-    for(auto p : element.avnd_input_idx_to_model_ports(NField))
+    if(!element)
+      return;
+    for(auto p : element->avnd_input_idx_to_model_ports(NField))
     {
       if(auto inlet = qobject_cast<Process::ControlInlet*>(p))
       {
@@ -33,7 +35,9 @@ struct update_control_in_value_in_ui
   template <typename Field, std::size_t N, std::size_t NField>
   void operator()(Field& field, avnd::predicate_index<N>, avnd::field_index<NField>)
   {
-    auto p = element.avnd_input_idx_to_model_ports(NField)[0];
+    if(!element)
+      return;
+    auto p = element->avnd_input_idx_to_model_ports(NField)[0];
     if(auto inlet = qobject_cast<Process::ControlInlet*>(p))
     {
       using namespace std;
@@ -48,13 +52,15 @@ struct update_control_out_value_in_ui
   using ExecNode = safe_node<Node>;
   using Model = ProcessModel<Node>;
   typename ExecNode::control_output_values_type& arr;
-  Model& element;
+  QPointer<Model> element;
 
   template <typename Field, std::size_t N, std::size_t NField>
   void operator()(Field& field, avnd::predicate_index<N>, avnd::field_index<NField>)
   {
+    if(!element)
+      return;
     using namespace std;
-    auto ports = element.avnd_output_idx_to_model_ports(NField);
+    auto ports = element->avnd_output_idx_to_model_ports(NField);
     SCORE_ASSERT(!ports.empty());
     auto outlet = safe_cast<Process::ControlOutlet*>(ports[0]);
     outlet->setValue(oscr::to_ossia_value(field, get<N>(arr)));
@@ -63,10 +69,12 @@ struct update_control_out_value_in_ui
   template <avnd::dynamic_ports_port Field, std::size_t N, std::size_t NField>
   void operator()(Field& field, avnd::predicate_index<N>, avnd::field_index<NField>)
   {
+    if(!element)
+      return;
     using namespace std;
     // FIXME handle dynamic ports correctly
     // auto outlet
-    //     = safe_cast<Process::ControlOutlet*>(modelPort<Node>(element.outlets(), NField));
+    //     = safe_cast<Process::ControlOutlet*>(modelPort<Node>(element->outlets(), NField));
     // outlet->setValue(oscr::to_ossia_value(field, get<N>(arr)));
   }
 };
@@ -77,7 +85,7 @@ struct update_control_value_in_ui
   using ExecNode = safe_node<Node>;
   using Model = ProcessModel<Node>;
   std::weak_ptr<ExecNode> weak_node;
-  Model& element;
+  QPointer<Model> element;
 
   void handle_controls(ExecNode& node) const noexcept
   {

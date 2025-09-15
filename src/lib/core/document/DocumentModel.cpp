@@ -30,11 +30,12 @@ DocumentModel::~DocumentModel()
 {
   auto p = m_pluginModels;
 
-  // We remove the plug-ins first.
-  for(auto plug : p)
+  // We remove the plug-ins first, in reverse order of creation
+  // (to maintain consistency with eg. execution plugin having to disappear before explorer plugin)
+  while(!m_pluginModels.empty())
   {
-    delete plug;
-    m_pluginModels.erase(m_pluginModels.begin());
+    delete m_pluginModels.back();
+    m_pluginModels.pop_back();
   }
   delete m_model;
 }

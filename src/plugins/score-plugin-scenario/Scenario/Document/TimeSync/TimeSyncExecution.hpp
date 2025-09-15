@@ -25,7 +25,7 @@ public:
       const Scenario::TimeSyncModel& element, const Execution::Context& ctx,
       QObject* parent);
 
-  void cleanup();
+  void cleanup(const std::shared_ptr<TimeSyncComponent>& self);
 
   //! To be called from the GUI thread
   ossia::expression_ptr makeTrigger() const;

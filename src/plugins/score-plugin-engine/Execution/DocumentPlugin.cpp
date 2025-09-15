@@ -116,10 +116,20 @@ DocumentPlugin::~DocumentPlugin()
     }
   }
 
-  if(auto devs = context().doc.findPlugin<Explorer::DeviceDocumentPlugin>())
+  if(audio_device)
   {
-    devs->list().setAudioDevice(nullptr);
-    devs->updateProxy.removeDevice(audio_device->settings());
+    if(auto devs = context().doc.findPlugin<Explorer::DeviceDocumentPlugin>())
+    {
+      const auto& rootNode = devs->explorer().rootNode();
+      auto it = ossia::find_if(rootNode, [&](const Device::Node& val) {
+        return val.is<Device::DeviceSettings>()
+               && val.get<Device::DeviceSettings>().name == audio_device->name();
+      });
+      if(it != rootNode.end())
+        devs->updateProxy.removeDevice(audio_device->settings());
+
+      devs->list().setAudioDevice(nullptr);
+    }
   }
   if(audio_device)
     delete audio_device;
@@ -217,7 +227,10 @@ void DocumentPlugin::makeGraph()
   auto& bench = m_ctxData->bench;
 
   if(execGraph)
+  {
+    SCORE_SOFT_ASSERT(!execGraph); // "execGraph should always be unset here");
     execGraph->clear();
+  }
   execGraph.reset();
 
   execState.reset();

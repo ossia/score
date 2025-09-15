@@ -90,6 +90,8 @@ struct SegmentData
   QVariant specificSegmentData;
 
   double x() const { return start.x(); }
+  bool operator==(const SegmentData& other) = delete;
+  bool operator!=(const SegmentData& other) = delete;
 };
 
 inline bool operator<(const SegmentData& lhs, const SegmentData& rhs)

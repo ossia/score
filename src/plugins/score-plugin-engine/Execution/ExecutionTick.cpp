@@ -48,38 +48,23 @@ struct AudioTickHelper
     }
   }
 
-  static void runAllCommands(ExecutionCommandQueue& q)
-  {
-    std::atomic_thread_fence(std::memory_order_seq_cst);
-    ExecutionCommand com;
-    while(q.try_dequeue(com))
-      com();
-  }
-  void runAllCommands() const { runAllCommands(m_context->m_execQueue); }
   ~AudioTickHelper()
   {
     auto scenar = m_scenar;
-    auto ptr = std::make_shared<std::atomic_int32_t>(10000);
-    m_context->context.executionQueue.enqueue([ctx = m_context, scenar = m_scenar,
-                                               graph = m_context->execGraph,
-                                               ptr]() mutable {
-      auto& q = ctx->m_execQueue;
-      runAllCommands(q);
-      runAllCommands(q);
+    ([ctx = m_context, scenar = m_scenar, graph = m_context->execGraph]() mutable {
       scenar->cleanup();
-      runAllCommands(q);
-      runAllCommands(q);
-      graph->clear();
-      runAllCommands(q);
-      runAllCommands(q);
+      auto& q = ctx->m_execQueue;
+      q.enqueue([ctx, graph = graph] {
+        OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+        graph->clear();
+        auto& eq = ctx->m_editionQueue;
+        eq.enqueue(gc(graph, ctx));
+      });
       graph.reset();
       scenar.reset();
 
       ctx.reset();
-      *ptr = 0;
-    });
-    while((*ptr)-- > 0)
-      std::this_thread::yield();
+    })();
   }
 
   void clearBuffers(const ossia::audio_tick_state& t) const
@@ -97,6 +82,7 @@ struct AudioTickHelper
 
   void dequeueCommands() const
   {
+    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
     // Run some commands if they have been submitted.
     Execution::ExecutionCommand c;
     while(m_context->m_execQueue.try_dequeue(c))
@@ -114,6 +100,7 @@ struct AudioTickHelper
 
   void main_tick(const ossia::audio_tick_state& t) const
   {
+    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
     // TODO this means that transport isn't visible until we play again
     if(t.status && *t.status != ossia::transport_status::playing)
       return;
@@ -170,6 +157,7 @@ struct AudioTickHelper
   void main(const ossia::audio_tick_state& t) const
   try
   {
+    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
     // Match the audio_protocol with the actual I/O
     m_proto->setup_buffers(t);
 

@@ -82,6 +82,8 @@ void LocalTree::DocumentPlugin::init()
 void LocalTree::DocumentPlugin::on_documentClosing()
 {
   cleanup();
+  this->m_localDeviceWrapper.setParent(
+      nullptr); // otherwise it gets deleted by DeviceDocumentPlugin
 }
 
 void LocalTree::DocumentPlugin::create()

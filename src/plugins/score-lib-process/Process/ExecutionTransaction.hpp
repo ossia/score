@@ -2,16 +2,19 @@
 #include <Process/ExecutionCommand.hpp>
 #include <Process/ExecutionContext.hpp>
 
+#include <ossia/detail/thread.hpp>
+
 #include <memory>
 #include <verdigris>
 
 namespace Execution
 {
 struct Context;
-template <typename T>
-inline constexpr auto gc(T&& t) noexcept
+template <typename... T>
+inline constexpr auto gc(T&&... t) noexcept
 {
-  return [gced = std::move(t)] {};
+  return
+      [... gced = std::move(t)] { OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui); };
 }
 
 struct Transaction

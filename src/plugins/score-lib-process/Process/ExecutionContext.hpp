@@ -3,12 +3,12 @@
 #include <Process/TimeValue.hpp>
 
 #include <ossia/detail/lockfree_queue.hpp>
+#include <ossia/detail/thread.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
 
 #include <score_lib_process_export.h>
 
 #include <atomic>
-#include <functional>
 #include <memory>
 namespace ossia
 {
@@ -66,7 +66,7 @@ class Model;
 using time_function = smallfun::function<ossia::time_value(const TimeVal&)>;
 using reverse_time_function = smallfun::function<TimeVal(const ossia::time_value&)>;
 
-using ExecutionCommandQueue = ossia::spsc_queue<ExecutionCommand, 1024>;
+using ExecutionCommandQueue = moodycamel::ConcurrentQueue<ExecutionCommand>;
 using EditionCommandQueue = moodycamel::ConcurrentQueue<ExecutionCommand>;
 using GCCommandQueue = moodycamel::ConcurrentQueue<GCCommand>;
 

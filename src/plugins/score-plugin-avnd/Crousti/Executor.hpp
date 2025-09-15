@@ -392,7 +392,7 @@ public:
     {
       // Update the value in the UI
       std::weak_ptr<safe_node<Node>> weak_node = ptr;
-      update_control_value_in_ui<Node> timer_action{weak_node, element};
+      update_control_value_in_ui<Node> timer_action{weak_node, &element};
       timer_action();
 
       con(ctx.doc.coarseUpdateTimer, &QTimer::timeout, this,

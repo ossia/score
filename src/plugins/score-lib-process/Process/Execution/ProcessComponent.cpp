@@ -5,6 +5,8 @@
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionSetup.hpp>
 
+#include <ossia/detail/thread.hpp>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Execution::ProcessComponent)
 
@@ -25,10 +27,14 @@ ProcessComponent::ProcessComponent(
 
 void ProcessComponent::cleanup()
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   if(const auto& proc = m_ossia_process)
   {
     this->system().setup.unregister_node(process(), proc->node);
-    in_exec([proc] { proc->node.reset(); });
+    in_exec([proc] {
+      OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+      proc->node.reset();
+    });
   }
   node.reset();
   m_ossia_process.reset();

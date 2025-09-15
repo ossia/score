@@ -99,9 +99,6 @@ public:
   StateComponent& operator=(StateComponent&&) = delete;
   ~StateComponent();
 
-  //! To be called from the API edition queue
-  void onSetup();
-
   void init();
   void cleanup(const std::shared_ptr<StateComponent>&);
 };

@@ -24,7 +24,7 @@ public:
       const Scenario::EventModel& element, const Execution::Context& ctx,
       QObject* parent);
 
-  void cleanup();
+  void cleanup(const std::shared_ptr<EventComponent>& self);
 
   //! To be called from the GUI thread
   ossia::expression_ptr makeExpression() const;

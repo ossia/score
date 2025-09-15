@@ -68,6 +68,8 @@ void GUIApplicationPlugin::on_keyReleaseEvent(QKeyEvent& event) { }
 
 void GUIApplicationPlugin::on_initDocument(score::Document& doc) { }
 
+void GUIApplicationPlugin::on_closeDocument(score::Document& doc) { }
+
 void GUIApplicationPlugin::on_newDocument(score::Document& doc) { }
 
 void GUIApplicationPlugin::on_loadedDocument(score::Document& doc) { }

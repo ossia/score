@@ -25,6 +25,7 @@ static auto enqueue_in_context(SetupContext& self) noexcept
   return [&self]<typename F>(F&& f) {
     static_assert(std::is_nothrow_move_constructible_v<F>);
     self.context.executionQueue.enqueue(std::move(f));
+    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   };
 }
 
@@ -72,13 +73,16 @@ void SetupContext::on_cableRemoved(const Process::Cable& c)
   auto it = m_cables.find(c.id());
   if(it != m_cables.end())
   {
-    context.executionQueue.enqueue(
-        [cable = it->second, graph = context.execGraph] { graph->disconnect(cable); });
+    context.executionQueue.enqueue([cable = it->second, graph = context.execGraph] {
+      OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+      graph->disconnect(cable);
+    });
   }
 }
 
 void SetupContext::connectCable(Process::Cable& cable)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   if(!context.created)
     return;
   ossia::node_ptr source_node{}, sink_node{};
@@ -136,6 +140,7 @@ void SetupContext::connectCable(Process::Cable& cable)
 
     m_cables[cable.id()] = edge;
     context.executionQueue.enqueue([edge, graph = context.execGraph]() mutable {
+      OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
       graph->connect(std::move(edge));
     });
   }
@@ -146,6 +151,7 @@ void SetupContext::register_inlet_impl(
     Process::Inlet& proc_port, const ossia::inlet_ptr& ossia_port,
     const std::shared_ptr<ossia::graph_node>& node, Impl&& impl)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   SCORE_ASSERT(node);
   SCORE_ASSERT(ossia_port);
 
@@ -155,14 +161,16 @@ void SetupContext::register_inlet_impl(
   con = connect(
       &proc_port, &Process::Port::addressChanged, this,
       [this, ossia_port](const State::AddressAccessor& address) {
+    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
     set_destination(address, ossia_port);
-      });
+  });
   set_destination_impl(context, proc_port.address(), ossia_port, impl);
 
   inlets.insert({&proc_port, std::make_pair(node, ossia_port)});
 
   std::weak_ptr<ossia::execution_state> ws = context.execState;
   impl([ws, ossia_port] {
+    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
     if(auto state = ws.lock())
       state->register_port(*ossia_port);
   });
@@ -173,10 +181,12 @@ void SetupContext::register_node_impl(
     const Process::Inlets& proc_inlets, const Process::Outlets& proc_outlets,
     const std::shared_ptr<ossia::graph_node>& node, Impl&& exec)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   if(node)
   {
     std::weak_ptr<ossia::graph_interface> wg = context.execGraph;
-    exec([wg, node]() mutable {
+    exec([wg, node = node]() mutable {
+      OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
       if(auto g = wg.lock())
         g->add_node(std::move(node));
     });
@@ -205,6 +215,7 @@ void SetupContext::register_node_impl(
 void SetupContext::register_node(
     const Process::ProcessModel& proc, const std::shared_ptr<ossia::graph_node>& node)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   register_node(proc.inlets(), proc.outlets(), node);
   proc_map[node.get()] = &proc;
 }
@@ -212,6 +223,7 @@ void SetupContext::register_node(
 void SetupContext::unregister_node(
     const Process::ProcessModel& proc, const std::shared_ptr<ossia::graph_node>& node)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   unregister_node(proc.inlets(), proc.outlets(), node);
   proc_map.erase(node.get());
 }
@@ -220,6 +232,7 @@ void SetupContext::register_node(
     const Process::ProcessModel& proc, const std::shared_ptr<ossia::graph_node>& node,
     Transaction& vec)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   register_node(proc.inlets(), proc.outlets(), node, vec);
   proc_map[node.get()] = &proc;
 }
@@ -228,6 +241,7 @@ void SetupContext::unregister_node(
     const Process::ProcessModel& proc, const std::shared_ptr<ossia::graph_node>& node,
     Transaction& vec)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   unregister_node(proc.inlets(), proc.outlets(), node, vec);
   proc_map.erase(node.get());
 }
@@ -237,6 +251,7 @@ void set_destination_impl(
     const Context& plug, const State::AddressAccessor& address, const T& port,
     Impl&& append)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   auto& s = plug.execState;
   auto& g = plug.execGraph;
   if(!g)
@@ -244,7 +259,14 @@ void set_destination_impl(
 
   if(address.address.device.isEmpty())
   {
-    append([=] {
+    append([ws = std::weak_ptr{s}, port, wg = std::weak_ptr{g}] {
+      OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+      auto s = ws.lock();
+      if(!s)
+        return;
+      auto g = wg.lock();
+      if(!g)
+        return;
       if(port->address)
       {
         s->unregister_port(*port);
@@ -266,7 +288,14 @@ void set_destination_impl(
     auto p = n->get_parameter();
     if(p)
     {
-      append([s, port, p, qual = qual, g] {
+      append([ws = std::weak_ptr{s}, port, p, qual = qual, wg = std::weak_ptr{g}] {
+        OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+        auto s = ws.lock();
+        if(!s)
+          return;
+        auto g = wg.lock();
+        if(!g)
+          return;
         s->unregister_port(*port);
         port->address = p;
         if(ossia::value_port* dat = port->template target<ossia::value_port>())
@@ -281,7 +310,14 @@ void set_destination_impl(
     }
     else
     {
-      append([=] {
+      append([ws = std::weak_ptr{s}, n, port, wg = std::weak_ptr{g}] {
+        auto s = ws.lock();
+        if(!s)
+          return;
+        auto g = wg.lock();
+        if(!g)
+          return;
+        OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
         s->unregister_port(*port);
         port->address = n;
         s->register_port(*port);
@@ -296,7 +332,14 @@ void set_destination_impl(
     auto path = ossia::traversal::make_path(ad);
     if(path)
     {
-      append([=, p = *path]() mutable {
+      append([ws = std::weak_ptr{s}, p = *path, port, wg = std::weak_ptr{g}]() mutable {
+        OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+        auto s = ws.lock();
+        if(!s)
+          return;
+        auto g = wg.lock();
+        if(!g)
+          return;
         s->unregister_port(*port);
         port->address = std::move(p);
         if(ossia::value_port* dat = port->template target<ossia::value_port>())
@@ -310,7 +353,14 @@ void set_destination_impl(
     }
     else
     {
-      append([=] {
+      append([ws = std::weak_ptr{s}, n, port, wg = std::weak_ptr{g}] {
+        OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+        auto s = ws.lock();
+        if(!s)
+          return;
+        auto g = wg.lock();
+        if(!g)
+          return;
         s->unregister_port(*port);
         port->address = {};
         if(ossia::value_port* dat = port->template target<ossia::value_port>())
@@ -328,12 +378,14 @@ void set_destination_impl(
 void SetupContext::set_destination(
     const State::AddressAccessor& address, const ossia::inlet_ptr& port)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   set_destination_impl(context, address, port, enqueue_in_context(*this));
 }
 
 void SetupContext::set_destination(
     const State::AddressAccessor& address, const ossia::outlet_ptr& port)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   set_destination_impl(context, address, port, enqueue_in_context(*this));
 }
 
@@ -341,12 +393,14 @@ void SetupContext::register_inlet(
     Process::Inlet& inlet, const ossia::inlet_ptr& exec,
     const std::shared_ptr<ossia::graph_node>& node)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   register_inlet_impl(inlet, exec, node, enqueue_in_context(*this));
 }
 void SetupContext::register_outlet(
     Process::Outlet& outlet, const ossia::outlet_ptr& exec,
     const std::shared_ptr<ossia::graph_node>& node)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   register_outlet_impl(outlet, exec, node, enqueue_in_context(*this));
 }
 
@@ -354,6 +408,7 @@ void SetupContext::register_node(
     const Process::Inlets& proc_inlets, const Process::Outlets& proc_outlets,
     const std::shared_ptr<ossia::graph_node>& node)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   register_node_impl(proc_inlets, proc_outlets, node, enqueue_in_context(*this));
 }
 
@@ -361,6 +416,7 @@ void SetupContext::register_node(
     const Process::Inlets& proc_inlets, const Process::Outlets& proc_outlets,
     const std::shared_ptr<ossia::graph_node>& node, Transaction& vec)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   register_node_impl(proc_inlets, proc_outlets, node, enqueue_in_vector(vec));
 }
 
@@ -368,12 +424,14 @@ void SetupContext::register_inlet(
     Process::Inlet& inlet, const ossia::inlet_ptr& exec,
     const std::shared_ptr<ossia::graph_node>& node, Transaction& vec)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   register_inlet_impl(inlet, exec, node, enqueue_in_vector(vec));
 }
 void SetupContext::register_outlet(
     Process::Outlet& outlet, const ossia::outlet_ptr& exec,
     const std::shared_ptr<ossia::graph_node>& node, Transaction& vec)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   register_outlet_impl(outlet, exec, node, enqueue_in_vector(vec));
 }
 
@@ -382,6 +440,7 @@ void SetupContext::register_outlet_impl(
     Process::Outlet& proc_port, const ossia::outlet_ptr& ossia_port,
     const std::shared_ptr<ossia::graph_node>& node, Impl&& impl)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   SCORE_ASSERT(node);
   SCORE_ASSERT(ossia_port);
   auto& runtime_connection = runtime_connections[node].outlets;
@@ -390,8 +449,9 @@ void SetupContext::register_outlet_impl(
   con = connect(
       &proc_port, &Process::Port::addressChanged, this,
       [this, ossia_port](const State::AddressAccessor& address) {
+    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
     set_destination(address, ossia_port);
-      });
+  });
   set_destination_impl(context, proc_port.address(), ossia_port, impl);
 
   outlets.insert({&proc_port, std::make_pair(node, ossia_port)});
@@ -414,6 +474,7 @@ void SetupContext::register_outlet_impl(
 void SetupContext::unregister_inlet(
     const Process::Inlet& proc_port, const std::shared_ptr<ossia::graph_node>& node)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   if(node)
   {
     auto& runtime_connection = runtime_connections[node].inlets;
@@ -429,6 +490,7 @@ void SetupContext::unregister_inlet(
     {
       std::weak_ptr<ossia::execution_state> ws = context.execState;
       context.executionQueue.enqueue([ws, ossia_port = ossia_port_it->second.second] {
+        OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
         if(auto state = ws.lock())
           state->unregister_port(*ossia_port);
       });
@@ -445,6 +507,7 @@ void SetupContext::unregister_inlet(
 void SetupContext::unregister_outlet(
     const Process::Outlet& proc_port, const std::shared_ptr<ossia::graph_node>& node)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   if(node)
   {
     auto& runtime_connection = runtime_connections[node].outlets;
@@ -455,8 +518,10 @@ void SetupContext::unregister_outlet(
       runtime_connection.erase(it);
     }
 
-    proc_port.forChildInlets(
-        [&](Process::Inlet& model_inl) { unregister_inlet(model_inl, node); });
+    proc_port.forChildInlets([&](Process::Inlet& model_inl) {
+      OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+      unregister_inlet(model_inl, node);
+    });
   }
 
   outlets.erase(const_cast<Process::Outlet*>(&proc_port));
@@ -466,6 +531,7 @@ void SetupContext::unregister_inlet(
     const Process::Inlet& proc_port, const std::shared_ptr<ossia::graph_node>& node,
     Transaction& commands)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   if(node)
   {
     auto& runtime_connection = runtime_connections[node].inlets;
@@ -481,6 +547,7 @@ void SetupContext::unregister_inlet(
     {
       std::weak_ptr<ossia::execution_state> ws = context.execState;
       commands.push_back([ws, ossia_port = ossia_port_it->second.second] {
+        OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
         if(auto state = ws.lock())
           state->unregister_port(*ossia_port);
       });
@@ -498,6 +565,7 @@ void SetupContext::unregister_outlet(
     const Process::Outlet& proc_port, const std::shared_ptr<ossia::graph_node>& node,
     Transaction& commands)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   if(node)
   {
     auto& runtime_connection = runtime_connections[node].outlets;
@@ -508,8 +576,10 @@ void SetupContext::unregister_outlet(
       runtime_connection.erase(it);
     }
 
-    proc_port.forChildInlets(
-        [&](Process::Inlet& model_inl) { unregister_inlet(model_inl, node); });
+    proc_port.forChildInlets([&](Process::Inlet& model_inl) {
+      OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+      unregister_inlet(model_inl, node);
+    });
   }
 
   outlets.erase(const_cast<Process::Outlet*>(&proc_port));
@@ -519,7 +589,9 @@ void SetupContext::replace_node(
     const std::shared_ptr<ossia::time_process>& process,
     const std::shared_ptr<ossia::graph_node>& node, Transaction& commands)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   commands.push_back([p = process, n = node]() mutable {
+    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
     using namespace std;
     swap(p->node, n);
   });
@@ -529,11 +601,13 @@ void SetupContext::unregister_node(
     const Process::Inlets& proc_inlets, const Process::Outlets& proc_outlets,
     const std::shared_ptr<ossia::graph_node>& node)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   if(node)
   {
     std::weak_ptr<ossia::graph_interface> wg = context.execGraph;
     std::weak_ptr<ossia::execution_state> ws = context.execState;
     context.executionQueue.enqueue([wg, ws, node] {
+      OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
       if(auto s = ws.lock())
       {
         ossia::for_each_inlet(*node, [&](auto& p) { s->unregister_port(p); });
@@ -562,11 +636,13 @@ void SetupContext::unregister_node(
     const Process::Inlets& proc_inlets, const Process::Outlets& proc_outlets,
     const std::shared_ptr<ossia::graph_node>& node, Transaction& vec)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   if(node)
   {
     std::weak_ptr<ossia::graph_interface> wg = context.execGraph;
     std::weak_ptr<ossia::execution_state> ws = context.execState;
     vec.push_back([wg, ws, node] {
+      OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
       if(auto s = ws.lock())
       {
         ossia::for_each_inlet(*node, [&](auto& p) { s->unregister_port(p); });
@@ -594,10 +670,12 @@ void SetupContext::unregister_node_soft(
     const Process::Inlets& proc_inlets, const Process::Outlets& proc_outlets,
     const std::shared_ptr<ossia::graph_node>& node, Transaction& vec)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   if(node)
   {
     std::weak_ptr<ossia::execution_state> ws = context.execState;
     vec.push_back([ws, node] {
+      OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
       if(auto s = ws.lock())
       {
         ossia::for_each_inlet(*node, [&](auto& p) { s->unregister_port(p); });

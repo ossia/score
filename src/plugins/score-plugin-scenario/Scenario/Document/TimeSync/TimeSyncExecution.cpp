@@ -3,6 +3,7 @@
 #include "TimeSyncExecution.hpp"
 
 #include <Process/ExecutionContext.hpp>
+#include <Process/ExecutionTransaction.hpp>
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
@@ -28,6 +29,7 @@ TimeSyncComponent::TimeSyncComponent(
     : Execution::Component{ctx, "Executor::TimeSync", nullptr}
     , m_score_node{&element}
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   con(element, &Scenario::TimeSyncModel::triggeredByGui, this,
       &TimeSyncComponent::on_GUITrigger);
 
@@ -43,14 +45,20 @@ TimeSyncComponent::TimeSyncComponent(
       &TimeSyncComponent::updateTriggerTime);
 }
 
-void TimeSyncComponent::cleanup()
+void TimeSyncComponent::cleanup(const std::shared_ptr<TimeSyncComponent>& self)
 {
-  in_exec([ts = m_ossia_node] { ts->cleanup(); });
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  in_exec([self, ts = m_ossia_node] {
+    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+    ts->cleanup();
+    self->in_edit(gc(self));
+  });
   m_ossia_node.reset();
 }
 
 ossia::expression_ptr TimeSyncComponent::makeTrigger() const
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   if(m_score_node)
   {
     if(m_score_node->active())
@@ -81,7 +89,9 @@ struct TimeSyncExecutionCallbacks : public ossia::time_sync_callback
 
   void entered_triggering() override
   {
+    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
     edit.enqueue([score_node = this->score_node] {
+      OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
       if(score_node)
       {
         auto v = const_cast<Scenario::TimeSyncModel*>(score_node.data());
@@ -94,7 +104,9 @@ struct TimeSyncExecutionCallbacks : public ossia::time_sync_callback
 
   void left_evaluation() override
   {
+    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
     edit.enqueue([score_node = this->score_node] {
+      OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
       if(score_node)
       {
         auto v = const_cast<Scenario::TimeSyncModel*>(score_node.data());
@@ -103,7 +115,11 @@ struct TimeSyncExecutionCallbacks : public ossia::time_sync_callback
     });
   }
 
-  void finished_evaluation(bool) override { left_evaluation(); }
+  void finished_evaluation(bool) override
+  {
+    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+    left_evaluation();
+  }
 
 private:
   EditionCommandQueue& edit;
@@ -113,6 +129,7 @@ private:
 void TimeSyncComponent::onSetup(
     std::shared_ptr<ossia::time_sync> ptr, ossia::expression_ptr exp)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   m_ossia_node = ptr;
   m_ossia_node->set_expression(std::move(exp));
   if(m_score_node)
@@ -142,6 +159,7 @@ const Scenario::TimeSyncModel& TimeSyncComponent::scoreTimeSync() const
 
 void TimeSyncComponent::updateTrigger()
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   auto exp_ptr = std::make_shared<ossia::expression_ptr>(this->makeTrigger());
 
   bool autotrigger = false, start = false;
@@ -167,6 +185,7 @@ void TimeSyncComponent::updateTrigger()
 
 void TimeSyncComponent::updateTriggerTime()
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   ossia::musical_sync quantRate = m_score_node->musicalSync();
   if(quantRate < 0)
   {
@@ -189,11 +208,18 @@ void TimeSyncComponent::updateTriggerTime()
     }
   }
 
-  this->in_exec([e = m_ossia_node, quantRate] { e->set_sync_rate(quantRate); });
+  this->in_exec([e = m_ossia_node, quantRate] {
+    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+    e->set_sync_rate(quantRate);
+  });
 }
 
 void TimeSyncComponent::on_GUITrigger()
 {
-  this->in_exec([e = m_ossia_node] { e->start_trigger_request(); });
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  this->in_exec([e = m_ossia_node] {
+    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+    e->start_trigger_request();
+  });
 }
 }

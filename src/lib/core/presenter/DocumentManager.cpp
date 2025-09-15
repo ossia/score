@@ -273,6 +273,12 @@ void DocumentManager::forceCloseDocument(
     plug->on_documentClosing();
   }
 
+  // Clear the app plugins
+  for(auto plug : ctx.guiApplicationPlugins())
+  {
+    plug->on_closeDocument(doc);
+  }
+
   doc.blockAllSignals();
 
   if(m_view)

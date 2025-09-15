@@ -58,6 +58,7 @@ ScenarioComponentBase::ScenarioComponentBase(
     , m_ctx{ctx}
     , m_graph{element}
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   this->setObjectName("OSSIAScenarioElement");
 
   if(element.hasCycles())
@@ -81,10 +82,14 @@ ScenarioComponentBase::ScenarioComponentBase(
       &ScenarioComponentBase::eventCallback, Qt::QueuedConnection);
 }
 
-ScenarioComponentBase::~ScenarioComponentBase() { }
+ScenarioComponentBase::~ScenarioComponentBase()
+{
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+}
 
 void ScenarioComponentBase::playInterval(const Scenario::IntervalModel& itv)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   if(auto comp = this->m_ossia_intervals.find(itv.id());
      comp != this->m_ossia_intervals.end())
   {
@@ -113,6 +118,7 @@ void ScenarioComponentBase::playInterval(const Scenario::IntervalModel& itv)
     }
 
     in_exec([proc, ossia_c, rate = quantRate] {
+      OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
       // FIXME this is incorrect for sub-scenarios.
       // We have to adjust with parent_metrics.delta !
       proc->request_start_interval(*ossia_c, rate);
@@ -124,6 +130,7 @@ void ScenarioComponentBase::playInterval(const Scenario::IntervalModel& itv)
 
 void ScenarioComponentBase::stopInterval(const Scenario::IntervalModel& itv)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   if(auto comp = this->m_ossia_intervals.find(itv.id());
      comp != this->m_ossia_intervals.end())
   {
@@ -152,6 +159,7 @@ void ScenarioComponentBase::stopInterval(const Scenario::IntervalModel& itv)
     }
 
     in_exec([proc, ossia_c, rate = quantRate] {
+      OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
       // FIXME this is incorrect for sub-scenarios.
       // We have to adjust with parent_metrics.delta !
       proc->request_stop_interval(*ossia_c, rate);
@@ -165,10 +173,12 @@ ScenarioComponent::ScenarioComponent(
     Scenario::ProcessModel& proc, const Context& ctx, QObject* parent)
     : ScenarioComponentHierarchy{score::lazy_init_t{}, proc, ctx, parent}
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
 }
 
 void ScenarioComponent::lazy_init()
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   // set-up the ports
   const Context& ctx = system();
   auto ossia_sc = std::dynamic_pointer_cast<ossia::scenario>(m_ossia_process);
@@ -189,9 +199,10 @@ void ScenarioComponent::lazy_init()
   connect(
       &process(), &Scenario::ProcessModel::exclusiveChanged, this,
       [ossia_sc = std::weak_ptr(ossia_sc)](bool ex) {
+    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
     if(auto sc = ossia_sc.lock())
       sc->set_exclusive(ex);
-      });
+  });
 
   /* TODO reinstate settings
   if (ctx.doc.app.settings<Settings::Model>().getScoreOrder())
@@ -292,12 +303,14 @@ void ScenarioComponent::lazy_init()
 
 void ScenarioComponent::cleanup()
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   clear();
   ProcessComponent::cleanup();
 }
 
 void ScenarioComponentBase::stop()
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   for(const auto& itv : m_ossia_intervals)
   {
     itv.second->stop();
@@ -309,6 +322,7 @@ void ScenarioComponentBase::stop()
 std::function<void()>
 ScenarioComponentBase::removing(const Scenario::IntervalModel& e, IntervalComponent& c)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   auto it = m_ossia_intervals.find(e.id());
   if(it != m_ossia_intervals.end())
   {
@@ -326,6 +340,7 @@ ScenarioComponentBase::removing(const Scenario::IntervalModel& e, IntervalCompon
       end_ev = end_ev_it->second->OSSIAEvent();
 
     m_ctx.executionQueue.enqueue([proc, cstr = c.OSSIAInterval(), start_ev, end_ev] {
+      OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
       if(cstr)
       {
         if(start_ev)
@@ -350,7 +365,10 @@ ScenarioComponentBase::removing(const Scenario::IntervalModel& e, IntervalCompon
 
     c.cleanup(it->second);
 
-    return [this, it] { m_ossia_intervals.erase(it); };
+    return [this, id = e.id()] {
+      OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+      m_ossia_intervals.erase(id);
+    };
   }
   return {};
 }
@@ -358,6 +376,7 @@ ScenarioComponentBase::removing(const Scenario::IntervalModel& e, IntervalCompon
 std::function<void()>
 ScenarioComponentBase::removing(const Scenario::TimeSyncModel& e, TimeSyncComponent& c)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   // FIXME this will certainly break stuff WRT member variables, coherency
   // checker, etc.
   auto it = m_ossia_timesyncs.find(e.id());
@@ -367,12 +386,17 @@ ScenarioComponentBase::removing(const Scenario::TimeSyncModel& e, TimeSyncCompon
     {
       std::shared_ptr<ossia::scenario> proc
           = std::dynamic_pointer_cast<ossia::scenario>(m_ossia_process);
-      m_ctx.executionQueue.enqueue(
-          [proc, tn = c.OSSIATimeSync()] { proc->remove_time_sync(tn); });
+      in_exec([proc, tn = c.OSSIATimeSync()] {
+        OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+        proc->remove_time_sync(tn);
+      });
     }
-    it->second->cleanup();
+    it->second->cleanup(it->second);
 
-    return [this, it] { m_ossia_timesyncs.erase(it); };
+    return [this, id = e.id()] {
+      OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+      m_ossia_timesyncs.erase(id);
+    };
   }
   return {};
 }
@@ -380,6 +404,8 @@ ScenarioComponentBase::removing(const Scenario::TimeSyncModel& e, TimeSyncCompon
 std::function<void()>
 ScenarioComponentBase::removing(const Scenario::EventModel& e, EventComponent& c)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  // FIXME this should never be called from the audio thread
   auto ev_it = m_ossia_timeevents.find(e.id());
   if(ev_it != m_ossia_timeevents.end())
   {
@@ -389,19 +415,34 @@ ScenarioComponentBase::removing(const Scenario::EventModel& e, EventComponent& c
     {
       if(auto tn = tn_it->second->OSSIATimeSync())
       {
-        m_ctx.executionQueue.enqueue([tn, ev = c.OSSIAEvent()] {
-          tn->remove(ev);
-          ev->cleanup();
+        auto weak_tn = std::weak_ptr{tn};
+        auto weak_ev = std::weak_ptr{c.OSSIAEvent()};
+
+        m_ctx.executionQueue.enqueue([weak_tn, weak_ev] {
+          OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+          if(auto e = weak_ev.lock())
+          {
+            if(auto t = weak_tn.lock())
+              t->remove(e);
+            e->cleanup();
+          }
         });
-        c.cleanup();
-        return [this, ev_it] { m_ossia_timeevents.erase(ev_it); };
+
+        c.cleanup(ev_it->second);
+        return [this, id = e.id()] { m_ossia_timeevents.erase(id); };
       }
     }
 
     // Timesync does not exist anymore:
-    m_ctx.executionQueue.enqueue([ev = c.OSSIAEvent()] { ev->cleanup(); });
-    c.cleanup();
-    return [this, ev_it] { m_ossia_timeevents.erase(ev_it); };
+    m_ctx.executionQueue.enqueue([ev = c.OSSIAEvent()] {
+      OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+      ev->cleanup();
+    });
+    c.cleanup(ev_it->second);
+    return [this, id = e.id()] {
+      OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+      m_ossia_timeevents.erase(id);
+    };
   }
   return {};
 }
@@ -409,11 +450,15 @@ ScenarioComponentBase::removing(const Scenario::EventModel& e, EventComponent& c
 std::function<void()>
 ScenarioComponentBase::removing(const Scenario::StateModel& e, StateComponent& c)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   auto it = m_ossia_states.find(e.id());
   if(it != m_ossia_states.end())
   {
     c.onDelete();
-    return [this, it] { m_ossia_states.erase(it); };
+    return [this, id = e.id()] {
+      OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+      m_ossia_states.erase(id);
+    };
   }
   return {};
 }
@@ -425,6 +470,7 @@ IntervalComponent*
 ScenarioComponentBase::make<IntervalComponent, Scenario::IntervalModel>(
     Scenario::IntervalModel& cst)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   std::shared_ptr<ossia::scenario> proc
       = std::dynamic_pointer_cast<ossia::scenario>(m_ossia_process);
 
@@ -453,8 +499,8 @@ ScenarioComponentBase::make<IntervalComponent, Scenario::IntervalModel>(
   elt->onSetup(elt, ossia_cst, dur);
 
   const bool prop = cst.graphal() ? false : cst.outlet->propagate();
-  m_ctx.executionQueue.enqueue(
-      [g = system().execGraph, proc, ossia_sev, ossia_eev, ossia_cst, prop] {
+  in_exec([g = system().execGraph, proc, ossia_sev, ossia_eev, ossia_cst, prop] {
+    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
     if(auto sev = ossia_sev->OSSIAEvent())
       sev->next_time_intervals().push_back(ossia_cst);
     if(auto eev = ossia_eev->OSSIAEvent())
@@ -477,13 +523,12 @@ template <>
 StateComponent* ScenarioComponentBase::make<StateComponent, Scenario::StateModel>(
     Scenario::StateModel& st)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   auto& events = m_ossia_timeevents;
   SCORE_ASSERT(events.find(st.eventId()) != events.end());
   auto ossia_ev = events.at(st.eventId());
 
   auto elt = std::make_shared<StateComponent>(st, ossia_ev->OSSIAEvent(), m_ctx, this);
-
-  m_ctx.executionQueue.enqueue([elt] { elt->onSetup(); });
 
   m_ossia_states.insert({st.id(), elt});
 
@@ -494,6 +539,7 @@ template <>
 EventComponent* ScenarioComponentBase::make<EventComponent, Scenario::EventModel>(
     Scenario::EventModel& ev)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   // Create the component
   auto elt = std::make_shared<EventComponent>(ev, m_ctx, this);
   m_ossia_timeevents.insert({ev.id(), elt});
@@ -511,12 +557,16 @@ EventComponent* ScenarioComponentBase::make<EventComponent, Scenario::EventModel
   std::weak_ptr qed_ptr = std::shared_ptr<Execution::EditionCommandQueue>(
       this->system().alias.lock(), &this->system().editionQueue);
   auto ev_cb = [qed_ptr, weak_ev, thisP](ossia::time_event::status st) {
+    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
     if(auto elt = weak_ev.lock())
     {
       if(auto sc = thisP.lock())
       {
         if(auto q = qed_ptr.lock())
-          q->enqueue([sc, elt, st] { sc->sig_eventCallback(sc, elt, st); });
+          q->enqueue([sc, elt, st] {
+            OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+            sc->sig_eventCallback(sc, elt, st);
+          });
       }
     }
   };
@@ -551,6 +601,7 @@ EventComponent* ScenarioComponentBase::make<EventComponent, Scenario::EventModel
   m_ctx.executionQueue.enqueue([event = ossia_ev, time_sync = tn->OSSIATimeSync()] {
     SCORE_ASSERT(event);
     SCORE_ASSERT(time_sync);
+    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
     time_sync->insert(time_sync->get_time_events().begin(), event);
   });
 
@@ -562,6 +613,7 @@ TimeSyncComponent*
 ScenarioComponentBase::make<TimeSyncComponent, Scenario::TimeSyncModel>(
     Scenario::TimeSyncModel& tn)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   // Create the object
   auto elt = std::make_shared<TimeSyncComponent>(tn, m_ctx, this);
   m_ossia_timesyncs.insert({tn.id(), elt});
@@ -587,8 +639,10 @@ ScenarioComponentBase::make<TimeSyncComponent, Scenario::TimeSyncModel>(
   if(must_add)
   {
     auto ossia_sc = std::dynamic_pointer_cast<ossia::scenario>(m_ossia_process);
-    m_ctx.executionQueue.enqueue(
-        [ossia_sc, ossia_tn] { ossia_sc->add_time_sync(ossia_tn); });
+    m_ctx.executionQueue.enqueue([ossia_sc, ossia_tn] {
+      OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+      ossia_sc->add_time_sync(ossia_tn);
+    });
     /*
     if(Scenario::previousIntervals(tn, process()).empty())
     {
@@ -627,6 +681,7 @@ ScenarioComponentBase::make<TimeSyncComponent, Scenario::TimeSyncModel>(
 
 void ScenarioComponentBase::startIntervalExecution(const Id<Scenario::IntervalModel>& id)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   auto& cst = process().intervals.at(id);
   if(m_executingIntervals.find(id) == m_executingIntervals.end())
     m_executingIntervals.insert(std::make_pair(cst.id(), &cst));
@@ -641,12 +696,14 @@ void ScenarioComponentBase::startIntervalExecution(const Id<Scenario::IntervalMo
 void ScenarioComponentBase::disableIntervalExecution(
     const Id<Scenario::IntervalModel>& id)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   auto& cst = process().intervals.at(id);
   cst.setExecutionState(Scenario::IntervalExecutionState::Disabled);
 }
 
 void ScenarioComponentBase::stopIntervalExecution(const Id<Scenario::IntervalModel>& id)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   m_executingIntervals.erase(id);
   auto it = m_ossia_intervals.find(id);
   if(it != m_ossia_intervals.end())
@@ -657,6 +714,7 @@ void ScenarioComponentBase::eventCallback(
     std::weak_ptr<ScenarioComponentBase> self, std::shared_ptr<EventComponent> ev,
     ossia::time_event::status newStatus)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   auto p = self.lock();
   if(!p)
     return;

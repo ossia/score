@@ -8,6 +8,7 @@
 #include <score/serialization/MapSerialization.hpp>
 
 #include <ossia/dataflow/execution_state.hpp>
+#include <ossia/detail/thread.hpp>
 
 #include <ossia-qt/qml_engine_functions.hpp>
 
@@ -25,22 +26,26 @@ namespace JS
 js_node::js_node(ossia::execution_state& st)
     : m_st{st}
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   m_not_threadable = true;
 }
 
 js_node::~js_node()
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   SCORE_ASSERT(!m_engine);
 }
 
 void js_node::clear() noexcept
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
   delete m_engine;
   m_engine = nullptr;
 }
 
 void js_node::setupComponent()
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
   SCORE_ASSERT(m_object);
   m_object->setParent(m_engine);
   int input_i = 0;
@@ -90,6 +95,7 @@ void js_node::setupComponent()
 
 void js_node::setScript(const QString& val)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
   if(!m_engine)
   {
     m_engine = new QQmlEngine;
