@@ -149,7 +149,14 @@ parser::parser(std::string vert, std::string frag, int glslVersion, ShaderType t
     if(!has_isf)
       return false;
 
-    return str[0] == '/' && str[1] == '*';
+    auto start_pos = str.find("/*");
+    if(start_pos == std::string::npos)
+      return false;
+
+    auto start_json_pos = str.find("{", start_pos);
+    if(start_json_pos == std::string::npos || ((start_json_pos - start_pos) > 10))
+      return false;
+    return true;
   };
   static const auto is_shadertoy_json
       = [](const std::string& str) { return str.starts_with("[{\"ver\":\""); };
