@@ -40,7 +40,9 @@ namespace Executor
 class ysfx_node final : public ossia::graph_node
 {
 public:
-  ysfx_node(std::shared_ptr<ysfx_t>, ossia::execution_state& st);
+  ysfx_node(
+      bool audio_in, bool midi_in, bool audio_out, bool midi_out,
+      std::shared_ptr<ysfx_t>, ossia::execution_state& st);
 
   void run(const ossia::token_request& t, ossia::exec_state_facade) noexcept override;
   [[nodiscard]] std::string label() const noexcept override
@@ -65,13 +67,33 @@ Component::Component(
     : ::Execution::ProcessComponent_T<YSFX::ProcessModel, ossia::node_process>{
         proc, ctx, "YSFXComponent", parent}
 {
-  std::shared_ptr<ysfx_node> node
-      = ossia::make_node<ysfx_node>(*ctx.execState, proc.fx, *ctx.execState);
+  const int N_in = proc.inlets().size();
+  const bool has_audio_in
+      = !proc.inlets().empty()
+        && bool(qobject_cast<Process::AudioInlet*>(proc.inlets()[0]));
+  bool has_midi_in = false;
+  for(int i = has_audio_in ? 1 : 0; i < std::min(2, N_in); i++)
+  {
+    has_midi_in |= bool(qobject_cast<Process::MidiInlet*>(proc.inlets()[i]));
+  }
+
+  const int N_out = proc.outlets().size();
+  const bool has_audio_out
+      = !proc.outlets().empty()
+        && bool(qobject_cast<Process::AudioOutlet*>(proc.outlets()[0]));
+  bool has_midi_out = false;
+  for(int i = has_audio_out ? 1 : 0; i < std::min(2, N_out); i++)
+  {
+    has_midi_out |= bool(qobject_cast<Process::MidiOutlet*>(proc.outlets()[i]));
+  }
+
+  std::shared_ptr<ysfx_node> node = ossia::make_node<ysfx_node>(
+      *ctx.execState, has_audio_in, has_midi_in, has_audio_out, has_midi_out, proc.fx,
+      *ctx.execState);
   this->node = node;
   m_ossia_process = std::make_shared<ossia::node_process>(node);
-
-  int firstControlIndex = ysfx_get_num_inputs(proc.fx.get()) > 0 ? 2 : 1;
-  for(std::size_t i = firstControlIndex, N = proc.inlets().size(); i < N; i++)
+  const int firstControlIndex = int(has_audio_in) + int(has_midi_in);
+  for(std::size_t i = firstControlIndex; i < N_in; i++)
   {
     auto inlet = static_cast<Process::ControlInlet*>(proc.inlets()[i]);
     // *node->controls[i - firstControlIndex].second
@@ -87,8 +109,13 @@ Component::Component(
         });
   }
 
-  auto c = con(ctx.doc.coarseUpdateTimer, &QTimer::timeout, this, [node, &proc] {
-    auto y = proc.fx.get();
+  auto c = con(
+      ctx.doc.coarseUpdateTimer, &QTimer::timeout, this, [node, p = QPointer{&proc}] {
+    if(!p)
+      return;
+    auto y = p->fx.get();
+    if(!y)
+      return;
     if(std::bitset<64> res = ysfx_fetch_slider_changes(y); res.any())
     {
       for(int i = 0; i < 64; i++)
@@ -99,7 +126,7 @@ Component::Component(
           // for (uint32_t i = 0; i < ysfx_max_sliders; ++i)
           int idx = 4 + i;
           if(auto inl
-             = static_cast<Process::ControlInlet*>(proc.inlet(Id<Process::Port>{idx})))
+             = static_cast<Process::ControlInlet*>(p->inlet(Id<Process::Port>{idx})))
             inl->setExecutionValue(ysfx_slider_get_value(y, i));
           else
             qDebug() << "Error while trying to access inlet " << idx;
@@ -111,7 +138,9 @@ Component::Component(
 
 Component::~Component() { }
 
-ysfx_node::ysfx_node(std::shared_ptr<ysfx_t> ffx, ossia::execution_state& st)
+ysfx_node::ysfx_node(
+    bool has_audio_in, bool has_midi_in, bool has_audio_out, bool has_midi_out,
+    std::shared_ptr<ysfx_t> ffx, ossia::execution_state& st)
     : fx{std::move(ffx)}
     , m_st{st}
 {
@@ -122,19 +151,17 @@ ysfx_node::ysfx_node(std::shared_ptr<ysfx_t> ffx, ossia::execution_state& st)
   ysfx_set_midi_capacity(y, 512, true);
   ysfx_init(y);
 
-  if(ysfx_get_num_inputs(y) > 0)
-  {
+  if(has_audio_in)
     this->m_inlets.push_back(audio_in = new ossia::audio_inlet);
-  }
 
-  this->m_inlets.push_back(midi_in = new ossia::midi_inlet);
+  if(has_midi_in)
+    this->m_inlets.push_back(midi_in = new ossia::midi_inlet);
 
-  if(ysfx_get_num_outputs(y) > 0)
-  {
+  if(has_audio_out)
     this->m_outlets.push_back(audio_out = new ossia::audio_outlet);
-  }
 
-  this->m_outlets.push_back(midi_out = new ossia::midi_outlet);
+  if(has_midi_out)
+    this->m_outlets.push_back(midi_out = new ossia::midi_outlet);
 
   for(uint32_t i = 0; i < ysfx_max_sliders; ++i)
   {
@@ -265,15 +292,18 @@ void ysfx_node::run(
   ysfx_set_time_info(y, &info);
   ysfx_process_double(y, ins, outs, in_count, out_count, d);
 
-  ysfx_midi_event_t ev;
-  while(ysfx_receive_midi(y, &ev))
+  if(midi_out)
   {
-    libremidi::ump msg;
-    msg.timestamp = ev.offset;
-
-    if(cmidi2_midi1_channel_voice_to_midi2(ev.data, ev.size, msg.data))
+    ysfx_midi_event_t ev;
+    while(ysfx_receive_midi(y, &ev))
     {
-      this->midi_out->data.messages.push_back(msg);
+      libremidi::ump msg;
+      msg.timestamp = ev.offset;
+
+      if(cmidi2_midi1_channel_voice_to_midi2(ev.data, ev.size, msg.data))
+      {
+        this->midi_out->data.messages.push_back(msg);
+      }
     }
   }
 }
