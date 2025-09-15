@@ -50,21 +50,41 @@ struct AudioTickHelper
 
   ~AudioTickHelper()
   {
-    auto scenar = m_scenar;
-    ([ctx = m_context, scenar = m_scenar, graph = m_context->execGraph]() mutable {
-      scenar->cleanup();
-      auto& q = ctx->m_execQueue;
-      q.enqueue([ctx, graph = graph] {
-        OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
-        graph->clear();
-        auto& eq = ctx->m_editionQueue;
-        eq.enqueue(gc(graph, ctx));
-      });
-      graph.reset();
-      scenar.reset();
+    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+    m_scenar->cleanup();
+    auto& q = m_context->m_execQueue;
+    q.enqueue([ctx = m_context, graph = m_context->execGraph]() mutable {
+      OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+      graph->clear();
+      ctx->m_gcQueue.enqueue(gc(std::move(graph), std::move(ctx)));
+    });
+    m_context->execGraph.reset();
 
-      ctx.reset();
-    })();
+    auto ptr = std::make_shared<std::atomic_bool>();
+    q.enqueue([ptr] { *ptr = true; });
+    m_scenar.reset();
+
+    int count = 0;
+    {
+      while(!*ptr && count < 1000000)
+      {
+        ++count;
+        std::this_thread::yield();
+        ExecutionCommand cmd;
+        GCCommand gc;
+        bool ok = false;
+        bool gc_ok = false;
+        do
+        {
+          if((ok = m_context->m_editionQueue.try_dequeue(cmd)))
+            cmd();
+
+          if((gc_ok = m_context->m_gcQueue.try_dequeue(gc)))
+            gc();
+        } while(ok || gc_ok);
+      }
+    }
+    m_context.reset();
   }
 
   void clearBuffers(const ossia::audio_tick_state& t) const

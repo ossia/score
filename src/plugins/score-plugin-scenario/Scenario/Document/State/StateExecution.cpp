@@ -174,8 +174,7 @@ StateComponentBase::removing(const Process::ProcessModel& e, ProcessComponent& c
   auto it = m_processes.find(e.id());
   if(it != m_processes.end())
   {
-    auto c_ptr = c.shared_from_this();
-    in_exec([cstr = m_ev, c_ptr] {
+    in_exec([cstr = m_ev, c_ptr = c.shared_from_this()] {
       OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
       cstr->remove_time_process(c_ptr->OSSIAProcessPtr().get());
     });
@@ -207,9 +206,10 @@ void StateComponent::cleanup(const std::shared_ptr<StateComponent>& self)
   if(m_ev)
   {
     // self has to be kept alive until next tick
-    in_exec([self] {
+    in_exec([self, gcq_ptr = weak_gc] {
       OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
-      self->in_edit(gc(self));
+      if(auto gcq = gcq_ptr.lock())
+        gcq->enqueue(gc(self));
     });
   }
   for(auto& proc : m_processes)

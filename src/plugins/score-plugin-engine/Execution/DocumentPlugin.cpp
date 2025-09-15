@@ -139,23 +139,31 @@ DocumentPlugin::~DocumentPlugin()
   }
 }
 
+void DocumentPlugin::processEditCommands()
+{
+  ExecutionCommand cmd;
+  GCCommand gc;
+  bool ok = false;
+  bool gc_ok = false;
+  do
+  {
+    if((ok = m_ctxData->m_editionQueue.try_dequeue(cmd)))
+      cmd();
+
+    if((gc_ok = m_ctxData->m_gcQueue.try_dequeue(gc)))
+      gc();
+  } while(ok || gc_ok);
+}
+
 void DocumentPlugin::on_finished()
 {
   if(m_tid != -1)
   {
     killTimer(m_tid);
     m_tid = -1;
-
-    {
-      ExecutionCommand cmd;
-      while(m_ctxData->m_editionQueue.try_dequeue(cmd))
-        cmd();
-      GCCommand gc;
-      while(m_ctxData->m_gcQueue.try_dequeue(gc))
-        ;
-    }
   }
 
+  processEditCommands();
   clear();
 
   initExecState();
@@ -187,12 +195,7 @@ void DocumentPlugin::initExecState()
 
 void DocumentPlugin::timerEvent(QTimerEvent* event)
 {
-  ExecutionCommand cmd;
-  while(m_ctxData->m_editionQueue.try_dequeue(cmd))
-    cmd();
-  GCCommand gc;
-  while(m_ctxData->m_gcQueue.try_dequeue(gc))
-    ;
+  processEditCommands();
 }
 
 void DocumentPlugin::registerDevice(ossia::net::device_base* d)
@@ -348,8 +351,22 @@ void DocumentPlugin::clear()
 
   if(m_ctxData)
   {
+    for(int i = 0; i < 100; i++)
+    {
+      processEditCommands();
+      std::this_thread::yield();
+    }
+  }
+  if(m_ctxData)
+  {
     m_ctxData->m_created = false;
-    m_ctxData->context.alias.reset();
+    if(m_ctxData)
+      for(int i = 0; i < 100; i++)
+      {
+        processEditCommands();
+        std::this_thread::yield();
+        std::atomic_thread_fence(std::memory_order_seq_cst);
+      }
   }
   m_ctxData.reset();
   m_ctxData = std::make_shared<ContextData>(this->m_context);

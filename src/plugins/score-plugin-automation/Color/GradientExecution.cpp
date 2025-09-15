@@ -38,7 +38,7 @@ Component::Component(
     if(!unit)
       unit = ossia::argb_u{};
 
-    this->in_exec([node, unit] {
+    in_exec([node, unit] {
       node->tween = std::nullopt;
       node->root_outputs()[0]->target<ossia::value_port>()->type = unit;
     });
@@ -47,7 +47,7 @@ Component::Component(
   // TODO the tween case will reset the "running" value,
   // so it may not work perfectly.
   con(element, &Gradient::ProcessModel::tweenChanged, this, [this, node](bool b) {
-    this->in_exec([=] {
+    in_exec([=] {
       node->tween = std::nullopt;
       node->mustTween = b;
     });

@@ -554,9 +554,7 @@ EventComponent* ScenarioComponentBase::make<EventComponent, Scenario::EventModel
 
   std::weak_ptr<ScenarioComponentBase> thisP
       = std::dynamic_pointer_cast<ScenarioComponentBase>(shared_from_this());
-  std::weak_ptr qed_ptr = std::shared_ptr<Execution::EditionCommandQueue>(
-      this->system().alias.lock(), &this->system().editionQueue);
-  auto ev_cb = [qed_ptr, weak_ev, thisP](ossia::time_event::status st) {
+  auto ev_cb = [qed_ptr = weak_edit, weak_ev, thisP](ossia::time_event::status st) {
     OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
     if(auto elt = weak_ev.lock())
     {

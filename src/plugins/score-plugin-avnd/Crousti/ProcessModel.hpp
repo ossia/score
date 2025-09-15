@@ -178,7 +178,8 @@ private:
     if(std::ssize(m_inlets) != expected_input_ports()
        || std::ssize(m_outlets) != expected_output_ports())
     {
-      qDebug() << "Warning : process does not match spec: I " << m_inlets.size()
+      qDebug() << typeid(Info).name() << this->metadata().getName()
+               << ": WARNING : process does not match spec: I " << m_inlets.size()
                << "but expected: " << expected_input_ports() << " ; O "
                << m_outlets.size() << "but expected: " << expected_output_ports();
 

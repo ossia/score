@@ -29,17 +29,18 @@ EventComponent::EventComponent(
 {
   con(element, &Scenario::EventModel::conditionChanged, this, [this](const auto& expr) {
     auto exp_ptr = std::make_shared<ossia::expression_ptr>(this->makeExpression());
-    this->in_exec(
-        [e = m_ossia_event, exp_ptr] { e->set_expression(std::move(*exp_ptr)); });
+    in_exec([e = m_ossia_event, exp_ptr] { e->set_expression(std::move(*exp_ptr)); });
   });
 }
 
 void EventComponent::cleanup(const std::shared_ptr<EventComponent>& self)
 {
-  in_exec([self, ev = m_ossia_event] {
+  in_exec([self, ev = m_ossia_event, gcq_ptr = weak_gc] {
     ev->cleanup();
+
     // And then we want it to be cleared in the main thread
-    self->in_edit(gc(self));
+    if(auto gcq = gcq_ptr.lock())
+      gcq->enqueue(gc(self));
   });
   m_ossia_event.reset();
 }

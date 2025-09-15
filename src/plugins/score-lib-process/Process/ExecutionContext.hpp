@@ -76,6 +76,37 @@ struct SCORE_LIB_PROCESS_EXPORT Context
 {
   std::weak_ptr<void> alias;
 
+  auto acquireExecutionQueue() const noexcept
+  {
+    return std::shared_ptr<Execution::ExecutionCommandQueue>(
+        alias.lock(), &executionQueue);
+  }
+  auto acquireEditionQueue() const noexcept
+  {
+    return std::shared_ptr<Execution::EditionCommandQueue>(alias.lock(), &editionQueue);
+  }
+  auto acquireGCQueue() const noexcept
+  {
+    return std::shared_ptr<Execution::GCCommandQueue>(alias.lock(), &gcQueue);
+  }
+  std::weak_ptr<const Context> weakSelf() const noexcept
+  {
+    return std::shared_ptr<const Context>(alias.lock(), this);
+  }
+  std::weak_ptr<Execution::ExecutionCommandQueue> weakExecutionQueue() const noexcept
+  {
+    return std::shared_ptr<Execution::ExecutionCommandQueue>(
+        alias.lock(), &executionQueue);
+  }
+  std::weak_ptr<Execution::EditionCommandQueue> weakEditionQueue() const noexcept
+  {
+    return std::shared_ptr<Execution::EditionCommandQueue>(alias.lock(), &editionQueue);
+  }
+  std::weak_ptr<Execution::GCCommandQueue> weakGCQueue() const noexcept
+  {
+    return std::shared_ptr<Execution::GCCommandQueue>(alias.lock(), &gcQueue);
+  }
+
   const score::DocumentContext& doc;
   const std::atomic_bool& created;
 
@@ -116,5 +147,8 @@ struct SCORE_LIB_PROCESS_EXPORT Context
 
 }
 
-#define in_exec system().executionQueue.enqueue
-#define in_edit system().editionQueue.enqueue
+#define in_exec this->system().executionQueue.enqueue
+#define in_edit this->system().editionQueue.enqueue
+#define weak_exec this->system().weakExecutionQueue()
+#define weak_edit this->system().weakEditionQueue()
+#define weak_gc this->system().weakGCQueue()

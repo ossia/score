@@ -352,7 +352,7 @@ Component::on_cpuScriptChange(const QString& script, Execution::Transaction& com
             connect(
                 ctrl, &Process::ControlInlet::valueChanged, this,
                 [this, node, idx](const ossia::value& val) {
-              this->in_exec([node, idx] { node->impulse(idx); });
+              in_exec([node, idx] { node->impulse(idx); });
             });
           }
           else
@@ -361,7 +361,7 @@ Component::on_cpuScriptChange(const QString& script, Execution::Transaction& com
             connect(
                 ctrl, &Process::ControlInlet::valueChanged, this,
                 [this, node, idx](const ossia::value& val) {
-              this->in_exec([node, val, idx] {
+              in_exec([node, val, idx] {
                 node->setControl(idx, val.apply(ossia::qt::ossia_to_qvariant{}));
               });
             });

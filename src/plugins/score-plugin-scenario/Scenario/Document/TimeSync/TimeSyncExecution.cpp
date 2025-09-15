@@ -48,10 +48,11 @@ TimeSyncComponent::TimeSyncComponent(
 void TimeSyncComponent::cleanup(const std::shared_ptr<TimeSyncComponent>& self)
 {
   OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
-  in_exec([self, ts = m_ossia_node] {
+  in_exec([self, ts = m_ossia_node, gcq_ptr = weak_gc] {
     OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
     ts->cleanup();
-    self->in_edit(gc(self));
+    if(auto gcq = gcq_ptr.lock())
+      gcq->enqueue(gc(self));
   });
   m_ossia_node.reset();
 }
@@ -81,7 +82,8 @@ ossia::expression_ptr TimeSyncComponent::makeTrigger() const
 struct TimeSyncExecutionCallbacks : public ossia::time_sync_callback
 {
   explicit TimeSyncExecutionCallbacks(
-      EditionCommandQueue& e, const QPointer<const Scenario::TimeSyncModel>& p)
+      std::weak_ptr<EditionCommandQueue> e,
+      const QPointer<const Scenario::TimeSyncModel>& p)
       : edit{e}
       , score_node{p}
   {
@@ -90,14 +92,15 @@ struct TimeSyncExecutionCallbacks : public ossia::time_sync_callback
   void entered_triggering() override
   {
     OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
-    edit.enqueue([score_node = this->score_node] {
-      OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
-      if(score_node)
-      {
-        auto v = const_cast<Scenario::TimeSyncModel*>(score_node.data());
-        v->setWaiting(true);
-      }
-    });
+    if(auto qed = edit.lock())
+      qed->enqueue([score_node = this->score_node] {
+        OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+        if(score_node)
+        {
+          auto v = const_cast<Scenario::TimeSyncModel*>(score_node.data());
+          v->setWaiting(true);
+        }
+      });
   }
 
   void trigger_date_fixed(ossia::time_value) override { entered_triggering(); }
@@ -105,14 +108,15 @@ struct TimeSyncExecutionCallbacks : public ossia::time_sync_callback
   void left_evaluation() override
   {
     OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
-    edit.enqueue([score_node = this->score_node] {
-      OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
-      if(score_node)
-      {
-        auto v = const_cast<Scenario::TimeSyncModel*>(score_node.data());
-        v->setWaiting(false);
-      }
-    });
+    if(auto qed = edit.lock())
+      qed->enqueue([score_node = this->score_node] {
+        OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+        if(score_node)
+        {
+          auto v = const_cast<Scenario::TimeSyncModel*>(score_node.data());
+          v->setWaiting(false);
+        }
+      });
   }
 
   void finished_evaluation(bool) override
@@ -122,7 +126,7 @@ struct TimeSyncExecutionCallbacks : public ossia::time_sync_callback
   }
 
 private:
-  EditionCommandQueue& edit;
+  std::weak_ptr<EditionCommandQueue> edit;
   QPointer<const Scenario::TimeSyncModel> score_node;
 };
 
@@ -142,7 +146,7 @@ void TimeSyncComponent::onSetup(
     }
 
     m_ossia_node->callbacks.callbacks.push_back(
-        new TimeSyncExecutionCallbacks{system().editionQueue, this->m_score_node});
+        new TimeSyncExecutionCallbacks{weak_edit, this->m_score_node});
   }
 }
 
@@ -169,7 +173,7 @@ void TimeSyncComponent::updateTrigger()
     start = m_score_node->isStartPoint();
   }
 
-  this->in_exec([e = m_ossia_node, exp_ptr, autotrigger, start] {
+  in_exec([e = m_ossia_node, exp_ptr, autotrigger, start] {
     bool was_observing = e->is_observing_expression();
     if(was_observing)
       e->observe_expression(false);
@@ -208,7 +212,7 @@ void TimeSyncComponent::updateTriggerTime()
     }
   }
 
-  this->in_exec([e = m_ossia_node, quantRate] {
+  in_exec([e = m_ossia_node, quantRate] {
     OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
     e->set_sync_rate(quantRate);
   });
@@ -217,7 +221,7 @@ void TimeSyncComponent::updateTriggerTime()
 void TimeSyncComponent::on_GUITrigger()
 {
   OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
-  this->in_exec([e = m_ossia_node] {
+  in_exec([e = m_ossia_node] {
     OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
     e->start_trigger_request();
   });

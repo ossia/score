@@ -315,7 +315,7 @@ public:
       return;
 
     // Re-run setup_inlets ?
-    this->in_exec([dp = this->process().dynamic_ports, node = n] {
+    in_exec([dp = this->process().dynamic_ports, node = n] {
       node->dynamic_ports = dp;
       node->root_inputs().clear();
       node->root_outputs().clear();
@@ -444,11 +444,12 @@ public:
     // Custom UI messages to engine
     if constexpr(avnd::has_gui_to_processor_bus<Node>)
     {
-      element.from_ui = [p = QPointer{this}, &eff](QByteArray b) {
-        if(!p)
+      element.from_ui = [qex_ptr = weak_exec, &eff](QByteArray b) {
+        auto qex = qex_ptr.lock();
+        if(!qex)
           return;
 
-        p->in_exec([mess = std::move(b), &eff]() mutable {
+        qex->enqueue([mess = std::move(b), &eff]() mutable {
           using refl = avnd::function_reflection<&Node::process_message>;
           static_assert(refl::count <= 1);
 
@@ -473,24 +474,24 @@ public:
     {
       if constexpr(requires { eff.send_message = [](auto&&) { }; })
       {
-        eff.send_message = [self = QPointer{this}]<typename T>(T&& b) mutable {
-          if(!self)
+        eff.send_message = [proc = QPointer{&this->process()},
+                            qed_ptr = weak_edit]<typename T>(T&& b) mutable {
+          auto qed = qed_ptr.lock();
+          if(!qed)
             return;
           if constexpr(
               sizeof(QPointer<QObject>) + sizeof(b)
               < Execution::ExecutionCommand::max_storage)
           {
-            self->in_edit(
-                [proc = QPointer{&self->process()}, bb = std::move(b)]() mutable {
+            qed->enqueue([proc, bb = std::move(b)]() mutable {
               if(proc && proc->to_ui)
                 MessageBusSender{proc->to_ui}(std::move(bb));
             });
           }
           else
           {
-            self->in_edit(
-                [proc = QPointer{&self->process()},
-                 bb = std::make_unique<std::decay_t<T>>(std::move(b))]() mutable {
+            qed->enqueue(
+                [proc, bb = std::make_unique<std::decay_t<T>>(std::move(b))]() mutable {
               if(proc && proc->to_ui)
                 MessageBusSender{proc->to_ui}(*std::move(bb));
             });
@@ -499,11 +500,15 @@ public:
       }
       else if constexpr(requires { eff.send_message = []() { }; })
       {
-        eff.send_message = [self = QPointer{this}]() mutable {
-          if(!self)
+        eff.send_message
+            = [proc = QPointer{&this->process()}, qed_ptr = weak_edit]() mutable {
+          if(!proc)
+            return;
+          auto qed = qed_ptr.lock();
+          if(!qed)
             return;
 
-          self->in_edit([proc = QPointer{&self->process()}]() mutable {
+          qed->enqueue([proc]() mutable {
             if(proc && proc->to_ui)
               MessageBusSender{proc->to_ui}();
           });

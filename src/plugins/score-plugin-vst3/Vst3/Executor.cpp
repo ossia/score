@@ -75,10 +75,13 @@ void Executor::setupNode(Node_T& node)
 
       Execution::Transaction commands{system()};
 
-      commands.push_back(
-          [n, inlet, ctrl, val = ctrl->value(), num = ctrl->fxNum, self = this] {
+      commands.push_back([n, inlet, ctrl, val = ctrl->value(), num = ctrl->fxNum,
+                          self = this, qed_ptr = weak_edit] {
+        auto qed = qed_ptr.lock();
+        if(!qed)
+          return;
         auto queue_idx = n->add_control(inlet, num, val);
-        self->in_edit(ConnectValueChanged<Node_T>{self, queue_idx, n, ctrl});
+        qed->enqueue(ConnectValueChanged<Node_T>{self, queue_idx, n, ctrl});
       });
 
       setup.register_inlet(*ctrl, inlet, n, commands);

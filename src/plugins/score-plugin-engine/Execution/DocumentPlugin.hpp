@@ -121,6 +121,7 @@ private:
   void makeGraph();
   void initExecState();
   void recreateBase();
+  void processEditCommands();
 
   std::shared_ptr<ContextData> m_ctxData;
   std::shared_ptr<BaseScenarioElement> m_base;

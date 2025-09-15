@@ -4,7 +4,6 @@
 
 #include <ossia/detail/thread.hpp>
 
-#include <memory>
 #include <verdigris>
 
 namespace Execution

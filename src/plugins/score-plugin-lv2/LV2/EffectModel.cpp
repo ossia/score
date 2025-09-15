@@ -698,6 +698,7 @@ struct on_start
 struct on_finish
 {
   std::weak_ptr<LV2EffectComponent> self;
+  std::weak_ptr<Execution::EditionCommandQueue> q;
   void operator()();
 };
 void on_start::operator()()
@@ -729,8 +730,11 @@ void on_finish::operator()()
   auto p = self.lock();
   if(!p)
     return;
+  auto q = this->q.lock();
+  if(!q)
+    return;
 
-  p->in_edit([s = self] {
+  q->enqueue([s = self] {
     auto p = s.lock();
 
     if(!p)
@@ -787,6 +791,7 @@ void LV2EffectComponent::lazy_init()
   on_finish of;
   os.self = std::dynamic_pointer_cast<LV2EffectComponent>(shared_from_this());
   of.self = os.self;
+  of.q = ctx.weakEditionQueue();
 
   auto node = ossia::make_node<LV2::lv2_node_t>(
       *ctx.execState, LV2::LV2Data{host.lv2_host_context, proc.effectContext},

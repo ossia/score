@@ -292,13 +292,14 @@ void IntervalComponent::cleanup(const std::shared_ptr<IntervalComponent>& self)
   if(auto itv = m_ossia_interval)
   {
     // self has to be kept alive until next tick
-    in_exec([itv, self] {
+    in_exec([itv = itv, self = self, gcq_ptr = weak_gc] {
       OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
       itv->set_callback(ossia::time_interval::exec_callback{});
       itv->cleanup();
 
       // And then we want it to be cleared in the main thread
-      self->in_edit(gc(self));
+      if(auto gcq = gcq_ptr.lock())
+        gcq->enqueue(gc(std::move(self), std::move(itv)));
     });
 
     if(m_interval)
@@ -387,31 +388,33 @@ void IntervalComponent::onSetup(
 
     if(Q_UNLIKELY(interval().graphal()))
     {
-      t.push_back([weak_self, ossia_cst, &edit = system().editionQueue] {
+      t.push_back([weak_self, ossia_cst, qed_ptr = weak_edit] {
         ossia_cst->set_callback(
             smallfun::function<void(bool, ossia::time_value), 32>{
-                [weak_self, &edit](bool running, ossia::time_value date) {
+                [weak_self, qed_ptr](bool running, ossia::time_value date) {
           OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
-          edit.enqueue([weak_self, running, date] {
-            OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
-            if(auto self = weak_self.lock())
-              self->graph_slot_callback(running, date);
-          });
+          if(auto qed = qed_ptr.lock())
+            qed->enqueue([weak_self, running, date] {
+              OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+              if(auto self = weak_self.lock())
+                self->graph_slot_callback(running, date);
+            });
         }});
       });
     }
     else
     {
-      t.push_back([weak_self, ossia_cst, &edit = system().editionQueue] {
+      t.push_back([weak_self, ossia_cst, qed_ptr = weak_edit] {
         ossia_cst->set_callback(
             smallfun::function<void(bool, ossia::time_value), 32>{
-                [weak_self, &edit](bool running, ossia::time_value date) {
+                [weak_self, qed_ptr](bool running, ossia::time_value date) {
           OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
-          edit.enqueue([weak_self, running, date] {
-            OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
-            if(auto self = weak_self.lock())
-              self->slot_callback(running, date);
-          });
+          if(auto qed = qed_ptr.lock())
+            qed->enqueue([weak_self, running, date] {
+              OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+              if(auto self = weak_self.lock())
+                self->slot_callback(running, date);
+            });
         }});
       });
     }
@@ -552,28 +555,35 @@ IntervalComponentBase::make(ProcessComponentFactory& fac, Process::ProcessModel&
       // Selection
       QObject::connect(
           &proc.selection, &Selectable::changed, plug.get(),
-          [this, n = oproc->node](bool ok) {
-        in_exec([n, ok] {
-          if(n)
-            n->set_logging(ok);
-        });
+          [qex_ptr = weak_exec, n = oproc->node](bool ok) {
+        if(auto qex = qex_ptr.lock())
+          qex->enqueue([n, ok] {
+            if(n)
+              n->set_logging(ok);
           });
+      });
 
       // Looping
       oproc->set_loops(proc.loops());
       con(proc, &Process::ProcessModel::loopsChanged, this,
-          [this, p = oproc](bool b) { in_exec([p, b] { p->set_loops(b); }); });
+          [qex_ptr = weak_exec, p = oproc](bool b) {
+        if(auto qex = qex_ptr.lock())
+          qex->enqueue([p, b] { p->set_loops(b); });
+      });
 
       oproc->set_loop_duration(system().time(proc.loopDuration()));
       con(proc, &Process::ProcessModel::loopDurationChanged, this,
-          [this, p = oproc](TimeVal t) {
-        in_exec([p, t = system().time(t)] { p->set_loop_duration(t); });
+          [ctx_ptr = system().weakSelf(), p = oproc](TimeVal t) {
+        if(auto ctx = ctx_ptr.lock())
+          ctx->executionQueue.enqueue(
+              [p, t = ctx->time(t)] { p->set_loop_duration(t); });
       });
 
       oproc->set_start_offset(system().time(proc.startOffset()));
       con(proc, &Process::ProcessModel::startOffsetChanged, this,
-          [this, p = oproc](TimeVal t) {
-        in_exec([p, t = system().time(t)] { p->set_start_offset(t); });
+          [ctx_ptr = system().weakSelf(), p = oproc](TimeVal t) {
+        if(auto ctx = ctx_ptr.lock())
+          ctx->executionQueue.enqueue([p, t = ctx->time(t)] { p->set_start_offset(t); });
       });
 
       // Audio propagation
@@ -618,10 +628,12 @@ IntervalComponentBase::removing(const Process::ProcessModel& e, ProcessComponent
   {
     if(m_ossia_interval)
     {
-      in_exec(
-          [proc_ptr = it->second, cstr = m_ossia_interval, proc = c.OSSIAProcessPtr()] {
+      in_exec([proc_ptr = it->second, cstr = m_ossia_interval,
+               proc = c.OSSIAProcessPtr(), gcq_ptr = weak_gc] {
         cstr->remove_time_process(proc.get());
-        proc_ptr->in_edit(gc(proc_ptr));
+
+        if(auto gcq = gcq_ptr.lock())
+          gcq->enqueue(gc(proc_ptr));
       });
     }
     c.cleanup();
