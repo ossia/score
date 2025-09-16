@@ -212,6 +212,7 @@ void LayerView::on_newData()
 void LayerView::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 {
   pressed(ev->scenePos());
+  ev->ignore();
 }
 
 void LayerView::dragEnterEvent(QGraphicsSceneDragDropEvent* event)

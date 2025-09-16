@@ -10,6 +10,7 @@
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/selection/SelectionStack.hpp>
 #include <score/tools/Bind.hpp>
 
 namespace Media
@@ -33,6 +34,10 @@ LayerPresenter::LayerPresenter(
   //m_view->recompute(m_ratio);
 
   connect(m_view, &LayerView::dropReceived, this, &LayerPresenter::onDrop);
+  connect(m_view, &LayerView::pressed, this, [this] {
+    this->m_context.context.selectionStack.pushNewSelection(
+        {(Process::ProcessModel*)&this->m_process});
+  });
   con(layer, &Sound::ProcessModel::nativeTempoChanged, this,
       &LayerPresenter::updateTempo);
   con(layer, &Sound::ProcessModel::scoreTempoChanged, this,

@@ -8,7 +8,7 @@ namespace Media
 {
 void AudioFile::load_libav(int rate)
 {
-  qDebug() << "AudioFileHandle::load_ffmpeg(): " << m_file << rate;
+  qDebug() << "AudioFile::load_libav(): " << m_file << rate;
   // Loading with libav is used :
   // - when resampling is required
   // - when the file is not a .wav
