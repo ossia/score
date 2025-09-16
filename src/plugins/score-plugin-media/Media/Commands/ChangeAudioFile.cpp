@@ -4,6 +4,7 @@
 
 #include <Scenario/Commands/Interval/ResizeInterval.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveEventMeta.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 
@@ -38,9 +39,14 @@ ChangeAudioFile::ChangeAudioFile(
   {
     if(itv->processes.size() == 1)
     {
-      if(auto fact = ctx.app.interfaces<Scenario::IntervalResizerList>().find(*itv))
+      // We don't want the auto resize behaviour in the top scenario as it can be pretty
+      // confusing
+      if(auto base = qobject_cast<Scenario::BaseScenario*>(itv->parent()); !base)
       {
-        m_resizeInterval = fact->make(*itv, m_newdur);
+        if(auto fact = ctx.app.interfaces<Scenario::IntervalResizerList>().find(*itv))
+        {
+          m_resizeInterval = fact->make(*itv, m_newdur);
+        }
       }
     }
   }
