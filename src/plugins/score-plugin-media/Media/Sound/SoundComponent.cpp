@@ -18,7 +18,6 @@
 
 namespace
 {
-
 static std::unique_ptr<ossia::resampler>
 make_resampler(const Media::Sound::ProcessModel& element) noexcept
 {
@@ -105,7 +104,6 @@ public:
         commands.run_all();
       }
     } _{component};
-
     ossia::apply(_, handle->m_impl);
   }
 
@@ -124,12 +122,22 @@ public:
           const std::shared_ptr<ossia::graph_node>& n,
           Execution::Transaction& commands) const noexcept
       {
-        component.system().setup.unregister_node(
-            component.process(), old_node, commands);
-        component.system().setup.register_node(component.process(), n, commands);
-        component.system().setup.replace_node(component.OSSIAProcessPtr(), n, commands);
+        OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+        auto& setup = component.system().setup;
+        auto& proc = component.process();
+        for(auto& c : proc.outlet->cables())
+        {
+          setup.removeCable(c.find(component.system().context().doc), commands);
+        }
+        setup.unregister_node(component.process(), old_node, commands);
+        setup.register_node(component.process(), n, commands);
+        setup.replace_node(component.OSSIAProcessPtr(), n, commands);
         component.nodeChanged(old_node, n, &commands);
         component.node = n;
+        for(auto& c : proc.outlet->cables())
+        {
+          setup.connectCable(c.find(component.system().context().doc), commands);
+        }
       }
 
       void

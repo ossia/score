@@ -61,26 +61,23 @@ std::optional<ossia::destination> makeDestination(
   return ossia::destination{*p, qual.accessors, qual.unit};
 }
 
-void SetupContext::on_cableCreated(Process::Cable& c)
-{
-  connectCable(c);
-}
-
-void SetupContext::on_cableRemoved(const Process::Cable& c)
+template <typename Impl>
+void SetupContext::disconnect_cable_impl(const Process::Cable& c, Impl&& impl)
 {
   if(!context.created)
     return;
   auto it = m_cables.find(c.id());
   if(it != m_cables.end())
   {
-    context.executionQueue.enqueue([cable = it->second, graph = context.execGraph] {
+    impl([cable = it->second, graph = context.execGraph] {
       OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
       graph->disconnect(cable);
     });
   }
 }
 
-void SetupContext::connectCable(Process::Cable& cable)
+template <typename Impl>
+void SetupContext::connect_cable_impl(Process::Cable& cable, Impl&& impl)
 {
   OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   if(!context.created)
@@ -139,7 +136,7 @@ void SetupContext::connectCable(Process::Cable& cable)
     }
 
     m_cables[cable.id()] = edge;
-    context.executionQueue.enqueue([edge, graph = context.execGraph]() mutable {
+    impl([edge, graph = context.execGraph]() mutable {
       OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
       graph->connect(std::move(edge));
     });
@@ -433,6 +430,40 @@ void SetupContext::register_outlet(
 {
   OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   register_outlet_impl(outlet, exec, node, enqueue_in_vector(vec));
+}
+
+void SetupContext::on_cableCreated(Process::Cable& c)
+{
+  connectCable(c);
+}
+
+void SetupContext::on_cableRemoved(const Process::Cable& c)
+{
+  removeCable(c);
+}
+
+void SetupContext::connectCable(Process::Cable& c)
+{
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  connect_cable_impl(c, enqueue_in_context(*this));
+}
+
+void SetupContext::connectCable(Process::Cable& c, Transaction& vec)
+{
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  connect_cable_impl(c, enqueue_in_vector(vec));
+}
+
+void SetupContext::removeCable(const Process::Cable& c)
+{
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  disconnect_cable_impl(c, enqueue_in_context(*this));
+}
+
+void SetupContext::removeCable(const Process::Cable& c, Transaction& vec)
+{
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  disconnect_cable_impl(c, enqueue_in_vector(vec));
 }
 
 template <typename Impl>

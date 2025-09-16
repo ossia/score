@@ -510,6 +510,7 @@ void IntervalComponentBase::stop()
 
 void IntervalComponentBase::executionStarted()
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   interval().duration.setPlayPercentage(0);
   interval().executionEvent(Scenario::IntervalExecutionEvent::Playing);
   for(Process::ProcessModel& proc : interval().processes)
@@ -521,6 +522,7 @@ void IntervalComponentBase::executionStarted()
 
 void IntervalComponentBase::executionStopped()
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   if(m_interval)
   {
     interval().executionEvent(Scenario::IntervalExecutionEvent::Stopped);
@@ -535,6 +537,7 @@ void IntervalComponentBase::executionStopped()
 ProcessComponent*
 IntervalComponentBase::make(ProcessComponentFactory& fac, Process::ProcessModel& proc)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   SCORE_ASSERT(this->OSSIAInterval());
   SCORE_ASSERT(this->OSSIAInterval()->node);
   try
@@ -623,22 +626,26 @@ IntervalComponentBase::make(ProcessComponentFactory& fac, Process::ProcessModel&
 std::function<void()>
 IntervalComponentBase::removing(const Process::ProcessModel& e, ProcessComponent& c)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   auto it = m_processes.find(e.id());
   if(it != m_processes.end())
   {
     if(m_ossia_interval)
     {
-      in_exec([proc_ptr = it->second, cstr = m_ossia_interval,
-               proc = c.OSSIAProcessPtr(), gcq_ptr = weak_gc] {
+      in_exec([proc_ptr = std::weak_ptr{it->second}, cstr = m_ossia_interval,
+               proc = c.OSSIAProcessPtr(), gcq_ptr = weak_gc]() mutable {
         cstr->remove_time_process(proc.get());
 
-        if(auto gcq = gcq_ptr.lock())
-          gcq->enqueue(gc(proc_ptr));
+        if(auto cc = proc_ptr.lock())
+          if(auto gcq = gcq_ptr.lock())
+            gcq->enqueue(gc(std::move(cc)));
       });
     }
     c.cleanup();
 
-    return [this, id = e.id()] { m_processes.erase(id); };
+    return [this, cptr = std::weak_ptr{c.shared_from_this()}, id = e.id()] {
+      m_processes.erase(id);
+    };
   }
   return {};
 }

@@ -103,6 +103,9 @@ struct SCORE_LIB_PROCESS_EXPORT SetupContext final
   void on_cableCreated(Process::Cable& c);
   void on_cableRemoved(const Process::Cable& c);
   void connectCable(Process::Cable& cable);
+  void connectCable(Process::Cable& c, Transaction& vec);
+  void removeCable(const Process::Cable& c);
+  void removeCable(const Process::Cable& c, Transaction& vec);
 
   score::hash_map<Process::Outlet*, std::pair<ossia::node_ptr, ossia::outlet_ptr>>
       outlets;
@@ -141,5 +144,11 @@ private:
   void register_outlet_impl(
       Process::Outlet& outlet, const ossia::outlet_ptr& exec,
       const std::shared_ptr<ossia::graph_node>& node, Impl&&);
+
+  template <typename Impl>
+  void connect_cable_impl(Process::Cable& c, Impl&&);
+
+  template <typename Impl>
+  void disconnect_cable_impl(const Process::Cable& c, Impl&&);
 };
 }
