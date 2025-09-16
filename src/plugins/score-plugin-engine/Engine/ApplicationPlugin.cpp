@@ -420,15 +420,25 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
   }
   {
     auto node = root.create_child("exit");
-    auto address = node->create_parameter(ossia::val_type::IMPULSE);
-    address->set_value(ossia::impulse{});
+    auto address = node->create_parameter(ossia::val_type::STRING);
+    address->set_value(std::string{});
     address->set_access(ossia::access_mode::SET);
-    address->add_callback([&](const ossia::value&) {
-      ossia::qt::run_async(this, [this] {
+    address->add_callback([&](const ossia::value& v) {
+      bool force = ossia::convert<std::string>(v) == "force";
+      ossia::qt::run_async(this, [this, force] {
         execution().request_stop_from_localtree();
 
-        QTimer::singleShot(
-            500, [] { score::GUIApplicationInterface::instance().forceExit(); });
+        QTimer::singleShot(500, [force] {
+          if(force)
+          {
+            for(auto& doc : score::GUIAppContext().docManager.documents())
+            {
+              doc->commandStack().markCurrentIndexAsSaved();
+            }
+          }
+
+          score::GUIApplicationInterface::instance().forceExit();
+        });
       });
     });
   }
