@@ -129,6 +129,7 @@ public:
         component.system().setup.register_node(component.process(), n, commands);
         component.system().setup.replace_node(component.OSSIAProcessPtr(), n, commands);
         component.nodeChanged(old_node, n, &commands);
+        component.node = n;
       }
 
       void
