@@ -79,9 +79,6 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegate.hpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetProcessFactory.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetLayerPresenter.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetLayerView.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/DocumentPlugin.hpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Automatable/AutomatableFactory.hpp"
@@ -162,7 +159,6 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Script/ScriptEditor.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Script/ScriptWidget.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetLayerView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Execution/ProcessComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Effect/EffectLayer.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Magnetism/MagnetismAdjuster.cpp"

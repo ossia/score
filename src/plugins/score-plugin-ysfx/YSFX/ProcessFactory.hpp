@@ -2,7 +2,6 @@
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <Process/Script/ScriptEditor.hpp>
-#include <Process/WidgetLayer/WidgetProcessFactory.hpp>
 
 #include <Control/DefaultEffectItem.hpp>
 #include <Effect/EffectFactory.hpp>

@@ -2,9 +2,6 @@
 #include <Process/Process.hpp>
 #include <Process/Script/ScriptProcess.hpp>
 #include <Process/TimeValue.hpp>
-#include <Process/WidgetLayer/WidgetLayerPresenter.hpp>
-#include <Process/WidgetLayer/WidgetLayerView.hpp>
-#include <Process/WidgetLayer/WidgetProcessFactory.hpp>
 
 #include <Pd/PdInstance.hpp>
 #include <Pd/PdMetadata.hpp>

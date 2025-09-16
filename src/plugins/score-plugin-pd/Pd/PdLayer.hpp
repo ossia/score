@@ -1,6 +1,5 @@
 #pragma once
 #include <Process/GenericProcessFactory.hpp>
-#include <Process/WidgetLayer/WidgetProcessFactory.hpp>
 
 #include <Control/DefaultEffectItem.hpp>
 #include <Effect/EffectFactory.hpp>
