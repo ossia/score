@@ -26,6 +26,7 @@
 
 #include <ossia-qt/invoke.hpp>
 
+#include <QGuiApplication>
 #include <QInputDialog>
 #include <QTimer>
 
@@ -154,7 +155,7 @@ QString Model::prettyName() const noexcept
 bool Model::hasExternalUI() const noexcept
 {
 #if defined(__linux__)
-  static const thread_local bool is_wayland = qApp->platformName() == "wayland";
+  static const thread_local bool is_wayland = qGuiApp->platformName() == "wayland";
   if(is_wayland)
     return false;
 #endif

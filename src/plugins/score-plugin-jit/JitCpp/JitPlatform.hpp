@@ -3,7 +3,7 @@
 
 #include <score/application/ApplicationContext.hpp>
 
-#include <QApplication>
+#include <QCoreApplication>
 #include <QDebug>
 #include <QDir>
 #include <QDirIterator>
@@ -69,7 +69,7 @@ static inline std::string locateSDK()
     return libPath.toStdString();
   }
 
-  auto appFolder = qApp->applicationDirPath();
+  auto appFolder = QCoreApplication::instance()->applicationDirPath();
 
 #if !SCORE_FHS_BUILD
 

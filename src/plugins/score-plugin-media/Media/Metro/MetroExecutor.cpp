@@ -17,7 +17,7 @@
 #include <ossia/detail/pod_vector.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
 
-#include <QApplication>
+#include <QCoreApplication>
 
 namespace ossia::nodes
 {
@@ -177,7 +177,7 @@ struct MetronomeSounds
     while(f->samples() != f->decodedSamples())
     {
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
-      qApp->processEvents();
+      QCoreApplication::instance()->processEvents();
     }
     return f;
   }()};
@@ -190,7 +190,7 @@ struct MetronomeSounds
     while(f->samples() != f->decodedSamples())
     {
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
-      qApp->processEvents();
+      QCoreApplication::instance()->processEvents();
     }
     return f;
   }()};

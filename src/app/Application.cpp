@@ -390,7 +390,7 @@ void Application::init()
 #if defined(__EMSCRIPTEN__)
     show_fullscreen = true;
 #else
-    show_fullscreen = (qApp->platformName() == "vnc");
+    show_fullscreen = (qGuiApp->platformName() == "vnc");
 #endif
     if(show_fullscreen)
     {

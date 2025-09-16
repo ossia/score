@@ -23,7 +23,8 @@
 
 #include <ossia-qt/invoke.hpp>
 
-#include <QApplication>
+#include <QCoreApplication>
+#include <QGuiApplication>
 #include <QInputDialog>
 #include <QTimer>
 
@@ -185,7 +186,7 @@ bool Model::hasExternalUI() const noexcept
     return false;
 
 #if defined(__linux__)
-  static const thread_local bool is_wayland = qApp->platformName() == "wayland";
+  static const thread_local bool is_wayland = qGuiApp->platformName() == "wayland";
   if(is_wayland)
     return false;
 #endif
@@ -893,7 +894,7 @@ AEffectWrapper::~AEffectWrapper()
 {
   if(fx)
   {
-    ossia::qt::run_async(qApp, [fx = fx] {
+    ossia::qt::run_async(QCoreApplication::instance(), [fx = fx] {
       int uid = fx->uniqueID;
       fx->dispatcher(fx, effClose, 0, 0, nullptr, 0.f);
 

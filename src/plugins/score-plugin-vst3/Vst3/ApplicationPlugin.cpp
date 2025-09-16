@@ -7,7 +7,7 @@
 #include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/math.hpp>
 
-#include <QApplication>
+#include <QCoreApplication>
 #include <QDir>
 #include <QDirIterator>
 #include <QJsonArray>
@@ -181,7 +181,7 @@ void ApplicationPlugin::rescan()
 static const QString& vst3PuppetPath()
 {
   static const QString path = []() -> QString {
-    auto app = qApp->applicationDirPath();
+    auto app = QCoreApplication::instance()->applicationDirPath();
 #if defined(__APPLE__)
     auto bundle_path
         = "/ossia-score-vst3puppet.app/Contents/MacOS/"

@@ -447,7 +447,7 @@ static void setup_faust_path()
 
 static void setup_opengl(bool& enable_opengl_ui)
 {
-  const auto& plat = qApp->platformName();
+  const auto& plat = qGuiApp->platformName();
   if(plat == "minimal" || plat == "offscreen" || plat == "vnc" || plat == "wasm")
   {
     return;
