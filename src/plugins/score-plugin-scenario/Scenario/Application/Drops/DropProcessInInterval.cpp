@@ -87,6 +87,7 @@ bool DropProcessInInterval::drop(
       {
         proc.setup(*p, disp);
       }
+      pos += QPointF{10, 10};
     }
 
     dropper.commit();
