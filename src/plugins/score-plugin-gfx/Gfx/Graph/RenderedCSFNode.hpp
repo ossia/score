@@ -31,8 +31,12 @@ private:
   void createGraphicsPass(const TextureRenderTarget& rt, RenderList& renderer, Edge& edge, QRhiResourceUpdateBatch& res);
   void updateDescriptorSet(RenderList& renderer, Edge& edge);
   std::vector<Sampler> allSamplers() const noexcept;
-  QRhiTexture::Format getTextureFormat(const QString& format) const;
-  
+
+  // Image management
+  QRhiTexture::Format getTextureFormat(const QString& format) const noexcept;
+  std::optional<QSize> getImageSize(const isf::csf_image_input&) const noexcept;
+  QSize computeTextureSize(const isf::csf_image_input& img) const noexcept;
+
   // Buffer management methods
   int calculateStorageBufferSize(const std::vector<isf::storage_input::layout_field>& layout, int arrayCount) const;
   QRhiBuffer* createStorageBuffer(RenderList& renderer, const QString& name, const QString& access, int size);

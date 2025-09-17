@@ -1,12 +1,16 @@
+#include "ossia/detail/fmt.hpp"
+
+#include <Gfx/Graph/CommonUBOs.hpp>
 #include <Gfx/Graph/ISFNode.hpp>
 #include <Gfx/Graph/RenderedCSFNode.hpp>
 #include <Gfx/Graph/RenderedISFSamplerUtils.hpp>
 #include <Gfx/Graph/Utils.hpp>
-#include <Gfx/Graph/CommonUBOs.hpp>
 
 #include <score/tools/Debug.hpp>
 
 #include <ossia/detail/algorithms.hpp>
+
+#include <boost/algorithm/string/replace.hpp>
 
 namespace score::gfx
 {
@@ -32,7 +36,125 @@ std::vector<Sampler> RenderedCSFNode::allSamplers() const noexcept
   return m_inputSamplers;
 }
 
-QRhiTexture::Format RenderedCSFNode::getTextureFormat(const QString& format) const
+struct is_output
+{
+  bool operator()(const isf::storage_input& v) { return v.access != "read_only"; }
+  bool operator()(const isf::csf_image_input& v) { return v.access != "read_only"; }
+  bool operator()(const auto& v) { return false; }
+};
+QSize RenderedCSFNode::computeTextureSize(
+    const isf::csf_image_input& pass) const noexcept
+{
+  ossia::math_expression e;
+  ossia::small_pod_vector<double, 16> data;
+
+  const auto& desc = n.descriptor();
+  // Note : reserve is super important here,
+  // as the expression parser takes *references* to the
+  // variables.
+  data.reserve(2 + 2 * m_inputSamplers.size() + desc.inputs.size());
+
+  int input_image_index = 0;
+  for(auto& img : desc.inputs)
+  {
+    if(auto tex_input = ossia::get_if<isf::texture_input>(&img.data))
+    {
+      SCORE_ASSERT(input_image_index < m_inputSamplers.size());
+      auto [s, t] = this->m_inputSamplers[input_image_index];
+      QSize tex_sz = t ? t->pixelSize() : QSize{1280, 720};
+      e.add_constant(
+          fmt::format("var_WIDTH_{}", img.name), data.emplace_back(tex_sz.width()));
+      e.add_constant(
+          fmt::format("var_HEIGHT_{}", img.name), data.emplace_back(tex_sz.height()));
+
+      input_image_index++;
+    }
+    else if(auto img_input = ossia::get_if<isf::csf_image_input>(&img.data))
+    {
+      if(img_input->access == "read_only")
+      {
+        SCORE_ASSERT(input_image_index < m_inputSamplers.size());
+        auto [s, t] = this->m_inputSamplers[input_image_index];
+        QSize tex_sz = t ? t->pixelSize() : QSize{1280, 720};
+        e.add_constant(
+            fmt::format("var_WIDTH_{}", img.name), data.emplace_back(tex_sz.width()));
+        e.add_constant(
+            fmt::format("var_HEIGHT_{}", img.name), data.emplace_back(tex_sz.height()));
+
+        input_image_index++;
+      }
+    }
+  }
+
+  int inlet_k = 0;
+  for(const isf::input& input : desc.inputs)
+  {
+    if(ossia::visit(is_output{}, input.data))
+    {
+      continue;
+    }
+
+    auto port = n.input[inlet_k];
+    if(ossia::get_if<isf::float_input>(&input.data))
+    {
+      e.add_constant("var_" + input.name, data.emplace_back(*(float*)port->value));
+    }
+    else if(ossia::get_if<isf::long_input>(&input.data))
+    {
+      e.add_constant("var_" + input.name, data.emplace_back(*(int*)port->value));
+    }
+
+    inlet_k++;
+  }
+
+  QSize res;
+  if(auto expr = pass.width_expression; !expr.empty())
+  {
+    boost::algorithm::replace_all(expr, "$", "var_");
+    e.register_symbol_table();
+    bool ok = e.set_expression(expr);
+    if(ok)
+      res.setWidth(e.value());
+    else
+      qDebug() << e.error().c_str() << expr.c_str();
+  }
+  if(auto expr = pass.height_expression; !expr.empty())
+  {
+    boost::algorithm::replace_all(expr, "$", "var_");
+    e.register_symbol_table();
+    bool ok = e.set_expression(expr);
+    if(ok)
+      res.setHeight(e.value());
+    else
+      qDebug() << e.error().c_str() << expr.c_str();
+  }
+
+  return res;
+}
+
+std::optional<QSize>
+RenderedCSFNode::getImageSize(const isf::csf_image_input& img) const noexcept
+{
+  // 1. Does img have a width or height expression set
+  if(!img.width_expression.empty() || !img.height_expression.empty())
+  {
+    return computeTextureSize(img);
+  }
+
+  // 2. If not: take size of first input image if any?
+  if(!this->m_inputSamplers.empty())
+  {
+    if(this->m_inputSamplers[0].texture)
+    {
+      return this->m_inputSamplers[0].texture->pixelSize();
+    }
+  }
+
+  // 3. If not: take size of renderer
+  return std::nullopt;
+}
+QRhiTexture::Format
+RenderedCSFNode::getTextureFormat(const QString& format) const noexcept
 {
   // Map CSF format strings to Qt RHI texture formats
   if(format == "RGBA8")
@@ -95,7 +217,7 @@ int RenderedCSFNode::calculateStorageBufferSize(const std::vector<isf::storage_i
     else if(type == "mat4") fieldSize = 64;  // 4x4 matrix = 4 vec4s
     else if(type.endsWith("[]"))
     {
-      // Handle array types - for now assume flexible arrays are handled by arrayCount
+      // flexible arrays are handled by arrayCount
       QString baseType = type.left(type.length() - 2);
       // Recursive call for array element size
       std::vector<isf::storage_input::layout_field> singleField = {{field.name, baseType.toStdString()}};
@@ -291,7 +413,11 @@ void RenderedCSFNode::initComputePass(
     bindings.append(QRhiShaderResourceBinding::uniformBuffer(
         bindingIndex++, QRhiShaderResourceBinding::ComputeStage, m_materialUBO));
   }
-  
+
+  int input_port_index = 0;
+  int input_image_index = 0;
+  int output_port_index = 0;
+  int output_image_index = 0;
   // Process all resources in the order they appear in the descriptor
   // This ensures the binding indices match what the shader expects
   for(const auto& input : n.m_descriptor.inputs)
@@ -312,18 +438,21 @@ void RenderedCSFNode::initComputePass(
           bindings.append(QRhiShaderResourceBinding::bufferLoad(
               bindingIndex++, QRhiShaderResourceBinding::ComputeStage, 
               it->buffer));
+          input_port_index++;
         }
         else if(it->access == "write_only")
         {
           bindings.append(QRhiShaderResourceBinding::bufferStore(
               bindingIndex++, QRhiShaderResourceBinding::ComputeStage, 
               it->buffer));
+          output_port_index++;
         }
         else // read_write
         {
           bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
               bindingIndex++, QRhiShaderResourceBinding::ComputeStage, 
               it->buffer));
+          output_port_index++;
         }
       }
     }
@@ -331,16 +460,18 @@ void RenderedCSFNode::initComputePass(
     else if(ossia::get_if<isf::texture_input>(&input.data))
     {
       // Regular sampled textures from m_inputSamplers
-      if(!m_inputSamplers.empty() && m_inputSamplers[0].texture)
-      {
-        bindings.append(
-            QRhiShaderResourceBinding::sampledTexture(
-                bindingIndex++, QRhiShaderResourceBinding::ComputeStage,
-                m_inputSamplers[0].texture, m_inputSamplers[0].sampler));
-      }
+      SCORE_ASSERT(input_image_index < m_inputSamplers.size());
+      auto [sampler, tex] = m_inputSamplers[input_image_index];
+      SCORE_ASSERT(sampler);
+      SCORE_ASSERT(tex);
+      bindings.append(
+          QRhiShaderResourceBinding::sampledTexture(
+              bindingIndex++, QRhiShaderResourceBinding::ComputeStage, tex, sampler));
+      input_port_index++;
+      input_image_index++;
     }
     // CSF storage images
-    else if(ossia::get_if<isf::csf_image_input>(&input.data))
+    else if(auto image = ossia::get_if<isf::csf_image_input>(&input.data))
     {
       // Find the corresponding storage image
       auto it = std::find_if(m_storageImages.begin(), m_storageImages.end(),
@@ -352,57 +483,72 @@ void RenderedCSFNode::initComputePass(
       {
         if(it->access == "read_only")
         {
-          // For read-only images, use the texture from the input port's render target
-          QRhiTexture* inputTexture = nullptr;
-          
-          // Find the input port that corresponds to this read-only image
-          // CSF read-only images create input ports of type Image
-          // We need to find the render target that was created for this input
-          
-          // The issue is we need to match by name somehow
-          // Let's use a simple approach: find the first Image port that has a render target
-          // This is a simplification - in a real implementation we'd need better tracking
-          
-          for(Port* port : n.input)
+          SCORE_ASSERT(input_image_index < m_inputSamplers.size());
+          auto [sampler, tex] = m_inputSamplers[input_image_index];
+          SCORE_ASSERT(sampler);
+          SCORE_ASSERT(tex);
+
+          bindings.append(
+              QRhiShaderResourceBinding::imageLoad(
+                  bindingIndex++, QRhiShaderResourceBinding::ComputeStage, tex, 0));
+
+          input_port_index++;
+          input_image_index++;
+        }
+        else
+        {
+          QRhiTexture::Format format
+              = getTextureFormat(QString::fromStdString(image->format));
+          QSize imageSize = renderer.state.renderSize;
+          if(auto sz = getImageSize(*image))
+            imageSize = *sz;
+          if(imageSize.width() < 1 || imageSize.height() < 1)
+            imageSize = renderer.state.renderSize;
+
+          QRhiTexture::Flags flags
+              = QRhiTexture::RenderTarget | QRhiTexture::UsedWithLoadStore
+                | QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips;
+
+          QRhiTexture* texture = rhi.newTexture(format, imageSize, 1, flags);
+          texture->setName(("RenderedCSFNode::storageImage::" + input.name).c_str());
+
+          if(texture && texture->create())
           {
-            if(port->type == Types::Image)
+            // If this is the first write-only or read-write image, use it as the output
+            if(!m_outputTexture)
             {
-              auto rtIt = m_rts.find(port);
-              if(rtIt != m_rts.end() && rtIt->second.texture)
-              {
-                inputTexture = rtIt->second.texture;
-                break; // Use the first available Image input
-              }
+              m_outputTexture = texture;
+              m_outputFormat = format;
             }
-          }
-          
-          if(inputTexture)
-          {
-            bindings.append(QRhiShaderResourceBinding::imageLoad(
-                bindingIndex++, QRhiShaderResourceBinding::ComputeStage, 
-                inputTexture, 0));
+            it->texture = texture;
           }
           else
           {
-            // Fallback to empty texture if no input connected
-            bindings.append(QRhiShaderResourceBinding::imageLoad(
-                bindingIndex++, QRhiShaderResourceBinding::ComputeStage, 
-                &renderer.emptyTexture(), 0));
+            delete texture;
           }
-        }
-        else if(it->access == "write_only" && it->texture)
-        {
-          bindings.append(QRhiShaderResourceBinding::imageStore(
-              bindingIndex++, QRhiShaderResourceBinding::ComputeStage, 
-              it->texture, 0));
-        }
-        else if(it->access == "read_write" && it->texture)
-        {
-          bindings.append(QRhiShaderResourceBinding::imageLoadStore(
-              bindingIndex++, QRhiShaderResourceBinding::ComputeStage, 
-              it->texture, 0));
+
+          if(it->access == "write_only" && it->texture)
+          {
+            bindings.append(
+                QRhiShaderResourceBinding::imageStore(
+                    bindingIndex++, QRhiShaderResourceBinding::ComputeStage, it->texture,
+                    0));
+          }
+          else if(it->access == "read_write" && it->texture)
+          {
+            bindings.append(
+                QRhiShaderResourceBinding::imageLoadStore(
+                    bindingIndex++, QRhiShaderResourceBinding::ComputeStage, it->texture,
+                    0));
+          }
+          output_port_index++;
+          output_image_index++;
         }
       }
+    }
+    else
+    {
+      input_port_index++;
     }
   }
 
@@ -590,7 +736,7 @@ void RenderedCSFNode::createComputePipeline(RenderList& renderer)
 void RenderedCSFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
   QRhi& rhi = *renderer.state.rhi;
-  
+
   // Check for compute support
   if(!rhi.isFeatureSupported(QRhi::Compute))
   {
@@ -614,9 +760,16 @@ void RenderedCSFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
       m_materialUBO = nullptr;
     }
   }
-  
+
+  // Initialize input samplers
+  SCORE_ASSERT(m_rts.empty());
+  SCORE_ASSERT(m_computePasses.empty());
+  SCORE_ASSERT(m_inputSamplers.empty());
+
+  // Create samplers for input textures
+  m_inputSamplers = initInputSamplers(this->n, renderer, n.input, m_rts);
+
   // Parse descriptor to create storage buffers and determine output texture requirements
-  QSize textureSize{1280, 720};   // Default size
   QString outputFormat = "RGBA8"; // Default format
   
   for(const auto& input : n.m_descriptor.inputs)
@@ -638,82 +791,15 @@ void RenderedCSFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
     else if(auto* image = ossia::get_if<isf::csf_image_input>(&input.data))
     {
       QRhiTexture::Format format = getTextureFormat(QString::fromStdString(image->format));
-      
-      // Only create storage textures for write-only and read-write images
-      // Read-only images will come from input ports
-      if(image->access == "write_only" || image->access == "read_write")
-      {
-        QSize imageSize = textureSize; // Use default size for now
-        
-        QRhiTexture::Flags flags = QRhiTexture::RenderTarget | QRhiTexture::UsedWithLoadStore;
-        if(image->access == "read_write" || image->access == "write_only")
-        {
-          flags |= QRhiTexture::UsedWithGenerateMips;
-        }
-        
-        QRhiTexture* texture = rhi.newTexture(format, imageSize, 1, flags);
-        texture->setName(("RenderedCSFNode::storageImage::" + input.name).c_str());
-        
-        if(texture && texture->create())
-        {
-          m_storageImages.push_back(
-              StorageImage{texture, 
-                          QString::fromStdString(input.name),
-                          QString::fromStdString(image->access),
-                          format});
-          
-          // If this is the first write-only or read-write image, use it as the output
-          if((image->access == "write_only" || image->access == "read_write") && !m_outputTexture)
-          {
-            m_outputTexture = texture;
-            m_outputFormat = format;
-          }
-        }
-        else
-        {
-          delete texture;
-        }
-      }
-      else if(image->access == "read_only")
-      {
-        // Read-only images will be handled through input ports
-        // Store a placeholder entry so we know about this image
-        m_storageImages.push_back(
-            StorageImage{nullptr, 
-                        QString::fromStdString(input.name),
-                        QString::fromStdString(image->access),
-                        format});
-      }
+      m_storageImages.push_back(
+          StorageImage{
+              nullptr, QString::fromStdString(input.name),
+              QString::fromStdString(image->access), format});
     }
   }
-  
-  // Create output texture with storage usage for compute shaders if not already created
-  if(!m_outputTexture)
-  {
-    m_outputFormat = getTextureFormat(outputFormat);
-    m_outputTexture = rhi.newTexture(
-        m_outputFormat, textureSize, 1, 
-        QRhiTexture::RenderTarget | QRhiTexture::UsedWithLoadStore | QRhiTexture::UsedWithGenerateMips);
-    m_outputTexture->setName("RenderedCSFNode::outputTexture");
-    if(!m_outputTexture->create())
-    {
-      qWarning() << "Failed to create output texture";
-      delete m_outputTexture;
-      m_outputTexture = nullptr;
-      return;
-    }
-  }
-  
-  // Initialize input samplers
-  SCORE_ASSERT(m_rts.empty());
-  SCORE_ASSERT(m_computePasses.empty());
-  SCORE_ASSERT(m_inputSamplers.empty());
 
-  // Create samplers for input textures
-  auto [samplers, cur_pos] = initInputSamplers(
-      this->n, renderer, n.input, m_rts, n.m_material_data.get());
-  m_inputSamplers = std::move(samplers);
-  
+  m_outputTexture = nullptr;
+
   // Create the compute passes for each output edge
   for(Edge* edge : n.output[0]->edges)
   {
@@ -804,7 +890,7 @@ void RenderedCSFNode::release(RenderList& r)
   // Clean up storage images
   for(auto& storageImage : m_storageImages)
   {
-    if(storageImage.texture && storageImage.texture != m_outputTexture)
+    if(storageImage.texture)
     {
       storageImage.texture->deleteLater();
     }
@@ -814,13 +900,7 @@ void RenderedCSFNode::release(RenderList& r)
   // Clean up buffers and textures
   delete m_materialUBO;
   m_materialUBO = nullptr;
-  
-  if(m_outputTexture)
-  {
-    m_outputTexture->deleteLater();
-    m_outputTexture = nullptr;
-  }
-  
+
   // Clean up samplers
   for(auto sampler : m_inputSamplers)
   {
@@ -934,7 +1014,7 @@ void RenderedCSFNode::runInitialPasses(
 
     // Dispatch compute shader
     commands.dispatch(dispatchX, dispatchY, dispatchZ);
-    
+
     // End compute pass
     commands.endComputePass();
   }

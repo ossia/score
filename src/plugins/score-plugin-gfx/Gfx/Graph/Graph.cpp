@@ -246,7 +246,10 @@ void Graph::initializeOutput(OutputNode* output, GraphicsApi graphicsApi)
         createOutputRenderList(*output);
     };
 
-    auto onResize = [this, output] { recreateOutputRenderList(*output); };
+    auto onResize = [this, output] {
+      // FIXME optimize if size did not change?
+      recreateOutputRenderList(*output);
+    };
 
     auto onUpdate = [this] {
       switch(this->m_outputs.size())

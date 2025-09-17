@@ -449,46 +449,6 @@ void Model::setupCSF(const isf::descriptor& desc)
         auto port = new Gfx::TextureOutlet(Id<Process::Port>(output_i++), &self);
         port->setName(QString::fromStdString(input.name));
         self.m_outlets.push_back(port);
-
-        ossia::vec2f min{1., 1.};
-        ossia::vec2f max{16384., 16384};
-        ossia::vec2f init{1280, 720};
-        auto size_inl = new Process::XYSpinboxes{
-            min,
-            max,
-            init,
-            false,
-            QString::fromStdString(input.name) + " size",
-            Id<Process::Port>(input_i++),
-            &self};
-        self.m_inlets.push_back(size_inl);
-        self.controlAdded(size_inl->id());
-
-        std::vector<std::pair<QString, ossia::value>> alternatives;
-        alternatives.emplace_back("RGBA8", (int)QRhiTexture::RGBA8);
-        alternatives.emplace_back("BGRA8", (int)QRhiTexture::BGRA8);
-        alternatives.emplace_back("R8", (int)QRhiTexture::R8);
-#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
-        alternatives.emplace_back("RG8", (int)QRhiTexture::RG8);
-#endif
-        alternatives.emplace_back("R16", (int)QRhiTexture::R16);
-#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
-        alternatives.emplace_back("RG16", (int)QRhiTexture::RG16);
-#endif
-        alternatives.emplace_back("RGBA16F", (int)QRhiTexture::RGBA16F);
-        alternatives.emplace_back("RGBA32F", (int)QRhiTexture::RGBA32F);
-        alternatives.emplace_back("R16F", (int)QRhiTexture::R16F);
-        alternatives.emplace_back("R32F", (int)QRhiTexture::R32F);
-#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
-        alternatives.emplace_back("RGB10A2", (int)QRhiTexture::RGB10A2);
-#endif
-
-        auto format_inl = new Process::ComboBox{
-            alternatives, (int)0, QString::fromStdString(input.name) + " format",
-            Id<Process::Port>(input_i++), &self};
-        format_inl->setName(QString::fromStdString(input.name) + " format");
-        self.m_inlets.push_back(format_inl);
-        self.controlAdded(format_inl->id());
       }
     }
   };

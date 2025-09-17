@@ -10,8 +10,8 @@ namespace score::gfx
 
 RenderedISFNode::~RenderedISFNode() { }
 PassOutput RenderedISFNode::initPassSampler(
-    ISFNode& n, const isf::pass& pass, RenderList& renderer, int& cur_pos,
-    QSize mainTexSize, QRhiResourceUpdateBatch& res)
+    ISFNode& n, const isf::pass& pass, RenderList& renderer, QSize mainTexSize,
+    QRhiResourceUpdateBatch& res)
 {
   QRhi& rhi = *renderer.state.rhi;
   // In all the other cases we create a custom render target
@@ -279,8 +279,8 @@ std::pair<Pass, Pass> RenderedISFNode::createPass(
 }
 
 void RenderedISFNode::initPasses(
-    const TextureRenderTarget& rt, RenderList& renderer, Edge& edge, int& cur_pos,
-    QSize mainTexSize, QRhiResourceUpdateBatch& res)
+    const TextureRenderTarget& rt, RenderList& renderer, Edge& edge, QSize mainTexSize,
+    QRhiResourceUpdateBatch& res)
 {
   Passes passes;
 
@@ -298,7 +298,7 @@ void RenderedISFNode::initPasses(
     }
     else
     {
-      auto sampler = initPassSampler(n, pass, renderer, cur_pos, mainTexSize, res);
+      auto sampler = initPassSampler(n, pass, renderer, mainTexSize, res);
       passes.samplers.push_back(sampler);
     }
   }
@@ -396,22 +396,18 @@ void RenderedISFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
   SCORE_ASSERT(m_inputSamplers.empty());
   SCORE_ASSERT(m_audioSamplers.empty());
 
-  auto [samplers, cur_pos]
-      = initInputSamplers(this->n, renderer, n.input, m_rts, n.m_material_data.get());
-  m_inputSamplers = std::move(samplers);
+  m_inputSamplers = initInputSamplers(this->n, renderer, n.input, m_rts);
 
   m_audioSamplers = initAudioTextures(renderer, n.m_audio_textures);
 
   // Create the passes
 
-  int pos_before_passes = cur_pos;
   for(Edge* edge : n.output[0]->edges)
   {
-    cur_pos = pos_before_passes;
     auto rt = renderer.renderTargetForOutput(*edge);
     if(rt.renderTarget)
     {
-      initPasses(rt, renderer, *edge, cur_pos, renderer.renderSize(edge), res);
+      initPasses(rt, renderer, *edge, renderer.renderSize(edge), res);
     }
   }
 }

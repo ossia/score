@@ -7,45 +7,18 @@
 namespace score::gfx
 {
 
-inline std::pair<std::vector<Sampler>, int> initInputSamplers(
+inline std::vector<Sampler> initInputSamplers(
     const ProcessNode& node, RenderList& renderer, const std::vector<Port*>& ports,
-    ossia::small_flat_map<const Port*, TextureRenderTarget, 2>& m_rts,
-    char* materialData)
+    ossia::small_flat_map<const Port*, TextureRenderTarget, 2>& m_rts)
 {
   std::vector<Sampler> samplers;
   QRhi& rhi = *renderer.state.rhi;
-  int cur_pos = 0;
 
   int cur_port = 0;
   for(Port* in : ports)
   {
     switch(in->type)
     {
-      case Types::Empty:
-        break;
-      case Types::Int:
-      case Types::Float:
-        cur_pos += 4;
-        break;
-      case Types::Vec2:
-        cur_pos += 8;
-        if(cur_pos % 8 != 0)
-          cur_pos += 4;
-        break;
-      case Types::Vec3:
-        while(cur_pos % 16 != 0)
-        {
-          cur_pos += 4;
-        }
-        cur_pos += 12;
-        break;
-      case Types::Vec4:
-        while(cur_pos % 16 != 0)
-        {
-          cur_pos += 4;
-        }
-        cur_pos += 16;
-        break;
       case Types::Image: {
         auto spec = node.resolveRenderTargetSpecs(cur_port, renderer);
         auto sampler = rhi.newSampler(
@@ -69,7 +42,7 @@ inline std::pair<std::vector<Sampler>, int> initInputSamplers(
     }
     cur_port++;
   }
-  return {samplers, cur_pos};
+  return samplers;
 }
 
 inline std::vector<Sampler>

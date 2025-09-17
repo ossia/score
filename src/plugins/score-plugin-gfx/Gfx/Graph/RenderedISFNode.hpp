@@ -34,12 +34,12 @@ private:
       RenderList& renderer, ossia::small_vector<PassOutput, 1>& m_passSamplers,
       const TextureRenderTarget& target);
   void initPasses(
-      const TextureRenderTarget& rt, RenderList& renderer, Edge& edge, int& cur_pos,
-      QSize mainTexSize, QRhiResourceUpdateBatch& res);
+      const TextureRenderTarget& rt, RenderList& renderer, Edge& edge, QSize mainTexSize,
+      QRhiResourceUpdateBatch& res);
 
   PassOutput initPassSampler(
-      ISFNode& n, const isf::pass& pass, RenderList& renderer, int& cur_pos,
-      QSize mainTexSize, QRhiResourceUpdateBatch& res);
+      ISFNode& n, const isf::pass& pass, RenderList& renderer, QSize mainTexSize,
+      QRhiResourceUpdateBatch& res);
 
   struct Passes
   {

@@ -178,12 +178,6 @@ struct isf_input_port_vis
     }
     else if(in.access == "write_only" || in.access == "read_write")
     {
-      // Texture size
-      (*this)(isf::point2d_input{.def = std::array<double, 2>{512, 512}});
-
-      // Format
-      (*this)(isf::long_input{.values = {}, .labels = {}, .def = 0});
-
       // Output port for the image
       self.output.push_back(new Port{&self, {}, Types::Image, {}});
     }

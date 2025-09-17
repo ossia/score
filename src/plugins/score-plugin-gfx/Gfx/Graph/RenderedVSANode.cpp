@@ -257,6 +257,7 @@ void SimpleRenderedVSANode::update(
         (float)n.m_descriptor.background_color[1],
         (float)n.m_descriptor.background_color[2],
         (float)n.m_descriptor.background_color[3]};
+    // FIXME handle dynamic background uniform
     res.updateDynamicBuffer(pass.background_ubo, 0, 4 * sizeof(float), color);
     res.updateDynamicBuffer(
         pass.main_pass.processUBO, 0, sizeof(ProcessUBO), &this->n.standardUBO);

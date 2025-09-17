@@ -99,9 +99,7 @@ void SimpleRenderedISFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& 
   SCORE_ASSERT(m_inputSamplers.empty());
   SCORE_ASSERT(m_audioSamplers.empty());
 
-  auto [samplers, cur_pos]
-      = initInputSamplers(this->n, renderer, n.input, m_rts, n.m_material_data.get());
-  m_inputSamplers = std::move(samplers);
+  m_inputSamplers = initInputSamplers(this->n, renderer, n.input, m_rts);
 
   m_audioSamplers = initAudioTextures(renderer, n.m_audio_textures);
 
