@@ -739,40 +739,67 @@ void AudioTextureUpload::processTemporal(
 void AudioTextureUpload::processHistogram(
     AudioTexture& audio, QRhiResourceUpdateBatch& res, QRhiTexture* rhiTexture)
 {
-  m_scratchpad.resize(240 * std::max(rhiTexture->pixelSize().height(), audio.channels));
+  // Size of the audio input buffer
+  std::size_t audioInputBufferSize = audio.data.size() / audio.channels;
+
+  // Effective size of the FFT data we want to use (e.g. without DC offset and nyquist coefficient at the end)
+  std::size_t fftSize = audioInputBufferSize / 2 - 2;
+  m_scratchpad.resize(240 * fftSize);
   if(m_scratchpad.empty())
     return;
 
-  int channel = 0;
+  // 1. Rotate the scratchpad by one row (fftSize)
+  auto channel_begin = m_scratchpad.begin();
+  std::rotate(channel_begin, m_scratchpad.end() - fftSize, m_scratchpad.end());
 
-  ossia::small_vector<float, 8> channel_rms(audio.channels);
-
-  if(audio.data.size() != 0)
   {
-    std::size_t audioBufferSize = audio.data.size() / audio.channels;
-    for(int channel = 0; channel < audio.channels; channel++)
-    {
-      float rms = 0;
+    const float dbmax = 0.f;
+    const float dbmin = -100.f;
+    const float byte_norm = 255.f / (dbmax - dbmin);
+    const float norm = 2.f / (fftSize);
 
-      for(std::size_t i = 0; i < audio.data.size(); i++)
+    for(int i = 0; i < 1; i++)
+    {
+      float* inputData = audio.data.data() + i * audioInputBufferSize;
+      double current_window_value = 0.;
+
+      // Basic window function on the audio buffer
+      double window_increment = 1. / (audioInputBufferSize / 2);
+      for(int s = 0; s < audioInputBufferSize / 2; s++)
       {
-        rms += audio.data[i] * audio.data[i];
+        inputData[s] *= current_window_value;
+        current_window_value += window_increment;
       }
-      rms = std::clamp(std::sqrt(rms / audio.data.size()), 0.f, 1.f);
-      channel_rms[channel] = rms;
+      for(int s = audioInputBufferSize / 2; s < audioInputBufferSize; s++)
+      {
+        current_window_value -= window_increment;
+        inputData[s] *= current_window_value;
+      }
+
+      // Compute fft. Spectrum is in CCs format.
+      auto spectrum = m_fft.execute(inputData, audioInputBufferSize);
+
+      float* outputSpectrum = m_scratchpad.data();
+
+      // Compute the actual data to show
+      for(std::size_t k = 1; k < fftSize - 1; k++)
+      {
+        const float float_magnitude
+            = std::sqrt(
+                  spectrum[k][0] * spectrum[k][0] + spectrum[k][1] * spectrum[k][1])
+              * norm;
+        const float float_db = 20.f * std::log10(std ::max(float_magnitude, 1e-10f));
+
+        const float magnitude_byte = (float_db - dbmin) * byte_norm;
+
+        // We are going to put the data in a R32F texture thus we scale to [0; 1]
+        outputSpectrum[k - 1] = std::clamp(magnitude_byte, 0.f, 255.f) / 255.f;
+      }
     }
   }
-
-  for(int channel = 0; channel < audio.channels; channel++)
-  {
-    auto channel_begin = m_scratchpad.begin() + channel * 240;
-    std::rotate(channel_begin, channel_begin + 1, channel_begin + 240);
-    *(channel_begin + 239) = channel_rms[channel];
-  }
-
   // Copy it
   QRhiTextureSubresourceUploadDescription subdesc(
-      m_scratchpad.data(), rhiTexture->pixelSize().height() * 240 * sizeof(float));
+      m_scratchpad.data(), m_scratchpad.size() * sizeof(float));
   QRhiTextureUploadEntry entry{0, 0, subdesc};
   QRhiTextureUploadDescription desc{entry};
   res.uploadTexture(rhiTexture, desc);
@@ -830,7 +857,7 @@ std::optional<Sampler> AudioTextureUpload::updateAudioTexture(
   auto& [rhiSampler, rhiTexture] = it->second;
   const auto curSz = (rhiTexture) ? rhiTexture->pixelSize() : QSize{};
   int numSamples = curSz.width() * curSz.height();
-  if(numSamples != std::min(1, int(audio.data.size())) || !rhiTexture)
+  if(numSamples != std::max(1, int(audio.data.size())) || !rhiTexture)
   {
     if(audio.channels > 0)
     {
@@ -838,16 +865,20 @@ std::optional<Sampler> AudioTextureUpload::updateAudioTexture(
       if(samples % 2 != 0)
         samples++;
       int pixelWidth = 0;
+      int pixelHeight = 0;
       switch(audio.mode)
       {
         case AudioTexture::Mode::Waveform:
           pixelWidth = samples;
+          pixelHeight = audio.channels;
           break;
         case AudioTexture::Mode::FFT:
           pixelWidth = samples / 2;
+          pixelHeight = audio.channels;
           break;
         case AudioTexture::Mode::Histogram:
-          pixelWidth = 240;
+          pixelWidth = samples / 2 - 2;
+          pixelHeight = 240;
           break;
       }
 
@@ -856,13 +887,13 @@ std::optional<Sampler> AudioTextureUpload::updateAudioTexture(
       if(rhiTexture)
       {
         rhiTexture->destroy();
-        rhiTexture->setPixelSize({pixelWidth, audio.channels});
+        rhiTexture->setPixelSize({pixelWidth, pixelHeight});
         rhiTexture->create();
       }
       else
       {
         rhiTexture = rhi.newTexture(
-            QRhiTexture::R32F, {pixelWidth, audio.channels}, 1, QRhiTexture::Flag{});
+            QRhiTexture::R32F, {pixelWidth, pixelHeight}, 1, QRhiTexture::Flag{});
         rhiTexture->setName("AudioTextureUpload::rhiTexture");
         auto created = rhiTexture->create();
         SCORE_ASSERT(created);
@@ -879,10 +910,7 @@ std::optional<Sampler> AudioTextureUpload::updateAudioTexture(
       }
       else
       {
-        rhiTexture = rhi.newTexture(QRhiTexture::R32F, {1, 1}, 1, QRhiTexture::Flag{});
-        rhiTexture->setName("AudioTextureUpload::rhiTexture");
-        auto created = rhiTexture->create();
-        SCORE_ASSERT(created);
+        rhiTexture = &renderer.emptyTexture();
         textureChanged = true;
       }
     }
@@ -890,11 +918,10 @@ std::optional<Sampler> AudioTextureUpload::updateAudioTexture(
 
   if(rhiTexture)
   {
-    auto sz = rhiTexture->pixelSize();
-    if(sz.width() * sz.height() <= 1)
-      return {};
     // Process the audio data
-    this->process(audio, res, rhiTexture);
+    auto sz = rhiTexture->pixelSize();
+    if(sz.width() * sz.height() > 1)
+      this->process(audio, res, rhiTexture);
   }
 
   if(textureChanged)

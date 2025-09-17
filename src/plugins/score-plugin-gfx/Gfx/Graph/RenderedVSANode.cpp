@@ -134,7 +134,7 @@ void SimpleRenderedVSANode::init(RenderList& renderer, QRhiResourceUpdateBatch& 
 {
   QRhi& rhi = *renderer.state.rhi;
 
-  m_prevFormat = *(int*)n.input[1]->value;
+  m_prevFormat = *(int*)n.input.back()->value;
   // Create the mesh
   {
     auto m = new DummyMesh(3); // Set in update
@@ -180,9 +180,7 @@ void SimpleRenderedVSANode::init(RenderList& renderer, QRhiResourceUpdateBatch& 
   SCORE_ASSERT(m_inputSamplers.empty());
   SCORE_ASSERT(m_audioSamplers.empty());
 
-  auto [samplers, cur_pos]
-      = initInputSamplers(this->n, renderer, n.input, m_rts, n.m_material_data.get());
-  m_inputSamplers = std::move(samplers);
+  m_inputSamplers = initInputSamplers(this->n, renderer, n.input, m_rts);
 
   m_audioSamplers = initAudioTextures(renderer, n.m_audio_textures);
 
@@ -201,9 +199,9 @@ void SimpleRenderedVSANode::init(RenderList& renderer, QRhiResourceUpdateBatch& 
 void SimpleRenderedVSANode::update(
     RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge)
 {
+  SCORE_ASSERT(n.input.size() >= 2);
+  const auto primitiveType = *(int*)n.input.back()->value;
   {
-    SCORE_ASSERT(n.input.size() >= 2);
-    const auto primitiveType = *(int*)n.input[1]->value;
     if(primitiveType != m_prevFormat)
     {
       release(renderer);
@@ -211,7 +209,7 @@ void SimpleRenderedVSANode::update(
     }
   }
 
-  const auto count = *(float*)n.input[0]->value;
+  const auto count = *(float*)n.input[n.input.size() - 2]->value;
   static_cast<DummyMesh*>(m_mesh)->vertexCount = count;
 
   n.standardUBO.passIndex = 0;

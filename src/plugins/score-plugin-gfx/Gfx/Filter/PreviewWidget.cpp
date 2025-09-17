@@ -12,10 +12,89 @@
 #include <QApplication>
 #include <QTimer>
 
+#include <rnd/random.hpp>
+
 namespace Gfx
 {
 namespace
 {
+// Basic "synth" to generate a fake waveform for audio reactive shader previews
+class FakeMusicGenerator
+{
+private:
+  double bassPhase = 0.0;
+  float kickEnv = 0.0f;
+  float snareEnv = 0.0f;
+  float bassEnv = 0.0f;
+  int sampleCounter = 0;
+
+  float last{};
+
+public:
+  void operator()(float* buffer, size_t numSamples)
+  {
+    const float FS = 48000.;
+    const double twoPi = 2.0 * M_PI;
+    const double bassFreq = rnd::rand(1000., 5000.);
+    const double bassInc = twoPi * bassFreq / FS;
+    const int samplesPerBeat = FS / 2;
+
+    for(size_t i = 0; i < numSamples; i++)
+    {
+      if(sampleCounter % samplesPerBeat == 0)
+        kickEnv = 1.0f;
+      if(sampleCounter % samplesPerBeat == samplesPerBeat / 2)
+        snareEnv = 0.8f;
+      if(sampleCounter % samplesPerBeat == samplesPerBeat / 3)
+        bassEnv = 0.5f;
+
+      float bass = 0.f;
+      if(bassEnv > 0.01f)
+      {
+        bass += (std::sin(bassPhase)
+                 + std::sin(bassPhase) * std::sin(std::sin(bassPhase)))
+                * std::pow(bassEnv, 2.f) * 0.1f;
+        bassEnv *= 0.9995f;
+      }
+
+      float kick = 0.0f;
+      if(kickEnv > 0.01f)
+      {
+        float kickPitch = 100.0 + kickEnv * 30.0;
+        kick = std::sin(twoPi * kickPitch * sampleCounter / FS) * kickEnv * 0.5f;
+        kickEnv *= 0.9f;
+      }
+
+      float snare = 0.0f;
+      if(snareEnv > 0.01f)
+      {
+        snare = rnd::rand(-1., 1.) * snareEnv * 0.3f;
+        snareEnv *= 0.9f;
+      }
+
+      float hihat = 0.0;
+      if((sampleCounter % (samplesPerBeat / 4)) < 10)
+      {
+        hihat = rnd::rand(-1., 1.);
+      }
+
+      float sample = kick + snare + bass + hihat;
+      sample = (0.005 * sample) + (1. - 0.005) * this->last;
+      last = sample;
+
+      sample = std::tanh(sample * 0.5f);
+
+      buffer[i] = sample;
+
+      bassPhase += bassInc;
+
+      if(bassPhase > twoPi)
+        bassPhase -= twoPi;
+      sampleCounter++;
+    }
+  }
+};
+
 struct PreviewInputVisitor
 {
   int& img_count;
@@ -336,6 +415,19 @@ public:
           break;
         }
         progress_k++;
+      }
+
+      for(auto in : m_isf->input)
+      {
+        if(in->type == score::gfx::Types::Audio)
+        {
+          auto tex = (score::gfx::AudioTexture*)in->value;
+          tex->data.resize(512);
+          tex->channels = 1;
+
+          static FakeMusicGenerator generator;
+          generator(tex->data.data(), 512);
+        }
       }
 
       if(has_progress)
