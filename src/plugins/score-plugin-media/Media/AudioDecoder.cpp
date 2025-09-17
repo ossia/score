@@ -445,6 +445,7 @@ AVFormatContext_ptr open_audio(const QString& path)
 }
 
 std::optional<AudioInfo> AudioDecoder::do_probe(const QString& path)
+try
 {
 #if SCORE_HAS_LIBAV
   auto fmt_ctx = open_audio(path);
@@ -482,6 +483,10 @@ std::optional<AudioInfo> AudioDecoder::do_probe(const QString& path)
     }
   }
 #endif
+  return {};
+}
+catch(...)
+{
   return {};
 }
 
