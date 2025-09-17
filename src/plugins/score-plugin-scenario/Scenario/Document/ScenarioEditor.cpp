@@ -316,7 +316,6 @@ bool ScenarioEditor::remove(const Selection& s, const score::DocumentContext& ct
 {
   if(s.size() == 1)
   {
-
     auto first = s.begin()->data();
     if(auto c = qobject_cast<const Process::Cable*>(first))
     {
@@ -337,8 +336,7 @@ bool ScenarioEditor::remove(const Selection& s, const score::DocumentContext& ct
           // 1. Is the process part of a chain
           auto& is = proc->inlets();
           auto& os = proc->outlets();
-          if(is.empty() || os.empty() || is[0]->type() != os[0]->type()
-             || (is[0]->cables().empty() && os[0]->cables().empty()))
+          if(is.empty() || os.empty() || is[0]->type() != os[0]->type())
           {
             // Not a mapping, we don't copy anything
             CommandDispatcher<> d{ctx.commandStack};
@@ -350,7 +348,10 @@ bool ScenarioEditor::remove(const Selection& s, const score::DocumentContext& ct
             Scenario::Command::Macro m{
                 new Scenario::Command::RemoveProcessAndKeepLinked, ctx};
 
-            if(!is[0]->cables().empty() && !os[0]->cables().empty())
+            const int inbound_cables = !is[0]->cables().empty();
+            const int outbound_cables = !os[0]->cables().empty();
+
+            if(inbound_cables && outbound_cables)
             {
               // Copy the cables
               for(auto& in_cbl : is[0]->cables())
@@ -363,29 +364,48 @@ bool ScenarioEditor::remove(const Selection& s, const score::DocumentContext& ct
                 }
               }
             }
-            else if(
-                !is[0]->cables().empty() && os[0]->cables().empty()
-                && os[0]->address().isSet())
+            else if(inbound_cables && !outbound_cables)
             {
-              // Copy out address to previous inputs
-              auto& addr = os[0]->address();
-              for(auto& in_cbl : is[0]->cables())
+              if(os[0]->address().isSet())
               {
-                auto& src = in_cbl.find(ctx).source().find(ctx);
-                m.setProperty<Process::Port::p_address>(src, addr);
+                // Copy out address to previous inputs
+                auto& addr = os[0]->address();
+                for(auto& in_cbl : is[0]->cables())
+                {
+                  auto& src = in_cbl.find(ctx).source().find(ctx);
+                  m.setProperty<Process::Port::p_address>(src, addr);
+                }
+              }
+              if(os[0]->type() == Process::PortType::Audio)
+              {
+                bool end_propagate
+                    = static_cast<Process::AudioOutlet*>(os[0])->propagate();
+                if(end_propagate)
+                  for(auto& in_cbl : is[0]->cables())
+                  {
+                    auto& src = in_cbl.find(ctx).source().find(ctx);
+                    auto& audio_src = *static_cast<Process::AudioOutlet*>(&src);
+                    m.setProperty<Process::AudioOutlet::p_propagate>(
+                        audio_src, end_propagate);
+                  }
               }
             }
-            else if(
-                is[0]->cables().empty() && !os[0]->cables().empty()
-                && is[0]->address().isSet())
+            else if(!inbound_cables && outbound_cables)
             {
-              // Copy in address to next outputs
-              auto& addr = is[0]->address();
-              for(auto& out_cbl : os[0]->cables())
+              if(is[0]->address().isSet())
               {
-                auto& src = out_cbl.find(ctx).sink().find(ctx);
-                m.setProperty<Process::Port::p_address>(src, addr);
+                // Copy in address to next outputs
+                auto& addr = is[0]->address();
+                for(auto& out_cbl : os[0]->cables())
+                {
+                  auto& src = out_cbl.find(ctx).sink().find(ctx);
+                  m.setProperty<Process::Port::p_address>(src, addr);
+                }
               }
+            }
+            else if(!inbound_cables && !outbound_cables)
+            {
+              // nothing to do
             }
 
             // Remove the process

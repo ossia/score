@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Process/Commands/EditPort.hpp>
 #include <Process/Commands/LoadPresetCommandFactory.hpp>
 #include <Process/Dataflow/CableItem.hpp>
 #include <Process/Dataflow/NodeItem.hpp>
@@ -194,7 +195,7 @@ public:
               m.createCable(sm, src, *dst);
             }
           }
-          dst->setAddress(old_dst->address());
+          m.setProperty<Process::Port::p_address>(*dst, old_dst->address());
         }
       }
     }
@@ -206,8 +207,8 @@ public:
 
       if(old.outlets().size() > 0)
       {
-        auto& old_dst = old.outlets()[0];
-        if(old_dst->type() == type)
+        auto& old_src = old.outlets()[0];
+        if(old_src->type() == type)
         {
           for(auto& edge : old.outlets()[0]->cables())
           {
@@ -218,7 +219,16 @@ public:
               m.createCable(sm, *src, dst);
             }
           }
-          src->setAddress(old_dst->address());
+          m.setProperty<Process::Port::p_address>(*src, old_src->address());
+          if(type == Process::PortType::Audio)
+          {
+            auto old_audio_src = safe_cast<Process::AudioOutlet*>(old_src);
+            auto audio_src = safe_cast<Process::AudioOutlet*>(src);
+            m.setProperty<Process::AudioOutlet::p_propagate>(
+                *audio_src, old_audio_src->propagate());
+          }
+
+          src->setAddress(old_src->address());
         }
       }
     }
