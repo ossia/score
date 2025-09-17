@@ -3,7 +3,10 @@
 #include <Process/Dataflow/WidgetInlets.hpp>
 #include <Process/ProcessFactory.hpp>
 
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
 #include <Gfx/TexturePort.hpp>
+#include <Gfx/WindowDevice.hpp>
 
 #include <score/tools/File.hpp>
 
@@ -200,6 +203,31 @@ struct ISFHelpers
           std::copy_n(v.max->begin(), 2, max.begin());
         auto port = new Process::XYSpinboxes{
             min, max, init, false, nm, Id<Process::Port>(i), &self};
+
+        auto& ctx = score::IDocument::documentContext(self);
+        auto& device_plug = ctx.template plugin<Explorer::DeviceDocumentPlugin>();
+        const Device::DeviceList& list = device_plug.list();
+        QString firstWindowDeviceName;
+        for(auto dev : list.devices())
+        {
+          if(auto win = qobject_cast<WindowDevice*>(dev))
+          {
+            firstWindowDeviceName = win->name();
+            break;
+          }
+        }
+
+        if(!firstWindowDeviceName.isEmpty())
+        {
+          if(nm.contains("iMouse"))
+            port->setAddress(
+                State::AddressAccessor{
+                    State::Address{firstWindowDeviceName, {"cursor", "absolute"}}});
+          else if(nm.contains("mouse", Qt::CaseInsensitive))
+            port->setAddress(
+                State::AddressAccessor{
+                    State::Address{firstWindowDeviceName, {"cursor", "scaled"}}});
+        }
 
         if(auto it = previous_values.find(nm);
            it != previous_values.end()
