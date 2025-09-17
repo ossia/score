@@ -3,6 +3,7 @@
 #include <Process/Process.hpp>
 #include <Process/TimeValueSerialization.hpp>
 
+#include <score/command/AggregateCommand.hpp>
 #include <score/command/PropertyCommand.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/tools/Unused.hpp>
