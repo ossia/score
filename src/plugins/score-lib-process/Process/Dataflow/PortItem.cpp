@@ -44,27 +44,132 @@ enum PortDragDirection
 } portDragDirection{};
 static QLineF portDragLineCoords{};
 static PortItem* magneticDropPort{};
-struct Ellipses
+
+struct PortStyle
 {
-  struct
+  std::array<QPixmap, 5> SmallEllipsesIn;
+  std::array<QPixmap, 5> LargeEllipsesIn;
+
+  std::array<QPixmap, 5> SmallEllipsesOut;
+  std::array<QPixmap, 5> LargeEllipsesOut;
+
+  std::array<QPixmap, 5> SmallEllipsesInLight;
+  std::array<QPixmap, 5> LargeEllipsesInLight;
+
+  std::array<QPixmap, 5> SmallEllipsesOutLight;
+  std::array<QPixmap, 5> LargeEllipsesOutLight;
+
+  std::array<QPixmap, 5> Address_Inlet_NoCable;
+  std::array<QPixmap, 5> Address_Inlet_Cable;
+  std::array<QPixmap, 5> Address_Outlet_NoCable;
+  std::array<QPixmap, 5> Address_Outlet_Cable;
+
+  static constexpr int penSet(Process::PortType t) noexcept
   {
-    std::array<QPixmap, 5> SmallEllipsesIn;
-    std::array<QPixmap, 5> LargeEllipsesIn;
+    switch(t)
+    {
+      case Process::PortType::Audio:
+        return 0;
+      case Process::PortType::Message:
+        return 1;
+      case Process::PortType::Midi:
+        return 2;
+      case Process::PortType::Texture:
+        return 3;
+      case Process::PortType::Geometry:
+        return 4;
+      default:
+        return 1;
+    }
+  }
 
-    std::array<QPixmap, 5> SmallEllipsesOut;
-    std::array<QPixmap, 5> LargeEllipsesOut;
+  struct PenSet
+  {
+    const QPen& pen_base;
+    const QPen& pen_cosmetic_nodot;
+    const QPen& pen_cosmetic_dot;
+    const QPen& pen_light;
+    const QBrush& brush_base;
+    const QBrush& brush_light;
+  };
+  std::array<PenSet, 5> pen_sets;
 
-    std::array<QPixmap, 5> SmallEllipsesInLight;
-    std::array<QPixmap, 5> LargeEllipsesInLight;
-
-    std::array<QPixmap, 5> SmallEllipsesOutLight;
-    std::array<QPixmap, 5> LargeEllipsesOutLight;
-
-  } no_addr, addr;
-
-  Ellipses()
+  static std::array<PenSet, 5> makePenSets()
   {
     auto& skin = Process::Style::instance();
+    const auto& audiopen = skin.AudioPortPen();
+    auto audiocolor = audiopen.color();
+    static auto audiopen_cosmetic_nodot = skin.skin.Port1.main.pen_cosmetic;
+    static auto audiopen_cosmetic_dot = audiopen_cosmetic_nodot;
+    audiocolor.setAlphaF(0.25);
+    audiopen_cosmetic_dot.setColor(audiocolor);
+
+    const auto& datapen = skin.DataPortPen();
+    auto datacolor = datapen.color();
+    static auto datapen_cosmetic_nodot = skin.skin.Port2.main.pen_cosmetic;
+    static auto datapen_cosmetic_dot = datapen_cosmetic_nodot;
+    datacolor.setAlphaF(0.25);
+    datapen_cosmetic_dot.setColor(datacolor);
+
+    const auto& midipen = skin.MidiPortPen();
+    auto midicolor = midipen.color();
+    static auto midipen_cosmetic_nodot = skin.skin.Port3.main.pen_cosmetic;
+    static auto midipen_cosmetic_dot = midipen_cosmetic_nodot;
+    midicolor.setAlphaF(0.25);
+    midipen_cosmetic_dot.setColor(midicolor);
+
+    const auto& texturepen = skin.TexturePortPen();
+    auto texturecolor = texturepen.color();
+    static auto texturepen_cosmetic_nodot = skin.skin.LightGray.main.pen_cosmetic;
+    static auto texturepen_cosmetic_dot = texturepen_cosmetic_nodot;
+    texturecolor.setAlphaF(0.25);
+    texturepen_cosmetic_dot.setColor(audiocolor);
+
+    const auto& geometrypen = skin.GeometryPortPen();
+    auto geometrycolor = geometrypen.color();
+    static auto geometrypen_cosmetic_nodot = skin.skin.Emphasis3.main.pen_cosmetic;
+    static auto geometrypen_cosmetic_dot = geometrypen_cosmetic_nodot;
+    geometrycolor.setAlphaF(0.25);
+    geometrypen_cosmetic_dot.setColor(geometrycolor);
+
+    const auto& audiopen_light = skin.skin.Port1.lighter180.pen1_5;
+    const auto& datapen_light = skin.skin.Port2.lighter180.pen1_5;
+    const auto& midipen_light = skin.skin.Port3.lighter180.pen1_5;
+    const auto& texturepen_light = skin.skin.LightGray.lighter180.pen1_5;
+    const auto& geometrypen_light = skin.skin.Emphasis3.lighter180.pen1_5;
+    const auto& audiobrush = skin.skin.Port1.main.brush;
+    const auto& databrush = skin.skin.Port2.main.brush;
+    const auto& midibrush = skin.skin.Port3.main.brush;
+    const auto& texturebrush = skin.skin.Light.main.brush;
+    const auto& geometrybrush = skin.skin.Emphasis3.main.brush;
+    const auto& audiobrush_light = skin.skin.Port1.lighter.brush;
+    const auto& databrush_light = skin.skin.Port2.lighter.brush;
+    const auto& midibrush_light = skin.skin.Port3.lighter.brush;
+    const auto& texturebrush_light = skin.skin.LightGray.lighter.brush;
+    const auto& geometrybrush_light = skin.skin.Emphasis3.lighter.brush;
+
+    return {
+        PenSet{
+            audiopen, audiopen_cosmetic_nodot, audiopen_cosmetic_dot, audiopen_light,
+            audiobrush, audiobrush_light},
+        PenSet{
+            datapen, datapen_cosmetic_nodot, datapen_cosmetic_dot, datapen_light,
+            databrush, databrush_light},
+        PenSet{
+            midipen, midipen_cosmetic_nodot, midipen_cosmetic_dot, midipen_light,
+            midibrush, midibrush_light},
+        PenSet{
+            texturepen, texturepen_cosmetic_nodot, texturepen_cosmetic_dot,
+            texturepen_light, texturebrush, texturebrush_light},
+        PenSet{
+            geometrypen, geometrypen_cosmetic_nodot, geometrypen_cosmetic_dot,
+            geometrypen_light, geometrybrush, geometrybrush_light},
+    };
+  }
+
+  PortStyle()
+      : pen_sets{makePenSets()}
+  {
     static constexpr qreal smallRadius = 3.;
     static constexpr qreal largeRadius = 5.;
     static constexpr QRectF smallEllipse{3., 3., 2. * smallRadius, 2. * smallRadius};
@@ -117,113 +222,71 @@ struct Ellipses
     Image = QPixmap::fromImage(temp);                                                   \
   } while(0)
 
-    const auto& audiopen = skin.AudioPortPen();
-    const auto& datapen = skin.DataPortPen();
-    const auto& midipen = skin.MidiPortPen();
-    const auto& texturepen = skin.TexturePortPen();
-    const auto& geometrypen = skin.GeometryPortPen();
-    const auto& audiopen_light = skin.skin.Port1.lighter180.pen1_5;
-    const auto& datapen_light = skin.skin.Port2.lighter180.pen1_5;
-    const auto& midipen_light = skin.skin.Port3.lighter180.pen1_5;
-    const auto& texturepen_light = skin.skin.LightGray.lighter180.pen1_5;
-    const auto& geometrypen_light = skin.skin.Emphasis3.lighter180.pen1_5;
-    const auto& audiobrush = skin.skin.Port1.main.brush;
-    const auto& databrush = skin.skin.Port2.main.brush;
-    const auto& midibrush = skin.skin.Port3.main.brush;
-    const auto& texturebrush = skin.skin.Light.main.brush;
-    const auto& geometrybrush = skin.skin.Emphasis3.main.brush;
-    const auto& audiobrush_light = skin.skin.Port1.lighter.brush;
-    const auto& databrush_light = skin.skin.Port2.lighter.brush;
-    const auto& midibrush_light = skin.skin.Port3.lighter.brush;
-    const auto& texturebrush_light = skin.skin.LightGray.lighter.brush;
-    const auto& geometrybrush_light = skin.skin.Emphasis3.lighter.brush;
+#define DRAW_ARROW_ADDR_INLET(Image, Pen, Brush)              \
+  do                                                          \
+  {                                                           \
+    QImage temp(sz, sz, QImage::Format_ARGB32_Premultiplied); \
+    temp.fill(Qt::transparent);                               \
+    temp.setDevicePixelRatio(dpi);                            \
+    QPainter p(&temp);                                        \
+    p.setRenderHint(QPainter::Antialiasing, true);            \
+    p.setPen(Pen);                                            \
+    p.setBrush(Brush);                                        \
+    p.drawLine(QPointF{4.5, 9.5}, QPointF{4.5, 2.5});         \
+    p.drawLine(QPointF{2.5, 8}, QPointF{3.5, 9});             \
+    p.drawLine(QPointF{6.5, 7}, QPointF{5.5, 8});             \
+    Image = QPixmap::fromImage(temp);                         \
+  } while(0)
+
+#define DRAW_ARROW_ADDR_OUTLET(Image, Pen, Brush)             \
+  do                                                          \
+  {                                                           \
+    QImage temp(sz, sz, QImage::Format_ARGB32_Premultiplied); \
+    temp.fill(Qt::transparent);                               \
+    temp.setDevicePixelRatio(dpi);                            \
+    QPainter p(&temp);                                        \
+    p.setRenderHint(QPainter::Antialiasing, true);            \
+    p.setPen(Pen);                                            \
+    p.setBrush(Brush);                                        \
+    p.drawLine(QPointF{4.5, 9}, QPointF{4.5, 1.5});           \
+    p.drawLine(QPointF{2.5, 3}, QPointF{3.5, 2});             \
+    p.drawLine(QPointF{6.5, 4}, QPointF{5.5, 3});             \
+    Image = QPixmap::fromImage(temp);                         \
+  } while(0)
+
+    auto& skin = Process::Style::instance();
     const auto& nobrush = skin.NoBrush();
-    struct PenSet
-    {
-      const QPen& pen_base;
-      const QPen& pen_light;
-      const QBrush& brush_base;
-      const QBrush& brush_light;
-    };
-
-    PenSet pen_sets[5]{
-        PenSet{audiopen, audiopen_light, audiobrush, audiobrush_light},
-        PenSet{datapen, datapen_light, databrush, databrush_light},
-        PenSet{midipen, midipen_light, midibrush, midibrush_light},
-        PenSet{texturepen, texturepen_light, texturebrush, texturebrush_light},
-        PenSet{geometrypen, geometrypen_light, geometrybrush, geometrybrush_light},
-    };
-
     for(int i = 0; i < 5; i++)
     {
       auto& pens = pen_sets[i];
 
-      DRAW_ELLIPSE(no_addr.SmallEllipsesIn[i], pens.pen_base, nobrush, smallEllipse);
-      DRAW_ELLIPSE(no_addr.LargeEllipsesIn[i], pens.pen_base, nobrush, largeEllipse);
-      DRAW_ELLIPSE(
-          no_addr.SmallEllipsesOut[i], pens.pen_base, pens.brush_base, smallEllipse);
-      DRAW_ELLIPSE(
-          no_addr.LargeEllipsesOut[i], pens.pen_base, pens.brush_base, largeEllipse);
-      DRAW_ELLIPSE(
-          no_addr.SmallEllipsesInLight[i], pens.pen_light, nobrush, smallEllipse);
-      DRAW_ELLIPSE(
-          no_addr.LargeEllipsesInLight[i], pens.pen_light, nobrush, largeEllipse);
-      DRAW_ELLIPSE(
-          no_addr.SmallEllipsesOutLight[i], pens.pen_light, pens.brush_light,
-          smallEllipse);
-      DRAW_ELLIPSE(
-          no_addr.LargeEllipsesOutLight[i], pens.pen_light, pens.brush_light,
-          largeEllipse);
+      // clang-format off
+      DRAW_ELLIPSE(SmallEllipsesIn[i], pens.pen_base, nobrush, smallEllipse);
+      DRAW_ELLIPSE(LargeEllipsesIn[i], pens.pen_base, nobrush, largeEllipse);
+      DRAW_ELLIPSE(SmallEllipsesOut[i], pens.pen_base, pens.brush_base, smallEllipse);
+      DRAW_ELLIPSE(LargeEllipsesOut[i], pens.pen_base, pens.brush_base, largeEllipse);
+      DRAW_ELLIPSE(SmallEllipsesInLight[i], pens.pen_light, nobrush, smallEllipse);
+      DRAW_ELLIPSE(LargeEllipsesInLight[i], pens.pen_light, nobrush, largeEllipse);
+      DRAW_ELLIPSE(SmallEllipsesOutLight[i], pens.pen_light, pens.brush_light, smallEllipse);
+      DRAW_ELLIPSE(LargeEllipsesOutLight[i], pens.pen_light, pens.brush_light, largeEllipse);
 
-      DRAW_ELLIPSE_ADDR_IN(
-          addr.SmallEllipsesIn[i], pens.pen_base, nobrush, smallEllipse);
-      DRAW_ELLIPSE_ADDR_IN(
-          addr.LargeEllipsesIn[i], pens.pen_base, nobrush, largeEllipse);
-      DRAW_ELLIPSE_ADDR_OUT(
-          addr.SmallEllipsesOut[i], pens.pen_base, pens.brush_base, smallEllipse);
-      DRAW_ELLIPSE_ADDR_OUT(
-          addr.LargeEllipsesOut[i], pens.pen_base, pens.brush_base, largeEllipse);
-      DRAW_ELLIPSE_ADDR_IN(
-          addr.SmallEllipsesInLight[i], pens.pen_light, nobrush, smallEllipse);
-      DRAW_ELLIPSE_ADDR_IN(
-          addr.LargeEllipsesInLight[i], pens.pen_light, nobrush, largeEllipse);
-      DRAW_ELLIPSE_ADDR_OUT(
-          addr.SmallEllipsesOutLight[i], pens.pen_light, pens.brush_light, smallEllipse);
-      DRAW_ELLIPSE_ADDR_OUT(
-          addr.LargeEllipsesOutLight[i], pens.pen_light, pens.brush_light, largeEllipse);
+      DRAW_ARROW_ADDR_INLET(Address_Inlet_NoCable[i], pens.pen_cosmetic_nodot, nobrush);
+      DRAW_ARROW_ADDR_INLET(Address_Inlet_Cable[i], pens.pen_cosmetic_dot, nobrush);
+      DRAW_ARROW_ADDR_OUTLET(Address_Outlet_NoCable[i], pens.pen_cosmetic_nodot, nobrush);
+      DRAW_ARROW_ADDR_OUTLET(Address_Outlet_Cable[i], pens.pen_cosmetic_dot, nobrush);
+      // clang-format on
     }
+
 #undef DRAW_ELLIPSE
   }
 };
 }
+Q_GLOBAL_STATIC(const PortStyle, port_skin_p)
 const QPixmap& PortItem::portImage(
     Process::PortType t, bool inlet, bool smol, bool light, bool addr) noexcept
 {
-  static const Ellipses ellipses;
-  int n;
-  switch(t)
-  {
-    case Process::PortType::Audio:
-      n = 0;
-      break;
-    case Process::PortType::Message:
-      n = 1;
-      break;
-    case Process::PortType::Midi:
-      n = 2;
-      break;
-    case Process::PortType::Texture:
-      n = 3;
-      break;
-    case Process::PortType::Geometry:
-      n = 4;
-      break;
-    default:
-      n = 1;
-      break;
-  };
-
-  auto& pixmap_set = addr ? ellipses.addr : ellipses.no_addr;
+  auto& pixmap_set = *port_skin_p;
+  const int n = pixmap_set.penSet(t);
 
   if(Q_UNLIKELY(light))
   {
@@ -277,6 +340,62 @@ const QPixmap& PortItem::portImage(
   }
 }
 
+struct AddressPropagationItem : public QGraphicsItem
+{
+public:
+  using QGraphicsItem::QGraphicsItem;
+  Process::PortType type{};
+  bool inlet{};
+  bool has_address{};
+  bool has_cables{};
+  bool has_propagate{};
+
+  QRectF boundingRect() const override { return {0, 0, 10, 10}; }
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override
+  {
+    if(!has_address && !has_propagate)
+      return;
+
+    auto& arrows = *port_skin_p;
+    const int n = arrows.penSet(type);
+    static constexpr QPointF pos{0, 0};
+
+    if(inlet)
+    {
+      if(has_address)
+      {
+        if(has_cables)
+        {
+          painter->drawPixmap(pos, arrows.Address_Inlet_Cable[n]);
+        }
+        else
+        {
+          painter->drawPixmap(pos, arrows.Address_Inlet_NoCable[n]);
+        }
+      }
+    }
+    else
+    {
+      if(has_propagate)
+      {
+        painter->drawPixmap(pos, arrows.Address_Outlet_NoCable[n]);
+      }
+      else if(has_address)
+      {
+        if(has_cables)
+        {
+          painter->drawPixmap(pos, arrows.Address_Outlet_Cable[n]);
+        }
+        else
+        {
+          painter->drawPixmap(pos, arrows.Address_Outlet_NoCable[n]);
+        }
+      }
+    }
+  }
+};
+
 PortItem* PortItem::clickedPort;
 PortItem::PortItem(
     const Process::Port& p, const Process::Context& ctx, QGraphicsItem* parent)
@@ -292,11 +411,46 @@ PortItem::PortItem(
   this->setAcceptDrops(true);
   this->setAcceptHoverEvents(true);
   this->setFlag(QGraphicsItem::ItemSendsScenePositionChanges, true);
-  this->setFlag(QGraphicsItem::ItemIsFocusable);
+  this->setFlag(QGraphicsItem::ItemClipsToShape, false);
+  this->setFlag(QGraphicsItem::ItemClipsChildrenToShape, false);
+  this->setFlag(QGraphicsItem::ItemIsFocusable, true);
   if(!p.description().isEmpty())
     this->setToolTip(p.description());
   else if(!p.exposed().isEmpty())
     this->setToolTip(p.exposed());
+
+  // Port address indicator item
+  m_address = new AddressPropagationItem{this};
+  m_address->type = p.type();
+  m_address->inlet = bool(m_inlet);
+  m_address->has_address = p.address().isSet();
+  m_address->has_cables = !p.cables().empty();
+  connect(
+      &m_port, &Process::Port::addressChanged, this,
+      [a = m_address](const State::AddressAccessor& st) {
+    a->has_address = st.isSet();
+    a->update();
+  });
+  connect(&m_port, &Process::Port::cablesChanged, this, [port = &m_port, a = m_address] {
+    a->has_cables = port->cables().size() > 0;
+    a->update();
+  });
+  if(!m_inlet && m_port.type() == Process::PortType::Audio)
+  {
+    auto ap = static_cast<const Process::AudioOutlet*>(&m_port);
+    m_address->has_propagate = ap->propagate();
+    connect(
+        ap, &Process::AudioOutlet::propagateChanged, this,
+        [a = m_address](bool propagate) {
+      a->has_propagate = propagate;
+      a->update();
+    });
+  }
+
+  if(m_inlet)
+    m_address->setPos(QPointF{-4., 2.});
+  else
+    m_address->setPos(QPointF{7., -1.});
 
   connect(&p, &QObject::destroyed, this, [] {
     qDebug("Port destroyed before its item");

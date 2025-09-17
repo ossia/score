@@ -33,6 +33,7 @@ namespace Dataflow
 class PortItem;
 class CableItem;
 struct DragMoveFilter;
+struct AddressPropagationItem;
 class SCORE_LIB_PROCESS_EXPORT PortItem
     : public QObject
     , public QGraphicsItem
@@ -97,6 +98,7 @@ protected:
   const Process::Port& m_port;
 
 public:
+  AddressPropagationItem* m_address{};
   double m_diam = 8.;
 
   bool m_visible{true};
