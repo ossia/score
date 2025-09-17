@@ -184,7 +184,8 @@ public:
       if(old.inlets().size() > 0)
       {
         auto& old_dst = old.inlets()[0];
-        if(old_dst->type() == type)
+        if(old_dst->type() == type && !qobject_cast<Process::ControlInlet*>(dst)
+           && !qobject_cast<Process::ControlInlet*>(old_dst))
         {
           for(auto& edge : old.inlets()[0]->cables())
           {
@@ -208,7 +209,8 @@ public:
       if(old.outlets().size() > 0)
       {
         auto& old_src = old.outlets()[0];
-        if(old_src->type() == type)
+        if(old_src->type() == type && !qobject_cast<Process::ControlInlet*>(src)
+           && !qobject_cast<Process::ControlInlet*>(old_src))
         {
           for(auto& edge : old.outlets()[0]->cables())
           {
