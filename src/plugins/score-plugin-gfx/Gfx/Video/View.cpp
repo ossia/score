@@ -23,6 +23,7 @@ View::View(const Model& model, QGraphicsItem* parent)
     : LayerView{parent}
 {
   this->setAcceptDrops(true);
+  this->setAcceptedMouseButtons(Qt::NoButton);
   setFlag(ItemClipsToShape, true);
   con(model, &Model::pathChanged, this,
       [this, &model] { onPathChanged(model.absolutePath()); });
