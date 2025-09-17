@@ -8,12 +8,13 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/regex.hpp>
 
+#include <ctre.hpp>
+
 #include <array>
 #include <iostream>
 #include <sstream>
 #include <unordered_map>
 #include <vector>
-
 extern "C" {
 #include <glsl-parser/glsl_ast.h>
 #include <glsl-parser/glsl_parser.h>
@@ -2260,8 +2261,25 @@ void parser::parse_vsa()
   auto [end, desc] = parse_isf_header(m_sourceVertex);
   m_desc = std::move(desc);
 
-  std::string& fragWithoutISF = m_sourceVertex;
-  fragWithoutISF.erase(0, end + 2);
+  // Remove the ISF json
+  m_sourceVertex.erase(0, end + 2);
+
+  // Replace main() so that we can override gl_Position.y in vulkan
+  static constexpr auto main_rexp_str
+      = ctll::fixed_string{R"_(main\s*\(\s*(void)?\s*\))_"};
+  static constexpr auto main_rex = ctre::search<main_rexp_str>;
+
+  if(auto match = main_rex(m_sourceVertex))
+  {
+    auto idx = match.begin();
+    auto e = match.end();
+    m_sourceVertex.replace(
+        idx - m_sourceVertex.begin(), int(e - idx), "main__vsa_ossia()");
+  }
+  else
+  {
+    return;
+  }
 
   // There is always one pass at least
   if(m_desc.passes.empty())
@@ -2277,7 +2295,7 @@ void parser::parse_vsa()
   m_desc.categories.push_back("VSA");
   m_desc.default_vertex_shader = false;
 
-  // Add standard VSA inputs to descriptor
+  // Add standard VSA inputs to descriptor, at the end so that we can easily replace audioreactive ones
   // Vertex count control
   {
     input vertexCount;
@@ -2290,7 +2308,7 @@ void parser::parse_vsa()
     if(m_desc.point_count > 0)
       vc.def = m_desc.point_count;
     vertexCount.data = vc;
-    m_desc.inputs.insert(m_desc.inputs.begin(), vertexCount);
+    m_desc.inputs.push_back(vertexCount);
   }
 
   // Primitive type
@@ -2317,7 +2335,7 @@ void parser::parse_vsa()
         }
     }
     primitiveType.data = vc;
-    m_desc.inputs.insert(m_desc.inputs.begin() + 1, primitiveType);
+    m_desc.inputs.push_back(primitiveType);
   }
 
   // Generate GLSL 4.5 vertex shader
@@ -2392,6 +2410,16 @@ layout(location = 0) out vec4 v_color;
 )_";
   // Add the processed VSA code
   m_vertex += vsaSource;
+
+  m_vertex += R"_(
+
+void main() {
+  main__vsa_ossia();
+#if defined(QSHADER_SPIRV) || defined(QSHADER_HLSL) || defined(QSHADER_MSL)
+  gl_Position.y = - gl_Position.y;
+#endif
+}
+)_";
 
   m_fragment = GLSL45.versionPrelude;
   m_fragment += R"_(
