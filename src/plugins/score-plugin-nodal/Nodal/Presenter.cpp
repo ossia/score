@@ -109,7 +109,7 @@ void Presenter::on_drop(const QPointF& pos, const QMimeData& mime)
     Mime<Process::ProcessData>::Deserializer des{mime};
     Process::ProcessData p = des.deserialize();
 
-    auto cmd = new CreateNode(layer, pos, p.key, p.customData);
+    auto cmd = new CreateNode(layer, pos, p.key, p.customData, getStrongId(layer.nodes));
     CommandDispatcher<> d{ctx.commandStack};
     d.submit(cmd);
   }
@@ -126,7 +126,8 @@ void Presenter::on_drop(const QPointF& pos, const QMimeData& mime)
       {
         auto& p = proc.creation;
         // TODO fudge pos a bit
-        auto create = new CreateNode(layer, pos, p.key, p.customData);
+        auto create
+            = new CreateNode(layer, pos, p.key, p.customData, getStrongId(layer.nodes));
         cmd.submit(create);
         if(auto fx = layer.nodes.find(create->nodeId()); fx != layer.nodes.end())
         {

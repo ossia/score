@@ -43,4 +43,8 @@ private:
   QPointF m_delta;
 };
 
+class MoveNodesMacro final : public score::AggregateCommand
+{
+  SCORE_COMMAND_DECL(CommandFactoryName(), MoveNodesMacro, "Move nodes")
+};
 }

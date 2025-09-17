@@ -14,12 +14,13 @@ namespace Nodal
 
 CreateNode::CreateNode(
     const Nodal::Model& nodal, QPointF position,
-    const UuidKey<Process::ProcessModel>& process, const QString& dat)
+    const UuidKey<Process::ProcessModel>& process, const QString& dat,
+    Id<Process::ProcessModel> id)
     : m_path{nodal}
     , m_pos{position}
     , m_uuid{process}
     , m_data{dat}
-    , m_createdNodeId{getStrongId(nodal.nodes)}
+    , m_createdNodeId{id}
 {
 }
 

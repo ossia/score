@@ -9,6 +9,8 @@
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
 #include <score/widgets/MimeData.hpp>
 
+#include <ossia/detail/flat_set.hpp>
+
 #include <QGraphicsView>
 #include <QMimeData>
 #include <QPoint>
@@ -111,6 +113,7 @@ private:
 
   std::chrono::steady_clock::time_point m_lastwheel;
   bool m_opengl{false};
+  ossia::flat_set<Qt::MouseButton> m_press_release_chain{};
 };
 
 class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentView final

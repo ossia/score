@@ -2,6 +2,7 @@
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
 
+#include <score/command/Dispatchers/MultiOngoingCommandDispatcher.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/widgets/MimeData.hpp>
 
@@ -128,6 +129,7 @@ private:
 
   std::vector<Dataflow::PortItem*> m_inlets, m_outlets;
   const Process::Context& m_context;
+  MultiOngoingCommandDispatcher m_dispatcher;
 
   TimeVal m_parentDuration{1};
   double m_playPercentage{};

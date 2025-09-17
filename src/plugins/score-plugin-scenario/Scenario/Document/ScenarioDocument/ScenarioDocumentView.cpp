@@ -330,6 +330,17 @@ void ProcessGraphicsView::checkAndRemoveCurrentDialog(QPoint pos)
 
 void ProcessGraphicsView::mousePressEvent(QMouseEvent* event)
 {
+  // workaround for some items not getting release event sometimes.
+  if(m_press_release_chain.contains(event->button()))
+  {
+    QMouseEvent ev(
+        QEvent::Type::MouseButtonRelease, event->pos(), event->globalPosition(),
+        event->button(), event->button() | event->buttons(), Qt::KeyboardModifiers{});
+
+    QGraphicsView::mouseReleaseEvent(&ev);
+    m_press_release_chain.erase(event->button());
+  }
+  m_press_release_chain.insert(event->button());
   checkAndRemoveCurrentDialog(event->pos());
 
   QGraphicsView::mousePressEvent(event);
@@ -361,6 +372,7 @@ void ProcessGraphicsView::mouseReleaseEvent(QMouseEvent* event)
   QGraphicsView::mouseReleaseEvent(event);
   if(m_opengl)
     viewport()->update();
+  m_press_release_chain.erase(event->button());
 }
 
 void ProcessGraphicsView::dragEnterEvent(QDragEnterEvent* event)

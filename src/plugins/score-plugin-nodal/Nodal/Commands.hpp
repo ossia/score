@@ -31,7 +31,8 @@ class CreateNode final : public score::Command
 public:
   CreateNode(
       const Nodal::Model& process, QPointF position,
-      const UuidKey<Process::ProcessModel>& uuid, const QString& dat);
+      const UuidKey<Process::ProcessModel>& uuid, const QString& dat,
+      Id<Process::ProcessModel>);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

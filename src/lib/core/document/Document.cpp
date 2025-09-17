@@ -25,6 +25,67 @@
 
 W_OBJECT_IMPL(score::Document)
 class Selection;
+OngoingCommandDispatcher::OngoingCommandDispatcher(
+    const score::CommandStackFacade& stack)
+    : ICommandDispatcher{stack}
+{
+}
+OngoingCommandDispatcher::~OngoingCommandDispatcher() { }
+void OngoingCommandDispatcher::unwatch(const QObject* obj) { }
+
+void OngoingCommandDispatcher::watch(const QObject* obj)
+{
+  m_watched = obj;
+  if(obj)
+  {
+    score::Document& doc = this->stack().context().document;
+
+    QObject::connect(obj, &QObject::destroyed, &doc.model(), [d = &doc] {
+      d->context().dispatcher.rollback_without_undo();
+    });
+  }
+}
+
+//! When the command is finished and can be sent to the undo - redo stack.
+//! For instance on mouse release.
+void OngoingCommandDispatcher::commit()
+{
+  if(m_watched)
+    unwatch(m_watched);
+  if(m_cmd)
+  {
+    SendStrategy::Quiet::send(stack(), m_cmd.release());
+    stack().enableActions();
+  }
+  m_watched = nullptr;
+}
+
+//! If the command has to be reverted, for instance when pressing escape.
+void OngoingCommandDispatcher::rollback()
+{
+  if(m_watched)
+    unwatch(m_watched);
+  if(m_cmd)
+  {
+    m_cmd->undo(stack().context());
+    stack().enableActions();
+  }
+  m_cmd.reset();
+  m_watched = nullptr;
+}
+
+void OngoingCommandDispatcher::rollback_without_undo()
+{
+  if(m_watched)
+    unwatch(m_watched);
+  if(m_cmd)
+  {
+    stack().enableActions();
+  }
+  m_cmd.reset();
+  m_watched = nullptr;
+}
+
 namespace score
 {
 DocumentContext::DocumentContext(Document& d)

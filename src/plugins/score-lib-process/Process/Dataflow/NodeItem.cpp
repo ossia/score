@@ -68,6 +68,7 @@ NodeItem::NodeItem(
     : QGraphicsItem{parent}
     , m_model{process}
     , m_context{ctx}
+    , m_dispatcher{ctx.commandStack}
     , m_parentDuration{parentDur}
 {
   setObjectName("NodeItem");
@@ -747,7 +748,9 @@ selectedProcesses(const score::DocumentContext& ctx)
   ps.reserve(sel.size());
   for(auto& obj : sel)
     if(auto p = qobject_cast<Process::ProcessModel*>(obj))
+    {
       ps.push_back(p);
+    }
   return ps;
 }
 }
@@ -757,7 +760,6 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     return QGraphicsItem::mouseMoveEvent(event);
 
   auto parent = this->parentItem();
-
   auto origp = parent->mapFromScene(event->buttonDownScenePos(Qt::LeftButton));
   auto p = parent->mapFromScene(event->scenePos());
   if(p != origp)
@@ -769,16 +771,17 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     {
       case Interaction::Resize: {
         const auto sz = origNodeSize + QSizeF{p.x() - origp.x(), p.y() - origp.y()};
-        m_context.dispatcher.submit<Process::ResizeNode>(
+        m_dispatcher.submit<Process::ResizeNode>(
             m_model, sz.expandedTo({minimalContentWidth(), minimalContentHeight()}));
         updateSize();
         break;
       }
       case Interaction::Move: {
-        m_context.dispatcher.submit<Process::MoveNodes>(
-            selectedProcesses(m_context), p - origp);
+        m_dispatcher.submit<Process::MoveNodes>(selectedProcesses(m_context), p - origp);
         break;
       }
+      default:
+        break;
     }
   }
   event->accept();
@@ -790,8 +793,9 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     return QGraphicsItem::mouseReleaseEvent(event);
 
   mouseMoveEvent(event);
+
   if(nodeDidMove)
-    m_context.dispatcher.commit();
+    m_dispatcher.commit<Process::MoveNodesMacro>();
   nodeDidMove = false;
   event->accept();
 }
