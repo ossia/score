@@ -16,6 +16,7 @@
 #include <Media/Metro/MetroExecutor.hpp>
 #include <Media/Metro/MetroFactory.hpp>
 #include <Media/Sound/Drop/SoundDrop.hpp>
+#include <Media/Sound/QImagePool.hpp>
 #include <Media/Sound/SoundComponent.hpp>
 #include <Media/Sound/SoundFactory.hpp>
 #include <Media/Sound/SoundLibraryHandler.hpp>
@@ -70,6 +71,10 @@ score_plugin_media::score_plugin_media()
   qRegisterMetaType<QVector<QImage>>();
   qRegisterMetaType<QVector<QImage*>>();
   qRegisterMetaType<ossia::audio_stretch_mode>();
+
+  QObject::connect(
+      QCoreApplication::instance(), &QCoreApplication::aboutToQuit, nullptr,
+      [] { Media::Sound::QImagePool::instance().gc(); });
 }
 
 score_plugin_media::~score_plugin_media() { }
