@@ -25,6 +25,8 @@ class ApplicationPlugin final
 public:
   explicit ApplicationPlugin(const score::GUIApplicationContext& ctx);
 
+  void on_createdDocument(score::Document& doc) override;
+
   ~ApplicationPlugin() override;
   void afterStartup() override;
 

@@ -14,6 +14,8 @@ class JsUtils : public QObject
 public:
   QByteArray readFile(QString path);
   W_SLOT(readFile)
+  void writeFile(QString path, QByteArray content);
+  W_SLOT(writeFile)
 
   void shell(QString cmd, QJSValue onFinish);
   W_SLOT(shell)

@@ -50,6 +50,26 @@ ApplicationPlugin::~ApplicationPlugin()
   m_asioThread.join();
 }
 
+void ApplicationPlugin::on_createdDocument(score::Document& doc)
+{
+  LocalTree::DocumentPlugin* lt = doc.context().findPlugin<LocalTree::DocumentPlugin>();
+  if(lt)
+  {
+    auto& appplug = *this;
+    auto& root = lt->device().get_root_node();
+
+    auto node = root.create_child("script");
+    auto address = node->create_parameter(ossia::val_type::STRING);
+    address->set_value(std::string{});
+    address->set_access(ossia::access_mode::SET);
+    address->add_callback([&](const ossia::value& v) {
+      ossia::qt::run_async(
+          this, [this, str = QString::fromStdString(ossia::convert<std::string>(v))] {
+        m_engine.evaluate(str);
+      });
+    });
+  }
+}
 void ApplicationPlugin::afterStartup()
 {
   // Dummy engine setup for JS processes

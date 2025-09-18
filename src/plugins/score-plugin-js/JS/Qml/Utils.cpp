@@ -28,6 +28,16 @@ QByteArray JsUtils::readFile(QString path)
   return {};
 }
 
+void JsUtils::writeFile(QString path, QByteArray content)
+{
+  if(auto doc = score::AppContext().currentDocument())
+    path = score::locateFilePath(path, *doc);
+
+  QFile f(path);
+  if(f.open(QIODevice::WriteOnly))
+    f.write(content);
+}
+
 void JsUtils::shell(QString cmd, QJSValue onFinish)
 {
 #if QT_CONFIG(process)

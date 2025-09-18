@@ -4,6 +4,10 @@
 
 #include <Process/ProcessList.hpp>
 
+#include <Library/Panel/LibraryPanelDelegate.hpp>
+#include <Library/ProcessWidget.hpp>
+#include <Library/ProjectLibraryWidget.hpp>
+
 #include <core/document/Document.hpp>
 #include <core/presenter/Presenter.hpp>
 
@@ -27,6 +31,32 @@ QVariant EditJsContext::availableProcesses() const noexcept
         {"Documentation", desc.documentationLink},
     };
   }
+  return v;
+}
+QVariant EditJsContext::availableProcessesAndPresets() const noexcept
+{
+  QVariantList v;
+  v.reserve(20000);
+  auto& ctx = score::GUIAppContext();
+  auto& procs = ctx.interfaces<Process::ProcessFactoryList>();
+  auto& lib = ctx.panel<Library::ProcessPanel>().processWidget().processModel();
+  auto& root = lib.rootNode();
+  root.visit([&](const Library::ProcessNode& n) {
+    if(n.key.impl().is_nil())
+    {
+      return;
+    }
+    auto uid = score::uuids::toByteArray(n.key.impl());
+    auto& proc = *procs.get(n.key);
+    // auto desc = proc.descriptor("");
+    v.push_back(
+        QVariantMap{
+            {"ProcessName", proc.prettyName()},
+            {"Name", n.prettyName},
+            {"Key", uid},
+            {"CustomData", n.customData}});
+  });
+
   return v;
 }
 

@@ -293,6 +293,8 @@ public:
   /////////////////////
   QVariant availableProcesses() const noexcept;
   W_SLOT(availableProcesses)
+  QVariant availableProcessesAndPresets() const noexcept;
+  W_SLOT(availableProcessesAndPresets)
   QVariant availableProtocols() const noexcept;
   W_SLOT(availableProtocols)
 
