@@ -53,7 +53,7 @@ QVariant EditJsContext::availableProcessesAndPresets() const noexcept
         QVariantMap{
             {"ProcessName", proc.prettyName()},
             {"Name", n.prettyName},
-            {"Key", uid},
+            {"Key", QString::fromLatin1(uid)},
             {"CustomData", n.customData}});
   });
 

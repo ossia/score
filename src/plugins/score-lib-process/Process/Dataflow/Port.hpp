@@ -150,6 +150,7 @@ public:
       State::AddressAccessor,
       address W_READ address W_WRITE setAddress W_NOTIFY addressChanged)
   PROPERTY(QString, name W_READ name W_WRITE setName W_NOTIFY nameChanged)
+  PROPERTY(Process::PortType, type W_READ type W_CONSTANT W_FINAL)
 
   virtual QByteArray saveData() const noexcept;
   virtual void loadData(const QByteArray& arr) noexcept;

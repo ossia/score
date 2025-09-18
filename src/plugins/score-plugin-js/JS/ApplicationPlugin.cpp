@@ -6,7 +6,9 @@
 #include <Library/LibrarySettings.hpp>
 #include <LocalTree/LocalTreeDocumentPlugin.hpp>
 
+#include <core/application/ApplicationInterface.hpp>
 #include <core/document/Document.hpp>
+#include <core/presenter/DocumentManager.hpp>
 
 #include <ossia/detail/thread.hpp>
 
@@ -28,6 +30,13 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
   m_engine.globalObject().setProperty("Score", m_engine.newQObject(new EditJsContext));
   m_engine.globalObject().setProperty("Util", m_engine.newQObject(new JsUtils));
   m_engine.globalObject().setProperty("Device", m_engine.newQObject(new DeviceContext));
+  connect(&m_engine, &QQmlEngine::exit, this, [&] {
+    for(auto& doc : score::GUIAppContext().docManager.documents())
+      doc->commandStack().markCurrentIndexAsSaved();
+    qApp->quit();
+    QTimer::singleShot(
+        500, [] { score::GUIApplicationInterface::instance().forceExit(); });
+  });
 
   m_asioContext = std::make_shared<ossia::net::network_context>();
   m_processMessages = true;
@@ -55,7 +64,6 @@ void ApplicationPlugin::on_createdDocument(score::Document& doc)
   LocalTree::DocumentPlugin* lt = doc.context().findPlugin<LocalTree::DocumentPlugin>();
   if(lt)
   {
-    auto& appplug = *this;
     auto& root = lt->device().get_root_node();
 
     auto node = root.create_child("script");
@@ -65,7 +73,11 @@ void ApplicationPlugin::on_createdDocument(score::Document& doc)
     address->add_callback([&](const ossia::value& v) {
       ossia::qt::run_async(
           this, [this, str = QString::fromStdString(ossia::convert<std::string>(v))] {
-        m_engine.evaluate(str);
+        auto res = m_engine.evaluate(str);
+        if(res.isError())
+        {
+          qDebug() << res.toString();
+        }
       });
     });
   }

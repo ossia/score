@@ -1,5 +1,9 @@
 #pragma once
+#include <QMetaObject>
+
 #include <score_lib_process_export.h>
+
+#include <verdigris>
 namespace score
 {
 struct Brush;
@@ -25,3 +29,6 @@ const score::Brush& labelBrush();
 SCORE_LIB_PROCESS_EXPORT
 const score::BrushSet& labelBrush(const Process::Port& p);
 }
+
+Q_DECLARE_METATYPE(Process::PortType)
+W_REGISTER_ARGTYPE(Process::PortType)

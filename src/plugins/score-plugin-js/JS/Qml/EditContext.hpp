@@ -132,6 +132,9 @@ public:
   int outlets(QObject* obj);
   W_SLOT(outlets)
 
+  QObject* createCable(QObject* outlet, QObject* inlet);
+  W_SLOT(createCable)
+
   void setAddress(QObject* obj, QString addr);
   W_SLOT(setAddress)
 

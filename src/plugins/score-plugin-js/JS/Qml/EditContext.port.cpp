@@ -4,6 +4,7 @@
 
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
 #include <JS/Qml/EditContext.hpp>
 
@@ -99,6 +100,26 @@ int EditJsContext::outlets(QObject* obj)
   if(!proc)
     return 0;
   return std::ssize(proc->outlets());
+}
+
+QObject* EditJsContext::createCable(QObject* outlet, QObject* inlet)
+{
+  auto doc = ctx();
+  if(!doc)
+    return nullptr;
+  auto src = qobject_cast<Process::Outlet*>(outlet);
+  if(!src)
+    return nullptr;
+  auto sink = qobject_cast<Process::Inlet*>(inlet);
+  if(!sink)
+    return nullptr;
+  if(src->type() != sink->type())
+    return nullptr;
+
+  auto& root = score::IDocument::get<Scenario::ScenarioDocumentModel>(doc->document);
+  auto [m, _] = macro(*doc);
+  auto& c = m->createCable(root, *src, *sink);
+  return &c;
 }
 
 void EditJsContext::setAddress(QObject* obj, QString addr)

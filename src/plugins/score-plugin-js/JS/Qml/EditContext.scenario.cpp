@@ -105,14 +105,49 @@ QObject* EditJsContext::createProcess(QObject* interval, QString name, QString d
   auto doc = ctx();
   if(!doc)
     return nullptr;
+
+  std::optional<score::uuids::uuid> maybe_uid;
+  {
+    if(name.trimmed().length() == 36)
+    {
+      try
+      {
+        auto uid_str = name.toLatin1();
+        maybe_uid = score::uuids::string_generator::compute(
+            uid_str.data(), uid_str.data() + uid_str.length());
+      }
+      catch(...)
+      {
+      }
+    }
+    else
+    {
+    }
+  }
+
   auto& factories = doc->app.interfaces<Process::ProcessFactoryList>();
   Process::ProcessModelFactory* f{};
-  for(auto& fact : factories)
+  if(maybe_uid)
   {
-    if(fact.prettyName().compare(name, Qt::CaseInsensitive) == 0)
+    const auto k = UuidKey<Process::ProcessModel>{*maybe_uid};
+    for(auto& fact : factories)
     {
-      f = &fact;
-      break;
+      if(fact.concreteKey() == k)
+      {
+        f = &fact;
+        break;
+      }
+    }
+  }
+  else
+  {
+    for(auto& fact : factories)
+    {
+      if(fact.prettyName().compare(name, Qt::CaseInsensitive) == 0)
+      {
+        f = &fact;
+        break;
+      }
     }
   }
   if(!f)
