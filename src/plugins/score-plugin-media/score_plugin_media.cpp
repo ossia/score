@@ -73,8 +73,8 @@ score_plugin_media::score_plugin_media()
   qRegisterMetaType<ossia::audio_stretch_mode>();
 
   QObject::connect(
-      QCoreApplication::instance(), &QCoreApplication::aboutToQuit, nullptr,
-      [] { Media::Sound::QImagePool::instance().gc(); });
+      QCoreApplication::instance(), &QCoreApplication::aboutToQuit,
+      QCoreApplication::instance(), [] { Media::Sound::QImagePool::instance().gc(); });
 }
 
 score_plugin_media::~score_plugin_media() { }
