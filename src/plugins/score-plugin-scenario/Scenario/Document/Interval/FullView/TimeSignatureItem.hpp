@@ -138,6 +138,7 @@ public:
   void updateStartMarker();
 
 private:
+  int type() const override { return 90076; }
   void handlesChanged();
 
   void moveHandle(TimeSignatureHandle& handle, double originalPos, double delta);

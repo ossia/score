@@ -23,7 +23,7 @@ public:
 
   ~LightBars() { }
 
-  QRectF boundingRect() const
+  QRectF boundingRect() const override
   {
     if(positions.empty())
       return {};
@@ -33,6 +33,7 @@ public:
   }
 
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override
   {
     painter->setRenderHint(QPainter::Antialiasing, true);
     painter->setPen(score::Skin::instance().DarkGray.main.pen_cosmetic);
@@ -53,6 +54,7 @@ public:
     prepareGeometryChange();
     update();
   }
+  int type() const override { return 90077; }
 };
 
 class LighterBars : public QGraphicsItem
@@ -68,7 +70,7 @@ public:
 
   ~LighterBars() { }
 
-  QRectF boundingRect() const
+  QRectF boundingRect() const override
   {
     if(positions.empty())
       return {};
@@ -78,6 +80,7 @@ public:
   }
 
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+      override
   {
     painter->setRenderHint(QPainter::Antialiasing, true);
     painter->setPen(score::Skin::instance().DarkGray.darker300.pen_cosmetic);
@@ -98,6 +101,7 @@ public:
     prepareGeometryChange();
     update();
   }
+  int type() const override { return 90078; }
 };
 
 }

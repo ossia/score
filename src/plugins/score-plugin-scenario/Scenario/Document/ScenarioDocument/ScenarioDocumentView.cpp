@@ -395,8 +395,15 @@ void ProcessGraphicsView::dragLeaveEvent(QDragLeaveEvent* event)
 
 void ProcessGraphicsView::dropEvent(QDropEvent* event)
 {
-  if(!itemAt(event->position().toPoint()))
+  auto item = itemAt(event->position().toPoint());
+  if(!item)
   {
+    dropRequested(event->position().toPoint(), event->mimeData());
+    event->accept();
+  }
+  else if(auto t = item->type(); t >= 90076 && t <= 90078)
+  {
+    // Drop on timebars in full view
     dropRequested(event->position().toPoint(), event->mimeData());
     event->accept();
   }
