@@ -42,6 +42,30 @@ struct is_output
   bool operator()(const isf::csf_image_input& v) { return v.access != "read_only"; }
   bool operator()(const auto& v) { return false; }
 };
+
+struct port_indices
+{
+  int inlet_i = 0;
+  int outlet_i = 0;
+  void operator()(const isf::storage_input& v)
+  {
+    if(v.access == "read_only")
+      inlet_i++;
+    else
+    {
+      inlet_i++;
+      outlet_i++;
+    }
+  }
+  void operator()(const isf::csf_image_input& v)
+  {
+    if(v.access == "read_only")
+      inlet_i++;
+    else
+      outlet_i++;
+  }
+  void operator()(const auto& v) { inlet_i++; }
+};
 QSize RenderedCSFNode::computeTextureSize(
     const isf::csf_image_input& pass) const noexcept
 {
@@ -281,12 +305,16 @@ int RenderedCSFNode::getArraySizeFromUI(const QString& bufferName) const
 {
   // ISFNode automatically creates ports for storage buffers with flexible arrays
   // Look for the corresponding input in the descriptor and find its port
-  
-  int storageInputIndex = -1;
+
+  port_indices p;
+
+  int storageSizeInputIndex = -1;
+  const std::string name = bufferName.toStdString();
   for(std::size_t i = 0; i < n.m_descriptor.inputs.size(); i++)
   {
     const auto& input = n.m_descriptor.inputs[i];
-    if(QString::fromStdString(input.name) == bufferName)
+
+    if(input.name == name)
     {
       if(auto* storage = ossia::get_if<isf::storage_input>(&input.data))
       {
@@ -295,44 +323,23 @@ int RenderedCSFNode::getArraySizeFromUI(const QString& bufferName) const
         {
           if(field.type.find("[]") != std::string::npos)
           {
-            storageInputIndex = i;
+            storageSizeInputIndex = p.inlet_i;
             break;
           }
         }
         break;
       }
     }
+
+    ossia::visit(p, input.data);
   }
-  
-  if(storageInputIndex >= 0)
+
+  if(storageSizeInputIndex >= 0)
   {
     // ISFNode creates ports in order of inputs, plus one extra port for array size if needed
-    int portIndex = storageInputIndex;
-    
-    // Count how many ports come before this storage buffer
-    for(int i = 0; i < storageInputIndex; i++)
+    if(storageSizeInputIndex < n.input.size() && n.input[storageSizeInputIndex]->value)
     {
-      const auto& input = n.m_descriptor.inputs[i];
-      if(auto* storage = ossia::get_if<isf::storage_input>(&input.data))
-      {
-        // Check if this storage buffer has flexible arrays - if so, it gets an extra port
-        for(const auto& field : storage->layout)
-        {
-          if(field.type.find("[]") != std::string::npos)
-          {
-            portIndex++; // Extra port for array size
-            break;
-          }
-        }
-      }
-    }
-    
-    // The array size port comes after the regular input ports
-    portIndex++; // Move to the array size port
-
-    if(portIndex < n.input.size() && n.input[portIndex]->value)
-    {
-      int arraySize = *(int*)n.input[portIndex]->value;
+      int arraySize = *(int*)n.input[storageSizeInputIndex]->value;
       return std::max(1, arraySize); // Ensure at least 1 element
     }
   }
@@ -348,10 +355,11 @@ void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpd
   {
     // Get current array size from UI
     int currentArraySize = getArraySizeFromUI(storageBuffer.name);
-    
+
     // Calculate required buffer size
-    int requiredSize = calculateStorageBufferSize(storageBuffer.layout, currentArraySize);
-    
+    int requiredSize
+        = calculateStorageBufferSize(storageBuffer.layout, currentArraySize);
+
     // Check if buffer needs to be resized
     if(requiredSize != storageBuffer.lastKnownSize || !storageBuffer.buffer)
     {
@@ -363,7 +371,17 @@ void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpd
       }
       
       // Create new buffer with correct size
-      storageBuffer.buffer = createStorageBuffer(renderer, storageBuffer.name, storageBuffer.access, requiredSize);
+      if(storageBuffer.buffer)
+      {
+        storageBuffer.buffer->destroy();
+        storageBuffer.buffer->setSize(requiredSize);
+        storageBuffer.buffer->create();
+      }
+      else
+      {
+        storageBuffer.buffer = createStorageBuffer(
+            renderer, storageBuffer.name, storageBuffer.access, requiredSize);
+      }
       storageBuffer.size = requiredSize;
       storageBuffer.lastKnownSize = requiredSize;
       
