@@ -1289,6 +1289,8 @@ Executor::Executor(Clap::Model& proc, const Execution::Context& ctx, QObject* pa
     : Execution::ProcessComponent_T<Clap::Model, ossia::node_process>{
           proc, ctx, "ClapComponent", parent}
 {
+  proc.m_executing = true;
+
   const auto& h = proc.handle();
   if(!h)
     throw std::runtime_error("Plug-in unavailable");

@@ -175,6 +175,8 @@ private:
   QByteArray m_loadedState;
 
   bool m_supports64{};
+
+public:
   bool m_executing{};
 };
 }
