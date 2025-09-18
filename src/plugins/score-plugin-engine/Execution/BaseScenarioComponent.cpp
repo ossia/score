@@ -3,6 +3,7 @@
 
 #include "BaseScenarioComponent.hpp"
 
+#include <Process/Dataflow/Port.hpp>
 #include <Process/ExecutionContext.hpp>
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
@@ -60,6 +61,22 @@ struct FinishCallback final : public ossia::time_sync_callback
 
 void BaseScenarioElement::init(bool forcePlay, BaseScenarioRefContainer element)
 {
+  if(element.interval().outlet && !element.interval().outlet->address().isSet())
+  {
+
+    QString audio_dev_name;
+    for(auto dev : m_ctx.execState->edit_devices())
+    {
+      if(dynamic_cast<ossia::audio_protocol*>(&dev->get_protocol()))
+      {
+        audio_dev_name = QString::fromStdString(dev->get_name());
+        break;
+      }
+    }
+    if(!audio_dev_name.isEmpty())
+      element.interval().outlet->setAddress(
+          State::AddressAccessor{{audio_dev_name, {"out", "main"}}});
+  }
   m_ossia_scenario = std::make_shared<ossia::scenario>();
 
   auto main_start_node = m_ossia_scenario->get_start_time_sync();
@@ -132,23 +149,6 @@ void BaseScenarioElement::init(bool forcePlay, BaseScenarioRefContainer element)
       m_ossia_interval, main_interval, m_ossia_interval->makeDurations(), true);
 
   m_ossia_scenario->start();
-  for(auto dev : m_ctx.execState->edit_devices())
-  {
-    if(dynamic_cast<ossia::audio_protocol*>(&dev->get_protocol()))
-    {
-      if(auto n = ossia::net::find_node(dev->get_root_node(), "/out/main"))
-      {
-        if(auto param = n->get_parameter())
-        {
-          auto node = main_interval->node;
-          m_ctx.executionQueue.enqueue([=] {
-            static_cast<ossia::nodes::interval*>(node.get())->audio_out.address = param;
-          });
-          break;
-        }
-      }
-    }
-  }
 }
 
 void BaseScenarioElement::cleanup()
