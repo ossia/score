@@ -96,9 +96,15 @@ NodeItem::NodeItem(
   });
 
   auto on_sizeChanged = [this] {
-    updateSize();
-    updateZoomRatio();
-    updateTitlePos();
+    m_needResize = true;
+    QTimer::singleShot(1, [this] {
+      if(!m_needResize)
+        return;
+      m_needResize = false;
+      updateSize();
+      updateZoomRatio();
+      updateTitlePos();
+    });
   };
   connect(&process, &Process::ProcessModel::controlAdded, this, on_sizeChanged);
   connect(&process, &Process::ProcessModel::controlRemoved, this, on_sizeChanged);
@@ -510,11 +516,17 @@ void NodeItem::updateSize()
   //if (sz != m_contentSize || !m_fx)
   {
     prepareGeometryChange();
+    double w = std::max(minimalContentWidth(), sz.width());
+    double h = std::max(minimalContentHeight(), sz.height());
     if(m_fx)
     {
-      double w = std::max(minimalContentWidth(), sz.width());
-      double h = std::max(minimalContentHeight(), sz.height());
       m_contentSize = QSizeF{w, h};
+    }
+
+    if(m_presenter)
+    {
+      m_presenter->setWidth(m_contentSize.width(), m_contentSize.width());
+      m_presenter->setHeight(m_contentSize.height());
     }
 
     if(m_uiButton)

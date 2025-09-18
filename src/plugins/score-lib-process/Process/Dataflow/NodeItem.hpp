@@ -137,5 +137,6 @@ private:
   bool m_hover{false};
   bool m_selected{false};
   bool m_dropping{};
+  bool m_needResize{};
 };
 }
