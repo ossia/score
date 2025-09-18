@@ -131,6 +131,18 @@ QStringList Model::getIncludePaths() const noexcept
     }
   }
 
+  // Custom helper env var if needed
+  if(auto paths = qEnvironmentVariable("SCORE_ADDITIONAL_SCRIPT_INCLUDE_PATHS");
+     !paths.isEmpty())
+  {
+    auto p = paths.split(":");
+    p.removeAll("");
+    for(auto& path : p)
+    {
+      ret.push_back(std::move(path));
+    }
+  }
+
   return ret;
 }
 
