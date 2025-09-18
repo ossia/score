@@ -1300,6 +1300,73 @@ Executor::Executor(Clap::Model& proc, const Execution::Context& ctx, QObject* pa
       control_idx++;
     }
   }
+  /*
+  connect(
+      inlet, &Process::ControlInlet::valueChanged, this,
+      [&params, i = index, this](const ossia::value& v) {
+    if(this->m_executing)
+      return;
+    auto plugin = this->handle()->plugin;
+    SCORE_ASSERT(this->parameterInputs().size() > i);
+    auto& param_info = this->parameterInputs()[i];
+    double val = ossia::convert<double>(v);
+    
+    clap_event_param_value_t param_event{};
+    param_event.header.size = sizeof(clap_event_param_value_t);
+    param_event.header.time = 0; // Beginning of buffer for now
+    param_event.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
+    param_event.header.type = CLAP_EVENT_PARAM_VALUE;
+    param_event.header.flags = 0;
+    param_event.param_id = param_info.id;
+    param_event.cookie = param_info.cookie;
+    param_event.note_id = -1;
+    param_event.port_index = -1;
+    param_event.channel = -1;
+    param_event.key = -1;
+    param_event.value = val;
+    
+    clap_input_events_t ip;
+    ip.ctx = &param_event;
+    ip.get = +[](const struct clap_input_events* list,
+                 uint32_t index) -> const clap_event_header_t* {
+      if(index == 0)
+      {
+        return (const clap_event_header_t*)&list->ctx;
+      }
+      return nullptr;
+    };
+    ip.size = +[](const struct clap_input_events* list) -> uint32_t { return 1; };
+    
+    clap_output_events_t op{
+                            .ctx = nullptr,
+                            .try_push = [](const struct clap_output_events* list,
+                                           const clap_event_header_t* event) { return false; }};
+    params.flush(plugin, &ip, &op);
+  });
+  */
+  // Connect flush message
+  connect(&proc, &Clap::Model::requestFlush, this, [&] {
+    in_exec([plugin = proc.handle()->plugin] {
+      auto params
+          = (const clap_plugin_params_t*)plugin->get_extension(plugin, CLAP_EXT_PARAMS);
+      if(!params)
+        return;
+      if(!params->flush)
+        return;
+      clap_input_events_t ip;
+      ip.ctx = nullptr;
+      ip.get = +[](const struct clap_input_events* list,
+                   uint32_t index) -> const clap_event_header_t* { return nullptr; };
+      ip.size = +[](const struct clap_input_events* list) -> uint32_t { return 0; };
+
+      clap_output_events_t op{
+          .ctx = nullptr,
+          .try_push = [](const struct clap_output_events* list,
+                         const clap_event_header_t* event) { return false; }};
+
+      params->flush(plugin, &ip, &op);
+    });
+  });
 
   // Connect the restart signal
   // FIXME threads are wrong

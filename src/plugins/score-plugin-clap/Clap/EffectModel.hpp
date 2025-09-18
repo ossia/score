@@ -142,6 +142,8 @@ public:
   };
   ossia::hash_map<int, std::unique_ptr<FdNotifiers>> fd_notifiers;
 
+  void requestFlush() W_SIGNAL(requestFlush);
+
 private:
   void loadPlugin();
   void createControls(bool loading);
