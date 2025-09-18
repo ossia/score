@@ -33,10 +33,10 @@ private:
 
   bool queryExtensions();
   void initializeGui();
-  
-  const Model& m_model;
-  PluginHandle* m_handle{};
-  
+
+  QPointer<const Model> m_model;
+  std::shared_ptr<PluginHandle> m_handle{};
+
   // CLAP GUI extension
   const clap_plugin_gui_t* m_gui_ext{};
 

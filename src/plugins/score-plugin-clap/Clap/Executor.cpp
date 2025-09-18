@@ -55,13 +55,13 @@ struct event_storage
 class clap_node_base : public ossia::graph_node
 {
 public:
-  Clap::PluginHandle& handle;
+  std::shared_ptr<Clap::PluginHandle> handle;
   explicit clap_node_base(const Clap::Model& proc)
-      : handle{*proc.handle()}
-      , m_param_ins{proc.parameterInputs()}
-      , m_param_outs{proc.parameterOutputs()}
-      , m_midi_ins{proc.midiInputs()}
-      , m_midi_outs{proc.midiOutputs()}
+      : handle{proc.handle()}
+      , m_param_ins{handle->m_parameters_ins}
+      , m_param_outs{handle->m_parameters_outs}
+      , m_midi_ins{handle->m_midi_ins}
+      , m_midi_outs{handle->m_midi_outs}
   {
     midi_ins.reserve(m_midi_ins.size());
     midi_outs.reserve(m_midi_outs.size());
@@ -82,10 +82,11 @@ public:
         midi_ins.push_back(new ossia::midi_inlet);
         m_inlets.push_back(midi_ins.back());
       }
-      else if(qobject_cast<Process::ControlInlet*>(inlet))
+      else if(auto inl = qobject_cast<Process::ControlInlet*>(inlet))
       {
         parameter_ins.push_back(new ossia::value_inlet);
         m_inlets.push_back(parameter_ins.back());
+        parameter_ins.back()->data.write_value(inl->value(), 0);
       }
     }
 
@@ -156,6 +157,7 @@ public:
     if(!plugin)
       return;
 
+    int param_i = 0;
     // Get parameter extension to set initial values
     for(const auto& param_info : m_param_ins)
     {
@@ -172,7 +174,12 @@ public:
       param_event.port_index = -1;
       param_event.channel = -1;
       param_event.key = -1;
-      param_event.value = param_info.default_value; // FIXME use value set in score
+      auto& v = parameter_ins[param_i]->data.get_data();
+      if(!v.empty())
+        param_event.value = ossia::convert<float>(v.back().value);
+      else
+        param_event.value = param_info.default_value;
+      param_i++;
 
       // Create temporary input events structure to send the parameter
       event_storage temp_events;
@@ -294,7 +301,7 @@ public:
           param_event.header.time = 0; // Beginning of buffer for now
           param_event.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
           param_event.header.type = CLAP_EVENT_PARAM_VALUE;
-          param_event.header.flags = 0;
+          param_event.header.flags = CLAP_EVENT_IS_LIVE;
           param_event.param_id = param_info.id;
           param_event.cookie = param_info.cookie;
           param_event.note_id = -1;
@@ -443,7 +450,11 @@ public:
     m_input_events.midi_events.reserve(midi_event_count * 1.1);
     m_input_events.midi2_events.reserve(midi_event_count * 1.1);
     m_input_events.note_events.reserve(midi_event_count * 1.1);
-    m_input_events.param_events.reserve(param_event_count * 1.1);
+    m_input_events.param_events.reserve(
+        param_event_count * 1.1
+        + 2
+              * this->parameter_ins
+                    .size()); // Important to reserve one additional buffer of parameters for the mono case
     m_input_events.all_events.reserve((param_event_count + midi_event_count + 1) * 1.1);
 
     // Process parameter changes
@@ -928,11 +939,13 @@ public:
       for(int i = 1; i < poly.size(); i++)
       {
         auto& p = poly[i];
-        if(p.activated)
-          if(p.plugin)
+        if(p.plugin)
+        {
+          if(p.activated)
             p.plugin->deactivate(p.plugin);
 
-        p.plugin->destroy(p.plugin);
+          p.plugin->destroy(p.plugin);
+        }
       }
     });
   }
@@ -952,7 +965,7 @@ public:
 
   void do_process(
       const clap_plugin_t* plug, clap_process_t& process, event_storage& input_storage,
-      event_storage& output_storage)
+      event_storage& output_storage, int current_channel)
   {
     // Process audio
     process.steady_time = -1;
@@ -973,7 +986,6 @@ public:
       return nullptr;
     }};
 
-    // No output events in poly mode, it does not make sense
     clap_output_events_t o_evs{
         .ctx = &output_storage,
         .try_push = [](const struct clap_output_events* list,
@@ -983,6 +995,58 @@ public:
     process.out_events = &o_evs;
 
     plug->process(plug, &process);
+
+    // In poly mode, we have to save the parameter changes from the first node and replicate
+    // it to the other nodes to handle the case where the user moves something in the UI.
+    auto params = this->handle->ext_params;
+    if(params && current_channel == 0)
+    {
+      const int orig = input_storage.param_events.size();
+      int cur = input_storage.param_events.size();
+      const int param_count = params->count(plug);
+      if(param_count > 0)
+      {
+        input_storage.param_events.resize(
+            input_storage.param_events.size() + param_count);
+        clap_event_param_value_t* cur_p = &input_storage.param_events[cur];
+        for(auto& p : m_param_ins)
+        {
+          double current_value;
+          // Read current parameter value from plugin
+          if(params->get_value(plug, p.id, &current_value))
+          {
+            clap_event_param_value_t& param_event = *cur_p;
+            param_event.header.size = sizeof(clap_event_param_value_t);
+            param_event.header.time = 0; // Beginning of buffer for now
+            param_event.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
+            param_event.header.type = CLAP_EVENT_PARAM_VALUE;
+            param_event.header.flags = CLAP_EVENT_IS_LIVE;
+            param_event.param_id = p.id;
+            param_event.cookie = p.cookie;
+            param_event.note_id = -1;
+            param_event.port_index = -1;
+            param_event.channel = -1;
+            param_event.key = -1;
+            param_event.value = current_value;
+            ++cur;
+            ++cur_p;
+          }
+        }
+
+        if(cur > orig)
+        {
+          auto it = std::upper_bound(
+              input_storage.all_events.begin(), input_storage.all_events.end(), 0,
+              [](auto& t1, auto& ev2) { return t1 < ev2->time; });
+          input_storage.all_events.insert_range(
+              it, std::span<clap_event_param_value_t>(
+                      input_storage.param_events.data() + orig,
+                      input_storage.param_events.data() + cur)
+                      | std::views::transform(
+                          [](clap_event_param_value_t& elem) { return &elem.header; }));
+        }
+      }
+    }
   }
 
   PluginHandle& m_instance;
@@ -1087,7 +1151,7 @@ public:
       process.audio_outputs = &out_buffer;
       process.audio_inputs_count = 1;
       process.audio_outputs_count = 1;
-      do_process(cur, process, m_input_events, m_output_events);
+      do_process(cur, process, m_input_events, m_output_events, current_channel);
 
       // 4. Copy double back to matching output channel
       {
@@ -1178,7 +1242,7 @@ public:
       process.audio_outputs = &out_buffer;
       process.audio_inputs_count = 1;
       process.audio_outputs_count = 1;
-      do_process(cur, process, m_input_events, m_output_events);
+      do_process(cur, process, m_input_events, m_output_events, current_channel);
 
       current_channel++;
     }
@@ -1225,7 +1289,7 @@ Executor::Executor(Clap::Model& proc, const Execution::Context& ctx, QObject* pa
     : Execution::ProcessComponent_T<Clap::Model, ossia::node_process>{
           proc, ctx, "ClapComponent", parent}
 {
-  auto h = proc.handle();
+  const auto& h = proc.handle();
   if(!h)
     throw std::runtime_error("Plug-in unavailable");
 
@@ -1289,146 +1353,23 @@ Executor::Executor(Clap::Model& proc, const Execution::Context& ctx, QObject* pa
     if(auto* control = qobject_cast<Process::ControlInlet*>(inlet))
     {
       auto* inl = clap->parameter_ins[control_idx];
+
       control->setupExecution(*inl, this);
       connect(
           control, &Process::ControlInlet::valueChanged, this,
           [this, inl](const ossia::value& v) {
+        if(this->process().currentlyReadingValues)
+          return;
         auto weak_self = std::weak_ptr{this->node};
         in_exec([inl, val = v, node = weak_self]() mutable {
           if(auto n = node.lock())
+          {
             inl->target<ossia::value_port>()->write_value(std::move(val), 0);
+          }
         });
       });
       control_idx++;
     }
   }
-  /*
-  connect(
-      inlet, &Process::ControlInlet::valueChanged, this,
-      [&params, i = index, this](const ossia::value& v) {
-    if(this->m_executing)
-      return;
-    auto plugin = this->handle()->plugin;
-    SCORE_ASSERT(this->parameterInputs().size() > i);
-    auto& param_info = this->parameterInputs()[i];
-    double val = ossia::convert<double>(v);
-    
-    clap_event_param_value_t param_event{};
-    param_event.header.size = sizeof(clap_event_param_value_t);
-    param_event.header.time = 0; // Beginning of buffer for now
-    param_event.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
-    param_event.header.type = CLAP_EVENT_PARAM_VALUE;
-    param_event.header.flags = 0;
-    param_event.param_id = param_info.id;
-    param_event.cookie = param_info.cookie;
-    param_event.note_id = -1;
-    param_event.port_index = -1;
-    param_event.channel = -1;
-    param_event.key = -1;
-    param_event.value = val;
-    
-    clap_input_events_t ip;
-    ip.ctx = &param_event;
-    ip.get = +[](const struct clap_input_events* list,
-                 uint32_t index) -> const clap_event_header_t* {
-      if(index == 0)
-      {
-        return (const clap_event_header_t*)&list->ctx;
-      }
-      return nullptr;
-    };
-    ip.size = +[](const struct clap_input_events* list) -> uint32_t { return 1; };
-    
-    clap_output_events_t op{
-                            .ctx = nullptr,
-                            .try_push = [](const struct clap_output_events* list,
-                                           const clap_event_header_t* event) { return false; }};
-    params.flush(plugin, &ip, &op);
-  });
-  */
-  // Connect flush message
-  connect(&proc, &Clap::Model::requestFlush, this, [&] {
-    in_exec([plugin = proc.handle()->plugin] {
-      auto params
-          = (const clap_plugin_params_t*)plugin->get_extension(plugin, CLAP_EXT_PARAMS);
-      if(!params)
-        return;
-      if(!params->flush)
-        return;
-      clap_input_events_t ip;
-      ip.ctx = nullptr;
-      ip.get = +[](const struct clap_input_events* list,
-                   uint32_t index) -> const clap_event_header_t* { return nullptr; };
-      ip.size = +[](const struct clap_input_events* list) -> uint32_t { return 0; };
-
-      clap_output_events_t op{
-          .ctx = nullptr,
-          .try_push = [](const struct clap_output_events* list,
-                         const clap_event_header_t* event) { return false; }};
-
-      params->flush(plugin, &ip, &op);
-    });
-  });
-
-  // Connect the restart signal
-  // FIXME threads are wrong
-  // connect(
-  //     &proc, &Process::ProcessModel::resetExecution, this,
-  //     [this, weak_self = std::weak_ptr{clap}] {
-  //   in_exec([weak_self]() mutable {
-  //     if(auto n = weak_self.lock())
-  //     {
-  //       n->reset_execution();
-  //     }
-  //   });
-  // });
-
-  // Connect parameter value feedback from executor to GUI
-  auto c = connect(
-      &ctx.doc.coarseUpdateTimer, &QTimer::timeout, this,
-      [weak_clap = std::weak_ptr{clap}, &proc] {
-    if(auto node = weak_clap.lock())
-    {
-      const clap_plugin_t* plugin = nullptr;
-      
-      // Get the plugin instance depending on node type
-      if(auto regular_node = std::dynamic_pointer_cast<clap_node>(node))
-      {
-        plugin = proc.handle()->plugin;
-      }
-      else if(auto mono_node = std::dynamic_pointer_cast<clap_node_mono>(node))
-      {
-        plugin = proc.handle()->plugin;
-      }
-      
-      if(plugin)
-      {
-        // Get parameter extension to read current values
-        auto params = (const clap_plugin_params_t*)plugin->get_extension(plugin, CLAP_EXT_PARAMS);
-        if(params)
-        {
-          std::size_t control_idx = 0;
-          for(auto* inlet : proc.inlets())
-          {
-            if(auto* control = qobject_cast<Process::ControlInlet*>(inlet))
-            {
-              if(control_idx < node->m_param_ins.size())
-              {
-                const auto& param_info = node->m_param_ins[control_idx];
-                double current_value = 0.0;
-                
-                // Read current parameter value from plugin
-                if(params->get_value(plugin, param_info.id, &current_value))
-                {
-                  control->setExecutionValue(current_value);
-                }
-              }
-              control_idx++;
-            }
-          }
-        }
-      }
-    }
-  });
 }
 }

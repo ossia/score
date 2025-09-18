@@ -59,6 +59,16 @@ struct PluginHandle
   const clap_plugin_params_t* ext_params{};
   const clap_plugin_timer_support_t* ext_timer_support{};
 
+  // Metadata we parsed
+  std::vector<clap_param_info_t> m_parameters_ins;
+  std::vector<clap_param_info_t> m_parameters_outs;
+  std::vector<clap_audio_port_info_t> m_audio_ins;
+  std::vector<clap_audio_port_info_t> m_audio_outs;
+  std::vector<clap_note_port_info_t> m_midi_ins;
+  std::vector<clap_note_port_info_t> m_midi_outs;
+
+  QPointer<Model> model;
+
   bool activated{};
 };
 
@@ -92,8 +102,8 @@ public:
   QStringList tags() const noexcept override { return Metadata<Tags_k, Model>::get(); }
   Process::ProcessFlags flags() const noexcept override;
   bool hasExternalUI() const noexcept;
-  PluginHandle* handle() const noexcept { return m_plugin.get(); }
-  
+  const std::shared_ptr<PluginHandle>& handle() const noexcept { return m_plugin; }
+
   void closeUI() const;
 
   const QString& pluginId() const noexcept { return m_pluginId; }
@@ -102,27 +112,27 @@ public:
 
   const std::vector<clap_param_info_t>& parameterInputs() const noexcept
   {
-    return m_parameters_ins;
+    return m_plugin->m_parameters_ins;
   }
   const std::vector<clap_param_info_t>& parameterOutputs() const noexcept
   {
-    return m_parameters_outs;
+    return m_plugin->m_parameters_outs;
   }
   const std::vector<clap_note_port_info_t>& midiInputs() const noexcept
   {
-    return m_midi_ins;
+    return m_plugin->m_midi_ins;
   }
   const std::vector<clap_note_port_info_t>& midiOutputs() const noexcept
   {
-    return m_midi_outs;
+    return m_plugin->m_midi_outs;
   }
   const std::vector<clap_audio_port_info_t>& audioInputs() const noexcept
   {
-    return m_audio_ins;
+    return m_plugin->m_audio_ins;
   }
   const std::vector<clap_audio_port_info_t>& audioOutputs() const noexcept
   {
-    return m_audio_outs;
+    return m_plugin->m_audio_outs;
   }
 
   // Preset functionality
@@ -144,6 +154,10 @@ public:
 
   void requestFlush() W_SIGNAL(requestFlush);
 
+  void flushFromPluginToHost();
+
+  bool currentlyReadingValues{};
+
 private:
   void loadPlugin();
   void createControls(bool loading);
@@ -157,15 +171,8 @@ private:
   QString m_pluginPath;
   QString m_pluginId;
 
-  std::unique_ptr<PluginHandle> m_plugin;
+  std::shared_ptr<PluginHandle> m_plugin;
   QByteArray m_loadedState;
-
-  std::vector<clap_param_info_t> m_parameters_ins;
-  std::vector<clap_param_info_t> m_parameters_outs;
-  std::vector<clap_audio_port_info_t> m_audio_ins;
-  std::vector<clap_audio_port_info_t> m_audio_outs;
-  std::vector<clap_note_port_info_t> m_midi_ins;
-  std::vector<clap_note_port_info_t> m_midi_outs;
 
   bool m_supports64{};
   bool m_executing{};

@@ -52,7 +52,10 @@ static void resize_hints_changed(const clap_host_t* host)
 
 static bool request_resize(const clap_host_t* host, uint32_t width, uint32_t height)
 {
-  auto* window = static_cast<Clap::Model*>(host->host_data)->window;
+  Clap::Model* model = static_cast<Clap::PluginHandle*>(host->host_data)->model;
+  if(!model)
+    return false;
+  auto* window = model->window;
   if(window)
   {
     window->resize(width, height);
@@ -63,7 +66,10 @@ static bool request_resize(const clap_host_t* host, uint32_t width, uint32_t hei
 
 static bool request_show(const clap_host_t* host)
 {
-  auto* window = static_cast<Clap::Model*>(host->host_data)->window;
+  Clap::Model* model = static_cast<Clap::PluginHandle*>(host->host_data)->model;
+  if(!model)
+    return false;
+  auto* window = model->window;
   if(window)
   {
     window->show();
@@ -74,7 +80,10 @@ static bool request_show(const clap_host_t* host)
 
 static bool request_hide(const clap_host_t* host)
 {
-  auto* window = static_cast<Clap::Model*>(host->host_data)->window;
+  Clap::Model* model = static_cast<Clap::PluginHandle*>(host->host_data)->model;
+  if(!model)
+    return false;
+  auto* window = model->window;
   if(window)
   {
     window->hide();
@@ -85,7 +94,10 @@ static bool request_hide(const clap_host_t* host)
 
 static void closed(const clap_host_t* host, bool was_destroyed)
 {
-  auto* window = static_cast<Clap::Model*>(host->host_data)->window;
+  Clap::Model* model = static_cast<Clap::PluginHandle*>(host->host_data)->model;
+  if(!model)
+    return;
+  auto* window = model->window;
   if(window && was_destroyed)
   {
     // The plugin GUI was destroyed, we need to clean up
@@ -96,15 +108,21 @@ static void closed(const clap_host_t* host, bool was_destroyed)
 static std::atomic<uint32_t> g_next_timer_id{};
 bool register_timer(const clap_host_t* host, uint32_t period_ms, clap_id* timer_id)
 {
-  auto& m = *static_cast<Clap::Model*>(host->host_data);
+  auto& m = *static_cast<Clap::PluginHandle*>(host->host_data);
+  if(!m.model)
+    return false;
+
   auto tm = new QTimer{};
   tm->setInterval(period_ms);
   *timer_id = g_next_timer_id.fetch_add(1, std::memory_order_relaxed);
-  QObject::connect(tm, &QTimer::timeout, &m, [&m, tid = *timer_id] {
-    if(auto t = m.handle()->ext_timer_support)
-      t->on_timer(m.handle()->plugin, tid);
+  QObject::connect(
+      tm, &QTimer::timeout, m.model,
+      [h = std::weak_ptr{m.model->handle()}, tid = *timer_id] {
+    if(auto hh = h.lock())
+      if(auto t = hh->ext_timer_support)
+        t->on_timer(hh->plugin, tid);
   });
-  m.timers.push_back({*timer_id, tm});
+  m.model->timers.push_back({*timer_id, tm});
   tm->start();
   return true;
 }
@@ -113,13 +131,15 @@ bool register_timer(const clap_host_t* host, uint32_t period_ms, clap_id* timer_
 // [main-thread]
 bool unregister_timer(const clap_host_t* host, clap_id timer_id)
 {
-  auto& m = *static_cast<Clap::Model*>(host->host_data);
-  for(auto it = m.timers.begin(); it != m.timers.end(); ++it)
+  auto& m = *static_cast<Clap::PluginHandle*>(host->host_data);
+  if(!m.model)
+    return false;
+  for(auto it = m.model->timers.begin(); it != m.model->timers.end(); ++it)
   {
     if(it->first == timer_id)
     {
       delete it->second;
-      m.timers.erase(it);
+      m.model->timers.erase(it);
       return true;
     }
   }
@@ -129,11 +149,13 @@ bool unregister_timer(const clap_host_t* host, clap_id timer_id)
 // POSIX fd support host extension
 bool register_fd(const clap_host_t* host, int fd, clap_posix_fd_flags_t flags)
 {
-  auto& m = *static_cast<Clap::Model*>(host->host_data);
+  auto& m = *static_cast<Clap::PluginHandle*>(host->host_data);
+  if(!m.model)
+    return false;
 
   // Check if fd is already registered
-  auto it = m.fd_notifiers.find(fd);
-  if(it != m.fd_notifiers.end())
+  auto it = m.model->fd_notifiers.find(fd);
+  if(it != m.model->fd_notifiers.end())
   {
     qWarning() << "CLAP: Attempted to register already registered fd" << fd;
     return false;
@@ -146,13 +168,15 @@ bool register_fd(const clap_host_t* host, int fd, clap_posix_fd_flags_t flags)
   if(flags & CLAP_POSIX_FD_READ)
   {
     notifiers->read = std::make_unique<QSocketNotifier>(fd, QSocketNotifier::Read);
-    QObject::connect(notifiers->read.get(), &QSocketNotifier::activated, &m, [&m, fd]() {
-      if(auto* plugin_fd_ext = static_cast<const clap_plugin_posix_fd_support_t*>(
-             m.handle()->plugin->get_extension(
-                 m.handle()->plugin, CLAP_EXT_POSIX_FD_SUPPORT)))
-      {
-        plugin_fd_ext->on_fd(m.handle()->plugin, fd, CLAP_POSIX_FD_READ);
-      }
+    QObject::connect(
+        notifiers->read.get(), &QSocketNotifier::activated, m.model,
+        [handle = std::weak_ptr{m.model->handle()}, fd]() {
+      if(auto h = handle.lock())
+        if(auto* plugin_fd_ext = static_cast<const clap_plugin_posix_fd_support_t*>(
+               h->plugin->get_extension(h->plugin, CLAP_EXT_POSIX_FD_SUPPORT)))
+        {
+          plugin_fd_ext->on_fd(h->plugin, fd, CLAP_POSIX_FD_READ);
+        }
     });
     notifiers->read->setEnabled(true);
   }
@@ -162,13 +186,14 @@ bool register_fd(const clap_host_t* host, int fd, clap_posix_fd_flags_t flags)
   {
     notifiers->write = std::make_unique<QSocketNotifier>(fd, QSocketNotifier::Write);
     QObject::connect(
-        notifiers->write.get(), &QSocketNotifier::activated, &m, [&m, fd]() {
-      if(auto* plugin_fd_ext = static_cast<const clap_plugin_posix_fd_support_t*>(
-             m.handle()->plugin->get_extension(
-                 m.handle()->plugin, CLAP_EXT_POSIX_FD_SUPPORT)))
-      {
-        plugin_fd_ext->on_fd(m.handle()->plugin, fd, CLAP_POSIX_FD_WRITE);
-      }
+        notifiers->write.get(), &QSocketNotifier::activated, m.model,
+        [handle = std::weak_ptr{m.model->handle()}, fd]() {
+      if(auto h = handle.lock())
+        if(auto* plugin_fd_ext = static_cast<const clap_plugin_posix_fd_support_t*>(
+               h->plugin->get_extension(h->plugin, CLAP_EXT_POSIX_FD_SUPPORT)))
+        {
+          plugin_fd_ext->on_fd(h->plugin, fd, CLAP_POSIX_FD_WRITE);
+        }
     });
     notifiers->write->setEnabled(true);
   }
@@ -178,28 +203,31 @@ bool register_fd(const clap_host_t* host, int fd, clap_posix_fd_flags_t flags)
   {
     notifiers->error = std::make_unique<QSocketNotifier>(fd, QSocketNotifier::Exception);
     QObject::connect(
-        notifiers->error.get(), &QSocketNotifier::activated, &m, [&m, fd]() {
-      if(auto* plugin_fd_ext = static_cast<const clap_plugin_posix_fd_support_t*>(
-             m.handle()->plugin->get_extension(
-                 m.handle()->plugin, CLAP_EXT_POSIX_FD_SUPPORT)))
-      {
-        plugin_fd_ext->on_fd(m.handle()->plugin, fd, CLAP_POSIX_FD_ERROR);
-      }
+        notifiers->error.get(), &QSocketNotifier::activated, m.model,
+        [handle = std::weak_ptr{m.model->handle()}, fd]() {
+      if(auto h = handle.lock())
+        if(auto* plugin_fd_ext = static_cast<const clap_plugin_posix_fd_support_t*>(
+               h->plugin->get_extension(h->plugin, CLAP_EXT_POSIX_FD_SUPPORT)))
+        {
+          plugin_fd_ext->on_fd(h->plugin, fd, CLAP_POSIX_FD_ERROR);
+        }
     });
     notifiers->error->setEnabled(true);
   }
 
   // Store the notifiers
-  m.fd_notifiers[fd] = std::move(notifiers);
+  m.model->fd_notifiers[fd] = std::move(notifiers);
   return true;
 }
 
 bool modify_fd(const clap_host_t* host, int fd, clap_posix_fd_flags_t flags)
 {
-  auto& m = *static_cast<Clap::Model*>(host->host_data);
+  auto& m = *static_cast<Clap::PluginHandle*>(host->host_data);
+  if(!m.model)
+    return false;
 
-  auto it = m.fd_notifiers.find(fd);
-  if(it == m.fd_notifiers.end())
+  auto it = m.model->fd_notifiers.find(fd);
+  if(it == m.model->fd_notifiers.end())
   {
     qWarning() << "CLAP: Attempted to modify unregistered fd" << fd;
     return false;
@@ -214,13 +242,14 @@ bool modify_fd(const clap_host_t* host, int fd, clap_posix_fd_flags_t flags)
     {
       notifiers->read = std::make_unique<QSocketNotifier>(fd, QSocketNotifier::Read);
       QObject::connect(
-          notifiers->read.get(), &QSocketNotifier::activated, &m, [&m, fd]() {
-        if(auto* plugin_fd_ext = static_cast<const clap_plugin_posix_fd_support_t*>(
-               m.handle()->plugin->get_extension(
-                   m.handle()->plugin, CLAP_EXT_POSIX_FD_SUPPORT)))
-        {
-          plugin_fd_ext->on_fd(m.handle()->plugin, fd, CLAP_POSIX_FD_READ);
-        }
+          notifiers->read.get(), &QSocketNotifier::activated, m.model,
+          [handle = std::weak_ptr{m.model->handle()}, fd]() {
+        if(auto h = handle.lock())
+          if(auto* plugin_fd_ext = static_cast<const clap_plugin_posix_fd_support_t*>(
+                 h->plugin->get_extension(h->plugin, CLAP_EXT_POSIX_FD_SUPPORT)))
+          {
+            plugin_fd_ext->on_fd(h->plugin, fd, CLAP_POSIX_FD_READ);
+          }
       });
     }
     notifiers->read->setEnabled(true);
@@ -237,13 +266,14 @@ bool modify_fd(const clap_host_t* host, int fd, clap_posix_fd_flags_t flags)
     {
       notifiers->write = std::make_unique<QSocketNotifier>(fd, QSocketNotifier::Write);
       QObject::connect(
-          notifiers->write.get(), &QSocketNotifier::activated, &m, [&m, fd]() {
-        if(auto* plugin_fd_ext = static_cast<const clap_plugin_posix_fd_support_t*>(
-               m.handle()->plugin->get_extension(
-                   m.handle()->plugin, CLAP_EXT_POSIX_FD_SUPPORT)))
-        {
-          plugin_fd_ext->on_fd(m.handle()->plugin, fd, CLAP_POSIX_FD_WRITE);
-        }
+          notifiers->write.get(), &QSocketNotifier::activated, m.model,
+          [handle = std::weak_ptr{m.model->handle()}, fd]() {
+        if(auto h = handle.lock())
+          if(auto* plugin_fd_ext = static_cast<const clap_plugin_posix_fd_support_t*>(
+                 h->plugin->get_extension(h->plugin, CLAP_EXT_POSIX_FD_SUPPORT)))
+          {
+            plugin_fd_ext->on_fd(h->plugin, fd, CLAP_POSIX_FD_WRITE);
+          }
       });
     }
     notifiers->write->setEnabled(true);
@@ -261,13 +291,14 @@ bool modify_fd(const clap_host_t* host, int fd, clap_posix_fd_flags_t flags)
       notifiers->error
           = std::make_unique<QSocketNotifier>(fd, QSocketNotifier::Exception);
       QObject::connect(
-          notifiers->error.get(), &QSocketNotifier::activated, &m, [&m, fd]() {
-        if(auto* plugin_fd_ext = static_cast<const clap_plugin_posix_fd_support_t*>(
-               m.handle()->plugin->get_extension(
-                   m.handle()->plugin, CLAP_EXT_POSIX_FD_SUPPORT)))
-        {
-          plugin_fd_ext->on_fd(m.handle()->plugin, fd, CLAP_POSIX_FD_ERROR);
-        }
+          notifiers->error.get(), &QSocketNotifier::activated, m.model,
+          [handle = std::weak_ptr{m.model->handle()}, fd]() {
+        if(auto h = handle.lock())
+          if(auto* plugin_fd_ext = static_cast<const clap_plugin_posix_fd_support_t*>(
+                 h->plugin->get_extension(h->plugin, CLAP_EXT_POSIX_FD_SUPPORT)))
+          {
+            plugin_fd_ext->on_fd(h->plugin, fd, CLAP_POSIX_FD_ERROR);
+          }
       });
     }
     notifiers->error->setEnabled(true);
@@ -282,17 +313,19 @@ bool modify_fd(const clap_host_t* host, int fd, clap_posix_fd_flags_t flags)
 
 bool unregister_fd(const clap_host_t* host, int fd)
 {
-  auto& m = *static_cast<Clap::Model*>(host->host_data);
+  auto& m = *static_cast<Clap::PluginHandle*>(host->host_data);
+  if(!m.model)
+    return false;
 
-  auto it = m.fd_notifiers.find(fd);
-  if(it == m.fd_notifiers.end())
+  auto it = m.model->fd_notifiers.find(fd);
+  if(it == m.model->fd_notifiers.end())
   {
     qWarning() << "CLAP: Attempted to unregister unregistered fd" << fd;
     return false;
   }
 
   // QSocketNotifier objects will be automatically destroyed by unique_ptr
-  m.fd_notifiers.erase(it);
+  m.model->fd_notifiers.erase(it);
   return true;
 }
 
@@ -355,11 +388,12 @@ static constexpr clap_host_params_t host_params_ext
   // TODO
   qDebug(Q_FUNC_INFO);
 }, .request_flush = [](const clap_host_t* host) {
-  auto& m = *static_cast<Clap::Model*>(host->host_data);
-  if(!m.executing())
+  qDebug(Q_FUNC_INFO);
+  auto& m = *static_cast<Clap::PluginHandle*>(host->host_data);
+  if(!m.model)
     return;
 
-  auto plugin = m.handle()->plugin;
+  auto plugin = m.plugin;
   auto params
       = (const clap_plugin_params_t*)plugin->get_extension(plugin, CLAP_EXT_PARAMS);
   if(!params)
@@ -367,7 +401,8 @@ static constexpr clap_host_params_t host_params_ext
   if(!params->flush)
     return;
 
-  m.requestFlush();
+  if(!m.model->executing())
+    m.model->flushFromPluginToHost();
 }};
 
 static constexpr clap_host_gui_t host_gui_ext
@@ -379,8 +414,9 @@ static constexpr clap_host_gui_t host_gui_ext
 
 static constexpr clap_host_track_info_t host_track_info_ext
     = {.get = [](const clap_host_t* host, clap_track_info_t* info) -> bool {
-  auto& m = *static_cast<Clap::Model*>(host->host_data);
-  auto* parent = Scenario::closestParentInterval(&m);
+  auto& m = *static_cast<Clap::PluginHandle*>(host->host_data);
+  return false;
+  auto* parent = Scenario::closestParentInterval(m.model);
   if(!parent)
     return false;
   info->flags = CLAP_TRACK_INFO_HAS_TRACK_NAME | CLAP_TRACK_INFO_HAS_TRACK_COLOR;
@@ -465,13 +501,16 @@ static constexpr clap_host_preset_load_t host_preset_load_ext
 
 static constexpr clap_host_remote_controls_t host_remote_control_ext
     = {.changed = [](const clap_host_t* host) {
+  qDebug(Q_FUNC_INFO);
   // TODO
 }, .suggest_page = [](const clap_host_t* host, clap_id page_id) {
+  qDebug(Q_FUNC_INFO);
   // TODO
 }};
 
 static constexpr clap_host_tail_t host_tail_ext
     = {.changed = [](const clap_host_t* host) {
+  qDebug(Q_FUNC_INFO);
   // TODO
 }};
 
@@ -486,12 +525,14 @@ static constexpr clap_host_thread_check_t host_thread_check_ext = {
 
 static constexpr clap_host_thread_pool host_thread_pool_ext
     = {.request_exec = [](const clap_host_t* host, uint32_t num_tasks) -> bool {
+  qDebug(Q_FUNC_INFO);
   // TODO
   return false;
 }};
 
 static constexpr clap_host_voice_info_t host_voice_info_ext
     = {.changed = [](const clap_host_t* host) {
+  qDebug(Q_FUNC_INFO);
   // TODO
 }};
 
@@ -625,11 +666,13 @@ static constexpr clap_host_context_menu_t host_context_menu_ext = {
 
     .popup = [](const clap_host_t* host, const clap_context_menu_target_t* target,
                 int32_t screen_index, int32_t x, int32_t y) -> bool {
-  auto& model = *static_cast<Clap::Model*>(host->host_data);
+  auto& m = *static_cast<Clap::PluginHandle*>(host->host_data);
+  if(!m.model)
+    return false;
+  auto& model = *m.model;
   // Get the plugin's context menu extension
   auto* plugin_context_menu = static_cast<const clap_plugin_context_menu_t*>(
-      model.handle()->plugin->get_extension(
-          model.handle()->plugin, CLAP_EXT_CONTEXT_MENU));
+      m.plugin->get_extension(m.plugin, CLAP_EXT_CONTEXT_MENU));
 
   if(!plugin_context_menu)
     return false;
@@ -639,14 +682,14 @@ static constexpr clap_host_context_menu_t host_context_menu_ext = {
 
   // Create builder context
   context_menu_builder_impl builder_ctx(
-      menu.get(), model.handle()->plugin, plugin_context_menu, target);
+      menu.get(), m.plugin, plugin_context_menu, target);
   clap_context_menu_builder_t builder
       = {.ctx = &builder_ctx,
          .add_item = context_menu_add_item,
          .supports = context_menu_supports};
 
   // Let the plugin populate the menu
-  if(!plugin_context_menu->populate(model.handle()->plugin, target, &builder))
+  if(!plugin_context_menu->populate(m.plugin, target, &builder))
     return false;
 
   // Show the menu at the specified position
@@ -714,21 +757,34 @@ PluginHandle::PluginHandle()
     return nullptr;
   };
   host.request_restart = [](const clap_host* host) {
-    auto& m = *static_cast<Clap::Model*>(host->host_data);
-    QMetaObject::invokeMethod(&m, [&m] {
-      auto plug = m.handle()->plugin;
-      plug->on_main_thread(plug);
+    auto& m = *static_cast<Clap::PluginHandle*>(host->host_data);
+    if(!m.model)
+      return;
+    QMetaObject::invokeMethod(m.model, [handle = std::weak_ptr{m.model->handle()}] {
+      if(auto h = handle.lock())
+      {
+        // FIXME implement restart
+        auto plug = h->plugin;
+        plug->on_main_thread(plug);
+      }
     }, Qt::QueuedConnection);
   };
   host.request_process = [](const clap_host* host) {
-    auto& m = *static_cast<Clap::Model*>(host->host_data);
+    auto& m = *static_cast<Clap::PluginHandle*>(host->host_data);
+    if(!m.model)
+      return;
     // unused in score
   };
   host.request_callback = [](const clap_host* host) {
-    auto& m = *static_cast<Clap::Model*>(host->host_data);
-    QMetaObject::invokeMethod(&m, [&m] {
-      auto plug = m.handle()->plugin;
-      plug->on_main_thread(plug);
+    auto& m = *static_cast<Clap::PluginHandle*>(host->host_data);
+    if(!m.model)
+      return;
+    QMetaObject::invokeMethod(m.model, [handle = std::weak_ptr{m.model->handle()}] {
+      if(auto h = handle.lock())
+      {
+        auto plug = h->plugin;
+        plug->on_main_thread(plug);
+      }
     }, Qt::QueuedConnection);
   };
 }
@@ -802,7 +858,7 @@ Model::Model(
     const TimeVal& duration, const QString& pluginId,
     const Id<Process::ProcessModel>& id, QObject* parent)
     : Process::ProcessModel{duration, id, "ClapProcess", parent}
-    , m_plugin{std::make_unique<PluginHandle>()}
+    , m_plugin{std::make_shared<PluginHandle>()}
 {
   auto plug = pluginId.split(":::");
   SCORE_ASSERT(plug.size() == 2);
@@ -815,7 +871,7 @@ Model::Model(
 
 Model::Model(DataStream::Deserializer& vis, QObject* parent)
     : Process::ProcessModel{vis, parent}
-    , m_plugin{std::make_unique<PluginHandle>()}
+    , m_plugin{std::make_shared<PluginHandle>()}
 {
   vis.writeTo(*this);
   loadPlugin();
@@ -824,7 +880,7 @@ Model::Model(DataStream::Deserializer& vis, QObject* parent)
 
 Model::Model(JSONObject::Deserializer& vis, QObject* parent)
     : Process::ProcessModel{vis, parent}
-    , m_plugin{std::make_unique<PluginHandle>()}
+    , m_plugin{std::make_shared<PluginHandle>()}
 {
   vis.writeTo(*this);
   loadPlugin();
@@ -833,7 +889,7 @@ Model::Model(JSONObject::Deserializer& vis, QObject* parent)
 
 Model::Model(DataStream::Deserializer&& vis, QObject* parent)
     : Process::ProcessModel{vis, parent}
-    , m_plugin{std::make_unique<PluginHandle>()}
+    , m_plugin{std::make_shared<PluginHandle>()}
 {
   vis.writeTo(*this);
   loadPlugin();
@@ -842,7 +898,7 @@ Model::Model(DataStream::Deserializer&& vis, QObject* parent)
 
 Model::Model(JSONObject::Deserializer&& vis, QObject* parent)
     : Process::ProcessModel{vis, parent}
-    , m_plugin{std::make_unique<PluginHandle>()}
+    , m_plugin{std::make_shared<PluginHandle>()}
 {
   vis.writeTo(*this);
   loadPlugin();
@@ -856,6 +912,7 @@ Model::~Model()
   if(m_plugin->plugin && m_plugin->activated)
   {
     m_plugin->plugin->deactivate(m_plugin->plugin);
+    m_plugin->activated = false;
   }
 
   // Clean up timers
@@ -887,6 +944,8 @@ void Model::closeUI() const
 
 void PluginHandle::load(Model& context, QByteArray path, QByteArray id)
 {
+  this->model = &context;
+
   // Load the library
 #if defined(_WIN32)
   library = LoadLibraryA(path.data());
@@ -907,7 +966,7 @@ void PluginHandle::load(Model& context, QByteArray path, QByteArray id)
   if(!factory)
     return;
 
-  host.host_data = &context;
+  host.host_data = this;
   plugin = factory->create_plugin(factory, &host, id.data());
   if(!plugin)
     return;
@@ -947,10 +1006,51 @@ void Model::loadPlugin()
     loadCLAPState(*m_plugin->plugin, m_loadedState);
   }
 
-  auto& audio_stgs = score::AppContext().settings<Audio::Settings::Model>();
+  m_plugin->activated = false;
 
-  m_plugin->activated = m_plugin->plugin->activate(
-      m_plugin->plugin, audio_stgs.getRate(), 1, audio_stgs.getBufferSize());
+  // Connect parameter value feedback from executor to GUI
+  auto& ctx = score::IDocument::documentContext(*this);
+  auto c = connect(&ctx.coarseUpdateTimer, &QTimer::timeout, this, [this] {
+    if(auto plugin = handle()->plugin)
+    {
+      // Get parameter extension to read current values
+      auto params
+          = (const clap_plugin_params_t*)plugin->get_extension(plugin, CLAP_EXT_PARAMS);
+      if(params)
+      {
+        std::size_t control_idx = 0;
+        for(auto* inlet : inlets())
+        {
+          if(auto* control = qobject_cast<Process::ControlInlet*>(inlet))
+          {
+            if(control_idx < m_plugin->m_parameters_ins.size())
+            {
+              const auto& param_info = m_plugin->m_parameters_ins[control_idx];
+              double current_value = 0.0;
+
+              // Read current parameter value from plugin
+              if(params->get_value(plugin, param_info.id, &current_value))
+              {
+                currentlyReadingValues = true;
+                control->setValue(current_value);
+                currentlyReadingValues = false;
+              }
+            }
+            control_idx++;
+          }
+        }
+      }
+    }
+  });
+
+  // Connect the restart signal
+  connect(this, &Process::ProcessModel::resetExecution, this, [this] {
+    if(m_plugin->plugin && m_plugin->activated)
+    {
+      m_plugin->plugin->deactivate(m_plugin->plugin);
+      m_plugin->activated = false;
+    }
+  }, Qt::QueuedConnection);
 }
 
 void Model::setupControlInlet(
@@ -975,6 +1075,53 @@ void Model::setupControlInlet(
   }
 
   inlet->setDomain(ossia::make_domain(info.min_value, info.max_value));
+
+  connect(
+      inlet, &Process::ControlInlet::valueChanged, this,
+      [this, i = index](const ossia::value& v) {
+    if(executing())
+      return;
+    SCORE_ASSERT(this->parameterInputs().size() > i);
+    auto& param_info = this->parameterInputs()[i];
+    double val = ossia::convert<double>(v);
+
+    auto plugin = m_plugin->plugin;
+    auto params
+        = (const clap_plugin_params_t*)plugin->get_extension(plugin, CLAP_EXT_PARAMS);
+    if(!params)
+      return;
+    clap_event_param_value_t param_event{};
+    param_event.header.size = sizeof(clap_event_param_value_t);
+    param_event.header.time = 0; // Beginning of buffer for now
+    param_event.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
+    param_event.header.type = CLAP_EVENT_PARAM_VALUE;
+    param_event.header.flags = CLAP_EVENT_IS_LIVE;
+    param_event.param_id = param_info.id;
+    param_event.cookie = param_info.cookie;
+    param_event.note_id = -1;
+    param_event.port_index = -1;
+    param_event.channel = -1;
+    param_event.key = -1;
+    param_event.value = val;
+    clap_input_events_t ip;
+    ip.ctx = &param_event;
+    ip.get = +[](const struct clap_input_events* list,
+                 uint32_t index) -> const clap_event_header_t* {
+      if(index == 0)
+      {
+        return (const clap_event_header_t*)&list->ctx;
+      }
+      return nullptr;
+    };
+    ip.size = +[](const struct clap_input_events* list) -> uint32_t { return 1; };
+
+    clap_output_events_t op{
+        .ctx = this,
+        .try_push = [](const struct clap_output_events* list,
+                       const clap_event_header_t* event) { return false; }};
+
+    params->flush(plugin, &ip, &op);
+  });
 }
 
 void Model::setupControlOutlet(
@@ -1013,8 +1160,8 @@ void Model::createControls(bool loading)
   auto audio_ports = (const clap_plugin_audio_ports_t*)m_plugin->plugin->get_extension(
       m_plugin->plugin, CLAP_EXT_AUDIO_PORTS);
   m_supports64 = true;
-  m_audio_ins.clear();
-  m_audio_outs.clear();
+  m_plugin->m_audio_ins.clear();
+  m_plugin->m_audio_outs.clear();
   if(audio_ports)
   {
     auto input_count = audio_ports->count(m_plugin->plugin, true);
@@ -1033,7 +1180,7 @@ void Model::createControls(bool loading)
           m_inlets.push_back(inlet);
         }
 
-        m_audio_ins.push_back(info);
+        m_plugin->m_audio_ins.push_back(info);
         cur_inlet++;
       }
     }
@@ -1057,15 +1204,15 @@ void Model::createControls(bool loading)
           m_outlets.push_back(outlet);
         }
 
-        m_audio_outs.push_back(info);
+        m_plugin->m_audio_outs.push_back(info);
         cur_outlet++;
       }
     }
   }
 
   // Get note ports extension
-  m_midi_ins.clear();
-  m_midi_outs.clear();
+  m_plugin->m_midi_ins.clear();
+  m_plugin->m_midi_outs.clear();
   auto note_ports = (const clap_plugin_note_ports_t*)m_plugin->plugin->get_extension(
       m_plugin->plugin, CLAP_EXT_NOTE_PORTS);
   if(note_ports)
@@ -1084,7 +1231,7 @@ void Model::createControls(bool loading)
           m_inlets.push_back(inlet);
         }
 
-        m_midi_ins.push_back(info);
+        m_plugin->m_midi_ins.push_back(info);
         cur_inlet++;
       }
     }
@@ -1102,7 +1249,7 @@ void Model::createControls(bool loading)
           m_outlets.push_back(outlet);
         }
 
-        m_midi_outs.push_back(info);
+        m_plugin->m_midi_outs.push_back(info);
         cur_outlet++;
       }
     }
@@ -1145,7 +1292,7 @@ void Model::createControls(bool loading)
           }
 
           // Store parameter info for executor
-          m_parameters_ins.push_back(info);
+          m_plugin->m_parameters_ins.push_back(info);
           cur_inlet++;
         }
         else
@@ -1164,11 +1311,11 @@ void Model::createControls(bool loading)
           {
             setupControlOutlet(
                 *params, info, i,
-                qobject_cast<Process::ControlOutlet*>(m_inlets[cur_outlet]));
+                qobject_cast<Process::ControlOutlet*>(m_outlets[cur_outlet]));
           }
 
           // Store parameter info for executor
-          m_parameters_outs.push_back(info);
+          m_plugin->m_parameters_outs.push_back(info);
           cur_outlet++;
         }
       }
@@ -1242,7 +1389,7 @@ void Model::loadPreset(const Process::Preset& preset)
               if(auto ctl = qobject_cast<Process::ControlInlet*>(inlet))
               {
                 // Find parameter by ID and update inlet value
-                for(const auto& param_info : m_parameters_ins)
+                for(const auto& param_info : m_plugin->m_parameters_ins)
                 {
                   if(param_info.id == ctl->id().val())
                   {
@@ -1497,6 +1644,75 @@ std::vector<Process::Preset> Model::builtinPresets() const noexcept
   }
 
   return presets;
+}
+
+void Model::flushFromPluginToHost()
+{
+  auto plugin = m_plugin->plugin;
+  auto params
+      = (const clap_plugin_params_t*)plugin->get_extension(plugin, CLAP_EXT_PARAMS);
+  if(!params)
+    return;
+
+  std::size_t control_idx = 0;
+  for(auto* inlet : inlets())
+  {
+    if(auto* control = qobject_cast<Process::ControlInlet*>(inlet))
+    {
+      if(control_idx < m_plugin->m_parameters_ins.size())
+      {
+        const auto& param_info = m_plugin->m_parameters_ins[control_idx];
+        double current_value = 0.0;
+
+        // Read current parameter value from plugin
+        // Note how here the plug-in changed its values: we want to save this in the data model.
+        if(params->get_value(plugin, param_info.id, &current_value))
+        {
+          control->setValue(current_value);
+        }
+      }
+      control_idx++;
+    }
+  }
+
+  if(this->m_executing)
+    return;
+  /*
+  SCORE_ASSERT(this->parameterInputs().size() > i);
+  auto& param_info = this->parameterInputs()[i];
+  double val = ossia::convert<double>(v);
+
+  clap_event_param_value_t param_event{};
+  param_event.header.size = sizeof(clap_event_param_value_t);
+  param_event.header.time = 0; // Beginning of buffer for now
+  param_event.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
+  param_event.header.type = CLAP_EVENT_PARAM_VALUE;
+  param_event.header.flags = 0;
+  param_event.param_id = param_info.id;
+  param_event.cookie = param_info.cookie;
+  param_event.note_id = -1;
+  param_event.port_index = -1;
+  param_event.channel = -1;
+  param_event.key = -1;
+  param_event.value = val;
+*/
+  clap_input_events_t ip;
+  ip.ctx = this;
+  ip.get = +[](const struct clap_input_events* list,
+               uint32_t index) -> const clap_event_header_t* {
+    if(index == 0)
+    {
+      return (const clap_event_header_t*)&list->ctx;
+    }
+    return nullptr;
+  };
+  ip.size = +[](const struct clap_input_events* list) -> uint32_t { return 1; };
+
+  clap_output_events_t op{
+      .ctx = this,
+      .try_push = [](const struct clap_output_events* list,
+                     const clap_event_header_t* event) { return false; }};
+  params->flush(plugin, &ip, &op);
 }
 }
 

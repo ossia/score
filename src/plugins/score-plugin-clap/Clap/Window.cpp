@@ -15,7 +15,7 @@ namespace Clap
 
 Window::Window(const Model& e, const score::DocumentContext& ctx, QWidget* parent)
     : PluginWindow{ctx.app.settings<Media::Settings::Model>().getVstAlwaysOnTop(), parent}
-    , m_model{e}
+    , m_model{&e}
 {
   const_cast<Model&>(e).window = this;
   m_handle = e.handle();
@@ -30,7 +30,8 @@ Window::Window(const Model& e, const score::DocumentContext& ctx, QWidget* paren
 
 Window::~Window()
 {
-  const_cast<Model&>(m_model).window = nullptr;
+  if(m_model)
+    const_cast<Model&>(*m_model).window = nullptr;
   destroyClapWindow();
 }
 
@@ -209,7 +210,7 @@ void Window::showEvent(QShowEvent* event)
     // Suggest window title
     if(m_gui_ext->suggest_title)
       m_gui_ext->suggest_title(
-          m_handle->plugin, m_model.prettyName().toStdString().c_str());
+          m_handle->plugin, m_model->prettyName().toStdString().c_str());
   }
   
   // Show the GUI
@@ -237,9 +238,12 @@ void Window::closeEvent(QCloseEvent* event)
   destroyClapWindow();
   
   // Clean up model references
-  const_cast<QWidget*&>(m_model.externalUI) = nullptr;
-  m_model.externalUIVisible(false);
-  
+  if(m_model)
+  {
+    const_cast<QWidget*&>(m_model->externalUI) = nullptr;
+    m_model->externalUIVisible(false);
+  }
+
   if(p)
     QDialog::closeEvent(event);
 }
