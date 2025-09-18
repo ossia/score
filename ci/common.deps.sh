@@ -46,6 +46,7 @@ then
   clone_addon https://github.com/ossia/score-addon-deuterium
   clone_addon https://github.com/ossia/score-addon-airwindows
   clone_addon https://github.com/ossia/score-addon-lsl
+  clone_addon https://github.com/ossia/score-addon-bendage
 fi
 
 )
