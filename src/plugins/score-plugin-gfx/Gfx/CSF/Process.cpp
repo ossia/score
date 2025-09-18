@@ -25,39 +25,39 @@ static const auto defaultCSF = QStringLiteral(R"_(/*{
 "CATEGORIES": ["Compute"],
 "RESOURCES": [
   {
+    "NAME": "inputImage",
+    "TYPE": "image",
+    "ACCESS": "read_only",
+    "FORMAT": "RGBA8"
+  },
+  {
+    "NAME": "outputImage",
+    "TYPE": "image", 
+    "ACCESS": "write_only",
+    "FORMAT": "RGBA8"
+  },
+  {
     "NAME": "intensity",
     "TYPE": "float",
     "LABEL": "Intensity",
     "DEFAULT": 1.0,
     "MIN": 0.0,
     "MAX": 2.0
-  },
-  {
-    "NAME": "InputImage",
-    "TYPE": "image",
-    "ACCESS": "read_only",
-    "FORMAT": "RGBA8"
-  },
-  {
-    "NAME": "OutputImage",
-    "TYPE": "image", 
-    "ACCESS": "write_only",
-    "FORMAT": "RGBA8"
-  }
+  }  
 ],
 "PASSES": [{
   "LOCAL_SIZE": [16, 16, 1],
-  "EXECUTION_MODEL": { "TYPE": "2D_IMAGE", "TARGET": "OutputImage" }
+  "EXECUTION_MODEL": { "TYPE": "2D_IMAGE", "TARGET": "outputImage" }
 }]
 }*/
 
 void main() {
     ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
     
-    vec4 color = imageLoad(InputImage, coord);
+    vec4 color = imageLoad(inputImage, coord);
     color.rgb *= intensity;
     
-    imageStore(OutputImage, coord, color);
+    imageStore(outputImage, coord, color);
 }
 )_");
 
