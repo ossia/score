@@ -2,6 +2,7 @@
 
 choco install -y ninja
 choco install -y rsync
+choco install -y nsis
 
 (
 set -x
