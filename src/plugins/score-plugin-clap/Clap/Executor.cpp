@@ -235,7 +235,9 @@ public:
   {
     const double song_pos_beats = tk.musical_start_position;
     const double song_pos_seconds = tk.prev_date.impl * st.samplesToModel();
-    uint32_t transport_flags = 0;
+    uint32_t transport_flags
+        = CLAP_TRANSPORT_HAS_TEMPO | CLAP_TRANSPORT_HAS_BEATS_TIMELINE
+          | CLAP_TRANSPORT_HAS_SECONDS_TIMELINE | CLAP_TRANSPORT_HAS_TIME_SIGNATURE;
     if(tk.prev_date != tk.date)
       transport_flags |= CLAP_TRANSPORT_IS_PLAYING;
 
