@@ -19,12 +19,12 @@
 namespace
 {
 static std::unique_ptr<ossia::resampler>
-make_resampler(const Media::Sound::ProcessModel& element) noexcept
+make_resampler(ossia::audio_stretch_mode mode, const Media::AudioFile& f) noexcept
 {
   auto res = std::make_unique<ossia::resampler>();
-  const auto channels = element.file()->channels();
-  const auto sampleRate = element.file()->sampleRate();
-  res->reset(0, element.stretchMode(), channels, sampleRate);
+  const auto channels = f.channels();
+  const auto sampleRate = f.sampleRate();
+  res->reset(0, mode, channels, sampleRate);
   return res;
 }
 
@@ -43,6 +43,7 @@ public:
     struct
     {
       Execution::SoundComponent& component;
+      const AudioFile& file;
       void operator()(ossia::monostate) const noexcept
       {
         // Note : we need to construct a dummy node in case there is nothing,
@@ -63,7 +64,7 @@ public:
             *component.system().execState.get());
         component.node = node;
         component.m_ossia_process = std::make_shared<ossia::sound_process>(node);
-        update_ref(node, r, component, commands);
+        update_ref(node, file, r, component, commands);
 
         commands.run_all();
       }
@@ -75,7 +76,7 @@ public:
             *component.system().execState.get());
         component.node = node;
         component.m_ossia_process = std::make_shared<ossia::sound_process>(node);
-        update_libav(node, r, component, commands);
+        update_libav(node, file, r, component, commands);
 
         commands.run_all();
       }
@@ -87,7 +88,7 @@ public:
             *component.system().execState.get());
         component.node = node;
         component.m_ossia_process = std::make_shared<ossia::sound_process>(node);
-        update_sndfile(node, r, component, commands);
+        update_sndfile(node, file, r, component, commands);
 
         commands.run_all();
       }
@@ -99,22 +100,23 @@ public:
             *component.system().execState.get());
         component.node = node;
         component.m_ossia_process = std::make_shared<ossia::sound_process>(node);
-        update_mmap(node, r, component, commands);
+        update_mmap(node, file, r, component, commands);
 
         commands.run_all();
       }
-    } _{component};
+    } _{component, *handle};
     ossia::apply(_, handle->m_impl);
   }
 
   static void update(Execution::SoundComponent& component)
   {
     Sound::ProcessModel& element = component.process();
-    auto handle = element.file();
+    std::shared_ptr<AudioFile> handle = element.file();
 
     struct
     {
       Execution::SoundComponent& component;
+      AudioFile& file;
       void operator()(ossia::monostate) const noexcept { return; }
 
       void replace_node(
@@ -148,13 +150,13 @@ public:
 
         if(auto nr = std::dynamic_pointer_cast<ossia::nodes::sound_ref>(old_node))
         {
-          update_ref(nr, r, component, commands);
+          update_ref(nr, file, r, component, commands);
         }
         else
         {
           auto n = ossia::make_node<ossia::nodes::sound_ref>(
               *component.system().execState.get());
-          update_ref(n, r, component, commands);
+          update_ref(n, file, r, component, commands);
           this->replace_node(old_node, n, commands);
         }
 
@@ -167,13 +169,13 @@ public:
 
         if(auto nr = std::dynamic_pointer_cast<ossia::nodes::sound_libav>(old_node))
         {
-          update_libav(nr, r, component, commands);
+          update_libav(nr, file, r, component, commands);
         }
         else
         {
           auto n = ossia::make_node<ossia::nodes::sound_libav>(
               *component.system().execState.get());
-          update_libav(n, r, component, commands);
+          update_libav(n, file, r, component, commands);
           this->replace_node(old_node, n, commands);
         }
 
@@ -186,13 +188,13 @@ public:
 
         if(auto nr = std::dynamic_pointer_cast<ossia::nodes::sound_ref>(old_node))
         {
-          update_sndfile(nr, r, component, commands);
+          update_sndfile(nr, file, r, component, commands);
         }
         else
         {
           auto n = ossia::make_node<ossia::nodes::sound_ref>(
               *component.system().execState.get());
-          update_sndfile(n, r, component, commands);
+          update_sndfile(n, file, r, component, commands);
           this->replace_node(old_node, n, commands);
         }
 
@@ -208,32 +210,32 @@ public:
 
         if(auto nm = std::dynamic_pointer_cast<ossia::nodes::sound_mmap>(old_node))
         {
-          update_mmap(nm, r, component, commands);
+          update_mmap(nm, file, r, component, commands);
         }
         else
         {
           auto n = ossia::make_node<ossia::nodes::sound_mmap>(
               *component.system().execState.get());
-          update_mmap(n, r, component, commands);
+          update_mmap(n, file, r, component, commands);
           this->replace_node(old_node, n, commands);
         }
 
         commands.run_all();
       }
-    } _{component};
+    } _{component, *handle};
 
     ossia::apply(_, handle->m_impl);
   }
 
   static void update_libav(
-      const std::shared_ptr<ossia::nodes::sound_libav>& n,
+      const std::shared_ptr<ossia::nodes::sound_libav>& n, const AudioFile& handle,
       const Media::AudioFile::LibavStreamReader& r, Execution::SoundComponent& component,
       Execution::Transaction& commands)
   {
     auto& p = component.process();
     commands.push_back([n, r = r, samplerate = component.system().execState->sampleRate,
                         tempo = component.process().nativeTempo(),
-                        res = make_resampler(component.process()),
+                        res = make_resampler(component.process().stretchMode(), handle),
                         upmix = p.upmixChannels(), start = p.startChannel()]() mutable {
       ossia::libav_handle h;
       h.open(r.path, r.stream, samplerate);
@@ -247,7 +249,7 @@ public:
   }
 
   static void update_ref(
-      const std::shared_ptr<ossia::nodes::sound_ref>& n,
+      const std::shared_ptr<ossia::nodes::sound_ref>& n, const AudioFile& handle,
       const std::shared_ptr<Media::AudioFile::LibavReader>& r,
       Execution::SoundComponent& component, Execution::Transaction& commands)
   {
@@ -255,7 +257,7 @@ public:
     commands.push_back([n, data = r->handle, channels = r->decoder.channels,
                         sampleRate = r->decoder.convertedSampleRate,
                         tempo = component.process().nativeTempo(),
-                        res = make_resampler(component.process()),
+                        res = make_resampler(component.process().stretchMode(), handle),
                         upmix = p.upmixChannels(), start = p.startChannel()]() mutable {
       n->set_sound(std::move(data), channels, sampleRate);
       n->set_start(start);
@@ -266,7 +268,7 @@ public:
   }
 
   static void update_sndfile(
-      const std::shared_ptr<ossia::nodes::sound_ref>& n,
+      const std::shared_ptr<ossia::nodes::sound_ref>& n, const AudioFile& handle,
       const Media::AudioFile::SndfileReader& r, Execution::SoundComponent& component,
       Execution::Transaction& commands)
   {
@@ -274,7 +276,7 @@ public:
     commands.push_back([n, data = r.handle, channels = r.decoder.channels,
                         sampleRate = r.decoder.convertedSampleRate,
                         tempo = component.process().nativeTempo(),
-                        res = make_resampler(component.process()),
+                        res = make_resampler(component.process().stretchMode(), handle),
                         upmix = p.upmixChannels(), start = p.startChannel()]() mutable {
       n->set_sound(std::move(data), channels, sampleRate);
       n->set_start(start);
@@ -285,14 +287,14 @@ public:
   }
 
   static void update_mmap(
-      const std::shared_ptr<ossia::nodes::sound_mmap>& n,
+      const std::shared_ptr<ossia::nodes::sound_mmap>& n, const AudioFile& handle,
       const Media::AudioFile::MmapReader& r, Execution::SoundComponent& component,
       Execution::Transaction& commands)
   {
     auto& p = component.process();
     commands.push_back([n, data = r.wav, channels = r.wav.channels(),
                         tempo = component.process().nativeTempo(),
-                        res = make_resampler(component.process()),
+                        res = make_resampler(component.process().stretchMode(), handle),
                         upmix = p.upmixChannels(), start = p.startChannel()]() mutable {
       n->set_sound(std::move(data));
       n->set_start(start);
@@ -341,9 +343,8 @@ SoundComponent::SoundComponent(
         [start = element.nativeTempo()](auto& node) { node.set_native_tempo(start); });
   });
   con(element, &Media::Sound::ProcessModel::stretchModeChanged, this, [=, &element] {
-    node_action([r = make_resampler(element)](auto& node) mutable {
-      node.set_resampler(std::move(*r));
-    });
+    node_action([r = make_resampler(element.stretchMode(), *element.file())](
+                    auto& node) mutable { node.set_resampler(std::move(*r)); });
   });
 
   if(auto& file = element.file())
