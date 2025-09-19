@@ -5,6 +5,7 @@
 
 #include <QApplication>
 #include <QDir>
+#include <QDirIterator>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -117,6 +118,7 @@ void ApplicationPlugin::rescanPlugins()
             + "/Library/Audio/Plug-Ins/CLAP");
 #elif defined(_WIN32)
   paths << "C:/Program Files/Common Files/CLAP"
+        << "C:/Program Files/Common Files/Audio Plugins/CLAP"
         << QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)
                + "/CLAP";
 #else
@@ -146,34 +148,33 @@ void ApplicationPlugin::rescanPlugins()
 
   for(const QString& searchPath : paths)
   {
-    QDir dir(searchPath);
-    if(!dir.exists())
+    if(!QDir{searchPath}.isReadable())
       continue;
 
-    QStringList filters;
-    filters << "*.clap";
-
-    for(const QString& fileName : dir.entryList(filters, QDir::Files | QDir::Dirs))
+    QDirIterator it(
+        searchPath, QStringList{"*.clap"}, QDir::Files | QDir::Dirs,
+        QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
+    while(it.hasNext())
     {
-      QString fullPath = dir.absoluteFilePath(fileName);
-      if(known_plugins_paths.contains(fullPath))
+      auto fileName = it.next();
+      if(known_plugins_paths.contains(fileName))
         continue;
 
 #if defined(__APPLE__)
-      if(QFileInfo{fullPath}.isDir())
-        fullPath = fullPath
+      if(QFileInfo{fileName}.isDir())
+        fileName = fileName
                    + QString{"/Contents/MacOS/%1"}.arg(QFileInfo{fileName}.baseName());
 #endif
-      pluginsToScan.push_back(fullPath);
+      pluginsToScan.push_back(fileName);
     }
   }
-  
+
   // Queue all plugins for scanning
   for(const auto& path : pluginsToScan)
   {
     m_pluginQueue.push_back(path);
   }
-  
+
   // Start scanning processes
   scanNextBatch();
 }
@@ -196,24 +197,13 @@ void ApplicationPlugin::scanNextBatch()
     m_pluginQueue.pop_back();
 
     int id = m_processCount++;
-    auto proc = new QProcess;
+    QPointer<QProcess> proc = new QProcess;
+    // proc->setProcessChannelMode(QProcess::ProcessChannelMode::ForwardedChannels);
     m_processes[id] = proc;
 
-    connect(proc, &QProcess::finished, this, [this, id, pluginPath, proc](int exitCode, QProcess::ExitStatus) {
-      m_processes.erase(id);
-      proc->deleteLater();
-      
-      if(exitCode != 0)
-      {
-        qDebug() << "CLAP scan failed for:" << pluginPath;
-        addInvalidPlugin(pluginPath);
-      }
-
-      // Continue scanning
-      scanNextBatch();
-    });
-
-    connect(proc, &QProcess::errorOccurred, this, [this, id, pluginPath, proc](QProcess::ProcessError err) {
+    connect(
+        proc, &QProcess::errorOccurred, this,
+        [this, id, pluginPath, proc](QProcess::ProcessError err) {
       qDebug() << "CLAP scan error for:" << pluginPath << "error:" << err;
       m_processes.erase(id);
       proc->deleteLater();
@@ -229,13 +219,33 @@ void ApplicationPlugin::scanNextBatch()
       if(m_processes.find(id) != m_processes.end())
       {
         qDebug() << "CLAP scan timeout for:" << pluginPath;
-        proc->terminate();
-        if(!proc->waitForFinished(100))
-          proc->kill();
+        if(proc)
+        {
+          proc->terminate();
+          if(!proc->waitForFinished(100))
+            proc->kill();
+        }
       }
       timer->deleteLater();
     });
-    connect(proc, &QProcess::finished, timer, &QTimer::deleteLater);
+
+    connect(
+        proc, &QProcess::finished, this,
+        [this, id, pluginPath, proc, timer](int exitCode, QProcess::ExitStatus) {
+      m_processes.erase(id);
+      if(proc)
+        proc->deleteLater();
+
+      if(exitCode != 0)
+      {
+        qDebug() << "CLAP scan failed for:" << pluginPath;
+        addInvalidPlugin(pluginPath);
+      }
+
+      // Continue scanning
+      scanNextBatch();
+      timer->deleteLater();
+    });
     timer->start();
 
     // Launch the puppet process
@@ -257,24 +267,29 @@ void ApplicationPlugin::processIncomingMessage(const QString& txt)
 
     auto obj = json.object();
     auto req = obj["Request"].toInt();
-    for(auto it = m_processes.begin(); it != m_processes.end();)
+
+    auto it = m_processes.find(req);
+    if(it != m_processes.end())
     {
-      if(it->first == req)
+      if(auto proc = it->second)
       {
-        auto proc = it->second;
-        QObject::disconnect(it->second, nullptr, this, nullptr);
+        QObject::disconnect(proc, nullptr, this, nullptr);
         proc->terminate();
         if(proc)
-          if(!proc->waitForFinished(100))
-            proc->kill();
-        proc->deleteLater();
-        it = m_processes.erase(it);
-        break;
+        {
+          QTimer::singleShot(100000, this, [proc] {
+            if(proc)
+            {
+              if(proc->state() != QProcess::NotRunning)
+                proc->kill();
+
+              if(proc)
+                proc->deleteLater();
+            }
+          });
+        }
       }
-      else
-      {
-        ++it;
-      }
+      m_processes.erase(req);
     }
 
     auto path = obj["Path"].toString();

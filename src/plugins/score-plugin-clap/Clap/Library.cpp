@@ -61,8 +61,10 @@ void LibraryHandler::setup(
 
     int k = 0;
     for(const auto& clap : plug.plugins())
-      if(!clap.valid)
+    {
+      if(clap.valid)
         k++;
+    }
     if(k > 0)
     {
       model.beginInsertRows(node, 0, k - 1);

@@ -373,7 +373,7 @@ static constexpr clap_host_posix_fd_support_t host_posix_fd_ext = {
 
 static constexpr clap_host_state_t host_state_ext
     = {.mark_dirty = [](const clap_host_t*) {
-  qDebug(Q_FUNC_INFO);
+  // qDebug(Q_FUNC_INFO);
   // TODO
 
   // FIXME likely we want to accumulate and serialize the state of the plugin
@@ -383,12 +383,12 @@ static constexpr clap_host_state_t host_state_ext
 static constexpr clap_host_params_t host_params_ext
     = {.rescan = [](const clap_host_t* host, clap_param_rescan_flags flags) {
   // TODO
-  qDebug(Q_FUNC_INFO);
+  // qDebug(Q_FUNC_INFO);
 }, .clear = [](const clap_host_t* host, clap_id param_id, clap_param_clear_flags flags) {
   // TODO
-  qDebug(Q_FUNC_INFO);
+  //  qDebug(Q_FUNC_INFO);
 }, .request_flush = [](const clap_host_t* host) {
-  qDebug(Q_FUNC_INFO);
+  //  qDebug(Q_FUNC_INFO);
   auto& m = *static_cast<Clap::PluginHandle*>(host->host_data);
   if(!m.model)
     return;
@@ -501,16 +501,16 @@ static constexpr clap_host_preset_load_t host_preset_load_ext
 
 static constexpr clap_host_remote_controls_t host_remote_control_ext
     = {.changed = [](const clap_host_t* host) {
-  qDebug(Q_FUNC_INFO);
+  // qDebug(Q_FUNC_INFO);
   // TODO
 }, .suggest_page = [](const clap_host_t* host, clap_id page_id) {
-  qDebug(Q_FUNC_INFO);
+  //  qDebug(Q_FUNC_INFO);
   // TODO
 }};
 
 static constexpr clap_host_tail_t host_tail_ext
     = {.changed = [](const clap_host_t* host) {
-  qDebug(Q_FUNC_INFO);
+  //   qDebug(Q_FUNC_INFO);
   // TODO
 }};
 
@@ -525,14 +525,14 @@ static constexpr clap_host_thread_check_t host_thread_check_ext = {
 
 static constexpr clap_host_thread_pool host_thread_pool_ext
     = {.request_exec = [](const clap_host_t* host, uint32_t num_tasks) -> bool {
-  qDebug(Q_FUNC_INFO);
+  //   qDebug(Q_FUNC_INFO);
   // TODO
   return false;
 }};
 
 static constexpr clap_host_voice_info_t host_voice_info_ext
     = {.changed = [](const clap_host_t* host) {
-  qDebug(Q_FUNC_INFO);
+  //   qDebug(Q_FUNC_INFO);
   // TODO
 }};
 
@@ -1002,39 +1002,40 @@ void Model::loadPlugin()
   m_plugin->activated = false;
 
   // Connect parameter value feedback from executor to GUI
-  auto& ctx = score::IDocument::documentContext(*this);
-  auto c = connect(&ctx.coarseUpdateTimer, &QTimer::timeout, this, [this] {
-    if(auto plugin = handle()->plugin)
-    {
-      // Get parameter extension to read current values
-      auto params
-          = (const clap_plugin_params_t*)plugin->get_extension(plugin, CLAP_EXT_PARAMS);
-      if(params)
+  if(auto params = m_plugin->ext_params)
+  {
+    auto& ctx = score::IDocument::documentContext(*this);
+    auto c = connect(&ctx.coarseUpdateTimer, &QTimer::timeout, this, [this] {
+      auto h = handle();
+      if(!h)
+        return;
+      auto plugin = h->plugin;
+      if(!plugin)
+        return;
+      auto params = m_plugin->ext_params;
+      std::size_t control_idx = 0;
+      for(auto* inlet : inlets())
       {
-        std::size_t control_idx = 0;
-        for(auto* inlet : inlets())
+        if(auto* control = qobject_cast<Process::ControlInlet*>(inlet))
         {
-          if(auto* control = qobject_cast<Process::ControlInlet*>(inlet))
+          if(control_idx < m_plugin->m_parameters_ins.size())
           {
-            if(control_idx < m_plugin->m_parameters_ins.size())
-            {
-              const auto& param_info = m_plugin->m_parameters_ins[control_idx];
-              double current_value = 0.0;
+            const auto& param_info = m_plugin->m_parameters_ins[control_idx];
+            double current_value = 0.0;
 
-              // Read current parameter value from plugin
-              if(params->get_value(plugin, param_info.id, &current_value))
-              {
-                currentlyReadingValues = true;
-                control->setValue(current_value);
-                currentlyReadingValues = false;
-              }
+            // Read current parameter value from plugin
+            if(params->get_value(plugin, param_info.id, &current_value))
+            {
+              currentlyReadingValues = true;
+              control->setValue(current_value);
+              currentlyReadingValues = false;
             }
-            control_idx++;
           }
+          control_idx++;
         }
       }
-    }
-  });
+    });
+  }
 
   // Connect the restart signal
   connect(this, &Process::ProcessModel::resetExecution, this, [this] {

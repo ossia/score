@@ -59,7 +59,7 @@ private:
   void addInvalidPlugin(const QString& path);
   
   QWebSocketServer m_wsServer;
-  std::map<int, QProcess*> m_processes;
+  std::map<int, QPointer<QProcess>> m_processes;
   std::vector<QString> m_pluginQueue;
   int m_processCount{0};
   static constexpr int max_in_flight = 8;
