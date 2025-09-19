@@ -174,6 +174,8 @@ public:
   QWidget* externalUI{};
 
   /// Execution
+  bool executing() const noexcept { return m_executing; }
+  void setExecuting(bool v);
   void startExecution() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, startExecution)
   void stopExecution() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, stopExecution)
   void resetExecution() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, resetExecution)
@@ -228,6 +230,7 @@ private:
   QPointF m_position{};
   QSizeF m_size{};
   bool m_loops{};
+  bool m_executing{};
 };
 
 SCORE_LIB_PROCESS_EXPORT

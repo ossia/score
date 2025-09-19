@@ -331,6 +331,11 @@ void ProcessModel::setSlotHeight(double v) noexcept
   slotHeightChanged(v);
 }
 
+void ProcessModel::setExecuting(bool e)
+{
+  m_executing = e;
+}
+
 std::optional<Process::MagneticInfo>
 ProcessModel::magneticPosition(const QObject* o, const TimeVal t) const noexcept
 {

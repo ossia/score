@@ -63,7 +63,11 @@ public:
   virtual ~ProcessComponent();
 
   virtual void cleanup();
-  virtual void stop() { process().stopExecution(); }
+  virtual void stop()
+  {
+    process().setExecuting(false);
+    process().stopExecution();
+  }
 
   const std::shared_ptr<ossia::time_process>& OSSIAProcessPtr()
   {

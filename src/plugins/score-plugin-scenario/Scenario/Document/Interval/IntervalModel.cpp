@@ -299,6 +299,7 @@ void IntervalModel::startExecution()
 {
   for(Process::ProcessModel& proc : processes)
   {
+    proc.setExecuting(true);
     proc.startExecution(); // prevents editing
   }
 }
@@ -310,6 +311,7 @@ void IntervalModel::stopExecution()
 
   for(Process::ProcessModel& proc : processes)
   {
+    proc.setExecuting(false);
     proc.stopExecution();
   }
   setExecuting(false);
@@ -324,6 +326,7 @@ void IntervalModel::reset()
 
   for(Process::ProcessModel& proc : processes)
   {
+    proc.setExecuting(false);
     proc.resetExecution();
     proc.stopExecution();
   }

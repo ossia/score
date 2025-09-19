@@ -515,6 +515,7 @@ void IntervalComponentBase::executionStarted()
   interval().executionEvent(Scenario::IntervalExecutionEvent::Playing);
   for(Process::ProcessModel& proc : interval().processes)
   {
+    proc.setExecuting(true);
     proc.startExecution();
     proc.benchmark(-1.);
   }
@@ -528,6 +529,7 @@ void IntervalComponentBase::executionStopped()
     interval().executionEvent(Scenario::IntervalExecutionEvent::Stopped);
     for(Process::ProcessModel& proc : interval().processes)
     {
+      proc.setExecuting(false);
       proc.stopExecution();
       proc.benchmark(-1.);
     }

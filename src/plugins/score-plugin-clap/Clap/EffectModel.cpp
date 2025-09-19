@@ -992,13 +992,6 @@ void Model::loadPlugin()
   if(m_pluginPath.isEmpty() || m_pluginId.isEmpty())
     return;
 
-  connect(this, &Process::ProcessModel::startExecution, this, [this] {
-    m_executing = true;
-  });
-  connect(this, &Process::ProcessModel::stopExecution, this, [this] {
-    m_executing = false;
-  });
-
   m_plugin->load(*this, m_pluginPath.toUtf8(), m_pluginId.toUtf8());
 
   if(m_plugin->plugin && !m_loadedState.isEmpty())
@@ -1675,7 +1668,7 @@ void Model::flushFromPluginToHost()
     }
   }
 
-  if(this->m_executing)
+  if(this->executing())
     return;
   /*
   SCORE_ASSERT(this->parameterInputs().size() > i);

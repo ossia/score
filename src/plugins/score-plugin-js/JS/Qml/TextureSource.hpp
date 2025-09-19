@@ -1,5 +1,6 @@
 #pragma once
 #if defined(SCORE_HAS_GPU_JS)
+#include <Execution/DocumentPlugin.hpp>
 #include <Gfx/GfxContext.hpp>
 #include <Gfx/TexturePort.hpp>
 
@@ -54,16 +55,20 @@ protected:
 private:
   friend class TextureSourceRenderer;
   void rebuild();
+  void do_rebuild();
   bool connectToOutlet();
   void disconnectFromOutlet();
   QRhiTexture* extractTextureFromNode();
 
   QPointer<Gfx::TextureOutlet> m_outlet{};
   QPointer<Gfx::DocumentPlugin> m_gfxPlugin{};
+  QPointer<Execution::DocumentPlugin> m_execPlugin{};
+  QPointer<Process::ProcessModel> m_processPtr;
 
   // For texture extraction from the graph
   bool m_isConnected = false;
-  int m_nodeId{};
+  bool m_needsRebuild = false;
+  int m_nodeId{-1};
 };
 
 }

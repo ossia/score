@@ -108,7 +108,6 @@ public:
 
   const QString& pluginId() const noexcept { return m_pluginId; }
   bool supports64() const noexcept { return m_supports64; }
-  bool executing() const noexcept { return m_executing; }
 
   const std::vector<clap_param_info_t>& parameterInputs() const noexcept
   {
@@ -175,9 +174,6 @@ private:
   QByteArray m_loadedState;
 
   bool m_supports64{};
-
-public:
-  bool m_executing{};
 };
 }
 

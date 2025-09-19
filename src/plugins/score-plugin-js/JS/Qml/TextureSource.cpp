@@ -5,6 +5,9 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
 
+#include <Execution/DocumentPlugin.hpp>
+#include <Execution/ExecutionController.hpp>
+#include <Execution/Settings/ExecutorModel.hpp>
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/Graph/Graph.hpp>
 #include <Gfx/Graph/Node.hpp>
@@ -41,17 +44,16 @@ public:
   void rebuild();
   void clear()
   {
+    if(m_nodeId < 0)
+      return;
+    if(m_screenId < 0)
+      return;
     if(!item)
       return;
     if(!item->m_gfxPlugin)
       return;
 
     auto& graph = item->m_gfxPlugin->context;
-
-    if(m_nodeId < 0)
-      return;
-    if(m_screenId < 0)
-      return;
     // fixme clear m_extractionNode
     graph.disconnect_preview_node(Gfx::EdgeSpec{{m_nodeId, 0}, {m_screenId, 0}});
     graph.unregister_preview_node(m_screenId);
@@ -209,57 +211,91 @@ void TextureSource::geometryChange(const QRectF& newGeometry, const QRectF& oldG
 
 void TextureSource::rebuild()
 {
-  update();
+  // Debounce
+  m_needsRebuild = true;
+  QTimer::singleShot(1, this, [this] {
+    if(!m_needsRebuild)
+      return;
+    m_needsRebuild = false;
+    do_rebuild();
+  });
+}
+
+void TextureSource::do_rebuild()
+{
   disconnectFromOutlet();
+  update();
   m_outlet = nullptr;
 
   if(!window())
-  {
     return;
-  }
 
   auto doc = score::GUIAppContext().documents.currentDocument();
   if(!doc)
-  {
     return;
-  }
 
-  // Find the GFX plugin
+  // Find the plugins we need
   m_gfxPlugin = doc->context().findPlugin<Gfx::DocumentPlugin>();
   if(!m_gfxPlugin)
-  {
     return;
-  }
+  m_execPlugin = doc->context().findPlugin<Execution::DocumentPlugin>();
+  if(!m_execPlugin)
+    return;
+
+  constexpr auto rebuild_connect_flags
+      = (Qt::ConnectionType)(Qt::QueuedConnection | Qt::UniqueConnection);
+  connect(
+      &m_execPlugin->executionController().transport(),
+      &Execution::TransportInterface::play, this, &TextureSource::rebuild,
+      rebuild_connect_flags);
+  connect(
+      &m_execPlugin->executionController().transport(),
+      &Execution::TransportInterface::stop, this, &TextureSource::rebuild,
+      rebuild_connect_flags);
+
+  if(!m_execPlugin->isPlaying())
+    return;
 
   // Find the process
   auto& model = doc->model().modelDelegate();
   const auto processes = model.findChildren<Process::ProcessModel*>(
       QString{}, Qt::FindChildrenRecursively);
 
-  Process::ProcessModel* process = nullptr;
   for(const auto& proc : processes)
   {
     if(proc->metadata().getLabel() == m_process
        || proc->metadata().getName() == m_process)
     {
-      process = proc;
+      m_processPtr = proc;
       break;
     }
   }
 
-  if(!process)
+  if(!m_processPtr)
   {
     return;
   }
+  connect(
+      m_processPtr, &Process::ProcessModel::startExecution, this,
+      &TextureSource::rebuild, rebuild_connect_flags);
+  connect(
+      m_processPtr, &Process::ProcessModel::stopExecution, this, &TextureSource::rebuild,
+      rebuild_connect_flags);
+  connect(
+      m_processPtr, &Process::ProcessModel::resetExecution, this,
+      &TextureSource::rebuild, rebuild_connect_flags);
+
+  if(!m_processPtr->executing())
+    return;
 
   // Find the texture outlet
   if(m_port.typeId() == QMetaType::Type::QString)
   {
     auto port_name = m_port.value<QString>();
-    m_outlet = process->findChild<Gfx::TextureOutlet*>(port_name);
+    m_outlet = m_processPtr->findChild<Gfx::TextureOutlet*>(port_name);
     if(!m_outlet)
     {
-      auto& outlets = process->outlets();
+      auto& outlets = m_processPtr->outlets();
       for(auto& outl : outlets)
       {
         if(outl->name() == port_name)
@@ -273,7 +309,7 @@ void TextureSource::rebuild()
   else if(m_port.typeId() == QMetaType::Type::Int)
   {
     int i = m_port.toInt();
-    auto& outlets = process->outlets();
+    auto& outlets = m_processPtr->outlets();
     if(i >= 0 && i < outlets.size())
     {
       m_outlet = qobject_cast<Gfx::TextureOutlet*>(outlets[i]);
@@ -307,6 +343,22 @@ bool TextureSource::connectToOutlet()
   return true;
 }
 
-void TextureSource::disconnectFromOutlet() { }
+void TextureSource::disconnectFromOutlet()
+{
+  if(m_processPtr)
+  {
+    disconnect(
+        m_processPtr, &Process::ProcessModel::startExecution, this,
+        &TextureSource::rebuild);
+    disconnect(
+        m_processPtr, &Process::ProcessModel::stopExecution, this,
+        &TextureSource::rebuild);
+    disconnect(
+        m_processPtr, &Process::ProcessModel::resetExecution, this,
+        &TextureSource::rebuild);
+    m_processPtr = nullptr;
+  }
+  m_nodeId = -1;
+}
 }
 #endif
