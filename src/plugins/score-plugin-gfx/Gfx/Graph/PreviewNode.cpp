@@ -216,7 +216,7 @@ public:
           QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
           QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
 
-      sampler->setName("FullScreenImageNode::sampler");
+      sampler->setName("PreviewRendererInvertY::sampler");
       sampler->create();
 
       m_samplers.push_back({sampler, this->m_inputTarget.texture});

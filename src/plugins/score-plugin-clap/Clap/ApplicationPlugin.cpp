@@ -179,6 +179,31 @@ void ApplicationPlugin::rescanPlugins()
   scanNextBatch();
 }
 
+static const QString& clapPuppetPath()
+{
+  static const QString path = []() -> QString {
+    auto app = QCoreApplication::instance()->applicationDirPath();
+#if defined(__APPLE__)
+    auto bundle_path
+        = "/ossia-score-clappuppet.app/Contents/MacOS/"
+          "ossia-score-clappuppet";
+    QString bundle_puppet = app + bundle_path;
+    if(QFile::exists(bundle_puppet))
+      return bundle_puppet;
+    else if(QFile::exists(app + "/ossia-score-clappuppet"))
+      return QString(app + "/ossia-score-clappuppet");
+    else if(QFile::exists(app + "/../../ossia-score-clappuppet"))
+      return QString(path + "/../../ossia-score-clappuppet");
+    else if(QFile::exists(app + "/../../" + bundle_path))
+      return QString(app + "/../../" + bundle_path);
+    else
+      return QStringLiteral("ossia-score-clappuppet");
+#else
+    return app + "/ossia-score-clappuppet";
+#endif
+  }();
+  return path;
+}
 void ApplicationPlugin::scanNextBatch()
 {
   // Check if we're done
@@ -249,11 +274,7 @@ void ApplicationPlugin::scanNextBatch()
     timer->start();
 
     // Launch the puppet process
-    QString program = QCoreApplication::applicationDirPath() + "/ossia-score-clappuppet";
-#ifdef _WIN32
-    program += ".exe";
-#endif
-    proc->start(program, {pluginPath, QString::number(id)});
+    proc->start(clapPuppetPath(), {pluginPath, QString::number(id)});
   }
 }
 
