@@ -30,7 +30,6 @@ option(DEFINE_SCORE_SCENARIO_DEBUG_RECTS "Enable to have debug rects around elem
 
 option(SCORE_COVERAGE "Enable coverage" OFF)
 option(SCORE_ENABLE_CXX26 "Enable c++26" OFF)
-option(SCORE_ENABLE_CXX23 "Enable c++23" OFF)
 
 option(SCORE_INSTALL_HEADERS "Install headers" OFF)
 
@@ -173,20 +172,13 @@ endif()
 check_cxx_compiler_flag(-std=c++26 has_std_26_flag)
 check_cxx_compiler_flag(-std=c++2c has_std_2c_flag)
 check_cxx_compiler_flag(-std=c++23 has_std_23_flag)
-check_cxx_compiler_flag(-std=c++2b has_std_2b_flag)
-check_cxx_compiler_flag(-std=c++20 has_std_20_flag)
-check_cxx_compiler_flag(-std=c++2a has_std_2a_flag)
 
 if (has_std_26_flag AND SCORE_ENABLE_CXX26)
   set(CXX_VERSION_FLAG cxx_std_26)
 elseif (has_std_2c_flag AND SCORE_ENABLE_CXX26)
   set(CXX_VERSION_FLAG cxx_std_26)
-elseif (has_std_23_flag AND SCORE_ENABLE_CXX23)
+else ()
   set(CXX_VERSION_FLAG cxx_std_23)
-elseif (has_std_20_flag)
-  set(CXX_VERSION_FLAG cxx_std_20)
-elseif (has_std_2a_flag)
-  set(CXX_VERSION_FLAG cxx_std_20)
 endif ()
 
 check_cxx_compiler_flag(-fopenmp-simd has_fopenmp_simd_flag)

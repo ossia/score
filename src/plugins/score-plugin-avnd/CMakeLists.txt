@@ -99,7 +99,7 @@ endif()
 if(TARGET score_plugin_gfx)
   target_link_libraries(avnd_halp_module PUBLIC score_plugin_gfx)
 endif()
-target_compile_features(avnd_halp_module PRIVATE cxx_std_20 INTERFACE cxx_std_20)
+target_compile_features(avnd_halp_module PRIVATE cxx_std_23 INTERFACE cxx_std_23)
 endif()
 
 set(HALP_HEADERS

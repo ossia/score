@@ -15,6 +15,8 @@
 
 #include <libremidi/detail/conversion.hpp>
 
+#include <ranges>
+
 #if defined(_WIN32)
 #include <windows.h>
 #else
@@ -693,13 +695,19 @@ public:
 
     // Setup output buffers
     int audio_out_idx = 0;
+    const bool needs_stereo_main_out
+        = audio_ins.empty() && !audio_outs.empty()
+          && !midi_ins.empty(); // FIXME check if instrument?
     for(ossia::audio_outlet* audio_out : audio_outs)
     {
       const auto& audio_info = this->m_expected_audio_outputs[audio_out_idx];
       clap_audio_buffer_t buffer = dummy_audio_buffer();
       buffer.channel_count = audio_info.channel_count;
 
-      audio_out->data.set_channels(buffer.channel_count);
+      const int ossia_channel_count = audio_out_idx == 0 && needs_stereo_main_out
+                                          ? std::max((int)buffer.channel_count, 2)
+                                          : buffer.channel_count;
+      audio_out->data.set_channels(ossia_channel_count);
       auto& channels = audio_out->data.get();
 
       // Allocate float storage for output
@@ -711,9 +719,12 @@ public:
 
       storage.clear();
       storage.resize(samples * buffer.channel_count + 16);
-      for(uint32_t c = 0; c < buffer.channel_count; ++c)
+      for(uint32_t c = 0; c < ossia_channel_count; ++c)
       {
         channels[c].resize(e.bufferSize());
+      }
+      for(uint32_t c = 0; c < buffer.channel_count; ++c)
+      {
         ptrs[c] = storage.data() + c * samples;
       }
 
@@ -751,14 +762,29 @@ public:
         auto& channels = audio_out->data.get();
         const auto& storage = output_channel_storage[audio_out_idx];
 
-        for(uint32_t c = 0;
-            c < std::min((uint32_t)channels.size(), (uint32_t)storage.size()); ++c)
+        if(audio_out_idx == 0 && needs_stereo_main_out)
         {
-          const float* src = storage.data() + c * samples;
-          double* dst = channels[c].data() + offset;
+          // Basic mono instrument case (e.g. Nekobi)
+          const float* src = storage.data();
+          double* dst_l = channels[0].data() + offset;
+          double* dst_r = channels[1].data() + offset;
           for(uint32_t s = 0; s < samples; ++s)
           {
-            dst[s] = static_cast<double>(src[s]);
+            dst_l[s] = static_cast<double>(src[s]);
+            dst_r[s] = dst_l[s];
+          }
+        }
+        else
+        {
+          for(uint32_t c = 0;
+              c < std::min((uint32_t)channels.size(), (uint32_t)storage.size()); ++c)
+          {
+            const float* src = storage.data() + c * samples;
+            double* dst = channels[c].data() + offset;
+            for(uint32_t s = 0; s < samples; ++s)
+            {
+              dst[s] = static_cast<double>(src[s]);
+            }
           }
         }
       }
@@ -843,21 +869,30 @@ public:
 
     // Setup output buffers
     std::size_t audio_out_idx = 0;
+    const bool needs_stereo_main_out
+        = audio_ins.empty() && !audio_outs.empty()
+          && !midi_ins.empty(); // FIXME check if instrument?
     for(ossia::audio_outlet* audio_out : audio_outs)
     {
       const auto& audio_info = this->m_expected_audio_outputs[audio_out_idx];
       clap_audio_buffer_t buffer = dummy_audio_buffer();
       buffer.channel_count = audio_info.channel_count;
 
-      audio_out->data.set_channels(buffer.channel_count);
+      const int ossia_channel_count = audio_out_idx == 0 && needs_stereo_main_out
+                                          ? std::max((int)buffer.channel_count, 2)
+                                          : buffer.channel_count;
+      audio_out->data.set_channels(ossia_channel_count);
       auto& channels = audio_out->data.get();
 
       auto& ptrs = output_channel_ptrs.emplace_back();
       ptrs.resize(buffer.channel_count);
 
-      for(uint32_t c = 0; c < buffer.channel_count; ++c)
+      for(uint32_t c = 0; c < ossia_channel_count; ++c)
       {
         channels[c].resize(e.bufferSize());
+      }
+      for(uint32_t c = 0; c < buffer.channel_count; ++c)
+      {
         ptrs[c] = channels[c].data() + offset;
       }
 
@@ -879,11 +914,18 @@ public:
     process.audio_inputs_count = m_expected_audio_inputs.size();
     process.audio_outputs_count = m_expected_audio_outputs.size();
     do_process(process, m_input_events, m_output_events);
+
+    if(needs_stereo_main_out)
+    {
+      // Basic mono instrument case (e.g. Nekobi)
+      auto& l = audio_outs[0]->data.channel(0);
+      auto& r = audio_outs[0]->data.channel(1);
+      r.assign(l.begin(), l.end());
+    }
   }
 };
 
 // Special case for monophonic nodes
-
 class clap_node_mono : public clap_node_base
 {
 public:
@@ -1038,12 +1080,13 @@ public:
           auto it = std::upper_bound(
               input_storage.all_events.begin(), input_storage.all_events.end(), 0,
               [](auto& t1, auto& ev2) { return t1 < ev2->time; });
-          input_storage.all_events.insert_range(
-              it, std::span<clap_event_param_value_t>(
-                      input_storage.param_events.data() + orig,
-                      input_storage.param_events.data() + cur)
-                      | std::views::transform(
-                          [](clap_event_param_value_t& elem) { return &elem.header; }));
+          const auto r = std::span<clap_event_param_value_t>(
+                             input_storage.param_events.data() + orig,
+                             input_storage.param_events.data() + cur)
+                         | std::views::transform([](clap_event_param_value_t& elem) {
+            return &elem.header;
+          });
+          input_storage.all_events.insert(it, std::begin(r), std::end(r));
         }
       }
     }
@@ -1295,9 +1338,10 @@ Executor::Executor(Clap::Model& proc, const Execution::Context& ctx, QObject* pa
   if(!h)
     throw std::runtime_error("Plug-in unavailable");
 
-  const bool monophonic
-      = proc.audioInputs().size() == 1 && proc.audioInputs()[0].channel_count == 1
-        && proc.audioOutputs().size() == 1 && proc.audioOutputs()[0].channel_count == 1;
+  const bool monophonic = proc.midiInputs().size() == 0 && proc.audioInputs().size() == 1
+                          && proc.audioInputs()[0].channel_count == 1
+                          && proc.audioOutputs().size() == 1
+                          && proc.audioOutputs()[0].channel_count == 1;
 
   auto& e = *ctx.execState;
   std::shared_ptr<clap_node_base> clap{};
