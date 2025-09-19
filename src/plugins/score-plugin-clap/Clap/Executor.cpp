@@ -494,6 +494,7 @@ public:
 class clap_node : public clap_node_base
 {
 public:
+  std::vector<double> dummy_io_buffer;
   clap_node(const Clap::Model& proc, Clap::PluginHandle& handle, int sampleRate, int bs)
       : clap_node_base{proc}
       , m_instance{handle}
@@ -505,6 +506,7 @@ public:
       (void)deactivate_plugin(handle.plugin);
     m_activated = activate_plugin(m_instance.plugin, sampleRate, bs);
     handle.activated = m_activated;
+    dummy_io_buffer.resize(2 * bs);
   }
 
   ~clap_node()
@@ -655,7 +657,7 @@ public:
       buffer.channel_count = audio_info.channel_count;
 
       audio_in->data.set_channels(buffer.channel_count);
-      const auto& channels = audio_in->data.get();
+      auto& channels = audio_in->data.get();
       if(!channels.empty())
       {
         auto& storage = input_channel_storage.emplace_back();
@@ -670,8 +672,11 @@ public:
           ptrs[c] = storage.data() + c * samples;
 
           // Convert from double to float
-          if(c < channels.size() && channels[c].size() >= samples + offset)
+          if(c < channels.size())
           {
+            auto& channel = channels[c];
+            //SCORE_SOFT_ASSERT(channel.size() >= e.bufferSize());
+            channel.resize(std::max((int)channel.size(), (int)e.bufferSize()));
             const double* src = channels[c].data() + offset;
             float* dst = ptrs[c];
             for(uint32_t s = 0; s < samples; ++s)
@@ -840,7 +845,7 @@ public:
       buffer.channel_count = audio_info.channel_count;
 
       audio_in->data.set_channels(buffer.channel_count);
-      const auto& channels = audio_in->data.get();
+      auto& channels = audio_in->data.get();
       if(!channels.empty())
       {
         buffer.channel_count = std::min((uint32_t)channels.size(), 2u);
@@ -850,13 +855,16 @@ public:
 
         for(uint32_t c = 0; c < buffer.channel_count; ++c)
         {
-          if(c < channels.size() && channels[c].size() >= samples)
+          if(c < channels.size())
           {
+            auto& channel = channels[c];
+            //SCORE_SOFT_ASSERT(channel.size() >= e.bufferSize());
+            channel.resize(std::max((int)channel.size(), (int)e.bufferSize()));
             ptrs[c] = const_cast<double*>(channels[c].data() + offset);
           }
           else
           {
-            ptrs[c] = nullptr;
+            ptrs[c] = dummy_io_buffer.data();
           }
         }
 
@@ -1138,7 +1146,7 @@ public:
     // Setup audio input buffers
     const auto audio_in = audio_ins[0];
     const auto audio_out = audio_outs[0];
-    const auto& in_channels = audio_in->data.get();
+    auto& in_channels = audio_in->data.get();
     auto& out_channels = audio_out->data.get();
     const auto poly_channels = audio_in->data.channels();
     if(poly_channels == 0)
@@ -1176,10 +1184,11 @@ public:
 
       // 1. Copy input
       {
+        //SCORE_SOFT_ASSERT(channel.size() >= e.bufferSize());
+        channel.resize(std::max((int)channel.size(), (int)e.bufferSize()));
+        SCORE_ASSERT(input_channel_storage.size() >= samples);
         const double* src = channel.data() + offset;
         float* dst = input_channel_storage.data();
-        SCORE_ASSERT(channel.size() >= samples);
-        SCORE_ASSERT(input_channel_storage.size() >= samples);
         for(uint32_t s = 0; s < samples; ++s)
           dst[s] = static_cast<float>(src[s]);
       }
@@ -1245,6 +1254,11 @@ public:
            audio_in->data.begin(), audio_in->data.end(),
            [](const auto& channel) { return channel.size() == 0; }))
       return;
+    for(auto& channel : audio_in->data.get())
+    {
+      //SCORE_SOFT_ASSERT(channel.size() >= e.bufferSize());
+      channel.resize(std::max((int)channel.size(), (int)e.bufferSize()));
+    }
     audio_out->data.set_channels(poly_channels);
     clap_audio_buffer_t in_buffer = dummy_audio_buffer();
     clap_audio_buffer_t out_buffer = dummy_audio_buffer();
@@ -1253,7 +1267,7 @@ public:
     out_buffer.channel_count = 1;
     out_buffer.data64 = outs_pointer;
 
-    const auto& in_channels = audio_in->data.get();
+    auto& in_channels = audio_in->data.get();
     auto& out_channels = audio_out->data.get();
     int current_channel = 0;
     for(auto& channel : in_channels)
