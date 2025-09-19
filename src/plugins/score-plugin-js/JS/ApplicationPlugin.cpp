@@ -21,6 +21,10 @@
 #include <QQuickWindow>
 #endif
 
+#if SCORE_HAS_GPU_JS
+#include <Gfx/Settings/Model.hpp>
+#endif
+
 #include <ossia/network/context.hpp>
 namespace JS
 {
@@ -88,13 +92,42 @@ void ApplicationPlugin::afterStartup()
   // eng.importModule(
   //     "/home/jcelerier/Documents/ossia/score/packages/default/Scripts/include/"
   //     "tonal.mjs");
-  for(auto& p :
-      score::AppContext().settings<Library::Settings::Model>().getIncludePaths())
+  for(auto& p : this->context.settings<Library::Settings::Model>().getIncludePaths())
   {
     m_dummyEngine.addImportPath(p);
   }
 
 #if __has_include(<QQuickWindow>)
+#if SCORE_HAS_GPU_JS
+  qputenv("QT3D_RENDERER", "rhi");
+  if(!qEnvironmentVariableIsSet("QSG_RHI_BACKEND"))
+  {
+    auto& gfx = this->context.settings<Gfx::Settings::Model>();
+    using enum score::gfx::GraphicsApi;
+    switch(gfx.graphicsApiEnum())
+    {
+      case OpenGL:
+        qputenv("QSG_RHI_BACKEND", "opengl");
+        break;
+      case Vulkan:
+        qDebug("ay vulkan");
+        qputenv("QSG_RHI_BACKEND", "vulkan");
+        break;
+      case Metal:
+        qputenv("QSG_RHI_BACKEND", "metal");
+        break;
+      case D3D11:
+        qputenv("QSG_RHI_BACKEND", "d3d11");
+        break;
+      case D3D12:
+        qputenv("QSG_RHI_BACKEND", "d3d12");
+        break;
+      default:
+        break;
+    }
+  }
+#endif
+
   if(QFileInfo f{context.applicationSettings.ui}; f.isFile())
   {
     m_comp = new QQmlComponent{&m_engine, f.absoluteFilePath(), this};

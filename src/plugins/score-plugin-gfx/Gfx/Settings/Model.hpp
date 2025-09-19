@@ -34,7 +34,7 @@ struct HardwareVideoDecoder
   operator QStringList() const noexcept;
 };
 
-class Model : public score::SettingsDelegateModel
+class SCORE_PLUGIN_GFX_EXPORT Model : public score::SettingsDelegateModel
 {
   W_OBJECT(Model)
 
