@@ -371,7 +371,8 @@ static CableDisplayMode cableMustBeShown(CableItem& self, PortItem* p1, PortItem
 
   if(proc_p1 && proc_p2 && proc_p1->parent() == proc_p2->parent())
   {
-    if(self.parentItem() && self.parentItem()->type() == 65537) // We're in full view
+    if(self.parentItem()
+       && self.parentItem()->type() == 65554) // We're in full nodal view
       return Full;
 
     // Ideal heuritstic: find the closest {interval, nodalcontainer} item for p1 and p2.
