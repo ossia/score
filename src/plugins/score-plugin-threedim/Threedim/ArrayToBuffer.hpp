@@ -19,7 +19,7 @@ struct custom_texture
   unsigned char* bytes;
   int width;
   int height;
-  enum : uint8_t
+  enum texture_format : uint8_t
   {
     RGBA8,
     BGRA8,
@@ -42,44 +42,87 @@ struct custom_texture
       = RGBA8;
   bool changed;
 
-  int bytes_per_pixel() const noexcept
+  static constexpr int component_size(texture_format format) noexcept
   {
     switch(format)
     {
       case RGBA8:
       case BGRA8:
-        return 4 * 1;
+        return 1;
       case R8:
-        return 1 * 1;
+        return 1;
       case RG8:
-        return 2 * 1;
+        return 1;
       case R16:
-        return 1 * 2;
+        return 2;
       case RG16:
-        return 2 * 2;
+        return 2;
       case RED_OR_ALPHA8:
-        return 1 * 1;
+        return 1;
       case RGBA16F:
-        return 4 * 2;
+        return 2;
       case RGBA32F:
-        return 4 * 4;
+        return 4;
       case R16F:
-        return 1 * 2;
+        return 2;
       case R32F:
-        return 1 * 4;
+        return 4;
       case R8UI:
-        return 1 * 1;
+        return 1;
       case R32UI:
-        return 1 * 4;
+        return 4;
       case RG32UI:
-        return 2 * 4;
+        return 4;
       case RGBA32UI:
-        return 4 * 4;
+        return 4;
       default:
         return 1;
     }
   }
+  static constexpr int components(texture_format format) noexcept
+  {
+    switch(format)
+    {
+      case RGBA8:
+      case BGRA8:
+        return 4;
+      case R8:
+        return 1;
+      case RG8:
+        return 2;
+      case R16:
+        return 1;
+      case RG16:
+        return 2;
+      case RED_OR_ALPHA8:
+        return 1;
+      case RGBA16F:
+        return 4;
+      case RGBA32F:
+        return 4;
+      case R16F:
+        return 1;
+      case R32F:
+        return 1;
+      case R8UI:
+        return 1;
+      case R32UI:
+        return 1;
+      case RG32UI:
+        return 2;
+      case RGBA32UI:
+        return 4;
+      default:
+        return 1;
+    }
+  }
+
+  int bytes_per_pixel() const noexcept
+  {
+    return component_size(format) * components(format);
+  }
   auto bytesize() const noexcept { return bytes_per_pixel() * width * height; }
+  auto component_size() const noexcept { return bytes_per_pixel() * width * height; }
   /* FIXME the allocation should not be managed by the plug-in */
   auto allocate(int width, int height)
   {
@@ -108,23 +151,77 @@ public:
   {
     struct : halp::val_port<"Input", std::vector<float>>
     {
-      void update(ArrayToTexture& self)
-      {
-        auto sz = self.inputs.size.value;
-        self.outputs.main.create(sz.x, sz.y);
-        std::size_t to_copy = self.outputs.main.texture.bytesize() / 4;
-        to_copy = std::min(to_copy, value.size());
-        std::copy_n(value.data(), to_copy, (float*)self.outputs.main.texture.bytes);
-        self.outputs.main.upload();
-      }
+      void update(ArrayToTexture& self) { self.recreate(); }
     } in;
-    halp::xy_spinboxes_i32<"Size"> size;
+    struct : halp::xy_spinboxes_i32<"Size">
+    {
+      void update(ArrayToTexture& self) { self.recreate(); }
+    } size;
+    struct : halp::enum_t<custom_texture::texture_format, "Format">
+    {
+      void update(ArrayToTexture& self) { self.recreate(); }
+    } format;
   } inputs;
 
   struct
   {
     halp::texture_output<"Output", custom_texture> main;
   } outputs;
+
+  void recreate()
+  {
+    const auto format = inputs.format;
+    const auto sz = inputs.size.value;
+    outputs.main.texture.format = format;
+    outputs.main.create(sz.x, sz.y);
+    std::size_t to_copy = sz.x * sz.y * outputs.main.texture.components(format);
+    const auto& value = inputs.in.value;
+    to_copy = std::min(to_copy, value.size());
+
+    auto* out = outputs.main.texture.bytes;
+    using enum custom_texture::texture_format;
+    switch(format)
+    {
+      case RGBA8:
+      case BGRA8:
+      case R8:
+      case RG8:
+      case RED_OR_ALPHA8:
+      case R8UI:
+        std::copy_n(value.data(), to_copy, (uint8_t*)out);
+        break;
+
+      case R16:
+      case RG16:
+        std::copy_n(value.data(), to_copy, (uint16_t*)out);
+        break;
+
+      case R32UI:
+      case RG32UI:
+      case RGBA32UI:
+        std::copy_n(value.data(), to_copy, (uint32_t*)out);
+        break;
+
+      case R32F:
+      case RGBA32F:
+        std::copy_n(value.data(), to_copy, (float*)out);
+        break;
+
+      case R16F:
+      case RGBA16F:
+#if defined(__is_identifier)
+#if (                 \
+    !__is_identifier( \
+        _Float16)) // when you enter the least obvious syntax competition and your opponent is clang builtins
+        std::copy_n(value.data(), to_copy, (_Float16*)out);
+#endif
+#endif
+        break;
+
+      default:
+    }
+    outputs.main.upload();
+  }
 };
 
 }
