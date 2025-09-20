@@ -11,6 +11,21 @@
 
 #include <algorithm>
 
+#if (!defined(__linux__))
+#define SCORE_LIBC_HAS_FLOAT16 1
+#elif (defined(__linux__) && defined(__GLIBC__))
+#if __GLIBC_PREREQ(2, 40)
+#define SCORE_LIBC_HAS_FLOAT16 1
+#endif
+#endif
+
+// when you enter the least obvious syntax competition and your opponent is clang builtins
+#if defined(__is_identifier)
+#if (!__is_identifier(_Float16))
+#define SCORE_COMPILER_HAS_FLOAT16 1
+#endif
+#endif
+
 namespace Threedim
 {
 struct custom_texture
@@ -209,11 +224,9 @@ public:
 
       case R16F:
       case RGBA16F:
-// when you enter the least obvious syntax competition and your opponent is clang builtins
-#if defined(__is_identifier)
-#if (!__is_identifier(_Float16))
+
+#if (SCORE_LIBC_HAS_FLOAT16 && SCORE_COMPILER_HAS_FLOAT16)
         std::copy_n(value.data(), to_copy, (_Float16*)out);
-#endif
 #endif
         break;
 
