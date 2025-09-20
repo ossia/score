@@ -41,6 +41,7 @@ private:
   int calculateStorageBufferSize(const std::vector<isf::storage_input::layout_field>& layout, int arrayCount) const;
   QRhiBuffer* createStorageBuffer(RenderList& renderer, const QString& name, const QString& access, int size);
   void updateStorageBuffers(RenderList& renderer, QRhiResourceUpdateBatch& res);
+  void recreateShaderResourceBindings(RenderList& renderer, QRhiResourceUpdateBatch& res);
   int getArraySizeFromUI(const QString& bufferName) const;
 
   ossia::small_flat_map<const Port*, TextureRenderTarget, 2> m_rts;

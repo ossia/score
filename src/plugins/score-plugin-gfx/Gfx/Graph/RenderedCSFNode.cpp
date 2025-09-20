@@ -350,6 +350,8 @@ int RenderedCSFNode::getArraySizeFromUI(const QString& bufferName) const
 
 void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
+  bool buffersChanged = false;
+  
   // Check each storage buffer to see if it needs resizing
   for(auto& storageBuffer : m_storageBuffers)
   {
@@ -391,7 +393,15 @@ void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpd
         QByteArray zeroData(requiredSize, 0);
         res.uploadStaticBuffer(storageBuffer.buffer, zeroData.constData());
       }
+      
+      buffersChanged = true;
     }
+  }
+  
+  // If buffers changed, we need to recreate the SRBs
+  if(buffersChanged)
+  {
+    recreateShaderResourceBindings(renderer, res);
   }
 }
 
@@ -874,6 +884,178 @@ void RenderedCSFNode::update(
   
   // Update output texture size if it has changed
   // TODO: Check if texture size inputs have changed and recreate texture if needed
+}
+
+void RenderedCSFNode::recreateShaderResourceBindings(RenderList& renderer, QRhiResourceUpdateBatch& res)
+{
+  QRhi& rhi = *renderer.state.rhi;
+  
+  // Build the bindings list (same as in initComputePass)
+  QList<QRhiShaderResourceBinding> bindings;
+  
+  // Binding 0: Renderer UBO
+  bindings.append(QRhiShaderResourceBinding::uniformBuffer(
+      0, QRhiShaderResourceBinding::ComputeStage, &renderer.outputUBO()));
+
+  // Binding 1: Process UBO (will be set per-pass)
+  bindings.append(
+      QRhiShaderResourceBinding::uniformBuffer(
+          1, QRhiShaderResourceBinding::ComputeStage, nullptr));
+
+  // Binding 2: Material UBO (custom inputs)
+  int bindingIndex = 2;
+  if(m_materialUBO)
+  {
+    bindings.append(QRhiShaderResourceBinding::uniformBuffer(
+        bindingIndex++, QRhiShaderResourceBinding::ComputeStage, m_materialUBO));
+  }
+
+  int input_port_index = 0;
+  int input_image_index = 0;
+  int output_port_index = 0;
+  int output_image_index = 0;
+  
+  // Process all resources in the order they appear in the descriptor
+  for(const auto& input : n.m_descriptor.inputs)
+  {
+    // Storage buffers
+    if(ossia::get_if<isf::storage_input>(&input.data))
+    {
+      // Find the corresponding storage buffer
+      auto it = std::find_if(m_storageBuffers.begin(), m_storageBuffers.end(),
+          [&input](const StorageBuffer& sb) { 
+            return sb.name == QString::fromStdString(input.name); 
+          });
+      
+      if(it != m_storageBuffers.end() && it->buffer)
+      {
+        if(it->access == "read_only")
+        {
+          bindings.append(QRhiShaderResourceBinding::bufferLoad(
+              bindingIndex++, QRhiShaderResourceBinding::ComputeStage, 
+              it->buffer));
+          input_port_index++;
+        }
+        else if(it->access == "write_only")
+        {
+          bindings.append(QRhiShaderResourceBinding::bufferStore(
+              bindingIndex++, QRhiShaderResourceBinding::ComputeStage, 
+              it->buffer));
+          output_port_index++;
+        }
+        else // read_write
+        {
+          bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
+              bindingIndex++, QRhiShaderResourceBinding::ComputeStage, 
+              it->buffer));
+          output_port_index++;
+        }
+      }
+    }
+    // Regular textures (sampled)
+    else if(ossia::get_if<isf::texture_input>(&input.data))
+    {
+      // Regular sampled textures from m_inputSamplers
+      if(input_image_index < m_inputSamplers.size())
+      {
+        auto [sampler, tex] = m_inputSamplers[input_image_index];
+        if(sampler && tex)
+        {
+          bindings.append(
+              QRhiShaderResourceBinding::sampledTexture(
+                  bindingIndex++, QRhiShaderResourceBinding::ComputeStage, tex, sampler));
+        }
+      }
+      input_port_index++;
+      input_image_index++;
+    }
+    // CSF storage images
+    else if(auto image = ossia::get_if<isf::csf_image_input>(&input.data))
+    {
+      // Find the corresponding storage image
+      auto it = std::find_if(m_storageImages.begin(), m_storageImages.end(),
+          [&input](const StorageImage& si) { 
+            return si.name == QString::fromStdString(input.name); 
+          });
+      
+      if(it != m_storageImages.end())
+      {
+        if(it->access == "read_only")
+        {
+          if(input_image_index < m_inputSamplers.size())
+          {
+            auto [sampler, tex] = m_inputSamplers[input_image_index];
+            if(sampler && tex)
+            {
+              bindings.append(
+                  QRhiShaderResourceBinding::imageLoad(
+                      bindingIndex++, QRhiShaderResourceBinding::ComputeStage, tex, 0));
+            }
+          }
+          input_port_index++;
+          input_image_index++;
+        }
+        else if(it->texture)
+        {
+          if(it->access == "write_only")
+          {
+            bindings.append(
+                QRhiShaderResourceBinding::imageStore(
+                    bindingIndex++, QRhiShaderResourceBinding::ComputeStage, it->texture,
+                    0));
+          }
+          else if(it->access == "read_write")
+          {
+            bindings.append(
+                QRhiShaderResourceBinding::imageLoadStore(
+                    bindingIndex++, QRhiShaderResourceBinding::ComputeStage, it->texture,
+                    0));
+          }
+          output_port_index++;
+          output_image_index++;
+        }
+      }
+    }
+    else
+    {
+      input_port_index++;
+    }
+  }
+  
+  // Recreate SRBs for each compute pass
+  for(auto& [edge, pass] : m_computePasses)
+  {
+    if(pass.srb)
+    {
+      // Delete old SRB
+      delete pass.srb;
+      pass.srb = nullptr;
+    }
+    
+    // Create new SRB
+    pass.srb = rhi.newShaderResourceBindings();
+    
+    // Set the ProcessUBO binding for this pass
+    if(pass.processUBO)
+    {
+      bindings[1] = QRhiShaderResourceBinding::uniformBuffer(
+          1, QRhiShaderResourceBinding::ComputeStage, pass.processUBO);
+    }
+    
+    pass.srb->setBindings(bindings.cbegin(), bindings.cend());
+    if(!pass.srb->create())
+    {
+      qWarning() << "Failed to recreate SRB for compute pass";
+      delete pass.srb;
+      pass.srb = nullptr;
+    }
+  }
+  
+  // Update the pipeline with one of the SRBs (they're all compatible)
+  if(!m_computePasses.empty() && m_computePasses[0].second.srb)
+  {
+    m_computePipeline->setShaderResourceBindings(m_computePasses[0].second.srb);
+  }
 }
 
 void RenderedCSFNode::release(RenderList& r)
