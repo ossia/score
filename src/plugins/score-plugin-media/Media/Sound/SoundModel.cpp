@@ -17,6 +17,41 @@
 W_OBJECT_IMPL(Media::Sound::ProcessModel)
 namespace Media
 {
+static const struct default_stretch_modes
+{
+  default_stretch_modes()
+  {
+    map["none"] = ossia::audio_stretch_mode::None;
+    map["rubberbandstandard"] = ossia::audio_stretch_mode::RubberBandStandard;
+    map["rubberbandpercussive"] = ossia::audio_stretch_mode::RubberBandPercussive;
+    map["repitch"] = ossia::audio_stretch_mode::Repitch;
+    map["rubberbandstandardhq"] = ossia::audio_stretch_mode::RubberBandStandardHQ;
+    map["rubberbandpercussivehq"] = ossia::audio_stretch_mode::RubberBandPercussiveHQ;
+    map["repitchmediumq"] = ossia::audio_stretch_mode::RepitchMediumQ;
+    map["repitchfastestq"] = ossia::audio_stretch_mode::RepitchFastestQ;
+    if(auto env = qEnvironmentVariable("SCORE_SOUND_DEFAULT_STRETCH_MODE_UNKNOWN");
+       !env.isEmpty())
+      unknown = parse(env);
+    if(auto env = qEnvironmentVariable("SCORE_SOUND_DEFAULT_STRETCH_MODE_RHYTHM");
+       !env.isEmpty())
+      rhythm = parse(env);
+    if(auto env = qEnvironmentVariable("SCORE_SOUND_DEFAULT_STRETCH_MODE_MELODY");
+       !env.isEmpty())
+      melody = parse(env);
+  }
+  ossia::audio_stretch_mode parse(const QString& b)
+  {
+    auto it = map.find(b);
+    if(it != map.end())
+      return it->second;
+    return ossia::audio_stretch_mode::None;
+  }
+  boost::container::flat_map<QString, ossia::audio_stretch_mode> map;
+  ossia::audio_stretch_mode unknown = ossia::audio_stretch_mode::None;
+  ossia::audio_stretch_mode rhythm = ossia::audio_stretch_mode::RubberBandPercussive;
+  ossia::audio_stretch_mode melody = ossia::audio_stretch_mode::RubberBandStandard;
+} default_stretch_modes;
+
 std::optional<double> estimateTempo(const QString& path)
 {
   // we live in a society
@@ -41,9 +76,10 @@ ProcessModel::ProcessModel(
     const TimeVal& duration, const QString& data, const Id<Process::ProcessModel>& id,
     QObject* parent)
     : Process::
-        ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+          ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , outlet{Process::make_audio_outlet(Id<Process::Port>(0), this)}
     , m_file{std::make_shared<AudioFile>()}
+    , m_mode{default_stretch_modes.unknown}
 {
   outlet->setPropagate(true);
   metadata().setInstanceName(*this);
@@ -89,7 +125,7 @@ void ProcessModel::setFile(const QString& file)
     {
       setNativeTempo(*tempo);
 
-      auto mode = ossia::audio_stretch_mode::RubberBandPercussive;
+      auto mode = default_stretch_modes.rhythm;
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
       {
         using namespace Qt::StringLiterals;
@@ -104,7 +140,7 @@ void ProcessModel::setFile(const QString& file)
         for(auto& m : melodic)
         {
           if(file.contains(m, Qt::CaseInsensitive))
-            mode = ossia::audio_stretch_mode::RubberBandStandard;
+            mode = default_stretch_modes.melody;
         }
       }
 #endif
