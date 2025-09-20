@@ -135,32 +135,32 @@ Process::ScriptChangeResult Model::setScript(const QString& f)
   m_compute = f;
 
   QString processed = m_compute;
+
+  auto inls = score::clearAndDeleteLater(m_inlets);
+  auto outls = score::clearAndDeleteLater(m_outlets);
+
+  try
   {
-    auto inls = score::clearAndDeleteLater(m_inlets);
-    auto outls = score::clearAndDeleteLater(m_outlets);
+    // Parse CSF shader
+    isf::parser p{processed.toStdString(), isf::parser::ShaderType::CSF};
+    m_processedProgram.descriptor = p.data();
+    m_processedProgram.fragment = QString::fromStdString(p.compute_shader());
+    m_processedProgram.type = isf::parser::ShaderType::CSF;
 
-    try
-    {
-      // Parse CSF shader
-      isf::parser p{processed.toStdString(), isf::parser::ShaderType::CSF};
-      m_processedProgram.descriptor = p.data();
-      m_processedProgram.fragment = QString::fromStdString(p.compute_shader());
-      m_processedProgram.type = isf::parser::ShaderType::CSF;
-
-      setupCSF(m_processedProgram.descriptor);
-      return {.valid = true, .inlets = std::move(inls), .outlets = std::move(outls)};
-    }
-    catch(const std::exception& e)
-    {
-      this->errorMessage(0, e.what());
-    }
-    catch(...)
-    {
-      this->errorMessage(0, "Unknown error parsing CSF shader");
-    }
-
-    return {.valid = false, .inlets = std::move(inls), .outlets = std::move(outls)};
+    setupCSF(m_processedProgram.descriptor);
+    return {.valid = true, .inlets = std::move(inls), .outlets = std::move(outls)};
   }
+  catch(const std::exception& e)
+  {
+    this->errorMessage(0, e.what());
+  }
+  catch(...)
+  {
+    this->errorMessage(0, "Unknown error parsing CSF shader");
+  }
+
+  return {.valid = false, .inlets = std::move(inls), .outlets = std::move(outls)};
+
   return {};
 }
 

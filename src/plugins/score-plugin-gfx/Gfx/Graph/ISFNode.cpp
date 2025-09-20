@@ -40,6 +40,7 @@ struct isf_input_port_vis
   {
     *reinterpret_cast<int*>(data) = 0;
     self.input.push_back(new Port{&self, data, Types::Int, {}});
+    self.m_event_ports.push_back(reinterpret_cast<int*>(data));
     data += 4;
     sz += 4;
   }
@@ -250,6 +251,16 @@ ISFNode::ISFNode(const isf::descriptor& desc, const QString& comp)
 }
 
 ISFNode::~ISFNode() { }
+
+void ISFNode::process(Message&& msg)
+{
+  // Clear potential event ports
+  for(int* event : this->m_event_ports)
+    *event = 0;
+
+  // Normal processing
+  ProcessNode::process(std::move(msg));
+}
 
 QSize ISFNode::computeTextureSize(const isf::pass& pass, QSize origSize)
 {

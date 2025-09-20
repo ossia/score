@@ -54,6 +54,8 @@ public:
 
   // FIXME ugh
   const QString& compute() const noexcept { return m_compute; }
+
+  [[nodiscard]]
   Process::ScriptChangeResult setCompute(QString f);
   void computeChanged(const QString& f) W_SIGNAL(computeChanged, f);
   PROPERTY(QString, compute READ compute WRITE setCompute NOTIFY computeChanged)

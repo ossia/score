@@ -28,7 +28,7 @@ public:
   score::gfx::NodeRenderer* createRenderer(RenderList& r) const noexcept override;
 
   const isf::descriptor& descriptor() const noexcept { return m_descriptor; }
-
+  void process(Message&& msg) override;
   friend SinglePassISFNode;
   friend RenderedISFNode;
   friend isf_input_port_vis;
@@ -42,6 +42,7 @@ public:
   QString m_vertexS;
   QString m_fragmentS;
   QString m_computeS;
+  std::vector<int*> m_event_ports;
 
   int m_materialSize{};
 };
