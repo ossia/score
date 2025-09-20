@@ -209,16 +209,16 @@ public:
 
       case R16F:
       case RGBA16F:
+// when you enter the least obvious syntax competition and your opponent is clang builtins
 #if defined(__is_identifier)
-#if (                 \
-    !__is_identifier( \
-        _Float16)) // when you enter the least obvious syntax competition and your opponent is clang builtins
+#if (!__is_identifier(_Float16))
         std::copy_n(value.data(), to_copy, (_Float16*)out);
 #endif
 #endif
         break;
 
       default:
+        break;
     }
     outputs.main.upload();
   }

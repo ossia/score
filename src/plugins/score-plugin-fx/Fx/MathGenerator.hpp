@@ -27,7 +27,8 @@ struct Node
 
   struct ins
   {
-    halp::lineedit<"Expression (ExprTK)", "cos(t) + log(pos * (1+abs(x)) / dt)"> expr;
+    halp::lineedit<"Expression (ExprTK)", "cos(t) + log(pos * (1+a) / (1+abs(dt)))">
+        expr;
     halp::hslider_f32<"Param (a)", halp::range{0., 1., 0.5}> a;
     halp::hslider_f32<"Param (b)", halp::range{0., 1., 0.5}> b;
     halp::hslider_f32<"Param (c)", halp::range{0., 1., 0.5}> c;

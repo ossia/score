@@ -186,6 +186,7 @@ Document* DocumentBuilder::restoreDocument(
 
     QMetaObject::invokeMethod(doc, [doc, restore] {
       // We restore the pre-crash command stack.
+      doc->m_loaded = false;
       DataStream::Deserializer writer(restore.commands);
       loadCommandStack(
           doc->context().app.components, writer, doc->commandStack(),
@@ -202,6 +203,7 @@ Document* DocumentBuilder::restoreDocument(
           return false;
         }
       });
+      doc->m_loaded = true;
     }, Qt::QueuedConnection);
 
     return doc;

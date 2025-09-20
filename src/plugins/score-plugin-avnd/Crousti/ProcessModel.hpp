@@ -231,6 +231,14 @@ private:
           SCORE_ASSERT(controller_inlets.size() == 1);
           auto inlet = qobject_cast<Process::ControlInlet*>(controller_inlets[0]);
           inlet->noValueChangeOnMove = true;
+
+          if constexpr(!requires { F::on_controller_setup(); })
+          {
+            oscr::from_ossia_value(inlet->value(), field.value);
+            if_possible(field.update(obj));
+            F::on_controller_interaction()(obj, field.value);
+          }
+
           connect(
               inlet, &Process::ControlInlet::valueChanged,
               [this, &field](const ossia::value& val) {
@@ -845,11 +853,11 @@ struct TSerializer<JSONObject, oscr::ProcessModel<Info>>
     {
       if(auto val = s.obj.tryGet("DynamicInlets"))
       {
-        ossia::string_map<int> indices;
+        static ossia::string_map<int> indices;
+        indices.clear();
         indices <<= *val;
         avnd::dynamic_ports_input_introspection<Info>::for_all(
-            [&obj, &indices]<std::size_t Idx, typename P>(
-                avnd::field_reflection<Idx, P> field) {
+            [&obj]<std::size_t Idx, typename P>(avnd::field_reflection<Idx, P> field) {
           if constexpr(avnd::dynamic_ports_port<P>)
             obj.dynamic_ports.num_in_ports(avnd::field_index<Idx>{})
                 = indices[std::string(avnd::get_c_identifier<P>())];
@@ -860,11 +868,11 @@ struct TSerializer<JSONObject, oscr::ProcessModel<Info>>
     {
       if(auto val = s.obj.tryGet("DynamicOutlets"))
       {
-        ossia::string_map<int> indices;
+        static ossia::string_map<int> indices;
+        indices.clear();
         indices <<= *val;
         avnd::dynamic_ports_output_introspection<Info>::for_all(
-            [&obj, &indices]<std::size_t Idx, typename P>(
-                avnd::field_reflection<Idx, P> field) {
+            [&obj]<std::size_t Idx, typename P>(avnd::field_reflection<Idx, P> field) {
           if constexpr(avnd::dynamic_ports_port<P>)
             obj.dynamic_ports.num_out_ports(avnd::field_index<Idx>{})
                 = indices[std::string(avnd::get_c_identifier<P>())];
