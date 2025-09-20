@@ -33,17 +33,21 @@ CreateCable::CreateCable(
   }
 }
 
+// We can have cases where source / sink aren't found with nodes with dynamic ports
+// that update them randomly so we have to be graceful
 void CreateCable::undo(const score::DocumentContext& ctx) const
 {
   auto ext = m_model.extend(m_cable);
-  auto& source = m_dat.source.find(ctx);
-  source.removeCable(ext);
-  m_dat.sink.find(ctx).removeCable(ext);
+  auto source = m_dat.source.try_find(ctx);
+  if(source)
+    source->removeCable(ext);
+  if(auto sink = m_dat.sink.try_find(ctx))
+    sink->removeCable(ext);
   m_model.find(ctx).cables.remove(m_cable);
 
-  if(m_previousPropagate && *m_previousPropagate)
+  if(source && m_previousPropagate && *m_previousPropagate)
   {
-    static_cast<Process::AudioOutlet&>(source).setPropagate(true);
+    static_cast<Process::AudioOutlet&>(*source).setPropagate(true);
   }
 }
 

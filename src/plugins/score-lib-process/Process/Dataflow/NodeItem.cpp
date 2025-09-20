@@ -97,7 +97,7 @@ NodeItem::NodeItem(
 
   auto on_sizeChanged = [this] {
     m_needResize = true;
-    QTimer::singleShot(1, [this] {
+    QTimer::singleShot(1, this, [this] {
       if(!m_needResize)
         return;
       m_needResize = false;

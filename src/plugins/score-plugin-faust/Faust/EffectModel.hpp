@@ -139,6 +139,7 @@ public:
       Faust::FaustEffectModel& proc, const Execution::Context& ctx, QObject* parent);
 
 private:
+  int generation{};
   void reload(Execution::Transaction&);
   void reloadSynth(Execution::Transaction&);
   void reloadFx(Execution::Transaction&);

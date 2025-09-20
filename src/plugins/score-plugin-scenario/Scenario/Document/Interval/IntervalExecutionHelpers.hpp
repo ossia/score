@@ -207,6 +207,8 @@ struct RecomputePropagate
         return;
 
       const auto& proc_node = oproc->node;
+      if(!oproc->node)
+        return;
 
       updatePropagated(proc_node, cst_node, *g, port_index, propagate);
     });

@@ -560,6 +560,7 @@ FaustEffectComponent::FaustEffectComponent(
     : ProcessComponent_T{proc, ctx, "FaustComponent", parent}
 {
   connect(&proc, &Faust::FaustEffectModel::programChanged, this, [this] {
+    ++generation;
     for(auto& c : this->m_controlConnections)
       QObject::disconnect(c);
     m_controlConnections.clear();
@@ -618,6 +619,7 @@ void FaustEffectComponent::setupExecutionControls(
 {
   auto& proc = process();
   auto& ctx = system();
+  typename Node_T::weak_type weak_node = node;
 
   for(std::size_t i = firstControlIndex, N = proc.inlets().size(); i < N; i++)
   {
@@ -631,15 +633,17 @@ void FaustEffectComponent::setupExecutionControls(
 
     auto c = connect(
         inlet, &Process::ControlInlet::valueChanged, this,
-        [this, inl](const ossia::value& v) {
-      system().executionQueue.enqueue([inl, val = v]() mutable {
-        inl->target<ossia::value_port>()->write_value(std::move(val), 0);
-      });
+        [this, weak_node, inl, gen = this->generation](const ossia::value& v) {
+      if(auto node = weak_node.lock())
+        system().executionQueue.enqueue([inl, weak_node, val = v, gen]() mutable {
+          if(auto n = weak_node.lock())
+            if(gen == n->generation)
+              inl->target<ossia::value_port>()->write_value(std::move(val), 0);
         });
+    });
     m_controlConnections.push_back(c);
   }
 
-  typename Node_T::weak_type weak_node = node;
   auto c = con(
       ctx.doc.coarseUpdateTimer, &QTimer::timeout, this,
       [weak_node, firstControlIndex, &proc] {
@@ -666,6 +670,7 @@ void FaustEffectComponent::setupExecutionControlOutlets(
 {
   auto& proc = process();
   auto& ctx = system();
+  typename Node_T::weak_type weak_node = node;
 
   for(std::size_t i = firstControlIndex, N = proc.outlets().size(); i < N; i++)
   {
@@ -679,15 +684,17 @@ void FaustEffectComponent::setupExecutionControlOutlets(
 
     auto c = connect(
         outlet, &Process::ControlOutlet::valueChanged, this,
-        [this, outl](const ossia::value& v) {
-      system().executionQueue.enqueue([outl, val = v]() mutable {
-        outl->target<ossia::value_port>()->write_value(std::move(val), 0);
-      });
+        [this, weak_node, outl, gen = this->generation](const ossia::value& v) {
+      if(auto node = weak_node.lock())
+        system().executionQueue.enqueue([outl, weak_node, val = v, gen]() mutable {
+          if(auto n = weak_node.lock())
+            if(gen == n->generation)
+              outl->target<ossia::value_port>()->write_value(std::move(val), 0);
         });
+    });
     m_controlConnections.push_back(c);
   }
 
-  typename Node_T::weak_type weak_node = node;
   auto c = con(
       ctx.doc.coarseUpdateTimer, &QTimer::timeout, this,
       [weak_node, firstControlIndex, &proc] {
@@ -712,6 +719,7 @@ void FaustEffectComponent::reloadSynth(Execution::Transaction& transaction)
 
   proc.faust_poly_object->init(ctx.execState->sampleRate);
   auto node = ossia::make_node<faust_type>(*ctx.execState, proc.faust_poly_object);
+  node->generation = this->generation;
   this->node = node;
 
   if(!m_ossia_process)
@@ -743,12 +751,14 @@ void FaustEffectComponent::reloadFx(Execution::Transaction& transaction)
   {
     using faust_type = ossia::nodes::faust_mono_fx;
     auto node = ossia::make_node<faust_type>(*ctx.execState, proc.faust_object);
+    node->generation = this->generation;
     setup(node);
   }
   else
   {
     using faust_type = ossia::nodes::faust_fx;
     auto node = ossia::make_node<faust_type>(*ctx.execState, proc.faust_object);
+    node->generation = this->generation;
     setup(node);
   }
 }
