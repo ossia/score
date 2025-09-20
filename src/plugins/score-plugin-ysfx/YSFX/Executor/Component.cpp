@@ -51,6 +51,11 @@ public:
   }
 
   void all_notes_off() noexcept override;
+  void clear() noexcept override
+  {
+    graph_node::clear();
+    generation = -1;
+  }
 
   std::shared_ptr<ysfx_t> fx;
   ossia::execution_state& m_st;
@@ -60,6 +65,7 @@ public:
   ossia::midi_outlet* midi_out{};
   ossia::audio_outlet* audio_out{};
   std::vector<ossia::value_port*> sliders;
+  int generation = 0;
 };
 
 Component::Component(
@@ -103,10 +109,14 @@ Component::Component(
     inlet->setupExecution(*node->root_inputs()[i], this);
     connect(
         inlet, &Process::ControlInlet::valueChanged, this,
-        [this, inl](const ossia::value& v) {
-      system().executionQueue.enqueue(
-          [inl, val = v]() mutable { inl->write_value(std::move(val), 0); });
+        [this, inl, weak_node = std::weak_ptr{node}](const ossia::value& v) {
+      // FIXME the day we allow live-coding JSFX script we will have to do the same "generation" fix than with faust
+      if(auto node = weak_node.lock())
+        system().executionQueue.enqueue([inl, val = v, weak_node]() mutable {
+          if(auto node = weak_node.lock(); node && node->generation >= 0)
+            inl->write_value(std::move(val), 0);
         });
+    });
   }
 
   auto c = con(
