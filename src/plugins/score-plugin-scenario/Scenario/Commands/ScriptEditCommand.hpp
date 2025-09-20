@@ -61,7 +61,7 @@ private:
     }
 
     // Recreate the old cables
-    Dataflow::restoreCables(m_oldCables, ctx);
+    Dataflow::restoreCablesWithoutTouchingPorts(m_oldCables, ctx);
     cmt.inletsChanged();
     cmt.outletsChanged();
     if constexpr(requires { cmt.isGpu(); })

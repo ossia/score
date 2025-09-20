@@ -2,6 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioValidity.hpp"
 
+#include <Process/Dataflow/Cable.hpp>
+#include <Process/Dataflow/Port.hpp>
 #include <Process/TimeValueSerialization.hpp>
 
 #include <Scenario/Process/Algorithms/Accessors.hpp>
@@ -11,7 +13,6 @@
 
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
-
 namespace Scenario
 {
 
@@ -25,6 +26,20 @@ bool ScenarioValidityChecker::validate(const score::DocumentContext& ctx)
     checkValidity(*scenar);
   }
 
+#if 0
+  auto ports = ctx.document.model().findChildren<Process::Port*>();
+  ossia::flat_set<int> known_cable_ids;
+  known_cable_ids.reserve(16);
+  for(auto& port : ports)
+  {
+    known_cable_ids.clear();
+    for(auto& cable : port->cables())
+    {
+      int id = cable.unsafePath().vec().back().id();
+      SCORE_ASSERT(!known_cable_ids.contains(id));
+    }
+  }
+#endif
   return true;
 }
 

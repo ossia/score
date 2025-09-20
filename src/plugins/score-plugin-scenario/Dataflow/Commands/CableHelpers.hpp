@@ -50,6 +50,11 @@ void removeCables(const SerializedCables& cbls, const score::DocumentContext& ct
 //! for undo operations.
 SCORE_PLUGIN_SCENARIO_EXPORT
 void restoreCables(const SerializedCables& cbls, const score::DocumentContext& ctx);
+//! Same thing but does not re-add cables to ports as they have been added just before by
+//! another operation
+SCORE_PLUGIN_SCENARIO_EXPORT
+void restoreCablesWithoutTouchingPorts(
+    const SerializedCables& cbls, const score::DocumentContext& ctx);
 
 //! Restore cables. The objects must exist but it can be in a different
 //! document, at a different place in the hierarchy.

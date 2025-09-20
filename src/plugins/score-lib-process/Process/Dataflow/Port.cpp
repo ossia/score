@@ -80,6 +80,18 @@ Port::Port(JSONObject::Deserializer&& vis, QObject* parent)
 
 void Port::addCable(const Cable& c)
 {
+  for(auto& old_c : m_cables)
+  {
+    auto& old_c_last_fragment = old_c.unsafePath().vec().back();
+    if(bool cable_already_in_port = c.id().val() == old_c_last_fragment.id())
+    {
+      SCORE_SOFT_ASSERT(!cable_already_in_port);
+      c.resetCache();
+      cablesChanged();
+      return;
+    }
+  }
+
   c.resetCache();
   m_cables.push_back(c);
   cablesChanged();

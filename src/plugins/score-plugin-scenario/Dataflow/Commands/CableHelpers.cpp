@@ -139,20 +139,30 @@ void removeCables(const SerializedCables& cables, const score::DocumentContext& 
 
   for(const auto& cid : cables)
   {
-    auto cable_it = doc.cables.find(cid.first);
-    if(cable_it != doc.cables.end())
+    try
     {
-      auto& cable = *cable_it;
-      if(auto c = cable.source().try_find(ctx))
-        c->removeCable(cable);
+      auto cable_it = doc.cables.find(cid.first);
+      if(cable_it != doc.cables.end())
+      {
+        auto& cable = *cable_it;
+        if(auto c = cable.source().try_find(ctx))
+          c->removeCable(cable);
 
-      if(auto c = cable.sink().try_find(ctx))
-        c->removeCable(cable);
-      doc.cables.remove(cid.first);
+        if(auto c = cable.sink().try_find(ctx))
+          c->removeCable(cable);
+
+        doc.cables.remove(cid.first);
+      }
+      else
+      {
+        qWarning() << "cable " << cid.first << "not found";
+      }
     }
-    else
+    catch(std::exception& e)
     {
-      qWarning() << "cable " << cid.first << "not found";
+    }
+    catch(...)
+    {
     }
   }
 }
@@ -170,6 +180,26 @@ void restoreCables(const SerializedCables& cables, const score::DocumentContext&
       doc.cables.add(c);
       c->source().find(ctx).addCable(*c);
       c->sink().find(ctx).addCable(*c);
+    }
+    else
+    {
+      qDebug() << "Warning: trying to add existing cable " << id;
+    }
+  }
+}
+
+void restoreCablesWithoutTouchingPorts(
+    const SerializedCables& cables, const score::DocumentContext& ctx)
+{
+  Scenario::ScenarioDocumentModel& doc
+      = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
+
+  for(const auto& [id, data] : cables)
+  {
+    if(doc.cables.find(id) == doc.cables.end())
+    {
+      auto c = new Process::Cable{id, data, &doc};
+      doc.cables.add(c);
     }
     else
     {
@@ -210,7 +240,8 @@ static void restoreCables(
     Process::Inlet& new_p, Scenario::ScenarioDocumentModel& doc,
     const score::DocumentContext& ctx, const Dataflow::SerializedCables& cables)
 {
-  for(auto& cable : new_p.cables())
+  const auto current_cables_of_port = new_p.cables();
+  for(auto& cable : current_cables_of_port)
   {
     SCORE_ASSERT(!cable.unsafePath().vec().empty());
     auto cable_id = cable.unsafePath().vec().back().id();
@@ -230,7 +261,8 @@ static void restoreCables(
     Process::Outlet& new_p, Scenario::ScenarioDocumentModel& doc,
     const score::DocumentContext& ctx, const Dataflow::SerializedCables& cables)
 {
-  for(auto& cable : new_p.cables())
+  auto current_cables_of_port = new_p.cables();
+  for(auto& cable : current_cables_of_port)
   {
     SCORE_ASSERT(!cable.unsafePath().vec().empty());
     auto cable_id = cable.unsafePath().vec().back().id();
