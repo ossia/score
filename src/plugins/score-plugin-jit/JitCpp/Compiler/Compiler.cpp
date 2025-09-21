@@ -209,7 +209,11 @@ static std::unique_ptr<llvm::orc::LLJIT> jitBuilder(JitCompiler& self)
 
   // Configure to use JITLink via ObjectLinkingLayer
   builder.setObjectLinkingLayerCreator(
-      [&](llvm::orc::ExecutionSession& ES, const llvm::Triple& TT) {
+      [&](llvm::orc::ExecutionSession& ES
+            #if LLVM_VERSION_MAJOR < 21
+              , const llvm::Triple& TT
+            #endif
+              ) {
     // Create ObjectLinkingLayer with JITLink
     auto ObjLinkingLayer
         = std::make_unique<llvm::orc::ObjectLinkingLayer>(ES, *self.m_memmgr);
