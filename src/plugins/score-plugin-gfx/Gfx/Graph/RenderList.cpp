@@ -389,9 +389,55 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
 #endif
 
   ossia::small_pod_vector<EdgePair, 4> prevRenderers;
+  static thread_local ossia::flat_set<const score::gfx::Node*> updated_nodes;
+  updated_nodes.clear();
+
+  const auto prepare_render
+      = [this, &prevRenderers, &commands, &updateBatch](score::gfx::Port* input) {
+    prevRenderers.clear();
+    prevRenderers.reserve(input->edges.size());
+
+    // First update them all and store them in prevRenderers (saves a couple lookups)
+    for(auto edge : input->edges)
+    {
+      auto src = edge->source;
+      SCORE_ASSERT(src);
+
+      SCORE_ASSERT(
+          src->node->renderedNodes.find(this) != src->node->renderedNodes.end());
+      NodeRenderer* renderer = src->node->renderedNodes.find(this)->second;
+
+      prevRenderers.push_back({edge, renderer});
+
+      renderer->update(*this, *updateBatch, edge);
+      updated_nodes.insert(&renderer->node);
+    }
+
+    if(prevRenderers.size() == 0)
+    {
+      commands.resourceUpdate(updateBatch);
+      updateBatch = state.rhi->nextResourceUpdateBatch();
+      SCORE_ASSERT(updateBatch);
+    }
+    else
+    {
+      // For nodes that perform multiple rendering passes,
+      // pre-computations in compute shaders, etc... run them now.
+      // Most nodes don't do anything there.
+      for(auto [edge, prev_renderer] : prevRenderers)
+      {
+        commands.resourceUpdate(updateBatch);
+        updateBatch = state.rhi->nextResourceUpdateBatch();
+        SCORE_ASSERT(updateBatch);
+
+        prev_renderer->runInitialPasses(*this, commands, updateBatch, *edge);
+      }
+    }
+  };
+
+  // We render each node for this frame in-order (first to last / source before sink)
   for(auto it = this->nodes.rbegin(); it != this->nodes.rend(); ++it)
   {
-    bool node_was_rendered = false;
     auto node = *it;
     for(auto input : node->input)
     {
@@ -400,50 +446,9 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
       if(input->edges.empty())
         continue;
 
-      const auto prepare_render
-          = [this, &prevRenderers, input, &commands, &updateBatch] {
-        prevRenderers.clear();
-        prevRenderers.reserve(input->edges.size());
-
-        // First update them all and store them in prevRenderers (saves a couple lookups)
-        for(auto edge : input->edges)
-        {
-          auto src = edge->source;
-          SCORE_ASSERT(src);
-
-          SCORE_ASSERT(
-              src->node->renderedNodes.find(this) != src->node->renderedNodes.end());
-          NodeRenderer* renderer = src->node->renderedNodes.find(this)->second;
-          prevRenderers.push_back({edge, renderer});
-
-          renderer->update(*this, *updateBatch, edge);
-        }
-
-        if(prevRenderers.size() == 0)
-        {
-          commands.resourceUpdate(updateBatch);
-          updateBatch = state.rhi->nextResourceUpdateBatch();
-          SCORE_ASSERT(updateBatch);
-        }
-        else
-        {
-          // For nodes that perform multiple rendering passes,
-          // pre-computations in compute shaders, etc... run them now.
-          // Most nodes don't do anything there.
-          for(auto [edge, prev_renderer] : prevRenderers)
-          {
-            commands.resourceUpdate(updateBatch);
-            updateBatch = state.rhi->nextResourceUpdateBatch();
-            SCORE_ASSERT(updateBatch);
-
-            prev_renderer->runInitialPasses(*this, commands, updateBatch, *edge);
-          }
-        }
-      };
-
       if(input->type == Types::Image)
       {
-        prepare_render();
+        prepare_render(input);
 
         // Then do the final render of each node on the edge sink's render target
         // We *have* to do that in a single beginPass / endPass as every beginPass
@@ -487,11 +492,10 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
           updateBatch = state.rhi->nextResourceUpdateBatch();
           SCORE_ASSERT(updateBatch);
         }
-        node_was_rendered = true;
       }
       else if(input->type == Types::Geometry)
       {
-        prepare_render();
+        prepare_render(input);
 
         commands.resourceUpdate(updateBatch);
         updateBatch = nullptr;
@@ -502,16 +506,7 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
           updateBatch = state.rhi->nextResourceUpdateBatch();
           SCORE_ASSERT(updateBatch);
         }
-        node_was_rendered = true;
       }
-    }
-
-    if(!node_was_rendered)
-    {
-      // Pure computation node - we only run update
-      NodeRenderer* renderer = node->renderedNodes.find(this)->second;
-
-      renderer->update(*this, *updateBatch, nullptr);
     }
   }
 
