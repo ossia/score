@@ -70,10 +70,21 @@ printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)" >
   rm -rf docs/Doxygen
   rm -rf docs/score.png
 
-  rm -rf src/addons/score-addon-threedim/3rdparty/vcglib/apps
-  rm -rf src/addons/score-addon-threedim/3rdparty/eigen/doc
-  rm -rf src/addons/score-addon-threedim/3rdparty/eigen/test
-  rm -rf src/addons/score-addon-threedim/3rdparty/eigen/bench
+  rm -rf 3rdparty/vcglib/apps
+  rm -rf 3rdparty/eigen/doc
+  rm -rf 3rdparty/eigen/test
+  rm -rf 3rdparty/eigen/bench
+
+  rm -rf src/addons/score-addon-airwindows/3rdparty/airwin2rack/libs/airwindows/plugins
+
+  rm -rf src/addons/score-addon-onnx/3rdparty/onnxruntime-extensions/test
+
+  rm -rf src/addons/score-addon-hdf5/3rdparty/hdf5/tools
+  rm -rf src/addons/score-addon-hdf5/3rdparty/hdf5/test
+  rm -rf src/addons/score-addon-hdf5/3rdparty/hdf5/doxygen
+  rm -rf src/addons/score-addon-hdf5/3rdparty/hdf5/HDF5Examples
+
+  rm -rf src/addons/score-addon-puara/3rdparty/puara-gestures/3rdparty/boost
 
   rm -rf cmake-build-*
   find . -name '*.user' -exec rm {} \;
