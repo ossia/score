@@ -129,25 +129,27 @@ public:
     {
       if(preset->key.key == old.concreteKey())
       {
-        auto& load_preset_ifaces
-            = m_context.app.interfaces<Process::LoadPresetCommandFactoryList>();
-
-        auto cmd = load_preset_ifaces.make(
-            &Process::LoadPresetCommandFactory::make, old, *preset, m_context);
-        CommandDispatcher<> disp{m_context.commandStack};
-        disp.submit(cmd);
-      }
-      else
-      {
-        Scenario::Command::Macro m{
-            new Scenario::Command::DropProcessInIntervalMacro, m_context};
-        score::Dispatcher_T<Scenario::Command::Macro> disp{m};
-        if(auto p = m.loadProcessFromPreset(*m_interval, *preset, old.position()))
+        if(old.effect() == preset->data)
         {
-          linkNewProcess(p, m);
-          m.removeProcess(*m_interval, old.id());
-          m.commit();
+          // Fast path for loading the preset for e.g. same VSTs, JS, shaders etc.
+          auto& load_preset_ifaces
+              = m_context.app.interfaces<Process::LoadPresetCommandFactoryList>();
+
+          auto cmd = load_preset_ifaces.make(
+              &Process::LoadPresetCommandFactory::make, old, *preset, m_context);
+          CommandDispatcher<> disp{m_context.commandStack};
+          disp.submit(cmd);
+          return;
         }
+      }
+      Scenario::Command::Macro m{
+          new Scenario::Command::DropProcessInIntervalMacro, m_context};
+      score::Dispatcher_T<Scenario::Command::Macro> disp{m};
+      if(auto p = m.loadProcessFromPreset(*m_interval, *preset, old.position()))
+      {
+        linkNewProcess(p, m);
+        m.removeProcess(*m_interval, old.id());
+        m.commit();
       }
     }
   }
