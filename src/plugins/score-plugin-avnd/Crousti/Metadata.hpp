@@ -122,7 +122,7 @@ struct ProcessPortVisitor
   }
 
   template <std::size_t N, avnd::parameter Port>
-    requires(!oscr::ossia_port<Port>)
+    requires(!oscr::ossia_port<Port> && !avnd::curve_port<Port>)
   void operator()(const avnd::field_reflection<N, Port>)
   {
     this->value();

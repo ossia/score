@@ -791,6 +791,13 @@ avnd_make_score(
 )
 
 avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Wavecycle.hpp"
+  TARGET wavecycle
+  MAIN_CLASS Wavecycle
+  NAMESPACE ao
+)
+
+avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/LightnessSampler.hpp"
   TARGET lightness_sampler
   MAIN_CLASS LightnessSampler
