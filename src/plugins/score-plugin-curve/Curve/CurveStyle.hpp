@@ -1,4 +1,5 @@
 #pragma once
+#include <QObject>
 #include <QPen>
 
 #include <score_plugin_curve_export.h>
@@ -31,6 +32,7 @@ struct SCORE_PLUGIN_CURVE_EXPORT Style
 
   QPen PenDataset{};
   QPen PenDatasetDisabled{};
+  QObject lifetime{};
 
   void init(const score::Skin& s);
   void update();
