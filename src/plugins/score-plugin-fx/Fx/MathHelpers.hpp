@@ -21,11 +21,11 @@ static void setMathExpressionTiming(
 template <typename State>
 static void setMathExpressionTiming(
     State& self, int64_t input_time, int64_t prev_time,
-    std::floating_point auto parent_dur)
+    std::floating_point auto parent_pos)
 {
   self.cur_time = input_time;
   self.cur_deltatime = (input_time - prev_time);
-  self.cur_pos = parent_dur > 0 ? double(input_time) / parent_dur : 0;
+  self.cur_pos = parent_pos;
 }
 
 template <typename State>
