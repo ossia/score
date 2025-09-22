@@ -95,6 +95,19 @@ static ::Video::DecoderConfiguration videoDecoderConfiguration() noexcept
   return conf;
 }
 
+std::shared_ptr<video_decoder> makeDecoder(const std::string& absolutePath) noexcept
+try
+{
+  auto dec = std::make_shared<video_decoder>(videoDecoderConfiguration());
+  if(!dec->load(absolutePath))
+    return {};
+  return dec;
+}
+catch(...)
+{
+  return {};
+}
+
 Model::Model(
     const TimeVal& duration, const QString& path, const Id<Process::ProcessModel>& id,
     QObject* parent)
@@ -107,23 +120,11 @@ Model::Model(
   setPath(path);
   setSize(QSizeF{size().width(), 54});
 
+  m_inlets.push_back(new Process::VideoFileChooser{Id<Process::Port>(0), this});
   m_outlets.push_back(new TextureOutlet{Id<Process::Port>(0), this});
 }
 
 Model::~Model() { }
-
-std::shared_ptr<video_decoder> Model::makeDecoder() const noexcept
-try
-{
-  auto dec = std::make_shared<video_decoder>(videoDecoderConfiguration());
-  if(!dec->load(absolutePath().toStdString()))
-    return {};
-  return dec;
-}
-catch(...)
-{
-  return {};
-}
 
 QString Model::absolutePath() const noexcept
 {
