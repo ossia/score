@@ -14,7 +14,7 @@
   </branding>
   <description>
     <p>ossia score is a sequencer for audio-visual artists, designed to enable the creation of interactive shows, museum installations, intermedia digital artworks, interactive music and more in an intuitive user interface.</p>
-    
+
     <ul>
       <li>Sequence OSC, MIDI, DMX, sound, video and more, between multiple software and hardware. </li>
       <li>Script and live-code with JavaScript, ISF Shaders, Faust, PureData or C++.</li>
@@ -41,13 +41,27 @@
     </screenshot>
   </screenshots>
   <releases>
+    <release version="3.7.1" date="2025-09-22">
+      <url type="details">https://github.com/ossia/score/releases/tag/v3.7.1</url>
+      <description>
+        <p>ossia score 3.7.1 is a minor patch release on top of the large 3.7 version from two days ago, mainly to fix the build against newly-released clang-21.</p>
+        <p>Bugfixes and improvements</p>
+        <ul>
+          <li>Fix build on clang-21, necessary for MSYS2 packages.</li>
+          <li>Fix that Wavecycle process had been inadvertently removed.</li>
+          <li>Minor graphics pipeline improvements.</li>
+          <li>Fix an issue with the drop of preset in hotswap mode.</li>
+          <li>Math expressions: fix that pos was not always set to the correct value.</li>
+        </ul>
+      </description>
+    </release>
     <release version="3.7.0" date="2025-09-18">
       <url type="details">https://github.com/ossia/score/releases/tag/v3.7.0</url>
       <description>
         <p>ossia score 3.7.0 is a feature-packed back-to-school release, with a specific focus on deep bugfix, as well as UX and quality-of-life improvements.</p>
         <p>New features and changes</p>
-        <ul>          
-          <li>AirWindows: mono plug-ins will now be able to be used in polyphonic contexts (e.g. they will be scaled to the number of input channels.</li>          
+        <ul>
+          <li>AirWindows: mono plug-ins will now be able to be used in polyphonic contexts (e.g. they will be scaled to the number of input channels.</li>
           <li>Array recombiner: add a transposition mode to turn for instance [ r, g, b, r, g, b ] into [ [ r r ] [ g g ] [ b b ] ].</li>
           <li>Audio: initial ADM-OSC support in the Spatialization device.</li>
           <li>Beat metronome: it now has inlets for every subdivision, and keeps track of the count.</li>
@@ -75,7 +89,7 @@
           <li>New process: Vertex Shader Art. This allows to create dynamic audio-reactive visuals from vertex shaders, based on the eponymous website. Be sure to update the user library to get the new shaders, imported from the website github!</li>
           <li>New processes: Bendage, a set of video-bending processes for real-time image destruction: JPeg, Xlippy and Safe Word. They had been developed years ago but sadly forgotten... More to come!</li>
           <li>New protocol: LSL (Lab Streaming Layer) for integration with scientific hardware and software.</li>
-          <li>Object Loader: will now display .ply files in addition of .obj.</li>          
+          <li>Object Loader: will now display .ply files in addition of .obj.</li>
           <li>QML: add an OSC packet processor to easily handle OSC packets in custom protocols.</li>
           <li>QML: add support for setting QVector2D / 3D / 4D values.</li>
           <li>Shaders: shaders with a mouse input will now automatically start mapped to the first Window devices mouse.</li>
@@ -98,8 +112,8 @@
           <li>Avnd: various small backend improvements especially for handling musical ticks.</li>
           <li>CI: force ffmpeg@7 on macOS homebrew as ffmpeg@8 does not export symbols?</li>
           <li>CI: ton of bugfixes and change tracking as usual.</li>
-          <li>CLAP: implement more features of the spec, in particular tempo / time signature support.</li>  
-          <li>CLAP: make flush occur in the exec thread, not the main thread, per the spec.</li>  
+          <li>CLAP: implement more features of the spec, in particular tempo / time signature support.</li>
+          <li>CLAP: make flush occur in the exec thread, not the main thread, per the spec.</li>
           <li>Execution: fix a long-lived execution bug where setting the speed too fast could cause an invalid token request to be submitted to processes.</li>
           <li>Execution: many smaller improvements and optimizations.</li>
           <li>FFT: multiple fixes to FFT implementation.</li>
@@ -113,7 +127,7 @@
           <li>Metronome: fix a potential division by zero.</li>
           <li>Network: handle cases where socket shutdown throws an exception.</li>
           <li>Nodes: improve default node sizing and allow smaller nodes.</li>
-          <li>ONNX: add a SCORE_ONNX_FORCE_PROVIDER env var to allow setting the ONNX provider manually.</li>          
+          <li>ONNX: add a SCORE_ONNX_FORCE_PROVIDER env var to allow setting the ONNX provider manually.</li>
           <li>ONNX: many bugfixes to various models implementations.</li>
           <li>Sound: do not resize the main interval if dropping a sound file. This fixes a bug where dropping a sound in an empty node could have stopped playback due to the sound having a finite duration.</li>
           <li>Sound: fix that sound would sometimes disappear when changing the used soundfile live.</li>
