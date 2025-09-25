@@ -1,0 +1,15 @@
+#!/bin/bash -eux
+
+# This script will run ossia score directly on DRM & Vulkan VkKhrDisplay,
+# without using X11, Wayland or anything like this.
+# This is the most efficient way to playback scores that use the GPU on a Pi
+# as the entirety of the GPU is dedicated to the graphics rendering of score.
+DIR=$(realpath "${BASH_SOURCE[0]}")
+DIR=$(dirname "$DIR")
+
+source "$DIR/setup-dependencies.sh"
+
+export QT_QPA_PLATFORM=vkkhrdisplay
+export QSG_RHI_BACKEND=vulkan
+
+"$DIR/ossia-score" $@ --no-opengl
