@@ -168,11 +168,18 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   std::vector<score::InterfaceBase*> fx;
-  Avnd::instantiate_fx<
-      Threedim::ArrayToMesh, Threedim::ArrayToTexture, Threedim::Noise,
-      Threedim::StrucSynth, Threedim::ObjLoader, Threedim::Plane, Threedim::Cube,
-      Threedim::Sphere, Threedim::Icosahedron, Threedim::Cylinder, Threedim::Cone,
-      Threedim::Torus>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::ArrayToMesh>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::ArrayToTexture>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::Noise>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::StrucSynth>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::ObjLoader>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::Plane>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::Cube>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::Sphere>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::Icosahedron>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::Cylinder>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::Cone>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::Torus>(fx, ctx, key);
   auto add = instantiate_factories<
       score::ApplicationContext,
       FW<Process::ProcessModelFactory, Gfx::ModelDisplay::ProcessFactory>,

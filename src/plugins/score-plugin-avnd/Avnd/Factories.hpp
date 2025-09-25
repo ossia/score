@@ -192,7 +192,7 @@ struct CustomControlFactory<Node, avnd::field_reflection<N, Field>>
 {
 };
 
-template <typename... Nodes>
+template <typename Node>
 static void instantiate_fx(
     std::vector<score::InterfaceBase*>& v,
     const score::ApplicationContext& ctx, const score::InterfaceKey& key)
@@ -200,32 +200,27 @@ static void instantiate_fx(
   if(key == Execution::ProcessComponentFactory::static_interfaceKey())
   {
     //static_assert((requires { std::declval<Nodes>().run({}, {}); } && ...));
-    (v.emplace_back(static_cast<Execution::ProcessComponentFactory*>(
-         new oscr::ExecutorFactory<Nodes>())),
-     ...);
+    v.emplace_back(static_cast<Execution::ProcessComponentFactory*>(
+         new oscr::ExecutorFactory<Nodes>()));
   }
   else if(key == Process::ProcessModelFactory::static_interfaceKey())
   {
-    (v.emplace_back(
-         static_cast<Process::ProcessModelFactory*>(new oscr::ProcessFactory<Nodes>())),
-     ...);
+    v.emplace_back(
+         static_cast<Process::ProcessModelFactory*>(new oscr::ProcessFactory<Nodes>()));
   }
   else if(key == Process::LayerFactory::static_interfaceKey())
   {
-    auto fun = [&]<typename type>() {
-      if constexpr(avnd::has_ui<type>)
+      if constexpr(avnd::has_ui<Node>)
       {
         v.emplace_back(
-            static_cast<Process::LayerFactory*>(new oscr::LayerFactory<type>()));
+            static_cast<Process::LayerFactory*>(new oscr::LayerFactory<Node>()));
       }
-      else if constexpr(oscr::has_ossia_layer<type>)
+      else if constexpr(oscr::has_ossia_layer<Node>)
       {
         v.emplace_back(
-            static_cast<Process::LayerFactory*>(new oscr::ScoreLayerFactory<type>()));
+            static_cast<Process::LayerFactory*>(new oscr::ScoreLayerFactory<Node>()));
       }
-    };
-    (fun.template operator()<Nodes>(), ...);
-  }
+   }
   else if(key == Process::PortFactory::static_interfaceKey())
   {
     // Go through all the process's control inputs with a mapper
@@ -237,7 +232,7 @@ static void instantiate_fx(
            static_cast<Process::PortFactory*>(new CustomControlFactory<N, Fields>{})),
        ...);
     };
-    (fun.template operator()<Nodes>(reflect_mapped_controls<Nodes>{}), ...);
+    fun.template operator()<Nodes>(reflect_mapped_controls<Node>{});
   }
 }
 
