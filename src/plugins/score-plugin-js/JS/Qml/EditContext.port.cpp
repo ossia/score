@@ -213,6 +213,18 @@ void EditJsContext::setValue(QObject* obj, bool value)
   m->setProperty<Process::ControlInlet::p_value>(*port, value);
 }
 
+void EditJsContext::setValue(QObject* obj, int value)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+  auto port = qobject_cast<Process::ControlInlet*>(obj);
+  if(!port)
+    return;
+  auto [m, _] = macro(*doc);
+  m->setProperty<Process::ControlInlet::p_value>(*port, value);
+}
+
 void EditJsContext::setValue(QObject* obj, QList<QString> value)
 {
   auto doc = ctx();
@@ -231,6 +243,34 @@ void EditJsContext::setValue(QObject* obj, QList<QString> value)
   m->setProperty<Process::ControlInlet::p_value>(*port, std::move(vals));
 }
 
+// Score.setValue(Score.inlet(Score.find("Javascript"), 0), [ 0, 0.1, 2.0 ])
+void EditJsContext::setValue(QObject* obj, QList<qreal> value)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+  auto port = qobject_cast<Process::ControlInlet*>(obj);
+  if(!port)
+    return;
+
+  std::vector<ossia::value> vals(value.begin(), value.end());
+  auto [m, _] = macro(*doc);
+  m->setProperty<Process::ControlInlet::p_value>(*port, std::move(vals));
+}
+
+void EditJsContext::setValue(QObject* obj, QList<QVariant> value)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+  auto port = qobject_cast<Process::ControlInlet*>(obj);
+  if(!port)
+    return;
+
+  auto [m, _] = macro(*doc);
+  m->setProperty<Process::ControlInlet::p_value>(*port, ossia::qt::qt_to_ossia{}(value));
+}
+
 double EditJsContext::min(QObject* obj)
 {
   auto doc = ctx();
@@ -240,7 +280,11 @@ double EditJsContext::min(QObject* obj)
   if(!port)
     return {};
 
-  return port->domain().get().convert_min<double>();
+  auto min = port->domain().get().get_min();
+  if(!min.valid())
+    return {};
+
+  return ossia::convert<double>(min);
 }
 
 double EditJsContext::max(QObject* obj)
@@ -251,11 +295,15 @@ double EditJsContext::max(QObject* obj)
   auto port = qobject_cast<Process::ControlInlet*>(obj);
   if(!port)
     return {};
+  
+  auto max = port->domain().get().get_max();
+  if(!max.valid())
+    return {};
 
-  return port->domain().get().convert_max<double>();
+  return ossia::convert<double>(max);
 }
 
-QVector<QString> EditJsContext::enumValues(QObject* obj)
+QVector<QVariant> EditJsContext::enumValues(QObject* obj)
 {
   auto doc = ctx();
   if(!doc)
@@ -264,14 +312,22 @@ QVector<QString> EditJsContext::enumValues(QObject* obj)
   if(!port)
     return {};
 
-  QVector<QString> ret;
+  QVector<QVariant> ret;
   auto vals = ossia::get_values(port->domain().get());
+  if(vals.empty())
+    return {};
+
   for(auto& v : vals)
   {
     if(auto str = v.target<std::string>())
     {
       ret.push_back(QString::fromStdString(*str));
     }
+    else
+    {
+      ret.push_back(ossia::convert<double>(v));
+	}
+    // FIXME handle other kinds of enums
   }
   return ret;
 }

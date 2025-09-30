@@ -200,13 +200,14 @@ static void instantiate_fx(
   if(key == Execution::ProcessComponentFactory::static_interfaceKey())
   {
     //static_assert((requires { std::declval<Nodes>().run({}, {}); } && ...));
-    v.emplace_back(static_cast<Execution::ProcessComponentFactory*>(
-         new oscr::ExecutorFactory<Nodes>()));
+    v.emplace_back(
+        static_cast<Execution::ProcessComponentFactory*>(
+            new oscr::ExecutorFactory<Node>()));
   }
   else if(key == Process::ProcessModelFactory::static_interfaceKey())
   {
     v.emplace_back(
-         static_cast<Process::ProcessModelFactory*>(new oscr::ProcessFactory<Nodes>()));
+        static_cast<Process::ProcessModelFactory*>(new oscr::ProcessFactory<Node>()));
   }
   else if(key == Process::LayerFactory::static_interfaceKey())
   {
@@ -232,7 +233,7 @@ static void instantiate_fx(
            static_cast<Process::PortFactory*>(new CustomControlFactory<N, Fields>{})),
        ...);
     };
-    fun.template operator()<Nodes>(reflect_mapped_controls<Node>{});
+    fun.template operator()<Node>(reflect_mapped_controls<Node>{});
   }
 }
 

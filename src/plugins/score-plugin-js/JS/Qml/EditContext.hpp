@@ -156,8 +156,17 @@ public:
   void setValue(QObject* obj, bool value);
   W_SLOT(setValue, (QObject*, bool))
 
+  void setValue(QObject* obj, int value);
+  W_SLOT(setValue, (QObject*, int))
+
   void setValue(QObject* obj, QList<QString> value);
   W_SLOT(setValue, (QObject*, QList<QString>))
+
+  void setValue(QObject* obj, QList<qreal> value);
+  W_SLOT(setValue, (QObject*, QList<qreal>))
+
+  void setValue(QObject* obj, QList<QVariant> value);
+  W_SLOT(setValue, (QObject*, QList<QVariant>))
 
   QString valueType(QObject* obj);
   W_SLOT(valueType)
@@ -168,7 +177,7 @@ public:
   double max(QObject* obj);
   W_SLOT(max)
 
-  QVector<QString> enumValues(QObject* obj);
+  QVector<QVariant> enumValues(QObject* obj);
   W_SLOT(enumValues)
 
   QObject* metadata(QObject* obj) const noexcept;
