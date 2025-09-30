@@ -33,8 +33,8 @@ struct Node
         "var phi := 2 * pi * (20 + a * 500) / fs;\n"
         "m1[0] += phi;\n"
         "\n"
-        "out[0] := b * cos(m1[0]);\n"
-        "out[1] := b * cos(m1[0]);\n">
+        "out[0] := b * sin(m1[0]);\n"
+        "out[1] := b * sin(m1[0]);\n">
         expr;
 
     halp::hslider_f32<"Param (a)", halp::range{0., 1., 0.5}> a;
