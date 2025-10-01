@@ -663,7 +663,7 @@ void main()
 }
 )_";
 
-  static const constexpr auto fragment_shader = R"_(#version 450
+  static const constexpr auto fragment_shader_rgba = R"_(#version 450
 layout(std140, binding = 0) uniform renderer_t {
   mat4 clipSpaceCorrMatrix;
   vec2 renderSize;
@@ -674,18 +674,25 @@ layout(binding = 3) uniform sampler2D outputTexture;
 layout(location = 0) in vec2 v_texcoord;
 layout(location = 0) out vec4 fragColor;
 
-void main()
-{
-  fragColor = texture(outputTexture, v_texcoord);
-}
+void main() { fragColor = texture(outputTexture, v_texcoord); }
+)_";
+  static const constexpr auto fragment_shader_r = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+layout(binding = 3) uniform sampler2D outputTexture;
+
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main() { fragColor = vec4(texture(outputTexture, v_texcoord).rrr, 1.0); }
 )_";
 
   // Get the mesh for rendering a fullscreen quad
   const auto& mesh = renderer.defaultTriangle();
-  
-  // Compile shaders
-  auto [vertexS, fragmentS] = score::gfx::makeShaders(renderer.state, vertex_shader, fragment_shader);
-  
+
   // Find the texture to display - either m_outputTexture or the first write-capable storage image
   QRhiTexture* textureToRender = m_outputTexture;
   if(!textureToRender)
@@ -693,22 +700,53 @@ void main()
     // Look for a write-only or read-write storage image to use as output
     for(const auto& storageImage : m_storageImages)
     {
-      if(storageImage.texture && 
-         (storageImage.access == "write_only" || storageImage.access == "read_write"))
+      if(storageImage.texture
+         && (storageImage.access == "write_only" || storageImage.access == "read_write"))
       {
         textureToRender = storageImage.texture;
         break;
       }
     }
   }
-
   // If we still don't have a texture, we can't create the graphics pass
   if(!textureToRender)
   {
     qWarning() << "No output texture available for graphics pass";
     return;
   }
-  
+
+  auto fmt = textureToRender->format();
+  const char* fragment_shader{};
+  switch(fmt)
+  {
+    case QRhiTexture::Format::R8:
+    case QRhiTexture::Format::RED_OR_ALPHA8:
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
+    case QRhiTexture::Format::R8UI:
+    case QRhiTexture::Format::R32UI:
+#endif
+    case QRhiTexture::Format::R16:
+    case QRhiTexture::Format::R16F:
+    case QRhiTexture::Format::R32F:
+    case QRhiTexture::Format::D16:
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
+    case QRhiTexture::Format::D24:
+    case QRhiTexture::Format::D24S8:
+#endif
+    case QRhiTexture::Format::D32F:
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
+    case QRhiTexture::Format::D32FS8:
+#endif
+      fragment_shader = fragment_shader_r;
+      break;
+    default:
+      fragment_shader = fragment_shader_rgba;
+      break;
+  }
+
+  // Compile shaders
+  auto [vertexS, fragmentS] = score::gfx::makeShaders(renderer.state, vertex_shader, fragment_shader);
+
   // Create a sampler for our output texture
   QRhiSampler* outputSampler = renderer.state.rhi->newSampler(
     QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
