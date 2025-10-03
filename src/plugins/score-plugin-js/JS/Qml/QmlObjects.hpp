@@ -142,7 +142,7 @@ public:
   W_PROPERTY(QVariant, value READ value NOTIFY valueChanged)
 };
 
-template <typename Impl, typename ValueType>
+template <typename Impl, typename ValueType, typename OssiaType>
 class SCORE_PLUGIN_JS_EXPORT GenericControlInlet : public ControlInlet
 {
   W_OBJECT(GenericControlInlet)
@@ -182,87 +182,41 @@ public:
 private:
   ValueType m_value{};
 };
-W_OBJECT_IMPL((GenericControlInlet<A, B>), template <typename A, typename B>)
-struct SCORE_PLUGIN_JS_EXPORT FloatRangeSpinBox
-    : JS::GenericControlInlet<Process::FloatRangeSpinBox, QVector2D>
-{
-  W_OBJECT(FloatRangeSpinBox);
-  using GenericControlInlet::GenericControlInlet;
-};
-struct SCORE_PLUGIN_JS_EXPORT IntRangeSlider
-    : JS::GenericControlInlet<Process::IntRangeSlider, QVector2D>
-{
-  W_OBJECT(IntRangeSlider);
-  using GenericControlInlet::GenericControlInlet;
-};
-struct SCORE_PLUGIN_JS_EXPORT IntRangeSpinBox
-    : JS::GenericControlInlet<Process::IntRangeSpinBox, QVector2D>
-{
-  W_OBJECT(IntRangeSpinBox);
-  using GenericControlInlet::GenericControlInlet;
-};
-struct SCORE_PLUGIN_JS_EXPORT HSVSlider
-    : JS::GenericControlInlet<Process::HSVSlider, QVector4D>
-{
-  W_OBJECT(HSVSlider);
-  using GenericControlInlet::GenericControlInlet;
-};
-struct SCORE_PLUGIN_JS_EXPORT XYSlider
-    : JS::GenericControlInlet<Process::XYSlider, QVector2D>
-{
-  W_OBJECT(XYSlider);
-  using GenericControlInlet::GenericControlInlet;
-};
-struct SCORE_PLUGIN_JS_EXPORT XYZSlider
-    : JS::GenericControlInlet<Process::XYZSlider, QVector3D>
-{
-  W_OBJECT(XYZSlider);
-  using GenericControlInlet::GenericControlInlet;
-};
-struct SCORE_PLUGIN_JS_EXPORT XYSpinboxes
-    : JS::GenericControlInlet<Process::XYSpinboxes, QVector2D>
-{
-  W_OBJECT(XYSpinboxes);
-  using GenericControlInlet::GenericControlInlet;
-};
-struct SCORE_PLUGIN_JS_EXPORT XYZSpinboxes
-    : JS::GenericControlInlet<Process::XYZSpinboxes, QVector3D>
-{
-  W_OBJECT(XYZSpinboxes);
-  using GenericControlInlet::GenericControlInlet;
-};
+W_OBJECT_IMPL(
+    (GenericControlInlet<A, B, C>), template <typename A, typename B, typename C>)
 struct SCORE_PLUGIN_JS_EXPORT MultiSlider
-    : JS::GenericControlInlet<Process::MultiSlider, QVector<qreal>>
+    : JS::GenericControlInlet<
+          Process::MultiSlider, QVector<qreal>, std::vector<ossia::value>>
 {
   W_OBJECT(MultiSlider);
   using GenericControlInlet::GenericControlInlet;
 };
 struct SCORE_PLUGIN_JS_EXPORT FileChooser
-    : JS::GenericControlInlet<Process::FileChooser, QString>
+    : JS::GenericControlInlet<Process::FileChooser, QString, std::string>
 {
   W_OBJECT(FileChooser);
   using GenericControlInlet::GenericControlInlet;
 };
 struct SCORE_PLUGIN_JS_EXPORT AudioFileChooser
-    : JS::GenericControlInlet<Process::AudioFileChooser, QString>
+    : JS::GenericControlInlet<Process::AudioFileChooser, QString, std::string>
 {
   W_OBJECT(AudioFileChooser);
   using GenericControlInlet::GenericControlInlet;
 };
 struct SCORE_PLUGIN_JS_EXPORT VideoFileChooser
-    : JS::GenericControlInlet<Process::VideoFileChooser, QString>
+    : JS::GenericControlInlet<Process::VideoFileChooser, QString, std::string>
 {
   W_OBJECT(VideoFileChooser);
   using GenericControlInlet::GenericControlInlet;
 };
 
 template <typename Impl = Process::FloatSlider>
-class SCORE_PLUGIN_JS_EXPORT FloatSlider : public GenericControlInlet<Impl, float>
+class SCORE_PLUGIN_JS_EXPORT FloatSlider : public GenericControlInlet<Impl, float, float>
 {
   W_OBJECT(FloatSlider)
 
 public:
-  using GenericControlInlet<Impl, float>::GenericControlInlet;
+  using GenericControlInlet<Impl, float, float>::GenericControlInlet;
   virtual ~FloatSlider() override = default;
   bool isEvent() const override { return true; }
 
@@ -279,12 +233,12 @@ public:
 W_OBJECT_IMPL(JS::FloatSlider<Impl>, template <typename Impl>)
 
 template <typename Impl = Process::IntSlider>
-class SCORE_PLUGIN_JS_EXPORT IntSlider : public GenericControlInlet<Impl, int>
+class SCORE_PLUGIN_JS_EXPORT IntSlider : public GenericControlInlet<Impl, int, int>
 {
   W_OBJECT(IntSlider)
 
 public:
-  using GenericControlInlet<Impl, int>::GenericControlInlet;
+  using GenericControlInlet<Impl, int, int>::GenericControlInlet;
   virtual ~IntSlider() override = default;
   bool isEvent() const override { return true; }
 
@@ -298,6 +252,232 @@ public:
   W_INLINE_PROPERTY_VALUE(int, max, {127}, getMax, setMax, maxChanged)
 };
 W_OBJECT_IMPL(JS::IntSlider<Impl>, template <typename Impl>)
+
+static constexpr auto vec2(double v)
+{
+  return QVector2D{(float)v, (float)v};
+}
+static constexpr auto vec3(double v)
+{
+  return QVector3D{(float)v, (float)v, (float)v};
+}
+static constexpr auto vec4(double v)
+{
+  return QVector4D{(float)v, (float)v, (float)v, (float)v};
+}
+static constexpr auto vec_to_ossia(QVector2D v)
+{
+  return ossia::vec2f{(float)v[0], (float)v[1]};
+}
+static constexpr auto vec_to_ossia(QVector3D v)
+{
+  return ossia::vec3f{(float)v[0], (float)v[1], (float)v[2]};
+}
+static constexpr auto vec_to_ossia(QVector4D v)
+{
+  return ossia::vec4f{(float)v[0], (float)v[1], (float)v[2], (float)v[3]};
+}
+
+template <typename Impl>
+class SCORE_PLUGIN_JS_EXPORT FloatControl2D
+    : public GenericControlInlet<Impl, QVector2D, ossia::vec2f>
+{
+  W_OBJECT(FloatControl2D)
+
+public:
+  using GenericControlInlet<Impl, QVector2D, ossia::vec2f>::GenericControlInlet;
+  virtual ~FloatControl2D() override = default;
+  bool isEvent() const override { return true; }
+
+  Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
+  {
+    if constexpr(std::is_constructible_v<
+                     Impl, ossia::vec2f, ossia::vec2f, ossia::vec2f, bool, QString,
+                     Id<Process::Port>, QObject*>)
+      return new Impl{
+          vec_to_ossia(m_min),
+          vec_to_ossia(m_max),
+          vec_to_ossia(m_init),
+          false,
+          this->objectName(),
+          id,
+          parent};
+    else if constexpr(std::is_constructible_v<
+                          Impl, ossia::vec2f, ossia::vec2f, ossia::vec2f, QString,
+                          Id<Process::Port>, QObject*>)
+      return new Impl{
+          vec_to_ossia(m_min),
+          vec_to_ossia(m_max),
+          vec_to_ossia(m_init),
+          this->objectName(),
+          id,
+          parent};
+    else
+      return new Impl{vec_to_ossia(m_init), this->objectName(), id, parent};
+  }
+
+  W_INLINE_PROPERTY_VALUE(QVector2D, init, {vec2(0.)}, init, setInit, initChanged);
+  W_INLINE_PROPERTY_VALUE(QVector2D, min, {vec2(0.)}, getMin, setMin, minChanged);
+  W_INLINE_PROPERTY_VALUE(QVector2D, max, {vec2(1.)}, getMax, setMax, maxChanged);
+};
+W_OBJECT_IMPL(JS::FloatControl2D<Impl>, template <typename Impl>)
+
+template <typename Impl>
+class SCORE_PLUGIN_JS_EXPORT IntControl2D
+    : public GenericControlInlet<Impl, QVector2D, ossia::vec2f>
+{
+  W_OBJECT(IntControl2D)
+
+public:
+  using GenericControlInlet<Impl, QVector2D, ossia::vec2f>::GenericControlInlet;
+  virtual ~IntControl2D() override = default;
+  bool isEvent() const override { return true; }
+
+  Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
+  {
+    return new Impl{
+        vec_to_ossia(m_min),
+        vec_to_ossia(m_max),
+        vec_to_ossia(m_init),
+        true,
+        this->objectName(),
+        id,
+        parent};
+  }
+
+  W_INLINE_PROPERTY_VALUE(QVector2D, init, {vec2(0.)}, init, setInit, initChanged);
+  W_INLINE_PROPERTY_VALUE(QVector2D, min, {vec2(0.)}, getMin, setMin, minChanged);
+  W_INLINE_PROPERTY_VALUE(QVector2D, max, {vec2(1.)}, getMax, setMax, maxChanged);
+};
+W_OBJECT_IMPL(JS::IntControl2D<Impl>, template <typename Impl>)
+
+template <typename Impl>
+class SCORE_PLUGIN_JS_EXPORT FloatControl1D_2D
+    : public GenericControlInlet<Impl, QVector2D, ossia::vec2f>
+{
+  W_OBJECT(FloatControl1D_2D)
+
+public:
+  using GenericControlInlet<Impl, QVector2D, ossia::vec2f>::GenericControlInlet;
+  virtual ~FloatControl1D_2D() override = default;
+  bool isEvent() const override { return true; }
+
+  Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
+  {
+    return new Impl(m_min, m_max, vec_to_ossia(m_init), this->objectName(), id, parent);
+  }
+
+  W_INLINE_PROPERTY_VALUE(QVector2D, init, {vec2(0.)}, init, setInit, initChanged);
+  W_INLINE_PROPERTY_VALUE(float, min, {0.}, getMin, setMin, minChanged);
+  W_INLINE_PROPERTY_VALUE(float, max, {1.}, getMax, setMax, maxChanged);
+};
+W_OBJECT_IMPL(JS::FloatControl1D_2D<Impl>, template <typename Impl>)
+
+template <typename Impl>
+class SCORE_PLUGIN_JS_EXPORT FloatControl3D
+    : public GenericControlInlet<Impl, QVector3D, ossia::vec3f>
+{
+  W_OBJECT(FloatControl3D)
+
+public:
+  using GenericControlInlet<Impl, QVector3D, ossia::vec3f>::GenericControlInlet;
+  virtual ~FloatControl3D() override = default;
+  bool isEvent() const override { return true; }
+
+  Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
+  {
+    if constexpr(std::is_constructible_v<
+                     Impl, ossia::vec3f, ossia::vec3f, ossia::vec3f, bool, QString,
+                     Id<Process::Port>, QObject*>)
+      return new Impl{
+          vec_to_ossia(m_min),
+          vec_to_ossia(m_max),
+          vec_to_ossia(m_init),
+          false,
+          this->objectName(),
+          id,
+          parent};
+    else if constexpr(std::is_constructible_v<
+                          Impl, ossia::vec3f, ossia::vec3f, ossia::vec3f, QString,
+                          Id<Process::Port>, QObject*>)
+      return new Impl{
+          vec_to_ossia(m_min),
+          vec_to_ossia(m_max),
+          vec_to_ossia(m_init),
+          this->objectName(),
+          id,
+          parent};
+    else
+      return new Impl{vec_to_ossia(m_init), this->objectName(), id, parent};
+  }
+
+  W_INLINE_PROPERTY_VALUE(QVector3D, init, {vec3(0.)}, init, setInit, initChanged);
+  W_INLINE_PROPERTY_VALUE(QVector3D, min, {vec3(0.)}, getMin, setMin, minChanged);
+  W_INLINE_PROPERTY_VALUE(QVector3D, max, {vec3(1.)}, getMax, setMax, maxChanged);
+};
+W_OBJECT_IMPL(JS::FloatControl3D<Impl>, template <typename Impl>)
+
+template <typename Impl>
+class SCORE_PLUGIN_JS_EXPORT IntControl3D
+    : public GenericControlInlet<Impl, QVector3D, ossia::vec3f>
+{
+  W_OBJECT(IntControl3D)
+
+public:
+  using GenericControlInlet<Impl, QVector3D, ossia::vec3f>::GenericControlInlet;
+  virtual ~IntControl3D() override = default;
+  bool isEvent() const override { return true; }
+
+  Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
+  {
+    return new Impl{
+        vec_to_ossia(m_min),
+        vec_to_ossia(m_max),
+        vec_to_ossia(m_init),
+        true,
+        this->objectName(),
+        id,
+        parent};
+  }
+
+  W_INLINE_PROPERTY_VALUE(QVector3D, init, {vec3(0.)}, init, setInit, initChanged);
+  W_INLINE_PROPERTY_VALUE(QVector3D, min, {vec3(0.)}, getMin, setMin, minChanged);
+  W_INLINE_PROPERTY_VALUE(QVector3D, max, {vec3(1.)}, getMax, setMax, maxChanged);
+};
+W_OBJECT_IMPL(JS::IntControl3D<Impl>, template <typename Impl>)
+
+template <typename Impl>
+class SCORE_PLUGIN_JS_EXPORT FloatControl4D
+    : public GenericControlInlet<Impl, QVector4D, ossia::vec4f>
+{
+  W_OBJECT(FloatControl4D)
+
+public:
+  using GenericControlInlet<Impl, QVector4D, ossia::vec4f>::GenericControlInlet;
+  virtual ~FloatControl4D() override = default;
+  bool isEvent() const override { return true; }
+
+  Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
+  {
+    if constexpr(std::is_constructible_v<
+                     Impl, ossia::vec4f, ossia::vec4f, ossia::vec4f, QString,
+                     Id<Process::Port>, QObject*>)
+      return new Impl{
+          vec_to_ossia(m_min),
+          vec_to_ossia(m_max),
+          vec_to_ossia(m_init),
+          this->objectName(),
+          id,
+          parent};
+    else
+      return new Impl{vec_to_ossia(m_init), this->objectName(), id, parent};
+  }
+
+  W_INLINE_PROPERTY_VALUE(QVector4D, init, {vec4(0.)}, init, setInit, initChanged);
+  W_INLINE_PROPERTY_VALUE(QVector4D, min, {vec4(0.)}, getMin, setMin, minChanged);
+  W_INLINE_PROPERTY_VALUE(QVector4D, max, {vec4(1.)}, getMax, setMax, maxChanged);
+};
+W_OBJECT_IMPL(JS::FloatControl4D<Impl>, template <typename Impl>)
 
 class SCORE_PLUGIN_JS_EXPORT Enum : public ControlInlet
 {
@@ -425,6 +605,24 @@ public:
   W_INLINE_PROPERTY_CREF(QString, text, {}, text, setText, textChanged)
 };
 
+class SCORE_PLUGIN_JS_EXPORT HSVSlider : public ControlInlet
+{
+  W_OBJECT(HSVSlider)
+
+public:
+  using ControlInlet::ControlInlet;
+  virtual ~HSVSlider() override;
+  bool isEvent() const override { return true; }
+  Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
+  {
+    auto col = init().toRgb();
+    ossia::vec4f v{
+        (float)col.redF(), (float)col.greenF(), (float)col.blueF(), (float)col.alphaF()};
+    return new Process::HSVSlider{v, objectName(), id, parent};
+  }
+
+  W_INLINE_PROPERTY_CREF(QColor, init, {}, init, setInit, initChanged)
+};
 class SCORE_PLUGIN_JS_EXPORT ValueOutlet : public Outlet
 {
   W_OBJECT(ValueOutlet)

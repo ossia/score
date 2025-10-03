@@ -8,6 +8,8 @@
 #include <Gfx/Graph/Window.hpp>
 #include <JS/Qml/QmlObjects.hpp>
 
+#include <score/gfx/Vulkan.hpp>
+
 #include <ossia-qt/js_utilities.hpp>
 
 #include <boost/unordered/concurrent_flat_map.hpp>
@@ -318,6 +320,14 @@ void main ()
     // Init the QQuick render stuff
     m_renderControl = new QQuickRenderControl{};
     m_window = new QQuickWindow{m_renderControl};
+
+#if QT_HAS_VULKAN
+    if(renderer.state.api == score::gfx::GraphicsApi::Vulkan)
+    {
+      m_window->setVulkanInstance(score::gfx::staticVulkanInstance());
+    }
+#endif
+
     if(auto win = renderer.state.window.lock())
     {
       QObject::connect(

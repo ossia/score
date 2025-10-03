@@ -353,6 +353,7 @@ void Model::setupCSF(const isf::descriptor& desc)
       auto port = new Process::XYZSpinboxes{min,
                                             max,
                                             init,
+                                            false,
                                             QString::fromStdString(input.name),
                                             Id<Process::Port>(input_i++),
                                             &self};

@@ -413,6 +413,7 @@ make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
           {c.min, c.min, c.min},
           {c.max, c.max, c.max},
           {c.init, c.init, c.init},
+          false,
           qname,
           id,
           parent};

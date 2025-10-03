@@ -268,6 +268,17 @@ void FloatRangeSlider::setupExecution(
   port.domain = domain().get();
 }
 
+IntRangeSpinBox::IntRangeSpinBox(
+    int min, int max, ossia::vec2f init, const QString& name, Id<Port> id,
+    QObject* parent)
+    : ControlInlet{id, parent}
+{
+  hidden = true;
+  setInit(init);
+  setValue(init);
+  setDomain(ossia::make_domain(min, max));
+  setName(name);
+}
 IntRangeSpinBox::~IntRangeSpinBox() { }
 
 void IntRangeSpinBox::setupExecution(
@@ -669,6 +680,16 @@ XYZSpinboxes::XYZSpinboxes(
 }
 
 XYSpinboxes::XYSpinboxes(
+    ossia::vec2f init, const QString& name, Id<Port> id, QObject* parent)
+    : ControlInlet{id, parent}
+    , integral{false}
+{
+  hidden = true;
+  setValue(init);
+  setInit(init);
+  setName(name);
+}
+XYSpinboxes::XYSpinboxes(
     ossia::vec2f min, ossia::vec2f max, ossia::vec2f init, bool integral,
     const QString& name, Id<Port> id, QObject* parent)
     : ControlInlet{id, parent}
@@ -712,9 +733,10 @@ void XYSpinboxes::setupExecution(ossia::inlet& inl, QObject* exec_context) const
 }
 
 XYZSpinboxes::XYZSpinboxes(
-    ossia::vec3f min, ossia::vec3f max, ossia::vec3f init, const QString& name,
-    Id<Port> id, QObject* parent)
+    ossia::vec3f min, ossia::vec3f max, ossia::vec3f init, bool integral,
+    const QString& name, Id<Port> id, QObject* parent)
     : ControlInlet{id, parent}
+    , integral{integral}
 {
   hidden = true;
   setValue(init);

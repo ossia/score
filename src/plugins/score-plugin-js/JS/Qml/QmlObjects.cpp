@@ -23,19 +23,12 @@ W_OBJECT_IMPL(JS::TextureOutlet)
 #endif
 W_OBJECT_IMPL(JS::Enum)
 W_OBJECT_IMPL(JS::ComboBox)
-W_OBJECT_IMPL(JS::FloatRangeSpinBox)
-W_OBJECT_IMPL(JS::IntRangeSlider)
-W_OBJECT_IMPL(JS::IntRangeSpinBox)
-W_OBJECT_IMPL(JS::HSVSlider)
-W_OBJECT_IMPL(JS::XYSlider)
-W_OBJECT_IMPL(JS::XYZSlider)
-W_OBJECT_IMPL(JS::XYSpinboxes)
-W_OBJECT_IMPL(JS::XYZSpinboxes)
 W_OBJECT_IMPL(JS::MultiSlider)
 W_OBJECT_IMPL(JS::FileChooser)
 W_OBJECT_IMPL(JS::AudioFileChooser)
 W_OBJECT_IMPL(JS::VideoFileChooser)
 W_OBJECT_IMPL(JS::Toggle)
+W_OBJECT_IMPL(JS::HSVSlider)
 W_OBJECT_IMPL(JS::Button)
 W_OBJECT_IMPL(JS::Impulse)
 W_OBJECT_IMPL(JS::LineEdit)
@@ -288,4 +281,5 @@ Impulse::~Impulse() = default;
 Enum::~Enum() = default;
 ComboBox::~ComboBox() = default;
 LineEdit::~LineEdit() = default;
+HSVSlider::~HSVSlider() = default;
 }
