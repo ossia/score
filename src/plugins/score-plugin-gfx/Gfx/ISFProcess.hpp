@@ -251,8 +251,8 @@ struct ISFHelpers
           std::copy_n(v.min->begin(), 3, min.begin());
         if(v.max)
           std::copy_n(v.max->begin(), 3, max.begin());
-        auto port
-            = new Process::XYZSpinboxes{min, max, init, nm, Id<Process::Port>(i), &self};
+        auto port = new Process::XYZSpinboxes{
+            min, max, init, false, nm, Id<Process::Port>(i), &self};
 
         if(auto it = previous_values.find(nm);
            it != previous_values.end()

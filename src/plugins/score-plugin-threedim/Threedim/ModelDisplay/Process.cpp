@@ -29,15 +29,18 @@ void Model::init()
   if(m_inlets.empty() && m_outlets.empty())
   {
     m_outlets.push_back(new TextureOutlet{Id<Process::Port>(0), this});
+    m_outlets.back()->setName("Output");
     m_inlets.push_back(new TextureInlet{Id<Process::Port>(0), this});
+    m_inlets.back()->setName("Texture Input");
     m_inlets.push_back(new GeometryInlet{Id<Process::Port>(1), this});
+    m_inlets.back()->setName("Model Input");
 
     m_inlets.push_back(new Process::XYZSpinboxes{
         ossia::vec3f{-10000., -10000., -10000.}, ossia::vec3f{10000., 10000., 10000.},
-        ossia::vec3f{-1., -1., -1.}, "Position", Id<Process::Port>(2), this});
+        ossia::vec3f{-1., -1., -1.}, false, "Position", Id<Process::Port>(2), this});
     m_inlets.push_back(new Process::XYZSpinboxes{
         ossia::vec3f{-10000., -10000., -10000.}, ossia::vec3f{10000., 10000., 10000.},
-        ossia::vec3f{}, "Center", Id<Process::Port>(3), this});
+        ossia::vec3f{}, false, "Center", Id<Process::Port>(3), this});
 
     m_inlets.push_back(
         new Process::FloatSlider{0.01, 359.999, 90., "FOV", Id<Process::Port>(4), this});
@@ -60,10 +63,10 @@ void Model::init()
 
       m_inlets.push_back(new Process::XYZSpinboxes{
           ossia::vec3f{-10000., -10000., -10000.}, ossia::vec3f{10000., 10000., 10000.},
-          ossia::vec3f{-1., -1., -1.}, "Position", Id<Process::Port>(2), this});
+          ossia::vec3f{-1., -1., -1.}, false, "Position", Id<Process::Port>(2), this});
       m_inlets.push_back(new Process::XYZSpinboxes{
           ossia::vec3f{-10000., -10000., -10000.}, ossia::vec3f{10000., 10000., 10000.},
-          ossia::vec3f{}, "Center", Id<Process::Port>(3), this});
+          ossia::vec3f{}, false, "Center", Id<Process::Port>(3), this});
 
       m_inlets.push_back(new Process::FloatSlider{
           0.01, 359.999, 90., "FOV", Id<Process::Port>(4), this});
