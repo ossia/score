@@ -169,6 +169,35 @@ static QPointF currentWidgetPos(int controlIndex, F getControlSize) noexcept(
   return {x + default_padding, y + default_padding};
 }
 
+template <typename F>
+static QPointF currentWidgetPos_outlets(int controlIndex, F getControlSize) noexcept(
+    noexcept(getControlSize(0)))
+{
+  int N = MaxRowsInEffect * (controlIndex / MaxRowsInEffect);
+  qreal x = 0;
+  for(int i = 0; i < N;)
+  {
+    qreal w = 0;
+    for(int j = i; j < i + MaxRowsInEffect && j < N; j++)
+    {
+      auto sz = getControlSize(j);
+      w = std::max(w, sz.width());
+      w += default_padding;
+    }
+    x += w;
+    i += MaxRowsInEffect;
+  }
+
+  qreal y = 0;
+  for(int j = N; j < controlIndex; j++)
+  {
+    auto sz = getControlSize(j);
+    y += sz.height() + default_padding;
+  }
+
+  return {x + default_padding, y + default_padding};
+}
+
 void GraphicsDefaultLayout::layout()
 {
   const auto items = this->childItems();
@@ -179,6 +208,83 @@ void GraphicsDefaultLayout::layout()
     auto it = items[i];
     it->setPos(
         currentWidgetPos(i, [&](int j) { return items[j]->boundingRect().size(); }));
+  }
+}
+
+GraphicsDefaultInletLayout::~GraphicsDefaultInletLayout() { }
+void GraphicsDefaultInletLayout::layout()
+{
+  const auto items = this->childItems();
+  updateChildrenRects(items);
+  double cur_x = 0;
+  double cur_y = 0;
+
+  for(int i = 0; i < items.size(); i++)
+  {
+    auto it = items[i];
+    auto rect = it->boundingRect();
+    it->setPos(cur_x, cur_y);
+    cur_y += rect.height();
+  }
+}
+
+GraphicsDefaultOutletLayout::~GraphicsDefaultOutletLayout() { }
+void GraphicsDefaultOutletLayout::layout()
+{
+  const auto items = this->childItems();
+  updateChildrenRects(items);
+  // 1. Find longest item
+  double w = 0.;
+  for(int i = 0; i < items.size(); i++)
+    if(auto ww = items[i]->boundingRect().width(); ww > w)
+      w = ww;
+  w = std::max(w, parentItem()->boundingRect().width());
+
+  double cur_x = 0;
+  double cur_y = 0;
+
+  for(int i = 0; i < items.size(); i++)
+  {
+    auto it = items[i];
+    auto rect = it->boundingRect();
+    cur_x = w - rect.width();
+    it->setPos(cur_x, cur_y);
+    cur_y += rect.height();
+  }
+}
+
+GraphicsIORootLayout::~GraphicsIORootLayout() { }
+void GraphicsIORootLayout::setMinimumWidth(double w)
+{
+  m_minimumWidth = w;
+}
+void GraphicsIORootLayout::layout()
+{
+  const auto items = this->childItems();
+  if(items.size() == 2)
+  {
+    updateChildrenRects(items);
+    items[0]->setPos(0, 0);
+    auto inlets_w = items[0]->boundingRect().width();
+    auto outlets_w = items[1]->boundingRect().width();
+    if(inlets_w + 5. + outlets_w > m_minimumWidth)
+      items[1]->setPos(inlets_w + 5., 0);
+    else
+      items[1]->setPos(m_minimumWidth - outlets_w, 0);
+  }
+  else if(items.size() == 3)
+  {
+    updateChildrenRects(items);
+    items[0]->setPos(0, 0);
+    auto no_control_inlets_w = items[0]->boundingRect().width();
+    auto control_inlets_w = items[1]->boundingRect().width();
+    items[1]->setPos(no_control_inlets_w + 5., 0.);
+
+    auto outlets_w = items[2]->boundingRect().width();
+    if(no_control_inlets_w + control_inlets_w + 10. + outlets_w > m_minimumWidth)
+      items[2]->setPos(no_control_inlets_w + control_inlets_w + 10., 0);
+    else
+      items[2]->setPos(m_minimumWidth - outlets_w, 0);
   }
 }
 }
