@@ -58,6 +58,14 @@ public:
       Process::ControlOutlet& port, const Process::Context& ctx, QGraphicsItem* parent,
       QObject* context);
 
+  // Port + text
+  ControlLayout makeLabelItem(
+      Process::Inlet& port, const Process::Context& ctx, QGraphicsItem* parent,
+      QObject* context);
+  ControlLayout makeLabelItem(
+      Process::Outlet& port, const Process::Context& ctx, QGraphicsItem* parent,
+      QObject* context);
+
   // Widget stuff
   virtual void setupInletInspector(
       const Process::Inlet& port, const score::DocumentContext& ctx, QWidget* parent,
