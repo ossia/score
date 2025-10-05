@@ -18,11 +18,25 @@ public:
   void sizeChanged(QSizeF sz) E_SIGNAL(SCORE_LIB_BASE_EXPORT, sizeChanged, sz)
   void childrenSizeChanged() E_SIGNAL(SCORE_LIB_BASE_EXPORT, childrenSizeChanged);
 
+  double minimumHeight() const noexcept { return m_minimumHeight; }
+  void setMinimumHeight(double w);
+  void minimumHeightChanged(double w)
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, minimumHeightChanged, w)
+
+  double minimumWidth() const noexcept { return m_minimumWidth; }
+  void setMinimumWidth(double w);
+  void minimumWidthChanged(double w)
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, minimumWidthChanged, w)
+
   enum
   {
     Type = UserType + 80000
   };
   int type() const override;
+
+protected:
+  double m_minimumHeight{};
+  double m_minimumWidth{};
 };
 
 class SCORE_LIB_BASE_EXPORT RectItem final : public ResizeableItem

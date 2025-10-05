@@ -90,6 +90,23 @@ int ResizeableItem::type() const
   return Type;
 }
 
+void ResizeableItem::setMinimumHeight(double w)
+{
+  if(w != m_minimumHeight)
+  {
+    m_minimumHeight = w;
+    minimumHeightChanged(w);
+  }
+}
+void ResizeableItem::setMinimumWidth(double w)
+{
+  if(w != m_minimumWidth)
+  {
+    m_minimumWidth = w;
+    minimumWidthChanged(w);
+  }
+}
+
 EmptyRectItem::EmptyRectItem(QGraphicsItem* parent)
     : ResizeableItem{parent}
 {
