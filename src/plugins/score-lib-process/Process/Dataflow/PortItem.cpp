@@ -980,7 +980,56 @@ score::SimpleTextItem* makePortLabel(const Process::Port& port, QGraphicsItem* p
   const auto& brush = Process::labelBrush(port);
 
   auto lab = new score::SimpleTextItem{brush, parent};
-  lab->setText(port.visualName());
+  auto text = port.visualName();
+  if(text.isEmpty())
+  {
+    if(qobject_cast<const Process::Inlet*>(&port))
+    {
+      switch(port.type())
+      {
+        case Process::PortType::Audio:
+          text = QStringLiteral("Audio In");
+          break;
+        default:
+        case Process::PortType::Message:
+          text = QStringLiteral("Value In");
+          break;
+        case Process::PortType::Midi:
+          text = QStringLiteral("MIDI In");
+          break;
+        case Process::PortType::Texture:
+          text = QStringLiteral("Texture In");
+          break;
+        case Process::PortType::Geometry:
+          text = QStringLiteral("Geometry In");
+          break;
+      }
+    }
+    else
+    {
+      switch(port.type())
+      {
+        case Process::PortType::Audio:
+          text = QStringLiteral("Audio Out");
+          break;
+        default:
+        case Process::PortType::Message:
+          text = QStringLiteral("Value Out");
+          break;
+        case Process::PortType::Midi:
+          text = QStringLiteral("MIDI Out");
+          break;
+        case Process::PortType::Texture:
+          text = QStringLiteral("Texture Out");
+          break;
+        case Process::PortType::Geometry:
+          text = QStringLiteral("Geometry Out");
+          break;
+      }
+    }
+  }
+
+  lab->setText(text);
 
   QObject::connect(&port.selection, &Selectable::changed, lab, [lab, &port](bool b) {
     lab->setColor(Process::labelBrush(port));
