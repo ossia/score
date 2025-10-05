@@ -121,9 +121,12 @@ function(avnd_score_plugin_add)
     NEWLINE_STYLE LF
   )
 
-  if(NOT CMAKE_UNITY_BUILD)
-    set_target_properties(${AVND_BASE_TARGET} PROPERTIES SCORE_CUSTOM_PCH 1)
-    target_precompile_headers("${AVND_BASE_TARGET}" REUSE_FROM score_plugin_avnd)
+  if(NOT CMAKE_UNITY_BUILD) 
+    get_target_property(_has_custom_pch ${AVND_BASE_TARGET} SCORE_CUSTOM_PCH)
+    if(NOT ${_has_custom_pch})
+      set_target_properties(${AVND_BASE_TARGET} PROPERTIES SCORE_CUSTOM_PCH 1)
+      target_precompile_headers("${AVND_BASE_TARGET}" REUSE_FROM score_plugin_avnd)
+    endif()
   endif()
   if(AVND_MODULE)
     target_sources(${AVND_BASE_TARGET}
