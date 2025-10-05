@@ -31,7 +31,6 @@
 
 #include <wobjectimpl.h>
 
-#include <mutex>
 #include <vector>
 W_OBJECT_IMPL(JS::ProcessModel)
 namespace JS
@@ -48,20 +47,23 @@ ProcessModel::ProcessModel(
     (void)setScript(
         R"_(import Score 1.0
 Script {
-  ValueInlet { id: in1 }
-  ValueOutlet { id: out1 }
-  FloatSlider { id: sl; min: 10; max: 100; }
+  ValueInlet { id: in1; objectName: "Value In" }
+  ValueOutlet { id: out1; objectName: "Value Out" }
+  FloatSlider { id: sl; min: 10; max: 100; objectName: "Control" }
 
+  // Called on every tick
   tick: function(token, state) {
     if (typeof in1.value !== 'undefined') {
       console.log(in1.value);
       out1.value = in1.value + sl.value * Math.random();
     }
   }
-  start: function() { console.log("I am called on start"); }
-  stop: function() { console.log("I am called on stop"); }
-  pause: function() { console.log("I am called on pause"); }
-  resume: function() { console.log("I am called on resume"); }
+
+  // Use these to handle specific events if necessary:
+  // start: function() { }
+  // stop: function() { }
+  // pause: function() { }
+  // resume: function() { }
 })_");
   }
   else
