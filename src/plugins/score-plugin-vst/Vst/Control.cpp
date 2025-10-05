@@ -10,6 +10,7 @@
 #include <Inspector/InspectorLayout.hpp>
 #include <Vst/Commands.hpp>
 #include <Vst/Control.hpp>
+#include <Vst/EffectModel.hpp>
 #include <Vst/Widgets.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
@@ -93,6 +94,22 @@ Dataflow::PortItem* ControlPortFactory::makePortItem(
 Dataflow::PortItem* ControlPortFactory::makePortItem(
     Process::Outlet& port, const Process::Context& ctx, QGraphicsItem* parent,
     QObject* context)
+{
+  return nullptr;
+}
+
+QGraphicsItem* ControlPortFactory::makeControlItem(
+    Process::ControlInlet& port, const score::DocumentContext& ctx,
+    QGraphicsItem* parent, QObject* context)
+{
+  auto proc = safe_cast<vst::Model*>(port.parent());
+  auto inl = safe_cast<vst::ControlInlet*>(&port);
+  return VSTFloatSlider::make_item(proc->fx->fx, *inl, ctx, parent, context);
+}
+
+QGraphicsItem* ControlPortFactory::makeControlItem(
+    Process::ControlOutlet& port, const score::DocumentContext& ctx,
+    QGraphicsItem* parent, QObject* context)
 {
   return nullptr;
 }

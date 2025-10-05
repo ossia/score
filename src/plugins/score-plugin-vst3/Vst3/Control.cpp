@@ -97,6 +97,22 @@ Dataflow::PortItem* VSTControlPortFactory::makePortItem(
   return nullptr;
 }
 
+QGraphicsItem* VSTControlPortFactory::makeControlItem(
+    Process::ControlInlet& port, const score::DocumentContext& ctx,
+    QGraphicsItem* parent, QObject* context)
+{
+  auto proc = safe_cast<vst3::Model*>(port.parent());
+  auto inl = safe_cast<vst3::ControlInlet*>(&port);
+  return VSTFloatSlider::make_item(proc->fx.controller, *inl, ctx, parent, context);
+}
+
+QGraphicsItem* VSTControlPortFactory::makeControlItem(
+    Process::ControlOutlet& port, const score::DocumentContext& ctx,
+    QGraphicsItem* parent, QObject* context)
+{
+  return nullptr;
+}
+
 static void setupVSTControl(
     const ControlInlet& inlet, QWidget* inlet_widget, const score::DocumentContext& ctx,
     Inspector::Layout& vlay, QWidget* parent)

@@ -95,6 +95,14 @@ public:
       Process::Outlet& port, const Process::Context& ctx, QGraphicsItem* parent,
       QObject* context) override;
 
+  QGraphicsItem* makeControlItem(
+      Process::ControlInlet& port, const score::DocumentContext& ctx,
+      QGraphicsItem* parent, QObject* context) override;
+
+  QGraphicsItem* makeControlItem(
+      Process::ControlOutlet& port, const score::DocumentContext& ctx,
+      QGraphicsItem* parent, QObject* context) override;
+
   void setupInletInspector(
       const Process::Inlet& port, const score::DocumentContext& ctx, QWidget* parent,
       Inspector::Layout& lay, QObject* context) override;

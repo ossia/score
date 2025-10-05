@@ -17,20 +17,6 @@ struct Context;
 namespace vst
 {
 
-class EffectItem final : public score::EmptyRectItem
-{
-  QGraphicsItem* rootItem{};
-  std::vector<std::pair<ControlInlet*, score::EmptyRectItem*>> controlItems;
-
-public:
-  EffectItem(const Model& effect, const Process::Context& doc, QGraphicsItem* root);
-
-  void setupInlet(const Model& fx, ControlInlet& inlet, const Process::Context& doc);
-
-private:
-  void updateRect();
-};
-
 class GraphicsSlider final
     : public QObject
     , public score::QGraphicsSliderBase<GraphicsSlider>

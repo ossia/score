@@ -22,7 +22,7 @@
 
 namespace vst
 {
-using LayerFactory = Process::EffectLayerFactory_T<Model, EffectItem, Window>;
+using LayerFactory = Process::EffectLayerFactory_T<Model, Window>;
 }
 
 score_plugin_vst::score_plugin_vst() { }

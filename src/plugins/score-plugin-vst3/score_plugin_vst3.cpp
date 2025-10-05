@@ -16,7 +16,7 @@
 
 namespace vst3
 {
-using LayerFactory = Process::EffectLayerFactory_T<Model, VSTEffectItem, Window>;
+using LayerFactory = Process::EffectLayerFactory_T<Model, Window>;
 }
 score_plugin_vst3::score_plugin_vst3() { }
 
