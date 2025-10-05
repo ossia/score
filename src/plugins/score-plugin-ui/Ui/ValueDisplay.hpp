@@ -1,4 +1,7 @@
 #pragma once
+#include <Process/Dataflow/Port.hpp>
+#include <Process/Dataflow/PortFactory.hpp>
+#include <Process/Dataflow/PortItem.hpp>
 #include <Process/Process.hpp>
 
 #include <Effect/EffectLayer.hpp>
