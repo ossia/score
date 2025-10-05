@@ -85,8 +85,16 @@ public:
     setObjectName("Process::InspectorWidget");
     auto lay = new Inspector::VBoxLayout{this};
 
-    auto label = new TextLabel{
-        QStringLiteral("Process (%1)").arg(process.metadata().getName()), this};
+    const auto& process_factories = doc.app.interfaces<Process::ProcessFactoryList>();
+    const auto fact = process_factories.get(process.concreteKey());
+
+    const auto proc_name = process.prettyName();
+    const auto type_name = fact->prettyName();
+    const auto label_text
+        = proc_name.contains(type_name)
+              ? QStringLiteral("Process (%1)").arg(proc_name)
+              : QStringLiteral("Process (%1: %2)").arg(type_name, proc_name);
+    auto label = new TextLabel{label_text, this};
     auto f = label->font();
     f.setBold(true);
     f.setPixelSize(12); // See InspectorWidgetBase
@@ -174,9 +182,9 @@ public:
       }
     }
 
-    auto& processes = doc.app.interfaces<Process::LayerFactoryList>();
+    auto& layer_factories = doc.app.interfaces<Process::LayerFactoryList>();
 
-    if(auto fact = processes.get(process.concreteKey());
+    if(auto fact = layer_factories.get(process.concreteKey());
        fact && fact->hasExternalUI(process, doc))
     {
       if(!loop_lay)
