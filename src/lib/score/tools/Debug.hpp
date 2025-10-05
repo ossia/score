@@ -1,7 +1,7 @@
 #pragma once
+#include <QDebug>
 
 #if defined(SCORE_DEBUG)
-#include <QDebug>
 
 #ifdef _WIN32
 #if defined(_MSC_VER)
