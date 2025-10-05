@@ -83,6 +83,9 @@ EffectProcessFactory_T<vst::Model>::descriptor(QString d) const noexcept
   if(it != app.vst_infos.end())
   {
     desc.prettyName = it->displayName;
+    if(desc.prettyName.isEmpty())
+      desc.prettyName = it->prettyName;
+
     desc.author = it->author;
 
     if(it->isSynth)
@@ -679,7 +682,8 @@ void Model::initFx()
   if(it != app.vst_infos.end())
   {
     metadata().setName(it->prettyName);
-    metadata().setLabel(metadata().getName());
+    if(!it->displayName.isEmpty())
+      metadata().setLabel(it->displayName);
   }
   else
   {
