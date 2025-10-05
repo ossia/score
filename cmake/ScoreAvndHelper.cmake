@@ -121,8 +121,9 @@ function(avnd_score_plugin_add)
     NEWLINE_STYLE LF
   )
 
+  set_target_properties(${AVND_BASE_TARGET} PROPERTIES SCORE_CUSTOM_PCH 1)
+  target_precompile_headers("${AVND_BASE_TARGET}" REUSE_FROM score_plugin_avnd)
   if(AVND_MODULE)
-    set_target_properties(${AVND_BASE_TARGET} PROPERTIES SCORE_CUSTOM_PCH 1)
     target_sources(${AVND_BASE_TARGET}
       PRIVATE FILE_SET CXX_MODULES
       BASE_DIRS
