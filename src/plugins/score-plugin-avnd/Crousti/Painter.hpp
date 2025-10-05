@@ -463,6 +463,10 @@ protected:
       if(impl.mouse_press(make_event(event)))
         event->accept();
     }
+    else
+    {
+      event->ignore();
+    }
     update();
   }
 
@@ -478,6 +482,10 @@ protected:
       impl.mouse_move(make_event(event));
       event->accept();
     }
+    else
+    {
+      event->ignore();
+    }
     update();
   }
 
@@ -492,6 +500,10 @@ protected:
     {
       impl.mouse_release(make_event(event));
       event->accept();
+    }
+    else
+    {
+      event->ignore();
     }
     update();
   }
