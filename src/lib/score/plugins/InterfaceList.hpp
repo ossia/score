@@ -2,6 +2,7 @@
 #define SCORE_INTERFACELIST_2018_10_22
 #pragma once
 #include <score/plugins/Interface.hpp>
+#include <score/tools/Debug.hpp>
 #include <score/tools/std/IndirectContainer.hpp>
 #include <score/tools/std/Pointer.hpp>
 
