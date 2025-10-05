@@ -35,10 +35,5 @@ public:
 
 private:
   View* m_view{};
-  void setupInlet(
-      Process::ControlInlet& port, const Process::PortFactoryList& portFactory,
-      const Process::Context& doc);
-  struct Port;
-  std::vector<Port> m_ports;
 };
 }
