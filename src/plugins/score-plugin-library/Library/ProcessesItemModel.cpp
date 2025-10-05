@@ -119,8 +119,9 @@ void ProcessesItemModel::rescan()
   QTimer::singleShot(1, this, [] { w.scan(); });
 }
 
-void ProcessesItemModel::on_newPlugin(const Process::ProcessModelFactory& fact)
+void ProcessesItemModel::on_newPlugin(const score::InterfaceBase& base)
 {
+  auto& fact = static_cast<const Process::ProcessModelFactory&>(base);
   auto it = ossia::find_if(m_root, [&, cat = fact.category()](ProcessData& container) {
     return container.prettyName == cat;
   });

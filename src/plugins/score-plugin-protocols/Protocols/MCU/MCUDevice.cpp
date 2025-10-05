@@ -181,7 +181,7 @@ public:
 
     if(!remote_controls.empty())
     {
-      remote_controls[0].release(this->doc, this->m_rc);
+      remote_controls.begin()->release(this->doc, this->m_rc);
     }
   }
 
@@ -817,7 +817,7 @@ bool MCUDevice::reconnect()
     if(!remote_controls.empty() && !set.input_handle.empty()
        && !set.output_handle.empty())
     {
-      auto rc = remote_controls[0].make(this->m_doc);
+      auto rc = remote_controls.begin()->make(this->m_doc);
       if(rc)
       {
         auto proto = std::make_unique<mcu_protocol>(

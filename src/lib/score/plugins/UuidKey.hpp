@@ -23,6 +23,7 @@ namespace uuids
 struct uuid
 {
 public:
+  friend struct std::hash<uuid>;
   typedef uint8_t value_type;
   typedef uint8_t& reference;
   typedef uint8_t const& const_reference;
@@ -403,6 +404,15 @@ public:
 
 namespace std
 {
+template <>
+struct hash<score::uuid_t>
+{
+  constexpr std::size_t operator()(const score::uuid_t& kagi) const noexcept
+  {
+    return score::uuids::hash_value(kagi);
+  }
+};
+
 template <typename T>
 struct hash<UuidKey<T>>
 {

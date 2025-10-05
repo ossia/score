@@ -124,6 +124,46 @@ indirect_map_iterator<T> make_indirect_map_iterator(const T& it)
   return indirect_map_iterator<T>{it};
 }
 
+template <typename base_iterator_t, typename CastTo>
+struct indirect_cast_map_iterator
+{
+  using self_type = indirect_cast_map_iterator;
+  using iterator = self_type;
+  using const_iterator = self_type;
+  using value_type = std::remove_reference_t<
+      decltype(*std::declval<typename base_iterator_t::value_type::second_type>())>;
+  using reference = value_type&;
+  using pointer = value_type*;
+  using iterator_category = std::forward_iterator_tag;
+  using difference_type = int;
+
+  base_iterator_t it;
+
+  self_type operator++() noexcept
+  {
+    ++it;
+    return *this;
+  }
+  self_type operator++(int) noexcept
+  {
+    self_type i = *this;
+    it++;
+    return i;
+  }
+
+  auto& operator*() const noexcept { return static_cast<CastTo&>(*it->second); }
+  auto operator->() const noexcept { return static_cast<CastTo*>(&*it->second); }
+  bool operator==(const self_type& rhs) const noexcept { return it == rhs.it; }
+  bool operator!=(const self_type& rhs) const noexcept { return it != rhs.it; }
+  bool operator<(const self_type& rhs) const noexcept { return it < rhs.it; }
+};
+
+template <typename CastTo, typename T>
+indirect_cast_map_iterator<T, CastTo> make_indirect_cast_map_iterator(const T& it)
+{
+  return indirect_cast_map_iterator<T, CastTo>{it};
+}
+
 template <typename T, typename U = std::allocator<T*>>
 class IndirectContainer : std::vector<T*, U>
 {
