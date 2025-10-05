@@ -5,6 +5,7 @@
 
 #include <QGraphicsItem>
 #include <QPainter>
+#include <QStyleOptionGraphicsItem>
 
 #include <array>
 
@@ -17,6 +18,7 @@ public:
   LightBars()
   {
     setFlag(ItemStacksBehindParent);
+    setFlag(ItemUsesExtendedStyleOption);
     setZValue(-9);
     positions.resize(1);
   }
@@ -35,9 +37,53 @@ public:
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
       override
   {
+    if(positions.empty())
+      return;
+
     painter->setRenderHint(QPainter::Antialiasing, true);
+#if defined(SCORE_DEBUG_REDRAWS)
+    {
+      QColor c;
+      c.setRedF(0.5 * double(rand()) / RAND_MAX);
+      c.setGreenF(0.5 * double(rand()) / RAND_MAX);
+      c.setBlueF(0.5 * double(rand()) / RAND_MAX);
+      c.setAlphaF(1.);
+      painter->setPen(QPen(c, 2));
+    }
+#else
     painter->setPen(score::Skin::instance().DarkGray.main.pen_cosmetic);
-    painter->drawLines(positions.data(), positions.size());
+#endif
+
+    int begin = 0;
+    int end = positions.size();
+    for(int i = 0; i < positions.size(); i++)
+    {
+      auto x = positions[i].x1();
+      if(x >= option->exposedRect.left())
+      {
+        begin = i;
+        break;
+      }
+    }
+    for(int i = begin; i < positions.size(); i++)
+    {
+      auto x = positions[i].x1();
+      if(x > option->exposedRect.right())
+      {
+        end = i;
+        break;
+      }
+      else
+      {
+        positions[i].setLine(
+            x, option->exposedRect.top(), x, option->exposedRect.bottom());
+      }
+    }
+
+    if(begin < positions.size() && end - begin > 0)
+    {
+      painter->drawLines(positions.data() + begin, end - begin);
+    }
   }
 
   QLineF& operator[](int i)
@@ -64,6 +110,7 @@ public:
   LighterBars()
   {
     setFlag(ItemStacksBehindParent);
+    setFlag(ItemUsesExtendedStyleOption);
     setZValue(-10);
     positions.resize(1);
   }
@@ -83,8 +130,48 @@ public:
       override
   {
     painter->setRenderHint(QPainter::Antialiasing, true);
+
+#if defined(SCORE_DEBUG_REDRAWS)
+    {
+      QColor c;
+      c.setRedF(0.5 * double(rand()) / RAND_MAX);
+      c.setGreenF(0.5 * double(rand()) / RAND_MAX);
+      c.setBlueF(0.5 * double(rand()) / RAND_MAX);
+      c.setAlphaF(1.);
+      painter->setPen(QPen(c, 2));
+    }
+#else
     painter->setPen(score::Skin::instance().DarkGray.darker300.pen_cosmetic);
-    painter->drawLines(positions.data(), positions.size());
+#endif
+
+    int begin = 0;
+    int end = positions.size();
+    for(int i = 0; i < positions.size(); i++)
+    {
+      auto x = positions[i].x1();
+      if(x >= option->exposedRect.left())
+      {
+        begin = i;
+        break;
+      }
+    }
+    for(int i = begin; i < positions.size(); i++)
+    {
+      auto x = positions[i].x1();
+      if(x > option->exposedRect.right())
+      {
+        end = i;
+        break;
+      }
+      else
+      {
+        positions[i].setLine(
+            x, option->exposedRect.top(), x, option->exposedRect.bottom());
+      }
+    }
+
+    if(begin < positions.size() && end - begin > 0)
+      painter->drawLines(positions.data() + begin, end - begin);
   }
 
   QLineF& operator[](int i)
