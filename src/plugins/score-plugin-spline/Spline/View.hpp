@@ -38,8 +38,6 @@ private:
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
 
-  void moveControlPoint(QPointF mouse);
-
   CurveItem* m_impl{};
   QPointF m_pressedPos{};
 };

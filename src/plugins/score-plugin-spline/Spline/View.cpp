@@ -18,8 +18,6 @@
 #include <cmath>
 #include <wobjectimpl.h>
 
-#include <numeric>
-
 // Disclaimer:
 // Part of the code comes from splineeditor.cpp from
 // the Qt project:
@@ -63,26 +61,24 @@ public:
 
     auto& skin = Process::Style::instance();
     QPainter& painter = *p;
+    painter.setRenderHint(QPainter::Antialiasing, false);
 
     // Draw the grid
     if(m_enabled)
     {
-      auto squarePen = skin.IntervalMuted().main.pen3_dashed_flat_miter;
-      squarePen.setWidthF(1. / m_zoom);
+      auto squarePen = skin.LocalTimeRuler().main.pen3_dashed_flat_miter;
+      squarePen.setWidthF(1.0 / m_zoom);
       squarePen.setStyle(Qt::SolidLine);
 
       painter.setBrush(skin.NoBrush());
       painter.setPen(squarePen);
 
-      const auto rect = boundingRect();
-
-      double biggestDim = std::max(rect.width(), rect.height());
       painter.drawLine(
-          -biggestDim * m_zoom, rect.height() / 2., biggestDim * m_zoom,
-          rect.height() / 2.);
+          std::max(-1., m_topLeft.x() * m_zoom) + 30, 0.,
+          std::min(1., m_bottomRight.x() * m_zoom) - 30, 0.);
       painter.drawLine(
-          rect.height() / 2., -biggestDim * m_zoom, rect.height() / 2.,
-          biggestDim * m_zoom);
+          0., std::max(-1., m_topLeft.y() * m_zoom) + 30, 0.,
+          std::min(1., m_bottomRight.y() * m_zoom) - 30);
     }
 
     painter.setRenderHint(QPainter::Antialiasing, true);
@@ -246,6 +242,7 @@ public:
         m_points.push_back(pt);
       }
 
+      updateRect();
       updateStroke();
       updatePlayPath();
     }
@@ -591,6 +588,7 @@ public:
       m_spline.points[i].y = m_origSpline.points[i].y - delta.y();
     }
     updateSpline();
+    update();
   }
 
   void enable()
@@ -713,6 +711,8 @@ void View::mouseMoveEvent(QGraphicsSceneMouseEvent* e)
   m_impl->setPos(m_impl->pos() + delta);
   m_pressedPos = e->scenePos();
   e->accept();
+  update();
+  this->parentItem()->update();
 }
 
 void View::mouseReleaseEvent(QGraphicsSceneMouseEvent* e)
