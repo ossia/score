@@ -524,6 +524,8 @@ void Model::create()
         if(fx.controller->getParameterInfo(i, p) == Steinberg::kResultOk)
         {
           m_paramToIndex[p.id] = i;
+          if(p.flags & Steinberg::Vst::ParameterInfo::ParameterFlags::kIsHidden)
+            continue;
           on_addControl(p);
         }
       }
