@@ -219,7 +219,7 @@ void DefaultHeaderDelegate::updatePorts()
   auto& portFactory = score::AppContext().interfaces<Process::PortFactoryList>();
   for(Process::Inlet* port : inlets)
   {
-    if(port->hidden)
+    if(port->displayHandledExplicitly)
       continue;
     if(auto fact = portFactory.get(port->concreteKey()))
     {
@@ -311,7 +311,7 @@ void DefaultFooterDelegate::updatePorts()
   m_portEndX = 0.;
   for(Process::Outlet* port : m_model.outlets())
   {
-    if(port->hidden)
+    if(port->displayHandledExplicitly)
       continue;
     if(auto fact = portFactory.get(port->concreteKey()))
     {

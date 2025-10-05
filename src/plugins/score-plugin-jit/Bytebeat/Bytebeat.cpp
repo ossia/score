@@ -592,7 +592,7 @@ BytebeatModel::BytebeatModel(
     QObject* parent)
     : Process::ProcessModel{t, id, "Jit", parent}
 {
-  auto audio_out = new Process::AudioOutlet{Id<Process::Port>{0}, this};
+  auto audio_out = new Process::AudioOutlet{"Audio Out", Id<Process::Port>{0}, this};
   audio_out->setPropagate(true);
   this->m_outlets.push_back(audio_out);
   init();

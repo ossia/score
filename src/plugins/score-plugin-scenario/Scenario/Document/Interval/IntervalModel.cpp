@@ -46,8 +46,10 @@ IntervalModel::IntervalModel(
     const Id<IntervalModel>& id, double yPos, const score::DocumentContext& ctx,
     QObject* parent)
     : Entity{id, Metadata<ObjectKey_k, IntervalModel>::get(), parent}
-    , inlet{Process::make_audio_inlet(Id<Process::Port>(0), this)}
-    , outlet{Process::make_audio_outlet(Id<Process::Port>(0), this)}
+    , inlet{std::make_unique<Process::AudioInlet>(
+          "Audio In", Id<Process::Port>(0), this)}
+    , outlet{std::make_unique<Process::AudioOutlet>(
+          "Audio Out", Id<Process::Port>(0), this)}
     , m_context{ctx}
     , m_executionState{}
     , m_viewMode{ViewMode::Temporal}

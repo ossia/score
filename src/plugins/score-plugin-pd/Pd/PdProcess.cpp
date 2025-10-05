@@ -490,9 +490,8 @@ Process::Inlet* makeInletFromSpec(
 
   if(!inl)
   {
-    inl = new Process::ValueInlet{id, parent};
+    inl = new Process::ValueInlet{ctl.name, id, parent};
   }
-  inl->setName(ctl.name);
   return inl;
 }
 static bool checkIfBinaryIsInPath(const QString& binary)
@@ -811,8 +810,7 @@ Process::ScriptChangeResult ProcessModel::setScript(const QString& script)
       auto m = adc_regex.match(patch);
       if(m.hasMatch())
       {
-        auto p = new Process::AudioInlet{get_next_id(), this};
-        p->setName("Audio In");
+        auto p = new Process::AudioInlet{"Audio In", get_next_id(), this};
         setAudioInputs(2);
         m_inlets.push_back(p);
       }
@@ -823,9 +821,8 @@ Process::ScriptChangeResult ProcessModel::setScript(const QString& script)
       auto m = dac_regex.match(patch);
       if(m.hasMatch())
       {
-        auto p = new Process::AudioOutlet{get_next_id(), this};
+        auto p = new Process::AudioOutlet{"Audio Out", get_next_id(), this};
         p->setPropagate(true);
-        p->setName("Audio Out");
         setAudioOutputs(2);
         m_outlets.push_back(p);
       }
@@ -836,8 +833,7 @@ Process::ScriptChangeResult ProcessModel::setScript(const QString& script)
       auto m = midi_regex.match(patch);
       if(m.hasMatch())
       {
-        auto p = new Process::MidiInlet{get_next_id(), this};
-        p->setName("Midi In");
+        auto p = new Process::MidiInlet{"MIDI In", get_next_id(), this};
         m_inlets.push_back(p);
 
         setMidiInput(true);
@@ -849,8 +845,7 @@ Process::ScriptChangeResult ProcessModel::setScript(const QString& script)
       auto m = midi_regex.match(patch);
       if(m.hasMatch())
       {
-        auto p = new Process::MidiOutlet{get_next_id(), this};
-        p->setName("Midi Out");
+        auto p = new Process::MidiOutlet{"MIDI Out", get_next_id(), this};
         m_outlets.push_back(p);
 
         setMidiOutput(true);
@@ -895,8 +890,7 @@ Process::ScriptChangeResult ProcessModel::setScript(const QString& script)
             PatchSpec::Control ctl = parseControlSpec(var);
 
             Process::Outlet* p{};
-            p = new Process::ValueOutlet{get_next_id(), this};
-            p->setName(ctl.name);
+            p = new Process::ValueOutlet{ctl.name, get_next_id(), this};
             m_outlets.push_back(p);
 
             m_spec.sends.push_back(ctl);

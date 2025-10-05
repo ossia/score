@@ -286,29 +286,30 @@ struct ISFHelpers
       }
       Process::Inlet* operator()(const image_input& v)
       {
-        auto port = new Gfx::TextureInlet(Id<Process::Port>(i), &self);
-        port->setName(QString::fromStdString(input.name));
+        auto port = new Gfx::TextureInlet(
+            QString::fromStdString(input.name), Id<Process::Port>(i), &self);
+
         self.m_inlets.push_back(port);
         return port;
       }
       Process::Inlet* operator()(const audio_input& v)
       {
-        auto port = new Process::AudioInlet(Id<Process::Port>(i), &self);
-        port->setName(QString::fromStdString(input.name));
+        auto port = new Process::AudioInlet(
+            QString::fromStdString(input.name), Id<Process::Port>(i), &self);
         self.m_inlets.push_back(port);
         return port;
       }
       Process::Inlet* operator()(const audioFFT_input& v)
       {
-        auto port = new Process::AudioInlet(Id<Process::Port>(i), &self);
-        port->setName(QString::fromStdString(input.name));
+        auto port = new Process::AudioInlet(
+            QString::fromStdString(input.name), Id<Process::Port>(i), &self);
         self.m_inlets.push_back(port);
         return port;
       }
       Process::Inlet* operator()(const audioHist_input& v)
       {
-        auto port = new Process::AudioInlet(Id<Process::Port>(i), &self);
-        port->setName(QString::fromStdString(input.name));
+        auto port = new Process::AudioInlet(
+            QString::fromStdString(input.name), Id<Process::Port>(i), &self);
         self.m_inlets.push_back(port);
         return port;
       }

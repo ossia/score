@@ -26,7 +26,7 @@ Model::Model(
     : Process::ProcessModel{duration, id, "gfxProcess", parent}
 {
   metadata().setInstanceName(*this);
-  m_outlets.push_back(new TextureOutlet{Id<Process::Port>(1), this});
+  m_outlets.push_back(new TextureOutlet{"Texture Out", Id<Process::Port>(1), this});
 
   const auto defaultFrag = QStringLiteral(R"_(/*{
 "CREDIT": "ossia score",
@@ -66,7 +66,7 @@ Model::Model(
     : Process::ProcessModel{duration, id, "gfxProcess", parent}
 {
   metadata().setInstanceName(*this);
-  m_outlets.push_back(new TextureOutlet{Id<Process::Port>(1), this});
+  m_outlets.push_back(new TextureOutlet{"Texture Out", Id<Process::Port>(1), this});
 
   if(init.endsWith("fs") || init.endsWith("frag"))
   {

@@ -92,8 +92,7 @@ struct LanguageSpec
 
 using JitEffectFactory = Process::EffectProcessFactory_T<AvndJit::Model>;
 using LayerFactory = Process::EffectLayerFactory_T<
-    Model, Process::DefaultEffectItem,
-    Process::ProcessScriptEditDialog<Model, Model::p_script, LanguageSpec>>;
+    Model, Process::ProcessScriptEditDialog<Model, Model::p_script, LanguageSpec>>;
 }
 
 namespace Process

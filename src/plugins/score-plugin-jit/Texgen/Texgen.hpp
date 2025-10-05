@@ -105,9 +105,8 @@ struct TexgenLanguageSpec
 
 using TexgenEffectFactory = Process::EffectProcessFactory_T<TexgenModel>;
 using TexgenLayerFactory = Process::EffectLayerFactory_T<
-    TexgenModel, Process::DefaultEffectItem,
-    Process::ProcessScriptEditDialog<
-        TexgenModel, TexgenModel::p_script, TexgenLanguageSpec>>;
+    TexgenModel, Process::ProcessScriptEditDialog<
+                     TexgenModel, TexgenModel::p_script, TexgenLanguageSpec>>;
 
 class TexgenExecutor final
     : public Execution::ProcessComponent_T<Jit::TexgenModel, ossia::node_process>

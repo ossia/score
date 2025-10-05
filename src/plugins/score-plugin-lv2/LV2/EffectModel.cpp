@@ -377,66 +377,63 @@ void Model::readPlugin()
   int in_id = 0;
   int out_id = 0;
 
+  auto portName = [&](int port_id) {
+    Lilv::Port p = data.effect.plugin.get_port_by_index(port_id);
+    Lilv::Node n = p.get_name();
+    return QString::fromUtf8(n.as_string());
+  };
+
   // AUDIO
   if(audio_in_size > 0)
   {
-    m_inlets.push_back(new Process::AudioInlet{Id<Process::Port>{in_id++}, this});
+    m_inlets.push_back(new Process::AudioInlet{
+        portName(data.audio_in_ports[0]), Id<Process::Port>{in_id++}, this});
   }
 
   if(audio_out_size > 0)
   {
-    auto out = new Process::AudioOutlet{Id<Process::Port>{out_id++}, this};
+    auto out = new Process::AudioOutlet{
+        portName(data.audio_out_ports[0]), Id<Process::Port>{out_id++}, this};
     out->setPropagate(true);
     m_outlets.push_back(out);
   }
 
   // CV
-  for(std::size_t i = 0; i < cv_size; i++)
+
+  for(int port_id : data.cv_ports)
   {
-    m_inlets.push_back(new Process::AudioInlet{Id<Process::Port>{in_id++}, this});
+    m_inlets.push_back(
+        new Process::AudioInlet{portName(port_id), Id<Process::Port>{in_id++}, this});
   }
 
   // MIDI
   for(int port_id : data.midi_in_ports)
   {
-    auto port = new Process::MidiInlet{Id<Process::Port>{in_id++}, this};
-
-    Lilv::Port p = data.effect.plugin.get_port_by_index(port_id);
-    Lilv::Node n = p.get_name();
-    port->setName(QString::fromUtf8(n.as_string()));
-
+    auto port
+        = new Process::MidiInlet{portName(port_id), Id<Process::Port>{in_id++}, this};
     m_inlets.push_back(port);
   }
 
   for(int port_id : data.midi_out_ports)
   {
-    auto port = new Process::MidiOutlet{Id<Process::Port>{out_id++}, this};
-
-    Lilv::Port p = data.effect.plugin.get_port_by_index(port_id);
-    Lilv::Node n = p.get_name();
-    port->setName(QString::fromUtf8(n.as_string()));
+    auto port
+        = new Process::MidiOutlet{portName(port_id), Id<Process::Port>{out_id++}, this};
 
     m_outlets.push_back(port);
   }
 
   for(int port_id : data.atom_in_ports)
   {
-    auto port = new Process::ValueInlet{Id<Process::Port>{in_id++}, this};
-
-    Lilv::Port p = data.effect.plugin.get_port_by_index(port_id);
-    Lilv::Node n = p.get_name();
-    port->setName(QString::fromUtf8(n.as_string()));
+    auto port
+        = new Process::ValueInlet{portName(port_id), Id<Process::Port>{in_id++}, this};
 
     m_inlets.push_back(port);
   }
 
   for(int port_id : data.atom_out_ports)
   {
-    auto port = new Process::ValueOutlet{Id<Process::Port>{out_id++}, this};
-
-    Lilv::Port p = data.effect.plugin.get_port_by_index(port_id);
-    Lilv::Node n = p.get_name();
-    port->setName(QString::fromUtf8(n.as_string()));
+    auto port
+        = new Process::ValueOutlet{portName(port_id), Id<Process::Port>{out_id++}, this};
 
     m_outlets.push_back(port);
   }
@@ -481,8 +478,9 @@ void Model::readPlugin()
   m_controlOutStart = in_id;
   for(int port_id : data.control_out_ports)
   {
-    auto port = new Process::ControlOutlet{Id<Process::Port>{out_id++}, this};
-    port->hidden = true;
+    auto port = new Process::ControlOutlet{
+        portName(port_id), Id<Process::Port>{out_id++}, this};
+    port->displayHandledExplicitly = true;
     port->setDomain(
         State::Domain{ossia::make_domain(fParamMin[port_id], fParamMax[port_id])});
     if(std::isnan(fParamInit[port_id]))
@@ -494,9 +492,6 @@ void Model::readPlugin()
       port->setValue(fParamInit[port_id]);
     }
 
-    Lilv::Port p = data.effect.plugin.get_port_by_index(port_id);
-    Lilv::Node n = p.get_name();
-    port->setName(QString::fromUtf8(n.as_string()));
     control_out_map.insert({port_id, port});
 
     m_outlets.push_back(port);

@@ -202,13 +202,17 @@ void Model::on_addControl(const Steinberg::Vst::ParameterInfo& v)
   }
 
   SCORE_ASSERT(controls.find(v.id) == controls.end());
-  auto ctrl = new ControlInlet{Id<Process::Port>(getStrongId(inlets()).val()), this};
-  ctrl->hidden = true;
-  ctrl->fxNum = v.id;
-  ctrl->setValue(v.defaultNormalizedValue);
-  ctrl->setName(fromString(v.title));
 
-  on_addControl_impl(ctrl, &v);
+  // TODO
+  // if(!(v.flags & Steinberg::Vst::ParameterInfo::ParameterFlags::kIsReadOnly))
+  {
+    auto ctrl = new ControlInlet{Id<Process::Port>(getStrongId(inlets()).val()), this};
+    ctrl->displayHandledExplicitly = true;
+    ctrl->fxNum = v.id;
+    ctrl->setValue(v.defaultNormalizedValue);
+    ctrl->setName(fromString(v.title));
+    on_addControl_impl(ctrl, &v);
+  }
 }
 
 void Model::removeControl(const Id<Process::Port>& id)
@@ -435,8 +439,8 @@ struct PortCreationVisitor
   {
     BusActivationVisitor{fx}.audioIn(bus, idx);
 
-    auto port = new Process::AudioInlet(Id<Process::Port>{inlet_i++}, &model);
-    port->setName(fromString(bus.name));
+    auto port = new Process::AudioInlet(
+        fromString(bus.name), Id<Process::Port>{inlet_i++}, &model);
     model.m_inlets.push_back(port);
   }
 
@@ -444,8 +448,8 @@ struct PortCreationVisitor
   {
     BusActivationVisitor{fx}.eventIn(bus, idx);
 
-    auto port = new Process::MidiInlet(Id<Process::Port>{inlet_i++}, &model);
-    port->setName(fromString(bus.name));
+    auto port = new Process::MidiInlet(
+        fromString(bus.name), Id<Process::Port>{inlet_i++}, &model);
     model.m_inlets.push_back(port);
 
     // MIDI input: check controls
@@ -467,8 +471,8 @@ struct PortCreationVisitor
   {
     BusActivationVisitor{fx}.audioOut(bus, idx);
 
-    auto port = new Process::AudioOutlet(Id<Process::Port>{outlet_i++}, &model);
-    port->setName(fromString(bus.name));
+    auto port = new Process::AudioOutlet(
+        fromString(bus.name), Id<Process::Port>{outlet_i++}, &model);
     model.m_outlets.push_back(port);
 
     if(idx == 0)
@@ -479,8 +483,8 @@ struct PortCreationVisitor
   {
     BusActivationVisitor{fx}.eventOut(bus, idx);
 
-    auto port = new Process::MidiOutlet(Id<Process::Port>{outlet_i++}, &model);
-    port->setName(fromString(bus.name));
+    auto port = new Process::MidiOutlet(
+        fromString(bus.name), Id<Process::Port>{outlet_i++}, &model);
     model.m_outlets.push_back(port);
   }
 };

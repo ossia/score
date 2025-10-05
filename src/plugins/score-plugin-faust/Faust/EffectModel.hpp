@@ -119,9 +119,8 @@ struct LanguageSpec
 
 using FaustEffectFactory = Process::EffectProcessFactory_T<FaustEffectModel>;
 using LayerFactory = Process::EffectLayerFactory_T<
-    FaustEffectModel, Process::DefaultEffectItem,
-    Process::ProcessScriptEditDialog<
-        FaustEffectModel, FaustEffectModel::p_script, LanguageSpec>>;
+    FaustEffectModel, Process::ProcessScriptEditDialog<
+                          FaustEffectModel, FaustEffectModel::p_script, LanguageSpec>>;
 }
 
 namespace Execution

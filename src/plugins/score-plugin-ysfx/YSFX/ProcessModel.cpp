@@ -95,18 +95,20 @@ void ProcessModel::setScript(const QString& script)
 
   if(ysfx_get_num_inputs(fx.get()) > 0)
   {
-    auto inl = new Process::AudioInlet{Id<Process::Port>{0}, this};
+    auto inl = new Process::AudioInlet{"Audio In", Id<Process::Port>{0}, this};
     this->m_inlets.push_back(inl);
   }
-  this->m_inlets.push_back(new Process::MidiInlet{Id<Process::Port>{1}, this});
+  this->m_inlets.push_back(
+      new Process::MidiInlet{"MIDI In", Id<Process::Port>{1}, this});
 
   if(ysfx_get_num_outputs(fx.get()) > 0)
   {
-    auto outl = new Process::AudioOutlet{Id<Process::Port>{2}, this};
+    auto outl = new Process::AudioOutlet{"Audio Out", Id<Process::Port>{2}, this};
     outl->setPropagate(true);
     this->m_outlets.push_back(outl);
   }
-  this->m_outlets.push_back(new Process::MidiOutlet{Id<Process::Port>{3}, this});
+  this->m_outlets.push_back(
+      new Process::MidiOutlet{"MIDI Out", Id<Process::Port>{3}, this});
 
   {
     for(uint32_t i = 0; i < ysfx_max_sliders; ++i)

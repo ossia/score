@@ -185,7 +185,8 @@ void JSONWriter::write(Scenario::ProcessModel& scenario)
   }
   else
   {
-    scenario.inlet = Process::make_audio_inlet(Id<Process::Port>(0), &scenario);
+    scenario.inlet = std::make_unique<Process::AudioInlet>(
+        "Audio In", Id<Process::Port>(0), &scenario);
   }
 
   if(auto outl = obj.tryGet("Outlet"))
@@ -195,7 +196,8 @@ void JSONWriter::write(Scenario::ProcessModel& scenario)
   }
   else
   {
-    scenario.outlet = Process::make_audio_outlet(Id<Process::Port>(0), &scenario);
+    scenario.outlet = std::make_unique<Process::AudioOutlet>(
+        "Audio Out", Id<Process::Port>(0), &scenario);
   }
 
   if(auto excl = obj.tryGet("Exclusive"))

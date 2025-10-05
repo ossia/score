@@ -16,9 +16,9 @@ namespace Process
 {
 MODEL_METADATA_IMPL_CPP(MinMaxFloatOutlet)
 MinMaxFloatOutlet::MinMaxFloatOutlet(Id<Process::Port> c, QObject* parent)
-    : ValueOutlet{std::move(c), parent}
-    , minInlet{std::make_unique<FloatSlider>(Id<Process::Port>{0}, this)}
-    , maxInlet{std::make_unique<FloatSlider>(Id<Process::Port>{1}, this)}
+    : ValueOutlet{"TODO", std::move(c), parent}
+    , minInlet{std::make_unique<FloatSlider>("Min", Id<Process::Port>{0}, this)}
+    , maxInlet{std::make_unique<FloatSlider>("Max", Id<Process::Port>{1}, this)}
 {
   minInlet->setValue(0.);
   maxInlet->setValue(1.);

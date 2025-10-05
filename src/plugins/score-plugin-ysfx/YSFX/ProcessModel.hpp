@@ -76,7 +76,5 @@ private:
   void refreshTimer();
 };
 
-using LayerFactory
-    = Process::EffectLayerFactory_T<ProcessModel, Process::DefaultEffectItem, Window>;
-
+using LayerFactory = Process::EffectLayerFactory_T<ProcessModel, Window>;
 }

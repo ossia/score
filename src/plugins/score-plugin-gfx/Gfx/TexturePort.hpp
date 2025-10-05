@@ -31,7 +31,7 @@ public:
   TextureInlet() = delete;
   ~TextureInlet() override;
   TextureInlet(const TextureInlet&) = delete;
-  TextureInlet(Id<Process::Port> c, QObject* parent);
+  TextureInlet(const QString& name, Id<Process::Port> c, QObject* parent);
 
   TextureInlet(DataStream::Deserializer& vis, QObject* parent);
   TextureInlet(JSONObject::Deserializer& vis, QObject* parent);
@@ -79,7 +79,7 @@ public:
   TextureOutlet() = delete;
   ~TextureOutlet() override;
   TextureOutlet(const TextureOutlet&) = delete;
-  TextureOutlet(Id<Process::Port> c, QObject* parent);
+  TextureOutlet(const QString& name, Id<Process::Port> c, QObject* parent);
 
   TextureOutlet(DataStream::Deserializer& vis, QObject* parent);
   TextureOutlet(JSONObject::Deserializer& vis, QObject* parent);
@@ -157,7 +157,7 @@ public:
   GeometryInlet() = delete;
   ~GeometryInlet() override;
   GeometryInlet(const GeometryInlet&) = delete;
-  GeometryInlet(Id<Process::Port> c, QObject* parent);
+  GeometryInlet(const QString& name, Id<Process::Port> c, QObject* parent);
 
   GeometryInlet(DataStream::Deserializer& vis, QObject* parent);
   GeometryInlet(JSONObject::Deserializer& vis, QObject* parent);
@@ -180,7 +180,7 @@ public:
   GeometryOutlet() = delete;
   ~GeometryOutlet() override;
   GeometryOutlet(const GeometryOutlet&) = delete;
-  GeometryOutlet(Id<Process::Port> c, QObject* parent);
+  GeometryOutlet(const QString& name, Id<Process::Port> c, QObject* parent);
 
   GeometryOutlet(DataStream::Deserializer& vis, QObject* parent);
   GeometryOutlet(JSONObject::Deserializer& vis, QObject* parent);

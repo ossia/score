@@ -39,9 +39,11 @@ ProcessModel::ProcessModel(
     const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
     : Process::
           ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
-    , outlet{Process::make_midi_outlet(Id<Process::Port>(0), this)}
-    , accent{Process::make_value_outlet(Id<Process::Port>(1), this)}
-    , slide{Process::make_value_outlet(Id<Process::Port>(2), this)}
+    , outlet{std::make_unique<Process::MidiOutlet>(
+          "MIDI Out", Id<Process::Port>(0), this)}
+    , accent{std::make_unique<Process::ValueOutlet>(
+          "Accent", Id<Process::Port>(1), this)}
+    , slide{std::make_unique<Process::ValueOutlet>("Slide", Id<Process::Port>(2), this)}
 {
   Pattern pattern;
   pattern.length = 4;
@@ -296,7 +298,8 @@ void JSONWriter::write(Patternist::ProcessModel& proc)
   }
   else
   {
-    proc.accent = Process::make_value_outlet(Id<Process::Port>(1), &proc);
+    proc.accent
+        = std::make_unique<Process::ValueOutlet>("Accent", Id<Process::Port>(1), &proc);
   }
 
   if(auto port = obj.tryGet("Slide"))
@@ -306,7 +309,8 @@ void JSONWriter::write(Patternist::ProcessModel& proc)
   }
   else
   {
-    proc.slide = Process::make_value_outlet(Id<Process::Port>(2), &proc);
+    proc.slide
+        = std::make_unique<Process::ValueOutlet>("Slide", Id<Process::Port>(2), &proc);
   }
   proc.m_channel = obj["Channel"].toInt();
   proc.m_currentPattern = obj["Pattern"].toInt();

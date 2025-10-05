@@ -274,7 +274,7 @@ void Model::on_addControl(int i, float v)
 
   SCORE_ASSERT(controls.find(i) == controls.end());
   auto ctrl = new ControlInlet{Id<Process::Port>(getStrongId(inlets()).val()), this};
-  ctrl->hidden = true;
+  ctrl->displayHandledExplicitly = true;
   ctrl->fxNum = i;
   ctrl->setValue(v);
 
@@ -703,10 +703,12 @@ void Model::create()
 
   int inlet_i = 0;
 
-  m_inlets.push_back(new Process::AudioInlet(Id<Process::Port>{inlet_i++}, this));
+  m_inlets.push_back(
+      new Process::AudioInlet("Audio In", Id<Process::Port>{inlet_i++}, this));
   if(fx->fx->flags & effFlagsIsSynth)
   {
-    m_inlets.push_back(new Process::MidiInlet(Id<Process::Port>{inlet_i++}, this));
+    m_inlets.push_back(
+        new Process::MidiInlet("MIDI In", Id<Process::Port>{inlet_i++}, this));
   }
 
   if(fx->fx->numParams < VST_DEFAULT_PARAM_NUMBER_CUTOFF
@@ -718,7 +720,7 @@ void Model::create()
     }
   }
 
-  auto out = new Process::AudioOutlet(Id<Process::Port>{}, this);
+  auto out = new Process::AudioOutlet("Audio Out", Id<Process::Port>{}, this);
   out->setPropagate(true);
   m_outlets.push_back(out);
 }

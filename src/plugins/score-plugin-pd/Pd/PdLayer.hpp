@@ -146,6 +146,5 @@ struct UiWrapper : public QWidget
   }
 };
 
-using LayerFactory = Process::EffectLayerFactory_T<
-    Pd::ProcessModel, Process::DefaultEffectItem, UiWrapper>;
+using LayerFactory = Process::EffectLayerFactory_T<Pd::ProcessModel, UiWrapper>;
 }

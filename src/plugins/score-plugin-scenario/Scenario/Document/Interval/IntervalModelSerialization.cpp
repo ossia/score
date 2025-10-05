@@ -300,7 +300,8 @@ SCORE_PLUGIN_SCENARIO_EXPORT void JSONWriter::write(Scenario::IntervalModel& int
   }
   else
   {
-    interval.inlet = Process::make_audio_inlet(Id<Process::Port>(0), &interval);
+    interval.inlet = std::make_unique<Process::AudioInlet>(
+        "Audio In", Id<Process::Port>(0), &interval);
   }
 
   if(auto outl = obj.tryGet("Outlet"))
@@ -310,7 +311,8 @@ SCORE_PLUGIN_SCENARIO_EXPORT void JSONWriter::write(Scenario::IntervalModel& int
   }
   else
   {
-    interval.outlet = Process::make_audio_outlet(Id<Process::Port>(0), &interval);
+    interval.outlet = std::make_unique<Process::AudioOutlet>(
+        "Audio Out", Id<Process::Port>(0), &interval);
   }
 
   static auto& pl = components.interfaces<Process::ProcessFactoryList>();

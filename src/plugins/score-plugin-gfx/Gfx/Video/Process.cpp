@@ -107,7 +107,7 @@ Model::Model(
   setPath(path);
   setSize(QSizeF{size().width(), 54});
 
-  m_outlets.push_back(new TextureOutlet{Id<Process::Port>(0), this});
+  m_outlets.push_back(new TextureOutlet{"Video Out", Id<Process::Port>(0), this});
 }
 
 Model::~Model() { }

@@ -378,29 +378,31 @@ void Model::setupCSF(const isf::descriptor& desc)
 
     void operator()(const image_input& v)
     {
-      auto port = new Gfx::TextureInlet(Id<Process::Port>(input_i++), &self);
-      port->setName(QString::fromStdString(input.name));
+      auto port = new Gfx::TextureInlet(
+          QString::fromStdString(input.name), Id<Process::Port>(input_i++), &self);
       self.m_inlets.push_back(port);
     }
 
     void operator()(const audio_input& v)
     {
-      auto port = new Process::AudioInlet(Id<Process::Port>(input_i++), &self);
-      port->setName(QString::fromStdString(input.name));
+      auto port = new Process::AudioInlet(
+          QString::fromStdString(input.name), Id<Process::Port>(input_i++), &self);
+
       self.m_inlets.push_back(port);
     }
 
     void operator()(const audioFFT_input& v)
     {
-      auto port = new Process::AudioInlet(Id<Process::Port>(input_i++), &self);
-      port->setName(QString::fromStdString(input.name));
+      auto port = new Process::AudioInlet(
+          QString::fromStdString(input.name), Id<Process::Port>(input_i++), &self);
+
       self.m_inlets.push_back(port);
     }
 
     void operator()(const audioHist_input& v)
     {
-      auto port = new Process::AudioInlet(Id<Process::Port>(input_i++), &self);
-      port->setName(QString::fromStdString(input.name));
+      auto port = new Process::AudioInlet(
+          QString::fromStdString(input.name), Id<Process::Port>(input_i++), &self);
       self.m_inlets.push_back(port);
     }
 
@@ -408,14 +410,14 @@ void Model::setupCSF(const isf::descriptor& desc)
     {
       if(v.access == "read_only")
       {
-        auto port = new Gfx::TextureInlet(Id<Process::Port>(input_i++), &self);
-        port->setName(QString::fromStdString(input.name));
+        auto port = new Gfx::TextureInlet(
+            QString::fromStdString(input.name), Id<Process::Port>(input_i++), &self);
         self.m_inlets.push_back(port);
       }
       else if(v.access.contains("write"))
       {
-        auto port = new Gfx::TextureOutlet(Id<Process::Port>(output_i++), &self);
-        port->setName(QString::fromStdString(input.name));
+        auto port = new Gfx::TextureOutlet(
+            QString::fromStdString(input.name), Id<Process::Port>(output_i++), &self);
         self.m_outlets.push_back(port);
 
         auto size_inl = new Process::IntSpinBox{
@@ -432,8 +434,9 @@ void Model::setupCSF(const isf::descriptor& desc)
 
     void operator()(const texture_input& v)
     {
-      auto port = new Gfx::TextureInlet(Id<Process::Port>(input_i++), &self);
-      port->setName(QString::fromStdString(input.name));
+      auto port = new Gfx::TextureInlet(
+          QString::fromStdString(input.name), Id<Process::Port>(input_i++), &self);
+
       self.m_inlets.push_back(port);
     }
 
@@ -441,14 +444,16 @@ void Model::setupCSF(const isf::descriptor& desc)
     {
       if(v.access == "read_only")
       {
-        auto port = new Gfx::TextureInlet(Id<Process::Port>(input_i++), &self);
-        port->setName(QString::fromStdString(input.name));
+        auto port = new Gfx::TextureInlet(
+            QString::fromStdString(input.name), Id<Process::Port>(input_i++), &self);
+
         self.m_inlets.push_back(port);
       }
       else if(v.access.contains("write"))
       {
-        auto port = new Gfx::TextureOutlet(Id<Process::Port>(output_i++), &self);
-        port->setName(QString::fromStdString(input.name));
+        auto port = new Gfx::TextureOutlet(
+            QString::fromStdString(input.name), Id<Process::Port>(output_i++), &self);
+
         self.m_outlets.push_back(port);
       }
     }

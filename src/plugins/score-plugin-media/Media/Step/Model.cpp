@@ -15,7 +15,8 @@ namespace Step
 Model::Model(
     const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
     : Process::ProcessModel{duration, id, Metadata<ObjectKey_k, Model>::get(), parent}
-    , outlet{Process::make_value_outlet(Id<Process::Port>(0), this)}
+    , outlet{
+          std::make_unique<Process::ValueOutlet>("Step Out", Id<Process::Port>(0), this)}
 {
   m_steps = {0.5f, 0.3f, 0.5f, 0.8f, 1.f, 0.f, 0.5f, 0.1f};
   m_stepDuration = 20000;

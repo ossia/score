@@ -14,9 +14,12 @@ namespace Scenario
 TempoProcess::TempoProcess(
     const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
     : CurveProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
-    , tempo_inlet{Process::make_value_inlet(Id<Process::Port>(0), this)}
-    , speed_inlet{Process::make_value_inlet(Id<Process::Port>(1), this)}
-    , position_inlet{Process::make_value_inlet(Id<Process::Port>(2), this)}
+    , tempo_inlet{std::make_unique<Process::ValueInlet>(
+          "Tempo", Id<Process::Port>(0), this)}
+    , speed_inlet{std::make_unique<Process::ValueInlet>(
+          "Speed", Id<Process::Port>(1), this)}
+    , position_inlet{
+          std::make_unique<Process::ValueInlet>("Position", Id<Process::Port>(2), this)}
 {
   setCurve(new Curve::Model{Id<Curve::Model>(45345), this});
 
@@ -35,10 +38,6 @@ TempoProcess::~TempoProcess() { }
 
 void TempoProcess::init()
 {
-  tempo_inlet->setName(tr("BPM in"));
-  speed_inlet->setName(tr("Speed in"));
-  position_inlet->setName(tr("Position in"));
-
   m_inlets.push_back(tempo_inlet.get());
   m_inlets.push_back(speed_inlet.get());
   m_inlets.push_back(position_inlet.get());
@@ -162,7 +161,8 @@ void JSONWriter::write(Scenario::TempoProcess& autom)
   }
   else
   {
-    autom.speed_inlet = Process::make_value_inlet(Id<Process::Port>(1), &autom);
+    autom.speed_inlet
+        = std::make_unique<Process::ValueInlet>("Speed", Id<Process::Port>(1), &autom);
   }
 
   if(auto v = obj.constFind("PosInlet"s))
@@ -172,7 +172,8 @@ void JSONWriter::write(Scenario::TempoProcess& autom)
   }
   else
   {
-    autom.position_inlet = Process::make_value_inlet(Id<Process::Port>(1), &autom);
+    autom.position_inlet = std::make_unique<Process::ValueInlet>(
+        "Position", Id<Process::Port>(1), &autom);
   }
 
   JSONObject::Deserializer curve_deser{obj["Curve"]};

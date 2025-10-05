@@ -62,8 +62,27 @@ QString EffectProcessFactory_T<Model_T>::customConstructionData() const noexcept
   return {};
 }
 
-template <typename Model_T, typename Item_T, typename ExtView_T = void>
-class EffectLayerFactory_T final : public Process::LayerFactory
+class SCORE_LIB_PROCESS_EXPORT EffectLayerFactory_Base : public Process::LayerFactory
+{
+public:
+  EffectLayerFactory_Base();
+  ~EffectLayerFactory_Base();
+
+  LayerView* makeLayerView(
+      const Process::ProcessModel&, const Process::Context& context,
+      QGraphicsItem* parent) const final override;
+
+  LayerPresenter* makeLayerPresenter(
+      const Process::ProcessModel& lm, Process::LayerView* v,
+      const Process::Context& context, QObject* parent) const final override;
+
+  score::ResizeableItem* makeItem(
+      const Process::ProcessModel& proc, const Process::Context& ctx,
+      QGraphicsItem* parent) const override;
+};
+
+template <typename Model_T, typename ExtView_T = void>
+class EffectLayerFactory_T final : public EffectLayerFactory_Base
 {
 public:
   virtual ~EffectLayerFactory_T() = default;
@@ -72,33 +91,6 @@ private:
   UuidKey<Process::ProcessModel> concreteKey() const noexcept override
   {
     return Metadata<ConcreteKey_k, Model_T>::get();
-  }
-
-  LayerView* makeLayerView(
-      const Process::ProcessModel&, const Process::Context& context,
-      QGraphicsItem* parent) const final override
-  {
-    return new EffectLayerView{parent};
-  }
-
-  LayerPresenter* makeLayerPresenter(
-      const Process::ProcessModel& lm, Process::LayerView* v,
-      const Process::Context& context, QObject* parent) const final override
-  {
-    auto pres = new EffectLayerPresenter{
-        safe_cast<const Model_T&>(lm), safe_cast<EffectLayerView*>(v), context, parent};
-
-    auto rect = new score::EmptyRectItem{v};
-    auto item = makeItem(lm, context, rect);
-    item->setParentItem(rect);
-    return pres;
-  }
-
-  score::ResizeableItem* makeItem(
-      const Process::ProcessModel& proc, const Process::Context& ctx,
-      QGraphicsItem* parent) const override
-  {
-    return new Item_T{safe_cast<const Model_T&>(proc), ctx, parent};
   }
 
   bool hasExternalUI(

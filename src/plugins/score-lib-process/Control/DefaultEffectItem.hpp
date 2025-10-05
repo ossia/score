@@ -26,8 +26,8 @@ class SCORE_LIB_PROCESS_EXPORT DefaultEffectItem final : public score::EmptyRect
 {
 public:
   DefaultEffectItem(
-      const Process::ProcessModel& effect, const Process::Context& doc,
-      QGraphicsItem* root);
+      bool onlyShowUndisplayedPorts, const Process::ProcessModel& effect,
+      const Process::Context& doc, QGraphicsItem* root);
   ~DefaultEffectItem();
 
   void
@@ -41,12 +41,21 @@ private:
 
   void reset();
   void recreate();
+  void recreate_full_onlyInlets();
+  void recreate_full_onlyOutlets();
+  void recreate_full_both(int num_hidden);
+  void recreate_fold_onlyInlets();
+  void recreate_fold_onlyOutlets();
+  void recreate_fold_both();
   void updateRect();
+  void relayout();
 
   score::GraphicsLayout* m_layout{};
+  ossia::small_vector<score::GraphicsLayout*, 4> m_allLayouts;
   const Process::ProcessModel& m_effect;
   const Process::Context& m_ctx;
 
+  bool m_onlyUndisplayed{};
   bool m_needRecreate{};
 };
 }

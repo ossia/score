@@ -48,9 +48,11 @@ ProcessModel::ProcessModel(
     const TimeVal& duration, const Id<Process::ProcessModel>& id,
     const score::DocumentContext& ctx, QObject* parent)
     : Process::
-        ProcessModel{duration, id, Metadata<ObjectKey_k, Scenario::ProcessModel>::get(), parent}
-    , inlet{Process::make_audio_inlet(Id<Process::Port>(0), this)}
-    , outlet{Process::make_audio_outlet(Id<Process::Port>(0), this)}
+          ProcessModel{duration, id, Metadata<ObjectKey_k, Scenario::ProcessModel>::get(), parent}
+    , inlet{std::make_unique<Process::AudioInlet>(
+          "Audio In", Id<Process::Port>(0), this)}
+    , outlet{std::make_unique<Process::AudioOutlet>(
+          "Audio Out", Id<Process::Port>(0), this)}
     , m_context{ctx}
     , m_startTimeSyncId{Scenario::startId<TimeSyncModel>()}
     , m_startEventId{Scenario::startId<EventModel>()}

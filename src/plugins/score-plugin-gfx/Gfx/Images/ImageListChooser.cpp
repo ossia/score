@@ -47,15 +47,14 @@ ImageListChooser::ImageListChooser(JSONObject::Deserializer&& vis, QObject* pare
 ImageListChooser::~ImageListChooser() { }
 ImageListChooser::ImageListChooser(
     const std::vector<QString>& init, const QString& name, Id<Port> id, QObject* parent)
-    : ControlInlet{id, parent}
+    : ControlInlet{name, id, parent}
 {
-  hidden = true;
+  displayHandledExplicitly = true;
   std::vector<ossia::value> init_v;
   for(auto& v : init)
     init_v.push_back(v.toStdString());
   setValue(std::move(init_v));
   setInit(value());
-  setName(name);
 }
 
 }

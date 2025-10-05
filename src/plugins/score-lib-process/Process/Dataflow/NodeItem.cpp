@@ -101,9 +101,7 @@ NodeItem::NodeItem(
       if(!m_needResize)
         return;
       m_needResize = false;
-      updateSize();
-      updateZoomRatio();
-      updateTitlePos();
+      resizeAsync();
     });
   };
   connect(&process, &Process::ProcessModel::controlAdded, this, on_sizeChanged);
@@ -119,13 +117,13 @@ void NodeItem::createWithDecorations()
   auto& process = m_model;
   auto& ctx = m_context;
 
-  const bool startFolded = (process.inlets().size() > 32);
+  m_folded = (process.inlets().size() > 32);
 
   // Title
   const auto& pixmaps = Process::Pixmaps::instance();
   m_fold
       = new score::QGraphicsPixmapToggle{pixmaps.unroll_small, pixmaps.roll_small, this};
-  m_fold->setState(!startFolded);
+  m_fold->setState(!m_folded);
 
   m_uiButton = Process::makeExternalUIButton(
       const_cast<Process::ProcessModel&>(process), ctx, this, this);
@@ -133,52 +131,37 @@ void NodeItem::createWithDecorations()
 
   auto& skin = score::Skin::instance();
   m_label = new score::SimpleTextItem{skin.Light.main, this};
+  m_label->setFont(skin.Bold10Pt);
 
-  if(const auto& label = process.metadata().getLabel(); !label.isEmpty())
-    m_label->setText(label);
-  else if(const auto& name = process.metadata().getName(); !name.isEmpty())
-    m_label->setText(name);
-  else
-    m_label->setText(process.prettyShortName());
+  updateLabel();
 
   con(process.metadata(), &score::ModelMetadata::NameChanged, this,
-      [&](const QString& label) {
-    if(!label.isEmpty())
-      m_label->setText(label);
-    else
-      m_label->setText(process.prettyShortName());
-  });
-
+      &NodeItem::updateLabel);
   con(process.metadata(), &score::ModelMetadata::LabelChanged, this,
-      [&](const QString& label) {
-    if(!label.isEmpty())
-      m_label->setText(label);
-    else
-      m_label->setText(process.prettyShortName());
-  });
+      &NodeItem::updateLabel);
+
   con(process, &Process::ProcessModel::loopsChanged, this, [&] { updateZoomRatio(); });
   con(process, &Process::ProcessModel::loopDurationChanged, this,
       [&] { updateZoomRatio(); });
   con(process, &Process::ProcessModel::startOffsetChanged, this,
       [&] { updateZoomRatio(); });
 
-  m_label->setFont(skin.Bold10Pt);
-
   // Selection
   con(process.selection, &Selectable::changed, this, &NodeItem::setSelected);
   m_selected = process.selection.get();
 
-  if(!startFolded)
+  if(!m_folded)
     createContentItem();
   else
-    m_contentSize = QSizeF{minimalContentWidth(), minimalContentHeight()};
+    createFoldedItem();
 
   // This is because if it's a DefaultEffectItem the ports are created asynchronously
   // Thus they are added to the vertical lists instead of the actual items
   ossia::qt::run_async(this, [this] {
     resetInlets();
     resetOutlets();
-    updateSize();
+
+    resizeAsync();
   });
   connect(&process, &Process::ProcessModel::controlAdded, this, &NodeItem::resetInlets);
   connect(
@@ -194,34 +177,26 @@ void NodeItem::createWithDecorations()
       &process, &Process::ProcessModel::outletsChanged, this, &NodeItem::resetOutlets);
 
   connect(m_fold, &score::QGraphicsPixmapToggle::toggled, this, [this](bool b) {
-    if(b)
+    resetItem();
+
+    m_folded = !b;
+    if(!m_folded)
     {
       createContentItem();
     }
     else
     {
-      if(m_presenter)
-      {
-        QPointer<Process::LayerView> oldView = static_cast<Process::LayerView*>(m_fx);
-        delete m_presenter;
-        m_presenter = nullptr;
-        if(oldView)
-          delete oldView;
-        m_fx = nullptr;
-        QObject::disconnect(&m_model, &Process::ProcessModel::setSize, this, nullptr);
-      }
-      else
-      {
-        delete m_fx;
-        m_fx = nullptr;
-      }
-
-      m_contentSize = QSizeF{minimalContentWidth(), minimalContentHeight()};
+      createFoldedItem();
     }
-    QTimer::singleShot(1, this, [this] { updateSize(); });
+    QTimer::singleShot(1, this, [this] {
+      resetInlets();
+      resetOutlets();
+
+      resizeAsync();
+    });
   });
 
-  updateSize();
+  resizeAsync();
   updateTooltip();
 }
 
@@ -243,13 +218,32 @@ void NodeItem::updateTooltip()
   {
     auto& p = this->m_context.app.interfaces<Process::ProcessFactoryList>();
     const auto& desc = p.get(m_model.concreteKey())->descriptor(m_model);
-    this->setToolTip(QString("%1\n\n%2\n\n\n%3")
-                         .arg(
-                             desc.prettyName, desc.description,
-                             (desc.documentationLink.isEmpty()
-                                  ? QString("Press F1 to open the docs!")
-                                  : QString("Press F1 to open the docs:\n%1")
-                                        .arg(desc.documentationLink.toString()))));
+
+    bool has_name = !desc.prettyName.isEmpty();
+    bool has_desc = !desc.description.isEmpty();
+    bool has_link = !desc.documentationLink.isEmpty();
+    QString str;
+    if(has_name)
+    {
+      str += desc.prettyName;
+      str += "\n";
+    }
+    if(has_desc)
+    {
+      str += desc.description;
+      str += "\n";
+    }
+    if(has_link)
+    {
+      str += QStringLiteral("Press F1 to open the docs:\n%1")
+                 .arg(desc.documentationLink.toString());
+    }
+    else
+    {
+      str += QStringLiteral("Press F1 to open the docs!");
+    }
+
+    this->setToolTip(str);
   }
   else if(m_fx)
   {
@@ -257,16 +251,51 @@ void NodeItem::updateTooltip()
   }
 }
 
-void NodeItem::resetInlets()
+void NodeItem::resetItem()
 {
   qDeleteAll(m_inlets);
   m_inlets.clear();
+
+  qDeleteAll(m_outlets);
+  m_outlets.clear();
+
+  if(m_presenter)
+  {
+    QPointer<Process::LayerView> oldView = static_cast<Process::LayerView*>(m_fx);
+    delete m_presenter;
+    m_presenter = nullptr;
+    if(oldView)
+      delete oldView;
+    m_fx = nullptr;
+    QObject::disconnect(&m_model, &Process::ProcessModel::setSize, this, nullptr);
+  }
+  else
+  {
+    delete m_fx;
+    m_fx = nullptr;
+  }
+
+  m_contentSize = QSizeF{minimalContentWidth(), minimalContentHeight()};
+}
+
+void NodeItem::resetInlets()
+{
+  // if(!m_presenter)
+  //   return;
+  qDeleteAll(m_inlets);
+  m_inlets.clear();
+
+  // We don't display ports on the left & right side
+  // for normal items which are supposed to handle it
+  if(dynamic_cast<Process::DefaultEffectItem*>(m_fx) && !m_presenter)
+    return updateTitlePos();
+
   const qreal x = InletX0;
   qreal y = m_label ? InletY0 : InletY0 - 10.;
   auto& portFactory = score::GUIAppContext().interfaces<Process::PortFactoryList>();
   for(Process::Inlet* port : m_model.inlets())
   {
-    if(port->hidden)
+    if(port->displayHandledExplicitly)
       continue;
 
     Process::PortFactory* fact = portFactory.get(port->concreteKey());
@@ -279,6 +308,58 @@ void NodeItem::resetInlets()
   }
 
   updateTitlePos();
+}
+
+void NodeItem::resetOutlets()
+{
+  // if(!m_presenter)
+  //   return;
+  qDeleteAll(m_outlets);
+  m_outlets.clear();
+
+  // We don't display ports on the left & right side
+  // for normal items which are supposed to handle it
+  if(dynamic_cast<Process::DefaultEffectItem*>(m_fx) && !m_presenter)
+    return updateTitlePos();
+
+  const qreal x = m_contentSize.width() + OutletX0;
+  qreal y = m_label ? OutletY0 : OutletY0 - 10.;
+
+  auto& portFactory = score::AppContext().interfaces<Process::PortFactoryList>();
+  for(Process::Outlet* port : m_model.outlets())
+  {
+    if(port->displayHandledExplicitly)
+      continue;
+    Process::PortFactory* fact = portFactory.get(port->concreteKey());
+    auto item = fact->makePortItem(*port, m_context, this, this);
+    item->setPos(x, y);
+    item->setZValue(10);
+    m_outlets.push_back(item);
+
+    y += PortSpacing;
+  }
+}
+
+void NodeItem::updateLabel()
+{
+  if(const auto& label = m_model.metadata().getLabel(); !label.isEmpty())
+  {
+    m_label->setText(label);
+  }
+  else if(const auto& name = m_model.metadata().getName(); !name.isEmpty())
+  {
+    m_label->setText(name);
+  }
+  else
+  {
+    m_label->setText(m_model.prettyShortName());
+  }
+
+  if(auto resizeable = dynamic_cast<score::ResizeableItem*>(m_fx))
+  {
+    resizeable->setMinimumWidth(minimalContentWidth());
+  }
+  QTimer::singleShot(2, this, &NodeItem::updateSize);
 }
 
 void NodeItem::updateTitlePos()
@@ -306,28 +387,6 @@ void NodeItem::updateTitlePos()
   }
 
   m_label->setPos({x0, TitleY0});
-}
-
-void NodeItem::resetOutlets()
-{
-  qDeleteAll(m_outlets);
-  m_outlets.clear();
-  const qreal x = m_contentSize.width() + OutletX0;
-  qreal y = m_label ? OutletY0 : OutletY0 - 10.;
-
-  auto& portFactory = score::AppContext().interfaces<Process::PortFactoryList>();
-  for(Process::Outlet* port : m_model.outlets())
-  {
-    if(port->hidden)
-      continue;
-    Process::PortFactory* fact = portFactory.get(port->concreteKey());
-    auto item = fact->makePortItem(*port, m_context, this, this);
-    item->setPos(x, y);
-    item->setZValue(10);
-    m_outlets.push_back(item);
-
-    y += PortSpacing;
-  }
 }
 
 QSizeF NodeItem::size() const noexcept
@@ -365,18 +424,40 @@ QRectF NodeItem::contentRect() const noexcept
       x -= LeftSideWidth;
       w += LeftSideWidth;
     }
-    if(!m_outlets.empty()
-       || m_presenter) // FIXME make the redimension handle an item instead
-    {
+    if(!m_outlets.empty() || m_presenter)
+    { // FIXME make the redimension handle an item instead
       w += RightSideWidth;
     }
     return {x, y, w, h};
   }
 }
 
+void NodeItem::updateContentRect()
+{
+  m_contentRect = contentRect().adjusted(-2., -2., 2., 2.);
+}
+
 QRectF NodeItem::boundingRect() const
 {
-  return contentRect().adjusted(-2., -2., 2., 2.);
+  return m_contentRect;
+}
+
+void NodeItem::createFoldedItem()
+{
+  if(m_fx)
+    return;
+
+  auto& ctx = m_context;
+  auto& model = m_model;
+  // Body
+  score::ResizeableItem* resizeable{};
+  {
+    auto fx = new Process::DefaultEffectItem{true, model, ctx, this};
+    m_fx = fx;
+    m_contentSize = m_fx->boundingRect().size(); // FIXME async, size is not set yet
+    resizeable = fx;
+  }
+  setupItem(resizeable);
 }
 
 void NodeItem::createContentItem()
@@ -394,7 +475,7 @@ void NodeItem::createContentItem()
     if(auto fx = factory->makeItem(model, ctx, this))
     {
       m_fx = fx;
-      m_contentSize = m_fx->boundingRect().size();
+      m_contentSize = m_fx->boundingRect().size(); // FIXME async, size is not set yet
       resizeable = fx;
     }
     else if(auto fx = factory->makeLayerView(model, ctx, this))
@@ -432,24 +513,45 @@ void NodeItem::createContentItem()
 
   if(!m_fx)
   {
-    auto fx = new Process::DefaultEffectItem{model, ctx, this};
+    auto fx = new Process::DefaultEffectItem{false, model, ctx, this};
     m_fx = fx;
-    m_contentSize = m_fx->boundingRect().size();
+    m_contentSize = m_fx->boundingRect().size(); // FIXME async, size is not set yet
     resizeable = fx;
   }
 
-  // Positions / size
-  m_fx->setPos({0, 0});
+  setupItem(resizeable);
+}
 
+void NodeItem::resizeAsync()
+{
+  updateTitlePos();
+  if(auto resizeable = dynamic_cast<score::ResizeableItem*>(m_fx))
+  {
+    resizeable->setMinimumWidth(minimalContentWidth());
+    // Needed to leave some time for defaulteffectitem
+    QTimer::singleShot(2, this, [this] {
+      updateSize();
+      updateZoomRatio();
+    });
+  }
+  else
+  {
+    QMetaObject::invokeMethod(this, [this] {
+      updateSize();
+      updateZoomRatio();
+    });
+  }
+}
+
+void NodeItem::setupItem(score::ResizeableItem* resizeable)
+{
+  // Positions / size
   double w = std::max(minimalContentWidth(), m_contentSize.width());
   double h = std::max(minimalContentHeight(), m_contentSize.height());
   m_contentSize = QSizeF{w, h};
 
-  updateSize();
-  updateZoomRatio();
-  updateTitlePos();
-
-  if(m_model.size() != m_contentSize)
+  resizeAsync();
+  if(m_model.size() != m_contentSize && !m_folded)
     const_cast<Process::ProcessModel&>(m_model).setSize(m_contentSize);
 
   if(resizeable)
@@ -460,18 +562,14 @@ void NodeItem::createContentItem()
         lay->fitChildrenRect();
         m_contentSize = lay->rect().size();
 
-        updateSize();
-        updateZoomRatio();
-        updateTitlePos();
+        resizeAsync();
       });
     connect(resizeable, &score::ResizeableItem::sizeChanged, this, [this](QSizeF sz) {
       double w = std::max(minimalContentWidth(), sz.width());
       double h = std::max(minimalContentHeight(), sz.height());
       m_contentSize = QSizeF{w, h};
 
-      updateSize();
-      updateZoomRatio();
-      updateTitlePos();
+      resizeAsync();
     });
   }
 }
@@ -486,7 +584,9 @@ double NodeItem::minimalContentWidth() const noexcept
       return 20.;
   }
   else
-    return std::max(75.0, TitleWithUiX0 + m_label->boundingRect().width() + 6.);
+  {
+    return std::max(75.0, m_label->pos().x() + m_label->boundingRect().width() + 6.);
+  }
 }
 double NodeItem::minimalContentHeight() const noexcept
 {
@@ -504,23 +604,58 @@ double NodeItem::minimalContentHeight() const noexcept
 
 void NodeItem::updateSize()
 {
+  if(m_model.flags() & Process::ProcessFlags::FullyCustomItem)
+  {
+    if(m_presenter)
+    {
+      m_presenter->setWidth(m_contentSize.width(), m_contentSize.width());
+      m_presenter->setHeight(m_contentSize.height());
+    }
+    QSizeF sz{10.0, 10.0};
+    if(m_fx)
+    {
+      auto fx_sz = m_fx->boundingRect().size();
+      sz.rwidth() = std::max(sz.width(), fx_sz.width());
+      sz.rheight() = std::max(sz.height(), fx_sz.height());
+    }
+    updateContentRect();
+    update();
+    if(auto sc = this->scene())
+      sc->update();
+    return;
+  }
+
   if(!m_label)
   {
     if(auto sc = this->scene())
       sc->update();
     return;
   }
-  auto sz = m_fx ? m_fx->boundingRect().size()
-                 : QSizeF{minimalContentWidth(), minimalContentHeight()};
-
+  QSizeF sz{minimalContentWidth(), minimalContentHeight()};
+  if(m_fx)
+  {
+    auto fx_sz = m_fx->boundingRect().size();
+    sz.rwidth() = std::max(sz.width(), fx_sz.width());
+    sz.rheight() = std::max(sz.height(), fx_sz.height());
+  }
   //if (sz != m_contentSize || !m_fx)
   {
     prepareGeometryChange();
-    double w = std::max(minimalContentWidth(), sz.width());
-    double h = std::max(minimalContentHeight(), sz.height());
     if(m_fx)
     {
-      m_contentSize = QSizeF{w, h};
+      m_contentSize = sz;
+      if(!m_presenter)
+      {
+        if(m_model.outlets().size() > 0 && m_model.inlets().size() == 0)
+        {
+          // Align right for the case where we only have a series of outlets
+          m_fx->setPos(boundingRect().width() - m_fx->boundingRect().width(), 0);
+        }
+        else
+        {
+          m_fx->setPos(0, 0);
+        }
+      }
     }
 
     if(m_presenter)
@@ -544,6 +679,7 @@ void NodeItem::updateSize()
       m_uiButton->setParentItem(this);
     }
     updateTitlePos();
+    updateContentRect();
     update();
     if(auto sc = this->scene())
       sc->update();
@@ -577,6 +713,12 @@ void NodeItem::setSize(QSizeF sz)
       m_uiButton->setPos({m_contentSize.width() + TopButtonX0, TopButtonY0});
     }
   }
+  if(auto resizeable = dynamic_cast<score::ResizeableItem*>(m_fx))
+  {
+    resizeable->setMinimumWidth(sz.width());
+  }
+  updateContentRect();
+  update();
   if(auto sc = this->scene())
     sc->update();
 }
@@ -602,6 +744,9 @@ void NodeItem::setParentDuration(TimeVal r)
 
 void NodeItem::setPlayPercentage(float f, TimeVal parent_dur)
 {
+  if(this->m_model.flags() & Process::ProcessFlags::FullyCustomItem)
+    return;
+
   if(m_playPercentage != f)
   {
     // Comes from the interval -> if we are looping we make a small modulo of it
@@ -664,9 +809,9 @@ void NodeItem::paint(
 {
   auto& style = Process::Style::instance();
   const auto& skin = style.skin;
-  const auto rect = contentRect();
+  const auto rect = m_contentRect;
   //painter->fillRect(boundingRect(), Qt::red);
-  // return;
+  //return;
 
   const auto& bset = skin.Emphasis5;
   const auto& fillbrush = skin.Emphasis5;
@@ -680,19 +825,32 @@ void NodeItem::paint(
 
   // Body
   painter->setPen(pen);
+
+#if defined(SCORE_DEBUG_REDRAWS)
+  {
+    QColor c;
+    c.setRedF(0.5 * double(rand()) / RAND_MAX);
+    c.setGreenF(0.5 * double(rand()) / RAND_MAX);
+    c.setBlueF(0.5 * double(rand()) / RAND_MAX);
+    c.setAlphaF(1.);
+    painter->setBrush(c);
+  }
+#else
   painter->setBrush(fillbrush);
+#endif
 
   painter->drawRoundedRect(rect, Corner, Corner);
 
   painter->setRenderHint(QPainter::Antialiasing, false);
 
   // Exec
-  if(m_playPercentage > 0.)
-  {
-    painter->setPen(style.IntervalPlayFill().main.pen1_solid_flat_miter);
-    painter->drawLine(
-        QPointF{12., 0.}, QPointF{12. + (width() - 24.) * m_playPercentage, 0.});
-  }
+  if(!(this->m_model.flags() & Process::ProcessFlags::FullyCustomItem))
+    if(m_playPercentage > 0.)
+    {
+      painter->setPen(style.IntervalPlayFill().main.pen1_solid_flat_miter);
+      painter->drawLine(
+          QPointF{12., 0.}, QPointF{12. + (width() - 24.) * m_playPercentage, 0.});
+    }
 
   // Resizing handle
   if(m_presenter)

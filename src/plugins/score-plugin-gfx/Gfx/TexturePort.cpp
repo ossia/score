@@ -144,8 +144,8 @@ private:
 
 TextureInlet::~TextureInlet() { }
 
-TextureInlet::TextureInlet(Id<Process::Port> c, QObject* parent)
-    : Process::Inlet{std::move(c), parent}
+TextureInlet::TextureInlet(const QString& name, Id<Process::Port> c, QObject* parent)
+    : Process::Inlet{name, std::move(c), parent}
 {
 }
 
@@ -245,8 +245,8 @@ void TextureInlet::setupExecution(
 
 TextureOutlet::~TextureOutlet() { }
 
-TextureOutlet::TextureOutlet(Id<Process::Port> c, QObject* parent)
-    : Process::Outlet{std::move(c), parent}
+TextureOutlet::TextureOutlet(const QString& name, Id<Process::Port> c, QObject* parent)
+    : Process::Outlet{name, std::move(c), parent}
 {
 }
 
@@ -571,8 +571,8 @@ MODEL_METADATA_IMPL_CPP(GeometryOutlet)
 
 GeometryInlet::~GeometryInlet() { }
 
-GeometryInlet::GeometryInlet(Id<Process::Port> c, QObject* parent)
-    : Process::Inlet{std::move(c), parent}
+GeometryInlet::GeometryInlet(const QString& name, Id<Process::Port> c, QObject* parent)
+    : Process::Inlet{name, std::move(c), parent}
 {
 }
 
@@ -599,8 +599,8 @@ GeometryInlet::GeometryInlet(JSONObject::Deserializer&& vis, QObject* parent)
 
 GeometryOutlet::~GeometryOutlet() { }
 
-GeometryOutlet::GeometryOutlet(Id<Process::Port> c, QObject* parent)
-    : Process::Outlet{std::move(c), parent}
+GeometryOutlet::GeometryOutlet(const QString& name, Id<Process::Port> c, QObject* parent)
+    : Process::Outlet{name, std::move(c), parent}
 {
 }
 

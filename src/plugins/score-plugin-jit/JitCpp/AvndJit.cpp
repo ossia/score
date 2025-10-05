@@ -107,14 +107,14 @@ struct inlet_vis
   Model& self;
   Process::Inlet* operator()(const ossia::audio_port& p) const noexcept
   {
-    auto i = new Process::AudioInlet{getStrongId(self.inlets()), &self};
+    auto i = new Process::AudioInlet{"Audio In", getStrongId(self.inlets()), &self};
     return i;
   }
 
   Process::Inlet* operator()(const ossia::geometry_port& p) const noexcept
   {
 #if __has_include(<Gfx/TexturePort.hpp>)
-    auto i = new Gfx::GeometryInlet{getStrongId(self.inlets()), &self};
+    auto i = new Gfx::GeometryInlet{"Geometry In", getStrongId(self.inlets()), &self};
     return i;
 #else
     return nullptr;
@@ -123,7 +123,7 @@ struct inlet_vis
 
   Process::Inlet* operator()(const ossia::midi_port& p) const noexcept
   {
-    auto i = new Process::MidiInlet{getStrongId(self.inlets()), &self};
+    auto i = new Process::MidiInlet{"MIDI In", getStrongId(self.inlets()), &self};
     return i;
   }
 
@@ -131,7 +131,7 @@ struct inlet_vis
   {
     if(!p.is_event)
     {
-      auto i = new Process::ValueInlet{getStrongId(self.inlets()), &self};
+      auto i = new Process::ValueInlet{"Value In", getStrongId(self.inlets()), &self};
       return i;
     }
     else
@@ -223,7 +223,7 @@ struct inlet_vis
 
       if(!i)
       {
-        i = new Process::ControlInlet{getStrongId(self.inlets()), &self};
+        i = new Process::ControlInlet{"Control", getStrongId(self.inlets()), &self};
         i->setDomain(State::Domain{p.domain});
       }
 
@@ -242,14 +242,14 @@ struct outlet_vis
   Model& self;
   Process::Outlet* operator()(const ossia::audio_port& p) const noexcept
   {
-    auto i = new Process::AudioOutlet{getStrongId(self.outlets()), &self};
+    auto i = new Process::AudioOutlet{"Audio Out", getStrongId(self.outlets()), &self};
     return i;
   }
 
   Process::Outlet* operator()(const ossia::geometry_port& p) const noexcept
   {
 #if __has_include(<Gfx/TexturePort.hpp>)
-    auto i = new Gfx::GeometryOutlet{getStrongId(self.inlets()), &self};
+    auto i = new Gfx::GeometryOutlet{"Geometry Out", getStrongId(self.inlets()), &self};
     return i;
 #else
     return nullptr;
@@ -258,13 +258,13 @@ struct outlet_vis
 
   Process::Outlet* operator()(const ossia::midi_port& p) const noexcept
   {
-    auto i = new Process::MidiOutlet{getStrongId(self.outlets()), &self};
+    auto i = new Process::MidiOutlet{"MIDI Out", getStrongId(self.outlets()), &self};
     return i;
   }
 
   Process::Outlet* operator()(const ossia::value_port& p) const noexcept
   {
-    auto i = new Process::ValueOutlet{getStrongId(self.outlets()), &self};
+    auto i = new Process::ValueOutlet{"Value Out", getStrongId(self.outlets()), &self};
     return i;
   }
   Process::Outlet* operator()() const noexcept

@@ -26,7 +26,7 @@ Model::Model(
     : Process::ProcessModel{duration, id, "gfxProcess", parent}
 {
   metadata().setInstanceName(*this);
-  m_outlets.push_back(new TextureOutlet{Id<Process::Port>(1), this});
+  m_outlets.push_back(new TextureOutlet{"Texture Out", Id<Process::Port>(1), this});
 
   const auto defaultVert = QStringLiteral(R"_(/*{
   "DESCRIPTION": "Intro Flowing Grid - A dynamic grid mesh with organic wave deformations",
@@ -139,7 +139,7 @@ Model::Model(
     : Process::ProcessModel{duration, id, "gfxProcess", parent}
 {
   metadata().setInstanceName(*this);
-  m_outlets.push_back(new TextureOutlet{Id<Process::Port>(1), this});
+  m_outlets.push_back(new TextureOutlet{"Texture Out", Id<Process::Port>(1), this});
 
   (void)setProgram(programFromVSAVertexShaderPath(init, {}));
 }

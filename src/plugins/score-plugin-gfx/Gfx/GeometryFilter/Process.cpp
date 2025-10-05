@@ -23,8 +23,8 @@ Model::Model(
     : Process::ProcessModel{duration, id, "gfxProcess", parent}
 {
   metadata().setInstanceName(*this);
-  m_inlets.push_back(new GeometryInlet{Id<Process::Port>(0), this});
-  m_outlets.push_back(new GeometryOutlet{Id<Process::Port>(1), this});
+  m_inlets.push_back(new GeometryInlet{"Geometry In", Id<Process::Port>(0), this});
+  m_outlets.push_back(new GeometryOutlet{"Geometry Out", Id<Process::Port>(1), this});
 
   (void)setScript("");
 }
@@ -35,8 +35,8 @@ Model::Model(
     : Process::ProcessModel{duration, id, "gfxProcess", parent}
 {
   metadata().setInstanceName(*this);
-  m_inlets.push_back(new GeometryInlet{Id<Process::Port>(0), this});
-  m_outlets.push_back(new GeometryOutlet{Id<Process::Port>(1), this});
+  m_inlets.push_back(new GeometryInlet{"Geometry In", Id<Process::Port>(0), this});
+  m_outlets.push_back(new GeometryOutlet{"Geometry Out", Id<Process::Port>(1), this});
 
   QFile f{init};
   if(f.open(QIODevice::ReadOnly))
@@ -182,7 +182,7 @@ Process::ScriptChangeResult Model::setScript(const QString& f)
     auto inls = score::clearAndDeleteLater(m_inlets);
     try
     {
-      m_inlets.push_back(new GeometryInlet{Id<Process::Port>(0), this});
+      m_inlets.push_back(new GeometryInlet{"Geometry In", Id<Process::Port>(0), this});
 
       isf::parser p{processed.toStdString(), isf::parser::ShaderType::GeometryFilter};
       m_processedProgram.descriptor = p.data();
@@ -418,25 +418,29 @@ void Model::setupIsf(const isf::descriptor& desc)
     }
     Process::Inlet* operator()(const image_input& v)
     {
-      auto port = new Gfx::TextureInlet(Id<Process::Port>(i), &self);
+      auto port = new Gfx::TextureInlet(
+          QString::fromStdString(input.name), Id<Process::Port>(i), &self);
       self.m_inlets.push_back(port);
       return port;
     }
     Process::Inlet* operator()(const audio_input& v)
     {
-      auto port = new Process::AudioInlet(Id<Process::Port>(i), &self);
+      auto port = new Process::AudioInlet(
+          QString::fromStdString(input.name), Id<Process::Port>(i), &self);
       self.m_inlets.push_back(port);
       return port;
     }
     Process::Inlet* operator()(const audioFFT_input& v)
     {
-      auto port = new Process::AudioInlet(Id<Process::Port>(i), &self);
+      auto port = new Process::AudioInlet(
+          QString::fromStdString(input.name), Id<Process::Port>(i), &self);
       self.m_inlets.push_back(port);
       return port;
     }
     Process::Inlet* operator()(const audioHist_input& v)
     {
-      auto port = new Process::AudioInlet(Id<Process::Port>(i), &self);
+      auto port = new Process::AudioInlet(
+          QString::fromStdString(input.name), Id<Process::Port>(i), &self);
       self.m_inlets.push_back(port);
       return port;
     }
@@ -451,14 +455,16 @@ void Model::setupIsf(const isf::descriptor& desc)
     
     Process::Inlet* operator()(const texture_input& v)
     {
-      auto port = new Gfx::TextureInlet(Id<Process::Port>(i), &self);
+      auto port = new Gfx::TextureInlet(
+          QString::fromStdString(input.name), Id<Process::Port>(i), &self);
       self.m_inlets.push_back(port);
       return port;
     }
     
     Process::Inlet* operator()(const csf_image_input& v)
     {
-      auto port = new Gfx::TextureInlet(Id<Process::Port>(i), &self);
+      auto port = new Gfx::TextureInlet(
+          QString::fromStdString(input.name), Id<Process::Port>(i), &self);
       self.m_inlets.push_back(port);
       return port;
     }

@@ -1051,8 +1051,7 @@ void Model::setupControlInlet(
     const clap_plugin_params_t& params, const clap_param_info_t& info, int index,
     Process::ControlInlet* inlet)
 {
-  inlet->setName(QString::fromUtf8(info.name));
-  inlet->hidden = true; //(info.flags & CLAP_PARAM_IS_HIDDEN) != 0;
+  inlet->displayHandledExplicitly = true; //(info.flags & CLAP_PARAM_IS_HIDDEN) != 0;
 
   // Set default value, min, and max for the control inlet
   double val{};
@@ -1122,8 +1121,7 @@ void Model::setupControlOutlet(
     const clap_plugin_params_t& params, const clap_param_info_t& info, int index,
     Process::ControlOutlet* port)
 {
-  port->setName(QString::fromUtf8(info.name));
-  port->hidden = true; //(info.flags & CLAP_PARAM_IS_HIDDEN) != 0;
+  port->displayHandledExplicitly = true; //(info.flags & CLAP_PARAM_IS_HIDDEN) != 0;
 
   // Set default value, min, and max for the control inlet
   double val{};
@@ -1168,9 +1166,11 @@ void Model::createControls(bool loading)
 
         if(!loading)
         {
-          auto inlet
-              = new Process::AudioInlet(Id<Process::Port>(getStrongId(m_inlets)), this);
-          inlet->setName(QString::fromUtf8(info.name));
+          auto name = QString::fromUtf8(info.name);
+          if(i == 0 && name.toLower() == "audio input")
+            name = "Audio In";
+          auto inlet = new Process::AudioInlet(
+              name, Id<Process::Port>(getStrongId(m_inlets)), this);
           m_inlets.push_back(inlet);
         }
 
@@ -1188,9 +1188,11 @@ void Model::createControls(bool loading)
 
         if(!loading)
         {
+          auto name = QString::fromUtf8(info.name);
+          if(i == 0 && name.toLower() == "audio output")
+            name = "Audio Out";
           auto outlet = new Process::AudioOutlet(
-              Id<Process::Port>(getStrongId(m_outlets)), this);
-          outlet->setName(QString::fromUtf8(info.name));
+              name, Id<Process::Port>(getStrongId(m_outlets)), this);
           if(info.flags & CLAP_AUDIO_PORT_IS_MAIN)
           {
             outlet->setPropagate(true);
@@ -1219,9 +1221,11 @@ void Model::createControls(bool loading)
       {
         if(!loading)
         {
-          auto inlet
-              = new Process::MidiInlet(Id<Process::Port>(getStrongId(m_inlets)), this);
-          inlet->setName(QString::fromUtf8(info.name));
+          auto name = QString::fromUtf8(info.name);
+          if(i == 0 && name.toLower() == "midi input")
+            name = "MIDI In";
+          auto inlet = new Process::MidiInlet(
+              name, Id<Process::Port>(getStrongId(m_inlets)), this);
           m_inlets.push_back(inlet);
         }
 
@@ -1237,9 +1241,11 @@ void Model::createControls(bool loading)
       {
         if(!loading)
         {
-          auto outlet
-              = new Process::MidiOutlet(Id<Process::Port>(getStrongId(m_outlets)), this);
-          outlet->setName(QString::fromUtf8(info.name));
+          auto name = QString::fromUtf8(info.name);
+          if(i == 0 && name.toLower() == "midi output")
+            name = "MIDI Out";
+          auto outlet = new Process::MidiOutlet(
+              name, Id<Process::Port>(getStrongId(m_outlets)), this);
           m_outlets.push_back(outlet);
         }
 
@@ -1269,10 +1275,12 @@ void Model::createControls(bool loading)
             Process::ControlInlet* inlet{};
             if(info.flags & CLAP_PARAM_IS_STEPPED)
               inlet = new Process::IntSlider(
-                  Id<Process::Port>(getStrongId(m_inlets)), this);
+                  QString::fromUtf8(info.name), Id<Process::Port>(getStrongId(m_inlets)),
+                  this);
             else
               inlet = new Process::FloatSlider(
-                  Id<Process::Port>(getStrongId(m_inlets)), this);
+                  QString::fromUtf8(info.name), Id<Process::Port>(getStrongId(m_inlets)),
+                  this);
 
             setupControlInlet(*params, info, i, inlet);
 
@@ -1294,8 +1302,9 @@ void Model::createControls(bool loading)
           if(!loading)
           {
             Process::ControlOutlet* port{};
-            port
-                = new Process::Bargraph(Id<Process::Port>(getStrongId(m_outlets)), this);
+            port = new Process::Bargraph(
+                QString::fromUtf8(info.name), Id<Process::Port>(getStrongId(m_outlets)),
+                this);
 
             setupControlOutlet(*params, info, i, port);
 

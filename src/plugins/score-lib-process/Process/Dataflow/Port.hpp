@@ -104,7 +104,7 @@ class SCORE_LIB_PROCESS_EXPORT Port
   SCORE_SERIALIZE_FRIENDS
 public:
   Selectable selection{this};
-  bool hidden{};
+  bool displayHandledExplicitly{};
   bool noValueChangeOnMove{};
 
   void addCable(const Process::Cable& c);
@@ -192,7 +192,7 @@ public:
 protected:
   Inlet() = delete;
   Inlet(const Inlet&) = delete;
-  Inlet(Id<Process::Port> c, QObject* parent);
+  Inlet(const QString& name, Id<Process::Port> c, QObject* parent);
 
   Inlet(DataStream::Deserializer& vis, QObject* parent);
   Inlet(JSONObject::Deserializer& vis, QObject* parent);
@@ -211,7 +211,6 @@ public:
   ~ControlInlet() override;
   ControlInlet(const ControlInlet&) = delete;
   ControlInlet(const QString& name, Id<Process::Port> c, QObject* parent);
-  ControlInlet(Id<Process::Port> c, QObject* parent);
 
   ControlInlet(DataStream::Deserializer& vis, QObject* parent, bool skip_this = false);
   ControlInlet(JSONObject::Deserializer& vis, QObject* parent, bool skip_this = false);
@@ -289,7 +288,7 @@ public:
 protected:
   Outlet() = delete;
   Outlet(const Outlet&) = delete;
-  Outlet(Id<Process::Port> c, QObject* parent);
+  Outlet(const QString& name, Id<Process::Port> c, QObject* parent);
 
   Outlet(DataStream::Deserializer& vis, QObject* parent);
   Outlet(JSONObject::Deserializer& vis, QObject* parent);
@@ -307,7 +306,7 @@ public:
   AudioInlet() = delete;
   ~AudioInlet() override;
   AudioInlet(const AudioInlet&) = delete;
-  AudioInlet(Id<Process::Port> c, QObject* parent);
+  AudioInlet(const QString& name, Id<Process::Port> c, QObject* parent);
 
   AudioInlet(DataStream::Deserializer& vis, QObject* parent);
   AudioInlet(JSONObject::Deserializer& vis, QObject* parent);
@@ -330,7 +329,7 @@ public:
   AudioOutlet() = delete;
   ~AudioOutlet() override;
   AudioOutlet(const AudioOutlet&) = delete;
-  AudioOutlet(Id<Process::Port> c, QObject* parent);
+  AudioOutlet(const QString& name, Id<Process::Port> c, QObject* parent);
 
   AudioOutlet(DataStream::Deserializer& vis, QObject* parent);
   AudioOutlet(JSONObject::Deserializer& vis, QObject* parent);
@@ -386,7 +385,7 @@ public:
   MidiInlet() = delete;
   ~MidiInlet() override;
   MidiInlet(const MidiInlet&) = delete;
-  MidiInlet(Id<Process::Port> c, QObject* parent);
+  MidiInlet(const QString& name, Id<Process::Port> c, QObject* parent);
 
   MidiInlet(DataStream::Deserializer& vis, QObject* parent);
   MidiInlet(JSONObject::Deserializer& vis, QObject* parent);
@@ -409,7 +408,7 @@ public:
   MidiOutlet() = delete;
   ~MidiOutlet() override;
   MidiOutlet(const MidiOutlet&) = delete;
-  MidiOutlet(Id<Process::Port> c, QObject* parent);
+  MidiOutlet(const QString& name, Id<Process::Port> c, QObject* parent);
 
   MidiOutlet(DataStream::Deserializer& vis, QObject* parent);
   MidiOutlet(JSONObject::Deserializer& vis, QObject* parent);
@@ -432,7 +431,6 @@ public:
   ControlOutlet() = delete;
   ControlOutlet(const Outlet&) = delete;
   ControlOutlet(const QString& name, Id<Process::Port> c, QObject* parent);
-  ControlOutlet(Id<Process::Port> c, QObject* parent);
   ~ControlOutlet() override;
 
   ControlOutlet(DataStream::Deserializer& vis, QObject* parent);
@@ -499,7 +497,7 @@ public:
   ValueInlet() = delete;
   ~ValueInlet() override;
   ValueInlet(const ValueInlet&) = delete;
-  ValueInlet(Id<Process::Port> c, QObject* parent);
+  ValueInlet(const QString& name, Id<Process::Port> c, QObject* parent);
 
   ValueInlet(DataStream::Deserializer& vis, QObject* parent);
   ValueInlet(JSONObject::Deserializer& vis, QObject* parent);
@@ -522,7 +520,7 @@ public:
   ValueOutlet() = delete;
   ~ValueOutlet() override;
   ValueOutlet(const ValueOutlet&) = delete;
-  ValueOutlet(Id<Process::Port> c, QObject* parent);
+  ValueOutlet(const QString& name, Id<Process::Port> c, QObject* parent);
 
   ValueOutlet(DataStream::Deserializer& vis, QObject* parent);
   ValueOutlet(JSONObject::Deserializer& vis, QObject* parent);
@@ -534,24 +532,6 @@ public:
     return Process::PortType::Message;
   }
 };
-
-SCORE_LIB_PROCESS_EXPORT
-std::unique_ptr<Inlet> make_value_inlet(const Id<Process::Port>& c, QObject* parent);
-SCORE_LIB_PROCESS_EXPORT
-std::unique_ptr<Outlet> make_value_outlet(const Id<Process::Port>& c, QObject* parent);
-
-SCORE_LIB_PROCESS_EXPORT
-std::unique_ptr<MidiInlet> make_midi_inlet(const Id<Process::Port>& c, QObject* parent);
-SCORE_LIB_PROCESS_EXPORT
-std::unique_ptr<MidiOutlet>
-make_midi_outlet(const Id<Process::Port>& c, QObject* parent);
-
-SCORE_LIB_PROCESS_EXPORT
-std::unique_ptr<AudioInlet>
-make_audio_inlet(const Id<Process::Port>& c, QObject* parent);
-SCORE_LIB_PROCESS_EXPORT
-std::unique_ptr<AudioOutlet>
-make_audio_outlet(const Id<Process::Port>& c, QObject* parent);
 
 }
 

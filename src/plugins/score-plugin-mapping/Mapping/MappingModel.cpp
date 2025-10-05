@@ -25,9 +25,11 @@ namespace Mapping
 ProcessModel::ProcessModel(
     const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
     : Curve::
-        CurveProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
-    , inlet{Process::make_value_inlet(Id<Process::Port>(0), this)}
-    , outlet{Process::make_value_outlet(Id<Process::Port>(0), this)}
+          CurveProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    , inlet{std::make_unique<Process::ValueInlet>(
+          "Value In", Id<Process::Port>(0), this)}
+    , outlet{std::make_unique<Process::ValueOutlet>(
+          "Value Out", Id<Process::Port>(0), this)}
     , m_sourceMin{0.}
     , m_sourceMax{1.}
     , m_targetMin{0.}

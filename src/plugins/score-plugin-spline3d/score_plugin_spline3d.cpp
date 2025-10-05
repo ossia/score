@@ -25,8 +25,8 @@
 namespace Spline3D
 {
 using Factory = Process::ProcessFactory_T<Spline3D::ProcessModel>;
-using LayerFactory = Process::EffectLayerFactory_T<
-    Spline3D::ProcessModel, Process::DefaultEffectItem, Spline3D::Widget>;
+using LayerFactory
+    = Process::EffectLayerFactory_T<Spline3D::ProcessModel, Spline3D::Widget>;
 }
 
 score_plugin_spline3d::score_plugin_spline3d() = default;

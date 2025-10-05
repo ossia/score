@@ -295,7 +295,7 @@ template <typename DSP>
 using ProcessFactory = Process::ProcessFactory_T<Fx<DSP>>;
 
 template <typename DSP>
-using LayerFactory = Process::EffectLayerFactory_T<Fx<DSP>, Process::DefaultEffectItem>;
+using LayerFactory = Process::EffectLayerFactory_T<Fx<DSP>>;
 
 template <typename DSP>
 using ExecutorFactory = Execution::ProcessComponentFactory_T<Executor<DSP>>;
