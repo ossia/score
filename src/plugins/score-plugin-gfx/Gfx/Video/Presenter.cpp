@@ -21,27 +21,11 @@
 
 namespace Gfx::Video
 {
-struct Presenter::Port
-{
-  score::EmptyRectItem* root;
-  Dataflow::PortItem* port;
-  QRectF rect;
-};
 Presenter::Presenter(
     const Model& layer, View* view, const Process::Context& ctx, QObject* parent)
     : Process::LayerPresenter{layer, view, ctx, parent}
     , m_view{view}
 {
-  auto& portFactory = ctx.app.interfaces<Process::PortFactoryList>();
-  for(auto& e : layer.inlets())
-  {
-    auto inlet = qobject_cast<Process::ControlInlet*>(e);
-    if(!inlet)
-      continue;
-
-    setupInlet(*inlet, portFactory, ctx);
-  }
-
   connect(m_view, &View::dropReceived, this, &Presenter::on_drop);
 }
 
@@ -71,34 +55,6 @@ void Presenter::on_zoomRatioChanged(ZoomRatio r)
 }
 
 void Presenter::parentGeometryChanged() { }
-
-void Presenter::setupInlet(
-    Process::ControlInlet& port, const Process::PortFactoryList& portFactory,
-    const Process::Context& doc)
-{
-  // Main item creation
-  int i = std::ssize(m_ports);
-
-  auto csetup = Process::controlSetup(
-      [](auto& factory, auto& inlet, const auto& doc, auto item, auto parent) {
-    return factory.makePortItem(inlet, doc, item, parent);
-      },
-      [](auto& factory, auto& inlet, const auto& doc, auto item, auto parent) {
-    return factory.makeControlItem(inlet, doc, item, parent);
-  },
-       [&](int j) { return m_ports[j].rect.size(); }, [&] { return port.name(); });
-  auto [item, portItem, widg, lab, itemRect]
-      = Process::createControl(i, csetup, port, portFactory, doc, m_view, this);
-
-  m_ports.push_back(Port{item, portItem, itemRect});
-  // TODO updateRect();
-
-  // TODO con(inlet, &Process::ControlInlet::domainChanged, this, [this,
-  // &inlet] {
-  // TODO   on_controlRemoved(inlet);
-  // TODO   on_controlAdded(inlet.id());
-  // TODO });
-}
 
 void Presenter::on_drop(const QPointF& pos, const QMimeData& md)
 {
