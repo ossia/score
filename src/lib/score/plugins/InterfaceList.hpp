@@ -56,6 +56,24 @@ public:
 
 SCORE_LIB_BASE_EXPORT void
 debug_types(const score::InterfaceBase* orig, const score::InterfaceBase* repl) noexcept;
+
+class SCORE_LIB_BASE_EXPORT InterfaceListMain : public score::InterfaceListBase
+{
+public:
+  InterfaceListMain();
+  ~InterfaceListMain();
+  void insert_base(std::unique_ptr<score::InterfaceBase> e, score::uuid_t k);
+
+  mutable Nano::Signal<void(const score::InterfaceBase&)> added;
+
+  auto reserve(std::size_t v) { return map.reserve(v); }
+  auto size() const noexcept { return map.size(); }
+  auto empty() const noexcept { return map.empty(); }
+
+  void optimize() noexcept final override;
+  ossia::hash_map<score::uuid_t, std::unique_ptr<score::InterfaceBase>> map;
+};
+
 /**
  * @brief InterfaceList Default implementation of InterfaceListBase
  *
@@ -74,9 +92,7 @@ debug_types(const score::InterfaceBase* orig, const score::InterfaceBase* repl) 
  * An implementation of an interface shall never be inserted twice.
  */
 template <typename FactoryType>
-class InterfaceList
-    : public score::InterfaceListBase
-    , public IndirectContainer<FactoryType>
+class InterfaceList : public score::InterfaceListMain
 {
 public:
   using factory_type = FactoryType;
@@ -99,46 +115,49 @@ public:
   {
     if(auto result = dynamic_cast<factory_type*>(e.get()))
     {
-      e.release();
-      std::unique_ptr<factory_type> pf{result};
-      vector_type::push_back(pf.get());
-
-      auto k = pf->concreteKey();
-      auto it = this->map.find(k);
-      if(it == this->map.end())
-      {
-        this->map.emplace(std::make_pair(k, std::move(pf)));
-      }
-      else
-      {
-        score::debug_types(it->second.get(), result);
-        it->second = std::move(pf);
-      }
-
-      added(vector_type::back());
+      return insert_base(std::move(e), result->concreteKey().impl());
+    }
+    else
+    {
+      SCORE_SOFT_ASSERT("Invalid interface detected");
     }
   }
 
   //! Get a particular factory from its ConcreteKey
   FactoryType* get(const key_type& k) const noexcept
   {
-    auto it = this->map.find(k);
-    return (it != this->map.end()) ? it->second.get() : nullptr;
+    auto it = this->map.find(k.impl());
+    return (it != this->map.end()) ? static_cast<FactoryType*>(it->second.get())
+                                   : nullptr;
   }
 
-  mutable Nano::Signal<void(const factory_type&)> added;
+  auto begin() noexcept
+  {
+    return make_indirect_cast_map_iterator<factory_type>(map.begin());
+  }
+  auto end() noexcept
+  {
+    return make_indirect_cast_map_iterator<factory_type>(map.end());
+  }
+  auto begin() const noexcept
+  {
+    return make_indirect_cast_map_iterator<factory_type>(map.begin());
+  }
+  auto end() const noexcept
+  {
+    return make_indirect_cast_map_iterator<factory_type>(map.end());
+  }
 
-protected:
-  ossia::hash_map<typename FactoryType::ConcreteKey, std::unique_ptr<FactoryType>> map;
+  auto cbegin() const noexcept
+  {
+    return make_indirect_cast_map_iterator<factory_type>(map.cbegin());
+  }
+  auto cend() const noexcept
+  {
+    return make_indirect_cast_map_iterator<factory_type>(map.cend());
+  }
 
 private:
-  void optimize() noexcept final override
-  {
-    // score::optimize_hash_map(this->map);
-    this->map.max_load_factor(0.1f);
-    this->map.reserve(map.size());
-  }
-
   InterfaceList(const InterfaceList&) = delete;
   InterfaceList(InterfaceList&&) = delete;
   InterfaceList& operator=(const InterfaceList&) = delete;

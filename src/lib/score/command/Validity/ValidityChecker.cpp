@@ -2,6 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ValidityChecker.hpp"
 
+#include <score/command/Validity/ValidityCheckerList.hpp>
+
 #include <core/document/Document.hpp>
 namespace score
 {

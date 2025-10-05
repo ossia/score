@@ -1,5 +1,5 @@
 #pragma once
-#include <score/plugins/InterfaceList.hpp>
+#include <score/plugins/Interface.hpp>
 
 #include <score_lib_base_export.h>
 
@@ -42,13 +42,5 @@ public:
 private:
   const ValidityCheckerList& m_list;
   const score::Document& m_doc;
-};
-
-class SCORE_LIB_BASE_EXPORT ValidityCheckerList final
-    : public InterfaceList<score::ValidityChecker>
-{
-public:
-  ~ValidityCheckerList();
-  DocumentValidator make(const score::Document& ctx);
 };
 }

@@ -68,7 +68,7 @@ public:
   QMimeData* mimeData(const QModelIndexList& indexes) const override;
   Qt::DropActions supportedDragActions() const override;
 
-  void on_newPlugin(const Process::ProcessModelFactory& fact);
+  void on_newPlugin(const score::InterfaceBase& fact);
 
 private:
   ProcessNode& addCategory(const QString& cat);

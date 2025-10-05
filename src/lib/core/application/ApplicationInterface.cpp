@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ApplicationInterface.hpp"
 
+#include <score/command/Validity/ValidityCheckerList.hpp>
 #include <score/model/ComponentSerialization.hpp>
 #include <score/model/ObjectEditor.hpp>
 #include <score/plugins/ProjectSettings/ProjectSettingsFactory.hpp>
