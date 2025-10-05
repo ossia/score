@@ -14,19 +14,6 @@
 
 namespace vst3
 {
-class VSTEffectItem final : public score::EmptyRectItem
-{
-  QGraphicsItem* rootItem{};
-  std::vector<std::pair<ControlInlet*, score::EmptyRectItem*>> controlItems;
-
-public:
-  VSTEffectItem(const Model& effect, const Process::Context& doc, QGraphicsItem* root);
-
-  void setupInlet(const Model& fx, ControlInlet& inlet, const Process::Context& doc);
-
-private:
-  void updateRect();
-};
 
 class VSTGraphicsSlider final
     : public QObject
