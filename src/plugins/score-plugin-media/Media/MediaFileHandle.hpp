@@ -267,7 +267,11 @@ private:
     {
       std::size_t operator()(const StreamInfo& f) const noexcept
       {
-        constexpr const QtPrivate::QHashCombine combine;
+        constexpr const QtPrivate::QHashCombine combine{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
+            0
+#endif
+        };
         std::size_t h = 0;
         h = combine(h, f.file);
         h = combine(h, f.stream);

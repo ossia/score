@@ -127,7 +127,7 @@ struct hash<Gfx::ShaderSource>
   std::size_t operator()(const Gfx::ShaderSource& program) const noexcept
   {
     constexpr const QtPrivate::QHashCombine combine{
-#if QT_VERSION >= QT_VERSION_CHECK(6, 11, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
         0
 #endif
     };
