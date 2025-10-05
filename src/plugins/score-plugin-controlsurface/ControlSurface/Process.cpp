@@ -42,31 +42,31 @@ Process::ControlInlet* makeControlFromType(
   auto& unit = addr.address.qualifiers.get().unit.v;
   if(unit.target<ossia::color_u>())
   {
-    return new Process::HSVSlider{id, parent};
+    return new Process::HSVSlider{"Control", id, parent};
   }
   if(unit.target<ossia::position_u>() && addr.value.get_type() == ossia::val_type::VEC2F)
   {
-    return new Process::XYSlider{id, parent};
+    return new Process::XYSlider{"Control", id, parent};
   }
   switch(addr.value.get_type())
   {
     case ossia::val_type::IMPULSE:
-      return new Process::ImpulseButton{id, parent};
+      return new Process::ImpulseButton{"Control", id, parent};
     case ossia::val_type::INT:
-      return new Process::IntSlider{id, parent};
+      return new Process::IntSlider{"Control", id, parent};
     case ossia::val_type::FLOAT:
-      return new Process::FloatSlider{id, parent};
+      return new Process::FloatSlider{"Control", id, parent};
     case ossia::val_type::BOOL:
-      return new Process::Toggle{id, parent};
+      return new Process::Toggle{"Control", id, parent};
     case ossia::val_type::STRING:
-      return new Process::LineEdit{id, parent};
+      return new Process::LineEdit{"Control", id, parent};
     case ossia::val_type::VEC2F:
     case ossia::val_type::VEC4F:
-      return new Process::MultiSlider{id, parent};
+      return new Process::MultiSlider{"Control", id, parent};
     case ossia::val_type::VEC3F:
-      return new Process::XYZSlider{id, parent};
+      return new Process::XYZSlider{"Control", id, parent};
     default:
-      return new Process::ControlInlet(id, parent);
+      return new Process::ControlInlet("Control", id, parent);
   }
 }
 
@@ -74,7 +74,7 @@ void Model::setupControl(Process::ControlInlet* ctl, const State::AddressAccesso
 {
   int32_t id = ctl->id().val();
   m_outputAddresses[id] = addr;
-  ctl->hidden = true;
+  ctl->displayHandledExplicitly = true;
 
   inlets().push_back(ctl);
   controlAdded(ctl->id());

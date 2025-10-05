@@ -102,9 +102,8 @@ struct BytebeatLanguageSpec
 
 using BytebeatEffectFactory = Process::EffectProcessFactory_T<BytebeatModel>;
 using BytebeatLayerFactory = Process::EffectLayerFactory_T<
-    BytebeatModel, Process::DefaultEffectItem,
-    Process::ProcessScriptEditDialog<
-        BytebeatModel, BytebeatModel::p_script, BytebeatLanguageSpec>>;
+    BytebeatModel, Process::ProcessScriptEditDialog<
+                       BytebeatModel, BytebeatModel::p_script, BytebeatLanguageSpec>>;
 
 class BytebeatExecutor final
     : public Execution::ProcessComponent_T<Jit::BytebeatModel, ossia::node_process>

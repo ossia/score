@@ -17,7 +17,6 @@ struct LanguageSpec
 
 using ProcessFactory = Process::ProcessFactory_T<JS::ProcessModel>;
 using LayerFactory = Process::EffectLayerFactory_T<
-    ProcessModel, Process::DefaultEffectItem,
-    Process::ProcessScriptEditDialog<
-        ProcessModel, ProcessModel::p_script, LanguageSpec>>;
+    ProcessModel, Process::ProcessScriptEditDialog<
+                      ProcessModel, ProcessModel::p_script, LanguageSpec>>;
 }

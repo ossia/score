@@ -15,8 +15,9 @@ namespace Spline3D
 ProcessModel::ProcessModel(
     const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
     : Process::
-        ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
-    , outlet{Process::make_value_outlet(Id<Process::Port>(0), this)}
+          ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    , outlet{
+          std::make_unique<Process::ValueOutlet>("XYZ Out", Id<Process::Port>(0), this)}
 {
   m_spline.points.push_back({0., 0., 0.});
 

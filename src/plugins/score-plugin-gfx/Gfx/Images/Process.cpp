@@ -113,7 +113,7 @@ Model::Model(
     auto tile = new Process::ComboBox{combo, 0, tr("Scale"), Id<Process::Port>(7), this};
     m_inlets.push_back(tile);
   }
-  m_outlets.push_back(new TextureOutlet{Id<Process::Port>(0), this});
+  m_outlets.push_back(new TextureOutlet{"Texture Out", Id<Process::Port>(0), this});
 }
 
 Model::~Model()

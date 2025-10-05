@@ -17,8 +17,8 @@ Model::Model(
     : Process::ProcessModel{
         duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
 {
-  auto out = Process::make_audio_outlet(
-      Id<Process::Port>(std::numeric_limits<int16_t>::max()), this);
+  auto out = std::make_unique<Process::AudioOutlet>(
+      "Audio Out", Id<Process::Port>(std::numeric_limits<int16_t>::max()), this);
   out->setPropagate(true);
   m_outlets.push_back(out.release());
 
@@ -58,7 +58,9 @@ void Model::setInCount(int s)
       for(int i = 0; i < (m_inCount - old); i++)
       {
         m_inlets.push_back(
-            Process::make_audio_inlet(Id<Process::Port>(int(old + i)), this).release());
+            std::make_unique<Process::AudioInlet>(
+                "Audio In", Id<Process::Port>(int(old + i)), this)
+                .release());
       }
       inletsChanged();
     }

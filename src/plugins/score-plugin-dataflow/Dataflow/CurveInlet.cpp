@@ -216,7 +216,7 @@ CurveInlet::CurveInlet(JSONObject::Deserializer&& vis, QObject* parent)
 
 CurveInlet::~CurveInlet() { }
 CurveInlet::CurveInlet(Id<Port> id, QObject* parent)
-    : ControlInlet{id, parent}
+    : ControlInlet{"Curve", id, parent}
     , m_curve{new Curve::Model{Id<Curve::Model>{0}, this}}
 {
   auto s1 = new Curve::DefaultCurveSegmentModel(Id<Curve::SegmentModel>(1), m_curve);

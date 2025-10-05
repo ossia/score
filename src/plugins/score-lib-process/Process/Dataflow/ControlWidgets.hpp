@@ -45,6 +45,7 @@ struct SCORE_LIB_PROCESS_EXPORT DefaultControlLayouts
 {
   static Process::PortItemLayout knob() noexcept;
   static Process::PortItemLayout slider() noexcept;
+  static Process::PortItemLayout bargraph() noexcept;
   static Process::PortItemLayout combo() noexcept;
   static Process::PortItemLayout list() noexcept;
   static Process::PortItemLayout lineedit() noexcept;
@@ -84,7 +85,10 @@ struct FloatControl
     }
     else
     {
-      return DefaultControlLayouts::slider();
+      if constexpr(Control) // Inlet
+        return DefaultControlLayouts::slider();
+      else
+        return DefaultControlLayouts::bargraph();
     }
   }
 

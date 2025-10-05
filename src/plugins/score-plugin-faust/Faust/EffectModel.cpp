@@ -403,10 +403,12 @@ Process::ScriptChangeResult FaustEffectModel::reload()
           score::clearAndDeleteLater(m_inlets, inlets_to_clear);
           score::clearAndDeleteLater(m_outlets, outlets_to_clear);
 
-          m_inlets.push_back(new Process::AudioInlet{getStrongId(m_inlets), this});
-          m_inlets.push_back(new Process::MidiInlet{getStrongId(m_inlets), this});
+          m_inlets.push_back(
+              new Process::AudioInlet{"Audio In", getStrongId(m_inlets), this});
+          m_inlets.push_back(
+              new Process::MidiInlet{"MIDI In", getStrongId(m_inlets), this});
 
-          auto out = new Process::AudioOutlet{getStrongId(m_outlets), this};
+          auto out = new Process::AudioOutlet{"Audio Out", getStrongId(m_outlets), this};
           out->setPropagate(true);
           m_outlets.push_back(out);
 
@@ -463,8 +465,9 @@ Process::ScriptChangeResult FaustEffectModel::reload()
       score::clearAndDeleteLater(m_inlets, inlets_to_clear);
       score::clearAndDeleteLater(m_outlets, outlets_to_clear);
 
-      m_inlets.push_back(new Process::AudioInlet{getStrongId(m_inlets), this});
-      auto out = new Process::AudioOutlet{getStrongId(m_outlets), this};
+      m_inlets.push_back(
+          new Process::AudioInlet{"Audio In", getStrongId(m_inlets), this});
+      auto out = new Process::AudioOutlet{"Audio Out", getStrongId(m_outlets), this};
       out->setPropagate(true);
       m_outlets.push_back(out);
 

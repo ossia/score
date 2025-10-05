@@ -53,7 +53,7 @@ MODEL_METADATA_IMPL_CPP(ControlOutlet)
 Port::~Port() { }
 
 Port::Port(Id<Port> c, const QString& name, QObject* parent)
-    : IdentifiedObject<Port>{c, name, parent}
+    : IdentifiedObject<Port>{std::move(c), name, parent}
 {
 }
 
@@ -248,9 +248,10 @@ Inlet::~Inlet() { }
 
 void Inlet::setupExecution(ossia::inlet&, QObject* exec_context) const noexcept { }
 
-Inlet::Inlet(Id<Process::Port> c, QObject* parent)
+Inlet::Inlet(const QString& name, Id<Process::Port> c, QObject* parent)
     : Port{std::move(c), QStringLiteral("Inlet"), parent}
 {
+  setName(name);
 }
 
 Inlet::Inlet(DataStream::Deserializer& vis, QObject* parent)
@@ -283,16 +284,10 @@ void Inlet::mapExecution(
 }
 
 ControlInlet::ControlInlet(const QString& name, Id<Process::Port> c, QObject* parent)
-    : Inlet{std::move(c), parent}
+    : Inlet{name, std::move(c), parent}
 {
-  setName(name);
 }
 
-ControlInlet::ControlInlet(Id<Process::Port> c, QObject* parent)
-    : Inlet{std::move(c), parent}
-{
-  setName("Control");
-}
 ControlInlet::~ControlInlet() { }
 
 ControlInlet::ControlInlet(
@@ -368,9 +363,10 @@ Outlet::~Outlet() { }
 
 void Outlet::setupExecution(ossia::outlet&, QObject* exec_context) const noexcept { }
 
-Outlet::Outlet(Id<Process::Port> c, QObject* parent)
+Outlet::Outlet(const QString& name, Id<Process::Port> c, QObject* parent)
     : Port{std::move(c), QStringLiteral("Outlet"), parent}
 {
+  setName(name);
 }
 
 Outlet::Outlet(DataStream::Deserializer& vis, QObject* parent)
@@ -404,10 +400,9 @@ void Outlet::mapExecution(
 
 AudioInlet::~AudioInlet() { }
 
-AudioInlet::AudioInlet(Id<Process::Port> c, QObject* parent)
-    : Inlet{std::move(c), parent}
+AudioInlet::AudioInlet(const QString& name, Id<Process::Port> c, QObject* parent)
+    : Inlet{name, std::move(c), parent}
 {
-  setName("Audio in");
 }
 
 AudioInlet::AudioInlet(DataStream::Deserializer& vis, QObject* parent)
@@ -433,19 +428,16 @@ AudioInlet::AudioInlet(JSONObject::Deserializer&& vis, QObject* parent)
 
 AudioOutlet::~AudioOutlet() { }
 
-AudioOutlet::AudioOutlet(Id<Process::Port> c, QObject* parent)
-    : Outlet{std::move(c), parent}
+AudioOutlet::AudioOutlet(const QString& name, Id<Process::Port> c, QObject* parent)
+    : Outlet{name, std::move(c), parent}
     , gainInlet{std::make_unique<ControlInlet>(
-          Id<Process::Port>{(1 + c.val()) * 10000 + 0}, this)}
+          "Gain", Id<Process::Port>{(1 + c.val()) * 10000 + 0}, this)}
     , panInlet{std::make_unique<ControlInlet>(
-          Id<Process::Port>{(1 + c.val()) * 10000 + 1}, this)}
+          "Pan", Id<Process::Port>{(1 + c.val()) * 10000 + 1}, this)}
     , m_gain{1.}
     , m_pan{1., 1.}
 {
-  setName("Audio out");
-  gainInlet->setName("Gain");
   gainInlet->setDomain(ossia::domain{ossia::domain_base<float>{0., 1.}});
-  panInlet->setName("Pan");
 }
 
 AudioOutlet::AudioOutlet(DataStream::Deserializer& vis, QObject* parent)
@@ -550,10 +542,9 @@ void AudioOutlet::setPan(Process::pan_weight pan)
 
 MidiInlet::~MidiInlet() { }
 
-MidiInlet::MidiInlet(Id<Process::Port> c, QObject* parent)
-    : Inlet{std::move(c), parent}
+MidiInlet::MidiInlet(const QString& name, Id<Process::Port> c, QObject* parent)
+    : Inlet{name, std::move(c), parent}
 {
-  setName("MIDI in");
 }
 
 MidiInlet::MidiInlet(DataStream::Deserializer& vis, QObject* parent)
@@ -579,10 +570,9 @@ MidiInlet::MidiInlet(JSONObject::Deserializer&& vis, QObject* parent)
 
 MidiOutlet::~MidiOutlet() { }
 
-MidiOutlet::MidiOutlet(Id<Process::Port> c, QObject* parent)
-    : Outlet{std::move(c), parent}
+MidiOutlet::MidiOutlet(const QString& name, Id<Process::Port> c, QObject* parent)
+    : Outlet{name, std::move(c), parent}
 {
-  setName("MIDI out");
 }
 
 MidiOutlet::MidiOutlet(DataStream::Deserializer& vis, QObject* parent)
@@ -607,15 +597,8 @@ MidiOutlet::MidiOutlet(JSONObject::Deserializer&& vis, QObject* parent)
 }
 
 ControlOutlet::ControlOutlet(const QString& qname, Id<Process::Port> c, QObject* parent)
-    : Outlet{std::move(c), parent}
+    : Outlet{qname, std::move(c), parent}
 {
-  setName(qname);
-}
-
-ControlOutlet::ControlOutlet(Id<Process::Port> c, QObject* parent)
-    : Outlet{std::move(c), parent}
-{
-  setName("Control out");
 }
 
 ControlOutlet::~ControlOutlet() { }
@@ -653,10 +636,9 @@ void ControlOutlet::loadData(const QByteArray& arr) noexcept
 
 ValueInlet::~ValueInlet() { }
 
-ValueInlet::ValueInlet(Id<Process::Port> c, QObject* parent)
-    : Inlet{std::move(c), parent}
+ValueInlet::ValueInlet(const QString& name, Id<Process::Port> c, QObject* parent)
+    : Inlet{name, std::move(c), parent}
 {
-  setName("Value in");
 }
 
 ValueInlet::ValueInlet(DataStream::Deserializer& vis, QObject* parent)
@@ -682,10 +664,9 @@ ValueInlet::ValueInlet(JSONObject::Deserializer&& vis, QObject* parent)
 
 ValueOutlet::~ValueOutlet() { }
 
-ValueOutlet::ValueOutlet(Id<Process::Port> c, QObject* parent)
-    : Outlet{std::move(c), parent}
+ValueOutlet::ValueOutlet(const QString& name, Id<Process::Port> c, QObject* parent)
+    : Outlet{name, std::move(c), parent}
 {
-  setName("Value out");
 }
 
 ValueOutlet::ValueOutlet(DataStream::Deserializer& vis, QObject* parent)
@@ -807,7 +788,7 @@ QGraphicsItem* PortFactory::makeControlItem(
 
 static auto makeFullItemImpl(
     const Process::Port& portModel, const Process::PortItemLayout& layout,
-    QGraphicsItem& port, QGraphicsItem& control, score::EmptyRectItem& item)
+    QGraphicsItem& port, QGraphicsItem& control, auto& item)
 {
   score::SimpleTextItem* lab{};
   using namespace score;
@@ -967,7 +948,7 @@ std::unique_ptr<Outlet> load_outlet(JSONWriter& wr, QObject* parent)
 
 static auto copy_port(Port&& src, Port& dst)
 {
-  dst.hidden = src.hidden;
+  dst.displayHandledExplicitly = src.displayHandledExplicitly;
   dst.setName(src.name());
   dst.setAddress(src.address());
   dst.setExposed(src.exposed());
@@ -994,7 +975,7 @@ auto load_port_t(W& wr, QObject* parent)
   else if(out)
   {
     // Pre 2.0
-    auto new_p = std::make_unique<T>(out->id(), parent);
+    auto new_p = std::make_unique<T>("Port", out->id(), parent);
     copy_port(std::move(*out), *new_p);
     delete out;
     return new_p;
@@ -1002,7 +983,7 @@ auto load_port_t(W& wr, QObject* parent)
   else
   {
     // This works with a specific id because it is only for pre 1.0 saves
-    return std::make_unique<T>(Id<Process::Port>(0), parent);
+    return std::make_unique<T>("Port", Id<Process::Port>(0), parent);
   }
 }
 
@@ -1125,21 +1106,21 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read(const Process::Port& p)
 {
   insertDelimiter();
-  m_stream << p.hidden << p.m_name << p.m_exposed << p.m_description << p.m_address;
+  m_stream << p.displayHandledExplicitly << p.m_name << p.m_exposed << p.m_description << p.m_address;
   insertDelimiter();
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write(Process::Port& p)
 {
   checkDelimiter();
-  m_stream >> p.hidden >> p.m_name >> p.m_exposed >> p.m_description >> p.m_address;
+  m_stream >> p.displayHandledExplicitly >> p.m_name >> p.m_exposed >> p.m_description >> p.m_address;
   checkDelimiter();
 }
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void JSONReader::read(const Process::Port& p)
 {
-  obj["Hidden"] = (bool)p.hidden;
+  obj["Hidden"] = (bool)p.displayHandledExplicitly;
   if(!p.m_name.isEmpty())
     obj["Custom"] = p.m_name;
   if(!p.m_exposed.isEmpty())
@@ -1153,7 +1134,7 @@ SCORE_LIB_PROCESS_EXPORT void JSONReader::read(const Process::Port& p)
 template <>
 SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::Port& p)
 {
-  p.hidden = obj["Hidden"].toBool();
+  p.displayHandledExplicitly = obj["Hidden"].toBool();
   if(auto it = obj.tryGet("Custom"))
     p.m_name = it->toString();
   if(auto it = obj.tryGet("Exposed"))
@@ -1316,7 +1297,8 @@ SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::AudioOutlet& p)
   }
   else
   {
-    p.gainInlet = std::make_unique<Process::ControlInlet>(Id<Process::Port>{0}, &p);
+    p.gainInlet
+        = std::make_unique<Process::ControlInlet>("Gain", Id<Process::Port>{0}, &p);
   }
 
   if(auto it = obj.tryGet("PanInlet"))
@@ -1326,7 +1308,8 @@ SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::AudioOutlet& p)
   }
   else
   {
-    p.panInlet = std::make_unique<Process::ControlInlet>(Id<Process::Port>{1}, &p);
+    p.panInlet
+        = std::make_unique<Process::ControlInlet>("Pan", Id<Process::Port>{1}, &p);
   }
 
   p.m_gain = obj["Gain"].toDouble();

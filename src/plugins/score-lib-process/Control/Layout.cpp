@@ -8,20 +8,26 @@
 
 namespace Process
 {
-Process::ControlLayout LayoutBuilderBase::makePort(Process::ControlInlet& port)
+Process::ControlLayout LayoutBuilderBase::makePort(Process::Inlet& port)
 {
   if(auto* f = portFactory.get(port.concreteKey()))
   {
-    return f->makeFullItem(port, this->doc, this->layout, &this->context);
+    if(auto control = qobject_cast<Process::ControlInlet*>(&port))
+      return f->makeFullItem(*control, this->doc, this->layout, &this->context);
+    else
+      return f->makeLabelItem(port, this->doc, this->layout, &this->context);
   }
   return {};
 }
 
-Process::ControlLayout LayoutBuilderBase::makePort(Process::ControlOutlet& port)
+Process::ControlLayout LayoutBuilderBase::makePort(Process::Outlet& port)
 {
   if(auto* f = portFactory.get(port.concreteKey()))
   {
-    return f->makeFullItem(port, this->doc, this->layout, &this->context);
+    if(auto control = qobject_cast<Process::ControlOutlet*>(&port))
+      return f->makeFullItem(*control, this->doc, this->layout, &this->context);
+    else
+      return f->makeLabelItem(port, this->doc, this->layout, &this->context);
   }
   return {};
 }

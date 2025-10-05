@@ -9,7 +9,6 @@
 namespace Gfx::Filter
 {
 using LayerFactory = Process::EffectLayerFactory_T<
-    Gfx::Filter::Model, Process::DefaultEffectItem,
-    Process::ProcessMultiScriptEditDialog<
-        Gfx::Filter::Model, Gfx::Filter::Model::p_program>>;
+    Gfx::Filter::Model, Process::ProcessMultiScriptEditDialog<
+                            Gfx::Filter::Model, Gfx::Filter::Model::p_program>>;
 }

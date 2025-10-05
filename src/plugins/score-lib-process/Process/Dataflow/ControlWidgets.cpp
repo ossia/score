@@ -18,6 +18,15 @@ PortItemLayout DefaultControlLayouts::slider() noexcept
       .labelAlignment = Qt::AlignCenter};
 }
 
+PortItemLayout DefaultControlLayouts::bargraph() noexcept
+{
+  return Process::PortItemLayout{
+      .port = QPointF{60, 10.},
+      .control = QPointF{0., 12.},
+      .labelAlignment = Qt::AlignCenter,
+      .controlAlignment = Qt::AlignRight};
+}
+
 PortItemLayout DefaultControlLayouts::combo() noexcept
 {
   return Process::PortItemLayout{

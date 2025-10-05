@@ -70,7 +70,7 @@ public:
       vector_type::push_back(pf.get());
       actionsMap[result->target()].push_back(pf.get());
 
-      auto k = pf->concreteKey();
+      const auto k = pf->concreteKey();
       auto it = this->map.find(k);
       if(it == this->map.end())
       {

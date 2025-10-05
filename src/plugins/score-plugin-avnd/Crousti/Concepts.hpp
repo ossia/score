@@ -56,13 +56,12 @@ struct CustomFloatControlBase : public Process::ControlInlet
   CustomFloatControlBase(
       float min, float max, float init, const QString& name, Id<Process::Port> id,
       QObject* parent)
-      : ControlInlet{id, parent}
+      : ControlInlet{name, id, parent}
   {
-    hidden = true;
+    displayHandledExplicitly = true;
     setValue(init);
     setInit(init);
     setDomain(ossia::make_domain(min, max));
-    setName(name);
   }
 
   auto getMin() const noexcept { return domain().get().template convert_min<float>(); }
@@ -439,9 +438,7 @@ make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
   }
   else if constexpr(widg.widget == avnd::widget_type::no_control)
   {
-    auto pv = new Process::ValueInlet{id, parent};
-    pv->setName(qname);
-    return pv;
+    return new Process::ValueInlet{qname, id, parent};
   }
   else
   {
@@ -470,9 +467,7 @@ make_control_out(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
   }
   else if constexpr(widg.widget == avnd::widget_type::no_control)
   {
-    auto pv = new Process::ValueOutlet{id, parent};
-    pv->setName(qname);
-    return pv;
+    return new Process::ValueOutlet{qname, id, parent};
   }
   else if constexpr(avnd::fp_ish<decltype(T::value)>)
   {

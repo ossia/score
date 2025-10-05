@@ -33,51 +33,46 @@ Model::Model(
   }
 
   {
-    auto pointSize = new Process::FloatSlider{Id<Process::Port>(2), this};
-    pointSize->setName(tr("Point size"));
+    auto pointSize
+        = new Process::FloatSlider{tr("Point size"), Id<Process::Port>(2), this};
     pointSize->setValue(28.);
     pointSize->setDomain(ossia::make_domain(1.f, 300.f));
     m_inlets.push_back(pointSize);
   }
 
   {
-    auto opacity = new Process::FloatSlider{Id<Process::Port>(3), this};
-    opacity->setName(tr("Opacity"));
+    auto opacity = new Process::FloatSlider{tr("Opacity"), Id<Process::Port>(3), this};
     opacity->setValue(1.);
     m_inlets.push_back(opacity);
   }
 
   {
-    auto pos = new Process::XYSlider{Id<Process::Port>(4), this};
-    pos->setName(tr("Position"));
+    auto pos = new Process::XYSlider{tr("Position"), Id<Process::Port>(4), this};
     pos->setDomain(ossia::make_domain(ossia::vec2f{-5.0, -5.0}, ossia::vec2f{5.0, 5.0}));
 
     m_inlets.push_back(pos);
   }
 
   {
-    auto scaleX = new Process::FloatSlider{Id<Process::Port>(5), this};
-    scaleX->setName(tr("Scale X"));
+    auto scaleX = new Process::FloatSlider{tr("Scale X"), Id<Process::Port>(5), this};
     scaleX->setValue(1.);
     scaleX->setDomain(ossia::make_domain(-1., 10.));
     m_inlets.push_back(scaleX);
   }
   {
-    auto scaleY = new Process::FloatSlider{Id<Process::Port>(6), this};
-    scaleY->setName(tr("Scale Y"));
+    auto scaleY = new Process::FloatSlider{tr("Scale Y"), Id<Process::Port>(6), this};
     scaleY->setValue(1.);
     scaleY->setDomain(ossia::make_domain(-1., 10.));
     m_inlets.push_back(scaleY);
   }
 
   {
-    auto color = new Process::HSVSlider{Id<Process::Port>(7), this};
-    color->setName(tr("Color"));
+    auto color = new Process::HSVSlider{tr("Color"), Id<Process::Port>(7), this};
     color->setValue(ossia::vec4f{1., 1., 1., 1.});
     m_inlets.push_back(color);
   }
 
-  m_outlets.push_back(new TextureOutlet{Id<Process::Port>(0), this});
+  m_outlets.push_back(new TextureOutlet{tr("Image Out"), Id<Process::Port>(0), this});
 }
 
 Model::~Model() { }

@@ -77,7 +77,8 @@ ProcessModel::ProcessModel(
     QObject* parent)
     : Process::
           ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
-    , outlet{Process::make_audio_outlet(Id<Process::Port>(0), this)}
+    , outlet{std::make_unique<Process::AudioOutlet>(
+          "Audio Out", Id<Process::Port>(0), this)}
     , m_file{std::make_shared<AudioFile>()}
     , m_mode{default_stretch_modes.unknown}
 {

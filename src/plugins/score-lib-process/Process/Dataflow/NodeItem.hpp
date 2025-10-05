@@ -16,6 +16,7 @@ namespace score
 {
 struct DocumentContext;
 class SimpleTextItem;
+class ResizeableItem;
 class QGraphicsPixmapToggle;
 }
 namespace Dataflow
@@ -69,6 +70,8 @@ public:
 private:
   void createWithDecorations();
   void createContentItem();
+  void createFoldedItem();
+  void setupItem(score::ResizeableItem* resizeable);
   void updateTooltip();
 
   void createWithoutDecorations();
@@ -98,8 +101,11 @@ private:
   void keyPressEvent(QKeyEvent* event) override;
   void keyReleaseEvent(QKeyEvent* event) override;
 
+  void resetItem();
   void resetInlets();
   void resetOutlets();
+  void updateLabel();
+  void resizeAsync();
 
   QSizeF size() const noexcept;
 
@@ -108,6 +114,7 @@ private:
   void updateTitlePos();
   QRectF boundingRect() const final override;
   QRectF contentRect() const noexcept;
+  void updateContentRect();
 
   double minimalContentWidth() const noexcept;
   double minimalContentHeight() const noexcept;
@@ -119,6 +126,7 @@ private:
   score::SimpleTextItem* m_label{};
 
   QSizeF m_contentSize{};
+  QRectF m_contentRect{};
 
   const Process::ProcessModel& m_model;
 
@@ -134,9 +142,10 @@ private:
   TimeVal m_parentDuration{1};
   double m_playPercentage{};
 
-  bool m_hover{false};
-  bool m_selected{false};
-  bool m_dropping{};
-  bool m_needResize{};
+  bool m_hover : 1 {false};
+  bool m_selected : 1 {false};
+  bool m_dropping : 1 {};
+  bool m_needResize : 1 {};
+  bool m_folded : 1 {};
 };
 }

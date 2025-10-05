@@ -101,7 +101,7 @@ public:
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    return new Process::ValueInlet(id, parent);
+    return new Process::ValueInlet(objectName(), id, parent);
   }
 
   int length() const noexcept;
@@ -132,7 +132,7 @@ public:
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    return new Process::ControlInlet(id, parent);
+    return new Process::ControlInlet(objectName(), id, parent);
   }
 
   void clear() { m_value = QVariant{}; }
@@ -153,7 +153,7 @@ public:
   bool isEvent() const override { return true; }
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    return new Impl(id, parent);
+    return new Impl(objectName(), id, parent);
   }
 
   void clear() { m_value = {}; }
@@ -642,7 +642,7 @@ public:
   }
   Process::Outlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    return new Process::ValueOutlet(id, parent);
+    return new Process::ValueOutlet(objectName(), id, parent);
   }
 
 public:
@@ -674,7 +674,7 @@ public:
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    return new Process::AudioInlet(id, parent);
+    return new Process::AudioInlet(objectName(), id, parent);
   }
 
 private:
@@ -690,7 +690,7 @@ public:
   virtual ~AudioOutlet() override;
   Process::Outlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    auto p = new Process::AudioOutlet(id, parent);
+    auto p = new Process::AudioOutlet(objectName(), id, parent);
     if(id.val() == 0)
       p->setPropagate(true);
     return p;
@@ -744,7 +744,7 @@ public:
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    return new Process::MidiInlet(id, parent);
+    return new Process::MidiInlet(objectName(), id, parent);
   }
 
 private:
@@ -760,7 +760,7 @@ public:
   virtual ~MidiOutlet() override;
   Process::Outlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    return new Process::MidiOutlet(id, parent);
+    return new Process::MidiOutlet(objectName(), id, parent);
   }
 
   void clear();
@@ -794,7 +794,7 @@ public:
   virtual ~TextureOutlet() override;
   Process::Outlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    auto p = new Gfx::TextureOutlet(id, parent);
+    auto p = new Gfx::TextureOutlet(objectName(), id, parent);
     return p;
   }
 

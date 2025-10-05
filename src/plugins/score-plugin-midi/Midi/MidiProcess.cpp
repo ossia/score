@@ -17,8 +17,9 @@ namespace Midi
 ProcessModel::ProcessModel(
     const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
     : Process::
-        ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
-    , outlet{Process::make_midi_outlet(Id<Process::Port>(0), this)}
+          ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    , outlet{
+          std::make_unique<Process::MidiOutlet>("MIDI Out", Id<Process::Port>(0), this)}
 {
   m_range = {60, 71};
 

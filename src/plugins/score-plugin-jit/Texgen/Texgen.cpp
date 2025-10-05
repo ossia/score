@@ -27,8 +27,6 @@
 
 #include <wobjectimpl.h>
 
-#include <iostream>
-
 W_OBJECT_IMPL(Jit::TexgenModel)
 namespace Jit
 {
@@ -39,7 +37,7 @@ TexgenModel::TexgenModel(
 {
   metadata().setName("Texgen");
   metadata().setLabel(metadata().getName());
-  auto audio_out = new Gfx::TextureOutlet{Id<Process::Port>{0}, this};
+  auto audio_out = new Gfx::TextureOutlet{"Texture Out", Id<Process::Port>{0}, this};
   this->m_outlets.push_back(audio_out);
   init();
   if(jitProgram.isEmpty())

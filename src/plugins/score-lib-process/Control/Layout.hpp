@@ -25,8 +25,8 @@ struct SCORE_LIB_PROCESS_EXPORT LayoutBuilderBase
   QGraphicsItem* layout{}; // The current container
   std::vector<score::GraphicsLayout*> createdLayouts{};
 
-  Process::ControlLayout makePort(Process::ControlInlet& portModel);
-  Process::ControlLayout makePort(Process::ControlOutlet& portModel);
+  Process::ControlLayout makePort(Process::Inlet& portModel);
+  Process::ControlLayout makePort(Process::Outlet& portModel);
 
   std::pair<Process::ControlInlet*, Process::ControlLayout> makeInlet(Process::Inlet*);
   std::pair<Process::ControlOutlet*, Process::ControlLayout>

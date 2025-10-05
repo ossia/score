@@ -21,34 +21,32 @@ namespace Process
 Enum::Enum(
     const std::vector<std::string>& dom, std::vector<QString> pixmaps, std::string init,
     const QString& name, Id<Port> id, QObject* parent)
-    : ControlInlet{id, parent}
+    : ControlInlet{name, id, parent}
     , pixmaps{std::move(pixmaps)}
 {
   for(auto& val : dom)
     values.push_back(QString::fromStdString(val));
 
-  hidden = true;
+  displayHandledExplicitly = true;
   setInit(init);
   setValue(init);
   setDomain(State::Domain{ossia::domain_base<std::string>{dom}});
-  setName(name);
 }
 
 Enum::Enum(
     const QStringList& values, std::vector<QString> pixmaps, std::string init,
     const QString& name, Id<Port> id, QObject* parent)
-    : ControlInlet{id, parent}
+    : ControlInlet{name, id, parent}
     , values{values.begin(), values.end()}
     , pixmaps{std::move(pixmaps)}
 {
-  hidden = true;
+  displayHandledExplicitly = true;
   setInit(init);
   setValue(init);
   ossia::domain_base<std::string> dom;
   for(auto& val : values)
     dom.values.push_back(val.toStdString());
   setDomain(State::Domain{dom});
-  setName(name);
 }
 
 Enum::~Enum() { }
@@ -89,17 +87,16 @@ ComboBox::ComboBox(DataStream::Deserializer& vis, QObject* parent)
 ComboBox::ComboBox(
     std::vector<std::pair<QString, ossia::value>> values, ossia::value init,
     const QString& name, Id<Port> id, QObject* parent)
-    : ControlInlet{id, parent}
+    : ControlInlet{name, id, parent}
     , alternatives{std::move(values)}
 {
-  hidden = true;
+  displayHandledExplicitly = true;
   setInit(init);
   setValue(init);
   std::vector<ossia::value> vals;
   for(auto& v : alternatives)
     vals.push_back(v.second);
   setDomain(State::Domain{ossia::make_domain(vals)});
-  setName(name);
 }
 
 void ComboBox::setupExecution(ossia::inlet& inl, QObject* exec_context) const noexcept
@@ -128,12 +125,11 @@ ComboBox::ComboBox(JSONObject::Deserializer&& vis, QObject* parent)
 
 HSVSlider::HSVSlider(
     ossia::vec4f init, const QString& name, Id<Port> id, QObject* parent)
-    : ControlInlet{id, parent}
+    : ControlInlet{name, id, parent}
 {
-  hidden = true;
+  displayHandledExplicitly = true;
   setInit(init);
   setValue(init);
-  setName(name);
 }
 
 HSVSlider::~HSVSlider() { }
@@ -145,13 +141,12 @@ void HSVSlider::setupExecution(ossia::inlet& i, QObject* exec_context) const noe
 
 FloatSlider::FloatSlider(
     float min, float max, float init, const QString& name, Id<Port> id, QObject* parent)
-    : ControlInlet{id, parent}
+    : ControlInlet{name, id, parent}
 {
-  hidden = true;
+  displayHandledExplicitly = true;
   setInit(init);
   setValue(init);
   setDomain(ossia::make_domain(min, max));
-  setName(name);
 }
 
 FloatSlider::~FloatSlider() { }
@@ -165,13 +160,12 @@ void FloatSlider::setupExecution(ossia::inlet& inl, QObject* exec_context) const
 
 FloatKnob::FloatKnob(
     float min, float max, float init, const QString& name, Id<Port> id, QObject* parent)
-    : ControlInlet{id, parent}
+    : ControlInlet{name, id, parent}
 {
-  hidden = true;
+  displayHandledExplicitly = true;
   setInit(init);
   setValue(init);
   setDomain(ossia::make_domain(min, max));
-  setName(name);
 }
 
 FloatKnob::~FloatKnob() { }
@@ -185,13 +179,12 @@ void FloatKnob::setupExecution(ossia::inlet& inl, QObject* exec_context) const n
 
 LogFloatSlider::LogFloatSlider(
     float min, float max, float init, const QString& name, Id<Port> id, QObject* parent)
-    : ControlInlet{id, parent}
+    : ControlInlet{name, id, parent}
 {
-  hidden = true;
+  displayHandledExplicitly = true;
   setInit(init);
   setValue(init);
   setDomain(ossia::make_domain(min, max));
-  setName(name);
 }
 
 LogFloatSlider::~LogFloatSlider() { }
@@ -206,13 +199,12 @@ void LogFloatSlider::setupExecution(
 
 IntSlider::IntSlider(
     int min, int max, int init, const QString& name, Id<Port> id, QObject* parent)
-    : ControlInlet{id, parent}
+    : ControlInlet{name, id, parent}
 {
-  hidden = true;
+  displayHandledExplicitly = true;
   setInit(init);
   setValue(init);
   setDomain(ossia::make_domain(min, max));
-  setName(name);
 }
 
 IntSlider::~IntSlider() { }
@@ -227,13 +219,12 @@ void IntSlider::setupExecution(ossia::inlet& inl, QObject* exec_context) const n
 IntRangeSlider::IntRangeSlider(
     int min, int max, ossia::vec2f init, const QString& name, Id<Port> id,
     QObject* parent)
-    : ControlInlet{id, parent}
+    : ControlInlet{name, id, parent}
 {
-  hidden = true;
+  displayHandledExplicitly = true;
   setInit(init);
   setValue(init);
   setDomain(ossia::make_domain(min, max));
-  setName(name);
 }
 
 IntRangeSlider::~IntRangeSlider() { }
@@ -249,13 +240,12 @@ void IntRangeSlider::setupExecution(
 FloatRangeSlider::FloatRangeSlider(
     float min, float max, ossia::vec2f init, const QString& name, Id<Port> id,
     QObject* parent)
-    : ControlInlet{id, parent}
+    : ControlInlet{name, id, parent}
 {
-  hidden = true;
+  displayHandledExplicitly = true;
   setInit(init);
   setValue(init);
   setDomain(ossia::make_domain(min, max));
-  setName(name);
 }
 
 FloatRangeSlider::~FloatRangeSlider() { }
@@ -271,13 +261,12 @@ void FloatRangeSlider::setupExecution(
 IntRangeSpinBox::IntRangeSpinBox(
     int min, int max, ossia::vec2f init, const QString& name, Id<Port> id,
     QObject* parent)
-    : ControlInlet{id, parent}
+    : ControlInlet{name, id, parent}
 {
-  hidden = true;
+  displayHandledExplicitly = true;
   setInit(init);
   setValue(init);
   setDomain(ossia::make_domain(min, max));
-  setName(name);
 }
 IntRangeSpinBox::~IntRangeSpinBox() { }
 
@@ -292,13 +281,12 @@ void IntRangeSpinBox::setupExecution(
 FloatRangeSpinBox::FloatRangeSpinBox(
     float min, float max, ossia::vec2f init, const QString& name, Id<Port> id,
     QObject* parent)
-    : ControlInlet{id, parent}
+    : ControlInlet{name, id, parent}
 {
-  hidden = true;
+  displayHandledExplicitly = true;
   setInit(init);
   setValue(init);
   setDomain(ossia::make_domain(min, max));
-  setName(name);
 }
 
 FloatRangeSpinBox::~FloatRangeSpinBox() { }
@@ -313,13 +301,12 @@ void FloatRangeSpinBox::setupExecution(
 
 IntSpinBox::IntSpinBox(
     int min, int max, int init, const QString& name, Id<Port> id, QObject* parent)
-    : ControlInlet{id, parent}
+    : ControlInlet{name, id, parent}
 {
-  hidden = true;
+  displayHandledExplicitly = true;
   setInit(init);
   setValue(init);
   setDomain(ossia::make_domain(min, max));
-  setName(name);
 }
 
 void IntSpinBox::setupExecution(ossia::inlet& inl, QObject* exec_context) const noexcept
@@ -333,13 +320,12 @@ IntSpinBox::~IntSpinBox() { }
 
 FloatSpinBox::FloatSpinBox(
     float min, float max, float init, const QString& name, Id<Port> id, QObject* parent)
-    : ControlInlet{id, parent}
+    : ControlInlet{name, id, parent}
 {
-  hidden = true;
+  displayHandledExplicitly = true;
   setInit(init);
   setValue(init);
   setDomain(ossia::make_domain(min, max));
-  setName(name);
 }
 
 void FloatSpinBox::setupExecution(
@@ -354,13 +340,12 @@ FloatSpinBox::~FloatSpinBox() { }
 
 TimeChooser::TimeChooser(
     float min, float max, float init, const QString& name, Id<Port> id, QObject* parent)
-    : ControlInlet{id, parent}
+    : ControlInlet{name, id, parent}
 {
-  hidden = true;
+  displayHandledExplicitly = true;
   setValue(ossia::vec2f{init, 1.f});
   setInit(value());
   setDomain(ossia::make_domain(ossia::vec2f{min, 0.f}, ossia::vec2f{max, 1.f}));
-  setName(name);
 }
 
 TimeChooser::~TimeChooser() { }
@@ -374,13 +359,12 @@ void TimeChooser::setupExecution(ossia::inlet& inl, QObject* exec_context) const
 }
 
 Toggle::Toggle(bool init, const QString& name, Id<Port> id, QObject* parent)
-    : ControlInlet{id, parent}
+    : ControlInlet{name, id, parent}
 {
-  hidden = true;
+  displayHandledExplicitly = true;
   setInit(init);
   setValue(init);
   setDomain(State::Domain{ossia::domain_base<bool>{}});
-  setName(name);
 }
 
 void Toggle::setupExecution(ossia::inlet& inl, QObject* exec_context) const noexcept
@@ -395,14 +379,14 @@ Toggle::~Toggle() { }
 ChooserToggle::ChooserToggle(
     QStringList alternatives, bool init, const QString& name, Id<Port> id,
     QObject* parent)
-    : ControlInlet{id, parent}
+    : ControlInlet{name, id, parent}
 {
-  hidden = true;
+  displayHandledExplicitly = true;
   setValue(init ? alternatives[1].toStdString() : alternatives[0].toStdString());
   setInit(value());
-  setDomain(State::Domain{ossia::domain_base<std::string>{
-      {alternatives[0].toStdString(), alternatives[1].toStdString()}}});
-  setName(name);
+  setDomain(
+      State::Domain{ossia::domain_base<std::string>{
+          {alternatives[0].toStdString(), alternatives[1].toStdString()}}});
 }
 
 void ChooserToggle::setupExecution(
@@ -425,12 +409,11 @@ QStringList ChooserToggle::alternatives() const noexcept
 }
 
 LineEdit::LineEdit(QString init, const QString& name, Id<Port> id, QObject* parent)
-    : ControlInlet{id, parent}
+    : ControlInlet{name, id, parent}
 {
-  hidden = true;
+  displayHandledExplicitly = true;
   setValue(init.toStdString());
   setInit(value());
-  setName(name);
 }
 
 void LineEdit::setupExecution(ossia::inlet& inl, QObject* exec_context) const noexcept
@@ -443,12 +426,11 @@ void LineEdit::setupExecution(ossia::inlet& inl, QObject* exec_context) const no
 LineEdit::~LineEdit() { }
 
 ProgramEdit::ProgramEdit(QString init, const QString& name, Id<Port> id, QObject* parent)
-    : ControlInlet{id, parent}
+    : ControlInlet{name, id, parent}
 {
-  hidden = true;
+  displayHandledExplicitly = true;
   setValue(init.toStdString());
   setInit(value());
-  setName(name);
 }
 
 void ProgramEdit::setupExecution(ossia::inlet& inl, QObject* exec_context) const noexcept
@@ -462,12 +444,11 @@ ProgramEdit::~ProgramEdit() { }
 
 FileChooserBase::FileChooserBase(
     QString init, QString filters, const QString& name, Id<Port> id, QObject* parent)
-    : ControlInlet{id, parent}
+    : ControlInlet{name, id, parent}
 {
-  hidden = true;
+  displayHandledExplicitly = true;
   setValue(init.toStdString());
   setInit(value());
-  setName(name);
   m_filters = filters;
 }
 
@@ -567,13 +548,12 @@ VideoFileChooser::VideoFileChooser(
 VideoFileChooser::~VideoFileChooser() { }
 
 Button::Button(const QString& name, Id<Port> id, QObject* parent)
-    : ControlInlet{id, parent}
+    : ControlInlet{name, id, parent}
 {
-  hidden = true;
+  displayHandledExplicitly = true;
   setValue(false);
   setInit(false);
   setDomain(State::Domain{ossia::domain_base<bool>{}});
-  setName(name);
 }
 
 void Button::setupExecution(ossia::inlet& inl, QObject* exec_context) const noexcept
@@ -586,13 +566,12 @@ void Button::setupExecution(ossia::inlet& inl, QObject* exec_context) const noex
 Button::~Button() { }
 
 ImpulseButton::ImpulseButton(const QString& name, Id<Port> id, QObject* parent)
-    : ControlInlet{id, parent}
+    : ControlInlet{name, id, parent}
 {
-  hidden = true;
+  displayHandledExplicitly = true;
   setValue(ossia::impulse{});
   setInit(ossia::impulse{});
   setDomain(State::Domain{ossia::domain_base<ossia::impulse>{}});
-  setName(name);
 }
 
 void ImpulseButton::setupExecution(
@@ -606,24 +585,22 @@ void ImpulseButton::setupExecution(
 ImpulseButton::~ImpulseButton() { }
 
 XYSlider::XYSlider(ossia::vec2f init, const QString& name, Id<Port> id, QObject* parent)
-    : ControlInlet{id, parent}
+    : ControlInlet{name, id, parent}
 {
-  hidden = true;
+  displayHandledExplicitly = true;
   setValue(init);
   setInit(init);
-  setName(name);
   setDomain(ossia::make_domain(ossia::vec2f{0., 0.}, ossia::vec2f{1., 1.}));
 }
 
 XYSlider::XYSlider(
     ossia::vec2f min, ossia::vec2f max, ossia::vec2f init, const QString& name,
     Id<Port> id, QObject* parent)
-    : ControlInlet{id, parent}
+    : ControlInlet{name, id, parent}
 {
-  hidden = true;
+  displayHandledExplicitly = true;
   setValue(init);
   setInit(init);
-  setName(name);
   setDomain(ossia::make_domain(min, max));
 }
 
@@ -638,24 +615,22 @@ XYSlider::~XYSlider() { }
 
 XYZSlider::XYZSlider(
     ossia::vec3f init, const QString& name, Id<Port> id, QObject* parent)
-    : ControlInlet{id, parent}
+    : ControlInlet{name, id, parent}
 {
-  hidden = true;
+  displayHandledExplicitly = true;
   setValue(init);
   setInit(init);
-  setName(name);
   setDomain(ossia::make_domain(ossia::vec3f{0., 0., 0.}, ossia::vec3f{1., 1., 1.}));
 }
 
 XYZSlider::XYZSlider(
     ossia::vec3f min, ossia::vec3f max, ossia::vec3f init, const QString& name,
     Id<Port> id, QObject* parent)
-    : ControlInlet{id, parent}
+    : ControlInlet{name, id, parent}
 {
-  hidden = true;
+  displayHandledExplicitly = true;
   setValue(init);
   setInit(init);
-  setName(name);
   setDomain(ossia::make_domain(min, max));
 }
 
@@ -670,35 +645,32 @@ void XYZSlider::setupExecution(ossia::inlet& inl, QObject* exec_context) const n
 
 XYZSpinboxes::XYZSpinboxes(
     ossia::vec3f init, const QString& name, Id<Port> id, QObject* parent)
-    : ControlInlet{id, parent}
+    : ControlInlet{name, id, parent}
 {
-  hidden = true;
+  displayHandledExplicitly = true;
   setValue(init);
   setInit(init);
-  setName(name);
   setDomain(ossia::make_domain(ossia::vec3f{0., 0., 0.}, ossia::vec3f{1., 1., 1.}));
 }
 
 XYSpinboxes::XYSpinboxes(
     ossia::vec2f init, const QString& name, Id<Port> id, QObject* parent)
-    : ControlInlet{id, parent}
+    : ControlInlet{name, id, parent}
     , integral{false}
 {
-  hidden = true;
+  displayHandledExplicitly = true;
   setValue(init);
   setInit(init);
-  setName(name);
 }
 XYSpinboxes::XYSpinboxes(
     ossia::vec2f min, ossia::vec2f max, ossia::vec2f init, bool integral,
     const QString& name, Id<Port> id, QObject* parent)
-    : ControlInlet{id, parent}
+    : ControlInlet{name, id, parent}
     , integral{integral}
 {
-  hidden = true;
+  displayHandledExplicitly = true;
   setValue(init);
   setInit(init);
-  setName(name);
   setDomain(ossia::make_domain(min, max));
 }
 
@@ -735,13 +707,12 @@ void XYSpinboxes::setupExecution(ossia::inlet& inl, QObject* exec_context) const
 XYZSpinboxes::XYZSpinboxes(
     ossia::vec3f min, ossia::vec3f max, ossia::vec3f init, bool integral,
     const QString& name, Id<Port> id, QObject* parent)
-    : ControlInlet{id, parent}
+    : ControlInlet{name, id, parent}
     , integral{integral}
 {
-  hidden = true;
+  displayHandledExplicitly = true;
   setValue(init);
   setInit(init);
-  setName(name);
   setDomain(ossia::make_domain(min, max));
 }
 
@@ -757,12 +728,11 @@ void XYZSpinboxes::setupExecution(
 
 MultiSlider::MultiSlider(
     ossia::value init, const QString& name, Id<Port> id, QObject* parent)
-    : ControlInlet{id, parent}
+    : ControlInlet{name, id, parent}
 {
-  hidden = true;
+  displayHandledExplicitly = true;
   setValue(std::move(init));
   setInit(value());
-  setName(name);
   setDomain(ossia::make_domain(0., 1.));
 }
 
@@ -785,15 +755,13 @@ void MultiSlider::setupExecution(ossia::inlet& inl, QObject* exec_context) const
   port.domain = domain().get();
 }
 
-
 MultiSliderXY::MultiSliderXY(
     ossia::value init, const QString& name, Id<Port> id, QObject* parent)
-    : ControlInlet{id, parent}
+    : ControlInlet{name, id, parent}
 {
-  hidden = true;
+  displayHandledExplicitly = true;
   setValue(std::move(init));
   setInit(value());
-  setName(name);
   setDomain(ossia::make_domain(0., 1.));
 }
 
@@ -816,16 +784,13 @@ void MultiSliderXY::setupExecution(ossia::inlet& inl, QObject* exec_context) con
   port.domain = domain().get();
 }
 
-
-
 PathGeneratorXY::PathGeneratorXY(
     ossia::value init, const QString& name, Id<Port> id, QObject* parent)
-    : ControlInlet{id, parent}
+    : ControlInlet{name, id, parent}
 {
-  hidden = true;
+  displayHandledExplicitly = true;
   setValue(std::move(init));
   setInit(value());
-  setName(name);
   setDomain(ossia::make_domain(0., 1.));
 }
 
@@ -848,15 +813,13 @@ void PathGeneratorXY::setupExecution(ossia::inlet& inl, QObject* exec_context) c
   port.domain = domain().get();
 }
 
-
 Bargraph::Bargraph(
     float min, float max, float init, const QString& name, Id<Port> id, QObject* parent)
-    : ControlOutlet{id, parent}
+    : ControlOutlet{name, id, parent}
 {
-  hidden = true;
+  displayHandledExplicitly = true;
   setValue(init);
   setDomain(ossia::make_domain(min, max));
-  setName(name);
 }
 
 Bargraph::~Bargraph() { }

@@ -26,6 +26,5 @@ private:
   QWidget* m_widget{};
 };
 
-using LayerFactory
-    = Process::EffectLayerFactory_T<Model, Process::DefaultEffectItem, Window>;
+using LayerFactory = Process::EffectLayerFactory_T<Model, Window>;
 }

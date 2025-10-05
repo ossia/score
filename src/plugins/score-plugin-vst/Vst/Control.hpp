@@ -22,7 +22,7 @@ class ControlInlet final : public Process::ControlInlet
 public:
   MODEL_METADATA_IMPL(ControlInlet)
   ControlInlet(Id<Process::Port> c, QObject* parent)
-      : Process::ControlInlet{std::move(c), parent}
+      : Process::ControlInlet{"Control", std::move(c), parent}
   {
     setDomain(ossia::make_domain(0.f, 1.f));
     setInit(0.5);

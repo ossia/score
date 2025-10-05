@@ -151,14 +151,14 @@ struct Node
         // Signal Display has two dispaly mode, one time-line mode and one
         if(parent->type() == Process::NodeItem::Type)
         {
-          inl->hidden = true;
+          inl->displayHandledExplicitly = true;
           auto fact = portFactory.get(inl->concreteKey());
           auto port = fact->makePortItem(*inl, doc, this, this);
           port->setPos(0, 5);
         }
         else
         {
-          inl->hidden = false;
+          inl->displayHandledExplicitly = false;
         }
 
         connect(

@@ -73,9 +73,9 @@ struct MessageBusWrapperFromUi<Info>
 inline void hideAllInlets(Process::ProcessModel& proc)
 {
   for(auto& p : proc.inlets())
-    p->hidden = true;
+    p->displayHandledExplicitly = true;
   for(auto& p : proc.outlets())
-    p->hidden = true;
+    p->displayHandledExplicitly = true;
 }
 
 template <typename Info>

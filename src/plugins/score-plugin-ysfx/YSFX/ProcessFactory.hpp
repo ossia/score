@@ -16,11 +16,4 @@ struct LanguageSpec
 };
 
 using ProcessFactory = Process::ProcessFactory_T<YSFX::ProcessModel>;
-// using LayerFactory = Process::EffectLayerFactory_T<
-//     ProcessModel,
-//     Process::DefaultEffectItem,
-//     Process::ProcessScriptEditDialog<
-//         ProcessModel,
-//         ProcessModel::p_script,
-//         LanguageSpec>>;
 }

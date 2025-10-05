@@ -191,8 +191,5 @@ namespace Clap
 {
 class Window;
 using ProcessFactory = Process::EffectProcessFactory_T<Clap::Model>;
-using EffectLayerFactory = Process::EffectLayerFactory_T<
-    Clap::Model,
-    Process::DefaultEffectItem,
-    Window>;
+using EffectLayerFactory = Process::EffectLayerFactory_T<Clap::Model, Window>;
 }

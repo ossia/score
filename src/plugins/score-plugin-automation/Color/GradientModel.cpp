@@ -23,8 +23,9 @@ namespace Gradient
 ProcessModel::ProcessModel(
     const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
     : Process::
-        ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
-    , outlet{Process::make_value_outlet(Id<Process::Port>(0), this)}
+          ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    , outlet{std::make_unique<Process::ValueOutlet>(
+          "Value Out", Id<Process::Port>(0), this)}
 {
   m_colors.insert(std::make_pair(0.2, QColor(Qt::black)));
   m_colors.insert(std::make_pair(0.8, QColor(Qt::white)));
@@ -41,7 +42,6 @@ ProcessModel::~ProcessModel() { }
 
 void ProcessModel::init()
 {
-  outlet->setName("Out");
   auto update_invalid_address = [this](const State::AddressAccessor& addr) {
     State::AddressAccessor copy = addr;
     auto& qual = copy.qualifiers.get();
