@@ -42,4 +42,34 @@ public:
   void layout() override;
 };
 
+class SCORE_LIB_BASE_EXPORT GraphicsDefaultInletLayout : public GraphicsLayout
+{
+public:
+  using GraphicsLayout::GraphicsLayout;
+  ~GraphicsDefaultInletLayout();
+
+  void layout() override;
+};
+
+class SCORE_LIB_BASE_EXPORT GraphicsDefaultOutletLayout : public GraphicsLayout
+{
+public:
+  using GraphicsLayout::GraphicsLayout;
+  ~GraphicsDefaultOutletLayout();
+
+  void layout() override;
+};
+
+class SCORE_LIB_BASE_EXPORT GraphicsIORootLayout : public GraphicsLayout
+{
+public:
+  using GraphicsLayout::GraphicsLayout;
+  ~GraphicsIORootLayout();
+
+  void setMinimumWidth(double w);
+  void layout() override;
+
+private:
+  double m_minimumWidth{};
+};
 }
