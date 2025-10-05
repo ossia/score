@@ -58,6 +58,13 @@ const QIcon& getCategoryIcon(const QString& category) noexcept
   {
     return it->second;
   }
+  if(auto slash_it = category.indexOf("/"); slash_it != -1)
+  {
+    if(auto it = categoryIcon.find(category.mid(0, slash_it)); it != categoryIcon.end())
+    {
+      return it->second;
+    }
+  }
   return invalid;
 }
 ProcessModel::ProcessModel(
