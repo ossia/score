@@ -91,7 +91,8 @@ struct PortItemLayout
   QPointF port{0., 1.};
   QPointF label{12., 0.};
   QPointF control{0., 12.};
-  std::optional<Qt::Alignment> labelAlignment{std::nullopt};
+  Qt::Alignment labelAlignment{};
+  Qt::Alignment controlAlignment{};
   bool labelVisible{true};
 };
 
