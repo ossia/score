@@ -721,7 +721,7 @@ void PortFactory::setupOutletInspector(
 PortItemLayout PortFactory::defaultLayout() const noexcept
 {
   return PortItemLayout{
-      .port = QPointF{8., 4.}, .label = QPointF{20., 2.}, .control = QPointF{18., 15.}};
+      .port = QPointF{0., 4.}, .label = QPointF{20., 2.}, .control = QPointF{18., 15.}};
 }
 
 QGraphicsItem* PortFactory::makeControlItem(
@@ -808,19 +808,62 @@ static auto makeFullItemImpl(
   {
     lab = Dataflow::makePortLabel(portModel, &item);
     lab->setPos(layout.label);
-    if(lab->boundingRect().width() < control.boundingRect().width()
-       && layout.labelAlignment == Qt::AlignCenter)
-    {
-      auto widg_r = control.boundingRect();
-      auto lab_r = lab->boundingRect();
-      auto lab_w = lab_r.width();
-      auto widg_w = widg_r.width();
+    auto widg_r = control.boundingRect();
+    auto lab_r = lab->boundingRect();
+    auto lab_w = lab_r.width();
+    auto widg_w = widg_r.width();
 
+    if(lab_w < widg_w && layout.labelAlignment == Qt::AlignCenter)
+    {
       lab->setX(control.pos().x() + (widg_w - lab_w) / 2.);
     }
     else if(layout.labelAlignment == Qt::AlignLeft)
     {
       lab->setX(control.pos().x());
+    }
+    else
+    {
+      if(layout.controlAlignment & Qt::AlignRight)
+      {
+        // Control outlets
+        lab->setPos(0, layout.label.y());
+
+        port.setPos(lab_w - 5., port.pos().y());
+        control.setPos(port.x() - widg_w, control.pos().y());
+      }
+    }
+  }
+
+  item.fitChildrenRect();
+  return lab;
+}
+
+static auto makeLabelItemImpl(
+    const Process::Port& portModel, const Process::PortItemLayout& layout,
+    QGraphicsItem& port, auto& item)
+{
+  score::SimpleTextItem* lab{};
+  using namespace score;
+
+  // Port
+  port.setParentItem(&item);
+  port.setPos(layout.port);
+  port.setZValue(3);
+
+  // Text
+  if(layout.labelVisible)
+  {
+    lab = Dataflow::makePortLabel(portModel, &item);
+    lab->setPos(layout.label);
+    if(layout.labelAlignment == Qt::AlignLeft)
+    {
+      lab->setPos(QPointF{layout.port.x() + 12., 5.});
+    }
+    else
+    {
+      lab->setPos(0, 5.);
+      port.setPos(lab->boundingRect().width() + 2., port.y());
+      //lab->setPos(QPointF{layout.port.x() - lab->boundingRect().width(), 5.});
     }
   }
   item.fitChildrenRect();
@@ -876,9 +919,82 @@ Process::ControlLayout PortFactory::makeFullItem(
 
   const auto& layout = defaultLayout();
   ret.port_item = makePortItem(portModel, ctx, item, context);
-  ret.control = makeControlItem(portModel, ctx, item, context);
-  ret.label = makeFullItemImpl(portModel, layout, *ret.port_item, *ret.control, *item);
+  SCORE_SOFT_ASSERT(ret.port_item);
 
+  if(ret.port_item)
+  {
+    ret.control = makeControlItem(portModel, ctx, item, context);
+    SCORE_SOFT_ASSERT(ret.control);
+
+    if(ret.control)
+    {
+      ret.label
+          = makeFullItemImpl(portModel, layout, *ret.port_item, *ret.control, *item);
+    }
+  }
+  return ret;
+}
+
+static constexpr auto defaultInletLabelLayout = Process::PortItemLayout{
+    .port = QPointF{0., 3.5},
+    .label = QPointF{5., 0.},
+    .control = QPointF{0., 0.},
+    .labelAlignment = Qt::AlignLeft};
+static constexpr auto defaultOutletLabelLayout = Process::PortItemLayout{
+    .port = QPointF{0., 3.5},
+    .label = QPointF{5., 0.},
+    .control = QPointF{0., 0.},
+    .labelAlignment = Qt::AlignRight};
+;
+Process::ControlLayout PortFactory::makeLabelItem(
+    Inlet& portModel, const Process::Context& ctx, QGraphicsItem* parent,
+    QObject* context)
+{
+  Process::ControlLayout ret;
+
+  using namespace score;
+#if defined(SCORE_DEBUG_CONTROL_RECTS)
+  auto item = new score::GraphicsLayout{parent};
+  item->setBrush(score::Skin::instance().Light.main);
+#else
+  auto item = new score::EmptyRectItem{parent};
+#endif
+  ret.container = item;
+
+  ret.port_item = makePortItem(portModel, ctx, ret.container, context);
+  SCORE_SOFT_ASSERT(ret.port_item);
+
+  if(ret.port_item)
+  {
+    ret.label
+        = makeLabelItemImpl(portModel, defaultInletLabelLayout, *ret.port_item, *item);
+  }
+
+  return ret;
+}
+
+Process::ControlLayout PortFactory::makeLabelItem(
+    Outlet& portModel, const Process::Context& ctx, QGraphicsItem* parent,
+    QObject* context)
+{
+  Process::ControlLayout ret;
+  using namespace score;
+#if defined(SCORE_DEBUG_CONTROL_RECTS)
+  auto item = new score::GraphicsLayout{parent};
+  item->setBrush(score::Skin::instance().Light.main);
+#else
+  auto item = new score::EmptyRectItem{parent};
+#endif
+  ret.container = item;
+
+  ret.port_item = makePortItem(portModel, ctx, item, context);
+  SCORE_SOFT_ASSERT(ret.port_item);
+
+  if(ret.port_item)
+  {
+    ret.label
+        = makeLabelItemImpl(portModel, defaultOutletLabelLayout, *ret.port_item, *item);
+  }
   return ret;
 }
 
@@ -888,35 +1004,6 @@ Port* PortFactoryList::loadMissing(const VisitorVariant& vis, QObject* parent) c
 }
 
 PortFactoryList::~PortFactoryList() { }
-
-std::unique_ptr<Inlet> make_value_inlet(const Id<Process::Port>& c, QObject* parent)
-{
-  return std::make_unique<ValueInlet>(c, parent);
-}
-
-std::unique_ptr<Outlet> make_value_outlet(const Id<Process::Port>& c, QObject* parent)
-{
-  return std::make_unique<ValueOutlet>(c, parent);
-}
-
-std::unique_ptr<MidiInlet> make_midi_inlet(const Id<Process::Port>& c, QObject* parent)
-{
-  return std::make_unique<MidiInlet>(c, parent);
-}
-std::unique_ptr<MidiOutlet> make_midi_outlet(const Id<Process::Port>& c, QObject* parent)
-{
-  return std::make_unique<MidiOutlet>(c, parent);
-}
-
-std::unique_ptr<AudioInlet> make_audio_inlet(const Id<Process::Port>& c, QObject* parent)
-{
-  return std::make_unique<AudioInlet>(c, parent);
-}
-std::unique_ptr<AudioOutlet>
-make_audio_outlet(const Id<Process::Port>& c, QObject* parent)
-{
-  return std::make_unique<AudioOutlet>(c, parent);
-}
 
 std::unique_ptr<Inlet> load_inlet(DataStreamWriter& wr, QObject* parent)
 {
