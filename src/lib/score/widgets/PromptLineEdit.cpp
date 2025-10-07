@@ -14,7 +14,7 @@
 W_OBJECT_IMPL(score::PromptLineEdit)
 namespace score
 {
-static constexpr int DEFAULT_HISTORY_MAX_LEN = 100;
+static constexpr int DEFAULT_HISTORY_MAX_LEN = 10000;
 
 PromptLineEdit::PromptLineEdit(QWidget* parent)
     : QLineEdit{parent}
