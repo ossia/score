@@ -252,8 +252,6 @@ void ScreenNode::stopRendering()
     m_window->onRender = [](QRhiCommandBuffer&) {};
     if(m_window->state)
       m_window->state->renderer = {};
-    else
-      qDebug() << "?? ";
     ////window->state->hasSwapChain = false;
   }
 }
