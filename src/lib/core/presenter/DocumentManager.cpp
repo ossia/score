@@ -381,38 +381,45 @@ bool DocumentManager::saveDocumentAs(Document& doc)
           savename += ".score";
       }
 
-      QSaveFile f{savename};
-      f.open(QIODevice::WriteOnly);
-      doc.metadata().setFileName(savename);
-      if(savename.indexOf(".scorebin") != -1)
-        f.write(doc.saveAsByteArray());
-      else
-      {
-        JSONReader w;
-        w.buffer.Reserve(1024 * 1024 * 16);
-        doc.saveAsJson(w);
-
-        f.write(w.buffer.GetString(), w.buffer.GetSize());
-      }
-
-      if(f.commit())
-      {
-        m_recentFiles->addRecentFile(savename);
-        saveRecentFilesState();
-      }
-      else
-      {
-        score::warning(
-            nullptr, tr("Error while saving"),
-            tr("Score could not save the file %1. Check that you have correct "
-               "permissions.")
-                .arg(savename));
-        return false;
-      }
+      return saveDocumentAs(doc, savename);
     }
     return true;
   }
   return false;
+}
+
+bool DocumentManager::saveDocumentAs(Document& doc, const QString& savename)
+{
+  QSaveFile f{savename};
+  f.open(QIODevice::WriteOnly);
+  doc.metadata().setFileName(savename);
+
+  if(savename.indexOf(".scorebin") != -1)
+    f.write(doc.saveAsByteArray());
+  else
+  {
+    JSONReader w;
+    w.buffer.Reserve(1024 * 1024 * 16);
+    doc.saveAsJson(w);
+
+    f.write(w.buffer.GetString(), w.buffer.GetSize());
+  }
+
+  if(f.commit())
+  {
+    m_recentFiles->addRecentFile(savename);
+    saveRecentFilesState();
+    return true;
+  }
+  else
+  {
+    score::warning(
+        nullptr, tr("Error while saving"),
+        tr("Score could not save the file %1. Check that you have correct "
+           "permissions.")
+            .arg(savename));
+    return false;
+  }
 }
 
 bool DocumentManager::saveStack()

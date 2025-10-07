@@ -69,5 +69,7 @@ private:
 };
 }
 
+Q_DECLARE_METATYPE(score::gfx::Window*)
+W_REGISTER_ARGTYPE(score::gfx::Window*)
 W_REGISTER_ARGTYPE(QEvent*)
 W_REGISTER_ARGTYPE(QTabletEvent*)

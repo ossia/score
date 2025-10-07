@@ -43,6 +43,17 @@
 #include <QTimer>
 namespace JS
 {
+
+QObject* EditJsContext::device(QString name)
+{
+  auto doc = ctx();
+  if(!doc)
+    return nullptr;
+
+  auto& plug = doc->plugin<Explorer::DeviceDocumentPlugin>();
+  return plug.list().findDevice(name);
+}
+
 GlobalDeviceEnumerator* EditJsContext::enumerateDevices()
 {
   auto doc = ctx();
@@ -82,9 +93,12 @@ void EditJsContext::setDeviceLearn(const QString& name, bool fun)
   {
     if(node.is<Device::DeviceSettings>())
     {
-      Device::DeviceInterface& dev = plug.list().device(node.displayName());
-      dev.setLearning(fun);
-      //cmd->addCommand(new Explorer::Command::Remove{plug, node});
+      if(node.displayName() == name)
+      {
+        Device::DeviceInterface& dev = plug.list().device(node.displayName());
+        dev.setLearning(fun);
+        //cmd->addCommand(new Explorer::Command::Remove{plug, node});
+      }
     }
   }
 }

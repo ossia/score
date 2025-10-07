@@ -51,6 +51,9 @@ public:
   ///////////////
   /// Devices ///
   ///////////////
+  QObject* device(QString name);
+  W_SLOT(device)
+
   QString deviceToJson(QString addr);
   W_SLOT(deviceToJson)
 
@@ -240,6 +243,15 @@ public:
   void redo();
   W_SLOT(redo)
 
+  void load(QString path);
+  W_SLOT(load)
+
+  void save();
+  W_SLOT(save)
+
+  void saveAs(QString path);
+  W_SLOT(saveAs)
+
   ////////////////
   /// Document ///
   ////////////////
@@ -254,6 +266,9 @@ public:
 
   QObject* rootInterval();
   W_SLOT(rootInterval)
+
+  QObject* documentPlugin(QString key);
+  W_SLOT(documentPlugin)
 
   /////////////////
   /// Execution ///

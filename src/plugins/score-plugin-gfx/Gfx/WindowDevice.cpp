@@ -403,6 +403,25 @@ public:
   gfx_node_base& get_root_node() override { return m_root; }
 };
 
+score::gfx::Window* WindowDevice::window() const noexcept
+{
+  if(m_dev)
+  {
+    auto p = m_dev.get()->get_root_node().get_parameter();
+    if(auto param = safe_cast<gfx_parameter_base*>(p))
+    {
+      if(auto s = safe_cast<score::gfx::ScreenNode*>(param->node))
+      {
+        if(const auto& w = s->window())
+        {
+          return w.get();
+        }
+      }
+    }
+  }
+  return nullptr;
+}
+
 WindowDevice::~WindowDevice() { }
 
 void WindowDevice::addAddress(const Device::FullAddressSettings& settings)
@@ -415,30 +434,20 @@ void WindowDevice::addAddress(const Device::FullAddressSettings& settings)
 
 void WindowDevice::setupContextMenu(QMenu& menu) const
 {
-  if(m_dev)
+  if(auto w = this->window())
   {
-    auto p = m_dev.get()->get_root_node().get_parameter();
-    if(auto param = safe_cast<gfx_parameter_base*>(p))
+    auto showhide = new QAction;
+    if(!w->isVisible())
     {
-      if(auto s = safe_cast<score::gfx::ScreenNode*>(param->node))
-      {
-        if(const auto& w = s->window())
-        {
-          auto showhide = new QAction;
-          if(!w->isVisible())
-          {
-            showhide->setText(tr("Show"));
-            connect(showhide, &QAction::triggered, w.get(), [w] { w->show(); });
-          }
-          else
-          {
-            showhide->setText(tr("Hide"));
-            connect(showhide, &QAction::triggered, w.get(), [w] { w->hide(); });
-          }
-          menu.addAction(showhide);
-        }
-      }
+      showhide->setText(tr("Show"));
+      connect(showhide, &QAction::triggered, w, &score::gfx::Window::show);
     }
+    else
+    {
+      showhide->setText(tr("Hide"));
+      connect(showhide, &QAction::triggered, w, &score::gfx::Window::hide);
+    }
+    menu.addAction(showhide);
   }
 }
 

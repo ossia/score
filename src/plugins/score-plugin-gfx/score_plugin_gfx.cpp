@@ -13,6 +13,7 @@
 #include <Gfx/GeometryFilter/Process.hpp>
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxDevice.hpp>
+#include <Gfx/Graph/Window.hpp> // Important to have for the Q_DECLARE_METATYPE(Window*) needed by WindowDevice.
 #include <Gfx/Images/Executor.hpp>
 #include <Gfx/Images/ImageListChooser.hpp>
 #include <Gfx/Images/Process.hpp>

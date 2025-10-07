@@ -94,6 +94,7 @@ public:
   // Methods to save and load
   bool saveDocument(Document&);
   bool saveDocumentAs(Document&);
+  bool saveDocumentAs(Document&, const QString& path);
 
   bool saveStack();
   Document* loadStack(const score::GUIApplicationContext& ctx);

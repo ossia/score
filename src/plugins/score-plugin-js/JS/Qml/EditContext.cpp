@@ -2,6 +2,7 @@
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/model/ModelMetadata.hpp>
+#include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <score/tools/File.hpp>
 
 #include <core/command/CommandStack.hpp>
@@ -72,6 +73,32 @@ QObject* EditJsContext::findByLabel(QString p)
   return nullptr;
 }
 
+void EditJsContext::load(QString doc)
+{
+  auto& documents = score::GUIAppContext().docManager;
+  documents.loadFile(score::GUIAppContext(), doc);
+}
+
+void EditJsContext::save()
+{
+  auto doc = (score::Document*)document();
+  if(!doc)
+    return;
+
+  auto& documents = score::GUIAppContext().docManager;
+  documents.saveDocument(*doc);
+}
+
+void EditJsContext::saveAs(QString path)
+{
+  auto doc = (score::Document*)document();
+  if(!doc)
+    return;
+
+  auto& documents = score::GUIAppContext().docManager;
+  documents.saveDocumentAs(*doc, path);
+}
+
 QObject* EditJsContext::document()
 {
   return score::GUIAppContext().documents.currentDocument();
@@ -121,5 +148,29 @@ QVariantList EditJsContext::selectedObjects()
   for(auto& c : cur)
     list.push_back(QVariant::fromValue(c.data()));
   return list;
+}
+
+QObject* EditJsContext::documentPlugin(QString key)
+{
+  auto doc = ctx();
+  if(!doc)
+    return nullptr;
+
+  auto uuid = key.toLatin1();
+  auto uid = score::uuids::string_generator::compute(uuid.begin(), uuid.end());
+  if(uid.is_nil())
+    return nullptr;
+  auto k = UuidKey<score::DocumentPluginFactory>{uid};
+  for(auto* plug : doc->pluginModels())
+  {
+    if(auto p = qobject_cast<score::SerializableDocumentPlugin*>(plug))
+    {
+      if(p->concreteKey() == k)
+      {
+        return p;
+      }
+    }
+  }
+  return nullptr;
 }
 }

@@ -29,6 +29,7 @@ public:
 
   ~ApplicationPlugin() override;
   void afterStartup() override;
+  void on_newDocument(score::Document& doc) override;
 
   QQmlEngine m_engine;
   QQmlEngine m_dummyEngine;

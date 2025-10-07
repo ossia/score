@@ -8,6 +8,7 @@
 #include <JS/ApplicationPlugin.hpp>
 #include <JS/Commands/JSCommandFactory.hpp>
 #include <JS/ConsolePanel.hpp>
+#include <JS/DocumentPlugin.hpp>
 #include <JS/DropHandler.hpp>
 #include <JS/Executor/Component.hpp>
 #include <JS/JSProcessFactory.hpp>
@@ -114,6 +115,7 @@ std::vector<score::InterfaceBase*> score_plugin_js::factories(
 {
   return instantiate_factories<
       score::ApplicationContext, FW<Process::ProcessModelFactory, JS::ProcessFactory>,
+      FW<score::DocumentPluginFactory, JS::DocumentPluginFactory>,
       FW<Process::LayerFactory, JS::LayerFactory>,
       FW<score::PanelDelegateFactory, JS::PanelDelegateFactory>,
       FW<Library::LibraryInterface, JS::LibraryHandler, JS::ConsoleLibraryHandler,

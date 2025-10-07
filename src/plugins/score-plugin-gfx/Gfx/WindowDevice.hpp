@@ -1,6 +1,9 @@
 #pragma once
 #include <Gfx/GfxDevice.hpp>
-
+namespace score::gfx
+{
+class Window;
+}
 namespace Gfx
 {
 
@@ -50,6 +53,9 @@ class WindowDevice final : public GfxOutputDevice
 public:
   using GfxOutputDevice::GfxOutputDevice;
   ~WindowDevice();
+
+  score::gfx::Window* window() const noexcept;
+  W_SLOT(window)
 
 private:
   void addAddress(const Device::FullAddressSettings& settings) override;

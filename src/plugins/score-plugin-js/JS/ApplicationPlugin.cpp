@@ -1,5 +1,6 @@
 #include "ApplicationPlugin.hpp"
 
+#include <JS/DocumentPlugin.hpp>
 #include <JS/Qml/DeviceContext.hpp>
 #include <JS/Qml/EditContext.hpp>
 #include <JS/Qml/Utils.hpp>
@@ -26,6 +27,7 @@
 #endif
 
 #include <ossia/network/context.hpp>
+
 namespace JS
 {
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
@@ -56,6 +58,11 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
   }};
 }
 
+void ApplicationPlugin::on_newDocument(score::Document& doc)
+{
+  score::addDocumentPlugin<DocumentPlugin>(doc);
+}
+
 ApplicationPlugin::~ApplicationPlugin()
 {
   m_processMessages = false;
@@ -65,6 +72,7 @@ ApplicationPlugin::~ApplicationPlugin()
 
 void ApplicationPlugin::on_createdDocument(score::Document& doc)
 {
+  // Local Tree
   LocalTree::DocumentPlugin* lt = doc.context().findPlugin<LocalTree::DocumentPlugin>();
   if(lt)
   {
@@ -85,6 +93,10 @@ void ApplicationPlugin::on_createdDocument(score::Document& doc)
       });
     });
   }
+
+  // Custom data
+  if(auto customData = doc.context().findPlugin<DocumentPlugin>(); !customData)
+    score::addDocumentPlugin<DocumentPlugin>(doc);
 }
 void ApplicationPlugin::afterStartup()
 {
@@ -110,7 +122,6 @@ void ApplicationPlugin::afterStartup()
         qputenv("QSG_RHI_BACKEND", "opengl");
         break;
       case Vulkan:
-        qDebug("ay vulkan");
         qputenv("QSG_RHI_BACKEND", "vulkan");
         break;
       case Metal:
