@@ -7,10 +7,12 @@
 
 #include <QCompleter>
 #include <QDebug>
+#include <QDir>
 #include <QFileInfo>
 #include <QJSCompleter>
 #include <QJSValueIterator>
 #include <QQmlEngine>
+#include <QStandardPaths>
 
 namespace JS
 {
@@ -35,6 +37,11 @@ PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
 
   lay->addWidget(m_edit, 1);
   m_lineEdit = new score::PromptLineEdit{m_widget};
+  static const QString history_save_path
+      = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation)
+        + QDir::separator() + "ossia" + QDir::separator() + "console_history.txt";
+  m_lineEdit->historyLoad(history_save_path);
+
   lay->addWidget(m_lineEdit, 0);
 
   m_edit->appendPlainText(
@@ -58,6 +65,8 @@ PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
       [this](const QString& line) {
     if(!line.isEmpty())
     {
+      m_lineEdit->historySave(history_save_path);
+
       evaluate(line);
       m_lineEdit->clear();
       m_edit->verticalScrollBar()->setValue(m_edit->verticalScrollBar()->maximum());
