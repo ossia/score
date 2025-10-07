@@ -178,7 +178,6 @@ void DefaultEffectItem::recreate_full_both(int num_hidden)
 {
   auto& portFactory = m_ctx.app.interfaces<Process::PortFactoryList>();
 
-  qDebug() << "Full:" << m_minimumWidth;
   auto layout = new score::GraphicsIORootLayout{this};
   m_allLayouts.push_back(m_layout);
   layout->setMinimumWidth(m_minimumWidth);
@@ -326,7 +325,6 @@ void DefaultEffectItem::recreate_fold_onlyOutlets()
 
 void DefaultEffectItem::recreate_fold_both()
 {
-  qDebug() << "Fold:" << m_minimumWidth;
   auto& portFactory = m_ctx.app.interfaces<Process::PortFactoryList>();
 
   auto layout = new score::GraphicsIORootLayout{this};
