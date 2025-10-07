@@ -10,6 +10,7 @@
 #include <QFile>
 #include <QGLSLCompleter>
 #include <QGLSLHighlighter>
+#include <QJSCompleter>
 #include <QJSHighlighter>
 #include <QMainWindow>
 #include <QSyntaxStyle>
@@ -34,7 +35,11 @@ getLanguageStyle(const std::string_view language)
   }
   else if(language == "js" || language == "Js" || language == "JS")
   {
-    return {new QJSHighlighter, nullptr};
+    return {new QJSHighlighter, new QJSCompleter};
+  }
+  else if(language == "qml" || language == "Qml" || language == "QML")
+  {
+    return {new QJSHighlighter, new QJSCompleter};
   }
   else if(language == "faust" || language == "Faust")
   {

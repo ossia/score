@@ -9,7 +9,6 @@
 
 #include <core/application/ApplicationSettings.hpp>
 
-#include <QLineEdit>
 #include <QMenu>
 #include <QPlainTextEdit>
 #include <QScrollBar>
@@ -18,6 +17,10 @@
 
 #include <score_plugin_js_export.h>
 #include <wobjectimpl.h>
+namespace score
+{
+class PromptLineEdit;
+}
 class QQmlEngine;
 class QJSEngine;
 namespace JS
@@ -53,7 +56,7 @@ private:
   QQmlEngine& m_engine;
   QWidget* m_widget{};
   QPlainTextEdit* m_edit{};
-  QLineEdit* m_lineEdit{};
+  score::PromptLineEdit* m_lineEdit{};
 };
 
 class PanelDelegateFactory final : public score::PanelDelegateFactory
