@@ -12,7 +12,6 @@
 #   - AVDEVICE
 #   - AVFORMAT
 #   - AVUTIL
-#   - POSTPROCESS
 #   - SWSCALE
 # the following variables will be defined
 #  <component>_FOUND        - System has <component>
@@ -137,7 +136,6 @@ find_component(AVUTIL      libavutil      avutil      libavutil/avutil.h)
 find_component(AVFILTER    libavfilter    avfilter    libavfilter/avfilter.h)
 find_component(SWSCALE     libswscale     swscale     libswscale/swscale.h)
 find_component(SWRESAMPLE  libswresample  swresample  libswresample/swresample.h)
-find_component(POSTPROC    libpostproc    postproc    libpostproc/postprocess.h)
 
 # Check if the required components were found and add their stuff to the FFMPEG_* vars.
 foreach (_component ${FFmpeg_FIND_COMPONENTS})
@@ -151,7 +149,7 @@ foreach (_component ${FFmpeg_FIND_COMPONENTS})
   endif ()
 endforeach ()
 
-foreach(_lib avcodec avformat avdevice avutil swscale swresample postproc)
+foreach(_lib avcodec avformat avdevice avutil swscale swresample)
   if(TARGET ${_lib})
     set(FFMPEG_TARGETS ${FFMPEG_TARGETS} ${_lib})
   endif()
@@ -178,12 +176,6 @@ if(TARGET swscale)
 endif()
 if(TARGET swresample)
   imported_link_libraries(swresample avutil)
-endif()
-if(TARGET postproc)
-  imported_link_libraries(postproc avutil)
-  if(TARGET avfilter)
-    imported_link_libraries(avfilter postproc)
-  endif()
 endif()
 
 if(TARGET avutil)
@@ -236,7 +228,7 @@ mark_as_advanced(FFMPEG_INCLUDE_DIRS
 
 
 # Now set the noncached _FOUND vars for the components.
-foreach (_component AVCODEC AVDEVICE AVFORMAT AVUTIL POSTPROCESS SWSCALE SWRESAMPLE)
+foreach (_component AVCODEC AVDEVICE AVFORMAT AVUTIL SWSCALE SWRESAMPLE)
   set_component_found(${_component})
 endforeach ()
 

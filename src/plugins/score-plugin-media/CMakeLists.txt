@@ -5,7 +5,7 @@ score_common_setup()
 
 # Packages
 find_package(${QT_VERSION} REQUIRED COMPONENTS Core Widgets)
-find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVDEVICE AVUTIL SWRESAMPLE SWSCALE POSTPROC)
+find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVDEVICE AVUTIL SWRESAMPLE SWSCALE)
 
 if(UNIX AND NOT APPLE)
   find_package(ZLIB QUIET)
@@ -165,13 +165,12 @@ if(EMSCRIPTEN)
     /opt/ossia-sdk-wasm/ffmpeg/lib/libavutil.a
     /opt/ossia-sdk-wasm/ffmpeg/lib/libswscale.a
     /opt/ossia-sdk-wasm/ffmpeg/lib/libswresample.a
-    /opt/ossia-sdk-wasm/ffmpeg/lib/libpostproc.a
     -Wl,--end-group
   )
 elseif(FFmpeg_FOUND)
   target_link_libraries(${PROJECT_NAME}
     PUBLIC
-      avcodec avformat avdevice swresample swscale postproc avutil
+      avcodec avformat avdevice swresample swscale avutil
   )
 
   if(APPLE)
