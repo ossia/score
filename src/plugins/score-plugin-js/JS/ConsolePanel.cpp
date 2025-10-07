@@ -3,9 +3,12 @@
 #include <JS/ApplicationPlugin.hpp>
 
 #include <score/widgets/HelpInteraction.hpp>
+#include <score/widgets/PromptLineEdit.hpp>
 
+#include <QCompleter>
 #include <QDebug>
 #include <QFileInfo>
+#include <QJSCompleter>
 #include <QJSValueIterator>
 #include <QQmlEngine>
 
@@ -31,7 +34,7 @@ PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
   m_edit->setTextInteractionFlags(Qt::TextEditorInteraction);
 
   lay->addWidget(m_edit, 1);
-  m_lineEdit = new QLineEdit{m_widget};
+  m_lineEdit = new score::PromptLineEdit{m_widget};
   lay->addWidget(m_lineEdit, 0);
 
   m_edit->appendPlainText(
@@ -40,12 +43,22 @@ PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
       "Read more about the avaiable functions here:\n"
       "-> https://ossia.io/score-docs/panels/console.html\n\n");
 
-  // TODO ctrl-space !
-  connect(m_lineEdit, &QLineEdit::editingFinished, this, [this] {
-    auto txt = m_lineEdit->text();
-    if(!txt.isEmpty())
+  auto c = new QJSCompleter{m_lineEdit};
+  auto& plug = this->context().guiApplicationPlugin<JS::ApplicationPlugin>();
+  c->registerObject("Score", plug.m_engine.globalObject().property("Score").toQObject());
+  c->registerObject("Util", plug.m_engine.globalObject().property("Util").toQObject());
+  c->registerObject(
+      "Device", plug.m_engine.globalObject().property("Device").toQObject());
+  c->setCompletionMode(QCompleter::CompletionMode::PopupCompletion);
+  c->setWidget(m_lineEdit);
+  m_lineEdit->setCompleter(c);
+
+  connect(
+      m_lineEdit, &score::PromptLineEdit::lineEntered, this,
+      [this](const QString& line) {
+    if(!line.isEmpty())
     {
-      evaluate(txt);
+      evaluate(line);
       m_lineEdit->clear();
       m_edit->verticalScrollBar()->setValue(m_edit->verticalScrollBar()->maximum());
     }
