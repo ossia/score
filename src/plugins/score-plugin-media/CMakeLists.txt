@@ -171,8 +171,13 @@ if(EMSCRIPTEN)
 elseif(FFmpeg_FOUND)
   target_link_libraries(${PROJECT_NAME}
     PUBLIC
-      avcodec avformat avdevice swresample swscale postproc avutil
-  )
+      avcodec avformat avdevice swresample swscale avutil
+  ) 
+  if(TARGET postproc)
+    target_link_libraries(${PROJECT_NAME}
+      PUBLIC postproc
+    )
+  endif()
 
   if(APPLE)
       find_library(QuartzCore_FK QuartzCore)
