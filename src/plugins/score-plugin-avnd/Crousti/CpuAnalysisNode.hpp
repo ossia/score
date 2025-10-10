@@ -67,22 +67,7 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
 
   void loadInputTexture(QRhi& rhi, avnd::cpu_texture auto& cpu_tex, int k)
   {
-    auto& buf = m_readbacks[k].data;
-    if(buf.size() != cpu_tex.bytesize())
-    {
-      cpu_tex.bytes = nullptr;
-    }
-    else
-    {
-      cpu_tex.bytes = reinterpret_cast<unsigned char*>(buf.data());
-
-      if(rhi.isYUpInNDC())
-        if(cpu_tex.width * cpu_tex.height > 0)
-          inplaceMirror(
-              cpu_tex.bytes, cpu_tex.width, cpu_tex.height, cpu_tex.bytes_per_pixel);
-
-      cpu_tex.changed = true;
-    }
+    oscr::loadInputTexture(rhi, m_readbacks, cpu_tex, k);
   }
 
   void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override

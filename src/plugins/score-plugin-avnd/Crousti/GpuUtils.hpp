@@ -1432,6 +1432,48 @@ inplaceMirror(unsigned char* bytes, int width, int height, int bytes_per_pixel)
     bottom -= row_size;
   }
 }
+
+template <avnd::cpu_texture Tex>
+void loadInputTexture(QRhi& rhi, auto& m_readbacks, Tex& cpu_tex, int k)
+{
+  auto& buf = m_readbacks[k].data;
+  if(buf.size() < (qsizetype)cpu_tex.bytesize())
+  {
+    cpu_tex.bytes = nullptr;
+  }
+  else
+  {
+    if constexpr(requires { Tex::RGB; })
+    {
+      // RGBA -> RGB
+      const QByteArray rgba = buf;
+      QByteArray rgb;
+      rgb.resize(cpu_tex.width * cpu_tex.height * 3);
+      auto src = rgba.constData();
+      auto dst = rgb.data();
+      for(int rgb_byte = 0, rgba_byte = 0, N = rgb.size(); rgb_byte < N;)
+      {
+        dst[rgb_byte + 0] = src[rgba_byte + 0];
+        dst[rgb_byte + 1] = src[rgba_byte + 1];
+        dst[rgb_byte + 2] = src[rgba_byte + 2];
+        rgb_byte += 3;
+        rgba_byte += 4;
+      }
+      buf = rgb;
+    }
+
+    using components_type = std::decay_t<decltype(cpu_tex.bytes)>;
+    cpu_tex.bytes = reinterpret_cast<components_type>(buf.data());
+
+    if(rhi.isYUpInNDC())
+      if(cpu_tex.width * cpu_tex.height > 0)
+        inplaceMirror(
+            reinterpret_cast<unsigned char*>(cpu_tex.bytes), cpu_tex.width,
+            cpu_tex.height, cpu_tex.bytes_per_pixel);
+
+    cpu_tex.changed = true;
+  }
+}
 }
 
 #endif
