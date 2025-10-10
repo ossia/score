@@ -186,6 +186,11 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
               &score::ResizeableItem::childrenSizeChanged);
       }
     }
+    if constexpr(requires { Item::width; })
+    {
+      if(auto edit = qgraphicsitem_cast<score::QGraphicsLineEdit*>(lay.control))
+        edit->setTextWidth(Item::width());
+    }
   }
 
   template <typename Item>

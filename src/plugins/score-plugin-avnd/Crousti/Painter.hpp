@@ -341,6 +341,19 @@ struct QPainterAdapter
 
     painter.setRenderHint(QPainter::SmoothPixmapTransform, prev);
   }
+  void draw_bytes(
+      int x, int y, int w, int h, const float* image, int img_w, int img_h,
+      bool smooth = false)
+  {
+    auto img
+        = QImage((const unsigned char*)image, img_w, img_h, QImage::Format_RGBA32FPx4);
+    auto prev = painter.renderHints() & QPainter::SmoothPixmapTransform;
+    painter.setRenderHint(QPainter::SmoothPixmapTransform, smooth);
+    painter.drawImage(
+        QRect(x, y, w, h), img, QRect(0, 0, img_w, img_h), Qt::ImageConversionFlags{});
+
+    painter.setRenderHint(QPainter::SmoothPixmapTransform, prev);
+  }
 };
 static_assert(avnd::painter<QPainterAdapter>);
 
