@@ -21,7 +21,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsXYSpinboxChooser final
   W_OBJECT(QGraphicsXYSpinboxChooser)
   SCORE_GRAPHICS_ITEM_TYPE(260)
   friend struct DefaultGraphicsSpinboxImpl;
-  QRectF m_rect{0., 0., 150., 24.};
+  QRectF m_rect;
   QGraphicsSpinbox m_x, m_y;
 
   bool m_isRange{};
@@ -61,7 +61,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsIntXYSpinboxChooser final
   W_OBJECT(QGraphicsIntXYSpinboxChooser)
   SCORE_GRAPHICS_ITEM_TYPE(270)
   friend struct DefaultGraphicsSpinboxImpl;
-  QRectF m_rect{0., 0., 150., 24.};
+  QRectF m_rect;
   QGraphicsIntSpinbox m_x, m_y;
 
   bool m_grab{};

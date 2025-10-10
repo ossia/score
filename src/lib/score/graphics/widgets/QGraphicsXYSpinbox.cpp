@@ -17,7 +17,8 @@ namespace score
 {
 
 QGraphicsXYSpinboxChooser::QGraphicsXYSpinboxChooser(bool isRange, QGraphicsItem* parent)
-    : m_x{this}
+    : m_rect{0., 0., 100., 24.}
+    , m_x{this}
     , m_y{this}
     , m_isRange{isRange}
 {
@@ -107,7 +108,8 @@ QRectF QGraphicsXYSpinboxChooser::boundingRect() const
 
 QGraphicsIntXYSpinboxChooser::QGraphicsIntXYSpinboxChooser(
     bool isRange, QGraphicsItem* parent)
-    : m_x{this}
+    : m_rect{0., 0., 100., 24.}
+    , m_x{this}
     , m_y{this}
     , m_isRange{isRange}
 
