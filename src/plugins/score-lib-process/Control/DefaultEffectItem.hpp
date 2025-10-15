@@ -1,4 +1,5 @@
 #pragma once
+#include <ossia/detail/small_vector.hpp>
 #include <score/graphics/RectItem.hpp>
 #include <score/model/Identifier.hpp>
 
