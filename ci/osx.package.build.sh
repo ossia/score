@@ -33,12 +33,19 @@ else
   export CMAKE_OSX_ARCH=arm64
 fi
 
+if [[ -z "${SCORE_EXTRA_CMAKE_ARGS-}" ]]; then
+   export SCORE_EXTRA_CMAKE_ARGS=
+fi
+
+
 xcrun /usr/local/bin/cninja -S "$PWD" -B build \
   macos-release-12.0 -- \
   -DOSSIA_SDK="$OSSIA_SDK" \
   -DCMAKE_INSTALL_PREFIX="$PWD/install" \
   -DCMAKE_UNITY_BUILD=1 \
-  -DCMAKE_OSX_ARCHITECTURES="$CMAKE_OSX_ARCH"
+  -DCMAKE_OSX_ARCHITECTURES="$CMAKE_OSX_ARCH" \
+  $SCORE_EXTRA_CMAKE_ARGS
+
 
 find . -type f -name 'ossia score' \
   | grep '.' \
