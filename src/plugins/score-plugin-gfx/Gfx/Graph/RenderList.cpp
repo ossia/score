@@ -190,6 +190,28 @@ TextureRenderTarget RenderList::renderTargetForOutput(const Edge& edge) const no
   return {};
 }
 
+QRhiBuffer* RenderList::bufferForInput(const Edge& edge) const noexcept
+{
+  if(auto source_node = edge.source->node)
+    if(auto source_it = source_node->renderedNodes.find(this);
+       source_it != source_node->renderedNodes.end())
+      if(auto source_renderer = source_it->second)
+        return source_renderer->bufferForOutput(*edge.source);
+
+  return {};
+}
+
+QRhiBuffer* RenderList::bufferForOutput(const Edge& edge) const noexcept
+{
+  if(auto sink_node = edge.sink->node)
+    if(auto sink_it = sink_node->renderedNodes.find(this);
+       sink_it != sink_node->renderedNodes.end())
+      if(auto sink_renderer = sink_it->second)
+        return sink_renderer->bufferForInput(*edge.source);
+
+  return {};
+}
+
 QImage RenderList::adaptImage(const QImage& frame)
 {
   auto res = resizeTexture(frame, m_minTexSize, m_maxTexSize);
@@ -456,7 +478,6 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
         {
           auto rendered = node->renderedNodes.find(this);
           SCORE_ASSERT(rendered != node->renderedNodes.end());
-
           NodeRenderer* renderer = rendered->second;
           if(auto rt = renderer->renderTargetForInput(*input))
           {
@@ -485,6 +506,41 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
             updateBatch = nullptr;
           }
         }
+
+        if(node != &output)
+        {
+          SCORE_ASSERT(!updateBatch);
+          updateBatch = state.rhi->nextResourceUpdateBatch();
+          SCORE_ASSERT(updateBatch);
+        }
+      }
+      else if(input->type == Types::Buffer)
+      {
+        prepare_render(input);
+
+        {
+          auto rendered = node->renderedNodes.find(this);
+          SCORE_ASSERT(rendered != node->renderedNodes.end());
+          NodeRenderer* renderer = rendered->second;
+          // if(auto rt = renderer->bufferForInput(*input))
+          {
+            commands.resourceUpdate(updateBatch);
+            updateBatch = nullptr;
+
+            QRhiResourceUpdateBatch* res{};
+            renderer->inputAboutToFinish(*this, *input, res);
+            commands.resourceUpdate(res);
+            res = nullptr;
+          }
+          // else
+          // {
+          //   commands.resourceUpdate(updateBatch);
+          //   updateBatch = nullptr;
+          // }
+        }
+
+        commands.resourceUpdate(updateBatch);
+        updateBatch = nullptr;
 
         if(node != &output)
         {

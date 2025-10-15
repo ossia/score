@@ -454,6 +454,11 @@ void ProcessNode::process(
   func(*this);
 }
 
+void ProcessNode::process(
+    int32_t port, const ossia::buffer_spec& func)
+{
+}
+
 void ProcessNode::process(Message&& msg)
 {
   process(msg.token);
@@ -487,6 +492,7 @@ QDebug operator<<(QDebug s, const score::gfx::gfx_input& v)
     }
     void operator()(const ossia::render_target_spec& v) { s << "texture"; }
     void operator()(const ossia::geometry_spec& v) { s << "meshlist"; }
+    void operator()(const ossia::buffer_spec& v) { s << "buffer"; }
     void operator()(const ossia::transform3d& v) { s << "transform3d"; }
   } print{s};
   ossia::visit(print, std::move(v));

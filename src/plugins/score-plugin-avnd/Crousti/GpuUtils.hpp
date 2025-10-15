@@ -1107,6 +1107,17 @@ struct GpuProcessIns
   }
 #endif
 
+  template <avnd::buffer_port Field, std::size_t NField>
+  void operator()(Field& t, avnd::field_index<NField> field_index)
+  {
+    using node_type = std::remove_cvref_t<decltype(gpu.node())>;
+    auto& node = const_cast<node_type&>(gpu.node());
+    auto val = ossia::get_if<ossia::render_target_spec>(&mess.input[field_index]);
+    if(!val)
+      return;
+    node.process(NField, *val);
+  }
+
   template <avnd::texture_port Field, std::size_t NField>
   void operator()(Field& t, avnd::field_index<NField> field_index)
   {
@@ -1312,6 +1323,12 @@ void prepareNewState(std::shared_ptr<Node_T>& eff, const Node& parent)
 
 struct port_to_type_enum
 {
+  template <std::size_t I, avnd::buffer_port F>
+  constexpr auto operator()(avnd::field_reflection<I, F> p)
+  {
+    return score::gfx::Types::Buffer;
+  }
+
   template <std::size_t I, avnd::cpu_texture_port F>
   constexpr auto operator()(avnd::field_reflection<I, F> p)
   {
@@ -1319,6 +1336,7 @@ struct port_to_type_enum
     return avnd::cpu_fixed_format_texture<texture_type> ? score::gfx::Types::Image
                                                         : score::gfx::Types::Buffer;
   }
+
   template <std::size_t I, avnd::sampler_port F>
   constexpr auto operator()(avnd::field_reflection<I, F> p)
   {
