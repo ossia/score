@@ -95,18 +95,24 @@ void GenericNodeRenderer::processUBOInit(RenderList& renderer)
 
 void GenericNodeRenderer::defaultPassesInit(RenderList& renderer, const Mesh& mesh)
 {
-  score::gfx::defaultPassesInit(
-      m_p, this->node.output[0]->edges, renderer, mesh, m_vertexS, m_fragmentS,
-      m_processUBO, m_material.buffer, m_samplers);
+  if(this->node.output[0]->type == score::gfx::Types::Image)
+  {
+    score::gfx::defaultPassesInit(
+        m_p, this->node.output[0]->edges, renderer, mesh, m_vertexS, m_fragmentS,
+        m_processUBO, m_material.buffer, m_samplers);
+  }
 }
 
 void GenericNodeRenderer::defaultPassesInit(
     RenderList& renderer, const Mesh& mesh, const QShader& v, const QShader& f,
     std::span<QRhiShaderResourceBinding> additionalBindings)
 {
-  score::gfx::defaultPassesInit(
-      m_p, this->node.output[0]->edges, renderer, mesh, v, f, m_processUBO,
-      m_material.buffer, m_samplers, additionalBindings);
+  if(this->node.output[0]->type == score::gfx::Types::Image)
+  {
+    score::gfx::defaultPassesInit(
+        m_p, this->node.output[0]->edges, renderer, mesh, v, f, m_processUBO,
+        m_material.buffer, m_samplers, additionalBindings);
+  }
 }
 
 void GenericNodeRenderer::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
@@ -227,6 +233,10 @@ void GenericNodeRenderer::release(RenderList& r)
 }
 
 score::gfx::NodeRenderer::~NodeRenderer() { }
+
+QRhiBuffer *NodeRenderer::bufferForInput(const Port &input) { return nullptr; }
+
+QRhiBuffer *NodeRenderer::bufferForOutput(const Port &output) { return nullptr; }
 
 void NodeRenderer::inputAboutToFinish(
     RenderList& renderer, const Port& p, QRhiResourceUpdateBatch*&)

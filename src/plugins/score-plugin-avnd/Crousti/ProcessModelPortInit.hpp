@@ -246,6 +246,16 @@ struct InletInitFunc
     inlet++;
   }
 
+  template <avnd::buffer_port T>
+  void operator()(const T& in, auto idx)
+  {
+#if SCORE_PLUGIN_GFX
+    auto p = new Gfx::TextureInlet(portName<T>(), Id<Process::Port>(inlet++), &self);
+    setupNewPort(in, p);
+    ins.push_back(p);
+#endif
+  }
+
   template <avnd::texture_port T>
   void operator()(const T& in, auto idx)
   {
@@ -377,6 +387,16 @@ struct OutletInitFunc
     outlet++;
   }
 
+  template <avnd::buffer_port T>
+  void operator()(const T& out, auto idx)
+  {
+#if SCORE_PLUGIN_GFX
+    auto p = new Gfx::TextureOutlet(portName<T>(), Id<Process::Port>(outlet++), &self);
+    setupNewPort(out, p);
+    outs.push_back(p);
+#endif
+  }
+
   template <avnd::texture_port T>
   void operator()(const T& out, auto idx)
   {
@@ -386,6 +406,7 @@ struct OutletInitFunc
     outs.push_back(p);
 #endif
   }
+
   template <avnd::geometry_port T>
   void operator()(const T& out, auto idx)
   {
