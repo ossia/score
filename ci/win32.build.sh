@@ -1,7 +1,11 @@
 #!/bin/bash -eux
 
+if [[ -z "${SCORE_EXTRA_CMAKE_ARGS-}" ]]; then
+   export SCORE_EXTRA_CMAKE_ARGS=
+fi
+
 export PATH="$PATH:/c/ossia-sdk-x86_64/cmake/bin:/c/ossia-sdk-x86_64/llvm/bin"
-date
+
 cmake -GNinja -S "$PWD" -B build \
   -DCMAKE_C_COMPILER=c:/ossia-sdk-x86_64/llvm/bin/clang.exe \
   -DCMAKE_CXX_COMPILER=c:/ossia-sdk-x86_64/llvm/bin/clang++.exe \
@@ -14,7 +18,8 @@ cmake -GNinja -S "$PWD" -B build \
   -DKFR_ARCH=avx2 \
   -DSCORE_DEPLOYMENT_BUILD=1 \
   -DCMAKE_C_FLAGS="-g0" \
-  -DCMAKE_CXX_FLAGS="-g0"
+  -DCMAKE_CXX_FLAGS="-g0" \
+  $SCORE_EXTRA_CMAKE_ARGS
 date
 cmake --build build
 date

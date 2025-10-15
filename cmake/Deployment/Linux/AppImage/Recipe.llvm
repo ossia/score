@@ -14,6 +14,10 @@ export LD_LIBRARY_PATH=$OSSIA_SDK/llvm/lib
 export CC=$OSSIA_SDK/llvm/bin/clang
 export CXX=$OSSIA_SDK/llvm/bin/clang++
 
+if [[ -z "${SCORE_EXTRA_CMAKE_ARGS-}" ]]; then
+   export SCORE_EXTRA_CMAKE_ARGS=
+fi
+
 export BUILD_DIR=/build
 export APP=score
 rm -rf "$BUILD_DIR/$APP.AppDir"
@@ -35,12 +39,15 @@ export SCORE_DIR=/score
 export INSTALL_ROOT=$(cd "$APP_DIR/usr"; pwd)
 
 cninja -S "$SOURCE_DIR" -B "$BUILD_DIR" "$TOOLCHAIN" -- \
--DCMAKE_INSTALL_PREFIX="$INSTALL_ROOT" \
--DOSSIA_SDK="$OSSIA_SDK" \
--DCMAKE_PREFIX_PATH="$OSSIA_SDK/qt6-static" \
--DCMAKE_C_COMPILER="$CC" \
--DCMAKE_CXX_COMPILER="$CXX" \
--DCMAKE_CXX_FLAGS="-D_FORTIFY_SOURCE=0" # https://github.com/llvm/llvm-project/issues/145745
+  -DCMAKE_INSTALL_PREFIX="$INSTALL_ROOT" \
+  -DOSSIA_SDK="$OSSIA_SDK" \
+  -DCMAKE_PREFIX_PATH="$OSSIA_SDK/qt6-static" \
+  -DCMAKE_C_COMPILER="$CC" \
+  -DCMAKE_CXX_COMPILER="$CXX" \
+  -DCMAKE_CXX_FLAGS="-D_FORTIFY_SOURCE=0" \
+  $SCORE_EXTRA_CMAKE_ARGS
+
+# https://github.com/llvm/llvm-project/issues/145745
 
 
 if [[ "$TOOLCHAIN" =~ ".*debug.*" ]]; then

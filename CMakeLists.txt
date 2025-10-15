@@ -144,6 +144,10 @@ if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.31)
   if("${CMAKE_CXX_COMPILER}" MATCHES ".*ccache.*")
     set(CMAKE_CXX_SCAN_FOR_MODULES 0)
   endif()
+  if(WIN32)
+    # https://gitlab.kitware.com/cmake/cmake/-/issues/26662
+    set(CMAKE_CXX_SCAN_FOR_MODULES 0)
+  endif()
 
   if(NOT (CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
     set(CMAKE_CXX_SCAN_FOR_MODULES 0)

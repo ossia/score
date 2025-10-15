@@ -3,6 +3,9 @@ export BUILD_FOLDER=/tmp/build
 export SOURCE_FOLDER="$PWD"
 export OSSIA_SDK="/opt/ossia-sdk-${CPU_ARCH}"
 
+if [[ -z "${SCORE_EXTRA_CMAKE_ARGS-}" ]]; then
+   export SCORE_EXTRA_CMAKE_ARGS=
+fi
 
 mkdir -p $BUILD_FOLDER
 ln -s $BUILD_FOLDER build
@@ -21,6 +24,7 @@ docker run \
 -e TAG="$GITTAGNOV" \
 -e OSSIA_SDK="$OSSIA_SDK" \
 -e CPU_ARCH="$CPU_ARCH" \
+-e SCORE_EXTRA_CMAKE_ARGS="$SCORE_EXTRA_CMAKE_ARGS" \
 --mount type=bind,source="$PWD/$OSSIA_SDK",target=$OSSIA_SDK \
 --mount type=bind,source="$SOURCE_FOLDER",target=/score \
 --mount type=bind,source="$BUILD_FOLDER",target=/build \
