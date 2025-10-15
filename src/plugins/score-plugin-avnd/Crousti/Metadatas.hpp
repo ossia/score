@@ -12,8 +12,12 @@
 namespace oscr
 {
 template <typename T>
-concept GpuNode = avnd::texture_input_introspection<T>::size >
-0 || avnd::texture_output_introspection<T>::size > 0;
+concept GpuNode =
+    avnd::texture_input_introspection<T>::size > 0
+ || avnd::texture_output_introspection<T>::size > 0
+ || avnd::buffer_input_introspection<T>::size > 0
+ || avnd::buffer_output_introspection<T>::size > 0
+    ;
 
 template <typename T>
 concept GpuGraphicsNode2 = requires

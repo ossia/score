@@ -3,13 +3,14 @@
 #if SCORE_PLUGIN_GFX
 #include <Crousti/GfxNode.hpp>
 
+#if 0
 namespace oscr
 {
 
 template <typename Node_T>
   requires(
-      (avnd::texture_input_introspection<Node_T>::size > 0 && avnd::buffer_input_introspection<Node_T>::size == 0)
-      && (avnd::texture_output_introspection<Node_T>::size > 0 && avnd::buffer_output_introspection<Node_T>::size == 0))
+      (avnd::texture_input_introspection<Node_T>::size == 0 && avnd::buffer_input_introspection<Node_T>::size > 0)
+      && (avnd::texture_output_introspection<Node_T>::size == 0 && avnd::buffer_output_introspection<Node_T>::size > 0))
 struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
 {
   using texture_inputs = avnd::texture_input_introspection<Node_T>;
@@ -324,8 +325,8 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
 
 template <typename Node_T>
   requires(
-              (avnd::texture_input_introspection<Node_T>::size > 0 && avnd::buffer_input_introspection<Node_T>::size == 0)
-              && (avnd::texture_output_introspection<Node_T>::size > 0 && avnd::buffer_output_introspection<Node_T>::size == 0))
+              (avnd::texture_input_introspection<Node_T>::size == 0 && avnd::buffer_input_introspection<Node_T>::size > 0)
+              && (avnd::texture_output_introspection<Node_T>::size == 0 && avnd::buffer_output_introspection<Node_T>::size > 0))
 struct GfxNode<Node_T> final
     : CustomGfxNodeBase
     , GpuWorker
@@ -354,4 +355,5 @@ struct GfxNode<Node_T> final
   }
 };
 }
+#endif
 #endif

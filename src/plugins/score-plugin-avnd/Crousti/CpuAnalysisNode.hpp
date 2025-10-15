@@ -8,8 +8,8 @@ namespace oscr
 
 template <typename Node_T>
   requires(
-      avnd::texture_input_introspection<Node_T>::size > 0
-      && avnd::texture_output_introspection<Node_T>::size == 0)
+      (avnd::texture_input_introspection<Node_T>::size > 0 && avnd::buffer_input_introspection<Node_T>::size == 0)
+      && (avnd::texture_output_introspection<Node_T>::size == 0 && avnd::buffer_output_introspection<Node_T>::size == 0))
 struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
 {
   using texture_inputs = avnd::texture_input_introspection<Node_T>;
@@ -218,7 +218,7 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
         });
   }
   template <avnd::geometry_port Field>
-  void postprocess_geometry(Field& ctrl)
+  static void postprocess_geometry(Field& ctrl)
   {
     using namespace avnd;
     // bool mesh_dirty{};
@@ -227,6 +227,8 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
 
     if(ctrl.dirty_mesh)
     {
+      // FIXME what's happening with those ????
+      // FIXME fix and then refactor with CpuBufferAnalysisNode
       auto meshes = std::make_shared<ossia::mesh_list>();
       auto& ossia_meshes = *meshes;
       if constexpr(static_geometry_type<Field> || dynamic_geometry_type<Field>)
@@ -268,8 +270,9 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
 };
 
 template <typename Node_T>
-  requires(avnd::texture_input_introspection<Node_T>::size > 0
-           && avnd::texture_output_introspection<Node_T>::size == 0)
+  requires(
+              (avnd::texture_input_introspection<Node_T>::size > 0 && avnd::buffer_input_introspection<Node_T>::size == 0)
+              && (avnd::texture_output_introspection<Node_T>::size == 0 && avnd::buffer_output_introspection<Node_T>::size == 0))
 struct GfxNode<Node_T> final
     : CustomGpuOutputNodeBase
     , GpuNodeElements<Node_T>

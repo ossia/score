@@ -17,6 +17,8 @@ public:
   virtual ~NodeRenderer();
 
   virtual TextureRenderTarget renderTargetForInput(const Port& input) = 0;
+  virtual QRhiBuffer* bufferForInput(const Port& input);
+  virtual QRhiBuffer* bufferForOutput(const Port& output);
 
   //! Called when all the inbound nodes to a texture input have finished rendering.
   //! Mainly useful to slip in a readback.
