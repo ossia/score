@@ -8,8 +8,8 @@ namespace oscr
 
 template <typename Node_T>
   requires(
-      avnd::texture_input_introspection<Node_T>::size == 0
-      && avnd::texture_output_introspection<Node_T>::size > 0)
+      (avnd::texture_input_introspection<Node_T>::size == 0 && avnd::buffer_input_introspection<Node_T>::size == 0)
+      && (avnd::texture_output_introspection<Node_T>::size > 0 && avnd::buffer_output_introspection<Node_T>::size == 0))
 struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
 {
   using texture_outputs = avnd::texture_output_introspection<Node_T>;
@@ -144,6 +144,7 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
           createOutput(renderer, t.texture, QSize{t.texture.width, t.texture.height});
         });
 
+    // FIXME support multiple output texture ports
     this->defaultPassesInit(renderer, mesh);
   }
 
@@ -202,8 +203,9 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
 };
 
 template <typename Node_T>
-  requires(avnd::texture_input_introspection<Node_T>::size == 0
-           && avnd::texture_output_introspection<Node_T>::size > 0)
+  requires(
+              (avnd::texture_input_introspection<Node_T>::size == 0 && avnd::buffer_input_introspection<Node_T>::size == 0)
+              && (avnd::texture_output_introspection<Node_T>::size > 0 && avnd::buffer_output_introspection<Node_T>::size == 0))
 struct GfxNode<Node_T> final
     : CustomGfxNodeBase
     , GpuWorker

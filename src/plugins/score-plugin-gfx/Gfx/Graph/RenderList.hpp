@@ -71,6 +71,9 @@ public:
    */
   TextureRenderTarget renderTargetForOutput(const Edge& edge) const noexcept;
 
+  QRhiBuffer* bufferForInput(const Edge& edge) const noexcept;
+  QRhiBuffer* bufferForOutput(const Edge& edge) const noexcept;
+
   /**
    * @brief Adapts an image to the GPU limits / format
    *

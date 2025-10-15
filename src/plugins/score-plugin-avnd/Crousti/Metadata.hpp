@@ -82,6 +82,7 @@ struct ProcessPortVisitor
   void audio() { port.push_back(Process::PortType::Audio); }
   void midi() { port.push_back(Process::PortType::Midi); }
   void value() { port.push_back(Process::PortType::Message); }
+  void buffer() { port.push_back(Process::PortType::Texture); }
   void texture() { port.push_back(Process::PortType::Texture); }
   void geometry() { port.push_back(Process::PortType::Geometry); }
 
@@ -146,11 +147,18 @@ struct ProcessPortVisitor
     this->value();
   }
 
+  template <std::size_t N, avnd::buffer_port Port>
+  void operator()(const avnd::field_reflection<N, Port>)
+  {
+    this->buffer();
+  }
+
   template <std::size_t N, avnd::texture_port Port>
   void operator()(const avnd::field_reflection<N, Port>)
   {
     this->texture();
   }
+
   template <std::size_t N, avnd::geometry_port Port>
   void operator()(const avnd::field_reflection<N, Port>)
   {

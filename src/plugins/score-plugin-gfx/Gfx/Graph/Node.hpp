@@ -32,7 +32,7 @@ using gfx_input = ossia::slow_variant<
 #else
 using gfx_input = ossia::variant<
     ossia::monostate, ossia::value, ossia::audio_vector, ossia::render_target_spec,
-    ossia::geometry_spec, ossia::transform3d, FunctionMessage>;
+    ossia::geometry_spec, ossia::transform3d, FunctionMessage, ossia::buffer_spec>;
 #endif
 
 /**
@@ -220,6 +220,7 @@ public:
   void process(int32_t port, const ossia::transform3d& v);
   void process(int32_t port, ossia::monostate) const noexcept { }
   void process(int32_t port, const FunctionMessage&);
+  void process(int32_t port, const ossia::buffer_spec&);
   using Node::process;
 };
 
