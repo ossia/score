@@ -113,19 +113,25 @@ else
   ls "$SDK_DIR"
   
   if [[ ! -f "$SDK_DIR/llvm/bin/clang.exe" ]] ; then
+    echo "SDK error: clang not found"
     exit 1
   fi
 
   # Download boost
   if [[ ! -d "$SDK_DIR/boost" ]] ; then
   (
+    echo "<< downloading Boost >>"
     BOOST="$BOOST_VER.tar.gz"
     curl -L -0 "$BOOST_SDK/$BOOST" --output "$BOOST"
     mkdir -p "$SDK_DIR/boost/include"
+
+    echo "<< extracting Boost: >> $BOOST => $SDK_DIR/boost/include/"
     tar xaf "$BOOST"
     mv boost_*/boost "$SDK_DIR/boost/include/"
     rm *.gz
     rm -rf $BOOST
+
+    ls  "$SDK_DIR/boost/include/"
   )
   fi
 
