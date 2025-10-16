@@ -1,4 +1,5 @@
 #pragma once
+#include <score/tools/Debug.hpp>
 #include <score/command/Command.hpp>
 #include <score/command/Validity/ValidityChecker.hpp>
 
