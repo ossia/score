@@ -31,7 +31,10 @@ void EditJsContext::undo()
   auto doc = ctx();
   if(!doc)
     return;
-  doc->document.commandStack().undo();
+
+  auto& stack = doc->document.commandStack();
+  if(stack.canUndo())
+    stack.undo();
 }
 
 void EditJsContext::redo()
@@ -39,7 +42,10 @@ void EditJsContext::redo()
   auto doc = ctx();
   if(!doc)
     return;
-  doc->document.commandStack().redo();
+
+  auto& stack = doc->document.commandStack();
+  if(stack.canRedo())
+    stack.redo();
 }
 
 QObject* EditJsContext::find(QString p)
