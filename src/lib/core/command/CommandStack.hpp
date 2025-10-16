@@ -152,6 +152,7 @@ public:
 
   void undo()
   {
+    SCORE_ASSERT(canUndo());
     undoQuiet();
     localUndo();
   }
@@ -159,6 +160,7 @@ public:
 
   void redo()
   {
+    SCORE_ASSERT(canRedo());
     redoQuiet();
     localRedo();
   }
