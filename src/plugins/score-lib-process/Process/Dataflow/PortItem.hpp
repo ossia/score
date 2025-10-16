@@ -10,6 +10,7 @@
 #include <Process/Dataflow/PortType.hpp>
 
 #include <ossia/detail/ptr_set.hpp>
+#include <ossia/detail/small_vector.hpp>
 
 #include <score_lib_process_export.h>
 namespace Process
