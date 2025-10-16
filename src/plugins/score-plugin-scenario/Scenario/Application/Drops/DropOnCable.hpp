@@ -7,6 +7,7 @@
 #include <Process/Drop/ProcessDropHandler.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessContext.hpp>
+#include <Process/Dataflow/PortItem.hpp>
 
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
@@ -17,6 +18,13 @@
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/RuntimeDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
+
+namespace Dataflow
+{
+void replaceCable(
+    const score::DocumentContext& ctx, const Process::Cable& currentCable,
+    const Process::Port& newPort);
+}
 namespace Scenario
 {
 class DropOnCable : public QObject
@@ -96,9 +104,24 @@ public:
         }, Qt::QueuedConnection);
       }
     }
+    else if(mime.hasFormat(score::mime::port()))
+    {
+      auto base_port = Dataflow::PortItem::clickedPort;
+      if(base_port)
+      {
+        auto& new_port = base_port->port();
+        QMetaObject::invokeMethod(this, [&new_port, this]() {
+          Dataflow::replaceCable(this->m_context, cable, new_port);
+        }, Qt::QueuedConnection);
+      }
+    }
     else if(mime.hasUrls())
     {
       // TODO
+    }
+    else
+    {
+      qDebug()<<mime.formats();
     }
   }
 };

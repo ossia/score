@@ -1,9 +1,117 @@
+#include "score/document/DocumentContext.hpp"
+#include "score/tools/IdentifierGeneration.hpp"
 #include <Dataflow/Commands/EditConnection.hpp>
 
 #include <score/model/path/PathSerialization.hpp>
 
+#include <Process/Dataflow/PortItem.hpp>
+
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+
+#include <Scenario/Commands/CommandAPI.hpp>
+
 namespace Dataflow
 {
+
+template <typename Vec>
+static bool intersection_empty(const Vec& v1, const Vec& v2)
+{
+  for(const auto& e1 : v1)
+  {
+    for(const auto& e2 : v2)
+    {
+      if(e1 == e2)
+        return false;
+    }
+  }
+  return true;
+}
+
+std::pair<const Process::Outlet*, const Process::Inlet*> getPortsForConnection(
+    const Process::Port& port1,
+    const Process::Port& port2)
+{
+  if(port1.parent() == port2.parent())
+    return {};
+
+  if(!intersection_empty(port1.cables(), port2.cables()))
+    return {};
+
+  if(port1.type() != port2.type())
+    return {};
+
+  const Process::Port* source{};
+  const Process::Port* sink{};
+  auto o1 = qobject_cast<const Process::Outlet*>(&port1);
+  auto i2 = qobject_cast<const Process::Inlet*>(&port2);
+  if(o1 && i2)
+  {
+    return {o1, i2};
+  }
+  else
+  {
+    auto o2 = qobject_cast<const Process::Outlet*>(&port2);
+    auto i1 = qobject_cast<const Process::Inlet*>(&port1);
+    return {o2, i1};
+  }
+
+  return {};
+}
+
+void onCreateCable(
+    const score::DocumentContext& ctx, const Process::Port& port1,
+    const Process::Port& port2)
+{
+  auto& plug = ctx.model<Scenario::ScenarioDocumentModel>();
+  CommandDispatcher<> disp{ctx.commandStack};
+
+  auto [source, sink] = getPortsForConnection(port1, port2);
+  if(!source || !sink)
+    return;
+
+  Process::CableData cd;
+  cd.type = Process::CableType::ImmediateGlutton;
+  disp.submit<Dataflow::CreateCable>(
+      plug, getStrongId(plug.cables), Process::CableType::ImmediateGlutton, *source,
+      *sink);
+}
+
+void replaceCable(
+    const score::DocumentContext& ctx, const Process::Cable& currentCable,
+    const Process::Port& newPort)
+{
+  auto& plug = ctx.model<Scenario::ScenarioDocumentModel>();
+  auto& old_source = currentCable.source().find(ctx);
+  if(newPort.type() != old_source.type())
+    return;
+
+  auto& old_sink = currentCable.sink().find(ctx);
+
+  if(auto new_source = qobject_cast<const Process::Outlet*>(&newPort))
+  {
+    auto [source, sink] = getPortsForConnection(*new_source, old_sink);
+    if(!source || !sink)
+      return;
+
+    Scenario::Command::Macro m{new ReplaceCable, ctx};
+    m.removeCable(plug, currentCable);
+    m.createCable(plug, *new_source, old_sink);
+    m.commit();
+  }
+  else if(auto new_sink = qobject_cast<const Process::Inlet*>(&newPort))
+  {
+    auto [source, sink] = getPortsForConnection(old_source, *new_sink);
+    if(!source || !sink)
+      return;
+
+    Scenario::Command::Macro m{new ReplaceCable, ctx};
+    m.removeCable(plug, currentCable);
+    m.createCable(plug, *new_source, old_sink);
+    m.commit();
+  }
+}
+
+
 CreateCable::CreateCable(
     const Scenario::ScenarioDocumentModel& dp, Id<Process::Cable> theCable,
     Process::CableType type, const Process::Port& source, const Process::Port& sink)

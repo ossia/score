@@ -67,4 +67,9 @@ private:
     });
   }
 };
+
+SCORE_PLUGIN_DATAFLOW_EXPORT
+void replaceCable(
+    const score::DocumentContext& ctx, const Process::Cable& currentCable,
+    const Process::Port& newPort);
 }

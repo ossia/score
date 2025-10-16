@@ -3,6 +3,7 @@
 
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <score/command/AggregateCommand.hpp>
 
 #include <score/model/path/Path.hpp>
 
@@ -73,4 +74,21 @@ private:
   Process::CableData m_data;
   std::optional<bool> m_previousPropagate{};
 };
+
+class SCORE_PLUGIN_SCENARIO_EXPORT ReplaceCable final : public score::AggregateCommand
+{
+  SCORE_COMMAND_DECL(
+      Scenario::Command::CommandFactoryName(), ReplaceCable, "Replace Cable")
+public:
+};
+
+SCORE_PLUGIN_SCENARIO_EXPORT
+void onCreateCable(
+    const score::DocumentContext& ctx, const Process::Port& port1,
+    const Process::Port& port2);
+
+SCORE_PLUGIN_SCENARIO_EXPORT
+void replaceCable(
+    const score::DocumentContext& ctx, const Process::Cable& currentCable,
+    const Process::Port& newPort);
 }

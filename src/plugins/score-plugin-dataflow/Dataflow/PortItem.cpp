@@ -12,6 +12,7 @@
 
 #include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
+#include <Dataflow/Commands/EditConnection.hpp>
 
 #include <Automation/Commands/SetAutomationMax.hpp>
 #include <Dataflow/Commands/CreateModulation.hpp>
@@ -20,6 +21,7 @@
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/selection/SelectionStack.hpp>
 
+#include <Scenario/Commands/CommandAPI.hpp>
 #include <ossia/network/common/destination_qualifiers.hpp>
 #include <ossia/network/domain/domain.hpp>
 
@@ -31,71 +33,10 @@
 
 namespace Dataflow
 {
-template <typename Vec>
-static bool intersection_empty(const Vec& v1, const Vec& v2)
-{
-  for(const auto& e1 : v1)
-  {
-    for(const auto& e2 : v2)
-    {
-      if(e1 == e2)
-        return false;
-    }
-  }
-  return true;
-}
-
-void onCreateCable(
-    const score::DocumentContext& ctx, const Process::Port& port1,
-    const Process::Port& port2)
-{
-  auto& plug = ctx.model<Scenario::ScenarioDocumentModel>();
-  CommandDispatcher<> disp{ctx.commandStack};
-
-  if(port1.parent() == port2.parent())
-    return;
-
-  if(!intersection_empty(port1.cables(), port2.cables()))
-    return;
-
-  if(port1.type() != port2.type())
-    return;
-
-  const Process::Port* source{};
-  const Process::Port* sink{};
-  auto o1 = qobject_cast<const Process::Outlet*>(&port1);
-  auto i2 = qobject_cast<const Process::Inlet*>(&port2);
-  if(o1 && i2)
-  {
-    source = &port1;
-    sink = &port2;
-  }
-  else
-  {
-    auto o2 = qobject_cast<const Process::Outlet*>(&port2);
-    auto i1 = qobject_cast<const Process::Inlet*>(&port1);
-    if(o2 && i1)
-    {
-      source = &port2;
-      sink = &port1;
-    }
-    else
-    {
-      return;
-    }
-  }
-
-  Process::CableData cd;
-  cd.type = Process::CableType::ImmediateGlutton;
-  disp.submit<Dataflow::CreateCable>(
-      plug, getStrongId(plug.cables), Process::CableType::ImmediateGlutton, *source,
-      *sink);
-}
-
 void onCreateCable(
     const score::DocumentContext& ctx, Dataflow::PortItem* p1, Dataflow::PortItem* p2)
 {
-  onCreateCable(ctx, p1->port(), p2->port());
+  Dataflow::onCreateCable(ctx, p1->port(), p2->port());
 }
 
 AutomatablePortItem::~AutomatablePortItem() { }
