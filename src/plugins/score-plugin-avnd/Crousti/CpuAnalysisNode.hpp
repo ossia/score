@@ -211,61 +211,10 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
 
     // Copy the geometry
     // FIXME we need something such as port_run_{pre,post}process for GPU nodes
-    avnd::geometry_output_introspection<Node_T>::for_all_n2(
-        state->outputs, [&]<std::size_t F, std::size_t P>(
-                            auto& t, avnd::predicate_index<P>, avnd::field_index<F>) {
-          postprocess_geometry(t);
+    avnd::geometry_output_introspection<Node_T>::for_all(
+        state->outputs, [&](auto& field) {
+          postprocess_geometry(field, edge);
         });
-  }
-  template <avnd::geometry_port Field>
-  static void postprocess_geometry(Field& ctrl)
-  {
-    using namespace avnd;
-    // bool mesh_dirty{};
-    // bool tform_dirty{};
-    // mesh_dirty = ctrl.dirty_mesh;
-
-    if(ctrl.dirty_mesh)
-    {
-      // FIXME what's happening with those ????
-      // FIXME fix and then refactor with CpuBufferAnalysisNode
-      auto meshes = std::make_shared<ossia::mesh_list>();
-      auto& ossia_meshes = *meshes;
-      if constexpr(static_geometry_type<Field> || dynamic_geometry_type<Field>)
-      {
-        ossia_meshes.meshes.resize(1);
-        oscr::load_geometry(ctrl, ossia_meshes.meshes[0]);
-      }
-      else if constexpr(
-          static_geometry_type<decltype(Field::mesh)>
-          || dynamic_geometry_type<decltype(Field::mesh)>)
-      {
-        ossia_meshes.meshes.resize(1);
-        oscr::load_geometry(ctrl.mesh, ossia_meshes.meshes[0]);
-      }
-      else
-      {
-        oscr::load_geometry(ctrl, ossia_meshes);
-      }
-    }
-    ctrl.dirty_mesh = false;
-
-    // if constexpr(requires { ctrl.transform; })
-    // {
-    //   if(ctrl.dirty_transform)
-    //   {
-    //     std::copy_n(
-    //         ctrl.transform, std::ssize(ctrl.transform), port.data.transform.matrix);
-    //     tform_dirty = true;
-    //     ctrl.dirty_transform = false;
-    //   }
-    // }
-    //
-    // port.data.flags = {};
-    // if(mesh_dirty)
-    //   port.data.flags = port.data.flags | ossia::geometry_port::dirty_meshes;
-    // if(tform_dirty)
-    //   port.data.flags = port.data.flags | ossia::geometry_port::dirty_transform;
   }
 };
 

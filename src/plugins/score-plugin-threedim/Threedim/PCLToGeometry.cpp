@@ -11,7 +11,7 @@ namespace Threedim
 {
 void PCLToMesh::operator()()
 {
-  auto& tex = this->inputs.in.texture;
+  auto& tex = this->inputs.in.buffer;
   if (!tex.changed)
     return;
 

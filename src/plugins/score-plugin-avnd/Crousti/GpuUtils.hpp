@@ -1,13 +1,19 @@
 #pragma once
 
+#include <avnd/introspection/gfx.hpp>
 #if SCORE_PLUGIN_GFX
 #include <Process/ExecutionContext.hpp>
 
 #include <Crousti/File.hpp>
+#include <Crousti/GppCoroutines.hpp>
+#include <Crousti/GppShaders.hpp>
 #include <Crousti/MessageBus.hpp>
+#include <Crousti/TextureFormat.hpp>
+#include <Crousti/TextureConversion.hpp>
 #include <Gfx/GfxExecNode.hpp>
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
+#include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/RenderState.hpp>
 
 #include <score/tools/ThreadPool.hpp>
@@ -28,957 +34,6 @@
 #include <gpp/layout.hpp>
 
 #include <score_plugin_avnd_export.h>
-
-namespace gpp::qrhi
-{
-
-template <typename F>
-  requires std::is_enum_v<F>
-constexpr QRhiTexture::Format textureFormat(F f) noexcept
-{
-  if constexpr(requires { F::RGBA; } || requires { F::RGBA8; })
-    if(f == F::RGBA8)
-      return QRhiTexture::RGBA8;
-  if constexpr(requires { F::BGRA; } || requires { F::BGRA8; })
-    if(f == F::BGRA8)
-      return QRhiTexture::BGRA8;
-  if constexpr(requires { F::R8; } || requires { F::GRAYSCALE; })
-    if(f == F::R8)
-      return QRhiTexture::R8;
-#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
-  if constexpr(requires { F::RG8; })
-    if(f == F::RG8)
-      return QRhiTexture::RG8;
-#endif
-  if constexpr(requires { F::R16; })
-    if(f == F::R16)
-      return QRhiTexture::R16;
-#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
-  if constexpr(requires { F::RG16; })
-    if(f == F::RG16)
-      return QRhiTexture::RG16;
-#endif
-  if constexpr(requires { F::RED_OR_ALPHA8; })
-    if(f == F::RED_OR_ALPHA8)
-      return QRhiTexture::RED_OR_ALPHA8;
-  if constexpr(requires { F::RGBA16F; })
-    if(f == F::RGBA16F)
-      return QRhiTexture::RGBA16F;
-  if constexpr(requires { F::RGBA32F; })
-    if(f == F::RGBA32F)
-      return QRhiTexture::RGBA32F;
-  if constexpr(requires { F::R16F; })
-    if(f == F::R16F)
-      return QRhiTexture::R16F;
-  if constexpr(requires { F::R32F; })
-    if(f == F::R32F)
-      return QRhiTexture::R32F;
-#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
-  if constexpr(requires { F::RGB10A2; })
-    if(f == F::RGB10A2)
-      return QRhiTexture::RGB10A2;
-#endif
-  if constexpr(requires { F::D16; })
-    if(f == F::D16)
-      return QRhiTexture::D16;
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
-  if constexpr(requires { F::D24; })
-    if(f == F::D24)
-      return QRhiTexture::D24;
-  if constexpr(requires { F::D24S8; })
-    if(f == F::D24S8)
-      return QRhiTexture::D24S8;
-#endif
-  if constexpr(requires { F::D32F; })
-    if(f == F::D32F)
-      return QRhiTexture::D32F;
-
-  if constexpr(requires { F::BC1; })
-    if(f == F::BC1)
-      return QRhiTexture::BC1;
-  if constexpr(requires { F::BC2; })
-    if(f == F::BC2)
-      return QRhiTexture::BC2;
-  if constexpr(requires { F::BC3; })
-    if(f == F::BC3)
-      return QRhiTexture::BC3;
-  if constexpr(requires { F::BC4; })
-    if(f == F::BC4)
-      return QRhiTexture::BC4;
-  if constexpr(requires { F::BC5; })
-    if(f == F::BC5)
-      return QRhiTexture::BC5;
-  if constexpr(requires { F::BC6H; })
-    if(f == F::BC6H)
-      return QRhiTexture::BC6H;
-  if constexpr(requires { F::BC7; })
-    if(f == F::BC7)
-      return QRhiTexture::BC7;
-  if constexpr(requires { F::ETC2_RGB8; })
-    if(f == F::ETC2_RGB8)
-      return QRhiTexture::ETC2_RGB8;
-  if constexpr(requires { F::ETC2_RGB8A1; })
-    if(f == F::ETC2_RGB8A1)
-      return QRhiTexture::ETC2_RGB8A1;
-  if constexpr(requires { F::ETC2_RGB8A8; })
-    if(f == F::ETC2_RGBA8)
-      return QRhiTexture::ETC2_RGBA8;
-  if constexpr(requires { F::ASTC_4X4; })
-    if(f == F::ASTC_4x4)
-      return QRhiTexture::ASTC_4x4;
-  if constexpr(requires { F::ASTC_5X4; })
-    if(f == F::ASTC_5x4)
-      return QRhiTexture::ASTC_5x4;
-  if constexpr(requires { F::ASTC_5X5; })
-    if(f == F::ASTC_5x5)
-      return QRhiTexture::ASTC_5x5;
-  if constexpr(requires { F::ASTC_6X5; })
-    if(f == F::ASTC_6x5)
-      return QRhiTexture::ASTC_6x5;
-  if constexpr(requires { F::ASTC_6X6; })
-    if(f == F::ASTC_6x6)
-      return QRhiTexture::ASTC_6x6;
-  if constexpr(requires { F::ASTC_8X5; })
-    if(f == F::ASTC_8x5)
-      return QRhiTexture::ASTC_8x5;
-  if constexpr(requires { F::ASTC_8X6; })
-    if(f == F::ASTC_8x6)
-      return QRhiTexture::ASTC_8x6;
-  if constexpr(requires { F::ASTC_8X8; })
-    if(f == F::ASTC_8x8)
-      return QRhiTexture::ASTC_8x8;
-  if constexpr(requires { F::ASTC_10X5; })
-    if(f == F::ASTC_10x5)
-      return QRhiTexture::ASTC_10x5;
-  if constexpr(requires { F::ASTC_10X6; })
-    if(f == F::ASTC_10x6)
-      return QRhiTexture::ASTC_10x6;
-  if constexpr(requires { F::ASTC_10X8; })
-    if(f == F::ASTC_10x8)
-      return QRhiTexture::ASTC_10x8;
-  if constexpr(requires { F::ASTC_10X10; })
-    if(f == F::ASTC_10x10)
-      return QRhiTexture::ASTC_10x10;
-  if constexpr(requires { F::ASTC_12X10; })
-    if(f == F::ASTC_12x10)
-      return QRhiTexture::ASTC_12x10;
-  if constexpr(requires { F::ASTC_12X12; })
-    if(f == F::ASTC_12x12)
-      return QRhiTexture::ASTC_12x12;
-  if constexpr(requires { F::RGB; })
-    if(f == F::RGB)
-      return QRhiTexture::RGBA8; // we'll have a CPU step to go to rgb
-
-  return QRhiTexture::RGBA8;
-}
-
-template <typename F>
-constexpr QRhiTexture::Format textureFormat() noexcept
-{
-  if constexpr(requires { std::string_view{F::format()}; })
-  {
-    constexpr std::string_view fmt = F::format();
-
-    if(fmt == "rgba" || fmt == "rgba8")
-      return QRhiTexture::RGBA8;
-    else if(fmt == "bgra" || fmt == "bgra8")
-      return QRhiTexture::BGRA8;
-    else if(fmt == "r8")
-      return QRhiTexture::R8;
-#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
-  else if(fmt == "rg8")
-    return QRhiTexture::RG8;
-#endif
-  else if(fmt == "r16")
-    return QRhiTexture::R16;
-#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
-  else if(fmt == "rg16")
-    return QRhiTexture::RG16;
-#endif
-  else if(fmt == "red_or_alpha8")
-    return QRhiTexture::RED_OR_ALPHA8;
-  else if(fmt == "rgba16f")
-    return QRhiTexture::RGBA16F;
-  else if(fmt == "rgba32f")
-    return QRhiTexture::RGBA32F;
-  else if(fmt == "r16f")
-    return QRhiTexture::R16F;
-  else if(fmt == "r32")
-    return QRhiTexture::R32F;
-#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
-  else if(fmt == "rgb10a2")
-    return QRhiTexture::RGB10A2;
-#endif
-
-  else if(fmt == "d16")
-    return QRhiTexture::D16;
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
-  else if(fmt == "d24")
-    return QRhiTexture::D24;
-  else if(fmt == "d24s8")
-    return QRhiTexture::D24S8;
-#endif
-  else if(fmt == "d32f")
-    return QRhiTexture::D32F;
-
-  else if(fmt == "bc1")
-    return QRhiTexture::BC1;
-  else if(fmt == "bc2")
-    return QRhiTexture::BC2;
-  else if(fmt == "bc3")
-    return QRhiTexture::BC3;
-  else if(fmt == "bc4")
-    return QRhiTexture::BC4;
-  else if(fmt == "bc5")
-    return QRhiTexture::BC5;
-  else if(fmt == "bc6h")
-    return QRhiTexture::BC6H;
-  else if(fmt == "bc7")
-    return QRhiTexture::BC7;
-  else if(fmt == "etc2_rgb8")
-    return QRhiTexture::ETC2_RGB8;
-  else if(fmt == "etc2_rgb8a1")
-    return QRhiTexture::ETC2_RGB8A1;
-  else if(fmt == "etc2_rgb8a8")
-    return QRhiTexture::ETC2_RGBA8;
-  else if(fmt == "astc_4x4")
-    return QRhiTexture::ASTC_4x4;
-  else if(fmt == "astc_5x4")
-    return QRhiTexture::ASTC_5x4;
-  else if(fmt == "astc_5x5")
-    return QRhiTexture::ASTC_5x5;
-  else if(fmt == "astc_6x5")
-    return QRhiTexture::ASTC_6x5;
-  else if(fmt == "astc_6x6")
-    return QRhiTexture::ASTC_6x6;
-  else if(fmt == "astc_8x5")
-    return QRhiTexture::ASTC_8x5;
-  else if(fmt == "astc_8x6")
-    return QRhiTexture::ASTC_8x6;
-  else if(fmt == "astc_8x8")
-    return QRhiTexture::ASTC_8x8;
-  else if(fmt == "astc_10x5")
-    return QRhiTexture::ASTC_10x5;
-  else if(fmt == "astc_10x6")
-    return QRhiTexture::ASTC_10x6;
-  else if(fmt == "astc_10x8")
-    return QRhiTexture::ASTC_10x8;
-  else if(fmt == "astc_10x10")
-    return QRhiTexture::ASTC_10x10;
-  else if(fmt == "astc_12x10")
-    return QRhiTexture::ASTC_12x10;
-  else if(fmt == "astc_12x12")
-    return QRhiTexture::ASTC_12x12;
-  else if(fmt == "rgb")
-    return QRhiTexture::RGBA8;
-  else
-    return QRhiTexture::RGBA8;
-  }
-  else if constexpr(std::is_enum_v<typename F::format>)
-  {
-    if constexpr(requires { F::RGBA; } || requires { F::RGBA8; })
-      return QRhiTexture::RGBA8;
-    else if constexpr(requires { F::BGRA; } || requires { F::BGRA8; })
-      return QRhiTexture::BGRA8;
-    else if constexpr(requires { F::R8; } || requires { F::GRAYSCALE; })
-      return QRhiTexture::R8;
-#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
-    else if constexpr(requires { F::RG8; })
-      return QRhiTexture::RG8;
-#endif
-    else if constexpr(requires { F::R16; })
-      return QRhiTexture::R16;
-#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
-    else if constexpr(requires { F::RG16; })
-      return QRhiTexture::RG16;
-#endif
-    else if constexpr(requires { F::RED_OR_ALPHA8; })
-      return QRhiTexture::RED_OR_ALPHA8;
-    else if constexpr(requires { F::RGBA16F; })
-      return QRhiTexture::RGBA16F;
-    else if constexpr(requires { F::RGBA32F; })
-      return QRhiTexture::RGBA32F;
-    else if constexpr(requires { F::R16F; })
-      return QRhiTexture::R16F;
-    else if constexpr(requires { F::R32F; })
-      return QRhiTexture::R32F;
-#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
-    else if constexpr(requires { F::RGB10A2; })
-      return QRhiTexture::RGB10A2;
-#endif
-    else if constexpr(requires { F::D16; })
-      return QRhiTexture::D16;
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
-    else if constexpr(requires { F::D24; })
-      return QRhiTexture::D24;
-    else if constexpr(requires { F::D24S8; })
-      return QRhiTexture::D24S8;
-#endif
-    else if constexpr(requires { F::D32F; })
-      return QRhiTexture::D32F;
-
-    else if constexpr(requires { F::BC1; })
-      return QRhiTexture::BC1;
-    else if constexpr(requires { F::BC2; })
-      return QRhiTexture::BC2;
-    else if constexpr(requires { F::BC3; })
-      return QRhiTexture::BC3;
-    else if constexpr(requires { F::BC4; })
-      return QRhiTexture::BC4;
-    else if constexpr(requires { F::BC5; })
-      return QRhiTexture::BC5;
-    else if constexpr(requires { F::BC6H; })
-      return QRhiTexture::BC6H;
-    else if constexpr(requires { F::BC7; })
-      return QRhiTexture::BC7;
-    else if constexpr(requires { F::ETC2_RGB8; })
-      return QRhiTexture::ETC2_RGB8;
-    else if constexpr(requires { F::ETC2_RGB8A1; })
-      return QRhiTexture::ETC2_RGB8A1;
-    else if constexpr(requires { F::ETC2_RGB8A8; })
-      return QRhiTexture::ETC2_RGBA8;
-    else if constexpr(requires { F::ASTC_4X4; })
-      return QRhiTexture::ASTC_4x4;
-    else if constexpr(requires { F::ASTC_5X4; })
-      return QRhiTexture::ASTC_5x4;
-    else if constexpr(requires { F::ASTC_5X5; })
-      return QRhiTexture::ASTC_5x5;
-    else if constexpr(requires { F::ASTC_6X5; })
-      return QRhiTexture::ASTC_6x5;
-    else if constexpr(requires { F::ASTC_6X6; })
-      return QRhiTexture::ASTC_6x6;
-    else if constexpr(requires { F::ASTC_8X5; })
-      return QRhiTexture::ASTC_8x5;
-    else if constexpr(requires { F::ASTC_8X6; })
-      return QRhiTexture::ASTC_8x6;
-    else if constexpr(requires { F::ASTC_8X8; })
-      return QRhiTexture::ASTC_8x8;
-    else if constexpr(requires { F::ASTC_10X5; })
-      return QRhiTexture::ASTC_10x5;
-    else if constexpr(requires { F::ASTC_10X6; })
-      return QRhiTexture::ASTC_10x6;
-    else if constexpr(requires { F::ASTC_10X8; })
-      return QRhiTexture::ASTC_10x8;
-    else if constexpr(requires { F::ASTC_10X10; })
-      return QRhiTexture::ASTC_10x10;
-    else if constexpr(requires { F::ASTC_12X10; })
-      return QRhiTexture::ASTC_12x10;
-    else if constexpr(requires { F::ASTC_12X12; })
-      return QRhiTexture::ASTC_12x12;
-    else if constexpr(requires { F::RGB; })
-      return QRhiTexture::RGBA8;
-    else
-      return QRhiTexture::RGBA8;
-  }
-}
-
-template <avnd::cpu_texture Tex>
-constexpr QRhiTexture::Format textureFormat(const Tex& t) noexcept
-{
-  QRhiTexture::Format fmt{};
-  if constexpr(avnd::cpu_dynamic_format_texture<Tex>)
-    fmt = gpp::qrhi::textureFormat(t.format);
-  else
-    fmt = gpp::qrhi::textureFormat<Tex>();
-  return fmt;
-}
-
-struct DefaultPipeline
-{
-  struct layout
-  {
-    enum
-    {
-      graphics
-    };
-    struct vertex_input
-    {
-      struct
-      {
-        static constexpr auto name() { return "position"; }
-        static constexpr int location() { return 0; }
-        float data[2];
-      } pos;
-    };
-    struct vertex_output
-    {
-    };
-    struct fragment_input
-    {
-    };
-    struct bindings
-    {
-    };
-  };
-
-  static QString vertex()
-  {
-    return R"_(#version 450
-layout(location = 0) in vec2 position;
-out gl_PerVertex { vec4 gl_Position; };
-void main() {
-  gl_Position = vec4( position, 0.0, 1.0 );
-}
-)_";
-  }
-};
-
-template <typename C>
-constexpr auto usage()
-{
-  if constexpr(requires { C::vertex; })
-    return QRhiBuffer::VertexBuffer;
-  else if constexpr(requires { C::index; })
-    return QRhiBuffer::IndexBuffer;
-  else if constexpr(requires { C::ubo; })
-    return QRhiBuffer::UniformBuffer;
-  else if constexpr(requires { C::storage; })
-    return QRhiBuffer::StorageBuffer;
-  else
-  {
-    static_assert(C::unhandled);
-    throw;
-  }
-}
-
-template <typename C>
-constexpr auto buffer_type()
-{
-  if constexpr(requires { C::immutable; })
-    return QRhiBuffer::Immutable;
-  else if constexpr(requires { C::static_; })
-    return QRhiBuffer::Static;
-  else if constexpr(requires { C::dynamic; })
-    return QRhiBuffer::Dynamic;
-  else
-  {
-    static_assert(C::unhandled);
-    throw;
-  }
-}
-
-template <typename C>
-auto samples(C c)
-{
-  if constexpr(requires { C::samples; })
-    return c.samples;
-  else
-    return -1;
-}
-
-struct handle_release
-{
-  QRhi& rhi;
-  template <typename C>
-  void operator()(C command)
-  {
-    if constexpr(requires { C::deallocation; })
-    {
-      if constexpr(
-          requires { C::vertex; } || requires { C::index; } || requires { C::ubo; })
-      {
-        auto buf = reinterpret_cast<QRhiBuffer*>(command.handle);
-        buf->deleteLater();
-      }
-      else if constexpr(requires { C::sampler; })
-      {
-        auto buf = reinterpret_cast<QRhiSampler*>(command.handle);
-        buf->deleteLater();
-      }
-      else if constexpr(requires { C::texture; })
-      {
-        auto buf = reinterpret_cast<QRhiTexture*>(command.handle);
-        buf->deleteLater();
-      }
-      else
-      {
-        static_assert(C::unhandled);
-      }
-    }
-    else
-    {
-      static_assert(C::unhandled);
-    }
-  }
-};
-
-template <typename Self, typename Res>
-struct handle_dispatch
-{
-  Self& self;
-  QRhi& rhi;
-  QRhiCommandBuffer& cb;
-  QRhiResourceUpdateBatch*& res;
-  QRhiComputePipeline& pip;
-  template <typename C>
-  Res operator()(C command)
-  {
-    if constexpr(requires { C::compute; })
-    {
-      if constexpr(requires { C::dispatch; })
-      {
-        cb.dispatch(command.x, command.y, command.z);
-        return {};
-      }
-      else if constexpr(requires { C::begin; })
-      {
-        cb.beginComputePass(res);
-        res = nullptr;
-        cb.setComputePipeline(&pip);
-        cb.setShaderResources(pip.shaderResourceBindings());
-
-        return {};
-      }
-      else if constexpr(requires { C::end; })
-      {
-        cb.endComputePass(res);
-        res = nullptr;
-        rhi.finish();
-        return {};
-      }
-      else
-      {
-        static_assert(C::unhandled);
-        return {};
-      }
-    }
-    else if constexpr(requires { C::readback; })
-    {
-      // First handle the readback request
-      if constexpr(requires { C::request; })
-      {
-        if constexpr(requires { C::buffer; })
-        {
-          using ret = typename C::return_type;
-
-#if QT_VERSION < QT_VERSION_CHECK(6, 6, 0)
-          auto readback = new QRhiBufferReadbackResult;
-#else
-          auto readback = new QRhiReadbackResult;
-#endif
-          self.addReadback(readback);
-
-          // this is e.g. a buffer_awaiter
-          ret user_rb{.handle = reinterpret_cast<decltype(ret::handle)>(readback)};
-
-          // TODO: do it with coroutines like this for peak asyncess
-          // ret must be a coroutine type.
-          // When the GPU completes the work, "completed" is called:
-          // this will cause the coroutine to be filled with the data
-          // readback->completed = [=] {
-          //   qDebug() << "alhamdullilah he will be baked";
-          //   // store "data" in the coroutine
-          // };
-
-          auto next = rhi.nextResourceUpdateBatch();
-          auto buf = reinterpret_cast<QRhiBuffer*>(command.handle);
-
-          next->readBackBuffer(buf, command.offset, command.size, readback);
-          res = next;
-
-          return user_rb;
-        }
-        else if constexpr(requires { C::texture; })
-        {
-          using ret = typename C::return_type;
-          QRhiReadbackResult readback;
-          return ret{};
-        }
-        else
-        {
-          static_assert(C::unhandled);
-          return {};
-        }
-      }
-      else if constexpr(requires { C::await; })
-      {
-        if constexpr(requires { C::buffer; })
-        {
-          using ret = typename C::return_type;
-
-#if QT_VERSION < QT_VERSION_CHECK(6, 6, 0)
-          auto readback = reinterpret_cast<QRhiBufferReadbackResult*>(command.handle);
-#else
-          auto readback = reinterpret_cast<QRhiReadbackResult*>(command.handle);
-#endif
-
-          return ret{
-              .data = readback->data.data(), .size = (std::size_t)readback->data.size()};
-        }
-        else if constexpr(requires { C::texture; })
-        {
-          using ret = typename C::return_type;
-
-          auto readback = reinterpret_cast<QRhiReadbackResult*>(command.handle);
-
-          return ret{
-              .data = readback->data.data(), .size = (std::size_t)readback->data.size()};
-        }
-      }
-    }
-    else
-    {
-      static_assert(C::unhandled);
-      return {};
-    }
-
-    return {};
-  }
-};
-
-template <typename Self, typename Ret>
-struct handle_update
-{
-  Self& self;
-  QRhi& rhi;
-  QRhiResourceUpdateBatch& res;
-  std::vector<QRhiShaderResourceBinding>& srb;
-  bool& srb_touched;
-
-  template <typename C>
-  Ret operator()(C command)
-  {
-    if constexpr(requires { C::allocation; })
-    {
-      if constexpr(
-          requires { C::vertex; } || requires { C::index; })
-      {
-        auto buf = rhi.newBuffer(buffer_type<C>(), usage<C>(), command.size);
-        buf->create();
-        return reinterpret_cast<typename C::return_type>(buf);
-      }
-      else if constexpr(requires { C::sampler; })
-      {
-        auto buf = rhi.newSampler({}, {}, {}, {}, {});
-        buf->create();
-        return reinterpret_cast<typename C::return_type>(buf);
-      }
-      else if constexpr(
-          requires { C::ubo; } || requires { C::storage; })
-      {
-        auto buf = rhi.newBuffer(buffer_type<C>(), usage<C>(), command.size);
-        buf->create();
-
-        // Replace it in our bindings
-        score::gfx::replaceBuffer(srb, command.binding, buf);
-        srb_touched = true;
-        return reinterpret_cast<typename C::return_type>(buf);
-      }
-      else if constexpr(requires { C::texture; })
-      {
-        auto tex = rhi.newTexture(
-            QRhiTexture::RGBA8, QSize{command.width, command.height}, samples(command));
-        tex->create();
-
-        score::gfx::replaceTexture(srb, command.binding, tex);
-        srb_touched = true;
-        return reinterpret_cast<typename C::return_type>(tex);
-      }
-      else
-      {
-        static_assert(C::unhandled);
-        return {};
-      }
-    }
-    else if constexpr(requires { C::upload; })
-    {
-      if constexpr(requires { C::texture; })
-      {
-        QRhiTextureSubresourceUploadDescription sub(command.data, command.size);
-        res.uploadTexture(
-            reinterpret_cast<QRhiTexture*>(command.handle),
-            QRhiTextureUploadDescription{{0, 0, sub}});
-      }
-      else
-      {
-        auto buf = reinterpret_cast<QRhiBuffer*>(command.handle);
-        if constexpr(requires { C::dynamic; })
-          res.updateDynamicBuffer(buf, command.offset, command.size, command.data);
-        else if constexpr(
-            requires { C::static_; } || requires { C::immutable; })
-          res.uploadStaticBuffer(buf, command.offset, command.size, command.data);
-        else
-        {
-          static_assert(C::unhandled);
-          return {};
-        }
-      }
-    }
-    else if constexpr(requires { C::getter; })
-    {
-      if constexpr(requires { C::ubo; })
-      {
-        auto buf = self.createdUbos.at(command.binding);
-        return reinterpret_cast<typename C::return_type>(buf);
-      }
-      else
-      {
-        static_assert(C::unhandled);
-        return {};
-      }
-    }
-    else
-    {
-      handle_release{rhi}(command);
-      return {};
-    }
-    return {};
-  }
-};
-
-struct generate_shaders
-{
-  template <typename T, int N>
-  using vec = T[N];
-
-  static constexpr std::string_view field_type(float) { return "float"; }
-  static constexpr std::string_view field_type(const float (&)[2]) { return "vec2"; }
-  static constexpr std::string_view field_type(const float (&)[3]) { return "vec3"; }
-  static constexpr std::string_view field_type(const float (&)[4]) { return "vec4"; }
-
-  static constexpr std::string_view field_type(float*) { return "float"; }
-  static constexpr std::string_view field_type(vec<float, 2>*) { return "vec2"; }
-  static constexpr std::string_view field_type(vec<float, 3>*) { return "vec3"; }
-  static constexpr std::string_view field_type(vec<float, 4>*) { return "vec4"; }
-
-  static constexpr std::string_view field_type(int) { return "int"; }
-  static constexpr std::string_view field_type(const int (&)[2]) { return "ivec2"; }
-  static constexpr std::string_view field_type(const int (&)[3]) { return "ivec3"; }
-  static constexpr std::string_view field_type(const int (&)[4]) { return "ivec4"; }
-
-  static constexpr std::string_view field_type(int*) { return "int"; }
-  static constexpr std::string_view field_type(vec<int, 2>*) { return "ivec2"; }
-  static constexpr std::string_view field_type(vec<int, 3>*) { return "ivec3"; }
-  static constexpr std::string_view field_type(vec<int, 4>*) { return "ivec4"; }
-
-  static constexpr std::string_view field_type(uint32_t) { return "uint"; }
-  static constexpr std::string_view field_type(const uint32_t (&)[2]) { return "uvec2"; }
-  static constexpr std::string_view field_type(const uint32_t (&)[3]) { return "uvec3"; }
-  static constexpr std::string_view field_type(const uint32_t (&)[4]) { return "uvec4"; }
-
-  static constexpr std::string_view field_type(uint32_t*) { return "uint"; }
-  static constexpr std::string_view field_type(vec<uint32_t, 2>*) { return "uvec2"; }
-  static constexpr std::string_view field_type(vec<uint32_t, 3>*) { return "uvec3"; }
-  static constexpr std::string_view field_type(vec<uint32_t, 4>*) { return "uvec4"; }
-
-  static constexpr std::string_view field_type(avnd::xy_value auto) { return "vec2"; }
-
-  static constexpr bool field_array(float) { return false; }
-  static constexpr bool field_array(const float (&)[2]) { return false; }
-  static constexpr bool field_array(const float (&)[3]) { return false; }
-  static constexpr bool field_array(const float (&)[4]) { return false; }
-
-  static constexpr bool field_array(float*) { return true; }
-  static constexpr bool field_array(vec<float, 2>*) { return true; }
-  static constexpr bool field_array(vec<float, 3>*) { return true; }
-  static constexpr bool field_array(vec<float, 4>*) { return true; }
-
-  static constexpr bool field_array(int) { return false; }
-  static constexpr bool field_array(const int (&)[2]) { return false; }
-  static constexpr bool field_array(const int (&)[3]) { return false; }
-  static constexpr bool field_array(const int (&)[4]) { return false; }
-
-  static constexpr bool field_array(int*) { return true; }
-  static constexpr bool field_array(vec<int, 2>*) { return true; }
-  static constexpr bool field_array(vec<int, 3>*) { return true; }
-  static constexpr bool field_array(vec<int, 4>*) { return true; }
-
-  static constexpr bool field_array(uint32_t) { return false; }
-  static constexpr bool field_array(const uint32_t (&)[2]) { return false; }
-  static constexpr bool field_array(const uint32_t (&)[3]) { return false; }
-  static constexpr bool field_array(const uint32_t (&)[4]) { return false; }
-
-  static constexpr bool field_array(uint32_t*) { return true; }
-  static constexpr bool field_array(vec<uint32_t, 2>*) { return true; }
-  static constexpr bool field_array(vec<uint32_t, 3>*) { return true; }
-  static constexpr bool field_array(vec<uint32_t, 4>*) { return true; }
-
-  static constexpr bool field_array(avnd::xy_value auto) { return false; }
-
-  template <typename T>
-  static constexpr std::string_view image_qualifier()
-  {
-    if constexpr(requires { T::readonly; })
-      return "readonly";
-    else if constexpr(requires { T::writeonly; })
-      return "writeonly";
-    else
-      static_assert(T::readonly || T::writeonly);
-  }
-
-  struct write_input
-  {
-    std::string& shader;
-
-    template <typename T>
-    void operator()(const T& field)
-    {
-      shader += fmt::format(
-          "layout(location = {}) in {} {};\n", T::location(), field_type(field.data),
-          T::name());
-    }
-  };
-
-  struct write_output
-  {
-    std::string& shader;
-
-    template <typename T>
-    void operator()(const T& field)
-    {
-      if constexpr(requires { field.location(); })
-      {
-        shader += fmt::format(
-            "layout(location = {}) out {} {};\n", T::location(), field_type(field.data),
-            T::name());
-      }
-    }
-  };
-
-  struct write_binding
-  {
-    std::string& shader;
-
-    template <typename T>
-    void operator()(const T& field)
-    {
-      shader += fmt::format(
-          "  {} {}{};\n", field_type(field.value), T::name(),
-          field_array(field.value) ? "[]" : "");
-    }
-  };
-
-  struct write_bindings
-  {
-    std::string& shader;
-
-    template <typename C>
-    void operator()(const C& field)
-    {
-      if constexpr(requires { C::sampler2D; })
-      {
-        shader += fmt::format(
-            "layout(binding = {}) uniform sampler2D {};\n\n", C::binding(), C::name());
-      }
-      else if constexpr(requires { C::image2D; })
-      {
-        shader += fmt::format(
-            "layout(binding = {}, {}) {} uniform image2D {};\n\n", C::binding(),
-            C::format(), image_qualifier<C>(), C::name());
-      }
-      else if constexpr(requires { C::ubo; })
-      {
-        shader += fmt::format(
-            "layout({}, binding = {}) uniform {}\n{{\n",
-            "std140" // TODO
-            ,
-            C::binding(), C::name());
-
-        boost::pfr::for_each_field(field, write_binding{shader});
-
-        shader += fmt::format("}};\n\n");
-      }
-      else if constexpr(requires { C::buffer; })
-      {
-        shader += fmt::format(
-            "layout({}, binding = {}) buffer {}\n{{\n",
-            "std140" // TODO
-            ,
-            C::binding(), C::name());
-
-        boost::pfr::for_each_field(field, write_binding{shader});
-
-        shader += fmt::format("}};\n\n");
-      }
-    }
-  };
-
-  template <typename T>
-  std::string vertex_shader(const T& lay)
-  {
-    using namespace gpp::qrhi;
-    std::string shader = "#version 450\n\n";
-
-    if constexpr(requires { lay.vertex_input; })
-      boost::pfr::for_each_field(lay.vertex_input, write_input{shader});
-    else if constexpr(requires { typename T::vertex_input; })
-      boost::pfr::for_each_field(typename T::vertex_input{}, write_input{shader});
-    else
-      boost::pfr::for_each_field(
-          DefaultPipeline::layout::vertex_input{}, write_input{shader});
-
-    if constexpr(requires { lay.vertex_output; })
-      boost::pfr::for_each_field(lay.vertex_output, write_output{shader});
-    else if constexpr(requires { typename T::vertex_output; })
-      boost::pfr::for_each_field(typename T::vertex_output{}, write_output{shader});
-
-    shader += "\n";
-
-    if constexpr(requires { lay.bindings; })
-      boost::pfr::for_each_field(lay.bindings, write_bindings{shader});
-    else if constexpr(requires { typename T::bindings; })
-      boost::pfr::for_each_field(typename T::bindings{}, write_bindings{shader});
-
-    return shader;
-  }
-
-  template <typename T>
-  std::string fragment_shader(const T& lay)
-  {
-    std::string shader = "#version 450\n\n";
-
-    if constexpr(requires { lay.fragment_input; })
-      boost::pfr::for_each_field(lay.fragment_input, write_input{shader});
-    else if constexpr(requires { typename T::fragment_input; })
-      boost::pfr::for_each_field(typename T::fragment_input{}, write_input{shader});
-
-    if constexpr(requires { lay.fragment_output; })
-      boost::pfr::for_each_field(lay.fragment_output, write_output{shader});
-    else if constexpr(requires { typename T::fragment_output; })
-      boost::pfr::for_each_field(typename T::fragment_output{}, write_output{shader});
-
-    shader += "\n";
-
-    if constexpr(requires { lay.bindings; })
-      boost::pfr::for_each_field(lay.bindings, write_bindings{shader});
-    else if constexpr(requires { typename T::bindings; })
-      boost::pfr::for_each_field(typename T::bindings{}, write_bindings{shader});
-
-    return shader;
-  }
-
-  template <typename T>
-  std::string compute_shader(const T& lay)
-  {
-    std::string fstr = "#version 450\n\n";
-
-    fstr += "layout(";
-    if constexpr(requires { T::local_size_x(); })
-    {
-      fstr += fmt::format("local_size_x = {}, ", T::local_size_x());
-    }
-    if constexpr(requires { T::local_size_y(); })
-    {
-      fstr += fmt::format("local_size_y = {}, ", T::local_size_y());
-    }
-    if constexpr(requires { T::local_size_z(); })
-    {
-      fstr += fmt::format("local_size_z = {}, ", T::local_size_z());
-    }
-
-    // Remove the last ", "
-    fstr.resize(fstr.size() - 2);
-    fstr += ") in;\n\n";
-
-    boost::pfr::for_each_field(lay.bindings, write_bindings{fstr});
-
-    return fstr;
-  }
-};
-}
 
 namespace oscr
 {
@@ -1429,69 +484,260 @@ inline void initGfxPorts(auto* self, auto& input, auto& output)
   });
 }
 
-inline void
-inplaceMirror(unsigned char* bytes, int width, int height, int bytes_per_pixel)
+template <avnd::geometry_port Field>
+static void postprocess_geometry(Field& ctrl, score::gfx::Edge& edge)
 {
-  if(width < 1 || height <= 1)
-    return;
-  const size_t row_size = width * bytes_per_pixel;
-
-  auto temp_row = (unsigned char*)alloca(row_size);
-  auto top = bytes;
-  auto bottom = bytes + (height - 1) * row_size;
-
-  while(top < bottom)
+  auto edge_sink = edge.sink;
+  if(auto pnode = dynamic_cast<score::gfx::ProcessNode*>(edge_sink->node))
   {
-    memcpy(temp_row, top, row_size);
-    memcpy(top, bottom, row_size);
-    memcpy(bottom, temp_row, row_size);
+    ossia::geometry_spec spc;
 
-    top += row_size;
-    bottom -= row_size;
+    {
+      if(ctrl.dirty_mesh)
+      {
+        spc.meshes = std::make_shared<ossia::mesh_list>();
+        auto& ossia_meshes = *spc.meshes;
+        if constexpr(avnd::static_geometry_type<Field> || avnd::dynamic_geometry_type<Field>)
+        {
+          ossia_meshes.meshes.resize(1);
+          load_geometry(ctrl, ossia_meshes.meshes[0]);
+        }
+        else if constexpr(
+            avnd::static_geometry_type<decltype(Field::mesh)>
+            || avnd::dynamic_geometry_type<decltype(Field::mesh)>)
+        {
+          ossia_meshes.meshes.resize(1);
+          load_geometry(ctrl.mesh, ossia_meshes.meshes[0]);
+        }
+        else
+        {
+          load_geometry(ctrl, ossia_meshes);
+        }
+      }
+      ctrl.dirty_mesh = false;
+    }
+    auto it = std::find(edge_sink->node->input.begin(), edge_sink->node->input.end(), edge_sink);
+    SCORE_ASSERT(it != edge_sink->node->input.end());
+    int n = it - edge_sink->node->input.begin();
+    pnode->process(n, spc);
   }
 }
 
-template <avnd::cpu_texture Tex>
-void loadInputTexture(QRhi& rhi, auto& m_readbacks, Tex& cpu_tex, int k)
+static void readbackInputBuffer(
+    score::gfx::RenderList& renderer
+    , QRhiResourceUpdateBatch& res
+    , const score::gfx::Node& parent
+    , std::vector<QRhiReadbackResult>& m_readbacks
+    , int port_index
+    , int buffer_index
+    )
 {
-  auto& buf = m_readbacks[k].data;
-  if(buf.size() < (qsizetype)cpu_tex.bytesize())
+  // FIXME: instead of doing this we could do the readback in the
+  // producer node and just read its bytearray once...
+  const auto& inputs = parent.input;
+  SCORE_ASSERT(port_index == 0);
   {
-    cpu_tex.bytes = nullptr;
-  }
-  else
-  {
-    if constexpr(requires { Tex::RGB; })
+    score::gfx::Port* p = inputs[port_index];
+    for(auto& edge : p->edges)
     {
-      // RGBA -> RGB
-      const QByteArray rgba = buf;
-      QByteArray rgb;
-      rgb.resize(cpu_tex.width * cpu_tex.height * 3);
-      auto src = rgba.constData();
-      auto dst = rgb.data();
-      for(int rgb_byte = 0, rgba_byte = 0, N = rgb.size(); rgb_byte < N;)
+      auto src_node = edge->source->node;
+      score::gfx::NodeRenderer* src_renderer = src_node->renderedNodes.at(&renderer);
+      if(src_renderer)
       {
-        dst[rgb_byte + 0] = src[rgba_byte + 0];
-        dst[rgb_byte + 1] = src[rgba_byte + 1];
-        dst[rgb_byte + 2] = src[rgba_byte + 2];
-        rgb_byte += 3;
-        rgba_byte += 4;
+        auto buf = src_renderer->bufferForOutput(*edge->source);
+        if(buf)
+        {
+          auto& readback = m_readbacks[buffer_index];
+          readback = {};
+          res.readBackBuffer(buf, 0, buf->size(), &readback);
+        }
       }
-      buf = rgb;
+      break;
+    }
+  }
+}
+
+static void uploadOutputBuffer(
+    score::gfx::RenderList& renderer, int k, avnd::cpu_buffer auto& cpu_buf, QRhiResourceUpdateBatch& res,
+    std::vector<std::pair<const score::gfx::Port*, QRhiBuffer*>> & m_buffers)
+{
+  if(cpu_buf.changed)
+  {
+    assert(m_buffers.size() > k);
+    auto& [port, buf] = m_buffers[k];
+
+    const auto bytesize = avnd::get_bytesize(cpu_buf);
+    if(!buf)
+    {
+      if(bytesize > 0)
+      {
+        buf = renderer.state.rhi->newBuffer(
+            QRhiBuffer::Dynamic
+            , QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer
+            , bytesize);
+
+        buf->create();
+      }
+      else
+      {
+        cpu_buf.changed = false;
+        return;
+      }
+    }
+    else if(buf->size() != bytesize)
+    {
+      buf->destroy();
+      buf->setSize(bytesize);
+      buf->create();
+    }
+    res.updateDynamicBuffer(buf, 0, bytesize, avnd::get_bytes(cpu_buf));
+    cpu_buf.changed = false;
+  }
+}
+
+
+template<typename T>
+struct buffer_inputs_storage;
+
+template<typename T>
+  requires (avnd::buffer_input_introspection<T>::size > 0)
+struct buffer_inputs_storage<T>
+{
+  std::vector<QRhiReadbackResult> m_readbacks = std::vector<QRhiReadbackResult>(avnd::buffer_input_introspection<T>::size);
+
+  void readInputBuffers(QRhi& rhi, auto& state)
+  {
+    if constexpr(avnd::buffer_input_introspection<T>::size > 0)
+    {
+      // Copy the readback output inside the structure
+      // TODO it would be much better to do this inside the readback's
+      // "completed" callback.
+      avnd::buffer_input_introspection<T>::for_all_n2(
+          avnd::get_inputs<T>(state),
+          [&]<typename Field, std::size_t N, std::size_t NField>
+          (Field& t, avnd::predicate_index<N> np, avnd::field_index<NField> nf)
+      {
+        SCORE_ASSERT(N < m_readbacks.size());
+        auto& readback = m_readbacks[N].data;
+        t.buffer.bytes = reinterpret_cast<unsigned char*>(readback.data());
+        t.buffer.bytesize = readback.size();
+        t.buffer.changed = true;
+      });
+    }
+  }
+
+  void inputAboutToFinish(
+      score::gfx::RenderList& renderer,
+      QRhiResourceUpdateBatch*& res,
+      auto& state,
+      auto& parent)
+  {
+    avnd::buffer_input_introspection<T>::for_all_n2(
+        avnd::get_inputs<T>(state),
+        [&]<typename Field, std::size_t N, std::size_t NField>
+        (Field& port, avnd::predicate_index<N> np, avnd::field_index<NField> nf) {
+      readbackInputBuffer(renderer, *res, parent, m_readbacks, nf, np);
+    });
+  }
+};
+
+template<typename T>
+  requires (avnd::buffer_input_introspection<T>::size == 0)
+struct buffer_inputs_storage<T>
+{
+  static void readInputBuffers(auto&&...)
+  {
+
+  }
+
+  static void inputAboutToFinish(auto&&...)
+  {
+
+  }
+};
+
+template<typename T>
+struct buffer_outputs_storage;
+
+template<typename T>
+  requires (avnd::buffer_output_introspection<T>::size > 0)
+struct buffer_outputs_storage<T>
+{
+  std::vector<std::pair<const score::gfx::Port*, QRhiBuffer*>> m_buffers;
+
+  void
+  createOutput(score::gfx::RenderList& renderer, score::gfx::Port& port, const avnd::cpu_buffer auto& cpu_buf)
+  {
+    auto& rhi = *renderer.state.rhi;
+    QRhiBuffer* buffer = nullptr;
+    if(const auto bs = avnd::get_bytesize(cpu_buf); bs > 0)
+    {
+      buffer = rhi.newBuffer(
+          QRhiBuffer::Dynamic
+          , QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer
+          , bs);
+
+      buffer->create();
     }
 
-    using components_type = std::decay_t<decltype(cpu_tex.bytes)>;
-    cpu_tex.bytes = reinterpret_cast<components_type>(buf.data());
-
-    if(rhi.isYUpInNDC())
-      if(cpu_tex.width * cpu_tex.height > 0)
-        inplaceMirror(
-            reinterpret_cast<unsigned char*>(cpu_tex.bytes), cpu_tex.width,
-            cpu_tex.height, cpu_tex.bytes_per_pixel);
-
-    cpu_tex.changed = true;
+    m_buffers.emplace_back(&port, buffer);
   }
-}
+
+  void init(score::gfx::RenderList& renderer, auto& state, auto& parent)
+  {
+    // Init buffers for the outputs
+    avnd::buffer_output_introspection<T>::for_all_n2(
+        avnd::get_outputs<T>(state), [&]<typename Field, std::size_t N, std::size_t NField>
+        (Field& port, avnd::predicate_index<N> np, avnd::field_index<NField> nf) {
+      SCORE_ASSERT(parent.output.size() > nf);
+      SCORE_ASSERT(parent.output[nf]->type == score::gfx::Types::Buffer);
+      createOutput(renderer, *parent.output[nf], port.buffer);
+    });
+  }
+
+  void upload(score::gfx::RenderList& renderer, auto& state, QRhiResourceUpdateBatch& res)
+  {
+    avnd::buffer_output_introspection<T>::for_all_n(
+        avnd::get_outputs<T>(state), [&]<std::size_t N>(auto& t, avnd::predicate_index<N> idx) {
+      uploadOutputBuffer(renderer, idx, t.buffer, res, m_buffers);
+    });
+  }
+
+  void release()
+  {
+    // Free outputs
+    for(auto& [p, buf] : m_buffers)
+    {
+      if(buf)
+      {
+        buf->destroy();
+        buf->deleteLater();
+      }
+    }
+    m_buffers.clear();
+  }
+};
+
+template<typename T>
+  requires (avnd::buffer_output_introspection<T>::size == 0)
+struct buffer_outputs_storage<T>
+{
+  static void init(auto&&...)
+  {
+
+  }
+
+  static void upload(auto&&...)
+  {
+
+  }
+
+  static void release(auto&&...)
+  {
+
+  }
+};
+
 }
 
 #endif

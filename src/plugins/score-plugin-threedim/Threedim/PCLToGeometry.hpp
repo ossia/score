@@ -5,22 +5,12 @@
 #include <halp/controls.hpp>
 #include <halp/geometry.hpp>
 #include <halp/meta.hpp>
+
 #include <halp/texture.hpp>
 #include <ossia/detail/pod_vector.hpp>
 
 namespace Threedim
 {
-struct raw_texture
-{
-  unsigned char* bytes{};
-  std::size_t bytesize{};
-
-  enum format
-  {
-    Raw
-  };
-  bool changed{};
-};
 
 class PCLToMesh
 {
@@ -33,12 +23,7 @@ public:
 
   struct ins
   {
-    struct pcl_in
-    {
-      static constexpr auto name() { return "Texture"; }
-      raw_texture texture;
-    } in;
-    // halp::texture_input<"Texture"> inx;
+    halp::buffer_input<"Buffer"> in;
     PositionControl position;
     RotationControl rotation;
     ScaleControl scale;
