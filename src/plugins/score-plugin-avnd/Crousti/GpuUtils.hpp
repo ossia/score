@@ -24,6 +24,7 @@
 #include <QTimer>
 #include <QtGui/private/qrhi_p.h>
 
+#include <ossia/detail/small_flat_map.hpp>
 #include <avnd/binding/ossia/port_run_postprocess.hpp>
 #include <avnd/binding/ossia/port_run_preprocess.hpp>
 #include <avnd/binding/ossia/soundfiles.hpp>
@@ -738,6 +739,327 @@ struct buffer_outputs_storage<T>
   }
 };
 
+
+template <typename Tex>
+static auto
+createOutputTexture(score::gfx::RenderList& renderer, const Tex& texture_spec, QSize size)
+{
+  auto& rhi = *renderer.state.rhi;
+  QRhiTexture* texture = &renderer.emptyTexture();
+  if(size.width() > 0 && size.height() > 0)
+  {
+    texture = rhi.newTexture(
+        gpp::qrhi::textureFormat(texture_spec), size, 1, QRhiTexture::Flag{});
+
+    texture->create();
+  }
+
+  auto sampler = rhi.newSampler(
+      QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
+      QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
+
+  sampler->create();
+  return score::gfx::Sampler{sampler, texture};
+}
+
+
+template<typename T>
+struct texture_inputs_storage;
+
+template<typename T>
+  requires (avnd::texture_input_introspection<T>::size > 0)
+struct texture_inputs_storage<T>
+{
+  ossia::small_flat_map<const score::gfx::Port*, score::gfx::TextureRenderTarget, 2>
+      m_rts;
+
+  std::vector<QRhiReadbackResult> m_readbacks = std::vector<QRhiReadbackResult>(avnd::texture_input_introspection<T>::size);
+
+  template <typename Tex>
+  void createInput(
+      score::gfx::RenderList& renderer, score::gfx::Port* port, const Tex& texture_spec,
+      const score::gfx::RenderTargetSpecs& spec)
+  {
+    static constexpr auto flags
+        = QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource;
+    auto texture = renderer.state.rhi->newTexture(
+        gpp::qrhi::textureFormat(texture_spec), spec.size, 1, flags);
+    SCORE_ASSERT(texture->create());
+    m_rts[port] = score::gfx::createRenderTarget(
+        renderer.state, texture, renderer.samples(), renderer.requiresDepth());
+  }
+
+  void init(auto& self, score::gfx::RenderList& renderer)
+  {
+    // Init input render targets
+    avnd::cpu_texture_input_introspection<T>::for_all_n(
+        avnd::get_inputs<T>(*self.state),
+        [&]<typename F, std::size_t K>(F& t, avnd::predicate_index<K>) {
+      // FIXME k isn't the port index, it's the texture port index
+      auto& parent = self.node();
+      auto spec = parent.resolveRenderTargetSpecs(K, renderer);
+      if constexpr(requires {
+                     t.request_width;
+                     t.request_height;
+                   })
+      {
+        spec.size.rwidth() = t.request_width;
+        spec.size.rheight() = t.request_height;
+      }
+
+      createInput(renderer, parent.input[K], t.texture, spec);
+
+      if constexpr(avnd::cpu_fixed_format_texture<decltype(t.texture)>)
+      {
+        t.texture.width = spec.size.width();
+        t.texture.height = spec.size.height();
+      }
+    });
+  }
+
+  void runInitialPasses(auto& self, QRhi& rhi)
+  {
+    // Fetch input textures (if any)
+    // Copy the readback output inside the structure
+    // TODO it would be much better to do this inside the readback's
+    // "completed" callback.
+    avnd::cpu_texture_input_introspection<T>::for_all_n(
+        avnd::get_inputs<T>(*self.state), [&]<std::size_t K>(auto& t, avnd::predicate_index<K>) {
+      oscr::loadInputTexture(rhi, m_readbacks, t.texture, K);
+    });
+  }
+
+  void release()
+  {
+    // Free inputs
+    // TODO investigate why reference does not work here:
+    for(auto [port, rt] : m_rts)
+      rt.release();
+    m_rts.clear();
+  }
+
+  void inputAboutToFinish(auto& parent, const score::gfx::Port& p,  QRhiResourceUpdateBatch*& res)
+  {
+    const auto& inputs = parent.input;
+    auto index_of_port = ossia::find(inputs, &p) - inputs.begin();
+    {
+      auto tex = m_rts[&p].texture;
+      auto& readback = m_readbacks[index_of_port];
+      readback = {};
+      res->readBackTexture(QRhiReadbackDescription{tex}, &readback);
+    }
+  }
+
+};
+template<typename T>
+  requires (avnd::texture_input_introspection<T>::size == 0)
+struct texture_inputs_storage<T>
+{
+  static void init(auto&&...) { }
+  static void runInitialPasses(auto&&...) { }
+  static void release(auto&&...) { }
+  static void inputAboutToFinish(auto&&...) { }
+};
+
+
+
+template <avnd::cpu_texture Tex>
+static QRhiTexture* updateTexture(auto& self, score::gfx::RenderList& renderer, int k, const Tex& cpu_tex)
+{
+  auto& [sampler, texture] = self.m_samplers[k];
+  if(texture)
+  {
+    auto sz = texture->pixelSize();
+    if(cpu_tex.width == sz.width() && cpu_tex.height == sz.height())
+      return texture;
+  }
+
+  // Check the texture size
+  if(cpu_tex.width > 0 && cpu_tex.height > 0)
+  {
+    QRhiTexture* oldtex = texture;
+    QRhiTexture* newtex = renderer.state.rhi->newTexture(
+        gpp::qrhi::textureFormat(cpu_tex), QSize{cpu_tex.width, cpu_tex.height}, 1,
+        QRhiTexture::Flag{});
+    newtex->create();
+    for(auto& [edge, pass] : self.m_p)
+      if(pass.srb)
+        score::gfx::replaceTexture(*pass.srb, sampler, newtex);
+    texture = newtex;
+
+    if(oldtex && oldtex != &renderer.emptyTexture())
+    {
+      oldtex->deleteLater();
+    }
+
+    return newtex;
+  }
+  else
+  {
+    for(auto& [edge, pass] : self.m_p)
+      if(pass.srb)
+        score::gfx::replaceTexture(*pass.srb, sampler, &renderer.emptyTexture());
+
+    return &renderer.emptyTexture();
+  }
+}
+
+template <avnd::cpu_texture Tex>
+static void uploadOutputTexture(auto& self,
+                                score::gfx::RenderList& renderer, int k, Tex& cpu_tex,
+                                QRhiResourceUpdateBatch* res)
+{
+  if(cpu_tex.changed)
+  {
+    if(auto texture = updateTexture(self, renderer, k, cpu_tex))
+    {
+      QByteArray buf
+          = QByteArray::fromRawData((const char*)cpu_tex.bytes, cpu_tex.bytesize());
+      if constexpr(requires { Tex::RGB; })
+      {
+        // RGB -> RGBA
+        // FIXME other conversions
+        const QByteArray rgb = buf;
+        QByteArray rgba;
+        rgba.resize(cpu_tex.width * cpu_tex.height * 4);
+        auto src = (const unsigned char*)rgb.constData();
+        auto dst = (unsigned char*)rgba.data();
+        for(int rgb_byte = 0, rgba_byte = 0, N = rgb.size(); rgb_byte < N;)
+        {
+          dst[rgba_byte + 0] = src[rgb_byte + 0];
+          dst[rgba_byte + 1] = src[rgb_byte + 1];
+          dst[rgba_byte + 2] = src[rgb_byte + 2];
+          dst[rgba_byte + 3] = 255;
+          rgb_byte += 3;
+          rgba_byte += 4;
+        }
+        buf = rgba;
+      }
+
+      // Upload it (mirroring is done in shader generic_texgen_fs if necessary)
+      {
+        QRhiTextureSubresourceUploadDescription sd(cpu_tex.bytes, cpu_tex.bytesize());
+        QRhiTextureUploadDescription desc{QRhiTextureUploadEntry{0, 0, sd}};
+
+        res->uploadTexture(texture, desc);
+      }
+
+      cpu_tex.changed = false;
+    }
+  }
+}
+
+static const constexpr auto generic_texgen_vs = R"_(#version 450
+layout(location = 0) in vec2 position;
+layout(location = 1) in vec2 texcoord;
+
+layout(binding=3) uniform sampler2D y_tex;
+layout(location = 0) out vec2 v_texcoord;
+
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+out gl_PerVertex { vec4 gl_Position; };
+
+void main()
+{
+#if defined(QSHADER_SPIRV) || defined(QSHADER_GLSL)
+  v_texcoord = vec2(texcoord.x, 1. - texcoord.y);
+#else
+  v_texcoord = texcoord;
+#endif
+  gl_Position = renderer.clipSpaceCorrMatrix * vec4(position.xy, 0.0, 1.);
+}
+)_";
+
+static const constexpr auto generic_texgen_fs = R"_(#version 450
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+layout(std140, binding = 0) uniform renderer_t {
+mat4 clipSpaceCorrMatrix;
+vec2 renderSize;
+} renderer;
+
+layout(binding=3) uniform sampler2D y_tex;
+
+void main ()
+{
+  fragColor = texture(y_tex, v_texcoord);
+}
+)_";
+
+template<typename T>
+struct texture_outputs_storage;
+
+// If we have texture outs we need the whole rendering infrastructure
+template<typename T>
+  requires (avnd::texture_input_introspection<T>::size > 0)
+struct texture_outputs_storage<T>
+{
+  void init(auto& self, score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res)
+  {
+    const auto& mesh = renderer.defaultTriangle();
+    self.defaultMeshInit(renderer, mesh, res);
+    self.processUBOInit(renderer);
+    // Not needed here as we do not have a GPU pass:
+    // this->m_material.init(renderer, this->node.input, this->m_samplers);
+
+    std::tie(self.m_vertexS, self.m_fragmentS)
+        = score::gfx::makeShaders(renderer.state, generic_texgen_vs, generic_texgen_fs);
+
+    avnd::cpu_texture_output_introspection<T>::for_all(
+        avnd::get_outputs<T>(*self.state), [&](auto& t) {
+      self.m_samplers.push_back(
+          createOutputTexture(renderer, t.texture, QSize{t.texture.width, t.texture.height}));
+    });
+
+    self.defaultPassesInit(renderer, mesh);
+  }
+
+  void runInitialPasses(auto& self,
+                        score::gfx::RenderList& renderer,
+                        QRhiResourceUpdateBatch*& res)
+  {
+    avnd::cpu_texture_output_introspection<T>::for_all_n(
+        avnd::get_outputs<T>(*self.state), [&]<std::size_t N>(auto& t, avnd::predicate_index<N>) {
+      uploadOutputTexture(*this, renderer, N, t.texture, res);
+    });
+  }
+
+  void release(auto& self, score::gfx::RenderList& r)
+  {
+    // Free outputs
+    for(auto& [sampl, texture] : self.m_samplers)
+    {
+      if(texture != &r.emptyTexture())
+        texture->deleteLater();
+      texture = nullptr;
+    }
+  }
+
+};
+template<typename T>
+  requires (avnd::texture_input_introspection<T>::size == 0)
+struct texture_outputs_storage<T>
+{
+  static void init(auto&&...)
+  {
+
+  }
+
+  static void runInitialPasses(auto&&...)
+  {
+
+  }
+
+  static void release(auto&&...)
+  {
+
+  }
+};
 }
 
 #endif
