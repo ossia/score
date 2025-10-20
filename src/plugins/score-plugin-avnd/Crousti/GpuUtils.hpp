@@ -573,7 +573,7 @@ static void uploadOutputBuffer(
       if(bytesize > 0)
       {
         buf = renderer.state.rhi->newBuffer(
-            QRhiBuffer::Dynamic
+            QRhiBuffer::Static
             , QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer
             , bytesize);
 
@@ -674,7 +674,7 @@ struct buffer_outputs_storage<T>
     if(const auto bs = avnd::get_bytesize(cpu_buf); bs > 0)
     {
       buffer = rhi.newBuffer(
-          QRhiBuffer::Dynamic
+          QRhiBuffer::Static
           , QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer
           , bs);
 
@@ -938,7 +938,7 @@ static void uploadOutputTexture(auto& self,
 
       // Upload it (mirroring is done in shader generic_texgen_fs if necessary)
       {
-        QRhiTextureSubresourceUploadDescription sd(cpu_tex.bytes, cpu_tex.bytesize());
+        QRhiTextureSubresourceUploadDescription sd(buf);
         QRhiTextureUploadDescription desc{QRhiTextureUploadEntry{0, 0, sd}};
 
         res->uploadTexture(texture, desc);
@@ -1025,7 +1025,7 @@ struct texture_outputs_storage<T>
   {
     avnd::cpu_texture_output_introspection<T>::for_all_n(
         avnd::get_outputs<T>(*self.state), [&]<std::size_t N>(auto& t, avnd::predicate_index<N>) {
-      uploadOutputTexture(*this, renderer, N, t.texture, res);
+      uploadOutputTexture(self, renderer, N, t.texture, res);
     });
   }
 

@@ -73,7 +73,7 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
 
     texture_ins.init(*this, renderer);
 
-    texture_outs.init(*this, renderer);
+    texture_outs.init(*this, renderer, res);
 
     buffer_outs.init(renderer, *state, parent);
   }
