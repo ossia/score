@@ -98,7 +98,8 @@ void gfx_exec_node::run(
             // FIXME If the cables, or address have changed
             // We likely want to reload the geometry in any case
             // .. or do we?
-            msg.input[inlet_i] = p.geometry;
+            if(p.geometry.meshes)
+              msg.input[inlet_i] = p.geometry;
           }
           //if(p.flags & ossia::geometry_port::dirty_transform)
           {

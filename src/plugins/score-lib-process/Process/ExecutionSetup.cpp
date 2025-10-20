@@ -64,8 +64,9 @@ std::optional<ossia::destination> makeDestination(
 template <typename Impl>
 void SetupContext::disconnect_cable_impl(const Process::Cable& c, Impl&& impl)
 {
-  if(!context.created)
+  if(!context.created) {
     return;
+  }
   auto it = m_cables.find(c.id());
   if(it != m_cables.end())
   {
@@ -80,8 +81,9 @@ template <typename Impl>
 void SetupContext::connect_cable_impl(Process::Cable& cable, Impl&& impl)
 {
   OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
-  if(!context.created)
+  if(!context.created) {
     return;
+  }
   ossia::node_ptr source_node{}, sink_node{};
   ossia::outlet_ptr source_port{};
   ossia::inlet_ptr sink_port{};

@@ -253,6 +253,11 @@ public:
         ossia::texture_inlet& inl = *node->add_texture();
         ctrl->setupExecution(inl, this);
       }
+      else if(auto ctrl = qobject_cast<Gfx::GeometryInlet*>(ctl))
+      {
+        ossia::geometry_inlet& inl = *node->add_geometry();
+        ctrl->setupExecution(inl, this);
+      }
     }
 
     // FIXME refactor this with other GFX processes
@@ -270,6 +275,10 @@ public:
       {
         node->add_texture_out();
         out->nodeId = node_id;
+      }
+      else if(auto out = qobject_cast<Gfx::GeometryOutlet*>(outlet))
+      {
+        node->add_geometry_out();
       }
     }
 

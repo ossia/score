@@ -15,6 +15,7 @@
 #include <Threedim/ModelDisplay/Process.hpp>
 #include <Threedim/Noise.hpp>
 #include <Threedim/ObjLoader.hpp>
+#include <Threedim/PCLToGeometry.hpp>
 #include <Threedim/Primitive.hpp>
 #include <Threedim/StructureSynth.hpp>
 
@@ -180,6 +181,7 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
   oscr::instantiate_fx<Threedim::Cylinder>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Cone>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Torus>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::PCLToMesh>(fx, ctx, key);
   auto add = instantiate_factories<
       score::ApplicationContext,
       FW<Process::ProcessModelFactory, Gfx::ModelDisplay::ProcessFactory>,

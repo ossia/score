@@ -97,6 +97,20 @@ public:
     return port;
   }
 
+  auto add_geometry()
+  {
+    auto port = new ossia::geometry_inlet;
+    m_inlets.push_back(port);
+    return port;
+  }
+
+  auto add_geometry_out()
+  {
+    auto port = new ossia::geometry_outlet;
+    m_outlets.push_back(port);
+    return port;
+  }
+
   auto add_audio()
   {
     auto port = new ossia::audio_inlet;
