@@ -16,48 +16,6 @@ namespace oscr
 {
 template <typename Info>
 class ProcessModel;
-static const constexpr auto generic_texgen_vs = R"_(#version 450
-layout(location = 0) in vec2 position;
-layout(location = 1) in vec2 texcoord;
-
-layout(binding=3) uniform sampler2D y_tex;
-layout(location = 0) out vec2 v_texcoord;
-
-layout(std140, binding = 0) uniform renderer_t {
-  mat4 clipSpaceCorrMatrix;
-  vec2 renderSize;
-} renderer;
-
-out gl_PerVertex { vec4 gl_Position; };
-
-void main()
-{
-#if defined(QSHADER_SPIRV) || defined(QSHADER_GLSL)
-  v_texcoord = vec2(texcoord.x, 1. - texcoord.y);
-#else
-  v_texcoord = texcoord;
-#endif
-  gl_Position = renderer.clipSpaceCorrMatrix * vec4(position.xy, 0.0, 1.);
-}
-)_";
-
-static const constexpr auto generic_texgen_fs = R"_(#version 450
-layout(location = 0) in vec2 v_texcoord;
-layout(location = 0) out vec4 fragColor;
-
-layout(std140, binding = 0) uniform renderer_t {
-mat4 clipSpaceCorrMatrix;
-vec2 renderSize;
-} renderer;
-
-layout(binding=3) uniform sampler2D y_tex;
-
-void main ()
-{
-  fragColor = texture(y_tex, v_texcoord);
-}
-)_";
-
 template <typename Node_T>
 struct GfxNode;
 template <typename Node_T>
