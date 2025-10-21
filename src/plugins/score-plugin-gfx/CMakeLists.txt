@@ -222,6 +222,7 @@ set(SRCS
 
     Gfx/Graph/decoders/GPUVideoDecoder.cpp
     Gfx/Graph/decoders/HAP.cpp
+    Gfx/Graph/CustomMesh.cpp
     Gfx/Graph/GeometryFilterNode.cpp
     Gfx/Graph/GeometryFilterNodeRenderer.cpp
     Gfx/Graph/RenderedCSFNode.cpp

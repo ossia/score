@@ -352,7 +352,22 @@ void ProcessNode::process(int32_t port, const ossia::geometry_spec& v)
   if(this->geometry != v || this->geometryChanged == 0)
   {
     this->geometry = v;
-    ++this->geometryChanged;
+    geometryChange();
+  }
+  else
+  {
+    if(this->geometry.meshes)
+    {
+      for(auto& mesh : this->geometry.meshes->meshes)
+      {
+        for(auto& buf : mesh.buffers) {
+          if(buf.dirty) {
+            geometryChange();
+            break;
+          }
+        }
+      }
+    }
   }
 }
 

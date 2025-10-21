@@ -26,6 +26,8 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
   AVND_NO_UNIQUE_ADDRESS buffer_inputs_storage<Node_T> buffer_ins;
   AVND_NO_UNIQUE_ADDRESS buffer_outputs_storage<Node_T> buffer_outs;
 
+  AVND_NO_UNIQUE_ADDRESS geometry_outputs_storage<Node_T> geometry_outs;
+
   const GfxNode<Node_T>& node() const noexcept
   {
     return static_cast<const GfxNode<Node_T>&>(score::gfx::NodeRenderer::node);
@@ -157,11 +159,7 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
     parent.processControlOut(*this->state);
 
     // Copy the geometry
-    // FIXME we need something such as port_run_{pre,post}process for GPU nodes
-    avnd::geometry_output_introspection<Node_T>::for_all(
-        state->outputs, [&](auto& field) {
-      postprocess_geometry(field, edge);
-    });
+    geometry_outs.upload(*this->state, edge);
   }
 };
 

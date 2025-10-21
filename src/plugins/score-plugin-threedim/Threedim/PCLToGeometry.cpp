@@ -9,6 +9,12 @@
 
 namespace Threedim
 {
+PCLToMesh::PCLToMesh()
+{
+  rebuild_transform(inputs, outputs);
+  outputs.geometry.dirty_mesh = true;
+}
+
 void PCLToMesh::operator()()
 {
   auto& tex = this->inputs.in.buffer;
@@ -18,6 +24,7 @@ void PCLToMesh::operator()()
   float* data = reinterpret_cast<float*>(tex.bytes);
   create_mesh(std::span<float>(data, tex.bytesize / sizeof(float)));
 }
+
 void PCLToMesh::create_mesh(std::span<float> v)
 {
   {
