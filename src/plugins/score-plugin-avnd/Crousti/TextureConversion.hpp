@@ -4,6 +4,8 @@
 #include <avnd/concepts/gfx.hpp>
 #include <Crousti/TextureFormat.hpp>
 
+#include <QFloat16>
+
 namespace gpp::qrhi
 {
 
@@ -169,6 +171,8 @@ inline void toRGB(QRhiTexture::Format in_format, QByteArray& buf, int width, int
       buf.resize(N * 3);
       break;
     }
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
     case QRhiTexture::R8UI:
     {
       // R8UI to RGB8 (already uint8, just expand)
@@ -221,6 +225,8 @@ inline void toRGB(QRhiTexture::Format in_format, QByteArray& buf, int width, int
       buf = rgb;
       break;
     }
+#endif
+
     default:
       if(buf.size() < N * 3)
         buf.resize(N * 3);
@@ -358,6 +364,7 @@ inline void toRGBA(QRhiTexture::Format in_format, QByteArray& buf, int width, in
       break;
     }
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
     case QRhiTexture::R8UI:
     {
       // R8UI to RGBA8
@@ -410,6 +417,7 @@ inline void toRGBA(QRhiTexture::Format in_format, QByteArray& buf, int width, in
       buf.resize(N * 4);
       break;
     }
+#endif
 
     default:
       if(buf.size() < N * 4)
@@ -425,7 +433,9 @@ inline void toR8(QRhiTexture::Format in_format, QByteArray& buf, int width, int 
   {
     case QRhiTexture::R8:
     case QRhiTexture::RED_OR_ALPHA8:
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
     case QRhiTexture::R8UI:
+#endif
       break;
 
     case QRhiTexture::RGBA8:
@@ -524,6 +534,7 @@ inline void toR8(QRhiTexture::Format in_format, QByteArray& buf, int width, int 
       break;
     }
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
     case QRhiTexture::R32UI:
     {
       // R32UI to R8
@@ -550,6 +561,7 @@ inline void toR8(QRhiTexture::Format in_format, QByteArray& buf, int width, int 
       buf.resize(N);
       break;
     }
+#endif
 
     default:
       if(buf.size() > N)
@@ -682,6 +694,7 @@ inline void toRGBA32F(QRhiTexture::Format in_format, QByteArray& buf, int width,
       break;
     }
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
     case QRhiTexture::R8UI:
     {
       // R8UI to RGBA32F
@@ -730,6 +743,7 @@ inline void toRGBA32F(QRhiTexture::Format in_format, QByteArray& buf, int width,
       }
       break;
     }
+#endif
 
     default:
       if(buf.size() < N * 16)
@@ -842,6 +856,7 @@ inline void toR16(QRhiTexture::Format in_format, QByteArray& buf, int width, int
       break;
     }
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
     case QRhiTexture::R8UI:
     {
       // R8UI to R16
@@ -881,6 +896,7 @@ inline void toR16(QRhiTexture::Format in_format, QByteArray& buf, int width, int
       buf.resize(N * 2);
       break;
     }
+#endif
 
     default:
       if(buf.size() != N * 2)
@@ -990,6 +1006,7 @@ inline void toR32F(QRhiTexture::Format in_format, QByteArray& buf, int width, in
       break;
     }
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
     case QRhiTexture::R8UI:
     {
       // R8UI to R32F
@@ -1030,6 +1047,7 @@ inline void toR32F(QRhiTexture::Format in_format, QByteArray& buf, int width, in
       buf.resize(N * 4);
       break;
     }
+#endif
 
     default:
       if(buf.size() != N * 4)
@@ -1042,8 +1060,10 @@ inline void toR32UI(QRhiTexture::Format in_format, QByteArray& buf, int width, i
   const int N = width * height;
   switch(in_format)
   {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
     case QRhiTexture::R32UI:
       break;
+#endif
 
     case QRhiTexture::RGBA8:
     {
@@ -1154,6 +1174,7 @@ inline void toR32UI(QRhiTexture::Format in_format, QByteArray& buf, int width, i
       break;
     }
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
     case QRhiTexture::R8UI:
     {
       // R8UI to R32UI
@@ -1180,6 +1201,7 @@ inline void toR32UI(QRhiTexture::Format in_format, QByteArray& buf, int width, i
       buf.resize(N * 4);
       break;
     }
+#endif
 
     default:
       if(buf.size() != N * 4)
@@ -1192,8 +1214,10 @@ inline void toRGBA32UI(QRhiTexture::Format in_format, QByteArray& buf, int width
   const int N = width * height;
   switch(in_format)
   {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
     case QRhiTexture::RGBA32UI:
       break;
+#endif
 
     case QRhiTexture::RGBA8:
     {
@@ -1327,6 +1351,7 @@ inline void toRGBA32UI(QRhiTexture::Format in_format, QByteArray& buf, int width
       break;
     }
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
     case QRhiTexture::R8UI:
     {
       // R8UI to RGBA32UI
@@ -1360,6 +1385,7 @@ inline void toRGBA32UI(QRhiTexture::Format in_format, QByteArray& buf, int width
       }
       break;
     }
+#endif
 
     default:
       if(buf.size() < N * 16)
@@ -1377,7 +1403,9 @@ inline void convertTexture(QRhiTexture::Format out_format, QRhiTexture::Format i
 
     case QRhiTexture::RED_OR_ALPHA8:
     case QRhiTexture::R8:
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
     case QRhiTexture::R8UI:
+#endif
       return toR8(in_format, buf, width, height);
 
     case QRhiTexture::R16:
@@ -1389,23 +1417,29 @@ inline void convertTexture(QRhiTexture::Format out_format, QRhiTexture::Format i
     case QRhiTexture::R32F:
       return toR32F(in_format, buf, width, height);
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
     case QRhiTexture::R32UI:
       return toR32UI(in_format, buf, width, height);
 
     case QRhiTexture::RGBA32UI:
       return toRGBA32UI(in_format, buf, width, height);
+#endif
 
     case QRhiTexture::RG16:
     case QRhiTexture::RGBA16F:
     case QRhiTexture::RG8:
     case QRhiTexture::R16F:
     case QRhiTexture::RGB10A2:
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
     case QRhiTexture::RG32UI:
+#endif
     case QRhiTexture::D16:
     case QRhiTexture::D24:
     case QRhiTexture::D24S8:
     case QRhiTexture::D32F:
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
     case QRhiTexture::D32FS8:
+#endif
     case QRhiTexture::UnknownFormat:
     case QRhiTexture::BC1:
     case QRhiTexture::BC2:

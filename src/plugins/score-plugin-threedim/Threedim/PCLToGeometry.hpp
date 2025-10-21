@@ -41,7 +41,7 @@ public:
     } geometry;
   } outputs;
 
-  PCLToMesh() { rebuild_transform(inputs, outputs); }
+  PCLToMesh();
   void create_mesh(std::span<float> v);
   void operator()();
 

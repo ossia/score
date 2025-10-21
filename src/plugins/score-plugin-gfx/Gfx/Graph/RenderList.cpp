@@ -243,9 +243,34 @@ RenderList::Buffers RenderList::acquireMesh(
       {
         m->reload(*p, f);
         m->update(mb, res);
+        for(auto& mesh: p->meshes) {
+          for(auto& buf : mesh.buffers) {
+            buf.dirty = false;
+          }
+        }
+
         // FIXME atomic !!
         if(cur_idx > m->dirtyGeometryIndex)
           m->dirtyGeometryIndex = cur_idx;
+      }
+      else
+      {
+        bool dirty = false;
+        for(auto& mesh: p->meshes) {
+          for(auto& buf : mesh.buffers) {
+            dirty |= buf.dirty;
+          }
+        }
+
+        if(dirty) {
+          m->reload(*p, f);
+          m->update(mb, res);
+          for(auto& mesh: p->meshes) {
+            for(auto& buf : mesh.buffers) {
+              buf.dirty = false;
+            }
+          }
+        }
       }
 
       return {m, mb};
@@ -270,6 +295,12 @@ RenderList::Buffers RenderList::acquireMesh(
 
         m->reload(*p, f);
         m->update(mb, res);
+
+        for(auto& mesh: p->meshes) {
+          for(auto& buf : mesh.buffers) {
+            buf.dirty = false;
+          }
+        }
         // FIXME atomic !!
         if(cur_idx > m->dirtyGeometryIndex)
           m->dirtyGeometryIndex = cur_idx;

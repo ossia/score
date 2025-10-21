@@ -485,52 +485,12 @@ inline void initGfxPorts(auto* self, auto& input, auto& output)
   });
 }
 
-template <avnd::geometry_port Field>
-static void postprocess_geometry(Field& ctrl, score::gfx::Edge& edge)
-{
-  auto edge_sink = edge.sink;
-  if(auto pnode = dynamic_cast<score::gfx::ProcessNode*>(edge_sink->node))
-  {
-    ossia::geometry_spec spc;
-
-    {
-      if(ctrl.dirty_mesh)
-      {
-        spc.meshes = std::make_shared<ossia::mesh_list>();
-        auto& ossia_meshes = *spc.meshes;
-        if constexpr(avnd::static_geometry_type<Field> || avnd::dynamic_geometry_type<Field>)
-        {
-          ossia_meshes.meshes.resize(1);
-          load_geometry(ctrl, ossia_meshes.meshes[0]);
-        }
-        else if constexpr(
-            avnd::static_geometry_type<decltype(Field::mesh)>
-            || avnd::dynamic_geometry_type<decltype(Field::mesh)>)
-        {
-          ossia_meshes.meshes.resize(1);
-          load_geometry(ctrl.mesh, ossia_meshes.meshes[0]);
-        }
-        else
-        {
-          load_geometry(ctrl, ossia_meshes);
-        }
-      }
-      ctrl.dirty_mesh = false;
-    }
-    auto it = std::find(edge_sink->node->input.begin(), edge_sink->node->input.end(), edge_sink);
-    SCORE_ASSERT(it != edge_sink->node->input.end());
-    int n = it - edge_sink->node->input.begin();
-    pnode->process(n, spc);
-  }
-}
-
 static void readbackInputBuffer(
     score::gfx::RenderList& renderer
     , QRhiResourceUpdateBatch& res
     , const score::gfx::Node& parent
-    , std::vector<QRhiReadbackResult>& m_readbacks
+    , QRhiReadbackResult& readback
     , int port_index
-    , int buffer_index
     )
 {
   // FIXME: instead of doing this we could do the readback in the
@@ -548,7 +508,6 @@ static void readbackInputBuffer(
         auto buf = src_renderer->bufferForOutput(*edge->source);
         if(buf)
         {
-          auto& readback = m_readbacks[buffer_index];
           readback = {};
           res.readBackBuffer(buf, 0, buf->size(), &readback);
         }
@@ -559,14 +518,11 @@ static void readbackInputBuffer(
 }
 
 static void uploadOutputBuffer(
-    score::gfx::RenderList& renderer, int k, avnd::cpu_buffer auto& cpu_buf, QRhiResourceUpdateBatch& res,
-    std::vector<std::pair<const score::gfx::Port*, QRhiBuffer*>> & m_buffers)
+    score::gfx::RenderList& renderer, avnd::cpu_buffer auto& cpu_buf,
+    QRhiResourceUpdateBatch& res, const score::gfx::Port* port, QRhiBuffer* buf)
 {
   if(cpu_buf.changed)
   {
-    assert(m_buffers.size() > k);
-    auto& [port, buf] = m_buffers[k];
-
     const auto bytesize = avnd::get_bytesize(cpu_buf);
     if(!buf)
     {
@@ -604,25 +560,42 @@ template<typename T>
   requires (avnd::buffer_input_introspection<T>::size > 0)
 struct buffer_inputs_storage<T>
 {
-  std::vector<QRhiReadbackResult> m_readbacks = std::vector<QRhiReadbackResult>(avnd::buffer_input_introspection<T>::size);
+  QRhiReadbackResult m_readbacks[avnd::cpu_buffer_input_introspection<T>::size];
+  QRhiBuffer* m_gpubufs[avnd::gpu_buffer_input_introspection<T>::size];
 
   void readInputBuffers(QRhi& rhi, auto& state)
   {
-    if constexpr(avnd::buffer_input_introspection<T>::size > 0)
+    if constexpr(avnd::cpu_buffer_input_introspection<T>::size > 0)
     {
       // Copy the readback output inside the structure
       // TODO it would be much better to do this inside the readback's
       // "completed" callback.
-      avnd::buffer_input_introspection<T>::for_all_n2(
+      avnd::cpu_buffer_input_introspection<T>::for_all_n(
           avnd::get_inputs<T>(state),
-          [&]<typename Field, std::size_t N, std::size_t NField>
-          (Field& t, avnd::predicate_index<N> np, avnd::field_index<NField> nf)
+          [&]<typename Field, std::size_t N>
+          (Field& t, avnd::predicate_index<N> np)
       {
-        SCORE_ASSERT(N < m_readbacks.size());
         auto& readback = m_readbacks[N].data;
         t.buffer.bytes = reinterpret_cast<unsigned char*>(readback.data());
         t.buffer.bytesize = readback.size();
         t.buffer.changed = true;
+      });
+    }
+
+    if constexpr(avnd::gpu_buffer_input_introspection<T>::size > 0)
+    {
+      // Copy the readback output inside the structure
+      // TODO it would be much better to do this inside the readback's
+      // "completed" callback.
+      avnd::gpu_buffer_input_introspection<T>::for_all_n(
+          avnd::get_inputs<T>(state),
+          [&]<typename Field, std::size_t N>
+          (Field& t, avnd::predicate_index<N> np)
+      {
+        auto* buf = m_gpubufs[N];
+        t.buffer.handle = buf;
+        t.buffer.bytesize = buf->size();
+        // t.buffer.changed = true;
       });
     }
   }
@@ -633,11 +606,11 @@ struct buffer_inputs_storage<T>
       auto& state,
       auto& parent)
   {
-    avnd::buffer_input_introspection<T>::for_all_n2(
+    avnd::cpu_buffer_input_introspection<T>::for_all_n2(
         avnd::get_inputs<T>(state),
         [&]<typename Field, std::size_t N, std::size_t NField>
         (Field& port, avnd::predicate_index<N> np, avnd::field_index<NField> nf) {
-      readbackInputBuffer(renderer, *res, parent, m_readbacks, nf, np);
+      readbackInputBuffer(renderer, *res, parent, m_readbacks[N], nf);
     });
   }
 };
@@ -664,9 +637,9 @@ template<typename T>
   requires (avnd::buffer_output_introspection<T>::size > 0)
 struct buffer_outputs_storage<T>
 {
-  std::vector<std::pair<const score::gfx::Port*, QRhiBuffer*>> m_buffers;
+  std::pair<const score::gfx::Port*, QRhiBuffer*> m_buffers[avnd::buffer_output_introspection<T>::size];
 
-  void
+  std::pair<const score::gfx::Port*, QRhiBuffer*>
   createOutput(score::gfx::RenderList& renderer, score::gfx::Port& port, const avnd::cpu_buffer auto& cpu_buf)
   {
     auto& rhi = *renderer.state.rhi;
@@ -681,7 +654,7 @@ struct buffer_outputs_storage<T>
       buffer->create();
     }
 
-    m_buffers.emplace_back(&port, buffer);
+    return {&port, buffer};
   }
 
   void init(score::gfx::RenderList& renderer, auto& state, auto& parent)
@@ -692,7 +665,7 @@ struct buffer_outputs_storage<T>
         (Field& port, avnd::predicate_index<N> np, avnd::field_index<NField> nf) {
       SCORE_ASSERT(parent.output.size() > nf);
       SCORE_ASSERT(parent.output[nf]->type == score::gfx::Types::Buffer);
-      createOutput(renderer, *parent.output[nf], port.buffer);
+      m_buffers[N] = createOutput(renderer, *parent.output[nf], port.buffer);
     });
   }
 
@@ -700,7 +673,8 @@ struct buffer_outputs_storage<T>
   {
     avnd::buffer_output_introspection<T>::for_all_n(
         avnd::get_outputs<T>(state), [&]<std::size_t N>(auto& t, avnd::predicate_index<N> idx) {
-      uploadOutputBuffer(renderer, idx, t.buffer, res, m_buffers);
+      auto& [port, buf] = m_buffers[N];
+      uploadOutputBuffer(renderer, t.buffer, res, port, buf);
     });
   }
 
@@ -715,7 +689,6 @@ struct buffer_outputs_storage<T>
         buf->deleteLater();
       }
     }
-    m_buffers.clear();
   }
 };
 
@@ -773,7 +746,7 @@ struct texture_inputs_storage<T>
   ossia::small_flat_map<const score::gfx::Port*, score::gfx::TextureRenderTarget, 2>
       m_rts;
 
-  std::vector<QRhiReadbackResult> m_readbacks = std::vector<QRhiReadbackResult>(avnd::texture_input_introspection<T>::size);
+  QRhiReadbackResult m_readbacks[avnd::texture_input_introspection<T>::size];
 
   template <typename Tex>
   void createInput(
@@ -996,7 +969,7 @@ struct texture_outputs_storage;
 
 // If we have texture outs we need the whole rendering infrastructure
 template<typename T>
-  requires (avnd::texture_input_introspection<T>::size > 0)
+  requires (avnd::texture_output_introspection<T>::size > 0)
 struct texture_outputs_storage<T>
 {
   void init(auto& self, score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res)
@@ -1041,21 +1014,123 @@ struct texture_outputs_storage<T>
   }
 
 };
+
 template<typename T>
-  requires (avnd::texture_input_introspection<T>::size == 0)
+  requires (avnd::texture_output_introspection<T>::size == 0)
 struct texture_outputs_storage<T>
 {
-  static void init(auto&&...)
+  static void init(auto& self, score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res)
   {
-
   }
 
-  static void runInitialPasses(auto&&...)
+  static void runInitialPasses(auto& self,
+                        score::gfx::RenderList& renderer,
+                        QRhiResourceUpdateBatch*& res)
   {
-
   }
 
-  static void release(auto&&...)
+  static void release(auto& self, score::gfx::RenderList& r)
+  {
+  }
+};
+template<typename T>
+struct geometry_outputs_storage;
+
+template<typename T>
+  requires (avnd::geometry_output_introspection<T>::size > 0)
+struct geometry_outputs_storage<T>
+{
+  ossia::geometry_spec specs[avnd::geometry_output_introspection<T>::size];
+
+  template <avnd::geometry_port Field, std::size_t N>
+  void upload(Field& ctrl, score::gfx::Edge& edge, avnd::predicate_index<N>)
+  {
+    auto edge_sink = edge.sink;
+    if(auto pnode = dynamic_cast<score::gfx::ProcessNode*>(edge_sink->node))
+    {
+      ossia::geometry_spec& spc = specs[N];
+
+      auto reload = [&] {
+        spc.meshes = std::make_shared<ossia::mesh_list>();
+        auto& ossia_meshes = *spc.meshes;
+        if constexpr(avnd::static_geometry_type<Field> || avnd::dynamic_geometry_type<Field>)
+        {
+          ossia_meshes.meshes.resize(1);
+          load_geometry(ctrl, ossia_meshes.meshes[0]);
+        }
+        else if constexpr(
+            avnd::static_geometry_type<decltype(Field::mesh)>
+            || avnd::dynamic_geometry_type<decltype(Field::mesh)>)
+        {
+          ossia_meshes.meshes.resize(1);
+          load_geometry(ctrl.mesh, ossia_meshes.meshes[0]);
+        }
+        else
+        {
+          load_geometry(ctrl, ossia_meshes);
+        }
+      };
+      {
+        if(ctrl.dirty_mesh)
+        {
+          reload();
+        }
+        else
+        {
+          if(spc.meshes)
+          {
+            auto& ossia_meshes = *spc.meshes;
+
+            bool need_reload = false;
+            if constexpr(avnd::static_geometry_type<Field> || avnd::dynamic_geometry_type<Field>)
+            {
+              SCORE_ASSERT(ossia_meshes.meshes.size() == 1);
+              need_reload = update_geometry(ctrl, ossia_meshes.meshes[0]);
+            }
+            else if constexpr(
+                avnd::static_geometry_type<decltype(Field::mesh)>
+                || avnd::dynamic_geometry_type<decltype(Field::mesh)>)
+            {
+              SCORE_ASSERT(ossia_meshes.meshes.size() == 1);
+              need_reload = update_geometry(ctrl.mesh, ossia_meshes.meshes[0]);
+            }
+            else
+            {
+              need_reload = update_geometry(ctrl, ossia_meshes);
+            }
+
+            if(need_reload)
+            {
+              reload();
+            }
+          }
+        }
+        ctrl.dirty_mesh = false;
+      }
+
+      auto it = std::find(edge_sink->node->input.begin(), edge_sink->node->input.end(), edge_sink);
+      SCORE_ASSERT(it != edge_sink->node->input.end());
+      int n = it - edge_sink->node->input.begin();
+      pnode->process(n, spc);
+    }
+  }
+
+  void upload(auto& state, score::gfx::Edge& edge)
+  {
+    // FIXME we need something such as port_run_{pre,post}process for GPU nodes
+    avnd::geometry_output_introspection<T>::for_all_n(
+        avnd::get_outputs(state), [&](auto& field, auto pred) {
+      upload(field, edge, pred);
+    });
+  }
+};
+
+
+template<typename T>
+  requires (avnd::geometry_output_introspection<T>::size == 0)
+struct geometry_outputs_storage<T>
+{
+  static void upload(auto&&...)
   {
 
   }
