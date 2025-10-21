@@ -54,7 +54,8 @@ jobs:
 
       - name: Continuous
         uses: softprops/action-gh-release@v2
-        if: ${{ ! startsWith(github.ref, 'refs/tags/') }} && github.event_name != 'pull_request'
+        # :white_check_mark: This condition now runs ONLY on a push to the 'master' branch.
+        if: github.ref == 'refs/heads/master'
         with:
           name: "Continuous"
           tag_name: "continuous"
@@ -66,7 +67,8 @@ jobs:
 
       - name: Release
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/') && github.event_name != 'pull_request'
+        # :white_check_mark: This condition now runs ONLY on a push of a tag (like 'v1.2.3').
+        if: startsWith(github.ref, 'refs/tags/')
         with:
           body: ""
           append_body: true
