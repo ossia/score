@@ -1,5 +1,6 @@
 #pragma once
 #include "CreateEvent_State.hpp"
+#include "CreateTimeSync_Event_State.hpp"
 #include "CreateInterval.hpp"
 #include "CreateInterval_State.hpp"
 #include "CreateInterval_State_Event.hpp"
@@ -30,6 +31,7 @@ public:
       if(cmd->key() == CreateInterval::static_key()
          || cmd->key() == CreateState::static_key()
          || cmd->key() == CreateEvent_State::static_key()
+         || cmd->key() == CreateTimeSync_Event_State::static_key()
          || cmd->key() == CreateInterval_State::static_key()
          || cmd->key() == CreateInterval_State_Event::static_key()
          || cmd->key() == CreateInterval_State_Event_TimeSync::static_key()
