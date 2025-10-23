@@ -94,7 +94,7 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
   {
     texture_ins.release();
     texture_outs.release(*this, r);
-    buffer_outs.release();
+    buffer_outs.release(r);
 
     if constexpr(avnd::texture_input_introspection<Node_T>::size > 0 || avnd::texture_output_introspection<Node_T>::size > 0)
     {
@@ -135,10 +135,12 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
 
     texture_ins.runInitialPasses(*this, rhi);
 
-    buffer_ins.readInputBuffers(rhi, *state);
+    buffer_ins.readInputBuffers(renderer, parent, *state);
 
     parent.processControlIn(
         *this, *state, m_last_message, parent.last_message, parent.m_ctx);
+
+    buffer_outs.prepareUpload(*res);
 
     // Run the processor
     if_possible((*state)());

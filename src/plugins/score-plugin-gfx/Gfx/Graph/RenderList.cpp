@@ -140,6 +140,22 @@ void RenderList::release()
   m_built = false;
 }
 
+void RenderList::releaseBuffer(QRhiBuffer* buf)
+{
+  for(auto& vb : m_vertexBuffers)
+  {
+    // It will be deleted later.
+    if(vb.second.mesh == buf || vb.second.index == buf)
+      return;
+  }
+
+  if(buf)
+  {
+    buf->destroy();
+    buf->deleteLater();
+  }
+}
+
 bool RenderList::maybeRebuild(bool force)
 {
   bool rebuilt = false;

@@ -485,16 +485,12 @@ inline void initGfxPorts(auto* self, auto& input, auto& output)
   });
 }
 
-static void readbackInputBuffer(
+static QRhiBuffer* getInputBuffer(
     score::gfx::RenderList& renderer
-    , QRhiResourceUpdateBatch& res
     , const score::gfx::Node& parent
-    , QRhiReadbackResult& readback
     , int port_index
     )
 {
-  // FIXME: instead of doing this we could do the readback in the
-  // producer node and just read its bytearray once...
   const auto& inputs = parent.input;
   SCORE_ASSERT(port_index == 0);
   {
@@ -505,51 +501,79 @@ static void readbackInputBuffer(
       score::gfx::NodeRenderer* src_renderer = src_node->renderedNodes.at(&renderer);
       if(src_renderer)
       {
-        auto buf = src_renderer->bufferForOutput(*edge->source);
-        if(buf)
-        {
-          readback = {};
-          res.readBackBuffer(buf, 0, buf->size(), &readback);
-        }
+        return src_renderer->bufferForOutput(*edge->source);
       }
       break;
     }
+  }
+  return nullptr;
+}
+
+
+static void readbackInputBuffer(
+    score::gfx::RenderList& renderer
+    , QRhiResourceUpdateBatch& res
+    , const score::gfx::Node& parent
+    , QRhiReadbackResult& readback
+    , int port_index
+    )
+{
+  // FIXME: instead of doing this we could do the readback in the
+  // producer node and just read its bytearray once...
+  if(auto buf = getInputBuffer(renderer, parent, port_index))
+  {
+    readback = {};
+    res.readBackBuffer(buf, 0, buf->size(), &readback);
+  }
+}
+
+static void recreateOutputBuffer(
+    score::gfx::RenderList& renderer, avnd::cpu_buffer auto& cpu_buf,
+    QRhiResourceUpdateBatch& res, QRhiBuffer*& buf)
+{
+  const auto bytesize = avnd::get_bytesize(cpu_buf);
+  if(!buf)
+  {
+    if(bytesize > 0)
+    {
+      buf = renderer.state.rhi->newBuffer(
+          QRhiBuffer::Static
+          , QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer
+          , bytesize);
+
+      buf->create();
+    }
+    else
+    {
+      cpu_buf.changed = false;
+      return;
+    }
+  }
+  else if(buf->size() != bytesize)
+  {
+    buf->destroy();
+    buf->setSize(bytesize);
+    buf->create();
   }
 }
 
 static void uploadOutputBuffer(
     score::gfx::RenderList& renderer, avnd::cpu_buffer auto& cpu_buf,
-    QRhiResourceUpdateBatch& res, const score::gfx::Port* port, QRhiBuffer* buf)
+    QRhiResourceUpdateBatch& res, QRhiBuffer*& buf)
 {
   if(cpu_buf.changed)
   {
     const auto bytesize = avnd::get_bytesize(cpu_buf);
-    if(!buf)
-    {
-      if(bytesize > 0)
-      {
-        buf = renderer.state.rhi->newBuffer(
-            QRhiBuffer::Static
-            , QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer
-            , bytesize);
-
-        buf->create();
-      }
-      else
-      {
-        cpu_buf.changed = false;
-        return;
-      }
-    }
-    else if(buf->size() != bytesize)
-    {
-      buf->destroy();
-      buf->setSize(bytesize);
-      buf->create();
-    }
+    recreateOutputBuffer(renderer, cpu_buf, res, buf);
     res.updateDynamicBuffer(buf, 0, bytesize, avnd::get_bytes(cpu_buf));
     cpu_buf.changed = false;
   }
+}
+
+static void uploadOutputBuffer(
+    score::gfx::RenderList& renderer, avnd::gpu_buffer auto& cpu_buf,
+    QRhiResourceUpdateBatch& res,  QRhiBuffer*& buf)
+{
 }
 
 
@@ -563,7 +587,8 @@ struct buffer_inputs_storage<T>
   QRhiReadbackResult m_readbacks[avnd::cpu_buffer_input_introspection<T>::size];
   QRhiBuffer* m_gpubufs[avnd::gpu_buffer_input_introspection<T>::size];
 
-  void readInputBuffers(QRhi& rhi, auto& state)
+  void readInputBuffers(
+      score::gfx::RenderList& renderer, auto& parent, auto& state)
   {
     if constexpr(avnd::cpu_buffer_input_introspection<T>::size > 0)
     {
@@ -587,12 +612,17 @@ struct buffer_inputs_storage<T>
       // Copy the readback output inside the structure
       // TODO it would be much better to do this inside the readback's
       // "completed" callback.
-      avnd::gpu_buffer_input_introspection<T>::for_all_n(
+      avnd::gpu_buffer_input_introspection<T>::for_all_n2(
           avnd::get_inputs<T>(state),
-          [&]<typename Field, std::size_t N>
-          (Field& t, avnd::predicate_index<N> np)
+          [&]<typename Field, std::size_t N, std::size_t NField>
+          (Field& t, avnd::predicate_index<N> np, avnd::field_index<NField> nf)
       {
         auto* buf = m_gpubufs[N];
+        if(!buf)
+          m_gpubufs[N] = getInputBuffer(renderer, parent, nf);
+        buf = m_gpubufs[N];
+        if(!buf)
+           return;
         t.buffer.handle = buf;
         t.buffer.bytesize = buf->size();
         // t.buffer.changed = true;
@@ -611,6 +641,12 @@ struct buffer_inputs_storage<T>
         [&]<typename Field, std::size_t N, std::size_t NField>
         (Field& port, avnd::predicate_index<N> np, avnd::field_index<NField> nf) {
       readbackInputBuffer(renderer, *res, parent, m_readbacks[N], nf);
+    });
+    avnd::gpu_buffer_input_introspection<T>::for_all_n2(
+        avnd::get_inputs<T>(state),
+        [&]<typename Field, std::size_t N, std::size_t NField>
+        (Field& port, avnd::predicate_index<N> np, avnd::field_index<NField> nf) {
+      m_gpubufs[N] = getInputBuffer(renderer, parent, nf);
     });
   }
 };
@@ -639,12 +675,13 @@ struct buffer_outputs_storage<T>
 {
   std::pair<const score::gfx::Port*, QRhiBuffer*> m_buffers[avnd::buffer_output_introspection<T>::size];
 
+  QRhiResourceUpdateBatch* currentResourceUpdateBatch{};
   std::pair<const score::gfx::Port*, QRhiBuffer*>
-  createOutput(score::gfx::RenderList& renderer, score::gfx::Port& port, const avnd::cpu_buffer auto& cpu_buf)
+  createOutput(score::gfx::RenderList& renderer, score::gfx::Port& port, auto& buf)
   {
     auto& rhi = *renderer.state.rhi;
     QRhiBuffer* buffer = nullptr;
-    if(const auto bs = avnd::get_bytesize(cpu_buf); bs > 0)
+    if(const auto bs = avnd::get_bytesize(buf); bs > 0)
     {
       buffer = rhi.newBuffer(
           QRhiBuffer::Static
@@ -665,8 +702,64 @@ struct buffer_outputs_storage<T>
         (Field& port, avnd::predicate_index<N> np, avnd::field_index<NField> nf) {
       SCORE_ASSERT(parent.output.size() > nf);
       SCORE_ASSERT(parent.output[nf]->type == score::gfx::Types::Buffer);
-      m_buffers[N] = createOutput(renderer, *parent.output[nf], port.buffer);
+
+      if constexpr(requires { port.buffer.upload((const char*)nullptr, 1000, 0); })
+      {
+        auto& [gfx_port, buf] = m_buffers[N];
+        gfx_port = parent.output[nf];
+        buf = renderer.state.rhi->newBuffer(
+            QRhiBuffer::Static
+            , QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer
+            , 1);
+
+        buf->create();
+
+        port.buffer.upload = [this, &renderer, &port] (const char* data, int64_t offset, int64_t bytesize) {
+          SCORE_ASSERT(currentResourceUpdateBatch);
+          auto& [gfx_port, buf] = m_buffers[N];
+
+          if(!buf)
+          {
+            if(bytesize > 0)
+            {
+              buf = renderer.state.rhi->newBuffer(
+                  QRhiBuffer::Static
+                  , QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer
+                  , bytesize);
+
+              buf->create();
+            }
+            else
+            {
+              buf = renderer.state.rhi->newBuffer(
+                  QRhiBuffer::Static
+                  , QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer
+                  , 1);
+
+              buf->create();
+              return;
+            }
+          }
+          else if(buf->size() != bytesize)
+          {
+            buf->destroy();
+            buf->setSize(bytesize);
+            buf->create();
+          }
+
+          currentResourceUpdateBatch->updateDynamicBuffer(buf, offset, bytesize, data);
+        };
+      }
+      else
+      {
+        m_buffers[N] = createOutput(renderer, *parent.output[nf], port.buffer);
+      }
     });
+  }
+
+  void prepareUpload(QRhiResourceUpdateBatch& res)
+  {
+    currentResourceUpdateBatch = &res;
   }
 
   void upload(score::gfx::RenderList& renderer, auto& state, QRhiResourceUpdateBatch& res)
@@ -674,20 +767,16 @@ struct buffer_outputs_storage<T>
     avnd::buffer_output_introspection<T>::for_all_n(
         avnd::get_outputs<T>(state), [&]<std::size_t N>(auto& t, avnd::predicate_index<N> idx) {
       auto& [port, buf] = m_buffers[N];
-      uploadOutputBuffer(renderer, t.buffer, res, port, buf);
+      uploadOutputBuffer(renderer, t.buffer, res, buf);
     });
   }
 
-  void release()
+  void release(score::gfx::RenderList& renderer)
   {
     // Free outputs
     for(auto& [p, buf] : m_buffers)
     {
-      if(buf)
-      {
-        buf->destroy();
-        buf->deleteLater();
-      }
+      renderer.releaseBuffer(buf);
     }
   }
 };
@@ -699,6 +788,10 @@ struct buffer_outputs_storage<T>
   static void init(auto&&...)
   {
 
+  }
+
+  static void prepareUpload(auto&&...)
+  {
   }
 
   static void upload(auto&&...)
