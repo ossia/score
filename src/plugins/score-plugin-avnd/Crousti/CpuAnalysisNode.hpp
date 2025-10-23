@@ -132,7 +132,7 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
     m_last_time = parent.last_message.token.date;
 
     texture_ins.runInitialPasses(*this, rhi);
-    buffer_ins.readInputBuffers(rhi, *state);
+    buffer_ins.readInputBuffers(renderer, parent, *state);
 
     parent.processControlIn(
         *this, *state, m_last_message, parent.last_message, parent.m_ctx);

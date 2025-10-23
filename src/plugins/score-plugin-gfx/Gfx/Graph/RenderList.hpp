@@ -59,6 +59,8 @@ public:
    */
   void release();
 
+  void releaseBuffer(QRhiBuffer* buf);
+
   /**
    * @brief Check if the render size has changed in order to rebuild the pipelines.
    */

@@ -73,6 +73,7 @@ void CustomMesh::update_vbo(const ossia::geometry::cpu_buffer &vtx_buf, MeshBuff
 
 void CustomMesh::update_vbo(const ossia::geometry::gpu_buffer &vtx_buf, MeshBuffers &meshbuf, QRhiResourceUpdateBatch &rb) const noexcept
 {
+  meshbuf.mesh = static_cast<QRhiBuffer*>(vtx_buf.handle);
 }
 
 void CustomMesh::update_index(const ossia::geometry::cpu_buffer &idx_buf, MeshBuffers &meshbuf, QRhiResourceUpdateBatch &rb) const noexcept
@@ -239,6 +240,8 @@ void CustomMesh::draw(const MeshBuffers &bufs, QRhiCommandBuffer &cb) const noex
     for(auto& in : g.input)
     {
       bindings[i++] = {bufs.mesh, in.offset};
+      if(!bufs.mesh)
+        return;
     }
 
     if(g.index.buffer >= 0)
