@@ -214,7 +214,7 @@ RenderedCSFNode::getTextureFormat(const QString& format) const noexcept
   return QRhiTexture::RGBA8;
 }
 
-int RenderedCSFNode::calculateStorageBufferSize(const std::vector<isf::storage_input::layout_field>& layout, int arrayCount) const
+int RenderedCSFNode::calculateStorageBufferSize(std::span<const isf::storage_input::layout_field> layout, int arrayCount) const
 {
   if(layout.empty() || arrayCount <= 0)
     return 0;
@@ -244,7 +244,7 @@ int RenderedCSFNode::calculateStorageBufferSize(const std::vector<isf::storage_i
       // flexible arrays are handled by arrayCount
       QString baseType = type.left(type.length() - 2);
       // Recursive call for array element size
-      std::vector<isf::storage_input::layout_field> singleField = {{field.name, baseType.toStdString()}};
+      isf::storage_input::layout_field singleField[1] = {{field.name, baseType.toStdString()}};
       fieldSize = calculateStorageBufferSize(singleField, 1);
     }
     else
@@ -348,6 +348,16 @@ int RenderedCSFNode::getArraySizeFromUI(const QString& bufferName) const
   return 1024;
 }
 
+QRhiBuffer *RenderedCSFNode::bufferForOutput(const Port &output)
+{
+  for(auto& [port, index] : this->m_outStorageBuffers) {
+    if(&output == port) {
+      return this->m_storageBuffers[index].buffer;
+    }
+  }
+  return nullptr;
+}
+
 void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
   bool buffersChanged = false;
@@ -391,7 +401,7 @@ void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpd
       {
         // Initialize buffer with zero data for predictable behavior
         QByteArray zeroData(requiredSize, 0);
-        res.uploadStaticBuffer(storageBuffer.buffer, zeroData.constData());
+        score::gfx::uploadStaticBufferWithStoredData(&res, storageBuffer.buffer, 0, std::move(zeroData));
       }
       
       buffersChanged = true;
@@ -481,6 +491,12 @@ void RenderedCSFNode::initComputePass(
               bindingIndex++, QRhiShaderResourceBinding::ComputeStage, 
               it->buffer));
           output_port_index++;
+        }
+      }
+      else
+      {
+        if(!it->buffer) {
+          qDebug() << "CSF: cannot bind null buffer";
         }
       }
     }
@@ -631,8 +647,12 @@ void RenderedCSFNode::initComputePass(
     m_computePipeline->setShaderResourceBindings(passSRB);
     m_computePipeline->create();
 
-    // Also create the graphics pass for rendering the compute output
-    createGraphicsPass(rt, renderer, edge, res);
+    if(rt.renderTarget)
+    {
+      // Also create the graphics pass for rendering the compute output
+      createGraphicsPass(rt, renderer, edge, res);
+      // FIXME we need to do this for every out!
+    }
   }
 }
 
@@ -841,6 +861,9 @@ void RenderedCSFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
   // Parse descriptor to create storage buffers and determine output texture requirements
   QString outputFormat = "RGBA8"; // Default format
   
+  int sb_index = 0;
+  int outlet_index = 0;
+  auto& outlets = n.output;
   for(const auto& input : n.m_descriptor.inputs)
   {
     // Handle storage buffers
@@ -855,6 +878,12 @@ void RenderedCSFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
       sb.access = QString::fromStdString(storage->access);
       sb.layout = storage->layout; // Store layout for size calculation
       m_storageBuffers.push_back(sb);
+
+      if(sb.access.contains("write")) {
+        m_outStorageBuffers.push_back({outlets[outlet_index], sb_index});
+        outlet_index++;
+        sb_index++;
+      }
     }
     // Handle CSF images
     else if(auto* image = ossia::get_if<isf::csf_image_input>(&input.data))
@@ -864,6 +893,10 @@ void RenderedCSFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
           StorageImage{
               nullptr, QString::fromStdString(input.name),
               QString::fromStdString(image->access), format});
+
+      if(m_storageImages.back().access.contains("write")) {
+        outlet_index++;
+      }
     }
   }
 
@@ -872,11 +905,8 @@ void RenderedCSFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
   // Create the compute passes for each output edge
   for(Edge* edge : n.output[0]->edges)
   {
-    auto rt = renderer.renderTargetForOutput(*edge);
-    if(rt.renderTarget)
-    {
-      initComputePass(rt, renderer, *edge, res);
-    }
+    const auto& rt = renderer.renderTargetForOutput(*edge);
+    initComputePass(rt, renderer, *edge, res);
   }
 }
 
@@ -1124,7 +1154,7 @@ void RenderedCSFNode::release(RenderList& r)
   // Clean up storage buffers
   for(auto& storageBuffer : m_storageBuffers)
   {
-    delete storageBuffer.buffer;
+    r.releaseBuffer(storageBuffer.buffer);
   }
   m_storageBuffers.clear();
   
@@ -1212,22 +1242,21 @@ void RenderedCSFNode::runInitialPasses(
     commands.setShaderResources(pass.srb);
     
     // Calculate dispatch size based on pass configuration
-    QSize textureSize = m_outputTexture ? m_outputTexture->pixelSize() : QSize(1280, 720);
     
     // Use pass-specific local sizes
-    int workgroupX = passDesc.local_size[0];
-    int workgroupY = passDesc.local_size[1];
-    int workgroupZ = passDesc.local_size[2];
-    (void)workgroupZ; // Currently unused but may be needed for 3D dispatches
+    int localX = passDesc.local_size[0];
+    int localY = passDesc.local_size[1];
+    int localZ = passDesc.local_size[2];
     
-    int dispatchX, dispatchY, dispatchZ;
+    int dispatchX{}, dispatchY{}, dispatchZ{};
     
     // Calculate dispatch size based on execution model
     if(passDesc.execution_type == "2D_IMAGE")
     {
       // For 2D image execution, dispatch based on image size and workgroup size
-      dispatchX = (textureSize.width() + workgroupX - 1) / workgroupX;
-      dispatchY = (textureSize.height() + workgroupY - 1) / workgroupY;
+      QSize textureSize = m_outputTexture ? m_outputTexture->pixelSize() : QSize(1280, 720);
+      dispatchX = (textureSize.width() + localX - 1) / localX;
+      dispatchY = (textureSize.height() + localY - 1) / localY;
       dispatchZ = 1;
     }
     else if(passDesc.execution_type == "MANUAL")
@@ -1239,17 +1268,44 @@ void RenderedCSFNode::runInitialPasses(
     }
     else if(passDesc.execution_type == "1D_BUFFER")
     {
-      // For 1D buffer execution, calculate based on buffer size
-      // This would need buffer size information from the target resource
-      dispatchX = (textureSize.width() + workgroupX - 1) / workgroupX;
-      dispatchY = 1;
-      dispatchZ = 1;
+      int n = 1;
+      for(auto& [port, index] : this->m_outStorageBuffers) {
+        if(port == edge.source) {
+          n = this->m_storageBuffers[index].size;
+          break;
+        }
+      }
+
+      const auto requiredInvocations = n;
+      const auto threadsPerWorkgroup = localX * localY * localZ;
+      const int64_t totalWorkgroups = (requiredInvocations + threadsPerWorkgroup - 1) / threadsPerWorkgroup;
+
+      if(totalWorkgroups > 65535LL * 65535LL)
+      {
+        dispatchX = 65535;
+        int64_t remaining = (totalWorkgroups + 65535 - 1) / 65535;
+        dispatchY = std::min(remaining, 65535LL);
+        dispatchZ = (remaining + 65535 - 1) / 65535;
+      }
+      else if(totalWorkgroups > 65535LL)
+      {
+        dispatchX = std::min(totalWorkgroups, 65535LL);
+        dispatchY = (totalWorkgroups + 65535 - 1) / 65535;
+        dispatchZ = 1;
+      }
+      else
+      {
+        dispatchX = totalWorkgroups;
+        dispatchY = 1;
+        dispatchZ = 1;
+      }
     }
     else
     {
       // Default fallback
-      dispatchX = (textureSize.width() + workgroupX - 1) / workgroupX;
-      dispatchY = (textureSize.height() + workgroupY - 1) / workgroupY;
+      QSize textureSize = m_outputTexture ? m_outputTexture->pixelSize() : QSize(1280, 720);
+      dispatchX = (textureSize.width() + localX - 1) / localX;
+      dispatchY = (textureSize.height() + localY - 1) / localY;
       dispatchZ = 1;
     }
 

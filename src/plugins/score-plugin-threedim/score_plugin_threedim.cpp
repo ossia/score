@@ -181,7 +181,7 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
   oscr::instantiate_fx<Threedim::Cylinder>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Cone>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Torus>(fx, ctx, key);
-  oscr::instantiate_fx<Threedim::PCLToMesh>(fx, ctx, key);
+  //oscr::instantiate_fx<Threedim::PCLToMesh2>(fx, ctx, key);
   auto add = instantiate_factories<
       score::ApplicationContext,
       FW<Process::ProcessModelFactory, Gfx::ModelDisplay::ProcessFactory>,

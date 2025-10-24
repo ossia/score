@@ -6,11 +6,7 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 #include <Crousti/CpuAnalysisNode.hpp>
-#include <Crousti/CpuBufferAnalysisNode.hpp>
-#include <Crousti/CpuBufferFilterNode.hpp>
-#include <Crousti/CpuBufferGeneratorNode.hpp>
 #include <Crousti/CpuFilterNode.hpp>
-#include <Crousti/CpuGeneratorNode.hpp>
 #include <Crousti/ExecutorPortSetup.hpp>
 #include <Crousti/ExecutorUpdateControlValueInUi.hpp>
 #include <Crousti/File.hpp>

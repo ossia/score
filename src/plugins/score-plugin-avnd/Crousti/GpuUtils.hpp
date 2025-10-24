@@ -565,7 +565,7 @@ static void uploadOutputBuffer(
   {
     const auto bytesize = avnd::get_bytesize(cpu_buf);
     recreateOutputBuffer(renderer, cpu_buf, res, buf);
-    res.updateDynamicBuffer(buf, 0, bytesize, avnd::get_bytes(cpu_buf));
+    score::gfx::uploadStaticBufferWithStoredData(&res, buf, 0, bytesize, (const char*)avnd::get_bytes(cpu_buf));
     cpu_buf.changed = false;
   }
 }
@@ -747,7 +747,7 @@ struct buffer_outputs_storage<T>
             buf->create();
           }
 
-          currentResourceUpdateBatch->updateDynamicBuffer(buf, offset, bytesize, data);
+          score::gfx::uploadStaticBufferWithStoredData(currentResourceUpdateBatch, buf, offset, bytesize, data);
         };
       }
       else

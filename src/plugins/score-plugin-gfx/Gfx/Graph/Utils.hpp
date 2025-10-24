@@ -287,15 +287,79 @@ inline void copyMatrix(const QMatrix3x3& mat, float* ptr) noexcept
 }
 
 /**
- * @brief Comput the scale to apply to a texture so that it fits in a GL viewport.
+ * @brief Compute the scale to apply to a texture so that it fits in a GL viewport.
  */
 SCORE_PLUGIN_GFX_EXPORT
 QSizeF computeScaleForMeshSizing(score::gfx::ScaleMode mode, QSizeF viewport, QSizeF texture);
 
 /**
- * @brief Comput the scale to apply to a texture rendered to a quad the size of viewport
+ * @brief Compute the scale to apply to a texture rendered to a quad the size of viewport
  */
 SCORE_PLUGIN_GFX_EXPORT
 QSizeF computeScaleForTexcoordSizing(
     score::gfx::ScaleMode mode, QSizeF viewport, QSizeF texture);
+
+/**
+ * @brief Schedule a Dynamic buffer update when we can guarantee the buffer outlives the frame.
+ */
+inline void updateDynamicBufferWithStoredData(
+    QRhiResourceUpdateBatch* ub
+  , QRhiBuffer* buf
+  , int offset
+  , int64_t bytesize
+  , const char* data
+  )
+{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
+  ub->updateDynamicBuffer(buf, offset, QByteArray::fromRawData(data, bytesize));
+#else
+  ub->updateDynamicBuffer(buf, offset, bytesize, data);
+#endif
+}
+
+inline void updateDynamicBufferWithStoredData(
+    QRhiResourceUpdateBatch* ub
+    , QRhiBuffer* buf
+    , int offset
+    , QByteArray b
+    )
+{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
+  ub->updateDynamicBuffer(buf, offset, std::move(b));
+#else
+  ub->updateDynamicBuffer(buf, offset, b.size(), b.data());
+#endif
+}
+
+/**
+ * @brief Schedule a Static buffer update when we can guarantee the buffer outlives the frame.
+ */
+inline void uploadStaticBufferWithStoredData(
+    QRhiResourceUpdateBatch* ub
+    , QRhiBuffer* buf
+    , int offset
+    , int64_t bytesize
+    , const char* data
+    )
+{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
+  ub->uploadStaticBuffer(buf, offset, QByteArray::fromRawData(data, bytesize));
+#else
+  ub->uploadStaticBuffer(buf, offset, bytesize, data);
+#endif
+}
+
+inline void uploadStaticBufferWithStoredData(
+    QRhiResourceUpdateBatch* ub
+    , QRhiBuffer* buf
+    , int offset
+    , QByteArray b
+    )
+{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
+  ub->uploadStaticBuffer(buf, offset, std::move(b));
+#else
+  ub->uploadStaticBuffer(buf, offset, b.size(), b.data());
+#endif
+}
 }
