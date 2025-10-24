@@ -1429,7 +1429,9 @@ inline void convertTexture(QRhiTexture::Format out_format, QRhiTexture::Format i
     case QRhiTexture::RGBA16F:
     case QRhiTexture::RG8:
     case QRhiTexture::R16F:
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
     case QRhiTexture::RGB10A2:
+#endif
 #if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
     case QRhiTexture::RG32UI:
 #endif
