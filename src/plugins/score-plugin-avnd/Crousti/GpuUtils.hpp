@@ -514,7 +514,7 @@ static void readbackInputBuffer(
     score::gfx::RenderList& renderer
     , QRhiResourceUpdateBatch& res
     , const score::gfx::Node& parent
-    , QRhiReadbackResult& readback
+    , QRhiBufferReadbackResult& readback
     , int port_index
     )
 {
@@ -584,7 +584,7 @@ template<typename T>
   requires (avnd::buffer_input_introspection<T>::size > 0)
 struct buffer_inputs_storage<T>
 {
-  QRhiReadbackResult m_readbacks[avnd::cpu_buffer_input_introspection<T>::size];
+  QRhiBufferReadbackResult m_readbacks[avnd::cpu_buffer_input_introspection<T>::size];
   QRhiBuffer* m_gpubufs[avnd::gpu_buffer_input_introspection<T>::size];
 
   void readInputBuffers(

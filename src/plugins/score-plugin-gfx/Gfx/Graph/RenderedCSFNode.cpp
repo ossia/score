@@ -1279,18 +1279,19 @@ void RenderedCSFNode::runInitialPasses(
       const auto requiredInvocations = n;
       const auto threadsPerWorkgroup = localX * localY * localZ;
       const int64_t totalWorkgroups = (requiredInvocations + threadsPerWorkgroup - 1) / threadsPerWorkgroup;
+      static constexpr int64_t maxWorkgroups = 65535;
 
-      if(totalWorkgroups > 65535LL * 65535LL)
+      if(totalWorkgroups > maxWorkgroups * maxWorkgroups)
       {
-        dispatchX = 65535;
-        int64_t remaining = (totalWorkgroups + 65535 - 1) / 65535;
-        dispatchY = std::min(remaining, 65535LL);
-        dispatchZ = (remaining + 65535 - 1) / 65535;
+        dispatchX = maxWorkgroups;
+        int64_t remaining = (totalWorkgroups + maxWorkgroups - 1) / maxWorkgroups;
+        dispatchY = std::min(remaining, maxWorkgroups);
+        dispatchZ = (remaining + maxWorkgroups - 1) / maxWorkgroups;
       }
-      else if(totalWorkgroups > 65535LL)
+      else if(totalWorkgroups > maxWorkgroups)
       {
-        dispatchX = std::min(totalWorkgroups, 65535LL);
-        dispatchY = (totalWorkgroups + 65535 - 1) / 65535;
+        dispatchX = std::min(totalWorkgroups, maxWorkgroups);
+        dispatchY = (totalWorkgroups + maxWorkgroups - 1) / maxWorkgroups;
         dispatchZ = 1;
       }
       else
