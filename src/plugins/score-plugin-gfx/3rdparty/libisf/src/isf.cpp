@@ -2494,7 +2494,6 @@ void parser::parse_csf()
   }
 
   // Generate uniform buffer for ISF-style inputs
-  int binding = 2; // Start at 2 since ProcessUBO takes slots 0 and 1
   bool has_uniforms = false;
 
   // Count ISF-style inputs (non-resource types)
@@ -2508,6 +2507,8 @@ void parser::parse_csf()
       break;
     }
   }
+
+  int binding = has_uniforms ? 3 : 2; // Start at 2 since ProcessUBO takes slots 0 and 1
 
   if(has_uniforms)
   {

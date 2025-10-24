@@ -144,7 +144,7 @@ struct isf_input_port_vis
     if(in.access == "read_only")
     {
       // Create input port for read-only storage buffer
-      self.input.push_back(new Port{&self, {}, Types::Image, {}});
+      self.input.push_back(new Port{&self, {}, Types::Buffer, {}});
     }
     else if(in.access.contains("write"))
     {

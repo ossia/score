@@ -38,11 +38,13 @@ private:
   QSize computeTextureSize(const isf::csf_image_input& img) const noexcept;
 
   // Buffer management methods
-  int calculateStorageBufferSize(const std::vector<isf::storage_input::layout_field>& layout, int arrayCount) const;
+  int calculateStorageBufferSize(std::span<const isf::storage_input::layout_field> layout, int arrayCount) const;
   QRhiBuffer* createStorageBuffer(RenderList& renderer, const QString& name, const QString& access, int size);
   void updateStorageBuffers(RenderList& renderer, QRhiResourceUpdateBatch& res);
   void recreateShaderResourceBindings(RenderList& renderer, QRhiResourceUpdateBatch& res);
   int getArraySizeFromUI(const QString& bufferName) const;
+
+  QRhiBuffer* bufferForOutput(const score::gfx::Port& output) override;
 
   ossia::small_flat_map<const Port*, TextureRenderTarget, 2> m_rts;
 
@@ -77,7 +79,10 @@ private:
     QString access; // "read_only", "write_only", "read_write"
     std::vector<isf::storage_input::layout_field> layout; // For size calculation
   };
-  std::vector<StorageBuffer> m_storageBuffers;
+  std::vector<StorageBuffer> m_storageBuffers; // Contains both ins and outs
+
+  // Only outs, matched with index in m_storageBuffers
+  std::vector<std::pair<const score::gfx::Port*, int>> m_outStorageBuffers;
 
   // Storage images for compute shaders
   struct StorageImage

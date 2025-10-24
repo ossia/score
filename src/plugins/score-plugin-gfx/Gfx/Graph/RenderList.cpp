@@ -245,9 +245,7 @@ RenderList::Buffers RenderList::acquireMesh(
   const auto& [p, f] = spec;
   if(auto it = m_customMeshCache.find(spec); it != m_customMeshCache.end())
   {
-    auto m = const_cast<CustomMesh*>(safe_cast<const CustomMesh*>(it->second));
-
-    if(m)
+    if(auto m = const_cast<CustomMesh*>(safe_cast<const CustomMesh*>(it->second)))
     {
       auto meshbufs_it = this->m_vertexBuffers.find(m);
       SCORE_ASSERT(meshbufs_it != this->m_vertexBuffers.end());
@@ -298,9 +296,7 @@ RenderList::Buffers RenderList::acquireMesh(
   {
     if(v == current)
     {
-      auto m = const_cast<CustomMesh*>(safe_cast<const CustomMesh*>(current));
-
-      if(m)
+      if(auto m = const_cast<CustomMesh*>(safe_cast<const CustomMesh*>(current)))
       {
         auto meshbufs_it = this->m_vertexBuffers.find(m);
         SCORE_ASSERT(meshbufs_it != this->m_vertexBuffers.end());
@@ -571,13 +567,15 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
           NodeRenderer* renderer = rendered->second;
           // if(auto rt = renderer->bufferForInput(*input))
           {
+            if(updateBatch) {
+              commands.resourceUpdate(updateBatch);
+              updateBatch = nullptr;
+            }
+
+            renderer->inputAboutToFinish(*this, *input, updateBatch);
+            SCORE_ASSERT(updateBatch);
             commands.resourceUpdate(updateBatch);
             updateBatch = nullptr;
-
-            QRhiResourceUpdateBatch* res{};
-            renderer->inputAboutToFinish(*this, *input, res);
-            commands.resourceUpdate(res);
-            res = nullptr;
           }
           // else
           // {
