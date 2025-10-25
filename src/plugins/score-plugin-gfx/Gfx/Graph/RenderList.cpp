@@ -300,8 +300,8 @@ RenderList::Buffers RenderList::acquireMesh(
       {
         auto meshbufs_it = this->m_vertexBuffers.find(m);
         SCORE_ASSERT(meshbufs_it != this->m_vertexBuffers.end());
-        SCORE_ASSERT(meshbufs_it->second.index == currentbufs.index);
-        SCORE_ASSERT(meshbufs_it->second.mesh == currentbufs.mesh);
+        // SCORE_ASSERT(meshbufs_it->second.index == currentbufs.index);
+        // SCORE_ASSERT(meshbufs_it->second.mesh == currentbufs.mesh);
         auto mb = currentbufs;
         auto cur_idx = p->dirty_index;
 

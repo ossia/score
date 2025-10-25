@@ -2499,56 +2499,79 @@ void parser::parse_csf()
   // Count ISF-style inputs (non-resource types)
   for(const auto& inp : m_desc.inputs)
   {
-    if(!ossia::get_if<storage_input>(&inp.data)
-       && !ossia::get_if<texture_input>(&inp.data)
-       && !ossia::get_if<csf_image_input>(&inp.data))
+    auto storage = ossia::get_if<storage_input>(&inp.data);
+    if(storage && storage->access.contains("write"))
+    {
+      has_uniforms = true;
+      break;
+    }
+    auto image = ossia::get_if<csf_image_input>(&inp.data);
+    if(image && image->access.contains("write"))
+    {
+      has_uniforms = true;
+      break;
+    }
+
+    if(!storage && !image && !ossia::get_if<texture_input>(&inp.data))
     {
       has_uniforms = true;
       break;
     }
   }
 
-  int binding = has_uniforms ? 3 : 2; // Start at 2 since ProcessUBO takes slots 0 and 1
+  int binding = 2; // Start at 2 since ProcessUBO takes slots 0 and 1
 
   if(has_uniforms)
   {
-    m_fragment += "// Automatically generated uniform block from INPUTS\n";
-    m_fragment += "layout(std140, binding = 2) uniform Params {\n";
+    std::string material_block;
+    material_block += "// Automatically generated uniform block from INPUTS\n";
+    material_block += "layout(std140, binding = 2) uniform Params {\n";
 
+    int k = 0;
     for(const auto& inp : m_desc.inputs)
     {
       // Generate uniform declarations for ISF-style inputs
       if(ossia::get_if<float_input>(&inp.data))
       {
-        m_fragment += "    float " + inp.name + ";\n";
+        k++;
+        material_block += "    float " + inp.name + ";\n";
       }
       else if(ossia::get_if<long_input>(&inp.data))
       {
-        m_fragment += "    int " + inp.name + ";\n";
+        k++;
+        material_block += "    int " + inp.name + ";\n";
       }
       else if(ossia::get_if<bool_input>(&inp.data))
       {
-        m_fragment += "    bool " + inp.name + ";\n";
+        k++;
+        material_block += "    bool " + inp.name + ";\n";
       }
       else if(ossia::get_if<point2d_input>(&inp.data))
       {
-        m_fragment += "    vec2 " + inp.name + ";\n";
+        k++;
+        material_block += "    vec2 " + inp.name + ";\n";
       }
       else if(ossia::get_if<point3d_input>(&inp.data))
       {
-        m_fragment += "    vec3 " + inp.name + ";\n";
+        k++;
+        material_block += "    vec3 " + inp.name + ";\n";
       }
       else if(ossia::get_if<color_input>(&inp.data))
       {
-        m_fragment += "    vec4 " + inp.name + ";\n";
+        k++;
+        material_block += "    vec4 " + inp.name + ";\n";
       }
       else if(ossia::get_if<event_input>(&inp.data))
       {
-        m_fragment += "    bool " + inp.name + ";\n";
+        k++;
+        material_block += "    bool " + inp.name + ";\n";
       }
     }
 
-    m_fragment += "};\n\n";
+    material_block += "};\n\n";
+
+    if(k>0)
+      m_fragment += material_block;
     binding++;
   }
 

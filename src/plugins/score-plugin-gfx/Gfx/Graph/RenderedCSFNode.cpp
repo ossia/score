@@ -309,7 +309,7 @@ int RenderedCSFNode::getArraySizeFromUI(const QString& bufferName) const
   port_indices p;
 
   int storageSizeInputIndex = -1;
-  const std::string name = bufferName.toStdString();
+  const std::string& name = bufferName.toStdString();
   for(std::size_t i = 0; i < n.m_descriptor.inputs.size(); i++)
   {
     const auto& input = n.m_descriptor.inputs[i];

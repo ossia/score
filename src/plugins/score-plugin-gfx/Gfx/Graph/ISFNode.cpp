@@ -181,6 +181,9 @@ struct isf_input_port_vis
     {
       // Output port for the image
       self.output.push_back(new Port{&self, {}, Types::Image, {}});
+      // FIXME:
+      // (*this)(isf::point2d_input{ ... });
+      // (*this)(isf::long_input{ ... });
     }
   }
 };
