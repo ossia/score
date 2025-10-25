@@ -14,6 +14,116 @@
 
 namespace score::gfx
 {
+static QRhiTexture::Format
+getTextureFormat(const QString& format)  noexcept
+{
+  // Map CSF format strings to Qt RHI texture formats
+  if(format == "RGBA8")
+    return QRhiTexture::RGBA8;
+  else if(format == "BGRA8")
+    return QRhiTexture::BGRA8;
+  else if(format == "R8")
+    return QRhiTexture::R8;
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
+  else if(format == "RG8")
+    return QRhiTexture::RG8;
+#endif
+  else if(format == "R16")
+    return QRhiTexture::R16;
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
+  else if(format == "RG16")
+    return QRhiTexture::RG16;
+#endif
+  else if(format == "RGBA16F") return QRhiTexture::RGBA16F;
+  else if(format == "RGBA32F") return QRhiTexture::RGBA32F;
+  else if(format == "R16F")
+    return QRhiTexture::R16F;
+  else if(format == "R32F")
+    return QRhiTexture::R32F;
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
+  else if(format == "RGB10A2")
+    return QRhiTexture::RGB10A2;
+#endif
+  // Default to RGBA8 if format not recognized
+  return QRhiTexture::RGBA8;
+}
+
+static QString rhiTextureFormatToShaderLayoutFormatString(QRhiTexture::Format fmt)
+{
+  switch(fmt)
+  {
+    case QRhiTexture::Format::RGBA8:
+    case QRhiTexture::Format::BGRA8:
+      return QStringLiteral("rgba8");
+    case QRhiTexture::Format::RGBA16F:
+      return QStringLiteral("rgba16f");
+    case QRhiTexture::Format::RGBA32F:
+      return QStringLiteral("rgba32f");
+
+    case QRhiTexture::Format::R8:
+    case QRhiTexture::Format::RED_OR_ALPHA8:
+      return QStringLiteral("r8");
+
+    case QRhiTexture::Format::R16:
+      return QStringLiteral("r16");
+    case QRhiTexture::Format::R16F:
+      return QStringLiteral("r16f");
+    case QRhiTexture::Format::R32F:
+      return QStringLiteral("r32f");
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
+    case QRhiTexture::RG8:
+      return QStringLiteral("rg8");
+    case QRhiTexture::RG16:
+      return QStringLiteral("rg16");
+    case QRhiTexture::RGB10A2:
+      return QStringLiteral("rgba10_a2");
+    case QRhiTexture::Format::D24:
+      return QStringLiteral("r32ui");
+    case QRhiTexture::Format::D24S8:
+      return QStringLiteral("r32ui");
+#endif
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
+    case QRhiTexture::Format::R8UI:
+      return QStringLiteral("r8ui");
+    case QRhiTexture::Format::R32UI:
+      return QStringLiteral("r32ui");
+    case QRhiTexture::RG32UI:
+      return QStringLiteral("rg32ui");
+    case QRhiTexture::RGBA32UI:
+      return QStringLiteral("rgba32ui");
+    case QRhiTexture::Format::D32FS8:
+      // ???
+      break;
+#endif
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
+    case QRhiTexture::Format::R8SI:
+      return QStringLiteral("r8i");
+    case QRhiTexture::Format::R32SI:
+      return QStringLiteral("r32i");
+    case QRhiTexture::RG32SI:
+      return QStringLiteral("rg32i");
+    case QRhiTexture::RGBA32SI:
+      return QStringLiteral("rgba32i");
+#endif
+
+    case QRhiTexture::Format::D16:
+      return QStringLiteral("r16");
+    case QRhiTexture::Format::D32F:
+      return QStringLiteral("r32f");
+      break;
+    case QRhiTexture::UnknownFormat:
+    default:
+      break;
+  }
+  return QStringLiteral("rgba8");
+}
+
 
 RenderedCSFNode::RenderedCSFNode(const ISFNode& node) noexcept
     : NodeRenderer{node}
@@ -176,42 +286,6 @@ RenderedCSFNode::getImageSize(const isf::csf_image_input& img) const noexcept
 
   // 3. If not: take size of renderer
   return std::nullopt;
-}
-QRhiTexture::Format
-RenderedCSFNode::getTextureFormat(const QString& format) const noexcept
-{
-  // Map CSF format strings to Qt RHI texture formats
-  if(format == "RGBA8")
-    return QRhiTexture::RGBA8;
-  else if(format == "BGRA8")
-    return QRhiTexture::BGRA8;
-  else if(format == "R8")
-    return QRhiTexture::R8;
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
-  else if(format == "RG8")
-    return QRhiTexture::RG8;
-#endif
-  else if(format == "R16")
-    return QRhiTexture::R16;
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
-  else if(format == "RG16")
-    return QRhiTexture::RG16;
-#endif
-  else if(format == "RGBA16F") return QRhiTexture::RGBA16F;
-  else if(format == "RGBA32F") return QRhiTexture::RGBA32F;
-  else if(format == "R16F")
-    return QRhiTexture::R16F;
-  else if(format == "R32F")
-    return QRhiTexture::R32F;
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
-  else if(format == "RGB10A2")
-    return QRhiTexture::RGB10A2;
-#endif
-  // Default to RGBA8 if format not recognized
-  return QRhiTexture::RGBA8;
 }
 
 int RenderedCSFNode::calculateStorageBufferSize(std::span<const isf::storage_input::layout_field> layout, int arrayCount) const
@@ -792,6 +866,39 @@ void main() { fragColor = vec4(texture(outputTexture, v_texcoord).rrr, 1.0); }
   }
 }
 
+QString RenderedCSFNode::updateShaderWithImageFormats(QString current)
+{
+  int sampler_index = 0;
+  for(const auto& input : n.m_descriptor.inputs)
+  {
+    if(auto tex_input = ossia::get_if<isf::texture_input>(&input.data))
+    {
+      sampler_index++;
+    }
+    if(auto image = ossia::get_if<isf::csf_image_input>(&input.data))
+    {
+      if(image->access == "read_only")
+      {
+        SCORE_ASSERT(sampler_index < m_inputSamplers.size());
+        auto tex_n = m_inputSamplers[sampler_index].texture;
+        if(!tex_n)
+          return current;
+
+        const auto fmt = tex_n->format();
+        const auto layout_fmt = rhiTextureFormatToShaderLayoutFormatString(fmt);
+
+        const auto before = QStringLiteral(", rgba8) readonly uniform image2D %1;").arg(input.name.c_str());
+        const auto after = QStringLiteral(", %1) readonly uniform image2D %2;").arg(layout_fmt).arg(input.name.c_str());
+
+        current.replace(before, after);
+        sampler_index++;
+      }
+    }
+  }
+  return current;
+
+}
+
 void RenderedCSFNode::createComputePipeline(RenderList& renderer)
 {
   QRhi& rhi = *renderer.state.rhi;
@@ -805,7 +912,11 @@ void RenderedCSFNode::createComputePipeline(RenderList& renderer)
   try
   {
     // Compile the compute shader
-    QShader computeShader = score::gfx::makeCompute(renderer.state, n.m_computeS);
+    // Here we need to hot-patch the image format with the one we're getting at run-time
+    // as it has to be specified in the shader code:
+    // layout(binding = 3, rgba8) readonly uniform image2D inputImage;
+    const auto shader = updateShaderWithImageFormats(n.m_computeS);
+    QShader computeShader = score::gfx::makeCompute(renderer.state, shader);
     
     // Create compute pipeline but don't create() it yet - we need SRB first
     m_computePipeline = rhi.newComputePipeline();
@@ -859,7 +970,6 @@ void RenderedCSFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
   m_inputSamplers = initInputSamplers(this->n, renderer, n.input, m_rts);
 
   // Parse descriptor to create storage buffers and determine output texture requirements
-  QString outputFormat = "RGBA8"; // Default format
   
   int sb_index = 0;
   int outlet_index = 0;

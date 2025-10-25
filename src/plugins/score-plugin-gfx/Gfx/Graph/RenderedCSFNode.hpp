@@ -33,7 +33,6 @@ private:
   std::vector<Sampler> allSamplers() const noexcept;
 
   // Image management
-  QRhiTexture::Format getTextureFormat(const QString& format) const noexcept;
   std::optional<QSize> getImageSize(const isf::csf_image_input&) const noexcept;
   QSize computeTextureSize(const isf::csf_image_input& img) const noexcept;
 
@@ -43,6 +42,7 @@ private:
   void updateStorageBuffers(RenderList& renderer, QRhiResourceUpdateBatch& res);
   void recreateShaderResourceBindings(RenderList& renderer, QRhiResourceUpdateBatch& res);
   int getArraySizeFromUI(const QString& bufferName) const;
+  QString updateShaderWithImageFormats(QString current);
 
   QRhiBuffer* bufferForOutput(const score::gfx::Port& output) override;
 

@@ -405,6 +405,7 @@ std::shared_ptr<RenderList>
 Graph::createRenderList(OutputNode* output, std::shared_ptr<RenderState> state)
 {
   auto ptr = std::make_shared<RenderList>(*output, state);
+  state->renderer = ptr;
   output->setRenderer(ptr);
   for(auto& node : m_nodes)
     node->addedToGraph = false;
