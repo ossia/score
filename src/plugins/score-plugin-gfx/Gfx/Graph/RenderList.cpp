@@ -480,7 +480,10 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
 
     if(prevRenderers.size() == 0)
     {
-      commands.resourceUpdate(updateBatch);
+      if(updateBatch)
+      {
+        commands.resourceUpdate(updateBatch);
+      }
       updateBatch = state.rhi->nextResourceUpdateBatch();
       SCORE_ASSERT(updateBatch);
     }
@@ -491,7 +494,10 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
       // Most nodes don't do anything there.
       for(auto [edge, prev_renderer] : prevRenderers)
       {
-        commands.resourceUpdate(updateBatch);
+        if(updateBatch)
+        {
+          commands.resourceUpdate(updateBatch);
+        }
         updateBatch = state.rhi->nextResourceUpdateBatch();
         SCORE_ASSERT(updateBatch);
 
