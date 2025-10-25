@@ -66,6 +66,8 @@ add_library(
   Threedim/Primitive.cpp
   Threedim/Noise.hpp
   Threedim/Noise.cpp
+  Threedim/PCLToGeometry.hpp
+  Threedim/PCLToGeometry.cpp
   Threedim/ModelDisplay/Executor.hpp
   Threedim/ModelDisplay/Executor.cpp
   Threedim/ModelDisplay/Metadata.hpp

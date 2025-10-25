@@ -32,110 +32,109 @@ void ObjLoader::rebuild_geometry()
     geom.input.clear();
     if (m.points)
     {
-      geom.topology = halp::dynamic_geometry::points;
-      geom.cull_mode = halp::dynamic_geometry::none;
-      geom.front_face = halp::dynamic_geometry::counter_clockwise;
+      geom.topology = halp::primitive_topology::points;
+      geom.cull_mode = halp::cull_mode::none;
+      geom.front_face = halp::front_face::counter_clockwise;
     }
     else
     {
-      geom.topology = halp::dynamic_geometry::triangles;
-      geom.cull_mode = halp::dynamic_geometry::back;
-      geom.front_face = halp::dynamic_geometry::counter_clockwise;
+      geom.topology = halp::primitive_topology::triangles;
+      geom.cull_mode = halp::cull_mode::back;
+      geom.front_face = halp::front_face::counter_clockwise;
     }
     geom.index = {};
 
     geom.vertices = m.vertices;
 
-    geom.buffers.push_back(halp::dynamic_geometry::buffer{
+    geom.buffers.push_back(halp::geometry_cpu_buffer{
         .data = this->complete.data(),
         .size = int64_t(this->complete.size() * sizeof(float)),
         .dirty = true});
 
     // Bindings
-    geom.bindings.push_back(halp::dynamic_geometry::binding{
+    geom.bindings.push_back(halp::geometry_binding{
         .stride = 3 * sizeof(float),
         .step_rate = 1,
-        .classification = halp::dynamic_geometry::binding::per_vertex});
+        .classification = halp::binding_classification::per_vertex});
 
     if (m.texcoord)
     {
-      geom.bindings.push_back(halp::dynamic_geometry::binding{
+      geom.bindings.push_back(halp::geometry_binding{
           .stride = 2 * sizeof(float),
           .step_rate = 1,
-          .classification = halp::dynamic_geometry::binding::per_vertex});
+          .classification = halp::binding_classification::per_vertex});
     }
 
     if (m.normals)
     {
-      geom.bindings.push_back(halp::dynamic_geometry::binding{
+      geom.bindings.push_back(halp::geometry_binding{
           .stride = 3 * sizeof(float),
           .step_rate = 1,
-          .classification = halp::dynamic_geometry::binding::per_vertex});
+          .classification = halp::binding_classification::per_vertex});
     }
 
     if (m.colors)
     {
-      geom.bindings.push_back(halp::dynamic_geometry::binding{
+      geom.bindings.push_back(halp::geometry_binding{
           .stride = 3 * sizeof(float),
           .step_rate = 1,
-          .classification = halp::dynamic_geometry::binding::per_vertex});
+          .classification = halp::binding_classification::per_vertex});
     }
 
     // Attributes
-    geom.attributes.push_back(halp::dynamic_geometry::attribute{
+    geom.attributes.push_back(halp::geometry_attribute{
         .binding = 0,
-        .location = halp::dynamic_geometry::attribute::position,
-        .format = halp::dynamic_geometry::attribute::float3,
+        .location = halp::attribute_location::position,
+        .format = halp::attribute_format::float3,
         .offset = 0});
 
     if (m.texcoord)
     {
-      geom.attributes.push_back(halp::dynamic_geometry::attribute{
+      geom.attributes.push_back(halp::geometry_attribute{
           .binding = geom.attributes.back().binding + 1,
-          .location = halp::dynamic_geometry::attribute::tex_coord,
-          .format = halp::dynamic_geometry::attribute::float2,
+          .location = halp::attribute_location::tex_coord,
+          .format = halp::attribute_format::float2,
           .offset = 0});
     }
 
     if (m.normals)
     {
-      geom.attributes.push_back(halp::dynamic_geometry::attribute{
+      geom.attributes.push_back(halp::geometry_attribute{
           .binding = geom.attributes.back().binding + 1,
-          .location = halp::dynamic_geometry::attribute::normal,
-          .format = halp::dynamic_geometry::attribute::float3,
+          .location = halp::attribute_location::normal,
+          .format = halp::attribute_format::float3,
           .offset = 0});
     }
 
     if (m.colors)
     {
-      geom.attributes.push_back(halp::dynamic_geometry::attribute{
+      geom.attributes.push_back(halp::geometry_attribute{
           .binding = geom.attributes.back().binding + 1,
-          .location = halp::dynamic_geometry::attribute::color,
-          .format = halp::dynamic_geometry::attribute::float3,
+          .location = halp::attribute_location::color,
+          .format = halp::attribute_format::float3,
           .offset = 0});
     }
 
-    // Vertex input
-    using input_t = struct halp::dynamic_geometry::input;
+    // Vertex input;
     geom.input.push_back(
-        input_t{.buffer = 0, .offset = m.pos_offset * (int)sizeof(float)});
+        halp::geometry_input{.buffer = 0, .offset = m.pos_offset * (int)sizeof(float)});
 
     if (m.texcoord)
     {
       geom.input.push_back(
-          input_t{.buffer = 0, .offset = m.texcoord_offset * (int)sizeof(float)});
+          halp::geometry_input{.buffer = 0, .offset = m.texcoord_offset * (int)sizeof(float)});
     }
 
     if (m.normals)
     {
       geom.input.push_back(
-          input_t{.buffer = 0, .offset = m.normal_offset * (int)sizeof(float)});
+          halp::geometry_input{.buffer = 0, .offset = m.normal_offset * (int)sizeof(float)});
     }
 
     if (m.colors)
     {
       geom.input.push_back(
-          input_t{.buffer = 0, .offset = m.color_offset * (int)sizeof(float)});
+          halp::geometry_input{.buffer = 0, .offset = m.color_offset * (int)sizeof(float)});
     }
     outputs.geometry.mesh.push_back(std::move(geom));
     outputs.geometry.dirty_mesh = true;

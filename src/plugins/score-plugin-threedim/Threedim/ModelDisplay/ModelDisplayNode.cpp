@@ -1061,6 +1061,7 @@ private:
   {
     recreateRenderTarget(renderer);
     const auto& mesh = m_mesh ? *m_mesh : renderer.defaultQuad();
+
     defaultMeshInit(renderer, mesh, res);
     processUBOInit(renderer);
     m_material.init(renderer, node.input, m_samplers);
@@ -1147,6 +1148,7 @@ private:
     }
 
     res.updateDynamicBuffer(m_processUBO, 0, sizeof(ProcessUBO), &n.standardUBO);
+
 
     if(this->geometryChanged)
     {
