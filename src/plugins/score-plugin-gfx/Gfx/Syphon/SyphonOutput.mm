@@ -136,6 +136,7 @@ struct SyphonNode final : score::gfx::OutputNode
     params.fallbackSurface = m_renderState->surface;
     m_renderState->rhi = QRhi::create(QRhi::OpenGLES2, &params, {});
     m_renderState->renderSize = QSize(m_settings.width, m_settings.height);
+    m_renderState->outputSize = m_renderState->renderSize;
     m_renderState->api = score::gfx::GraphicsApi::OpenGL;
     m_renderState->version = QShaderVersion(120);
 
@@ -175,6 +176,7 @@ struct SyphonNode final : score::gfx::OutputNode
       SyphonRenderer(const score::gfx::RenderState& state, const SyphonNode& parent)
         : score::gfx::OutputNodeRenderer{parent}
       {
+        m_rt.texture = parent.m_texture;
         m_rt.renderTarget = parent.m_renderTarget;
         m_rt.renderPass = state.renderPassDescriptor;
       }
