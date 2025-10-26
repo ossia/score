@@ -73,5 +73,6 @@ void ProcessExecutorComponent::cleanup()
       out->nodeId = -1;
     }
   }
+  ProcessComponent_T::cleanup();
 }
 }

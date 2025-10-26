@@ -88,6 +88,7 @@ void ISFExecutorComponent::cleanup()
       out->nodeId = -1;
     }
   }
+  Execution::ProcessComponent::cleanup();
 }
 
 void ISFExecutorComponent::on_shaderChanged(const Gfx::ProcessedProgram& shader)
