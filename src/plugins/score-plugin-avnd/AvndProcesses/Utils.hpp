@@ -18,6 +18,9 @@ filter_filename(const std::string& f, const score::DocumentContext& ctx)
   auto t = QDateTime::currentDateTimeUtc().toString();
   t.replace(':', '_');
   filename.replace("%t", t);
+  if(filename.contains("%n")) {
+    filename = score::addUniqueSuffix(filename);
+  }
   filename = score::locateFilePath(filename, ctx);
   return filename.toUtf8();
 }

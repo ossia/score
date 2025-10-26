@@ -52,11 +52,11 @@ struct AudioRecorder
       if(must_record)
       {
         // Open the file with the correct substitutions
-        auto fname = filter_filename(this->filename, context);
-        if(fname.isEmpty())
+        actual_filename = filter_filename(this->filename, context).toStdString();
+        if(actual_filename.empty())
           return false;
 
-        f.open(fname.toStdString(), channels, rate, 16);
+        f.open(actual_filename, channels, rate, 16);
         return false;
       }
       else
