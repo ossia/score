@@ -640,7 +640,7 @@ IntervalComponentBase::removing(const Process::ProcessModel& e, ProcessComponent
 
         if(auto cc = proc_ptr.lock())
           if(auto gcq = gcq_ptr.lock())
-            gcq->enqueue(gc(std::move(cc)));
+            gcq->enqueue(gc(std::move(cc), std::move(proc)));
       });
     }
     c.cleanup();
