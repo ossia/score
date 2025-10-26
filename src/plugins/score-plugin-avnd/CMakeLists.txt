@@ -154,12 +154,12 @@ add_library(
   score_plugin_avnd
 
   "${AVND_FOLDER}/examples/Advanced/Utilities/ADSR.hpp"
-  "${AVND_FOLDER}/examples/Advanced/Utilities/AudioFilters.hpp"
-  "${AVND_FOLDER}/examples/Advanced/Utilities/Bitcrush.hpp"
-  "${AVND_FOLDER}/examples/Advanced/Utilities/Convolver.hpp"
-  "${AVND_FOLDER}/examples/Advanced/Utilities/Dynamics.hpp"
-  "${AVND_FOLDER}/examples/Advanced/Utilities/Echo.hpp"
-  "${AVND_FOLDER}/examples/Advanced/Utilities/Flanger.hpp"
+  "${AVND_FOLDER}/examples/Advanced/Audio/AudioFilters.hpp"
+  "${AVND_FOLDER}/examples/Advanced/Audio/Bitcrush.hpp"
+  "${AVND_FOLDER}/examples/Advanced/Audio/Convolver.hpp"
+  "${AVND_FOLDER}/examples/Advanced/Audio/Dynamics.hpp"
+  "${AVND_FOLDER}/examples/Advanced/Audio/Echo.hpp"
+  "${AVND_FOLDER}/examples/Advanced/Audio/Flanger.hpp"
 
 
   Avnd/Factories.hpp
@@ -468,7 +468,7 @@ avnd_make_score(
 )
 
 avnd_make_score(
-  SOURCES "${AVND_FOLDER}/examples/Advanced/AI/PromptComposer.hpp"
+  SOURCES "${AVND_FOLDER}/examples/Advanced/AI/PromptInterpolator.hpp"
   TARGET prompt_interpolator
   MAIN_CLASS PromptInterpolator
   NAMESPACE ai
@@ -481,43 +481,43 @@ avnd_make_score(
   NAMESPACE ao
 )
 avnd_make_score(
-  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Bitcrush.hpp"
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Audio/Bitcrush.hpp"
   TARGET bitcrush
   MAIN_CLASS Bitcrush
   NAMESPACE ao
 )
 avnd_make_score(
-  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Dynamics.hpp"
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Audio/Dynamics.hpp"
   TARGET compressor
   MAIN_CLASS Compressor
   NAMESPACE ao
 )
 avnd_make_score(
-  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Dynamics.hpp"
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Audio/Dynamics.hpp"
   TARGET limiter
   MAIN_CLASS Limiter
   NAMESPACE ao
 )
 avnd_make_score(
-  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Echo.hpp"
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Audio/Echo.hpp"
   TARGET echo
   MAIN_CLASS Echo
   NAMESPACE ao
 )
 avnd_make_score(
-  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Flanger.hpp"
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Audio/Flanger.hpp"
   TARGET flanger
   MAIN_CLASS Flanger
   NAMESPACE ao
 )
 avnd_make_score(
-  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Gain.hpp"
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Audio/Gain.hpp"
   TARGET gain
   MAIN_CLASS Gain
   NAMESPACE ao
 )
 avnd_make_score(
-  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/StereoMixer.hpp"
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Audio/StereoMixer.hpp"
   TARGET stereo_mixer
   MAIN_CLASS StereoMixer
   NAMESPACE ao
@@ -558,6 +558,7 @@ avnd_make_score(
   MAIN_CLASS MidiGlide
   NAMESPACE mo
 )
+
 avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Ports/Essentia/stats/Entropy.hpp"
   TARGET essentia_entropy
@@ -762,49 +763,49 @@ avnd_make_score(
 )
 
 avnd_make_score(
-  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/AudioSum.hpp"
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Audio/AudioSum.hpp"
   TARGET audio_sum
   MAIN_CLASS AudioSum
   NAMESPACE ao
 )
 
 avnd_make_score(
-  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/MonoMix.hpp"
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Audio/MonoMix.hpp"
   TARGET mono_mix_8
   MAIN_CLASS MonoMix
   NAMESPACE ao
 )
 
 avnd_make_score(
-  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/QuadPan.hpp"
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Audio/QuadPan.hpp"
   TARGET quad_pan
   MAIN_CLASS QuadPan
   NAMESPACE ao
 )
 
 avnd_make_score(
-  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Silence.hpp"
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Audio/Silence.hpp"
   TARGET silence
   MAIN_CLASS Silence
   NAMESPACE ao
 )
 
 avnd_make_score(
-  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Wavecycle.hpp"
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Synth/Wavecycle.hpp"
   TARGET wavecycle
   MAIN_CLASS Wavecycle
   NAMESPACE ao
 )
 
 avnd_make_score(
-  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/LightnessSampler.hpp"
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Image/LightnessSampler.hpp"
   TARGET lightness_sampler
   MAIN_CLASS LightnessSampler
   NAMESPACE vo
 )
 
 avnd_make_score(
-  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/LightnessComputer.hpp"
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Image/LightnessComputer.hpp"
   TARGET lightness_computer
   MAIN_CLASS LightnessComputer
   NAMESPACE vo

@@ -1,5 +1,5 @@
 
-#include <avnd/../../examples/Advanced/Utilities/AudioFilters.hpp>
+#include <avnd/../../examples/Advanced/Audio/AudioFilters.hpp>
 
 #include <Avnd/Factories.hpp>
 namespace oscr

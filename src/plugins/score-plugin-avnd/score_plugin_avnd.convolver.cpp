@@ -4,7 +4,7 @@
 #include <kfr/kfr.h>
 #if QT_VERSION_CHECK(KFR_VERSION_MAJOR, KFR_VERSION_MINOR, KFR_VERSION_PATCH) \
     >= QT_VERSION_CHECK(5, 0, 2)
-#include <avnd/../../examples/Advanced/Utilities/Convolver.hpp>
+#include <avnd/../../examples/Advanced/Audio/Convolver.hpp>
 #define AVND_HAS_CONVOLVER 1
 #endif
 #endif
