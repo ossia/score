@@ -25,7 +25,11 @@ QString addUniqueSuffix(const QString& fileName)
       num.setNum(i);
       while(num.length() < 4)
         num.prepend('0');
+#if QT_VERSION < QT_VERSION_CHECK(6, 6, 0)
+      concreteFileName = fileName;
+#else
       concreteFileName.assign(fileName);
+#endif
       concreteFileName.replace("%n", num);
       if(!QFile::exists(concreteFileName))
         return concreteFileName;
