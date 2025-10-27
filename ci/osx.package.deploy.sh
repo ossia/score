@@ -12,18 +12,22 @@ sign_app() {
  local entitlements=${1}
  local folder=${2}
 
- find "$folder" -name '*.dylib' \
-   -exec \
-     codesign --force --timestamp --sign "ossia.io" {} \
-   \;
+ if [[ -d "$folder" ]]; then
+   find "$folder" -name '*.dylib' \
+     -exec \
+       codesign --force --timestamp --sign "ossia.io" {} \
+     \;
 
-  codesign \
-      --entitlements "$entitlements" \
-      --force \
-      --timestamp \
-      --options=runtime \
-      --sign "ossia.io" \
-      "$folder"
+    codesign \
+        --entitlements "$entitlements" \
+        --force \
+        --timestamp \
+        --options=runtime \
+        --sign "ossia.io" \
+        "$folder"
+  else
+    echo "'$folder' does not exist: skipping."
+  fi
 }
 
 echo " === code signing === "
