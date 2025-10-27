@@ -287,19 +287,31 @@ void JitCompiler::compile(
   using namespace llvm::orc;
   m_errors.clear();
 
-  auto module
-      = m_driver.compileTranslationUnit(cppCode, flags, opts, *context.getContext());
-
-  if(!module)
+#if LLVM_VERSION_MAJOR >= 21
+  context.withContextDo([&](llvm::LLVMContext* c) {
+#else
   {
-    throw Exception{module.takeError()};
-  }
+    auto c = context.getContext();
+#endif
+    if(!c)
+      throw std::runtime_error("Could not acquire an LLVMContext");
+    auto module = m_driver.compileTranslationUnit(cppCode, flags, opts, *c);
 
-  if(auto Err = m_jit->addIRModule(ThreadSafeModule(std::move(*module), context));
-     bool(Err))
-  {
-    throw Err;
+    if(!module)
+    {
+      throw Exception{module.takeError()};
+    }
+
+    if(auto Err = m_jit->addIRModule(ThreadSafeModule(std::move(*module), context));
+       bool(Err))
+    {
+      throw Err;
+    }
+#if LLVM_VERSION_MAJOR >= 21
+  });
+#else
   }
+#endif
 
   globalAtExit.currentCompiler = globalAtExit.nextCompilerID++;
   m_atExitId = globalAtExit.currentCompiler;

@@ -222,10 +222,20 @@ llvm::Error cc1_main(ArrayRef<const char*> Argv, const char* Argv0, void* MainAd
 
   // Buffer diagnostics from argument parsing so that we can output them using a
   // well formed diagnostic object.
+#if LLVM_VERSION_MAJOR >= 21
+  DiagnosticOptions DiagOpts;
+#else
   IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts = new DiagnosticOptions();
+#endif
   TextDiagnosticBuffer* DiagsBuffer = new TextDiagnosticBuffer;
-  llvm::IntrusiveRefCntPtr<DiagnosticsEngine> Diags(
-      new DiagnosticsEngine(DiagID, &*DiagOpts, DiagsBuffer));
+  llvm::IntrusiveRefCntPtr<DiagnosticsEngine> Diags(new DiagnosticsEngine(
+      DiagID,
+#if LLVM_VERSION_MAJOR >= 21
+      DiagOpts,
+#else
+      &*DiagOpts,
+#endif
+      DiagsBuffer));
 
 #if LLVM_VERSION_MAJOR >= 13
   llvm::IntrusiveRefCntPtr<FileManager> Files(
