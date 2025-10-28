@@ -31,7 +31,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
   sudo chmod -R a+rwx /opt
 
   (
-    SDK_ARCHIVE=sdk-macOS-$SDK_ARCH.tar.gz
+    SDK_ARCHIVE=sdk-macOS-$SDK_ARCH.tar.xz
     wget -nv "$BASE_SDK/$SDK_ARCHIVE" -O "$SDK_ARCHIVE"
     tar -xzf "$SDK_ARCHIVE" --strip-components=2 --directory "$SDK_DIR"
     rm -rf "$SDK_ARCHIVE"
