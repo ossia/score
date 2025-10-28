@@ -9,7 +9,7 @@ else
   export CPU_ARCH_SUFFIX="-x86_64"
 fi
 
-wget -nv "https://github.com/ossia/sdk/releases/download/sdk33/sdk-linux${CPU_ARCH_SUFFIX}.tar.xz"
+wget -nv "https://github.com/ossia/sdk/releases/download/sdk34/sdk-linux${CPU_ARCH_SUFFIX}.tar.xz"
 tar xaf sdk-linux${CPU_ARCH_SUFFIX}.tar.xz
 rm -rf  sdk-linux${CPU_ARCH_SUFFIX}.tar.xz
 
