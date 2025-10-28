@@ -3,7 +3,7 @@
 if [[ $# > 0 ]]; then
   export SDK_VERSION=$1
 else
-  export SDK_VERSION=sdk33
+  export SDK_VERSION=sdk34
 fi
 
 echo "Running on OSTYPE: '$OSTYPE'"
@@ -14,7 +14,7 @@ export BASE_SDK=https://github.com/ossia/score-sdk/releases/download/$SDK_VERSIO
 export BOOST_SDK=https://github.com/ossia/score-sdk/releases/download/sdk31
 export BOOST_VER=boost_1_88_0
 export LATEST_RELEASE=https://github.com/ossia/score/releases/download/$LATEST_TAG
-export CMAKE_VERSION=4.0.3
+export CMAKE_VERSION=4.1.2
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
 (
