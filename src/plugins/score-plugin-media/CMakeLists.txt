@@ -168,7 +168,7 @@ if(EMSCRIPTEN)
     /opt/ossia-sdk-wasm/ffmpeg/lib/libpostproc.a
     -Wl,--end-group
   )
-elseif(FFmpeg_FOUND)
+elseif(TARGET avcodec)
   target_link_libraries(${PROJECT_NAME}
     PUBLIC
       avcodec avformat avdevice swresample swscale avutil
