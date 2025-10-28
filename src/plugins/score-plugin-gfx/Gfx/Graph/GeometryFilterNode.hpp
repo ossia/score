@@ -21,6 +21,7 @@ public:
   virtual ~GeometryFilterNode();
   score::gfx::NodeRenderer* createRenderer(RenderList& r) const noexcept override;
 
+  void process(Message&& msg) override;
   const isf::descriptor& descriptor() const noexcept { return m_descriptor; }
 
   friend GeometryFilterNodeRenderer;

@@ -947,6 +947,7 @@ private:
       {
         for (auto& f : mesh.filters->filters)
         {
+          qDebug() << ".. processing mesh filter";
           auto shader = f.shader;
           boost::algorithm::replace_first(
               shader, "%next%", std::to_string(cur_binding++));
@@ -994,6 +995,7 @@ private:
         mesh);
     const QString triangle_colorVS = processVertexShader(
         model_display_vertex_shader_color, vtx_output, vtx_output_process, camera, mesh);
+    qDebug().noquote().nospace()<<triangle_colorVS;
 
     std::tie(target.phongVS, target.phongFS) = score::gfx::makeShaders(
         renderer.state, triangle_phongVS, model_display_fragment_shader_phong);
@@ -1059,6 +1061,7 @@ private:
 
   void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
+    //qDebug()<<Q_FUNC_INFO;
     recreateRenderTarget(renderer);
     const auto& mesh = m_mesh ? *m_mesh : renderer.defaultQuad();
 

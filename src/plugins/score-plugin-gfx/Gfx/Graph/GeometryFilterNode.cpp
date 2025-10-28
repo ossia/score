@@ -183,4 +183,21 @@ GeometryFilterNode::createRenderer(RenderList& r) const noexcept
 {
   return new GeometryFilterNodeRenderer{*this};
 }
+
+void GeometryFilterNode::process(Message &&msg)
+{
+  // qDebug() << "descriptor: process(message): " << this->m_descriptor.description;
+  // for(auto& input : msg.input) {
+  //   qDebug() << "geometry filter got input at port: " << input.index();
+  // }
+  ProcessNode::process(std::move(msg));
+
+  /* Push to next node:
+   *
+      auto it = std::find(edge_sink->node->input.begin(), edge_sink->node->input.end(), edge_sink);
+      SCORE_ASSERT(it != edge_sink->node->input.end());
+      int n = it - edge_sink->node->input.begin();
+      pnode->process(n, spc);
+  */
+}
 }

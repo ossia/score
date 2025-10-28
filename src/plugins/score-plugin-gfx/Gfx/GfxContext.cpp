@@ -284,6 +284,7 @@ void GfxContext::remove_node(
         ++timer_it;
     }
 
+    qDebug()<< "! removing node: " << typeid(*node).name();
     m_graph->removeNode(node);
 
     // Needed because when removing edges in recompute_graph,
@@ -391,6 +392,7 @@ void GfxContext::run_commands()
 
 void GfxContext::updateGraph()
 {
+  // qDebug()<< " !!! BEGIN UPDATE !!! ";
   run_commands();
 
   update_inputs();
@@ -404,6 +406,7 @@ void GfxContext::updateGraph()
     recompute_connections();
     edges_changed = false;
   }
+  // qDebug()<< " !!! !END UPDATE !!! ";
 }
 
 void GfxContext::timerEvent(QTimerEvent* ev)

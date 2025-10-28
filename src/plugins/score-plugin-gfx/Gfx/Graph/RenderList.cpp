@@ -387,6 +387,7 @@ const Mesh& RenderList::defaultTriangle() const noexcept
 
 void RenderList::render(QRhiCommandBuffer& commands, bool force)
 {
+  // qDebug(" ==== BEGIN RENDER ==== ");
   if(renderers.size() <= 1 && !force)
     return;
 
@@ -538,6 +539,7 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
             // FIXME z-sort
             for(auto [edge, prev_renderer] : prevRenderers)
             {
+              // qDebug()<< "Running render pass targetting:" << typeid(*prev_renderer).name();
               prev_renderer->runRenderPass(*this, commands, *edge);
             }
 
@@ -551,6 +553,7 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
           }
           else
           {
+            SCORE_ASSERT(updateBatch);
             commands.resourceUpdate(updateBatch);
             updateBatch = nullptr;
           }
@@ -653,6 +656,7 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
 #endif
 
   frame++;
+  // qDebug(" ==== END RENDER ==== ");
 }
 
 void RenderList::update(QRhiResourceUpdateBatch& res)

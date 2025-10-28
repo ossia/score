@@ -14,6 +14,7 @@ public:
       GfxExecutionAction& ctx)
       : gfx_exec_node{ctx}
   {
+    qDebug(Q_FUNC_INFO);
     auto n = std::make_unique<score::gfx::ISFNode>(isf, vert, frag);
 
     id = exec_context->ui->register_node(std::move(n));
@@ -64,6 +65,7 @@ public:
       const isf::descriptor& isf, const QString& compute, GfxExecutionAction& ctx)
       : gfx_exec_node{ctx}
   {
+    qDebug(Q_FUNC_INFO);
     auto n = std::make_unique<score::gfx::ISFNode>(isf, compute);
 
     id = exec_context->ui->register_node(std::move(n));
@@ -110,7 +112,12 @@ public:
     id = exec_context->ui->register_node(std::move(n));
   }
 
-  ~filter_node() { exec_context->ui->unregister_node(id); }
+  ~filter_node()
+  {
+    qDebug(Q_FUNC_INFO);
+    if(id >= 0)
+      exec_context->ui->unregister_node(id);
+  }
 
   std::string label() const noexcept override { return "Gfx::filter_node"; }
 };

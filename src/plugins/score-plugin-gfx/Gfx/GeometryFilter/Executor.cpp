@@ -124,6 +124,7 @@ public:
 
     exec_context->ui->send_message(create_message());
 
+    /*
     SCORE_ASSERT(this->m_inlets.size() > 0);
     SCORE_ASSERT(this->m_inlets[0]->target<ossia::geometry_port>());
     SCORE_ASSERT(this->m_outlets.size() > 0);
@@ -159,11 +160,17 @@ public:
           out_geom->geometry.filters->filters.push_back(f);
 
       out_geom->geometry.filters->filters.push_back(
-          ossia::geometry_filter{this->id, this->index, this->m_shader, m_dirty++});
+          ossia::geometry_filter{
+             .node_id = this->id
+           , .filter_id = this->index
+           , .shader = this->m_shader
+           , .dirty_index = m_dirty++
+      });
       m_last_input_filters = in_geom->geometry.filters;
     }
 
     m_last_index = index;
+*/
   }
 
   ossia::geometry_filter_list_ptr m_last_input_filters;

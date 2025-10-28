@@ -21,6 +21,7 @@ TextureRenderTarget GeometryFilterNodeRenderer::renderTargetForInput(const Port&
 
 void GeometryFilterNodeRenderer::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
+  qDebug()<<this->node().descriptor().description << "init";
   QRhi& rhi = *renderer.state.rhi;
 
   m_materialSize = node().m_materialSize;
@@ -35,6 +36,7 @@ void GeometryFilterNodeRenderer::init(RenderList& renderer, QRhiResourceUpdateBa
 void GeometryFilterNodeRenderer::update(
     RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge)
 {
+  // qDebug()<<this->node().descriptor().description << "update";
   // Update material
   if(m_materialUBO
      && m_materialSize > 0) // && n.hasMaterialChanged(materialChangedIndex))
@@ -46,6 +48,7 @@ void GeometryFilterNodeRenderer::update(
 
 void GeometryFilterNodeRenderer::release(RenderList& r)
 {
+  qDebug()<<this->node().descriptor().description << "release";
   delete m_materialUBO;
   m_materialUBO = nullptr;
 }
@@ -54,12 +57,14 @@ void GeometryFilterNodeRenderer::runInitialPasses(
     RenderList&, QRhiCommandBuffer& commands, QRhiResourceUpdateBatch*& res, Edge& edge)
 {
   // nothing
+  // qDebug()<<this->node().descriptor().description << "runInitialPasses";
 }
 
 void GeometryFilterNodeRenderer::runRenderPass(
     RenderList&, QRhiCommandBuffer& commands, Edge& edge)
 {
   // nothing
+  // qDebug()<<this->node().descriptor().description << "runRenderPass";
 }
 
 GeometryFilterNode& GeometryFilterNodeRenderer::node() const noexcept

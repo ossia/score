@@ -349,6 +349,7 @@ void Node::process(int32_t port, const ossia::render_target_spec& v)
 
 void ProcessNode::process(int32_t port, const ossia::geometry_spec& v)
 {
+  //qDebug() << typeid(*this).name() << "processing a geometry on port " << port << " ; v.filter:" << v.filters->filters.size();
   if(this->geometry != v || this->geometryChanged == 0)
   {
     this->geometry = v;

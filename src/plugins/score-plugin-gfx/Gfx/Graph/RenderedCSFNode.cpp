@@ -1420,6 +1420,8 @@ void RenderedCSFNode::runInitialPasses(
       dispatchZ = 1;
     }
 
+    // qDebug() << dispatchX << dispatchY << dispatchZ;
+
     // Dispatch compute shader
     commands.dispatch(dispatchX, dispatchY, dispatchZ);
 

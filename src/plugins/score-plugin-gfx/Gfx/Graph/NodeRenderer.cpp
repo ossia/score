@@ -238,6 +238,10 @@ QRhiBuffer *NodeRenderer::bufferForInput(const Port &input) { return nullptr; }
 
 QRhiBuffer *NodeRenderer::bufferForOutput(const Port &output) { return nullptr; }
 
+ossia::geometry_spec* NodeRenderer::geometryForInput(const Port& input) { return nullptr; }
+
+ossia::geometry_spec* NodeRenderer::geometryForOutput(const Port& output) { return nullptr; }
+
 void NodeRenderer::inputAboutToFinish(
     RenderList& renderer, const Port& p, QRhiResourceUpdateBatch*&)
 {

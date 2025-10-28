@@ -19,6 +19,7 @@ public:
   model_display_node(GfxExecutionAction& ctx)
       : gfx_exec_node{ctx}
   {
+    qDebug(Q_FUNC_INFO);
   }
 
   void init()
@@ -29,6 +30,7 @@ public:
 
   ~model_display_node()
   {
+    qDebug(Q_FUNC_INFO);
     if (id >= 0)
       exec_context->ui->unregister_node(id);
   }
@@ -74,7 +76,12 @@ ProcessExecutorComponent::ProcessExecutorComponent(
 
   n->init();
   this->node = n;
-  m_ossia_process = std::make_shared<ossia::node_process>(n);
+  m_ossia_process = std::make_shared<ossia::node_process>(std::move(n));
+}
+
+ProcessExecutorComponent::~ProcessExecutorComponent()
+{
+  qDebug() << this->node.use_count();
 }
 
 void ProcessExecutorComponent::cleanup()
