@@ -35,7 +35,9 @@ rsync -ar "$OSSIA_SDK/llvm-libs/lib/clang/$LLVM_VER/include" "$LIB/clang/$LLVM_V
 QT_FRAMEWORKS=$(find "$OSSIA_SDK/qt6-static/lib" -name '*.framework' | grep -E --only-matching 'Qt[a-zA-Z0-9_]+') 
 
 for qt_framework in $QT_FRAMEWORKS; do
-  cp -rf "$OSSIA_SDK/qt6-static/lib/$qt_framework.framework/Versions/A/Headers" "$INCLUDE/qt/$qt_framework"
+  if [[ -d "$OSSIA_SDK/qt6-static/lib/$qt_framework.framework/Versions/A/Headers" ]]; then
+    cp -rf "$OSSIA_SDK/qt6-static/lib/$qt_framework.framework/Versions/A/Headers" "$INCLUDE/qt/$qt_framework"
+  fi
 done
 
 # Copy frameworks
