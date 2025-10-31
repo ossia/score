@@ -233,6 +233,18 @@ find_package(${QT_VERSION} REQUIRED
     QmlPrivate
     QuickPrivate
     ShaderToolsPrivate
+    Quick3D
+    Quick3DAssetImport
+    Quick3DAssetUtils
+    Quick3DEffects
+    Quick3DGlslParser
+    Quick3DHelpers
+    Quick3DIblBaker
+    Quick3DParticleEffects
+    Quick3DParticles
+    Quick3DRuntimeRender
+    Quick3DUtils
+    Quick3DXr
 )
 
 if(EMSCRIPTEN)
