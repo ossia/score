@@ -8,6 +8,7 @@
 namespace Process
 {
 class Outlet;
+class ProcessModel;
 }
 
 namespace JS
@@ -31,6 +32,7 @@ public:
   INLINE_PROPERTY_CREF(QVariant, port, = "", port, setPort, portChanged)
 
 private:
+  Process::ProcessModel* processInstance() const noexcept;
   void rebuild();
   QQmlProperty m_targetProperty;
   QPointer<Process::Outlet> m_outlet{};

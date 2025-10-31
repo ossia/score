@@ -37,6 +37,27 @@ void PortSink::setTarget(const QQmlProperty& prop)
   m_targetProperty = prop;
 }
 
+Process::ProcessModel* PortSink::processInstance() const noexcept
+{
+  auto doc = score::GUIAppContext().documents.currentDocument();
+  if(!doc)
+    return nullptr;
+
+  auto& model = doc->model().modelDelegate();
+  auto processes = model.findChildren<Process::ProcessModel*>(
+      QString{}, Qt::FindChildrenRecursively);
+
+  for(auto proc : processes)
+  {
+    if(proc->metadata().getName() == m_process)
+    {
+      return proc;
+    }
+  }
+
+  return nullptr;
+}
+
 void PortSink::rebuild()
 {
   m_outlet = nullptr;
@@ -44,33 +65,17 @@ void PortSink::rebuild()
   if(!parent())
     return;
 
-  auto doc = score::GUIAppContext().documents.currentDocument();
-  if(!doc)
-    return;
-
-  auto& model = doc->model().modelDelegate();
-  auto processes = model.findChildren<Process::ProcessModel*>(
-      QString{}, Qt::FindChildrenRecursively);
-
-  Process::ProcessModel* process = nullptr;
-  for(auto proc : processes)
+  const auto port_type = m_port.typeId();
+  if(port_type == QMetaType::Type::QString)
   {
-    if(proc->metadata().getName() == m_process)
-    {
-      process = proc;
-      break;
-    }
-  }
-  if(!process)
-    return;
-
-  auto& ports = process->outlets();
-  if(m_port.typeId() == QMetaType::Type::QString)
-  {
+    auto process = processInstance();
+    if(!process)
+      return;
     auto port_name = m_port.value<QString>();
     m_outlet = process->findChild<Process::Outlet*>(port_name);
     if(!m_outlet)
     {
+      auto& ports = process->outlets();
       for(auto& port : ports)
       {
         if(port->name() == port_name)
@@ -81,11 +86,21 @@ void PortSink::rebuild()
       }
     }
   }
-  else if(m_port.typeId() == QMetaType::Type::Int)
+  else if(port_type == QMetaType::Type::Int)
   {
+    auto process = processInstance();
+    if(!process)
+      return;
+
     int i = m_port.toInt();
+
+    auto& ports = process->outlets();
     if(i >= 0 && i < ports.size())
       m_outlet = qobject_cast<Process::Outlet*>(ports[i]);
+  }
+  else
+  {
+    m_outlet = qobject_cast<Process::Outlet*>(m_port.value<QObject*>());
   }
 
   if(!m_outlet)

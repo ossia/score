@@ -50,6 +50,27 @@ void PortSource::on_newUIValue()
     m_inlet->setValue(ossia::qt::qt_to_ossia{}(m_targetProperty.read()));
 }
 
+Process::ProcessModel* PortSource::processInstance() const noexcept
+{
+  auto doc = score::GUIAppContext().documents.currentDocument();
+  if(!doc)
+    return nullptr;
+
+  auto& model = doc->model().modelDelegate();
+  auto processes = model.findChildren<Process::ProcessModel*>(
+      QString{}, Qt::FindChildrenRecursively);
+
+  for(auto proc : processes)
+  {
+    if(proc->metadata().getName() == m_process)
+    {
+      return proc;
+    }
+  }
+
+  return nullptr;
+}
+
 void PortSource::rebuild()
 {
   m_inlet = nullptr;
@@ -57,33 +78,12 @@ void PortSource::rebuild()
   if(!parent())
     return;
 
-  auto doc = score::GUIAppContext().documents.currentDocument();
-  if(!doc)
-    return;
-
-  auto& model = doc->model().modelDelegate();
-  auto processes = model.findChildren<Process::ProcessModel*>(
-      QString{}, Qt::FindChildrenRecursively);
-
-  Process::ProcessModel* process = nullptr;
-  for(auto proc : processes)
-  {
-    if(proc->metadata().getLabel() == m_process)
-    {
-      process = proc;
-      break;
-    }
-    else if(proc->metadata().getName() == m_process)
-    {
-      process = proc;
-      break;
-    }
-  }
-  if(!process)
-    return;
-
   if(m_port.typeId() == QMetaType::Type::QString)
   {
+    auto process = processInstance();
+    if(!process)
+      return;
+
     auto port_name = m_port.value<QString>();
     m_inlet = process->findChild<Process::ControlInlet*>(port_name);
     if(!m_inlet)
@@ -101,10 +101,18 @@ void PortSource::rebuild()
   }
   else if(m_port.typeId() == QMetaType::Type::Int)
   {
+    auto process = processInstance();
+    if(!process)
+      return;
+
     int i = m_port.toInt();
     auto& inls = process->inlets();
     if(i >= 0 && i < inls.size())
       m_inlet = qobject_cast<Process::ControlInlet*>(inls[i]);
+  }
+  else
+  {
+    m_inlet = qobject_cast<Process::ControlInlet*>(m_port.value<QObject*>());
   }
 
   if(!m_inlet)

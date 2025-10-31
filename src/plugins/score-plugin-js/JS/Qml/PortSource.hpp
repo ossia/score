@@ -8,6 +8,7 @@
 namespace Process
 {
 class ControlInlet;
+class ProcessModel;
 }
 
 namespace JS
@@ -33,6 +34,7 @@ public:
   INLINE_PROPERTY_CREF(QVariant, port, = "", port, setPort, portChanged)
 
 private:
+  Process::ProcessModel* processInstance() const noexcept;
   void rebuild();
   QQmlProperty m_targetProperty;
   QPointer<Process::ControlInlet> m_inlet{};
