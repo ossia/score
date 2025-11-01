@@ -39,6 +39,7 @@ then
   clone_addon https://github.com/ossia/score-addon-ultraleap
   clone_addon https://github.com/ossia/score-addon-contextfree
   clone_addon https://github.com/ossia/score-addon-ble
+  (cd score-addon-ble ; git checkout feature/qtbluetooth)
   clone_addon https://github.com/ossia/score-addon-led
   clone_addon https://github.com/ossia/score-addon-spatgris
   clone_addon https://github.com/ossia/score-addon-hdf5
