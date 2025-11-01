@@ -54,7 +54,6 @@ jobs:
 
       - name: Continuous
         uses: softprops/action-gh-release@v2
-        # :white_check_mark: This condition now runs ONLY on a push to the 'master' branch.
         if: github.ref == 'refs/heads/master'
         with:
           name: "Continuous"
@@ -67,7 +66,6 @@ jobs:
 
       - name: Release
         uses: softprops/action-gh-release@v2
-        # :white_check_mark: This condition now runs ONLY on a push of a tag (like 'v1.2.3').
         if: startsWith(github.ref, 'refs/tags/')
         with:
           body: ""
