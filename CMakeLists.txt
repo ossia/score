@@ -128,7 +128,11 @@ include(all-plugins)
 if(SCORE_DISABLE_PLUGINS)
   set(SCORE_DISABLED_PLUGINS "${SCORE_DISABLE_PLUGINS}")
 endif()
+
 if(SCORE_DISABLED_PLUGINS)
+  # handle complicated CI situations with unclear amount of quoting: we pass , instead of ;
+  string(REPLACE "," ";" SCORE_DISABLE_PLUGINS "${SCORE_DISABLE_PLUGINS}")
+
   list(REMOVE_ITEM SCORE_PLUGINS_TO_BUILD ${SCORE_DISABLED_PLUGINS})
 endif()
 
