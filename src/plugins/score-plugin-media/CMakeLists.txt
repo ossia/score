@@ -259,6 +259,14 @@ target_link_libraries(${PROJECT_NAME}
   )
 endif()
 
+# For ossia releases, libavcodec is built against snappy
+# and thus expects the library to be there
+if(TARGET Snappy::snappy)
+  target_link_libraries(${PROJECT_NAME} PUBLIC Snappy::snappy)
+elseif(TARGET snappy)
+  target_link_libraries(${PROJECT_NAME} PUBLIC snappy)
+endif()
+
 if(TARGET SampleRate::samplerate)
   target_link_libraries(${PROJECT_NAME}
     PRIVATE
