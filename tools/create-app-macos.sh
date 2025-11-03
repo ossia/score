@@ -99,9 +99,18 @@ else
 
     trap "hdiutil detach '$MOUNT_POINT' 2>/dev/null || true" EXIT
 
+    # Find the .app bundle in the mounted DMG
+    APP_IN_DMG=$(find "$MOUNT_POINT" -maxdepth 2 -name "*.app" | head -n 1)
+
+    if [[ -z "$APP_IN_DMG" ]]; then
+        echo "Error: No .app bundle found in DMG"
+        hdiutil detach "$MOUNT_POINT"
+        exit 1
+    fi
+
     # Copy the app bundle
     echo "Copying app bundle..."
-    cp -R "$MOUNT_POINT/ossia score.app" "${APP_NAME}.app"
+    cp -R "$APP_IN_DMG" "${APP_NAME}.app"
 
     # Unmount the original DMG
     hdiutil detach "$MOUNT_POINT"
