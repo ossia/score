@@ -9,21 +9,35 @@ QML_ITEMS=("$@")
 
 echo "Creating Windows package..."
 
-# Download the official Windows installer
-if [[ "$RELEASE_TAG" == "continuous" ]]; then
-    INSTALLER_NAME="ossia.score-master-win64.exe"
-else
-    VERSION="${RELEASE_TAG#v}"
-    INSTALLER_NAME="ossia.score-${VERSION}-win64.exe"
-fi
-INSTALLER_URL="https://github.com/ossia/score/releases/download/${RELEASE_TAG}/${INSTALLER_NAME}"
-
-echo "Downloading: $INSTALLER_URL"
 cd "$WORK_DIR"
 
-if ! curl -L -f -o "score-installer.exe" "$INSTALLER_URL"; then
-    echo "Error: Failed to download installer from $INSTALLER_URL"
-    exit 1
+# Use local installer or download from GitHub
+if [[ -n "$LOCAL_INSTALLER" ]]; then
+    echo "Using local installer: $LOCAL_INSTALLER"
+
+    # Validate it's an .exe file
+    if [[ ! "$LOCAL_INSTALLER" =~ \.exe$ ]]; then
+        echo "Error: Local installer must be an .exe file for Windows"
+        exit 1
+    fi
+
+    cp "$LOCAL_INSTALLER" "score-installer.exe"
+else
+    # Download the official Windows installer
+    if [[ "$RELEASE_TAG" == "continuous" ]]; then
+        INSTALLER_NAME="ossia.score-master-win64.exe"
+    else
+        VERSION="${RELEASE_TAG#v}"
+        INSTALLER_NAME="ossia.score-${VERSION}-win64.exe"
+    fi
+    INSTALLER_URL="https://github.com/ossia/score/releases/download/${RELEASE_TAG}/${INSTALLER_NAME}"
+
+    echo "Downloading: $INSTALLER_URL"
+
+    if ! curl -L -f -o "score-installer.exe" "$INSTALLER_URL"; then
+        echo "Error: Failed to download installer from $INSTALLER_URL"
+        exit 1
+    fi
 fi
 
 # Extract the NSIS installer using 7z

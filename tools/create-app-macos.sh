@@ -16,43 +16,97 @@ esac
 
 echo "Creating macOS package for $ARCH..."
 
-# Download the official DMG
-# URL format differs between versioned releases and continuous builds
-if [[ "$RELEASE_TAG" == "continuous" ]]; then
-    DMG_NAME="ossia.score-master-macOS-${ARCH}.dmg"
-else
-    # Remove 'v' prefix if present for the version in the filename
-    VERSION="${RELEASE_TAG#v}"
-    DMG_NAME="ossia.score-${VERSION}-macOS-${ARCH}.dmg"
-fi
-DMG_URL="https://github.com/ossia/score/releases/download/${RELEASE_TAG}/${DMG_NAME}"
-
-echo "Downloading: $DMG_URL"
 cd "$WORK_DIR"
 
-if ! curl -L -f -o "score-original.dmg" "$DMG_URL"; then
-    echo "Error: Failed to download DMG from $DMG_URL"
-    exit 1
+# Use local installer or download from GitHub
+if [[ -n "$LOCAL_INSTALLER" ]]; then
+    echo "Using local installer: $LOCAL_INSTALLER"
+
+    if [[ "$LOCAL_INSTALLER" =~ \.app$ || "$LOCAL_INSTALLER" =~ \.app/ ]]; then
+        # It's a .app bundle - copy directly
+        echo "Copying .app bundle..."
+
+        # Remove trailing slash if present
+        LOCAL_APP="${LOCAL_INSTALLER%/}"
+
+        if [[ ! -d "$LOCAL_APP" ]]; then
+            echo "Error: .app bundle does not exist: $LOCAL_APP"
+            exit 1
+        fi
+
+        cp -R "$LOCAL_APP" "${APP_NAME}.app"
+
+    elif [[ "$LOCAL_INSTALLER" =~ \.dmg$ ]]; then
+        # It's a DMG - mount and extract
+        echo "Mounting local DMG..."
+
+        MOUNT_POINT=$(hdiutil attach -nobrowse -readonly "$LOCAL_INSTALLER" | grep "/Volumes/" | awk '{print $3}')
+
+        if [[ -z "$MOUNT_POINT" ]]; then
+            echo "Error: Failed to mount DMG"
+            exit 1
+        fi
+
+        trap "hdiutil detach '$MOUNT_POINT' 2>/dev/null || true" EXIT
+
+        # Find the .app bundle in the mounted DMG
+        APP_IN_DMG=$(find "$MOUNT_POINT" -maxdepth 2 -name "*.app" | head -n 1)
+
+        if [[ -z "$APP_IN_DMG" ]]; then
+            echo "Error: No .app bundle found in DMG"
+            hdiutil detach "$MOUNT_POINT"
+            exit 1
+        fi
+
+        echo "Copying app bundle from DMG..."
+        cp -R "$APP_IN_DMG" "${APP_NAME}.app"
+
+        # Unmount the DMG
+        hdiutil detach "$MOUNT_POINT"
+        trap - EXIT
+
+    else
+        echo "Error: Local installer must be a .app bundle or .dmg file for macOS"
+        exit 1
+    fi
+else
+    # Download the official DMG
+    # URL format differs between versioned releases and continuous builds
+    if [[ "$RELEASE_TAG" == "continuous" ]]; then
+        DMG_NAME="ossia.score-master-macOS-${ARCH}.dmg"
+    else
+        # Remove 'v' prefix if present for the version in the filename
+        VERSION="${RELEASE_TAG#v}"
+        DMG_NAME="ossia.score-${VERSION}-macOS-${ARCH}.dmg"
+    fi
+    DMG_URL="https://github.com/ossia/score/releases/download/${RELEASE_TAG}/${DMG_NAME}"
+
+    echo "Downloading: $DMG_URL"
+
+    if ! curl -L -f -o "score-original.dmg" "$DMG_URL"; then
+        echo "Error: Failed to download DMG from $DMG_URL"
+        exit 1
+    fi
+
+    # Mount the DMG
+    echo "Mounting DMG..."
+    MOUNT_POINT=$(hdiutil attach -nobrowse -readonly "score-original.dmg" | grep "/Volumes/" | awk '{print $3}')
+
+    if [[ -z "$MOUNT_POINT" ]]; then
+        echo "Error: Failed to mount DMG"
+        exit 1
+    fi
+
+    trap "hdiutil detach '$MOUNT_POINT' 2>/dev/null || true" EXIT
+
+    # Copy the app bundle
+    echo "Copying app bundle..."
+    cp -R "$MOUNT_POINT/ossia score.app" "${APP_NAME}.app"
+
+    # Unmount the original DMG
+    hdiutil detach "$MOUNT_POINT"
+    trap - EXIT
 fi
-
-# Mount the DMG
-echo "Mounting DMG..."
-MOUNT_POINT=$(hdiutil attach -nobrowse -readonly "score-original.dmg" | grep "/Volumes/" | awk '{print $3}')
-
-if [[ -z "$MOUNT_POINT" ]]; then
-    echo "Error: Failed to mount DMG"
-    exit 1
-fi
-
-trap "hdiutil detach '$MOUNT_POINT' 2>/dev/null || true" EXIT
-
-# Copy the app bundle
-echo "Copying app bundle..."
-cp -R "$MOUNT_POINT/ossia score.app" "${APP_NAME}.app"
-
-# Unmount the original DMG
-hdiutil detach "$MOUNT_POINT"
-trap - EXIT
 
 # Modify the app bundle
 APP_BUNDLE="${APP_NAME}.app"

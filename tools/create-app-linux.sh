@@ -16,26 +16,41 @@ esac
 
 echo "Creating Linux AppImage for $ARCH..."
 
-# Download the official AppImage
-# URL format differs between versioned releases and continuous builds
-if [[ "$RELEASE_TAG" == "continuous" ]]; then
-    APPIMAGE_NAME="ossia.score-master-linux-${ARCH}.AppImage"
-else
-    # Remove 'v' prefix if present for the version in the filename
-    VERSION="${RELEASE_TAG#v}"
-    APPIMAGE_NAME="ossia.score-${VERSION}-linux-${ARCH}.AppImage"
-fi
-APPIMAGE_URL="https://github.com/ossia/score/releases/download/${RELEASE_TAG}/${APPIMAGE_NAME}"
-
-echo "Downloading: $APPIMAGE_URL"
 cd "$WORK_DIR"
 
-if ! curl -L -f -o "score-original.AppImage" "$APPIMAGE_URL"; then
-    echo "Error: Failed to download AppImage from $APPIMAGE_URL"
-    exit 1
-fi
+# Use local installer or download from GitHub
+if [[ -n "$LOCAL_INSTALLER" ]]; then
+    echo "Using local AppImage: $LOCAL_INSTALLER"
 
-chmod +x score-original.AppImage
+    # Validate it's an AppImage
+    if [[ ! "$LOCAL_INSTALLER" =~ \.AppImage$ ]]; then
+        echo "Error: Local installer must be an .AppImage file for Linux"
+        exit 1
+    fi
+
+    cp "$LOCAL_INSTALLER" "score-original.AppImage"
+    chmod +x score-original.AppImage
+else
+    # Download the official AppImage
+    # URL format differs between versioned releases and continuous builds
+    if [[ "$RELEASE_TAG" == "continuous" ]]; then
+        APPIMAGE_NAME="ossia.score-master-linux-${ARCH}.AppImage"
+    else
+        # Remove 'v' prefix if present for the version in the filename
+        VERSION="${RELEASE_TAG#v}"
+        APPIMAGE_NAME="ossia.score-${VERSION}-linux-${ARCH}.AppImage"
+    fi
+    APPIMAGE_URL="https://github.com/ossia/score/releases/download/${RELEASE_TAG}/${APPIMAGE_NAME}"
+
+    echo "Downloading: $APPIMAGE_URL"
+
+    if ! curl -L -f -o "score-original.AppImage" "$APPIMAGE_URL"; then
+        echo "Error: Failed to download AppImage from $APPIMAGE_URL"
+        exit 1
+    fi
+
+    chmod +x score-original.AppImage
+fi
 
 # Extract the AppImage
 echo "Extracting AppImage..."

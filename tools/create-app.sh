@@ -14,6 +14,7 @@ SCORE_FILE=""
 OUTPUT_DIR=""
 APP_NAME=""
 PLATFORMS=()
+LOCAL_INSTALLER=""
 
 # Parse arguments
 show_help() {
@@ -30,7 +31,12 @@ Required options:
 
 Optional:
     --score FILE        Score file to autoplay (if not specified, no score is loaded)
+    --local-installer PATH
+                        Use a local installer instead of downloading from GitHub.
+                        Path to: .AppImage (Linux), .app or .dmg (macOS), or .exe (Windows)
+                        When specified, --release is ignored.
     --release TAG       Release tag to use (default: continuous)
+                        Ignored if --local-installer is specified.
     --platform PLAT     Platform to build for: linux-x86_64, linux-aarch64,
                         macos-intel, macos-arm, windows
                         Can be specified multiple times. If not specified,
@@ -43,6 +49,10 @@ Example:
 
     Or without a score file:
     $0 --qml App.qml --output ./MyApp --name "My Custom App"
+
+    Using a local installer:
+    $0 --qml App.qml --score App.score --local-installer ./ossia.score.AppImage \\
+       --output ./MyApp --name "My Custom App"
 
 This will create platform-specific packages that launch score with:
     --ui App.qml [--autoplay App.score]
@@ -87,6 +97,16 @@ while [[ $# -gt 0 ]]; do
             ;;
         --platform)
             PLATFORMS+=("$2")
+            shift 2
+            ;;
+        --local-installer)
+            LOCAL_INSTALLER="$2"
+            if [[ ! -e "$LOCAL_INSTALLER" ]]; then
+                echo "Error: Local installer does not exist: $LOCAL_INSTALLER"
+                exit 1
+            fi
+            # Convert to absolute path
+            LOCAL_INSTALLER="$(cd "$(dirname "$LOCAL_INSTALLER")" && pwd)/$(basename "$LOCAL_INSTALLER")"
             shift 2
             ;;
         --help)
@@ -188,7 +208,11 @@ if [[ -n "$SCORE_BASENAME" ]]; then
 else
     echo "Score File:     (none)"
 fi
-echo "Release:        $RELEASE_TAG"
+if [[ -n "$LOCAL_INSTALLER" ]]; then
+    echo "Source:         Local installer ($(basename "$LOCAL_INSTALLER"))"
+else
+    echo "Release:        $RELEASE_TAG"
+fi
 echo "Output Dir:     $OUTPUT_DIR"
 echo "Platforms:      ${PLATFORMS[*]}"
 echo "========================================="
@@ -205,6 +229,7 @@ export SCORE_FILE
 export SCORE_BASENAME
 export OUTPUT_DIR
 export RELEASE_TAG
+export LOCAL_INSTALLER
 export WORK_DIR
 
 # Build for each platform
