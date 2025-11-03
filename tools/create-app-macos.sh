@@ -178,47 +178,6 @@ else
     exit 1
 fi
 
-# Create entitlements file early if we'll need it for re-signing
-if [[ -n "${MAC_CODESIGN_IDENTITY:-}" ]]; then
-    cat > "$WORK_DIR/entitlements.plist" << 'ENTITLEMENTS_EOF'
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-  <dict>
-    <key>com.apple.security.cs.allow-jit</key>
-    <true/>
-    <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
-    <true/>
-    <key>com.apple.security.app-sandbox</key>
-    <false/>
-    <key>com.apple.security.cs.disable-library-validation</key>
-    <true/>
-    <key>com.apple.security.device.audio-input</key>
-    <true/>
-    <key>com.apple.security.device.camera</key>
-    <true/>
-    <key>com.apple.security.network.server</key>
-    <true/>
-    <key>com.apple.security.network.client</key>
-    <true/>
-    <key>com.apple.security.files.user-selected.read-write</key>
-    <true/>
-  </dict>
-</plist>
-ENTITLEMENTS_EOF
-
-    # Re-sign the main binary with hardened runtime and entitlements
-    # This is necessary because the downloaded binary may not have hardened runtime
-    echo "Re-signing main binary with hardened runtime..."
-    codesign \
-        --entitlements "$WORK_DIR/entitlements.plist" \
-        --force \
-        --timestamp \
-        --options=runtime \
-        --sign "$MAC_CODESIGN_IDENTITY" \
-        "$BUNDLE_MACOS/ossia-score-bin" 2>/dev/null || true
-fi
-
 # Create launcher script
 echo "Creating custom launcher..."
 if [[ -n "$SCORE_BASENAME" ]]; then
@@ -316,7 +275,21 @@ ENTITLEMENTS_EOF
     find "$BUNDLE_MACOS" -type f -perm +111 ! -name "*.qml" ! -name "*.qmlc" ! -name "*.js" ! -name "*.mjs" ! -name "*.txt" ! -name "*.sh" | while read executable; do
         # Check if it's actually a Mach-O binary
         if file "$executable" | grep -q "Mach-O"; then
-            codesign --force --timestamp --sign "$MAC_CODESIGN_IDENTITY" "$executable" 2>/dev/null || true
+            # Sign ossia-score-bin with entitlements and hardened runtime
+            if [[ "$(basename "$executable")" == "ossia-score-bin" ]]; then
+                echo "    Signing main binary with entitlements and hardened runtime..."
+                codesign \
+                    --entitlements "$WORK_DIR/entitlements.plist" \
+                    --force \
+                    --timestamp \
+                    --options=runtime \
+                    --sign "$MAC_CODESIGN_IDENTITY" \
+                    "$executable" || {
+                        echo "    Warning: Failed to sign $executable"
+                    }
+            else
+                codesign --force --timestamp --sign "$MAC_CODESIGN_IDENTITY" "$executable" 2>/dev/null || true
+            fi
         fi
     done
 
