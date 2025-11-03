@@ -94,8 +94,11 @@ for item in "${QML_ITEMS[@]}"; do
         echo "  Copying file: $(basename "$item_path")"
         cp "$item_path" "$QML_DEST/"
     elif [[ -d "$item_path" ]]; then
-        echo "  Copying directory: $(basename "$item_path")"
-        cp -r "$item_path" "$QML_DEST/"
+        echo "  Copying directory contents: $(basename "$item_path")"
+        # Copy contents of directory, not the directory itself
+        cp -r "$item_path"/* "$QML_DEST/" 2>/dev/null || true
+        # Also copy hidden files
+        cp -r "$item_path"/.[!.]* "$QML_DEST/" 2>/dev/null || true
     fi
 done
 
