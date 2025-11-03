@@ -139,10 +139,14 @@ fi
 APP_BUNDLE="${APP_NAME}.app"
 BUNDLE_CONTENTS="$APP_BUNDLE/Contents"
 BUNDLE_MACOS="$BUNDLE_CONTENTS/MacOS"
+BUNDLE_RESOURCES="$BUNDLE_CONTENTS/Resources"
 
-# Copy QML files
+# Create Resources directory
+mkdir -p "$BUNDLE_RESOURCES"
+
+# Copy QML files to Resources
 echo "Adding custom QML files..."
-QML_DEST="$BUNDLE_MACOS/qml"
+QML_DEST="$BUNDLE_RESOURCES/qml"
 mkdir -p "$QML_DEST"
 
 for item in "${QML_ITEMS[@]}"; do
@@ -158,10 +162,10 @@ for item in "${QML_ITEMS[@]}"; do
     fi
 done
 
-# Copy score file if provided
+# Copy score file if provided (to Resources, not MacOS)
 if [[ -n "$SCORE_FILE" ]]; then
     echo "Adding score file..."
-    cp "$SCORE_FILE" "$BUNDLE_MACOS/"
+    cp "$SCORE_FILE" "$BUNDLE_RESOURCES/"
 fi
 
 # Rename the original binary
@@ -182,10 +186,11 @@ if [[ -n "$SCORE_BASENAME" ]]; then
 #!/bin/bash
 # Custom launcher for APP_NAME_PLACEHOLDER
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-export QML2_IMPORT_PATH="${SCRIPT_DIR}/qml/"
+RESOURCES_DIR="$(cd "$SCRIPT_DIR/../Resources" && pwd)"
+export QML2_IMPORT_PATH="${RESOURCES_DIR}/qml/"
 exec "$SCRIPT_DIR/ossia-score-bin" \
-    --ui "$SCRIPT_DIR/qml/MAIN_QML_PLACEHOLDER" \
-    --autoplay "$SCRIPT_DIR/SCORE_FILE_PLACEHOLDER" \
+    --ui "${RESOURCES_DIR}/qml/MAIN_QML_PLACEHOLDER" \
+    --autoplay "${RESOURCES_DIR}/SCORE_FILE_PLACEHOLDER" \
     "$@"
 LAUNCHER_EOF
     # Replace placeholders
@@ -198,9 +203,10 @@ else
 #!/bin/bash
 # Custom launcher for APP_NAME_PLACEHOLDER
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-export QML2_IMPORT_PATH="${SCRIPT_DIR}/qml/"
+RESOURCES_DIR="$(cd "$SCRIPT_DIR/../Resources" && pwd)"
+export QML2_IMPORT_PATH="${RESOURCES_DIR}/qml/"
 exec "$SCRIPT_DIR/ossia-score-bin" \
-    --ui "$SCRIPT_DIR/qml/MAIN_QML_PLACEHOLDER" \
+    --ui "${RESOURCES_DIR}/qml/MAIN_QML_PLACEHOLDER" \
     "$@"
 LAUNCHER_EOF
     # Replace placeholders
