@@ -59,19 +59,17 @@ public:
     graph.unregister_preview_node(m_screenId);
     m_nodeId = -1;
     m_screenId = -1;
-    m_extractionNode_p = nullptr;
-    m_extractionNode.reset();
+    m_extractionNode = nullptr;
   }
 
 private:
-  std::unique_ptr<score::gfx::OutputNode> m_extractionNode;
-  score::gfx::OutputNode* m_extractionNode_p{};
+  score::gfx::OutputNode* m_extractionNode{};
 
   QRhi* m_rhi = nullptr;
   int m_sampleCount = 1;
   int m_nodeId = -1;
   int m_screenId = -1;
-  TextureSource* item{};
+  QPointer<TextureSource> item{};
   bool m_needsRebuild{};
 };
 
@@ -126,16 +124,16 @@ void TextureSourceRenderer::rebuild()
     clear();
   }
 
-  if(!m_extractionNode_p)
+  if(!m_extractionNode)
   {
     Gfx::SharedOutputSettings set;
     set.width = finalTex->pixelSize().width();
     set.height = finalTex->pixelSize().height();
     set.rate = 60;
-    m_extractionNode = std::make_unique<score::gfx::PreviewNode>(
+    auto extractionNode = std::make_unique<score::gfx::PreviewNode>(
         set, m_rhi, this->renderTarget(), finalTex);
-    m_extractionNode_p = m_extractionNode.get();
-    m_screenId = graph.register_preview_node(std::move(m_extractionNode));
+    m_extractionNode = extractionNode.get();
+    m_screenId = graph.register_preview_node(std::move(extractionNode));
     if(m_screenId != -1)
     {
       m_nodeId = item->m_nodeId;
@@ -154,9 +152,9 @@ void TextureSourceRenderer::initialize(QRhiCommandBuffer* cb)
 void TextureSourceRenderer::render(QRhiCommandBuffer* cb)
 {
   rebuild();
-  if(m_extractionNode_p)
+  if(m_extractionNode)
   {
-    auto r = m_extractionNode_p->renderer();
+    auto r = m_extractionNode->renderer();
     if(r)
     {
       r->render(*cb);
