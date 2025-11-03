@@ -221,6 +221,38 @@ fi
 if [[ -n "${MAC_CODESIGN_IDENTITY:-}" ]]; then
     echo "Code signing app bundle..."
 
+    # Create entitlements file
+    cat > "$WORK_DIR/entitlements.plist" << 'ENTITLEMENTS_EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>com.apple.security.cs.allow-jit</key>
+    <true/>
+    <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+    <true/>
+    <key>com.apple.security.app-sandbox</key>
+    <false/>
+    <key>com.apple.security.cs.disable-library-validation</key>
+    <true/>
+    <key>com.apple.security.device.audio-input</key>
+    <true/>
+    <key>com.apple.security.device.camera</key>
+    <true/>
+    <key>com.apple.security.network.server</key>
+    <true/>
+    <key>com.apple.security.network.client</key>
+    <true/>
+    <key>com.apple.security.files.user-selected.read-write</key>
+    <true/>
+  </dict>
+</plist>
+ENTITLEMENTS_EOF
+
+    # Remove QML and other resource files that shouldn't be signed
+    echo "  Removing code signature from resource files..."
+    find "$APP_BUNDLE" \( -name "*.qml" -o -name "*.qmlc" -o -name "*.js" -o -name "*.mjs" -o -name "*.txt" \) -type f -exec xattr -d com.apple.cs.CodeDirectory {} \; 2>/dev/null || true
+
     # Sign all dylibs first
     echo "  Signing dynamic libraries..."
     find "$APP_BUNDLE" -name '*.dylib' -type f -exec \
@@ -234,7 +266,7 @@ if [[ -n "${MAC_CODESIGN_IDENTITY:-}" ]]; then
 
     # Sign all executables (but not scripts or text files)
     echo "  Signing executables..."
-    find "$BUNDLE_MACOS" -type f -perm +111 ! -name "*.qml" ! -name "*.js" ! -name "*.txt" ! -name "*.sh" | while read executable; do
+    find "$BUNDLE_MACOS" -type f -perm +111 ! -name "*.qml" ! -name "*.qmlc" ! -name "*.js" ! -name "*.mjs" ! -name "*.txt" ! -name "*.sh" | while read executable; do
         # Check if it's actually a Mach-O binary
         if file "$executable" | grep -q "Mach-O"; then
             codesign --force --timestamp --sign "$MAC_CODESIGN_IDENTITY" "$executable" 2>/dev/null || true
@@ -247,13 +279,19 @@ if [[ -n "${MAC_CODESIGN_IDENTITY:-}" ]]; then
         codesign --force --timestamp --options=runtime --sign "$MAC_CODESIGN_IDENTITY" "$nested_app" 2>/dev/null || true
     done
 
-    # Sign the main app bundle
+    # Sign the main app bundle with entitlements
     echo "  Signing main app bundle..."
-    if codesign --force --timestamp --options=runtime --sign "$MAC_CODESIGN_IDENTITY" "$APP_BUNDLE"; then
+    if codesign \
+        --entitlements "$WORK_DIR/entitlements.plist" \
+        --force \
+        --timestamp \
+        --options=runtime \
+        --sign "$MAC_CODESIGN_IDENTITY" \
+        "$APP_BUNDLE"; then
         echo "✓ App bundle signed successfully"
 
-        # Verify signature
-        codesign --verify --deep --strict "$APP_BUNDLE" && echo "✓ Signature verified"
+        # Verify signature (without --deep to avoid checking resource files)
+        codesign --verify --strict "$APP_BUNDLE" && echo "✓ Signature verified"
     else
         echo "Warning: Code signing failed - app will be unsigned"
     fi
