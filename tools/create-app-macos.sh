@@ -217,7 +217,36 @@ if [[ -f "$BUNDLE_CONTENTS/Info.plist" ]]; then
     /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName ${APP_NAME}" "$BUNDLE_CONTENTS/Info.plist" 2>/dev/null || true
 fi
 
-# Create a DMG (unsigned version - signing requires certificates)
+# Code signing (optional - requires certificates)
+if [[ -n "${MAC_CODESIGN_IDENTITY:-}" ]]; then
+    echo "Code signing app bundle..."
+
+    # Sign all dylibs first
+    echo "  Signing dynamic libraries..."
+    find "$APP_BUNDLE" -name '*.dylib' -exec \
+        codesign --force --timestamp --sign "$MAC_CODESIGN_IDENTITY" {} \; 2>/dev/null || true
+
+    # Sign nested app bundles (like vstpuppet, clappuppet, etc.)
+    echo "  Signing nested bundles..."
+    find "$BUNDLE_MACOS" -name "*.app" -type d | while read nested_app; do
+        codesign --force --timestamp --options=runtime --sign "$MAC_CODESIGN_IDENTITY" "$nested_app" 2>/dev/null || true
+    done
+
+    # Sign the main app bundle
+    echo "  Signing main app bundle..."
+    if codesign --force --timestamp --options=runtime --sign "$MAC_CODESIGN_IDENTITY" "$APP_BUNDLE"; then
+        echo "✓ App bundle signed successfully"
+
+        # Verify signature
+        codesign --verify --deep --strict "$APP_BUNDLE" && echo "✓ Signature verified"
+    else
+        echo "Warning: Code signing failed - app will be unsigned"
+    fi
+else
+    echo "Skipping code signing (MAC_CODESIGN_IDENTITY not set)"
+fi
+
+# Create a DMG
 echo "Creating DMG..."
 OUTPUT_DMG="${APP_NAME}-${PLATFORM}.dmg"
 
@@ -230,12 +259,51 @@ if [[ ! -f "$OUTPUT_DMG" ]]; then
     exit 1
 fi
 
+# Notarization (optional - requires Apple Developer credentials)
+if [[ -n "${MAC_NOTARIZE_TEAM_ID:-}" ]] && [[ -n "${MAC_NOTARIZE_APPLE_ID:-}" ]] && [[ -n "${MAC_NOTARIZE_PASSWORD:-}" ]]; then
+    echo "Notarizing DMG..."
+
+    if xcrun notarytool submit "$OUTPUT_DMG" \
+        --team-id "$MAC_NOTARIZE_TEAM_ID" \
+        --apple-id "$MAC_NOTARIZE_APPLE_ID" \
+        --password "$MAC_NOTARIZE_PASSWORD" \
+        --wait; then
+
+        echo "✓ Notarization successful"
+
+        # Staple the notarization ticket
+        if xcrun stapler staple "$OUTPUT_DMG"; then
+            echo "✓ Notarization ticket stapled"
+            xcrun stapler validate "$OUTPUT_DMG" && echo "✓ Staple verified"
+        else
+            echo "Warning: Failed to staple notarization ticket"
+        fi
+    else
+        echo "Warning: Notarization failed - DMG will not be notarized"
+    fi
+else
+    echo "Skipping notarization (credentials not set)"
+fi
+
 # Move to output directory
 mv "$OUTPUT_DMG" "$OUTPUT_DIR/"
 
 echo "✓ Created: $OUTPUT_DIR/$OUTPUT_DMG"
 
 # Create installation instructions
+SIGNED_NOTE=""
+if [[ -z "${MAC_CODESIGN_IDENTITY:-}" ]]; then
+    SIGNED_NOTE="Note: This is an unsigned application. On first launch, you may need to:
+- Right-click (or Control-click) the app and select \"Open\"
+- Click \"Open\" in the security dialog"
+elif [[ -z "${MAC_NOTARIZE_TEAM_ID:-}" ]]; then
+    SIGNED_NOTE="Note: This application is code-signed but not notarized. On first launch:
+- Right-click (or Control-click) the app and select \"Open\"
+- Click \"Open\" in the security dialog"
+else
+    SIGNED_NOTE="This application is code-signed and notarized by Apple."
+fi
+
 cat > "$OUTPUT_DIR/${APP_NAME}-${PLATFORM}-README.txt" << EOF
 ${APP_NAME} - macOS Installation
 ================================
@@ -244,9 +312,7 @@ ${APP_NAME} - macOS Installation
 2. Drag "${APP_NAME}.app" to your Applications folder
 3. Launch from Applications or Launchpad
 
-Note: This is an unsigned application. On first launch, you may need to:
-- Right-click (or Control-click) the app and select "Open"
-- Click "Open" in the security dialog
+${SIGNED_NOTE}
 
 This package contains:
 - Main UI: ${MAIN_QML}
