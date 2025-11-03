@@ -43,8 +43,9 @@ if [[ -n "$LOCAL_INSTALLER" ]]; then
         # Capture the full hdiutil output to parse the mount point
         HDIUTIL_OUTPUT=$(hdiutil attach -nobrowse -readonly "$LOCAL_INSTALLER" 2>&1)
 
-        # Extract mount point - it's typically the last column of the line containing /Volumes/
-        MOUNT_POINT=$(echo "$HDIUTIL_OUTPUT" | grep "/Volumes/" | tail -1 | awk '{print $NF}')
+        # Extract mount point - find the line with /Volumes/ and extract everything after the last tab/spaces before /Volumes
+        # The format is: /dev/diskXsY    TYPE    /Volumes/Name
+        MOUNT_POINT=$(echo "$HDIUTIL_OUTPUT" | grep "/Volumes/" | tail -1 | sed -E 's/^.*(\/Volumes\/.*[^[:space:]]).*$/\1/' | sed 's/[[:space:]]*$//')
 
         if [[ -z "$MOUNT_POINT" ]] || [[ ! -d "$MOUNT_POINT" ]]; then
             echo "Error: Failed to mount DMG or locate mount point"
@@ -101,8 +102,9 @@ else
     # Capture the full hdiutil output to parse the mount point
     HDIUTIL_OUTPUT=$(hdiutil attach -nobrowse -readonly "score-original.dmg" 2>&1)
 
-    # Extract mount point - it's typically the last column of the line containing /Volumes/
-    MOUNT_POINT=$(echo "$HDIUTIL_OUTPUT" | grep "/Volumes/" | tail -1 | awk '{print $NF}')
+    # Extract mount point - find the line with /Volumes/ and extract everything after the last tab/spaces before /Volumes
+    # The format is: /dev/diskXsY    TYPE    /Volumes/Name
+    MOUNT_POINT=$(echo "$HDIUTIL_OUTPUT" | grep "/Volumes/" | tail -1 | sed -E 's/^.*(\/Volumes\/.*[^[:space:]]).*$/\1/' | sed 's/[[:space:]]*$//')
 
     if [[ -z "$MOUNT_POINT" ]] || [[ ! -d "$MOUNT_POINT" ]]; then
         echo "Error: Failed to mount DMG or locate mount point"
