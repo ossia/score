@@ -223,12 +223,27 @@ if [[ -n "${MAC_CODESIGN_IDENTITY:-}" ]]; then
 
     # Sign all dylibs first
     echo "  Signing dynamic libraries..."
-    find "$APP_BUNDLE" -name '*.dylib' -exec \
+    find "$APP_BUNDLE" -name '*.dylib' -type f -exec \
         codesign --force --timestamp --sign "$MAC_CODESIGN_IDENTITY" {} \; 2>/dev/null || true
+
+    # Sign all frameworks
+    echo "  Signing frameworks..."
+    find "$APP_BUNDLE" -name "*.framework" -type d | while read framework; do
+        codesign --force --timestamp --sign "$MAC_CODESIGN_IDENTITY" "$framework" 2>/dev/null || true
+    done
+
+    # Sign all executables (but not scripts or text files)
+    echo "  Signing executables..."
+    find "$BUNDLE_MACOS" -type f -perm +111 ! -name "*.qml" ! -name "*.js" ! -name "*.txt" ! -name "*.sh" | while read executable; do
+        # Check if it's actually a Mach-O binary
+        if file "$executable" | grep -q "Mach-O"; then
+            codesign --force --timestamp --sign "$MAC_CODESIGN_IDENTITY" "$executable" 2>/dev/null || true
+        fi
+    done
 
     # Sign nested app bundles (like vstpuppet, clappuppet, etc.)
     echo "  Signing nested bundles..."
-    find "$BUNDLE_MACOS" -name "*.app" -type d | while read nested_app; do
+    find "$BUNDLE_MACOS" -name "*.app" -type d -mindepth 1 | while read nested_app; do
         codesign --force --timestamp --options=runtime --sign "$MAC_CODESIGN_IDENTITY" "$nested_app" 2>/dev/null || true
     done
 
