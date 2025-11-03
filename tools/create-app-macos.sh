@@ -40,12 +40,20 @@ if [[ -n "$LOCAL_INSTALLER" ]]; then
         # It's a DMG - mount and extract
         echo "Mounting local DMG..."
 
-        MOUNT_POINT=$(hdiutil attach -nobrowse -readonly "$LOCAL_INSTALLER" | grep "/Volumes/" | awk '{print $3}')
+        # Capture the full hdiutil output to parse the mount point
+        HDIUTIL_OUTPUT=$(hdiutil attach -nobrowse -readonly "$LOCAL_INSTALLER" 2>&1)
 
-        if [[ -z "$MOUNT_POINT" ]]; then
-            echo "Error: Failed to mount DMG"
+        # Extract mount point - it's typically the last column of the line containing /Volumes/
+        MOUNT_POINT=$(echo "$HDIUTIL_OUTPUT" | grep "/Volumes/" | tail -1 | awk '{print $NF}')
+
+        if [[ -z "$MOUNT_POINT" ]] || [[ ! -d "$MOUNT_POINT" ]]; then
+            echo "Error: Failed to mount DMG or locate mount point"
+            echo "hdiutil output was:"
+            echo "$HDIUTIL_OUTPUT"
             exit 1
         fi
+
+        echo "Mounted at: $MOUNT_POINT"
 
         trap "hdiutil detach '$MOUNT_POINT' 2>/dev/null || true" EXIT
 
@@ -90,12 +98,20 @@ else
 
     # Mount the DMG
     echo "Mounting DMG..."
-    MOUNT_POINT=$(hdiutil attach -nobrowse -readonly "score-original.dmg" | grep "/Volumes/" | awk '{print $3}')
+    # Capture the full hdiutil output to parse the mount point
+    HDIUTIL_OUTPUT=$(hdiutil attach -nobrowse -readonly "score-original.dmg" 2>&1)
 
-    if [[ -z "$MOUNT_POINT" ]]; then
-        echo "Error: Failed to mount DMG"
+    # Extract mount point - it's typically the last column of the line containing /Volumes/
+    MOUNT_POINT=$(echo "$HDIUTIL_OUTPUT" | grep "/Volumes/" | tail -1 | awk '{print $NF}')
+
+    if [[ -z "$MOUNT_POINT" ]] || [[ ! -d "$MOUNT_POINT" ]]; then
+        echo "Error: Failed to mount DMG or locate mount point"
+        echo "hdiutil output was:"
+        echo "$HDIUTIL_OUTPUT"
         exit 1
     fi
+
+    echo "Mounted at: $MOUNT_POINT"
 
     trap "hdiutil detach '$MOUNT_POINT' 2>/dev/null || true" EXIT
 
