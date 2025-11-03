@@ -318,16 +318,34 @@ if [[ ! -f "$OUTPUT_DMG" ]]; then
     exit 1
 fi
 
+# Sign the DMG if we have code signing credentials
+if [[ -n "${MAC_CODESIGN_IDENTITY:-}" ]]; then
+    echo "Signing DMG..."
+    if codesign --force --timestamp --sign "$MAC_CODESIGN_IDENTITY" "$OUTPUT_DMG"; then
+        echo "✓ DMG signed successfully"
+    else
+        echo "Warning: DMG signing failed"
+    fi
+fi
+
 # Notarization (optional - requires Apple Developer credentials)
 if [[ -n "${MAC_NOTARIZE_TEAM_ID:-}" ]] && [[ -n "${MAC_NOTARIZE_APPLE_ID:-}" ]] && [[ -n "${MAC_NOTARIZE_PASSWORD:-}" ]]; then
     echo "Notarizing DMG..."
 
-    if xcrun notarytool submit "$OUTPUT_DMG" \
+    # Submit and capture the submission ID
+    SUBMIT_OUTPUT=$(xcrun notarytool submit "$OUTPUT_DMG" \
         --team-id "$MAC_NOTARIZE_TEAM_ID" \
         --apple-id "$MAC_NOTARIZE_APPLE_ID" \
         --password "$MAC_NOTARIZE_PASSWORD" \
-        --wait; then
+        --wait 2>&1)
 
+    SUBMIT_STATUS=$?
+    echo "$SUBMIT_OUTPUT"
+
+    # Extract submission ID
+    SUBMISSION_ID=$(echo "$SUBMIT_OUTPUT" | grep "id:" | head -1 | awk '{print $2}')
+
+    if [[ $SUBMIT_STATUS -eq 0 ]] && echo "$SUBMIT_OUTPUT" | grep -q "status: Accepted"; then
         echo "✓ Notarization successful"
 
         # Staple the notarization ticket
@@ -338,7 +356,18 @@ if [[ -n "${MAC_NOTARIZE_TEAM_ID:-}" ]] && [[ -n "${MAC_NOTARIZE_APPLE_ID:-}" ]]
             echo "Warning: Failed to staple notarization ticket"
         fi
     else
-        echo "Warning: Notarization failed - DMG will not be notarized"
+        echo "Warning: Notarization failed or returned invalid status"
+
+        # Get detailed log if we have a submission ID
+        if [[ -n "$SUBMISSION_ID" ]]; then
+            echo "Fetching notarization log..."
+            xcrun notarytool log "$SUBMISSION_ID" \
+                --team-id "$MAC_NOTARIZE_TEAM_ID" \
+                --apple-id "$MAC_NOTARIZE_APPLE_ID" \
+                --password "$MAC_NOTARIZE_PASSWORD" 2>&1 || true
+        fi
+
+        echo "DMG will not be notarized"
     fi
 else
     echo "Skipping notarization (credentials not set)"
