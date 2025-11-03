@@ -81,6 +81,8 @@ while [[ $# -gt 0 ]]; do
                 echo "Error: Score file does not exist: $SCORE_FILE"
                 exit 1
             fi
+            # Convert to absolute path
+            SCORE_FILE="$(cd "$(dirname "$SCORE_FILE")" && pwd)/$(basename "$SCORE_FILE")"
             shift 2
             ;;
         --output)
@@ -137,7 +139,7 @@ fi
 
 # Find the main QML file (first .qml file specified)
 MAIN_QML=""
-for qml in "${QML_FILES[@]}"; do
+for qml in "${QML_FILES[@]+"${QML_FILES[@]}"}"; do
     if [[ "$qml" == *.qml ]]; then
         MAIN_QML="$(basename "$qml")"
         break
@@ -146,7 +148,7 @@ done
 
 if [[ -z "$MAIN_QML" ]]; then
     # Try to find a .qml file in directories
-    for dir in "${QML_DIRS[@]}"; do
+    for dir in "${QML_DIRS[@]+"${QML_DIRS[@]}"}"; do
         found=$(find "$dir" -maxdepth 1 -name "*.qml" | head -n 1)
         if [[ -n "$found" ]]; then
             MAIN_QML="$(basename "$found")"
