@@ -1,0 +1,239 @@
+#!/bin/bash
+set -euo pipefail
+
+# Main orchestrator script for creating custom ossia score applications
+# This script fetches official releases and repackages them with custom QML and score files
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Default values
+RELEASE_TAG="continuous"
+QML_FILES=()
+QML_DIRS=()
+SCORE_FILE=""
+OUTPUT_DIR=""
+APP_NAME=""
+PLATFORMS=()
+
+# Parse arguments
+show_help() {
+    cat << EOF
+Usage: $0 [OPTIONS]
+
+Create custom ossia score applications from official releases.
+
+Required options:
+    --qml FILE/DIR      QML file or directory to include (can be specified multiple times)
+                        The first .qml file will be used as the main UI
+    --output DIR        Output directory for generated packages
+    --name NAME         Name of the custom application
+
+Optional:
+    --score FILE        Score file to autoplay (if not specified, no score is loaded)
+    --release TAG       Release tag to use (default: continuous)
+    --platform PLAT     Platform to build for: linux-x86_64, linux-aarch64,
+                        macos-intel, macos-arm, windows
+                        Can be specified multiple times. If not specified,
+                        builds for current platform.
+    --help              Show this help message
+
+Example:
+    $0 --qml App.qml --qml ./extra-qml --score App.score \\
+       --output ./MyApp --name "My Custom App"
+
+    Or without a score file:
+    $0 --qml App.qml --output ./MyApp --name "My Custom App"
+
+This will create platform-specific packages that launch score with:
+    --ui App.qml [--autoplay App.score]
+
+EOF
+    exit 0
+}
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --qml)
+            if [[ -f "$2" ]]; then
+                QML_FILES+=("$2")
+            elif [[ -d "$2" ]]; then
+                QML_DIRS+=("$2")
+            else
+                echo "Error: QML path does not exist: $2"
+                exit 1
+            fi
+            shift 2
+            ;;
+        --score)
+            SCORE_FILE="$2"
+            if [[ ! -f "$SCORE_FILE" ]]; then
+                echo "Error: Score file does not exist: $SCORE_FILE"
+                exit 1
+            fi
+            shift 2
+            ;;
+        --output)
+            OUTPUT_DIR="$2"
+            shift 2
+            ;;
+        --name)
+            APP_NAME="$2"
+            shift 2
+            ;;
+        --release)
+            RELEASE_TAG="$2"
+            shift 2
+            ;;
+        --platform)
+            PLATFORMS+=("$2")
+            shift 2
+            ;;
+        --help)
+            show_help
+            ;;
+        *)
+            echo "Unknown option: $1"
+            show_help
+            ;;
+    esac
+done
+
+# Validate required arguments
+if [[ ${#QML_FILES[@]} -eq 0 && ${#QML_DIRS[@]} -eq 0 ]]; then
+    echo "Error: At least one --qml argument is required"
+    show_help
+fi
+
+if [[ -z "$OUTPUT_DIR" ]]; then
+    echo "Error: --output argument is required"
+    show_help
+fi
+
+if [[ -z "$APP_NAME" ]]; then
+    echo "Error: --name argument is required"
+    show_help
+fi
+
+# Find the main QML file (first .qml file specified)
+MAIN_QML=""
+for qml in "${QML_FILES[@]}"; do
+    if [[ "$qml" == *.qml ]]; then
+        MAIN_QML="$(basename "$qml")"
+        break
+    fi
+done
+
+if [[ -z "$MAIN_QML" ]]; then
+    # Try to find a .qml file in directories
+    for dir in "${QML_DIRS[@]}"; do
+        found=$(find "$dir" -maxdepth 1 -name "*.qml" | head -n 1)
+        if [[ -n "$found" ]]; then
+            MAIN_QML="$(basename "$found")"
+            break
+        fi
+    done
+fi
+
+if [[ -z "$MAIN_QML" ]]; then
+    echo "Error: Could not find a .qml file to use as main UI"
+    exit 1
+fi
+
+# Set score basename if score file is provided
+if [[ -n "$SCORE_FILE" ]]; then
+    SCORE_BASENAME="$(basename "$SCORE_FILE")"
+else
+    SCORE_BASENAME=""
+fi
+
+# Detect current platform if none specified
+if [[ ${#PLATFORMS[@]} -eq 0 ]]; then
+    case "$(uname -s)" in
+        Linux)
+            case "$(uname -m)" in
+                x86_64) PLATFORMS+=("linux-x86_64") ;;
+                aarch64|arm64) PLATFORMS+=("linux-aarch64") ;;
+                *) echo "Error: Unsupported architecture: $(uname -m)"; exit 1 ;;
+            esac
+            ;;
+        Darwin)
+            case "$(uname -m)" in
+                x86_64) PLATFORMS+=("macos-intel") ;;
+                arm64) PLATFORMS+=("macos-arm") ;;
+                *) echo "Error: Unsupported architecture: $(uname -m)"; exit 1 ;;
+            esac
+            ;;
+        MINGW*|MSYS*|CYGWIN*)
+            PLATFORMS+=("windows")
+            ;;
+        *)
+            echo "Error: Unsupported platform: $(uname -s)"
+            exit 1
+            ;;
+    esac
+fi
+
+# Create output directory
+mkdir -p "$OUTPUT_DIR"
+OUTPUT_DIR="$(cd "$OUTPUT_DIR" && pwd)"
+
+echo "========================================="
+echo "ossia score Custom App Builder"
+echo "========================================="
+echo "App Name:       $APP_NAME"
+echo "Main QML:       $MAIN_QML"
+if [[ -n "$SCORE_BASENAME" ]]; then
+    echo "Score File:     $SCORE_BASENAME"
+else
+    echo "Score File:     (none)"
+fi
+echo "Release:        $RELEASE_TAG"
+echo "Output Dir:     $OUTPUT_DIR"
+echo "Platforms:      ${PLATFORMS[*]}"
+echo "========================================="
+echo
+
+# Create a temporary working directory
+WORK_DIR="$(mktemp -d)"
+trap "rm -rf '$WORK_DIR'" EXIT
+
+# Export variables for platform scripts
+export APP_NAME
+export MAIN_QML
+export SCORE_FILE
+export SCORE_BASENAME
+export OUTPUT_DIR
+export RELEASE_TAG
+export WORK_DIR
+
+# Build for each platform
+for platform in "${PLATFORMS[@]}"; do
+    echo
+    echo "Building for platform: $platform"
+    echo "--------------------------------------"
+
+    case "$platform" in
+        linux-x86_64|linux-aarch64)
+            "$SCRIPT_DIR/create-app-linux.sh" "$platform" "${QML_FILES[@]}" "${QML_DIRS[@]}"
+            ;;
+        macos-intel|macos-arm)
+            "$SCRIPT_DIR/create-app-macos.sh" "$platform" "${QML_FILES[@]}" "${QML_DIRS[@]}"
+            ;;
+        windows)
+            "$SCRIPT_DIR/create-app-windows.sh" "$platform" "${QML_FILES[@]}" "${QML_DIRS[@]}"
+            ;;
+        *)
+            echo "Error: Unknown platform: $platform"
+            exit 1
+            ;;
+    esac
+
+    echo "✓ Completed $platform"
+done
+
+echo
+echo "========================================="
+echo "All packages created successfully!"
+echo "Output directory: $OUTPUT_DIR"
+echo "========================================="
