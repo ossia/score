@@ -240,13 +240,13 @@ for platform in "${PLATFORMS[@]}"; do
 
     case "$platform" in
         linux-x86_64|linux-aarch64)
-            "$SCRIPT_DIR/create-app-linux.sh" "$platform" "${QML_FILES[@]}" "${QML_DIRS[@]}"
+            "$SCRIPT_DIR/create-app-linux.sh" "$platform" "${QML_FILES[@]+"${QML_FILES[@]}"}" "${QML_DIRS[@]+"${QML_DIRS[@]}"}"
             ;;
         macos-intel|macos-arm)
-            "$SCRIPT_DIR/create-app-macos.sh" "$platform" "${QML_FILES[@]}" "${QML_DIRS[@]}"
+            "$SCRIPT_DIR/create-app-macos.sh" "$platform" "${QML_FILES[@]+"${QML_FILES[@]}"}" "${QML_DIRS[@]+"${QML_DIRS[@]}"}"
             ;;
         windows)
-            "$SCRIPT_DIR/create-app-windows.sh" "$platform" "${QML_FILES[@]}" "${QML_DIRS[@]}"
+            "$SCRIPT_DIR/create-app-windows.sh" "$platform" "${QML_FILES[@]+"${QML_FILES[@]}"}" "${QML_DIRS[@]+"${QML_DIRS[@]}"}"
             ;;
         *)
             echo "Error: Unknown platform: $platform"

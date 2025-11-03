@@ -90,6 +90,7 @@ if [[ -n "$SCORE_BASENAME" ]]; then
     # With autoplay
     cat > AppRun << 'APPRUN_EOF'
 #!/bin/sh
+export QML2_IMPORT_PATH="${APPDIR}/usr/bin/qml/"
 export LD_LIBRARY_PATH="${APPIMAGE_LIBRARY_PATH}:${APPDIR}/usr/lib:${LD_LIBRARY_PATH}"
 "${APPDIR}/usr/bin/linuxcheck" "${APPDIR}/usr/bin/ossia-score"
 
@@ -103,6 +104,7 @@ else
     # Without autoplay
     cat > AppRun << 'APPRUN_EOF'
 #!/bin/sh
+export QML2_IMPORT_PATH="${APPDIR}/usr/bin/qml/"
 export LD_LIBRARY_PATH="${APPIMAGE_LIBRARY_PATH}:${APPDIR}/usr/lib:${LD_LIBRARY_PATH}"
 "${APPDIR}/usr/bin/linuxcheck" "${APPDIR}/usr/bin/ossia-score"
 

@@ -152,6 +152,7 @@ if [[ -n "$SCORE_BASENAME" ]]; then
 #!/bin/bash
 # Custom launcher for APP_NAME_PLACEHOLDER
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export QML2_IMPORT_PATH="${SCRIPT_DIR}/qml/"
 exec "$SCRIPT_DIR/ossia-score-bin" \
     --ui "$SCRIPT_DIR/qml/MAIN_QML_PLACEHOLDER" \
     --autoplay "$SCRIPT_DIR/SCORE_FILE_PLACEHOLDER" \
@@ -167,6 +168,7 @@ else
 #!/bin/bash
 # Custom launcher for APP_NAME_PLACEHOLDER
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export QML2_IMPORT_PATH="${SCRIPT_DIR}/qml/"
 exec "$SCRIPT_DIR/ossia-score-bin" \
     --ui "$SCRIPT_DIR/qml/MAIN_QML_PLACEHOLDER" \
     "$@"

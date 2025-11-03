@@ -58,6 +58,10 @@ if [[ ! -d "score-extracted" ]]; then
     exit 1
 fi
 
+# Remove NSIS-specific directories that we don't need
+echo "Cleaning up NSIS metadata..."
+rm -rf score-extracted/'$PLUGINSDIR' score-extracted/'$_OUTDIR' score-extracted/'$TEMP' 2>/dev/null || true
+
 # Find the main installation directory (usually contains score.exe)
 INSTALL_DIR="score-extracted"
 if [[ ! -f "$INSTALL_DIR/score.exe" ]]; then
@@ -125,6 +129,7 @@ int main(int argc, char *argv[]) {
     char exe_path[MAX_PATH];
     char exe_dir[MAX_PATH];
     char qml_path[MAX_PATH];
+    char qml_import_path[MAX_PATH];
     char score_path[MAX_PATH];
     char command_line[32768]; // Windows max command line length
 
@@ -143,6 +148,12 @@ int main(int argc, char *argv[]) {
 
     // Build paths
     snprintf(qml_path, MAX_PATH, "%s\\qml\\%s", exe_dir, MAIN_QML);
+    snprintf(qml_import_path, MAX_PATH, "%s\\qml", exe_dir);
+
+    // Set QML2_IMPORT_PATH environment variable
+    char qml_env_var[MAX_PATH + 20];
+    snprintf(qml_env_var, sizeof(qml_env_var), "QML2_IMPORT_PATH=%s", qml_import_path);
+    _putenv(qml_env_var);
 
     // Build command line
     snprintf(command_line, sizeof(command_line), "\"%s\\ossia-score.exe\" --ui \"%s\"",
@@ -250,11 +261,12 @@ fi
 
 # Compile if we have a compiler
 if [[ -n "$COMPILER" ]]; then
-    if $COMPILER -O2 -s -mwindows -o "${APP_NAME}.exe" launcher.c; then
+    if $COMPILER -O2 -s -mwindows -o "${APP_NAME}.exe" launcher.c 2>&1; then
         echo "✓ Native launcher compiled successfully: ${APP_NAME}.exe"
-        rm launcher.c
+        rm -f launcher.c
     else
         echo "Warning: Compilation failed, creating batch script fallback"
+        rm -f launcher.c "${APP_NAME}.exe"  # Clean up any partial artifacts
         # Create fallback batch script
         if [[ -n "$SCORE_BASENAME" ]]; then
             cat > "${APP_NAME}.bat" << 'BATCH_EOF'
@@ -273,6 +285,9 @@ BATCH_EOF
             sed -i "s/MAIN_QML_PLACEHOLDER/${MAIN_QML}/g" "${APP_NAME}.bat"
         fi
     fi
+else
+    # No compiler, remove the launcher.c we created
+    rm -f launcher.c
 fi
 
 # Also create PowerShell launcher for users who prefer it
