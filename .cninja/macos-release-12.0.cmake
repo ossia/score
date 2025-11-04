@@ -26,6 +26,7 @@ else()
   string(APPEND CMAKE_C_FLAGS_INIT "  -march=x86-64-v2  ")
   string(APPEND CMAKE_CXX_FLAGS_INIT "  -march=x86-64-v2 ")
   set_cache(KFR_ARCH avx)
+  set_cache(KFR_ARCHS "sse41;sse42;avx;avx2;avx512")
 endif()
 
 set_cache(BUILD_SHARED_LIBS OFF)
