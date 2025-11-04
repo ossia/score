@@ -15,7 +15,7 @@ if(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "x86_64")
   string(APPEND CMAKE_CXX_FLAGS_INIT " -mtune=cannonlake ")
   set_cache(KFR_ARCH sse2)
 elseif(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "arm*")
-  set_cache(KFR_ARCH neon)
+  set_cache(KFR_ARCH neon64)
 endif()
 
 set_cache(BUILD_SHARED_LIBS OFF)
