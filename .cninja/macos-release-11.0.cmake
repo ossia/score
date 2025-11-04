@@ -21,7 +21,7 @@ elseif(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "arm*")
 endif()
 
 if(IS_ARM64)
-  set_cache(KFR_ARCH neon)
+  set_cache(KFR_ARCH neon64)
 else()
   string(APPEND CMAKE_C_FLAGS_INIT " -march=ivybridge -mtune=cannonlake  ")
   string(APPEND CMAKE_CXX_FLAGS_INIT " -march=ivybridge -mtune=cannonlake ")
