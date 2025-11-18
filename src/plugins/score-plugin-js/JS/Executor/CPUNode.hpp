@@ -55,7 +55,7 @@ public:
   std::vector<std::pair<MidiOutlet*, ossia::outlet_ptr>> m_midOutlets;
   JS::Script* m_object{};
   ossia::qt::qml_engine_functions* m_execFuncs{};
-  QJSValueList m_tickCall;
+  std::optional<QJSValueList> m_tickCall;
   std::size_t m_gcIndex{};
 
   bool triggerStart{};

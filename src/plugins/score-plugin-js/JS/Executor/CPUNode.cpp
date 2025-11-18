@@ -31,7 +31,7 @@ js_node::js_node(ossia::execution_state& st)
 }
 
 js_node::~js_node()
-{
+{ // FIXME eventually we'd like all the nodes to be destroyed in UI thread
   OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   SCORE_ASSERT(!m_engine);
 }
@@ -39,8 +39,11 @@ js_node::~js_node()
 void js_node::clear() noexcept
 {
   OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+  m_tickCall.reset();
+
   delete m_engine;
   m_engine = nullptr;
+  m_execFuncs = nullptr;
 }
 
 void js_node::setupComponent()
@@ -273,13 +276,13 @@ void js_node::run(
     m_midInlets[i].first->setMidi(dat);
   }
 
-  if(m_tickCall.empty())
-    m_tickCall = {{}, {}};
+  if(!m_tickCall || m_tickCall->empty())
+    m_tickCall = QJSValueList{{}, {}};
 
-  m_tickCall[0] = m_engine->toScriptValue(TokenRequestValueType{tk});
-  m_tickCall[1] = m_engine->toScriptValue(ExecutionStateValueType{estate});
+  (*m_tickCall)[0] = m_engine->toScriptValue(TokenRequestValueType{tk});
+  (*m_tickCall)[1] = m_engine->toScriptValue(ExecutionStateValueType{estate});
 
-  auto res = tick.call(m_tickCall);
+  auto res = tick.call(*m_tickCall);
   if(res.isError())
   {
     qDebug() << "JS Error at " << res.property("lineNumber").toInt() << ": "
