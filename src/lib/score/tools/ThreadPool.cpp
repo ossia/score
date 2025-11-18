@@ -95,9 +95,9 @@ TaskPool::TaskPool()
   {
     t = std::thread{[this, i = i++] {
       ossia::set_thread_name("ossia task " + std::to_string(i));
+      task t{};
       while(m_running)
       {
-        task t{};
         if(m_queue.wait_dequeue_timed(t, 100000))
         {
           t();
