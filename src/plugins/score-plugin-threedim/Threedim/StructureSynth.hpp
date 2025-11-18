@@ -28,7 +28,14 @@ public:
     {
       halp_meta(language, "eisenscript")
       // Request a computation according to the currently defined program
-      void update(StrucSynth& g) { g.worker.request(this->value); }
+      void update(StrucSynth& g)
+      {
+        if(this->value.empty())
+          return;
+
+        using namespace std::literals;
+        g.worker.request(this->value);
+      }
     } program;
 
     PositionControl position;
