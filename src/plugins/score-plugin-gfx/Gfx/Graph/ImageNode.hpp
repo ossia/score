@@ -2,6 +2,11 @@
 
 #include <Gfx/Graph/Node.hpp>
 
+#if QT_SVG_LIB
+#include <QPainter>
+#include <QSvgRenderer>
+#endif
+
 namespace score::gfx
 {
 enum ImageMode
@@ -45,8 +50,9 @@ public:
 private:
   void process(Message&& msg) override;
 
+  using image_type = std::variant<QImage*, QSvgRenderer*>;
   std::vector<score::gfx::Image> images;
-  std::vector<QImage*> linearImages;
+  std::vector<image_type> linearImages;
 };
 struct FullScreenImageNode : NodeModel
 {

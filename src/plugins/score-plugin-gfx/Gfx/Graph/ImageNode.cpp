@@ -166,14 +166,6 @@ void ImagesNode::process(Message&& msg)
               [this, sink](const auto& v) { ProcessNode::process(sink.port, v); },
               std::move(m));
 
-          if(linearImages.size() > 0)
-          {
-            const int idx = imageIndex(ubo.currentImageIndex, linearImages.size());
-            auto sz = linearImages[idx]->size();
-            ubo.imageSize[0] = sz.width();
-            ubo.imageSize[1] = sz.height();
-          }
-
           break;
         }
         case 1: // Opacity
@@ -194,65 +186,58 @@ void ImagesNode::process(Message&& msg)
 
         case 3: // X scale
         {
-          {
-            auto scale = ossia::convert<float>(*val);
-            this->scale_w = scale;
-            this->materialChange();
-          }
+          auto scale = ossia::convert<float>(*val);
+          this->scale_w = scale;
+          this->materialChange();
           break;
         }
         case 4: // Scale Y
         {
-          {
-            auto scale = ossia::convert<float>(*val);
-            this->scale_h = scale;
-            this->materialChange();
-          }
+          auto scale = ossia::convert<float>(*val);
+          this->scale_h = scale;
+          this->materialChange();
           break;
         }
 
         case 5: // Images
         {
+          linearImages.clear();
+          Gfx::releaseImages(images);
+          images = Gfx::getImages(*val);
+          for(auto& img : images)
           {
-            linearImages.clear();
-            Gfx::releaseImages(images);
-            images = Gfx::getImages(*val);
-            for(auto& img : images)
+            if(img.path.endsWith("svg"))
+            {
+              auto renderer = new QSvgRenderer{img.path};
+              if(renderer->animated())
+                renderer->setAnimationEnabled(true);
+              renderer->setFramesPerSecond(60);
+              linearImages.push_back(renderer);
+            }
+            else
             {
               for(auto& frame : img.frames)
               {
                 linearImages.push_back(&frame);
               }
             }
-
-            if(linearImages.size() > 0)
-            {
-              const int idx = imageIndex(ubo.currentImageIndex, linearImages.size());
-              auto sz = linearImages[idx]->size();
-              ubo.imageSize[0] = sz.width();
-              ubo.imageSize[1] = sz.height();
-            }
-
-            ++this->imagesChanged;
           }
+
+          ++this->imagesChanged;
           break;
         }
 
         case 6: // Tile
         {
-          {
-            this->tileMode = (ImageMode)ossia::convert<int>(*val);
-            this->materialChange();
-          }
+          this->tileMode = (ImageMode)ossia::convert<int>(*val);
+          this->materialChange();
           break;
         }
 
         case 7: // Scale
         {
-          {
-            this->scaleMode = (ScaleMode)ossia::convert<int>(*val);
-            this->materialChange();
-          }
+          this->scaleMode = (ScaleMode)ossia::convert<int>(*val);
+          this->materialChange();
           break;
         }
       }
@@ -295,6 +280,7 @@ static QRhiSampler* createSampler(ImageMode tile, QRhi& rhi)
   sampler->create();
   return sampler;
 }
+
 class ImagesNode::PreloadedRenderer : public GenericNodeRenderer
 {
 public:
@@ -318,17 +304,40 @@ private:
     const int limits_min = rhi.resourceLimit(QRhi::ResourceLimit::TextureSizeMin);
     const int limits_max = rhi.resourceLimit(QRhi::ResourceLimit::TextureSizeMax);
 
-    for(const QImage* frame : n.linearImages)
+    for(int i = 0, N = n.linearImages.size(); i < N; i++)
     {
-      const QSize sz = frame->size();
-      auto tex = rhi.newTexture(
-          QRhiTexture::BGRA8,
-          resizeTextureSize(QSize{sz.width(), sz.height()}, limits_min, limits_max), 1,
-          QRhiTexture::Flag{});
+      auto frame = n.linearImages[i];
+      QSize sz{limits_min, limits_min};
+      if(auto qimage = std::get_if<QImage*>(&frame))
+      {
+        sz = (*qimage)->size();
+      }
+      else if(auto svg_p = std::get_if<QSvgRenderer*>(&frame))
+      {
+        auto* svg = *svg_p;
+        auto svg_size = svg->defaultSize();
+        svg_size = QSize(
+            svg_size.width() * std::abs(scale_w), svg_size.height() * std::abs(scale_h));
+        sz = svg_size;
+      }
+      const auto tex_size
+          = resizeTextureSize(QSize{sz.width(), sz.height()}, limits_min, limits_max);
 
-      tex->setName("ImagesNode::tex");
-      tex->create();
-      m_textures.push_back(tex);
+      if(m_textures.size() <= i)
+      {
+        QRhiTexture* tex = tex
+            = rhi.newTexture(QRhiTexture::BGRA8, tex_size, 1, QRhiTexture::Flag{});
+        tex->setName("ImagesNode::tex");
+        tex->create();
+        m_textures.push_back(tex);
+      }
+      else if(m_textures[i]->pixelSize() != tex_size)
+      {
+        auto tex = m_textures[i];
+        tex->destroy();
+        tex->setPixelSize(tex_size);
+        tex->create();
+      }
     }
   }
 
@@ -413,27 +422,72 @@ private:
     if(n.imagesChanged > imagesChanged)
     {
       imagesChanged = n.imagesChanged;
-      for(auto tex : m_textures)
+      if(m_textures.size() > n.linearImages.size())
       {
-        tex->deleteLater();
+        for(int i = n.linearImages.size(); i < m_textures.size(); i++)
+        {
+          m_textures[i]->deleteLater();
+        }
+        m_textures.resize(n.linearImages.size());
       }
-      m_textures.clear();
 
-      recreateTextures(*renderer.state.rhi);
       m_uploaded = false;
     }
 
+    recreateTextures(*renderer.state.rhi);
+
     // If images haven't been uploaded yet, upload them.
-    if(!m_uploaded)
     {
+      static thread_local QImage temp_svg;
+
       std::size_t k = 0;
-      for(const QImage* frame : n.linearImages)
+      for(auto frame : n.linearImages)
       {
-        res.uploadTexture(m_textures[k], renderer.adaptImage(*frame));
+        if(auto qimage = std::get_if<QImage*>(&frame))
+        {
+          if(!m_uploaded)
+          {
+            res.uploadTexture(m_textures[k], renderer.adaptImage(**qimage));
+            updateCurrentTexture = true;
+          }
+        }
+        else if(auto svg = std::get_if<QSvgRenderer*>(&frame))
+        {
+          auto svg_size = (*svg)->defaultSize();
+          svg_size = QSize(
+              svg_size.width() * std::abs(scale_w),
+              svg_size.height() * std::abs(scale_h));
+          if(!svg_size.isEmpty())
+          {
+            if((*svg)->animated())
+            {
+              if(temp_svg.size() != svg_size)
+                temp_svg = QImage(svg_size, QImage::Format_ARGB32);
+              QPainter temp_svg_painter{&temp_svg};
+              temp_svg.fill(0);
+              (*svg)->render(&temp_svg_painter);
+              res.uploadTexture(m_textures[k], renderer.adaptImage(temp_svg));
+              updateCurrentTexture = true;
+            }
+            else
+            {
+              if(!m_uploaded)
+              {
+                if(temp_svg.size() != svg_size)
+                  temp_svg = QImage(svg_size, QImage::Format_ARGB32);
+                QPainter temp_svg_painter{&temp_svg};
+                temp_svg.fill(0);
+                (*svg)->render(&temp_svg_painter);
+                res.uploadTexture(m_textures[k], renderer.adaptImage(temp_svg));
+                updateCurrentTexture = true;
+              }
+            }
+          }
+        }
+
         k++;
       }
       m_uploaded = true;
-      updateCurrentTexture = true;
     }
 
     // If the current image being displayed by this renderer (in m_prev_ubo)
@@ -484,17 +538,36 @@ private:
         if(currentImageIndex < std::ssize(m_textures))
           textureSize = m_textures[currentImageIndex]->pixelSize();
 
-        if(tile == score::gfx::Single)
+        const bool is_svg = n.linearImages[currentImageIndex].index() == 1;
+        if(is_svg)
         {
-          auto sz = computeScaleForMeshSizing(scale, renderSize, textureSize);
-          n.ubo.scale[0] = sz.width() * scale_w;
-          n.ubo.scale[1] = sz.height() * scale_h;
+          if(tile == score::gfx::Single)
+          {
+            auto sz = computeScaleForMeshSizing(scale, renderSize, textureSize);
+            n.ubo.scale[0] = sz.width();
+            n.ubo.scale[1] = sz.height();
+          }
+          else
+          {
+            auto sz = computeScaleForTexcoordSizing(scale, renderSize, textureSize);
+            n.ubo.scale[0] = sz.width();
+            n.ubo.scale[1] = sz.height();
+          }
         }
         else
         {
-          auto sz = computeScaleForTexcoordSizing(scale, renderSize, textureSize);
-          n.ubo.scale[0] = sz.width() / scale_w;
-          n.ubo.scale[1] = sz.height() / scale_h;
+          if(tile == score::gfx::Single)
+          {
+            auto sz = computeScaleForMeshSizing(scale, renderSize, textureSize);
+            n.ubo.scale[0] = sz.width() * scale_w;
+            n.ubo.scale[1] = sz.height() * scale_h;
+          }
+          else
+          {
+            auto sz = computeScaleForTexcoordSizing(scale, renderSize, textureSize);
+            n.ubo.scale[0] = sz.width() / scale_w;
+            n.ubo.scale[1] = sz.height() / scale_h;
+          }
         }
 
         materialChanged = true;
@@ -533,9 +606,11 @@ private:
   struct ImagesNode::UBO m_prev_ubo;
   ossia::small_vector<std::pair<Edge*, Pipeline>, 2> m_altPasses;
   std::vector<QRhiTexture*> m_textures;
+  std::vector<QSvgRenderer> m_svgs;
   bool m_uploaded = false;
 };
 
+#if 0
 class ImagesNode::OnTheFlyRenderer : public GenericNodeRenderer
 {
 public:
@@ -555,7 +630,7 @@ private:
     const int limits_max = rhi.resourceLimit(QRhi::ResourceLimit::TextureSizeMax);
 
     QSize maxSize{1, 1};
-    for(const QImage* frame : n.linearImages)
+    for(const auto frame : n.linearImages)
     {
       const auto sz = resizeTextureSize(frame->size(), limits_min, limits_max);
 
@@ -719,6 +794,7 @@ private:
   QRhiTexture* m_texture{};
   bool m_uploaded = false;
 };
+#endif
 
 NodeRenderer* ImagesNode::createRenderer(RenderList& r) const noexcept
 {
