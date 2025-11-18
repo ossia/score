@@ -62,36 +62,40 @@ public:
 
   void on_deviceAdded(const Device::DeviceInterface* d)
   {
+    const int n = ++m_updating_index;
     connect(
         d, &Device::DeviceInterface::deviceChanged, this,
         &observable_device_roots::on_deviceAddedCallback, Qt::UniqueConnection);
     if(auto dev = d->getDevice())
       m_devices.push_back(dev);
 
-    QTimer::singleShot(1, this, [this] { rootsChanged(roots()); });
+    QTimer::singleShot(1, this, [this, n] { rootsChanged(roots(), n); });
   }
 
   void
   on_deviceAddedCallback(ossia::net::device_base* oldd, ossia::net::device_base* newd)
   {
+    const int n = ++m_updating_index;
     ossia::remove_erase(m_devices, oldd);
     if(newd)
       m_devices.push_back(newd);
 
-    QTimer::singleShot(1, this, [this] { rootsChanged(roots()); });
+    QTimer::singleShot(1, this, [this, n] { rootsChanged(roots(), n); });
   }
 
   void on_deviceRemoved(const Device::DeviceInterface* d)
   {
+    const int n = ++m_updating_index;
     disconnect(
         d, &Device::DeviceInterface::deviceChanged, this,
         &observable_device_roots::on_deviceAddedCallback);
     ossia::remove_erase(m_devices, d->getDevice());
 
-    QTimer::singleShot(1, this, [this] { rootsChanged(roots()); });
+    QTimer::singleShot(1, this, [this, n] { rootsChanged(roots(), n); });
   }
 
-  void rootsChanged(std::vector<ossia::net::node_base*> a) W_SIGNAL(rootsChanged, a);
+  void rootsChanged(std::vector<ossia::net::node_base*> a, int64_t i)
+      W_SIGNAL(rootsChanged, a, i);
 
   std::vector<ossia::net::node_base*> roots() const noexcept
   {
@@ -102,6 +106,8 @@ public:
     return r;
   }
   const auto& devices() const noexcept { return m_devices; }
+
+  std::atomic_int64_t m_updating_index = 0;
 
 private:
   std::vector<ossia::net::device_base*> m_devices;
@@ -412,7 +418,13 @@ public:
     QObject::connect(
         this, &mapper_protocol::sig_recv, this, &mapper_protocol::slot_recv);
     con(m_devices, &observable_device_roots::rootsChanged, this,
-        [this, device_obj](std::vector<ossia::net::node_base*> r) {
+        [this, device_obj = QPointer{device_obj}](
+            std::vector<ossia::net::node_base*> r, int64_t n) {
+      if(!device_obj)
+        return;
+      if(m_devices.m_updating_index != n)
+        return;
+
       ossia::qt::qml_device_cache cache;
       for(auto node : r)
         cache.push_back(&node->get_device());
@@ -420,7 +432,8 @@ public:
       device_obj->devices = cache;
       m_roots = std::move(r);
       reset_tree();
-    }, Qt::QueuedConnection);
+    },
+        Qt::QueuedConnection);
 
     QObject::connect(
         m_component, &QQmlComponent::statusChanged, this,
