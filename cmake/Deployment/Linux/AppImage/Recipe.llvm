@@ -112,7 +112,7 @@ cp "$APP_DIR/usr/share/pixmaps/ossia-score.png" "$APP_DIR/"
   rm -f usr/lib/libstdc* || true
   rm -f usr/lib/libGL* || true
   rm -f usr/lib/libgbm* || true
-  rm -f usr/lib/libv4l2* || true
+  rm -f usr/lib/libv4l* || true
   rm -f usr/lib/libwayland* || true
   rm -f usr/lib/libjpeg* || true
   rm -f usr/lib/libcom_err.so.2 || true
