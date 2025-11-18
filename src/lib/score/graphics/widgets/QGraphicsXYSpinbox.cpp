@@ -94,6 +94,13 @@ void QGraphicsXYSpinboxChooser::setValue(ossia::vec2f v)
   update();
 }
 
+void QGraphicsXYSpinboxChooser::setValue(std::array<double, 2> v)
+{
+  m_x.setValue(v[0]);
+  m_y.setValue(v[1]);
+  update();
+}
+
 void QGraphicsXYSpinboxChooser::setRange(
     ossia::vec2f min, ossia::vec2f max, ossia::vec2f init)
 {

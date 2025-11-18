@@ -76,76 +76,77 @@ struct LinearNormalizer
   }
 
   template <typename T>
-  static ossia::vec2f to01(const T& slider, ossia::vec2f val) noexcept
+  static std::array<double, 2> to01(const T& slider, ossia::vec2f val) noexcept
+  {
+    std::array<double, 2> res;
+    const auto min = getMin<ossia::vec2f>(slider);
+    const auto max = getMax<ossia::vec2f>(slider);
+    res[0] = to01(min[0], double(max[0]) - double(min[0]), val[0]);
+    res[1] = to01(min[1], double(max[1]) - double(min[1]), val[1]);
+    return res;
+  }
+
+  template <typename T>
+  static ossia::vec2f from01(const T& slider, std::array<double, 2> val) noexcept
   {
     ossia::vec2f res;
     const auto min = getMin<ossia::vec2f>(slider);
     const auto max = getMax<ossia::vec2f>(slider);
-    res[0] = to01(min[0], max[0] - min[0], val[0]);
-    res[1] = to01(min[1], max[1] - min[1], val[1]);
+    res[0] = from01(min[0], double(max[0]) - double(min[0]), val[0]);
+    res[1] = from01(min[1], double(max[1]) - double(min[1]), val[1]);
     return res;
   }
 
   template <typename T>
-  static ossia::vec2f from01(const T& slider, ossia::vec2f val) noexcept
+  static std::array<double, 3> to01(const T& slider, ossia::vec3f val) noexcept
   {
-    ossia::vec2f res;
-    const auto min = getMin<ossia::vec2f>(slider);
-    const auto max = getMax<ossia::vec2f>(slider);
-    res[0] = from01(min[0], max[0] - min[0], val[0]);
-    res[1] = from01(min[1], max[1] - min[1], val[1]);
+    std::array<double, 3> res;
+    const auto min = getMin<ossia::vec3f>(slider);
+    const auto max = getMax<ossia::vec3f>(slider);
+    res[0] = to01(min[0], double(max[0]) - double(min[0]), val[0]);
+    res[1] = to01(min[1], double(max[1]) - double(min[1]), val[1]);
+    res[2] = to01(min[2], double(max[2]) - double(min[2]), val[2]);
     return res;
   }
 
   template <typename T>
-  static ossia::vec3f to01(const T& slider, ossia::vec3f val) noexcept
+  static ossia::vec3f from01(const T& slider, std::array<double, 3> val) noexcept
   {
     ossia::vec3f res;
     const auto min = getMin<ossia::vec3f>(slider);
     const auto max = getMax<ossia::vec3f>(slider);
-    res[0] = to01(min[0], max[0] - min[0], val[0]);
-    res[1] = to01(min[1], max[1] - min[1], val[1]);
-    res[2] = to01(min[2], max[2] - min[2], val[2]);
+    res[0] = from01(min[0], double(max[0]) - double(min[0]), val[0]);
+    res[1] = from01(min[1], double(max[1]) - double(min[1]), val[1]);
+    res[2] = from01(min[2], double(max[2]) - double(min[2]), val[2]);
     return res;
   }
 
   template <typename T>
-  static ossia::vec3f from01(const T& slider, ossia::vec3f val) noexcept
+  static std::array<double, 4> to01(const T& slider, ossia::vec4f val) noexcept
   {
-    ossia::vec3f res;
-    const auto min = getMin<ossia::vec3f>(slider);
-    const auto max = getMax<ossia::vec3f>(slider);
-    res[0] = from01(min[0], max[0] - min[0], val[0]);
-    res[1] = from01(min[1], max[1] - min[1], val[1]);
-    res[2] = from01(min[2], max[2] - min[2], val[2]);
+    std::array<double, 4> res;
+    const auto min = getMin<ossia::vec4f>(slider);
+    const auto max = getMax<ossia::vec4f>(slider);
+    res[0] = to01(min[0], double(max[0]) - double(min[0]), val[0]);
+    res[1] = to01(min[1], double(max[1]) - double(min[1]), val[1]);
+    res[2] = to01(min[2], double(max[2]) - double(min[2]), val[2]);
+    res[3] = to01(min[3], double(max[3]) - double(min[3]), val[3]);
     return res;
   }
 
   template <typename T>
-  static ossia::vec4f to01(const T& slider, ossia::vec4f val) noexcept
+  static ossia::vec4f from01(const T& slider, std::array<double, 4> val) noexcept
   {
     ossia::vec4f res;
     const auto min = getMin<ossia::vec4f>(slider);
     const auto max = getMax<ossia::vec4f>(slider);
-    res[0] = to01(min[0], max[0] - min[0], val[0]);
-    res[1] = to01(min[1], max[1] - min[1], val[1]);
-    res[2] = to01(min[2], max[2] - min[2], val[2]);
-    res[3] = to01(min[3], max[3] - min[3], val[3]);
+    res[0] = from01(min[0], double(max[0]) - double(min[0]), val[0]);
+    res[1] = from01(min[1], double(max[1]) - double(min[1]), val[1]);
+    res[2] = from01(min[2], double(max[2]) - double(min[2]), val[2]);
+    res[3] = from01(min[3], double(max[3]) - double(min[3]), val[3]);
     return res;
   }
 
-  template <typename T>
-  static ossia::vec4f from01(const T& slider, ossia::vec4f val) noexcept
-  {
-    ossia::vec4f res;
-    const auto min = getMin<ossia::vec4f>(slider);
-    const auto max = getMax<ossia::vec4f>(slider);
-    res[0] = from01(min[0], max[0] - min[0], val[0]);
-    res[1] = from01(min[1], max[1] - min[1], val[1]);
-    res[2] = from01(min[2], max[2] - min[2], val[2]);
-    res[3] = from01(min[3], max[3] - min[3], val[3]);
-    return res;
-  }
   template <typename T, std::size_t N>
   static std::array<float, N> from01(const T& slider, std::array<double, N> val) noexcept
   {
@@ -153,7 +154,7 @@ struct LinearNormalizer
     const auto min = getMin<std::array<double, N>>(slider);
     const auto max = getMax<std::array<double, N>>(slider);
     for(std::size_t i = 0; i < N; i++)
-      res[i] = from01(min[i], max[i] - min[i], val[i]);
+      res[i] = from01(min[i], double(max[i]) - double(min[i]), val[i]);
     return res;
   }
 };
