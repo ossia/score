@@ -29,7 +29,7 @@ public:
       : gfx_exec_node{ctx}
       , index{++filter_index}
   {
-    auto n = std::make_unique<score::gfx::GeometryFilterNode>(isf, update_shader(vert));
+    auto n = std::make_unique<score::gfx::GeometryFilterNode>(index, isf, vert);
 
     id = exec_context->ui->register_node(std::move(n));
   }
@@ -47,7 +47,7 @@ public:
       ctl->port->write_value(ctl->value, 0);
     }
 
-    auto n = std::make_unique<score::gfx::GeometryFilterNode>(isf, update_shader(vert));
+    auto n = std::make_unique<score::gfx::GeometryFilterNode>(index, isf, vert);
     auto msg = create_message();
     n->process(std::move(msg)); // note: node_id is incorrect at that point, it's ok
 
@@ -123,13 +123,15 @@ public:
     }
 
     exec_context->ui->send_message(create_message());
-
+    /*
     SCORE_ASSERT(this->m_inlets.size() > 0);
     SCORE_ASSERT(this->m_inlets[0]->target<ossia::geometry_port>());
     SCORE_ASSERT(this->m_outlets.size() > 0);
     SCORE_ASSERT(this->m_outlets[0]->target<ossia::geometry_port>());
     auto* in_geom = this->m_inlets[0]->target<ossia::geometry_port>();
     auto* out_geom = this->m_outlets[0]->target<ossia::geometry_port>();
+
+    // FIXME the geometry will always be in the GPU thread.
     out_geom->geometry.meshes = in_geom->geometry.meshes;
     out_geom->transform = in_geom->transform;
     out_geom->flags = in_geom->flags;
@@ -162,7 +164,7 @@ public:
           ossia::geometry_filter{this->id, this->index, this->m_shader, m_dirty++});
       m_last_input_filters = in_geom->geometry.filters;
     }
-
+*/
     m_last_index = index;
   }
 

@@ -99,12 +99,16 @@ void gfx_exec_node::run(
             // We likely want to reload the geometry in any case
             // .. or do we?
             if(p.geometry.meshes)
-              msg.input[inlet_i] = p.geometry;
+            {
+              // msg.input[inlet_i] = p.geometry;
+            }
           }
           //if(p.flags & ossia::geometry_port::dirty_transform)
           {
             // FIXME very very ugly
-            msg.input.emplace_back(p.transform);
+            //msg.input.emplace_back(p.transform);
+
+            // qDebug() << "sending transfomr?.";
           }
           p.flags = {};
         }

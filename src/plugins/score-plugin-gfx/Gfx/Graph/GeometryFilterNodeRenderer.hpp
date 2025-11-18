@@ -25,8 +25,11 @@ struct SCORE_PLUGIN_GFX_EXPORT GeometryFilterNodeRenderer : score::gfx::NodeRend
 private:
   GeometryFilterNode& node() const noexcept;
 
+  ossia::geometry_spec outputGeometry;
+
   QRhiBuffer* m_materialUBO{};
   int m_materialSize{};
+  int m_dirtyTransformIndex{-1};
 };
 
 }

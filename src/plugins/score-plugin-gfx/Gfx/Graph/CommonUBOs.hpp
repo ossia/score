@@ -27,14 +27,21 @@ struct ProcessUBO
  */
 struct ModelCameraUBO
 {
+  // clang-format off
   float mvp[16]{};
   float mv[16]{};
-  float model[16]{};
+  float model[16]{
+      1., 0., 0., 0.,
+      0., 1., 0., 0.,
+      0., 0., 1., 0.,
+      0., 0., 0., 1.,
+  };
   float view[16]{};
   float projection[16]{};
   float modelNormal[9]{};
   float padding[3]; // Needed as a mat3 needs a bit more space...
   float fov = 90.;
+  // clang-format on
 };
 
 static_assert(

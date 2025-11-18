@@ -47,6 +47,7 @@ public:
   score::gfx::NodeRenderer* createRenderer(RenderList& r) const noexcept override;
 
   void process(Message&& msg) override;
+  void process(int32_t port, const ossia::transform3d& v) override;
   class Renderer;
   ModelCameraUBO ubo;
 
