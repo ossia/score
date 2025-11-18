@@ -4,7 +4,7 @@ if(SCORE_FAST_DEV_BUILD)
   return()
 endif()
 
-find_package(${QT_VERSION} OPTIONAL_COMPONENTS ShaderTools)
+find_package(${QT_VERSION} OPTIONAL_COMPONENTS ShaderTools Svg)
 if(NOT TARGET "${QT_PREFIX}::ShaderTools")
   message("Video plug-in requires Qt Shader Tools (5.14+)")
   return()
@@ -304,6 +304,9 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
    ${QT_PREFIX}::ShaderTools ${QT_PREFIX}::ShaderToolsPrivate  ${QT_PREFIX}::GuiPrivate
    "$<BUILD_INTERFACE:r8brain>"
 )
+if(TARGET ${QT_PREFIX}::Svg)
+  target_link_libraries(${PROJECT_NAME} PUBLIC "${QT_PREFIX}::Svg")
+endif()
 
 # for HAP
 if(TARGET Snappy::snappy)

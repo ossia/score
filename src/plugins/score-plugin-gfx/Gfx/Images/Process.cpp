@@ -149,12 +149,14 @@ QSet<QString> DropHandler::mimeTypes() const noexcept
 
 QSet<QString> LibraryHandler::acceptedFiles() const noexcept
 {
-  return {"png", "jpg", "jpe", "jpeg", "gif", "bmp"};
+  return {"png",  "jpg",  "jpe", "jpeg", "gif", "bmp",
+          "tiff", "heic", "jp2", "svg",  "tga", "wbmp"};
 }
 
 QSet<QString> DropHandler::fileExtensions() const noexcept
 {
-  return {"png", "jpg", "jpe", "jpeg", "gif", "bmp"};
+  return {"png",  "jpg",  "jpe", "jpeg", "gif", "bmp",
+          "tiff", "heic", "jp2", "svg",  "tga", "wbmp"};
 }
 
 static bool isSupportedImage(const QFileInfo& filepath)

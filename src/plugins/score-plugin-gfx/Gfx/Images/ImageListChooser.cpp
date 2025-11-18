@@ -144,7 +144,8 @@ private:
   {
     auto files = QFileDialog::getOpenFileNames(
         this, tr("Choose images..."), QString{},
-        QString{"Images (*.png *.jpg *.jpeg *.gif *.bmp *.tiff)"});
+        QString{"Images (*.png *.jpg *.jpeg *.gif *.bmp *.tiff *.heic *.jp2 *.svg *.tga "
+                "*.wbmp)"});
     for(auto f : files)
     {
       addItem(f);
