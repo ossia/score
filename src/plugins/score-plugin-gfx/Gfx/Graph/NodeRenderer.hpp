@@ -40,12 +40,47 @@ public:
   void checkForChanges()
   {
     materialChanged = node.hasMaterialChanged(materialChangedIndex);
-    geometryChanged = node.hasGeometryChanged(geometryChangedIndex);
     renderTargetSpecsChanged
         = node.hasRenderTargetChanged(renderTargetSpecsChangedIndex);
   }
 
+  void process(int32_t port, const ossia::geometry_spec& v)
+  {
+    if(this->geometry != v)
+    {
+      this->geometry = v;
+      geometryChanged = true;
+    }
+    else
+    {
+      if(this->geometry.meshes)
+      {
+        for(auto& mesh : this->geometry.meshes->meshes)
+        {
+          for(auto& buf : mesh.buffers)
+          {
+            if(buf.dirty)
+            {
+              geometryChanged = true;
+              break;
+            }
+          }
+          if(geometryChanged)
+            break;
+        }
+      }
+    }
+  }
+
   const Node& node;
+
+  /**
+   * @brief The geometry to use
+   *
+   * If not set, then a relevant default geometry for the node
+   * will be used, e.g. a full-screen quad or triangle
+   */
+  ossia::geometry_spec geometry;
 
   int32_t id{-1};
   bool materialChanged{false};
@@ -54,7 +89,6 @@ public:
 
 private:
   int64_t materialChangedIndex{-1};
-  int64_t geometryChangedIndex{-1};
   int64_t renderTargetSpecsChangedIndex{-1};
 };
 

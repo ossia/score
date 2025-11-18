@@ -32,7 +32,7 @@ using gfx_input = ossia::slow_variant<
 #else
 using gfx_input = ossia::variant<
     ossia::monostate, ossia::value, ossia::audio_vector, ossia::render_target_spec,
-    ossia::geometry_spec, ossia::transform3d, FunctionMessage, ossia::buffer_spec>;
+    ossia::transform3d, FunctionMessage, ossia::buffer_spec>;
 #endif
 
 /**
@@ -141,25 +141,6 @@ public:
   std::atomic_int64_t materialChanged{0};
 
   /**
-   * @brief Used to notify a geometry change from the model to the renderers.
-   */
-  void geometryChange() noexcept
-  {
-    geometryChanged.fetch_add(1, std::memory_order_release);
-  }
-  bool hasGeometryChanged(int64_t& renderer) const noexcept
-  {
-    int64_t res = geometryChanged.load(std::memory_order_acquire);
-    if(renderer != res)
-    {
-      renderer = res;
-      return true;
-    }
-    return false;
-  }
-  std::atomic_int64_t geometryChanged{-1};
-
-  /**
    * @brief Used to notify a render target (texture inlet) change from the model to the renderers.
    */
   void renderTargetChange() noexcept
@@ -204,23 +185,15 @@ public:
    */
   ProcessUBO standardUBO{};
 
-  /**
-   * @brief The geometry to use
-   *
-   * If not set, then a relevant default geometry for the node
-   * will be used, e.g. a full-screen quad or triangle
-   */
-  ossia::geometry_spec geometry;
-
   void process(Message&& msg) override;
-  void process(Timings tk);
-  void process(int32_t port, const ossia::value& v);
-  void process(int32_t port, const ossia::audio_vector& v);
-  void process(int32_t port, const ossia::geometry_spec& v);
-  void process(int32_t port, const ossia::transform3d& v);
+  virtual void process(Timings tk);
+  virtual void process(int32_t port, const ossia::value& v);
+  virtual void process(int32_t port, const ossia::audio_vector& v);
+  // virtual void process(int32_t port, const ossia::geometry_spec& v);
+  virtual void process(int32_t port, const ossia::transform3d& v);
   void process(int32_t port, ossia::monostate) const noexcept { }
-  void process(int32_t port, const FunctionMessage&);
-  void process(int32_t port, const ossia::buffer_spec&);
+  virtual void process(int32_t port, const FunctionMessage&);
+  virtual void process(int32_t port, const ossia::buffer_spec&);
   using Node::process;
 };
 

@@ -185,6 +185,15 @@ struct GpuProcessIns
     node.process(NField, *val);
   }
 
+  template <avnd::geometry_port Field, std::size_t NField>
+  void operator()(Field& t, avnd::field_index<NField> field_index)
+  {
+    using node_type = std::remove_cvref_t<decltype(gpu.node())>;
+    auto& node = const_cast<node_type&>(gpu.node());
+
+    // FIXME
+  }
+
   void operator()(auto& t, auto field_index) = delete;
 };
 
@@ -1135,38 +1144,44 @@ struct geometry_outputs_storage<T>
 {
   ossia::geometry_spec specs[avnd::geometry_output_introspection<T>::size];
 
+  template <avnd::geometry_port Field>
+  void reload_mesh(Field& ctrl, ossia::geometry_spec& spc)
+  {
+    spc.meshes = std::make_shared<ossia::mesh_list>();
+    auto& ossia_meshes = *spc.meshes;
+    if constexpr(avnd::static_geometry_type<Field> || avnd::dynamic_geometry_type<Field>)
+    {
+      ossia_meshes.meshes.resize(1);
+      load_geometry(ctrl, ossia_meshes.meshes[0]);
+    }
+    else if constexpr(
+        avnd::static_geometry_type<decltype(Field::mesh)>
+        || avnd::dynamic_geometry_type<decltype(Field::mesh)>)
+    {
+      ossia_meshes.meshes.resize(1);
+      load_geometry(ctrl.mesh, ossia_meshes.meshes[0]);
+    }
+    else
+    {
+      load_geometry(ctrl, ossia_meshes);
+    }
+  }
+
   template <avnd::geometry_port Field, std::size_t N>
-  void upload(Field& ctrl, score::gfx::Edge& edge, avnd::predicate_index<N>)
+  void upload(
+      score::gfx::RenderList& renderer, Field& ctrl, score::gfx::Edge& edge,
+      avnd::predicate_index<N>)
   {
     auto edge_sink = edge.sink;
     if(auto pnode = dynamic_cast<score::gfx::ProcessNode*>(edge_sink->node))
     {
       ossia::geometry_spec& spc = specs[N];
 
-      auto reload = [&] {
-        spc.meshes = std::make_shared<ossia::mesh_list>();
-        auto& ossia_meshes = *spc.meshes;
-        if constexpr(avnd::static_geometry_type<Field> || avnd::dynamic_geometry_type<Field>)
-        {
-          ossia_meshes.meshes.resize(1);
-          load_geometry(ctrl, ossia_meshes.meshes[0]);
-        }
-        else if constexpr(
-            avnd::static_geometry_type<decltype(Field::mesh)>
-            || avnd::dynamic_geometry_type<decltype(Field::mesh)>)
-        {
-          ossia_meshes.meshes.resize(1);
-          load_geometry(ctrl.mesh, ossia_meshes.meshes[0]);
-        }
-        else
-        {
-          load_geometry(ctrl, ossia_meshes);
-        }
-      };
+      // 1. Reload mesh
       {
         if(ctrl.dirty_mesh)
         {
-          reload();
+          reload_mesh(ctrl, spc);
         }
         else
         {
@@ -1194,27 +1209,47 @@ struct geometry_outputs_storage<T>
 
             if(need_reload)
             {
-              reload();
+              reload_mesh(ctrl, spc);
             }
           }
         }
         ctrl.dirty_mesh = false;
       }
 
-      auto it = std::find(edge_sink->node->input.begin(), edge_sink->node->input.end(), edge_sink);
+      // 2. Push to next node
+      // FIXME this should be for the renderer of edge, not the node, since
+      // geometries can have gpu buffers
+      auto rendered_node = pnode->renderedNodes.find(&renderer);
+      SCORE_ASSERT(rendered_node != pnode->renderedNodes.end());
+
+      auto it = std::find(
+          edge_sink->node->input.begin(), edge_sink->node->input.end(), edge_sink);
       SCORE_ASSERT(it != edge_sink->node->input.end());
       int n = it - edge_sink->node->input.begin();
-      pnode->process(n, spc);
+
+      rendered_node->second->process(n, spc);
+
+      // 3. Same for transform3d
+
+      if constexpr(requires { ctrl.transform; })
+      {
+        if(ctrl.dirty_transform)
+        {
+          ossia::transform3d transform;
+          std::copy_n(ctrl.transform, std::ssize(ctrl.transform), transform.matrix);
+          ctrl.dirty_transform = false;
+          pnode->process(n, transform);
+        }
+      }
     }
   }
 
-  void upload(auto& state, score::gfx::Edge& edge)
+  void upload(score::gfx::RenderList& renderer, auto& state, score::gfx::Edge& edge)
   {
     // FIXME we need something such as port_run_{pre,post}process for GPU nodes
     avnd::geometry_output_introspection<T>::for_all_n(
-        avnd::get_outputs(state), [&](auto& field, auto pred) {
-      upload(field, edge, pred);
-    });
+        avnd::get_outputs(state),
+        [&](auto& field, auto pred) { this->upload(renderer, field, edge, pred); });
   }
 };
 

@@ -51,9 +51,60 @@ void GeometryFilterNodeRenderer::release(RenderList& r)
 }
 
 void GeometryFilterNodeRenderer::runInitialPasses(
-    RenderList&, QRhiCommandBuffer& commands, QRhiResourceUpdateBatch*& res, Edge& edge)
+    RenderList& renderer, QRhiCommandBuffer& commands, QRhiResourceUpdateBatch*& res,
+    Edge& edge)
 {
-  // nothing
+  // Update geometry & transform on the next nodes
+
+  // 2. Push to next node
+  // FIXME this should be for the renderer of edge, not the node, since
+  // geometries can have gpu buffers
+
+  auto& parent = this->node();
+  auto edge_sink = edge.sink;
+  if(auto pnode = dynamic_cast<score::gfx::ProcessNode*>(edge_sink->node))
+  {
+
+    auto rendered_node = pnode->renderedNodes.find(&renderer);
+    SCORE_ASSERT(rendered_node != pnode->renderedNodes.end());
+
+    auto it = std::find(
+        edge_sink->node->input.begin(), edge_sink->node->input.end(), edge_sink);
+    SCORE_ASSERT(it != edge_sink->node->input.end());
+    int n = it - edge_sink->node->input.begin();
+
+    outputGeometry.meshes = geometry.meshes;
+
+    if(!outputGeometry.filters)
+    {
+      outputGeometry.filters = std::make_shared<ossia::geometry_filter_list>();
+    }
+    if(geometry.filters)
+    {
+      outputGeometry.filters->filters.assign(
+          geometry.filters->filters.begin(), geometry.filters->filters.end());
+    }
+    else
+    {
+      outputGeometry.filters->filters.clear();
+    }
+
+    outputGeometry.filters->filters.push_back(
+        ossia::geometry_filter{this->id, parent.m_index, parent.m_shader, 1});
+
+    rendered_node->second->process(n, this->outputGeometry);
+
+    // 3. Same for transform3d
+
+    {
+      auto parent_tform_idx = parent.m_dirtyTransformIndex;
+      if(this->m_dirtyTransformIndex != parent_tform_idx)
+      {
+        this->m_dirtyTransformIndex = parent_tform_idx;
+        pnode->process(n, parent.m_transform);
+      }
+    }
+  }
 }
 
 void GeometryFilterNodeRenderer::runRenderPass(

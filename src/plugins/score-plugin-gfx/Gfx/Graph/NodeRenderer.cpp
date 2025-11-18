@@ -160,11 +160,11 @@ void GenericNodeRenderer::defaultMeshUpdate(
   // the last fully written frame so that wwith peek() we can check that we are going to get only
   // the messages relevant for a frame.
   // Or... just put all of one frame's message in one vector and push that one at the end of the audio frame.
-  auto& n = static_cast<const score::gfx::NodeModel&>(node);
-  if(geometryChanged && n.geometry.meshes)
+
+  if(geometryChanged && geometry.meshes)
   {
     std::tie(m_mesh, m_meshbufs)
-        = renderer.acquireMesh(n.geometry, res, m_mesh, m_meshbufs);
+        = renderer.acquireMesh(geometry, res, m_mesh, m_meshbufs);
   }
 }
 

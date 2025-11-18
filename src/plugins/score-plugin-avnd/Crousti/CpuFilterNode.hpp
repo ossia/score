@@ -161,7 +161,7 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
     parent.processControlOut(*this->state);
 
     // Copy the geometry
-    geometry_outs.upload(*this->state, edge);
+    geometry_outs.upload(renderer, *this->state, edge);
   }
 };
 

@@ -1152,10 +1152,10 @@ private:
 
     if(this->geometryChanged)
     {
-      if(n.geometry.meshes)
+      if(geometry.meshes)
       {
         std::tie(m_mesh, m_meshbufs)
-            = renderer.acquireMesh(n.geometry, res, m_mesh, m_meshbufs);
+            = renderer.acquireMesh(geometry, res, m_mesh, m_meshbufs);
         SCORE_ASSERT(m_mesh);
 
         this->meshChangedIndex = this->m_mesh->dirtyGeometryIndex;
@@ -1302,21 +1302,16 @@ void ModelDisplayNode::process(Message&& msg)
 
       p++;
     }
-    else if (auto val = ossia::get_if<ossia::geometry_spec>(&m))
-    {
-      ProcessNode::process(p, *val);
-
-      p++;
-    }
-    else if (auto val = ossia::get_if<ossia::transform3d>(&m))
-    {
-      memcpy(this->ubo.model, val->matrix, sizeof(val->matrix));
-      this->materialChange();
-    }
     else
     {
       p++;
     }
   }
+}
+
+void ModelDisplayNode::process(int32_t port, const ossia::transform3d& val)
+{
+  memcpy(this->ubo.model, val.matrix, sizeof(val.matrix));
+  this->materialChange();
 }
 }

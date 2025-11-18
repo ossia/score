@@ -144,8 +144,11 @@ struct geometry_input_port_vis
   }
 };
 
-GeometryFilterNode::GeometryFilterNode(const isf::descriptor& desc, const QString& vert)
-    : m_descriptor{desc}
+GeometryFilterNode::GeometryFilterNode(
+    int64_t index, const isf::descriptor& desc, QString vert)
+    : m_index{index}
+    , m_shader{vert.replace("%node%", QString::number(index)).toStdString()}
+    , m_descriptor{desc}
 {
   input.push_back(new Port{this, {}, Types::Geometry, {}});
   output.push_back(new Port{this, {}, Types::Geometry, {}});
@@ -174,6 +177,22 @@ GeometryFilterNode::GeometryFilterNode(const isf::descriptor& desc, const QStrin
   geometry_input_port_vis visitor{*this, cur};
   for(const isf::input& input : desc.inputs)
     ossia::visit(visitor, input.data);
+}
+
+void GeometryFilterNode::process(Message&& msg)
+{
+  score::gfx::ProcessNode::process(std::move(msg));
+}
+//
+// void GeometryFilterNode::process(int32_t port, const ossia::geometry_spec& v)
+// {
+//   // this->geometry = v;
+// }
+
+void GeometryFilterNode::process(int32_t port, const ossia::transform3d& v)
+{
+  this->m_transform = v;
+  this->m_dirtyTransformIndex++;
 }
 
 GeometryFilterNode::~GeometryFilterNode() { }
