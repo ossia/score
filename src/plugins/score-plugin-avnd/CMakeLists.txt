@@ -671,6 +671,14 @@ avnd_make_score(
   MAIN_CLASS Combine
   NAMESPACE ao
 )
+
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/ValueMixer.hpp"
+  TARGET value_mixer
+  MAIN_CLASS ValueMixer
+  NAMESPACE ao
+)
+
 avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Spread.hpp"
   TARGET spread
