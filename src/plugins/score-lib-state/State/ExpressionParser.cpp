@@ -29,7 +29,7 @@ UnitQualifier,
 # Values
 char			:= '\'', [:ascii:] - '\'', '\'';
 str				:= '"', ([:ascii:] - '"')*, '"';
-list			:= '[', (value % ','), ']';
+list			:= '[', -(value % ','), ']';
 bool			:= 'true' || 'false' ;
 int				:= [:int:];
 float			:= [:float:];

@@ -107,8 +107,7 @@ struct Value_parser : qi::grammar<Iterator, ossia::value()>
     char_parser %= "'" >> (char_ - "'") >> "'";
     str_parser %= '"' >> qi::lexeme[*(char_ - '"')] >> '"';
 
-    // FIXME does not support empty list [ ]
-    list_parser %= skip(boost::spirit::standard::space)["[" >> start % "," >> "]"];
+    list_parser %= skip(boost::spirit::standard::space)["[" >> -(start % ",") >> "]"];
     start %= real_parser<float, boost::spirit::qi::strict_real_policies<float>>() | int_
              | bool_parser | char_parser | str_parser | list_parser;
   }

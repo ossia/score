@@ -468,6 +468,9 @@ list_t value(const ossia::value& val)
     return_type operator()(bool b) const { return {b}; }
     return_type operator()(const std::string& s) const
     {
+      if(s.empty())
+        return {};
+
       if(auto v = parseValue(s))
       {
         if(auto t = v->target<list_t>())
@@ -481,7 +484,14 @@ list_t value(const ossia::value& val)
     return_type operator()(const vec3f& v) const { return {{v[0], v[1], v[2]}}; }
     return_type operator()(const vec4f& v) const { return {{v[0], v[1], v[2], v[3]}}; }
     return_type operator()(const std::vector<ossia::value>& t) const { return t; }
-    return_type operator()(const ossia::value_map_type& v) const { return {}; }
+    return_type operator()(const ossia::value_map_type& v) const
+    {
+      list_t res;
+      res.reserve(v.size());
+      for(auto& [key, value] : v)
+        res.push_back(list_t{key, value});
+      return res;
+    }
   };
 
   return ossia::apply(vis{}, val.v);
