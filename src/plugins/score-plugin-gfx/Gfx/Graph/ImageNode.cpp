@@ -153,7 +153,7 @@ void ImagesNode::process(Message&& msg)
   ProcessNode::process(msg.token);
 
   int32_t p = 0;
-  for(const gfx_input& m : msg.input)
+  for(auto&& m : std::move(msg.input))
   {
     if(auto val = ossia::get_if<ossia::value>(&m))
     {
@@ -201,8 +201,7 @@ void ImagesNode::process(Message&& msg)
 
         case 5: // Images
         {
-          linearImages.clear();
-          Gfx::releaseImages(images);
+          clear();
           images = Gfx::getImages(*val);
           for(auto& img : images)
           {
@@ -247,9 +246,23 @@ void ImagesNode::process(Message&& msg)
   }
 }
 
+void ImagesNode::clear()
+{
+  for(auto image : linearImages)
+  {
+    if(auto svg = std::get_if<QSvgRenderer*>(&image))
+    {
+      delete *svg;
+    }
+  }
+
+  linearImages.clear();
+  Gfx::releaseImages(images);
+}
+
 ImagesNode::~ImagesNode()
 {
-  Gfx::releaseImages(images);
+  clear();
   m_materialData.release();
 }
 

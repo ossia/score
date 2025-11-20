@@ -48,6 +48,7 @@ public:
   float scale_h{1.0f};
 
 private:
+  void clear();
   void process(Message&& msg) override;
 
   using image_type = std::variant<QImage*, QSvgRenderer*>;
