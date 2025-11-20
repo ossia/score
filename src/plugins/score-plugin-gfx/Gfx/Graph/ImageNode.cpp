@@ -201,28 +201,42 @@ void ImagesNode::process(Message&& msg)
 
         case 5: // Images
         {
-          clear();
-          images = Gfx::getImages(*val);
-          for(auto& img : images)
+          auto new_images = Gfx::getImages(*val);
+          auto diff = [](const score::gfx::Image& lhs, const score::gfx::Image& rhs) {
+            return lhs.path != rhs.path;
+          };
+          bool images_changed = new_images.size() != images.size();
+          if(!images_changed)
           {
-            if(img.path.endsWith("svg"))
-            {
-              auto renderer = new QSvgRenderer{img.path};
-              if(renderer->animated())
-                renderer->setAnimationEnabled(true);
-              renderer->setFramesPerSecond(60);
-              linearImages.push_back(renderer);
-            }
-            else
-            {
-              for(auto& frame : img.frames)
-              {
-                linearImages.push_back(&frame);
-              }
-            }
+            for(int i = 0; i < images.size(); i++)
+              images_changed |= diff(images[i], new_images[i]);
           }
 
-          ++this->imagesChanged;
+          if(images_changed)
+          {
+            clear();
+            images = std::move(new_images);
+            for(auto& img : images)
+            {
+              if(img.path.endsWith("svg"))
+              {
+                auto renderer = new QSvgRenderer{img.path};
+                if(renderer->animated())
+                  renderer->setAnimationEnabled(true);
+                renderer->setFramesPerSecond(60);
+                linearImages.push_back(renderer);
+              }
+              else
+              {
+                for(auto& frame : img.frames)
+                {
+                  linearImages.push_back(&frame);
+                }
+              }
+            }
+
+            ++this->imagesChanged;
+          }
           break;
         }
 
@@ -551,35 +565,38 @@ private:
         if(currentImageIndex < std::ssize(m_textures))
           textureSize = m_textures[currentImageIndex]->pixelSize();
 
-        const bool is_svg = n.linearImages[currentImageIndex].index() == 1;
-        if(is_svg)
+        if(currentImageIndex < n.linearImages.size())
         {
-          if(tile == score::gfx::Single)
+          const bool is_svg = n.linearImages[currentImageIndex].index() == 1;
+          if(is_svg)
           {
-            auto sz = computeScaleForMeshSizing(scale, renderSize, textureSize);
-            n.ubo.scale[0] = sz.width();
-            n.ubo.scale[1] = sz.height();
+            if(tile == score::gfx::Single)
+            {
+              auto sz = computeScaleForMeshSizing(scale, renderSize, textureSize);
+              n.ubo.scale[0] = sz.width();
+              n.ubo.scale[1] = sz.height();
+            }
+            else
+            {
+              auto sz = computeScaleForTexcoordSizing(scale, renderSize, textureSize);
+              n.ubo.scale[0] = sz.width();
+              n.ubo.scale[1] = sz.height();
+            }
           }
           else
           {
-            auto sz = computeScaleForTexcoordSizing(scale, renderSize, textureSize);
-            n.ubo.scale[0] = sz.width();
-            n.ubo.scale[1] = sz.height();
-          }
-        }
-        else
-        {
-          if(tile == score::gfx::Single)
-          {
-            auto sz = computeScaleForMeshSizing(scale, renderSize, textureSize);
-            n.ubo.scale[0] = sz.width() * scale_w;
-            n.ubo.scale[1] = sz.height() * scale_h;
-          }
-          else
-          {
-            auto sz = computeScaleForTexcoordSizing(scale, renderSize, textureSize);
-            n.ubo.scale[0] = sz.width() / scale_w;
-            n.ubo.scale[1] = sz.height() / scale_h;
+            if(tile == score::gfx::Single)
+            {
+              auto sz = computeScaleForMeshSizing(scale, renderSize, textureSize);
+              n.ubo.scale[0] = sz.width() * scale_w;
+              n.ubo.scale[1] = sz.height() * scale_h;
+            }
+            else
+            {
+              auto sz = computeScaleForTexcoordSizing(scale, renderSize, textureSize);
+              n.ubo.scale[0] = sz.width() / scale_w;
+              n.ubo.scale[1] = sz.height() / scale_h;
+            }
           }
         }
 
