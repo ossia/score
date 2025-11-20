@@ -29,6 +29,13 @@ struct DeviceRecorder : PatternObject
   halp_meta(uuid, "7161ca22-5684-48f2-bde7-88933500a7fb")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/csv-recorder.html#csv-recorder")
 
+  enum Separator
+  {
+    Colon,
+    Semicolon,
+    Pipe,
+  };
+
   // Threaded worker
   struct recorder_thread
   {
@@ -44,7 +51,25 @@ struct DeviceRecorder : PatternObject
     fmt::memory_buffer buf;
     bool active{};
     bool first_is_timestamp = false;
+    char separator{','};
     int num_params = 0;
+
+    void setSeparator(Separator sep) noexcept
+    {
+      switch(sep)
+      {
+        default:
+        case Separator::Colon:
+          this->separator = ',';
+          break;
+        case Separator::Semicolon:
+          this->separator = ';';
+          break;
+        case Separator::Pipe:
+          this->separator = '|';
+          break;
+      }
+    }
 
     void setActive(bool b)
     {
@@ -76,7 +101,7 @@ struct DeviceRecorder : PatternObject
       {
         if(auto p = in->get_parameter())
         {
-          f.write(",");
+          f.write(&separator, 1);
           f.write(QByteArray::fromStdString(p->get_node().osc_address()));
 
           num_params++;
@@ -104,17 +129,19 @@ struct DeviceRecorder : PatternObject
     void write(int64_t timestamp)
     {
       f.write(QString::number(timestamp).toUtf8());
+      std::string separator_bufs = "\"\n\r\t";
+      separator_bufs += this->separator;
       for(auto in : this->roots)
       {
         if(auto p = in->get_parameter())
         {
-          f.write(",");
+          f.write(&separator, 1);
           buf.clear();
 
           ossia::apply(ossia::detail::fmt_writer{buf}, p->value());
 
           std::string_view sv(buf.data(), buf.data() + buf.size());
-          if(sv.find_first_of(", \"\n\r\t;") != std::string_view::npos)
+          if(sv.find_first_of(separator_bufs) != std::string_view::npos)
           {
             // FIXME quote escaping
             f.write("\"", 1);
@@ -152,7 +179,25 @@ struct DeviceRecorder : PatternObject
     bool active{};
     bool loops{};
     bool first_is_timestamp = false;
+    char separator{','};
     int num_params{};
+
+    void setSeparator(Separator sep) noexcept
+    {
+      switch(sep)
+      {
+        default:
+        case Separator::Colon:
+          this->separator = ',';
+          break;
+        case Separator::Semicolon:
+          this->separator = ';';
+          break;
+        case Separator::Pipe:
+          this->separator = '|';
+          break;
+      }
+    }
 
     void setActive(bool b)
     {
@@ -164,39 +209,12 @@ struct DeviceRecorder : PatternObject
     }
 
     void setLoops(bool b) { loops = b; }
-    void reopen()
+
+    template <typename CsvReader>
+    void read(std::string_view data)
     {
-      f.close();
-
-      f.setFileName(filter_filename(this->filename, context));
-      if(f.fileName().isEmpty())
-        return;
-
-      if(!active)
-        return;
-
-      f.open(QIODevice::ReadOnly);
-      if(!f.isOpen())
-        return;
-      if(f.size() <= 0)
-        return;
-
-      // FIXME not valid when the OSC device changes
-      // We need to parse the header instead and have a map.
-      num_params = 0;
-      for(auto in : this->roots)
-      {
-        if([[maybe_unused]] auto p = in->get_parameter())
-        {
-          num_params++;
-        }
-      }
-
-      auto data = (const char*)f.map(0, f.size());
-      m_map.clear();
-
-      csv2::Reader<> r;
-      r.parse_view({data, data + f.size()});
+      CsvReader r;
+      r.parse_view(data);
       int columns = r.cols();
 
       auto header = r.header();
@@ -238,8 +256,9 @@ struct DeviceRecorder : PatternObject
       m_vec_no_ts.clear();
       if(first_is_timestamp)
       {
-        csv2::Reader<> r;
-        r.parse_view({data, data + f.size()});
+        // FIXME confirm why we need to re-parse.
+        CsvReader r;
+        r.parse_view(data);
         m_vec_ts.reserve(r.rows());
         for(const auto& row : r)
         {
@@ -257,6 +276,48 @@ struct DeviceRecorder : PatternObject
         }
       }
       first_ts = std::chrono::steady_clock::now();
+    }
+
+    void reopen()
+    {
+      f.close();
+
+      f.setFileName(filter_filename(this->filename, context));
+      if(f.fileName().isEmpty())
+        return;
+
+      if(!active)
+        return;
+
+      if(!f.open(QIODevice::ReadOnly))
+        return;
+      if(f.size() <= 0)
+        return;
+
+      // FIXME not valid when the OSC device changes
+      // We need to parse the header instead and have a map.
+      num_params = 0;
+      for(auto in : this->roots)
+      {
+        if([[maybe_unused]] auto p = in->get_parameter())
+        {
+          num_params++;
+        }
+      }
+
+      auto data = (const char*)f.map(0, f.size());
+      m_map.clear();
+
+      switch(separator)
+      {
+        default:
+        case ',':
+          read<csv2::Reader<>>({data, data + f.size()});
+          break;
+        case ';':
+          read<csv2::Reader<csv2::delimiter<';'>>>({data, data + f.size()});
+          break;
+      }
     }
 
     void parse_cell_impl(
@@ -436,6 +497,8 @@ struct DeviceRecorder : PatternObject
     {
       halp_meta(description, "Set to true to use the first column as timestamp")
     } timestamped;
+
+    halp::enum_t<Separator, "Separator"> separator;
   } inputs;
 
   struct
@@ -449,6 +512,7 @@ struct DeviceRecorder : PatternObject
     std::string path;
     std::vector<ossia::net::node_base*> roots;
     bool first_is_timestamp{};
+    Separator separator{};
 
     void operator()()
     {
@@ -458,7 +522,11 @@ struct DeviceRecorder : PatternObject
       player->filename = recorder->filename;
       player->roots = recorder->roots;
       player->first_is_timestamp = first_is_timestamp;
+      player->setSeparator(separator);
+
       recorder->first_is_timestamp = first_is_timestamp;
+      recorder->setSeparator(separator);
+
       recorder->reopen();
       player->reopen();
     }
@@ -470,13 +538,19 @@ struct DeviceRecorder : PatternObject
     std::shared_ptr<player_thread> player;
     std::string path;
     bool first_is_timestamp{};
+    Separator separator{};
     void operator()()
     {
       using namespace std;
       swap(recorder->filename, path);
+
       player->filename = recorder->filename;
       player->first_is_timestamp = first_is_timestamp;
+      player->setSeparator(separator);
+
       recorder->first_is_timestamp = first_is_timestamp;
+      recorder->setSeparator(separator);
+
       recorder->reopen();
       player->reopen();
     }
@@ -500,9 +574,12 @@ struct DeviceRecorder : PatternObject
     std::shared_ptr<player_thread> player;
     using mode_type = decltype(DeviceRecorder::inputs_t{}.mode.value);
     mode_type mode{};
+    Separator separator{Separator::Colon};
     void operator()()
     {
+      recorder->setSeparator(separator);
       recorder->setActive(mode == mode_type::Record);
+      player->setSeparator(separator);
       player->setActive(mode == mode_type::Playback || mode == mode_type::Loop);
       player->setLoops(mode == mode_type::Loop);
     }
@@ -532,7 +609,9 @@ struct DeviceRecorder : PatternObject
   {
     if(!record_impl)
       return;
-    worker.request(activate_message{record_impl, play_impl, inputs.mode.value});
+    worker.request(
+        activate_message{
+            record_impl, play_impl, inputs.mode.value, inputs.separator.value});
   }
 
   void prepare()
@@ -540,6 +619,8 @@ struct DeviceRecorder : PatternObject
     SCORE_ASSERT(ossia_document_context);
     record_impl = std::make_shared<recorder_thread>(*ossia_document_context);
     play_impl = std::make_shared<player_thread>(*ossia_document_context);
+    setMode();
+    update();
   }
 
   void update()
@@ -547,7 +628,9 @@ struct DeviceRecorder : PatternObject
     if(!record_impl)
       return;
     worker.request(
-        reset_path_message{record_impl, play_impl, inputs.filename, inputs.timestamped});
+        reset_path_message{
+            record_impl, play_impl, inputs.filename, inputs.timestamped,
+            inputs.separator});
   }
 
   void operator()(const halp::tick_musical& tk)
@@ -568,8 +651,10 @@ struct DeviceRecorder : PatternObject
     if(!std::exchange(started, true))
     {
       inputs.pattern.reprocess();
-      worker.request(std::unique_ptr<reset_message>(new reset_message{
-          record_impl, play_impl, inputs.filename, roots, inputs.timestamped}));
+      worker.request(
+          std::unique_ptr<reset_message>(new reset_message{
+              record_impl, play_impl, inputs.filename, roots, inputs.timestamped,
+              inputs.separator}));
     }
 
     switch(inputs.mode)
