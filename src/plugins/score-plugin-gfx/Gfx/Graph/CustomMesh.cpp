@@ -234,12 +234,12 @@ void CustomMesh::draw(const MeshBuffers &bufs, QRhiCommandBuffer &cb) const noex
   {
     const auto sz = g.input.size();
 
-    QVarLengthArray<QRhiCommandBuffer::VertexInput> bindings(sz);
+    QVarLengthArray<QRhiCommandBuffer::VertexInput> draw_inputs(sz);
 
     int i = 0;
     for(auto& in : g.input)
     {
-      bindings[i++] = {bufs.mesh, in.offset};
+      draw_inputs[i++] = {bufs.mesh, in.offset};
       if(!bufs.mesh)
         return;
     }
@@ -249,11 +249,11 @@ void CustomMesh::draw(const MeshBuffers &bufs, QRhiCommandBuffer &cb) const noex
       const auto idxFmt = g.index.format == decltype(g.index)::uint16
                               ? QRhiCommandBuffer::IndexUInt32
                               : QRhiCommandBuffer::IndexUInt32;
-      cb.setVertexInput(0, sz, bindings.data(), bufs.index, g.index.offset, idxFmt);
+      cb.setVertexInput(0, sz, draw_inputs.data(), bufs.index, g.index.offset, idxFmt);
     }
     else
     {
-      cb.setVertexInput(0, sz, bindings.data());
+      cb.setVertexInput(0, sz, draw_inputs.data());
     }
 
     if(g.index.buffer > -1)

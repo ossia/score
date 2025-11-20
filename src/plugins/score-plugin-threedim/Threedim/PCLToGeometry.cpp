@@ -92,9 +92,54 @@ void PCLToMesh2::operator()()
   buffers.push_back(buf);
 
   // Bindings
-  int vertice_stride = 3;
-  if(this->inputs.type == XYZRGB)
-    vertice_stride = 6;
+  int vertice_stride = 0;
+  switch(this->inputs.type)
+  {
+    case XYZ:
+      vertice_stride = 3;
+      attributes.push_back(
+          {.binding = 0,
+           .location = halp::attribute_location::position,
+           .format = halp::attribute_format::float3,
+           .offset = 0});
+      break;
+    case XYZ_RGB:
+      vertice_stride = 6;
+      attributes.push_back(
+          {.binding = 0,
+           .location = halp::attribute_location::position,
+           .format = halp::attribute_format::float3,
+           .offset = 0});
+      attributes.push_back(
+          {.binding = 0,
+           .location = halp::attribute_location::color,
+           .format = halp::attribute_format::float3,
+           .offset = 3 * sizeof(float)});
+      break;
+    case XYZW:
+      vertice_stride = 4;
+      attributes.push_back(
+          {.binding = 0,
+           .location = halp::attribute_location::position,
+           .format = halp::attribute_format::float4,
+           .offset = 0});
+      break;
+    case XYZW_RGBA:
+      vertice_stride = 8;
+      attributes.push_back(
+          {.binding = 0,
+           .location = halp::attribute_location::position,
+           .format = halp::attribute_format::float4,
+           .offset = 0});
+      attributes.push_back(
+          {.binding = 0,
+           .location = halp::attribute_location::color,
+           .format = halp::attribute_format::float3,
+           .offset = 3 * sizeof(float)});
+      break;
+    default:
+      return;
+  }
 
   bindings.push_back({
      .stride = vertice_stride * int(sizeof(float)),
@@ -102,39 +147,15 @@ void PCLToMesh2::operator()()
      .classification = halp::binding_classification::per_vertex
   });
 
-
-  // Attributes
-  attributes.push_back({
-      .binding = 0,
-      .location = halp::attribute_location::position,
-      .format = halp::attribute_format::float3,
-      .offset = 0
-  });
-
-  if(this->inputs.type == XYZRGB)
-  {
-    attributes.push_back({
-      .binding = 0,
-      .location = halp::attribute_location::color,
-      .format = halp::attribute_format::float3,
-      .offset = 3 * sizeof(float)
-    });
-  }
-
   // Input. We have only one buffer so one input.
   struct halp::geometry_input xyz_input;
   xyz_input.buffer = 0;
   xyz_input.offset = 0;
   inputs.push_back(xyz_input);
 
-  if(this->inputs.type == XYZ)
-  {
-    outputs.geometry.mesh.vertices = (tex.bytesize / sizeof(float)) / 3;
-  }
-  else if(this->inputs.type == XYZRGB)
-  {
-    outputs.geometry.mesh.vertices = (tex.bytesize / sizeof(float)) / 6;
-  }
+  // Vertices count.
+  outputs.geometry.mesh.vertices = (tex.bytesize / (sizeof(float) * vertice_stride));
+
   outputs.geometry.dirty_mesh = true;
 }
 

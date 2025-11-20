@@ -140,7 +140,13 @@ public:
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/pointcloud-to-mesh.html")
   halp_meta(uuid, "2450ffbf-04ed-4b42-8848-69f200d2742a")
 
-  enum BufferType { XYZ, XYZRGB };
+  enum BufferType
+  {
+    XYZ,
+    XYZ_RGB,
+    XYZW,
+    XYZW_RGBA
+  };
   struct ins
   {
     halp::gpu_buffer_input<"Buffer"> in;

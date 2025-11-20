@@ -149,7 +149,7 @@ struct isf_input_port_vis
     else if(in.access.contains("write"))
     {
       // Create output port for write-only storage buffer
-      self.output.push_back(new Port{&self, {}, Types::Image, {}});
+      self.output.push_back(new Port{&self, {}, Types::Buffer, {}});
 
       // Check for flexible array member
       if(!in.layout.empty())
