@@ -639,7 +639,7 @@ void SetupContext::unregister_node(
   {
     std::weak_ptr<ossia::graph_interface> wg = context.execGraph;
     std::weak_ptr<ossia::execution_state> ws = context.execState;
-    context.executionQueue.enqueue([wg, ws, node] {
+    context.executionQueue.enqueue([wg, ws, node = node] mutable {
       OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
       if(auto s = ws.lock())
       {

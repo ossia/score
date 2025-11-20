@@ -28,15 +28,24 @@ ProcessComponent::ProcessComponent(
 void ProcessComponent::cleanup()
 {
   OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
-  if(const auto& proc = m_ossia_process)
+  node.reset();
+  if(m_ossia_process)
   {
-    this->system().setup.unregister_node(process(), proc->node);
-    in_exec([proc] {
+    this->system().setup.unregister_node(process(), m_ossia_process->node);
+    in_exec([gcq = weak_gc, proc = std::move(m_ossia_process)] {
       OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
-      proc->node.reset();
+
+      if(proc->node.use_count() > 0)
+        proc->node->clear();
+
+      // SCORE_ASSERT(proc->node.use_count() <= 1);
+
+      if(auto q = gcq.lock())
+        q->enqueue(gc(std::move(proc->node)));
+      else
+        proc->node.reset();
     });
   }
-  node.reset();
   m_ossia_process.reset();
 }
 }

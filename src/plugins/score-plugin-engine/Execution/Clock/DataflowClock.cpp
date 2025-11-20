@@ -117,6 +117,8 @@ void Clock::play_impl(const TimeVal& t)
         {
         }
       }
+
+      context->m_gcQueue.enqueue(Execution::gc(std::move(context)));
     }
   };
 

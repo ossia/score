@@ -95,18 +95,26 @@ void StateComponentBase::updateControls()
 void StateComponentBase::onDelete() const
 {
   OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
-  system().setup.unregister_node({}, {}, m_node);
-  if(m_ev)
+  if(m_node)
   {
-    in_exec([gr = this->system().execGraph, ev = m_ev] {
-      OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
-      auto& procs = ev->get_time_processes();
-      if(!procs.empty())
-      {
-        const auto& proc = (*procs.begin());
-        ev->remove_time_process(proc.get());
-      }
-    });
+    system().setup.unregister_node({}, {}, m_node);
+    if(m_ev)
+    {
+      auto foo = [ev = m_ev, gcq = weak_gc] { };
+      in_exec([ev = m_ev, gcq = weak_gc] {
+        OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+        auto& procs = ev->get_time_processes();
+        if(!procs.empty())
+        {
+          auto proc = (*procs.begin());
+          ev->remove_time_process(proc.get());
+          if(auto gc_queue = gcq.lock())
+          {
+            gc_queue->enqueue(gc(std::move(proc)));
+          }
+        }
+      });
+    }
   }
 }
 
@@ -174,10 +182,22 @@ StateComponentBase::removing(const Process::ProcessModel& e, ProcessComponent& c
   auto it = m_processes.find(e.id());
   if(it != m_processes.end())
   {
-    in_exec([cstr = m_ev, c_ptr = c.shared_from_this()] {
-      OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
-      cstr->remove_time_process(c_ptr->OSSIAProcessPtr().get());
-    });
+    if(m_ev)
+    {
+      if(auto time_process = c.OSSIAProcessPtr())
+      {
+        in_exec([process_component_ptr = std::weak_ptr{it->second}, cstr = m_ev,
+                 time_process = std::move(time_process), gcq_ptr = weak_gc]() mutable {
+          OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+          cstr->remove_time_process(time_process.get());
+
+          if(auto cc = process_component_ptr.lock())
+            if(auto gcq = gcq_ptr.lock())
+              gcq->enqueue(gc(std::move(cc), std::move(time_process)));
+        });
+      }
+    }
+
     c.cleanup();
 
     return [this, id = e.id()] {
@@ -202,6 +222,7 @@ void StateComponent::init()
 
 void StateComponent::cleanup(const std::shared_ptr<StateComponent>& self)
 {
+  // FIXME this does not match IntervalComponent
   OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   if(m_ev)
   {
@@ -212,8 +233,25 @@ void StateComponent::cleanup(const std::shared_ptr<StateComponent>& self)
         gcq->enqueue(gc(self));
     });
   }
-  for(auto& proc : m_processes)
-    proc.second->cleanup();
+
+  onDelete();
+
+  for(auto& [key, c] : m_processes)
+  {
+    SCORE_ASSERT(c);
+    if(auto time_process = c->OSSIAProcessPtr())
+    {
+      in_exec([process_component_ptr = std::weak_ptr{c}, cstr = m_ev,
+               time_process = std::move(time_process), gcq_ptr = weak_gc]() mutable {
+        cstr->remove_time_process(time_process.get());
+
+        if(auto cc = process_component_ptr.lock())
+          if(auto gcq = gcq_ptr.lock())
+            gcq->enqueue(gc(std::move(cc), std::move(time_process)));
+      });
+    }
+    c->cleanup();
+  }
 
   clear();
   m_processes.clear();

@@ -292,7 +292,7 @@ void IntervalComponent::cleanup(const std::shared_ptr<IntervalComponent>& self)
   if(auto itv = m_ossia_interval)
   {
     // self has to be kept alive until next tick
-    in_exec([itv = itv, self = self, gcq_ptr = weak_gc] {
+    in_exec([itv = itv, self = self, gcq_ptr = weak_gc]() mutable {
       OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
       itv->set_callback(ossia::time_interval::exec_callback{});
       itv->cleanup();
@@ -313,8 +313,24 @@ void IntervalComponent::cleanup(const std::shared_ptr<IntervalComponent>& self)
       qDebug() << "IntervalComponent::cleanup() ! interval has already been deleted";
     }
   }
-  for(auto& proc : m_processes)
-    proc.second->cleanup();
+
+  // FIXME find a good way to keep this in sync with IntervalComponentBase::removing
+  for(auto& [key, c] : m_processes)
+  {
+    SCORE_ASSERT(c);
+    if(auto time_process = c->OSSIAProcessPtr())
+    {
+      in_exec([process_component_ptr = std::weak_ptr{c}, cstr = m_ossia_interval,
+               time_process = std::move(time_process), gcq_ptr = weak_gc]() mutable {
+        cstr->remove_time_process(time_process.get());
+
+        if(auto cc = process_component_ptr.lock())
+          if(auto gcq = gcq_ptr.lock())
+            gcq->enqueue(gc(std::move(cc), std::move(time_process)));
+      });
+    }
+    c->cleanup();
+  }
 
   executionStopped();
   clear();
@@ -634,18 +650,24 @@ IntervalComponentBase::removing(const Process::ProcessModel& e, ProcessComponent
   {
     if(m_ossia_interval)
     {
-      in_exec([proc_ptr = std::weak_ptr{it->second}, cstr = m_ossia_interval,
-               proc = c.OSSIAProcessPtr(), gcq_ptr = weak_gc]() mutable {
-        cstr->remove_time_process(proc.get());
+      if(auto time_process = c.OSSIAProcessPtr())
+      {
+        in_exec([process_component_ptr = std::weak_ptr{it->second},
+                 cstr = m_ossia_interval, time_process = std::move(time_process),
+                 gcq_ptr = weak_gc]() mutable {
+          cstr->remove_time_process(time_process.get());
 
-        if(auto cc = proc_ptr.lock())
-          if(auto gcq = gcq_ptr.lock())
-            gcq->enqueue(gc(std::move(cc), std::move(proc)));
-      });
+          if(auto cc = process_component_ptr.lock())
+            if(auto gcq = gcq_ptr.lock())
+              gcq->enqueue(gc(std::move(cc), std::move(time_process)));
+        });
+      }
     }
+
     c.cleanup();
 
     return [this, cptr = std::weak_ptr{c.shared_from_this()}, id = e.id()] {
+      OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
       m_processes.erase(id);
     };
   }

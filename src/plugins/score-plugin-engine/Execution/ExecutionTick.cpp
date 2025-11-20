@@ -55,6 +55,9 @@ struct AudioTickHelper
     auto& q = m_context->m_execQueue;
     q.enqueue([ctx = m_context, graph = m_context->execGraph]() mutable {
       OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+      // FIXME this frees the graph nodes in the audio thread,
+      // should do it in exec thread.
+      // FIXME why not just move all the structures back to the main thread the moment we hit stop?
       graph->clear();
       ctx->m_gcQueue.enqueue(gc(std::move(graph), std::move(ctx)));
     });

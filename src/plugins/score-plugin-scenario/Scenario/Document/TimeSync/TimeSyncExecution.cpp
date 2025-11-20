@@ -173,6 +173,7 @@ void TimeSyncComponent::updateTrigger()
     start = m_score_node->isStartPoint();
   }
 
+  SCORE_ASSERT(m_ossia_node);
   in_exec([e = m_ossia_node, exp_ptr, autotrigger, start] {
     bool was_observing = e->is_observing_expression();
     if(was_observing)
