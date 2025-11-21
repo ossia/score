@@ -21,6 +21,8 @@
 #if QT_HAS_VULKAN
 #if __has_include(<QtGui/private/qrhivulkan_p.h>)
 #include <QtGui/private/qrhivulkan_p.h>
+#include <QtGui/qvulkaninstance.h>
+#include <QtGui/qvulkanfunctions.h>
 #else
 #undef QT_HAS_VULKAN
 #endif
@@ -92,7 +94,7 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
     }
     // Note: QShaderVersion still hardcoded to 100 in qrhvulkan.cpp as of qt 6.9
     state.version = QShaderVersion(100);
-    state.rhi = QRhi::create(QRhi::Vulkan, &params, flags);
+    state.rhi = QRhi::create(QRhi::Vulkan, &params, flags, score::gfx::createRayTracingRhi(params.inst));
     state.renderSize = sz;
     return st;
   }
