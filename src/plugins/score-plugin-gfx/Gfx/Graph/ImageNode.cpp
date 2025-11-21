@@ -4,6 +4,11 @@
 #include <Gfx/Graph/RenderState.hpp>
 #include <Gfx/Images/Process.hpp>
 
+#if QT_SVG_LIB
+#include <QPainter>
+#include <QSvgRenderer>
+#endif
+
 #include <ossia/detail/math.hpp>
 #include <ossia/gfx/port_index.hpp>
 #include <ossia/network/value/value_conversion.hpp>
@@ -218,6 +223,7 @@ void ImagesNode::process(Message&& msg)
             images = std::move(new_images);
             for(auto& img : images)
             {
+#if Q_SVG_LIB
               if(img.path.endsWith("svg"))
               {
                 auto renderer = new QSvgRenderer{img.path};
@@ -227,6 +233,7 @@ void ImagesNode::process(Message&& msg)
                 linearImages.push_back(renderer);
               }
               else
+#endif
               {
                 for(auto& frame : img.frames)
                 {
@@ -262,6 +269,7 @@ void ImagesNode::process(Message&& msg)
 
 void ImagesNode::clear()
 {
+#if Q_SVG_LIB
   for(auto image : linearImages)
   {
     if(auto svg = std::get_if<QSvgRenderer*>(&image))
@@ -269,6 +277,7 @@ void ImagesNode::clear()
       delete *svg;
     }
   }
+#endif
 
   linearImages.clear();
   Gfx::releaseImages(images);
@@ -339,6 +348,7 @@ private:
       {
         sz = (*qimage)->size();
       }
+#if Q_SVG_LIB
       else if(auto svg_p = std::get_if<QSvgRenderer*>(&frame))
       {
         auto* svg = *svg_p;
@@ -347,6 +357,7 @@ private:
             svg_size.width() * std::abs(scale_w), svg_size.height() * std::abs(scale_h));
         sz = svg_size;
       }
+#endif
       const auto tex_size
           = resizeTextureSize(QSize{sz.width(), sz.height()}, limits_min, limits_max);
 
@@ -478,6 +489,7 @@ private:
             updateCurrentTexture = true;
           }
         }
+#if Q_SVG_LIB
         else if(auto svg = std::get_if<QSvgRenderer*>(&frame))
         {
           auto svg_size = (*svg)->defaultSize();
@@ -511,6 +523,7 @@ private:
             }
           }
         }
+#endif
 
         k++;
       }
@@ -567,6 +580,7 @@ private:
 
         if(currentImageIndex < n.linearImages.size())
         {
+#if Q_SVG_LIB
           const bool is_svg = n.linearImages[currentImageIndex].index() == 1;
           if(is_svg)
           {
@@ -584,6 +598,7 @@ private:
             }
           }
           else
+#endif
           {
             if(tile == score::gfx::Single)
             {
@@ -636,7 +651,6 @@ private:
   struct ImagesNode::UBO m_prev_ubo;
   ossia::small_vector<std::pair<Edge*, Pipeline>, 2> m_altPasses;
   std::vector<QRhiTexture*> m_textures;
-  std::vector<QSvgRenderer> m_svgs;
   bool m_uploaded = false;
 };
 

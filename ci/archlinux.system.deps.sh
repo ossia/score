@@ -31,7 +31,7 @@ $SUDO pacman -S --noconfirm --needed \
    libdrm tslib udev zstd \
    xcb-proto xcb-util xcb-util-cursor xcb-util-image \
    xcb-util-keysyms xcb-util-renderutil xcb-util-wm \
-   qt6-base qt6-shadertools qt6-tools qt6-declarative qt6-scxml qt6-websockets qt6-serialport \
+   qt6-base qt6-shadertools qt6-tools qt6-declarative qt6-scxml qt6-websockets qt6-serialport qt6-svg qt6-connectivity \
    fmt spdlog rapidjson \
    rubberband \
    libsamplerate \

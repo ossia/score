@@ -24,11 +24,10 @@ $SUDO apt-get install -qq --force-yes \
      libdbus-1-dev \
      qt6-base-dev qt6-base-dev-tools qt6-base-private-dev \
      qt6-declarative-dev qt6-declarative-dev-tools qt6-declarative-private-dev \
-     qt6-scxml-dev \
+     qt6-scxml-dev qt6-svg-dev qt6-connectivity-dev \
      qt6-websockets-dev \
      qt6-serialport-dev \
      qt6-shadertools-dev \
-     qt6-svg-dev \
      libbluetooth-dev \
      libglu1-mesa-dev libglu1-mesa libgles2-mesa-dev \
      libavahi-compat-libdnssd-dev libsamplerate0-dev \

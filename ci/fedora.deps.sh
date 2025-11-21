@@ -30,6 +30,8 @@ dnf -y install --allowerasing \
      qt6-qtwebsockets-devel \
      qt6-qtdeclarative-devel \
      qt6-qtdeclarative-private-devel \
+     qt6-svg-devel \
+     qt6-connectivity-devel \
      pipewire-devel \
      zlib-ng-compat-static zlib-ng-compat-devel
 

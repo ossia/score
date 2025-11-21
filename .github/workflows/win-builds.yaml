@@ -175,6 +175,7 @@ jobs:
             qt6-scxml:p
             qt6-tools:p
             qt6-quick3d:p
+            qt6-svg:p
             qt6-connectivity:p
             boost:p
             portaudio:p

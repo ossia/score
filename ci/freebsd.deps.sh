@@ -7,7 +7,7 @@ pkg install -y \
   boost-libs \
   cmake git \
   llvm18 \
-  qt6-base qt6-declarative qt6-shadertools qt6-websockets qt6-serialport qt6-scxml \
+  qt6-base qt6-declarative qt6-shadertools qt6-websockets qt6-serialport qt6-scxml qt6-svg qt6-connectivity \
   ffmpeg \
   lilv suil lv2 \
   libcoap \

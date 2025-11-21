@@ -81,6 +81,7 @@ clangStdenv.mkDerivation (finalAttrs: {
     qt6.qtscxml
     qt6.qtshadertools
     qt6.qtsvg
+    qt6.qtconnectivity
     qt6.qtwayland
     qt6.qtwebsockets
     rapidfuzz-cpp

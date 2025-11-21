@@ -2,11 +2,7 @@
 
 #include <Gfx/Graph/Node.hpp>
 
-#if QT_SVG_LIB
-#include <QPainter>
-#include <QSvgRenderer>
-#endif
-
+class QSvgRenderer;
 namespace score::gfx
 {
 enum ImageMode
