@@ -9,6 +9,7 @@
 #if defined(OSSIA_ENABLE_KFR)
 #include <kfr/base.hpp>
 #include <kfr/dsp.hpp>
+#include <kfr/dsp/iir_design.hpp>
 #endif
 
 namespace Analysis
@@ -17,8 +18,7 @@ namespace Analysis
 struct PitchState : Analysis::GistState
 {
   PitchState()
-      : hipass{kfr::to_sos(
-            kfr::iir_highpass(kfr::butterworth<double>(12), 200, this->rate))}
+      : hipass{kfr::to_sos(kfr::iir_highpass(kfr::butterworth(12), 200, this->rate))}
   {
   }
 
@@ -27,7 +27,7 @@ struct PitchState : Analysis::GistState
     while(hipass.size() < in.channels)
     {
       hipass.emplace_back(
-          kfr::to_sos(kfr::iir_highpass(kfr::butterworth<double>(12), 200, this->rate)));
+          kfr::to_sos(kfr::iir_highpass(kfr::butterworth(12), 200, this->rate)));
     }
 
     int c = 0;
@@ -37,8 +37,6 @@ struct PitchState : Analysis::GistState
     }
   }
 
-  using hipass_t = decltype(kfr::to_sos(
-      kfr::iir_highpass(kfr::zpk<double>{}, kfr::identity<double>{})));
   std::vector<kfr::iir_filter<double>> hipass;
 };
 #else
