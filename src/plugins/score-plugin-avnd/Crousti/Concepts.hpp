@@ -304,7 +304,8 @@ make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
   else if constexpr(widg.widget == avnd::widget_type::combobox)
   {
     static constexpr auto c = avnd::get_range<T>();
-    return new Process::ComboBox{to_combobox_range(c.values), c.init, qname, id, parent};
+    return new Process::ComboBox{
+        to_combobox_range(c.values), (int)std::to_underlying(c.init), qname, id, parent};
   }
   else if constexpr(widg.widget == avnd::widget_type::choices)
   {

@@ -90,8 +90,7 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
     {
       params.inst = score::gfx::staticVulkanInstance();
     }
-    // Note: QShaderVersion still hardcoded to 100 in qrhvulkan.cpp as of qt 6.9
-    state.version = QShaderVersion(100);
+    state.version = Gfx::Settings::shaderVersionForAPI(Vulkan);
     state.rhi = QRhi::create(QRhi::Vulkan, &params, flags);
     state.renderSize = sz;
     return st;
@@ -110,7 +109,7 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
     //   params.framesUntilKillingDeviceViaTdr = framesUntilTdr;
     //   params.repeatDeviceKill = true;
     // }
-    state.version = QShaderVersion(50);
+    state.version = Gfx::Settings::shaderVersionForAPI(D3D11);
     state.rhi = QRhi::create(QRhi::D3D11, &params, flags);
     state.renderSize = sz;
     return st;
@@ -127,7 +126,7 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
     //   params.framesUntilKillingDeviceViaTdr = framesUntilTdr;
     //   params.repeatDeviceKill = true;
     // }
-    state.version = QShaderVersion(50);
+    state.version = Gfx::Settings::shaderVersionForAPI(D3D12);
     state.rhi = QRhi::create(QRhi::D3D12, &params, flags);
     state.renderSize = sz;
     return st;
@@ -139,7 +138,7 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
   if(graphicsApi == Metal)
   {
     QRhiMetalInitParams params;
-    state.version = QShaderVersion(12);
+    state.version = Gfx::Settings::shaderVersionForAPI(Metal);
     state.rhi = QRhi::create(QRhi::Metal, &params, flags);
     state.renderSize = sz;
     return st;
@@ -604,7 +603,7 @@ public:
     // FIXME RGBA32F for hdr ?
     m_inputTarget = score::gfx::createRenderTarget(
         renderer.state, QRhiTexture::Format::RGBA8, renderer.state.renderSize,
-        renderer.samples(), renderer.requiresDepth());
+        renderer.samples(), renderer.requiresDepth(*this->node().input[0]));
 
     const auto& mesh = renderer.defaultTriangle();
     m_mesh = renderer.initMeshBuffer(mesh, res);

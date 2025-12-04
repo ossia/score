@@ -117,6 +117,41 @@ layout(std140, binding = 1) uniform process_t {
 )_";
 
 } GLSL45;
+
+static const ossia::hash_map<std::string, attribute_type>& attribute_type_parse{[] {
+  static const ossia::hash_map<std::string, attribute_type> i{
+      {"float", attribute_type::Float},     {"vec2", attribute_type::Vec2},
+      {"vec3", attribute_type::Vec3},       {"vec4", attribute_type::Vec4},
+      {"mat2", attribute_type::Mat2},       {"mat2x3", attribute_type::Mat2x3},
+      {"mat2x4", attribute_type::Mat2x4},   {"mat3", attribute_type::Mat3},
+      {"mat3x2", attribute_type::Mat3x2},   {"mat3x4", attribute_type::Mat3x4},
+      {"mat4", attribute_type::Mat4},       {"mat4x2", attribute_type::Mat4x2},
+      {"mat4x3", attribute_type::Mat4x3},   {"int", attribute_type::Int},
+      {"ivec2", attribute_type::Int2},      {"ivec3", attribute_type::Int3},
+      {"ivec4", attribute_type::Int4},      {"uint", attribute_type::Uint},
+      {"uvec2", attribute_type::Uint2},     {"uvec3", attribute_type::Uint3},
+      {"uvec4", attribute_type::Uint4},     {"bool", attribute_type::Bool},
+      {"bvec2", attribute_type::Bool2},     {"bvec3", attribute_type::Bool3},
+      {"bvec4", attribute_type::Bool4},     {"double", attribute_type::Double},
+      {"dvec2", attribute_type::Double2},   {"dvec3", attribute_type::Double3},
+      {"dvec4", attribute_type::Double4},   {"dmat2", attribute_type::DMat2},
+      {"dmat2x3", attribute_type::DMat2x3}, {"dmat2x4", attribute_type::DMat2x4},
+      {"dmat3", attribute_type::DMat3},     {"dmat3x2", attribute_type::DMat3x2},
+      {"dmat3x4", attribute_type::DMat3x4}, {"dmat4", attribute_type::DMat4},
+      {"dmat4x2", attribute_type::DMat4x2}, {"dmat4x3", attribute_type::DMat4x3}};
+  return i;
+}()};
+static const std::array<std::string_view, 39>& attribute_type_map{[] {
+  static const std::array<std::string_view, 39> i{
+      "Unknown", "float", "vec2",    "vec3",    "vec4",    "mat2",   "mat2x3",
+      "mat2x4",  "mat3",  "mat3x2",  "mat3x4",  "mat4",    "mat4x2", "mat4x3",
+      "int",     "ivec2", "ivec3",   "ivec4",   "uint",    "uvec2",  "uvec3",
+      "uvec4",   "bool",  "bvec2",   "bvec3",   "bvec4",   "double", "dvec2",
+      "dvec3",   "dvec4", "dmat2",   "dmat2x3", "dmat2x4", "dmat3",  "dmat3x2",
+      "dmat3x4", "dmat4", "dmat4x2", "dmat4x3"};
+
+  return i;
+}()};
 }
 
 parser::parser(std::string geom, ShaderType t)
@@ -185,11 +220,17 @@ parser::parser(std::string vert, std::string frag, int glslVersion, ShaderType t
 
     return has_dispatch && has_local_size && (has_resources || is_isf(str));
   };
+  static const auto is_raw_raster_pipeline = [](const std::string& str) {
+    bool res = str.find("\"RAW_RASTER_PIPELINE\"") != std::string::npos;
+    return res;
+  };
 
   switch(t)
   {
     case ShaderType::Autodetect: {
       if(is_csf(m_sourceFragment))
+        parse_csf();
+      else if(is_raw_raster_pipeline(m_sourceFragment))
         parse_csf();
       else if(is_shadertoy_json(m_sourceFragment))
         parse_shadertoy_json(m_sourceFragment);
@@ -208,6 +249,10 @@ parser::parser(std::string vert, std::string frag, int glslVersion, ShaderType t
 
     case ShaderType::ISF: {
       parse_isf();
+      break;
+    }
+    case ShaderType::RawRasterPipeline: {
+      parse_raw_raster_pipeline();
       break;
     }
     case ShaderType::CSF: {
@@ -687,6 +732,93 @@ static const ossia::string_map<root_fun>& root_parse{[] {
         }
       }
     }
+  }});
+
+  static constexpr auto parse_attributes
+      = []<typename T, auto member>(descriptor& d, const sajson::value& v) {
+    using namespace std::literals;
+    if(v.get_type() == sajson::TYPE_ARRAY)
+    {
+      std::size_t n = v.get_length();
+      for(std::size_t i = 0; i < n; i++)
+      {
+        auto obj = v.get_array_element(i);
+        if(obj.get_type() == sajson::TYPE_OBJECT)
+        {
+          T ip{};
+          ip.location = -1;
+
+          if(auto k = obj.find_object_key_insensitive(sajson::literal("LOCATION"));
+             k != obj.get_length())
+          {
+            const auto& loc_obj = obj.get_object_value(k);
+            if(loc_obj.get_type() == sajson::TYPE_INTEGER)
+            {
+              ip.location = loc_obj.get_integer_value();
+            }
+            else if(loc_obj.get_type() == sajson::TYPE_STRING)
+            {
+              std::string type_str = loc_obj.as_string();
+              for(char& c : type_str)
+                if(c >= 'A' && c <= 'Z')
+                  c = c - ('A' - 'a');
+
+              // See oscr::standard_location_for_attribute
+              if(type_str.starts_with("position"))
+                ip.location = 0;
+              else if(type_str.starts_with("texcoord"))
+                ip.location = 1;
+              else if(type_str.starts_with("color"))
+                ip.location = 2;
+              else if(type_str.starts_with("normal"))
+                ip.location = 3;
+              else if(type_str.starts_with("tangent"))
+                ip.location = 4;
+              else
+                ip.location = std::stoi(type_str);
+            }
+          }
+
+          if(auto k = obj.find_object_key_insensitive(sajson::literal("TYPE"));
+             k != obj.get_length())
+          {
+            std::string type_str = obj.get_object_value(k).as_string();
+            boost::algorithm::to_lower(type_str);
+            auto inp = attribute_type_parse.find(type_str);
+            if(inp != attribute_type_parse.end())
+              ip.type = inp->second;
+          }
+
+          if(auto k = obj.find_object_key_insensitive(sajson::literal("NAME"));
+             k != obj.get_length())
+          {
+            ip.name = obj.get_object_value(k).as_string();
+          }
+
+          qDebug() << (int)ip.type << ip.location << ip.name;
+          if(ip.type != attribute_type::Unknown && ip.location >= 0 && !ip.name.empty())
+          {
+            (d.*member).push_back(ip);
+          }
+        }
+      }
+    }
+  };
+
+  p.insert({"VERTEX_INPUTS", [](descriptor& d, const sajson::value& v) {
+    parse_attributes.operator()<vertex_input, &descriptor::vertex_inputs>(d, v);
+  }});
+
+  p.insert({"VERTEX_OUTPUTS", [](descriptor& d, const sajson::value& v) {
+    parse_attributes.operator()<vertex_output, &descriptor::vertex_outputs>(d, v);
+  }});
+
+  p.insert({"FRAGMENT_INPUTS", [](descriptor& d, const sajson::value& v) {
+    parse_attributes.operator()<fragment_input, &descriptor::fragment_inputs>(d, v);
+  }});
+
+  p.insert({"FRAGMENT_OUTPUTS", [](descriptor& d, const sajson::value& v) {
+    parse_attributes.operator()<fragment_output, &descriptor::fragment_outputs>(d, v);
   }});
 
   // Add RESOURCES parsing for CSF (which can contain both inputs and resources)
@@ -1417,6 +1549,190 @@ void parser::parse_isf()
   // Add the actual vert / frag code
   if(!simpleVS)
     m_vertex += m_sourceVertex;
+  m_fragment += fragWithoutISF;
+
+  // Replace the special ISF stuff
+  boost::replace_all(m_fragment, "gl_FragColor", "isf_FragColor");
+  boost::replace_all(m_fragment, "vv_Frag", "isf_Frag");
+}
+
+void parser::parse_raw_raster_pipeline()
+{
+  using namespace std::literals;
+
+  auto [end, desc] = parse_isf_header(m_sourceFragment);
+  m_desc = std::move(desc);
+
+  std::string& fragWithoutISF = m_sourceFragment;
+  fragWithoutISF.erase(0, end + 2);
+
+  boost::replace_all(fragWithoutISF, "gl_FragCoord", "isf_FragCoord");
+
+  // Raw raster cannot support multi-pass as the further passes would
+  // require different input attributes so it does not really make sense...
+  m_desc.passes.clear();
+  m_desc.pass_targets.clear();
+  m_desc.passes.push_back(isf::pass{});
+
+  m_desc.mode = isf::descriptor::RawRaster;
+
+  // Add the raw raster uniforms
+  {
+    static const auto default_ins = [] {
+      std::vector<input> default_inputs;
+      /*
+      default_inputs.push_back(
+          input{.name = "Position", .label = "Position", .data = point3d_input{}});
+      default_inputs.push_back(
+          input{.name = "Center", .label = "Center", .data = point3d_input{}});
+      default_inputs.push_back(
+          input{.name = "FOV", .label = "FOV", .data = float_input{}});
+      default_inputs.push_back(
+          input{.name = "Near", .label = "Near", .data = float_input{}});
+      default_inputs.push_back(
+          input{.name = "Far", .label = "Far", .data = float_input{}});
+*/
+      auto long_enum = [](auto&&... args) {
+        long_input l;
+        int64_t n = 0;
+        auto add = [&l, &n](const auto& arg) {
+          l.values.push_back(n++);
+          l.labels.push_back(arg);
+        };
+        (add(args), ...);
+        return l;
+      };
+      default_inputs.push_back(
+          input{
+              .name = "Mode",
+              .label = "Mode",
+              .data = long_enum("Triangles", "Points", "Lines")});
+
+      static const auto blend_factors = long_enum(
+          "Zero", "One", "SrcColor", "OneMinusSrcColor", "DstColor", "OneMinusDstColor",
+          "SrcAlpha", "OneMinusSrcAlpha", "DstAlpha", "OneMinusDstAlpha",
+          "ConstantColor", "OneMinusConstantColor", "ConstantAlpha",
+          "OneMinusConstantAlpha", "SrcAlphaSaturate");
+      static const auto blend_ops
+          = long_enum("Add", "Substract", "Reverse Substract", "Min", "Max");
+      default_inputs.push_back(
+          input{.name = "EnableBlend", .label = "Enable blend", .data = bool_input{}});
+      default_inputs.push_back(
+          input{.name = "SrcColor", .label = "Src Color", .data = blend_factors});
+      default_inputs.push_back(
+          input{.name = "DstColor", .label = "Dst Color", .data = blend_factors});
+      default_inputs.push_back(
+          input{.name = "OpColor", .label = "Op Color", .data = blend_ops});
+      default_inputs.push_back(
+          input{.name = "SrcAlpha", .label = "Src Alpha", .data = blend_factors});
+      default_inputs.push_back(
+          input{.name = "DstAlpha", .label = "Dst Alpha", .data = blend_factors});
+      default_inputs.push_back(
+          input{.name = "OpAlpha", .label = "Op Alpha", .data = blend_ops});
+      return default_inputs;
+    }();
+    m_desc.inputs.insert(m_desc.inputs.begin(), default_ins.begin(), default_ins.end());
+  }
+
+  auto& d = m_desc;
+
+  // We start from empty strings.
+  m_vertex.clear();
+  m_fragment.clear();
+
+  m_vertex = GLSL45.versionPrelude;
+  m_fragment = GLSL45.versionPrelude;
+
+  // Write down the inputs / outputs
+  {
+    // Vertex
+    for(auto& attr : m_desc.vertex_inputs)
+      m_vertex += fmt::format(
+          "layout(location = {}) in {} {};\n", attr.location,
+          attribute_type_map.at((int)attr.type), attr.name);
+    for(auto& attr : m_desc.vertex_outputs)
+      m_vertex += fmt::format(
+          "layout(location = {}) out {} {};\n", attr.location,
+          attribute_type_map.at((int)attr.type), attr.name);
+
+    for(auto& attr : m_desc.fragment_inputs)
+      m_fragment += fmt::format(
+          "layout(location = {}) in {} {};\n", attr.location,
+          attribute_type_map.at((int)attr.type), attr.name);
+    for(auto& attr : m_desc.fragment_outputs)
+      m_fragment += fmt::format(
+          "layout(location = {}) out {} {};\n", attr.location,
+          attribute_type_map.at((int)attr.type), attr.name);
+  }
+  {
+    // Setup the parameters UBOs
+    std::string material_ubos = GLSL45.defaultUniforms;
+
+    int sampler_binding = 3;
+
+    if(!d.inputs.empty())
+    {
+      std::string uniforms;
+      std::string samplers;
+      std::string globalvars;
+      int num_uniform = 0;
+      uniforms += "layout(std140, binding = 2) uniform material_t {\n";
+      for(const isf::input& val : d.inputs)
+      {
+        auto [type, isSampler] = ossia::visit(create_val_visitor_450{}, val.data);
+
+        if(isSampler)
+        {
+          samplers += "layout(binding = ";
+          samplers += std::to_string(sampler_binding);
+          samplers += ") ";
+          samplers += type;
+          samplers += ' ';
+          samplers += val.name;
+          samplers += ";\n";
+
+          sampler_binding++;
+        }
+        else
+        {
+          num_uniform++;
+          uniforms += type;
+          uniforms += ' ';
+          uniforms += val.name;
+          uniforms += ";\n";
+
+          // See comment above regarding little dance to make spirv-cross happy
+          globalvars += type;
+          globalvars += ' ';
+          globalvars += val.name;
+          globalvars += " = isf_material_uniforms.";
+          globalvars += val.name;
+          globalvars += ";\n";
+        }
+      }
+
+      // no pass target
+
+      // empty uniform blocks are not allowed
+      if(num_uniform > 0)
+      {
+        uniforms += "} isf_material_uniforms;\n";
+        uniforms += "\n";
+        uniforms += globalvars;
+        uniforms += "\n";
+
+        material_ubos += uniforms;
+      }
+
+      material_ubos += samplers;
+    }
+
+    m_vertex += material_ubos;
+    m_fragment += material_ubos;
+  }
+
+  // Add the actual vert / frag code
+  m_vertex += m_sourceVertex;
   m_fragment += fragWithoutISF;
 
   // Replace the special ISF stuff

@@ -89,29 +89,8 @@ void gfx_exec_node::run(
       }
 
       case ossia::geometry_port::which: {
-        // TODO try to handle the case where it's generated on another GPU node
-        // to prevent going through the CPU there
         auto& p = inlet->cast<ossia::geometry_port>();
-        {
-          //if(p.flags & ossia::geometry_port::dirty_meshes)
-          {
-            // FIXME If the cables, or address have changed
-            // We likely want to reload the geometry in any case
-            // .. or do we?
-            if(p.geometry.meshes)
-            {
-              // msg.input[inlet_i] = p.geometry;
-            }
-          }
-          //if(p.flags & ossia::geometry_port::dirty_transform)
-          {
-            // FIXME very very ugly
-            //msg.input.emplace_back(p.transform);
-
-            // qDebug() << "sending transfomr?.";
-          }
-          p.flags = {};
-        }
+        p.flags = {}; // FIXME unneeded now?
 
         link_cable_to_inlet(inlet, inlet_i);
         break;

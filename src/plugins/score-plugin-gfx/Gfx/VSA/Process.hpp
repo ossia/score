@@ -60,7 +60,7 @@ public:
       W_SIGNAL(errorMessage, line, arg_2);
 
 private:
-  [[nodiscard]] Process::ScriptChangeResult setProgram(const ShaderSource& f);
+  [[nodiscard]] Process::ScriptChangeResult setProgram(ShaderSource f);
   void loadPreset(const Process::Preset& preset) override;
   Process::Preset savePreset() const noexcept override;
 

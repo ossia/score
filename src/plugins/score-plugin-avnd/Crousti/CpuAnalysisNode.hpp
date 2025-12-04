@@ -12,18 +12,19 @@ template <typename Node_T>
   )
 struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
 {
-  using texture_inputs = avnd::texture_input_introspection<Node_T>;
   std::shared_ptr<Node_T> state;
   score::gfx::Message m_last_message{};
   ossia::time_value m_last_time{-1};
 
   AVND_NO_UNIQUE_ADDRESS texture_inputs_storage<Node_T> texture_ins;
   AVND_NO_UNIQUE_ADDRESS buffer_inputs_storage<Node_T> buffer_ins;
+  AVND_NO_UNIQUE_ADDRESS geometry_inputs_storage<Node_T> geometry_ins;
 
   const GfxNode<Node_T>& node() const noexcept
   {
     return static_cast<const GfxNode<Node_T>&>(score::gfx::NodeRenderer::node);
   }
+
   GfxRenderer(const GfxNode<Node_T>& p)
       : score::gfx::OutputNodeRenderer{p}
       , state{std::make_shared<Node_T>()}
@@ -45,6 +46,7 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
 
   void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
+    auto& parent = node();
     if constexpr(requires { state->prepare(); })
     {
       this->node().processControlIn(
@@ -53,12 +55,15 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
     }
 
     // Init input render targets
-    texture_ins.init(*this, renderer);
+    if constexpr(avnd::texture_input_introspection<Node_T>::size > 0)
+      texture_ins.init(*this, renderer);
+
+    if_possible(state->init(renderer, res));
   }
 
   void update(
       score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res,
-      score::gfx::Edge* edge) override
+      score::gfx::Edge* e) override
   {
     // FIXME update textures
     bool updated = false;
@@ -95,25 +100,46 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
     {
       // We must notify the graph that the previous nodes have to be recomputed
     }
+
+    if_possible(state->update(renderer, res, e));
   }
 
   void release(score::gfx::RenderList& r) override
   {
-    texture_ins.release();
+    if constexpr(avnd::texture_input_introspection<Node_T>::size > 0)
+      texture_ins.release();
+
+    if constexpr(
+        avnd::texture_input_introspection<Node_T>::size > 0
+        || avnd::texture_output_introspection<Node_T>::size > 0)
+    {
+      // FIXME this->defaultRelease(r);
+    }
+
+    if_possible(state->release(r));
   }
 
   void inputAboutToFinish(
       score::gfx::RenderList& renderer, const score::gfx::Port& p,
       QRhiResourceUpdateBatch*& res) override
   {
-    if constexpr(avnd::texture_input_introspection<Node_T>::size > 0 || avnd::buffer_input_introspection<Node_T>::size > 0)
+    if constexpr(
+        avnd::texture_input_introspection<Node_T>::size > 0
+        || avnd::buffer_input_introspection<Node_T>::size > 0
+        || avnd::geometry_input_introspection<Node_T>::size > 0)
     {
       res = renderer.state.rhi->nextResourceUpdateBatch();
 
-      texture_ins.inputAboutToFinish(this->node(), p, res);
-      buffer_ins.inputAboutToFinish(renderer, res, *state, this->node());
-      // buffer_ins.inputAboutToFinish(renderer, res, *state, this->node());
+      if constexpr(avnd::texture_input_introspection<Node_T>::size > 0)
+        texture_ins.inputAboutToFinish(this->node(), p, res);
+      if constexpr(avnd::buffer_input_introspection<Node_T>::size > 0)
+        buffer_ins.inputAboutToFinish(renderer, res, *state, this->node());
+      if constexpr(avnd::geometry_input_introspection<Node_T>::size > 0)
+        geometry_ins.inputAboutToFinish(
+            renderer, res, this->geometry, *state, this->node());
     }
+
+    if_possible(state->inputAboutToFinish(renderer, p, res));
   }
 
   void runInitialPasses(
@@ -131,13 +157,18 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
       return;
     m_last_time = parent.last_message.token.date;
 
-    texture_ins.runInitialPasses(*this, rhi);
-    buffer_ins.readInputBuffers(renderer, parent, *state);
+    if constexpr(avnd::texture_input_introspection<Node_T>::size > 0)
+      texture_ins.runInitialPasses(*this, rhi);
+    if constexpr(avnd::buffer_input_introspection<Node_T>::size > 0)
+      buffer_ins.readInputBuffers(renderer, parent, *state);
+    if constexpr(avnd::geometry_input_introspection<Node_T>::size > 0)
+      geometry_ins.readInputGeometries(renderer, this->geometry, parent, *state);
 
     parent.processControlIn(
         *this, *state, m_last_message, parent.last_message, parent.m_ctx);
 
     // Run the processor
+    if_possible(state->runInitialPasses(renderer, commands, res, edge));
     if_possible((*state)());
 
     // Copy the data to the model node

@@ -372,11 +372,9 @@ void RenderedISFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
   {
     m_mesh = this->n.descriptor().default_vertex_shader ? &renderer.defaultTriangle()
                                                         : &renderer.defaultQuad();
-    if(!m_meshBuffer)
+    if(m_meshBuffer.buffers.empty())
     {
-      auto [mbuffer, ibuffer] = renderer.initMeshBuffer(*m_mesh, res);
-      m_meshBuffer = mbuffer;
-      m_idxBuffer = ibuffer;
+      m_meshBuffer = renderer.initMeshBuffer(*m_mesh, res);
     }
   }
 
@@ -579,7 +577,7 @@ void RenderedISFNode::release(RenderList& r)
   delete m_materialUBO;
   m_materialUBO = nullptr;
 
-  m_meshBuffer = nullptr;
+  m_meshBuffer = {};
 }
 
 void RenderedISFNode::runInitialPasses(
@@ -636,9 +634,10 @@ void RenderedISFNode::runInitialPasses(
         cb.setViewport(QRhiViewport(0, 0, sz.width(), sz.height()));
       }
 
-      assert(this->m_meshBuffer);
-      assert(this->m_meshBuffer->usage().testFlag(QRhiBuffer::VertexBuffer));
-      m_mesh->draw({this->m_meshBuffer, this->m_idxBuffer}, cb);
+      SCORE_ASSERT(!this->m_meshBuffer.buffers.empty());
+      SCORE_ASSERT(this->m_meshBuffer.buffers[0].handle->usage().testFlag(
+          QRhiBuffer::VertexBuffer));
+      m_mesh->draw(m_meshBuffer, cb);
     }
     cb.endPass();
 
@@ -684,7 +683,7 @@ void RenderedISFNode::runRenderPass(
         cb.setViewport(QRhiViewport(0, 0, sz.width(), sz.height()));
       }
 
-      m_mesh->draw({this->m_meshBuffer, this->m_idxBuffer}, cb);
+      m_mesh->draw(m_meshBuffer, cb);
     }
   }
 

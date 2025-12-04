@@ -2,6 +2,7 @@
 #include <Gfx/Graph/ISFVisitors.hpp>
 #include <Gfx/Graph/RenderedCSFNode.hpp>
 #include <Gfx/Graph/RenderedISFNode.hpp>
+#include <Gfx/Graph/RenderedRawRasterPipelineNode.hpp>
 #include <Gfx/Graph/RenderedVSANode.hpp>
 #include <Gfx/Graph/SimpleRenderedISFNode.hpp>
 
@@ -197,6 +198,13 @@ ISFNode::ISFNode(const isf::descriptor& desc, const QString& vert, const QString
   // Compoute the size required for the materials
   isf_input_size_vis sz_vis{};
 
+  if(desc.mode == isf::descriptor::RawRaster)
+  {
+    // Geometry port input
+    input.push_back(new Port{this, {}, Types::Geometry, {}});
+    this->requiresDepth = true;
+  }
+
   // Size of the inputs
   for(const isf::input& input : desc.inputs)
   {
@@ -328,11 +336,14 @@ score::gfx::NodeRenderer* ISFNode::createRenderer(RenderList& r) const noexcept
 
   switch(this->m_descriptor.mode)
   {
-    case isf::descriptor::VSA: {
+    case isf::descriptor::VSA:
       return new SimpleRenderedVSANode{*this};
-    }
+
     case isf::descriptor::CSF:
       return new RenderedCSFNode{*this};
+
+    case isf::descriptor::RawRaster:
+      return new RenderedRawRasterPipelineNode{*this};
 
     case isf::descriptor::ISF:
       switch(this->m_descriptor.passes.size())
