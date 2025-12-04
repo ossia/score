@@ -4,6 +4,7 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/TimeSignature.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
+#include <Process/ProcessMimeSerialization.hpp>
 #include <Process/Script/ScriptEditor.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
@@ -32,6 +33,7 @@
 #include <QGraphicsItem>
 #include <QGraphicsSceneDragDropEvent>
 #include <QLineEdit>
+#include <QMimeData>
 #include <QPalette>
 #include <QTextDocument>
 
@@ -1096,7 +1098,21 @@ struct FileChooser
     };
 
     set(slider.value());
+
     QObject::connect(&inlet, &Control_T::valueChanged, bt, set);
+
+    QObject::connect(
+        bt, &score::QGraphicsTextButton::dropUnhandled, &inlet, [=](const QMimeData* m) {
+      auto d = m->data(score::mime::processdata());
+      if(!d.isEmpty())
+      {
+        auto res = ::MimeWriter<Process::ProcessData>{*m}.deserialize();
+        if(QFile::exists(res.customData))
+        {
+          on_set(res.customData);
+        }
+      }
+    }, Qt::DirectConnection);
 
     return bt;
   }
