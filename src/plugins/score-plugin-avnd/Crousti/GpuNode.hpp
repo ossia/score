@@ -27,8 +27,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
 
   score::gfx::PassMap m_p;
 
-  QRhiBuffer* m_meshBuffer{};
-  QRhiBuffer* m_idxBuffer{};
+  score::gfx::MeshBuffers m_meshBuffer{};
 
   bool m_createdPipeline{};
 
@@ -63,7 +62,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
     auto texture = renderer.state.rhi->newTexture(QRhiTexture::RGBA8, size, 1, flags);
     SCORE_ASSERT(texture->create());
     m_rts[port] = score::gfx::createRenderTarget(
-        renderer.state, texture, renderer.samples(), renderer.requiresDepth());
+        renderer.state, texture, renderer.samples(), renderer.requiresDepth(*port));
     return texture;
   }
 
@@ -206,12 +205,10 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
       }
     }
 
-    if(!m_meshBuffer)
+    if(m_meshBuffer.buffers.empty())
     {
       auto& mesh = renderer.defaultTriangle();
-      auto [mbuffer, ibuffer] = renderer.initMeshBuffer(mesh, res);
-      m_meshBuffer = mbuffer;
-      m_idxBuffer = ibuffer;
+      m_meshBuffer = renderer.initMeshBuffer(mesh, res);
     }
 
     // Create the global shared inputs
@@ -337,7 +334,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
     states.clear();
 
     // Release the allocated mesh buffers
-    m_meshBuffer = nullptr;
+    m_meshBuffer = {};
 
     // Release the allocated textures
     for(auto& [id, tex] : this->createdTexs)
@@ -365,7 +362,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
       pass.second.release();
     m_p.clear();
 
-    m_meshBuffer = nullptr;
+    m_meshBuffer = {};
     m_createdPipeline = false;
 
     sampler_k = 0;
@@ -397,8 +394,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
   {
     auto& parent = node();
     auto& mesh = renderer.defaultTriangle();
-    score::gfx::defaultRenderPass(
-        renderer, mesh, {m_meshBuffer, m_idxBuffer}, commands, edge, m_p);
+    score::gfx::defaultRenderPass(renderer, mesh, m_meshBuffer, commands, edge, m_p);
 
     // Copy the data to the model node
     if(!this->states.empty())

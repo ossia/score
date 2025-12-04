@@ -21,8 +21,8 @@ void PCLToMesh::operator()()
   if (!tex.changed)
     return;
 
-  float* data = reinterpret_cast<float*>(tex.bytes);
-  create_mesh(std::span<float>(data, tex.bytesize / sizeof(float)));
+  float* data = reinterpret_cast<float*>(tex.raw_data);
+  create_mesh(std::span<float>(data, tex.byte_size / sizeof(float)));
 }
 
 void PCLToMesh::create_mesh(std::span<float> v)
@@ -39,15 +39,17 @@ void PCLToMesh::create_mesh(std::span<float> v)
     //    for (float& v : this->complete)
     //      v = std::uniform_real_distribution<>{0.f, 1.f}(pch);
 
-    auto prev_size = outputs.geometry.mesh.buffers.main_buffer.size;
-    const bool changed = v.size() != prev_size;
+    auto prev_size = outputs.geometry.mesh.buffers.main_buffer.element_count;
+    const bool changed = v.size() != prev_size; // FIXME
     //complete.assign(v.begin(), v.end());
 
-    outputs.geometry.mesh.buffers.main_buffer.data = (float*)this->inputs.in.buffer.bytes;//complete.data();
-    outputs.geometry.mesh.buffers.main_buffer.size = this->inputs.in.buffer.bytesize / sizeof(float);//complete.size();
+    outputs.geometry.mesh.buffers.main_buffer.elements
+        = (float*)this->inputs.in.buffer.raw_data; //complete.data();
+    outputs.geometry.mesh.buffers.main_buffer.element_count
+        = this->inputs.in.buffer.byte_size / sizeof(float); //complete.size();
     outputs.geometry.mesh.buffers.main_buffer.dirty = true;
 
-    outputs.geometry.mesh.input.input0.offset = 0;
+    outputs.geometry.mesh.input.input0.byte_offset = 0;
     outputs.geometry.mesh.vertices = v.size() / 6;
     outputs.geometry.dirty_mesh = true; // FIXME
   }
@@ -87,7 +89,7 @@ void PCLToMesh2::operator()()
   // Buffers
   halp::geometry_gpu_buffer buf{};
   buf.handle = this->inputs.in.buffer.handle;
-  buf.size = this->inputs.in.buffer.bytesize;
+  buf.byte_size = this->inputs.in.buffer.byte_size;
   buf.dirty = true;
   buffers.push_back(buf);
 
@@ -101,7 +103,7 @@ void PCLToMesh2::operator()()
           {.binding = 0,
            .location = halp::attribute_location::position,
            .format = halp::attribute_format::float3,
-           .offset = 0});
+           .byte_offset = 0});
       break;
     case XYZ_RGB:
       vertice_stride = 6;
@@ -109,12 +111,12 @@ void PCLToMesh2::operator()()
           {.binding = 0,
            .location = halp::attribute_location::position,
            .format = halp::attribute_format::float3,
-           .offset = 0});
+           .byte_offset = 0});
       attributes.push_back(
           {.binding = 0,
            .location = halp::attribute_location::color,
            .format = halp::attribute_format::float3,
-           .offset = 3 * sizeof(float)});
+           .byte_offset = 3 * sizeof(float)});
       break;
     case XYZW:
       vertice_stride = 4;
@@ -122,7 +124,7 @@ void PCLToMesh2::operator()()
           {.binding = 0,
            .location = halp::attribute_location::position,
            .format = halp::attribute_format::float4,
-           .offset = 0});
+           .byte_offset = 0});
       break;
     case XYZW_RGBA:
       vertice_stride = 8;
@@ -130,12 +132,12 @@ void PCLToMesh2::operator()()
           {.binding = 0,
            .location = halp::attribute_location::position,
            .format = halp::attribute_format::float4,
-           .offset = 0});
+           .byte_offset = 0});
       attributes.push_back(
           {.binding = 0,
            .location = halp::attribute_location::color,
-           .format = halp::attribute_format::float3,
-           .offset = 3 * sizeof(float)});
+           .format = halp::attribute_format::float4,
+           .byte_offset = 4 * sizeof(float)});
       break;
     default:
       return;
@@ -148,13 +150,14 @@ void PCLToMesh2::operator()()
   });
 
   // Input. We have only one buffer so one input.
+  // FIXME what when more than one buffer.
   struct halp::geometry_input xyz_input;
   xyz_input.buffer = 0;
-  xyz_input.offset = 0;
+  xyz_input.byte_offset = this->inputs.in.buffer.byte_offset;
   inputs.push_back(xyz_input);
 
   // Vertices count.
-  outputs.geometry.mesh.vertices = (tex.bytesize / (sizeof(float) * vertice_stride));
+  outputs.geometry.mesh.vertices = (tex.byte_size / (sizeof(float) * vertice_stride));
 
   outputs.geometry.dirty_mesh = true;
 }

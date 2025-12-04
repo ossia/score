@@ -58,16 +58,13 @@ layout(std140, binding = 1) uniform process_t {
   float TIME;
   float TIMEDELTA;
   float PROGRESS;
+  float SAMPLERATE;
 
   int PASSINDEX;
   int FRAMEINDEX;
 
   vec2 RENDERSIZE;
   vec4 DATE;
-  vec4 MOUSE;
-  vec4 CHANNEL_TIME;
-
-  float SAMPLERATE;
 } isf_process_uniforms;
 
 layout(std140, binding = 2) uniform material_t {

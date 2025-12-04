@@ -41,8 +41,9 @@ MeshBuffers RenderList::initMeshBuffer(const Mesh& mesh, QRhiResourceUpdateBatch
   if(auto it = m_vertexBuffers.find(&mesh); it != m_vertexBuffers.end())
     return it->second;
 
-  MeshBuffers ret = mesh.init(*state.rhi);
-  mesh.update(ret, res);
+  auto& rhi = *state.rhi;
+  MeshBuffers ret = mesh.init(rhi);
+  mesh.update(rhi, ret, res);
   m_vertexBuffers.insert({const_cast<Mesh*>(&mesh), ret});
 
   return ret;
@@ -109,10 +110,12 @@ void RenderList::release()
     node->release(*this);
   }
 
-  for(auto bufs : m_vertexBuffers)
+  for(auto& bufs : m_vertexBuffers)
   {
-    delete bufs.second.mesh;
-    delete bufs.second.index;
+    for(auto& b : bufs.second.buffers)
+    {
+      delete b.handle;
+    }
   }
 
   m_vertexBuffers.clear();
@@ -145,8 +148,9 @@ void RenderList::releaseBuffer(QRhiBuffer* buf)
   for(auto& vb : m_vertexBuffers)
   {
     // It will be deleted later.
-    if(vb.second.mesh == buf || vb.second.index == buf)
-      return;
+    for(auto& stored_buffer : vb.second.buffers)
+      if(stored_buffer.handle == buf)
+        return;
   }
 
   if(buf)
@@ -206,7 +210,7 @@ TextureRenderTarget RenderList::renderTargetForOutput(const Edge& edge) const no
   return {};
 }
 
-QRhiBuffer* RenderList::bufferForInput(const Edge& edge) const noexcept
+BufferView RenderList::bufferForInput(const Edge& edge) const noexcept
 {
   if(auto source_node = edge.source->node)
     if(auto source_it = source_node->renderedNodes.find(this);
@@ -216,8 +220,7 @@ QRhiBuffer* RenderList::bufferForInput(const Edge& edge) const noexcept
 
   return {};
 }
-
-QRhiBuffer* RenderList::bufferForOutput(const Edge& edge) const noexcept
+BufferView RenderList::bufferForOutput(const Edge& edge) const noexcept
 {
   if(auto sink_node = edge.sink->node)
     if(auto sink_it = sink_node->renderedNodes.find(this);
@@ -241,6 +244,7 @@ RenderList::Buffers RenderList::acquireMesh(
     const ossia::geometry_spec& spec, QRhiResourceUpdateBatch& res, const Mesh* current,
     MeshBuffers currentbufs) noexcept
 {
+  auto& rhi = *state.rhi;
   // 1. Try to find mesh from the exact same geometry
   const auto& [p, f] = spec;
   if(auto it = m_customMeshCache.find(spec); it != m_customMeshCache.end())
@@ -256,7 +260,7 @@ RenderList::Buffers RenderList::acquireMesh(
       if(auto cur_idx = p->dirty_index; m->dirtyGeometryIndex != cur_idx)
       {
         m->reload(*p, f);
-        m->update(mb, res);
+        m->update(rhi, mb, res);
         for(auto& mesh: p->meshes) {
           for(auto& buf : mesh.buffers) {
             buf.dirty = false;
@@ -278,7 +282,7 @@ RenderList::Buffers RenderList::acquireMesh(
 
         if(dirty) {
           m->reload(*p, f);
-          m->update(mb, res);
+          m->update(rhi, mb, res);
           for(auto& mesh: p->meshes) {
             for(auto& buf : mesh.buffers) {
               buf.dirty = false;
@@ -302,11 +306,11 @@ RenderList::Buffers RenderList::acquireMesh(
         SCORE_ASSERT(meshbufs_it != this->m_vertexBuffers.end());
         // SCORE_ASSERT(meshbufs_it->second.index == currentbufs.index);
         // SCORE_ASSERT(meshbufs_it->second.mesh == currentbufs.mesh);
-        auto mb = currentbufs;
+        auto& mb = currentbufs;
         auto cur_idx = p->dirty_index;
 
         m->reload(*p, f);
-        m->update(mb, res);
+        m->update(rhi, mb, res);
 
         for(auto& mesh: p->meshes) {
           for(auto& buf : mesh.buffers) {
@@ -335,6 +339,15 @@ void RenderList::clearRenderers()
 
   // Necessary so that we re-go through init() on the next frame
   m_built = false;
+}
+
+bool RenderList::requiresDepth(Port& p) const noexcept
+{
+  for(auto& edge : p.edges)
+    if(edge->source->node->requiresDepth)
+      return true;
+
+  return false;
 }
 
 QSize RenderList::renderSize(const Edge* e) const noexcept
@@ -470,12 +483,12 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
 
       SCORE_ASSERT(
           src->node->renderedNodes.find(this) != src->node->renderedNodes.end());
-      NodeRenderer* renderer = src->node->renderedNodes.find(this)->second;
+      NodeRenderer* prev_renderer = src->node->renderedNodes.find(this)->second;
 
-      prevRenderers.push_back({edge, renderer});
+      prevRenderers.push_back({edge, prev_renderer});
 
-      renderer->update(*this, *updateBatch, edge);
-      updated_nodes.insert(&renderer->node);
+      prev_renderer->update(*this, *updateBatch, edge);
+      updated_nodes.insert(&prev_renderer->node);
     }
 
     if(prevRenderers.size() == 0)
@@ -563,7 +576,7 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
           SCORE_ASSERT(updateBatch);
         }
       }
-      else if(input->type == Types::Buffer)
+      else if(input->type == Types::Buffer || input->type == Types::Geometry)
       {
         prepare_render(input);
 
@@ -579,8 +592,8 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
             }
 
             renderer->inputAboutToFinish(*this, *input, updateBatch);
-            SCORE_ASSERT(updateBatch);
-            commands.resourceUpdate(updateBatch);
+            if(updateBatch)
+              commands.resourceUpdate(updateBatch);
             updateBatch = nullptr;
           }
           // else
@@ -589,20 +602,6 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
           //   updateBatch = nullptr;
           // }
         }
-
-        commands.resourceUpdate(updateBatch);
-        updateBatch = nullptr;
-
-        if(node != &output)
-        {
-          SCORE_ASSERT(!updateBatch);
-          updateBatch = state.rhi->nextResourceUpdateBatch();
-          SCORE_ASSERT(updateBatch);
-        }
-      }
-      else if(input->type == Types::Geometry)
-      {
-        prepare_render(input);
 
         commands.resourceUpdate(updateBatch);
         updateBatch = nullptr;

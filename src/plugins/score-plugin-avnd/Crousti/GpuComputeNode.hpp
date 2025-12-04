@@ -107,7 +107,7 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
     auto texture = renderer.state.rhi->newTexture(fmt, size, 1, flags);
     SCORE_ASSERT(texture->create());
     m_rts[port] = score::gfx::createRenderTarget(
-        renderer.state, texture, renderer.samples(), renderer.requiresDepth());
+        renderer.state, texture, renderer.samples(), renderer.requiresDepth(*port));
     return texture;
   }
 

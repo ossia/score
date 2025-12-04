@@ -29,7 +29,7 @@ inline std::vector<Sampler> initInputSamplers(
 
         auto rt = score::gfx::createRenderTarget(
             renderer.state, spec.format, spec.size, renderer.samples(),
-            renderer.requiresDepth());
+            renderer.requiresDepth(*in));
         auto texture = rt.texture;
         samplers.push_back({sampler, texture});
 

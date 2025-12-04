@@ -11,15 +11,23 @@
 #include <Avnd/Factories.hpp>
 #include <Threedim/ArrayToBuffer.hpp>
 #include <Threedim/ArrayToGeometry.hpp>
+#include <Threedim/BufferToGeometry.hpp>
+#include <Threedim/GeometryInfo.hpp>
+#include <Threedim/GeometryPacker.hpp>
+#include <Threedim/GeometryToBuffer.hpp>
 #include <Threedim/ModelDisplay/Executor.hpp>
 #include <Threedim/ModelDisplay/Process.hpp>
 #include <Threedim/Noise.hpp>
 #include <Threedim/ObjLoader.hpp>
 #include <Threedim/PCLToGeometry.hpp>
 #include <Threedim/Primitive.hpp>
+#include <Threedim/RenderPipeline/Executor.hpp>
+#include <Threedim/RenderPipeline/Layer.hpp>
+#include <Threedim/RenderPipeline/Process.hpp>
 #include <Threedim/StructureSynth.hpp>
 
 #include <score_plugin_engine.hpp>
+#include <score_plugin_threedim_commands_files.hpp>
 
 namespace Threedim
 {
@@ -177,22 +185,27 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
   oscr::instantiate_fx<Threedim::Plane>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Cube>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Sphere>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::GeometryInfo>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Icosahedron>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Cylinder>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Cone>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Torus>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::PCLToMesh2>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::GeometryToBuffer>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::GeometryPacker>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::BuffersToGeometry>(fx, ctx, key);
   auto add = instantiate_factories<
       score::ApplicationContext,
-      FW<Process::ProcessModelFactory, Gfx::ModelDisplay::ProcessFactory>,
-      FW<Library::LibraryInterface,
-         Threedim::SSynthLibraryHandler,
+      FW<Process::ProcessModelFactory, Gfx::ModelDisplay::ProcessFactory,
+         Gfx::RenderPipeline::ProcessFactory>,
+      FW<Process::LayerFactory, Gfx::RenderPipeline::LayerFactory>,
+      FW<Library::LibraryInterface, Threedim::SSynthLibraryHandler,
          Threedim::OBJLibraryHandler>,
-      FW<Process::ProcessDropHandler,
-         Threedim::SSynthDropHandler,
+      FW<Process::ProcessDropHandler, Threedim::SSynthDropHandler,
          Threedim::OBJDropHandler>,
       FW<Execution::ProcessComponentFactory,
-         Gfx::ModelDisplay::ProcessExecutorComponentFactory>>(ctx, key);
+         Gfx::ModelDisplay::ProcessExecutorComponentFactory,
+         Gfx::RenderPipeline::ProcessExecutorComponentFactory>>(ctx, key);
   fx.insert(
       fx.end(),
       std::make_move_iterator(add.begin()),
@@ -200,6 +213,19 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
   return fx;
 }
 
+std::pair<const CommandGroupKey, CommandGeneratorMap>
+score_plugin_threedim::make_commands()
+{
+  using namespace Gfx;
+  std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
+      CommandFactoryName(), CommandGeneratorMap{}};
+
+  ossia::for_each_type<
+#include <score_plugin_threedim_commands.hpp>
+      >(score::commands::FactoryInserter{cmds.second});
+
+  return cmds;
+}
 std::vector<score::PluginKey> score_plugin_threedim::required() const
 {
   return {score_plugin_engine::static_key()};

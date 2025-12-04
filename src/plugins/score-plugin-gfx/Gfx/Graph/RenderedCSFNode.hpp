@@ -38,13 +38,14 @@ private:
 
   // Buffer management methods
   int calculateStorageBufferSize(std::span<const isf::storage_input::layout_field> layout, int arrayCount) const;
-  QRhiBuffer* createStorageBuffer(RenderList& renderer, const QString& name, const QString& access, int size);
+  BufferView createStorageBuffer(
+      RenderList& renderer, const QString& name, const QString& access, int size);
   void updateStorageBuffers(RenderList& renderer, QRhiResourceUpdateBatch& res);
   void recreateShaderResourceBindings(RenderList& renderer, QRhiResourceUpdateBatch& res);
   int getArraySizeFromUI(const QString& bufferName) const;
   QString updateShaderWithImageFormats(QString current);
 
-  QRhiBuffer* bufferForOutput(const score::gfx::Port& output) override;
+  BufferView bufferForOutput(const score::gfx::Port& output) override;
 
   ossia::small_flat_map<const Port*, TextureRenderTarget, 2> m_rts;
 
@@ -73,8 +74,8 @@ private:
   struct StorageBuffer
   {
     QRhiBuffer* buffer{};
-    int size{};
-    int lastKnownSize{}; // For dynamic resizing
+    int64_t size{};
+    int64_t lastKnownSize{}; // For dynamic resizing
     QString name;
     QString access; // "read_only", "write_only", "read_write"
     std::vector<isf::storage_input::layout_field> layout; // For size calculation

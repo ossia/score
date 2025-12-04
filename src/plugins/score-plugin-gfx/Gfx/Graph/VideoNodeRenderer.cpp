@@ -238,11 +238,9 @@ void VideoNodeRenderer::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
   auto& rhi = *renderer.state.rhi;
 
   const auto& mesh = renderer.defaultQuad();
-  if(!m_meshBuffer)
+  if(m_meshBuffer.buffers.empty())
   {
-    auto [mbuffer, ibuffer] = renderer.initMeshBuffer(mesh, res);
-    m_meshBuffer = mbuffer;
-    m_idxBuffer = ibuffer;
+    m_meshBuffer = renderer.initMeshBuffer(mesh, res);
   }
 
   m_processUBO = rhi.newBuffer(
@@ -263,8 +261,7 @@ void VideoNodeRenderer::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
 void VideoNodeRenderer::runRenderPass(
     RenderList& renderer, QRhiCommandBuffer& cb, Edge& edge)
 {
-  score::gfx::quadRenderPass(
-      renderer, {.mesh = m_meshBuffer, .index = m_idxBuffer}, cb, edge, m_p);
+  score::gfx::quadRenderPass(renderer, m_meshBuffer, cb, edge, m_p);
 }
 
 // TODO if we have multiple renderers for the same video, we must always keep
@@ -342,7 +339,7 @@ void VideoNodeRenderer::release(RenderList& r)
     p.second.release();
   m_p.clear();
 
-  m_meshBuffer = nullptr;
+  m_meshBuffer = {};
 
   if(m_currentFrame)
   {

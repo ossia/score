@@ -99,13 +99,13 @@ static auto createMesh(TMesh& mesh, std::vector<float>& complete)
 void loadTriMesh(TMesh& mesh, std::vector<float>& complete, PrimitiveOutputs& outputs)
 {
   auto [vertices, pos_start, norm_start, uv_start] = createMesh(mesh, complete);
-  outputs.geometry.mesh.buffers.main_buffer.data = complete.data();
-  outputs.geometry.mesh.buffers.main_buffer.size = complete.size();
+  outputs.geometry.mesh.buffers.main_buffer.elements = complete.data();
+  outputs.geometry.mesh.buffers.main_buffer.element_count = complete.size();
   outputs.geometry.mesh.buffers.main_buffer.dirty = true;
 
-  outputs.geometry.mesh.input.input0.offset = 0;
-  outputs.geometry.mesh.input.input1.offset = sizeof(float) * vertices * 3;
-  outputs.geometry.mesh.input.input2.offset = sizeof(float) * vertices * (3 + 3);
+  outputs.geometry.mesh.input.input0.byte_offset = 0;
+  outputs.geometry.mesh.input.input1.byte_offset = sizeof(float) * vertices * 3;
+  outputs.geometry.mesh.input.input2.byte_offset = sizeof(float) * vertices * (3 + 3);
   outputs.geometry.mesh.vertices = vertices;
   outputs.geometry.dirty_mesh = true;
 }
@@ -143,13 +143,13 @@ void Plane::update()
   const int vdivs = std::max(2, (int)inputs.vdivs);
   vcg::tri::Grid(mesh, hdivs, vdivs, 1., 1.);
   auto [vertices, pos_start, norm_start, uv_start] = createMesh(mesh, complete);
-  outputs.geometry.mesh.buffers.main_buffer.data = complete.data();
-  outputs.geometry.mesh.buffers.main_buffer.size = complete.size();
+  outputs.geometry.mesh.buffers.main_buffer.elements = complete.data();
+  outputs.geometry.mesh.buffers.main_buffer.element_count = complete.size();
   outputs.geometry.mesh.buffers.main_buffer.dirty = true;
 
-  outputs.geometry.mesh.input.input0.offset = 0;
-  outputs.geometry.mesh.input.input1.offset = sizeof(float) * vertices * 3;
-  outputs.geometry.mesh.input.input2.offset = sizeof(float) * vertices * (3 + 3);
+  outputs.geometry.mesh.input.input0.byte_offset = 0;
+  outputs.geometry.mesh.input.input1.byte_offset = sizeof(float) * vertices * 3;
+  outputs.geometry.mesh.input.input2.byte_offset = sizeof(float) * vertices * (3 + 3);
   outputs.geometry.mesh.vertices = vertices;
   outputs.geometry.dirty_mesh = true;
   qDebug("recreate plane");

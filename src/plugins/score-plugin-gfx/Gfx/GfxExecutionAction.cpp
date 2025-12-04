@@ -12,10 +12,10 @@ GfxExecutionAction::GfxExecutionAction(GfxContext& w)
   edges_cache.reserve(100);
 
   // Fixme: do the same for audio & geometry buffers
-  for(int i = 0; i < 100; i++)
+  for(int i = 0; i < 500; i++)
   {
     std::vector<score::gfx::gfx_input> mbuf;
-    mbuf.reserve(16);
+    mbuf.reserve(128);
     ui->m_buffers.release(std::move(mbuf));
   }
 }
@@ -46,7 +46,7 @@ score::gfx::Message GfxExecutionAction::allocateMessage(int inputs)
   }
 
   m.input.clear();
-  m.input.reserve(8);
+  m.input.reserve(inputs);
   return m;
 }
 

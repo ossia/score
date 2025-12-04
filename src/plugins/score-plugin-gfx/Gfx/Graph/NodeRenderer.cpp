@@ -78,7 +78,7 @@ void GenericNodeRenderer::defaultMeshInit(
     RenderList& renderer, const Mesh& mesh, QRhiResourceUpdateBatch& res)
 {
   m_mesh = &mesh;
-  if(!m_meshbufs.mesh)
+  if(m_meshbufs.buffers.empty())
   {
     m_meshbufs = renderer.initMeshBuffer(mesh, res);
   }
@@ -207,6 +207,34 @@ void NodeRenderer::runInitialPasses(
 void NodeRenderer::runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& edge) {
 }
 
+void NodeRenderer::process(int32_t port, const ossia::geometry_spec& v)
+{
+  if(this->geometry != v)
+  {
+    this->geometry = v;
+    geometryChanged = true;
+  }
+  else
+  {
+    if(this->geometry.meshes)
+    {
+      for(auto& mesh : this->geometry.meshes->meshes)
+      {
+        for(auto& buf : mesh.buffers)
+        {
+          if(buf.dirty)
+          {
+            geometryChanged = true;
+            break;
+          }
+        }
+        if(geometryChanged)
+          break;
+      }
+    }
+  }
+}
+
 void GenericNodeRenderer::defaultRenderPass(
     RenderList& renderer, const Mesh& mesh, QRhiCommandBuffer& cb, Edge& edge)
 {
@@ -234,9 +262,15 @@ void GenericNodeRenderer::release(RenderList& r)
 
 score::gfx::NodeRenderer::~NodeRenderer() { }
 
-QRhiBuffer *NodeRenderer::bufferForInput(const Port &input) { return nullptr; }
+BufferView NodeRenderer::bufferForInput(const Port& input)
+{
+  return {};
+}
 
-QRhiBuffer *NodeRenderer::bufferForOutput(const Port &output) { return nullptr; }
+BufferView NodeRenderer::bufferForOutput(const Port& output)
+{
+  return {};
+}
 
 void NodeRenderer::inputAboutToFinish(
     RenderList& renderer, const Port& p, QRhiResourceUpdateBatch*&)

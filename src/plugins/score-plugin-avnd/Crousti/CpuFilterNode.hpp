@@ -12,10 +12,6 @@ template <typename Node_T>
   )
 struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
 {
-  using texture_inputs = avnd::texture_input_introspection<Node_T>;
-  using texture_outputs = avnd::texture_output_introspection<Node_T>;
-  using buffer_inputs = avnd::buffer_input_introspection<Node_T>;
-  using buffer_outputs = avnd::buffer_output_introspection<Node_T>;
   std::shared_ptr<Node_T> state;
   score::gfx::Message m_last_message{};
   ossia::time_value m_last_time{-1};
@@ -26,6 +22,7 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
   AVND_NO_UNIQUE_ADDRESS buffer_inputs_storage<Node_T> buffer_ins;
   AVND_NO_UNIQUE_ADDRESS buffer_outputs_storage<Node_T> buffer_outs;
 
+  AVND_NO_UNIQUE_ADDRESS geometry_inputs_storage<Node_T> geometry_ins;
   AVND_NO_UNIQUE_ADDRESS geometry_outputs_storage<Node_T> geometry_outs;
 
   const GfxNode<Node_T>& node() const noexcept
@@ -52,7 +49,7 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
     return {};
   }
 
-  QRhiBuffer* bufferForOutput(const score::gfx::Port& output) override
+  score::gfx::BufferView bufferForOutput(const score::gfx::Port& output) override
   {
     if constexpr(avnd::buffer_output_introspection<Node_T>::size > 0)
     {
@@ -60,7 +57,7 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
         if(p == &output)
           return b;
     }
-    return nullptr;
+    return {};
   }
 
   void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
@@ -73,11 +70,17 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
       state->prepare();
     }
 
-    texture_ins.init(*this, renderer);
+    // Init input render targets
+    if constexpr(avnd::texture_input_introspection<Node_T>::size > 0)
+      texture_ins.init(*this, renderer);
 
-    texture_outs.init(*this, renderer, res);
+    if constexpr(avnd::texture_output_introspection<Node_T>::size > 0)
+      texture_outs.init(*this, renderer, res);
 
-    buffer_outs.init(renderer, *state, parent);
+    if constexpr(avnd::buffer_output_introspection<Node_T>::size > 0)
+      buffer_outs.init(renderer, *state, parent);
+
+    if_possible(state->init(renderer, res));
   }
 
   void update(
@@ -88,31 +91,49 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
     {
       this->defaultUBOUpdate(renderer, res);
     }
+    if_possible(state->update(renderer, res, e));
   }
 
   void release(score::gfx::RenderList& r) override
   {
-    texture_ins.release();
-    texture_outs.release(*this, r);
-    buffer_outs.release(r);
+    if constexpr(avnd::texture_input_introspection<Node_T>::size > 0)
+      texture_ins.release();
+
+    if constexpr(avnd::texture_output_introspection<Node_T>::size > 0)
+      texture_outs.release(*this, r);
+
+    if constexpr(avnd::buffer_output_introspection<Node_T>::size > 0)
+      buffer_outs.release(r);
 
     if constexpr(avnd::texture_input_introspection<Node_T>::size > 0 || avnd::texture_output_introspection<Node_T>::size > 0)
     {
       this->defaultRelease(r);
     }
+
+    if_possible(state->release(r));
   }
 
   void inputAboutToFinish(
       score::gfx::RenderList& renderer, const score::gfx::Port& p,
       QRhiResourceUpdateBatch*& res) override
   {
-    if constexpr(avnd::texture_input_introspection<Node_T>::size > 0 || avnd::buffer_input_introspection<Node_T>::size > 0)
+    if constexpr(
+        avnd::texture_input_introspection<Node_T>::size > 0
+        || avnd::buffer_input_introspection<Node_T>::size > 0
+        || avnd::geometry_input_introspection<Node_T>::size > 0)
     {
       res = renderer.state.rhi->nextResourceUpdateBatch();
 
-      texture_ins.inputAboutToFinish(this->node(), p, res);
-      buffer_ins.inputAboutToFinish(renderer, res, *state, this->node());
+      if constexpr(avnd::texture_input_introspection<Node_T>::size > 0)
+        texture_ins.inputAboutToFinish(this->node(), p, res);
+      if constexpr(avnd::buffer_input_introspection<Node_T>::size > 0)
+        buffer_ins.inputAboutToFinish(renderer, res, *state, this->node());
+      if constexpr(avnd::geometry_input_introspection<Node_T>::size > 0)
+        geometry_ins.inputAboutToFinish(
+            renderer, res, this->geometry, *state, this->node());
     }
+
+    if_possible(state->inputAboutToFinish(renderer, p, res));
   }
 
   void runInitialPasses(
@@ -122,8 +143,12 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
     auto& parent = node();
     auto& rhi = *renderer.state.rhi;
 
-    if constexpr(avnd::texture_input_introspection<Node_T>::size > 0 || avnd::buffer_input_introspection<Node_T>::size > 0)
+    if constexpr(
+        avnd::texture_input_introspection<Node_T>::size > 0
+        || avnd::buffer_input_introspection<Node_T>::size > 0
+        || avnd::geometry_input_introspection<Node_T>::size > 0)
     {
+      // FIXME: for geometry, here we should optimize if we know we aren't going to need them on the CPU, OR if it is a type ?
       // Insert a synchronisation point to allow readbacks to complete
       rhi.finish();
     }
@@ -133,9 +158,12 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
       return;
     m_last_time = parent.last_message.token.date;
 
-    texture_ins.runInitialPasses(*this, rhi);
-
-    buffer_ins.readInputBuffers(renderer, parent, *state);
+    if constexpr(avnd::texture_input_introspection<Node_T>::size > 0)
+      texture_ins.runInitialPasses(*this, rhi);
+    if constexpr(avnd::buffer_input_introspection<Node_T>::size > 0)
+      buffer_ins.readInputBuffers(renderer, parent, *state);
+    if constexpr(avnd::geometry_input_introspection<Node_T>::size > 0)
+      geometry_ins.readInputGeometries(renderer, this->geometry, parent, *state);
 
     parent.processControlIn(
         *this, *state, m_last_message, parent.last_message, parent.m_ctx);
@@ -143,10 +171,12 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
     buffer_outs.prepareUpload(*res);
 
     // Run the processor
+    if_possible(state->runInitialPasses(renderer, commands, res, edge));
     if_possible((*state)());
 
     // Upload output buffers
-    buffer_outs.upload(renderer, *state, *res);
+    if constexpr(avnd::buffer_output_introspection<Node_T>::size > 0)
+      buffer_outs.upload(renderer, *state, *res);
 
     // Upload output textures
     if constexpr(avnd::texture_output_introspection<Node_T>::size > 0)
@@ -157,11 +187,12 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
       res = renderer.state.rhi->nextResourceUpdateBatch();
     }
 
+    // Copy the geometry
+    if constexpr(avnd::geometry_output_introspection<Node_T>::size > 0)
+      geometry_outs.upload(renderer, *this->state, edge);
+
     // Copy the data to the model node
     parent.processControlOut(*this->state);
-
-    // Copy the geometry
-    geometry_outs.upload(renderer, *this->state, edge);
   }
 };
 

@@ -50,36 +50,60 @@ add_library(
   score_plugin_threedim
   Threedim/ModelDisplay/ModelDisplayNode.hpp
   Threedim/ModelDisplay/ModelDisplayNode.cpp
-  Threedim/TinyObj.hpp
-  Threedim/TinyObj.cpp
-  Threedim/Ply.hpp
-  Threedim/Ply.cpp
+  
+  Threedim/RenderPipeline/RenderPipelineNode.hpp
+  Threedim/RenderPipeline/RenderPipelineNode.cpp
+  
   Threedim/ArrayToBuffer.hpp
   Threedim/ArrayToBuffer.cpp
   Threedim/ArrayToGeometry.hpp
   Threedim/ArrayToGeometry.cpp
-  Threedim/StructureSynth.hpp
-  Threedim/StructureSynth.cpp
-  Threedim/ObjLoader.hpp
-  Threedim/ObjLoader.cpp
-  Threedim/Primitive.hpp
-  Threedim/Primitive.cpp
+  Threedim/BufferToGeometry.hpp
+  Threedim/BufferToGeometry.cpp
+  Threedim/GeometryInfo.hpp
+  Threedim/GeometryInfo.cpp
+  Threedim/GeometryPacker.hpp
+  Threedim/GeometryPacker.cpp
+  Threedim/GeometryToBuffer.hpp
+  Threedim/GeometryToBuffer.cpp
+  Threedim/GeometryToBufferStrategies.hpp
+  Threedim/GeometryToBufferStrategies.cpp
   Threedim/Noise.hpp
   Threedim/Noise.cpp
+  Threedim/ObjLoader.hpp
+  Threedim/ObjLoader.cpp
   Threedim/PCLToGeometry.hpp
   Threedim/PCLToGeometry.cpp
+  Threedim/Ply.hpp
+  Threedim/Ply.cpp
+  Threedim/Primitive.hpp
+  Threedim/Primitive.cpp
+  Threedim/StructureSynth.hpp
+  Threedim/StructureSynth.cpp
+  Threedim/TinyObj.hpp
+  Threedim/TinyObj.cpp
   Threedim/ModelDisplay/Executor.hpp
   Threedim/ModelDisplay/Executor.cpp
   Threedim/ModelDisplay/Metadata.hpp
   Threedim/ModelDisplay/Process.hpp
   Threedim/ModelDisplay/Process.cpp
   Threedim/ModelDisplay/Layer.hpp
+  
+  Threedim/RenderPipeline/Executor.hpp
+  Threedim/RenderPipeline/Executor.cpp
+  Threedim/RenderPipeline/Metadata.hpp
+  Threedim/RenderPipeline/Process.hpp
+  Threedim/RenderPipeline/Process.cpp
+  Threedim/RenderPipeline/Layer.hpp
+  
   "${3RDPARTY_FOLDER}/miniply/miniply.cpp"
   score_plugin_threedim.hpp
   score_plugin_threedim.cpp)
 
 set_property(TARGET score_plugin_threedim PROPERTY SCORE_CUSTOM_PCH 1)
 setup_score_plugin(score_plugin_threedim)
+
+score_generate_command_list_file(score_plugin_threedim "Threedim/RenderPipeline/Process.hpp") 
 
 target_include_directories(
   score_plugin_threedim SYSTEM

@@ -1,32 +1,17 @@
 #pragma once
 
-#include <Threedim/TinyObj.hpp>
+#include <ossia/detail/pod_vector.hpp>
+
 #include <boost/container/vector.hpp>
+
+#include <Threedim/TinyObj.hpp>
+#include <halp/buffer.hpp>
 #include <halp/controls.hpp>
 #include <halp/geometry.hpp>
 #include <halp/meta.hpp>
 
-#include <halp/texture.hpp>
-#include <ossia/detail/pod_vector.hpp>
-
 namespace halp
 {
-struct gpu_buffer
-{
-  void* handle{};
-  int bytesize{};
-};
-
-template <static_string lit>
-struct gpu_buffer_input
-{
-  static clang_buggy_consteval auto name() { return std::string_view{lit.value}; }
-
-  operator const halp::gpu_buffer&() const noexcept { return buffer; }
-  operator halp::gpu_buffer&() noexcept { return buffer; }
-
-  halp::gpu_buffer buffer{};
-};
 
 struct position_gpu_geometry
 {
@@ -105,7 +90,7 @@ public:
 
   struct ins
   {
-    halp::buffer_input<"Buffer"> in;
+    halp::cpu_buffer_input<"Buffer"> in;
     PositionControl position;
     RotationControl rotation;
     ScaleControl scale;
@@ -170,9 +155,6 @@ public:
   } outputs;
 
   PCLToMesh2();
-  void create_mesh(std::span<float> v);
   void operator()();
-
-  std::vector<float> complete;
 };
 }
