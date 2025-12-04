@@ -37,6 +37,8 @@ const std::pair<QShader, QString>& ShaderCache::get(
 
   b.baker.setSourceString(shader, stage);
   b.baker.setPerTargetCompilation(true);
+
+  // FIXME serialize / deserialize
   QShader baked = b.baker.bake();
   auto res = b.shaders.insert({shader, {std::move(baked), b.baker.errorMessage()}});
   return res.first->second;
@@ -75,33 +77,4 @@ ShaderCache::Baker::Baker(GraphicsApi api, const QShaderVersion& version)
   }
   baker.setGeneratedShaderVariants({{}});
 }
-
-/*
-    QShaderVersion::Flags glFlag = m_caps.type == QSurfaceFormat::OpenGLES
-            ? QShaderVersion::GlslEs
-            : QShaderVersion::Flag{};
-    baker.setGeneratedShaders({
-                                  {QShader::SpirvShader, 100},
-                                  {QShader::GlslShader, QShaderVersion(m_caps.shaderVersion, glFlag)},
-                              #if defined(_WIN32)
-                                  {QShader::HlslShader, QShaderVersion(50)},
-                              #endif
-                              #if defined(__APPLE__)
-                                  {QShader::MslShader, QShaderVersion(12)},
-                                  {QShader::GlslShader, QShaderVersion(120, QShaderVersion::Flag{})} // For syphon
-                              #endif
-                              });
-
-    baker.setGeneratedShaderVariants({
-                                         QShader::Variant{}, QShader::Variant{},
-                                     #if defined(_WIN32)
-                                         QShader::Variant{},
-                                     #endif
-                                     #if defined(__APPLE__)
-                                         QShader::Variant{},
-                                         QShader::Variant{}
-                                     #endif
-                                     });
-}
-*/
 }

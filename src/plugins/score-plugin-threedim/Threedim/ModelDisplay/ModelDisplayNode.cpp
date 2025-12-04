@@ -36,16 +36,14 @@ layout(std140, binding = 1) uniform process_t { \n\
   float TIME; \n\
   float TIMEDELTA; \n\
   float PROGRESS; \n\
+  float SAMPLERATE; \n\
  \n\
   int PASSINDEX; \n\
   int FRAMEINDEX; \n\
  \n\
   vec2 RENDERSIZE; \n\
   vec4 DATE; \n\
-  vec4 MOUSE; \n\
-  vec4 CHANNEL_TIME; \n\
  \n\
-  float SAMPLERATE; \n\
 } isf_process_uniforms; \n\
  \n\
 float TIME = isf_process_uniforms.TIME; \n\
@@ -1050,7 +1048,7 @@ private:
 
     m_inputTarget = score::gfx::createRenderTarget(
         renderer.state, rt_spec.format, rt_spec.size, renderer.samples(),
-        renderer.requiresDepth(),
+        renderer.requiresDepth(*this->node.input[0]),
         QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips);
 
     auto texture = m_inputTarget.texture;
@@ -1161,6 +1159,7 @@ private:
         this->meshChangedIndex = this->m_mesh->dirtyGeometryIndex;
       }
       mustRecreatePasses = true;
+      this->geometryChanged = false;
     }
 
     const auto& mesh = m_mesh ? *m_mesh : renderer.defaultQuad();

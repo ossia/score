@@ -1,6 +1,8 @@
 #pragma once
 #include <ossia/detail/variant.hpp>
 
+#include <score_plugin_gfx_export.h>
+
 #include <array>
 #include <optional>
 #include <stdexcept>
@@ -130,6 +132,110 @@ struct input
   input_impl data;
 };
 
+// Matches QShaderDescription::VariableType
+enum class attribute_type
+{
+  Unknown = 0,
+
+  Float,
+  Vec2,
+  Vec3,
+  Vec4,
+  Mat2,
+  Mat2x3,
+  Mat2x4,
+  Mat3,
+  Mat3x2,
+  Mat3x4,
+  Mat4,
+  Mat4x2,
+  Mat4x3,
+
+  Int,
+  Int2,
+  Int3,
+  Int4,
+
+  Uint,
+  Uint2,
+  Uint3,
+  Uint4,
+
+  Bool,
+  Bool2,
+  Bool3,
+  Bool4,
+
+  Double,
+  Double2,
+  Double3,
+  Double4,
+  DMat2,
+  DMat2x3,
+  DMat2x4,
+  DMat3,
+  DMat3x2,
+  DMat3x4,
+  DMat4,
+  DMat4x2,
+  DMat4x3,
+
+  Sampler1D,
+  Sampler2D,
+  Sampler2DMS,
+  Sampler3D,
+  SamplerCube,
+  Sampler1DArray,
+  Sampler2DArray,
+  Sampler2DMSArray,
+  Sampler3DArray,
+  SamplerCubeArray,
+  SamplerRect,
+  SamplerBuffer,
+  SamplerExternalOES,
+  Sampler,
+
+  Image1D,
+  Image2D,
+  Image2DMS,
+  Image3D,
+  ImageCube,
+  Image1DArray,
+  Image2DArray,
+  Image2DMSArray,
+  Image3DArray,
+  ImageCubeArray,
+  ImageRect,
+  ImageBuffer,
+
+  Struct,
+
+  Half,
+  Half2,
+  Half3,
+  Half4
+};
+
+struct vertex_attribute
+{
+  int location{};
+  attribute_type type{};
+  std::string name;
+};
+
+struct vertex_input : vertex_attribute
+{
+};
+struct vertex_output : vertex_attribute
+{
+};
+struct fragment_input : vertex_attribute
+{
+};
+struct fragment_output : vertex_attribute
+{
+};
+
 struct pass
 {
   std::string target;
@@ -146,7 +252,8 @@ struct descriptor
   {
     ISF,
     VSA,
-    CSF
+    CSF,
+    RawRaster
   } mode{ISF};
   std::string description;
   std::string credits;
@@ -178,9 +285,16 @@ struct descriptor
     std::array<int, 3> workgroups{1, 1, 1}; // For MANUAL mode
   };
   std::vector<dispatch_info> csf_passes;
+
+  // For raw shaders
+
+  std::vector<vertex_input> vertex_inputs;
+  std::vector<vertex_output> vertex_outputs;
+  std::vector<fragment_input> fragment_inputs;
+  std::vector<fragment_output> fragment_outputs;
 };
 
-class parser
+class SCORE_PLUGIN_GFX_EXPORT parser
 {
   std::string m_sourceVertex;
   std::string m_sourceFragment;
@@ -202,7 +316,10 @@ public:
     GLSLSandBox,
     GeometryFilter,
     VertexShaderArt,
-    CSF
+    CSF,
+    RawRasterPipeline,
+    RawRaytracePipeline,
+    RawMeshPipeline
   };
   parser(std::string vert, std::string frag, int glslVersion, ShaderType);
   explicit parser(std::string isf_geom_filter, ShaderType t);
@@ -220,6 +337,7 @@ public:
 
 private:
   void parse_isf();
+  void parse_raw_raster_pipeline();
   void parse_shadertoy();
   void parse_glsl_sandbox();
   void parse_geometry_filter();

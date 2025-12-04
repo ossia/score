@@ -1,5 +1,6 @@
 #include <Gfx/Settings/Model.hpp>
 
+#include <score/gfx/OpenGL.hpp>
 #include <score/gfx/Vulkan.hpp>
 
 #include <QGuiApplication>
@@ -158,6 +159,29 @@ score::gfx::GraphicsApi Model::graphicsApiEnum() const noexcept
   {
     return score::gfx::OpenGL;
   }
+}
+
+QShaderVersion shaderVersionForAPI(score::gfx::GraphicsApi api) noexcept
+{
+  switch(api)
+  {
+    case score::gfx::OpenGL:
+      return score::GLCapabilities{}.qShaderVersion;
+
+    case score::gfx::Vulkan:
+      // Note: QShaderVersion still hardcoded to 100 in qrhvulkan.cpp as of qt 6.9
+      return QShaderVersion(100);
+
+    case score::gfx::Metal:
+      return QShaderVersion(12);
+
+    case score::gfx::D3D11:
+    case score::gfx::D3D12:
+      return QShaderVersion(50);
+
+    default:
+  }
+  return {};
 }
 
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, GraphicsApi)

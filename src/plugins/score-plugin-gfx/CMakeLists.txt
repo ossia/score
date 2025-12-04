@@ -129,6 +129,7 @@ set(HDRS
     Gfx/Graph/RenderedISFNode.hpp
     Gfx/Graph/RenderedISFSamplerUtils.hpp
     Gfx/Graph/RenderedISFUtils.hpp
+    Gfx/Graph/RenderedRawRasterPipelineNode.hpp
     Gfx/Graph/RenderedVSANode.hpp
     Gfx/Graph/Scale.hpp
     Gfx/Graph/ScreenNode.hpp
@@ -237,6 +238,7 @@ set(SRCS
     Gfx/Graph/PreviewNode.cpp
     Gfx/Graph/RenderList.cpp
     Gfx/Graph/RenderedISFNode.cpp
+    Gfx/Graph/RenderedRawRasterPipelineNode.cpp
     Gfx/Graph/RenderedVSANode.cpp
     Gfx/Graph/ScreenNode.cpp
     Gfx/Graph/ShaderCache.cpp
@@ -294,7 +296,7 @@ add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 
 target_include_directories(${PROJECT_NAME}
-  PRIVATE
+  PUBLIC
     3rdparty/libisf/src
 )
 

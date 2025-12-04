@@ -290,7 +290,8 @@ Pipeline buildPipeline(
 
   mesh.preparePipeline(*ps);
 
-  if(!renderer.requiresDepth())
+  // FIXME does that check make sense?
+  if(!renderer.anyNodeRequiresDepth())
   {
     ps->setDepthTest(false);
     ps->setDepthWrite(false);

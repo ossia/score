@@ -15,13 +15,17 @@ MeshBuffers BasicMesh::init(QRhi& rhi) const noexcept
   mesh_buf->setName("Mesh::mesh_buf");
   mesh_buf->create();
 
-  MeshBuffers ret{mesh_buf, nullptr};
+  MeshBuffers ret{{BufferView{mesh_buf, 0, 0}}};
   return ret;
 }
 
-void BasicMesh::update(MeshBuffers& bufs, QRhiResourceUpdateBatch& res) const noexcept
+void BasicMesh::update(
+    QRhi& rhi, MeshBuffers& bufs, QRhiResourceUpdateBatch& res) const noexcept
 {
-  res.uploadStaticBuffer(bufs.mesh, 0, bufs.mesh->size(), this->vertexArray.data());
+  SCORE_ASSERT(bufs.buffers.size() == 1);
+  auto buf = bufs.buffers[0].handle;
+  SCORE_ASSERT(buf);
+  res.uploadStaticBuffer(buf, 0, buf->size(), this->vertexArray.data());
 }
 
 void BasicMesh::preparePipeline(QRhiGraphicsPipeline& pip) const noexcept
@@ -50,8 +54,10 @@ void BasicMesh::preparePipeline(QRhiGraphicsPipeline& pip) const noexcept
 
 void BasicMesh::draw(const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexcept
 {
-  assert(bufs.mesh);
-  assert(bufs.mesh->usage().testFlag(QRhiBuffer::VertexBuffer));
+  SCORE_ASSERT(bufs.buffers.size() == 1);
+  auto buf = bufs.buffers[0].handle;
+  SCORE_ASSERT(buf);
+  SCORE_ASSERT(buf->usage().testFlag(QRhiBuffer::VertexBuffer));
   setupBindings(bufs, cb);
 
   cb.draw(vertexCount);
@@ -98,9 +104,12 @@ PlainMesh::PlainMesh(std::span<const float> vtx, int count)
 void PlainMesh::setupBindings(
     const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexcept
 {
-  const QRhiCommandBuffer::VertexInput bindings[] = {{bufs.mesh, 0}};
+  SCORE_ASSERT(bufs.buffers.size() == 1);
+  auto buf = bufs.buffers[0].handle;
+  SCORE_ASSERT(buf);
+  const QRhiCommandBuffer::VertexInput bindings[] = {{buf, 0}};
 
-  cb.setVertexInput(0, 1, bindings, bufs.index);
+  cb.setVertexInput(0, 1, bindings);
 }
 
 const char* PlainMesh::defaultVertexShader() const noexcept
@@ -174,8 +183,12 @@ TexturedTriangle::TexturedTriangle(bool flipped)
 void TexturedTriangle::setupBindings(
     const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexcept
 {
+  SCORE_ASSERT(bufs.buffers.size() == 1);
+  auto buf = bufs.buffers[0].handle;
+  SCORE_ASSERT(buf);
+
   const QRhiCommandBuffer::VertexInput bindings[]
-      = {{bufs.mesh, 0}, {bufs.mesh, 3 * 2 * sizeof(float)}};
+      = {{buf, 0}, {buf, 3 * 2 * sizeof(float)}};
 
   cb.setVertexInput(0, 2, bindings);
 }
@@ -188,10 +201,13 @@ TexturedQuad::TexturedQuad(bool flipped)
 void TexturedQuad::setupBindings(
     const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexcept
 {
+  SCORE_ASSERT(bufs.buffers.size() == 1);
+  auto buf = bufs.buffers[0].handle;
+  SCORE_ASSERT(buf);
+
   const QRhiCommandBuffer::VertexInput bindings[]
-      = {{bufs.mesh, 0}, {bufs.mesh, 4 * 2 * sizeof(float)}};
+      = {{buf, 0}, {buf, 4 * 2 * sizeof(float)}};
 
   cb.setVertexInput(0, 2, bindings);
 }
-
 }

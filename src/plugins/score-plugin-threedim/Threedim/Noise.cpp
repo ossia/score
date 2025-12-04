@@ -14,12 +14,12 @@ Noise::~Noise()
   if (!outputs.geometry.mesh.buffers.empty())
   {
     auto& b = outputs.geometry.mesh.buffers[0];
-    delete[] (float*)b.data;
+    delete[](float*)b.raw_data;
   }
 }
 
 static const siv::BasicPerlinNoise<double> engine{4u}; // chosen by fair dice roll
-void Noise::operator()(tick tt)
+void Noise::operator()()
 {
   auto old_bufs = outputs.geometry.mesh.buffers;
   (GeometryPort&)outputs.geometry = (const GeometryPort&)inputs.geometry;
@@ -32,25 +32,26 @@ void Noise::operator()(tick tt)
       if(old_buf_idx < std::ssize(old_bufs))
       {
         auto old = old_bufs[old_buf_idx];
-        auto cur = (float*)buf.data;
+        auto cur = (float*)buf.raw_data;
         void* newb{};
-        if (buf.size == old.size)
+        if(buf.byte_size == old.byte_size)
         {
-          newb = old.data;
+          newb = old.raw_data;
         }
         else
         {
-          delete[] (float*)old.data;
-          newb = new float[buf.size];
+          delete[](float*)old.raw_data;
+          assert(buf.byte_size / sizeof(float) >= outputs.geometry.mesh.vertices * 3);
+          newb = new float[buf.byte_size / sizeof(float)];
         }
-        memcpy(newb, cur, buf.size);
-        buf.data = newb;
+        memcpy(newb, cur, buf.byte_size);
+        buf.raw_data = newb;
       }
       else
       {
-        auto cur = (float*)buf.data;
-        buf.data = new float[buf.size];
-        memcpy(buf.data, cur, buf.size);
+        auto cur = (float*)buf.raw_data;
+        buf.raw_data = new float[buf.byte_size / sizeof(float)];
+        memcpy(buf.raw_data, cur, buf.byte_size);
       }
       old_buf_idx++;
     }
@@ -59,13 +60,12 @@ void Noise::operator()(tick tt)
   {
     for (auto buf : old_bufs)
     {
-      delete (float*)buf.data;
+      delete(float*)buf.raw_data;
     }
   }
   outputs.geometry.dirty_mesh = true;
   outputs.geometry.dirty_transform = true;
 
-  outputs.geometry.dirty_mesh = true;
   //outputs.geometry.dirty = true;
   auto& mesh = outputs.geometry.mesh;
   if (mesh.buffers.empty())
@@ -91,11 +91,14 @@ void Noise::operator()(tick tt)
 
   auto& buf = bufs[buffer];
 
-  // Cheat a bit for now... and assume that position comes first,
+  // FIXME Cheat a bit for now... and assume that position comes first,
   // and that things aren't interleaved,
   // and that we have float[3]s, ...
+  // With mdspan we should be able to actually do these transformations
+  // with simple code
   using type = float[3];
-  std::span<type> vertices((type*)buf.data, mesh.vertices);
+  std::span<type> vertices((type*)buf.raw_data, mesh.vertices);
+  assert(buf.byte_size >= mesh.vertices * 3 * sizeof(float));
 
   using f_type = double (*)(double x, double intens, double t) noexcept;
   auto func = [&](DeformationControl::enum_type c) noexcept -> f_type
@@ -107,19 +110,21 @@ void Noise::operator()(tick tt)
         return [](double x, double intens, double t) noexcept { return x; };
         break;
       case DeformationControl::Noise:
-        return [](double x, double intens, double t) noexcept
-        { return x + intens * 100. * engine.noise1D(x + t); };
+        return [](double x, double intens, double t) noexcept {
+          return (1. - intens) * x + intens * engine.noise1D(x + t);
+        };
         break;
       case DeformationControl::Sine:
-        return [](double x, double intens, double t) noexcept
-        { return x + intens * 100. * std::sin(x + t); };
+        return [](double x, double intens, double t) noexcept {
+          return (1. - intens) * x + intens * std::sin(x + t);
+        };
         break;
     }
   };
 
   const f_type fs[3] = {func(inputs.dx), func(inputs.dy), func(inputs.dz)};
-
-  const double t = tt.position_in_frames / 44100.;
+  // FIXME proper tick support in CpuFilter / CpuAnalysis
+  const double t = position_in_frames++ / 60.;
 
   const double ix = inputs.ix.value;
   const double iy = inputs.iy.value;

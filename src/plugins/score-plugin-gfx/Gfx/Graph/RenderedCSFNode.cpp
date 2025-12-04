@@ -355,7 +355,8 @@ int RenderedCSFNode::calculateStorageBufferSize(std::span<const isf::storage_inp
   return totalSize * arrayCount;
 }
 
-QRhiBuffer* RenderedCSFNode::createStorageBuffer(RenderList& renderer, const QString& name, const QString& access, int size)
+BufferView RenderedCSFNode::createStorageBuffer(
+    RenderList& renderer, const QString& name, const QString& access, int size)
 {
   QRhi& rhi = *renderer.state.rhi;
   QRhiBuffer* buffer
@@ -371,8 +372,8 @@ QRhiBuffer* RenderedCSFNode::createStorageBuffer(RenderList& renderer, const QSt
       buffer = nullptr;
     }
   }
-  
-  return buffer;
+
+  return {buffer, 0, size};
 }
 
 int RenderedCSFNode::getArraySizeFromUI(const QString& bufferName) const
@@ -422,14 +423,15 @@ int RenderedCSFNode::getArraySizeFromUI(const QString& bufferName) const
   return 1024;
 }
 
-QRhiBuffer *RenderedCSFNode::bufferForOutput(const Port &output)
+BufferView RenderedCSFNode::bufferForOutput(const Port& output)
 {
   for(auto& [port, index] : this->m_outStorageBuffers) {
     if(&output == port) {
-      return this->m_storageBuffers[index].buffer;
+      auto handle = this->m_storageBuffers[index].buffer;
+      return {handle, 0, handle->size()};
     }
   }
-  return nullptr;
+  return {};
 }
 
 void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpdateBatch& res)
@@ -465,8 +467,10 @@ void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpd
       }
       else
       {
-        storageBuffer.buffer = createStorageBuffer(
-            renderer, storageBuffer.name, storageBuffer.access, requiredSize);
+        storageBuffer.buffer
+            = createStorageBuffer(
+                  renderer, storageBuffer.name, storageBuffer.access, requiredSize)
+                  .handle;
       }
       storageBuffer.size = requiredSize;
       storageBuffer.lastKnownSize = requiredSize;

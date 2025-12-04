@@ -20,6 +20,9 @@ class CustomMesh : public score::gfx::Mesh
   ossia::small_vector<QRhiVertexInputBinding, 2> vertexBindings;
   ossia::small_vector<QRhiVertexInputAttribute, 2> vertexAttributes;
 
+  ossia::small_vector<QRhiBuffer*, 2> buffers;
+  QRhiBuffer* index{};
+
 public:
   explicit CustomMesh(
       const ossia::mesh_list& g, const ossia::geometry_filter_list_ptr& f);
@@ -40,21 +43,22 @@ public:
   [[nodiscard]] MeshBuffers init(QRhi& rhi) const noexcept override;
 
   void update_vbo(
-      const ossia::geometry::cpu_buffer& vtx_buf, MeshBuffers& meshbuf,
+      int buffer_index, const ossia::geometry::cpu_buffer& vtx_buf, MeshBuffers& meshbuf,
       QRhiResourceUpdateBatch& rb) const noexcept;
 
   void update_vbo(
-      const ossia::geometry::gpu_buffer& vtx_buf, MeshBuffers& meshbuf,
+      int buffer_index, const ossia::geometry::gpu_buffer& vtx_buf, MeshBuffers& meshbuf,
       QRhiResourceUpdateBatch& rb) const noexcept;
 
   void update_index(
-      const ossia::geometry::cpu_buffer& idx_buf, MeshBuffers& meshbuf,
+      int buffer_index, const ossia::geometry::cpu_buffer& idx_buf, MeshBuffers& meshbuf,
       QRhiResourceUpdateBatch& rb) const noexcept;
 
   void update_index(
-      const ossia::geometry::gpu_buffer& idx_buf, MeshBuffers& meshbuf,
+      int buffer_index, const ossia::geometry::gpu_buffer& idx_buf, MeshBuffers& meshbuf,
       QRhiResourceUpdateBatch& rb) const noexcept;
-  void update(MeshBuffers& meshbuf, QRhiResourceUpdateBatch& rb) const noexcept override;
+  void update(QRhi& rhi, MeshBuffers& meshbuf, QRhiResourceUpdateBatch& rb)
+      const noexcept override;
   Flags flags() const noexcept override;
 
   void clear();

@@ -73,8 +73,8 @@ public:
    */
   TextureRenderTarget renderTargetForOutput(const Edge& edge) const noexcept;
 
-  QRhiBuffer* bufferForInput(const Edge& edge) const noexcept;
-  QRhiBuffer* bufferForOutput(const Edge& edge) const noexcept;
+  BufferView bufferForInput(const Edge& edge) const noexcept;
+  BufferView bufferForOutput(const Edge& edge) const noexcept;
 
   /**
    * @brief Adapts an image to the GPU limits / format
@@ -139,7 +139,8 @@ public:
    * 
    * e.g. it's not needed if we're just doing some generative shaders.
    */
-  bool requiresDepth() const noexcept { return m_requiresDepth; }
+  bool requiresDepth(score::gfx::Port& p) const noexcept;
+  bool anyNodeRequiresDepth() const noexcept { return m_requiresDepth; }
 
   int samples() const noexcept { return m_samples; }
 

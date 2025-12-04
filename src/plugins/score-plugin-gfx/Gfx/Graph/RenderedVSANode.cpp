@@ -354,7 +354,8 @@ void SimpleRenderedVSANode::runRenderPass(
     cb.setViewport(
         QRhiViewport(0, 0, texture->pixelSize().width(), texture->pixelSize().height()));
 
-    const QRhiCommandBuffer::VertexInput bindings[] = {{it->background_tri.mesh, 0}};
+    const QRhiCommandBuffer::VertexInput bindings[]
+        = {{it->background_tri.buffers[0].handle, 0}};
 
     cb.setVertexInput(0, 1, bindings, 0);
     cb.draw(3);

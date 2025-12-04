@@ -2,6 +2,8 @@
 #include <Process/Execution/ProcessComponent.hpp>
 
 #include <ossia/dataflow/node_process.hpp>
+
+#include <score_plugin_gfx_export.h>
 namespace isf
 {
 struct descriptor;
@@ -9,7 +11,7 @@ struct descriptor;
 namespace Gfx
 {
 struct ProcessedProgram;
-class ISFExecutorComponent : public Execution::ProcessComponent
+class SCORE_PLUGIN_GFX_EXPORT ISFExecutorComponent : public Execution::ProcessComponent
 {
 public:
   using Execution::ProcessComponent::ProcessComponent;
@@ -21,7 +23,8 @@ public:
       const QString& shader, const isf::descriptor& desc, const Execution::Context& ctx);
   void on_shaderChanged(const Gfx::ProcessedProgram& shader);
   void on_shaderChanged(const QString& shader, const isf::descriptor& desc);
-  std::pair<ossia::inlets, ossia::outlets> setup_node(Execution::Transaction& transact);
+  std::pair<ossia::inlets, ossia::outlets>
+  setup_node(const isf::descriptor& desc, Execution::Transaction& transact);
 
   Process::Inlets m_oldInlets;
   Process::Outlets m_oldOutlets;

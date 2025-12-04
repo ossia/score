@@ -93,13 +93,13 @@ void loadPoints(TMesh& mesh, std::vector<float>& complete, PrimitiveOutputs& out
     (*uv_start++) = p2.X();
     (*uv_start++) = p2.Y();
   }
-  outputs.geometry.mesh.buffers.main_buffer.data = complete.data();
-  outputs.geometry.mesh.buffers.main_buffer.size = complete.size();
+  outputs.geometry.mesh.buffers.main_buffer.elements = complete.data();
+  outputs.geometry.mesh.buffers.main_buffer.element_count = complete.size();
   outputs.geometry.mesh.buffers.main_buffer.dirty = true;
 
-  outputs.geometry.mesh.input.input0.offset = 0;
-  outputs.geometry.mesh.input.input1.offset = sizeof(float) * vertices * 3;
-  outputs.geometry.mesh.input.input2.offset = sizeof(float) * vertices * (3 + 3);
+  outputs.geometry.mesh.input.input0.byte_offset = 0;
+  outputs.geometry.mesh.input.input1.byte_offset = sizeof(float) * vertices * 3;
+  outputs.geometry.mesh.input.input2.byte_offset = sizeof(float) * vertices * (3 + 3);
   outputs.geometry.mesh.vertices = vertices;
   outputs.geometry.dirty_mesh = true;
 }
@@ -136,13 +136,13 @@ void ArrayToMesh::create_mesh(std::span<float> v)
     this->complete.resize(std::ceil((v.size() / 3.) * (3 + 3 + 2)));
     std::copy_n(v.begin(), v.size(), complete.begin());
 
-    outputs.geometry.mesh.buffers.main_buffer.data = complete.data();
-    outputs.geometry.mesh.buffers.main_buffer.size = complete.size();
+    outputs.geometry.mesh.buffers.main_buffer.elements = complete.data();
+    outputs.geometry.mesh.buffers.main_buffer.element_count = complete.size();
     outputs.geometry.mesh.buffers.main_buffer.dirty = true;
 
-    outputs.geometry.mesh.input.input0.offset = 0;
-    outputs.geometry.mesh.input.input1.offset = sizeof(float) * vertices * 3;
-    outputs.geometry.mesh.input.input2.offset = sizeof(float) * vertices * (3 + 3);
+    outputs.geometry.mesh.input.input0.byte_offset = 0;
+    outputs.geometry.mesh.input.input1.byte_offset = sizeof(float) * vertices * 3;
+    outputs.geometry.mesh.input.input2.byte_offset = sizeof(float) * vertices * (3 + 3);
     outputs.geometry.mesh.vertices = vertices;
     outputs.geometry.dirty_mesh = true;
   }
