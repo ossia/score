@@ -6,6 +6,7 @@
 #include <Gfx/Graph/Uniforms.hpp>
 
 #include <ossia/detail/hash_map.hpp>
+#include <ossia/detail/small_flat_map.hpp>
 
 #include <score_plugin_gfx_export.h>
 
@@ -362,4 +363,9 @@ inline void uploadStaticBufferWithStoredData(
   ub->uploadStaticBuffer(buf, offset, b.size(), b.data());
 #endif
 }
+
+SCORE_PLUGIN_GFX_EXPORT
+std::vector<Sampler> initInputSamplers(
+    const score::gfx::Node& node, RenderList& renderer, const std::vector<Port*>& ports,
+    ossia::small_flat_map<const Port*, TextureRenderTarget, 2>& m_rts);
 }

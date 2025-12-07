@@ -179,7 +179,7 @@ public:
 
   W_PROPERTY(ValueType, value READ value NOTIFY valueChanged)
 
-private:
+protected:
   ValueType m_value{};
 };
 W_OBJECT_IMPL(
@@ -605,12 +605,14 @@ public:
   W_INLINE_PROPERTY_CREF(QString, text, {}, text, setText, textChanged)
 };
 
-class SCORE_PLUGIN_JS_EXPORT HSVSlider : public ControlInlet
+class SCORE_PLUGIN_JS_EXPORT HSVSlider
+    : public GenericControlInlet<Process::HSVSlider, QColor, ossia::vec4f>
 {
   W_OBJECT(HSVSlider)
 
 public:
-  using ControlInlet::ControlInlet;
+  using GenericControlInlet<
+      Process::HSVSlider, QColor, ossia::vec4f>::GenericControlInlet;
   virtual ~HSVSlider() override;
   bool isEvent() const override { return true; }
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
@@ -621,6 +623,16 @@ public:
     return new Process::HSVSlider{v, objectName(), id, parent};
   }
 
+  void setValue(QVariant value) override
+  {
+    auto vec = value.value<QVector4D>();
+    auto conv = QColor::fromRgbF(vec[0], vec[1], vec[2], vec[3]);
+    if(m_value == conv)
+      return;
+
+    m_value = std::move(conv);
+    valueChanged(m_value);
+  }
   W_INLINE_PROPERTY_CREF(QColor, init, {}, init, setInit, initChanged)
 };
 class SCORE_PLUGIN_JS_EXPORT ValueOutlet : public Outlet
@@ -785,6 +797,26 @@ private:
 };
 
 #if defined(SCORE_HAS_GPU_JS)
+class TextureInlet : public Inlet
+{
+  W_OBJECT(TextureInlet)
+
+public:
+  explicit TextureInlet(QObject* parent = nullptr);
+  virtual ~TextureInlet() override;
+  Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
+  {
+    auto p = new Gfx::TextureInlet(objectName(), id, parent);
+    return p;
+  }
+
+  QQuickItem* item() const noexcept { return m_item; }
+
+  W_PROPERTY(QQuickItem*, item READ item CONSTANT)
+private:
+  QQuickItem* m_item{};
+};
+
 class TextureOutlet : public Outlet
 {
   W_OBJECT(TextureOutlet)
@@ -798,7 +830,7 @@ public:
     return p;
   }
 
-  QQuickItem* item() /*Qt6: const*/ noexcept { return m_item; }
+  QQuickItem* item() const noexcept { return m_item; }
   void setItem(QQuickItem* v) { m_item = v; }
 
   W_PROPERTY(QQuickItem*, item READ item WRITE setItem CONSTANT)
