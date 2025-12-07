@@ -57,7 +57,7 @@ public:
   void update_index(
       int buffer_index, const ossia::geometry::gpu_buffer& idx_buf, MeshBuffers& meshbuf,
       QRhiResourceUpdateBatch& rb) const noexcept;
-  void update(QRhi& rhi, MeshBuffers& meshbuf, QRhiResourceUpdateBatch& rb)
+  void update(QRhi& rhi, MeshBuffers& output_meshbuf, QRhiResourceUpdateBatch& rb)
       const noexcept override;
   Flags flags() const noexcept override;
 
