@@ -688,16 +688,20 @@ std::string gpu_exec_node::label() const noexcept
 
 void gpu_exec_node::setScript(const QString& str)
 {
-  // exec_context->ui->unregister_node(id);
+  if(id >= 0)
+    exec_context->ui->unregister_node(id);
 
-  if(id < 0)
+  //if(id < 0)
   {
-    auto n = std::make_unique<JS::GpuNode>(str);
+    auto n
+        = std::make_unique<JS::GpuNode>(str, this->root_inputs(), this->root_outputs());
 
     id = exec_context->ui->register_node(std::move(n));
   }
+  /*
   else
   {
+    // FIXME need to update the ports if they changed on the host side!
     auto msg = exec_context->allocateMessage(1);
     msg.node_id = id;
     msg.input.emplace_back(score::gfx::FunctionMessage{[str](score::gfx::Node& nn) {
@@ -707,6 +711,7 @@ void gpu_exec_node::setScript(const QString& str)
     }});
     exec_context->ui->send_message(std::move(msg));
   }
+*/
 }
 }
 #endif
