@@ -77,74 +77,74 @@ IntervalComponentBase::IntervalComponentBase(
     : Scenario::GenericIntervalComponent<const Context>{
         score_cst, ctx, "Executor::Interval", nullptr}
 {
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   if(score_cst.graphal())
     return;
 
   con(interval().duration, &Scenario::IntervalDurations::speedChanged, this,
       [&](double sp) {
-    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
     if(m_ossia_interval)
       in_exec([sp, cst = m_ossia_interval] {
-        OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+        OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
         cst->set_speed(sp);
       });
   });
 
   con(interval().duration, &Scenario::IntervalDurations::defaultDurationChanged, this,
       [&](TimeVal sp) {
-    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
     if(m_ossia_interval)
       in_exec([t = ctx.time(sp), cst = m_ossia_interval] {
-        OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+        OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
         cst->set_nominal_duration(t);
       });
   });
 
   con(interval().duration, &Scenario::IntervalDurations::minDurationChanged, this,
       [&](TimeVal sp) {
-    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
     if(m_ossia_interval)
       in_exec([t = ctx.time(sp), cst = m_ossia_interval] {
-        OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+        OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
         cst->set_min_duration(t);
       });
   });
 
   con(interval().duration, &Scenario::IntervalDurations::maxDurationChanged, this,
       [&](TimeVal sp) {
-    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
     if(m_ossia_interval)
       in_exec([t = ctx.time(sp), cst = m_ossia_interval] {
-        OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+        OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
         cst->set_max_duration(t);
       });
   });
 
   con(interval(), &Scenario::IntervalModel::mutedChanged, this, [&](bool b) {
-    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
     if(m_ossia_interval)
       in_exec([b, itv = m_ossia_interval] {
-        OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+        OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
         itv->mute(b);
       });
   });
 
   con(interval(), &Scenario::IntervalModel::busChanged, this, [&](bool b) {
-    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
     if(m_ossia_interval)
       in_exec([b, itv = m_ossia_interval] {
-        OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+        OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
         auto& audio_out
             = static_cast<ossia::nodes::interval*>(itv->node.get())->audio_out;
         audio_out.has_gain = b;
       });
   });
   con(*interval().outlet, &Process::AudioOutlet::gainChanged, this, [&](double g) {
-    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
     if(m_ossia_interval)
       in_exec([g, itv = m_ossia_interval] {
-        OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+        OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
         auto& audio_out
             = static_cast<ossia::nodes::interval*>(itv->node.get())->audio_out;
         audio_out.gain = g;
@@ -152,10 +152,10 @@ IntervalComponentBase::IntervalComponentBase(
   });
   con(*interval().outlet, &Process::AudioOutlet::panChanged, this,
       [&](ossia::pan_weight pan) {
-    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
     if(m_ossia_interval)
       in_exec([pan = std::move(pan), itv = m_ossia_interval] {
-        OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+        OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
         auto& audio_out
             = static_cast<ossia::nodes::interval*>(itv->node.get())->audio_out;
         audio_out.pan = pan;
@@ -166,14 +166,14 @@ IntervalComponentBase::IntervalComponentBase(
   {
     con(*interval().outlet, &Process::AudioOutlet::propagateChanged, this,
         [&, scenar](bool propag) {
-      OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+      OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
       if(m_ossia_interval)
       {
         std::weak_ptr<ossia::graph_interface> g = this->system().execGraph;
         if(propag)
         {
           in_exec([g, cst = m_ossia_interval, scenar] {
-            OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+            OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
             if(auto graph = g.lock())
             {
               auto& cables = cst->node->root_outputs()[0]->cables();
@@ -188,7 +188,7 @@ IntervalComponentBase::IntervalComponentBase(
         else
         {
           in_exec([g, cst = m_ossia_interval] {
-            OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+            OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
             if(auto graph = g.lock())
             {
               auto& cables = cst->node->root_outputs()[0]->cables();
@@ -205,12 +205,12 @@ IntervalComponentBase::IntervalComponentBase(
 
 IntervalComponent::~IntervalComponent()
 {
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
 }
 
 void IntervalComponent::init()
 {
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   if(m_interval)
   {
     if(interval().muted())
@@ -287,13 +287,14 @@ void IntervalComponent::init()
 
 void IntervalComponent::cleanup(const std::shared_ptr<IntervalComponent>& self)
 {
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  qDebug(Q_FUNC_INFO);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   // itv has to be kept alive until end of this function
   if(auto itv = m_ossia_interval)
   {
     // self has to be kept alive until next tick
     in_exec([itv = itv, self = self, gcq_ptr = weak_gc]() mutable {
-      OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+      OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
       itv->set_callback(ossia::time_interval::exec_callback{});
       itv->cleanup();
 
@@ -356,7 +357,7 @@ void IntervalComponent::onSetup(
     std::shared_ptr<ossia::time_interval> ossia_cst, interval_duration_data dur,
     bool root)
 {
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   m_ossia_interval = ossia_cst;
   Transaction t{context()};
 
@@ -408,10 +409,10 @@ void IntervalComponent::onSetup(
         ossia_cst->set_callback(
             smallfun::function<void(bool, ossia::time_value), 32>{
                 [weak_self, qed_ptr](bool running, ossia::time_value date) {
-          OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+          OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
           if(auto qed = qed_ptr.lock())
             qed->enqueue([weak_self, running, date] {
-              OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+              OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
               if(auto self = weak_self.lock())
                 self->graph_slot_callback(running, date);
             });
@@ -424,10 +425,10 @@ void IntervalComponent::onSetup(
         ossia_cst->set_callback(
             smallfun::function<void(bool, ossia::time_value), 32>{
                 [weak_self, qed_ptr](bool running, ossia::time_value date) {
-          OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+          OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
           if(auto qed = qed_ptr.lock())
             qed->enqueue([weak_self, running, date] {
-              OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+              OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
               if(auto self = weak_self.lock())
                 self->slot_callback(running, date);
             });
@@ -458,7 +459,7 @@ void IntervalComponent::graph_slot_callback(bool running, ossia::time_value date
 
 void IntervalComponent::slot_callback(bool running, ossia::time_value date)
 {
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   if(!m_interval)
     return;
 
@@ -526,7 +527,7 @@ void IntervalComponentBase::stop()
 
 void IntervalComponentBase::executionStarted()
 {
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   interval().duration.setPlayPercentage(0);
   interval().executionEvent(Scenario::IntervalExecutionEvent::Playing);
   for(Process::ProcessModel& proc : interval().processes)
@@ -539,7 +540,7 @@ void IntervalComponentBase::executionStarted()
 
 void IntervalComponentBase::executionStopped()
 {
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   if(m_interval)
   {
     interval().executionEvent(Scenario::IntervalExecutionEvent::Stopped);
@@ -555,7 +556,7 @@ void IntervalComponentBase::executionStopped()
 ProcessComponent*
 IntervalComponentBase::make(ProcessComponentFactory& fac, Process::ProcessModel& proc)
 {
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   SCORE_ASSERT(this->OSSIAInterval());
   SCORE_ASSERT(this->OSSIAInterval()->node);
   try
@@ -644,7 +645,7 @@ IntervalComponentBase::make(ProcessComponentFactory& fac, Process::ProcessModel&
 std::function<void()>
 IntervalComponentBase::removing(const Process::ProcessModel& e, ProcessComponent& c)
 {
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   auto it = m_processes.find(e.id());
   if(it != m_processes.end())
   {
@@ -667,7 +668,7 @@ IntervalComponentBase::removing(const Process::ProcessModel& e, ProcessComponent
     c.cleanup();
 
     return [this, cptr = std::weak_ptr{c.shared_from_this()}, id = e.id()] {
-      OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+      OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
       m_processes.erase(id);
     };
   }

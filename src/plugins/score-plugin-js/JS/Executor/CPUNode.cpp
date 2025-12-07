@@ -26,19 +26,19 @@ namespace JS
 js_node::js_node(ossia::execution_state& st)
     : m_st{st}
 {
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   m_not_threadable = true;
 }
 
 js_node::~js_node()
 { // FIXME eventually we'd like all the nodes to be destroyed in UI thread
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   SCORE_ASSERT(!m_engine);
 }
 
 void js_node::clear() noexcept
 {
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
   m_tickCall.reset();
 
   delete m_engine;
@@ -48,7 +48,7 @@ void js_node::clear() noexcept
 
 void js_node::setupComponent()
 {
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
   SCORE_ASSERT(m_object);
   m_object->setParent(m_engine);
   int input_i = 0;
@@ -98,7 +98,7 @@ void js_node::setupComponent()
 
 void js_node::setScript(const QString& val)
 {
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
   if(!m_engine)
   {
     m_engine = new QQmlEngine;
