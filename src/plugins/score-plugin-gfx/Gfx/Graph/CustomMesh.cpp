@@ -49,13 +49,40 @@ QRhiBuffer *CustomMesh::init_index(const ossia::geometry::gpu_buffer &buf, QRhi 
 MeshBuffers CustomMesh::init(QRhi &rhi) const noexcept
 {
   if(geom.meshes.empty())
+  {
     return {};
+  }
   if(geom.meshes[0].buffers.empty())
+  {
     return {};
+  }
 
   MeshBuffers ret;
   // FIXME multi-mesh
   auto& mesh = geom.meshes[0];
+
+  // 1. Null check
+  bool any_is_null = false;
+  for(const auto& buf : mesh.buffers)
+  {
+    any_is_null |= ossia::visit([&]<typename Buffer>(Buffer& buf) {
+      if constexpr(std::is_same_v<Buffer, ossia::geometry::cpu_buffer>)
+      {
+        return buf.byte_size == 0 || buf.data == nullptr;
+      }
+      else if constexpr(std::is_same_v<Buffer, ossia::geometry::gpu_buffer>)
+      {
+        return buf.handle == nullptr;
+      }
+      return false;
+    }, buf.data);
+  }
+
+  if(any_is_null)
+  {
+    return {};
+  }
+
   int i = 0;
   int index_i = mesh.index.buffer;
 
@@ -65,19 +92,16 @@ MeshBuffers CustomMesh::init(QRhi &rhi) const noexcept
     {
       auto rhi_buf
           = ossia::visit([&](auto& buf) { return init_vbo(buf, rhi); }, buf.data);
-      SCORE_ASSERT(rhi_buf);
       ret.buffers.emplace_back(rhi_buf, 0, 0);
     }
     else
     {
       auto rhi_buf
           = ossia::visit([&](auto& buf) { return init_index(buf, rhi); }, buf.data);
-      SCORE_ASSERT(rhi_buf);
       ret.buffers.emplace_back(rhi_buf, 0, 0);
     }
     i++;
   }
-  qDebug() << Q_FUNC_INFO << mesh.buffers.size() << ret.buffers.size();
   return ret;
 }
 
@@ -85,7 +109,9 @@ void CustomMesh::update_vbo(
     int buffer_index, const ossia::geometry::cpu_buffer& vtx_buf, MeshBuffers& meshbuf,
     QRhiResourceUpdateBatch& rb) const noexcept
 {
-  SCORE_ASSERT(meshbuf.buffers.size() > buffer_index);
+  if(meshbuf.buffers.size() <= buffer_index)
+    return;
+
   auto buffer = meshbuf.buffers[buffer_index].handle; // FIXME use offset here?
   if(auto sz = vtx_buf.byte_size; sz != buffer->size())
   {
@@ -102,7 +128,9 @@ void CustomMesh::update_vbo(
     int buffer_index, const ossia::geometry::gpu_buffer& vtx_buf, MeshBuffers& meshbuf,
     QRhiResourceUpdateBatch& rb) const noexcept
 {
-  SCORE_ASSERT(meshbuf.buffers.size() > buffer_index);
+  if(meshbuf.buffers.size() <= buffer_index)
+    return;
+
   // FIXME offset, size ?
   // FIXME check if memory of previous buffer gets freed?
   meshbuf.buffers[buffer_index] = {static_cast<QRhiBuffer*>(vtx_buf.handle), 0, 0};
@@ -112,7 +140,9 @@ void CustomMesh::update_index(
     int buffer_index, const ossia::geometry::cpu_buffer& idx_buf, MeshBuffers& meshbuf,
     QRhiResourceUpdateBatch& rb) const noexcept
 {
-  SCORE_ASSERT(meshbuf.buffers.size() > buffer_index);
+  if(meshbuf.buffers.size() <= buffer_index)
+    return;
+
   void* idx_buf_data = nullptr;
   auto buffer = meshbuf.buffers[buffer_index].handle; // FIXME use offset here?
   if(buffer)
@@ -160,31 +190,40 @@ void CustomMesh::update_index(
 }
 
 void CustomMesh::update(
-    QRhi& rhi, MeshBuffers& meshbuf, QRhiResourceUpdateBatch& rb) const noexcept
+    QRhi& rhi, MeshBuffers& output_meshbuf, QRhiResourceUpdateBatch& rb) const noexcept
 {
   if(geom.meshes.empty())
     return;
 
   // FIXME multi-mesh
-  auto& mesh = geom.meshes[0];
-  if(mesh.buffers.empty())
+  auto& input_mesh = geom.meshes[0];
+  if(input_mesh.buffers.empty())
+  {
     return;
-  if(meshbuf.buffers.empty())
-    meshbuf = init(rhi);
+  }
+  if(output_meshbuf.buffers.empty())
+  {
+    output_meshbuf = init(rhi);
+  }
+  if(output_meshbuf.buffers.empty())
+  {
+    return;
+  }
 
   int i = 0;
-  int index_i = mesh.index.buffer;
+  int index_i = input_mesh.index.buffer;
 
-  for(const auto& buf : mesh.buffers)
+  for(const auto& buf : input_mesh.buffers)
   {
     if(i != index_i)
     {
-      ossia::visit([&](auto& buf) { return update_vbo(i, buf, meshbuf, rb); }, buf.data);
+      ossia::visit(
+          [&](auto& buf) { return update_vbo(i, buf, output_meshbuf, rb); }, buf.data);
     }
     else
     {
       ossia::visit(
-          [&](auto& buf) { return update_index(i, buf, meshbuf, rb); }, buf.data);
+          [&](auto& buf) { return update_index(i, buf, output_meshbuf, rb); }, buf.data);
     }
     i++;
   }
@@ -301,6 +340,9 @@ void CustomMesh::draw(const MeshBuffers &bufs, QRhiCommandBuffer &cb) const noex
     for(auto& in : g.input)
     {
       // FIXME buffer offset? input offset?
+      if(bufs.buffers.size() <= in.buffer)
+        return;
+
       auto buf = bufs.buffers[in.buffer].handle;
       if(!buf)
         return;
