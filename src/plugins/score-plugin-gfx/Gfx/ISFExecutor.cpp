@@ -38,7 +38,7 @@ try
 
   Execution::Transaction commands{system()};
   setup_node(desc, commands);
-  commands.run_all_in_exec();
+  commands.run_all_in_ui();
 
   m_ossia_process = std::make_shared<ossia::node_process>(this->node);
 
@@ -68,7 +68,7 @@ try
 
   Execution::Transaction commands{system()};
   setup_node(desc, commands);
-  commands.run_all_in_exec();
+  commands.run_all_in_ui();
 
   m_ossia_process = std::make_shared<ossia::node_process>(this->node);
 

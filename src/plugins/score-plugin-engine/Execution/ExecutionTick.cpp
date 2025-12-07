@@ -50,11 +50,11 @@ struct AudioTickHelper
 
   ~AudioTickHelper()
   {
-    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
     m_scenar->cleanup();
     auto& q = m_context->m_execQueue;
     q.enqueue([ctx = m_context, graph = m_context->execGraph]() mutable {
-      OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+      OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
       // FIXME this frees the graph nodes in the audio thread,
       // should do it in exec thread.
       // FIXME why not just move all the structures back to the main thread the moment we hit stop?
@@ -105,7 +105,7 @@ struct AudioTickHelper
 
   void dequeueCommands() const
   {
-    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
     // Run some commands if they have been submitted.
     Execution::ExecutionCommand c;
     while(m_context->m_execQueue.try_dequeue(c))
@@ -123,7 +123,7 @@ struct AudioTickHelper
 
   void main_tick(const ossia::audio_tick_state& t) const
   {
-    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
     // TODO this means that transport isn't visible until we play again
     if(t.status && *t.status != ossia::transport_status::playing)
       return;
@@ -180,7 +180,7 @@ struct AudioTickHelper
   void main(const ossia::audio_tick_state& t) const
   try
   {
-    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
     // Match the audio_protocol with the actual I/O
     m_proto->setup_buffers(t);
 

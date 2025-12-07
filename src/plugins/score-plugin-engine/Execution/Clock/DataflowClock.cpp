@@ -81,7 +81,7 @@ void Clock::play_impl(const TimeVal& t)
   m_pause_tick = [ctx = std::weak_ptr{m_plug.contextData()},
                   actions](const ossia::audio_tick_state& t) {
     Audio::execution_status.store(ossia::transport_status::stopped);
-    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
 
     for(int chan = 0; chan < t.n_out; chan++)
     {
