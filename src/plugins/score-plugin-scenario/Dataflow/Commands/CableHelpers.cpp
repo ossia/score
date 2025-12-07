@@ -167,8 +167,10 @@ void removeCables(const SerializedCables& cables, const score::DocumentContext& 
   }
 }
 
-void restoreCables(const SerializedCables& cables, const score::DocumentContext& ctx)
+ossia::small_vector<Process::Cable*, 4>
+restoreCables(const SerializedCables& cables, const score::DocumentContext& ctx)
 {
+  ossia::small_vector<Process::Cable*, 4> ret;
   Scenario::ScenarioDocumentModel& doc
       = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
 
@@ -180,17 +182,32 @@ void restoreCables(const SerializedCables& cables, const score::DocumentContext&
       doc.cables.add(c);
       c->source().find(ctx).addCable(*c);
       c->sink().find(ctx).addCable(*c);
+      ret.push_back(c);
     }
     else
     {
       qDebug() << "Warning: trying to add existing cable " << id;
     }
   }
+  return ret;
 }
 
-void restoreCablesWithoutTouchingPorts(
+void notifyAddedCables(std::span<Process::Cable*> cbl, const score::DocumentContext& ctx)
+{
+  Scenario::ScenarioDocumentModel& doc
+      = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
+
+  for(auto cable : cbl)
+  {
+    doc.cables.mutable_added(*cable);
+    doc.cables.added(*cable);
+  }
+}
+
+ossia::small_vector<Process::Cable*, 4> restoreCablesWithoutTouchingPorts(
     const SerializedCables& cables, const score::DocumentContext& ctx)
 {
+  ossia::small_vector<Process::Cable*, 4> ret;
   Scenario::ScenarioDocumentModel& doc
       = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
 
@@ -199,13 +216,16 @@ void restoreCablesWithoutTouchingPorts(
     if(doc.cables.find(id) == doc.cables.end())
     {
       auto c = new Process::Cable{id, data, &doc};
-      doc.cables.add(c);
+      doc.cables.add_quiet(c);
+      ret.push_back(c);
     }
     else
     {
       qDebug() << "Warning: trying to add existing cable " << id;
     }
   }
+
+  return ret;
 }
 
 // TODO keep a single way of doing
@@ -236,10 +256,12 @@ void unstripCables(const ObjectPath& p, SerializedCables& cables)
   }
 }
 
-static void restoreCables(
+static ossia::small_vector<Process::Cable*, 4> restoreCables(
     Process::Inlet& new_p, Scenario::ScenarioDocumentModel& doc,
     const score::DocumentContext& ctx, const Dataflow::SerializedCables& cables)
 {
+  ossia::small_vector<Process::Cable*, 4> ret;
+
   const auto current_cables_of_port = new_p.cables();
   for(auto& cable : current_cables_of_port)
   {
@@ -252,15 +274,19 @@ static void restoreCables(
     SCORE_ASSERT(doc.cables.find(it->first) == doc.cables.end());
     {
       auto c = new Process::Cable{it->first, it->second, &doc};
-      doc.cables.add(c);
+      doc.cables.add_quiet(c);
+      ret.push_back(c);
       c->source().find(ctx).addCable(*c);
     }
   }
+  return ret;
 }
-static void restoreCables(
+static ossia::small_vector<Process::Cable*, 4> restoreCables(
     Process::Outlet& new_p, Scenario::ScenarioDocumentModel& doc,
     const score::DocumentContext& ctx, const Dataflow::SerializedCables& cables)
 {
+  ossia::small_vector<Process::Cable*, 4> ret;
+
   auto current_cables_of_port = new_p.cables();
   for(auto& cable : current_cables_of_port)
   {
@@ -273,17 +299,20 @@ static void restoreCables(
     SCORE_ASSERT(doc.cables.find(it->first) == doc.cables.end());
     {
       auto c = new Process::Cable{it->first, it->second, &doc};
-      doc.cables.add(c);
+      doc.cables.add_quiet(c);
+      ret.push_back(c);
       c->sink().find(ctx).addCable(*c);
     }
   }
+  return ret;
 }
 
-void reloadPortsInNewProcess(
+ossia::small_vector<Process::Cable*, 4> reloadPortsInNewProcess(
     const std::vector<SavedPort>& oldInlets, const std::vector<SavedPort>& oldOutlets,
     const SerializedCables& oldCables, Process::ProcessModel& process,
     const score::DocumentContext& ctx)
 {
+  ossia::small_vector<Process::Cable*, 4> ret;
   // Try an optimistic matching. Type and name must match.
   auto& doc = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
 
@@ -297,7 +326,8 @@ void reloadPortsInNewProcess(
     if(new_p->type() == old_p.type && new_p->name() == old_p.name)
     {
       new_p->loadData(old_p.data);
-      restoreCables(*new_p, doc, ctx, oldCables);
+      auto rret = restoreCables(*new_p, doc, ctx, oldCables);
+      ret.insert(ret.end(), rret.begin(), rret.end());
     }
   }
 
@@ -309,9 +339,12 @@ void reloadPortsInNewProcess(
     if(new_p->type() == old_p.type && new_p->name() == old_p.name)
     {
       new_p->loadData(old_p.data);
-      restoreCables(*new_p, doc, ctx, oldCables);
+      auto rret = restoreCables(*new_p, doc, ctx, oldCables);
+      ret.insert(ret.end(), rret.begin(), rret.end());
     }
   }
+
+  return ret;
 }
 
 void reloadPortsInNewProcess(

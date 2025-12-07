@@ -107,9 +107,10 @@ private:
     }
 
     // Recreate the old cables
-    Dataflow::restoreCablesWithoutTouchingPorts(m_oldCables, ctx);
+    auto cables = Dataflow::restoreCablesWithoutTouchingPorts(m_oldCables, ctx);
     cmt.inletsChanged();
     cmt.outletsChanged();
+    Dataflow::notifyAddedCables(cables, ctx);
   }
 
   void redo(const score::DocumentContext& ctx) const final override
@@ -119,14 +120,12 @@ private:
     auto& cmt = m_path.find(ctx);
     cmt.loadPreset(m_new);
 
-    Dataflow::reloadPortsInNewProcess(m_oldInlets, m_oldOutlets, m_oldCables, cmt, ctx);
+    auto cables = Dataflow::reloadPortsInNewProcess(
+        m_oldInlets, m_oldOutlets, m_oldCables, cmt, ctx);
 
     cmt.inletsChanged();
     cmt.outletsChanged();
-    // FIXME if we have it only here, then changing cables fails for the exec nodes
-    // as in the cable loading, in SetupContext::connectCable(Process::Cable& cable)
-    // auto it = outlets.find(port_src); fails because the new outlet hasn't yet been created by the component
-    // but if we have it only above, the JS GPU node fails
+    Dataflow::notifyAddedCables(cables, ctx);
   }
 
   void serializeImpl(DataStreamInput& stream) const final override
