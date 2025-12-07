@@ -304,8 +304,14 @@ make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
   else if constexpr(widg.widget == avnd::widget_type::combobox)
   {
     static constexpr auto c = avnd::get_range<T>();
+    using init_type = std::decay_t<decltype(c.init)>;
+    ossia::value init;
+    if constexpr(std::is_integral_v<init_type> || std::is_enum_v<init_type>)
+      init = static_cast<int>(c.init);
+    else
+      init = c.init;
     return new Process::ComboBox{
-        to_combobox_range(c.values), (int)std::to_underlying(c.init), qname, id, parent};
+        to_combobox_range(c.values), std::move(init), qname, id, parent};
   }
   else if constexpr(widg.widget == avnd::widget_type::choices)
   {
