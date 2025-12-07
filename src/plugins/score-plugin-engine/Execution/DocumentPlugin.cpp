@@ -318,9 +318,10 @@ void DocumentPlugin::reload(bool forcePlay, Scenario::IntervalModel& cst)
   m_ctxData->m_created = true;
 
   auto& model = context().doc.model<Scenario::ScenarioDocumentModel>();
+  Transaction t{m_ctxData->context};
   for(auto& cable : model.cables)
   {
-    m_ctxData->setupContext.connectCable(cable);
+    m_ctxData->setupContext.connectCable(cable, t);
   }
 
   for(auto ctl : model.statesWithControls)
@@ -329,12 +330,12 @@ void DocumentPlugin::reload(bool forcePlay, Scenario::IntervalModel& cst)
         = score::findComponent<Execution::StateComponentBase>(ctl->components());
     if(state_comp)
     {
-      state_comp->updateControls();
+      state_comp->updateControls(); // FIXME put in transaction too
     }
   }
+  t.run_all();
 
   m_tid = startTimer(32);
-  // runAllCommands();
 }
 
 void DocumentPlugin::clear()
