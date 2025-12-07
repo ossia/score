@@ -48,13 +48,19 @@ void removeCables(const SerializedCables& cbls, const score::DocumentContext& ct
 
 //! Given the same document, restore cables that were removed - mostly useful
 //! for undo operations.
-SCORE_PLUGIN_SCENARIO_EXPORT
-void restoreCables(const SerializedCables& cbls, const score::DocumentContext& ctx);
+[[nodiscard]] SCORE_PLUGIN_SCENARIO_EXPORT ossia::small_vector<Process::Cable*, 4>
+restoreCables(const SerializedCables& cbls, const score::DocumentContext& ctx);
 //! Same thing but does not re-add cables to ports as they have been added just before by
 //! another operation
-SCORE_PLUGIN_SCENARIO_EXPORT
-void restoreCablesWithoutTouchingPorts(
+[[nodiscard]] SCORE_PLUGIN_SCENARIO_EXPORT ossia::small_vector<Process::Cable*, 4>
+restoreCablesWithoutTouchingPorts(
     const SerializedCables& cbls, const score::DocumentContext& ctx);
+
+//! Needed to prevent subtle issues where
+//! cableAdded() signal is emitted and received by the audio thread
+//! before we reached inletsChanged() / programChanged()
+SCORE_PLUGIN_SCENARIO_EXPORT void
+notifyAddedCables(std::span<Process::Cable*>, const score::DocumentContext& ctx);
 
 //! Restore cables. The objects must exist but it can be in a different
 //! document, at a different place in the hierarchy.
@@ -80,8 +86,8 @@ struct SavedPort
 //! Tries to optimistically match the cables & addresses of an old
 //! set of port into a new set of port. Used when e.g. live coding
 //! and changing ports of a process
-SCORE_PLUGIN_SCENARIO_EXPORT
-void reloadPortsInNewProcess(
+[[nodiscard]] SCORE_PLUGIN_SCENARIO_EXPORT ossia::small_vector<Process::Cable*, 4>
+reloadPortsInNewProcess(
     const std::vector<SavedPort>& m_oldInlets,
     const std::vector<SavedPort>& m_oldOutlets,
     const Dataflow::SerializedCables& m_oldCables, Process::ProcessModel& cmt,
