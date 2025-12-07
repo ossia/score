@@ -26,7 +26,7 @@ namespace Execution
 inline std::pair<std::optional<ossia::tempo_curve>, Scenario::TempoProcess*>
 tempoCurve(const Scenario::IntervalModel& itv, const Execution::Context& ctx)
 {
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   // TODO
   if(auto proc = itv.tempoCurve())
   {
@@ -60,7 +60,7 @@ tempoCurve(const Scenario::IntervalModel& itv, const Execution::Context& ctx)
 inline ossia::time_signature_map
 timeSignatureMap(const Scenario::IntervalModel& itv, const Execution::Context& ctx)
 {
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   ossia::time_signature_map ret;
   for(const auto& [time, sig] : itv.timeSignatureMap())
   {
@@ -71,7 +71,7 @@ timeSignatureMap(const Scenario::IntervalModel& itv, const Execution::Context& c
 
 inline auto propagatedOutlets(const Process::Outlets& outlets) noexcept
 {
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   ossia::pod_vector<std::size_t> propagated_outlets;
   for(std::size_t i = 0; i < outlets.size(); i++)
   {
@@ -87,7 +87,7 @@ inline void connectPropagated(
     ossia::graph_interface& g,
     const ossia::pod_vector<std::size_t>& propagated_outlets) noexcept
 {
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
   const auto& outs = process_node->root_outputs();
   for(std::size_t propagated : propagated_outlets)
   {
@@ -108,7 +108,7 @@ inline void updatePropagated(
     const ossia::node_ptr& process_node, const ossia::node_ptr& interval_node,
     ossia::graph_interface& g, std::size_t port_idx, bool is_propagated) noexcept
 {
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
   const auto& outs = process_node->root_outputs();
 
   if(port_idx >= outs.size())
@@ -157,7 +157,7 @@ struct AddProcess
 
   void operator()() const noexcept
   {
-    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
     auto oproc = oproc_weak.lock();
     if(!oproc)
       return;
@@ -185,7 +185,7 @@ struct RecomputePropagate
 
   void operator()(bool propagate) const noexcept
   {
-    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
 
     // TODO find a better way !
     auto port_index
@@ -228,7 +228,7 @@ struct ReconnectOutlets
 
   void operator()() const noexcept
   {
-    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
     for(Process::Outlet* outlet : proc.outlets())
     {
       if(auto o = qobject_cast<Process::AudioOutlet*>(outlet))
@@ -255,12 +255,12 @@ struct HandleNodeChange
       const ossia::node_ptr& old_node, const ossia::node_ptr& new_node,
       Execution::Transaction* commands) const noexcept
   {
-    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
 
     commands->push_back([cst_node_weak = this->cst_node_weak, g_weak = this->g_weak,
                          propagated = propagatedOutlets(proc.outlets()), old_node,
                          new_node] {
-      OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+      OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
       auto cst_node = cst_node_weak.lock();
       if(!cst_node)
         return;
