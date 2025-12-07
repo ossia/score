@@ -215,6 +215,10 @@ Component::on_gpuScriptChange(const QString& script, Execution::Transaction& com
 
           control_index++;
         }
+        else if([[maybe_unused]] auto tex_in = qobject_cast<TextureInlet*>(inlet))
+        {
+          inls.push_back(new ossia::texture_inlet);
+        }
         /*
         if(auto ctrl_in = qobject_cast<ControlInlet*>(n))
         {

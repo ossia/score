@@ -65,6 +65,8 @@ PCLToMesh2::PCLToMesh2()
 void PCLToMesh2::operator()()
 {
   auto& tex = this->inputs.in.buffer;
+
+  // FIXME optimize
   // if (!tex.changed)
   //   return;
 

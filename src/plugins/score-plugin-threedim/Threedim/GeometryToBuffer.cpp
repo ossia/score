@@ -307,7 +307,6 @@ void GeometryToBuffer::updateOutput()
     }
     else
     {
-      qDebug() << "Failed to extract!";
       outputs.buffer.buffer = {};
     }
   }, m_strategy);

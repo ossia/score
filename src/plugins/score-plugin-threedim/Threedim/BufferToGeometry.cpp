@@ -351,8 +351,6 @@ void BuffersToGeometry::operator()()
 
   out.dirty_mesh = meshChanged;
   out.dirty_transform = transformChanged;
-
-  qDebug() << mesh;
 }
 
 } // namespace Threedim
