@@ -7,6 +7,7 @@
 #include <Gfx/Graph/RenderState.hpp>
 #include <Gfx/Graph/Window.hpp>
 #include <JS/Qml/QmlObjects.hpp>
+#include <JS/Qml/QmlRhiObjects.hpp>
 
 #include <score/gfx/Vulkan.hpp>
 
@@ -45,7 +46,8 @@ struct engine_key_hash
 struct GpuNode : score::gfx::NodeModel
 {
 public:
-  explicit GpuNode(const QString& source);
+  explicit GpuNode(
+      const QString& source, const ossia::inlets& ins, const ossia::outlets& outs);
   virtual ~GpuNode();
 
   score::gfx::NodeRenderer*
@@ -69,6 +71,7 @@ public:
     std::vector<std::pair<ControlInlet*, int>> m_ctrlInlets;
     std::vector<std::pair<Impulse*, int>> m_impulseInlets;
     std::vector<std::pair<ValueInlet*, int>> m_valInlets;
+    std::vector<std::pair<TextureInlet*, int>> m_texInlets;
 
     void init(GpuNode& node, QQuickWindow* window)
     {
@@ -88,6 +91,12 @@ public:
     {
       m_component = new QQmlComponent{this->m_engine};
       m_component->setData(node.source.toUtf8(), QUrl{});
+      if(m_component->isError())
+      {
+        qDebug() << m_component->errorString();
+        return;
+      }
+
       auto obj = m_component->create();
       m_object = qobject_cast<JS::Script*>(obj);
       if(!m_object)
@@ -138,6 +147,16 @@ public:
           m_jsInlets.push_back(val_in);
           m_valInlets.push_back({val_in, input_i++});
         }
+        else if(auto tex_in = qobject_cast<TextureInlet*>(n))
+        {
+          m_jsInlets.push_back(tex_in);
+          m_texInlets.push_back({tex_in, input_i++});
+        }
+        else if(auto unknown = qobject_cast<Inlet*>(n))
+        {
+          m_jsInlets.push_back(unknown);
+          input_i++;
+        }
       }
     }
 
@@ -175,7 +194,8 @@ public:
         {
           auto var = it->apply(ossia::qt::ossia_to_qvariant{});
 
-          SCORE_ASSERT(m_jsInlets.size() > i);
+          if(m_jsInlets.size() <= i)
+            return;
           auto inl = m_jsInlets[i];
           if(auto v = qobject_cast<ValueInlet*>(inl))
           {
@@ -197,6 +217,8 @@ public:
 
     void tick()
     {
+      if(!m_object)
+        return;
       if(auto& tick = m_object->tick(); tick.isCallable())
       {
         tick.call();
@@ -281,9 +303,16 @@ void main ()
 }
 )_";
 
+  std::vector<score::gfx::Sampler> m_inputSamplers;
+  ossia::small_flat_map<const score::gfx::Port*, score::gfx::TextureRenderTarget, 2>
+      m_rts;
+
   score::gfx::TextureRenderTarget
   renderTargetForInput(const score::gfx::Port& p) override
   {
+    auto res = m_rts.find(&p);
+    if(res != m_rts.end() && res->second)
+      return res->second;
     return {};
   }
 
@@ -292,6 +321,7 @@ void main ()
     auto& rhi = *renderer.state.rhi;
 
     // Init the texture on which we are going to render
+    // FIXME RGBA32F
     m_internalTex = score::gfx::createRenderTarget(
         renderer.state, QRhiTexture::RGBA8, renderer.state.renderSize,
         renderer.state.samples, true);
@@ -302,6 +332,9 @@ void main ()
     processUBOInit(renderer);
     std::tie(m_vertexS, m_fragmentS)
         = score::gfx::makeShaders(renderer.state, vertex_shader, fragment_shader);
+
+    m_inputSamplers
+        = score::gfx::initInputSamplers(this->node, renderer, this->node.input, m_rts);
 
     // Create the sampler in which we are going to put the texture
     {
@@ -371,6 +404,17 @@ void main ()
       if(m_engine)
       {
         m_engine->init(node, m_window);
+
+        for(auto& [texture_in, i] : this->m_engine->m_texInlets)
+        {
+          SCORE_ASSERT(this->node.input.size() > i);
+          score::gfx::Port* port = this->node.input[i];
+          SCORE_ASSERT(port->type == score::gfx::Types::Image);
+          auto& rt = m_rts[port];
+          auto item = qobject_cast<JS::TextureInletItem*>(texture_in->item());
+          SCORE_ASSERT(item);
+          item->setSize(rt.texture->pixelSize());
+        }
       }
     }
   }
@@ -381,6 +425,38 @@ void main ()
   {
     reloadEngine(renderer.state.rhi);
     defaultUBOUpdate(renderer, res);
+
+    // Schedule a copy of the input textures into the actual textures
+    {
+      for(auto& [texture_in, i] : this->m_engine->m_texInlets)
+      {
+        SCORE_ASSERT(this->node.input.size() > i);
+        score::gfx::Port* port = this->node.input[i];
+        SCORE_ASSERT(port->type == score::gfx::Types::Image);
+        auto& rt = m_rts[port];
+        auto item = qobject_cast<JS::TextureInletItem*>(texture_in->item());
+        SCORE_ASSERT(item);
+        auto renderer = item->renderer;
+        auto texture = item->texture;
+        if(renderer && texture)
+        {
+          if(rt.texture->pixelSize() == texture->pixelSize()
+             && rt.texture->sampleCount() == texture->sampleCount())
+          {
+            QRhiTextureCopyDescription desc;
+            res.copyTexture(texture, rt.texture, desc);
+          }
+          else
+          {
+            qDebug() << "Mismatch!!!" << rt.texture->pixelSize() << texture->pixelSize()
+                     << rt.texture->sampleCount() << texture->sampleCount();
+          }
+        }
+        else
+        {
+        }
+      }
+    }
   }
 
   void processMessages()
@@ -393,11 +469,13 @@ void main ()
     }
   }
 
+  void render() { }
+
   void runInitialPasses(
       score::gfx::RenderList& renderer, QRhiCommandBuffer& cb,
       QRhiResourceUpdateBatch*& res, score::gfx::Edge& e) override
   {
-    // Here we run the Qt Qucik render loop which handles its own pass
+    // Here we run the Qt Quick render loop which handles its own pass
     if(auto sz = m_window->size(); sz != m_window->contentItem()->size())
     {
       m_window->contentItem()->setSize(sz); // why does this happen???
@@ -468,6 +546,19 @@ void main ()
       m_engine->releaseItem();
     }
 
+    for(auto [edge, rt] : m_rts)
+    {
+      rt.release();
+    }
+    m_rts.clear();
+
+    for(auto sampler : m_inputSamplers)
+    {
+      delete sampler.sampler;
+      // texture is deleted elsewhere
+    }
+    m_inputSamplers.clear();
+
     delete m_window;
     m_window = nullptr;
 
@@ -491,11 +582,55 @@ void main ()
   friend struct GpuNode;
 };
 
-GpuNode::GpuNode(const QString& source)
+GpuNode::GpuNode(
+    const QString& source, const ossia::inlets& ins, const ossia::outlets& outs)
     : source{source}
     , sourceIndex{1}
 {
-  output.push_back(new score::gfx::Port{this, {}, score::gfx::Types::Image, {}});
+  for(auto& p : ins)
+  {
+    switch(p->which())
+    {
+      case ossia::audio_port::which:
+        input.push_back(new score::gfx::Port{this, {}, score::gfx::Types::Audio, {}});
+        break;
+      case ossia::value_port::which:
+        input.push_back(new score::gfx::Port{this, {}, score::gfx::Types::Float, {}});
+        break;
+      case ossia::texture_port::which:
+        input.push_back(new score::gfx::Port{this, {}, score::gfx::Types::Image, {}});
+        break;
+      case ossia::midi_port::which: // FIXME
+        input.push_back(new score::gfx::Port{this, {}, score::gfx::Types::Empty, {}});
+        break;
+      case ossia::geometry_port::which: // FIXME
+        input.push_back(new score::gfx::Port{this, {}, score::gfx::Types::Geometry, {}});
+        break;
+    }
+  }
+
+  for(auto& p : outs)
+  {
+    switch(p->which())
+    {
+      case ossia::audio_port::which:
+        output.push_back(new score::gfx::Port{this, {}, score::gfx::Types::Audio, {}});
+        break;
+      case ossia::value_port::which:
+        output.push_back(new score::gfx::Port{this, {}, score::gfx::Types::Float, {}});
+        break;
+      case ossia::texture_port::which:
+        output.push_back(new score::gfx::Port{this, {}, score::gfx::Types::Image, {}});
+        break;
+      case ossia::midi_port::which: // FIXME
+        output.push_back(new score::gfx::Port{this, {}, score::gfx::Types::Empty, {}});
+        break;
+      case ossia::geometry_port::which: // FIXME
+        output.push_back(
+            new score::gfx::Port{this, {}, score::gfx::Types::Geometry, {}});
+        break;
+    }
+  }
 }
 GpuNode::~GpuNode() { }
 

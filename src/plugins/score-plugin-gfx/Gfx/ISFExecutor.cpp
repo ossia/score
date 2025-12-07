@@ -202,23 +202,41 @@ std::pair<ossia::inlets, ossia::outlets> ISFExecutorComponent::setup_node(
 
       control_index++;
     }
-    else if([[maybe_unused]] auto ctrl = qobject_cast<Process::AudioInlet*>(ctl))
+    else if(qobject_cast<Process::AudioInlet*>(ctl))
     {
       inls.push_back(new ossia::audio_inlet);
     }
-    else if(auto ctrl = qobject_cast<Gfx::TextureInlet*>(ctl))
+    else if(auto tex = qobject_cast<Gfx::TextureInlet*>(ctl))
     {
       inls.push_back(new ossia::texture_inlet);
-      ctrl->setupExecution(*inls.back(), this);
+      tex->setupExecution(*inls.back(), this);
     }
-    else if(auto ctrl = qobject_cast<Gfx::GeometryInlet*>(ctl))
+    else if(qobject_cast<Gfx::GeometryInlet*>(ctl))
     {
       inls.push_back(new ossia::geometry_inlet);
     }
   }
 
-  // FIXME is this necessary for CSF?
-  outls.push_back(new ossia::texture_outlet);
+  for(auto& ctl : element.outlets())
+  {
+    // FIXME are there more things to do here?
+    if(qobject_cast<Process::ControlOutlet*>(ctl))
+    {
+      outls.push_back(new ossia::value_outlet);
+    }
+    else if(qobject_cast<Process::AudioOutlet*>(ctl))
+    {
+      outls.push_back(new ossia::audio_outlet);
+    }
+    else if(qobject_cast<Gfx::TextureOutlet*>(ctl))
+    {
+      outls.push_back(new ossia::texture_outlet);
+    }
+    else if(qobject_cast<Gfx::GeometryOutlet*>(ctl))
+    {
+      outls.push_back(new ossia::geometry_outlet);
+    }
+  }
 
   //! TODO the day we have audio outputs in some GFX node
   //! propagate will need to be handled ; right now here

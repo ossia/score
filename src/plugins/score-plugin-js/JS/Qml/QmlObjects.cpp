@@ -1,6 +1,9 @@
 #include "QmlObjects.hpp"
 
 #include <JS/Qml/Metatypes.hpp>
+#if defined(SCORE_HAS_GPU_JS)
+#include <JS/Qml/QmlRhiObjects.hpp>
+#endif
 
 #include <ossia/math/safe_math.hpp>
 
@@ -18,9 +21,12 @@ W_OBJECT_IMPL(JS::MidiInlet)
 W_OBJECT_IMPL(JS::MidiOutlet)
 W_OBJECT_IMPL(JS::AudioInlet)
 W_OBJECT_IMPL(JS::AudioOutlet)
+
 #if defined(SCORE_HAS_GPU_JS)
+W_OBJECT_IMPL(JS::TextureInlet)
 W_OBJECT_IMPL(JS::TextureOutlet)
 #endif
+
 W_OBJECT_IMPL(JS::Enum)
 W_OBJECT_IMPL(JS::ComboBox)
 W_OBJECT_IMPL(JS::MultiSlider)
@@ -213,6 +219,13 @@ const QVector<QVector<double>>& AudioOutlet::audio() const
 }
 
 #if defined(SCORE_HAS_GPU_JS)
+TextureInlet::TextureInlet(QObject* parent)
+    : Inlet{parent}
+    , m_item{new TextureInletItem{}}
+{
+}
+
+TextureInlet::~TextureInlet() { }
 TextureOutlet::TextureOutlet(QObject* parent)
     : Outlet{parent}
 {
