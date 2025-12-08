@@ -516,9 +516,17 @@ void Application::initDocuments()
   }
 
 // If nothing was reloaded, open a normal document
+  if(!appSettings.ui.isEmpty())
+  {
+    // Custom UI mode always expects a new document
+    openNewDocument();
+  }
+  else
+  {
 #if !defined(SCORE_SPLASH_SCREEN)
-  openNewDocument();
+    openNewDocument();
 #endif
+  }
 }
 
 void Application::openNewDocument()
