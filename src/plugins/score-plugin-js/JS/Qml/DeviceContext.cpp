@@ -39,6 +39,7 @@ bool DeviceContext::init()
       return false;
 
     ossia::qt::qml_device_cache cache;
+    auto& dlist = m_devices->list();
     m_devices->list().apply([&cache](Device::DeviceInterface& iface) {
       if(auto ossia = iface.getDevice())
         cache.push_back(ossia);
@@ -51,6 +52,40 @@ bool DeviceContext::init()
       auto& last = v.get_data().back().value;
       param.push_value(last);
     }, this};
+
+    connect(&dlist, &Device::DeviceList::deviceAdded,
+            this, [this, p = QPointer{m_impl}] (Device::DeviceInterface* iface){
+      if(!p)
+        return;
+
+      if(auto ossia = iface->getDevice())
+        m_impl->devices.push_back(ossia);
+      connect(iface, &Device::DeviceInterface::deviceChanged,
+              this, [this, p] (ossia::net::device_base* old_dev, ossia::net::device_base* new_dev) {
+        if(auto it = ossia::find(m_impl->devices, old_dev); it != m_impl->devices.end()) {
+          m_impl->devices.erase(it);
+        }
+
+        if(new_dev) {
+          m_impl->devices.push_back(new_dev);
+        }
+
+        m_impl->clearCache();
+      });
+    }, Qt::QueuedConnection);
+
+    connect(&dlist, &Device::DeviceList::deviceRemoved,
+            this, [this, p = QPointer{m_impl}] (Device::DeviceInterface* iface){
+      if(!p)
+        return;
+
+      if(auto o = iface->getDevice()) {
+        if(auto it = ossia::find(m_impl->devices, o); it != m_impl->devices.end()) {
+          m_impl->devices.erase(it);
+          m_impl->clearCache();
+        }
+      }
+    });
   }
   return true;
 }
