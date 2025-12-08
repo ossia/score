@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Gfx/Graph/Node.hpp>
+#include <memory>
 
 class QSvgRenderer;
 namespace score::gfx
@@ -47,7 +48,7 @@ private:
   void clear();
   void process(Message&& msg) override;
 
-  using image_type = std::variant<QImage*, QSvgRenderer*>;
+  using image_type = std::variant<std::shared_ptr<QImage>, std::shared_ptr<QSvgRenderer>>;
   std::vector<score::gfx::Image> images;
   std::vector<image_type> linearImages;
 };

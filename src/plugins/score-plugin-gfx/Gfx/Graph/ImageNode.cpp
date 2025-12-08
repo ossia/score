@@ -226,7 +226,7 @@ void ImagesNode::process(Message&& msg)
 #if Q_SVG_LIB
               if(img.path.endsWith("svg"))
               {
-                auto renderer = new QSvgRenderer{img.path};
+                auto renderer = std::make_shared<QSvgRenderer>(img.path);
                 if(renderer->animated())
                   renderer->setAnimationEnabled(true);
                 renderer->setFramesPerSecond(60);
@@ -237,7 +237,7 @@ void ImagesNode::process(Message&& msg)
               {
                 for(auto& frame : img.frames)
                 {
-                  linearImages.push_back(&frame);
+                  linearImages.push_back(std::make_shared<QImage>(frame));
                 }
               }
             }
@@ -333,7 +333,7 @@ private:
   float scale_w{1.f};
   float scale_h{1.f};
 
-  void recreateTextures(QRhi& rhi)
+void recreateTextures(QRhi& rhi)
   {
     auto& n = static_cast<const ImagesNode&>(this->node);
 
@@ -344,14 +344,15 @@ private:
     {
       auto frame = n.linearImages[i];
       QSize sz{limits_min, limits_min};
-      if(auto qimage = std::get_if<QImage*>(&frame))
+      
+      if(auto qimage = std::get_if<std::shared_ptr<QImage>>(&frame))
       {
         sz = (*qimage)->size();
       }
 #if Q_SVG_LIB
-      else if(auto svg_p = std::get_if<QSvgRenderer*>(&frame))
+      else if(auto svg_p = std::get_if<std::shared_ptr<QSvgRenderer>>(&frame))
       {
-        auto* svg = *svg_p;
+        auto svg = *svg_p; // removed "auto*" because it's a shared_ptr now
         auto svg_size = svg->defaultSize();
         svg_size = QSize(
             svg_size.width() * std::abs(scale_w), svg_size.height() * std::abs(scale_h));
@@ -474,14 +475,14 @@ private:
 
     recreateTextures(*renderer.state.rhi);
 
-    // If images haven't been uploaded yet, upload them.
+// If images haven't been uploaded yet, upload them.
     {
       static thread_local QImage temp_svg;
 
       std::size_t k = 0;
       for(auto frame : n.linearImages)
       {
-        if(auto qimage = std::get_if<QImage*>(&frame))
+        if(auto qimage = std::get_if<std::shared_ptr<QImage>>(&frame))
         {
           if(!m_uploaded)
           {
@@ -490,21 +491,22 @@ private:
           }
         }
 #if Q_SVG_LIB
-        else if(auto svg = std::get_if<QSvgRenderer*>(&frame))
+        else if(auto svg_ptr = std::get_if<std::shared_ptr<QSvgRenderer>>(&frame))
         {
-          auto svg_size = (*svg)->defaultSize();
+          auto svg = *svg_ptr; // Get the shared_ptr
+          auto svg_size = svg->defaultSize();
           svg_size = QSize(
               svg_size.width() * std::abs(scale_w),
               svg_size.height() * std::abs(scale_h));
           if(!svg_size.isEmpty())
           {
-            if((*svg)->animated())
+            if(svg->animated())
             {
               if(temp_svg.size() != svg_size)
                 temp_svg = QImage(svg_size, QImage::Format_ARGB32);
               QPainter temp_svg_painter{&temp_svg};
               temp_svg.fill(0);
-              (*svg)->render(&temp_svg_painter);
+              svg->render(&temp_svg_painter);
               res.uploadTexture(m_textures[k], renderer.adaptImage(temp_svg));
               updateCurrentTexture = true;
             }
@@ -516,7 +518,7 @@ private:
                   temp_svg = QImage(svg_size, QImage::Format_ARGB32);
                 QPainter temp_svg_painter{&temp_svg};
                 temp_svg.fill(0);
-                (*svg)->render(&temp_svg_painter);
+                svg->render(&temp_svg_painter);
                 res.uploadTexture(m_textures[k], renderer.adaptImage(temp_svg));
                 updateCurrentTexture = true;
               }
