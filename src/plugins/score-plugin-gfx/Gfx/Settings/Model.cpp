@@ -180,6 +180,7 @@ QShaderVersion shaderVersionForAPI(score::gfx::GraphicsApi api) noexcept
       return QShaderVersion(50);
 
     default:
+      return {};
   }
   return {};
 }

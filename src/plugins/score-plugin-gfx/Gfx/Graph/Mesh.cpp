@@ -12,7 +12,7 @@ MeshBuffers BasicMesh::init(QRhi& rhi) const noexcept
   auto mesh_buf = rhi.newBuffer(
       QRhiBuffer::Immutable, QRhiBuffer::VertexBuffer,
       vertexArray.size() * sizeof(float));
-  mesh_buf->setName("Mesh::mesh_buf");
+  mesh_buf->setName("BasicMesh::mesh_buf");
   mesh_buf->create();
 
   MeshBuffers ret{{BufferView{mesh_buf, 0, 0}}};

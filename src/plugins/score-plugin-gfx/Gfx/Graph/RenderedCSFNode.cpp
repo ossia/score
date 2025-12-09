@@ -359,8 +359,8 @@ BufferView RenderedCSFNode::createStorageBuffer(
     RenderList& renderer, const QString& name, const QString& access, int size)
 {
   QRhi& rhi = *renderer.state.rhi;
-  QRhiBuffer* buffer
-      = rhi.newBuffer(QRhiBuffer::Static, QRhiBuffer::StorageBuffer, size);
+  QRhiBuffer* buffer = rhi.newBuffer(
+      QRhiBuffer::Static, QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer, size);
 
   if(buffer)
   {
@@ -551,9 +551,19 @@ void RenderedCSFNode::initComputePass(
       {
         if(it->access == "read_only")
         {
-          bindings.append(QRhiShaderResourceBinding::bufferLoad(
-              bindingIndex++, QRhiShaderResourceBinding::ComputeStage, 
-              it->buffer));
+          QRhiBuffer* buf = it->buffer; // Default dummy buffer
+          auto port = this->node.input[input_port_index];
+          if(!port->edges.empty())
+          {
+            auto input_buf = renderer.bufferForInput(*port->edges.front());
+            if(input_buf)
+            {
+              buf = input_buf.handle;
+            }
+          }
+          bindings.append(
+              QRhiShaderResourceBinding::bufferLoad(
+                  bindingIndex++, QRhiShaderResourceBinding::ComputeStage, buf));
           input_port_index++;
         }
         else if(it->access == "write_only")
@@ -996,8 +1006,8 @@ void RenderedCSFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
       if(sb.access.contains("write")) {
         m_outStorageBuffers.push_back({outlets[outlet_index], sb_index});
         outlet_index++;
-        sb_index++;
       }
+      sb_index++;
     }
     // Handle CSF images
     else if(auto* image = ossia::get_if<isf::csf_image_input>(&input.data))
@@ -1096,7 +1106,7 @@ void RenderedCSFNode::recreateShaderResourceBindings(RenderList& renderer, QRhiR
   int input_image_index = 0;
   int output_port_index = 0;
   int output_image_index = 0;
-  
+
   // Process all resources in the order they appear in the descriptor
   for(const auto& input : n.m_descriptor.inputs)
   {
@@ -1113,9 +1123,19 @@ void RenderedCSFNode::recreateShaderResourceBindings(RenderList& renderer, QRhiR
       {
         if(it->access == "read_only")
         {
-          bindings.append(QRhiShaderResourceBinding::bufferLoad(
-              bindingIndex++, QRhiShaderResourceBinding::ComputeStage, 
-              it->buffer));
+          QRhiBuffer* buf = it->buffer; // Default dummy buffer
+          auto port = this->node.input[input_port_index];
+          if(!port->edges.empty())
+          {
+            auto input_buf = renderer.bufferForInput(*port->edges.front());
+            if(input_buf)
+            {
+              buf = input_buf.handle;
+            }
+          }
+          bindings.append(
+              QRhiShaderResourceBinding::bufferLoad(
+                  bindingIndex++, QRhiShaderResourceBinding::ComputeStage, buf));
           input_port_index++;
         }
         else if(it->access == "write_only")

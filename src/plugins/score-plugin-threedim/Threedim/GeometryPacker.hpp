@@ -133,6 +133,7 @@ public:
     m_outputBuffer = rhi.newBuffer(
         QRhiBuffer::Static, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer,
         static_cast<quint32>(m_outputSize));
+    m_outputBuffer->setName("GeometryPacker::m_outputBuffer");
 
     if(!m_outputBuffer || !m_outputBuffer->create())
     {
@@ -325,6 +326,7 @@ private:
   bool createPipeline(const score::gfx::RenderState& renderState, QRhi& rhi)
   {
     m_uniformBuffer = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 512);
+    m_uniformBuffer->setName("GeometryPacker::m_uniformBuffer");
 
     if(!m_uniformBuffer || !m_uniformBuffer->create())
     {

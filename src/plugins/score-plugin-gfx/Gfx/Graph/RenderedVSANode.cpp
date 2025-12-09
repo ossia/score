@@ -61,6 +61,7 @@ void SimpleRenderedVSANode::initPass(
   QRhiGraphicsPipeline* bg_pip = rhi.newGraphicsPipeline();
   QRhiBuffer* bg_ubo
       = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 4 * sizeof(float));
+  bg_ubo->setName("SimpleRenderedVSANode::bg_ubo");
   QRhiShaderResourceBindings* bg_srb = rhi.newShaderResourceBindings();
   MeshBuffers bg_tri;
   {

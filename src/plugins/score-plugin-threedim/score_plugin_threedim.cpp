@@ -9,8 +9,8 @@
 #include <score/plugins/FactorySetup.hpp>
 
 #include <Avnd/Factories.hpp>
-#include <Threedim/ArrayToBuffer.hpp>
 #include <Threedim/ArrayToGeometry.hpp>
+#include <Threedim/ArrayToTexture.hpp>
 #include <Threedim/BufferToGeometry.hpp>
 #include <Threedim/GeometryInfo.hpp>
 #include <Threedim/GeometryPacker.hpp>
@@ -25,6 +25,8 @@
 #include <Threedim/RenderPipeline/Layer.hpp>
 #include <Threedim/RenderPipeline/Process.hpp>
 #include <Threedim/StructureSynth.hpp>
+#include <avendish/examples/Gpu/ArrayToBuffer.hpp>
+#include <avendish/examples/Gpu/BufferToArray.hpp>
 
 #include <score_plugin_engine.hpp>
 #include <score_plugin_threedim_commands_files.hpp>
@@ -177,6 +179,8 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   std::vector<score::InterfaceBase*> fx;
+  oscr::instantiate_fx<uo::ArrayToBuffer>(fx, ctx, key);
+  oscr::instantiate_fx<uo::BufferToArray>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::ArrayToMesh>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::ArrayToTexture>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Noise>(fx, ctx, key);
@@ -191,7 +195,7 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
   oscr::instantiate_fx<Threedim::Cone>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Torus>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::PCLToMesh2>(fx, ctx, key);
-  oscr::instantiate_fx<Threedim::GeometryToBuffer>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::ExtractBuffer>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::GeometryPacker>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::BuffersToGeometry>(fx, ctx, key);
   auto add = instantiate_factories<

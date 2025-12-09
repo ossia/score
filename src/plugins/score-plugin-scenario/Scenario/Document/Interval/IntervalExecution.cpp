@@ -287,7 +287,6 @@ void IntervalComponent::init()
 
 void IntervalComponent::cleanup(const std::shared_ptr<IntervalComponent>& self)
 {
-  qDebug(Q_FUNC_INFO);
   OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   // itv has to be kept alive until end of this function
   if(auto itv = m_ossia_interval)
