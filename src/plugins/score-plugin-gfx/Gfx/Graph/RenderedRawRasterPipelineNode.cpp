@@ -81,12 +81,12 @@ void RenderedRawRasterPipelineNode::init(
     }
     else
     {
-      const auto& mesh = m_mesh ? *m_mesh : renderer.defaultQuad();
-      m_mesh = &mesh;
-
-      if(m_meshbufs.buffers.empty())
+      if(m_mesh)
       {
-        m_meshbufs = renderer.initMeshBuffer(*m_mesh, res);
+        if(m_meshbufs.buffers.empty())
+        {
+          m_meshbufs = renderer.initMeshBuffer(*m_mesh, res);
+        }
       }
     }
   }
@@ -111,6 +111,8 @@ void RenderedRawRasterPipelineNode::init(
 
   m_audioSamplers = initAudioTextures(renderer, n.m_audio_textures);
 
+  if(!m_mesh)
+    return;
   // Create the passes
   for(Edge* edge : n.output[0]->edges)
   {
@@ -141,10 +143,11 @@ void RenderedRawRasterPipelineNode::update(
     this->geometryChanged = false;
   }
 
-  const auto& mesh = m_mesh ? *m_mesh : renderer.defaultQuad();
+  if(!m_mesh)
+    return;
   // FIXME is that neeeded?
   // FIXME also not handling geometry_filter dirty geom so far
-  if(mesh.hasGeometryChanged(meshChangedIndex))
+  if(m_mesh->hasGeometryChanged(meshChangedIndex))
     mustRecreatePasses = true;
 
   if(mustRecreatePasses)
@@ -276,6 +279,10 @@ void RenderedRawRasterPipelineNode::runRenderPass(
   auto it = ossia::find_if(this->m_passes, [&](auto& p) { return p.first == &edge; });
   // Maybe the shader could not be created
   if(it == this->m_passes.end())
+    return;
+  if(!m_mesh)
+    return;
+  if(this->m_meshbufs.buffers.empty())
     return;
 
   auto& pass = it->second;

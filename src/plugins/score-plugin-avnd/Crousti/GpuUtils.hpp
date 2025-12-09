@@ -8,8 +8,8 @@
 #include <Crousti/GppCoroutines.hpp>
 #include <Crousti/GppShaders.hpp>
 #include <Crousti/MessageBus.hpp>
-#include <Crousti/TextureFormat.hpp>
 #include <Crousti/TextureConversion.hpp>
+#include <Crousti/TextureFormat.hpp>
 #include <Gfx/GfxExecNode.hpp>
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
@@ -18,13 +18,15 @@
 
 #include <score/tools/ThreadPool.hpp>
 
+#include <ossia/detail/small_flat_map.hpp>
+
 #include <ossia-qt/invoke.hpp>
 
 #include <QCoreApplication>
 #include <QTimer>
 #include <QtGui/private/qrhi_p.h>
 
-#include <ossia/detail/small_flat_map.hpp>
+#include <avnd/binding/ossia/metadatas.hpp>
 #include <avnd/binding/ossia/port_run_postprocess.hpp>
 #include <avnd/binding/ossia/port_run_preprocess.hpp>
 #include <avnd/binding/ossia/soundfiles.hpp>
@@ -535,19 +537,21 @@ static void readbackInputBuffer(
 
 static void recreateOutputBuffer(
     score::gfx::RenderList& renderer, avnd::cpu_buffer auto& cpu_buf,
-    QRhiResourceUpdateBatch& res, QRhiBuffer*& buf)
+    QRhiResourceUpdateBatch& res, score::gfx::BufferView& buf)
 {
   const auto bytesize = avnd::get_bytesize(cpu_buf);
-  if(!buf)
+  if(!buf.handle)
   {
     if(bytesize > 0)
     {
-      buf = renderer.state.rhi->newBuffer(
-          QRhiBuffer::Static
-          , QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer
-          , bytesize);
+      buf.handle = renderer.state.rhi->newBuffer(
+          QRhiBuffer::Static, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer,
+          bytesize);
+      buf.handle->setName("GpuUtils::recreateOutputBuffer");
+      buf.byte_offset = 0;
+      buf.byte_size = bytesize;
 
-      buf->create();
+      buf.handle->create();
     }
     else
     {
@@ -555,11 +559,12 @@ static void recreateOutputBuffer(
       return;
     }
   }
-  else if(buf->size() != bytesize)
+  else if(buf.handle->size() != bytesize)
   {
-    buf->destroy();
-    buf->setSize(bytesize);
-    buf->create();
+    buf.handle->destroy();
+    buf.handle->setSize(bytesize);
+    buf.handle->create();
+    buf.byte_size = bytesize;
   }
 }
 
@@ -572,7 +577,8 @@ static void uploadOutputBuffer(
     const auto bytesize = avnd::get_bytesize(cpu_buf);
     recreateOutputBuffer(renderer, cpu_buf, res, rhi_buf);
     score::gfx::uploadStaticBufferWithStoredData(
-        &res, rhi_buf, 0, cpu_buf.byte_size, (const char*)avnd::get_bytes(cpu_buf));
+        &res, rhi_buf.handle, 0, cpu_buf.byte_size,
+        (const char*)avnd::get_bytes(cpu_buf));
     cpu_buf.changed = false;
   }
 }
@@ -608,6 +614,7 @@ struct geometry_inputs_storage<T>
   static_assert(avnd::geometry_input_introspection<T>::size == 1);
 
   geometry_input_storage inputs[avnd::geometry_input_introspection<T>::size];
+  ossia::small_vector<QRhiBuffer*, 4> allocated;
 
   void readInputGeometries(
       score::gfx::RenderList& renderer, const ossia::geometry_spec& spec, auto& parent,
@@ -675,7 +682,9 @@ struct geometry_inputs_storage<T>
           auto buf = renderer.state.rhi->newBuffer(
               QRhiBuffer::Static, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer,
               bytesize);
-          buf->create(); // FIXME free
+          buf->setName(oscr::getUtf8Name<T>() + "::" + oscr::getUtf8Name(t));
+          buf->create();
+          allocated.push_back(buf);
           meshes.buffers[buffer_index] = buf;
         }
 
@@ -701,6 +710,13 @@ struct geometry_inputs_storage<T>
         }
       });
     });
+  }
+
+  void release(score::gfx::RenderList& renderer)
+  {
+    for(auto& buf : allocated)
+      renderer.releaseBuffer(buf);
+    allocated.clear();
   }
 };
 
@@ -804,6 +820,11 @@ struct buffer_inputs_storage<T>
   }
 };
 
+struct MaybeOwnedBuffer : score::gfx::BufferView
+{
+  bool owned{false};
+};
+
 template<typename T>
 struct buffer_outputs_storage;
 
@@ -811,7 +832,7 @@ template<typename T>
   requires (avnd::buffer_output_introspection<T>::size > 0)
 struct buffer_outputs_storage<T>
 {
-  std::pair<const score::gfx::Port*, score::gfx::BufferView>
+  std::pair<const score::gfx::Port*, MaybeOwnedBuffer>
       m_buffers[avnd::buffer_output_introspection<T>::size];
 
   QRhiResourceUpdateBatch* currentResourceUpdateBatch{};
@@ -822,12 +843,16 @@ struct buffer_outputs_storage<T>
       score::gfx::RenderList& renderer, auto& parent, Field& port,
       avnd::predicate_index<N> np, avnd::field_index<NField> nf)
   {
-    auto& [gfx_port, rhi_buf] = m_buffers[N];
+    auto& [gfx_port, buf] = m_buffers[N];
     gfx_port = parent.output[nf];
-    rhi_buf = renderer.state.rhi->newBuffer(
+    buf.handle = renderer.state.rhi->newBuffer(
         QRhiBuffer::Static, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer, 1);
+    buf.handle->setName(oscr::getUtf8Name<T>() + "::" + oscr::getUtf8Name(port));
+    buf.byte_offset = 0;
+    buf.byte_size = 1;
+    buf.owned = true;
 
-    rhi_buf->create();
+    buf.handle->create();
 
     port.buffer.upload
         = [this, &renderer, &port](const char* data, int64_t offset, int64_t bytesize) {
@@ -835,35 +860,44 @@ struct buffer_outputs_storage<T>
       SCORE_ASSERT(currentResourceUpdateBatch);
       auto& [gfx_port, buf] = m_buffers[N];
 
-      if(!buf)
+      if(!buf.handle)
       {
         if(bytesize > 0)
         {
-          buf = renderer.state.rhi->newBuffer(
+          buf.handle = renderer.state.rhi->newBuffer(
               QRhiBuffer::Static, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer,
               bytesize);
+          buf.handle->setName(oscr::getUtf8Name<T>() + "::" + oscr::getUtf8Name(port));
+          buf.byte_offset = 0;
+          buf.byte_size = bytesize;
+          buf.owned = true;
 
-          buf->create();
+          buf.handle->create();
         }
         else
         {
-          buf = renderer.state.rhi->newBuffer(
+          buf.handle = renderer.state.rhi->newBuffer(
               QRhiBuffer::Static, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer,
               1);
+          buf.handle->setName(oscr::getUtf8Name<T>() + "::" + oscr::getUtf8Name(port));
+          buf.byte_offset = 0;
+          buf.byte_size = 1;
+          buf.owned = true;
 
-          buf->create();
+          buf.handle->create();
           return;
         }
       }
-      else if(buf->size() != bytesize)
+      else if(buf.handle->size() != bytesize)
       {
-        buf->destroy();
-        buf->setSize(bytesize);
-        buf->create();
+        buf.handle->destroy();
+        buf.handle->setSize(bytesize);
+        buf.handle->create();
+        buf.byte_size = bytesize;
       }
 
       score::gfx::uploadStaticBufferWithStoredData(
-          currentResourceUpdateBatch, buf, offset, bytesize, data);
+          currentResourceUpdateBatch, buf.handle, offset, bytesize, data);
     };
   }
 
@@ -873,11 +907,12 @@ struct buffer_outputs_storage<T>
       score::gfx::RenderList& renderer, auto& parent, Field& port,
       avnd::predicate_index<N> np, avnd::field_index<NField> nf)
   {
-    auto& [gfx_port, rhi_buf] = m_buffers[N];
+    auto& [gfx_port, buf] = m_buffers[N];
     gfx_port = parent.output[nf];
-    rhi_buf.handle = reinterpret_cast<QRhiBuffer*>(port.buffer.handle);
-    rhi_buf.byte_size = port.buffer.byte_size;
-    rhi_buf.byte_offset = port.buffer.byte_offset;
+    buf.handle = reinterpret_cast<QRhiBuffer*>(port.buffer.handle);
+    buf.byte_size = port.buffer.byte_size;
+    buf.byte_offset = port.buffer.byte_offset;
+    buf.owned = false;
   }
 
   void init(score::gfx::RenderList& renderer, auto& state, auto& parent)
@@ -888,12 +923,15 @@ struct buffer_outputs_storage<T>
         (Field& port, avnd::predicate_index<N> np, avnd::field_index<NField> nf) {
       SCORE_ASSERT(parent.output.size() > nf);
       SCORE_ASSERT(parent.output[nf]->type == score::gfx::Types::Buffer);
+      using buffer_type = std::decay_t<decltype(port.buffer)>;
 
-      if constexpr(requires { port.buffer.upload((const char*)nullptr, 1000, 0); })
+      if constexpr(avnd::cpu_raw_buffer<buffer_type> && requires {
+                     port.buffer.upload(nullptr, 0, 0);
+                   })
       {
         createOutput(renderer, parent, port, np, nf);
       }
-      else if constexpr(requires { port.buffer.handle; })
+      else if constexpr(avnd::gpu_buffer<buffer_type>)
       {
         createOutput(renderer, parent, port, np, nf);
       }
@@ -924,8 +962,10 @@ struct buffer_outputs_storage<T>
     // Free outputs
     for(auto& [p, buf] : m_buffers)
     {
-      renderer.releaseBuffer(buf.handle);
+      if(buf.owned)
+        renderer.releaseBuffer(buf.handle);
       buf.handle = nullptr;
+      buf.owned = false;
     }
   }
 };

@@ -8,9 +8,9 @@
 namespace Threedim
 {
 
-GeometryToBuffer::GeometryToBuffer() { }
+ExtractBuffer::ExtractBuffer() { }
 
-halp::attribute_location GeometryToBuffer::toAttributeLocation(Attribute attr) noexcept
+halp::attribute_location ExtractBuffer::toAttributeLocation(Attribute attr) noexcept
 {
   using namespace halp;
   switch(attr)
@@ -29,7 +29,7 @@ halp::attribute_location GeometryToBuffer::toAttributeLocation(Attribute attr) n
   return attribute_location::position;
 }
 
-void GeometryToBuffer::init(
+void ExtractBuffer::init(
     score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
   qDebug(Q_FUNC_INFO);
@@ -154,7 +154,7 @@ void GeometryToBuffer::init(
   }
 }
 
-void GeometryToBuffer::update(
+void ExtractBuffer::update(
     score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res, score::gfx::Edge* e)
 {
   const auto& mesh = inputs.geometry.mesh;
@@ -179,7 +179,7 @@ void GeometryToBuffer::update(
     bool any_dirty = false;
     for(auto& buf : inputs.geometry.mesh.buffers)
     {
-      qDebug() << "Dirty buffer yo";
+      //qDebug() << "Dirty buffer yo";
       any_dirty |= buf.dirty;
     }
     if(!any_dirty)
@@ -262,7 +262,7 @@ void GeometryToBuffer::update(
   updateOutput();
 }
 
-void GeometryToBuffer::release(score::gfx::RenderList& renderer)
+void ExtractBuffer::release(score::gfx::RenderList& renderer)
 {
   std::visit([](auto& strategy) {
     using T = std::decay_t<decltype(strategy)>;
@@ -276,7 +276,7 @@ void GeometryToBuffer::release(score::gfx::RenderList& renderer)
   //  outputs.buffer.value = {};
 }
 
-void GeometryToBuffer::runInitialPasses(
+void ExtractBuffer::runInitialPasses(
     score::gfx::RenderList& renderer, QRhiCommandBuffer& commands,
     QRhiResourceUpdateBatch*& res, score::gfx::Edge& edge)
 {
@@ -294,7 +294,7 @@ void GeometryToBuffer::runInitialPasses(
   }, m_strategy);
 }
 
-void GeometryToBuffer::updateOutput()
+void ExtractBuffer::updateOutput()
 {
   std::visit([this](const auto& strategy) {
     using T = std::decay_t<decltype(strategy)>;
@@ -312,7 +312,7 @@ void GeometryToBuffer::updateOutput()
   }, m_strategy);
 }
 
-void GeometryToBuffer::operator()()
+void ExtractBuffer::operator()()
 {
   // qDebug() << inputs.geometry.mesh;
   return;

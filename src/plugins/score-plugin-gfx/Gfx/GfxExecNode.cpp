@@ -90,8 +90,6 @@ void gfx_exec_node::run(
 
       case ossia::geometry_port::which: {
         auto& p = inlet->cast<ossia::geometry_port>();
-        p.flags = {}; // FIXME unneeded now?
-
         link_cable_to_inlet(inlet, inlet_i);
         break;
       }

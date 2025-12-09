@@ -4,13 +4,13 @@
 
 namespace Threedim
 {
-class GeometryToBuffer
+class ExtractBuffer
 {
 public:
-  halp_meta(name, "Extract attribute")
+  halp_meta(name, "Extract buffer")
   halp_meta(category, "Visuals/3D")
   halp_meta(c_name, "extract_attribute")
-  halp_meta(manual_url, "https://ossia.io/score-docs/processes/extract-attribute.html")
+  halp_meta(manual_url, "https://ossia.io/score-docs/processes/extract-buffer.html")
   halp_meta(uuid, "207ab744-1f3e-4e72-9a77-db6017cf3dd5")
 
   enum Attribute
@@ -64,7 +64,7 @@ public:
     halp::gpu_buffer_output<"Buffer"> buffer;
   } outputs;
 
-  GeometryToBuffer();
+  ExtractBuffer();
 
   void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res);
 

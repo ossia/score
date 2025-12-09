@@ -11,6 +11,8 @@
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/Uniforms.hpp>
 
+#include <avnd/binding/ossia/metadatas.hpp>
+
 namespace oscr
 {
 // Compute nodes that do not have any texture output so that they can get pulled
@@ -222,6 +224,7 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
 
     auto ubo = renderer.state.rhi->newBuffer(
         QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, gpp::std140_size<ubo_type>());
+    ubo->setName(oscr::getUtf8Name<F>());
     ubo->create();
 
     createdUbos[ubo_type::binding()] = ubo;

@@ -15,9 +15,11 @@ QRhiBuffer *CustomMesh::init_vbo(const ossia::geometry::cpu_buffer &buf, QRhi &r
 {
   static std::atomic_int idx = 0;
   const auto vtx_buf_size = buf.byte_size;
-  auto mesh_buf
-      = rhi.newBuffer(QRhiBuffer::Static, QRhiBuffer::VertexBuffer, vtx_buf_size);
-  mesh_buf->setName(QString("Mesh::mesh_buf.%1").arg(idx.load(std::memory_order_relaxed)).toLatin1());
+  auto mesh_buf = rhi.newBuffer(
+      QRhiBuffer::Static, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer,
+      vtx_buf_size);
+  mesh_buf->setName(
+      QString("Mesh::vtx_buf.%1").arg(idx.load(std::memory_order_relaxed)).toLatin1());
   mesh_buf->create();
 
   return mesh_buf;
@@ -293,7 +295,6 @@ void CustomMesh::reload(const ossia::mesh_list &ml, const ossia::geometry_filter
 
   if(this->geom.meshes.size() == 0)
   {
-    qDebug() << "Clearing geometry: ";
     //  clear();
     return;
   }
