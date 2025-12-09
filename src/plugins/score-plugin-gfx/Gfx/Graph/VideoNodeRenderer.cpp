@@ -245,10 +245,12 @@ void VideoNodeRenderer::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
 
   m_processUBO = rhi.newBuffer(
       QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(ProcessUBO));
+  m_processUBO->setName("VideoNodeRenderer::init::m_processUBO");
   m_processUBO->create();
 
   m_materialUBO
       = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(Material));
+  m_materialUBO->setName("VideoNodeRenderer::init::m_materialUBO");
   m_materialUBO->create();
 
   if(!m_gpu)

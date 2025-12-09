@@ -105,6 +105,9 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
     if constexpr(avnd::buffer_output_introspection<Node_T>::size > 0)
       buffer_outs.release(r);
 
+    if constexpr(avnd::geometry_input_introspection<Node_T>::size > 0)
+      geometry_ins.release(r);
+
     if constexpr(avnd::texture_input_introspection<Node_T>::size > 0 || avnd::texture_output_introspection<Node_T>::size > 0)
     {
       this->defaultRelease(r);

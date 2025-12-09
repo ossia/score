@@ -54,8 +54,8 @@ add_library(
   Threedim/RenderPipeline/RenderPipelineNode.hpp
   Threedim/RenderPipeline/RenderPipelineNode.cpp
   
-  Threedim/ArrayToBuffer.hpp
-  Threedim/ArrayToBuffer.cpp
+  Threedim/ArrayToTexture.hpp
+  Threedim/ArrayToTexture.cpp
   Threedim/ArrayToGeometry.hpp
   Threedim/ArrayToGeometry.cpp
   Threedim/BufferToGeometry.hpp

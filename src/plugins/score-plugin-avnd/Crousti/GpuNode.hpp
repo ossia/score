@@ -187,6 +187,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
 
     auto ubo = renderer.state.rhi->newBuffer(
         QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, gpp::std140_size<ubo_type>());
+    ubo->setName(oscr::getUtf8Name<F>());
     ubo->create();
 
     createdUbos[ubo_type::binding()] = ubo;

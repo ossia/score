@@ -388,6 +388,7 @@ public:
     m_outputBuffer = rhi.newBuffer(
         QRhiBuffer::Static, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer,
         static_cast<quint32>(m_outputSize));
+    m_outputBuffer->setName("ComputeExtractionStrategy::m_outputBuffer");
 
     if(!m_outputBuffer || !m_outputBuffer->create())
     {
@@ -570,6 +571,7 @@ void main()
 
     // Create uniform buffer (aligned to 256 bytes for compatibility)
     m_uniformBuffer = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 256);
+    m_uniformBuffer->setName("ComputeExtractionStrategy::m_uniformBuffer");
 
     if(!m_uniformBuffer || !m_uniformBuffer->create())
     {
@@ -663,6 +665,7 @@ public:
     m_outputBuffer = rhi.newBuffer(
         QRhiBuffer::Static, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer,
         static_cast<quint32>(m_outputSize));
+    m_outputBuffer->setName("IndexedExtractionStrategy::m_outputBuffer");
 
     if(!m_outputBuffer || !m_outputBuffer->create())
     {
@@ -882,6 +885,7 @@ void main()
     }
 
     m_uniformBuffer = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 256);
+    m_uniformBuffer->setName("IndexedExtractionStrategy::m_uniformBuffer");
 
     if(!m_uniformBuffer || !m_uniformBuffer->create())
     {
