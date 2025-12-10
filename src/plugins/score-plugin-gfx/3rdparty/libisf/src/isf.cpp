@@ -795,7 +795,6 @@ static const ossia::string_map<root_fun>& root_parse{[] {
             ip.name = obj.get_object_value(k).as_string();
           }
 
-          qDebug() << (int)ip.type << ip.location << ip.name;
           if(ip.type != attribute_type::Unknown && ip.location >= 0 && !ip.name.empty())
           {
             (d.*member).push_back(ip);
