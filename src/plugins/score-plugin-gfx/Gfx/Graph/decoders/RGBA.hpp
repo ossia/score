@@ -30,15 +30,17 @@ struct PackedDecoder : GPUVideoDecoder
 
   PackedDecoder(
       QRhiTexture::Format fmt, int bytes_per_pixel, Video::ImageFormat& d,
-      QString f = "")
+      QString f = "", bool invertY = false)
       : format{fmt}
       , bytes_per_pixel{bytes_per_pixel}
       , decoder{d}
       , filter{std::move(f)}
+      , invertY{invertY}
   {
   }
   QRhiTexture::Format format;
   int bytes_per_pixel{}; // bpp/8 !
+  bool invertY{}; // Mainly useful for Spout texture import
   Video::ImageFormat& decoder;
   QString filter;
 
@@ -63,7 +65,7 @@ struct PackedDecoder : GPUVideoDecoder
     }
 
     return score::gfx::makeShaders(
-        r.state, vertexShader(), QString(rgb_filter).arg(filter));
+        r.state, vertexShader(invertY), QString(rgb_filter).arg(filter));
   }
 
   void exec(RenderList&, QRhiResourceUpdateBatch& res, AVFrame& frame) override
