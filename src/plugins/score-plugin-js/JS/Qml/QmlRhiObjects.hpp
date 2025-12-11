@@ -1,5 +1,6 @@
 #pragma once
 
+#if __has_include(<QQuickRhiItem>)
 #include <QQuickRhiItem>
 
 #include <verdigris>
@@ -28,3 +29,4 @@ public:
 };
 
 }
+#endif
