@@ -67,10 +67,33 @@
 //		24.04.21	- Add OpenGL shared texture access functions
 //		03.06.21	- Add GetMemoryBufferSize
 //		15.10.21	- Allow no argument for SetReceiverName
+//		18.04.22	- Change default invert from true to false for fbo sending functions
+//		31.10.22	- Add GetPerformancePreference, SetPerformancePreference, GetPreferredAdapterName
+//		01.11.22	- Add SetPreferredAdapter
+//		03.11.22	- Add IsPreferenceAvailable
+//		07.11.22	- Add IsApplicationPath
+//		14.12.22	- Remove SetAdapter. Requires OpenGL setup.
+// Version 2.007.11
+//		06.07.23	- Remove bUseActive from 2.006 CreateReceiver
+//	Version 2.007.012
+//		04.08.23	- Add format functions
+//		07.08.23	- Add frame sync option functions
+//	Version 2.007.013
+//		22.05.24	- Add GetReceiverName
+//		08.06.24	- SelectSender - bool instead of void
+//					- Add GetSenderList
+//		09.06.24	- SelectSender > spout SelectSender instead of SelectSenderPanel
+//					  Add hwnd argument to centre MessageBox dialog if used.
+//	Version 2.007.014
+//		21.09.24	-Add ReadTextureData
+//		16.08.25	- Add CloseFrameSync
+//  Version 2.007.017
+//		13.10.25	- Add GetSenderTexture, GetSenderTexture
+//					  replace GetSpoutVersion with GetSDKversion
 //
 // ====================================================================================
 //
-//	Copyright (c) 2014-2022, Lynn Jarvis. All rights reserved.
+//	Copyright (c) 2014-2025, Lynn Jarvis. All rights reserved.
 //
 //	Redistribution and use in source and binary forms, with or without modification, 
 //	are permitted provided that the following conditions are met:
@@ -130,11 +153,16 @@ SpoutReceiver::~SpoutReceiver()
 }
 
 //---------------------------------------------------------
-void SpoutReceiver::SetReceiverName(const char * SenderName)
+void SpoutReceiver::SetReceiverName(const char* SenderName)
 {
 	spout.SetReceiverName(SenderName);
 }
 
+//---------------------------------------------------------
+bool SpoutReceiver::GetReceiverName(char* SenderName, int maxchars)
+{
+	return spout.GetReceiverName(SenderName, maxchars);
+}
 
 //---------------------------------------------------------
 // Release receiver and resources
@@ -143,8 +171,6 @@ void SpoutReceiver::ReleaseReceiver()
 {
 	spout.ReleaseReceiver();
 }
-
-
 
 //---------------------------------------------------------
 bool SpoutReceiver::ReceiveTexture()
@@ -190,7 +216,7 @@ DWORD SpoutReceiver::GetSenderFormat()
 }
 
 //---------------------------------------------------------
-const char * SpoutReceiver::GetSenderName()
+const char* SpoutReceiver::GetSenderName()
 {
 	return spout.GetSenderName();
 }
@@ -226,6 +252,12 @@ HANDLE SpoutReceiver::GetSenderHandle()
 }
 
 //---------------------------------------------------------
+ID3D11Texture2D* SpoutReceiver::GetSenderTexture()
+{
+	return spout.GetSenderTexture();
+}
+
+//---------------------------------------------------------
 bool SpoutReceiver::GetSenderCPU()
 {
 	return spout.GetSenderCPU();
@@ -238,9 +270,16 @@ bool SpoutReceiver::GetSenderGLDX()
 }
 
 //---------------------------------------------------------
-void SpoutReceiver::SelectSender()
+std::vector<std::string> SpoutReceiver::GetSenderList()
 {
-	spout.SelectSenderPanel();
+	return spout.GetSenderList();
+}
+
+
+//---------------------------------------------------------
+bool SpoutReceiver::SelectSender(HWND hwnd)
+{
+	return spout.SelectSender(hwnd);
 }
 
 //
@@ -278,9 +317,27 @@ void SpoutReceiver::SetFrameSync(const char* SenderName)
 }
 
 //---------------------------------------------------------
-bool SpoutReceiver::WaitFrameSync(const char *SenderName, DWORD dwTimeout)
+bool SpoutReceiver::WaitFrameSync(const char* SenderName, DWORD dwTimeout)
 {
 	return spout.WaitFrameSync(SenderName, dwTimeout);
+}
+
+//---------------------------------------------------------
+void SpoutReceiver::EnableFrameSync(bool bSync)
+{
+	spout.EnableFrameSync(bSync);
+}
+
+//---------------------------------------------------------
+void SpoutReceiver::CloseFrameSync()
+{
+	spout.CloseFrameSync();
+}
+
+//---------------------------------------------------------
+bool SpoutReceiver::IsFrameSyncEnabled()
+{
+	return spout.IsFrameSyncEnabled();
 }
 
 //---------------------------------------------------------
@@ -398,13 +455,13 @@ int SpoutReceiver::GetNumAdapters()
 }
 
 //---------------------------------------------------------
-bool SpoutReceiver::GetAdapterName(int index, char *adaptername, int maxchars)
+bool SpoutReceiver::GetAdapterName(int index, char* adaptername, int maxchars)
 {
 	return spout.GetAdapterName(index, adaptername, maxchars);
 }
 
 //---------------------------------------------------------
-char * SpoutReceiver::AdapterName()
+char* SpoutReceiver::AdapterName()
 {
 	return spout.AdapterName();
 }
@@ -416,16 +473,57 @@ int SpoutReceiver::GetAdapter()
 }
 
 //---------------------------------------------------------
-bool SpoutReceiver::SetAdapter(int index)
+bool SpoutReceiver::GetAdapterInfo(char* description, char* output, int maxchars)
 {
-	return spout.SetAdapter(index);
+	return spout.GetAdapterInfo(description, output, maxchars);
 }
 
 //---------------------------------------------------------
-bool SpoutReceiver::GetAdapterInfo(char *renderdescription, char *displaydescription, int maxchars)
+bool SpoutReceiver::GetAdapterInfo(int index, char* description, char* output, int maxchars)
 {
-	return spout.GetAdapterInfo(renderdescription, displaydescription, maxchars);
+	return spout.GetAdapterInfo(index, description, output, maxchars);
 }
+
+// Windows 10 Vers 1803, build 17134 or later
+#ifdef NTDDI_WIN10_RS4
+
+//---------------------------------------------------------
+int SpoutReceiver::GetPerformancePreference(const char* path)
+{
+	return spout.GetPerformancePreference(path);
+}
+
+//---------------------------------------------------------
+bool SpoutReceiver::SetPerformancePreference(int preference, const char* path)
+{
+	return spout.SetPerformancePreference(preference, path);
+}
+
+//---------------------------------------------------------
+bool SpoutReceiver::GetPreferredAdapterName(int preference, char* adaptername, int maxchars)
+{
+	return spout.GetPreferredAdapterName(preference, adaptername, maxchars);
+}
+
+//---------------------------------------------------------
+bool SpoutReceiver::SetPreferredAdapter(int preference)
+{
+	return spout.SetPreferredAdapter(preference);
+}
+
+//---------------------------------------------------------
+bool SpoutReceiver::IsPreferenceAvailable()
+{
+	return spout.IsPreferenceAvailable();
+}
+
+//---------------------------------------------------------
+bool SpoutReceiver::IsApplicationPath(const char* path)
+{
+	return spout.IsApplicationPath(path);
+}
+#endif
+
 
 //
 // User settings recorded by "SpoutSettings"
@@ -517,7 +615,7 @@ void SpoutReceiver::SetShareMode(int mode)
 //
 
 //---------------------------------------------------------
-bool SpoutReceiver::GetHostPath(const char *sendername, char *hostpath, int maxchars)
+bool SpoutReceiver::GetHostPath(const char* sendername, char* hostpath, int maxchars)
 {
 	return spout.GetHostPath(sendername, hostpath, maxchars);
 }
@@ -535,9 +633,9 @@ bool SpoutReceiver::SetVerticalSync(bool bSync)
 }
 
 //---------------------------------------------------------
-int SpoutReceiver::GetSpoutVersion()
+std::string SpoutReceiver::GetSDKversion(int* pNumber)
 {
-	return spout.GetSpoutVersion();
+	return spoututils::GetSDKversion(pNumber); // SpoutUtils
 }
 
 //
@@ -566,14 +664,66 @@ bool SpoutReceiver::CopyTexture(GLuint SourceID, GLuint SourceTarget,
 		width, height, bInvert, HostFBO);
 }
 
+//---------------------------------------------------------
+bool SpoutReceiver::ReadTextureData(GLuint SourceID, GLuint SourceTarget,
+	void* data, unsigned int width, unsigned int height, unsigned int rowpitch,
+	GLenum dataformat, GLenum datatype, bool bInvert, GLuint HostFBO)
+{
+	return spout.ReadTextureData(SourceID, SourceTarget,
+		data, width, height, rowpitch, dataformat,
+		datatype, bInvert, HostFBO);
+}
+
+
+//
+// Formats
+//
+
+//---------------------------------------------------------
+DXGI_FORMAT SpoutReceiver::GetDX11format()
+{
+	return spout.GetDX11format();
+}
+
+//---------------------------------------------------------
+void SpoutReceiver::SetDX11format(DXGI_FORMAT textureformat)
+{
+	spout.SetDX11format(textureformat);
+}
+
+//---------------------------------------------------------
+DXGI_FORMAT SpoutReceiver::DX11format(GLint glformat)
+{
+	return spout.DX11format(glformat);
+}
+
+//---------------------------------------------------------
+GLint SpoutReceiver::GLDXformat(DXGI_FORMAT textureformat)
+{
+	return spout.GLDXformat(textureformat);
+}
+
+//---------------------------------------------------------
+GLint SpoutReceiver::GLformat(GLuint TextureID, GLuint TextureTarget)
+{
+	return spout.GLformat(TextureID, TextureTarget);
+}
+
+//---------------------------------------------------------
+std::string SpoutReceiver::GLformatName(GLint glformat)
+{
+	return spout.GLformatName(glformat);
+}
+
+
 //
 // 2.006 compatibility
 //
 
 //---------------------------------------------------------
-bool SpoutReceiver::CreateReceiver(char* sendername, unsigned int &width, unsigned int &height, bool bUseActive)
+bool SpoutReceiver::CreateReceiver(char* sendername, unsigned int &width, unsigned int &height)
 {
-	return spout.CreateReceiver(sendername, width, height, bUseActive);
+	return spout.CreateReceiver(sendername, width, height);
 }
 
 //---------------------------------------------------------
@@ -590,19 +740,19 @@ bool SpoutReceiver::ReceiveTexture(char* name, unsigned int &width, unsigned int
 }
 
 //---------------------------------------------------------
-bool SpoutReceiver::ReceiveImage(unsigned char *pixels, GLenum glFormat, bool bInvert, GLuint HostFbo)
+bool SpoutReceiver::ReceiveImage(unsigned char* pixels, GLenum glFormat, bool bInvert, GLuint HostFbo)
 {
 	return spout.ReceiveImage(pixels, glFormat, bInvert, HostFbo);
 }
 
 //---------------------------------------------------------
-bool SpoutReceiver::SelectSenderPanel(const char *message)
+bool SpoutReceiver::SelectSenderPanel(const char* message)
 {
 	return spout.SelectSenderPanel(message);
 }
 
 //---------------------------------------------------------
-bool SpoutReceiver::CheckSenderPanel(char *sendername, int maxchars)
+bool SpoutReceiver::CheckSenderPanel(char* sendername, int maxchars)
 {
 	return spout.CheckSpoutPanel(sendername, maxchars);
 }

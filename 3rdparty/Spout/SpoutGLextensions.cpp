@@ -1,5 +1,3 @@
-/*
-//
 //
 //			spoutGLextensions.cpp
 //
@@ -30,10 +28,57 @@
 //						- Add "legacyOpenGL" define in SpoutGLextensions.h for standalone.
 //			14.11.21	- Add ExtLog for Spout error logs including printf for standalone.
 //			23.11.21	- Add debugging console print to loadPBOextensions
-//						  
+//			18.03.22	- Change LogLevel to ExtLoglevel to make unique for ExtLog function
+//						  Change to C++11 enum class for ExtLogLevel to isolate the definitions
+//			14.04.22	- Change back to C enums for compatibility with earlier compilers.
+//						  Rename ExtLoglevel enum names to be more strongly unique.
+//						  Add option in SpoutCommon.h to disable warning 26812 (unscoped enums).
+//			18.04.22	- Add glCheckNamedFramebufferStatus
+//			17.12.22	- Some cleanup for code analysis
+//			22.12.22	- Compiler compatibility check
+//			20.01.23	- Changes to gl definitions for compatibility with Glew
+//			15.02.23	- SpoutGLextensions.h
+//						  Correct glUnmapBufferPROC from void to GLboolean
+//						  Correct glGenBuffersPROC buffers arg from const
+// Version 2.007.11
+//			20.04.23	- Add compute shader extensions
+//			22.04.23	- Correct EXT_LOG prefixe for standalone in ExtLog function
+//			24.04.23	- Add glGetTexParameteriv and glTextureStorage2D
+//			04.05.23	- Define GL_BGRA in case it is used
+//			09.05.23	- Add memory object extensions
+//			16.06.23	- Add glTextureStorageMem2DEXT
+//			24.06.23	- Add glUniform1f
+//			14.07.23	- Add glMemoryBarrier
+//			21.07.23	- Add glGetMemoryObjectParameterivEXT
+//	Version 2.007.012
+//			24.07.23	- Add glMemoryObjectParameterivEXT
+//			30.07.23	- Add GL_RGBA16F, GL_RGB16F, GL_RGBA32F, GL_RGB32F
+//			31.07.23	- Add defines
+//						  GL_IMPLEMENTATION_COLOR_READ_TYPE, GL_IMPLEMENTATION_COLOR_READ_FORMAT
+//			02.08.23	- Add glGetTextureParameteriv
+//			21.11.23	- Add defines for : GL_MAX_COMPUTE_WORK_GROUP_COUNT, GL_MAX_COMPUTE_WORK_GROUP_SIZE
+//						  GL_ATTACHED_SHADERS, GL_INFO_LOG_LENGTH
+//						  Add glGetProgramInfoLog, glGetShaderInfoLog, glGetIntegeri_v
+//	Version 2.007.013
+//			29.03.24	- Correct glUnmapBufferPROC as Glboolean
+//						  Correct glGenBuffersPROC - GLuint* buffers
+//			19.04.24	- Add #ifndef for pre-defined constants WGL_CONTEXT_FLAGS
+//						  and GL consts that are not present in GL.h
+//	Version 2.007.014
+//			28.09.24	- SpoutGLextensions.h - add #define GL_TEXTURE_SWIZZLE_RGBA
+//			22.10.24	- Add glIsMemoryObjectEXT, glCreateBuffers
+//			25.03.25	- ExtLog - changed "standalone" to "standaloneExtensions"
+//			07.08.25	- SpoutGLextensions.h - add #define GL_FRAMEBUFFER_UNDEFINED
+//						  Correct glTextureStorageMem2DEXT
+//			30.08.25	- Add GL_HANDLE_TYPE_D3D11_IMAGE_KMT_EXT
+//			02.09.25	- Add GL_HANDLE_TYPE_OPAQUE_IMAGE_KMT_EXT
+//			09.09.25	- Correct glGetInternalFormativ to glGetInternalformativ
+//						  Define GL_BGRA8_EXT
+//			15.09.25	- Add GL_TEXTURE_SWIZZLE_R, G, B
+//			16.09-25	- SpoutGLextensions.h - add #include <cstdint> for MingW
 //
-
-	Copyright (c) 2014-2022, Lynn Jarvis. All rights reserved.
+/*
+	Copyright (c) 2014-2025, Lynn Jarvis. All rights reserved.
 
 	Redistribution and use in source and binary forms, with or without modification, 
 	are permitted provided that the following conditions are met:
@@ -61,6 +106,8 @@
 #ifndef USE_GLEW
 
 // GL/DX extensions
+// https://registry.khronos.org/OpenGL/extensions/NV/WGL_NV_DX_interop.txt
+// https://registry.khronos.org/OpenGL/extensions/NV/WGL_NV_DX_interop2.txt
 PFNWGLDXOPENDEVICENVPROC				wglDXOpenDeviceNV				= NULL;
 PFNWGLDXREGISTEROBJECTNVPROC			wglDXRegisterObjectNV			= NULL;
 PFNWGLDXSETRESOURCESHAREHANDLENVPROC	wglDXSetResourceShareHandleNV	= NULL;
@@ -74,6 +121,7 @@ PFNWGLDXUNREGISTEROBJECTNVPROC			wglDXUnregisterObjectNV			= NULL;
 glBindFramebufferEXTPROC				glBindFramebufferEXT			= NULL;
 glBindRenderbufferEXTPROC				glBindRenderbufferEXT			= NULL;
 glCheckFramebufferStatusEXTPROC			glCheckFramebufferStatusEXT		= NULL;
+glCheckNamedFramebufferStatusEXTPROC	glCheckNamedFramebufferStatusEXT = NULL;
 glDeleteFramebuffersEXTPROC				glDeleteFramebuffersEXT			= NULL;
 glDeleteRenderBuffersEXTPROC			glDeleteRenderBuffersEXT		= NULL;
 glFramebufferRenderbufferEXTPROC		glFramebufferRenderbufferEXT	= NULL;
@@ -101,19 +149,21 @@ PFNWGLGETSWAPINTERVALEXTPROC			wglGetSwapIntervalEXT			= NULL;
 
 // PBO extensions
 #ifdef USE_PBO_EXTENSIONS
-glGenBuffersPROC						glGenBuffersEXT					= NULL;
-glDeleteBuffersPROC						glDeleteBuffersEXT				= NULL;
-glBindBufferPROC						glBindBufferEXT					= NULL;
-glBufferDataPROC						glBufferDataEXT					= NULL;
-glBufferStoragePROC						glBufferStorageEXT				= NULL;
-glMapBufferPROC							glMapBufferEXT					= NULL;
+glGenBuffersPROC						glGenBuffers					= NULL;
+glDeleteBuffersPROC						glDeleteBuffers					= NULL;
+glBindBufferPROC						glBindBuffer					= NULL;
+glBufferDataPROC						glBufferData					= NULL;
+glBufferStoragePROC						glBufferStorage					= NULL;
+glMapBufferPROC							glMapBuffer						= NULL;
 // https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glMapBufferRange.xhtml
-glMapBufferRangePROC					glMapBufferRangeEXT				= NULL;
-glUnmapBufferPROC						glUnmapBufferEXT				= NULL;
-glGetBufferParameterivPROC				glGetBufferParameterivEXT		= NULL;
-glClientWaitSyncPROC					glClientWaitSyncEXT				= NULL;
-glDeleteSyncPROC						glDeleteSyncEXT					= NULL;
-glFenceSyncPROC							glFenceSyncEXT					= NULL;
+glMapBufferRangePROC					glMapBufferRange				= NULL;
+glUnmapBufferPROC						glUnmapBuffer					= NULL;
+glGetBufferParameterivPROC				glGetBufferParameteriv			= NULL;
+// Could be separated
+glGetTextureParameterivPROC             glGetTextureParameteriv         = NULL;
+glClientWaitSyncPROC					glClientWaitSync				= NULL;
+glDeleteSyncPROC						glDeleteSync					= NULL;
+glFenceSyncPROC							glFenceSync						= NULL;
 
 #endif
 
@@ -123,9 +173,51 @@ glFenceSyncPROC							glFenceSyncEXT					= NULL;
 //-------------------
 #ifdef USE_COPY_EXTENSIONS
 PFNGLCOPYIMAGESUBDATAPROC glCopyImageSubData = NULL;
-glGetInternalFormativPROC glGetInternalFormativ = NULL;
-
+glGetInternalformativPROC glGetInternalformativ = NULL;
 #endif
+
+//---------------------------
+// Compute shader extensions
+// Disable for Processing library (JSpoutLib)
+//---------------------------
+glCreateProgramPROC		 glCreateProgram    = NULL;
+glCreateShaderPROC       glCreateShader     = NULL;
+glShaderSourcePROC       glShaderSource     = NULL;
+glCompileShaderPROC      glCompileShader    = NULL;
+glAttachShaderPROC       glAttachShader     = NULL;
+glLinkProgramPROC        glLinkProgram      = NULL;
+glGetProgramivPROC       glGetProgramiv     = NULL;
+glGetProgramInfoLogPROC  glGetProgramInfoLog = NULL;
+glGetShaderInfoLogPROC   glGetShaderInfoLog = NULL;
+glGetIntegeri_vPROC      glGetIntegeri_v    = NULL;
+glDetachShaderPROC       glDetachShader     = NULL;
+glUseProgramPROC         glUseProgram       = NULL;
+glBindImageTexturePROC   glBindImageTexture = NULL;
+glDispatchComputePROC    glDispatchCompute  = NULL;
+glDeleteProgramPROC      glDeleteProgram    = NULL;
+glDeleteShaderPROC       glDeleteShader     = NULL;
+glMemoryBarrierPROC      glMemoryBarrier    = NULL;
+glActiveTexturePROC      glActiveTexture    = NULL;
+glUniform1iPROC          glUniform1i        = NULL;
+glUniform1fPROC          glUniform1f        = NULL;
+glGetUniformLocationPROC glGetUniformLocation = NULL;
+glTextureStorage2DPROC   glTextureStorage2D  = NULL;
+glCreateTexturesPROC     glCreateTextures    = NULL;
+
+//---------------------------
+// OpenGL memory extensions
+//---------------------------
+glCreateMemoryObjectsEXTPROC        glCreateMemoryObjectsEXT = NULL;
+glDeleteMemoryObjectsEXTPROC        glDeleteMemoryObjectsEXT = NULL;
+glTexStorageMem2DEXTPROC            glTexStorageMem2DEXT = NULL;
+glTextureStorageMem2DEXTPROC        glTextureStorageMem2DEXT = NULL;
+glImportMemoryWin32HandleEXTPROC    glImportMemoryWin32HandleEXT = NULL;
+glBufferStorageMemEXTPROC           glBufferStorageMemEXT = NULL;
+glMemoryObjectParameterivEXTPROC    glMemoryObjectParameterivEXT;
+glGetMemoryObjectParameterivEXTPROC glGetMemoryObjectParameterivEXT = NULL;
+glIsMemoryObjectEXTPROC             glIsMemoryObjectEXT = NULL;
+glCreateBuffersPROC                 glCreateBuffers = NULL;
+glBindBufferBasePROC                glBindBufferBase = NULL;
 
 //---------------------------
 // Context creation extension
@@ -150,43 +242,43 @@ bool loadInteropExtensions() {
 
 	wglDXOpenDeviceNV = (PFNWGLDXOPENDEVICENVPROC)wglGetProcAddress("wglDXOpenDeviceNV");
 	if(!wglDXOpenDeviceNV) {
-		ExtLog(LOG_WARNING, "loadInteropExtensions : wglDXOpenDeviceNV NULL");
+		ExtLog(SPOUT_EXT_LOG_WARNING, "loadInteropExtensions : wglDXOpenDeviceNV NULL");
 		return false;
 	}
 
 	wglDXRegisterObjectNV = (PFNWGLDXREGISTEROBJECTNVPROC)wglGetProcAddress("wglDXRegisterObjectNV");
 	if(!wglDXRegisterObjectNV) {
-		ExtLog(LOG_WARNING, "loadInteropExtensions : wglDXRegisterObjectNV NULL");
+		ExtLog(SPOUT_EXT_LOG_WARNING, "loadInteropExtensions : wglDXRegisterObjectNV NULL");
 		return false;
 	}
 
 	wglDXUnregisterObjectNV = (PFNWGLDXUNREGISTEROBJECTNVPROC)wglGetProcAddress("wglDXUnregisterObjectNV");
 	if(!wglDXUnregisterObjectNV) {
-		ExtLog(LOG_WARNING, "loadInteropExtensions : wglDXUnregisterObjectNV NULL");
+		ExtLog(SPOUT_EXT_LOG_WARNING, "loadInteropExtensions : wglDXUnregisterObjectNV NULL");
 		return false;
 	}
 
 	wglDXSetResourceShareHandleNV = (PFNWGLDXSETRESOURCESHAREHANDLENVPROC)wglGetProcAddress("wglDXSetResourceShareHandleNV");
 	if(!wglDXSetResourceShareHandleNV) {
-		ExtLog(LOG_WARNING, "loadInteropExtensions : wglDXSetResourceShareHandleNV NULL");
+		ExtLog(SPOUT_EXT_LOG_WARNING, "loadInteropExtensions : wglDXSetResourceShareHandleNV NULL");
 		return false;
 	}
 
 	wglDXLockObjectsNV = (PFNWGLDXLOCKOBJECTSNVPROC)wglGetProcAddress("wglDXLockObjectsNV");
 	if(!wglDXLockObjectsNV)	{
-		ExtLog(LOG_WARNING, "loadInteropExtensions : wglDXLockObjectsNV NULL");
+		ExtLog(SPOUT_EXT_LOG_WARNING, "loadInteropExtensions : wglDXLockObjectsNV NULL");
 		return false;
 	}
 
 	wglDXUnlockObjectsNV = (PFNWGLDXUNLOCKOBJECTSNVPROC)wglGetProcAddress("wglDXUnlockObjectsNV");
 	if(!wglDXUnlockObjectsNV) {
-		ExtLog(LOG_WARNING, "loadInteropExtensions : wglDXUnlockObjectsNV NULL");
+		ExtLog(SPOUT_EXT_LOG_WARNING, "loadInteropExtensions : wglDXUnlockObjectsNV NULL");
 		return false;
 	}
 
 	wglDXCloseDeviceNV = (PFNWGLDXCLOSEDEVICENVPROC)wglGetProcAddress("wglDXCloseDeviceNV");
 	if(!wglDXCloseDeviceNV) {
-		ExtLog(LOG_WARNING, "loadInteropExtensions : wglDXCloseDeviceNV NULL");
+		ExtLog(SPOUT_EXT_LOG_WARNING, "loadInteropExtensions : wglDXCloseDeviceNV NULL");
 		return false;
 	}
 
@@ -222,6 +314,7 @@ bool loadFBOextensions() {
 	glBindFramebufferEXT                     = (glBindFramebufferEXTPROC)wglGetProcAddress("glBindFramebuffer" FBO_EXTENSION_POSTFIX);
 	glBindRenderbufferEXT                    = (glBindRenderbufferEXTPROC)wglGetProcAddress("glBindRenderbuffer" FBO_EXTENSION_POSTFIX);
 	glCheckFramebufferStatusEXT              = (glCheckFramebufferStatusEXTPROC)wglGetProcAddress("glCheckFramebufferStatus" FBO_EXTENSION_POSTFIX);
+	glCheckNamedFramebufferStatusEXT         = (glCheckNamedFramebufferStatusEXTPROC)wglGetProcAddress("glCheckNamedFramebufferStatus" FBO_EXTENSION_POSTFIX);
 	glDeleteFramebuffersEXT                  = (glDeleteFramebuffersEXTPROC)wglGetProcAddress("glDeleteFramebuffers" FBO_EXTENSION_POSTFIX);
 	glDeleteRenderBuffersEXT                 = (glDeleteRenderBuffersEXTPROC)wglGetProcAddress("glDeleteRenderbuffers" FBO_EXTENSION_POSTFIX);
 	glFramebufferRenderbufferEXT             = (glFramebufferRenderbufferEXTPROC)wglGetProcAddress("glFramebufferRenderbuffer" FBO_EXTENSION_POSTFIX);
@@ -240,6 +333,7 @@ bool loadFBOextensions() {
 	if	  ( glBindFramebufferEXT						!= NULL && 
 			glBindRenderbufferEXT						!= NULL && 
 			glCheckFramebufferStatusEXT					!= NULL && 
+			glCheckNamedFramebufferStatusEXT            != NULL &&
 			glDeleteFramebuffersEXT						!= NULL && 
 			glDeleteRenderBuffersEXT					!= NULL &&
 			glFramebufferRenderbufferEXT				!= NULL && 
@@ -305,32 +399,33 @@ bool loadPBOextensions()
 	else
 		return false;
 	#else
-	glGenBuffersEXT	    = (glGenBuffersPROC)wglGetProcAddress("glGenBuffers");
-	glDeleteBuffersEXT  = (glDeleteBuffersPROC)wglGetProcAddress("glDeleteBuffers");
-	glBindBufferEXT	    = (glBindBufferPROC)wglGetProcAddress("glBindBuffer");
-	glBufferDataEXT	    = (glBufferDataPROC)wglGetProcAddress("glBufferData");
-	glBufferStorageEXT	= (glBufferStoragePROC)wglGetProcAddress("glBufferStorage");
-	glMapBufferEXT      = (glMapBufferPROC)wglGetProcAddress("glMapBuffer");
-	glMapBufferRangeEXT = (glMapBufferRangePROC)wglGetProcAddress("glMapBufferRange");
-	glUnmapBufferEXT    = (glUnmapBufferPROC)wglGetProcAddress("glUnmapBuffer");
-	glGetBufferParameterivEXT = (glGetBufferParameterivPROC)wglGetProcAddress("glGetBufferParameteriv");
-	glClientWaitSyncEXT = (glClientWaitSyncPROC)wglGetProcAddress("glClientWaitSync");
-	glDeleteSyncEXT     = (glDeleteSyncPROC)wglGetProcAddress("glDeleteSync");
-	glFenceSyncEXT      = (glFenceSyncPROC)wglGetProcAddress("glFenceSync");
+	glGenBuffers	    = (glGenBuffersPROC)wglGetProcAddress("glGenBuffers");
+	glDeleteBuffers		= (glDeleteBuffersPROC)wglGetProcAddress("glDeleteBuffers");
+	glBindBuffer	    = (glBindBufferPROC)wglGetProcAddress("glBindBuffer");
+	glBufferData	    = (glBufferDataPROC)wglGetProcAddress("glBufferData");
+	glBufferStorage		= (glBufferStoragePROC)wglGetProcAddress("glBufferStorage");
+	glMapBuffer			= (glMapBufferPROC)wglGetProcAddress("glMapBuffer");
+	glMapBufferRange	= (glMapBufferRangePROC)wglGetProcAddress("glMapBufferRange");
+	glUnmapBuffer		= (glUnmapBufferPROC)wglGetProcAddress("glUnmapBuffer");
+	glGetBufferParameteriv = (glGetBufferParameterivPROC)wglGetProcAddress("glGetBufferParameteriv");
+	glGetTextureParameteriv = (glGetTextureParameterivPROC)wglGetProcAddress("glGetTextureParameteriv");
+	glClientWaitSync	= (glClientWaitSyncPROC)wglGetProcAddress("glClientWaitSync");
+	glDeleteSync		= (glDeleteSyncPROC)wglGetProcAddress("glDeleteSync");
+	glFenceSync			= (glFenceSyncPROC)wglGetProcAddress("glFenceSync");
 
-	if(glGenBuffersEXT  != NULL && glDeleteBuffersEXT  != NULL
-	&& glBindBufferEXT  != NULL && glBufferDataEXT     != NULL
-	&& glBufferStorageEXT != NULL && glMapBufferEXT   != NULL
-	&& glMapBufferRangeEXT != NULL && glUnmapBufferEXT != NULL
-	&& glGetBufferParameterivEXT != NULL
-	&& glClientWaitSyncEXT != NULL && glDeleteSyncEXT != NULL && glFenceSyncEXT != NULL) {
+	if (glGenBuffers  != NULL && glDeleteBuffers  != NULL
+		&& glBindBuffer  != NULL && glBufferData     != NULL
+		&& glBufferStorage != NULL && glMapBuffer   != NULL
+		&& glMapBufferRange != NULL && glUnmapBuffer != NULL
+		&& glGetBufferParameteriv != NULL && glGetTextureParameteriv != NULL
+		&& glClientWaitSync != NULL && glDeleteSync != NULL && glFenceSync != NULL) {
 		return true;
 	}
 	else {
-		ExtLog(LOG_WARNING, "loadPBOextensions() fail");
+		ExtLog(SPOUT_EXT_LOG_WARNING, "loadPBOextensions() fail");
 		return false;
 	}
-	#endif
+#endif
 
 #else
 	// PBO extensions defined elsewhere
@@ -354,10 +449,8 @@ bool loadCopyExtensions()
 
 	// Copy extensions
 	glCopyImageSubData = (PFNGLCOPYIMAGESUBDATAPROC)wglGetProcAddress("glCopyImageSubData");
-
-	glGetInternalFormativ = (glGetInternalFormativPROC)wglGetProcAddress("glGetInternalFormativ");
-
-	if (glCopyImageSubData != NULL) {
+	glGetInternalformativ = (glGetInternalformativPROC)wglGetProcAddress("glGetInternalformativ");
+	if (glCopyImageSubData != NULL && glGetInternalformativ != NULL) {
 		return true;
 	}
 	else {
@@ -372,6 +465,138 @@ bool loadCopyExtensions()
 
 }
 
+bool loadGLmemoryExtensions() {
+
+#ifdef USE_GLMEMORY_EXTENSIONS
+
+	#ifdef USE_GLEW
+	if (glImportMemoryWin32HandleEXT)
+		return true;
+	else
+		return false;
+#else
+	// 
+	glTextureStorage2D           = (glTextureStorage2DPROC)wglGetProcAddress("glTextureStorage2D");
+	glCreateTextures             = (glCreateTexturesPROC)wglGetProcAddress("glCreateTextures");
+	//
+	glCreateMemoryObjectsEXT     = (glCreateMemoryObjectsEXTPROC)wglGetProcAddress("glCreateMemoryObjectsEXT");
+	glDeleteMemoryObjectsEXT     = (glDeleteMemoryObjectsEXTPROC)wglGetProcAddress("glDeleteMemoryObjectsEXT");
+	glTexStorageMem2DEXT         = (glTexStorageMem2DEXTPROC)wglGetProcAddress("glTexStorageMem2DEXT");
+	glTextureStorageMem2DEXT     = (glTextureStorageMem2DEXTPROC)wglGetProcAddress("glTextureStorageMem2DEXT");
+	glImportMemoryWin32HandleEXT = (glImportMemoryWin32HandleEXTPROC)wglGetProcAddress("glImportMemoryWin32HandleEXT");
+	glBufferStorageMemEXT        = (glBufferStorageMemEXTPROC)wglGetProcAddress("glBufferStorageMemEXT");
+	glMemoryObjectParameterivEXT = (glMemoryObjectParameterivEXTPROC)wglGetProcAddress("glMemoryObjectParameterivEXT");
+	glGetMemoryObjectParameterivEXT = (glGetMemoryObjectParameterivEXTPROC)wglGetProcAddress("glGetMemoryObjectParameterivEXT");
+	glIsMemoryObjectEXT          = (glIsMemoryObjectEXTPROC)wglGetProcAddress("glIsMemoryObjectEXT");
+
+	if(glTextureStorage2D != NULL
+		&& glCreateTextures != NULL
+		&& glCreateMemoryObjectsEXT != NULL
+		&& glDeleteMemoryObjectsEXT != NULL
+		&& glTexStorageMem2DEXT != NULL
+		&& glTextureStorageMem2DEXT != NULL
+		&& glImportMemoryWin32HandleEXT != NULL
+		&& glBufferStorageMemEXT != NULL
+		&& glMemoryObjectParameterivEXT != NULL
+		&& glGetMemoryObjectParameterivEXT != NULL
+		&& glIsMemoryObjectEXT != NULL)	{
+			return true;
+	}
+	else {
+		printf("loadGLmemoryExtensions failed\n");
+		return false;
+	}
+#endif
+
+#else
+	// GL memory extensions defined elsewhere
+	return true;
+#endif
+
+}
+
+bool loadComputeShaderExtensions()
+{
+
+#ifdef USE_COMPUTE_EXTENSIONS
+
+	#ifdef USE_GLEW
+	   return false;
+	#else
+
+	// Compute shader extensions
+	glCreateProgram    = (glCreateProgramPROC)wglGetProcAddress("glCreateProgram");
+	glCreateShader     = (glCreateShaderPROC)wglGetProcAddress("glCreateShader");
+	glShaderSource     = (glShaderSourcePROC)wglGetProcAddress("glShaderSource");
+	glCompileShader    = (glCompileShaderPROC)wglGetProcAddress("glCompileShader");
+	glAttachShader     = (glAttachShaderPROC)wglGetProcAddress("glAttachShader");
+	glLinkProgram      = (glLinkProgramPROC)wglGetProcAddress("glLinkProgram");
+	glGetProgramiv     = (glGetProgramivPROC)wglGetProcAddress("glGetProgramiv");
+	glGetProgramInfoLog = (glGetProgramInfoLogPROC)wglGetProcAddress("glGetProgramInfoLog");
+	glGetShaderInfoLog = (glGetShaderInfoLogPROC)wglGetProcAddress("glGetShaderInfoLog");
+	glGetIntegeri_v    = (glGetIntegeri_vPROC)wglGetProcAddress("glGetIntegeri_v");
+	glDetachShader     = (glDetachShaderPROC)wglGetProcAddress("glDetachShader");
+	glUseProgram       = (glUseProgramPROC)wglGetProcAddress("glUseProgram");
+	glBindImageTexture = (glBindImageTexturePROC)wglGetProcAddress("glBindImageTexture");
+	glDispatchCompute  = (glDispatchComputePROC)wglGetProcAddress("glDispatchCompute");
+	glDeleteProgram    = (glDeleteProgramPROC)wglGetProcAddress("glDeleteProgram");
+	glDeleteShader     = (glDeleteShaderPROC)wglGetProcAddress("glDeleteShader");
+	glMemoryBarrier    = (glMemoryBarrierPROC)wglGetProcAddress("glMemoryBarrier");
+	glActiveTexture    = (glActiveTexturePROC)wglGetProcAddress("glActiveTexture");
+	glUniform1i        = (glUniform1iPROC)wglGetProcAddress("glUniform1i");
+	glUniform1f        = (glUniform1fPROC)wglGetProcAddress("glUniform1f");
+	glGetUniformLocation = (glGetUniformLocationPROC)wglGetProcAddress("glGetUniformLocation");
+	glCreateBuffers      = (glCreateBuffersPROC)wglGetProcAddress("glCreateBuffers");
+	glBindBufferBase     = (glBindBufferBasePROC)wglGetProcAddress("glBindBufferBase");
+
+	if(glCreateProgram != NULL
+		&& glCreateShader != NULL
+		&& glShaderSource != NULL
+		&& glCompileShader != NULL
+		&& glAttachShader != NULL
+		&& glLinkProgram != NULL
+		&& glGetProgramiv != NULL
+		&& glGetProgramInfoLog != NULL
+		&& glGetShaderInfoLog != NULL
+		&& glGetIntegeri_v != NULL
+		&& glDetachShader != NULL
+		&& glUseProgram != NULL
+		&& glBindImageTexture != NULL
+		&& glDispatchCompute != NULL
+		&& glDeleteProgram != NULL
+		&& glActiveTexture != NULL
+		&& glUniform1i != NULL
+		&& glUniform1f != NULL
+		&& glDeleteShader != NULL
+		&& glMemoryBarrier != NULL
+		&& glGetUniformLocation != NULL
+		&& glTextureStorage2D != NULL
+		&& glCreateTextures != NULL
+		&& glCreateMemoryObjectsEXT != NULL
+		&& glDeleteMemoryObjectsEXT != NULL
+		&& glTexStorageMem2DEXT != NULL
+		&& glTextureStorageMem2DEXT != NULL
+		&& glImportMemoryWin32HandleEXT != NULL
+		&& glBufferStorageMemEXT != NULL
+		&& glMemoryObjectParameterivEXT != NULL
+		&& glGetMemoryObjectParameterivEXT != NULL
+		&& glIsMemoryObjectEXT != NULL
+		&& glCreateBuffers != NULL
+		&& glBindBufferBase != NULL) {
+			return true;
+	}
+	else {
+		printf("loadComputeShaderExtensions failed\n");
+		return false;
+	}
+#endif
+
+#else
+	// Compute shader extensions defined elsewhere
+	return true;
+#endif
+
+}
 
 bool loadContextExtension()
 {
@@ -453,9 +678,8 @@ unsigned int loadGLextensions() {
 	unsigned int caps = 0; // as per elio glextensions
 
 	// wglGetProcAddress requires an OpenGL rendering context
-	HGLRC glContext = wglGetCurrentContext();
-	if (glContext == NULL) {
-		ExtLog(LOG_ERROR, "loadGLextensions : no OpenGL context");
+	if (!wglGetCurrentContext()) {
+		ExtLog(SPOUT_EXT_LOG_ERROR, "loadGLextensions : no OpenGL context");
 		return 0;
 	}
 
@@ -468,7 +692,7 @@ unsigned int loadGLextensions() {
 		caps |= GLEXT_SUPPORT_FBO;
 	}
 	else {
-		ExtLog(LOG_ERROR, "loadGLextensions : loadFBOextensions fail");
+		ExtLog(SPOUT_EXT_LOG_ERROR, "loadGLextensions : loadFBOextensions fail");
 		return 0;
 	}
 
@@ -477,35 +701,49 @@ unsigned int loadGLextensions() {
 		caps |= GLEXT_SUPPORT_FBO_BLIT;
 	}
 	else {
-		ExtLog(LOG_WARNING, "loadGLextensions : loadBLITextensions fail");
+		ExtLog(SPOUT_EXT_LOG_WARNING, "loadGLextensions : loadBLITextensions fail");
 	}
 
 	if(loadSwapExtensions()) {
 		caps |= GLEXT_SUPPORT_SWAP;
 	}
 	else {
-		ExtLog(LOG_WARNING, "loadGLextensions : loadSwapExtensions fail");
+		ExtLog(SPOUT_EXT_LOG_WARNING, "loadGLextensions : loadSwapExtensions fail");
 	}
 
 	if(loadPBOextensions()) {
 		caps |= GLEXT_SUPPORT_PBO;
 	}
 	else {
-		ExtLog(LOG_WARNING, "loadGLextensions : loadPBOextensions fail");
+		ExtLog(SPOUT_EXT_LOG_WARNING, "loadGLextensions : loadPBOextensions fail");
 	}
 
 	if (loadCopyExtensions()) {
 		caps |= GLEXT_SUPPORT_COPY;
 	}
 	else {
-		ExtLog(LOG_WARNING, "loadGLextensions : loadCopyExtensions fail");
+		ExtLog(SPOUT_EXT_LOG_WARNING, "loadGLextensions : loadCopyExtensions fail");
+	}
+
+	if (loadGLmemoryExtensions()) {
+		caps |= GLEXT_SUPPORT_GLMEMORY;
+	}
+	else {
+		ExtLog(SPOUT_EXT_LOG_WARNING, "loadGLextensions : loadGLmemoryExtensions fail");
+	}
+
+	if (loadComputeShaderExtensions()) {
+		caps |= GLEXT_SUPPORT_COMPUTE;
+	}
+	else {
+		ExtLog(SPOUT_EXT_LOG_WARNING, "loadGLextensions : loadComputeShaderExtensions fail");
 	}
 
 	if (loadContextExtension()) {
 		caps |= GLEXT_SUPPORT_CONTEXT;
 	}
 	else {
-		ExtLog(LOG_WARNING, "loadGLextensions : loadContextExtension fail");
+		ExtLog(SPOUT_EXT_LOG_WARNING, "loadGLextensions : loadContextExtension fail");
 	}
 
 	// Load wgl interop extensions
@@ -513,7 +751,7 @@ unsigned int loadGLextensions() {
 		caps |= GLEXT_SUPPORT_NVINTEROP;
 	}
 	else {
-		ExtLog(LOG_WARNING, "loadGLextensions : loadInteropExtensions fail");
+		ExtLog(SPOUT_EXT_LOG_WARNING, "loadGLextensions : loadInteropExtensions fail");
 	}
 
 	// Find out whether bgra extensions are supported at compile and runtime
@@ -554,7 +792,7 @@ bool isExtensionSupported(const char *extension)
 		if (found != std::string::npos) {
 			return true;
 		}
-		ExtLog(LOG_WARNING, "isExtensionSupported : extension [%s] not found", extension);
+		ExtLog(SPOUT_EXT_LOG_WARNING, "isExtensionSupported : extension [%s] not found", extension);
 		return false;
 	}
 #else
@@ -584,42 +822,43 @@ bool isExtensionSupported(const char *extension)
 			if(exc && i < n) {
 				return true;
 			}
-			ExtLog(LOG_WARNING, "isExtensionSupported : extension [%s] not found", extension);
+			ExtLog(SPOUT_EXT_LOG_WARNING, "isExtensionSupported : extension [%s] not found", extension);
 			return false;
 		}
 		else {
-			ExtLog(LOG_WARNING, "isExtensionSupported : glGetIntegerv(GL_NUM_EXTENSIONS) did not return a value");
+			ExtLog(SPOUT_EXT_LOG_WARNING, "isExtensionSupported : glGetIntegerv(GL_NUM_EXTENSIONS) did not return a value");
 		}
 	}
 	else {
-		ExtLog(LOG_WARNING, "isExtensionSupported : glGetStringi not found");
+		ExtLog(SPOUT_EXT_LOG_WARNING, "isExtensionSupported : glGetStringi not found");
 	}
 #endif
 
-	ExtLog(LOG_WARNING, "isExtensionSupported : unable to find extension [%s]", extension);
+	ExtLog(SPOUT_EXT_LOG_WARNING, "isExtensionSupported : unable to find extension [%s]", extension);
 	
 	return false;
 
 }
 
-void ExtLog(LogLevel level, const char* format, ...)
+
+void ExtLog(ExtLogLevel level, const char* format, ...)
 {
 	va_list args;
 	va_start(args, format);
 
-#ifdef standalone
-	char currentLog[512];
+#ifdef standaloneExtensions
+	char currentLog[512]{};
 	vsprintf_s(currentLog, 512, format, args);
 	std::string logstring;
 	logstring = "SpoutGLextensions : ";
 	switch (level) {
-		case LOG_NOTICE:
+		case SPOUT_EXT_LOG_NOTICE:
 			logstring += "Notice - ";
 			break;
-		case LOG_WARNING:
+		case SPOUT_EXT_LOG_WARNING:
 			logstring += "Warning - ";
 			break;
-		case LOG_ERROR:
+		case SPOUT_EXT_LOG_ERROR:
 			logstring += "Error - ";
 			break;
 		default:
@@ -629,7 +868,7 @@ void ExtLog(LogLevel level, const char* format, ...)
 	printf("%s\n", currentLog);
 	// Note that this will not be recorded in a Spout log file.
 #else
-	_doLog(static_cast<SpoutLogLevel>(level), format, args); // SpoutUtils function
+	_doLog(static_cast<spoututils::SpoutLogLevel>(level), format, args); // SpoutUtils function
 #endif
 
 	va_end(args);
