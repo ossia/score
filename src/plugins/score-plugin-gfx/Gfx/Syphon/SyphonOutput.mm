@@ -24,10 +24,23 @@ namespace Gfx
 {
 CGLContextObj nativeContext(QRhi& rhi)
 {
-  auto handles = (QRhiGles2NativeHandles*) rhi.nativeHandles();
-  QOpenGLContext* ctx = handles->context;
-  auto pc = ctx->nativeInterface<QNativeInterface::QCocoaGLContext>();
-  return [pc->nativeContext() CGLContextObj];
+    switch(rhi.backend())
+    {
+    case QRhi::OpenGLES2: {
+        auto handles = (QRhiGles2NativeHandles*) rhi.nativeHandles();
+        QOpenGLContext* ctx = handles->context;
+        auto pc = ctx->nativeInterface<QNativeInterface::QCocoaGLContext>();
+        return [pc->nativeContext() CGLContextObj];
+        break;
+    }
+    case QRhi::Metal:
+        break;
+    case QRhi::Vulkan:
+        break;
+    default:
+        break;
+    }
+    return {};
 }
 
 struct SyphonNode final : score::gfx::OutputNode
@@ -55,10 +68,14 @@ struct SyphonNode final : score::gfx::OutputNode
   {
     if(!m_created)
     {
+      auto ctx = nativeContext(rhi);
+      if(!ctx)
+        return;
+
       auto serverName = this->m_settings.path.toNSString();
       m_syphon = [[SyphonOpenGLServer alloc]
         initWithName:serverName
-        context:nativeContext(rhi)
+        context:ctx
         options:NULL
       ];
       m_created = true;
@@ -67,6 +84,9 @@ struct SyphonNode final : score::gfx::OutputNode
 
   void render() override
   {
+    if(!m_created)
+      return;
+
     if (m_update)
       m_update();
 
