@@ -4,7 +4,7 @@
 
 	Documentation - https://spoutgl-site.netlify.app/					
 
-	Copyright (c) 2014-2022, Lynn Jarvis. All rights reserved.
+	Copyright (c) 2014-2025, Lynn Jarvis. All rights reserved.
 
 	Redistribution and use in source and binary forms, with or without modification, 
 	are permitted provided that the following conditions are met:
@@ -46,18 +46,19 @@ class SPOUT_DLLEXP Spout : public spoutGL {
 	//
 
 	// Set name for sender creation
-	//   If no name is specified, the executable name is used.  
+	//   If no name is specified, the executable name is used  
 	void SetSenderName(const char* sendername = nullptr);
-	// Set the sender DX11 shared texture format
+	// Set sender DX11 shared texture format
 	void SetSenderFormat(DWORD dwFormat);
-	// Close sender and free resources
-	//   A sender is created or updated by all sending functions
+	// Release sender and resources
 	void ReleaseSender();
-	// Send texture attached to fbo.
-	//   The fbo must be currently bound.  
-	//   The sending texture can be larger than the size that the sender is set up for.  
+	// Send OpenGL framebuffer
+	//   The fbo must be bound for read.
+	//   The sending texture can be larger than the size that the sender is set up for
 	//   For example, if the application is using only a portion of the allocated texture space,  
-	//   such as for Freeframe plugins. (The 2.006 equivalent is DrawToSharedTexture).
+	//   such as for Freeframe plugins. (The 2.006 equivalent is DrawToSharedTexture)
+	//   To send the default OpenGL framebuffer, specify FboID = 0.
+	//   If width and height are also 0, the function determines the viewport size.
 	bool SendFbo(GLuint FboID, unsigned int width, unsigned int height, bool bInvert = true);
 	// Send OpenGL texture
 	bool SendTexture(GLuint TextureID, GLuint TextureTarget, unsigned int width, unsigned int height, bool bInvert = true, GLuint HostFBO = 0);
@@ -91,6 +92,8 @@ class SPOUT_DLLEXP Spout : public spoutGL {
 	//   If that sender closes, the receiver will wait for the nominated sender to open 
 	//   If no name is specified, the receiver will connect to the active sender
 	void SetReceiverName(const char * sendername = nullptr);
+	// Get sender for connection
+	bool GetReceiverName(char* sendername, int maxchars = 256);
 	// Close receiver and release resources ready to connect to another sender
 	void ReleaseReceiver();
 	// Receive shared texture
@@ -100,9 +103,10 @@ class SPOUT_DLLEXP Spout : public spoutGL {
 	// Receive OpenGL texture
 	// 	 Connect to a sender and inform the application to update
 	//   the receiving texture if it has changed dimensions
-	//   For no change, copy the sender shared texture to the application texture.
+	//   For no change, copy the sender shared texture to the application texture
 	//   The texture must be RGBA of dimension (width * height) 
-	bool ReceiveTexture(GLuint TextureID, GLuint TextureTarget, bool bInvert = false, GLuint HostFbo = 0);
+	bool ReceiveTexture(GLuint TextureID, GLuint TextureTarget,
+		bool bInvert = false, GLuint HostFbo = 0);
 	// Receive image pixels
 	//   Connect to a sender and inform the application to update
 	//   the receiving buffer if it has changed dimensions
@@ -113,7 +117,7 @@ class SPOUT_DLLEXP Spout : public spoutGL {
 	//   Checked at every cycle before receiving data
 	bool IsUpdated();
 	// Query sender connection
-	//   If the sender closes, receiving functions return false,  
+	//   If the sender closes, receiving functions return false  
 	bool IsConnected();
 	// Query received frame status
 	//   The receiving texture or pixel buffer is only refreshed if the sender has produced a new frame  
@@ -133,12 +137,18 @@ class SPOUT_DLLEXP Spout : public spoutGL {
 	long GetSenderFrame();
 	// Received sender share handle
 	HANDLE GetSenderHandle();
+	// Received sender texture
+	ID3D11Texture2D* GetSenderTexture();
 	// Received sender sharing method
 	bool GetSenderCPU();
 	// Received sender GL/DX hardware compatibility
 	bool GetSenderGLDX();
+	// Return a list of current senders
+	std::vector<std::string> GetSenderList();
+	// Sender index into the set of names
+	int GetSenderIndex(const char* sendername);
 	// Open sender selection dialog
-	void SelectSender();
+	bool SelectSender(HWND hwnd = NULL);
 
 	//
 	// Frame count
@@ -153,10 +163,16 @@ class SPOUT_DLLEXP Spout : public spoutGL {
 	// Frame rate control
 	void HoldFps(int fps);
 	// Signal sync event 
-	void SetFrameSync(const char* SenderName);
+	void SetFrameSync(const char* name = nullptr);
 	// Wait or test for a sync event
 	bool WaitFrameSync(const char *SenderName, DWORD dwTimeout = 0);
-	
+	// Enable / disable frame sync
+	void EnableFrameSync(bool bSync = true);
+	// Close frame sync
+	void CloseFrameSync();
+	// Check for frame sync option
+	bool IsFrameSyncEnabled();
+
 	//
 	// Sender names
 	//
@@ -184,13 +200,30 @@ class SPOUT_DLLEXP Spout : public spoutGL {
 	char * AdapterName();
 	// Get current adapter index
 	int GetAdapter();
-	// Set graphics adapter for output
-	bool SetAdapter(int index = 0);
 	// Get sender adapter index and name for a given sender
 	int GetSenderAdapter(const char* sendername, char* adaptername = nullptr, int maxchars = 256);
-	// Get the current adapter description
-	bool GetAdapterInfo(char *renderdescription, char *displaydescription, int maxchars);
+	// Get the description and output display name of the current adapter
+	bool GetAdapterInfo(char* description, char* output, int maxchars);
+	// Get the description and output display name for a given adapter
+	bool GetAdapterInfo(int index, char* description, char* output, int maxchars);
 
+	//
+	// Graphics preference
+	// Windows 10 Vers 1803, build 17134 or later
+	//
+
+	// Get the Windows graphics preference for an application
+	int GetPerformancePreference(const char* path = nullptr);
+	// Set the Windows graphics preference for an application
+	bool SetPerformancePreference(int preference, const char* path = nullptr);
+	// Get the graphics adapter name for a Windows preference
+	bool GetPreferredAdapterName(int preference, char* adaptername, int maxchars);
+	// Set graphics adapter index for a Windows preference
+	bool SetPreferredAdapter(int preference);
+	// Availability of Windows graphics preference
+	bool IsPreferenceAvailable();
+	// Is the path a valid application
+	bool IsApplicationPath(const char* path);
 
 	//
 	// 2.006 compatibility
@@ -202,7 +235,7 @@ class SPOUT_DLLEXP Spout : public spoutGL {
 	bool GetAdapterInfo(char* renderadapter,
 		char* renderdescription, char* renderversion,
 		char* displaydescription, char* displayversion,
-		int maxsize, bool &bUseDX9);
+		int maxsize);
 
 	// Create a sender
 	bool CreateSender(const char *Sendername, unsigned int width = 0, unsigned int height = 0, DWORD dwFormat = 0);
@@ -214,7 +247,7 @@ class SPOUT_DLLEXP Spout : public spoutGL {
 	//
 
 	// Create receiver connection
-	bool CreateReceiver(char* Sendername, unsigned int &width, unsigned int &height, bool bUseActive = false);
+	bool CreateReceiver(char* Sendername, unsigned int &width, unsigned int &height);
 	// Check receiver connection
 	bool CheckReceiver(char* Sendername, unsigned int &width, unsigned int &height, bool &bConnected);
 	// Receive OpenGL texture
@@ -227,7 +260,6 @@ class SPOUT_DLLEXP Spout : public spoutGL {
 	// Receiver detect sender selection
 	bool CheckSpoutPanel(char *sendername, int maxchars = 256);
 
-
 	// Legacy OpenGL Draw functions
 	// See _SpoutCommon.h_ #define legacyOpenGL
 #ifdef legacyOpenGL
@@ -235,7 +267,7 @@ class SPOUT_DLLEXP Spout : public spoutGL {
 	bool DrawSharedTexture(float max_x = 1.0, float max_y = 1.0, float aspect = 1.0, bool bInvert = true, GLuint HostFBO = 0);
 	// Render a texture to the shared texture. 
 	bool DrawToSharedTexture(GLuint TextureID, GLuint TextureTarget, unsigned int width, unsigned int height, float max_x = 1.0, float max_y = 1.0, float aspect = 1.0, bool bInvert = false, GLuint HostFBO = 0);
-#endif
+#endif // #endif legacyOpenGL
 
 protected:
 
@@ -245,7 +277,7 @@ protected:
 	void InitReceiver(const char * sendername, unsigned int width, unsigned int height, DWORD dwFormat);
 	// Receiver find sender and retrieve information
 	bool ReceiveSenderData();
-	
+
 	//
 	// Class globals
 	//
