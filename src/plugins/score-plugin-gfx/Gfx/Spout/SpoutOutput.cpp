@@ -57,22 +57,19 @@ struct SpoutNode final : score::gfx::OutputNode
 
       renderer->render(*cb);
 
-      // Spout-specific part starts here:
-      {
-        rhi->makeThreadLocalNativeContextCurrent();
-
-        if(m_created)
-        {
-          auto tex = dynamic_cast<QGles2Texture*>(m_texture)->texture;
-          m_spout->SendTexture(tex, GL_TEXTURE_2D, m_settings.width, m_settings.height);
-        }
-        else
-        {
-          qDebug() << "sender not created";
-        }
-      }
-
+      // End the frame - this submits GPU work
       rhi->endOffscreenFrame();
+
+      // Make sure GL context is current and GPU work is complete
+      rhi->makeThreadLocalNativeContextCurrent();
+
+      rhi->finish();
+
+      if(m_created)
+      {
+        auto tex = static_cast<QGles2Texture*>(m_texture)->texture;
+        m_spout->SendTexture(tex, GL_TEXTURE_2D, m_settings.width, m_settings.height);
+      }
     }
   }
 
