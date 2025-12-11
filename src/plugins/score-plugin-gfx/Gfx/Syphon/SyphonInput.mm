@@ -13,10 +13,14 @@
 #include <Syphon/SyphonClient.h>
 #include <Syphon/SyphonOpenGLClient.h>
 #include <Syphon/SyphonOpenGLImage.h>
+#include <Syphon/SyphonMetalClient.h>
 #include <Syphon/SyphonServerDirectory.h>
 
 #include <wobjectimpl.h>
 #include <score/gfx/QRhiGles2.hpp>
+#include <rhi/qrhi.h>
+#include <Metal/Metal.h>
+#include <private/qrhimetal_p.h>
 
 namespace Gfx::Syphon
 {
@@ -41,6 +45,7 @@ public:
   class Renderer;
 };
 
+
 class SyphonInputNode::Renderer : public score::gfx::NodeRenderer
 {
 public:
@@ -61,9 +66,19 @@ private:
   QRhiBuffer* m_materialUBO{};
 
   score::gfx::VideoMaterialUBO material;
-  std::unique_ptr<score::gfx::PackedRectDecoder> m_gpu{};
+  std::unique_ptr<score::gfx::GPUVideoDecoder> m_gpu{};
+
+  // OpenGL receiver
+  SyphonOpenGLClient* m_receiver{};
+  GLuint currentTex = 0;
+
+  // Metal receiver
+  SyphonMetalClient* m_mtlReceiver{};
+  id<MTLTexture> m_currentMtlTexture{};
 
   bool enabled{};
+  bool m_usingMetal{};
+
   ~Renderer() { }
 
   NSDictionary* findServer(NSArray* servers, QString uuid)
@@ -87,25 +102,47 @@ private:
   void openServer(QRhi& rhi)
   {
     enabled = false;
-    // Need pool
 
     SyphonServerDirectory *ssd = [SyphonServerDirectory sharedDirectory];
     NSArray *servers = [ssd serversMatchingName:NULL appName:NULL];
-    if (servers.count != 0)
+    if (servers.count == 0)
+      return;
+
+    NSDictionary *desc = findServer(servers, node.settings.path);
+    if (!desc)
+      return;
+
+    if (rhi.backend() == QRhi::Metal)
     {
-      if (NSDictionary *desc = findServer(servers, node.settings.path))
-      {
-        auto ctx = nativeContext(rhi);
-        if(!ctx)
-          return;
-        m_receiver = [[SyphonOpenGLClient alloc]
-            initWithServerDescription:desc
-            context: ctx
-            options:NULL
-            newFrameHandler:NULL
-        ];
-      }
-      enabled = true;
+      // Metal backend
+      id<MTLDevice> device = nativeMetalDevice(rhi);
+      if (!device)
+        return;
+
+      m_mtlReceiver = [[SyphonMetalClient alloc]
+          initWithServerDescription:desc
+          device:device
+          options:nil
+          newFrameHandler:nil
+      ];
+      m_usingMetal = true;
+      enabled = (m_mtlReceiver != nil);
+    }
+    else if (rhi.backend() == QRhi::OpenGLES2)
+    {
+      // OpenGL backend
+      auto ctx = nativeContext(rhi);
+      if (!ctx)
+        return;
+
+      m_receiver = [[SyphonOpenGLClient alloc]
+          initWithServerDescription:desc
+          context:ctx
+          options:nil
+          newFrameHandler:nil
+      ];
+      m_usingMetal = false;
+      enabled = (m_receiver != nil);
     }
   }
 
@@ -132,14 +169,33 @@ private:
     openServer(rhi);
     int w = 16, h = 16;
 
-    SyphonOpenGLImage* img{};
-    if(enabled)
+    SyphonOpenGLImage* glImg{};
+    id<MTLTexture> mtlTex{};
+
+    if (enabled)
     {
-      if((img = [m_receiver newFrameImage])) {
-        NSSize sz = img.textureSize;
-        w = sz.width;
-        h = sz.height;
-        currentTex = img.textureName;
+      if (m_usingMetal)
+      {
+        // Metal path
+        mtlTex = [m_mtlReceiver newFrameImage];
+        if (mtlTex)
+        {
+          w = mtlTex.width;
+          h = mtlTex.height;
+          m_currentMtlTexture = mtlTex;
+        }
+      }
+      else
+      {
+        // OpenGL path
+        glImg = [m_receiver newFrameImage];
+        if (glImg)
+        {
+          NSSize sz = glImg.textureSize;
+          w = sz.width;
+          h = sz.height;
+          currentTex = glImg.textureName;
+        }
       }
     }
 
@@ -149,12 +205,26 @@ private:
     material.textureSize[1] = h;
     res.updateDynamicBuffer(m_materialUBO, 0, sizeof(score::gfx::VideoMaterialUBO), &material);
 
-    m_gpu = std::make_unique<score::gfx::PackedRectDecoder>(QRhiTexture::RGBA8, 4, metadata, QString{});
+    // Use different decoders based on backend:
+    // - Metal: PackedDecoder (standard 2D textures with sampler2D)
+    // - OpenGL: PackedRectDecoder (rectangle textures with sampler2DRect)
+    if (m_usingMetal)
+    {
+      m_gpu = std::make_unique<score::gfx::PackedDecoder>(QRhiTexture::BGRA8, 4, metadata, QString{});
+    }
+    else
+    {
+      m_gpu = std::make_unique<score::gfx::PackedRectDecoder>(QRhiTexture::RGBA8, 4, metadata, QString{});
+    }
     createPipelines(renderer);
 
-    if(img)
+    if (m_usingMetal && mtlTex)
     {
-      rebuildTexture(img);
+      rebuildTextureMetal(mtlTex);
+    }
+    else if (!m_usingMetal && glImg)
+    {
+      rebuildTexture(glImg);
     }
   }
 
@@ -207,7 +277,25 @@ private:
       pass.second.srb->create();
   }
 
-  GLuint currentTex = 0;
+  void rebuildTextureMetal(id<MTLTexture> mtlTex)
+  {
+    SCORE_ASSERT(!m_gpu->samplers.empty());
+    auto tex = m_gpu->samplers[0].texture;
+
+    QRhiTexture::NativeTexture nativeTex;
+    nativeTex.layout = 0;
+    nativeTex.object = quint64(mtlTex);
+
+    tex->destroy();
+    tex->setPixelSize(QSize(mtlTex.width, mtlTex.height));
+    tex->setFormat(QRhiTexture::Format::BGRA8);
+    // No TextureRectangleGL flag for Metal - it uses standard 2D textures
+    tex->createFrom(nativeTex);
+
+    for(auto& pass : m_p)
+      pass.second.srb->create();
+  }
+
   void update(score::gfx::RenderList &renderer,
               QRhiResourceUpdateBatch &res,
               score::gfx::Edge *e) override
@@ -218,33 +306,55 @@ private:
       openServer(rhi);
     }
 
-    if(!m_receiver.hasNewFrame)
+    if (m_usingMetal)
     {
-      return;
+      // Metal path
+      if (!m_mtlReceiver || !m_mtlReceiver.hasNewFrame)
+        return;
+
+      id<MTLTexture> mtlTex = [m_mtlReceiver newFrameImage];
+      if (!mtlTex)
+        return;
+
+      NSUInteger w = mtlTex.width;
+      NSUInteger h = mtlTex.height;
+
+      if (m_currentMtlTexture != mtlTex || w != metadata.width || h != metadata.height)
+      {
+        metadata.width = std::max((NSUInteger)1, w);
+        metadata.height = std::max((NSUInteger)1, h);
+        material.scale[0] = 1.f;
+        material.scale[1] = 1.f;
+        material.textureSize[0] = metadata.width;
+        material.textureSize[1] = metadata.height;
+
+        m_currentMtlTexture = mtlTex;
+        rebuildTextureMetal(mtlTex);
+      }
     }
-
-    auto& rhi = *renderer.state.rhi;
-
-    // Check the current status of the Syphon remote
-    bool connected{};
-
-    auto img = [m_receiver newFrameImage];
-    if(!img) {
-      return;
-    }
-
-    NSSize sz = img.textureSize;
-    if(currentTex != img.textureName || sz.width != metadata.width || sz.height != metadata.height)
+    else
     {
-      metadata.width = std::max(1., sz.width);
-      metadata.height = std::max(1., sz.height);
-      material.scale[0] = 1.f;
-      material.scale[1] = 1.f;
-      material.textureSize[0] = metadata.width;
-      material.textureSize[1] = metadata.height;
+      // OpenGL path
+      if (!m_receiver || !m_receiver.hasNewFrame)
+        return;
 
-      currentTex = img.textureName;
-      rebuildTexture(img);
+      auto img = [m_receiver newFrameImage];
+      if (!img)
+        return;
+
+      NSSize sz = img.textureSize;
+      if (currentTex != img.textureName || sz.width != metadata.width || sz.height != metadata.height)
+      {
+        metadata.width = std::max(1., sz.width);
+        metadata.height = std::max(1., sz.height);
+        material.scale[0] = 1.f;
+        material.scale[1] = 1.f;
+        material.textureSize[0] = metadata.width;
+        material.textureSize[1] = metadata.height;
+
+        currentTex = img.textureName;
+        rebuildTexture(img);
+      }
     }
 
     res.updateDynamicBuffer(m_processUBO, 0, sizeof(score::gfx::ProcessUBO), &this->node.standardUBO);
@@ -262,11 +372,23 @@ private:
 
   void release(score::gfx::RenderList& r) override
   {
-    if(enabled)
+    if (enabled)
     {
-      //m_receiver.ReleaseReceiver();
+      if (m_mtlReceiver)
+      {
+        [m_mtlReceiver stop];
+        m_mtlReceiver = nil;
+      }
+      if (m_receiver)
+      {
+        [m_receiver stop];
+        m_receiver = nil;
+      }
       enabled = false;
     }
+
+    m_currentMtlTexture = nil;
+    currentTex = 0;
 
     if (m_gpu)
     {
@@ -284,8 +406,6 @@ private:
 
     m_meshBuffer.buffers.clear();
   }
-
-  SyphonOpenGLClient* m_receiver{};
 };
 
 score::gfx::NodeRenderer* SyphonInputNode::createRenderer(score::gfx::RenderList& r) const noexcept
