@@ -197,7 +197,6 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
 (
   echo "[developer.sh] Installing dependencies"
   detect_linux_distro
-  detect_linux_qt_version
   detect_deps_script
   "ci/$DEPS.deps.sh"
 
