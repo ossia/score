@@ -110,7 +110,7 @@ void loadTriMesh(TMesh& mesh, std::vector<float>& complete, PrimitiveOutputs& ou
   outputs.geometry.dirty_mesh = true;
 }
 
-static thread_local TMesh mesh;
+static thread_local TMesh g_tmpMesh;
 void Plane::update()
 {
   /*
@@ -137,12 +137,12 @@ void Plane::update()
   outputs.geometry.mesh.vertices = 4;
   outputs.geometry.dirty_mesh = true;
   */
-  mesh.Clear();
+  g_tmpMesh.Clear();
 
   const int hdivs = std::max(2, (int)inputs.hdivs);
   const int vdivs = std::max(2, (int)inputs.vdivs);
-  vcg::tri::Grid(mesh, hdivs, vdivs, 1., 1.);
-  auto [vertices, pos_start, norm_start, uv_start] = createMesh(mesh, complete);
+  vcg::tri::Grid(g_tmpMesh, hdivs, vdivs, 1., 1.);
+  auto [vertices, pos_start, norm_start, uv_start] = createMesh(g_tmpMesh, complete);
   outputs.geometry.mesh.buffers.main_buffer.elements = complete.data();
   outputs.geometry.mesh.buffers.main_buffer.element_count = complete.size();
   outputs.geometry.mesh.buffers.main_buffer.dirty = true;
@@ -152,52 +152,51 @@ void Plane::update()
   outputs.geometry.mesh.input.input2.byte_offset = sizeof(float) * vertices * (3 + 3);
   outputs.geometry.mesh.vertices = vertices;
   outputs.geometry.dirty_mesh = true;
-  qDebug("recreate plane");
 }
 
 void Cube::update()
 {
-  mesh.Clear();
+  g_tmpMesh.Clear();
   vcg::Box3<float> box;
   box.min = {0, 0, 0};
   box.max = {1, 1, 1};
-  vcg::tri::Box(mesh, box);
-  loadTriMesh(mesh, complete, outputs);
+  vcg::tri::Box(g_tmpMesh, box);
+  loadTriMesh(g_tmpMesh, complete, outputs);
 }
 
 void Sphere::update()
 {
-  mesh.Clear();
-  vcg::tri::Sphere(mesh, inputs.subdiv);
-  loadTriMesh(mesh, complete, outputs);
+  g_tmpMesh.Clear();
+  vcg::tri::Sphere(g_tmpMesh, inputs.subdiv);
+  loadTriMesh(g_tmpMesh, complete, outputs);
 }
 
 void Icosahedron::update()
 {
-  mesh.Clear();
-  vcg::tri::Icosahedron(mesh);
-  loadTriMesh(mesh, complete, outputs);
+  g_tmpMesh.Clear();
+  vcg::tri::Icosahedron(g_tmpMesh);
+  loadTriMesh(g_tmpMesh, complete, outputs);
 }
 
 void Cone::update()
 {
-  mesh.Clear();
-  vcg::tri::Cone(mesh, inputs.r1, inputs.r2, inputs.h, inputs.subdiv);
-  loadTriMesh(mesh, complete, outputs);
+  g_tmpMesh.Clear();
+  vcg::tri::Cone(g_tmpMesh, inputs.r1, inputs.r2, inputs.h, inputs.subdiv);
+  loadTriMesh(g_tmpMesh, complete, outputs);
 }
 
 void Cylinder::update()
 {
-  mesh.Clear();
-  vcg::tri::Cylinder(inputs.slices, inputs.stacks, mesh, true);
-  loadTriMesh(mesh, complete, outputs);
+  g_tmpMesh.Clear();
+  vcg::tri::Cylinder(inputs.slices, inputs.stacks, g_tmpMesh, true);
+  loadTriMesh(g_tmpMesh, complete, outputs);
 }
 
 void Torus::update()
 {
-  mesh.Clear();
-  vcg::tri::Torus(mesh, inputs.r1, inputs.r2, inputs.hdiv, inputs.vdiv);
-  loadTriMesh(mesh, complete, outputs);
+  g_tmpMesh.Clear();
+  vcg::tri::Torus(g_tmpMesh, inputs.r1, inputs.r2, inputs.hdiv, inputs.vdiv);
+  loadTriMesh(g_tmpMesh, complete, outputs);
 }
 
 }
