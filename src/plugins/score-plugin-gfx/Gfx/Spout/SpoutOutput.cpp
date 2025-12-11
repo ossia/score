@@ -35,8 +35,16 @@ struct SpoutNode final : score::gfx::OutputNode
   void startRendering() override
   {
     if(!m_created)
+    {
       m_created = m_spout->CreateSender(
           m_settings.path.toStdString().c_str(), m_settings.width, m_settings.height);
+
+      if(m_created)
+      {
+        // Enable frame sync so receivers can synchronize with us
+        m_spout->EnableFrameSync(true);
+      }
+    }
   }
 
   void onRendererChange() override { }
@@ -62,13 +70,15 @@ struct SpoutNode final : score::gfx::OutputNode
 
       // Make sure GL context is current and GPU work is complete
       rhi->makeThreadLocalNativeContextCurrent();
-
       rhi->finish();
 
       if(m_created)
       {
         auto tex = static_cast<QGles2Texture*>(m_texture)->texture;
         m_spout->SendTexture(tex, GL_TEXTURE_2D, m_settings.width, m_settings.height);
+
+        // Signal frame sync event for any receivers that are waiting
+        m_spout->SetFrameSync(m_settings.path.toStdString().c_str());
       }
     }
   }
