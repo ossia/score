@@ -75,7 +75,7 @@ public:
   static QRhiTextureSubresourceUploadDescription
   createTextureUpload(uint8_t* pixels, int w, int h, int bytesPerPixel, int stride);
 
-  static QString vertexShader() noexcept;
+  static QString vertexShader(bool invertY = false) noexcept;
 
   std::vector<Sampler> samplers;
 };
