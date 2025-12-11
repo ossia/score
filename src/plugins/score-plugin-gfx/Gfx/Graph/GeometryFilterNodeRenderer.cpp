@@ -91,7 +91,7 @@ void GeometryFilterNodeRenderer::runInitialPasses(
     }
 
     outputGeometry.filters->filters.push_back(
-        ossia::geometry_filter{this->id, parent.m_index, parent.m_shader, 1});
+        ossia::geometry_filter{this->nodeId, parent.m_index, parent.m_shader, 1});
 
     rendered_node->second->process(n, this->outputGeometry);
 

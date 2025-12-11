@@ -15,8 +15,11 @@
 #include <score/gfx/QRhiGles2.hpp>
 
 #include <Syphon/SyphonOpenGLServer.h>
+#include <Syphon/SyphonMetalServer.h>
 #include <score/gfx/OpenGL.hpp>
 #include <wobjectimpl.h>
+
+#include <rhi/qrhi.h>
 
 W_OBJECT_IMPL(Gfx::SyphonDevice)
 
@@ -24,23 +27,27 @@ namespace Gfx
 {
 CGLContextObj nativeContext(QRhi& rhi)
 {
-    switch(rhi.backend())
-    {
-    case QRhi::OpenGLES2: {
-        auto handles = (QRhiGles2NativeHandles*) rhi.nativeHandles();
-        QOpenGLContext* ctx = handles->context;
-        auto pc = ctx->nativeInterface<QNativeInterface::QCocoaGLContext>();
-        return [pc->nativeContext() CGLContextObj];
-        break;
-    }
-    case QRhi::Metal:
-        break;
-    case QRhi::Vulkan:
-        break;
-    default:
-        break;
-    }
-    return {};
+    if (rhi.backend() != QRhi::OpenGLES2)
+        return nil;
+    auto handles = (QRhiGles2NativeHandles*) rhi.nativeHandles();
+    QOpenGLContext* ctx = handles->context;
+    auto pc = ctx->nativeInterface<QNativeInterface::QCocoaGLContext>();
+    return [pc->nativeContext() CGLContextObj];
+}
+
+id<MTLDevice> nativeMetalDevice(QRhi& rhi)
+{
+    if (rhi.backend() != QRhi::Metal)
+        return nil;
+
+    auto handles = static_cast<const QRhiMetalNativeHandles*>(rhi.nativeHandles());
+    return (id<MTLDevice>)(handles ? handles->dev : nil);
+}
+
+id<MTLCommandBuffer> nativeMetalCommandBuffer(QRhiCommandBuffer& cb)
+{
+    const auto* handles = static_cast<const QRhiMetalCommandBufferNativeHandles*>(cb.nativeHandles());
+    return (id<MTLCommandBuffer>)(handles ? handles->commandBuffer : nil);
 }
 
 struct SyphonNode final : score::gfx::OutputNode
@@ -60,25 +67,42 @@ struct SyphonNode final : score::gfx::OutputNode
   void onRendererChange() override { }
   bool canRender() const override
   {
-    return bool(m_syphon);
+    return m_syphon || m_mtlSyphon;
   }
 
 
   void createSyphon(QRhi& rhi)
   {
-    if(!m_created)
+    if(m_created)
+      return;
+
+    auto serverName = this->m_settings.path.toNSString();
+
+    if(m_usingMetal)
+    {
+      id<MTLDevice> device = nativeMetalDevice(rhi);
+      if(!device)
+        return;
+
+      m_mtlSyphon = [[SyphonMetalServer alloc]
+        initWithName:serverName
+        device:device
+        options:nil
+      ];
+      m_created = (m_mtlSyphon != nil);
+    }
+    else
     {
       auto ctx = nativeContext(rhi);
       if(!ctx)
         return;
 
-      auto serverName = this->m_settings.path.toNSString();
       m_syphon = [[SyphonOpenGLServer alloc]
         initWithName:serverName
         context:ctx
-        options:NULL
+        options:nil
       ];
-      m_created = true;
+      m_created = (m_syphon != nil);
     }
   }
 
@@ -101,26 +125,40 @@ struct SyphonNode final : score::gfx::OutputNode
 
       renderer->render(*cb);
 
-      rhi->endOffscreenFrame();
-
-      // Syphon-specific part starts here:
+      // Metal: publish BEFORE endOffscreenFrame (Syphon needs to encode commands before commit)
+      if (m_usingMetal && m_mtlSyphon)
       {
-        rhi->makeThreadLocalNativeContextCurrent();
-
-        createSyphon(*rhi);
-
-        if (m_created)
+        id<MTLCommandBuffer> mtlCb = nativeMetalCommandBuffer(*cb);
+        if (mtlCb)
         {
-          auto t = static_cast<QGles2Texture*>(m_texture);
+          QRhiTexture::NativeTexture nativeTex = m_texture->nativeTexture();
+          id<MTLTexture> mtlTex = (__bridge id<MTLTexture>)(void*)nativeTex.object;
 
-          [m_syphon
-            publishFrameTexture:t->texture
-            textureTarget:t->target
+          [m_mtlSyphon
+            publishFrameTexture:mtlTex
+            onCommandBuffer:mtlCb
             imageRegion:NSMakeRect(0, 0, m_settings.width, m_settings.height)
-            textureDimensions:NSMakeSize(m_settings.width, m_settings.height)
             flipped:false
           ];
         }
+      }
+
+      rhi->endOffscreenFrame();
+
+      // OpenGL: publish AFTER endOffscreenFrame (uses context directly, not command buffers)
+      if (!m_usingMetal && m_syphon)
+      {
+        rhi->makeThreadLocalNativeContextCurrent();
+
+        auto t = static_cast<QGles2Texture*>(m_texture);
+
+        [m_syphon
+          publishFrameTexture:t->texture
+          textureTarget:t->target
+          imageRegion:NSMakeRect(0, 0, m_settings.width, m_settings.height)
+          textureDimensions:NSMakeSize(m_settings.width, m_settings.height)
+          flipped:false
+        ];
       }
     }
   }
@@ -147,18 +185,32 @@ struct SyphonNode final : score::gfx::OutputNode
   {
     m_renderState = std::make_shared<score::gfx::RenderState>();
     m_update = onUpdate;
-
-    m_renderState->surface = QRhiGles2InitParams::newFallbackSurface();
-    QRhiGles2InitParams params;
-    params.format.setMajorVersion(3);
-    params.format.setMinorVersion(2);
-    params.format.setProfile(QSurfaceFormat::CompatibilityProfile);
-    params.fallbackSurface = m_renderState->surface;
-    m_renderState->rhi = QRhi::create(QRhi::OpenGLES2, &params, {});
     m_renderState->renderSize = QSize(m_settings.width, m_settings.height);
     m_renderState->outputSize = m_renderState->renderSize;
-    m_renderState->api = score::gfx::GraphicsApi::OpenGL;
-    m_renderState->version = QShaderVersion(120);
+
+    if (graphicsApi == score::gfx::GraphicsApi::Metal)
+    {
+      // Metal backend
+      QRhiMetalInitParams params;
+      m_renderState->rhi = QRhi::create(QRhi::Metal, &params, {});
+      m_renderState->api = score::gfx::GraphicsApi::Metal;
+      m_renderState->version = QShaderVersion(12); // MSL 1.2
+      m_usingMetal = true;
+    }
+    else
+    {
+      // OpenGL backend (default)
+      m_renderState->surface = QRhiGles2InitParams::newFallbackSurface();
+      QRhiGles2InitParams params;
+      params.format.setMajorVersion(3);
+      params.format.setMinorVersion(2);
+      params.format.setProfile(QSurfaceFormat::CompatibilityProfile);
+      params.fallbackSurface = m_renderState->surface;
+      m_renderState->rhi = QRhi::create(QRhi::OpenGLES2, &params, {});
+      m_renderState->api = score::gfx::GraphicsApi::OpenGL;
+      m_renderState->version = QShaderVersion(120);
+      m_usingMetal = false;
+    }
 
     auto rhi = m_renderState->rhi;
     m_texture = rhi->newTexture(
@@ -171,16 +223,30 @@ struct SyphonNode final : score::gfx::OutputNode
     m_renderTarget->setRenderPassDescriptor(m_renderState->renderPassDescriptor);
     m_renderTarget->create();
 
-    rhi->makeThreadLocalNativeContextCurrent();
+    if (!m_usingMetal)
+    {
+      rhi->makeThreadLocalNativeContextCurrent();
+    }
+
     createSyphon(*rhi);
     onReady();
   }
 
   void destroyOutput() override
   {
-    [m_syphon stop];
+    if (m_mtlSyphon)
+    {
+      [m_mtlSyphon stop];
+      m_mtlSyphon = nil;
+    }
 
-    m_syphon = nullptr;
+    if (m_syphon)
+    {
+      [m_syphon stop];
+      m_syphon = nil;
+    }
+
+    m_created = false;
   }
 
   std::shared_ptr<score::gfx::RenderState> renderState() const override
@@ -228,8 +294,14 @@ private:
   QRhiTextureRenderTarget* m_renderTarget{};
   std::function<void()> m_update;
   std::shared_ptr<score::gfx::RenderState> m_renderState{};
+
+  // OpenGL Syphon server
   SyphonOpenGLServer* m_syphon{};
+  // Metal Syphon server
+  SyphonMetalServer* m_mtlSyphon{};
+
   bool m_created{};
+  bool m_usingMetal{};
 };
 
 SyphonDevice::~SyphonDevice() { }
