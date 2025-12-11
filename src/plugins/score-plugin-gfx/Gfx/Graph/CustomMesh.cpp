@@ -1,5 +1,5 @@
 #include "CustomMesh.hpp"
-
+#include <score/tools/Debug.hpp>
 #include <Gfx/Graph/Utils.hpp>
 
 // TODO: extend MeshBufs to hold multiple buffers

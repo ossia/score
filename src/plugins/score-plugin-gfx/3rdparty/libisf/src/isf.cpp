@@ -9,7 +9,7 @@
 #include <boost/regex.hpp>
 
 #include <ctre.hpp>
-
+#include <fmt/format.h>
 #include <array>
 #include <iostream>
 #include <sstream>
