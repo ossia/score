@@ -4,7 +4,7 @@
 
 				Frame counting management
 
-	Copyright (c) 2019-2022. Lynn Jarvis. All rights reserved.
+	Copyright (c) 2019-2025. Lynn Jarvis. All rights reserved.
 
 	Redistribution and use in source and binary forms, with or without modification,
 	are permitted provided that the following conditions are met:
@@ -31,14 +31,14 @@
 #ifndef __spoutFrameCount__
 #define __spoutFrameCount__
 
-#include <string>
-#include <vector>
 #include "SpoutCommon.h"
 #include "SpoutSharedMemory.h"
 
-
-#include <d3d11.h> // for keyed mutex texture access
-#pragma comment (lib, "d3d11.lib")
+#include <string>
+#include <vector>
+#include <d3d11.h>
+#pragma comment (lib, "d3d11.lib") // for keyed mutex texture access
+#pragma comment (lib, "winmm.lib") // for timer resolution functions 
 
 using namespace spoututils;
 
@@ -56,22 +56,31 @@ class SPOUT_DLLEXP spoutFrameCount {
 	spoutFrameCount();
     ~spoutFrameCount();
 
-	// Enable or disable frame counting globally
+	//
+	// Frame counting
+	//
+
+	// Enable or disable frame counting globally by registry setting
 	void SetFrameCount(bool bEnable);
 	// Enable frame counting for this sender
 	void EnableFrameCount(const char* SenderName);
 	// Disable frame counting
 	void DisableFrameCount();
+	// Pause frame counting
+	void PauseFrameCount(bool bPaused = true);
 	// Check status of frame counting
 	bool IsFrameCountEnabled();
 	// Is the received frame new
 	bool IsFrameNew();
+
 	// Received frame rate
 	double GetSenderFps();
 	// Received frame count
 	long GetSenderFrame();
+	// Frame count sender name
+	std::string GetSenderName();
 	// Frame rate control
-	void HoldFps(int fps = 0);
+	void HoldFps(int fps);
 
 	//
 	// Used by other classes
@@ -79,32 +88,41 @@ class SPOUT_DLLEXP spoutFrameCount {
 
 	// Sender increment the semaphore count
 	void SetNewFrame();
+
 	// Receiver read the semaphore count
 	bool GetNewFrame();
+
+	// Receiver wait on semaphore update
+	bool WaitNewFrame(DWORD dwTimeout);
+
 	// For class cleanup functions
 	void CleanupFrameCount();
 
 	//
 	// Mutex locks including DirectX 11 keyed mutex
+	// DX11 texture keyed mutex functions are private
+	// and called by the follwoing functions
 	//
 
-	// Test for texture access using a named sender or keyed texture mutex 
+	// Test for texture access using a named sender mutex or keyed texture mutex 
 	bool CheckTextureAccess(ID3D11Texture2D* D3D11texture = nullptr);
-	// Release mutex and allow textureaccess
-	void AllowTextureAccess(ID3D11Texture2D* D3D11texture = nullptr);
+	// Release mutex and allow texture access
+	bool AllowTextureAccess(ID3D11Texture2D* D3D11texture = nullptr);
 
 	//
 	// Named mutex for shared texture access
 	//
 
 	// Create named mutex for a sender
-	bool CreateAccessMutex(const char * SenderName);
-	// Release the mutex
+	bool CreateAccessMutex(const char* SenderName);
+	// Close the texture access mutex.
 	void CloseAccessMutex();
 	// Test access using a named mutex
 	bool CheckAccess();
 	// Allow access after gaining ownership
 	void AllowAccess();
+	// Test for keyed mutex
+	bool IsKeyedMutex(ID3D11Texture2D* D3D11texture);
 
 	//
 	// Sync events
@@ -113,9 +131,15 @@ class SPOUT_DLLEXP spoutFrameCount {
 	// Set sync event 
 	void SetFrameSync(const char* name);
 	// Wait or test for a sync event
-	bool WaitFrameSync(const char *name, DWORD dwTimeout = 0);
+	bool WaitFrameSync(const char* name, DWORD dwTimeout = 0);
 	// Close sync event
 	void CloseFrameSync();
+	// Check for existence of the sender frame sync event
+	bool CheckFrameSync();
+	// Enable/disable frame sync
+	void EnableFrameSync(bool bSync = true);
+	// Check for frame sync option
+	bool IsFrameSyncEnabled();
 
 protected:
 
@@ -124,12 +148,11 @@ protected:
 
 	// DX11 texture keyed mutex checks
 	bool CheckKeyedAccess(ID3D11Texture2D* D3D11texture);
-	void AllowKeyedAccess(ID3D11Texture2D* D3D11texture);
-	bool IsKeyedMutex(ID3D11Texture2D* D3D11texture);
+	bool AllowKeyedAccess(ID3D11Texture2D* D3D11texture);
 
 	// Frame count semaphore
 	bool m_bFrameCount; // Registry setting of frame count
-	bool m_bDisabled; // application disable
+	bool m_bCountDisabled; // application disable
 	bool m_bIsNewFrame; // received frame is new
 
 	HANDLE m_hCountSemaphore; // semaphore handle
@@ -137,38 +160,38 @@ protected:
 	char m_SenderName[256]; // sender currently connected to a receiver
 	long m_FrameCount; // sender frame count
 	long m_LastFrameCount; // receiver frame comparator
+	double m_FrameTime;
 	double m_FrameTimeTotal;
 	double m_FrameTimeNumber;
 	double m_lastFrame;
 
 	// Sender frame timing
+	double m_SystemFps;
 	double m_SenderFps;
 	void UpdateSenderFps(long framecount = 0);
 
-	double GetRefreshRate();
-
-	// Fps control
-	double m_millisForFrame;
+	// Windows minimum time period
+	UINT m_PeriodMin;
+	void StartTimePeriod();
+	void EndTimePeriod();
 
 	// Sync event
+	bool m_bFrameSync;
 	HANDLE m_hSyncEvent;
 	void OpenFrameSync(const char* SenderName);
 
 #ifdef USE_CHRONO
+
 	// Avoid C4251 warnings in SpoutLibrary by using pointers
 	// USE_CHRONO is defined in SpoutUtils.h
-	std::chrono::steady_clock::time_point * m_FpsStartPtr;
-	std::chrono::steady_clock::time_point * m_FpsEndPtr;
-	std::chrono::steady_clock::time_point * m_FrameStartPtr;
-	std::chrono::steady_clock::time_point * m_FrameEndPtr;
-#endif
+	// Use of std::unique_ptr to avoid warning C26409 using new/delete
+	// results in warning C4251 needs to have dll-interface
+	std::chrono::steady_clock::time_point* m_FpsStartPtr;
+	std::chrono::steady_clock::time_point* m_FpsEndPtr;
+	std::chrono::steady_clock::time_point* m_FrameStartPtr;
+	std::chrono::steady_clock::time_point* m_FrameEndPtr;
 
-	// PC timer
-	double PCFreq;
-	__int64 CounterStart;
-	double m_FrameStart;
-	void StartCounter();
-	double GetCounter();
+#endif
 
 };
 
