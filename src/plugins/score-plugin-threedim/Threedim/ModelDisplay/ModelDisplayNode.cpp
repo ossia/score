@@ -650,7 +650,7 @@ private:
         {
           for (auto n : renderer.renderers)
           {
-            if (n->id == f.node_id)
+            if (n->nodeId == f.node_id)
             {
               if (auto c = safe_cast<score::gfx::GeometryFilterNodeRenderer*>(n))
               {

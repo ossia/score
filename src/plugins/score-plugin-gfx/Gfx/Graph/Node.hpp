@@ -159,7 +159,7 @@ public:
   }
   std::atomic_int64_t renderTargetSpecChanged{-1};
 
-  int32_t id = -1;
+  int32_t nodeId = -1;
   bool requiresDepth{};
   bool addedToGraph{};
 

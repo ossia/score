@@ -56,7 +56,7 @@ public:
    */
   ossia::geometry_spec geometry;
 
-  int32_t id{-1};
+  int32_t nodeId{-1};
   bool materialChanged{false};
   bool geometryChanged{false};
   bool renderTargetSpecsChanged{false};
