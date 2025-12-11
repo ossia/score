@@ -4,7 +4,11 @@
 #include <Gfx/GfxExecContext.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
+#include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
 #include <Gfx/Graph/decoders/RGBA.hpp>
+
+#include <score/gfx/OpenGL.hpp>
+#include <score/gfx/QRhiGles2.hpp>
 
 #include <QFormLayout>
 #include <QLabel>
@@ -64,13 +68,14 @@ private:
   QRhiBuffer* m_processUBO{};
   QRhiBuffer* m_materialUBO{};
 
-  struct Material
-  {
-    float scale_w{1.0f}, scale_h{1.0f};
-  };
-  std::unique_ptr<score::gfx::PackedDecoder> m_gpu{};
+  score::gfx::VideoMaterialUBO material;
+  std::unique_ptr<score::gfx::GPUVideoDecoder> m_gpu{};
+
+  // Spout receiver
+  ::SpoutReceiver m_receiver;
 
   bool enabled{};
+
   ~Renderer() { }
 
   score::gfx::TextureRenderTarget
@@ -78,11 +83,12 @@ private:
   {
     return {};
   }
+
   void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
     // Initialize our rendering structures
     auto& rhi = *renderer.state.rhi;
-    const auto& mesh = renderer.defaultQuad();
+    const auto& mesh = renderer.defaultTriangle();
     if(m_meshBuffer.buffers.empty())
     {
       m_meshBuffer = renderer.initMeshBuffer(mesh, res);
@@ -93,24 +99,46 @@ private:
     m_processUBO->create();
 
     m_materialUBO = rhi.newBuffer(
-        QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(Material));
+        QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer,
+        sizeof(score::gfx::VideoMaterialUBO));
     m_materialUBO->create();
 
-    // Initialize spout
+    // Initialize spout receiver
     m_receiver.SetReceiverName(node.settings.path.toStdString().c_str());
 
-    char sendername[256];
-    uint w = 16, h = 16;
-    m_receiver.SetShareMode(0);
-    enabled = m_receiver.CreateReceiver(sendername, w, h);
+    // Make sure we have a valid OpenGL context
+    rhi.makeThreadLocalNativeContextCurrent();
 
-    metadata.width = std::max((uint)1, w);
-    metadata.height = std::max((uint)1, h);
+    // First call ReceiveTexture() with no texture to connect and get sender info
+    // This is how Spout examples detect the initial sender size
+    unsigned int w = 0, h = 0;
+    if(m_receiver.ReceiveTexture())
+    {
+      w = m_receiver.GetSenderWidth();
+      h = m_receiver.GetSenderHeight();
+      enabled = true;
+    }
 
+    // Use reasonable defaults if no sender found yet
+    if(w == 0 || h == 0)
+    {
+      w = 1280;
+      h = 720;
+      enabled = false;
+    }
+
+    metadata.width = w;
+    metadata.height = h;
+
+    // Use PackedDecoder (standard 2D textures, Spout uses GL_TEXTURE_2D)
     m_gpu = std::make_unique<score::gfx::PackedDecoder>(
-        QRhiTexture::RGBA8, 4, metadata, QString{});
+        QRhiTexture::RGBA8, 4, metadata, QString{}, true);
     createPipelines(renderer);
-    m_pixels.resize(w * h * 4);
+
+    material.textureSize[0] = metadata.width;
+    material.textureSize[1] = metadata.height;
+    res.updateDynamicBuffer(
+        m_materialUBO, 0, sizeof(score::gfx::VideoMaterialUBO), &material);
   }
 
   void createPipelines(score::gfx::RenderList& r)
@@ -120,7 +148,7 @@ private:
       auto shaders = m_gpu->init(r);
       SCORE_ASSERT(m_p.empty());
       score::gfx::defaultPassesInit(
-          m_p, this->node.output[0]->edges, r, r.defaultQuad(), shaders.first,
+          m_p, this->node.output[0]->edges, r, r.defaultTriangle(), shaders.first,
           shaders.second, m_processUBO, m_materialUBO, m_gpu->samplers);
     }
   }
@@ -129,78 +157,63 @@ private:
       score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res,
       score::gfx::Edge* e) override
   {
-    res.updateDynamicBuffer(
-        m_processUBO, 0, sizeof(score::gfx::ProcessUBO), &this->node.standardUBO);
-    Material mat;
-    mat.scale_w = 1.;
-    mat.scale_h = 1.;
-    res.updateDynamicBuffer(m_materialUBO, 0, sizeof(Material), &mat);
-    if(!enabled)
-    {
-      char sendername[256];
-      uint w = 16, h = 16;
-      enabled = m_receiver.CreateReceiver(sendername, w, h);
-      if(!enabled)
-        return;
-    }
-
-    SCORE_ASSERT(!m_gpu->samplers.empty());
-
-    auto tex = m_gpu->samplers[0].texture;
     auto& rhi = *renderer.state.rhi;
 
-    // Check the current status of the Spout remote
-    bool connected{};
-    QSize cursize{metadata.width, metadata.height};
-    uint w = metadata.width, h = metadata.height;
+    // Make sure we're in the right GL context for Spout operations
+    rhi.makeThreadLocalNativeContextCurrent();
 
-    char sendername[256];
+    SCORE_ASSERT(!m_gpu->samplers.empty());
+    auto tex = m_gpu->samplers[0].texture;
+    auto gltex = static_cast<QGles2Texture*>(tex);
+
+    // First, call ReceiveTexture() with no args to connect and check for updates
+    // This doesn't copy any pixels, just updates connection state
+    if(!m_receiver.ReceiveTexture())
     {
-      if(!m_receiver.CheckReceiver(sendername, w, h, connected))
-        return;
+      // No sender available
+      enabled = false;
+      return;
     }
 
-    m_receiver.IsUpdated();
-    bool mustUpload = false;
-    // Check if the texture size changed
-    if(w != metadata.width || h != metadata.height)
+    enabled = true;
+
+    // Check if sender size changed - IsUpdated() returns true when sender changes
+    // We MUST resize our texture BEFORE calling ReceiveTexture with texture ID
+    if(m_receiver.IsUpdated())
     {
-      m_receiver.ReleaseReceiver();
-      enabled = m_receiver.CreateReceiver(sendername, w, h);
-      if(!enabled)
-        return;
+      unsigned int w = m_receiver.GetSenderWidth();
+      unsigned int h = m_receiver.GetSenderHeight();
 
-      metadata.width = w;
-      metadata.height = h;
-
-      if(metadata.width > 0 && metadata.height > 0)
+      if(w > 0 && h > 0 && (w != metadata.width || h != metadata.height))
       {
-        m_pixels.resize(w * h * 4);
+        metadata.width = w;
+        metadata.height = h;
+        material.scale[0] = 1.f;
+        material.scale[1] = 1.f;
+        material.textureSize[0] = metadata.width;
+        material.textureSize[1] = metadata.height;
+
+        // Resize our texture to match sender
         tex->destroy();
         tex->setPixelSize(QSize(w, h));
         tex->create();
+
+        // Update internal GL texture state
+        gltex->specified = true;
+
         for(auto& pass : m_p)
           pass.second.srb->create();
-        mustUpload = true;
-      }
-      else
-      {
-        return;
       }
     }
 
-    if(metadata.width > 0 && metadata.height > 0)
-    {
-      if(m_receiver.ReceiveImage((unsigned char*)m_pixels.data(), GL_RGBA, true))
-      {
-        mustUpload = m_receiver.IsFrameNew();
-      }
-    }
+    // Now copy the texture data - our texture is correctly sized
+    GLuint texId = gltex->texture;
+    m_receiver.ReceiveTexture(texId, GL_TEXTURE_2D);
 
-    if(mustUpload)
-    {
-      m_gpu->setPixels(res, (uint8_t*)m_pixels.data(), metadata.width * 4);
-    }
+    res.updateDynamicBuffer(
+        m_processUBO, 0, sizeof(score::gfx::ProcessUBO), &this->node.standardUBO);
+    res.updateDynamicBuffer(
+        m_materialUBO, 0, sizeof(score::gfx::VideoMaterialUBO), &material);
   }
 
   void runRenderPass(
@@ -208,7 +221,7 @@ private:
       score::gfx::Edge& edge) override
   {
     const auto& mesh = renderer.defaultTriangle();
-    score::gfx::quadRenderPass(renderer, m_meshBuffer, cb, edge, m_p);
+    score::gfx::defaultRenderPass(renderer, mesh, m_meshBuffer, cb, edge, m_p);
   }
 
   void release(score::gfx::RenderList& r) override
@@ -235,9 +248,6 @@ private:
 
     m_meshBuffer.buffers.clear();
   }
-
-  ::SpoutReceiver m_receiver;
-  std::vector<char> m_pixels;
 };
 
 score::gfx::NodeRenderer*
