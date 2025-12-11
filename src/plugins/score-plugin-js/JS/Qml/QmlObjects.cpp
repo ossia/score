@@ -221,7 +221,11 @@ const QVector<QVector<double>>& AudioOutlet::audio() const
 #if defined(SCORE_HAS_GPU_JS)
 TextureInlet::TextureInlet(QObject* parent)
     : Inlet{parent}
+#if __has_include(<QQuickRhiItem>)
     , m_item{new TextureInletItem{}}
+#else
+    , m_item{new QQuickItem{}}
+#endif
 {
 }
 
