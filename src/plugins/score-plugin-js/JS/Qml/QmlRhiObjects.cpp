@@ -1,5 +1,6 @@
 #include "QmlRhiObjects.hpp"
 
+#if __has_include(<QQuickRhiItem>)
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(JS::TextureInletItem)
 
@@ -34,3 +35,4 @@ void TextureInletItemRenderer::synchronize(QQuickRhiItem* item)
 void TextureInletItemRenderer::render(QRhiCommandBuffer* cb) { }
 
 }
+#endif
