@@ -1,4 +1,5 @@
 #include <Gfx/Graph/Mesh.hpp>
+#include <score/tools/Debug.hpp>
 
 namespace score::gfx
 {

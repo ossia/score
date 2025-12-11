@@ -60,8 +60,7 @@ private:
 
   // TODO refactor with VideoNodeRenderer
   score::gfx::PassMap m_p;
-  QRhiBuffer* m_meshBuffer{};
-  QRhiBuffer* m_idxBuffer{};
+  score::gfx::MeshBuffers m_meshBuffer{};
   QRhiBuffer* m_processUBO{};
   QRhiBuffer* m_materialUBO{};
 
@@ -84,11 +83,9 @@ private:
     // Initialize our rendering structures
     auto& rhi = *renderer.state.rhi;
     const auto& mesh = renderer.defaultQuad();
-    if(!m_meshBuffer)
+    if(m_meshBuffer.buffers.empty())
     {
-      auto [mbuffer, ibuffer] = renderer.initMeshBuffer(mesh, res);
-      m_meshBuffer = mbuffer;
-      m_idxBuffer = ibuffer;
+      m_meshBuffer = renderer.initMeshBuffer(mesh, res);
     }
 
     m_processUBO = rhi.newBuffer(
@@ -211,7 +208,7 @@ private:
       score::gfx::Edge& edge) override
   {
     const auto& mesh = renderer.defaultTriangle();
-    score::gfx::quadRenderPass(renderer, {.mesh = m_meshBuffer, .index = m_idxBuffer}, cb, edge, m_p);
+    score::gfx::quadRenderPass(renderer, m_meshBuffer, cb, edge, m_p);
   }
 
   void release(score::gfx::RenderList& r) override
@@ -236,7 +233,7 @@ private:
       p.second.release();
     m_p.clear();
 
-    m_meshBuffer = nullptr;
+    m_meshBuffer.buffers.clear();
   }
 
   ::SpoutReceiver m_receiver;
