@@ -29,6 +29,8 @@ set(SPOUT_SRCS
     Gfx/Spout/SpoutInput.cpp
     Gfx/Spout/SpoutOutput.hpp
     Gfx/Spout/SpoutOutput.cpp
+    "${3RDPARTY_FOLDER}/D3D12MemoryAllocator/D3D12MemAlloc.h"
+    "${3RDPARTY_FOLDER}/D3D12MemoryAllocator/D3D12MemAlloc.cpp"
 )
 endif()
 
@@ -412,6 +414,7 @@ endif()
 
 if(SCORE_HAS_SPOUT)
   add_subdirectory("${3RDPARTY_FOLDER}/Spout" "${CMAKE_CURRENT_BINARY_DIR}/Spout")
+  target_include_directories(${PROJECT_NAME} PRIVATE "${3RDPARTY_FOLDER}/D3D12MemoryAllocator")
   target_link_libraries(${PROJECT_NAME} PRIVATE Spout)
   target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_SPOUT)
   list(APPEND SCORE_FEATURES_LIST spout)
