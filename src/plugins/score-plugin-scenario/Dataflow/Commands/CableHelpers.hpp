@@ -11,6 +11,7 @@
 #include <score_plugin_scenario_export.h>
 
 #include <vector>
+#include <span>
 
 //! MOVEME process
 namespace Process
