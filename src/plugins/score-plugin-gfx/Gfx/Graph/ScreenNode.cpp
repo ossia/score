@@ -13,6 +13,7 @@
 #ifndef QT_NO_OPENGL
 #include <Gfx/Settings/Model.hpp>
 
+#include <Gfx/InvertYRenderer.hpp>
 #include <QOffscreenSurface>
 #include <QtGui/private/qrhigles2_p.h>
 #endif
@@ -539,163 +540,20 @@ std::shared_ptr<score::gfx::RenderState> ScreenNode::renderState() const
   return nullptr;
 }
 
-class ScreenNode::BasicRenderer : public score::gfx::OutputNodeRenderer
-{
-public:
-  TextureRenderTarget m_rt;
-
-  TextureRenderTarget renderTargetForInput(const Port& p) override { return m_rt; }
-  BasicRenderer(const RenderState& state, const ScreenNode& parent)
-      : score::gfx::OutputNodeRenderer{parent}
-  {
-    if(parent.m_swapChain)
-    {
-      m_rt.renderTarget = parent.m_swapChain->currentFrameRenderTarget();
-      m_rt.renderPass = state.renderPassDescriptor;
-    }
-    else
-    {
-      m_rt.renderTarget = nullptr;
-      m_rt.renderPass = nullptr;
-      qDebug() << "Warning: swapchain not found in screenRenderTarget";
-    }
-  }
-
-  ~BasicRenderer() { }
-  void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override { }
-  void update(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge) override {
-  }
-  void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& e) override { }
-  void release(RenderList&) override { }
-};
-
-class ScreenNode::ScaledRenderer : public score::gfx::OutputNodeRenderer
-{
-public:
-  score::gfx::TextureRenderTarget m_inputTarget;
-  score::gfx::TextureRenderTarget m_renderTarget;
-
-  QShader m_vertexS, m_fragmentS;
-
-  std::array<score::gfx::Sampler, 1> m_samplers;
-
-  score::gfx::Pipeline m_p;
-
-  score::gfx::MeshBuffers m_mesh{};
-
-  const ScreenNode& node() const noexcept
-  {
-    return static_cast<const ScreenNode&>(NodeRenderer::node);
-  }
-  TextureRenderTarget renderTargetForInput(const Port& p) override
-  {
-    return m_inputTarget;
-  }
-  ScaledRenderer(const RenderState& state, const ScreenNode& parent)
-      : score::gfx::OutputNodeRenderer{parent}
-  {
-  }
-
-  ~ScaledRenderer() { }
-
-  void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override
-  {
-    // FIXME RGBA32F for hdr ?
-    m_inputTarget = score::gfx::createRenderTarget(
-        renderer.state, QRhiTexture::Format::RGBA8, renderer.state.renderSize,
-        renderer.samples(), renderer.requiresDepth(*this->node().input[0]));
-
-    const auto& mesh = renderer.defaultTriangle();
-    m_mesh = renderer.initMeshBuffer(mesh, res);
-    static const constexpr auto gl_filter = R"_(#version 450
-      layout(location = 0) in vec2 v_texcoord;
-      layout(location = 0) out vec4 fragColor;
-
-      layout(binding = 3) uniform sampler2D tex;
-
-      void main()
-      {
-#if defined(QSHADER_SPIRV)
-        fragColor = texture(tex, vec2(v_texcoord.x, 1. - v_texcoord.y));
-#else
-        fragColor = texture(tex, vec2(v_texcoord.x, v_texcoord.y));
-#endif
-      }
-      )_";
-
-    std::tie(m_vertexS, m_fragmentS)
-        = score::gfx::makeShaders(renderer.state, mesh.defaultVertexShader(), gl_filter);
-
-    m_samplers = {};
-    // Put the input texture, where all the input nodes are rendering, in a sampler.
-    {
-      auto sampler = renderer.state.rhi->newSampler(
-          QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
-          QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
-
-      sampler->setName("FullScreenImageNode::sampler");
-      sampler->create();
-
-      m_samplers[0] = {sampler, this->m_inputTarget.texture};
-    }
-
-    m_renderTarget.renderTarget = node().m_swapChain->currentFrameRenderTarget();
-    m_renderTarget.renderPass = renderer.state.renderPassDescriptor;
-
-    m_p = score::gfx::buildPipeline(
-        renderer, mesh, m_vertexS, m_fragmentS, m_renderTarget, nullptr, nullptr,
-        m_samplers);
-  }
-
-  void update(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge) override {
-  }
-
-  void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& e) override
-  {
-    // m_rt.renderTarget = parent.m_swapChain->currentFrameRenderTarget();
-    // m_rt.renderPass = state->renderPassDescriptor;
-  }
-
-  void finishFrame(
-      score::gfx::RenderList& renderer, QRhiCommandBuffer& cb,
-      QRhiResourceUpdateBatch*& res) override
-  {
-    cb.beginPass(m_renderTarget.renderTarget, Qt::black, {1.0f, 0}, res);
-    res = nullptr;
-    {
-      const auto sz = renderer.state.outputSize;
-
-      cb.setGraphicsPipeline(m_p.pipeline);
-      cb.setShaderResources(m_p.srb);
-      cb.setViewport(QRhiViewport(0, 0, sz.width(), sz.height()));
-
-      const auto& mesh = renderer.defaultTriangle();
-      mesh.draw(this->m_mesh, cb);
-    }
-    cb.endPass();
-  }
-
-  void release(RenderList&) override
-  {
-    m_p.release();
-    m_inputTarget.release();
-    for(auto& s : m_samplers)
-    {
-      delete s.sampler;
-    }
-    m_samplers = {};
-    m_renderTarget.release();
-  }
-};
-
 score::gfx::OutputNodeRenderer* ScreenNode::createRenderer(RenderList& r) const noexcept
 {
-  return new ScaledRenderer{r.state, *this};
+  score::gfx::TextureRenderTarget rt;
+  rt.renderTarget = m_swapChain->currentFrameRenderTarget();
+  rt.renderPass = r.state.renderPassDescriptor;
+  // FIXME why doesn't it work?
+  // return new BasicRenderer{rt, r.state, *this};
+  return new Gfx::ScaledRenderer{rt, r.state, *this};
 }
 
 OutputNode::Configuration ScreenNode::configuration() const noexcept
 {
   return {};
 }
+
 
 }

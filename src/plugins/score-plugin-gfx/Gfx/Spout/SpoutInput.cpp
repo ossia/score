@@ -95,6 +95,7 @@ private:
   ID3D11Device* m_d3d11Device{};
   ID3D11DeviceContext* m_d3d11Context{};
   ID3D11Resource* m_wrappedTexture{};
+  ID3D11Texture2D* m_spoutSharedTexture{}; // Cached Spout shared texture
 
   bool enabled{};
   QRhi::Implementation m_backend{QRhi::Null};
@@ -161,7 +162,7 @@ private:
     auto format = (m_backend == QRhi::D3D11 || m_backend == QRhi::D3D12)
                       ? QRhiTexture::BGRA8
                       : QRhiTexture::RGBA8;
-    m_gpu = std::make_unique<score::gfx::PackedDecoder>(format, 4, metadata, QString{});
+    m_gpu = std::make_unique<score::gfx::PackedDecoder>(format, 4, metadata, QString{}, true);
     createPipelines(renderer);
 
     material.textureSize[0] = metadata.width;
@@ -342,6 +343,15 @@ private:
     auto tex = m_gpu->samplers[0].texture;
     auto d3dtex = static_cast<QD3D11Texture*>(tex);
 
+    // Get QRhi's D3D11 context - we must use the same context for the copy to be visible
+    auto nativeHandles
+        = static_cast<const QRhiD3D11NativeHandles*>(rhi.nativeHandles());
+    if(!nativeHandles || !nativeHandles->dev || !nativeHandles->context)
+      return;
+
+    auto device = static_cast<ID3D11Device*>(nativeHandles->dev);
+    auto context = static_cast<ID3D11DeviceContext*>(nativeHandles->context);
+
     // Check for sender updates
     spoutSenderNames senderNames;
     char senderName[256];
@@ -359,29 +369,33 @@ private:
 
     enabled = true;
 
-    // Check if size changed
+    // Check if size or handle changed
     if(senderWidth != metadata.width || senderHeight != metadata.height
        || shareHandle != m_sharedHandle)
     {
+      // Release cached shared texture if handle changed
+      if(m_receivedTexture && shareHandle != m_sharedHandle)
+      {
+        m_receivedTexture->Release();
+        m_receivedTexture = nullptr;
+      }
       m_sharedHandle = shareHandle;
       resizeTexture(tex, senderWidth, senderHeight);
     }
 
-    // Open the shared texture and copy to our texture
-    ID3D11Texture2D* sharedTex = nullptr;
-    auto device = m_spoutDX.GetDX11Device();
-    auto context = m_spoutDX.GetDX11Context();
-
-    if(device && context
-       && m_spoutDX.OpenDX11shareHandle(device, &sharedTex, m_sharedHandle))
+    // Open the shared texture (cache it to avoid reopening every frame)
+    if(!m_receivedTexture && m_sharedHandle)
     {
-      // Copy from shared texture to our texture
-      context->CopyResource(d3dtex->tex, sharedTex);
-      m_spoutDX.Flush();
+      HRESULT hr
+          = device->OpenSharedResource(m_sharedHandle, IID_PPV_ARGS(&m_receivedTexture));
+      if(FAILED(hr))
+        m_receivedTexture = nullptr;
+    }
 
-      // Release the opened shared texture reference
-      if(sharedTex)
-        sharedTex->Release();
+    if(m_receivedTexture && d3dtex->tex)
+    {
+      // Copy from shared texture to our texture using QRhi's context
+      context->CopyResource(d3dtex->tex, m_receivedTexture);
     }
   }
 
@@ -512,7 +526,11 @@ private:
           m_receiver.ReleaseReceiver();
         break;
       case QRhi::D3D11:
-        m_spoutDX.CloseDirectX11();
+        if(m_receivedTexture)
+        {
+          m_receivedTexture->Release();
+          m_receivedTexture = nullptr;
+        }
         break;
       case QRhi::D3D12:
         // Release D3D11On12 resources

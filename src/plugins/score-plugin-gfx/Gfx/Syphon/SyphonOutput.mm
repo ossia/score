@@ -3,6 +3,7 @@
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
+#include <Gfx/Settings/Model.hpp>
 #include <Gfx/GfxParameter.hpp>
 #include <Gfx/GfxApplicationPlugin.hpp>
 
@@ -194,7 +195,7 @@ struct SyphonNode final : score::gfx::OutputNode
       QRhiMetalInitParams params;
       m_renderState->rhi = QRhi::create(QRhi::Metal, &params, {});
       m_renderState->api = score::gfx::GraphicsApi::Metal;
-      m_renderState->version = QShaderVersion(12); // MSL 1.2
+      m_renderState->version = Gfx::Settings::shaderVersionForAPI(score::gfx::GraphicsApi::Metal);
       m_usingMetal = true;
     }
     else

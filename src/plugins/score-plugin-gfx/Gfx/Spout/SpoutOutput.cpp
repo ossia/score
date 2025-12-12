@@ -2,10 +2,11 @@
 
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxParameter.hpp>
+#include <Gfx/InvertYRenderer.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
 #include <Gfx/Graph/RenderList.hpp>
-
+#include <Gfx/Settings/Model.hpp>
 #include <score/gfx/OpenGL.hpp>
 #include <score/gfx/QRhiGles2.hpp>
 
@@ -77,19 +78,54 @@ struct SpoutNode final : score::gfx::OutputNode
 
   void startRenderingD3D11()
   {
-    // Create shared DX11 texture for Spout
-    HANDLE shareHandle = nullptr;
-    if(m_spoutDX.CreateSharedDX11Texture(
-           m_spoutDX.GetDX11Device(), m_settings.width, m_settings.height,
-           DXGI_FORMAT_B8G8R8A8_UNORM, &m_sharedTexture, shareHandle))
+    if(!m_renderState || !m_renderState->rhi)
+      return;
+
+    auto nativeHandles = static_cast<const QRhiD3D11NativeHandles*>(
+        m_renderState->rhi->nativeHandles());
+    if(!nativeHandles || !nativeHandles->dev)
+      return;
+
+    auto device = static_cast<ID3D11Device*>(nativeHandles->dev);
+
+    // Create shared D3D11 texture for Spout
+    D3D11_TEXTURE2D_DESC texDesc = {};
+    texDesc.Width = m_settings.width;
+    texDesc.Height = m_settings.height;
+    texDesc.MipLevels = 1;
+    texDesc.ArraySize = 1;
+    texDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+    texDesc.SampleDesc.Count = 1;
+    texDesc.SampleDesc.Quality = 0;
+    texDesc.Usage = D3D11_USAGE_DEFAULT;
+    texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+    texDesc.CPUAccessFlags = 0;
+    texDesc.MiscFlags = D3D11_RESOURCE_MISC_SHARED;
+
+    HRESULT hr = device->CreateTexture2D(&texDesc, nullptr, &m_sharedTexture);
+    if(FAILED(hr) || !m_sharedTexture)
+      return;
+
+    // Get the shared handle
+    IDXGIResource* dxgiResource = nullptr;
+    hr = m_sharedTexture->QueryInterface(__uuidof(IDXGIResource), (void**)&dxgiResource);
+    if(SUCCEEDED(hr) && dxgiResource)
     {
-      // Register the sender
-      spoutSenderNames senderNames;
-      m_created = senderNames.CreateSender(
-          (char*)m_settings.path.toStdString().c_str(), m_settings.width, m_settings.height,
-          shareHandle, DXGI_FORMAT_B8G8R8A8_UNORM);
-      m_shareHandle = shareHandle;
+      dxgiResource->GetSharedHandle(&m_shareHandle);
+      dxgiResource->Release();
     }
+
+    if(!m_shareHandle)
+    {
+      m_sharedTexture->Release();
+      m_sharedTexture = nullptr;
+      return;
+    }
+
+    // Register the sender
+    m_created = m_dxSenderNames.CreateSender(
+        (char*)m_settings.path.toStdString().c_str(), m_settings.width, m_settings.height,
+        m_shareHandle, DXGI_FORMAT_B8G8R8A8_UNORM);
   }
 
   void startRenderingD3D12()
@@ -132,8 +168,7 @@ struct SpoutNode final : score::gfx::OutputNode
     }
 
     // Register the sender
-    spoutSenderNames senderNames;
-    m_created = senderNames.CreateSender(
+    m_created = m_dxSenderNames.CreateSender(
         (char*)m_settings.path.toStdString().c_str(), m_settings.width, m_settings.height,
         m_shareHandle, DXGI_FORMAT_B8G8R8A8_UNORM);
   }
@@ -146,9 +181,9 @@ struct SpoutNode final : score::gfx::OutputNode
       case QRhi::OpenGLES2:
         return bool(m_spout);
       case QRhi::D3D11:
-        return ((spoutDirectX&)m_spoutDX).GetDX11Device() != nullptr;
+        return m_sharedTexture != nullptr;
       case QRhi::D3D12:
-        return m_d3d11On12Device != nullptr;
+        return m_d3d11On12Device != nullptr && m_sharedTexture != nullptr;
       default:
         return false;
     }
@@ -204,14 +239,18 @@ struct SpoutNode final : score::gfx::OutputNode
   {
     rhi->finish();
 
-    auto d3dtex = static_cast<QD3D11Texture*>(m_texture);
-    auto context = m_spoutDX.GetDX11Context();
+    auto nativeHandles
+        = static_cast<const QRhiD3D11NativeHandles*>(rhi->nativeHandles());
+    if(!nativeHandles || !nativeHandles->context)
+      return;
 
-    if(context && d3dtex->tex && m_sharedTexture)
+    auto context = static_cast<ID3D11DeviceContext*>(nativeHandles->context);
+    auto d3dtex = static_cast<QD3D11Texture*>(m_texture);
+
+    if(d3dtex->tex && m_sharedTexture)
     {
       // Copy from our render texture to the shared Spout texture
       context->CopyResource(m_sharedTexture, d3dtex->tex);
-      m_spoutDX.Flush();
     }
   }
 
@@ -340,17 +379,7 @@ struct SpoutNode final : score::gfx::OutputNode
     m_renderState->renderSize = QSize(m_settings.width, m_settings.height);
     m_renderState->outputSize = m_renderState->renderSize;
     m_renderState->api = score::gfx::GraphicsApi::D3D11;
-
-    // Get the D3D11 device from QRhi and initialize Spout with it
-    if(m_renderState->rhi)
-    {
-      auto nativeHandles = static_cast<const QRhiD3D11NativeHandles*>(
-          m_renderState->rhi->nativeHandles());
-      if(nativeHandles && nativeHandles->dev)
-      {
-        m_spoutDX.OpenDirectX11(static_cast<ID3D11Device*>(nativeHandles->dev));
-      }
-    }
+    m_renderState->version = Gfx::Settings::shaderVersionForAPI(score::gfx::GraphicsApi::D3D11);
   }
 
   void createOutputD3D12()
@@ -362,6 +391,7 @@ struct SpoutNode final : score::gfx::OutputNode
     m_renderState->renderSize = QSize(m_settings.width, m_settings.height);
     m_renderState->outputSize = m_renderState->renderSize;
     m_renderState->api = score::gfx::GraphicsApi::D3D12;
+    m_renderState->version = Gfx::Settings::shaderVersionForAPI(score::gfx::GraphicsApi::D3D12);
 
     // Get D3D12 device and command queue from QRhi
     if(m_renderState->rhi)
@@ -401,20 +431,18 @@ struct SpoutNode final : score::gfx::OutputNode
         break;
       case QRhi::D3D11:
       {
-        spoutSenderNames senderNames;
-        senderNames.ReleaseSenderName(m_settings.path.toStdString().c_str());
+        m_dxSenderNames.ReleaseSenderName(m_settings.path.toStdString().c_str());
         if(m_sharedTexture)
         {
-          m_spoutDX.ReleaseDX11Texture(m_sharedTexture);
+          m_sharedTexture->Release();
           m_sharedTexture = nullptr;
         }
-        m_spoutDX.CloseDirectX11();
+        m_shareHandle = nullptr;
         break;
       }
       case QRhi::D3D12:
       {
-        spoutSenderNames senderNames;
-        senderNames.ReleaseSenderName(m_settings.path.toStdString().c_str());
+        m_dxSenderNames.ReleaseSenderName(m_settings.path.toStdString().c_str());
 
         // Release wrapped texture first
         if(m_wrappedTexture)
@@ -492,7 +520,22 @@ struct SpoutNode final : score::gfx::OutputNode
     private:
       score::gfx::TextureRenderTarget m_rt;
     };
-    return new SpoutRenderer{r.state, *this};
+
+    score::gfx::TextureRenderTarget m_rt;
+
+    m_rt.texture = m_texture;
+    m_rt.renderTarget = m_renderTarget;
+    m_rt.renderPass = r.state.renderPassDescriptor;
+
+    switch(m_backend)
+    {
+      default:
+      case QRhi::OpenGLES2:
+        return new Gfx::BasicRenderer{m_rt, r.state, *this};
+      case QRhi::D3D11:
+      case QRhi::D3D12:
+        return new Gfx::ScaledRenderer{m_rt, r.state, *this};
+    }
   }
 
   Configuration configuration() const noexcept override
@@ -511,6 +554,9 @@ private:
 
   // OpenGL backend
   std::shared_ptr<SpoutSender> m_spout{};
+
+  // Common to D3D11 / D3D12
+  spoutSenderNames m_dxSenderNames;
 
   // D3D11 backend
   spoutDirectX m_spoutDX;
