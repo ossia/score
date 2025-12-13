@@ -47,7 +47,7 @@ class WindowProtocolFactory final : public Device::ProtocolFactory
       const Device::DeviceSettings& b) const noexcept override;
 };
 
-class WindowDevice final : public GfxOutputDevice
+class SCORE_PLUGIN_GFX_EXPORT WindowDevice final : public GfxOutputDevice
 {
   W_OBJECT(WindowDevice)
 public:

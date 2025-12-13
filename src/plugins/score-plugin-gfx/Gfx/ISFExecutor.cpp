@@ -37,8 +37,8 @@ try
   this->node = n;
 
   Execution::Transaction commands{system()};
-  setup_node(commands);
-  commands.run_all_in_exec();
+  setup_node(desc, commands);
+  commands.run_all_in_ui();
 
   m_ossia_process = std::make_shared<ossia::node_process>(this->node);
 
@@ -67,8 +67,8 @@ try
   this->node = n;
 
   Execution::Transaction commands{system()};
-  setup_node(commands);
-  commands.run_all_in_exec();
+  setup_node(desc, commands);
+  commands.run_all_in_ui();
 
   m_ossia_process = std::make_shared<ossia::node_process>(this->node);
 
@@ -101,7 +101,7 @@ void ISFExecutorComponent::on_shaderChanged(const Gfx::ProcessedProgram& shader)
   setup.unregister_node_soft(m_oldInlets, m_oldOutlets, node, commands);
 
   // 1. Recreate ports
-  auto [inls, outls] = setup_node(commands);
+  auto [inls, outls] = setup_node(shader.descriptor, commands);
 
   // 2. Change the script
   commands.push_back([n, shader = std::make_unique<ProcessedProgram>(shader)] {
@@ -135,7 +135,7 @@ void ISFExecutorComponent::on_shaderChanged(
   setup.unregister_node_soft(m_oldInlets, m_oldOutlets, node, commands);
 
   // 1. Recreate ports
-  auto [inls, outls] = setup_node(commands);
+  auto [inls, outls] = setup_node(desc, commands);
 
   // 2. Change the script
   commands.push_back(
@@ -158,13 +158,14 @@ void ISFExecutorComponent::on_shaderChanged(
   m_oldInlets = process().inlets();
   m_oldOutlets = process().outlets();
 }
-std::pair<ossia::inlets, ossia::outlets>
-ISFExecutorComponent::setup_node(Execution::Transaction& commands)
+std::pair<ossia::inlets, ossia::outlets> ISFExecutorComponent::setup_node(
+    const isf::descriptor& desc, Execution::Transaction& commands)
 {
   const Execution::Context& ctx = system();
   auto& element = this->process();
 
   auto n = std::dynamic_pointer_cast<filter_node>(this->node);
+  SCORE_ASSERT(n);
   int script_index = ++n->script_index;
 
   // 1. Create new inlet & outlet arrays
@@ -201,22 +202,41 @@ ISFExecutorComponent::setup_node(Execution::Transaction& commands)
 
       control_index++;
     }
-    else if([[maybe_unused]] auto ctrl = qobject_cast<Process::AudioInlet*>(ctl))
+    else if(qobject_cast<Process::AudioInlet*>(ctl))
     {
       inls.push_back(new ossia::audio_inlet);
     }
-    else if(auto ctrl = qobject_cast<Gfx::TextureInlet*>(ctl))
+    else if(auto tex = qobject_cast<Gfx::TextureInlet*>(ctl))
     {
       inls.push_back(new ossia::texture_inlet);
-      ctrl->setupExecution(*inls.back(), this);
+      tex->setupExecution(*inls.back(), this);
     }
-    // else if (auto ctrl = qobject_cast<Gfx::GeometryInlet*>(ctl))
-    // {
-    //   inls.push_back(new ossia::geometry_inlet);
-    // }
+    else if(qobject_cast<Gfx::GeometryInlet*>(ctl))
+    {
+      inls.push_back(new ossia::geometry_inlet);
+    }
   }
 
-  outls.push_back(new ossia::texture_outlet);
+  for(auto& ctl : element.outlets())
+  {
+    // FIXME are there more things to do here?
+    if(qobject_cast<Process::ControlOutlet*>(ctl))
+    {
+      outls.push_back(new ossia::value_outlet);
+    }
+    else if(qobject_cast<Process::AudioOutlet*>(ctl))
+    {
+      outls.push_back(new ossia::audio_outlet);
+    }
+    else if(qobject_cast<Gfx::TextureOutlet*>(ctl))
+    {
+      outls.push_back(new ossia::texture_outlet);
+    }
+    else if(qobject_cast<Gfx::GeometryOutlet*>(ctl))
+    {
+      outls.push_back(new ossia::geometry_outlet);
+    }
+  }
 
   //! TODO the day we have audio outputs in some GFX node
   //! propagate will need to be handled ; right now here

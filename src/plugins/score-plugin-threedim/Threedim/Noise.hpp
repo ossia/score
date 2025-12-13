@@ -16,7 +16,9 @@ namespace Threedim
 struct GeometryPort
 {
   halp::dynamic_geometry mesh;
-  float transform[16]{};
+  float transform[16]{
+      1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f,
+  };
   bool dirty_mesh = false;
   bool dirty_transform = false;
 };
@@ -95,12 +97,8 @@ struct Noise
   Noise();
   ~Noise();
 
-  struct tick
-  {
-    int frames;
-    int64_t position_in_frames;
-  };
+  void operator()();
 
-  void operator()(tick);
+  int64_t position_in_frames = 0;
 };
 }

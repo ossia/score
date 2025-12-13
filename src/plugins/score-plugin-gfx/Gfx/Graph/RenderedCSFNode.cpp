@@ -355,11 +355,12 @@ int RenderedCSFNode::calculateStorageBufferSize(std::span<const isf::storage_inp
   return totalSize * arrayCount;
 }
 
-QRhiBuffer* RenderedCSFNode::createStorageBuffer(RenderList& renderer, const QString& name, const QString& access, int size)
+BufferView RenderedCSFNode::createStorageBuffer(
+    RenderList& renderer, const QString& name, const QString& access, int size)
 {
   QRhi& rhi = *renderer.state.rhi;
-  QRhiBuffer* buffer
-      = rhi.newBuffer(QRhiBuffer::Static, QRhiBuffer::StorageBuffer, size);
+  QRhiBuffer* buffer = rhi.newBuffer(
+      QRhiBuffer::Static, QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer, size);
 
   if(buffer)
   {
@@ -371,8 +372,8 @@ QRhiBuffer* RenderedCSFNode::createStorageBuffer(RenderList& renderer, const QSt
       buffer = nullptr;
     }
   }
-  
-  return buffer;
+
+  return {buffer, 0, size};
 }
 
 int RenderedCSFNode::getArraySizeFromUI(const QString& bufferName) const
@@ -422,14 +423,15 @@ int RenderedCSFNode::getArraySizeFromUI(const QString& bufferName) const
   return 1024;
 }
 
-QRhiBuffer *RenderedCSFNode::bufferForOutput(const Port &output)
+BufferView RenderedCSFNode::bufferForOutput(const Port& output)
 {
   for(auto& [port, index] : this->m_outStorageBuffers) {
     if(&output == port) {
-      return this->m_storageBuffers[index].buffer;
+      auto handle = this->m_storageBuffers[index].buffer;
+      return {handle, 0, handle->size()};
     }
   }
-  return nullptr;
+  return {};
 }
 
 void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpdateBatch& res)
@@ -465,8 +467,10 @@ void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpd
       }
       else
       {
-        storageBuffer.buffer = createStorageBuffer(
-            renderer, storageBuffer.name, storageBuffer.access, requiredSize);
+        storageBuffer.buffer
+            = createStorageBuffer(
+                  renderer, storageBuffer.name, storageBuffer.access, requiredSize)
+                  .handle;
       }
       storageBuffer.size = requiredSize;
       storageBuffer.lastKnownSize = requiredSize;
@@ -547,9 +551,19 @@ void RenderedCSFNode::initComputePass(
       {
         if(it->access == "read_only")
         {
-          bindings.append(QRhiShaderResourceBinding::bufferLoad(
-              bindingIndex++, QRhiShaderResourceBinding::ComputeStage, 
-              it->buffer));
+          QRhiBuffer* buf = it->buffer; // Default dummy buffer
+          auto port = this->node.input[input_port_index];
+          if(!port->edges.empty())
+          {
+            auto input_buf = renderer.bufferForInput(*port->edges.front());
+            if(input_buf)
+            {
+              buf = input_buf.handle;
+            }
+          }
+          bindings.append(
+              QRhiShaderResourceBinding::bufferLoad(
+                  bindingIndex++, QRhiShaderResourceBinding::ComputeStage, buf));
           input_port_index++;
         }
         else if(it->access == "write_only")
@@ -992,8 +1006,8 @@ void RenderedCSFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
       if(sb.access.contains("write")) {
         m_outStorageBuffers.push_back({outlets[outlet_index], sb_index});
         outlet_index++;
-        sb_index++;
       }
+      sb_index++;
     }
     // Handle CSF images
     else if(auto* image = ossia::get_if<isf::csf_image_input>(&input.data))
@@ -1092,7 +1106,7 @@ void RenderedCSFNode::recreateShaderResourceBindings(RenderList& renderer, QRhiR
   int input_image_index = 0;
   int output_port_index = 0;
   int output_image_index = 0;
-  
+
   // Process all resources in the order they appear in the descriptor
   for(const auto& input : n.m_descriptor.inputs)
   {
@@ -1109,9 +1123,19 @@ void RenderedCSFNode::recreateShaderResourceBindings(RenderList& renderer, QRhiR
       {
         if(it->access == "read_only")
         {
-          bindings.append(QRhiShaderResourceBinding::bufferLoad(
-              bindingIndex++, QRhiShaderResourceBinding::ComputeStage, 
-              it->buffer));
+          QRhiBuffer* buf = it->buffer; // Default dummy buffer
+          auto port = this->node.input[input_port_index];
+          if(!port->edges.empty())
+          {
+            auto input_buf = renderer.bufferForInput(*port->edges.front());
+            if(input_buf)
+            {
+              buf = input_buf.handle;
+            }
+          }
+          bindings.append(
+              QRhiShaderResourceBinding::bufferLoad(
+                  bindingIndex++, QRhiShaderResourceBinding::ComputeStage, buf));
           input_port_index++;
         }
         else if(it->access == "write_only")

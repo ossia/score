@@ -66,9 +66,129 @@ class Model;
 using time_function = smallfun::function<ossia::time_value(const TimeVal&)>;
 using reverse_time_function = smallfun::function<TimeVal(const ossia::time_value&)>;
 
-using ExecutionCommandQueue = moodycamel::ConcurrentQueue<ExecutionCommand>;
-using EditionCommandQueue = moodycamel::ConcurrentQueue<ExecutionCommand>;
-using GCCommandQueue = moodycamel::ConcurrentQueue<GCCommand>;
+struct ExecutionCommandQueue : private moodycamel::ReaderWriterQueue<ExecutionCommand>
+{
+public:
+  using ReaderWriterQueue<ExecutionCommand>::ReaderWriterQueue;
+  template <typename... Args>
+  inline auto enqueue(Args&&... args) -> decltype(auto)
+  {
+    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+    return ReaderWriterQueue<ExecutionCommand>::enqueue(std::forward<Args>(args)...);
+  }
+  template <typename... Args>
+  inline auto enqueue_bulk(Args&&... args) -> decltype(auto)
+  {
+    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+    return ReaderWriterQueue<ExecutionCommand>::enqueue(std::forward<Args>(args)...);
+  }
+  template <typename... Args>
+  inline auto try_enqueue(Args&&... args) -> decltype(auto)
+  {
+    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+    return ReaderWriterQueue<ExecutionCommand>::enqueue(std::forward<Args>(args)...);
+  }
+  template <typename... Args>
+  inline auto try_enqueue_bulk(Args&&... args) -> decltype(auto)
+  {
+    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+    return ReaderWriterQueue<ExecutionCommand>::enqueue(std::forward<Args>(args)...);
+  }
+
+  template <typename... Args>
+  inline auto try_dequeue(Args&&... args) -> decltype(auto)
+  {
+    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+    return ReaderWriterQueue<ExecutionCommand>::try_dequeue(std::forward<Args>(args)...);
+  }
+};
+
+struct EditionCommandQueue : private moodycamel::ConcurrentQueue<ExecutionCommand>
+{
+public:
+  using ConcurrentQueue<ExecutionCommand>::ConcurrentQueue;
+  template <typename... Args>
+  inline auto enqueue(Args&&... args) -> decltype(auto)
+  {
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
+    return ConcurrentQueue<ExecutionCommand>::enqueue(std::forward<Args>(args)...);
+  }
+  template <typename... Args>
+  inline auto enqueue_bulk(Args&&... args) -> decltype(auto)
+  {
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
+    return ConcurrentQueue<ExecutionCommand>::enqueue(std::forward<Args>(args)...);
+  }
+  template <typename... Args>
+  inline auto try_enqueue(Args&&... args) -> decltype(auto)
+  {
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
+    return ConcurrentQueue<ExecutionCommand>::enqueue(std::forward<Args>(args)...);
+  }
+  template <typename... Args>
+  inline auto try_enqueue_bulk(Args&&... args) -> decltype(auto)
+  {
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
+    return ConcurrentQueue<ExecutionCommand>::enqueue(std::forward<Args>(args)...);
+  }
+
+  template <typename... Args>
+  inline auto try_dequeue(Args&&... args) -> decltype(auto)
+  {
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
+    return ConcurrentQueue<ExecutionCommand>::try_dequeue(std::forward<Args>(args)...);
+  }
+  template <typename... Args>
+  inline auto try_dequeue_bulk(Args&&... args) -> decltype(auto)
+  {
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
+    return ConcurrentQueue<ExecutionCommand>::try_dequeue_bulk(
+        std::forward<Args>(args)...);
+  }
+};
+
+struct GCCommandQueue : private moodycamel::ConcurrentQueue<GCCommand>
+{
+public:
+  using ConcurrentQueue<GCCommand>::ConcurrentQueue;
+  template <typename... Args>
+  inline auto enqueue(Args&&... args) -> decltype(auto)
+  {
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
+    return ConcurrentQueue<GCCommand>::enqueue(std::forward<Args>(args)...);
+  }
+  template <typename... Args>
+  inline auto enqueue_bulk(Args&&... args) -> decltype(auto)
+  {
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
+    return ConcurrentQueue<GCCommand>::enqueue(std::forward<Args>(args)...);
+  }
+  template <typename... Args>
+  inline auto try_enqueue(Args&&... args) -> decltype(auto)
+  {
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
+    return ConcurrentQueue<GCCommand>::enqueue(std::forward<Args>(args)...);
+  }
+  template <typename... Args>
+  inline auto try_enqueue_bulk(Args&&... args) -> decltype(auto)
+  {
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
+    return ConcurrentQueue<GCCommand>::enqueue(std::forward<Args>(args)...);
+  }
+
+  template <typename... Args>
+  inline auto try_dequeue(Args&&... args) -> decltype(auto)
+  {
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
+    return ConcurrentQueue<GCCommand>::try_dequeue(std::forward<Args>(args)...);
+  }
+  template <typename... Args>
+  inline auto try_dequeue_bulk(Args&&... args) -> decltype(auto)
+  {
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
+    return ConcurrentQueue<GCCommand>::try_dequeue_bulk(std::forward<Args>(args)...);
+  }
+};
 
 //! Useful structures when creating the execution elements.
 //!

@@ -11,10 +11,17 @@
 
 namespace score::gfx
 {
+struct BufferView
+{
+  QRhiBuffer* handle{};
+  int64_t byte_offset{};
+  int64_t byte_size{};
+
+  inline operator bool() const noexcept { return handle; }
+};
 struct MeshBuffers
 {
-  QRhiBuffer* mesh{};
-  QRhiBuffer* index{};
+  ossia::small_vector<BufferView, 2> buffers;
 };
 /**
  * @brief Data model for meshes.
@@ -39,7 +46,9 @@ public:
 
   [[nodiscard]] virtual MeshBuffers init(QRhi& rhi) const noexcept = 0;
 
-  virtual void update(MeshBuffers& bufs, QRhiResourceUpdateBatch& cb) const noexcept = 0;
+  virtual void
+  update(QRhi& rhi, MeshBuffers& bufs, QRhiResourceUpdateBatch& cb) const noexcept
+      = 0;
   virtual void preparePipeline(QRhiGraphicsPipeline& pip) const noexcept = 0;
   virtual void draw(const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexcept = 0;
 
@@ -77,7 +86,8 @@ struct SCORE_PLUGIN_GFX_EXPORT BasicMesh : Mesh
 {
   using Mesh::Mesh;
   [[nodiscard]] virtual MeshBuffers init(QRhi& rhi) const noexcept override;
-  void update(MeshBuffers& bufs, QRhiResourceUpdateBatch& cb) const noexcept override;
+  void update(
+      QRhi& rhi, MeshBuffers& bufs, QRhiResourceUpdateBatch& cb) const noexcept override;
   void preparePipeline(QRhiGraphicsPipeline& pip) const noexcept override;
   void draw(const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexcept override;
   virtual void

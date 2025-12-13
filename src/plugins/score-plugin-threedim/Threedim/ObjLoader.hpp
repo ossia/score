@@ -42,8 +42,6 @@ public:
     } geometry;
   } outputs;
 
-  void operator()();
-
   void rebuild_geometry();
 
   std::vector<mesh> meshinfo{};

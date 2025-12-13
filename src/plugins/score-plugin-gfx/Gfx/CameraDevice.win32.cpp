@@ -15,6 +15,7 @@ extern "C" {
 #include <dshow.h>
 #include <dvdmedia.h>
 #include <wmcodecdsp.h>
+#include <oleauto.h>
 namespace Gfx
 {
 

@@ -76,4 +76,7 @@ SCORE_SETTINGS_PARAMETER(Model, Rate)
 SCORE_SETTINGS_PARAMETER(Model, Samples)
 SCORE_SETTINGS_PARAMETER(Model, VSync)
 SCORE_SETTINGS_PARAMETER(Model, Buffers)
+
+SCORE_PLUGIN_GFX_EXPORT
+QShaderVersion shaderVersionForAPI(score::gfx::GraphicsApi) noexcept;
 }

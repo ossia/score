@@ -7,7 +7,7 @@
 	https://github.com/mbechard
 
 	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	Copyright (c) 2014-2022, Lynn Jarvis. All rights reserved.
+	Copyright (c) 2014-2025, Lynn Jarvis. All rights reserved.
 
 	Redistribution and use in source and binary forms, with or without modification, 
 	are permitted provided that the following conditions are met:
@@ -30,6 +30,7 @@
 	OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
+
 #pragma once
 
 #ifndef __SpoutSharedMemory_ // standard way as well
@@ -37,14 +38,14 @@
 
 #include "SpoutCommon.h"
 #include <windowsx.h>
-#include <d3d9.h>
 #include <wingdi.h>
 
 using namespace spoututils;
 
+//
 // Result of memory segment creation
-enum SpoutCreateResult
-{
+//
+enum SpoutCreateResult {
 	SPOUT_CREATE_FAILED = 0,
 	SPOUT_CREATE_SUCCESS,
 	SPOUT_ALREADY_EXISTS,
@@ -88,7 +89,7 @@ private:
 	HANDLE m_hMap; // Map handle
 	HANDLE m_hMutex; // Mutex for map access
 	int m_lockCount; // Map access lock count
-	const char*	m_pName; // Map name
+	char* m_pName; // Map name
 	int m_size; // Map size
 
 };

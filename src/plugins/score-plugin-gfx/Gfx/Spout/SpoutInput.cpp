@@ -4,13 +4,28 @@
 #include <Gfx/GfxExecContext.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
+#include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
 #include <Gfx/Graph/decoders/RGBA.hpp>
+
+#include <score/gfx/OpenGL.hpp>
+#include <score/gfx/QRhiGles2.hpp>
+
+#include <rhi/qrhi.h>
 
 #include <QFormLayout>
 #include <QLabel>
 #include <QUrl>
 
 #include <Spout/SpoutReceiver.h>
+#include <Spout/SpoutDirectX.h>
+
+// Include QRhi D3D11/D3D12 private headers for native texture access
+#include <private/qrhid3d11_p.h>
+#include <private/qrhid3d12_p.h>
+
+// D3D11On12 for D3D12 interop
+#include <d3d11on12.h>
+#pragma comment(lib, "d3d11.lib")
 
 #include <wobjectimpl.h>
 
@@ -60,18 +75,31 @@ private:
 
   // TODO refactor with VideoNodeRenderer
   score::gfx::PassMap m_p;
-  QRhiBuffer* m_meshBuffer{};
-  QRhiBuffer* m_idxBuffer{};
+  score::gfx::MeshBuffers m_meshBuffer{};
   QRhiBuffer* m_processUBO{};
   QRhiBuffer* m_materialUBO{};
 
-  struct Material
-  {
-    float scale_w{1.0f}, scale_h{1.0f};
-  };
-  std::unique_ptr<score::gfx::PackedDecoder> m_gpu{};
+  score::gfx::VideoMaterialUBO material;
+  std::unique_ptr<score::gfx::GPUVideoDecoder> m_gpu{};
+
+  // Spout receiver (for OpenGL)
+  ::SpoutReceiver m_receiver;
+
+  // Spout DirectX (for D3D11)
+  spoutDirectX m_spoutDX;
+  ID3D11Texture2D* m_receivedTexture{};
+  HANDLE m_sharedHandle{};
+
+  // D3D11On12 interop (for D3D12)
+  ID3D11On12Device* m_d3d11On12Device{};
+  ID3D11Device* m_d3d11Device{};
+  ID3D11DeviceContext* m_d3d11Context{};
+  ID3D11Resource* m_wrappedTexture{};
+  ID3D11Texture2D* m_spoutSharedTexture{}; // Cached Spout shared texture
 
   bool enabled{};
+  QRhi::Implementation m_backend{QRhi::Null};
+
   ~Renderer() { }
 
   score::gfx::TextureRenderTarget
@@ -79,16 +107,17 @@ private:
   {
     return {};
   }
+
   void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
-    // Initialize our rendering structures
     auto& rhi = *renderer.state.rhi;
-    const auto& mesh = renderer.defaultQuad();
-    if(!m_meshBuffer)
+    m_backend = rhi.backend();
+
+    // Initialize our rendering structures
+    const auto& mesh = renderer.defaultTriangle();
+    if(m_meshBuffer.buffers.empty())
     {
-      auto [mbuffer, ibuffer] = renderer.initMeshBuffer(mesh, res);
-      m_meshBuffer = mbuffer;
-      m_idxBuffer = ibuffer;
+      m_meshBuffer = renderer.initMeshBuffer(mesh, res);
     }
 
     m_processUBO = rhi.newBuffer(
@@ -96,24 +125,145 @@ private:
     m_processUBO->create();
 
     m_materialUBO = rhi.newBuffer(
-        QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(Material));
+        QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer,
+        sizeof(score::gfx::VideoMaterialUBO));
     m_materialUBO->create();
 
-    // Initialize spout
-    m_receiver.SetReceiverName(node.settings.path.toStdString().c_str());
+    // Initialize based on backend
+    unsigned int w = 0, h = 0;
 
-    char sendername[256];
-    uint w = 16, h = 16;
-    m_receiver.SetShareMode(0);
-    enabled = m_receiver.CreateReceiver(sendername, w, h);
+    switch(m_backend)
+    {
+      case QRhi::OpenGLES2:
+        initOpenGL(rhi, w, h);
+        break;
+      case QRhi::D3D11:
+        initD3D11(rhi, w, h);
+        break;
+      case QRhi::D3D12:
+        initD3D12(rhi, w, h);
+        break;
+      default:
+        break;
+    }
 
-    metadata.width = std::max((uint)1, w);
-    metadata.height = std::max((uint)1, h);
+    // Use reasonable defaults if no sender found yet
+    if(w == 0 || h == 0)
+    {
+      w = 1280;
+      h = 720;
+      enabled = false;
+    }
 
-    m_gpu = std::make_unique<score::gfx::PackedDecoder>(
-        QRhiTexture::RGBA8, 4, metadata, QString{});
+    metadata.width = w;
+    metadata.height = h;
+
+    // Use BGRA for D3D backends (native DXGI format), RGBA for OpenGL
+    auto format = (m_backend == QRhi::D3D11 || m_backend == QRhi::D3D12)
+                      ? QRhiTexture::BGRA8
+                      : QRhiTexture::RGBA8;
+    m_gpu = std::make_unique<score::gfx::PackedDecoder>(format, 4, metadata, QString{}, true);
     createPipelines(renderer);
-    m_pixels.resize(w * h * 4);
+
+    material.textureSize[0] = metadata.width;
+    material.textureSize[1] = metadata.height;
+    res.updateDynamicBuffer(
+        m_materialUBO, 0, sizeof(score::gfx::VideoMaterialUBO), &material);
+  }
+
+  void initOpenGL(QRhi& rhi, unsigned int& w, unsigned int& h)
+  {
+    m_receiver.SetReceiverName(node.settings.path.toStdString().c_str());
+    rhi.makeThreadLocalNativeContextCurrent();
+
+    if(m_receiver.ReceiveTexture())
+    {
+      w = m_receiver.GetSenderWidth();
+      h = m_receiver.GetSenderHeight();
+      enabled = true;
+    }
+  }
+
+  void initD3D11(QRhi& rhi, unsigned int& w, unsigned int& h)
+  {
+    // Get the D3D11 device from QRhi
+    auto nativeHandles
+        = static_cast<const QRhiD3D11NativeHandles*>(rhi.nativeHandles());
+    if(!nativeHandles || !nativeHandles->dev)
+      return;
+
+    auto device = static_cast<ID3D11Device*>(nativeHandles->dev);
+
+    // Initialize Spout DirectX with the QRhi device
+    if(!m_spoutDX.OpenDirectX11(device))
+      return;
+
+    // Try to find and connect to the sender
+    spoutSenderNames senderNames;
+    char senderName[256];
+    strncpy_s(senderName, node.settings.path.toStdString().c_str(), 255);
+
+    unsigned int senderWidth = 0, senderHeight = 0;
+    DWORD dwFormat = 0;
+    HANDLE shareHandle = nullptr;
+
+    if(senderNames.GetSenderInfo(senderName, senderWidth, senderHeight, shareHandle, dwFormat))
+    {
+      w = senderWidth;
+      h = senderHeight;
+      m_sharedHandle = shareHandle;
+      enabled = true;
+    }
+  }
+
+  void initD3D12(QRhi& rhi, unsigned int& w, unsigned int& h)
+  {
+    // Get D3D12 device and command queue from QRhi
+    auto nativeHandles
+        = static_cast<const QRhiD3D12NativeHandles*>(rhi.nativeHandles());
+    if(!nativeHandles || !nativeHandles->dev || !nativeHandles->commandQueue)
+      return;
+
+    auto d3d12Device = static_cast<ID3D12Device*>(nativeHandles->dev);
+    IUnknown* cmdQueue = static_cast<IUnknown*>(nativeHandles->commandQueue);
+
+    // Create D3D11On12 device for interop
+    UINT d3d11DeviceFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
+    HRESULT hr = D3D11On12CreateDevice(
+        d3d12Device, d3d11DeviceFlags, nullptr, 0, &cmdQueue, 1, 0, &m_d3d11Device,
+        &m_d3d11Context, nullptr);
+
+    if(FAILED(hr) || !m_d3d11Device)
+      return;
+
+    // Get the D3D11On12Device interface
+    hr = m_d3d11Device->QueryInterface(
+        __uuidof(ID3D11On12Device), reinterpret_cast<void**>(&m_d3d11On12Device));
+    if(FAILED(hr) || !m_d3d11On12Device)
+    {
+      m_d3d11Device->Release();
+      m_d3d11Device = nullptr;
+      m_d3d11Context->Release();
+      m_d3d11Context = nullptr;
+      return;
+    }
+
+    // Try to find and connect to the sender
+    spoutSenderNames senderNames;
+    char senderName[256];
+    strncpy_s(senderName, node.settings.path.toStdString().c_str(), 255);
+
+    unsigned int senderWidth = 0, senderHeight = 0;
+    DWORD dwFormat = 0;
+    HANDLE shareHandle = nullptr;
+
+    if(senderNames.GetSenderInfo(senderName, senderWidth, senderHeight, shareHandle, dwFormat))
+    {
+      w = senderWidth;
+      h = senderHeight;
+      m_sharedHandle = shareHandle;
+      enabled = true;
+    }
   }
 
   void createPipelines(score::gfx::RenderList& r)
@@ -123,7 +273,7 @@ private:
       auto shaders = m_gpu->init(r);
       SCORE_ASSERT(m_p.empty());
       score::gfx::defaultPassesInit(
-          m_p, this->node.output[0]->edges, r, r.defaultQuad(), shaders.first,
+          m_p, this->node.output[0]->edges, r, r.defaultTriangle(), shaders.first,
           shaders.second, m_processUBO, m_materialUBO, m_gpu->samplers);
     }
   }
@@ -132,78 +282,231 @@ private:
       score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res,
       score::gfx::Edge* e) override
   {
-    res.updateDynamicBuffer(
-        m_processUBO, 0, sizeof(score::gfx::ProcessUBO), &this->node.standardUBO);
-    Material mat;
-    mat.scale_w = 1.;
-    mat.scale_h = 1.;
-    res.updateDynamicBuffer(m_materialUBO, 0, sizeof(Material), &mat);
-    if(!enabled)
-    {
-      char sendername[256];
-      uint w = 16, h = 16;
-      enabled = m_receiver.CreateReceiver(sendername, w, h);
-      if(!enabled)
-        return;
-    }
-
-    SCORE_ASSERT(!m_gpu->samplers.empty());
-
-    auto tex = m_gpu->samplers[0].texture;
     auto& rhi = *renderer.state.rhi;
 
-    // Check the current status of the Spout remote
-    bool connected{};
-    QSize cursize{metadata.width, metadata.height};
-    uint w = metadata.width, h = metadata.height;
-
-    char sendername[256];
+    switch(m_backend)
     {
-      if(!m_receiver.CheckReceiver(sendername, w, h, connected))
-        return;
+      case QRhi::OpenGLES2:
+        updateOpenGL(rhi, res);
+        break;
+      case QRhi::D3D11:
+        updateD3D11(rhi, res);
+        break;
+      case QRhi::D3D12:
+        updateD3D12(rhi, res);
+        break;
+      default:
+        break;
     }
 
-    m_receiver.IsUpdated();
-    bool mustUpload = false;
-    // Check if the texture size changed
-    if(w != metadata.width || h != metadata.height)
+    res.updateDynamicBuffer(
+        m_processUBO, 0, sizeof(score::gfx::ProcessUBO), &this->node.standardUBO);
+    res.updateDynamicBuffer(
+        m_materialUBO, 0, sizeof(score::gfx::VideoMaterialUBO), &material);
+  }
+
+  void updateOpenGL(QRhi& rhi, QRhiResourceUpdateBatch& res)
+  {
+    rhi.makeThreadLocalNativeContextCurrent();
+
+    SCORE_ASSERT(!m_gpu->samplers.empty());
+    auto tex = m_gpu->samplers[0].texture;
+    auto gltex = static_cast<QGles2Texture*>(tex);
+
+    if(!m_receiver.ReceiveTexture())
     {
-      m_receiver.ReleaseReceiver();
-      enabled = m_receiver.CreateReceiver(sendername, w, h);
-      if(!enabled)
-        return;
+      enabled = false;
+      return;
+    }
 
-      metadata.width = w;
-      metadata.height = h;
+    enabled = true;
 
-      if(metadata.width > 0 && metadata.height > 0)
+    if(m_receiver.IsUpdated())
+    {
+      unsigned int w = m_receiver.GetSenderWidth();
+      unsigned int h = m_receiver.GetSenderHeight();
+
+      if(w > 0 && h > 0 && (w != metadata.width || h != metadata.height))
       {
-        m_pixels.resize(w * h * 4);
-        tex->destroy();
-        tex->setPixelSize(QSize(w, h));
-        tex->create();
-        for(auto& pass : m_p)
-          pass.second.srb->create();
-        mustUpload = true;
+        resizeTexture(tex, w, h);
+        gltex->specified = true;
       }
-      else
+    }
+
+    GLuint texId = gltex->texture;
+    m_receiver.ReceiveTexture(texId, GL_TEXTURE_2D);
+  }
+
+  void updateD3D11(QRhi& rhi, QRhiResourceUpdateBatch& res)
+  {
+    SCORE_ASSERT(!m_gpu->samplers.empty());
+    auto tex = m_gpu->samplers[0].texture;
+    auto d3dtex = static_cast<QD3D11Texture*>(tex);
+
+    // Get QRhi's D3D11 context - we must use the same context for the copy to be visible
+    auto nativeHandles
+        = static_cast<const QRhiD3D11NativeHandles*>(rhi.nativeHandles());
+    if(!nativeHandles || !nativeHandles->dev || !nativeHandles->context)
+      return;
+
+    auto device = static_cast<ID3D11Device*>(nativeHandles->dev);
+    auto context = static_cast<ID3D11DeviceContext*>(nativeHandles->context);
+
+    // Check for sender updates
+    spoutSenderNames senderNames;
+    char senderName[256];
+    strncpy_s(senderName, node.settings.path.toStdString().c_str(), 255);
+
+    unsigned int senderWidth = 0, senderHeight = 0;
+    DWORD dwFormat = 0;
+    HANDLE shareHandle = nullptr;
+
+    if(!senderNames.GetSenderInfo(senderName, senderWidth, senderHeight, shareHandle, dwFormat))
+    {
+      enabled = false;
+      return;
+    }
+
+    enabled = true;
+
+    // Check if size or handle changed
+    if(senderWidth != metadata.width || senderHeight != metadata.height
+       || shareHandle != m_sharedHandle)
+    {
+      // Release cached shared texture if handle changed
+      if(m_receivedTexture && shareHandle != m_sharedHandle)
       {
+        m_receivedTexture->Release();
+        m_receivedTexture = nullptr;
+      }
+      m_sharedHandle = shareHandle;
+      resizeTexture(tex, senderWidth, senderHeight);
+    }
+
+    // Open the shared texture (cache it to avoid reopening every frame)
+    if(!m_receivedTexture && m_sharedHandle)
+    {
+      HRESULT hr
+          = device->OpenSharedResource(m_sharedHandle, IID_PPV_ARGS(&m_receivedTexture));
+      if(FAILED(hr))
+        m_receivedTexture = nullptr;
+    }
+
+    if(m_receivedTexture && d3dtex->tex)
+    {
+      // Copy from shared texture to our texture using QRhi's context
+      context->CopyResource(d3dtex->tex, m_receivedTexture);
+    }
+  }
+
+  void updateD3D12(QRhi& rhi, QRhiResourceUpdateBatch& res)
+  {
+    if(!m_d3d11On12Device || !m_d3d11Device || !m_d3d11Context)
+      return;
+
+    SCORE_ASSERT(!m_gpu->samplers.empty());
+    auto tex = m_gpu->samplers[0].texture;
+
+    // Check for sender updates
+    spoutSenderNames senderNames;
+    char senderName[256];
+    strncpy_s(senderName, node.settings.path.toStdString().c_str(), 255);
+
+    unsigned int senderWidth = 0, senderHeight = 0;
+    DWORD dwFormat = 0;
+    HANDLE shareHandle = nullptr;
+
+    if(!senderNames.GetSenderInfo(senderName, senderWidth, senderHeight, shareHandle, dwFormat))
+    {
+      enabled = false;
+      return;
+    }
+
+    enabled = true;
+
+    // Check if size changed - need to re-wrap the texture
+    bool sizeChanged = (senderWidth != metadata.width || senderHeight != metadata.height);
+    bool handleChanged = (shareHandle != m_sharedHandle);
+
+    if(sizeChanged || handleChanged)
+    {
+      // Release old wrapped resource
+      if(m_wrappedTexture)
+      {
+        m_wrappedTexture->Release();
+        m_wrappedTexture = nullptr;
+      }
+
+      m_sharedHandle = shareHandle;
+
+      if(sizeChanged)
+        resizeTexture(tex, senderWidth, senderHeight);
+    }
+
+    // Get the native D3D12 resource from QRhiTexture
+    auto nativeTex = tex->nativeTexture();
+    auto d3d12Resource = reinterpret_cast<ID3D12Resource*>(nativeTex.object);
+    if(!d3d12Resource)
+      return;
+
+    // Wrap the D3D12 texture for D3D11 access if not already wrapped
+    if(!m_wrappedTexture)
+    {
+      D3D11_RESOURCE_FLAGS d3d11Flags = {};
+      d3d11Flags.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+      HRESULT hr = m_d3d11On12Device->CreateWrappedResource(
+          d3d12Resource, &d3d11Flags, D3D12_RESOURCE_STATE_COPY_DEST,
+          D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, IID_PPV_ARGS(&m_wrappedTexture));
+
+      if(FAILED(hr))
+      {
+        m_wrappedTexture = nullptr;
         return;
       }
     }
 
-    if(metadata.width > 0 && metadata.height > 0)
-    {
-      if(m_receiver.ReceiveImage((unsigned char*)m_pixels.data(), GL_RGBA, true))
-      {
-        mustUpload = m_receiver.IsFrameNew();
-      }
-    }
+    if(!m_wrappedTexture)
+      return;
 
-    if(mustUpload)
-    {
-      m_gpu->setPixels(res, (uint8_t*)m_pixels.data(), metadata.width * 4);
-    }
+    // Open the Spout shared texture via D3D11
+    ID3D11Texture2D* sharedTex = nullptr;
+    HRESULT hr
+        = m_d3d11Device->OpenSharedResource(m_sharedHandle, IID_PPV_ARGS(&sharedTex));
+    if(FAILED(hr) || !sharedTex)
+      return;
+
+    // Acquire the wrapped resource for D3D11 use
+    m_d3d11On12Device->AcquireWrappedResources(&m_wrappedTexture, 1);
+
+    // Copy from shared texture to wrapped texture
+    m_d3d11Context->CopyResource(m_wrappedTexture, sharedTex);
+
+    // Release the wrapped resource back to D3D12
+    m_d3d11On12Device->ReleaseWrappedResources(&m_wrappedTexture, 1);
+
+    // Flush D3D11 commands
+    m_d3d11Context->Flush();
+
+    // Release the shared texture reference
+    sharedTex->Release();
+  }
+
+  void resizeTexture(QRhiTexture* tex, unsigned int w, unsigned int h)
+  {
+    metadata.width = w;
+    metadata.height = h;
+    material.scale[0] = 1.f;
+    material.scale[1] = 1.f;
+    material.textureSize[0] = metadata.width;
+    material.textureSize[1] = metadata.height;
+
+    tex->destroy();
+    tex->setPixelSize(QSize(w, h));
+    tex->create();
+
+    for(auto& pass : m_p)
+      pass.second.srb->create();
   }
 
   void runRenderPass(
@@ -211,16 +514,54 @@ private:
       score::gfx::Edge& edge) override
   {
     const auto& mesh = renderer.defaultTriangle();
-    score::gfx::quadRenderPass(renderer, {.mesh = m_meshBuffer, .index = m_idxBuffer}, cb, edge, m_p);
+    score::gfx::defaultRenderPass(renderer, mesh, m_meshBuffer, cb, edge, m_p);
   }
 
   void release(score::gfx::RenderList& r) override
   {
-    if(enabled)
+    switch(m_backend)
     {
-      m_receiver.ReleaseReceiver();
-      enabled = false;
+      case QRhi::OpenGLES2:
+        if(enabled)
+          m_receiver.ReleaseReceiver();
+        break;
+      case QRhi::D3D11:
+        if(m_receivedTexture)
+        {
+          m_receivedTexture->Release();
+          m_receivedTexture = nullptr;
+        }
+        break;
+      case QRhi::D3D12:
+        // Release D3D11On12 resources
+        if(m_wrappedTexture)
+        {
+          m_wrappedTexture->Release();
+          m_wrappedTexture = nullptr;
+        }
+        if(m_d3d11On12Device)
+        {
+          m_d3d11On12Device->Release();
+          m_d3d11On12Device = nullptr;
+        }
+        if(m_d3d11Context)
+        {
+          m_d3d11Context->Release();
+          m_d3d11Context = nullptr;
+        }
+        if(m_d3d11Device)
+        {
+          m_d3d11Device->Release();
+          m_d3d11Device = nullptr;
+        }
+        break;
+      default:
+        break;
     }
+
+    enabled = false;
+    m_receivedTexture = nullptr;
+    m_sharedHandle = nullptr;
 
     if(m_gpu)
     {
@@ -236,11 +577,8 @@ private:
       p.second.release();
     m_p.clear();
 
-    m_meshBuffer = nullptr;
+    m_meshBuffer.buffers.clear();
   }
-
-  ::SpoutReceiver m_receiver;
-  std::vector<char> m_pixels;
 };
 
 score::gfx::NodeRenderer*

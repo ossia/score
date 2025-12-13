@@ -29,6 +29,8 @@ set(SPOUT_SRCS
     Gfx/Spout/SpoutInput.cpp
     Gfx/Spout/SpoutOutput.hpp
     Gfx/Spout/SpoutOutput.cpp
+    "${3RDPARTY_FOLDER}/D3D12MemoryAllocator/D3D12MemAlloc.h"
+    "${3RDPARTY_FOLDER}/D3D12MemoryAllocator/D3D12MemAlloc.cpp"
 )
 endif()
 
@@ -129,6 +131,7 @@ set(HDRS
     Gfx/Graph/RenderedISFNode.hpp
     Gfx/Graph/RenderedISFSamplerUtils.hpp
     Gfx/Graph/RenderedISFUtils.hpp
+    Gfx/Graph/RenderedRawRasterPipelineNode.hpp
     Gfx/Graph/RenderedVSANode.hpp
     Gfx/Graph/Scale.hpp
     Gfx/Graph/ScreenNode.hpp
@@ -237,6 +240,7 @@ set(SRCS
     Gfx/Graph/PreviewNode.cpp
     Gfx/Graph/RenderList.cpp
     Gfx/Graph/RenderedISFNode.cpp
+    Gfx/Graph/RenderedRawRasterPipelineNode.cpp
     Gfx/Graph/RenderedVSANode.cpp
     Gfx/Graph/ScreenNode.cpp
     Gfx/Graph/ShaderCache.cpp
@@ -294,7 +298,7 @@ add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 
 target_include_directories(${PROJECT_NAME}
-  PRIVATE
+  PUBLIC
     3rdparty/libisf/src
 )
 
@@ -410,6 +414,7 @@ endif()
 
 if(SCORE_HAS_SPOUT)
   add_subdirectory("${3RDPARTY_FOLDER}/Spout" "${CMAKE_CURRENT_BINARY_DIR}/Spout")
+  target_include_directories(${PROJECT_NAME} PRIVATE "${3RDPARTY_FOLDER}/D3D12MemoryAllocator")
   target_link_libraries(${PROJECT_NAME} PRIVATE Spout)
   target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_SPOUT)
   list(APPEND SCORE_FEATURES_LIST spout)
@@ -417,7 +422,13 @@ endif()
 
 if(WIN32)
   target_sources(${PROJECT_NAME} PRIVATE Gfx/CameraDevice.win32.cpp)
-  target_link_libraries(${PROJECT_NAME} PRIVATE dxguid)
+
+  set_source_files_properties(
+      Gfx/CameraDevice.win32.cpp
+      PROPERTIES
+        SKIP_UNITY_BUILD_INCLUSION ON
+  )
+  target_link_libraries(${PROJECT_NAME} PRIVATE dxguid avrt winmm)
 elseif(APPLE)
   target_sources(${PROJECT_NAME} PRIVATE Gfx/CameraDevice.avf.mm)
 

@@ -23,7 +23,7 @@ namespace
 std::vector<ossia::control_message>
 toOssiaControls(const SetupContext& ctx, const Scenario::StateModel& state)
 {
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   const auto& msgs = state.controlMessages().messages();
   std::vector<ossia::control_message> ossia_msgs;
   ossia_msgs.reserve(msgs.size());
@@ -53,7 +53,7 @@ StateComponentBase::StateComponentBase(
     , m_node{ossia::make_node<ossia::nodes::state_writer>(
           *ctx.execState, Engine::score_to_ossia::state(element, *ctx.execState))}
 {
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   m_ev->add_time_process(std::make_shared<ossia::node_process>(m_node));
 
   system().setup.register_node({}, {}, m_node);
@@ -61,12 +61,12 @@ StateComponentBase::StateComponentBase(
   connect(
       &element, &Scenario::StateModel::sig_statesUpdated, this,
       [this, st = std::weak_ptr{ctx.execState}] {
-    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
     if(auto dl = st.lock())
     {
       in_exec(
           [n = m_node, x = Engine::score_to_ossia::state(*m_model, *dl), dl]() mutable {
-        OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+        OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
         n->data = std::move(x);
       });
     }
@@ -82,7 +82,7 @@ StateComponentBase::StateComponentBase(
 
 void StateComponentBase::updateControls()
 {
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   auto ossia_msgs = toOssiaControls(this->system().setup, state());
   if(!ossia_msgs.empty())
   {
@@ -94,7 +94,7 @@ void StateComponentBase::updateControls()
 
 void StateComponentBase::onDelete() const
 {
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   if(m_node)
   {
     system().setup.unregister_node({}, {}, m_node);
@@ -102,7 +102,7 @@ void StateComponentBase::onDelete() const
     {
       auto foo = [ev = m_ev, gcq = weak_gc] { };
       in_exec([ev = m_ev, gcq = weak_gc] {
-        OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+        OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
         auto& procs = ev->get_time_processes();
         if(!procs.empty())
         {
@@ -121,7 +121,7 @@ void StateComponentBase::onDelete() const
 ProcessComponent*
 StateComponentBase::make(ProcessComponentFactory& fac, Process::ProcessModel& proc)
 {
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   try
   {
     const Execution::Context& ctx = system();
@@ -139,9 +139,9 @@ StateComponentBase::make(ProcessComponentFactory& fac, Process::ProcessModel& pr
       QObject::connect(
           &proc.selection, &Selectable::changed, plug.get(),
           [this, n = oproc->node](bool ok) {
-        OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+        OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
         in_exec([n, ok] {
-          OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+          OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
           if(n)
             n->set_logging(ok);
         });
@@ -153,7 +153,7 @@ StateComponentBase::make(ProcessComponentFactory& fac, Process::ProcessModel& pr
       std::weak_ptr<ossia::graph_interface> g_weak = plug->system().execGraph;
 
       in_exec([cst = m_ev, oproc_weak, g_weak] {
-        OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+        OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
         if(auto oproc = oproc_weak.lock())
           if(auto g = g_weak.lock())
           {
@@ -178,7 +178,7 @@ StateComponentBase::make(ProcessComponentFactory& fac, Process::ProcessModel& pr
 std::function<void()>
 StateComponentBase::removing(const Process::ProcessModel& e, ProcessComponent& c)
 {
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   auto it = m_processes.find(e.id());
   if(it != m_processes.end())
   {
@@ -188,7 +188,7 @@ StateComponentBase::removing(const Process::ProcessModel& e, ProcessComponent& c
       {
         in_exec([process_component_ptr = std::weak_ptr{it->second}, cstr = m_ev,
                  time_process = std::move(time_process), gcq_ptr = weak_gc]() mutable {
-          OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+          OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
           cstr->remove_time_process(time_process.get());
 
           if(auto cc = process_component_ptr.lock())
@@ -201,7 +201,7 @@ StateComponentBase::removing(const Process::ProcessModel& e, ProcessComponent& c
     c.cleanup();
 
     return [this, id = e.id()] {
-      OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+      OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
       m_processes.erase(id);
     };
   }
@@ -213,7 +213,7 @@ StateComponent::~StateComponent() { }
 
 void StateComponent::init()
 {
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   if(m_model)
   {
     init_hierarchy();
@@ -223,12 +223,12 @@ void StateComponent::init()
 void StateComponent::cleanup(const std::shared_ptr<StateComponent>& self)
 {
   // FIXME this does not match IntervalComponent
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   if(m_ev)
   {
     // self has to be kept alive until next tick
     in_exec([self, gcq_ptr = weak_gc] {
-      OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+      OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
       if(auto gcq = gcq_ptr.lock())
         gcq->enqueue(gc(self));
     });

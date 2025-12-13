@@ -70,11 +70,23 @@
 //		24.04.21	- Add OpenGL shared texture access functions
 //		03.06.21	- Add CreateMemoryBuffer, DeleteMemoryBuffer, GetMemoryBufferSize
 //		22.11.21	- Remove ReleaseSender() from destructor
+//		31.10.22	- Add GetPerformancePreference, SetPerformancePreference, GetPreferredAdapterName
+//		01.11.22	- Add SetPreferredAdapter
+//		03.11.22	- Add IsPreferenceAvailable
+//		07.11.22	- Add IsApplicationPath
+//		26.11.22	- Change SetVerticalSync argument to integer to allow adaptive vsync
+//	Version 2.007.012
+//		04.08.23	- Add format functions
+//		07.08.23	- Add frame sync option functions
+//	Version 2.007.013
+//	Version 2.007.014
+//		21.09.24	-Add ReadTextureData
+//		16.08.25	- Add CloseFrameSync
 //
 // ====================================================================================
 /*
 
-	Copyright (c) 2014-2022, Lynn Jarvis. All rights reserved.
+	Copyright (c) 2014-2025, Lynn Jarvis. All rights reserved.
 
 	Redistribution and use in source and binary forms, with or without modification, 
 	are permitted provided that the following conditions are met:
@@ -178,7 +190,7 @@ bool SpoutSender::IsInitialized()
 }
 
 //---------------------------------------------------------
-const char * SpoutSender::GetName()
+const char* SpoutSender::GetName()
 {
 	return spout.GetName();
 }
@@ -260,23 +272,42 @@ void SpoutSender::SetFrameSync(const char* SenderName)
 }
 
 //---------------------------------------------------------
-bool SpoutSender::WaitFrameSync(const char *SenderName, DWORD dwTimeout)
+bool SpoutSender::WaitFrameSync(const char* SenderName, DWORD dwTimeout)
 {
 	return spout.WaitFrameSync(SenderName, dwTimeout);
 }
+
+//---------------------------------------------------------
+void SpoutSender::EnableFrameSync(bool bSync)
+{
+	spout.EnableFrameSync(bSync);
+}
+
+//---------------------------------------------------------
+void SpoutSender::CloseFrameSync()
+{
+	spout.CloseFrameSync();
+}
+
+//---------------------------------------------------------
+bool SpoutSender::IsFrameSyncEnabled()
+{
+	return spout.IsFrameSyncEnabled();
+}
+
 
 //
 // Data sharing
 //
 
 //---------------------------------------------------------
-bool SpoutSender::WriteMemoryBuffer(const char *name, const char* data, int length)
+bool SpoutSender::WriteMemoryBuffer(const char* name, const char* data, int length)
 {
 	return spout.WriteMemoryBuffer(name, data, length);
 }
 
 //---------------------------------------------------------
-bool SpoutSender::CreateMemoryBuffer(const char *name, int length)
+bool SpoutSender::CreateMemoryBuffer(const char* name, int length)
 {
 	return spout.CreateMemoryBuffer(name,length);
 }
@@ -390,19 +421,19 @@ bool SpoutSender::SetActiveSender(const char* Sendername)
 //
 
 //---------------------------------------------------------
-int SpoutSender::SpoutSender::GetNumAdapters()
+int SpoutSender::GetNumAdapters()
 {
 	return spout.GetNumAdapters();
 }
 
 //---------------------------------------------------------
-bool SpoutSender::GetAdapterName(int index, char *adaptername, int maxchars)
+bool SpoutSender::GetAdapterName(int index, char* adaptername, int maxchars)
 {
 	return spout.GetAdapterName(index, adaptername, maxchars);
 }
 
 //---------------------------------------------------------
-char * SpoutSender::AdapterName()
+char* SpoutSender::AdapterName()
 {
 	return spout.AdapterName();
 }
@@ -414,16 +445,56 @@ int SpoutSender::GetAdapter()
 }
 
 //---------------------------------------------------------
-bool SpoutSender::SetAdapter(int index)
+bool SpoutSender::GetAdapterInfo(char* description, char* output, int maxchars)
 {
-	return spout.SetAdapter(index);
+	return spout.GetAdapterInfo(description, output, maxchars);
 }
 
 //---------------------------------------------------------
-bool SpoutSender::GetAdapterInfo(char *renderdescription, char *displaydescription, int maxchars)
+bool SpoutSender::GetAdapterInfo(int index, char* description, char* output, int maxchars)
 {
-	return spout.GetAdapterInfo(renderdescription, displaydescription, maxchars);
+	return spout.GetAdapterInfo(index, description, output, maxchars);
 }
+
+// Windows 10 Vers 1803, build 17134 or later
+#ifdef NTDDI_WIN10_RS4
+
+//---------------------------------------------------------
+int SpoutSender::GetPerformancePreference(const char* path)
+{
+	return spout.GetPerformancePreference(path);
+}
+
+//---------------------------------------------------------
+bool SpoutSender::SetPerformancePreference(int preference, const char* path)
+{
+	return spout.SetPerformancePreference(preference, path);
+}
+
+//---------------------------------------------------------
+bool SpoutSender::GetPreferredAdapterName(int preference, char* adaptername, int maxchars)
+{
+	return spout.GetPreferredAdapterName(preference, adaptername, maxchars);
+}
+
+//---------------------------------------------------------
+bool SpoutSender::SetPreferredAdapter(int preference)
+{
+	return spout.SetPreferredAdapter(preference);
+}
+
+//---------------------------------------------------------
+bool SpoutSender::IsPreferenceAvailable()
+{
+	return spout.IsPreferenceAvailable();
+}
+
+//---------------------------------------------------------
+bool SpoutSender::IsApplicationPath(const char* path)
+{
+	return spout.IsApplicationPath(path);
+}
+#endif
 
 //
 // User settings recorded by "SpoutSettings"
@@ -515,7 +586,7 @@ void SpoutSender::SetShareMode(int mode)
 //
 
 //---------------------------------------------------------
-bool SpoutSender::GetHostPath(const char *sendername, char *hostpath, int maxchars)
+bool SpoutSender::GetHostPath(const char* sendername, char* hostpath, int maxchars)
 {
 	return spout.GetHostPath(sendername, hostpath, maxchars);
 }
@@ -527,9 +598,9 @@ int SpoutSender::GetVerticalSync()
 }
 
 //---------------------------------------------------------
-bool SpoutSender::SetVerticalSync(bool bSync)
+bool SpoutSender::SetVerticalSync(int interval)
 {
-	return spout.SetVerticalSync(bSync);
+	return spout.SetVerticalSync(interval);
 }
 
 //---------------------------------------------------------
@@ -563,6 +634,57 @@ bool SpoutSender::CopyTexture(GLuint SourceID, GLuint SourceTarget,
 	return spout.CopyTexture(SourceID, SourceTarget, DestID, DestTarget,
 		width, height, bInvert, HostFBO);
 }
+
+//---------------------------------------------------------
+bool SpoutSender::ReadTextureData(GLuint SourceID, GLuint SourceTarget,
+	void* data, unsigned int width, unsigned int height, unsigned int rowpitch,
+	GLenum dataformat, GLenum datatype, bool bInvert, GLuint HostFBO)
+{
+	return spout.ReadTextureData(SourceID, SourceTarget,
+		data, width, height, rowpitch, dataformat,
+		datatype, bInvert, HostFBO);
+}
+
+//
+// Formats
+//
+
+//---------------------------------------------------------
+DXGI_FORMAT SpoutSender::GetDX11format()
+{
+	return spout.GetDX11format();
+}
+
+//---------------------------------------------------------
+void SpoutSender::SetDX11format(DXGI_FORMAT textureformat)
+{
+	spout.SetDX11format(textureformat);
+}
+
+//---------------------------------------------------------
+DXGI_FORMAT SpoutSender::DX11format(GLint glformat)
+{
+	return spout.DX11format(glformat);
+}
+
+//---------------------------------------------------------
+GLint SpoutSender::GLDXformat(DXGI_FORMAT textureformat)
+{
+	return spout.GLDXformat(textureformat);
+}
+
+//---------------------------------------------------------
+GLint SpoutSender::GLformat(GLuint TextureID, GLuint TextureTarget)
+{
+	return spout.GLformat(TextureID, TextureTarget);
+}
+
+//---------------------------------------------------------
+std::string SpoutSender::GLformatName(GLint glformat)
+{
+	return spout.GLformatName(glformat);
+}
+
 
 //
 // 2.006 compatibility

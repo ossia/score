@@ -27,13 +27,13 @@ ProcessComponent::ProcessComponent(
 
 void ProcessComponent::cleanup()
 {
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   node.reset();
   if(m_ossia_process)
   {
     this->system().setup.unregister_node(process(), m_ossia_process->node);
     in_exec([gcq = weak_gc, proc = std::move(m_ossia_process)] {
-      OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+      OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
 
       if(proc->node.use_count() > 0)
         proc->node->clear();

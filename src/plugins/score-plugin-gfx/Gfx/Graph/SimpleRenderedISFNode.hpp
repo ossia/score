@@ -41,8 +41,7 @@ private:
   std::vector<Sampler> m_audioSamplers;
 
   const Mesh* m_mesh{};
-  QRhiBuffer* m_meshBuffer{};
-  QRhiBuffer* m_idxBuffer{};
+  MeshBuffers m_meshBuffer{};
 
   QRhiBuffer* m_materialUBO{};
   int m_materialSize{};

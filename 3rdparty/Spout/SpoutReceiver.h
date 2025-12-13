@@ -2,7 +2,7 @@
 
 					SpoutReceiver.h
 
-	Copyright (c) 2014-2022, Lynn Jarvis. All rights reserved.
+	Copyright (c) 2014-2025, Lynn Jarvis. All rights reserved.
 
 	Redistribution and use in source and binary forms, with or without modification, 
 	are permitted provided that the following conditions are met:
@@ -43,7 +43,9 @@ class SPOUT_DLLEXP SpoutReceiver {
 	//   The application will not connect to any other  unless the user selects one
 	//   If that sender closes, the application will wait for the nominated sender to open 
 	//   If no name is specified, the receiver will connect to the active sender
-	void SetReceiverName(const char * sendername = nullptr);
+	void SetReceiverName(const char* sendername = nullptr);
+	// Get sender for connection
+	bool GetReceiverName(char* SenderName, int maxchars = 256);
 	// Close receiver and release resources ready to connect to another sender
 	void ReleaseReceiver();
 	// Receive shared texture
@@ -71,7 +73,7 @@ class SPOUT_DLLEXP SpoutReceiver {
 	//   This can be queried to process texture data only for new frames
 	bool IsFrameNew();
 	// Received sender name
-	const char * GetSenderName();
+	const char* GetSenderName();
 	// Received sender width
 	unsigned int GetSenderWidth();
 	// Received sender height
@@ -84,12 +86,16 @@ class SPOUT_DLLEXP SpoutReceiver {
 	long GetSenderFrame();
 	// Received sender share handle
 	HANDLE GetSenderHandle();
+	// Received sender texture
+	ID3D11Texture2D* GetSenderTexture();
 	// Received sender sharing method
 	bool GetSenderCPU();
 	// Received sender GL/DX hardware compatibility
 	bool GetSenderGLDX();
+	// Return a list of current senders
+	std::vector<std::string> GetSenderList();
 	// Open sender selection dialog
-	void SelectSender();
+	bool SelectSender(HWND hwnd = NULL);
 
 	//
 	// Frame count
@@ -106,7 +112,13 @@ class SPOUT_DLLEXP SpoutReceiver {
 	// Signal sync event 
 	void SetFrameSync(const char* SenderName);
 	// Wait or test for a sync event
-	bool WaitFrameSync(const char *SenderName, DWORD dwTimeout = 0);
+	bool WaitFrameSync(const char* SenderName, DWORD dwTimeout = 0);
+	// Enable / disable frame sync
+	void EnableFrameSync(bool bSync = true);
+	// Close frame sync
+	void CloseFrameSync();
+	// Check for frame sync option
+	bool IsFrameSyncEnabled();
 
 	//
 	// Data sharing
@@ -166,15 +178,30 @@ class SPOUT_DLLEXP SpoutReceiver {
 	// The number of graphics adapters in the system
 	int GetNumAdapters();
 	// Get adapter item name
-	bool GetAdapterName(int index, char *adaptername, int maxchars = 256);
+	bool GetAdapterName(int index, char* adaptername, int maxchars = 256);
 	// Current adapter name
-	char * AdapterName();
+	char* AdapterName();
 	// Get current adapter index
 	int GetAdapter();
-	// Set graphics adapter for output
-	bool SetAdapter(int index = 0);
-	// Get the current adapter description
-	bool GetAdapterInfo(char *renderdescription, char *displaydescription, int maxchars);
+	// Get the description and output display name of the current adapter
+	bool GetAdapterInfo(char* description, char* output, int maxchars);
+	// Get the description and output display name for a given adapter
+	bool GetAdapterInfo(int index, char* description, char* output, int maxchars);
+	// Windows 10 Vers 1803, build 17134 or later
+#ifdef NTDDI_WIN10_RS4
+	// Get the Windows graphics preference for an application
+	int GetPerformancePreference(const char* path = nullptr);
+	// Set the Windows graphics preference for an application
+	bool SetPerformancePreference(int preference, const char* path = nullptr);
+	// Get the graphics adapter name for a Windows preference
+	bool GetPreferredAdapterName(int preference, char* adaptername, int maxchars);
+	// Set graphics adapter index for a Windows preference
+	bool SetPreferredAdapter(int preference);
+	// Availability of Windows graphics preference
+	bool IsPreferenceAvailable();
+	// Is the path a valid application
+	bool IsApplicationPath(const char* path);
+#endif
 
 	//
 	// User settings recorded by "SpoutSettings"
@@ -221,13 +248,17 @@ class SPOUT_DLLEXP SpoutReceiver {
 	//
 
 	// The path of the host that produced the sender
-	bool GetHostPath(const char *sendername, char *hostpath, int maxchars);
+	bool GetHostPath(const char* sendername, char* hostpath, int maxchars);
 	// Vertical sync status
 	int GetVerticalSync();
 	// Lock to monitor vertical sync
+	//   1 - wait for 1 cycle vertical refresh
+	//   0 - buffer swaps are not synchronized to a video frame
+	//  -1 - adaptive vsync
 	bool SetVerticalSync(bool bSync = true);
-	// Get Spout version
-	int GetSpoutVersion();
+	// Get SDK version number string e.g. "2.007.000"
+	// Optional - return as a single number
+	std::string GetSDKversion(int* pNumber = nullptr);
 
 	//
 	// OpenGL utilities
@@ -240,19 +271,39 @@ class SPOUT_DLLEXP SpoutReceiver {
 	// Close OpenGL window
 	bool CloseOpenGL();
 	// Copy OpenGL texture with optional invert
-	//   Textures must be the same size
+	//   Textures can be different sizes
 	bool CopyTexture(GLuint SourceID, GLuint SourceTarget,
 		GLuint DestID, GLuint DestTarget,
 		unsigned int width, unsigned int height,
 		bool bInvert = false, GLuint HostFBO = 0);
+	// Copy OpenGL texture data to a pixel buffer
+	bool ReadTextureData(GLuint SourceID, GLuint SourceTarget,
+		void* data, unsigned int width, unsigned int height, unsigned int rowpitch,
+		GLenum dataformat, GLenum datatype, bool bInvert = false, GLuint HostFBO = false);
 
-	
+	//
+	// Formats
+	//
+
+	// Get sender DX11 shared texture format
+	DXGI_FORMAT GetDX11format();
+	// Set sender DX11 shared texture format
+	void SetDX11format(DXGI_FORMAT textureformat);
+	// Return OpenGL compatible DX11 format
+	DXGI_FORMAT DX11format(GLint glformat);
+	// Return DX11 compatible OpenGL format
+	GLint GLDXformat(DXGI_FORMAT textureformat = DXGI_FORMAT_UNKNOWN);
+	// Return OpenGL texture internal format
+	GLint GLformat(GLuint TextureID, GLuint TextureTarget);
+	// Return OpenGL texture format description
+	std::string GLformatName(GLint glformat = 0);
+
 	//
 	// 2.006 compatibility
 	//
 
 	// Create receiver connection
-	bool CreateReceiver(char* Sendername, unsigned int &width, unsigned int &height, bool bUseActive = false);
+	bool CreateReceiver(char* Sendername, unsigned int &width, unsigned int &height);
 	// Check receiver connection
 	bool CheckReceiver(char* Sendername, unsigned int &width, unsigned int &height, bool &bConnected);
 	// Receive OpenGL texture
@@ -263,7 +314,7 @@ class SPOUT_DLLEXP SpoutReceiver {
 	//   Optional message argument
 	bool SelectSenderPanel(const char* message = nullptr);
 	// Receiver detect sender selection
-	bool CheckSenderPanel(char *sendername, int maxchars = 256);
+	bool CheckSenderPanel(char* sendername, int maxchars = 256);
 
 
 	// Legacy OpenGL Draw function

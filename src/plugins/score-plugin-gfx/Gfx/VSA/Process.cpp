@@ -169,8 +169,9 @@ Process::ScriptChangeResult Model::setVertex(QString f)
   return setProgram(m_program);
 }
 
-Process::ScriptChangeResult Model::setProgram(const ShaderSource& f)
+Process::ScriptChangeResult Model::setProgram(ShaderSource f)
 {
+  f.type = ProcessedProgram::ProgramType::VertexShaderArt;
   m_program.vertex = f.vertex;
   m_program.fragment.clear();
   m_processedProgram.fragment.clear();

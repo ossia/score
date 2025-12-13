@@ -75,11 +75,10 @@ void SimpleRenderedISFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& 
     m_mesh = this->n.descriptor().default_vertex_shader ? &renderer.defaultTriangle()
                                                         : &renderer.defaultQuad();
 
-    if(!m_meshBuffer)
+    if(m_meshBuffer.buffers.empty())
     {
-      auto [mbuffer, ibuffer] = renderer.initMeshBuffer(*m_mesh, res);
-      m_meshBuffer = mbuffer;
-      m_idxBuffer = ibuffer;
+      m_meshBuffer = renderer.initMeshBuffer(*m_mesh, res);
+      SCORE_ASSERT(!m_meshBuffer.buffers.empty());
     }
   }
 
@@ -202,20 +201,20 @@ void SimpleRenderedISFNode::release(RenderList& r)
   for(auto sampler : m_inputSamplers)
   {
     delete sampler.sampler;
-    // texture isdeleted elsewxheree
+    // texture is deleted elsewhere
   }
   m_inputSamplers.clear();
   for(auto sampler : m_audioSamplers)
   {
     delete sampler.sampler;
-    // texture isdeleted elsewxheree
+    // texture is deleted elsewhere
   }
   m_audioSamplers.clear();
 
   delete m_materialUBO;
   m_materialUBO = nullptr;
 
-  m_meshBuffer = nullptr;
+  m_meshBuffer = {}; // Freed in RenderList
 }
 
 void SimpleRenderedISFNode::runInitialPasses(
@@ -252,7 +251,7 @@ void SimpleRenderedISFNode::runRenderPass(
       cb.setViewport(QRhiViewport(
           0, 0, texture->pixelSize().width(), texture->pixelSize().height()));
 
-      m_mesh->draw({this->m_meshBuffer, this->m_idxBuffer}, cb);
+      m_mesh->draw(this->m_meshBuffer, cb);
     }
   }
 }

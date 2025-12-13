@@ -10,7 +10,7 @@
 
 	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	Copyright (c) 2014-2022, Lynn Jarvis. All rights reserved.
+	Copyright (c) 2014-2025, Lynn Jarvis. All rights reserved.
 
 	Redistribution and use in source and binary forms, with or without modification, 
 	are permitted provided that the following conditions are met:
@@ -32,12 +32,29 @@
 	LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 	OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	
+
 */
 
 #include "SpoutSharedMemory.h"
+
 #include <assert.h>
 #include <string>
+
+// ====================================================================================
+//		Revisions :
+//
+//	14.04.22 - Add option in SpoutCommon.h to disable warning 26812 (unscoped enums).
+//	28.10.22 - Code documentation
+//  18.12.22 - Catch any exception from using Close in destructor
+//	07.01.23 - Change m_pName from const char* to char* for strdup
+//  Version 2.007.11
+//  12.05.23 - Create and Open - Clear ERROR_ALREADY_EXISTS to avoid detection elsewhere.
+//	Version 2.007.012
+//	07.12.23 - Remove unused <d3d9.h> from header
+//	Version 2.007.013
+//	Version 2.007.014
+//
+// ====================================================================================
 
 
 //
@@ -47,8 +64,6 @@
 //
 // Refer to source code for documentation.
 //
-
-
 SpoutSharedMemory::SpoutSharedMemory()
 {
 	m_pBuffer = NULL;
@@ -57,17 +72,25 @@ SpoutSharedMemory::SpoutSharedMemory()
 	m_pName = NULL;
 	m_size = 0;
 	m_lockCount = 0;
+
 }
 
 SpoutSharedMemory::~SpoutSharedMemory()
 {
-	Close();
+	try {
+		Close();
+	}
+	catch (...) {
+		MessageBoxA(NULL, "Exception in SpoutSharedMemory destructor", NULL, MB_OK);
+	}
 }
 
+//---------------------------------------------------------
+// Function: Create
 // Create a new memory segment, or attach to an existing one
 SpoutCreateResult SpoutSharedMemory::Create(const char* name, int size)
 {
-	DWORD err;
+	DWORD err = 0;
 
 	// Don't call open twice on the same object without a Close()
 	assert(name);
@@ -94,6 +117,8 @@ SpoutCreateResult SpoutSharedMemory::Create(const char* name, int size)
 									(LPCSTR)name);
 
 	if (m_hMap == NULL)	{
+		err = GetLastError();
+		SpoutLogError("SpoutSharedMemory::Create - Failed error = %lu (0x%4.4lX)", err, err);
 		return SPOUT_CREATE_FAILED;
 	}
 
@@ -104,6 +129,8 @@ SpoutCreateResult SpoutSharedMemory::Create(const char* name, int size)
 	bool alreadyExists = false;
 	if (err == ERROR_ALREADY_EXISTS) {
 		alreadyExists = true;
+		// Clear the error to avoid detection elsewhere.
+		SetLastError(NO_ERROR);
 		// The size of the map will be the same as when it was created.
 		// 2.004 apps will have created a 10 sender map which will not be increased in size thereafter.
 	}
@@ -136,13 +163,16 @@ SpoutCreateResult SpoutSharedMemory::Create(const char* name, int size)
 
 	// Set the name and size
 	m_pName = _strdup(name);
+
 	m_size = size;
 
 	return alreadyExists ? SPOUT_ALREADY_EXISTS : SPOUT_CREATE_SUCCESS;
 
 }
 
-
+//---------------------------------------------------------
+// Function: Open
+// Open an existing memory map
 bool SpoutSharedMemory::Open(const char* name)
 {
 	// Don't call open twice on the same object without a Close()
@@ -155,7 +185,7 @@ bool SpoutSharedMemory::Open(const char* name)
 	}
 
 	m_hMap = OpenFileMappingA(FILE_MAP_ALL_ACCESS, false, (LPCSTR)name);
-	if (m_hMap == NULL)	{
+	if (!m_hMap) {
 		return false;
 	}
 
@@ -175,7 +205,13 @@ bool SpoutSharedMemory::Open(const char* name)
 		return false;
 	}
 
+	// If the mutex object existed before this function call,
+	// GetLastError returns ERROR_ALREADY_EXISTS. 
+	// Clear the error to avoid detection elsewhere.
+	SetLastError(NO_ERROR);
+
 	m_pName = _strdup(name);
+
 	// OpenFileMapping/MapViewOfFile do not return the map size
 	// Only the process that creates the shared memory can save it's size.
 	m_size = 0;
@@ -184,6 +220,9 @@ bool SpoutSharedMemory::Open(const char* name)
 
 }
 
+//---------------------------------------------------------
+// Function: Close
+// Close a map
 void SpoutSharedMemory::Close()
 {
 	if (m_pBuffer) {
@@ -210,7 +249,9 @@ void SpoutSharedMemory::Close()
 
 }
 
-
+//---------------------------------------------------------
+// Function: Lock
+// Lock an open map and return the buffer
 char* SpoutSharedMemory::Lock()
 {
 	assert(m_lockCount >= 0);
@@ -234,9 +275,9 @@ char* SpoutSharedMemory::Lock()
 		return m_pBuffer;
 	}
 
-	DWORD waitResult = WaitForSingleObject(m_hMutex, 67);
+	const DWORD waitResult = WaitForSingleObject(m_hMutex, 67);
 	if (waitResult != WAIT_OBJECT_0) {
-		return NULL;
+		return nullptr;
 	}
 
 	m_lockCount++;
@@ -245,6 +286,9 @@ char* SpoutSharedMemory::Lock()
 	return m_pBuffer;
 }
 
+//---------------------------------------------------------
+// Function: Unlock
+// Unlock a map
 void SpoutSharedMemory::Unlock()
 {
 	assert(m_hMutex);
@@ -257,16 +301,25 @@ void SpoutSharedMemory::Unlock()
 	}
 }
 
+//---------------------------------------------------------
+// Function: Name
+// Return the name of an existing map
 const char* SpoutSharedMemory::Name()
 {
 	return m_pName;
 }
 
+//---------------------------------------------------------
+// Function: Size
+// Return the size of an existing map
 int SpoutSharedMemory::Size()
 {
 	return m_size;
 }
 
+//---------------------------------------------------------
+// Function: Debug
+// Print map information for debugging
 void SpoutSharedMemory::Debug()
 {
 	if (m_pName) {

@@ -230,7 +230,8 @@ bool ProcessModel::isGpu() const noexcept
 #if defined(SCORE_HAS_GPU_JS)
   if(auto script = currentObject())
   {
-    return script->findChild<JS::TextureOutlet*>() != nullptr;
+    return script->findChild<JS::TextureInlet*>() != nullptr
+           || script->findChild<JS::TextureOutlet*>() != nullptr;
   }
 #endif
   return false;

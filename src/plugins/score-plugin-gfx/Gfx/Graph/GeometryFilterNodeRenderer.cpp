@@ -28,6 +28,7 @@ void GeometryFilterNodeRenderer::init(RenderList& renderer, QRhiResourceUpdateBa
   {
     m_materialUBO
         = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, m_materialSize);
+    m_materialUBO->setName("GeometryFilterNodeRenderer.ubo");
     SCORE_ASSERT(m_materialUBO->create());
   }
 }
@@ -90,7 +91,7 @@ void GeometryFilterNodeRenderer::runInitialPasses(
     }
 
     outputGeometry.filters->filters.push_back(
-        ossia::geometry_filter{this->id, parent.m_index, parent.m_shader, 1});
+        ossia::geometry_filter{this->nodeId, parent.m_index, parent.m_shader, 1});
 
     rendered_node->second->process(n, this->outputGeometry);
 

@@ -16,6 +16,7 @@ class EntityMapInserter
 {
 public:
   void add(EntityMap<T, Ordered>& map, T* t);
+  void add_quiet(EntityMap<T, Ordered>& map, T* t);
 };
 
 /**
@@ -61,6 +62,10 @@ public:
   mutable Nano::Signal<void()> replaced;
 
   void add(T* t) INLINE_EXPORT { EntityMapInserter<T, Ordered>{}.add(*this, t); }
+  void add_quiet(T* t) INLINE_EXPORT
+  {
+    EntityMapInserter<T, Ordered>{}.add_quiet(*this, t);
+  }
 
   void erase(T& elt) INLINE_EXPORT
   {
@@ -143,5 +148,12 @@ void EntityMapInserter<T, O>::add(EntityMap<T, O>& map, T* t)
 
   map.mutable_added(*t);
   map.added(*t);
+}
+
+template <typename T, bool O>
+void EntityMapInserter<T, O>::add_quiet(EntityMap<T, O>& map, T* t)
+{
+  SCORE_ASSERT(t);
+  map.unsafe_map().insert(t);
 }
 }

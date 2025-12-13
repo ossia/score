@@ -61,12 +61,15 @@ private:
     }
 
     // Recreate the old cables
-    Dataflow::restoreCablesWithoutTouchingPorts(m_oldCables, ctx);
+    auto cables = Dataflow::restoreCablesWithoutTouchingPorts(m_oldCables, ctx);
     cmt.inletsChanged();
     cmt.outletsChanged();
+
     if constexpr(requires { cmt.isGpu(); })
       if(cmt.isGpu())
         cmt.programChanged();
+
+    Dataflow::notifyAddedCables(cables, ctx);
   }
 
   void redo(const score::DocumentContext& ctx) const override
@@ -77,17 +80,17 @@ private:
     Process::ScriptChangeResult res = (cmt.*Property_T::set)(m_newScript);
     cmt.programChanged();
 
-    Dataflow::reloadPortsInNewProcess(m_oldInlets, m_oldOutlets, m_oldCables, cmt, ctx);
+    auto cables = Dataflow::reloadPortsInNewProcess(
+        m_oldInlets, m_oldOutlets, m_oldCables, cmt, ctx);
 
     cmt.inletsChanged();
     cmt.outletsChanged();
+
     if constexpr(requires { cmt.isGpu(); })
       if(cmt.isGpu())
         cmt.programChanged();
-    // FIXME if we have it only here, then changing cables fails for the exec nodes
-    // as in the cable loading, in SetupContext::connectCable(Process::Cable& cable)
-    // auto it = outlets.find(port_src); fails because the new outlet hasn't yet been created by the component
-    // but if we have it only above, the JS GPU node fails
+
+    Dataflow::notifyAddedCables(cables, ctx);
   }
 
   void serializeImpl(DataStreamInput& s) const override

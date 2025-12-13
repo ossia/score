@@ -24,8 +24,5 @@ public:
 #endif
 
   void setupFormat(QSurfaceFormat& fmt);
-
-private:
-  int glShaderVersion() noexcept;
 };
 }

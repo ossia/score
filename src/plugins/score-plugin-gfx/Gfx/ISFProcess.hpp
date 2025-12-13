@@ -72,6 +72,7 @@ struct ISFHelpers
 
     int i = 0;
     using namespace isf;
+
     struct input_vis
     {
       const ossia::flat_map<QString, ossia::value>& previous_values;

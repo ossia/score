@@ -8,7 +8,7 @@ namespace score::gfx
 {
 struct SimpleRenderedVSANode : score::gfx::NodeRenderer
 {
-  SimpleRenderedVSANode(const ISFNode& node) noexcept;
+  explicit SimpleRenderedVSANode(const ISFNode& node) noexcept;
 
   virtual ~SimpleRenderedVSANode();
 

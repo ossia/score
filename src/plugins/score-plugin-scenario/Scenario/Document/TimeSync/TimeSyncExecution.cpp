@@ -29,7 +29,7 @@ TimeSyncComponent::TimeSyncComponent(
     : Execution::Component{ctx, "Executor::TimeSync", nullptr}
     , m_score_node{&element}
 {
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   con(element, &Scenario::TimeSyncModel::triggeredByGui, this,
       &TimeSyncComponent::on_GUITrigger);
 
@@ -47,9 +47,9 @@ TimeSyncComponent::TimeSyncComponent(
 
 void TimeSyncComponent::cleanup(const std::shared_ptr<TimeSyncComponent>& self)
 {
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   in_exec([self, ts = m_ossia_node, gcq_ptr = weak_gc] {
-    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
     ts->cleanup();
     if(auto gcq = gcq_ptr.lock())
       gcq->enqueue(gc(self));
@@ -59,7 +59,7 @@ void TimeSyncComponent::cleanup(const std::shared_ptr<TimeSyncComponent>& self)
 
 ossia::expression_ptr TimeSyncComponent::makeTrigger() const
 {
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   if(m_score_node)
   {
     if(m_score_node->active())
@@ -91,10 +91,10 @@ struct TimeSyncExecutionCallbacks : public ossia::time_sync_callback
 
   void entered_triggering() override
   {
-    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
     if(auto qed = edit.lock())
       qed->enqueue([score_node = this->score_node] {
-        OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+        OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
         if(score_node)
         {
           auto v = const_cast<Scenario::TimeSyncModel*>(score_node.data());
@@ -107,10 +107,10 @@ struct TimeSyncExecutionCallbacks : public ossia::time_sync_callback
 
   void left_evaluation() override
   {
-    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
     if(auto qed = edit.lock())
       qed->enqueue([score_node = this->score_node] {
-        OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+        OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
         if(score_node)
         {
           auto v = const_cast<Scenario::TimeSyncModel*>(score_node.data());
@@ -121,7 +121,7 @@ struct TimeSyncExecutionCallbacks : public ossia::time_sync_callback
 
   void finished_evaluation(bool) override
   {
-    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
     left_evaluation();
   }
 
@@ -133,7 +133,7 @@ private:
 void TimeSyncComponent::onSetup(
     std::shared_ptr<ossia::time_sync> ptr, ossia::expression_ptr exp)
 {
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   m_ossia_node = ptr;
   m_ossia_node->set_expression(std::move(exp));
   if(m_score_node)
@@ -163,7 +163,7 @@ const Scenario::TimeSyncModel& TimeSyncComponent::scoreTimeSync() const
 
 void TimeSyncComponent::updateTrigger()
 {
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   auto exp_ptr = std::make_shared<ossia::expression_ptr>(this->makeTrigger());
 
   bool autotrigger = false, start = false;
@@ -190,7 +190,7 @@ void TimeSyncComponent::updateTrigger()
 
 void TimeSyncComponent::updateTriggerTime()
 {
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   ossia::musical_sync quantRate = m_score_node->musicalSync();
   if(quantRate < 0)
   {
@@ -214,16 +214,16 @@ void TimeSyncComponent::updateTriggerTime()
   }
 
   in_exec([e = m_ossia_node, quantRate] {
-    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
     e->set_sync_rate(quantRate);
   });
 }
 
 void TimeSyncComponent::on_GUITrigger()
 {
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   in_exec([e = m_ossia_node] {
-    OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
     e->start_trigger_request();
   });
 }

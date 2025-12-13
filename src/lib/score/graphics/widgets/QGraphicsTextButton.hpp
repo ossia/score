@@ -1,6 +1,7 @@
 #pragma once
 #include <score/graphics/TextItem.hpp>
 #include <score/graphics/widgets/Constants.hpp>
+#include <score/widgets/MimeData.hpp>
 
 #include <QGraphicsItem>
 #include <QObject>
@@ -24,6 +25,8 @@ public:
 
   void pressed() E_SIGNAL(SCORE_LIB_BASE_EXPORT, pressed);
   void dropped(QString filename) E_SIGNAL(SCORE_LIB_BASE_EXPORT, dropped, filename);
+  void dropUnhandled(const QMimeData* mime)
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, dropUnhandled, mime);
   void bang();
 
   const QString& text() const noexcept { return m_string; }

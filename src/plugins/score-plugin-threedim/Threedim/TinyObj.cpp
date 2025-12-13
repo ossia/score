@@ -8,7 +8,6 @@
 #include <QElapsedTimer>
 namespace Threedim
 {
-
 std::vector<mesh>
 ObjFromString(std::string_view obj_data, std::string_view mtl_data, float_vec& buf)
 {

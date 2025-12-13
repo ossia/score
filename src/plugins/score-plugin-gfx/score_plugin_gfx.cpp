@@ -1,6 +1,10 @@
 #include "score_plugin_gfx.hpp"
 
 #include <Dataflow/WidgetInletFactory.hpp>
+#include <Gfx/CSF/Executor.hpp>
+#include <Gfx/CSF/Layer.hpp>
+#include <Gfx/CSF/Library.hpp>
+#include <Gfx/CSF/Process.hpp>
 #include <Gfx/CameraDevice.hpp>
 #include <Gfx/CommandFactory.hpp>
 #include <Gfx/Filter/Executor.hpp>
@@ -28,10 +32,6 @@
 #include <Gfx/VSA/Layer.hpp>
 #include <Gfx/VSA/Library.hpp>
 #include <Gfx/VSA/Process.hpp>
-#include <Gfx/CSF/Executor.hpp>
-#include <Gfx/CSF/Layer.hpp>
-#include <Gfx/CSF/Library.hpp>
-#include <Gfx/CSF/Process.hpp>
 #include <Gfx/Video/Executor.hpp>
 #include <Gfx/Video/Inspector.hpp>
 #include <Gfx/Video/Layer.hpp>

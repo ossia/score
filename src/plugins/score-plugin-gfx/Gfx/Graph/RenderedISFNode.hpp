@@ -7,7 +7,7 @@ namespace score::gfx
 {
 struct RenderedISFNode : score::gfx::NodeRenderer
 {
-  RenderedISFNode(const ISFNode& node) noexcept;
+  explicit RenderedISFNode(const ISFNode& node) noexcept;
 
   virtual ~RenderedISFNode();
 
@@ -61,8 +61,7 @@ private:
   std::vector<TextureRenderTarget> m_innerPassTargets;
 
   const Mesh* m_mesh{};
-  QRhiBuffer* m_meshBuffer{};
-  QRhiBuffer* m_idxBuffer{};
+  MeshBuffers m_meshBuffer{};
 
   QRhiBuffer* m_materialUBO{};
   int m_materialSize{};

@@ -85,6 +85,10 @@ void QGraphicsTextButton::dropEvent(QGraphicsSceneDragDropEvent* event)
       dropped(url);
     }
   }
+  else
+  {
+    dropUnhandled(m);
+  }
 
   update();
   event->accept();

@@ -66,7 +66,7 @@ void EventComponent::onSetup(
     std::shared_ptr<ossia::time_event> event, ossia::expression_ptr expr,
     ossia::time_event::offset_behavior b)
 {
-  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   m_ossia_event = event;
   m_ossia_event->set_expression(std::move(expr));
   m_ossia_event->set_offset_behavior(b);

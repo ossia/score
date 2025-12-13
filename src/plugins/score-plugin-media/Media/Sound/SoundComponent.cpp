@@ -124,7 +124,7 @@ public:
           const std::shared_ptr<ossia::graph_node>& n,
           Execution::Transaction& commands) const noexcept
       {
-        OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+        OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
         auto& setup = component.system().setup;
         auto& proc = component.process();
         for(auto& c : proc.outlet->cables())

@@ -6,4 +6,9 @@ QDebug operator<<(QDebug debug, const std::string& obj)
   debug << obj.c_str();
   return debug;
 }
+QDebug operator<<(QDebug debug, std::string_view obj)
+{
+  debug << QByteArray::fromRawData(obj.data(), obj.size());
+  return debug;
+}
 #endif

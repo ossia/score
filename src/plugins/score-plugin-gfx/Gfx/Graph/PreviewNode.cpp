@@ -2,6 +2,7 @@
 
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
+#include <Gfx/Settings/Model.hpp>
 
 #include <score/gfx/OpenGL.hpp>
 namespace score::gfx
@@ -14,34 +15,26 @@ std::shared_ptr<RenderState> importRenderState(QSize sz, QRhi* rhi)
   {
     case QRhi::OpenGLES2:
       state.api = score::gfx::OpenGL;
-#ifndef QT_NO_OPENGL
-      state.version = score::GLCapabilities{}.qShaderVersion;
-#endif
       break;
     case QRhi::Vulkan:
       state.api = score::gfx::Vulkan;
-      state.version = QShaderVersion(100);
       break;
     case QRhi::Metal:
       state.api = score::gfx::Metal;
-      state.version = QShaderVersion(12);
       break;
     case QRhi::D3D11:
       state.api = score::gfx::D3D11;
-      state.version = QShaderVersion(50);
       break;
 #if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
     case QRhi::D3D12:
       state.api = score::gfx::D3D12;
-      state.version = QShaderVersion(50);
       break;
 #endif
     case QRhi::Null:
       state.api = score::gfx::Null;
-      state.version = QShaderVersion(120);
       break;
   }
-
+  state.version = Gfx::Settings::shaderVersionForAPI(state.api);
   state.rhi = rhi;
   state.samples = 1; // FIXME
   state.renderSize = sz;
@@ -188,7 +181,7 @@ public:
   {
     m_inputTarget = score::gfx::createRenderTarget(
         renderer.state, QRhiTexture::Format::RGBA8, m_renderTarget.texture->pixelSize(),
-        renderer.samples(), renderer.requiresDepth());
+        renderer.samples(), renderer.requiresDepth(*this->node.input[0]));
 
     const auto& mesh = renderer.defaultTriangle();
     m_mesh = renderer.initMeshBuffer(mesh, res);

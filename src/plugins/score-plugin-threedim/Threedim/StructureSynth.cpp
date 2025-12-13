@@ -82,11 +82,11 @@ std::function<void(StrucSynth&)> StrucSynth::worker::work(std::string_view in)
     return [b = std::move(buf)](StrucSynth& s) mutable
     {
       std::swap(b, s.m_vertexData);
-      s.outputs.geometry.mesh.buffers.main_buffer.data = s.m_vertexData.data();
-      s.outputs.geometry.mesh.buffers.main_buffer.size = s.m_vertexData.size();
+      s.outputs.geometry.mesh.buffers.main_buffer.elements = s.m_vertexData.data();
+      s.outputs.geometry.mesh.buffers.main_buffer.element_count = s.m_vertexData.size();
       s.outputs.geometry.mesh.buffers.main_buffer.dirty = true;
 
-      s.outputs.geometry.mesh.input.input1.offset
+      s.outputs.geometry.mesh.input.input1.byte_offset
           = sizeof(float) * (s.m_vertexData.size() / 2);
       s.outputs.geometry.mesh.vertices = s.m_vertexData.size() / (2 * 3);
       s.outputs.geometry.dirty_mesh = true;

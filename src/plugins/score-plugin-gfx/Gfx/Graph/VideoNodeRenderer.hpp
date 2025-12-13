@@ -44,8 +44,7 @@ private:
   VideoFrameShare& reader;
 
   PassMap m_p;
-  QRhiBuffer* m_meshBuffer{};
-  QRhiBuffer* m_idxBuffer{};
+  MeshBuffers m_meshBuffer{};
   QRhiBuffer* m_processUBO{};
   QRhiBuffer* m_materialUBO{};
 

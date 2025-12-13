@@ -1,6 +1,7 @@
 #include "ShaderProgram.hpp"
 
 #include <Gfx/Graph/ShaderCache.hpp>
+#include <Gfx/Settings/Model.hpp>
 #include <Library/LibrarySettings.hpp>
 
 #include <score/application/ApplicationContext.hpp>
@@ -320,68 +321,82 @@ ProgramCache::get(const ShaderSource& program) noexcept
     resolveGLSLIncludes(source_frag, shaderIncludePaths(), {}, 0);
     resolveGLSLIncludes(source_vert, shaderIncludePaths(), {}, 0);
 
-    // Parse ISF and get GLSL shaders
-    isf::parser parser{
-        source_vert.toStdString(), source_frag.toStdString(), 450, program.type};
-
-    auto isfVert = QByteArray::fromStdString(parser.vertex());
-    auto isfFrag = QByteArray::fromStdString(parser.fragment());
-
-    if(qEnvironmentVariableIsSet("SCORE_DUMP_SHADERS"))
+    switch(program.type)
     {
-      qDebug().noquote() << "\n\n ======= VERTEX ======== \n\n" << isfVert;
-      qDebug().noquote() << "\n\n ======= FRAGMENT ======== \n\n" << isfFrag;
-    }
-
-    if(isfVert.isEmpty())
-    {
-      return {std::nullopt, "Not a valid ISF vertex shader"};
-    }
-
-    if(isfFrag.isEmpty())
-    {
-      return {std::nullopt, "Not a valid ISF fragment shader"};
-    }
-
-    if(isfVert != source_vert || isfFrag != source_frag)
-    {
-      ProcessedProgram processed{
-          ShaderSource{ShaderSource::ProgramType::ISF, isfVert, isfFrag}, parser.data()};
-
-      // Add layout, location, etc
-      updateToGlsl45(processed);
-
-      // Create QShader objects
-      auto [vertexS, vertexError] = score::gfx::ShaderCache::get(
-          score::gfx::GraphicsApi::OpenGL, QShaderVersion(330),
-          processed.vertex.toUtf8(), QShader::VertexStage);
-      if(!vertexError.isEmpty())
+      default:
+      case ProcessedProgram::ProgramType::ISF:
+      case ProcessedProgram::ProgramType::
+          VertexShaderArt: // FIXME it gets parsed as ISF?
       {
-        qDebug().noquote() << vertexError;
-        qDebug().noquote() << processed.vertex.toUtf8();
-        return {std::nullopt, "Vertex shader error: " + vertexError};
-      }
+        // Parse ISF and get GLSL shaders
+        isf::parser parser{
+            source_vert.toStdString(), source_frag.toStdString(), 450, program.type};
 
-      auto [fragmentS, fragmentError] = score::gfx::ShaderCache::get(
-          score::gfx::GraphicsApi::OpenGL, QShaderVersion(330),
-          processed.fragment.toUtf8(), QShader::FragmentStage);
-      if(!fragmentError.isEmpty())
-      {
-        qDebug().noquote() << fragmentError;
-        qDebug().noquote() << processed.fragment.toUtf8();
+        auto isfVert = QByteArray::fromStdString(parser.vertex());
+        auto isfFrag = QByteArray::fromStdString(parser.fragment());
 
-        return {std::nullopt, "Fragment shader error: " + fragmentError};
-      }
+        if(qEnvironmentVariableIsSet("SCORE_DUMP_SHADERS"))
+        {
+          qDebug().noquote() << "\n\n ======= VERTEX ======== \n\n" << isfVert;
+          qDebug().noquote() << "\n\n ======= FRAGMENT ======== \n\n" << isfFrag;
+        }
 
-      if(vertexS.isValid() && fragmentS.isValid())
-      {
-        programs[program] = processed;
-        return {processed, {}};
+        if(isfVert.isEmpty())
+        {
+          return {std::nullopt, "Not a valid ISF vertex shader"};
+        }
+
+        if(isfFrag.isEmpty())
+        {
+          return {std::nullopt, "Not a valid ISF fragment shader"};
+        }
+
+        if(isfVert != source_vert || isfFrag != source_frag
+           || program.type == ProcessedProgram::ProgramType::RawRasterPipeline)
+        {
+          ProcessedProgram processed{
+              ShaderSource{program.type, isfVert, isfFrag}, parser.data()};
+
+          // Add layout, location, etc
+          updateToGlsl45(processed);
+
+          auto& settings = score::AppContext().settings<Gfx::Settings::Model>();
+          const auto api = settings.graphicsApiEnum();
+
+          // Create QShader objects
+          auto [vertexS, vertexError] = score::gfx::ShaderCache::get(
+              api, Gfx::Settings::shaderVersionForAPI(api), processed.vertex.toUtf8(),
+              QShader::VertexStage);
+          if(!vertexError.isEmpty())
+          {
+            qDebug().noquote() << vertexError;
+            qDebug().noquote() << processed.vertex.toUtf8();
+            return {std::nullopt, "Vertex shader error: " + vertexError};
+          }
+
+          auto [fragmentS, fragmentError] = score::gfx::ShaderCache::get(
+              api, Gfx::Settings::shaderVersionForAPI(api), processed.fragment.toUtf8(),
+              QShader::FragmentStage);
+          if(!fragmentError.isEmpty())
+          {
+            qDebug().noquote() << fragmentError;
+            qDebug().noquote() << processed.fragment.toUtf8();
+
+            return {std::nullopt, "Fragment shader error: " + fragmentError};
+          }
+
+          if(vertexS.isValid() && fragmentS.isValid())
+          {
+            programs[program] = processed;
+            return {processed, {}};
+          }
+        }
+        else
+        {
+          return {std::nullopt, "Not a valid ISF shader"};
+        }
+        break;
       }
-    }
-    else
-    {
-      return {std::nullopt, "Not a valid ISF shader"};
     }
   }
   catch(const std::runtime_error& error)

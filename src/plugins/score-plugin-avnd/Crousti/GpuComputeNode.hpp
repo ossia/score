@@ -11,6 +11,8 @@
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/Uniforms.hpp>
 
+#include <avnd/binding/ossia/metadatas.hpp>
+
 namespace oscr
 {
 // Compute nodes that do not have any texture output so that they can get pulled
@@ -107,7 +109,7 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
     auto texture = renderer.state.rhi->newTexture(fmt, size, 1, flags);
     SCORE_ASSERT(texture->create());
     m_rts[port] = score::gfx::createRenderTarget(
-        renderer.state, texture, renderer.samples(), renderer.requiresDepth());
+        renderer.state, texture, renderer.samples(), renderer.requiresDepth(*port));
     return texture;
   }
 
@@ -222,6 +224,7 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
 
     auto ubo = renderer.state.rhi->newBuffer(
         QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, gpp::std140_size<ubo_type>());
+    ubo->setName(oscr::getUtf8Name<F>());
     ubo->create();
 
     createdUbos[ubo_type::binding()] = ubo;
