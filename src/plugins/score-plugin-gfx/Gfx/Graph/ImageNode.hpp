@@ -19,7 +19,7 @@ enum ImageMode
 struct ImagesNode : NodeModel
 {
 public:
-  explicit ImagesNode();
+  explicit ImagesNode(const score::DocumentContext& ctx);
   virtual ~ImagesNode();
 
   score::gfx::NodeRenderer* createRenderer(RenderList& r) const noexcept override;
@@ -48,6 +48,7 @@ private:
   void process(Message&& msg) override;
 
   using image_type = std::variant<QImage*, QSvgRenderer*>;
+  const score::DocumentContext& ctx;
   std::vector<score::gfx::Image> images;
   std::vector<image_type> linearImages;
 };

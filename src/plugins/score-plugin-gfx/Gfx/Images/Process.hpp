@@ -15,20 +15,21 @@
 
 namespace Gfx
 {
-std::vector<score::gfx::Image> getImages(const ossia::value& val);
+std::vector<score::gfx::Image>
+getImages(const ossia::value& val, const score::DocumentContext& ctx);
 ossia::value fromImageSet(const std::span<score::gfx::Image>& images);
 void releaseImages(std::vector<score::gfx::Image>& imgs);
 
 struct ImageCache
 {
 public:
-  std::optional<score::gfx::Image> acquire(const std::string& path);
+  std::optional<score::gfx::Image> acquire(const QString& path);
   void release(score::gfx::Image&& img);
 
   static ImageCache& instance() noexcept;
 
 private:
-  ossia::hash_map<std::string, std::pair<int, score::gfx::Image>> m_images;
+  ossia::hash_map<QString, std::pair<int, score::gfx::Image>> m_images;
 };
 }
 W_REGISTER_ARGTYPE(score::gfx::Image)
