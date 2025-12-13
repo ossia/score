@@ -24,14 +24,21 @@ if(WIN32 AND "${CMAKE_SYSTEM_PROCESSOR}" MATCHES "(x86_64|AMD64)")
 endif()
 
 if(SCORE_HAS_SPOUT)
-set(SPOUT_SRCS
+  set(SPOUT_SRCS
     Gfx/Spout/SpoutInput.hpp
     Gfx/Spout/SpoutInput.cpp
     Gfx/Spout/SpoutOutput.hpp
     Gfx/Spout/SpoutOutput.cpp
     "${3RDPARTY_FOLDER}/D3D12MemoryAllocator/D3D12MemAlloc.h"
-    "${3RDPARTY_FOLDER}/D3D12MemoryAllocator/D3D12MemAlloc.cpp"
-)
+  )
+
+  # Qt already embeds the D3D12 memory allocator
+  get_target_property(QtType Qt6::Gui TYPE)
+  if(("${QtType}" STREQUAL "STATIC_LIBRARY"))
+    set(SPOUT_SRCS ${SPOUT_SRCS}
+        "${3RDPARTY_FOLDER}/D3D12MemoryAllocator/D3D12MemAlloc.cpp"
+    )
+  endif()
 endif()
 
 if(APPLE)
@@ -415,7 +422,7 @@ endif()
 if(SCORE_HAS_SPOUT)
   add_subdirectory("${3RDPARTY_FOLDER}/Spout" "${CMAKE_CURRENT_BINARY_DIR}/Spout")
   target_include_directories(${PROJECT_NAME} PRIVATE "${3RDPARTY_FOLDER}/D3D12MemoryAllocator")
-  target_link_libraries(${PROJECT_NAME} PRIVATE Spout)
+  target_link_libraries(${PROJECT_NAME} PRIVATE Spout d3d11)
   target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_SPOUT)
   list(APPEND SCORE_FEATURES_LIST spout)
 endif()

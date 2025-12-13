@@ -26,8 +26,6 @@
 
 // D3D11On12 for D3D12 interop
 #include <d3d11on12.h>
-#pragma comment(lib, "d3d11.lib")
-
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Gfx::SpoutDevice)
