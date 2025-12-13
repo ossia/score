@@ -1,5 +1,7 @@
 #pragma once
 
+#include <score/tools/std/String.hpp>
+
 #include <QDebug>
 
 #include <halp/geometry.hpp>
