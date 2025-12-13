@@ -422,7 +422,13 @@ endif()
 
 if(WIN32)
   target_sources(${PROJECT_NAME} PRIVATE Gfx/CameraDevice.win32.cpp)
-  target_link_libraries(${PROJECT_NAME} PRIVATE dxguid)
+
+  set_source_files_properties(
+      Gfx/CameraDevice.win32.cpp
+      PROPERTIES
+        SKIP_UNITY_BUILD_INCLUSION ON
+  )
+  target_link_libraries(${PROJECT_NAME} PRIVATE dxguid avrt winmm)
 elseif(APPLE)
   target_sources(${PROJECT_NAME} PRIVATE Gfx/CameraDevice.avf.mm)
 
