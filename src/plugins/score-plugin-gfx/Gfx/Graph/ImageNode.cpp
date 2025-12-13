@@ -142,7 +142,8 @@ void main ()
   fragColor = texture(y_tex, v_texcoord * mat.scale + (1.0f - mat.scale) / 2.0f + vec2(-mat.position.x, mat.position.y)) * mat.opacity;
 }
 )_";
-ImagesNode::ImagesNode()
+ImagesNode::ImagesNode(const score::DocumentContext& ctx)
+    : ctx{ctx}
 {
   input.push_back(new Port{this, &ubo.currentImageIndex, Types::Int, {}});
   input.push_back(new Port{this, &ubo.opacity, Types::Float, {}});
@@ -206,7 +207,7 @@ void ImagesNode::process(Message&& msg)
 
         case 5: // Images
         {
-          auto new_images = Gfx::getImages(*val);
+          auto new_images = Gfx::getImages(*val, this->ctx);
           auto diff = [](const score::gfx::Image& lhs, const score::gfx::Image& rhs) {
             return lhs.path != rhs.path;
           };
@@ -382,7 +383,7 @@ private:
   TextureRenderTarget renderTargetForInput(const Port& p) override { return {}; }
   void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
-    auto& n = const_cast<ImagesNode&>(static_cast<const ImagesNode&>(this->node));
+    auto& n = static_cast<const ImagesNode&>(this->node);
     const auto& rs = renderer.state;
     const Mesh& mesh = renderer.defaultQuad();
 
@@ -390,7 +391,7 @@ private:
     processUBOInit(renderer);
     m_material.init(renderer, node.input, m_samplers);
 
-    m_prev_ubo.currentImageIndex = -1;
+    m_ubo.currentImageIndex = -1;
     QRhi& rhi = *renderer.state.rhi;
 
     // Create GPU textures for each image
@@ -430,7 +431,7 @@ private:
 
   void update(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge) override
   {
-    auto& n = const_cast<ImagesNode&>(static_cast<const ImagesNode&>(this->node));
+    auto& n = (static_cast<const ImagesNode&>(this->node));
     if(n.tileMode != tile)
     {
       tile = n.tileMode;
@@ -533,7 +534,7 @@ private:
     // If the current image being displayed by this renderer (in m_prev_ubo)
     // is out of date with the image in the data model, we switch the texture
     int currentImageIndex = -1;
-    if(updateCurrentTexture || m_prev_ubo.currentImageIndex != n.ubo.currentImageIndex)
+    if(updateCurrentTexture || m_ubo.currentImageIndex != n.ubo.currentImageIndex)
     {
       auto replace_texture
           = [](PassMap& passes, QRhiSampler* sampler, QRhiTexture* tex) {
@@ -556,15 +557,18 @@ private:
       replace_texture(m_p, sampler, new_tex);
       replace_texture(m_altPasses, sampler, new_tex);
 
-      m_prev_ubo.currentImageIndex = n.ubo.currentImageIndex;
+      m_ubo.currentImageIndex = n.ubo.currentImageIndex;
       mustRecomputeSize = true;
     }
+
+    // Copy the model UBO into the renderer
+    m_ubo = n.ubo;
 
     if(edge)
     {
       const QSizeF renderSize = renderer.renderSize(edge);
       if(mustRecomputeSize || lastRenderSize != renderSize || scale != n.scaleMode
-         || scale_w != n.scale_w || scale_h != n.scale_h)
+         || scale_w != n.scale_w || scale_h != n.scale_h || materialChanged)
       {
         scale = n.scaleMode;
         lastRenderSize = renderSize;
@@ -574,7 +578,7 @@ private:
         QSizeF textureSize{1, 1};
 
         if(currentImageIndex == -1)
-          currentImageIndex = imageIndex(n.ubo.currentImageIndex, m_textures.size());
+          currentImageIndex = imageIndex(m_ubo.currentImageIndex, m_textures.size());
         if(currentImageIndex < std::ssize(m_textures))
           textureSize = m_textures[currentImageIndex]->pixelSize();
 
@@ -587,14 +591,14 @@ private:
             if(tile == score::gfx::Single)
             {
               auto sz = computeScaleForMeshSizing(scale, renderSize, textureSize);
-              n.ubo.scale[0] = sz.width();
-              n.ubo.scale[1] = sz.height();
+              m_ubo.scale[0] = sz.width();
+              m_ubo.scale[1] = sz.height();
             }
             else
             {
               auto sz = computeScaleForTexcoordSizing(scale, renderSize, textureSize);
-              n.ubo.scale[0] = sz.width();
-              n.ubo.scale[1] = sz.height();
+              m_ubo.scale[0] = sz.width();
+              m_ubo.scale[1] = sz.height();
             }
           }
           else
@@ -603,14 +607,14 @@ private:
             if(tile == score::gfx::Single)
             {
               auto sz = computeScaleForMeshSizing(scale, renderSize, textureSize);
-              n.ubo.scale[0] = sz.width() * scale_w;
-              n.ubo.scale[1] = sz.height() * scale_h;
+              m_ubo.scale[0] = sz.width() * scale_w;
+              m_ubo.scale[1] = sz.height() * scale_h;
             }
             else
             {
               auto sz = computeScaleForTexcoordSizing(scale, renderSize, textureSize);
-              n.ubo.scale[0] = sz.width() / scale_w;
-              n.ubo.scale[1] = sz.height() / scale_h;
+              m_ubo.scale[0] = sz.width() / scale_w;
+              m_ubo.scale[1] = sz.height() / scale_h;
             }
           }
         }
@@ -619,7 +623,23 @@ private:
         mustRecomputeSize = false;
       }
     }
-    GenericNodeRenderer::update(renderer, res, edge);
+
+    // We can't use generic update since we need some modifications on the UBO
+    // depending on the output resolution, so each renderer needs its own UBO:
+    // GenericNodeRenderer::update(renderer, res, edge);
+
+    defaultMeshUpdate(renderer, res);
+
+    // FIXME check if it is actually used by the shaders
+    res.updateDynamicBuffer(m_processUBO, 0, sizeof(ProcessUBO), &n.standardUBO);
+
+    if(m_material.buffer && m_material.size > 0)
+    {
+      if(materialChanged)
+      {
+        res.updateDynamicBuffer(m_material.buffer, 0, m_material.size, &m_ubo);
+      }
+    }
   }
 
   void runRenderPass(RenderList& renderer, QRhiCommandBuffer& cb, Edge& edge) override
@@ -648,7 +668,7 @@ private:
     }
   }
 
-  struct ImagesNode::UBO m_prev_ubo;
+  struct ImagesNode::UBO m_ubo;
   ossia::small_vector<std::pair<Edge*, Pipeline>, 2> m_altPasses;
   std::vector<QRhiTexture*> m_textures;
   bool m_uploaded = false;

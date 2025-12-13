@@ -20,10 +20,10 @@ namespace Gfx::Images
 class image_node final : public gfx_exec_node
 {
 public:
-  image_node(GfxExecutionAction& ctx)
+  image_node(GfxExecutionAction& ctx, const score::DocumentContext& doc)
       : gfx_exec_node{ctx}
   {
-    id = exec_context->ui->register_node(std::make_unique<score::gfx::ImagesNode>());
+    id = exec_context->ui->register_node(std::make_unique<score::gfx::ImagesNode>(doc));
   }
 
   ~image_node()
@@ -40,7 +40,7 @@ ProcessExecutorComponent::ProcessExecutorComponent(
     : ProcessComponent_T{element, ctx, "gfxExecutorComponent", parent}
 {
   auto n = ossia::make_node<image_node>(
-      *ctx.execState, ctx.doc.plugin<DocumentPlugin>().exec);
+      *ctx.execState, ctx.doc.plugin<DocumentPlugin>().exec, ctx.doc);
 
   for(auto* outlet : element.outlets())
   {
