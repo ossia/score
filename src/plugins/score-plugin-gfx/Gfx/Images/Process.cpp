@@ -38,13 +38,16 @@ void releaseImages(std::vector<score::gfx::Image>& imgs)
   imgs.clear();
 }
 
-std::vector<score::gfx::Image> getImages(const ossia::value& val)
+std::vector<score::gfx::Image>
+getImages(const ossia::value& val, const score::DocumentContext& ctx)
 {
   auto& cache = ImageCache::instance();
   std::vector<score::gfx::Image> imgs;
   for(auto& img : ossia::convert<std::vector<ossia::value>>(val))
   {
-    if(auto image = cache.acquire(ossia::convert<std::string>(img)))
+    auto image_path = QString::fromStdString(ossia::convert<std::string>(img));
+    image_path = score::locateFilePath(image_path, ctx);
+    if(auto image = cache.acquire(image_path))
     {
       imgs.push_back(std::move(*image));
     }
@@ -124,7 +127,9 @@ Model::~Model()
 void Model::on_imagesChanged(const ossia::value& v)
 {
   releaseImages(m_currentImages);
-  m_currentImages = getImages(safe_cast<ImageListChooser*>(m_inlets[5])->value());
+  m_currentImages = getImages(
+      safe_cast<ImageListChooser*>(m_inlets[5])->value(),
+      score::IDocument::documentContext(*this));
 
   int count = 0;
   for(const auto& img : m_currentImages)
@@ -208,7 +213,7 @@ void DropHandler::dropCustom(
 
     for(const auto& url : files)
     {
-      if(auto img = Gfx::ImageCache::instance().acquire(url.toLocalFile().toStdString()))
+      if(auto img = Gfx::ImageCache::instance().acquire(url.toLocalFile()))
       {
         images.push_back(*std::move(img));
       }
@@ -225,7 +230,7 @@ void DropHandler::dropCustom(
 namespace Gfx
 {
 
-std::optional<score::gfx::Image> ImageCache::acquire(const std::string& path)
+std::optional<score::gfx::Image> ImageCache::acquire(const QString& path)
 {
   if(auto it = m_images.find(path); it != m_images.end())
   {
@@ -233,7 +238,7 @@ std::optional<score::gfx::Image> ImageCache::acquire(const std::string& path)
     return it->second.second;
   }
 
-  if(auto img = Images::readImage(QString::fromStdString(path)))
+  if(auto img = Images::readImage(path))
   {
     auto [it, ok] = m_images.insert({path, {0, *std::move(img)}});
     return it->second.second;
@@ -243,7 +248,7 @@ std::optional<score::gfx::Image> ImageCache::acquire(const std::string& path)
 
 void ImageCache::release(score::gfx::Image&& img)
 {
-  if(auto it = m_images.find(img.path.toStdString()); it != m_images.end())
+  if(auto it = m_images.find(img.path); it != m_images.end())
   {
     it->second.first--;
     if(it->second.first <= 0)
