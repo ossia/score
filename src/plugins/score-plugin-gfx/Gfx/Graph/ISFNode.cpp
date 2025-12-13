@@ -265,10 +265,6 @@ ISFNode::~ISFNode() { }
 
 void ISFNode::process(Message&& msg)
 {
-  // Clear potential event ports
-  for(int* event : this->m_event_ports)
-    *event = 0;
-
   // Normal processing
   ProcessNode::process(std::move(msg));
 }
