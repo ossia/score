@@ -22,12 +22,16 @@ jobs:
 
     - uses: vmactions/freebsd-vm@v1
       with:
+        release: "15.0"
         usesh: true
+        sync: nfs
+        copyback: false
         prepare: |
           # https://github.com/vmactions/freebsd-vm/issues/71
           mkdir -p /usr/local/etc/pkg/repos
           echo "FreeBSD: { url: "pkg+http://pkg.freebsd.org/\${ABI}/latest" }" > /usr/local/etc/pkg/repos/FreeBSD.conf
-          pkg update -f
+          pkg update -f -q
+          pkg upgrade -y
 
           pkg install -y \
             bash \
@@ -48,5 +52,8 @@ jobs:
             alsa-lib jackit
 
         run: |
-          ./ci/common.deps.sh
-          ./ci/freebsd.build.sh
+          echo "=============== FreeBSD Start Deps ====================="
+          ./ci/common.deps.sh && echo "=============== FreeBSD Deps Success ====================="
+          echo "=============== FreeBSD Start Build ====================="
+          ./ci/freebsd.build.sh && echo "=============== FreeBSD Build Success ====================="
+          echo "=============== FreeBSD End Build ====================="
