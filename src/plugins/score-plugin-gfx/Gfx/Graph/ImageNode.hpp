@@ -1,7 +1,9 @@
 #pragma once
 
 #include <Gfx/Graph/Node.hpp>
-
+namespace score {
+struct DocumentContext;
+}
 class QSvgRenderer;
 namespace score::gfx
 {
