@@ -1,5 +1,6 @@
 #pragma once
 #include <Crousti/GpuUtils.hpp>
+#include <score/tools/std/String.hpp>
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 
