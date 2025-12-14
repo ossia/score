@@ -34,7 +34,7 @@ if(SCORE_HAS_SPOUT)
 
   # Qt already embeds the D3D12 memory allocator
   get_target_property(QtType Qt6::Gui TYPE)
-  if(("${QtType}" STREQUAL "STATIC_LIBRARY"))
+  if(NOT ("${QtType}" STREQUAL "STATIC_LIBRARY"))
     set(SPOUT_SRCS ${SPOUT_SRCS}
         "${3RDPARTY_FOLDER}/D3D12MemoryAllocator/D3D12MemAlloc.cpp"
     )
