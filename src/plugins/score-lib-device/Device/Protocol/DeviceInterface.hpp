@@ -100,7 +100,7 @@ public:
   virtual void addAddress(const Device::FullAddressSettings&);
   virtual void updateAddress(
       const State::Address& currentAddr, const Device::FullAddressSettings& newAddr);
-  void removeNode(const State::Address&);
+  virtual void removeNode(const State::Address&);
 
   void sendMessage(const State::Address& addr, const ossia::value& v);
 

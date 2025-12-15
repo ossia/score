@@ -54,11 +54,11 @@ AudioDevice::~AudioDevice() { }
 void AudioDevice::addAddress(const Device::FullAddressSettings& settings)
 {
   using namespace ossia;
+  this->m_customAddresses[settings.address.path] = settings;
   if(auto dev = getDevice())
   {
     // Create the node. It is added into the device.
-    ossia::net::node_base* node
-        = Device::createNodeFromPath(settings.address.path, *dev);
+    auto node = Device::createNodeFromPath(settings.address.path, *dev);
     if(node)
       setupNode(*node, settings.extendedAttributes);
   }
@@ -67,6 +67,7 @@ void AudioDevice::addAddress(const Device::FullAddressSettings& settings)
 void AudioDevice::updateAddress(
     const State::Address& currentAddr, const Device::FullAddressSettings& settings)
 {
+  this->m_customAddresses[settings.address.path] = settings;
   if(auto dev = getDevice())
   {
     if(auto node = Device::findNodeFromPath(currentAddr.path, *dev))
@@ -81,6 +82,12 @@ void AudioDevice::updateAddress(
       }
     }
   }
+}
+
+void AudioDevice::removeNode(const State::Address& currentAddr)
+{
+  this->m_customAddresses.erase(currentAddr.path);
+  DeviceInterface::removeNode(currentAddr);
 }
 
 void AudioDevice::disconnect()
@@ -116,6 +123,25 @@ bool AudioDevice::reconnect()
     // engine->stop();
     // qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
     m_protocol->setup_tree(engine->effective_inputs, engine->effective_outputs);
+
+    // Recreate the custom addresses that were lost in disconnect()
+    for(auto& [k, v] : this->m_customAddresses)
+    {
+      if(auto node = Device::findNodeFromPath(k, *m_dev))
+      {
+        setupNode(*node, v.extendedAttributes);
+      }
+      else
+      {
+        if(k.size() == 2 && (k[0] == "in" || k[0] == "out")
+           && ossia::all_of(k[1], [](QChar c) { return c.isDigit(); }))
+          continue;
+
+        node = Device::createNodeFromPath(k, *m_dev);
+        if(node)
+          setupNode(*node, v.extendedAttributes);
+      }
+    }
     // qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
     // engine->start();
     // qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
@@ -148,6 +174,7 @@ void AudioDevice::recreate(const Device::Node& n)
 
 void AudioDevice::setupNode(
     ossia::net::node_base& node, const ossia::extended_attributes& attr)
+try
 {
   // TODO make sure that this function which modifies the tree
   // is done in the execution thread ...
@@ -185,6 +212,9 @@ void AudioDevice::setupNode(
     x[e.first] = e.second;
   }
   node.set_extended_attributes(x);
+}
+catch(...)
+{
 }
 
 Device::Node AudioDevice::refresh()
