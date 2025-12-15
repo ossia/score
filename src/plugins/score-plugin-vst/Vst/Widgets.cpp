@@ -39,6 +39,9 @@ GraphicsSlider::GraphicsSlider(AEffect* fx, int num, QGraphicsItem* parent)
 {
   this->fx = fx;
   this->num = num;
+  if(!fx)
+    return;
+
   this->m_value = fx->getParameter(fx, num);
 }
 
@@ -89,6 +92,9 @@ void GraphicsSlider::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 void GraphicsSlider::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
+  if(!fx)
+    return;
+
   char str[256]{};
   // Note that effGetParamDisplay will sometimes ignore the m_value argument
   // and just return the value for the actual parameter, which may be different

@@ -42,7 +42,8 @@ VSTGraphicsSlider::VSTGraphicsSlider(
 {
   this->fx = fx;
   this->num = num;
-  this->m_value = fx->getParamNormalized(num);
+  if(fx)
+    this->m_value = fx->getParamNormalized(num);
 }
 
 void VSTGraphicsSlider::setValue(double v)
@@ -92,6 +93,9 @@ void VSTGraphicsSlider::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 void VSTGraphicsSlider::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
+  if(!fx)
+    return;
+
   Steinberg::Vst::String128 str = {};
   m_value = fx->getParamNormalized(num);
   fx->getParamStringByValue(num, m_value, str);
