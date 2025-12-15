@@ -4,6 +4,8 @@
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 
+#include <score/tools/std/String.hpp>
+
 #include <ossia/network/generic/generic_device.hpp>
 
 #include <score_plugin_audio_export.h>
@@ -62,6 +64,9 @@ public:
   void updateAddress(
       const State::Address& currentAddr,
       const Device::FullAddressSettings& settings) override;
+
+  void removeNode(const State::Address& address) override;
+
   bool reconnect() override;
   void recreate(const Device::Node& n) override;
   const std::shared_ptr<ossia::net::generic_device>& sharedDevice() const noexcept
@@ -80,6 +85,13 @@ private:
   void disconnect() override;
   ossia::audio_protocol* m_protocol{};
   std::shared_ptr<ossia::net::generic_device> m_dev;
+
+  struct hash
+  {
+    std::size_t operator()(const QStringList& q) const noexcept { return qHash(q); }
+  };
+
+  ossia::hash_map<QStringList, Device::FullAddressSettings, hash> m_customAddresses;
 };
 
 class AudioSettingsWidget final : public Device::ProtocolSettingsWidget
