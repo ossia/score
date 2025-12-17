@@ -82,6 +82,13 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
   if(graphicsApi == Vulkan)
   {
     QRhiVulkanInitParams params;
+#if defined(_WIN32)
+    params.deviceExtensions << "VK_KHR_external_memory"
+                            << "VK_KHR_external_memory_win32"
+                            << "VK_KHR_external_semaphore"
+                            << "VK_KHR_external_semaphore_win32";
+#endif
+
     if(window)
     {
       params.inst = window->vulkanInstance();
