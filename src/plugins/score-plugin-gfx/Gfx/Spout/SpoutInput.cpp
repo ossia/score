@@ -25,6 +25,20 @@
 
 // D3D11On12 for D3D12 interop
 #include <d3d11on12.h>
+
+// Vulkan interop
+#if __has_include(<private/qrhivulkan_p.h>) && defined(QT_FEATURE_vulkan) && __has_include(<vulkan/vulkan.h>)
+#define SCORE_SPOUT_VULKAN 1
+#include <score/gfx/Vulkan.hpp>
+#include <QVulkanInstance>
+#include <QVulkanFunctions>
+#include <private/qrhivulkan_p.h>
+#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_win32.h>
+#include <vulkan/vulkan.hpp>
+#include <dxgi1_2.h>
+#endif
+
 #include <wobjectimpl.h>
 
 #include <set>
@@ -95,6 +109,18 @@ private:
   ID3D11Resource* m_wrappedTexture{};
   ID3D11Texture2D* m_spoutSharedTexture{}; // Cached Spout shared texture
 
+#if SCORE_SPOUT_VULKAN
+  // Vulkan-D3D11 interop
+  ID3D11Device* m_vkD3D11Device{};
+  ID3D11DeviceContext* m_vkD3D11Context{};
+  ID3D11Texture2D* m_vkSpoutTexture{};      // Spout's shared texture opened on our D3D11 device
+  ID3D11Texture2D* m_vkInteropTexture{};    // Our texture with NT handle for Vulkan import
+  HANDLE m_vkInteropHandle{};               // NT handle for Vulkan import
+  VkImage m_vkExternalImage{};
+  VkDeviceMemory m_vkExternalMemory{};
+  QRhiTexture* m_vkRhiTexture{};            // QRhi texture wrapping the external VkImage
+#endif
+
   bool enabled{};
   QRhi::Implementation m_backend{QRhi::Null};
 
@@ -141,6 +167,11 @@ private:
       case QRhi::D3D12:
         initD3D12(rhi, w, h);
         break;
+#if SCORE_SPOUT_VULKAN
+      case QRhi::Vulkan:
+        initVulkan(rhi, w, h);
+        break;
+#endif
       default:
         break;
     }
@@ -156,8 +187,9 @@ private:
     metadata.width = w;
     metadata.height = h;
 
-    // Use BGRA for D3D backends (native DXGI format), RGBA for OpenGL
-    auto format = (m_backend == QRhi::D3D11 || m_backend == QRhi::D3D12)
+    // Use BGRA for D3D/Vulkan backends (native DXGI format), RGBA for OpenGL
+    auto format = (m_backend == QRhi::D3D11 || m_backend == QRhi::D3D12
+                   || m_backend == QRhi::Vulkan)
                       ? QRhiTexture::BGRA8
                       : QRhiTexture::RGBA8;
     m_gpu = std::make_unique<score::gfx::PackedDecoder>(format, 4, metadata, QString{}, true);
@@ -264,6 +296,39 @@ private:
     }
   }
 
+#if SCORE_SPOUT_VULKAN
+  void initVulkan(QRhi& rhi, unsigned int& w, unsigned int& h)
+  {
+    // Create a D3D11 device for Spout interop
+    D3D_FEATURE_LEVEL featureLevels[] = {D3D_FEATURE_LEVEL_11_1, D3D_FEATURE_LEVEL_11_0};
+    UINT createDeviceFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
+
+    HRESULT hr = D3D11CreateDevice(
+        nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, createDeviceFlags, featureLevels, 2,
+        D3D11_SDK_VERSION, &m_vkD3D11Device, nullptr, &m_vkD3D11Context);
+
+    if(FAILED(hr) || !m_vkD3D11Device)
+      return;
+
+    // Try to find and connect to the sender
+    spoutSenderNames senderNames;
+    char senderName[256];
+    strncpy_s(senderName, node.settings.path.toStdString().c_str(), 255);
+
+    unsigned int senderWidth = 0, senderHeight = 0;
+    DWORD dwFormat = 0;
+    HANDLE shareHandle = nullptr;
+
+    if(senderNames.GetSenderInfo(senderName, senderWidth, senderHeight, shareHandle, dwFormat))
+    {
+      w = senderWidth;
+      h = senderHeight;
+      m_sharedHandle = shareHandle;
+      enabled = true;
+    }
+  }
+#endif
+
   void createPipelines(score::gfx::RenderList& r)
   {
     if(m_gpu)
@@ -293,6 +358,11 @@ private:
       case QRhi::D3D12:
         updateD3D12(rhi, res);
         break;
+#if SCORE_SPOUT_VULKAN
+      case QRhi::Vulkan:
+        updateVulkan(rhi, res);
+        break;
+#endif
       default:
         break;
     }
@@ -490,6 +560,312 @@ private:
     sharedTex->Release();
   }
 
+#if SCORE_SPOUT_VULKAN
+  void updateVulkan(QRhi& rhi, QRhiResourceUpdateBatch& res)
+  {
+    if(!m_vkD3D11Device || !m_vkD3D11Context)
+      return;
+
+    // Check for sender updates
+    spoutSenderNames senderNames;
+    char senderName[256];
+    strncpy_s(senderName, node.settings.path.toStdString().c_str(), 255);
+
+    unsigned int senderWidth = 0, senderHeight = 0;
+    DWORD dwFormat = 0;
+    HANDLE shareHandle = nullptr;
+
+    if(!senderNames.GetSenderInfo(senderName, senderWidth, senderHeight, shareHandle, dwFormat))
+    {
+      enabled = false;
+      return;
+    }
+
+    enabled = true;
+
+    // Check if size or handle changed
+    bool sizeChanged = (senderWidth != metadata.width || senderHeight != metadata.height);
+    bool handleChanged = (shareHandle != m_sharedHandle);
+
+    if(sizeChanged || handleChanged)
+    {
+      // Need to recreate the Vulkan external image
+      releaseVulkanResources(rhi);
+      m_sharedHandle = shareHandle;
+
+      if(sizeChanged)
+      {
+        metadata.width = senderWidth;
+        metadata.height = senderHeight;
+        material.textureSize[0] = metadata.width;
+        material.textureSize[1] = metadata.height;
+      }
+    }
+
+    // Open Spout's shared texture if not already open
+    if(!m_vkSpoutTexture && m_sharedHandle)
+    {
+      HRESULT hr = m_vkD3D11Device->OpenSharedResource(
+          m_sharedHandle, IID_PPV_ARGS(&m_vkSpoutTexture));
+      if(FAILED(hr))
+        m_vkSpoutTexture = nullptr;
+    }
+
+    if(!m_vkSpoutTexture)
+      return;
+
+    // Create the interop texture with NT handle if not already created
+    if(!m_vkInteropTexture)
+    {
+      if(!createVulkanInteropTexture(rhi, senderWidth, senderHeight))
+        return;
+    }
+
+    if(!m_vkInteropTexture || !m_vkExternalImage)
+      return;
+
+    // Copy from Spout texture to our interop texture
+    m_vkD3D11Context->CopyResource(m_vkInteropTexture, m_vkSpoutTexture);
+    m_vkD3D11Context->Flush();
+  }
+
+  bool createVulkanInteropTexture(QRhi& rhi, unsigned int w, unsigned int h)
+  {
+    // Create D3D11 texture with NT handle sharing for Vulkan import
+    D3D11_TEXTURE2D_DESC texDesc = {};
+    texDesc.Width = w;
+    texDesc.Height = h;
+    texDesc.MipLevels = 1;
+    texDesc.ArraySize = 1;
+    texDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+    texDesc.SampleDesc.Count = 1;
+    texDesc.SampleDesc.Quality = 0;
+    texDesc.Usage = D3D11_USAGE_DEFAULT;
+    texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    texDesc.CPUAccessFlags = 0;
+    texDesc.MiscFlags = D3D11_RESOURCE_MISC_SHARED_NTHANDLE | D3D11_RESOURCE_MISC_SHARED_KEYEDMUTEX;
+
+    HRESULT hr = m_vkD3D11Device->CreateTexture2D(&texDesc, nullptr, &m_vkInteropTexture);
+    if(FAILED(hr) || !m_vkInteropTexture)
+      return false;
+
+    // Get the NT handle for Vulkan import
+    IDXGIResource1* dxgiResource = nullptr;
+    hr = m_vkInteropTexture->QueryInterface(__uuidof(IDXGIResource1), (void**)&dxgiResource);
+    if(FAILED(hr) || !dxgiResource)
+    {
+      m_vkInteropTexture->Release();
+      m_vkInteropTexture = nullptr;
+      return false;
+    }
+
+    hr = dxgiResource->CreateSharedHandle(
+        nullptr, DXGI_SHARED_RESOURCE_READ | DXGI_SHARED_RESOURCE_WRITE, nullptr,
+        &m_vkInteropHandle);
+    dxgiResource->Release();
+
+    if(FAILED(hr) || !m_vkInteropHandle)
+    {
+      m_vkInteropTexture->Release();
+      m_vkInteropTexture = nullptr;
+      return false;
+    }
+
+    // Now import into Vulkan
+    auto nativeHandles
+        = static_cast<const QRhiVulkanNativeHandles*>(rhi.nativeHandles());
+    if(!nativeHandles || !nativeHandles->dev || !nativeHandles->physDev)
+      return false;
+
+    VkDevice vkDevice = nativeHandles->dev;
+    VkPhysicalDevice vkPhysDev = nativeHandles->physDev;
+
+    // Create VkImage for external memory
+    VkExternalMemoryImageCreateInfo extMemImageInfo = {};
+    extMemImageInfo.sType = VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO;
+    extMemImageInfo.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_D3D11_TEXTURE_BIT;
+
+    VkImageCreateInfo imageInfo = {};
+    imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    imageInfo.pNext = &extMemImageInfo;
+    imageInfo.imageType = VK_IMAGE_TYPE_2D;
+    imageInfo.format = VK_FORMAT_B8G8R8A8_UNORM;
+    imageInfo.extent = {w, h, 1};
+    imageInfo.mipLevels = 1;
+    imageInfo.arrayLayers = 1;
+    imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+    imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+    imageInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+    imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+    auto* inst = score::gfx::staticVulkanInstance();
+    SCORE_ASSERT(inst);
+    auto funcs = inst->functions();
+    SCORE_ASSERT(funcs);
+    auto dfuncs = inst->deviceFunctions(vkDevice);
+    SCORE_ASSERT(dfuncs);
+
+    VkResult result = dfuncs->vkCreateImage(vkDevice, &imageInfo, nullptr, &m_vkExternalImage);
+    if(result != VK_SUCCESS)
+    {
+      CloseHandle(m_vkInteropHandle);
+      m_vkInteropHandle = nullptr;
+      m_vkInteropTexture->Release();
+      m_vkInteropTexture = nullptr;
+      return false;
+    }
+
+    // Get memory requirements
+    VkMemoryRequirements memReqs;
+    dfuncs->vkGetImageMemoryRequirements(vkDevice, m_vkExternalImage, &memReqs);
+
+    // Import the D3D11 texture memory
+    VkImportMemoryWin32HandleInfoKHR importInfo = {};
+    importInfo.sType = VK_STRUCTURE_TYPE_IMPORT_MEMORY_WIN32_HANDLE_INFO_KHR;
+    importInfo.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_D3D11_TEXTURE_BIT;
+    importInfo.handle = m_vkInteropHandle;
+
+    VkMemoryDedicatedAllocateInfo dedicatedInfo = {};
+    dedicatedInfo.sType = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO;
+    dedicatedInfo.pNext = &importInfo;
+    dedicatedInfo.image = m_vkExternalImage;
+
+    // Find suitable memory type
+    VkPhysicalDeviceMemoryProperties memProps;
+    funcs->vkGetPhysicalDeviceMemoryProperties(vkPhysDev, &memProps);
+
+    uint32_t memTypeIndex = UINT32_MAX;
+    for(uint32_t i = 0; i < memProps.memoryTypeCount; i++)
+    {
+      if((memReqs.memoryTypeBits & (1 << i))
+         && (memProps.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
+      {
+        memTypeIndex = i;
+        break;
+      }
+    }
+
+    if(memTypeIndex == UINT32_MAX)
+    {
+      dfuncs->vkDestroyImage(vkDevice, m_vkExternalImage, nullptr);
+      m_vkExternalImage = VK_NULL_HANDLE;
+      CloseHandle(m_vkInteropHandle);
+      m_vkInteropHandle = nullptr;
+      m_vkInteropTexture->Release();
+      m_vkInteropTexture = nullptr;
+      return false;
+    }
+
+    VkMemoryAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.pNext = &dedicatedInfo;
+    allocInfo.allocationSize = memReqs.size;
+    allocInfo.memoryTypeIndex = memTypeIndex;
+
+    result = dfuncs->vkAllocateMemory(vkDevice, &allocInfo, nullptr, &m_vkExternalMemory);
+    if(result != VK_SUCCESS)
+    {
+      dfuncs->vkDestroyImage(vkDevice, m_vkExternalImage, nullptr);
+      m_vkExternalImage = VK_NULL_HANDLE;
+      CloseHandle(m_vkInteropHandle);
+      m_vkInteropHandle = nullptr;
+      m_vkInteropTexture->Release();
+      m_vkInteropTexture = nullptr;
+      return false;
+    }
+
+    // Bind image to memory
+    result = dfuncs->vkBindImageMemory(vkDevice, m_vkExternalImage, m_vkExternalMemory, 0);
+    if(result != VK_SUCCESS)
+    {
+      dfuncs->vkFreeMemory(vkDevice, m_vkExternalMemory, nullptr);
+      m_vkExternalMemory = VK_NULL_HANDLE;
+      dfuncs->vkDestroyImage(vkDevice, m_vkExternalImage, nullptr);
+      m_vkExternalImage = VK_NULL_HANDLE;
+      CloseHandle(m_vkInteropHandle);
+      m_vkInteropHandle = nullptr;
+      m_vkInteropTexture->Release();
+      m_vkInteropTexture = nullptr;
+      return false;
+    }
+
+    // Create QRhiTexture from the external VkImage
+    SCORE_ASSERT(!m_gpu->samplers.empty());
+    auto tex = m_gpu->samplers[0].texture;
+
+    // Destroy old texture and recreate from external image
+    tex->destroy();
+    tex->setPixelSize(QSize(w, h));
+
+    QRhiTexture::NativeTexture nativeTex;
+    nativeTex.object = (quint64)m_vkExternalImage;
+    nativeTex.layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+    if(!tex->createFrom(nativeTex))
+    {
+      dfuncs->vkFreeMemory(vkDevice, m_vkExternalMemory, nullptr);
+      m_vkExternalMemory = VK_NULL_HANDLE;
+      dfuncs->vkDestroyImage(vkDevice, m_vkExternalImage, nullptr);
+      m_vkExternalImage = VK_NULL_HANDLE;
+      CloseHandle(m_vkInteropHandle);
+      m_vkInteropHandle = nullptr;
+      m_vkInteropTexture->Release();
+      m_vkInteropTexture = nullptr;
+      return false;
+    }
+
+    m_vkRhiTexture = tex;
+
+    // Recreate shader resource bindings
+    for(auto& pass : m_p)
+      pass.second.srb->create();
+
+    return true;
+  }
+
+  void releaseVulkanResources(QRhi& rhi)
+  {
+    auto nativeHandles
+        = static_cast<const QRhiVulkanNativeHandles*>(rhi.nativeHandles());
+    VkDevice vkDevice = nativeHandles ? nativeHandles->dev : VK_NULL_HANDLE;
+
+    auto* inst = score::gfx::staticVulkanInstance();
+    SCORE_ASSERT(inst);
+    auto funcs = inst->functions();
+    SCORE_ASSERT(funcs);
+    auto dfuncs = inst->deviceFunctions(vkDevice);
+    SCORE_ASSERT(dfuncs);
+
+    if(m_vkExternalMemory && vkDevice)
+    {
+      dfuncs->vkFreeMemory(vkDevice, m_vkExternalMemory, nullptr);
+      m_vkExternalMemory = VK_NULL_HANDLE;
+    }
+    if(m_vkExternalImage && vkDevice)
+    {
+      dfuncs->vkDestroyImage(vkDevice, m_vkExternalImage, nullptr);
+      m_vkExternalImage = VK_NULL_HANDLE;
+    }
+    if(m_vkInteropHandle)
+    {
+      CloseHandle(m_vkInteropHandle);
+      m_vkInteropHandle = nullptr;
+    }
+    if(m_vkInteropTexture)
+    {
+      m_vkInteropTexture->Release();
+      m_vkInteropTexture = nullptr;
+    }
+    if(m_vkSpoutTexture)
+    {
+      m_vkSpoutTexture->Release();
+      m_vkSpoutTexture = nullptr;
+    }
+    m_vkRhiTexture = nullptr;
+  }
+#endif
+
   void resizeTexture(QRhiTexture* tex, unsigned int w, unsigned int h)
   {
     metadata.width = w;
@@ -553,6 +929,21 @@ private:
           m_d3d11Device = nullptr;
         }
         break;
+#if SCORE_SPOUT_VULKAN
+      case QRhi::Vulkan:
+        releaseVulkanResources(*r.state.rhi);
+        if(m_vkD3D11Context)
+        {
+          m_vkD3D11Context->Release();
+          m_vkD3D11Context = nullptr;
+        }
+        if(m_vkD3D11Device)
+        {
+          m_vkD3D11Device->Release();
+          m_vkD3D11Device = nullptr;
+        }
+        break;
+#endif
       default:
         break;
     }
