@@ -109,7 +109,9 @@ bool MCUProtocolFactory::checkCompatibility(
   if(specif.output_handle.empty())
     return false;
   // FIXME improve when we have multiple devices in one control surface
-  return specif.input_handle[0] != libremidi::port_information{}
-         && specif.output_handle[0] != libremidi::port_information{};
+  return
+      specif.input_handle[0].port != libremidi::port_information{}.port
+         && specif.output_handle[0].port != libremidi::port_information{}.port
+      ;
 }
 }

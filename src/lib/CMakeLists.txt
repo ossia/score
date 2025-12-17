@@ -237,6 +237,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Unused.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/RecursiveWatch.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/ThreadPool.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Timers.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Debug.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Version.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/exceptions/MissingCommand.hpp"
@@ -511,6 +512,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/SpinBoxes.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/ListNetworkAddresses.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Timers.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/SafeQApplication.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationInterface.cpp"
