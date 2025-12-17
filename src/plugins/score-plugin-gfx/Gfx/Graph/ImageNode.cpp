@@ -371,10 +371,16 @@ private:
       }
       else if(m_textures[i]->pixelSize() != tex_size)
       {
-        auto tex = m_textures[i];
-        tex->destroy();
-        tex->setPixelSize(tex_size);
+        auto old_tex = m_textures[i];
+        old_tex->deleteLater();
+
+        auto tex = rhi.newTexture(QRhiTexture::BGRA8, tex_size, 1, QRhiTexture::Flag{});
+        tex->setName("ImagesNode::tex");
         tex->create();
+        
+        m_textures[i] = tex;
+        
+        m_uploaded = false; 
       }
     }
   }
