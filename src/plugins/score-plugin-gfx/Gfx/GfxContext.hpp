@@ -8,11 +8,15 @@
 #include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/mutex.hpp>
 #include <ossia/detail/variant.hpp>
+#include <ossia/detail/small_flat_map.hpp>
 #include <ossia/gfx/port_index.hpp>
 #include <ossia/network/value/value.hpp>
 
 #include <concurrentqueue.h>
 #include <score_plugin_gfx_export.h>
+namespace score {
+class HighResolutionTimer;
+}
 namespace score::gfx
 {
 struct Graph;
@@ -65,7 +69,9 @@ private:
   void remove_edge(EdgeSpec e);
   void remove_node(std::vector<std::unique_ptr<score::gfx::Node>>& nursery, int32_t id);
 
-  void timerEvent(QTimerEvent*) override;
+  void on_no_vsync_timer(score::HighResolutionTimer* self);
+  void on_watchdog_timer(score::HighResolutionTimer* self);
+  void on_manual_timer(score::HighResolutionTimer* self);
   const score::DocumentContext& m_context;
   std::atomic_int32_t index{1};
   ossia::hash_map<int32_t, NodePtr> nodes;
@@ -107,10 +113,10 @@ private:
   ossia::flat_set<EdgeSpec> preview_edges;
   std::atomic_bool edges_changed{};
 
-  int m_no_vsync_timer{-1};
-  int m_watchdog_timer{-1};
+  score::HighResolutionTimer* m_no_vsync_timer{};
+  score::HighResolutionTimer* m_watchdog_timer{};
 
-  ossia::flat_map<int, score::gfx::OutputNode*> m_manualTimers;
+  ossia::small_flat_map<score::HighResolutionTimer*, score::gfx::OutputNode*, 8> m_manualTimers;
 
   ossia::object_pool<std::vector<score::gfx::gfx_input>> m_buffers;
 };

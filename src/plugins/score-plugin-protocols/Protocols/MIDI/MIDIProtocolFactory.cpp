@@ -236,7 +236,7 @@ bool MIDIInputProtocolFactory::checkCompatibility(
 {
   // FIXME check if we can open the same device multiple times ?
   auto specif = a.deviceSpecificSettings.value<MIDISpecificSettings>();
-  return specif.handle != libremidi::port_information{} || specif.virtualPort;
+  return specif.handle.port != libremidi::port_information{}.port || specif.virtualPort;
 }
 
 QString MIDIOutputProtocolFactory::prettyName() const noexcept
@@ -329,6 +329,6 @@ bool MIDIOutputProtocolFactory::checkCompatibility(
 {
   // FIXME check if we can open the same device multiple times ?
   auto specif = a.deviceSpecificSettings.value<MIDISpecificSettings>();
-  return (specif.handle != libremidi::port_information{}) || specif.virtualPort;
+  return (specif.handle.port != libremidi::port_information{}.port) || specif.virtualPort;
 }
 }

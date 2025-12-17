@@ -7,6 +7,7 @@
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/tools/Bind.hpp>
+#include <score/tools/Timers.hpp>
 
 #include <ossia/detail/flicks.hpp>
 #include <ossia/detail/logger.hpp>
@@ -14,9 +15,9 @@
 
 #include <QGuiApplication>
 #include <QTimer>
+#include <wobjectimpl.h>
 namespace Gfx
 {
-
 GfxContext::GfxContext(const score::DocumentContext& ctx)
     : m_context{ctx}
 {
@@ -37,16 +38,22 @@ GfxContext::GfxContext(const score::DocumentContext& ctx)
   m_graph = new score::gfx::Graph;
 
   double rate = m_context.app.settings<Gfx::Settings::Model>().getRate();
-  rate = 1000. / qBound(1.0, rate, 1000.);
+  rate = qBound(1.0, rate, 1000.);
 
-  QMetaObject::invokeMethod(this, [this, rate] {
-    m_no_vsync_timer = startTimer(rate, Qt::PreciseTimer);
-  }, Qt::QueuedConnection);
+  auto& timers = score::Timers::instance();
+
+  {
+    auto& timers = score::Timers::instance();
+    m_no_vsync_timer = timers.acquireTimer(this, rate);
+    connect(m_no_vsync_timer, &score::HighResolutionTimer::timeout, this, &GfxContext::on_no_vsync_timer, Qt::UniqueConnection);
+  }
 
   // A safety timer necessary to handle graph updates in case we had vsync and lost it
-  QMetaObject::invokeMethod(this, [this] {
-    m_watchdog_timer = startTimer(50, Qt::PreciseTimer);
-  }, Qt::QueuedConnection);
+  {
+    auto& timers = score::Timers::instance();
+    m_watchdog_timer = timers.acquireTimer(this, 20.);
+    connect(m_watchdog_timer, &score::HighResolutionTimer::timeout, this, &GfxContext::on_watchdog_timer, Qt::UniqueConnection);
+  }
 }
 
 GfxContext::~GfxContext()
@@ -172,13 +179,17 @@ void GfxContext::recompute_edges()
 
 void GfxContext::recompute_graph()
 {
-  if(m_no_vsync_timer != -1)
-    killTimer(m_no_vsync_timer);
+  auto& timers = score::Timers::instance();
+  if(m_no_vsync_timer != nullptr)
+  {
+    timers.releaseTimer(this, m_no_vsync_timer);
+    m_no_vsync_timer = nullptr;
+  }
+
   for(auto [id, ptr] : m_manualTimers)
-    killTimer(id);
+    timers.releaseTimer(this, id);
   m_manualTimers.clear();
 
-  m_no_vsync_timer = -1;
   m_graph->setVSyncCallback({});
 
   recompute_edges();
@@ -192,7 +203,7 @@ void GfxContext::recompute_graph()
 
   // rate in fps
   double rate = m_context.app.settings<Gfx::Settings::Model>().getRate();
-  rate = 1000. / qBound(1.0, rate, 1000.);
+  rate = qBound(1.0, rate, 1000.);
 
   // Update and render
   // This starts the timer for updating the graph, that is, reading the new parameters.
@@ -210,9 +221,9 @@ void GfxContext::recompute_graph()
   }
   else
   {
-    QMetaObject::invokeMethod(this, [this, rate] {
-      m_no_vsync_timer = startTimer(rate, Qt::PreciseTimer);
-    }, Qt::QueuedConnection);
+    auto& timers = score::Timers::instance();
+    m_no_vsync_timer = timers.acquireTimer(this, rate);
+    connect(m_no_vsync_timer, &score::HighResolutionTimer::timeout, this, &GfxContext::on_no_vsync_timer, Qt::UniqueConnection);
   }
 
   // This starts the timers which control the actual render rate of various things
@@ -222,8 +233,9 @@ void GfxContext::recompute_graph()
     auto conf = outputs->output.configuration();
     if(conf.manualRenderingRate)
     {
-      int id = startTimer(*conf.manualRenderingRate, Qt::PreciseTimer);
+      auto id = timers.acquireTimer(this, 1000. / *conf.manualRenderingRate);
       m_manualTimers[id] = &outputs->output;
+      connect(id, &score::HighResolutionTimer::timeout, this, &GfxContext::on_manual_timer, Qt::UniqueConnection);
     }
   }
 }
@@ -237,10 +249,12 @@ void GfxContext::add_preview_output(score::gfx::OutputNode& node)
 
   // rate in fps
   double rate = m_context.app.settings<Gfx::Settings::Model>().getRate();
-  rate = 1000. / qBound(1.0, rate, 1000.);
 
-  if(m_no_vsync_timer == -1)
-    m_no_vsync_timer = startTimer(rate, Qt::PreciseTimer);
+  if(m_no_vsync_timer == nullptr) {
+    auto& timers = score::Timers::instance();
+    m_no_vsync_timer = timers.acquireTimer(this, rate);
+    connect(m_no_vsync_timer, &score::HighResolutionTimer::timeout, this, &GfxContext::on_no_vsync_timer, Qt::UniqueConnection);
+  }
 }
 
 void GfxContext::recompute_connections()
@@ -295,9 +309,15 @@ void GfxContext::remove_node(
     for(auto timer_it = m_manualTimers.begin(); timer_it != m_manualTimers.end();)
     {
       if(timer_it->second == node)
+      {
+        auto& timers = score::Timers::instance();
+        timers.releaseTimer(this, timer_it->first);
         timer_it = m_manualTimers.erase(timer_it);
+      }
       else
+      {
         ++timer_it;
+      }
     }
 
     m_graph->removeNode(node);
@@ -422,19 +442,21 @@ void GfxContext::updateGraph()
   }
 }
 
-void GfxContext::timerEvent(QTimerEvent* ev)
+void GfxContext::on_no_vsync_timer(score::HighResolutionTimer* self)
 {
-  const auto tid = ev->timerId();
-  if(tid == m_no_vsync_timer || tid == m_watchdog_timer)
+  updateGraph();
+}
+
+void GfxContext::on_watchdog_timer(score::HighResolutionTimer* self)
+{
+  updateGraph();
+}
+
+void GfxContext::on_manual_timer(score::HighResolutionTimer* self)
+{
+  if(auto ptr = m_manualTimers.find(self); ptr != m_manualTimers.end())
   {
-    updateGraph();
-  }
-  else
-  {
-    if(auto ptr = m_manualTimers.find(tid); ptr != m_manualTimers.end())
-    {
-      ptr->second->render();
-    }
+    ptr->second->render();
   }
 }
 }
