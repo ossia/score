@@ -56,6 +56,8 @@ public:
   JS::Script* m_object{};
   ossia::qt::qml_engine_functions* m_execFuncs{};
   std::optional<QJSValueList> m_tickCall;
+  QPointer<QObject> m_uiContext;
+  std::function<void(QVariant)> m_messageToUi;
   std::size_t m_gcIndex{};
 
   bool triggerStart{};
@@ -78,6 +80,18 @@ public:
       return;
     if(auto v = qobject_cast<Impulse*>(m_jsInlets[index]))
       v->impulse();
+  }
+
+  void uiMessage(const QVariant& v)
+  {
+    if(!m_object)
+      return;
+
+    const auto& on_ui = this->m_object->uiEvent();
+    if(!on_ui.isCallable())
+      return;
+
+    on_ui.call({m_engine->toScriptValue(v)});
   }
 };
 

@@ -24,7 +24,7 @@ class BytebeatModel;
 PROCESS_METADATA(
     , Jit::BytebeatModel, "608beeb7-e5c2-40a5-bd1a-aa7aec80f864", "Jit", "Bytebeat",
     Process::ProcessCategory::Script, "Audio/Generators", "Run bytebeat code",
-    "ossia score", QStringList{}, {}, {}, QUrl("https://ossia.io/score-docs/processes/bytebeat.html#what-is-bytebeat"), Process::ProcessFlags::SupportsAll)
+    "ossia score", QStringList{}, {}, {}, QUrl("https://ossia.io/score-docs/processes/bytebeat.html#what-is-bytebeat"), Process::ProcessFlags::SupportsAll | Process::ProcessFlags::ScriptEditingSupported)
 namespace Jit
 {
 struct Driver;
@@ -53,8 +53,6 @@ public:
   const QString& script() const noexcept { return m_text; }
   [[nodiscard]] Process::ScriptChangeResult setScript(const QString& txt);
   void scriptChanged(const QString& txt) W_SIGNAL(scriptChanged, txt);
-
-  static constexpr bool hasExternalUI() noexcept { return true; }
 
   bool validate(const QString& txt) const noexcept;
 
@@ -101,7 +99,7 @@ struct BytebeatLanguageSpec
 };
 
 using BytebeatEffectFactory = Process::EffectProcessFactory_T<BytebeatModel>;
-using BytebeatLayerFactory = Process::EffectLayerFactory_T<
+using BytebeatLayerFactory = Process::ScriptLayerFactory_T<
     BytebeatModel, Process::ProcessScriptEditDialog<
                        BytebeatModel, BytebeatModel::p_script, BytebeatLanguageSpec>>;
 

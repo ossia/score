@@ -117,6 +117,12 @@ QWidget* LayerFactory::makeCodeEditor(
   return nullptr;
 }
 
+QWidget* LayerFactory::makeScriptUI(
+    ProcessModel&, const score::DocumentContext& ctx, QWidget* parent) const
+{
+  return nullptr;
+}
+
 bool LayerFactory::hasExternalUI(
     const ProcessModel&, const score::DocumentContext& ctx) const noexcept
 {

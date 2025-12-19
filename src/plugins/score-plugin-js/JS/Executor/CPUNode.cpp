@@ -51,6 +51,8 @@ void js_node::setupComponent()
   OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
   SCORE_ASSERT(m_object);
   m_object->setParent(m_engine);
+  QObject::connect(m_object, &JS::Script::messageToUi,
+                   m_uiContext, m_messageToUi, Qt::QueuedConnection);
   int input_i = 0;
   int output_i = 0;
 
@@ -101,6 +103,7 @@ void js_node::setScript(const QString& val)
   OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
   if(!m_engine)
   {
+    // FIXME only one engine for the whole thread + multiple QQmlContext
     m_engine = new QQmlEngine;
     m_execFuncs = new ossia::qt::qml_engine_functions{
         m_st.exec_devices(), [&]<typename... Args>(Args&&... args) {

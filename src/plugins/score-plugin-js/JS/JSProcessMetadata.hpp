@@ -15,4 +15,4 @@ PROCESS_METADATA(
     (QStringList{"Script", "JS"}), {}, {},
     QUrl("https://ossia.io/score-docs/processes/javascript.html#javascript-support"),
     Process::ProcessFlags::SupportsAll | Process::ProcessFlags::PutInNewSlot
-        | Process::ProcessFlags::ControlSurface | Process::ProcessFlags::DynamicPorts)
+        | Process::ProcessFlags::ControlSurface | Process::ProcessFlags::DynamicPorts | Process::ProcessFlags::ScriptEditingSupported)

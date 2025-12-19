@@ -34,7 +34,7 @@ PROCESS_METADATA(
     Process::ProcessCategory::Script, "Plugins",
     "Faust process. Refer to https://faust.grame.fr", "GRAME and the Faust team",
     {"Script"}, {}, {}, QUrl("https://ossia.io/score-docs/processes/faust.html"),
-    Process::ProcessFlags::ExternalEffect | Process::ProcessFlags::DynamicPorts)
+    Process::ProcessFlags::ExternalEffect | Process::ProcessFlags::DynamicPorts | Process::ProcessFlags::ScriptEditingSupported)
 DESCRIPTION_METADATA(, Faust::FaustEffectModel, "Faust")
 namespace Faust
 {
@@ -47,8 +47,7 @@ class FaustEffectModel : public Process::ProcessModel
   PROCESS_METADATA_IMPL(FaustEffectModel)
 
 public:
-  static constexpr bool hasExternalUI() noexcept { return true; }
-
+  // FIXME implement externalUi when there is a layout.dsp?
   FaustEffectModel(
       TimeVal t, const QString& faustProgram, const Id<Process::ProcessModel>&,
       QObject* parent);
@@ -118,7 +117,7 @@ struct LanguageSpec
 };
 
 using FaustEffectFactory = Process::EffectProcessFactory_T<FaustEffectModel>;
-using LayerFactory = Process::EffectLayerFactory_T<
+using LayerFactory = Process::ScriptLayerFactory_T<
     FaustEffectModel, Process::ProcessScriptEditDialog<
                           FaustEffectModel, FaustEffectModel::p_script, LanguageSpec>>;
 }
