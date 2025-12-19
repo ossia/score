@@ -24,8 +24,6 @@ class Model final : public Process::ProcessModel
   W_OBJECT(Model)
 
 public:
-  static constexpr bool hasExternalUI() noexcept { return true; }
-
   Model(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
   Model(
       const TimeVal& duration, const QString& init, const Id<Process::ProcessModel>& id,

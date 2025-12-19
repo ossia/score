@@ -21,6 +21,7 @@
 
 #include <QString>
 
+#include <QMetaProperty>
 #include <score_lib_process_export.h>
 #include <smallfun.hpp>
 
@@ -171,6 +172,7 @@ public:
                 creatingControlsChanged)
 
   // FIXME ugh
+  QWidget* scriptUI{};
   QWidget* externalUI{};
 
   /// Execution
@@ -204,6 +206,8 @@ public:
   void benchmark(double arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, benchmark, arg_1)
   void externalUIVisible(bool v) const
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, externalUIVisible, v)
+  void scriptUIVisible(bool v) const
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, scriptUIVisible, v)
 
 protected:
   // Used to scale the process.

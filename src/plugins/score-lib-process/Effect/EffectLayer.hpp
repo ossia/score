@@ -52,6 +52,16 @@ protected:
 };
 
 SCORE_LIB_PROCESS_EXPORT
+QGraphicsItem* makeScriptButton(
+    Process::ProcessModel& proc, const score::DocumentContext& ctx, QObject* self,
+    QGraphicsItem* parent);
+
+SCORE_LIB_PROCESS_EXPORT
+    void setupScriptUI(
+        Process::ProcessModel& proc, const Process::LayerFactory& factory,
+        const score::DocumentContext& ctx, bool show);
+
+SCORE_LIB_PROCESS_EXPORT
 void setupExternalUI(
     Process::ProcessModel& proc, const Process::LayerFactory& factory,
     const score::DocumentContext& ctx, bool show);

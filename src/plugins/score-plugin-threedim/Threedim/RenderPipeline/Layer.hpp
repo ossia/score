@@ -9,7 +9,7 @@
 
 namespace Gfx::RenderPipeline
 {
-using LayerFactory = Process::EffectLayerFactory_T<
+using LayerFactory = Process::ScriptLayerFactory_T<
     Gfx::RenderPipeline::Model,
     Process::ProcessMultiScriptEditDialog<
         Gfx::RenderPipeline::Model, Gfx::RenderPipeline::Model::p_program>>;

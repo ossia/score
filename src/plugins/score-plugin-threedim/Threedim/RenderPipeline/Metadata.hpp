@@ -18,5 +18,5 @@ PROCESS_METADATA(
     {},                                  // Inputs
     {},                                  // Outputs
     QUrl{},                              // Doc url
-    Process::ProcessFlags::SupportsAll | Process::ProcessFlags::ControlSurface // Flags
+    Process::ProcessFlags::SupportsAll | Process::ProcessFlags::ControlSurface | Process::ProcessFlags::ScriptEditingSupported // Flags
 )

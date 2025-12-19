@@ -35,6 +35,18 @@ Component::Component(
     std::shared_ptr<js_node> node
         = ossia::make_node<js_node>(*ctx.execState, *ctx.execState);
     this->node = node;
+    node->m_uiContext = this;
+    node->m_messageToUi = [this] (const QVariant& v){
+      OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
+      this->process().executionToUi(v);
+    };
+    connect(
+        &element, &JS::ProcessModel::uiToExecution, this,
+        [this, node](const QVariant& v) {
+      auto encaps = std::make_unique<QVariant>(v);
+      in_exec([node, vv=std::move(encaps)] { node->uiMessage(*vv); });
+    }, Qt::QueuedConnection);
+
     auto proc = std::make_shared<js_process>(node);
     m_ossia_process = proc;
     on_scriptChange();
@@ -156,7 +168,7 @@ Component::on_gpuScriptChange(const QString& script, Execution::Transaction& com
   std::size_t control_index = 0;
   {
     const Execution::Context& ctx = system();
-    if(auto object = process().currentObject())
+    if(auto object = process().currentExecutionObject())
     {
       for(auto n : object->children())
       {
@@ -340,7 +352,7 @@ Component::on_cpuScriptChange(const QString& script, Execution::Transaction& com
   std::vector<Execution::ExecutionCommand> controlSetups;
 
   {
-    if(auto object = process().currentObject())
+    if(auto object = process().currentExecutionObject())
     {
       int idx = 0;
       auto process_if_control

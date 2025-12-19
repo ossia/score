@@ -125,6 +125,8 @@ void NodeItem::createWithDecorations()
       = new score::QGraphicsPixmapToggle{pixmaps.unroll_small, pixmaps.roll_small, this};
   m_fold->setState(!m_folded);
 
+  m_scriptButton = Process::makeScriptButton(
+      const_cast<Process::ProcessModel&>(process), ctx, this, this);
   m_uiButton = Process::makeExternalUIButton(
       const_cast<Process::ProcessModel&>(process), ctx, this, this);
   m_presetButton = Process::makePresetButton(process, ctx, this, this);
@@ -373,6 +375,12 @@ void NodeItem::updateTitlePos()
 
   m_fold->setPos({x0, FoldY0});
   x0 += UiX0 - FoldX0 + 2.;
+
+  if(m_scriptButton)
+  {
+    m_scriptButton->setPos({x0, UiY0});
+    x0 += UiX0 + SpacingIcon;
+  }
 
   if(m_uiButton)
   {
@@ -664,6 +672,10 @@ void NodeItem::updateSize()
       m_presenter->setHeight(m_contentSize.height());
     }
 
+    if(m_scriptButton)
+    {
+      m_scriptButton->setParentItem(nullptr);
+    }
     if(m_uiButton)
     {
       m_uiButton->setParentItem(nullptr);
@@ -674,6 +686,10 @@ void NodeItem::updateSize()
       outlet->setPos(m_contentSize.width() + OutletX0, outlet->pos().y());
     }
 
+    if(m_scriptButton)
+    {
+      m_scriptButton->setParentItem(this);
+    }
     if(m_uiButton)
     {
       m_uiButton->setParentItem(this);
@@ -696,6 +712,10 @@ void NodeItem::setSize(QSizeF sz)
     prepareGeometryChange();
     m_contentSize = sz;
 
+    if(m_scriptButton)
+    {
+      m_scriptButton->setParentItem(nullptr);
+    }
     if(m_uiButton)
     {
       m_uiButton->setParentItem(nullptr);
@@ -707,10 +727,17 @@ void NodeItem::setSize(QSizeF sz)
 
     resetInlets();
     resetOutlets();
+    auto cur_x = m_contentSize.width() + TopButtonX0;
+    if(m_scriptButton)
+    {
+      m_scriptButton->setParentItem(this);
+      m_scriptButton->setPos({cur_x, TopButtonY0});
+      cur_x += UiX0 + SpacingIcon;
+    }
     if(m_uiButton)
     {
       m_uiButton->setParentItem(this);
-      m_uiButton->setPos({m_contentSize.width() + TopButtonX0, TopButtonY0});
+      m_uiButton->setPos({cur_x, TopButtonY0});
     }
   }
   if(auto resizeable = dynamic_cast<score::ResizeableItem*>(m_fx))

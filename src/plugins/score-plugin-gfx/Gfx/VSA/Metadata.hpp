@@ -21,5 +21,5 @@ PROCESS_METADATA(
     {},                                                   // Outputs
     QUrl("https://vertexshaderart.com"),
     Process::ProcessFlags::SupportsAll | Process::ProcessFlags::ControlSurface
-        | Process::ProcessFlags::DynamicPorts // Flags
+        | Process::ProcessFlags::DynamicPorts | Process::ProcessFlags::ScriptEditingSupported // Flags
 )

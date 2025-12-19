@@ -13,7 +13,7 @@ struct LanguageSpec
 {
   static constexpr const char* language = "GLSL";
 };
-using LayerFactory = Process::EffectLayerFactory_T<
+using LayerFactory = Process::ScriptLayerFactory_T<
     Gfx::VSA::Model, Process::ProcessScriptEditDialog<
                          Gfx::VSA::Model, Gfx::VSA::Model::p_vertex, LanguageSpec>>;
 }

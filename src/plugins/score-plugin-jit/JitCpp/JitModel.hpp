@@ -24,7 +24,7 @@ PROCESS_METADATA(
     Process::ProcessCategory::Script, "Script", "JIT compilation process", "ossia score",
     QStringList{}, {}, {},
     QUrl("https://ossia.io/score-docs/processes/cpp_jit.html#c-jit"),
-    Process::ProcessFlags::SupportsAll | Process::ProcessFlags::DynamicPorts)
+    Process::ProcessFlags::SupportsAll | Process::ProcessFlags::DynamicPorts | Process::ProcessFlags::ScriptEditingSupported)
 namespace Jit
 {
 struct Driver;
@@ -58,8 +58,6 @@ public:
   void scriptChanged(const QString& txt) W_SIGNAL(scriptChanged, txt);
   void programChanged() W_SIGNAL(programChanged);
 
-  static constexpr bool hasExternalUI() noexcept { return true; }
-
   QString prettyName() const noexcept override;
 
   std::shared_ptr<NodeFactory> factory;
@@ -85,7 +83,7 @@ struct LanguageSpec
 };
 
 using JitEffectFactory = Process::EffectProcessFactory_T<Jit::JitEffectModel>;
-using LayerFactory = Process::EffectLayerFactory_T<
+using LayerFactory = Process::ScriptLayerFactory_T<
     JitEffectModel, Process::ProcessScriptEditDialog<
                         JitEffectModel, JitEffectModel::p_script, LanguageSpec>>;
 }
