@@ -849,21 +849,25 @@ class Script : public QObject
 public:
   QQmlListProperty<QObject> data() noexcept { return {this, &m_data}; }
 
-  QJSValue& tick() /*Qt6: const*/ noexcept { return m_tick; }
+  const QJSValue& tick()  const noexcept { return m_tick; }
   void setTick(const QJSValue& v) { m_tick = v; }
-  QJSValue& start() /*Qt6: const*/ noexcept { return m_start; }
+  const QJSValue& start() const noexcept { return m_start; }
   void setStart(const QJSValue& v) { m_start = v; }
-  QJSValue& stop() /*Qt6: const*/ noexcept { return m_stop; }
+  const QJSValue& stop() const noexcept { return m_stop; }
   void setStop(const QJSValue& v) { m_stop = v; }
-  QJSValue& pause() /*Qt6: const*/ noexcept { return m_pause; }
+  const QJSValue& pause() const noexcept { return m_pause; }
   void setPause(const QJSValue& v) { m_pause = v; }
-  QJSValue& resume() /*Qt6: const*/ noexcept { return m_resume; }
+  const QJSValue& resume() const noexcept { return m_resume; }
   void setResume(const QJSValue& v) { m_resume = v; }
+  const QJSValue& uiEvent() const noexcept { return m_uiEvent; }
+  void setUiEvent(const QJSValue& v) { m_uiEvent = v; }
+  void messageToUi(const QVariant& v) W_SIGNAL(messageToUi, v);
   W_PROPERTY(QJSValue, tick READ tick WRITE setTick CONSTANT)
   W_PROPERTY(QJSValue, start READ start WRITE setStart CONSTANT)
   W_PROPERTY(QJSValue, stop READ stop WRITE setStop CONSTANT)
   W_PROPERTY(QJSValue, pause READ pause WRITE setPause CONSTANT)
   W_PROPERTY(QJSValue, resume READ resume WRITE setResume CONSTANT)
+  W_PROPERTY(QJSValue, uiEvent READ uiEvent WRITE setUiEvent CONSTANT)
   W_PROPERTY(QQmlListProperty<QObject>, data READ data)
 
 private:
@@ -873,6 +877,7 @@ private:
   QJSValue m_stop;
   QJSValue m_pause;
   QJSValue m_resume;
+  QJSValue m_uiEvent;
 };
 }
 

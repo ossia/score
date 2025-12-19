@@ -29,7 +29,7 @@ PROCESS_METADATA(
     "C++ texture generator", Process::ProcessCategory::Script, "Visuals/Textures",
     "Generate a texture", "ossia score", QStringList{}, {}, {},
     QUrl("https://ossia.io/score-docs/processes/texgen.html#texture-generator"),
-    Process::ProcessFlags::SupportsAll)
+    Process::ProcessFlags::SupportsAll | Process::ProcessFlags::ScriptEditingSupported)
 namespace Jit
 {
 struct Driver;
@@ -60,8 +60,6 @@ public:
   [[nodiscard]] Process::ScriptChangeResult setScript(const QString& txt);
   void scriptChanged(const QString& txt) W_SIGNAL(scriptChanged, txt);
   void programChanged() W_SIGNAL(programChanged);
-
-  static constexpr bool hasExternalUI() noexcept { return true; }
 
   QString prettyName() const noexcept override;
 
@@ -104,7 +102,7 @@ struct TexgenLanguageSpec
 };
 
 using TexgenEffectFactory = Process::EffectProcessFactory_T<TexgenModel>;
-using TexgenLayerFactory = Process::EffectLayerFactory_T<
+using TexgenLayerFactory = Process::ScriptLayerFactory_T<
     TexgenModel, Process::ProcessScriptEditDialog<
                      TexgenModel, TexgenModel::p_script, TexgenLanguageSpec>>;
 

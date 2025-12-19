@@ -21,4 +21,4 @@ PROCESS_METADATA(
     {},                                      // Outputs
     QUrl{},                                  // Documentation link
     Process::ProcessFlags::SupportsAll | Process::ProcessFlags::ControlSurface
-        | Process::ProcessFlags::PutInNewSlot)
+        | Process::ProcessFlags::PutInNewSlot | Process::ProcessFlags::ScriptEditingSupported)

@@ -121,6 +121,7 @@ private:
   static void paintNode(QPainter* painter, bool selected, bool hovered, QRectF rect);
 
   // Title
+  QGraphicsItem* m_scriptButton{};
   QGraphicsItem* m_uiButton{};
   QGraphicsItem* m_presetButton{};
   score::SimpleTextItem* m_label{};

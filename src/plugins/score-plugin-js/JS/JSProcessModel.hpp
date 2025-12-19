@@ -20,27 +20,73 @@ namespace JS
 class Script;
 class ProcessModel;
 
+struct QmlSource {
+  QmlSource() = default;
+  ~QmlSource() = default;
+  QmlSource(const QmlSource&) = default;
+  QmlSource(QmlSource&&) = default;
+
+  QmlSource(const QString& execution, const QString& ui)
+      : execution{execution}
+      , ui{ui}
+  {
+  }
+
+  QmlSource(const std::vector<QString>& vec)
+  {
+    SCORE_ASSERT(vec.size() == 2);
+    execution = vec[0];
+    ui = vec[1];
+  }
+
+  QmlSource& operator=(const QmlSource&) = default;
+  QmlSource& operator=(QmlSource&&) = default;
+
+  QString execution;
+  QString ui;
+
+  struct MemberSpec
+  {
+    const QString name;
+    const QString QmlSource::*pointer;
+    const std::string_view language{};
+  };
+
+  static const inline std::array<MemberSpec, 2> specification{
+                                                              MemberSpec{QObject::tr("Execution"), &QmlSource::execution, "QML"},
+                                                              MemberSpec{QObject::tr("GUI"), &QmlSource::ui, "QML"},
+  };
+
+  friend bool operator!=(const QmlSource& lhs, const std::vector<QString>& rhs) {
+    return rhs.size() != 2 || lhs.execution != rhs[0]|| lhs.ui != rhs[1];
+  }
+  friend bool operator!=(const std::vector<QString>& rhs, const QmlSource& lhs) {
+    return rhs.size() != 2 || lhs.execution != rhs[0]|| lhs.ui != rhs[1];
+  }
+};
+
 
 struct ComponentCache
 {
-public:
-  JS::Script*
-  get(const JS::ProcessModel& process, const QByteArray& str, bool isFile) noexcept;
-  QQuickItem* getUi(const JS::ProcessModel& process, const QByteArray& str) noexcept;
-  JS::Script* tryGet(const QByteArray& str, bool isFile) const noexcept;
-  QQuickItem* tryGet(const QByteArray& str) const noexcept;
-  ComponentCache();
-  ~ComponentCache();
-
-private:
   struct Cache
   {
     QByteArray key;
     std::unique_ptr<QQmlComponent> component{};
     std::unique_ptr<JS::Script> object{};
-    std::unique_ptr<QQuickItem> item{};
   };
+
+  JS::Script*
+  getExecution(const JS::ProcessModel& process, const QByteArray& str, bool isFile) noexcept;
+  QQmlComponent*
+  getUi(const JS::ProcessModel& process, const QByteArray& str, bool isFile) noexcept;
+  const Cache* tryGet(const QByteArray& str, bool isFile) const noexcept;
+
+  ComponentCache();
+  ~ComponentCache();
+
+private:
   std::vector<Cache> m_map;
+
 };
 
 class SCORE_PLUGIN_JS_EXPORT ProcessModel final : public Process::ProcessModel
@@ -49,7 +95,7 @@ class SCORE_PLUGIN_JS_EXPORT ProcessModel final : public Process::ProcessModel
   PROCESS_METADATA_IMPL(JS::ProcessModel)
   W_OBJECT(ProcessModel)
 public:
-  static constexpr bool hasExternalUI() noexcept { return true; }
+  bool hasExternalUI() const noexcept { return bool(m_ui_component); }
 
   explicit ProcessModel(
       const TimeVal& duration, const QString& data, const Id<Process::ProcessModel>& id,
@@ -62,42 +108,52 @@ public:
     vis.writeTo(*this);
   }
 
-  [[nodiscard]] Process::ScriptChangeResult setScript(const QString& script);
-  const QString& script() const noexcept { return m_script; }
+  void setExecutionScript(const QString& script);
+  const QString& executionScript() const noexcept { return m_program.execution; }
+  void executionScriptOk() W_SIGNAL(executionScriptOk);
+  void executionScriptChanged(const QString& arg_1) W_SIGNAL(executionScriptChanged, arg_1);
   const QByteArray& qmlData() const noexcept { return m_qmlData; }
 
-  [[nodiscard]] Process::ScriptChangeResult setUiScript(const QString& script);
-  const QString& uiScript() const noexcept { return m_ui_script; }
-  const QByteArray& uiQmlData() const noexcept { return m_ui_qmlData; }
+  void setUiScript(const QString& script);
+  const QString& uiScript() const noexcept { return m_program.ui; }
+  void uiScriptOk() W_SIGNAL(uiScriptOk);
+  void uiScriptChanged(const QString& arg_1) W_SIGNAL(uiScriptChanged, arg_1);
 
-  JS::Script* currentObject() const noexcept;
+  JS::Script* currentExecutionObject() const noexcept;
   QQuickItem* currentUI() const noexcept;
   bool isGpu() const noexcept;
+  bool hasUi() const noexcept;
+  QWidget* createWindowForUI(const score::DocumentContext& ctx,
+                             QWidget* parent) const noexcept;
 
   ~ProcessModel() override;
 
-  bool validate(const QString& str) const noexcept;
-  void errorMessage(int arg_1, const QString& arg_2) const
-      W_SIGNAL(errorMessage, arg_1, arg_2);
-  void scriptOk() W_SIGNAL(scriptOk);
-  void scriptChanged(const QString& arg_1) W_SIGNAL(scriptChanged, arg_1);
-  void uiScriptChanged(const QString& arg_1) W_SIGNAL(uiScriptChanged, arg_1);
+  bool validate(const std::vector<QString>& str) const noexcept;
+  void errorMessage(const QString& arg_2) const
+      W_SIGNAL(errorMessage, arg_2);
+
+  const QmlSource& program() const noexcept { return m_program; }
+  [[nodiscard]] Process::ScriptChangeResult setProgram(const QmlSource& f);
   void programChanged() W_SIGNAL(programChanged);
 
-  PROPERTY(QString, script READ script WRITE setScript NOTIFY scriptChanged)
+
+  void uiToExecution(const QVariant& v) W_SIGNAL(uiToExecution, v);
+  void executionToUi(const QVariant& v) W_SIGNAL(executionToUi, v);
+
+  PROPERTY(QString, executionScript READ executionScript WRITE setExecutionScript NOTIFY executionScriptChanged)
   PROPERTY(QString, uiScript READ uiScript WRITE setUiScript NOTIFY uiScriptChanged)
+  PROPERTY(JS::QmlSource, program READ program WRITE setProgram NOTIFY programChanged)
 private:
   QString effect() const noexcept override;
   void loadPreset(const Process::Preset& preset) override;
   Process::Preset savePreset() const noexcept override;
   Process::ScriptChangeResult setQmlData(const QByteArray&, bool isFile);
-  Process::ScriptChangeResult setUiQmlData(const QByteArray&);
 
-  QString m_script;
+  QmlSource m_program;
   QByteArray m_qmlData;
 
-  QString m_ui_script;
-  QByteArray m_ui_qmlData;
+  QQmlComponent* m_ui_component{};
+  QObject* m_ui_object{};
 
   mutable ComponentCache m_cache;
   bool m_isFile{};

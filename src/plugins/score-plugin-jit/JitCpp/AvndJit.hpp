@@ -32,7 +32,7 @@ PROCESS_METADATA(
     QUrl(
         "https://ossia.io/score-docs/development/plugins/"
         "plugins-with-avendish.html#avendish-documentation"),
-    Process::ProcessFlags::SupportsAll | Process::ProcessFlags::DynamicPorts)
+    Process::ProcessFlags::SupportsAll | Process::ProcessFlags::DynamicPorts | Process::ProcessFlags::ScriptEditingSupported)
 namespace AvndJit
 {
 using NodeCompiler = Jit::Driver;
@@ -64,8 +64,6 @@ public:
   void scriptChanged(const QString& txt) W_SIGNAL(scriptChanged, txt);
   void programChanged() W_SIGNAL(programChanged);
 
-  static constexpr bool hasExternalUI() noexcept { return true; }
-
   QString prettyName() const noexcept override;
 
   std::shared_ptr<NodeFactory> factory;
@@ -91,7 +89,7 @@ struct LanguageSpec
 };
 
 using JitEffectFactory = Process::EffectProcessFactory_T<AvndJit::Model>;
-using LayerFactory = Process::EffectLayerFactory_T<
+using LayerFactory = Process::ScriptLayerFactory_T<
     Model, Process::ProcessScriptEditDialog<Model, Model::p_script, LanguageSpec>>;
 }
 

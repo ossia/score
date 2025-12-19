@@ -86,6 +86,9 @@ public:
       const Process::ProcessModel&, const score::DocumentContext& ctx,
       QWidget* parent) const;
 
+  virtual QWidget* makeScriptUI(
+      Process::ProcessModel&, const score::DocumentContext& ctx, QWidget* parent) const;
+
   virtual bool hasExternalUI(
       const Process::ProcessModel& proc,
       const score::DocumentContext& ctx) const noexcept;
