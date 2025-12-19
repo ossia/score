@@ -81,7 +81,7 @@ public:
       QGraphicsItem* parent) const override;
 };
 
-template <typename Model_T, typename ExtView_T = void>
+template <typename Model_T,typename ExtView_T = void, typename ScriptView_T = void>
 class EffectLayerFactory_T final : public EffectLayerFactory_Base
 {
 public:
@@ -93,11 +93,30 @@ private:
     return Metadata<ConcreteKey_k, Model_T>::get();
   }
 
+  QWidget* makeScriptUI(
+      Process::ProcessModel& proc, const score::DocumentContext& ctx,
+      QWidget* parent) const final override
+  {
+    (void)parent;
+    try
+    {
+      if constexpr(!std::is_same_v<ScriptView_T, void>)
+        return new ScriptView_T{safe_cast<Model_T&>(proc), ctx, parent};
+    }
+    catch(...)
+    {
+    }
+    return nullptr;
+  }
+
+
   bool hasExternalUI(
       const Process::ProcessModel& proc,
       const score::DocumentContext& ctx) const noexcept override
   {
-    return ((Model_T&)proc).hasExternalUI();
+    if constexpr(requires { ((Model_T&)proc).hasExternalUI(); })
+      return ((Model_T&)proc).hasExternalUI();
+    return false;
   }
 
   QWidget* makeExternalUI(
@@ -121,4 +140,7 @@ private:
     return p == Metadata<ConcreteKey_k, Model_T>::get();
   }
 };
+
+template <typename Model_T, typename ScriptView_T>
+using ScriptLayerFactory_T = EffectLayerFactory_T<Model_T, void, ScriptView_T>;
 }

@@ -66,6 +66,9 @@ enum ProcessFlags : int64_t
   //! Polyphonic mode is enabled
   PolyphonyEnabled = SCORE_FLAG(15),
 
+  //! The process is based on user-editable source code (JS, Faust, etc.)
+  ScriptEditingSupported = SCORE_FLAG(16),
+
   SupportsLasting = SupportsTemporal | TimeIndependent,
   ExternalEffect
   = SupportsTemporal | TimeIndependent | RequiresCustomData | ControlSurface,

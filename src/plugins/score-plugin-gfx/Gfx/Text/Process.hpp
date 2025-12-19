@@ -18,7 +18,6 @@ class Model final : public Process::ProcessModel
   W_OBJECT(Model)
 
 public:
-  constexpr bool hasExternalUI() { return false; }
   Model(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
 
   template <typename Impl>

@@ -17,4 +17,4 @@ PROCESS_METADATA(
     (QStringList{"Curve", "Automation", "3D"}), {},
     {std::vector<Process::PortType>{Process::PortType::Message}},
     QUrl(""),
-    Process::ProcessFlags::SupportsLasting)
+    Process::ProcessFlags::SupportsLasting | Process::ProcessFlags::ScriptEditingSupported)

@@ -82,6 +82,61 @@ void EffectLayerPresenter::fillContextMenu(
 {
 }
 
+QGraphicsItem* makeScriptButton(
+    ProcessModel& effect, const score::DocumentContext& context, QObject* self,
+    QGraphicsItem* root)
+{
+  auto& pixmaps = Process::Pixmaps::instance();
+  auto& facts = context.app.interfaces<Process::LayerFactoryList>();
+  auto fact = facts.findDefaultFactory(effect);
+  if(effect.flags() & Process::ProcessFlags::ScriptEditingSupported)
+  {
+    auto ui_btn = new score::QGraphicsPixmapToggle{
+                                                   pixmaps.snapshot_on, pixmaps.snapshot_off, root};
+    ui_btn->setToolTip(
+        QObject::tr("Show/hide UI\nShow the process's script editor for JS, shaders, etc."));
+    QObject::connect(
+        ui_btn, &score::QGraphicsPixmapToggle::toggled, self,
+        [=, &effect, &context](bool b) {
+      Process::setupScriptUI(effect, *fact, context, b);
+    });
+
+    if(effect.scriptUI)
+      ui_btn->setState(true);
+    QObject::connect(
+        &effect, &Process::ProcessModel::scriptUIVisible, ui_btn,
+        [=](bool v) { ui_btn->setState(v); });
+    return ui_btn;
+  }
+  return nullptr;
+}
+
+void setupScriptUI(
+    Process::ProcessModel& proc, const Process::LayerFactory& fact,
+    const score::DocumentContext& ctx, bool show)
+{
+  if(show)
+  {
+    if(proc.scriptUI)
+      return;
+
+    if(auto win = fact.makeScriptUI(proc, ctx, nullptr))
+    {
+      const_cast<QWidget*&>(proc.scriptUI) = win;
+      win->show();
+    }
+  }
+  else
+  {
+    if(auto win = proc.scriptUI)
+    {
+      win->close();
+      delete win;
+      const_cast<QWidget*&>(proc.scriptUI) = nullptr;
+    }
+  }
+}
+
 void setupExternalUI(
     Process::ProcessModel& proc, const Process::LayerFactory& fact,
     const score::DocumentContext& ctx, bool show)
