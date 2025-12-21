@@ -6,6 +6,7 @@
 #include <QGuiApplication>
 
 #include <wobjectimpl.h>
+#include <score/tools/Bind.hpp>
 
 extern "C" {
 #include <libavcodec/codec.h>
@@ -115,9 +116,79 @@ Gfx::Settings::HardwareVideoDecoder::operator QStringList() const noexcept
   return lst;
 }
 
+static void update_QSG_RHI_BACKEND(const score::gfx::GraphicsApi& api)
+{
+  using enum score::gfx::GraphicsApi;
+  switch(api)
+  {
+    case OpenGL:
+      qputenv("QSG_RHI_BACKEND", "opengl");
+      break;
+    case Vulkan:
+      qputenv("QSG_RHI_BACKEND", "vulkan");
+      break;
+    case Metal:
+      qputenv("QSG_RHI_BACKEND", "metal");
+      break;
+    case D3D11:
+      qputenv("QSG_RHI_BACKEND", "d3d11");
+      break;
+    case D3D12:
+      qputenv("QSG_RHI_BACKEND", "d3d12");
+      break;
+    default:
+      break;
+  }
+}
+
 Model::Model(QSettings& set, const score::ApplicationContext& ctx)
 {
   score::setupDefaultSettings(set, Parameters::list(), *this);
+
+  const auto apis = GraphicsApis{};
+
+  const auto platform = QGuiApplication::platformName();
+  if(platform == "eglfs")
+    m_GraphicsApi = apis.OpenGL;
+  else if(platform == "vkkhrdisplay")
+    m_GraphicsApi = apis.Vulkan;
+
+  // https://github.com/ossia/score/issues/1807
+#if defined(Q_OS_MACOS) || defined(Q_OS_IOS)
+  m_GraphicsApi = apis.Metal;
+#endif
+
+  qputenv("QT3D_RENDERER", "rhi");
+  if(const auto rhi = qEnvironmentVariable("QSG_RHI_BACKEND").toLower(); !rhi.isEmpty())
+  {
+    // User sets QSG_RHI_BACKEND from env: we respect it initially
+    if(rhi == "opengl") {
+      m_GraphicsApi = apis.OpenGL;
+    } else if(rhi == "vulkan") {
+      m_GraphicsApi = apis.Vulkan;
+    } else if(rhi == "metal") {
+      m_GraphicsApi = apis.Metal;
+    } else if(rhi == "d3d11") {
+      m_GraphicsApi = apis.D3D11;
+    } else if(rhi == "d3d12") {
+      m_GraphicsApi = apis.D3D12;
+    }
+
+    connect(this, &Gfx::Settings::Model::GraphicsApiChanged, this, [this] (const QString& api)
+    {
+      update_QSG_RHI_BACKEND(this->graphicsApiEnum());
+    });
+  }
+  else
+  {
+    // User does not set QSG_RHI_BACKEND: we update it whenever settings
+    // change
+    using enum score::gfx::GraphicsApi;
+    ::bind(*this, Gfx::Settings::Model::p_GraphicsApi{}, this, [this] (const QString& api)
+    {
+      update_QSG_RHI_BACKEND(this->graphicsApiEnum());
+    });
+  }
 }
 
 int Model::resolveSamples(score::gfx::GraphicsApi api) const noexcept
@@ -128,16 +199,6 @@ int Model::resolveSamples(score::gfx::GraphicsApi api) const noexcept
 score::gfx::GraphicsApi Model::graphicsApiEnum() const noexcept
 {
   const auto apis = GraphicsApis{};
-  const auto platform = QGuiApplication::platformName();
-  if(platform == "eglfs")
-    return score::gfx::OpenGL;
-  else if(platform == "vkkhrdisplay")
-    return score::gfx::Vulkan;
-
-  // https://github.com/ossia/score/issues/1807
-#if defined(Q_OS_MACOS) || defined(Q_OS_IOS)
-  return score::gfx::Metal;
-#endif
 
   if(m_GraphicsApi == apis.Vulkan)
   {
