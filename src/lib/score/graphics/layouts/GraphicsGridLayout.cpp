@@ -238,7 +238,6 @@ void GraphicsDefaultOutletLayout::layout()
   for(int i = 0; i < items.size(); i++)
     if(auto ww = items[i]->boundingRect().width(); ww > w)
       w = ww;
-  w = std::max(w, parentItem()->boundingRect().width());
 
   double cur_x = 0;
   double cur_y = 0;

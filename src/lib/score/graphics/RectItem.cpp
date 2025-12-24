@@ -207,7 +207,7 @@ QRectF BackgroundItem::boundingRect() const
 void BackgroundItem::fitChildrenRect()
 {
   const auto cld = childrenBoundingRect();
-  setRect(QRectF{0., 0., cld.right() + default_padding, cld.bottom() + default_padding});
+  setRect(QRectF{0., 0., cld.right() + default_padding - cld.left(), cld.bottom() + default_padding - cld.top()});
 }
 
 void BackgroundItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
