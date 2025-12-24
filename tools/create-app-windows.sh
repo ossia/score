@@ -126,6 +126,7 @@ cat > launcher.c << 'C_EOF'
 // Configuration - will be replaced by sed
 #define MAIN_QML "MAIN_QML_PLACEHOLDER"
 #define SCORE_FILE "SCORE_FILE_PLACEHOLDER"
+#define HAS_AUTOPLAY AUTOPLAY_HAS_VALUE_PLACEHOLDER
 #define HAS_SCORE SCORE_HAS_VALUE_PLACEHOLDER
 
 int main(int argc, char *argv[]) {
@@ -162,10 +163,13 @@ int main(int argc, char *argv[]) {
     snprintf(command_line, sizeof(command_line), "\"%s\\ossia-score.exe\" --ui \"%s\"",
              exe_dir, qml_path);
 
+    if (HAS_AUTOPLAY) {
+        strncat(command_line, " --autoplay ", sizeof(command_line) - strlen(command_line) - 1);
+    }
     // Add score file if present
     if (HAS_SCORE) {
         snprintf(score_path, MAX_PATH, "%s\\%s", exe_dir, SCORE_FILE);
-        strncat(command_line, " --autoplay \"", sizeof(command_line) - strlen(command_line) - 1);
+        strncat(command_line, " \"", sizeof(command_line) - strlen(command_line) - 1);
         strncat(command_line, score_path, sizeof(command_line) - strlen(command_line) - 1);
         strncat(command_line, "\"", sizeof(command_line) - strlen(command_line) - 1);
     }
@@ -219,6 +223,13 @@ C_EOF
 
 # Replace placeholders
 sed -i "s/MAIN_QML_PLACEHOLDER/${MAIN_QML}/g" launcher.c
+
+if [[ -n "$AUTOPLAY" ]]; then
+    sed -i "s/AUTOPLAY_HAS_VALUE_PLACEHOLDER/1/g" launcher.c
+else
+    sed -i "s/AUTOPLAY_HAS_VALUE_PLACEHOLDER/0/g" launcher.c
+fi
+
 if [[ -n "$SCORE_BASENAME" ]]; then
     sed -i "s/SCORE_FILE_PLACEHOLDER/${SCORE_BASENAME}/g" launcher.c
     sed -i "s/SCORE_HAS_VALUE_PLACEHOLDER/1/g" launcher.c

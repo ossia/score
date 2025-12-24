@@ -30,7 +30,8 @@ Required options:
     --name NAME         Name of the custom application
 
 Optional:
-    --score FILE        Score file to autoplay (if not specified, no score is loaded)
+    --score FILE        Score file to use
+    --autoplay          Auto-play upon load
     --local-installer PATH
                         Use a local installer instead of downloading from GitHub.
                         Path to: .AppImage (Linux), .app or .dmg (macOS), or .exe (Windows)
@@ -55,7 +56,7 @@ Example:
        --output ./MyApp --name "My Custom App"
 
 This will create platform-specific packages that launch score with:
-    --ui App.qml [--autoplay App.score]
+    --ui App.qml [App.score] [--autoplay]
 
 EOF
     exit 0
@@ -92,6 +93,10 @@ while [[ $# -gt 0 ]]; do
         --name)
             APP_NAME="$2"
             shift 2
+            ;;
+        --autoplay)
+            AUTOPLAY="--autoplay"
+            shift 1
             ;;
         --release)
             RELEASE_TAG="$2"
@@ -226,6 +231,7 @@ trap "rm -rf '$WORK_DIR'" EXIT
 
 # Export variables for platform scripts
 export APP_NAME
+export AUTOPLAY
 export MAIN_QML
 export SCORE_FILE
 export SCORE_BASENAME

@@ -181,7 +181,7 @@ fi
 # Create launcher script
 echo "Creating custom launcher..."
 if [[ -n "$SCORE_BASENAME" ]]; then
-    # With autoplay
+    # With score
     cat > "$BUNDLE_MACOS/ossia score" << 'LAUNCHER_EOF'
 #!/bin/bash
 # Custom launcher for APP_NAME_PLACEHOLDER
@@ -189,8 +189,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RESOURCES_DIR="$(cd "$SCRIPT_DIR/../Resources" && pwd)"
 export QML2_IMPORT_PATH="${RESOURCES_DIR}/qml/"
 exec "$SCRIPT_DIR/ossia-score-bin" \
+    ${AUTOPLAY} \
     --ui "${RESOURCES_DIR}/qml/MAIN_QML_PLACEHOLDER" \
-    --autoplay "${RESOURCES_DIR}/SCORE_FILE_PLACEHOLDER" \
+    "${RESOURCES_DIR}/SCORE_FILE_PLACEHOLDER" \
     "$@"
 LAUNCHER_EOF
     # Replace placeholders
@@ -206,6 +207,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RESOURCES_DIR="$(cd "$SCRIPT_DIR/../Resources" && pwd)"
 export QML2_IMPORT_PATH="${RESOURCES_DIR}/qml/"
 exec "$SCRIPT_DIR/ossia-score-bin" \
+    ${AUTOPLAY} \
     --ui "${RESOURCES_DIR}/qml/MAIN_QML_PLACEHOLDER" \
     "$@"
 LAUNCHER_EOF

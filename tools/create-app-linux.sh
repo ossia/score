@@ -90,21 +90,25 @@ fi
 # Create custom AppRun script
 echo "Creating custom launcher..."
 if [[ -n "$SCORE_BASENAME" ]]; then
-    # With autoplay
+    # With score
     cat > AppRun << 'APPRUN_EOF'
 #!/bin/sh
 export QML2_IMPORT_PATH="${APPDIR}/usr/bin/qml/"
 export LD_LIBRARY_PATH="${APPIMAGE_LIBRARY_PATH}:${APPDIR}/usr/lib:${LD_LIBRARY_PATH}"
 "${APPDIR}/usr/bin/linuxcheck" "${APPDIR}/usr/bin/ossia-score"
 
-# Launch with custom UI and autoplay
-exec "${APPDIR}/usr/bin/ossia-score" --ui "${APPDIR}/usr/bin/qml/MAIN_QML_PLACEHOLDER" --autoplay "${APPDIR}/usr/bin/SCORE_FILE_PLACEHOLDER" "$@"
+# Launch with custom UI and score
+exec "${APPDIR}/usr/bin/ossia-score" \
+    ${AUTOPLAY} \
+    --ui "${APPDIR}/usr/bin/qml/MAIN_QML_PLACEHOLDER" \
+    "${APPDIR}/usr/bin/SCORE_FILE_PLACEHOLDER" \
+    "$@"
 APPRUN_EOF
     # Replace placeholders
     sed -i "s/MAIN_QML_PLACEHOLDER/${MAIN_QML}/g" AppRun
     sed -i "s/SCORE_FILE_PLACEHOLDER/${SCORE_BASENAME}/g" AppRun
 else
-    # Without autoplay
+    # Without custom score
     cat > AppRun << 'APPRUN_EOF'
 #!/bin/sh
 export QML2_IMPORT_PATH="${APPDIR}/usr/bin/qml/"
@@ -112,7 +116,10 @@ export LD_LIBRARY_PATH="${APPIMAGE_LIBRARY_PATH}:${APPDIR}/usr/lib:${LD_LIBRARY_
 "${APPDIR}/usr/bin/linuxcheck" "${APPDIR}/usr/bin/ossia-score"
 
 # Launch with custom UI
-exec "${APPDIR}/usr/bin/ossia-score" --ui "${APPDIR}/usr/bin/qml/MAIN_QML_PLACEHOLDER" "$@"
+exec "${APPDIR}/usr/bin/ossia-score" \
+    ${AUTOPLAY} \
+    --ui "${APPDIR}/usr/bin/qml/MAIN_QML_PLACEHOLDER" \
+    "$@"
 APPRUN_EOF
     # Replace placeholder
     sed -i "s/MAIN_QML_PLACEHOLDER/${MAIN_QML}/g" AppRun
