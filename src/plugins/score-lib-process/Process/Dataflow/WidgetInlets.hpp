@@ -24,6 +24,7 @@ struct ComboBox;
 struct LineEdit;
 struct ProgramEdit;
 struct FileChooser;
+struct FolderChooser;
 struct AudioFileChooser;
 struct VideoFileChooser;
 struct Enum;
@@ -94,6 +95,9 @@ UUID_METADATA(
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::FileChooser,
     "40833147-4c42-4b8b-bb80-0b1d15dae129")
+UUID_METADATA(
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::FolderChooser,
+    "a866e07f-f380-4f69-8bce-e52682db2025")
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::AudioFileChooser,
     "c347b510-927a-4924-9da1-c76871623567")
@@ -372,6 +376,7 @@ public:
 private:
   QString m_filters;
 };
+
 struct SCORE_LIB_PROCESS_EXPORT FileChooser : public FileChooserBase
 {
   MODEL_METADATA_IMPL(FileChooser)
@@ -382,6 +387,20 @@ public:
       QObject* parent);
   ~FileChooser();
   using Process::FileChooserBase::FileChooserBase;
+};
+
+struct SCORE_LIB_PROCESS_EXPORT FolderChooser : public Process::ControlInlet
+{
+  MODEL_METADATA_IMPL(FolderChooser)
+  W_OBJECT(FolderChooser)
+public:
+  FolderChooser(
+      QString init, const QString& name, Id<Process::Port> id,
+      QObject* parent);
+  ~FolderChooser();
+  using Process::ControlInlet::ControlInlet;
+
+  void setupExecution(ossia::inlet& inl, QObject* exec_context) const noexcept override;
 };
 
 struct SCORE_LIB_PROCESS_EXPORT AudioFileChooser : public FileChooserBase

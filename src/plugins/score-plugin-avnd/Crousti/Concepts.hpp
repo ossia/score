@@ -195,6 +195,15 @@ make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
     static constexpr auto c = avnd::get_range<T>();
     return new Process::TimeChooser{c.min, c.max, c.init, qname, id, parent};
   }
+  else if constexpr(widg.widget == avnd::widget_type::folder)
+  {
+    if constexpr(avnd::has_range<T>) {
+      static constexpr auto c = avnd::get_range<T>();
+      return new Process::FolderChooser{QString::fromUtf8(std::begin(c.init), std::size(c.init)), qname, id, parent};
+    } else {
+      return new Process::FolderChooser{"", qname, id, parent};
+    }
+  }
   else if constexpr(widg.widget == avnd::widget_type::range_slider)
   {
     static constexpr auto c = avnd::get_range<T>();

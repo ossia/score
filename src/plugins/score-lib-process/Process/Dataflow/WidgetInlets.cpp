@@ -13,6 +13,7 @@
 
 W_OBJECT_IMPL(Process::FileChooserBase)
 W_OBJECT_IMPL(Process::FileChooser)
+W_OBJECT_IMPL(Process::FolderChooser)
 W_OBJECT_IMPL(Process::AudioFileChooser)
 W_OBJECT_IMPL(Process::VideoFileChooser)
 W_OBJECT_IMPL(Process::ImpulseButton)
@@ -508,6 +509,25 @@ FileChooser::FileChooser(
 }
 
 FileChooser::~FileChooser() { }
+
+FolderChooser::FolderChooser(
+    QString init, const QString& name, Id<Port> id, QObject* parent)
+    : Process::ControlInlet{name, id, parent}
+{
+  displayHandledExplicitly = true;
+  setValue(init.toStdString());
+  setInit(value());
+}
+
+void FolderChooser::setupExecution(
+    ossia::inlet& inl, QObject* exec_context) const noexcept
+{
+  auto& port = **safe_cast<ossia::value_inlet*>(&inl);
+  port.type = ossia::val_type::STRING;
+  port.domain = domain().get();
+}
+
+FolderChooser::~FolderChooser() { }
 
 AudioFileChooser::AudioFileChooser(
     QString init, QString filters, const QString& name, Id<Port> id, QObject* parent)
@@ -1194,6 +1214,29 @@ JSONWriter::write(Process::FileChooser& p)
   QString f;
   f <<= obj["Filters"];
   p.setFilters(f);
+}
+
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamReader::read(const Process::FolderChooser& p)
+{
+  read((const Process::ControlInlet&)p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamWriter::write(Process::FolderChooser& p)
+{
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONReader::read(const Process::FolderChooser& p)
+{
+  read((const Process::ControlInlet&)p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONWriter::write(Process::FolderChooser& p)
+{
 }
 
 template <>

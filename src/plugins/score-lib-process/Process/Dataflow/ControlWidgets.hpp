@@ -1118,6 +1118,115 @@ struct FileChooser
   }
 };
 
+struct FolderChooser
+{
+  static Process::PortItemLayout layout() noexcept
+  {
+    return Process::DefaultControlLayouts::lineedit();
+  }
+  template <typename T>
+  static auto make_widget(
+      T& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
+  {
+    auto sl = new QLineEdit{parent};
+    auto act = new QAction{sl};
+
+    score::setHelp(act, QObject::tr("Opening a folder"));
+    act->setIcon(QIcon(":/icons/search.png"));
+    sl->setPlaceholderText(QObject::tr("Open Folder"));
+    auto on_open = [=, &ctx, &inlet] {
+      auto filename
+          = QFileDialog::getExistingDirectory(nullptr, "Open Folder", {});
+      if(filename.isEmpty())
+        return;
+      auto path = score::relativizeFilePath(filename, ctx);
+      sl->setText(path);
+    };
+
+    QObject::connect(sl, &QLineEdit::returnPressed, on_open);
+    QObject::connect(act, &QAction::triggered, on_open);
+    sl->addAction(act, QLineEdit::TrailingPosition);
+
+    sl->setText(QString::fromStdString(ossia::convert<std::string>(inlet.value())));
+    sl->setContentsMargins(0, 0, 0, 0);
+    //sl->setMaximumWidth(70);
+
+    QObject::connect(sl, &QLineEdit::editingFinished, context, [sl, &inlet, &ctx]() {
+      auto path = score::relativizeFilePath(sl->text(), ctx);
+      CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<T>>(
+          inlet, path.toStdString());
+    });
+    QObject::connect(&inlet, &T::valueChanged, sl, [sl](const ossia::value& val) {
+      sl->setText(QString::fromStdString(ossia::convert<std::string>(val)));
+    });
+    return sl;
+  }
+
+  template <typename T, typename Control_T>
+  static score::QGraphicsTextButton* make_item(
+      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
+      QGraphicsItem* parent, QObject* context)
+  {
+    auto bt = new score::QGraphicsTextButton{"Choose a folder...", parent};
+    initWidgetProperties(inlet, *bt);
+    auto on_open = [&inlet, &ctx] {
+      auto filename
+          = QFileDialog::getExistingDirectory(nullptr, "Open Folder", {});
+      if(filename.isEmpty())
+        return;
+
+      auto path = score::relativizeFilePath(filename, ctx);
+      CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
+          inlet, path.toStdString());
+    };
+    auto on_set = [&inlet, &ctx](const QString& filename) {
+      if(filename.isEmpty())
+        return;
+
+      auto path = score::relativizeFilePath(filename, ctx);
+      CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
+          inlet, path.toStdString());
+    };
+    QObject::connect(
+        bt, &score::QGraphicsTextButton::pressed, &inlet, on_open, Qt::QueuedConnection);
+    QObject::connect(
+        bt, &score::QGraphicsTextButton::dropped, &inlet, on_set, Qt::QueuedConnection);
+    auto set = [=](const ossia::value& val) {
+      auto str = QString::fromStdString(ossia::convert<std::string>(val));
+      if(str != bt->text())
+      {
+        if(!str.isEmpty())
+        {
+          auto no_colon = str.split(":").back();
+          auto no_slash = no_colon.split("/").back();
+          bt->setText(no_slash);
+        }
+        else
+          bt->setText("Choose a file...");
+      }
+    };
+
+    set(slider.value());
+
+    QObject::connect(&inlet, &Control_T::valueChanged, bt, set);
+
+    QObject::connect(
+        bt, &score::QGraphicsTextButton::dropUnhandled, &inlet, [=](const QMimeData* m) {
+      auto d = m->data(score::mime::processdata());
+      if(!d.isEmpty())
+      {
+        auto res = ::MimeWriter<Process::ProcessData>{*m}.deserialize();
+        if(QFile::exists(res.customData))
+        {
+          on_set(res.customData);
+        }
+      }
+    }, Qt::DirectConnection);
+
+    return bt;
+  }
+};
+
 struct Enum
 {
   static Process::PortItemLayout layout() noexcept
