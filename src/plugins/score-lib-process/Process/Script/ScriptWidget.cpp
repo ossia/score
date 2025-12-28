@@ -61,6 +61,8 @@ QSyntaxStyle* getStyle()
 
     if(fl.open(QIODevice::ReadOnly))
       style.load(score::mapAsByteArray(fl));
+    else
+      qDebug()<<"Could not load style:" << fl.fileName();
 
     tried_to_load = true;
   }
@@ -71,9 +73,11 @@ QSyntaxStyle* getStyle()
 QTextEdit* createScriptWidget(const std::string_view language)
 {
   auto edit = new QCodeEditor{};
-  auto font = QFont("Source Code Pro", 10);
+  auto font = QFont("IBM Plex Mono", 10);
   font.setFixedPitch(true);
+  font.setStyleStrategy(QFont::PreferAntialias);
   font.setHintingPreference(QFont::HintingPreference::PreferVerticalHinting);
+
   edit->setFont(font);
 
   auto [highlight, complete] = getLanguageStyle(language);
