@@ -68,6 +68,7 @@ public:
   int type() const override { return Type; }
 
 private:
+  void initConnections();
   void createWithDecorations();
   void createContentItem();
   void createFoldedItem();
@@ -106,6 +107,7 @@ private:
   void resetOutlets();
   void updateLabel();
   void resizeAsync();
+  void recreate();
 
   QSizeF size() const noexcept;
 

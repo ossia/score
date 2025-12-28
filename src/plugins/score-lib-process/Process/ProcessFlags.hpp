@@ -69,10 +69,18 @@ enum ProcessFlags : int64_t
   //! The process is based on user-editable source code (JS, Faust, etc.)
   ScriptEditingSupported = SCORE_FLAG(16),
 
+  //! The process supports having a custom external UI (VST, etc.). Per-type flag.
+  ExternalUISupported = SCORE_FLAG(17),
+
+  //! The process currently has a custom UI available (not necessarily shown).
+  //! Can vary, for instance depending on the JS script.
+  ExternalUIAvailable = SCORE_FLAG(18),
+
+  // clang-format off
   SupportsLasting = SupportsTemporal | TimeIndependent,
-  ExternalEffect
-  = SupportsTemporal | TimeIndependent | RequiresCustomData | ControlSurface,
-  SupportsAll = SupportsTemporal | TimeIndependent | SupportsState
+  ExternalEffect  = SupportsTemporal | TimeIndependent | RequiresCustomData | ControlSurface,
+  SupportsAll     = SupportsTemporal | TimeIndependent | SupportsState
+  // clang-format on
 };
 
 constexpr ProcessFlags operator|(ProcessFlags a, ProcessFlags b) noexcept
