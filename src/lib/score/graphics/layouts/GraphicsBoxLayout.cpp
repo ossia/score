@@ -14,7 +14,7 @@ void GraphicsHBoxLayout::layout()
   updateChildrenRects(items);
 
   double max_h = 0.;
-  for(auto item : items)
+  for(auto item : std::as_const(items))
   {
     const auto r = item->boundingRect();
     max_h = std::max(max_h, r.height());
@@ -24,7 +24,7 @@ void GraphicsHBoxLayout::layout()
   }
 
   // Make them fit the height
-  for(auto item : items)
+  for(auto item : std::as_const(items))
   {
     if(auto it = dynamic_cast<score::GraphicsLayout*>(item))
     {
@@ -58,7 +58,7 @@ void GraphicsVBoxLayout::layout()
   updateChildrenRects(items);
 
   double max_w = 0.;
-  for(auto item : items)
+  for(auto item : std::as_const(items))
   {
     const auto r = item->boundingRect();
     max_w = std::max(max_w, r.width());
@@ -69,7 +69,7 @@ void GraphicsVBoxLayout::layout()
   }
 
   // Make them fit the width
-  for(auto item : items)
+  for(auto item : std::as_const(items))
   {
     if(auto it = dynamic_cast<score::GraphicsLayout*>(item))
     {
