@@ -645,6 +645,14 @@ static void restore_linux_tty()
   close(tfd);
 }
 #endif
+
+static void setup_priority()
+{
+#if defined(_WIN32)
+  SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
+#endif
+}
+
 static void setup_limits()
 {
 #if HAS_RLIMIT
@@ -750,6 +758,7 @@ int main(int argc, char** argv)
   read_linux_tty();
 #endif
 
+  setup_priority();
   setup_limits();
   setup_gpu();
   setup_x11(argc, argv);
