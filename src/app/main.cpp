@@ -572,6 +572,10 @@ static void setup_app_flags()
   if(!qEnvironmentVariableIsSet("QT_SUBPIXEL_AA_TYPE"))
     qputenv("QT_SUBPIXEL_AA_TYPE", "RGB");
 
+  // Really makes monospace HintSlight fonts look better
+  if(!qEnvironmentVariableIsSet("FREETYPE_PROPERTIES"))
+    qputenv("FREETYPE_PROPERTIES", "cff:no-stem-darkening=0 autofitter:no-stem-darkening=0 type1:no-stem-darkening=0 t1cid:no-stem-darkening=0");
+
 #if defined(__EMSCRIPTEN__)
   qRegisterMetaType<Qt::ApplicationState>();
   qRegisterMetaType<QItemSelection>();
