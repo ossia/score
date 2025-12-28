@@ -212,9 +212,7 @@ Application::Application(int& argc, char** argv)
     l.append(QString::fromUtf8(argv[i]));
   appSettings.parse(l, argc, argv);
 
-  QCoreApplication::setOrganizationName("ossia");
-  QCoreApplication::setOrganizationDomain("ossia.io");
-  QCoreApplication::setApplicationName("score");
+  score::setQApplicationMetadata();
 
   if(!qEnvironmentVariableIsSet("QT_SCALE_FACTOR"))
   {
@@ -240,19 +238,20 @@ Application::Application(
     , appSettings(appSettings)
 {
   m_instance = this;
+  score::setQApplicationMetadata();
 
-  QCoreApplication::setOrganizationName("ossia");
-  QCoreApplication::setOrganizationDomain("ossia.io");
-  QCoreApplication::setApplicationName("score");
-
-  QSettings s;
-  if(s.contains("Skin/Zoom"))
+  if(!qEnvironmentVariableIsSet("QT_SCALE_FACTOR"))
   {
-    double zoom = s.value("Skin/Zoom").toDouble();
-    if(zoom != 1.)
+    QSettings s;
+    if(s.contains("Skin/Zoom"))
     {
-      zoom = qBound(1.0, zoom, 10.);
-      qputenv("QT_SCALE_FACTOR", QString("%1").arg(zoom).toLatin1());
+      double zoom = s.value("Skin/Zoom").toDouble();
+      if(zoom != 1.)
+      {
+        zoom = qBound(1.0, zoom, 10.);
+        qputenv("QT_SCALE_FACTOR", QString("%1").arg(zoom).toLatin1());
+        qputenv("QT_SCALE_FACTOR_ROUNDING_POLICY", "PassThrough");
+      }
     }
   }
 
@@ -335,8 +334,6 @@ void Application::init()
 
   ossia::context context{std::move(v)};
   ossia::logger().set_level(spdlog::level::debug);
-
-  score::setQApplicationMetadata();
 
   this->setObjectName("Application");
   this->setParent(m_app);

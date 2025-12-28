@@ -151,23 +151,40 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
 
 void setQApplicationMetadata()
 {
-  QCoreApplication::setOrganizationName("ossia");
-  QCoreApplication::setOrganizationDomain("ossia.io");
-  QCoreApplication::setApplicationName("score");
-  if(QString(SCORE_VERSION_EXTRA).isEmpty())
-  {
-    QCoreApplication::setApplicationVersion(QString("%1.%2.%3")
-                                                .arg(SCORE_VERSION_MAJOR)
-                                                .arg(SCORE_VERSION_MINOR)
-                                                .arg(SCORE_VERSION_PATCH));
-  }
+  if(auto env = qEnvironmentVariable("SCORE_CUSTOM_APP_ORGANIZATION_NAME"); !env.isEmpty())
+    QCoreApplication::setOrganizationName(env);
+  else
+    QCoreApplication::setOrganizationName("ossia");
+
+  if(auto env = qEnvironmentVariable("SCORE_CUSTOM_APP_ORGANIZATION_DOMAIN"); !env.isEmpty())
+    QCoreApplication::setOrganizationDomain(env);
+  else
+    QCoreApplication::setOrganizationDomain("ossia.io");
+
+  if(auto env = qEnvironmentVariable("SCORE_CUSTOM_APP_APPLICATION_NAME"); !env.isEmpty())
+    QCoreApplication::setApplicationName(env);
+  else
+    QCoreApplication::setApplicationName("score");
+
+  if(auto env = qEnvironmentVariable("SCORE_CUSTOM_APP_APPLICATION_VERSION"); !env.isEmpty())
+    QCoreApplication::setApplicationVersion(env);
   else
   {
-    QCoreApplication::setApplicationVersion(QString("%1.%2.%3-%4")
-                                                .arg(SCORE_VERSION_MAJOR)
-                                                .arg(SCORE_VERSION_MINOR)
-                                                .arg(SCORE_VERSION_PATCH)
-                                                .arg(SCORE_VERSION_EXTRA));
+    if(QString(SCORE_VERSION_EXTRA).isEmpty())
+    {
+      QCoreApplication::setApplicationVersion(QString("%1.%2.%3")
+                                                  .arg(SCORE_VERSION_MAJOR)
+                                                  .arg(SCORE_VERSION_MINOR)
+                                                  .arg(SCORE_VERSION_PATCH));
+    }
+    else
+    {
+      QCoreApplication::setApplicationVersion(QString("%1.%2.%3-%4")
+                                                  .arg(SCORE_VERSION_MAJOR)
+                                                  .arg(SCORE_VERSION_MINOR)
+                                                  .arg(SCORE_VERSION_PATCH)
+                                                  .arg(SCORE_VERSION_EXTRA));
+    }
   }
 }
 }
