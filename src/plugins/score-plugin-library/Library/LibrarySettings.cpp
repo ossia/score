@@ -97,9 +97,9 @@ QStringList Model::getIncludePaths() const noexcept
   {
     QString defaultLibPath = getUserLibraryPath() + QDir::separator() + "scripts"
                              + QDir::separator() + "include";
-    if(QFileInfo(defaultLibPath).isDir())
+    if(QFileInfo fi(defaultLibPath); fi.isDir())
     {
-      ret.push_back(std::move(defaultLibPath));
+      ret.push_back(fi.canonicalFilePath());
     }
   }
 
@@ -125,9 +125,9 @@ QStringList Model::getIncludePaths() const noexcept
   {
     QString defaultLibPath = getDefaultLibraryPath() + QDir::separator() + "Scripts"
                              + QDir::separator() + "include";
-    if(QFileInfo(defaultLibPath).isDir())
+    if(QFileInfo fi(defaultLibPath); fi.isDir())
     {
-      ret.push_back(std::move(defaultLibPath));
+      ret.push_back(fi.canonicalFilePath());
     }
   }
 

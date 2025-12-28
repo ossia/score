@@ -11,7 +11,6 @@
 #if defined(SCORE_HAS_GPU_JS)
 #include <Gfx/TexturePort.hpp>
 
-#include <QQuickItem>
 #endif
 
 #include <score/tools/Debug.hpp>
@@ -24,6 +23,7 @@
 
 #include <QJSValue>
 #include <QObject>
+#include <QQuickItem>
 #include <QQmlListProperty>
 #include <QVariant>
 #include <QVector>
@@ -673,8 +673,10 @@ class SCORE_PLUGIN_JS_EXPORT AudioInlet : public Inlet
 public:
   explicit AudioInlet(QObject* parent = nullptr);
   virtual ~AudioInlet() override;
+  QVector<QVector<double>>& audio();
   const QVector<QVector<double>>& audio() const;
   void setAudio(const QVector<QVector<double>>& audio);
+  void setAudio(QVector<QVector<double>>&& audio);
 
   QVector<double> channel(int i) const
   {
@@ -843,32 +845,44 @@ class Script : public QObject
 {
   W_OBJECT(Script)
   W_CLASSINFO("DefaultProperty", "data")
-  W_CLASSINFO(
-      "qt_QmlJSWrapperFactoryMethod", "_q_createJSWrapper(QV4::ExecutionEngine*)")
 
 public:
   QQmlListProperty<QObject> data() noexcept { return {this, &m_data}; }
+  W_PROPERTY(QQmlListProperty<QObject>, data READ data)
 
   const QJSValue& tick()  const noexcept { return m_tick; }
   void setTick(const QJSValue& v) { m_tick = v; }
+  W_PROPERTY(QJSValue, tick READ tick WRITE setTick CONSTANT)
+
   const QJSValue& start() const noexcept { return m_start; }
   void setStart(const QJSValue& v) { m_start = v; }
+  W_PROPERTY(QJSValue, start READ start WRITE setStart CONSTANT)
+
   const QJSValue& stop() const noexcept { return m_stop; }
   void setStop(const QJSValue& v) { m_stop = v; }
+  W_PROPERTY(QJSValue, stop READ stop WRITE setStop CONSTANT)
+
   const QJSValue& pause() const noexcept { return m_pause; }
   void setPause(const QJSValue& v) { m_pause = v; }
+  W_PROPERTY(QJSValue, pause READ pause WRITE setPause CONSTANT)
+
   const QJSValue& resume() const noexcept { return m_resume; }
   void setResume(const QJSValue& v) { m_resume = v; }
+  W_PROPERTY(QJSValue, resume READ resume WRITE setResume CONSTANT)
+
   const QJSValue& uiEvent() const noexcept { return m_uiEvent; }
   void setUiEvent(const QJSValue& v) { m_uiEvent = v; }
-  void messageToUi(const QVariant& v) W_SIGNAL(messageToUi, v);
-  W_PROPERTY(QJSValue, tick READ tick WRITE setTick CONSTANT)
-  W_PROPERTY(QJSValue, start READ start WRITE setStart CONSTANT)
-  W_PROPERTY(QJSValue, stop READ stop WRITE setStop CONSTANT)
-  W_PROPERTY(QJSValue, pause READ pause WRITE setPause CONSTANT)
-  W_PROPERTY(QJSValue, resume READ resume WRITE setResume CONSTANT)
   W_PROPERTY(QJSValue, uiEvent READ uiEvent WRITE setUiEvent CONSTANT)
-  W_PROPERTY(QQmlListProperty<QObject>, data READ data)
+
+  void uiSend(const QJSValue& v) W_SIGNAL(uiSend, v);
+
+  const QJSValue& loadState() const noexcept { return m_loadState; }
+  void setLoadState(const QJSValue& v) { m_loadState = v; }
+  W_PROPERTY(QJSValue, loadState READ loadState WRITE setLoadState CONSTANT)
+
+  const QJSValue& stateUpdated() const noexcept { return m_stateUpdated; }
+  void setStateUpdated(const QJSValue& v) { m_stateUpdated = v; }
+  W_PROPERTY(QJSValue, stateUpdated READ stateUpdated WRITE setStateUpdated CONSTANT)
 
 private:
   QList<QObject*> m_data;
@@ -878,6 +892,60 @@ private:
   QJSValue m_pause;
   QJSValue m_resume;
   QJSValue m_uiEvent;
+  QJSValue m_loadState;
+  QJSValue m_stateUpdated;
+};
+
+class ScriptUI : public QQuickItem
+{
+  W_OBJECT(ScriptUI)
+
+public:
+  const QJSValue& executionEvent() const noexcept { return m_executionEvent; }
+  void setExecutionEvent(const QJSValue& v) { m_executionEvent = v; }
+  W_PROPERTY(QJSValue, executionEvent READ executionEvent WRITE setExecutionEvent CONSTANT)
+
+  const QJSValue& loadState() const noexcept { return m_loadState; }
+  void setLoadState(const QJSValue& v) { m_loadState = v; }
+  W_PROPERTY(QJSValue, loadState READ loadState WRITE setLoadState CONSTANT)
+
+  const QJSValue& stateUpdated() const noexcept { return m_stateUpdated; }
+  void setStateUpdated(const QJSValue& v) { m_stateUpdated = v; }
+  W_PROPERTY(QJSValue, stateUpdated READ stateUpdated WRITE setStateUpdated CONSTANT)
+
+  void executionSend(const QJSValue& v)
+  W_SIGNAL(executionSend, v);
+
+  void beginUpdateState(const QString& name)
+  W_SIGNAL(beginUpdateState, name);
+  void updateState(const QString& k, const QJSValue& v)
+  W_SIGNAL(updateState, k, v);
+  void endUpdateState()
+  W_SIGNAL(endUpdateState);
+  void cancelUpdateState()
+  W_SIGNAL(cancelUpdateState);
+  void clearState()
+  W_SIGNAL(clearState);
+  void replaceState(const QJSValue& v)
+  W_SIGNAL(replaceState, v);
+
+  Process::Inlet* inlet(int i) const noexcept;
+  W_INVOKABLE(inlet, (int));
+  Process::Outlet* outlet(int i) const noexcept;
+  W_INVOKABLE(outlet, (int));
+  Process::Inlet* inlet(const QString& i) const noexcept;
+  W_INVOKABLE(inlet, (const QString&));
+  Process::Outlet* outlet(const QString& i) const noexcept;
+  W_INVOKABLE(outlet, (const QString&));
+
+  Process::ProcessModel* process() const noexcept { return m_process; }
+  void setProcess(Process::ProcessModel* v) { m_process = v; }
+
+private:
+  QJSValue m_executionEvent;
+  QJSValue m_loadState;
+  QJSValue m_stateUpdated;
+  Process::ProcessModel* m_process{};
 };
 }
 

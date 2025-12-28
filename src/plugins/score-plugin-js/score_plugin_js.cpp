@@ -34,6 +34,7 @@
 
 W_OBJECT_IMPL(JS::ActionContext)
 W_OBJECT_IMPL(JS::Script)
+W_OBJECT_IMPL(JS::ScriptUI)
 
 score_plugin_js::score_plugin_js()
 {
@@ -41,6 +42,8 @@ score_plugin_js::score_plugin_js()
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   JS::registerQmlValueTypeProvider();
 #endif
+
+  ossia::qt::registerQVariantConverters();
 
   qmlRegisterType<JS::ControlInlet>("Score", 1, 0, "ControlInlet");
   qmlRegisterType<JS::ValueInlet>("Score", 1, 0, "ValueInlet");
@@ -90,6 +93,7 @@ score_plugin_js::score_plugin_js()
   qmlRegisterType<JS::Button>("Score", 1, 0, "Button");
   qmlRegisterType<JS::LineEdit>("Score", 1, 0, "LineEdit");
   qmlRegisterType<JS::Script>("Score", 1, 0, "Script");
+  qmlRegisterType<JS::ScriptUI>("Score", 1, 0, "ScriptUI");
 
   qmlRegisterType<JS::AddressSource>("Score.UI", 1, 0, "AddressSource");
   qmlRegisterType<JS::PortSource>("Score.UI", 1, 0, "PortSource");
@@ -107,6 +111,7 @@ score_plugin_js::score_plugin_js()
   qRegisterMetaType<JS::TokenRequestValueType>();
   qRegisterMetaType<JS::ExecutionStateValueType>();
   //qRegisterMetaType<JS::GlobalDeviceEnumerator>();
+
 }
 
 score_plugin_js::~score_plugin_js() = default;

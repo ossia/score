@@ -103,23 +103,21 @@ class LibraryHandler final
 
   void addPath(std::string_view path) override
   {
-    QFileInfo file{QString::fromUtf8(path.data(), path.length())};
-    Library::ProcessData pdata;
-    pdata.prettyName = file.completeBaseName();
-    pdata.key = Metadata<ConcreteKey_k, JS::ProcessModel>::get();
-    pdata.customData = [&] {
-      QFile f(file.absoluteFilePath());
-      f.open(QIODevice::ReadOnly);
-      return f.readAll().trimmed();
-    }();
+    QFileInfo fileinfo{QString::fromUtf8(path.data(), path.length())};
+    QFile file{fileinfo.absoluteFilePath()};
+    if(!file.open(QIODevice::ReadOnly))
+      return;
 
-    {
-      auto matches = scoreImport.match(pdata.customData);
-      if(matches.hasMatch())
-      {
-        categories.add(file, std::move(pdata));
-      }
-    }
+    auto data = file.readAll().trimmed();
+    auto matches = scoreImport.match(data);
+    if(!matches.hasMatch())
+      return;
+
+    Library::ProcessData pdata;
+    pdata.prettyName = fileinfo.completeBaseName();
+    pdata.key = Metadata<ConcreteKey_k, JS::ProcessModel>::get();
+    pdata.customData = fileinfo.absoluteFilePath();
+    categories.add(fileinfo, std::move(pdata));
   }
 };
 
