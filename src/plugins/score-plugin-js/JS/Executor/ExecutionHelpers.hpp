@@ -42,10 +42,9 @@ static inline QString hashFileData(const QByteArray& str)
 
 inline void loadJSObjectFromString(const QByteArray& str, QQmlComponent& comp, bool is_ui)
 {
-#if __has_include(<boost/hash2/xxh3.hpp>)
   static const auto& lib = score::AppContext().settings<Library::Settings::Model>();
+#if __has_include(<boost/hash2/xxh3.hpp>)
   static const auto cache_path = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
-
   QFile f{cache_path + "/Script" + hashFileData(str) + (is_ui ? ".ui.qml" : ".qml")};
   if(f.open(QIODevice::ReadWrite))
   {
