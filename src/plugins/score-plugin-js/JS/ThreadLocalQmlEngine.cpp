@@ -1,6 +1,6 @@
 #include "ThreadLocalQmlEngine.hpp"
 #include <QQmlEngine>
-#include <windows.h>
+
 namespace JS
 {
 std::shared_ptr<QQmlEngine> acquireThreadLocalEngine(const std::function<void(QQmlEngine&)>& onConstruction)
