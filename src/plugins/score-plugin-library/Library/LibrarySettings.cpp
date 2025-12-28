@@ -135,7 +135,7 @@ QStringList Model::getIncludePaths() const noexcept
   if(auto paths = qEnvironmentVariable("SCORE_ADDITIONAL_SCRIPT_INCLUDE_PATHS");
      !paths.isEmpty())
   {
-    auto p = paths.split(":");
+    auto p = paths.split(QDir::listSeparator());
     p.removeAll("");
     for(auto& path : p)
     {
