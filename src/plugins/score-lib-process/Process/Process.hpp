@@ -209,6 +209,9 @@ public:
   void scriptUIVisible(bool v) const
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, scriptUIVisible, v)
 
+  void flagsChanged() const
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, flagsChanged)
+
 protected:
   // Used to scale the process.
   // This should be commutative :

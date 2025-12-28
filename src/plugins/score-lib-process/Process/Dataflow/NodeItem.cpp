@@ -90,26 +90,7 @@ NodeItem::NodeItem(
     createWithDecorations();
   }
 
-  ::bind(process, Process::ProcessModel::p_position{}, this, [this](QPointF p) {
-    if(p != pos())
-      setPos(p);
-  });
-
-  auto on_sizeChanged = [this] {
-    m_needResize = true;
-    QTimer::singleShot(1, this, [this] {
-      if(!m_needResize)
-        return;
-      m_needResize = false;
-      resizeAsync();
-    });
-  };
-  connect(&process, &Process::ProcessModel::controlAdded, this, on_sizeChanged);
-  connect(&process, &Process::ProcessModel::controlRemoved, this, on_sizeChanged);
-  connect(&process, &Process::ProcessModel::controlOutletAdded, this, on_sizeChanged);
-  connect(&process, &Process::ProcessModel::controlOutletRemoved, this, on_sizeChanged);
-  connect(&process, &Process::ProcessModel::inletsChanged, this, on_sizeChanged);
-  connect(&process, &Process::ProcessModel::outletsChanged, this, on_sizeChanged);
+  initConnections();
 }
 
 void NodeItem::createWithDecorations()
@@ -551,6 +532,31 @@ void NodeItem::resizeAsync()
   }
 }
 
+void NodeItem::recreate()
+{
+  resetItem();
+  qDeleteAll(this->childItems());
+  m_scriptButton = nullptr;
+  m_uiButton = nullptr;
+  m_presetButton = nullptr;
+  m_label = nullptr;
+  m_fold = nullptr;
+  disconnect(&this->m_model, nullptr, this, nullptr);
+  disconnect(&this->m_model.selection, nullptr, this, nullptr);
+  disconnect(&this->m_model.metadata(), nullptr, this, nullptr);
+
+  if(this->m_model.flags() & Process::ProcessFlags::FullyCustomItem)
+  {
+    createWithoutDecorations();
+  }
+  else
+  {
+    createWithDecorations();
+  }
+
+  initConnections();
+}
+
 void NodeItem::setupItem(score::ResizeableItem* resizeable)
 {
   // Positions / size
@@ -808,6 +814,32 @@ qreal NodeItem::width() const noexcept
 qreal NodeItem::height() const
 {
   return TitleHeight + m_contentSize.height() + FooterHeight;
+}
+
+void NodeItem::initConnections()
+{
+  auto& process = this->model();
+  ::bind(process, Process::ProcessModel::p_position{}, this, [this](QPointF p) {
+    if(p != pos())
+      setPos(p);
+  });
+
+  auto on_sizeChanged = [this] {
+    m_needResize = true;
+    QTimer::singleShot(1, this, [this] {
+      if(!m_needResize)
+        return;
+      m_needResize = false;
+      resizeAsync();
+    });
+  };
+  connect(&process, &Process::ProcessModel::controlAdded, this, on_sizeChanged);
+  connect(&process, &Process::ProcessModel::controlRemoved, this, on_sizeChanged);
+  connect(&process, &Process::ProcessModel::controlOutletAdded, this, on_sizeChanged);
+  connect(&process, &Process::ProcessModel::controlOutletRemoved, this, on_sizeChanged);
+  connect(&process, &Process::ProcessModel::inletsChanged, this, on_sizeChanged);
+  connect(&process, &Process::ProcessModel::outletsChanged, this, on_sizeChanged);
+  connect(&process, &Process::ProcessModel::flagsChanged, this, &NodeItem::recreate);
 }
 
 const ProcessModel& NodeItem::model() const noexcept

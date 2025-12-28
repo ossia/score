@@ -87,3 +87,18 @@ class Descriptor_k;
   {                                                         \
     return Metadata<Process::ProcessFlags_k, Model>::get(); \
   }
+
+#define PROCESS_METADATA_IMPL_NOFLAGS(Model)                \
+  MODEL_METADATA_IMPL(Model)                                \
+  QString prettyShortName() const noexcept override         \
+  {                                                         \
+    return Metadata<PrettyName_k, Model>::get();            \
+  }                                                         \
+  QString category() const noexcept override                \
+  {                                                         \
+    return Metadata<Category_k, Model>::get();              \
+  }                                                         \
+  QStringList tags() const noexcept override                \
+  {                                                         \
+    return Metadata<Tags_k, Model>::get();                  \
+  }
