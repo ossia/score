@@ -64,10 +64,7 @@ private:
     auto cables = Dataflow::restoreCablesWithoutTouchingPorts(m_oldCables, ctx);
     cmt.inletsChanged();
     cmt.outletsChanged();
-
-    if constexpr(requires { cmt.isGpu(); })
-      if(cmt.isGpu())
-        cmt.programChanged();
+    cmt.programChanged();
 
     Dataflow::notifyAddedCables(cables, ctx);
   }
@@ -85,10 +82,7 @@ private:
 
     cmt.inletsChanged();
     cmt.outletsChanged();
-
-    if constexpr(requires { cmt.isGpu(); })
-      if(cmt.isGpu())
-        cmt.programChanged();
+    cmt.programChanged();
 
     Dataflow::notifyAddedCables(cables, ctx);
   }

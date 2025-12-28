@@ -29,8 +29,7 @@ public:
 
   ~model_display_node()
   {
-    if (id >= 0)
-      exec_context->ui->unregister_node(id);
+    exec_context->ui->unregister_node(id);
   }
 
   std::string label() const noexcept override { return "Gfx::ModelDisplay_node"; }

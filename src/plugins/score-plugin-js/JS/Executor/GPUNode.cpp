@@ -677,8 +677,7 @@ gpu_exec_node::gpu_exec_node(Gfx::GfxExecutionAction& ctx)
 
 gpu_exec_node::~gpu_exec_node()
 {
-  if(id >= 0)
-    exec_context->ui->unregister_node(id);
+  exec_context->ui->unregister_node(id);
 }
 
 std::string gpu_exec_node::label() const noexcept

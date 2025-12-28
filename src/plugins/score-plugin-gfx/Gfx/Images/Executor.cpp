@@ -28,8 +28,7 @@ public:
 
   ~image_node()
   {
-    if(id >= 0)
-      exec_context->ui->unregister_node(id);
+    exec_context->ui->unregister_node(id);
   }
 
   std::string label() const noexcept override { return "Gfx::image_node"; }

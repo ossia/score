@@ -16,7 +16,7 @@ protected:
 
 public:
   score::gfx::Node* node{};
-  int32_t node_id{};
+  int32_t node_id{score::gfx::invalid_node_index};
 
   gfx_parameter_base(
       ossia::net::node_base& n, score::gfx::Node* node, GfxExecutionAction* ctx)
