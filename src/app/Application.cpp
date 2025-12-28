@@ -28,6 +28,7 @@
 
 #include <QDesktopServices>
 #include <QDir>
+#include <QDirIterator>
 #include <QFontDatabase>
 #include <QKeyEvent>
 #include <QLabel>
@@ -90,6 +91,7 @@ static void loadResources()
 #if defined(SCORE_STATIC_PLUGINS)
   Q_INIT_RESOURCE(score);
   Q_INIT_RESOURCE(qtconf);
+  Q_INIT_RESOURCE(qcodeeditor_resources);
 #endif
 }
 
@@ -100,33 +102,18 @@ class DocumentModel;
 static void setQApplicationSettings(QApplication& m_app)
 {
   loadResources();
-  QFontDatabase::addApplicationFont(":/APCCourierBold.otf"); // APCCourier-Bold
 
-  QFontDatabase::addApplicationFont(":/Ubuntu-R.ttf");            // Ubuntu Regular
-  QFontDatabase::addApplicationFont(":/Ubuntu-B.ttf");            // Ubuntu Bold
-  QFontDatabase::addApplicationFont(":/Ubuntu-L.ttf");            // Ubuntu Light
-  QFontDatabase::addApplicationFont(":/Catamaran-Regular.ttf");   // Catamaran Regular
-  QFontDatabase::addApplicationFont(":/Montserrat-Regular.ttf");  // Montserrat
-  QFontDatabase::addApplicationFont(":/Montserrat-SemiBold.ttf"); // Montserrat
-  QFontDatabase::addApplicationFont(":/Montserrat-Light.ttf");    // Montserrat
-
-  // Source Code Pro
-  QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-Black.ttf");
-  QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-BlackIt.ttf");
-  QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-Bold.ttf");
-  QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-BoldIt.ttf");
-  QFontDatabase::addApplicationFont(
-      ":/fonts/sourcecodepro/SourceCodePro-ExtraLight.ttf");
-  QFontDatabase::addApplicationFont(
-      ":/fonts/sourcecodepro/SourceCodePro-ExtraLightIt.ttf");
-  QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-Light.ttf");
-  QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-LightIt.ttf");
-  QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-It.ttf");
-  QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-Medium.ttf");
-  QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-MediumIt.ttf");
-  QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-Semibold.ttf");
-  QFontDatabase::addApplicationFont(
-      ":/fonts/sourcecodepro/SourceCodePro-SemiboldIt.ttf");
+  // Register fonts
+  {
+    QDirIterator it(":/fonts", QDirIterator::Subdirectories);
+    while (it.hasNext()) {
+      auto font = it.next();
+      if(font.endsWith("ttf", Qt::CaseInsensitive) || font.endsWith("bdf", Qt::CaseInsensitive) || font.endsWith("otf", Qt::CaseInsensitive))
+      {
+        QFontDatabase::addApplicationFont(font);
+      }
+    }
+  }
 
   // For release builds against a debug Qt, we build qt without any style plug-in.
   // Sadly Qt asserts so wh have to simulate the loading of a plugin (see above).

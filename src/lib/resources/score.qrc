@@ -2,12 +2,6 @@
     <qresource prefix="/">
         <file>about/about_background.png</file>
         <file>about/about_background@2x.png</file>
-        <file>Catamaran-Regular.ttf</file>
-        <file>Montserrat-Regular.ttf</file>
-        <file>Ubuntu-R.ttf</file>
-        <file>Ubuntu-B.ttf</file>
-        <file>Ubuntu-L.ttf</file>
-        <file>APCCourierBold.otf</file>
         <file>ossia-score.png</file>
         <file>dict.txt</file>
         <file>icons/next_disabled.png</file>
@@ -417,7 +411,6 @@
         <file>icons/scenario_trigger@2x.png</file>
         <file>drakula.xml</file>
         <file>icons/trigger_sprite.png</file>
-        <file>Montserrat-SemiBold.ttf</file>
         <file>icons/chat_on.png</file>
         <file>icons/contribute_on.png</file>
         <file>icons/forum_on.png</file>
@@ -459,7 +452,6 @@
         <file>icons/trigger_sprite@2x.png</file>
         <file>startscreen/startscreensplash.png</file>
         <file>startscreen/startscreensplash@2x.png</file>
-        <file>Montserrat-Light.ttf</file>
         <file>icons/cursor_magnifier.png</file>
         <file>icons/cursor_magnifier@2x.png</file>
         <file>icons/cursor_move.png</file>
@@ -666,20 +658,6 @@
         <file>icons/process_interval_stop@2x.png</file>
         <file>icons/process_preset_icon.png</file>
         <file>icons/process_preset_icon@2x.png</file>
-        <file>fonts/sourcecodepro/SourceCodePro-Black.ttf</file>
-        <file>fonts/sourcecodepro/SourceCodePro-BlackIt.ttf</file>
-        <file>fonts/sourcecodepro/SourceCodePro-Bold.ttf</file>
-        <file>fonts/sourcecodepro/SourceCodePro-BoldIt.ttf</file>
-        <file>fonts/sourcecodepro/SourceCodePro-ExtraLight.ttf</file>
-        <file>fonts/sourcecodepro/SourceCodePro-ExtraLightIt.ttf</file>
-        <file>fonts/sourcecodepro/SourceCodePro-It.ttf</file>
-        <file>fonts/sourcecodepro/SourceCodePro-Light.ttf</file>
-        <file>fonts/sourcecodepro/SourceCodePro-LightIt.ttf</file>
-        <file>fonts/sourcecodepro/SourceCodePro-Medium.ttf</file>
-        <file>fonts/sourcecodepro/SourceCodePro-MediumIt.ttf</file>
-        <file>fonts/sourcecodepro/SourceCodePro-Regular.ttf</file>
-        <file>fonts/sourcecodepro/SourceCodePro-Semibold.ttf</file>
-        <file>fonts/sourcecodepro/SourceCodePro-SemiboldIt.ttf</file>
         <file>icons/search.png</file>
         <file>icons/search@2x.png</file>
         <file>icons/zoom/scale_off.png</file>
@@ -728,5 +706,53 @@
         <file>icons/exclusive_hover@2x.png</file>
         <file>icons/ai.png</file>
         <file>icons/ai@2x.png</file>
+        <file>fonts/JetBrainsMono[wght].ttf</file>
+        <file>fonts/JetBrainsMono-Italic[wght].ttf</file>
+        <file>fonts/SourceCodePro-Italic-VariableFont_wght.ttf</file>
+        <file>fonts/SourceCodePro-VariableFont_wght.ttf</file>
+        <file>fonts/Catamaran-VariableFont_wght.ttf</file>
+        <file>fonts/CourierPrime-Bold.ttf</file>
+        <file>fonts/CourierPrime-BoldItalic.ttf</file>
+        <file>fonts/CourierPrime-Italic.ttf</file>
+        <file>fonts/CourierPrime-Regular.ttf</file>
+        <file>fonts/Montserrat-Italic-VariableFont_wght.ttf</file>
+        <file>fonts/Montserrat-VariableFont_wght.ttf</file>
+        <file>fonts/Ubuntu-Bold.ttf</file>
+        <file>fonts/Ubuntu-BoldItalic.ttf</file>
+        <file>fonts/Ubuntu-Italic.ttf</file>
+        <file>fonts/Ubuntu-Light.ttf</file>
+        <file>fonts/Ubuntu-LightItalic.ttf</file>
+        <file>fonts/Ubuntu-Medium.ttf</file>
+        <file>fonts/Ubuntu-MediumItalic.ttf</file>
+        <file>fonts/UbuntuMono-Bold.ttf</file>
+        <file>fonts/UbuntuMono-BoldItalic.ttf</file>
+        <file>fonts/UbuntuMono-Italic.ttf</file>
+        <file>fonts/UbuntuMono-Regular.ttf</file>
+        <file>fonts/Ubuntu-Regular.ttf</file>
+        <file>fonts/DMSans-Italic-VariableFont_opsz,wght.ttf</file>
+        <file>fonts/DMSans-VariableFont_opsz,wght.ttf</file>
+        <file>fonts/IBMPlexMono-Bold.ttf</file>
+        <file>fonts/IBMPlexMono-BoldItalic.ttf</file>
+        <file>fonts/IBMPlexMono-ExtraLight.ttf</file>
+        <file>fonts/IBMPlexMono-ExtraLightItalic.ttf</file>
+        <file>fonts/IBMPlexMono-Italic.ttf</file>
+        <file>fonts/IBMPlexMono-Light.ttf</file>
+        <file>fonts/IBMPlexMono-LightItalic.ttf</file>
+        <file>fonts/IBMPlexMono-Medium.ttf</file>
+        <file>fonts/IBMPlexMono-MediumItalic.ttf</file>
+        <file>fonts/IBMPlexMono-Regular.ttf</file>
+        <file>fonts/IBMPlexMono-SemiBold.ttf</file>
+        <file>fonts/IBMPlexMono-SemiBoldItalic.ttf</file>
+        <file>fonts/IBMPlexMono-Thin.ttf</file>
+        <file>fonts/IBMPlexMono-ThinItalic.ttf</file>
+        <file>fonts/IBMPlexSans-Italic-VariableFont_wdth,wght.ttf</file>
+        <file>fonts/IBMPlexSans-VariableFont_wdth,wght.ttf</file>
+        <file>fonts/Roboto-Italic-VariableFont_wdth,wght.ttf</file>
+        <file>fonts/Roboto-VariableFont_wdth,wght.ttf</file>
+        <file>fonts/cozette.bdf</file>
+        <file>fonts/boxxy.bdf</file>
+        <file>fonts/uushi.bdf</file>
+        <file>fonts/progsole-10.bdf</file>
+        <file>fonts/scientifica-11.bdf</file>
     </qresource>
 </RCC>

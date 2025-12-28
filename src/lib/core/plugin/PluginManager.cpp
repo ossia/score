@@ -309,7 +309,7 @@ std::optional<score::Addon> makeAddon(
       {"small", [&](QJsonValue v) { add.smallImage = QImage{v.toString()}; }},
       {"large", [&](QJsonValue v) { add.largeImage = QImage{v.toString()}; }}};
 
-  for(auto k : json_addon.keys())
+  for(const auto& k : json_addon.keys())
   {
     auto fun = funmap.find(k);
     if(fun != funmap.end())
