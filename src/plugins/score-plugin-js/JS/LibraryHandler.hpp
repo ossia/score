@@ -103,6 +103,9 @@ class LibraryHandler final
 
   void addPath(std::string_view path) override
   {
+    if(path.ends_with(".ui.qml"))
+      return;
+
     QFileInfo fileinfo{QString::fromUtf8(path.data(), path.length())};
     QFile file{fileinfo.absoluteFilePath()};
     if(!file.open(QIODevice::ReadOnly))
