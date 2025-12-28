@@ -64,9 +64,7 @@ QString State::toString(const State::RelationMember& m)
 QString State::toString(const Relation& rel)
 {
   return QString("%1 %2 %3")
-      .arg(toString(rel.lhs))
-      .arg(opToString()[rel.op])
-      .arg(toString(rel.rhs));
+      .arg(toString(rel.lhs), opToString()[rel.op], toString(rel.rhs));
 }
 
 const QMap<ossia::expressions::comparator, QString> State::opToString()

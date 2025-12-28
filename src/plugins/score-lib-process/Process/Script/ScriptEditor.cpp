@@ -27,7 +27,7 @@ ScriptDialog::ScriptDialog(
     : QDialog{parent}
     , m_context{ctx}
 {
-  this->setBaseSize(800, 300);
+  this->resize(800, 800);
   this->setWindowFlag(Qt::WindowCloseButtonHint, false);
   auto lay = new QVBoxLayout{this};
   this->setLayout(lay);
@@ -174,7 +174,7 @@ MultiScriptDialog::MultiScriptDialog(const score::DocumentContext& ctx, QWidget*
     : QDialog{parent}
     , m_context{ctx}
 {
-  this->setBaseSize(800, 300);
+  this->resize(800, 800);
   this->setWindowFlag(Qt::WindowCloseButtonHint, false);
   auto lay = new QVBoxLayout{this};
   this->setLayout(lay);
