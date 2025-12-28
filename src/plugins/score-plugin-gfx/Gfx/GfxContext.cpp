@@ -10,6 +10,7 @@
 
 #include <ossia/detail/flicks.hpp>
 #include <ossia/detail/logger.hpp>
+#include <ossia/detail/thread.hpp>
 
 #include <QGuiApplication>
 #include <QTimer>
@@ -19,6 +20,7 @@ namespace Gfx
 GfxContext::GfxContext(const score::DocumentContext& ctx)
     : m_context{ctx}
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   new_edges.reserve(100);
   edges.reserve(100);
 
@@ -60,7 +62,10 @@ GfxContext::~GfxContext()
 
 int32_t GfxContext::register_node(std::unique_ptr<score::gfx::Node> node)
 {
+  // OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   auto next = index++;
+  if(next == score::gfx::invalid_node_index)
+    next = index++;
 
   node->nodeId = next;
   tick_commands.enqueue(NodeCommand{NodeCommand::ADD_NODE, next, std::move(node)});
@@ -70,7 +75,10 @@ int32_t GfxContext::register_node(std::unique_ptr<score::gfx::Node> node)
 
 int32_t GfxContext::register_preview_node(std::unique_ptr<score::gfx::Node> node)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   auto next = index++;
+  if(next == score::gfx::invalid_node_index)
+    next = index++;
 
   node->nodeId = next;
   tick_commands.enqueue(
@@ -81,21 +89,29 @@ int32_t GfxContext::register_preview_node(std::unique_ptr<score::gfx::Node> node
 
 void GfxContext::unregister_node(int32_t idx)
 {
-  tick_commands.enqueue(NodeCommand{NodeCommand::REMOVE_NODE, idx, {}});
+  // FIXME! we need to move back to spsc queue for ensured ordering,
+  // thus enforcing a thread for node commands
+  // OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  if(idx != score::gfx::invalid_node_index)
+    tick_commands.enqueue(NodeCommand{NodeCommand::REMOVE_NODE, idx, {}});
 }
 
 void GfxContext::unregister_preview_node(int32_t idx)
 {
-  tick_commands.enqueue(NodeCommand{NodeCommand::REMOVE_PREVIEW_NODE, idx, {}});
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  if(idx != score::gfx::invalid_node_index)
+    tick_commands.enqueue(NodeCommand{NodeCommand::REMOVE_PREVIEW_NODE, idx, {}});
 }
 
 void GfxContext::connect_preview_node(EdgeSpec e)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   tick_commands.enqueue(EdgeCommand{EdgeCommand::CONNECT_PREVIEW_NODE, e});
 }
 
 void GfxContext::disconnect_preview_node(EdgeSpec e)
 {
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   tick_commands.enqueue(EdgeCommand{EdgeCommand::DISCONNECT_PREVIEW_NODE, e});
 }
 

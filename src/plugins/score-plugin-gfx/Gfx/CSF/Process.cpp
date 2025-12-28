@@ -170,7 +170,6 @@ Process::ScriptChangeResult Model::setCompute(QString f)
   {
     m_compute = f;
     computeChanged(f);
-    programChanged();
   }
   return setScript(f);
 }
@@ -189,7 +188,7 @@ void Model::loadPreset(const Process::Preset& preset)
   auto controls = obj["Controls"].GetArray();
   Process::loadFixedControls(controls, *this);
 
-  programChanged();
+  programChanged(); // FIXME make sure this is done like EditScript
 }
 
 Process::Preset Model::savePreset() const noexcept

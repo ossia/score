@@ -120,7 +120,7 @@ public:
     return static_key() == other || Execution::ProcessComponent::base_key_match(other);
   }
 
-  [[no_unique_address]] ossia::type_if<int, is_gpu<Node>> node_id = -1;
+  [[no_unique_address]] ossia::type_if<int, is_gpu<Node>> node_id = score::gfx::invalid_node_index;
 
   Executor(ProcessModel<Node>& element, const ::Execution::Context& ctx, QObject* p)
       : Execution::ProcessComponent_T<ProcessModel<Node>, ossia::node_process>{

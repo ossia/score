@@ -40,7 +40,7 @@ class simple_texture_input_parameter : public ossia::gfx::texture_parameter
   GfxExecutionAction* context{};
 
 public:
-  int32_t node_id{};
+  int32_t node_id{score::gfx::invalid_node_index};
   score::gfx::Node* node{};
 
   simple_texture_input_parameter(

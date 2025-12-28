@@ -310,7 +310,6 @@ void ProcessModel::setUiScript(const QString& f)
   }
 
   m_program = script;
-  programChanged();
   return res;
 }
 

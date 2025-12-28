@@ -67,4 +67,6 @@ struct RenderState
 SCORE_PLUGIN_GFX_EXPORT
 std::shared_ptr<RenderState>
 createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window);
+
+static const constexpr int32_t invalid_node_index = -1;
 }

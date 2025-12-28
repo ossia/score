@@ -188,7 +188,7 @@ public:
   }
 
 private:
-  void rollback() { m_movingDispatcher.template rollback<DefaultRollbackStrategy>(); }
+  void rollback() { m_movingDispatcher.rollback(); }
 
   void merge(const IntervalModel& cst, const StateModel& st, TimeVal date)
   {

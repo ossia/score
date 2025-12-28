@@ -35,15 +35,3 @@ void ScenarioRollbackStrategy::rollback(
     }
   }
 }
-
-void DefaultRollbackStrategy::rollback(
-    const score::DocumentContext& ctx, const std::vector<score::Command*>& cmds)
-{
-  if(cmds.empty())
-    return;
-
-  for(int i = cmds.size() - 1; i >= 0; --i)
-  {
-    cmds[i]->undo(ctx);
-  }
-}

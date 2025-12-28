@@ -34,16 +34,14 @@ public:
   ~video_node()
   {
     //    m_decoder->seek(0);
-    if(id >= 0)
-      exec_context->ui->unregister_node(id);
+    exec_context->ui->unregister_node(id);
   }
 
   void reload(const std::shared_ptr<video_decoder>& dec, std::optional<double> tempo)
   {
     impl = nullptr;
 
-    if(id >= 0)
-      exec_context->ui->unregister_node(id);
+    exec_context->ui->unregister_node(id);
 
     m_decoder = dec;
     m_decoder->seek(m_last_flicks.impl);
