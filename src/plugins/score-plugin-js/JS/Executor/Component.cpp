@@ -115,6 +115,11 @@ void Component::on_scriptChange()
   std::tuple<ossia::inlets, ossia::outlets, std::vector<Execution::ExecutionCommand>>
       new_ports;
 
+  for(auto ctrl : process().inlets())
+    disconnect(ctrl, nullptr, this, nullptr);
+  for(auto ctrl : process().outlets())
+    disconnect(ctrl, nullptr, this, nullptr);
+
   const auto& script = process().qmlData();
   // 1. Recreate ports & change the script
   if(cur_type == next_type)
@@ -218,7 +223,6 @@ Component::on_gpuScriptChange(const QString& script, Execution::Transaction& com
             control->changed = true;
 
             // TODO assert that we aren't going to connect twice
-            QObject::disconnect(model_ctrl, nullptr, this, nullptr);
             QObject::connect(
                 model_ctrl, &Process::ControlInlet::valueChanged, this,
                 Gfx::con_unvalidated{ctx, control_index, script_index, weak_node});
@@ -322,6 +326,10 @@ Component::on_gpuScriptChange(const QString& script, Execution::Transaction& com
         //   outlet_idx++;
       }
     }
+    else
+    {
+      return {};
+    }
   }
 
   // Send the updates to the node
@@ -370,7 +378,6 @@ Component::on_cpuScriptChange(const QString& script, Execution::Transaction& com
           vp.type = ctrl->value().get_type();
           vp.domain = ctrl->domain().get();
 
-          disconnect(ctrl, nullptr, this, nullptr);
           if([[maybe_unused]] auto impulse = qobject_cast<Process::ImpulseButton*>(ctrl))
           {
             connect(
@@ -445,7 +452,7 @@ Component::on_cpuScriptChange(const QString& script, Execution::Transaction& com
     }
     else
     {
-      SCORE_ASSERT(false);
+      return {};
     }
   }
 

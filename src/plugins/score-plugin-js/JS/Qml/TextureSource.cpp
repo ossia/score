@@ -62,6 +62,11 @@ public:
     m_extractionNode = nullptr;
   }
 
+  ~TextureSourceRenderer()
+  {
+    clear();
+  }
+
 private:
   score::gfx::OutputNode* m_extractionNode{};
 
