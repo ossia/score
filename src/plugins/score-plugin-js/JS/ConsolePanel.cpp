@@ -19,7 +19,7 @@ namespace JS
 
 PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
     : score::PanelDelegate{ctx}
-    , m_engine{ctx.guiApplicationPlugin<JS::ApplicationPlugin>().m_engine}
+    , m_engine{ctx.guiApplicationPlugin<JS::ApplicationPlugin>().m_consoleEngine}
     , m_widget{new QWidget}
 {
   m_engine.installExtensions(QJSEngine::ConsoleExtension);
@@ -52,10 +52,10 @@ PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
 
   auto c = new QJSCompleter{m_lineEdit};
   auto& plug = this->context().guiApplicationPlugin<JS::ApplicationPlugin>();
-  c->registerObject("Score", plug.m_engine.globalObject().property("Score").toQObject());
-  c->registerObject("Util", plug.m_engine.globalObject().property("Util").toQObject());
-  c->registerObject(
-      "Device", plug.m_engine.globalObject().property("Device").toQObject());
+  auto console_engine_object = plug.m_consoleEngine.globalObject();
+  c->registerObject("Score", console_engine_object.property("Score").toQObject());
+  c->registerObject("Util", console_engine_object.property("Util").toQObject());
+  c->registerObject("Device", console_engine_object.property("Device").toQObject());
   c->setCompletionMode(QCompleter::CompletionMode::PopupCompletion);
   c->setWidget(m_lineEdit);
   m_lineEdit->setCompleter(c);

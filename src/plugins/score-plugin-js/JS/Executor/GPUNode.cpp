@@ -1,4 +1,6 @@
 #include "GPUNode.hpp"
+#include <JS/Executor/ExecutionHelpers.hpp>
+#include <JS/JSProcessMetadata.hpp>
 
 #if defined(SCORE_HAS_GPU_JS)
 #include <Gfx/Graph/Node.hpp>
@@ -8,15 +10,20 @@
 #include <Gfx/Graph/Window.hpp>
 #include <JS/Qml/QmlObjects.hpp>
 #include <JS/Qml/QmlRhiObjects.hpp>
+#include <JS/Qml/Utils.hpp>
+#include <JS/ThreadLocalQmlEngine.hpp>
+#include <JS/Qml/DeviceContext.hpp>
 
 #include <score/gfx/Vulkan.hpp>
 
 #include <ossia-qt/js_utilities.hpp>
+#include <ossia-qt/qml_engine_functions.hpp>
 
 #include <boost/unordered/concurrent_flat_map.hpp>
 
 #include <QQmlComponent>
 #include <QQmlEngine>
+#include <QQmlContext>
 #include <QQuickGraphicsDevice>
 #include <QQuickRenderControl>
 #include <QQuickRenderTarget>
@@ -42,12 +49,16 @@ struct engine_key_hash
     return std::hash<std::thread::id>{}(k.id) ^ intptr_t(k.rhi);
   }
 };
-
+struct GpuRenderer;
 struct GpuNode : score::gfx::NodeModel
 {
 public:
   explicit GpuNode(
-      const QString& source, const ossia::inlets& ins, const ossia::outlets& outs);
+      QObject* uiContext,
+      JS::JSState&& st,
+      const QString& source,
+      const ossia::inlets& ins,
+      const ossia::outlets& outs);
   virtual ~GpuNode();
 
   score::gfx::NodeRenderer*
@@ -55,14 +66,23 @@ public:
 
   void process(score::gfx::Message&& msg) override;
 
+  QPointer<QObject> m_uiContext;
+  JS::JSState m_modelState;
   QString source;
   std::atomic_int64_t sourceIndex{};
 
   score::gfx::Message m_lastState;
+  std::function<void(QVariant)> m_messageToUi;
+
+  using js_message_type = ossia::variant<QVariant, std::pair<QString, ossia::value>>;
+  void uiMessage(const QVariant& v);
+  void stateElementChanged(const QString& k, const ossia::value& v);
 
   struct Engine
   {
-    QQmlEngine* m_engine{};
+    std::shared_ptr<QQmlEngine> m_engine{};
+    QQmlContext* m_context{};
+    DeviceContext* m_execFuncs{};
     QQmlComponent* m_component{};
     JS::Script* m_object{};
     QQuickItem* m_item{};
@@ -73,156 +93,54 @@ public:
     std::vector<std::pair<ValueInlet*, int>> m_valInlets;
     std::vector<std::pair<TextureInlet*, int>> m_texInlets;
 
-    void init(GpuNode& node, QQuickWindow* window)
-    {
-      if(!m_item)
-      {
-        if(!m_engine)
-        {
-          m_engine = new QQmlEngine{};
-        }
-        createItem(node);
-      }
+    ossia::spsc_queue<js_message_type> ui_messages;
 
-      updateItemTextureOut(window);
-    }
+    void init(GpuRenderer& renderer, GpuNode& node, QQuickWindow* window);
 
-    void createItem(GpuNode& node)
-    {
-      m_component = new QQmlComponent{this->m_engine};
-      m_component->setData(node.source.toUtf8(), QUrl{});
-      if(m_component->isError())
-      {
-        qDebug() << m_component->errorString();
-        return;
-      }
+    void createItem(GpuRenderer& renderer, GpuNode& node);
 
-      auto obj = m_component->create();
-      m_object = qobject_cast<JS::Script*>(obj);
-      if(!m_object)
-      {
-        delete obj;
-        return;
-      }
+    void updateItemTextureOut(QQuickWindow* window);
 
-      setupComponent();
-    }
+    void setupComponent(GpuRenderer& renderer, GpuNode& node);
 
-    void updateItemTextureOut(QQuickWindow* window)
+    void releaseItem();
+
+    ~Engine();
+
+    void processMessage(const score::gfx::Message& msg);
+
+    void tick();
+
+    void uiMessage(const QVariant& v)
     {
       if(!m_object)
         return;
-      if(auto texout = m_object->findChild<TextureOutlet*>(); texout != nullptr)
-      {
-        this->m_item = texout->item();
-        auto contentItem = window->contentItem();
 
-        if(this->m_item && contentItem)
-        {
-          this->m_item->setParent(contentItem);
-          this->m_item->setParentItem(contentItem);
-        }
-      }
+      const auto& on_ui = this->m_object->uiEvent();
+      if(!on_ui.isCallable())
+        return;
+
+      on_ui.call({m_engine->toScriptValue(v)});
     }
 
-    void setupComponent()
-    {
-      // FIXME refactor with CPUNode
-      int input_i = 0;
-
-      for(auto n : m_object->children())
-      {
-        if(auto imp_in = qobject_cast<Impulse*>(n))
-        {
-          m_jsInlets.push_back(imp_in);
-          m_impulseInlets.push_back({imp_in, input_i++});
-        }
-        else if(auto ctrl_in = qobject_cast<ControlInlet*>(n))
-        {
-          m_jsInlets.push_back(ctrl_in);
-          m_ctrlInlets.push_back({ctrl_in, input_i++});
-        }
-        else if(auto val_in = qobject_cast<ValueInlet*>(n))
-        {
-          m_jsInlets.push_back(val_in);
-          m_valInlets.push_back({val_in, input_i++});
-        }
-        else if(auto tex_in = qobject_cast<TextureInlet*>(n))
-        {
-          m_jsInlets.push_back(tex_in);
-          m_texInlets.push_back({tex_in, input_i++});
-        }
-        else if(auto unknown = qobject_cast<Inlet*>(n))
-        {
-          m_jsInlets.push_back(unknown);
-          input_i++;
-        }
-      }
-    }
-
-    void releaseItem()
-    {
-      if(m_item)
-      {
-        m_item->setParent(nullptr);
-        m_item->setParentItem(nullptr);
-      }
-    }
-
-    ~Engine()
-    {
-      m_ctrlInlets.clear();
-      m_impulseInlets.clear();
-      m_valInlets.clear();
-      m_jsInlets.clear();
-
-      delete m_object;
-      m_object = nullptr;
-
-      delete m_component;
-      m_component = nullptr;
-
-      delete m_engine;
-      m_engine = nullptr;
-    }
-
-    void processMessage(const score::gfx::Message& msg)
-    {
-      for(std::size_t i = 0; i < msg.input.size(); i++)
-      {
-        if(auto it = ossia::get_if<ossia::value>(&msg.input[i]))
-        {
-          auto var = it->apply(ossia::qt::ossia_to_qvariant{});
-
-          if(m_jsInlets.size() <= i)
-            return;
-          auto inl = m_jsInlets[i];
-          if(auto v = qobject_cast<ValueInlet*>(inl))
-          {
-            v->clear();
-            v->setValue(std::move(var));
-          }
-          else if(auto v = qobject_cast<Impulse*>(inl))
-          {
-            v->impulse();
-          }
-          else if(auto v = qobject_cast<ControlInlet*>(inl))
-          {
-            v->clear();
-            v->setValue(std::move(var));
-          }
-        }
-      }
-    }
-
-    void tick()
+    void stateElementChanged(const QString& k, const ossia::value& v)
     {
       if(!m_object)
         return;
-      if(auto& tick = m_object->tick(); tick.isCallable())
+
+      const auto& on_stateUpdated = this->m_object->stateUpdated();
+      if(!on_stateUpdated.isCallable())
+        return;
+
+      if(v.valid())
       {
-        tick.call();
+        if(auto res = v.apply(ossia::qt::ossia_to_qvariant{}); res.isValid())
+          on_stateUpdated.call({k, m_engine->toScriptValue(res)});
+        else
+          on_stateUpdated.call({k, QJSValue{}});
       }
+      else
+        on_stateUpdated.call({k, QJSValue{}});
     }
   };
 
@@ -247,6 +165,21 @@ public:
   boost::concurrent_flat_map<engine_key, std::shared_ptr<Engine>, engine_key_hash>
       m_engines;
 };
+
+void GpuNode::uiMessage(const QVariant& v)
+{
+  m_engines.visit_all([&] (auto& elt) {
+    elt.second->ui_messages.emplace(v);
+  });
+}
+
+void GpuNode::stateElementChanged(const QString& k, const ossia::value& v)
+{
+  m_engines.visit_all([&, p = std::make_pair(k, v)] (auto& elt) {
+    elt.second->ui_messages.emplace(p);
+  });
+}
+
 
 class GpuRenderer : public score::gfx::GenericNodeRenderer
 {
@@ -403,7 +336,7 @@ void main ()
       m_engine = engine;
       if(m_engine)
       {
-        m_engine->init(node, m_window);
+        m_engine->init(*this, node, m_window);
 
         for(auto& [texture_in, i] : this->m_engine->m_texInlets)
         {
@@ -583,8 +516,12 @@ void main ()
 };
 
 GpuNode::GpuNode(
+    QObject* uiContext,
+    JS::JSState&& st,
     const QString& source, const ossia::inlets& ins, const ossia::outlets& outs)
-    : source{source}
+    : m_uiContext{uiContext}
+    , m_modelState{std::move(st)}
+    , source{source}
     , sourceIndex{1}
 {
   for(auto& p : ins)
@@ -634,6 +571,220 @@ GpuNode::GpuNode(
 }
 GpuNode::~GpuNode() { }
 
+
+void GpuNode::Engine::tick()
+{
+  if(!m_object)
+    return;
+
+  // Process messages that may come from UI
+  {
+    js_message_type m;
+    while(ui_messages.try_dequeue(m)) {
+      struct {
+        Engine& self;
+        void operator()(const QVariant& v) {
+          self.uiMessage(v);
+        }
+        void operator()(const std::pair<QString, ossia::value>& v) {
+          self.stateElementChanged(v.first, v.second);
+        }
+      } vis{*this};
+      ossia::visit(vis, m);
+    }
+  }
+
+  if(auto& tick = m_object->tick(); tick.isCallable())
+  {
+    tick.call();
+  }
+}
+
+void GpuNode::Engine::processMessage(const score::gfx::Message& msg)
+{
+  for(std::size_t i = 0; i < msg.input.size(); i++)
+  {
+    if(auto it = ossia::get_if<ossia::value>(&msg.input[i]))
+    {
+      auto var = it->apply(ossia::qt::ossia_to_qvariant{});
+
+      if(m_jsInlets.size() <= i)
+        return;
+      auto inl = m_jsInlets[i];
+      if(auto v = qobject_cast<ValueInlet*>(inl))
+      {
+        v->clear();
+        v->setValue(std::move(var));
+      }
+      else if(auto v = qobject_cast<Impulse*>(inl))
+      {
+        v->impulse();
+      }
+      else if(auto v = qobject_cast<ControlInlet*>(inl))
+      {
+        v->clear();
+        v->setValue(std::move(var));
+      }
+    }
+  }
+}
+
+GpuNode::Engine::~Engine()
+{
+  m_ctrlInlets.clear();
+  m_impulseInlets.clear();
+  m_valInlets.clear();
+  m_jsInlets.clear();
+
+  delete m_object;
+  m_object = nullptr;
+
+  delete m_component;
+  m_component = nullptr;
+
+  delete m_context;
+  m_context = nullptr;
+
+  m_engine = nullptr; // Not owned here!
+}
+
+void GpuNode::Engine::releaseItem()
+{
+  if(m_item)
+  {
+    m_item->setParent(nullptr);
+    m_item->setParentItem(nullptr);
+  }
+}
+
+void GpuNode::Engine::setupComponent(GpuRenderer& renderer, GpuNode& node)
+{
+  // FIXME refactor with CPUNode
+  // FIXME only works because same thread right now.
+  // Re-read QQuickRenderControl and use it to separate
+  // execution in GPUNode and rendering in GPURenderer
+
+  QObject::connect(m_object, &JS::Script::uiSend,
+                   node.m_uiContext, [this, &node] (const QJSValue& v) {
+    if(!node.m_uiContext)
+      return;
+    QMetaObject::invokeMethod(qApp, [ctx=node.m_uiContext, &func = node.m_messageToUi, vv = v.toVariant()] {
+      if(!ctx)
+        return;
+      func(std::move(vv));
+    }, Qt::QueuedConnection);
+  }, Qt::DirectConnection);
+
+  if(const auto& on_load = m_object->loadState(); on_load.isCallable())
+  {
+    QVariantMap vm;
+    for(auto& [k, v]: node.m_modelState) {
+      if(auto res = v.apply(ossia::qt::ossia_to_qvariant{}); res.isValid())
+        vm[k] = std::move(res);
+    }
+    on_load.call({m_engine->toScriptValue(vm)});
+  }
+
+  int input_i = 0;
+
+  for(auto n : m_object->children())
+  {
+    if(auto imp_in = qobject_cast<Impulse*>(n))
+    {
+      m_jsInlets.push_back(imp_in);
+      m_impulseInlets.push_back({imp_in, input_i++});
+    }
+    else if(auto ctrl_in = qobject_cast<ControlInlet*>(n))
+    {
+      m_jsInlets.push_back(ctrl_in);
+      m_ctrlInlets.push_back({ctrl_in, input_i++});
+    }
+    else if(auto val_in = qobject_cast<ValueInlet*>(n))
+    {
+      m_jsInlets.push_back(val_in);
+      m_valInlets.push_back({val_in, input_i++});
+    }
+    else if(auto tex_in = qobject_cast<TextureInlet*>(n))
+    {
+      m_jsInlets.push_back(tex_in);
+      m_texInlets.push_back({tex_in, input_i++});
+    }
+    else if(auto unknown = qobject_cast<Inlet*>(n))
+    {
+      m_jsInlets.push_back(unknown);
+      input_i++;
+    }
+  }
+}
+
+void GpuNode::Engine::updateItemTextureOut(QQuickWindow* window)
+{
+  if(!m_object)
+    return;
+  if(auto texout = m_object->findChild<TextureOutlet*>(); texout != nullptr)
+  {
+    this->m_item = texout->item();
+    auto contentItem = window->contentItem();
+
+    if(this->m_item && contentItem)
+    {
+      this->m_item->setParent(contentItem);
+      this->m_item->setParentItem(contentItem);
+    }
+  }
+}
+
+void GpuNode::Engine::createItem(GpuRenderer& renderer, GpuNode& node)
+{
+  m_component = new QQmlComponent{this->m_engine.get()};
+  m_component->setData(node.source.toUtf8(), QUrl{});
+  if(m_component->isError())
+  {
+    qDebug() << m_component->errorString();
+    return;
+  }
+
+  auto obj = m_component->create();
+  m_object = qobject_cast<JS::Script*>(obj);
+  if(!m_object)
+  {
+    delete obj;
+    return;
+  }
+
+  setupComponent(renderer, node);
+}
+
+void GpuNode::Engine::init(GpuRenderer& renderer, GpuNode& node, QQuickWindow* window)
+{
+  if(!m_item)
+  {
+    if(!m_engine)
+    {
+      m_engine = JS::acquireThreadLocalEngine([](QQmlEngine& newEngine) {
+        const auto& paths = score::AppContext().settings<Library::Settings::Model>().getIncludePaths();
+        for(auto& path : paths) {
+          newEngine.addImportPath(path);
+        }
+
+        newEngine.rootContext()->setContextProperty("Util", new JsUtils);
+      });
+    }
+    if(!m_context)
+    {
+      m_context = new QQmlContext{m_engine.get()};
+      m_execFuncs = new DeviceContext{};
+      m_execFuncs->init();
+
+      m_context->setContextProperty("Device", m_execFuncs);
+      setupExecFuncs(this, &node, m_execFuncs->m_impl);
+    }
+    createItem(renderer, node);
+  }
+
+  updateItemTextureOut(window);
+}
+
 score::gfx::NodeRenderer*
 GpuNode::createRenderer(score::gfx::RenderList& r) const noexcept
 {
@@ -670,8 +821,9 @@ void GpuNode::process(score::gfx::Message&& msg)
   }
 }
 
-gpu_exec_node::gpu_exec_node(Gfx::GfxExecutionAction& ctx)
+gpu_exec_node::gpu_exec_node(JS::ProcessModel* context, Gfx::GfxExecutionAction& ctx)
     : gfx_exec_node{ctx}
+    , m_context{context}
 {
 }
 
@@ -685,16 +837,37 @@ std::string gpu_exec_node::label() const noexcept
   return "JS::gpu_exec_node";
 }
 
-void gpu_exec_node::setScript(const QString& str)
+void gpu_exec_node::setScript(const QString& str, JS::JSState&& new_state)
 {
-  if(id >= 0)
-    exec_context->ui->unregister_node(id);
+  exec_context->ui->unregister_node(id);
 
   //if(id < 0)
   {
     auto n
-        = std::make_unique<JS::GpuNode>(str, this->root_inputs(), this->root_outputs());
+        = std::make_unique<JS::GpuNode>(m_context, std::move(new_state), str, this->root_inputs(), this->root_outputs());
 
+    {
+      auto& element = *m_context;
+      n->m_uiContext = m_context;
+      n->m_messageToUi = [ctx=m_context] (const QVariant& v){
+        OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
+        if(!ctx)
+          return;
+        ctx->executionToUi(v);
+      };
+
+      QObject::connect(
+          &element, &JS::ProcessModel::uiToExecution, n.get(),
+          [node=n.get()](const QVariant& v) {
+        node->uiMessage(v);
+      }, Qt::QueuedConnection);
+      QObject::connect(
+          &element, &JS::ProcessModel::stateElementChanged, n.get(),
+          [node=n.get()](const QString& k, const ossia::value& v) {
+        node->stateElementChanged(k, v);
+      }, Qt::QueuedConnection);
+
+    }
     id = exec_context->ui->register_node(std::move(n));
   }
   /*

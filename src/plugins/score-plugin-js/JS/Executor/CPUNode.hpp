@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JS/Executor/JSAPIWrapper.hpp>
+#include <JS/JSProcessMetadata.hpp>
 #include <JS/Qml/Metatypes.hpp>
 #include <JS/Qml/QmlObjects.hpp>
 #include <JS/Qml/ValueTypes.Qt6.hpp>
@@ -43,7 +44,8 @@ public:
 
   ossia::execution_state& m_st;
 
-  QQmlEngine* m_engine{};
+  std::shared_ptr<QQmlEngine> m_engine{};
+  QQmlContext* m_context{};
   std::vector<Inlet*> m_jsInlets;
   std::vector<std::pair<ControlInlet*, ossia::inlet_ptr>> m_ctrlInlets;
   std::vector<std::pair<Impulse*, ossia::inlet_ptr>> m_impulseInlets;
@@ -59,6 +61,8 @@ public:
   QPointer<QObject> m_uiContext;
   std::function<void(QVariant)> m_messageToUi;
   std::size_t m_gcIndex{};
+
+  JS::JSState m_modelState;
 
   bool triggerStart{};
   bool triggerStop{};
@@ -92,6 +96,26 @@ public:
       return;
 
     on_ui.call({m_engine->toScriptValue(v)});
+  }
+
+  void stateElementChanged(const QString& k, const ossia::value& v)
+  {
+    if(!m_object)
+      return;
+
+    const auto& on_stateUpdated = this->m_object->stateUpdated();
+    if(!on_stateUpdated.isCallable())
+      return;
+
+    if(v.valid())
+    {
+      if(auto res = v.apply(ossia::qt::ossia_to_qvariant{}); res.isValid())
+        on_stateUpdated.call({k, m_engine->toScriptValue(res)});
+      else
+        on_stateUpdated.call({k, QJSValue{}});
+    }
+    else
+      on_stateUpdated.call({k, QJSValue{}});
   }
 };
 

@@ -53,6 +53,13 @@ bool DeviceContext::init()
       param.push_value(last);
     }, this};
 
+    connect(this, &DeviceContext::exec,
+            m_impl, &ossia::qt::qml_engine_functions::exec);
+    connect(this, &DeviceContext::compute,
+            m_impl, &ossia::qt::qml_engine_functions::compute);
+    connect(this, &DeviceContext::system,
+            m_impl, &ossia::qt::qml_engine_functions::system);
+
     connect(&dlist, &Device::DeviceList::deviceAdded,
             this, [this, p = QPointer{m_impl}] (Device::DeviceInterface* iface){
       if(!p)
@@ -131,4 +138,26 @@ ossia::net::node_base* DeviceContext::find(const QString& addr)
     return nullptr;
   }
 }
+
+QVariant DeviceContext::asArray(QVariant v) const noexcept
+{
+  return m_impl->asArray(v);
+}
+QVariant DeviceContext::asColor(QVariant v) const noexcept
+{
+  return m_impl->asColor(v);
+}
+QVariant DeviceContext::asVec2(QVariant v) const noexcept
+{
+  return m_impl->asVec2(v);
+}
+QVariant DeviceContext::asVec3(QVariant v) const noexcept
+{
+ return m_impl->asVec3(v);
+}
+QVariant DeviceContext::asVec4(QVariant v) const noexcept
+{
+  return m_impl->asVec4(v);
+}
+
 }

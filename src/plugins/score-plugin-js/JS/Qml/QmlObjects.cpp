@@ -1,4 +1,5 @@
 #include "QmlObjects.hpp"
+#include <Process/Process.hpp>
 
 #include <JS/Qml/Metatypes.hpp>
 #if defined(SCORE_HAS_GPU_JS)
@@ -196,6 +197,10 @@ AudioInlet::AudioInlet(QObject* parent)
 
 AudioInlet::~AudioInlet() { }
 
+QVector<QVector<double>>& AudioInlet::audio()
+{
+  return m_audio;
+}
 const QVector<QVector<double>>& AudioInlet::audio() const
 {
   return m_audio;
@@ -204,6 +209,11 @@ const QVector<QVector<double>>& AudioInlet::audio() const
 void AudioInlet::setAudio(const QVector<QVector<double>>& audio)
 {
   m_audio = audio;
+}
+
+void AudioInlet::setAudio(QVector<QVector<double>>&& audio)
+{
+  m_audio = std::move(audio);
 }
 
 AudioOutlet::AudioOutlet(QObject* parent)
@@ -289,6 +299,45 @@ void AudioOutlet::setChannel(int i, const QJSValue& v)
   }
 }
 
+Process::Inlet* ScriptUI::inlet(int i) const noexcept
+{
+  if(!m_process)
+    return nullptr;
+  if(i < 0 || i >= m_process->inlets().size())
+    return nullptr;
+  return m_process->inlets()[i];
+}
+
+Process::Outlet* ScriptUI::outlet(int i) const noexcept
+{
+  if(!m_process)
+    return nullptr;
+  if(i < 0 || i >= m_process->outlets().size())
+    return nullptr;
+  return m_process->outlets()[i];
+}
+
+Process::Inlet* ScriptUI::inlet(const QString& i) const noexcept
+{
+  if(!m_process)
+    return nullptr;
+  for(auto* p : m_process->inlets()) {
+    if(p->name() == i)
+      return p;
+  }
+  return nullptr;
+}
+
+Process::Outlet* ScriptUI::outlet(const QString& i) const noexcept
+{
+  if(!m_process)
+    return nullptr;
+  for(auto* p : m_process->outlets()) {
+    if(p->name() == i)
+      return p;
+  }
+  return nullptr;
+}
 Inlet::~Inlet() { }
 Outlet::~Outlet() { }
 

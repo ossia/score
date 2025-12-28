@@ -11,22 +11,23 @@
 #include <Process/PresetHelpers.hpp>
 
 #include <JS/ApplicationPlugin.hpp>
+#include <JS/Executor/ExecutionHelpers.hpp>
 #include <JS/Qml/QmlObjects.hpp>
 #include <Library/LibrarySettings.hpp>
 
+#include <JS/Commands/EditScript.hpp>
 #include <score/application/GUIApplicationContext.hpp>
+#include <score/command/Dispatchers/MultiOngoingCommandDispatcher.hpp>
+#include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 #include <score/tools/DeleteAll.hpp>
 #include <score/tools/File.hpp>
-#if __has_include(<boost/hash2/xxh3.hpp>)
-#include <boost/hash2/xxh3.hpp>
-#include <boost/algorithm/hex.hpp>
-#endif
 
 #include <core/document/Document.hpp>
 
+#include <QStandardPaths>
 #include <QDebug>
 #include <QDir>
 #include <QFileInfo>
@@ -44,111 +45,26 @@ namespace JS
 static constexpr const char* default_js_program =
     R"_(import Score
 import QtQuick
+// This is a minimal example script that showcases the available API.
+// View the complete documentation at
+// https://ossia.io/score-docs/processes/javascript.html
 Script {
   ValueInlet { id: in1; objectName: "Value In" }
   ValueOutlet { id: out1; objectName: "Value Out" }
   FloatSlider { id: sl; min: 10; max: 100; objectName: "Control" }
 
   // Called on every tick
-  tick: function(token, state) {
-    if (typeof in1.value !== 'undefined') {
+  tick: function(token, state)
+  {
+    if (typeof in1.value !== 'undefined')
+    {
       console.log(in1.value);
-      out1.value = in1.value + sl.value * Math.random();
-      messageToUi(123);
+      out1.value = in1.value * mx + sl.value * my;
     }
-  }
-
-  // Use these to handle specific execution events if necessary:
-  // start: function() { }
-  // stop: function() { }
-  // pause: function() { }
-  // resume: function() { }
-
-  // Handling UI events
-  uiEvent: function(message) {
-    console.log(message);
   }
 })_";
 static constexpr const char* default_js_ui =
-    R"_(import QtQuick
-import QtQuick3D
-
-View3D {
-  id: view
-  anchors.fill: parent
-  MouseArea {
-    anchors.fill: view
-    onClicked: { console.log("oki"); messageToExecution(mouseX); }
-  }
-
-  property var model;
-
-  signal messageToExecution(var message);
-  function executionEvent(message) {
-    console.log("in ui: " + message);
-  }
-
-  //! [environment]
-  environment: SceneEnvironment {
-      clearColor: "skyblue"
-      backgroundMode: SceneEnvironment.Color
-  }
-  //! [environment]
-
-  //! [camera]
-  PerspectiveCamera {
-      position: Qt.vector3d(0, 200, 300)
-      eulerRotation.x: -30
-  }
-  //! [camera]
-
-  //! [light]
-  DirectionalLight {
-      eulerRotation.x: -30
-      eulerRotation.y: -70
-  }
-  //! [light]
-
-  //! [objects]
-  Model {
-      position: Qt.vector3d(0, -200, 0)
-      source: "#Cylinder"
-      scale: Qt.vector3d(2, 0.2, 1)
-      materials: [ DefaultMaterial {
-              diffuseColor: "red"
-          }
-      ]
-  }
-
-  Model {
-      position: Qt.vector3d(0, 150, 0)
-      source: "#Sphere"
-
-      materials: [ DefaultMaterial {
-              diffuseColor: "blue"
-          }
-      ]
-
-      //! [animation]
-      SequentialAnimation on y {
-          loops: Animation.Infinite
-          NumberAnimation {
-              duration: 3000
-              to: -150
-              from: 150
-              easing.type:Easing.InQuad
-          }
-          NumberAnimation {
-              duration: 3000
-              to: 150
-              from: -150
-              easing.type:Easing.OutQuad
-          }
-      }
-      //! [animation]
-  }
-  //! [objects]
-})_";
+    R"_()_";
 
 ProcessModel::ProcessModel(
     const TimeVal& duration, const QString& data, const Id<Process::ProcessModel>& id,
@@ -162,13 +78,45 @@ ProcessModel::ProcessModel(
   }
   else
   {
-    (void)setProgram({data, {}}); // FIXME .ui.qml ?
+    if(!data.endsWith(".qml")) {
+      (void)setProgram({data, {}});
+    }
+    else {
+      auto path = data;
+      QFile f{path};
+      QString exec_data;
+      if(f.open(QIODevice::ReadOnly))
+        exec_data = f.readAll();
+
+      path.resize(data.size() - 3);
+      path.append("ui.qml");
+      QString ui_data;
+      if(QFile ui_f{path}; ui_f.open(QIODevice::ReadOnly)) {
+        ui_data = ui_f.readAll();
+      }
+      (void)setProgram({exec_data, ui_data});
+    }
   }
 
   metadata().setInstanceName(*this);
 }
 
-ProcessModel::~ProcessModel() { }
+Process::ProcessFlags ProcessModel::flags() const noexcept
+{
+  auto flags = Metadata<Process::ProcessFlags_k, JS::ProcessModel>::get();
+  if(m_ui_component)
+    flags |= Process::ExternalUIAvailable; // FIXME set in every relevant process
+  return flags;
+}
+
+ProcessModel::~ProcessModel()
+{
+  if(this->externalUI)
+  {
+    this->externalUI->close();
+    this->externalUI = nullptr;
+  }
+}
 
 bool ProcessModel::validate(const std::vector<QString>& script) const noexcept
 {
@@ -200,72 +148,244 @@ QString ProcessModel::effect() const noexcept
   return m_qmlData;
 }
 
-void listSignals(QObject* obj) {
-  const QMetaObject* metaObj = obj->metaObject();
-
-  qDebug() << "Signals for" << metaObj->className() << ":";
-
-  // Iterate through all methods
-  for (int i = metaObj->methodOffset(); i < metaObj->methodCount(); ++i) {
-    QMetaMethod method = metaObj->method(i);
-
-    // Filter for signals only
-    if (method.methodType() == QMetaMethod::Signal) {
-      qDebug() << "  " << method.methodSignature()
-      << "- Parameters:" << method.parameterNames()
-      << "- Types:" << method.parameterTypes();
-    }
-  }
-}
-QWidget* ProcessModel::createWindowForUI(const score::DocumentContext& ctx,
-                                         QWidget* parent) const noexcept
+QQuickItem* ProcessModel::createItemForUI(const score::DocumentContext& ctx) const noexcept
 {
   if(!m_ui_component)
     return nullptr;
+  auto& dummyEngine =  ctx.app
+                          .guiApplicationPlugin<JS::ApplicationPlugin>()
+                          .m_scriptProcessUIEngine;
 
-  auto obj = m_ui_component->create();
+  auto obj = m_ui_component->beginCreate(dummyEngine.rootContext());
+
   if(!obj)
     return nullptr;
+  auto script = qobject_cast<ScriptUI*>(obj);
+  auto self = const_cast<JS::ProcessModel*>(this);
+  if(script) {
+    script->setProcess(self);
+  }
+  m_ui_component->completeCreate();
 
-  auto script = qobject_cast<QQuickItem*>(obj);
   if(!script) {
     delete obj;
     return nullptr;
   }
 
-  connect(this, &JS::ProcessModel::executionToUi,
-          script, [script] (const QVariant& v) {
-    QMetaObject::invokeMethod(script, "executionEvent", v);
-  });
-
+  if(const auto& on_exec = script->executionEvent(); on_exec.isCallable())
   {
-    const QMetaObject* uiMetaObj = obj->metaObject();
-    for (int i = uiMetaObj->methodOffset(); i < uiMetaObj->methodCount(); ++i) {
-      QMetaMethod method = uiMetaObj->method(i);
-
-      if (method.methodType() == QMetaMethod::Signal) {
-        if(method.name() == "messageToExecution") {
-          connect(script, method,
-                  this, QMetaMethod::fromSignal(&ProcessModel::uiToExecution));
-          break;
-        }
-      }
-    }
+    connect(this, &JS::ProcessModel::executionToUi,
+            script, [&dummyEngine, on_exec] (const QVariant& v) {
+      on_exec.call({dummyEngine.toScriptValue(v)});
+    });
   }
 
+  connect(script, &ScriptUI::executionSend,
+          this, [self] (const QJSValue& v) {
+    self->uiToExecution(v.toVariant());
+  });
+
+  /*
+  struct StateUpdateDispatcher : public SingleOngoingCommandDispatcher<UpdateState>
+  {
+    void submitUpdate(JS::ProcessModel& proc, const QString& k, const QJSValue& v)
+    {
+      if(!m_cmd)
+      {
+        stack().disableActions();
+        m_cmd = std::make_unique<UpdateState>(proc, k, v);
+      }
+
+      {
+        m_cmd->update(proc, k, v);
+      }
+      m_cmd->redo(stack().context());
+    }
+    void submitClear(JS::ProcessModel& proc, const QString& k, const QJSValue& v)
+    {
+      if(!m_cmd)
+      {
+        stack().disableActions();
+        m_cmd = std::make_unique<UpdateState>(proc, k, v);
+        m_cmd->redo(stack().context());
+      }
+      else
+      {
+        m_cmd->update(proc, k, v);
+        m_cmd->redo(stack().context());
+      }
+    }
+
+  };
+*/
+  struct StateUpdater {
+    const score::DocumentContext& ctx;
+    JS::ProcessModel& self;
+    std::unique_ptr<MultiOngoingCommandDispatcher> disp;
+    int count = 0;
+
+    void beginUpdateState(const QString& name)
+    {
+      if(count > 0) {
+        count++;
+      }
+      else {
+        disp = std::make_unique<MultiOngoingCommandDispatcher>(ctx.commandStack);
+        count = 1;
+      }
+    }
+
+    void endUpdateState()
+    {
+      if(!disp)
+        return;
+      count--;
+      if(count > 0)
+        return;
+
+      disp->commit<JS::UpdateStateMacro>();
+      disp.reset();
+      count = 0;
+    }
+
+    void updateState(const QString& k, const QJSValue& v)
+    {
+      beginUpdateState("Update");
+
+      disp->submit<JS::UpdateStateElement>(self, k, ossia::qt::value_from_js(v));
+
+      endUpdateState();
+    }
+
+    void cancelUpdateState()
+    {
+      if(!disp)
+        return;
+
+      disp->rollback();
+      disp.reset();
+      count = 0;
+    }
+
+    void clearState()
+    {
+      beginUpdateState("Clear");
+
+      disp->submit<JS::ReplaceState>(self, JS::JSState{});
+
+      endUpdateState();
+    }
+
+    void replaceState(const QJSValue& v)
+    {
+      beginUpdateState("Replace");
+
+      JS::JSState cur;
+      auto var = v.toVariant().toMap();
+      for(auto it = var.constBegin(); it != var.constEnd(); ++it) {
+        if(it.value().isValid()) {
+          cur.insert_or_assign(it.key(), ossia::qt::qt_to_ossia{}(it.value()));
+        }
+      }
+      disp->submit<JS::ReplaceState>(self, std::move(cur));
+
+      endUpdateState();
+    }
+  };
+  auto updater = std::make_shared<StateUpdater>(StateUpdater{ctx, *self});
+
+  connect(script, &ScriptUI::beginUpdateState,
+          this, [updater] (const QString& name) {
+    updater->beginUpdateState(name);
+  });
+  connect(script, &ScriptUI::updateState,
+          this, [updater] (const QString& name, const QJSValue& v) {
+    updater->updateState(name, v);
+  });
+  connect(script, &ScriptUI::endUpdateState,
+          this, [updater] () {
+    updater->endUpdateState();
+  });
+  connect(script, &ScriptUI::cancelUpdateState,
+          this, [updater] () {
+    updater->cancelUpdateState();
+  });
+  connect(script, &ScriptUI::clearState,
+          this, [updater] () {
+    updater->clearState();
+  });
+  connect(script, &ScriptUI::replaceState,
+          this, [updater] (const QJSValue& v) {
+    updater->replaceState(v);
+  });
+
+  if(const auto& on_stateUpdated = script->stateUpdated(); on_stateUpdated.isCallable())
+  {
+    connect(this, &JS::ProcessModel::stateElementChanged,
+            script, [this, on_stateUpdated, &dummyEngine] (const QString& k, const ossia::value& v) {
+      if(v.valid())
+      {
+        if(auto res = v.apply(ossia::qt::ossia_to_qvariant{}); res.isValid())
+          on_stateUpdated.call({k, dummyEngine.toScriptValue(res)});
+        else
+          on_stateUpdated.call({k, QJSValue{}});
+      }
+      else
+        on_stateUpdated.call({k, QJSValue{}});
+    }, Qt::QueuedConnection);
+  }
+
+  if(const auto& on_load = script->loadState(); on_load.isCallable())
+  {
+    QVariantMap vm;
+    for(auto& [k, v]: this->m_state) {
+      if(auto res = v.apply(ossia::qt::ossia_to_qvariant{}); res.isValid())
+        vm[k] = std::move(res);
+    }
+    on_load.call({dummyEngine.toScriptValue(vm)});
+  }
+
+  return script;
+}
+
+QWidget* ProcessModel::createWindowForUI(const score::DocumentContext& ctx,
+                                         QWidget* parent) const noexcept
+{
+  m_ui_object = createItemForUI(ctx);
+  if(!m_ui_object)
+    return nullptr;
 
   auto win = new QQuickWindow{};
   win->setWidth(640);
   win->setHeight(640);
 
-  script->setParentItem(win->contentItem());
+  m_ui_object->setParentItem(win->contentItem());
 
   auto widg = QWidget::createWindowContainer(win, parent);
   if(!widg) {
-    delete script;
+    delete m_ui_object;
     delete win;
     return nullptr;
   }
+
+  connect(win, &QQuickWindow::closing, this, [this] { if(m_ui_object) delete m_ui_object; m_ui_object = nullptr; });
+  connect(win, &QQuickWindow::destroyed, this, [this] { if(m_ui_object) delete m_ui_object; m_ui_object = nullptr; });
+  connect(this, &JS::ProcessModel::executionScriptOk,
+          win, [this,  win, &ctx] () mutable {
+    delete m_ui_object;
+    m_ui_object = nullptr;
+    if(!m_ui_component) {
+      win->close();
+      win->deleteLater();
+      return;
+    }
+
+    m_ui_object = createItemForUI(ctx);
+    if(!m_ui_object)
+      return;
+    m_ui_object->setParentItem(win->contentItem());
+    m_ui_object->setParent(win->contentItem());
+  });
   return widg;
 }
 
@@ -285,6 +405,64 @@ void ProcessModel::setUiScript(const QString& f)
   m_program.ui = std::move(f);
 
   uiScriptChanged(m_program.ui);
+}
+
+void ProcessModel::setState(const JSState &s)
+{
+  if(s == m_state)
+    return;
+
+  {
+    const auto prev = std::move(m_state);
+    for(auto& [prev_k, prev_v] : prev) {
+      stateElementChanged(prev_k, prev_v);
+    }
+  }
+
+  m_state = std::move(s);
+  for(auto& [k, v] : m_state) {
+    stateElementChanged(k, v);
+  }
+
+  stateChanged();
+}
+
+void ProcessModel::updateState(const QString &k, const ossia::value& res)
+{
+  if(auto it = m_state.find(k); it != m_state.end())
+  {
+    if(res.valid())
+    {
+      if(res != it->second)
+      {
+        // Updating a new element
+        m_state[k] = res;
+        stateElementChanged(k, res);
+        stateChanged();
+      }
+    }
+    else
+    {
+      // Removing an element
+      m_state.erase(k);
+      stateElementChanged(k, res);
+      stateChanged();
+    }
+  }
+  else
+  {
+    if(res.valid())
+    {
+      // Adding a new element
+      m_state[k] = res;
+      stateElementChanged(k, res);
+      stateChanged();
+    }
+    else
+    {
+      // Already not there, nothing to do
+    }
+  }
 }
 
 [[nodiscard]] Process::ScriptChangeResult ProcessModel::setProgram(const JS::QmlSource& script)
@@ -328,6 +506,7 @@ Process::ScriptChangeResult ProcessModel::setQmlData(const QByteArray& data, boo
 
   res.inlets = score::clearAndDeleteLater(m_inlets);
   res.outlets = score::clearAndDeleteLater(m_outlets);
+  const bool had_ui = m_ui_component;
   m_ui_component = nullptr;
   delete m_ui_object;
   m_ui_object = nullptr;
@@ -382,6 +561,9 @@ Process::ScriptChangeResult ProcessModel::setQmlData(const QByteArray& data, boo
 
   executionScriptOk();
   res.valid = true;
+
+  if(bool(m_ui_component) != had_ui)
+    flagsChanged();
 
   // inlets / outletsChanged : in ScriptEditCommand
   return res;
@@ -438,23 +620,6 @@ const ComponentCache::Cache* ComponentCache::tryGet(const QByteArray& str, bool 
   return nullptr;
 }
 
-static QString hashFileData(const QByteArray& str)
-{
-  QString hexName;
-#if __has_include(<boost/hash2/xxh3.hpp>)
-  boost::hash2::xxh3_128 hasher;
-  hasher.update(str.constData(), str.size());
-  const auto result = hasher.result();
-  std::string hexString;
-  boost::algorithm::hex(result.begin(), result.end(), std::back_inserter(hexString));
-
-  hexName.reserve(32);
-  hexName.push_back("-");
-  hexName.append(hexString.data());
-#endif
-  return hexName;
-}
-
 Script* ComponentCache::getExecution(
     const ProcessModel& process, const QByteArray& str, bool isFile) noexcept
 {
@@ -463,20 +628,16 @@ Script* ComponentCache::getExecution(
 
   auto& dummyEngine = score::GUIAppContext()
                           .guiApplicationPlugin<JS::ApplicationPlugin>()
-                          .m_dummyEngine;
-  auto comp = std::make_unique<QQmlComponent>(&dummyEngine);
+                          .m_scriptProcessUIEngine;
+  std::unique_ptr<QQmlComponent> comp;
   if(!isFile)
   {
-    // FIXME QTBUG-107204
-    auto& lib = score::AppContext().settings<Library::Settings::Model>();
-
-    QString path = lib.getDefaultLibraryPath() + QDir::separator() + "Scripts"
-                   + QDir::separator() + "include" + QDir::separator() + "Script" + hashFileData(str) + ".qml";
-    comp->setData(str, QUrl::fromLocalFile(path));
+    comp = std::make_unique<QQmlComponent>(&dummyEngine);
+    loadJSObjectFromString(str, *comp, false);
   }
   else
   {
-    comp->loadUrl(QUrl::fromLocalFile(str));
+    comp = std::make_unique<QQmlComponent>(&dummyEngine, QUrl::fromLocalFile(str));
   }
 
   const auto& errs = comp->errors();
@@ -520,20 +681,17 @@ QQmlComponent* ComponentCache::getUi(
 
   auto& dummyEngine = score::GUIAppContext()
                           .guiApplicationPlugin<JS::ApplicationPlugin>()
-                          .m_dummyEngine;
-  auto comp = std::make_unique<QQmlComponent>(&dummyEngine);
+                          .m_scriptProcessUIEngine;
+
+  std::unique_ptr<QQmlComponent> comp;
   if(!isFile)
   {
-    // FIXME QTBUG-107204
-    auto& lib = score::AppContext().settings<Library::Settings::Model>();
-
-    QString path = lib.getDefaultLibraryPath() + QDir::separator() + "Scripts"
-                   + QDir::separator() + "include" + QDir::separator() + "Script" + hashFileData(str) + ".ui.qml";
-    comp->setData(str, QUrl::fromLocalFile(path));
+    comp = std::make_unique<QQmlComponent>(&dummyEngine);
+    loadJSObjectFromString(str, *comp, true);
   }
   else
   {
-    comp->loadUrl(QUrl::fromLocalFile(str));
+    comp = std::make_unique<QQmlComponent>(&dummyEngine, QUrl::fromLocalFile(str));
   }
 
   const auto& errs = comp->errors();
@@ -547,8 +705,16 @@ QQmlComponent* ComponentCache::getUi(
     return nullptr;
   }
 
-  auto obj = comp->create();
-  auto script = qobject_cast<QQuickItem*>(obj);
+  auto obj = comp->beginCreate(dummyEngine.rootContext());
+  if(!obj) {
+    process.errorMessage(/* 0, */"Cannot create UI object");
+    return nullptr;
+  }
+  auto script = qobject_cast<ScriptUI*>(obj);
+  if(script) {
+    script->setProcess((Process::ProcessModel*)&process);
+  }
+  comp->completeCreate();
   if(script)
   {
     if(m_map.size() > 5)
@@ -563,9 +729,7 @@ QQmlComponent* ComponentCache::getUi(
   {
     process.errorMessage(/* 0, */"The component must be of type Script");
     if(obj)
-    {
       delete obj;
-    }
     return nullptr;
   }
 }

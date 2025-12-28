@@ -1,5 +1,7 @@
 #pragma once
 #include <Process/ProcessMetadata.hpp>
+#include <ossia/network/value/value.hpp>
+#include <ossia/detail/hash_map.hpp>
 
 #include <QString>
 
@@ -16,3 +18,9 @@ PROCESS_METADATA(
     QUrl("https://ossia.io/score-docs/processes/javascript.html#javascript-support"),
     Process::ProcessFlags::SupportsAll | Process::ProcessFlags::PutInNewSlot
         | Process::ProcessFlags::ControlSurface | Process::ProcessFlags::DynamicPorts | Process::ProcessFlags::ScriptEditingSupported)
+
+namespace JS
+{
+
+using JSState = ossia::hash_map<QString, ossia::value>;
+}

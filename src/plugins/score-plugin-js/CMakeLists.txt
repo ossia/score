@@ -49,6 +49,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessMetadata.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessModel.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/LibraryHandler.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/ThreadLocalQmlEngine.hpp"
 )
 
 set(SRCS
@@ -84,6 +85,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/ApplicationPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/DocumentPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/ConsolePanel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/ThreadLocalQmlEngine.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_js.cpp"
 )
 

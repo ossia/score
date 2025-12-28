@@ -33,10 +33,10 @@ namespace JS
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
     : score::GUIApplicationPlugin{ctx}
 {
-  m_engine.globalObject().setProperty("Score", m_engine.newQObject(new EditJsContext));
-  m_engine.globalObject().setProperty("Util", m_engine.newQObject(new JsUtils));
-  m_engine.globalObject().setProperty("Device", m_engine.newQObject(new DeviceContext));
-  connect(&m_engine, &QQmlEngine::exit, this, [&] {
+  m_consoleEngine.globalObject().setProperty("Score", m_consoleEngine.newQObject(new EditJsContext));
+  m_consoleEngine.globalObject().setProperty("Util", m_consoleEngine.newQObject(new JsUtils));
+  m_consoleEngine.globalObject().setProperty("Device", m_consoleEngine.newQObject(new DeviceContext));
+  connect(&m_consoleEngine, &QQmlEngine::exit, this, [&] {
     for(auto& doc : score::GUIAppContext().docManager.documents())
       doc->commandStack().markCurrentIndexAsSaved();
     qApp->quit();
@@ -46,9 +46,9 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
 
   m_asioContext = std::make_shared<ossia::net::network_context>();
   m_processMessages = true;
-  m_engine.globalObject().setProperty(
+  m_consoleEngine.globalObject().setProperty(
       "Protocols",
-      m_engine.newQObject(new ossia::qt::qml_protocols{m_asioContext, this}));
+      m_consoleEngine.newQObject(new ossia::qt::qml_protocols{m_asioContext, this}));
   m_asioThread = std::thread{[this] {
     ossia::set_thread_name("ossia app asio");
     while(m_processMessages)
@@ -85,7 +85,7 @@ void ApplicationPlugin::on_createdDocument(score::Document& doc)
     address->add_callback([&](const ossia::value& v) {
       ossia::qt::run_async(
           this, [this, str = QString::fromStdString(ossia::convert<std::string>(v))] {
-        auto res = m_engine.evaluate(str);
+        auto res = m_consoleEngine.evaluate(str);
         if(res.isError())
         {
           qDebug() << res.toString();
@@ -106,13 +106,13 @@ void ApplicationPlugin::afterStartup()
   //     "tonal.mjs");
   for(auto& p : this->context.settings<Library::Settings::Model>().getIncludePaths())
   {
-    m_dummyEngine.addImportPath(p);
+    m_scriptProcessUIEngine.addImportPath(p);
   }
 
 #if __has_include(<QQuickWindow>)
   if(QFileInfo f{context.applicationSettings.ui}; f.isFile())
   {
-    m_comp = new QQmlComponent{&m_engine, f.absoluteFilePath(), this};
+    m_comp = new QQmlComponent{&m_consoleEngine, f.absoluteFilePath(), this};
 
     if(auto obj = m_comp->create())
     {

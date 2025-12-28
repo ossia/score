@@ -4,10 +4,8 @@
 
 #include <JS/JSProcessMetadata.hpp>
 #include <JS/Qml/QmlObjects.hpp>
-
-#include <QFileSystemWatcher>
+#include <score/serialization/MapSerialization.hpp>
 #include <QQmlComponent>
-#include <QQmlEngine>
 
 #include <score_plugin_js_export.h>
 
@@ -92,7 +90,7 @@ private:
 class SCORE_PLUGIN_JS_EXPORT ProcessModel final : public Process::ProcessModel
 {
   SCORE_SERIALIZE_FRIENDS
-  PROCESS_METADATA_IMPL(JS::ProcessModel)
+  PROCESS_METADATA_IMPL_NOFLAGS(JS::ProcessModel)
   W_OBJECT(ProcessModel)
 public:
   bool hasExternalUI() const noexcept { return bool(m_ui_component); }
@@ -107,7 +105,7 @@ public:
   {
     vis.writeTo(*this);
   }
-
+  Process::ProcessFlags flags() const noexcept override;
   void setExecutionScript(const QString& script);
   const QString& executionScript() const noexcept { return m_program.execution; }
   void executionScriptOk() W_SIGNAL(executionScriptOk);
@@ -119,12 +117,19 @@ public:
   void uiScriptOk() W_SIGNAL(uiScriptOk);
   void uiScriptChanged(const QString& arg_1) W_SIGNAL(uiScriptChanged, arg_1);
 
+  void setState(const JS::JSState& s);
+  void updateState(const QString& k, const ossia::value& v);
+  const JS::JSState& state() const noexcept { return m_state; }
+  void stateChanged() W_SIGNAL(stateChanged);
+  void stateElementChanged(const QString& k, const ossia::value& v) W_SIGNAL(stateElementChanged, k, v);
+
   JS::Script* currentExecutionObject() const noexcept;
   QQuickItem* currentUI() const noexcept;
   bool isGpu() const noexcept;
   bool hasUi() const noexcept;
   QWidget* createWindowForUI(const score::DocumentContext& ctx,
                              QWidget* parent) const noexcept;
+  QQuickItem* createItemForUI(const score::DocumentContext& ctx) const noexcept;
 
   ~ProcessModel() override;
 
@@ -143,6 +148,7 @@ public:
   PROPERTY(QString, executionScript READ executionScript WRITE setExecutionScript NOTIFY executionScriptChanged)
   PROPERTY(QString, uiScript READ uiScript WRITE setUiScript NOTIFY uiScriptChanged)
   PROPERTY(JS::QmlSource, program READ program WRITE setProgram NOTIFY programChanged)
+  PROPERTY(JS::JSState, state READ state WRITE setState NOTIFY stateChanged)
 private:
   QString effect() const noexcept override;
   void loadPreset(const Process::Preset& preset) override;
@@ -153,9 +159,12 @@ private:
   QByteArray m_qmlData;
 
   QQmlComponent* m_ui_component{};
-  QObject* m_ui_object{};
+  mutable QPointer<QQuickItem> m_ui_object{};
 
   mutable ComponentCache m_cache;
+  JS::JSState m_state;
   bool m_isFile{};
 };
 }
+
+W_REGISTER_ARGTYPE(JS::JSState)

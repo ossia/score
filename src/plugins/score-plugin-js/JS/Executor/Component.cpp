@@ -35,6 +35,9 @@ Component::Component(
     std::shared_ptr<js_node> node
         = ossia::make_node<js_node>(*ctx.execState, *ctx.execState);
     this->node = node;
+
+    // FIXME also process in this GPU
+    node->m_modelState = element.state();
     node->m_uiContext = this;
     node->m_messageToUi = [this] (const QVariant& v){
       OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
@@ -46,6 +49,11 @@ Component::Component(
       auto encaps = std::make_unique<QVariant>(v);
       in_exec([node, vv=std::move(encaps)] { node->uiMessage(*vv); });
     }, Qt::QueuedConnection);
+    connect(
+        &element, &JS::ProcessModel::stateElementChanged, this,
+        [this, node](const QString& k, const ossia::value& v) {
+      in_exec([node, k=k, v=v] { node->stateElementChanged(k, v); });
+    }, Qt::QueuedConnection);
 
     auto proc = std::make_shared<js_process>(node);
     m_ossia_process = proc;
@@ -55,7 +63,7 @@ Component::Component(
   {
 #if defined(SCORE_HAS_GPU_JS)
     std::shared_ptr<gpu_exec_node> node = ossia::make_node<gpu_exec_node>(
-        *ctx.execState, ctx.doc.plugin<Gfx::DocumentPlugin>().exec);
+        *ctx.execState, &process(), ctx.doc.plugin<Gfx::DocumentPlugin>().exec);
     this->node = node;
 
     m_ossia_process = std::make_shared<ossia::node_process>(node);
@@ -319,7 +327,7 @@ Component::on_gpuScriptChange(const QString& script, Execution::Transaction& com
   // Send the updates to the node
   auto recable = std::shared_ptr<ossia::recabler>(
       new ossia::recabler{node, system().execGraph, inls, outls});
-  commands.push_back([node, script, controls, recable]() mutable {
+  commands.push_back([node, script, controls, recable, st = std::make_unique<JS::JSState>(process().state())]() mutable {
     using namespace std;
     // Note: we need to do this because we try to keep the Javascript node around
     // because it's slow to recreate.
@@ -327,7 +335,7 @@ Component::on_gpuScriptChange(const QString& script, Execution::Transaction& com
     // process and entirely recreate a new node, + call update node.
     (*recable)();
 
-    node->setScript(std::move(script));
+    node->setScript(std::move(script), std::move(*st));
 
     swap(node->controls, controls);
   });
@@ -435,18 +443,23 @@ Component::on_cpuScriptChange(const QString& script, Execution::Transaction& com
         }
       }
     }
+    else
+    {
+      SCORE_ASSERT(false);
+    }
   }
 
   // Send the updates to the node
   auto recable = std::shared_ptr<ossia::recabler>(
       new ossia::recabler{node, system().execGraph, inls, outls});
-  commands.push_back([node, script, recable]() mutable {
+  commands.push_back([node, script, recable, st = process().state()]() mutable {
     // Note: we need to do this because we try to keep the Javascript node around
     // because it's slow to recreate.
     // But this causes a lot of problems, it'd be better to do like e.g. the faust
     // process and entirely recreate a new node, + call update node.
     (*recable)();
 
+    node->m_modelState = std::move(st);
     node->setScript(std::move(script));
   });
 

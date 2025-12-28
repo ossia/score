@@ -1,6 +1,7 @@
 #include "CPUNode.hpp"
 
 #include <JS/ConsolePanel.hpp>
+#include <JS/ThreadLocalQmlEngine.hpp>
 #include <JS/Executor/ExecutionHelpers.hpp>
 #include <JS/Qml/Utils.hpp>
 
@@ -31,28 +32,52 @@ js_node::js_node(ossia::execution_state& st)
 }
 
 js_node::~js_node()
-{ // FIXME eventually we'd like all the nodes to be destroyed in UI thread
+{
   OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   SCORE_ASSERT(!m_engine);
+  SCORE_ASSERT(!m_context);
 }
 
 void js_node::clear() noexcept
 {
-  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
   m_tickCall.reset();
 
-  delete m_engine;
-  m_engine = nullptr;
+  delete m_context;
+  m_context = nullptr;
   m_execFuncs = nullptr;
+  m_engine.reset();
 }
 
 void js_node::setupComponent()
 {
-  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
   SCORE_ASSERT(m_object);
-  m_object->setParent(m_engine);
-  QObject::connect(m_object, &JS::Script::messageToUi,
-                   m_uiContext, m_messageToUi, Qt::QueuedConnection);
+  SCORE_ASSERT(m_context);
+  m_object->setParent(m_context);
+
+  QObject::connect(m_object, &JS::Script::uiSend,
+                   m_uiContext, [this] (const QJSValue& v) {
+    if(!m_uiContext)
+      return;
+    QMetaObject::invokeMethod(qApp, [ctx=m_uiContext, func = m_messageToUi, vv = v.toVariant()] {
+      if(!ctx)
+        return;
+
+      func(std::move(vv));
+    }, Qt::QueuedConnection);
+  }, Qt::DirectConnection);
+
+  if(const auto& on_load = m_object->loadState(); on_load.isCallable())
+  {
+    QVariantMap vm;
+    for(auto& [k, v]: this->m_modelState) {
+      if(auto res = v.apply(ossia::qt::ossia_to_qvariant{}); res.isValid())
+        vm[k] = std::move(res);
+    }
+    on_load.call({m_engine->toScriptValue(vm)});
+  }
+
   int input_i = 0;
   int output_i = 0;
 
@@ -100,58 +125,28 @@ void js_node::setupComponent()
 
 void js_node::setScript(const QString& val)
 {
-  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
   if(!m_engine)
   {
-    // FIXME only one engine for the whole thread + multiple QQmlContext
-    m_engine = new QQmlEngine;
+    m_engine = JS::acquireThreadLocalEngine([] (QQmlEngine& newEngine) {
+      const auto& paths = score::AppContext().settings<Library::Settings::Model>().getIncludePaths();
+      for(auto& path : paths) {
+        newEngine.addImportPath(path);
+      }
+
+      newEngine.rootContext()->setContextProperty("Util", new JsUtils);      
+    });
+  }
+  if(!m_context)
+  {
+    m_context = new QQmlContext{m_engine.get()};
     m_execFuncs = new ossia::qt::qml_engine_functions{
-        m_st.exec_devices(), [&]<typename... Args>(Args&&... args) {
+        m_st.exec_devices(), [this]<typename... Args>(Args&&... args) {
       m_st.insert(std::forward<Args>(args)...);
-    }, m_engine};
+    }, m_context};
 
-    m_engine->rootContext()->setContextProperty("Util", new JsUtils);
-    m_engine->rootContext()->setContextProperty("Device", m_execFuncs);
-
-    QObject::connect(
-        m_execFuncs, &ossia::qt::qml_engine_functions::system, qApp,
-        [](const QString& code) {
-      std::thread{[code] { ::system(code.toStdString().c_str()); }}.detach();
-    }, Qt::QueuedConnection);
-
-    if(auto* js_panel = score::GUIAppContext().findPanel<JS::PanelDelegate>())
-    {
-      QObject::connect(
-          m_execFuncs, &ossia::qt::qml_engine_functions::exec, js_panel,
-          &JS::PanelDelegate::evaluate, Qt::QueuedConnection);
-      QObject::connect(
-          m_execFuncs, &ossia::qt::qml_engine_functions::compute, m_execFuncs,
-          [this, js_panel](const QString& code, const QString& cbname) {
-        // Exec thread
-
-        // Callback ran in UI thread
-        auto cb = [this, cbname](QVariant v) {
-          // Go back to exec thread, we have to go through the normal engine exec ctx
-          ossia::qt::run_async(m_execFuncs, [this, v, cbname] {
-            auto mo = m_object->metaObject();
-            for(int i = 0; i < mo->methodCount(); i++)
-            {
-              if(mo->method(i).name() == cbname)
-              {
-                mo->method(i).invoke(
-                    m_object, Qt::DirectConnection, QGenericReturnArgument(),
-                    QArgument<QVariant>{"v", v});
-              }
-            }
-          });
-        };
-
-        // Go to ui thread
-        ossia::qt::run_async(js_panel, [js_panel, code, cb]() {
-          js_panel->compute(code, cb); // This invokes cb
-        });
-      }, Qt::DirectConnection);
-    }
+    m_context->setContextProperty("Device", m_execFuncs);
+    setupExecFuncs(this, m_uiContext, m_execFuncs);
   }
 
   m_jsInlets.clear();
@@ -165,13 +160,16 @@ void js_node::setScript(const QString& val)
   m_midOutlets.clear();
 
   delete m_object;
-  if((m_object = createJSObject(val, m_engine)))
+  if((m_object = createJSObject(val, m_engine.get(), m_context)))
     setupComponent();
 }
 
 void js_node::run(
     const ossia::token_request& tk, ossia::exec_state_facade estate) noexcept
 {
+  // Not thread_kind as QQmlEngine does not support threading at all
+  // due to internal misuse of thread_locals
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Audio);
   if(!m_engine || !m_object)
     return;
 
@@ -201,10 +199,12 @@ void js_node::run(
   // Copy audio
   for(std::size_t inl_i = 0; inl_i < m_audInlets.size(); inl_i++)
   {
+    auto& inlet = *m_audInlets[inl_i].first;
     auto& dat = m_audInlets[inl_i].second->target<ossia::audio_port>()->get();
 
     const int dat_size = std::ssize(dat);
-    QVector<QVector<double>> audio(dat_size);
+    QVector<QVector<double>> audio = std::move(inlet.audio());
+    audio.resize(dat_size);
     for(int i = 0; i < dat_size; i++)
     {
       const int dat_i_size = dat[i].size();
@@ -212,7 +212,7 @@ void js_node::run(
       for(int j = 0; j < dat_i_size; j++)
         audio[i][j] = dat[i][j];
     }
-    m_audInlets[inl_i].first->setAudio(audio);
+    m_audInlets[inl_i].first->setAudio(std::move(audio));
   }
 
   // Copy values
@@ -247,7 +247,6 @@ void js_node::run(
   }
 
   // Impulses are handed separately
-
   for(std::size_t i = 0; i < m_impulseInlets.size(); i++)
   {
     auto& vp = *m_impulseInlets[i].second->target<ossia::value_port>();

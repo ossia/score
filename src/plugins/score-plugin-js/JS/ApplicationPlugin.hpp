@@ -31,8 +31,12 @@ public:
   void afterStartup() override;
   void on_newDocument(score::Document& doc) override;
 
-  QQmlEngine m_engine;
-  QQmlEngine m_dummyEngine;
+  // Used for processing whatever comes from the console
+  QQmlEngine m_consoleEngine;
+
+  // Used for instantiating JS::Script* to verify that the script is valid
+  // before updating, as well as for running JS UI scripts.
+  QQmlEngine m_scriptProcessUIEngine;
   QQmlComponent* m_comp{};
   QQuickWindow* m_window{};
 
