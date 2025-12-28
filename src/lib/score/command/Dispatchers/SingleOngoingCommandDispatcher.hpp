@@ -13,7 +13,7 @@
  * if an incorrect command is sent.
  */
 template <typename TheCommand>
-class SingleOngoingCommandDispatcher final : public ICommandDispatcher
+class SingleOngoingCommandDispatcher : public ICommandDispatcher
 {
 public:
   SingleOngoingCommandDispatcher(const score::CommandStackFacade& stack)
@@ -56,6 +56,6 @@ public:
     m_cmd.reset();
   }
 
-private:
+protected:
   std::unique_ptr<TheCommand> m_cmd;
 };

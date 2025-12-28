@@ -11,6 +11,9 @@ struct Simple
   static void
   rollback(const score::DocumentContext& ctx, const std::vector<score::Command*>& cmds)
   {
+    if(cmds.empty())
+      return;
+
     for(int i = cmds.size() - 1; i >= 0; --i)
     {
       cmds[i]->undo(ctx);
@@ -67,8 +70,26 @@ public:
       score::Command* last = m_cmds.back();
       if(last->key() == TheCommand::static_key())
       {
-        safe_cast<TheCommand*>(last)->update(std::forward<Args>(args)...);
-        safe_cast<TheCommand*>(last)->redo(stack().context());
+        auto cmd = safe_cast<TheCommand*>(last);
+        if constexpr(requires { bool(cmd->compatible(std::forward<Args>(args)...)); })
+        {
+          if(cmd->compatible(std::forward<Args>(args)...))
+          {
+            cmd->update(std::forward<Args>(args)...);
+            cmd->redo(stack().context());
+          }
+          else
+          {
+            auto cmd = new TheCommand(std::forward<Args>(args)...);
+            cmd->redo(stack().context());
+            m_cmds.push_back(cmd);
+          }
+        }
+        else
+        {
+          cmd->update(std::forward<Args>(args)...);
+          cmd->redo(stack().context());
+        }
       }
       else
       {
@@ -98,7 +119,7 @@ public:
     }
   }
 
-  template <typename RollbackStrategy>
+  template <typename RollbackStrategy = RollbackStrategy::Simple>
   void rollback()
   {
     RollbackStrategy::rollback(stack().context(), m_cmds);
