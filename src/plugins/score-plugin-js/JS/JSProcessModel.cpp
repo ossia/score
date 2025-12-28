@@ -368,8 +368,17 @@ QWidget* ProcessModel::createWindowForUI(const score::DocumentContext& ctx,
     return nullptr;
   }
 
-  connect(win, &QQuickWindow::closing, this, [this] { if(m_ui_object) delete m_ui_object; m_ui_object = nullptr; });
-  connect(win, &QQuickWindow::destroyed, this, [this] { if(m_ui_object) delete m_ui_object; m_ui_object = nullptr; });
+  const auto cleanup_ui = [this] {
+    delete m_ui_object;
+    m_ui_object = nullptr;
+  };
+#if QT_VERSION >= QT_VERSION_CHECK(6,8,2)
+  // Bug in older Qt 6 versions:
+  // QtCore/qmetatype.h:842:23: error: invalid application of 'sizeof' to an incomplete type 'QQuickCloseEvent'
+  // static_assert(sizeof(T), "Type argument of Q_PROPERTY or Q_DECLARE_METATYPE(T*) must be fully defined");
+  connect(win, &QQuickWindow::closing, this, cleanup_ui);
+#endif
+  connect(win, &QQuickWindow::destroyed, this, cleanup_ui);
   connect(this, &JS::ProcessModel::executionScriptOk,
           win, [this,  win, &ctx] () mutable {
     delete m_ui_object;
