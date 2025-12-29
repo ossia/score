@@ -237,11 +237,12 @@ if [[ -f "$BUNDLE_CONTENTS/Info.plist" ]]; then
     /usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${APP_VERSION}" "$BUNDLE_CONTENTS/Info.plist" 2>/dev/null || true
     /usr/libexec/PlistBuddy -c "Set :NSHumanReadableCopyright ${APP_COPYRIGHT}" "$BUNDLE_CONTENTS/Info.plist" 2>/dev/null || true
     /usr/libexec/PlistBuddy -c "Delete :CFBundleDocumentTypes" "$BUNDLE_CONTENTS/Info.plist" 2>/dev/null || true
-    
-    ICNS_FILE_NAME="$(basename "${APP_ICON_ICNS}")"
-    cp "${APP_ICON_ICNS}" "$BUNDLE_CONTENTS/Resources/${ICNS_FILE_NAME}"
-    /usr/libexec/PlistBuddy -c "Set :CFBundleIconFile ${ICNS_FILE_NAME}" "$BUNDLE_CONTENTS/Info.plist" 2>/dev/null || true
-    
+
+    if [[ -f "${APP_ICON_ICNS}" ]]; then
+      ICNS_FILE_NAME="$(basename "${APP_ICON_ICNS}")"
+      cp "${APP_ICON_ICNS}" "$BUNDLE_CONTENTS/Resources/${ICNS_FILE_NAME}"
+      /usr/libexec/PlistBuddy -c "Set :CFBundleIconFile ${ICNS_FILE_NAME}" "$BUNDLE_CONTENTS/Info.plist" 2>/dev/null || true
+    fi
     sed -i '' "s/ossia score/${APP_NAME}/g" "$BUNDLE_CONTENTS/Info.plist"
 fi
 

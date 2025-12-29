@@ -141,15 +141,19 @@ Type=Application
 Name=${APP_NAME}
 Comment=${APP_DESCRIPTION}
 Exec=app-bin
-Icon=${APP_NAME_SAFE}
 Terminal=false
 Categories=AudioVideo;
 DESKTOP_EOF
 
 # Update icons
+if [[ -f "${APP_ICON_PNG}" ]]; then
+  cp "${APP_ICON_PNG}" "/tmp/build/score.AppDir/${APP_NAME_SAFE}.png"
+  cp "${APP_ICON_PNG}" "/tmp/build/score.AppDir/.DirIcon"
 
-cp "${APP_ICON_PNG}" "/tmp/build/score.AppDir/${APP_NAME_SAFE}.png"
-cp "${APP_ICON_PNG}" "/tmp/build/score.AppDir/.DirIcon"
+  cat >> "${APP_NAME_SAFE}.desktop" << DESKTOP_EOF
+Icon=${APP_NAME_SAFE}
+DESKTOP_EOF
+fi
 
 # Download appimagetool if needed
 cd "$WORK_DIR"

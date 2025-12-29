@@ -161,9 +161,10 @@ $COMPILER -O2 -s -mwindows -o "${APP_NAME}.exe" launcher.c
 rm -f launcher.c launcher-defines.h
 
 # Set icon and properties
-./rcedit.exe "${APP_NAME}" --set-icon "${APP_ICON_ICO}" --set-file-version "${APP_VERSION}"
-./rcedit.exe "app-bin.exe" --set-icon "${APP_ICON_ICO}" --set-file-version "${APP_VERSION}"
-
+if [[ -f "${APP_ICON_ICO}" ]]; then
+  ./rcedit.exe "${APP_NAME}" --set-icon "${APP_ICON_ICO}" --set-file-version "${APP_VERSION}"
+  ./rcedit.exe "app-bin.exe" --set-icon "${APP_ICON_ICO}" --set-file-version "${APP_VERSION}"
+fi
 # Go back to work directory
 cd "$WORK_DIR"
 
