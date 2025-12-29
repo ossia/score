@@ -91,46 +91,65 @@ fi
 echo "Creating custom launcher..."
 if [[ -n "$SCORE_BASENAME" ]]; then
     # With score
-    cat > AppRun << 'APPRUN_EOF'
+    cat > AppRun << APPRUN_EOF
 #!/bin/sh
-export QML2_IMPORT_PATH="${APPDIR}/usr/bin/qml/"
-export LD_LIBRARY_PATH="${APPIMAGE_LIBRARY_PATH}:${APPDIR}/usr/lib:${LD_LIBRARY_PATH}"
-"${APPDIR}/usr/bin/linuxcheck" "${APPDIR}/usr/bin/ossia-score"
+
+export SCORE_CUSTOM_APP_ORGANIZATION_NAME="$APP_ORGANIZATION"
+export SCORE_CUSTOM_APP_ORGANIZATION_DOMAIN="$APP_DOMAIN"
+export SCORE_CUSTOM_APP_APPLICATION_NAME="$APP_NAME"
+export SCORE_CUSTOM_APP_APPLICATION_VERSION="$APP_VERSION"
+
+export QML2_IMPORT_PATH="\${APPDIR}/usr/bin/qml/"
+export LD_LIBRARY_PATH="\${APPIMAGE_LIBRARY_PATH}:\${APPDIR}/usr/lib:\${LD_LIBRARY_PATH}"
+"\${APPDIR}/usr/bin/linuxcheck" "\${APPDIR}/usr/bin/app-bin"
 
 # Launch with custom UI and score
-exec "${APPDIR}/usr/bin/ossia-score" \
+exec "\${APPDIR}/usr/bin/app-bin" \
     ${AUTOPLAY} \
-    --ui "${APPDIR}/usr/bin/qml/MAIN_QML_PLACEHOLDER" \
-    "${APPDIR}/usr/bin/SCORE_FILE_PLACEHOLDER" \
-    "$@"
+    --ui "\${APPDIR}/usr/bin/qml/${MAIN_QML}" \
+    "\${APPDIR}/usr/bin/${SCORE_BASENAME}" \
+    "\$@"
 APPRUN_EOF
-    # Replace placeholders
-    sed -i "s/MAIN_QML_PLACEHOLDER/${MAIN_QML}/g" AppRun
-    sed -i "s/SCORE_FILE_PLACEHOLDER/${SCORE_BASENAME}/g" AppRun
 else
     # Without custom score
-    cat > AppRun << 'APPRUN_EOF'
+    cat > AppRun << APPRUN_EOF
 #!/bin/sh
-export QML2_IMPORT_PATH="${APPDIR}/usr/bin/qml/"
-export LD_LIBRARY_PATH="${APPIMAGE_LIBRARY_PATH}:${APPDIR}/usr/lib:${LD_LIBRARY_PATH}"
-"${APPDIR}/usr/bin/linuxcheck" "${APPDIR}/usr/bin/ossia-score"
+
+export SCORE_CUSTOM_APP_ORGANIZATION_NAME="$APP_ORGANIZATION"
+export SCORE_CUSTOM_APP_ORGANIZATION_DOMAIN="$APP_DOMAIN"
+export SCORE_CUSTOM_APP_APPLICATION_NAME="$APP_NAME"
+export SCORE_CUSTOM_APP_APPLICATION_VERSION="$APP_VERSION"
+
+export QML2_IMPORT_PATH="\${APPDIR}/usr/bin/qml/"
+export LD_LIBRARY_PATH="\${APPIMAGE_LIBRARY_PATH}:\${APPDIR}/usr/lib:\${LD_LIBRARY_PATH}"
+"\${APPDIR}/usr/bin/linuxcheck" "\${APPDIR}/usr/bin/app-bin"
 
 # Launch with custom UI
-exec "${APPDIR}/usr/bin/ossia-score" \
+exec "\${APPDIR}/usr/bin/app-bin" \
     ${AUTOPLAY} \
-    --ui "${APPDIR}/usr/bin/qml/MAIN_QML_PLACEHOLDER" \
+    --ui "\${APPDIR}/usr/bin/qml/${MAIN_QML}" \
     "$@"
 APPRUN_EOF
-    # Replace placeholder
-    sed -i "s/MAIN_QML_PLACEHOLDER/${MAIN_QML}/g" AppRun
 fi
 
 chmod +x AppRun
 
 # Update desktop file
-echo "Updating desktop entry..."
-sed -i "s/Name=ossia score/Name=${APP_NAME}/g" ossia-score.desktop 2>/dev/null || \
-    sed -i "s/Name=.*/Name=${APP_NAME}/g" ./*.desktop 2>/dev/null || true
+cat > "${APP_NAME_SAFE}.desktop" << DESKTOP_EOF
+[Desktop Entry]
+Type=Application
+Name=${APP_NAME}
+Comment=${APP_DESCRIPTION}
+Exec=app-bin
+Icon=${APP_NAME_SAFE}
+Terminal=false
+Categories=AudioVideo;
+DESKTOP_EOF
+
+# Update icons
+
+cp "${APP_ICON_PNG}" "/tmp/build/score.AppDir/${APP_NAME_SAFE}.png"
+cp "${APP_ICON_PNG}" "/tmp/build/score.AppDir/.DirIcon"
 
 # Download appimagetool if needed
 cd "$WORK_DIR"

@@ -1,0 +1,31 @@
+IDI_ICON1 ICON "score.ico"
+
+1 VERSIONINFO
+FILEVERSION	${SCORE_VERSION_RC}
+PRODUCTVERSION ${SCORE_VERSION_RC}
+FILEOS		4
+FILETYPE	1
+
+BEGIN
+	BLOCK "StringFileInfo"
+	BEGIN
+		BLOCK "040904B0"
+		BEGIN
+      VALUE "CompanyName",            "ossia.io"
+			VALUE "FileDescription",        "ossia score, an interactive sequencer for the intermedia arts"
+			VALUE "FileVersion",            "${SCORE_VERSION}"
+			VALUE "InternalName",           "score"
+			VALUE "LegalCopyright",         "ossia.io"
+			VALUE "License",                "GPLv3"
+			VALUE "Homepage",               "https://ossia.io"
+			VALUE "OriginalFilename",       "score.exe"
+			VALUE "ProductName",            "ossia score"
+			VALUE "ProductVersion",         "${SCORE_VERSION}"
+		END
+	END
+
+	BLOCK "VarFileInfo"
+	BEGIN
+		VALUE "Translation", 0x409, 0x04B0
+	END
+END

@@ -115,8 +115,14 @@ if(MSVC)
 endif()
 
 if(WIN32)
+  set(SCORE_VERSION_RC "${SCORE_VERSION_MAJOR},${SCORE_VERSION_MINOR},${SCORE_VERSION_PATCH},0")
+  file(GENERATE 
+    OUTPUT "score.rc"
+    INPUT "${CMAKE_CURRENT_SOURCE_DIR}/../lib/resources/score.rc.in"
+  )
+
   if(MSVC OR ("${CMAKE_RC_COMPILER}" MATCHES ".*llvm.*"))
-    target_sources(${APPNAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../lib/resources/score.rc")
+    target_sources(${APPNAME} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/score.rc")
   else()
     add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/score-icon.obj"
                        COMMAND "${CMAKE_RC_COMPILER}"
@@ -124,7 +130,7 @@ if(WIN32)
                             -I "${CMAKE_CURRENT_SOURCE_DIR}"
                             -I "${CMAKE_CURRENT_BINARY_DIR}"
                             -o "${CMAKE_CURRENT_BINARY_DIR}/score-icon.obj"
-                            -i "${CMAKE_CURRENT_SOURCE_DIR}/../lib/resources/score.rc"
+                            -i "${CMAKE_CURRENT_BINARY_DIR}/score.rc"
                         VERBATIM)
     target_sources(${APPNAME} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/score-icon.obj")
   endif()

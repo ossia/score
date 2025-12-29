@@ -170,9 +170,11 @@ fi
 
 # Rename the original binary
 if [[ -f "$BUNDLE_MACOS/ossia score" ]]; then
-    mv "$BUNDLE_MACOS/ossia score" "$BUNDLE_MACOS/ossia-score-bin"
+    mv "$BUNDLE_MACOS/ossia score" "$BUNDLE_MACOS/app-bin"
 elif [[ -f "$BUNDLE_MACOS/ossia-score" ]]; then
-    mv "$BUNDLE_MACOS/ossia-score" "$BUNDLE_MACOS/ossia-score-bin"
+    mv "$BUNDLE_MACOS/ossia-score" "$BUNDLE_MACOS/app-bin"
+elif [[ -f "$BUNDLE_MACOS/score" ]]; then
+    mv "$BUNDLE_MACOS/score" "$BUNDLE_MACOS/app-bin"
 else
     echo "Error: Could not find ossia score binary in app bundle"
     exit 1
@@ -182,47 +184,65 @@ fi
 echo "Creating custom launcher..."
 if [[ -n "$SCORE_BASENAME" ]]; then
     # With score
-    cat > "$BUNDLE_MACOS/ossia score" << 'LAUNCHER_EOF'
+    cat > "$BUNDLE_MACOS/$APP_NAME" << LAUNCHER_EOF
 #!/bin/bash
-# Custom launcher for APP_NAME_PLACEHOLDER
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-RESOURCES_DIR="$(cd "$SCRIPT_DIR/../Resources" && pwd)"
-export QML2_IMPORT_PATH="${RESOURCES_DIR}/qml/"
-exec "$SCRIPT_DIR/ossia-score-bin" \
+
+export SCORE_CUSTOM_APP_ORGANIZATION_NAME="$APP_ORGANIZATION"
+export SCORE_CUSTOM_APP_ORGANIZATION_DOMAIN="$APP_DOMAIN"
+export SCORE_CUSTOM_APP_APPLICATION_NAME="$APP_NAME"
+export SCORE_CUSTOM_APP_APPLICATION_VERSION="$APP_VERSION"
+
+SCRIPT_DIR="\$(cd "\$(dirname "\${BASH_SOURCE[0]}")" && pwd)"
+RESOURCES_DIR="\$(cd "\$SCRIPT_DIR/../Resources" && pwd)"
+export QML2_IMPORT_PATH="\${RESOURCES_DIR}/qml/"
+exec "\$SCRIPT_DIR/app-bin" \
     ${AUTOPLAY} \
-    --ui "${RESOURCES_DIR}/qml/MAIN_QML_PLACEHOLDER" \
-    "${RESOURCES_DIR}/SCORE_FILE_PLACEHOLDER" \
-    "$@"
+    --ui "\${RESOURCES_DIR}/qml/${MAIN_QML}" \
+    "\${RESOURCES_DIR}/${SCORE_BASENAME}" \
+    "\$@"
 LAUNCHER_EOF
-    # Replace placeholders
-    sed -i '' "s/APP_NAME_PLACEHOLDER/${APP_NAME}/g" "$BUNDLE_MACOS/ossia score"
-    sed -i '' "s/MAIN_QML_PLACEHOLDER/${MAIN_QML}/g" "$BUNDLE_MACOS/ossia score"
-    sed -i '' "s/SCORE_FILE_PLACEHOLDER/${SCORE_BASENAME}/g" "$BUNDLE_MACOS/ossia score"
 else
     # Without autoplay
-    cat > "$BUNDLE_MACOS/ossia score" << 'LAUNCHER_EOF'
+    cat > "$BUNDLE_MACOS/$APP_NAME" << LAUNCHER_EOF
 #!/bin/bash
-# Custom launcher for APP_NAME_PLACEHOLDER
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-RESOURCES_DIR="$(cd "$SCRIPT_DIR/../Resources" && pwd)"
-export QML2_IMPORT_PATH="${RESOURCES_DIR}/qml/"
-exec "$SCRIPT_DIR/ossia-score-bin" \
+
+export SCORE_CUSTOM_APP_ORGANIZATION_NAME="$APP_ORGANIZATION"
+export SCORE_CUSTOM_APP_ORGANIZATION_DOMAIN="$APP_DOMAIN"
+export SCORE_CUSTOM_APP_APPLICATION_NAME="$APP_NAME"
+export SCORE_CUSTOM_APP_APPLICATION_VERSION="$APP_VERSION"
+
+SCRIPT_DIR="\$(cd "\$(dirname "\${BASH_SOURCE[0]}")" && pwd)"
+RESOURCES_DIR="\$(cd "\$SCRIPT_DIR/../Resources" && pwd)"
+export QML2_IMPORT_PATH="\${RESOURCES_DIR}/qml/"
+
+exec "\$SCRIPT_DIR/app-bin" \
     ${AUTOPLAY} \
-    --ui "${RESOURCES_DIR}/qml/MAIN_QML_PLACEHOLDER" \
-    "$@"
+    --ui "\${RESOURCES_DIR}/qml/${MAIN_QML}" \
+    "\$@"
 LAUNCHER_EOF
-    # Replace placeholders
-    sed -i '' "s/APP_NAME_PLACEHOLDER/${APP_NAME}/g" "$BUNDLE_MACOS/ossia score"
-    sed -i '' "s/MAIN_QML_PLACEHOLDER/${MAIN_QML}/g" "$BUNDLE_MACOS/ossia score"
 fi
 
-chmod +x "$BUNDLE_MACOS/ossia score"
+chmod +x "$BUNDLE_MACOS/$APP_NAME"
 
 # Update Info.plist
 echo "Updating app metadata..."
 if [[ -f "$BUNDLE_CONTENTS/Info.plist" ]]; then
     /usr/libexec/PlistBuddy -c "Set :CFBundleName ${APP_NAME}" "$BUNDLE_CONTENTS/Info.plist" 2>/dev/null || true
+    /usr/libexec/PlistBuddy -c "Set :CFBundleExecutable ${APP_NAME}" "$BUNDLE_CONTENTS/Info.plist" 2>/dev/null || true
     /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName ${APP_NAME}" "$BUNDLE_CONTENTS/Info.plist" 2>/dev/null || true
+    /usr/libexec/PlistBuddy -c "Set :CFBundleGetInfoString ${APP_DESCRIPTION}" "$BUNDLE_CONTENTS/Info.plist" 2>/dev/null || true
+    /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier ${APP_IDENTIFIER}" "$BUNDLE_CONTENTS/Info.plist" 2>/dev/null || true
+    /usr/libexec/PlistBuddy -c "Set :CFBundleLongVersionString ${APP_VERSION}" "$BUNDLE_CONTENTS/Info.plist" 2>/dev/null || true
+    /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${APP_VERSION}" "$BUNDLE_CONTENTS/Info.plist" 2>/dev/null || true
+    /usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${APP_VERSION}" "$BUNDLE_CONTENTS/Info.plist" 2>/dev/null || true
+    /usr/libexec/PlistBuddy -c "Set :NSHumanReadableCopyright ${APP_COPYRIGHT}" "$BUNDLE_CONTENTS/Info.plist" 2>/dev/null || true
+    /usr/libexec/PlistBuddy -c "Delete :CFBundleDocumentTypes" "$BUNDLE_CONTENTS/Info.plist" 2>/dev/null || true
+    
+    ICNS_FILE_NAME="$(basename "${APP_ICON_ICNS}")"
+    cp "${APP_ICON_ICNS}" "$BUNDLE_CONTENTS/Resources/${ICNS_FILE_NAME}"
+    /usr/libexec/PlistBuddy -c "Set :CFBundleIconFile ${ICNS_FILE_NAME}" "$BUNDLE_CONTENTS/Info.plist" 2>/dev/null || true
+    
+    sed -i '' "s/ossia score/${APP_NAME}/g" "$BUNDLE_CONTENTS/Info.plist"
 fi
 
 # Code signing (optional - requires certificates)

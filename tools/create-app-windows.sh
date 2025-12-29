@@ -11,6 +11,13 @@ echo "Creating Windows package..."
 
 cd "$WORK_DIR"
 
+# Download rcedit for changing the icons
+
+if ! curl -L -f -o "rcedit.exe" "https://github.com/electron/rcedit/releases/download/v2.0.0/rcedit-x64.exe"; then
+    echo "Error: Failed to download rcedit"
+    exit 1
+fi
+
 # Use local installer or download from GitHub
 if [[ -n "$LOCAL_INSTALLER" ]]; then
     echo "Using local installer: $LOCAL_INSTALLER"
@@ -110,133 +117,27 @@ fi
 
 # Rename original executable
 echo "Creating custom launcher..."
-mv score.exe ossia-score.exe
+mv score.exe app-bin.exe
 
 # Create native C launcher
 echo "Creating native launcher executable..."
 
 # Generate C source code
-cat > launcher.c << 'C_EOF'
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
+cp launcher/launcher.c launcher.c
+cat > launcher-defines.h << EOF
+#pragma once
 
-// Configuration - will be replaced by sed
-#define MAIN_QML "MAIN_QML_PLACEHOLDER"
-#define SCORE_FILE "SCORE_FILE_PLACEHOLDER"
-#define HAS_AUTOPLAY AUTOPLAY_HAS_VALUE_PLACEHOLDER
-#define HAS_SCORE SCORE_HAS_VALUE_PLACEHOLDER
+#define MAIN_QML \"${MAIN_QML}\"
+#define SCORE_FILE \"${SCORE_BASENAME}\"
+#define HAS_AUTOPLAY $([[ -n "$AUTOPLAY" ]] && echo 1 || echo 0)
+#define HAS_SCORE $([[ -n "${SCORE_BASENAME}" ]] && echo 1 || echo 0)
 
-int main(int argc, char *argv[]) {
-    char exe_path[MAX_PATH];
-    char exe_dir[MAX_PATH];
-    char qml_path[MAX_PATH];
-    char qml_import_path[MAX_PATH];
-    char score_path[MAX_PATH];
-    char command_line[32768]; // Windows max command line length
+#define SCORE_CUSTOM_APP_ORGANIZATION_NAME "$SCORE_CUSTOM_APP_ORGANIZATION_NAME"
+#define SCORE_CUSTOM_APP_ORGANIZATION_DOMAIN "$SCORE_CUSTOM_APP_ORGANIZATION_DOMAIN"
+#define SCORE_CUSTOM_APP_APPLICATION_NAME "$SCORE_CUSTOM_APP_APPLICATION_NAME"
+#define SCORE_CUSTOM_APP_APPLICATION_VERSION "$SCORE_CUSTOM_APP_APPLICATION_VERSION"
 
-    // Get the directory where this executable is located
-    GetModuleFileNameA(NULL, exe_path, MAX_PATH);
-
-    // Extract directory path
-    char *last_slash = strrchr(exe_path, '\\');
-    if (last_slash) {
-        size_t dir_len = last_slash - exe_path;
-        strncpy(exe_dir, exe_path, dir_len);
-        exe_dir[dir_len] = '\0';
-    } else {
-        strcpy(exe_dir, ".");
-    }
-
-    // Build paths
-    snprintf(qml_path, MAX_PATH, "%s\\qml\\%s", exe_dir, MAIN_QML);
-    snprintf(qml_import_path, MAX_PATH, "%s\\qml", exe_dir);
-
-    // Set QML2_IMPORT_PATH environment variable
-    char qml_env_var[MAX_PATH + 20];
-    snprintf(qml_env_var, sizeof(qml_env_var), "QML2_IMPORT_PATH=%s", qml_import_path);
-    _putenv(qml_env_var);
-
-    // Build command line
-    snprintf(command_line, sizeof(command_line), "\"%s\\ossia-score.exe\" --ui \"%s\"",
-             exe_dir, qml_path);
-
-    if (HAS_AUTOPLAY) {
-        strncat(command_line, " --autoplay ", sizeof(command_line) - strlen(command_line) - 1);
-    }
-    // Add score file if present
-    if (HAS_SCORE) {
-        snprintf(score_path, MAX_PATH, "%s\\%s", exe_dir, SCORE_FILE);
-        strncat(command_line, " \"", sizeof(command_line) - strlen(command_line) - 1);
-        strncat(command_line, score_path, sizeof(command_line) - strlen(command_line) - 1);
-        strncat(command_line, "\"", sizeof(command_line) - strlen(command_line) - 1);
-    }
-
-    // Add any additional command line arguments
-    for (int i = 1; i < argc; i++) {
-        strncat(command_line, " \"", sizeof(command_line) - strlen(command_line) - 1);
-        strncat(command_line, argv[i], sizeof(command_line) - strlen(command_line) - 1);
-        strncat(command_line, "\"", sizeof(command_line) - strlen(command_line) - 1);
-    }
-
-    // Create process
-    STARTUPINFOA si;
-    PROCESS_INFORMATION pi;
-
-    ZeroMemory(&si, sizeof(si));
-    si.cb = sizeof(si);
-    ZeroMemory(&pi, sizeof(pi));
-
-    // Launch the process
-    if (!CreateProcessA(
-        NULL,           // Application name (NULL = use command line)
-        command_line,   // Command line
-        NULL,           // Process security attributes
-        NULL,           // Thread security attributes
-        TRUE,           // Inherit handles
-        0,              // Creation flags
-        NULL,           // Environment
-        exe_dir,        // Current directory
-        &si,            // Startup info
-        &pi             // Process info
-    )) {
-        MessageBoxA(NULL, "Failed to launch ossia score", "Error", MB_OK | MB_ICONERROR);
-        return 1;
-    }
-
-    // Wait for the process to complete
-    WaitForSingleObject(pi.hProcess, INFINITE);
-
-    // Get exit code
-    DWORD exit_code = 0;
-    GetExitCodeProcess(pi.hProcess, &exit_code);
-
-    // Close handles
-    CloseHandle(pi.hProcess);
-    CloseHandle(pi.hThread);
-
-    return (int)exit_code;
-}
-C_EOF
-
-# Replace placeholders
-sed -i "s/MAIN_QML_PLACEHOLDER/${MAIN_QML}/g" launcher.c
-
-if [[ -n "$AUTOPLAY" ]]; then
-    sed -i "s/AUTOPLAY_HAS_VALUE_PLACEHOLDER/1/g" launcher.c
-else
-    sed -i "s/AUTOPLAY_HAS_VALUE_PLACEHOLDER/0/g" launcher.c
-fi
-
-if [[ -n "$SCORE_BASENAME" ]]; then
-    sed -i "s/SCORE_FILE_PLACEHOLDER/${SCORE_BASENAME}/g" launcher.c
-    sed -i "s/SCORE_HAS_VALUE_PLACEHOLDER/1/g" launcher.c
-else
-    sed -i "s/SCORE_FILE_PLACEHOLDER//g" launcher.c
-    sed -i "s/SCORE_HAS_VALUE_PLACEHOLDER/0/g" launcher.c
-fi
+EOF
 
 # Compile the launcher
 # Try clang first, then fall back to CC (usually gcc or msvc cl)
@@ -253,83 +154,15 @@ elif command -v gcc &> /dev/null; then
 else
     echo "Warning: No C compiler found (tried clang, \$CC, gcc)"
     echo "Falling back to batch script launcher"
-    # Create fallback batch script
-    if [[ -n "$SCORE_BASENAME" ]]; then
-        cat > "${APP_NAME}.bat" << 'BATCH_EOF'
-@echo off
-set "SCRIPT_DIR=%~dp0"
-"%SCRIPT_DIR%ossia-score.exe" --ui "%SCRIPT_DIR%qml\MAIN_QML_PLACEHOLDER" --autoplay "%SCRIPT_DIR%SCORE_FILE_PLACEHOLDER" %*
-BATCH_EOF
-        sed -i "s/MAIN_QML_PLACEHOLDER/${MAIN_QML}/g" "${APP_NAME}.bat"
-        sed -i "s/SCORE_FILE_PLACEHOLDER/${SCORE_BASENAME}/g" "${APP_NAME}.bat"
-    else
-        cat > "${APP_NAME}.bat" << 'BATCH_EOF'
-@echo off
-set "SCRIPT_DIR=%~dp0"
-"%SCRIPT_DIR%ossia-score.exe" --ui "%SCRIPT_DIR%qml\MAIN_QML_PLACEHOLDER" %*
-BATCH_EOF
-        sed -i "s/MAIN_QML_PLACEHOLDER/${MAIN_QML}/g" "${APP_NAME}.bat"
-    fi
-    COMPILER=""
+    exit 1
 fi
 
-# Compile if we have a compiler
-if [[ -n "$COMPILER" ]]; then
-    if $COMPILER -O2 -s -mwindows -o "${APP_NAME}.exe" launcher.c 2>&1; then
-        echo "✓ Native launcher compiled successfully: ${APP_NAME}.exe"
-        rm -f launcher.c
-    else
-        echo "Warning: Compilation failed, creating batch script fallback"
-        rm -f launcher.c "${APP_NAME}.exe"  # Clean up any partial artifacts
-        # Create fallback batch script
-        if [[ -n "$SCORE_BASENAME" ]]; then
-            cat > "${APP_NAME}.bat" << 'BATCH_EOF'
-@echo off
-set "SCRIPT_DIR=%~dp0"
-"%SCRIPT_DIR%ossia-score.exe" --ui "%SCRIPT_DIR%qml\MAIN_QML_PLACEHOLDER" --autoplay "%SCRIPT_DIR%SCORE_FILE_PLACEHOLDER" %*
-BATCH_EOF
-            sed -i "s/MAIN_QML_PLACEHOLDER/${MAIN_QML}/g" "${APP_NAME}.bat"
-            sed -i "s/SCORE_FILE_PLACEHOLDER/${SCORE_BASENAME}/g" "${APP_NAME}.bat"
-        else
-            cat > "${APP_NAME}.bat" << 'BATCH_EOF'
-@echo off
-set "SCRIPT_DIR=%~dp0"
-"%SCRIPT_DIR%ossia-score.exe" --ui "%SCRIPT_DIR%qml\MAIN_QML_PLACEHOLDER" %*
-BATCH_EOF
-            sed -i "s/MAIN_QML_PLACEHOLDER/${MAIN_QML}/g" "${APP_NAME}.bat"
-        fi
-    fi
-else
-    # No compiler, remove the launcher.c we created
-    rm -f launcher.c
-fi
+$COMPILER -O2 -s -mwindows -o "${APP_NAME}.exe" launcher.c
+rm -f launcher.c launcher-defines.h
 
-# Also create PowerShell launcher for users who prefer it
-if [[ -n "$SCORE_BASENAME" ]]; then
-    cat > "launch-${APP_NAME}.ps1" << 'PS_EOF'
-# Custom launcher for APP_NAME_PLACEHOLDER
-$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$QmlPath = Join-Path $ScriptDir "qml\MAIN_QML_PLACEHOLDER"
-$ScorePath = Join-Path $ScriptDir "SCORE_FILE_PLACEHOLDER"
-$ExePath = Join-Path $ScriptDir "ossia-score.exe"
-
-& $ExePath --ui $QmlPath --autoplay $ScorePath $args
-PS_EOF
-    sed -i "s/APP_NAME_PLACEHOLDER/${APP_NAME}/g" "launch-${APP_NAME}.ps1"
-    sed -i "s/MAIN_QML_PLACEHOLDER/${MAIN_QML}/g" "launch-${APP_NAME}.ps1"
-    sed -i "s/SCORE_FILE_PLACEHOLDER/${SCORE_BASENAME}/g" "launch-${APP_NAME}.ps1"
-else
-    cat > "launch-${APP_NAME}.ps1" << 'PS_EOF'
-# Custom launcher for APP_NAME_PLACEHOLDER
-$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$QmlPath = Join-Path $ScriptDir "qml\MAIN_QML_PLACEHOLDER"
-$ExePath = Join-Path $ScriptDir "ossia-score.exe"
-
-& $ExePath --ui $QmlPath $args
-PS_EOF
-    sed -i "s/APP_NAME_PLACEHOLDER/${APP_NAME}/g" "launch-${APP_NAME}.ps1"
-    sed -i "s/MAIN_QML_PLACEHOLDER/${MAIN_QML}/g" "launch-${APP_NAME}.ps1"
-fi
+# Set icon and properties
+./rcedit.exe "${APP_NAME}" --set-icon "${APP_ICON_ICO}" --set-file-version "${APP_VERSION}"
+./rcedit.exe "app-bin.exe" --set-icon "${APP_ICON_ICO}" --set-file-version "${APP_VERSION}"
 
 # Go back to work directory
 cd "$WORK_DIR"

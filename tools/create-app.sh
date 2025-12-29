@@ -5,6 +5,7 @@ set -euo pipefail
 # This script fetches official releases and repackages them with custom QML and score files
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCORE_SOURCE_DIR="$(realpath "$SCRIPT_DIR/..")"
 
 # Default values
 RELEASE_TAG="continuous"
@@ -28,6 +29,7 @@ Required options:
                         The first .qml file will be used as the main UI
     --output DIR        Output directory for generated packages
     --name NAME         Name of the custom application
+    --app-name NAME     Name of the custom application
 
 Optional:
     --score FILE        Score file to use
@@ -42,6 +44,16 @@ Optional:
                         macos-intel, macos-arm, windows
                         Can be specified multiple times. If not specified,
                         builds for current platform.
+    --app-organization  Set the app organization (e.g. ossia)
+    --app-domain        Set the app domain (e.g. ossia.io)
+    --app-identifier    Set the app identifier (e.g. io.ossia.score)
+    --app-description   Set the app description (one line max)
+    --app-copyright     Set the app copyright (e.g. ossia.io)
+    --app-version       Set the app version (e.g. 1.0-rc3)
+    --app-appdata-xml   Set the app appdata.xml file (Linux)
+    --app-ico           Set the app icon (ico format, Windows)
+    --app-icns          Set the app icon (icns format, macOS)
+    --app-png           Set the app icon (png format, Linux)
     --help              Show this help message
 
 Example:
@@ -94,6 +106,50 @@ while [[ $# -gt 0 ]]; do
             APP_NAME="$2"
             shift 2
             ;;
+        --app-name)
+            APP_NAME="$2"
+            shift 2
+            ;;
+        --app-organization)
+            APP_ORGANIZATION="$2"
+            shift 2
+            ;;
+        --app-domain)
+            APP_DOMAIN="$2"
+            shift 2
+            ;;
+        --app-identifier)
+            APP_IDENTIFIER="$2"
+            shift 2
+            ;;
+        --app-description)
+            APP_DESCRIPTION="$2"
+            shift 2
+            ;;
+        --app-copyright)
+            APP_COPYRIGHT="$2"
+            shift 2
+            ;;
+        --app-version)
+            APP_VERSION="$2"
+            shift 2
+            ;;
+        --app-appdata-xml)
+            APP_APPDATA_XML="$2"
+            shift 2
+            ;;
+        --app-ico)
+            APP_ICON_ICO="$2"
+            shift 2
+            ;;
+        --app-icns)
+            APP_ICON_ICNS="$2"
+            shift 2
+            ;;
+        --app-png)
+            APP_ICON_PNG="$2"
+            shift 2
+            ;;
         --autoplay)
             AUTOPLAY="--autoplay"
             shift 1
@@ -141,6 +197,9 @@ if [[ -z "$APP_NAME" ]]; then
     echo "Error: --name argument is required"
     show_help
 fi
+
+# Replace special characters with dashes in the name
+APP_NAME_SAFE=$(echo "$APP_NAME" | sed -E 's/[^a-zA-Z0-9]+/-/g')
 
 # Find the main QML file (first .qml file specified)
 MAIN_QML=""
@@ -231,8 +290,20 @@ trap "rm -rf '$WORK_DIR'" EXIT
 
 # Export variables for platform scripts
 export APP_NAME
+export APP_NAME_SAFE
+export APP_APPDATA_XML
+export APP_COPYRIGHT
+export APP_DESCRIPTION
+export APP_ORGANIZATION
+export APP_DOMAIN
+export APP_IDENTIFIER
+export APP_ICON_ICO
+export APP_ICON_ICNS
+export APP_ICON_PNG
+export APP_VERSION
 export AUTOPLAY
 export MAIN_QML
+export SCORE_SOURCE_DIR
 export SCORE_FILE
 export SCORE_BASENAME
 export OUTPUT_DIR
