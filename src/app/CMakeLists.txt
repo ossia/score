@@ -116,10 +116,8 @@ endif()
 
 if(WIN32)
   set(SCORE_VERSION_RC "${SCORE_VERSION_MAJOR},${SCORE_VERSION_MINOR},${SCORE_VERSION_PATCH},0")
-  file(GENERATE 
-    OUTPUT "score.rc"
-    INPUT "${CMAKE_CURRENT_SOURCE_DIR}/../lib/resources/score.rc.in"
-  )
+  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/../lib/resources/score.rc.in" "score.rc")
+  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/../lib/resources/score.ico" "score.ico" COPYONLY)
 
   if(MSVC OR ("${CMAKE_RC_COMPILER}" MATCHES ".*llvm.*"))
     target_sources(${APPNAME} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/score.rc")
