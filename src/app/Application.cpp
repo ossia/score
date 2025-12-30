@@ -151,9 +151,9 @@ static void setQApplicationSettings(QApplication& m_app)
 
   QFont f("Ubuntu", defaultFontSize);
   f.setHintingPreference(QFont::HintingPreference::PreferVerticalHinting);
-  qApp->setFont(f);
+  qGuiApp->setFont(f);
 
-  qApp->setPalette(pal);
+  qGuiApp->setPalette(pal);
 }
 
 } // namespace score
@@ -360,6 +360,10 @@ void Application::init()
     m_settings.setupView();
     //m_projectSettings.setupView();
     m_view = new score::View{this};
+  }
+  else if(!appSettings.ui.isEmpty())
+  {
+    score::setQApplicationSettings(*qApp);
   }
 
   m_presenter
