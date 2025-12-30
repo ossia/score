@@ -92,7 +92,7 @@ QGraphicsItem* makeScriptButton(
   if(effect.flags() & Process::ProcessFlags::ScriptEditingSupported)
   {
     auto ui_btn = new score::QGraphicsPixmapToggle{
-                                                   pixmaps.snapshot_on, pixmaps.snapshot_off, root};
+        pixmaps.show_script_on, pixmaps.show_script_off, root};
     ui_btn->setToolTip(
         QObject::tr("Show/hide UI\nShow the process's script editor for JS, shaders, etc."));
     QObject::connect(

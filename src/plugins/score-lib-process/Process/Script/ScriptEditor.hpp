@@ -78,10 +78,19 @@ public:
 
 protected:
   const Process_T& m_process;
+
+  void reject() override
+  {
+    const_cast<QWidget*&>(m_process.scriptUI) = nullptr;
+    m_process.scriptUIVisible(false);
+    QDialog::reject();
+  }
+
   void closeEvent(QCloseEvent* event) override
   {
-    const_cast<QWidget*&>(m_process.externalUI) = nullptr;
-    m_process.externalUIVisible(false);
+    const_cast<QWidget*&>(m_process.scriptUI) = nullptr;
+    m_process.scriptUIVisible(false);
+    QDialog::closeEvent(event);
   }
 };
 
