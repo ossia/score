@@ -147,8 +147,9 @@ DESKTOP_EOF
 
 # Update icons
 if [[ -f "${APP_ICON_PNG}" ]]; then
-  cp "${APP_ICON_PNG}" "/tmp/build/score.AppDir/${APP_NAME_SAFE}.png"
-  cp "${APP_ICON_PNG}" "/tmp/build/score.AppDir/.DirIcon"
+  # We're in $WORK_DIR eg squashfs-root
+  cp "${APP_ICON_PNG}" "${APP_NAME_SAFE}.png"
+  cp "${APP_ICON_PNG}" ".DirIcon"
 
   cat >> "${APP_NAME_SAFE}.desktop" << DESKTOP_EOF
 Icon=${APP_NAME_SAFE}
