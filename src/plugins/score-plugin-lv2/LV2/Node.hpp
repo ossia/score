@@ -19,6 +19,8 @@ struct lv2_node final : public ossia::graph_node
       fOtherControls;
   std::vector<ossia::float_vector> fCVs;
   std::vector<AtomBuffer> m_midi_atom_ins, m_midi_atom_outs;
+  std::vector<libremidi::midi2_to_midi1> m_midi_2to1;
+  std::vector<libremidi::midi1_to_midi2> m_midi_1to2;
   std::vector<ossia::small_vector<Message, 2>> m_message_for_midi_atom_ins;
 
   std::vector<AtomBuffer> m_atom_ins, m_atom_outs;
@@ -121,6 +123,7 @@ struct lv2_node final : public ossia::graph_node
 
     // MIDI
     m_midi_atom_ins.reserve(midi_in_size);
+    m_midi_2to1.resize(midi_in_size);
     m_message_for_midi_atom_ins.resize(midi_in_size);
     for(std::size_t i = 0; i < midi_in_size; i++)
     {
@@ -129,6 +132,7 @@ struct lv2_node final : public ossia::graph_node
     }
 
     m_midi_atom_outs.reserve(midi_out_size);
+    m_midi_1to2.resize(midi_out_size);
     for(std::size_t i = 0; i < midi_out_size; i++)
     {
       m_midi_atom_outs.emplace_back(
@@ -306,15 +310,18 @@ struct lv2_node final : public ossia::graph_node
       }
 
       // MIDI input
+      auto& conv = m_midi_2to1[i];
       for(const libremidi::ump& msg : ossia_port.messages)
       {
-        unsigned char bytes[4];
-
-        int n = cmidi2_convert_single_ump_to_midi1(
-            (uint8_t*)bytes, sizeof(bytes), const_cast<uint32_t*>(msg.data));
-
-        if(n > 0)
-          it.write(msg.timestamp, 0, data.host.midi_event_id, n, bytes);
+        conv.convert(
+            msg.data, msg.size(), msg.timestamp,
+            [&](unsigned char* midi1, int bytes, int64_t ts) {
+          if(bytes > 0)
+          {
+            it.write(msg.timestamp, 0, data.host.midi_event_id, bytes, midi1);
+          }
+          return stdx::error{};
+        });
       }
 
       // Copy timing for MIDI ports
@@ -429,8 +436,10 @@ struct lv2_node final : public ossia::graph_node
       ossia::midi_port& ossia_port
           = this->m_outlets[i + first_midi_idx]->template cast<ossia::midi_port>();
       AtomBuffer& lv2_port = m_midi_atom_outs[i];
+      auto& conv = m_midi_1to2[i];
 
       const LV2::HostContext& host = this->data.host;
+
       LV2_ATOM_SEQUENCE_FOREACH(&lv2_port.buf->atoms, ev)
       {
         if(ev->body.type == host.midi_event_id)
@@ -438,11 +447,16 @@ struct lv2_node final : public ossia::graph_node
           libremidi::ump msg;
           msg.timestamp = ev->time.frames;
 
-          auto bytes = (uint8_t*)LV2_ATOM_BODY(&ev->body);
-          if(cmidi2_midi1_channel_voice_to_midi2(bytes, ev->body.size, msg.data))
-          {
-            ossia_port.messages.push_back(std::move(msg));
-          }
+          auto bytes = (uint8_t*)LV2_ATOM_BODY_CONST(&ev->body);
+          conv.convert(
+              bytes, ev->body.size, ev->time.frames,
+              [&](const uint32_t* ump, int count, int64_t ts) {
+            libremidi::ump u;
+            std::copy_n(ump, std::min(count, 4), u.data);
+            u.timestamp = ts;
+            ossia_port.messages.push_back(u);
+            return stdx::error{};
+          });
         }
         else
         {
