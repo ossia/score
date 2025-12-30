@@ -185,40 +185,8 @@ QQuickItem* ProcessModel::createItemForUI(const score::DocumentContext& ctx) con
     self->uiToExecution(v.toVariant());
   });
 
-  /*
-  struct StateUpdateDispatcher : public SingleOngoingCommandDispatcher<UpdateState>
+  struct StateUpdater
   {
-    void submitUpdate(JS::ProcessModel& proc, const QString& k, const QJSValue& v)
-    {
-      if(!m_cmd)
-      {
-        stack().disableActions();
-        m_cmd = std::make_unique<UpdateState>(proc, k, v);
-      }
-
-      {
-        m_cmd->update(proc, k, v);
-      }
-      m_cmd->redo(stack().context());
-    }
-    void submitClear(JS::ProcessModel& proc, const QString& k, const QJSValue& v)
-    {
-      if(!m_cmd)
-      {
-        stack().disableActions();
-        m_cmd = std::make_unique<UpdateState>(proc, k, v);
-        m_cmd->redo(stack().context());
-      }
-      else
-      {
-        m_cmd->update(proc, k, v);
-        m_cmd->redo(stack().context());
-      }
-    }
-
-  };
-*/
-  struct StateUpdater {
     const score::DocumentContext& ctx;
     JS::ProcessModel& self;
     std::unique_ptr<MultiOngoingCommandDispatcher> disp;
@@ -321,8 +289,9 @@ QQuickItem* ProcessModel::createItemForUI(const score::DocumentContext& ctx) con
 
   if(const auto& on_stateUpdated = script->stateUpdated(); on_stateUpdated.isCallable())
   {
-    connect(this, &JS::ProcessModel::stateElementChanged,
-            script, [this, on_stateUpdated, &dummyEngine] (const QString& k, const ossia::value& v) {
+    connect(
+        this, &JS::ProcessModel::stateElementChanged, script,
+        [on_stateUpdated, &dummyEngine](const QString& k, const ossia::value& v) {
       if(v.valid())
       {
         if(auto res = v.apply(ossia::qt::ossia_to_qvariant{}); res.isValid())
@@ -361,17 +330,21 @@ QWidget* ProcessModel::createWindowForUI(const score::DocumentContext& ctx,
 
   m_ui_object->setParentItem(win->contentItem());
 
-  auto widg = QWidget::createWindowContainer(win, parent);
-  if(!widg) {
-    delete m_ui_object;
-    delete win;
-    return nullptr;
-  }
-
   const auto cleanup_ui = [this] {
     delete m_ui_object;
     m_ui_object = nullptr;
+
+    const_cast<QWidget*&>(externalUI) = nullptr;
+    externalUIVisible(false);
   };
+
+  auto widg = QWidget::createWindowContainer(win, parent);
+  if(!widg) {
+    cleanup_ui();
+    return nullptr;
+  }
+  widg->setAttribute(Qt::WA_DeleteOnClose);
+
 #if QT_VERSION >= QT_VERSION_CHECK(6,8,2)
   // Bug in older Qt 6 versions:
   // QtCore/qmetatype.h:842:23: error: invalid application of 'sizeof' to an incomplete type 'QQuickCloseEvent'
@@ -379,19 +352,27 @@ QWidget* ProcessModel::createWindowForUI(const score::DocumentContext& ctx,
   connect(win, &QQuickWindow::closing, this, cleanup_ui);
 #endif
   connect(win, &QQuickWindow::destroyed, this, cleanup_ui);
-  connect(this, &JS::ProcessModel::executionScriptOk,
-          win, [this,  win, &ctx] () mutable {
+  connect(this, &JS::ProcessModel::uiScriptOk, win, [this, win, &ctx]() mutable {
     delete m_ui_object;
     m_ui_object = nullptr;
-    if(!m_ui_component) {
+    if(!m_ui_component)
+    {
       win->close();
       win->deleteLater();
+      const_cast<QWidget*&>(externalUI) = nullptr;
+      externalUIVisible(false);
       return;
     }
 
     m_ui_object = createItemForUI(ctx);
     if(!m_ui_object)
+    {
+      win->close();
+      win->deleteLater();
+      const_cast<QWidget*&>(externalUI) = nullptr;
+      externalUIVisible(false);
       return;
+    }
     m_ui_object->setParentItem(win->contentItem());
     m_ui_object->setParent(win->contentItem());
   });
@@ -573,6 +554,18 @@ Process::ScriptChangeResult ProcessModel::setQmlData(const QByteArray& data, boo
 
   if(bool(m_ui_component) != had_ui)
     flagsChanged();
+
+  if(m_ui_component)
+  {
+    uiScriptOk();
+  }
+  else if(externalUI)
+  {
+    externalUI->close();
+    externalUI->deleteLater();
+    externalUI = nullptr;
+    externalUIVisible(false);
+  }
 
   // inlets / outletsChanged : in ScriptEditCommand
   return res;

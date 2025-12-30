@@ -74,6 +74,9 @@ ScriptDialog::ScriptDialog(
   connect(bbox, &QDialogButtonBox::rejected, this, &QDialog::reject);
   connect(
       bbox->button(QDialogButtonBox::Close), &QPushButton::clicked, this,
+      &QDialog::reject);
+  connect(
+      bbox->button(QDialogButtonBox::Close), &QPushButton::clicked, this,
       &QDialog::close);
 }
 
@@ -202,6 +205,9 @@ MultiScriptDialog::MultiScriptDialog(const score::DocumentContext& ctx, QWidget*
 
   connect(bbox, &QDialogButtonBox::accepted, this, &MultiScriptDialog::on_accepted);
   connect(bbox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+  connect(
+      bbox->button(QDialogButtonBox::Close), &QPushButton::clicked, this,
+      &QDialog::reject);
   connect(
       bbox->button(QDialogButtonBox::Close), &QPushButton::clicked, this,
       &QDialog::close);
