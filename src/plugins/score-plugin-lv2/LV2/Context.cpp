@@ -254,8 +254,8 @@ void LV2::GlobalContext::loadPlugins()
     QStringList lv2_paths;
 
     if(auto home = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
-       QFile::exists(home + ".lv2"))
-      lv2_paths.push_back(home + ".lv2");
+       QFile::exists(home + "/.lv2"))
+      lv2_paths.push_back(home + "/.lv2");
 
     if(QFile::exists(QStringLiteral("/usr/lib/lv2")))
       lv2_paths.push_back(QStringLiteral("/usr/lib/lv2"));
@@ -296,7 +296,11 @@ void LV2::GlobalContext::loadPlugins()
       }
     }
 
+    for(auto& path : lv2_paths)
+      path = QFileInfo{path}.canonicalFilePath();
+    lv2_paths.sort();
     lv2_paths.removeDuplicates();
+
     auto paths = lv2_paths.join(":");
     qDebug() << "LV2 paths: " << paths;
 
