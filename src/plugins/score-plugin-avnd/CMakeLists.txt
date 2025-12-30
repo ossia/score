@@ -642,7 +642,7 @@ avnd_make_score(
 avnd_make_score(
     SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/MIDISync.hpp"
     TARGET avnd_midi_sync
-    MAIN_CLASS MidiSync
+    MAIN_CLASS MIDISyncOut
     NAMESPACE mtk
 )
 
@@ -945,6 +945,20 @@ avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/RepetitionFilter.hpp"
   TARGET repetition_filter
   MAIN_CLASS RepetitionFilter
+  NAMESPACE ao
+)
+
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Midi/MidiSyncInput.hpp"
+  TARGET midi_sync_input
+  MAIN_CLASS MIDISyncIn
+  NAMESPACE mo
+)
+
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/TimecodeSynchronizer.hpp"
+  TARGET timecode_synchronizer
+  MAIN_CLASS SmoothTimecodeSynchronizer
   NAMESPACE ao
 )
 

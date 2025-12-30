@@ -97,14 +97,14 @@ struct sleep_accurate
 /**
  * Send MIDI Clock and TimeCode
  */
-struct MidiSync
+struct MIDISyncOut
 {
-  halp_meta(name, "Midi sync")
+  halp_meta(name, "MIDI Sync Out")
   halp_meta(author, "ossia team")
   halp_meta(c_name, "avnd_helpers_midisync")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/midi-sync.html")
   halp_meta(uuid, "aa7c1ae5-495e-436e-a079-e3f1a19861bb")
-  halp_meta(category, "Midi")
+  halp_meta(category, "Midi/Timing")
   halp_flag(process_exec);
 
   ossia::exec_state_facade ossia_state;
@@ -302,7 +302,7 @@ struct MidiSync
     return 30.;
   }
 
-  MidiSync()
+  MIDISyncOut()
   {
     // Midi Clock handling
     clock_thread = std::thread{[this] {
@@ -442,7 +442,7 @@ struct MidiSync
     }};
   }
 
-  ~MidiSync()
+  ~MIDISyncOut()
   {
     clock_thread_running.store(false, std::memory_order_release);
     mtc_thread_running.store(false, std::memory_order_release);
@@ -545,8 +545,141 @@ struct MidiSync
     // FIXME midi out : mpmc for output
     // Global MTC start / stop input has to be done in a device
 
+    handle_audio_thread_output(tk, state);
+
     this->current_state.store(std::bit_cast<uint64_t>(state), std::memory_order_release);
     this->current_song_pos.store(tk.start_position_in_quarters);
   }
+
+  void
+  handle_audio_thread_output(const halp::tick_flicks& tk, const storage::impl& state)
+  {
+    const double current_time = tk.start_in_flicks / 705'600'000.0;
+    const double frame_duration
+        = std::abs(tk.end_in_flicks - tk.start_in_flicks) / 705'600'000.0;
+
+    // Handle transport start/stop/continue
+    if(tk.relative_position == 0 && !main_state.transport_started)
+    {
+      if(inputs.clock_startstop == MidiStartStopMode::Enabled)
+      {
+        // Send Start message
+        outputs.midi.push_back({.bytes = {0xFA}, .timestamp = 0});
+        main_state.transport_started = true;
+      }
+
+      // Send initial Song Position
+      if(inputs.clock == MidiClockMode::Enabled)
+      {
+        uint16_t pos = tk.start_position_in_quarters * 4; // Convert to 16th notes
+        if(pos < 16384)
+        {
+          outputs.midi.push_back(
+              {.bytes = {0xF2, uint8_t(pos & 0x7F), uint8_t((pos >> 7) & 0x7F)},
+               .timestamp = 0});
+        }
+      }
+    }
+
+    // Generate MIDI Clock messages for this buffer
+    if(inputs.clock == MidiClockMode::Enabled)
+    {
+      const double seconds_per_tick = 60.0 / (state.tempo * 24.0);
+
+      // Calculate how many clock ticks should occur in this buffer
+      double buffer_start_time = current_time;
+      double buffer_end_time = current_time + frame_duration;
+
+      // Find the next clock tick time
+      double next_tick_time = main_state.last_clock_time + seconds_per_tick;
+
+      while(next_tick_time < buffer_end_time)
+      {
+        if(next_tick_time >= buffer_start_time)
+        {
+          // Calculate sample offset within this buffer
+          int64_t sample_offset
+              = ((next_tick_time - buffer_start_time) / frame_duration) * tk.frames;
+          sample_offset = std::clamp<int64_t>(sample_offset, 0, tk.frames - 1);
+
+          outputs.midi.push_back(
+              {.bytes = {0xF8}, // MIDI Clock
+               .timestamp = sample_offset});
+
+          main_state.clock_tick_count++;
+        }
+
+        main_state.last_clock_time = next_tick_time;
+        next_tick_time += seconds_per_tick;
+      }
+    }
+
+    // Generate MTC Quarter Frame messages for this buffer
+    if(inputs.mtc == MidiTimeCodeMode::Enabled)
+    {
+      double fps = from_mtc_framerate(state.frame_rate);
+      double seconds_per_quarter_frame = 1.0 / (fps * 4.0);
+
+      double next_qf_time
+          = main_state.last_mtc_quarter_frame_time + seconds_per_quarter_frame;
+
+      while(next_qf_time < current_time + frame_duration)
+      {
+        if(next_qf_time >= current_time)
+        {
+          int64_t sample_offset
+              = ((next_qf_time - current_time) / frame_duration) * tk.frames;
+          sample_offset = std::clamp<int64_t>(sample_offset, 0, tk.frames - 1);
+
+          // Generate the quarter frame message
+          uint8_t qf_data = 0;
+          switch(main_state.mtc_quarter_frame_index)
+          {
+            case 0:
+              qf_data = 0x00 | (state.f & 0x0F);
+              break;
+            case 1:
+              qf_data = 0x10 | ((state.f >> 4) & 0x01);
+              break;
+            case 2:
+              qf_data = 0x20 | (state.s & 0x0F);
+              break;
+            case 3:
+              qf_data = 0x30 | ((state.s >> 4) & 0x03);
+              break;
+            case 4:
+              qf_data = 0x40 | (state.m & 0x0F);
+              break;
+            case 5:
+              qf_data = 0x50 | ((state.m >> 4) & 0x03);
+              break;
+            case 6:
+              qf_data = 0x60 | (state.h & 0x0F);
+              break;
+            case 7:
+              qf_data = 0x70 | (state.frame_rate << 1) | ((state.h >> 4) & 0x01);
+              break;
+          }
+
+          outputs.midi.push_back({.bytes = {0xF1, qf_data}, .timestamp = sample_offset});
+
+          main_state.mtc_quarter_frame_index
+              = (main_state.mtc_quarter_frame_index + 1) % 8;
+        }
+
+        main_state.last_mtc_quarter_frame_time = next_qf_time;
+        next_qf_time += seconds_per_quarter_frame;
+      }
+    }
+  }
+
+  struct MainThreadState
+  {
+    double last_clock_time = 0.0;
+    double last_mtc_quarter_frame_time = 0.0;
+    int mtc_quarter_frame_index = 0;
+    uint32_t clock_tick_count = 0;
+    bool transport_started = false;
+  } main_state;
 };
 }
