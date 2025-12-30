@@ -325,13 +325,13 @@ void NodeItem::resetOutlets()
 
 void NodeItem::updateLabel()
 {
-  if(const auto& label = m_model.metadata().getLabel(); !label.isEmpty())
-  {
-    m_label->setText(label);
-  }
-  else if(const auto& name = m_model.metadata().getName(); !name.isEmpty())
+  if(const auto& name = m_model.metadata().getName(); !name.isEmpty())
   {
     m_label->setText(name);
+  }
+  else if(const auto& label = m_model.metadata().getLabel(); !label.isEmpty())
+  {
+    m_label->setText(label);
   }
   else
   {
