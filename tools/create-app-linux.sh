@@ -62,6 +62,7 @@ if [[ ! -d "squashfs-root" ]]; then
 fi
 
 cd squashfs-root
+mv usr/bin/ossia-score usr/bin/app-bin
 
 # Copy QML files and directories
 echo "Adding custom QML files..."
