@@ -758,7 +758,7 @@ void on_finish::operator()()
   for(std::size_t k = 0; k < node.data.midi_out_ports.size(); ++k)
   {
     int port_index = node.data.midi_out_ports[k];
-    AtomBuffer& buf = node.m_midi_atom_outs[k];
+    auto& buf = node.m_midi_atom_outs[k];
 
     LV2_ATOM_SEQUENCE_FOREACH(&buf.buf->atoms, ev)
     {
