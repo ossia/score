@@ -51,8 +51,8 @@ Skin::~Skin()
 }
 Skin::Skin() noexcept
     : SansFont{"Ubuntu"}
-    , MonoFont{"APCCourier-Bold", int(10 * 96. / 72.), QFont::Black}
-    , MonoFontSmall{"APCCourier-Bold", int(7 * 96. / 72.), QFont::Normal}
+    , MonoFont{"Courier Prime", int(10 * 96. / 72.), QFont::Black}
+    , MonoFontSmall{"Courier Prime", int(7 * 96. / 72.), QFont::Normal}
     , SansFontSmall{"Ubuntu", int(7 * 96. / 72.)}
     , TransparentPen{Qt::transparent}
     , TransparentBrush{Qt::transparent}
@@ -82,7 +82,7 @@ Skin::Skin() noexcept
           SCORE_INSERT_COLOR_CUSTOM("#FFFFFF", "White"),
           SCORE_INSERT_COLOR_CUSTOM("#000000", "Black")}
 {
-  MonoFont.setFamilies({"APCCourier-Bold"});
+  MonoFont.setFamilies({"Courier Prime"});
   MonoFontSmall.setFamilies({"Ubuntu"});
   MonoFont.setFixedPitch(true);
 

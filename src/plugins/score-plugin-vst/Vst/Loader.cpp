@@ -82,7 +82,9 @@ struct AppleLoader
 
   static void unload(void* module)
   {
-    CFBundleUnloadExecutable((CFBundleRef)module);
+    if (CFBundleIsExecutableLoaded ((CFBundleRef)module))
+      if (CFGetRetainCount ((CFTypeRef)module) == 1)
+        CFBundleUnloadExecutable((CFBundleRef)module);
     CFRelease((CFBundleRef)module);
   }
 
