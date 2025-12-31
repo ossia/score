@@ -18,6 +18,12 @@ if [[ -z "${SCORE_EXTRA_CMAKE_ARGS-}" ]]; then
    export SCORE_EXTRA_CMAKE_ARGS=
 fi
 
+if [[ -z "${SCORE_CMAKE_CACHE-}" ]]; then
+  export SCORE_CMAKE_CACHE_CMD=( )
+else
+  export SCORE_CMAKE_CACHE_CMD=(-C "$SCORE_CMAKE_CACHE")
+fi
+
 export BUILD_DIR=/build
 export APP=score
 rm -rf "$BUILD_DIR/$APP.AppDir"
@@ -38,7 +44,10 @@ export SCORE_DIR=/score
 
 export INSTALL_ROOT=$(cd "$APP_DIR/usr"; pwd)
 
-cninja -S "$SOURCE_DIR" -B "$BUILD_DIR" "$TOOLCHAIN" -- \
+cninja \
+  -S "$SOURCE_DIR" -B "$BUILD_DIR" \
+  "$TOOLCHAIN" -- \
+  "${SCORE_CMAKE_CACHE_CMD[@]}" \
   -DCMAKE_INSTALL_PREFIX="$INSTALL_ROOT" \
   -DOSSIA_SDK="$OSSIA_SDK" \
   -DCMAKE_PREFIX_PATH="$OSSIA_SDK/qt6-static" \

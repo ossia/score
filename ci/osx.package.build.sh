@@ -37,9 +37,15 @@ if [[ -z "${SCORE_EXTRA_CMAKE_ARGS-}" ]]; then
    export SCORE_EXTRA_CMAKE_ARGS=
 fi
 
+if [[ -z "${SCORE_CMAKE_CACHE-}" ]]; then
+  export SCORE_CMAKE_CACHE_CMD=( )
+else
+  export SCORE_CMAKE_CACHE_CMD=(-C "$SCORE_CMAKE_CACHE")
+fi
 
 xcrun /usr/local/bin/cninja -S "$PWD" -B build \
   macos-release-12.0 -- \
+  "${SCORE_CMAKE_CACHE_CMD[@]}" \
   -DOSSIA_SDK="$OSSIA_SDK" \
   -DCMAKE_INSTALL_PREFIX="$PWD/install" \
   -DCMAKE_UNITY_BUILD=1 \

@@ -34,6 +34,7 @@ option(SCORE_ENABLE_CXX26 "Enable c++26" OFF)
 option(SCORE_INSTALL_HEADERS "Install headers" OFF)
 
 option(SCORE_FAST_DEV_BUILD "Disables some features for faster development" OFF)
+option(SCORE_CUSTOM_QT_PLUGINS "Set Qt plugins statically" "")
 set(CMAKE_DEBUG_POSTFIX "")
 if(APPLE)
   set(SCORE_OPENGL ON)

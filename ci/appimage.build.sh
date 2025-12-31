@@ -7,6 +7,10 @@ if [[ -z "${SCORE_EXTRA_CMAKE_ARGS-}" ]]; then
    export SCORE_EXTRA_CMAKE_ARGS=
 fi
 
+if [[ -z "${SCORE_CMAKE_CACHE-}" ]]; then
+   export SCORE_CMAKE_CACHE=
+fi
+
 mkdir -p $BUILD_FOLDER
 ln -s $BUILD_FOLDER build
 (
@@ -25,6 +29,7 @@ docker run \
 -e OSSIA_SDK="$OSSIA_SDK" \
 -e CPU_ARCH="$CPU_ARCH" \
 -e SCORE_EXTRA_CMAKE_ARGS="$SCORE_EXTRA_CMAKE_ARGS" \
+-e SCORE_CMAKE_CACHE="$SCORE_CMAKE_CACHE" \
 --mount type=bind,source="$PWD/$OSSIA_SDK",target=$OSSIA_SDK \
 --mount type=bind,source="$SOURCE_FOLDER",target=/score \
 --mount type=bind,source="$BUILD_FOLDER",target=/build \

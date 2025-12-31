@@ -4,9 +4,16 @@ if [[ -z "${SCORE_EXTRA_CMAKE_ARGS-}" ]]; then
    export SCORE_EXTRA_CMAKE_ARGS=
 fi
 
+if [[ -z "${SCORE_CMAKE_CACHE-}" ]]; then
+  export SCORE_CMAKE_CACHE_CMD=( )
+else
+  export SCORE_CMAKE_CACHE_CMD=(-C "$SCORE_CMAKE_CACHE")
+fi
+
 export PATH="$PATH:/c/ossia-sdk-x86_64/cmake/bin:/c/ossia-sdk-x86_64/llvm/bin"
 
 cmake -GNinja -S "$PWD" -B build \
+  "${SCORE_CMAKE_CACHE_CMD[@]}" \
   -DCMAKE_C_COMPILER=c:/ossia-sdk-x86_64/llvm/bin/clang.exe \
   -DCMAKE_CXX_COMPILER=c:/ossia-sdk-x86_64/llvm/bin/clang++.exe \
   -DOSSIA_SDK=c:/ossia-sdk-x86_64 \

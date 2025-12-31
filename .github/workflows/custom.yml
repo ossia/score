@@ -6,6 +6,10 @@ on:
         description: 'Additional CMake options'
         required: true
         type: string
+      cmake_cache:
+        description: 'Custom CMake cache file'
+        required: false
+        type: string
 
 jobs:
   appimage:
@@ -34,6 +38,7 @@ jobs:
           ./ci/appimage.build.sh
         env:
           SCORE_EXTRA_CMAKE_ARGS: ${{ inputs.cmake_options }}
+          SCORE_CMAKE_CACHE: ${{ inputs.cmake_cache }}
 
       - name: Deploy
         run: |
@@ -68,7 +73,7 @@ jobs:
         run: ./ci/win32.build.sh
         env:
           SCORE_EXTRA_CMAKE_ARGS: ${{ inputs.cmake_options }}
-
+          SCORE_CMAKE_CACHE: ${{ inputs.cmake_cache }}
       - name: Deploy
         shell: bash
         run: |
@@ -114,6 +119,7 @@ jobs:
         env:
           MACOS_ARCH: "aarch64"
           SCORE_EXTRA_CMAKE_ARGS: ${{ inputs.cmake_options }}
+          SCORE_CMAKE_CACHE: ${{ inputs.cmake_cache }}
 
       - run: |
           export GITTAGNOV=$(echo "$GITHUB_REF" | sed "s/.*\///;s/^v//")
