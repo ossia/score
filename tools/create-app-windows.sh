@@ -124,16 +124,12 @@ echo "Creating native launcher executable..."
 
 # Generate C source code
 echo " =========== "
-pwd
-ls $SCORE_SOURCE_DIR
-ls $SCORE_SOURCE_DIR/tools
-ls $SCORE_SOURCE_DIR/tools/launcher
 cp "$SCORE_SOURCE_DIR/tools/launcher/launcher.c" launcher.c
 cat > launcher-defines.h << EOF
 #pragma once
 
-#define MAIN_QML \"${MAIN_QML}\"
-#define SCORE_FILE \"${SCORE_BASENAME}\"
+#define MAIN_QML "${MAIN_QML}"
+#define SCORE_FILE "${SCORE_BASENAME}"
 #define HAS_AUTOPLAY $([[ -n "$AUTOPLAY" ]] && echo 1 || echo 0)
 #define HAS_SCORE $([[ -n "${SCORE_BASENAME}" ]] && echo 1 || echo 0)
 
@@ -162,14 +158,15 @@ else
     exit 1
 fi
 
-$COMPILER -O2 -s -mwindows -o "${APP_NAME}.exe" launcher.c
+$COMPILER -O3 -o "${APP_NAME}.exe" launcher.c -luser32
 rm -f launcher.c launcher-defines.h
 
 # Set icon and properties
 if [[ -f "${APP_ICON_ICO}" ]]; then
-  ./rcedit.exe "${APP_NAME}" --set-icon "${APP_ICON_ICO}" --set-file-version "${APP_VERSION}"
-  ./rcedit.exe "app-bin.exe" --set-icon "${APP_ICON_ICO}" --set-file-version "${APP_VERSION}"
+  "$WORK_DIR/rcedit.exe" "${APP_NAME}.exe" --set-icon "${APP_ICON_ICO}" --set-file-version "${APP_VERSION}"
+  "$WORK_DIR/rcedit.exe" "app-bin.exe" --set-icon "${APP_ICON_ICO}" --set-file-version "${APP_VERSION}"
 fi
+
 # Go back to work directory
 cd "$WORK_DIR"
 
