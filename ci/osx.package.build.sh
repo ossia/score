@@ -38,19 +38,23 @@ if [[ -z "${SCORE_EXTRA_CMAKE_ARGS-}" ]]; then
 fi
 
 if [[ -z "${SCORE_CMAKE_CACHE-}" ]]; then
-  declare -a SCORE_CMAKE_CACHE_CMD
+  xcrun /usr/local/bin/cninja -S "$PWD" -B build \
+    macos-release-12.0 -- \
+    -DOSSIA_SDK="$OSSIA_SDK" \
+    -DCMAKE_INSTALL_PREFIX="$PWD/install" \
+    -DCMAKE_UNITY_BUILD=1 \
+    -DCMAKE_OSX_ARCHITECTURES="$CMAKE_OSX_ARCH" \
+    $SCORE_EXTRA_CMAKE_ARGS
 else
-  export SCORE_CMAKE_CACHE_CMD=(-C "$SCORE_CMAKE_CACHE")
+  xcrun /usr/local/bin/cninja -S "$PWD" -B build \
+    macos-release-12.0 -- \
+    -C "$SCORE_CMAKE_CACHE" \
+    -DOSSIA_SDK="$OSSIA_SDK" \
+    -DCMAKE_INSTALL_PREFIX="$PWD/install" \
+    -DCMAKE_UNITY_BUILD=1 \
+    -DCMAKE_OSX_ARCHITECTURES="$CMAKE_OSX_ARCH" \
+    $SCORE_EXTRA_CMAKE_ARGS
 fi
-
-xcrun /usr/local/bin/cninja -S "$PWD" -B build \
-  macos-release-12.0 -- \
-  "${SCORE_CMAKE_CACHE_CMD[@]}" \
-  -DOSSIA_SDK="$OSSIA_SDK" \
-  -DCMAKE_INSTALL_PREFIX="$PWD/install" \
-  -DCMAKE_UNITY_BUILD=1 \
-  -DCMAKE_OSX_ARCHITECTURES="$CMAKE_OSX_ARCH" \
-  $SCORE_EXTRA_CMAKE_ARGS
 
 
 find . -type f -name 'ossia score' \
