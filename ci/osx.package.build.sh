@@ -38,7 +38,7 @@ if [[ -z "${SCORE_EXTRA_CMAKE_ARGS-}" ]]; then
 fi
 
 if [[ -z "${SCORE_CMAKE_CACHE-}" ]]; then
-  export SCORE_CMAKE_CACHE_CMD=( )
+  declare -a SCORE_CMAKE_CACHE_CMD
 else
   export SCORE_CMAKE_CACHE_CMD=(-C "$SCORE_CMAKE_CACHE")
 fi
