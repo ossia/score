@@ -123,7 +123,12 @@ mv score.exe app-bin.exe
 echo "Creating native launcher executable..."
 
 # Generate C source code
-cp launcher/launcher.c launcher.c
+echo " =========== "
+pwd
+ls $SCORE_SOURCE_DIR
+ls $SCORE_SOURCE_DIR/tools
+ls $SCORE_SOURCE_DIR/tools/launcher
+cp "$SCORE_SOURCE_DIR/tools/launcher/launcher.c" launcher.c
 cat > launcher-defines.h << EOF
 #pragma once
 
@@ -132,10 +137,10 @@ cat > launcher-defines.h << EOF
 #define HAS_AUTOPLAY $([[ -n "$AUTOPLAY" ]] && echo 1 || echo 0)
 #define HAS_SCORE $([[ -n "${SCORE_BASENAME}" ]] && echo 1 || echo 0)
 
-#define SCORE_CUSTOM_APP_ORGANIZATION_NAME "$SCORE_CUSTOM_APP_ORGANIZATION_NAME"
-#define SCORE_CUSTOM_APP_ORGANIZATION_DOMAIN "$SCORE_CUSTOM_APP_ORGANIZATION_DOMAIN"
-#define SCORE_CUSTOM_APP_APPLICATION_NAME "$SCORE_CUSTOM_APP_APPLICATION_NAME"
-#define SCORE_CUSTOM_APP_APPLICATION_VERSION "$SCORE_CUSTOM_APP_APPLICATION_VERSION"
+#define SCORE_CUSTOM_APP_ORGANIZATION_NAME "$APP_ORGANIZATION"
+#define SCORE_CUSTOM_APP_ORGANIZATION_DOMAIN "$APP_DOMAIN"
+#define SCORE_CUSTOM_APP_APPLICATION_NAME "$APP_NAME"
+#define SCORE_CUSTOM_APP_APPLICATION_VERSION "$APP_VERSION"
 
 EOF
 

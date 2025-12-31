@@ -322,6 +322,8 @@ export OUTPUT_DIR
 export RELEASE_TAG
 export LOCAL_INSTALLER
 export WORK_DIR
+export SCRIPT_DIR
+export SCORE_SOURCE_DIR
 
 # Build for each platform
 for platform in "${PLATFORMS[@]}"; do
