@@ -38,11 +38,12 @@ add_library(Spout
   SpoutUtils.cpp
 )
 
-if(NOT MSVC)
-  target_compile_options(Spout 
-    PRIVATE
-      -msse4
-  )
+if(MSVC)
+  set_target_properties(Spout PROPERTIES UNITY_BUILD 0)
+else()
+  if(NOT "${CMAKE_CXX_FLAGS}" MATCHES ".*avx.*")
+    target_compile_options(Spout PRIVATE -mavx2)
+  endif()
 endif()
 
 target_compile_definitions(Spout
