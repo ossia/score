@@ -22,6 +22,10 @@
 #if QT_HAS_VULKAN
 #if __has_include(<QtGui/private/qrhivulkan_p.h>)
 #include <QtGui/private/qrhivulkan_p.h>
+#if __has_include(<vulkan/vulkan_win32.h>)
+#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_win32.h>
+#endif
 #else
 #undef QT_HAS_VULKAN
 #endif
@@ -82,11 +86,15 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
   if(graphicsApi == Vulkan)
   {
     QRhiVulkanInitParams params;
+    params.deviceExtensions = QRhiVulkanInitParams::preferredInstanceExtensions();
 #if defined(_WIN32)
-    params.deviceExtensions << "VK_KHR_external_memory"
-                            << "VK_KHR_external_memory_win32"
-                            << "VK_KHR_external_semaphore"
-                            << "VK_KHR_external_semaphore_win32";
+    params.deviceExtensions << VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME
+                            << VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME
+                            << VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME
+                            << VK_KHR_EXTERNAL_SEMAPHORE_EXTENSION_NAME
+                            << VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME
+                            << VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME
+        ;
 #endif
 
     if(window)
