@@ -25,15 +25,11 @@ class GenericNodeRenderer;
 class NodeRenderer;
 using FunctionMessage = std::function<void(score::gfx::Node&)>;
 #if BOOST_VERSION < 107900
-// Old boost: small_vector was not nothrow-move-constructible so we remove the check there.
-using gfx_input = ossia::slow_variant<
-    ossia::monostate, ossia::value, ossia::audio_vector, ossia::render_target_spec,
-    ossia::geometry_spec, ossia::transform3d, FunctionMessage>;
-#else
+#error Boost version not supported anymore
+#endif
 using gfx_input = ossia::variant<
     ossia::monostate, ossia::value, ossia::audio_vector, ossia::render_target_spec,
     ossia::transform3d, FunctionMessage, ossia::buffer_spec>;
-#endif
 
 /**
  * @brief Messages sent from the execution thread to the rendering thread
