@@ -1,10 +1,12 @@
-cmake_minimum_required(VERSION 3.25...3.31 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.25...4.2 FATAL_ERROR)
+
 if(POLICY CMP0177)
   cmake_policy(SET CMP0177 NEW)
 endif()
 if(POLICY CMP0167)
   cmake_policy(SET CMP0167 OLD)
 endif()
+
 set(CMAKE_MODULE_PATH
     "${CMAKE_MODULE_PATH}"
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake"
@@ -14,6 +16,7 @@ set(CMAKE_MODULE_PATH
     "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libossia/cmake/cmake-modules")
 
 list(APPEND CMAKE_PREFIX_PATH "${CMAKE_MODULE_PATH}")
+
 if(OSSIA_SDK)
   if(UNIX AND NOT APPLE)
     set_property(GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS TRUE)
@@ -77,6 +80,7 @@ if(OSSIA_SDK)
   endif()
 endif()
 
+set(CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ScoreUserMakeRulesOverride.cmake")
 project(score LANGUAGES C CXX)
 if(APPLE)
   enable_language(OBJC)
