@@ -24,7 +24,9 @@
 #include <QtGui/private/qrhivulkan_p.h>
 #if __has_include(<vulkan/vulkan_win32.h>)
 #include <vulkan/vulkan.h>
+#ifdef Q_OS_WIN
 #include <vulkan/vulkan_win32.h>
+#endif
 #endif
 #else
 #undef QT_HAS_VULKAN
