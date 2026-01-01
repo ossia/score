@@ -128,6 +128,8 @@
 */
 
 #include "SpoutFrameCount.h"
+#include <windows.h>
+#include <timeapi.h>
 
 //
 // Class: spoutFrameCount
