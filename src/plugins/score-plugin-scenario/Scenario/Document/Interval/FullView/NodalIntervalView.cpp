@@ -1,6 +1,7 @@
 #include "NodalIntervalView.hpp"
 
 #include <Scenario/Application/Drops/DropOnCable.hpp>
+#include <Scenario/Application/Drops/DropProcessInInterval.hpp>
 #include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
@@ -8,6 +9,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 
+#include <Scenario/Commands/Cohesion/InterpolateMacro.hpp>
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/graphics/ZoomItem.hpp>
@@ -179,8 +181,13 @@ NodalIntervalView::~NodalIntervalView()
 
 void NodalIntervalView::on_drop(QPointF pos, const QMimeData* data)
 {
-  m_context.app.interfaces<Scenario::IntervalDropHandlerList>().drop(
+  const bool ok = m_context.app.interfaces<Scenario::IntervalDropHandlerList>().drop(
       m_context, m_model, m_container->mapFromParent(pos), *data);
+  if(ok)
+    return;
+
+  Scenario::DropProcessInInterval d;
+  d.drop(m_context, m_model, pos, *data);
 }
 
 void NodalIntervalView::on_playPercentageChanged(double t, TimeVal parent_dur)

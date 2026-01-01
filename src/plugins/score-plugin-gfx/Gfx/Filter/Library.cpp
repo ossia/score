@@ -3,8 +3,15 @@
 #include <Gfx/Filter/Process.hpp>
 #include <Library/LibrarySettings.hpp>
 #include <Library/ProcessesItemModel.hpp>
+#include <State/MessageListSerialization.hpp>
+#include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
+#include <Device/Node/NodeListMimeSerialization.hpp>
+#include <Process/Commands/EditPort.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 #include <score/tools/File.hpp>
+#include <ossia/gfx/texture_parameter.hpp>
+#include <ossia/network/base/device.hpp>
 
 #include <QDir>
 #include <QGuiApplication>
@@ -199,6 +206,101 @@ void DropHandler::dropCustom(
     }
   }
 }
+
+QSet<QString> VideoTextureDropHandler::mimeTypes() const noexcept
+{
+  return {score::mime::nodelist(), score::mime::messagelist()};
+}
+
+bool VideoTextureDropHandler::create(std::vector<ProcessDrop> &drops, const std::vector<State::Address> &addresses) const
+{
+  if(addresses.empty())
+    return false;
+
+  static const QString passthroughISF =
+      QStringLiteral(R"_(/*{
+  "CREDIT": "ossia score",
+  "ISFVSN": "2",
+  "DESCRIPTION": "Copy the input texture without changes",
+  "CATEGORIES": [
+    "Utility"
+  ],
+  "INPUTS": [ {
+      "NAME": "inputImage",
+      "TYPE": "image"
+    }
+  ]
+}*/
+
+void main() { gl_FragColor = IMG_THIS_PIXEL(inputImage); })_");
+
+  for(auto& addr : addresses)
+  {
+    // For immediate feedback, add a placeholder
+    Process::ProcessDropHandler::ProcessDrop p;
+    p.creation.key = Metadata<ConcreteKey_k, Gfx::Filter::Model>::get();
+    p.creation.prettyName = addr.device;
+    p.setup = [addr](Process::ProcessModel& p, score::Dispatcher& d) {
+      auto& filter = (Gfx::Filter::Model&)p;
+      Gfx::ShaderSource source;
+      source.fragment = passthroughISF;
+      auto cmd = new Gfx::ChangeShader{filter, source, score::IDocument::documentContext(p)};
+      d.submit(cmd);
+      auto cmd2 = new Process::ChangePortAddress{*filter.inlets().front(), State::AddressAccessor{addr}};
+      d.submit(cmd2);
+    };
+    drops.push_back(std::move(p));
+  }
+  return true;
+}
+
+bool VideoTextureDropHandler::isTexture(const State::Address &addr, const Device::DeviceList &devicelist) const noexcept
+{
+  if(auto* dev = devicelist.findDevice(addr.device))
+    if(auto* ossia_dev = dev->getDevice())
+      if(auto& node = ossia_dev->get_root_node(); auto p = node.get_parameter())
+        if(auto texture_parameter = dynamic_cast<ossia::gfx::texture_parameter*>(p))
+          return true;
+  return false;
+}
+
+void VideoTextureDropHandler::dropCustom(std::vector<ProcessDrop> &drops, const QMimeData &mime, const score::DocumentContext &ctx) const noexcept
+{
+  const auto& devicelist = ctx.plugin<Explorer::DeviceDocumentPlugin>().list();
+  if(mime.hasFormat(score::mime::nodelist()))
+  {
+    Mime<Device::FreeNodeList>::Deserializer des{mime};
+    Device::FreeNodeList nl = des.deserialize();
+    if(nl.empty())
+      return;
+
+    // Look for all the addresses that map to some texture input
+    std::vector<State::Address> addresses;
+    for(auto& np : nl)
+    {
+      if(isTexture(np.first, devicelist))
+        addresses.push_back( np.first);
+    }
+    create(drops, addresses);
+  }
+  else if(mime.hasFormat(score::mime::messagelist()))
+  {
+    Mime<State::MessageList>::Deserializer des{mime};
+    State::MessageList ml = des.deserialize();
+    if(ml.empty())
+      return;
+
+    // Look for all the addresses that map to some texture input
+    std::vector<State::Address> addresses;
+    for(auto& mp : ml)
+    {
+      if(isTexture(mp.address.address, devicelist))
+        addresses.push_back(mp.address.address);
+    }
+    create(drops, addresses);
+  }
+}
+
 }
 
 W_OBJECT_IMPL(Gfx::Filter::ShadertoyDownloader)

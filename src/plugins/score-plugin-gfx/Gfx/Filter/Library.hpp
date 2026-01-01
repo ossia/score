@@ -4,6 +4,15 @@
 #include <Library/LibraryInterface.hpp>
 #include <Library/ProcessesItemModel.hpp>
 
+namespace Device
+{
+class DeviceList;
+}
+namespace State
+{
+struct Address;
+}
+
 namespace Gfx::Filter
 {
 class LibraryHandler final : public Library::LibraryInterface
@@ -37,4 +46,23 @@ class DropHandler final : public Process::ProcessDropHandler
       std::vector<ProcessDrop>& drops, const QMimeData& mime,
       const score::DocumentContext& ctx) const noexcept override;
 };
+
+struct VideoTextureDropHandler : public Process::ProcessDropHandler
+{
+  SCORE_CONCRETE("e9bf6cf8-c872-4638-b98a-ed76edc8e2dd")
+
+public:
+  QSet<QString> mimeTypes() const noexcept override;
+
+  bool create(
+      std::vector<ProcessDrop>& drops,
+      const std::vector<State::Address>& addresses) const;
+
+  bool isTexture(const State::Address& addr, const Device::DeviceList& devicelist) const noexcept;
+
+  void dropCustom(
+      std::vector<ProcessDrop>& drops, const QMimeData& mime,
+      const score::DocumentContext& ctx) const noexcept final override;
+};
+
 }
