@@ -21,6 +21,8 @@ struct MIDISpecificSettings
   bool virtualPort{};
 
   bool createWholeTree{};
+
+  bool velocityZeroIsNoteOff{};
 };
 }
 Q_DECLARE_METATYPE(Protocols::MIDISpecificSettings)

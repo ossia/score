@@ -11,7 +11,7 @@ void DataStreamReader::read(const Protocols::MIDISpecificSettings& n)
 {
   m_stream << n.io << n.api << n.createWholeTree << n.virtualPort << n.handle.port
            << n.handle.manufacturer << n.handle.device_name << n.handle.port_name
-           << n.handle.display_name;
+           << n.handle.display_name << n.velocityZeroIsNoteOff;
   insertDelimiter();
 }
 
@@ -20,7 +20,7 @@ void DataStreamWriter::write(Protocols::MIDISpecificSettings& n)
 {
   m_stream >> n.io >> n.api >> n.createWholeTree >> n.virtualPort >> n.handle.port
       >> n.handle.manufacturer >> n.handle.device_name >> n.handle.port_name
-      >> n.handle.display_name;
+      >> n.handle.display_name >> n.velocityZeroIsNoteOff;
   checkDelimiter();
 }
 
@@ -38,6 +38,7 @@ void JSONReader::read(const Protocols::MIDISpecificSettings& n)
 
   obj["CreateWholeTree"] = n.createWholeTree;
   obj["VirtualPort"] = n.virtualPort;
+  obj["VelocityZeroIsNoteOff"] = n.velocityZeroIsNoteOff;
 }
 
 template <>
@@ -74,4 +75,9 @@ void JSONWriter::write(Protocols::MIDISpecificSettings& n)
     n.virtualPort = it->toBool();
   else
     n.virtualPort = false;
+
+  if(auto it = obj.tryGet("VelocityZeroIsNoteOff"))
+    n.velocityZeroIsNoteOff = it->toBool();
+  else
+    n.velocityZeroIsNoteOff = false;
 }

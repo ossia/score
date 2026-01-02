@@ -122,7 +122,7 @@ bool MIDIDevice::reconnect()
       // }
 
       proto = std::make_unique<ossia::net::midi::midi_protocol>(
-          m_ctx, set.handle.display_name, conf, api_conf);
+          m_ctx, ossia::net::midi::midi_protocol_configuration{set.handle.display_name, set.velocityZeroIsNoteOff}, conf, api_conf);
     }
     else
     {
@@ -133,7 +133,7 @@ bool MIDIDevice::reconnect()
           conf.client_name = "ossia score";
       }, api_conf);
       proto = std::make_unique<ossia::net::midi::midi_protocol>(
-          m_ctx, set.handle.display_name, conf, api_conf);
+          m_ctx, ossia::net::midi::midi_protocol_configuration{set.handle.display_name, set.velocityZeroIsNoteOff}, conf, api_conf);
     }
 
     auto& p = *proto;
