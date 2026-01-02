@@ -26,7 +26,7 @@ class MIDIInputSettingsWidget final : public Device::ProtocolSettingsWidget
   W_OBJECT(MIDIInputSettingsWidget)
 
 public:
-  MIDIInputSettingsWidget(QWidget* parent = nullptr);
+  explicit MIDIInputSettingsWidget(QWidget* parent = nullptr);
 
 private:
   Device::DeviceSettings getSettings() const override;
@@ -36,6 +36,7 @@ private:
   State::AddressFragmentLineEdit* m_name{};
   QCheckBox* m_createWhole{};
   QCheckBox* m_virtualPort{};
+  QCheckBox* m_velocityZeroIsNoteOff{};
   Device::DeviceSettings m_current;
 };
 class MIDIOutputSettingsWidget final : public Device::ProtocolSettingsWidget
@@ -43,7 +44,7 @@ class MIDIOutputSettingsWidget final : public Device::ProtocolSettingsWidget
   W_OBJECT(MIDIOutputSettingsWidget)
 
 public:
-  MIDIOutputSettingsWidget(QWidget* parent = nullptr);
+  explicit MIDIOutputSettingsWidget(QWidget* parent = nullptr);
 
 private:
   Device::DeviceSettings getSettings() const override;
@@ -53,6 +54,7 @@ private:
   State::AddressFragmentLineEdit* m_name{};
   QCheckBox* m_createWhole{};
   QCheckBox* m_virtualPort{};
+  QCheckBox* m_velocityZeroIsNoteOff{};
   Device::DeviceSettings m_current;
 };
 }
