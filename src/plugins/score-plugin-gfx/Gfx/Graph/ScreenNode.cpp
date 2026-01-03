@@ -88,7 +88,6 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
   if(graphicsApi == Vulkan)
   {
     QRhiVulkanInitParams params;
-    params.deviceExtensions = QRhiVulkanInitParams::preferredInstanceExtensions();
 #if defined(_WIN32)
     params.deviceExtensions << VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME
                             << VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME
@@ -321,6 +320,11 @@ void ScreenNode::setTitle(QString title)
   {
     m_window->setTitle(title);
   }
+}
+
+void ScreenNode::setConfiguration(Configuration conf)
+{
+  m_conf = conf;
 }
 
 void ScreenNode::setSize(QSize sz)

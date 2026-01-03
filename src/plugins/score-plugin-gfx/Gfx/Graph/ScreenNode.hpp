@@ -29,6 +29,7 @@ struct SCORE_PLUGIN_GFX_EXPORT ScreenNode : OutputNode
   void setFullScreen(bool);
   void setCursor(bool);
   void setTitle(QString);
+  void setConfiguration(Configuration);
 
   void createOutput(score::gfx::OutputConfiguration) override;
   void destroyOutput() override;
