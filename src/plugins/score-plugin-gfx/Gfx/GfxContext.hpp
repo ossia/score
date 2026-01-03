@@ -11,11 +11,12 @@
 #include <ossia/detail/small_flat_map.hpp>
 #include <ossia/gfx/port_index.hpp>
 #include <ossia/network/value/value.hpp>
-
+#include <score/tools/Timers.hpp>
 #include <concurrentqueue.h>
 #include <score_plugin_gfx_export.h>
 namespace score {
 class HighResolutionTimer;
+class Timers;
 }
 namespace score::gfx
 {
@@ -116,9 +117,11 @@ private:
   score::HighResolutionTimer* m_no_vsync_timer{};
   score::HighResolutionTimer* m_watchdog_timer{};
 
-  ossia::small_flat_map<score::HighResolutionTimer*, score::gfx::OutputNode*, 8> m_manualTimers;
+  ossia::small_flat_map<score::HighResolutionTimer*, ossia::flat_set<score::gfx::OutputNode*>, 8> m_manualTimers;
 
   ossia::object_pool<std::vector<score::gfx::gfx_input>> m_buffers;
+
+  score::Timers m_timers;
 };
 
 }

@@ -35,8 +35,6 @@ void LibavEncoderNode::render()
 {
   if(!encoder.available())
     return;
-  if(m_update)
-    m_update();
 
   auto renderer = m_renderer.lock();
   if(renderer && m_renderState)
@@ -79,12 +77,9 @@ score::gfx::RenderList* LibavEncoderNode::renderer() const
   return m_renderer.lock().get();
 }
 
-void LibavEncoderNode::createOutput(
-    score::gfx::GraphicsApi graphicsApi, std::function<void()> onReady,
-    std::function<void()> onUpdate, std::function<void()> onResize)
+void LibavEncoderNode::createOutput(score::gfx::OutputConfiguration conf)
 {
   m_renderState = std::make_shared<score::gfx::RenderState>();
-  m_update = onUpdate;
 
   m_renderState->surface = QRhiGles2InitParams::newFallbackSurface();
   QRhiGles2InitParams params;
@@ -108,7 +103,7 @@ void LibavEncoderNode::createOutput(
   m_renderTarget->setRenderPassDescriptor(m_renderState->renderPassDescriptor);
   m_renderTarget->create();
 
-  onReady();
+  conf.onReady();
 }
 
 void LibavEncoderNode::destroyOutput() { }

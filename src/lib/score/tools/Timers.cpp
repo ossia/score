@@ -15,6 +15,68 @@ W_OBJECT_IMPL(score::Timers)
 namespace score
 {
 
+#if defined(HRT_STATS)
+struct TimerStats {
+  double m2 = 0;
+  double mean = 0;
+
+  double actualFrequencyHz = 0;
+  double jitterUs = 0;
+  double maxLatencyUs = 0;
+  uint64_t tickCount = 0;
+  uint64_t missedTicks = 0;
+  void tick(uint64_t actualNs, uint64_t nextTickNs, uint64_t lastTickNs, uint64_t startTimeNs, uint64_t intervalNs)
+  {
+    tickCount++;
+
+    // Calculate actual interval and jitter using Welford's algorithm
+    double actualIntervalNs = static_cast<double>(actualNs - lastTickNs);
+    double delta = actualIntervalNs - mean;
+    mean += delta / tickCount;
+    double delta2 = actualIntervalNs - mean;
+    m2 += delta * delta2;
+
+    if (tickCount > 1)
+    {
+      const double variance = m2 / (tickCount - 1);
+      jitterUs = std::sqrt(variance) / 1000.0;
+    }
+
+    // Latency
+    int64_t latencyNs = actualNs - nextTickNs;
+    if (latencyNs > 0)
+    {
+      double latencyUs = latencyNs / 1000.0;
+      if (latencyUs > maxLatencyUs)
+        maxLatencyUs = latencyUs;
+    }
+
+    // Actual frequency
+    double elapsedS = (actualNs - startTimeNs) / 1'000'000'000.0;
+    if (elapsedS > 0)
+      actualFrequencyHz = tickCount / elapsedS;
+
+    // Check for missed ticks
+    if (latencyNs > static_cast<int64_t>(intervalNs))
+    {
+      missedTicks += latencyNs / intervalNs;
+    }
+
+    if(tickCount % 10 == 0 && actualFrequencyHz > 90) {
+      qDebug() << " -- actualFrequencyHz:" << actualFrequencyHz
+               << " ; missed:" << missedTicks
+               << " ; jitterUs:" << jitterUs
+               << " ; maxLatencyUs:" << maxLatencyUs
+               << " ; tickCount:" << tickCount;
+    }
+  }
+} g_mainThreadStats;
+
+uint64_t nextTickNs;
+uint64_t lastTickNs;
+uint64_t startTimeNs;
+#endif
+
 class HighResolutionTimerPrivate
 {
 public:
@@ -24,9 +86,8 @@ public:
   double frequencyHz;
   uint64_t intervalNs;
 
-  // For jitter calculation
-  double m2 = 0;  // For Welford's online variance
-  double mean = 0;
+  int timerId{}; // For timerEvent
+  bool accurate{};
 
   HighResolutionTimerPrivate(HighResolutionTimer* parent, double freq)
       : q(parent)
@@ -41,78 +102,26 @@ public:
     ossia::priority_boost_handle priorityHandle{frequencyHz};
 
     uint64_t nextTickNs = ossia::now_ns() + intervalNs;
+#if defined(HRT_STATS)
     uint64_t lastTickNs = ossia::now_ns();
     uint64_t startTimeNs = lastTickNs;
+    TimerStats stats{};
+#endif
 
-    struct Stats {
-      double actualFrequencyHz = 0;
-      double jitterUs = 0;
-      double maxLatencyUs = 0;
-      uint64_t tickCount = 0;
-      uint64_t missedTicks = 0;
-    } stats{};
-
-    ossia::adaptive_sleep sleeper;
+    ossia::windows_timer_sleep sleeper;
     while (running.load(std::memory_order_relaxed))
     {
-      sleeper.
-          sleep_until(nextTickNs);
+      sleeper.sleep_until(nextTickNs);
 
       uint64_t actualNs = ossia::now_ns();
 
-#define HRT_STATS 1
-#if defined(HRT_STATS)
-      // Update statistics
-      {
-        stats.tickCount++;
-
-        // Calculate actual interval and jitter using Welford's algorithm
-        double actualIntervalNs = static_cast<double>(actualNs - lastTickNs);
-        double delta = actualIntervalNs - mean;
-        mean += delta / stats.tickCount;
-        double delta2 = actualIntervalNs - mean;
-        m2 += delta * delta2;
-
-        if (stats.tickCount > 1)
-        {
-          const double variance = m2 / (stats.tickCount - 1);
-          stats.jitterUs = std::sqrt(variance) / 1000.0;
-        }
-
-        // Latency
-        int64_t latencyNs = actualNs - nextTickNs;
-        if (latencyNs > 0)
-        {
-          double latencyUs = latencyNs / 1000.0;
-          if (latencyUs > stats.maxLatencyUs)
-            stats.maxLatencyUs = latencyUs;
-        }
-
-        // Actual frequency
-        double elapsedS = (actualNs - startTimeNs) / 1'000'000'000.0;
-        if (elapsedS > 0)
-          stats.actualFrequencyHz = stats.tickCount / elapsedS;
-
-        // Check for missed ticks
-        if (latencyNs > static_cast<int64_t>(intervalNs))
-        {
-          stats.missedTicks += latencyNs / intervalNs;
-        }
-
-        if(stats.tickCount % 10 == 0 && stats.actualFrequencyHz > 90) {
-          qDebug() << " -- actualFrequencyHz:" << stats.actualFrequencyHz
-                   << " ; missed:" << stats.missedTicks
-                   << " ; jitterUs:" << stats.jitterUs
-                   << " ; maxLatencyUs:" << stats.maxLatencyUs
-                   << " ; tickCount:" << stats.tickCount;
-        }
-      }
-#endif
-
-      lastTickNs = actualNs;
-
       // Emit signal
       q->timeout(q);
+
+#if defined(HRT_STATS)
+      stats.tick(actualNs, nextTickNs, lastTickNs, startTimeNs, intervalNs);
+      lastTickNs = actualNs;
+#endif
 
       // Schedule next tick
       nextTickNs += intervalNs;
@@ -123,7 +132,6 @@ public:
         nextTickNs = actualNs + intervalNs;
       }
     }
-
   }
 };
 
@@ -138,28 +146,65 @@ HighResolutionTimer::~HighResolutionTimer()
   stop();
 }
 
+void HighResolutionTimer::timerEvent(QTimerEvent *k)
+{
+#if defined(HRT_STATS)
+  uint64_t actualNs = ossia::now_ns();
+  auto intervalNs = static_cast<uint64_t>(1'000'000'000.0 / frequency());
+  g_mainThreadStats.tick(actualNs, nextTickNs, lastTickNs, startTimeNs, intervalNs);
+
+  lastTickNs = actualNs;
+
+  // Schedule next tick
+  nextTickNs += intervalNs;
+
+  // If we've fallen too far behind, reset
+  if (actualNs > nextTickNs + intervalNs * 3)
+  {
+    nextTickNs = actualNs + intervalNs;
+  }
+#endif
+  timeout(this);
+}
+
 void HighResolutionTimer::start()
 {
-  if (d->running.exchange(true))
-    return;
+  if(!d->accurate)
+  {
+    d->timerId = this->startTimer(std::chrono::milliseconds{int(1000. / this->frequency())}, Qt::PreciseTimer);
 
-  QObject::connect(&d->thread, &QThread::started, [this]() {
-    d->timerLoop();
-  });
+#if defined(HRT_STATS)
+    nextTickNs = ossia::now_ns() + static_cast<uint64_t>(1'000'000'000.0 / frequency());
+    lastTickNs = ossia::now_ns();
+    startTimeNs = lastTickNs;
+#endif
+  }
+  else
+  {
+    if (d->running.exchange(true))
+      return;
 
-  d->thread.start(QThread::TimeCriticalPriority);
+    QObject::connect(&d->thread, &QThread::started, [this]() {
+      d->timerLoop();
+    });
+
+    d->thread.start(QThread::NormalPriority);
+  }
   started(this);
 }
 
 void HighResolutionTimer::stop()
 {
-  if (!d->running.exchange(false))
-    return;
+  if(!d->accurate)
+  {
+    if (!d->running.exchange(false))
+      return;
 
-  d->thread.quit();
-  d->thread.wait();
+    d->thread.quit();
+    d->thread.wait();
 
-  QObject::disconnect(&d->thread, &QThread::started, nullptr, nullptr);
+    QObject::disconnect(&d->thread, &QThread::started, nullptr, nullptr);
+  }
   stopped(this);
 }
 
@@ -171,6 +216,17 @@ bool HighResolutionTimer::isRunning() const
 double HighResolutionTimer::frequency() const
 {
   return d->frequencyHz;
+}
+
+void HighResolutionTimer::setMaximumAccuracy(bool b)
+{
+  if(b != d->accurate)
+  {
+    d->accurate = b;
+    QSignalBlocker blocker{*this};
+    stop();
+    start();
+  }
 }
 
 Timers& Timers::instance()
@@ -210,7 +266,6 @@ HighResolutionTimer* Timers::acquireTimer(QObject* user, double frequencyHz)
 
   auto* ptr = entry.timer.get();
   m_timers.emplace(frequencyHz, std::move(entry));
-
   return ptr;
 }
 

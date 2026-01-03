@@ -184,8 +184,9 @@ createRenderState(QWindow& window, GraphicsApi graphicsApi)
   return createRenderState(graphicsApi, window.size(), &window);
 }
 
-ScreenNode::ScreenNode(bool embedded, bool fullScreen)
+ScreenNode::ScreenNode(Configuration conf, bool embedded, bool fullScreen)
     : OutputNode{}
+    , m_conf{conf}
     , m_embedded{embedded}
     , m_fullScreen{fullScreen}
     , m_ownsWindow{true}
@@ -244,21 +245,30 @@ void ScreenNode::startRendering()
   }
 }
 
-void ScreenNode::render() { }
+void ScreenNode::render()
+{
+  // Used when we don't have vsync: request an update on the Window
+  if(m_window)
+  {
+    onRendererChange();
+    m_window->render();
+  }
+}
 
 void ScreenNode::onRendererChange()
 {
   if(m_window)
   {
-    if(auto r = m_window->state->renderer.lock())
+    if(m_window->state)
     {
-      m_window->m_canRender = r->renderers.size() > 1;
-    }
-    else
-    {
-      m_window->m_canRender = false;
+      if(auto r = m_window->state->renderer.lock())
+      {
+        m_window->m_canRender = r->renderers.size() > 1;
+        return;
+      }
     }
   }
+  m_window->m_canRender = false;
 }
 
 void ScreenNode::stopRendering()
@@ -366,13 +376,11 @@ void ScreenNode::setCursor(bool b)
   }
 }
 
-void ScreenNode::createOutput(
-    GraphicsApi graphicsApi, std::function<void()> onReady,
-    std::function<void()> onUpdate, std::function<void()> onResize)
+void ScreenNode::createOutput(score::gfx::OutputConfiguration conf)
 {
   if(m_ownsWindow)
   {
-    m_window = std::make_shared<Window>(graphicsApi);
+    m_window = std::make_shared<Window>(conf.graphicsApi);
     if(m_embedded)
       m_window->unsetCursor();
   }
@@ -401,8 +409,8 @@ void ScreenNode::createOutput(
     if(onKeyRelease)
       onKeyRelease(k, t);
   });
-  m_window->onUpdate = std::move(onUpdate);
-  m_window->onWindowReady = [this, graphicsApi, onReady = std::move(onReady)] {
+  m_window->onUpdate = this->m_vsyncCallback;
+  m_window->onWindowReady = [this, graphicsApi=conf.graphicsApi, onReady = std::move(conf.onReady)] {
     m_window->state = createRenderState(*m_window, graphicsApi);
     m_window->state->window = m_window;
     m_window->state->renderSize = QSize(1280, 720);
@@ -433,7 +441,7 @@ void ScreenNode::createOutput(
       onReady();
     }
   };
-  m_window->onResize = [this, onResize = std::move(onResize)] {
+  m_window->onResize = [this, onResize = std::move(conf.onResize)] {
     if(m_window && m_window->state)
     {
       auto& st = *m_window->state;
@@ -550,6 +558,16 @@ void ScreenNode::updateGraphicsAPI(GraphicsApi api)
   }
 }
 
+void ScreenNode::setVSyncCallback(std::function<void ()> f)
+{
+  // TODO thread safety if vulkan uses a thread ?
+  // If we have more than one output, then instead we sync them with
+  // a simple timer, as they may have drastically different vsync rates.
+  m_vsyncCallback = f;
+  if(m_window)
+    m_window->onUpdate = m_vsyncCallback;
+}
+
 std::shared_ptr<score::gfx::RenderState> ScreenNode::renderState() const
 {
   if(m_window && m_window->m_swapChain)
@@ -569,7 +587,7 @@ score::gfx::OutputNodeRenderer* ScreenNode::createRenderer(RenderList& r) const 
 
 OutputNode::Configuration ScreenNode::configuration() const noexcept
 {
-  return {};
+  return m_conf;
 }
 
 

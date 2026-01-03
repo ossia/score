@@ -9,6 +9,7 @@
 
 #include <core/application/ApplicationSettings.hpp>
 
+#include <Gfx/Settings/Model.hpp>
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/protocol.hpp>
 #include <ossia/network/generic/generic_node.hpp>
@@ -31,7 +32,16 @@ namespace Gfx
 static score::gfx::ScreenNode* createScreenNode()
 {
   const auto& settings = score::AppContext().applicationSettings;
-  return new score::gfx::ScreenNode{false, (settings.autoplay || !settings.gui)};
+  const auto& gfx_settings = score::AppContext().settings<Gfx::Settings::Model>();
+
+  score::gfx::OutputNode::Configuration conf;
+  double rate = gfx_settings.getRate();
+  if(rate > 0)
+    conf = { .manualRenderingRate = 1000. / rate, .supportsVSync = true};
+  else
+    conf = { .supportsVSync = true };
+
+  return new score::gfx::ScreenNode{conf, false, (settings.autoplay || !settings.gui)};
 }
 
 class window_device : public ossia::net::device_base

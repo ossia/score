@@ -276,9 +276,6 @@ struct SpoutNode final : score::gfx::OutputNode
 
   void render() override
   {
-    if(m_update)
-      m_update();
-
     auto renderer = m_renderer.lock();
     if(renderer && m_renderState)
     {
@@ -534,15 +531,12 @@ struct SpoutNode final : score::gfx::OutputNode
 
   score::gfx::RenderList* renderer() const override { return m_renderer.lock().get(); }
 
-  void createOutput(
-      score::gfx::GraphicsApi graphicsApi, std::function<void()> onReady,
-      std::function<void()> onUpdate, std::function<void()> onResize) override
+  void createOutput(score::gfx::OutputConfiguration conf) override
   {
     m_renderState = std::make_shared<score::gfx::RenderState>();
-    m_update = onUpdate;
 
     // Choose backend based on requested API
-    switch(graphicsApi)
+    switch(conf.graphicsApi)
     {
       case score::gfx::GraphicsApi::D3D11:
         createOutputD3D11();
@@ -583,7 +577,8 @@ struct SpoutNode final : score::gfx::OutputNode
     m_renderTarget->setRenderPassDescriptor(m_renderState->renderPassDescriptor);
     m_renderTarget->create();
 
-    onReady();
+    if(conf.onReady)
+      conf.onReady();
   }
 
   void createOutputOpenGL()
@@ -1044,7 +1039,6 @@ private:
   std::weak_ptr<score::gfx::RenderList> m_renderer{};
   QRhiTexture* m_texture{};
   QRhiTextureRenderTarget* m_renderTarget{};
-  std::function<void()> m_update;
   std::shared_ptr<score::gfx::RenderState> m_renderState{};
 
   // OpenGL backend
