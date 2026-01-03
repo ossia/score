@@ -2,6 +2,7 @@
 
 #include <Gfx/Graph/RenderState.hpp>
 
+#include <QElapsedTimer>
 #include <QTabletEvent>
 #include <QWindow>
 
@@ -54,10 +55,14 @@ public:
   void key(int key, const QString& t) W_SIGNAL(key, key, t);
   void keyRelease(int key, const QString& t) W_SIGNAL(keyRelease, key, t);
 
+  void fps(float v) W_SIGNAL(fps, v);
+
 private:
   std::shared_ptr<RenderState> state;
   GraphicsApi m_api{};
   QRhiSwapChain* m_swapChain{};
+  QElapsedTimer m_timer;
+  double m_fps{0.};
 
   bool m_closed = false;
   bool m_canRender = false;

@@ -232,6 +232,8 @@ bool ScreenNode::canRender() const
 
 void ScreenNode::startRendering()
 {
+  if(onFps)
+    onFps(0.f);
   if(m_window)
   {
     m_window->onRender = [this](QRhiCommandBuffer& commands) {
@@ -280,6 +282,8 @@ void ScreenNode::stopRendering()
       m_window->state->renderer = {};
     ////window->state->hasSwapChain = false;
   }
+  if(onFps)
+    onFps(0.f);
 }
 
 void ScreenNode::setRenderer(std::shared_ptr<RenderList> r)
@@ -412,6 +416,10 @@ void ScreenNode::createOutput(score::gfx::OutputConfiguration conf)
   QObject::connect(m_window.get(), &Window::keyRelease, [this](int k, const QString& t) {
     if(onKeyRelease)
       onKeyRelease(k, t);
+  });
+  QObject::connect(m_window.get(), &Window::fps, [this](float f) {
+    if(onFps)
+      onFps(f);
   });
   m_window->onUpdate = this->m_vsyncCallback;
   m_window->onWindowReady = [this, graphicsApi=conf.graphicsApi, onReady = std::move(conf.onReady)] {

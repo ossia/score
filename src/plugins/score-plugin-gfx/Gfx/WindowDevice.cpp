@@ -417,6 +417,13 @@ public:
       });
       m_root.add_child(std::move(fs_node));
     }
+
+    {
+      auto fps_node = std::make_unique<ossia::net::generic_node>("fps", *this, m_root);
+      auto fps_param = fps_node->create_parameter(ossia::val_type::FLOAT);
+      m_screen->onFps = [fps_param](float fps) { fps_param->push_value(fps); };
+      m_root.add_child(std::move(fps_node));
+    }
   }
 
   const gfx_node_base& get_root_node() const override { return m_root; }
