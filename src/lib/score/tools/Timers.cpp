@@ -108,7 +108,11 @@ public:
     TimerStats stats{};
 #endif
 
+#if defined(_WIN32)
     ossia::windows_timer_sleep sleeper;
+#else
+    ossia::adaptive_sleep sleeper;
+#endif
     while (running.load(std::memory_order_relaxed))
     {
       sleeper.sleep_until(nextTickNs);
