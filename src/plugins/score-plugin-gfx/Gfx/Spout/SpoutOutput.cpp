@@ -665,7 +665,6 @@ struct SpoutNode final : score::gfx::OutputNode
     params.inst = vkInst;
 
     // Enable required device extensions for external memory
-    params.deviceExtensions = QRhiVulkanInitParams::preferredInstanceExtensions();
     params.deviceExtensions << VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME
                             << VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME
                             << VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME

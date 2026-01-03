@@ -34,14 +34,24 @@ static score::gfx::ScreenNode* createScreenNode()
   const auto& settings = score::AppContext().applicationSettings;
   const auto& gfx_settings = score::AppContext().settings<Gfx::Settings::Model>();
 
-  score::gfx::OutputNode::Configuration conf;
-  double rate = gfx_settings.getRate();
-  if(rate > 0)
-    conf = { .manualRenderingRate = 1000. / rate, .supportsVSync = true};
-  else
-    conf = { .supportsVSync = true };
+  auto make_configuration = [&] {
+    score::gfx::OutputNode::Configuration conf;
+    double rate = gfx_settings.getRate();
+    if(rate > 0)
+      conf = {.manualRenderingRate = 1000. / rate, .supportsVSync = true};
+    else
+      conf = {.manualRenderingRate = {}, .supportsVSync = true};
+    return conf;
+  };
 
-  return new score::gfx::ScreenNode{conf, false, (settings.autoplay || !settings.gui)};
+  auto node = new score::gfx::ScreenNode{
+      make_configuration(), false, (settings.autoplay || !settings.gui)};
+
+  QObject::connect(
+      &gfx_settings, &Gfx::Settings::Model::RateChanged, node,
+      [node, make_configuration] { node->setConfiguration(make_configuration()); });
+
+  return node;
 }
 
 class window_device : public ossia::net::device_base
