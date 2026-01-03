@@ -127,6 +127,7 @@ void Window::releaseSwapChain()
 
 void Window::render()
 {
+  static constexpr double fps_smoothing = .8;
   if(m_closed)
     return;
 
@@ -176,6 +177,20 @@ void Window::render()
     onRender(*commands);
 
     state->rhi->endFrame(m_swapChain, {});
+    {
+      // 1. Calculate the time elapsed since the last frame
+      if(const auto frame_ns = m_timer.nsecsElapsed(); frame_ns > 0)
+      {
+        const double fps = 1e9 / frame_ns;
+
+        // 2. Smooth things a bit
+        if(m_fps == 0.0f)
+          m_fps = fps;
+        else
+          m_fps = (fps * fps_smoothing) + (m_fps * (1.0f - fps_smoothing));
+      }
+      m_timer.restart();
+    }
   }
   else
   {
@@ -202,7 +217,10 @@ void Window::render()
     buf->endPass();
 
     state->rhi->endFrame(m_swapChain, {});
+    m_fps = 0.;
   }
+
+  fps(m_fps);
 
   if(this->onUpdate) {
     // requestUpdate is only to be used in the vsync case

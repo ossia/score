@@ -47,6 +47,7 @@ struct SCORE_PLUGIN_GFX_EXPORT ScreenNode : OutputNode
   std::function<void(QTabletEvent*)> onTabletMove;
   std::function<void(int, const QString&)> onKey;
   std::function<void(int, const QString&)> onKeyRelease;
+  std::function<void(float)> onFps;
 
 private:
   Configuration m_conf;
