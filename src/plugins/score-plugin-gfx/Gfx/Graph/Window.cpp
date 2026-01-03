@@ -203,7 +203,11 @@ void Window::render()
 
     state->rhi->endFrame(m_swapChain, {});
   }
-  requestUpdate();
+
+  if(this->onUpdate) {
+    // requestUpdate is only to be used in the vsync case
+    requestUpdate();
+  }
 }
 
 void Window::exposeEvent(QExposeEvent* ev)

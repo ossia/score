@@ -322,7 +322,6 @@ struct SCORE_PLUGIN_AVND_EXPORT CustomGpuOutputNodeBase
   const score::DocumentContext& m_ctx;
   std::weak_ptr<score::gfx::RenderList> m_renderer{};
   std::shared_ptr<score::gfx::RenderState> m_renderState{};
-  std::function<void()> m_update;
 
   QString vertex, fragment, compute;
   score::gfx::Message last_message;
@@ -338,9 +337,7 @@ struct SCORE_PLUGIN_AVND_EXPORT CustomGpuOutputNodeBase
   bool canRender() const override;
   void onRendererChange() override;
 
-  void createOutput(
-      score::gfx::GraphicsApi graphicsApi, std::function<void()> onReady,
-      std::function<void()> onUpdate, std::function<void()> onResize) override;
+  void createOutput(score::gfx::OutputConfiguration) override;
 
   void destroyOutput() override;
   std::shared_ptr<score::gfx::RenderState> renderState() const override;

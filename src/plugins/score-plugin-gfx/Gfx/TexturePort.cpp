@@ -44,7 +44,9 @@ public:
       , plug{&plug}
   {
     setLayout(new Inspector::VBoxLayout{this});
-    auto window = std::make_unique<score::gfx::ScreenNode>(true);
+
+    score::gfx::OutputNode::Configuration conf{};
+    auto window = std::make_unique<score::gfx::ScreenNode>(conf, true);
     node = window.get();
     screenId = plug.context.register_preview_node(std::move(window));
     if(screenId != -1)
@@ -101,6 +103,7 @@ public:
       container->setMaximumHeight(200);
       this->layout()->addWidget(container);
     }
+    node->render();
   }
 
   ~GraphPreviewWidget()

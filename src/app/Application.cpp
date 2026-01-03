@@ -230,6 +230,17 @@ Application::Application(int& argc, char** argv)
   }
 
   m_app = createApplication(appSettings, argc, argv);
+
+#if defined(QT_FEATURE_thread)
+#if QT_FEATURE_thread == 1
+  this->thread()->setPriority(QThread::Priority::TimeCriticalPriority);
+  QThreadPool::globalInstance()->setMaxThreadCount(2);
+  QThreadPool::globalInstance()->setThreadPriority(QThread::Priority::HighPriority);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
+  QThreadPool::globalInstance()->setServiceLevel(QThread::QualityOfService::High);
+#endif
+#endif
+#endif
 }
 
 Application::Application(

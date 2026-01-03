@@ -28,7 +28,9 @@ public:
   void started(score::HighResolutionTimer* self) E_SIGNAL(SCORE_LIB_BASE_EXPORT, started, self);
   void stopped(score::HighResolutionTimer* self) E_SIGNAL(SCORE_LIB_BASE_EXPORT, stopped, self);
 
+  void setMaximumAccuracy(bool);
 private:
+  void timerEvent(QTimerEvent *k) override;
   std::unique_ptr<HighResolutionTimerPrivate> d;
 };
 

@@ -70,9 +70,6 @@ void CustomGpuOutputNodeBase::startRendering() { }
 
 void CustomGpuOutputNodeBase::render()
 {
-  if(m_update)
-    m_update();
-
   auto renderer = m_renderer.lock();
   if(renderer && m_renderState)
   {
@@ -95,12 +92,9 @@ bool CustomGpuOutputNodeBase::canRender() const
 
 void CustomGpuOutputNodeBase::onRendererChange() { }
 
-void CustomGpuOutputNodeBase::createOutput(
-    score::gfx::GraphicsApi graphicsApi, std::function<void()> onReady,
-    std::function<void()> onUpdate, std::function<void()> onResize)
+void CustomGpuOutputNodeBase::createOutput(score::gfx::OutputConfiguration conf)
 {
-  m_update = onUpdate;
-  onReady();
+  conf.onReady();
 }
 
 void CustomGpuOutputNodeBase::destroyOutput() { }
