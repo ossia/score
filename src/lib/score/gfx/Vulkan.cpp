@@ -2,7 +2,14 @@
 
 #if defined(QT_FEATURE_vulkan) && QT_CONFIG(vulkan) && __has_include(<vulkan/vulkan.h>)
 #include <QVulkanInstance>
+
+#if __has_include(<QtGui/private/qrhi_p.h>)
 #include <QtGui/private/qrhi_p.h>
+#elif __has_include(<private/qrhivulkan_p.h>)
+#include <private/qrhivulkan_p.h>
+#elif __has_include(<rhi/qrhi_platform.h>)
+#include <rhi/qrhi_platform.h>
+#endif
 
 #include <mutex>
 namespace score::gfx
