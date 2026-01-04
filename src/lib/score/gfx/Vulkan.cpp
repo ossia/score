@@ -5,10 +5,12 @@
 
 #if __has_include(<QtGui/private/qrhi_p.h>)
 #include <QtGui/private/qrhi_p.h>
+#endif
+
+#if __has_include(<rhi/qrhi_platform.h>)
+#include <rhi/qrhi_platform.h>
 #elif __has_include(<private/qrhivulkan_p.h>)
 #include <private/qrhivulkan_p.h>
-#elif __has_include(<rhi/qrhi_platform.h>)
-#include <rhi/qrhi_platform.h>
 #endif
 
 #include <mutex>
