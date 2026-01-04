@@ -257,7 +257,8 @@ public:
   ShaderPreviewManager()
       : QObject{qApp}
   {
-    m_screen = std::make_unique<score::gfx::ScreenNode>(true);
+    score::gfx::OutputNode::Configuration conf{};
+    m_screen = std::make_unique<score::gfx::ScreenNode>(conf, true);
     m_graph.addNode(m_screen.get());
   }
 
@@ -448,9 +449,9 @@ public:
     }
   }
 
+  std::unique_ptr<score::gfx::ScreenNode> m_screen{};
 private:
   std::unique_ptr<score::gfx::ISFNode> m_isf{};
-  std::unique_ptr<score::gfx::ScreenNode> m_screen{};
   std::vector<std::unique_ptr<score::gfx::Node>> m_textures;
   score::gfx::Graph m_graph{};
   ProcessedProgram m_program;
@@ -520,6 +521,7 @@ void ShaderPreviewWidget::timerEvent(QTimerEvent* event)
   if(g_shaderPreview)
   {
     g_shaderPreview->updateControls();
+    g_shaderPreview->m_screen->render();
   }
 }
 }

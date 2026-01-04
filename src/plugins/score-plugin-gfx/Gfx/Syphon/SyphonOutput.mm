@@ -112,9 +112,6 @@ struct SyphonNode final : score::gfx::OutputNode
     if(!m_created)
       return;
 
-    if (m_update)
-      m_update();
-
     auto renderer = m_renderer.lock();
     if (renderer && renderer->nodes.size() > 1 && m_renderState)
     {
@@ -178,18 +175,13 @@ struct SyphonNode final : score::gfx::OutputNode
     return m_renderer.lock().get();
   }
 
-  void createOutput(
-        score::gfx::GraphicsApi graphicsApi,
-        std::function<void()> onReady,
-        std::function<void()> onUpdate,
-        std::function<void()> onResize) override
+  void createOutput(score::gfx::OutputConfiguration conf) override
   {
     m_renderState = std::make_shared<score::gfx::RenderState>();
-    m_update = onUpdate;
     m_renderState->renderSize = QSize(m_settings.width, m_settings.height);
     m_renderState->outputSize = m_renderState->renderSize;
 
-    if (graphicsApi == score::gfx::GraphicsApi::Metal)
+    if (conf.graphicsApi == score::gfx::GraphicsApi::Metal)
     {
       // Metal backend
       QRhiMetalInitParams params;
@@ -200,7 +192,7 @@ struct SyphonNode final : score::gfx::OutputNode
     }
     else
     {
-      // OpenGL backend (default)
+      // OpenGL backend
       m_renderState->surface = QRhiGles2InitParams::newFallbackSurface();
       QRhiGles2InitParams params;
       params.format.setMajorVersion(3);
@@ -230,7 +222,7 @@ struct SyphonNode final : score::gfx::OutputNode
     }
 
     createSyphon(*rhi);
-    onReady();
+    conf.onReady();
   }
 
   void destroyOutput() override
@@ -293,7 +285,6 @@ private:
   std::weak_ptr<score::gfx::RenderList> m_renderer{};
   QRhiTexture* m_texture{};
   QRhiTextureRenderTarget* m_renderTarget{};
-  std::function<void()> m_update;
   std::shared_ptr<score::gfx::RenderState> m_renderState{};
 
   // OpenGL Syphon server

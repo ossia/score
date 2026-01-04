@@ -251,20 +251,8 @@ void Graph::initializeOutput(OutputNode* output, GraphicsApi graphicsApi)
       recreateOutputRenderList(*output);
     };
 
-    auto onUpdate = [this] {
-      switch(this->m_outputs.size())
-      {
-        case 1:
-          if(this->m_vsync_callback)
-            this->m_vsync_callback();
-          break;
-        default:
-          break;
-      }
-    };
-
     // TODO only works for one output !!
-    output->createOutput(graphicsApi, onReady, onUpdate, onResize);
+    output->createOutput({.graphicsApi = graphicsApi, .onReady = onReady, .onResize = onResize});
   }
   else
   {
@@ -369,18 +357,10 @@ void Graph::relinkGraph()
   }
 }
 
-void Graph::setVSyncCallback(std::function<void()> cb)
-{
-  // TODO thread safety if vulkan uses a thread ?
-  // If we have more than one output, then instead we sync them with
-  // a simple timer, as they may have drastically different vsync rates.
-  m_vsync_callback = cb;
-}
-
 bool Graph::canDoVSync() const noexcept
 {
   return m_outputs.size() == 1
-         && !m_outputs[0]->configuration().manualRenderingRate.has_value();
+         && m_outputs[0]->configuration().supportsVSync;
 }
 
 static bool createNodeRenderer(score::gfx::Node& node, RenderList& r)
@@ -409,9 +389,36 @@ Graph::createRenderList(OutputNode* output, std::shared_ptr<RenderState> state)
   output->setRenderer(ptr);
   for(auto& node : m_nodes)
     node->addedToGraph = false;
+#if 0
+  for(auto& model : m_nodes)
+    qDebug() << "Model: " << typeid(*model).name();
+  for(auto node : m_nodes)
+  {
+    qDebug() << node->nodeId << typeid(*node).name();
+    for(auto inlet : node->input)
+    {
+      qDebug() << "Inlet: " << magic_enum::enum_name(inlet->type) << inlet->edges.size();
+      for(auto edge : inlet->edges) {
+        qDebug() << edge->source->node << " => "<< edge->sink->node;
+      }
+    }
+    for(auto outlet : node->output)
+    {
+      qDebug() << "Outlet: " << magic_enum::enum_name(outlet->type) << outlet->edges.size();
+      for(auto edge : outlet->edges) {
+        qDebug() << edge->source->node << " => "<< edge->sink->node;
+      }
+    }
+  }
+  for(auto edge  : m_edges)
+  {
+    qDebug() << "Edge:" << edge->source->node << " => "<< edge->sink->node;
+  }
+#endif
 
   RenderList& r = *ptr;
   auto& model_nodes = r.nodes;
+
   {
     model_nodes.push_back(output);
 

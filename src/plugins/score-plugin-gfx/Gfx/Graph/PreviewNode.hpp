@@ -22,9 +22,7 @@ public:
   void setRenderer(std::shared_ptr<score::gfx::RenderList> r) override;
   score::gfx::RenderList* renderer() const override;
 
-  void createOutput(
-      score::gfx::GraphicsApi graphicsApi, std::function<void()> onReady,
-      std::function<void()> onUpdate, std::function<void()> onResize) override;
+  void createOutput(score::gfx::OutputConfiguration) override;
   void destroyOutput() override;
 
   std::shared_ptr<score::gfx::RenderState> renderState() const override;
@@ -41,7 +39,6 @@ private:
   std::weak_ptr<score::gfx::RenderList> m_renderer{};
   QRhiRenderTarget* m_renderTarget{};
   QRhiTexture* m_texture{};
-  std::function<void()> m_update;
   std::shared_ptr<score::gfx::RenderState> m_renderState{};
 };
 }

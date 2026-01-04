@@ -7,6 +7,13 @@
 #include <score_plugin_gfx_export.h>
 namespace score::gfx
 {
+struct OutputConfiguration
+{
+  GraphicsApi graphicsApi{};
+  std::function<void()> onReady;
+  std::function<void()> onResize;
+};
+
 class SCORE_PLUGIN_GFX_EXPORT OutputNodeRenderer : public score::gfx::NodeRenderer
 {
 public:
@@ -36,10 +43,15 @@ public:
   virtual bool canRender() const = 0;
   virtual void onRendererChange() = 0;
 
-  virtual void createOutput(
-      GraphicsApi graphicsApi, std::function<void()> onReady,
-      std::function<void()> onUpdate, std::function<void()> onResize)
-      = 0;
+  /**
+   * @brief Set a callback to drive rendering when there is a single output.
+   *
+   * If we render to a single window, we can use the GPU V-Sync mechanism.
+   * Otherwise the implementation will create timers to keep things in sync.
+   */
+  virtual void setVSyncCallback(std::function<void()>);
+
+  virtual void createOutput(OutputConfiguration conf) = 0;
 
   virtual void updateGraphicsAPI(GraphicsApi);
   virtual void destroyOutput() = 0;
@@ -51,6 +63,7 @@ public:
     // rate (given in milliseconds)
     std::optional<double> manualRenderingRate;
     bool outputNeedsRenderPass{};
+    bool supportsVSync{};
     OutputNode* parent{};
   };
 

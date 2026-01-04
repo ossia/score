@@ -77,14 +77,6 @@ struct SCORE_PLUGIN_GFX_EXPORT Graph
   void relinkGraph();
 
   /**
-   * @brief Set a callback to drive rendering when there is a single output.
-   *
-   * If we render to a single window, we can use the GPU V-Sync mechanism.
-   * Otherwise the implementation will create timers to keep things in sync.
-   */
-  void setVSyncCallback(std::function<void()>);
-
-  /**
    * @brief True if the graph supports being driven by the screen vertical synchronization.
    */
   bool canDoVSync() const noexcept;
@@ -92,6 +84,11 @@ struct SCORE_PLUGIN_GFX_EXPORT Graph
   const std::vector<std::shared_ptr<RenderList>>& renderLists() const noexcept
   {
     return m_renderers;
+  }
+
+  std::span<OutputNode* const> outputs() const noexcept
+  {
+    return m_outputs;
   }
 
 private:
@@ -103,7 +100,6 @@ private:
 
   std::vector<std::shared_ptr<RenderList>> m_renderers;
   std::vector<std::shared_ptr<Window>> m_unused_windows;
-  std::function<void()> m_vsync_callback;
 
   std::vector<score::gfx::Node*> m_nodes;
   std::vector<Edge*> m_edges;

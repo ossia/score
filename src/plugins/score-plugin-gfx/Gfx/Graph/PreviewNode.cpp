@@ -64,9 +64,6 @@ void PreviewNode::startRendering() { }
 
 void PreviewNode::render()
 {
-  if(m_update)
-    m_update();
-
   auto renderer = m_renderer.lock();
   if(renderer && m_renderState)
   {
@@ -99,17 +96,14 @@ score::gfx::RenderList* PreviewNode::renderer() const
   return m_renderer.lock().get();
 }
 
-void PreviewNode::createOutput(
-    score::gfx::GraphicsApi graphicsApi, std::function<void()> onReady,
-    std::function<void()> onUpdate, std::function<void()> onResize)
+void PreviewNode::createOutput(score::gfx::OutputConfiguration conf)
 {
   m_renderState = std::make_shared<score::gfx::RenderState>();
-  m_update = onUpdate;
 
   m_renderState = importRenderState(QSize(m_settings.width, m_settings.height), m_rhi);
   m_renderState->renderPassDescriptor = m_renderTarget->renderPassDescriptor();
 
-  onReady();
+  conf.onReady();
 }
 
 void PreviewNode::destroyOutput() { }

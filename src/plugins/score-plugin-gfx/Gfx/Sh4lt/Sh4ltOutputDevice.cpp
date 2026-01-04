@@ -67,7 +67,6 @@ struct Sh4ltOutputNode : score::gfx::OutputNode
   std::weak_ptr<score::gfx::RenderList> m_renderer{};
   QRhiTexture* m_texture{};
   QRhiTextureRenderTarget* m_renderTarget{};
-  std::function<void()> m_update;
   std::shared_ptr<score::gfx::RenderState> m_renderState{};
   std::shared_ptr<sh4lt::Writer> m_writer{};
   int64_t m_frame_counter{0};
@@ -83,9 +82,7 @@ struct Sh4ltOutputNode : score::gfx::OutputNode
   void setRenderer(std::shared_ptr<score::gfx::RenderList> r) override;
   score::gfx::RenderList* renderer() const override;
 
-  void createOutput(
-      score::gfx::GraphicsApi graphicsApi, std::function<void()> onReady,
-      std::function<void()> onUpdate, std::function<void()> onResize) override;
+  void createOutput(score::gfx::OutputConfiguration conf) override;
   void destroyOutput() override;
 
   std::shared_ptr<score::gfx::RenderState> renderState() const override;
@@ -140,9 +137,6 @@ void Sh4ltOutputNode::startRendering() { }
 
 void Sh4ltOutputNode::render()
 {
-  if(m_update)
-    m_update();
-
   auto renderer = m_renderer.lock();
   if(renderer && m_renderState)
   {
@@ -184,9 +178,7 @@ score::gfx::RenderList* Sh4ltOutputNode::renderer() const
   return m_renderer.lock().get();
 }
 
-void Sh4ltOutputNode::createOutput(
-    score::gfx::GraphicsApi graphicsApi, std::function<void()> onReady,
-    std::function<void()> onUpdate, std::function<void()> onResize)
+void Sh4ltOutputNode::createOutput(score::gfx::OutputConfiguration conf)
 {
   m_writer = std::make_unique<sh4lt::Writer>(
       sh4lt::shtype::shtype_from_gst_caps(
@@ -198,7 +190,6 @@ void Sh4ltOutputNode::createOutput(
       m_settings.width * m_settings.height * 4, m_logger);
   m_frame_dur = 1e9 / m_settings.rate;
   m_renderState = std::make_shared<score::gfx::RenderState>();
-  m_update = onUpdate;
 
   m_renderState->surface = QRhiGles2InitParams::newFallbackSurface();
   QRhiGles2InitParams params;
@@ -222,7 +213,7 @@ void Sh4ltOutputNode::createOutput(
   m_renderTarget->setRenderPassDescriptor(m_renderState->renderPassDescriptor);
   m_renderTarget->create();
 
-  onReady();
+  conf.onReady();
 }
 
 void Sh4ltOutputNode::destroyOutput()

@@ -9,6 +9,7 @@
 
 #include <core/application/ApplicationSettings.hpp>
 
+#include <Gfx/Settings/Model.hpp>
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/protocol.hpp>
 #include <ossia/network/generic/generic_node.hpp>
@@ -31,7 +32,26 @@ namespace Gfx
 static score::gfx::ScreenNode* createScreenNode()
 {
   const auto& settings = score::AppContext().applicationSettings;
-  return new score::gfx::ScreenNode{false, (settings.autoplay || !settings.gui)};
+  const auto& gfx_settings = score::AppContext().settings<Gfx::Settings::Model>();
+
+  auto make_configuration = [&] {
+    score::gfx::OutputNode::Configuration conf;
+    double rate = gfx_settings.getRate();
+    if(rate > 0)
+      conf = {.manualRenderingRate = 1000. / rate, .supportsVSync = true};
+    else
+      conf = {.manualRenderingRate = {}, .supportsVSync = true};
+    return conf;
+  };
+
+  auto node = new score::gfx::ScreenNode{
+      make_configuration(), false, (settings.autoplay || !settings.gui)};
+
+  QObject::connect(
+      &gfx_settings, &Gfx::Settings::Model::RateChanged, node,
+      [node, make_configuration] { node->setConfiguration(make_configuration()); });
+
+  return node;
 }
 
 class window_device : public ossia::net::device_base
@@ -396,6 +416,13 @@ public:
         }
       });
       m_root.add_child(std::move(fs_node));
+    }
+
+    {
+      auto fps_node = std::make_unique<ossia::net::generic_node>("fps", *this, m_root);
+      auto fps_param = fps_node->create_parameter(ossia::val_type::FLOAT);
+      m_screen->onFps = [fps_param](float fps) { fps_param->push_value(fps); };
+      m_root.add_child(std::move(fps_node));
     }
   }
 

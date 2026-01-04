@@ -2,6 +2,7 @@
 
 #if defined(QT_FEATURE_vulkan) && QT_CONFIG(vulkan) && __has_include(<vulkan/vulkan.h>)
 #include <QVulkanInstance>
+#include <QtGui/private/qrhi_p.h>
 
 #include <mutex>
 namespace score::gfx
@@ -27,7 +28,7 @@ QVulkanInstance* staticVulkanInstance(bool create)
 #endif
 
     QByteArrayList exts;
-    exts << "VK_KHR_get_physical_device_properties2";
+    exts << QRhiVulkanInitParams::preferredInstanceExtensions();
 
     if(auto v = instance.supportedApiVersion(); v >= QVersionNumber(1, 1))
     {

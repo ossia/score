@@ -17,7 +17,6 @@ struct LibavEncoderNode : score::gfx::OutputNode
   std::weak_ptr<score::gfx::RenderList> m_renderer{};
   QRhiTexture* m_texture{};
   QRhiTextureRenderTarget* m_renderTarget{};
-  std::function<void()> m_update;
   std::shared_ptr<score::gfx::RenderState> m_renderState{};
   bool m_hasSender{};
 
@@ -30,9 +29,7 @@ struct LibavEncoderNode : score::gfx::OutputNode
   void setRenderer(std::shared_ptr<score::gfx::RenderList> r) override;
   score::gfx::RenderList* renderer() const override;
 
-  void createOutput(
-      score::gfx::GraphicsApi graphicsApi, std::function<void()> onReady,
-      std::function<void()> onUpdate, std::function<void()> onResize) override;
+  void createOutput(score::gfx::OutputConfiguration) override;
   void destroyOutput() override;
 
   std::shared_ptr<score::gfx::RenderState> renderState() const override;

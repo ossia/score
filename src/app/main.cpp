@@ -408,7 +408,13 @@ struct increase_timer_precision
 
     // Then maybe we can go a bit lower...
     ULONG currentRes{};
-    NtSetTimerResolution(100, TRUE, &currentRes);
+    NtSetTimerResolution(7500, TRUE, &currentRes);
+    if(currentRes <= 8000)
+      NtSetTimerResolution(5000, TRUE, &currentRes);
+    if(currentRes <= 6000)
+      NtSetTimerResolution(2500, TRUE, &currentRes);
+    if(currentRes <= 3000)
+      NtSetTimerResolution(1000, TRUE, &currentRes);
 #endif
   }
 

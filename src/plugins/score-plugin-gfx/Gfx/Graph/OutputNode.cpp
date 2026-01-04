@@ -7,7 +7,7 @@ OutputNode::OutputNode() { }
 OutputNode::~OutputNode() { }
 
 void OutputNode::updateGraphicsAPI(GraphicsApi) { }
-
+void OutputNode::setVSyncCallback(std::function<void()>) { }
 OutputNodeRenderer::~OutputNodeRenderer() { }
 
 void OutputNodeRenderer::finishFrame(
