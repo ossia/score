@@ -4,7 +4,6 @@
 #include <Control/DefaultEffectItem.hpp>
 #include <Effect/EffectFactory.hpp>
 #include <YSFX/ProcessMetadata.hpp>
-#include <ysfx.h>
 
 #include <score/widgets/PluginWindow.hpp>
 
@@ -12,6 +11,12 @@
 
 #include <memory>
 #include <verdigris>
+
+#if __has_include(<ysfx-s.h>)
+#include <ysfx-s.h>
+#else
+#include <ysfx.h>
+#endif
 
 namespace YSFX
 {

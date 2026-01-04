@@ -1,6 +1,9 @@
 #pragma once
+#if __has_include(<ysfx-s.h>)
+#include <ysfx-s.h>
+#else
 #include <ysfx.h>
-
+#endif
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 
 #include <ossia/detail/hash_map.hpp>
