@@ -27,19 +27,18 @@ jobs:
         sync: nfs
         copyback: false
         prepare: |
-          # https://github.com/vmactions/freebsd-vm/issues/71
-          mkdir -p /usr/local/etc/pkg/repos
-          echo "FreeBSD: { url: "pkg+http://pkg.freebsd.org/\${ABI}/latest" }" > /usr/local/etc/pkg/repos/FreeBSD.conf
+          echo "=============== FreeBSD Start update ====================="
           pkg update -f -q
+          echo "=============== FreeBSD Start upgrade ====================="
           pkg upgrade -y
-
+          echo "=============== FreeBSD Start install ====================="
           pkg install -y \
             bash \
             boost-libs \
             cmake git \
             llvm19 \
             ninja \
-            qt6-base qt6-declarative qt6-shadertools qt6-websockets qt6-serialport qt6-scxml qt6-imageformats \
+            qt6-base qt6-declarative qt6-shadertools qt6-websockets qt6-serialport qt6-scxml qt6-imageformats qt6-connectivity \
             ffmpeg \
             lilv suil lv2 \
             libcoap \
@@ -50,6 +49,7 @@ jobs:
             libcoap \
             freetype2 harfbuzz fontconfig \
             alsa-lib jackit
+          echo "=============== FreeBSD End install ====================="
 
         run: |
           echo "=============== FreeBSD Start Deps ====================="
