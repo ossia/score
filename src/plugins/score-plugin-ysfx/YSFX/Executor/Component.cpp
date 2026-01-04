@@ -126,7 +126,12 @@ Component::Component(
     auto y = p->fx.get();
     if(!y)
       return;
+
+#if __has_include(<ysfx-s.h>)
+    if(std::bitset<64> res = ysfx_fetch_slider_changes(y, 0); res.any())
+#else
     if(std::bitset<64> res = ysfx_fetch_slider_changes(y); res.any())
+#endif
     {
       for(int i = 0; i < 64; i++)
       {
@@ -255,11 +260,19 @@ void ysfx_node::run(
       auto& val = dat.back().value;
       if(float* v = val.target<float>())
       {
+#if __has_include(<ysfx-s.h>)
+        ysfx_slider_set_value(y, i, *v, false);
+#else
         ysfx_slider_set_value(y, i, *v);
+#endif
       }
       else if(int* v = val.target<int>())
       {
+#if __has_include(<ysfx-s.h>)
+        ysfx_slider_set_value(y, i, *v, false);
+#else
         ysfx_slider_set_value(y, i, *v);
+#endif
       }
     }
   }

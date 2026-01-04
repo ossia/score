@@ -1,11 +1,19 @@
 find_path(
+  YSFX_S_INCLUDE_DIR ysfx-s.h
+)
+find_library(YSFX_S_LIBRARY NAMES ysfx-s)
+
+find_path(
   YSFX_INCLUDE_DIR ysfx.h
 )
-
-set(YSFX_NAMES ysfx)
 find_library(YSFX_LIBRARY NAMES ysfx)
 
-if(YSFX_INCLUDE_DIR AND YSFX_LIBRARY)
+
+if(YSFX_S_INCLUDE_DIR AND YSFX_S_LIBRARY)
+  set(YSFX_FOUND TRUE)
+  set(YSFX_LIBRARY ${YSFX_S_LIBRARY})
+  set(YSFX_INCLUDE_DIR ${YSFX_S_INCLUDE_DIR})
+elseif(YSFX_INCLUDE_DIR AND YSFX_LIBRARY)
   set(YSFX_FOUND TRUE)
 endif()
 
@@ -15,9 +23,6 @@ find_package_handle_standard_args(
     YSFX_LIBRARY YSFX_INCLUDE_DIR)
 
 if(YSFX_FOUND)
-    set(YSFX_LIBRARIES ${YSFX_LIBRARY})
-    set(YSFX_INCLUDE_DIRS ${YSFX_INCLUDE_DIR})
-
     string(REGEX MATCH "(dll|so|dylib)$" IS_SHARED "${YSFX_LIBRARY}")
 
     if(IS_SHARED)
