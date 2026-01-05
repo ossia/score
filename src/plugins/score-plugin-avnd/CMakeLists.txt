@@ -958,7 +958,7 @@ avnd_make_score(
 avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/TimecodeSynchronizer.hpp"
   TARGET timecode_synchronizer
-  MAIN_CLASS SmoothTimecodeSynchronizer
+  MAIN_CLASS TimecodeSynchronizer
   NAMESPACE ao
 )
 
