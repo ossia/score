@@ -99,7 +99,7 @@ namespace score
 {
 class DocumentModel;
 
-static void setQApplicationSettings(QApplication& m_app)
+static void loadApplicationResources()
 {
   loadResources();
 
@@ -114,7 +114,10 @@ static void setQApplicationSettings(QApplication& m_app)
       }
     }
   }
+}
 
+static void setQApplicationSettings(QApplication& m_app)
+{
   // For release builds against a debug Qt, we build qt without any style plug-in.
   // Sadly Qt asserts so wh have to simulate the loading of a plugin (see above).
   // For older Qts we won't be debugging anyways and will be linking against distro Qt versions so we just set the style
@@ -367,6 +370,7 @@ void Application::init()
   // MVP
   if(appSettings.gui)
   {
+    score::loadApplicationResources();
     score::setQApplicationSettings(*qApp);
     m_settings.setupView();
     //m_projectSettings.setupView();
@@ -374,7 +378,7 @@ void Application::init()
   }
   else if(!appSettings.ui.isEmpty())
   {
-    score::setQApplicationSettings(*qApp);
+    score::loadApplicationResources();
   }
 
   m_presenter

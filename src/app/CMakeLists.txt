@@ -155,7 +155,7 @@ if(APPLE)
 endif()
 
 if(WIN32)
-  target_link_libraries(${APPNAME} PRIVATE ntdll)
+  target_link_libraries(${APPNAME} PRIVATE ntdll RuntimeObject)
 endif()
 
 if(IOS)
