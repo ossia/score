@@ -126,6 +126,14 @@ struct TSerializer<DataStream, ossia::variant<Args...>>
   }
 };
 
+template <>
+struct TSerializer<DataStream, ossia::monostate>
+{
+  static void readFrom(DataStream::Serializer& s, const ossia::monostate& var) { }
+
+  static void writeTo(DataStream::Deserializer& s, ossia::monostate& var) { }
+};
+
 // This part is required because it isn't as straightforward to save variant
 // data
 // in JSON as it is to save it in a DataStream.
@@ -224,3 +232,29 @@ struct TSerializer<JSONObject, ossia::variant<Args...>>
     ossia::for_each_type<Args...>(OssiaVariantJSONDeserializer<var_t>{s, var});
   }
 };
+
+template <>
+struct TSerializer<JSONObject, ossia::monostate>
+{
+  static void readFrom(JSONObject::Serializer& s, const ossia::monostate& var)
+  {
+    s.stream.Null();
+  }
+
+  static void writeTo(JSONObject::Deserializer& s, ossia::monostate& var) { }
+};
+
+JSON_METADATA(std::string, "string")
+
+JSON_METADATA(std::uint8_t, "u8")
+JSON_METADATA(std::uint16_t, "u16")
+JSON_METADATA(std::uint32_t, "u32")
+JSON_METADATA(std::uint64_t, "u64")
+
+JSON_METADATA(std::int8_t, "i8")
+JSON_METADATA(std::int16_t, "i16")
+JSON_METADATA(std::int32_t, "i32")
+JSON_METADATA(std::int64_t, "i64")
+
+JSON_METADATA(std::monostate, "monostate")
+JSON_METADATA(boost::variant2::monostate, "monostate")

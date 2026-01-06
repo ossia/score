@@ -45,7 +45,7 @@ to_settings(libremidi::API api, const libremidi::input_port& p)
   specif.handle = p;
 
   specif.io = MIDISpecificSettings::IO::In;
-  specif.api = api;
+  specif.handle.api = api;
 
   set.deviceSpecificSettings = QVariant::fromValue(specif);
 
@@ -62,7 +62,7 @@ to_settings(libremidi::API api, const libremidi::output_port& p)
   specif.handle = p;
 
   specif.io = MIDISpecificSettings::IO::Out;
-  specif.api = api;
+  specif.handle.api = api;
 
   set.deviceSpecificSettings = QVariant::fromValue(specif);
 
@@ -132,7 +132,7 @@ public:
     specif.handle = libremidi::port_information{.display_name = "Computer keyboard"};
 
     specif.io = MIDISpecificSettings::IO::In;
-    specif.api = libremidi::API::KEYBOARD;
+    specif.handle.api = libremidi::API::KEYBOARD;
 
     set.deviceSpecificSettings = QVariant::fromValue(specif);
 
@@ -193,7 +193,7 @@ const Device::DeviceSettings& MIDIInputProtocolFactory::defaultSettings() const 
     MIDISpecificSettings specif;
     specif.io = MIDISpecificSettings::IO::In;
     specif.virtualPort = false;
-    specif.api = getCurrentAPI();
+    specif.handle.api = getCurrentAPI();
     s.deviceSpecificSettings = QVariant::fromValue(specif);
     return s;
   }();
@@ -286,7 +286,7 @@ const Device::DeviceSettings& MIDIOutputProtocolFactory::defaultSettings() const
     MIDISpecificSettings specif;
     specif.io = MIDISpecificSettings::IO::Out;
     specif.virtualPort = false;
-    specif.api = getCurrentAPI();
+    specif.handle.api = getCurrentAPI();
     s.deviceSpecificSettings = QVariant::fromValue(specif);
     return s;
   }();

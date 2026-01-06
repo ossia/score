@@ -11,6 +11,7 @@
 #include <Protocols/MIDI/MIDIKeyboardEventFilter.linux.hpp>
 #include <Protocols/MIDI/MIDIKeyboardEventFilter.macos.hpp>
 #include <Protocols/MIDI/MIDISpecificSettings.hpp>
+#include <Protocols/MIDIUtils.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -29,6 +30,7 @@
 #include <libremidi/libremidi.hpp>
 #include <libremidi/backends.hpp>
 #include <libremidi/configurations.hpp>
+#include <libremidi/port_comparison.hpp>
 // clang-format on
 
 #include <score_plugin_protocols_export.h>
@@ -62,6 +64,8 @@ bool MIDIDevice::reconnect()
 {
   disconnect();
 
+  libremidi::observer obs{{}, libremidi::observer_configuration_for(getCurrentAPI())};
+
   MIDISpecificSettings set
       = settings().deviceSpecificSettings.value<MIDISpecificSettings>();
 
@@ -72,19 +76,40 @@ bool MIDIDevice::reconnect()
 
     if(set.io == MIDISpecificSettings::IO::In)
     {
+      const auto ip = obs.get_input_ports();
+      auto candidates = libremidi::optimistic_serialized_port_lookup(
+          static_cast<const libremidi::input_port&>(set.handle),
+          std::span<const libremidi::input_port>(ip));
+      // FIXME ideally we would try to open them all if e.g. the first one fails
+      if(!candidates.empty())
+        set.handle = *candidates.front();
+    }
+    else
+    {
+      const auto ip = obs.get_output_ports();
+      auto candidates = libremidi::optimistic_serialized_port_lookup(
+          static_cast<const libremidi::output_port&>(set.handle),
+          std::span<const libremidi::output_port>(ip));
+      // FIXME ideally we would try to open them all if e.g. the first one fails
+      if(!candidates.empty())
+        set.handle = *candidates.front();
+    }
+
+    if(set.io == MIDISpecificSettings::IO::In)
+    {
       libremidi::input_configuration conf;
-      auto api_conf = libremidi::midi_in_configuration_for(set.api);
+      auto api_conf = libremidi::midi_in_configuration_for(set.handle.api);
       libremidi::midi_any::for_input_configuration([&](auto& conf) {
         if constexpr(requires { conf.client_name; })
           conf.client_name = "ossia score";
       }, api_conf);
 
-      switch(set.api)
+      switch(set.handle.api)
       {
         case libremidi::API::ALSA_SEQ: {
           conf.timestamps = libremidi::timestamp_mode::AudioFrame;
 
-          auto ptr = std::get_if<libremidi::alsa_seq::input_configuration>(&api_conf);
+          auto ptr = get_if<libremidi::alsa_seq::input_configuration>(&api_conf);
           SCORE_ASSERT(ptr);
           ptr->client_name = "ossia score";
           break;
@@ -98,7 +123,7 @@ bool MIDIDevice::reconnect()
           break;
         }
         case libremidi::API::KEYBOARD: {
-          auto ptr = std::get_if<libremidi::kbd_input_configuration>(&api_conf);
+          auto ptr = get_if<libremidi::kbd_input_configuration>(&api_conf);
           SCORE_ASSERT(ptr);
           ptr->set_input_scancode_callbacks = [this](auto keypress, auto keyrelease) {
             m_kbdfilter = new MidiKeyboardEventFilter{keypress, keyrelease};
@@ -122,27 +147,35 @@ bool MIDIDevice::reconnect()
       // }
 
       proto = std::make_unique<ossia::net::midi::midi_protocol>(
-          m_ctx, ossia::net::midi::midi_protocol_configuration{set.handle.display_name, set.velocityZeroIsNoteOff}, conf, api_conf);
+          m_ctx,
+          ossia::net::midi::midi_protocol_configuration{
+              set.handle.display_name, set.velocityZeroIsNoteOff},
+          conf, api_conf);
     }
     else
     {
       libremidi::output_configuration conf;
-      auto api_conf = libremidi::midi_out_configuration_for(set.api);
+      auto api_conf = libremidi::midi_out_configuration_for(set.handle.api);
       libremidi::midi_any::for_output_configuration([&](auto& conf) {
         if constexpr(requires { conf.client_name; })
           conf.client_name = "ossia score";
       }, api_conf);
       proto = std::make_unique<ossia::net::midi::midi_protocol>(
-          m_ctx, ossia::net::midi::midi_protocol_configuration{set.handle.display_name, set.velocityZeroIsNoteOff}, conf, api_conf);
+          m_ctx,
+          ossia::net::midi::midi_protocol_configuration{
+              set.handle.display_name, set.velocityZeroIsNoteOff},
+          conf, api_conf);
     }
 
     auto& p = *proto;
 
     auto dev = std::make_unique<ossia::net::midi::midi_device>(
         settings().name.toStdString(), std::move(proto));
-    bool res = p.set_info(ossia::net::midi::midi_info{
-        static_cast<ossia::net::midi::midi_info::Type>(set.io), set.handle,
-        set.virtualPort});
+
+    bool res = p.set_info(
+        ossia::net::midi::midi_info{
+            static_cast<ossia::net::midi::midi_info::Type>(set.io), set.handle,
+            set.virtualPort});
     if(!res)
       return false;
     if(set.createWholeTree)

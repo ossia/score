@@ -48,7 +48,6 @@ public:
   {
 #if defined(__linux__)
     // X11 quirk
-    static const int scanCodeOffset = (qApp->platformName() == "xcb") ? -8 : 0;
     return e.nativeScanCode() - scanCodeOffset;
 #elif defined(__APPLE__)
     return e.nativeVirtualKey();
@@ -57,6 +56,10 @@ public:
 #endif
   }
   QObject* target{};
+
+#if defined(__linux__)
+  const int scanCodeOffset = (qApp->platformName() == "xcb") ? -8 : 0;
+#endif
 };
 }
 #endif
