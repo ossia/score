@@ -17,7 +17,6 @@ struct MIDISpecificSettings
     In,
     Out
   } io{};
-  libremidi::API api{};
   bool virtualPort{};
 
   bool createWholeTree{};
