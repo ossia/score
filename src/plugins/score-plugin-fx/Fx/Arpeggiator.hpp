@@ -7,6 +7,8 @@
 #include <halp/meta.hpp>
 #include <halp/midi.hpp>
 #include <libremidi/message.hpp>
+#include <rnd/random.hpp>
+
 namespace Nodes
 {
 template <typename T>
@@ -29,7 +31,24 @@ struct Arpeggios
 
   struct range
   {
-    halp::combo_pair<int> values[5]{{"Forward", 0}, {"Backward", 1}, {"F->B", 2}, {"B->F", 3}, {"Chord", 4}};
+    halp::combo_pair<int> values[6]{{"Forward", 0}, {"Backward", 1}, {"F->B", 2}, {"B->F", 3}, {"Chord", 4}, {"Random", 5}};
+    int init{0};
+  };
+
+  int value{};
+};
+
+struct OctaveMode
+{
+  halp_meta(name, "Octave mode");
+  enum widget
+  {
+    combobox
+  };
+
+  struct range
+  {
+    halp::combo_pair<int> values[3]{{"Both", 0}, {"Above", 1}, {"Below", 2}};
     int init{0};
   };
 
@@ -54,6 +73,8 @@ struct Node
     halp::midi_bus<"in", libremidi::message> midi;
     Arpeggios arpeggios;
     halp::hslider_i32<"Octave", halp::irange{1, 7, 1}> octave;
+    OctaveMode octave_mode;
+    halp::hslider_i32<"Repeat", halp::irange{1, 8, 1}> repeat;
     halp::hslider_i32<"Quantification", halp::irange{1, 32, 8}> quantification;
   } inputs;
   struct
@@ -68,52 +89,97 @@ struct Node
   ossia::small_vector<chord, 10> arpeggio;
   std::array<int8_t, 128> in_flight{};
 
-  float previous_octave{};
+  int previous_octave{};
+  int previous_octave_mode{};
+  int previous_repeat{};
   int previous_arpeggio{};
   std::size_t index{};
+  rnd::pcg rng{[] {
+    std::random_device d{};
+    rnd::pcg r(d);
+    return r;
+  }()};
 
   void update()
   {
     // Create the content of the arpeggio
     switch(previous_arpeggio)
     {
-      case 0:
+      case 0: // Forward
         arpeggiate(1);
         break;
-      case 1:
+      case 1: // Backward
         arpeggiate(1);
         std::reverse(arpeggio.begin(), arpeggio.end());
         break;
-      case 2:
+      case 2: // F->B
         arpeggiate(2);
         duplicate_vector(arpeggio);
         std::reverse(arpeggio.begin() + notes.size(), arpeggio.end());
         break;
-      case 3:
+      case 3: // B->F
         arpeggiate(2);
         duplicate_vector(arpeggio);
         std::reverse(arpeggio.begin(), arpeggio.begin() + notes.size());
         break;
-      case 4:
+      case 4: // Chord - all notes play simultaneously, octaves expand the chord
+      {
         arpeggio.clear();
         arpeggio.resize(1);
         for(std::pair note : notes)
         {
           arpeggio[0].push_back(note);
+          // Add octave duplicates directly into the chord
+          for(int i = 1; i < previous_octave; i++)
+          {
+            // 0 = Both, 1 = Above, 2 = Below
+            if(previous_octave_mode != 2) // Above or Both
+            {
+              int up = note.first + 12 * i;
+              if(up <= 127)
+                arpeggio[0].push_back({static_cast<byte>(up), note.second});
+            }
+            if(previous_octave_mode != 1) // Below or Both
+            {
+              int down = note.first - 12 * i;
+              if(down >= 0)
+                arpeggio[0].push_back({static_cast<byte>(down), note.second});
+            }
+          }
         }
+        return; // Skip normal octavize and repeat for chord mode
+      }
+      case 5: // Random - note selection happens in operator()
+        arpeggiate(1);
         break;
+    }
+
+    // Apply repeat: duplicate each step N times
+    if(previous_repeat > 1)
+    {
+      decltype(arpeggio) repeated;
+      repeated.reserve(arpeggio.size() * previous_repeat);
+      for(auto& c : arpeggio)
+      {
+        for(int r = 0; r < previous_repeat; r++)
+          repeated.push_back(c);
+      }
+      arpeggio = std::move(repeated);
     }
 
     const std::size_t orig_size = arpeggio.size();
 
-    // Create the octave duplicates
-    for(int i = 1; i < previous_octave; i++)
+    // Create the octave duplicates based on octave mode
+    // 0 = Both, 1 = Above, 2 = Below
+    if(previous_octave_mode != 2) // Above or Both
     {
-      octavize(orig_size, i);
+      for(int i = 1; i < previous_octave; i++)
+        octavize(orig_size, i);
     }
-    for(int i = 1; i < previous_octave; i++)
+    if(previous_octave_mode != 1) // Below or Both
     {
-      octavize(orig_size, -i);
+      for(int i = 1; i < previous_octave; i++)
+        octavize(orig_size, -i);
     }
   }
 
@@ -160,9 +226,9 @@ struct Node
     auto& out = this->outputs.midi;
     const auto& msgs = midi;
     const int octave = inputs.octave;
-    const int arpeggio = inputs.arpeggios.value;
-    self.previous_octave = octave;
-    self.previous_arpeggio = arpeggio;
+    const int octave_mode = inputs.octave_mode.value;
+    const int repeat = inputs.repeat;
+    const int arpeggio_mode = inputs.arpeggios.value;
 
     if(msgs.size() > 0)
     {
@@ -181,7 +247,15 @@ struct Node
     }
 
     // Update the arpeggio itself
-    const bool mustUpdateArpeggio = msgs.size() > 0 || octave != self.previous_octave || arpeggio != self.previous_arpeggio;
+    const bool mustUpdateArpeggio = msgs.size() > 0 || octave != self.previous_octave
+                                    || octave_mode != self.previous_octave_mode
+                                    || repeat != self.previous_repeat
+                                    || arpeggio_mode != self.previous_arpeggio;
+    self.previous_octave = octave;
+    self.previous_octave_mode = octave_mode;
+    self.previous_repeat = repeat;
+    self.previous_arpeggio = arpeggio_mode;
+
     if(mustUpdateArpeggio)
     {
       self.update();
@@ -204,12 +278,9 @@ struct Node
       self.index = 0;
 
     // Play the next note / chord if we're on a quantification marker
-    // FIXME use the one
-    for(auto [date, q] : tk.get_quantification_date_with_bars(inputs.quantification.value))
+    for(auto [date, q] :
+        tk.get_quantification_date_with_bars(inputs.quantification.value))
     {
-      // SCORE_SOFT_ASSERT(date >= 0);
-      // SCORE_SOFT_ASSERT(date < tk.frames);
-
       if(date >= tk.frames)
         return;
 
@@ -223,17 +294,27 @@ struct Node
         }
       }
 
+      // Select the next index: random for Random mode, sequential otherwise
+      std::size_t play_index;
+      if(arpeggio_mode == 5) // Random
+      {
+        std::uniform_int_distribution<std::size_t> dist(0, self.arpeggio.size() - 1);
+        play_index = dist(rng);
+      }
+      else
+      {
+        play_index = self.index;
+        self.index = (self.index + 1) % self.arpeggio.size();
+      }
+
       // Start the next note in the chord
-      auto& chord = self.arpeggio[self.index];
+      auto& chord = self.arpeggio[play_index];
 
       for(auto& note : chord)
       {
         self.in_flight[note.first]++;
         out.note_on(1, note.first, note.second).timestamp = date;
       }
-
-      // New chord to stop
-      self.index = (self.index + 1) % (self.arpeggio.size());
     }
   }
 };
