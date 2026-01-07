@@ -121,6 +121,16 @@ static void loadApplicationResources()
       }
     }
   }
+
+#if defined(__APPLE__)
+  constexpr const double defaultFontSize = 10. * 96. / 72.;
+#else
+  constexpr const double defaultFontSize = 10.;
+#endif
+
+  QFont f("Ubuntu", defaultFontSize);
+  f.setHintingPreference(QFont::HintingPreference::PreferVerticalHinting);
+  qGuiApp->setFont(f);
 }
 
 static void setQApplicationSettings(QApplication& m_app)
@@ -152,16 +162,6 @@ static void setQApplicationSettings(QApplication& m_app)
 
   //  pal.setBrush(QPalette::Dark, QColor("#808080"));
   // pal.setBrush(QPalette::Shadow, QColor("#666666"));
-
-#if defined(__APPLE__)
-  constexpr const double defaultFontSize = 10. * 96. / 72.;
-#else
-  constexpr const double defaultFontSize = 10.;
-#endif
-
-  QFont f("Ubuntu", defaultFontSize);
-  f.setHintingPreference(QFont::HintingPreference::PreferVerticalHinting);
-  qGuiApp->setFont(f);
 
   qGuiApp->setPalette(pal);
 }
