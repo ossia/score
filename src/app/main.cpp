@@ -607,6 +607,11 @@ static void setup_app_flags()
   }
   QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts, false);
 #endif
+
+  if(qEnvironmentVariableIsSet("SCORE_FORCE_NATIVE_FILE_DIALOGS"))
+  {
+    QCoreApplication::setAttribute(Qt::AA_DontUseNativeDialogs, false);
+  }
 }
 
 #if FFTW_HAS_THREADS

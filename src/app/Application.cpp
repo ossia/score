@@ -198,7 +198,7 @@ bool runningUnderAnUISession() noexcept
 QCoreApplication*
 createApplication(const score::ApplicationSettings& set, int& argc, char** argv)
 {
-  if(set.gui)
+  if(set.gui || !set.ui.isEmpty())
   {
     return new SafeQApplication{argc, argv};
   }
