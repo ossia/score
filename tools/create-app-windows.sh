@@ -115,6 +115,11 @@ if [[ -n "$SCORE_FILE" ]]; then
     cp "$SCORE_FILE" .
 fi
 
+# Create qrc
+if [[ -n "$APP_QRC" ]]; then
+    rcc "$APP_QRC" -o "resources.rcc"$BUNDLE_MACOS/resources.rcc
+fi
+
 # Rename original executable
 echo "Creating custom launcher..."
 mv score.exe app-bin.exe

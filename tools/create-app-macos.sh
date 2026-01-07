@@ -180,6 +180,11 @@ else
     exit 1
 fi
 
+# Create rcc
+if [[ -n "$APP_QRC" ]]; then
+    rcc "$APP_QRC" -o "$BUNDLE_MACOS/resources.rcc"
+fi
+
 # Create launcher script
 echo "Creating custom launcher..."
 if [[ -n "$SCORE_BASENAME" ]]; then

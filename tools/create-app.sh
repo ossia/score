@@ -25,6 +25,7 @@ APP_ICON_ICO=""
 APP_ICON_ICNS=""
 APP_ICON_PNG=""
 APP_VERSION=""
+APP_QRC=""
 AUTOPLAY=""
 PLATFORMS=()
 LOCAL_INSTALLER=""
@@ -66,6 +67,7 @@ Optional:
     --app-ico           Set the app icon (ico format, Windows)
     --app-icns          Set the app icon (icns format, macOS)
     --app-png           Set the app icon (png format, Linux)
+    --app-qrc           Optional qrc resource file
     --help              Show this help message
 
 Example:
@@ -160,6 +162,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --app-png)
             APP_ICON_PNG="$2"
+            shift 2
+            ;;
+        --app-qrc)
+            APP_QRC="$2"
             shift 2
             ;;
         --autoplay)
@@ -312,6 +318,7 @@ export APP_IDENTIFIER
 export APP_ICON_ICO
 export APP_ICON_ICNS
 export APP_ICON_PNG
+export APP_QRC
 export APP_VERSION
 export AUTOPLAY
 export MAIN_QML

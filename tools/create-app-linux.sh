@@ -88,6 +88,11 @@ if [[ -n "$SCORE_FILE" ]]; then
     cp "$SCORE_FILE" "usr/bin/"
 fi
 
+# Create rcc
+if [[ -n "$APP_QRC" ]]; then
+    rcc "$APP_QRC" -o "usr/bin/resources.rcc"
+fi
+
 # Create custom AppRun script
 echo "Creating custom launcher..."
 if [[ -n "$SCORE_BASENAME" ]]; then
