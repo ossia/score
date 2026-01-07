@@ -35,6 +35,7 @@
 #include <QOpenGLContext>
 #include <QPainter>
 #include <QPushButton>
+#include <QResource>
 #include <QStandardPaths>
 #include <QUrl>
 #include <qconfig.h>
@@ -93,6 +94,12 @@ static void loadResources()
   Q_INIT_RESOURCE(qtconf);
   Q_INIT_RESOURCE(qcodeeditor_resources);
 #endif
+
+  if(QString file = QCoreApplication::applicationDirPath() + "/resources.rcc";
+     QFile::exists(file))
+  {
+    QResource::registerResource(dir);
+  }
 }
 
 namespace score
