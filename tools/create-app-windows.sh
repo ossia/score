@@ -117,7 +117,7 @@ fi
 
 # Create qrc
 if [[ -n "$APP_QRC" ]]; then
-    rcc "$APP_QRC" -o "resources.rcc"$BUNDLE_MACOS/resources.rcc
+    rcc "$APP_QRC" -o "resources.rcc"
 fi
 
 # Rename original executable
