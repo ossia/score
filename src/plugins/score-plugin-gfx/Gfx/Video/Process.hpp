@@ -8,11 +8,13 @@
 #include <Gfx/Video/Metadata.hpp>
 #include <Library/LibraryInterface.hpp>
 #include <Video/VideoDecoder.hpp>
+#include <Video/VideoInterface.hpp>
 
 #include <score/command/PropertyCommand.hpp>
 namespace Gfx::Video
 {
 using video_decoder = ::Video::VideoDecoder;
+using DecodingMode = ::Video::DecodingMode;
 class Model final : public Process::ProcessModel
 {
   SCORE_SERIALIZE_FRIENDS
@@ -34,6 +36,7 @@ public:
   ~Model() override;
 
   std::shared_ptr<video_decoder> makeDecoder() const noexcept;
+  std::shared_ptr<::Video::VideoInterface> makeSyncDecoder() const noexcept;
 
   QString absolutePath() const noexcept;
   QString path() const noexcept { return m_path; }
@@ -52,9 +55,18 @@ public:
   void setIgnoreTempo(bool);
   void ignoreTempoChanged(bool t) W_SIGNAL(ignoreTempoChanged, t);
 
+  DecodingMode decodingMode() const noexcept;
+  void setDecodingMode(DecodingMode);
+  void decodingModeChanged(DecodingMode m) W_SIGNAL(decodingModeChanged, m);
+
   PROPERTY(
       score::gfx::ScaleMode,
       scaleMode READ scaleMode WRITE setScaleMode NOTIFY scaleModeChanged)
+
+  PROPERTY(
+      Gfx::Video::DecodingMode,
+      decodingMode READ decodingMode WRITE setDecodingMode NOTIFY decodingModeChanged,
+      W_Final)
 
   PROPERTY(QString, path READ path WRITE setPath NOTIFY pathChanged)
   PROPERTY(
@@ -68,6 +80,7 @@ public:
 private:
   QString m_path;
   score::gfx::ScaleMode m_scaleMode{};
+  DecodingMode m_decodingMode{DecodingMode::Async};
   double m_nativeTempo{};
   bool m_ignoreTempo{};
 };
@@ -105,5 +118,9 @@ SCORE_COMMAND_DECL_T(Gfx::ChangeIgnoreTempo)
 PROPERTY_COMMAND_T(
     Gfx, ChangeVideoScaleMode, Video::Model::p_scaleMode, "Video scale mode")
 SCORE_COMMAND_DECL_T(Gfx::ChangeVideoScaleMode)
+PROPERTY_COMMAND_T(
+    Gfx, ChangeVideoDecodingMode, Video::Model::p_decodingMode, "Video decoding mode")
+SCORE_COMMAND_DECL_T(Gfx::ChangeVideoDecodingMode)
 
 W_REGISTER_ARGTYPE(score::gfx::ScaleMode)
+W_REGISTER_ARGTYPE(Gfx::Video::DecodingMode)

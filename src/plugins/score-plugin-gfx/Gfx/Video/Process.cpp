@@ -9,6 +9,7 @@
 #include <Media/Commands/ChangeAudioFile.hpp>
 #include <Media/Sound/SoundModel.hpp>
 #include <Media/Tempo.hpp>
+#include <Video/SyncVideoDecoder.hpp>
 
 #include <score/tools/File.hpp>
 
@@ -125,6 +126,26 @@ catch(...)
   return {};
 }
 
+std::shared_ptr<::Video::VideoInterface> Model::makeSyncDecoder() const noexcept
+try
+{
+  // For sync decoding, we must completely disable FFmpeg internal threading
+  // to avoid async_lock assertions when seeking.
+  // We also disable hardware acceleration as it introduces async operations.
+  auto conf = videoDecoderConfiguration();
+  conf.disableThreading = true;
+  conf.hardwareAcceleration = AV_PIX_FMT_NONE;
+
+  auto dec = std::make_shared<::Video::SyncVideoDecoder>(conf);
+  if(!dec->open(absolutePath().toStdString()))
+    return {};
+  return dec;
+}
+catch(...)
+{
+  return {};
+}
+
 QString Model::absolutePath() const noexcept
 {
   return score::locateFilePath(m_path, score::IDocument::documentContext(*this));
@@ -186,6 +207,20 @@ void Model::setIgnoreTempo(bool t)
   {
     m_ignoreTempo = t;
     ignoreTempoChanged(t);
+  }
+}
+
+DecodingMode Model::decodingMode() const noexcept
+{
+  return m_decodingMode;
+}
+
+void Model::setDecodingMode(DecodingMode m)
+{
+  if(m != m_decodingMode)
+  {
+    m_decodingMode = m;
+    decodingModeChanged(m);
   }
 }
 
@@ -252,7 +287,7 @@ void DataStreamReader::read(const Gfx::Video::Model& proc)
   readPorts(*this, proc.m_inlets, proc.m_outlets);
 
   m_stream << proc.m_path << proc.m_scaleMode << proc.m_nativeTempo
-           << proc.m_ignoreTempo;
+           << proc.m_ignoreTempo << proc.m_decodingMode;
   insertDelimiter();
 }
 
@@ -264,7 +299,8 @@ void DataStreamWriter::write(Gfx::Video::Model& proc)
       proc.m_outlets, &proc);
 
   QString path;
-  m_stream >> path >> proc.m_scaleMode >> proc.m_nativeTempo >> proc.m_ignoreTempo;
+  m_stream >> path >> proc.m_scaleMode >> proc.m_nativeTempo >> proc.m_ignoreTempo
+      >> proc.m_decodingMode;
   proc.setPath(path);
   checkDelimiter();
 }
@@ -277,6 +313,7 @@ void JSONReader::read(const Gfx::Video::Model& proc)
   obj["Scale"] = (int)proc.m_scaleMode;
   obj["Tempo"] = proc.m_nativeTempo;
   obj["IgnoreTempo"] = proc.m_ignoreTempo;
+  obj["DecodingMode"] = (int)proc.m_decodingMode;
 }
 
 template <>
@@ -292,4 +329,7 @@ void JSONWriter::write(Gfx::Video::Model& proc)
 
   proc.m_nativeTempo = obj["Tempo"].toDouble();
   proc.m_ignoreTempo = obj["IgnoreTempo"].toBool();
+
+  if(auto dm = obj.tryGet("DecodingMode"))
+    proc.m_decodingMode = static_cast<Gfx::Video::DecodingMode>(dm->toInt());
 }
