@@ -98,7 +98,7 @@ static void loadResources()
   if(QString file = QCoreApplication::applicationDirPath() + "/resources.rcc";
      QFile::exists(file))
   {
-    QResource::registerResource(dir);
+    QResource::registerResource(file);
   }
 }
 
