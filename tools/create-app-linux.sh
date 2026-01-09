@@ -95,8 +95,7 @@ fi
 
 # Create custom AppRun script
 echo "Creating custom launcher..."
-if [[ -n "$SCORE_BASENAME" ]]; then
-    # With score
+
     cat > AppRun << APPRUN_EOF
 #!/bin/sh
 
@@ -108,6 +107,15 @@ export SCORE_CUSTOM_APP_APPLICATION_VERSION="$APP_VERSION"
 export QML2_IMPORT_PATH="\${APPDIR}/usr/bin/qml/"
 export LD_LIBRARY_PATH="\${APPIMAGE_LIBRARY_PATH}:\${APPDIR}/usr/lib:\${LD_LIBRARY_PATH}"
 "\${APPDIR}/usr/bin/linuxcheck" "\${APPDIR}/usr/bin/app-bin"
+APPRUN_EOF
+
+if [[ -n "$APP_ENVIRONMENT" ]]; then
+    cat "$APP_ENVIRONMENT" >> AppRun
+fi
+
+if [[ -n "$SCORE_BASENAME" ]]; then
+    # With score
+    cat >> AppRun << APPRUN_EOF
 
 # Launch with custom UI and score
 exec "\${APPDIR}/usr/bin/app-bin" \
@@ -118,17 +126,7 @@ exec "\${APPDIR}/usr/bin/app-bin" \
 APPRUN_EOF
 else
     # Without custom score
-    cat > AppRun << APPRUN_EOF
-#!/bin/sh
-
-export SCORE_CUSTOM_APP_ORGANIZATION_NAME="$APP_ORGANIZATION"
-export SCORE_CUSTOM_APP_ORGANIZATION_DOMAIN="$APP_DOMAIN"
-export SCORE_CUSTOM_APP_APPLICATION_NAME="$APP_NAME"
-export SCORE_CUSTOM_APP_APPLICATION_VERSION="$APP_VERSION"
-
-export QML2_IMPORT_PATH="\${APPDIR}/usr/bin/qml/"
-export LD_LIBRARY_PATH="\${APPIMAGE_LIBRARY_PATH}:\${APPDIR}/usr/lib:\${LD_LIBRARY_PATH}"
-"\${APPDIR}/usr/bin/linuxcheck" "\${APPDIR}/usr/bin/app-bin"
+    cat >> AppRun << APPRUN_EOF
 
 # Launch with custom UI
 exec "\${APPDIR}/usr/bin/app-bin" \

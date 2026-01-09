@@ -18,6 +18,7 @@ APP_NAME_SAFE=""
 APP_APPDATA_XML=""
 APP_COPYRIGHT=""
 APP_DESCRIPTION=""
+APP_ENVIRONMENT=""
 APP_ORGANIZATION=""
 APP_DOMAIN=""
 APP_IDENTIFIER=""
@@ -57,17 +58,18 @@ Optional:
                         macos-intel, macos-arm, windows
                         Can be specified multiple times. If not specified,
                         builds for current platform.
-    --app-organization  Set the app organization (e.g. ossia)
-    --app-domain        Set the app domain (e.g. ossia.io)
-    --app-identifier    Set the app identifier (e.g. io.ossia.score)
-    --app-description   Set the app description (one line max)
-    --app-copyright     Set the app copyright (e.g. ossia.io)
-    --app-version       Set the app version (e.g. 1.0-rc3)
     --app-appdata-xml   Set the app appdata.xml file (Linux)
-    --app-ico           Set the app icon (ico format, Windows)
+    --app-copyright     Set the app copyright (e.g. ossia.io)
+    --app-description   Set the app description (one line max)
+    --app-domain        Set the app domain (e.g. ossia.io)
+    --app-environment   Set a file containing environment variables to set
     --app-icns          Set the app icon (icns format, macOS)
+    --app-ico           Set the app icon (ico format, Windows)
+    --app-identifier    Set the app identifier (e.g. io.ossia.score)
+    --app-organization  Set the app organization (e.g. ossia)
     --app-png           Set the app icon (png format, Linux)
     --app-qrc           Optional qrc resource file
+    --app-version       Set the app version (e.g. 1.0-rc3)
     --help              Show this help message
 
 Example:
@@ -122,6 +124,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --app-name)
             APP_NAME="$2"
+            shift 2
+            ;;
+        --app-environment)
+            APP_ENVIRONMENT="$2"
             shift 2
             ;;
         --app-organization)
@@ -314,6 +320,7 @@ export APP_COPYRIGHT
 export APP_DESCRIPTION
 export APP_ORGANIZATION
 export APP_DOMAIN
+export APP_ENVIRONMENT
 export APP_IDENTIFIER
 export APP_ICON_ICO
 export APP_ICON_ICNS

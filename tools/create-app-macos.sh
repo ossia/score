@@ -187,9 +187,8 @@ fi
 
 # Create launcher script
 echo "Creating custom launcher..."
-if [[ -n "$SCORE_BASENAME" ]]; then
-    # With score
-    cat > "$BUNDLE_MACOS/$APP_NAME" << LAUNCHER_EOF
+
+cat > "$BUNDLE_MACOS/$APP_NAME" << LAUNCHER_EOF
 #!/bin/bash
 
 export SCORE_CUSTOM_APP_ORGANIZATION_NAME="$APP_ORGANIZATION"
@@ -200,6 +199,16 @@ export SCORE_CUSTOM_APP_APPLICATION_VERSION="$APP_VERSION"
 SCRIPT_DIR="\$(cd "\$(dirname "\${BASH_SOURCE[0]}")" && pwd)"
 RESOURCES_DIR="\$(cd "\$SCRIPT_DIR/../Resources" && pwd)"
 export QML2_IMPORT_PATH="\${RESOURCES_DIR}/qml/"
+
+LAUNCHER_EOF
+
+if [[ -n "$APP_ENVIRONMENT" ]]; then
+    cat "$APP_ENVIRONMENT" >> "$BUNDLE_MACOS/$APP_NAME" 
+fi
+
+if [[ -n "$SCORE_BASENAME" ]]; then
+    # With score
+    cat >> "$BUNDLE_MACOS/$APP_NAME" << LAUNCHER_EOF
 exec "\$SCRIPT_DIR/app-bin" \
     ${AUTOPLAY} \
     --ui "\${RESOURCES_DIR}/qml/${MAIN_QML}" \
@@ -208,18 +217,7 @@ exec "\$SCRIPT_DIR/app-bin" \
 LAUNCHER_EOF
 else
     # Without autoplay
-    cat > "$BUNDLE_MACOS/$APP_NAME" << LAUNCHER_EOF
-#!/bin/bash
-
-export SCORE_CUSTOM_APP_ORGANIZATION_NAME="$APP_ORGANIZATION"
-export SCORE_CUSTOM_APP_ORGANIZATION_DOMAIN="$APP_DOMAIN"
-export SCORE_CUSTOM_APP_APPLICATION_NAME="$APP_NAME"
-export SCORE_CUSTOM_APP_APPLICATION_VERSION="$APP_VERSION"
-
-SCRIPT_DIR="\$(cd "\$(dirname "\${BASH_SOURCE[0]}")" && pwd)"
-RESOURCES_DIR="\$(cd "\$SCRIPT_DIR/../Resources" && pwd)"
-export QML2_IMPORT_PATH="\${RESOURCES_DIR}/qml/"
-
+    cat >> "$BUNDLE_MACOS/$APP_NAME" << LAUNCHER_EOF
 exec "\$SCRIPT_DIR/app-bin" \
     ${AUTOPLAY} \
     --ui "\${RESOURCES_DIR}/qml/${MAIN_QML}" \

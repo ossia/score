@@ -129,7 +129,7 @@ echo "Creating native launcher executable..."
 
 # Generate C source code
 echo " =========== "
-cp "$SCORE_SOURCE_DIR/tools/launcher/launcher.c" launcher.c
+cp "$SCORE_SOURCE_DIR/tools/launcher/launcher.cpp" launcher.cpp
 cat > launcher-defines.h << EOF
 #pragma once
 
@@ -145,26 +145,38 @@ cat > launcher-defines.h << EOF
 
 EOF
 
+if [[ -n "$APP_ENVIRONMENT" ]]; then
+    echo "#undef SCORE_ENVIRONMENT" >> launcher-defines.h
+    echo '#define SCORE_ENVIRONMENT R"___(' >> launcher-defines.h
+    cat "$APP_ENVIRONMENT" >> launcher-defines.h
+    echo ')___"' >> launcher-defines.h
+else
+    echo '#define SCORE_ENVIRONMENT ""' >> launcher-defines.h
+fi
+
 # Compile the launcher
 # Try clang first, then fall back to CC (usually gcc or msvc cl)
 COMPILER=""
-if command -v clang &> /dev/null; then
-    COMPILER="clang"
-    echo "Using clang to compile launcher"
-elif [[ -n "${CC:-}" ]] && command -v "$CC" &> /dev/null; then
-    COMPILER="$CC"
-    echo "Using $CC to compile launcher"
-elif command -v gcc &> /dev/null; then
-    COMPILER="gcc"
-    echo "Using gcc to compile launcher"
+if command -v 'clang++' &> /dev/null; then
+    COMPILER="clang++"
+    CXXFLAGS="-O3 -std=c++20 -Xlinker -SUBSYSTEM:WINDOWS"
+    echo "Using clang++ to compile launcher"
+elif [[ -n "${CXX:-}" ]] && command -v "$CXX" &> /dev/null; then
+    COMPILER="$CXX"
+    CXXFLAGS="-O3 -std=c++20 -mwindows"
+    echo "Using $CXX to compile launcher"
+elif command -v 'g++' &> /dev/null; then
+    COMPILER="g++"
+    CXXFLAGS="-O3 -mwindows"
+    echo "Using g++ to compile launcher"
 else
     echo "Warning: No C compiler found (tried clang, \$CC, gcc)"
     echo "Falling back to batch script launcher"
     exit 1
 fi
 
-$COMPILER -O3 -o "${APP_NAME}.exe" launcher.c -luser32
-rm -f launcher.c launcher-defines.h
+$COMPILER $CXXFLAGS -o "${APP_NAME}.exe" launcher.cpp -luser32 -lshell32
+rm -f launcher.cpp launcher-defines.h
 
 # Set icon and properties
 if [[ -f "${APP_ICON_ICO}" ]]; then
