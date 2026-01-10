@@ -186,7 +186,8 @@ void Sh4ltOutputNode::createOutput(score::gfx::OutputConfiguration conf)
               "video/x-raw, format=(string)RGBA, width=(int){}, height=(int){}, "
               "framerate={}/1",
               m_settings.width, m_settings.height, int(m_settings.rate)),
-          m_settings.path.toStdString()),
+          m_settings.path.toStdString(),
+          sh4lt::ShType::default_group()),
       m_settings.width * m_settings.height * 4, m_logger);
   m_frame_dur = 1e9 / m_settings.rate;
   m_renderState = std::make_shared<score::gfx::RenderState>();
@@ -318,7 +319,7 @@ Sh4ltOutputSettingsWidget::Sh4ltOutputSettingsWidget(QWidget* parent)
     : SharedOutputSettingsWidget{parent}
 {
   m_deviceNameEdit->setText("Sh4lt Out");
-  ((QLabel*)m_layout->labelForField(m_shmPath))->setText("Sh4lt path");
+  ((QLabel*)m_layout->labelForField(m_shmPath))->setText("Sh4lt label");
 
   auto helpLabel
       = new QLabel{tr("To test, use the following command: \n"
