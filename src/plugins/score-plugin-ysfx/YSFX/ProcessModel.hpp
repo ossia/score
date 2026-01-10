@@ -1,5 +1,8 @@
 #pragma once
+#include "Scenario/Commands/ScriptEditCommand.hpp"
+
 #include <Process/Process.hpp>
+#include <Process/Script/ScriptProcess.hpp>
 
 #include <Control/DefaultEffectItem.hpp>
 #include <Effect/EffectFactory.hpp>
@@ -42,17 +45,38 @@ public:
 
   ~ProcessModel() override;
 
-  void setScript(const QString& path);
+  // Set script from a file path (initial load)
+  void setInitialScript(const QString& path);
   QString script() const noexcept;
+
+  // Live coding: set script from text content
+  [[nodiscard]] Process::ScriptChangeResult setText(const QString& text);
+  const QString& text() const noexcept { return m_text; }
+
+  void scriptChanged(const QString& str) W_SIGNAL(scriptChanged, str);
+  void programChanged() W_SIGNAL(programChanged);
+
+  bool validate(const QString& txt) const noexcept;
+
+  void errorMessage(int arg_1, const QString& arg_2) const
+      W_SIGNAL(errorMessage, arg_1, arg_2);
 
   std::shared_ptr<ysfx_t> fx;
 
   std::vector<Process::Preset> builtinPresets() const noexcept override;
 
+  PROPERTY(QString, script READ text WRITE setText NOTIFY scriptChanged)
+
 private:
+  void recreatePorts();
+  QString effect() const noexcept override;
   void loadPreset(const Process::Preset&) override;
+  Process::Preset savePreset() const noexcept override;
+  [[nodiscard]] Process::ScriptChangeResult reload();
+
   ysfx_bank_t* m_bank{};
-  QString m_script;
+  QString m_jsfx_path;
+  QString m_text;
 };
 
 class Window : public score::PluginWindow
@@ -61,15 +85,24 @@ public:
   Window(const ProcessModel& e, const score::DocumentContext& ctx, QWidget* parent);
   ~Window();
 
-  const ProcessModel& m_model;
+  QPointer<const ProcessModel> m_model;
 
   std::shared_ptr<ysfx_t> fx;
   ysfx_gfx_config_t conf{};
 
 private:
   QImage m_frame;
+  std::vector<std::string> m_droppedFiles;
+  int m_mouseHeldMenuEvent{};
+  bool m_retina{};
+  void rebuild();
   void resizeEvent(QResizeEvent* event) override;
   void closeEvent(QCloseEvent* event) override;
+
+  void showEvent(QShowEvent*) override;
+  void hideEvent(QHideEvent*) override;
+  void focusInEvent(QFocusEvent*) override;
+  void focusOutEvent(QFocusEvent*) override;
 
   void mousePressEvent(QMouseEvent* event) override;
   void mouseReleaseEvent(QMouseEvent* event) override;
@@ -79,7 +112,12 @@ private:
   void keyReleaseEvent(QKeyEvent* event) override;
   void paintEvent(QPaintEvent* event) override;
   void refreshTimer();
+  void updateState();
+
+  void dragEnterEvent(QDragEnterEvent* event) override;
+  void dragMoveEvent(QDragMoveEvent* event) override;
+  void dropEvent(QDropEvent* event) override;
 };
 
-using LayerFactory = Process::EffectLayerFactory_T<ProcessModel, Window>;
+struct LayerFactory;
 }

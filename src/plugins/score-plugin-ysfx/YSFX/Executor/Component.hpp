@@ -21,11 +21,16 @@ class Component final
 {
   COMPONENT_METADATA("bf31e029-5695-4cd0-8c68-dbb423db0db7")
 public:
+  static constexpr bool is_unique = true;
+
   Component(YSFX::ProcessModel& element, const Execution::Context& ctx, QObject* parent);
   ~Component() override;
 
 private:
-  void on_scriptChange(const QString& script);
+  void reload(Execution::Transaction&);
+
+  int generation{};
+  std::vector<QMetaObject::Connection> m_controlConnections;
 };
 
 using ComponentFactory = ::Execution::ProcessComponentFactory_T<Component>;
