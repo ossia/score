@@ -18,6 +18,7 @@ struct RenderedRawRasterPipelineNode : score::gfx::NodeRenderer
 
   void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
   void update(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge) override;
+  bool updateMaterials(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge);
   void release(RenderList& r) override;
 
   void runInitialPasses(
@@ -25,6 +26,8 @@ struct RenderedRawRasterPipelineNode : score::gfx::NodeRenderer
       Edge& edge) override;
 
   void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& edge) override;
+
+  void process(int32_t port, const ossia::transform3d& v) override;
 
 private:
   ossia::small_flat_map<const Port*, TextureRenderTarget, 2> m_rts;
@@ -47,6 +50,27 @@ private:
   QRhiBuffer* m_materialUBO{};
   int m_materialSize{};
 
+  QRhiBuffer* m_modelUBO{};
+
   std::optional<AudioTextureUpload> m_audioTex;
+
+  // The part of the m_materialUBO for which changes
+  // trigger a pipeline recreation (blend status etc.)
+  static constexpr int size_of_pipeline_material = 32;
+  char m_prevPipelineChangingMaterial[size_of_pipeline_material]{0};
+  struct PipelineChangingMaterial
+  {
+    int32_t mode;         // tri, point, line
+    int32_t enable_blend; // bool
+    QRhiGraphicsPipeline::BlendFactor src_color;
+    QRhiGraphicsPipeline::BlendFactor dst_color;
+    QRhiGraphicsPipeline::BlendOp op_color;
+    QRhiGraphicsPipeline::BlendFactor src_alpha;
+    QRhiGraphicsPipeline::BlendFactor dst_alpha;
+    QRhiGraphicsPipeline::BlendOp op_alpha;
+  };
+  static_assert(sizeof(PipelineChangingMaterial) == size_of_pipeline_material);
+
+  ossia::transform3d m_modelTransform;
 };
 }

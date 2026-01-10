@@ -1423,6 +1423,7 @@ struct geometry_outputs_storage<T>
           std::copy_n(ctrl.transform, std::ssize(ctrl.transform), transform.matrix);
           ctrl.dirty_transform = false;
 
+          rendered_node->second->process(n, transform);
           if(auto pnode = dynamic_cast<score::gfx::ProcessNode*>(edge_sink->node))
             pnode->process(n, transform);
         }

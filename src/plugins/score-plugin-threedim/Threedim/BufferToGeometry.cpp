@@ -179,6 +179,7 @@ void BuffersToGeometry::operator()()
 
   // Check if anything changed
   bool meshChanged = false;
+  bool buffersChanged = false;
   bool transformChanged = false;
 
   // Check transform changes
@@ -215,6 +216,15 @@ void BuffersToGeometry::operator()()
               cfg.format,  cfg.location, cfg.instanced};
     }
   }
+  for(int i = 0; i < 8; ++i)
+  {
+    if(inputBuffers[i]->handle != m_prevBuffers[i].handle)
+    {
+      buffersChanged = true;
+      m_prevBuffers[i] = *inputBuffers[i];
+      // FIXME changed?
+    }
+  }
 
   // Update cached state
   m_prevVertices = inputs.vertices.value;
@@ -225,10 +235,22 @@ void BuffersToGeometry::operator()()
   m_prevIndexFormat = inputs.index_format.value;
   m_prevIndexOffset = inputs.index_offset.value;
 
-  if(!meshChanged && !transformChanged)
+  out.dirty_transform = transformChanged;
+
+  if(!meshChanged && !buffersChanged)
   {
     out.dirty_mesh = false;
-    out.dirty_transform = false;
+    for(auto& out_buf : out.mesh.buffers)
+    {
+      for(auto& in_buf : inputBuffers)
+      {
+        if(in_buf->handle == out_buf.handle)
+        {
+          out_buf.dirty = in_buf->changed;
+          break;
+        }
+      }
+    }
     return;
   }
 
@@ -238,18 +260,12 @@ void BuffersToGeometry::operator()()
   mesh.attributes.clear();
   mesh.input.clear();
 
-  mesh.vertices = inputs.vertices.value;
-  mesh.instances = inputs.instances.value;
-  // FIXME indices if indexed
-  mesh.topology = toHalpTopology(inputs.topology.value);
-  mesh.cull_mode = toHalpCullMode(inputs.cull_mode.value);
-  mesh.front_face = toHalpFrontFace(inputs.front_face.value);
-
   // Track which input buffers are used and map them to output buffer indices
   std::array<int, 8> bufferMapping{};
   std::fill(bufferMapping.begin(), bufferMapping.end(), -1);
 
-  // First pass: collect unique buffers
+  // First pass: load buffers
+  // If some buffers are missing, we ain't sending any geometry
   for(int i = 0; i < 8; ++i)
   {
     auto cfg = getAttributeConfig(i);
@@ -262,7 +278,22 @@ void BuffersToGeometry::operator()()
 
     const auto* srcBuf = inputBuffers[bufIdx];
     if(!srcBuf || !srcBuf->handle)
+    {
+      // Null buffer somewhere
+      m_prevVertices = -1; // to force reanalysis
+      return;
+    }
+  }
+
+  // Now we know we have good buffers
+  for(int i = 0; i < 8; ++i)
+  {
+    auto cfg = getAttributeConfig(i);
+    if(!cfg.enabled)
       continue;
+
+    const int bufIdx = cfg.buffer;
+    const auto* srcBuf = inputBuffers[bufIdx];
 
     // Check if this buffer is already added
     if(bufferMapping[bufIdx] < 0)
@@ -273,6 +304,13 @@ void BuffersToGeometry::operator()()
               .handle = srcBuf->handle, .byte_size = srcBuf->byte_size, .dirty = true});
     }
   }
+
+  mesh.vertices = inputs.vertices.value;
+  mesh.instances = inputs.instances.value;
+  // FIXME indices if indexed
+  mesh.topology = toHalpTopology(inputs.topology.value);
+  mesh.cull_mode = toHalpCullMode(inputs.cull_mode.value);
+  mesh.front_face = toHalpFrontFace(inputs.front_face.value);
 
   // Second pass: create bindings, attributes, and inputs
   // Each enabled attribute gets its own binding (simplest approach)

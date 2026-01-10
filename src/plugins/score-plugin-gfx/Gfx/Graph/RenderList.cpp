@@ -268,8 +268,7 @@ RenderList::Buffers RenderList::acquireMesh(
         }
 
         // FIXME atomic !!
-        if(cur_idx > m->dirtyGeometryIndex)
-          m->dirtyGeometryIndex = cur_idx;
+        m->dirtyGeometryIndex = cur_idx;
       }
       else
       {
@@ -280,7 +279,8 @@ RenderList::Buffers RenderList::acquireMesh(
           }
         }
 
-        if(dirty) {
+        if(dirty)
+        {
           m->reload(*p, f);
           m->update(rhi, mb, res);
           for(auto& mesh: p->meshes) {
@@ -317,9 +317,8 @@ RenderList::Buffers RenderList::acquireMesh(
             buf.dirty = false;
           }
         }
-        // FIXME atomic !!
-        if(cur_idx > m->dirtyGeometryIndex)
-          m->dirtyGeometryIndex = cur_idx;
+
+        m->dirtyGeometryIndex = cur_idx;
         return {m, mb};
       }
     }

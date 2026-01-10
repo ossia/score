@@ -231,7 +231,7 @@ parser::parser(std::string vert, std::string frag, int glslVersion, ShaderType t
       if(is_csf(m_sourceFragment))
         parse_csf();
       else if(is_raw_raster_pipeline(m_sourceFragment))
-        parse_csf();
+        parse_raw_raster_pipeline();
       else if(is_shadertoy_json(m_sourceFragment))
         parse_shadertoy_json(m_sourceFragment);
       else if(is_shadertoy(m_sourceFragment))
@@ -1725,6 +1725,16 @@ void parser::parse_raw_raster_pipeline()
 
       material_ubos += samplers;
     }
+
+    int model_ubo_binding = sampler_binding;
+    material_ubos += fmt::format(
+        R"_(layout(std140, binding = {}) uniform model_material_t {{
+  mat4 MODEL_;
+}} isf_model_uniforms;
+
+#define MODEL_MATRIX isf_model_uniforms.MODEL_
+)_",
+        model_ubo_binding);
 
     m_vertex += material_ubos;
     m_fragment += material_ubos;

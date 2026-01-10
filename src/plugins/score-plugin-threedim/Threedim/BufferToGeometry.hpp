@@ -6,6 +6,8 @@
 #include <halp/layout.hpp>
 #include <halp/meta.hpp>
 
+#include <climits>
+#include <cstdint>
 namespace Threedim
 {
 
@@ -89,8 +91,8 @@ public:
 
     // clang-format off
 #define ATTRIBUTE(i) \
-        halp::spinbox_i32<"Attr" #i " buffer", halp::irange{-1, 7, 0}> attribute_buffer_ ## i; \
-        halp::spinbox_i32<"Attr" #i " offset", halp::irange{0, 1000000, 0}> attribute_offset_ ## i; \
+        halp::spinbox_i32<"Attr" #i " buffer", halp::irange{-1, 7, -1}> attribute_buffer_ ## i; \
+        halp::spinbox_i32<"Attr" #i " offset", halp::irange{0, INT32_MAX, 0}> attribute_offset_ ## i; \
         halp::spinbox_i32<"Attr" #i " stride", halp::irange{0, 1024, 0}> attribute_stride_ ## i; \
         halp::combobox_t<"Attr" #i " format", AttributeFormat> format_ ## i; \
         halp::spinbox_i32<"Attr" #i " location", halp::irange{0, 15, i}> location_ ## i; \
@@ -102,13 +104,13 @@ public:
     ATTRIBUTE(3)
     ATTRIBUTE(4)
     ATTRIBUTE(5)
-    ATTRIBUTE(6)
+    ATTRIBUTE(6) 
     ATTRIBUTE(7)
 #undef ATTRIBUTE
     // clang-format on
 
     // Index buffer
-    halp::spinbox_i32<"Index Buffer", halp::irange{-1, 7, 0}> index_buffer;
+    halp::spinbox_i32<"Index Buffer", halp::irange{-1, 7, -1}> index_buffer;
     halp::combobox_t<"Index Format", IndexFormat> index_format;
     halp::spinbox_i32<"Index Offset", halp::irange{0, 1000000, 0}> index_offset;
 
@@ -153,6 +155,7 @@ public:
   };
 
   std::array<AttributeState, 8> m_prevAttributes{};
+  std::array<halp::gpu_buffer, 8> m_prevBuffers;
   int32_t m_prevUseIndexBuffer{};
   IndexFormat m_prevIndexFormat{};
   int32_t m_prevIndexOffset{};
