@@ -180,6 +180,7 @@ score::gfx::RenderList* Sh4ltOutputNode::renderer() const
 
 void Sh4ltOutputNode::createOutput(score::gfx::OutputConfiguration conf)
 {
+  m_writer.reset();
   m_writer = std::make_unique<sh4lt::Writer>(
       sh4lt::shtype::shtype_from_gst_caps(
           fmt::format(
