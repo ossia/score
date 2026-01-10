@@ -32,12 +32,11 @@ halp::attribute_location ExtractBuffer::toAttributeLocation(Attribute attr) noex
 void ExtractBuffer::init(
     score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
-  qDebug(Q_FUNC_INFO);
   const auto& mesh = inputs.geometry.mesh;
 
   if(mesh.vertices == 0)
   {
-    qDebug() << "GeometryToBuffer::init - Empty mesh";
+    qDebug() << this << "GeometryToBuffer::init - Empty mesh";
     return;
   }
 
@@ -57,8 +56,14 @@ void ExtractBuffer::init(
 
     if(!lookup)
     {
-      qDebug() << "GeometryToBuffer::init - Attribute not found:"
+      qDebug() << this << "GeometryToBuffer::init - Attribute not found:"
                << magic_enum::enum_name(location);
+      return;
+    }
+
+    if(!lookup->buffer || !lookup->buffer->handle)
+    {
+      qDebug() << this << "GeometryToBuffer::init - Input buffer is null";
       return;
     }
 
@@ -73,7 +78,7 @@ void ExtractBuffer::init(
       success = strategy.init(renderer.state, rhi, mesh, *lookup, m_currentPadToVec4);
       if(!success)
       {
-        qDebug() << "GeometryToBuffer::init - IndexedExtractionStrategy failed";
+        qDebug() << this << "GeometryToBuffer::init - IndexedExtractionStrategy failed";
         m_strategy = std::monostate{};
       }
     }
@@ -83,7 +88,7 @@ void ExtractBuffer::init(
       success = strategy.init(renderer.state, rhi, mesh, *lookup, m_currentPadToVec4);
       if(!success)
       {
-        qDebug() << "GeometryToBuffer::init - DirectReferenceStrategy failed";
+        qDebug() << this << "GeometryToBuffer::init - DirectReferenceStrategy failed";
         m_strategy = std::monostate{};
       }
     }
@@ -93,7 +98,7 @@ void ExtractBuffer::init(
       success = strategy.init(renderer.state, rhi, mesh, *lookup, m_currentPadToVec4);
       if(!success)
       {
-        qDebug() << "GeometryToBuffer::init - ComputeExtractionStrategy failed";
+        qDebug() << this << "GeometryToBuffer::init - ComputeExtractionStrategy failed";
         m_strategy = std::monostate{};
       }
     }
@@ -122,7 +127,8 @@ void ExtractBuffer::init(
           index_byte_size);
       if(!success)
       {
-        qDebug() << "GeometryToBuffer::init - DirectBufferReferenceStrategy failed";
+        qDebug() << this
+                 << "GeometryToBuffer::init - DirectBufferReferenceStrategy failed";
         m_strategy = std::monostate{};
       }
     }
@@ -139,12 +145,9 @@ void ExtractBuffer::init(
           mesh.buffers[buffer_index].byte_size);
       if(!success)
       {
-        qDebug() << "GeometryToBuffer::init - DirectBufferReferenceStrategy failed";
+        qDebug() << this
+                 << "GeometryToBuffer::init - DirectBufferReferenceStrategy failed";
         m_strategy = std::monostate{};
-      }
-      else
-      {
-        qDebug() << "GeometryToBuffer::init - DirectBufferReferenceStrategy succeeded";
       }
     }
   }
@@ -179,12 +182,13 @@ void ExtractBuffer::update(
     bool any_dirty = false;
     for(auto& buf : inputs.geometry.mesh.buffers)
     {
-      //qDebug() << "Dirty buffer yo";
       any_dirty |= buf.dirty;
+      buf.dirty = false;
     }
     if(!any_dirty)
       return;
   }
+  inputs.geometry.dirty_mesh = false;
 
   QRhi& rhi = *renderer.state.rhi;
 
@@ -195,7 +199,7 @@ void ExtractBuffer::update(
 
     if(!lookup)
     {
-      qDebug() << "FAIL" << (int)location << bool(lookup);
+      qDebug() << this << "FAIL" << (int)location << bool(lookup);
       return;
     }
 

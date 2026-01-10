@@ -44,7 +44,9 @@ public:
         = node.hasRenderTargetChanged(renderTargetSpecsChangedIndex);
   }
 
+  // FIXME this will change when we have a proper scene node
   void process(int32_t port, const ossia::geometry_spec& v);
+  virtual void process(int32_t port, const ossia::transform3d& v);
 
   const Node& node;
 

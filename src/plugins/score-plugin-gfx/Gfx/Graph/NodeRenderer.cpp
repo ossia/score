@@ -235,6 +235,8 @@ void NodeRenderer::process(int32_t port, const ossia::geometry_spec& v)
   }
 }
 
+void NodeRenderer::process(int32_t port, const ossia::transform3d& v) { }
+
 void GenericNodeRenderer::defaultRenderPass(
     RenderList& renderer, const Mesh& mesh, QRhiCommandBuffer& cb, Edge& edge)
 {

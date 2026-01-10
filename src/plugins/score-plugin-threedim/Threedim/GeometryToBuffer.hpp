@@ -87,6 +87,7 @@ private:
 
   ExtractionStrategyVariant m_strategy;
   Attribute m_currentAttribute{Position};
+  ossia::geometry::gpu_buffer m_currentBuffer{};
   bool m_currentPadToVec4{false};
 };
 }
