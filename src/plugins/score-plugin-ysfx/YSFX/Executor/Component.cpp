@@ -4,6 +4,7 @@
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
+#include <Process/ExecutionSetup.hpp>
 #include <Scenario/Execution/score2OSSIA.hpp>
 
 #include <Execution/DocumentPlugin.hpp>
@@ -73,6 +74,47 @@ Component::Component(
     : ::Execution::ProcessComponent_T<YSFX::ProcessModel, ossia::node_process>{
         proc, ctx, "YSFXComponent", parent}
 {
+  // Handle live-coding: when the program changes, recreate the node
+  connect(&proc, &YSFX::ProcessModel::programChanged, this, [this] {
+    ++generation;
+    for(auto& c : this->m_controlConnections)
+      QObject::disconnect(c);
+    m_controlConnections.clear();
+
+    auto& ctx = system();
+    Execution::SetupContext& setup = ctx.setup;
+    auto old_node = this->node;
+
+    Execution::Transaction commands{ctx};
+    if(old_node)
+    {
+      setup.unregister_node(process(), this->node, commands);
+    }
+
+    reload(commands);
+
+    if(this->node)
+    {
+      setup.register_node(process(), this->node, commands);
+      nodeChanged(old_node, this->node, &commands);
+    }
+
+    commands.run_all();
+  }, Qt::DirectConnection);
+
+  Execution::Transaction commands{ctx};
+  reload(commands);
+  commands.run_all();
+}
+
+void Component::reload(Execution::Transaction& transaction)
+{
+  auto& proc = process();
+  auto& ctx = system();
+
+  if(!proc.fx)
+    return;
+
   const int N_in = proc.inlets().size();
   const bool has_audio_in
       = !proc.inlets().empty()
@@ -96,32 +138,40 @@ Component::Component(
   std::shared_ptr<ysfx_node> node = ossia::make_node<ysfx_node>(
       *ctx.execState, has_audio_in, has_midi_in, has_audio_out, has_midi_out, proc.fx,
       *ctx.execState);
+  node->generation = this->generation;
   this->node = node;
-  m_ossia_process = std::make_shared<ossia::node_process>(node);
+
+  if(!m_ossia_process)
+    m_ossia_process = std::make_shared<ossia::node_process>(node);
+  else
+    ctx.setup.replace_node(m_ossia_process, node, transaction);
+
   const int firstControlIndex = int(has_audio_in) + int(has_midi_in);
   for(std::size_t i = firstControlIndex; i < N_in; i++)
   {
     auto inlet = static_cast<Process::ControlInlet*>(proc.inlets()[i]);
-    // *node->controls[i - firstControlIndex].second
-    //     = ossia::convert<float>(inlet->value());
 
     auto inl = node->sliders[i - firstControlIndex];
     inlet->setupExecution(*node->root_inputs()[i], this);
-    connect(
+    auto c = connect(
         inlet, &Process::ControlInlet::valueChanged, this,
-        [this, inl, weak_node = std::weak_ptr{node}](const ossia::value& v) {
-      // FIXME the day we allow live-coding JSFX script we will have to do the same "generation" fix than with faust
+        [this, inl, weak_node = std::weak_ptr{node}, gen = this->generation](const ossia::value& v) {
       if(auto node = weak_node.lock())
-        system().executionQueue.enqueue([inl, val = v, weak_node]() mutable {
-          if(auto node = weak_node.lock(); node && node->generation >= 0)
+        system().executionQueue.enqueue([inl, val = v, weak_node, gen]() mutable {
+          if(auto n = weak_node.lock(); n && n->generation == gen)
             inl->write_value(std::move(val), 0);
         });
     });
+    m_controlConnections.push_back(c);
   }
 
   auto c = con(
-      ctx.doc.coarseUpdateTimer, &QTimer::timeout, this, [node, p = QPointer{&proc}] {
+      ctx.doc.coarseUpdateTimer, &QTimer::timeout, this,
+      [weak_node = std::weak_ptr{node}, p = QPointer{&proc}] {
     if(!p)
+      return;
+    auto node = weak_node.lock();
+    if(!node)
       return;
     auto y = p->fx.get();
     if(!y)
@@ -149,6 +199,7 @@ Component::Component(
       }
     }
   });
+  m_controlConnections.push_back(c);
 }
 
 Component::~Component() { }
