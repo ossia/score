@@ -5,9 +5,13 @@
 
 (
     set +x
+
     if [[ -n "${MAC_CERT_B64}" ]]; then
       echo "$MAC_CERT_B64" | base64 --decode > ossia-cert.p12
       export CODESIGN_SECUREFILEPATH=$PWD/ossia-cert.p12
+    else
+      echo "No certificate"
+      exit 0
     fi
 
     KEY_CHAIN=build.keychain
@@ -19,6 +23,7 @@
     security set-key-partition-list -S apple-tool:,apple: -s -k travis "$KEY_CHAIN" > /dev/null 2>&1
     rm -rf "$CODESIGN_SECUREFILEPATH"
 )
+
 set +e
 
 export HOMEBREW_NO_AUTO_UPDATE=1

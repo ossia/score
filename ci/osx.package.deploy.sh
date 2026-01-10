@@ -30,30 +30,32 @@ sign_app() {
   fi
 }
 
-echo " === code signing === "
-if [[ "${CI_IS_AZURE}" = "1" ]]; then
-  echo "... unlock keychain "
-  security unlock-keychain -p travis build.keychain
-  export PACKAGE_ARCH=Intel
-else
-  if [[ "$MACOS_ARCH" = "x86_64" ]]; then
+if [[ -n "${MAC_ALTOOL_PASSWORD}" ]]; then
+  echo " === code signing === "
+  if [[ "${CI_IS_AZURE}" = "1" ]]; then
+    echo "... unlock keychain "
+    security unlock-keychain -p travis build.keychain
     export PACKAGE_ARCH=Intel
   else
-    export PACKAGE_ARCH=AppleSilicon
+    if [[ "$MACOS_ARCH" = "x86_64" ]]; then
+      export PACKAGE_ARCH=Intel
+    else
+      export PACKAGE_ARCH=AppleSilicon
+    fi
   fi
+
+  echo "... clappuppet "
+  sign_app "$SRC_PATH/src/clappuppet/entitlements.plist" "ossia score.app/Contents/MacOS/ossia-score-  clappuppet.app"
+
+  echo "... vstpuppet "
+  sign_app "$SRC_PATH/src/vstpuppet/entitlements.plist" "ossia score.app/Contents/MacOS/ossia-score-vstpuppet.app"
+
+  echo "... vst3puppet "
+  sign_app "$SRC_PATH/src/vst3puppet/entitlements.plist" "ossia score.app/Contents/MacOS/ossia-score-  vst3puppet.app"
+
+  echo "... score "
+  sign_app "$SRC_PATH/src/app/entitlements.plist" "ossia score.app"
 fi
-
-echo "... clappuppet "
-sign_app "$SRC_PATH/src/clappuppet/entitlements.plist" "ossia score.app/Contents/MacOS/ossia-score-clappuppet.app"
-
-echo "... vstpuppet "
-sign_app "$SRC_PATH/src/vstpuppet/entitlements.plist" "ossia score.app/Contents/MacOS/ossia-score-vstpuppet.app"
-
-echo "... vst3puppet "
-sign_app "$SRC_PATH/src/vst3puppet/entitlements.plist" "ossia score.app/Contents/MacOS/ossia-score-vst3puppet.app"
-
-echo "... score "
-sign_app "$SRC_PATH/src/app/entitlements.plist" "ossia score.app"
 
 echo " === create dmg === "
 # Create a .dmg
@@ -93,24 +95,27 @@ echo " === set ownership === "
 sudo chown "$(whoami)" ./score.dmg
 
 # Notarize the .dmg
-echo " === notarize === "
-if [[ "${CI_IS_AZURE}" = "1" ]]; then
-  security unlock-keychain -p travis build.keychain
+
+if [[ -n "${MAC_ALTOOL_PASSWORD}" ]]; then
+  echo " === notarize === "
+  if [[ "${CI_IS_AZURE}" = "1" ]]; then
+    security unlock-keychain -p travis build.keychain
+  fi
+
+  xcrun notarytool \
+    submit score.dmg \
+    --team-id "GRW9MHZ724" \
+    --apple-id "jeanmichael.celerier@gmail.com" \
+    --password "$MAC_ALTOOL_PASSWORD" \
+    --progress \
+    --wait
+
+  # Staple
+  xcrun stapler staple ./score.dmg
+  xcrun stapler validate ./score.dmg
+
+  [[ $? == 0 ]] || exit 1
 fi
-
-xcrun notarytool \
-  submit score.dmg \
-  --team-id "GRW9MHZ724" \
-  --apple-id "jeanmichael.celerier@gmail.com" \
-  --password "$MAC_ALTOOL_PASSWORD" \
-  --progress \
-  --wait
-
-# Staple
-xcrun stapler staple ./score.dmg
-xcrun stapler validate ./score.dmg
-
-[[ $? == 0 ]] || exit 1
 
 # Archive
 mv ./score.dmg "$BUILD_ARTIFACTSTAGINGDIRECTORY/ossia score-$TAG-macOS-$PACKAGE_ARCH.dmg"
