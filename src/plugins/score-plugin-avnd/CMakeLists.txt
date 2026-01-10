@@ -626,6 +626,12 @@ avnd_make_score(
 )
 
 avnd_make_score(
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/Queue.hpp"
+  TARGET queue
+  MAIN_CLASS Queue
+  NAMESPACE avnd_tools
+)
+avnd_make_score(
   SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/Sweeper.hpp"
   TARGET pattern_sweeper
   MAIN_CLASS PatternSweeper
