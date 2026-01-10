@@ -1,4 +1,4 @@
-if(NOT UNIX)
+if(NOT LINUX)
   return()
 endif()
 
