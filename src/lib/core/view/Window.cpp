@@ -1,6 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "HelperPanelDelegate.hpp"
+#include "ScriptPanelDelegate.hpp"
 
 #include <score/actions/Menu.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
@@ -320,15 +321,15 @@ void View::setupPanel(PanelDelegate* v)
       auto status = v->defaultPanelStatus();
       if(status.prettyName == QObject::tr("Inspector"))
       {
-        m_inspectorPanel = v;
+        inspectorPanel = v;
       }
       else if(status.prettyName == QObject::tr("Objects"))
       {
-        m_objectPanel = v;
+        objectPanel = v;
       }
       else if(status.prettyName == QObject::tr("Info"))
       {
-        m_infoPanel = v;
+        infoPanel = v;
       }
       else
       {
@@ -391,21 +392,21 @@ void View::allPanelsAdded()
     // });
   }
 
-  rightSplitter->addWidget(m_objectPanel->widget());
-  rightSplitter->addWidget(m_inspectorPanel->widget());
-  rightSplitter->addWidget(m_infoPanel->widget());
+  rightSplitter->addWidget(objectPanel->widget());
+  rightSplitter->addWidget(inspectorPanel->widget());
+  rightSplitter->addWidget(infoPanel->widget());
   {
     auto [idx, toggle]
-        = rightTabs->addTab(rightSplitter, m_inspectorPanel->defaultPanelStatus(), 0);
+        = rightTabs->addTab(rightSplitter, inspectorPanel->defaultPanelStatus(), 0);
 
     if(toggle)
     {
-      auto& mw = m_inspectorPanel->context().menus.get().at(score::Menus::Windows());
+      auto& mw = inspectorPanel->context().menus.get().at(score::Menus::Windows());
       addAction(toggle);
       mw.menu()->addAction(toggle);
 
       // Maybe show the panel
-      if(m_inspectorPanel->defaultPanelStatus().shown)
+      if(inspectorPanel->defaultPanelStatus().shown)
         toggle->toggle();
     }
   }

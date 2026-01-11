@@ -209,7 +209,7 @@ const score::PanelStatus& PanelDelegate::defaultPanelStatus() const
   static const score::PanelStatus status{
       false,
       false,
-      Qt::BottomDockWidgetArea,
+      Qt::RightDockWidgetArea,
       0,
       QObject::tr("Console"),
       "console",
