@@ -69,7 +69,6 @@ public:
 private:
   void loadPreset(const Process::Preset& preset) override;
   Process::Preset savePreset() const noexcept override;
-  QString prettyName() const noexcept override;
 
   ShaderSource m_program;
   ProcessedProgram m_processedProgram;
