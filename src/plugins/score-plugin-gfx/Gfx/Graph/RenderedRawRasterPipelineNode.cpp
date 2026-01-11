@@ -102,13 +102,18 @@ void RenderedRawRasterPipelineNode::initPass(
     // Check compatibility of shader and mesh
     {
       const auto& mesh_vars = ps->vertexInputLayout();
-      const int mesh_bindings = mesh_vars.bindingCount();
+      auto mesh_bindings_begin = mesh_vars.cbeginBindings();
+      auto mesh_bindings_end = mesh_vars.cendBindings();
+      auto mesh_attributes_begin = mesh_vars.cbeginAttributes();
+      auto mesh_attributes_end = mesh_vars.cendAttributes();
+      const int mesh_bindings = mesh_bindings_end - mesh_bindings_begin;
+      const int mesh_attributes = mesh_attributes_end - mesh_attributes_begin;
       for(const auto& shader_var : v.description().inputVariables())
       {
         bool found = false;
-        for(int i = 0; i < mesh_vars.attributeCount(); i++)
+        for(int i = 0; i < mesh_attributes; i++)
         {
-          const auto& attr = mesh_vars.attributeAt(i);
+          const auto& attr = mesh_attributes_begin + i;
           if(attr->location() == shader_var.location)
           {
             if(attr->binding() >= 0 && attr->binding() < mesh_bindings)
