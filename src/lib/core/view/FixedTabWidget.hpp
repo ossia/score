@@ -25,7 +25,8 @@ public:
 
   QSize sizeHint() const override;
   void setTab(int index);
-  std::pair<int, QAction*> addTab(QWidget* widg, const score::PanelStatus& v);
+  std::pair<int, QAction*>
+  addTab(QWidget* widg, const score::PanelStatus& v, int index = -1);
   QAction* addAction(QWidget* widg, const PanelStatus& v);
   QAction* addAction(QAction* act);
 
