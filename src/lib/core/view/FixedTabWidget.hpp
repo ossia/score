@@ -14,7 +14,7 @@ class QActionGroup;
 namespace score
 {
 
-class FixedTabWidget : public QWidget
+class SCORE_LIB_BASE_EXPORT FixedTabWidget : public QWidget
 {
   W_OBJECT(FixedTabWidget)
 public:

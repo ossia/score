@@ -80,6 +80,11 @@ public:
   QTabWidget* centralTabs{};
   QWidget* transportBar{};
 
+  PanelDelegate* objectPanel{};
+  PanelDelegate* inspectorPanel{};
+  PanelDelegate* infoPanel{};
+  PanelDelegate* scriptPanel{};
+
 private:
   bool event(QEvent* event) override;
   void changeEvent(QEvent*) override;
@@ -91,10 +96,6 @@ private:
 
   Presenter* m_presenter{};
   QLabel* m_status{};
-
-  PanelDelegate* m_objectPanel{};
-  PanelDelegate* m_inspectorPanel{};
-  PanelDelegate* m_infoPanel{};
 };
 
 }
