@@ -18,8 +18,9 @@ namespace score
 FixedTabWidget::FixedTabWidget() noexcept
     : m_buttons{new QToolBar}
 {
-  m_layout.setContentsMargins(10, 10, 10, 10);
-  m_layout.setSpacing(6);
+  setContentsMargins(0, 0, 0, 0);
+  m_layout.setContentsMargins(0, 0, 0, 0);
+  m_layout.setSpacing(1);
   this->setLayout(&m_layout);
   auto layout = new score::MarginLess<QVBoxLayout>;
 
@@ -97,16 +98,43 @@ struct DragOverToolButton final : public QToolButton
   int m_tm = 0;
 };
 
-std::pair<int, QAction*> FixedTabWidget::addTab(QWidget* widg, const PanelStatus& v)
+std::pair<int, QAction*>
+FixedTabWidget::addTab(QWidget* widg, const PanelStatus& v, int index)
 {
-  int idx = m_stack.addWidget(widg);
+  int idx = index >= 0 ? m_stack.insertWidget(index, widg) : m_stack.addWidget(widg);
 
   auto bbtn = new DragOverToolButton{};
   bbtn->setAutoRaise(true);
   bbtn->setFocusPolicy(Qt::NoFocus);
   bbtn->setIconSize(m_buttons->iconSize());
 
-  auto btn = m_buttons->addWidget(bbtn);
+  QAction* btn{};
+  if(index < 0)
+  {
+    btn = m_buttons->addWidget(bbtn);
+  }
+  else
+  {
+    const auto& acts = m_buttons->actions();
+    int k = 0;
+    QAction* before{};
+    for(QAction* act : acts)
+    {
+      if(k++ == index)
+      {
+        before = act;
+        break;
+      }
+    }
+    if(before)
+    {
+      btn = m_buttons->insertWidget(before, bbtn);
+    }
+    else
+    {
+      btn = m_buttons->addWidget(bbtn);
+    }
+  }
   bbtn->setDefaultAction(btn);
   btn->setIcon(v.icon);
   btn->setText(v.prettyName);
@@ -121,8 +149,8 @@ std::pair<int, QAction*> FixedTabWidget::addTab(QWidget* widg, const PanelStatus
   btn->setWhatsThis(widg->whatsThis());
   btn->setStatusTip(widg->statusTip());
 
-  connect(btn, &QAction::triggered, &m_stack, [this, btn, idx](bool checked) {
-    m_stack.setCurrentIndex(idx);
+  connect(btn, &QAction::triggered, &m_stack, [this, btn, widg](bool checked) {
+    m_stack.setCurrentWidget(widg);
     actionTriggered(btn, checked);
   });
 
