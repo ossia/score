@@ -72,7 +72,9 @@ public:
   QWidget* centralDocumentWidget{};
   QSplitter* rightSplitter{};
   QWidget* topleftToolbar{};
+  QWidget* topRightToolbar{};
   FixedTabWidget* leftTabs{};
+  FixedTabWidget* rightTabs{};
   // QTabWidget* rightTabs{};
   FixedTabWidget* bottomTabs{};
   QTabWidget* centralTabs{};
@@ -89,6 +91,10 @@ private:
 
   Presenter* m_presenter{};
   QLabel* m_status{};
+
+  PanelDelegate* m_objectPanel{};
+  PanelDelegate* m_inspectorPanel{};
+  PanelDelegate* m_infoPanel{};
 };
 
 }
