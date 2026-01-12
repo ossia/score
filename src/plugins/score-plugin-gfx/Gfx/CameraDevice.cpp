@@ -61,9 +61,11 @@ void enumerateCameraDevices(std::function<void(CameraSettings, QString)> func);
 CameraSettings findBestCameraMode()
 {
   std::vector<CameraSettings> candidates;
+  candidates.reserve(200);
 
   // 1. Collect all modes
-  enumerateCameraDevices([&](CameraSettings s, QString) { candidates.push_back(s); });
+  enumerateCameraDevices(
+      [&](CameraSettings s, const auto&) { candidates.push_back(std::move(s)); });
 
   if(candidates.empty())
     return {};
@@ -178,7 +180,7 @@ public:
     set.device = "default";
 
     s.deviceSpecificSettings = QVariant::fromValue(set);
-    f("Camera", s);
+    f("Default Camera", s);
   }
 };
 
