@@ -43,6 +43,7 @@
 
 #include <wobjectimpl.h>
 
+#include <bitset>
 #include <vector>
 W_OBJECT_IMPL(YSFX::ProcessModel)
 namespace YSFX
@@ -143,6 +144,8 @@ void ProcessModel::recreatePorts()
   this->m_outlets.push_back(
       new Process::MidiOutlet{"MIDI Out", Id<Process::Port>{3}, this});
 
+  this->m_sliderBeingChanged.reset();
+
   for(uint32_t i = 0; i < ysfx_max_sliders; ++i)
   {
     if(!ysfx_slider_exists(fx.get(), i))
@@ -151,7 +154,7 @@ void ProcessModel::recreatePorts()
     auto id = Id<Process::Port>(4 + i);
     const bool is_visible = ysfx_slider_is_initially_visible(fx.get(), i);
     QString slider_name = ysfx_slider_get_name(fx.get(), i);
-    if(ysfx_slider_is_enum(fx.get(), i))
+    if(ysfx_slider_is_enum(fx.get(), i) || ysfx_slider_is_path(fx.get(), i))
     {
       std::vector<std::pair<QString, ossia::value>> values;
       ossia::value init;
@@ -166,11 +169,24 @@ void ProcessModel::recreatePorts()
 
       auto slider = new Process::ComboBox{values, 0, slider_name, id, this};
 
-      this->m_inlets.push_back(slider);
-    }
-    else if(ysfx_slider_is_path(fx.get(), i))
-    {
-      auto slider = new Process::LineEdit{{}, slider_name, id, this};
+      connect(
+          slider, &Process::ComboBox::valueChanged, this,
+          [this, i](const ossia::value& v) {
+        if(!this->fx)
+          return;
+        if(this->m_sliderBeingChanged.test(i))
+          return;
+        this->m_sliderBeingChanged.set(i, true);
+
+        auto old_val = (int)ysfx_slider_get_value(this->fx.get(), i);
+        auto new_val = ossia::convert<int>(v);
+        if(old_val != new_val)
+        {
+          ysfx_slider_set_value(this->fx.get(), i, new_val, true);
+        }
+        this->m_sliderBeingChanged.set(i, false);
+      });
+
       this->m_inlets.push_back(slider);
     }
     else
@@ -181,6 +197,23 @@ void ProcessModel::recreatePorts()
       auto slider = new Process::FloatSlider(
           range.min, range.max, range.def, slider_name, id, this);
       // TODO increment
+      connect(
+          slider, &Process::FloatSlider::valueChanged, this,
+          [this, i](const ossia::value& v) {
+        if(!this->fx)
+          return;
+        if(this->m_sliderBeingChanged.test(i))
+          return;
+        this->m_sliderBeingChanged.set(i, true);
+
+        auto old_val = ysfx_slider_get_value(this->fx.get(), i);
+        auto new_val = ossia::convert<float>(v);
+        if(old_val != new_val)
+        {
+          ysfx_slider_set_value(this->fx.get(), i, new_val, true);
+        }
+        this->m_sliderBeingChanged.set(i, false);
+      });
 
       this->m_inlets.push_back(slider);
     }
@@ -327,7 +360,7 @@ Process::ScriptChangeResult ProcessModel::reload()
   return res;
 }
 
-Window::Window(const ProcessModel& e, const score::DocumentContext& ctx, QWidget* parent)
+Window::Window(ProcessModel& e, const score::DocumentContext& ctx, QWidget* parent)
     : PluginWindow{ctx.app.settings<Media::Settings::Model>().getVstAlwaysOnTop(), parent}
     , m_model{&e}
 {
@@ -382,9 +415,6 @@ void Window::rebuild()
   setGeometry(0, 0, dim[0], dim[1]);
 
   conf.user_data = this;
-  conf.pixel_width = dim[0];
-  conf.pixel_height = dim[1];
-  conf.pixel_stride = 0; // conf.pixel_width * 4;
 
   if(m_retina)
   {
@@ -564,30 +594,6 @@ void Window::rebuild()
 
 void Window::resizeEvent(QResizeEvent* event)
 {
-  auto width = event->size().width();
-  auto height = event->size().height();
-
-  if(m_retina)
-  {
-    conf.scale_factor = this->devicePixelRatioF();
-    conf.pixel_width = width * conf.scale_factor;
-    conf.pixel_height = height * conf.scale_factor;
-    m_frame = QImage(
-        QSize(width * conf.scale_factor, height * conf.scale_factor),
-        QImage::Format_RGBX8888);
-    m_frame.setDevicePixelRatio(conf.scale_factor);
-    m_frame.fill(0);
-  }
-  else
-  {
-    conf.scale_factor = 1.0;
-    conf.pixel_width = width;
-    conf.pixel_height = height;
-    m_frame = QImage(QSize(width, height), QImage::Format_RGBX8888);
-    m_frame.fill(0);
-  }
-  conf.pixels = m_frame.bits();
-  ysfx_gfx_setup(fx.get(), &conf);
   event->accept();
 }
 
@@ -696,6 +702,7 @@ static int qt_to_ysfx_key(int k)
 void Window::mousePressEvent(QMouseEvent* event)
 {
   this->m_mouseHeldMenuEvent = 0;
+  this->m_mouseHeld = true;
   if(this->fx)
   {
     auto qt_mods = qApp->keyboardModifiers();
@@ -731,6 +738,7 @@ void Window::mousePressEvent(QMouseEvent* event)
 
 void Window::mouseReleaseEvent(QMouseEvent* event)
 {
+  this->m_mouseHeld = false;
   if(this->fx)
   {
     auto qt_mods = qApp->keyboardModifiers();
@@ -853,11 +861,79 @@ void Window::paintEvent(QPaintEvent* event)
   if(this->fx)
   {
     updateState();
-    ysfx_gfx_run(fx.get());
+
+    // logical w / h:
+    auto width = this->width();
+    auto height = this->height();
 
     QPainter p{this};
-    p.drawImage(QPoint{}, this->m_frame.rgbSwapped());
+    const auto retina = ysfx_gfx_wants_retina(fx.get());
+    if(retina)
+    {
+      const float host_scale_factor = this->devicePixelRatioF();
+      p.setRenderHint(QPainter::RenderHint::SmoothPixmapTransform, true);
+      conf.scale_factor = 1.;
+      conf.pixel_width = std::floor(width * host_scale_factor);
+      conf.pixel_height = std::floor(height * host_scale_factor);
+      conf.pixel_stride = std::floor(width * host_scale_factor) * 4;
+
+      if(m_frame.width() != conf.pixel_width || m_frame.height() != conf.pixel_height)
+      {
+        m_frame = QImage(
+            QSize(conf.pixel_width, conf.pixel_height), QImage::Format_RGBX8888);
+        m_frame.fill(0);
+      }
+      m_frame.setDevicePixelRatio(host_scale_factor);
+    }
+    else
+    {
+      p.setRenderHint(QPainter::RenderHint::SmoothPixmapTransform, false);
+      conf.scale_factor = 1.0;
+      conf.pixel_width = width;
+      conf.pixel_height = height;
+      conf.pixel_stride = width * 4;
+      if(m_frame.width() != width || m_frame.height() != height)
+      {
+        m_frame = QImage(QSize(width, height), QImage::Format_RGBX8888);
+        m_frame.fill(0);
+      }
+      m_frame.setDevicePixelRatio(1.0);
+    }
+    conf.pixels = m_frame.bits();
+    ysfx_gfx_setup(fx.get(), &conf);
+
+    ysfx_gfx_run(fx.get());
+
+    p.drawImage(QPointF{}, this->m_frame.rgbSwapped());
     event->accept();
+
+#if __has_include(<ysfx-s.h>)
+    auto y = this->fx.get();
+    if(m_mouseHeld)
+    {
+      if(std::bitset<64> res = ysfx_fetch_slider_automations(y, 0); res.any())
+      {
+        for(int i = 0; i < 64; i++)
+        {
+          if(res.test(i))
+          {
+            // See ProcessModel.hpp around the loop:
+            // for (uint32_t i = 0; i < ysfx_max_sliders; ++i)
+            int idx = 4 + i;
+            if(auto inl = static_cast<Process::ControlInlet*>(
+                   m_model->inlet(Id<Process::Port>{idx})))
+            {
+              if(m_model->m_sliderBeingChanged.test(i))
+                return;
+              m_model->m_sliderBeingChanged.set(i, true);
+              inl->setValue(ysfx_slider_get_value(y, i));
+              m_model->m_sliderBeingChanged.set(i, false);
+            }
+          }
+        }
+      }
+    }
+#endif
   }
 }
 
