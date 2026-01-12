@@ -12,6 +12,7 @@
 
 #include <score_plugin_ysfx_export.h>
 
+#include <bitset>
 #include <memory>
 #include <verdigris>
 
@@ -24,6 +25,7 @@
 namespace YSFX
 {
 class ProcessModel;
+class Window;
 class SCORE_PLUGIN_YSFX_EXPORT ProcessModel final : public Process::ProcessModel
 {
   SCORE_SERIALIZE_FRIENDS
@@ -68,6 +70,7 @@ public:
   PROPERTY(QString, script READ text WRITE setText NOTIFY scriptChanged)
 
 private:
+  friend class Window;
   void recreatePorts();
   QString effect() const noexcept override;
   void loadPreset(const Process::Preset&) override;
@@ -77,15 +80,17 @@ private:
   ysfx_bank_t* m_bank{};
   QString m_jsfx_path;
   QString m_text;
+
+  std::bitset<ysfx_max_sliders> m_sliderBeingChanged{};
 };
 
 class Window : public score::PluginWindow
 {
 public:
-  Window(const ProcessModel& e, const score::DocumentContext& ctx, QWidget* parent);
+  Window(ProcessModel& e, const score::DocumentContext& ctx, QWidget* parent);
   ~Window();
 
-  QPointer<const ProcessModel> m_model;
+  QPointer<ProcessModel> m_model;
 
   std::shared_ptr<ysfx_t> fx;
   ysfx_gfx_config_t conf{};
@@ -94,6 +99,7 @@ private:
   QImage m_frame;
   std::vector<std::string> m_droppedFiles;
   int m_mouseHeldMenuEvent{};
+  bool m_mouseHeld{};
   bool m_retina{};
   void rebuild();
   void resizeEvent(QResizeEvent* event) override;

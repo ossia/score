@@ -312,7 +312,7 @@ void ysfx_node::run(
       if(float* v = val.target<float>())
       {
 #if __has_include(<ysfx-s.h>)
-        ysfx_slider_set_value(y, i, *v, false);
+        ysfx_slider_set_value(y, i, *v, true);
 #else
         ysfx_slider_set_value(y, i, *v);
 #endif
@@ -320,7 +320,7 @@ void ysfx_node::run(
       else if(int* v = val.target<int>())
       {
 #if __has_include(<ysfx-s.h>)
-        ysfx_slider_set_value(y, i, *v, false);
+        ysfx_slider_set_value(y, i, *v, true);
 #else
         ysfx_slider_set_value(y, i, *v);
 #endif
