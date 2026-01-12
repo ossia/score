@@ -71,6 +71,32 @@ bool JoystickDevice::reconnect()
   auto stgs = settings().deviceSpecificSettings.value<JoystickSpecificSettings>();
   try
   {
+
+    // Prevent instantiating a dummy joystick device
+    if(stgs.id == score::uuid_t{} && stgs.spec == std::pair<int32_t, int32_t>{-1, -1})
+    {
+      // Default joystick. Let's get the first unused joystick.
+      using info = ossia::net::joystick_info;
+      const unsigned int joystick_count = info::get_joystick_count();
+      if(joystick_count == 0)
+        return false;
+
+      for(unsigned int i = 0; i < joystick_count; ++i)
+      {
+        if(info::get_joystick_is_available(i))
+        {
+          info::write_joystick_uuid(i, stgs.id.data);
+          stgs.spec = {info::get_joystick_id(i), i};
+          stgs.gamepad = info::get_joystick_is_gamepad(i);
+          break;
+        }
+      }
+
+      // All the joysticks are already connected
+      if(stgs.id == score::uuid_t{} && stgs.spec == std::pair<int32_t, int32_t>{-1, -1})
+        return false;
+    }
+
     if(stgs.gamepad)
     {
       try

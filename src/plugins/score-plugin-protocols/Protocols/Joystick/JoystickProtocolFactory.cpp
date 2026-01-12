@@ -13,6 +13,24 @@
 #include <QUrl>
 namespace Protocols
 {
+class DefaultJoystickEnumerator : public Device::DeviceEnumerator
+{
+public:
+  void enumerate(std::function<void(const QString&, const Device::DeviceSettings&)> f)
+      const override
+  {
+    Device::DeviceSettings s;
+    s.name = "Gamepad";
+    s.protocol = JoystickProtocolFactory::static_concreteKey();
+    JoystickSpecificSettings specif;
+    specif.gamepad = true;
+    specif.id = {};
+    specif.spec = specif.unassigned;
+
+    s.deviceSpecificSettings = QVariant::fromValue(specif);
+    f("Default Gamepad", s);
+  }
+};
 
 class JoystickEnumerator : public Device::DeviceEnumerator
 {
@@ -61,7 +79,8 @@ QUrl JoystickProtocolFactory::manual() const noexcept
 Device::DeviceEnumerators
 JoystickProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
 {
-  return {{"Devices", new JoystickEnumerator}};
+  return {
+      {"Default", new DefaultJoystickEnumerator}, {"Devices", new JoystickEnumerator}};
 }
 
 Device::DeviceInterface* JoystickProtocolFactory::makeDevice(
@@ -111,11 +130,7 @@ bool JoystickProtocolFactory::checkCompatibility(
   auto a_ = a.deviceSpecificSettings.value<JoystickSpecificSettings>();
   if(a.protocol != b.protocol)
   {
-    // Prevent instantiating a dummy joystick device
-    if(a_.id == score::uuid_t{} && a_.spec == std::pair<int32_t, int32_t>{-1, -1})
-    {
-      return false;
-    }
+    // FIXME check that the joystick is not already open
     return true;
   }
 
