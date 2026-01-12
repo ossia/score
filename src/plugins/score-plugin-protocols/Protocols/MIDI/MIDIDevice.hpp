@@ -1,9 +1,16 @@
 #pragma once
 #include <Device/Protocol/DeviceInterface.hpp>
 
+namespace libremidi
+{
+struct input_configuration;
+struct output_configuration;
+class observer;
+}
 namespace Protocols
 {
 class MidiKeyboardEventFilter;
+struct MIDISpecificSettings;
 class MIDIDevice final : public Device::OwningDeviceInterface
 {
 public:
@@ -24,7 +31,6 @@ public:
   bool isLearning() const final override;
   void setLearning(bool) final override;
 
-private:
   const ossia::net::network_context_ptr& m_ctx;
   MidiKeyboardEventFilter* m_kbdfilter{};
 };

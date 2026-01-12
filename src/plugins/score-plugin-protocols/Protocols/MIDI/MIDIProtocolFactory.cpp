@@ -69,6 +69,44 @@ to_settings(libremidi::API api, const libremidi::output_port& p)
   return set;
 }
 
+class DefaultMidiInEnumerator : public Device::DeviceEnumerator
+{
+  void enumerate(std::function<void(const QString&, const Device::DeviceSettings&)> f)
+      const override
+  {
+    Device::DeviceSettings set;
+    set.name = "MIDI In";
+    set.protocol = MIDIOutputProtocolFactory::static_concreteKey();
+
+    MIDISpecificSettings specif;
+    specif.io = MIDISpecificSettings::IO::In;
+    specif.virtualPort = false;
+
+    set.deviceSpecificSettings = QVariant::fromValue(specif);
+
+    f("Default MIDI In", set);
+  }
+};
+
+class DefaultMidiOutEnumerator : public Device::DeviceEnumerator
+{
+  void enumerate(std::function<void(const QString&, const Device::DeviceSettings&)> f)
+      const override
+  {
+    Device::DeviceSettings set;
+    set.name = "MIDI Out";
+    set.protocol = MIDIOutputProtocolFactory::static_concreteKey();
+
+    MIDISpecificSettings specif;
+    specif.io = MIDISpecificSettings::IO::Out;
+    specif.virtualPort = false;
+
+    set.deviceSpecificSettings = QVariant::fromValue(specif);
+
+    f("Default MIDI Out", set);
+  }
+};
+
 template <ossia::net::midi::midi_info::Type Type>
 class MidiEnumerator : public Device::DeviceEnumerator
 {
@@ -169,6 +207,7 @@ MIDIInputProtocolFactory::getEnumerators(const score::DocumentContext& ctx) cons
   obs_sw.track_hardware = false;
   obs_sw.track_virtual = true;
   return {
+      {"Default", new DefaultMidiInEnumerator},
       {"Hardware inputs",
        new MidiEnumerator<ossia::net::midi::midi_info::Type::Input>(obs_hw)},
       {"Software inputs",
@@ -193,7 +232,6 @@ const Device::DeviceSettings& MIDIInputProtocolFactory::defaultSettings() const 
     MIDISpecificSettings specif;
     specif.io = MIDISpecificSettings::IO::In;
     specif.virtualPort = false;
-    specif.handle.api = getCurrentAPI();
     s.deviceSpecificSettings = QVariant::fromValue(specif);
     return s;
   }();
@@ -235,8 +273,7 @@ bool MIDIInputProtocolFactory::checkCompatibility(
     const Device::DeviceSettings& a, const Device::DeviceSettings& b) const noexcept
 {
   // FIXME check if we can open the same device multiple times ?
-  auto specif = a.deviceSpecificSettings.value<MIDISpecificSettings>();
-  return specif.handle.port != libremidi::port_information{}.port || specif.virtualPort;
+  return true;
 }
 
 QString MIDIOutputProtocolFactory::prettyName() const noexcept
@@ -263,6 +300,7 @@ MIDIOutputProtocolFactory::getEnumerators(const score::DocumentContext& ctx) con
   obs_sw.track_hardware = false;
   obs_sw.track_virtual = true;
   return {
+      {"Default", new DefaultMidiOutEnumerator},
       {"Hardware outputs",
        new MidiEnumerator<ossia::net::midi::midi_info::Type::Output>(obs_hw)},
       {"Software outputs",
@@ -286,7 +324,6 @@ const Device::DeviceSettings& MIDIOutputProtocolFactory::defaultSettings() const
     MIDISpecificSettings specif;
     specif.io = MIDISpecificSettings::IO::Out;
     specif.virtualPort = false;
-    specif.handle.api = getCurrentAPI();
     s.deviceSpecificSettings = QVariant::fromValue(specif);
     return s;
   }();
@@ -328,7 +365,6 @@ bool MIDIOutputProtocolFactory::checkCompatibility(
     const Device::DeviceSettings& a, const Device::DeviceSettings& b) const noexcept
 {
   // FIXME check if we can open the same device multiple times ?
-  auto specif = a.deviceSpecificSettings.value<MIDISpecificSettings>();
-  return (specif.handle.port != libremidi::port_information{}.port) || specif.virtualPort;
+  return true;
 }
 }
