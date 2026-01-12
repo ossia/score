@@ -182,7 +182,11 @@ void ProcessModel::recreatePorts()
         auto new_val = ossia::convert<int>(v);
         if(old_val != new_val)
         {
+#if __has_include(<ysfx-s.h>)
           ysfx_slider_set_value(this->fx.get(), i, new_val, true);
+#else
+          ysfx_slider_set_value(this->fx.get(), i, new_val);
+#endif
         }
         this->m_sliderBeingChanged.set(i, false);
       });
@@ -210,7 +214,11 @@ void ProcessModel::recreatePorts()
         auto new_val = ossia::convert<float>(v);
         if(old_val != new_val)
         {
+#if __has_include(<ysfx-s.h>)
           ysfx_slider_set_value(this->fx.get(), i, new_val, true);
+#else
+          ysfx_slider_set_value(this->fx.get(), i, new_val);
+#endif
         }
         this->m_sliderBeingChanged.set(i, false);
       });
