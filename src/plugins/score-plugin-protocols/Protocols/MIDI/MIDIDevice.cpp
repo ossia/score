@@ -60,6 +60,138 @@ MIDIDevice::~MIDIDevice()
   delete m_kbdfilter;
 }
 
+static bool locateDevice(libremidi::observer& obs, MIDISpecificSettings& set)
+{
+  switch(set.handle.api)
+  {
+    case libremidi::API::KEYBOARD:
+    case libremidi::API::KEYBOARD_UMP:
+    case libremidi::API::NETWORK:
+    case libremidi::API::NETWORK_UMP:
+      break;
+    default: {
+      if(set.io == MIDISpecificSettings::IO::In)
+      {
+        const auto ip = obs.get_input_ports();
+        if(ip.empty())
+          return false;
+
+        // Default midi device case
+        if(set.handle.api == libremidi::API::UNSPECIFIED
+           && set.handle.port == static_cast<libremidi::port_handle>(-1)
+           && set.handle.device_name == std::string{}
+           && set.handle.port_name == std::string{}
+           && set.handle.display_name == std::string{})
+        {
+          set.handle = ip.front();
+        }
+        else
+        {
+          auto candidates = libremidi::optimistic_serialized_port_lookup(
+              static_cast<const libremidi::input_port&>(set.handle),
+              std::span<const libremidi::input_port>(ip));
+          // FIXME ideally we would try to open them all if e.g. the first one fails
+          if(!candidates.empty())
+            set.handle = *candidates.front();
+        }
+      }
+      else
+      {
+        const auto op = obs.get_output_ports();
+        if(op.empty())
+          return false;
+
+        // Default midi device case
+        if(set.handle.api == libremidi::API::UNSPECIFIED
+           && set.handle.port == static_cast<libremidi::port_handle>(-1)
+           && set.handle.device_name == std::string{}
+           && set.handle.port_name == std::string{}
+           && set.handle.display_name == std::string{})
+        {
+          set.handle = op.front();
+        }
+        else
+        {
+          auto candidates = libremidi::optimistic_serialized_port_lookup(
+              static_cast<const libremidi::output_port&>(set.handle),
+              std::span<const libremidi::output_port>(op));
+          // FIXME ideally we would try to open them all if e.g. the first one fails
+          if(!candidates.empty())
+            set.handle = *candidates.front();
+        }
+      }
+    }
+  }
+  return true;
+}
+
+std::pair<libremidi::input_configuration, libremidi::input_api_configuration>
+makeInputConfiguration(MIDIDevice& self, MIDISpecificSettings& set)
+{
+  libremidi::input_configuration conf;
+  auto api_conf = libremidi::midi_in_configuration_for(set.handle.api);
+  libremidi::midi_any::for_input_configuration([&](auto& conf) {
+    if constexpr(requires { conf.client_name; })
+      conf.client_name = "ossia score";
+  }, api_conf);
+
+  // FIXME get the frame time in here in some way.
+  // MIDIDevice needs to go in a plug-in after exec plugin, but is depended-on by dataflow
+  // for access to the midi ports...
+  // Note: which time do we use when no audio engine is running?
+  // else
+  // {
+  //   input_conf.timestamps = libremidi::timestamp_mode::Custom;
+  //   input_conf.get_timestamp = [this](int64_t) { return 0; };
+  // }
+
+  switch(set.handle.api)
+  {
+    case libremidi::API::ALSA_SEQ: {
+      conf.timestamps = libremidi::timestamp_mode::AudioFrame;
+
+      auto ptr = get_if<libremidi::alsa_seq::input_configuration>(&api_conf);
+      SCORE_ASSERT(ptr);
+      ptr->client_name = "ossia score";
+      break;
+    }
+    case libremidi::API::JACK_MIDI: {
+      conf.timestamps = libremidi::timestamp_mode::AudioFrame;
+      break;
+    }
+    case libremidi::API::PIPEWIRE: {
+      conf.timestamps = libremidi::timestamp_mode::AudioFrame;
+      break;
+    }
+    case libremidi::API::KEYBOARD: {
+      auto ptr = get_if<libremidi::kbd_input_configuration>(&api_conf);
+      SCORE_ASSERT(ptr);
+      ptr->set_input_scancode_callbacks = [&self](auto keypress, auto keyrelease) {
+        self.m_kbdfilter = new MidiKeyboardEventFilter{keypress, keyrelease};
+#if !defined(__APPLE__)
+        qApp->installEventFilter(self.m_kbdfilter);
+#endif
+      };
+      break;
+    }
+    default:
+      break;
+  }
+  return std::make_pair(conf, api_conf);
+}
+
+std::pair<libremidi::output_configuration, libremidi::output_api_configuration>
+makeOutputConfiguration(MIDIDevice& self, MIDISpecificSettings& set)
+{
+  libremidi::output_configuration conf;
+  auto api_conf = libremidi::midi_out_configuration_for(set.handle.api);
+  libremidi::midi_any::for_output_configuration([&](auto& conf) {
+    if constexpr(requires { conf.client_name; })
+      conf.client_name = "ossia score";
+  }, api_conf);
+  return std::make_pair(conf, api_conf);
+}
+
 bool MIDIDevice::reconnect()
 {
   disconnect();
@@ -74,78 +206,14 @@ bool MIDIDevice::reconnect()
   {
     std::unique_ptr<ossia::net::midi::midi_protocol> proto;
 
+    // 1. Handle matching the port_information with a real device if it makes sense
+    if(!locateDevice(obs, set))
+      return false;
+
+    // 2. Create the device
     if(set.io == MIDISpecificSettings::IO::In)
     {
-      const auto ip = obs.get_input_ports();
-      auto candidates = libremidi::optimistic_serialized_port_lookup(
-          static_cast<const libremidi::input_port&>(set.handle),
-          std::span<const libremidi::input_port>(ip));
-      // FIXME ideally we would try to open them all if e.g. the first one fails
-      if(!candidates.empty())
-        set.handle = *candidates.front();
-    }
-    else
-    {
-      const auto ip = obs.get_output_ports();
-      auto candidates = libremidi::optimistic_serialized_port_lookup(
-          static_cast<const libremidi::output_port&>(set.handle),
-          std::span<const libremidi::output_port>(ip));
-      // FIXME ideally we would try to open them all if e.g. the first one fails
-      if(!candidates.empty())
-        set.handle = *candidates.front();
-    }
-
-    if(set.io == MIDISpecificSettings::IO::In)
-    {
-      libremidi::input_configuration conf;
-      auto api_conf = libremidi::midi_in_configuration_for(set.handle.api);
-      libremidi::midi_any::for_input_configuration([&](auto& conf) {
-        if constexpr(requires { conf.client_name; })
-          conf.client_name = "ossia score";
-      }, api_conf);
-
-      switch(set.handle.api)
-      {
-        case libremidi::API::ALSA_SEQ: {
-          conf.timestamps = libremidi::timestamp_mode::AudioFrame;
-
-          auto ptr = get_if<libremidi::alsa_seq::input_configuration>(&api_conf);
-          SCORE_ASSERT(ptr);
-          ptr->client_name = "ossia score";
-          break;
-        }
-        case libremidi::API::JACK_MIDI: {
-          conf.timestamps = libremidi::timestamp_mode::AudioFrame;
-          break;
-        }
-        case libremidi::API::PIPEWIRE: {
-          conf.timestamps = libremidi::timestamp_mode::AudioFrame;
-          break;
-        }
-        case libremidi::API::KEYBOARD: {
-          auto ptr = get_if<libremidi::kbd_input_configuration>(&api_conf);
-          SCORE_ASSERT(ptr);
-          ptr->set_input_scancode_callbacks = [this](auto keypress, auto keyrelease) {
-            m_kbdfilter = new MidiKeyboardEventFilter{keypress, keyrelease};
-#if !defined(__APPLE__)
-            qApp->installEventFilter(m_kbdfilter);
-#endif
-          };
-          break;
-        }
-        default:
-          break;
-      }
-      // FIXME get the frame time in here in some way.
-      // MIDIDevice needs to go in a plug-in after exec plugin, but is depended-on by dataflow
-      // for access to the midi ports...
-      // Note: which time do we use when no audio engine is running?
-      // else
-      // {
-      //   input_conf.timestamps = libremidi::timestamp_mode::Custom;
-      //   input_conf.get_timestamp = [this](int64_t) { return 0; };
-      // }
-
+      auto [conf, api_conf] = makeInputConfiguration(*this, set);
       proto = std::make_unique<ossia::net::midi::midi_protocol>(
           m_ctx,
           ossia::net::midi::midi_protocol_configuration{
@@ -154,12 +222,7 @@ bool MIDIDevice::reconnect()
     }
     else
     {
-      libremidi::output_configuration conf;
-      auto api_conf = libremidi::midi_out_configuration_for(set.handle.api);
-      libremidi::midi_any::for_output_configuration([&](auto& conf) {
-        if constexpr(requires { conf.client_name; })
-          conf.client_name = "ossia score";
-      }, api_conf);
+      auto [conf, api_conf] = makeOutputConfiguration(*this, set);
       proto = std::make_unique<ossia::net::midi::midi_protocol>(
           m_ctx,
           ossia::net::midi::midi_protocol_configuration{
