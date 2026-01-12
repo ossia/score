@@ -20,6 +20,12 @@
 #include <QMimeData>
 
 #include <wobjectimpl.h>
+
+extern "C" {
+#include <libavcodec/avcodec.h>
+#include <libavutil/pixdesc.h>
+}
+
 namespace Gfx
 {
 class CameraDevice final : public GfxInputDevice
@@ -52,6 +58,64 @@ namespace Gfx
 {
 void enumerateCameraDevices(std::function<void(CameraSettings, QString)> func);
 
+CameraSettings findBestCameraMode()
+{
+  std::vector<CameraSettings> candidates;
+
+  // 1. Collect all modes
+  enumerateCameraDevices([&](CameraSettings s, QString) { candidates.push_back(s); });
+
+  if(candidates.empty())
+    return {};
+
+  // 2. Define the scoring logic
+  auto compute_score = [](const CameraSettings& s) {
+    bool has_color = true;
+
+    // If it's a raw format, check pixel format descriptors
+    if(s.codec == AV_CODEC_ID_NONE || s.codec == AV_CODEC_ID_RAWVIDEO)
+    {
+      if(const AVPixFmtDescriptor* desc
+         = av_pix_fmt_desc_get((AVPixelFormat)s.pixelformat))
+      {
+        // Reject if it explicitly looks like a bayer format,
+        // has < 3 components, or is bitstream/paletted.
+        if(desc->nb_components < 3 || (desc->flags & AV_PIX_FMT_FLAG_PAL))
+          has_color = false;
+
+        // Specific check for 1-bit/Monoblack
+        if(desc->comp[0].depth <= 1)
+          has_color = false;
+      }
+    }
+    else
+    {
+      // compressed codec: likely to support color.
+      has_color = true;
+    }
+
+    bool good_enough_fps = s.fps >= 30.0;
+    int area = s.size.width() * s.size.height();
+    double rawFps = s.fps;
+
+    return std::make_tuple(
+        has_color,       // Priority 1: Must be color
+        good_enough_fps, // Priority 2: Must be >= 30Hz
+        area,            // Priority 3: Maximize Resolution
+        rawFps           // Priority 4: Maximize Framerate
+    );
+  };
+
+  // 3. Find the element with the highest score
+  auto bestIt = std::max_element(
+      candidates.begin(), candidates.end(),
+      [&](const CameraSettings& a, const CameraSettings& b) {
+    return compute_score(a) < compute_score(b);
+  });
+
+  return *bestIt;
+}
+
 CameraDevice::~CameraDevice() { }
 
 bool CameraDevice::reconnect()
@@ -65,6 +129,14 @@ bool CameraDevice::reconnect()
     if(plug)
     {
       auto cam = std::make_shared<::Video::CameraInput>();
+
+      if(set.input == "default" && set.device == "default")
+      {
+        set = findBestCameraMode();
+      }
+
+      if(set.input.isEmpty() && set.device.isEmpty())
+        return false;
 
       cam->load(
           set.input.toStdString(), set.device.toStdString(), set.size.width(),
@@ -91,6 +163,24 @@ bool CameraDevice::reconnect()
 
   return connected();
 }
+
+class DefaultCameraEnumerator : public Device::DeviceEnumerator
+{
+public:
+  void enumerate(std::function<void(const QString&, const Device::DeviceSettings&)> f)
+      const override
+  {
+    Device::DeviceSettings s;
+    s.name = "Camera";
+    s.protocol = CameraProtocolFactory::static_concreteKey();
+    CameraSettings set;
+    set.input = "default";
+    set.device = "default";
+
+    s.deviceSpecificSettings = QVariant::fromValue(set);
+    f("Camera", s);
+  }
+};
 
 class CameraEnumerator : public Device::DeviceEnumerator
 {
@@ -152,6 +242,7 @@ Device::DeviceEnumerators
 CameraProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
 {
   Device::DeviceEnumerators enums;
+  enums.push_back({"Default", new DefaultCameraEnumerator});
 #if !defined(__linux__) && !defined(__APPLE__) && !defined(_WIN32)
   enums.push_back({"Cameras", new CameraEnumerator});
 #else
