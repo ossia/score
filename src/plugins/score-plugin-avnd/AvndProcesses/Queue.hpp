@@ -3,6 +3,8 @@
 
 #include <halp/controls.hpp>
 #include <halp/meta.hpp>
+#include <ossia/network/value/value.hpp>
+
 
 namespace avnd_tools
 {
