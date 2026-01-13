@@ -1,12 +1,12 @@
 id: io.ossia.score
 runtime: org.kde.Platform
-runtime-version: "6.9"
+runtime-version: "6.10"
 sdk: org.kde.Sdk
 sdk-extensions:
-  - org.freedesktop.Sdk.Extension.llvm20
+  - org.freedesktop.Sdk.Extension.llvm21
 build-options:
   env:
-    CXX: /usr/lib/sdk/llvm20/bin/clang++
+    CXX: /usr/lib/sdk/llvm21/bin/clang++
 command: ossia-score
 rename-desktop-file: ossia-score.desktop
 rename-icon: ossia-score
@@ -150,8 +150,8 @@ modules:
       # Note: don't use RelWithDebInfo as ossia release builds explicitly expect Release build type.
       - -DCMAKE_BUILD_TYPE=Release
       - -Wno-dev
-      - -DCMAKE_PREFIX_PATH=/usr/lib/sdk/llvm20
-      - -DLLVM_CONFIG=/usr/lib/sdk/llvm20/bin/llvm-config
+      - -DCMAKE_PREFIX_PATH=/usr/lib/sdk/llvm21
+      - -DLLVM_CONFIG=/usr/lib/sdk/llvm21/bin/llvm-config
       - -DSCORE_DEPLOYMENT_BUILD=1
       - -DSCORE_STATIC_PLUGINS=1
       - -DSCORE_FHS_BUILD=1
@@ -160,12 +160,13 @@ modules:
       - -DOSSIA_USE_SYSTEM_LIBRARIES=1
       - -DSCORE_USE_SYSTEM_LIBRARIES=1
       - -DSCORE_NO_QTCONF=1
+      - -DCMAKE_CXX_FLAGS="-Wl,--strip-all"
 
     post-install:
       - install -Dm755 "${FLATPAK_DEST}/bin/ossia-score" "${FLATPAK_DEST}/bin/ossia-score.bin"
-      - install -Dm755 /usr/lib/sdk/llvm20/lib/libLLVM.so.20.1 "${FLATPAK_DEST}/lib/"
-      - install -Dm755 /usr/lib/sdk/llvm20/lib/libclang-cpp.so.20.1 "${FLATPAK_DEST}/lib/"
-      - cp -rf /usr/lib/sdk/llvm20/include/* "${FLATPAK_DEST}/include/"
+      - install -Dm755 /usr/lib/sdk/llvm21/lib/libLLVM.so.20.1 "${FLATPAK_DEST}/lib/"
+      - install -Dm755 /usr/lib/sdk/llvm21/lib/libclang-cpp.so.20.1 "${FLATPAK_DEST}/lib/"
+      - cp -rf /usr/lib/sdk/llvm21/include/* "${FLATPAK_DEST}/include/"
       - cp -rf /usr/include/* "${FLATPAK_DEST}/include/"
       - install -Dm755 ../run "${FLATPAK_DEST}/bin/ossia-score"
       - install -d /app/extensions/Plugins
