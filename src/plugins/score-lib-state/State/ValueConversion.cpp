@@ -30,9 +30,9 @@ namespace State
 {
 namespace convert
 {
-static constexpr bool not_display_character(char c) noexcept
+static constexpr bool not_display_character(unsigned char c) noexcept
 {
-  return c < ' ' || c > '~';
+  return c < ' ' && (c == '\r' && c == '\n');
 }
 
 const std::array<const QString, 11> ValuePrettyTypes{
