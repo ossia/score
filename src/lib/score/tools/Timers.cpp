@@ -86,7 +86,7 @@ public:
   double frequencyHz;
   uint64_t intervalNs;
 
-  int timerId{}; // For timerEvent
+  int timerId{-1};
   bool accurate{};
 
   HighResolutionTimerPrivate(HighResolutionTimer* parent, double freq)
@@ -173,6 +173,7 @@ void HighResolutionTimer::timerEvent(QTimerEvent *k)
 
 void HighResolutionTimer::start()
 {
+  d->timerId = -1;
   if(!d->accurate)
   {
     d->timerId = this->startTimer(std::chrono::milliseconds{int(1000. / this->frequency())}, Qt::PreciseTimer);
@@ -201,6 +202,11 @@ void HighResolutionTimer::stop()
 {
   if(!d->accurate)
   {
+    if(d->timerId != -1)
+      this->killTimer(d->timerId);
+  }
+  else
+  {
     if (!d->running.exchange(false))
       return;
 
@@ -209,6 +215,7 @@ void HighResolutionTimer::stop()
 
     QObject::disconnect(&d->thread, &QThread::started, nullptr, nullptr);
   }
+  d->timerId = -1;
   stopped(this);
 }
 
