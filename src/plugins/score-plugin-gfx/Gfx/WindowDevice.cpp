@@ -71,6 +71,7 @@ public:
     m_screen->onTabletMove = [](QTabletEvent*) {};
     m_screen->onKey = [](int, const QString&) {};
     m_screen->onKeyRelease = [](int, const QString&) { };
+    m_screen->onFps = [](float) { };
     m_protocol->stop();
 
     m_root.clear_children();
