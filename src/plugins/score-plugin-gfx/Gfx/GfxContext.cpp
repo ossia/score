@@ -183,6 +183,10 @@ void GfxContext::recompute_graph()
   // Clear previous timers
   std::destroy_at(&m_timers);
   std::construct_at(&m_timers);
+  {
+    m_watchdog_timer = m_timers.acquireTimer(this, 20.);
+    connect(m_watchdog_timer, &score::HighResolutionTimer::timeout, this, &GfxContext::on_watchdog_timer, Qt::UniqueConnection);
+  }
   m_no_vsync_timer = nullptr;
   m_manualTimers.clear();
 
@@ -480,7 +484,7 @@ void GfxContext::on_no_vsync_timer(score::HighResolutionTimer* self)
 
 void GfxContext::on_watchdog_timer(score::HighResolutionTimer* self)
 {
-  if(m_manualTimers.empty())
+  if(m_manualTimers.empty() && !m_no_vsync_timer)
     updateGraph();
 }
 
