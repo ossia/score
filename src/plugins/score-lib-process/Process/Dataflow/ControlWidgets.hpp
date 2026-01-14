@@ -1199,6 +1199,9 @@ struct FolderChooser
         {
           auto no_colon = str.split(":").back();
           auto no_slash = no_colon.split("/").back();
+#if defined(_WIN32)
+          no_slash = no_slash.split("\\").back();
+#endif
           bt->setText(no_slash);
         }
         else
