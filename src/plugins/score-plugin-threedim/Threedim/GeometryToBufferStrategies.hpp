@@ -261,13 +261,13 @@ public:
     m_buffer = static_cast<QRhiBuffer*>(mesh.buffers[buffer].handle);
     m_offset = byte_offset;
     m_size = byte_size;
-    assert(m_buffer->size() >= byte_size + byte_offset);
 
     if(!m_buffer)
     {
       qDebug() << "DirectBufferReferenceStrategy: Null buffer handle";
       return false;
     }
+    assert(m_buffer->size() >= byte_size + byte_offset);
     return true;
   }
 

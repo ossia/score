@@ -451,13 +451,6 @@ void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpd
     // Check if buffer needs to be resized
     if(requiredSize != storageBuffer.lastKnownSize || !storageBuffer.buffer)
     {
-      // Delete old buffer if it exists
-      if(storageBuffer.buffer)
-      {
-        storageBuffer.buffer->deleteLater();
-        storageBuffer.buffer = nullptr;
-      }
-      
       // Create new buffer with correct size
       if(storageBuffer.buffer)
       {
@@ -1230,13 +1223,14 @@ void RenderedCSFNode::recreateShaderResourceBindings(RenderList& renderer, QRhiR
     if(pass.srb)
     {
       // Delete old SRB
-      delete pass.srb;
-      pass.srb = nullptr;
+      pass.srb->destroy();
     }
-    
-    // Create new SRB
-    pass.srb = rhi.newShaderResourceBindings();
-    
+    else
+    {
+      // Create new SRB
+      pass.srb = rhi.newShaderResourceBindings();
+    }
+
     // Set the ProcessUBO binding for this pass
     if(pass.processUBO)
     {

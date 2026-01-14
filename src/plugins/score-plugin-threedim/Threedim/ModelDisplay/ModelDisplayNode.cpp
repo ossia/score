@@ -1150,6 +1150,8 @@ private:
 
     if(this->geometryChanged)
     {
+      auto old_meshes = m_mesh;
+      auto old_bufs = m_meshbufs;
       if(geometry.meshes)
       {
         std::tie(m_mesh, m_meshbufs)
@@ -1158,15 +1160,17 @@ private:
 
         this->meshChangedIndex = this->m_mesh->dirtyGeometryIndex;
       }
-      mustRecreatePasses = true;
+      if(old_meshes != m_mesh || old_bufs.buffers != m_meshbufs.buffers)
+        mustRecreatePasses = true;
       this->geometryChanged = false;
     }
 
     const auto& mesh = m_mesh ? *m_mesh : renderer.defaultQuad();
     // FIXME is that neeeded?
     // FIXME also not handling geometry_filter dirty geom so far
-    if(mesh.hasGeometryChanged(meshChangedIndex))
+    if(mesh.hasGeometryChanged(meshChangedIndex)) {
       mustRecreatePasses = true;
+    }
 
     if (mustRecreatePasses)
     {
