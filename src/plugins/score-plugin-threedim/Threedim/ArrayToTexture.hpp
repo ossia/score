@@ -11,7 +11,7 @@
 
 #include <algorithm>
 
-#if (!defined(__linux__))
+#if (!defined(__linux__) && !defined(_MSC_VER))
 #define SCORE_LIBC_HAS_FLOAT16 1
 #elif (defined(__linux__) && defined(__GLIBC__))
 #if __GLIBC_PREREQ(2, 40)
@@ -20,7 +20,7 @@
 #endif
 
 // when you enter the least obvious syntax competition and your opponent is clang builtins
-#if defined(__is_identifier)
+#if defined(__is_identifier) && !defined(_MSC_VER)
 #if (!__is_identifier(_Float16))
 #define SCORE_COMPILER_HAS_FLOAT16 1
 #endif

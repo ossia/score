@@ -40,6 +40,7 @@ add_library(Spout
 
 if(MSVC)
   set_target_properties(Spout PROPERTIES UNITY_BUILD 0)
+  target_compile_options(Spout PRIVATE /arch:AVX2)
 else()
   if(NOT "${CMAKE_CXX_FLAGS}" MATCHES ".*avx.*")
     target_compile_options(Spout PRIVATE -mavx2)
