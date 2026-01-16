@@ -94,6 +94,10 @@ if(TARGET snmalloc)
   endif()
 endif()
 
+if(TARGET "${QT_PREFIX}::WebView")
+  target_link_libraries(${APPNAME} PRIVATE "${QT_PREFIX}::WebView")
+endif()
+
 target_compile_definitions(${APPNAME} PUBLIC
     $<$<CONFIG:Debug>:SCORE_SOURCE_DIR="${SCORE_ROOT_SOURCE_DIR}">
 )
