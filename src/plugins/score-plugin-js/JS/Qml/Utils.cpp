@@ -6,6 +6,8 @@
 
 #include <ossia/detail/algorithms.hpp>
 
+#include <rnd/random.hpp>
+
 #include <QCoreApplication>
 #include <QFile>
 #include <QFontMetrics>
@@ -180,6 +182,22 @@ QString JsUtils::layoutTextLines(QString text, QString font, int pointSize, int 
   }
 
   return cur;
+}
+
+QString JsUtils::uuid()
+{
+  static std::random_device rd;
+  static thread_local rnd::pcg gen{rd};
+
+  union {
+    uint8_t data[16];
+    uint32_t rand[4];
+  } uid;
+  for(int i = 0; i < 4; i++)
+    uid.rand[i] = gen();
+
+  score::uuids::uuid u{uid.data};
+  return score::uuids::toByteArray(u);
 }
 
 }
