@@ -22,5 +22,8 @@ public:
 
   QString layoutTextLines(QString text, QString font, int pointSize, int maxWidth);
   W_SLOT(layoutTextLines)
+
+  QString uuid();
+  W_SLOT(uuid)
 };
 }
