@@ -9,7 +9,7 @@ namespace Execution
 {
 using ExecutionCommand = smallfun::function<
     void(),
-#if defined(_MSC_VER) && !defined(NDEBUG)
+#if defined(_MSC_VER)
     256,
 #else
     128,
@@ -19,7 +19,7 @@ using ExecutionCommand = smallfun::function<
 
 using GCCommand = smallfun::function<
     void(),
-#if defined(_MSC_VER) && !defined(NDEBUG)
+#if defined(_MSC_VER)
     2 * (128 + 4 * 8),
 #else
     128 + 4 * 8,

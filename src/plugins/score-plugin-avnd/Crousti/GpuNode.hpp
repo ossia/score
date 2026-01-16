@@ -269,8 +269,8 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
 #else
 #define MSVC_BUGGY_STATIC_CONSTEXPR static constexpr
 #endif
-            MSVC_BUGGY_STATIC_CONSTEXPR int offset = gpp::std140_offset<F::uniform()>();
-            MSVC_BUGGY_STATIC_CONSTEXPR int size = sizeof(uniform_type::value);
+            static constexpr int offset = gpp::std140_offset<F::uniform()>();
+            static constexpr int size = sizeof(uniform_type::value);
             res.updateDynamicBuffer(ubo, offset, size, &t.value);
           });
     }

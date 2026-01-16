@@ -148,6 +148,41 @@ function(avnd_score_plugin_add)
     )
   endif()
 
+  set(AVND_STRUCT_TYPE struct)
+  if(MSVC)
+    foreach(AVND_FILE ${AVND_SOURCES})
+      # MSVC ABI requires parsing to detect struct vs class
+      file(READ "${AVND_FILE}" AVND_MAIN_HEADER_SOURCE)
+      string(REGEX MATCH "class[ \t\r\n]+${AVND_MAIN_CLASS}[{ \t\r\n]+" AVND_TYPE_IS_CLASS_ABI "${AVND_MAIN_HEADER_SOURCE}")
+      string(REGEX MATCH "struct[ \t\r\n]+${AVND_MAIN_CLASS}[{ \t\r\n]+" AVND_TYPE_IS_STRUCT_ABI "${AVND_MAIN_HEADER_SOURCE}")
+      if(NOT AVND_TYPE_IS_CLASS_ABI AND NOT AVND_TYPE_IS_STRUCT_ABI)
+        continue()
+      elseif(AVND_TYPE_IS_CLASS_ABI)
+        message("${AVND_MAIN_CLASS}:::  class ABI/ ${AVND_TYPE_IS_CLASS_ABI}")
+        set(AVND_STRUCT_TYPE class)
+        break()
+      else()
+        message("${AVND_MAIN_CLASS}:::  struct ABI/ ${AVND_TYPE_IS_CLASS_ABI}")
+        set(AVND_STRUCT_TYPE struct)
+        break()
+      endif()
+    endforeach()
+  endif()
+
+  if(NOT MSVC AND NOT SCORE_DEPLOYMENT_BUILD)
+    if(AVND_OPTIMIZED)
+      set_source_files_properties(
+          ${AVND_SOURCES}
+          "${CMAKE_BINARY_DIR}/${AVND_TARGET}_avnd.cpp"
+        PROPERTIES
+          COMPILE_OPTIONS "-O3;-march=native;-g0"
+          SKIP_PRECOMPILE_HEADERS ON
+          SKIP_UNITY_BUILD_INCLUSION ON
+      )
+    endif()
+  endif()
+
+
   if(TARGET avnd_source_parser)
     target_sources(${AVND_BASE_TARGET} PRIVATE
       "${AVND_REFLECTION_HELPERS}"
@@ -160,7 +195,7 @@ function(avnd_score_plugin_add)
     set(txtf "::oscr::custom_factories_${AVND_TARGET}(fx, ctx, key); \n")
   else()
     if(AVND_NAMESPACE)
-      set(txt "namespace ${AVND_NAMESPACE} { struct ${AVND_MAIN_CLASS}; } \n")
+      set(txt "namespace ${AVND_NAMESPACE} { ${AVND_STRUCT_TYPE} ${AVND_MAIN_CLASS}; } \n")
       set(txtf "::oscr::custom_factories<${AVND_NAMESPACE}::${AVND_MAIN_CLASS}>(fx, ctx, key); \n")
     else()
       set(txt "struct ${AVND_MAIN_CLASS}; \n")
