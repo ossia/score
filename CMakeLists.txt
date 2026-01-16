@@ -248,6 +248,7 @@ find_package(${QT_VERSION} REQUIRED
     ShaderTools Quick QmlModels
   OPTIONAL_COMPONENTS
     WebSockets
+    WebView
     Svg
     CorePrivate
     WidgetsPrivate

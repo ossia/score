@@ -54,6 +54,9 @@ extern "C" void sincos(double x, double* sin, double* cos)
 
 #include <clocale>
 
+#if QT_WEBVIEW_LIB
+#include <QtWebView>
+#endif
 #ifndef QT_NO_OPENGL
 #include <QOffscreenSurface>
 #include <QOpenGLContext>
@@ -786,6 +789,9 @@ int main(int argc, char** argv)
   setup_qml();
 
   QPixmapCache::setCacheLimit(819200);
+#if QT_WEBVIEW_LIB
+  QtWebView::initialize();
+#endif
   Application app(argc, argv);
 
 #if defined(_WIN32)
