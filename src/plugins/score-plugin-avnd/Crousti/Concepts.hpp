@@ -199,7 +199,15 @@ make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
   {
     if constexpr(avnd::has_range<T>) {
       static constexpr auto c = avnd::get_range<T>();
+#if defined(_MSC_VER)
+      auto init = std::begin(c.init);
+      if constexpr(std::is_same_v<std::decay_t<decltype(init)>, const char*>)
+        return new Process::FolderChooser{QString::fromUtf8(init, std::size(c.init)), qname, id, parent};
+      else
+        return new Process::FolderChooser{QString::fromUtf8(c.init.data(), c.init.size()), qname, id, parent};
+#else
       return new Process::FolderChooser{QString::fromUtf8(std::begin(c.init), std::size(c.init)), qname, id, parent};
+#endif
     } else {
       return new Process::FolderChooser{"", qname, id, parent};
     }

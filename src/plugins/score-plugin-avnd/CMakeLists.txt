@@ -428,6 +428,16 @@ function(avnd_make_score)
     "${CMAKE_BINARY_DIR}/${AVND_TARGET}_avnd.cpp"
   )
 
+  set(AVND_STRUCT_TYPE struct)
+  if(MSVC)
+    # MSVC ABI requires parsing to detect struct vs class
+    file(READ "${AVND_MAIN_FILE}" AVND_MAIN_HEADER_SOURCE)
+    string(REGEX MATCH "class[ \t\r\n]+${AVND_MAIN_CLASS}[{ \t\r\n]+" AVND_TYPE_IS_CLASS_ABI "${AVND_MAIN_HEADER_SOURCE}")
+    if(AVND_TYPE_IS_CLASS_ABI)
+      set(AVND_STRUCT_TYPE class)
+    endif()
+  endif()
+
   if(NOT MSVC AND NOT SCORE_DEPLOYMENT_BUILD)
     if(AVND_OPTIMIZED)
       set_source_files_properties(
@@ -449,7 +459,7 @@ function(avnd_make_score)
   endif()
 
   if(AVND_NAMESPACE)
-    set(txt "namespace ${AVND_NAMESPACE} { struct ${AVND_MAIN_CLASS}; } \n")
+    set(txt "namespace ${AVND_NAMESPACE} { ${AVND_STRUCT_TYPE} ${AVND_MAIN_CLASS}; } \n")
     set(txtf "::oscr::custom_factories<${AVND_NAMESPACE}::${AVND_MAIN_CLASS}>(fx, ctx, key); \n")
   else()
     set(txt "struct ${AVND_MAIN_CLASS}; \n")
