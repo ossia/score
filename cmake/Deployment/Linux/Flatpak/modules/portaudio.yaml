@@ -8,6 +8,7 @@ config-opts:
   - -DBUILD_SHARED_LIBS=ON
   - -DPA_ALSA_DYNAMIC=ON
   - -DPA_USE_JACK=OFF
+  - -DCMAKE_POLICY_VERSION_MINIMUM=3.5
 sources:
   - type: archive
     url: https://github.com/PortAudio/portaudio/archive/refs/tags/v19.7.0.tar.gz
