@@ -12,5 +12,5 @@ config-opts:
 
 sources:
   - type: archive
-    url: https://github.com/BlueBrain/HighFive/archive/refs/tags/v2.10.0.tar.gz
-    sha256: c29e8e1520e7298fabb26545f804e35bb3af257005c1c2df62e39986458d7c38
+    url: https://github.com/highfive-devs/highfive/archive/refs/tags/v3.3.0.tar.gz
+    sha256: 325cfbcf0c0296a6dd26f3b088801b7ebb8d6f109c0565c11d2d8c4af3253bff
