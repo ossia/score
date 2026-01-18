@@ -1,7 +1,6 @@
 # hdf5
 name: hdf5
 buildsystem: cmake-ninja
-subdir: hdf5-1.14.5
 builddir: true
 config-opts:
   - -Wno-dev
@@ -27,5 +26,5 @@ config-opts:
   - -DBUILD_STATIC_LIBS=1
 sources:
   - type: archive
-    url: https://github.com/HDFGroup/hdf5/releases/download/hdf5_1.14.5/hdf5-1.14.5.tar.gz
-    sha256: ec2e13c52e60f9a01491bb3158cb3778c985697131fc6a342262d32a26e58e44
+    url: https://github.com/HDFGroup/hdf5/archive/refs/tags/2.0.0.tar.gz
+    sha256: 3e6ae0430995c8ae724688c866f4dbb6feba9c6220583d72049fbb9b006c1cd5
