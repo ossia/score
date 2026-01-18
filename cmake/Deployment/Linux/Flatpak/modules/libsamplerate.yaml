@@ -9,5 +9,5 @@ config-opts:
   - -DBUILD_TESTING=0
 sources:
   - type: archive
-    url: https://github.com/libsndfile/libsamplerate/archive/4858fb016550d677de2356486bcceda5aed85a72.zip
-    sha256: 11af7a8243dfb81e211ed140139d3439b39ffc7527b92d5c5c4a5e7338f595ee
+    url: https://github.com/libsndfile/libsamplerate/archive/2ccde9568cca73c7b32c97fefca2e418c16ae5e3.zip
+    sha256: a4be804191ac076c84591ad9c5560633c2da1a240c61d24504d5645738375103
