@@ -97,6 +97,31 @@ InspectorWidget::InspectorWidget(
     lay->addRow(tr("Enable tempo"), cb);
     lay->addRow(tr("Tempo"), spin);
   }
+
+  {
+    auto decodingCombo = new QComboBox;
+    decodingCombo->addItems({tr("Async (buffered)"), tr("Sync (frame-accurate)")});
+    decodingCombo->setCurrentIndex((int)object.decodingMode());
+
+    con(object, &Gfx::Video::Model::decodingModeChanged, this,
+        [=](DecodingMode dm) {
+      int idx = (int)dm;
+      if(decodingCombo->currentIndex() != idx)
+        decodingCombo->setCurrentIndex(idx);
+    });
+
+    connect(
+        decodingCombo, qOverload<int>(&QComboBox::currentIndexChanged), &object,
+        [this](int idx) {
+      auto new_mode = (DecodingMode)idx;
+      if(new_mode != this->process().decodingMode())
+      {
+        this->m_dispatcher.submit<ChangeVideoDecodingMode>(this->process(), new_mode);
+      }
+        });
+
+    lay->addRow(tr("Decoding"), decodingCombo);
+  }
 }
 
 InspectorWidget::~InspectorWidget() { }

@@ -87,15 +87,32 @@ int LibAVDecoder::init_codec_context(
     m_codecContext->hw_device_ctx = hw_dev_ctx;
     m_codecContext->opaque = (void*)this;
     m_codecContext->get_format = get_format_for_codeccontext;
-    m_codecContext->thread_count = 1;
-    m_codecContext->thread_type = FF_THREAD_SLICE;
+    if(m_conf.disableThreading)
+    {
+      m_codecContext->thread_count = 1;
+      m_codecContext->thread_type = 0;
+    }
+    else
+    {
+      m_codecContext->thread_count = 1;
+      m_codecContext->thread_type = FF_THREAD_SLICE;
+    }
   }
   else
 #endif
   {
-    m_codecContext->thread_count = m_conf.threads;
-    if(m_conf.threads > 0)
-      m_codecContext->thread_type = FF_THREAD_SLICE;
+    if(m_conf.disableThreading)
+    {
+      // Completely disable FFmpeg internal threading for sync decoding
+      m_codecContext->thread_count = 1;
+      m_codecContext->thread_type = 0;
+    }
+    else
+    {
+      m_codecContext->thread_count = m_conf.threads;
+      if(m_conf.threads > 0)
+        m_codecContext->thread_type = FF_THREAD_SLICE;
+    }
   }
 
   SCORE_ASSERT(setup);
