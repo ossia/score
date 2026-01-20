@@ -15,6 +15,7 @@
 
 #include <score_plugin_gfx_export.h>
 
+#include <boost/version.hpp>
 #include <vector>
 
 namespace score::gfx
@@ -25,6 +26,8 @@ class GenericNodeRenderer;
 class NodeRenderer;
 using FunctionMessage = std::function<void(score::gfx::Node&)>;
 #if BOOST_VERSION < 107900
+#define a <::BOOST_VERSION>
+#include a
 #error Boost version not supported anymore
 #endif
 using gfx_input = ossia::variant<
