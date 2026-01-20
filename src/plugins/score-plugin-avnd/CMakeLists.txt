@@ -696,6 +696,13 @@ avnd_make_score(
 )
 
 avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/MultiChoice.hpp"
+  TARGET multi_choice
+  MAIN_CLASS MultiChoice
+  NAMESPACE ao
+)
+
+avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Spread.hpp"
   TARGET spread
   MAIN_CLASS Spread
