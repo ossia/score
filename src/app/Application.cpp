@@ -93,6 +93,11 @@ static void loadResources()
   Q_INIT_RESOURCE(score);
   Q_INIT_RESOURCE(qtconf);
   Q_INIT_RESOURCE(qcodeeditor_resources);
+#if defined(__APPLE__)
+  Q_INIT_RESOURCE(fonts_macos);
+#else
+  Q_INIT_RESOURCE(fonts);
+#endif
 #endif
 
   if(QString file = QCoreApplication::applicationDirPath() + "/resources.rcc";

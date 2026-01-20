@@ -35,9 +35,15 @@ endif()
 # Files & main target
 include(ScoreQtConf)
 
+if(APPLE)
+  set(SCORE_FONT_RESOURCE "${CMAKE_CURRENT_SOURCE_DIR}/resources/fonts_macos.qrc")
+else()
+  set(SCORE_FONT_RESOURCE "${CMAKE_CURRENT_SOURCE_DIR}/resources/fonts.qrc")
+endif()
 qt_add_resources(QRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/resources/score.qrc"
   "${CMAKE_CURRENT_BINARY_DIR}/qtconf.qrc"
+  "${SCORE_FONT_RESOURCE}"
 )
 
 set_source_files_properties(
