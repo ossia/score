@@ -261,6 +261,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/std/StringHash.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/ArrowDialog.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/BackgroundRenderer.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/GraphicWidgets.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/GraphicsItem.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/GraphicsLayout.hpp"
@@ -312,6 +313,7 @@ set(HEADERS
 
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/AddRemoveList.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ArrowButton.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/BackgroundRenderer.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ClearLayout.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ComboBox.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/CommandSpinBox.hpp"

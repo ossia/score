@@ -68,6 +68,11 @@ private:
   mutable std::unique_ptr<ossia::net::device_base> m_dev;
 };
 
+struct WindowSettings
+{
+  bool background{};
+};
+
 class WindowSettingsWidget final : public Device::ProtocolSettingsWidget
 {
 public:
@@ -79,6 +84,7 @@ public:
 
 private:
   QLineEdit* m_deviceNameEdit{};
+  QCheckBox* m_background{};
 };
 
 }

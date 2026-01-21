@@ -28,6 +28,7 @@
 #include <Gfx/Text/Executor.hpp>
 #include <Gfx/Text/Process.hpp>
 #include <Gfx/TexturePort.hpp>
+#include <Gfx/TexturePortBackgroundRenderer.hpp>
 #include <Gfx/VSA/Executor.hpp>
 #include <Gfx/VSA/Layer.hpp>
 #include <Gfx/VSA/Library.hpp>
@@ -138,7 +139,9 @@ std::vector<score::InterfaceBase*> score_plugin_gfx::factories(
          Gfx::VSA::LibraryHandler, Gfx::Video::LibraryHandler,
          Gfx::Images::LibraryHandler, Gfx::GeometryFilter::LibraryHandler,
          Gfx::CSF::LibraryHandler>,
-      FW<score::SettingsDelegateFactory, Gfx::Settings::Factory>>(ctx, key);
+      FW<score::SettingsDelegateFactory, Gfx::Settings::Factory>,
+      FW<score::BackgroundRendererFactory, Gfx::TextureOutletBackgroundRendererFactory>>(
+      ctx, key);
 }
 
 score::GUIApplicationPlugin*

@@ -117,7 +117,8 @@ set(HDRS
     Gfx/Text/Metadata.hpp
     Gfx/Text/Process.hpp
     Gfx/Text/Layer.hpp
-
+    
+    Gfx/Graph/BackgroundNode.hpp
     Gfx/Graph/CommonUBOs.hpp
     Gfx/Graph/CustomMesh.hpp
     Gfx/Graph/DepthNode.hpp
@@ -180,6 +181,7 @@ set(HDRS
     Gfx/ISFExecutor.hpp
     Gfx/ISFExecutorNode.hpp
     Gfx/TexturePort.hpp
+    Gfx/TexturePortBackgroundRenderer.hpp
     Gfx/ShaderProgram.hpp
     Gfx/SharedInputSettings.hpp
     Gfx/SharedOutputSettings.hpp
@@ -231,7 +233,8 @@ set(SRCS
     Gfx/Text/Process.cpp
 
     Gfx/Graph/decoders/GPUVideoDecoder.cpp
-    Gfx/Graph/decoders/HAP.cpp
+    Gfx/Graph/decoders/HAP.cpp    
+    Gfx/Graph/BackgroundNode.cpp
     Gfx/Graph/CustomMesh.cpp
     Gfx/Graph/GeometryFilterNode.cpp
     Gfx/Graph/GeometryFilterNodeRenderer.cpp
@@ -265,6 +268,7 @@ set(SRCS
     Gfx/GfxDevice.cpp
     Gfx/ISFExecutor.cpp
     Gfx/TexturePort.cpp
+    Gfx/TexturePortBackgroundRenderer.cpp
     Gfx/ShaderProgram.cpp
     Gfx/SharedInputSettings.cpp
     Gfx/SharedOutputSettings.cpp
