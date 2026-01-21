@@ -220,7 +220,11 @@ void Window::render()
     m_fps = 0.;
   }
 
-  fps(m_fps);
+  if(m_fpsPushTimer.elapsed() > 50)
+  {
+    fps(m_fps);
+    m_fpsPushTimer.restart();
+  }
 
   if(this->onUpdate) {
     // requestUpdate is only to be used in the vsync case
@@ -264,7 +268,11 @@ void Window::exposeEvent(QExposeEvent* ev)
   }
 
   if(isExposed() && !surfaceSize.isEmpty())
+  {
+    m_timer.restart();
+    m_fpsPushTimer.restart();
     render();
+  }
 }
 
 void Window::mouseDoubleClickEvent(QMouseEvent* ev)

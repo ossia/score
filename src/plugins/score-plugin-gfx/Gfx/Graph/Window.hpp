@@ -62,6 +62,7 @@ private:
   GraphicsApi m_api{};
   QRhiSwapChain* m_swapChain{};
   QElapsedTimer m_timer;
+  QElapsedTimer m_fpsPushTimer;
   double m_fps{0.};
 
   bool m_closed = false;
