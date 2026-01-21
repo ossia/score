@@ -16,6 +16,7 @@
 #include <Media/Metro/MetroExecutor.hpp>
 #include <Media/Metro/MetroFactory.hpp>
 #include <Media/Sound/Drop/SoundDrop.hpp>
+#include <Media/Sound/BW64/Bw64Drop.hpp>
 #include <Media/Sound/QImagePool.hpp>
 #include <Media/Sound/SoundComponent.hpp>
 #include <Media/Sound/SoundFactory.hpp>
@@ -119,7 +120,11 @@ std::vector<score::InterfaceBase*> score_plugin_media::factories(
       FW<Execution::ProcessComponentFactory, Execution::SoundComponentFactory,
          Execution::StepComponentFactory, Execution::MetroComponentFactory,
          Execution::MergerComponentFactory>,
-      FW<Process::ProcessDropHandler, Media::Sound::DropHandler>,
+      FW<Process::ProcessDropHandler, Media::Sound::DropHandler
+#if defined(SCORE_HAS_BW64_ADM)
+         , Media::BW64::DropHandler
+#endif
+         >,
       FW<score::SettingsDelegateFactory, Media::Settings::Factory>,
       FW<score::PanelDelegateFactory, Mixer::PanelDelegateFactory>,
       FW<Process::PortFactory, Dataflow::WidgetInletFactory<

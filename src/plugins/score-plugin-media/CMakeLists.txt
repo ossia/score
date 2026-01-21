@@ -35,6 +35,10 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundLibraryHandler.hpp"
 
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/BW64/AdmData.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/BW64/Bw64AdmReader.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/BW64/Bw64Drop.hpp"
+
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Settings/Model.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Settings/Presenter.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Settings/View.hpp"
@@ -98,6 +102,9 @@ set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/Drop/SoundDrop.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundComponent.cpp"
 
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/BW64/Bw64AdmReader.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/BW64/Bw64Drop.cpp"
+
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Settings/Model.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Settings/Presenter.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Settings/View.cpp"
@@ -151,7 +158,14 @@ score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 target_link_libraries(${PROJECT_NAME} PUBLIC
                      ${QT_PREFIX}::Core ${QT_PREFIX}::Widgets
                      score_lib_base score_plugin_engine score_plugin_library score_plugin_audio score_plugin_dataflow
+                     score_plugin_automation score_plugin_curve
 )
+
+# BW64/ADM support for object-based audio
+if(TARGET bw64 AND TARGET adm)
+  target_link_libraries(${PROJECT_NAME} PUBLIC bw64 adm)
+  target_compile_definitions(${PROJECT_NAME} PUBLIC SCORE_HAS_BW64_ADM)
+endif()
 
 ### FFMPEG ###
 if(EMSCRIPTEN)
