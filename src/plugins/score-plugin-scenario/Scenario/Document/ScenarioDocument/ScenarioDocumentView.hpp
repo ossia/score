@@ -37,6 +37,8 @@ namespace score
 {
 struct DocumentContext;
 struct GUIApplicationContext;
+
+class BackgroundRenderer;
 }
 
 namespace Scenario
@@ -46,6 +48,7 @@ class ScenarioScene;
 class IntervalDurations;
 class IntervalView;
 class TimeRuler;
+class ScenarioDocumentView;
 class SCORE_PLUGIN_SCENARIO_EXPORT ProcessGraphicsView final : public QGraphicsView
 {
   W_OBJECT(ProcessGraphicsView)
@@ -61,6 +64,8 @@ public:
 
   IntervalDurations* currentTimebar{};
   IntervalView* currentView{};
+
+  score::BackgroundRenderer* currentBackground{};
   bool timebarPlaying{};
   bool timebarVisible{};
 
@@ -107,13 +112,15 @@ private:
   void hoverLeaveEvent(QHoverEvent* event);
 
   void checkAndRemoveCurrentDialog(QPoint pos);
-  // void drawBackground(QPainter* painter, const QRectF& rect) override;
-
+  void drawBackground(QPainter* painter, const QRectF& rect) override;
   const score::GUIApplicationContext& m_app;
 
   std::chrono::steady_clock::time_point m_lastwheel;
-  bool m_opengl{false};
   ossia::flat_set<Qt::MouseButton> m_press_release_chain{};
+  std::vector<score::BackgroundRenderer*> m_globalRenderers;
+  bool m_opengl{false};
+
+  friend class ScenarioDocumentView;
 };
 
 class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentView final
@@ -150,7 +157,9 @@ public:
   void zoom(double zx, double zy);
   void scroll(double dx, double dy);
 
-public:
+  void addBackgroundRenderer(score::BackgroundRenderer*);
+  void removeBackgroundRenderer(score::BackgroundRenderer*);
+
   void elementsScaleChanged(double arg_1) W_SIGNAL(elementsScaleChanged, arg_1);
   void setLargeView() W_SIGNAL(setLargeView);
   void timeRulerChanged() W_SIGNAL(timeRulerChanged);

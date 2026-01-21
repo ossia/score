@@ -13,6 +13,7 @@
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 
 #include <score/application/ApplicationContext.hpp>
+#include <score/graphics/BackgroundRenderer.hpp>
 #include <score/graphics/GraphicsProxyObject.hpp>
 #include <score/model/Skin.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
@@ -138,6 +139,31 @@ void ProcessGraphicsView::drawForeground(QPainter* painter, const QRectF& rect)
       painter->drawLine(QPointF{view_x, top}, QPointF{view_x, bottom});
     }
   }
+}
+
+void ProcessGraphicsView::drawBackground(QPainter* painter, const QRectF& rect)
+{
+  if(!this->currentBackground)
+  {
+    if(this->m_globalRenderers.empty())
+    {
+      return QGraphicsView::drawBackground(painter, rect);
+    }
+    else
+    {
+      setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
+      if(this->m_globalRenderers.back()->render(painter, rect))
+        return;
+      else
+        return QGraphicsView::drawBackground(painter, rect);
+    }
+  }
+
+  setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
+  if(currentBackground->render(painter, rect))
+    return;
+  else
+    return QGraphicsView::drawBackground(painter, rect);
 }
 
 void ProcessGraphicsView::resizeEvent(QResizeEvent* ev)
@@ -497,7 +523,6 @@ void ProcessGraphicsView::hoverMoveEvent(QHoverEvent* event)
 
   set_tip(QString{});
 }
-
 void ProcessGraphicsView::hoverLeaveEvent(QHoverEvent* event) { }
 
 ScenarioDocumentView::ScenarioDocumentView(
@@ -661,6 +686,18 @@ void ScenarioDocumentView::scroll(double dx, double dy)
 
     vsb->setValue(vsb->value() - dy);
   }
+}
+
+void ScenarioDocumentView::addBackgroundRenderer(score::BackgroundRenderer* r)
+{
+  m_view.m_globalRenderers.push_back(r);
+  m_view.update();
+}
+
+void ScenarioDocumentView::removeBackgroundRenderer(score::BackgroundRenderer* r)
+{
+  ossia::remove_erase(m_view.m_globalRenderers, r);
+  m_view.update();
 }
 
 QWidget* ScenarioDocumentView::getWidget()
