@@ -14,7 +14,7 @@
 #include <QGuiApplication>
 namespace JS
 {
-QVariant EditJsContext::availableProcesses() const noexcept
+QVariantMap EditJsContext::availableProcesses() const noexcept
 {
   QVariantMap v;
   auto& ctx = score::AppContext();

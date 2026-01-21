@@ -318,7 +318,7 @@ public:
   /////////////////////
   /// Introspection ///
   /////////////////////
-  QVariant availableProcesses() const noexcept;
+  QVariantMap availableProcesses() const noexcept;
   W_SLOT(availableProcesses)
   QVariant availableProcessesAndPresets() const noexcept;
   W_SLOT(availableProcessesAndPresets)
