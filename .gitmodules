@@ -115,3 +115,9 @@
 [submodule "3rdparty/opengametools"]
 	path = 3rdparty/opengametools
 	url = https://github.com/jpaver/opengametools
+[submodule "3rdparty/libadm"]
+	path = 3rdparty/libadm
+	url = https://github.com/ebu/libadm
+[submodule "3rdparty/libbw64"]
+	path = 3rdparty/libbw64
+	url = https://github.com/ebu/libbw64
