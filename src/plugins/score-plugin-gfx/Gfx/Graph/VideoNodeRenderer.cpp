@@ -135,11 +135,6 @@ void VideoNodeRenderer::createGpuDecoder()
       m_gpu = std::make_unique<PlanarDecoder>(
           QRhiTexture::R32F, 4, "gbra", m_frameFormat, filter);
       break;
-    case AV_PIX_FMT_GRAYF32LE:
-    case AV_PIX_FMT_GRAYF32BE:
-      m_gpu
-          = std::make_unique<PackedDecoder>(QRhiTexture::R32F, 4, m_frameFormat, filter);
-      break;
 #endif
 
     case AV_PIX_FMT_GRAY8:
@@ -150,6 +145,16 @@ void VideoNodeRenderer::createGpuDecoder()
     case AV_PIX_FMT_GRAY16:
       m_gpu = std::make_unique<PackedDecoder>(
           QRhiTexture::R16, 2, m_frameFormat,
+          "processed.rgba = vec4(tex.r, tex.r, tex.r, 1.0);" + filter);
+      break;
+    case AV_PIX_FMT_GRAYF16:
+      m_gpu = std::make_unique<PackedDecoder>(
+          QRhiTexture::R16F, 2, m_frameFormat,
+          "processed.rgba = vec4(tex.r, tex.r, tex.r, 1.0);" + filter);
+      break;
+    case AV_PIX_FMT_GRAYF32:
+      m_gpu = std::make_unique<PackedDecoder>(
+          QRhiTexture::R32F, 4, m_frameFormat,
           "processed.rgba = vec4(tex.r, tex.r, tex.r, 1.0);" + filter);
       break;
     default: {
