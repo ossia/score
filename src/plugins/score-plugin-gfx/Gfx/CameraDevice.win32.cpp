@@ -191,11 +191,29 @@ static void enumerateCameraFormat(
         = std::array{240.0, 200.0, 120.0, 100.0, 90.0, 75.0, 60.0,
                      50.0,  30.0,  25.0,  24.0,  15.0, 10.0, 5.0};
 
+    bool added = false;
     for(auto fps : common_fps)
     {
       if(fps >= minFps && fps <= maxFps)
       {
         source.fps = fps;
+        f();
+        added = true;
+      }
+    }
+
+    if(!added)
+    {
+      if(maxFps - minFps < 1.)
+      {
+        source.fps = maxFps;
+        f();
+      }
+      else
+      {
+        source.fps = minFps;
+        f();
+        source.fps = maxFps;
         f();
       }
     }
