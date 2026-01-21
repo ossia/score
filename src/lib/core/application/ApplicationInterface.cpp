@@ -3,6 +3,7 @@
 #include "ApplicationInterface.hpp"
 
 #include <score/command/Validity/ValidityCheckerList.hpp>
+#include <score/graphics/BackgroundRenderer.hpp>
 #include <score/model/ComponentSerialization.hpp>
 #include <score/model/ObjectEditor.hpp>
 #include <score/plugins/ProjectSettings/ProjectSettingsFactory.hpp>
@@ -58,6 +59,7 @@ static void loadDefaultPlugins(
   using namespace score;
   r.registerFactory(std::make_unique<DocumentDelegateList>());
   r.registerFactory(std::make_unique<ValidityCheckerList>());
+  r.registerFactory(std::make_unique<BackgroundRendererList>());
 #if defined(SCORE_SERIALIZABLE_COMPONENTS)
   r.registerFactory(std::make_unique<SerializableComponentFactoryList>());
 #endif
