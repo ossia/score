@@ -147,11 +147,13 @@ void VideoNodeRenderer::createGpuDecoder()
           QRhiTexture::R16, 2, m_frameFormat,
           "processed.rgba = vec4(tex.r, tex.r, tex.r, 1.0);" + filter);
       break;
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(60, 8, 100)
     case AV_PIX_FMT_GRAYF16:
       m_gpu = std::make_unique<PackedDecoder>(
           QRhiTexture::R16F, 2, m_frameFormat,
           "processed.rgba = vec4(tex.r, tex.r, tex.r, 1.0);" + filter);
       break;
+#endif
     case AV_PIX_FMT_GRAYF32:
       m_gpu = std::make_unique<PackedDecoder>(
           QRhiTexture::R32F, 4, m_frameFormat,
