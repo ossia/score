@@ -1,14 +1,13 @@
-#include "score/document/DocumentContext.hpp"
-#include "score/tools/IdentifierGeneration.hpp"
-#include <Dataflow/Commands/EditConnection.hpp>
-
-#include <score/model/path/PathSerialization.hpp>
-
 #include <Process/Dataflow/PortItem.hpp>
 
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-
 #include <Scenario/Commands/CommandAPI.hpp>
+
+#include <Dataflow/Commands/EditConnection.hpp>
+
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/document/DocumentContext.hpp>
+#include <score/model/path/PathSerialization.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
 
 namespace Dataflow
 {
