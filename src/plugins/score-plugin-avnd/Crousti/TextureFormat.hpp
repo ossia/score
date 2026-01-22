@@ -8,6 +8,191 @@
 namespace gpp::qrhi
 {
 template <typename F>
+void toTextureFormat(QRhiTexture::Format fmt, F& tex)
+{
+  switch(fmt)
+  {
+    case QRhiTexture::Format::RGBA8:
+      if constexpr(requires { F::RGBA; })
+        tex.format = F::RGBA;
+      else if constexpr(requires { F::RGBA8; })
+        tex.format = F::RGBA8;
+      else
+        tex.format = {};
+      break;
+
+    case QRhiTexture::Format::BGRA8:
+      if constexpr(requires { F::BGRA; })
+        tex.format = F::BGRA;
+      else if constexpr(requires { F::BGRA8; })
+        tex.format = F::BGRA8;
+      else
+        tex.format = {};
+      break;
+    case QRhiTexture::Format::RGBA16F:
+      if constexpr(requires { F::RGBA16F; })
+        tex.format = F::RGBA16F;
+      else
+        tex.format = {};
+      break;
+    case QRhiTexture::Format::RGBA32F:
+      if constexpr(requires { F::RGBA32F; })
+        tex.format = F::RGBA32F;
+      else
+        tex.format = {};
+      break;
+
+    case QRhiTexture::Format::R8:
+      if constexpr(requires { F::R8; })
+        tex.format = F::R8;
+      else
+        tex.format = {};
+      break;
+    case QRhiTexture::Format::RED_OR_ALPHA8:
+      if constexpr(requires { F::RED_OR_ALPHA8; })
+        tex.format = F::RED_OR_ALPHA8;
+      else if constexpr(requires { F::R8; })
+        tex.format = F::R8;
+      else
+        tex.format = {};
+      break;
+
+    case QRhiTexture::Format::R16:
+      if constexpr(requires { F::R16; })
+        tex.format = F::R16;
+      else
+        tex.format = {};
+      break;
+    case QRhiTexture::Format::R16F:
+      if constexpr(requires { F::R16F; })
+        tex.format = F::R16F;
+      else
+        tex.format = {};
+      break;
+    case QRhiTexture::Format::R32F:
+      if constexpr(requires { F::R32F; })
+        tex.format = F::R32F;
+      else
+        tex.format = {};
+      break;
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
+    case QRhiTexture::RG8:
+      if constexpr(requires { F::RG8; })
+        tex.format = F::RG8;
+      else
+        tex.format = {};
+      break;
+    case QRhiTexture::RG16:
+      if constexpr(requires { F::RG16; })
+        tex.format = F::RG16;
+      else
+        tex.format = {};
+      break;
+    case QRhiTexture::RGB10A2:
+      if constexpr(requires { F::RGB10A2; })
+        tex.format = F::RGB10A2;
+      else
+        tex.format = {};
+      break;
+    case QRhiTexture::Format::D24:
+      if constexpr(requires { F::D24; })
+        tex.format = F::D24;
+      else
+        tex.format = {};
+      break;
+    case QRhiTexture::Format::D24S8:
+      if constexpr(requires { F::D24S8; })
+        tex.format = F::D24S8;
+      else
+        tex.format = {};
+      break;
+#endif
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
+    case QRhiTexture::Format::R8UI:
+      if constexpr(requires { F::R8UI; })
+        tex.format = F::R8UI;
+      else if constexpr(requires { F::R8; })
+        tex.format = F::R8;
+      else
+        tex.format = {};
+      break;
+    case QRhiTexture::Format::R32UI:
+      if constexpr(requires { F::R32UI; })
+        tex.format = F::R32UI;
+      else
+        tex.format = {};
+      break;
+    case QRhiTexture::RG32UI:
+      if constexpr(requires { F::RG32UI; })
+        tex.format = F::RG32UI;
+      else
+        tex.format = {};
+      break;
+    case QRhiTexture::RGBA32UI:
+      if constexpr(requires { F::RGBA32UI; })
+        tex.format = F::RGBA32UI;
+      else
+        tex.format = {};
+      break;
+    case QRhiTexture::Format::D32FS8:
+      if constexpr(requires { F::D32FS8; })
+        tex.format = F::D32FS8;
+      else
+        tex.format = {};
+      break;
+#endif
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
+    case QRhiTexture::Format::R8SI:
+      if constexpr(requires { F::R8SI; })
+        tex.format = F::R8SI;
+      else if constexpr(requires { F::R8; })
+        tex.format = F::R8;
+      else
+        tex.format = {};
+      break;
+    case QRhiTexture::Format::R32SI:
+      if constexpr(requires { F::R32SI; })
+        tex.format = F::R32SI;
+      else
+        tex.format = {};
+      break;
+    case QRhiTexture::RG32SI:
+      if constexpr(requires { F::RG32SI; })
+        tex.format = F::RG32SI;
+      else
+        tex.format = {};
+      break;
+    case QRhiTexture::RGBA32SI:
+      if constexpr(requires { F::RGBA32SI; })
+        tex.format = F::RGBA32SI;
+      else
+        tex.format = {};
+      break;
+#endif
+
+    case QRhiTexture::Format::D16:
+      if constexpr(requires { F::D16; })
+        tex.format = F::D16;
+      else if constexpr(requires { F::R16; })
+        tex.format = F::R16;
+      else
+        tex.format = {};
+      break;
+    case QRhiTexture::Format::D32F:
+      if constexpr(requires { F::D32F; })
+        tex.format = F::D32F;
+      else if constexpr(requires { F::R32F; })
+        tex.format = F::R32F;
+      return;
+    case QRhiTexture::UnknownFormat:
+    default:
+      break;
+  }
+}
+template <typename F>
   requires std::is_enum_v<F>
 constexpr QRhiTexture::Format textureFormat(F f) noexcept
 {
@@ -354,7 +539,11 @@ template <avnd::cpu_texture Tex>
 constexpr QRhiTexture::Format textureFormat(const Tex& t) noexcept
 {
   QRhiTexture::Format fmt{};
-  if constexpr(avnd::cpu_dynamic_format_texture<Tex>)
+  if constexpr(requires (Tex tex) { tex.request_format; })
+  {
+    fmt = gpp::qrhi::textureFormat(t.request_format);
+  }
+  else if constexpr(requires (Tex tex) { tex.format = {}; })
   {
     fmt = gpp::qrhi::textureFormat(t.format);
   }
@@ -366,4 +555,23 @@ constexpr QRhiTexture::Format textureFormat(const Tex& t) noexcept
   return fmt;
 }
 
+template <avnd::gpu_texture Tex>
+constexpr QRhiTexture::Format textureFormat(const Tex& t) noexcept
+{
+  QRhiTexture::Format fmt{};
+  if constexpr(requires (Tex tex) { tex.request_format; })
+  {
+    fmt = gpp::qrhi::textureFormat(t.request_format);
+  }
+  else if constexpr(requires (Tex tex) { tex.format = {}; })
+  {
+    fmt = gpp::qrhi::textureFormat(t.format);
+  }
+  else
+  {
+    constexpr auto c_fmt = gpp::qrhi::textureFormat<Tex>();
+    fmt = c_fmt;
+  }
+  return fmt;
+}
 }

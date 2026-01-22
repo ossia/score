@@ -397,8 +397,15 @@ struct port_to_type_enum
   constexpr auto operator()(avnd::field_reflection<I, F> p)
   {
     using texture_type = std::remove_cvref_t<decltype(F::texture)>;
-    return avnd::cpu_fixed_format_texture<texture_type> ? score::gfx::Types::Image
-                                                        : score::gfx::Types::Buffer;
+    return (avnd::cpu_fixed_format_texture<texture_type> || avnd::cpu_dynamic_format_texture<texture_type>)
+               ? score::gfx::Types::Image
+               : score::gfx::Types::Buffer;
+  }
+
+  template <std::size_t I, avnd::gpu_texture_port F>
+  constexpr auto operator()(avnd::field_reflection<I, F> p)
+  {
+    return score::gfx::Types::Image;
   }
 
   template <std::size_t I, avnd::sampler_port F>
@@ -1026,23 +1033,37 @@ struct texture_inputs_storage<T>
   QRhiReadbackResult m_readbacks[avnd::texture_input_introspection<T>::size];
 
   template <typename Tex>
-  void createInput(
-      score::gfx::RenderList& renderer, score::gfx::Port* port, const Tex& texture_spec,
+  QRhiTexture* createInput(
+      score::gfx::RenderList& renderer, score::gfx::Port* port, Tex& texture_spec,
       const score::gfx::RenderTargetSpecs& spec)
   {
     static constexpr auto flags
         = QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource;
-    auto texture = renderer.state.rhi->newTexture(
-        gpp::qrhi::textureFormat(texture_spec), spec.size, 1, flags);
+    QRhiTexture::Format fmt{};
+    if constexpr(requires (Tex tex) { tex.format = {}; } && !requires (Tex tex) { tex.request_format; })
+    {
+      // Format freely assignable: we use what the user sets in the GUI
+      fmt = spec.format;
+      gpp::qrhi::toTextureFormat(fmt, texture_spec);
+    }
+    else
+    {
+      fmt = gpp::qrhi::textureFormat(texture_spec);
+    }
+
+    QRhiTexture* texture = renderer.state.rhi->newTexture(
+        fmt, spec.size, 1, flags);
+
     SCORE_ASSERT(texture->create());
     m_rts[port] = score::gfx::createRenderTarget(
         renderer.state, texture, renderer.samples(), renderer.requiresDepth(*port));
+    return texture;
   }
 
   void init(auto& self, score::gfx::RenderList& renderer)
   {
     // Init input render targets
-    avnd::cpu_texture_input_introspection<T>::for_all_n(
+    avnd::texture_input_introspection<T>::for_all_n(
         avnd::get_inputs<T>(*self.state),
         [&]<typename F, std::size_t K>(F& t, avnd::predicate_index<K>) {
       // FIXME k isn't the port index, it's the texture port index
@@ -1057,10 +1078,15 @@ struct texture_inputs_storage<T>
         spec.size.rheight() = t.request_height;
       }
 
-      createInput(renderer, parent.input[K], t.texture, spec);
-
-      if constexpr(avnd::cpu_fixed_format_texture<decltype(t.texture)>)
+      auto tex = createInput(renderer, parent.input[K], t.texture, spec);
+      if constexpr(avnd::cpu_texture_port<F>)
       {
+        t.texture.width = spec.size.width();
+        t.texture.height = spec.size.height();
+      }
+      else if constexpr(avnd::gpu_texture_port<F>)
+      {
+        t.texture.handle = tex;
         t.texture.width = spec.size.width();
         t.texture.height = spec.size.height();
       }
@@ -1073,10 +1099,16 @@ struct texture_inputs_storage<T>
     // Copy the readback output inside the structure
     // TODO it would be much better to do this inside the readback's
     // "completed" callback.
-    avnd::cpu_texture_input_introspection<T>::for_all_n(
-        avnd::get_inputs<T>(*self.state), [&]<std::size_t K>(auto& t, avnd::predicate_index<K>) {
-      oscr::loadInputTexture(rhi, m_readbacks, t.texture, K);
-    });
+    if constexpr(avnd::cpu_texture_input_introspection<T>::size > 0)
+    {
+      avnd::texture_input_introspection<T>::for_all_n(
+          avnd::get_inputs<T>(*self.state), [&]<typename F, std::size_t K>(F& t, avnd::predicate_index<K>) {
+        if constexpr(avnd::cpu_texture_port<F>)
+          {
+            oscr::loadInputTexture(rhi, m_readbacks, t.texture, K);
+          }
+      });
+    }
   }
 
   void release()
@@ -1090,13 +1122,16 @@ struct texture_inputs_storage<T>
 
   void inputAboutToFinish(auto& parent, const score::gfx::Port& p,  QRhiResourceUpdateBatch*& res)
   {
-    const auto& inputs = parent.input;
-    auto index_of_port = ossia::find(inputs, &p) - inputs.begin();
+    if constexpr(avnd::cpu_texture_input_introspection<T>::size > 0)
     {
-      auto tex = m_rts[&p].texture;
-      auto& readback = m_readbacks[index_of_port];
-      readback = {};
-      res->readBackTexture(QRhiReadbackDescription{tex}, &readback);
+      const auto& inputs = parent.input;
+      auto index_of_port = ossia::find(inputs, &p) - inputs.begin();
+      {
+        auto tex = m_rts[&p].texture;
+        auto& readback = m_readbacks[index_of_port];
+        readback = {};
+        res->readBackTexture(QRhiReadbackDescription{tex}, &readback);
+      }
     }
   }
 

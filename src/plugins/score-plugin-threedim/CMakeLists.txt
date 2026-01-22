@@ -80,6 +80,7 @@ add_library(
   Threedim/Primitive.cpp
   Threedim/StructureSynth.hpp
   Threedim/StructureSynth.cpp
+  Threedim/TextureToBuffer.hpp
   Threedim/TinyObj.hpp
   Threedim/TinyObj.cpp
   Threedim/ModelDisplay/Executor.hpp
