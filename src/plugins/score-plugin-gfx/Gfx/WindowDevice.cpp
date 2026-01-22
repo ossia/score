@@ -16,6 +16,7 @@
 #include <score/graphics/BackgroundRenderer.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
+#include <core/document/Document.hpp>
 #include <core/document/DocumentView.hpp>
 
 #include <ossia/network/base/device.hpp>
