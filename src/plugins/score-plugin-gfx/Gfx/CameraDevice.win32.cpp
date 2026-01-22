@@ -446,8 +446,8 @@ struct DShowCameraDeviceEnumerator : public CameraDeviceEnumerator
 void enumerateCameraDevices(std::function<void(CameraSettings, QString)> func)
 {
   Device::DeviceEnumerators enums;
-  DShowCameraDeviceEnumerator root;
-  root.registerAllEnumerators(enums);
+  auto root = std::make_shared<DShowCameraDeviceEnumerator>();
+  root->registerAllEnumerators(enums);
   for(auto& [name, dev] : enums)
   {
     dev->enumerate([func](const QString& name, const Device::DeviceSettings& s) {
