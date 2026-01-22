@@ -14,14 +14,8 @@ if(MINGW)
         ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
         "${cxx_path}/libc++.dll"
         "${cxx_path}/libunwind.dll"
+        "${cxx_path}/libwinpthread-1.dll"
 #        ${MINGW64_LIB}/../bin/zlib1.dll
-  )
-endif()
-
-if(TARGET score_plugin_pd)
-  set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS
-    ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
-    "${3RDPARTY_FOLDER}/libpd/libs/mingw64/libwinpthread-1.dll"
   )
 endif()
 
