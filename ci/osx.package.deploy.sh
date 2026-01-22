@@ -5,6 +5,12 @@ export SRC_PATH="$PWD"
 
 brew install graphicsmagick imagemagick create-dmg
 
+if [[ "$MACOS_ARCH" = "x86_64" ]]; then
+  export PACKAGE_ARCH=Intel
+else
+  export PACKAGE_ARCH=AppleSilicon
+fi
+
 cd "$SRC_PATH/install/"
 
 # Codesign
@@ -32,17 +38,6 @@ sign_app() {
 
 if [[ -n "${MAC_ALTOOL_PASSWORD}" ]]; then
   echo " === code signing === "
-  if [[ "${CI_IS_AZURE}" = "1" ]]; then
-    echo "... unlock keychain "
-    security unlock-keychain -p travis build.keychain
-    export PACKAGE_ARCH=Intel
-  else
-    if [[ "$MACOS_ARCH" = "x86_64" ]]; then
-      export PACKAGE_ARCH=Intel
-    else
-      export PACKAGE_ARCH=AppleSilicon
-    fi
-  fi
 
   echo "... clappuppet "
   sign_app "$SRC_PATH/src/clappuppet/entitlements.plist" "ossia score.app/Contents/MacOS/ossia-score-clappuppet.app"
@@ -60,10 +55,6 @@ fi
 echo " === create dmg === "
 # Create a .dmg
 cp "$SRC_PATH/LICENSE.txt" license.txt
-
-if [[ "${CI_IS_AZURE}" = "1" ]]; then
-  security unlock-keychain -p travis build.keychain
-fi
 
 echo killing...; sudo pkill -9 XProtect >/dev/null || true;
 echo waiting...; while pgrep XProtect; do sleep 3; done;
@@ -98,9 +89,6 @@ sudo chown "$(whoami)" ./score.dmg
 
 if [[ -n "${MAC_ALTOOL_PASSWORD}" ]]; then
   echo " === notarize === "
-  if [[ "${CI_IS_AZURE}" = "1" ]]; then
-    security unlock-keychain -p travis build.keychain
-  fi
 
   xcrun notarytool \
     submit score.dmg \
