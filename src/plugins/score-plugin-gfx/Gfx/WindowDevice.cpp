@@ -434,21 +434,6 @@ public:
       m_screen->onFps = [fps_param](float fps) { fps_param->push_value(fps); };
       m_root.add_child(std::move(fps_node));
     }
-
-    {
-      auto background_node
-          = std::make_unique<ossia::net::generic_node>("background", *this, m_root);
-      auto fs_param = background_node->create_parameter(ossia::val_type::BOOL);
-      fs_param->add_callback([this](const ossia::value& v) {
-        if(auto val = v.target<bool>())
-        {
-          ossia::qt::run_async(&m_qtContext, [screen = this->m_screen, v = *val] {
-            screen->setBackground(v);
-          });
-        }
-      });
-      m_root.add_child(std::move(background_node));
-    }
   }
 
   const gfx_node_base& get_root_node() const override { return m_root; }
@@ -461,7 +446,7 @@ namespace Gfx
 class DeviceBackgroundRenderer : public score::BackgroundRenderer
 {
 public:
-  explicit DeviceBackgroundRenderer(score::gfx::BackgroundNode2& node)
+  explicit DeviceBackgroundRenderer(score::gfx::BackgroundNode& node)
       : score::BackgroundRenderer{}
   {
     this->shared_readback = std::make_shared<QRhiReadbackResult>();
@@ -495,7 +480,7 @@ private:
 
 class background_device : public ossia::net::device_base
 {
-  score::gfx::BackgroundNode2* m_screen{};
+  score::gfx::BackgroundNode* m_screen{};
   gfx_node_base m_root;
   QObject m_qtContext;
   QPointer<Scenario::ScenarioDocumentView> m_view;
@@ -506,7 +491,7 @@ public:
       Scenario::ScenarioDocumentView& view, std::unique_ptr<gfx_protocol_base> proto,
       std::string name)
       : ossia::net::device_base{std::move(proto)}
-      , m_screen{new score::gfx::BackgroundNode2}
+      , m_screen{new score::gfx::BackgroundNode}
       , m_root{*this, *static_cast<gfx_protocol_base*>(m_protocol.get()), m_screen, name}
       , m_view{&view}
   {
@@ -761,7 +746,8 @@ void JSONReader::read(const Gfx::WindowSettings& n)
 template <>
 void JSONWriter::write(Gfx::WindowSettings& n)
 {
-  n.background = obj["Background"].toBool();
+  if(auto v = obj.tryGet("Background"))
+    n.background = v->toBool();
 }
 
 SCORE_SERALIZE_DATASTREAM_DEFINE(Gfx::WindowSettings);
