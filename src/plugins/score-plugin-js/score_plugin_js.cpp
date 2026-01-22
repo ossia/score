@@ -21,6 +21,7 @@
 #include <JS/Qml/TextureSource.hpp>
 #include <JS/Qml/Utils.hpp>
 #include <JS/Qml/ValueTypes.Qt6.hpp>
+#include <ossia-qt/protocols/qml_oauth.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
 #include <score/plugins/InterfaceList.hpp>
@@ -44,6 +45,8 @@ score_plugin_js::score_plugin_js()
 #endif
 
   ossia::qt::registerQVariantConverters();
+
+  qmlRegisterType<ossia::qt::qml_oauth>("Ossia", 1, 0, "OAuth");
 
   qmlRegisterType<JS::ControlInlet>("Score", 1, 0, "ControlInlet");
   qmlRegisterType<JS::ValueInlet>("Score", 1, 0, "ValueInlet");
