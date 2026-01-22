@@ -72,6 +72,21 @@ CameraSettings findBestCameraMode()
 
   // 2. Define the scoring logic
   auto compute_score = [](const CameraSettings& s) {
+    bool viable = true;
+
+    // Not a very good default webcam
+    if(s.device.contains("NDI Webcam", Qt::CaseInsensitive))
+      viable = false;
+
+    if(s.device.contains("leapmotion", Qt::CaseInsensitive))
+      viable = false;
+
+#if defined(_WIN32)
+    // Win32 does not support depth well
+    if(s.device.contains("depth", Qt::CaseInsensitive))
+      viable = false;
+#endif
+
     bool has_color = true;
 
     // If it's a raw format, check pixel format descriptors
@@ -101,6 +116,7 @@ CameraSettings findBestCameraMode()
     double rawFps = s.fps;
 
     return std::make_tuple(
+        viable,
         has_color,       // Priority 1: Must be color
         good_enough_fps, // Priority 2: Must be >= 30Hz
         area,            // Priority 3: Maximize Resolution
