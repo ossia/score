@@ -1406,6 +1406,9 @@ inline void convertTexture(QRhiTexture::Format out_format, QRhiTexture::Format i
 #if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
     case QRhiTexture::R8UI:
 #endif
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
+    case QRhiTexture::R8SI:
+#endif
       return toR8(in_format, buf, width, height);
 
     case QRhiTexture::R16:
@@ -1553,9 +1556,17 @@ void loadInputTexture(QRhi& rhi, auto& m_readbacks, Tex& cpu_tex, int k)
 
     if(rhi.isYUpInNDC())
       if(cpu_tex.width * cpu_tex.height > 0)
+      {
+        int bpp = 0;
+        if constexpr(requires { cpu_tex.bytes_per_pixel(); })
+          bpp = cpu_tex.bytes_per_pixel();
+        else
+          bpp = cpu_tex.bytes_per_pixel;
+
         inplaceMirror(
             reinterpret_cast<unsigned char*>(cpu_tex.bytes), cpu_tex.width,
-            cpu_tex.height, cpu_tex.bytes_per_pixel);
+            cpu_tex.height, bpp);
+      }
 
     cpu_tex.changed = true;
   }

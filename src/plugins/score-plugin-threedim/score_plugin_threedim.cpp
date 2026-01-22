@@ -25,6 +25,7 @@
 #include <Threedim/RenderPipeline/Layer.hpp>
 #include <Threedim/RenderPipeline/Process.hpp>
 #include <Threedim/StructureSynth.hpp>
+#include <Threedim/TextureToBuffer.hpp>
 #include <avendish/examples/Gpu/ArrayToBuffer.hpp>
 #include <avendish/examples/Gpu/BufferToArray.hpp>
 
@@ -198,6 +199,7 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
   oscr::instantiate_fx<Threedim::ExtractBuffer>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::GeometryPacker>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::BuffersToGeometry>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::TextureToBuffer>(fx, ctx, key);
   auto add = instantiate_factories<
       score::ApplicationContext,
       FW<Process::ProcessModelFactory, Gfx::ModelDisplay::ProcessFactory,
