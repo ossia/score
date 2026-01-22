@@ -402,7 +402,7 @@ public:
         return;
       auto& last = v.get_data().back().value;
       param.push_value(last);
-    }, m_engine};
+    }, *m_engine, m_engine};
     device_obj->setDevice(m_device);
     for(auto dev : m_devices.devices())
       device_obj->devices.push_back(dev);

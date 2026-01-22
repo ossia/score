@@ -16,8 +16,9 @@ W_OBJECT_IMPL(JS::DeviceContext)
 
 namespace JS
 {
-DeviceContext::DeviceContext(QObject* parent)
+DeviceContext::DeviceContext(QQmlEngine& engine, QObject* parent)
     : QObject{parent}
+    , m_engine{engine}
 {
 }
 
@@ -51,7 +52,7 @@ bool DeviceContext::init()
         return;
       auto& last = v.get_data().back().value;
       param.push_value(last);
-    }, this};
+    }, m_engine, this};
 
     connect(this, &DeviceContext::exec,
             m_impl, &ossia::qt::qml_engine_functions::exec);

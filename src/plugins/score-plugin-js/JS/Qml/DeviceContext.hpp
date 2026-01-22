@@ -3,6 +3,7 @@
 
 #include <verdigris>
 
+class QQmlEngine;
 namespace ossia::net
 {
 class node_base;
@@ -20,7 +21,7 @@ class DeviceContext : public QObject
   W_OBJECT(DeviceContext)
 
 public:
-  explicit DeviceContext(QObject* parent = nullptr);
+  explicit DeviceContext(QQmlEngine& engine, QObject* parent = nullptr);
   ~DeviceContext();
 
   bool init();
@@ -49,5 +50,6 @@ public:
   W_SLOT(asVec4)
 
   ossia::qt::qml_engine_functions* m_impl{};
+  QQmlEngine& m_engine;
 };
 }
