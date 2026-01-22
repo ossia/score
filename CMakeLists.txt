@@ -251,11 +251,10 @@ find_package(${QT_VERSION} REQUIRED
     WebView
     Svg
     CorePrivate
-    WidgetsPrivate
     GuiPrivate
+    NetworkAuth
     QmlPrivate
     QuickPrivate
-    ShaderToolsPrivate
     Quick3D
     Quick3DAssetImport
     Quick3DAssetUtils
@@ -268,6 +267,8 @@ find_package(${QT_VERSION} REQUIRED
     Quick3DRuntimeRender
     Quick3DUtils
     Quick3DXr
+    ShaderToolsPrivate
+    WidgetsPrivate
 )
 
 if(EMSCRIPTEN)
