@@ -151,7 +151,6 @@ void ProcessGraphicsView::drawBackground(QPainter* painter, const QRectF& rect)
     }
     else
     {
-      setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
       if(this->m_globalRenderers.back()->render(painter, rect))
         return;
       else
@@ -159,7 +158,6 @@ void ProcessGraphicsView::drawBackground(QPainter* painter, const QRectF& rect)
     }
   }
 
-  setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
   if(currentBackground->render(painter, rect))
     return;
   else
@@ -642,8 +640,11 @@ ScenarioDocumentView::ScenarioDocumentView(
 
 void ScenarioDocumentView::updateBackgroundMode()
 {
-  if(m_timer)
+  if(m_timer != -1)
+  {
     killTimer(m_timer);
+    m_timer = -1;
+  }
 
   double refreshRate = defaultEditorRefreshRate();
   if(m_transport)
@@ -718,13 +719,13 @@ void ScenarioDocumentView::scroll(double dx, double dy)
 void ScenarioDocumentView::addBackgroundRenderer(score::BackgroundRenderer* r)
 {
   m_view.m_globalRenderers.push_back(r);
-  m_view.update();
+  updateBackgroundMode();
 }
 
 void ScenarioDocumentView::removeBackgroundRenderer(score::BackgroundRenderer* r)
 {
   ossia::remove_erase(m_view.m_globalRenderers, r);
-  m_view.update();
+  updateBackgroundMode();
 }
 
 QWidget* ScenarioDocumentView::getWidget()

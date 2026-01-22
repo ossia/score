@@ -180,7 +180,7 @@ private:
   MinimapGraphicsView m_minimapView;
   Minimap m_minimap;
 
-  int m_timer{};
+  int m_timer{-1};
   bool m_transport{};
 };
 }
