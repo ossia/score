@@ -159,6 +159,7 @@ public:
 
   void addBackgroundRenderer(score::BackgroundRenderer*);
   void removeBackgroundRenderer(score::BackgroundRenderer*);
+  void updateBackgroundMode();
 
   void elementsScaleChanged(double arg_1) W_SIGNAL(elementsScaleChanged, arg_1);
   void setLargeView() W_SIGNAL(setLargeView);
@@ -180,5 +181,6 @@ private:
   Minimap m_minimap;
 
   int m_timer{};
+  bool m_transport{};
 };
 }

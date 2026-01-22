@@ -636,30 +636,57 @@ ScenarioDocumentView::ScenarioDocumentView(
         = ctx.app.guiApplicationPlugin<ScenarioApplicationPlugin>().editionSettings();
     es.setTool(Scenario::Tool::Select);
   });
-  const bool opengl = ctx.app.applicationSettings.opengl;
-  if(opengl)
+
+  updateBackgroundMode();
+}
+
+void ScenarioDocumentView::updateBackgroundMode()
+{
+  if(m_timer)
+    killTimer(m_timer);
+
+  double refreshRate = defaultEditorRefreshRate();
+  if(m_transport)
   {
-    // m_minimapView.setViewport(new QOpenGLWidget);
-    // m_timeRulerView.setViewport(new QOpenGLWidget);
-    auto vp = new QOpenGLWidget{};
-    m_view.setViewport(vp);
+    auto& scenario_settings = m_context.app.settings<Scenario::Settings::Model>();
+    const auto rate = scenario_settings.getExecutionRefreshRate();
+    if(rate > 0)
+      refreshRate = 1000. / rate;
+  }
 
-    // m_minimapView.setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
-    // m_timeRulerView.setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
-    m_view.setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
+  if(m_view.m_globalRenderers.empty())
+  {
+    const bool opengl = m_context.app.applicationSettings.opengl;
+    if(opengl)
+    {
+      // m_minimapView.setViewport(new QOpenGLWidget);
+      // m_timeRulerView.setViewport(new QOpenGLWidget);
+      auto vp = new QOpenGLWidget{};
+      m_view.setViewport(vp);
 
-    // m_minimapView.viewport()->setUpdatesEnabled(true);
-    // m_timeRulerView.viewport()->setUpdatesEnabled(true);
-    m_view.viewport()->setUpdatesEnabled(true);
+      // m_minimapView.setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
+      // m_timeRulerView.setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
+      m_view.setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
 
-    m_timer = startTimer(defaultEditorRefreshRate());
+      // m_minimapView.viewport()->setUpdatesEnabled(true);
+      // m_timeRulerView.viewport()->setUpdatesEnabled(true);
+      m_view.viewport()->setUpdatesEnabled(true);
+
+      m_timer = startTimer(refreshRate);
+    }
+    else
+    {
+      // m_minimapView.setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
+      m_view.setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
+      // m_timeRulerView.setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
+    }
   }
   else
   {
-    // m_minimapView.setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
-    m_view.setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
-    // m_timeRulerView.setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
+    m_view.setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
+    m_timer = startTimer(refreshRate);
   }
+  m_view.update();
 }
 
 ScenarioDocumentView::~ScenarioDocumentView() { }
@@ -734,20 +761,15 @@ void ScenarioDocumentView::ready()
 
   if(opengl)
   {
-    auto& scenario_settings = m_context.app.settings<Scenario::Settings::Model>();
     auto& transport = m_context.plugin<Transport::DocumentPlugin>();
-    con(transport, &Transport::DocumentPlugin::play, this, [this, &scenario_settings] {
-      killTimer(m_timer);
-      const auto rate = scenario_settings.getExecutionRefreshRate();
-      if(rate <= 0)
-        return;
-
-      m_timer = startTimer(1000. / rate);
+    con(transport, &Transport::DocumentPlugin::play, this, [this] {
+      m_transport = true;
+      updateBackgroundMode();
     });
 
     con(transport, &Transport::DocumentPlugin::stop, this, [this] {
-      killTimer(m_timer);
-      m_timer = startTimer(defaultEditorRefreshRate());
+      m_transport = false;
+      updateBackgroundMode();
     });
   }
 }

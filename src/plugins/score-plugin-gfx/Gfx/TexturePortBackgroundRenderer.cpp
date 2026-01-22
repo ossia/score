@@ -21,7 +21,7 @@ public:
     if(plug)
     {
       GfxExecutionAction& exec = plug->exec;
-      auto node = new score::gfx::BackgroundNode2{};
+      auto node = new score::gfx::BackgroundNode{};
       this->shared_readback = std::make_shared<QRhiReadbackResult>();
       node->shared_readback = this->shared_readback;
 

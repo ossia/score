@@ -8,9 +8,9 @@
 
 namespace score::gfx
 {
-struct BackgroundNode2 : OutputNode
+struct BackgroundNode : OutputNode
 {
-  explicit BackgroundNode2()
+  explicit BackgroundNode()
   {
     input.push_back(new Port{this, {}, Types::Image, {}});
     auto& ctx = score::GUIAppContext();
@@ -21,9 +21,9 @@ struct BackgroundNode2 : OutputNode
     m_conf = {.manualRenderingRate = 1000. / settings_rate};
   }
 
-  virtual ~BackgroundNode2() { }
+  virtual ~BackgroundNode() { }
 
-  void startRendering() override { qDebug(Q_FUNC_INFO); }
+  void startRendering() override { }
   void render() override
   {
     auto renderer = m_renderer.lock();
@@ -46,7 +46,7 @@ struct BackgroundNode2 : OutputNode
       }
     }
   }
-  void onRendererChange() override { qDebug(Q_FUNC_INFO); }
+  void onRendererChange() override { }
   bool canRender() const override { return true; }
   void stopRendering() override { }
 
