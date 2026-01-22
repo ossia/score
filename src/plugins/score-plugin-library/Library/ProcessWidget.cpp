@@ -142,11 +142,14 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
                   "They can be drag'n'dropped in the score, in intervals, "
                   "and sometimes in effect chains."));
 
+  QLineEdit* filter{};
+
   {
     auto processFilterProxy = new ProcessFilterProxy{this};
     processFilterProxy->setSourceModel(m_processModel);
     processFilterProxy->setFilterKeyColumn(0);
-    slay->addWidget(new ItemModelFilterLineEdit{*processFilterProxy, m_tv, this});
+    filter = new ItemModelFilterLineEdit{*processFilterProxy, m_tv, this};
+    slay->addWidget(filter);
     slay->addWidget(&m_tv, 3);
     m_tv.setModel(processFilterProxy);
     m_tv.setStatusTip(statusTip());
@@ -176,8 +179,12 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
 
   connect(
       &m_tv, &ProcessTreeView::selected, this,
-      [this, infoWidg,
+      [this, infoWidg, filter,
        presetFilterProxy](const std::optional<Library::ProcessData>& pdata) {
+#if defined(_WIN32)
+    const bool filter_had_focus = filter->hasFocus();
+    const bool tree_had_focus = m_tv.hasFocus();
+#endif
     m_preview.hide();
 
     // Update info widget
@@ -212,12 +219,24 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
         }
       }
     }
+
+#if defined(_WIN32)
+    for(int i = 0; i < 100; i++)
+    {
+      QTimer::singleShot(i, this, [=, this] {
+        if(filter_had_focus)
+          filter->setFocus();
+        else if(tree_had_focus)
+          m_tv.setFocus();
       });
+    }
+#endif
+  });
 
   auto preset_sel = m_lv.selectionModel();
   connect(
       preset_sel, &QItemSelectionModel::currentRowChanged, this,
-      [this, presetFilterProxy](const QModelIndex& idx, const QModelIndex&) {
+      [this, filter, presetFilterProxy](const QModelIndex& idx, const QModelIndex&) {
     if(!idx.isValid())
       return;
     auto midx = presetFilterProxy->mapToSource(idx);
@@ -226,6 +245,11 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
 
     if(!ossia::valid_index(midx.row(), m_presetModel->presets))
       return;
+
+#if defined(_WIN32)
+    const bool filter_had_focus = filter->hasFocus();
+    const bool tree_had_focus = m_tv.hasFocus();
+#endif
 
     m_preview.hide();
     delete m_previewChild;
@@ -242,7 +266,18 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
         break;
       }
     }
+#if defined(_WIN32)
+    for(int i = 0; i < 100; i++)
+    {
+      QTimer::singleShot(i, this, [=, this] {
+        if(filter_had_focus)
+          filter->setFocus();
+        else if(tree_had_focus)
+          m_tv.setFocus();
       });
+    }
+#endif
+  });
   m_lv.setMinimumHeight(100);
 
   auto& presetLib = ctx.applicationPlugin<Process::ApplicationPlugin>();
