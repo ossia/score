@@ -87,15 +87,18 @@ Device::Node GfxInputDevice::refresh()
   Device::Node score_device{settings(), nullptr};
 
   // Recurse on the children
-  const auto& ossia_children = getDevice()->get_root_node().children();
-  score_device.reserve(ossia_children.size());
-  for(const auto& node : ossia_children)
+  if(auto dev = getDevice())
   {
-    score_device.push_back(ToDeviceExplorer(*node.get()));
-  }
+    const auto& ossia_children = getDevice()->get_root_node().children();
+    score_device.reserve(ossia_children.size());
+    for(const auto& node : ossia_children)
+    {
+      score_device.push_back(ToDeviceExplorer(*node.get()));
+    }
 
-  score_device.get<Device::DeviceSettings>().name
-      = QString::fromStdString(getDevice()->get_name());
+    score_device.get<Device::DeviceSettings>().name
+        = QString::fromStdString(getDevice()->get_name());
+  }
 
   return score_device;
 }

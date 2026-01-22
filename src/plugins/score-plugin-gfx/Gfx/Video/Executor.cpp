@@ -44,11 +44,19 @@ public:
     exec_context->ui->unregister_node(id);
 
     m_decoder = dec;
-    m_decoder->seek(m_last_flicks.impl);
+    if(m_decoder)
+    {
+      m_decoder->seek(m_last_flicks.impl);
 
-    auto n = std::make_unique<score::gfx::VideoNode>(m_decoder, tempo);
-    impl = n.get();
-    id = exec_context->ui->register_node(std::move(n));
+      auto n = std::make_unique<score::gfx::VideoNode>(m_decoder, tempo);
+      impl = n.get();
+      id = exec_context->ui->register_node(std::move(n));
+    }
+    else
+    {
+      impl = {};
+      id = score::gfx::invalid_node_index;
+    }
   }
 
   std::string label() const noexcept override
@@ -64,7 +72,7 @@ public:
     }
   }
 
-  video_decoder& decoder() const noexcept { return *m_decoder; }
+  const std::shared_ptr<video_decoder>& decoder() const noexcept { return m_decoder; }
 
   score::gfx::VideoNode* impl{};
 
@@ -82,15 +90,18 @@ public:
     auto& vnode = static_cast<video_node&>(*node);
     // TODO should be a "seek" info in what goes from decoder to renderer instead...
 
-    if(!this->m_loops)
+    if(auto dec = vnode.decoder())
     {
-      vnode.decoder().seek(this->m_start_offset.impl + date.impl);
-    }
-    else
-    {
-      vnode.decoder().seek(
-          this->m_start_offset.impl
-          + ((date.impl - this->m_start_offset.impl) % this->m_loop_duration.impl));
+      if(!this->m_loops)
+      {
+        dec->seek(this->m_start_offset.impl + date.impl);
+      }
+      else
+      {
+        dec->seek(
+            this->m_start_offset.impl
+            + ((date.impl - this->m_start_offset.impl) % this->m_loop_duration.impl));
+      }
     }
 
     //vnode.impl->m_seeked = true;
@@ -100,11 +111,13 @@ public:
 
   void start() override
   {
-    static_cast<video_node&>(*node).decoder().seek(this->m_start_offset.impl);
+    if(auto dec = static_cast<video_node&>(*node).decoder())
+      dec->seek(this->m_start_offset.impl);
   }
   void stop() override
   {
-    static_cast<video_node&>(*node).decoder().seek(this->m_start_offset.impl);
+    if(auto dec = static_cast<video_node&>(*node).decoder())
+      dec->seek(this->m_start_offset.impl);
   }
   void pause() override
   {
