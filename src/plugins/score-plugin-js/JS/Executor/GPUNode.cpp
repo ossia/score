@@ -773,7 +773,7 @@ void GpuNode::Engine::init(GpuRenderer& renderer, GpuNode& node, QQuickWindow* w
     if(!m_context)
     {
       m_context = new QQmlContext{m_engine.get()};
-      m_execFuncs = new DeviceContext{};
+      m_execFuncs = new DeviceContext{*m_engine};
       m_execFuncs->init();
 
       m_context->setContextProperty("Device", m_execFuncs);

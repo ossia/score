@@ -143,7 +143,7 @@ void js_node::setScript(const QString& val)
     m_execFuncs = new ossia::qt::qml_engine_functions{
         m_st.exec_devices(), [this]<typename... Args>(Args&&... args) {
       m_st.insert(std::forward<Args>(args)...);
-    }, m_context};
+    }, *m_engine, m_context};
 
     m_context->setContextProperty("Device", m_execFuncs);
     setupExecFuncs(this, m_uiContext, m_execFuncs);
