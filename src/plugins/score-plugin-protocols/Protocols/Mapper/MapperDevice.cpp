@@ -50,7 +50,7 @@ class observable_device_roots final : public QObject
 {
   W_OBJECT(observable_device_roots)
 public:
-  observable_device_roots(Device::DeviceList& devices)
+  explicit observable_device_roots(Device::DeviceList& devices)
   {
     devices.apply([this](auto& dev) { on_deviceAdded(&dev); });
     con(devices, &Device::DeviceList::deviceAdded, this,
@@ -58,6 +58,9 @@ public:
 
     con(devices, &Device::DeviceList::deviceRemoved, this,
         &observable_device_roots::on_deviceRemoved);
+  }
+  ~observable_device_roots()
+  {
   }
 
   void on_deviceAdded(const Device::DeviceInterface* d)
@@ -69,7 +72,9 @@ public:
     if(auto dev = d->getDevice())
       m_devices.push_back(dev);
 
-    QTimer::singleShot(1, this, [this, n] { rootsChanged(roots(), n); });
+    QTimer::singleShot(1, this, [this, n] {
+      rootsChanged(roots(), n);
+    });
   }
 
   void
@@ -80,7 +85,9 @@ public:
     if(newd)
       m_devices.push_back(newd);
 
-    QTimer::singleShot(1, this, [this, n] { rootsChanged(roots(), n); });
+    QTimer::singleShot(1, this, [this, n] {
+      rootsChanged(roots(), n);
+    });
   }
 
   void on_deviceRemoved(const Device::DeviceInterface* d)
@@ -101,8 +108,9 @@ public:
   {
     std::vector<ossia::net::node_base*> r;
     r.reserve(m_devices.size());
-    for(auto d : m_devices)
+    for(auto d : m_devices) {
       r.push_back(&d->get_root_node());
+    }
     return r;
   }
   const auto& devices() const noexcept { return m_devices; }

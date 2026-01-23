@@ -37,15 +37,17 @@ void SerialDevice::disconnect()
 {
   DeviceInterface::disconnect();
   // TODO why not auto dev = m_dev; ... like in MIDIDevice ?
-  deviceChanged(m_dev.get(), nullptr);
-
-  Device::releaseDevice(*m_ctx, std::move(m_dev));
+  auto old = std::move(m_dev);
+  deviceChanged(old.get(), nullptr);
+  Device::releaseDevice(*m_ctx, std::move(old));
   m_dev.reset();
 }
 
 SerialDevice::~SerialDevice()
 {
-  Device::releaseDevice(*m_ctx, std::move(m_dev));
+  auto old = std::move(m_dev);
+  deviceChanged(old.get(), nullptr);
+  Device::releaseDevice(*m_ctx, std::move(old));
 }
 
 bool SerialDevice::reconnect()

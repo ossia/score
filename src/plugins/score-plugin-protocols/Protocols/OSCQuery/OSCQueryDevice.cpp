@@ -62,7 +62,9 @@ OSCQueryDevice::OSCQueryDevice(
 
 OSCQueryDevice::~OSCQueryDevice()
 {
-  Device::releaseDevice(*m_ctx, std::move(m_dev));
+  auto old = std::move(m_dev);
+  deviceChanged(old.get(), nullptr);
+  Device::releaseDevice(*m_ctx, std::move(old));
 }
 
 bool OSCQueryDevice::connected() const
@@ -84,9 +86,10 @@ void OSCQueryDevice::disconnect()
   {
     DeviceInterface::disconnect();
     // TODO why not auto dev = m_dev; ... like in MIDIDevice ?
-    deviceChanged(m_dev.get(), nullptr);
+    auto old = std::move(m_dev);
+    deviceChanged(old.get(), nullptr);
 
-    Device::releaseDevice(*m_ctx, std::move(m_dev));
+    Device::releaseDevice(*m_ctx, std::move(old));
     m_dev.reset();
   }
 }
@@ -195,11 +198,13 @@ void OSCQueryDevice::slot_createDevice()
     // run the commands in the Qt event loop
     // FIXME they should be disabled upon manual disconnection
 
-    Device::releaseDevice(*m_ctx, std::move(m_dev));
+    auto old = std::move(m_dev);
+    auto old_ptr = old.get();
+    Device::releaseDevice(*m_ctx, std::move(old));
     m_dev = std::make_unique<ossia::net::generic_device>(
         std::move(ossia_settings), settings().name.toStdString());
 
-    deviceChanged(nullptr, m_dev.get());
+    deviceChanged(old_ptr, m_dev.get());
 
     //m_mirror->set_command_callback([this] { sig_command(); });
     m_mirror->on_connection_closed.connect<&OSCQueryDevice::sig_disconnect>(*this);
