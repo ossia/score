@@ -68,6 +68,9 @@ PackagesModel::headerData(int section, Qt::Orientation orientation, int role) co
         case Column::ShortDesc:
           return tr("Description");
           break;
+        case Column::Kind:
+          return tr("Kind");
+          break;
         case Column::Version:
           return tr("Version");
           break;
@@ -108,11 +111,14 @@ QVariant PackagesModel::data(const QModelIndex& index, int role) const
         case Column::ShortDesc:
           return addon.shortDescription;
           break;
-        case Column::Version:
-          return addon.version;
+        case Column::Kind:
+          return addon.kind;
           break;
         case Column::Size:
           return addon.size;
+          break;
+        case Column::Version:
+          return addon.version;
           break;
         default:
           break;
