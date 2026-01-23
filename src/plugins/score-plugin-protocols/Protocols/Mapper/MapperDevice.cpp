@@ -248,7 +248,7 @@ struct mapper_parameter_data_base
   }
   bool valid() const noexcept
   {
-    return valid(bind) || valid(write) || (interval && valid(read));
+    return true;
   }
 
   QJSValue bind;
