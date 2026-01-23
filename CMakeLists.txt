@@ -234,6 +234,7 @@ if(MSYS OR MINGW)
   find_package(ZLIB)
 endif()
 
+set(QT_NO_PRIVATE_MODULE_WARNING ON)
 find_package(${QT_VERSION} REQUIRED
   COMPONENTS
     Core
