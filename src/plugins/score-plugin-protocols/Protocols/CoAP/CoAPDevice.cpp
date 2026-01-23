@@ -46,8 +46,10 @@ bool CoAPDevice::reconnect()
     {
       if(stgs.rate)
       {
+        ossia::net::rate_limiter_configuration conf{
+            .duration = std::chrono::milliseconds(*stgs.rate)};
         auto rate = std::make_unique<ossia::net::rate_limiting_protocol>(
-            std::chrono::milliseconds{*stgs.rate}, std::move(proto));
+            conf, std::move(proto));
         m_dev = std::make_unique<ossia::net::generic_device>(std::move(rate), name);
       }
       else
