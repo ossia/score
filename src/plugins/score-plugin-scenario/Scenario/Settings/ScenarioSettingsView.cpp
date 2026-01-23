@@ -278,12 +278,13 @@ View::View()
   connect(m_sequence, &QCheckBox::toggled, this, &View::AutoSequenceChanged);
   lay->addRow(m_sequence);
 
-  SETTINGS_UI_SPINBOX_SETUP("Update Rate", UpdateRate);
+  SETTINGS_UI_SPINBOX_SETUP("Update Rate (ms)", UpdateRate);
   score::setHelp(
       this->m_UpdateRate,
       tr("Rate at which various events are processed in the software: "
          "UI updates from the execution engine, audio plug-in UIs..."));
-  SETTINGS_UI_SPINBOX_SETUP("Execution Refresh Rate", ExecutionRefreshRate);
+  m_UpdateRate->setRange(1, 50);
+  SETTINGS_UI_SPINBOX_SETUP("Execution Refresh Rate (hz)", ExecutionRefreshRate);
   score::setHelp(
       this->m_ExecutionRefreshRate,
       tr("Refresh rate of the main view when the score executes, in hertz. "
