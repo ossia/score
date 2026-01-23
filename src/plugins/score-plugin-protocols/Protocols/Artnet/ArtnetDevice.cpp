@@ -83,8 +83,9 @@ void ArtnetDevice::disconnect()
       disableCallbacks();
 
     m_callbacks.clear();
-    deviceChanged(m_dev.get(), nullptr);
-    Device::releaseDevice(*this->m_ctx, std::move(m_dev));
+    auto old = std::move(m_dev);
+    deviceChanged(old.get(), nullptr);
+    Device::releaseDevice(*this->m_ctx, std::move(old));
   }
 }
 }
