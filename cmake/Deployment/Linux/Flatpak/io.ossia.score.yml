@@ -154,6 +154,7 @@ modules:
       - -DSCORE_USE_SYSTEM_LIBRARIES=1
       - -DSCORE_NO_QTCONF=1
       - -DCMAKE_CXX_FLAGS="-Wl,--strip-all"
+      - -DBOOST_ROOT="${FLATPAK_DEST}/include"
 
     post-install:
       - install -Dm755 "${FLATPAK_DEST}/bin/ossia-score" "${FLATPAK_DEST}/bin/ossia-score.bin"
