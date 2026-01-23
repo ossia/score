@@ -47,7 +47,7 @@ SETTINGS_PARAMETER_IMPL(TimeBar)
 SETTINGS_PARAMETER_IMPL(MeasureBars){QStringLiteral("Scenario/MeasureBars"), true};
 SETTINGS_PARAMETER_IMPL(MagneticMeasures){
     QStringLiteral("Scenario/MagneticMeasures"), true};
-SETTINGS_PARAMETER_IMPL(UpdateRate){QStringLiteral("Scenario/UpdateRate"), 60};
+SETTINGS_PARAMETER_IMPL(UpdateRate){QStringLiteral("Scenario/UpdateRate"), 16};
 SETTINGS_PARAMETER_IMPL(ExecutionRefreshRate){
     QStringLiteral("Scenario/ExecutionRefreshRate"), 60};
 
@@ -69,6 +69,10 @@ Model::Model(QSettings& set, const score::ApplicationContext& ctx)
   if(m_DefaultDuration > TimeVal::fromMsecs(10000000))
     setDefaultDuration(TimeVal::fromMsecs(100000));
   // setDefaultDuration(TimeVal::fromMsecs(100000));
+  if(m_UpdateRate >= 60)
+  {
+    m_UpdateRate = 16;
+  }
 
   bind(*this, Model::p_UpdateRate{}, this, [&ctx](int r) {
     auto& set = const_cast<score::ApplicationSettings&>(ctx.applicationSettings);
