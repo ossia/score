@@ -54,12 +54,6 @@ add-extensions:
     subdirectories: true
     no-autodownload: true
 
-  # Full codec support for FFMPEG
-  org.freedesktop.Platform.ffmpeg-full:
-    directory: lib/ffmpeg
-    add-ld-path: .
-    version: "24.08"
-
 cleanup:
   - /bin/avahi*
   - "*.a"
@@ -126,7 +120,6 @@ modules:
   - modules/snappy.yaml
   - modules/avahi.yaml
   - modules/suil.yaml
-  - modules/fmtlib.yaml
   - modules/spdlog.yaml
   - modules/hdf5.yaml
   - modules/highfive.yaml
@@ -170,4 +163,3 @@ modules:
       - cp -rf /usr/include/* "${FLATPAK_DEST}/include/"
       - install -Dm755 ../run "${FLATPAK_DEST}/bin/ossia-score"
       - install -d /app/extensions/Plugins
-      - install -d /app/lib/ffmpeg
