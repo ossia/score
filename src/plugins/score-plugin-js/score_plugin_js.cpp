@@ -46,7 +46,11 @@ score_plugin_js::score_plugin_js()
 
   ossia::qt::registerQVariantConverters();
 
+#if QT_VERSION > QT_VERSION_CHECK(6, 10, 0)
+#if QT_NETWORKAUTH_LIB
   qmlRegisterType<ossia::qt::qml_oauth>("Ossia", 1, 0, "OAuth");
+#endif
+#endif
 
   qmlRegisterType<JS::ControlInlet>("Score", 1, 0, "ControlInlet");
   qmlRegisterType<JS::ValueInlet>("Score", 1, 0, "ValueInlet");
