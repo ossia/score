@@ -128,6 +128,11 @@ public:
           playPercentageChanged,
       W_Final)
   PROPERTY(
+      double,
+      position READ playPercentage WRITE setPlayPercentage NOTIFY
+          playPercentageChanged,
+      W_Final)
+  PROPERTY(
       TimeVal,
       guiDuration READ guiDuration WRITE setGuiDuration NOTIFY guiDurationChanged,
       W_Final)

@@ -200,4 +200,16 @@ QString JsUtils::uuid()
   return score::uuids::toByteArray(u);
 }
 
+QTime JsUtils::toTime(TimeVal v)
+{
+  return v.toQTime();
+}
+double JsUtils::toMilliseconds(TimeVal v)
+{
+  return v.msec();
+}
+bool JsUtils::isInfinite(TimeVal v)
+{
+  return v.infinite();
+}
 }
