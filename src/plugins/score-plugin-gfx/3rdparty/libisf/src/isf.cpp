@@ -678,7 +678,6 @@ static void parse_input(Input_T& inp, const sajson::value& v)
 
   // Handle shaders without min / max
 
-  qDebug() << "start?: "<<inp.min <<  inp.max <<  inp.def << "\n";
   if(!inp.min && !inp.max)
   {
     if(!inp.def)
