@@ -65,43 +65,21 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
       score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res,
       score::gfx::Edge* e) override
   {
-    // FIXME update textures
+    auto& parent = node();
+    parent.processControlIn(
+        *this, *state, m_last_message, parent.last_message, parent.m_ctx);
+
     bool updated = false;
-    /*
-    int k = 0;
-    avnd::cpu_texture_input_introspection<Node_T>::for_all(
-        avnd::get_inputs<Node_T>(state), [&]<typename F>(F& t) {
-      if constexpr(requires {
-                     t.request_width;
-                     t.request_height;
-                   })
-      {
-        const auto tex = this->texture(k)->pixelSize();
-        if(tex.width() != t.request_width || tex.height() != t.request_height)
-        {
-          QSize sz{t.request_width, t.request_height};
+    if constexpr(avnd::texture_input_introspection<Node_T>::size > 0)
+    {
+      updated |= texture_ins.update(*this, renderer, res);
+    }
+    if_possible(state->update(renderer, res, e));
 
-          // Release
-          auto port = parent.input[k];
-
-          m_rts[port].release();
-          createInput(renderer, k, t.texture, sz);
-
-          t.texture.width = sz.width();
-          t.texture.height = sz.height();
-
-          updated = true;
-        }
-      }
-      k++;
-    });
-*/
     if(updated)
     {
       // We must notify the graph that the previous nodes have to be recomputed
     }
-
-    if_possible(state->update(renderer, res, e));
   }
 
   void release(score::gfx::RenderList& r) override
