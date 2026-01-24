@@ -586,8 +586,9 @@ bool WindowDevice::reconnect()
     {
       m_protocol = new gfx_protocol_base{plug->exec};
       auto set = m_settings.deviceSpecificSettings.value<WindowSettings>();
-      auto main_view = qobject_cast<Scenario::ScenarioDocumentView*>(
-          &m_ctx.document.view()->viewDelegate());
+      auto view = m_ctx.document.view();
+      auto main_view = view ? qobject_cast<Scenario::ScenarioDocumentView*>(
+          &view->viewDelegate()) : nullptr;
       if(set.background && main_view)
       {
         m_dev = std::make_unique<background_device>(
