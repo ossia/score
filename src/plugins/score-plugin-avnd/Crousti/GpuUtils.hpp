@@ -1063,12 +1063,11 @@ struct texture_inputs_storage<T>
   void init(auto& self, score::gfx::RenderList& renderer)
   {
     // Init input render targets
-    avnd::texture_input_introspection<T>::for_all_n(
+    avnd::texture_input_introspection<T>::for_all_n2(
         avnd::get_inputs<T>(*self.state),
-        [&]<typename F, std::size_t K>(F& t, avnd::predicate_index<K>) {
-      // FIXME k isn't the port index, it's the texture port index
+        [&]<typename F, std::size_t K, std::size_t N>(F& t, avnd::predicate_index<K>, avnd::field_index<N>) {
       auto& parent = self.node();
-      auto spec = parent.resolveRenderTargetSpecs(K, renderer);
+      auto spec = parent.resolveRenderTargetSpecs(N, renderer);
       if constexpr(requires {
                      t.request_width;
                      t.request_height;
@@ -1078,7 +1077,7 @@ struct texture_inputs_storage<T>
         spec.size.rheight() = t.request_height;
       }
 
-      auto tex = createInput(renderer, parent.input[K], t.texture, spec);
+      auto tex = createInput(renderer, parent.input[N], t.texture, spec);
       if constexpr(avnd::cpu_texture_port<F>)
       {
         t.texture.width = spec.size.width();
@@ -1091,6 +1090,53 @@ struct texture_inputs_storage<T>
         t.texture.height = spec.size.height();
       }
     });
+  }
+
+  bool update(auto& self,
+      score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res)
+  {
+#if 0
+    bool need_update = false;
+    avnd::texture_input_introspection<T>::for_all_n2(
+        avnd::get_inputs<T>(*self.state),
+        [&]<typename F, std::size_t K, std::size_t N>(F& t, avnd::predicate_index<K>, avnd::field_index<N>) {
+      if constexpr(requires {
+                     t.request_width;
+                     t.request_height;
+                   })
+      {
+        auto& parent = self.node();
+        auto port = parent.input[N];
+        const score::gfx::TextureRenderTarget& texture = m_rts[port];
+        QSizeF sz{};
+        if(texture.texture)
+          sz = texture.texture->pixelSize();
+        if(sz.width() != t.request_width || sz.height() != t.request_height)
+        {
+          // FIXME right now this doesn't work because
+          // the render target spec is stored in the node.
+          // Also the RenderList just recomputes everything anyways,
+          // so we should just emit a "need to change" signal and abort as
+          // long as things aren't more optimized and actually follow the graph
+
+          // m_rts[port].release();
+
+          // auto spec = parent.resolveRenderTargetSpecs(N, renderer);
+          // spec.size.rwidth() = t.request_width;
+          // spec.size.rheight() = t.request_height;
+
+          // createInput(renderer, port, t.texture, sz);
+
+          // t.texture.width = spec.size.width();
+          // t.texture.height = spec.size.height();
+          // need_update = true;
+          //
+        }
+      }
+    });
+    return need_update;
+#endif
+    return false;
   }
 
   void runInitialPasses(auto& self, QRhi& rhi)

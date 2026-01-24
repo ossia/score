@@ -85,7 +85,7 @@ layout(std140, binding = 1) uniform process_t {
   vec2 RENDERSIZE_;
   vec4 DATE_;
 } isf_process_uniforms;
- 
+
 #define TIME isf_process_uniforms.TIME_
 #define TIMEDELTA isf_process_uniforms.TIMEDELTA_
 #define PROGRESS isf_process_uniforms.PROGRESS_

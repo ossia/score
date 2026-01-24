@@ -87,11 +87,27 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
       score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res,
       score::gfx::Edge* e) override
   {
+    auto& parent = node();
+    parent.processControlIn(
+        *this, *state, m_last_message, parent.last_message, parent.m_ctx);
+
+    bool updated = false;
+    if constexpr(avnd::texture_input_introspection<Node_T>::size > 0)
+    {
+      updated |= texture_ins.update(*this, renderer, res);
+    }
+
     if constexpr(avnd::texture_output_introspection<Node_T>::size > 0)
     {
       this->defaultUBOUpdate(renderer, res);
     }
+
     if_possible(state->update(renderer, res, e));
+
+    if(updated)
+    {
+      // We must notify the graph that the previous nodes have to be recomputed
+    }
   }
 
   void release(score::gfx::RenderList& r) override
@@ -167,9 +183,6 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
       buffer_ins.readInputBuffers(renderer, parent, *state);
     if constexpr(avnd::geometry_input_introspection<Node_T>::size > 0)
       geometry_ins.readInputGeometries(renderer, this->geometry, parent, *state);
-
-    parent.processControlIn(
-        *this, *state, m_last_message, parent.last_message, parent.m_ctx);
 
     buffer_outs.prepareUpload(*res);
 
