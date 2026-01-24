@@ -4,6 +4,8 @@
 #include <QJSValue>
 #include <QObject>
 #include <QString>
+#include <QTime>
+#include <Process/TimeValue.hpp>
 
 #include <verdigris>
 namespace JS
@@ -25,5 +27,12 @@ public:
 
   QString uuid();
   W_SLOT(uuid)
+
+  QTime toTime(TimeVal v);
+  W_SLOT(toTime)
+  double toMilliseconds(TimeVal v);
+  W_SLOT(toMilliseconds)
+  bool isInfinite(TimeVal v);
+  W_SLOT(isInfinite)
 };
 }

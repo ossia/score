@@ -200,6 +200,7 @@ public:
 
   void setStartMarker(TimeVal t);
   TimeVal startMarker() const noexcept;
+  inline IntervalDurations* getDurations() noexcept { return &duration; }
 
   void hasTimeSignatureChanged(bool arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, hasTimeSignatureChanged, arg_1)
@@ -277,6 +278,8 @@ public:
   PROPERTY(
       ossia::musical_sync, quantizationRate READ quantizationRate WRITE
                                setQuantizationRate NOTIFY quantizationRateChanged)
+  W_PROPERTY(IntervalDurations*, durations READ getDurations CONSTANT)
+
 private:
   void on_addProcess(Process::ProcessModel&);
   void on_removingProcess(const Process::ProcessModel&);

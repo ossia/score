@@ -20,6 +20,7 @@
 #include <QLabel>
 #include <QMainWindow>
 #include <QScrollArea>
+#include <QTimer>
 #include <QShortcut>
 #include <QVBoxLayout>
 

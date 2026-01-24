@@ -288,6 +288,9 @@ public:
   void stop();
   W_SLOT(stop)
 
+  void reinitialize();
+  W_SLOT(reinitialize)
+
   void scrub(double z);
   W_SLOT(scrub)
 

@@ -78,6 +78,14 @@ void EditJsContext::stop()
     plug->execution().request_stop();
 }
 
+void EditJsContext::reinitialize()
+{
+  auto plug
+      = score::GUIAppContext().findGuiApplicationPlugin<Engine::ApplicationPlugin>();
+  if(plug)
+    plug->execution().request_reinitialize_from_localtree();
+}
+
 void EditJsContext::scrub(double dx)
 {
   // TODO
