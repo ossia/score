@@ -315,14 +315,16 @@ static void parse_input_base(input& inp, const sajson::value& v)
     if(k == "NAME")
     {
       auto val = v.get_object_value(i);
-      if(val.get_type() == sajson::TYPE_STRING)
+      if(val.get_type() == sajson::TYPE_STRING) {
         inp.name = val.as_string();
+      }
     }
     else if(k == "LABEL")
     {
       auto val = v.get_object_value(i);
-      if(val.get_type() == sajson::TYPE_STRING)
+      if(val.get_type() == sajson::TYPE_STRING) {
         inp.label = val.as_string();
+      }
     }
   }
 }
@@ -598,11 +600,60 @@ static void parse_input(long_input& inp, const sajson::value& v)
   if(inp.values.size() < min_size)
     inp.values.resize(min_size);
 }
+auto make_value(std::optional<double>& res, double f, auto op)
+{
+  f = op(f);
+  res =  f;
+}
+auto make_value(double& res, double f, auto op)
+{
+  f = op(f);
+  res =  f;
+}
+
+
+auto make_value(std::optional<std::array<double, 2>>& res, double f, auto op)
+{
+  f = op(f);
+  res =  std::array<double, 2>{f,f};
+}
+
+auto make_value(std::optional<std::array<double, 2>>& res, std::array<double, 2> f, auto op)
+{
+  res =  std::array<double, 2>{op(f[0]),op(f[1])};
+}
+
+auto make_value(std::optional<std::array<double, 3>>& res, double f, auto op)
+{
+  f = op(f);
+  res =  std::array<double, 3>{f,f,f};
+}
+auto make_value(std::optional<std::array<double, 3>>& res, std::array<double, 3> f, auto op)
+{
+  res =  std::array<double, 3>{op(f[0]),op(f[1]),op(f[2])};
+}
+
+
+auto make_value(std::optional<std::array<double, 4>>& res, double f, auto op)
+{
+  f = op(f);
+  res =  std::array<double, 4>{f,f,f,f};
+}
+auto make_value(std::optional<std::array<double, 4>>& res, std::array<double, 4> f, auto op)
+{
+  res =  std::array<double, 4>{op(f[0]),op(f[1]),op(f[2]),op(f[3])};
+}
+template<typename T>
+auto make_value(std::optional<T>& res, std::optional<T> f, auto op)
+{
+  make_value(res, *f, op);
+}
 
 template <typename Input_T>
   requires Input_T::has_minmax::value
 static void parse_input(Input_T& inp, const sajson::value& v)
 {
+  using value_type = typename Input_T::value_type;
   std::size_t N = v.get_length();
 
   for(std::size_t i = 0; i < N; i++)
@@ -611,23 +662,92 @@ static void parse_input(Input_T& inp, const sajson::value& v)
     if(k == "MIN")
     {
       auto val = v.get_object_value(i);
-      inp.min = parse_input_impl(val, typename Input_T::value_type{});
+      inp.min = parse_input_impl(val, value_type{});
     }
     else if(k == "MAX")
     {
       auto val = v.get_object_value(i);
-      inp.max = parse_input_impl(val, typename Input_T::value_type{});
+      inp.max = parse_input_impl(val, value_type{});
     }
     else if(k == "DEFAULT")
     {
       auto val = v.get_object_value(i);
-      inp.def = parse_input_impl(val, typename Input_T::value_type{});
+      inp.def = parse_input_impl(val, value_type{});
     }
+  }
+
+  // Handle shaders without min / max
+
+  qDebug() << "start?: "<<inp.min <<  inp.max <<  inp.def << "\n";
+  if(!inp.min && !inp.max)
+  {
+    if(!inp.def)
+    {
+       make_value(inp.min, 0., std::identity{});
+       make_value(inp.max, 1., std::identity{});
+    }
+    else
+    {
+      make_value(inp.min, inp.def, [] (double v) { return -v; });
+      make_value(inp.max, inp.def, [] (double v) { return 2. * v; });
+    }
+  }
+  else if(!inp.min) {
+    if(!inp.def)
+    {
+      make_value(inp.min, inp.max, [] (double v) {
+        if(v == 0.)
+          return -1.;
+        return v - std::abs(v);
+      });
+    }
+    else
+    {
+      make_value(inp.min, inp.def, [] (double v) {
+        if(v == 0.)
+          return -1.;
+        return v - std::abs(v);
+      });
+    }
+  }
+  else if(!inp.max) {
+    make_value(inp.max, inp.min, [] (double v) {
+      if(v < 0)
+        return -v;
+      else
+        return v + std::abs(v);
+    });
   }
 
   // Some ISF shaders have e.g. "MIN": 0, "MAX": -5 to show them reversed in the ISF editor gui...
   if(inp.min > inp.max)
     std::swap(inp.min, inp.max);
+
+  if(inp.min == inp.max)
+  {
+    if((inp.def == inp.min && inp.def == inp.max) || !inp.def) {
+      make_value(inp.max, inp.min, [] (double v) {
+        if(v < 0.)
+          return 0.;
+        else if(v == 0.)
+          return 1.;
+        else
+          return 2. * v;
+      });
+    }
+    else
+    {
+      make_value(inp.max, inp.def, [] (double v) {
+        return 2. * std::abs(v);
+      });
+    }
+  }
+
+  if(inp.def < inp.min)
+    inp.def = inp.min;
+
+  if(inp.def > inp.max)
+    inp.def = inp.max;
 }
 
 template <typename Input_T>
@@ -1777,7 +1897,7 @@ void parser::parse_shadertoy()
 #define iTime TIME
 #define iTimeDelta TIMEDELTA
 #define iFrame FRAMEINDEX
-#define iMouse vec2(0.0, 0.0) // fixme MOUSE 
+#define iMouse vec2(0.0, 0.0) // fixme MOUSE
 #define iDate DATE
 #define iSampleRate SAMPLERATE
 
@@ -2178,7 +2298,7 @@ vec3 iResolution  = vec3(RENDERSIZE, 1.0);
 float iTime = TIME;
 float iTimeDelta = TIMEDELTA;
 int iFrame = FRAMEINDEX;
-vec4 iMouse = vec2(0.0, 0.0); // FIXME 
+vec4 iMouse = vec2(0.0, 0.0); // FIXME
 vec4 iDate = DATE;
 float iSampleRate = isf_process_uniforms.SAMPLERATE_;
 
