@@ -35,11 +35,21 @@ public:
   virtual void requestStop() = 0;
   virtual void requestTransport(ossia::time_value t) = 0;
 
+  // More precise than basic transport but otherwise the same thing.
+  virtual void requestBeginScrub(ossia::time_value t);
+  virtual void requestScrub(ossia::time_value t);
+  virtual void requestEndScrub(ossia::time_value t);
+
   void play() E_SIGNAL(SCORE_PLUGIN_TRANSPORT_EXPORT, play)
   void pause() E_SIGNAL(SCORE_PLUGIN_TRANSPORT_EXPORT, pause)
   void stop() E_SIGNAL(SCORE_PLUGIN_TRANSPORT_EXPORT, stop)
   void transport(ossia::time_value t)
       E_SIGNAL(SCORE_PLUGIN_TRANSPORT_EXPORT, transport, t)
+
+  void beginScrub(ossia::time_value t)
+      E_SIGNAL(SCORE_PLUGIN_TRANSPORT_EXPORT, beginScrub, t)
+  void scrub(ossia::time_value t) E_SIGNAL(SCORE_PLUGIN_TRANSPORT_EXPORT, scrub, t)
+  void endScrub(ossia::time_value t) E_SIGNAL(SCORE_PLUGIN_TRANSPORT_EXPORT, endScrub, t)
 };
 
 class SCORE_PLUGIN_TRANSPORT_EXPORT TransportInterfaceList final
@@ -64,5 +74,8 @@ public:
   void requestPause() override;
   void requestStop() override;
   void requestTransport(ossia::time_value t) override;
+  void requestBeginScrub(ossia::time_value t) override;
+  void requestScrub(ossia::time_value t) override;
+  void requestEndScrub(ossia::time_value t) override;
 };
 }

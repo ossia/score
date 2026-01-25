@@ -54,6 +54,12 @@ public:
   void transport(const TimeVal& arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, transport, arg_1)
 
+  void beginScrub(const TimeVal& arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, beginScrub, arg_1)
+  void scrub(const TimeVal& arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, scrub, arg_1)
+  void endScrub(const TimeVal& arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, endScrub, arg_1)
+
   //! Request an automation recording from a given point.
   void startRecording(ProcessModel* arg_1, Point arg_2)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, startRecording, arg_1, arg_2)

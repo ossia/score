@@ -38,8 +38,14 @@ public:
 
   TimeVal execution_time() const;
 
+  // Transport interface requests actual change to the execution.
+  // Source can be either a GUI interaction, or a control from elsewhere,
+  // e.g. JACK transport
   void on_record(::TimeVal t);
   void on_transport(TimeVal t);
+  void on_begin_scrub(TimeVal t);
+  void on_scrub(TimeVal t);
+  void on_end_scrub(TimeVal t);
 
   // User requests playback to the transport interface from the local tree
   void request_play_from_localtree(bool);
@@ -57,6 +63,10 @@ public:
       ::TimeVal t = ::TimeVal::zero());
   void request_stop_interval(Scenario::IntervalModel&);
   void request_stop();
+
+  void request_begin_scrub(TimeVal t);
+  void request_scrub(TimeVal t);
+  void request_end_scrub(TimeVal t);
 
 private:
   // If the transport interface answers: these functions will "press" the Play, etc...
