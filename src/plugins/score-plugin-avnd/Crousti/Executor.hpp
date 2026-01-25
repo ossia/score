@@ -43,6 +43,7 @@
 #include <avnd/binding/ossia/mono_audio_node.hpp>
 #include <avnd/binding/ossia/node.hpp>
 #include <avnd/binding/ossia/ossia_audio_node.hpp>
+#include <avnd/binding/ossia/ossia_dynamic_audio_node.hpp>
 #include <avnd/binding/ossia/poly_audio_node.hpp>
 #include <avnd/concepts/temporality.hpp>
 #include <avnd/concepts/ui.hpp>
