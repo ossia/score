@@ -84,6 +84,9 @@ void ToolPalette::on_moved(QPointF point)
     case Scenario::Tool::Select:
       m_selectTool.on_moved(point, scenarioPoint);
       break;
+    case Scenario::Tool::Play:
+      m_playTool.on_moved(point, scenarioPoint);
+      break;
     default:
       break;
   }
@@ -109,6 +112,9 @@ void ToolPalette::on_released(QPointF point)
       break;
     case Scenario::Tool::Select:
       m_selectTool.on_released(point, scenarioPoint);
+      break;
+    case Scenario::Tool::Play:
+      m_playTool.on_released(point, scenarioPoint);
       break;
     default:
       break;

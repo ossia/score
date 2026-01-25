@@ -23,14 +23,15 @@ PlayToolState::PlayToolState(const Scenario::ToolPalette& sm)
 
 void PlayToolState::on_pressed(QPointF scenePoint, Scenario::Point scenarioPoint)
 {
-  auto item = m_sm.scene().itemAt(scenePoint, QTransform());
-  if(!item)
+  m_pressedItem = m_sm.scene().itemAt(scenePoint, QTransform());
+  if(!m_pressedItem)
     return;
 
-  switch(item->type())
+  switch(m_pressedItem->type())
   {
     case StateView::Type: {
-      const auto& state = safe_cast<const StateView*>(item)->presenter().model();
+      const auto& state
+          = safe_cast<const StateView*>(m_pressedItem)->presenter().model();
 
       auto id = state.parent() == &this->m_sm.model() ? state.id()
                                                       : OptionalId<StateModel>{};
@@ -39,10 +40,13 @@ void PlayToolState::on_pressed(QPointF scenePoint, Scenario::Point scenarioPoint
       break;
     }
     case IntervalHeader::Type:
-      item = safe_cast<const IntervalHeader*>(item)->intervalView();
+      m_pressedItem = safe_cast<const IntervalHeader*>(m_pressedItem)->intervalView();
       [[fallthrough]];
-    case IntervalView::Type: {
-      const auto& cst = safe_cast<const IntervalView*>(item)->presenter().model();
+    case ItemType::GraphInterval:
+    case TemporalIntervalView::Type:
+    case FullViewIntervalView::Type: {
+      const auto& cst
+          = safe_cast<const IntervalView*>(m_pressedItem)->presenter().model();
 
       if(cst.parent() == &this->m_sm.model())
       {
@@ -66,14 +70,54 @@ void PlayToolState::on_pressed(QPointF scenePoint, Scenario::Point scenarioPoint
       {
         auto itv_pt = root_itv->view()->mapFromScene(scenePoint);
         auto global_time = TimeVal::fromPixels(itv_pt.x(), root_itv->zoomRatio());
-        m_exec.playAtDate(global_time);
+        m_exec.beginScrub(global_time);
       }
       break;
     }
   }
 }
 
-void PlayToolState::on_moved() { }
+void PlayToolState::on_moved(QPointF scenePoint, Scenario::Point scenarioPoint)
+{
+  if(!m_pressedItem)
+    return;
 
-void PlayToolState::on_released() { }
+  switch(m_pressedItem->type())
+  {
+    case ItemType::GraphInterval:
+    case TemporalIntervalView::Type:
+    case FullViewIntervalView::Type: {
+      const auto& cst
+          = safe_cast<const IntervalView*>(m_pressedItem)->presenter().model();
+
+      if(cst.parent() == &this->m_sm.model())
+      {
+        if(QApplication::keyboardModifiers() & Qt::AltModifier)
+        {
+          m_exec.playInterval(const_cast<IntervalModel*>(&cst));
+        }
+        else
+        {
+          m_exec.playFromIntervalAtDate(&m_sm.model(), cst.id(), scenarioPoint.date);
+        }
+      }
+      break;
+    }
+      // TODO Play interval ? the code is already here.
+    default: {
+      auto root = score::IDocument::get<ScenarioDocumentPresenter>(
+          m_sm.context().context.document);
+      SCORE_ASSERT(root);
+      if(auto root_itv = root->displayedIntervalPresenter())
+      {
+        auto itv_pt = root_itv->view()->mapFromScene(scenePoint);
+        auto global_time = TimeVal::fromPixels(itv_pt.x(), root_itv->zoomRatio());
+        m_exec.scrub(global_time);
+      }
+      break;
+    }
+  }
+}
+
+void PlayToolState::on_released(QPointF scenePoint, Scenario::Point scenarioPoint) { }
 }
