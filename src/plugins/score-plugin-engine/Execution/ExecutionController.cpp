@@ -141,6 +141,15 @@ ExecutionController::ExecutionController(const score::GUIApplicationContext& ctx
     connect(
         &m_scenario.execution(), &Scenario::ScenarioExecution::playAtDate, this,
         &ExecutionController::request_play_from_here);
+    connect(
+        &m_scenario.execution(), &Scenario::ScenarioExecution::beginScrub, this,
+        &ExecutionController::request_begin_scrub);
+    connect(
+        &m_scenario.execution(), &Scenario::ScenarioExecution::scrub, this,
+        &ExecutionController::request_scrub);
+    connect(
+        &m_scenario.execution(), &Scenario::ScenarioExecution::endScrub, this,
+        &ExecutionController::request_end_scrub);
   }
 }
 
@@ -354,6 +363,21 @@ void ExecutionController::on_transport(TimeVal t)
       transport_plug->transport(t);
 }
 
+void ExecutionController::on_begin_scrub(TimeVal t)
+{
+  on_transport(t);
+}
+
+void ExecutionController::on_scrub(TimeVal t)
+{
+  on_transport(t);
+}
+
+void ExecutionController::on_end_scrub(TimeVal t)
+{
+  on_transport(t);
+}
+
 void ExecutionController::request_play_from_localtree(bool val)
 {
   if(!m_playing && val)
@@ -418,6 +442,38 @@ void ExecutionController::request_play_from_here(TimeVal t)
     // FIXME this ends up calling play_interval again...
     auto act = this->context.actions.action<Actions::Play>().action();
     act->trigger();
+  }
+}
+
+void ExecutionController::request_begin_scrub(TimeVal t)
+{
+  if(m_clock)
+  {
+    m_transport->requestBeginScrub(t);
+  }
+  else
+  {
+    on_play_local(true, t);
+
+    // FIXME this ends up calling play_interval again...
+    auto act = this->context.actions.action<Actions::Play>().action();
+    act->trigger();
+  }
+}
+
+void ExecutionController::request_scrub(TimeVal t)
+{
+  if(m_clock)
+  {
+    m_transport->requestScrub(t);
+  }
+}
+
+void ExecutionController::request_end_scrub(TimeVal t)
+{
+  if(m_clock)
+  {
+    m_transport->requestEndScrub(t);
   }
 }
 
@@ -758,6 +814,15 @@ void ExecutionController::init_transport()
   connect(
       m_transport, &Execution::TransportInterface::transport, this,
       &ExecutionController::on_transport);
+  connect(
+      m_transport, &Execution::TransportInterface::beginScrub, this,
+      &ExecutionController::on_begin_scrub);
+  connect(
+      m_transport, &Execution::TransportInterface::scrub, this,
+      &ExecutionController::on_scrub);
+  connect(
+      m_transport, &Execution::TransportInterface::endScrub, this,
+      &ExecutionController::on_end_scrub);
 
   auto& audio_settings = this->context.settings<Audio::Settings::Model>();
   con(audio_settings, &Audio::Settings::Model::JackTransportChanged, this,
