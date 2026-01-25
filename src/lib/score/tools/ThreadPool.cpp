@@ -55,9 +55,9 @@ QThread* ThreadPool::acquireThread()
       if(lim.rlim_cur > m_threads[i].stackSize())
         m_threads[i].setStackSize(lim.rlim_cur);
 #endif
-      m_threads[i].setPriority(QThread::Priority::HighPriority);
       m_threads[i].setObjectName(QString("ossia uitask %1").arg(i));
       m_threads[i].start();
+      m_threads[i].setPriority(QThread::Priority::HighPriority);
     }
     m_currentThread = 0;
   }
