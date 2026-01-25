@@ -41,14 +41,14 @@ public:
 
   void undo(const score::DocumentContext& ctx) const override
   {
-    auto& obj = m_path.find(ctx);
-    obj.metadata().setColor(m_oldColor);
+    if(auto obj = m_path.try_find(ctx))
+      obj->metadata().setColor(m_oldColor);
   }
 
   void redo(const score::DocumentContext& ctx) const override
   {
-    auto& obj = m_path.find(ctx);
-    obj.metadata().setColor(m_newColor);
+    if(auto obj = m_path.try_find(ctx))
+      obj->metadata().setColor(m_newColor);
   }
 
 protected:

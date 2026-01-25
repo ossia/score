@@ -41,14 +41,14 @@ public:
 
   void undo(const score::DocumentContext& ctx) const override
   {
-    auto& obj = m_path.find(ctx);
-    obj.metadata().setComment(m_oldComments);
+    if(auto obj = m_path.try_find(ctx))
+      obj->metadata().setComment(m_oldComments);
   }
 
   void redo(const score::DocumentContext& ctx) const override
   {
-    auto& obj = m_path.find(ctx);
-    obj.metadata().setComment(m_newComments);
+    if(auto obj = m_path.try_find(ctx))
+      obj->metadata().setComment(m_newComments);
   }
 
 protected:
