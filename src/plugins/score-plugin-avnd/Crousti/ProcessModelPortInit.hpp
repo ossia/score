@@ -212,7 +212,7 @@ struct InletInitFunc
     (*this)(p, i);
   }
 
-  template <avnd::parameter T, std::size_t N>
+  template <avnd::parameter_port T, std::size_t N>
     requires(!oscr::ossia_port<T>)
   void operator()(const T& in, avnd::field_index<N>)
   {
@@ -356,7 +356,7 @@ struct OutletInitFunc
     outs.push_back(p);
   }
 
-  template <avnd::parameter T, std::size_t N>
+  template <avnd::parameter_port T, std::size_t N>
     requires(!oscr::ossia_port<T>)
   void operator()(const T& out, avnd::field_index<N>)
   {
@@ -428,7 +428,7 @@ struct OutletInitFunc
   template <avnd::callback T, std::size_t N>
   void operator()(const T& out, avnd::field_index<N>)
   {
-    if constexpr(avnd::control<T>)
+    if constexpr(avnd::control_port<T>)
     {
       if(auto p = oscr::make_control_out<T>(
              avnd::field_index<N>{}, Id<Process::Port>(outlet), &self))

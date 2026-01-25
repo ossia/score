@@ -333,7 +333,7 @@ protected:
 template<typename F>
 QGraphicsItem* makeidget(const F& field, QGraphicsItem* parent)
 {
-  if constexpr(avnd::control<F>)
+  if constexpr(avnd::control_port<F>)
   {
     static constexpr auto widg = avnd::get_widget<F>();
     if constexpr(widg.widget == avnd::widget_type::slider)

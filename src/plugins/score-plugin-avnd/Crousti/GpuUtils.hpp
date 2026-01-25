@@ -110,7 +110,7 @@ struct GpuProcessIns
     return true;
   }
 
-  void operator()(avnd::parameter auto& t, auto field_index)
+  void operator()(avnd::parameter_port auto& t, auto field_index)
   {
     if(!can_process_message(field_index))
       return;
@@ -232,7 +232,7 @@ struct GpuControlOuts
       auto& qq = *q;
       int parm_k = 0;
       avnd::parameter_output_introspection<Node_T>::for_all(
-          avnd::get_outputs(state), [&]<avnd::parameter T>(const T& t) {
+          avnd::get_outputs(state), [&]<avnd::parameter_port T>(const T& t) {
             qq.enqueue([v = oscr::to_ossia_value(t, t.value),
                         port = control_outs[parm_k]]() mutable {
               std::swap(port->value, v);
@@ -454,7 +454,7 @@ struct port_to_type_enum
   {
     return score::gfx::Types::Float;
   }
-  template <std::size_t I, avnd::parameter F>
+  template <std::size_t I, avnd::parameter_port F>
   constexpr auto operator()(avnd::field_reflection<I, F> p)
   {
     using value_type = std::remove_cvref_t<decltype(F::value)>;
