@@ -165,6 +165,11 @@ void TextureSourceRenderer::render(QRhiCommandBuffer* cb)
       r->render(*cb);
     }
   }
+  else
+  {
+    cb->beginPass(this->renderTarget(), Qt::transparent, {});
+    cb->endPass();
+  }
   update();
 }
 
