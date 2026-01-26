@@ -200,8 +200,14 @@ void DocumentPlugin::timerEvent(QTimerEvent* event)
 
 void DocumentPlugin::registerDevice(ossia::net::device_base* d)
 {
+  SCORE_ASSERT(d);
   if(m_ctxData->execState)
+  {
     m_ctxData->execState->register_device(d);
+
+    if(m_base && m_base->active())
+      d->get_protocol().start_execution();
+  }
 }
 
 void DocumentPlugin::unregisterDevice(ossia::net::device_base* d)
