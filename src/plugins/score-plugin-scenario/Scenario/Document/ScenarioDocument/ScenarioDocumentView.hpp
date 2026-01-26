@@ -166,6 +166,7 @@ public:
   void timeRulerChanged() W_SIGNAL(timeRulerChanged);
 
 private:
+  void on_viewSelection();
   void timerEvent(QTimerEvent* event) override;
   QWidget* m_widget{};
   const score::DocumentContext& m_context;

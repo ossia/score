@@ -111,6 +111,19 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent)
       m_parent->editionSettings().setTool(Scenario::Tool::Play);
   });
 
+  // VIEW
+  m_viewtool = makeToolbarAction(tr("View"), m_scenarioToolActionGroup, 0, tr("V"));
+  setIcons(
+      m_viewtool, QStringLiteral(":/icons/info_on.png"),
+      QStringLiteral(":/icons/info_hover.png"), QStringLiteral(":/icons/info_off.png"),
+      QStringLiteral(":/icons/info_disabled.png"));
+
+  connect(m_viewtool, &QAction::triggered, this, [this](bool b) {
+    if(b)
+      m_parent->editionSettings().viewSelection();
+  });
+
+  // LOCK
   m_lockAction = makeToolbarAction(tr("Lock"), this, ExpandMode::CannotExpand, {});
   score::setHelp(m_lockAction, tr("Lock (Shift)"));
   setIcons(
@@ -172,6 +185,7 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent)
         m_createtool->setChecked(false);
         m_playtool->setChecked(false);
         m_selecttool->setChecked(false);
+        m_viewtool->setChecked(false);
         break;
       case Scenario::Tool::Select:
         if(!m_selecttool->isChecked())
@@ -221,6 +235,7 @@ void ToolMenuActions::makeGUIElements(score::GUIElements& ref)
     bar->addAction(m_selecttool);
     bar->addAction(m_createtool);
     bar->addAction(m_playtool);
+    bar->addAction(m_viewtool);
     bar->addSeparator();
     bar->addAction(m_lockAction);
     bar->addAction(m_scaleAction);
@@ -233,10 +248,12 @@ void ToolMenuActions::makeGUIElements(score::GUIElements& ref)
     menu.menu()->addAction(m_selecttool);
     menu.menu()->addAction(m_createtool);
     menu.menu()->addAction(m_playtool);
+    menu.menu()->addAction(m_viewtool);
 
     ref.actions.add<Actions::SelectTool>(m_selecttool);
     ref.actions.add<Actions::CreateTool>(m_createtool);
     ref.actions.add<Actions::PlayTool>(m_playtool);
+    ref.actions.add<Actions::ViewTool>(m_viewtool);
 
     scenario_iface_cond.add<Actions::SelectTool>();
     scenario_iface_cond.add<Actions::PlayTool>();

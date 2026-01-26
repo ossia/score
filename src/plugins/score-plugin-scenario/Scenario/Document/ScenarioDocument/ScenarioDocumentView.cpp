@@ -636,6 +636,15 @@ ScenarioDocumentView::ScenarioDocumentView(
   });
 
   updateBackgroundMode();
+
+  // Background
+  {
+    auto& es
+        = ctx.app.guiApplicationPlugin<ScenarioApplicationPlugin>().editionSettings();
+    connect(
+        &es, &EditionSettings::viewSelection, this,
+        &ScenarioDocumentView::on_viewSelection);
+  }
 }
 
 void ScenarioDocumentView::updateBackgroundMode()
@@ -780,5 +789,30 @@ void ScenarioDocumentView::timerEvent(QTimerEvent* event)
   // m_minimapView.viewport()->update();
   // m_timeRulerView.viewport()->update();
   m_view.viewport()->update();
+}
+
+void ScenarioDocumentView::on_viewSelection()
+{
+  if(m_view.currentBackground)
+  {
+    delete m_view.currentBackground;
+    m_view.currentBackground = nullptr;
+  }
+
+  const auto& sel = this->m_context.selectionStack.currentSelection();
+  if(sel.empty())
+    return;
+
+  auto& background_renderers
+      = this->m_context.app.interfaces<score::BackgroundRendererList>();
+  if(auto renderer
+     = background_renderers.make(&score::BackgroundRendererFactory::make, sel, this))
+  {
+    m_view.currentBackground = renderer;
+    qDebug() << renderer;
+    connect(renderer, &score::BackgroundRenderer::destroyed, this, [this] {
+      this->m_view.currentBackground = nullptr;
+    });
+  }
 }
 }
