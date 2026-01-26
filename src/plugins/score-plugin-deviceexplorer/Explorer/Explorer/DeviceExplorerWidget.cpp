@@ -630,7 +630,7 @@ void DeviceExplorerWidget::updateActions()
     return;
 
   const bool editable = this->editable();
-  m_addDeviceAction->setEnabled(editable);
+  m_addDeviceAction->setEnabled(true);
   m_exportDeviceAction->setEnabled(false);
   m_learnAction->setEnabled(false);
   m_addSiblingAction->setEnabled(false);
@@ -991,9 +991,6 @@ void DeviceExplorerWidget::reconnect()
 
 void DeviceExplorerWidget::addDevice()
 {
-  if(!editable())
-    return;
-
   if(!m_deviceDialog)
   {
     m_deviceDialog = new DeviceEditDialog{
