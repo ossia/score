@@ -398,7 +398,6 @@ void IntervalComponent::onSetup(
     m_ossia_interval->graphal = true;
   }
 
-  if(context().doc.app.applicationSettings.gui)
   {
     std::weak_ptr<IntervalComponent> weak_self = self;
 
