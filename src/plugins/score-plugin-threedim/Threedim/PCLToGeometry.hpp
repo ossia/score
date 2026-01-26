@@ -83,7 +83,7 @@ class PCLToMesh
 {
 public:
   halp_meta(name, "Pointcloud to mesh")
-  halp_meta(category, "Visuals/3D")
+  halp_meta(category, "Visuals/Meshes")
   halp_meta(c_name, "pointcloud_to_mesh")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/pointcloud-to-mesh.html")
   halp_meta(uuid, "2450ffbf-04ed-4b42-8848-69f200d2742a")
@@ -120,7 +120,7 @@ class PCLToMesh2
 {
 public:
   halp_meta(name, "Pointcloud to mesh")
-  halp_meta(category, "Visuals/3D")
+  halp_meta(category, "Visuals/Meshes")
   halp_meta(c_name, "pointcloud_to_mesh")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/pointcloud-to-mesh.html")
   halp_meta(uuid, "2450ffbf-04ed-4b42-8848-69f200d2742a")

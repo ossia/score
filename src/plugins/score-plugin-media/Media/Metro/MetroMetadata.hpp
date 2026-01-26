@@ -11,9 +11,10 @@ class Model;
 
 PROCESS_METADATA(
     , Media::Metro::Model, "7a20cee3-87da-42a5-9483-975aa33a7a65", "Metro", "Metronome",
-    Process::ProcessCategory::Generator, "Audio/Utilities",
+    Process::ProcessCategory::Generator, "Timing/Audio",
     "Generates sound according to the current beat", "ossia score", {}, {},
-    {std::vector<Process::PortType>{Process::PortType::Audio}}, QUrl("https://ossia.io/score-docs/processes/audio-utilities.html#metronome"),
-    Process::ProcessFlags::SupportsTemporal | Process::ProcessFlags::PutInNewSlot)
+    {std::vector<Process::PortType>{Process::PortType::Audio}},
+    QUrl("https://ossia.io/score-docs/processes/audio-utilities.html#metronome"),
+    Process::ProcessFlags::SupportsAll)
 
-UNDO_NAME_METADATA(EMPTY_MACRO, Media::Metro::Model, "Metronom")
+UNDO_NAME_METADATA(EMPTY_MACRO, Media::Metro::Model, "Metronome")

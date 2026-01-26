@@ -559,9 +559,9 @@ class GeometryPacker
 {
 public:
   halp_meta(name, "Repack attributes")
-  halp_meta(category, "Visuals/3D")
+  halp_meta(category, "Visuals/Utilities")
   halp_meta(c_name, "pack_geometry")
-  halp_meta(manual_url, "https://ossia.io/score-docs/processes/pack-geometry.html")
+  halp_meta(manual_url, "https://ossia.io/score-docs/processes/repack-attributes.html")
   halp_meta(uuid, "7d7d5973-4aa9-4bfe-9249-8b892d92e0db")
 
   enum class Attribute3

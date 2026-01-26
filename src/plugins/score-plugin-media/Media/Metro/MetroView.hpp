@@ -19,7 +19,9 @@ public:
   explicit View(QGraphicsItem* parent)
       : Process::LayerView{parent}
   {
-    setFlag(QGraphicsItem::ItemClipsToShape);
+    this->setFlags(
+        ItemClipsToShape | ItemClipsChildrenToShape | ItemIsSelectable
+        | ItemIsFocusable);
   }
 
 private:

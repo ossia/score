@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="16"
+   height="16"
+   viewBox="0 0 4.2333332 4.2333334"
+   version="1.1"
+   id="svg16"
+   sodipodi:docname="timing.svg"
+   inkscape:version="1.4.3 (0d15f75042, 2025-12-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="33.058703"
+     inkscape:cx="15.699345"
+     inkscape:cy="17.831915"
+     inkscape:window-width="2558"
+     inkscape:window-height="1416"
+     inkscape:window-x="0"
+     inkscape:window-y="22"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs10" />
+  <metadata
+     id="metadata13">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Icon"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-292.76665)"
+     style="display:inline">
+    <!-- Clock circle -->
+    <circle
+       style="fill:none;stroke:#03a9f4;stroke-width:0.52916664;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="clock-face"
+       cx="2.1166666"
+       cy="294.88332"
+       r="1.5875" />
+    <!-- Hour hand (pointing to ~10 o'clock) -->
+    <!-- Minute hand (pointing to ~12 o'clock) -->
+    <path
+       style="fill:none;stroke:#29b6f6;stroke-width:0.462023;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 2.1166666,294.9462 v -1.0085"
+       id="minute-hand" />
+    <path
+       style="display:inline;fill:none;stroke:#29b6f6;stroke-width:0.462023;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 2.6678158,295.56072 2.1235819,294.99241"
+       id="minute-hand-7"
+       sodipodi:nodetypes="cc" />
+    <!-- Center dot -->
+  </g>
+</svg>

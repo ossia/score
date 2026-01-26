@@ -14,7 +14,7 @@ class ArrayToMesh
 {
 public:
   halp_meta(name, "Array to mesh")
-  halp_meta(category, "Visuals/3D")
+  halp_meta(category, "Visuals/Utilities")
   halp_meta(c_name, "array_to_mesh")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/array-to-mesh.html")
   halp_meta(uuid, "dfc5bae9-c75c-4180-b4e8-be3063c8d8f2")

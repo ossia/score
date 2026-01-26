@@ -32,7 +32,7 @@ class ArrayToTexture
 {
 public:
   halp_meta(name, "Array to texture")
-  halp_meta(category, "Visuals/Textures")
+  halp_meta(category, "Visuals/Utilities")
   halp_meta(c_name, "array_to_texture")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/array-to-texture.html")
   halp_meta(uuid, "bb5dc513-3430-4671-8c74-2bba78e53709")
