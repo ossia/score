@@ -1,7 +1,7 @@
 #pragma once
 
 #include <ossia/network/value/value.hpp>
-
+#include <ossia/network/value/value_conversion.hpp>
 #include <boost/multi_array.hpp>
 
 #include <halp/controls.hpp>

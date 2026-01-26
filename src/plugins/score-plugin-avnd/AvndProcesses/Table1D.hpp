@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ossia/network/value/value.hpp>
+#include <ossia/network/value/value_conversion.hpp>
 
 #include <halp/controls.hpp>
 #include <halp/meta.hpp>
