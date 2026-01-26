@@ -2,6 +2,7 @@
 
 #include <ossia/detail/variant.hpp>
 #include <ossia/network/value/value.hpp>
+#include <ossia/network/value/value_conversion.hpp>
 
 #include <boost/container/static_vector.hpp>
 #include <boost/mp11.hpp>
