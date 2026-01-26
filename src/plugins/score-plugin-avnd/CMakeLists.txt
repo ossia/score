@@ -1057,6 +1057,48 @@ avnd_make_score(
 )
 avnd_make_score(
   SOURCES
+    "${AVND_FOLDER}/examples/Advanced/UI/Widgets.hpp"
+  TARGET avnd_vec2i
+  MAIN_CLASS Vec2i
+  NAMESPACE uo
+)
+avnd_make_score(
+  SOURCES
+    "${AVND_FOLDER}/examples/Advanced/UI/Widgets.hpp"
+  TARGET avnd_vec3i
+  MAIN_CLASS Vec3i
+  NAMESPACE uo
+)
+avnd_make_score(
+  SOURCES
+    "${AVND_FOLDER}/examples/Advanced/UI/Widgets.hpp"
+  TARGET avnd_vec4i
+  MAIN_CLASS Vec4i
+  NAMESPACE uo
+)
+avnd_make_score(
+  SOURCES
+    "${AVND_FOLDER}/examples/Advanced/UI/Widgets.hpp"
+  TARGET avnd_vec2f
+  MAIN_CLASS Vec2f
+  NAMESPACE uo
+)
+avnd_make_score(
+  SOURCES
+    "${AVND_FOLDER}/examples/Advanced/UI/Widgets.hpp"
+  TARGET avnd_vec3f
+  MAIN_CLASS Vec3f
+  NAMESPACE uo
+)
+avnd_make_score(
+  SOURCES
+    "${AVND_FOLDER}/examples/Advanced/UI/Widgets.hpp"
+  TARGET avnd_vec4f
+  MAIN_CLASS Vec4f
+  NAMESPACE uo
+)
+avnd_make_score(
+  SOURCES
     "${AVND_FOLDER}/examples/Advanced/UI/Multislider.hpp"
   TARGET ui_multislider
   MAIN_CLASS Multislider
