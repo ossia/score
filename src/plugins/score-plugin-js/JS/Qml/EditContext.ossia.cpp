@@ -6,6 +6,8 @@
 
 #include <Engine/ApplicationPlugin.hpp>
 #include <JS/Qml/EditContext.hpp>
+
+#include <Transport/DocumentPlugin.hpp>
 namespace JS
 {
 
@@ -89,5 +91,12 @@ void EditJsContext::reinitialize()
 void EditJsContext::scrub(double dx)
 {
   // TODO
+}
+QObject* EditJsContext::transport()
+{
+  auto doc = ctx();
+  if(!doc)
+    return nullptr;
+  return doc->findPlugin<Transport::DocumentPlugin>();
 }
 }

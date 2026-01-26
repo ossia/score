@@ -30,7 +30,7 @@ using exec_setup_fun
 class SCORE_PLUGIN_ENGINE_EXPORT ExecutionController : public QObject
 {
 public:
-  ExecutionController(const score::GUIApplicationContext& ctx);
+  explicit ExecutionController(const score::GUIApplicationContext& ctx);
   ~ExecutionController();
 
   TransportInterface& transport() const noexcept;

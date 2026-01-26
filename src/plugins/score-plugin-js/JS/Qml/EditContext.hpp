@@ -294,6 +294,9 @@ public:
   void scrub(double z);
   W_SLOT(scrub)
 
+  QObject* transport();
+  W_INVOKABLE(transport)
+
   ////////////////
   /// File API ///
   QString readFile(QString path);
