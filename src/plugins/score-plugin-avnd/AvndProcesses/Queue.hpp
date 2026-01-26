@@ -15,8 +15,8 @@ struct Queue
   halp_meta(author, "ossia team")
   halp_meta(category, "Control/Data processing")
   halp_meta(description, "Queue input messages and output them as a buffer")
-  halp_meta(c_name, "avnd_pattern_combine")
-  halp_meta(uuid, "8445e5bf-3815-42f0-9291-03b53f6e8a13")
+  halp_meta(c_name, "avnd_buffer_queue")
+  halp_meta(uuid, "8f68b81e-e5ba-4a10-a888-6581a5d770fe")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/buffer-queue.html")
 
   enum OutputMode
@@ -90,5 +90,4 @@ struct Queue
     }
   }
 };
-
 }
