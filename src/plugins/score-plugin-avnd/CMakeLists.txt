@@ -649,6 +649,26 @@ avnd_make_score(
 )
 
 avnd_make_score(
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/Table.hpp"
+  TARGET table
+  MAIN_CLASS Table
+  NAMESPACE avnd_tools
+)
+avnd_make_score(
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/Table1D.hpp"
+  TARGET avnd_table_1d
+  MAIN_CLASS Table1D
+  NAMESPACE avnd_tools
+)
+avnd_make_score(
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/Table2D.hpp"
+  TARGET avnd_table_2d
+  MAIN_CLASS Table2D
+  NAMESPACE avnd_tools
+)
+
+
+avnd_make_score(
   SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/Spammer.hpp"
   TARGET pattern_spammer
   MAIN_CLASS Spammer
