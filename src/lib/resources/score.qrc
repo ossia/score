@@ -706,5 +706,7 @@
         <file>icons/exclusive_hover@2x.png</file>
         <file>icons/ai.png</file>
         <file>icons/ai@2x.png</file>
+        <file>icons/timing.png</file>
+        <file>icons/timing@2x.png</file>
     </qresource>
 </RCC>

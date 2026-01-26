@@ -11,7 +11,7 @@ PROCESS_METADATA(
     "modeldisplay",                      // Internal name
     "Model Display",                     // Pretty name
     Process::ProcessCategory::Visual,    // Category
-    "Visuals/3D",                        // Category
+    "Visuals/Render",                    // Category
     "Display input geometry",            // Description
     "ossia team",                        // Author
     (QStringList{"gfx", "model", "3d"}), // Tags

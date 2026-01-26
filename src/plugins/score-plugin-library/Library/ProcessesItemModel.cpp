@@ -17,7 +17,20 @@
 
 namespace Library
 {
-
+namespace
+{
+struct LibraryNameSort
+{
+  bool operator()(const QString& lhs, const Library::ProcessData& rhs) const noexcept
+  {
+    return QString::compare(lhs, rhs.prettyName, Qt::CaseInsensitive) < 0;
+  }
+  bool operator()(const Library::ProcessData& lhs, const QString& rhs) const noexcept
+  {
+    return QString::compare(lhs.prettyName, rhs, Qt::CaseInsensitive) < 0;
+  }
+};
+}
 ProcessesItemModel::ProcessesItemModel(
     const score::GUIApplicationContext& ctx, QObject* parent)
     : TreeNodeBasedItemModel<ProcessNode>{parent}
@@ -55,8 +68,10 @@ ProcessNode& ProcessesItemModel::addCategory(const QString& c)
       continue;
 
     // Otherwise add it
-    auto new_node = &node->emplace_back(ProcessData{{{}, cat, {}}, icon}, node);
-    node = new_node;
+
+    auto& new_node = ossia::emplace_sorted(
+        *node, cat, LibraryNameSort{}, ProcessData{{{}, cat, {}}, icon}, node);
+    node = &new_node;
     icon = {}; // Icon only the first time
   }
 
@@ -86,7 +101,7 @@ void ProcessesItemModel::rescan()
 
     auto& cat = addCategory(e.first);
 
-    for(auto [_, p] : e.second)
+    for(const auto& [_, p] : e.second)
     {
       cat.emplace_back(
           ProcessData{{p->concreteKey(), p->prettyName(), {}}, QIcon{}}, &cat);
@@ -242,19 +257,7 @@ Qt::DropActions ProcessesItemModel::supportedDragActions() const
 
 ProcessNode& addToLibrary(ProcessNode& parent, ProcessData&& data)
 {
-  const struct
-  {
-    bool operator()(const QString& lhs, const Library::ProcessData& rhs) const noexcept
-    {
-      return QString::compare(lhs, rhs.prettyName, Qt::CaseInsensitive) < 0;
-    }
-    bool operator()(const Library::ProcessData& lhs, const QString& rhs) const noexcept
-    {
-      return QString::compare(lhs.prettyName, rhs, Qt::CaseInsensitive) < 0;
-    }
-  } nameSort;
   return ossia::emplace_sorted(
-      parent, data.prettyName, nameSort, std::move(data), &parent);
+      parent, data.prettyName, LibraryNameSort{}, std::move(data), &parent);
 }
-
 }

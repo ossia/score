@@ -13,7 +13,7 @@ class ObjLoader
 {
 public:
   halp_meta(name, "Object loader")
-  halp_meta(category, "Visuals/3D")
+  halp_meta(category, "Visuals/Meshes")
   halp_meta(c_name, "obj_loader")
   halp_meta(
       authors,

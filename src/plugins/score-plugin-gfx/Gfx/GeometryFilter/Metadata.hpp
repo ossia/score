@@ -11,7 +11,7 @@ PROCESS_METADATA(
     "geomfilter",                         // Internal name
     "Geometry filter",                    // Pretty name
     Process::ProcessCategory::Visual,     // Category
-    "Visuals/3D",                         // Category
+    "Visuals/Meshes",                         // Category
     "Process geometry in vertex shaders", // Description
     "ossia team",                         // Author
     (QStringList{"shader", "gfx"}),       // Tags

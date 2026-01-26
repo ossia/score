@@ -15,7 +15,7 @@ class BuffersToGeometry
 {
 public:
   halp_meta(name, "Buffers to geometry")
-  halp_meta(category, "Visuals/3D")
+  halp_meta(category, "Visuals/Utilities")
   halp_meta(c_name, "buffers_to_geometry")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/buffers-to-geometry.html")
   halp_meta(uuid, "d5dd3b9a-f57b-4546-9890-d5b5e351dcea")

@@ -18,7 +18,7 @@ class TextureToBuffer
 {
 public:
   halp_meta(name, "Texture to buffer")
-  halp_meta(category, "Visuals/3D")
+  halp_meta(category, "Visuals/Utilities")
   halp_meta(c_name, "texture_to_buffer")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/texture-to-buffer.html")
   halp_meta(uuid, "fd7d6339-c745-4733-a1c2-6ebd0a25fd92")

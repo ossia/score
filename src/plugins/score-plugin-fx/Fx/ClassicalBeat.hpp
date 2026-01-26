@@ -12,7 +12,7 @@ struct Node
 {
   halp_meta(name, "Beat Metronome")
   halp_meta(c_name, "ImpulseMetronome")
-  halp_meta(category, "Control/Generators")
+  halp_meta(category, "Timing/Control")
   halp_meta(author, "ossia score")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/control-utilities.html#impulse-metronome")
   halp_meta(description, "A simple metronome - outputs a bang on the current tick")

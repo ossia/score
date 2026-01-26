@@ -9,7 +9,7 @@ namespace Threedim
 {
 struct Primitive
 {
-  halp_meta(category, "Visuals/3D/Primitives")
+  halp_meta(category, "Visuals/Meshes/Primitives")
   halp_meta(author, "Jean-Michaël Celerier, vcglib")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/meshes.html#primitive")
 
@@ -23,7 +23,7 @@ struct Primitive
 struct Plane
 {
 public:
-  halp_meta(category, "Visuals/3D/Primitives")
+  halp_meta(category, "Visuals/Meshes/Primitives")
   halp_meta(author, "Jean-Michaël Celerier, vcglib")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/meshes.html#primitive")
   halp_meta(name, "Plane")

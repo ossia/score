@@ -14,7 +14,7 @@ struct Node
 {
   halp_meta(name, "Free metronome")
   halp_meta(c_name, "Metro")
-  halp_meta(category, "Control/Generators")
+  halp_meta(category, "Timing/Control")
   halp_meta(author, "ossia score")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/control-utilities.html#free-metronome")
   halp_meta(description, "Metronome which is not synced to the parent quantization settings")
