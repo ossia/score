@@ -3,7 +3,9 @@
 #include <Process/TimeValue.hpp>
 
 #include <QPoint>
+#include <QTimer>
 
+class QGraphicsItem;
 namespace Scenario
 {
 class ToolPalette;
