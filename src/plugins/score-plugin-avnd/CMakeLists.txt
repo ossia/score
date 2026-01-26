@@ -1086,13 +1086,6 @@ avnd_make_score(
 # target_link_libraries(score_plugin_avnd PRIVATE OpenSSL::SSL OpenSSL::Crypto)
 
 
-avnd_make_score(
-  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Wavecycle.hpp"
-  TARGET wavecycle
-  MAIN_CLASS Wavecycle
-  NAMESPACE ao
-)
-
 # avnd_make_score(
 #   SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Automation.hpp"
 #   TARGET automation
