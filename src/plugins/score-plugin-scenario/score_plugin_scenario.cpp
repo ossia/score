@@ -186,7 +186,19 @@ score_plugin_scenario::score_plugin_scenario()
       Scenario::StateView::Type, "",
       QUrl("https://ossia.io/score-docs/processes/scenario.html#states"));
   ::registerItemHelp(
-      Scenario::IntervalView::Type, "",
+      Scenario::TemporalIntervalView::Type, "",
+      QUrl("https://ossia.io/score-docs/processes/scenario.html#intervals"));
+  ::registerItemHelp(
+      Scenario::FullViewIntervalView::Type, "",
+      QUrl("https://ossia.io/score-docs/processes/scenario.html#intervals"));
+  ::registerItemHelp(
+      Scenario::ItemType::GraphInterval, "",
+      QUrl("https://ossia.io/score-docs/processes/scenario.html#intervals"));
+  ::registerItemHelp(
+      Scenario::ItemType::LeftBrace, "",
+      QUrl("https://ossia.io/score-docs/processes/scenario.html#intervals"));
+  ::registerItemHelp(
+      Scenario::ItemType::RightBrace, "",
       QUrl("https://ossia.io/score-docs/processes/scenario.html#intervals"));
   ::registerItemHelp(
       Scenario::ScenarioView::Type, "",
