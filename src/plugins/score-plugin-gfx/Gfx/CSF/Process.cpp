@@ -421,7 +421,7 @@ void Model::setupCSF(const isf::descriptor& desc)
 
         auto size_inl = new Process::IntSpinBox{
             1,
-            100000000,
+            536870911,
             1024,
             QString::fromStdString(input.name) + " size",
             Id<Process::Port>(input_i++),
