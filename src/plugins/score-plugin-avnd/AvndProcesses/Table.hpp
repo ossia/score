@@ -7,6 +7,7 @@
 #include <boost/container/static_vector.hpp>
 #include <boost/mp11.hpp>
 #include <boost/multi_array.hpp>
+#include <boost/predef.h>
 
 #include <halp/controls.hpp>
 #include <halp/meta.hpp>
@@ -17,7 +18,12 @@
 
 namespace avnd_tools
 {
+
+#if BOOST_COMP_GNUC
+inline constexpr std::size_t g_table_max_dimensions = 4;
+#else
 inline constexpr std::size_t g_table_max_dimensions = 16;
+#endif
 
 using index_vec_type = boost::container::static_vector<int64_t, g_table_max_dimensions>;
 using extent_vec_type
