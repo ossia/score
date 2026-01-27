@@ -13,10 +13,16 @@ if("${CMAKE_CXX_COMPILER_ID}" MATCHES ".*Clang")
       return()
     endif()
   endif()
+  unset(SCORE_GCC_MEMORY_EXPLOSION)
 elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
   if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 12)
     return()
   endif()
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 15)
+    set(SCORE_GCC_MEMORY_EXPLOSION 1)
+  endif()
+else()
+  unset(SCORE_GCC_MEMORY_EXPLOSION)
 endif()
 
 # Check for coroutines support
@@ -648,6 +654,7 @@ avnd_make_score(
   NAMESPACE avnd_tools
 )
 
+if(NOT SCORE_GCC_MEMORY_EXPLOSION)
 avnd_make_score(
   SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/Table.hpp"
   TARGET table
@@ -666,7 +673,7 @@ avnd_make_score(
   MAIN_CLASS Table2D
   NAMESPACE avnd_tools
 )
-
+endif()
 
 avnd_make_score(
   SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/Spammer.hpp"
