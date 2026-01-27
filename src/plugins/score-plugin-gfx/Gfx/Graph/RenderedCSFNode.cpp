@@ -379,8 +379,10 @@ void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpd
     int currentArraySize = getArraySizeFromUI(storageBuffer.name);
 
     // Calculate required buffer size
-    const auto requiredSize = score::gfx::calculateStorageBufferSize(
+    auto requiredSize = score::gfx::calculateStorageBufferSize(
         storageBuffer.layout, currentArraySize, this->n.descriptor());
+    if(requiredSize >= INT_MAX)
+      requiredSize = INT_MAX;
 
     // Check if buffer needs to be resized
     if(requiredSize != storageBuffer.lastKnownSize || !storageBuffer.buffer)
