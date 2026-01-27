@@ -4,6 +4,7 @@
 #include <Gfx/Graph/ISFNode.hpp>
 #include <Gfx/Graph/RenderedCSFNode.hpp>
 #include <Gfx/Graph/RenderedISFSamplerUtils.hpp>
+#include <Gfx/Graph/SSBO.hpp>
 #include <Gfx/Graph/Utils.hpp>
 
 #include <score/tools/Debug.hpp>
@@ -288,73 +289,6 @@ RenderedCSFNode::getImageSize(const isf::csf_image_input& img) const noexcept
   return std::nullopt;
 }
 
-int RenderedCSFNode::calculateStorageBufferSize(std::span<const isf::storage_input::layout_field> layout, int arrayCount) const
-{
-  if(layout.empty() || arrayCount <= 0)
-    return 0;
-    
-  int totalSize = 0;
-  
-  for(const auto& field : layout)
-  {
-    int fieldSize = 0;
-    QString type = QString::fromStdString(field.type);
-    
-    // Handle basic GLSL types according to std430 layout rules
-    if(type == "float") fieldSize = 4;
-    else if(type == "vec2") fieldSize = 8;
-    else if(type == "vec3") fieldSize = 12;  // Note: vec3 has 4-byte alignment but 12-byte size
-    else if(type == "vec4") fieldSize = 16;
-    else if(type == "int") fieldSize = 4;
-    else if(type == "ivec2") fieldSize = 8;
-    else if(type == "ivec3") fieldSize = 12;
-    else if(type == "ivec4") fieldSize = 16;
-    else if(type == "bool") fieldSize = 4;   // bool is stored as int in GLSL
-    else if(type == "mat2") fieldSize = 16;  // 2x2 matrix = 2 vec2s
-    else if(type == "mat3") fieldSize = 36;  // 3x3 matrix = 3 vec3s, but aligned to vec4
-    else if(type == "mat4") fieldSize = 64;  // 4x4 matrix = 4 vec4s
-    else if(type.endsWith("[]"))
-    {
-      // flexible arrays are handled by arrayCount
-      QString baseType = type.left(type.length() - 2);
-      // Recursive call for array element size
-      isf::storage_input::layout_field singleField[1] = {{field.name, baseType.toStdString()}};
-      fieldSize = calculateStorageBufferSize(singleField, 1);
-    }
-    else
-    {
-      // Check if it's a custom type from the TYPES array
-      bool foundCustomType = false;
-      for(const auto& typeDef : n.descriptor().types)
-      {
-        if(QString::fromStdString(typeDef.name) == type)
-        {
-          fieldSize = calculateStorageBufferSize(typeDef.layout, 1);
-          foundCustomType = true;
-          break;
-        }
-      }
-      
-      if(!foundCustomType)
-      {
-        // Unknown type, assume 16 bytes (vec4 equivalent) as fallback
-        qWarning() << "Unknown CSF field type:" << type << "assuming 16 bytes";
-        fieldSize = 16;
-      }
-    }
-    
-    // Apply std430 alignment rules
-    int alignment = std::min(fieldSize, 16); // std430 max alignment is 16 bytes
-    totalSize = (totalSize + alignment - 1) & ~(alignment - 1); // Align to boundary
-    totalSize += fieldSize;
-  }
-  
-  // Align the whole struct to 16 bytes (vec4 boundary) for array elements
-  totalSize = (totalSize + 15) & ~15;
-  
-  return totalSize * arrayCount;
-}
-
 BufferView RenderedCSFNode::createStorageBuffer(
     RenderList& renderer, const QString& name, const QString& access, int size)
 {
@@ -445,8 +379,8 @@ void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpd
     int currentArraySize = getArraySizeFromUI(storageBuffer.name);
 
     // Calculate required buffer size
-    int requiredSize
-        = calculateStorageBufferSize(storageBuffer.layout, currentArraySize);
+    const auto requiredSize = score::gfx::calculateStorageBufferSize(
+        storageBuffer.layout, currentArraySize, this->n.descriptor());
 
     // Check if buffer needs to be resized
     if(requiredSize != storageBuffer.lastKnownSize || !storageBuffer.buffer)
