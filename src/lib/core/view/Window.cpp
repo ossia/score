@@ -420,6 +420,7 @@ void View::on_fileNameChanged(DocumentView* d, const QString& newName)
       }
       n.truncate(n.lastIndexOf("."));
       centralTabs->setTabText(i, n);
+      setTitle(*this, &d->document(), false);
       return;
     }
   }
