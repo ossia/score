@@ -26,7 +26,7 @@ struct ArrayParseResult
   int arrayCount{}; // 0 = not an array, -1 = flexible array [], >0 = fixed array [N]
 };
 
-static constexpr inline int alignUp(int value, int alignment)
+static constexpr inline int64_t alignUp(int64_t value, int64_t alignment)
 {
   if(alignment <= 0)
     return value;
@@ -223,7 +223,7 @@ static inline LayoutResult calculateStructLayout(
   return {currentOffset, maxAlignment};
 }
 
-int calculateStorageBufferSize(
+static inline int64_t calculateStorageBufferSize(
     std::span<const isf::storage_input::layout_field> layout, int arrayCount,
     const isf::descriptor& d)
 {
@@ -236,8 +236,8 @@ int calculateStorageBufferSize(
   // Get type definitions from the node descriptor
   const auto& typeDefinitions = d.types;
 
-  int currentOffset = 0;
-  int maxBufferAlignment = 0;
+  int64_t currentOffset = 0;
+  int64_t maxBufferAlignment = 0;
 
   for(const auto& field : layout)
   {
@@ -249,7 +249,7 @@ int calculateStorageBufferSize(
     const int fixedArrayCount = isFixedArray ? parsed.arrayCount : 1;
 
     int fieldSize = 0;
-    int fieldAlign = 0;
+    int64_t fieldAlign = 0;
 
     const Std430TypeInfo info = getStd430BaseTypeInfo(baseType);
 
