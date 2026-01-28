@@ -315,14 +315,16 @@ static void parse_input_base(input& inp, const sajson::value& v)
     if(k == "NAME")
     {
       auto val = v.get_object_value(i);
-      if(val.get_type() == sajson::TYPE_STRING) {
+      if(val.get_type() == sajson::TYPE_STRING)
+      {
         inp.name = val.as_string();
       }
     }
     else if(k == "LABEL")
     {
       auto val = v.get_object_value(i);
-      if(val.get_type() == sajson::TYPE_STRING) {
+      if(val.get_type() == sajson::TYPE_STRING)
+      {
         inp.label = val.as_string();
       }
     }
@@ -600,53 +602,81 @@ static void parse_input(long_input& inp, const sajson::value& v)
   if(inp.values.size() < min_size)
     inp.values.resize(min_size);
 }
-auto make_value(std::optional<double>& res, double f, auto op)
+
+static auto make_value(std::optional<double>& res, double f, auto op)
 {
   f = op(f);
-  res =  f;
+  res = f;
 }
-auto make_value(double& res, double f, auto op)
+static auto make_value(double& res, double f, auto op)
 {
   f = op(f);
-  res =  f;
+  res = f;
 }
 
-
-auto make_value(std::optional<std::array<double, 2>>& res, double f, auto op)
+static auto make_value(std::optional<std::array<double, 2>>& res, double f, auto op)
 {
   f = op(f);
-  res =  std::array<double, 2>{f,f};
+  res = std::array<double, 2>{f, f};
 }
 
-auto make_value(std::optional<std::array<double, 2>>& res, std::array<double, 2> f, auto op)
+static auto
+make_value(std::optional<std::array<double, 2>>& res, std::array<double, 2> f, auto op)
 {
-  res =  std::array<double, 2>{op(f[0]),op(f[1])};
+  res = std::array<double, 2>{op(f[0]), op(f[1])};
 }
 
-auto make_value(std::optional<std::array<double, 3>>& res, double f, auto op)
+static auto make_value(std::optional<std::array<double, 3>>& res, double f, auto op)
 {
   f = op(f);
-  res =  std::array<double, 3>{f,f,f};
+  res = std::array<double, 3>{f, f, f};
 }
-auto make_value(std::optional<std::array<double, 3>>& res, std::array<double, 3> f, auto op)
+
+static auto
+make_value(std::optional<std::array<double, 3>>& res, std::array<double, 3> f, auto op)
 {
-  res =  std::array<double, 3>{op(f[0]),op(f[1]),op(f[2])};
+  res = std::array<double, 3>{op(f[0]), op(f[1]), op(f[2])};
 }
 
-
-auto make_value(std::optional<std::array<double, 4>>& res, double f, auto op)
+static auto make_value(std::optional<std::array<double, 4>>& res, double f, auto op)
 {
   f = op(f);
-  res =  std::array<double, 4>{f,f,f,f};
+  res = std::array<double, 4>{f, f, f, f};
 }
-auto make_value(std::optional<std::array<double, 4>>& res, std::array<double, 4> f, auto op)
+
+static auto
+make_value(std::optional<std::array<double, 4>>& res, std::array<double, 4> f, auto op)
 {
-  res =  std::array<double, 4>{op(f[0]),op(f[1]),op(f[2]),op(f[3])};
+  res = std::array<double, 4>{op(f[0]), op(f[1]), op(f[2]), op(f[3])};
 }
-template<typename T>
-auto make_value(std::optional<T>& res, std::optional<T> f, auto op)
+
+template <typename T>
+static auto make_value(std::optional<T>& res, std::optional<T> f, auto op)
 {
+  assert(f);
   make_value(res, *f, op);
+  assert(res);
+}
+
+static auto check_value_greater(double& min, double& max)
+{
+  if(min > max)
+    std::swap(min, max);
+}
+
+template <std::size_t N>
+static auto check_value_greater(std::array<double, N>& min, std::array<double, N>& max)
+{
+  for(int i = 0; i < N; i++)
+    if(min[i] > max[i])
+      std::swap(min[i], max[i]);
+}
+template <typename T>
+static auto check_value_greater(std::optional<T>& min, std::optional<T>& max)
+{
+  assert(min);
+  assert(max);
+  check_value_greater(*min, *max);
 }
 
 template <typename Input_T>
@@ -682,19 +712,21 @@ static void parse_input(Input_T& inp, const sajson::value& v)
   {
     if(!inp.def)
     {
-       make_value(inp.min, 0., std::identity{});
-       make_value(inp.max, 1., std::identity{});
+      make_value(inp.min, 0., std::identity{});
+      make_value(inp.max, 1., std::identity{});
     }
     else
     {
-      make_value(inp.min, inp.def, [] (double v) { return -v; });
-      make_value(inp.max, inp.def, [] (double v) { return 2. * v; });
+      make_value(inp.min, inp.def, [](double v) { return v != 0 ? -std::abs(v) : -1.; });
+      make_value(
+          inp.max, inp.def, [](double v) { return v != 0 ? 2. * std::abs(v) : 1.; });
     }
   }
-  else if(!inp.min) {
+  else if(!inp.min)
+  {
     if(!inp.def)
     {
-      make_value(inp.min, inp.max, [] (double v) {
+      make_value(inp.min, inp.max, [](double v) {
         if(v == 0.)
           return -1.;
         return v - std::abs(v);
@@ -702,15 +734,16 @@ static void parse_input(Input_T& inp, const sajson::value& v)
     }
     else
     {
-      make_value(inp.min, inp.def, [] (double v) {
+      make_value(inp.min, inp.def, [](double v) {
         if(v == 0.)
           return -1.;
         return v - std::abs(v);
       });
     }
   }
-  else if(!inp.max) {
-    make_value(inp.max, inp.min, [] (double v) {
+  else if(!inp.max)
+  {
+    make_value(inp.max, inp.min, [](double v) {
       if(v < 0)
         return -v;
       else
@@ -718,14 +751,20 @@ static void parse_input(Input_T& inp, const sajson::value& v)
     });
   }
 
+  if constexpr(requires { inp.min.reset(); })
+  {
+    assert(inp.min);
+    assert(inp.max);
+  }
+
   // Some ISF shaders have e.g. "MIN": 0, "MAX": -5 to show them reversed in the ISF editor gui...
-  if(inp.min > inp.max)
-    std::swap(inp.min, inp.max);
+  check_value_greater(inp.min, inp.max);
 
   if(inp.min == inp.max)
   {
-    if((inp.def == inp.min && inp.def == inp.max) || !inp.def) {
-      make_value(inp.max, inp.min, [] (double v) {
+    if((inp.def == inp.min && inp.def == inp.max) || !inp.def)
+    {
+      make_value(inp.max, inp.min, [](double v) {
         if(v < 0.)
           return 0.;
         else if(v == 0.)
@@ -736,9 +775,7 @@ static void parse_input(Input_T& inp, const sajson::value& v)
     }
     else
     {
-      make_value(inp.max, inp.def, [] (double v) {
-        return 2. * std::abs(v);
-      });
+      make_value(inp.max, inp.def, [](double v) { return 2. * std::abs(v); });
     }
   }
 
@@ -3014,7 +3051,7 @@ void parser::parse_csf()
 
     material_block += "};\n\n";
 
-    if(k>0)
+    if(k > 0)
       m_fragment += material_block;
     binding++;
   }
