@@ -154,7 +154,8 @@ public:
   PROPERTY(Process::PortType, type W_READ type W_CONSTANT W_FINAL)
 
   virtual QByteArray saveData() const noexcept;
-  virtual void loadData(const QByteArray& arr) noexcept;
+
+  virtual void loadData(const QByteArray& arr, PortLoadDataFlags = {}) noexcept;
 
 protected:
   Port() = delete;
@@ -228,7 +229,7 @@ public:
   const State::Domain& domain() const noexcept { return m_domain; }
 
   QByteArray saveData() const noexcept override;
-  void loadData(const QByteArray& arr) noexcept override;
+  void loadData(const QByteArray& arr, PortLoadDataFlags = {}) noexcept override;
 
 public:
   void valueChanged(const ossia::value& v)
@@ -348,7 +349,7 @@ public:
       const smallfun::function<void(Inlet&, ossia::inlet&)>&) const noexcept override;
 
   QByteArray saveData() const noexcept override;
-  void loadData(const QByteArray& arr) noexcept override;
+  void loadData(const QByteArray& arr, PortLoadDataFlags = {}) noexcept override;
 
   bool propagate() const;
   void setPropagate(bool propagate);
@@ -445,7 +446,7 @@ public:
   }
 
   QByteArray saveData() const noexcept override;
-  void loadData(const QByteArray& arr) noexcept override;
+  void loadData(const QByteArray& arr, PortLoadDataFlags = {}) noexcept override;
 
   const ossia::value& value() const { return m_value; }
   const State::Domain& domain() const { return m_domain; }

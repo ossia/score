@@ -310,7 +310,7 @@ static ossia::small_vector<Process::Cable*, 4> restoreCables(
 ossia::small_vector<Process::Cable*, 4> reloadPortsInNewProcess(
     const std::vector<SavedPort>& oldInlets, const std::vector<SavedPort>& oldOutlets,
     const SerializedCables& oldCables, Process::ProcessModel& process,
-    const score::DocumentContext& ctx)
+    Process::PortLoadDataFlags flags, const score::DocumentContext& ctx)
 {
   ossia::small_vector<Process::Cable*, 4> ret;
   // Try an optimistic matching. Type and name must match.
@@ -325,7 +325,7 @@ ossia::small_vector<Process::Cable*, 4> reloadPortsInNewProcess(
 
     if(new_p->type() == old_p.type && new_p->name() == old_p.name)
     {
-      new_p->loadData(old_p.data);
+      new_p->loadData(old_p.data, flags);
       auto rret = restoreCables(*new_p, doc, ctx, oldCables);
       ret.insert(ret.end(), rret.begin(), rret.end());
     }
@@ -338,7 +338,7 @@ ossia::small_vector<Process::Cable*, 4> reloadPortsInNewProcess(
 
     if(new_p->type() == old_p.type && new_p->name() == old_p.name)
     {
-      new_p->loadData(old_p.data);
+      new_p->loadData(old_p.data, flags);
       auto rret = restoreCables(*new_p, doc, ctx, oldCables);
       ret.insert(ret.end(), rret.begin(), rret.end());
     }

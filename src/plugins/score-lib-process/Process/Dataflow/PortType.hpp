@@ -22,6 +22,12 @@ enum class PortType
   Geometry,
 };
 
+enum class PortLoadDataFlags
+{
+  NoFlag = 0,
+  DontReloadValue = (1 << 0)
+};
+
 SCORE_LIB_PROCESS_EXPORT
 const score::Brush& portBrush(Process::PortType type);
 SCORE_LIB_PROCESS_EXPORT

@@ -233,7 +233,7 @@ QByteArray Port::saveData() const noexcept
   return arr;
 }
 
-void Port::loadData(const QByteArray& arr) noexcept
+void Port::loadData(const QByteArray& arr, PortLoadDataFlags flags) noexcept
 {
   QDataStream p{arr};
   DataStreamOutput op{p};
@@ -330,14 +330,23 @@ QByteArray ControlInlet::saveData() const noexcept
   return arr;
 }
 
-void ControlInlet::loadData(const QByteArray& arr) noexcept
+void ControlInlet::loadData(const QByteArray& arr, PortLoadDataFlags flags) noexcept
 {
   QByteArray pdata;
   QDataStream p{arr};
   DataStreamOutput op{p};
-  op >> pdata >> m_value;
-  Port::loadData(pdata);
-  valueChanged(m_value);
+  op >> pdata;
+  if(!((uint32_t)flags & (uint32_t)PortLoadDataFlags::DontReloadValue))
+  {
+    op >> m_value;
+  }
+
+  Port::loadData(pdata, flags);
+
+  if(!((uint32_t)flags & (uint32_t)PortLoadDataFlags::DontReloadValue))
+  {
+    valueChanged(m_value);
+  }
 }
 
 void ControlInlet::setValue(const ossia::value& value)
@@ -488,13 +497,13 @@ QByteArray AudioOutlet::saveData() const noexcept
   return arr;
 }
 
-void AudioOutlet::loadData(const QByteArray& arr) noexcept
+void AudioOutlet::loadData(const QByteArray& arr, PortLoadDataFlags flags) noexcept
 {
   QByteArray pdata;
   QDataStream p{arr};
   DataStreamOutput op{p};
   op >> pdata >> m_gain >> m_pan >> m_propagate;
-  Port::loadData(pdata);
+  Port::loadData(pdata, flags);
   propagateChanged(m_propagate);
 }
 
@@ -629,9 +638,9 @@ QByteArray ControlOutlet::saveData() const noexcept
   return Port::saveData();
 }
 
-void ControlOutlet::loadData(const QByteArray& arr) noexcept
+void ControlOutlet::loadData(const QByteArray& arr, PortLoadDataFlags flags) noexcept
 {
-  Port::loadData(arr);
+  Port::loadData(arr, flags);
 }
 
 ValueInlet::~ValueInlet() { }
