@@ -659,6 +659,7 @@ avnd_make_score(
   MAIN_CLASS Table
   NAMESPACE avnd_tools
 )
+endif()
 avnd_make_score(
   SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/Table1D.hpp"
   TARGET avnd_table_1d
@@ -671,7 +672,6 @@ avnd_make_score(
   MAIN_CLASS Table2D
   NAMESPACE avnd_tools
 )
-endif()
 
 avnd_make_score(
   SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/Spammer.hpp"
