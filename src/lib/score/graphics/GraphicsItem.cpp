@@ -83,7 +83,9 @@ QGraphicsView* getView(const QPainter& painter)
 QImage newImage(double logical_w, double logical_h)
 {
   double ratio = qGuiApp->devicePixelRatio();
-  QImage img(logical_w * ratio, logical_h * ratio, QImage::Format_ARGB32_Premultiplied);
+  QImage img(
+      std::ceil(logical_w * ratio), logical_h * ratio,
+      QImage::Format_ARGB32_Premultiplied);
   img.setDevicePixelRatio(ratio);
   img.fill(Qt::transparent);
   return img;
