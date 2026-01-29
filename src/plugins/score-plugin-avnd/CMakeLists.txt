@@ -652,7 +652,7 @@ avnd_make_score(
   NAMESPACE avnd_tools
 )
 
-if(NOT SCORE_GCC_MEMORY_EXPLOSION)
+if(1)
 avnd_make_score(
   SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/Table.hpp"
   TARGET table
