@@ -172,8 +172,6 @@ private:
 
   std::vector<QMetaObject::Connection> m_processSelectionConnections;
 
-  int m_nonGLTimebarTimer{-1};
-
   bool m_zooming{false};
   bool m_updatingMinimap{false};
   bool m_reloadingMinimap{false};
@@ -181,6 +179,7 @@ private:
   bool m_autoScroll{false};
 };
 
+SCORE_PLUGIN_SCENARIO_EXPORT
 Process::ProcessModel* closestParentProcessBeforeInterval(const QObject* obj);
 
 }

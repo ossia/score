@@ -130,6 +130,9 @@ void ProcessGraphicsView::drawForeground(QPainter* painter, const QRectF& rect)
       auto x = pctg * currentView->defaultWidth();
       double view_x = currentView->mapToScene(x, 0.).x();
 
+      if(x < rect.x() || x > rect.x() + rect.width())
+        return;
+
       auto top = mapToScene(QPoint{0, 0}).y();
       auto bottom = mapToScene(QPoint{0, height()}).y();
 
@@ -646,6 +649,18 @@ void ScenarioDocumentView::updateBackgroundMode()
     m_timer = -1;
   }
 
+  const bool opengl = m_context.app.applicationSettings.opengl;
+  bool wantsFullUpdates = false;
+
+  // Necessary to redraw the exec bar correctly...
+  // On non-retina macOS, FullViewportupdate on software is faster than GLWidget -=-
+  // Maybe different on Retina, it has to be checked...
+  if(view().timebarVisible && view().timebarPlaying && !opengl)
+    wantsFullUpdates = true;
+
+  else if(!m_view.m_globalRenderers.empty())
+    wantsFullUpdates = true;
+
   double refreshRate = defaultEditorRefreshRate();
   if(m_transport)
   {
@@ -655,9 +670,8 @@ void ScenarioDocumentView::updateBackgroundMode()
       refreshRate = 1000. / rate;
   }
 
-  if(m_view.m_globalRenderers.empty())
+  if(!wantsFullUpdates)
   {
-    const bool opengl = m_context.app.applicationSettings.opengl;
     if(opengl)
     {
       // m_minimapView.setViewport(new QOpenGLWidget);
@@ -673,7 +687,7 @@ void ScenarioDocumentView::updateBackgroundMode()
       // m_timeRulerView.viewport()->setUpdatesEnabled(true);
       m_view.viewport()->setUpdatesEnabled(true);
 
-      m_timer = startTimer(refreshRate);
+      m_timer = startTimer(refreshRate, Qt::PreciseTimer);
     }
     else
     {
@@ -685,7 +699,7 @@ void ScenarioDocumentView::updateBackgroundMode()
   else
   {
     m_view.setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
-    m_timer = startTimer(refreshRate);
+    m_timer = startTimer(refreshRate, Qt::PreciseTimer);
   }
   m_view.update();
 }

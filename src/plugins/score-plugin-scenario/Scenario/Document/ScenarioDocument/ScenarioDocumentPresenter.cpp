@@ -499,14 +499,7 @@ void ScenarioDocumentPresenter::startTimeBar()
   view().view().timebarPlaying = true;
   view().view().timebarVisible = visible;
 
-  // Necessary to redraw the exec bar correctly...
-  // On non-retina macOS, FullViewportupdate on software is faster than GLWidget -=-
-  // Maybe different on Retina, it has to be checked...
-  if(visible && !this->context().app.applicationSettings.opengl)
-  {
-    view().view().setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
-    m_nonGLTimebarTimer = view().startTimer(16);
-  }
+  view().updateBackgroundMode();
 }
 
 void ScenarioDocumentPresenter::stopTimeBar()
@@ -515,15 +508,7 @@ void ScenarioDocumentPresenter::stopTimeBar()
   view().view().timebarPlaying = false;
   view().view().timebarVisible = false;
 
-  if(!this->context().app.applicationSettings.opengl)
-  {
-    view().view().setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
-    if(m_nonGLTimebarTimer != -1)
-    {
-      view().killTimer(m_nonGLTimebarTimer);
-      m_nonGLTimebarTimer = -1;
-    }
-  }
+  view().updateBackgroundMode();
 }
 
 bool ScenarioDocumentPresenter::isNodal() const noexcept
