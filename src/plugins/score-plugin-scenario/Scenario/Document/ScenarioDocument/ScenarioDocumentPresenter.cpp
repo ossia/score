@@ -286,8 +286,6 @@ void ScenarioDocumentPresenter::switchMode(bool nodal)
   else
   {
     m_centralDisplay.emplace<CentralIntervalDisplay>(*this);
-    if(view().view().timebarPlaying)
-      startTimeBar();
 
     // It may happen that the score is closed and this event is called
     // and the event is processed before this is deleted, but after the interval
@@ -296,6 +294,8 @@ void ScenarioDocumentPresenter::switchMode(bool nodal)
     QTimer::singleShot(0, this, [this, itv] {
       if(itv)
         restoreZoom();
+      if(view().view().timebarPlaying)
+        startTimeBar();
     });
   }
 
@@ -762,6 +762,9 @@ void ScenarioDocumentPresenter::on_viewReady()
       void operator()(ossia::monostate) const noexcept { }
     } vis{view().view().visibleRect()};
     ossia::visit(vis, m_centralDisplay);
+
+    if(view().view().timebarPlaying)
+      startTimeBar();
   });
 }
 
@@ -1061,6 +1064,9 @@ void ScenarioDocumentPresenter::setDisplayedInterval(IntervalModel* itv)
     }
     switchMode(interval.viewMode() == IntervalModel::ViewMode::Nodal);
   }
+
+  // Timebar
+  updateTimeBar();
 }
 
 void ScenarioDocumentPresenter::on_viewModelDefocused(const Process::ProcessModel* vm)
