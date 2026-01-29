@@ -428,7 +428,7 @@ void NodeItem::updateContentRect()
 
 QRectF NodeItem::boundingRect() const
 {
-  return m_contentRect;
+  return m_contentRect.adjusted(-2., -2., 2., 2.);
 }
 
 void NodeItem::createFoldedItem()
@@ -663,7 +663,8 @@ void NodeItem::updateSize()
         if(m_model.outlets().size() > 0 && m_model.inlets().size() == 0)
         {
           // Align right for the case where we only have a series of outlets
-          m_fx->setPos(boundingRect().width() - m_fx->boundingRect().width(), 0);
+          updateContentRect();
+          m_fx->setPos(m_contentRect.width() - m_fx->boundingRect().width(), 0);
         }
         else
         {
@@ -945,7 +946,7 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
   if(event->button() == Qt::LeftButton)
   {
     nodeDidMove = false;
-    if(m_presenter && isInSelectionCorner(event->pos(), boundingRect()))
+    if(m_presenter && isInSelectionCorner(event->pos(), m_contentRect))
     {
       nodeItemInteraction = Interaction::Resize;
       origNodeSize = m_model.size();
@@ -1036,7 +1037,7 @@ void NodeItem::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 
 void NodeItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 {
-  if(m_presenter && isInSelectionCorner(event->pos(), boundingRect()))
+  if(m_presenter && isInSelectionCorner(event->pos(), m_contentRect))
   {
     auto& skin = score::Skin::instance();
     setCursor(skin.CursorScaleFDiag);
@@ -1053,7 +1054,7 @@ void NodeItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 
 void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
 {
-  if(m_presenter && isInSelectionCorner(event->pos(), boundingRect()))
+  if(m_presenter && isInSelectionCorner(event->pos(), m_contentRect))
   {
     auto& skin = score::Skin::instance();
     setCursor(skin.CursorScaleFDiag);
