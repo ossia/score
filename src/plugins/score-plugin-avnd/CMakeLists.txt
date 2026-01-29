@@ -666,13 +666,14 @@ avnd_make_score(
   MAIN_CLASS Table1D
   NAMESPACE avnd_tools
 )
+if(0)
 avnd_make_score(
   SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/Table2D.hpp"
   TARGET avnd_table_2d
   MAIN_CLASS Table2D
   NAMESPACE avnd_tools
 )
-
+endif()
 avnd_make_score(
   SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/Spammer.hpp"
   TARGET pattern_spammer
