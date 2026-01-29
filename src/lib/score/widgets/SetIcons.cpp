@@ -192,7 +192,7 @@ QPixmap get_pixmap(QString str)
   if(!gui)
     return img;
 
-  if(qGuiApp->devicePixelRatio() >= 2.0)
+  if(qGuiApp->devicePixelRatio() >= 1.5)
   {
     auto newstr = str;
     newstr.replace(".png", "@2x.png", Qt::CaseInsensitive);

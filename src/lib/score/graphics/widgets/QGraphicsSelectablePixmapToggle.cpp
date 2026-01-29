@@ -4,8 +4,10 @@
 #include <QApplication>
 #include <QDrag>
 #include <QGraphicsSceneMouseEvent>
+#include <QGuiApplication>
 #include <QMimeData>
 
+#include <cmath>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::QGraphicsSelectablePixmapToggle);
 W_OBJECT_IMPL(score::QGraphicsDraggablePixmap);
@@ -26,6 +28,9 @@ QGraphicsSelectablePixmapToggle::QGraphicsSelectablePixmapToggle(
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorPointingHand);
   this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
+
+  if(std::fmod(qGuiApp->devicePixelRatio(), 1.0f) != 0.f)
+    this->setTransformationMode(Qt::SmoothTransformation);
 }
 
 void QGraphicsSelectablePixmapToggle::toggle()
@@ -88,6 +93,9 @@ QGraphicsDraggablePixmap::QGraphicsDraggablePixmap(
   setShapeMode(QGraphicsPixmapItem::BoundingRectShape);
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorPointingHand);
+
+  if(std::fmod(qGuiApp->devicePixelRatio(), 1.0f) != 0.f)
+    this->setTransformationMode(Qt::SmoothTransformation);
 }
 
 void QGraphicsDraggablePixmap::mousePressEvent(QGraphicsSceneMouseEvent* event)

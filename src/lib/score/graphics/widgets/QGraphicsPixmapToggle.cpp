@@ -2,7 +2,9 @@
 #include <score/model/Skin.hpp>
 
 #include <QGraphicsSceneMouseEvent>
+#include <QGuiApplication>
 
+#include <cmath>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::QGraphicsPixmapToggle);
 
@@ -19,6 +21,9 @@ QGraphicsPixmapToggle::QGraphicsPixmapToggle(
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorPointingHand);
   this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
+
+  if(std::fmod(qGuiApp->devicePixelRatio(), 1.0f) != 0.f)
+    this->setTransformationMode(Qt::SmoothTransformation);
 }
 
 void QGraphicsPixmapToggle::toggle()
