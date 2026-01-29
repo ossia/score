@@ -42,6 +42,7 @@ public:
   virtual void setZoomRatio(double factor) = 0;
   virtual void setGrid(MusicalGrid& grid);
 
+  void doubleClicked(QPointF pt) W_SIGNAL(doubleClicked, pt);
   void drag(QPointF arg_1, QPointF arg_2) W_SIGNAL(drag, arg_1, arg_2);
   void rescale() W_SIGNAL(rescale);
 

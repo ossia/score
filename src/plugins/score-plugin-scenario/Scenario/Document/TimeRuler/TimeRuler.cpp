@@ -242,7 +242,7 @@ void TimeRulerBase::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 
 void TimeRulerBase::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* ev)
 {
-  rescale();
+  doubleClicked(ev->scenePos());
   ev->accept();
 }
 

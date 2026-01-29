@@ -164,6 +164,7 @@ public:
   void elementsScaleChanged(double arg_1) W_SIGNAL(elementsScaleChanged, arg_1);
   void setLargeView() W_SIGNAL(setLargeView);
   void timeRulerChanged() W_SIGNAL(timeRulerChanged);
+  void requestTransport(QPointF pt) W_SIGNAL(requestTransport, pt);
 
 private:
   void timerEvent(QTimerEvent* event) override;

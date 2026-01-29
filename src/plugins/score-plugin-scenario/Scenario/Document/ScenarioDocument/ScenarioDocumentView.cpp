@@ -589,6 +589,9 @@ ScenarioDocumentView::ScenarioDocumentView(
         m_timeRuler = new TimeRuler{&m_timeRulerView};
 
       connect(m_timeRuler, &TimeRuler::rescale, largeView, &QAction::trigger);
+      connect(
+          m_timeRuler, &TimeRuler::doubleClicked, this,
+          &ScenarioDocumentView::requestTransport);
       m_timeRulerScene.addItem(m_timeRuler);
       timeRulerChanged();
     };

@@ -44,6 +44,12 @@ TimeRulerGraphicsView::TimeRulerGraphicsView(QGraphicsScene* scene)
   setOptimizationFlag(QGraphicsView::IndirectPainting, true);
 #endif
 }
+void TimeRulerGraphicsView::scrollContentsBy(int dx, int dy) { }
+
+void TimeRulerGraphicsView::wheelEvent(QWheelEvent* event)
+{
+  event->accept();
+}
 
 MinimapGraphicsView::MinimapGraphicsView(QGraphicsScene* s)
     : TimeRulerGraphicsView{s}

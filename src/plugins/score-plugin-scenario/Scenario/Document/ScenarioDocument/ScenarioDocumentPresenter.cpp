@@ -144,6 +144,9 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
   con(view().minimap(), &Minimap::visibleRectChanged, this,
       &ScenarioDocumentPresenter::on_minimapChanged);
 
+  con(view(), &ScenarioDocumentView::requestTransport, this,
+      &ScenarioDocumentPresenter::on_requestTransport);
+
   // Focus
   connect(
       &m_focusDispatcher,
@@ -911,6 +914,19 @@ void ScenarioDocumentPresenter::on_timelineModeSwitch(bool b)
     switchMode(true);
   else if(!nodal && m_nodal)
     switchMode(false);
+}
+
+void ScenarioDocumentPresenter::on_requestTransport(QPointF pt)
+{
+  // Signal comes from double click on TimeRuler
+  const QRectF visible_scene_rect = view().visibleSceneRect();
+
+  // 10: timeruler pixel delta
+  const auto tv = TimeVal::fromPixels(visible_scene_rect.x() + pt.x() - 10, m_zoomRatio);
+
+  auto& exec_ctx
+      = m_context.app.guiApplicationPlugin<ScenarioApplicationPlugin>().execution();
+  exec_ctx.playAtDate(tv);
 }
 
 void ScenarioDocumentPresenter::updateRect(const QRectF& rect)

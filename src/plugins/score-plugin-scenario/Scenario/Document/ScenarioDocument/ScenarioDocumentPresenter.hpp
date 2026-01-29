@@ -145,6 +145,7 @@ private:
   void on_minimapChanged(double l, double r);
   void on_executionTimer();
   void on_timelineModeSwitch(bool b);
+  void on_requestTransport(QPointF pt);
   ZoomRatio computeZoom(double l, double r);
 
   void on_addProcessFromLibrary(const Library::ProcessData& dat);
