@@ -170,6 +170,35 @@ Q_DECL_EXPORT short NvOptimusEnablement = 1;
 Q_DECL_EXPORT int AmdPowerXpressRequestHighPerformance = 1;
 }
 
+static bool has_non_nvidia_gpu()
+{
+#if defined(__linux__)
+  QDir drmDir("/sys/class/drm");
+
+  if(!drmDir.exists())
+    return false;
+
+  drmDir.setNameFilters({"card[0-9]*"});
+
+  const QFileInfoList entries
+      = drmDir.entryInfoList(QDir::AllEntries | QDir::NoDotAndDotDot);
+
+  for(const QFileInfo& entry : entries)
+  {
+    if(QFile vendorFile(entry.absoluteFilePath() + "/device/vendor");
+       vendorFile.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+      const auto vid = QString::fromUtf8(vendorFile.readAll()).trimmed();
+
+      // nvidia vendor id
+      if(vid.compare("0x10de", Qt::CaseInsensitive) != 0)
+        return true;
+    }
+  }
+#endif
+  return false;
+}
+
 static void setup_gpu()
 {
 #if defined(__linux__)
@@ -180,8 +209,12 @@ static void setup_gpu()
   {
     if(!qEnvironmentVariableIsSet("__GLX_VENDOR_LIBRARY_NAME"))
       qputenv("__GLX_VENDOR_LIBRARY_NAME", "nvidia");
-    if(!qEnvironmentVariableIsSet("__NV_PRIME_RENDER_OFFLOAD"))
-      qputenv("__NV_PRIME_RENDER_OFFLOAD", "1");
+
+    if(has_non_nvidia_gpu())
+    {
+      if(!qEnvironmentVariableIsSet("__NV_PRIME_RENDER_OFFLOAD"))
+        qputenv("__NV_PRIME_RENDER_OFFLOAD", "1");
+    }
   }
 #endif
 }
