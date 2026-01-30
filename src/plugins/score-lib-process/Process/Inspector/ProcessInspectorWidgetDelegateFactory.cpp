@@ -184,34 +184,67 @@ public:
 
     auto& layer_factories = doc.app.interfaces<Process::LayerFactoryList>();
 
-    if(auto fact = layer_factories.get(process.concreteKey());
-       fact && fact->hasExternalUI(process, doc))
+    if(auto fact = layer_factories.get(process.concreteKey()))
     {
-      if(!loop_lay)
-        initButtonsLayout();
+      if(process.flags() & ProcessFlags::ScriptEditingSupported)
+      {
+        if(!loop_lay)
+          initButtonsLayout();
 
-      auto uiToggle = new QToolButton{};
-      uiToggle->setIcon(makeIcons(
-          QStringLiteral(":/icons/new_window_on.png"),
-          QStringLiteral(":/icons/new_window_hover.png"),
-          QStringLiteral(":/icons/new_window_off.png"),
-          QStringLiteral(":/icons/new_window_off.png")));
-      score::setHelp(uiToggle, tr("Show the custom user interface of this plug-in"));
-      uiToggle->setToolTip(tr("Open plug-in"));
-      uiToggle->setAutoRaise(true);
-      uiToggle->setIconSize(QSize{28, 28});
-      uiToggle->setCheckable(true);
-      uiToggle->setChecked(bool(process.externalUI));
+        auto uiToggle = new QToolButton{};
+        uiToggle->setIcon(makeIcons(
+            QStringLiteral(":/icons/console_on.png"),
+            QStringLiteral(":/icons/console_on.png"),
+            QStringLiteral(":/icons/console_off.png"),
+            QStringLiteral(":/icons/console_off.png")));
+        score::setHelp(uiToggle, tr("Edit this plug-in script"));
+        uiToggle->setToolTip(tr("Open script editor"));
+        uiToggle->setAutoRaise(true);
+        uiToggle->setIconSize(QSize{28, 28});
+        uiToggle->setCheckable(true);
+        uiToggle->setChecked(bool(process.externalUI));
 
-      connect(uiToggle, &QToolButton::toggled, this, [&process, fact, &doc](bool state) {
-        Process::setupExternalUI(process, *fact, doc, state);
-      });
-      connect(&process, &ProcessModel::externalUIVisible, uiToggle, [=](bool v) {
-        QSignalBlocker block{uiToggle};
-        uiToggle->setChecked(v);
-      });
+        connect(
+            uiToggle, &QToolButton::toggled, this, [&process, fact, &doc](bool state) {
+          Process::setupScriptUI(process, *fact, doc, state);
+        });
+        connect(&process, &ProcessModel::externalUIVisible, uiToggle, [=](bool v) {
+          QSignalBlocker block{uiToggle};
+          uiToggle->setChecked(v);
+        });
 
-      m_buttons->addWidget(uiToggle);
+        m_buttons->addWidget(uiToggle);
+      }
+
+      if(fact->hasExternalUI(process, doc))
+      {
+        if(!loop_lay)
+          initButtonsLayout();
+
+        auto uiToggle = new QToolButton{};
+        uiToggle->setIcon(makeIcons(
+            QStringLiteral(":/icons/new_window_on.png"),
+            QStringLiteral(":/icons/new_window_hover.png"),
+            QStringLiteral(":/icons/new_window_off.png"),
+            QStringLiteral(":/icons/new_window_off.png")));
+        score::setHelp(uiToggle, tr("Show the custom user interface of this plug-in"));
+        uiToggle->setToolTip(tr("Open plug-in"));
+        uiToggle->setAutoRaise(true);
+        uiToggle->setIconSize(QSize{28, 28});
+        uiToggle->setCheckable(true);
+        uiToggle->setChecked(bool(process.externalUI));
+
+        connect(
+            uiToggle, &QToolButton::toggled, this, [&process, fact, &doc](bool state) {
+          Process::setupExternalUI(process, *fact, doc, state);
+        });
+        connect(&process, &ProcessModel::externalUIVisible, uiToggle, [=](bool v) {
+          QSignalBlocker block{uiToggle};
+          uiToggle->setChecked(v);
+        });
+
+        m_buttons->addWidget(uiToggle);
+      }
     }
 
     if(process.flags() & ProcessFlags::CanCreateControls)
