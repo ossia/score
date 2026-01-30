@@ -708,5 +708,9 @@
         <file>icons/ai@2x.png</file>
         <file>icons/timing.png</file>
         <file>icons/timing@2x.png</file>
+        <file>icons/process_script_off_16.png</file>
+        <file>icons/process_script_on_16.png</file>
+        <file>icons/process_script_off_16@2x.png</file>
+        <file>icons/process_script_on_16@2x.png</file>
     </qresource>
 </RCC>

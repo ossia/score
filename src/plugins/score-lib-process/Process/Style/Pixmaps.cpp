@@ -33,8 +33,8 @@ Pixmaps::Pixmaps() noexcept
     : show_ui_off{score::get_pixmap(":/icons/undock_on.png")}
     , show_ui_on{score::get_pixmap(":/icons/undock_off.png")}
 
-    , show_script_off{score::get_pixmap(":/icons/console_on.png")}
-    , show_script_on{score::get_pixmap(":/icons/console_off.png")}
+    , show_script_off{score::get_pixmap(":/icons/process_script_on_16.png")}
+    , show_script_on{score::get_pixmap(":/icons/process_script_off_16.png")}
 
     , preset_off{score::get_pixmap(":/icons/process_preset_icon.png")}
     , preset_on{score::get_pixmap(":/icons/process_preset_icon.png")}
