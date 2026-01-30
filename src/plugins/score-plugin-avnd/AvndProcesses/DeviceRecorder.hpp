@@ -645,7 +645,7 @@ struct DeviceRecorder : PatternObject
       return;
     last_message_sent_pos = tk.position_in_nanoseconds;
 
-    if(!m_path)
+    if(m_paths.empty())
       return;
 
     if(!std::exchange(started, true))

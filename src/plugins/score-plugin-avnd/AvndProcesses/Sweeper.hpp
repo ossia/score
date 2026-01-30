@@ -131,7 +131,7 @@ struct PatternSweeper : PatternObject
   void operator()(const halp::tick_musical& tk)
   {
     auto elapsed_ns = (tk.position_in_nanoseconds - last_message_sent_pos);
-    if(!m_path || this->roots.empty())
+    if(m_paths.empty() || this->roots.empty())
       return;
 
     if(elapsed_ns < inputs.time.value * 1e9)

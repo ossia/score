@@ -62,7 +62,7 @@ struct Spammer : PatternObject
 
   void operator()()
   {
-    if(!m_path)
+    if(m_paths.empty())
       return;
 
     m_smooth.store(inputs.smooth.value, std::memory_order_relaxed);

@@ -4,6 +4,8 @@
 #include <ossia/detail/algorithms.hpp>
 #include <ossia/network/common/path.hpp>
 
+#include <boost/algorithm/string.hpp>
+
 #include <AvndProcesses/Alphanum.hpp>
 #include <halp/controls.hpp>
 #include <halp/meta.hpp>
@@ -20,7 +22,7 @@ namespace avnd_tools
 struct PatternObject
 {
   ossia::exec_state_facade ossia_state;
-  std::optional<ossia::traversal::path> m_path;
+  std::vector<ossia::traversal::path> m_paths;
   std::vector<ossia::net::node_base*> roots;
 };
 
@@ -33,12 +35,23 @@ struct PatternSelector : halp::lineedit<"Pattern", "">
       return;
     if(value.empty())
     {
-      p.m_path = {};
+      p.m_paths.clear();
       p.roots.clear();
       return;
     }
 
-    p.m_path = ossia::traversal::make_path(value);
+    p.m_paths.clear();
+    std::vector<std::string> results;
+    boost::split(results, value, [](char c){ return c == '\n' || c == '\r'; });
+
+    for(auto& res : results) {
+      if(!res.empty())
+        if(auto path = ossia::traversal::make_path(res))
+        {
+          p.m_paths.push_back(std::move(*path));
+        }
+    }
+
     reprocess();
   }
 
@@ -52,7 +65,7 @@ struct PatternSelector : halp::lineedit<"Pattern", "">
     const auto& rdev = st.exec_devices();
     p.roots.clear();
 
-    if(!p.m_path)
+    if(p.m_paths.empty())
       return;
 
     for(auto& dev : rdev)
@@ -74,12 +87,25 @@ struct PatternSelector : halp::lineedit<"Pattern", "">
         ++it;
     }
 
-    ossia::traversal::apply(*p.m_path, p.roots);
-    std::sort(
-        p.roots.begin(), p.roots.end(),
+    const auto orig_roots = p.roots;
+    std::vector<ossia::net::node_base*> result;
+    std::vector<ossia::net::node_base*> total;
+    for(auto& path : p.m_paths) {
+      result.assign(orig_roots.begin(), orig_roots.end());
+
+      ossia::traversal::apply(path, result);
+      total.insert(total.end(), result.begin(), result.end());
+    }
+
+    ossia::remove_duplicates(total); // First remove pointer duplicates
+    ossia::sort( // Then alphanum sort
+        total,
         [](ossia::net::node_base* lhs, ossia::net::node_base* rhs) {
       return doj::alphanum_compare{}(lhs->osc_address(), rhs->osc_address());
     });
+
+    std::swap(p.roots, total);
+
     devices_dirty = false;
   }
 
@@ -124,7 +150,7 @@ struct PatternUnfolder : PatternObject
 
   void operator()()
   {
-    if(!m_path)
+    if(m_paths.empty())
       return;
 
     auto process = [this](const std::vector<ossia::value>& vec) {

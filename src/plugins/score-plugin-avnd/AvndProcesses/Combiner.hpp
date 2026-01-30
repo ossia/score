@@ -235,7 +235,7 @@ struct PatternCombiner : PatternObject
 
   void operator()()
   {
-    if(!m_path)
+    if(m_paths.empty())
       return;
 
     current_values.clear();

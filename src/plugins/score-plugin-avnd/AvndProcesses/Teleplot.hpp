@@ -185,7 +185,7 @@ struct Teleplot : PatternObject
       socket->connect();
     }
 
-    if(!m_path)
+    if(m_paths.empty())
       return;
 
     // FIXME do this in an update callback instead
