@@ -14,9 +14,103 @@
 
 namespace avnd_tools
 {
+struct fmt_csv_writer
+{
+  fmt::memory_buffer& wr;
+
+  void operator()(ossia::impulse) const
+  {
+    fmt::format_to(fmt::appender(wr), "impulse");
+  }
+
+  void operator()(int32_t v) const
+  {
+    fmt::format_to(fmt::appender(wr), "{}", v);
+  }
+
+  void operator()(float v) const
+  {
+    fmt::format_to(fmt::appender(wr), "{}", v);
+  }
+
+  void operator()(bool v) const
+  {
+    fmt::format_to(fmt::appender(wr), "{}", v ? "true" : "false");
+  }
+
+  void operator()(const std::string& v) const
+  {
+    if(v.find_first_of(",\"\n\r") != std::string::npos)
+    {
+      fmt::format_to(fmt::appender(wr), "\"");
+      for(char c : v)
+      {
+        if(c == '"')
+          fmt::format_to(fmt::appender(wr), "\"\""); // CSV escapes quotes by doubling
+        else
+          fmt::format_to(fmt::appender(wr), "{}", c);
+      }
+      fmt::format_to(fmt::appender(wr), "\"");
+    }
+    else
+    {
+      fmt::format_to(fmt::appender(wr), "{}", v);
+    }
+  }
+
+  void operator()() const
+  {
+    fmt::format_to(fmt::appender(wr), "\"\"");
+  }
+
+  template <std::size_t N>
+  void operator()(std::array<float, N> v) const
+  {
+    fmt::format_to(fmt::appender(wr), "\"[{}",  v[0]);
+    for(std::size_t i = 1; i < N; i++)
+      fmt::format_to(fmt::appender(wr), ", {}", v[i]);
+    fmt::format_to(fmt::appender(wr), "]\"");
+  }
+
+  void operator()(const std::vector<ossia::value>& v) const
+  {
+    // Vector as quoted JSON-like string for CSV
+    fmt::format_to(fmt::appender(wr), "\"[");
+    const auto n = v.size();
+    if(n > 0)
+    {
+      v[0].apply(*this);
+      for(std::size_t i = 1; i < n; i++)
+      {
+        fmt::format_to(fmt::appender(wr), ", ");
+        v[i].apply(*this);
+      }
+    }
+    fmt::format_to(fmt::appender(wr), "]\"");
+  }
+
+  void operator()(const ossia::value_map_type& v) const
+  {
+    // Map as quoted JSON-like string for CSV
+    fmt::format_to(fmt::appender(wr), "\"{{");
+    const auto n = v.size();
+    if(n > 0)
+    {
+      auto it = v.begin();
+      fmt::format_to(fmt::appender(wr), "\\\"{}\\\" : ", it->first);
+      it->second.apply(*this);
+      for(++it; it != v.end(); ++it)
+      {
+        fmt::format_to(fmt::appender(wr), ", \\\"{}\\\" : ", it->first);
+        it->second.apply(*this);
+      }
+    }
+    fmt::format_to(fmt::appender(wr), "}}\"");
+  }
+};
 /** Records the input into a CSV.
  *  To record an entire device: can be a pattern expression such as foo://
- *  
+ *
  *  Writing to the disk is done in a worker thread as is tradition.
  */
 struct DeviceRecorder : PatternObject
@@ -138,20 +232,8 @@ struct DeviceRecorder : PatternObject
           f.write(&separator, 1);
           buf.clear();
 
-          ossia::apply(ossia::detail::fmt_writer{buf}, p->value());
-
-          std::string_view sv(buf.data(), buf.data() + buf.size());
-          if(sv.find_first_of(separator_bufs) != std::string_view::npos)
-          {
-            // FIXME quote escaping
-            f.write("\"", 1);
-            f.write(buf.data(), buf.size());
-            f.write("\"", 1);
-          }
-          else
-          {
-            f.write(buf.data(), buf.size());
-          }
+          ossia::apply(fmt_csv_writer{buf}, p->value());
+          f.write(buf.data(), buf.size());
         }
       }
       f.write("\n");
