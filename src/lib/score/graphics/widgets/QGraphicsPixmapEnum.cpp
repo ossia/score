@@ -81,8 +81,9 @@ void QGraphicsPixmapEnum::updateRect()
 
   for(auto& value : this->on_images)
   {
-    maxW = std::max((double)value.width(), maxW);
-    maxH = std::max((double)value.height(), maxH);
+    auto sz = value.deviceIndependentSize();
+    maxW = std::max((double)sz.width(), maxW);
+    maxH = std::max((double)sz.height(), maxH);
   }
   maxW += 4.;
   maxH += 4.;
