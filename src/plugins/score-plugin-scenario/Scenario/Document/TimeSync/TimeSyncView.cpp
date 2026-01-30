@@ -84,6 +84,7 @@ void TimeSyncView::paint(
 #if !defined(NDEBUG)
   if(m_presenter.model().events().empty())
   {
+    [[unlikely]];
     QPen ugh(Qt::red, 15);
     QBrush ughb(Qt::red);
     painter->setPen(ugh);
@@ -94,6 +95,7 @@ void TimeSyncView::paint(
     return;
   }
 #endif
+  [[likely]];
 
   if(height < 1)
     return;

@@ -121,26 +121,23 @@ QRectF ProcessGraphicsView::visibleRect() const noexcept
 
 void ProcessGraphicsView::drawForeground(QPainter* painter, const QRectF& rect)
 {
-  if(timebarVisible)
+  if(timebarVisible && currentView && currentTimebar)
   {
-    if(currentView)
-    {
-      auto pctg = currentTimebar->playPercentage();
+    auto pctg = currentTimebar->playPercentage();
 
-      auto x = pctg * currentView->defaultWidth();
-      double view_x = currentView->mapToScene(x, 0.).x();
+    auto x = pctg * currentView->defaultWidth();
+    double view_x = currentView->mapToScene(x, 0.).x();
 
-      if(x < rect.x() || x > rect.x() + rect.width())
-        return;
+    if(x < rect.x() || x > rect.x() + rect.width())
+      return;
 
-      auto top = mapToScene(QPoint{0, 0}).y();
-      auto bottom = mapToScene(QPoint{0, height()}).y();
+    auto top = mapToScene(QPoint{0, 0}).y();
+    auto bottom = mapToScene(QPoint{0, height()}).y();
 
-      static const QPen pen(QBrush(Qt::gray), 0);
+    static const QPen pen(QBrush(Qt::gray), 1.0);
 
-      painter->setPen(pen);
-      painter->drawLine(QPointF{view_x, top}, QPointF{view_x, bottom});
-    }
+    painter->setPen(pen);
+    painter->drawLine(QPointF{view_x - 0.5, top}, QPointF{view_x - 0.5, bottom});
   }
 }
 
