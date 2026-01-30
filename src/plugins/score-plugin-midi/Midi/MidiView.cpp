@@ -186,7 +186,7 @@ void View::paint_impl(QPainter* p) const
       const auto left = std::max(0., this->mapFromScene(view_left).x());
       double x = left;
       const double text_w = 30. * dpi;
-      const double next_w = m_bgCache.width() - text_w;
+      const double next_w = m_bgCache.deviceIndependentSize().width() - text_w;
       const double proc_w = width();
       const double h = std::round(m_bgCache.height() / 2.);
 

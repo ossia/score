@@ -63,7 +63,7 @@ void IntervalPixmaps::drawDashes(
 {
   from = std::max(from, visibleRect.left());
   to = std::min(to, visibleRect.right());
-  const qreal w = pixmap.width();
+  const qreal w = pixmap.deviceIndependentSize().width();
   const qreal h = -1.;
   for(; from < to - w; from += w)
   {
