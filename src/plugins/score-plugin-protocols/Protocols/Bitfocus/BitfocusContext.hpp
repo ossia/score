@@ -7,8 +7,14 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QMap>
 #include <QProcess>
+#include <QRegularExpression>
 #include <QSocketNotifier>
+#include <QUuid>
+
+#include <array>
+#include <functional>
 
 #include <verdigris>
 #if !defined(_WIN32)
@@ -83,6 +89,18 @@ struct module_data
     QString type;
     std::vector<QVariantMap> feedbacks;
     std::vector<QVariantMap> steps;
+  };
+
+  struct feedback_instance
+  {
+    QString id;
+    QString controlId;
+    QString definitionId;
+    QVariantMap options;
+    int imageWidth{72};
+    int imageHeight{72};
+    int upgradeIndex{-1};
+    bool disabled{false};
   };
 
   std::map<QString, action_definition> actions;
@@ -161,7 +179,7 @@ public:
   void on_updateFeedbackValues(QJsonObject obj);
   void on_recordAction(QJsonObject obj);
   void on_setCustomVariable(QJsonObject obj);
-  void on_sharedUdpSocketJoin(QJsonObject obj);
+  void on_sharedUdpSocketJoin(QJsonValue id, QJsonObject obj);
   void on_sharedUdpSocketLeave(QJsonObject obj);
   void on_sharedUdpSocketSend(QJsonObject obj);
   void on_send_osc(QJsonObject obj);
@@ -177,7 +195,7 @@ public:
   void send_success(QJsonValue id);
   void updateConfigAndLabel(QString label, module_configuration conf);
   int requestConfigFields();
-  void updateFeedbacks();
+  void updateFeedbacks(const std::map<QString, module_data::feedback_instance>& feedbacks);
   void feedbackLearnValues();
   void feedbackDelete();
   void variablesChanged();
@@ -186,7 +204,11 @@ public:
   void actionLearnValues();
   void actionRun(std::string_view act, QVariantMap options);
   void destroy();
-  void executeHttpRequest();
+  void executeHttpRequest(
+      const QString& method, const QString& path, const QString& body,
+      const QMap<QString, QString>& headers, const QMap<QString, QString>& query,
+      std::function<void(int status, QMap<QString, QString> respHeaders, QString respBody)>
+          callback);
   void startStopRecordingActions();
   void sharedUdpSocketMessage();
   void sharedUdpSocketError();
@@ -194,12 +216,34 @@ public:
 
   void configurationParsed() W_SIGNAL(configurationParsed);
   void variableChanged(QString var, QVariant val) W_SIGNAL(variableChanged, var, val);
+  void feedbackValueChanged(QString id, QString controlId, QVariant value)
+      W_SIGNAL(feedbackValueChanged, id, controlId, value);
 
 private:
+  struct shared_udp_handle
+  {
+    QString handleId;
+    QString family;
+    int portNumber{};
+    boost::asio::ip::udp::socket socket;
+    boost::asio::ip::udp::endpoint sender_endpoint;
+    std::array<char, 65536> recv_buffer{};
+
+    explicit shared_udp_handle(boost::asio::io_context& ctx)
+        : socket(ctx)
+    {
+    }
+  };
+
+  void start_udp_receive(shared_udp_handle* h);
+
   bitfocus::module_data m_model;
 
   boost::asio::io_context m_send_service;
   boost::asio::ip::udp::socket m_socket{m_send_service};
+
+  std::map<QString, std::unique_ptr<shared_udp_handle>> m_shared_udp_handles;
+  std::map<int, std::function<void(int, QMap<QString, QString>, QString)>> m_httpCallbacks;
 
   std::vector<std::function<void()>> m_afterRegistrationQueue;
   int m_cbid{1};
@@ -208,6 +252,7 @@ private:
   int m_req_cfg_id{-1};
 
   bool m_expects_label_updates{true};
+  bool m_hasHttpHandler{false};
   bool m_registered{false};
 };
 

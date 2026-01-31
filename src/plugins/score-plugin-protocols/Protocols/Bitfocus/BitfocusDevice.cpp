@@ -50,6 +50,23 @@ public:
       });
     },
         Qt::DirectConnection);
+
+    QObject::connect(
+        m_rc.get(), &bitfocus::module_handler::feedbackValueChanged, this,
+        [self = QPointer{this}, ctx = m_context](
+            const QString& id, const QString& controlId, const QVariant& v) {
+      boost::asio::post(ctx->context, [self, id, val = ossia::qt::qt_to_ossia{}(v)] {
+        if(self)
+        {
+          auto it = self->m_feedbacks_recv.find(id);
+          if(it != self->m_feedbacks_recv.end())
+          {
+            it->second->set_value(std::move(val));
+          }
+        }
+      });
+    },
+        Qt::DirectConnection);
   }
 
   bool pull(ossia::net::parameter_base&) override { return true; }
@@ -207,10 +224,29 @@ public:
     //   auto param = node->create_parameter(ossia::val_type::IMPULSE);
     // }
 
+    std::map<QString, bitfocus::module_data::feedback_instance> fb_instances;
     for(auto& v : m.feedbacks)
     {
       auto node = nodes.feedbacks->create_child(v.first.toStdString());
       setup_node(v.second, node);
+      if(auto param = node->get_parameter())
+        m_feedbacks_recv[v.first] = param;
+
+      // Create a feedback instance to subscribe
+      bitfocus::module_data::feedback_instance inst;
+      inst.id = v.first;
+      inst.controlId = "ossia";
+      inst.definitionId = v.first;
+      fb_instances[v.first] = std::move(inst);
+    }
+
+    // Subscribe to all feedbacks
+    if(!fb_instances.empty())
+    {
+      QMetaObject::invokeMethod(
+          m_rc.get(), [rc = m_rc, fb = std::move(fb_instances)]() mutable {
+        rc->updateFeedbacks(fb);
+      });
     }
 
     for(auto& v : m.variables)
@@ -250,6 +286,7 @@ public:
   // ossia::flat_map<ossia::net::parameter_base*, QString> m_presets;
   ossia::flat_map<QString, ossia::net::parameter_base*> m_variables_recv;
   ossia::flat_map<ossia::net::parameter_base*, QString> m_variables_send;
+  ossia::flat_map<QString, ossia::net::parameter_base*> m_feedbacks_recv;
 };
 }
 namespace Protocols
@@ -304,7 +341,6 @@ bool BitfocusDevice::reconnect()
       if(auto handler = h.lock())
       {
         handler->updateConfigAndLabel(name, conf);
-        handler->updateFeedbacks();
       }
     });
 

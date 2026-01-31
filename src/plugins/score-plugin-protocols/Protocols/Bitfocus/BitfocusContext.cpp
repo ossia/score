@@ -189,11 +189,17 @@ void module_handler::processMessage(std::string_view v)
     else if(name == "setCustomVariable")
       on_setCustomVariable(payload_json.object());
     else if(name == "sharedUdpSocketJoin")
-      on_sharedUdpSocketJoin(payload_json.object());
+      on_sharedUdpSocketJoin(id, payload_json.object());
     else if(name == "sharedUdpSocketLeave")
+    {
       on_sharedUdpSocketLeave(payload_json.object());
+      send_success(id);
+    }
     else if(name == "sharedUdpSocketSend")
+    {
       on_sharedUdpSocketSend(payload_json.object());
+      send_success(id);
+    }
     else
       qDebug() << "Unhandled: " << name;
   }
@@ -201,19 +207,11 @@ void module_handler::processMessage(std::string_view v)
   {
     if(id == m_init_msg_id)
     {
+      // Capture init response values
+      m_hasHttpHandler = payload_json["hasHttpHandler"].toBool();
+
       // Query config field
       m_req_cfg_id = this->requestConfigFields();
-      // Update:
-      //{
-      //    "hasHttpHandler": false,
-      //    "hasRecordActionsHandler": false,
-      //    "newUpgradeIndex": -1,
-      //    "updatedConfig": {
-      //        "localport": 35550,
-      //        "remotehost": "127.0.0.1",
-      //        "remoteport": 35551
-      //    }
-      //}
     }
     else if(id == m_req_cfg_id)
     {
@@ -222,6 +220,23 @@ void module_handler::processMessage(std::string_view v)
         fun();
       m_afterRegistrationQueue.clear();
       m_registered = true;
+    }
+    else
+    {
+      // Check for HTTP response callbacks
+      int idInt = id.toInt(-1);
+      if(auto it = m_httpCallbacks.find(idInt); it != m_httpCallbacks.end())
+      {
+        auto response = payload_json["response"].toObject();
+        int status = response["status"].toInt(200);
+        QString respBody = response["body"].toString();
+        QMap<QString, QString> respHeaders;
+        auto hObj = response["headers"].toObject();
+        for(const auto& k : hObj.keys())
+          respHeaders[k] = hObj[k].toString();
+        it->second(status, respHeaders, respBody);
+        m_httpCallbacks.erase(it);
+      }
     }
   }
 }
@@ -492,17 +507,147 @@ void module_handler::on_set_status(QJsonObject obj) { }
 void module_handler::on_saveConfig(QJsonObject obj) { }
 void module_handler::on_parseVariablesInString(QJsonValue id, QJsonObject obj)
 {
-  QJsonObject p;
-  p["text"] = obj["text"].toString(); // FIXME
-  p["variableIds"] = QJsonArray{};
-  writeReply(id, p, true);
+  QString text = obj["text"].toString();
+  QStringList referencedVarIds;
+
+  // Parse $(label:variable) patterns
+  static QRegularExpression varRegex(R"(\$\(([^:)]+):([^)]+)\))");
+  QString parsed = text;
+
+  auto matchIt = varRegex.globalMatch(text);
+  while(matchIt.hasNext())
+  {
+    auto match = matchIt.next();
+    QString label = match.captured(1);
+    QString varName = match.captured(2);
+    QString fullId = label + ":" + varName;
+    referencedVarIds.append(fullId);
+
+    // Look up variable value if we have it
+    if(auto vit = m_model.variables.find(varName); vit != m_model.variables.end())
+    {
+      parsed.replace(match.captured(0), vit->second.value.toString());
+    }
+  }
+
+  QJsonArray varIds;
+  for(const auto& v : referencedVarIds)
+    varIds.append(v);
+
+  writeReply(id, QJsonObject{{"text", parsed}, {"variableIds", varIds}}, true);
 }
-void module_handler::on_updateFeedbackValues(QJsonObject obj) { }
+void module_handler::on_updateFeedbackValues(QJsonObject obj)
+{
+  auto values = obj["values"].toArray();
+  for(const auto& val : values)
+  {
+    auto v = val.toObject();
+    QString id = v["id"].toString();
+    QString controlId = v["controlId"].toString();
+    QVariant value = v["value"].toVariant();
+    feedbackValueChanged(id, controlId, value);
+  }
+}
 void module_handler::on_recordAction(QJsonObject obj) { }
 void module_handler::on_setCustomVariable(QJsonObject obj) { }
-void module_handler::on_sharedUdpSocketJoin(QJsonObject obj) { }
-void module_handler::on_sharedUdpSocketLeave(QJsonObject obj) { }
-void module_handler::on_sharedUdpSocketSend(QJsonObject obj) { }
+void module_handler::on_sharedUdpSocketJoin(QJsonValue id, QJsonObject obj)
+{
+  QString family = obj["family"].toString();
+  int portNumber = obj["portNumber"].toInt();
+  QString handleId = QUuid::createUuid().toString(QUuid::WithoutBraces);
+
+  auto handle = std::make_unique<shared_udp_handle>(m_send_service);
+  handle->handleId = handleId;
+  handle->family = family;
+  handle->portNumber = portNumber;
+
+  boost::system::error_code ec;
+  auto protocol = (family == "udp6") ? boost::asio::ip::udp::v6()
+                                     : boost::asio::ip::udp::v4();
+
+  handle->socket.open(protocol, ec);
+  if(ec)
+  {
+    qDebug() << "sharedUdpSocketJoin: failed to open socket:" << ec.message();
+    writeReply(id, QJsonObject{}, false);
+    return;
+  }
+
+  handle->socket.set_option(boost::asio::socket_base::reuse_address(true), ec);
+  handle->socket.bind(boost::asio::ip::udp::endpoint(protocol, portNumber), ec);
+  if(ec)
+  {
+    qDebug() << "sharedUdpSocketJoin: failed to bind socket:" << ec.message();
+    writeReply(id, QJsonObject{}, false);
+    return;
+  }
+
+  start_udp_receive(handle.get());
+  m_shared_udp_handles[handleId] = std::move(handle);
+
+  // Reply with the handleId - the response payload is just the string
+  writeReply(id, handleId, true);
+}
+
+void module_handler::start_udp_receive(shared_udp_handle* h)
+{
+  h->socket.async_receive_from(
+      boost::asio::buffer(h->recv_buffer), h->sender_endpoint,
+      [this, h](boost::system::error_code ec, std::size_t bytes) {
+    if(!ec && bytes > 0)
+    {
+      QByteArray data(h->recv_buffer.data(), bytes);
+      QJsonObject msg;
+      msg["handleId"] = h->handleId;
+      msg["portNumber"] = h->portNumber;
+      msg["message"] = QString::fromLatin1(data.toBase64());
+      msg["source"] = QJsonObject{
+          {"address",
+           QString::fromStdString(h->sender_endpoint.address().to_string())},
+          {"port", static_cast<int>(h->sender_endpoint.port())},
+          {"family", h->family}};
+
+      writeRequest("sharedUdpSocketMessage", jsonToString(msg));
+      start_udp_receive(h);
+    }
+    else if(ec)
+    {
+      QJsonObject err;
+      err["handleId"] = h->handleId;
+      err["portNumber"] = h->portNumber;
+      err["errorMessage"] = QString::fromStdString(ec.message());
+      writeRequest("sharedUdpSocketError", jsonToString(err));
+    }
+      });
+}
+
+void module_handler::on_sharedUdpSocketLeave(QJsonObject obj)
+{
+  QString handleId = obj["handleId"].toString();
+  m_shared_udp_handles.erase(handleId);
+}
+
+void module_handler::on_sharedUdpSocketSend(QJsonObject obj)
+{
+  QString handleId = obj["handleId"].toString();
+  auto it = m_shared_udp_handles.find(handleId);
+  if(it == m_shared_udp_handles.end())
+    return;
+
+  QByteArray data = QByteArray::fromBase64(obj["message"].toString().toLatin1());
+  QString address = obj["address"].toString();
+  int port = obj["port"].toInt();
+
+  boost::system::error_code ec;
+  boost::asio::ip::udp::endpoint dest{
+      boost::asio::ip::make_address(address.toStdString(), ec),
+      static_cast<uint16_t>(port)};
+  if(ec)
+    return;
+
+  it->second->socket.send_to(
+      boost::asio::buffer(data.data(), data.size()), dest, 0, ec);
+}
 void module_handler::updateConfigAndLabel(QString label, module_configuration conf)
 {
   this->m_model.config = std::move(conf);
@@ -531,28 +676,32 @@ int module_handler::requestConfigFields()
   return writeRequest("getConfigFields", jsonToString(QJsonObject{}));
 }
 
-void module_handler::updateFeedbacks()
+void module_handler::updateFeedbacks(
+    const std::map<QString, module_data::feedback_instance>& feedbacks)
 {
-  QJsonObject feedbacks;
-  for(const auto& [k, v] : this->m_model.feedbacks)
+  QJsonObject fb_map;
+  for(const auto& [id, fb] : feedbacks)
   {
-    const module_data::feedback_definition& fb = v;
-    QJsonObject fb_options;
-    // QJsonObject::fromVariantMap(fb.second.options);
-
-    feedbacks[k] = QJsonObject{
-        {"id", k},
-        {"controlId", 0},
-        {"feedbackId", fb.type},
-        {"options", fb_options},
-        {"isInverted", fb.isInverted},
-        {"upgradeIndex", QJsonValue(QJsonValue::Null)},
-        {"disabled", fb.disabled},
-        {"image", QJsonArray{1, 1}},
-    };
+    if(fb.disabled)
+    {
+      fb_map[id] = QJsonValue::Null;
+    }
+    else
+    {
+      fb_map[id] = QJsonObject{
+          {"id", id},
+          {"controlId", fb.controlId},
+          {"feedbackId", fb.definitionId},
+          {"options", QJsonObject::fromVariantMap(fb.options)},
+          {"image", QJsonArray{fb.imageWidth, fb.imageHeight}},
+          {"upgradeIndex", fb.upgradeIndex >= 0 ? QJsonValue(fb.upgradeIndex)
+                                                : QJsonValue::Null},
+          {"disabled", false},
+      };
+    }
   }
 
-  writeRequest("updateFeedbacks", jsonToString(QJsonObject{{"feedbacks", feedbacks}}));
+  writeRequest("updateFeedbacks", jsonToString(QJsonObject{{"feedbacks", fb_map}}));
 }
 
 void module_handler::feedbackLearnValues()
@@ -604,12 +753,48 @@ void module_handler::actionRun(std::string_view act, QVariantMap options)
 
 void module_handler::destroy()
 {
-  qDebug() << "TODO" << Q_FUNC_INFO;
+  // Close all shared UDP sockets
+  m_shared_udp_handles.clear();
+
+  // Clear pending callbacks
+  m_httpCallbacks.clear();
+
+  // Send destroy command to module
+  writeRequest("destroy", "{}");
 }
 
-void module_handler::executeHttpRequest()
+void module_handler::executeHttpRequest(
+    const QString& method, const QString& path, const QString& body,
+    const QMap<QString, QString>& headers, const QMap<QString, QString>& query,
+    std::function<void(int status, QMap<QString, QString> respHeaders, QString respBody)>
+        callback)
 {
-  qDebug() << "TODO" << Q_FUNC_INFO;
+  if(!m_hasHttpHandler)
+  {
+    callback(404, {}, R"({"status":404,"message":"Not Found"})");
+    return;
+  }
+
+  QJsonObject request;
+  request["method"] = method;
+  request["path"] = path;
+  request["body"] = body;
+  request["baseUrl"] = "";
+  request["hostname"] = "localhost";
+  request["originalUrl"] = path;
+
+  QJsonObject headersObj;
+  for(auto it = headers.begin(); it != headers.end(); ++it)
+    headersObj[it.key()] = it.value();
+  request["headers"] = headersObj;
+
+  QJsonObject queryObj;
+  for(auto it = query.begin(); it != query.end(); ++it)
+    queryObj[it.key()] = it.value();
+  request["query"] = queryObj;
+
+  int msgId = writeRequest("handleHttpRequest", jsonToString(QJsonObject{{"request", request}}));
+  m_httpCallbacks[msgId] = std::move(callback);
 }
 
 void module_handler::startStopRecordingActions()
