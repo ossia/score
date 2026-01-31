@@ -314,10 +314,8 @@ Process::ScriptChangeResult FaustEffectModel::reload()
   err.resize(4097);
   llvm_dsp_factory* fac{};
 
-#if BOOST_ARCH_X86
   // https://github.com/grame-cncm/faust/issues/1117
-  _mm_setcsr(_MM_MASK_MASK | _MM_FLUSH_ZERO_OFF);
-#endif
+  ossia::reset_default_fpu_state();
 
   fac = createDSPFactoryFromString(
       "score", str, argv.size(), argv.data(), triple, err, -1);

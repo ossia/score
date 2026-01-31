@@ -65,6 +65,7 @@ public:
       , m_midi_ins{handle->m_midi_ins}
       , m_midi_outs{handle->m_midi_outs}
   {
+    set_not_fp_safe();
     midi_ins.reserve(m_midi_ins.size());
     midi_outs.reserve(m_midi_outs.size());
     parameter_ins.reserve(m_param_ins.size());
