@@ -652,19 +652,21 @@ avnd_make_score(
   NAMESPACE avnd_tools
 )
 
-if(NOT SCORE_GCC_MEMORY_EXPLOSION)
+if(1)
 avnd_make_score(
   SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/Table.hpp"
   TARGET table
   MAIN_CLASS Table
   NAMESPACE avnd_tools
 )
+endif()
 avnd_make_score(
   SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/Table1D.hpp"
   TARGET avnd_table_1d
   MAIN_CLASS Table1D
   NAMESPACE avnd_tools
 )
+if(0)
 avnd_make_score(
   SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/Table2D.hpp"
   TARGET avnd_table_2d
@@ -672,7 +674,6 @@ avnd_make_score(
   NAMESPACE avnd_tools
 )
 endif()
-
 avnd_make_score(
   SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/Spammer.hpp"
   TARGET pattern_spammer
