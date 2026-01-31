@@ -7,6 +7,7 @@
 #include <score/graphics/ArrowDialog.hpp>
 #include <score/graphics/GraphicsProxyObject.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
+#include <score/tools/Events.hpp>
 #include <score/widgets/MimeData.hpp>
 
 #include <ossia/detail/flat_set.hpp>
@@ -23,7 +24,6 @@
 class QGraphicsView;
 class QObject;
 class QWidget;
-class ProcessGraphicsView;
 class QFocusEvent;
 class QGraphicsScene;
 class QKeyEvent;
@@ -88,6 +88,17 @@ public:
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, emptyContextMenuRequested, pos)
 
   void dropFinished() W_SIGNAL(dropFinished);
+
+  void mousePress(QMouseEvent* p) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, mousePress, p);
+  void mouseMove(QMouseEvent* p) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, mouseMove, p);
+  void mouseRelease(QMouseEvent* p)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, mouseRelease, p);
+  void hoverEnter(QHoverEvent* p) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, hoverEnter, p);
+  void hoverMove(QHoverEvent* p) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, hoverMove, p);
+  void hoverLeave(QHoverEvent* p) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, hoverLeave, p);
+  void keyPress(QKeyEvent* e) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, keyPress, e);
+  void keyRelease(QKeyEvent* e) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, keyRelease, e);
+  void tabletMove(QTabletEvent* e) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, tabletMove, e);
 
 private:
   void resizeEvent(QResizeEvent* ev) override;

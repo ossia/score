@@ -2,6 +2,8 @@
 
 #include <Gfx/Graph/RenderState.hpp>
 
+#include <score/tools/Events.hpp>
+
 #include <QElapsedTimer>
 #include <QTabletEvent>
 #include <QWindow>
@@ -77,5 +79,3 @@ private:
 
 Q_DECLARE_METATYPE(score::gfx::Window*)
 W_REGISTER_ARGTYPE(score::gfx::Window*)
-W_REGISTER_ARGTYPE(QEvent*)
-W_REGISTER_ARGTYPE(QTabletEvent*)

@@ -55,9 +55,15 @@ struct BackgroundNode : OutputNode
 
   void createOutput(score::gfx::OutputConfiguration conf) override
   {
-    m_renderState
-        = score::gfx::createRenderState(conf.graphicsApi, QSize{1024, 1024}, nullptr);
+    m_onResize = conf.onResize;
 
+    QSize newSz = m_renderSize;
+    if(newSz.width() <= 0 || newSz.height() <= 0)
+      newSz = m_size;
+    if(newSz.width() <= 0 || newSz.height() <= 0)
+      newSz = QSize{1024, 1024};
+
+    m_renderState = score::gfx::createRenderState(conf.graphicsApi, newSz, nullptr);
     m_renderState->outputSize = m_renderState->renderSize;
 
     auto rhi = m_renderState->rhi;
@@ -76,6 +82,53 @@ struct BackgroundNode : OutputNode
 
   void destroyOutput() override { }
   void updateGraphicsAPI(GraphicsApi) override { }
+
+  void setSize(QSize newSz)
+  {
+    if(m_size != newSz)
+    {
+      m_size = newSz;
+      resize();
+    }
+  }
+  void setRenderSize(QSize newSz)
+  {
+    if(m_renderSize != newSz)
+    {
+      m_renderSize = newSz;
+      resize();
+    }
+  }
+
+  void resize()
+  {
+    QSize newSz = m_renderSize;
+    if(newSz.width() <= 0 || newSz.height() <= 0)
+      newSz = m_size;
+    if(newSz.width() <= 0 || newSz.height() <= 0)
+      newSz = QSize{1024, 1024};
+
+    if(m_renderState)
+    {
+      m_renderState->renderSize = newSz;
+      m_renderState->outputSize = newSz;
+
+      auto rhi = m_renderState->rhi;
+
+      m_renderTarget->destroy();
+      m_texture->destroy();
+      m_texture->setPixelSize(newSz);
+      m_texture->create();
+      m_renderTarget = rhi->newTextureRenderTarget({m_texture});
+      m_renderState->renderPassDescriptor
+          = m_renderTarget->newCompatibleRenderPassDescriptor();
+      m_renderTarget->setRenderPassDescriptor(m_renderState->renderPassDescriptor);
+      m_renderTarget->create();
+    }
+
+    if(m_onResize)
+      m_onResize();
+  }
 
   std::shared_ptr<RenderState> renderState() const override { return m_renderState; }
 
@@ -99,5 +152,9 @@ private:
   QRhiTexture* m_texture{};
   QRhiTextureRenderTarget* m_renderTarget{};
   std::shared_ptr<score::gfx::RenderState> m_renderState{};
+
+  std::function<void()> m_onResize;
+  QSize m_size{1024, 1024};
+  QSize m_renderSize{};
 };
 }

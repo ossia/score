@@ -70,6 +70,56 @@ class window_device : public ossia::net::device_base
   gfx_node_base m_root;
   QObject m_qtContext;
 
+  ossia::net::parameter_base* scaled_win{};
+  ossia::net::parameter_base* abs_win{};
+  ossia::net::parameter_base* abs_tablet_win{};
+  ossia::net::parameter_base* size_param{};
+  ossia::net::parameter_base* rendersize_param{};
+
+  void update_viewport()
+  {
+    auto v = rendersize_param->value();
+    if(auto val = v.target<ossia::vec2f>())
+    {
+      auto dom = abs_win->get_domain();
+      if((*val)[0] >= 1.f && (*val)[1] >= 1.f)
+      {
+        ossia::set_max(dom, *val);
+        abs_win->set_domain(std::move(dom));
+        abs_tablet_win->set_domain(std::move(dom));
+      }
+      else
+      {
+        // Use the normal size
+        v = size_param->value();
+        if(auto val = v.target<ossia::vec2f>())
+        {
+          auto dom = abs_win->get_domain();
+          if((*val)[0] >= 1.f && (*val)[1] >= 1.f)
+          {
+            ossia::set_max(dom, *val);
+            abs_win->set_domain(std::move(dom));
+            abs_tablet_win->set_domain(std::move(dom));
+          }
+        }
+      }
+    }
+    else
+    {
+      v = size_param->value();
+      if(auto val = v.target<ossia::vec2f>())
+      {
+        auto dom = abs_win->get_domain();
+        if((*val)[0] >= 1.f && (*val)[1] >= 1.f)
+        {
+          ossia::set_max(dom, *val);
+          abs_win->set_domain(std::move(dom));
+          abs_tablet_win->set_domain(std::move(dom));
+        }
+      }
+    }
+  }
+
 public:
   ~window_device()
   {
@@ -141,6 +191,8 @@ public:
       auto pos_node
           = std::make_unique<ossia::net::generic_node>("position", *this, m_root);
       auto pos_param = pos_node->create_parameter(ossia::val_type::VEC2F);
+      pos_param->push_value(
+          ossia::vec2f{100.f, 100.f}); // FIXME Try to detect center of screen ?
       pos_param->add_callback([this, lock](const ossia::value& v) {
         if(lock->locked)
           return;
@@ -166,8 +218,6 @@ public:
     }
 
     // Mouse input
-    ossia::net::parameter_base* scaled_win{};
-    ossia::net::parameter_base* abs_win{};
     {
       auto node = std::make_unique<ossia::net::generic_node>("cursor", *this, m_root);
       {
@@ -202,7 +252,7 @@ public:
         node->add_child(std::move(visible));
       }
 
-      m_screen->onMouseMove = [this, scaled_win, abs_win](QPointF screen, QPointF win) {
+      m_screen->onMouseMove = [this](QPointF screen, QPointF win) {
         if(const auto& w = m_screen->window())
         {
           auto sz = w->size();
@@ -217,7 +267,6 @@ public:
 
     // Tablet input
     ossia::net::parameter_base* scaled_tablet_win{};
-    ossia::net::parameter_base* abs_tablet_win{};
     {
       auto node = std::make_unique<ossia::net::generic_node>("tablet", *this, m_root);
       ossia::net::parameter_base* tablet_pressure{};
@@ -311,21 +360,16 @@ public:
 
     {
       auto size_node = std::make_unique<ossia::net::generic_node>("size", *this, m_root);
-      auto size_param = size_node->create_parameter(ossia::val_type::VEC2F);
+      size_param = size_node->create_parameter(ossia::val_type::VEC2F);
       size_param->push_value(ossia::vec2f{1280.f, 720.f});
-      size_param->add_callback([this, abs_win, abs_tablet_win](const ossia::value& v) {
+      size_param->add_callback([this](const ossia::value& v) {
         if(auto val = v.target<ossia::vec2f>())
         {
           ossia::qt::run_async(&m_qtContext, [screen = this->m_screen, v = *val] {
             screen->setSize({(int)v[0], (int)v[1]});
           });
 
-          auto dom = abs_win->get_domain();
-          ossia::set_max(dom, *val);
-          {
-            abs_win->set_domain(std::move(dom));
-            abs_tablet_win->set_domain(std::move(dom));
-          }
+          update_viewport();
         }
       });
 
@@ -338,18 +382,16 @@ public:
       ossia::net::set_description(
           *size_node, "Set to [0, 0] to use the viewport's size");
 
-      auto size_param = size_node->create_parameter(ossia::val_type::VEC2F);
-      size_param->push_value(ossia::vec2f{0.f, 0.f});
-      size_param->add_callback([this, abs_win](const ossia::value& v) {
+      rendersize_param = size_node->create_parameter(ossia::val_type::VEC2F);
+      rendersize_param->push_value(ossia::vec2f{0.f, 0.f});
+      rendersize_param->add_callback([this](const ossia::value& v) {
         if(auto val = v.target<ossia::vec2f>())
         {
           ossia::qt::run_async(&m_qtContext, [screen = this->m_screen, v = *val] {
             screen->setRenderSize({(int)v[0], (int)v[1]});
           });
 
-          auto dom = abs_win->get_domain();
-          ossia::set_max(dom, *val);
-          abs_win->set_domain(std::move(dom));
+          update_viewport();
         }
       });
 
@@ -461,6 +503,9 @@ public:
     auto& m_readback = *shared_readback;
     const auto w = m_readback.pixelSize.width();
     const auto h = m_readback.pixelSize.height();
+    painter->setRenderHint(
+        QPainter::RenderHint::SmoothPixmapTransform,
+        w > rect.width() && h > rect.height());
     int sz = w * h * 4;
     int bytes = m_readback.data.size();
     if(bytes > 0 && bytes >= sz)
@@ -487,6 +532,56 @@ class background_device : public ossia::net::device_base
   QPointer<Scenario::ScenarioDocumentView> m_view;
   DeviceBackgroundRenderer* m_renderer{};
 
+  ossia::net::parameter_base* scaled_win{};
+  ossia::net::parameter_base* abs_win{};
+  ossia::net::parameter_base* abs_tablet_win{};
+  ossia::net::parameter_base* size_param{};
+  ossia::net::parameter_base* rendersize_param{};
+
+  void update_viewport()
+  {
+    auto v = rendersize_param->value();
+    if(auto val = v.target<ossia::vec2f>())
+    {
+      auto dom = abs_win->get_domain();
+      if((*val)[0] >= 1.f && (*val)[1] >= 1.f)
+      {
+        ossia::set_max(dom, *val);
+        abs_win->set_domain(std::move(dom));
+        abs_tablet_win->set_domain(std::move(dom));
+      }
+      else
+      {
+        // Use the normal size
+        v = size_param->value();
+        if(auto val = v.target<ossia::vec2f>())
+        {
+          auto dom = abs_win->get_domain();
+          if((*val)[0] >= 1.f && (*val)[1] >= 1.f)
+          {
+            ossia::set_max(dom, *val);
+            abs_win->set_domain(std::move(dom));
+            abs_tablet_win->set_domain(std::move(dom));
+          }
+        }
+      }
+    }
+    else
+    {
+      v = size_param->value();
+      if(auto val = v.target<ossia::vec2f>())
+      {
+        auto dom = abs_win->get_domain();
+        if((*val)[0] >= 1.f && (*val)[1] >= 1.f)
+        {
+          ossia::set_max(dom, *val);
+          abs_win->set_domain(std::move(dom));
+          abs_tablet_win->set_domain(std::move(dom));
+        }
+      }
+    }
+  }
+
 public:
   background_device(
       Scenario::ScenarioDocumentView& view, std::unique_ptr<gfx_protocol_base> proto,
@@ -499,6 +594,267 @@ public:
     this->m_capabilities.change_tree = true;
     m_renderer = new DeviceBackgroundRenderer{*m_screen};
     view.addBackgroundRenderer(m_renderer);
+
+    auto& v = view.view();
+
+    {
+      auto size_node = std::make_unique<ossia::net::generic_node>("size", *this, m_root);
+      size_param = size_node->create_parameter(ossia::val_type::VEC2F);
+      const auto sz = view.view().size();
+      m_screen->setSize(sz);
+      size_param->push_value(ossia::vec2f{(float)sz.width(), (float)sz.height()});
+      size_param->add_callback([this](const ossia::value& v) {
+        if(auto val = v.target<ossia::vec2f>())
+        {
+          ossia::qt::run_async(&m_qtContext, [screen = this->m_screen, v = *val] {
+            screen->setSize({(int)v[0], (int)v[1]});
+          });
+
+          update_viewport();
+        }
+      });
+
+      QObject::connect(
+          &v, &Scenario::ProcessGraphicsView::sizeChanged, m_screen,
+          [this, v = QPointer{&view}, ptr = QPointer{m_screen}](QSize e) {
+        if(ptr && v)
+        {
+          size_param->push_value(ossia::vec2f{(float)e.width(), (float)e.height()});
+          /*
+          auto win = e->position();
+          auto sz = v->view().size();
+          scaled_win->push_value(
+              ossia::vec2f{float(win.x() / sz.width()), float(win.y() / sz.height())});
+          abs_win->push_value(ossia::vec2f{float(win.x()), float(win.y())});
+*/
+        }
+      }, Qt::DirectConnection);
+
+      m_root.add_child(std::move(size_node));
+    }
+    {
+      auto size_node
+          = std::make_unique<ossia::net::generic_node>("rendersize", *this, m_root);
+
+      rendersize_param = size_node->create_parameter(ossia::val_type::VEC2F);
+      rendersize_param->push_value(ossia::vec2f{0.f, 0.f});
+      rendersize_param->add_callback([this](const ossia::value& v) {
+        if(auto val = v.target<ossia::vec2f>())
+        {
+          ossia::qt::run_async(&m_qtContext, [screen = m_screen, v = *val] {
+            screen->setRenderSize({(int)v[0], (int)v[1]});
+          });
+
+          update_viewport();
+        }
+      });
+
+      m_root.add_child(std::move(size_node));
+    }
+
+    // Mouse input
+    {
+      auto node = std::make_unique<ossia::net::generic_node>("cursor", *this, m_root);
+      {
+        auto scale_node
+            = std::make_unique<ossia::net::generic_node>("scaled", *this, *node);
+        scaled_win = scale_node->create_parameter(ossia::val_type::VEC2F);
+        scaled_win->set_domain(ossia::make_domain(0.f, 1.f));
+        scaled_win->push_value(ossia::vec2f{0.f, 0.f});
+        node->add_child(std::move(scale_node));
+      }
+      {
+        auto abs_node
+            = std::make_unique<ossia::net::generic_node>("absolute", *this, *node);
+        abs_win = abs_node->create_parameter(ossia::val_type::VEC2F);
+        abs_win->set_domain(
+            ossia::make_domain(ossia::vec2f{0.f, 0.f}, ossia::vec2f{1280, 270.f}));
+        abs_win->push_value(ossia::vec2f{0.f, 0.f});
+        node->add_child(std::move(abs_node));
+      }
+
+      QObject::connect(
+          &v, &Scenario::ProcessGraphicsView::hoverMove, m_screen,
+          [this, v = QPointer{&view}, ptr = QPointer{m_screen}](QHoverEvent* e) {
+        if(ptr && v)
+        {
+          auto win = e->position();
+          auto sz = v->view().size();
+          scaled_win->push_value(
+              ossia::vec2f{float(win.x() / sz.width()), float(win.y() / sz.height())});
+          abs_win->push_value(ossia::vec2f{float(win.x()), float(win.y())});
+        }
+      }, Qt::DirectConnection);
+
+      m_root.add_child(std::move(node));
+    }
+
+    // Tablet input
+    ossia::net::parameter_base* scaled_tablet_win{};
+    {
+      auto node = std::make_unique<ossia::net::generic_node>("tablet", *this, m_root);
+      ossia::net::parameter_base* tablet_pressure{};
+      ossia::net::parameter_base* tablet_z{};
+      ossia::net::parameter_base* tablet_tan{};
+      ossia::net::parameter_base* tablet_rot{};
+      ossia::net::parameter_base* tablet_tilt_x{};
+      ossia::net::parameter_base* tablet_tilt_y{};
+      {
+        auto scale_node
+            = std::make_unique<ossia::net::generic_node>("scaled", *this, *node);
+        scaled_tablet_win = scale_node->create_parameter(ossia::val_type::VEC2F);
+        scaled_tablet_win->set_domain(ossia::make_domain(0.f, 1.f));
+        scaled_tablet_win->push_value(ossia::vec2f{0.f, 0.f});
+        node->add_child(std::move(scale_node));
+      }
+      {
+        auto abs_node
+            = std::make_unique<ossia::net::generic_node>("absolute", *this, *node);
+        abs_tablet_win = abs_node->create_parameter(ossia::val_type::VEC2F);
+        abs_tablet_win->set_domain(
+            ossia::make_domain(ossia::vec2f{0.f, 0.f}, ossia::vec2f{1280, 270.f}));
+        abs_tablet_win->push_value(ossia::vec2f{0.f, 0.f});
+        node->add_child(std::move(abs_node));
+      }
+      {
+        auto scale_node = std::make_unique<ossia::net::generic_node>("z", *this, *node);
+        tablet_z = scale_node->create_parameter(ossia::val_type::INT);
+        node->add_child(std::move(scale_node));
+      }
+      {
+        auto scale_node
+            = std::make_unique<ossia::net::generic_node>("pressure", *this, *node);
+        tablet_pressure = scale_node->create_parameter(ossia::val_type::FLOAT);
+        //tablet_pressure->set_domain(ossia::make_domain(0.f, 1.f));
+        //tablet_pressure->push_value(0.f);
+        node->add_child(std::move(scale_node));
+      }
+      {
+        auto scale_node
+            = std::make_unique<ossia::net::generic_node>("tangential", *this, *node);
+        tablet_tan = scale_node->create_parameter(ossia::val_type::FLOAT);
+        tablet_tan->set_domain(ossia::make_domain(-1.f, 1.f));
+        //tablet_tan->push_value(0.f);
+        node->add_child(std::move(scale_node));
+      }
+      {
+        auto scale_node
+            = std::make_unique<ossia::net::generic_node>("rotation", *this, *node);
+        tablet_rot = scale_node->create_parameter(ossia::val_type::FLOAT);
+        tablet_rot->set_unit(ossia::degree_u{});
+        tablet_rot->set_domain(ossia::make_domain(-180.f, 180.f));
+        node->add_child(std::move(scale_node));
+      }
+      {
+        auto scale_node
+            = std::make_unique<ossia::net::generic_node>("tilt_x", *this, *node);
+        tablet_tilt_x = scale_node->create_parameter(ossia::val_type::FLOAT);
+        tablet_tilt_x->set_domain(ossia::make_domain(-60.f, 60.f));
+        tablet_tilt_x->set_unit(ossia::degree_u{});
+        node->add_child(std::move(scale_node));
+      }
+      {
+        auto scale_node
+            = std::make_unique<ossia::net::generic_node>("tilt_y", *this, *node);
+        tablet_tilt_y = scale_node->create_parameter(ossia::val_type::FLOAT);
+        tablet_tilt_y->set_domain(ossia::make_domain(-60.f, 60.f));
+        tablet_tilt_y->set_unit(ossia::degree_u{});
+        node->add_child(std::move(scale_node));
+      }
+
+      QObject::connect(
+          &v, &Scenario::ProcessGraphicsView::tabletMove, m_screen,
+          [=, this, v = QPointer{&view}, ptr = QPointer{m_screen}](QTabletEvent* ev) {
+        if(ptr && v)
+        {
+          auto win = ev->position();
+          auto sz = v->view().size();
+          scaled_tablet_win->push_value(
+              ossia::vec2f{float(win.x() / sz.width()), float(win.y() / sz.height())});
+          abs_tablet_win->push_value(ossia::vec2f{float(win.x()), float(win.y())});
+          tablet_pressure->push_value(ev->pressure());
+          tablet_tan->push_value(ev->tangentialPressure());
+          tablet_rot->push_value(ev->rotation());
+          tablet_z->push_value(ev->z());
+          tablet_tilt_x->push_value(ev->xTilt());
+          tablet_tilt_y->push_value(ev->yTilt());
+        }
+      }, Qt::DirectConnection);
+      m_root.add_child(std::move(node));
+    }
+
+    // Keyboard input
+    {
+      auto node = std::make_unique<ossia::net::generic_node>("key", *this, m_root);
+      {
+        auto press_node
+            = std::make_unique<ossia::net::generic_node>("press", *this, *node);
+        ossia::net::parameter_base* press_param{};
+        ossia::net::parameter_base* text_param{};
+        {
+          auto code_node
+              = std::make_unique<ossia::net::generic_node>("code", *this, *press_node);
+          press_param = code_node->create_parameter(ossia::val_type::INT);
+          press_param->push_value(ossia::vec2f{0.f, 0.f});
+          press_node->add_child(std::move(code_node));
+        }
+        {
+          auto text_node
+              = std::make_unique<ossia::net::generic_node>("text", *this, *press_node);
+          text_param = text_node->create_parameter(ossia::val_type::STRING);
+          press_node->add_child(std::move(text_node));
+        }
+
+        QObject::connect(
+            &v, &Scenario::ProcessGraphicsView::keyPress, m_screen,
+            [=, v = QPointer{&view}, ptr = QPointer{m_screen}](QKeyEvent* ev) {
+          if(ptr && v)
+          {
+            if(!ev->isAutoRepeat())
+            {
+              press_param->push_value(ev->key());
+              text_param->push_value(ev->text().toStdString());
+            }
+          }
+        }, Qt::DirectConnection);
+        node->add_child(std::move(press_node));
+      }
+      {
+        auto release_node
+            = std::make_unique<ossia::net::generic_node>("release", *this, *node);
+        ossia::net::parameter_base* press_param{};
+        ossia::net::parameter_base* text_param{};
+        {
+          auto code_node
+              = std::make_unique<ossia::net::generic_node>("code", *this, *release_node);
+          press_param = code_node->create_parameter(ossia::val_type::INT);
+          press_param->push_value(ossia::vec2f{0.f, 0.f});
+          release_node->add_child(std::move(code_node));
+        }
+        {
+          auto text_node
+              = std::make_unique<ossia::net::generic_node>("text", *this, *release_node);
+          text_param = text_node->create_parameter(ossia::val_type::STRING);
+          release_node->add_child(std::move(text_node));
+        }
+
+        QObject::connect(
+            &v, &Scenario::ProcessGraphicsView::keyRelease, m_screen,
+            [=, v = QPointer{&view}, ptr = QPointer{m_screen}](QKeyEvent* ev) {
+          if(ptr && v)
+          {
+            if(!ev->isAutoRepeat())
+            {
+              press_param->push_value(ev->key());
+              text_param->push_value(ev->text().toStdString());
+            }
+          }
+        }, Qt::DirectConnection);
+        node->add_child(std::move(release_node));
+      }
+
+      m_root.add_child(std::move(node));
+    }
   }
 
   ~background_device()

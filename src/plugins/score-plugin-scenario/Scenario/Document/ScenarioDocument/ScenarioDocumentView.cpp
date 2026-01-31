@@ -258,6 +258,7 @@ void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
 
 void ProcessGraphicsView::keyPressEvent(QKeyEvent* event)
 {
+  keyPress(event);
   for(auto& plug : m_app.guiApplicationPlugins())
     plug->on_keyPressEvent(*event);
   event->ignore();
@@ -270,6 +271,7 @@ void ProcessGraphicsView::keyPressEvent(QKeyEvent* event)
 
 void ProcessGraphicsView::keyReleaseEvent(QKeyEvent* event)
 {
+  keyRelease(event);
   for(auto& plug : m_app.guiApplicationPlugins())
     plug->on_keyReleaseEvent(*event);
   event->ignore();
@@ -354,6 +356,7 @@ void ProcessGraphicsView::checkAndRemoveCurrentDialog(QPoint pos)
 
 void ProcessGraphicsView::mousePressEvent(QMouseEvent* event)
 {
+  mousePress(event);
   // workaround for some items not getting release event sometimes.
   if(m_press_release_chain.contains(event->button()))
   {
@@ -385,6 +388,7 @@ void ProcessGraphicsView::mousePressEvent(QMouseEvent* event)
 
 void ProcessGraphicsView::mouseMoveEvent(QMouseEvent* event)
 {
+  mouseMove(event);
   QGraphicsView::mouseMoveEvent(event);
 
   if(m_opengl)
@@ -393,6 +397,7 @@ void ProcessGraphicsView::mouseMoveEvent(QMouseEvent* event)
 
 void ProcessGraphicsView::mouseReleaseEvent(QMouseEvent* event)
 {
+  mouseRelease(event);
   QGraphicsView::mouseReleaseEvent(event);
   if(m_opengl)
     viewport()->update();
@@ -462,15 +467,17 @@ bool ProcessGraphicsView::event(QEvent* event)
     case QEvent::HoverEnter:
       hoverEnterEvent(static_cast<QHoverEvent*>(event));
       return QGraphicsView::event(event);
-      return true;
     case QEvent::HoverLeave:
       hoverLeaveEvent(static_cast<QHoverEvent*>(event));
       return QGraphicsView::event(event);
-      return true;
     case QEvent::HoverMove:
       hoverMoveEvent(static_cast<QHoverEvent*>(event));
       return QGraphicsView::event(event);
-      return true;
+    // case QEvent::TabletPress:
+    // case QEvent::TabletRelease:
+    case QEvent::TabletMove:
+      tabletMove(static_cast<QTabletEvent*>(event));
+      return QGraphicsView::event(event);
 
 #if !defined(QT_NO_GESTURES)
     case QEvent::NativeGesture: {
@@ -499,10 +506,14 @@ bool ProcessGraphicsView::event(QEvent* event)
   }
 }
 
-void ProcessGraphicsView::hoverEnterEvent(QHoverEvent* event) { }
+void ProcessGraphicsView::hoverEnterEvent(QHoverEvent* event)
+{
+  hoverEnter(event);
+}
 
 void ProcessGraphicsView::hoverMoveEvent(QHoverEvent* event)
 {
+  hoverMove(event);
   const auto scenePos = this->mapToScene(event->position().toPoint());
   auto items = this->scene()->items(scenePos);
   auto set_tip = [&](const QString& t) {
@@ -521,7 +532,10 @@ void ProcessGraphicsView::hoverMoveEvent(QHoverEvent* event)
 
   set_tip(QString{});
 }
-void ProcessGraphicsView::hoverLeaveEvent(QHoverEvent* event) { }
+void ProcessGraphicsView::hoverLeaveEvent(QHoverEvent* event)
+{
+  hoverLeave(event);
+}
 
 ScenarioDocumentView::ScenarioDocumentView(
     const score::DocumentContext& ctx, QObject* parent)
