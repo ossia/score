@@ -418,50 +418,5 @@ mv "$OUTPUT_DMG" "$OUTPUT_DIR/"
 
 echo "✓ Created: $OUTPUT_DIR/$OUTPUT_DMG"
 
-# Create installation instructions
-SIGNED_NOTE=""
-if [[ -z "${MAC_CODESIGN_IDENTITY:-}" ]]; then
-    SIGNED_NOTE="Note: This is an unsigned application. On first launch, you may need to:
-- Right-click (or Control-click) the app and select \"Open\"
-- Click \"Open\" in the security dialog"
-elif [[ -z "${MAC_NOTARIZE_TEAM_ID:-}" ]]; then
-    SIGNED_NOTE="Note: This application is code-signed but not notarized. On first launch:
-- Right-click (or Control-click) the app and select \"Open\"
-- Click \"Open\" in the security dialog"
-else
-    SIGNED_NOTE="This application is code-signed and notarized by Apple."
-fi
-
-cat > "$OUTPUT_DIR/${APP_NAME}-${PLATFORM}-README.txt" << EOF
-${APP_NAME} - macOS Installation
-================================
-
-1. Double-click the DMG file to mount it
-2. Drag "${APP_NAME}.app" to your Applications folder
-3. Launch from Applications or Launchpad
-
-${SIGNED_NOTE}
-
-This package contains:
-- Main UI: ${MAIN_QML}
-EOF
-
-if [[ -n "$SCORE_BASENAME" ]]; then
-    cat >> "$OUTPUT_DIR/${APP_NAME}-${PLATFORM}-README.txt" << EOF
-- Score file: ${SCORE_BASENAME}
-
-The app will automatically launch with the custom UI and autoplay the score file.
-EOF
-else
-    cat >> "$OUTPUT_DIR/${APP_NAME}-${PLATFORM}-README.txt" << EOF
-
-The app will automatically launch with the custom UI.
-EOF
-fi
-
-cat >> "$OUTPUT_DIR/${APP_NAME}-${PLATFORM}-README.txt" << EOF
-
-EOF
-
 echo "✓ macOS package created successfully"
 echo "⚠ Note: Package is unsigned. Users will need to allow it in Security settings."

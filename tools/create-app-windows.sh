@@ -192,16 +192,15 @@ echo "Creating ZIP package..."
 OUTPUT_ZIP="${APP_NAME}-windows.zip"
 
 if command -v zip &> /dev/null; then
-    (cd "$(dirname "$INSTALL_DIR")" && zip -r -q "$WORK_DIR/$OUTPUT_ZIP" "$(basename "$INSTALL_DIR")")
+    (cd "$INSTALL_DIR" && zip -r -q "$WORK_DIR/$OUTPUT_ZIP" .)
 elif command -v 7z &> /dev/null; then
-    7z a -tzip "$OUTPUT_ZIP" "$INSTALL_DIR" > /dev/null
+    (cd "$INSTALL_DIR" && 7z a -tzip "$WORK_DIR/$OUTPUT_ZIP" * > /dev/null)
 elif command -v 7za &> /dev/null; then
-    7za a -tzip "$OUTPUT_ZIP" "$INSTALL_DIR" > /dev/null
+    (cd "$INSTALL_DIR" && 7za a -tzip "$WORK_DIR/$OUTPUT_ZIP" * > /dev/null)
 else
     echo "Error: zip or 7z is required to create the package"
     exit 1
 fi
-
 if [[ ! -f "$OUTPUT_ZIP" ]]; then
     echo "Error: Failed to create ZIP package"
     exit 1
@@ -211,49 +210,4 @@ fi
 mv "$OUTPUT_ZIP" "$OUTPUT_DIR/"
 
 echo "✓ Created: $OUTPUT_DIR/$OUTPUT_ZIP"
-
-# Create installation instructions
-cat > "$OUTPUT_DIR/${APP_NAME}-windows-README.txt" << EOF
-${APP_NAME} - Windows Installation
-==================================
-
-Installation:
-1. Extract the ZIP file to a location of your choice
-2. Run "${APP_NAME}.exe" to launch the application
-
-Alternative launchers:
-- "${APP_NAME}.exe" - Native Windows executable (recommended)
-- "launch-${APP_NAME}.ps1" - PowerShell script
-- "${APP_NAME}.bat" - Batch script (if .exe compilation failed)
-
-This package contains:
-- Main UI: ${MAIN_QML}
-EOF
-
-if [[ -n "$SCORE_BASENAME" ]]; then
-    cat >> "$OUTPUT_DIR/${APP_NAME}-windows-README.txt" << EOF
-- Score file: ${SCORE_BASENAME}
-
-The application will automatically launch with the custom UI and autoplay the score file.
-EOF
-else
-    cat >> "$OUTPUT_DIR/${APP_NAME}-windows-README.txt" << EOF
-
-The application will automatically launch with the custom UI.
-EOF
-fi
-
-cat >> "$OUTPUT_DIR/${APP_NAME}-windows-README.txt" << EOF
-
-Requirements:
-- Windows 10 or later (64-bit)
-- No additional installation required - all dependencies are included
-
-Troubleshooting:
-- If you get a "Windows protected your PC" message, click "More info"
-  then "Run anyway"
-- Make sure to extract ALL files from the ZIP before running
-
-EOF
-
 echo "✓ Windows package created successfully"
