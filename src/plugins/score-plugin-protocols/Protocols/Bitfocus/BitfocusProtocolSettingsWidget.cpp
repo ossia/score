@@ -208,6 +208,19 @@ void BitfocusProtocolSettingsWidget::updateFields()
           widg->setText(QString::number(ossia::convert<int>(v)));
         }};
       }
+      else
+      {
+        auto widg = new QSpinBox;
+        widg->setRange(0, 65535);
+        widg->setValue(field.default_value.toInt());
+        m_subForm->addWidget(widg);
+        m_widgets[field.id]
+            = {.label = lab, .widg = widg, .getValue = [widg]() -> ossia::value {
+          return widg->value();
+        }, .setValue = [widg](ossia::value v) {
+          widg->setValue(ossia::convert<float>(v));
+        }};
+      }
     }
     else if(field.type == "checkbox")
     {

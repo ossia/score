@@ -3,6 +3,7 @@
 #include <Library/LibrarySettings.hpp>
 
 #include <score/application/ApplicationContext.hpp>
+#include <score/tools/std/String.hpp>
 
 #include <ossia/detail/flat_map.hpp>
 
