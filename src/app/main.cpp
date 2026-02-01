@@ -641,7 +641,9 @@ static void setup_app_flags()
     // https://github.com/ossia/score/issues/1725 for the flatpak reenablement
     QCoreApplication::setAttribute(Qt::AA_DontUseNativeDialogs, true);
   }
+#if !defined(__x86_64__)
   QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts, false);
+#endif
 #endif
 
   if(qEnvironmentVariableIsSet("SCORE_FORCE_NATIVE_FILE_DIALOGS"))
