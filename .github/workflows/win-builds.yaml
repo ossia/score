@@ -16,6 +16,9 @@ jobs:
     name: Windows
     runs-on: windows-latest
     steps:
+      - name: Long path support
+        run: git config --global core.longpaths true
+
       - name: Checkout code
         uses: actions/checkout@v4
         with:
@@ -77,6 +80,9 @@ jobs:
     name: Windows (store)
     runs-on: windows-latest
     steps:
+      - name: Long path support
+        run: git config --global core.longpaths true
+
       - name: Checkout code
         uses: actions/checkout@v4
         with:
@@ -161,6 +167,9 @@ jobs:
           - { sys: ucrt64,  env: ucrt-x86_64 }
           - { sys: clang64, env: clang-x86_64 }
     steps:
+      - name: Long path support
+        run: git config --global core.longpaths true
+
       - name: Check out repository code
         uses: actions/checkout@v4
         with:
@@ -206,6 +215,9 @@ jobs:
     name: MSVC
     runs-on: windows-latest
     steps:
+      - name: Long path support
+        run: git config --global core.longpaths true
+
       - name: Checkout code
         uses: actions/checkout@v4
         with:
