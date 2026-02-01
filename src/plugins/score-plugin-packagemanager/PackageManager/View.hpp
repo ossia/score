@@ -35,6 +35,19 @@ public:
 
   QWidget* getWidget() override;
 
+  // From model
+  void on_message(QNetworkReply* rep);
+  void set_info();
+  void reset_progress();
+  void progress_from_bytes(qint64 bytesReceived, qint64 bytesTotal);
+
+  // To model
+  void refresh() W_SIGNAL(refresh);
+  void requestInformation(QUrl url) W_SIGNAL(requestInformation, url);
+  void installAddon(const Package& addon) W_SIGNAL(installAddon, addon);
+  void installLibrary(const Package& addon) W_SIGNAL(installLibrary, addon);
+  void installSDK() W_SIGNAL(installSDK);
+
 private:
   void firstTimeLibraryDownload();
 
@@ -45,10 +58,6 @@ private:
   int getCurrentRow(const QTableView* t);
   Package selectedPackage(const PackagesModel* model, int row);
 
-  void installAddon(const Package& addon);
-  void installLibrary(const Package& addon);
-  void installSDK();
-
   void openLink();
   void install();
   void install_package(const Package& addon);
@@ -56,16 +65,6 @@ private:
   void checkAll();
   void update();
   void updateAll();
-  void on_message(QNetworkReply* rep);
-
-  void on_packageInstallSuccess(
-      const Package& addon, const QDir& destination, const std::vector<QString>& res);
-  void on_packageInstallFailure(const Package& addon);
-
-  void refresh();
-  void set_info();
-  void reset_progress();
-  void progress_from_bytes(qint64 bytesReceived, qint64 bytesTotal);
 
   QWidget* m_widget{new QWidget};
 
@@ -79,7 +78,6 @@ private:
   QPushButton* m_updateAll{new QPushButton{tr("Update all")}};
 
   QProgressBar* m_progress{new QProgressBar};
-  QNetworkAccessManager mgr;
   int m_addonsToRetrieve = 0;
 
   QStorageInfo storage;

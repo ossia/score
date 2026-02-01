@@ -13,6 +13,7 @@
 #include <QDebug>
 #include <QHeaderView>
 #include <QListView>
+#include <QMessageBox>
 #include <QStandardItemModel>
 #include <QStyle>
 
@@ -64,6 +65,45 @@ PluginSettingsPresenter::PluginSettingsPresenter(
   /*
       con(ps_model,	&PluginSettingsModel::blacklistCommand,
       this,		&PluginSettingsPresenter::setBlacklistCommand);*/
+
+  connect(
+      &ps_model.mgr, &QNetworkAccessManager::finished, &ps_view,
+      &PluginSettingsView::on_message);
+
+  connect(
+      &ps_model, &PluginSettingsModel::reset_progress, &ps_view,
+      &PluginSettingsView::reset_progress);
+  connect(
+      &ps_model, &PluginSettingsModel::set_info, &ps_view,
+      &PluginSettingsView::set_info);
+  connect(
+      &ps_model, &PluginSettingsModel::progress_from_bytes, &ps_view,
+      &PluginSettingsView::progress_from_bytes);
+  connect(
+      &ps_model, &PluginSettingsModel::information, &ps_view,
+      [w = ps_view.getWidget()](const QString& t, const QString& d) {
+    QMessageBox::information(w, t, d);
+  });
+  connect(
+      &ps_model, &PluginSettingsModel::warning, &ps_view,
+      [w = ps_view.getWidget()](const QString& t, const QString& d) {
+    QMessageBox::warning(w, t, d);
+  });
+
+  connect(
+      &ps_view, &PluginSettingsView::refresh, &ps_model, &PluginSettingsModel::refresh);
+  connect(
+      &ps_view, &PluginSettingsView::requestInformation, &ps_model,
+      &PluginSettingsModel::requestInformation);
+  connect(
+      &ps_view, &PluginSettingsView::installAddon, &ps_model,
+      &PluginSettingsModel::installAddon);
+  connect(
+      &ps_view, &PluginSettingsView::installLibrary, &ps_model,
+      &PluginSettingsModel::installLibrary);
+  connect(
+      &ps_view, &PluginSettingsView::installSDK, &ps_model,
+      &PluginSettingsModel::installSDK);
 }
 
 QIcon PluginSettingsPresenter::settingsIcon()

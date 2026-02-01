@@ -73,6 +73,7 @@ else()
 
   score-plugin-media
   score-plugin-gfx
+  score-plugin-packagemanager
 
   score-plugin-js
 
@@ -86,7 +87,6 @@ else()
   score-plugin-spline
 
 
-  score-plugin-packagemanager
 
   score-plugin-avnd
   score-plugin-jit

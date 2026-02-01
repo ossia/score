@@ -168,8 +168,6 @@ PluginSettingsView::PluginSettingsView()
 
   connect(m_updateAll, &QPushButton::pressed, this, &PluginSettingsView::updateAll);
 
-  connect(&mgr, &QNetworkAccessManager::finished, this, &PluginSettingsView::on_message);
-
   refresh();
 }
 
@@ -217,16 +215,6 @@ void PluginSettingsView::firstTimeLibraryDownload()
   }
 }
 
-void PluginSettingsView::refresh()
-{
-  if(qEnvironmentVariableIsSet("SCORE_SANITIZE_SKIP_CHECKS"))
-    return;
-  QNetworkRequest rqst{QUrl(
-      "https://raw.githubusercontent.com/ossia/score-packages/refs/heads/"
-      "master/addons.json")};
-  mgr.get(rqst);
-}
-
 void PluginSettingsView::handleAddonList(const QJsonObject& obj)
 {
   m_progress->setVisible(true);
@@ -235,10 +223,8 @@ void PluginSettingsView::handleAddonList(const QJsonObject& obj)
   int delay = 0;
   for(QJsonValue elt : arr)
   {
-    QTimer::singleShot(delay, this, [this, url = QUrl(elt.toString())] {
-      QNetworkRequest rqst{url};
-      mgr.get(rqst);
-    });
+    QTimer::singleShot(
+        delay, this, [this, url = QUrl(elt.toString())] { requestInformation(url); });
     delay += 16;
   }
 }
@@ -486,182 +472,6 @@ void PluginSettingsView::updateAll()
     m_progress->setVisible(true);
     install_package(*it);
   }
-}
-
-void PluginSettingsView::installAddon(const Package& addon)
-{
-  if(addon.files.empty())
-  {
-    reset_progress();
-    return;
-  }
-
-  const QString& installPath
-      = score::AppContext().settings<Library::Settings::Model>().getPackagesPath();
-  for(auto f : addon.files)
-    zdl::download_and_extract(
-        f, QDir{installPath}.absolutePath(),
-        [this, installPath, addon](const std::vector<QString>& res) {
-      reset_progress();
-      if(res.empty())
-        return;
-      // We want the extracted folder to have the name of the addon
-      {
-        QDir addons_dir{installPath};
-        QFileInfo a_file(res[0]);
-        auto d = a_file.dir();
-        auto old_d = d;
-        while(d.cdUp() && !d.isRoot())
-        {
-          if(d == addons_dir)
-          {
-            addons_dir.rename(old_d.dirName(), addon.raw_name);
-            break;
-          }
-          old_d = d;
-        }
-      }
-
-      QMessageBox::information(
-          m_widget, tr("Addon downloaded"),
-          tr("The addon %1 has been successfully installed in :\n"
-             "%2\n\n"
-             "It will be built and enabled shortly.\nCheck the message "
-             "console for errors if nothing happens.")
-              .arg(addon.name)
-              .arg(QFileInfo(installPath).absoluteFilePath()));
-    }, [this](qint64 received, qint64 total) { progress_from_bytes(received, total); },
-        [this, addon] {
-      reset_progress();
-      QMessageBox::warning(
-          m_widget, tr("Download failed"),
-          tr("The package %1 could not be downloaded.").arg(addon.name));
-    });
-}
-
-void PluginSettingsView::installSDK()
-{
-  auto platform = score::addonArchitecture();
-
-  const QString sdk_path{
-      score::AppContext().settings<Library::Settings::Model>().getSDKPath() + '/'
-      + SCORE_TAG_NO_V};
-  QDir{}.mkpath(sdk_path);
-
-  const QUrl sdk_url
-      = QString("https://github.com/ossia/score/releases/download/%1/sdk-%2.zip")
-            .arg(SCORE_TAG)
-            .arg(platform);
-
-  zdl::download_and_extract(
-      sdk_url, QFileInfo{sdk_path}.absoluteFilePath(),
-      [this](const std::vector<QString>& res) {
-    reset_progress();
-    if(res.empty())
-      return;
-
-    QMessageBox::information(
-        m_widget, tr("SDK downloaded"),
-        tr("The SDK has been successfully installed in the user library."));
-
-    set_info();
-      },
-      [this](qint64 received, qint64 total) { progress_from_bytes(received, total); },
-      [this] {
-    reset_progress();
-    QMessageBox::warning(
-        m_widget, tr("Download failed"), tr("The SDK could not be downloaded."));
-  });
-}
-
-void PluginSettingsView::installLibrary(const Package& addon)
-{
-  const QString destination{
-      score::AppContext().settings<Library::Settings::Model>().getPackagesPath() + "/"
-      + addon.raw_name};
-
-  if(QDir dest{destination}; dest.exists())
-    dest.removeRecursively();
-
-  QDir{}.mkpath(destination);
-
-  for(auto f : addon.files)
-    zdl::download_and_extract(
-        f, QFileInfo{destination}.absoluteFilePath(),
-        [this, addon, destination](const std::vector<QString>& res) {
-      on_packageInstallSuccess(addon, destination, res);
-    }, [this](qint64 received, qint64 total) { progress_from_bytes(received, total); },
-        [this, addon] { on_packageInstallFailure(addon); });
-}
-
-void PluginSettingsView::on_packageInstallSuccess(
-    const Package& addon, const QDir& destination, const std::vector<QString>& res)
-{
-  reset_progress();
-  if(res.empty())
-    return;
-
-  // Often zip files contain a single, empty directory.
-  // In that case, we move everything up a level to make the library cleaner.
-  QDir dir{destination};
-  auto files = dir.entryList(QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot);
-  if(files.size() == 1)
-  {
-    auto child = files[0];
-    QFileInfo info{dir.absoluteFilePath(child)};
-    if(info.isDir())
-    {
-      dir.rename(child, "___score_tmp___");
-      QDir subdir{dir.absoluteFilePath("___score_tmp___")};
-
-      for(auto& entry :
-          subdir.entryList(QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot))
-      {
-        dir.rename(
-            QString{"___score_tmp___%1%2"}.arg(QDir::separator()).arg(entry), entry);
-      }
-
-      subdir.removeRecursively();
-    }
-  }
-
-  {
-    QFile f{dir.absoluteFilePath("package.json")};
-    if(f.open(QIODevice::WriteOnly))
-    {
-      QJsonObject obj;
-      obj["name"] = addon.name;
-      obj["raw_name"] = addon.raw_name;
-      obj["version"] = addon.version;
-      obj["kind"] = addon.kind;
-      obj["url"] = addon.url;
-      obj["short"] = addon.shortDescription;
-      obj["long"] = addon.longDescription;
-      obj["size"] = addon.size;
-      // TODO images
-      obj["key"] = QString{score::uuids::toByteArray(addon.key.impl())};
-
-      f.write(QJsonDocument{obj}.toJson());
-    }
-  }
-
-  QMessageBox::information(
-      m_widget, tr("Package downloaded"),
-      tr("The package %1 has been successfully installed in the user library.")
-          .arg(addon.name));
-
-  auto& localPlugins = *static_cast<LocalPackagesModel*>(m_addonsOnSystem->model());
-
-  localPlugins.registerAddon(dir.absolutePath());
-  set_info();
-}
-
-void PluginSettingsView::on_packageInstallFailure(const Package& addon)
-{
-  reset_progress();
-  QMessageBox::warning(
-      m_widget, tr("Download failed"),
-      tr("The package %1 could not be downloaded.").arg(addon.name));
 }
 
 void PluginSettingsView::set_info()
