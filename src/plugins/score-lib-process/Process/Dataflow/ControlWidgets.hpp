@@ -1205,7 +1205,7 @@ struct FolderChooser
           bt->setText(no_slash);
         }
         else
-          bt->setText("Choose a file...");
+          bt->setText("Choose a folder...");
       }
     };
 
