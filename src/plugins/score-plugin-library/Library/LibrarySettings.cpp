@@ -49,7 +49,10 @@ Model::Model(QSettings& set, const score::ApplicationContext& ctx)
     // Note : not done in the SETTINGS_PARAMETER_IMPL as it does not work well due to
     // being init before main()
     auto paths = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation);
-    QString default_root = paths[0] + "/ossia/score";
+    QString default_root = QString("%1/%2/%3")
+                               .arg(
+                                   paths[0], QCoreApplication::organizationName(),
+                                   QCoreApplication::applicationName());
 
     setRootPath(default_root);
   }
