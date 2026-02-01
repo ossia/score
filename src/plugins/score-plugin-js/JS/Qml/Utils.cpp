@@ -1,12 +1,13 @@
+
 #include <JS/Qml/Utils.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
+#include <score/tools/Cuda.hpp>
 #include <score/tools/File.hpp>
+#include <score/tools/MDMEnrollmentDetection.hpp>
 #include <score/tools/ThreadPool.hpp>
 
 #include <ossia/detail/algorithms.hpp>
-
-#include <rnd/random.hpp>
 
 #include <QCoreApplication>
 #include <QFile>
@@ -14,8 +15,11 @@
 #include <QProcess>
 #include <QTemporaryFile>
 
+#include <rnd/random.hpp>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(JS::JsUtils)
+W_OBJECT_IMPL(JS::JsSystem)
 namespace JS
 {
 
@@ -211,5 +215,19 @@ double JsUtils::toMilliseconds(TimeVal v)
 bool JsUtils::isInfinite(TimeVal v)
 {
   return v.infinite();
+}
+
+bool JsSystem::isDeviceMDMEnrolled()
+{
+  return score::detectSystemEnrolment();
+}
+int JsSystem::availableCudaDevice()
+{
+  const auto [major, minor] = score::availableCudaDevice();
+  return 10 * major + minor;
+}
+int JsSystem::availableCudaToolkitDylibs(int major, int minor)
+{
+  return score::availableCudaToolkitDylibs(major, minor);
 }
 }

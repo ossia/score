@@ -35,6 +35,8 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
 {
   m_consoleEngine.globalObject().setProperty("Score", m_consoleEngine.newQObject(new EditJsContext));
   m_consoleEngine.globalObject().setProperty("Util", m_consoleEngine.newQObject(new JsUtils));
+  m_consoleEngine.globalObject().setProperty(
+      "System", m_consoleEngine.newQObject(new JsSystem));
   m_consoleEngine.globalObject().setProperty("Device", m_consoleEngine.newQObject(new DeviceContext{m_consoleEngine}));
   connect(&m_consoleEngine, &QQmlEngine::exit, this, [&] {
     for(auto& doc : score::GUIAppContext().docManager.documents())

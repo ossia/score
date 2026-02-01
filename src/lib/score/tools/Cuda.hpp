@@ -3,8 +3,11 @@
 
 #include <score_lib_base_export.h>
 
+#include <utility>
 namespace score
 {
 SCORE_LIB_BASE_EXPORT
-bool checkCudaSupported() noexcept;
+std::pair<int, int> availableCudaDevice() noexcept;
+SCORE_LIB_BASE_EXPORT
+bool availableCudaToolkitDylibs(int major, int minor) noexcept;
 }

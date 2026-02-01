@@ -21,7 +21,7 @@ using cuDeviceComputeCapability_pt
 
 namespace score
 {
-bool checkCudaSupported() noexcept
+std::pair<int, int> availableCudaDevice() noexcept
 try
 {
 #if defined(_WIN32) || defined(__linux__)
@@ -39,29 +39,80 @@ try
       = cuda.symbol<cuDeviceComputeCapability_pt>("cuDeviceComputeCapability");
 
   if(!init || !deviceGetCount || !deviceComputeCapability)
-    return false;
+    return {};
 
   if(init(0) != 0)
-    return false;
+    return {};
 
   int count{0};
   if(deviceGetCount(&count) != 0)
-    return false;
+    return {};
 
   for(int i = 0; i < count; i++)
   {
     int major{}, minor{};
     if(deviceComputeCapability(&major, &minor, i) != 0)
-      return false;
+      return {};
+    else
+      return {major, minor};
   }
 
-  return true;
+  return {};
 #else
-  return false;
+  return {};
 #endif
 }
 catch(...)
 {
+  return {};
+}
+
+bool availableCudaToolkitDylibs(int major, int minor) noexcept
+{
+#if defined(_WIN32) || defined(__linux__)
+  std::vector<std::string> libraries;
+
+  switch(major)
+  {
+    case 12:
+      libraries = {
+#ifdef _WIN32
+          "cublasLt64_12.dll", "cublas64_12.dll", "cufft64_11.dll", "cudart64_12.dll",
+          "cudnn64_9.dll"
+#else
+          "libcublasLt.so.12", "libcublas.so.12", "libcurand.so.10", "libcufft.so.11",
+          "libcudart.so.12",   "libcudnn.so.9"
+#endif
+      };
+      break;
+    case 13:
+      libraries = {
+#ifdef _WIN32
+          "cublasLt64_13.dll", "cublas64_13.dll", "cufft64_12.dll", "cudart64_13.dll",
+          "cudnn64_9.dll"
+#else
+          "libcublasLt.so.13", "libcublas.so.13", "libcufft.so.12", "libcudart.so.13",
+          "libcudnn.so.9"
+#endif
+      };
+      break;
+  }
+
+  for(auto& lib : libraries)
+  {
+    try
+    {
+      qDebug() << "checking: " << lib;
+      ossia::dylib_loader cu{lib.c_str()};
+    }
+    catch(...)
+    {
+      qDebug() << "lib: " << lib << "unavailable";
+      return false;
+    }
+  }
+  return true;
+#endif
   return false;
 }
 }

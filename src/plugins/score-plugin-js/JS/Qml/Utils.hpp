@@ -35,4 +35,18 @@ public:
   bool isInfinite(TimeVal v);
   W_SLOT(isInfinite)
 };
+
+class JsSystem : public QObject
+{
+  W_OBJECT(JsSystem)
+public:
+  bool isDeviceMDMEnrolled();
+  W_SLOT(isDeviceMDMEnrolled)
+
+  int availableCudaDevice();
+  W_SLOT(availableCudaDevice)
+
+  int availableCudaToolkitDylibs(int major, int minor);
+  W_SLOT(availableCudaToolkitDylibs)
+};
 }
