@@ -163,6 +163,8 @@ QObject* EditJsContext::documentPlugin(QString key)
     return nullptr;
 
   auto uuid = key.toLatin1();
+  if(uuid.length() != 36)
+    return nullptr;
   auto uid = score::uuids::string_generator::compute(uuid.begin(), uuid.end());
   if(uid.is_nil())
     return nullptr;

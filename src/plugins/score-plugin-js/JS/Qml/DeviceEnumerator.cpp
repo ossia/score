@@ -27,9 +27,16 @@ GlobalDeviceEnumerator::GlobalDeviceEnumerator() { }
 
 void GlobalDeviceEnumerator::setDeviceType(const QString& uid)
 {
+  if(uid.length() != 36)
+  {
+    qDebug("Invalid UUID");
+    return;
+  }
+
   // Convert the textual UUID in a strongly typed UUID
   try
   {
+
     auto uuid = uid.toUtf8();
     auto score_uid = score::uuids::string_generator::compute(uuid.begin(), uuid.end());
     if(score_uid.is_nil())

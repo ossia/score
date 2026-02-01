@@ -233,6 +233,8 @@ void EditJsContext::createDevice(QString name, QString uuid, QJSValue obj)
   auto doc = ctx();
   if(!doc)
     return;
+  if(uuid.length() != 36)
+    return;
 
   auto& pl = score::AppContext().interfaces<Device::ProtocolFactoryList>();
   auto& plug = doc->plugin<Explorer::DeviceDocumentPlugin>();

@@ -4,10 +4,10 @@
 
 #include "Menus/TransportActions.hpp"
 
+#include <Process/ApplicationPlugin.hpp>
 #include <Process/Dataflow/PortItem.hpp>
 #include <Process/DocumentPlugin.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
-#include <Process/ApplicationPlugin.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/Process.hpp>
 #include <Process/Style/ScenarioStyle.hpp>

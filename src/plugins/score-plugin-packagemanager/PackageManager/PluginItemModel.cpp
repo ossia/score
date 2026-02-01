@@ -248,7 +248,15 @@ std::optional<Package> Package::fromJson(const QJsonObject& obj) noexcept
       {"large", [&](QJsonValue v) { add.largeImagePath = v.toString(); }},
       {"size", [&](QJsonValue v) { add.size = v.toString(); }},
       {"key", [&](QJsonValue v) {
-    add.key = UuidKey<score::Addon>::fromString(v.toString());
+    auto str = v.toString();
+    try
+    {
+      if(str.length() == 36)
+        add.key = UuidKey<score::Addon>::fromString(v.toString());
+    }
+    catch(...)
+    {
+    }
   }}};
 
   // Add metadata keys

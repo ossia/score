@@ -15,11 +15,13 @@
 #include <QProcess>
 #include <QTemporaryFile>
 
+#include <PackageManager/Model.hpp>
 #include <rnd/random.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(JS::JsUtils)
 W_OBJECT_IMPL(JS::JsSystem)
+W_OBJECT_IMPL(JS::JsLibrary)
 namespace JS
 {
 
@@ -221,13 +223,68 @@ bool JsSystem::isDeviceMDMEnrolled()
 {
   return score::detectSystemEnrolment();
 }
+
 int JsSystem::availableCudaDevice()
 {
   const auto [major, minor] = score::availableCudaDevice();
   return 10 * major + minor;
 }
+
 int JsSystem::availableCudaToolkitDylibs(int major, int minor)
 {
   return score::availableCudaToolkitDylibs(major, minor);
+}
+
+QVariantList JsLibrary::installedPackages()
+{
+  auto& m = score::GUIAppContext().settings<PM::PluginSettingsModel>();
+  QVariantList res;
+  for(auto& plug : m.localPlugins.m_vec)
+  {
+    QVariantMap obj;
+    obj["uuid"] = QString::fromUtf8(score::uuids::toByteArray(plug.key.impl()));
+    obj["name"] = plug.name;
+    obj["raw_name"] = plug.raw_name;
+    obj["version"] = plug.version;
+    res.push_back(obj);
+  }
+  return res;
+}
+
+void JsLibrary::refreshAvailablePackages()
+{
+  auto& m = score::GUIAppContext().settings<PM::PluginSettingsModel>();
+  m.refresh();
+}
+
+QVariantList JsLibrary::availablePackages()
+{
+  auto& m = score::GUIAppContext().settings<PM::PluginSettingsModel>();
+  QVariantList res;
+  for(auto& plug : m.remotePlugins.m_vec)
+  {
+    QVariantMap obj;
+    obj["uuid"] = QString::fromUtf8(score::uuids::toByteArray(plug.key.impl()));
+    obj["name"] = plug.name;
+    obj["raw_name"] = plug.raw_name;
+    obj["version"] = plug.version;
+    res.push_back(obj);
+  }
+  return res;
+}
+void JsLibrary::installPackage(const QString& uid)
+{
+  if(uid.length() < 36)
+    return;
+  auto res = UuidKey<PM::Package>::fromString(uid);
+  auto& m = score::GUIAppContext().settings<PM::PluginSettingsModel>();
+  for(const PM::Package& pkg : m.remotePlugins.m_vec)
+  {
+    if(pkg.key.impl() == res.impl())
+    {
+      m.installAddon(pkg);
+      return;
+    }
+  }
 }
 }

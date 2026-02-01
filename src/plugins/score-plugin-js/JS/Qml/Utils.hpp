@@ -49,4 +49,24 @@ public:
   int availableCudaToolkitDylibs(int major, int minor);
   W_SLOT(availableCudaToolkitDylibs)
 };
+
+class JsLibrary : public QObject
+{
+  W_OBJECT(JsLibrary)
+public:
+  // On this machine
+  QVariantList installedPackages();
+  W_SLOT(installedPackages)
+
+  // On the server
+  void refreshAvailablePackages();
+  W_SLOT(refreshAvailablePackages)
+
+  QVariantList availablePackages();
+  W_SLOT(availablePackages)
+
+  // From the server to this machine
+  void installPackage(const QString& uid);
+  W_SLOT(installPackage)
+};
 }

@@ -82,9 +82,12 @@ void JSONReader::read(const libremidi::uuid& n)
 template <>
 void JSONWriter::write(libremidi::uuid& n)
 {
-  auto uid = score::uuids::string_generator::compute(
-      base.GetString(), base.GetString() + base.GetStringLength());
-  memcpy(n.bytes.data(), uid.data, n.bytes.size());
+  if(base.GetStringLength() >= 36)
+  {
+    auto uid = score::uuids::string_generator::compute(
+        base.GetString(), base.GetString() + base.GetStringLength());
+    memcpy(n.bytes.data(), uid.data, n.bytes.size());
+  }
 }
 
 template <>

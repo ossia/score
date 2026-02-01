@@ -305,7 +305,16 @@ std::optional<score::Addon> makeAddon(
       {"short", [&](QJsonValue v) { add.shortDescription = v.toString(); }},
       {"long", [&](QJsonValue v) { add.longDescription = v.toString(); }},
       {"key",
-       [&](QJsonValue v) { add.key = UuidKey<Plugin>::fromString(v.toString()); }},
+       [&](QJsonValue v) {
+    try
+    {
+      if(auto str = v.toString(); str.length() == 36)
+        add.key = UuidKey<Plugin>::fromString(str);
+    }
+    catch(...)
+    {
+    }
+  }},
       {"small", [&](QJsonValue v) { add.smallImage = QImage{v.toString()}; }},
       {"large", [&](QJsonValue v) { add.largeImage = QImage{v.toString()}; }}};
 
