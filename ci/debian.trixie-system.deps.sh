@@ -57,4 +57,4 @@ $SUDO apt-get install -qq --force-yes \
      libpd-dev
 
 
-source ci/common.deps.sh
+source ci/common.deps.sh LINUX

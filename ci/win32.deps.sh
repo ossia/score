@@ -14,4 +14,4 @@ rm sdk-mingw-x86_64.7z
 ls
 )
 
-source ci/common.deps.sh
+source ci/common.deps.sh WIN32

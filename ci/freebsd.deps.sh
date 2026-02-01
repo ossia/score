@@ -20,4 +20,4 @@ pkg install -y \
   alsa-lib \
   jackit
 
-source ci/common.deps.sh
+source ci/common.deps.sh FREEBSD

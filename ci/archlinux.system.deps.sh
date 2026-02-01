@@ -48,4 +48,4 @@ $SUDO pacman -S --noconfirm --needed \
    gpsd \
    zita-alsa-pcmi
 
-source ci/common.deps.sh
+source ci/common.deps.sh LINUX

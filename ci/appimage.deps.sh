@@ -13,4 +13,4 @@ wget -nv "https://github.com/ossia/sdk/releases/download/sdk35/sdk-linux${CPU_AR
 tar xaf sdk-linux${CPU_ARCH_SUFFIX}.tar.xz
 rm -rf  sdk-linux${CPU_ARCH_SUFFIX}.tar.xz
 
-source ci/common.deps.sh
+source ci/common.deps.sh LINUX

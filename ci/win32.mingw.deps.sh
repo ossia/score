@@ -10,5 +10,5 @@
 
 
 # if c++ --version | grep clang; then
-  source ci/common.deps.sh
+  source ci/common.deps.sh WIN32
 #fi

@@ -50,4 +50,4 @@ $SUDO rm -rf /usr/bin/lld /usr/bin/ld.lld
 $SUDO ln -s /usr/bin/lld-19 /usr/bin/lld
 $SUDO ln -s /usr/bin/ld.lld-19 /usr/bin/ld.lld
 
-source ci/common.deps.sh
+source ci/common.deps.sh LINUX

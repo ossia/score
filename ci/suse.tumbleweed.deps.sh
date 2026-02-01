@@ -6,7 +6,7 @@ source ci/common.setup.sh
 
 $SUDO zypper -n install awk
 
-source ci/common.deps.sh
+source ci/common.deps.sh LINUX
 
 # $SUDO zypper -n remove busybox-which
 $SUDO zypper -n install \

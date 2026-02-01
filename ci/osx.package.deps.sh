@@ -50,4 +50,4 @@ sudo cp -rf cninja /usr/local/bin/
 
 set -e
 
-source ci/common.deps.sh
+source ci/common.deps.sh MACOS

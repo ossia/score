@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source ci/common.deps.sh
+source ci/common.deps.sh LINUX
 
 printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)" > COMMIT
 (

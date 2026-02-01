@@ -30,4 +30,4 @@ curl -L -0 https://github.com/Kitware/CMake/releases/download/v3.28.1/cmake-3.28
 tar xaf cmake.tgz
 rm cmake.tgz
 
-source ci/common.deps.sh
+source ci/common.deps.sh LINUX

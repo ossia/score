@@ -45,4 +45,4 @@ $SUDO apt-get install -y \
      dpkg-dev \
      lsb-release
 
-source ci/common.deps.sh
+source ci/common.deps.sh LINUX

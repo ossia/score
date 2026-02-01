@@ -49,6 +49,9 @@ then
   clone_addon https://github.com/jcelerier/bendage
 fi
 
+if [[ "$CI_PLATFORM" == "LINUX" || "$CI_PLATFORM" == "WIN32" ]]; then
+  clone_addon https://github.com/ossia/score-addon-librediffusion
+fi
 )
 
 

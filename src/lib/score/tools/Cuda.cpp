@@ -102,12 +102,10 @@ bool availableCudaToolkitDylibs(int major, int minor) noexcept
   {
     try
     {
-      qDebug() << "checking: " << lib;
       ossia::dylib_loader cu{lib.c_str()};
     }
     catch(...)
     {
-      qDebug() << "lib: " << lib << "unavailable";
       return false;
     }
   }

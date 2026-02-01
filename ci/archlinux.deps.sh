@@ -33,4 +33,4 @@ $SUDO pacman -S --noconfirm --needed \
    xcb-util-keysyms xcb-util-renderutil xcb-util-wm \
    qt6-base qt6-shadertools qt6-tools qt6-declarative qt6-scxml qt6-websockets qt6-serialport qt6-svg qt6-connectivity
 
-source ci/common.deps.sh
+source ci/common.deps.sh LINUX

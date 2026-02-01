@@ -52,4 +52,4 @@ $SUDO apt-get install -y \
      file \
      dpkg-dev
 
-source ci/common.deps.sh
+source ci/common.deps.sh LINUX

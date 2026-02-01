@@ -35,4 +35,4 @@ dnf -y install --allowerasing \
      pipewire-devel \
      zlib-ng-compat-static zlib-ng-compat-devel
 
-source ci/common.deps.sh
+source ci/common.deps.sh LINUX
