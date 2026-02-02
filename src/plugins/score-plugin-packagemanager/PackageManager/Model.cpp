@@ -14,6 +14,7 @@
 #include <QDebug>
 #include <QDir>
 #include <QFile>
+#include <QJsonDocument>
 #include <QJsonObject>
 #include <QSet>
 #include <QSettings>
@@ -61,8 +62,10 @@ void PluginSettingsModel::installAddon(const Package& addon)
     return;
   }
 
+  const auto& lib = score::AppContext().settings<Library::Settings::Model>();
   const QString& installPath
-      = score::AppContext().settings<Library::Settings::Model>().getPackagesPath();
+      = addon.kind == "support" ? lib.getSupportPath() : lib.getPackagesPath();
+
   for(auto f : addon.files)
     zdl::download_and_extract(
         f, QDir{installPath}.absolutePath(),
