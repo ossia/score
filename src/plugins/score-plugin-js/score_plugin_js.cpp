@@ -18,10 +18,10 @@
 #include <JS/Qml/PortSink.hpp>
 #include <JS/Qml/PortSource.hpp>
 #include <JS/Qml/QmlObjects.hpp>
+#include <JS/Qml/QmlProcess.hpp>
 #include <JS/Qml/TextureSource.hpp>
 #include <JS/Qml/Utils.hpp>
 #include <JS/Qml/ValueTypes.Qt6.hpp>
-#include <ossia-qt/protocols/qml_oauth.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
 #include <score/plugins/InterfaceList.hpp>
@@ -29,6 +29,8 @@
 #include <score/tools/std/HashMap.hpp>
 
 #include <core/presenter/DocumentManager.hpp>
+
+#include <ossia-qt/protocols/qml_oauth.hpp>
 
 #include <score_plugin_js_commands_files.hpp>
 #include <wobjectimpl.h>
@@ -118,6 +120,8 @@ score_plugin_js::score_plugin_js()
   qmlRegisterType<JS::PortSink>("Score.UI", 1, 0, "PortSink");
   qmlRegisterType<JS::GlobalDeviceEnumerator>("Score.UI", 1, 0, "DeviceEnumerator");
   qmlRegisterType<JS::DeviceListener>("Score.UI", 1, 0, "DeviceListener");
+
+  qmlRegisterType<JS::QmlProcess>("Score.UI", 1, 0, "Process");
 
   qRegisterMetaType<QVector<JS::MidiMessage>>();
 

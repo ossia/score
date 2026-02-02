@@ -1,11 +1,13 @@
 #pragma once
+#include <Process/TimeValue.hpp>
+
 #include <JS/Qml/QmlObjects.hpp>
 
 #include <QJSValue>
 #include <QObject>
+#include <QProcess>
 #include <QString>
 #include <QTime>
-#include <Process/TimeValue.hpp>
 
 #include <verdigris>
 namespace JS

@@ -14,13 +14,18 @@
 #include <QDebug>
 #include <QDir>
 #include <QFile>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QNetworkReply>
 #include <QSet>
 #include <QSettings>
 #include <QStandardItemModel>
 #include <QStringList>
 #include <QVariant>
+#include <qmessagebox.h>
+
+#include <PackageManager/FileDownloader.hpp>
 
 #include <score_git_info.hpp>
 #include <wobjectimpl.h>
@@ -34,6 +39,8 @@ PluginSettingsModel::PluginSettingsModel(
     , localPlugins{ctx}
     , remoteSelection{&remotePlugins}
 {
+  connect(
+      &mgr, &QNetworkAccessManager::finished, this, &PluginSettingsModel::on_message);
 }
 
 PluginSettingsModel::~PluginSettingsModel() { }
@@ -46,6 +53,161 @@ void PluginSettingsModel::refresh()
       "https://raw.githubusercontent.com/ossia/score-packages/refs/heads/"
       "master/addons.json")};
   mgr.get(rqst);
+}
+
+void PluginSettingsModel::handleAddonList(const QJsonObject& obj)
+{
+  show_progress();
+  auto arr = obj["addons"].toArray();
+  m_addonsToRetrieve = arr.size();
+  int delay = 0;
+  for(QJsonValue elt : arr)
+  {
+    QTimer::singleShot(
+        delay, this, [this, url = QUrl(elt.toString())] { requestInformation(url); });
+    delay += 16;
+  }
+}
+
+void PluginSettingsModel::handleAddon(const QJsonObject& obj)
+{
+  RemotePackagesModel* model = &remotePlugins;
+
+  if(m_addonsToRetrieve == (std::ssize(model->m_vec) + 1) || m_addonsToRetrieve <= 0)
+    reset_progress();
+  else
+    update_progress(double(std::ssize(model->m_vec) + 1) / m_addonsToRetrieve);
+
+  auto addon = Package::fromJson(obj);
+  if(!addon)
+    return;
+
+  auto& add = *addon;
+
+  // Load images
+  if(!add.smallImagePath.isEmpty())
+  {
+    // c.f. https://wiki.qt.io/Download_Data_from_URL
+    auto dl = new score::FileDownloader{QUrl{add.smallImagePath}};
+    connect(dl, &score::FileDownloader::downloaded, this, [=](QByteArray arr) {
+      model->updateAddon(
+          add.key, [=](Package& add) { add.smallImage.loadFromData(arr); });
+
+      dl->deleteLater();
+    });
+  }
+
+  if(!add.largeImagePath.isEmpty())
+  {
+    // c.f. https://wiki.qt.io/Download_Data_from_URL
+    auto dl = new score::FileDownloader{QUrl{add.largeImagePath}};
+    connect(dl, &score::FileDownloader::downloaded, this, [=](QByteArray arr) {
+      model->updateAddon(
+          add.key, [=](Package& add) { add.largeImage.loadFromData(arr); });
+
+      dl->deleteLater();
+    });
+  }
+
+  model->addAddon(std::move(add));
+}
+
+void PluginSettingsModel::on_message(QNetworkReply* rep)
+{
+  auto res = rep->readAll();
+  auto json = QJsonDocument::fromJson(res).object();
+
+  if(json.contains("addons"))
+  {
+    handleAddonList(json);
+  }
+  else if(json.contains("name"))
+  {
+    handleAddon(json);
+  }
+  else
+  {
+    qDebug() << rep->request().url().toString() << ' ' << res;
+    reset_progress();
+  }
+  rep->deleteLater();
+
+  if(!m_firstTimeCheck)
+  {
+    m_firstTimeCheck = true;
+    QTimer::singleShot(3000, this, &PluginSettingsModel::firstTimeLibraryDownload);
+  }
+}
+
+void PluginSettingsModel::firstTimeLibraryDownload()
+{
+  const auto& lib = score::GUIAppContext().settings<Library::Settings::Model>();
+  const QString lib_folder = lib.getPackagesPath() + "/default";
+  const QString lib_info = lib_folder + "/package.json";
+  if(QFile file{lib_info}; !file.exists())
+  {
+    auto dl = score::question(
+        qApp->activeWindow(), tr("Download the user library ?"),
+        tr("The user library has not been found. \n"
+           "Do you want to download it from the internet ? \n\n"
+           "Note: you can always download it later from : \n"
+           "https://github.com/ossia/score-user-library"));
+
+    if(dl == QMessageBox::Yes)
+    {
+      zdl::download_and_extract(
+          QUrl{"https://github.com/ossia/score-user-library/archive/master.zip"},
+          lib.getPackagesPath(), [](const auto&) mutable {
+        auto& lib = score::GUIAppContext().settings<Library::Settings::Model>();
+        QDir packages_dir{lib.getPackagesPath()};
+        packages_dir.rename("score-user-library-master", "default");
+
+        lib.rescanLibrary();
+      }, [](qint64 bytesReceived, qint64 bytesTotal) {
+        qDebug() << (((bytesReceived / 1024.) / (bytesTotal / 1024.)) * 100)
+                 << "% downloaded";
+      }, [] {});
+    }
+  }
+  else
+  {
+    checkAll();
+  }
+}
+
+void PluginSettingsModel::checkAll()
+{
+  auto local_model = &localPlugins;
+  auto remote_model = &remotePlugins;
+
+  std::vector<Package*> to_update;
+  for(auto& addon : local_model->addons())
+  {
+    auto key = addon.key;
+    auto it = ossia::find_if(
+        remote_model->addons(), [&](auto& pkg) { return pkg.key == addon.key; });
+    if(it == remote_model->addons().end())
+    {
+      qDebug() << "Addon " << addon.name << "not found on the server!";
+      continue;
+    }
+
+    if(it->version <= addon.version)
+      continue;
+
+    to_update.push_back(&*it);
+  }
+
+  if(!to_update.empty())
+  {
+    QString s = tr("Some installed packages are out-of-date: \n");
+    for(auto pkg : to_update)
+    {
+      s += tr("- %1 (version %3)\n").arg(pkg->name).arg(pkg->version);
+    }
+    s += tr("Head to Settings > Packages to update them");
+    score::information(qApp->activeWindow(), tr("Packages can be updated"), s);
+  }
 }
 
 void PluginSettingsModel::requestInformation(QUrl url)
@@ -141,9 +303,10 @@ void PluginSettingsModel::installSDK()
 
 void PluginSettingsModel::installLibrary(const Package& addon)
 {
-  const QString destination{
-      score::AppContext().settings<Library::Settings::Model>().getPackagesPath() + "/"
-      + addon.raw_name};
+  const auto& lib = score::AppContext().settings<Library::Settings::Model>();
+  const QString& installPath
+      = addon.kind == "support" ? lib.getSupportPath() : lib.getPackagesPath();
+  const QString destination{installPath + "/" + addon.raw_name};
 
   if(QDir dest{destination}; dest.exists())
     dest.removeRecursively();

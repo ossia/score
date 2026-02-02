@@ -38,6 +38,8 @@ public:
   // From model
   void on_message(QNetworkReply* rep);
   void set_info();
+  void show_progress();
+  void update_progress(double);
   void reset_progress();
   void progress_from_bytes(qint64 bytesReceived, qint64 bytesTotal);
 
@@ -49,11 +51,6 @@ public:
   void installSDK() W_SIGNAL(installSDK);
 
 private:
-  void firstTimeLibraryDownload();
-
-  void handleAddonList(const QJsonObject&);
-  void handleAddon(const QJsonObject&);
-
   PackagesModel* getCurrentModel();
   int getCurrentRow(const QTableView* t);
   Package selectedPackage(const PackagesModel* model, int row);
@@ -78,12 +75,9 @@ private:
   QPushButton* m_updateAll{new QPushButton{tr("Update all")}};
 
   QProgressBar* m_progress{new QProgressBar};
-  int m_addonsToRetrieve = 0;
 
   QStorageInfo storage;
   QLabel* m_storage{new QLabel};
-
-  bool m_firstTimeCheck{false};
 };
 
 }

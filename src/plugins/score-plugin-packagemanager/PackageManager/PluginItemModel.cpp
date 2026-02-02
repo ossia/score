@@ -179,10 +179,19 @@ LocalPackagesModel::LocalPackagesModel(const score::ApplicationContext& ctx)
 {
   const auto& addons_path = ctx.settings<Library::Settings::Model>();
 
-  QDirIterator addons{addons_path.getPackagesPath()};
-  while(addons.hasNext())
   {
-    registerAddon(addons.next());
+    QDirIterator addons{addons_path.getPackagesPath()};
+    while(addons.hasNext())
+    {
+      registerAddon(addons.next());
+    }
+  }
+  {
+    QDirIterator addons{addons_path.getSupportPath()};
+    while(addons.hasNext())
+    {
+      registerAddon(addons.next());
+    }
   }
 }
 

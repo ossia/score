@@ -28,6 +28,14 @@ public:
   void installLibrary(const Package& addon);
   void installSDK();
 
+  void handleAddonList(const QJsonObject&);
+  void handleAddon(const QJsonObject&);
+  void on_message(QNetworkReply* rep);
+  void firstTimeLibraryDownload();
+  void checkAll();
+
+  void show_progress() W_SIGNAL(show_progress);
+  void update_progress(double v) W_SIGNAL(update_progress, v);
   void reset_progress() W_SIGNAL(reset_progress);
   void set_info() W_SIGNAL(set_info);
   void progress_from_bytes(qint64 received, qint64 total)
@@ -45,5 +53,7 @@ public:
   QItemSelectionModel remoteSelection;
 
   QNetworkAccessManager mgr;
+  int m_addonsToRetrieve = 0;
+  bool m_firstTimeCheck{false};
 };
 }

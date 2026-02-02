@@ -282,7 +282,7 @@ void JsLibrary::installPackage(const QString& uid)
   {
     if(pkg.key.impl() == res.impl())
     {
-      m.installAddon(pkg);
+      m.installLibrary(pkg);
       return;
     }
   }

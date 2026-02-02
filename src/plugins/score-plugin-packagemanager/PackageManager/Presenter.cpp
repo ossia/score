@@ -67,9 +67,11 @@ PluginSettingsPresenter::PluginSettingsPresenter(
       this,		&PluginSettingsPresenter::setBlacklistCommand);*/
 
   connect(
-      &ps_model.mgr, &QNetworkAccessManager::finished, &ps_view,
-      &PluginSettingsView::on_message);
-
+      &ps_model, &PluginSettingsModel::show_progress, &ps_view,
+      &PluginSettingsView::show_progress);
+  connect(
+      &ps_model, &PluginSettingsModel::update_progress, &ps_view,
+      &PluginSettingsView::update_progress);
   connect(
       &ps_model, &PluginSettingsModel::reset_progress, &ps_view,
       &PluginSettingsView::reset_progress);

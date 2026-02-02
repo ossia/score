@@ -49,7 +49,7 @@ struct engine_key_hash
     return std::hash<std::thread::id>{}(k.id) ^ intptr_t(k.rhi);
   }
 };
-struct GpuRenderer;
+class GpuRenderer;
 struct GpuNode : score::gfx::NodeModel
 {
 public:
