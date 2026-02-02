@@ -22,6 +22,7 @@
 #include <QSettings>
 #include <QStandardItemModel>
 #include <QStringList>
+#include <QTimer>
 #include <QVariant>
 #include <qmessagebox.h>
 
