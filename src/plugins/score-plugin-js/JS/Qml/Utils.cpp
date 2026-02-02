@@ -14,8 +14,9 @@
 #include <QFontMetrics>
 #include <QProcess>
 #include <QTemporaryFile>
-
+#if __has_include(<PackageManager/Model.hpp>)
 #include <PackageManager/Model.hpp>
+#endif
 #include <rnd/random.hpp>
 
 #include <wobjectimpl.h>
@@ -237,8 +238,10 @@ int JsSystem::availableCudaToolkitDylibs(int major, int minor)
 
 QVariantList JsLibrary::installedPackages()
 {
-  auto& m = score::GUIAppContext().settings<PM::PluginSettingsModel>();
   QVariantList res;
+
+#if __has_include(<PackageManager/Model.hpp>)
+  auto& m = score::GUIAppContext().settings<PM::PluginSettingsModel>();
   for(auto& plug : m.localPlugins.m_vec)
   {
     QVariantMap obj;
@@ -248,19 +251,25 @@ QVariantList JsLibrary::installedPackages()
     obj["version"] = plug.version;
     res.push_back(obj);
   }
+#endif
+
   return res;
 }
 
 void JsLibrary::refreshAvailablePackages()
 {
+#if __has_include(<PackageManager/Model.hpp>)
   auto& m = score::GUIAppContext().settings<PM::PluginSettingsModel>();
   m.refresh();
+#endif
 }
 
 QVariantList JsLibrary::availablePackages()
 {
-  auto& m = score::GUIAppContext().settings<PM::PluginSettingsModel>();
   QVariantList res;
+
+#if __has_include(<PackageManager/Model.hpp>)
+  auto& m = score::GUIAppContext().settings<PM::PluginSettingsModel>();
   for(auto& plug : m.remotePlugins.m_vec)
   {
     QVariantMap obj;
@@ -270,10 +279,13 @@ QVariantList JsLibrary::availablePackages()
     obj["version"] = plug.version;
     res.push_back(obj);
   }
+#endif
+
   return res;
 }
 void JsLibrary::installPackage(const QString& uid)
 {
+#if __has_include(<PackageManager/Model.hpp>)
   if(uid.length() < 36)
     return;
   auto res = UuidKey<PM::Package>::fromString(uid);
@@ -286,5 +298,6 @@ void JsLibrary::installPackage(const QString& uid)
       return;
     }
   }
+#endif
 }
 }
