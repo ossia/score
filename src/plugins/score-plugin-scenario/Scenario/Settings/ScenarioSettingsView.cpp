@@ -194,7 +194,7 @@ View::View()
     auto es = new QPushButton{tr("Edit")};
     es->setMaximumWidth(100);
 
-    connect(es, &QPushButton::clicked, this, [&] {
+    connect(es, &QPushButton::clicked, this, [=] {
       QString skinToEditPath = m_skin->currentData().toString();
       if(m_skin->currentText() == tr("Default"))
         skinToEditPath = skinPath;
