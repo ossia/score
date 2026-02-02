@@ -55,6 +55,7 @@ public:
   QString getUserLibraryPath() const noexcept;
   QString getUserPresetsPath() const noexcept;
   QString getSDKPath() const noexcept;
+  QString getSupportPath() const noexcept;
 
   void rescanLibrary() E_SIGNAL(SCORE_PLUGIN_LIBRARY_EXPORT, rescanLibrary)
 

@@ -104,6 +104,39 @@ export SCORE_CUSTOM_APP_ORGANIZATION_DOMAIN="$APP_DOMAIN"
 export SCORE_CUSTOM_APP_APPLICATION_NAME="$APP_NAME"
 export SCORE_CUSTOM_APP_APPLICATION_VERSION="$APP_VERSION"
 
+# Resolve app package path
+CONF_FILE="\$HOME/.config/\$SCORE_CUSTOM_APP_ORGANIZATION_NAME/\$SCORE_CUSTOM_APP_APPLICATION_NAME.conf"
+
+if [[ -f "\$CONF_FILE" ]]; then
+    # Extract RootPath from the [Library] section
+    ROOT_PATH=\$(sed -n '/^\[Library\]/,/^\[/{s/^RootPath=//p}' "\$CONF_FILE")
+fi
+
+# Fall back to default if conf doesn't exist or RootPath wasn't found
+if [[ -z "\$ROOT_PATH" ]]; then
+    ROOT_PATH="\$HOME/Documents/\$SCORE_CUSTOM_APP_ORGANIZATION_NAME/\$SCORE_CUSTOM_APP_APPLICATION_NAME"
+fi
+
+# Expand ~ if present (in case the conf file contains a literal ~)
+ROOT_PATH="\${ROOT_PATH/#\~/\$HOME}"
+
+# Build LD_LIBRARY_PATH from subfolders containing shared libs
+SUPPORT_DIR="\$ROOT_PATH/support"
+
+if [[ -d "\$SUPPORT_DIR" ]]; then
+    while IFS= read -r -d '' dir; do
+        # Check if this directory directly contains any .so files
+        if compgen -G "\$dir"/*.so > /dev/null 2>&1 || \
+           compgen -G "\$dir"/*.so.* > /dev/null 2>&1; then
+            if [[ -z "\${LD_LIBRARY_PATH-}" ]]; then
+                LD_LIBRARY_PATH="\$dir"
+            else
+                LD_LIBRARY_PATH="\$dir:\$LD_LIBRARY_PATH"
+            fi
+        fi
+    done < <(find "\$SUPPORT_DIR" -mindepth 1 -type d -print0)
+fi
+
 export QML2_IMPORT_PATH="\${APPDIR}/usr/bin/qml/"
 export LD_LIBRARY_PATH="\${APPIMAGE_LIBRARY_PATH}:\${APPDIR}/usr/lib:\${LD_LIBRARY_PATH}"
 "\${APPDIR}/usr/bin/linuxcheck" "\${APPDIR}/usr/bin/app-bin"

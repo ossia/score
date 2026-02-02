@@ -13,10 +13,14 @@
 #include <QDirIterator>
 #include <QFormLayout>
 #include <QLineEdit>
+#include <QSet>
 #include <QStandardPaths>
 
 #include <wobjectimpl.h>
 
+#ifdef Q_OS_WIN
+#include <windows.h>
+#endif
 W_OBJECT_IMPL(Library::Settings::View)
 W_OBJECT_IMPL(Library::Settings::Model)
 
@@ -41,6 +45,31 @@ static void initUserLibrary(const QDir& userlib)
   userlib.mkpath("./cues");
 }
 
+static void addSupportDllDirectories(const QDir& supportDir)
+{
+#ifdef Q_OS_WIN
+  if(!supportDir.exists())
+    return;
+
+  QSet<QString> added;
+
+  QDirIterator it(
+      supportDir.absolutePath(), {"*.dll"}, QDir::Files, QDirIterator::Subdirectories);
+
+  while(it.hasNext())
+  {
+    it.next();
+    QString dir = it.fileInfo().absolutePath();
+
+    if(added.contains(dir))
+      continue;
+    added.insert(dir);
+
+    AddDllDirectory(reinterpret_cast<PCWSTR>(dir.utf16()));
+  }
+#endif
+}
+
 Model::Model(QSettings& set, const score::ApplicationContext& ctx)
 {
   score::setupDefaultSettings(set, Parameters::list(), *this);
@@ -62,6 +91,8 @@ Model::Model(QSettings& set, const score::ApplicationContext& ctx)
     QDir{path}.mkpath(".");
   }
   initUserLibrary(getUserLibraryPath());
+
+  addSupportDllDirectories(getSupportPath());
 }
 
 QString Model::getPackagesPath() const noexcept
@@ -87,6 +118,11 @@ QString Model::getUserPresetsPath() const noexcept
 QString Model::getSDKPath() const noexcept
 {
   return m_RootPath + "/sdk";
+}
+
+QString Model::getSupportPath() const noexcept
+{
+  return m_RootPath + "/support";
 }
 
 QStringList Model::getIncludePaths() const noexcept
