@@ -9,6 +9,7 @@
 
 #include <core/application/ApplicationSettings.hpp>
 
+#include <QCoreApplication>
 #include <QDir>
 #include <QDirIterator>
 #include <QFormLayout>
