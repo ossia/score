@@ -5,6 +5,7 @@
 #include <Library/LibrarySettings.hpp>
 
 #include <score/application/ApplicationContext.hpp>
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 #include <score/widgets/MessageBox.hpp>
 
