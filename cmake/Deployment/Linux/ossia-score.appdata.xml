@@ -41,6 +41,247 @@
     </screenshot>
   </screenshots>
   <releases>
+    <release version="3.8.0" date="2026-02-03">
+      <url type="details">https://github.com/ossia/score/releases/tag/v3.8.0</url>
+      <description>
+        <p>ossia score 3.8.0 is a major release bringing many new features and improvements.</p>
+        <p>New features</p>
+        <ul>
+          <li>arpeggiator: add more controls, add a random mode</li>
+          <li>array tool: add a way to insert and erase values in the input array at a regular stride</li>
+          <li>ci: add a manual workflow to enable triggering builds with custom CMake options</li>
+          <li>code editor: add built-insearch with Ctrl+F</li>
+          <li>console: implement completion, persistent history and readline-like shortcuts</li>
+          <li>core: add utility functions to detect MDM enrollment</li>
+          <li>core: allow loading addons that have runtime dependencies in Documents/ossia/score/support/</li>
+          <li>core: change process priority on startup on win32</li>
+          <li>cuda: add utility function to check whether it is available</li>
+          <li>custom ui: add support for QtWebView if available (needs a source build, we won't ship QtWebEngine as it requires a MSVC Qt build)</li>
+          <li>custom ui: allow to override appname/domain/etc with env vars to simplify custom apps</li>
+          <li>custom ui: greatly improve the capabilities for creating custom apps on top of ossia score: support QRC files, icons, etc. Add helper scripts and templates to allow people to create their own custom ossia score-based apps.</li>
+          <li>custom ui: improve fonts and color palette</li>
+          <li>device recorder: allow to set separator in generated CSV file</li>
+          <li>devices: add support for QML protocols which require OAuth authentication with Ossia.OAuth (currently requires building from source with QtNetworkAuth support).</li>
+          <li>devices: enable adding some devices during execution (Camera, Window, etc.).</li>
+          <li>devices: implement a new Default Device kind for cameras, MIDI devices and gamepads, that will select the default device on the user's system. Useful for examples, etc.</li>
+          <li>exprtk: add useful math functions: bitwise_and, bitwise_or, bitwise_xor, bitwise_not, bitwise_shiftl, bitwise_shiftr, map, norm, step, lerp, smoothstep, smoothstep5</li>
+          <li>ffmpeg: handle gpu decoding of 16-bit float single-channel textures</li>
+          <li>geometry: Add a raw Raster Pipeline object which allows to render using entirely custom shader, with only a small veneer of isf. e.g. this allows to define what are the vertex inputs / outputs with much greater control than classic ISF shaders. This also allow instanced rendering.</li>
+          <li>geometry: Rework geometry in depth, allow geometry and buffer passing in every avnd objects, add support for instancing.</li>
+          <li>geometry: allow to have both CPU and GPU buffer handles, automatically convert in-between depending on the needs of objects.</li>
+          <li>gfx: add support for Spout in the D3D11, D3D12 and Vulkan backends.</li>
+          <li>gfx: add support for Syphon in the Metal backend.</li>
+          <li>gfx: allow buffer ports to pass buffers around. White ports can now carry either buffers or textures.</li>
+          <li>gfx: compute shader: render single-component textures as white instead of red.</li>
+          <li>gfx: implement support of SSBOs as output of Compute Shader process</li>
+          <li>icons: add icons for console_on/console_off in icons_16. Thanks @aklevy!</li>
+          <li>images: add support for more image formats, including SVG.</li>
+          <li>js: Add new API for storing and retrieving state of JS objects across restarts and communicating between UI and execution.</li>
+          <li>js: Fully implement custom UI support.</li>
+          <li>js: Make sure that engines respect import paths, and change presets to use a qmldir to import JS files, so that we do not hit QTBUG-107204</li>
+          <li>js: Whenever possible, load QML files from disk to trigger the disk cache, which will enable much faster loading / reloading on the execution thread</li>
+          <li>js: add Device.toValue function, to convert JS values to a simpler representation</li>
+          <li>js: add Util.uuid()</li>
+          <li>js: add a System object to retrieve general system info</li>
+          <li>js: add support for Qt Quick 3D to create 3D UIs easily as well as give access to PBR materials, environment maps, etc.</li>
+          <li>js: add support for downloading packages from the Library.* api</li>
+          <li>js: allow to have both an execution script and a UI script.</li>
+          <li>js: give access to transport object, to connect to play(), stop(), etc.</li>
+          <li>js: gpu: allow using texture inlets</li>
+          <li>js: major rework: Have a single engine per-thread with distinct QQmlContext instead of one engine per object</li>
+          <li>js: more utility functions</li>
+          <li>js: new APIs (Library, System, etc)</li>
+          <li>js: new api functions:  Score.device("foo");  Score.device("Window").window();  Score.save() / Score.load() / Score.saveAs(); Score.documentPlugin(), mainly useful to enable saving custom data from JS into a score.</li>
+          <li>layouts: add new layouts displaying all ports vertically when an object is in folded mode.</li>
+          <li>led view: add ability to set an explicit size</li>
+          <li>library: Add a new Timing category for all the timing-related objects (metronome, MIDI Sync, LTC, etc.)</li>
+          <li>lightness computer: add support for custom swizzle to handle uncommon LED formats.</li>
+          <li>mapper: allow to create dummy nodes just to store and retrieve data</li>
+          <li>midi: add MIDI sync objects to generate and track MIDI Clock and Timecode.</li>
+          <li>midi: add support for interpreting and / or sending Note ON with a value of 0 instead of note off. Needed for instance for some Novation Launchpad devices.</li>
+          <li>midi: handle reloading a midi device across backends / OS through various heuristics</li>
+          <li>new process: Add many geometry utilities: Geometry Info to get basic info about an input geometry, Extract attribute / buffer / etc., Create a mesh from multiple buffers, Pointcloud to mesh, Repack attributes to pack or multiple attributes of a geometry into a single buffer.</li>
+          <li>new process: Array to Buffer and Buffer to Array, to go easily e.g. from an OSC message to a GPU buffer.</li>
+          <li>new process: LTC input.</li>
+          <li>new process: Tempo synchronizer. This process will analyze incoming position and speed variations, obtained for instance from timecode, and turn them into real-time speed adjustments to keep smooth playback.</li>
+          <li>new process: add a ArrayToTexture object</li>
+          <li>new process: add a multi-choice object</li>
+          <li>new process: add a node text box to leave comments around</li>
+          <li>new process: add a queue object</li>
+          <li>new process: add a value mixer object</li>
+          <li>new process: add an audio splitter</li>
+          <li>new process: add utilities for vec2f/3i/etc.</li>
+          <li>new process: introduce StreamDiffusion support (real-time inference of GenAI image workflows), ported to C++ from StreamDiffusion Python code for absolute maximum performance. Requires CUDA.</li>
+          <li>new process: add an XWax-based DVS processor to control timelines with scratching. Thanks @mbncr for the testing.</li>
+          <li>node item: many improvements: display titles for all ports, enforce port names on construction</li>
+          <li>package manager: allow to download packages without main ui</li>
+          <li>ports: ports without a UI control will now display a label.</li>
+          <li>processes: allow processes to have both a script editor and a custom UI by separating the concept of script-editable process.</li>
+          <li>processes: allow to match multiple address groups in objects that can send / receive from/to multiple addresses</li>
+          <li>qml/gfx: handle QSG_RHI_BACKEND. If set, it will override the chosen graphics backend.</li>
+          <li>scenario: add zoom with scroll wheel, fix zoom +/- centering</li>
+          <li>script editor: style update. Default font is now IBM Plex which is much more readable on Win32</li>
+          <li>scrub: implement scrubbing on scenario</li>
+          <li>sound: implement backwards audio playback ; Also add a limit on how low we can downsample as it seems that libsamplerate does not like     very small tempos</li>
+          <li>time ruler: double click becomes play from here</li>
+          <li>ui: add a way for nodes to not have a background</li>
+          <li>ui: add many new built-in fonts and update existing ones to last versions.</li>
+          <li>ui: allow replacing a cable by dropping a new cable on an existing one</li>
+          <li>ui: allow to set visual outputs as background</li>
+          <li>ui: basic scrub with play tool</li>
+          <li>ui: refactor more deeply script processes to allow processes to have separate scripting and UI.</li>
+          <li>ui: support text OSC messages with line breaks and tabs</li>
+          <li>ui: when dropping a video input device, create a passthrough</li>
+          <li>utils: allow to replace %n in filenames in recorder processes by the current number</li>
+          <li>widgets: add a folder chooser</li>
+          <li>widgets: allow to drop library elements on top of file chooser widgets</li>
+          <li>windows: enable gcodeview by default so that we can debug again</li>
+          <li>windows: handle more video pixel format</li>
+          <li>window device: add fps tracking</li>
+          <li>ysfx: allow to use saike version, change official builds to use it</li>
+          <li>ysfx: major improvements:  support resizing,  support menu, support cursor API</li>
+          <li>ysfx: support livecoding of YSFX plugins</li>
+        </ul>
+
+        <p>Improvements</p>
+        <ul>
+          <li>avnd: add support for more cases of texture inputs</li>
+          <li>avnd: allow nodes to upload buffers to gpu directly</li>
+          <li>avnd: allow to set line edit width</li>
+          <li>avnd: minor improvement to mouse events</li>
+          <li>avnd: work on updating texture sizes dynamically</li>
+          <li>bitfocus: handle number fields without range</li>
+          <li>bitfocus: implement some missing features</li>
+          <li>ci: add the possibility to pass a custom cache file when triggering a workflow</li>
+          <li>ci: boost 1.90, updates to every thirdparty library.</li>
+          <li>core: add a much more precise timer implementation than Qt timerEvent. We go from roughly 5 ms of variation to less than 0.5 ms, which gives much more stable FPS for outputs such as with Spout, NDI, etc.</li>
+          <li>core: improvements to floating-point environment handling to make sure we always are in a sane state.</li>
+          <li>core: load app settings if using --ui mode</li>
+          <li>core: rework InterfaceList to reduce build times</li>
+          <li>csv recorder: better handle escaping when writing</li>
+          <li>custom mesh: make it more tolerant of objects that havent finished building their geometry yet</li>
+          <li>exec: more thread enforcement, move some things from audio thread to main thread</li>
+          <li>execution: put all the initial cable creation into one single transaction</li>
+          <li>execution: revert to spsc for execution queue, now with better threading guarantees</li>
+          <li>expr: sin instead of cos for math generator</li>
+          <li>flatpak: many fixes and upgrades to all the libraries. Update to 6.10 runtime and clang-21.</li>
+          <li>freetype: rendering improvements</li>
+          <li>geometry filter: put it in the gpu thread</li>
+          <li>gfx: compute shader: limit buffer size to theoretical max for float[] as Qt RHI API supports 32-bit buffer sizes max (e.g. 2GB max per buffer).</li>
+          <li>gl: Force nvidia offload on linux only if there is any non nvidia gpu</li>
+          <li>gui: increase default ui update fps for VST, etc.</li>
+          <li>hidpi: fix artefacts when dragging nodes around</li>
+          <li>hidpi: improve rendering on non-integer ratios</li>
+          <li>isf: add some logic to handle parameters with default value but not min or max</li>
+          <li>js: improve default js script</li>
+          <li>js_utilities: implement more type conversions Qt between ossia</li>
+          <li>libraries: support FFMPEG 8</li>
+          <li>libraries: update HDF5</li>
+          <li>library: rework categories ; fix missing sorting on subcategories</li>
+          <li>lv2: implement full midi 1 between 2 conversion to enable more plugins to work</li>
+          <li>mqtt: upgrade to boost.mqtt5 when available</li>
+          <li>process: improve inspector label</li>
+          <li>sh4lt: update to sh4lt 0.2.0. Thanks @nicobou!</li>
+          <li>spline: improve the positioning of the origin axes</li>
+          <li>spout: direct gpu input instead of cpu copy</li>
+          <li>spout: improve frame sync</li>
+          <li>spout: update library to latest version</li>
+          <li>syphon: update library to latest version</li>
+        </ul>
+
+        <p>Bugfixes</p>
+        <ul>
+          <li>addons: fix off-by-one error which prevented addon loading bar to reset</li>
+          <li>appimage: fix that appimage recipe did not account for the new libv4lconvert not matched by libv4l2*</li>
+          <li>audio recorder: fix that the filename was not being sent anymore</li>
+          <li>audio: fix audio device document reload not recreating custom nodes</li>
+          <li>buffers: successful processing and passing around of gpu buffers</li>
+          <li>c++: just disable modules altogether, clang-scan-deps is broken on too many platforms</li>
+          <li>ci: add missing Qt SVG where needed</li>
+          <li>ci: do not fail macOS if there are no certificates</li>
+          <li>ci: fix longpath support on git clone on windows</li>
+          <li>ci: macos: fix frameworks that do not have headers</li>
+          <li>ci: simplify osx signing script</li>
+          <li>ci: update to sdk35 for switch to ysfx from @JoepVanlier</li>
+          <li>ci: wrong package name for fedora</li>
+          <li>command: add missing CreateTimeSync_Event_State in the CreationMetaCommand. Thanks @thibaudk!</li>
+          <li>command: fix #1879. Thanks @thibaudk!</li>
+          <li>core: fix live-coding order of operations issues</li>
+          <li>csf: handle differing input formats for input image</li>
+          <li>devices: fix a disconnect order bug</li>
+          <li>drive-by: fix vsts crashing if reloading on a computer that does not have said vst</li>
+          <li>gfx: rework of the general timer and vsync mechanism</li>
+          <li>gpu: large refactor and simplification of the gpu nodes</li>
+          <li>images node: fix infinite loop when setting an OSC address with non-null images</li>
+          <li>images: fix import of paths from library, fix scaling changing when preview was selected</li>
+          <li>inspector: add missing script process button</li>
+          <li>isf: fix events</li>
+          <li>jit: fix for clang-21 api changes</li>
+          <li>js: ensure the QJSValueList is destroyed in the same thread than the QQmlEngine</li>
+          <li>js: fix dynamic TextureSource objects</li>
+          <li>js: force clear color in TextureSource if we are not connected, to avoid artifacts</li>
+          <li>js: gpu node: always recreate it on script change for now</li>
+          <li>js: handle Qt versions that do not have QQuickRhiItem</li>
+          <li>layout: fix a crash when pasting string in a lineedit</li>
+          <li>lfo: fix pixmap sizes in hidpi</li>
+          <li>library: SCORE_ADDITIONAL_SCRIPT_INCLUDE_PATHS now supported on windows</li>
+          <li>library: skip .ui.qml files</li>
+          <li>library: use org name / app name for default path instead of hardcoded ossia/score</li>
+          <li>linux: fix appimage platform scripts</li>
+          <li>lv2: fix duplicate paths which can cause issues when opening UIs</li>
+          <li>macos: fix font bug due to QTBUG-143506</li>
+          <li>mapper: add debounce on the roots computation so that we only ever use the last version</li>
+          <li>metadata commands: handle cases where objects cannot be reloaded</li>
+          <li>msvc: support building with clang-cl</li>
+          <li>node item: prefer name to label</li>
+          <li>opengl: only check once for the GL capabilities</li>
+          <li>pipewire: handle cases where pw gives us more frames than requested</li>
+          <li>plugins: add missing composer key plug-in. fixes #1899</li>
+          <li>port source / port sink: also accept an inlet / outlet pointer directly</li>
+          <li>portaudio, samplerate: update to version that support cmake greater 3.5</li>
+          <li>presets: fix that values sometimes did not reload</li>
+          <li>process: make sure that processes do not lose their icons in object item model</li>
+          <li>qml: handle disconnection / reconnection of devices</li>
+          <li>qt: minor fix to hash combine</li>
+          <li>scenario: fix skin editor. Thanks @sophiepartoffranceinscotland for the report!</li>
+          <li>scenario: fix that timebar was disappearing when jumping into a subscenario that did not have it</li>
+          <li>serial: fix sending of OSC messages as bundles through Serial object</li>
+          <li>structure synth: ignore empty requests to prevent redundant work</li>
+          <li>thread pool: increase default priority</li>
+          <li>thread: add finer-grained functions to detect current thread</li>
+          <li>time_value: fix a logic error in addition.</li>
+          <li>timers: set timerId to -1 when unset</li>
+          <li>tools: fix developer.sh referencing an old, deleted function. Fixes #1909</li>
+          <li>tools: update fetch-sdk.sh to use proper macOS archive name</li>
+          <li>ui: add missing help tooltip to some items</li>
+          <li>ui: allow to force native dialogs</li>
+          <li>ui: do not try to restore</li>
+          <li>ui: enforce double precision for spinbox range computation, fixes a graphical bug with undo and reloading</li>
+          <li>ui: fix parsing of [] as ["[]"] and "" as [""] for list addresses</li>
+          <li>ui: fix small issues with folder chooser</li>
+          <li>ui: fix that time node look ugly when devicepixelratio between 1.5 and 2.</li>
+          <li>ui: fix title missing update when save as</li>
+          <li>ui: greatly improve performance of redraw of musical bars</li>
+          <li>ui: improve useability of some UI widgets from JS ; add support for vulkan backend for QtQuick in JS</li>
+          <li>ui: improvements to widget processes ; add a false-y check to impulse</li>
+          <li>ui: minor hidpi adjustments</li>
+          <li>ui: send interval updates even in --no-gui</li>
+          <li>video: make more robust in the face of invalid video files</li>
+          <li>vst3: skip hidden params</li>
+          <li>vst: adjust name / label</li>
+          <li>vst: fix that we have to do additional checks before unloading modules on mac</li>
+          <li>widgets: fix wrong relayout calculations when the size of a child widget changes</li>
+          <li>widgets: improve ComboBox mapping from avnd objects</li>
+          <li>win32: add enumerateCameraDevices implementation</li>
+          <li>win32: add vulkan sdk to github actions</li>
+          <li>win32: always ship libwinpthread, and ship a recent version</li>
+          <li>win32: fix loss of focus in library</li>
+          <li>win32: fix support of cameras that only report one FPS</li>
+          <li>win32: improve debug support</li>
+          <li>window: fixes under linux for updating refresh rate dynamically</li>
+        </ul>
+      </description>
+    </release>
     <release version="3.7.1" date="2025-09-22">
       <url type="details">https://github.com/ossia/score/releases/tag/v3.7.1</url>
       <description>
