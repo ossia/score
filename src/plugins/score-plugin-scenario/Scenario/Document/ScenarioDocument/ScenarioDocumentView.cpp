@@ -191,13 +191,33 @@ void ProcessGraphicsView::scrollContentsBy(int dx, int dy)
 
 void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
 {
-  setFocus(Qt::MouseFocusReason);
-  auto pressedModifier = qApp->keyboardModifiers();
-  auto m_hZoom = pressedModifier == Qt::ControlModifier;
-  auto m_vZoom = pressedModifier == Qt::ShiftModifier;
+  {
+    // Code from QGraphicsView::wheelEvent ; we want to propagate to children
+    // but we handle scrolling ourselves (slower, Qt scrolling is too fast)
+    QGraphicsSceneWheelEvent wheelEvent(QEvent::GraphicsSceneWheel);
+    wheelEvent.setWidget(viewport());
+    wheelEvent.setScenePos(mapToScene(event->position().toPoint()));
+    wheelEvent.setScreenPos(event->globalPosition().toPoint());
+    wheelEvent.setButtons(event->buttons());
+    wheelEvent.setModifiers(event->modifiers());
+    const bool horizontal
+        = qAbs(event->angleDelta().x()) > qAbs(event->angleDelta().y());
+    wheelEvent.setDelta(horizontal ? event->angleDelta().x() : event->angleDelta().y());
+    wheelEvent.setPixelDelta(event->pixelDelta());
+    wheelEvent.setPhase(event->phase());
+    wheelEvent.setInverted(event->isInverted());
+    wheelEvent.setOrientation(horizontal ? Qt::Horizontal : Qt::Vertical);
+    wheelEvent.setAccepted(false);
+    wheelEvent.setTimestamp(event->timestamp());
+    QCoreApplication::sendEvent(this->scene(), &wheelEvent);
+  }
+
+  const auto pressedModifier = qApp->keyboardModifiers();
+  const auto m_hZoom = pressedModifier == Qt::ControlModifier;
+  const auto m_vZoom = pressedModifier == Qt::ShiftModifier;
 
 #if !defined(__APPLE__)
-  auto t = std::chrono::steady_clock::now();
+  const auto t = std::chrono::steady_clock::now();
   static int wheelCount = 0;
 
   if(std::chrono::duration_cast<std::chrono::milliseconds>(t - m_lastwheel).count() < 16
@@ -209,8 +229,8 @@ void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
   wheelCount = 0;
   m_lastwheel = t;
 #endif
-  QPoint angleDelta = event->angleDelta();
-  QPointF delta = {angleDelta.x() / 8., angleDelta.y() / 8.};
+  const QPoint angleDelta = event->angleDelta();
+  const QPointF delta = {angleDelta.x() / 8., angleDelta.y() / 8.};
   if(m_hZoom)
   {
     QPoint pos = event->position().toPoint();
@@ -252,6 +272,7 @@ void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
     else
       QCoreApplication::sendEvent(vsb, &e);
   }
+
   if(m_opengl)
     viewport()->update();
 }

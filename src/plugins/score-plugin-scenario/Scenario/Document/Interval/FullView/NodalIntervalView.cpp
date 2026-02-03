@@ -40,6 +40,7 @@ W_OBJECT_IMPL(Scenario::NodalIntervalView)
 W_OBJECT_IMPL(Scenario::NodalContainer)
 namespace Scenario
 {
+constexpr double g_zoom_base = 1.2;
 NodalIntervalView::NodalIntervalView(
     NodalIntervalView::ItemsToShow sh, const IntervalModel& model,
     const Process::Context& ctx, QGraphicsItem* parent)
@@ -80,23 +81,8 @@ NodalIntervalView::NodalIntervalView(
     auto item = new score::ZoomItem{this};
     item->setPos(10, 10);
 
-    // TODO proper zooming is done in log space
-    connect(item, &score::ZoomItem::zoom, this, [this] {
-      auto zoom = m_container->scale();
-      if(zoom < 1 && zoom * 1.2 > 1)
-        zoom = 1;
-      else
-        zoom = qBound(0.001, zoom * 1.2, 1000.);
-      m_container->setScale(zoom);
-    });
-    connect(item, &score::ZoomItem::dezoom, this, [this] {
-      auto zoom = m_container->scale();
-      if(zoom < 1 && zoom / 1.2 > 1)
-        zoom = 1;
-      else
-        zoom = qBound(0.001, zoom / 1.2, 1000.);
-      m_container->setScale(zoom);
-    });
+    connect(item, &score::ZoomItem::zoom, this, &NodalIntervalView::zoomPlus);
+    connect(item, &score::ZoomItem::dezoom, this, &NodalIntervalView::zoomMinus);
 
     connect(item, &score::ZoomItem::recenter, this, &NodalIntervalView::recenter);
     connect(item, &score::ZoomItem::rescale, this, &NodalIntervalView::rescale);
@@ -116,6 +102,22 @@ NodalIntervalView::NodalIntervalView(
     }
   }
   QTimer::singleShot(1, this, &NodalIntervalView::recenterRelativeToView);
+}
+
+void NodalIntervalView::zoomPlus()
+{
+  auto newLevel = m_zoomLevel + 1.0;
+  if(newLevel <= 0.5 && newLevel >= -0.5)
+    newLevel = 0.;
+  zoomTo(newLevel);
+}
+
+void NodalIntervalView::zoomMinus()
+{
+  auto newLevel = m_zoomLevel - 1.0;
+  if(newLevel <= 0.5 && newLevel >= -0.5)
+    newLevel = 0.;
+  zoomTo(newLevel);
 }
 
 void NodalIntervalView::recenterRelativeToView()
@@ -334,6 +336,60 @@ void NodalIntervalView::mouseReleaseEvent(QGraphicsSceneMouseEvent* e)
 void NodalIntervalView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
   event->accept();
+}
+
+void NodalIntervalView::wheelEvent(QGraphicsSceneWheelEvent* event)
+{
+  static constexpr double sensitivity = 120.0;
+  double numDegrees = event->delta();
+  if(numDegrees == 0)
+  {
+    event->ignore();
+    return;
+  }
+
+  QPointF anchor = event->pos();
+  QPointF localAnchor = m_container->mapFromParent(anchor);
+
+  double scrollStep = numDegrees / sensitivity;
+  m_zoomLevel = std::clamp(m_zoomLevel + scrollStep, -10.0, 5.0);
+  double newScale = std::pow(g_zoom_base, m_zoomLevel);
+  m_container->setScale(newScale);
+
+  QPointF newAnchorPos = m_container->mapToParent(localAnchor);
+  m_container->setPos(m_container->pos() + (anchor - newAnchorPos));
+
+  event->accept();
+}
+
+void NodalIntervalView::zoomTo(double newZoomLevel)
+{
+  newZoomLevel = std::clamp(newZoomLevel, -10.0, 5.0);
+  if(newZoomLevel == m_zoomLevel)
+    return;
+
+  QPointF anchor;
+  if(auto v = getView(*this))
+  {
+    const auto viewTopLeft = mapFromScene(v->mapToScene(0, 0));
+    const auto viewBottomRight = mapFromScene(v->mapToScene(v->width(), v->height()));
+    const auto visibleRect
+        = QRectF{viewTopLeft, viewBottomRight}.intersected(boundingRect());
+    anchor = visibleRect.center();
+  }
+  else
+  {
+    anchor = boundingRect().center();
+  }
+
+  const QPointF localAnchor = m_container->mapFromParent(anchor);
+
+  m_zoomLevel = newZoomLevel;
+  double newScale = std::pow(g_zoom_base, m_zoomLevel);
+  m_container->setScale(newScale);
+
+  const QPointF newAnchorPos = m_container->mapToParent(localAnchor);
+  m_container->setPos(m_container->pos() + (anchor - newAnchorPos));
 }
 
 void NodalIntervalView::on_dropOnNode(const QPointF& pos, const QMimeData& mime)

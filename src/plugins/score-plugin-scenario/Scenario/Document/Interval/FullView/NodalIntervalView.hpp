@@ -33,6 +33,9 @@ public:
   void recenter();
   void recenterRelativeToView();
   void rescale();
+  void zoomPlus();
+  void zoomMinus();
+  void zoomTo(double newZoomLevel);
   QRectF enclosingRect() const noexcept;
 
   QGraphicsItem& nodeContainer() const noexcept { return *m_container; }
@@ -53,6 +56,7 @@ private:
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
   void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
+  void wheelEvent(QGraphicsSceneWheelEvent* event) override;
 
   const IntervalModel& m_model;
   const Process::Context& m_context;
@@ -60,6 +64,7 @@ private:
   std::vector<Process::NodeItem*> m_nodeItems;
   QGraphicsItem* m_container{};
   QPointF m_pressedPos{};
+  double m_zoomLevel = 0;
 };
 
 }
