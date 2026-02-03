@@ -268,6 +268,9 @@ struct Metadata<Process::ProcessFlags_k, oscr::ProcessModel<Info>>
       if constexpr(avnd::tag_fully_custom_item<Info>)
         flags |= Process::ProcessFlags::FullyCustomItem;
 
+      if constexpr(avnd::tag_no_background<Info>)
+        flags |= Process::ProcessFlags::NodeHasNoBackground;
+
       if constexpr(avnd::dynamic_ports_input_introspection<Info>::size > 0)
         flags |= Process::ProcessFlags::DynamicPorts;
 
