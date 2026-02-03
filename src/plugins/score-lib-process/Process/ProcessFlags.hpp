@@ -76,6 +76,9 @@ enum ProcessFlags : int64_t
   //! Can vary, for instance depending on the JS script.
   ExternalUIAvailable = SCORE_FLAG(18),
 
+  //! No background will be drawn for the node
+  NodeHasNoBackground = SCORE_FLAG(19),
+
   // clang-format off
   SupportsLasting = SupportsTemporal | TimeIndependent,
   ExternalEffect  = SupportsTemporal | TimeIndependent | RequiresCustomData | ControlSurface,

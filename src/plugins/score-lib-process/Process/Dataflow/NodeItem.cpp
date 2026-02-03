@@ -872,9 +872,12 @@ void NodeItem::paint(
   const auto rect = m_contentRect;
   //painter->fillRect(boundingRect(), Qt::red);
   //return;
+  const auto flags = this->m_model.flags();
 
   const auto& bset = skin.Emphasis5;
-  const auto& fillbrush = skin.Emphasis5;
+  const auto& fillbrush = !(flags & Process::ProcessFlags::NodeHasNoBackground)
+                              ? skin.Emphasis5
+                              : skin.TransparentBrush;
   const auto& brush = m_selected ? skin.Base2.darker
                       : m_hover  ? bset.lighter
                                  : bset.main;
@@ -904,7 +907,7 @@ void NodeItem::paint(
   painter->setRenderHint(QPainter::Antialiasing, false);
 
   // Exec
-  if(!(this->m_model.flags() & Process::ProcessFlags::FullyCustomItem))
+  if(!(flags & Process::ProcessFlags::FullyCustomItem))
     if(m_playPercentage > 0.)
     {
       painter->setPen(style.IntervalPlayFill().main.pen1_solid_flat_miter);
