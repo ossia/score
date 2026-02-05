@@ -61,6 +61,7 @@ public:
     static const constexpr auto software = "Software";
     static const constexpr auto lights = "Lights";
     static const constexpr auto util = "Utilities";
+    static const constexpr auto tracking = "Tracking";
   };
 
   enum Flags
