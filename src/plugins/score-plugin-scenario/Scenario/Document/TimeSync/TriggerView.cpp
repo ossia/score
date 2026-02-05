@@ -103,15 +103,18 @@ void TriggerView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   if(event->button() == Qt::MouseButton::LeftButton)
     pressed(event->scenePos());
+  event->accept();
 }
 
 void TriggerView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
+  moved(event->scenePos());
   event->accept();
 }
 
 void TriggerView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
+  released(event->scenePos());
   event->accept();
 }
 

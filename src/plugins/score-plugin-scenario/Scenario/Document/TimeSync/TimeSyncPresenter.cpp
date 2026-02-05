@@ -67,6 +67,11 @@ TimeSyncPresenter::TimeSyncPresenter(
     m_model.triggeredByGui();
     pressed(sp);
   });
+  connect(
+      m_triggerView, &TriggerView::moved, &m_model, [this](QPointF sp) { moved(sp); });
+  connect(m_triggerView, &TriggerView::released, &m_model, [this](QPointF sp) {
+    released(sp);
+  });
 
   connect(
       m_triggerView, &TriggerView::dropReceived, this, &TimeSyncPresenter::handleDrop);

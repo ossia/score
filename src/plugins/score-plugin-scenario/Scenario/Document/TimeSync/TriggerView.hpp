@@ -34,6 +34,8 @@ public:
 
 public:
   void pressed(QPointF arg_1) W_SIGNAL(pressed, arg_1);
+  void moved(QPointF arg_1) W_SIGNAL(moved, arg_1);
+  void released(QPointF arg_1) W_SIGNAL(released, arg_1);
 
   void dropReceived(const QPointF& pos, const QMimeData& arg_2)
       W_SIGNAL(dropReceived, pos, arg_2);
