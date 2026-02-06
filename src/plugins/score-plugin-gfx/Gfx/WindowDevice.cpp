@@ -615,18 +615,11 @@ public:
       });
 
       QObject::connect(
-          &v, &Scenario::ProcessGraphicsView::sizeChanged, m_screen,
+          &v, &Scenario::ProcessGraphicsView::sizeChanged, &m_qtContext,
           [this, v = QPointer{&view}, ptr = QPointer{m_screen}](QSize e) {
         if(ptr && v)
         {
           size_param->push_value(ossia::vec2f{(float)e.width(), (float)e.height()});
-          /*
-          auto win = e->position();
-          auto sz = v->view().size();
-          scaled_win->push_value(
-              ossia::vec2f{float(win.x() / sz.width()), float(win.y() / sz.height())});
-          abs_win->push_value(ossia::vec2f{float(win.x()), float(win.y())});
-*/
         }
       }, Qt::DirectConnection);
 
@@ -674,7 +667,7 @@ public:
       }
 
       QObject::connect(
-          &v, &Scenario::ProcessGraphicsView::hoverMove, m_screen,
+          &v, &Scenario::ProcessGraphicsView::hoverMove, &m_qtContext,
           [this, v = QPointer{&view}, ptr = QPointer{m_screen}](QHoverEvent* e) {
         if(ptr && v)
         {
