@@ -73,6 +73,7 @@ set(HDRS ${HDRS}
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/VideoInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/VideoDecoder.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Video/SyncVideoDecoder.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/CameraInput.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/GStreamerCompatibility.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/GpuFormats.hpp"
@@ -128,6 +129,7 @@ set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Mixer/MixerPanel.cpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/VideoDecoder.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Video/SyncVideoDecoder.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/CameraInput.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/Thumbnailer.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/FrameQueue.cpp"
