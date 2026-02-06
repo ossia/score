@@ -1074,6 +1074,18 @@ static const ossia::string_map<root_fun>& root_parse{[] {
               dispatch.target_resource = target_val.as_string();
           }
 
+          // Parse STRIDE (for 1D buffer / 2D image)
+          if(auto stride_k
+             = em_val.find_object_key_insensitive(sajson::literal("STRIDE"));
+             stride_k != em_val.get_length())
+          {
+            auto stride_val = em_val.get_object_value(stride_k);
+            if(stride_val.get_type() == sajson::TYPE_INTEGER)
+            {
+              dispatch.stride = stride_val.get_integer_value();
+            }
+          }
+
           // Parse WORKGROUPS
           if(auto wg_k
              = em_val.find_object_key_insensitive(sajson::literal("WORKGROUPS"));
@@ -1155,6 +1167,18 @@ static const ossia::string_map<root_fun>& root_parse{[] {
                   auto target_val = em_val.get_object_value(target_k);
                   if(target_val.get_type() == sajson::TYPE_STRING)
                     dispatch.target_resource = target_val.as_string();
+                }
+
+                // Parse STRIDE (for 1D buffer / 2D image)
+                if(auto stride_k
+                   = em_val.find_object_key_insensitive(sajson::literal("STRIDE"));
+                   stride_k != em_val.get_length())
+                {
+                  auto stride_val = em_val.get_object_value(stride_k);
+                  if(stride_val.get_type() == sajson::TYPE_INTEGER)
+                  {
+                    dispatch.stride = stride_val.get_integer_value();
+                  }
                 }
 
                 // Parse WORKGROUPS

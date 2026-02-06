@@ -283,6 +283,7 @@ struct descriptor
     std::string execution_type{"2D_IMAGE"}; // "2D_IMAGE", "1D_BUFFER", "MANUAL", etc.
     std::string target_resource;
     std::array<int, 3> workgroups{1, 1, 1}; // For MANUAL mode
+    int stride{1};                          // For 1D_BUFFER / 2D_IMAGE. 0 == default
   };
   std::vector<dispatch_info> csf_passes;
 
