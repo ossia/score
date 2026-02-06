@@ -105,7 +105,7 @@ void replaceCable(
 
     Scenario::Command::Macro m{new ReplaceCable, ctx};
     m.removeCable(plug, currentCable);
-    m.createCable(plug, *new_source, old_sink);
+    m.createCable(plug, old_source, *new_sink);
     m.commit();
   }
 }
