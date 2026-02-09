@@ -1,6 +1,8 @@
 #include "Ply.hpp"
 
 #include <miniply.h>
+
+#include <cmath>
 namespace Threedim
 {
 
