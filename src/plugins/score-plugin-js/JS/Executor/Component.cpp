@@ -11,6 +11,8 @@
 #include <Execution/DocumentPlugin.hpp>
 #include <JS/JSProcessModel.hpp>
 
+#include <score/tools/FilePath.hpp>
+
 #if defined(SCORE_HAS_GPU_JS)
 #include "GPUNode.hpp"
 
@@ -178,6 +180,7 @@ Component::on_gpuScriptChange(const QString& script, Execution::Transaction& com
   std::vector<Execution::ExecutionCommand> controlSetups;
 
   int inlet_idx = 0;
+  int outlet_idx = 0;
   std::size_t control_index = 0;
   {
     const Execution::Context& ctx = system();
@@ -214,19 +217,45 @@ Component::on_gpuScriptChange(const QString& script, Execution::Transaction& com
           control->changed = true;
 
           // Configure control forwarding
+
           {
             auto model_port = process().inlets()[inlet_idx];
             auto model_ctrl = safe_cast<Process::ControlInlet*>(model_port);
 
             model_ctrl->setupExecution(*inletport, this);
-            control->value = model_ctrl->value();
             control->changed = true;
 
-            // TODO assert that we aren't going to connect twice
-            QObject::connect(
-                model_ctrl, &Process::ControlInlet::valueChanged, this,
-                Gfx::con_unvalidated{ctx, control_index, script_index, weak_node});
+            // TODO assert that we aren't going to connect UI -> exec twice
 
+            if(auto ctrl = model_ctrl; qobject_cast<Process::FileChooserBase*>(ctrl))
+            {
+              connect(
+                  ctrl, &Process::ControlInlet::valueChanged, this,
+                  [&ctx, control_index, script_index,
+                   weak_node](const ossia::value& val) {
+                if(auto str = val.target<std::string>())
+                {
+                  auto path = score::locateFilePath(
+                      QString::fromStdString(*str).trimmed(), ctx.doc);
+                  Gfx::con_unvalidated{ctx, control_index, script_index, weak_node}(
+                      path.toStdString());
+                }
+              });
+              control->value = model_ctrl->value();
+              if(auto str = model_ctrl->value().target<std::string>())
+              {
+                auto path = score::locateFilePath(
+                    QString::fromStdString(*str).trimmed(), ctx.doc);
+                control->value = path.toStdString();
+              }
+            }
+            else
+            {
+              QObject::connect(
+                  model_ctrl, &Process::ControlInlet::valueChanged, this,
+                  Gfx::con_unvalidated{ctx, control_index, script_index, weak_node});
+              control->value = model_ctrl->value();
+            }
             // FIXME initial control state
             // controlSetups.push_back([/* node, val = ctrl->value(), idx */] {
             //   // node->setControl(idx, val.apply(ossia::qt::ossia_to_qvariant{}));
@@ -241,7 +270,10 @@ Component::on_gpuScriptChange(const QString& script, Execution::Transaction& com
         }
         else if([[maybe_unused]] auto tex_in = qobject_cast<TextureInlet*>(inlet))
         {
-          inls.push_back(new ossia::texture_inlet);
+          auto model_port = process().inlets()[inlet_idx];
+          auto p = new ossia::texture_inlet;
+          inls.push_back(p);
+          model_port->setupExecution(*p, this);
         }
         /*
         if(auto ctrl_in = qobject_cast<ControlInlet*>(n))
@@ -322,8 +354,8 @@ Component::on_gpuScriptChange(const QString& script, Execution::Transaction& com
 
         if(inlet)
           inlet_idx++;
-        // else if(outlet)
-        //   outlet_idx++;
+        else if(outlet)
+          outlet_idx++;
       }
     }
     else
@@ -384,6 +416,30 @@ Component::on_cpuScriptChange(const QString& script, Execution::Transaction& com
                 ctrl, &Process::ControlInlet::valueChanged, this,
                 [this, node, idx](const ossia::value& val) {
               in_exec([node, idx] { node->impulse(idx); });
+            });
+          }
+          else if(
+              [[maybe_unused]] auto impulse
+              = qobject_cast<Process::FileChooserBase*>(ctrl))
+          {
+            connect(
+                ctrl, &Process::ControlInlet::valueChanged, this,
+                [&ctx = system().context().doc, node, idx](const ossia::value& val) {
+              if(auto str = val.target<std::string>())
+              {
+                auto path
+                    = score::locateFilePath(QString::fromStdString(*str).trimmed(), ctx);
+                node->setControl(idx, path);
+              }
+            });
+            controlSetups.push_back(
+                [&ctx = system().context().doc, node, val = ctrl->value(), idx] {
+              if(auto str = val.target<std::string>())
+              {
+                auto path
+                    = score::locateFilePath(QString::fromStdString(*str).trimmed(), ctx);
+                node->setControl(idx, path);
+              }
             });
           }
           else
