@@ -145,6 +145,9 @@ void RenderList::release()
 
 void RenderList::releaseBuffer(QRhiBuffer* buf)
 {
+  if(!buf)
+    return;
+
   for(auto& vb : m_vertexBuffers)
   {
     // It will be deleted later.
@@ -153,11 +156,8 @@ void RenderList::releaseBuffer(QRhiBuffer* buf)
         return;
   }
 
-  if(buf)
-  {
-    buf->destroy();
-    buf->deleteLater();
-  }
+  buf->destroy();
+  buf->deleteLater();
 }
 
 bool RenderList::maybeRebuild(bool force)
