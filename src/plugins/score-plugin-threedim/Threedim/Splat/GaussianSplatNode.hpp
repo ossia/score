@@ -115,17 +115,20 @@ private:
   QRhiBuffer* m_sortKeysAltBuffer{};      // Double buffer for key ping-pong
   QRhiBuffer* m_sortIndicesBuffer{};      // Sorted indices
   QRhiBuffer* m_sortIndicesAltBuffer{};   // Double buffer for index ping-pong
-  QRhiBuffer* m_statusBuffer{};           // Onesweep lookback status + tile counters
+  QRhiBuffer* m_histogramBuffer{};        // Histogram for radix sort
   QRhiBuffer* m_sortUniformBuffer{};      // Depth key pass uniforms
-  QRhiBuffer* m_sortPassUniformBuffer{};  // Fused sort pass uniforms
-  QRhiBuffer* m_clearUniformBuffer{};     // Clear pass uniforms
+  QRhiBuffer* m_sortPassUniformBuffer{};  // Histogram/scatter/prefix uniforms
+  QRhiBuffer* m_prefixSumUniformBuffer{}; // Prefix sum uniforms
 
   QRhiComputePipeline* m_depthKeyPipeline{};
-  QRhiComputePipeline* m_clearPipeline{};
+  QRhiComputePipeline* m_histogramPipeline{};
+  QRhiComputePipeline* m_prefixSumPipeline{};
   QRhiComputePipeline* m_sortPipeline{};
 
   QRhiShaderResourceBindings* m_depthKeySrb{};
-  QRhiShaderResourceBindings* m_clearSrb{};
+  QRhiShaderResourceBindings* m_histogramSrb{};
+  QRhiShaderResourceBindings* m_histogramSrbAlt{}; // For odd passes
+  QRhiShaderResourceBindings* m_prefixSumSrb{};
   QRhiShaderResourceBindings* m_sortSrb{};
   QRhiShaderResourceBindings* m_sortSrbAlt{}; // For ping-pong
 
@@ -411,158 +414,188 @@ void main() {
 )_";
 
 /**
- * Compute shader: Clear buffer (zeros all entries)
+ * Compute shader: Histogram counting for radix sort
+ * Counts occurrences of each digit value
  */
-static constexpr auto clear_shader = R"_(#version 450
+static constexpr auto histogram_shader = R"_(#version 450
 layout(local_size_x = 256) in;
 
-layout(std430, binding = 0) writeonly buffer Buf { uint data[]; };
-layout(std140, binding = 1) uniform Params { uint count; uint _p0; uint _p1; uint _p2; };
+layout(std430, binding = 0) readonly buffer KeyBuffer {
+    uint keys[];
+};
+
+layout(std430, binding = 1) buffer HistogramBuffer {
+    uint histogram[]; // 256 buckets * num_workgroups
+};
+
+layout(std140, binding = 2) uniform Params {
+    uint splatCount;
+    uint bitOffset;   // Which 8 bits to sort (0, 8, 16, 24)
+    uint numWorkgroups;
+    uint _pad;
+};
+
+shared uint localHistogram[256];
 
 void main() {
-    uint gid = gl_GlobalInvocationID.x;
-    if (gid < count) data[gid] = 0u;
+    uint localId = gl_LocalInvocationID.x;
+    uint globalId = gl_GlobalInvocationID.x;
+    uint workgroupId = gl_WorkGroupID.x;
+
+    // Clear local histogram
+    localHistogram[localId] = 0;
+    barrier();
+
+    // Count digits in this workgroup
+    if (globalId < splatCount) {
+        uint key = keys[globalId];
+        uint digit = (key >> bitOffset) & 0xFFu;
+        atomicAdd(localHistogram[digit], 1);
+    }
+    barrier();
+
+    // Write local histogram to global memory
+    histogram[workgroupId * 256 + localId] = localHistogram[localId];
 }
 )_";
 
 /**
- * Compute shader: Fused radix sort pass (Onesweep-style)
- *
- * Combines histogram, prefix sum, and scatter into a single dispatch
- * using a decoupled lookback protocol for inter-workgroup prefix computation.
- *
- * Each workgroup:
- *   1. Counts local histogram (shared memory)
- *   2. Publishes local partial counts to global status buffer
- *   3. Looks backward through status buffer to compute global prefix
- *   4. Scatters elements to sorted positions using deterministic rank
- *
- * Dynamic tile assignment ensures tiles are processed in scheduling order,
- * preventing deadlock in the lookback spin-wait.
- *
- * Status buffer layout per pass:
- *   statusBuf[tileCounterIdx]: atomic tile counter
- *   statusBuf[statusOffset + tile*256 + digit]: packed (flag|count)
- *     flag bits 31-30: 0=not ready, 1=local partial, 2=inclusive prefix
- *     count bits 29-0: element count (max ~1 billion)
+ * Compute shader: Prefix sum and scatter for radix sort
+ * Computes exclusive prefix sum and scatters elements to sorted positions
  */
-static constexpr auto fused_sort_shader = R"_(#version 450
+static constexpr auto sort_scatter_shader = R"_(#version 450
 layout(local_size_x = 256) in;
 
-layout(std430, binding = 0) readonly buffer KeyBufferIn { uint keysIn[]; };
-layout(std430, binding = 1) readonly buffer IndexBufferIn { uint indicesIn[]; };
-layout(std430, binding = 2) writeonly buffer KeyBufferOut { uint keysOut[]; };
-layout(std430, binding = 3) writeonly buffer IndexBufferOut { uint indicesOut[]; };
-layout(std430, binding = 4) coherent buffer StatusBuffer { uint statusBuf[]; };
+layout(std430, binding = 0) readonly buffer KeyBufferIn {
+    uint keysIn[];
+};
+
+layout(std430, binding = 1) readonly buffer IndexBufferIn {
+    uint indicesIn[];
+};
+
+layout(std430, binding = 2) writeonly buffer KeyBufferOut {
+    uint keysOut[];
+};
+
+layout(std430, binding = 3) writeonly buffer IndexBufferOut {
+    uint indicesOut[];
+};
+
+layout(std430, binding = 4) buffer HistogramBuffer {
+    uint histogram[]; // Global prefix sums
+};
 
 layout(std140, binding = 5) uniform Params {
     uint splatCount;
     uint bitOffset;
     uint numWorkgroups;
-    uint statusOffset;    // offset into statusBuf for this pass's status entries
-    uint tileCounterIdx;  // index into statusBuf for this pass's tile counter
-    uint _pad0, _pad1, _pad2;
+    uint _pad;
 };
 
-const uint FLAG_LOCAL  = 1u << 30;
-const uint FLAG_PREFIX = 2u << 30;
-const uint FLAG_MASK   = 3u << 30;
-const uint COUNT_MASK  = ~FLAG_MASK;
-
-shared uint sharedTileId;
-shared uint localHist[256];
 shared uint localDigits[256];
-shared uint exclusiveBase[256];
+shared uint localOffset[256];
 
 void main() {
     uint localId = gl_LocalInvocationID.x;
+    uint globalId = gl_GlobalInvocationID.x;
+    uint workgroupId = gl_WorkGroupID.x;
 
-    // Dynamic tile assignment: first-scheduled workgroup gets tile 0, etc.
-    // Prevents deadlock by ensuring predecessor tiles are already running.
-    if (localId == 0u) {
-        sharedTileId = atomicAdd(statusBuf[tileCounterIdx], 1u);
-    }
-    barrier();
+    // Load global prefix sum for this workgroup's digit
+    localOffset[localId] = histogram[workgroupId * 256 + localId];
 
-    uint myTile = sharedTileId;
-    uint globalId = myTile * 256u + localId;
-
-    // ── Step 1: Local histogram ───────────────────────────────────────────
-    localHist[localId] = 0u;
-    barrier();
-
-    uint key = 0u, idx = 0u, digit = 256u;
+    // Load this thread's element
+    uint key = 0u;
+    uint idx = 0u;
+    uint digit = 256u; // invalid sentinel (> any real digit)
     bool valid = globalId < splatCount;
     if (valid) {
         key = keysIn[globalId];
         idx = indicesIn[globalId];
         digit = (key >> bitOffset) & 0xFFu;
-        atomicAdd(localHist[digit], 1u);
     }
-    barrier();
-
-    // ── Step 2: Decoupled lookback for global prefix ──────────────────────
-    // Each thread handles one digit (thread localId → digit localId).
-    uint myDigitCount = localHist[localId];
-    uint statusIdx = statusOffset + myTile * 256u + localId;
-
-    if (myTile == 0u) {
-        // First tile: exclusive prefix is 0
-        exclusiveBase[localId] = 0u;
-        // Publish inclusive prefix
-        atomicExchange(statusBuf[statusIdx], FLAG_PREFIX | myDigitCount);
-    } else {
-        // Publish local partial
-        atomicExchange(statusBuf[statusIdx], FLAG_LOCAL | myDigitCount);
-        memoryBarrierBuffer();
-
-        // Look backward to accumulate prefix
-        uint exclusive = 0u;
-        int lookback = int(myTile) - 1;
-        while (lookback >= 0) {
-            uint lookIdx = statusOffset + uint(lookback) * 256u + localId;
-            uint val = atomicOr(statusBuf[lookIdx], 0u); // atomic read
-            uint flag = val & FLAG_MASK;
-            uint count = val & COUNT_MASK;
-
-            if (flag == FLAG_PREFIX) {
-                // Found inclusive prefix — done
-                exclusive += count;
-                break;
-            } else if (flag == FLAG_LOCAL) {
-                // Found local partial — accumulate and continue
-                exclusive += count;
-                lookback--;
-            }
-            // else: not ready yet — spin (re-read same entry)
-        }
-
-        exclusiveBase[localId] = exclusive;
-
-        // Publish inclusive prefix for subsequent tiles
-        uint inclusive = exclusive + myDigitCount;
-        atomicExchange(statusBuf[statusIdx], FLAG_PREFIX | inclusive);
-    }
-    memoryBarrierBuffer();
-    barrier();
-
-    // ── Step 3: Scatter using deterministic rank ──────────────────────────
     localDigits[localId] = digit;
     barrier();
 
     if (valid) {
-        // Stable rank: count preceding threads with the same digit
+        // Stable rank: count threads with LOWER ID that share the same digit.
+        // This is deterministic (no atomicAdd race), so the sort is stable
+        // and identical across frames — eliminates flickering.
         uint rank = 0u;
         for (uint i = 0u; i < localId; i++) {
             if (localDigits[i] == digit)
                 rank++;
         }
 
-        uint pos = exclusiveBase[digit] + rank;
-        if (pos < splatCount) {
-            keysOut[pos] = key;
-            indicesOut[pos] = idx;
+        uint globalPos = localOffset[digit] + rank;
+        if (globalPos < splatCount) {
+            keysOut[globalPos] = key;
+            indicesOut[globalPos] = idx;
         }
+    }
+}
+)_";
+
+/**
+ * Compute shader: Global prefix sum on histogram
+ * Converts per-workgroup histograms to global exclusive prefix sums.
+ *
+ * Histogram layout: histogram[workgroup * 256 + digit]
+ *
+ * The output for each (workgroup, digit) pair must be the global position
+ * where that workgroup should start placing elements with that digit.
+ * This requires accounting for:
+ *   1. All elements with smaller digits (across ALL workgroups)
+ *   2. Same-digit elements from earlier workgroups
+ *
+ * Dispatch: (1, 1, 1) — single workgroup of 256 threads, one per digit.
+ */
+static constexpr auto prefix_sum_shader = R"_(#version 450
+layout(local_size_x = 256) in;
+
+layout(std430, binding = 0) buffer HistogramBuffer {
+    uint histogram[]; // Layout: histogram[workgroup * 256 + digit]
+};
+
+layout(std140, binding = 1) uniform Params {
+    uint numWorkgroups;
+    uint _pad0;
+    uint _pad1;
+    uint _pad2;
+};
+
+shared uint digitTotal[256];
+shared uint digitPrefix[256];
+
+void main() {
+    uint digit = gl_LocalInvocationID.x; // 0-255, one thread per digit
+
+    // Step 1: Sum all workgroup counts for this digit
+    uint total = 0;
+    for (uint wg = 0; wg < numWorkgroups; wg++) {
+        total += histogram[wg * 256 + digit];
+    }
+    digitTotal[digit] = total;
+    barrier();
+
+    // Step 2: Thread 0 computes exclusive prefix sum across all digits
+    // This determines the global starting offset for each digit bucket
+    if (digit == 0) {
+        digitPrefix[0] = 0;
+        for (uint d = 1; d < 256; d++) {
+            digitPrefix[d] = digitPrefix[d-1] + digitTotal[d-1];
+        }
+    }
+    barrier();
+
+    // Step 3: Convert per-workgroup counts to global offsets
+    // For each workgroup: offset = digitPrefix[digit] + sum of same-digit counts in earlier workgroups
+    uint running = digitPrefix[digit];
+    for (uint wg = 0; wg < numWorkgroups; wg++) {
+        uint idx = wg * 256 + digit;
+        uint val = histogram[idx];
+        histogram[idx] = running;
+        running += val;
     }
 }
 )_";

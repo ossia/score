@@ -220,9 +220,7 @@ void GaussianSplatRenderer::createSortPipelines(RenderList& renderer)
       = (splatCount + SORT_WORKGROUP_SIZE - 1) / SORT_WORKGROUP_SIZE;
   const int64_t keyBufferSize = splatCount * sizeof(uint32_t);
   const int64_t indexBufferSize = splatCount * sizeof(uint32_t);
-  // Status buffer: 2 tile counters + 2 passes × numWorkgroups × 256 status entries
-  const int64_t statusEntries = 2 + 2 * numWorkgroups * NUM_BUCKETS;
-  const int64_t statusBufferSize = statusEntries * sizeof(uint32_t);
+  const int64_t histogramSize = numWorkgroups * NUM_BUCKETS * sizeof(uint32_t);
 
   auto createOrResizeBuffer
       = [&](QRhiBuffer*& buf, int64_t size, QRhiBuffer::UsageFlags usage) {
@@ -242,7 +240,7 @@ void GaussianSplatRenderer::createSortPipelines(RenderList& renderer)
   createOrResizeBuffer(
       m_sortIndicesAltBuffer, indexBufferSize, QRhiBuffer::StorageBuffer);
   createOrResizeBuffer(
-      m_statusBuffer, statusBufferSize, QRhiBuffer::StorageBuffer);
+      m_histogramBuffer, histogramSize, QRhiBuffer::StorageBuffer);
 
   // Depth key pass uses its own uniform layout: {mat4 view, uint splatCount, float near, float far, uint pad}
   if(!m_sortUniformBuffer)
@@ -252,36 +250,40 @@ void GaussianSplatRenderer::createSortPipelines(RenderList& renderer)
     m_sortUniformBuffer->create();
   }
 
-  // Fused sort pass uniforms (8 uints = 32 bytes)
+  // Histogram/scatter passes use: {uint splatCount, uint bitOffset, uint numWorkgroups, uint pad}
   if(!m_sortPassUniformBuffer)
   {
     m_sortPassUniformBuffer
-        = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 32);
+        = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 16);
     m_sortPassUniformBuffer->create();
   }
 
-  // Clear pass uniforms (4 uints = 16 bytes)
-  if(!m_clearUniformBuffer)
+  // Prefix sum pass uses: {uint numWorkgroups, uint pad0, uint pad1, uint pad2}
+  if(!m_prefixSumUniformBuffer)
   {
-    m_clearUniformBuffer
+    m_prefixSumUniformBuffer
         = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 16);
-    m_clearUniformBuffer->create();
+    m_prefixSumUniformBuffer->create();
   }
 
   // Compile compute shaders
   QShader depthKeyShader = score::gfx::makeCompute(
       renderer.state, GaussianSplatShaders::depth_key_shader);
-  QShader clearShader = score::gfx::makeCompute(
-      renderer.state, GaussianSplatShaders::clear_shader);
-  QShader fusedSortShader = score::gfx::makeCompute(
-      renderer.state, GaussianSplatShaders::fused_sort_shader);
+  QShader histogramShader = score::gfx::makeCompute(
+      renderer.state, GaussianSplatShaders::histogram_shader);
+  QShader prefixSumShader = score::gfx::makeCompute(
+      renderer.state, GaussianSplatShaders::prefix_sum_shader);
+  QShader sortScatterShader = score::gfx::makeCompute(
+      renderer.state, GaussianSplatShaders::sort_scatter_shader);
 
   if(!depthKeyShader.isValid())
     qWarning() << "[GaussianSplat] depth_key_shader compilation FAILED";
-  if(!clearShader.isValid())
-    qWarning() << "[GaussianSplat] clear_shader compilation FAILED";
-  if(!fusedSortShader.isValid())
-    qWarning() << "[GaussianSplat] fused_sort_shader compilation FAILED";
+  if(!histogramShader.isValid())
+    qWarning() << "[GaussianSplat] histogram_shader compilation FAILED";
+  if(!prefixSumShader.isValid())
+    qWarning() << "[GaussianSplat] prefix_sum_shader compilation FAILED";
+  if(!sortScatterShader.isValid())
+    qWarning() << "[GaussianSplat] sort_scatter_shader compilation FAILED";
 
   // Depth key pipeline — reads from compact m_renderSplatBuffer
   delete m_depthKeySrb;
@@ -307,27 +309,61 @@ void GaussianSplatRenderer::createSortPipelines(RenderList& renderer)
   if(!m_depthKeyPipeline->create())
     qWarning() << "[GaussianSplat] depthKey pipeline creation FAILED";
 
-  // Clear pipeline — zeros the status buffer
-  delete m_clearSrb;
-  delete m_clearPipeline;
+  // Histogram pipeline (two SRBs for ping-pong: even reads keysBuffer, odd reads keysAltBuffer)
+  delete m_histogramSrb;
+  delete m_histogramSrbAlt;
+  delete m_histogramPipeline;
 
-  m_clearSrb = rhi.newShaderResourceBindings();
-  m_clearSrb->setBindings({
+  m_histogramSrb = rhi.newShaderResourceBindings();
+  m_histogramSrb->setBindings({
+      QRhiShaderResourceBinding::bufferLoad(
+          0, QRhiShaderResourceBinding::ComputeStage, m_sortKeysBuffer),
       QRhiShaderResourceBinding::bufferLoadStore(
-          0, QRhiShaderResourceBinding::ComputeStage, m_statusBuffer),
+          1, QRhiShaderResourceBinding::ComputeStage, m_histogramBuffer),
       QRhiShaderResourceBinding::uniformBuffer(
-          1, QRhiShaderResourceBinding::ComputeStage, m_clearUniformBuffer),
+          2, QRhiShaderResourceBinding::ComputeStage, m_sortPassUniformBuffer),
   });
-  m_clearSrb->create();
+  m_histogramSrb->create();
 
-  m_clearPipeline = rhi.newComputePipeline();
-  m_clearPipeline->setShaderResourceBindings(m_clearSrb);
-  m_clearPipeline->setShaderStage(
-      {QRhiShaderStage::Compute, clearShader});
-  if(!m_clearPipeline->create())
-    qWarning() << "[GaussianSplat] clear pipeline creation FAILED";
+  m_histogramSrbAlt = rhi.newShaderResourceBindings();
+  m_histogramSrbAlt->setBindings({
+      QRhiShaderResourceBinding::bufferLoad(
+          0, QRhiShaderResourceBinding::ComputeStage, m_sortKeysAltBuffer),
+      QRhiShaderResourceBinding::bufferLoadStore(
+          1, QRhiShaderResourceBinding::ComputeStage, m_histogramBuffer),
+      QRhiShaderResourceBinding::uniformBuffer(
+          2, QRhiShaderResourceBinding::ComputeStage, m_sortPassUniformBuffer),
+  });
+  m_histogramSrbAlt->create();
 
-  // Fused sort pipeline (ping-pong: separate read/write buffers)
+  m_histogramPipeline = rhi.newComputePipeline();
+  m_histogramPipeline->setShaderResourceBindings(m_histogramSrb);
+  m_histogramPipeline->setShaderStage(
+      {QRhiShaderStage::Compute, histogramShader});
+  if(!m_histogramPipeline->create())
+    qWarning() << "[GaussianSplat] histogram pipeline creation FAILED";
+
+  // Prefix sum pipeline
+  delete m_prefixSumSrb;
+  delete m_prefixSumPipeline;
+
+  m_prefixSumSrb = rhi.newShaderResourceBindings();
+  m_prefixSumSrb->setBindings({
+      QRhiShaderResourceBinding::bufferLoadStore(
+          0, QRhiShaderResourceBinding::ComputeStage, m_histogramBuffer),
+      QRhiShaderResourceBinding::uniformBuffer(
+          1, QRhiShaderResourceBinding::ComputeStage, m_prefixSumUniformBuffer),
+  });
+  m_prefixSumSrb->create();
+
+  m_prefixSumPipeline = rhi.newComputePipeline();
+  m_prefixSumPipeline->setShaderResourceBindings(m_prefixSumSrb);
+  m_prefixSumPipeline->setShaderStage(
+      {QRhiShaderStage::Compute, prefixSumShader});
+  if(!m_prefixSumPipeline->create())
+    qWarning() << "[GaussianSplat] prefixSum pipeline creation FAILED";
+
+  // Sort scatter pipeline (ping-pong: separate read/write buffers)
   delete m_sortSrb;
   delete m_sortSrbAlt;
   delete m_sortPipeline;
@@ -344,7 +380,7 @@ void GaussianSplatRenderer::createSortPipelines(RenderList& renderer)
       QRhiShaderResourceBinding::bufferLoadStore(
           3, QRhiShaderResourceBinding::ComputeStage, m_sortIndicesAltBuffer),
       QRhiShaderResourceBinding::bufferLoadStore(
-          4, QRhiShaderResourceBinding::ComputeStage, m_statusBuffer),
+          4, QRhiShaderResourceBinding::ComputeStage, m_histogramBuffer),
       QRhiShaderResourceBinding::uniformBuffer(
           5, QRhiShaderResourceBinding::ComputeStage, m_sortPassUniformBuffer),
   });
@@ -362,7 +398,7 @@ void GaussianSplatRenderer::createSortPipelines(RenderList& renderer)
       QRhiShaderResourceBinding::bufferLoadStore(
           3, QRhiShaderResourceBinding::ComputeStage, m_sortIndicesBuffer),
       QRhiShaderResourceBinding::bufferLoadStore(
-          4, QRhiShaderResourceBinding::ComputeStage, m_statusBuffer),
+          4, QRhiShaderResourceBinding::ComputeStage, m_histogramBuffer),
       QRhiShaderResourceBinding::uniformBuffer(
           5, QRhiShaderResourceBinding::ComputeStage, m_sortPassUniformBuffer),
   });
@@ -371,7 +407,7 @@ void GaussianSplatRenderer::createSortPipelines(RenderList& renderer)
   m_sortPipeline = rhi.newComputePipeline();
   m_sortPipeline->setShaderResourceBindings(m_sortSrb);
   m_sortPipeline->setShaderStage(
-      {QRhiShaderStage::Compute, fusedSortShader});
+      {QRhiShaderStage::Compute, sortScatterShader});
   if(!m_sortPipeline->create())
     qWarning() << "[GaussianSplat] sort pipeline creation FAILED";
 
@@ -788,7 +824,7 @@ void GaussianSplatRenderer::runInitialPasses(
 
   // ── Pass 2..N: Depth sort ─────────────────────────────────────────────
   if(!m_node.enableSorting || !m_sortResourcesCreated || !m_depthKeyPipeline
-     || !m_clearPipeline)
+     || !m_prefixSumPipeline)
   {
     static bool loggedSkip = false;
     if(!loggedSkip)
@@ -797,7 +833,7 @@ void GaussianSplatRenderer::runInitialPasses(
                << "enableSorting=" << m_node.enableSorting
                << "sortResourcesCreated=" << m_sortResourcesCreated
                << "depthKeyPipeline=" << (void*)m_depthKeyPipeline
-               << "clearPipeline=" << (void*)m_clearPipeline;
+               << "prefixSumPipeline=" << (void*)m_prefixSumPipeline;
       loggedSkip = true;
     }
     return;
@@ -814,60 +850,72 @@ void GaussianSplatRenderer::runInitialPasses(
 
   cb.endComputePass();
 
-  // ── Clear status buffer (one dispatch for both sort passes) ──────────
+  // Upload prefix sum uniforms (constant across all passes)
   {
-    const int64_t statusEntries = 2 + 2 * numWorkgroups * NUM_BUCKETS;
-    struct { uint32_t count; uint32_t _p0, _p1, _p2; } clearUniforms;
-    clearUniforms.count = statusEntries;
-    clearUniforms._p0 = clearUniforms._p1 = clearUniforms._p2 = 0;
-
     res = rhi.nextResourceUpdateBatch();
-    res->updateDynamicBuffer(
-        m_clearUniformBuffer, 0, sizeof(clearUniforms), &clearUniforms);
-
-    const int64_t clearWGs = (statusEntries + SORT_WORKGROUP_SIZE - 1) / SORT_WORKGROUP_SIZE;
-    cb.beginComputePass(res);
-    res = nullptr;
-    cb.setComputePipeline(m_clearPipeline);
-    cb.setShaderResources(m_clearSrb);
-    cb.dispatch(clearWGs, 1, 1);
-    cb.endComputePass();
-  }
-
-  // ── Fused radix sort: 2 passes over the top 16 bits (depth key) ────
-  // Each pass is a single dispatch using decoupled lookback.
-  // Status buffer layout:
-  //   [0]: tile counter for pass 0
-  //   [1]: tile counter for pass 1
-  //   [2 .. 2+N*256-1]: status entries for pass 0
-  //   [2+N*256 .. 2+2*N*256-1]: status entries for pass 1
-  for(int pass = 0; pass < 2; ++pass)
-  {
-    const uint32_t bitOffset = 16 + pass * RADIX_BITS;
-    const uint32_t statusOffset = 2 + pass * numWorkgroups * NUM_BUCKETS;
-    const uint32_t tileCounterIdx = pass;
-
     struct
     {
-      uint32_t splatCount;
-      uint32_t bitOffset;
       uint32_t numWorkgroups;
-      uint32_t statusOffset;
-      uint32_t tileCounterIdx;
-      uint32_t _pad0, _pad1, _pad2;
-    } sortPassUniforms;
-    sortPassUniforms.splatCount = splatCount;
-    sortPassUniforms.bitOffset = bitOffset;
-    sortPassUniforms.numWorkgroups = numWorkgroups;
-    sortPassUniforms.statusOffset = statusOffset;
-    sortPassUniforms.tileCounterIdx = tileCounterIdx;
-    sortPassUniforms._pad0 = sortPassUniforms._pad1 = sortPassUniforms._pad2 = 0;
-
-    if(!res)
-      res = rhi.nextResourceUpdateBatch();
+      uint32_t _pad0;
+      uint32_t _pad1;
+      uint32_t _pad2;
+    } prefixUniforms;
+    prefixUniforms.numWorkgroups = numWorkgroups;
+    prefixUniforms._pad0 = 0;
+    prefixUniforms._pad1 = 0;
+    prefixUniforms._pad2 = 0;
     res->updateDynamicBuffer(
-        m_sortPassUniformBuffer, 0, sizeof(sortPassUniforms), &sortPassUniforms);
+        m_prefixSumUniformBuffer, 0, sizeof(prefixUniforms), &prefixUniforms);
+    // Will be consumed by the first histogram pass below
+  }
 
+  // Radix sort: 2 passes over the top 16 bits (depth key).
+  // Bottom 16 bits (splat index) are already in order from the depth key shader,
+  // and the radix sort is stable, so equal-depth splats keep their index order.
+  for(int pass = 0; pass < 2; ++pass)
+  {
+    const uint32_t bitOffset = 16 + pass * RADIX_BITS; // bits 16-23, then 24-31
+
+    // Upload per-pass uniforms for histogram + scatter
+    {
+      struct
+      {
+        uint32_t splatCount;
+        uint32_t bitOffset;
+        uint32_t numWorkgroups;
+        uint32_t _pad;
+      } sortPassUniforms;
+      sortPassUniforms.splatCount = splatCount;
+      sortPassUniforms.bitOffset = bitOffset;
+      sortPassUniforms.numWorkgroups = numWorkgroups;
+      sortPassUniforms._pad = 0;
+
+      if(!res)
+        res = rhi.nextResourceUpdateBatch();
+      res->updateDynamicBuffer(
+          m_sortPassUniformBuffer, 0, sizeof(sortPassUniforms),
+          &sortPassUniforms);
+    }
+
+    // Histogram: count digits per workgroup
+    // Even passes read from keysBuffer, odd from keysAltBuffer
+    cb.beginComputePass(res);
+    res = nullptr;
+    cb.setComputePipeline(m_histogramPipeline);
+    cb.setShaderResources(pass % 2 == 0 ? m_histogramSrb : m_histogramSrbAlt);
+    cb.dispatch(numWorkgroups, 1, 1);
+    cb.endComputePass();
+
+    // Prefix sum: convert per-workgroup histograms to global prefix sums
+    // Single workgroup of 256 threads (one per digit)
+    cb.beginComputePass(res);
+    res = nullptr;
+    cb.setComputePipeline(m_prefixSumPipeline);
+    cb.setShaderResources(m_prefixSumSrb);
+    cb.dispatch(1, 1, 1);
+    cb.endComputePass();
+
+    // Scatter: reorder keys+indices using prefix sums (ping-pong)
     cb.beginComputePass(res);
     res = nullptr;
     cb.setComputePipeline(m_sortPipeline);
@@ -964,30 +1012,36 @@ void GaussianSplatRenderer::release(RenderList& r)
   delete m_sortKeysAltBuffer;
   delete m_sortIndicesBuffer;
   delete m_sortIndicesAltBuffer;
-  delete m_statusBuffer;
+  delete m_histogramBuffer;
   delete m_sortUniformBuffer;
   delete m_sortPassUniformBuffer;
-  delete m_clearUniformBuffer;
+  delete m_prefixSumUniformBuffer;
   delete m_depthKeyPipeline;
-  delete m_clearPipeline;
+  delete m_histogramPipeline;
+  delete m_prefixSumPipeline;
   delete m_sortPipeline;
   delete m_depthKeySrb;
-  delete m_clearSrb;
+  delete m_histogramSrb;
+  delete m_histogramSrbAlt;
+  delete m_prefixSumSrb;
   delete m_sortSrb;
   delete m_sortSrbAlt;
   m_sortKeysBuffer = nullptr;
   m_sortKeysAltBuffer = nullptr;
   m_sortIndicesBuffer = nullptr;
   m_sortIndicesAltBuffer = nullptr;
-  m_statusBuffer = nullptr;
+  m_histogramBuffer = nullptr;
   m_sortUniformBuffer = nullptr;
   m_sortPassUniformBuffer = nullptr;
-  m_clearUniformBuffer = nullptr;
+  m_prefixSumUniformBuffer = nullptr;
   m_depthKeyPipeline = nullptr;
-  m_clearPipeline = nullptr;
+  m_histogramPipeline = nullptr;
+  m_prefixSumPipeline = nullptr;
   m_sortPipeline = nullptr;
   m_depthKeySrb = nullptr;
-  m_clearSrb = nullptr;
+  m_histogramSrb = nullptr;
+  m_histogramSrbAlt = nullptr;
+  m_prefixSumSrb = nullptr;
   m_sortSrb = nullptr;
   m_sortSrbAlt = nullptr;
   m_sortResourcesCreated = false;
