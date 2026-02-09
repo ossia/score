@@ -50,14 +50,16 @@ add_library(
   score_plugin_threedim
   Threedim/ModelDisplay/ModelDisplayNode.hpp
   Threedim/ModelDisplay/ModelDisplayNode.cpp
-  
+
   Threedim/RenderPipeline/RenderPipelineNode.hpp
   Threedim/RenderPipeline/RenderPipelineNode.cpp
-  
+
   Threedim/ArrayToTexture.hpp
   Threedim/ArrayToTexture.cpp
   Threedim/ArrayToGeometry.hpp
   Threedim/ArrayToGeometry.cpp
+  Threedim/BufferLoader.hpp
+  Threedim/BufferLoader.cpp
   Threedim/BufferToGeometry.hpp
   Threedim/BufferToGeometry.cpp
   Threedim/GeometryInfo.hpp
@@ -88,15 +90,22 @@ add_library(
   Threedim/ModelDisplay/Metadata.hpp
   Threedim/ModelDisplay/Process.hpp
   Threedim/ModelDisplay/Process.cpp
-  Threedim/ModelDisplay/Layer.hpp
-  
+
   Threedim/RenderPipeline/Executor.hpp
   Threedim/RenderPipeline/Executor.cpp
   Threedim/RenderPipeline/Metadata.hpp
   Threedim/RenderPipeline/Process.hpp
   Threedim/RenderPipeline/Process.cpp
   Threedim/RenderPipeline/Layer.hpp
-  
+
+  Threedim/Splat/Executor.hpp
+  Threedim/Splat/Executor.cpp
+  Threedim/Splat/Metadata.hpp
+  Threedim/Splat/Process.hpp
+  Threedim/Splat/Process.cpp
+  Threedim/Splat/GaussianSplatNode.hpp
+  Threedim/Splat/GaussianSplatNode.cpp
+
   "${3RDPARTY_FOLDER}/miniply/miniply.cpp"
   score_plugin_threedim.hpp
   score_plugin_threedim.cpp)
