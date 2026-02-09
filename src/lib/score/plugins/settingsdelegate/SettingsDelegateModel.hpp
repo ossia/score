@@ -1,5 +1,6 @@
 #pragma once
 #include <score/command/SettingsCommand.hpp>
+#include <score/plugins/UuidKey.hpp>
 
 #include <ossia/detail/for_each_in_tuple.hpp>
 
