@@ -12,7 +12,9 @@
 #include <rnd/random.hpp>
 #include <tuplet/tuple.hpp>
 
+#include <numbers>
 #include <random>
+
 namespace Nodes::LFO::v2
 {
 struct Node
@@ -108,7 +110,7 @@ struct Node
     const auto ph_delta = elapsed * freq * sine_ratio;
 
     {
-      auto ph = this->phase;
+      auto ph = this->phase * std::numbers::pi;
       if(jitter > 0)
       {
         ph += std::normal_distribution<float>(0., 0.25)(this->rd) * jitter;
