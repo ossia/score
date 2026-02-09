@@ -23,7 +23,9 @@ class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT Model : public score::SettingsDelegateM
   QString m_LogLevel;
 
 public:
-  Model(QSettings& set, const score::ApplicationContext& ctx);
+  Model(
+      const UuidKey<score::SettingsDelegateFactory>& k, QSettings& set,
+      const score::ApplicationContext& ctx);
 
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, bool, LocalTree)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, QString, LogLevel)

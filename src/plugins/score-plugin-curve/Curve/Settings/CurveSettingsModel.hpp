@@ -30,7 +30,9 @@ class SCORE_PLUGIN_CURVE_EXPORT Model : public score::SettingsDelegateModel
   W_OBJECT(Model)
 
 public:
-  Model(QSettings& set, const score::ApplicationContext& ctx);
+  Model(
+      const UuidKey<score::SettingsDelegateFactory>& k, QSettings& set,
+      const score::ApplicationContext& ctx);
 
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_CURVE_EXPORT, int, SimplificationRatio)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_CURVE_EXPORT, bool, Simplify)

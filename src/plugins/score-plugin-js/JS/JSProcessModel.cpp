@@ -180,8 +180,7 @@ QQuickItem* ProcessModel::createItemForUI(const score::DocumentContext& ctx) con
     });
   }
 
-  connect(script, &ScriptUI::executionSend,
-          this, [self] (const QJSValue& v) {
+  connect(script, &ScriptUI::executionSend, this, [self](const QJSValue& v) {
     self->uiToExecution(v.toVariant());
   });
 

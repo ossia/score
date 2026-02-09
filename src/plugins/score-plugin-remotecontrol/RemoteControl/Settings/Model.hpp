@@ -13,7 +13,9 @@ class SCORE_PLUGIN_REMOTECONTROL_EXPORT Model : public score::SettingsDelegateMo
   bool m_Enabled = false;
 
 public:
-  Model(QSettings& set, const score::ApplicationContext& ctx);
+  Model(
+      const UuidKey<score::SettingsDelegateFactory>& k, QSettings& set,
+      const score::ApplicationContext& ctx);
 
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_REMOTECONTROL_EXPORT, bool, Enabled)
 };

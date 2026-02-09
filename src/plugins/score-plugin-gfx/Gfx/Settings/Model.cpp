@@ -141,7 +141,10 @@ static void update_QSG_RHI_BACKEND(const score::gfx::GraphicsApi& api)
   }
 }
 
-Model::Model(QSettings& set, const score::ApplicationContext& ctx)
+Model::Model(
+    const UuidKey<score::SettingsDelegateFactory>& k, QSettings& set,
+    const score::ApplicationContext& ctx)
+    : score::SettingsDelegateModel{k, nullptr}
 {
   score::setupDefaultSettings(set, Parameters::list(), *this);
 

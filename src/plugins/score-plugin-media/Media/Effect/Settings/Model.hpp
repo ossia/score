@@ -15,7 +15,9 @@ class SCORE_PLUGIN_MEDIA_EXPORT Model : public score::SettingsDelegateModel
   bool m_VstAlwaysOnTop{};
 
 public:
-  Model(QSettings& set, const score::ApplicationContext& ctx);
+  Model(
+      const UuidKey<score::SettingsDelegateFactory>& k, QSettings& set,
+      const score::ApplicationContext& ctx);
 
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_MEDIA_EXPORT, QStringList, VstPaths)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_MEDIA_EXPORT, bool, VstAlwaysOnTop)

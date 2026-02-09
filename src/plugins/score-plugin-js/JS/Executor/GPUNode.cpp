@@ -655,6 +655,7 @@ void GpuNode::Engine::releaseItem()
   {
     m_item->setParent(nullptr);
     m_item->setParentItem(nullptr);
+    m_item = nullptr;
   }
 }
 
@@ -665,8 +666,8 @@ void GpuNode::Engine::setupComponent(GpuRenderer& renderer, GpuNode& node)
   // Re-read QQuickRenderControl and use it to separate
   // execution in GPUNode and rendering in GPURenderer
 
-  QObject::connect(m_object, &JS::Script::uiSend,
-                   node.m_uiContext, [this, &node] (const QJSValue& v) {
+  QObject::connect(
+      m_object, &JS::Script::uiSend, node.m_uiContext, [&node](const QJSValue& v) {
     if(!node.m_uiContext)
       return;
     QMetaObject::invokeMethod(qApp, [ctx=node.m_uiContext, &func = node.m_messageToUi, vv = v.toVariant()] {
@@ -849,6 +850,8 @@ void gpu_exec_node::setScript(const QString& str, JS::JSState&& new_state)
 
     {
       auto& element = *m_context;
+
+      n->moveToThread(m_context->thread());
       n->m_uiContext = m_context;
       n->m_messageToUi = [ctx=m_context] (const QVariant& v){
         OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
@@ -858,16 +861,26 @@ void gpu_exec_node::setScript(const QString& str, JS::JSState&& new_state)
       };
 
       QObject::connect(
-          &element, &JS::ProcessModel::uiToExecution, n.get(),
-          [node=n.get()](const QVariant& v) {
-        node->uiMessage(v);
-      }, Qt::QueuedConnection);
+          &element, &JS::ProcessModel::uiToExecution, n.get(), &JS::GpuNode::uiMessage);
       QObject::connect(
           &element, &JS::ProcessModel::stateElementChanged, n.get(),
-          [node=n.get()](const QString& k, const ossia::value& v) {
-        node->stateElementChanged(k, v);
-      }, Qt::QueuedConnection);
+          &JS::GpuNode::stateElementChanged);
+      {
 
+        int i = 0;
+        for(auto& ctl : element.inlets())
+        {
+          if(auto ctrl = qobject_cast<Gfx::TextureInlet*>(ctl))
+          {
+            ossia::texture_inlet& inl
+                = static_cast<ossia::texture_inlet&>(*root_inputs()[i]);
+            n->process(i, inl.data); // Setup render_target_spec
+            // FIXME this should be done at a more general level, right now it's only done here
+            // and in avendish nodes
+          }
+          i++;
+        }
+      }
     }
     id = exec_context->ui->register_node(std::move(n));
   }

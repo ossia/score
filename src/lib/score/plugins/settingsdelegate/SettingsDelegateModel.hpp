@@ -12,11 +12,22 @@
 
 namespace score
 {
+class SettingsDelegateFactory;
 class SCORE_LIB_BASE_EXPORT SettingsDelegateModel : public QObject
 {
 public:
-  using QObject::QObject;
+  explicit SettingsDelegateModel(
+      const UuidKey<SettingsDelegateFactory>& k, QObject* parent)
+      : QObject{parent}
+      , m_key{k}
+  {
+  }
+
   virtual ~SettingsDelegateModel();
+  UuidKey<SettingsDelegateFactory> concreteKey() const noexcept { return m_key; }
+
+private:
+  UuidKey<SettingsDelegateFactory> m_key;
 };
 
 template <typename Parameter>

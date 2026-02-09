@@ -18,7 +18,9 @@ class SCORE_PLUGIN_PACKAGEMANAGER_EXPORT PluginSettingsModel
   W_OBJECT(PluginSettingsModel)
 
 public:
-  PluginSettingsModel(QSettings& set, const score::ApplicationContext& ctx);
+  PluginSettingsModel(
+      const UuidKey<score::SettingsDelegateFactory>& k, QSettings& set,
+      const score::ApplicationContext& ctx);
   ~PluginSettingsModel();
 
   void refresh();

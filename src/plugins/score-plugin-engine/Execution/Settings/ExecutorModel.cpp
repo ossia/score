@@ -56,8 +56,11 @@ static auto list()
 }
 }
 
-Model::Model(QSettings& set, const score::ApplicationContext& ctx)
-    : m_clockFactories{ctx.interfaces<ClockFactoryList>()}
+Model::Model(
+    const UuidKey<score::SettingsDelegateFactory>& k, QSettings& set,
+    const score::ApplicationContext& ctx)
+    : score::SettingsDelegateModel{k, nullptr}
+    , m_clockFactories{ctx.interfaces<ClockFactoryList>()}
     , m_transportInterfaces{ctx.interfaces<Transport::TransportInterfaceList>()}
 {
   score::setupDefaultSettings(set, Parameters::list(), *this);

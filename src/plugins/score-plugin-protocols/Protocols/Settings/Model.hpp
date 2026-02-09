@@ -22,7 +22,9 @@ class SCORE_PLUGIN_PROTOCOLS_EXPORT Model : public score::SettingsDelegateModel
   QString m_MidiAPI;
 
 public:
-  Model(QSettings& set, const score::ApplicationContext& ctx);
+  Model(
+      const UuidKey<score::SettingsDelegateFactory>& k, QSettings& set,
+      const score::ApplicationContext& ctx);
 
   libremidi::API getMidiApiAsEnum() const noexcept;
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_PROTOCOLS_EXPORT, QString, MidiAPI)

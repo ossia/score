@@ -48,7 +48,9 @@ class SCORE_PLUGIN_LIBRARY_EXPORT Model final : public score::SettingsDelegateMo
   QString m_RootPath;
 
 public:
-  Model(QSettings& set, const score::ApplicationContext& ctx);
+  Model(
+      const UuidKey<score::SettingsDelegateFactory>& k, QSettings& set,
+      const score::ApplicationContext& ctx);
 
   QString getPackagesPath() const noexcept;
   QString getDefaultLibraryPath() const noexcept;

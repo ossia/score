@@ -36,8 +36,9 @@ W_OBJECT_IMPL(PM::PluginSettingsModel)
 namespace PM
 {
 PluginSettingsModel::PluginSettingsModel(
-    QSettings& set, const score::ApplicationContext& ctx)
-    : score::SettingsDelegateModel{}
+    const UuidKey<score::SettingsDelegateFactory>& k, QSettings& set,
+    const score::ApplicationContext& ctx)
+    : score::SettingsDelegateModel{k, nullptr}
     , localPlugins{ctx}
     , remoteSelection{&remotePlugins}
 {

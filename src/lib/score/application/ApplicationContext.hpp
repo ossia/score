@@ -6,6 +6,7 @@ namespace score
 class ApplicationComponents;
 struct ApplicationSettings;
 class SettingsDelegateModel;
+class SettingsDelegateFactory;
 class DocumentManager;
 class MenuManager;
 class ToolbarManager;
@@ -50,6 +51,8 @@ struct SCORE_LIB_BASE_EXPORT ApplicationContext
     SCORE_ABORT;
     throw;
   }
+
+  const auto& allSettings() const noexcept { return m_settings; }
 
   /**
    * @brief List of all the registered addons.

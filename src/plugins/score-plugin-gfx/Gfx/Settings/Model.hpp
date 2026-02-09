@@ -47,7 +47,9 @@ class SCORE_PLUGIN_GFX_EXPORT Model : public score::SettingsDelegateModel
   int m_Buffers{3};
 
 public:
-  Model(QSettings& set, const score::ApplicationContext& ctx);
+  Model(
+      const UuidKey<score::SettingsDelegateFactory>& k, QSettings& set,
+      const score::ApplicationContext& ctx);
 
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_GFX_EXPORT, QString, HardwareDecode)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_GFX_EXPORT, int, DecodingThreads)
