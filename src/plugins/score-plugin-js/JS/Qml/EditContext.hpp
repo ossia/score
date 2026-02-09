@@ -51,9 +51,6 @@ public:
   const score::DocumentContext* ctx();
   W_INVOKABLE(ctx);
 
-  QObject* settings(QString uid);
-  W_INVOKABLE(settings);
-
   ///////////////
   /// Devices ///
   ///////////////
