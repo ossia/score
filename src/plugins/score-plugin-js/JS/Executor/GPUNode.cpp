@@ -64,6 +64,7 @@ public:
   score::gfx::NodeRenderer*
   createRenderer(score::gfx::RenderList& r) const noexcept override;
 
+  using score::gfx::NodeModel::process;
   void process(score::gfx::Message&& msg) override;
 
   QPointer<QObject> m_uiContext;
@@ -85,7 +86,7 @@ public:
     DeviceContext* m_execFuncs{};
     QQmlComponent* m_component{};
     JS::Script* m_object{};
-    QQuickItem* m_item{};
+    QPointer<QQuickItem> m_item{};
 
     std::vector<Inlet*> m_jsInlets;
     std::vector<std::pair<ControlInlet*, int>> m_ctrlInlets;
