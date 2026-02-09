@@ -36,6 +36,9 @@ public:
   W_SLOT(toMilliseconds)
   bool isInfinite(TimeVal v);
   W_SLOT(isInfinite)
+
+  QObject* settings(QString uid);
+  W_INVOKABLE(settings);
 };
 
 class JsSystem : public QObject

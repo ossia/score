@@ -35,6 +35,7 @@ namespace JS
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
     : score::GUIApplicationPlugin{ctx}
 {
+  // For the console
   m_consoleEngine.globalObject().setProperty("Score", m_consoleEngine.newQObject(new EditJsContext));
   m_consoleEngine.globalObject().setProperty("Util", m_consoleEngine.newQObject(new JsUtils));
   m_consoleEngine.globalObject().setProperty(
@@ -49,7 +50,6 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
     QTimer::singleShot(
         500, [] { score::GUIApplicationInterface::instance().forceExit(); });
   });
-
   m_asioContext = std::make_shared<ossia::net::network_context>();
   m_processMessages = true;
   m_consoleEngine.globalObject().setProperty(
@@ -62,6 +62,14 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
       m_asioContext->run();
     }
   }};
+
+  // For scripts of processes that run in the ui thread:
+  m_scriptProcessUIEngine.globalObject().setProperty(
+      "Util", m_scriptProcessUIEngine.newQObject(new JsUtils));
+  m_scriptProcessUIEngine.globalObject().setProperty(
+      "System", m_scriptProcessUIEngine.newQObject(new JsSystem));
+  m_scriptProcessUIEngine.globalObject().setProperty(
+      "Library", m_scriptProcessUIEngine.newQObject(new JsLibrary));
 
   // Command-line option parsing
   QCommandLineParser parser;

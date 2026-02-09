@@ -21,23 +21,6 @@ const score::DocumentContext* EditJsContext::ctx()
   return score::GUIAppContext().currentDocument();
 }
 
-QObject* EditJsContext::settings(QString key)
-{
-  auto uuid = key.toLatin1();
-  if(uuid.length() != 36)
-    return nullptr;
-  auto uid = score::uuids::string_generator::compute(uuid.begin(), uuid.end());
-  if(uid.is_nil())
-    return nullptr;
-  auto k = UuidKey<score::SettingsDelegateFactory>{uid};
-  for(auto& s : score::GUIAppContext().allSettings())
-  {
-    if(s->concreteKey() == k)
-      return s.get();
-  }
-  return nullptr;
-}
-
 QObject* EditJsContext::metadata(QObject* obj) const noexcept
 {
   if(!obj)
