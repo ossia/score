@@ -16,6 +16,8 @@
 #include <ossia-qt/invoke.hpp>
 #include <ossia-qt/qml_protocols.hpp>
 
+#include <QCommandLineParser>
+
 #if __has_include(<QQuickWindow>)
 #include <QGuiApplication>
 #include <QQuickItem>
@@ -60,6 +62,16 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
       m_asioContext->run();
     }
   }};
+
+  // Command-line option parsing
+  QCommandLineParser parser;
+
+  QCommandLineOption script_opt(
+      "script", QCoreApplication::translate("js", "script"), "Script", "");
+  parser.addOption(script_opt);
+
+  parser.parse(ctx.applicationSettings.arguments);
+  this->m_start_script = parser.value(script_opt);
 }
 
 void ApplicationPlugin::on_newDocument(score::Document& doc)
@@ -101,6 +113,11 @@ void ApplicationPlugin::on_createdDocument(score::Document& doc)
   // Custom data
   if(auto customData = doc.context().findPlugin<DocumentPlugin>(); !customData)
     score::addDocumentPlugin<DocumentPlugin>(doc);
+
+  if(!m_start_script.isEmpty())
+  {
+    QTimer::singleShot(100, this, [this] { m_consoleEngine.evaluate(m_start_script); });
+  }
 }
 void ApplicationPlugin::afterStartup()
 {

@@ -43,5 +43,7 @@ public:
   std::atomic_bool m_processMessages{};
   std::thread m_asioThread;
   ossia::net::network_context_ptr m_asioContext;
+
+  QString m_start_script;
 };
 }
