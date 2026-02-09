@@ -11,6 +11,7 @@
 #include <Avnd/Factories.hpp>
 #include <Threedim/ArrayToGeometry.hpp>
 #include <Threedim/ArrayToTexture.hpp>
+#include <Threedim/BufferLoader.hpp>
 #include <Threedim/BufferToGeometry.hpp>
 #include <Threedim/GeometryInfo.hpp>
 #include <Threedim/GeometryPacker.hpp>
@@ -24,6 +25,8 @@
 #include <Threedim/RenderPipeline/Executor.hpp>
 #include <Threedim/RenderPipeline/Layer.hpp>
 #include <Threedim/RenderPipeline/Process.hpp>
+#include <Threedim/Splat/Executor.hpp>
+#include <Threedim/Splat/Process.hpp>
 #include <Threedim/StructureSynth.hpp>
 #include <Threedim/TextureToBuffer.hpp>
 #include <avendish/examples/Gpu/ArrayToBuffer.hpp>
@@ -200,10 +203,11 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
   oscr::instantiate_fx<Threedim::GeometryPacker>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::BuffersToGeometry>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::TextureToBuffer>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::SplatLoader>(fx, ctx, key);
   auto add = instantiate_factories<
       score::ApplicationContext,
       FW<Process::ProcessModelFactory, Gfx::ModelDisplay::ProcessFactory,
-         Gfx::RenderPipeline::ProcessFactory>,
+         Gfx::RenderPipeline::ProcessFactory, Gfx::Splat::ProcessFactory>,
       FW<Process::LayerFactory, Gfx::RenderPipeline::LayerFactory>,
       FW<Library::LibraryInterface, Threedim::SSynthLibraryHandler,
          Threedim::OBJLibraryHandler>,
@@ -211,7 +215,8 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
          Threedim::OBJDropHandler>,
       FW<Execution::ProcessComponentFactory,
          Gfx::ModelDisplay::ProcessExecutorComponentFactory,
-         Gfx::RenderPipeline::ProcessExecutorComponentFactory>>(ctx, key);
+         Gfx::RenderPipeline::ProcessExecutorComponentFactory,
+         Gfx::Splat::ProcessExecutorComponentFactory>>(ctx, key);
   fx.insert(
       fx.end(),
       std::make_move_iterator(add.begin()),
