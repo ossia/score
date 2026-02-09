@@ -1,6 +1,4 @@
 #pragma once
-#include "score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp"
-
 #include <Process/Commands/Properties.hpp>
 #include <Process/Commands/SetControlValue.hpp>
 #include <Process/Dataflow/Port.hpp>
@@ -13,6 +11,7 @@
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <score/command/PropertyCommand.hpp>
 #include <score/graphics/TextItem.hpp>
 #include <score/model/Skin.hpp>
