@@ -84,7 +84,9 @@ class SCORE_PLUGIN_ENGINE_EXPORT Model : public score::SettingsDelegateModel
   const Transport::TransportInterfaceList& m_transportInterfaces;
 
 public:
-  Model(QSettings& set, const score::ApplicationContext& ctx);
+  Model(
+      const UuidKey<score::SettingsDelegateFactory>& k, QSettings& set,
+      const score::ApplicationContext& ctx);
 
   const ClockFactoryList& clockFactories() const { return m_clockFactories; }
 

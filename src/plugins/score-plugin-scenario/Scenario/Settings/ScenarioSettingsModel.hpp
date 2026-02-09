@@ -32,7 +32,9 @@ class SCORE_PLUGIN_SCENARIO_EXPORT Model final : public score::SettingsDelegateM
   bool m_MagneticMeasures{true};
 
 public:
-  Model(QSettings& set, const score::ApplicationContext& ctx);
+  Model(
+      const UuidKey<score::SettingsDelegateFactory>& k, QSettings& set,
+      const score::ApplicationContext& ctx);
 
   QString getSkin() const;
   void initSkin(const QString&);

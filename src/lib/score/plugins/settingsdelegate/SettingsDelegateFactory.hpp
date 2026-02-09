@@ -47,7 +47,10 @@ class SettingsDelegateFactory_T : public SettingsDelegateFactory
   std::unique_ptr<SettingsDelegateModel>
   makeModel(QSettings& settings, const score::ApplicationContext& ctx) override
   {
-    return std::make_unique<Model_T>(settings, ctx);
+    if constexpr(requires { new Model_T(concreteKey(), settings, ctx); })
+      return std::make_unique<Model_T>(concreteKey(), settings, ctx);
+    else
+      return std::make_unique<Model_T>(settings, ctx);
   }
 
   score::GlobalSettingsView* makeView() override { return new View_T; }

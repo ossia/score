@@ -49,7 +49,9 @@ class SCORE_PLUGIN_AUDIO_EXPORT Model : public score::SettingsDelegateModel
   ExternalTransport m_JackTransport{ExternalTransport::None};
 
 public:
-  Model(QSettings& set, const score::ApplicationContext& ctx);
+  Model(
+      const UuidKey<score::SettingsDelegateFactory>& k, QSettings& set,
+      const score::ApplicationContext& ctx);
 
   void changed() E_SIGNAL(SCORE_PLUGIN_AUDIO_EXPORT, changed)
   SCORE_SETTINGS_PARAMETER_HPP(
