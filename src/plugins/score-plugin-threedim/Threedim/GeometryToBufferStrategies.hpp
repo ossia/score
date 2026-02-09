@@ -256,7 +256,8 @@ class DirectBufferReferenceStrategy
 public:
   bool init(
       const score::gfx::RenderState& renderState, QRhi& rhi,
-      const halp::dynamic_gpu_geometry& mesh, int buffer, int byte_offset, int byte_size)
+      const halp::dynamic_gpu_geometry& mesh, int buffer, int64_t byte_offset,
+      int64_t byte_size)
   {
     m_buffer = static_cast<QRhiBuffer*>(mesh.buffers[buffer].handle);
     m_offset = byte_offset;
