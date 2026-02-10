@@ -325,25 +325,27 @@ QByteArray ControlInlet::saveData() const noexcept
   {
     QDataStream p{&arr, QIODevice::WriteOnly};
     DataStreamInput ip{p};
-    ip << Port::saveData() << m_value;
+    ip << m_cables << m_address << true << m_value;
   }
   return arr;
 }
 
 void ControlInlet::loadData(const QByteArray& arr, PortLoadDataFlags flags) noexcept
 {
-  QByteArray pdata;
   QDataStream p{arr};
   DataStreamOutput op{p};
-  op >> pdata;
+  bool has_value{};
+
+  op >> m_cables >> m_address >> has_value;
   if(!((uint32_t)flags & (uint32_t)PortLoadDataFlags::DontReloadValue))
+    has_value = false;
+
+  if(has_value)
   {
     op >> m_value;
   }
 
-  Port::loadData(pdata, flags);
-
-  if(!((uint32_t)flags & (uint32_t)PortLoadDataFlags::DontReloadValue))
+  if(has_value)
   {
     valueChanged(m_value);
   }
@@ -671,6 +673,25 @@ ValueInlet::ValueInlet(JSONObject::Deserializer&& vis, QObject* parent)
   vis.writeTo(*this);
 }
 
+QByteArray ValueInlet::saveData() const noexcept
+{
+  QByteArray arr;
+  {
+    QDataStream p{&arr, QIODevice::WriteOnly};
+    DataStreamInput ip{p};
+    ip << m_cables << m_address << false;
+    // Boolean indicates that we don't have a value. Otherwise if we change from ValueInlet to
+    // ControlInlet in e.g. a JS script, then the ControlInlet tries to reload the value and crashes.
+  }
+  return arr;
+}
+
+void ValueInlet::loadData(const QByteArray& arr, PortLoadDataFlags flags) noexcept
+{
+  QDataStream p{arr};
+  DataStreamOutput op{p};
+  op >> m_cables >> m_address;
+}
 ValueOutlet::~ValueOutlet() { }
 
 ValueOutlet::ValueOutlet(const QString& name, Id<Process::Port> c, QObject* parent)
