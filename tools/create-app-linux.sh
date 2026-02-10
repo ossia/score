@@ -97,7 +97,7 @@ fi
 echo "Creating custom launcher..."
 
     cat > AppRun << APPRUN_EOF
-#!/bin/sh
+#!/bin/bash
 
 export SCORE_CUSTOM_APP_ORGANIZATION_NAME="$APP_ORGANIZATION"
 export SCORE_CUSTOM_APP_ORGANIZATION_DOMAIN="$APP_DOMAIN"
