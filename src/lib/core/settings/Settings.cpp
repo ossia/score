@@ -12,6 +12,8 @@
 #include <core/settings/SettingsPresenter.hpp>
 #include <core/settings/SettingsView.hpp>
 
+#include <QCoreApplication>
+
 namespace score
 {
 Settings::Settings() { }
@@ -48,6 +50,7 @@ void Settings::setupSettingsPlugin(
   auto model = plugin.makeModel(s, ctx);
   if(!model)
     return;
+  model->setParent(QCoreApplication::instance());
 
   auto& model_ref = *model;
   m_settings.push_back(std::move(model));
