@@ -168,7 +168,7 @@ protected:
   Port(DataStream::Deserializer&& vis, QObject* parent);
   Port(JSONObject::Deserializer&& vis, QObject* parent);
 
-private:
+protected:
   std::vector<Path<Cable>> m_cables;
   QString m_name;
   QString m_exposed;
@@ -505,6 +505,9 @@ public:
   ValueInlet(JSONObject::Deserializer& vis, QObject* parent);
   ValueInlet(DataStream::Deserializer&& vis, QObject* parent);
   ValueInlet(JSONObject::Deserializer&& vis, QObject* parent);
+
+  QByteArray saveData() const noexcept override;
+  void loadData(const QByteArray& arr, PortLoadDataFlags = {}) noexcept override;
 
   VIRTUAL_CONSTEXPR PortType type() const noexcept override
   {
