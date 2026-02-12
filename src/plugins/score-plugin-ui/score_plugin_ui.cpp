@@ -10,6 +10,7 @@
 #include <Ui/SignalDisplay.hpp>
 #include <Ui/TextBox.hpp>
 #include <Ui/ValueDisplay.hpp>
+#include <Ui/VUMeter.hpp>
 
 #include <score_plugin_engine.hpp>
 
@@ -23,6 +24,7 @@ std::vector<score::InterfaceBase*> score_plugin_ui::factories(
   oscr::instantiate_fx<Ui::SignalDisplay::Node>(fx, ctx, key);
   oscr::instantiate_fx<Ui::TextBox::Node>(fx, ctx, key);
   oscr::instantiate_fx<Ui::ValueDisplay::Node>(fx, ctx, key);
+  oscr::instantiate_fx<Ui::VUMeter::Node>(fx, ctx, key);
   return fx;
 }
 
