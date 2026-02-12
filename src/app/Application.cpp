@@ -9,6 +9,7 @@
 #include <score/model/path/ObjectIdentifier.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
+#include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/widgets/Pixmap.hpp>
@@ -308,6 +309,8 @@ Application::~Application()
   }
 
 #endif
+  for(auto& settings : m_settings.settings())
+    settings->setParent(nullptr);
   delete m_app;
 }
 
