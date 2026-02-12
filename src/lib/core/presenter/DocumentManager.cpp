@@ -30,6 +30,7 @@
 
 #include <QApplication>
 #include <QByteArray>
+#include <QJsonDocument>
 #include <QFile>
 #include <QFileDialog>
 #include <QIODevice>
@@ -301,6 +302,21 @@ void DocumentManager::forceCloseDocument(
   }
 }
 
+static void writeJsonToFile(QSaveFile& f, const rapidjson::StringBuffer& buffer)
+{
+  if(qEnvironmentVariableIsSet("SCORE_PRETTIFY_JSON"))
+  {
+    [[unlikely]];
+    QJsonDocument doc = QJsonDocument::fromJson(QByteArray::fromRawData(buffer.GetString(),buffer.GetSize()));
+    f.write(doc.toJson(QJsonDocument::JsonFormat::Indented));
+  }
+  else
+  {
+    [[likely]];
+    f.write(buffer.GetString(), buffer.GetSize());
+  }
+}
+
 bool DocumentManager::saveDocument(Document& doc)
 {
   auto savename = doc.metadata().fileName();
@@ -312,7 +328,9 @@ bool DocumentManager::saveDocument(Document& doc)
   else if(savename.size() != 0)
   {
     QSaveFile f{savename};
-    f.open(QIODevice::WriteOnly);
+    if(!f.open(QIODevice::WriteOnly))
+      return false;
+
     if(savename.indexOf(".scorebin") != -1)
     {
       f.write(doc.saveAsByteArray());
@@ -322,8 +340,7 @@ bool DocumentManager::saveDocument(Document& doc)
       JSONReader w;
       w.buffer.Reserve(1024 * 1024 * 16);
       doc.saveAsJson(w);
-
-      f.write(w.buffer.GetString(), w.buffer.GetSize());
+      writeJsonToFile(f, w.buffer);
     }
 
     if(f.commit())
@@ -391,7 +408,9 @@ bool DocumentManager::saveDocumentAs(Document& doc)
 bool DocumentManager::saveDocumentAs(Document& doc, const QString& savename)
 {
   QSaveFile f{savename};
-  f.open(QIODevice::WriteOnly);
+  if(!f.open(QIODevice::WriteOnly))
+    return false;
+
   doc.metadata().setFileName(savename);
 
   if(savename.indexOf(".scorebin") != -1)
@@ -402,7 +421,7 @@ bool DocumentManager::saveDocumentAs(Document& doc, const QString& savename)
     w.buffer.Reserve(1024 * 1024 * 16);
     doc.saveAsJson(w);
 
-    f.write(w.buffer.GetString(), w.buffer.GetSize());
+    writeJsonToFile(f, w.buffer);
   }
 
   if(f.commit())
@@ -445,7 +464,8 @@ bool DocumentManager::saveStack()
         savename += ".stack";
 
       QSaveFile f{savename};
-      f.open(QIODevice::WriteOnly);
+      if(!f.open(QIODevice::WriteOnly))
+        return false;
 
       f.reset();
       DataStream::Serializer ser(&f);
