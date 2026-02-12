@@ -15,6 +15,16 @@ public:
 
   bool running() const { return state() == Running; }
 
+  // Getters wrapping QProcess methods for verdigris binding
+  QString program() const { return QProcess::program(); }
+  QStringList arguments() const { return QProcess::arguments(); }
+  QString workingDirectory() const { return QProcess::workingDirectory(); }
+  QProcess::ProcessState processState() const { return QProcess::state(); }
+  QProcess::ProcessError processError() const { return QProcess::error(); }
+  int exitCode() const { return QProcess::exitCode(); }
+  QProcess::ExitStatus exitStatus() const { return QProcess::exitStatus(); }
+  qint64 processId() const { return QProcess::processId(); }
+
   QString standardOutput() const { return m_standardOutput; }
   QString standardError() const { return m_standardError; }
 
@@ -22,9 +32,23 @@ public:
   void start();
   W_INVOKABLE(start);
   void stop();
-  W_INVOKABLE(stop)
+  W_INVOKABLE(stop);
+  void kill();
+  W_INVOKABLE(kill);
   void clearOutput();
   W_INVOKABLE(clearOutput);
+  void write(const QString& data);
+  W_INVOKABLE(write);
+
+  // Custom setters that wrap QProcess setters and emit signals
+  void setProgram(const QString& program);
+  void setArguments(const QStringList& arguments);
+  void setWorkingDirectory(const QString& dir);
+
+  // Signals
+  void started() W_SIGNAL(started);
+  void finished(int exitCode, QProcess::ExitStatus status)
+      W_SIGNAL(finished, exitCode, status);
 
   void programChanged() W_SIGNAL(programChanged);
   void argumentsChanged() W_SIGNAL(argumentsChanged);
@@ -43,6 +67,8 @@ public:
   void lineReceived(const QString& line, bool isError)
       W_SIGNAL(lineReceived, line, isError);
 
+  void onStarted();
+  W_SLOT(onStarted);
   void onReadyReadStandardOutput();
   W_SLOT(onReadyReadStandardOutput);
   void onReadyReadStandardError();
@@ -62,11 +88,12 @@ public:
                    workingDirectoryChanged)
 
   // State
-  W_PROPERTY(ProcessState, processState READ state NOTIFY processStateChanged)
+  W_PROPERTY(ProcessState, processState READ processState NOTIFY processStateChanged)
   W_PROPERTY(bool, running READ running NOTIFY runningChanged)
-  W_PROPERTY(ProcessError, processError READ error NOTIFY processErrorChanged)
+  W_PROPERTY(ProcessError, processError READ processError NOTIFY processErrorChanged)
   W_PROPERTY(int, exitCode READ exitCode NOTIFY exitCodeChanged)
   W_PROPERTY(ExitStatus, exitStatus READ exitStatus NOTIFY exitStatusChanged)
+  W_PROPERTY(qint64, processId READ processId NOTIFY started)
 
   // Accumulated output (convenience for QML bindings)
   W_PROPERTY(QString, standardOutput READ standardOutput NOTIFY standardOutputChanged)

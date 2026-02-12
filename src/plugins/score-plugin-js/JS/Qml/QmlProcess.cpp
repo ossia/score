@@ -9,6 +9,7 @@ namespace JS
 QmlProcess::QmlProcess(QObject* parent)
     : QProcess(parent)
 {
+  connect(this, &QProcess::started, this, &QmlProcess::onStarted);
   connect(
       this, &QProcess::readyReadStandardOutput, this,
       &QmlProcess::onReadyReadStandardOutput);
@@ -16,7 +17,9 @@ QmlProcess::QmlProcess(QObject* parent)
       this, &QProcess::readyReadStandardError, this,
       &QmlProcess::onReadyReadStandardError);
   connect(this, &QProcess::stateChanged, this, &QmlProcess::onStateChanged);
-  connect(this, &QProcess::finished, this, &QmlProcess::onFinished);
+  connect(
+      this, qOverload<int, QProcess::ExitStatus>(&QProcess::finished), this,
+      &QmlProcess::onFinished);
   connect(this, &QProcess::errorOccurred, this, &QmlProcess::onErrorOccurred);
 }
 
@@ -43,6 +46,16 @@ void QmlProcess::stop()
   });
 }
 
+void QmlProcess::kill()
+{
+  QProcess::kill();
+}
+
+void QmlProcess::write(const QString& data)
+{
+  QProcess::write(data.toUtf8());
+}
+
 void QmlProcess::clearOutput()
 {
   m_standardOutput.clear();
@@ -51,6 +64,11 @@ void QmlProcess::clearOutput()
   m_stderrBuffer.clear();
   standardOutputChanged();
   standardErrorChanged();
+}
+
+void QmlProcess::onStarted()
+{
+  started();
 }
 
 void QmlProcess::onReadyReadStandardOutput()
@@ -118,10 +136,35 @@ void QmlProcess::onFinished(int code, QProcess::ExitStatus status)
 
   exitCodeChanged();
   exitStatusChanged();
+  finished(code, status);
 }
 
 void QmlProcess::onErrorOccurred(QProcess::ProcessError error)
 {
   processErrorChanged();
+}
+
+void QmlProcess::setProgram(const QString& prog)
+{
+  if(program() == prog)
+    return;
+  QProcess::setProgram(prog);
+  programChanged();
+}
+
+void QmlProcess::setArguments(const QStringList& args)
+{
+  if(arguments() == args)
+    return;
+  QProcess::setArguments(args);
+  argumentsChanged();
+}
+
+void QmlProcess::setWorkingDirectory(const QString& dir)
+{
+  if(workingDirectory() == dir)
+    return;
+  QProcess::setWorkingDirectory(dir);
+  workingDirectoryChanged();
 }
 }
