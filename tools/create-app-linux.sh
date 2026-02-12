@@ -82,10 +82,15 @@ for item in "${QML_ITEMS[@]}"; do
     fi
 done
 
-# Copy score file if provided
+# Copy score file and directory content if provided
 if [[ -n "$SCORE_FILE" ]]; then
+    SCORE_DEST="usr/bin"
+    SCORE_DIR="$(dirname "$SCORE_FILE")"
+    mkdir -p "$SCORE_DEST"
     echo "Adding score file..."
-    cp "$SCORE_FILE" "usr/bin/"
+    cp "$SCORE_FILE" "$SCORE_DEST/"
+    echo "  Copying directory contents: $(basename "$SCORE_DIR")"
+    cp -r "$SCORE_DIR"/* "$SCORE_DEST/" 2>/dev/null || true
 fi
 
 # Create rcc
