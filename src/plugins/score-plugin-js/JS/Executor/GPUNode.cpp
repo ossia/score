@@ -422,6 +422,8 @@ void main ()
     if(m_engine)
     {
       m_engine->tick();
+      if(m_engine->m_item)
+        m_engine->m_item->update();
     }
 
     // 2. Render
