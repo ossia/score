@@ -643,6 +643,10 @@ target_include_directories(score_lib_base PUBLIC ${OSSIA_3RDPARTY_FOLDER}/verdig
 
 setup_score_library(score_lib_base)
 
+if(WIN32)
+  target_link_libraries(score_lib_base PRIVATE avrt)
+endif()
+
 if(SCORE_PCH)
   if(APPLE)
     target_precompile_headers(score_lib_base PRIVATE
