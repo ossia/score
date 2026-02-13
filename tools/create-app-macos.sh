@@ -301,8 +301,8 @@ ENTITLEMENTS_EOF
     find "$BUNDLE_MACOS" -type f -perm +111 ! -name "*.qml" ! -name "*.qmlc" ! -name "*.js" ! -name "*.mjs" ! -name "*.txt" ! -name "*.sh" | while read executable; do
         # Check if it's actually a Mach-O binary
         if file "$executable" | grep -q "Mach-O"; then
-            # Sign ossia-score-bin with entitlements and hardened runtime
-            if [[ "$(basename "$executable")" == "ossia-score-bin" ]]; then
+            # Sign app-bin with entitlements and hardened runtime
+            if [[ "$(basename "$executable")" == "app-bin" ]]; then
                 echo "    Signing main binary with entitlements and hardened runtime..."
                 codesign \
                     --entitlements "$WORK_DIR/entitlements.plist" \
