@@ -29,7 +29,7 @@ namespace Scenario
 
 TimeSyncInspectorWidget::TimeSyncInspectorWidget(
     const TimeSyncModel& object, const score::DocumentContext& ctx, QWidget* parent)
-    : InspectorWidgetBase{object, ctx, parent, tr("Sync (%1)").arg(object.metadata().getName())}
+    : InspectorWidgetBase{object, ctx, parent, tr("Sync\n%1").arg(object.metadata().getName())}
     , m_model{object}
 {
   setObjectName("TimeSyncInspectorWidget");
