@@ -39,6 +39,7 @@ struct SCORE_PLUGIN_MEDIA_EXPORT DecoderConfiguration
   int threads{};
   bool useAVCodec{true};
   bool ignorePTS{false};
+  bool disableThreading{false}; // Force single-threaded decoding (for sync mode)
 };
 
 struct SCORE_PLUGIN_MEDIA_EXPORT LibAVDecoder

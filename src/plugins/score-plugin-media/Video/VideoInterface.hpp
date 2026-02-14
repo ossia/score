@@ -33,11 +33,22 @@ struct SCORE_PLUGIN_MEDIA_EXPORT VideoMetadata : ImageFormat
   double dts_per_flicks{};
 };
 
+enum class DecodingMode
+{
+  Async, // Decode in background thread, buffer ahead
+  Sync   // Decode on-demand, frame-accurate seeking
+};
+
 struct SCORE_PLUGIN_MEDIA_EXPORT VideoInterface : VideoMetadata
 {
   virtual ~VideoInterface();
   virtual AVFrame* dequeue_frame() noexcept = 0;
   virtual void release_frame(AVFrame* frame) noexcept = 0;
+
+  // Sync decoding support (optional)
+  virtual DecodingMode decodingMode() const noexcept { return DecodingMode::Async; }
+  virtual AVFrame* decode_frame_at(int64_t flicks) noexcept { return nullptr; }
+  virtual void seek(int64_t flicks) { }
 };
 
 struct SCORE_PLUGIN_MEDIA_EXPORT ReadFrame
