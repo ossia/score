@@ -135,8 +135,14 @@ osc_protocols make_osc_protocol(
 
   if(stgs.rate)
   {
+    auto rate_stgs = *stgs.rate;
+    if(stgs.configuration.bundle_strategy
+       == ossia::net::osc_protocol_configuration::ALWAYS_BUNDLE)
+    {
+      rate_stgs.bundle = true;
+    }
     auto rl = std::make_unique<ossia::net::rate_limiting_protocol>(
-        std::chrono::milliseconds{*stgs.rate}, std::move(protos.ret));
+        rate_stgs, std::move(protos.ret));
     protos.ratelimit = rl.get();
     protos.ret = std::move(rl);
   }

@@ -191,8 +191,10 @@ void OSCQueryDevice::slot_createDevice()
 
     if(stgs.rate)
     {
+      ossia::net::rate_limiter_configuration conf{
+          .duration = std::chrono::milliseconds(*stgs.rate)};
       ossia_settings = std::make_unique<ossia::net::rate_limiting_protocol>(
-          std::chrono::milliseconds{*stgs.rate}, std::move(ossia_settings));
+          conf, std::move(ossia_settings));
     }
 
     // run the commands in the Qt event loop
