@@ -213,7 +213,7 @@ jobs:
 
   winmvsc:
     name: MSVC
-    runs-on: windows-latest
+    runs-on: windows-2025-vs2026
     steps:
       - name: Long path support
         run: git config --global core.longpaths true
