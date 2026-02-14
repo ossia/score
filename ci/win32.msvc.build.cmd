@@ -3,7 +3,7 @@ mkdir build
 cd build
 
 cmake %SCORE_DIR% ^
-  -G"Visual Studio 17 2022" ^
+  -G"Visual Studio 18 2026" ^
   -T ClangCL ^
   -DCMAKE_PREFIX_PATH="%Qt6_DIR%" ^
   -DCMAKE_BUILD_TYPE=Debug ^
