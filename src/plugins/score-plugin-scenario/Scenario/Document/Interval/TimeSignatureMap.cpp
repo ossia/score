@@ -144,6 +144,7 @@ bool TimeSignatureMap::operator!=(const TimeSignatureMap& other) const noexcept
 }
 }
 
+SCORE_PLUGIN_SCENARIO_EXPORT
 void TSerializer<DataStream, Scenario::TimeSignatureMap>::readFrom(
     DataStream::Serializer& s, const Scenario::TimeSignatureMap& path)
 {
@@ -154,6 +155,7 @@ void TSerializer<DataStream, Scenario::TimeSignatureMap>::readFrom(
       s, path.map->tree().get_sequence_cref());
 }
 
+SCORE_PLUGIN_SCENARIO_EXPORT
 void TSerializer<DataStream, Scenario::TimeSignatureMap>::writeTo(
     DataStream::Deserializer& s, Scenario::TimeSignatureMap& path)
 {
