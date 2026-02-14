@@ -1,5 +1,10 @@
 #include "EffectLayer.hpp"
 
+#include "core/view/FixedTabWidget.hpp"
+#include "core/view/Window.hpp"
+#include "score/actions/MenuManager.hpp"
+#include "score/plugins/panel/PanelDelegate.hpp"
+
 #include <Process/ApplicationPlugin.hpp>
 #include <Process/Commands/LoadPreset.hpp>
 #include <Process/Commands/LoadPresetCommandFactory.hpp>
@@ -17,10 +22,12 @@
 #include <score/widgets/HelpInteraction.hpp>
 
 #include <core/document/Document.hpp>
+#include <core/view/ScriptPanelDelegate.hpp>
 
 #include <ossia/detail/thread.hpp>
 
 #include <QMenu>
+#include <qtoolbar.h>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Process::EffectLayerPresenter)
@@ -123,14 +130,36 @@ void setupScriptUI(
     if(auto win = fact.makeScriptUI(proc, ctx, nullptr))
     {
       const_cast<QWidget*&>(proc.scriptUI) = win;
-      win->show();
+
+      if(auto score_view = static_cast<score::View*>(score::GUIAppContext().mainWindow))
+      {
+        auto [idx, toggle] = score_view->rightTabs->addTab(
+            win, score::PanelStatus{
+                     false, true, Qt::RightDockWidgetArea, -100000, proc.prettyName(),
+                     "script", QKeySequence{}});
+
+        auto& mw = ctx.app.menus.get().at(score::Menus::Windows());
+        score_view->addAction(toggle);
+        mw.menu()->addAction(toggle);
+        toggle->toggle();
+
+        score_view->rightTabs->toolbar()->actions().back()->trigger();
+
+        QObject::connect(
+            win, &QWidget::destroyed, score_view, [&ctx, score_view, toggle] {
+          auto& mw = ctx.app.menus.get().at(score::Menus::Windows());
+          mw.menu()->removeAction(toggle);
+          score_view->removeAction(toggle);
+          score_view->rightTabs->toolbar()->removeAction(toggle);
+          score_view->rightTabs->toolbar()->actions().front()->trigger();
+        });
+      }
     }
   }
   else
   {
     if(auto win = proc.scriptUI)
     {
-      win->close();
       delete win;
       const_cast<QWidget*&>(proc.scriptUI) = nullptr;
     }
