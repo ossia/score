@@ -162,10 +162,13 @@ for item in "${QML_ITEMS[@]}"; do
     fi
 done
 
-# Copy score file if provided (to Resources, not MacOS)
+# Copy score file and directory content if provided (to Resources, not MacOS)
 if [[ -n "$SCORE_FILE" ]]; then
+    SCORE_DIR="$(dirname "$SCORE_FILE")"
     echo "Adding score file..."
     cp "$SCORE_FILE" "$BUNDLE_RESOURCES/"
+    echo "  Copying directory contents: $(basename "$SCORE_DIR")"
+    cp -r "$SCORE_DIR"/* "$BUNDLE_RESOURCES/" 2>/dev/null || true
 fi
 
 # Rename the original binary
