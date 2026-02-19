@@ -109,10 +109,13 @@ for item in "${QML_ITEMS[@]}"; do
     fi
 done
 
-# Copy score file if provided
+# Copy score file and directory content if provided
 if [[ -n "$SCORE_FILE" ]]; then
+    SCORE_DIR="$(dirname "$SCORE_FILE")"
     echo "Adding score file..."
     cp "$SCORE_FILE" .
+    echo "  Copying directory contents: $(basename "$SCORE_DIR")"
+    cp -r "$SCORE_DIR"/* ./ 2>/dev/null || true
 fi
 
 # Create qrc
