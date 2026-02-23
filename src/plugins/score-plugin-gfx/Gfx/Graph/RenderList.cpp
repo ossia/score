@@ -542,8 +542,9 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
           NodeRenderer* renderer = rendered->second;
           if(auto rt = renderer->renderTargetForInput(*input))
           {
+            QColor bg = (it + 1 == this->nodes.rend() ? Qt::black : Qt::transparent);
             // Normal drawing node
-            commands.beginPass(rt.renderTarget, Qt::black, {1.0f, 0}, updateBatch);
+            commands.beginPass(rt.renderTarget, bg, {1.0f, 0}, updateBatch);
             updateBatch = nullptr;
 
             QRhiResourceUpdateBatch* res{};
