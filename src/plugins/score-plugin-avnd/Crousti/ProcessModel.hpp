@@ -94,7 +94,8 @@ public:
   oscr::dynamic_ports_storage<Info> dynamic_ports;
 
   [[no_unique_address]]
-  ossia::type_if<Info, oscr::has_dynamic_ports<Info>> object_storage_for_ports_callbacks;
+  ossia::type_if<Info, oscr::has_controller_ports<Info>>
+      object_storage_for_ports_callbacks;
 
   ProcessModel(
       const TimeVal& duration, const Id<Process::ProcessModel>& id,
@@ -204,9 +205,7 @@ private:
 
   void init_controller_ports()
   {
-    if constexpr(
-        avnd::dynamic_ports_input_introspection<Info>::size > 0
-        || avnd::dynamic_ports_output_introspection<Info>::size > 0)
+    if constexpr(oscr::has_controller_ports<Info> || oscr::has_dynamic_ports<Info>)
     {
       avnd::control_input_introspection<Info>::for_all_n2(
           avnd::get_inputs<Info>((Info&)this->object_storage_for_ports_callbacks),
@@ -312,24 +311,7 @@ private:
           avnd::get_inputs(obj),
           [&]<std::size_t N>(auto& port, auto pred_idx, avnd::field_index<N> field_idx) {
         port.request_port_resize = [this, &port](int new_count) {
-          // We're in the ui thread, we can just push the request directly.
-          // With some delay as otherwise we may be deleting the widget we
-          // are clicking on before mouse release and Qt really doesn't like that
-          // But when we are loading the document we actually do not want the
-          // delay to make sure the port is created before the cable connects to it
-          if(score::IDocument::documentFromObject(*this)->loaded())
-          {
-            QTimer::singleShot(0, this, [self = QPointer{this}, &port, new_count] {
-              if(self)
-                self->request_new_dynamic_input_count(
-                    port, avnd::field_index<N>{}, new_count);
-            });
-          }
-          else
-          {
-            this->request_new_dynamic_input_count(
-                port, avnd::field_index<N>{}, new_count);
-          }
+          this->request_new_dynamic_input_count(port, avnd::field_index<N>{}, new_count);
         };
       });
     }
@@ -341,20 +323,8 @@ private:
           avnd::get_outputs(obj),
           [&]<std::size_t N>(auto& port, auto pred_idx, avnd::field_index<N> field_idx) {
         port.request_port_resize = [this, &port](int new_count) {
-          // See comment above for inputs
-          if(score::IDocument::documentFromObject(*this)->loaded())
-          {
-            QTimer::singleShot(0, this, [self = QPointer{this}, &port, new_count] {
-              if(self)
-                self->request_new_dynamic_output_count(
-                    port, avnd::field_index<N>{}, new_count);
-            });
-          }
-          else
-          {
-            this->request_new_dynamic_output_count(
-                port, avnd::field_index<N>{}, new_count);
-          }
+          this->request_new_dynamic_output_count(
+              port, avnd::field_index<N>{}, new_count);
         };
       });
     }

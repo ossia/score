@@ -105,10 +105,14 @@ struct setup_control_for_exec : setup_control_for_exec_base<Node, Field>
     // Initialize the control with the current value of the inlet if it is not an optional
     if constexpr(avnd::dynamic_ports_port<Field>)
     {
-      if constexpr(!requires { param.ports[0].value.reset(); })
+      using port_type = avnd::dynamic_port_type<Field>;
+      if constexpr(avnd::parameter_port<port_type>)
       {
-        this->node_ptr->from_ossia_value(
-            param, inlet->value(), param.ports[k].value, avnd::field_index<NField>{});
+        if constexpr(!requires { param.ports[0].value.reset(); })
+        {
+          this->node_ptr->from_ossia_value(
+              param, inlet->value(), param.ports[k].value, avnd::field_index<NField>{});
+        }
       }
     }
     else
@@ -362,23 +366,27 @@ struct dispatch_control_setup
       param.ports.resize(ports.size());
     }
 
-    int k = 0;
-    for(auto p : ports)
+    using port_type = avnd::concrete_port_type<Field>;
+    if constexpr(avnd::parameter_port<port_type>)
     {
-      if(auto inlet = qobject_cast<Process::ControlInlet*>(p))
+      int k = 0;
+      for(auto p : ports)
       {
-        setup_control_for_exec<Node, Field, N, NField> setup{
-            element, ctx, node_ptr, parent};
+        if(auto inlet = qobject_cast<Process::ControlInlet*>(p))
+        {
+          setup_control_for_exec<Node, Field, N, NField> setup{
+              element, ctx, node_ptr, parent};
 
-        setup.initialize_control(param, inlet, k);
+          setup.initialize_control(param, inlet, k);
 
-        setup.invoke_update(param, k);
+          setup.invoke_update(param, k);
 
-        setup.connect_control_to_ui(param, inlet, k);
+          setup.connect_control_to_ui(param, inlet, k);
+        }
+        k++;
+        // Else it's an unhandled value inlet
       }
-      k++;
     }
-    // Else it's an unhandled value inlet
   }
 };
 
