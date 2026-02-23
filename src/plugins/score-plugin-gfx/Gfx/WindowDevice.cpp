@@ -537,6 +537,10 @@ class background_device : public ossia::net::device_base
   ossia::net::parameter_base* abs_tablet_win{};
   ossia::net::parameter_base* size_param{};
   ossia::net::parameter_base* rendersize_param{};
+  ossia::net::parameter_base* press_param{};
+  ossia::net::parameter_base* text_param{};
+
+  boost::container::static_vector<QMetaObject::Connection, 8> con;
 
   void update_viewport()
   {
@@ -614,14 +618,15 @@ public:
         }
       });
 
-      QObject::connect(
-          &v, &Scenario::ProcessGraphicsView::sizeChanged, &m_qtContext,
-          [this, v = QPointer{&view}, ptr = QPointer{m_screen}](QSize e) {
+      con.push_back(
+          QObject::connect(
+              &v, &Scenario::ProcessGraphicsView::sizeChanged, &m_qtContext,
+              [this, v = QPointer{&view}, ptr = QPointer{m_screen}](QSize e) {
         if(ptr && v)
         {
           size_param->push_value(ossia::vec2f{(float)e.width(), (float)e.height()});
         }
-      }, Qt::DirectConnection);
+      }, Qt::DirectConnection));
 
       m_root.add_child(std::move(size_node));
     }
@@ -666,9 +671,10 @@ public:
         node->add_child(std::move(abs_node));
       }
 
-      QObject::connect(
-          &v, &Scenario::ProcessGraphicsView::hoverMove, &m_qtContext,
-          [this, v = QPointer{&view}, ptr = QPointer{m_screen}](QHoverEvent* e) {
+      con.push_back(
+          QObject::connect(
+              &v, &Scenario::ProcessGraphicsView::hoverMove, &m_qtContext,
+              [this, v = QPointer{&view}, ptr = QPointer{m_screen}](QHoverEvent* e) {
         if(ptr && v)
         {
           auto win = e->position();
@@ -677,7 +683,7 @@ public:
               ossia::vec2f{float(win.x() / sz.width()), float(win.y() / sz.height())});
           abs_win->push_value(ossia::vec2f{float(win.x()), float(win.y())});
         }
-      }, Qt::DirectConnection);
+      }, Qt::DirectConnection));
 
       m_root.add_child(std::move(node));
     }
@@ -755,9 +761,11 @@ public:
         node->add_child(std::move(scale_node));
       }
 
-      QObject::connect(
-          &v, &Scenario::ProcessGraphicsView::tabletMove, m_screen,
-          [=, this, v = QPointer{&view}, ptr = QPointer{m_screen}](QTabletEvent* ev) {
+      con.push_back(
+          QObject::connect(
+              &v, &Scenario::ProcessGraphicsView::tabletMove, m_screen,
+              [=, this, v = QPointer{&view},
+               ptr = QPointer{m_screen}](QTabletEvent* ev) {
         if(ptr && v)
         {
           auto win = ev->position();
@@ -772,7 +780,8 @@ public:
           tablet_tilt_x->push_value(ev->xTilt());
           tablet_tilt_y->push_value(ev->yTilt());
         }
-      }, Qt::DirectConnection);
+      },
+              Qt::DirectConnection));
       m_root.add_child(std::move(node));
     }
 
@@ -782,8 +791,6 @@ public:
       {
         auto press_node
             = std::make_unique<ossia::net::generic_node>("press", *this, *node);
-        ossia::net::parameter_base* press_param{};
-        ossia::net::parameter_base* text_param{};
         {
           auto code_node
               = std::make_unique<ossia::net::generic_node>("code", *this, *press_node);
@@ -798,9 +805,10 @@ public:
           press_node->add_child(std::move(text_node));
         }
 
-        QObject::connect(
-            &v, &Scenario::ProcessGraphicsView::keyPress, m_screen,
-            [=, v = QPointer{&view}, ptr = QPointer{m_screen}](QKeyEvent* ev) {
+        con.push_back(
+            QObject::connect(
+                &v, &Scenario::ProcessGraphicsView::keyPress, m_screen,
+                [this, v = QPointer{&view}, ptr = QPointer{m_screen}](QKeyEvent* ev) {
           if(ptr && v)
           {
             if(!ev->isAutoRepeat())
@@ -809,7 +817,7 @@ public:
               text_param->push_value(ev->text().toStdString());
             }
           }
-        }, Qt::DirectConnection);
+        }, Qt::DirectConnection));
         node->add_child(std::move(press_node));
       }
       {
@@ -831,9 +839,10 @@ public:
           release_node->add_child(std::move(text_node));
         }
 
-        QObject::connect(
-            &v, &Scenario::ProcessGraphicsView::keyRelease, m_screen,
-            [=, v = QPointer{&view}, ptr = QPointer{m_screen}](QKeyEvent* ev) {
+        con.push_back(
+            QObject::connect(
+                &v, &Scenario::ProcessGraphicsView::keyRelease, m_screen,
+                [=, v = QPointer{&view}, ptr = QPointer{m_screen}](QKeyEvent* ev) {
           if(ptr && v)
           {
             if(!ev->isAutoRepeat())
@@ -842,7 +851,7 @@ public:
               text_param->push_value(ev->text().toStdString());
             }
           }
-        }, Qt::DirectConnection);
+        }, Qt::DirectConnection));
         node->add_child(std::move(release_node));
       }
 
@@ -856,6 +865,8 @@ public:
     {
       m_view->removeBackgroundRenderer(m_renderer);
     }
+    for(auto& c : con)
+      QObject::disconnect(c);
     delete m_renderer;
     m_protocol->stop();
 
