@@ -102,18 +102,6 @@ class CustomNodeProcess : public ossia::node_process
   }
 };
 
-template <typename T>
-struct dynamic_ports_component_data
-{
-};
-template <oscr::has_dynamic_ports T>
-struct dynamic_ports_component_data<T>
-{
-  Process::Inlets m_oldInlets;
-  Process::Outlets m_oldOutlets;
-  int64_t m_generation{};
-};
-
 template <typename Node>
 class Executor final
     : public Execution::ProcessComponent_T<ProcessModel<Node>, ossia::node_process>
@@ -333,27 +321,6 @@ public:
 #endif
   }
 
-  void update_ui_with_new_ports(ossia::inlets& inls, ossia::outlets& outls)
-  {
-    if constexpr(oscr::has_dynamic_ports<Node>)
-    {
-      SCORE_ASSERT(inls.size() == this->m_oldInlets.size());
-      SCORE_ASSERT(outls.size() == this->m_oldOutlets.size());
-
-      auto& setup = this->system().setup;
-      auto node = std::dynamic_pointer_cast<safe_node<Node>>(this->node);
-      Execution::Transaction commands{this->system()};
-      for(std::size_t i = 0; i < inls.size(); i++)
-      {
-        setup.register_inlet(*this->m_oldInlets[i], inls[i], node, commands);
-      }
-      for(std::size_t i = 0; i < outls.size(); i++)
-      {
-        setup.register_outlet(*this->m_oldOutlets[i], outls[i], node, commands);
-      }
-      commands.run_all();
-    }
-  }
   void recompute_ports()
   {
     if constexpr(oscr::has_dynamic_ports<Node>)
@@ -363,12 +330,20 @@ public:
       if(!n)
         return;
       this->m_generation++;
+      const auto& new_inlets = this->process().inlets();
+      for(auto port : this->m_oldInlets)
+      {
+        if(!ossia::contains(new_inlets, port))
+        {
+          this->m_connectedControls.erase(port);
+        }
+      }
+
       this->m_oldInlets = this->process().inlets();
       this->m_oldOutlets = this->process().outlets();
 
       struct port_storage
       {
-
         ossia::inlets new_inls_buffer;
         ossia::outlets new_outls_buffer;
         inlet_reload_storage<T> reload_inlet{};
@@ -467,6 +442,20 @@ public:
       }
 
       commands.run_all();
+
+      using dynamic_ports_port_type = avnd::dynamic_ports_input_introspection<Node>;
+      using control_inputs_type = avnd::control_input_introspection<Node>;
+      if constexpr(dynamic_ports_port_type::size > 0)
+      {
+        safe_node<Node>& node = *n;
+        avnd::effect_container<Node>& eff = node.impl;
+        for(auto state : eff.full_state())
+        {
+          dynamic_ports_port_type::for_all_n2(
+              state.inputs, dispatch_control_reconnect<Node>{
+                                this->process(), this->system(), n, *this, this});
+        }
+      }
     }
   }
 
@@ -494,7 +483,7 @@ public:
       for(auto state : eff.full_state())
       {
         dynamic_ports_port_type::for_all_n2(
-            state.inputs, dispatch_control_setup<Node>{element, ctx, ptr, this});
+            state.inputs, dispatch_control_setup<Node>{element, ctx, ptr, *this, this});
       }
     }
     if constexpr(control_inputs_type::size > 0)
@@ -502,7 +491,7 @@ public:
       for(auto state : eff.full_state())
       {
         control_inputs_type::for_all_n2(
-            state.inputs, dispatch_control_setup<Node>{element, ctx, ptr, this});
+            state.inputs, dispatch_control_setup<Node>{element, ctx, ptr, *this, this});
       }
     }
     if constexpr(curve_inputs_type::size > 0)
@@ -510,14 +499,14 @@ public:
       for(auto state : eff.full_state())
       {
         curve_inputs_type::for_all_n2(
-            state.inputs, dispatch_control_setup<Node>{element, ctx, ptr, this});
+            state.inputs, dispatch_control_setup<Node>{element, ctx, ptr, *this, this});
       }
     }
     if constexpr(soundfile_inputs_type::size > 0)
     {
       soundfile_inputs_type::for_all_n2(
           avnd::get_inputs<Node>(eff),
-          dispatch_control_setup<Node>{element, ctx, ptr, this});
+          dispatch_control_setup<Node>{element, ctx, ptr, *this, this});
 
       setup_soundfile_task_pool(element, ctx, ptr);
     }
@@ -525,13 +514,13 @@ public:
     {
       midifile_inputs_type::for_all_n2(
           avnd::get_inputs<Node>(eff),
-          dispatch_control_setup<Node>{element, ctx, ptr, this});
+          dispatch_control_setup<Node>{element, ctx, ptr, *this, this});
     }
     if constexpr(raw_file_inputs_type::size > 0)
     {
       raw_file_inputs_type::for_all_n2(
           avnd::get_inputs<Node>(eff),
-          dispatch_control_setup<Node>{element, ctx, ptr, this});
+          dispatch_control_setup<Node>{element, ctx, ptr, *this, this});
     }
 
     // Engine to ui controls
