@@ -18,7 +18,7 @@
 #include <Crousti/ProcessModel.hpp>
 
 #include <score/tools/Bind.hpp>
-
+#include <ossia/detail/flat_set.hpp>
 #include <ossia/dataflow/exec_state_facade.hpp>
 #include <ossia/dataflow/node_process.hpp>
 #include <ossia/network/context.hpp>
