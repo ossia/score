@@ -45,9 +45,15 @@ struct SCORE_PLUGIN_GFX_EXPORT MultiWindowNode : OutputNode
     return m_windowOutputs;
   }
 
+  void setRenderSize(QSize sz);
+  void setSourceRect(int windowIndex, QRectF rect);
+
   std::function<void(float)> onFps;
+  // Called after all windows are created in createOutput(), before swap chains are initialized
+  std::function<void()> onWindowsCreated;
 
 private:
+  void renderBlack();
   void initWindow(int index, GraphicsApi api);
 
   Configuration m_conf;

@@ -207,6 +207,18 @@ private:
     if(!rt)
       return;
 
+    // Update UBO from live sourceRect (may have changed via device parameter)
+    if(pw.uvRectUBO)
+    {
+      if(!res)
+        res = renderer.state.rhi->nextResourceUpdateBatch();
+
+      float rectData[4] = {
+          (float)wo.sourceRect.x(), (float)wo.sourceRect.y(),
+          (float)wo.sourceRect.width(), (float)wo.sourceRect.height()};
+      res->updateDynamicBuffer(pw.uvRectUBO, 0, sizeof(rectData), rectData);
+    }
+
     cb.beginPass(rt, Qt::black, {1.0f, 0}, res);
     res = nullptr;
     {
@@ -264,17 +276,74 @@ bool MultiWindowNode::canRender() const
   return !m_windowOutputs.empty() && m_renderState && m_renderState->rhi;
 }
 
+void MultiWindowNode::setRenderSize(QSize sz)
+{
+  if(m_renderState)
+  {
+    if(sz.width() >= 1 && sz.height() >= 1)
+      m_renderState->renderSize = sz;
+  }
+}
+
+void MultiWindowNode::setSourceRect(int windowIndex, QRectF rect)
+{
+  if(windowIndex >= 0 && windowIndex < (int)m_windowOutputs.size())
+    m_windowOutputs[windowIndex].sourceRect = rect;
+}
+
 void MultiWindowNode::startRendering()
 {
   if(onFps)
     onFps(0.f);
 }
 
+void MultiWindowNode::renderBlack()
+{
+  if(!m_renderState || !m_renderState->rhi)
+    return;
+
+  auto rhi = m_renderState->rhi;
+
+  for(auto& wo : m_windowOutputs)
+  {
+    if(!wo.window || !wo.swapChain || !wo.hasSwapChain)
+      continue;
+
+    if(wo.swapChain->currentPixelSize() != wo.swapChain->surfacePixelSize())
+      wo.hasSwapChain = wo.swapChain->createOrResize();
+
+    if(!wo.hasSwapChain)
+      continue;
+
+    QRhi::FrameOpResult r = rhi->beginFrame(wo.swapChain);
+    if(r == QRhi::FrameOpSwapChainOutOfDate)
+    {
+      wo.hasSwapChain = wo.swapChain->createOrResize();
+      if(!wo.hasSwapChain)
+        continue;
+      r = rhi->beginFrame(wo.swapChain);
+    }
+    if(r != QRhi::FrameOpSuccess)
+      continue;
+
+    auto cb = wo.swapChain->currentFrameCommandBuffer();
+    auto batch = rhi->nextResourceUpdateBatch();
+    cb->beginPass(wo.swapChain->currentFrameRenderTarget(), Qt::black, {1.0f, 0}, batch);
+    cb->endPass();
+
+    rhi->endFrame(wo.swapChain);
+  }
+}
+
 void MultiWindowNode::render()
 {
   auto rl = m_renderer.lock();
   if(!rl || rl->renderers.size() <= 1)
+  {
+    // No active render graph — clear all windows to black
+    renderBlack();
     return;
+  }
 
   auto rhi = m_renderState->rhi;
 
@@ -449,9 +518,11 @@ void MultiWindowNode::createOutput(score::gfx::OutputConfiguration conf)
     }
   }
 
+  // Notify the device that windows are available for signal connections
+  if(onWindowsCreated)
+    onWindowsCreated();
+
   // Set up a callback to initialize swap chains once first window is exposed
-  // For simplicity, we use a timer-based approach to wait for windows to be exposed
-  // Then init all swap chains
   auto initAll = [this, onReady = std::move(conf.onReady)]() mutable {
     for(int i = 0; i < (int)m_windowOutputs.size(); ++i)
     {
