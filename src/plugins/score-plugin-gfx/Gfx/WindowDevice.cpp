@@ -7,6 +7,7 @@
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxParameter.hpp>
 #include <Gfx/Graph/BackgroundNode.hpp>
+#include <Gfx/Graph/MultiWindowNode.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/ScreenNode.hpp>
 #include <Gfx/Graph/Window.hpp>
@@ -25,12 +26,23 @@
 
 #include <ossia-qt/invoke.hpp>
 
+#include <QComboBox>
+#include <QDoubleSpinBox>
 #include <QFormLayout>
+#include <QGraphicsSceneMouseEvent>
+#include <QGroupBox>
 #include <QGuiApplication>
+#include <QHBoxLayout>
+#include <QLabel>
 #include <QLineEdit>
 #include <QMenu>
+#include <QPainter>
+#include <QPushButton>
 #include <QScreen>
+#include <QSpinBox>
+#include <QStackedWidget>
 #include <QUrl>
+#include <QVBoxLayout>
 #include <qcheckbox.h>
 
 #include <wobjectimpl.h>
@@ -878,6 +890,61 @@ public:
   const gfx_node_base& get_root_node() const override { return m_root; }
   gfx_node_base& get_root_node() override { return m_root; }
 };
+
+static score::gfx::MultiWindowNode* createMultiWindowNode(
+    const std::vector<OutputMapping>& mappings)
+{
+  const auto& settings = score::AppContext().applicationSettings;
+  const auto& gfx_settings = score::AppContext().settings<Gfx::Settings::Model>();
+
+  score::gfx::OutputNode::Configuration conf;
+  double rate = gfx_settings.getRate();
+  if(rate > 0)
+    conf = {.manualRenderingRate = 1000. / rate, .supportsVSync = false};
+  else
+    conf = {.manualRenderingRate = 1000. / 60., .supportsVSync = false};
+
+  return new score::gfx::MultiWindowNode{conf, mappings};
+}
+
+class multiwindow_device : public ossia::net::device_base
+{
+  score::gfx::MultiWindowNode* m_node{};
+  gfx_node_base m_root;
+
+  ossia::net::parameter_base* fps_param{};
+
+public:
+  multiwindow_device(
+      const std::vector<OutputMapping>& mappings,
+      std::unique_ptr<gfx_protocol_base> proto, std::string name)
+      : ossia::net::device_base{std::move(proto)}
+      , m_node{createMultiWindowNode(mappings)}
+      , m_root{*this, *static_cast<gfx_protocol_base*>(m_protocol.get()), m_node, name}
+  {
+    this->m_capabilities.change_tree = true;
+
+    // FPS output parameter
+    {
+      auto fps_node = std::make_unique<ossia::net::generic_node>("fps", *this, m_root);
+      fps_param = fps_node->create_parameter(ossia::val_type::FLOAT);
+      m_node->onFps = [this](float fps) { fps_param->push_value(fps); };
+      m_root.add_child(std::move(fps_node));
+    }
+  }
+
+  ~multiwindow_device()
+  {
+    m_node->onFps = [](float) {};
+    m_protocol->stop();
+    m_root.clear_children();
+    m_protocol.reset();
+  }
+
+  const gfx_node_base& get_root_node() const override { return m_root; }
+  gfx_node_base& get_root_node() override { return m_root; }
+};
+
 score::gfx::Window* WindowDevice::window() const noexcept
 {
   if(m_dev)
@@ -949,17 +1016,36 @@ bool WindowDevice::reconnect()
       auto view = m_ctx.document.view();
       auto main_view = view ? qobject_cast<Scenario::ScenarioDocumentView*>(
           &view->viewDelegate()) : nullptr;
-      if(set.background && main_view)
+      switch(set.mode)
       {
-        m_dev = std::make_unique<background_device>(
-            *main_view, std::unique_ptr<gfx_protocol_base>(m_protocol),
-            m_settings.name.toStdString());
-      }
-      else
-      {
-        m_dev = std::make_unique<window_device>(
-            std::unique_ptr<gfx_protocol_base>(m_protocol),
-            m_settings.name.toStdString());
+        case WindowMode::Background: {
+          if(main_view)
+          {
+            m_dev = std::make_unique<background_device>(
+                *main_view, std::unique_ptr<gfx_protocol_base>(m_protocol),
+                m_settings.name.toStdString());
+          }
+          else
+          {
+            m_dev = std::make_unique<window_device>(
+                std::unique_ptr<gfx_protocol_base>(m_protocol),
+                m_settings.name.toStdString());
+          }
+          break;
+        }
+        case WindowMode::MultiWindow: {
+          m_dev = std::make_unique<multiwindow_device>(
+              set.outputs, std::unique_ptr<gfx_protocol_base>(m_protocol),
+              m_settings.name.toStdString());
+          break;
+        }
+        case WindowMode::Single:
+        default: {
+          m_dev = std::make_unique<window_device>(
+              std::unique_ptr<gfx_protocol_base>(m_protocol),
+              m_settings.name.toStdString());
+          break;
+        }
       }
 
       enableCallbacks();
@@ -1051,6 +1137,331 @@ bool WindowProtocolFactory::checkCompatibility(
   return true;
 }
 
+// --- OutputMappingItem implementation ---
+
+OutputMappingItem::OutputMappingItem(int index, const QRectF& rect, QGraphicsItem* parent)
+    : QGraphicsRectItem(rect, parent)
+    , m_index{index}
+{
+  setFlags(
+      QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsSelectable
+      | QGraphicsItem::ItemSendsGeometryChanges);
+  setAcceptHoverEvents(true);
+  setPen(QPen(Qt::white, 1));
+  setBrush(QBrush(QColor(100, 150, 255, 80)));
+}
+
+void OutputMappingItem::setOutputIndex(int idx)
+{
+  m_index = idx;
+  update();
+}
+
+void OutputMappingItem::paint(
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+{
+  QGraphicsRectItem::paint(painter, option, widget);
+
+  // Draw index label
+  painter->setPen(Qt::white);
+  auto font = painter->font();
+  font.setPixelSize(14);
+  painter->setFont(font);
+  painter->drawText(rect(), Qt::AlignCenter, QString::number(m_index));
+
+  // Draw selection highlight
+  if(isSelected())
+  {
+    QPen selPen(Qt::yellow, 2, Qt::DashLine);
+    painter->setPen(selPen);
+    painter->setBrush(Qt::NoBrush);
+    painter->drawRect(rect());
+  }
+}
+
+int OutputMappingItem::hitTestEdges(const QPointF& pos) const
+{
+  constexpr double margin = 6.0;
+  int edges = None;
+  auto r = rect();
+  if(pos.x() - r.left() < margin)
+    edges |= Left;
+  if(r.right() - pos.x() < margin)
+    edges |= Right;
+  if(pos.y() - r.top() < margin)
+    edges |= Top;
+  if(r.bottom() - pos.y() < margin)
+    edges |= Bottom;
+  return edges;
+}
+
+QVariant OutputMappingItem::itemChange(GraphicsItemChange change, const QVariant& value)
+{
+  if(change == ItemPositionChange && scene())
+  {
+    // Visual scene rect = pos + rect, so clamp pos such that
+    // pos + rect.topLeft >= sceneRect.topLeft and pos + rect.bottomRight <= sceneRect.bottomRight
+    QPointF newPos = value.toPointF();
+    auto r = rect();
+    auto sr = scene()->sceneRect();
+
+    newPos.setX(qBound(sr.left() - r.left(), newPos.x(), sr.right() - r.right()));
+    newPos.setY(qBound(sr.top() - r.top(), newPos.y(), sr.bottom() - r.bottom()));
+    return newPos;
+  }
+  if(change == ItemPositionHasChanged)
+  {
+    if(onChanged)
+      onChanged();
+  }
+  return QGraphicsRectItem::itemChange(change, value);
+}
+
+void OutputMappingItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+  m_resizeEdges = hitTestEdges(event->pos());
+  if(m_resizeEdges != None)
+  {
+    m_dragStart = event->scenePos();
+    m_rectStart = rect();
+    event->accept();
+  }
+  else
+  {
+    QGraphicsRectItem::mousePressEvent(event);
+  }
+}
+
+void OutputMappingItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+  if(m_resizeEdges != None)
+  {
+    auto delta = event->scenePos() - m_dragStart;
+    QRectF r = m_rectStart;
+    constexpr double minSize = 10.0;
+
+    // Scene bounds in item-local coordinates (account for pos() offset)
+    auto sr = scene()->sceneRect();
+    auto p = pos();
+    double sLeft = sr.left() - p.x();
+    double sRight = sr.right() - p.x();
+    double sTop = sr.top() - p.y();
+    double sBottom = sr.bottom() - p.y();
+
+    if(m_resizeEdges & Left)
+    {
+      double newLeft = qMin(r.left() + delta.x(), r.right() - minSize);
+      r.setLeft(qMax(newLeft, sLeft));
+    }
+    if(m_resizeEdges & Right)
+    {
+      double newRight = qMax(r.right() + delta.x(), r.left() + minSize);
+      r.setRight(qMin(newRight, sRight));
+    }
+    if(m_resizeEdges & Top)
+    {
+      double newTop = qMin(r.top() + delta.y(), r.bottom() - minSize);
+      r.setTop(qMax(newTop, sTop));
+    }
+    if(m_resizeEdges & Bottom)
+    {
+      double newBottom = qMax(r.bottom() + delta.y(), r.top() + minSize);
+      r.setBottom(qMin(newBottom, sBottom));
+    }
+
+    setRect(r);
+    if(onChanged)
+      onChanged();
+    event->accept();
+  }
+  else
+  {
+    QGraphicsRectItem::mouseMoveEvent(event);
+  }
+}
+
+void OutputMappingItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+  m_resizeEdges = None;
+  QGraphicsRectItem::mouseReleaseEvent(event);
+}
+
+void OutputMappingItem::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
+{
+  int edges = hitTestEdges(event->pos());
+  if((edges & Left) && (edges & Top))
+    setCursor(Qt::SizeFDiagCursor);
+  else if((edges & Right) && (edges & Bottom))
+    setCursor(Qt::SizeFDiagCursor);
+  else if((edges & Left) && (edges & Bottom))
+    setCursor(Qt::SizeBDiagCursor);
+  else if((edges & Right) && (edges & Top))
+    setCursor(Qt::SizeBDiagCursor);
+  else if(edges & (Left | Right))
+    setCursor(Qt::SizeHorCursor);
+  else if(edges & (Top | Bottom))
+    setCursor(Qt::SizeVerCursor);
+  else
+    setCursor(Qt::ArrowCursor);
+
+  QGraphicsRectItem::hoverMoveEvent(event);
+}
+
+// --- OutputMappingCanvas implementation ---
+
+OutputMappingCanvas::OutputMappingCanvas(QWidget* parent)
+    : QGraphicsView(parent)
+{
+  setScene(&m_scene);
+  m_scene.setSceneRect(0, 0, kCanvasWidth, kCanvasHeight);
+  setMinimumSize(200, 150);
+  setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  setBackgroundBrush(QBrush(QColor(40, 40, 40)));
+  setRenderHint(QPainter::Antialiasing);
+
+  // Draw border around the full texture area
+  auto border = m_scene.addRect(0, 0, kCanvasWidth, kCanvasHeight, QPen(Qt::gray, 1));
+  border->setZValue(-1);
+
+  connect(&m_scene, &QGraphicsScene::selectionChanged, this, [this] {
+    if(onSelectionChanged)
+    {
+      auto items = m_scene.selectedItems();
+      if(!items.isEmpty())
+      {
+        if(auto* item = dynamic_cast<OutputMappingItem*>(items.first()))
+          onSelectionChanged(item->outputIndex());
+      }
+      else
+      {
+        onSelectionChanged(-1);
+      }
+    }
+  });
+}
+
+void OutputMappingCanvas::resizeEvent(QResizeEvent* event)
+{
+  QGraphicsView::resizeEvent(event);
+  fitInView(m_scene.sceneRect(), Qt::KeepAspectRatio);
+}
+
+void OutputMappingCanvas::setupItemCallbacks(OutputMappingItem* item)
+{
+  item->onChanged = [this, item] {
+    if(onItemGeometryChanged)
+      onItemGeometryChanged(item->outputIndex());
+  };
+}
+
+void OutputMappingCanvas::setMappings(const std::vector<OutputMapping>& mappings)
+{
+  // Remove existing mapping items
+  QList<QGraphicsItem*> toRemove;
+  for(auto* item : m_scene.items())
+  {
+    if(dynamic_cast<OutputMappingItem*>(item))
+      toRemove.append(item);
+  }
+  for(auto* item : toRemove)
+  {
+    m_scene.removeItem(item);
+    delete item;
+  }
+
+  for(int i = 0; i < (int)mappings.size(); ++i)
+  {
+    const auto& m = mappings[i];
+    QRectF sceneRect(
+        m.sourceRect.x() * kCanvasWidth, m.sourceRect.y() * kCanvasHeight,
+        m.sourceRect.width() * kCanvasWidth, m.sourceRect.height() * kCanvasHeight);
+    auto* item = new OutputMappingItem(i, sceneRect);
+    item->screenIndex = m.screenIndex;
+    item->windowPosition = m.windowPosition;
+    item->windowSize = m.windowSize;
+    item->fullscreen = m.fullscreen;
+    setupItemCallbacks(item);
+    m_scene.addItem(item);
+  }
+}
+
+std::vector<OutputMapping> OutputMappingCanvas::getMappings() const
+{
+  std::vector<OutputMapping> result;
+  QList<OutputMappingItem*> items;
+
+  for(auto* item : m_scene.items())
+  {
+    if(auto* mi = dynamic_cast<OutputMappingItem*>(item))
+      items.append(mi);
+  }
+
+  // Sort by index
+  std::sort(items.begin(), items.end(), [](auto* a, auto* b) {
+    return a->outputIndex() < b->outputIndex();
+  });
+
+  for(auto* item : items)
+  {
+    OutputMapping m;
+    auto r = item->mapRectToScene(item->rect());
+    m.sourceRect = QRectF(
+        r.x() / kCanvasWidth, r.y() / kCanvasHeight, r.width() / kCanvasWidth,
+        r.height() / kCanvasHeight);
+    m.screenIndex = item->screenIndex;
+    m.windowPosition = item->windowPosition;
+    m.windowSize = item->windowSize;
+    m.fullscreen = item->fullscreen;
+    result.push_back(m);
+  }
+  return result;
+}
+
+void OutputMappingCanvas::addOutput()
+{
+  int count = 0;
+  for(auto* item : m_scene.items())
+    if(dynamic_cast<OutputMappingItem*>(item))
+      count++;
+
+  // Place new output at a default position
+  double x = (count * 30) % (int)(kCanvasWidth - 100);
+  double y = (count * 30) % (int)(kCanvasHeight - 75);
+  auto* item = new OutputMappingItem(count, QRectF(x, y, 100, 75));
+  setupItemCallbacks(item);
+  m_scene.addItem(item);
+}
+
+void OutputMappingCanvas::removeSelectedOutput()
+{
+  auto items = m_scene.selectedItems();
+  for(auto* item : items)
+  {
+    if(dynamic_cast<OutputMappingItem*>(item))
+    {
+      m_scene.removeItem(item);
+      delete item;
+    }
+  }
+
+  // Re-index remaining items
+  QList<OutputMappingItem*> remaining;
+  for(auto* item : m_scene.items())
+    if(auto* mi = dynamic_cast<OutputMappingItem*>(item))
+      remaining.append(mi);
+
+  std::sort(remaining.begin(), remaining.end(), [](auto* a, auto* b) {
+    return a->outputIndex() < b->outputIndex();
+  });
+
+  for(int i = 0; i < remaining.size(); ++i)
+    remaining[i]->setOutputIndex(i);
+}
+
+// --- WindowSettingsWidget implementation ---
+
 WindowSettingsWidget::WindowSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
 {
@@ -1059,10 +1470,315 @@ WindowSettingsWidget::WindowSettingsWidget(QWidget* parent)
 
   auto layout = new QFormLayout;
   layout->addRow(tr("Device Name"), m_deviceNameEdit);
-  layout->addRow(tr("Use as UI background"), m_background = new QCheckBox);
+
+  m_modeCombo = new QComboBox;
+  m_modeCombo->addItem(tr("Single Window"));
+  m_modeCombo->addItem(tr("Background"));
+  m_modeCombo->addItem(tr("Multi-Window Mapping"));
+  layout->addRow(tr("Mode"), m_modeCombo);
+
+  m_stack = new QStackedWidget;
+
+  // Page 0: Single (empty)
+  m_stack->addWidget(new QWidget);
+
+  // Page 1: Background (empty)
+  m_stack->addWidget(new QWidget);
+
+  // Page 2: Multi-window
+  {
+    auto* multiWidget = new QWidget;
+    auto* multiLayout = new QVBoxLayout(multiWidget);
+
+    // Input texture resolution (for pixel label display)
+    {
+      auto* resLayout = new QHBoxLayout;
+      resLayout->addWidget(new QLabel(tr("Input Resolution")));
+      m_inputWidth = new QSpinBox;
+      m_inputWidth->setRange(1, 16384);
+      m_inputWidth->setValue(1920);
+      m_inputHeight = new QSpinBox;
+      m_inputHeight->setRange(1, 16384);
+      m_inputHeight->setValue(1080);
+      resLayout->addWidget(m_inputWidth);
+      resLayout->addWidget(new QLabel(QStringLiteral("x")));
+      resLayout->addWidget(m_inputHeight);
+      multiLayout->addLayout(resLayout);
+    }
+
+    m_canvas = new OutputMappingCanvas;
+    multiLayout->addWidget(m_canvas);
+
+    // Add/Remove buttons
+    auto* btnLayout = new QHBoxLayout;
+    auto* addBtn = new QPushButton(tr("Add Output"));
+    auto* removeBtn = new QPushButton(tr("Remove Selected"));
+    btnLayout->addWidget(addBtn);
+    btnLayout->addWidget(removeBtn);
+    multiLayout->addLayout(btnLayout);
+
+    connect(addBtn, &QPushButton::clicked, this, [this] {
+      m_canvas->addOutput();
+    });
+    connect(removeBtn, &QPushButton::clicked, this, [this] {
+      m_canvas->removeSelectedOutput();
+      m_selectedOutput = -1;
+    });
+
+    // Properties for selected output
+    auto* propGroup = new QGroupBox(tr("Selected Output Properties"));
+    auto* propLayout = new QFormLayout(propGroup);
+
+    // Source rect (UV coordinates in the input texture)
+    m_srcX = new QDoubleSpinBox;
+    m_srcX->setRange(0.0, 1.0);
+    m_srcX->setSingleStep(0.01);
+    m_srcX->setDecimals(3);
+    m_srcY = new QDoubleSpinBox;
+    m_srcY->setRange(0.0, 1.0);
+    m_srcY->setSingleStep(0.01);
+    m_srcY->setDecimals(3);
+    auto* srcPosLayout = new QHBoxLayout;
+    srcPosLayout->addWidget(m_srcX);
+    srcPosLayout->addWidget(m_srcY);
+    m_srcPosPixelLabel = new QLabel;
+    srcPosLayout->addWidget(m_srcPosPixelLabel);
+    propLayout->addRow(tr("Source UV Pos"), srcPosLayout);
+
+    m_srcW = new QDoubleSpinBox;
+    m_srcW->setRange(0.01, 1.0);
+    m_srcW->setSingleStep(0.01);
+    m_srcW->setDecimals(3);
+    m_srcW->setValue(1.0);
+    m_srcH = new QDoubleSpinBox;
+    m_srcH->setRange(0.01, 1.0);
+    m_srcH->setSingleStep(0.01);
+    m_srcH->setDecimals(3);
+    m_srcH->setValue(1.0);
+    auto* srcSizeLayout = new QHBoxLayout;
+    srcSizeLayout->addWidget(m_srcW);
+    srcSizeLayout->addWidget(m_srcH);
+    m_srcSizePixelLabel = new QLabel;
+    srcSizeLayout->addWidget(m_srcSizePixelLabel);
+    propLayout->addRow(tr("Source UV Size"), srcSizeLayout);
+
+    // Output window properties
+    m_screenCombo = new QComboBox;
+    m_screenCombo->addItem(tr("Default"));
+    for(auto* screen : qApp->screens())
+      m_screenCombo->addItem(screen->name());
+    propLayout->addRow(tr("Screen"), m_screenCombo);
+
+    m_winPosX = new QSpinBox;
+    m_winPosX->setRange(0, 16384);
+    m_winPosY = new QSpinBox;
+    m_winPosY->setRange(0, 16384);
+    auto* posLayout = new QHBoxLayout;
+    posLayout->addWidget(m_winPosX);
+    posLayout->addWidget(m_winPosY);
+    propLayout->addRow(tr("Window Pos"), posLayout);
+
+    m_winWidth = new QSpinBox;
+    m_winWidth->setRange(1, 16384);
+    m_winWidth->setValue(1280);
+    m_winHeight = new QSpinBox;
+    m_winHeight->setRange(1, 16384);
+    m_winHeight->setValue(720);
+    auto* sizeLayout = new QHBoxLayout;
+    sizeLayout->addWidget(m_winWidth);
+    sizeLayout->addWidget(m_winHeight);
+    propLayout->addRow(tr("Window Size"), sizeLayout);
+
+    m_fullscreenCheck = new QCheckBox;
+    propLayout->addRow(tr("Fullscreen"), m_fullscreenCheck);
+
+    propGroup->setEnabled(false);
+    multiLayout->addWidget(propGroup);
+
+    m_canvas->onSelectionChanged = [this, propGroup](int idx) {
+      m_selectedOutput = idx;
+      propGroup->setEnabled(idx >= 0);
+      if(idx >= 0)
+        updatePropertiesFromSelection();
+    };
+
+    m_canvas->onItemGeometryChanged = [this](int idx) {
+      if(idx == m_selectedOutput)
+        updatePropertiesFromSelection();
+    };
+
+    // Wire window property changes back to the selected canvas item
+    auto applyProps = [this] { applyPropertiesToSelection(); };
+    connect(m_screenCombo, qOverload<int>(&QComboBox::currentIndexChanged), this, applyProps);
+    connect(m_winPosX, qOverload<int>(&QSpinBox::valueChanged), this, applyProps);
+    connect(m_winPosY, qOverload<int>(&QSpinBox::valueChanged), this, applyProps);
+    connect(m_winWidth, qOverload<int>(&QSpinBox::valueChanged), this, applyProps);
+    connect(m_winHeight, qOverload<int>(&QSpinBox::valueChanged), this, applyProps);
+    connect(m_fullscreenCheck, &QCheckBox::toggled, this, applyProps);
+
+    // Wire source rect spinboxes to update canvas item geometry
+    auto applySrc = [this] { applySourceRectToSelection(); };
+    connect(m_srcX, qOverload<double>(&QDoubleSpinBox::valueChanged), this, applySrc);
+    connect(m_srcY, qOverload<double>(&QDoubleSpinBox::valueChanged), this, applySrc);
+    connect(m_srcW, qOverload<double>(&QDoubleSpinBox::valueChanged), this, applySrc);
+    connect(m_srcH, qOverload<double>(&QDoubleSpinBox::valueChanged), this, applySrc);
+
+    // Update pixel labels when UV or input resolution changes
+    auto updatePx = [this] { updatePixelLabels(); };
+    connect(m_srcX, qOverload<double>(&QDoubleSpinBox::valueChanged), this, updatePx);
+    connect(m_srcY, qOverload<double>(&QDoubleSpinBox::valueChanged), this, updatePx);
+    connect(m_srcW, qOverload<double>(&QDoubleSpinBox::valueChanged), this, updatePx);
+    connect(m_srcH, qOverload<double>(&QDoubleSpinBox::valueChanged), this, updatePx);
+    connect(m_inputWidth, qOverload<int>(&QSpinBox::valueChanged), this, updatePx);
+    connect(m_inputHeight, qOverload<int>(&QSpinBox::valueChanged), this, updatePx);
+    connect(m_screenCombo, qOverload<int>(&QComboBox::currentIndexChanged), this, updatePx);
+
+    m_stack->addWidget(multiWidget);
+  }
+
+  layout->addRow(m_stack);
   m_deviceNameEdit->setText("window");
 
+  connect(
+      m_modeCombo, qOverload<int>(&QComboBox::currentIndexChanged), this,
+      &WindowSettingsWidget::onModeChanged);
+
   setLayout(layout);
+}
+
+void WindowSettingsWidget::onModeChanged(int index)
+{
+  m_stack->setCurrentIndex(index);
+}
+
+void WindowSettingsWidget::updatePropertiesFromSelection()
+{
+  if(!m_canvas || m_selectedOutput < 0)
+    return;
+
+  for(auto* item : m_canvas->scene()->items())
+  {
+    if(auto* mi = dynamic_cast<OutputMappingItem*>(item))
+    {
+      if(mi->outputIndex() == m_selectedOutput)
+      {
+        // Block signals to avoid feedback loops when setting multiple spinboxes
+        const QSignalBlocker b1(m_screenCombo);
+        const QSignalBlocker b2(m_winPosX);
+        const QSignalBlocker b3(m_winPosY);
+        const QSignalBlocker b4(m_winWidth);
+        const QSignalBlocker b5(m_winHeight);
+        const QSignalBlocker b6(m_fullscreenCheck);
+        const QSignalBlocker b7(m_srcX);
+        const QSignalBlocker b8(m_srcY);
+        const QSignalBlocker b9(m_srcW);
+        const QSignalBlocker b10(m_srcH);
+
+        // Update source rect from canvas item geometry
+        auto sceneRect = mi->mapRectToScene(mi->rect());
+        m_srcX->setValue(sceneRect.x() / OutputMappingCanvas::kCanvasWidth);
+        m_srcY->setValue(sceneRect.y() / OutputMappingCanvas::kCanvasHeight);
+        m_srcW->setValue(sceneRect.width() / OutputMappingCanvas::kCanvasWidth);
+        m_srcH->setValue(sceneRect.height() / OutputMappingCanvas::kCanvasHeight);
+
+        // Update window properties
+        m_screenCombo->setCurrentIndex(mi->screenIndex + 1); // +1 because index 0 is "Default"
+        m_winPosX->setValue(mi->windowPosition.x());
+        m_winPosY->setValue(mi->windowPosition.y());
+        m_winWidth->setValue(mi->windowSize.width());
+        m_winHeight->setValue(mi->windowSize.height());
+        m_fullscreenCheck->setChecked(mi->fullscreen);
+
+        updatePixelLabels();
+        return;
+      }
+    }
+  }
+}
+
+void WindowSettingsWidget::applyPropertiesToSelection()
+{
+  if(!m_canvas || m_selectedOutput < 0)
+    return;
+
+  for(auto* item : m_canvas->scene()->items())
+  {
+    if(auto* mi = dynamic_cast<OutputMappingItem*>(item))
+    {
+      if(mi->outputIndex() == m_selectedOutput)
+      {
+        mi->screenIndex = m_screenCombo->currentIndex() - 1; // -1 because index 0 is "Default"
+        mi->windowPosition = QPoint(m_winPosX->value(), m_winPosY->value());
+        mi->windowSize = QSize(m_winWidth->value(), m_winHeight->value());
+        mi->fullscreen = m_fullscreenCheck->isChecked();
+        return;
+      }
+    }
+  }
+}
+
+void WindowSettingsWidget::applySourceRectToSelection()
+{
+  if(!m_canvas || m_selectedOutput < 0)
+    return;
+
+  for(auto* item : m_canvas->scene()->items())
+  {
+    if(auto* mi = dynamic_cast<OutputMappingItem*>(item))
+    {
+      if(mi->outputIndex() == m_selectedOutput)
+      {
+        QRectF newSceneRect(
+            m_srcX->value() * OutputMappingCanvas::kCanvasWidth,
+            m_srcY->value() * OutputMappingCanvas::kCanvasHeight,
+            m_srcW->value() * OutputMappingCanvas::kCanvasWidth,
+            m_srcH->value() * OutputMappingCanvas::kCanvasHeight);
+
+        // Temporarily disable onChanged to avoid feedback loop
+        auto savedCallback = std::move(mi->onChanged);
+        mi->setPos(0, 0);
+        mi->setRect(newSceneRect);
+        mi->onChanged = std::move(savedCallback);
+        return;
+      }
+    }
+  }
+}
+
+void WindowSettingsWidget::updatePixelLabels()
+{
+  if(!m_inputWidth || !m_inputHeight)
+    return;
+
+  int w = m_inputWidth->value();
+  int h = m_inputHeight->value();
+
+  int pxX = int(m_srcX->value() * w);
+  int pxY = int(m_srcY->value() * h);
+  int pxW = qMax(1, int(m_srcW->value() * w));
+  int pxH = qMax(1, int(m_srcH->value() * h));
+
+  if(m_srcPosPixelLabel)
+    m_srcPosPixelLabel->setText(QStringLiteral("(%1, %2 px)").arg(pxX).arg(pxY));
+
+  if(m_srcSizePixelLabel)
+    m_srcSizePixelLabel->setText(QStringLiteral("%1 x %2 px").arg(pxW).arg(pxH));
+
+  // Auto-match window pos/size when screen is "Default" (combo index 0 = screenIndex -1)
+  if(m_screenCombo && m_screenCombo->currentIndex() == 0 && m_selectedOutput >= 0)
+  {
+    const QSignalBlocker bx(m_winPosX);
+    const QSignalBlocker by(m_winPosY);
+    const QSignalBlocker bw(m_winWidth);
+    const QSignalBlocker bh(m_winHeight);
+
+    m_winPosX->setValue(pxX);
+    m_winPosY->setValue(pxY);
+    m_winWidth->setValue(pxW);
+    m_winHeight->setValue(pxH);
+
+    applyPropertiesToSelection();
+  }
 }
 
 Device::DeviceSettings WindowSettingsWidget::getSettings() const
@@ -1071,7 +1787,15 @@ Device::DeviceSettings WindowSettingsWidget::getSettings() const
   s.name = m_deviceNameEdit->text();
   s.protocol = WindowProtocolFactory::static_concreteKey();
   WindowSettings set;
-  set.background = m_background->isChecked();
+  set.mode = (WindowMode)m_modeCombo->currentIndex();
+
+  if(set.mode == WindowMode::MultiWindow && m_canvas)
+  {
+    // Apply any pending property changes before reading
+    const_cast<WindowSettingsWidget*>(this)->applyPropertiesToSelection();
+    set.outputs = m_canvas->getMappings();
+  }
+
   s.deviceSpecificSettings = QVariant::fromValue(set);
   return s;
 }
@@ -1079,37 +1803,156 @@ Device::DeviceSettings WindowSettingsWidget::getSettings() const
 void WindowSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 {
   m_deviceNameEdit->setText(settings.name);
-  const auto& set = settings.deviceSpecificSettings.value<WindowSettings>();
-  m_background->setChecked(set.background);
+  if(settings.deviceSpecificSettings.canConvert<WindowSettings>())
+  {
+    const auto set = settings.deviceSpecificSettings.value<WindowSettings>();
+    m_modeCombo->setCurrentIndex((int)set.mode);
+    m_stack->setCurrentIndex((int)set.mode);
+
+    if(set.mode == WindowMode::MultiWindow && m_canvas)
+    {
+      m_canvas->setMappings(set.outputs);
+    }
+  }
 }
 
 }
 
 template <>
+void DataStreamReader::read(const Gfx::OutputMapping& n)
+{
+  m_stream << n.sourceRect << n.screenIndex << n.windowPosition << n.windowSize
+           << n.fullscreen;
+}
+
+template <>
+void DataStreamWriter::write(Gfx::OutputMapping& n)
+{
+  m_stream >> n.sourceRect >> n.screenIndex >> n.windowPosition >> n.windowSize
+      >> n.fullscreen;
+}
+
+template <>
 void DataStreamReader::read(const Gfx::WindowSettings& n)
 {
-  m_stream << n.background;
+  m_stream << (int32_t)2; // version tag
+  m_stream << (int32_t)n.mode;
+  m_stream << (int32_t)n.outputs.size();
+  for(const auto& o : n.outputs)
+    read(o);
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(Gfx::WindowSettings& n)
 {
-  m_stream >> n.background;
+  int32_t version{};
+  m_stream >> version;
+  if(version == 0 || version == 1)
+  {
+    // Old format: version is actually the bool background value
+    n.mode = version ? Gfx::WindowMode::Background : Gfx::WindowMode::Single;
+  }
+  else if(version == 2)
+  {
+    int32_t mode{};
+    m_stream >> mode;
+    n.mode = (Gfx::WindowMode)mode;
+    int32_t count{};
+    m_stream >> count;
+    n.outputs.resize(count);
+    for(auto& o : n.outputs)
+      write(o);
+  }
   checkDelimiter();
+}
+
+template <>
+void JSONReader::read(const Gfx::OutputMapping& n)
+{
+  stream.StartObject();
+  stream.Key("SourceRect");
+  stream.StartArray();
+  stream.Double(n.sourceRect.x());
+  stream.Double(n.sourceRect.y());
+  stream.Double(n.sourceRect.width());
+  stream.Double(n.sourceRect.height());
+  stream.EndArray();
+  stream.Key("ScreenIndex");
+  stream.Int(n.screenIndex);
+  stream.Key("WindowPosition");
+  stream.StartArray();
+  stream.Int(n.windowPosition.x());
+  stream.Int(n.windowPosition.y());
+  stream.EndArray();
+  stream.Key("WindowSize");
+  stream.StartArray();
+  stream.Int(n.windowSize.width());
+  stream.Int(n.windowSize.height());
+  stream.EndArray();
+  stream.Key("Fullscreen");
+  stream.Bool(n.fullscreen);
+  stream.EndObject();
+}
+
+template <>
+void JSONWriter::write(Gfx::OutputMapping& n)
+{
+  if(auto sr = obj.tryGet("SourceRect"))
+  {
+    auto arr = sr->toArray();
+    if(arr.Size() == 4)
+      n.sourceRect = QRectF(
+          arr[0].GetDouble(), arr[1].GetDouble(), arr[2].GetDouble(),
+          arr[3].GetDouble());
+  }
+  if(auto v = obj.tryGet("ScreenIndex"))
+    n.screenIndex = v->toInt();
+  if(auto wp = obj.tryGet("WindowPosition"))
+  {
+    auto arr = wp->toArray();
+    if(arr.Size() == 2)
+      n.windowPosition = QPoint(arr[0].GetInt(), arr[1].GetInt());
+  }
+  if(auto ws = obj.tryGet("WindowSize"))
+  {
+    auto arr = ws->toArray();
+    if(arr.Size() == 2)
+      n.windowSize = QSize(arr[0].GetInt(), arr[1].GetInt());
+  }
+  if(auto v = obj.tryGet("Fullscreen"))
+    n.fullscreen = v->toBool();
 }
 
 template <>
 void JSONReader::read(const Gfx::WindowSettings& n)
 {
-  obj["Background"] = n.background;
+  obj["Mode"] = (int)n.mode;
+  obj["Outputs"] = n.outputs;
 }
 
 template <>
 void JSONWriter::write(Gfx::WindowSettings& n)
 {
+  // Backward compatibility with old format
   if(auto v = obj.tryGet("Background"))
-    n.background = v->toBool();
+  {
+    n.mode = v->toBool() ? Gfx::WindowMode::Background : Gfx::WindowMode::Single;
+    return;
+  }
+
+  if(auto v = obj.tryGet("Mode"))
+    n.mode = (Gfx::WindowMode)v->toInt();
+  if(auto v = obj.tryGet("Outputs"))
+  {
+    const auto arr = v->toArray();
+    n.outputs.resize(arr.Size());
+    for(int i = 0; i < arr.Size(); i++)
+    {
+      JSONWriter w{arr[i]};
+      w.write(n.outputs[i]);
+    }
+  }
 }
 
 SCORE_SERALIZE_DATASTREAM_DEFINE(Gfx::WindowSettings);

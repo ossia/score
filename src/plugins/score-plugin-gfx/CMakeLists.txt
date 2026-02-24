@@ -129,6 +129,7 @@ set(HDRS
     Gfx/Graph/ISFNode.hpp
     Gfx/Graph/ImageNode.hpp
     Gfx/Graph/Mesh.hpp
+    Gfx/Graph/MultiWindowNode.hpp
     Gfx/Graph/Node.hpp
     Gfx/Graph/NodeRenderer.hpp
     Gfx/Graph/OutputNode.hpp
@@ -243,6 +244,7 @@ set(SRCS
     Gfx/Graph/ISFNode.cpp
     Gfx/Graph/ImageNode.cpp
     Gfx/Graph/Mesh.cpp
+    Gfx/Graph/MultiWindowNode.cpp
     Gfx/Graph/Node.cpp
     Gfx/Graph/NodeRenderer.cpp
     Gfx/Graph/OutputNode.cpp
