@@ -18,7 +18,7 @@
 #include <Crousti/ProcessModel.hpp>
 
 #include <score/tools/Bind.hpp>
-
+#include <ossia/detail/flat_set.hpp>
 #include <ossia/dataflow/exec_state_facade.hpp>
 #include <ossia/dataflow/node_process.hpp>
 #include <ossia/network/context.hpp>
@@ -337,7 +337,10 @@ public:
       {
         if(!ossia::contains(new_inlets, port))
         {
-          this->m_connectedControls.erase(port);
+          // m_oldInlets holds Process::Inlet*; m_connectedControls is a
+          // flat_set<Process::ControlInlet*>, and only control inlets ever go in it.
+          if(auto ctl = qobject_cast<Process::ControlInlet*>(port))
+            this->m_connectedControls.erase(ctl);
         }
       }
 
