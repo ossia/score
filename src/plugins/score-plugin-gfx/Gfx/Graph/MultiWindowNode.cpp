@@ -220,26 +220,22 @@ public:
 #endif
           fragColor = texture(tex, uv);
 
-          // Soft-edge blending in screen space (Y-down: 0=top, 1=bottom)
-          float blendX = tc.x;
-#if defined(QSHADER_SPIRV)
-          float blendY = tc.y;
-#else
-          float blendY = 1.0 - tc.y; // OpenGL v_texcoord is Y-up, flip to Y-down
-#endif
+          // Soft-edge blending
+          // v_texcoord.y is Y-up on both GL and Vulkan (Qt RHI normalizes this),
+          // so tc.y=0 is screen bottom and tc.y=1 is screen top.
           float alpha = 1.0;
           // Left edge
-          if(blendWidths.x > 0.0 && blendX < blendWidths.x)
-              alpha *= pow(blendX / blendWidths.x, blendGammas.x);
+          if(blendWidths.x > 0.0 && tc.x < blendWidths.x)
+              alpha *= pow(tc.x / blendWidths.x, blendGammas.x);
           // Right edge
-          if(blendWidths.y > 0.0 && blendX > 1.0 - blendWidths.y)
-              alpha *= pow((1.0 - blendX) / blendWidths.y, blendGammas.y);
-          // Top edge
-          if(blendWidths.z > 0.0 && blendY < blendWidths.z)
-              alpha *= pow(blendY / blendWidths.z, blendGammas.z);
-          // Bottom edge
-          if(blendWidths.w > 0.0 && blendY > 1.0 - blendWidths.w)
-              alpha *= pow((1.0 - blendY) / blendWidths.w, blendGammas.w);
+          if(blendWidths.y > 0.0 && tc.x > 1.0 - blendWidths.y)
+              alpha *= pow((1.0 - tc.x) / blendWidths.y, blendGammas.y);
+          // Top edge (tc.y near 1.0 = screen top)
+          if(blendWidths.z > 0.0 && tc.y > 1.0 - blendWidths.z)
+              alpha *= pow((1.0 - tc.y) / blendWidths.z, blendGammas.z);
+          // Bottom edge (tc.y near 0.0 = screen bottom)
+          if(blendWidths.w > 0.0 && tc.y < blendWidths.w)
+              alpha *= pow(tc.y / blendWidths.w, blendGammas.w);
 
           fragColor = vec4(fragColor.rgb * alpha, alpha);
       }
