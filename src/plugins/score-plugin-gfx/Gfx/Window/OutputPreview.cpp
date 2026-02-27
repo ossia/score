@@ -287,8 +287,24 @@ void OutputPreviewWindows::syncToMappings(const std::vector<OutputMapping>& mapp
 
     if(m_syncPositions)
     {
+      // Determine target screen
+      QScreen* targetScreen = nullptr;
+      if(m.screenIndex >= 0 && m.screenIndex < screens.size())
+        targetScreen = screens[m.screenIndex];
+
       if(m.fullscreen)
       {
+        // On Windows, showFullScreen() can default to the primary monitor
+        // unless the widget is already positioned within the target screen.
+        if(targetScreen)
+        {
+          if(auto* wh = pw->windowHandle())
+          {
+            if(wh->screen() != targetScreen)
+              wh->setScreen(targetScreen);
+          }
+          pw->setGeometry(targetScreen->geometry());
+        }
         if(!pw->isFullScreen())
           pw->showFullScreen();
       }
@@ -297,13 +313,12 @@ void OutputPreviewWindows::syncToMappings(const std::vector<OutputMapping>& mapp
         if(pw->isFullScreen())
           pw->showNormal();
 
-        // Set screen first (before move/resize) to avoid coordinate conflicts
-        if(m.screenIndex >= 0 && m.screenIndex < screens.size())
+        if(targetScreen)
         {
           if(auto* wh = pw->windowHandle())
           {
-            if(wh->screen() != screens[m.screenIndex])
-              wh->setScreen(screens[m.screenIndex]);
+            if(wh->screen() != targetScreen)
+              wh->setScreen(targetScreen);
           }
         }
 

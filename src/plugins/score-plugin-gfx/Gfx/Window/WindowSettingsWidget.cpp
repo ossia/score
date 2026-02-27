@@ -113,6 +113,13 @@ WindowSettingsWidget::WindowSettingsWidget(QWidget* parent)
           m_canvas->resetWarp();
       });
 
+      auto* syncPosBtn = new QPushButton(tr("Sync Positions"));
+      syncPosBtn->setToolTip(
+          tr("Force all preview windows to match their configured position, size and "
+             "fullscreen state"));
+      globalLayout->addRow(syncPosBtn);
+      connect(syncPosBtn, &QPushButton::clicked, this, [this] { syncPreview(true); });
+
       connect(
           m_previewContentCombo, qOverload<int>(&QComboBox::currentIndexChanged), this,
           [this](int idx) {
