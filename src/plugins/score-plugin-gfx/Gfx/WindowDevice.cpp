@@ -6,19 +6,6 @@
 #include <Gfx/Window/WindowSettingsWidget.hpp>
 
 #include <core/document/DocumentView.hpp>
-/*
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-
-
-#include <Gfx/GfxParameter.hpp>
-#include <Gfx/Graph/RenderList.hpp>
-#include <Gfx/InvertYRenderer.hpp>
-
-
-#include <core/application/ApplicationSettings.hpp>
-#include <core/document/Document.hpp>
-
-*/
 
 #include <ossia-qt/invoke.hpp>
 

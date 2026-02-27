@@ -236,46 +236,55 @@ public:
         win_node->add_child(std::move(fs_node));
       }
 
-      // /i/screen
+      // /i/screen (accepts an integer index or a screen name string)
       {
         auto screen_node
             = std::make_unique<ossia::net::generic_node>("screen", *this, *win_node);
         auto screen_param = screen_node->create_parameter(ossia::val_type::STRING);
-        screen_param->set_domain(ossia::make_domain(int(0), int(100)));
+        screen_param->push_value(
+            mapping.screenIndex >= 0 ? std::to_string(mapping.screenIndex)
+                                     : std::string{});
         screen_param->add_callback([this, i](const ossia::value& v) {
-          if(auto val = v.target<int>())
-          {
-            ossia::qt::run_async(&m_qtContext, [this, i, scr = *val] {
-              const auto& outputs = m_node->windowOutputs();
-              if(i < (int)outputs.size())
+          auto apply = [this, i](const std::string& scr) {
+            const auto& outputs = m_node->windowOutputs();
+            if(i >= (int)outputs.size())
+              return;
+            auto& w = outputs[i].window;
+            if(!w)
+              return;
+
+            const auto& cur_screens = qApp->screens();
+
+            // Try parsing as integer index first
+            bool ok = false;
+            int idx = QString::fromStdString(scr).toInt(&ok);
+            if(ok)
+            {
+              if(ossia::valid_index(idx, cur_screens))
+                w->setScreen(cur_screens[idx]);
+              return;
+            }
+
+            // Otherwise match by screen name
+            for(auto s : cur_screens)
+            {
+              if(s->name().toStdString() == scr)
               {
-                if(auto& w = outputs[i].window)
-                {
-                  const auto& cur_screens = qApp->screens();
-                  if(ossia::valid_index(scr, cur_screens))
-                    w->setScreen(cur_screens[scr]);
-                }
+                w->setScreen(s);
+                return;
               }
-            });
+            }
+          };
+
+          if(auto val = v.target<std::string>())
+          {
+            ossia::qt::run_async(
+                &m_qtContext, [apply, scr = *val] { apply(scr); });
           }
-          else if(auto val = v.target<std::string>())
+          else if(auto val = v.target<int>())
           {
-            ossia::qt::run_async(&m_qtContext, [this, i, scr = *val] {
-              const auto& outputs = m_node->windowOutputs();
-              if(i < (int)outputs.size())
-              {
-                if(auto& w = outputs[i].window)
-                {
-                  const auto& cur_screens = qApp->screens();
-                  for(auto s : cur_screens)
-                    if(s->name() == scr.c_str())
-                    {
-                      w->setScreen(s);
-                      break;
-                    }
-                }
-              }
-            });
+            ossia::qt::run_async(
+                &m_qtContext, [apply, scr = std::to_string(*val)] { apply(scr); });
           }
         });
         win_node->add_child(std::move(screen_node));

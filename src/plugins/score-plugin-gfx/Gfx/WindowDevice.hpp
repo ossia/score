@@ -26,7 +26,6 @@ namespace Gfx
 {
 class OutputMappingCanvas;
 class OutputPreviewWindows;
-class CornerWarpCanvas;
 
 class WindowProtocolFactory final : public Device::ProtocolFactory
 {

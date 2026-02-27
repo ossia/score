@@ -726,29 +726,22 @@ void MultiWindowNode::createOutput(score::gfx::OutputConfiguration conf)
     wo.window->setTitle(
         QString("Output %1").arg(i));
 
+    // Set screen first, before geometry — setScreen() can reset position
+    if(mapping.screenIndex >= 0)
+    {
+      const auto& screens = qApp->screens();
+      if(mapping.screenIndex < screens.size())
+        wo.window->setScreen(screens[mapping.screenIndex]);
+    }
+
     if(mapping.fullscreen)
     {
-      // Set screen if specified
-      if(mapping.screenIndex >= 0)
-      {
-        const auto& screens = qApp->screens();
-        if(mapping.screenIndex < screens.size())
-          wo.window->setScreen(screens[mapping.screenIndex]);
-      }
       wo.window->showFullScreen();
     }
     else
     {
-      wo.window->resize(mapping.windowSize);
-      wo.window->setPosition(mapping.windowPosition);
-
-      if(mapping.screenIndex >= 0)
-      {
-        const auto& screens = qApp->screens();
-        if(mapping.screenIndex < screens.size())
-          wo.window->setScreen(screens[mapping.screenIndex]);
-      }
-
+      wo.window->setGeometry(
+          QRect(mapping.windowPosition, mapping.windowSize));
       wo.window->show();
     }
   }
