@@ -328,6 +328,53 @@ void ProcessModel::setSize(const QSizeF& v)
   }
 }
 
+QList<Inlet*> ProcessModel::inletsList() const noexcept
+{
+  QList<Inlet*> l;
+  l.reserve(m_inlets.size());
+  for(auto* p : m_inlets)
+    l.push_back(p);
+  return l;
+}
+
+QList<Outlet*> ProcessModel::outletsList() const noexcept
+{
+  QList<Outlet*> l;
+  l.reserve(m_outlets.size());
+  for(auto* p : m_outlets)
+    l.push_back(p);
+  return l;
+}
+
+Inlet* ProcessModel::inletAt(int index) const noexcept
+{
+  if(index >= 0 && index < (int)m_inlets.size())
+    return m_inlets[index];
+  return nullptr;
+}
+
+Outlet* ProcessModel::outletAt(int index) const noexcept
+{
+  if(index >= 0 && index < (int)m_outlets.size())
+    return m_outlets[index];
+  return nullptr;
+}
+
+int ProcessModel::inletCount() const noexcept
+{
+  return m_inlets.size();
+}
+
+int ProcessModel::outletCount() const noexcept
+{
+  return m_outlets.size();
+}
+
+bool ProcessModel::hasFlag(int flag) const noexcept
+{
+  return (flags() & static_cast<ProcessFlags>(flag)) != ProcessFlags{};
+}
+
 double ProcessModel::getSlotHeight() const noexcept
 {
   return m_slotHeight;
