@@ -93,9 +93,13 @@ public:
 
   // A user-friendly text to show to the users
   virtual QString prettyName() const noexcept;
+  W_INVOKABLE(prettyName)
   virtual QString prettyShortName() const noexcept = 0;
+  W_INVOKABLE(prettyShortName)
   virtual QString category() const noexcept = 0;
+  W_INVOKABLE(category)
   virtual QStringList tags() const noexcept = 0;
+  W_INVOKABLE(tags)
   virtual ProcessFlags flags() const noexcept = 0;
 
   //// Features of a process
@@ -106,6 +110,22 @@ public:
 
   void setDuration(const TimeVal& other) noexcept;
   const TimeVal& duration() const noexcept;
+
+  /// QML helpers for port access
+  QList<Process::Inlet*> inletsList() const noexcept;
+  W_INVOKABLE(inletsList)
+  QList<Process::Outlet*> outletsList() const noexcept;
+  W_INVOKABLE(outletsList)
+  Process::Inlet* inletAt(int index) const noexcept;
+  W_INVOKABLE(inletAt)
+  Process::Outlet* outletAt(int index) const noexcept;
+  W_INVOKABLE(outletAt)
+  int inletCount() const noexcept;
+  W_INVOKABLE(inletCount)
+  int outletCount() const noexcept;
+  W_INVOKABLE(outletCount)
+  bool hasFlag(int flag) const noexcept;
+  W_INVOKABLE(hasFlag)
 
   /// Nodal things
   QPointF position() const noexcept;
