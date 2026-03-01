@@ -13,6 +13,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/ALSAInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/ALSAMiniAudioInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/ALSAPortAudioInterface.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Audio/ASIOInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/ASIOPortAudioInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/CoreAudioInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/CoreAudioPortAudioInterface.hpp"
@@ -87,6 +88,11 @@ endif()
 if(OSSIA_ENABLE_PIPEWIRE)
   target_link_libraries(${PROJECT_NAME} PRIVATE $<BUILD_INTERFACE:pipewire::pipewire>)
   list(APPEND SCORE_FEATURES_LIST pipewire)
+endif()
+
+if(OSSIA_ENABLE_ASIO AND TARGET asio::sdk)
+  target_link_libraries(${PROJECT_NAME} PRIVATE $<BUILD_INTERFACE:asio::sdk>)
+  list(APPEND SCORE_FEATURES_LIST asio)
 endif()
 
 if(OSSIA_ENABLE_SDL)

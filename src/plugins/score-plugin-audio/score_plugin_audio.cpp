@@ -6,6 +6,7 @@
 #include <Audio/ALSAInterface.hpp>
 #include <Audio/ALSAMiniAudioInterface.hpp>
 #include <Audio/ALSAPortAudioInterface.hpp>
+#include <Audio/ASIOInterface.hpp>
 #include <Audio/ASIOPortAudioInterface.hpp>
 #include <Audio/AudioApplicationPlugin.hpp>
 #include <Audio/AudioDevice.hpp>
@@ -153,6 +154,13 @@ std::vector<score::InterfaceBase*> score_plugin_audio::factories(
       return vec;
 #endif
     }
+    else if(forced_backend == "asio")
+    {
+#if defined(OSSIA_AUDIO_ASIO)
+      add_factories<FW<Audio::AudioFactory, Audio::NativeASIOFactory>>(vec, ctx, key);
+      return vec;
+#endif
+    }
     else if(forced_backend == "dummy")
     {
       add_factories<FW<Audio::AudioFactory, Audio::DummyFactory>>(vec, ctx, key);
@@ -173,6 +181,10 @@ std::vector<score::InterfaceBase*> score_plugin_audio::factories(
 #if OSSIA_AUDIO_ALSA
          ,
          Audio::ALSAFactory
+#endif
+#if defined(OSSIA_AUDIO_ASIO)
+         ,
+         Audio::NativeASIOFactory
 #endif
 #if defined(OSSIA_AUDIO_PORTAUDIO)
 #if __has_include(<pa_asio.h>)
