@@ -12,6 +12,9 @@
 #include <ossia/network/generic/generic_node.hpp>
 
 #include <ossia-qt/invoke.hpp>
+
+#include <QGuiApplication>
+
 namespace Gfx
 {
 
@@ -131,7 +134,7 @@ public:
         if(auto val = v.target<int>())
         {
           ossia::qt::run_async(&m_qtContext, [screen = this->m_screen, scr = *val] {
-            const auto& cur_screens = qApp->screens();
+            const auto& cur_screens = qGuiApp->screens();
             if(ossia::valid_index(scr, cur_screens))
             {
               screen->setScreen(cur_screens[scr]);
@@ -141,7 +144,7 @@ public:
         else if(auto val = v.target<std::string>())
         {
           ossia::qt::run_async(&m_qtContext, [screen = this->m_screen, scr = *val] {
-            const auto& cur_screens = qApp->screens();
+            const auto& cur_screens = qGuiApp->screens();
             for(auto s : cur_screens)
             {
               if(s->name() == scr.c_str())

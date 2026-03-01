@@ -2,6 +2,7 @@
 
 #include <Gfx/Window/TestCard.hpp>
 
+#include <QApplication>
 #include <QPainter>
 #include <QScreen>
 #include <QWindow>

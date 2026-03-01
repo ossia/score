@@ -10,10 +10,11 @@
 #include <Gfx/Window/OutputPreview.hpp>
 #include <Gfx/WindowDevice.hpp>
 
-#include <QSplitter>
-
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
+
+#include <QApplication>
+#include <QSplitter>
 
 #include <wobjectimpl.h>
 
