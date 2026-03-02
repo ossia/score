@@ -112,3 +112,9 @@
 [submodule "3rdparty/xtl"]
 	path = 3rdparty/xtl
 	url = https://github.com/xtensor-stack/xtl
+[submodule "3rdparty/libadm"]
+	path = 3rdparty/libadm
+	url = https://github.com/ebu/libadm
+[submodule "3rdparty/libbw64"]
+	path = 3rdparty/libbw64
+	url = https://github.com/ebu/libbw64
