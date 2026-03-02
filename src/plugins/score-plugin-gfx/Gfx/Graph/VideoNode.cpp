@@ -35,22 +35,28 @@ VideoNode::VideoNode(
 
 VideoNode::~VideoNode() { }
 
-static bool isIntraOnlyCodec(const Video::VideoMetadata& metadata)
+// Returns true for codecs whose packets go directly to the GPU
+// without CPU decoding (HAP, DXV).
+static bool isRawGPUCodec(const Video::VideoMetadata& metadata)
 {
-  // HAP and DXV are always intra-only (raw GPU-compressed packets, no AVCodec)
-  if(metadata.codec_id == AV_CODEC_ID_HAP || metadata.codec_id == AV_CODEC_ID_DXV)
-    return true;
+  return metadata.codec_id == AV_CODEC_ID_HAP || metadata.codec_id == AV_CODEC_ID_DXV;
+}
 
-  // Check codec descriptor for AV_CODEC_PROP_INTRA_ONLY
-  // This covers ProRes, MJPEG, DNxHD, etc.
-  if(metadata.codec_id != AV_CODEC_ID_NONE)
-  {
-    auto desc = avcodec_descriptor_get(metadata.codec_id);
-    if(desc && (desc->props & AV_CODEC_PROP_INTRA_ONLY))
-      return true;
-  }
+// Returns true for intra-only codecs that require CPU decoding
+// (ProRes, MJPEG, DNxHD, etc.) but are small enough to decode
+// in the render loop without stuttering.
+static bool isLightIntraCodec(const Video::VideoMetadata& metadata)
+{
+  if(metadata.codec_id == AV_CODEC_ID_NONE)
+    return false;
 
-  return false;
+  auto desc = avcodec_descriptor_get(metadata.codec_id);
+  if(!desc || !(desc->props & AV_CODEC_PROP_INTRA_ONLY))
+    return false;
+
+  // Above 1080p, CPU-decoded intra-only codecs are too heavy for the render loop
+  static constexpr int max_pixels = 1920 * 1080;
+  return (int64_t)metadata.width * metadata.height <= max_pixels;
 }
 
 score::gfx::NodeRenderer* VideoNode::createRenderer(RenderList& r) const noexcept
@@ -66,7 +72,7 @@ score::gfx::NodeRenderer* VideoNode::createRenderer(RenderList& r) const noexcep
           const_cast<VideoFrameShare&>(static_cast<const VideoFrameShare&>(reader))};
     case PlaybackMode::AutoPlayback:
     default:
-      if(isIntraOnlyCodec(decoder))
+      if(isRawGPUCodec(decoder) || isLightIntraCodec(decoder))
         return new DirectVideoNodeRenderer{*this, decoder};
       return new VideoNodeRenderer{
           *this,
