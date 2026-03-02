@@ -198,12 +198,6 @@ void VideoNodeRenderer::createGpuDecoder()
           "processed.rgba = vec4(tex.b, tex.g, tex.r, tex.a); " + filter);
       break;
 
-    // RGBA float32
-    case AV_PIX_FMT_RGBAF32LE:
-      m_gpu = std::make_unique<PackedDecoder>(
-          QRhiTexture::RGBA32F, 16, m_frameFormat, filter);
-      break;
-
     // Packed 10-bit RGB (X2RGB10: MSB 2X 10R 10G 10B LSB)
     // RGB10A2 reads as LSB: R10 G10 B10 A2, so for X2RGB10 we get B,G,R,X
     case AV_PIX_FMT_X2RGB10LE:
@@ -279,14 +273,6 @@ void VideoNodeRenderer::createGpuDecoder()
       m_gpu = std::make_unique<NV24Decoder>(m_frameFormat, true);
       break;
 
-    // Packed YUV 4:4:4 (VUYA / VUYX)
-    case AV_PIX_FMT_VUYA:
-      m_gpu = std::make_unique<VUYADecoder>(m_frameFormat, false);
-      break;
-    case AV_PIX_FMT_VUYX:
-      m_gpu = std::make_unique<VUYADecoder>(m_frameFormat, true);
-      break;
-
     // Packed YUV 4:2:2 10-bit (Y210)
     case AV_PIX_FMT_Y210LE:
       m_gpu = std::make_unique<Y210Decoder>(m_frameFormat);
@@ -309,6 +295,19 @@ void VideoNodeRenderer::createGpuDecoder()
       m_gpu = std::make_unique<PackedDecoder>(
           QRhiTexture::R16F, 2, m_frameFormat,
           "processed.rgba = vec4(tex.r, tex.r, tex.r, 1.0);" + filter);
+      break;
+    // RGBA float32
+    case AV_PIX_FMT_RGBAF32LE:
+      m_gpu = std::make_unique<PackedDecoder>(
+          QRhiTexture::RGBA32F, 16, m_frameFormat, filter);
+      break;
+
+    // Packed YUV 4:4:4 (VUYA / VUYX)
+    case AV_PIX_FMT_VUYA:
+      m_gpu = std::make_unique<VUYADecoder>(m_frameFormat, false);
+      break;
+    case AV_PIX_FMT_VUYX:
+      m_gpu = std::make_unique<VUYADecoder>(m_frameFormat, true);
       break;
 #endif
     case AV_PIX_FMT_GRAYF32:
