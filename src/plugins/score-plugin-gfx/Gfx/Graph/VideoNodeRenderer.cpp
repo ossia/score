@@ -1,5 +1,6 @@
 #include <Gfx/Graph/VideoNodeRenderer.hpp>
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
+#include <Gfx/Graph/decoders/DXV.hpp>
 #include <Gfx/Graph/decoders/HAP.hpp>
 #include <Gfx/Graph/decoders/NV12.hpp>
 #include <Gfx/Graph/decoders/NV16.hpp>
@@ -352,6 +353,17 @@ void VideoNodeRenderer::createGpuDecoder()
       else if(fourcc == "HapH")
         m_gpu = std::make_unique<HAPDefaultDecoder>(
             QRhiTexture::BC6H, m_frameFormat, filter);
+      // DXV fourcc-based formats
+      else if(fourcc == "Dxv1")
+        m_gpu = std::make_unique<DXVDecoder>(
+            QRhiTexture::BC1, m_frameFormat, filter);
+      else if(fourcc == "Dxv5")
+        m_gpu = std::make_unique<DXVDecoder>(
+            QRhiTexture::BC3, m_frameFormat, filter);
+      else if(fourcc == "DxvY")
+        m_gpu = std::make_unique<DXVYCoCgDecoder>(false, m_frameFormat, filter);
+      else if(fourcc == "DxvA")
+        m_gpu = std::make_unique<DXVYCoCgDecoder>(true, m_frameFormat, filter);
 
       if(!m_gpu)
       {

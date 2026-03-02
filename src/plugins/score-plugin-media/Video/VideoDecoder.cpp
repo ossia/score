@@ -357,6 +357,7 @@ bool VideoDecoder::open(const std::string& inputFile) noexcept
   close_file();
 
   m_inputFile = inputFile;
+  this->filePath = inputFile;
 
   if(avformat_open_input(&m_formatContext, inputFile.c_str(), nullptr, nullptr) != 0)
   {
@@ -790,10 +791,70 @@ bool VideoDecoder::open_stream() noexcept
             color_space = AVCOL_SPC_BT2020_CL;
         }
 
+        codec_id = codecPar->codec_id;
+
+        // Check if this is a GPU-direct codec (HAP or DXV DXT1/DXT5)
+        bool use_gpu_direct = false;
         if(m_avstream->codecpar->codec_id == AV_CODEC_ID_HAP)
         {
-          // TODO this is a hack, we store the FOURCC in the format...
+          // HAP: store the FOURCC in the format for GPU decoder matching
           memcpy(&pixel_format, &m_avstream->codecpar->codec_tag, 4);
+          use_gpu_direct = true;
+        }
+        else if(m_avstream->codecpar->codec_id == AV_CODEC_ID_DXV)
+        {
+          // DXV: peek first packet to determine sub-format (DXT1/DXT5)
+          // Store synthetic fourcc in pixel_format for GPU decoder matching
+          auto packet = av_packet_alloc();
+          if(av_read_frame(m_formatContext, packet) >= 0 && packet->size >= 4)
+          {
+            uint32_t tag = packet->data[0] | (packet->data[1] << 8)
+                           | (packet->data[2] << 16)
+                           | ((uint32_t)packet->data[3] << 24);
+            switch(tag)
+            {
+              case 0x44585431: // MKBETAG('D','X','T','1')
+                memcpy(&pixel_format, "Dxv1", 4);
+                use_gpu_direct = true;
+                break;
+              case 0x44585435: // MKBETAG('D','X','T','5')
+                memcpy(&pixel_format, "Dxv5", 4);
+                use_gpu_direct = true;
+                break;
+              case 0x59434736: // MKBETAG('Y','C','G','6')
+                memcpy(&pixel_format, "DxvY", 4);
+                use_gpu_direct = true;
+                break;
+              case 0x59473130: // MKBETAG('Y','G','1','0')
+                memcpy(&pixel_format, "DxvA", 4);
+                use_gpu_direct = true;
+                break;
+              default: {
+                // Old format: check type flags in high byte
+                uint8_t old_type = tag >> 24;
+                if(old_type & 0x40)
+                {
+                  memcpy(&pixel_format, "Dxv5", 4);
+                  use_gpu_direct = true;
+                }
+                else if(old_type & 0x20)
+                {
+                  memcpy(&pixel_format, "Dxv1", 4);
+                  use_gpu_direct = true;
+                }
+                // Unknown old format falls through to avcodec
+                break;
+              }
+            }
+            av_packet_unref(packet);
+          }
+          av_packet_free(&packet);
+          // Seek back to beginning regardless
+          av_seek_frame(m_formatContext, m_avstream->index, 0, AVSEEK_FLAG_BACKWARD);
+        }
+
+        if(use_gpu_direct)
+        {
           width = codecPar->width;
           height = codecPar->height;
           fps = av_q2d(m_avstream->avg_frame_rate);

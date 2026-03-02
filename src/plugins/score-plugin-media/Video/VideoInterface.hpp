@@ -3,12 +3,14 @@
 #if SCORE_HAS_LIBAV
 #include <score_plugin_media_export.h>
 extern "C" {
+#include <libavcodec/codec_id.h>
 #include <libavutil/pixfmt.h>
 struct AVFrame;
 struct AVCodecContext;
 struct AVPacket;
 }
 #include <memory>
+#include <string>
 
 namespace Video
 {
@@ -27,6 +29,8 @@ struct SCORE_PLUGIN_MEDIA_EXPORT ImageFormat
 
 struct SCORE_PLUGIN_MEDIA_EXPORT VideoMetadata : ImageFormat
 {
+  std::string filePath;
+  AVCodecID codec_id = AV_CODEC_ID_NONE;
   double fps{};
   bool realTime{};
   double flicks_per_dts{};
