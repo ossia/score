@@ -161,6 +161,20 @@ void Model::setScaleMode(score::gfx::ScaleMode t)
   }
 }
 
+score::gfx::PlaybackMode Model::playbackMode() const noexcept
+{
+  return m_playbackMode;
+}
+
+void Model::setPlaybackMode(score::gfx::PlaybackMode t)
+{
+  if(t != m_playbackMode)
+  {
+    m_playbackMode = t;
+    playbackModeChanged(t);
+  }
+}
+
 double Model::nativeTempo() const noexcept
 {
   return m_nativeTempo;
@@ -252,7 +266,7 @@ void DataStreamReader::read(const Gfx::Video::Model& proc)
   readPorts(*this, proc.m_inlets, proc.m_outlets);
 
   m_stream << proc.m_path << proc.m_scaleMode << proc.m_nativeTempo
-           << proc.m_ignoreTempo;
+           << proc.m_ignoreTempo << proc.m_playbackMode;
   insertDelimiter();
 }
 
@@ -264,7 +278,8 @@ void DataStreamWriter::write(Gfx::Video::Model& proc)
       proc.m_outlets, &proc);
 
   QString path;
-  m_stream >> path >> proc.m_scaleMode >> proc.m_nativeTempo >> proc.m_ignoreTempo;
+  m_stream >> path >> proc.m_scaleMode >> proc.m_nativeTempo >> proc.m_ignoreTempo
+      >> proc.m_playbackMode;
   proc.setPath(path);
   checkDelimiter();
 }
@@ -275,6 +290,7 @@ void JSONReader::read(const Gfx::Video::Model& proc)
   readPorts(*this, proc.m_inlets, proc.m_outlets);
   obj["FilePath"] = proc.m_path;
   obj["Scale"] = (int)proc.m_scaleMode;
+  obj["Playback"] = (int)proc.m_playbackMode;
   obj["Tempo"] = proc.m_nativeTempo;
   obj["IgnoreTempo"] = proc.m_ignoreTempo;
 }
@@ -289,6 +305,9 @@ void JSONWriter::write(Gfx::Video::Model& proc)
 
   if(auto sc = obj.tryGet("Scale"))
     proc.m_scaleMode = static_cast<score::gfx::ScaleMode>(sc->toInt());
+
+  if(auto pb = obj.tryGet("Playback"))
+    proc.m_playbackMode = static_cast<score::gfx::PlaybackMode>(pb->toInt());
 
   proc.m_nativeTempo = obj["Tempo"].toDouble();
   proc.m_ignoreTempo = obj["IgnoreTempo"].toBool();

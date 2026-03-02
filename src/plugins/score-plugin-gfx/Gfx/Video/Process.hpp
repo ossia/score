@@ -48,6 +48,10 @@ public:
   void setScaleMode(score::gfx::ScaleMode);
   void scaleModeChanged(score::gfx::ScaleMode t) W_SIGNAL(scaleModeChanged, t);
 
+  score::gfx::PlaybackMode playbackMode() const noexcept;
+  void setPlaybackMode(score::gfx::PlaybackMode);
+  void playbackModeChanged(score::gfx::PlaybackMode t) W_SIGNAL(playbackModeChanged, t);
+
   bool ignoreTempo() const noexcept;
   void setIgnoreTempo(bool);
   void ignoreTempoChanged(bool t) W_SIGNAL(ignoreTempoChanged, t);
@@ -55,6 +59,9 @@ public:
   PROPERTY(
       score::gfx::ScaleMode,
       scaleMode READ scaleMode WRITE setScaleMode NOTIFY scaleModeChanged)
+  PROPERTY(
+      score::gfx::PlaybackMode,
+      playbackMode READ playbackMode WRITE setPlaybackMode NOTIFY playbackModeChanged)
 
   PROPERTY(QString, path READ path WRITE setPath NOTIFY pathChanged)
   PROPERTY(
@@ -68,6 +75,7 @@ public:
 private:
   QString m_path;
   score::gfx::ScaleMode m_scaleMode{};
+  score::gfx::PlaybackMode m_playbackMode{};
   double m_nativeTempo{};
   bool m_ignoreTempo{};
 };
@@ -105,5 +113,9 @@ SCORE_COMMAND_DECL_T(Gfx::ChangeIgnoreTempo)
 PROPERTY_COMMAND_T(
     Gfx, ChangeVideoScaleMode, Video::Model::p_scaleMode, "Video scale mode")
 SCORE_COMMAND_DECL_T(Gfx::ChangeVideoScaleMode)
+PROPERTY_COMMAND_T(
+    Gfx, ChangePlaybackMode, Video::Model::p_playbackMode, "Video playback mode")
+SCORE_COMMAND_DECL_T(Gfx::ChangePlaybackMode)
 
 W_REGISTER_ARGTYPE(score::gfx::ScaleMode)
+W_REGISTER_ARGTYPE(score::gfx::PlaybackMode)

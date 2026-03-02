@@ -14,4 +14,14 @@ enum ScaleMode
   Stretch    // Stretch to the viewport size
 };
 
+/**
+ * @brief How to choose the video renderer.
+ */
+enum PlaybackMode
+{
+  AutoPlayback, // Intra-only codecs use Direct, others use FrameQueue
+  Direct,       // Always use DirectVideoNodeRenderer (seek per frame)
+  FrameQueue    // Always use VideoNodeRenderer (frame queue)
+};
+
 }

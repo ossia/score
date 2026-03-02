@@ -1,4 +1,5 @@
 #include <Gfx/Graph/VideoNode.hpp>
+#include <Gfx/Graph/DirectVideoNodeRenderer.hpp>
 #include <Gfx/Graph/VideoNodeRenderer.hpp>
 #include <Video/ExternalInput.hpp>
 #include <Video/FrameQueue.hpp>
@@ -8,11 +9,20 @@
 #include <ossia/detail/flat_set.hpp>
 
 #include <QGuiApplication>
+
+extern "C" {
+#include <libavcodec/avcodec.h>
+}
 namespace score::gfx
 {
 void VideoNodeBase::setScaleMode(ScaleMode s)
 {
   m_scaleMode = s;
+}
+
+void VideoNodeBase::setPlaybackMode(PlaybackMode s)
+{
+  m_playbackMode = s;
 }
 
 VideoNode::VideoNode(
@@ -25,10 +35,43 @@ VideoNode::VideoNode(
 
 VideoNode::~VideoNode() { }
 
+static bool isIntraOnlyCodec(const Video::VideoMetadata& metadata)
+{
+  // HAP and DXV are always intra-only (raw GPU-compressed packets, no AVCodec)
+  if(metadata.codec_id == AV_CODEC_ID_HAP || metadata.codec_id == AV_CODEC_ID_DXV)
+    return true;
+
+  // Check codec descriptor for AV_CODEC_PROP_INTRA_ONLY
+  // This covers ProRes, MJPEG, DNxHD, etc.
+  if(metadata.codec_id != AV_CODEC_ID_NONE)
+  {
+    auto desc = avcodec_descriptor_get(metadata.codec_id);
+    if(desc && (desc->props & AV_CODEC_PROP_INTRA_ONLY))
+      return true;
+  }
+
+  return false;
+}
+
 score::gfx::NodeRenderer* VideoNode::createRenderer(RenderList& r) const noexcept
 {
-  return new VideoNodeRenderer{
-      *this, const_cast<VideoFrameShare&>(static_cast<const VideoFrameShare&>(reader))};
+  auto& decoder = *reader.m_decoder;
+  switch(m_playbackMode)
+  {
+    case PlaybackMode::Direct:
+      return new DirectVideoNodeRenderer{*this, decoder};
+    case PlaybackMode::FrameQueue:
+      return new VideoNodeRenderer{
+          *this,
+          const_cast<VideoFrameShare&>(static_cast<const VideoFrameShare&>(reader))};
+    case PlaybackMode::AutoPlayback:
+    default:
+      if(isIntraOnlyCodec(decoder))
+        return new DirectVideoNodeRenderer{*this, decoder};
+      return new VideoNodeRenderer{
+          *this,
+          const_cast<VideoFrameShare&>(static_cast<const VideoFrameShare&>(reader))};
+  }
 }
 
 void VideoNode::seeked()

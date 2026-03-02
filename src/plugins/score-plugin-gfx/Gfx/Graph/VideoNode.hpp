@@ -16,6 +16,7 @@ class ExternalInput;
 namespace score::gfx
 {
 class VideoNodeRenderer;
+class DirectVideoNodeRenderer;
 class VideoNode;
 
 struct RefcountedFrame
@@ -71,12 +72,15 @@ class SCORE_PLUGIN_GFX_EXPORT VideoNodeBase : public ProcessNode
 {
 public:
   void setScaleMode(score::gfx::ScaleMode s);
+  void setPlaybackMode(score::gfx::PlaybackMode s);
 
   friend VideoNodeRenderer;
+  friend DirectVideoNodeRenderer;
 
 protected:
   QString m_filter;
   score::gfx::ScaleMode m_scaleMode{};
+  score::gfx::PlaybackMode m_playbackMode{};
 };
 
 /**

@@ -166,6 +166,15 @@ ProcessExecutorComponent::ProcessExecutorComponent(
         }
       });
 
+  ::bind(
+      element, Gfx::Video::Model::p_playbackMode{}, this,
+      [this](score::gfx::PlaybackMode m) {
+        if(auto vn = static_cast<video_node*>(this->node.get()); vn && vn->impl)
+        {
+          vn->impl->setPlaybackMode(m);
+        }
+      });
+
   con(element, &Gfx::Video::Model::pathChanged, this, [this](const QString& new_path) {
     std::optional<double> tempo;
     if(!this->process().ignoreTempo())
