@@ -80,83 +80,79 @@ struct Node
   using tick = halp::tick_flicks;
   void operator()(const halp::tick_flicks& tk)
   {
-    constexpr const double sine_ratio = ossia::two_pi / ossia::flicks_per_second<double>;
-    const auto elapsed = tk.model_read_duration();
-
     const auto quantif = inputs.quant.value;
-    auto freq = inputs.freq.value;
-    auto ampl = inputs.ampl.value;
-    auto offset = inputs.offset.value;
+    const auto ampl = inputs.ampl.value;
+    const auto offset = inputs.offset.value;
     const auto jitter = inputs.jitter.value;
-    auto custom_phase = inputs.phase.value;
+    const auto custom_phase = inputs.phase.value;
     const auto type = inputs.waveform.value;
+
+    double ph_delta{};
+
     if(quantif)
     {
-      // Determine the frequency with the quantification
       if(tk.unexpected_bar_change())
-      {
         this->phase = 0;
-      }
 
-      // If quantif == 1, we quantize to the bar
-      //   => f = 0.5 hz
-      // If quantif == 1/4, we quantize to the quarter
-      //   => f = 2hz
-      // -> sin(elapsed * freq * 2 * pi / fps)
-      // -> sin(elapsed * 4 * 2 * pi / fps)
-      freq = 1. / (2. * quantif);
+      const double bar_length = 4.0 * tk.signature.num / tk.signature.denom;
+      const double quarters_elapsed
+          = tk.end_position_in_quarters - tk.start_position_in_quarters;
+      const double quarters_per_cycle = bar_length * quantif * 2.;
+
+      ph_delta = (quarters_elapsed / quarters_per_cycle) * 2.0 * std::numbers::pi;
+    }
+    else
+    {
+      constexpr double sine_ratio = ossia::two_pi / ossia::flicks_per_second<double>;
+      ph_delta = tk.model_read_duration() * inputs.freq.value * sine_ratio;
     }
 
-    const auto ph_delta = elapsed * freq * sine_ratio;
+    double ph = this->phase;
+    if(jitter > 0)
+      ph += std::normal_distribution<float>(0., 0.25)(this->rd) * jitter;
 
+    ph += custom_phase;
+
+    using namespace Control::Widgets;
+    const auto add_val
+        = [&](auto new_val) { outputs.out.value = ampl * new_val + offset; };
+
+    switch(type)
     {
-      auto ph = this->phase * std::numbers::pi;
-      if(jitter > 0)
-      {
-        ph += std::normal_distribution<float>(0., 0.25)(this->rd) * jitter;
-      }
-
-      using namespace Control::Widgets;
-
-      const auto add_val
-          = [&](auto new_val) { outputs.out.value = ampl * new_val + offset; };
-      switch(type)
-      {
-        case Sin:
-          add_val(std::sin(custom_phase + ph));
-          break;
-        case Triangle:
-          add_val(std::asin(std::sin(custom_phase + ph)) / ossia::half_pi);
-          break;
-        case Saw:
-          add_val(std::atan(std::tan(custom_phase + ph)) / ossia::half_pi);
-          break;
-        case Square:
-          add_val((std::sin(custom_phase + ph) > 0.f) ? 1.f : -1.f);
-          break;
-        case SampleAndHold: {
-          const auto start_s = std::sin(custom_phase + ph);
-          const auto end_s = std::sin(custom_phase + ph + ph_delta);
-          if((start_s > 0 && end_s <= 0) || (start_s <= 0 && end_s > 0))
-          {
-            add_val(std::uniform_real_distribution<float>(-1.f, 1.f)(this->rd));
-          }
-          break;
-        }
-        case Noise1:
+      case Sin:
+        add_val(std::sin(ph));
+        break;
+      case Triangle:
+        add_val(std::asin(std::sin(ph)) / ossia::half_pi);
+        break;
+      case Saw:
+        add_val(std::atan(std::tan(ph)) / ossia::half_pi);
+        break;
+      case Square:
+        add_val((std::sin(ph) > 0.f) ? 1.f : -1.f);
+        break;
+      case SampleAndHold: {
+        const auto start_s = std::sin(ph);
+        const auto end_s = std::sin(ph + ph_delta);
+        if((start_s > 0 && end_s <= 0) || (start_s <= 0 && end_s > 0))
           add_val(std::uniform_real_distribution<float>(-1.f, 1.f)(this->rd));
-          break;
-        case Noise2:
-          add_val(std::normal_distribution<float>(0.f, 1.f)(this->rd));
-          break;
-        case Noise3:
-          add_val(
-              std::clamp(std::cauchy_distribution<float>(0.f, 1.f)(this->rd), 0.f, 1.f));
-          break;
+        break;
       }
+      case Noise1:
+        add_val(std::uniform_real_distribution<float>(-1.f, 1.f)(this->rd));
+        break;
+      case Noise2:
+        add_val(std::normal_distribution<float>(0.f, 1.f)(this->rd));
+        break;
+      case Noise3:
+        add_val(
+            std::clamp(std::cauchy_distribution<float>(0.f, 1.f)(this->rd), 0.f, 1.f));
+        break;
     }
 
     this->phase += ph_delta;
+    if(this->phase > 1e6)
+      this->phase = std::fmod(this->phase, 2.0 * std::numbers::pi);
   }
 
   struct ui
