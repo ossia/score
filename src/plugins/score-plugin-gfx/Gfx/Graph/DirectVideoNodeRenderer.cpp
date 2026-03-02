@@ -469,16 +469,13 @@ void DirectVideoNodeRenderer::createGpuDecoder()
           QRhiTexture::RGBA16F, 8, m_frameFormat,
           "processed.rgba = vec4(tex.b, tex.g, tex.r, tex.a); " + filter);
       break;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
     case AV_PIX_FMT_X2RGB10LE:
       m_gpu = std::make_unique<PackedDecoder>(
           QRhiTexture::RGB10A2, 4, m_frameFormat,
           "processed.rgba = vec4(tex.b, tex.g, tex.r, 1.0); " + filter);
       break;
-    case AV_PIX_FMT_X2BGR10LE:
-      m_gpu = std::make_unique<PackedDecoder>(
-          QRhiTexture::RGB10A2, 4, m_frameFormat,
-          "processed.a = 1.0; " + filter);
-      break;
+#endif
     case AV_PIX_FMT_GBRP:
       m_gpu = std::make_unique<PlanarDecoder>(
           QRhiTexture::R8, 1, "gbr", m_frameFormat, filter);
@@ -525,12 +522,6 @@ void DirectVideoNodeRenderer::createGpuDecoder()
       m_gpu = std::make_unique<PlanarDecoder>(
           QRhiTexture::R32F, 4, "gbra", m_frameFormat, filter);
       break;
-    case AV_PIX_FMT_P210LE:
-      m_gpu = std::make_unique<P210Decoder>(m_frameFormat);
-      break;
-    case AV_PIX_FMT_P410LE:
-      m_gpu = std::make_unique<P410Decoder>(m_frameFormat);
-      break;
     case AV_PIX_FMT_NV24:
       m_gpu = std::make_unique<NV24Decoder>(m_frameFormat, false);
       break;
@@ -539,6 +530,21 @@ void DirectVideoNodeRenderer::createGpuDecoder()
       break;
     case AV_PIX_FMT_Y210LE:
       m_gpu = std::make_unique<Y210Decoder>(m_frameFormat);
+      break;
+#endif
+
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 17, 100)
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
+    case AV_PIX_FMT_X2BGR10LE:
+      m_gpu = std::make_unique<PackedDecoder>(
+          QRhiTexture::RGB10A2, 4, m_frameFormat, "processed.a = 1.0; " + filter);
+      break;
+#endif
+    case AV_PIX_FMT_P210LE:
+      m_gpu = std::make_unique<P210Decoder>(m_frameFormat);
+      break;
+    case AV_PIX_FMT_P410LE:
+      m_gpu = std::make_unique<P410Decoder>(m_frameFormat);
       break;
 #endif
 
