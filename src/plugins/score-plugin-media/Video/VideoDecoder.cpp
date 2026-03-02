@@ -409,6 +409,7 @@ int64_t VideoDecoder::duration() const noexcept
 void VideoDecoder::seek(int64_t flicks)
 {
   m_seekTo = flicks;
+  m_condVar.notify_one();
 }
 
 AVFrame* VideoDecoder::dequeue_frame() noexcept
@@ -563,6 +564,18 @@ do_read_frame:
   }
   else if(res == AVERROR_EOF)
   {
+    // Flush codec to get remaining frames from the reorder buffer (B-frames)
+    if(m_codecContext)
+    {
+      avcodec_send_packet(m_codecContext, nullptr);
+      auto frame = m_frames.newFrame();
+      while(avcodec_receive_frame(m_codecContext, frame.get()) == 0)
+      {
+        m_frames.enqueue(frame.release());
+        frame = m_frames.newFrame();
+      }
+      m_frames.enqueue_decoding_error(frame.release());
+    }
     m_finished = true;
   }
   av_packet_unref(&packet);
