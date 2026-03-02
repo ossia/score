@@ -152,6 +152,7 @@ set(HDRS
     Gfx/Graph/Utils.hpp
     Gfx/Graph/VideoNode.hpp
     Gfx/Graph/VideoNodeRenderer.hpp
+    Gfx/Graph/DirectVideoNodeRenderer.hpp
     Gfx/Graph/Window.hpp
     
     Gfx/Graph/decoders/DXV.hpp
@@ -290,6 +291,7 @@ set(SRCS
     Gfx/Graph/Utils.cpp
     Gfx/Graph/VideoNode.cpp
     Gfx/Graph/VideoNodeRenderer.cpp
+    Gfx/Graph/DirectVideoNodeRenderer.cpp
     Gfx/Graph/Window.cpp
 
     Gfx/GfxApplicationPlugin.cpp

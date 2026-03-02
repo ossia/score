@@ -51,6 +51,10 @@ InspectorWidget::InspectorWidget(
          tr("Stretch")});
     combo->setCurrentIndex((int)object.scaleMode());
 
+    auto playbackCombo = new QComboBox;
+    playbackCombo->addItems({tr("Auto"), tr("Direct (seek)"), tr("Frame queue")});
+    playbackCombo->setCurrentIndex((int)object.playbackMode());
+
     con(object, &Gfx::Video::Model::ignoreTempoChanged, this, [=](bool ignore) {
       if(cb->isChecked() != (!ignore))
         cb->setChecked(!ignore);
@@ -65,6 +69,12 @@ InspectorWidget::InspectorWidget(
       int idx = (int)sm;
       if(combo->currentIndex() != idx)
         combo->setCurrentIndex(idx);
+    });
+    con(object, &Gfx::Video::Model::playbackModeChanged, this,
+        [=](score::gfx::PlaybackMode pm) {
+      int idx = (int)pm;
+      if(playbackCombo->currentIndex() != idx)
+        playbackCombo->setCurrentIndex(idx);
     });
 
     connect(cb, &QCheckBox::toggled, this, [this](bool t) {
@@ -93,7 +103,18 @@ InspectorWidget::InspectorWidget(
       }
         });
 
+    connect(
+        playbackCombo, qOverload<int>(&QComboBox::currentIndexChanged), &object,
+        [this](int idx) {
+      auto new_mode = (score::gfx::PlaybackMode)idx;
+      if(new_mode != this->process().playbackMode())
+      {
+        this->m_dispatcher.submit<ChangePlaybackMode>(this->process(), new_mode);
+      }
+        });
+
     lay->addRow(tr("Scale"), combo);
+    lay->addRow(tr("Playback"), playbackCombo);
     lay->addRow(tr("Enable tempo"), cb);
     lay->addRow(tr("Tempo"), spin);
   }
