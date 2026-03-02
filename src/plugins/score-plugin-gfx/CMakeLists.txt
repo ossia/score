@@ -154,6 +154,7 @@ set(HDRS
     Gfx/Graph/VideoNodeRenderer.hpp
     Gfx/Graph/Window.hpp
     
+    Gfx/Graph/decoders/DXV.hpp
     Gfx/Graph/decoders/GPUVideoDecoder.hpp
     Gfx/Graph/decoders/HAP.hpp
     Gfx/Graph/decoders/NV12.hpp
@@ -260,8 +261,9 @@ set(SRCS
     Gfx/Text/Executor.cpp
     Gfx/Text/Process.cpp
 
+    Gfx/Graph/decoders/DXV.cpp
     Gfx/Graph/decoders/GPUVideoDecoder.cpp
-    Gfx/Graph/decoders/HAP.cpp    
+    Gfx/Graph/decoders/HAP.cpp
     Gfx/Graph/BackgroundNode.cpp
     Gfx/Graph/CustomMesh.cpp
     Gfx/Graph/GeometryFilterNode.cpp
@@ -328,11 +330,14 @@ set(SRCS
     "${3RDPARTY_FOLDER}/glsl-parser/glsl_ast.c"
     "${3RDPARTY_FOLDER}/glsl-parser/glsl.parser.c"
     "${3RDPARTY_FOLDER}/glsl-parser/glsl.lexer.c"
+
+    "${3RDPARTY_FOLDER}/dxv/dxv.c"
 )
 set_source_files_properties(
     "${3RDPARTY_FOLDER}/glsl-parser/glsl_ast.c"
     "${3RDPARTY_FOLDER}/glsl-parser/glsl.parser.c"
     "${3RDPARTY_FOLDER}/glsl-parser/glsl.lexer.c"
+    "${3RDPARTY_FOLDER}/dxv/dxv.c"
     PROPERTIES
       SKIP_PRECOMPILE_HEADERS ON
       SKIP_UNITY_BUILD_INCLUSION ON
@@ -347,6 +352,8 @@ score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 target_include_directories(${PROJECT_NAME}
   PUBLIC
     3rdparty/libisf/src
+  PRIVATE
+    "${3RDPARTY_FOLDER}/dxv"
 )
 
 # Link
