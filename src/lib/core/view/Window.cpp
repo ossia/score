@@ -154,15 +154,17 @@ View::View(QObject* parent)
 
   topleftToolbar = new QWidget;
   topleftToolbar->setLayout(new score::MarginLess<QHBoxLayout>);
-  auto leftLabel = new TitleBar;
-  leftTabs = new FixedTabWidget;
 
-  connect(leftTabs, &FixedTabWidget::actionTriggered, this, [=](QAction* act, bool b) {
-    leftLabel->setText(act->iconText());
-  });
-  ((QVBoxLayout*)leftTabs->layout())->insertWidget(0, topleftToolbar);
-  ((QVBoxLayout*)leftTabs->layout())->insertWidget(1, leftLabel);
-  rightSplitter = new RectSplitter{Qt::Vertical};
+  {
+    auto leftLabel = new TitleBar;
+    leftTabs = new FixedTabWidget;
+    connect(leftTabs, &FixedTabWidget::actionTriggered, this, [=](QAction* act, bool b) {
+      leftLabel->setText(act->iconText());
+    });
+    ((QVBoxLayout*)leftTabs->layout())->insertWidget(0, topleftToolbar);
+    ((QVBoxLayout*)leftTabs->layout())->insertWidget(1, leftLabel);
+  }
+
   auto rect = QGuiApplication::primaryScreen()->availableGeometry();
   this->resize(
       static_cast<int>(rect.width() * 0.75), static_cast<int>(rect.height() * 0.75));
@@ -230,7 +232,20 @@ View::View(QObject* parent)
       }
     });
   }
-  totalWidg->addWidget(rightSplitter);
+
+  {
+    auto rightLabel = new TitleBar;
+    rightTabs = new FixedTabWidget;
+
+    rightSplitter = new RectSplitter{Qt::Vertical};
+    rightSplitter->setContentsMargins(0, 0, 0, 0);
+
+    connect(
+        rightTabs, &FixedTabWidget::actionTriggered, this,
+        [=](QAction* act, bool b) { rightLabel->setText(act->iconText()); });
+    ((QVBoxLayout*)rightTabs->layout())->insertWidget(0, rightLabel);
+  }
+  totalWidg->addWidget(rightTabs);
 
   setCentralWidget(totalWidg);
   connect(
@@ -302,7 +317,24 @@ void View::setupPanel(PanelDelegate* v)
       break;
     }
     case Qt::RightDockWidgetArea: {
-      rightSplitter->insertWidget(0, w);
+      auto status = v->defaultPanelStatus();
+      if(status.prettyName == QObject::tr("Inspector"))
+      {
+        inspectorPanel = v;
+      }
+      else if(status.prettyName == QObject::tr("Objects"))
+      {
+        objectPanel = v;
+      }
+      else if(status.prettyName == QObject::tr("Info"))
+      {
+        infoPanel = v;
+      }
+      else
+      {
+        auto [idx, act] = rightTabs->addTab(w, v->defaultPanelStatus());
+        toggle = act;
+      }
 
       break;
     }
@@ -331,38 +363,57 @@ void View::setupPanel(PanelDelegate* v)
 void View::allPanelsAdded()
 {
   auto splitter = (RectSplitter*)centralWidget();
+  std::map<QString, score::PanelDelegate*> inspectorPanels;
   for(auto& panel : score::GUIAppContext().panels())
   {
-    if(panel.defaultPanelStatus().prettyName == QObject::tr("Inspector"))
-    {
-      rightSplitter->insertWidget(1, panel.widget());
+    // rightTabs->addTab(panel.widget(), panel.defaultPanelStatus());
+    //rightSplitter->insertWidget(1, panel.widget());
 
-      auto act
-          = bottomTabs->addAction(rightSplitter->widget(1), panel.defaultPanelStatus());
-      bottomTabs->actionGroup()->removeAction(act);
-      act->setChecked(true);
-      connect(act, &QAction::toggled, this, [splitter](bool ok) {
-        QList<int> sz = splitter->sizes();
-        if(ok)
-        {
-          if(sz[2] <= 1)
-          {
-            sz[2] = 200;
-            splitter->setSizes(sz);
-          }
-        }
-        else
-        {
-          sz[2] = 0;
-          splitter->setSizes(sz);
-        }
-      });
-      break;
+    // auto act
+    //     = bottomTabs->addAction(rightSplitter->widget(1), panel.defaultPanelStatus());
+    // bottomTabs->actionGroup()->removeAction(act);
+    // act->setChecked(true);
+    // connect(act, &QAction::toggled, this, [splitter](bool ok) {
+    //   QList<int> sz = splitter->sizes();
+    //   if(ok)
+    //   {
+    //     if(sz[2] <= 1)
+    //     {
+    //       sz[2] = 200;
+    //       splitter->setSizes(sz);
+    //     }
+    //   }
+    //   else
+    //   {
+    //     sz[2] = 0;
+    //     splitter->setSizes(sz);
+    //   }
+    // });
+  }
+
+  rightSplitter->addWidget(objectPanel->widget());
+  rightSplitter->addWidget(inspectorPanel->widget());
+  rightSplitter->addWidget(infoPanel->widget());
+  {
+    auto [idx, toggle]
+        = rightTabs->addTab(rightSplitter, inspectorPanel->defaultPanelStatus(), 0);
+
+    if(toggle)
+    {
+      auto& mw = inspectorPanel->context().menus.get().at(score::Menus::Windows());
+      addAction(toggle);
+      mw.menu()->addAction(toggle);
+
+      // Maybe show the panel
+      if(inspectorPanel->defaultPanelStatus().shown)
+        toggle->toggle();
     }
   }
 
   // Show the device explorer first
   leftTabs->toolbar()->actions().front()->trigger();
+  // Show the inspector first
+  rightTabs->toolbar()->actions().front()->trigger();
   QTimer::singleShot(100, this, [=] {
     int w = splitter->width();
     {

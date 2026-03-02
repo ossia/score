@@ -176,11 +176,6 @@ Process::Preset Model::savePreset() const noexcept
   return p;
 }
 
-QString Model::prettyName() const noexcept
-{
-  return tr("GFX Filter");
-}
-
 Process::Descriptor ProcessFactory::descriptor(QString path) const noexcept
 {
   return ISFHelpers::descriptorFromISFFile<Filter::Model>(path);
