@@ -554,8 +554,8 @@ static QString toFilters(const QSet<QString>& exts)
 static QString videoFilesTypes()
 {
   // FIXME refactor supported formats with Video process
-  QSet<QString> files = {"mkv",  "mov", "mp4", "h264", "avi",  "hap", "mpg",
-                         "mpeg", "imf", "mxf", "mts",  "m2ts", "mj2", "webm"};
+  QSet<QString> files = {"mkv", "mov", "mp4", "h264", "avi", "hap",  "mpg", "mpeg",
+                         "imf", "mxf", "mts", "m2ts", "mj2", "webm", "y4m", "nut"};
   return QString{"Videos (%1)"}.arg(toFilters(files));
 }
 

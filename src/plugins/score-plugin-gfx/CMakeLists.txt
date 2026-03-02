@@ -153,16 +153,31 @@ set(HDRS
     Gfx/Graph/VideoNode.hpp
     Gfx/Graph/VideoNodeRenderer.hpp
     Gfx/Graph/Window.hpp
+    
     Gfx/Graph/decoders/GPUVideoDecoder.hpp
     Gfx/Graph/decoders/HAP.hpp
     Gfx/Graph/decoders/NV12.hpp
+    Gfx/Graph/decoders/NV16.hpp
+    Gfx/Graph/decoders/NV24.hpp
+    Gfx/Graph/decoders/P010.hpp
+    Gfx/Graph/decoders/P016.hpp
+    Gfx/Graph/decoders/P210.hpp
+    Gfx/Graph/decoders/P410.hpp
     Gfx/Graph/decoders/RGBA.hpp
+    Gfx/Graph/decoders/VUYA.hpp
+    Gfx/Graph/decoders/Y210.hpp
     Gfx/Graph/decoders/YUV420.hpp
     Gfx/Graph/decoders/YUV420P10.hpp
     Gfx/Graph/decoders/YUV420P12.hpp
     Gfx/Graph/decoders/YUV422.hpp
     Gfx/Graph/decoders/YUV422P10.hpp
     Gfx/Graph/decoders/YUV422P12.hpp
+    Gfx/Graph/decoders/YUV440.hpp
+    Gfx/Graph/decoders/YUV444.hpp
+    Gfx/Graph/decoders/YUV444P10.hpp
+    Gfx/Graph/decoders/YUV444P12.hpp
+    Gfx/Graph/decoders/YUVA420.hpp
+    Gfx/Graph/decoders/YUVA444.hpp
     Gfx/Graph/decoders/YUYV422.hpp
 
     Gfx/Settings/Model.hpp
