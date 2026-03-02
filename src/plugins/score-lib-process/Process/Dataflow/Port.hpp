@@ -153,6 +153,12 @@ public:
   PROPERTY(QString, name W_READ name W_WRITE setName W_NOTIFY nameChanged)
   PROPERTY(Process::PortType, type W_READ type W_CONSTANT W_FINAL)
 
+  /// QML helpers
+  bool isInlet() const noexcept;
+  W_INVOKABLE(isInlet)
+  int cableCount() const noexcept;
+  W_INVOKABLE(cableCount)
+
   virtual QByteArray saveData() const noexcept;
 
   virtual void loadData(const QByteArray& arr, PortLoadDataFlags = {}) noexcept;

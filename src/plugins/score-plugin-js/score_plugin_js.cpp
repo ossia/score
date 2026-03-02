@@ -20,8 +20,11 @@
 #include <JS/Qml/QmlObjects.hpp>
 #include <JS/Qml/QmlProcess.hpp>
 #include <JS/Qml/TextureSource.hpp>
+#include <JS/Qml/PatcherWindow.hpp>
 #include <JS/Qml/Utils.hpp>
 #include <JS/Qml/ValueTypes.Qt6.hpp>
+
+#include <Nodal/Layer.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
 #include <score/plugins/InterfaceList.hpp>
@@ -134,6 +137,9 @@ score_plugin_js::score_plugin_js()
   qmlRegisterType<JS::DeviceListener>("Score.UI", 1, 0, "DeviceListener");
 
   qmlRegisterType<JS::QmlProcess>("Score.UI", 1, 0, "Process");
+
+  // Register patcher window factory for Nodal plugin
+  Nodal::LayerFactory::setPatcherWindowFactory(&JS::createPatcherWindow);
 
   qRegisterMetaType<QVector<JS::MidiMessage>>();
 

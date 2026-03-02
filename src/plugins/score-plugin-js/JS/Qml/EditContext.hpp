@@ -349,6 +349,49 @@ public:
 
   QByteArray serializeAsJson() noexcept;
   W_SLOT(serializeAsJson)
+
+  /////////////////////////
+  /// Patcher / Nodal API //
+  /////////////////////////
+  QObjectList processes(QObject* intervalOrNodal);
+  W_SLOT(processes)
+
+  QObjectList cables(QObject* intervalOrNodal);
+  W_SLOT(cables)
+
+  QObject* cableSource(QObject* cable);
+  W_SLOT(cableSource)
+
+  QObject* cableSink(QObject* cable);
+  W_SLOT(cableSink)
+
+  QObject* cableSourceProcess(QObject* cable);
+  W_SLOT(cableSourceProcess)
+
+  QObject* cableSinkProcess(QObject* cable);
+  W_SLOT(cableSinkProcess)
+
+  int portType(QObject* port);
+  W_SLOT(portType)
+
+  QObject* portProcess(QObject* port);
+  W_SLOT(portProcess)
+
+  bool isTexturePort(QObject* port);
+  W_SLOT(isTexturePort)
+
+  void moveNode(QObject* process, QPointF pos);
+  W_SLOT(moveNode)
+
+  void resizeNode(QObject* process, QSizeF size);
+  W_SLOT(resizeNode)
+
+  bool hasGfxPreview(QObject* process);
+  W_SLOT(hasGfxPreview)
+
+  QVariantMap processInfo(QObject* process);
+  W_SLOT(processInfo)
+
 private:
   void submit(Macro& m, score::Command* c);
 };
