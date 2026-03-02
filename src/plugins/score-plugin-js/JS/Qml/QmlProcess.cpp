@@ -21,6 +21,12 @@ QmlProcess::QmlProcess(QObject* parent)
       this, qOverload<int, QProcess::ExitStatus>(&QProcess::finished), this,
       &QmlProcess::onFinished);
   connect(this, &QProcess::errorOccurred, this, &QmlProcess::onErrorOccurred);
+
+  QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+  env.insert("TERM", "dumb");
+  env.insert("NO_COLOR", "1");
+  env.insert("PYTHONIOENCODING", "utf-8");
+  this->setProcessEnvironment(env);
 }
 
 QmlProcess::~QmlProcess()
