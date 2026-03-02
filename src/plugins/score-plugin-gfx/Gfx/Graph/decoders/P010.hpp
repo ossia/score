@@ -1,6 +1,7 @@
 #pragma once
 #include <Gfx/Graph/decoders/ColorSpace.hpp>
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
+
 extern "C" {
 #include <libavformat/avformat.h>
 }
@@ -9,13 +10,18 @@ namespace score::gfx
 {
 
 /**
- * @brief Decodes NV12 videos.
+ * @brief Decodes P010 videos.
  *
- * Mostly follow the YUV420 shader, things are just laid out differently in memory
+ * P010 is a semi-planar 10-bit 4:2:0 format, commonly output by
+ * hardware decoders (VAAPI, NVDEC, DXVA2) for 10-bit HEVC/AV1 content.
+ *
+ * Layout:
+ * - Plane 0: Y (16-bit per sample, 10 bits used, left-shifted), full resolution
+ * - Plane 1: UV interleaved (16-bit per component), half resolution in both dimensions
  */
-struct NV12Decoder : GPUVideoDecoder
+struct P010Decoder : GPUVideoDecoder
 {
-  static const constexpr auto nv12_filter_prologue = R"_(#version 450
+  static const constexpr auto frag = R"_(#version 450
 
 )_" SCORE_GFX_VIDEO_UNIFORMS R"_(
 
@@ -35,21 +41,19 @@ vec4 processTexture(vec4 tex) {
 
 void main()
 {
+  // P010 stores 10-bit data in the high bits of 16-bit words,
+  // so R16 unorm already returns values normalized to [0, 1].
   float y = texture(y_tex, v_texcoord).r;
   float u = texture(uv_tex, v_texcoord).r;
   float v = texture(uv_tex, v_texcoord).g;
-)_";
 
-  static const constexpr auto nv12_filter_epilogue = R"_(
-  fragColor = processTexture(vec4(yuv, 1.));
+  fragColor = processTexture(vec4(y, u, v, 1.));
 })_";
 
   Video::ImageFormat& decoder;
-  bool nv21{};
 
-  NV12Decoder(Video::ImageFormat& d, bool inverted)
+  explicit P010Decoder(Video::ImageFormat& d)
       : decoder{d}
-      , nv21{inverted}
   {
   }
 
@@ -58,9 +62,9 @@ void main()
     auto& rhi = *r.state.rhi;
     const auto w = decoder.width, h = decoder.height;
 
-    // Y
+    // Y plane: R16 at full resolution
     {
-      auto tex = rhi.newTexture(QRhiTexture::R8, {w, h}, 1, QRhiTexture::Flag{});
+      auto tex = rhi.newTexture(QRhiTexture::R16, {w, h}, 1, QRhiTexture::Flag{});
       tex->create();
 
       auto sampler = rhi.newSampler(
@@ -70,10 +74,10 @@ void main()
       samplers.push_back({sampler, tex});
     }
 
-    // UV
+    // UV plane: RG16 (two 16-bit channels interleaved) at half resolution
     {
       auto tex
-          = rhi.newTexture(QRhiTexture::RG8, {w / 2, h / 2}, 1, QRhiTexture::Flag{});
+          = rhi.newTexture(QRhiTexture::RG16, {w / 2, h / 2}, 1, QRhiTexture::Flag{});
       tex->create();
 
       auto sampler = rhi.newSampler(
@@ -82,13 +86,6 @@ void main()
       sampler->create();
       samplers.push_back({sampler, tex});
     }
-
-    QString frag = nv12_filter_prologue;
-    if(nv21)
-      frag += "    vec3 yuv = vec3(y, v, u);\n";
-    else
-      frag += "    vec3 yuv = vec3(y, u, v);\n";
-    frag += nv12_filter_epilogue;
 
     return score::gfx::makeShaders(
         r.state, vertexShader(), QString(frag).arg("").arg(colorMatrix(decoder)));
@@ -106,7 +103,7 @@ void main()
     const auto w = decoder.width, h = decoder.height;
     auto y_tex = samplers[0].texture;
 
-    QRhiTextureUploadEntry entry{0, 0, createTextureUpload(pixels, w, h, 1, stride)};
+    QRhiTextureUploadEntry entry{0, 0, createTextureUpload(pixels, w, h, 2, stride)};
     QRhiTextureUploadDescription desc{entry};
 
     res.uploadTexture(y_tex, desc);
@@ -118,7 +115,7 @@ void main()
     const auto w = decoder.width / 2, h = decoder.height / 2;
     auto uv_tex = samplers[1].texture;
 
-    QRhiTextureUploadEntry entry{0, 0, createTextureUpload(pixels, w, h, 2, stride)};
+    QRhiTextureUploadEntry entry{0, 0, createTextureUpload(pixels, w, h, 4, stride)};
     QRhiTextureUploadDescription desc{entry};
 
     res.uploadTexture(uv_tex, desc);

@@ -92,11 +92,22 @@ inline constexpr bool formatNeedsDecoding(AVPixelFormat fmt) noexcept
     case AV_PIX_FMT_YUV420P:
     case AV_PIX_FMT_RGB24:
     case AV_PIX_FMT_BGR24:
+    case AV_PIX_FMT_RGB48LE:
+    case AV_PIX_FMT_BGR48LE:
     case AV_PIX_FMT_NV12:
     case AV_PIX_FMT_NV21:
+    case AV_PIX_FMT_NV16:
+    case AV_PIX_FMT_P010LE:
+    case AV_PIX_FMT_P016LE:
     case AV_PIX_FMT_YUVJ420P:
     case AV_PIX_FMT_YUVJ422P:
+    case AV_PIX_FMT_YUVJ440P:
     case AV_PIX_FMT_YUV422P:
+    case AV_PIX_FMT_YUV440P:
+    case AV_PIX_FMT_YUV444P:
+    case AV_PIX_FMT_YUVJ444P:
+    case AV_PIX_FMT_YUVA420P:
+    case AV_PIX_FMT_YUVA444P:
     case AV_PIX_FMT_UYVY422:
     case AV_PIX_FMT_YUYV422:
     case AV_PIX_FMT_RGB0:
@@ -105,16 +116,41 @@ inline constexpr bool formatNeedsDecoding(AVPixelFormat fmt) noexcept
     case AV_PIX_FMT_BGRA:
     case AV_PIX_FMT_ARGB:
     case AV_PIX_FMT_ABGR:
+    case AV_PIX_FMT_RGBA64LE:
+    case AV_PIX_FMT_BGRA64LE:
+    case AV_PIX_FMT_RGBAF32LE:
+    case AV_PIX_FMT_X2RGB10LE:
+    case AV_PIX_FMT_X2BGR10LE:
+    case AV_PIX_FMT_GBRP:
+    case AV_PIX_FMT_GBRAP:
+    case AV_PIX_FMT_YA8:
+    case AV_PIX_FMT_YA16LE:
 
 #if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(56, 19, 100)
     case AV_PIX_FMT_YUV420P10LE:
     case AV_PIX_FMT_YUV420P12LE:
     case AV_PIX_FMT_YUV422P10LE:
     case AV_PIX_FMT_YUV422P12LE:
+    case AV_PIX_FMT_YUV444P10LE:
+    case AV_PIX_FMT_YUV444P12LE:
+    case AV_PIX_FMT_YUVA444P10LE:
+    case AV_PIX_FMT_GBRP10LE:
+    case AV_PIX_FMT_GBRP12LE:
+    case AV_PIX_FMT_GBRP16LE:
+    case AV_PIX_FMT_GBRAP10LE:
+    case AV_PIX_FMT_GBRAP12LE:
+    case AV_PIX_FMT_GBRAP16LE:
     case AV_PIX_FMT_GBRPF32LE:
     case AV_PIX_FMT_GBRAPF32LE:
     case AV_PIX_FMT_GRAYF32LE:
     case AV_PIX_FMT_GRAYF32BE:
+    case AV_PIX_FMT_P210LE:
+    case AV_PIX_FMT_P410LE:
+    case AV_PIX_FMT_NV24:
+    case AV_PIX_FMT_NV42:
+    case AV_PIX_FMT_VUYA:
+    case AV_PIX_FMT_VUYX:
+    case AV_PIX_FMT_Y210LE:
 #endif
 
 #if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(60, 8, 100)

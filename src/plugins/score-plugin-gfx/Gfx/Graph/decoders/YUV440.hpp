@@ -1,6 +1,7 @@
-﻿#pragma once
+#pragma once
 #include <Gfx/Graph/decoders/ColorSpace.hpp>
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
+
 extern "C" {
 #include <libavformat/avformat.h>
 }
@@ -9,12 +10,12 @@ namespace score::gfx
 {
 
 /**
- * @brief Decodes YUV420 videos.
+ * @brief Decodes YUV440P planar 4:4:0 8-bit videos.
  *
- * Method was taken from
- * https://www.roxlu.com/2014/039/decoding-h264-and-yuv420p-playback
+ * Chroma is subsampled vertically only (full width, half height).
+ * Found in some JPEG streams.
  */
-struct YUV420P12Decoder : GPUVideoDecoder
+struct YUV440Decoder : GPUVideoDecoder
 {
   static const constexpr auto frag = R"_(#version 450
 
@@ -37,14 +38,14 @@ vec4 processTexture(vec4 tex) {
 
 void main ()
 {
-  float y = 16. * texture(y_tex, v_texcoord).r;
-  float u = 16. * texture(u_tex, v_texcoord).r;
-  float v = 16. * texture(v_tex, v_texcoord).r;
+  float y = texture(y_tex, v_texcoord).r;
+  float u = texture(u_tex, v_texcoord).r;
+  float v = texture(v_tex, v_texcoord).r;
 
   fragColor = processTexture(vec4(y,u,v, 1.));
 })_";
 
-  explicit YUV420P12Decoder(Video::ImageFormat& d)
+  explicit YUV440Decoder(Video::ImageFormat& d)
       : decoder{d}
   {
   }
@@ -55,11 +56,10 @@ void main ()
   {
     auto& rhi = *r.state.rhi;
     const auto w = decoder.width, h = decoder.height;
-    const auto fmt = QRhiTexture::R16;
 
-    // Y
+    // Y: full resolution
     {
-      auto tex = rhi.newTexture(fmt, {w, h}, 1, QRhiTexture::Flag{});
+      auto tex = rhi.newTexture(QRhiTexture::R8, {w, h}, 1, QRhiTexture::Flag{});
       tex->create();
 
       auto sampler = rhi.newSampler(
@@ -69,9 +69,9 @@ void main ()
       samplers.push_back({sampler, tex});
     }
 
-    // U
+    // U: full width, half height
     {
-      auto tex = rhi.newTexture(fmt, {w / 2, h / 2}, 1, QRhiTexture::Flag{});
+      auto tex = rhi.newTexture(QRhiTexture::R8, {w, h / 2}, 1, QRhiTexture::Flag{});
       tex->create();
 
       auto sampler = rhi.newSampler(
@@ -81,9 +81,9 @@ void main ()
       samplers.push_back({sampler, tex});
     }
 
-    // V
+    // V: full width, half height
     {
-      auto tex = rhi.newTexture(fmt, {w / 2, h / 2}, 1, QRhiTexture::Flag{});
+      auto tex = rhi.newTexture(QRhiTexture::R8, {w, h / 2}, 1, QRhiTexture::Flag{});
       tex->create();
 
       auto sampler = rhi.newSampler(
@@ -99,44 +99,22 @@ void main ()
 
   void exec(RenderList&, QRhiResourceUpdateBatch& res, AVFrame& frame) override
   {
-    setYPixels(res, frame.data[0], frame.linesize[0]);
-    setUPixels(res, frame.data[1], frame.linesize[1]);
-    setVPixels(res, frame.data[2], frame.linesize[2]);
-  }
-
-  void
-  setYPixels(QRhiResourceUpdateBatch& res, uint8_t* pixels, int stride) const noexcept
-  {
     const auto w = decoder.width, h = decoder.height;
-    auto y_tex = samplers[0].texture;
-
-    QRhiTextureUploadEntry entry{0, 0, createTextureUpload(pixels, w, h, 2, stride)};
-    QRhiTextureUploadDescription desc{entry};
-
-    res.uploadTexture(y_tex, desc);
-  }
-
-  void
-  setUPixels(QRhiResourceUpdateBatch& res, uint8_t* pixels, int stride) const noexcept
-  {
-    const auto w = decoder.width / 2, h = decoder.height / 2;
-    auto u_tex = samplers[1].texture;
-
-    QRhiTextureUploadEntry entry{0, 0, createTextureUpload(pixels, w, h, 2, stride)};
-    QRhiTextureUploadDescription desc{entry};
-
-    res.uploadTexture(u_tex, desc);
-  }
-
-  void
-  setVPixels(QRhiResourceUpdateBatch& res, uint8_t* pixels, int stride) const noexcept
-  {
-    const auto w = decoder.width / 2, h = decoder.height / 2;
-    auto v_tex = samplers[2].texture;
-
-    QRhiTextureUploadEntry entry{0, 0, createTextureUpload(pixels, w, h, 2, stride)};
-    QRhiTextureUploadDescription desc{entry};
-    res.uploadTexture(v_tex, desc);
+    {
+      QRhiTextureUploadEntry entry{
+          0, 0, createTextureUpload(frame.data[0], w, h, 1, frame.linesize[0])};
+      res.uploadTexture(samplers[0].texture, {entry});
+    }
+    {
+      QRhiTextureUploadEntry entry{
+          0, 0, createTextureUpload(frame.data[1], w, h / 2, 1, frame.linesize[1])};
+      res.uploadTexture(samplers[1].texture, {entry});
+    }
+    {
+      QRhiTextureUploadEntry entry{
+          0, 0, createTextureUpload(frame.data[2], w, h / 2, 1, frame.linesize[2])};
+      res.uploadTexture(samplers[2].texture, {entry});
+    }
   }
 };
 

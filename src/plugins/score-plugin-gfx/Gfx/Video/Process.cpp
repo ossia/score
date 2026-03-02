@@ -196,14 +196,14 @@ QSet<QString> DropHandler::mimeTypes() const noexcept
 
 QSet<QString> LibraryHandler::acceptedFiles() const noexcept
 {
-  return {"mkv",  "mov", "mp4", "h264", "avi",  "hap", "mpg",
-          "mpeg", "imf", "mxf", "mts",  "m2ts", "mj2", "webm"};
+  return {"mkv", "mov", "mp4", "h264", "avi", "hap",  "mpg", "mpeg",
+          "imf", "mxf", "mts", "m2ts", "mj2", "webm", "y4m", "nut"};
 }
 
 QSet<QString> DropHandler::fileExtensions() const noexcept
 {
-  return {"mkv",  "mov", "mp4", "h264", "avi",  "hap", "mpg",
-          "mpeg", "imf", "mxf", "mts",  "m2ts", "mj2", "webm"};
+  return {"mkv", "mov", "mp4", "h264", "avi", "hap",  "mpg", "mpeg",
+          "imf", "mxf", "mts", "m2ts", "mj2", "webm", "y4m", "nut"};
 }
 
 void DropHandler::dropPath(

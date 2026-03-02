@@ -138,16 +138,13 @@ struct PlanarDecoder : GPUVideoDecoder
     const int binding_orig = 3;
     for(int i = 0; i < planes.size(); i++)
     {
-      samplers_code += QString(
-                           "    layout(binding=%1) uniform sampler2D tconst mat4 "
-                           "colorspace_matrix = %2;;\n")
+      samplers_code += QString("    layout(binding=%1) uniform sampler2D t%2;\n")
                            .arg(binding_orig + i)
                            .arg(i);
-      read_texture_code += QString(
-                               "      tex.%1 = texture(tconst mat4 colorspace_matrix = "
-                               "%2;, v_texcoord).r;\n")
-                               .arg(planes[i])
-                               .arg(i);
+      read_texture_code
+          += QString("      tex.%1 = texture(t%2, v_texcoord).r;\n")
+                 .arg(planes[i])
+                 .arg(i);
 
       // Create a texture
       auto tex = rhi.newTexture(format, QSize{w, h}, 1, QRhiTexture::Flag{});
@@ -325,7 +322,6 @@ struct RGB24Decoder : GPUVideoDecoder
       , filter{std::move(f)}
   {
   }
-  QRhiTexture::Format format;
   int bytes_per_pixel{}; // bpp/8 !
   Video::ImageFormat& decoder;
   QString filter;
@@ -373,4 +369,78 @@ struct RGB24Decoder : GPUVideoDecoder
     res.uploadTexture(y_tex, desc);
   }
 };
+
+struct RGB48Decoder : GPUVideoDecoder
+{
+  static const constexpr auto rgb_filter = R"_(#version 450
+
+)_" SCORE_GFX_VIDEO_UNIFORMS R"_(
+
+    layout(binding=3) uniform sampler2D y_tex;
+
+    layout(location = 0) in vec2 v_texcoord;
+    layout(location = 0) out vec4 fragColor;
+
+    vec4 processTexture(vec4 tex) {
+      vec4 processed = tex;
+      { %1 }
+      return processed;
+    }
+
+    void main ()
+    {
+      float w = mat.texSz.x;
+      float h = mat.texSz.y;
+      int x = int(floor(v_texcoord.x * w) * 3.);
+      int y = int(v_texcoord.y * h);
+      float r = texelFetch(y_tex, ivec2(x + 0, y), 0).r;
+      float g = texelFetch(y_tex, ivec2(x + 1, y), 0).r;
+      float b = texelFetch(y_tex, ivec2(x + 2, y), 0).r;
+      fragColor = processTexture(vec4(r, g, b, 1.));
+    })_";
+
+  RGB48Decoder(Video::ImageFormat& d, QString f = "")
+      : decoder{d}
+      , filter{std::move(f)}
+  {
+  }
+  Video::ImageFormat& decoder;
+  QString filter;
+
+  std::pair<QShader, QShader> init(RenderList& r) override
+  {
+    auto& rhi = *r.state.rhi;
+    const auto w = decoder.width, h = decoder.height;
+
+    {
+      auto tex = rhi.newTexture(QRhiTexture::R16, QSize{w * 3, h}, 1, QRhiTexture::Flag{});
+      tex->create();
+
+      auto sampler = rhi.newSampler(
+          QRhiSampler::Nearest, QRhiSampler::Nearest, QRhiSampler::None,
+          QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
+      sampler->create();
+
+      samplers.push_back({sampler, tex});
+    }
+
+    return score::gfx::makeShaders(
+        r.state, vertexShader(), QString(rgb_filter).arg(filter));
+  }
+
+  void exec(RenderList&, QRhiResourceUpdateBatch& res, AVFrame& frame) override
+  {
+    const auto w = decoder.width, h = decoder.height;
+    auto y_tex = samplers[0].texture;
+
+    // 3 R16 samples per pixel = 6 bytes per pixel
+    QRhiTextureUploadEntry entry{
+        0, 0, createTextureUpload(frame.data[0], w * 3, h, 2, frame.linesize[0])};
+
+    QRhiTextureUploadDescription desc{entry};
+    res.uploadTexture(y_tex, desc);
+  }
+};
+
 }
+
