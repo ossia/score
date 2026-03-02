@@ -127,6 +127,7 @@ struct PreviewInputVisitor
     img_count = img_count % 3;
     return image_node;
   }
+  score::gfx::NodeModel* operator()(const isf::cubemap_input& v) { return nullptr; }
 
   score::gfx::NodeModel* operator()(const isf::audio_input& v) { return nullptr; }
 
@@ -230,6 +231,8 @@ struct PreviewPresetVisitor
   }
 
   void operator()(const isf::image_input& v) { }
+
+  void operator()(const isf::cubemap_input& v) { }
 
   void operator()(const isf::audio_input& v) { }
 

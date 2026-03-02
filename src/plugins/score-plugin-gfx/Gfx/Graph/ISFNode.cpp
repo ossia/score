@@ -108,6 +108,11 @@ struct isf_input_port_vis
     self.input.push_back(new Port{&self, {}, Types::Image, {}});
   }
 
+  void operator()(const isf::cubemap_input& in) noexcept
+  {
+    self.input.push_back(new Port{&self, {}, Types::Image, Flag::GrabsFromSource, {}});
+  }
+
   void operator()(const isf::audio_input& audio) noexcept
   {
     self.m_audio_textures.push_back({});

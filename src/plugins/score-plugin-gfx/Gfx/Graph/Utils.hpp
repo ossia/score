@@ -60,6 +60,9 @@ struct Port
   //! Type of the value
   Types type{};
 
+  //! Optional setting flags
+  Flag flags{};
+
   //! Edges connected to that port.
   std::vector<Edge*> edges;
 };

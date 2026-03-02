@@ -274,6 +274,11 @@ BufferView NodeRenderer::bufferForOutput(const Port& output)
   return {};
 }
 
+QRhiTexture* NodeRenderer::textureForOutput(const Port& output)
+{
+  return nullptr;
+}
+
 void NodeRenderer::inputAboutToFinish(
     RenderList& renderer, const Port& p, QRhiResourceUpdateBatch*&)
 {
