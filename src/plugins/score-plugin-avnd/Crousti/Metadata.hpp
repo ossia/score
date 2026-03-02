@@ -271,10 +271,7 @@ struct Metadata<Process::ProcessFlags_k, oscr::ProcessModel<Info>>
       if constexpr(avnd::tag_no_background<Info>)
         flags |= Process::ProcessFlags::NodeHasNoBackground;
 
-      if constexpr(avnd::dynamic_ports_input_introspection<Info>::size > 0)
-        flags |= Process::ProcessFlags::DynamicPorts;
-
-      if constexpr(avnd::dynamic_ports_output_introspection<Info>::size > 0)
+      if constexpr(avnd::has_dynamic_ports<Info>)
         flags |= Process::ProcessFlags::DynamicPorts;
 
       return flags;
