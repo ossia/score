@@ -182,9 +182,25 @@ $COMPILER $CXXFLAGS -o "${APP_NAME}.exe" launcher.cpp -luser32 -lshell32
 rm -f launcher.cpp launcher-defines.h
 
 # Set icon and properties
+# NOTE: for icons to work on Windows:
+# magick convert my-icon.png -define icon:auto-resize=16,24,32,48,64,72,96,128,256 app.ico
+RCEDIT_FLAGS=(
+  --set-icon "${APP_ICON_ICO}"
+  --set-file-version "${APP_VERSION}"
+  --set-product-version "${APP_VERSION}"
+  --set-version-string "CompanyName" "${APP_ORGANIZATION}"
+  --set-version-string "FileDescription" "${APP_DESCRIPTION}"
+  --set-version-string "InternalName" "${APP_NAME}"
+  --set-version-string "LegalCopyright" "${APP_COPYRIGHT}"
+  --set-version-string "License" "GPLv3"
+  --set-version-string "Homepage" "https://${APP_DOMAIN}"
+  --set-version-string "ProductName" "${APP_NAME}"
+  --set-version-string "ProductVersion" "${APP_VERSION}"
+)
+
 if [[ -f "${APP_ICON_ICO}" ]]; then
-  "$WORK_DIR/rcedit.exe" "${APP_NAME}.exe" --set-icon "${APP_ICON_ICO}" --set-file-version "${APP_VERSION}"
-  "$WORK_DIR/rcedit.exe" "app-bin.exe" --set-icon "${APP_ICON_ICO}" --set-file-version "${APP_VERSION}"
+  "$WORK_DIR/rcedit.exe" "${APP_NAME}.exe" "${RCEDIT_FLAGS[@]}"
+  "$WORK_DIR/rcedit.exe" "app-bin.exe" "${RCEDIT_FLAGS[@]}"
 fi
 
 # Go back to work directory
