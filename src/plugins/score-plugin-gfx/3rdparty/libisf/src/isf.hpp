@@ -76,6 +76,10 @@ struct image_input
 {
 };
 
+struct cubemap_input
+{
+};
+
 struct audio_input
 {
   int max{};
@@ -123,8 +127,8 @@ struct input
 {
   using input_impl = ossia::variant<
       float_input, long_input, event_input, bool_input, color_input, point2d_input,
-      point3d_input, image_input, audio_input, audioFFT_input, audioHist_input,
-      storage_input, texture_input, csf_image_input>;
+      point3d_input, image_input, cubemap_input, audio_input, audioFFT_input,
+      audioHist_input, storage_input, texture_input, csf_image_input>;
 
   std::string name;
   std::string label;

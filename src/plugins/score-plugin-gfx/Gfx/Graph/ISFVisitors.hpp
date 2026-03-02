@@ -46,6 +46,7 @@ struct isf_input_size_vis
   }
 
   void operator()(const isf::image_input&) noexcept { }
+  void operator()(const isf::cubemap_input&) noexcept { }
 
   void operator()(const isf::audio_input&) noexcept { }
   void operator()(const isf::audioFFT_input&) noexcept { }

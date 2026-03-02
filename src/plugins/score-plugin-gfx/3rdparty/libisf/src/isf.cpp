@@ -367,6 +367,7 @@ static bool parse_input_impl(sajson::value& v, bool)
 }
 
 static void parse_input(image_input& inp, const sajson::value& v) { }
+static void parse_input(cubemap_input& inp, const sajson::value& v) { }
 
 static void parse_input(event_input& inp, const sajson::value& v) { }
 
@@ -845,6 +846,7 @@ static const ossia::string_map<root_fun>& root_parse{[] {
     i.insert({"bool", [](const auto& s) { return parse<bool_input>(s); }});
     i.insert({"event", [](const auto& s) { return parse<event_input>(s); }});
     i.insert({"image", [](const auto& s) { return parse<image_input>(s); }});
+    i.insert({"cubemap", [](const auto& s) { return parse<cubemap_input>(s); }});
     i.insert({"point2d", [](const auto& s) { return parse<point2d_input>(s); }});
     i.insert({"point3d", [](const auto& s) { return parse<point3d_input>(s); }});
     i.insert({"color", [](const auto& s) { return parse<color_input>(s); }});
@@ -1386,24 +1388,6 @@ static const ossia::string_map<root_fun>& root_parse{[] {
   return p;
 }()};
 
-struct create_val_visitor
-{
-  std::string operator()(const float_input&) { return "uniform float"; }
-  std::string operator()(const long_input&) { return "uniform int"; }
-  std::string operator()(const event_input&) { return "uniform bool"; }
-  std::string operator()(const bool_input&) { return "uniform bool"; }
-  std::string operator()(const point2d_input&) { return "uniform vec2"; }
-  std::string operator()(const point3d_input&) { return "uniform vec3"; }
-  std::string operator()(const color_input&) { return "uniform vec4"; }
-  std::string operator()(const image_input&) { return "uniform sampler2D"; }
-  std::string operator()(const audio_input&) { return "uniform sampler2D"; }
-  std::string operator()(const audioFFT_input&) { return "uniform sampler2D"; }
-  std::string operator()(const audioHist_input&) { return "uniform sampler2D"; }
-  std::string operator()(const storage_input&) { return "buffer"; }
-  std::string operator()(const texture_input&) { return "uniform sampler2D"; }
-  std::string operator()(const csf_image_input&) { return "image2D"; }
-};
-
 struct create_val_visitor_450
 {
   struct return_type
@@ -1419,6 +1403,7 @@ struct create_val_visitor_450
   return_type operator()(const point3d_input&) { return {"vec3", false}; }
   return_type operator()(const color_input&) { return {"vec4", false}; }
   return_type operator()(const image_input&) { return {"uniform sampler2D", true}; }
+  return_type operator()(const cubemap_input&) { return {"uniform samplerCube", true}; }
   return_type operator()(const audio_input&) { return {"uniform sampler2D", true}; }
   return_type operator()(const audioFFT_input&) { return {"uniform sampler2D", true}; }
   return_type operator()(const audioHist_input&) { return {"uniform sampler2D", true}; }
@@ -2593,6 +2578,7 @@ std::string parser::write_isf() const
         }
 
         void operator()(const image_input&) { oss << "      \"TYPE\": \"image\"\n"; }
+        void operator()(const cubemap_input&) { oss << "      \"TYPE\": \"cubemap\"\n"; }
 
         void operator()(const audio_input& a)
         {

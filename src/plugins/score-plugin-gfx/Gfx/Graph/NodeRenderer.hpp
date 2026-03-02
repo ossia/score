@@ -20,6 +20,12 @@ public:
   virtual BufferView bufferForInput(const Port& input);
   virtual BufferView bufferForOutput(const Port& output);
 
+  //! Returns a texture owned by this renderer for a given output port.
+  //! Used for GrabsFromSource ports (e.g. cubemaps) where the upstream
+  //! node produces a texture directly rather than rendering into a
+  //! downstream-provided render target.
+  virtual QRhiTexture* textureForOutput(const Port& output);
+
   //! Called when all the inbound nodes to a texture input have finished rendering.
   //! Mainly useful to slip in a readback.
   virtual void

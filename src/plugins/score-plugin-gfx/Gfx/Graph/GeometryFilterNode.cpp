@@ -105,6 +105,12 @@ struct geometry_input_port_vis
     // self.input.push_back(new Port{&self, {}, Types::Image, {}});
   }
 
+  void operator()(const isf::cubemap_input& in) noexcept
+  {
+    // FIXME
+    // self.input.push_back(new Port{&self, {}, Types::Image, {}});
+  }
+
   void operator()(const isf::audio_input& audio) noexcept
   {
     // FIXME

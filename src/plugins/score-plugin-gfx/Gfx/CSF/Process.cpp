@@ -382,6 +382,13 @@ void Model::setupCSF(const isf::descriptor& desc)
       self.m_inlets.push_back(port);
     }
 
+    void operator()(const cubemap_input& v)
+    {
+      auto port = new Gfx::TextureInlet(
+          QString::fromStdString(input.name), Id<Process::Port>(input_i++), &self);
+      self.m_inlets.push_back(port);
+    }
+
     void operator()(const audio_input& v)
     {
       auto port = new Process::AudioInlet(
