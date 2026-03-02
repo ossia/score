@@ -178,6 +178,7 @@ public:
   void requestTransport(QPointF pt) W_SIGNAL(requestTransport, pt);
 
 private:
+  void on_viewSelection();
   void timerEvent(QTimerEvent* event) override;
   QWidget* m_widget{};
   const score::DocumentContext& m_context;
