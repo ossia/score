@@ -794,15 +794,22 @@ bool VideoDecoder::open_stream() noexcept
         // without color space, e.g. screen recordings
         if(color_space == AVCOL_SPC_UNSPECIFIED)
         {
-          if(codecPar->height < 625)
+          const bool has_bt2020_evidence =
+              color_primaries == AVCOL_PRI_BT2020
+              || color_trc == AVCOL_TRC_SMPTE2084      // PQ (HDR10)
+              || color_trc == AVCOL_TRC_ARIB_STD_B67;   // HLG
+
+          if(has_bt2020_evidence)
+            color_space = AVCOL_SPC_BT2020_NCL;
+          else if(codecPar->height < 625)
             color_space = AVCOL_SPC_SMPTE170M;
           else if(codecPar->height < 720)
             color_space = AVCOL_SPC_BT470BG;
-          else if(codecPar->height < 2160)
-            color_space = AVCOL_SPC_BT709;
           else
-            color_space = AVCOL_SPC_BT2020_CL;
+            color_space = AVCOL_SPC_BT709;
         }
+        if(color_range == AVCOL_RANGE_UNSPECIFIED)
+          color_range = AVCOL_RANGE_MPEG;
 
         codec_id = codecPar->codec_id;
 
