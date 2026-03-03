@@ -36,7 +36,12 @@ void InvertYRenderer::init(
 
     void main()
     {
+#if defined(QSHADER_MSL)
+      // Metal already has attachment output inverted
+      fragColor = texture(tex, vec2(v_texcoord.x, v_texcoord.y));
+#else
       fragColor = texture(tex, vec2(v_texcoord.x, 1. - v_texcoord.y));
+#endif
     }
     )_";
   std::tie(m_vertexS, m_fragmentS)
