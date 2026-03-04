@@ -443,7 +443,9 @@ void ScreenNode::createOutput(score::gfx::OutputConfiguration conf)
       // TODO depth stencil, render buffer, etc ?
       m_swapChain = m_window->state->rhi->newSwapChain();
       m_swapChain->setName("ScreenNode::m_swapChain");
+#if QT_VERSION > QT_VERSION_CHECK(6,4,0)
       m_swapChain->setFormat((QRhiSwapChain::Format)m_swapchainFormat);
+#endif
       m_window->m_swapChain = m_swapChain;
       m_depthStencil = m_window->state->rhi->newRenderBuffer(
           QRhiRenderBuffer::DepthStencil,

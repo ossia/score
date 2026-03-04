@@ -685,8 +685,9 @@ void MultiWindowNode::initWindow(int index, GraphicsApi api)
   // Create swap chain
   wo.swapChain = rhi->newSwapChain();
   wo.swapChain->setWindow(wo.window.get());
+#if QT_VERSION > QT_VERSION_CHECK(6,4,0)
   wo.swapChain->setFormat((QRhiSwapChain::Format)m_swapchainFormat);
-
+#endif
   wo.depthStencil = rhi->newRenderBuffer(
       QRhiRenderBuffer::DepthStencil, QSize(),
       m_renderState->samples, QRhiRenderBuffer::UsedWithSwapChainOnly);
