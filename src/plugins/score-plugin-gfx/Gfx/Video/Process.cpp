@@ -175,6 +175,34 @@ void Model::setPlaybackMode(score::gfx::PlaybackMode t)
   }
 }
 
+::Video::OutputFormat Model::outputFormat() const noexcept
+{
+  return m_outputFormat;
+}
+
+void Model::setOutputFormat(::Video::OutputFormat t)
+{
+  if(t != m_outputFormat)
+  {
+    m_outputFormat = t;
+    outputFormatChanged(t);
+  }
+}
+
+::Video::Tonemap Model::tonemap() const noexcept
+{
+  return m_tonemap;
+}
+
+void Model::setTonemap(::Video::Tonemap t)
+{
+  if(t != m_tonemap)
+  {
+    m_tonemap = t;
+    tonemapChanged(t);
+  }
+}
+
 double Model::nativeTempo() const noexcept
 {
   return m_nativeTempo;

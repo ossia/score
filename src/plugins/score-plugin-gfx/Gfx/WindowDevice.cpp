@@ -103,21 +103,21 @@ bool WindowDevice::reconnect()
           {
             m_dev = std::make_unique<window_device>(
                 std::unique_ptr<gfx_protocol_base>(m_protocol),
-                m_settings.name.toStdString());
+                m_settings.name.toStdString(), set.flag, set.format);
           }
           break;
         }
         case WindowMode::MultiWindow: {
           m_dev = std::make_unique<multiwindow_device>(
               set.outputs, std::unique_ptr<gfx_protocol_base>(m_protocol),
-              m_settings.name.toStdString());
+              m_settings.name.toStdString(), set.flag, set.format);
           break;
         }
         case WindowMode::Single:
         default: {
           m_dev = std::make_unique<window_device>(
               std::unique_ptr<gfx_protocol_base>(m_protocol),
-              m_settings.name.toStdString());
+              m_settings.name.toStdString(), set.flag, set.format);
           break;
         }
       }
@@ -221,6 +221,7 @@ void DataStreamReader::read(const Gfx::WindowSettings& n)
   for(const auto& o : n.outputs)
     read(o);
   m_stream << (int32_t)n.inputWidth << (int32_t)n.inputHeight;
+  m_stream << (int32_t)n.flag << (int32_t)n.format;
   insertDelimiter();
 }
 
@@ -239,6 +240,10 @@ void DataStreamWriter::write(Gfx::WindowSettings& n)
   m_stream >> inW >> inH;
   n.inputWidth = inW;
   n.inputHeight = inH;
+  int32_t flag{}, format{};
+  m_stream >> flag >> format;
+  n.flag = (Gfx::SwapchainFlag)flag;
+  n.format = (Gfx::SwapchainFormat)format;
   checkDelimiter();
 }
 
@@ -249,6 +254,8 @@ void JSONReader::read(const Gfx::WindowSettings& n)
   obj["Outputs"] = n.outputs;
   obj["InputWidth"] = n.inputWidth;
   obj["InputHeight"] = n.inputHeight;
+  obj["SwapchainFlag"] = (int)n.flag;
+  obj["SwapchainFormat"] = (int)n.format;
 }
 
 template <>
@@ -277,6 +284,10 @@ void JSONWriter::write(Gfx::WindowSettings& n)
     n.inputWidth = v->toInt();
   if(auto v = obj.tryGet("InputHeight"))
     n.inputHeight = v->toInt();
+  if(auto v = obj.tryGet("SwapchainFlag"))
+    n.flag = (Gfx::SwapchainFlag)v->toInt();
+  if(auto v = obj.tryGet("SwapchainFormat"))
+    n.format = (Gfx::SwapchainFormat)v->toInt();
 }
 
 SCORE_SERALIZE_DATASTREAM_DEFINE(Gfx::WindowSettings);

@@ -7,6 +7,7 @@
 #include <Gfx/Graph/Scale.hpp>
 #include <Gfx/Video/Metadata.hpp>
 #include <Library/LibraryInterface.hpp>
+#include <Video/VideoEnums.hpp>
 #include <Video/VideoDecoder.hpp>
 
 #include <score/command/PropertyCommand.hpp>
@@ -52,6 +53,14 @@ public:
   void setPlaybackMode(score::gfx::PlaybackMode);
   void playbackModeChanged(score::gfx::PlaybackMode t) W_SIGNAL(playbackModeChanged, t);
 
+  ::Video::OutputFormat outputFormat() const noexcept;
+  void setOutputFormat(::Video::OutputFormat);
+  void outputFormatChanged(::Video::OutputFormat t) W_SIGNAL(outputFormatChanged, t);
+
+  ::Video::Tonemap tonemap() const noexcept;
+  void setTonemap(::Video::Tonemap);
+  void tonemapChanged(::Video::Tonemap t) W_SIGNAL(tonemapChanged, t);
+
   bool ignoreTempo() const noexcept;
   void setIgnoreTempo(bool);
   void ignoreTempoChanged(bool t) W_SIGNAL(ignoreTempoChanged, t);
@@ -62,6 +71,12 @@ public:
   PROPERTY(
       score::gfx::PlaybackMode,
       playbackMode READ playbackMode WRITE setPlaybackMode NOTIFY playbackModeChanged)
+  PROPERTY(
+      ::Video::OutputFormat,
+      outputFormat READ outputFormat WRITE setOutputFormat NOTIFY outputFormatChanged)
+  PROPERTY(
+      ::Video::Tonemap,
+      tonemap READ tonemap WRITE setTonemap NOTIFY tonemapChanged)
 
   PROPERTY(QString, path READ path WRITE setPath NOTIFY pathChanged)
   PROPERTY(
@@ -76,6 +91,8 @@ private:
   QString m_path;
   score::gfx::ScaleMode m_scaleMode{};
   score::gfx::PlaybackMode m_playbackMode{};
+  ::Video::OutputFormat m_outputFormat{};
+  ::Video::Tonemap m_tonemap{};
   double m_nativeTempo{};
   bool m_ignoreTempo{};
 };
@@ -116,6 +133,14 @@ SCORE_COMMAND_DECL_T(Gfx::ChangeVideoScaleMode)
 PROPERTY_COMMAND_T(
     Gfx, ChangePlaybackMode, Video::Model::p_playbackMode, "Video playback mode")
 SCORE_COMMAND_DECL_T(Gfx::ChangePlaybackMode)
+PROPERTY_COMMAND_T(
+    Gfx, ChangeOutputFormat, Video::Model::p_outputFormat, "Video output format")
+SCORE_COMMAND_DECL_T(Gfx::ChangeOutputFormat)
+PROPERTY_COMMAND_T(
+    Gfx, ChangeTonemap, Video::Model::p_tonemap, "Video tonemap")
+SCORE_COMMAND_DECL_T(Gfx::ChangeTonemap)
 
 W_REGISTER_ARGTYPE(score::gfx::ScaleMode)
 W_REGISTER_ARGTYPE(score::gfx::PlaybackMode)
+W_REGISTER_ARGTYPE(::Video::OutputFormat)
+W_REGISTER_ARGTYPE(::Video::Tonemap)

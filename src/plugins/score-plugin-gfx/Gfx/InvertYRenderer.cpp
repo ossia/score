@@ -17,9 +17,8 @@ InvertYRenderer::InvertYRenderer(
 void InvertYRenderer::init(
     score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
-  // FIXME RGBA32F for hdr ?
   m_renderTarget = score::gfx::createRenderTarget(
-      renderer.state, QRhiTexture::Format::RGBA8, m_inputTarget.texture->pixelSize(),
+      renderer.state, renderer.state.renderFormat, m_inputTarget.texture->pixelSize(),
       renderer.samples(), renderer.requiresDepth(*this->node.input[0]));
 
   const auto& mesh = renderer.defaultTriangle();
@@ -117,9 +116,8 @@ ScaledRenderer::~ScaledRenderer() { }
 
 void ScaledRenderer::init(score::gfx::RenderList &renderer, QRhiResourceUpdateBatch &res)
 {
-  // FIXME RGBA32F for hdr ?
   m_inputTarget = score::gfx::createRenderTarget(
-      renderer.state, QRhiTexture::Format::RGBA8, renderer.state.renderSize,
+      renderer.state, renderer.state.renderFormat, renderer.state.renderSize,
       renderer.samples(), renderer.requiresDepth(*this->node.input[0]));
 
   const auto& mesh = renderer.defaultTriangle();

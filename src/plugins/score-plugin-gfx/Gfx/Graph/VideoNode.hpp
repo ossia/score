@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Gfx/Graph/Node.hpp>
+#include <Video/VideoEnums.hpp>
 extern "C" {
 #include <libavformat/avformat.h>
 }
@@ -73,6 +74,8 @@ class SCORE_PLUGIN_GFX_EXPORT VideoNodeBase : public ProcessNode
 public:
   void setScaleMode(score::gfx::ScaleMode s);
   void setPlaybackMode(score::gfx::PlaybackMode s);
+  void setOutputFormat(::Video::OutputFormat s);
+  void setTonemap(::Video::Tonemap s);
 
   friend VideoNodeRenderer;
   friend DirectVideoNodeRenderer;
@@ -81,6 +84,8 @@ protected:
   QString m_filter;
   score::gfx::ScaleMode m_scaleMode{};
   score::gfx::PlaybackMode m_playbackMode{};
+  ::Video::OutputFormat m_outputFormat{};
+  ::Video::Tonemap m_tonemap{};
 };
 
 /**

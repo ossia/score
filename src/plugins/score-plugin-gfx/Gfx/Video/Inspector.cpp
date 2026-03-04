@@ -55,6 +55,14 @@ InspectorWidget::InspectorWidget(
     playbackCombo->addItems({tr("Auto"), tr("Direct (seek)"), tr("Frame queue")});
     playbackCombo->setCurrentIndex((int)object.playbackMode());
 
+    auto formatCombo = new QComboBox;
+    formatCombo->addItems({tr("SDR"), tr("Passthrough"), tr("Linear"), tr("Normalized")});
+    formatCombo->setCurrentIndex((int)object.outputFormat());
+
+    auto tonemapCombo = new QComboBox;
+    tonemapCombo->addItems({tr("Clamp"), tr("BT.2390"), tr("BT.2446"), tr("Reinhard"), tr("Hable"), tr("ACES2"), tr("AgX"), tr("PBR Neutral")});
+    tonemapCombo->setCurrentIndex((int)object.tonemap());
+
     con(object, &Gfx::Video::Model::ignoreTempoChanged, this, [=](bool ignore) {
       if(cb->isChecked() != (!ignore))
         cb->setChecked(!ignore);
@@ -75,6 +83,18 @@ InspectorWidget::InspectorWidget(
       int idx = (int)pm;
       if(playbackCombo->currentIndex() != idx)
         playbackCombo->setCurrentIndex(idx);
+    });
+    con(object, &Gfx::Video::Model::outputFormatChanged, this,
+        [=](::Video::OutputFormat pm) {
+      int idx = (int)pm;
+      if(formatCombo->currentIndex() != idx)
+        formatCombo->setCurrentIndex(idx);
+    });
+    con(object, &Gfx::Video::Model::tonemapChanged, this,
+        [=](::Video::Tonemap pm) {
+      int idx = (int)pm;
+      if(tonemapCombo->currentIndex() != idx)
+        tonemapCombo->setCurrentIndex(idx);
     });
 
     connect(cb, &QCheckBox::toggled, this, [this](bool t) {
@@ -113,10 +133,31 @@ InspectorWidget::InspectorWidget(
       }
         });
 
+    connect(
+        formatCombo, qOverload<int>(&QComboBox::currentIndexChanged), &object,
+        [this](int idx) {
+      auto new_mode = (::Video::OutputFormat)idx;
+      if(new_mode != this->process().outputFormat())
+      {
+        this->m_dispatcher.submit<ChangeOutputFormat>(this->process(), new_mode);
+      }
+    });
+    connect(
+        tonemapCombo, qOverload<int>(&QComboBox::currentIndexChanged), &object,
+        [this](int idx) {
+      auto new_mode = (::Video::Tonemap)idx;
+      if(new_mode != this->process().tonemap())
+      {
+        this->m_dispatcher.submit<ChangeTonemap>(this->process(), new_mode);
+      }
+    });
+
     lay->addRow(tr("Scale"), combo);
     lay->addRow(tr("Playback"), playbackCombo);
     lay->addRow(tr("Enable tempo"), cb);
     lay->addRow(tr("Tempo"), spin);
+    lay->addRow(tr("Format"), formatCombo);
+    lay->addRow(tr("Tonemap (HDR)"), tonemapCombo);
   }
 }
 

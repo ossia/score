@@ -1,6 +1,6 @@
 #include <Gfx/Graph/VideoNodeRenderer.hpp>
-#include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
 #include <Gfx/Graph/decoders/DXV.hpp>
+#include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
 #include <Gfx/Graph/decoders/HAP.hpp>
 #include <Gfx/Graph/decoders/NV12.hpp>
 #include <Gfx/Graph/decoders/NV16.hpp>
@@ -33,6 +33,15 @@
 
 #include <QElapsedTimer>
 
+extern "C"
+{
+#if __has_include(<libavutil/hdr_dynamic_metadata.h>)
+#include <libavutil/hdr_dynamic_metadata.h>
+#endif
+#if __has_include(<libavutil/hdr_dynamic_vivid_metadata.h>)
+#include <libavutil/hdr_dynamic_vivid_metadata.h>
+#endif
+}
 namespace score::gfx
 {
 
@@ -42,6 +51,9 @@ VideoNodeRenderer::VideoNodeRenderer(
     , reader{frames}
     , m_frameFormat{decoder()}
 {
+  m_frameFormat.output_format = node.m_outputFormat;
+  m_frameFormat.tonemap = node.m_tonemap;
+  m_currentScaleMode = node.m_scaleMode;
 }
 
 VideoNodeRenderer::~VideoNodeRenderer() { }
@@ -419,12 +431,19 @@ void VideoNodeRenderer::createPipelines(RenderList& r)
 void VideoNodeRenderer::checkFormat(RenderList& r, AVPixelFormat fmt, int w, int h)
 {
   // TODO won't work if VK is threaded and there are multiple windows
-  if(!m_gpu || fmt != m_frameFormat.pixel_format || w != m_frameFormat.width
-     || h != m_frameFormat.height)
+  const auto& n = this->node();
+  if(!m_gpu
+     || fmt != m_frameFormat.pixel_format
+     || w != m_frameFormat.width
+     || h != m_frameFormat.height
+     || n.m_outputFormat != m_frameFormat.output_format
+     || n.m_tonemap != m_frameFormat.tonemap)
   {
     m_frameFormat.pixel_format = fmt;
     m_frameFormat.width = w;
     m_frameFormat.height = h;
+    m_frameFormat.output_format = n.m_outputFormat;
+    m_frameFormat.tonemap = n.m_tonemap;
 
     setupGpuDecoder(r);
   }
@@ -513,6 +532,30 @@ void VideoNodeRenderer::displayFrame(
 {
   if(frame.data[0] == nullptr)
     return;
+
+  /* FIXME dynamic HDR support
+  auto* sd = av_frame_get_side_data(&frame, AV_FRAME_DATA_CONTENT_LIGHT_LEVEL);
+  auto* sd10p = av_frame_get_side_data(&frame, AV_FRAME_DATA_DYNAMIC_HDR_PLUS);
+  auto* sdVivid = av_frame_get_side_data(&frame, AV_FRAME_DATA_DYNAMIC_HDR_VIVID);
+
+  float scenePeakNits = 100.;
+  if(sd10p)
+  {
+    auto* h = reinterpret_cast<const AVDynamicHDRPlus*>(sd10p->data);
+    for(int i = 0; i < 3; i++)
+      scenePeakNits = std::max(scenePeakNits,
+                               float(av_q2d(h->params[0].maxscl[i])) * 10000.f);
+  }
+  else if(sdVivid)
+  {
+    auto* v = reinterpret_cast<const AVDynamicHDRVivid*>(sdVivid->data);
+    scenePeakNits = float(av_q2d(v->params[0].maximum_maxrgb)) * 10000.f;
+  }
+  else if(sd && sd->data)
+  {
+    scenePeakNits = reinterpret_cast<AVContentLightMetadata*>(sd->data)->MaxCLL;
+  }
+  */
 
   checkFormat(
       renderer, static_cast<AVPixelFormat>(frame.format), frame.width, frame.height);

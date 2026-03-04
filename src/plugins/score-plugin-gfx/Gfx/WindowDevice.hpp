@@ -82,6 +82,8 @@ private:
 struct WindowSettings
 {
   WindowMode mode{WindowMode::Single};
+  SwapchainFlag flag{};
+  SwapchainFormat format{};
   std::vector<OutputMapping> outputs;
   int inputWidth{1920};
   int inputHeight{1080};

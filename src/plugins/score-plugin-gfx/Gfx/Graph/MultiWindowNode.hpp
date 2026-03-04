@@ -59,6 +59,8 @@ struct SCORE_PLUGIN_GFX_EXPORT MultiWindowNode : OutputNode
   void setSourceRect(int windowIndex, QRectF rect);
   void setEdgeBlend(int windowIndex, int side, float width, float gamma);
   void setCornerWarp(int windowIndex, const Gfx::CornerWarp& warp);
+  void setSwapchainFlag(Gfx::SwapchainFlag flag);
+  void setSwapchainFormat(Gfx::SwapchainFormat format);
 
   std::function<void(float)> onFps;
   // Called after all windows are created in createOutput(), before swap chains are initialized
@@ -75,6 +77,8 @@ private:
   std::shared_ptr<RenderState> m_renderState;
   std::weak_ptr<RenderList> m_renderer;
 
+  Gfx::SwapchainFlag m_swapchainFlag{};
+  Gfx::SwapchainFormat m_swapchainFormat{};
   std::function<void()> m_vsyncCallback;
 };
 }

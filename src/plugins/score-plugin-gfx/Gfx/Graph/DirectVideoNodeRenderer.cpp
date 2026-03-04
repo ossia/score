@@ -49,15 +49,11 @@ DirectVideoNodeRenderer::DirectVideoNodeRenderer(
     , m_fps{metadata.fps}
     , m_flicks_per_dts{metadata.flicks_per_dts}
     , m_dts_per_flicks{metadata.dts_per_flicks}
+    , m_frameFormat{metadata}
 {
-  m_frameFormat.width = metadata.width;
-  m_frameFormat.height = metadata.height;
-  m_frameFormat.pixel_format = metadata.pixel_format;
-  m_frameFormat.color_range = metadata.color_range;
-  m_frameFormat.color_primaries = metadata.color_primaries;
-  m_frameFormat.color_trc = metadata.color_trc;
-  m_frameFormat.color_space = metadata.color_space;
-  m_frameFormat.chroma_location = metadata.chroma_location;
+  m_frameFormat.output_format = node.m_outputFormat;
+  m_frameFormat.tonemap = node.m_tonemap;
+  m_currentScaleMode = node.m_scaleMode;
 }
 
 DirectVideoNodeRenderer::~DirectVideoNodeRenderer()
@@ -739,14 +735,19 @@ void DirectVideoNodeRenderer::update(
         // Check if format changed (e.g. resolution change)
         if(m_gpu && m_useAVCodec)
         {
+          const auto& n = this->node();
           auto fmt = static_cast<AVPixelFormat>(m_decodedFrame->format);
           if(fmt != m_frameFormat.pixel_format
              || m_decodedFrame->width != m_frameFormat.width
-             || m_decodedFrame->height != m_frameFormat.height)
+             || m_decodedFrame->height != m_frameFormat.height
+             || n.m_outputFormat != m_frameFormat.output_format
+             || n.m_tonemap != m_frameFormat.tonemap)
           {
             m_frameFormat.pixel_format = fmt;
             m_frameFormat.width = m_decodedFrame->width;
             m_frameFormat.height = m_decodedFrame->height;
+            m_frameFormat.output_format = n.m_outputFormat;
+            m_frameFormat.tonemap = n.m_tonemap;
             setupGpuDecoder(renderer);
           }
         }

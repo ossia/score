@@ -1,5 +1,5 @@
-#include <Gfx/Graph/VideoNode.hpp>
 #include <Gfx/Graph/DirectVideoNodeRenderer.hpp>
+#include <Gfx/Graph/VideoNode.hpp>
 #include <Gfx/Graph/VideoNodeRenderer.hpp>
 #include <Video/ExternalInput.hpp>
 #include <Video/FrameQueue.hpp>
@@ -23,6 +23,16 @@ void VideoNodeBase::setScaleMode(ScaleMode s)
 void VideoNodeBase::setPlaybackMode(PlaybackMode s)
 {
   m_playbackMode = s;
+}
+
+void VideoNodeBase::setOutputFormat(::Video::OutputFormat s)
+{
+  m_outputFormat = s;
+}
+
+void VideoNodeBase::setTonemap(::Video::Tonemap s)
+{
+  m_tonemap = s;
 }
 
 VideoNode::VideoNode(

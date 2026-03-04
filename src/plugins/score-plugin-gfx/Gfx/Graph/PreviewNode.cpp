@@ -174,7 +174,7 @@ public:
   void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
     m_inputTarget = score::gfx::createRenderTarget(
-        renderer.state, QRhiTexture::Format::RGBA8, m_renderTarget.texture->pixelSize(),
+        renderer.state, renderer.state.renderFormat, m_renderTarget.texture->pixelSize(),
         renderer.samples(), renderer.requiresDepth(*this->node.input[0]));
 
     const auto& mesh = renderer.defaultTriangle();

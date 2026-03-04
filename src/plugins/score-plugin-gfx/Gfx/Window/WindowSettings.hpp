@@ -23,6 +23,22 @@ enum class WindowMode : int
   MultiWindow = 2
 };
 
+enum class SwapchainFlag : int
+{
+  NoFlag = 0,
+  sRGB = (1 << 2)
+};
+
+// Matches QRhiSwapchainFormat
+enum class SwapchainFormat : int
+{
+  SDR,
+  HDRExtendedSrgbLinear,
+  HDR10,
+  HDRExtendedDisplayP3Linear
+};
+
+
 struct EdgeBlend
 {
   float width{0.0f}; // Blend width in UV space (0.0 = no blend, 0.15 = 15% of output)

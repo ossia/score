@@ -144,7 +144,7 @@ public:
 
     // Create the input target where upstream nodes will render
     m_inputTarget = score::gfx::createRenderTarget(
-        renderer.state, QRhiTexture::Format::RGBA8, renderer.state.renderSize,
+        renderer.state, renderer.state.renderFormat, renderer.state.renderSize,
         renderer.samples(), renderer.requiresDepth(*this->node.input[0]));
 
     const auto& mesh = renderer.defaultTriangle();
@@ -522,6 +522,16 @@ void MultiWindowNode::setCornerWarp(int windowIndex, const Gfx::CornerWarp& warp
     m_windowOutputs[windowIndex].cornerWarp = warp;
 }
 
+void MultiWindowNode::setSwapchainFlag(Gfx::SwapchainFlag flag)
+{
+  m_swapchainFlag = flag;
+}
+
+void MultiWindowNode::setSwapchainFormat(Gfx::SwapchainFormat format)
+{
+  m_swapchainFormat = format;
+}
+
 void MultiWindowNode::startRendering()
 {
   if(onFps)
@@ -675,6 +685,7 @@ void MultiWindowNode::initWindow(int index, GraphicsApi api)
   // Create swap chain
   wo.swapChain = rhi->newSwapChain();
   wo.swapChain->setWindow(wo.window.get());
+  wo.swapChain->setFormat((QRhiSwapChain::Format)m_swapchainFormat);
 
   wo.depthStencil = rhi->newRenderBuffer(
       QRhiRenderBuffer::DepthStencil, QSize(),
@@ -688,6 +699,8 @@ void MultiWindowNode::initWindow(int index, GraphicsApi api)
     flags |= QRhiSwapChain::NoVSync;
   else if(!score::AppContext().settings<Gfx::Settings::Model>().getVSync())
     flags |= QRhiSwapChain::NoVSync;
+  if(m_swapchainFlag == Gfx::SwapchainFlag::sRGB)
+    flags |= QRhiSwapChain::sRGB;
   wo.swapChain->setFlags(flags);
 
   wo.renderPassDescriptor = wo.swapChain->newCompatibleRenderPassDescriptor();
@@ -715,6 +728,9 @@ void MultiWindowNode::createOutput(score::gfx::OutputConfiguration conf)
   m_renderState = score::gfx::createRenderState(conf.graphicsApi, QSize{1280, 720}, nullptr);
   if(!m_renderState || !m_renderState->rhi)
     return;
+
+  m_renderState->renderFormat = (m_swapchainFormat != Gfx::SwapchainFormat::SDR)
+      ? QRhiTexture::RGBA32F : QRhiTexture::RGBA8;
 
   m_windowOutputs.resize(m_mappings.size());
 

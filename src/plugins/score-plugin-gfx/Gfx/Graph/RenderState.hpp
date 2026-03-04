@@ -49,6 +49,7 @@ struct RenderState
   QSize renderSize{};
   QSize outputSize{};
   int samples{1};
+  QRhiTexture::Format renderFormat{QRhiTexture::RGBA8};
   GraphicsApi api{};
   QShaderVersion version{};
 

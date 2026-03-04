@@ -13,8 +13,10 @@
 #include <QGuiApplication>
 namespace Gfx
 {
-static score::gfx::MultiWindowNode*
-createMultiWindowNode(const std::vector<OutputMapping>& mappings)
+static score::gfx::MultiWindowNode* createMultiWindowNode(
+    const std::vector<OutputMapping>& mappings,
+    SwapchainFlag swapFlag = SwapchainFlag::NoFlag,
+    SwapchainFormat swapFormat = SwapchainFormat::SDR)
 {
   const auto& gfx_settings = score::AppContext().settings<Gfx::Settings::Model>();
 
@@ -25,7 +27,10 @@ createMultiWindowNode(const std::vector<OutputMapping>& mappings)
   else
     conf = {.manualRenderingRate = 1000. / 60., .supportsVSync = false};
 
-  return new score::gfx::MultiWindowNode{conf, mappings};
+  auto node = new score::gfx::MultiWindowNode{conf, mappings};
+  node->setSwapchainFlag(swapFlag);
+  node->setSwapchainFormat(swapFormat);
+  return node;
 }
 
 class multiwindow_device : public ossia::net::device_base
@@ -87,9 +92,11 @@ class multiwindow_device : public ossia::net::device_base
 public:
   multiwindow_device(
       const std::vector<OutputMapping>& mappings,
-      std::unique_ptr<gfx_protocol_base> proto, std::string name)
+      std::unique_ptr<gfx_protocol_base> proto, std::string name,
+      SwapchainFlag swapFlag = SwapchainFlag::NoFlag,
+      SwapchainFormat swapFormat = SwapchainFormat::SDR)
       : ossia::net::device_base{std::move(proto)}
-      , m_node{createMultiWindowNode(mappings)}
+      , m_node{createMultiWindowNode(mappings, swapFlag, swapFormat)}
       , m_root{*this, *static_cast<gfx_protocol_base*>(m_protocol.get()), m_node, name}
   {
     this->m_capabilities.change_tree = true;

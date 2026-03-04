@@ -331,6 +331,16 @@ void ScreenNode::setConfiguration(Configuration conf)
   m_conf = conf;
 }
 
+void ScreenNode::setSwapchainFlag(Gfx::SwapchainFlag flag)
+{
+  m_swapchainFlag = flag;
+}
+
+void ScreenNode::setSwapchainFormat(Gfx::SwapchainFormat format)
+{
+  m_swapchainFormat = format;
+}
+
 void ScreenNode::setSize(QSize sz)
 {
   m_sz = sz;
@@ -426,11 +436,14 @@ void ScreenNode::createOutput(score::gfx::OutputConfiguration conf)
     m_window->state = createRenderState(*m_window, graphicsApi);
     m_window->state->window = m_window;
     m_window->state->renderSize = QSize(1280, 720);
+    m_window->state->renderFormat = (m_swapchainFormat != Gfx::SwapchainFormat::SDR)
+        ? QRhiTexture::RGBA32F : QRhiTexture::RGBA8;
     if(m_window->state->rhi)
     {
       // TODO depth stencil, render buffer, etc ?
       m_swapChain = m_window->state->rhi->newSwapChain();
       m_swapChain->setName("ScreenNode::m_swapChain");
+      m_swapChain->setFormat((QRhiSwapChain::Format)m_swapchainFormat);
       m_window->m_swapChain = m_swapChain;
       m_depthStencil = m_window->state->rhi->newRenderBuffer(
           QRhiRenderBuffer::DepthStencil,
@@ -444,6 +457,8 @@ void ScreenNode::createOutput(score::gfx::OutputConfiguration conf)
       QRhiSwapChain::Flags flags = QRhiSwapChain::MinimalBufferCount;
       if(!score::AppContext().settings<Gfx::Settings::Model>().getVSync())
         flags |= QRhiSwapChain::NoVSync;
+      if(m_swapchainFlag == Gfx::SwapchainFlag::sRGB)
+        flags |= QRhiSwapChain::sRGB;
       m_swapChain->setFlags(flags);
 
       m_window->state->renderPassDescriptor

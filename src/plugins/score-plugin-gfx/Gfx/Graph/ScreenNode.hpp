@@ -1,5 +1,6 @@
 #pragma once
 #include <Gfx/Graph/OutputNode.hpp>
+#include <Gfx/Window/WindowSettings.hpp>
 
 class QScreen;
 class QTabletEvent;
@@ -30,6 +31,8 @@ struct SCORE_PLUGIN_GFX_EXPORT ScreenNode : OutputNode
   void setCursor(bool);
   void setTitle(QString);
   void setConfiguration(Configuration);
+  void setSwapchainFlag(Gfx::SwapchainFlag flag);
+  void setSwapchainFormat(Gfx::SwapchainFormat format);
 
   void createOutput(score::gfx::OutputConfiguration) override;
   void destroyOutput() override;
@@ -61,6 +64,8 @@ private:
   std::optional<QSize> m_renderSz{};
   std::function<void()> m_vsyncCallback;
 
+  Gfx::SwapchainFlag m_swapchainFlag{};
+  Gfx::SwapchainFormat m_swapchainFormat{};
   bool m_embedded{};
   bool m_fullScreen{};
   bool m_ownsWindow{};

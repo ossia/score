@@ -1,10 +1,17 @@
 #pragma once
 #include <Media/Libav.hpp>
+#include <Video/VideoEnums.hpp>
 #if SCORE_HAS_LIBAV
 #include <score_plugin_media_export.h>
 extern "C" {
 #include <libavcodec/codec_id.h>
 #include <libavutil/pixfmt.h>
+#include <libavcodec/version.h>
+#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(61, 3, 100)
+#if __has_include(<libavutil/mastering_display_metadata.h>)
+#include <libavutil/mastering_display_metadata.h>
+#endif
+#endif
 struct AVFrame;
 struct AVCodecContext;
 struct AVPacket;
@@ -14,8 +21,10 @@ struct AVPacket;
 
 namespace Video
 {
+
 struct SCORE_PLUGIN_MEDIA_EXPORT ImageFormat
 {
+  // From ffmpeg
   int width{};
   int height{};
   AVPixelFormat pixel_format = AVPixelFormat(-1);
@@ -25,6 +34,15 @@ struct SCORE_PLUGIN_MEDIA_EXPORT ImageFormat
   AVColorTransferCharacteristic color_trc = AVColorTransferCharacteristic(-1);
   AVColorSpace color_space = AVColorSpace(-1);
   AVChromaLocation chroma_location = AVChromaLocation(-1);
+
+#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(61, 3, 100)
+  AVMasteringDisplayMetadata mastering_display{};
+  std::optional<AVContentLightMetadata> content_light{};
+#endif
+
+  // Set by the user
+  OutputFormat output_format = ::Video::OutputFormat::SDR;
+  Tonemap tonemap = ::Video::Tonemap::BT_2390;
 };
 
 struct SCORE_PLUGIN_MEDIA_EXPORT VideoMetadata : ImageFormat

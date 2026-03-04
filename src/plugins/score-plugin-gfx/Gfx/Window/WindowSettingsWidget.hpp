@@ -80,6 +80,8 @@ private:
   QDoubleSpinBox* m_blendBottomG{};
 
   QComboBox* m_lockModeCombo{};
+  QComboBox* m_flagCombo{};
+  QComboBox* m_formatCombo{};
 
   int m_selectedOutput{-1};
   bool m_syncing{false}; // guard against selection sync loops

@@ -38,6 +38,18 @@ WindowSettingsWidget::WindowSettingsWidget(QWidget* parent)
   m_modeCombo->addItem(tr("Multi-Window Mapping"));
   layout->addRow(tr("Mode"), m_modeCombo);
 
+  m_flagCombo = new QComboBox;
+  m_flagCombo->addItem(tr("No Flag"));
+  m_flagCombo->addItem(tr("sRGB"));
+  layout->addRow(tr("Swapchain Flag"), m_flagCombo);
+
+  m_formatCombo = new QComboBox;
+  m_formatCombo->addItem(tr("SDR"));
+  m_formatCombo->addItem(tr("HDR Extended sRGB Linear"));
+  m_formatCombo->addItem(tr("HDR10"));
+  m_formatCombo->addItem(tr("HDR Extended Display P3 Linear"));
+  layout->addRow(tr("Swapchain Format"), m_formatCombo);
+
   m_stack = new QStackedWidget;
 
   // Page 0: Single (empty)
@@ -1036,6 +1048,8 @@ Device::DeviceSettings WindowSettingsWidget::getSettings() const
   s.protocol = WindowProtocolFactory::static_concreteKey();
   WindowSettings set;
   set.mode = (WindowMode)m_modeCombo->currentIndex();
+  set.flag = m_flagCombo->currentIndex() == 1 ? SwapchainFlag::sRGB : SwapchainFlag::NoFlag;
+  set.format = (SwapchainFormat)m_formatCombo->currentIndex();
 
   if(set.mode == WindowMode::MultiWindow && m_canvas)
   {
@@ -1062,6 +1076,8 @@ void WindowSettingsWidget::setSettings(const Device::DeviceSettings& settings)
     const auto set = settings.deviceSpecificSettings.value<WindowSettings>();
     m_modeCombo->setCurrentIndex((int)set.mode);
     m_stack->setCurrentIndex((int)set.mode);
+    m_flagCombo->setCurrentIndex(set.flag == SwapchainFlag::sRGB ? 1 : 0);
+    m_formatCombo->setCurrentIndex((int)set.format);
 
     if(m_inputWidth && m_inputHeight)
     {

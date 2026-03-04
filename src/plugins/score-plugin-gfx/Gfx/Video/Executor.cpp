@@ -175,16 +175,45 @@ ProcessExecutorComponent::ProcessExecutorComponent(
         }
       });
 
+  ::bind(
+      element, Gfx::Video::Model::p_outputFormat{}, this,
+      [this](::Video::OutputFormat m) {
+    if(auto vn = static_cast<video_node*>(this->node.get()); vn && vn->impl)
+    {
+      vn->impl->setOutputFormat(m);
+    }
+  });
+  ::bind(
+      element, Gfx::Video::Model::p_tonemap{}, this,
+      [this](::Video::Tonemap m) {
+    if(auto vn = static_cast<video_node*>(this->node.get()); vn && vn->impl)
+    {
+      vn->impl->setTonemap(m);
+    }
+  });
+
   con(element, &Gfx::Video::Model::pathChanged, this, [this](const QString& new_path) {
+    auto& p = this->process();
+    auto scale = p.scaleMode();
+    auto playback = p.playbackMode();
+    auto fmt = p.outputFormat();
+    auto tonemap = p.tonemap();
+
     std::optional<double> tempo;
     if(!this->process().ignoreTempo())
       tempo = this->process().nativeTempo();
 
     in_exec([node = std::weak_ptr{node}, dec = this->process().makeDecoder(),
-             tempo]() mutable {
+             tempo, scale, playback, fmt, tonemap]() mutable {
       if(auto vn = static_cast<video_node*>(node.lock().get()); vn && vn->impl)
       {
         vn->reload(std::move(dec), tempo);
+        if(vn->impl) {
+          vn->impl->setScaleMode(scale);
+          vn->impl->setPlaybackMode(playback);
+          vn->impl->setOutputFormat(fmt);
+          vn->impl->setTonemap(tonemap);
+        }
       }
     });
   });

@@ -6,6 +6,7 @@
 #include <Gfx/Settings/Model.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
+#include <score/application/ApplicationContext.hpp>
 
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/protocol.hpp>
@@ -18,7 +19,9 @@
 namespace Gfx
 {
 
-static score::gfx::ScreenNode* createScreenNode()
+static score::gfx::ScreenNode* createScreenNode(
+    SwapchainFlag swapFlag = SwapchainFlag::NoFlag,
+    SwapchainFormat swapFormat = SwapchainFormat::SDR)
 {
   const auto& settings = score::AppContext().applicationSettings;
   const auto& gfx_settings = score::AppContext().settings<Gfx::Settings::Model>();
@@ -35,6 +38,8 @@ static score::gfx::ScreenNode* createScreenNode()
 
   auto node = new score::gfx::ScreenNode{
       make_configuration(), false, (settings.autoplay || !settings.gui)};
+  node->setSwapchainFlag(swapFlag);
+  node->setSwapchainFormat(swapFormat);
 
   QObject::connect(
       &gfx_settings, &Gfx::Settings::Model::RateChanged, node,
@@ -117,9 +122,12 @@ public:
     m_protocol.reset();
   }
 
-  window_device(std::unique_ptr<gfx_protocol_base> proto, std::string name)
+  window_device(
+      std::unique_ptr<gfx_protocol_base> proto, std::string name,
+      SwapchainFlag swapFlag = SwapchainFlag::NoFlag,
+      SwapchainFormat swapFormat = SwapchainFormat::SDR)
       : ossia::net::device_base{std::move(proto)}
-      , m_screen{createScreenNode()}
+      , m_screen{createScreenNode(swapFlag, swapFormat)}
       , m_root{*this, *static_cast<gfx_protocol_base*>(m_protocol.get()), m_screen, name}
   {
     this->m_capabilities.change_tree = true;

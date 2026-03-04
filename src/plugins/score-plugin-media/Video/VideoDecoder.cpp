@@ -25,6 +25,12 @@ extern "C" {
 #include <libavformat/avformat.h>
 #include <libavutil/pixdesc.h>
 #include <libswscale/swscale.h>
+#include <libavcodec/packet.h>
+#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(61, 3, 100)
+#if __has_include(<libavutil/mastering_display_metadata.h>)
+#include <libavutil/mastering_display_metadata.h>
+#endif
+#endif
 }
 
 #if __APPLE__ && __has_include(<libavcodec/videotoolbox.h>)
@@ -635,11 +641,10 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
   // qDebug() << "Stream timebase: " << stream->time_base.num << stream->time_base.den;
   // qDebug() << "AV timebase: " << av_tb.num << av_tb.den;
   const auto last_av_dts = to_av_time_base(codec_tb, m_last_dequeued_dts);
-  // qDebug() << "????" << m_last_dequeued_dts << last_av_dts;
   const int64_t min_dts_delta = (0.2 * av_tb.den) / av_tb.num;
   // qDebug() << AV_TIME_BASE << min_dts_delta << dts << last_av_dts << dts - last_av_dts
   //          << (std::abs(dts - last_av_dts) <= min_dts_delta);
-  if(std::abs(dts - last_av_dts) <= min_dts_delta)
+  if(last_av_dts > INT64_MIN && std::abs(dts - last_av_dts) <= min_dts_delta)
   {
     // Let's always ensure that we seek to zero when asked no matter what
     if(dts != 0)
@@ -784,21 +789,21 @@ bool VideoDecoder::open_stream() noexcept
       }
       else
       {
-        color_range = m_avstream->codecpar->color_range;
-        color_primaries = m_avstream->codecpar->color_primaries;
-        color_trc = m_avstream->codecpar->color_trc;
-        color_space = m_avstream->codecpar->color_space;
-        chroma_location = m_avstream->codecpar->chroma_location;
+        color_range = codecPar->color_range;
+        color_primaries = codecPar->color_primaries;
+        color_trc = codecPar->color_trc;
+        color_space = codecPar->color_space;
+        chroma_location = codecPar->chroma_location;
 
         // FIXME the user should be able to choose as it could be possible to have small videos
         // without color space, e.g. screen recordings
+        const bool has_bt2020_evidence =
+            color_primaries == AVCOL_PRI_BT2020
+            || color_trc == AVCOL_TRC_SMPTE2084      // PQ (HDR10)
+            || color_trc == AVCOL_TRC_ARIB_STD_B67;   // HLG
+
         if(color_space == AVCOL_SPC_UNSPECIFIED)
         {
-          const bool has_bt2020_evidence =
-              color_primaries == AVCOL_PRI_BT2020
-              || color_trc == AVCOL_TRC_SMPTE2084      // PQ (HDR10)
-              || color_trc == AVCOL_TRC_ARIB_STD_B67;   // HLG
-
           if(has_bt2020_evidence)
             color_space = AVCOL_SPC_BT2020_NCL;
           else if(codecPar->height < 625)
@@ -810,6 +815,23 @@ bool VideoDecoder::open_stream() noexcept
         }
         if(color_range == AVCOL_RANGE_UNSPECIFIED)
           color_range = AVCOL_RANGE_MPEG;
+
+        // HDR handling
+#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(61, 3, 100)
+        {
+          const auto data = codecPar->coded_side_data;
+          const auto n = codecPar->nb_coded_side_data;
+          // Light data
+          if(auto sd = av_packet_side_data_get(data, n, AV_PKT_DATA_CONTENT_LIGHT_LEVEL))
+            if(sd->data)
+              this->content_light = *reinterpret_cast<const AVContentLightMetadata*>(sd->data);
+
+          // Mastering side data
+          if (auto sd = av_packet_side_data_get(data, n, AV_PKT_DATA_MASTERING_DISPLAY_METADATA))
+            if(sd->data)
+              this->mastering_display = *(AVMasteringDisplayMetadata *)sd->data;
+        }
+#endif
 
         codec_id = codecPar->codec_id;
 
