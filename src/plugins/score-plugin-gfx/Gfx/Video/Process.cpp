@@ -211,13 +211,13 @@ QSet<QString> DropHandler::mimeTypes() const noexcept
 QSet<QString> LibraryHandler::acceptedFiles() const noexcept
 {
   return {"mkv", "mov", "mp4", "h264", "avi", "hap",  "mpg", "mpeg",
-          "imf", "mxf", "mts", "m2ts", "mj2", "webm", "y4m", "nut"};
+          "imf", "mxf", "mts", "m2ts", "mj2", "webm", "y4m", "nut", "ts"};
 }
 
 QSet<QString> DropHandler::fileExtensions() const noexcept
 {
   return {"mkv", "mov", "mp4", "h264", "avi", "hap",  "mpg", "mpeg",
-          "imf", "mxf", "mts", "m2ts", "mj2", "webm", "y4m", "nut"};
+          "imf", "mxf", "mts", "m2ts", "mj2", "webm", "y4m", "nut", "ts"};
 }
 
 void DropHandler::dropPath(
@@ -266,7 +266,8 @@ void DataStreamReader::read(const Gfx::Video::Model& proc)
   readPorts(*this, proc.m_inlets, proc.m_outlets);
 
   m_stream << proc.m_path << proc.m_scaleMode << proc.m_nativeTempo
-           << proc.m_ignoreTempo << proc.m_playbackMode;
+           << proc.m_ignoreTempo << proc.m_playbackMode
+           << proc.m_outputFormat << proc.m_tonemap;
   insertDelimiter();
 }
 
@@ -279,7 +280,7 @@ void DataStreamWriter::write(Gfx::Video::Model& proc)
 
   QString path;
   m_stream >> path >> proc.m_scaleMode >> proc.m_nativeTempo >> proc.m_ignoreTempo
-      >> proc.m_playbackMode;
+      >> proc.m_playbackMode >> proc.m_outputFormat >> proc.m_tonemap;
   proc.setPath(path);
   checkDelimiter();
 }
@@ -292,7 +293,8 @@ void JSONReader::read(const Gfx::Video::Model& proc)
   obj["Scale"] = (int)proc.m_scaleMode;
   obj["Playback"] = (int)proc.m_playbackMode;
   obj["Tempo"] = proc.m_nativeTempo;
-  obj["IgnoreTempo"] = proc.m_ignoreTempo;
+  obj["OutputFormat"] = (int)proc.m_outputFormat;
+  obj["Tonemap"] = (int)proc.m_tonemap;
 }
 
 template <>
@@ -308,6 +310,16 @@ void JSONWriter::write(Gfx::Video::Model& proc)
 
   if(auto pb = obj.tryGet("Playback"))
     proc.m_playbackMode = static_cast<score::gfx::PlaybackMode>(pb->toInt());
+
+  if(auto pb = obj.tryGet("OutputFormat"))
+    proc.m_outputFormat = static_cast<::Video::OutputFormat>(pb->toInt());
+  else
+    proc.m_outputFormat = ::Video::OutputFormat::SDR;
+
+  if(auto pb = obj.tryGet("Tonemap"))
+    proc.m_tonemap = static_cast<::Video::Tonemap>(pb->toInt());
+  else
+    proc.m_tonemap = ::Video::Tonemap::Clamp;
 
   proc.m_nativeTempo = obj["Tempo"].toDouble();
   proc.m_ignoreTempo = obj["IgnoreTempo"].toBool();
