@@ -32,7 +32,7 @@ namespace convert
 {
 static constexpr bool not_display_character(unsigned char c) noexcept
 {
-  return c < ' ' && (c == '\r' && c == '\n');
+  return c < ' ' && (c != '\r' && c != '\n');
 }
 
 const std::array<const QString, 11> ValuePrettyTypes{
