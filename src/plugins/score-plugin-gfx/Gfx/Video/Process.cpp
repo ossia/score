@@ -321,6 +321,7 @@ void JSONReader::read(const Gfx::Video::Model& proc)
   obj["Scale"] = (int)proc.m_scaleMode;
   obj["Playback"] = (int)proc.m_playbackMode;
   obj["Tempo"] = proc.m_nativeTempo;
+  obj["IgnoreTempo"] = proc.m_ignoreTempo;
   obj["OutputFormat"] = (int)proc.m_outputFormat;
   obj["Tonemap"] = (int)proc.m_tonemap;
 }
