@@ -145,7 +145,11 @@ std::string AvndCodeWriter::initializer() const noexcept
         name = name.mid(0, it);
       name.replace(" ", "_");
       name.replace(".", "_");
-      init_list += fmt::format(".{} = {{ {} }}, ", name.toStdString(), str.res);
+
+      std::string type_cast = accessInlet(c->id());
+      init_list += fmt::format(
+          "\n    .{} = {{ (decltype ({}.value)) {} }}, ", name.toStdString(), type_cast,
+          str.res);
     }
   }
   return fmt::format(".inputs = {{ {} }}", init_list);
