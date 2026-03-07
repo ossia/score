@@ -60,6 +60,9 @@ private:
   bool openFile();
   void closeFile();
   bool seekAndDecode(int64_t flicks);
+  bool isSequentialRead(int64_t flicks) const;
+  bool readNextPacketRaw();
+  bool readNextPacketAVCodec();
 
   void createGpuDecoder();
   void setupGpuDecoder(RenderList& r);

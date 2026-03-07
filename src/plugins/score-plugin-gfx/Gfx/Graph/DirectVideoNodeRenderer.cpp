@@ -233,70 +233,68 @@ void DirectVideoNodeRenderer::closeFile()
   m_avstream = nullptr;
 }
 
-bool DirectVideoNodeRenderer::seekAndDecode(int64_t flicks)
+// Check if we can just read the next packet sequentially instead of seeking.
+// For forward playback at normal speed, this avoids the expensive
+// flush/seek/flush cycle on every frame.
+bool DirectVideoNodeRenderer::isSequentialRead(int64_t flicks) const
 {
-  if(!m_formatContext || !m_avstream)
-    return false;
+  if(m_lastDecodedDts == INT64_MIN)
+    return false; // No previous frame — must seek
 
-  // Clamp negative flicks to 0 (beginning of file)
-  if(flicks < 0)
-    flicks = 0;
+  const double fps = m_fps > 0. ? m_fps : 24.;
+  const int64_t frameDurationFlicks
+      = static_cast<int64_t>(ossia::flicks_per_second<double> / fps);
 
-  // For HAP: seek and read raw packet
-  if(!m_useAVCodec)
+  const int64_t lastFlicks
+      = static_cast<int64_t>(m_lastDecodedDts * m_flicks_per_dts);
+  const int64_t delta = flicks - lastFlicks;
+
+  // Sequential if we're moving forward by 0–2 frames
+  return delta >= 0 && delta <= frameDurationFlicks * 2;
+}
+
+bool DirectVideoNodeRenderer::readNextPacketRaw()
+{
+  auto packet = av_packet_alloc();
+  bool found = false;
+  int attempts = 0;
+
+  while(av_read_frame(m_formatContext, packet) >= 0 && attempts < 10)
   {
-    if(!ossia::seek_to_flick(m_formatContext, nullptr, m_avstream, flicks,
-                             AVSEEK_FLAG_BACKWARD))
-      return false;
-
-    auto packet = av_packet_alloc();
-    bool found = false;
-    int attempts = 0;
-
-    while(av_read_frame(m_formatContext, packet) >= 0 && attempts < 10)
+    attempts++;
+    if(packet->stream_index == m_avstream->index)
     {
-      attempts++;
-      if(packet->stream_index == m_avstream->index)
-      {
-        auto cp = m_avstream->codecpar;
-        if(!m_decodedFrame)
-          m_decodedFrame = av_frame_alloc();
+      auto cp = m_avstream->codecpar;
+      if(!m_decodedFrame)
+        m_decodedFrame = av_frame_alloc();
 
-        // Clear previous buffer
-        if(m_decodedFrame->buf[0])
-          av_buffer_unref(&m_decodedFrame->buf[0]);
+      if(m_decodedFrame->buf[0])
+        av_buffer_unref(&m_decodedFrame->buf[0]);
 
-        m_decodedFrame->buf[0] = av_buffer_ref(packet->buf);
-        m_decodedFrame->width = cp->width;
-        m_decodedFrame->height = cp->height;
-        m_decodedFrame->format = cp->codec_tag;
-        m_decodedFrame->data[0] = packet->data;
-        m_decodedFrame->linesize[0] = packet->size;
-        m_decodedFrame->pts = packet->pts;
-        m_decodedFrame->pkt_dts = packet->dts;
+      m_decodedFrame->buf[0] = av_buffer_ref(packet->buf);
+      m_decodedFrame->width = cp->width;
+      m_decodedFrame->height = cp->height;
+      m_decodedFrame->format = cp->codec_tag;
+      m_decodedFrame->data[0] = packet->data;
+      m_decodedFrame->linesize[0] = packet->size;
+      m_decodedFrame->pts = packet->pts;
+      m_decodedFrame->pkt_dts = packet->dts;
 
-        m_lastDecodedDts = packet->dts;
-        found = true;
-        av_packet_unref(packet);
-        break;
-      }
+      m_lastDecodedDts = packet->dts;
+      found = true;
       av_packet_unref(packet);
+      break;
     }
-
-    av_packet_free(&packet);
-    return found;
+    av_packet_unref(packet);
   }
 
-  // For codecs using avcodec
-  if(!m_codecContext || !m_decodedFrame)
-    return false;
+  av_packet_free(&packet);
+  return found;
+}
 
-  // Unref previous decoded frame data before seeking
+bool DirectVideoNodeRenderer::readNextPacketAVCodec()
+{
   av_frame_unref(m_decodedFrame);
-
-  if(!ossia::seek_to_flick(m_formatContext, m_codecContext, m_avstream, flicks,
-                           AVSEEK_FLAG_BACKWARD))
-    return false;
 
   auto packet = av_packet_alloc();
   bool found = false;
@@ -319,10 +317,8 @@ bool DirectVideoNodeRenderer::seekAndDecode(int64_t flicks)
     ret = avcodec_receive_frame(m_codecContext, m_decodedFrame);
     if(ret == 0)
     {
-      // Got a frame
       m_lastDecodedDts = m_decodedFrame->pkt_dts;
 
-      // Update format if needed
       if(m_decodedFrame->width > 0 && m_decodedFrame->height > 0)
       {
         m_frameFormat.pixel_format = static_cast<AVPixelFormat>(m_decodedFrame->format);
@@ -337,11 +333,48 @@ bool DirectVideoNodeRenderer::seekAndDecode(int64_t flicks)
     {
       break;
     }
-    // EAGAIN: need more packets, continue reading
   }
 
   av_packet_free(&packet);
   return found;
+}
+
+bool DirectVideoNodeRenderer::seekAndDecode(int64_t flicks)
+{
+  if(!m_formatContext || !m_avstream)
+    return false;
+
+  if(flicks < 0)
+    flicks = 0;
+
+  // For sequential forward playback, skip the expensive seek
+  const bool sequential = isSequentialRead(flicks);
+
+  if(!m_useAVCodec)
+  {
+    // Raw GPU-compressed path (HAP, DXV)
+    if(!sequential)
+    {
+      if(!ossia::seek_to_flick(m_formatContext, nullptr, m_avstream, flicks,
+                               AVSEEK_FLAG_BACKWARD))
+        return false;
+    }
+    return readNextPacketRaw();
+  }
+
+  // AVCodec path (ProRes, MJPEG, DNxHD, etc.)
+  if(!m_codecContext || !m_decodedFrame)
+    return false;
+
+  if(!sequential)
+  {
+    av_frame_unref(m_decodedFrame);
+    if(!ossia::seek_to_flick(m_formatContext, m_codecContext, m_avstream, flicks,
+                             AVSEEK_FLAG_BACKWARD))
+      return false;
+  }
+
+  return readNextPacketAVCodec();
 }
 
 // createGpuDecoder is identical to VideoNodeRenderer::createGpuDecoder
