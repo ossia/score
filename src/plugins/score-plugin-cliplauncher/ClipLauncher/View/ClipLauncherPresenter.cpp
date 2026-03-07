@@ -3,6 +3,7 @@
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/ComponentUtils.hpp>
+#include <score/selection/SelectionStack.hpp>
 #include <score/tools/Bind.hpp>
 
 #include <QMenu>

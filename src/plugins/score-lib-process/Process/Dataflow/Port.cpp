@@ -374,6 +374,15 @@ Outlet::~Outlet() { }
 
 void Outlet::setupExecution(ossia::outlet&, QObject* exec_context) const noexcept { }
 
+bool Outlet::propagate() const noexcept { return m_propagate; }
+
+void Outlet::setPropagate(bool p) {
+  if(m_propagate != p) {
+    m_propagate = p;
+    propagateChanged(m_propagate);
+  }
+}
+
 Outlet::Outlet(const QString& name, Id<Process::Port> c, QObject* parent)
     : Port{std::move(c), QStringLiteral("Outlet"), parent}
 {
@@ -506,20 +515,6 @@ void AudioOutlet::loadData(const QByteArray& arr, PortLoadDataFlags flags) noexc
   DataStreamOutput op{p};
   op >> pdata >> m_gain >> m_pan >> m_propagate;
   Port::loadData(pdata, flags);
-  propagateChanged(m_propagate);
-}
-
-bool AudioOutlet::propagate() const
-{
-  return m_propagate;
-}
-
-void AudioOutlet::setPropagate(bool propagate)
-{
-  if(m_propagate == propagate)
-    return;
-
-  m_propagate = propagate;
   propagateChanged(m_propagate);
 }
 

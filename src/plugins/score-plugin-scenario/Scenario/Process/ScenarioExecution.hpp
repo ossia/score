@@ -91,6 +91,11 @@ public:
   void playInterval(const Scenario::IntervalModel& itv);
   void stopInterval(const Scenario::IntervalModel& itv);
 
+  std::shared_ptr<ossia::graph_node> gfxForwardNode() const override
+  {
+    return m_gfxForwardNode;
+  }
+
   void stop() override;
 
   template <typename Component_T, typename Element>
@@ -139,6 +144,7 @@ protected:
       m_executingIntervals;
 
   const Context& m_ctx;
+  std::shared_ptr<ossia::graph_node> m_gfxForwardNode;
 
   Scenario::CSPCoherencyCheckerInterface* m_checker{};
   QVector<Id<Scenario::TimeSyncModel>> m_pastTn{};

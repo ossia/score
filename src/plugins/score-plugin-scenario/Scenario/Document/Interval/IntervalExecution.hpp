@@ -120,12 +120,18 @@ public:
 
   const Context& context() const { return system(); }
 
+  const std::shared_ptr<ossia::graph_node>& gfxForwardNode() const
+  {
+    return m_gfxForwardNode;
+  }
+
 protected:
   void on_processAdded(Process::ProcessModel& score_proc);
   void
   recomputePropagate(const Process::ProcessModel& process, const Process::Port& port);
 
   std::shared_ptr<ossia::time_interval> m_ossia_interval;
+  std::shared_ptr<ossia::graph_node> m_gfxForwardNode;
   score::hash_map<Id<Process::ProcessModel>, std::shared_ptr<ProcessComponent>>
       m_processes;
 };

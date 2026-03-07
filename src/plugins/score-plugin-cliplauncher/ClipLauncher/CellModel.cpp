@@ -6,6 +6,8 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
+#include <wobjectimpl.h>
+
 W_OBJECT_IMPL(ClipLauncher::CellModel)
 
 namespace ClipLauncher

@@ -52,6 +52,36 @@ enum class CellState : uint8_t
   Stopping
 };
 
+// Values match the Video Mixer ISF shader's mode integers
+enum class VideoBlendMode : uint8_t
+{
+  Add = 1,
+  Average = 2,
+  ColorBurn = 3,
+  ColorDodge = 4,
+  Darken = 5,
+  Difference = 6,
+  Exclusion = 7,
+  Glow = 8,
+  HardLight = 9,
+  HardMix = 10,
+  Lighten = 11,
+  LinearBurn = 12,
+  LinearDodge = 13,
+  LinearLight = 14,
+  Multiply = 15,
+  Negation = 16,
+  Normal = 17,
+  Overlay = 18,
+  Phoenix = 19,
+  PinLight = 20,
+  Reflect = 21,
+  Screen = 22,
+  SoftLight = 23,
+  Subtract = 24,
+  VividLight = 25
+};
+
 } // namespace ClipLauncher
 
 // Serialization
@@ -103,8 +133,21 @@ inline QDataStream& operator>>(QDataStream& s, ClipLauncher::TemporalMode& v)
   return s;
 }
 
+inline QDataStream& operator<<(QDataStream& s, ClipLauncher::VideoBlendMode v)
+{
+  return s << static_cast<uint8_t>(v);
+}
+inline QDataStream& operator>>(QDataStream& s, ClipLauncher::VideoBlendMode& v)
+{
+  uint8_t x;
+  s >> x;
+  v = static_cast<ClipLauncher::VideoBlendMode>(x);
+  return s;
+}
+
 W_REGISTER_ARGTYPE(ClipLauncher::ExclusivityMode)
 W_REGISTER_ARGTYPE(ClipLauncher::LaunchMode)
 W_REGISTER_ARGTYPE(ClipLauncher::TriggerStyle)
 W_REGISTER_ARGTYPE(ClipLauncher::TemporalMode)
 W_REGISTER_ARGTYPE(ClipLauncher::CellState)
+W_REGISTER_ARGTYPE(ClipLauncher::VideoBlendMode)

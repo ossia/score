@@ -1,8 +1,14 @@
 #include "ClipLauncherComponent.hpp"
 
 #include <Process/ExecutionContext.hpp>
+#include <Process/ExecutionSetup.hpp>
 
 #include <score/tools/Bind.hpp>
+
+#include <Process/Dataflow/Port.hpp>
+
+#include <Gfx/GfxApplicationPlugin.hpp>
+#include <Gfx/GfxForwardNode.hpp>
 
 #include <Scenario/Document/Event/EventExecution.hpp>
 #include <Scenario/Document/Interval/ExecutionState.hpp>
@@ -21,6 +27,8 @@
 #include <ossia/editor/scenario/scenario.hpp>
 #include <ossia/editor/scenario/time_event.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
+#include <ossia/dataflow/node_process.hpp>
+#include <ossia/dataflow/nodes/forward_node.hpp>
 #include <ossia/editor/scenario/time_sync.hpp>
 
 namespace ClipLauncher::Execution
@@ -35,10 +43,45 @@ ClipLauncherComponent::ClipLauncherComponent(
   m_scenario = std::make_shared<ossia::scenario>();
   m_ossia_process = m_scenario;
 
+  // Create a gfx_forward_node for texture propagation
+  if(auto* gfxPlug = ctx.doc.findPlugin<Gfx::DocumentPlugin>())
+  {
+    m_gfxForwardNode = std::make_shared<Gfx::gfx_forward_node>(gfxPlug->exec);
+    m_gfxForwardNode->prepare(*ctx.execState);
+    std::weak_ptr<ossia::graph_interface> g_weak = ctx.execGraph;
+    in_exec([g_weak, node = m_gfxForwardNode] {
+      if(auto graph = g_weak.lock())
+        graph->add_node(node);
+    });
+  }
+
   // Setup execution structures for each existing cell
   for(auto& cell : element.cells)
   {
     setupCell(cell);
+  }
+
+  // Connect lane property change signals for volume
+  for(auto& lane : element.lanes)
+  {
+    int idx = laneIndex(lane);
+    con(lane, &LaneModel::volumeChanged, this, [this, idx](double v) {
+      // Update gain on all active cells in this lane
+      for(auto& [cellId, data] : m_cells)
+      {
+        auto cellIt = process().cells.find(cellId);
+        if(cellIt == process().cells.end())
+          continue;
+        if(cellIt->lane() == idx && data.interval)
+        {
+          auto itv = data.interval;
+          in_exec([itv, v] {
+            auto& ao = static_cast<ossia::nodes::forward_node*>(itv->node.get())->audio_out;
+            ao.gain = v;
+          });
+        }
+      }
+    });
   }
 }
 
@@ -67,6 +110,17 @@ void ClipLauncherComponent::cleanup()
 
   m_cells.clear();
   m_activeCellPerLane.clear();
+
+  if(m_gfxForwardNode)
+  {
+    std::weak_ptr<ossia::graph_interface> g_weak = system().execGraph;
+    in_exec([g_weak, node = m_gfxForwardNode] {
+      if(auto graph = g_weak.lock())
+        graph->remove_node(node);
+    });
+    m_gfxForwardNode.reset();
+  }
+
   m_ossia_process.reset();
   m_scenario.reset();
 }
@@ -95,10 +149,9 @@ void ClipLauncherComponent::setupCell(CellModel& cell)
   auto minDur = ctx.time(itv.duration.minDuration());
   auto maxDur = ctx.time(itv.duration.maxDuration());
 
-  // create() both constructs AND links the interval into the events' lists
-  // (startEvent.next_time_intervals, endEvent.previous_time_intervals)
   data.interval = ossia::time_interval::create(
-      {}, *data.startEvent, *data.endEvent, dur, minDur, maxDur);
+      ossia::time_interval::exec_callback{},
+      *data.startEvent, *data.endEvent, dur, minDur, maxDur);
 
   // Prepare the interval's node for execution (required before onSetup)
   data.interval->node->prepare(*ctx.execState);
@@ -107,6 +160,19 @@ void ClipLauncherComponent::setupCell(CellModel& cell)
   m_scenario->add_time_sync(data.startSync);
   m_scenario->add_time_sync(data.endSync);
   m_scenario->add_time_interval(data.interval);
+
+  // Ensure all texture outlets in this cell have propagate=true
+  // so they automatically route through gfx_forward_node chain
+  for(auto& proc : itv.processes)
+  {
+    for(auto* outlet : proc.outlets())
+    {
+      if(outlet->type() == Process::PortType::Texture)
+      {
+        outlet->setPropagate(true);
+      }
+    }
+  }
 
   // Create execution components for the score model elements
   data.startSyncComponent = std::make_shared<::Execution::TimeSyncComponent>(
@@ -149,6 +215,26 @@ void ClipLauncherComponent::setupCell(CellModel& cell)
   {
     auto ossia_itv = data.interval;
     auto proc = m_scenario;
+
+    // Apply per-lane volume via the interval node's gain
+    int laneIdx = cell.lane();
+    double vol = 1.0;
+    {
+      int li = 0;
+      for(auto& l : process().lanes)
+      {
+        if(li == laneIdx)
+        {
+          vol = l.volume();
+          break;
+        }
+        li++;
+      }
+    }
+    auto* fwd = static_cast<ossia::nodes::forward_node*>(ossia_itv->node.get());
+    fwd->audio_out.has_gain = true;
+    fwd->audio_out.gain = vol;
+
     in_exec([g = ctx.execGraph, proc, ossia_itv] {
       if(!ossia_itv->node->root_outputs().empty()
          && !proc->node->root_inputs().empty())
@@ -160,6 +246,24 @@ void ClipLauncherComponent::setupCell(CellModel& cell)
         g->connect(cable);
       }
     });
+  }
+
+  // Connect interval's gfx_forward_node to clip launcher's gfx_forward_node
+  {
+    auto itv_gfx_fw = data.intervalComponent->gfxForwardNode();
+    auto cl_gfx_fw = m_gfxForwardNode;
+    if(itv_gfx_fw && cl_gfx_fw
+       && !itv_gfx_fw->root_outputs().empty()
+       && !cl_gfx_fw->root_inputs().empty())
+    {
+      in_exec([g = ctx.execGraph, itv_gfx_fw, cl_gfx_fw] {
+        auto cable = g->allocate_edge(
+            ossia::immediate_glutton_connection{},
+            itv_gfx_fw->root_outputs()[0], cl_gfx_fw->root_inputs()[0],
+            itv_gfx_fw, cl_gfx_fw);
+        g->connect(cable);
+      });
+    }
   }
 
   // Connect interval execution events to cell state
@@ -237,7 +341,9 @@ void ClipLauncherComponent::stopCell(
   // Remove from active tracking
   auto& element = process();
   auto& cell = element.cells.at(cellId);
-  auto laneIt = m_activeCellPerLane.find(cell.lane());
+  int lane = cell.lane();
+
+  auto laneIt = m_activeCellPerLane.find(lane);
   if(laneIt != m_activeCellPerLane.end() && laneIt->second == cellId)
     m_activeCellPerLane.erase(laneIt);
 
@@ -285,6 +391,18 @@ void ClipLauncherComponent::stopAllInLane(int lane, double quantizationRate)
   {
     stopCell(it->second, quantizationRate);
   }
+}
+
+int ClipLauncherComponent::laneIndex(const LaneModel& lane) const
+{
+  int idx = 0;
+  for(auto& l : process().lanes)
+  {
+    if(&l == &lane)
+      return idx;
+    idx++;
+  }
+  return -1;
 }
 
 } // namespace ClipLauncher::Execution

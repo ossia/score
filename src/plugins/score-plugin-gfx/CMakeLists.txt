@@ -220,6 +220,7 @@ set(HDRS
     Gfx/Graph/TextNode.hpp
     Gfx/Graph/Uniforms.hpp
     Gfx/Graph/Utils.hpp
+    Gfx/Graph/TextureForwardNode.hpp
     Gfx/Graph/VideoNode.hpp
     Gfx/Graph/VideoNodeRenderer.hpp
     Gfx/Graph/HWAccelSetup.hpp
@@ -297,6 +298,7 @@ set(HDRS
     Gfx/GfxContext.hpp
     Gfx/GfxExecNode.hpp
     Gfx/GfxExecContext.hpp
+    Gfx/GfxForwardNode.hpp
     Gfx/GfxParameter.hpp
     Gfx/GfxDevice.hpp
     Gfx/GfxInputDevice.hpp
@@ -392,6 +394,7 @@ set(SRCS
     Gfx/Graph/SimpleRenderedISFNode.cpp
     Gfx/Graph/TextNode.cpp
     Gfx/Graph/Utils.cpp
+    Gfx/Graph/TextureForwardNode.cpp
     Gfx/Graph/VideoNode.cpp
     Gfx/Graph/VideoNodeRenderer.cpp
     Gfx/Graph/HWAccelSetup.cpp
@@ -400,6 +403,7 @@ set(SRCS
 
     Gfx/GfxApplicationPlugin.cpp
     Gfx/GfxExecNode.cpp
+    Gfx/GfxForwardNode.cpp
     Gfx/GfxExecutionAction.cpp
     Gfx/GfxContext.cpp
     Gfx/GfxDevice.cpp

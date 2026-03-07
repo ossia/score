@@ -30,6 +30,7 @@ set(HDRS
     ClipLauncher/Commands/RemoveTransitionRule.hpp
 
     ClipLauncher/Execution/ClipLauncherComponent.hpp
+    ClipLauncher/Execution/VideoMixerShader.hpp
 
     ClipLauncher/Inspector/CellInspectorWidget.hpp
     ClipLauncher/Inspector/CellInspectorFactory.hpp
@@ -67,6 +68,7 @@ set(SRCS
     ClipLauncher/Commands/RemoveTransitionRule.cpp
 
     ClipLauncher/Execution/ClipLauncherComponent.cpp
+    ClipLauncher/Execution/VideoMixerShader.cpp
 
     ClipLauncher/Inspector/CellInspectorWidget.cpp
     ClipLauncher/Inspector/CellInspectorFactory.cpp
@@ -95,6 +97,7 @@ target_link_libraries(${PROJECT_NAME}
     score_plugin_scenario
     score_plugin_engine
     score_lib_inspector
+    score_plugin_gfx
 )
 
 # Target-specific options
