@@ -472,6 +472,8 @@ void Model::setupIsf(const isf::descriptor& desc)
       self.m_inlets.push_back(port);
       return port;
     }
+
+    Process::Inlet* operator()(const geometry_input& v) { return nullptr; }
   };
 
   for(const isf::input& input : desc.inputs)

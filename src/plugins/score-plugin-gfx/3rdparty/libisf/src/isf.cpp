@@ -467,6 +467,66 @@ static void parse_input(texture_input& inp, const sajson::value& v)
   // Texture inputs don't need additional parsing for basic CSF
 }
 
+static void parse_input(geometry_input& inp, const sajson::value& v)
+{
+  std::size_t N = v.get_length();
+
+  for(std::size_t i = 0; i < N; i++)
+  {
+    auto k = v.get_object_key(i).as_string();
+    if(k == "ATTRIBUTES")
+    {
+      auto val = v.get_object_value(i);
+      if(val.get_type() == sajson::TYPE_ARRAY)
+      {
+        std::size_t attr_count = val.get_length();
+        inp.attributes.reserve(attr_count);
+
+        for(std::size_t j = 0; j < attr_count; j++)
+        {
+          auto attr_obj = val.get_array_element(j);
+          if(attr_obj.get_type() != sajson::TYPE_OBJECT)
+            continue;
+
+          geometry_input::attribute_request ar;
+
+          for(std::size_t f = 0; f < attr_obj.get_length(); f++)
+          {
+            auto fkey = attr_obj.get_object_key(f).as_string();
+            auto fval = attr_obj.get_object_value(f);
+
+            if(fkey == "NAME" && fval.get_type() == sajson::TYPE_STRING)
+              ar.name = fval.as_string();
+            else if(fkey == "SEMANTIC" && fval.get_type() == sajson::TYPE_STRING)
+              ar.semantic = fval.as_string();
+            else if(fkey == "TYPE" && fval.get_type() == sajson::TYPE_STRING)
+              ar.type = fval.as_string();
+            else if(fkey == "ACCESS" && fval.get_type() == sajson::TYPE_STRING)
+              ar.access = fval.as_string();
+            else if(fkey == "REQUIRED")
+            {
+              if(fval.get_type() == sajson::TYPE_FALSE)
+                ar.required = false;
+              else if(fval.get_type() == sajson::TYPE_TRUE)
+                ar.required = true;
+            }
+          }
+
+          // Default access to read_write if not specified
+          if(ar.access.empty())
+            ar.access = "read_write";
+
+          // Default semantic to the attribute name if not specified
+          if(ar.semantic.empty())
+            ar.semantic = ar.name;
+
+          inp.attributes.push_back(std::move(ar));
+        }
+      }
+    }
+  }
+}
+
 static void parse_input(csf_image_input& inp, const sajson::value& v)
 {
   std::size_t N = v.get_length();
@@ -861,6 +921,7 @@ static const ossia::string_map<root_fun>& root_parse{[] {
     // CSF-specific types - note: 'image' in CSF context is csf_image_input, not image_input
     i.insert({"storage", [](const auto& s) { return parse<storage_input>(s); }});
     i.insert({"texture", [](const auto& s) { return parse<texture_input>(s); }});
+    i.insert({"geometry", [](const auto& s) { return parse<geometry_input>(s); }});
 
     return i;
   }()};
@@ -1410,6 +1471,7 @@ struct create_val_visitor_450
   return_type operator()(const storage_input&) { return {"buffer", true}; }
   return_type operator()(const texture_input&) { return {"uniform sampler2D", true}; }
   return_type operator()(const csf_image_input&) { return {"uniform image2D", true}; }
+  return_type operator()(const geometry_input&) { return {"buffer", true}; }
 };
 
 std::pair<int, descriptor> parser::parse_isf_header(std::string_view source)
@@ -2641,6 +2703,34 @@ std::string parser::write_isf() const
           oss << "      \"ACCESS\": \"" << img.access << "\",\n";
           oss << "      \"FORMAT\": \"" << img.format << "\"\n";
         }
+
+        void operator()(const geometry_input& geo)
+        {
+          oss << "      \"TYPE\": \"geometry\"";
+          if(!geo.attributes.empty())
+          {
+            oss << ",\n      \"ATTRIBUTES\": [\n";
+            for(size_t i = 0; i < geo.attributes.size(); ++i)
+            {
+              const auto& attr = geo.attributes[i];
+              oss << "        {\"NAME\": \"" << escape_json(attr.name) << "\"";
+              if(!attr.semantic.empty())
+                oss << ", \"SEMANTIC\": \"" << escape_json(attr.semantic) << "\"";
+              if(!attr.type.empty())
+                oss << ", \"TYPE\": \"" << escape_json(attr.type) << "\"";
+              if(!attr.access.empty())
+                oss << ", \"ACCESS\": \"" << escape_json(attr.access) << "\"";
+              if(!attr.required)
+                oss << ", \"REQUIRED\": false";
+              oss << "}";
+              if(i < geo.attributes.size() - 1)
+                oss << ",";
+              oss << "\n";
+            }
+            oss << "      ]";
+          }
+          oss << "\n";
+        }
       };
 
       ossia::visit(input_serializer{oss}, input.data);
@@ -3004,7 +3094,8 @@ void parser::parse_csf()
       break;
     }
 
-    if(!storage && !image && !ossia::get_if<texture_input>(&inp.data))
+    if(!storage && !image && !ossia::get_if<texture_input>(&inp.data)
+       && !ossia::get_if<geometry_input>(&inp.data))
     {
       has_uniforms = true;
       break;
@@ -3132,6 +3223,45 @@ void parser::parse_csf()
       m_fragment += "layout(binding = " + std::to_string(binding) + ") ";
       m_fragment += "uniform sampler2D " + inp.name + ";\n";
       binding++;
+    }
+    else if(auto* geo_ptr = ossia::get_if<geometry_input>(&inp.data))
+    {
+      const auto& geo = *geo_ptr;
+
+      m_fragment += "// Geometry input \"" + inp.name + "\" — SoA: one SSBO per attribute\n";
+
+      for(const auto& attr : geo.attributes)
+      {
+        m_fragment += "layout(binding = " + std::to_string(binding) + ", std430) ";
+
+        if(attr.access == "read_only")
+          m_fragment += "readonly ";
+        else if(attr.access == "write_only")
+          m_fragment += "writeonly ";
+        else
+          m_fragment += "restrict ";
+
+        // Buffer block name: inputname_attrname_buf, array name: inputname_attrname
+        m_fragment += "buffer " + inp.name + "_" + attr.name + "_buf { ";
+        m_fragment += attr.type + " " + inp.name + "_" + attr.name + "[]; };\n";
+
+        binding++;
+      }
+
+      // Element count uniform (packed into the material UBO or standalone)
+      m_fragment += "// Element count for geometry input \"" + inp.name + "\"\n";
+      m_fragment += "// (set by the renderer from ossia::geometry::vertices)\n";
+      m_fragment += "// Access via the ProcessUBO or a dedicated uniform.\n";
+
+      // #define guards for attribute presence
+      for(const auto& attr : geo.attributes)
+      {
+        std::string upper_name = attr.name;
+        for(auto& c : upper_name)
+          c = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
+        m_fragment += "#define HAS_" + upper_name + " 1\n";
+      }
+      m_fragment += "\n";
     }
   }
 
