@@ -531,41 +531,69 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
 
       if(input->type == Types::Image)
       {
+        const bool grabs = (input->flags & Flag::GrabsFromSource) == Flag::GrabsFromSource;
+
         prepare_render(input);
 
-        // Then do the final render of each node on the edge sink's render target
-        // We *have* to do that in a single beginPass / endPass as every beginPass
-        // issues a clearBuffers command.
+        if(grabs)
         {
+          // GrabsFromSource: upstream already produced the texture
+          // in runInitialPasses. No render pass needed.
+          // Update the downstream node's sampler to point to the
+          // upstream's current texture (it may have changed since init).
           auto rendered = node->renderedNodes.find(this);
           SCORE_ASSERT(rendered != node->renderedNodes.end());
-          NodeRenderer* renderer = rendered->second;
-          if(auto rt = renderer->renderTargetForInput(*input))
+          NodeRenderer* sink_renderer = rendered->second;
+
+          for(auto [edge, prev_renderer] : prevRenderers)
           {
-            QColor bg = (it + 1 == this->nodes.rend() ? Qt::black : Qt::transparent);
-            // Normal drawing node
-            commands.beginPass(rt.renderTarget, bg, {1.0f, 0}, updateBatch);
-            updateBatch = nullptr;
-
-            QRhiResourceUpdateBatch* res{};
-            // FIXME z-sort
-            for(auto [edge, prev_renderer] : prevRenderers)
+            if(auto* srcTex = prev_renderer->textureForOutput(*edge->source))
             {
-              prev_renderer->runRenderPass(*this, commands, *edge);
+              sink_renderer->updateInputTexture(*input, srcTex);
             }
-
-            // Allow the node to do some actions, for instance if a readback
-            // of a node's input is going to be needed.
-            {
-              renderer->inputAboutToFinish(*this, *input, res);
-            }
-            commands.endPass(res);
-            res = nullptr;
           }
-          else
+
+          if(updateBatch)
           {
             commands.resourceUpdate(updateBatch);
             updateBatch = nullptr;
+          }
+        }
+        else
+        {
+          // Then do the final render of each node on the edge sink's render target
+          // We *have* to do that in a single beginPass / endPass as every beginPass
+          // issues a clearBuffers command.
+          {
+            auto rendered = node->renderedNodes.find(this);
+            SCORE_ASSERT(rendered != node->renderedNodes.end());
+            NodeRenderer* renderer = rendered->second;
+            if(auto rt = renderer->renderTargetForInput(*input))
+            {
+              QColor bg = (it + 1 == this->nodes.rend() ? Qt::black : Qt::transparent);
+              // Normal drawing node
+              commands.beginPass(rt.renderTarget, bg, {1.0f, 0}, updateBatch);
+              updateBatch = nullptr;
+
+              // FIXME z-sort
+              for(auto [edge, prev_renderer] : prevRenderers)
+              {
+                prev_renderer->runRenderPass(*this, commands, *edge);
+              }
+
+              // Allow the node to do some actions, for instance if a readback
+              // of a node's input is going to be needed.
+              {
+                renderer->inputAboutToFinish(*this, *input, updateBatch);
+              }
+              commands.endPass(updateBatch);
+              updateBatch = nullptr;
+            }
+            else
+            {
+              commands.resourceUpdate(updateBatch);
+              updateBatch = nullptr;
+            }
           }
         }
 
@@ -584,27 +612,21 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
           auto rendered = node->renderedNodes.find(this);
           SCORE_ASSERT(rendered != node->renderedNodes.end());
           NodeRenderer* renderer = rendered->second;
-          // if(auto rt = renderer->bufferForInput(*input))
-          {
-            if(updateBatch) {
-              commands.resourceUpdate(updateBatch);
-              updateBatch = nullptr;
-            }
 
-            renderer->inputAboutToFinish(*this, *input, updateBatch);
-            if(updateBatch)
-              commands.resourceUpdate(updateBatch);
+          if(updateBatch)
+          {
+            commands.resourceUpdate(updateBatch);
             updateBatch = nullptr;
           }
-          // else
-          // {
-          //   commands.resourceUpdate(updateBatch);
-          //   updateBatch = nullptr;
-          // }
-        }
 
-        commands.resourceUpdate(updateBatch);
-        updateBatch = nullptr;
+          renderer->inputAboutToFinish(*this, *input, updateBatch);
+
+          if(updateBatch)
+          {
+            commands.resourceUpdate(updateBatch);
+            updateBatch = nullptr;
+          }
+        }
 
         if(node != &output)
         {

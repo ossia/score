@@ -60,6 +60,41 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
     return {};
   }
 
+  QRhiTexture* textureForOutput(const score::gfx::Port& output) override
+  {
+    if constexpr(avnd::gpu_texture_output_introspection<Node_T>::size > 0)
+    {
+      // Find which output port index this is
+      const auto& outputs = this->node().output;
+      int port_idx = -1;
+      for(int i = 0, n = outputs.size(); i < n; i++)
+      {
+        if(outputs[i] == &output)
+        {
+          port_idx = i;
+          break;
+        }
+      }
+      if(port_idx < 0)
+        return nullptr;
+
+      // Walk gpu_texture outputs; for_all_n2 gives us both the
+      // predicate index and the struct field index (== port index)
+      QRhiTexture* result = nullptr;
+      avnd::gpu_texture_output_introspection<Node_T>::for_all_n2(
+          avnd::get_outputs<Node_T>(*state),
+          [&]<std::size_t PredIdx, std::size_t FieldIdx>(
+              auto& field, avnd::predicate_index<PredIdx>,
+              avnd::field_index<FieldIdx>) {
+        if(static_cast<int>(FieldIdx) == port_idx)
+          result = static_cast<QRhiTexture*>(field.texture.handle);
+      });
+
+      return result;
+    }
+    return nullptr;
+  }
+
   void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
     auto& parent = node();

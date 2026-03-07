@@ -257,6 +257,30 @@ void GenericNodeRenderer::runRenderPass(
   defaultRenderPass(renderer, mesh, cb, edge);
 }
 
+void GenericNodeRenderer::updateInputTexture(const Port& input, QRhiTexture* tex)
+{
+  int sampler_idx = 0;
+  for(auto* p : node.input)
+  {
+    if(p == &input)
+      break;
+    if(p->type == Types::Image)
+      sampler_idx++;
+  }
+
+  if(sampler_idx < (int)m_samplers.size())
+  {
+    auto& sampl = m_samplers[sampler_idx];
+    if(sampl.texture != tex)
+    {
+      sampl.texture = tex;
+      for(auto& [e, pass] : m_p)
+        if(pass.srb)
+          score::gfx::replaceTexture(*pass.srb, sampl.sampler, tex);
+    }
+  }
+}
+
 void GenericNodeRenderer::release(RenderList& r)
 {
   defaultRelease(r);
@@ -277,6 +301,10 @@ BufferView NodeRenderer::bufferForOutput(const Port& output)
 QRhiTexture* NodeRenderer::textureForOutput(const Port& output)
 {
   return nullptr;
+}
+
+void NodeRenderer::updateInputTexture(const Port& input, QRhiTexture* tex)
+{
 }
 
 void NodeRenderer::inputAboutToFinish(

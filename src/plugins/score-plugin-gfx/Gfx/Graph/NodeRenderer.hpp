@@ -26,6 +26,10 @@ public:
   //! downstream-provided render target.
   virtual QRhiTexture* textureForOutput(const Port& output);
 
+  //! Updates the sampler texture for a GrabsFromSource input port.
+  //! Called from the render loop when the upstream texture may have changed.
+  virtual void updateInputTexture(const Port& input, QRhiTexture* tex);
+
   //! Called when all the inbound nodes to a texture input have finished rendering.
   //! Mainly useful to slip in a readback.
   virtual void
@@ -151,6 +155,8 @@ public:
       PassMap& passes);
 
   void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& edge) override;
+
+  void updateInputTexture(const Port& input, QRhiTexture* tex) override;
 };
 
 }

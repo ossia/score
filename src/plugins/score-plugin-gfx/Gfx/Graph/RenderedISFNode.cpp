@@ -85,8 +85,40 @@ RenderedISFNode::RenderedISFNode(const ISFNode& node) noexcept
 
 TextureRenderTarget RenderedISFNode::renderTargetForInput(const Port& p)
 {
-  SCORE_ASSERT(m_rts.find(&p) != m_rts.end());
-  return m_rts[&p];
+  auto it = m_rts.find(&p);
+  if(it != m_rts.end())
+    return it->second;
+  return {};
+}
+
+void RenderedISFNode::updateInputTexture(const Port& input, QRhiTexture* tex)
+{
+  int sampler_idx = 0;
+  for(auto* p : node.input)
+  {
+    if(p == &input)
+      break;
+    if(p->type == Types::Image)
+      sampler_idx++;
+  }
+
+  if(sampler_idx < (int)m_inputSamplers.size())
+  {
+    auto& sampl = m_inputSamplers[sampler_idx];
+    if(sampl.texture != tex)
+    {
+      sampl.texture = tex;
+      for(auto& [e, passes] : m_passes)
+      {
+        for(auto& pass : passes.passes)
+          if(pass.p.srb)
+            score::gfx::replaceTexture(*pass.p.srb, sampl.sampler, tex);
+        for(auto& pass : passes.altPasses)
+          if(pass.p.srb)
+            score::gfx::replaceTexture(*pass.p.srb, sampl.sampler, tex);
+      }
+    }
+  }
 }
 
 std::pair<Pass, Pass> RenderedISFNode::createFinalPass(

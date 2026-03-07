@@ -17,8 +17,35 @@ RenderedRawRasterPipelineNode::RenderedRawRasterPipelineNode(
 
 TextureRenderTarget RenderedRawRasterPipelineNode::renderTargetForInput(const Port& p)
 {
-  SCORE_ASSERT(m_rts.find(&p) != m_rts.end());
-  return m_rts[&p];
+  auto it = m_rts.find(&p);
+  if(it != m_rts.end())
+    return it->second;
+  return {};
+}
+
+void RenderedRawRasterPipelineNode::updateInputTexture(const Port& input, QRhiTexture* tex)
+{
+  // Find which image-type sampler index this port corresponds to
+  int sampler_idx = 0;
+  for(auto* p : node.input)
+  {
+    if(p == &input)
+      break;
+    if(p->type == Types::Image)
+      sampler_idx++;
+  }
+
+  if(sampler_idx < (int)m_inputSamplers.size())
+  {
+    auto& sampl = m_inputSamplers[sampler_idx];
+    if(sampl.texture != tex)
+    {
+      sampl.texture = tex;
+      for(auto& [e, pass] : m_passes)
+        if(pass.p.srb)
+          score::gfx::replaceTexture(*pass.p.srb, sampl.sampler, tex);
+    }
+  }
 }
 
 std::vector<Sampler> RenderedRawRasterPipelineNode::allSamplers() const noexcept

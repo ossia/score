@@ -35,8 +35,34 @@ SimpleRenderedVSANode::SimpleRenderedVSANode(const ISFNode& node) noexcept
 
 TextureRenderTarget SimpleRenderedVSANode::renderTargetForInput(const Port& p)
 {
-  SCORE_ASSERT(m_rts.find(&p) != m_rts.end());
-  return m_rts[&p];
+  auto it = m_rts.find(&p);
+  if(it != m_rts.end())
+    return it->second;
+  return {};
+}
+
+void SimpleRenderedVSANode::updateInputTexture(const Port& input, QRhiTexture* tex)
+{
+  int sampler_idx = 0;
+  for(auto* p : node.input)
+  {
+    if(p == &input)
+      break;
+    if(p->type == Types::Image)
+      sampler_idx++;
+  }
+
+  if(sampler_idx < (int)m_inputSamplers.size())
+  {
+    auto& sampl = m_inputSamplers[sampler_idx];
+    if(sampl.texture != tex)
+    {
+      sampl.texture = tex;
+      for(auto& pd : m_passes)
+        if(pd.main_pass.p.srb)
+          score::gfx::replaceTexture(*pd.main_pass.p.srb, sampl.sampler, tex);
+    }
+  }
 }
 
 std::vector<Sampler> SimpleRenderedVSANode::allSamplers() const noexcept

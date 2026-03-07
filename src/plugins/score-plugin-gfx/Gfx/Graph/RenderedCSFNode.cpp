@@ -142,6 +142,33 @@ TextureRenderTarget RenderedCSFNode::renderTargetForInput(const Port& p)
   return {};
 }
 
+void RenderedCSFNode::updateInputTexture(const Port& input, QRhiTexture* tex)
+{
+  int sampler_idx = 0;
+  for(auto* p : node.input)
+  {
+    if(p == &input)
+      break;
+    if(p->type == Types::Image)
+      sampler_idx++;
+  }
+
+  if(sampler_idx < (int)m_inputSamplers.size())
+  {
+    auto& sampl = m_inputSamplers[sampler_idx];
+    if(sampl.texture != tex)
+    {
+      sampl.texture = tex;
+      for(auto& [e, cp] : m_computePasses)
+        if(cp.srb)
+          score::gfx::replaceTexture(*cp.srb, sampl.sampler, tex);
+      for(auto& [e, gp] : m_graphicsPasses)
+        if(gp.pipeline.srb)
+          score::gfx::replaceTexture(*gp.pipeline.srb, sampl.sampler, tex);
+    }
+  }
+}
+
 std::vector<Sampler> RenderedCSFNode::allSamplers() const noexcept
 {
   return m_inputSamplers;

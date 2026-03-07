@@ -660,20 +660,58 @@ std::vector<Sampler> initInputSamplers(
     switch(in->type)
     {
       case Types::Image: {
-        auto spec = node.resolveRenderTargetSpecs(cur_port, renderer);
-        auto sampler = rhi.newSampler(
-            spec.mag_filter, spec.min_filter, spec.mipmap_mode, spec.address_u,
-            spec.address_v, spec.address_w);
-        sampler->setName("initInputSamplers::sampler");
-        SCORE_ASSERT(sampler->create());
+        if((in->flags & Flag::GrabsFromSource) == Flag::GrabsFromSource)
+        {
+          // GrabsFromSource: the upstream node owns the texture (e.g. cubemap).
+          // We don't create a render target — just grab the texture pointer
+          // from the source renderer and create a sampler for it.
+          QRhiTexture* srcTex = nullptr;
 
-        auto rt = score::gfx::createRenderTarget(
-            renderer.state, spec.format, spec.size, renderer.samples(),
-            renderer.requiresDepth(*in));
-        auto texture = rt.texture;
-        samplers.push_back({sampler, texture});
+          for(auto* edge : in->edges)
+          {
+            if(auto* src_node = edge->source->node)
+            {
+              if(auto src_it = src_node->renderedNodes.find(&renderer);
+                 src_it != src_node->renderedNodes.end())
+              {
+                if(auto* src_renderer = src_it->second)
+                {
+                  srcTex = src_renderer->textureForOutput(*edge->source);
+                  break;
+                }
+              }
+            }
+          }
 
-        m_rts[in] = std::move(rt);
+          if(!srcTex)
+            srcTex = &renderer.emptyTexture();
+
+          auto sampler = rhi.newSampler(
+              QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::Linear,
+              QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
+          sampler->setName("initInputSamplers::cubemap_sampler");
+          SCORE_ASSERT(sampler->create());
+
+          samplers.push_back({sampler, srcTex});
+          // No entry in m_rts — there is no render target for this port
+        }
+        else
+        {
+          auto spec = node.resolveRenderTargetSpecs(cur_port, renderer);
+          auto sampler = rhi.newSampler(
+              spec.mag_filter, spec.min_filter, spec.mipmap_mode, spec.address_u,
+              spec.address_v, spec.address_w);
+          sampler->setName("initInputSamplers::sampler");
+          SCORE_ASSERT(sampler->create());
+
+          auto rt = score::gfx::createRenderTarget(
+              renderer.state, spec.format, spec.size, renderer.samples(),
+              renderer.requiresDepth(*in));
+          auto texture = rt.texture;
+          samplers.push_back({sampler, texture});
+
+          m_rts[in] = std::move(rt);
+        }
         break;
       }
 

@@ -14,6 +14,7 @@ struct RenderedCSFNode : score::gfx::NodeRenderer
   virtual ~RenderedCSFNode();
 
   TextureRenderTarget renderTargetForInput(const Port& p) override;
+  void updateInputTexture(const Port& input, QRhiTexture* tex) override;
 
   void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
   void update(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge) override;
