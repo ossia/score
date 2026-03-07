@@ -463,6 +463,27 @@ void Model::setupCSF(const isf::descriptor& desc)
         self.m_outlets.push_back(port);
       }
     }
+
+    void operator()(const geometry_input& v)
+    {
+      // Geometry input port
+      auto in_port = new Gfx::GeometryInlet(
+          QString::fromStdString(input.name), Id<Process::Port>(input_i++), &self);
+      self.m_inlets.push_back(in_port);
+
+      // If any attributes are writable, create a geometry output port
+      for(const auto& attr : v.attributes)
+      {
+        if(attr.access != "read_only")
+        {
+          auto out_port = new Gfx::GeometryOutlet(
+              QString::fromStdString(input.name + "_out"),
+              Id<Process::Port>(output_i++), &self);
+          self.m_outlets.push_back(out_port);
+          break;
+        }
+      }
+    }
   };
 
   int input_i = 0;

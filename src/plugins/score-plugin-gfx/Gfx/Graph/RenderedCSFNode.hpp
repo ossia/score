@@ -46,6 +46,10 @@ private:
   int getArraySizeFromUI(const QString& bufferName) const;
   QString updateShaderWithImageFormats(QString current);
 
+  // Geometry buffer management
+  void updateGeometryBindings(RenderList& renderer, QRhiResourceUpdateBatch& res);
+  void pushOutputGeometry(RenderList& renderer, Edge& edge);
+
   BufferView bufferForOutput(const score::gfx::Port& output) override;
 
   ossia::small_flat_map<const Port*, TextureRenderTarget, 2> m_rts;
@@ -57,7 +61,7 @@ private:
     QRhiBuffer* processUBO{};
   };
 
-  struct GraphicsPass  
+  struct GraphicsPass
   {
     Pipeline pipeline;
     QRhiSampler* outputSampler{};
@@ -70,7 +74,7 @@ private:
   ISFNode& n;
 
   std::vector<Sampler> m_inputSamplers;
-  
+
   // Storage buffers for compute shaders
   struct StorageBuffer
   {
@@ -95,6 +99,28 @@ private:
     QRhiTexture::Format format{QRhiTexture::RGBA8};
   };
   std::vector<StorageImage> m_storageImages;
+
+  // Geometry input bindings: SoA SSBOs created from incoming ossia::geometry
+  struct GeometryBinding
+  {
+    // One SSBO per declared attribute in the geometry_input
+    struct AttributeSSBO
+    {
+      QRhiBuffer* buffer{};     // GPU SSBO for this attribute
+      int64_t size{};           // Current buffer size in bytes
+      bool owned{true};         // true = we created it; false = referencing upstream gpu_buffer
+      std::string name;         // e.g. "position", "velocity"
+      std::string access;       // "read_only", "write_only", "read_write"
+    };
+
+    std::vector<AttributeSSBO> attribute_ssbos;
+    int element_count{0};       // Number of elements (vertices) in the geometry
+    bool has_output{false};     // true if any attribute is writable
+  };
+  std::vector<GeometryBinding> m_geometryBindings;
+
+  // Output geometry spec pushed to downstream nodes
+  ossia::geometry_spec m_outputGeometry;
 
   QRhiBuffer* m_materialUBO{};
   int m_materialSize{};

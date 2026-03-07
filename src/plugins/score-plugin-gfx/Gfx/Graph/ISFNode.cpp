@@ -175,6 +175,27 @@ struct isf_input_port_vis
     self.input.push_back(new Port{&self, {}, Types::Image, {}});
   }
 
+  void operator()(const isf::geometry_input& in) noexcept
+  {
+    // Geometry input port — receives ossia::geometry with SoA attribute buffers
+    self.input.push_back(new Port{&self, {}, Types::Geometry, {}});
+
+    // If any attributes are writable, create a geometry output port
+    bool has_output = false;
+    for(const auto& attr : in.attributes)
+    {
+      if(attr.access != "read_only")
+      {
+        has_output = true;
+        break;
+      }
+    }
+    if(has_output)
+    {
+      self.output.push_back(new Port{&self, {}, Types::Geometry, {}});
+    }
+  }
+
   void operator()(const isf::csf_image_input& in) noexcept
   {
     // CSF image inputs - these can be read-only, write-only, or read-write

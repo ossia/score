@@ -71,5 +71,11 @@ struct isf_input_size_vis
       (*this)(isf::long_input{});
     }
   }
+
+  void operator()(const isf::geometry_input&) noexcept
+  {
+    // Geometry inputs don't contribute to the material UBO size.
+    // Their buffers are bound separately as SSBOs.
+  }
 };
 }

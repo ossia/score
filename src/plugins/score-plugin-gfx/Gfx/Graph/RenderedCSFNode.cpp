@@ -9,6 +9,7 @@
 
 #include <score/tools/Debug.hpp>
 
+#include <ossia/dataflow/geometry_port.hpp>
 #include <ossia/detail/algorithms.hpp>
 
 #include <boost/algorithm/string/replace.hpp>
@@ -178,6 +179,13 @@ struct is_output
 {
   bool operator()(const isf::storage_input& v) { return v.access != "read_only"; }
   bool operator()(const isf::csf_image_input& v) { return v.access != "read_only"; }
+  bool operator()(const isf::geometry_input& v)
+  {
+    for(const auto& attr : v.attributes)
+      if(attr.access != "read_only")
+        return true;
+    return false;
+  }
   bool operator()(const auto& v) { return false; }
 };
 
@@ -201,6 +209,18 @@ struct port_indices
       inlet_i++;
     else
       outlet_i++;
+  }
+  void operator()(const isf::geometry_input& v)
+  {
+    inlet_i++; // geometry always has an input port
+    for(const auto& attr : v.attributes)
+    {
+      if(attr.access != "read_only")
+      {
+        outlet_i++; // one geometry output port if any attribute is writable
+        break;
+      }
+    }
   }
   void operator()(const auto& v) { inlet_i++; }
 };
@@ -449,6 +469,358 @@ void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpd
   }
 }
 
+// Returns the byte size of a GLSL type for SoA SSBO element stride
+static int glslTypeSizeBytes(const std::string& type) noexcept
+{
+  if(type == "float" || type == "int" || type == "uint")
+    return 4;
+  if(type == "vec2" || type == "ivec2" || type == "uvec2")
+    return 8;
+  if(type == "vec3" || type == "ivec3" || type == "uvec3")
+    return 12;
+  if(type == "vec4" || type == "ivec4" || type == "uvec4")
+    return 16;
+  if(type == "mat4")
+    return 64;
+  return 16; // fallback
+}
+
+// Returns the byte size of an ossia::geometry attribute format
+static int geometryFormatSizeBytes(int format) noexcept
+{
+  using F = ossia::geometry::attribute;
+  switch(format)
+  {
+    case F::float4: return 16;
+    case F::float3: return 12;
+    case F::float2: return 8;
+    case F::float1: return 4;
+    case F::unormbyte4: return 4;
+    case F::unormbyte2: return 2;
+    case F::unormbyte1: return 1;
+    case F::uint4: return 16;
+    case F::uint3: return 12;
+    case F::uint2: return 8;
+    case F::uint1: return 4;
+    case F::sint4: return 16;
+    case F::sint3: return 12;
+    case F::sint2: return 8;
+    case F::sint1: return 4;
+    case F::half4: return 8;
+    case F::half3: return 6;
+    case F::half2: return 4;
+    case F::half1: return 2;
+    default: return 4;
+  }
+}
+
+void RenderedCSFNode::updateGeometryBindings(
+    RenderList& renderer, QRhiResourceUpdateBatch& res)
+{
+  if(!this->geometry.meshes || this->geometry.meshes->meshes.empty())
+    return;
+
+  const auto& mesh = this->geometry.meshes->meshes[0]; // FIXME multi-mesh
+  int geo_binding_idx = 0;
+
+  for(const auto& input : n.m_descriptor.inputs)
+  {
+    auto* geo_input = ossia::get_if<isf::geometry_input>(&input.data);
+    if(!geo_input)
+      continue;
+
+    if(geo_binding_idx >= (int)m_geometryBindings.size())
+      break;
+
+    auto& binding = m_geometryBindings[geo_binding_idx];
+    binding.element_count = mesh.vertices;
+
+    // For each attribute the shader declared interest in
+    for(int attr_idx = 0; attr_idx < (int)geo_input->attributes.size(); attr_idx++)
+    {
+      if(attr_idx >= (int)binding.attribute_ssbos.size())
+        break;
+
+      const auto& req = geo_input->attributes[attr_idx];
+      auto& ssbo = binding.attribute_ssbos[attr_idx];
+
+      // Match by semantic
+      const ossia::attribute_semantic sem = ossia::name_to_semantic(req.semantic);
+      const ossia::geometry::attribute* geo_attr = nullptr;
+      if(sem != ossia::attribute_semantic::custom)
+        geo_attr = mesh.find(sem);
+      else
+        geo_attr = mesh.find(req.name);
+
+      if(!geo_attr)
+      {
+        if(req.required)
+          qWarning() << "CSF geometry: required attribute" << req.name.c_str() << "not found";
+
+        // Create or keep a zero-filled fallback buffer
+        const int elem_size = glslTypeSizeBytes(req.type);
+        const int64_t needed = (int64_t)elem_size * std::max(1, mesh.vertices);
+        if(!ssbo.buffer || ssbo.size < needed)
+        {
+          if(ssbo.buffer && ssbo.owned)
+          {
+            ssbo.buffer->destroy();
+            delete ssbo.buffer;
+          }
+          auto* buf = renderer.state.rhi->newBuffer(
+              QRhiBuffer::Static,
+              QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer, needed);
+          buf->setName(QByteArray("CSF_GeomFallback_") + req.name.c_str());
+          buf->create();
+          QByteArray zero(needed, 0);
+          res.uploadStaticBuffer(buf, 0, needed, zero.constData());
+          ssbo.buffer = buf;
+          ssbo.size = needed;
+          ssbo.owned = true;
+        }
+        continue;
+      }
+
+      // Found the attribute — extract its buffer data
+      const int buf_idx = geo_attr->binding;
+      if(buf_idx < 0 || buf_idx >= (int)mesh.buffers.size())
+        continue;
+
+      const auto& geo_buf = mesh.buffers[buf_idx];
+      const auto& geo_bind = (buf_idx < (int)mesh.bindings.size())
+                                 ? mesh.bindings[buf_idx]
+                                 : mesh.bindings[0];
+
+      const int attr_size = geometryFormatSizeBytes(geo_attr->format);
+      const int stride = geo_bind.byte_stride;
+      const bool is_soa = (stride == 0 || stride == attr_size);
+
+      if(auto* gpu = ossia::get_if<ossia::geometry::gpu_buffer>(&geo_buf.data))
+      {
+        if(is_soa && gpu->handle)
+        {
+          // SoA GPU buffer: bind directly (zero-copy)
+          if(ssbo.owned && ssbo.buffer)
+          {
+            ssbo.buffer->destroy();
+            delete ssbo.buffer;
+          }
+          ssbo.buffer = static_cast<QRhiBuffer*>(gpu->handle);
+          ssbo.size = gpu->byte_size;
+          ssbo.owned = false;
+          continue;
+        }
+        // AoS GPU buffer: would need scatter compute pass — not yet supported
+        qWarning() << "CSF geometry: AoS GPU buffer scatter not yet implemented for"
+                    << req.name.c_str();
+        continue;
+      }
+
+      if(auto* cpu = ossia::get_if<ossia::geometry::cpu_buffer>(&geo_buf.data))
+      {
+        if(!cpu->raw_data || cpu->byte_size <= 0)
+          continue;
+
+        const auto* src = static_cast<const char*>(cpu->raw_data.get());
+        const int64_t elem_size = glslTypeSizeBytes(req.type);
+        const int64_t needed = elem_size * mesh.vertices;
+
+        // Create or resize the SSBO
+        if(!ssbo.buffer || ssbo.size < needed || !ssbo.owned)
+        {
+          if(ssbo.owned && ssbo.buffer)
+          {
+            ssbo.buffer->destroy();
+            delete ssbo.buffer;
+          }
+          auto* buf = renderer.state.rhi->newBuffer(
+              QRhiBuffer::Static,
+              QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer, needed);
+          buf->setName(QByteArray("CSF_Geom_") + req.name.c_str());
+          buf->create();
+          ssbo.buffer = buf;
+          ssbo.size = needed;
+          ssbo.owned = true;
+        }
+
+        if(is_soa)
+        {
+          // SoA CPU buffer: upload directly
+          const int64_t upload_size = std::min(needed, cpu->byte_size);
+          res.uploadStaticBuffer(ssbo.buffer, 0, upload_size, src + geo_attr->byte_offset);
+        }
+        else
+        {
+          // AoS CPU buffer: scatter attribute data into flat SoA buffer
+          QByteArray scattered(needed, 0);
+          const int copy_size = std::min((int)elem_size, attr_size);
+          for(int i = 0; i < mesh.vertices; i++)
+          {
+            const int64_t src_off = (int64_t)i * stride + geo_attr->byte_offset;
+            if(src_off + copy_size <= cpu->byte_size)
+              std::memcpy(scattered.data() + (int64_t)i * elem_size, src + src_off, copy_size);
+          }
+          res.uploadStaticBuffer(ssbo.buffer, 0, needed, scattered.constData());
+        }
+      }
+    }
+
+    geo_binding_idx++;
+  }
+}
+
+void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, Edge& edge)
+{
+  // For each geometry_input with writable attributes, construct output geometry
+  // and push to downstream node's renderer
+  int geo_binding_idx = 0;
+  int geo_output_idx = 0;
+
+  for(const auto& input : n.m_descriptor.inputs)
+  {
+    auto* geo_input = ossia::get_if<isf::geometry_input>(&input.data);
+    if(!geo_input)
+      continue;
+
+    if(geo_binding_idx >= (int)m_geometryBindings.size())
+      break;
+
+    auto& binding = m_geometryBindings[geo_binding_idx];
+
+    if(!binding.has_output)
+    {
+      geo_binding_idx++;
+      continue;
+    }
+
+    // Build output geometry_spec with the modified SSBO handles
+    auto meshes = std::make_shared<ossia::mesh_list>();
+    ossia::geometry out_geo;
+    out_geo.vertices = binding.element_count;
+    out_geo.topology = ossia::geometry::points;
+    out_geo.cull_mode = ossia::geometry::none;
+    out_geo.front_face = ossia::geometry::counter_clockwise;
+
+    // Copy bounds from input geometry if available
+    if(this->geometry.meshes && !this->geometry.meshes->meshes.empty())
+      out_geo.bounds = this->geometry.meshes->meshes[0].bounds;
+
+    for(int attr_idx = 0; attr_idx < (int)geo_input->attributes.size(); attr_idx++)
+    {
+      if(attr_idx >= (int)binding.attribute_ssbos.size())
+        break;
+
+      const auto& req = geo_input->attributes[attr_idx];
+      auto& ssbo = binding.attribute_ssbos[attr_idx];
+
+      if(!ssbo.buffer)
+        continue;
+
+      // Each attribute gets its own buffer (SoA)
+      const int buf_index = (int)out_geo.buffers.size();
+      const int elem_size = glslTypeSizeBytes(req.type);
+
+      ossia::geometry::buffer buf{
+          .data = ossia::geometry::gpu_buffer{ssbo.buffer, ssbo.size},
+          .dirty = false};
+      out_geo.buffers.push_back(std::move(buf));
+
+      ossia::geometry::binding bind;
+      bind.byte_stride = elem_size;
+      bind.classification = ossia::geometry::binding::per_vertex;
+      out_geo.bindings.push_back(bind);
+
+      ossia::geometry::attribute attr;
+      attr.binding = buf_index;
+      attr.location = attr_idx;
+      const auto sem = ossia::name_to_semantic(req.semantic);
+      attr.semantic = sem;
+      if(sem == ossia::attribute_semantic::custom)
+        attr.name = req.name;
+
+      // Map GLSL type to format enum
+      if(req.type == "vec4") attr.format = ossia::geometry::attribute::float4;
+      else if(req.type == "vec3") attr.format = ossia::geometry::attribute::float3;
+      else if(req.type == "vec2") attr.format = ossia::geometry::attribute::float2;
+      else if(req.type == "float") attr.format = ossia::geometry::attribute::float1;
+      else if(req.type == "ivec4" || req.type == "uvec4") attr.format = ossia::geometry::attribute::uint4;
+      else if(req.type == "ivec3" || req.type == "uvec3") attr.format = ossia::geometry::attribute::uint3;
+      else if(req.type == "ivec2" || req.type == "uvec2") attr.format = ossia::geometry::attribute::uint2;
+      else if(req.type == "int" || req.type == "uint") attr.format = ossia::geometry::attribute::uint1;
+      else attr.format = ossia::geometry::attribute::float4;
+
+      attr.byte_offset = 0;
+      out_geo.attributes.push_back(attr);
+
+      struct ossia::geometry::input geo_inp;
+      geo_inp.buffer = buf_index;
+      geo_inp.byte_offset = 0;
+      out_geo.input.push_back(geo_inp);
+    }
+
+    meshes->meshes.push_back(std::move(out_geo));
+
+    m_outputGeometry.meshes = meshes;
+    m_outputGeometry.filters = {};
+
+    // Find the geometry output port and push to downstream
+    // The output ports are ordered: first image output, then storage outputs,
+    // then geometry outputs
+    const auto& outlets = n.output;
+    // Walk descriptor inputs to count outlet index for this geometry output
+    int outlet_idx = 0;
+    for(const auto& inp : n.m_descriptor.inputs)
+    {
+      if(auto* s = ossia::get_if<isf::storage_input>(&inp.data))
+      {
+        if(s->access != "read_only")
+          outlet_idx++;
+      }
+      else if(auto* img = ossia::get_if<isf::csf_image_input>(&inp.data))
+      {
+        if(img->access != "read_only")
+          outlet_idx++;
+      }
+      else if(ossia::get_if<isf::geometry_input>(&inp.data))
+      {
+        break; // this is our geometry_input
+      }
+    }
+    outlet_idx += geo_output_idx;
+
+    // Check if default image output exists (always first)
+    // Usually outlet[0] is the image output, geometry outputs come after
+    if(!outlets.empty() && outlets[0]->type == Types::Image)
+      outlet_idx++; // skip the default image output
+
+    if(outlet_idx < (int)outlets.size())
+    {
+      auto* out_port = outlets[outlet_idx];
+      for(auto* out_edge : out_port->edges)
+      {
+        auto* sink = out_edge->sink;
+        if(!sink || !sink->node)
+          continue;
+
+        auto rendered = sink->node->renderedNodes.find(&renderer);
+        if(rendered == sink->node->renderedNodes.end())
+          continue;
+
+        auto it = std::find(
+            sink->node->input.begin(), sink->node->input.end(), sink);
+        if(it == sink->node->input.end())
+          continue;
+
+        int port_idx = it - sink->node->input.begin();
+        rendered->second->process(port_idx, m_outputGeometry);
+      }
+    }
+
+    geo_binding_idx++;
+    geo_output_idx++;
+  }
+}
+
 void RenderedCSFNode::initComputePass(
     const TextureRenderTarget& rt, RenderList& renderer, Edge& edge, QRhiResourceUpdateBatch& res)
 {
@@ -490,6 +862,7 @@ void RenderedCSFNode::initComputePass(
   int input_image_index = 0;
   int output_port_index = 0;
   int output_image_index = 0;
+  int geo_binding_index = 0;
   // Process all resources in the order they appear in the descriptor
   // This ensures the binding indices match what the shader expects
   for(const auto& input : n.m_descriptor.inputs)
@@ -633,6 +1006,57 @@ void RenderedCSFNode::initComputePass(
           output_image_index++;
         }
       }
+    }
+    // Geometry inputs: bind per-attribute SSBOs
+    else if(auto* geo_input = ossia::get_if<isf::geometry_input>(&input.data))
+    {
+      // Update geometry bindings from incoming geometry data
+      updateGeometryBindings(renderer, res);
+
+      if(geo_binding_index < (int)m_geometryBindings.size())
+      {
+        auto& binding = m_geometryBindings[geo_binding_index];
+
+        for(int attr_idx = 0; attr_idx < (int)geo_input->attributes.size(); attr_idx++)
+        {
+          if(attr_idx >= (int)binding.attribute_ssbos.size())
+            break;
+
+          const auto& req = geo_input->attributes[attr_idx];
+          auto& ssbo = binding.attribute_ssbos[attr_idx];
+
+          if(!ssbo.buffer)
+          {
+            // Create a minimal fallback buffer so we don't crash
+            const int elem_size = glslTypeSizeBytes(req.type);
+            ssbo.buffer = rhi.newBuffer(
+                QRhiBuffer::Static,
+                QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer, elem_size);
+            ssbo.buffer->setName(QByteArray("CSF_GeomInit_") + req.name.c_str());
+            ssbo.buffer->create();
+            ssbo.size = elem_size;
+            ssbo.owned = true;
+          }
+
+          if(req.access == "read_only")
+          {
+            bindings.append(QRhiShaderResourceBinding::bufferLoad(
+                bindingIndex++, QRhiShaderResourceBinding::ComputeStage, ssbo.buffer));
+          }
+          else if(req.access == "write_only")
+          {
+            bindings.append(QRhiShaderResourceBinding::bufferStore(
+                bindingIndex++, QRhiShaderResourceBinding::ComputeStage, ssbo.buffer));
+          }
+          else // read_write
+          {
+            bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
+                bindingIndex++, QRhiShaderResourceBinding::ComputeStage, ssbo.buffer));
+          }
+        }
+        geo_binding_index++;
+      }
+      input_port_index++;
     }
     else
     {
@@ -978,6 +1402,29 @@ void RenderedCSFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
         outlet_index++;
       }
     }
+    // Handle geometry inputs
+    else if(auto* geo = ossia::get_if<isf::geometry_input>(&input.data))
+    {
+      GeometryBinding binding;
+      binding.has_output = false;
+
+      for(const auto& attr : geo->attributes)
+      {
+        GeometryBinding::AttributeSSBO ssbo;
+        ssbo.name = attr.name;
+        ssbo.access = attr.access;
+        binding.attribute_ssbos.push_back(std::move(ssbo));
+
+        if(attr.access != "read_only")
+          binding.has_output = true;
+      }
+
+      const bool geo_has_output = binding.has_output;
+      m_geometryBindings.push_back(std::move(binding));
+
+      if(geo_has_output)
+        outlet_index++;
+    }
   }
 
   m_outputTexture = nullptr;
@@ -1018,7 +1465,14 @@ void RenderedCSFNode::update(
   
   // Update storage buffers (check for size changes and reallocate if needed)
   updateStorageBuffers(renderer, res);
-  
+
+  // Update geometry bindings if geometry data changed
+  if(this->geometryChanged && !m_geometryBindings.empty())
+  {
+    updateGeometryBindings(renderer, res);
+    this->geometryChanged = false;
+  }
+
   // Update uniform buffer with current input values
   if(m_materialUBO && n.m_material_data)
   {
@@ -1062,6 +1516,7 @@ void RenderedCSFNode::recreateShaderResourceBindings(RenderList& renderer, QRhiR
   int input_image_index = 0;
   int output_port_index = 0;
   int output_image_index = 0;
+  int geo_binding_index = 0;
 
   // Process all resources in the order they appear in the descriptor
   for(const auto& input : n.m_descriptor.inputs)
@@ -1071,10 +1526,10 @@ void RenderedCSFNode::recreateShaderResourceBindings(RenderList& renderer, QRhiR
     {
       // Find the corresponding storage buffer
       auto it = std::find_if(m_storageBuffers.begin(), m_storageBuffers.end(),
-          [&input](const StorageBuffer& sb) { 
-            return sb.name == QString::fromStdString(input.name); 
+          [&input](const StorageBuffer& sb) {
+            return sb.name == QString::fromStdString(input.name);
           });
-      
+
       if(it != m_storageBuffers.end() && it->buffer)
       {
         if(it->access == "read_only")
@@ -1097,14 +1552,14 @@ void RenderedCSFNode::recreateShaderResourceBindings(RenderList& renderer, QRhiR
         else if(it->access == "write_only")
         {
           bindings.append(QRhiShaderResourceBinding::bufferStore(
-              bindingIndex++, QRhiShaderResourceBinding::ComputeStage, 
+              bindingIndex++, QRhiShaderResourceBinding::ComputeStage,
               it->buffer));
           output_port_index++;
         }
         else // read_write
         {
           bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
-              bindingIndex++, QRhiShaderResourceBinding::ComputeStage, 
+              bindingIndex++, QRhiShaderResourceBinding::ComputeStage,
               it->buffer));
           output_port_index++;
         }
@@ -1174,12 +1629,50 @@ void RenderedCSFNode::recreateShaderResourceBindings(RenderList& renderer, QRhiR
         }
       }
     }
+    // Geometry inputs: rebind per-attribute SSBOs
+    else if(auto* geo_input = ossia::get_if<isf::geometry_input>(&input.data))
+    {
+      if(geo_binding_index < (int)m_geometryBindings.size())
+      {
+        auto& binding = m_geometryBindings[geo_binding_index];
+
+        for(int attr_idx = 0; attr_idx < (int)geo_input->attributes.size(); attr_idx++)
+        {
+          if(attr_idx >= (int)binding.attribute_ssbos.size())
+            break;
+
+          const auto& req = geo_input->attributes[attr_idx];
+          auto& ssbo = binding.attribute_ssbos[attr_idx];
+
+          if(!ssbo.buffer)
+            continue;
+
+          if(req.access == "read_only")
+          {
+            bindings.append(QRhiShaderResourceBinding::bufferLoad(
+                bindingIndex++, QRhiShaderResourceBinding::ComputeStage, ssbo.buffer));
+          }
+          else if(req.access == "write_only")
+          {
+            bindings.append(QRhiShaderResourceBinding::bufferStore(
+                bindingIndex++, QRhiShaderResourceBinding::ComputeStage, ssbo.buffer));
+          }
+          else // read_write
+          {
+            bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
+                bindingIndex++, QRhiShaderResourceBinding::ComputeStage, ssbo.buffer));
+          }
+        }
+        geo_binding_index++;
+      }
+      input_port_index++;
+    }
     else
     {
       input_port_index++;
     }
   }
-  
+
   // Recreate SRBs for each compute pass
   for(auto& [edge, pass] : m_computePasses)
   {
@@ -1248,6 +1741,20 @@ void RenderedCSFNode::release(RenderList& r)
     r.releaseBuffer(storageBuffer.buffer);
   }
   m_storageBuffers.clear();
+
+  // Clean up geometry bindings
+  for(auto& binding : m_geometryBindings)
+  {
+    for(auto& ssbo : binding.attribute_ssbos)
+    {
+      if(ssbo.owned && ssbo.buffer)
+      {
+        r.releaseBuffer(ssbo.buffer);
+      }
+      ssbo.buffer = nullptr;
+    }
+  }
+  m_geometryBindings.clear();
   
   // Clean up storage images
   for(auto& storageImage : m_storageImages)
@@ -1367,6 +1874,19 @@ void RenderedCSFNode::runInitialPasses(
         }
       }
 
+      // If no storage buffer matched, try geometry element count
+      if(n <= 1)
+      {
+        for(const auto& geo_bind : m_geometryBindings)
+        {
+          if(geo_bind.element_count > 0)
+          {
+            n = geo_bind.element_count;
+            break;
+          }
+        }
+      }
+
       const auto requiredInvocations = n;
       const auto threadsPerWorkgroup = localX * localY * localZ;
       const int64_t totalWorkgroups = (requiredInvocations + threadsPerWorkgroup - 1)
@@ -1411,6 +1931,12 @@ void RenderedCSFNode::runInitialPasses(
 
     // End compute pass
     commands.endComputePass();
+  }
+
+  // After all compute passes: push output geometry to downstream nodes
+  if(!m_geometryBindings.empty())
+  {
+    pushOutputGeometry(renderer, edge);
   }
 }
 }
