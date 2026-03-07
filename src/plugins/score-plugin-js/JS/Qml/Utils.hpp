@@ -16,6 +16,17 @@ class JsUtils : public QObject
 {
   W_OBJECT(JsUtils)
 public:
+  bool fileExists(QString path);
+  W_SLOT(fileExists)
+  bool isFile(QString path);
+  W_SLOT(isFile)
+  bool isDir(QString path);
+  W_SLOT(isDir)
+  bool canReadFile(QString path);
+  W_SLOT(canReadFile)
+  bool canWriteFile(QString path);
+  W_SLOT(canWriteFile)
+
   QByteArray readFile(QString path);
   W_SLOT(readFile)
   void writeFile(QString path, QByteArray content);

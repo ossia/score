@@ -43,6 +43,27 @@ QObject* JsUtils::settings(QString key)
   return nullptr;
 }
 
+bool JsUtils::fileExists(QString path)
+{
+  return QFileInfo::exists(path);
+}
+bool JsUtils::isFile(QString path)
+{
+  return QFileInfo(path).isFile();
+}
+bool JsUtils::isDir(QString path)
+{
+  return QFileInfo(path).isDir();
+}
+bool JsUtils::canReadFile(QString path)
+{
+  return QFile(path).open(QIODevice::ReadOnly);
+}
+bool JsUtils::canWriteFile(QString path)
+{
+  return QFile(path).open(QIODevice::ReadOnly);
+}
+
 QByteArray JsUtils::readFile(QString path)
 {
   if(auto doc = score::AppContext().currentDocument())
