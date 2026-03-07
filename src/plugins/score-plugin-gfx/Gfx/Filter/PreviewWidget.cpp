@@ -167,6 +167,8 @@ struct PreviewInputVisitor
     img_count = img_count % 3;
     return image_node;
   }
+
+  score::gfx::NodeModel* operator()(const isf::geometry_input& v) { return nullptr; }
 };
 
 struct PreviewPresetVisitor
@@ -242,10 +244,12 @@ struct PreviewPresetVisitor
   
   // CSF-specific input handlers
   void operator()(const isf::storage_input& v) { }
-  
+
   void operator()(const isf::texture_input& v) { }
-  
+
   void operator()(const isf::csf_image_input& v) { }
+
+  void operator()(const isf::geometry_input& v) { }
 };
 }
 

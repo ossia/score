@@ -123,12 +123,29 @@ struct csf_image_input
   std::string height_expression;
 };
 
+// CSF geometry port input: SoA layout, one SSBO per attribute.
+// Declares which geometry attributes the compute shader wants to access.
+struct geometry_input
+{
+  struct attribute_request
+  {
+    std::string name;     // Attribute name used in GLSL (e.g. "position", "velocity")
+    std::string semantic; // Maps to ossia::attribute_semantic name (e.g. "position", "custom")
+    std::string type;     // GLSL type (e.g. "vec3", "vec4", "float")
+    std::string access;   // "read_only", "write_only", "read_write"
+    bool required{true};  // false = optional, zero fallback if missing
+  };
+
+  std::vector<attribute_request> attributes;
+};
+
 struct input
 {
   using input_impl = ossia::variant<
       float_input, long_input, event_input, bool_input, color_input, point2d_input,
       point3d_input, image_input, cubemap_input, audio_input, audioFFT_input,
-      audioHist_input, storage_input, texture_input, csf_image_input>;
+      audioHist_input, storage_input, texture_input, csf_image_input,
+      geometry_input>;
 
   std::string name;
   std::string label;

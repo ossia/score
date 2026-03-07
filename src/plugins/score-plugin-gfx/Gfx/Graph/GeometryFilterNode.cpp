@@ -148,6 +148,11 @@ struct geometry_input_port_vis
     // CSF image inputs don't contribute to uniform buffer
     // They're handled as image bindings
   }
+
+  void operator()(const isf::geometry_input&) noexcept
+  {
+    // Geometry inputs are not relevant for geometry filter nodes
+  }
 };
 
 GeometryFilterNode::GeometryFilterNode(
