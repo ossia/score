@@ -44,6 +44,12 @@ public:
   double volume() const noexcept { return m_volume; }
   void setVolume(double v);
 
+  VideoBlendMode blendMode() const noexcept { return m_blendMode; }
+  void setBlendMode(VideoBlendMode m);
+
+  double videoOpacity() const noexcept { return m_videoOpacity; }
+  void setVideoOpacity(double v);
+
   void nameChanged(const QString& n) E_SIGNAL(SCORE_PLUGIN_CLIPLAUNCHER_EXPORT, nameChanged, n)
   void exclusivityModeChanged(ClipLauncher::ExclusivityMode m)
       E_SIGNAL(SCORE_PLUGIN_CLIPLAUNCHER_EXPORT, exclusivityModeChanged, m)
@@ -53,13 +59,19 @@ public:
       E_SIGNAL(SCORE_PLUGIN_CLIPLAUNCHER_EXPORT, crossfadeDurationChanged, d)
   void volumeChanged(double v)
       E_SIGNAL(SCORE_PLUGIN_CLIPLAUNCHER_EXPORT, volumeChanged, v)
+  void blendModeChanged(ClipLauncher::VideoBlendMode m)
+      E_SIGNAL(SCORE_PLUGIN_CLIPLAUNCHER_EXPORT, blendModeChanged, m)
+  void videoOpacityChanged(double v)
+      E_SIGNAL(SCORE_PLUGIN_CLIPLAUNCHER_EXPORT, videoOpacityChanged, v)
 
 private:
   QString m_name;
   ExclusivityMode m_exclusivityMode{ExclusivityMode::Exclusive};
   TemporalMode m_temporalMode{TemporalMode::BPMSynced};
+  VideoBlendMode m_blendMode{VideoBlendMode::Normal};
   double m_crossfadeDuration{0.5};
   double m_volume{1.0};
+  double m_videoOpacity{1.0};
 };
 
 } // namespace ClipLauncher

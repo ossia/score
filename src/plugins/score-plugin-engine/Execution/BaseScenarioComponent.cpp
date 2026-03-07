@@ -17,6 +17,13 @@
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 
 #include <ossia/audio/audio_protocol.hpp>
+
+#if __has_include(<Gfx/GfxApplicationPlugin.hpp>)
+#include <Gfx/GfxApplicationPlugin.hpp>
+#include <Gfx/GfxForwardNode.hpp>
+#include <Gfx/GfxParameter.hpp>
+#define SCORE_HAS_GFX 1
+#endif
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/nodes/forward_node.hpp>
 #include <ossia/editor/scenario/scenario.hpp>
@@ -147,6 +154,30 @@ void BaseScenarioElement::init(bool forcePlay, BaseScenarioRefContainer element)
   // m_ossia_endState->onSetup();
   m_ossia_interval->onSetup(
       m_ossia_interval, main_interval, m_ossia_interval->makeDurations(), true);
+
+#if SCORE_HAS_GFX
+  // Set up root texture propagation: route the root interval's gfx_forward_node
+  // output to the first GFX window device, mirroring audio's out/main routing.
+  if(auto gfx_fw = m_ossia_interval->gfxForwardNode())
+  {
+    auto& outs = gfx_fw->root_outputs();
+    if(!outs.empty())
+    {
+      for(auto dev : m_ctx.execState->edit_devices())
+      {
+        if(dynamic_cast<Gfx::gfx_protocol_base*>(&dev->get_protocol()))
+        {
+          auto& root = dev->get_root_node();
+          if(auto param = root.get_parameter())
+          {
+            outs[0]->address = param;
+            break;
+          }
+        }
+      }
+    }
+  }
+#endif
 
   m_ossia_scenario->start();
 }

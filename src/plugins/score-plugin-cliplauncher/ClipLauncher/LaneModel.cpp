@@ -61,13 +61,32 @@ void LaneModel::setVolume(double v)
   }
 }
 
+void LaneModel::setBlendMode(VideoBlendMode m)
+{
+  if(m_blendMode != m)
+  {
+    m_blendMode = m;
+    blendModeChanged(m);
+  }
+}
+
+void LaneModel::setVideoOpacity(double v)
+{
+  if(m_videoOpacity != v)
+  {
+    m_videoOpacity = v;
+    videoOpacityChanged(v);
+  }
+}
+
 } // namespace ClipLauncher
 
 template <>
 void DataStreamReader::read(const ClipLauncher::LaneModel& lane)
 {
   m_stream << lane.m_name << lane.m_exclusivityMode << lane.m_temporalMode
-           << lane.m_crossfadeDuration << lane.m_volume;
+           << lane.m_crossfadeDuration << lane.m_volume << lane.m_blendMode
+           << lane.m_videoOpacity;
   insertDelimiter();
 }
 
@@ -75,7 +94,8 @@ template <>
 void DataStreamWriter::write(ClipLauncher::LaneModel& lane)
 {
   m_stream >> lane.m_name >> lane.m_exclusivityMode >> lane.m_temporalMode
-      >> lane.m_crossfadeDuration >> lane.m_volume;
+      >> lane.m_crossfadeDuration >> lane.m_volume >> lane.m_blendMode
+      >> lane.m_videoOpacity;
   checkDelimiter();
 }
 
@@ -87,6 +107,8 @@ void JSONReader::read(const ClipLauncher::LaneModel& lane)
   obj["TemporalMode"] = static_cast<int>(lane.m_temporalMode);
   obj["CrossfadeDuration"] = lane.m_crossfadeDuration;
   obj["Volume"] = lane.m_volume;
+  obj["BlendMode"] = static_cast<int>(lane.m_blendMode);
+  obj["VideoOpacity"] = lane.m_videoOpacity;
 }
 
 template <>
@@ -99,4 +121,8 @@ void JSONWriter::write(ClipLauncher::LaneModel& lane)
       = static_cast<ClipLauncher::TemporalMode>(obj["TemporalMode"].toInt());
   lane.m_crossfadeDuration = obj["CrossfadeDuration"].toDouble();
   lane.m_volume = obj["Volume"].toDouble();
+  if(auto v = obj.tryGet("BlendMode"))
+    lane.m_blendMode = static_cast<ClipLauncher::VideoBlendMode>(v->toInt());
+  if(auto v = obj.tryGet("VideoOpacity"))
+    lane.m_videoOpacity = v->toDouble();
 }

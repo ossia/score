@@ -28,6 +28,10 @@ ProcessModel::ProcessModel(
   inlet = std::make_unique<Process::AudioInlet>("Audio In", Id<Process::Port>(0), this);
   outlet = std::make_unique<Process::AudioOutlet>("Audio Out", Id<Process::Port>(0), this);
   outlet->setPropagate(true);
+  textureOutlet
+      = std::make_unique<Gfx::TextureOutlet>("Video Out", Id<Process::Port>(1), this);
+  midiOutlet
+      = std::make_unique<Process::MidiOutlet>("MIDI Out", Id<Process::Port>(2), this);
 
   // Create initial grid: 2 lanes x 4 scenes with cells at every position
   for(int l = 0; l < 2; l++)
@@ -55,6 +59,10 @@ void ProcessModel::init()
 {
   m_inlets.push_back(inlet.get());
   m_outlets.push_back(outlet.get());
+  if(textureOutlet)
+    m_outlets.push_back(textureOutlet.get());
+  if(midiOutlet)
+    m_outlets.push_back(midiOutlet.get());
 }
 
 CellModel* ProcessModel::cellAt(int lane, int scene) const
@@ -167,6 +175,8 @@ void DataStreamReader::read(const ClipLauncher::ProcessModel& proc)
 {
   readFrom(*proc.inlet);
   readFrom(*proc.outlet);
+  readFrom(*proc.textureOutlet);
+  readFrom(*proc.midiOutlet);
 
   m_stream << proc.m_globalQuantization;
 
@@ -193,6 +203,8 @@ void DataStreamWriter::write(ClipLauncher::ProcessModel& proc)
 {
   proc.inlet = Process::load_audio_inlet(*this, &proc);
   proc.outlet = Process::load_audio_outlet(*this, &proc);
+  proc.textureOutlet = std::make_unique<Gfx::TextureOutlet>(*this, &proc);
+  proc.midiOutlet = Process::load_midi_outlet(*this, &proc);
 
   m_stream >> proc.m_globalQuantization;
 
@@ -235,6 +247,8 @@ void JSONReader::read(const ClipLauncher::ProcessModel& proc)
 {
   obj["Inlet"] = *proc.inlet;
   obj["Outlet"] = *proc.outlet;
+  obj["TextureOutlet"] = *proc.textureOutlet;
+  obj["MidiOutlet"] = *proc.midiOutlet;
 
   obj["GlobalQuantization"] = proc.m_globalQuantization;
 
@@ -268,6 +282,28 @@ void JSONWriter::write(ClipLauncher::ProcessModel& proc)
   {
     proc.outlet = std::make_unique<Process::AudioOutlet>(
         "Audio Out", Id<Process::Port>(0), &proc);
+  }
+
+  if(auto texOutl = obj.tryGet("TextureOutlet"))
+  {
+    JSONWriter writer{*texOutl};
+    proc.textureOutlet = std::make_unique<Gfx::TextureOutlet>(writer, &proc);
+  }
+  else
+  {
+    proc.textureOutlet
+        = std::make_unique<Gfx::TextureOutlet>("Video Out", Id<Process::Port>(1), &proc);
+  }
+
+  if(auto midiOutl = obj.tryGet("MidiOutlet"))
+  {
+    JSONWriter writer{*midiOutl};
+    proc.midiOutlet = Process::load_midi_outlet(writer, &proc);
+  }
+  else
+  {
+    proc.midiOutlet
+        = std::make_unique<Process::MidiOutlet>("MIDI Out", Id<Process::Port>(2), &proc);
   }
 
   proc.m_globalQuantization = obj["GlobalQuantization"].toDouble();

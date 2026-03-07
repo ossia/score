@@ -33,6 +33,7 @@ if(CMAKE_SYSTEM_NAME MATCHES Emscripten)
 
   score-plugin-nodal
   score-plugin-controlsurface
+  score-plugin-cliplauncher
   score-plugin-remotecontrol
   score-plugin-spline
 
@@ -83,6 +84,7 @@ else()
 
   score-plugin-nodal
   score-plugin-controlsurface
+  score-plugin-cliplauncher
   score-plugin-remotecontrol
   score-plugin-spline
 

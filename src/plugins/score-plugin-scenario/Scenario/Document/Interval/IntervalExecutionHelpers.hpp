@@ -75,15 +75,15 @@ inline auto propagatedOutlets(const Process::Outlets& outlets) noexcept
   ossia::pod_vector<std::size_t> propagated_outlets;
   for(std::size_t i = 0; i < outlets.size(); i++)
   {
-    if(auto o = qobject_cast<Process::AudioOutlet*>(outlets[i]))
-      if(o->propagate())
-        propagated_outlets.push_back(i);
+    if(outlets[i]->propagate())
+      propagated_outlets.push_back(i);
   }
   return propagated_outlets;
 }
 
 inline void connectPropagated(
     const ossia::node_ptr& process_node, const ossia::node_ptr& interval_node,
+    const ossia::node_ptr& gfx_fw_node,
     ossia::graph_interface& g,
     const ossia::pod_vector<std::size_t>& propagated_outlets) noexcept
 {
@@ -94,18 +94,36 @@ inline void connectPropagated(
     if(propagated >= outs.size())
       continue;
 
-    if(outs[propagated]->which() == ossia::audio_port::which)
+    switch(outs[propagated]->which())
     {
-      auto cable = g.allocate_edge(
-          ossia::immediate_glutton_connection{}, outs[propagated],
-          interval_node->root_inputs()[0], process_node, interval_node);
-      g.connect(cable);
+      case ossia::audio_port::which:
+      {
+        auto cable = g.allocate_edge(
+            ossia::immediate_glutton_connection{}, outs[propagated],
+            interval_node->root_inputs()[0], process_node, interval_node);
+        g.connect(cable);
+        break;
+      }
+      case ossia::texture_port::which:
+      {
+        if(gfx_fw_node && !gfx_fw_node->root_inputs().empty())
+        {
+          auto cable = g.allocate_edge(
+              ossia::immediate_glutton_connection{}, outs[propagated],
+              gfx_fw_node->root_inputs()[0], process_node, gfx_fw_node);
+          g.connect(cable);
+        }
+        break;
+      }
+      default:
+        break;
     }
   }
 }
 
 inline void updatePropagated(
     const ossia::node_ptr& process_node, const ossia::node_ptr& interval_node,
+    const ossia::node_ptr& gfx_fw_node,
     ossia::graph_interface& g, std::size_t port_idx, bool is_propagated) noexcept
 {
   OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
@@ -116,7 +134,16 @@ inline void updatePropagated(
 
   const ossia::outlet& outlet = *outs[port_idx];
 
-  if(!outlet.target<ossia::audio_port>())
+  // Determine the target node based on port type
+  ossia::node_ptr target_node;
+  if(outlet.which() == ossia::audio_port::which)
+    target_node = interval_node;
+  else if(outlet.which() == ossia::texture_port::which)
+    target_node = gfx_fw_node;
+  else
+    return;
+
+  if(!target_node || target_node->root_inputs().empty())
     return;
 
   // Remove cables if depropagated, add cables if repropagated
@@ -124,20 +151,20 @@ inline void updatePropagated(
   {
     for(const ossia::graph_edge* edge : outlet.targets)
     {
-      if(edge->in_node == interval_node)
+      if(edge->in_node == target_node)
         return;
     }
 
     auto cable = g.allocate_edge(
         ossia::immediate_glutton_connection{}, outs[port_idx],
-        interval_node->root_inputs()[0], process_node, interval_node);
+        target_node->root_inputs()[0], process_node, target_node);
     g.connect(cable);
   }
   else
   {
     for(ossia::graph_edge* edge : outlet.targets)
     {
-      if(edge->in_node == interval_node)
+      if(edge->in_node == target_node)
       {
         g.disconnect(edge);
         return;
@@ -153,6 +180,7 @@ struct AddProcess
   ossia::time_interval* cst_ptr{};
   std::weak_ptr<ossia::time_process> oproc_weak;
   std::weak_ptr<ossia::graph_interface> g_weak;
+  std::weak_ptr<ossia::graph_node> gfx_forward_weak;
   ossia::pod_vector<std::size_t> propagated_outlets;
 
   void operator()() const noexcept
@@ -170,7 +198,7 @@ struct AddProcess
     if(!oproc->node)
       return;
 
-    connectPropagated(oproc->node, cst_ptr->node, *g, propagated_outlets);
+    connectPropagated(oproc->node, cst_ptr->node, gfx_forward_weak.lock(), *g, propagated_outlets);
   }
 };
 
@@ -179,6 +207,7 @@ struct RecomputePropagate
   const Execution::Context& system;
   Process::ProcessModel& proc;
   std::weak_ptr<ossia::graph_node> cst_node_weak;
+  std::weak_ptr<ossia::graph_node> gfx_forward_weak;
   std::weak_ptr<ossia::time_process> oproc_weak;
   std::weak_ptr<ossia::graph_interface> g_weak;
   Process::Outlet* outlet{};
@@ -192,8 +221,8 @@ struct RecomputePropagate
         = std::distance(proc.outlets().begin(), ossia::find(proc.outlets(), outlet));
 
     system.executionQueue.enqueue(
-        [cst_node_weak = this->cst_node_weak, g_weak = this->g_weak,
-         oproc_weak = this->oproc_weak, port_index, propagate] {
+        [cst_node_weak = this->cst_node_weak, gfx_fw_weak = this->gfx_forward_weak,
+         g_weak = this->g_weak, oproc_weak = this->oproc_weak, port_index, propagate] {
       const auto g = g_weak.lock();
       if(!g)
         return;
@@ -210,7 +239,7 @@ struct RecomputePropagate
       if(!oproc->node)
         return;
 
-      updatePropagated(proc_node, cst_node, *g, port_index, propagate);
+      updatePropagated(proc_node, cst_node, gfx_fw_weak.lock(), *g, port_index, propagate);
     });
   }
 };
@@ -220,6 +249,7 @@ struct ReconnectOutlets
 {
   T& component;
   std::weak_ptr<ossia::graph_node> fw_node;
+  std::weak_ptr<ossia::graph_node> gfx_fw_node;
 
   Process::ProcessModel& proc;
   std::weak_ptr<ossia::time_process> oproc_weak;
@@ -231,14 +261,15 @@ struct ReconnectOutlets
     OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
     for(Process::Outlet* outlet : proc.outlets())
     {
-      if(auto o = qobject_cast<Process::AudioOutlet*>(outlet))
+      if(outlet->propagate() || qobject_cast<Process::AudioOutlet*>(outlet)
+         || outlet->type() == Process::PortType::Texture)
       {
         QObject::disconnect(
-            o, &Process::AudioOutlet::propagateChanged, &component, nullptr);
+            outlet, &Process::Outlet::propagateChanged, &component, nullptr);
         QObject::connect(
-            o, &Process::AudioOutlet::propagateChanged, &component,
+            outlet, &Process::Outlet::propagateChanged, &component,
             RecomputePropagate{
-                component.system(), proc, fw_node, oproc_weak, g_weak, outlet});
+                component.system(), proc, fw_node, gfx_fw_node, oproc_weak, g_weak, outlet});
       }
     }
   }
@@ -247,6 +278,7 @@ struct ReconnectOutlets
 struct HandleNodeChange
 {
   std::weak_ptr<ossia::graph_node> cst_node_weak;
+  std::weak_ptr<ossia::graph_node> gfx_forward_weak;
   std::weak_ptr<ossia::time_process> oproc_weak;
   std::weak_ptr<ossia::graph_interface> g_weak;
   Process::ProcessModel& proc;
@@ -257,7 +289,9 @@ struct HandleNodeChange
   {
     OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
 
-    commands->push_back([cst_node_weak = this->cst_node_weak, g_weak = this->g_weak,
+    commands->push_back([cst_node_weak = this->cst_node_weak,
+                         gfx_fw_weak = this->gfx_forward_weak,
+                         g_weak = this->g_weak,
                          propagated = propagatedOutlets(proc.outlets()), old_node,
                          new_node] {
       OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
@@ -267,6 +301,7 @@ struct HandleNodeChange
       auto g = g_weak.lock();
       if(!g)
         return;
+      auto gfx_fw = gfx_fw_weak.lock();
 
       // Remove propagate edges from the old node
       if(old_node)
@@ -277,7 +312,8 @@ struct HandleNodeChange
           auto targets = outlet->targets;
           for(auto e : targets)
           {
-            if(e->in_node.get() == cst_node.get())
+            if(e->in_node.get() == cst_node.get()
+               || (gfx_fw && e->in_node.get() == gfx_fw.get()))
             {
               g->disconnect(e);
             }
@@ -288,7 +324,7 @@ struct HandleNodeChange
       // Add edges to the new node
       if(new_node)
       {
-        connectPropagated(new_node, cst_node, *g, propagated);
+        connectPropagated(new_node, cst_node, gfx_fw, *g, propagated);
       }
     });
   }

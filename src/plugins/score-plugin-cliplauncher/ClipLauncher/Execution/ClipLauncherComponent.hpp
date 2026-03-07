@@ -11,6 +11,7 @@ class scenario;
 class time_interval;
 class time_sync;
 class time_event;
+class time_process;
 }
 
 namespace Execution
@@ -24,11 +25,11 @@ class StateComponent;
 namespace ClipLauncher
 {
 class CellModel;
+class LaneModel;
 class ProcessModel;
 
 namespace Execution
 {
-
 // Per-cell execution data
 struct CellExecData
 {
@@ -61,6 +62,11 @@ public:
 
   void cleanup() override;
 
+  std::shared_ptr<ossia::graph_node> gfxForwardNode() const override
+  {
+    return m_gfxForwardNode;
+  }
+
   // Launch/stop cells
   void launchCell(const Id<CellModel>& cellId, double quantizationRate = 0.);
   void stopCell(const Id<CellModel>& cellId, double quantizationRate = 0.);
@@ -70,7 +76,10 @@ private:
   void setupCell(CellModel& cell);
   void stopAllInLane(int lane, double quantizationRate);
 
+  int laneIndex(const LaneModel& lane) const;
+
   std::shared_ptr<ossia::scenario> m_scenario;
+  std::shared_ptr<ossia::graph_node> m_gfxForwardNode;
   score::hash_map<Id<CellModel>, CellExecData> m_cells;
   score::hash_map<int, Id<CellModel>> m_activeCellPerLane; // lane -> active cell
 };

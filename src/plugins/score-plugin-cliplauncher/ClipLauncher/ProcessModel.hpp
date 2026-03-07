@@ -8,6 +8,8 @@
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Process.hpp>
 
+#include <Gfx/TexturePort.hpp>
+
 #include <score/model/EntityMap.hpp>
 
 #include <verdigris>
@@ -24,6 +26,8 @@ class ProcessModel final : public Process::ProcessModel
 public:
   std::unique_ptr<Process::AudioInlet> inlet;
   std::unique_ptr<Process::AudioOutlet> outlet;
+  std::unique_ptr<Gfx::TextureOutlet> textureOutlet;
+  std::unique_ptr<Process::MidiOutlet> midiOutlet;
 
   score::EntityMap<LaneModel> lanes;
   score::EntityMap<SceneModel> scenes;

@@ -546,21 +546,25 @@ void JSONWriter::write(Gfx::TextureInlet& p)
 template <>
 void DataStreamReader::read(const Gfx::TextureOutlet& p)
 {
-  // read((Process::Outlet&)p);
+  m_stream << p.m_propagate;
 }
 template <>
 void DataStreamWriter::write(Gfx::TextureOutlet& p)
 {
+  m_stream >> p.m_propagate;
 }
 
 template <>
 void JSONReader::read(const Gfx::TextureOutlet& p)
 {
-  // read((Process::Outlet&)p);
+  if(p.m_propagate)
+    obj["Propagate"] = p.m_propagate;
 }
 template <>
 void JSONWriter::write(Gfx::TextureOutlet& p)
 {
+  if(auto it = obj.tryGet("Propagate"))
+    p.m_propagate = it->toBool();
 }
 
 W_OBJECT_IMPL(Gfx::GeometryInlet)

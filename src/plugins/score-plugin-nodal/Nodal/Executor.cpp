@@ -137,6 +137,7 @@ struct AddNode
   std::weak_ptr<ossia::graph_node> fw_node;
   std::weak_ptr<ossia::graph_node> process_node;
   std::weak_ptr<ossia::graph_interface> g_weak;
+  std::weak_ptr<ossia::graph_node> gfx_fw_node;
   ossia::pod_vector<std::size_t> propagated_outlets;
 
   void operator()() const noexcept
@@ -153,7 +154,7 @@ struct AddNode
     if(!g)
       return;
 
-    Execution::connectPropagated(oproc, fw, *g, propagated_outlets);
+    Execution::connectPropagated(oproc, fw, gfx_fw_node.lock(), *g, propagated_outlets);
   }
 };
 
@@ -170,13 +171,13 @@ void NodalExecutorBase::reg(const RegisteredNode& fx, Execution::Transaction& ve
   system().setup.register_node(proc.inlets(), proc.outlets(), fx.comp->node, vec);
 
   auto reconnectOutlets = Execution::ReconnectOutlets<NodalExecutorBase>{
-      *this, this->node, proc, fx.comp->OSSIAProcessPtr(), system().execGraph};
+      *this, this->node, {}, proc, fx.comp->OSSIAProcessPtr(), system().execGraph};
 
   connect(&proc, &Process::ProcessModel::outletsChanged, this, reconnectOutlets);
   reconnectOutlets();
 
   vec.push_back(AddNode{
-      this->node, fx.comp->node, system().execGraph,
+      this->node, fx.comp->node, system().execGraph, {},
       Execution::propagatedOutlets(proc.outlets())});
 }
 

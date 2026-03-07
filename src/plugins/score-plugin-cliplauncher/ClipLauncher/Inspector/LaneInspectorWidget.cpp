@@ -7,6 +7,7 @@
 #include <score/widgets/SignalUtils.hpp>
 
 #include <QComboBox>
+#include <QDoubleSpinBox>
 #include <QLineEdit>
 
 #include <ClipLauncher/Commands/SetLaneProperties.hpp>
@@ -59,6 +60,62 @@ LaneInspectorWidget::LaneInspectorWidget(
   con(lane, &LaneModel::exclusivityModeChanged, this,
       [exclCombo](ExclusivityMode m) { exclCombo->setCurrentIndex(static_cast<int>(m)); });
   lay->addRow(tr("Exclusivity"), exclCombo);
+
+  // Blend mode
+  auto blendCombo = new QComboBox;
+  blendCombo->addItems(
+      {tr("Add"), tr("Average"), tr("Color Burn"), tr("Color Dodge"), tr("Darken"),
+       tr("Difference"), tr("Exclusion"), tr("Glow"), tr("Hard Light"), tr("Hard Mix"),
+       tr("Lighten"), tr("Linear Burn"), tr("Linear Dodge"), tr("Linear Light"),
+       tr("Multiply"), tr("Negation"), tr("Normal"), tr("Overlay"), tr("Phoenix"),
+       tr("Pin Light"), tr("Reflect"), tr("Screen"), tr("Soft Light"), tr("Subtract"),
+       tr("Vivid Light")});
+  // Enum values start at 1, combo index starts at 0
+  blendCombo->setCurrentIndex(static_cast<int>(lane.blendMode()) - 1);
+  connect(
+      blendCombo, SignalUtils::QComboBox_currentIndexChanged_int(), this,
+      [this](int idx) {
+        auto newMode = static_cast<VideoBlendMode>(idx + 1);
+        if(newMode != m_lane.blendMode())
+        {
+          CommandDispatcher<> disp{m_ctx.commandStack};
+          disp.submit<SetLaneBlendMode>(parentProcess(), m_lane, newMode);
+        }
+      });
+  con(lane, &LaneModel::blendModeChanged, this, [blendCombo](VideoBlendMode m) {
+    blendCombo->setCurrentIndex(static_cast<int>(m) - 1);
+  });
+  lay->addRow(tr("Blend Mode"), blendCombo);
+
+  // Video opacity
+  auto opacitySpin = new QDoubleSpinBox;
+  opacitySpin->setRange(0.0, 1.0);
+  opacitySpin->setSingleStep(0.05);
+  opacitySpin->setValue(lane.videoOpacity());
+  connect(opacitySpin, &QDoubleSpinBox::valueChanged, this, [this](double v) {
+    if(v != m_lane.videoOpacity())
+    {
+      CommandDispatcher<> disp{m_ctx.commandStack};
+      disp.submit<SetLaneVideoOpacity>(parentProcess(), m_lane, v);
+    }
+  });
+  con(lane, &LaneModel::videoOpacityChanged, opacitySpin, &QDoubleSpinBox::setValue);
+  lay->addRow(tr("Video Opacity"), opacitySpin);
+
+  // Volume
+  auto volumeSpin = new QDoubleSpinBox;
+  volumeSpin->setRange(0.0, 2.0);
+  volumeSpin->setSingleStep(0.05);
+  volumeSpin->setValue(lane.volume());
+  connect(volumeSpin, &QDoubleSpinBox::valueChanged, this, [this](double v) {
+    if(v != m_lane.volume())
+    {
+      CommandDispatcher<> disp{m_ctx.commandStack};
+      disp.submit<SetLaneVolume>(parentProcess(), m_lane, v);
+    }
+  });
+  con(lane, &LaneModel::volumeChanged, volumeSpin, &QDoubleSpinBox::setValue);
+  lay->addRow(tr("Volume"), volumeSpin);
 
   updateAreaLayout({w});
 }

@@ -440,7 +440,7 @@ PortItem::PortItem(
     auto ap = static_cast<const Process::AudioOutlet*>(&m_port);
     m_address->has_propagate = ap->propagate();
     connect(
-        ap, &Process::AudioOutlet::propagateChanged, this,
+        ap, &Process::Outlet::propagateChanged, this,
         [a = m_address](bool propagate) {
       a->has_propagate = propagate;
       a->update();
