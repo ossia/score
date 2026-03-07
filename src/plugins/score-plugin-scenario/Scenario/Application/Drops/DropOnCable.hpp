@@ -131,7 +131,7 @@ class DropOnNode : public QObject
 public:
   const ScenarioDocumentModel& sm;
   const Process::Context& m_context;
-  const Process::NodeItem& item;
+  QPointer<const Process::NodeItem> item;
 
   Scenario::IntervalModel* m_interval{};
 
@@ -140,13 +140,15 @@ public:
       const Process::Context& m_context)
       : sm{sm}
       , m_context{m_context}
-      , item{item}
+      , item{&item}
   {
   }
 
   void createPreset(const QByteArray& presetData)
   {
-    auto& old = item.model();
+    if(!item)
+      return;
+    auto& old = item->model();
     auto& procs = m_context.app.interfaces<Process::ProcessFactoryList>();
     if(auto preset = Process::Preset::fromJson(procs, presetData))
     {
@@ -179,7 +181,9 @@ public:
 
   void createProcess(const Process::ProcessDropHandler::ProcessDrop& proc)
   {
-    auto& old = item.model();
+    if(!item)
+      return;
+    auto& old = item->model();
     Scenario::Command::Macro m{
         new Scenario::Command::DropProcessInIntervalMacro, m_context};
     score::Dispatcher_T<Scenario::Command::Macro> disp{m};
@@ -200,7 +204,9 @@ public:
 
   void linkNewProcess(Process::ProcessModel* p, Scenario::Command::Macro& m)
   {
-    auto& old = item.model();
+    if(!item)
+      return;
+    auto& old = item->model();
     if(p->inlets().size() > 0)
     {
       const auto dst = p->inlets()[0];
@@ -264,7 +270,9 @@ public:
   void drop(const QMimeData& mime)
   {
     // FIXME drop in nodal vs drop in scenario
-    auto& model = item.model();
+    if(!item)
+      return;
+    auto& model = item->model();
     m_interval = qobject_cast<Scenario::IntervalModel*>(model.parent());
     if(!m_interval)
       return;
