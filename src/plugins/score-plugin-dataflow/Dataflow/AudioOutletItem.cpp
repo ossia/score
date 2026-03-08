@@ -76,7 +76,7 @@ void AudioOutletFactory::setupOutletInspector(
       d.submit<Process::SetPropagate>(out, ok);
     }
   });
-  QObject::connect(&outlet, &Process::AudioOutlet::propagateChanged, cb, [=](bool p) {
+  QObject::connect(&outlet, &Process::Outlet::propagateChanged, cb, [=](bool p) {
     if(p != cb->isChecked())
     {
       cb->setChecked(p);

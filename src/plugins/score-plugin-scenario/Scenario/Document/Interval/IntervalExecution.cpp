@@ -27,6 +27,12 @@
 #include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/dataflow/graph_edge.hpp>
 #include <ossia/dataflow/nodes/forward_node.hpp>
+
+#if __has_include(<Gfx/GfxApplicationPlugin.hpp>)
+#include <Gfx/GfxApplicationPlugin.hpp>
+#include <Gfx/GfxForwardNode.hpp>
+#define SCORE_HAS_GFX 1
+#endif
 #include <ossia/editor/scenario/scenario.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
@@ -164,7 +170,7 @@ IntervalComponentBase::IntervalComponentBase(
 
   if(scenar)
   {
-    con(*interval().outlet, &Process::AudioOutlet::propagateChanged, this,
+    con(*interval().outlet, &Process::Outlet::propagateChanged, this,
         [&, scenar](bool propag) {
       OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
       if(m_ossia_interval)
@@ -200,6 +206,20 @@ IntervalComponentBase::IntervalComponentBase(
       }
     });
   }
+
+#if SCORE_HAS_GFX
+  // Create a gfx_forward_node for texture propagation
+  if(auto* gfxPlug = ctx.doc.findPlugin<Gfx::DocumentPlugin>())
+  {
+    m_gfxForwardNode = std::make_shared<Gfx::gfx_forward_node>(gfxPlug->exec);
+    m_gfxForwardNode->prepare(*ctx.execState);
+    std::weak_ptr<ossia::graph_interface> g_weak = ctx.execGraph;
+    in_exec([g_weak, node = m_gfxForwardNode] {
+      if(auto graph = g_weak.lock())
+        graph->add_node(node);
+    });
+  }
+#endif
   // TODO tempo, etc
 }
 
@@ -330,6 +350,16 @@ void IntervalComponent::cleanup(const std::shared_ptr<IntervalComponent>& self)
       });
     }
     c->cleanup();
+  }
+
+  if(m_gfxForwardNode)
+  {
+    std::weak_ptr<ossia::graph_interface> g_weak = system().execGraph;
+    in_exec([g_weak, node = m_gfxForwardNode] {
+      if(auto graph = g_weak.lock())
+        graph->remove_node(node);
+    });
+    m_gfxForwardNode.reset();
   }
 
   executionStopped();
@@ -606,9 +636,9 @@ IntervalComponentBase::make(ProcessComponentFactory& fac, Process::ProcessModel&
           ctx->executionQueue.enqueue([p, t = ctx->time(t)] { p->set_start_offset(t); });
       });
 
-      // Audio propagation
+      // Audio + texture propagation
       auto reconnectOutlets = ReconnectOutlets<IntervalComponentBase>{
-          *this, this->OSSIAInterval()->node, proc, oproc, system().execGraph};
+          *this, this->OSSIAInterval()->node, m_gfxForwardNode, proc, oproc, system().execGraph};
 
       con(proc, &Process::ProcessModel::outletsChanged, this, reconnectOutlets);
       reconnectOutlets();
@@ -619,11 +649,33 @@ IntervalComponentBase::make(ProcessComponentFactory& fac, Process::ProcessModel&
 
       in_exec(AddProcess{
           m_ossia_interval, m_ossia_interval.get(), oproc, system().execGraph,
-          propagatedOutlets(proc.outlets())});
+          m_gfxForwardNode, propagatedOutlets(proc.outlets())});
+
+      // Connect process's gfx_forward_node to interval's gfx_forward_node
+      // (for processes like Scenario or ClipLauncher that aggregate textures)
+      if(auto proc_gfx = plug->gfxForwardNode())
+      {
+        if(m_gfxForwardNode
+           && !proc_gfx->root_outputs().empty()
+           && !m_gfxForwardNode->root_inputs().empty())
+        {
+          std::weak_ptr<ossia::graph_interface> g_weak = system().execGraph;
+          in_exec([g_weak, proc_gfx, itv_gfx = m_gfxForwardNode] {
+            if(auto g = g_weak.lock())
+            {
+              auto cable = g->allocate_edge(
+                  ossia::immediate_glutton_connection{},
+                  proc_gfx->root_outputs()[0], itv_gfx->root_inputs()[0],
+                  proc_gfx, itv_gfx);
+              g->connect(cable);
+            }
+          });
+        }
+      }
 
       connect(
           plug.get(), &ProcessComponent::nodeChanged, this,
-          HandleNodeChange{m_ossia_interval->node, oproc, system().execGraph, proc});
+          HandleNodeChange{m_ossia_interval->node, m_gfxForwardNode, oproc, system().execGraph, proc});
       return plug.get();
     }
   }

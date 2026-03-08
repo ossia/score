@@ -287,7 +287,16 @@ public:
       ossia::outlet&,
       const smallfun::function<void(Inlet&, ossia::inlet&)>&) const noexcept;
 
+  virtual bool propagate() const noexcept;
+  virtual void setPropagate(bool p);
+  void propagateChanged(bool propagate)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, propagateChanged, propagate)
+
+  PROPERTY(bool, propagate W_READ propagate W_WRITE setPropagate W_NOTIFY propagateChanged)
+
 protected:
+  bool m_propagate{false};
+
   Outlet() = delete;
   Outlet(const Outlet&) = delete;
   Outlet(const QString& name, Id<Process::Port> c, QObject* parent);
@@ -351,11 +360,6 @@ public:
   QByteArray saveData() const noexcept override;
   void loadData(const QByteArray& arr, PortLoadDataFlags = {}) noexcept override;
 
-  bool propagate() const;
-  void setPropagate(bool propagate);
-  void propagateChanged(bool propagate)
-      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, propagateChanged, propagate)
-
   double gain() const;
   void setGain(double g);
   void gainChanged(double g) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, gainChanged, g)
@@ -367,14 +371,11 @@ public:
   std::unique_ptr<Process::ControlInlet> gainInlet;
   std::unique_ptr<Process::ControlInlet> panInlet;
 
-  PROPERTY(
-      bool, propagate W_READ propagate W_WRITE setPropagate W_NOTIFY propagateChanged)
   PROPERTY(double, gain W_READ gain W_WRITE setGain W_NOTIFY gainChanged)
   PROPERTY(pan_weight, pan W_READ pan W_WRITE setPan W_NOTIFY panChanged)
 private:
   double m_gain{};
   pan_weight m_pan;
-  bool m_propagate{false};
 };
 
 class SCORE_LIB_PROCESS_EXPORT MidiInlet : public Inlet

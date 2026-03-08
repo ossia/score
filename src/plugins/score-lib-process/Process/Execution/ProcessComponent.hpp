@@ -77,6 +77,9 @@ public:
 
   std::shared_ptr<ossia::graph_node> node;
 
+  //! Override to expose a gfx_forward_node for texture propagation
+  virtual std::shared_ptr<ossia::graph_node> gfxForwardNode() const { return {}; }
+
 public:
   void nodeChanged(
       const ossia::node_ptr& old_node, const ossia::node_ptr& new_node,
