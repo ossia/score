@@ -61,10 +61,27 @@ DefaultEffectItem::DefaultEffectItem(
 
 DefaultEffectItem::~DefaultEffectItem() { }
 
+static void deletePortItems(QGraphicsItem* it)
+{
+  auto items = it->childItems();
+  for(auto ptr : items)
+  {
+    if(auto r = qgraphicsitem_cast<Dataflow::PortItem*>(ptr))
+      delete r;
+    else
+      deletePortItems(ptr);
+  }
+}
 void DefaultEffectItem::reset()
 {
-  delete m_layout;
-  m_layout = nullptr;
+  if(m_layout)
+  {
+    deletePortItems(m_layout);
+    m_layout->setVisible(false);
+    m_layout->deleteLater();
+    m_layout = nullptr;
+  }
+
   m_allLayouts.clear();
 
   m_needRecreate = true;
@@ -225,8 +242,8 @@ void DefaultEffectItem::recreate_full_both(int num_hidden)
       SCORE_ASSERT(e->parent());
       {
         auto item = b.makePort(*e);
-        SCORE_SOFT_ASSERT(item.container);
-        item.container->setParentItem(inlet_layout);
+        if(item.container)
+          item.container->setParentItem(inlet_layout);
         if(auto inlet = qobject_cast<Process::ControlInlet*>(e))
           con(*inlet, &Process::ControlInlet::domainChanged, this,
               &DefaultEffectItem::reset, Qt::UniqueConnection);
@@ -245,8 +262,8 @@ void DefaultEffectItem::recreate_full_both(int num_hidden)
       SCORE_ASSERT(e->parent());
       {
         auto item = b.makePort(*e);
-        SCORE_SOFT_ASSERT(item.container);
-        item.container->setParentItem(outlet_layout);
+        if(item.container)
+          item.container->setParentItem(outlet_layout);
 
         if(auto outlet = qobject_cast<Process::ControlOutlet*>(e))
           con(*outlet, &Process::ControlOutlet::domainChanged, this,

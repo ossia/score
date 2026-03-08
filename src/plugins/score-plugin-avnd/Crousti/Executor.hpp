@@ -2,6 +2,7 @@
 
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/ExecutionContext.hpp>
+#include <Process/ExecutionSetup.hpp>
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
@@ -17,7 +18,7 @@
 #include <Crousti/ProcessModel.hpp>
 
 #include <score/tools/Bind.hpp>
-
+#include <ossia/detail/flat_set.hpp>
 #include <ossia/dataflow/exec_state_facade.hpp>
 #include <ossia/dataflow/node_process.hpp>
 #include <ossia/network/context.hpp>
@@ -106,10 +107,8 @@ class CustomNodeProcess : public ossia::node_process
 template <typename Node>
 class Executor final
     : public Execution::ProcessComponent_T<ProcessModel<Node>, ossia::node_process>
+    , public dynamic_ports_component_data<Node>
 {
-  Process::Inlets m_oldInlets;
-  Process::Outlets m_oldOutlets;
-
 public:
   static Q_DECL_RELAXED_CONSTEXPR UuidKey<score::Component> static_key() noexcept
   {
@@ -184,18 +183,22 @@ public:
 
     connect_controls(element, ctx, ptr);
     update_controls(ptr);
-    QObject::connect(
-        &element, &Process::ProcessModel::inletsChanged, this,
-        &Executor::recompute_ports);
-    QObject::connect(
-        &element, &Process::ProcessModel::outletsChanged, this,
-        &Executor::recompute_ports);
 
     // To call prepare() after evertyhing is ready
     node->audio_configuration_changed(st);
 
-    m_oldInlets = element.inlets();
-    m_oldOutlets = element.outlets();
+    if constexpr(oscr::has_dynamic_ports<Node>)
+    {
+      QObject::connect(
+          &element, &Process::ProcessModel::inletsChanged, this,
+          &Executor::recompute_ports);
+      QObject::connect(
+          &element, &Process::ProcessModel::outletsChanged, this,
+          &Executor::recompute_ports);
+
+      this->m_oldInlets = element.inlets();
+      this->m_oldOutlets = element.outlets();
+    }
   }
 
   void
@@ -322,18 +325,140 @@ public:
 
   void recompute_ports()
   {
-    Execution::Transaction commands{this->system()};
-    auto n = std::dynamic_pointer_cast<safe_node<Node>>(this->node);
-    if(!n)
-      return;
+    if constexpr(oscr::has_dynamic_ports<Node>)
+    {
+      using T = Node;
+      auto n = std::dynamic_pointer_cast<safe_node<Node>>(this->node);
+      if(!n)
+        return;
+      this->m_generation++;
+      const auto& new_inlets = this->process().inlets();
+      for(auto port : this->m_oldInlets)
+      {
+        if(!ossia::contains(new_inlets, port))
+        {
+          this->m_connectedControls.erase(port);
+        }
+      }
 
-    // Re-run setup_inlets ?
-    in_exec([dp = this->process().dynamic_ports, node = n] {
-      node->dynamic_ports = dp;
-      node->root_inputs().clear();
-      node->root_outputs().clear();
-      node->initialize_all_ports();
-    });
+      this->m_oldInlets = this->process().inlets();
+      this->m_oldOutlets = this->process().outlets();
+
+      struct port_storage
+      {
+        ossia::inlets new_inls_buffer;
+        ossia::outlets new_outls_buffer;
+        inlet_reload_storage<T> reload_inlet{};
+        outlet_reload_storage<T> reload_outlet{};
+        port_storage(int ins, int outs)
+        {
+          new_inls_buffer.reserve(16 + ins);
+          new_outls_buffer.reserve(16 + outs);
+        }
+      };
+
+      auto port_st = std::make_shared<port_storage>(
+          this->m_oldInlets.size(), this->m_oldOutlets.size());
+
+      /// FIXME instead we want to duplicate initialize_all_ports,
+      /// in a way that allows to generate the port array in the
+      /// main thread. Problem : some are references to members of the node object.
+      /// The references shouldn't change though but we really want two passes:
+      /// One "take reference" pass (which would also create the new dynamic array
+      /// for dynamic in / outs, fully in the main thread), and one "replace by the new I/O ports in our object" pass,
+      /// which happens in the DSP thread .
+
+      auto& dp = this->process().dynamic_ports;
+      {
+        // Setup inputs
+        if constexpr(avnd::inputs_type<T>::size > 0)
+        {
+          using in_info = avnd::input_introspection<T>;
+          using in_type = typename avnd::inputs_type<T>::type;
+          auto& port_tuple = n->ossia_inlets.ports;
+
+          [&]<typename K, K... Index>(std::integer_sequence<K, Index...>) {
+            reload_inlets<safe_node_base_base<T>> init{*n, port_st->new_inls_buffer, dp};
+            (init(
+                 avnd::field_reflection<
+                     Index, avnd::pfr::tuple_element_t<Index, in_type>>{},
+                 tuplet::get<Index>(port_tuple),
+                 tuplet::get<Index>(port_st->reload_inlet.ports)),
+             ...);
+          }(typename in_info::indices_n{});
+        }
+
+        // Setup outputs
+        if constexpr(avnd::outputs_type<T>::size > 0)
+        {
+          using out_info = avnd::output_introspection<T>;
+          using out_type = typename avnd::outputs_type<T>::type;
+          auto& port_tuple = n->ossia_outlets.ports;
+
+          [&]<typename K, K... Index>(std::integer_sequence<K, Index...>) {
+            reload_outlets<safe_node_base_base<T>> init{
+                *n, port_st->new_outls_buffer, dp};
+            (init(
+                 avnd::field_reflection<
+                     Index, avnd::pfr::tuple_element_t<Index, out_type>>{},
+                 tuplet::get<Index>(port_tuple),
+                 tuplet::get<Index>(port_st->reload_outlet.ports)),
+             ...);
+          }(typename out_info::indices_n{});
+        }
+      }
+
+      Execution::SetupContext& setup = this->system().context().setup;
+
+      Execution::Transaction commands{this->system()};
+      setup.unregister_node_soft(
+          this->m_oldInlets, this->m_oldOutlets, this->node, commands);
+      commands.push_back([node = n] {
+        node->root_inputs().clear();
+        node->root_outputs().clear();
+        node->clear_all_ports();
+      });
+      commands.push_back([self = QPointer{this}, qed_ptr = weak_edit, dp = dp, node = n,
+                          port_st = port_st, gen = this->m_generation]() mutable {
+        node->dynamic_ports = dp;
+        node->reinit();
+        node->reload_all_ports(port_st->reload_inlet, port_st->reload_outlet);
+
+        auto& new_ins = node->root_inputs();
+        auto& inbuf = port_st->new_inls_buffer;
+        new_ins.assign(inbuf.begin(), inbuf.end());
+        auto& new_outs = node->root_outputs();
+        auto& outbuf = port_st->new_outls_buffer;
+        new_outs.assign(outbuf.begin(), outbuf.end());
+      });
+
+      for(std::size_t i = 0; i < port_st->new_inls_buffer.size(); i++)
+      {
+        setup.register_inlet(
+            *this->m_oldInlets[i], port_st->new_inls_buffer[i], n, commands);
+      }
+      for(std::size_t i = 0; i < port_st->new_outls_buffer.size(); i++)
+      {
+        setup.register_outlet(
+            *this->m_oldOutlets[i], port_st->new_outls_buffer[i], n, commands);
+      }
+
+      commands.run_all();
+
+      using dynamic_ports_port_type = avnd::dynamic_ports_input_introspection<Node>;
+      using control_inputs_type = avnd::control_input_introspection<Node>;
+      if constexpr(dynamic_ports_port_type::size > 0)
+      {
+        safe_node<Node>& node = *n;
+        avnd::effect_container<Node>& eff = node.impl;
+        for(auto state : eff.full_state())
+        {
+          dynamic_ports_port_type::for_all_n2(
+              state.inputs, dispatch_control_reconnect<Node>{
+                                this->process(), this->system(), n, *this, this});
+        }
+      }
+    }
   }
 
   void connect_controls(
@@ -360,7 +485,7 @@ public:
       for(auto state : eff.full_state())
       {
         dynamic_ports_port_type::for_all_n2(
-            state.inputs, dispatch_control_setup<Node>{element, ctx, ptr, this});
+            state.inputs, dispatch_control_setup<Node>{element, ctx, ptr, *this, this});
       }
     }
     if constexpr(control_inputs_type::size > 0)
@@ -368,7 +493,7 @@ public:
       for(auto state : eff.full_state())
       {
         control_inputs_type::for_all_n2(
-            state.inputs, dispatch_control_setup<Node>{element, ctx, ptr, this});
+            state.inputs, dispatch_control_setup<Node>{element, ctx, ptr, *this, this});
       }
     }
     if constexpr(curve_inputs_type::size > 0)
@@ -376,14 +501,14 @@ public:
       for(auto state : eff.full_state())
       {
         curve_inputs_type::for_all_n2(
-            state.inputs, dispatch_control_setup<Node>{element, ctx, ptr, this});
+            state.inputs, dispatch_control_setup<Node>{element, ctx, ptr, *this, this});
       }
     }
     if constexpr(soundfile_inputs_type::size > 0)
     {
       soundfile_inputs_type::for_all_n2(
           avnd::get_inputs<Node>(eff),
-          dispatch_control_setup<Node>{element, ctx, ptr, this});
+          dispatch_control_setup<Node>{element, ctx, ptr, *this, this});
 
       setup_soundfile_task_pool(element, ctx, ptr);
     }
@@ -391,13 +516,13 @@ public:
     {
       midifile_inputs_type::for_all_n2(
           avnd::get_inputs<Node>(eff),
-          dispatch_control_setup<Node>{element, ctx, ptr, this});
+          dispatch_control_setup<Node>{element, ctx, ptr, *this, this});
     }
     if constexpr(raw_file_inputs_type::size > 0)
     {
       raw_file_inputs_type::for_all_n2(
           avnd::get_inputs<Node>(eff),
-          dispatch_control_setup<Node>{element, ctx, ptr, this});
+          dispatch_control_setup<Node>{element, ctx, ptr, *this, this});
     }
 
     // Engine to ui controls
