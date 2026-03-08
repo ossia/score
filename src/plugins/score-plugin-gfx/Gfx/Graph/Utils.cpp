@@ -1,4 +1,5 @@
 #include <Gfx/Graph/RenderList.hpp>
+#include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/ShaderCache.hpp>
 #include <Gfx/Graph/Utils.hpp>
 
