@@ -775,7 +775,30 @@ public:
     if constexpr(requires { new Info::code_writer{*this}; })
       return std::make_unique<typename Info::code_writer>(*this);
     else
-      return std::make_unique<Crousti::CodeWriter<Info>>(*this);
+    {
+      auto wr = std::make_unique<Crousti::CodeWriter<Info>>(*this);
+
+      if constexpr(avnd::dynamic_ports_input_introspection<Info>::size > 0)
+      {
+        avnd::input_introspection<Info>::for_all(
+            [&]<std::size_t Idx, typename P>(avnd::field_reflection<Idx, P>) {
+          if constexpr(avnd::dynamic_ports_port<P>)
+            wr->dynamic_inlet_counts.push_back(
+                {int(Idx), dynamic_ports.num_in_ports(avnd::field_index<Idx>{})});
+        });
+      }
+      if constexpr(avnd::dynamic_ports_output_introspection<Info>::size > 0)
+      {
+        avnd::output_introspection<Info>::for_all(
+            [&]<std::size_t Idx, typename P>(avnd::field_reflection<Idx, P>) {
+          if constexpr(avnd::dynamic_ports_port<P>)
+            wr->dynamic_outlet_counts.push_back(
+                {int(Idx), dynamic_ports.num_out_ports(avnd::field_index<Idx>{})});
+        });
+      }
+
+      return wr;
+    }
   };
 };
 }

@@ -29,6 +29,7 @@ public:
 
   virtual std::string typeName() const noexcept = 0;
   virtual std::string initializer() const noexcept = 0;
+  virtual std::string postInitialize() const noexcept;
   virtual std::string accessInlet(const Id<Process::Port>& id) const noexcept = 0;
   virtual std::string accessOutlet(const Id<Process::Port>& id) const noexcept = 0;
   virtual std::string execute() const noexcept = 0;

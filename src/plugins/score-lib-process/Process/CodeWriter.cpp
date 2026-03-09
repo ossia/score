@@ -18,6 +18,11 @@ CodeWriter::CodeWriter(const ProcessModel& p) noexcept
 
 CodeWriter::~CodeWriter() { }
 
+std::string CodeWriter::postInitialize() const noexcept
+{
+  return {};
+}
+
 std::string DummyCodeWriter::initializer() const noexcept
 {
   return "";
@@ -167,8 +172,7 @@ std::string AvndCodeWriter::accessOutlet(const Id<Port>& id) const noexcept
 {
   int index = ossia::index_in_container(this->self.outlets(), id);
   return fmt::format(
-      "(avnd::output_introspection<{}>::field<{}>({}.outputs))", typeName(), index,
-      variable);
+      "(avnd_get_output<{}>({}, {}_cbs))", index, variable, variable);
 }
 
 std::string AvndCodeWriter::execute() const noexcept
