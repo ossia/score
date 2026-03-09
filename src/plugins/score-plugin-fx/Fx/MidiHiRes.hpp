@@ -74,8 +74,8 @@ struct Output
     for(auto& [val, t] : inputs.i.values)
     {
       const int32_t v = ossia::convert<int>(val);
-      const int32_t m = ossia::clamp(int32_t(v / 127), 0, 127);
-      const int32_t l = ossia::clamp(int32_t(v - m * 127), 0, 127);
+      const int32_t m = ossia::clamp(int32_t(v / 127), (int32_t)0, (int32_t)127);
+      const int32_t l = ossia::clamp(int32_t(v - m * 127), (int32_t)0, (int32_t)127);
 
       outputs.msb.values.emplace(t, m);
       outputs.lsb.values.emplace(t, l);
@@ -84,8 +84,8 @@ struct Output
     for(auto& [val, t] : inputs.f.values)
     {
       const float v = ossia::convert<float>(val) * (128. * 128.);
-      const int32_t m = ossia::clamp(int32_t(v / 127.), 0, 127);
-      const int32_t l = ossia::clamp(int32_t(v - m * 127), 0, 127);
+      const int32_t m = ossia::clamp(int32_t(v / 127.), (int32_t)0, (int32_t)127);
+      const int32_t l = ossia::clamp(int32_t(v - m * 127), (int32_t)0, (int32_t)127);
 
       outputs.msb.values.emplace(t, m);
       outputs.lsb.values.emplace(t, l);

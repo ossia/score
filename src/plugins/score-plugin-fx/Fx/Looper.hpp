@@ -360,12 +360,12 @@ struct Node
           }
           else
           {
-            qDebug("very weird");
+            // qDebug("very weird");
           }
         }
         else
         {
-          qDebug("weird");
+          // qDebug("weird");
         }
         // just in case:
         switch_to_main_mode();

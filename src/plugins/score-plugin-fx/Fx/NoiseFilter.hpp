@@ -26,7 +26,7 @@ struct NoiseFilter
     {
       ossia::value operator()() const { return {}; }
       ossia::value operator()(const ossia::impulse&) const { return {}; }
-      ossia::value operator()(int i) const { return nFilt->dno_i(i); }
+      ossia::value operator()(int32_t i) const { return nFilt->dno_i(i); }
       ossia::value operator()(float f) const { return nFilt->dno_v[0](f); }
       ossia::value operator()(bool b) const { return b; }
       ossia::value operator()(const std::string& s) const { return s; }
@@ -72,9 +72,13 @@ struct NoiseFilter
       }
     };
 
+#if defined(__cpp_exceptions)
     try
     {
+#endif
       return ossia::apply(vis{this}, val.v);
+
+#if defined(__cpp_exceptions)
     }
     catch(std::exception& e)
     {
@@ -86,6 +90,7 @@ struct NoiseFilter
     }
 
     return val;
+#endif
   }
 
   void set_amount(float amt)
