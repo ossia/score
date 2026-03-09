@@ -8,11 +8,6 @@
 
 #include <ossia/detail/fmt.hpp>
 
-#include <boost/algorithm/string/replace.hpp>
-
-#include <QList>
-#include <QString>
-
 #include <string>
 
 namespace Nodes
@@ -116,66 +111,19 @@ std::string MathMappingCodeWriter::execute() const noexcept
       exprtk_to_cpp(inl.value().get<std::string>(), true), variable);
 }
 
-// Helper: process exprtk expression lines into C++ code
-// Returns {body_code, last_line_as_expression}
-static std::pair<QString, QString> process_exprtk_expr(const std::string& exprtk)
+// Parse exprtk expression into {body_statements, last_expression}
+static std::pair<std::string, std::string>
+process_exprtk_expr(const std::string& exprtk)
 {
-  auto split = QString::fromStdString(exprtk).split('\n');
-  if(split.empty())
-    return {{}, {}};
+  auto statements = parse_exprtk_to_statements(exprtk);
+  if(statements.empty())
+    return {{}, {"0.f"}};
 
-  auto replace_line = [](QString& s) {
-    s.replace("bool", "boolean");
-    s.replace("var ", "exprtk_arithmetic ");
-    s.replace(":=", "=");
-    s = s.trimmed();
-    s.replace(";;", ";");
+  std::string body;
+  for(size_t i = 0; i + 1 < statements.size(); ++i)
+    body += "      " + statements[i] + ";\n";
 
-    if(s.isEmpty() || s == ";")
-      return;
-
-    if(s.endsWith(";"))
-    {
-      s += "\n";
-      return;
-    }
-    if(s.endsWith(";\n"))
-      return;
-    else if(s.endsWith("\n"))
-    {
-      if(!s.isEmpty())
-        s.remove(s.size() - 1, 1);
-      s += ";\n";
-    }
-    else
-    {
-      s += ";\n";
-    }
-  };
-
-  for(auto it = split.begin(); it != split.end();)
-  {
-    replace_line(*it);
-    if(it->isEmpty())
-      it = split.erase(it);
-    else
-      ++it;
-  }
-
-  if(split.empty())
-    return {{}, {}};
-
-  QString body;
-  for(int i = 0, N = split.size(); i < N - 1; i++)
-    body += split[i];
-
-  QString lastLine = split.back();
-  if(lastLine.endsWith(";\n"))
-    lastLine.resize(lastLine.size() - 2);
-  else if(lastLine.endsWith(";"))
-    lastLine.resize(lastLine.size() - 1);
-
-  return {body, lastLine};
+  return {body, statements.back()};
 }
 
 // Helper: find the "Expression" lineedit inlet and return its string value
@@ -251,7 +199,7 @@ std::string ArraygenCodeWriter::execute() const noexcept
     }}
   }}({});
 }})_",
-      body.toStdString(), lastLine.toStdString(), variable);
+      body, lastLine, variable);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -313,7 +261,7 @@ std::string ArraymapCodeWriter::execute() const noexcept
     object.inputs.in.value = std::nullopt;
   }}({});
 }})_",
-      body.toStdString(), lastLine.toStdString(), variable);
+      body, lastLine, variable);
 }
 
 }

@@ -1135,6 +1135,14 @@ private:
   }
 };
 
+std::vector<std::string> parse_exprtk_to_statements(const std::string& expr)
+{
+  auto tokens = tokenize(expr);
+  insert_implicit_mul(tokens);
+  ExprParser parser(tokens);
+  return parser.parse_statements();
+}
+
 } // anonymous namespace
 
 std::string exprtk_to_cpp(std::string exprtk_expr, bool optional) noexcept
@@ -1145,15 +1153,7 @@ std::string exprtk_to_cpp(std::string exprtk_expr, bool optional) noexcept
   if(exprtk_expr.empty())
     return "[] (auto& object) { }";
 
-  // --- Tokenize ---
-  auto tokens = tokenize(exprtk_expr);
-
-  // --- Insert implicit multiplication ---
-  insert_implicit_mul(tokens);
-
-  // --- Parse and emit C++ ---
-  ExprParser parser(tokens);
-  auto statements = parser.parse_statements();
+  auto statements = parse_exprtk_to_statements(exprtk_expr);
 
   std::string code;
 
