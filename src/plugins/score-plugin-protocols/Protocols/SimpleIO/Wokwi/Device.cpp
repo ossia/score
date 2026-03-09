@@ -11,10 +11,12 @@ void DeviceLibrary::initDevices()
   this->devices.push_back(
       {.type = "wokwi-led",
        .pins
-       = {{.name = "A", .type = Analog, .direction = DevicePin::Sink},
-          {.name = "C", .type = Analog, .direction = DevicePin::Sink}}});
+       = {{.name = "A", .type = GPIO, .direction = DevicePin::Sink},
+          {.name = "C", .type = GPIO, .direction = DevicePin::Sink}}});
 
-  this->devices.push_back({.type = "wokwi-neopixel", .pins = {}});
+  this->devices.push_back(
+      {.type = "wokwi-neopixel",
+       .pins = {{.name = "DIN", .type = GPIO, .direction = DevicePin::Sink}}});
   this->devices.push_back(
       {.type = "wokwi-pushbutton",
        .pins = {
@@ -36,7 +38,9 @@ void DeviceLibrary::initDevices()
   this->devices.push_back(
       {.type = "wokwi-potentiometer",
        .pins = {{.name = "SIG", .type = Analog, .direction = DevicePin::Source}}});
-  this->devices.push_back({.type = "wokwi-neopixel-matrix", .pins = {}});
+  this->devices.push_back(
+      {.type = "wokwi-neopixel-matrix",
+       .pins = {{.name = "DIN", .type = GPIO, .direction = DevicePin::Sink}}});
   this->devices.push_back({.type = "wokwi-ssd1306", .pins = {}});
   this->devices.push_back(
       {.type = "wokwi-buzzer",

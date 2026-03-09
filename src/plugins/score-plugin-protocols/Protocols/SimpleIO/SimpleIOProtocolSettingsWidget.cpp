@@ -31,9 +31,11 @@
 #include <QFormLayout>
 #include <QHeaderView>
 #include <QLabel>
+#include <QLineEdit>
 #include <QPushButton>
 #include <QRadioButton>
 #include <QSpinBox>
+#include <QSplitter>
 #include <QStackedLayout>
 #include <QStackedWidget>
 #include <QTableWidget>
@@ -526,6 +528,7 @@ public:
 
       void operator()(SimpleIO::ADC& gpio) const noexcept { }
       void operator()(SimpleIO::DAC& gpio) const noexcept { }
+      void operator()(SimpleIO::Neopixel& neo) const noexcept { }
       void operator()(SimpleIO::HID& gpio) const noexcept { }
       void operator()(SimpleIO::Custom& gpio) const noexcept { }
     };
@@ -575,6 +578,72 @@ private:
   const SimpleIOData* m_currentNode{};
 };
 
+static QString typeName(const SimpleIO::Type& t)
+{
+  static constexpr struct
+  {
+    QString operator()(const SimpleIO::GPIO&) const noexcept
+    {
+      return QStringLiteral("GPIO");
+    }
+    QString operator()(const SimpleIO::PWM&) const noexcept
+    {
+      return QStringLiteral("PWM");
+    }
+    QString operator()(const SimpleIO::ADC&) const noexcept
+    {
+      return QStringLiteral("ADC");
+    }
+    QString operator()(const SimpleIO::DAC&) const noexcept
+    {
+      return QStringLiteral("DAC");
+    }
+    QString operator()(const SimpleIO::Neopixel&) const noexcept
+    {
+      return QStringLiteral("Neopixel");
+    }
+    QString operator()(const SimpleIO::HID&) const noexcept
+    {
+      return QStringLiteral("HID");
+    }
+    QString operator()(const SimpleIO::Custom&) const noexcept
+    {
+      return QStringLiteral("Custom");
+    }
+  } vis;
+  return ossia::visit(vis, t);
+}
+
+static int typeComboIndex(const SimpleIO::Type& ctl)
+{
+  static constexpr struct
+  {
+    int operator()(const SimpleIO::GPIO&) const noexcept { return 0; }
+    int operator()(const SimpleIO::PWM&) const noexcept { return 1; }
+    int operator()(const SimpleIO::ADC&) const noexcept { return 2; }
+    int operator()(const SimpleIO::DAC&) const noexcept { return 3; }
+    int operator()(const SimpleIO::Neopixel&) const noexcept { return 4; }
+    int operator()(const SimpleIO::HID&) const noexcept { return 5; }
+    int operator()(const SimpleIO::Custom&) const noexcept { return 5; }
+  } vis;
+  return ossia::visit(vis, ctl);
+}
+
+static int pinFromControl(const SimpleIO::Type& ctl)
+{
+  static constexpr struct
+  {
+    int operator()(const SimpleIO::GPIO& g) const noexcept { return g.line; }
+    int operator()(const SimpleIO::PWM& p) const noexcept { return p.channel; }
+    int operator()(const SimpleIO::ADC& a) const noexcept { return a.channel; }
+    int operator()(const SimpleIO::DAC& d) const noexcept { return d.channel; }
+    int operator()(const SimpleIO::Neopixel& n) const noexcept { return n.pin; }
+    int operator()(const SimpleIO::HID& h) const noexcept { return h.channel; }
+    int operator()(const SimpleIO::Custom&) const noexcept { return 0; }
+  } vis;
+  return ossia::visit(vis, ctl);
+}
+
 SimpleIOProtocolSettingsWidget::SimpleIOProtocolSettingsWidget(QWidget* parent)
     : Device::ProtocolSettingsWidget(parent)
 {
@@ -586,15 +655,197 @@ SimpleIOProtocolSettingsWidget::SimpleIOProtocolSettingsWidget(QWidget* parent)
   auto layout = new QFormLayout;
   layout->addRow(tr("Name"), m_deviceNameEdit);
 
+  // Table (left side of splitter)
   m_localPortsWidget = new QTableWidget;
-  layout->addRow(m_localPortsWidget);
-  
   m_localPortsWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
-  m_localPortsWidget->setSelectionMode(QAbstractItemView::ExtendedSelection);
+  m_localPortsWidget->setSelectionMode(QAbstractItemView::SingleSelection);
   m_localPortsWidget->insertColumn(0);
   m_localPortsWidget->insertColumn(1);
   m_localPortsWidget->insertColumn(2);
-  m_localPortsWidget->setHorizontalHeaderLabels({tr("Name"), tr("Address"), tr("Type")});
+  m_localPortsWidget->setHorizontalHeaderLabels({tr("Name"), tr("Path"), tr("Type")});
+
+  // Properties panel (right side of splitter)
+  m_propertiesPanel = new QWidget;
+  auto propLayout = new QFormLayout{m_propertiesPanel};
+
+  m_propName = new QLineEdit;
+  m_propPath = new QLineEdit;
+  m_propType = new QComboBox;
+  m_propType->addItems({"GPIO", "PWM", "ADC", "DAC", "Neopixel"});
+
+  propLayout->addRow(tr("Name"), m_propName);
+  propLayout->addRow(tr("Path"), m_propPath);
+  propLayout->addRow(tr("Type"), m_propType);
+
+  m_propStack = new QStackedWidget;
+
+  // Page 0: GPIO
+  {
+    auto page = new QWidget;
+    auto l = new QFormLayout{page};
+    m_gpioLine = new QSpinBox;
+    m_gpioLine->setRange(0, 255);
+    m_gpioDirection = new QComboBox;
+    m_gpioDirection->addItems({"Input", "Output"});
+    l->addRow(tr("Pin"), m_gpioLine);
+    l->addRow(tr("Direction"), m_gpioDirection);
+    m_propStack->addWidget(page);
+  }
+  // Page 1: PWM
+  {
+    auto page = new QWidget;
+    auto l = new QFormLayout{page};
+    m_pwmChannel = new QSpinBox;
+    m_pwmChannel->setRange(0, 255);
+    l->addRow(tr("Channel"), m_pwmChannel);
+    m_propStack->addWidget(page);
+  }
+  // Page 2: ADC
+  {
+    auto page = new QWidget;
+    auto l = new QFormLayout{page};
+    m_adcChannel = new QSpinBox;
+    m_adcChannel->setRange(0, 255);
+    l->addRow(tr("Channel"), m_adcChannel);
+    m_propStack->addWidget(page);
+  }
+  // Page 3: DAC
+  {
+    auto page = new QWidget;
+    auto l = new QFormLayout{page};
+    m_dacChannel = new QSpinBox;
+    m_dacChannel->setRange(0, 255);
+    l->addRow(tr("Channel"), m_dacChannel);
+    m_propStack->addWidget(page);
+  }
+  // Page 4: Neopixel
+  {
+    auto page = new QWidget;
+    auto l = new QFormLayout{page};
+    m_neopixelPin = new QSpinBox;
+    m_neopixelPin->setRange(0, 255);
+    m_neopixelNumPixels = new QSpinBox;
+    m_neopixelNumPixels->setRange(1, 1000);
+    l->addRow(tr("Pin"), m_neopixelPin);
+    l->addRow(tr("Num Pixels"), m_neopixelNumPixels);
+    m_propStack->addWidget(page);
+  }
+
+  propLayout->addRow(m_propStack);
+  m_propertiesPanel->setEnabled(false);
+
+  // Splitter
+  m_splitter = new QSplitter{Qt::Horizontal, this};
+  m_splitter->addWidget(m_localPortsWidget);
+  m_splitter->addWidget(m_propertiesPanel);
+  m_splitter->setStretchFactor(0, 3);
+  m_splitter->setStretchFactor(1, 2);
+  layout->addRow(m_splitter);
+
+  // Connect table selection to properties panel
+  connect(
+      m_localPortsWidget, &QTableWidget::currentCellChanged, this,
+      [this](int row, int, int, int) { updatePropertiesPanel(row); });
+
+  // Connect property edits back to model
+  connect(m_propName, &QLineEdit::textEdited, this, [this](const QString& text) {
+    if(m_selectedPort < 0 || m_selectedPort >= (int)m_impl.ports.size())
+      return;
+    m_impl.ports[m_selectedPort].name = text;
+    if(auto item = m_localPortsWidget->item(m_selectedPort, 0))
+      item->setText(text);
+  });
+  connect(m_propPath, &QLineEdit::textEdited, this, [this](const QString& text) {
+    if(m_selectedPort < 0 || m_selectedPort >= (int)m_impl.ports.size())
+      return;
+    m_impl.ports[m_selectedPort].path = text;
+    if(auto item = m_localPortsWidget->item(m_selectedPort, 1))
+      item->setText(text);
+  });
+  connect(
+      m_propType, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int idx) {
+        if(m_selectedPort < 0 || m_selectedPort >= (int)m_impl.ports.size())
+          return;
+        auto& port = m_impl.ports[m_selectedPort];
+        int pin = pinFromControl(port.control);
+        switch(idx)
+        {
+          case 0:
+            port.control = SimpleIO::GPIO{.line = pin};
+            break;
+          case 1:
+            port.control = SimpleIO::PWM{.channel = pin};
+            break;
+          case 2:
+            port.control = SimpleIO::ADC{.channel = pin};
+            break;
+          case 3:
+            port.control = SimpleIO::DAC{.channel = pin};
+            break;
+          case 4:
+            port.control = SimpleIO::Neopixel{.pin = pin};
+            break;
+        }
+        updatePropertiesPanel(m_selectedPort);
+        if(auto item = m_localPortsWidget->item(m_selectedPort, 2))
+          item->setText(typeName(port.control));
+      });
+
+  // GPIO
+  connect(m_gpioLine, qOverload<int>(&QSpinBox::valueChanged), this, [this](int val) {
+    if(m_selectedPort < 0 || m_selectedPort >= (int)m_impl.ports.size())
+      return;
+    if(auto g = ossia::get_if<SimpleIO::GPIO>(&m_impl.ports[m_selectedPort].control))
+      g->line = val;
+  });
+  connect(
+      m_gpioDirection, qOverload<int>(&QComboBox::currentIndexChanged), this,
+      [this](int idx) {
+        if(m_selectedPort < 0 || m_selectedPort >= (int)m_impl.ports.size())
+          return;
+        if(auto g = ossia::get_if<SimpleIO::GPIO>(&m_impl.ports[m_selectedPort].control))
+          g->direction = (idx == 1);
+      });
+
+  // PWM
+  connect(m_pwmChannel, qOverload<int>(&QSpinBox::valueChanged), this, [this](int val) {
+    if(m_selectedPort < 0 || m_selectedPort >= (int)m_impl.ports.size())
+      return;
+    if(auto p = ossia::get_if<SimpleIO::PWM>(&m_impl.ports[m_selectedPort].control))
+      p->channel = val;
+  });
+
+  // ADC
+  connect(m_adcChannel, qOverload<int>(&QSpinBox::valueChanged), this, [this](int val) {
+    if(m_selectedPort < 0 || m_selectedPort >= (int)m_impl.ports.size())
+      return;
+    if(auto a = ossia::get_if<SimpleIO::ADC>(&m_impl.ports[m_selectedPort].control))
+      a->channel = val;
+  });
+
+  // DAC
+  connect(m_dacChannel, qOverload<int>(&QSpinBox::valueChanged), this, [this](int val) {
+    if(m_selectedPort < 0 || m_selectedPort >= (int)m_impl.ports.size())
+      return;
+    if(auto d = ossia::get_if<SimpleIO::DAC>(&m_impl.ports[m_selectedPort].control))
+      d->channel = val;
+  });
+
+  // Neopixel
+  connect(m_neopixelPin, qOverload<int>(&QSpinBox::valueChanged), this, [this](int val) {
+    if(m_selectedPort < 0 || m_selectedPort >= (int)m_impl.ports.size())
+      return;
+    if(auto n = ossia::get_if<SimpleIO::Neopixel>(&m_impl.ports[m_selectedPort].control))
+      n->pin = val;
+  });
+  connect(
+      m_neopixelNumPixels, qOverload<int>(&QSpinBox::valueChanged), this, [this](int val) {
+        if(m_selectedPort < 0 || m_selectedPort >= (int)m_impl.ports.size())
+          return;
+        if(auto n
+           = ossia::get_if<SimpleIO::Neopixel>(&m_impl.ports[m_selectedPort].control))
+          n->num_pixels = val;
+      });
 
   auto btns = new QHBoxLayout;
   m_localLoadLayout = new QPushButton{"Load a Wokwi layout"};
@@ -700,38 +951,6 @@ SimpleIOProtocolSettingsWidget::SimpleIOProtocolSettingsWidget(QWidget* parent)
   setLayout(layout);
 }
 
-static QString typeName(const SimpleIO::Type& t)
-{
-  static constexpr struct
-  {
-    QString operator()(const SimpleIO::GPIO& gpio) const noexcept
-    {
-      return QStringLiteral("GPIO");
-    }
-    QString operator()(const SimpleIO::PWM& gpio) const noexcept
-    {
-      return QStringLiteral("PWM");
-    }
-    QString operator()(const SimpleIO::ADC& gpio) const noexcept
-    {
-      return QStringLiteral("ADC");
-    }
-    QString operator()(const SimpleIO::DAC& gpio) const noexcept
-    {
-      return QStringLiteral("DAC");
-    }
-    QString operator()(const SimpleIO::HID& gpio) const noexcept
-    {
-      return QStringLiteral("HID");
-    }
-    QString operator()(const SimpleIO::Custom& gpio) const noexcept
-    {
-      return QStringLiteral("Custom");
-    }
-  } vis;
-  return ossia::visit(vis, t);
-}
-
 void SimpleIOProtocolSettingsWidget::updateGui()
 {
   m_boardLabel->setText(m_impl.board);
@@ -747,24 +966,74 @@ void SimpleIOProtocolSettingsWidget::updateTable()
     m_localPortsWidget->removeRow(int(m_localPortsWidget->rowCount()) - 1);
 
   int row = 0;
-  for(auto& fixt : m_impl.ports)
+  for(auto& port : m_impl.ports)
   {
-    auto name_item = new QTableWidgetItem{fixt.name};
-    auto address = new QTableWidgetItem{fixt.path};
-    auto type_item = new QTableWidgetItem{typeName(fixt.control)};
-    //auto controls = new QTableWidgetItem{QString::number(fixt.controls.size())};
-    name_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-    // mode_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-    address->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-    //controls->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-    
     m_localPortsWidget->insertRow(row);
+    auto name_item = new QTableWidgetItem{port.name};
+    auto path_item = new QTableWidgetItem{port.path};
+    auto type_item = new QTableWidgetItem{typeName(port.control)};
+    name_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+    path_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+    type_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
     m_localPortsWidget->setItem(row, 0, name_item);
-    //m_portsWidget->setItem(row, 1, mode_item);
-    m_localPortsWidget->setItem(row, 1, address);
+    m_localPortsWidget->setItem(row, 1, path_item);
     m_localPortsWidget->setItem(row, 2, type_item);
     row++;
   }
+
+  m_selectedPort = -1;
+  m_propertiesPanel->setEnabled(false);
+}
+
+void SimpleIOProtocolSettingsWidget::updatePropertiesPanel(int row)
+{
+  m_selectedPort = row;
+  if(row < 0 || row >= (int)m_impl.ports.size())
+  {
+    m_propertiesPanel->setEnabled(false);
+    return;
+  }
+
+  m_propertiesPanel->setEnabled(true);
+  const auto& port = m_impl.ports[row];
+
+  // Block signals to avoid circular updates
+  const QWidget* widgets[]
+      = {m_propName, m_propPath, m_propType, m_gpioLine, m_gpioDirection,
+         m_pwmChannel, m_adcChannel, m_dacChannel, m_neopixelPin, m_neopixelNumPixels};
+  for(auto w : widgets)
+    const_cast<QWidget*>(w)->blockSignals(true);
+
+  m_propName->setText(port.name);
+  m_propPath->setText(port.path);
+
+  int typeIdx = typeComboIndex(port.control);
+  m_propType->setCurrentIndex(typeIdx);
+  m_propStack->setCurrentIndex(typeIdx);
+
+  struct
+  {
+    SimpleIOProtocolSettingsWidget* self;
+    void operator()(const SimpleIO::GPIO& g) const
+    {
+      self->m_gpioLine->setValue(g.line);
+      self->m_gpioDirection->setCurrentIndex(g.direction ? 1 : 0);
+    }
+    void operator()(const SimpleIO::PWM& p) const { self->m_pwmChannel->setValue(p.channel); }
+    void operator()(const SimpleIO::ADC& a) const { self->m_adcChannel->setValue(a.channel); }
+    void operator()(const SimpleIO::DAC& d) const { self->m_dacChannel->setValue(d.channel); }
+    void operator()(const SimpleIO::Neopixel& n) const
+    {
+      self->m_neopixelPin->setValue(n.pin);
+      self->m_neopixelNumPixels->setValue(n.num_pixels);
+    }
+    void operator()(const SimpleIO::HID&) const { }
+    void operator()(const SimpleIO::Custom&) const { }
+  } vis{this};
+  ossia::visit(vis, port.control);
+
+  for(auto w : widgets)
+    const_cast<QWidget*>(w)->blockSignals(false);
 }
 SimpleIOProtocolSettingsWidget::~SimpleIOProtocolSettingsWidget() { }
 

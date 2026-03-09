@@ -1,6 +1,7 @@
 #pragma once
-#include <ossia/detail/logger.hpp>
-#include <ossia/network/value/format_value.hpp>
+// #include <ossia/detail/logger.hpp>
+// #include <ossia/network/value/format_value.hpp>
+#include <ossia/network/value/value_conversion.hpp>
 
 #include <dno/DeNoiser.hpp>
 

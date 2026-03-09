@@ -303,6 +303,10 @@ static void init_simpleio_osc_device(
     {
       type = "bool";
     }
+    else if(auto ptr = ossia::get_if<sio::Neopixel>(&port.control))
+    {
+      type = "list";
+    }
 
     ossia::create_parameter(root, port.path.toStdString(), type);
   }

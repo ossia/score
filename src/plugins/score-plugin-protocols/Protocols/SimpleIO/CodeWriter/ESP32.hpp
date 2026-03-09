@@ -29,6 +29,13 @@ public:
       {
         return fmt::format("DacESP32 ossia_dac_{0}(DAC_CHANNEL_{0});", pin.channel);
       }
+      std::string operator()(const SimpleIO::Neopixel& pin) const noexcept
+      {
+        return fmt::format(
+            "#include <Adafruit_NeoPixel.h>\n"
+            "Adafruit_NeoPixel ossia_neopixel_{0}({1}, {0}, NEO_GRB + NEO_KHZ800);\n",
+            pin.pin, pin.num_pixels);
+      }
       std::string operator()(const SimpleIO::HID& pin) const noexcept { return ""; }
       std::string operator()(const SimpleIO::Custom& pin) const noexcept { return ""; }
 
@@ -59,6 +66,10 @@ public:
       {
         return fmt::format("float {};\n", varname);
       }
+      std::string operator()(const SimpleIO::Neopixel& pin) const noexcept
+      {
+        return fmt::format("uint8_t {0}[{1} * 3];\n", varname, pin.num_pixels);
+      }
       std::string operator()(const SimpleIO::HID& pin) const noexcept { return ""; }
       std::string operator()(const SimpleIO::Custom& pin) const noexcept { return ""; }
     } vis;
@@ -80,6 +91,10 @@ public:
       std::string operator()(const SimpleIO::PWM& pin) const noexcept { return ""; }
       std::string operator()(const SimpleIO::ADC& pin) const noexcept { return ""; }
       std::string operator()(const SimpleIO::DAC& pin) const noexcept { return ""; }
+      std::string operator()(const SimpleIO::Neopixel& pin) const noexcept
+      {
+        return fmt::format("ossia_neopixel_{0}.begin();\n", pin.pin);
+      }
       std::string operator()(const SimpleIO::HID& pin) const noexcept { return ""; }
       std::string operator()(const SimpleIO::Custom& pin) const noexcept { return ""; }
 
@@ -148,6 +163,7 @@ void ossia_init_board() {{
             varname, pin.chip, pin.channel);
       }
       std::string operator()(const SimpleIO::DAC& pin) const noexcept { return ""; }
+      std::string operator()(const SimpleIO::Neopixel& pin) const noexcept { return ""; }
       std::string operator()(const SimpleIO::HID& pin) const noexcept { return ""; }
       std::string operator()(const SimpleIO::Custom& pin) const noexcept { return ""; }
 
@@ -191,6 +207,18 @@ void ossia_read_pins() {{
         return fmt::format(
             "ossia_dac_{}.outputVoltage(ossia_model.{} * 3.3f);\n", pin.channel,
             varname);
+      }
+      std::string operator()(const SimpleIO::Neopixel& pin) const noexcept
+      {
+        return fmt::format(
+            "for(int i = 0; i < {1}; i++) {{\n"
+            "  ossia_neopixel_{0}.setPixelColor(i, ossia_neopixel_{0}.Color(\n"
+            "    ossia_model.{2}[i * 3],\n"
+            "    ossia_model.{2}[i * 3 + 1],\n"
+            "    ossia_model.{2}[i * 3 + 2]));\n"
+            "}}\n"
+            "ossia_neopixel_{0}.show();\n",
+            pin.pin, pin.num_pixels, varname);
       }
       std::string operator()(const SimpleIO::HID& pin) const noexcept { return ""; }
       std::string operator()(const SimpleIO::Custom& pin) const noexcept { return ""; }
@@ -243,6 +271,17 @@ void ossia_write_pins() {{
             R"_(inmsg.dispatch("/{}", [](OSCMessage& msg) {{ ossia_model.{} = msg.getFloat(0); }});
 )_",
             port.path.toStdString(), varname(port));
+      }
+      std::string operator()(const SimpleIO::Neopixel& pin) const noexcept
+      {
+        return fmt::format(
+            R"_(inmsg.dispatch("/{0}", [](OSCMessage& msg) {{
+  int n = min(msg.size(), {2} * 3);
+  for(int i = 0; i < n; i++)
+    ossia_model.{1}[i] = msg.getInt(i);
+}});
+)_",
+            port.path.toStdString(), varname(port), pin.num_pixels);
       }
       std::string operator()(const SimpleIO::HID& pin) const noexcept { return ""; }
       std::string operator()(const SimpleIO::Custom& pin) const noexcept { return ""; }
@@ -301,6 +340,7 @@ void ossia_read_osc() {{
             port.path.toStdString(), varname(port));
       }
       std::string operator()(const SimpleIO::DAC& pin) const noexcept { return ""; }
+      std::string operator()(const SimpleIO::Neopixel& pin) const noexcept { return ""; }
       std::string operator()(const SimpleIO::HID& pin) const noexcept { return ""; }
       std::string operator()(const SimpleIO::Custom& pin) const noexcept { return ""; }
 

@@ -13,6 +13,7 @@ JSON_METADATA(Protocols::SimpleIO::PWM, "PWM")
 JSON_METADATA(Protocols::SimpleIO::ADC, "ADC")
 JSON_METADATA(Protocols::SimpleIO::DAC, "DAC")
 JSON_METADATA(Protocols::SimpleIO::HID, "HID")
+JSON_METADATA(Protocols::SimpleIO::Neopixel, "Neopixel")
 JSON_METADATA(Protocols::SimpleIO::Custom, "Custom")
 
 template <>
@@ -178,6 +179,38 @@ void JSONReader::read(const Protocols::SimpleIO::HID& n)
 template <>
 void JSONWriter::write(Protocols::SimpleIO::HID& n)
 {
+}
+
+template <>
+void DataStreamReader::read(const Protocols::SimpleIO::Neopixel& n)
+{
+  m_stream << n.pin << n.num_pixels;
+  insertDelimiter();
+}
+
+template <>
+void DataStreamWriter::write(Protocols::SimpleIO::Neopixel& n)
+{
+  m_stream >> n.pin >> n.num_pixels;
+  checkDelimiter();
+}
+
+template <>
+void JSONReader::read(const Protocols::SimpleIO::Neopixel& n)
+{
+  stream.StartObject();
+  obj["Pin"] = n.pin;
+  obj["NumPixels"] = n.num_pixels;
+  stream.EndObject();
+}
+
+template <>
+void JSONWriter::write(Protocols::SimpleIO::Neopixel& n)
+{
+  if(!obj.tryGet("Pin"))
+    return;
+  n.pin = obj["Pin"].toInt();
+  n.num_pixels = obj["NumPixels"].toInt();
 }
 
 template <>

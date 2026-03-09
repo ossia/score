@@ -35,6 +35,9 @@ SimpleIOSpecificSettings loadWokwi(const rapidjson::Document& doc)
   rapidjson::Document::ConstArray parts = parts_it->value.GetArray();
   rapidjson::Document::ConstArray connections = connections_it->value.GetArray();
 
+  // Map part id -> attrs for components that need them (e.g. neopixel pixel count)
+  ossia::flat_map<QString, ossia::flat_map<QString, QString>> part_attrs;
+
   for(auto& part : parts)
   {
     // { "type": "wokwi-servo", "id": "servo1", "top": -280.4, "left": -182.4, "attrs": {} },
@@ -49,7 +52,22 @@ SimpleIOSpecificSettings loadWokwi(const rapidjson::Document& doc)
       p.id = id->value.GetString();
 
     if(!p.type.isEmpty() && !p.id.isEmpty())
+    {
+      // Parse attrs if present
+      if(auto attrs_it = part.FindMember("attrs");
+         attrs_it != part.MemberEnd() && attrs_it->value.IsObject())
+      {
+        auto& attrs = part_attrs[p.id];
+        for(auto it = attrs_it->value.MemberBegin(); it != attrs_it->value.MemberEnd();
+            ++it)
+        {
+          if(it->name.IsString() && it->value.IsString())
+            attrs[QString::fromUtf8(it->name.GetString())]
+                = QString::fromUtf8(it->value.GetString());
+        }
+      }
       d.parts.push_back(p);
+    }
   }
 
   for(auto& cc : connections)
@@ -229,10 +247,52 @@ SimpleIOSpecificSettings loadWokwi(const rapidjson::Document& doc)
     ctl.name = other_port.pin;
     ctl.path = other_port.id + "/" + other_port.pin;
 
+    // Check if this is a neopixel device (needs special handling)
+    const bool is_neopixel = other.type == "wokwi-neopixel"
+                             || other.type == "wokwi-neopixel-ring"
+                             || other.type == "wokwi-neopixel-matrix";
+
     switch(device_pin->type)
     {
       case CapabilityType::GPIO:
-        if(auto gpio = mcu_pin->gpio())
+        if(is_neopixel && other_port.pin == "DIN")
+        {
+          if(auto gpio = mcu_pin->gpio())
+          {
+            int num_pixels = 1;
+            if(auto it = part_attrs.find(other.id); it != part_attrs.end())
+            {
+              auto& attrs = it->second;
+              if(other.type == "wokwi-neopixel-matrix")
+              {
+                int rows = 8, cols = 8;
+                if(auto r = attrs.find("rows"); r != attrs.end())
+                  rows = r->second.toInt();
+                if(auto c = attrs.find("cols"); c != attrs.end())
+                  cols = c->second.toInt();
+                num_pixels = rows * cols;
+              }
+              else if(other.type == "wokwi-neopixel-ring")
+              {
+                if(auto p = attrs.find("pixels"); p != attrs.end())
+                  num_pixels = p->second.toInt();
+                else
+                  num_pixels = 16; // default for ring
+              }
+            }
+            else if(other.type == "wokwi-neopixel-ring")
+            {
+              num_pixels = 16;
+            }
+            else if(other.type == "wokwi-neopixel-matrix")
+            {
+              num_pixels = 64;
+            }
+            ctl.control
+                = SimpleIO::Neopixel{.pin = gpio->line, .num_pixels = num_pixels};
+          }
+        }
+        else if(auto gpio = mcu_pin->gpio())
           ctl.control = SimpleIO::GPIO{
               .chip = 0,
               .line = gpio->line,

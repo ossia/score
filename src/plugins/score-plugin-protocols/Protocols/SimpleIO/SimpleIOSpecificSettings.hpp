@@ -46,11 +46,16 @@ struct HID
   int32_t chip{};
   int32_t channel{};
 };
+struct Neopixel
+{
+  int32_t pin{};
+  int32_t num_pixels{1};
+};
 struct Custom
 {
 };
 
-using Type = ossia::variant<GPIO, PWM, ADC, DAC, HID, Custom>;
+using Type = ossia::variant<GPIO, PWM, ADC, DAC, HID, Neopixel, Custom>;
 
 struct Port
 {

@@ -132,6 +132,46 @@ void DeviceLibrary::initMCUs()
               {"GPIO38", {gpio(38), pwm()}},
               {"GPIO39", {gpio(39), adc(1, 3)}}, // No PWM
           }});
+  mcus.push_back(
+      MCU{.name = "mk20dx256",
+          .pins = {
+              {"PTB16", {gpio(0)}},
+              {"PTB17", {gpio(1)}},
+              {"PTD0", {gpio(2)}},
+              {"PTA12", {gpio(3), pwm()}},
+              {"PTA13", {gpio(4), pwm()}},
+              {"PTD7", {gpio(5), pwm()}},
+              {"PTD4", {gpio(6), pwm()}},
+              {"PTD2", {gpio(7)}},
+              {"PTD3", {gpio(8)}},
+              {"PTC3", {gpio(9), pwm()}},
+              {"PTC4", {gpio(10), pwm()}},
+              {"PTC6", {gpio(11)}},
+              {"PTC7", {gpio(12)}},
+              {"PTC5", {gpio(13)}},
+              {"PTD1", {gpio(14), adc(0, 0)}},
+              {"PTC0", {gpio(15), adc(0, 1)}},
+              {"PTB0", {gpio(16), adc(0, 2)}},
+              {"PTB1", {gpio(17), adc(0, 3)}},
+              {"PTB3", {gpio(18), adc(0, 4)}},
+              {"PTB2", {gpio(19), adc(0, 5)}},
+              {"PTD5", {gpio(20), pwm(), adc(0, 6)}},
+              {"PTD6", {gpio(21), pwm(), adc(0, 7)}},
+              {"PTC1", {gpio(22), pwm(), adc(0, 8)}},
+              {"PTC2", {gpio(23), pwm(), adc(0, 9)}},
+              {"PTA5", {gpio(24)}},
+              {"PTB19", {gpio(25), pwm()}},
+              {"PTE1", {gpio(26)}},
+              {"PTC9", {gpio(27)}},
+              {"PTC8", {gpio(28)}},
+              {"PTC10", {gpio(29)}},
+              {"PTC11", {gpio(30)}},
+              {"PTE0", {gpio(31)}},
+              {"PTB18", {gpio(32), pwm()}},
+              {"PTA4", {gpio(33)}},
+              {"PTE30", {adc(0, 14), dac(0, 0)}}, // A14 / DAC
+          }});
+
   // FIXME ESP32-S3, etc.
 }
 }
