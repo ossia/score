@@ -55,6 +55,14 @@ public:
   /** @brief A basic vertex shader that is going to work with this mesh. */
   virtual const char* defaultVertexShader() const noexcept = 0;
 
+  /** @brief Return the underlying semantic geometry if available.
+   *
+   * Used by buildPipeline() to remap vertex input layouts by matching
+   * shader input variable names to geometry attribute semantics.
+   * Meshes that carry semantic information (e.g. CustomMesh) should override this.
+   */
+  virtual const ossia::geometry* semanticGeometry() const noexcept { return nullptr; }
+
   ossia::geometry_filter_list_ptr filters;
 
   std::atomic_int64_t dirtyGeometryIndex{-1};

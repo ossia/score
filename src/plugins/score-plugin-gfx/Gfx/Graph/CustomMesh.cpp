@@ -316,33 +316,17 @@ void CustomMesh::reload(const ossia::mesh_list &ml, const ossia::geometry_filter
   vertexAttributes.clear();
   attributeSemantics.clear();
 
-  // First pass: assign canonical locations for known semantics,
-  // mark non-canonical attributes with -1 for reassignment.
-  constexpr int canonical_count = 5; // locations 0-4 are reserved
+  // Assign linear locations (0, 1, 2, ...) in order of appearance.
+  // The actual semantic-to-shader-location mapping is done at pipeline
+  // creation time by remapPipelineVertexInputs(), which matches shader
+  // input variable names to geometry attribute semantics.
+  int location = 0;
   for(auto& attr : g.attributes)
   {
-    int location = -1;
-    switch(attr.semantic)
-    {
-      case ossia::attribute_semantic::position:  location = 0; break;
-      case ossia::attribute_semantic::texcoord0: location = 1; break;
-      case ossia::attribute_semantic::color0:    location = 2; break;
-      case ossia::attribute_semantic::normal:    location = 3; break;
-      case ossia::attribute_semantic::tangent:   location = 4; break;
-      default: break;
-    }
     vertexAttributes.emplace_back(
-        attr.binding, location, (QRhiVertexInputAttribute::Format)attr.format,
+        attr.binding, location++, (QRhiVertexInputAttribute::Format)attr.format,
         attr.byte_offset);
     attributeSemantics.push_back(attr.semantic);
-  }
-
-  // Second pass: assign non-colliding locations for non-canonical attributes.
-  int next_location = canonical_count;
-  for(auto& va : vertexAttributes)
-  {
-    if(va.location() == -1)
-      va.setLocation(next_location++);
   }
 
   if(g.buffers.empty())
