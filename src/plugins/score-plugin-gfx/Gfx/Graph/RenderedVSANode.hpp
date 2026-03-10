@@ -12,7 +12,6 @@ struct SimpleRenderedVSANode : score::gfx::NodeRenderer
 
   virtual ~SimpleRenderedVSANode();
 
-  TextureRenderTarget renderTargetForInput(const Port& p) override;
   void updateInputTexture(const Port& input, QRhiTexture* tex) override;
 
   void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
@@ -26,8 +25,6 @@ struct SimpleRenderedVSANode : score::gfx::NodeRenderer
   void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& edge) override;
 
 private:
-  ossia::small_flat_map<const Port*, TextureRenderTarget, 2> m_rts;
-
   void initPass(
       const TextureRenderTarget& rt, RenderList& renderer, Edge& edge,
       QRhiResourceUpdateBatch& res);

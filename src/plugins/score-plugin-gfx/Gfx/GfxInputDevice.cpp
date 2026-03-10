@@ -87,7 +87,8 @@ video_texture_input_parameter::video_texture_input_parameter(
 
 void video_texture_input_parameter::pull_texture(ossia::gfx::port_index idx)
 {
-  context->setEdge(port_index{this->node_id, 0}, idx);
+  context->setEdge(
+      port_index{this->node_id, 0}, idx, Process::CableType::ImmediateGlutton);
 
   score::gfx::Message m;
   m.node_id = node_id;

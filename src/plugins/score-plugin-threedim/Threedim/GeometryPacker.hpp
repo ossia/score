@@ -15,7 +15,7 @@ namespace Threedim
 {
 struct packed_attribute_spec
 {
-  halp::attribute_location location{};
+  halp::attribute_semantic location{};
   bool pad_to_vec4{false};
 };
 

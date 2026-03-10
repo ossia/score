@@ -50,7 +50,7 @@ inline QDebug operator<<(QDebug dbg, const dynamic_geometry& geom)
   {
     const auto& attr = geom.attributes[i];
     dbg << "    [" << i << "] { binding: " << attr.binding
-        << ", location: " << magic_enum::enum_name(attr.location)
+        << ", location: " << magic_enum::enum_name(attr.semantic)
         << ", format: " << magic_enum::enum_name(attr.format)
         << ", offset: " << attr.byte_offset << " }\n";
   }
@@ -123,7 +123,7 @@ inline QDebug operator<<(QDebug dbg, const dynamic_gpu_geometry& geom)
   {
     const auto& attr = geom.attributes[i];
     dbg << "    [" << i << "] { binding: " << attr.binding
-        << ", location: " << magic_enum::enum_name(attr.location)
+        << ", location: " << magic_enum::enum_name(attr.semantic)
         << ", format: " << magic_enum::enum_name(attr.format)
         << ", offset: " << attr.byte_offset << " }\n";
   }

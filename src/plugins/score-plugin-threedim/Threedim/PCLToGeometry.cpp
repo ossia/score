@@ -103,43 +103,48 @@ void PCLToMesh2::operator()()
       vertice_stride = 3;
       attributes.push_back(
           {.binding = 0,
-           .location = halp::attribute_location::position,
+           .semantic = halp::attribute_semantic::position,
            .format = halp::attribute_format::float3,
            .byte_offset = 0});
       break;
     case XYZ_RGB:
       vertice_stride = 6;
-      attributes.push_back(
-          {.binding = 0,
-           .location = halp::attribute_location::position,
-           .format = halp::attribute_format::float3,
-           .byte_offset = 0});
-      attributes.push_back(
-          {.binding = 0,
-           .location = halp::attribute_location::color,
-           .format = halp::attribute_format::float3,
-           .byte_offset = 3 * sizeof(float)});
+      attributes.push_back({
+          .binding = 0,
+          .semantic = halp::attribute_semantic::position,
+          .format = halp::attribute_format::float3,
+          .byte_offset = 0,
+      });
+      attributes.push_back({
+          .binding = 0,
+          .semantic = halp::attribute_semantic::color0,
+          .format = halp::attribute_format::float3,
+          .byte_offset = 3 * sizeof(float),
+      });
       break;
     case XYZW:
       vertice_stride = 4;
-      attributes.push_back(
-          {.binding = 0,
-           .location = halp::attribute_location::position,
-           .format = halp::attribute_format::float4,
-           .byte_offset = 0});
+      attributes.push_back({
+          .binding = 0,
+          .semantic = halp::attribute_semantic::position,
+          .format = halp::attribute_format::float4,
+          .byte_offset = 0,
+      });
       break;
     case XYZW_RGBA:
       vertice_stride = 8;
-      attributes.push_back(
-          {.binding = 0,
-           .location = halp::attribute_location::position,
-           .format = halp::attribute_format::float4,
-           .byte_offset = 0});
-      attributes.push_back(
-          {.binding = 0,
-           .location = halp::attribute_location::color,
-           .format = halp::attribute_format::float4,
-           .byte_offset = 4 * sizeof(float)});
+      attributes.push_back({
+          .binding = 0,
+          .semantic = halp::attribute_semantic::position,
+          .format = halp::attribute_format::float4,
+          .byte_offset = 0,
+      });
+      attributes.push_back({
+          .binding = 0,
+          .semantic = halp::attribute_semantic::color0,
+          .format = halp::attribute_format::float4,
+          .byte_offset = 4 * sizeof(float),
+      });
       break;
     default:
       return;

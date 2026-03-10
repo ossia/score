@@ -490,13 +490,13 @@ inline void initGfxPorts(auto* self, auto& input, auto& output)
   avnd::input_introspection<Node_T>::for_all(
       [self, &input]<typename Field, std::size_t I>(avnd::field_reflection<I, Field> f) {
     static constexpr auto type = port_to_type_enum{}(f);
-    input.push_back(new score::gfx::Port{self, {}, type, {}});
+    input.push_back(new score::gfx::Port{self, {}, type, {}, {}});
   });
   avnd::output_introspection<Node_T>::for_all(
       [self,
        &output]<typename Field, std::size_t I>(avnd::field_reflection<I, Field> f) {
     static constexpr auto type = port_to_type_enum{}(f);
-    output.push_back(new score::gfx::Port{self, {}, type, {}});
+    output.push_back(new score::gfx::Port{self, {}, type, {}, {}});
   });
 }
 
@@ -578,7 +578,6 @@ static void uploadOutputBuffer(
 {
   if(cpu_buf.changed)
   {
-    const auto bytesize = avnd::get_bytesize(cpu_buf);
     recreateOutputBuffer(renderer, cpu_buf, res, rhi_buf);
     score::gfx::uploadStaticBufferWithStoredData(
         &res, rhi_buf.handle, 0, cpu_buf.byte_size,

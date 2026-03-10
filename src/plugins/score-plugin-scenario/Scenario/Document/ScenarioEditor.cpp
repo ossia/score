@@ -360,7 +360,7 @@ bool ScenarioEditor::remove(const Selection& s, const score::DocumentContext& ct
                 for(auto& out_cbl : os[0]->cables())
                 {
                   auto& sink = out_cbl.find(ctx).sink().find(ctx);
-                  m.createCable(doc, src, sink);
+                  m.createCable(doc, src, sink, out_cbl.find(ctx).type());
                 }
               }
             }

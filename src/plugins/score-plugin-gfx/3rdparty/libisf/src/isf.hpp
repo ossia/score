@@ -136,7 +136,21 @@ struct geometry_input
     bool required{true};  // false = optional, zero fallback if missing
   };
 
+  // Structured SSBOs that travel with the geometry (matched by name
+  // against ossia::geometry::auxiliary_buffer entries).
+  struct auxiliary_request
+  {
+    std::string name;
+    std::string access; // "read_only", "write_only", "read_write"
+    std::vector<storage_input::layout_field> layout;
+    std::string size; // expression for flexible array count, may contain $USER
+  };
+
   std::vector<attribute_request> attributes;
+  std::vector<auxiliary_request> auxiliary;
+
+  std::string vertex_count;   // expression string, may contain $USER
+  std::string instance_count; // expression string, may contain $USER
 };
 
 struct input
@@ -301,7 +315,7 @@ struct descriptor
   struct dispatch_info
   {
     std::array<int, 3> local_size{16, 16, 1};
-    std::string execution_type{"2D_IMAGE"}; // "2D_IMAGE", "1D_BUFFER", "MANUAL", etc.
+    std::string execution_type{"2D_IMAGE"}; // "2D_IMAGE", "1D_BUFFER", "PER_VERTEX", "PER_INSTANCE", "MANUAL"
     std::string target_resource;
     std::array<int, 3> workgroups{1, 1, 1}; // For MANUAL mode
     int stride{1};                          // For 1D_BUFFER / 2D_IMAGE. 0 == default

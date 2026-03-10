@@ -73,6 +73,14 @@ public:
    */
   TextureRenderTarget renderTargetForOutput(const Edge& edge) const noexcept;
 
+  /**
+   * @brief Look up the render target for a given input port.
+   *
+   * All input render targets are created centrally before any node init()
+   * so that they are available regardless of initialization order.
+   */
+  TextureRenderTarget renderTargetForInputPort(const Port& p) const noexcept;
+
   BufferView bufferForInput(const Edge& edge) const noexcept;
   BufferView bufferForOutput(const Edge& edge) const noexcept;
 
@@ -150,6 +158,8 @@ public:
 
   int64_t frame = 0;
 
+  void createAllInputRenderTargets();
+
 private:
   OutputUBO m_outputUBOData;
 
@@ -165,6 +175,14 @@ private:
   ossia::flat_map<Mesh*, MeshBuffers> m_vertexBuffers;
 
   ossia::flat_map<ossia::geometry_spec, Mesh*> m_customMeshCache;
+
+  /**
+   * @brief Centralized render targets for all image input ports.
+   *
+   * Created before any node init() so that they are available
+   * regardless of initialization order (fixes delayed-edge feedback).
+   */
+  ossia::small_flat_map<const Port*, TextureRenderTarget, 8> m_inputRenderTargets;
 
   /**
    * @brief Last size used by this renderer.

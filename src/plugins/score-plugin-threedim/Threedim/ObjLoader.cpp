@@ -89,7 +89,7 @@ void ObjLoader::rebuild_geometry()
     geom.attributes.push_back(
         halp::geometry_attribute{
             .binding = 0,
-            .location = halp::attribute_location::position,
+            .semantic = halp::attribute_semantic::position,
             .format = halp::attribute_format::float3,
             .byte_offset = 0});
 
@@ -98,7 +98,7 @@ void ObjLoader::rebuild_geometry()
       geom.attributes.push_back(
           halp::geometry_attribute{
               .binding = geom.attributes.back().binding + 1,
-              .location = halp::attribute_location::tex_coord,
+              .semantic = halp::attribute_semantic::texcoord0,
               .format = halp::attribute_format::float2,
               .byte_offset = 0});
     }
@@ -108,7 +108,7 @@ void ObjLoader::rebuild_geometry()
       geom.attributes.push_back(
           halp::geometry_attribute{
               .binding = geom.attributes.back().binding + 1,
-              .location = halp::attribute_location::normal,
+              .semantic = halp::attribute_semantic::normal,
               .format = halp::attribute_format::float3,
               .byte_offset = 0});
     }
@@ -118,7 +118,7 @@ void ObjLoader::rebuild_geometry()
       geom.attributes.push_back(
           halp::geometry_attribute{
               .binding = geom.attributes.back().binding + 1,
-              .location = halp::attribute_location::color,
+              .semantic = halp::attribute_semantic::color0,
               .format = halp::attribute_format::float3,
               .byte_offset = 0});
     }

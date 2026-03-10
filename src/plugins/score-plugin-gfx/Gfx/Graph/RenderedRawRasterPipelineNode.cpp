@@ -1,3 +1,4 @@
+#include <Gfx/Graph/CustomMesh.hpp>
 #include <Gfx/Graph/RenderedISFSamplerUtils.hpp>
 #include <Gfx/Graph/RenderedRawRasterPipelineNode.hpp>
 
@@ -13,14 +14,6 @@ RenderedRawRasterPipelineNode::RenderedRawRasterPipelineNode(
     : score::gfx::NodeRenderer{node}
     , n{const_cast<ISFNode&>(node)}
 {
-}
-
-TextureRenderTarget RenderedRawRasterPipelineNode::renderTargetForInput(const Port& p)
-{
-  auto it = m_rts.find(&p);
-  if(it != m_rts.end())
-    return it->second;
-  return {};
 }
 
 void RenderedRawRasterPipelineNode::updateInputTexture(const Port& input, QRhiTexture* tex)
@@ -126,37 +119,69 @@ void RenderedRawRasterPipelineNode::initPass(
 
     m_mesh->preparePipeline(*ps);
 
-    // Check compatibility of shader and mesh
+    // Semantic-based matching: match shader inputs to mesh attributes by semantic
+    // rather than by location integer, then remap locations so the pipeline is correct.
     {
-      const auto& mesh_vars = ps->vertexInputLayout();
-      auto mesh_bindings_begin = mesh_vars.cbeginBindings();
-      auto mesh_bindings_end = mesh_vars.cendBindings();
-      auto mesh_attributes_begin = mesh_vars.cbeginAttributes();
-      auto mesh_attributes_end = mesh_vars.cendAttributes();
-      const int mesh_bindings = mesh_bindings_end - mesh_bindings_begin;
-      const int mesh_attributes = mesh_attributes_end - mesh_attributes_begin;
-      for(const auto& shader_var : v.description().inputVariables())
+      const auto& shader_inputs = v.description().inputVariables();
+
+      // Access the ossia geometry from the CustomMesh's own copy, not from
+      // this->geometry.meshes which could be updated by the execution thread.
+      const ossia::geometry* orig_geom = nullptr;
+      if(auto* custom_mesh = static_cast<const CustomMesh*>(m_mesh))
       {
-        bool found = false;
-        for(int i = 0; i < mesh_attributes; i++)
+        auto& ml = custom_mesh->meshList();
+        if(!ml.meshes.empty())
+          orig_geom = &ml.meshes[0];
+      }
+
+      if(!orig_geom || orig_geom->attributes.empty())
+      {
+        // No geometry with semantics available, cannot match
+        delete ps;
+        delete pubo;
+        return;
+      }
+
+      QVarLengthArray<QRhiVertexInputAttribute> remappedAttrs;
+
+      for(const auto& shader_var : shader_inputs)
+      {
+        // Resolve shader variable name to semantic
+        auto sem = ossia::name_to_semantic(
+            std::string_view(shader_var.name.constData(), shader_var.name.size()));
+
+        // Find matching geometry attribute
+        const ossia::geometry::attribute* match = nullptr;
+        if(sem != ossia::attribute_semantic::custom)
+          match = orig_geom->find(sem);
+        else
+          match = orig_geom->find(
+              std::string_view(shader_var.name.constData(), shader_var.name.size()));
+
+        if(!match)
         {
-          const auto& attr = mesh_attributes_begin + i;
-          if(attr->location() == shader_var.location)
-          {
-            if(attr->binding() >= 0 && attr->binding() < mesh_bindings)
-            {
-              found = true;
-              break;
-            }
-          }
-        }
-        if(!found)
-        {
+          // Required attribute not found in mesh
           delete ps;
           delete pubo;
           return;
         }
+
+        // Create QRhiVertexInputAttribute with:
+        // - binding from MESH (which buffer the data is in)
+        // - location from SHADER (what the shader expects)
+        // - format/offset from MESH (how the data is laid out)
+        remappedAttrs.append(QRhiVertexInputAttribute(
+            match->binding, shader_var.location,
+            static_cast<QRhiVertexInputAttribute::Format>(match->format),
+            match->byte_offset));
       }
+
+      // Override the vertex input layout with remapped attributes
+      QRhiVertexInputLayout inputLayout;
+      const auto& prevLayout = ps->vertexInputLayout();
+      inputLayout.setBindings(prevLayout.cbeginBindings(), prevLayout.cendBindings());
+      inputLayout.setAttributes(remappedAttrs.begin(), remappedAttrs.end());
+      ps->setVertexInputLayout(inputLayout);
     }
 
     ps->setDepthTest(true);
@@ -232,12 +257,11 @@ void RenderedRawRasterPipelineNode::init(
   SCORE_ASSERT(m_modelUBO->create());
 
   // Create the samplers
-  SCORE_ASSERT(m_rts.empty());
   SCORE_ASSERT(m_passes.empty());
   SCORE_ASSERT(m_inputSamplers.empty());
   SCORE_ASSERT(m_audioSamplers.empty());
 
-  m_inputSamplers = initInputSamplers(this->n, renderer, n.input, m_rts);
+  m_inputSamplers = initInputSamplers(this->n, renderer, n.input);
 
   m_audioSamplers = initAudioTextures(renderer, n.m_audio_textures);
 
@@ -367,12 +391,6 @@ void RenderedRawRasterPipelineNode::release(RenderList& r)
 {
   // customRelease
   {
-    for(auto [edge, rt] : m_rts)
-    {
-      rt.release();
-    }
-    m_rts.clear();
-
     for(auto& texture : n.m_audio_textures)
     {
       auto it = texture.samplers.find(&r);

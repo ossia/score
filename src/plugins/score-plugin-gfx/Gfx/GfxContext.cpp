@@ -140,7 +140,7 @@ void GfxContext::add_edge(EdgeSpec edge)
       auto source_port = source_ports[edge.first.port];
       auto sink_port = sink_ports[edge.second.port];
 
-      m_graph->addEdge(source_port, sink_port);
+      m_graph->addEdge(source_port, sink_port, edge.type);
     }
   }
 }

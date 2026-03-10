@@ -60,9 +60,10 @@ void GfxExecutionAction::releaseMessage(score::gfx::Message&& m)
 
 void GfxExecutionAction::startTick(const ossia::audio_tick_state& st) { }
 
-void GfxExecutionAction::setEdge(port_index source, port_index sink)
+void GfxExecutionAction::setEdge(
+    port_index source, port_index sink, Process::CableType t)
 {
-  incoming_edges.enqueue({source, sink});
+  incoming_edges.enqueue({source, sink, t});
 }
 
 void GfxExecutionAction::endTick(const ossia::audio_tick_state& st)

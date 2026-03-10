@@ -31,7 +31,7 @@ public:
   {
     port_index source = idx;
     port_index sink = port_index{this->node_id, 0};
-    context->setEdge(source, sink);
+    context->setEdge(source, sink, Process::CableType::ImmediateGlutton);
   }
 
   virtual ~gfx_parameter_base() { context->ui->unregister_node(node_id); }

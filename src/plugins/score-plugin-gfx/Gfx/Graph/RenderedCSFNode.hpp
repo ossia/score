@@ -13,7 +13,6 @@ struct RenderedCSFNode : score::gfx::NodeRenderer
 
   virtual ~RenderedCSFNode();
 
-  TextureRenderTarget renderTargetForInput(const Port& p) override;
   void updateInputTexture(const Port& input, QRhiTexture* tex) override;
 
   void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
@@ -49,10 +48,11 @@ private:
   // Geometry buffer management
   void updateGeometryBindings(RenderList& renderer, QRhiResourceUpdateBatch& res);
   void pushOutputGeometry(RenderList& renderer, Edge& edge);
+  int resolveCountExpression(
+      const std::string& expr, const isf::geometry_input& geo,
+      const std::string& fieldName) const;
 
   BufferView bufferForOutput(const score::gfx::Port& output) override;
-
-  ossia::small_flat_map<const Port*, TextureRenderTarget, 2> m_rts;
 
   struct ComputePass
   {
@@ -84,6 +84,7 @@ private:
     QString name;
     QString access; // "read_only", "write_only", "read_write"
     std::vector<isf::storage_input::layout_field> layout; // For size calculation
+    bool owned{true}; // false when buffer comes from geometry auxiliary
   };
   std::vector<StorageBuffer> m_storageBuffers; // Contains both ins and outs
 
@@ -113,9 +114,26 @@ private:
       std::string access;       // "read_only", "write_only", "read_write"
     };
 
+    // Structured SSBOs that travel with the geometry (matched by name
+    // against ossia::geometry::auxiliary_buffer entries).
+    struct AuxiliarySSBO
+    {
+      QRhiBuffer* buffer{};
+      int64_t size{};
+      bool owned{true};
+      std::string name;
+      std::string access;
+      std::vector<isf::storage_input::layout_field> layout;
+      std::string size_expr; // expression for flexible array count, may contain $USER
+    };
+
     std::vector<AttributeSSBO> attribute_ssbos;
+    std::vector<AuxiliarySSBO> auxiliary_ssbos;
     int element_count{0};       // Number of elements (vertices) in the geometry
+    int instance_count{1};      // Number of instances
     bool has_output{false};     // true if any attribute is writable
+    bool has_vertex_count_spec{false};   // true if vertex_count expression is set
+    bool has_instance_count_spec{false}; // true if instance_count expression is set
   };
   std::vector<GeometryBinding> m_geometryBindings;
 

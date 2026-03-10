@@ -90,11 +90,6 @@ GaussianSplatRenderer::GaussianSplatRenderer(const GaussianSplatNode& node)
 
 GaussianSplatRenderer::~GaussianSplatRenderer() = default;
 
-TextureRenderTarget GaussianSplatRenderer::renderTargetForInput(const Port& p)
-{
-  return m_inputTarget;
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Preprocess pipeline: raw 256B splats → compact 64B rendering splats
 // ─────────────────────────────────────────────────────────────────────────────
@@ -550,7 +545,7 @@ void GaussianSplatRenderer::init(RenderList& renderer, QRhiResourceUpdateBatch& 
            << rhi.backendName()
            << "compute=" << rhi.isFeatureSupported(QRhi::Compute);
 
-  // Create input render target
+  // Look up the pre-created input render target from the RenderList
   auto rt_spec = m_node.resolveRenderTargetSpecs(0, renderer);
   auto sampler = rhi.newSampler(
       rt_spec.min_filter, rt_spec.mag_filter, QRhiSampler::Linear,
@@ -558,12 +553,9 @@ void GaussianSplatRenderer::init(RenderList& renderer, QRhiResourceUpdateBatch& 
   sampler->setName("GaussianSplat::sampler");
   sampler->create();
 
-  m_inputTarget = score::gfx::createRenderTarget(
-      renderer.state, rt_spec.format, rt_spec.size, renderer.samples(),
-      true, // renderer.requiresDepth(),
-      QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips);
-
-  m_samplers.push_back({sampler, m_inputTarget.texture});
+  auto inputRT = renderer.renderTargetForInputPort(*m_node.input[0]);
+  auto* texture = inputRT.texture ? inputRT.texture : &renderer.emptyTexture();
+  m_samplers.push_back({sampler, texture});
 
   // Render uniform buffer
   const int64_t uniformSize = 3 * 64 + 16;
@@ -979,8 +971,6 @@ void GaussianSplatRenderer::runRenderPass(
 void GaussianSplatRenderer::release(RenderList& r)
 {
   qDebug() << "[GaussianSplat] release";
-
-  m_inputTarget.release();
 
   for(auto& sampler : m_samplers)
     delete sampler.sampler;
