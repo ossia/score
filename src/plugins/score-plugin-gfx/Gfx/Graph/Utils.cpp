@@ -269,6 +269,49 @@ void replaceTexture(
   srb.create();
 }
 
+bool remapPipelineVertexInputs(
+    QRhiGraphicsPipeline& pip, const QShader& vertexShader,
+    const ossia::geometry& geom)
+{
+  const auto& shader_inputs = vertexShader.description().inputVariables();
+  if(shader_inputs.empty())
+    return true;
+
+  QVarLengthArray<QRhiVertexInputAttribute> remappedAttrs;
+
+  for(const auto& shader_var : shader_inputs)
+  {
+    // Resolve shader variable name to semantic
+    auto sem = ossia::name_to_semantic(
+        std::string_view(shader_var.name.constData(), shader_var.name.size()));
+
+    // Find matching geometry attribute by semantic or by name
+    const ossia::geometry::attribute* match = nullptr;
+    if(sem != ossia::attribute_semantic::custom)
+      match = geom.find(sem);
+    else
+      match = geom.find(
+          std::string_view(shader_var.name.constData(), shader_var.name.size()));
+
+    if(!match)
+      return false;
+
+    // binding/format/offset from GEOMETRY, location from SHADER
+    remappedAttrs.append(QRhiVertexInputAttribute(
+        match->binding, shader_var.location,
+        static_cast<QRhiVertexInputAttribute::Format>(match->format),
+        match->byte_offset));
+  }
+
+  // Override vertex input layout, keeping the bindings (stride/classification)
+  QRhiVertexInputLayout inputLayout;
+  const auto& prevLayout = pip.vertexInputLayout();
+  inputLayout.setBindings(prevLayout.cbeginBindings(), prevLayout.cendBindings());
+  inputLayout.setAttributes(remappedAttrs.begin(), remappedAttrs.end());
+  pip.setVertexInputLayout(inputLayout);
+  return true;
+}
+
 Pipeline buildPipeline(
     const RenderList& renderer, const Mesh& mesh, const QShader& vertexS,
     const QShader& fragmentS, const TextureRenderTarget& rt,
@@ -290,6 +333,19 @@ Pipeline buildPipeline(
   ps->setSampleCount(renderer.samples());
 
   mesh.preparePipeline(*ps);
+
+  // Remap vertex inputs by semantic if the mesh provides semantic geometry.
+  // This matches shader input variable names to geometry attribute semantics,
+  // so that locations are determined by the shader, not by the geometry producer.
+  if(auto* geom = mesh.semanticGeometry())
+  {
+    if(!remapPipelineVertexInputs(*ps, vertexS, *geom))
+    {
+      qDebug() << "Warning! Shader requires attributes not present in mesh";
+      delete ps;
+      return {nullptr, srb};
+    }
+  }
 
   // FIXME does that check make sense?
   if(!renderer.anyNodeRequiresDepth())

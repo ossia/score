@@ -1,6 +1,6 @@
-#include <Gfx/Graph/CustomMesh.hpp>
 #include <Gfx/Graph/RenderedISFSamplerUtils.hpp>
 #include <Gfx/Graph/RenderedRawRasterPipelineNode.hpp>
+#include <Gfx/Graph/Utils.hpp>
 
 #include <score/tools/Debug.hpp>
 
@@ -119,69 +119,16 @@ void RenderedRawRasterPipelineNode::initPass(
 
     m_mesh->preparePipeline(*ps);
 
-    // Semantic-based matching: match shader inputs to mesh attributes by semantic
-    // rather than by location integer, then remap locations so the pipeline is correct.
+    // Remap vertex inputs by semantic: match shader input variable names
+    // to geometry attribute semantics.
+    if(auto* geom = m_mesh->semanticGeometry())
     {
-      const auto& shader_inputs = v.description().inputVariables();
-
-      // Access the ossia geometry from the CustomMesh's own copy, not from
-      // this->geometry.meshes which could be updated by the execution thread.
-      const ossia::geometry* orig_geom = nullptr;
-      if(auto* custom_mesh = static_cast<const CustomMesh*>(m_mesh))
+      if(!remapPipelineVertexInputs(*ps, v, *geom))
       {
-        auto& ml = custom_mesh->meshList();
-        if(!ml.meshes.empty())
-          orig_geom = &ml.meshes[0];
-      }
-
-      if(!orig_geom || orig_geom->attributes.empty())
-      {
-        // No geometry with semantics available, cannot match
         delete ps;
         delete pubo;
         return;
       }
-
-      QVarLengthArray<QRhiVertexInputAttribute> remappedAttrs;
-
-      for(const auto& shader_var : shader_inputs)
-      {
-        // Resolve shader variable name to semantic
-        auto sem = ossia::name_to_semantic(
-            std::string_view(shader_var.name.constData(), shader_var.name.size()));
-
-        // Find matching geometry attribute
-        const ossia::geometry::attribute* match = nullptr;
-        if(sem != ossia::attribute_semantic::custom)
-          match = orig_geom->find(sem);
-        else
-          match = orig_geom->find(
-              std::string_view(shader_var.name.constData(), shader_var.name.size()));
-
-        if(!match)
-        {
-          // Required attribute not found in mesh
-          delete ps;
-          delete pubo;
-          return;
-        }
-
-        // Create QRhiVertexInputAttribute with:
-        // - binding from MESH (which buffer the data is in)
-        // - location from SHADER (what the shader expects)
-        // - format/offset from MESH (how the data is laid out)
-        remappedAttrs.append(QRhiVertexInputAttribute(
-            match->binding, shader_var.location,
-            static_cast<QRhiVertexInputAttribute::Format>(match->format),
-            match->byte_offset));
-      }
-
-      // Override the vertex input layout with remapped attributes
-      QRhiVertexInputLayout inputLayout;
-      const auto& prevLayout = ps->vertexInputLayout();
-      inputLayout.setBindings(prevLayout.cbeginBindings(), prevLayout.cendBindings());
-      inputLayout.setAttributes(remappedAttrs.begin(), remappedAttrs.end());
-      ps->setVertexInputLayout(inputLayout);
     }
 
     ps->setDepthTest(true);

@@ -73,6 +73,13 @@ public:
   void draw(const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexcept override;
 
   const char* defaultVertexShader() const noexcept override;
+
+  const ossia::geometry* semanticGeometry() const noexcept override
+  {
+    if(!geom.meshes.empty())
+      return &geom.meshes[0];
+    return nullptr;
+  }
 };
 
 }

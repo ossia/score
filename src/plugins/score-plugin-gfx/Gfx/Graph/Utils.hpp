@@ -231,6 +231,19 @@ QRhiShaderResourceBindings* createDefaultBindings(
     std::span<QRhiShaderResourceBinding> additionalBindings = {});
 
 /**
+ * @brief Remap a pipeline's vertex input layout using semantic matching.
+ *
+ * For each shader input variable, resolves its name to an attribute semantic,
+ * finds the matching attribute in the geometry, then creates a vertex input
+ * attribute with binding/format/offset from the geometry and location from
+ * the shader. Returns true on success, false if a required attribute is missing.
+ */
+SCORE_PLUGIN_GFX_EXPORT
+bool remapPipelineVertexInputs(
+    QRhiGraphicsPipeline& pip, const QShader& vertexShader,
+    const ossia::geometry& geom);
+
+/**
  * @brief Create a render pipeline following the score conventions for shaders and materials.
  */
 SCORE_PLUGIN_GFX_EXPORT
