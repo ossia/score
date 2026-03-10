@@ -177,8 +177,14 @@ struct isf_input_port_vis
 
   void operator()(const isf::geometry_input& in) noexcept
   {
-    // Geometry input port — receives ossia::geometry with SoA attribute buffers
-    self.input.push_back(new Port{&self, {}, Types::Geometry, {}});
+    // Create geometry input port if any attribute needs upstream data (read_only or read_write)
+    bool needs_input = false;
+    for(const auto& attr : in.attributes)
+      if(attr.access != "write_only")
+      { needs_input = true; break; }
+
+    if(needs_input)
+      self.input.push_back(new Port{&self, {}, Types::Geometry, {}});
 
     // If any attributes are writable, create a geometry output port
     bool has_output = false;
@@ -194,6 +200,15 @@ struct isf_input_port_vis
     {
       self.output.push_back(new Port{&self, {}, Types::Geometry, {}});
     }
+
+    // $USER in vertex_count/instance_count/aux.size → IntSpinBox port
+    if(in.vertex_count.find("$USER") != std::string::npos)
+      (*this)(isf::long_input{.values = {}, .labels = {}, .def = 1024});
+    if(in.instance_count.find("$USER") != std::string::npos)
+      (*this)(isf::long_input{.values = {}, .labels = {}, .def = 1});
+    for(const auto& aux : in.auxiliary)
+      if(aux.size.find("$USER") != std::string::npos)
+        (*this)(isf::long_input{.values = {}, .labels = {}, .def = 1024});
   }
 
   void operator()(const isf::csf_image_input& in) noexcept

@@ -649,8 +649,7 @@ computeScaleForTexcoordSizing(ScaleMode mode, QSizeF renderSize, QSizeF textureS
 }
 
 std::vector<Sampler> initInputSamplers(
-    const score::gfx::Node& node, RenderList& renderer, const std::vector<Port*>& ports,
-    ossia::small_flat_map<const Port*, TextureRenderTarget, 2>& m_rts)
+    const score::gfx::Node& node, RenderList& renderer, const std::vector<Port*>& ports)
 {
   std::vector<Sampler> samplers;
   QRhi& rhi = *renderer.state.rhi;
@@ -694,10 +693,13 @@ std::vector<Sampler> initInputSamplers(
           SCORE_ASSERT(sampler->create());
 
           samplers.push_back({sampler, srcTex});
-          // No entry in m_rts — there is no render target for this port
         }
         else
         {
+          // Look up the pre-created render target from the RenderList
+          auto rt = renderer.renderTargetForInputPort(*in);
+          auto* texture = rt.texture ? rt.texture : &renderer.emptyTexture();
+
           auto spec = node.resolveRenderTargetSpecs(cur_port, renderer);
           auto sampler = rhi.newSampler(
               spec.mag_filter, spec.min_filter, spec.mipmap_mode, spec.address_u,
@@ -705,13 +707,7 @@ std::vector<Sampler> initInputSamplers(
           sampler->setName("initInputSamplers::sampler");
           SCORE_ASSERT(sampler->create());
 
-          auto rt = score::gfx::createRenderTarget(
-              renderer.state, spec.format, spec.size, renderer.samples(),
-              renderer.requiresDepth(*in));
-          auto texture = rt.texture;
           samplers.push_back({sampler, texture});
-
-          m_rts[in] = std::move(rt);
         }
         break;
       }

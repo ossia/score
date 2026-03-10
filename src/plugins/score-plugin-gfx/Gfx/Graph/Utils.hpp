@@ -1,4 +1,5 @@
 #pragma once
+#include <Process/Dataflow/CableData.hpp>
 
 #include <Gfx/Graph/Mesh.hpp>
 #include <Gfx/Graph/RenderState.hpp>
@@ -72,9 +73,10 @@ struct Port
  */
 struct Edge
 {
-  Edge(Port* source, Port* sink)
+  Edge(Port* source, Port* sink, Process::CableType t)
       : source{source}
       , sink{sink}
+      , type{t}
   {
     source->edges.push_back(this);
     sink->edges.push_back(this);
@@ -92,6 +94,7 @@ struct Edge
 
   Port* source{};
   Port* sink{};
+  Process::CableType type{};
 };
 
 /**
@@ -369,6 +372,5 @@ inline void uploadStaticBufferWithStoredData(
 
 SCORE_PLUGIN_GFX_EXPORT
 std::vector<Sampler> initInputSamplers(
-    const score::gfx::Node& node, RenderList& renderer, const std::vector<Port*>& ports,
-    ossia::small_flat_map<const Port*, TextureRenderTarget, 2>& m_rts);
+    const score::gfx::Node& node, RenderList& renderer, const std::vector<Port*>& ports);
 }

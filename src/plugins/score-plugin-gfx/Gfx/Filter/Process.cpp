@@ -1,5 +1,6 @@
 #include "Process.hpp"
 
+#include <Process/Dataflow/ControlWidgets.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
 #include <Process/PresetHelpers.hpp>

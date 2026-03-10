@@ -466,10 +466,22 @@ void Model::setupCSF(const isf::descriptor& desc)
 
     void operator()(const geometry_input& v)
     {
-      // Geometry input port
-      auto in_port = new Gfx::GeometryInlet(
-          QString::fromStdString(input.name), Id<Process::Port>(input_i++), &self);
-      self.m_inlets.push_back(in_port);
+      // Create a geometry inlet if any attribute needs upstream data (read_only or read_write)
+      bool needs_input = false;
+      for(const auto& attr : v.attributes)
+      {
+        if(attr.access != "write_only")
+        {
+          needs_input = true;
+          break;
+        }
+      }
+      if(needs_input)
+      {
+        auto in_port = new Gfx::GeometryInlet(
+            QString::fromStdString(input.name), Id<Process::Port>(input_i++), &self);
+        self.m_inlets.push_back(in_port);
+      }
 
       // If any attributes are writable, create a geometry output port
       for(const auto& attr : v.attributes)
@@ -481,6 +493,40 @@ void Model::setupCSF(const isf::descriptor& desc)
               Id<Process::Port>(output_i++), &self);
           self.m_outlets.push_back(out_port);
           break;
+        }
+      }
+
+      // $USER in vertex_count creates an IntSpinBox
+      if(v.vertex_count.find("$USER") != std::string::npos)
+      {
+        auto port = new Process::IntSpinBox{
+            1, 536870911, 1024,
+            QString::fromStdString(input.name) + " vertex count",
+            Id<Process::Port>(input_i++), &self};
+        self.m_inlets.push_back(port);
+        self.controlAdded(port->id());
+      }
+      // $USER in instance_count creates an IntSpinBox
+      if(v.instance_count.find("$USER") != std::string::npos)
+      {
+        auto port = new Process::IntSpinBox{
+            1, 536870911, 1,
+            QString::fromStdString(input.name) + " instance count",
+            Id<Process::Port>(input_i++), &self};
+        self.m_inlets.push_back(port);
+        self.controlAdded(port->id());
+      }
+      // $USER in each auxiliary SIZE creates an IntSpinBox
+      for(const auto& aux : v.auxiliary)
+      {
+        if(aux.size.find("$USER") != std::string::npos)
+        {
+          auto port = new Process::IntSpinBox{
+              1, 536870911, 1024,
+              QString::fromStdString(aux.name) + " size",
+              Id<Process::Port>(input_i++), &self};
+          self.m_inlets.push_back(port);
+          self.controlAdded(port->id());
         }
       }
     }

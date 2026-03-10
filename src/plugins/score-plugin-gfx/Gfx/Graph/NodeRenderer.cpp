@@ -9,6 +9,11 @@
 namespace score::gfx
 {
 
+TextureRenderTarget NodeRenderer::renderTargetForInput(const Port& p)
+{
+  return {};
+}
+
 void defaultPassesInit(
     PassMap& passes, const std::vector<Edge*>& edges, RenderList& renderer,
     const Mesh& mesh, const QShader& v, const QShader& f, QRhiBuffer* processUBO,
@@ -66,12 +71,6 @@ void quadRenderPass(
     const auto& mesh = renderer.defaultQuad();
     mesh.draw(bufs, cb);
   }
-}
-
-TextureRenderTarget GenericNodeRenderer::renderTargetForInput(const Port& p)
-{
-  SCORE_TODO;
-  return {};
 }
 
 void GenericNodeRenderer::defaultMeshInit(

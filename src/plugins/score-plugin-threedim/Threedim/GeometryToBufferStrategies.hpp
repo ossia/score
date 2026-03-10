@@ -168,11 +168,11 @@ struct attribute_lookup
 };
 
 [[nodiscard]] inline std::optional<attribute_lookup> findAttribute(
-    const halp::dynamic_gpu_geometry& mesh, halp::attribute_location location) noexcept
+    const halp::dynamic_gpu_geometry& mesh, halp::attribute_semantic location) noexcept
 {
   for(const auto& attr : mesh.attributes)
   {
-    if(attr.location == location)
+    if(attr.semantic == location)
     {
       const auto binding_idx = attr.binding;
       if(binding_idx < 0 || binding_idx >= static_cast<int>(mesh.bindings.size()))

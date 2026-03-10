@@ -81,7 +81,7 @@ public:
   void operator()();
 
 private:
-  [[nodiscard]] static halp::attribute_location
+  [[nodiscard]] static halp::attribute_semantic
   toAttributeLocation(Attribute attr) noexcept;
   void updateOutput();
 

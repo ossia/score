@@ -524,6 +524,98 @@ static void parse_input(geometry_input& inp, const sajson::value& v)
         }
       }
     }
+    else if(k == "VERTEX_COUNT")
+    {
+      auto val = v.get_object_value(i);
+      if(val.get_type() == sajson::TYPE_STRING)
+        inp.vertex_count = val.as_string();
+      else if(val.get_type() == sajson::TYPE_INTEGER)
+        inp.vertex_count = std::to_string(val.get_integer_value());
+      else if(val.get_type() == sajson::TYPE_DOUBLE)
+        inp.vertex_count = std::to_string((int)val.get_double_value());
+    }
+    else if(k == "INSTANCE_COUNT")
+    {
+      auto val = v.get_object_value(i);
+      if(val.get_type() == sajson::TYPE_STRING)
+        inp.instance_count = val.as_string();
+      else if(val.get_type() == sajson::TYPE_INTEGER)
+        inp.instance_count = std::to_string(val.get_integer_value());
+      else if(val.get_type() == sajson::TYPE_DOUBLE)
+        inp.instance_count = std::to_string((int)val.get_double_value());
+    }
+    else if(k == "AUXILIARY")
+    {
+      auto val = v.get_object_value(i);
+      if(val.get_type() == sajson::TYPE_ARRAY)
+      {
+        std::size_t aux_count = val.get_length();
+        inp.auxiliary.reserve(aux_count);
+
+        for(std::size_t j = 0; j < aux_count; j++)
+        {
+          auto aux_obj = val.get_array_element(j);
+          if(aux_obj.get_type() != sajson::TYPE_OBJECT)
+            continue;
+
+          geometry_input::auxiliary_request ar;
+
+          for(std::size_t f = 0; f < aux_obj.get_length(); f++)
+          {
+            auto fkey = aux_obj.get_object_key(f).as_string();
+            auto fval = aux_obj.get_object_value(f);
+
+            if(fkey == "NAME" && fval.get_type() == sajson::TYPE_STRING)
+              ar.name = fval.as_string();
+            else if(fkey == "ACCESS" && fval.get_type() == sajson::TYPE_STRING)
+              ar.access = fval.as_string();
+            else if(fkey == "SIZE")
+            {
+              if(fval.get_type() == sajson::TYPE_STRING)
+                ar.size = fval.as_string();
+              else if(fval.get_type() == sajson::TYPE_INTEGER)
+                ar.size = std::to_string(fval.get_integer_value());
+              else if(fval.get_type() == sajson::TYPE_DOUBLE)
+                ar.size = std::to_string((int)fval.get_double_value());
+            }
+            else if(fkey == "LAYOUT" && fval.get_type() == sajson::TYPE_ARRAY)
+            {
+              std::size_t layout_size = fval.get_length();
+              ar.layout.reserve(layout_size);
+              for(std::size_t l = 0; l < layout_size; l++)
+              {
+                auto field = fval.get_array_element(l);
+                if(field.get_type() != sajson::TYPE_OBJECT)
+                  continue;
+                storage_input::layout_field lf;
+                for(std::size_t ff = 0; ff < field.get_length(); ff++)
+                {
+                  auto field_key = field.get_object_key(ff).as_string();
+                  if(field_key == "NAME")
+                  {
+                    auto name_val = field.get_object_value(ff);
+                    if(name_val.get_type() == sajson::TYPE_STRING)
+                      lf.name = name_val.as_string();
+                  }
+                  else if(field_key == "TYPE")
+                  {
+                    auto type_val = field.get_object_value(ff);
+                    if(type_val.get_type() == sajson::TYPE_STRING)
+                      lf.type = type_val.as_string();
+                  }
+                }
+                ar.layout.push_back(lf);
+              }
+            }
+          }
+
+          if(ar.access.empty())
+            ar.access = "read_write";
+
+          inp.auxiliary.push_back(std::move(ar));
+        }
+      }
+    }
   }
 }
 
@@ -977,24 +1069,8 @@ static const ossia::string_map<root_fun>& root_parse{[] {
             }
             else if(loc_obj.get_type() == sajson::TYPE_STRING)
             {
-              std::string type_str = loc_obj.as_string();
-              for(char& c : type_str)
-                if(c >= 'A' && c <= 'Z')
-                  c = c - ('A' - 'a');
-
-              // See oscr::standard_location_for_attribute
-              if(type_str.starts_with("position"))
-                ip.location = 0;
-              else if(type_str.starts_with("texcoord"))
-                ip.location = 1;
-              else if(type_str.starts_with("color"))
-                ip.location = 2;
-              else if(type_str.starts_with("normal"))
-                ip.location = 3;
-              else if(type_str.starts_with("tangent"))
-                ip.location = 4;
-              else
-                ip.location = std::stoi(type_str);
+              // Parse as integer, e.g. "LOCATION": "3"
+              ip.location = std::stoi(loc_obj.as_string());
             }
           }
 
@@ -1012,6 +1088,12 @@ static const ossia::string_map<root_fun>& root_parse{[] {
              k != obj.get_length())
           {
             ip.name = obj.get_object_value(k).as_string();
+          }
+
+          // If LOCATION was not specified, assign sequentially
+          if(ip.location < 0 && !ip.name.empty())
+          {
+            ip.location = (int)(d.*member).size();
           }
 
           if(ip.type != attribute_type::Unknown && ip.location >= 0 && !ip.name.empty())
@@ -2706,6 +2788,17 @@ std::string parser::write_isf() const
         void operator()(const geometry_input& geo)
         {
           oss << "      \"TYPE\": \"geometry\"";
+          if(!geo.vertex_count.empty())
+          {
+            // Try to emit as integer if possible, otherwise as string
+            try { std::stoi(geo.vertex_count); oss << ",\n      \"VERTEX_COUNT\": " << geo.vertex_count; }
+            catch(...) { oss << ",\n      \"VERTEX_COUNT\": \"" << escape_json(geo.vertex_count) << "\""; }
+          }
+          if(!geo.instance_count.empty())
+          {
+            try { std::stoi(geo.instance_count); oss << ",\n      \"INSTANCE_COUNT\": " << geo.instance_count; }
+            catch(...) { oss << ",\n      \"INSTANCE_COUNT\": \"" << escape_json(geo.instance_count) << "\""; }
+          }
           if(!geo.attributes.empty())
           {
             oss << ",\n      \"ATTRIBUTES\": [\n";
@@ -2723,6 +2816,40 @@ std::string parser::write_isf() const
                 oss << ", \"REQUIRED\": false";
               oss << "}";
               if(i < geo.attributes.size() - 1)
+                oss << ",";
+              oss << "\n";
+            }
+            oss << "      ]";
+          }
+          if(!geo.auxiliary.empty())
+          {
+            oss << ",\n      \"AUXILIARY\": [\n";
+            for(size_t i = 0; i < geo.auxiliary.size(); ++i)
+            {
+              const auto& aux = geo.auxiliary[i];
+              oss << "        {\"NAME\": \"" << escape_json(aux.name) << "\"";
+              if(!aux.access.empty())
+                oss << ", \"ACCESS\": \"" << escape_json(aux.access) << "\"";
+              if(!aux.size.empty())
+              {
+                try { std::stoi(aux.size); oss << ", \"SIZE\": " << aux.size; }
+                catch(...) { oss << ", \"SIZE\": \"" << escape_json(aux.size) << "\""; }
+              }
+              if(!aux.layout.empty())
+              {
+                oss << ", \"LAYOUT\": [";
+                for(size_t j = 0; j < aux.layout.size(); ++j)
+                {
+                  const auto& field = aux.layout[j];
+                  oss << "{\"NAME\": \"" << escape_json(field.name)
+                      << "\", \"TYPE\": \"" << escape_json(field.type) << "\"}";
+                  if(j < aux.layout.size() - 1)
+                    oss << ", ";
+                }
+                oss << "]";
+              }
+              oss << "}";
+              if(i < geo.auxiliary.size() - 1)
                 oss << ",";
               oss << "\n";
             }
@@ -3243,6 +3370,28 @@ void parser::parse_csf()
         // Buffer block name: inputname_attrname_buf, array name: inputname_attrname
         m_fragment += "buffer " + inp.name + "_" + attr.name + "_buf { ";
         m_fragment += attr.type + " " + inp.name + "_" + attr.name + "[]; };\n";
+
+        binding++;
+      }
+
+      // Auxiliary structured SSBOs (travel with the geometry)
+      for(const auto& aux : geo.auxiliary)
+      {
+        m_fragment += "layout(binding = " + std::to_string(binding) + ", std430) ";
+
+        if(aux.access == "read_only")
+          m_fragment += "readonly ";
+        else if(aux.access == "write_only")
+          m_fragment += "writeonly ";
+        else
+          m_fragment += "restrict ";
+
+        m_fragment += "buffer " + aux.name + " {\n";
+        for(const auto& field : aux.layout)
+        {
+          m_fragment += "    " + field.type + " " + field.name + ";\n";
+        }
+        m_fragment += "};\n\n";
 
         binding++;
       }

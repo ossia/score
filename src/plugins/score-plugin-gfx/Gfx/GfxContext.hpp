@@ -1,5 +1,9 @@
 #pragma once
+#include <Process/Dataflow/CableData.hpp>
+
 #include <Gfx/Graph/Node.hpp>
+
+#include <score/tools/Timers.hpp>
 
 #include <ossia/dataflow/nodes/media.hpp>
 #include <ossia/dataflow/token_request.hpp>
@@ -7,11 +11,11 @@
 #include <ossia/detail/flat_set.hpp>
 #include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/mutex.hpp>
-#include <ossia/detail/variant.hpp>
 #include <ossia/detail/small_flat_map.hpp>
+#include <ossia/detail/variant.hpp>
 #include <ossia/gfx/port_index.hpp>
 #include <ossia/network/value/value.hpp>
-#include <score/tools/Timers.hpp>
+
 #include <concurrentqueue.h>
 #include <score_plugin_gfx_export.h>
 namespace score {
@@ -30,8 +34,26 @@ struct DocumentContext;
 namespace Gfx
 {
 using port_index = ossia::gfx::port_index;
+struct EdgeSpec
+{
+  port_index first{};
+  port_index second{};
+  Process::CableType type{};
 
-using EdgeSpec = std::pair<port_index, port_index>;
+  bool operator==(const EdgeSpec& other) const noexcept
+  {
+    return first == other.first && second == other.second;
+  }
+  bool operator!=(const EdgeSpec& other) const noexcept
+  {
+    return first != other.first || second != other.second;
+  }
+  bool operator<(const EdgeSpec& other) const noexcept
+  {
+    return first < other.first || (first == other.first && second < other.second);
+  }
+};
+
 class GfxExecutionAction;
 class SCORE_PLUGIN_GFX_EXPORT GfxContext : public QObject
 {

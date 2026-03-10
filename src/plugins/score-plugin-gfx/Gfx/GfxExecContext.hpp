@@ -22,7 +22,7 @@ public:
   void releaseMessage(score::gfx::Message&&);
 
   void startTick(const ossia::audio_tick_state& st) override;
-  void setEdge(port_index source, port_index sink);
+  void setEdge(port_index source, port_index sink, Process::CableType t);
   void endTick(const ossia::audio_tick_state& st) override;
 
   GfxContext* ui{};

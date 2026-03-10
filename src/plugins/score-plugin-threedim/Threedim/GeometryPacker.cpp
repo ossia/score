@@ -17,10 +17,10 @@ void GeometryPacker::buildAttributeSpecs()
   {
     case Attribute3::Vec3:
       m_specs.push_back(
-          {.location = attribute_location::position, .pad_to_vec4 = false});
+          {.location = attribute_semantic::position, .pad_to_vec4 = false});
       break;
     case Attribute3::Vec4:
-      m_specs.push_back({.location = attribute_location::position, .pad_to_vec4 = true});
+      m_specs.push_back({.location = attribute_semantic::position, .pad_to_vec4 = true});
       break;
     default:
       break;
@@ -29,10 +29,10 @@ void GeometryPacker::buildAttributeSpecs()
   switch(inputs.normal.value)
   {
     case Attribute3::Vec3:
-      m_specs.push_back({.location = attribute_location::normal, .pad_to_vec4 = false});
+      m_specs.push_back({.location = attribute_semantic::normal, .pad_to_vec4 = false});
       break;
     case Attribute3::Vec4:
-      m_specs.push_back({.location = attribute_location::normal, .pad_to_vec4 = true});
+      m_specs.push_back({.location = attribute_semantic::normal, .pad_to_vec4 = true});
       break;
     default:
       break;
@@ -41,10 +41,10 @@ void GeometryPacker::buildAttributeSpecs()
   switch(inputs.color.value)
   {
     case Attribute3::Vec3:
-      m_specs.push_back({.location = attribute_location::color, .pad_to_vec4 = false});
+      m_specs.push_back({.location = attribute_semantic::color0, .pad_to_vec4 = false});
       break;
     case Attribute3::Vec4:
-      m_specs.push_back({.location = attribute_location::color, .pad_to_vec4 = true});
+      m_specs.push_back({.location = attribute_semantic::color0, .pad_to_vec4 = true});
       break;
     default:
       break;
@@ -54,7 +54,7 @@ void GeometryPacker::buildAttributeSpecs()
   {
     case Attribute2::Vec2:
       m_specs.push_back(
-          {.location = attribute_location::tex_coord, .pad_to_vec4 = false});
+          {.location = attribute_semantic::texcoord0, .pad_to_vec4 = false});
       break;
     default:
       break;
@@ -63,10 +63,10 @@ void GeometryPacker::buildAttributeSpecs()
   switch(inputs.tangent.value)
   {
     case Attribute3::Vec3:
-      m_specs.push_back({.location = attribute_location::tangent, .pad_to_vec4 = false});
+      m_specs.push_back({.location = attribute_semantic::tangent, .pad_to_vec4 = false});
       break;
     case Attribute3::Vec4:
-      m_specs.push_back({.location = attribute_location::tangent, .pad_to_vec4 = true});
+      m_specs.push_back({.location = attribute_semantic::tangent, .pad_to_vec4 = true});
       break;
     default:
       break;
