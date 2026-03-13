@@ -194,7 +194,10 @@ void RenderList::releaseBuffer(QRhiBuffer* buf)
         return;
   }
 
-  buf->destroy();
+  // Don't call destroy() immediately — the buffer may still be referenced
+  // by pending uploadStaticBuffer operations in the current frame's batch.
+  // deleteLater() defers destruction to the next beginFrame(), ensuring
+  // the GPU handle stays valid for all queued operations this frame.
   buf->deleteLater();
 }
 

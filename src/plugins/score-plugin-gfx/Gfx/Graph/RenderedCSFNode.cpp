@@ -4,6 +4,7 @@
 #include <Gfx/Graph/ISFNode.hpp>
 #include <Gfx/Graph/RenderedCSFNode.hpp>
 #include <Gfx/Graph/RenderedISFSamplerUtils.hpp>
+#include <Gfx/Graph/RhiComputeBarrier.hpp>
 #include <Gfx/Graph/SSBO.hpp>
 #include <Gfx/Graph/Utils.hpp>
 
@@ -768,6 +769,37 @@ void RenderedCSFNode::updateGeometryBindings(
       }
     }
 
+    // Detect feedback receiver: a node that owns its buffers ($USER vertex count)
+    // AND receives upstream geometry (feedback loop). Allocate ping-pong read
+    // buffers for read_write attributes so that feedback is explicit.
+    if(binding.has_vertex_count_spec && has_upstream && !binding.is_feedback_receiver)
+    {
+      binding.is_feedback_receiver = true;
+      for(int attr_idx = 0; attr_idx < (int)geo_input->attributes.size(); attr_idx++)
+      {
+        if(attr_idx >= (int)binding.attribute_ssbos.size())
+          break;
+        const auto& req = geo_input->attributes[attr_idx];
+        auto& ssbo = binding.attribute_ssbos[attr_idx];
+        if(req.access == "read_write" && !ssbo.read_buffer)
+        {
+          const int elem_size = glslTypeSizeBytes(req.type);
+          const int64_t buf_size = (int64_t)elem_size * binding.element_count;
+          if(buf_size > 0)
+          {
+            auto* buf = renderer.state.rhi->newBuffer(
+                QRhiBuffer::Static,
+                QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer, buf_size);
+            buf->setName(QByteArray("CSF_GeomPP_") + req.name.c_str());
+            buf->create();
+            QByteArray zero(buf_size, 0);
+            res.uploadStaticBuffer(buf, 0, buf_size, zero.constData());
+            ssbo.read_buffer = buf;
+          }
+        }
+      }
+    }
+
     if(!has_upstream && !binding.has_vertex_count_spec)
     {
       // No upstream geometry and no vertex_count spec.
@@ -901,6 +933,14 @@ void RenderedCSFNode::updateGeometryBindings(
               }
             }
 
+            // For feedback receivers, never adopt upstream buffers for read_write
+            // attributes. The node uses its own ping-pong pair; upstream data is
+            // this node's own previous output routed through feedback.
+            if(binding.is_feedback_receiver && req.access == "read_write")
+            {
+              continue;
+            }
+
             bool same = (ssbo.buffer == rhi_buf);
             qDebug() << "  attr" << req.name.c_str()
                      << "GPU handle: same_ptr=" << same
@@ -973,9 +1013,17 @@ void RenderedCSFNode::updateGeometryBindings(
         }
       }
 
-      // Handle auxiliary SSBOs: match against geometry's auxiliary buffers by name
+      // Handle auxiliary SSBOs: match against geometry's auxiliary buffers by name.
+      // For feedback receivers, keep our own auxiliary SSBOs — the upstream data
+      // traveled through the feedback loop and intermediate nodes may have created
+      // their own buffers for auxiliaries they didn't receive (e.g. ColorByLife
+      // doesn't forward dead/alive_b, so ParticleFeedback creates empty ones).
+      // Adopting those would replace our live data with zeros.
       for(auto& aux : binding.auxiliary_ssbos)
       {
+        if(binding.is_feedback_receiver)
+          continue;
+
         if(auto* geo_aux = mesh.find_auxiliary(aux.name))
         {
           if(geo_aux->buffer >= 0 && geo_aux->buffer < (int)mesh.buffers.size())
@@ -1064,6 +1112,15 @@ void RenderedCSFNode::updateGeometryBindings(
             QByteArray zero(needed, 0);
             res.uploadStaticBuffer(ssbo.buffer, 0, needed, zero.constData());
             ssbo.size = needed;
+
+            // Keep read_buffer in sync for feedback receivers
+            if(binding.is_feedback_receiver && ssbo.read_buffer)
+            {
+              ssbo.read_buffer->destroy();
+              ssbo.read_buffer->setSize(needed);
+              ssbo.read_buffer->create();
+              res.uploadStaticBuffer(ssbo.read_buffer, 0, needed, zero.constData());
+            }
           }
         }
       }
@@ -1125,6 +1182,15 @@ void RenderedCSFNode::updateGeometryBindings(
             res.uploadStaticBuffer(ssbo.buffer, 0, needed, zero.constData());
             ssbo.size = needed;
             resized = true;
+
+            // Keep read_buffer in sync for feedback receivers
+            if(binding.is_feedback_receiver && ssbo.read_buffer)
+            {
+              ssbo.read_buffer->destroy();
+              ssbo.read_buffer->setSize(needed);
+              ssbo.read_buffer->create();
+              res.uploadStaticBuffer(ssbo.read_buffer, 0, needed, zero.constData());
+            }
           }
         }
 
@@ -1670,10 +1736,26 @@ void RenderedCSFNode::initComputePass(
             bindings.append(QRhiShaderResourceBinding::bufferStore(
                 bindingIndex++, QRhiShaderResourceBinding::ComputeStage, ssbo.buffer));
           }
-          else // read_write
+          else // read_write -> 2 bindings: _in (readonly) + _out (writeonly)
           {
-            bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
-                bindingIndex++, QRhiShaderResourceBinding::ComputeStage, ssbo.buffer));
+            QRhiBuffer* read_buf = ssbo.read_buffer ? ssbo.read_buffer : ssbo.buffer;
+            if(read_buf == ssbo.buffer)
+            {
+              // Same physical buffer for both _in and _out (non-feedback in-place).
+              // Use bufferLoadStore for both to avoid "different accesses" validation error.
+              bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
+                  bindingIndex++, QRhiShaderResourceBinding::ComputeStage, ssbo.buffer));
+              bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
+                  bindingIndex++, QRhiShaderResourceBinding::ComputeStage, ssbo.buffer));
+            }
+            else
+            {
+              // Distinct buffers (feedback receiver): _in readonly, _out read-write
+              bindings.append(QRhiShaderResourceBinding::bufferLoad(
+                  bindingIndex++, QRhiShaderResourceBinding::ComputeStage, read_buf));
+              bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
+                  bindingIndex++, QRhiShaderResourceBinding::ComputeStage, ssbo.buffer));
+            }
           }
         }
 
@@ -2407,10 +2489,25 @@ void RenderedCSFNode::recreateShaderResourceBindings(RenderList& renderer, QRhiR
             bindings.append(QRhiShaderResourceBinding::bufferStore(
                 bindingIndex++, QRhiShaderResourceBinding::ComputeStage, ssbo.buffer));
           }
-          else // read_write
+          else // read_write -> 2 bindings: _in (readonly) + _out (writeonly)
           {
-            bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
-                bindingIndex++, QRhiShaderResourceBinding::ComputeStage, ssbo.buffer));
+            QRhiBuffer* read_buf = ssbo.read_buffer ? ssbo.read_buffer : ssbo.buffer;
+            if(read_buf == ssbo.buffer)
+            {
+              // Same physical buffer for both _in and _out (non-feedback in-place).
+              bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
+                  bindingIndex++, QRhiShaderResourceBinding::ComputeStage, ssbo.buffer));
+              bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
+                  bindingIndex++, QRhiShaderResourceBinding::ComputeStage, ssbo.buffer));
+            }
+            else
+            {
+              // Distinct buffers (feedback receiver): _in readonly, _out read-write
+              bindings.append(QRhiShaderResourceBinding::bufferLoad(
+                  bindingIndex++, QRhiShaderResourceBinding::ComputeStage, read_buf));
+              bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
+                  bindingIndex++, QRhiShaderResourceBinding::ComputeStage, ssbo.buffer));
+            }
           }
         }
 
@@ -2537,6 +2634,11 @@ void RenderedCSFNode::release(RenderList& r)
   {
     for(auto& ssbo : binding.attribute_ssbos)
     {
+      if(ssbo.read_buffer)
+      {
+        r.releaseBuffer(ssbo.read_buffer);
+        ssbo.read_buffer = nullptr;
+      }
       if(ssbo.owned && ssbo.buffer)
       {
         r.releaseBuffer(ssbo.buffer);
@@ -2622,8 +2724,9 @@ void RenderedCSFNode::runInitialPasses(
     
     const auto& pass = m_computePasses[passIndex].second;
 
-    // Begin compute pass (outside of any render pass)
-    commands.beginComputePass(res);
+    // Begin compute pass with ExternalContent flag so we can insert
+    // native memory barriers between dispatches via beginExternal/endExternal.
+    commands.beginComputePass(res, QRhiCommandBuffer::BeginPassFlag::ExternalContent);
     res = nullptr;
 
     // Set compute pipeline
@@ -2754,6 +2857,14 @@ void RenderedCSFNode::runInitialPasses(
     commands.dispatch(dispatchX, dispatchY, dispatchZ);
 
     // End compute pass
+
+    // Insert a compute→compute memory barrier so that SSBO writes from
+    // this dispatch are visible to the next dispatch. QRhi does not
+    // insert these automatically between consecutive compute passes.
+    commands.beginExternal();
+    insertComputeBarrier(*renderer.state.rhi, commands);
+    commands.endExternal();
+
     commands.endComputePass();
   }
 
@@ -2761,6 +2872,33 @@ void RenderedCSFNode::runInitialPasses(
   if(!m_geometryBindings.empty())
   {
     pushOutputGeometry(renderer, edge);
+  }
+
+  // Ping-pong swap for feedback receivers: after pushing output,
+  // swap so that next frame reads from what was just written.
+  {
+    int gb_idx = 0;
+    for(const auto& input : n.m_descriptor.inputs)
+    {
+      auto* geo_input = ossia::get_if<isf::geometry_input>(&input.data);
+      if(!geo_input)
+        continue;
+      if(gb_idx >= (int)m_geometryBindings.size())
+        break;
+      auto& gb = m_geometryBindings[gb_idx];
+      if(gb.is_feedback_receiver)
+      {
+        for(int ai = 0; ai < (int)geo_input->attributes.size(); ai++)
+        {
+          if(ai >= (int)gb.attribute_ssbos.size())
+            break;
+          auto& ssbo = gb.attribute_ssbos[ai];
+          if(geo_input->attributes[ai].access == "read_write" && ssbo.read_buffer)
+            std::swap(ssbo.buffer, ssbo.read_buffer);
+        }
+      }
+      gb_idx++;
+    }
   }
 }
 }
