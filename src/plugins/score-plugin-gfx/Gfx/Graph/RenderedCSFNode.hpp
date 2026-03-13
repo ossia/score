@@ -107,11 +107,12 @@ private:
     // One SSBO per declared attribute in the geometry_input
     struct AttributeSSBO
     {
-      QRhiBuffer* buffer{};     // GPU SSBO for this attribute
-      int64_t size{};           // Current buffer size in bytes
-      bool owned{true};         // true = we created it; false = referencing upstream gpu_buffer
-      std::string name;         // e.g. "position", "velocity"
-      std::string access;       // "read_only", "write_only", "read_write"
+      QRhiBuffer* buffer{};       // GPU SSBO for this attribute (write target / primary)
+      QRhiBuffer* read_buffer{};  // Separate read buffer for ping-pong (nullptr = use buffer for both)
+      int64_t size{};             // Current buffer size in bytes
+      bool owned{true};           // true = we created it; false = referencing upstream gpu_buffer
+      std::string name;           // e.g. "position", "velocity"
+      std::string access;         // "read_only", "write_only", "read_write"
     };
 
     // Structured SSBOs that travel with the geometry (matched by name
@@ -134,6 +135,7 @@ private:
     bool has_output{false};     // true if any attribute is writable
     bool has_vertex_count_spec{false};   // true if vertex_count expression is set
     bool has_instance_count_spec{false}; // true if instance_count expression is set
+    bool is_feedback_receiver{false};    // true = uses ping-pong double buffering for read_write attrs
   };
   std::vector<GeometryBinding> m_geometryBindings;
 

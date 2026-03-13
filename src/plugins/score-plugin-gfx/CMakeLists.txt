@@ -133,6 +133,7 @@ set(HDRS
     Gfx/Graph/DepthNode.hpp
     Gfx/Graph/GeometryFilterNode.hpp
     Gfx/Graph/GeometryFilterNodeRenderer.hpp
+    Gfx/Graph/RhiComputeBarrier.hpp
     Gfx/Graph/RenderedCSFNode.hpp
     Gfx/Graph/Graph.hpp
     Gfx/Graph/ISFNode.hpp
@@ -293,6 +294,7 @@ set(SRCS
     Gfx/Graph/CustomMesh.cpp
     Gfx/Graph/GeometryFilterNode.cpp
     Gfx/Graph/GeometryFilterNodeRenderer.cpp
+    Gfx/Graph/RhiComputeBarrier.cpp
     Gfx/Graph/RenderedCSFNode.cpp
     Gfx/Graph/Graph.cpp
     Gfx/Graph/ISFNode.cpp

@@ -3220,8 +3220,31 @@ void parser::parse_csf()
       break;
     }
 
+    // Geometry inputs with $USER specs contribute int uniforms to the material UBO
+    auto geo = ossia::get_if<geometry_input>(&inp.data);
+    if(geo)
+    {
+      if(geo->vertex_count.find("$USER") != std::string::npos
+         || geo->instance_count.find("$USER") != std::string::npos)
+      {
+        has_uniforms = true;
+        break;
+      }
+      for(const auto& aux : geo->auxiliary)
+      {
+        if(aux.size.find("$USER") != std::string::npos)
+        {
+          has_uniforms = true;
+          break;
+        }
+      }
+      if(has_uniforms)
+        break;
+      continue;
+    }
+
     if(!storage && !image && !ossia::get_if<texture_input>(&inp.data)
-       && !ossia::get_if<geometry_input>(&inp.data))
+       && !geo)
     {
       has_uniforms = true;
       break;
@@ -3274,6 +3297,28 @@ void parser::parse_csf()
       {
         k++;
         material_block += "    bool " + inp.name + ";\n";
+      }
+      else if(auto* geo = ossia::get_if<geometry_input>(&inp.data))
+      {
+        // $USER vertex_count/instance_count/aux sizes are int uniforms
+        if(geo->vertex_count.find("$USER") != std::string::npos)
+        {
+          k++;
+          material_block += "    int " + inp.name + "_vertex_count;\n";
+        }
+        if(geo->instance_count.find("$USER") != std::string::npos)
+        {
+          k++;
+          material_block += "    int " + inp.name + "_instance_count;\n";
+        }
+        for(const auto& aux : geo->auxiliary)
+        {
+          if(aux.size.find("$USER") != std::string::npos)
+          {
+            k++;
+            material_block += "    int " + inp.name + "_" + aux.name + "_size;\n";
+          }
+        }
       }
     }
 
@@ -3355,23 +3400,45 @@ void parser::parse_csf()
       const auto& geo = *geo_ptr;
 
       m_fragment += "// Geometry input \"" + inp.name + "\" — SoA: one SSBO per attribute\n";
+      m_fragment += "#define ISF_READ(geo, attr, idx) geo ## _ ## attr ## _in[idx]\n";
+      m_fragment += "#define ISF_WRITE(geo, attr, idx) geo ## _ ## attr ## _out[idx]\n";
 
       for(const auto& attr : geo.attributes)
       {
-        m_fragment += "layout(binding = " + std::to_string(binding) + ", std430) ";
+        const std::string prefix = inp.name + "_" + attr.name;
 
         if(attr.access == "read_only")
-          m_fragment += "readonly ";
+        {
+          // Single readonly SSBO, 1 binding
+          m_fragment += "layout(binding = " + std::to_string(binding) + ", std430) ";
+          m_fragment += "readonly buffer " + prefix + "_in_buf { ";
+          m_fragment += attr.type + " " + prefix + "_in[]; };\n";
+          m_fragment += "#define " + prefix + " " + prefix + "_in\n";
+          binding++;
+        }
         else if(attr.access == "write_only")
-          m_fragment += "writeonly ";
-        else
-          m_fragment += "restrict ";
+        {
+          // Single writeonly SSBO, 1 binding
+          m_fragment += "layout(binding = " + std::to_string(binding) + ", std430) ";
+          m_fragment += "writeonly buffer " + prefix + "_out_buf { ";
+          m_fragment += attr.type + " " + prefix + "_out[]; };\n";
+          m_fragment += "#define " + prefix + " " + prefix + "_out\n";
+          binding++;
+        }
+        else // read_write
+        {
+          // Two SSBOs: _in (readonly) and _out (read-write), 2 bindings
+          m_fragment += "layout(binding = " + std::to_string(binding) + ", std430) ";
+          m_fragment += "readonly buffer " + prefix + "_in_buf { ";
+          m_fragment += attr.type + " " + prefix + "_in[]; };\n";
+          binding++;
 
-        // Buffer block name: inputname_attrname_buf, array name: inputname_attrname
-        m_fragment += "buffer " + inp.name + "_" + attr.name + "_buf { ";
-        m_fragment += attr.type + " " + inp.name + "_" + attr.name + "[]; };\n";
-
-        binding++;
+          m_fragment += "layout(binding = " + std::to_string(binding) + ", std430) ";
+          m_fragment += "restrict buffer " + prefix + "_out_buf { ";
+          m_fragment += attr.type + " " + prefix + "_out[]; };\n";
+          binding++;
+          // No #define alias — forces explicit _in/_out usage
+        }
       }
 
       // Auxiliary structured SSBOs (travel with the geometry)
