@@ -90,6 +90,7 @@ SCORE_DECLARE_ACTION_2S(
     CreateTool, "Tool &Create", Scenario, QKeySequence{QObject::tr("A")},
     QKeySequence{QObject::tr("Shift+A")})
 SCORE_DECLARE_ACTION(PlayTool, "Tool &Play", Scenario, Qt::Key_P)
+SCORE_DECLARE_ACTION(ViewTool, "Tool &View", Scenario, Qt::Key_V)
 
 // For those two the "shortcuts" are just shift and alt, but this is not supported
 // by QKeySequence. See ToolMenuActions.cpp
