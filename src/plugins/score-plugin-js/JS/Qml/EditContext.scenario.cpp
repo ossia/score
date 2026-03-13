@@ -8,8 +8,12 @@
 
 #include <JS/Commands/ScriptMacro.hpp>
 #include <JS/Qml/EditContext.hpp>
+#include <Nodal/Commands.hpp>
+#include <Nodal/Process.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
 
 #include <ossia-qt/js_utilities.hpp>
 
@@ -162,6 +166,16 @@ QObject* EditJsContext::createProcess(QObject* interval, QString name, QString d
   {
     auto [m, _] = macro(*doc);
     return m->createProcess(*st, f->concreteKey(), data);
+  }
+  else if(auto nodal = qobject_cast<Nodal::Model*>(interval))
+  {
+    auto newId = getStrongId(nodal->nodes);
+    auto cmd = new Nodal::CreateNode{*nodal, QPointF{0, 0}, f->concreteKey(), data, newId};
+    CommandDispatcher<> d{doc->commandStack};
+    d.submit(cmd);
+    auto it = nodal->nodes.find(newId);
+    if(it != nodal->nodes.end())
+      return &*it;
   }
   return nullptr;
 }
