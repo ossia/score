@@ -366,7 +366,16 @@ static bool parse_input_impl(sajson::value& v, bool)
   return v.get_type() == sajson::TYPE_TRUE;
 }
 
-static void parse_input(image_input& inp, const sajson::value& v) { }
+static void parse_input(image_input& inp, const sajson::value& v)
+{
+  if(auto k = v.find_object_key_insensitive(sajson::literal("DIMENSIONS"));
+     k != v.get_length())
+  {
+    auto val = v.get_object_value(k);
+    if(val.get_type() == sajson::TYPE_INTEGER)
+      inp.dimensions = val.get_integer_value();
+  }
+}
 static void parse_input(cubemap_input& inp, const sajson::value& v) { }
 
 static void parse_input(event_input& inp, const sajson::value& v) { }
@@ -464,7 +473,13 @@ static void parse_input(storage_input& inp, const sajson::value& v)
 
 static void parse_input(texture_input& inp, const sajson::value& v)
 {
-  // Texture inputs don't need additional parsing for basic CSF
+  if(auto k = v.find_object_key_insensitive(sajson::literal("DIMENSIONS"));
+     k != v.get_length())
+  {
+    auto val = v.get_object_value(k);
+    if(val.get_type() == sajson::TYPE_INTEGER)
+      inp.dimensions = val.get_integer_value();
+  }
 }
 
 static void parse_input(geometry_input& inp, const sajson::value& v)
@@ -670,6 +685,23 @@ static void parse_input(csf_image_input& inp, const sajson::value& v)
       else if(t == sajson::TYPE_INTEGER)
       {
         inp.height_expression = std::to_string(val.get_integer_value());
+      }
+    }
+    else if(k == "DEPTH")
+    {
+      auto val = v.get_object_value(i);
+      auto t = val.get_type();
+      if(t == sajson::TYPE_STRING)
+      {
+        inp.depth_expression = val.as_string();
+      }
+      else if(t == sajson::TYPE_DOUBLE)
+      {
+        inp.depth_expression = std::to_string(val.get_double_value());
+      }
+      else if(t == sajson::TYPE_INTEGER)
+      {
+        inp.depth_expression = std::to_string(val.get_integer_value());
       }
     }
   }
@@ -1219,16 +1251,32 @@ static const ossia::string_map<root_fun>& root_parse{[] {
               dispatch.target_resource = target_val.as_string();
           }
 
-          // Parse STRIDE (for 1D buffer / 2D image)
+          // Parse STRIDE (legacy, sets X only) and STRIDE_X/Y/Z (per-axis, supports formulas)
           if(auto stride_k
              = em_val.find_object_key_insensitive(sajson::literal("STRIDE"));
              stride_k != em_val.get_length())
           {
             auto stride_val = em_val.get_object_value(stride_k);
             if(stride_val.get_type() == sajson::TYPE_INTEGER)
-            {
-              dispatch.stride = stride_val.get_integer_value();
-            }
+              dispatch.stride[0] = std::to_string(stride_val.get_integer_value());
+            else if(stride_val.get_type() == sajson::TYPE_STRING)
+              dispatch.stride[0] = stride_val.as_string();
+          }
+          {
+            auto parse_stride_axis = [&](const sajson::string& key, int axis) {
+              if(auto sk = em_val.find_object_key_insensitive(key);
+                 sk != em_val.get_length())
+              {
+                auto sv = em_val.get_object_value(sk);
+                if(sv.get_type() == sajson::TYPE_INTEGER)
+                  dispatch.stride[axis] = std::to_string(sv.get_integer_value());
+                else if(sv.get_type() == sajson::TYPE_STRING)
+                  dispatch.stride[axis] = sv.as_string();
+              }
+            };
+            parse_stride_axis(sajson::literal("STRIDE_X"), 0);
+            parse_stride_axis(sajson::literal("STRIDE_Y"), 1);
+            parse_stride_axis(sajson::literal("STRIDE_Z"), 2);
           }
 
           // Parse WORKGROUPS
@@ -1314,16 +1362,32 @@ static const ossia::string_map<root_fun>& root_parse{[] {
                     dispatch.target_resource = target_val.as_string();
                 }
 
-                // Parse STRIDE (for 1D buffer / 2D image)
+                // Parse STRIDE (legacy, sets X only) and STRIDE_X/Y/Z (per-axis, supports formulas)
                 if(auto stride_k
                    = em_val.find_object_key_insensitive(sajson::literal("STRIDE"));
                    stride_k != em_val.get_length())
                 {
                   auto stride_val = em_val.get_object_value(stride_k);
                   if(stride_val.get_type() == sajson::TYPE_INTEGER)
-                  {
-                    dispatch.stride = stride_val.get_integer_value();
-                  }
+                    dispatch.stride[0] = std::to_string(stride_val.get_integer_value());
+                  else if(stride_val.get_type() == sajson::TYPE_STRING)
+                    dispatch.stride[0] = stride_val.as_string();
+                }
+                {
+                  auto parse_stride_axis = [&](const sajson::string& key, int axis) {
+                    if(auto sk = em_val.find_object_key_insensitive(key);
+                       sk != em_val.get_length())
+                    {
+                      auto sv = em_val.get_object_value(sk);
+                      if(sv.get_type() == sajson::TYPE_INTEGER)
+                        dispatch.stride[axis] = std::to_string(sv.get_integer_value());
+                      else if(sv.get_type() == sajson::TYPE_STRING)
+                        dispatch.stride[axis] = sv.as_string();
+                    }
+                  };
+                  parse_stride_axis(sajson::literal("STRIDE_X"), 0);
+                  parse_stride_axis(sajson::literal("STRIDE_Y"), 1);
+                  parse_stride_axis(sajson::literal("STRIDE_Z"), 2);
                 }
 
                 // Parse WORKGROUPS
@@ -1545,14 +1609,14 @@ struct create_val_visitor_450
   return_type operator()(const point2d_input&) { return {"vec2", false}; }
   return_type operator()(const point3d_input&) { return {"vec3", false}; }
   return_type operator()(const color_input&) { return {"vec4", false}; }
-  return_type operator()(const image_input&) { return {"uniform sampler2D", true}; }
+  return_type operator()(const image_input& i) { return {i.dimensions == 3 ? "uniform sampler3D" : "uniform sampler2D", true}; }
   return_type operator()(const cubemap_input&) { return {"uniform samplerCube", true}; }
   return_type operator()(const audio_input&) { return {"uniform sampler2D", true}; }
   return_type operator()(const audioFFT_input&) { return {"uniform sampler2D", true}; }
   return_type operator()(const audioHist_input&) { return {"uniform sampler2D", true}; }
   return_type operator()(const storage_input&) { return {"buffer", true}; }
-  return_type operator()(const texture_input&) { return {"uniform sampler2D", true}; }
-  return_type operator()(const csf_image_input&) { return {"uniform image2D", true}; }
+  return_type operator()(const texture_input& i) { return {i.dimensions == 3 ? "uniform sampler3D" : "uniform sampler2D", true}; }
+  return_type operator()(const csf_image_input& i) { return {i.depth_expression.empty() ? "uniform image2D" : "uniform image3D", true}; }
   return_type operator()(const geometry_input&) { return {"buffer", true}; }
 };
 
@@ -3386,13 +3450,17 @@ void parser::parse_csf()
       else
         m_fragment += "restrict ";
 
-      m_fragment += "uniform image2D " + inp.name + ";\n";
+      m_fragment += img.depth_expression.empty()
+          ? "uniform image2D " : "uniform image3D ";
+      m_fragment += inp.name + ";\n";
       binding++;
     }
-    else if(ossia::get_if<texture_input>(&inp.data))
+    else if(auto* tex_ptr = ossia::get_if<texture_input>(&inp.data))
     {
       m_fragment += "layout(binding = " + std::to_string(binding) + ") ";
-      m_fragment += "uniform sampler2D " + inp.name + ";\n";
+      m_fragment += tex_ptr->dimensions == 3
+          ? "uniform sampler3D " : "uniform sampler2D ";
+      m_fragment += inp.name + ";\n";
       binding++;
     }
     else if(auto* geo_ptr = ossia::get_if<geometry_input>(&inp.data))

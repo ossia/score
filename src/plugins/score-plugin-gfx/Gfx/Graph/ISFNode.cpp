@@ -105,7 +105,8 @@ struct isf_input_port_vis
 
   void operator()(const isf::image_input& in) noexcept
   {
-    self.input.push_back(new Port{&self, {}, Types::Image, {}});
+    auto flags = in.dimensions == 3 ? Flag::GrabsFromSource : Flag{};
+    self.input.push_back(new Port{&self, {}, Types::Image, flags, {}});
   }
 
   void operator()(const isf::cubemap_input& in) noexcept
@@ -171,8 +172,8 @@ struct isf_input_port_vis
 
   void operator()(const isf::texture_input& in) noexcept
   {
-    // Texture inputs are always input ports (sampled textures)
-    self.input.push_back(new Port{&self, {}, Types::Image, {}});
+    auto flags = in.dimensions == 3 ? Flag::GrabsFromSource : Flag{};
+    self.input.push_back(new Port{&self, {}, Types::Image, flags, {}});
   }
 
   void operator()(const isf::geometry_input& in) noexcept
@@ -216,8 +217,9 @@ struct isf_input_port_vis
     // CSF image inputs - these can be read-only, write-only, or read-write
     if(in.access == "read_only")
     {
-      // Input port for read-only image
-      self.input.push_back(new Port{&self, {}, Types::Image, {}});
+      // Input port for read-only image; 3D textures use GrabsFromSource
+      auto flags = !in.depth_expression.empty() ? Flag::GrabsFromSource : Flag{};
+      self.input.push_back(new Port{&self, {}, Types::Image, flags, {}});
     }
     else if(in.access == "write_only" || in.access == "read_write")
     {

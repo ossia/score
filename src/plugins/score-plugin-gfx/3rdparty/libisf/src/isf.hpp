@@ -74,6 +74,7 @@ struct color_input
 
 struct image_input
 {
+  int dimensions{2}; // 2 or 3
 };
 
 struct cubemap_input
@@ -111,7 +112,7 @@ struct storage_input
 
 struct texture_input
 {
-  // For sampled textures in CSF
+  int dimensions{2}; // 2 or 3
 };
 
 struct csf_image_input
@@ -121,6 +122,7 @@ struct csf_image_input
 
   std::string width_expression;
   std::string height_expression;
+  std::string depth_expression; // non-empty means 3D texture
 };
 
 // CSF geometry port input: SoA layout, one SSBO per attribute.
@@ -318,7 +320,7 @@ struct descriptor
     std::string execution_type{"2D_IMAGE"}; // "2D_IMAGE", "1D_BUFFER", "PER_VERTEX", "PER_INSTANCE", "MANUAL"
     std::string target_resource;
     std::array<int, 3> workgroups{1, 1, 1}; // For MANUAL mode
-    int stride{1};                          // For 1D_BUFFER / 2D_IMAGE. 0 == default
+    std::array<std::string, 3> stride{"1", "1", "1"}; // Per-axis stride (supports formulas)
   };
   std::vector<dispatch_info> csf_passes;
 
