@@ -163,6 +163,24 @@ void RenderedCSFNode::updateInputTexture(const Port& input, QRhiTexture* tex)
   }
 }
 
+QRhiTexture* RenderedCSFNode::textureForOutput(const Port& output)
+{
+  // Look up the specific texture for this output port
+  for(auto& [port, index] : m_outStorageImages)
+  {
+    if(&output == port)
+    {
+      if(index < (int)m_storageImages.size())
+        return m_storageImages[index].texture;
+    }
+  }
+
+  // Fallback: return the first output texture (for default output port)
+  if(output.type == Types::Image && m_outputTexture)
+    return m_outputTexture;
+  return nullptr;
+}
+
 std::vector<Sampler> RenderedCSFNode::allSamplers() const noexcept
 {
   return m_inputSamplers;
@@ -447,6 +465,103 @@ int RenderedCSFNode::resolveCountExpression(
 
   qDebug() << "resolveCountExpression failed:" << e.error().c_str() << eval_expr.c_str();
   return 0;
+}
+
+int RenderedCSFNode::resolveDispatchExpression(const std::string& expr) const
+{
+  if(expr.empty())
+    return 1;
+
+  // Try fixed integer first
+  try
+  {
+    return std::max(1, std::stoi(expr));
+  }
+  catch(...)
+  {
+  }
+
+  // Build expression evaluator with texture dimensions and scalar inputs
+  ossia::math_expression e;
+  ossia::small_pod_vector<double, 16> data;
+
+  const auto& desc = n.descriptor();
+
+  // Register texture dimensions
+  int input_image_index = 0;
+  for(const auto& img : desc.inputs)
+  {
+    if(ossia::get_if<isf::texture_input>(&img.data))
+    {
+      if(input_image_index < (int)m_inputSamplers.size())
+      {
+        auto [s, t] = this->m_inputSamplers[input_image_index];
+        QSize tex_sz = t ? t->pixelSize() : QSize{1280, 720};
+        e.add_constant(
+            fmt::format("var_WIDTH_{}", img.name), data.emplace_back(tex_sz.width()));
+        e.add_constant(
+            fmt::format("var_HEIGHT_{}", img.name), data.emplace_back(tex_sz.height()));
+      }
+      input_image_index++;
+    }
+    else if(auto* img_input = ossia::get_if<isf::csf_image_input>(&img.data))
+    {
+      if(img_input->access == "read_only")
+      {
+        if(input_image_index < (int)m_inputSamplers.size())
+        {
+          auto [s, t] = this->m_inputSamplers[input_image_index];
+          QSize tex_sz = t ? t->pixelSize() : QSize{1280, 720};
+          e.add_constant(
+              fmt::format("var_WIDTH_{}", img.name), data.emplace_back(tex_sz.width()));
+          e.add_constant(
+              fmt::format("var_HEIGHT_{}", img.name), data.emplace_back(tex_sz.height()));
+        }
+        input_image_index++;
+      }
+    }
+  }
+
+  // Register scalar inputs
+  port_indices p;
+  for(const auto& input : desc.inputs)
+  {
+    if(ossia::get_if<isf::float_input>(&input.data))
+    {
+      auto port = n.input[p.inlet_i];
+      if(port && port->value)
+        e.add_constant("var_" + input.name, data.emplace_back(*(float*)port->value));
+    }
+    else if(ossia::get_if<isf::long_input>(&input.data))
+    {
+      auto port = n.input[p.inlet_i];
+      if(port && port->value)
+        e.add_constant("var_" + input.name, data.emplace_back(*(int*)port->value));
+    }
+
+    ossia::visit(p, input.data);
+  }
+
+  // Register geometry element counts
+  for(const auto& geo_bind : m_geometryBindings)
+  {
+    if(geo_bind.element_count > 0)
+    {
+      e.add_constant("var_ELEMENT_COUNT", data.emplace_back(geo_bind.element_count));
+      break;
+    }
+  }
+
+  // Evaluate expression
+  auto eval_expr = expr;
+  boost::algorithm::replace_all(eval_expr, "$", "var_");
+  e.register_symbol_table();
+  bool ok = e.set_expression(eval_expr);
+  if(ok)
+    return std::max(1, (int)e.value());
+
+  qDebug() << "resolveDispatchExpression failed:" << e.error().c_str() << eval_expr.c_str();
+  return 1;
 }
 
 std::optional<QSize>
@@ -1654,11 +1769,24 @@ void RenderedCSFNode::initComputePass(
           if(imageSize.width() < 1 || imageSize.height() < 1)
             imageSize = renderer.state.renderSize;
 
-          QRhiTexture::Flags flags
-              = QRhiTexture::RenderTarget | QRhiTexture::UsedWithLoadStore
-                | QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips;
+          QRhiTexture* texture{};
+          if(!image->depth_expression.empty())
+          {
+            // 3D texture
+            int depth = resolveDispatchExpression(image->depth_expression);
 
-          QRhiTexture* texture = rhi.newTexture(format, imageSize, 1, flags);
+            QRhiTexture::Flags flags
+                = QRhiTexture::ThreeDimensional | QRhiTexture::UsedWithLoadStore;
+            texture = rhi.newTexture(format, imageSize.width(), imageSize.height(), depth, 1, flags);
+          }
+          else
+          {
+            // 2D texture
+            QRhiTexture::Flags flags
+                = QRhiTexture::RenderTarget | QRhiTexture::UsedWithLoadStore
+                  | QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips;
+            texture = rhi.newTexture(format, imageSize, 1, flags);
+          }
           texture->setName(("RenderedCSFNode::storageImage::" + input.name).c_str());
 
           if(texture && texture->create())
@@ -1860,9 +1988,8 @@ void RenderedCSFNode::initComputePass(
 
     if(rt.renderTarget)
     {
-      // Also create the graphics pass for rendering the compute output
+      // Create the graphics pass for rendering this output to the render target
       createGraphicsPass(rt, renderer, edge, res);
-      // FIXME we need to do this for every out!
     }
   }
 }
@@ -1924,21 +2051,8 @@ void main() { fragColor = vec4(texture(outputTexture, v_texcoord).rrr, 1.0); }
   // Get the mesh for rendering a fullscreen quad
   const auto& mesh = renderer.defaultTriangle();
 
-  // Find the texture to display - either m_outputTexture or the first write-capable storage image
-  QRhiTexture* textureToRender = m_outputTexture;
-  if(!textureToRender)
-  {
-    // Look for a write-only or read-write storage image to use as output
-    for(const auto& storageImage : m_storageImages)
-    {
-      if(storageImage.texture
-         && (storageImage.access == "write_only" || storageImage.access == "read_write"))
-      {
-        textureToRender = storageImage.texture;
-        break;
-      }
-    }
-  }
+  // Find the texture for the specific output port this edge is connected to
+  QRhiTexture* textureToRender = textureForOutput(*edge.source);
   // If we still don't have a texture, we can't create the graphics pass
   if(!textureToRender)
   {
@@ -2141,6 +2255,8 @@ void RenderedCSFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
               QString::fromStdString(image->access), format});
 
       if(m_storageImages.back().access.contains("write")) {
+        int img_index = (int)m_storageImages.size() - 1;
+        m_outStorageImages.push_back({outlets[outlet_index], img_index});
         outlet_index++;
       }
     }
@@ -2244,11 +2360,14 @@ void RenderedCSFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
 
   m_outputTexture = nullptr;
 
-  // Create the compute passes for each output edge
-  for(Edge* edge : n.output[0]->edges)
+  // Create the compute passes for each output edge (across all output ports)
+  for(auto* output_port : n.output)
   {
-    const auto& rt = renderer.renderTargetForOutput(*edge);
-    initComputePass(rt, renderer, *edge, res);
+    for(Edge* edge : output_port->edges)
+    {
+      const auto& rt = renderer.renderTargetForOutput(*edge);
+      initComputePass(rt, renderer, *edge, res);
+    }
   }
 }
 
@@ -2665,7 +2784,8 @@ void RenderedCSFNode::release(RenderList& r)
     }
   }
   m_storageImages.clear();
-  
+  m_outStorageImages.clear();
+
   // Clean up buffers and textures
   delete m_materialUBO;
   m_materialUBO = nullptr;
@@ -2743,15 +2863,38 @@ void RenderedCSFNode::runInitialPasses(
     int localZ = passDesc.local_size[2];
     
     int dispatchX{}, dispatchY{}, dispatchZ{};
-    
+
+    // Resolve per-axis stride expressions
+    const int strideX = resolveDispatchExpression(passDesc.stride[0]);
+    const int strideY = resolveDispatchExpression(passDesc.stride[1]);
+    const int strideZ = resolveDispatchExpression(passDesc.stride[2]);
+
     // Calculate dispatch size based on execution model
     if(passDesc.execution_type == "2D_IMAGE")
     {
-      // For 2D image execution, dispatch based on image size and workgroup size
+      // For 2D image execution, dispatch based on image size, workgroup size and stride
       QSize textureSize = m_outputTexture ? m_outputTexture->pixelSize() : QSize(1280, 720);
-      dispatchX = (textureSize.width() + localX - 1) / localX;
-      dispatchY = (textureSize.height() + localY - 1) / localY;
+      dispatchX = (textureSize.width() + localX * strideX - 1) / (localX * strideX);
+      dispatchY = (textureSize.height() + localY * strideY - 1) / (localY * strideY);
       dispatchZ = 1;
+    }
+    else if(passDesc.execution_type == "3D_IMAGE")
+    {
+      // For 3D image execution, dispatch based on volume dimensions and strides
+      if(m_outputTexture)
+      {
+        QSize sz = m_outputTexture->pixelSize();
+        int depth = m_outputTexture->depth();
+        dispatchX = (sz.width() + localX * strideX - 1) / (localX * strideX);
+        dispatchY = (sz.height() + localY * strideY - 1) / (localY * strideY);
+        dispatchZ = (depth + localZ * strideZ - 1) / (localZ * strideZ);
+      }
+      else
+      {
+        dispatchX = 1;
+        dispatchY = 1;
+        dispatchZ = 1;
+      }
     }
     else if(passDesc.execution_type == "MANUAL")
     {
@@ -2816,8 +2959,8 @@ void RenderedCSFNode::runInitialPasses(
 
       const auto requiredInvocations = n;
       const auto threadsPerWorkgroup = localX * localY * localZ;
-      const int64_t totalWorkgroups = (requiredInvocations + threadsPerWorkgroup - 1)
-                                      / (threadsPerWorkgroup * passDesc.stride);
+      const int64_t totalWorkgroups = (requiredInvocations + threadsPerWorkgroup * strideX - 1)
+                                      / (threadsPerWorkgroup * strideX);
       static constexpr int64_t maxWorkgroups = 65535;
 
       if(totalWorkgroups > maxWorkgroups * maxWorkgroups * maxWorkgroups)
@@ -2846,10 +2989,10 @@ void RenderedCSFNode::runInitialPasses(
     }
     else
     {
-      // Default fallback
+      // Default fallback (same as 2D_IMAGE with strides)
       QSize textureSize = m_outputTexture ? m_outputTexture->pixelSize() : QSize(1280, 720);
-      dispatchX = (textureSize.width() + localX - 1) / localX;
-      dispatchY = (textureSize.height() + localY - 1) / localY;
+      dispatchX = (textureSize.width() + localX * strideX - 1) / (localX * strideX);
+      dispatchY = (textureSize.height() + localY * strideY - 1) / (localY * strideY);
       dispatchZ = 1;
     }
 

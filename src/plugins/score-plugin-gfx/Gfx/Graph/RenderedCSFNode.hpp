@@ -14,6 +14,7 @@ struct RenderedCSFNode : score::gfx::NodeRenderer
   virtual ~RenderedCSFNode();
 
   void updateInputTexture(const Port& input, QRhiTexture* tex) override;
+  QRhiTexture* textureForOutput(const Port& output) override;
 
   void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
   void update(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge) override;
@@ -51,6 +52,7 @@ private:
   int resolveCountExpression(
       const std::string& expr, const isf::geometry_input& geo,
       const std::string& fieldName) const;
+  int resolveDispatchExpression(const std::string& expr) const;
 
   BufferView bufferForOutput(const score::gfx::Port& output) override;
 
@@ -100,6 +102,9 @@ private:
     QRhiTexture::Format format{QRhiTexture::RGBA8};
   };
   std::vector<StorageImage> m_storageImages;
+
+  // Only outs, matched with index in m_storageImages
+  std::vector<std::pair<const score::gfx::Port*, int>> m_outStorageImages;
 
   // Geometry input bindings: SoA SSBOs created from incoming ossia::geometry
   struct GeometryBinding
