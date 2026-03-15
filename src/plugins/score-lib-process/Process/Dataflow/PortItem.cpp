@@ -568,8 +568,8 @@ void PortItem::setHighlight(bool b)
 
 QRectF PortItem::boundingRect() const
 {
-  constexpr auto max_diam = 13.;
-  return {0., 0., max_diam, max_diam};
+  constexpr auto max_diam = 20.;
+  return {-3.5, -3.5, max_diam, max_diam};
 }
 void PortItem::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
