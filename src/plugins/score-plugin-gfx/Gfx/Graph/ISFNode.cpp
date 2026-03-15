@@ -178,28 +178,37 @@ struct isf_input_port_vis
 
   void operator()(const isf::geometry_input& in) noexcept
   {
-    // Create geometry input port if any attribute needs upstream data (read_only or read_write)
-    bool needs_input = false;
-    for(const auto& attr : in.attributes)
-      if(attr.access != "write_only")
-      { needs_input = true; break; }
-
-    if(needs_input)
+    if(in.attributes.empty())
+    {
+      // No attributes declared: pure pass-through (input + output, forwards everything)
       self.input.push_back(new Port{&self, {}, Types::Geometry, {}});
-
-    // If any attributes are writable, create a geometry output port
-    bool has_output = false;
-    for(const auto& attr : in.attributes)
-    {
-      if(attr.access != "read_only")
-      {
-        has_output = true;
-        break;
-      }
-    }
-    if(has_output)
-    {
       self.output.push_back(new Port{&self, {}, Types::Geometry, {}});
+    }
+    else
+    {
+      // Create geometry input port if any attribute needs upstream data (read_only or read_write)
+      bool needs_input = false;
+      for(const auto& attr : in.attributes)
+        if(attr.access != "write_only")
+        { needs_input = true; break; }
+
+      if(needs_input)
+        self.input.push_back(new Port{&self, {}, Types::Geometry, {}});
+
+      // If any attributes are writable, create a geometry output port
+      bool has_output = false;
+      for(const auto& attr : in.attributes)
+      {
+        if(attr.access != "read_only")
+        {
+          has_output = true;
+          break;
+        }
+      }
+      if(has_output)
+      {
+        self.output.push_back(new Port{&self, {}, Types::Geometry, {}});
+      }
     }
 
     // $USER in vertex_count/instance_count/aux.size → IntSpinBox port
@@ -267,7 +276,21 @@ ISFNode::ISFNode(const isf::descriptor& desc, const QString& vert, const QString
   for(const isf::input& input : desc.inputs)
     ossia::visit(visitor, input.data);
 
-  output.push_back(new Port{this, {}, Types::Image, {}});
+  if(desc.outputs.empty())
+  {
+    // Default: single color output
+    output.push_back(new Port{this, {}, Types::Image, {}});
+  }
+  else
+  {
+    // MRT: one output port per declared output (color or depth)
+    for(const auto& out : desc.outputs)
+    {
+      output.push_back(new Port{this, {}, Types::Image, {}});
+      if(out.type == "depth")
+        this->requiresDepth = true;
+    }
+  }
 }
 
 ISFNode::ISFNode(const isf::descriptor& desc, const QString& comp)
@@ -275,7 +298,7 @@ ISFNode::ISFNode(const isf::descriptor& desc, const QString& comp)
 {
   m_computeS = comp;
 
-  // Compoute the size required for the materials
+  // Compute the size required for the materials
   isf_input_size_vis sz_vis{};
 
   // Size of the inputs
@@ -283,6 +306,13 @@ ISFNode::ISFNode(const isf::descriptor& desc, const QString& comp)
   {
     ossia::visit(sz_vis, input.data);
   }
+
+  // Add space for USER dispatch ports (3 ints per USER dispatch pass)
+  int user_dispatch_count = 0;
+  for(const auto& pass : desc.csf_passes)
+    if(pass.execution_type == "USER")
+      user_dispatch_count++;
+  sz_vis.sz += user_dispatch_count * 3 * 4;
 
   m_materialSize = sz_vis.sz;
 
@@ -296,6 +326,19 @@ ISFNode::ISFNode(const isf::descriptor& desc, const QString& comp)
   isf_input_port_vis visitor{*this, cur};
   for(const isf::input& input : desc.inputs)
     ossia::visit(visitor, input.data);
+
+  // Create USER dispatch ports (XYZ IntSpinBox per USER dispatch pass)
+  for(auto& pass : m_descriptor.csf_passes)
+  {
+    if(pass.execution_type == "USER")
+    {
+      for(int axis = 0; axis < 3; axis++)
+      {
+        pass.user_dispatch_ports[axis] = (int)this->input.size();
+        visitor(isf::long_input{.values = {}, .labels = {}, .def = std::size_t(1)});
+      }
+    }
+  }
 
   // For CSF, if no output ports were created by the inputs, create a default one
   if(desc.mode == isf::descriptor::CSF && output.empty())

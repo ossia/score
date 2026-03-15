@@ -92,6 +92,12 @@ void RenderedRawRasterPipelineNode::initPass(
     ps->setName("RenderedRawRasterPipelineNode::initPass::ps");
     SCORE_ASSERT(ps);
 
+    ps->setSampleCount(renderer.samples());
+
+    m_mesh->preparePipeline(*ps);
+
+    // Override topology and blend after preparePipeline,
+    // since the mesh may set its own defaults (e.g. CSF geometry outputs as points)
     QRhiGraphicsPipeline::TargetBlend premulAlphaBlend;
     premulAlphaBlend.enable = mat.enable_blend;
     premulAlphaBlend.srcColor = mat.src_color;
@@ -115,20 +121,22 @@ void RenderedRawRasterPipelineNode::initPass(
         break;
     }
 
-    ps->setSampleCount(renderer.samples());
-
-    m_mesh->preparePipeline(*ps);
-
     // Remap vertex inputs by semantic: match shader input variable names
     // to geometry attribute semantics.
     if(auto* geom = m_mesh->semanticGeometry())
     {
       if(!remapPipelineVertexInputs(*ps, v, *geom))
       {
+        qDebug() << "RawRaster::initPass: remapPipelineVertexInputs FAILED";
         delete ps;
         delete pubo;
         return;
       }
+      qDebug() << "RawRaster::initPass: remapPipelineVertexInputs OK";
+    }
+    else
+    {
+      qDebug() << "RawRaster::initPass: no semanticGeometry";
     }
 
     ps->setDepthTest(true);
@@ -258,7 +266,7 @@ bool RenderedRawRasterPipelineNode::updateMaterials(
   if(m_materialUBO && m_materialSize > 0 && (materialChanged || audioChanged))
   {
     char* data = n.m_material_data.get();
-    SCORE_ASSERT(m_materialSize > size_of_pipeline_material);
+    SCORE_ASSERT(m_materialSize >= size_of_pipeline_material);
     if(std::memcmp(data, this->m_prevPipelineChangingMaterial, size_of_pipeline_material)
        != 0)
     {
@@ -293,7 +301,10 @@ void RenderedRawRasterPipelineNode::update(
   }
 
   if(!m_mesh)
+  {
+    qDebug() << "RawRaster::update: no mesh!";
     return;
+  }
 
   // FIXME is that neeeded?
   // FIXME also not handling geometry_filter dirty geom so far

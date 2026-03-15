@@ -3,6 +3,9 @@
 #include <Gfx/Graph/NodeRenderer.hpp>
 
 #include <ossia/detail/small_flat_map.hpp>
+#include <ossia/detail/small_vector.hpp>
+
+namespace ossia { class math_expression; }
 
 namespace score::gfx
 {
@@ -32,6 +35,10 @@ private:
   void createGraphicsPass(const TextureRenderTarget& rt, RenderList& renderer, Edge& edge, QRhiResourceUpdateBatch& res);
   void updateDescriptorSet(RenderList& renderer, Edge& edge);
   std::vector<Sampler> allSamplers() const noexcept;
+
+  // Expression evaluation helper
+  void registerCommonExpressionVariables(
+      ossia::math_expression& e, ossia::small_pod_vector<double, 16>& data) const;
 
   // Image management
   std::optional<QSize> getImageSize(const isf::csf_image_input&) const noexcept;
@@ -118,6 +125,7 @@ private:
       bool owned{true};           // true = we created it; false = referencing upstream gpu_buffer
       std::string name;           // e.g. "position", "velocity"
       std::string access;         // "read_only", "write_only", "read_write"
+      bool per_instance{false};   // true = sized by instance_count, false = sized by vertex_count
     };
 
     // Structured SSBOs that travel with the geometry (matched by name
@@ -135,12 +143,13 @@ private:
 
     std::vector<AttributeSSBO> attribute_ssbos;
     std::vector<AuxiliarySSBO> auxiliary_ssbos;
-    int element_count{0};       // Number of elements (vertices) in the geometry
+    int vertex_count{0};       // Number of elements (vertices) in the geometry
     int instance_count{1};      // Number of instances
     bool has_output{false};     // true if any attribute is writable
     bool has_vertex_count_spec{false};   // true if vertex_count expression is set
     bool has_instance_count_spec{false}; // true if instance_count expression is set
     bool is_feedback_receiver{false};    // true = uses ping-pong double buffering for read_write attrs
+    bool pending_initial_copy{false};    // first frame after read_buffer allocated: use same-buffer mode, then copy buffer→read_buffer
   };
   std::vector<GeometryBinding> m_geometryBindings;
 

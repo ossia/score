@@ -15,6 +15,7 @@ struct SimpleRenderedISFNode : score::gfx::NodeRenderer
   virtual ~SimpleRenderedISFNode();
 
   void updateInputTexture(const Port& input, QRhiTexture* tex) override;
+  QRhiTexture* textureForOutput(const Port& output) override;
 
   void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
   void update(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge) override;
@@ -28,6 +29,8 @@ struct SimpleRenderedISFNode : score::gfx::NodeRenderer
 
 private:
   void initPass(const TextureRenderTarget& rt, RenderList& renderer, Edge& edge);
+  void initMRTPass(RenderList& renderer, QRhiResourceUpdateBatch& res);
+  void initMRTBlitPasses(RenderList& renderer, QRhiResourceUpdateBatch& res);
 
   std::vector<Sampler> allSamplers() const noexcept;
 
@@ -45,5 +48,10 @@ private:
   int m_materialSize{};
 
   std::optional<AudioTextureUpload> m_audioTex;
+
+  // MRT: internally-owned render target with multiple attachments
+  TextureRenderTarget m_mrtRenderTarget;
+  bool m_hasMRT{false};
+  bool m_mrtRenderedThisFrame{false};
 };
 }

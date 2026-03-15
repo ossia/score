@@ -100,10 +100,26 @@ struct ISFHelpers
       {
         auto nm = QString::fromStdString(input.name);
 
+        // Numeric mode: MIN/MAX set and no VALUES/LABELS → IntSpinBox
+        if(v.values.empty() && v.min && v.max)
+        {
+          auto port = new Process::IntSpinBox(
+              *v.min, *v.max, (int)v.def, nm, Id<Process::Port>(i), &self);
+
+          if(auto it = previous_values.find(nm);
+             it != previous_values.end()
+             && it->second.get_type() == port->value().get_type())
+            port->setValue(it->second);
+
+          self.m_inlets.push_back(port);
+          self.controlAdded(port->id());
+          return port;
+        }
+
+        // Enum mode: VALUES/LABELS → ComboBox
         std::vector<std::pair<QString, ossia::value>> alternatives;
         if(v.labels.size() == v.values.size())
         {
-          // Sane, respectful example
           for(std::size_t value_idx = 0; value_idx < v.values.size(); value_idx++)
           {
             auto& val = v.values[value_idx];
@@ -334,6 +350,21 @@ struct ISFHelpers
     {
       ossia::visit(input_vis{previous_values, input, i, self}, input.data);
       i++;
+    }
+
+    // MRT: recreate outlets from OUTPUTS declarations
+    if(!desc.outputs.empty())
+    {
+      qDeleteAll(self.m_outlets);
+      self.m_outlets.clear();
+
+      int outId = 10000; // High base to avoid ID collisions with inlets
+      for(const auto& out : desc.outputs)
+      {
+        self.m_outlets.push_back(new Gfx::TextureOutlet{
+            QString::fromStdString(out.name),
+            Id<Process::Port>(outId++), &self});
+      }
     }
   }
 };

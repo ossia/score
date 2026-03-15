@@ -240,7 +240,7 @@ struct RenderedDepthNode : score::gfx::NodeRenderer
         QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(ProcessUBO));
     pubo->create();
 
-    auto pip = buildPassPipeline(renderer, TextureRenderTarget{tex, rp, rt}, pubo);
+    auto pip = buildPassPipeline(renderer, TextureRenderTarget{.texture = tex, .renderPass = rp, .renderTarget = rt}, pubo);
     auto srb = pip.srb;
 
     // We have to replace the rendered-to texture by an empty one in each pass,
