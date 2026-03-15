@@ -1,5 +1,7 @@
 #include "GaussianSplatNode.hpp"
 
+#include "Gfx/Graph/RhiComputeBarrier.hpp"
+
 #include <Gfx/Graph/RenderList.hpp>
 
 #include <ossia/network/value/value_conversion.hpp>
@@ -794,12 +796,15 @@ void GaussianSplatRenderer::runInitialPasses(
   // ── Pass 1: SH preprocess (raw → compact) ────────────────────────────
   if(m_preprocessResourcesCreated && m_preprocessPipeline)
   {
-    cb.beginComputePass(res);
+    cb.beginComputePass(res, QRhiCommandBuffer::BeginPassFlag::ExternalContent);
 
     cb.setComputePipeline(m_preprocessPipeline);
     cb.setShaderResources(m_preprocessSrb);
     cb.dispatch(numWorkgroups, 1, 1);
 
+    cb.beginExternal();
+    insertComputeBarrier(*renderer.state.rhi, cb);
+    cb.endExternal();
     cb.endComputePass();
   }
   else
@@ -834,12 +839,15 @@ void GaussianSplatRenderer::runInitialPasses(
   auto& rhi = *renderer.state.rhi;
 
   // Generate depth keys from compact buffer
-  cb.beginComputePass(res);
+  cb.beginComputePass(res, QRhiCommandBuffer::BeginPassFlag::ExternalContent);
 
   cb.setComputePipeline(m_depthKeyPipeline);
   cb.setShaderResources(m_depthKeySrb);
   cb.dispatch(numWorkgroups, 1, 1);
 
+  cb.beginExternal();
+  insertComputeBarrier(*renderer.state.rhi, cb);
+  cb.endExternal();
   cb.endComputePass();
 
   // Upload prefix sum uniforms (constant across all passes)
@@ -891,24 +899,30 @@ void GaussianSplatRenderer::runInitialPasses(
 
     // Histogram: count digits per workgroup
     // Even passes read from keysBuffer, odd from keysAltBuffer
-    cb.beginComputePass(res);
+    cb.beginComputePass(res, QRhiCommandBuffer::BeginPassFlag::ExternalContent);
     res = nullptr;
     cb.setComputePipeline(m_histogramPipeline);
     cb.setShaderResources(pass % 2 == 0 ? m_histogramSrb : m_histogramSrbAlt);
     cb.dispatch(numWorkgroups, 1, 1);
+    cb.beginExternal();
+    insertComputeBarrier(*renderer.state.rhi, cb);
+    cb.endExternal();
     cb.endComputePass();
 
     // Prefix sum: convert per-workgroup histograms to global prefix sums
     // Single workgroup of 256 threads (one per digit)
-    cb.beginComputePass(res);
+    cb.beginComputePass(res, QRhiCommandBuffer::BeginPassFlag::ExternalContent);
     res = nullptr;
     cb.setComputePipeline(m_prefixSumPipeline);
     cb.setShaderResources(m_prefixSumSrb);
     cb.dispatch(1, 1, 1);
+    cb.beginExternal();
+    insertComputeBarrier(*renderer.state.rhi, cb);
+    cb.endExternal();
     cb.endComputePass();
 
     // Scatter: reorder keys+indices using prefix sums (ping-pong)
-    cb.beginComputePass(res);
+    cb.beginComputePass(res, QRhiCommandBuffer::BeginPassFlag::ExternalContent);
     res = nullptr;
     cb.setComputePipeline(m_sortPipeline);
     cb.setShaderResources(pass % 2 == 0 ? m_sortSrb : m_sortSrbAlt);
