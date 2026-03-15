@@ -30,8 +30,8 @@ class SCORE_PLUGIN_SCENARIO_EXPORT StateView final
   W_OBJECT(StateView)
   Q_INTERFACES(QGraphicsItem)
 public:
-  static const constexpr qreal fullRadius = 6.;
-  static const constexpr qreal pointRadius = 3.5;
+  static const constexpr qreal fullRadius = 8.;
+  static const constexpr qreal pointRadius = 5.;
   static const constexpr qreal notDilated = 1.;
   static const constexpr qreal dilated = 1.5;
 
