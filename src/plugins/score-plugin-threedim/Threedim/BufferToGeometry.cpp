@@ -344,7 +344,7 @@ void BuffersToGeometry::operator()()
     mesh.attributes.push_back(
         halp::geometry_attribute{
             .binding = bindingIndex,
-            .location = toHalpLocation(cfg.location),
+            .semantic = toHalpLocation(cfg.location), //!!!!!!!!!! FIXME
             .format = toHalpFormat(cfg.format),
             .byte_offset = 0 // Offset within stride is 0 since we use input offset
         });
