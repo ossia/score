@@ -135,6 +135,7 @@ struct geometry_input
     std::string semantic; // Maps to ossia::attribute_semantic name (e.g. "position", "custom")
     std::string type;     // GLSL type (e.g. "vec3", "vec4", "float")
     std::string access;   // "read_only", "write_only", "read_write"
+    std::string rate;     // "vertex" (default) or "instance"
     bool required{true};  // false = optional, zero fallback if missing
   };
 
@@ -283,6 +284,12 @@ struct pass
   std::string height_expression{};
 };
 
+struct output_declaration
+{
+  std::string name;     // User-chosen name (e.g. "color", "sceneDepth")
+  std::string type;     // "color" (default) or "depth"
+};
+
 struct descriptor
 {
   enum Mode
@@ -296,6 +303,7 @@ struct descriptor
   std::string credits;
   std::vector<std::string> categories;
   std::vector<input> inputs;
+  std::vector<output_declaration> outputs; // Parsed from OUTPUTS array; empty = single color output
   std::vector<pass> passes;
   std::vector<std::string> pass_targets;
   bool default_vertex_shader{};

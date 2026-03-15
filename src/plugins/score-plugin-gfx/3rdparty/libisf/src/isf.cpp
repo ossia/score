@@ -518,6 +518,8 @@ static void parse_input(geometry_input& inp, const sajson::value& v)
               ar.type = fval.as_string();
             else if(fkey == "ACCESS" && fval.get_type() == sajson::TYPE_STRING)
               ar.access = fval.as_string();
+            else if(fkey == "RATE" && fval.get_type() == sajson::TYPE_STRING)
+              ar.rate = fval.as_string();
             else if(fkey == "REQUIRED")
             {
               if(fval.get_type() == sajson::TYPE_FALSE)
@@ -1103,6 +1105,7 @@ static const ossia::string_map<root_fun>& root_parse{[] {
             {
               // Parse as integer, e.g. "LOCATION": "3"
               ip.location = std::stoi(loc_obj.as_string());
+              // FIXME parse standard locations from ossia::geometry_port
             }
           }
 
@@ -1123,6 +1126,7 @@ static const ossia::string_map<root_fun>& root_parse{[] {
           }
 
           // If LOCATION was not specified, assign sequentially
+          // FIXME maybe try to match it from the name ?
           if(ip.location < 0 && !ip.name.empty())
           {
             ip.location = (int)(d.*member).size();
@@ -1497,6 +1501,39 @@ static const ossia::string_map<root_fun>& root_parse{[] {
     }
   }});
 
+  p.insert({"OUTPUTS", [](descriptor& d, const sajson::value& v) {
+    if(v.get_type() == sajson::TYPE_ARRAY)
+    {
+      std::size_t n = v.get_length();
+      for(std::size_t i = 0; i < n; i++)
+      {
+        auto obj = v.get_array_element(i);
+        if(obj.get_type() == sajson::TYPE_OBJECT)
+        {
+          output_declaration out;
+
+          if(auto name_k = obj.find_object_key_insensitive(sajson::literal("NAME"));
+             name_k != obj.get_length())
+          {
+            out.name = obj.get_object_value(name_k).as_string();
+          }
+
+          if(auto type_k = obj.find_object_key_insensitive(sajson::literal("TYPE"));
+             type_k != obj.get_length())
+          {
+            out.type = obj.get_object_value(type_k).as_string();
+          }
+
+          // Default type to "color" if not specified
+          if(out.type.empty())
+            out.type = "color";
+
+          d.outputs.push_back(std::move(out));
+        }
+      }
+    }
+  }});
+
   p.insert({"POINT_COUNT", [](descriptor& d, const sajson::value& v) {
     if(v.get_type() == sajson::TYPE_INTEGER)
       d.point_count = v.get_integer_value();
@@ -1828,7 +1865,43 @@ void parser::parse_isf()
       {
         // Setup fragment shader
         m_fragment = GLSL45.versionPrelude;
-        m_fragment += GLSL45.fragmentPrelude;
+
+        if(d.outputs.empty())
+        {
+          m_fragment += GLSL45.fragmentPrelude;
+        }
+        else
+        {
+          // MRT: generate per-output declarations
+          m_fragment += "\nlayout(location = 0) in vec2 isf_FragNormCoord;\n";
+          int color_location = 0;
+          for(const auto& out : d.outputs)
+          {
+            if(out.type == "depth")
+            {
+              // depth is written via gl_FragDepth; provide a #define alias
+              m_fragment += "#define ";
+              m_fragment += out.name;
+              m_fragment += " gl_FragDepth\n";
+            }
+            else
+            {
+              m_fragment += "layout(location = ";
+              m_fragment += std::to_string(color_location);
+              m_fragment += ") out vec4 ";
+              m_fragment += out.name;
+              m_fragment += ";\n";
+              // Alias the first color output as isf_FragColor for backward compat
+              if(color_location == 0)
+              {
+                m_fragment += "#define isf_FragColor ";
+                m_fragment += out.name;
+                m_fragment += "\n";
+              }
+              color_location++;
+            }
+          }
+        }
       }
 
       // Setup the parameters UBOs
@@ -1987,18 +2060,31 @@ void parser::parse_raw_raster_pipeline()
           "OneMinusConstantAlpha", "SrcAlphaSaturate");
       static const auto blend_ops
           = long_enum("Add", "Substract", "Reverse Substract", "Min", "Max");
+
+      // Default blend: standard alpha blending
+      // SrcColor=SrcAlpha(6), DstColor=OneMinusSrcAlpha(7), OpColor=Add(0)
+      // SrcAlpha=One(1), DstAlpha=OneMinusSrcAlpha(7), OpAlpha=Add(0)
+      auto blend_factors_src_color = blend_factors;
+      blend_factors_src_color.def = 6; // SrcAlpha
+      auto blend_factors_dst_color = blend_factors;
+      blend_factors_dst_color.def = 7; // OneMinusSrcAlpha
+      auto blend_factors_src_alpha = blend_factors;
+      blend_factors_src_alpha.def = 1; // One
+      auto blend_factors_dst_alpha = blend_factors;
+      blend_factors_dst_alpha.def = 7; // OneMinusSrcAlpha
+
       default_inputs.push_back(
           input{.name = "EnableBlend", .label = "Enable blend", .data = bool_input{}});
       default_inputs.push_back(
-          input{.name = "SrcColor", .label = "Src Color", .data = blend_factors});
+          input{.name = "SrcColor", .label = "Src Color", .data = blend_factors_src_color});
       default_inputs.push_back(
-          input{.name = "DstColor", .label = "Dst Color", .data = blend_factors});
+          input{.name = "DstColor", .label = "Dst Color", .data = blend_factors_dst_color});
       default_inputs.push_back(
           input{.name = "OpColor", .label = "Op Color", .data = blend_ops});
       default_inputs.push_back(
-          input{.name = "SrcAlpha", .label = "Src Alpha", .data = blend_factors});
+          input{.name = "SrcAlpha", .label = "Src Alpha", .data = blend_factors_src_alpha});
       default_inputs.push_back(
-          input{.name = "DstAlpha", .label = "Dst Alpha", .data = blend_factors});
+          input{.name = "DstAlpha", .label = "Dst Alpha", .data = blend_factors_dst_alpha});
       default_inputs.push_back(
           input{.name = "OpAlpha", .label = "Op Alpha", .data = blend_ops});
       return default_inputs;
@@ -2876,6 +2962,8 @@ std::string parser::write_isf() const
                 oss << ", \"TYPE\": \"" << escape_json(attr.type) << "\"";
               if(!attr.access.empty())
                 oss << ", \"ACCESS\": \"" << escape_json(attr.access) << "\"";
+              if(!attr.rate.empty() && attr.rate != "vertex")
+                oss << ", \"RATE\": \"" << escape_json(attr.rate) << "\"";
               if(!attr.required)
                 oss << ", \"REQUIRED\": false";
               oss << "}";
@@ -3468,8 +3556,8 @@ void parser::parse_csf()
       const auto& geo = *geo_ptr;
 
       m_fragment += "// Geometry input \"" + inp.name + "\" — SoA: one SSBO per attribute\n";
-      m_fragment += "#define ISF_READ(geo, attr, idx) geo ## _ ## attr ## _in[idx]\n";
-      m_fragment += "#define ISF_WRITE(geo, attr, idx) geo ## _ ## attr ## _out[idx]\n";
+      m_fragment += "#define ISF_READ(geo, attr) geo ## _ ## attr ## _in\n";
+      m_fragment += "#define ISF_WRITE(geo, attr) geo ## _ ## attr ## _out\n";
 
       for(const auto& attr : geo.attributes)
       {
@@ -3512,6 +3600,8 @@ void parser::parse_csf()
       // Auxiliary structured SSBOs (travel with the geometry)
       for(const auto& aux : geo.auxiliary)
       {
+        const std::string aux_prefix = inp.name + "_" + aux.name;
+
         m_fragment += "layout(binding = " + std::to_string(binding) + ", std430) ";
 
         if(aux.access == "read_only")
@@ -3521,12 +3611,30 @@ void parser::parse_csf()
         else
           m_fragment += "restrict ";
 
-        m_fragment += "buffer " + aux.name + " {\n";
+        m_fragment += "buffer " + aux_prefix + "_buf {\n";
         for(const auto& field : aux.layout)
         {
           m_fragment += "    " + field.type + " " + field.name + ";\n";
         }
-        m_fragment += "};\n\n";
+        m_fragment += "} " + aux.name + ";\n";
+
+        // Generate ISF_READ/ISF_WRITE-compatible aliases
+        if(aux.access == "read_only")
+        {
+          m_fragment += "#define " + aux_prefix + "_in " + aux.name + "\n";
+          m_fragment += "#define " + aux_prefix + " " + aux.name + "\n";
+        }
+        else if(aux.access == "write_only")
+        {
+          m_fragment += "#define " + aux_prefix + "_out " + aux.name + "\n";
+          m_fragment += "#define " + aux_prefix + " " + aux.name + "\n";
+        }
+        else // read_write
+        {
+          m_fragment += "#define " + aux_prefix + "_in " + aux.name + "\n";
+          m_fragment += "#define " + aux_prefix + "_out " + aux.name + "\n";
+        }
+        m_fragment += "\n";
 
         binding++;
       }

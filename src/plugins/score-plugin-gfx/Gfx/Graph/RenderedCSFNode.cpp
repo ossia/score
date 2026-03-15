@@ -12,6 +12,7 @@
 
 #include <ossia/dataflow/geometry_port.hpp>
 #include <ossia/detail/algorithms.hpp>
+#include <ossia/math/math_expression.hpp>
 
 #include <boost/algorithm/string/replace.hpp>
 
@@ -223,15 +224,24 @@ struct port_indices
   }
   void operator()(const isf::geometry_input& v)
   {
-    // Inlet if any attribute needs upstream data (read_only or read_write)
-    for(const auto& attr : v.attributes)
-      if(attr.access != "write_only") { inlet_i++; break; }
-    for(const auto& attr : v.attributes)
+    if(v.attributes.empty())
     {
-      if(attr.access != "read_only")
+      // Pure pass-through: one inlet + one outlet
+      inlet_i++;
+      outlet_i++;
+    }
+    else
+    {
+      // Inlet if any attribute needs upstream data (read_only or read_write)
+      for(const auto& attr : v.attributes)
+        if(attr.access != "write_only") { inlet_i++; break; }
+      for(const auto& attr : v.attributes)
       {
-        outlet_i++; // one geometry output port if any attribute is writable
-        break;
+        if(attr.access != "read_only")
+        {
+          outlet_i++; // one geometry output port if any attribute is writable
+          break;
+        }
       }
     }
     // $USER ports for vertex_count, instance_count, aux.size
@@ -248,64 +258,11 @@ QSize RenderedCSFNode::computeTextureSize(
   ossia::math_expression e;
   ossia::small_pod_vector<double, 16> data;
 
-  const auto& desc = n.descriptor();
   // Note : reserve is super important here,
-  // as the expression parser takes *references* to the
-  // variables.
-  data.reserve(2 + 2 * m_inputSamplers.size() + desc.inputs.size());
+  // as the expression parser takes *references* to the variables.
+  data.reserve(2 + 2 * m_inputSamplers.size() + n.descriptor().inputs.size() + 2 * m_geometryBindings.size());
 
-  int input_image_index = 0;
-  for(auto& img : desc.inputs)
-  {
-    if(auto tex_input = ossia::get_if<isf::texture_input>(&img.data))
-    {
-      SCORE_ASSERT(input_image_index < m_inputSamplers.size());
-      auto [s, t] = this->m_inputSamplers[input_image_index];
-      QSize tex_sz = t ? t->pixelSize() : QSize{1280, 720};
-      e.add_constant(
-          fmt::format("var_WIDTH_{}", img.name), data.emplace_back(tex_sz.width()));
-      e.add_constant(
-          fmt::format("var_HEIGHT_{}", img.name), data.emplace_back(tex_sz.height()));
-
-      input_image_index++;
-    }
-    else if(auto img_input = ossia::get_if<isf::csf_image_input>(&img.data))
-    {
-      if(img_input->access == "read_only")
-      {
-        SCORE_ASSERT(input_image_index < m_inputSamplers.size());
-        auto [s, t] = this->m_inputSamplers[input_image_index];
-        QSize tex_sz = t ? t->pixelSize() : QSize{1280, 720};
-        e.add_constant(
-            fmt::format("var_WIDTH_{}", img.name), data.emplace_back(tex_sz.width()));
-        e.add_constant(
-            fmt::format("var_HEIGHT_{}", img.name), data.emplace_back(tex_sz.height()));
-
-        input_image_index++;
-      }
-    }
-  }
-
-  int inlet_k = 0;
-  for(const isf::input& input : desc.inputs)
-  {
-    if(ossia::visit(is_output{}, input.data))
-    {
-      continue;
-    }
-
-    auto port = n.input[inlet_k];
-    if(ossia::get_if<isf::float_input>(&input.data))
-    {
-      e.add_constant("var_" + input.name, data.emplace_back(*(float*)port->value));
-    }
-    else if(ossia::get_if<isf::long_input>(&input.data))
-    {
-      e.add_constant("var_" + input.name, data.emplace_back(*(int*)port->value));
-    }
-
-    inlet_k++;
-  }
+  registerCommonExpressionVariables(e, data);
 
   QSize res;
   if(auto expr = pass.width_expression; !expr.empty())
@@ -353,44 +310,11 @@ int RenderedCSFNode::resolveCountExpression(
   ossia::small_pod_vector<double, 16> data;
 
   const auto& desc = n.descriptor();
-  data.reserve(2 + 2 * m_inputSamplers.size() + desc.inputs.size() + 1);
+  data.reserve(2 + 2 * m_inputSamplers.size() + desc.inputs.size() + 2 * m_geometryBindings.size() + 1);
 
-  // Register texture dimensions
-  int input_image_index = 0;
-  for(const auto& img : desc.inputs)
-  {
-    if(ossia::get_if<isf::texture_input>(&img.data))
-    {
-      if(input_image_index < (int)m_inputSamplers.size())
-      {
-        auto [s, t] = this->m_inputSamplers[input_image_index];
-        QSize tex_sz = t ? t->pixelSize() : QSize{1280, 720};
-        e.add_constant(
-            fmt::format("var_WIDTH_{}", img.name), data.emplace_back(tex_sz.width()));
-        e.add_constant(
-            fmt::format("var_HEIGHT_{}", img.name), data.emplace_back(tex_sz.height()));
-      }
-      input_image_index++;
-    }
-    else if(auto* img_input = ossia::get_if<isf::csf_image_input>(&img.data))
-    {
-      if(img_input->access == "read_only")
-      {
-        if(input_image_index < (int)m_inputSamplers.size())
-        {
-          auto [s, t] = this->m_inputSamplers[input_image_index];
-          QSize tex_sz = t ? t->pixelSize() : QSize{1280, 720};
-          e.add_constant(
-              fmt::format("var_WIDTH_{}", img.name), data.emplace_back(tex_sz.width()));
-          e.add_constant(
-              fmt::format("var_HEIGHT_{}", img.name), data.emplace_back(tex_sz.height()));
-        }
-        input_image_index++;
-      }
-    }
-  }
+  registerCommonExpressionVariables(e, data);
 
-  // Register scalar inputs + find the $USER port for this field
+  // Find the $USER port for this specific geometry field
   port_indices p;
   int user_port_index = -1;
   for(const auto& input : desc.inputs)
@@ -426,20 +350,7 @@ int RenderedCSFNode::resolveCountExpression(
           cur++;
         }
       }
-    }
-
-    // Register scalar values for expression evaluation
-    if(ossia::get_if<isf::float_input>(&input.data))
-    {
-      auto port = n.input[p.inlet_i];
-      if(port && port->value)
-        e.add_constant("var_" + input.name, data.emplace_back(*(float*)port->value));
-    }
-    else if(ossia::get_if<isf::long_input>(&input.data))
-    {
-      auto port = n.input[p.inlet_i];
-      if(port && port->value)
-        e.add_constant("var_" + input.name, data.emplace_back(*(int*)port->value));
+      break;
     }
 
     ossia::visit(p, input.data);
@@ -467,27 +378,12 @@ int RenderedCSFNode::resolveCountExpression(
   return 0;
 }
 
-int RenderedCSFNode::resolveDispatchExpression(const std::string& expr) const
+void RenderedCSFNode::registerCommonExpressionVariables(
+    ossia::math_expression& e, ossia::small_pod_vector<double, 16>& data) const
 {
-  if(expr.empty())
-    return 1;
-
-  // Try fixed integer first
-  try
-  {
-    return std::max(1, std::stoi(expr));
-  }
-  catch(...)
-  {
-  }
-
-  // Build expression evaluator with texture dimensions and scalar inputs
-  ossia::math_expression e;
-  ossia::small_pod_vector<double, 16> data;
-
   const auto& desc = n.descriptor();
 
-  // Register texture dimensions
+  // Register texture dimensions ($WIDTH_<name>, $HEIGHT_<name>)
   int input_image_index = 0;
   for(const auto& img : desc.inputs)
   {
@@ -522,7 +418,7 @@ int RenderedCSFNode::resolveDispatchExpression(const std::string& expr) const
     }
   }
 
-  // Register scalar inputs
+  // Register scalar inputs ($<inputName>)
   port_indices p;
   for(const auto& input : desc.inputs)
   {
@@ -542,15 +438,60 @@ int RenderedCSFNode::resolveDispatchExpression(const std::string& expr) const
     ossia::visit(p, input.data);
   }
 
-  // Register geometry element counts
-  for(const auto& geo_bind : m_geometryBindings)
+  // Register named geometry vertex/instance counts
+  // ($VERTEX_COUNT_<name>, $INSTANCE_COUNT_<name>, and first one as $VERTEX_COUNT, $INSTANCE_COUNT)
+  int geo_idx = 0;
+  bool first_geo = true;
+  for(const auto& input : desc.inputs)
   {
-    if(geo_bind.element_count > 0)
+    if(ossia::get_if<isf::geometry_input>(&input.data))
     {
-      e.add_constant("var_ELEMENT_COUNT", data.emplace_back(geo_bind.element_count));
-      break;
+      if(geo_idx < (int)m_geometryBindings.size())
+      {
+        const auto& geo_bind = m_geometryBindings[geo_idx];
+        if(geo_bind.vertex_count > 0)
+        {
+          e.add_constant(
+              fmt::format("var_VERTEX_COUNT_{}", input.name),
+              data.emplace_back(geo_bind.vertex_count));
+          if(first_geo)
+            e.add_constant("var_VERTEX_COUNT", data.emplace_back(geo_bind.vertex_count));
+        }
+        if(geo_bind.instance_count > 0)
+        {
+          e.add_constant(
+              fmt::format("var_INSTANCE_COUNT_{}", input.name),
+              data.emplace_back(geo_bind.instance_count));
+          if(first_geo)
+            e.add_constant("var_INSTANCE_COUNT", data.emplace_back(geo_bind.instance_count));
+        }
+        first_geo = false;
+      }
+      geo_idx++;
     }
   }
+}
+
+int RenderedCSFNode::resolveDispatchExpression(const std::string& expr) const
+{
+  if(expr.empty())
+    return 1;
+
+  // Try fixed integer first
+  try
+  {
+    return std::max(1, std::stoi(expr));
+  }
+  catch(...)
+  {
+  }
+
+  // Build expression evaluator
+  ossia::math_expression e;
+  ossia::small_pod_vector<double, 16> data;
+  data.reserve(2 + 2 * m_inputSamplers.size() + n.descriptor().inputs.size() + 2 * m_geometryBindings.size());
+
+  registerCommonExpressionVariables(e, data);
 
   // Evaluate expression
   auto eval_expr = expr;
@@ -834,9 +775,9 @@ void RenderedCSFNode::updateGeometryBindings(
     {
       int count = resolveCountExpression(geo_input->vertex_count, *geo_input, "vertex_count");
       qDebug() << "  vertex_count_spec resolved:" << count
-               << "current element_count=" << binding.element_count;
+               << "current vertex_count=" << binding.vertex_count;
       if(count > 0)
-        binding.element_count = count;
+        binding.vertex_count = count;
     }
 
     // Resolve instance_count expression if specified
@@ -890,6 +831,7 @@ void RenderedCSFNode::updateGeometryBindings(
     if(binding.has_vertex_count_spec && has_upstream && !binding.is_feedback_receiver)
     {
       binding.is_feedback_receiver = true;
+      binding.pending_initial_copy = true;
       for(int attr_idx = 0; attr_idx < (int)geo_input->attributes.size(); attr_idx++)
       {
         if(attr_idx >= (int)binding.attribute_ssbos.size())
@@ -899,7 +841,8 @@ void RenderedCSFNode::updateGeometryBindings(
         if(req.access == "read_write" && !ssbo.read_buffer)
         {
           const int elem_size = glslTypeSizeBytes(req.type);
-          const int64_t buf_size = (int64_t)elem_size * binding.element_count;
+          const int count = ssbo.per_instance ? binding.instance_count : binding.vertex_count;
+          const int64_t buf_size = (int64_t)elem_size * count;
           if(buf_size > 0)
           {
             auto* buf = renderer.state.rhi->newBuffer(
@@ -944,13 +887,13 @@ void RenderedCSFNode::updateGeometryBindings(
     {
       const auto& mesh = this->geometry.meshes->meshes[0];
       if(!binding.has_vertex_count_spec)
-        binding.element_count = mesh.vertices;
+        binding.vertex_count = mesh.vertices;
 
       qDebug() << "  has_upstream: mesh.vertices=" << mesh.vertices
                << "mesh.attributes=" << mesh.attributes.size()
                << "mesh.buffers=" << mesh.buffers.size()
                << "mesh.auxiliary=" << mesh.auxiliary.size()
-               << "element_count=" << binding.element_count;
+               << "vertex_count=" << binding.vertex_count;
       for(int dbg_i = 0; dbg_i < (int)mesh.attributes.size(); dbg_i++)
       {
         const auto& a = mesh.attributes[dbg_i];
@@ -989,7 +932,8 @@ void RenderedCSFNode::updateGeometryBindings(
 
           // Create or keep a zero-filled fallback buffer
           const int elem_size = glslTypeSizeBytes(req.type);
-          const int64_t needed = (int64_t)elem_size * std::max(1, mesh.vertices);
+          const int fallback_count = ssbo.per_instance ? std::max(1, mesh.instances) : std::max(1, mesh.vertices);
+          const int64_t needed = (int64_t)elem_size * fallback_count;
           if(!ssbo.buffer || ssbo.size < needed)
           {
             if(ssbo.buffer && ssbo.owned)
@@ -1038,7 +982,8 @@ void RenderedCSFNode::updateGeometryBindings(
             if(binding.has_vertex_count_spec && ssbo.owned && ssbo.buffer)
             {
               const int elem_size = glslTypeSizeBytes(req.type);
-              const int64_t needed = (int64_t)elem_size * binding.element_count;
+              const int attr_count = ssbo.per_instance ? binding.instance_count : binding.vertex_count;
+              const int64_t needed = (int64_t)elem_size * attr_count;
               if(needed > 0 && gpu->byte_size < needed)
               {
                 qDebug() << "  attr" << req.name.c_str()
@@ -1087,7 +1032,8 @@ void RenderedCSFNode::updateGeometryBindings(
 
           const auto* src = static_cast<const char*>(cpu->raw_data.get());
           const int64_t elem_size = glslTypeSizeBytes(req.type);
-          const int64_t needed = elem_size * mesh.vertices;
+          const int data_count = ssbo.per_instance ? mesh.instances : mesh.vertices;
+          const int64_t needed = elem_size * data_count;
 
           // Create or resize the SSBO
           if(!ssbo.buffer || ssbo.size < needed || !ssbo.owned)
@@ -1117,7 +1063,7 @@ void RenderedCSFNode::updateGeometryBindings(
             // AoS CPU buffer: scatter attribute data into flat SoA buffer
             QByteArray scattered(needed, 0);
             const int copy_size = std::min((int)elem_size, attr_size);
-            for(int i = 0; i < mesh.vertices; i++)
+            for(int i = 0; i < data_count; i++)
             {
               const int64_t src_off = (int64_t)i * stride + geo_attr->byte_offset;
               if(src_off + copy_size <= cpu->byte_size)
@@ -1200,9 +1146,10 @@ void RenderedCSFNode::updateGeometryBindings(
       // SSBOs came back as gpu handles, identity check kept them owned), we must
       // still resize if $USER changed. Without this, the SSBOs stay at whatever
       // size was allocated during init() (possibly 1 element).
-      if(binding.has_vertex_count_spec && binding.element_count > 0)
+      if((binding.has_vertex_count_spec && binding.vertex_count > 0)
+         || (binding.has_instance_count_spec && binding.instance_count > 0))
       {
-        qDebug() << "  feedback resize check: element_count=" << binding.element_count;
+        qDebug() << "  feedback resize check: vertex_count=" << binding.vertex_count;
         for(int attr_idx = 0; attr_idx < (int)geo_input->attributes.size(); attr_idx++)
         {
           if(attr_idx >= (int)binding.attribute_ssbos.size())
@@ -1214,7 +1161,8 @@ void RenderedCSFNode::updateGeometryBindings(
             continue;
           }
           const int elem_size = glslTypeSizeBytes(geo_input->attributes[attr_idx].type);
-          const int64_t needed = (int64_t)elem_size * binding.element_count;
+          const int attr_count = ssbo.per_instance ? binding.instance_count : binding.vertex_count;
+          const int64_t needed = (int64_t)elem_size * attr_count;
           qDebug() << "    attr" << attr_idx
                    << "owned=" << ssbo.owned
                    << "cur_size=" << ssbo.size
@@ -1262,8 +1210,7 @@ void RenderedCSFNode::updateGeometryBindings(
       }
 
       // Create/resize attribute SSBOs based on resolved count.
-      const int count = binding.element_count;
-      if(count > 0)
+      if(binding.vertex_count > 0 || binding.instance_count > 0)
       {
         bool resized = false;
         for(int attr_idx = 0; attr_idx < (int)geo_input->attributes.size(); attr_idx++)
@@ -1272,6 +1219,9 @@ void RenderedCSFNode::updateGeometryBindings(
             break;
           const auto& req = geo_input->attributes[attr_idx];
           auto& ssbo = binding.attribute_ssbos[attr_idx];
+          const int count = ssbo.per_instance ? binding.instance_count : binding.vertex_count;
+          if(count <= 0)
+            continue;
           const int elem_size = glslTypeSizeBytes(req.type);
           const int64_t needed = (int64_t)elem_size * count;
 
@@ -1356,7 +1306,7 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, Edge& edge)
     // Build output geometry_spec with the modified SSBO handles
     auto meshes = std::make_shared<ossia::mesh_list>();
     ossia::geometry out_geo;
-    out_geo.vertices = binding.element_count;
+    out_geo.vertices = binding.vertex_count;
     out_geo.instances = binding.instance_count;
     out_geo.topology = ossia::geometry::points;
     out_geo.cull_mode = ossia::geometry::none;
@@ -1388,7 +1338,10 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, Edge& edge)
 
       ossia::geometry::binding bind;
       bind.byte_stride = elem_size;
-      bind.classification = ossia::geometry::binding::per_vertex;
+      bind.classification = ssbo.per_instance
+          ? ossia::geometry::binding::per_instance
+          : ossia::geometry::binding::per_vertex;
+      bind.step_rate = ssbo.per_instance ? 1 : 0;
       out_geo.bindings.push_back(bind);
 
       ossia::geometry::attribute attr;
@@ -1866,7 +1819,11 @@ void RenderedCSFNode::initComputePass(
           }
           else // read_write -> 2 bindings: _in (readonly) + _out (writeonly)
           {
-            QRhiBuffer* read_buf = ssbo.read_buffer ? ssbo.read_buffer : ssbo.buffer;
+            // On the first feedback frame (pending_initial_copy), use the same
+            // buffer for both _in and _out so the shader can init + simulate
+            // in the same frame.  After the frame we copy buffer→read_buffer.
+            QRhiBuffer* read_buf = (ssbo.read_buffer && !binding.pending_initial_copy)
+                ? ssbo.read_buffer : ssbo.buffer;
             if(read_buf == ssbo.buffer)
             {
               // Same physical buffer for both _in and _out (non-feedback in-place).
@@ -2264,7 +2221,7 @@ void RenderedCSFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
     else if(auto* geo = ossia::get_if<isf::geometry_input>(&input.data))
     {
       GeometryBinding binding;
-      binding.has_output = false;
+      binding.has_output = geo->attributes.empty(); // Empty attributes = pure pass-through with output
       binding.has_vertex_count_spec = !geo->vertex_count.empty();
       binding.has_instance_count_spec = !geo->instance_count.empty();
 
@@ -2273,6 +2230,7 @@ void RenderedCSFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
         GeometryBinding::AttributeSSBO ssbo;
         ssbo.name = attr.name;
         ssbo.access = attr.access;
+        ssbo.per_instance = (attr.rate == "instance");
         binding.attribute_ssbos.push_back(std::move(ssbo));
 
         if(attr.access != "read_only")
@@ -2284,27 +2242,7 @@ void RenderedCSFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
       {
         int count = resolveCountExpression(geo->vertex_count, *geo, "vertex_count");
         if(count > 0)
-        {
-          binding.element_count = count;
-          for(int attr_idx = 0; attr_idx < (int)geo->attributes.size(); attr_idx++)
-          {
-            if(attr_idx >= (int)binding.attribute_ssbos.size())
-              break;
-            auto& ssbo = binding.attribute_ssbos[attr_idx];
-            const int elem_size = glslTypeSizeBytes(geo->attributes[attr_idx].type);
-            const int64_t needed = (int64_t)elem_size * count;
-            auto* buf = rhi.newBuffer(
-                QRhiBuffer::Static,
-                QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer, needed);
-            buf->setName(QByteArray("CSF_GeomSpec_") + ssbo.name.c_str());
-            buf->create();
-            QByteArray zero(needed, 0);
-            res.uploadStaticBuffer(buf, 0, needed, zero.constData());
-            ssbo.buffer = buf;
-            ssbo.size = needed;
-            ssbo.owned = true;
-          }
-        }
+          binding.vertex_count = count;
       }
 
       // Resolve instance_count if specified
@@ -2313,6 +2251,31 @@ void RenderedCSFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
         int ic = resolveCountExpression(geo->instance_count, *geo, "instance_count");
         if(ic > 0)
           binding.instance_count = ic;
+      }
+
+      // Pre-allocate attribute SSBOs using the correct count based on rate
+      {
+        for(int attr_idx = 0; attr_idx < (int)geo->attributes.size(); attr_idx++)
+        {
+          if(attr_idx >= (int)binding.attribute_ssbos.size())
+            break;
+          auto& ssbo = binding.attribute_ssbos[attr_idx];
+          const int count = ssbo.per_instance ? binding.instance_count : binding.vertex_count;
+          if(count <= 0)
+            continue;
+          const int elem_size = glslTypeSizeBytes(geo->attributes[attr_idx].type);
+          const int64_t needed = (int64_t)elem_size * count;
+          auto* buf = rhi.newBuffer(
+              QRhiBuffer::Static,
+              QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer, needed);
+          buf->setName(QByteArray("CSF_GeomSpec_") + ssbo.name.c_str());
+          buf->create();
+          QByteArray zero(needed, 0);
+          res.uploadStaticBuffer(buf, 0, needed, zero.constData());
+          ssbo.buffer = buf;
+          ssbo.size = needed;
+          ssbo.owned = true;
+        }
       }
 
       for(const auto& aux : geo->auxiliary)
@@ -2610,7 +2573,8 @@ void RenderedCSFNode::recreateShaderResourceBindings(RenderList& renderer, QRhiR
           }
           else // read_write -> 2 bindings: _in (readonly) + _out (writeonly)
           {
-            QRhiBuffer* read_buf = ssbo.read_buffer ? ssbo.read_buffer : ssbo.buffer;
+            QRhiBuffer* read_buf = (ssbo.read_buffer && !binding.pending_initial_copy)
+                ? ssbo.read_buffer : ssbo.buffer;
             if(read_buf == ssbo.buffer)
             {
               // Same physical buffer for both _in and _out (non-feedback in-place).
@@ -2903,6 +2867,24 @@ void RenderedCSFNode::runInitialPasses(
       dispatchY = passDesc.workgroups[1];
       dispatchZ = passDesc.workgroups[2];
     }
+    else if(passDesc.execution_type == "USER")
+    {
+      // For user-controlled execution, read dispatch counts from UI ports
+      int* dispatch[3] = {&dispatchX, &dispatchY, &dispatchZ};
+      for(int axis = 0; axis < 3; axis++)
+      {
+        int port_idx = passDesc.user_dispatch_ports[axis];
+        if(port_idx >= 0 && port_idx < (int)n.input.size())
+        {
+          auto port = n.input[port_idx];
+          *dispatch[axis] = (port && port->value) ? std::max(1, *(int*)port->value) : 1;
+        }
+        else
+        {
+          *dispatch[axis] = 1;
+        }
+      }
+    }
     else if(
         passDesc.execution_type == "1D_BUFFER"
         || passDesc.execution_type == "PER_VERTEX"
@@ -2915,9 +2897,9 @@ void RenderedCSFNode::runInitialPasses(
         // Dispatch one thread per vertex in the target geometry
         for(const auto& geo_bind : m_geometryBindings)
         {
-          if(geo_bind.element_count > 0)
+          if(geo_bind.vertex_count > 0)
           {
-            n = geo_bind.element_count;
+            n = geo_bind.vertex_count;
             break;
           }
         }
@@ -2948,9 +2930,9 @@ void RenderedCSFNode::runInitialPasses(
         {
           for(const auto& geo_bind : m_geometryBindings)
           {
-            if(geo_bind.element_count > 0)
+            if(geo_bind.vertex_count > 0)
             {
-              n = geo_bind.element_count;
+              n = geo_bind.vertex_count;
               break;
             }
           }
@@ -3019,6 +3001,10 @@ void RenderedCSFNode::runInitialPasses(
 
   // Ping-pong swap for feedback receivers: after pushing output,
   // swap so that next frame reads from what was just written.
+  // Also clear pending_initial_copy: on the first frame, same-buffer mode
+  // was used (_in == _out == buffer) so init+simulate worked in-place.
+  // The swap puts that buffer into read_buffer, seeding the ping-pong
+  // for frame 2+ without needing an explicit GPU copy.
   {
     int gb_idx = 0;
     for(const auto& input : n.m_descriptor.inputs)
@@ -3031,6 +3017,7 @@ void RenderedCSFNode::runInitialPasses(
       auto& gb = m_geometryBindings[gb_idx];
       if(gb.is_feedback_receiver)
       {
+        gb.pending_initial_copy = false;
         for(int ai = 0; ai < (int)geo_input->attributes.size(); ai++)
         {
           if(ai >= (int)gb.attribute_ssbos.size())

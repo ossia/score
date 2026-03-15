@@ -61,6 +61,7 @@ TextureRenderTarget createRenderTarget(
     const RenderState& state, QRhiTexture::Format fmt, QSize sz, int samples, bool depth,
     QRhiTexture::Flags flags)
 {
+  // FIXME not every RT needs mipmap / generatemips
   auto texture = state.rhi->newTexture(
       fmt, sz, 1,
       QRhiTexture::RenderTarget | QRhiTexture::UsedWithLoadStore | QRhiTexture::MipMapped
@@ -68,6 +69,75 @@ TextureRenderTarget createRenderTarget(
   texture->setName("createRenderTarget::texture");
   SCORE_ASSERT(texture->create());
   return createRenderTarget(state, texture, samples, depth);
+}
+
+TextureRenderTarget createRenderTarget(
+    const RenderState& state,
+    std::span<QRhiTexture* const> colorTextures,
+    QRhiTexture* depthTex,
+    int samples)
+{
+  TextureRenderTarget ret;
+  SCORE_ASSERT(!colorTextures.empty());
+
+  ret.texture = colorTextures[0];
+  for(std::size_t i = 1; i < colorTextures.size(); i++)
+    ret.additionalColorTextures.push_back(colorTextures[i]);
+
+  QList<QRhiColorAttachment> attachments;
+  for(auto* tex : colorTextures)
+  {
+    if(samples == 1)
+    {
+      attachments.append(QRhiColorAttachment(tex));
+    }
+    else
+    {
+      auto* rb = state.rhi->newRenderBuffer(
+          QRhiRenderBuffer::Color, tex->pixelSize(), samples, {}, tex->format());
+      rb->setName("createRenderTarget::MRT::colorRB");
+      SCORE_ASSERT(rb->create());
+
+      QRhiColorAttachment att(rb);
+      att.setResolveTexture(tex);
+      attachments.append(att);
+    }
+  }
+
+  QRhiTextureRenderTargetDescription desc;
+  desc.setColorAttachments(attachments.begin(), attachments.end());
+
+  if(depthTex)
+  {
+    ret.depthTexture = depthTex;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+    desc.setDepthTexture(depthTex);
+#else
+    // Qt < 6.6 doesn't support sampleable depth textures in render targets;
+    // fall back to a depth renderbuffer (depth won't be sampleable)
+    ret.depthRenderBuffer = state.rhi->newRenderBuffer(
+        QRhiRenderBuffer::DepthStencil, colorTextures[0]->pixelSize(), samples, {},
+        QRhiTexture::D32F);
+    ret.depthRenderBuffer->setName("createRenderTarget::MRT::depthRB_fallback");
+    SCORE_ASSERT(ret.depthRenderBuffer->create());
+    desc.setDepthStencilBuffer(ret.depthRenderBuffer);
+#endif
+  }
+
+  auto renderTarget = state.rhi->newTextureRenderTarget(desc);
+  renderTarget->setName("createRenderTarget::MRT::renderTarget");
+  SCORE_ASSERT(renderTarget);
+
+  auto renderPass = renderTarget->newCompatibleRenderPassDescriptor();
+  renderPass->setName("createRenderTarget::MRT::renderPass");
+  SCORE_ASSERT(renderPass);
+
+  renderTarget->setRenderPassDescriptor(renderPass);
+  SCORE_ASSERT(renderTarget->create());
+
+  ret.renderTarget = renderTarget;
+  ret.renderPass = renderPass;
+  return ret;
 }
 
 void replaceBuffer(
@@ -328,7 +398,13 @@ Pipeline buildPipeline(
   premulAlphaBlend.dstColor = QRhiGraphicsPipeline::BlendFactor::OneMinusSrcAlpha;
   premulAlphaBlend.srcAlpha = QRhiGraphicsPipeline::BlendFactor::SrcAlpha;
   premulAlphaBlend.dstAlpha = QRhiGraphicsPipeline::BlendFactor::OneMinusSrcAlpha;
-  ps->setTargetBlends({premulAlphaBlend});
+
+  // MRT: one blend state per color attachment
+  int numColorAttachments = rt.colorAttachmentCount();
+  QList<QRhiGraphicsPipeline::TargetBlend> blends;
+  for(int i = 0; i < std::max(1, numColorAttachments); i++)
+    blends.append(premulAlphaBlend);
+  ps->setTargetBlends(blends.begin(), blends.end());
 
   ps->setSampleCount(renderer.samples());
 

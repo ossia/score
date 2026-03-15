@@ -120,13 +120,20 @@ struct Pipeline
  */
 struct TextureRenderTarget
 {
-  QRhiTexture* texture{};
+  QRhiTexture* texture{};                              // Primary color attachment (location 0)
+  std::vector<QRhiTexture*> additionalColorTextures;   // MRT: locations 1..N
   QRhiRenderBuffer* colorRenderBuffer{};
   QRhiRenderBuffer* depthRenderBuffer{};
+  QRhiTexture* depthTexture{};                         // Sampleable depth (alternative to depthRenderBuffer)
   QRhiRenderPassDescriptor* renderPass{};
   QRhiRenderTarget* renderTarget{};
 
   operator bool() const noexcept { return texture != nullptr; }
+
+  int colorAttachmentCount() const noexcept
+  {
+    return texture ? 1 + (int)additionalColorTextures.size() : 0;
+  }
 
   void release()
   {
@@ -135,11 +142,18 @@ struct TextureRenderTarget
       delete texture;
       texture = nullptr;
 
+      for(auto* t : additionalColorTextures)
+        delete t;
+      additionalColorTextures.clear();
+
       delete colorRenderBuffer;
       colorRenderBuffer = nullptr;
 
       delete depthRenderBuffer;
       depthRenderBuffer = nullptr;
+
+      delete depthTexture;
+      depthTexture = nullptr;
 
       delete renderPass;
       renderPass = nullptr;
@@ -175,6 +189,19 @@ SCORE_PLUGIN_GFX_EXPORT
 TextureRenderTarget createRenderTarget(
     const RenderState& state, QRhiTexture::Format fmt, QSize sz, int samples, bool depth,
     QRhiTexture::Flags = {});
+
+/**
+ * @brief Create a render target with multiple color attachments and optional sampleable depth.
+ *
+ * @param colorTextures All color attachment textures (must be non-empty, first becomes primary)
+ * @param depthTexture Sampleable depth texture, or nullptr for no depth / renderbuffer depth
+ */
+SCORE_PLUGIN_GFX_EXPORT
+TextureRenderTarget createRenderTarget(
+    const RenderState& state,
+    std::span<QRhiTexture* const> colorTextures,
+    QRhiTexture* depthTexture,
+    int samples);
 
 SCORE_PLUGIN_GFX_EXPORT
 void replaceBuffer(QRhiShaderResourceBindings&, int binding, QRhiBuffer* newBuffer);
