@@ -114,7 +114,7 @@ void ConditionView::setHeight(qreal newH)
   m_Cpath.arcTo(bottomRect, -180., 120.);
 
   QPainterPathStroker stk;
-  stk.setWidth(1.);
+  stk.setWidth(10.);
   m_strokedCpath = stk.createStroke(m_Cpath);
 
   this->update();
