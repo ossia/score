@@ -113,7 +113,7 @@ static const QPainterPathStroker& cableStroker()
     QPen pen;
     pen.setCapStyle(Qt::PenCapStyle::RoundCap);
     pen.setJoinStyle(Qt::PenJoinStyle::RoundJoin);
-    pen.setWidthF(7.);
+    pen.setWidthF(14.);
     return pen;
   }()};
   return cable_stroker;

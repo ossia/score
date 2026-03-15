@@ -328,7 +328,7 @@ void IntervalView::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
 
 void IntervalView::dragMoveEvent(QGraphicsSceneDragDropEvent* event)
 {
-  setDropTarget((event->pos().x() <= this->m_defaultWidth && event->pos().y() <= 7.));
+  setDropTarget((event->pos().x() <= this->m_defaultWidth && event->pos().y() <= 12.));
   event->accept();
 }
 
@@ -342,7 +342,7 @@ void IntervalView::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
 void IntervalView::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
   setDropTarget(false);
-  if(event->pos().x() <= this->m_defaultWidth && event->pos().y() <= 7.)
+  if(event->pos().x() <= this->m_defaultWidth && event->pos().y() <= 12.)
   {
     dropReceived(event->pos(), *event->mimeData());
     update();
@@ -360,9 +360,9 @@ QPainterPath Scenario::IntervalView::shape() const
 {
   qreal x = std::min(0., minWidth());
   QPainterPath p;
-  p.addRect({x, -1., defaultWidth() - x, intervalAndRackHeight()});
+  p.addRect({x, -5., defaultWidth() - x, intervalAndRackHeight() + 10.});
   if(!infinite())
-    p.addRect({x, -1., maxWidth() - x, 5});
+    p.addRect({x, -5., maxWidth() - x, 10.});
 
   return p;
 }
@@ -375,9 +375,9 @@ QPainterPath Scenario::IntervalView::opaqueArea() const
 bool Scenario::IntervalView::contains(const QPointF& pt) const
 {
   qreal x = std::min(0., minWidth());
-  if(!QRectF{x, -1., defaultWidth() - x, intervalAndRackHeight()}.contains(pt))
+  if(!QRectF{x, -5., defaultWidth() - x, intervalAndRackHeight() + 10.}.contains(pt))
     if(!infinite())
-      if(!QRectF{x, -1., maxWidth() - x, 5}.contains(pt))
+      if(!QRectF{x, -5., maxWidth() - x, 10.}.contains(pt))
         return false;
   return true;
 }
