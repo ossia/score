@@ -781,13 +781,35 @@ static void parse_input(long_input& inp, const sajson::value& v)
       auto val = v.get_object_value(i);
       inp.def = parse_input_impl(val, int64_t{});
     }
+    else if(k == "MIN")
+    {
+      auto val = v.get_object_value(i);
+      if(val.get_type() == sajson::TYPE_INTEGER)
+        inp.min = val.get_integer_value();
+      else if(val.get_type() == sajson::TYPE_DOUBLE)
+        inp.min = static_cast<int64_t>(val.get_double_value());
+    }
+    else if(k == "MAX")
+    {
+      auto val = v.get_object_value(i);
+      if(val.get_type() == sajson::TYPE_INTEGER)
+        inp.max = val.get_integer_value();
+      else if(val.get_type() == sajson::TYPE_DOUBLE)
+        inp.max = static_cast<int64_t>(val.get_double_value());
+    }
   }
-  auto min_size = std::min(inp.labels.size(), inp.values.size());
-  inp.def = std::min(inp.def, min_size - 1);
-  if(inp.labels.size() < min_size)
-    inp.labels.resize(min_size);
-  if(inp.values.size() < min_size)
-    inp.values.resize(min_size);
+
+  // If we have VALUES/LABELS (enum mode), clamp def to valid index
+  if(!inp.values.empty())
+  {
+    auto min_size = std::min(inp.labels.size(), inp.values.size());
+    if(min_size > 0)
+      inp.def = std::min(inp.def, min_size - 1);
+    if(inp.labels.size() < min_size)
+      inp.labels.resize(min_size);
+    if(inp.values.size() < min_size)
+      inp.values.resize(min_size);
+  }
 }
 
 static auto make_value(std::optional<double>& res, double f, auto op)
@@ -2799,6 +2821,10 @@ std::string parser::write_isf() const
             }
             oss << "],\n";
           }
+          if(l.min)
+            oss << "      \"MIN\": " << *l.min << ",\n";
+          if(l.max)
+            oss << "      \"MAX\": " << *l.max << ",\n";
           oss << "      \"DEFAULT\": " << l.def << "\n";
         }
 
@@ -3481,6 +3507,26 @@ void parser::parse_csf()
     binding++;
   }
 
+  // Helper: derive GLSL image/sampler prefix from format string.
+  // Unsigned integer formats (R32UI, RGBA16UI, ...) → "u"
+  // Signed integer formats (R32I, RGBA16I, ...) → "i"
+  // Float formats (R32F, RGBA8, ...) → ""
+  auto glsl_type_prefix = [](const std::string& format) -> std::string {
+    if(format.empty())
+      return "";
+    // Uppercase copy for matching
+    std::string fmt = format;
+    for(auto& c : fmt) c = toupper(c);
+    // Check for unsigned int formats (end with UI or contain UI before digits)
+    if(fmt.find("UI") != std::string::npos)
+      return "u";
+    // Check for signed int: ends with I (but not UI, F, or SNORM/UNORM)
+    // Integer formats: R8I, R16I, R32I, RG8I, RG16I, RG32I, RGBA8I, RGBA16I, RGBA32I
+    if(fmt.size() >= 2 && fmt.back() == 'I' && fmt[fmt.size()-2] != 'U')
+      return "i";
+    return "";
+  };
+
   // Generate resource bindings
   m_fragment += "// From RESOURCES - bindings assigned automatically\n";
   for(const auto& inp : m_desc.inputs)
@@ -3498,7 +3544,7 @@ void parser::parse_csf()
       else
         m_fragment += "restrict ";
 
-      m_fragment += "buffer " + inp.name + " {\n";
+      m_fragment += "buffer " + inp.name + "_buf {\n";
 
       // Add struct members based on layout
       for(const auto& field : storage.layout)
@@ -3506,7 +3552,7 @@ void parser::parse_csf()
         m_fragment += "    " + field.type + " " + field.name + ";\n";
       }
 
-      m_fragment += "};\n\n";
+      m_fragment += "} " + inp.name + ";\n\n";
 
       binding++;
     }
@@ -3538,8 +3584,8 @@ void parser::parse_csf()
       else
         m_fragment += "restrict ";
 
-      m_fragment += img.depth_expression.empty()
-          ? "uniform image2D " : "uniform image3D ";
+      auto prefix = glsl_type_prefix(img.format);
+      m_fragment += "uniform " + prefix + (img.depth_expression.empty() ? "image2D " : "image3D ");
       m_fragment += inp.name + ";\n";
       binding++;
     }

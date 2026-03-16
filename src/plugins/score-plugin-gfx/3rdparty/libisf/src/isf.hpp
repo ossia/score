@@ -34,7 +34,12 @@ struct long_input
   using has_minmax = std::true_type;
   std::vector<ossia::variant<int64_t, double, std::string>> values;
   std::vector<std::string> labels;
-  std::size_t def{}; // index of default value
+  std::size_t def{}; // index of default value (enum mode) or default value (numeric mode)
+
+  // Numeric mode: when values/labels are empty and min/max are set,
+  // create an IntSpinBox instead of a ComboBox.
+  std::optional<int64_t> min;
+  std::optional<int64_t> max;
 };
 struct float_input
 {
@@ -325,10 +330,11 @@ struct descriptor
   struct dispatch_info
   {
     std::array<int, 3> local_size{16, 16, 1};
-    std::string execution_type{"2D_IMAGE"}; // "2D_IMAGE", "1D_BUFFER", "PER_VERTEX", "PER_INSTANCE", "MANUAL"
+    std::string execution_type{"2D_IMAGE"}; // "2D_IMAGE", "1D_BUFFER", "PER_VERTEX", "PER_INSTANCE", "MANUAL", "USER"
     std::string target_resource;
     std::array<int, 3> workgroups{1, 1, 1}; // For MANUAL mode
     std::array<std::string, 3> stride{"1", "1", "1"}; // Per-axis stride (supports formulas)
+    std::array<int, 3> user_dispatch_ports{-1, -1, -1}; // Port indices for USER mode (X, Y, Z)
   };
   std::vector<dispatch_info> csf_passes;
 
