@@ -41,6 +41,9 @@ public:
   QString uuid();
   W_SLOT(uuid)
 
+  QString environmentVariable(QString name);
+  W_SLOT(environmentVariable)
+
   QTime toTime(TimeVal v);
   W_SLOT(toTime)
   double toMilliseconds(TimeVal v);

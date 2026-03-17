@@ -245,6 +245,11 @@ QString JsUtils::uuid()
   return score::uuids::toByteArray(u);
 }
 
+QString JsUtils::environmentVariable(QString name)
+{
+  return qEnvironmentVariable(name.toStdString().c_str());
+}
+
 QTime JsUtils::toTime(TimeVal v)
 {
   return v.toQTime();
