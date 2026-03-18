@@ -212,6 +212,7 @@ fi
 if [[ -n "$SCORE_BASENAME" ]]; then
     # With score
     cat >> "$BUNDLE_MACOS/$APP_NAME" << LAUNCHER_EOF
+
 exec "\$SCRIPT_DIR/app-bin" \
     ${AUTOPLAY} \
     --ui "\${RESOURCES_DIR}/qml/${MAIN_QML}" \
@@ -221,6 +222,7 @@ LAUNCHER_EOF
 else
     # Without autoplay
     cat >> "$BUNDLE_MACOS/$APP_NAME" << LAUNCHER_EOF
+
 exec "\$SCRIPT_DIR/app-bin" \
     ${AUTOPLAY} \
     --ui "\${RESOURCES_DIR}/qml/${MAIN_QML}" \
