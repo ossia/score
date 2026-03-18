@@ -187,7 +187,7 @@ inline std::string diagnostics(std::string_view path_to_binary)
   }
 
   static constexpr std::string_view binaries[]
-      = {"avahi-daemon", "dbus-broker|dbus-daemon", "jackd|jackd2|pipewire"};
+      = {"avahi-daemon|/usr/sbin/avahi-daemon", "dbus-broker|dbus-daemon", "jackd|jackd2|pipewire"};
   for(auto programs : binaries)
   {
     std::vector<std::string> split_program_on_pipe;
