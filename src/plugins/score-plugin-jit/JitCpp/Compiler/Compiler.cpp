@@ -32,16 +32,21 @@ void setTargetOptions(llvm::TargetOptions& opts)
 
   //opts.ExplicitEmulatedTLS = false;
 
+#if LLVM_VERSION_MAJOR < 22
   opts.UnsafeFPMath = true;
+  opts.ApproxFuncFPMath = true;
+  opts.setFPDenormalMode(llvm::DenormalMode::getPositiveZero());
+  opts.setFP32DenormalMode(llvm::DenormalMode::getPositiveZero());
+#else
+  opts.AllowFPOpFusion = llvm::FPOpFusion::Fast;
+#endif
+
   opts.NoInfsFPMath = true;
   opts.NoNaNsFPMath = true;
   opts.NoTrappingFPMath = true;
   opts.NoSignedZerosFPMath = true;
-  opts.ApproxFuncFPMath = true;
   opts.HonorSignDependentRoundingFPMathOption = false;
   opts.EnableIPRA = true;
-  opts.setFPDenormalMode(llvm::DenormalMode::getPositiveZero());
-  opts.setFP32DenormalMode(llvm::DenormalMode::getPositiveZero());
   opts.EnableFastISel = true;
   opts.EnableGlobalISel = false;
 }

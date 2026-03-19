@@ -266,10 +266,13 @@ llvm::Error cc1_main(ArrayRef<const char*> Argv, const char* Argv0, void* MainAd
   }
 #endif
   // Infer the builtin include path if unspecified.
+
+#if LLVM_VERSION_MAJOR < 22
   if(Clang->getHeaderSearchOpts().UseBuiltinIncludes
      && Clang->getHeaderSearchOpts().ResourceDir.empty())
     Clang->getHeaderSearchOpts().ResourceDir
         = CompilerInvocation::GetResourcesPath(Argv0, MainAddr);
+#endif
 
   Clang->setDiagnostics(Diags.get());
   if(!Clang->hasDiagnostics())
