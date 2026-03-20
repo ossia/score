@@ -72,6 +72,9 @@ endmacro()
 # include directories.
 #
 macro(find_component _component _pkgconfig _library _header)
+  if(${${_component}_FOUND})
+    return()
+  endif()
 
   if(NOT WIN32)
      # use pkg-config to get the directories and then use these values
