@@ -3,7 +3,7 @@
 if [[ $# > 0 ]]; then
   export SDK_VERSION=$1
 else
-  export SDK_VERSION=sdk35
+  export SDK_VERSION=sdk36
 fi
 
 echo "Running on OSTYPE: '$OSTYPE'"
