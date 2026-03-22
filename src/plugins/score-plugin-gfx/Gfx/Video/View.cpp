@@ -21,12 +21,25 @@ namespace Gfx::Video
 
 View::View(const Model& model, QGraphicsItem* parent)
     : LayerView{parent}
+    , m_model{model}
 {
   this->setAcceptDrops(true);
   this->setAcceptedMouseButtons(Qt::NoButton);
   setFlag(ItemClipsToShape, true);
   con(model, &Model::pathChanged, this,
       [this, &model] { onPathChanged(model.absolutePath()); });
+  con(model, &Model::startOffsetChanged, this, [this](auto) {
+    m_images.clear();
+    widthChanged(width());
+  });
+  con(model, &Model::loopDurationChanged, this, [this](auto) {
+    m_images.clear();
+    widthChanged(width());
+  });
+  con(model, &Model::loopsChanged, this, [this](auto) {
+    m_images.clear();
+    widthChanged(width());
+  });
   onPathChanged(model.absolutePath());
 }
 
@@ -91,7 +104,7 @@ void View::onPathChanged(const QString& str)
 
 void View::widthChanged(qreal w)
 {
-  if(w < 10)
+  if(w < 10 || !m_thumb)
     return;
 
   // TODO we also have to fetch new frames if we scroll !
@@ -115,9 +128,20 @@ void View::widthChanged(qreal w)
   if(flicks_advance < ossia::flicks_per_millisecond<double>)
     return;
 
+  const int64_t startOff = m_model.startOffset().impl;
+  const int64_t loopDur = m_model.loopDuration().impl;
+  const bool loops = m_model.loops() && loopDur > 0;
+
   QVector<int64_t> v;
   for(int i = 0; i < count; i++)
-    v.push_back((i + start) * flicks_advance);
+  {
+    int64_t flicks = (i + start) * flicks_advance;
+    if(loops)
+      flicks = startOff + (flicks % loopDur);
+    else
+      flicks = startOff + flicks;
+    v.push_back(flicks);
+  }
 
   m_lastRequestIndex++;
   m_thumb->requestThumbnails(m_lastRequestIndex, std::move(v));
@@ -145,20 +169,32 @@ void View::paint_impl(QPainter* painter) const
   if(flicks_advance < ossia::flicks_per_millisecond<double>)
     return;
 
+  const int64_t startOff = m_model.startOffset().impl;
+  const int64_t loopDur = m_model.loopDuration().impl;
+  const bool loops = m_model.loops() && loopDur > 0;
+
   auto& images = m_images;
 
-  auto it = m_images.lower_bound(start * flicks_advance);
-  if(it != images.cbegin())
-    --it;
+  auto it = images.cbegin();
 
   for(int i = 0; i < count; i++)
   {
-    int64_t flicks = (start + i) * flicks_advance;
-    it = ossia::closest_next_element(
-        it, images.cend(), flicks);
+    const int64_t rawFlicks = (start + i) * flicks_advance;
+    int64_t flicks;
+    if(loops)
+    {
+      flicks = startOff + (rawFlicks % loopDur);
+      // Looped flick values are non-monotonic, restart search from beginning
+      it = ossia::closest_next_element(images.cbegin(), images.cend(), flicks);
+    }
+    else
+    {
+      flicks = startOff + rawFlicks;
+      it = ossia::closest_next_element(it, images.cend(), flicks);
+    }
     if(it != images.end())
     {
-      const double px = TimeVal{flicks}.toPixels(m_zoom);
+      const double px = TimeVal{rawFlicks}.toPixels(m_zoom);
       painter->drawImage(QPointF{px, 0.f}, it->second);
     }
   }
