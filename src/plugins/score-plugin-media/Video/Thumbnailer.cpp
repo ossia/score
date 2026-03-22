@@ -77,6 +77,24 @@ VideoThumbnailer::VideoThumbnailer(QString path)
 
     m_codec = avcodec_find_decoder(stream->codecpar->codec_id);
 
+    // Ensure we use a software decoder for thumbnails
+    if(m_codec && (m_codec->capabilities & AV_CODEC_CAP_HARDWARE))
+    {
+      const AVCodec* sw = nullptr;
+      void* iter = nullptr;
+      while(auto* c = av_codec_iterate(&iter))
+      {
+        if(av_codec_is_decoder(c) && c->id == stream->codecpar->codec_id
+           && !(c->capabilities & AV_CODEC_CAP_HARDWARE))
+        {
+          sw = c;
+          break;
+        }
+      }
+      if(sw)
+        m_codec = sw;
+    }
+
     if(m_codec)
     {
       pixel_format = (AVPixelFormat)stream->codecpar->format;
