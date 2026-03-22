@@ -443,7 +443,7 @@ void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpd
   }
   
   // If buffers changed, we need to recreate the SRBs
-  if(buffersChanged)
+  // FIXME if(buffersChanged)
   {
     recreateShaderResourceBindings(renderer, res);
   }
