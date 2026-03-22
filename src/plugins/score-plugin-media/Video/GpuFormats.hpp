@@ -1,8 +1,12 @@
 #pragma once
 #include <Media/Libav.hpp>
 
+#include <string>
+#include <vector>
+
 #if SCORE_HAS_LIBAV
 extern "C" {
+#include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libavutil/pixdesc.h>
 #include <libavutil/version.h>
@@ -25,7 +29,11 @@ inline bool hardwareDecoderIsAvailable(AVPixelFormat p) noexcept
       return ok;
     }
     case AV_PIX_FMT_VAAPI: {
-      static const bool ok = avcodec_find_decoder_by_name("mjpeg_vaapi");
+      // FFmpeg 7+ removed dedicated VAAPI decoders (mjpeg_vaapi, etc.).
+      // VAAPI now uses the generic decoder with hw_device_ctx.
+      // Check if the VAAPI device type is supported instead.
+      static const bool ok = avcodec_find_decoder_by_name("mjpeg_vaapi")
+                             || av_hwdevice_find_type_by_name("vaapi") != AV_HWDEVICE_TYPE_NONE;
       return ok;
     }
     case AV_PIX_FMT_VDPAU: {
@@ -38,6 +46,10 @@ inline bool hardwareDecoderIsAvailable(AVPixelFormat p) noexcept
       return true;
     case AV_PIX_FMT_D3D11:
       return true;
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(58, 29, 100)
+    case AV_PIX_FMT_D3D12:
+      return true;
+#endif
 #endif
 #if defined(__APPLE__)
     case AV_PIX_FMT_VIDEOTOOLBOX:
@@ -52,6 +64,11 @@ inline bool hardwareDecoderIsAvailable(AVPixelFormat p) noexcept
     case AV_PIX_FMT_QSV: {
       static const bool ok = avcodec_find_decoder_by_name("mjpeg_qsv")
                              || avcodec_find_decoder_by_name("h264_qsv");
+      return ok;
+    }
+    case AV_PIX_FMT_VULKAN: {
+      static const bool ok
+          = av_hwdevice_find_type_by_name("vulkan") != AV_HWDEVICE_TYPE_NONE;
       return ok;
     }
     default:
@@ -70,10 +87,14 @@ inline constexpr bool formatIsHardwareDecoded(AVPixelFormat fmt) noexcept
     case AV_PIX_FMT_VDPAU:
     case AV_PIX_FMT_DXVA2_VLD:
     case AV_PIX_FMT_D3D11:
+#if defined(_WIN32) && LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(58, 29, 100)
+    case AV_PIX_FMT_D3D12:
+#endif
     case AV_PIX_FMT_CUDA:
     case AV_PIX_FMT_QSV:
     case AV_PIX_FMT_VIDEOTOOLBOX:
     case AV_PIX_FMT_DRM_PRIME:
+    case AV_PIX_FMT_VULKAN:
       return true;
     default:
       return false;
@@ -132,6 +153,7 @@ inline constexpr bool formatNeedsDecoding(AVPixelFormat fmt) noexcept
     case AV_PIX_FMT_YUV444P10LE:
     case AV_PIX_FMT_YUV444P12LE:
     case AV_PIX_FMT_YUVA444P10LE:
+    case AV_PIX_FMT_YUVA444P12LE:
     case AV_PIX_FMT_GBRP10LE:
     case AV_PIX_FMT_GBRP12LE:
     case AV_PIX_FMT_GBRP16LE:
@@ -206,6 +228,12 @@ inline constexpr HWAccelFormats ffmpegHardwareDecodingFormats(AVPixelFormat p) n
       if(!hardwareDecoderIsAvailable(AV_PIX_FMT_D3D11))
         return {};
       return {AV_PIX_FMT_D3D11, AV_HWDEVICE_TYPE_D3D11VA};
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(58, 29, 100)
+    case AV_PIX_FMT_D3D12:
+      if(!hardwareDecoderIsAvailable(AV_PIX_FMT_D3D12))
+        return {};
+      return {AV_PIX_FMT_D3D12, AV_HWDEVICE_TYPE_D3D12VA};
+#endif
 #endif
 #if defined(__APPLE__)
     case AV_PIX_FMT_VIDEOTOOLBOX:
@@ -222,8 +250,10 @@ inline constexpr HWAccelFormats ffmpegHardwareDecodingFormats(AVPixelFormat p) n
       if(!hardwareDecoderIsAvailable(AV_PIX_FMT_QSV))
         return {};
       return {AV_PIX_FMT_QSV, AV_HWDEVICE_TYPE_QSV};
-      //       case AV_PIX_FMT_VULKAN:
-      //         return {AV_PIX_FMT_VULKAN, AV_HWDEVICE_TYPE_VULKAN};
+    case AV_PIX_FMT_VULKAN:
+      if(!hardwareDecoderIsAvailable(AV_PIX_FMT_VULKAN))
+        return {};
+      return {AV_PIX_FMT_VULKAN, AV_HWDEVICE_TYPE_VULKAN};
       //       case AV_PIX_FMT_OPENCL:
       //         return {AV_PIX_FMT_OPENCL, AV_HWDEVICE_TYPE_OPENCL};
     default:
@@ -248,11 +278,225 @@ inline constexpr bool ffmpegCanDoHardwareDecoding(AVCodecID id) noexcept
     case AV_CODEC_ID_WMV1:
     case AV_CODEC_ID_WMV2:
     case AV_CODEC_ID_WMV3:
+    case AV_CODEC_ID_PRORES:
       return true;
     default:
       return false;
   }
 }
+/// Maps e.g. "h264" + CUDA -> "h264_cuvid". Returns generic name for hw_device_ctx backends.
+inline std::string hwCodecName(const char* codec_name, AVHWDeviceType device)
+{
+  std::string name{codec_name};
+  switch(device)
+  {
+    case AV_HWDEVICE_TYPE_CUDA:
+      return name + "_cuvid";
+    case AV_HWDEVICE_TYPE_QSV:
+      return name + "_qsv";
+    case AV_HWDEVICE_TYPE_VDPAU:
+      return name + "_vdpau";
+    case AV_HWDEVICE_TYPE_VAAPI:
+      return name;
+    case AV_HWDEVICE_TYPE_DRM:
+      return name + "_v4l2m2m";
+    case AV_HWDEVICE_TYPE_DXVA2:
+    case AV_HWDEVICE_TYPE_D3D11VA:
+#if defined(_WIN32) && LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(58, 29, 100)
+    case AV_HWDEVICE_TYPE_D3D12VA:
+#endif
+    case AV_HWDEVICE_TYPE_VIDEOTOOLBOX:
+    case AV_HWDEVICE_TYPE_VULKAN:
+      return name;
+    default:
+      return {};
+  }
+}
+
+/// Codecs that FFmpeg decodes via Vulkan compute shaders (not Vulkan Video).
+/// These are unstable on some drivers (Intel ANV) and should not use Vulkan HW accel.
+inline bool isVulkanComputeCodec(AVCodecID id)
+{
+  switch(id)
+  {
+    case AV_CODEC_ID_PRORES:
+    case AV_CODEC_ID_FFV1:
+      return true;
+    default:
+      return false;
+  }
+}
+
+/// Checks dedicated decoder name or avcodec_get_hw_config for codec+format support.
+inline bool codecSupportsHWPixelFormat(
+    AVCodecID codec_id, AVPixelFormat pix_fmt, uint32_t gpuVendorId = 0)
+{
+  (void)gpuVendorId;
+
+  auto hwInfo = ffmpegHardwareDecodingFormats(pix_fmt);
+  if(hwInfo.device == AV_HWDEVICE_TYPE_NONE)
+    return false;
+
+  const AVCodec* codec = avcodec_find_decoder(codec_id);
+  if(!codec)
+    return false;
+
+  auto dedicated = hwCodecName(codec->name, hwInfo.device);
+  if(!dedicated.empty() && dedicated != codec->name)
+  {
+    if(avcodec_find_decoder_by_name(dedicated.c_str()))
+      return true;
+    return false;
+  }
+
+  for(int i = 0;; i++)
+  {
+    const AVCodecHWConfig* config = avcodec_get_hw_config(codec, i);
+    if(!config)
+      break;
+    if(config->pix_fmt == pix_fmt
+       && (config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX))
+      return true;
+  }
+  return false;
+}
+
+/// PCI vendor IDs (from QRhi::driverInfo().vendorId)
+namespace GpuVendor
+{
+inline constexpr uint32_t NVIDIA = 0x10DE;
+inline constexpr uint32_t Intel = 0x8086;
+inline constexpr uint32_t AMD = 0x1002;
+inline constexpr uint32_t Apple = 0x106B;
+inline constexpr uint32_t Broadcom = 0x14E4; // RPi VideoCore
+inline constexpr uint32_t ARM = 0x13B5;      // Mali
+inline constexpr uint32_t Qualcomm = 0x5143;
+inline constexpr uint32_t Samsung = 0x144D;
+}
+
+/// Returns all viable HW accel formats for the given graphics API, codec, and
+/// GPU vendor, in priority order. The caller can iterate and try each until one
+/// succeeds at runtime.
+/// graphicsApi: 0=Null, 1=OpenGL, 2=Vulkan, 3=D3D11, 4=Metal, 5=D3D12
+inline std::vector<AVPixelFormat> selectHardwareAccelerations(
+    int graphicsApi, AVCodecID codec_id, uint32_t gpuVendorId = 0)
+{
+  struct Candidate { AVPixelFormat fmt; };
+  std::vector<Candidate> candidates;
+
+  switch(graphicsApi)
+  {
+#if defined(_WIN32)
+    case 3: // D3D11
+      candidates = {{AV_PIX_FMT_D3D11}, {AV_PIX_FMT_CUDA}, {AV_PIX_FMT_QSV}};
+      break;
+    case 5: // D3D12
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(58, 29, 100)
+      candidates = {{AV_PIX_FMT_D3D12}, {AV_PIX_FMT_D3D11}, {AV_PIX_FMT_CUDA}, {AV_PIX_FMT_QSV}};
+#else
+      candidates = {{AV_PIX_FMT_D3D11}, {AV_PIX_FMT_CUDA}, {AV_PIX_FMT_QSV}};
+#endif
+      break;
+#endif
+#if defined(__APPLE__)
+    case 4: // Metal
+      candidates = {{AV_PIX_FMT_VIDEOTOOLBOX}};
+      break;
+#endif
+    case 2: // Vulkan
+    {
+#if defined(__linux__)
+      if(gpuVendorId == GpuVendor::NVIDIA)
+      {
+        candidates = {{AV_PIX_FMT_VULKAN}, {AV_PIX_FMT_CUDA}, {AV_PIX_FMT_VAAPI}, {AV_PIX_FMT_QSV}};
+      }
+      else if(gpuVendorId == GpuVendor::Intel)
+      {
+        candidates = {{AV_PIX_FMT_VAAPI}, {AV_PIX_FMT_VULKAN}, {AV_PIX_FMT_QSV}};
+      }
+      else if(gpuVendorId == GpuVendor::AMD)
+      {
+        candidates = {{AV_PIX_FMT_VAAPI}, {AV_PIX_FMT_VULKAN}};
+      }
+      else if(gpuVendorId == GpuVendor::Broadcom
+              || gpuVendorId == GpuVendor::ARM
+              || gpuVendorId == GpuVendor::Qualcomm)
+      {
+        candidates = {{AV_PIX_FMT_DRM_PRIME}, {AV_PIX_FMT_VULKAN}};
+      }
+      else
+      {
+        candidates = {{AV_PIX_FMT_VAAPI}, {AV_PIX_FMT_VULKAN}, {AV_PIX_FMT_CUDA}, {AV_PIX_FMT_QSV}};
+      }
+#elif defined(_WIN32)
+      candidates = {
+          {AV_PIX_FMT_VULKAN}, {AV_PIX_FMT_D3D11},
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(58, 29, 100)
+          {AV_PIX_FMT_D3D12},
+#endif
+          {AV_PIX_FMT_CUDA}, {AV_PIX_FMT_QSV}};
+#elif defined(__APPLE__)
+      candidates = {{AV_PIX_FMT_VIDEOTOOLBOX}};
+#else
+      candidates = {{AV_PIX_FMT_CUDA}, {AV_PIX_FMT_QSV}};
+#endif
+      break;
+    }
+    case 1: // OpenGL
+    {
+#if defined(__linux__)
+      if(gpuVendorId == GpuVendor::Broadcom
+         || gpuVendorId == GpuVendor::ARM
+         || gpuVendorId == GpuVendor::Qualcomm)
+      {
+        candidates = {{AV_PIX_FMT_DRM_PRIME}};
+      }
+      else
+      {
+        candidates = {{AV_PIX_FMT_VAAPI}, {AV_PIX_FMT_CUDA}, {AV_PIX_FMT_QSV}};
+      }
+#elif defined(_WIN32)
+      candidates = {{AV_PIX_FMT_D3D11}, {AV_PIX_FMT_CUDA}, {AV_PIX_FMT_QSV}};
+#elif defined(__APPLE__)
+      candidates = {{AV_PIX_FMT_VIDEOTOOLBOX}};
+#endif
+      break;
+    }
+    default:
+    {
+#if defined(__linux__)
+#if defined(__arm__) || defined(__aarch64__)
+      candidates = {{AV_PIX_FMT_DRM_PRIME}, {AV_PIX_FMT_VAAPI}};
+#else
+      candidates = {{AV_PIX_FMT_VAAPI}, {AV_PIX_FMT_CUDA}, {AV_PIX_FMT_QSV}};
+#endif
+#elif defined(_WIN32)
+      candidates = {{AV_PIX_FMT_D3D11}, {AV_PIX_FMT_CUDA}, {AV_PIX_FMT_QSV}};
+#elif defined(__APPLE__)
+      candidates = {{AV_PIX_FMT_VIDEOTOOLBOX}};
+#endif
+      break;
+    }
+  }
+
+  std::vector<AVPixelFormat> result;
+  for(auto& c : candidates)
+  {
+    if(hardwareDecoderIsAvailable(c.fmt)
+       && codecSupportsHWPixelFormat(codec_id, c.fmt, gpuVendorId))
+      result.push_back(c.fmt);
+  }
+  return result;
+}
+
+/// Picks the best HW accel for the given graphics API, codec, and GPU vendor.
+inline AVPixelFormat selectHardwareAcceleration(
+    int graphicsApi, AVCodecID codec_id, uint32_t gpuVendorId = 0)
+{
+  auto fmts = selectHardwareAccelerations(graphicsApi, codec_id, gpuVendorId);
+  return fmts.empty() ? AV_PIX_FMT_NONE : fmts.front();
+}
+
 #endif
 }
 

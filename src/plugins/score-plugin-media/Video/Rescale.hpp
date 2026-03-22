@@ -37,6 +37,8 @@ struct SCORE_PLUGIN_MEDIA_EXPORT DecoderConfiguration
   AVPixelFormat hardwareAcceleration{AV_PIX_FMT_NONE};
   std::string decoder;
   int threads{};
+  int graphicsApi{};    // score::gfx::GraphicsApi (avoid header dependency)
+  uint32_t gpuVendorId{}; // PCI vendor ID of the render GPU (0 = unknown)
   bool useAVCodec{true};
   bool ignorePTS{false};
 };

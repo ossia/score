@@ -50,6 +50,15 @@ set(SYPHON_SRCS
     Gfx/Syphon/SyphonOutput.hpp
     Gfx/Syphon/SyphonOutput.mm
 )
+set(VTB_SRCS
+    Gfx/Graph/decoders/HWVideoToolbox_metal.hpp
+    Gfx/Graph/decoders/HWVideoToolbox_metal.mm
+)
+set_source_files_properties(
+    Gfx/Graph/decoders/HWVideoToolbox_metal.mm
+    PROPERTIES
+      SKIP_UNITY_BUILD_INCLUSION ON
+)
 endif()
 
 find_package(freenect2)
@@ -152,12 +161,25 @@ set(HDRS
     Gfx/Graph/Utils.hpp
     Gfx/Graph/VideoNode.hpp
     Gfx/Graph/VideoNodeRenderer.hpp
+    Gfx/Graph/HWAccelSetup.hpp
     Gfx/Graph/DirectVideoNodeRenderer.hpp
     Gfx/Graph/Window.hpp
     
     Gfx/Graph/decoders/DXV.hpp
+    Gfx/Graph/decoders/DMABufImport.hpp
     Gfx/Graph/decoders/GPUVideoDecoder.hpp
+    Gfx/Graph/decoders/GPUVideoDecoderFactory.hpp
     Gfx/Graph/decoders/HAP.hpp
+    Gfx/Graph/decoders/HWTransfer.hpp
+    Gfx/Graph/decoders/HWVAAPI.hpp
+    Gfx/Graph/decoders/HWCUDA.hpp
+    Gfx/Graph/decoders/HWD3D11.hpp
+    Gfx/Graph/decoders/HWD3D12.hpp
+    Gfx/Graph/decoders/HWVideoToolbox.hpp
+    Gfx/Graph/decoders/HWVideoToolbox_metal.hpp
+    Gfx/Graph/decoders/HWVulkan.hpp
+    Gfx/Graph/decoders/HWVulkanShared.hpp
+    Gfx/Graph/VulkanVideoDevice.hpp
     Gfx/Graph/decoders/NV12.hpp
     Gfx/Graph/decoders/NV16.hpp
     Gfx/Graph/decoders/NV24.hpp
@@ -228,6 +250,7 @@ set(SRCS
   
     ${SPOUT_SRCS}
     ${SYPHON_SRCS}
+    ${VTB_SRCS}
     ${KINECT2_SRCS}
     ${LIBAV_SRCS}
 
@@ -264,6 +287,7 @@ set(SRCS
 
     Gfx/Graph/decoders/DXV.cpp
     Gfx/Graph/decoders/GPUVideoDecoder.cpp
+    Gfx/Graph/decoders/GPUVideoDecoderFactory.cpp
     Gfx/Graph/decoders/HAP.cpp
     Gfx/Graph/BackgroundNode.cpp
     Gfx/Graph/CustomMesh.cpp
@@ -291,6 +315,7 @@ set(SRCS
     Gfx/Graph/Utils.cpp
     Gfx/Graph/VideoNode.cpp
     Gfx/Graph/VideoNodeRenderer.cpp
+    Gfx/Graph/HWAccelSetup.cpp
     Gfx/Graph/DirectVideoNodeRenderer.cpp
     Gfx/Graph/Window.cpp
 
@@ -436,6 +461,8 @@ if(APPLE)
     find_library(CoreFoundation_FK CoreFoundation)
     find_library(AudioToolbox_FK AudioToolbox)
     find_library(VideoToolbox_FK VideoToolbox)
+    find_library(Metal_FK Metal)
+    find_library(IOSurface_FK IOSurface)
 
     target_compile_options(${PROJECT_NAME}
       PRIVATE
@@ -455,6 +482,8 @@ if(APPLE)
         ${CoreFoundation_FK}
         ${AudioToolbox_FK}
         ${VideoToolbox_FK}
+        ${Metal_FK}
+        ${IOSurface_FK}
         )
 
     # If we build against homebrew's ffmpeg we do not need those
@@ -484,7 +513,7 @@ if(WIN32)
       PROPERTIES
         SKIP_UNITY_BUILD_INCLUSION ON
   )
-  target_link_libraries(${PROJECT_NAME} PRIVATE dxguid avrt winmm)
+  target_link_libraries(${PROJECT_NAME} PRIVATE dxguid avrt winmm d3d12)
 elseif(APPLE)
   target_sources(${PROJECT_NAME} PRIVATE Gfx/CameraDevice.avf.mm)
 

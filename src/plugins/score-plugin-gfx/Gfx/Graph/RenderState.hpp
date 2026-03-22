@@ -4,6 +4,8 @@
 
 #include <score_plugin_gfx_export.h>
 
+#include <functional>
+
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
 using QRhiBufferReadbackResult = QRhiReadbackResult;
 #endif
@@ -53,12 +55,22 @@ struct RenderState
   GraphicsApi api{};
   QShaderVersion version{};
 
+  // Called after QRhi is destroyed to clean up an imported VkDevice
+  std::function<void()> customDeviceCleanup;
+
   void destroy()
   {
     window.reset();
 
     delete rhi;
     rhi = nullptr;
+
+    // Destroy imported VkDevice AFTER QRhi (which still references it during shutdown)
+    if(customDeviceCleanup)
+    {
+      customDeviceCleanup();
+      customDeviceCleanup = nullptr;
+    }
 
     delete surface;
     surface = nullptr;

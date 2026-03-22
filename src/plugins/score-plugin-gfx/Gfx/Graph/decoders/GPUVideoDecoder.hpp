@@ -22,6 +22,53 @@ extern "C" {
 
 namespace score::gfx
 {
+
+/// Describes the pixel layout properties relevant for GPU decoding.
+/// Extracted from AVPixFmtDescriptor / codec parameters.
+struct PixelFormatInfo
+{
+  int log2ChromaW{1}; ///< Horizontal chroma subsampling: 0=4:4:4, 1=4:2:2/4:2:0
+  int log2ChromaH{1}; ///< Vertical chroma subsampling: 0=4:4:4/4:2:2, 1=4:2:0
+  int bitDepth{8};    ///< Per-component bit depth (8, 10, 12, 16)
+  int numPlanes{2};   ///< Number of planes (2 for semi-planar, 3+ for planar)
+  bool hasAlpha{};    ///< Format includes an alpha channel
+
+  bool is10bit() const noexcept { return bitDepth > 8; }
+
+  /// Build from an AVPixelFormat.
+  static PixelFormatInfo fromAVPixelFormat(AVPixelFormat fmt)
+  {
+    PixelFormatInfo info;
+    const AVPixFmtDescriptor* desc = av_pix_fmt_desc_get(fmt);
+    if(desc)
+    {
+      info.log2ChromaW = desc->log2_chroma_w;
+      info.log2ChromaH = desc->log2_chroma_h;
+      info.bitDepth = desc->comp[0].depth;
+      info.numPlanes = av_pix_fmt_count_planes(fmt);
+      info.hasAlpha = (desc->flags & AV_PIX_FMT_FLAG_ALPHA) != 0;
+    }
+    return info;
+  }
+
+  /// Build from codec parameters, with optional sw_format override.
+  /// bits_per_raw_sample from the codec is used as a hint when > 8.
+  static PixelFormatInfo fromCodecParameters(
+      AVPixelFormat swFormat, AVPixelFormat codecparFormat,
+      int bitsPerRawSample)
+  {
+    PixelFormatInfo info;
+    // Prefer sw_format (from hw_frames_ctx) when available
+    AVPixelFormat fmt = (swFormat != AV_PIX_FMT_NONE) ? swFormat : codecparFormat;
+    if(fmt != AV_PIX_FMT_NONE)
+      info = fromAVPixelFormat(fmt);
+    // bits_per_raw_sample overrides depth when set (some containers report it)
+    if(bitsPerRawSample > info.bitDepth)
+      info.bitDepth = bitsPerRawSample;
+    return info;
+  }
+};
+
 // TODO the "model" nodes should have a first update step so that they
 // can share data across all renderers during a tick
 class VideoNode;
@@ -78,6 +125,16 @@ public:
   static QString vertexShader(bool invertY = false) noexcept;
 
   std::vector<Sampler> samplers;
+
+  /// Set by exec() on first successful frame upload.
+  /// Renderers should skip the render pass until this is true to avoid
+  /// showing uninitialized textures (green frame from zero YUV).
+  bool hasFrame{};
+
+  /// Set by exec() when the decoder detects an unrecoverable incompatibility
+  /// with the frame data (e.g. wrong plane count, unsupported CVPixelBuffer format).
+  /// The renderer should check this and rebuild with a fallback decoder.
+  bool failed{};
 };
 
 /**
