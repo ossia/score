@@ -477,12 +477,20 @@ void CableItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
   score::SelectionDispatcher disp{m_context.selectionStack};
   if(m_p1->contains(m_p1->mapFromScene(event->scenePos())))
+  {
     disp.select(m_p1->port());
+    event->ignore();
+  }
   else if(m_p2->contains(m_p2->mapFromScene(event->scenePos())))
+  {
     disp.select(m_p2->port());
+    event->ignore();
+  }
   else
+  {
     disp.select(m_cable);
-  event->accept();
+    event->accept();
+  }
 }
 
 void CableItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
