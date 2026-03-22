@@ -10,9 +10,9 @@
 #include <Curve/Commands/UpdateCurve.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
 
+#include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
-#include <Dataflow/Commands/EditConnection.hpp>
 
 #include <Automation/Commands/SetAutomationMax.hpp>
 #include <Dataflow/Commands/CreateModulation.hpp>
@@ -21,7 +21,6 @@
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/selection/SelectionStack.hpp>
 
-#include <Scenario/Commands/CommandAPI.hpp>
 #include <ossia/network/common/destination_qualifiers.hpp>
 #include <ossia/network/domain/domain.hpp>
 
