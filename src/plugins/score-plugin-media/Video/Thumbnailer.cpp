@@ -197,104 +197,54 @@ void VideoThumbnailer::onRequest(int64_t req, QVector<int64_t> flicks)
 QImage VideoThumbnailer::process(int64_t flicks)
 {
   AVFramePointer res;
-  // 1. Seek
+  // 1. Seek and decode
   {
-    const int64_t dts = flicks * dts_per_flicks;
-
-    // TODO - maybe we should also store the "last dequeued dts" from the
-    // decoder side - this way no need to seek if we are in the interval
-
-    const bool seek_forward = dts >= this->m_last_dts;
-    int flags = seek_forward ? 0 : AVSEEK_FLAG_BACKWARD;
-    flags |= ossia::OSSIA_LIBAV_SEEK_ROUGH;
+    // Always seek backward to the nearest keyframe before the target.
+    // Forward-only seeking fails when there is no keyframe at the exact target.
     if(!ossia::seek_to_flick(
            m_formatContext, m_codecContext, m_formatContext->streams[m_stream], flicks,
-           flags))
+           AVSEEK_FLAG_BACKWARD | ossia::OSSIA_LIBAV_SEEK_ROUGH))
     {
-      qDebug() << "VideoThumbnailer: Failed to seek for time " << dts;
       return {};
     }
 
     AVFramePointer frame{av_frame_alloc()};
-
     AVPacket* packet = av_packet_alloc();
 
-    int k = 0;
-  retry_decode:
-    av_packet_unref(packet);
-    while(av_read_frame(m_formatContext, packet) >= 0 && k < 5)
+    int attempts = 0;
+    while(av_read_frame(m_formatContext, packet) >= 0 && attempts < 64)
     {
-      k++;
       if(packet->stream_index != m_stream)
       {
-        qDebug() << "packet.stream_index != m_stream";
         av_packet_unref(packet);
-        goto retry_decode;
+        continue;
       }
 
+      attempts++;
       int ret = avcodec_send_packet(m_codecContext, packet);
-      if(ret < 0)
-      {
-        if(ret == AVERROR(EAGAIN))
-        {
-          av_packet_unref(packet);
-          goto retry_decode;
-        }
-        else if(ret == AVERROR_EOF)
-        {
-          qDebug("avcodec_send_packet eof");
-          break;
-        }
-        else
-        {
-          qDebug("avcodec_send_packet error");
-          break;
-        }
-      }
+      av_packet_unref(packet);
+      if(ret < 0 && ret != AVERROR(EAGAIN))
+        break;
 
       ret = avcodec_receive_frame(m_codecContext, frame.get());
-      if(ret < 0)
-      {
-        if(ret == AVERROR(EAGAIN))
-        {
-          av_packet_unref(packet);
-          goto retry_decode;
-        }
-        else if(ret == AVERROR_EOF)
-        {
-          qDebug("avcodec_receive_frame eof");
-        }
-        else
-        {
-          qDebug("avcodec_receive_frame error");
-        }
-      }
-
       if(ret == 0)
       {
-        if(frame->pkt_dts >= dts)
-        {
-          res = std::move(frame);
-
-          av_packet_unref(packet);
-          break;
-        }
+        // For thumbnails, accept the first successfully decoded frame.
+        // It will be at or near the requested position (close enough
+        // for a 55px-high thumbnail).
+        res = std::move(frame);
+        m_last_dts = res->pkt_dts;
+        break;
       }
-
-      av_packet_unref(packet);
+      else if(ret != AVERROR(EAGAIN))
+      {
+        break;
+      }
     }
 
-    if(frame)
-      m_last_dts = frame->pkt_dts;
-    else if(res)
-      m_last_dts = res->pkt_dts;
-
-    av_packet_unref(packet);
     av_packet_free(&packet);
     if(!res)
-    {
       return {};
-    }
   }
 
   // 2. Resize
