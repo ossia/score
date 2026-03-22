@@ -82,6 +82,7 @@ Gfx::Settings::GraphicsApis::operator QStringList() const noexcept
 Gfx::Settings::HardwareVideoDecoder::operator QStringList() const noexcept
 {
   QStringList lst;
+  lst += Auto;
   lst += None;
 
   if(avcodec_find_decoder_by_name("mjpeg_qsv")
@@ -112,7 +113,16 @@ Gfx::Settings::HardwareVideoDecoder::operator QStringList() const noexcept
 #if defined(_WIN32)
   lst += DXVA;
   lst += D3D;
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(58, 29, 100)
+  lst += D3D12;
 #endif
+#endif
+
+#if LIBAVUTIL_VERSION_MAJOR >= 57
+  if(av_hwdevice_find_type_by_name("vulkan") != AV_HWDEVICE_TYPE_NONE)
+    lst += VulkanVideo;
+#endif
+
   return lst;
 }
 
