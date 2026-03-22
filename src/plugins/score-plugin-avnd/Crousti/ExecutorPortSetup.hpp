@@ -8,6 +8,19 @@
 
 namespace oscr
 {
+template <typename T>
+struct dynamic_ports_component_data
+{
+};
+
+template <oscr::has_dynamic_ports T>
+struct dynamic_ports_component_data<T>
+{
+  Process::Inlets m_oldInlets;
+  Process::Outlets m_oldOutlets;
+  ossia::flat_set<Process::ControlInlet*> m_connectedControls;
+  int64_t m_generation{};
+};
 
 template <typename Node, typename Field, std::size_t NPred, std::size_t NField>
 struct con_unvalidated
@@ -40,24 +53,29 @@ struct con_unvalidated_dynamic_port
   using ExecNode = safe_node<Node>;
   const Execution::Context& ctx;
   std::weak_ptr<ExecNode> weak_node;
-  Field& field;
+  Field& parent_field;
   int port_index;
   void operator()(const ossia::value& val)
   {
-    using control_value_type = std::decay_t<decltype(Field::value)>;
+    using control_type = std::decay_t<decltype(parent_field.ports[0])>;
+    using control_value_type = std::decay_t<decltype(control_type::value)>;
 
     if(auto node = weak_node.lock())
     {
-      control_value_type v;
-      node->from_ossia_value(field, val, v, avnd::field_index<NField>{});
-      ctx.executionQueue.enqueue(
-          [weak_node = weak_node, port_index = port_index, v = std::move(v)]() mutable {
-        if(auto n = weak_node.lock())
-        {
-          n->template control_updated_from_ui<control_value_type, NPred>(
-              std::move(v), port_index);
-        }
-      });
+      if(port_index >= 0 && port_index < parent_field.ports.size())
+      {
+        auto& field = parent_field.ports[port_index];
+        control_value_type v;
+        node->from_ossia_value(field, val, v, avnd::field_index<NField>{});
+        ctx.executionQueue.enqueue([weak_node = weak_node, port_index = port_index,
+                                    v = std::move(v)]() mutable {
+          if(auto n = weak_node.lock())
+          {
+            n->template control_updated_from_ui<control_value_type, NPred>(
+                std::move(v), port_index);
+          }
+        });
+      }
     }
   }
 };
@@ -105,10 +123,14 @@ struct setup_control_for_exec : setup_control_for_exec_base<Node, Field>
     // Initialize the control with the current value of the inlet if it is not an optional
     if constexpr(avnd::dynamic_ports_port<Field>)
     {
-      if constexpr(!requires { param.ports[0].value.reset(); })
+      using port_type = avnd::dynamic_port_type<Field>;
+      if constexpr(avnd::parameter_port<port_type>)
       {
-        this->node_ptr->from_ossia_value(
-            param, inlet->value(), param.ports[k].value, avnd::field_index<NField>{});
+        if constexpr(!requires { param.ports[0].value.reset(); })
+        {
+          this->node_ptr->from_ossia_value(
+              param, inlet->value(), param.ports[k].value, avnd::field_index<NField>{});
+        }
       }
     }
     else
@@ -147,8 +169,18 @@ struct setup_control_for_exec : setup_control_for_exec_base<Node, Field>
     }
   }
 
-  void connect_control_to_ui(Field& param, Process::ControlInlet* inlet, int k)
+  // USed for dynamic port creation
+  void reconnect_control_to_ui(
+      dynamic_ports_component_data<Node>& control_data, Field& param,
+      Process::ControlInlet* inlet, int k)
   {
+    if constexpr(requires { control_data.m_connectedControls; })
+    {
+      // Inlet already has the ui -> exec connection done
+      if(control_data.m_connectedControls.contains(inlet))
+        return;
+    }
+
     // Connect to changes
     std::weak_ptr<ExecNode> weak_node = this->node_ptr;
     if constexpr(avnd::dynamic_ports_port<Field>)
@@ -156,10 +188,11 @@ struct setup_control_for_exec : setup_control_for_exec_base<Node, Field>
       using port_type = avnd::dynamic_port_type<Field>;
       QObject::connect(
           inlet, &Process::ControlInlet::valueChanged, this->parent,
-          con_unvalidated_dynamic_port<Node, port_type, N, NField>{
-              this->ctx, weak_node, param.ports[k], k});
+          con_unvalidated_dynamic_port<Node, Field, N, NField>{
+              this->ctx, weak_node, param, k});
 
-      this->update_controller(param, inlet);
+      if constexpr(requires { control_data.m_connectedControls; })
+        control_data.m_connectedControls.insert(inlet);
     }
     else
     {
@@ -167,8 +200,18 @@ struct setup_control_for_exec : setup_control_for_exec_base<Node, Field>
           inlet, &Process::ControlInlet::valueChanged, this->parent,
           con_unvalidated<Node, Field, N, NField>{this->ctx, weak_node, param});
 
-      this->update_controller(param, inlet);
+      if constexpr(requires { control_data.m_connectedControls; })
+        control_data.m_connectedControls.insert(inlet);
     }
+  }
+
+  // Used on initial creation
+  void connect_control_to_ui(
+      dynamic_ports_component_data<Node>& control_data, Field& param,
+      Process::ControlInlet* inlet, int k)
+  {
+    reconnect_control_to_ui(control_data, param, inlet, k);
+    this->update_controller(param, inlet);
   }
 };
 
@@ -348,6 +391,7 @@ struct dispatch_control_setup
   Model& element;
   const Execution::Context& ctx;
   const std::shared_ptr<ExecNode>& node_ptr;
+  dynamic_ports_component_data<Node>& control_data;
   QObject* parent;
 
   // Main function being invoked, which dispatches to all the actual implementations
@@ -362,24 +406,67 @@ struct dispatch_control_setup
       param.ports.resize(ports.size());
     }
 
-    int k = 0;
-    for(auto p : ports)
+    using port_type = avnd::concrete_port_type<Field>;
+    if constexpr(avnd::parameter_port<port_type>)
     {
-      if(auto inlet = qobject_cast<Process::ControlInlet*>(p))
+      int k = 0;
+      for(auto p : ports)
       {
-        setup_control_for_exec<Node, Field, N, NField> setup{
-            element, ctx, node_ptr, parent};
+        if(auto inlet = qobject_cast<Process::ControlInlet*>(p))
+        {
+          setup_control_for_exec<Node, Field, N, NField> setup{
+              element, ctx, node_ptr, parent};
 
-        setup.initialize_control(param, inlet, k);
+          setup.initialize_control(param, inlet, k);
 
-        setup.invoke_update(param, k);
+          setup.invoke_update(param, k);
 
-        setup.connect_control_to_ui(param, inlet, k);
+          setup.connect_control_to_ui(control_data, param, inlet, k);
+        }
+        k++;
+        // Else it's an unhandled value inlet
       }
-      k++;
     }
-    // Else it's an unhandled value inlet
   }
 };
 
+// Only used when dynamic ports are added
+template <typename Node>
+struct dispatch_control_reconnect
+{
+  using ExecNode = safe_node<Node>;
+  using Model = ProcessModel<Node>;
+
+  Model& element;
+  const Execution::Context& ctx;
+  const std::shared_ptr<ExecNode>& node_ptr;
+  dynamic_ports_component_data<Node>& control_data;
+  QObject* parent;
+
+  // Main function being invoked, which dispatches to all the actual implementations
+  template <typename Field, std::size_t N, std::size_t NField>
+  constexpr void
+  operator()(Field& param, avnd::predicate_index<N> np, avnd::field_index<NField> nf)
+  {
+    const auto ports = element.avnd_input_idx_to_model_ports(NField);
+
+    using port_type = avnd::concrete_port_type<Field>;
+    if constexpr(avnd::parameter_port<port_type>)
+    {
+      int k = 0;
+      for(auto p : ports)
+      {
+        if(auto inlet = qobject_cast<Process::ControlInlet*>(p))
+        {
+          setup_control_for_exec<Node, Field, N, NField> setup{
+              element, ctx, node_ptr, parent};
+
+          setup.reconnect_control_to_ui(control_data, param, inlet, k);
+        }
+        k++;
+        // Else it's an unhandled value inlet
+      }
+    }
+  }
+};
 }

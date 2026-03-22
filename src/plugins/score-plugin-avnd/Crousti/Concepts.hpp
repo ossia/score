@@ -14,6 +14,7 @@
 
 #include <boost/container/vector.hpp>
 
+#include <avnd/binding/ossia/dynamic_ports.hpp>
 #include <avnd/binding/ossia/qt.hpp>
 #include <avnd/binding/ossia/uuid.hpp>
 #include <avnd/common/concepts_polyfill.hpp>
@@ -39,10 +40,19 @@ namespace oscr
 {
 template <typename Node, typename FieldIndex>
 struct CustomFloatControl;
+
+template <typename BaseInletType, typename Node, typename T, typename FieldIndex>
+struct CustomGenericControl;
 }
 
 template <typename Node, typename FieldIndex>
 struct is_custom_serialized<oscr::CustomFloatControl<Node, FieldIndex>> : std::true_type
+{
+};
+
+template <typename BaseInletType, typename Node, typename T, typename FieldIndex>
+struct is_custom_serialized<
+    oscr::CustomGenericControl<BaseInletType, Node, T, FieldIndex>> : std::true_type
 {
 };
 
@@ -94,6 +104,32 @@ struct CustomFloatControl : public CustomFloatControlBase
   ~CustomFloatControl() = default;
 };
 
+template <typename BaseInletType, typename Node, typename T, typename FieldIndex>
+struct CustomGenericControl : public BaseInletType
+{
+  using BaseInletType::BaseInletType;
+
+  static BaseInletType::key_type static_concreteKey() noexcept
+  {
+    return make_field_uuid<Node>(true, FieldIndex{});
+  }
+  BaseInletType::key_type concreteKey() const noexcept override
+  {
+    return static_concreteKey();
+  }
+
+  void serialize_impl(const VisitorVariant& vis) const noexcept override
+  {
+    score::serialize_dyn(vis, *this);
+  }
+
+  ~CustomGenericControl() = default;
+};
+
+template <typename BaseInletType, typename Node, typename T, typename FieldIndex>
+using ControlTypeToUse = std::conditional_t<
+    avnd::controller_interaction_port<T>,
+    CustomGenericControl<BaseInletType, Node, T, FieldIndex>, BaseInletType>;
 }
 template <typename Node, typename FieldIndex>
 struct TSerializer<DataStream, oscr::CustomFloatControl<Node, FieldIndex>>
@@ -114,6 +150,32 @@ struct TSerializer<JSONObject, oscr::CustomFloatControl<Node, FieldIndex>>
   static void readFrom(JSONObject::Serializer& s, const model_type& p)
   {
     s.read((const Process::ControlInlet&)p);
+  }
+
+  static void writeTo(JSONObject::Deserializer& s, model_type& eff) { }
+};
+
+template <typename BaseInletType, typename Node, typename T, typename FieldIndex>
+struct TSerializer<
+    DataStream, oscr::CustomGenericControl<BaseInletType, Node, T, FieldIndex>>
+{
+  using model_type = oscr::CustomGenericControl<BaseInletType, Node, T, FieldIndex>;
+  static void readFrom(DataStream::Serializer& s, const model_type& p)
+  {
+    s.read((const BaseInletType&)p);
+  }
+
+  static void writeTo(DataStream::Deserializer& s, model_type& eff) { }
+};
+
+template <typename BaseInletType, typename Node, typename T, typename FieldIndex>
+struct TSerializer<
+    JSONObject, oscr::CustomGenericControl<BaseInletType, Node, T, FieldIndex>>
+{
+  using model_type = oscr::CustomGenericControl<BaseInletType, Node, T, FieldIndex>;
+  static void readFrom(JSONObject::Serializer& s, const model_type& p)
+  {
+    s.read((const BaseInletType&)p);
   }
 
   static void writeTo(JSONObject::Deserializer& s, model_type& eff) { }
@@ -265,7 +327,8 @@ make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
     static constexpr auto c = avnd::get_range<T>();
     if constexpr(std::is_integral_v<value_type>)
     {
-      return new Process::IntSpinBox{c.min, c.max, c.init, qname, id, parent};
+      return new ControlTypeToUse<Process::IntSpinBox, Node, T, avnd::field_index<N>>{
+          c.min, c.max, c.init, qname, id, parent};
     }
     else
     {
@@ -305,7 +368,8 @@ make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
         return p;
       }
       else
-        return new Process::LineEdit{c.init.data(), qname, id, parent};
+        return new ControlTypeToUse<Process::LineEdit, Node, T, avnd::field_index<N>>{
+            c.init.data(), qname, id, parent};
     }
     else
     {
@@ -510,66 +574,4 @@ static inline constexpr auto make_control_out(const T& t)
 {
   return make_control_out<T>();
 }
-}
-
-namespace oscr
-{
-struct multichannel_audio_view
-{
-  ossia::audio_vector* buffer{};
-  int64_t offset{};
-  int64_t duration{};
-
-  std::span<const double> operator[](std::size_t i) const noexcept
-  {
-    auto& chan = (*buffer)[i];
-    int64_t min_dur = std::min(int64_t(chan.size()) - offset, duration);
-    if(min_dur < 0)
-      min_dur = 0;
-
-    return std::span<const double>{chan.data() + offset, std::size_t(min_dur)};
-  }
-
-  std::size_t channels() const noexcept { return buffer->size(); }
-  void resize(std::size_t i) const noexcept { return buffer->resize(i); }
-  void reserve(std::size_t channels, std::size_t bufferSize)
-  {
-    resize(channels);
-    for(auto& vec : *buffer)
-      vec.reserve(bufferSize);
-  }
-};
-
-struct multichannel_audio
-{
-  ossia::audio_vector* buffer{};
-  int64_t offset{};
-  int64_t duration{};
-
-  std::span<double> operator[](std::size_t i) const noexcept
-  {
-    auto& chan = (*buffer)[i];
-    int64_t min_dur = std::min(int64_t(chan.size()) - offset, duration);
-    if(min_dur < 0)
-      min_dur = 0;
-
-    return std::span<double>{chan.data() + offset, std::size_t(min_dur)};
-  }
-
-  std::size_t channels() const noexcept { return buffer->size(); }
-  void resize(std::size_t channels, std::size_t samples_to_write) const noexcept
-  {
-    buffer->resize(channels);
-    for(auto& c : *buffer)
-      c.resize(offset + samples_to_write);
-  }
-
-  void reserve(std::size_t channels, std::size_t bufferSize)
-  {
-    buffer->resize(channels);
-    for(auto& c : *buffer)
-      c.reserve(bufferSize);
-  }
-};
-
 }
