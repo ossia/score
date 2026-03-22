@@ -61,6 +61,11 @@ ClickableLabelItem::ClickableLabelItem(
 void ClickableLabelItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   m_onClick(this);
+  event->accept();
+}
+void ClickableLabelItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+  event->accept();
 }
 
 void ClickableLabelItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event)

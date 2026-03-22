@@ -1,3 +1,7 @@
+#include <State/MessageListSerialization.hpp>
+
+#include <Device/Node/NodeListMimeSerialization.hpp>
+
 #include <Process/Dataflow/CableItem.hpp>
 #include <Process/Dataflow/PortItem.hpp>
 #include <Process/DocumentPlugin.hpp>
@@ -10,9 +14,8 @@
 #include <score/graphics/TextItem.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
+#include <score/selection/SelectionStack.hpp>
 #include <score/tools/Bind.hpp>
-#include <State/MessageListSerialization.hpp>
-#include <Device/Node/NodeListMimeSerialization.hpp>
 
 #include <ossia/detail/algorithms.hpp>
 
