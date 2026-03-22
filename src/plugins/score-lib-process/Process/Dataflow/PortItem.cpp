@@ -979,7 +979,7 @@ score::SimpleTextItem* makePortLabel(const Process::Port& port, QGraphicsItem* p
 {
   const auto& brush = Process::labelBrush(port);
 
-  auto lab = new score::SimpleTextItem{brush, parent};
+  auto lab = new score::ClickableTextItem{brush, parent};
   auto text = port.visualName();
   if(text.isEmpty())
   {
@@ -1030,6 +1030,11 @@ score::SimpleTextItem* makePortLabel(const Process::Port& port, QGraphicsItem* p
   }
 
   lab->setText(text);
+
+  QObject::connect(lab, &score::ClickableTextItem::clicked, &port, [&port] {
+    auto& ctx = score::IDocument::documentContext(port);
+    ctx.selectionStack.pushNewSelection({const_cast<Process::Port*>(&port)});
+  });
 
   QObject::connect(&port.selection, &Selectable::changed, lab, [lab, &port](bool b) {
     lab->setColor(Process::labelBrush(port));
