@@ -44,6 +44,9 @@ public:
 
   void doubleClicked(QPointF pt) W_SIGNAL(doubleClicked, pt);
   void drag(QPointF arg_1, QPointF arg_2) W_SIGNAL(drag, arg_1, arg_2);
+  void scrubPressed(QPointF arg_1, QPointF arg_2) W_SIGNAL(scrubPressed, arg_1, arg_2);
+  void scrubMoved(QPointF arg_1, QPointF arg_2) W_SIGNAL(scrubMoved, arg_1, arg_2);
+  void scrubReleased(QPointF arg_1, QPointF arg_2) W_SIGNAL(scrubReleased, arg_1, arg_2);
   void rescale() W_SIGNAL(rescale);
 
 protected:
@@ -56,6 +59,7 @@ protected:
   void mouseReleaseEvent(QGraphicsSceneMouseEvent*) final override;
   ossia::time_value m_startPoint{};
   qreal m_width{};
+  bool m_inScrub{};
 };
 
 class TimeRuler final : public TimeRulerBase

@@ -8,6 +8,7 @@
 #include <Scenario/Document/ScenarioDocument/CentralIntervalDisplay.hpp>
 #include <Scenario/Document/ScenarioDocument/CentralNodalDisplay.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
+#include <Scenario/Palette/Tools/PlayToolState.hpp>
 
 #include <score/plugins/documentdelegate/DocumentDelegatePresenter.hpp>
 #include <score/selection/Selection.hpp>
@@ -139,7 +140,10 @@ private:
   void on_timeRulerChanged();
   void on_horizontalZoom(QPointF, QPointF);
   void on_verticalZoom(QPointF, QPointF);
-  void on_timeRulerScrollEvent(QPointF, QPointF);
+  void on_timeRulerDragEvent(QPointF, QPointF);
+  void on_timeRulerScrubPressEvent(QPointF, QPointF);
+  void on_timeRulerScrubMoveEvent(QPointF, QPointF);
+  void on_timeRulerScrubReleaseEvent(QPointF, QPointF);
   void on_visibleRectChanged(const QRectF& c);
   void on_horizontalPositionChanged(int dx);
   void on_minimapChanged(double l, double r);
@@ -154,6 +158,8 @@ private:
   void on_cableItemCreated(Dataflow::CableItem* item);
   void on_dropOnCable(const QPointF& pos, const QMimeData& mime);
   void on_dropFinished();
+
+  TimeVal timeRulerClickTime(QPointF scenePos) const noexcept;
 
   Process::DataflowManager m_dataflow;
   CentralDisplay m_centralDisplay;
@@ -172,6 +178,8 @@ private:
   QAction* m_musicalAction{};
 
   std::vector<QMetaObject::Connection> m_processSelectionConnections;
+
+  ScrubHandler m_scrubHandler;
 
   bool m_zooming{false};
   bool m_updatingMinimap{false};

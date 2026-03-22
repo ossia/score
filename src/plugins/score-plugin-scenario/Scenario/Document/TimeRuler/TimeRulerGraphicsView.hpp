@@ -5,7 +5,7 @@ namespace Scenario
 class TimeRulerGraphicsView : public QGraphicsView
 {
 public:
-  TimeRulerGraphicsView(QGraphicsScene*);
+  explicit TimeRulerGraphicsView(QGraphicsScene*);
 
   void scrollContentsBy(int dx, int dy) override;
   void wheelEvent(QWheelEvent* event) override;
@@ -13,7 +13,7 @@ public:
 class MinimapGraphicsView final : public TimeRulerGraphicsView
 {
 public:
-  MinimapGraphicsView(QGraphicsScene* s);
+  explicit MinimapGraphicsView(QGraphicsScene* s);
 
   void scrollContentsBy(int dx, int dy) override;
   void wheelEvent(QWheelEvent* event) override;
