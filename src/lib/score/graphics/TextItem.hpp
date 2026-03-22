@@ -26,6 +26,7 @@ class SCORE_LIB_BASE_EXPORT SimpleTextItem
     : public QObject
     , public QGraphicsItem
 {
+  W_OBJECT(SimpleTextItem)
 public:
   SimpleTextItem(const score::BrushSet& col, QGraphicsItem*);
 
@@ -52,5 +53,17 @@ private:
   QFont m_font;
   QString m_string;
   QImage m_line;
+};
+
+class SCORE_LIB_BASE_EXPORT ClickableTextItem final : public score::SimpleTextItem
+{
+  W_OBJECT(ClickableTextItem)
+public:
+  ClickableTextItem(const score::BrushSet& brush, QGraphicsItem* parent);
+
+  void clicked() E_SIGNAL(SCORE_LIB_BASE_EXPORT, clicked)
+protected:
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
 };
 }

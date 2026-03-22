@@ -11,6 +11,9 @@
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::TextItem)
+W_OBJECT_IMPL(score::SimpleTextItem)
+W_OBJECT_IMPL(score::ClickableTextItem)
+
 namespace score
 {
 
@@ -112,4 +115,20 @@ void SimpleTextItem::updateImpl()
   update();
 }
 
+ClickableTextItem::ClickableTextItem(const score::BrushSet& brush, QGraphicsItem* parent)
+    : score::SimpleTextItem{brush, parent}
+{
+  this->setAcceptedMouseButtons(Qt::LeftButton);
+}
+
+void ClickableTextItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+  clicked();
+  event->accept();
+}
+
+void ClickableTextItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+  event->accept();
+}
 }
