@@ -22,15 +22,18 @@ struct GraphicsApis
 
 struct HardwareVideoDecoder
 {
+  const QString Auto{"Auto"};
   const QString None{"None"};
   const QString CUDA{"CUDA"};
   const QString QSV{"Intel QuickSync"};
   const QString VDPAU{"VDPAU"};
   const QString VAAPI{"VA-API"};
   const QString D3D{"Direct3D 11"};
+  const QString D3D12{"Direct3D 12"};
   const QString DXVA{"DXVA2"};
   const QString VideoToolbox{"Video Toolbox"};
   const QString V4L2{"V4L2-M2M"};
+  const QString VulkanVideo{"Vulkan Video"};
   operator QStringList() const noexcept;
 };
 
