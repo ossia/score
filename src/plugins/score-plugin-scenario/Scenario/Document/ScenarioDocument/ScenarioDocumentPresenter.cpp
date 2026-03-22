@@ -137,7 +137,13 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
       &ScenarioDocumentPresenter::setLargeView);
 
   con(view().timeRuler(), &TimeRuler::drag, this,
-      &ScenarioDocumentPresenter::on_timeRulerScrollEvent);
+      &ScenarioDocumentPresenter::on_timeRulerDragEvent);
+  con(view().timeRuler(), &TimeRuler::scrubPressed, this,
+      &ScenarioDocumentPresenter::on_timeRulerScrubPressEvent);
+  con(view().timeRuler(), &TimeRuler::scrubMoved, this,
+      &ScenarioDocumentPresenter::on_timeRulerScrubMoveEvent);
+  con(view().timeRuler(), &TimeRuler::scrubReleased, this,
+      &ScenarioDocumentPresenter::on_timeRulerScrubReleaseEvent);
   con(view(), &ScenarioDocumentView::timeRulerChanged, this,
       &ScenarioDocumentPresenter::on_timeRulerChanged);
 
@@ -468,8 +474,8 @@ void ScenarioDocumentPresenter::on_verticalZoom(QPointF zoom, QPointF scenePoint
     c.setSlotHeight(slot, c.getSlotHeight(slot) + z);
   }
 }
-void ScenarioDocumentPresenter::on_timeRulerScrollEvent(
-    QPointF previous, QPointF current)
+
+void ScenarioDocumentPresenter::on_timeRulerDragEvent(QPointF previous, QPointF current)
 {
   view().view().scrollHorizontal(previous.x() - current.x());
 }
@@ -801,7 +807,13 @@ void ScenarioDocumentPresenter::on_timeRulerChanged()
 {
   auto& tr = view().timeRuler();
 
-  con(tr, &TimeRuler::drag, this, &ScenarioDocumentPresenter::on_timeRulerScrollEvent);
+  con(tr, &TimeRuler::drag, this, &ScenarioDocumentPresenter::on_timeRulerDragEvent);
+  con(tr, &TimeRuler::scrubPressed, this,
+      &ScenarioDocumentPresenter::on_timeRulerScrubPressEvent);
+  con(tr, &TimeRuler::scrubMoved, this,
+      &ScenarioDocumentPresenter::on_timeRulerScrubMoveEvent);
+  con(tr, &TimeRuler::scrubReleased, this,
+      &ScenarioDocumentPresenter::on_timeRulerScrubReleaseEvent);
 
   if(m_zoomRatio > 0)
     tr.setZoomRatio(m_zoomRatio);
@@ -935,17 +947,45 @@ void ScenarioDocumentPresenter::on_timelineModeSwitch(bool b)
     switchMode(false);
 }
 
-void ScenarioDocumentPresenter::on_requestTransport(QPointF pt)
+TimeVal ScenarioDocumentPresenter::timeRulerClickTime(QPointF pt) const noexcept
 {
   // Signal comes from double click on TimeRuler
   const QRectF visible_scene_rect = view().visibleSceneRect();
 
   // 10: timeruler pixel delta
-  const auto tv = TimeVal::fromPixels(visible_scene_rect.x() + pt.x() - 10, m_zoomRatio);
+  return TimeVal::fromPixels(visible_scene_rect.x() + pt.x() - 10, m_zoomRatio);
+}
 
+void ScenarioDocumentPresenter::on_requestTransport(QPointF pt)
+{
   auto& exec_ctx
       = m_context.app.guiApplicationPlugin<ScenarioApplicationPlugin>().execution();
-  exec_ctx.playAtDate(tv);
+  exec_ctx.playAtDate(timeRulerClickTime(pt));
+}
+
+void ScenarioDocumentPresenter::on_timeRulerScrubPressEvent(QPointF, QPointF pt)
+{
+  auto& exec
+      = context().app.guiApplicationPlugin<ScenarioApplicationPlugin>().execution();
+  m_scrubHandler.on_pressed(*this, exec, timeRulerClickTime(pt));
+
+  auto& skin = score::Skin::instance();
+  m_context.app.mainWindow->setCursor(skin.CursorPlayFromHere);
+}
+void ScenarioDocumentPresenter::on_timeRulerScrubMoveEvent(QPointF, QPointF pt)
+{
+  auto& exec
+      = context().app.guiApplicationPlugin<ScenarioApplicationPlugin>().execution();
+  m_scrubHandler.on_moved(*this, exec, timeRulerClickTime(pt));
+}
+void ScenarioDocumentPresenter::on_timeRulerScrubReleaseEvent(QPointF, QPointF pt)
+{
+  auto& exec
+      = context().app.guiApplicationPlugin<ScenarioApplicationPlugin>().execution();
+  m_scrubHandler.on_released(*this, exec, timeRulerClickTime(pt));
+  m_scrubHandler.m_scrubbingTimer.stop();
+
+  m_context.app.mainWindow->unsetCursor();
 }
 
 void ScenarioDocumentPresenter::updateRect(const QRectF& rect)

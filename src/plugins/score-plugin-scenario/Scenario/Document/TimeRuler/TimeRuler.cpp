@@ -37,7 +37,7 @@ MusicalRuler::MusicalRuler(QGraphicsView* v)
     : m_viewport{v}
 {
   m_width = 800;
-  setY(-28.5);
+  setY(-30.5);
 
   auto font = score::Skin::instance().MonoFont;
   font.setWeight(QFont::Normal);
@@ -237,23 +237,33 @@ void TimeRulerBase::setGrid(MusicalGrid& grid) { }
 
 void TimeRulerBase::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 {
+  m_inScrub = false;
   ev->accept();
 }
 
 void TimeRulerBase::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* ev)
 {
-  doubleClicked(ev->scenePos());
+  scrubPressed(ev->lastScenePos(), ev->scenePos());
+  m_inScrub = true;
   ev->accept();
 }
 
 void TimeRulerBase::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
 {
-  drag(ev->lastScenePos(), ev->scenePos());
+  if(m_inScrub)
+    scrubMoved(ev->lastScenePos(), ev->scenePos());
+  else
+    drag(ev->lastScenePos(), ev->scenePos());
   ev->accept();
 }
 
 void TimeRulerBase::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
 {
+  if(m_inScrub)
+  {
+    scrubReleased(ev->lastScenePos(), ev->scenePos());
+    m_inScrub = false;
+  }
   ev->accept();
 }
 
@@ -264,7 +274,7 @@ TimeRuler::TimeRuler(QGraphicsView* v)
     , m_viewport{v}
 {
   m_width = 800;
-  setY(-28.5);
+  setY(-30.5);
 
   auto font = score::Skin::instance().MonoFont;
   font.setWeight(QFont::Normal);
