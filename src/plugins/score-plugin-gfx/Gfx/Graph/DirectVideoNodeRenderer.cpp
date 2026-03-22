@@ -1,30 +1,20 @@
 #include <Gfx/Graph/DirectVideoNodeRenderer.hpp>
-#include <Gfx/Graph/decoders/DXV.hpp>
+#include <Gfx/Graph/HWAccelSetup.hpp>
+#include <Gfx/Graph/VulkanVideoDevice.hpp>
+#include <Gfx/Settings/Model.hpp>
+
+#include <score/application/ApplicationContext.hpp>
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
-#include <Gfx/Graph/decoders/HAP.hpp>
-#include <Gfx/Graph/decoders/NV12.hpp>
-#include <Gfx/Graph/decoders/NV16.hpp>
-#include <Gfx/Graph/decoders/NV24.hpp>
-#include <Gfx/Graph/decoders/P010.hpp>
-#include <Gfx/Graph/decoders/P016.hpp>
-#include <Gfx/Graph/decoders/P210.hpp>
-#include <Gfx/Graph/decoders/P410.hpp>
-#include <Gfx/Graph/decoders/RGBA.hpp>
-#include <Gfx/Graph/decoders/VUYA.hpp>
-#include <Gfx/Graph/decoders/Y210.hpp>
-#include <Gfx/Graph/decoders/YUV420.hpp>
-#include <Gfx/Graph/decoders/YUV420P10.hpp>
-#include <Gfx/Graph/decoders/YUV420P12.hpp>
-#include <Gfx/Graph/decoders/YUV422.hpp>
-#include <Gfx/Graph/decoders/YUV422P10.hpp>
-#include <Gfx/Graph/decoders/YUV422P12.hpp>
-#include <Gfx/Graph/decoders/YUV440.hpp>
-#include <Gfx/Graph/decoders/YUV444.hpp>
-#include <Gfx/Graph/decoders/YUV444P10.hpp>
-#include <Gfx/Graph/decoders/YUV444P12.hpp>
-#include <Gfx/Graph/decoders/YUVA420.hpp>
-#include <Gfx/Graph/decoders/YUVA444.hpp>
-#include <Gfx/Graph/decoders/YUYV422.hpp>
+#include <Gfx/Graph/decoders/GPUVideoDecoderFactory.hpp>
+#include <Gfx/Graph/decoders/HWTransfer.hpp>
+#if defined(__linux__)
+#include <Gfx/Graph/decoders/HWVAAPI.hpp>
+#endif
+#include <Gfx/Graph/decoders/HWCUDA.hpp>
+#include <Gfx/Graph/decoders/HWD3D11.hpp>
+#include <Gfx/Graph/decoders/HWD3D12.hpp>
+#include <Gfx/Graph/decoders/HWVideoToolbox.hpp>
+#include <Gfx/Graph/decoders/HWVulkanShared.hpp>
 
 #include <Video/GpuFormats.hpp>
 
@@ -37,7 +27,25 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libavutil/pixdesc.h>
+#if __has_include(<libavutil/hwcontext.h>)
+#include <libavutil/hwcontext.h>
+#endif
+#if QT_HAS_VULKAN && __has_include(<libavutil/hwcontext_vulkan.h>)
+#include <libavutil/hwcontext_vulkan.h>
+#define SCORE_HAS_VULKAN_HWCONTEXT 1
+#endif
+#if defined(_WIN32) && __has_include(<libavutil/hwcontext_d3d11va.h>)
+#include <libavutil/hwcontext_d3d11va.h>
+#define SCORE_HAS_D3D11_HWCONTEXT 1
+#endif
 }
+
+#if defined(__linux__)
+#include <dlfcn.h>
+#endif
+#if defined(_WIN32) && defined(SCORE_HAS_D3D11_HWCONTEXT)
+#include <QtGui/private/qrhid3d11_p.h>
+#endif
 
 namespace score::gfx
 {
@@ -66,8 +74,428 @@ TextureRenderTarget DirectVideoNodeRenderer::renderTargetForInput(const Port& in
   return {};
 }
 
-bool DirectVideoNodeRenderer::openFile()
+// ============================================================
+//  Hardware acceleration selection
+// ============================================================
+
+#if LIBAVUTIL_VERSION_MAJOR >= 57
+
+// get_format callback for AVCodecContext.
+// When HW decoding is active, ffmpeg calls this to negotiate the output pixel format.
+// We select the HW format that matches our desired acceleration.
+// Static member function — compatible with C function pointer assignment in practice.
+enum AVPixelFormat DirectVideoNodeRenderer::negotiateHWFormat(
+    AVCodecContext* ctx, const enum AVPixelFormat* pix_fmts)
 {
+  auto* self = static_cast<DirectVideoNodeRenderer*>(ctx->opaque);
+  if(!self)
+    return ctx->pix_fmt;
+
+  for(const auto* p = pix_fmts; *p != AV_PIX_FMT_NONE; ++p)
+  {
+    if(*p == self->m_hwPixelFormat)
+      return *p;
+  }
+
+  // HW format not offered — fall back to default
+  qDebug() << "DirectVideoNodeRenderer: HW format not offered by decoder, falling back";
+  return ctx->pix_fmt;
+}
+
+AVPixelFormat DirectVideoNodeRenderer::selectHardwareAcceleration(
+    score::gfx::GraphicsApi api, int codec_id) const
+{
+  return score::gfx::selectHardwareAcceleration(
+      api, static_cast<AVCodecID>(codec_id), m_rhi);
+}
+
+bool DirectVideoNodeRenderer::setupHardwareDecoder(
+    const void* detected_codec_ptr, AVPixelFormat hwPixFmt)
+{
+  const auto* detected_codec = static_cast<const AVCodec*>(detected_codec_ptr);
+  auto hwInfo = Video::ffmpegHardwareDecodingFormats(hwPixFmt);
+  if(hwInfo.device == AV_HWDEVICE_TYPE_NONE)
+    return false;
+
+  // Find the appropriate hardware codec
+  auto mapped = score::gfx::hwCodecName(detected_codec->name, hwInfo.device);
+  if(mapped.empty())
+    return false;
+
+  const AVCodec* hw_codec = nullptr;
+  if(mapped == detected_codec->name)
+  {
+    // VideoToolbox, DXVA2, D3D11VA: use generic codec with hw_device_ctx
+    hw_codec = detected_codec;
+  }
+  else
+  {
+    hw_codec = avcodec_find_decoder_by_name(mapped.c_str());
+    if(!hw_codec)
+      return false;
+  }
+
+  // DRM_PRIME (v4l2m2m) doesn't use a hw device context
+  if(hwPixFmt == AV_PIX_FMT_DRM_PRIME)
+  {
+    // Re-create codec context with the hw codec
+    avcodec_free_context(&m_codecContext);
+    m_codecContext = avcodec_alloc_context3(hw_codec);
+    avcodec_parameters_to_context(m_codecContext, m_avstream->codecpar);
+    m_codecContext->pkt_timebase = m_avstream->time_base;
+    m_codecContext->thread_count = 1;
+
+    int err = avcodec_open2(m_codecContext, hw_codec, nullptr);
+    if(err < 0)
+    {
+      qDebug() << "DirectVideoNodeRenderer: v4l2m2m open failed:" << err;
+      avcodec_free_context(&m_codecContext);
+      return false;
+    }
+
+    m_hwPixelFormat = hwPixFmt;
+    m_codec = hw_codec;
+    return true;
+  }
+
+  // Ensure CUDA driver is initialized before FFmpeg tries to use it.
+  // FFmpeg's hwcontext_cuda calls cuInit() internally, but in some setups
+  // it needs to be called earlier in the process lifetime.
+  if(hwInfo.device == AV_HWDEVICE_TYPE_CUDA)
+  {
+    static const bool cuInitOk = []() {
+#if defined(__linux__)
+      void* lib = dlopen("libcuda.so.1", RTLD_NOW);
+      if(!lib)
+        return false;
+      using FN_cuInit = int (*)(unsigned int);
+      auto fn = (FN_cuInit)dlsym(lib, "cuInit");
+      if(!fn)
+        qDebug("no cuInit!");
+      auto res = fn(0);
+      qDebug() << res;
+
+      return fn && fn(0) == 0;
+      return fn && fn(0) == 0;
+      // Intentionally keep library loaded
+#elif defined(_WIN32)
+      HMODULE lib = LoadLibraryA("nvcuda.dll");
+      if(!lib)
+        return false;
+      using FN_cuInit = int(__stdcall*)(unsigned int);
+      auto fn = (FN_cuInit)GetProcAddress(lib, "cuInit");
+      if(!fn)
+        qDebug("no cuInit!");
+      auto res = fn(0);
+      qDebug() << res;
+
+      return fn && fn(0) == 0;
+#else
+      return false;
+#endif
+    }();
+    if(!cuInitOk)
+    {
+      qDebug() << "DirectVideoNodeRenderer: cuInit(0) failed";
+      return false;
+    }
+    else
+    {
+      qDebug("CUINIT OK");
+    }
+  }
+
+  // Create hardware device context
+  AVBufferRef* hw_device_ctx = nullptr;
+
+  // For Vulkan: try to create a shared context using QRhi's device.
+  // This enables zero-copy AVVkFrame wrapping (no DMA-BUF export needed).
+#if QT_HAS_VULKAN && defined(SCORE_HAS_VULKAN_HWCONTEXT) \
+    && QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+  if(hwInfo.device == AV_HWDEVICE_TYPE_VULKAN
+     && m_rhi && m_rhi->backend() == QRhi::Vulkan)
+  {
+    auto* nh
+        = static_cast<const QRhiVulkanNativeHandles*>(m_rhi->nativeHandles());
+    if(nh && nh->dev && nh->physDev && nh->inst)
+    {
+      hw_device_ctx = av_hwdevice_ctx_alloc(AV_HWDEVICE_TYPE_VULKAN);
+      if(hw_device_ctx)
+      {
+        auto* devCtx = reinterpret_cast<AVHWDeviceContext*>(hw_device_ctx->data);
+        auto* vkCtx
+            = static_cast<AVVulkanDeviceContext*>(devCtx->hwctx);
+
+        // Fill device handles from QRhi
+        vkCtx->inst = nh->inst->vkInstance();
+        vkCtx->phys_dev = nh->physDev;
+        vkCtx->act_dev = nh->dev;
+
+        // Use the system Vulkan loader's vkGetInstanceProcAddr.
+        // Qt's getInstanceProcAddr dispatch doesn't include all extension
+        // functions (push_descriptor, drm_format_modifier, etc.).
+        // The system loader resolves them correctly for any VkDevice.
+#if defined(__linux__)
+        {
+          static void* libvk = dlopen("libvulkan.so.1", RTLD_NOW | RTLD_NOLOAD);
+          if(!libvk)
+            libvk = dlopen("libvulkan.so.1", RTLD_NOW);
+          if(libvk)
+            vkCtx->get_proc_addr = reinterpret_cast<PFN_vkGetInstanceProcAddr>(
+                dlsym(libvk, "vkGetInstanceProcAddr"));
+        }
+#elif defined(_WIN32)
+        {
+          static HMODULE libvk = GetModuleHandleA("vulkan-1.dll");
+          if(!libvk)
+            libvk = LoadLibraryA("vulkan-1.dll");
+          if(libvk)
+            vkCtx->get_proc_addr = reinterpret_cast<PFN_vkGetInstanceProcAddr>(
+                GetProcAddress(libvk, "vkGetInstanceProcAddr"));
+        }
+#endif
+        if(!vkCtx->get_proc_addr)
+        {
+          qDebug() << "DirectVideoNodeRenderer: could not load vkGetInstanceProcAddr";
+          av_buffer_unref(&hw_device_ctx);
+          hw_device_ctx = nullptr;
+        }
+
+        if(hw_device_ctx)
+        {
+        // Report only the extensions that were actually enabled on
+        // the shared device (the curated list from createSharedVulkanDevice).
+        // Reporting unavailable extensions causes FFmpeg to resolve null
+        // function pointers → crash.
+        auto* funcs = nh->inst->functions();
+        uint32_t availExtCount = 0;
+        funcs->vkEnumerateDeviceExtensionProperties(
+            nh->physDev, nullptr, &availExtCount, nullptr);
+        std::vector<VkExtensionProperties> availExts(availExtCount);
+        funcs->vkEnumerateDeviceExtensionProperties(
+            nh->physDev, nullptr, &availExtCount, availExts.data());
+
+        auto devHasExt = [&](const char* name) {
+          for(auto& e : availExts)
+            if(std::strcmp(e.extensionName, name) == 0)
+              return true;
+          return false;
+        };
+
+        // Same curated list as createSharedVulkanDevice, but exclude
+        // DMA-BUF extensions — the shared device doesn't need them and
+        // FFmpeg will try (and fail) DMA-BUF exports if it thinks they're enabled.
+        // Store pointers to string literals directly — no std::string copy
+        // needed (sharedVulkanDeviceExtensions returns compile-time constants).
+        // Using std::vector<std::string> + c_str() would cause dangling
+        // pointers when the vector reallocates.
+        m_vkEnabledExtensions.clear();
+        for(auto* ext : score::gfx::sharedVulkanDeviceExtensions())
+        {
+          if(devHasExt(ext))
+            m_vkEnabledExtensions.push_back(ext);
+        }
+        vkCtx->enabled_dev_extensions = m_vkEnabledExtensions.data();
+        vkCtx->nb_enabled_dev_extensions
+            = static_cast<int>(m_vkEnabledExtensions.size());
+
+        // Query queue families for FFmpeg
+        uint32_t qfCount = 0;
+        funcs->vkGetPhysicalDeviceQueueFamilyProperties(
+            nh->physDev, &qfCount, nullptr);
+        auto qfProps = std::make_unique<VkQueueFamilyProperties[]>(qfCount);
+        funcs->vkGetPhysicalDeviceQueueFamilyProperties(
+            nh->physDev, &qfCount, qfProps.get());
+
+        int nb_qf = 0;
+        for(uint32_t i = 0; i < qfCount && nb_qf < 64; i++)
+        {
+          vkCtx->qf[nb_qf].idx = static_cast<int>(i);
+          vkCtx->qf[nb_qf].num = 1;
+          vkCtx->qf[nb_qf].flags
+              = static_cast<VkQueueFlagBits>(qfProps[i].queueFlags);
+          nb_qf++;
+        }
+        vkCtx->nb_qf = nb_qf;
+
+        int ret = av_hwdevice_ctx_init(hw_device_ctx);
+
+        // DO NOT clear enabled_dev_extensions — FFmpeg's vulkan_decode.c
+        // reads them directly (via ff_vk_extensions_to_mask) during the
+        // first frame decode, not during av_hwdevice_ctx_init.
+        // The pointers are string literals, valid for program lifetime.
+
+        if(ret < 0)
+        {
+          qDebug() << "DirectVideoNodeRenderer: shared Vulkan context init failed:"
+                   << ret << "- falling back to separate device";
+          av_buffer_unref(&hw_device_ctx);
+          hw_device_ctx = nullptr;
+        }
+        else
+        {
+          qDebug() << "DirectVideoNodeRenderer: using shared Vulkan device for HW decode";
+          m_sharedVulkanDevice = true;
+        }
+        } // if(hw_device_ctx) after get_proc_addr check
+      }
+    }
+  }
+#endif
+
+  // For D3D11VA: create a shared context using QRhi's device.
+  // Without this, FFmpeg creates its own D3D11 device and
+  // CopySubresourceRegion silently fails across devices (green screen).
+#if defined(_WIN32) && defined(SCORE_HAS_D3D11_HWCONTEXT)
+  if(!hw_device_ctx && hwInfo.device == AV_HWDEVICE_TYPE_D3D11VA && m_rhi
+     && m_rhi->backend() == QRhi::D3D11)
+  {
+    auto* nh
+        = static_cast<const QRhiD3D11NativeHandles*>(m_rhi->nativeHandles());
+    if(nh && nh->dev)
+    {
+      qDebug() << "DirectVideoNodeRenderer: creating shared D3D11 context, QRhi device:" << nh->dev;
+      hw_device_ctx = av_hwdevice_ctx_alloc(AV_HWDEVICE_TYPE_D3D11VA);
+      if(hw_device_ctx)
+      {
+        auto* devCtx = reinterpret_cast<AVHWDeviceContext*>(hw_device_ctx->data);
+        auto* d3d11Ctx
+            = static_cast<AVD3D11VADeviceContext*>(devCtx->hwctx);
+
+        d3d11Ctx->device = static_cast<ID3D11Device*>(nh->dev);
+        d3d11Ctx->device->AddRef();
+
+        int ret = av_hwdevice_ctx_init(hw_device_ctx);
+        if(ret < 0)
+        {
+          qDebug() << "DirectVideoNodeRenderer: shared D3D11 context init failed:"
+                   << ret << "- falling back to separate device";
+          av_buffer_unref(&hw_device_ctx);
+          hw_device_ctx = nullptr;
+        }
+        else
+        {
+          // Verify FFmpeg is using the same device
+          auto* finalCtx = reinterpret_cast<AVHWDeviceContext*>(hw_device_ctx->data);
+          auto* finalD3D11 = static_cast<AVD3D11VADeviceContext*>(finalCtx->hwctx);
+          qDebug() << "DirectVideoNodeRenderer: shared D3D11 context OK, FFmpeg device:"
+                   << finalD3D11->device << "QRhi device:" << nh->dev
+                   << "same:" << (finalD3D11->device == static_cast<ID3D11Device*>(nh->dev));
+        }
+      }
+    }
+    else
+    {
+      qDebug() << "DirectVideoNodeRenderer: D3D11VA requested but QRhi has no D3D11 native handles";
+    }
+  }
+  else if(!hw_device_ctx && hwInfo.device == AV_HWDEVICE_TYPE_D3D11VA)
+  {
+    qDebug() << "DirectVideoNodeRenderer: D3D11VA but no QRhi or wrong backend"
+             << "m_rhi:" << m_rhi
+             << "backend:" << (m_rhi ? m_rhi->backend() : -1);
+  }
+#endif
+
+  // Fallback: let FFmpeg create its own device
+  if(!hw_device_ctx)
+  {
+    int ret = av_hwdevice_ctx_create(
+        &hw_device_ctx, hwInfo.device, nullptr, nullptr, 0);
+    if(ret != 0)
+    {
+      qDebug() << "DirectVideoNodeRenderer: av_hwdevice_ctx_create failed:" << ret;
+      return false;
+    }
+  }
+
+  // Re-create codec context with HW support
+  avcodec_free_context(&m_codecContext);
+
+  // For CUDA/VDPAU: use the hw-specific codec (e.g., h264_cuvid)
+  // For DXVA2/D3D11/VideoToolbox: use the generic codec with hw_device_ctx
+  const AVCodec* codec_to_open = nullptr;
+  if(hwInfo.device == AV_HWDEVICE_TYPE_CUDA
+     || hwInfo.device == AV_HWDEVICE_TYPE_VDPAU
+     || hwInfo.device == AV_HWDEVICE_TYPE_QSV)
+  {
+    codec_to_open = hw_codec;
+  }
+  else
+  {
+    codec_to_open = detected_codec;
+  }
+
+  m_codecContext = avcodec_alloc_context3(codec_to_open);
+  avcodec_parameters_to_context(m_codecContext, m_avstream->codecpar);
+  m_codecContext->pkt_timebase = m_avstream->time_base;
+  m_codecContext->thread_count = 1;
+  m_codecContext->hw_device_ctx = av_buffer_ref(hw_device_ctx);
+  m_codecContext->opaque = this;
+  m_codecContext->get_format = &DirectVideoNodeRenderer::negotiateHWFormat;
+
+  m_hwPixelFormat = hwPixFmt;
+
+  int err = avcodec_open2(m_codecContext, codec_to_open, nullptr);
+  if(err < 0)
+  {
+    qDebug() << "DirectVideoNodeRenderer: HW codec open failed:" << err
+             << "for" << codec_to_open->name;
+    avcodec_free_context(&m_codecContext);
+    av_buffer_unref(&hw_device_ctx);
+    m_hwPixelFormat = AV_PIX_FMT_NONE;
+    return false;
+  }
+
+  m_hwDeviceCtx = hw_device_ctx;
+  m_codec = codec_to_open;
+  return true;
+}
+
+#endif // LIBAVUTIL_VERSION_MAJOR >= 57
+
+// Transfer a hardware-decoded frame to a software frame.
+// Used when zero-copy is not available for the current RHI backend.
+void DirectVideoNodeRenderer::transferHWFrame()
+{
+#if LIBAVUTIL_VERSION_MAJOR >= 57
+  if(!m_decodedFrame)
+    return;
+
+  if(!Video::formatIsHardwareDecoded(static_cast<AVPixelFormat>(m_decodedFrame->format)))
+    return;
+
+  if(!m_swTransferFrame)
+    m_swTransferFrame = av_frame_alloc();
+
+  av_frame_unref(m_swTransferFrame);
+  m_swTransferFrame->format = AV_PIX_FMT_NONE;
+
+  int ret = av_hwframe_transfer_data(m_swTransferFrame, m_decodedFrame, 0);
+  if(ret < 0)
+  {
+    qDebug() << "DirectVideoNodeRenderer: av_hwframe_transfer_data failed:" << ret;
+    return;
+  }
+
+  m_swTransferFrame->pts = m_decodedFrame->pts;
+  m_swTransferFrame->pkt_dts = m_decodedFrame->pkt_dts;
+
+  // Swap: m_decodedFrame now holds the software frame
+  av_frame_unref(m_decodedFrame);
+  av_frame_move_ref(m_decodedFrame, m_swTransferFrame);
+#endif
+}
+
+// ============================================================
+//  File open / close
+// ============================================================
+
+bool DirectVideoNodeRenderer::openFile(score::gfx::GraphicsApi api, QRhi* rhi)
+{
+  m_rhiApi = api;
+  m_rhi = rhi;
+
   if(m_filePath.empty())
     return false;
 
@@ -187,12 +615,108 @@ bool DirectVideoNodeRenderer::openFile()
   m_codecContext->pkt_timebase = m_avstream->time_base;
   m_codecContext->thread_count = 1;
 
-  int err = avcodec_open2(m_codecContext, codec, nullptr);
-  if(err < 0)
+  // Try hardware-accelerated decoding
+  bool hw_ok = false;
+#if LIBAVUTIL_VERSION_MAJOR >= 57
   {
-    avcodec_free_context(&m_codecContext);
-    closeFile();
-    return false;
+    static constexpr const char* apiNames[]
+        = {"Null", "OpenGL", "Vulkan", "D3D11", "Metal", "D3D12"};
+    const char* apiName = (api >= 0 && api <= 5) ? apiNames[api] : "Unknown";
+    uint32_t vendorId = rhi ? rhi->driverInfo().vendorId : 0;
+
+    // Read the user's HW decode setting
+    static const Gfx::Settings::HardwareVideoDecoder decoders;
+    auto& set = score::AppContext().settings<Gfx::Settings::Model>();
+    const auto hwSetting = set.getHardwareDecode();
+
+    if(hwSetting.isEmpty() || hwSetting == decoders.None)
+    {
+      // Explicitly disabled
+      // qDebug() << "DirectVideoNodeRenderer: RHI backend:" << apiName
+      //          << "HW decode: disabled by user";
+    }
+    else if(hwSetting == decoders.Auto)
+    {
+      // Auto: try each viable HW decoder in priority order until one succeeds
+      auto hwFmts = ::Video::selectHardwareAccelerations(
+          api, codecPar->codec_id, vendorId);
+      for(auto hwFmt : hwFmts)
+      {
+        hw_ok = setupHardwareDecoder(codec, hwFmt);
+        if(hw_ok)
+        {
+          qDebug() << "DirectVideoNodeRenderer: using HW decoder"
+                   << ((const AVCodec*)m_codec)->name
+                   << "format:" << av_get_pix_fmt_name(m_hwPixelFormat);
+          m_frameFormat.pixel_format = m_hwPixelFormat;
+          break;
+        }
+      }
+    }
+    else
+    {
+      // User explicitly selected a decoder — map setting to pixel format
+      AVPixelFormat hwFmt = AV_PIX_FMT_NONE;
+      if(hwSetting == decoders.CUDA)
+        hwFmt = AV_PIX_FMT_CUDA;
+      else if(hwSetting == decoders.QSV)
+        hwFmt = AV_PIX_FMT_QSV;
+      else if(hwSetting == decoders.VDPAU)
+        hwFmt = AV_PIX_FMT_VDPAU;
+      else if(hwSetting == decoders.VAAPI)
+        hwFmt = AV_PIX_FMT_VAAPI;
+      else if(hwSetting == decoders.D3D)
+        hwFmt = AV_PIX_FMT_D3D11;
+#if defined(_WIN32) && LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(58, 29, 100)
+      else if(hwSetting == decoders.D3D12)
+        hwFmt = AV_PIX_FMT_D3D12;
+#endif
+      else if(hwSetting == decoders.DXVA)
+        hwFmt = AV_PIX_FMT_DXVA2_VLD;
+      else if(hwSetting == decoders.VideoToolbox)
+        hwFmt = AV_PIX_FMT_VIDEOTOOLBOX;
+      else if(hwSetting == decoders.V4L2)
+        hwFmt = AV_PIX_FMT_DRM_PRIME;
+      else if(hwSetting == decoders.VulkanVideo)
+        hwFmt = AV_PIX_FMT_VULKAN;
+
+      // Verify the chosen format is available and supports the codec
+      if(hwFmt != AV_PIX_FMT_NONE
+         && (!::Video::hardwareDecoderIsAvailable(hwFmt)
+             || !::Video::codecSupportsHWPixelFormat(codecPar->codec_id, hwFmt, vendorId)))
+      {
+        hwFmt = AV_PIX_FMT_NONE;
+      }
+
+      if(hwFmt != AV_PIX_FMT_NONE)
+      {
+        hw_ok = setupHardwareDecoder(codec, hwFmt);
+        if(hw_ok)
+          m_frameFormat.pixel_format = m_hwPixelFormat;
+      }
+    }
+  }
+#endif
+
+  // Fallback: software decode
+  if(!hw_ok)
+  {
+    // setupHardwareDecoder may have freed m_codecContext — recreate it
+    if(!m_codecContext)
+    {
+      m_codecContext = avcodec_alloc_context3(codec);
+      avcodec_parameters_to_context(m_codecContext, codecPar);
+      m_codecContext->pkt_timebase = m_avstream->time_base;
+      m_codecContext->thread_count = 1;
+    }
+
+    int err = avcodec_open2(m_codecContext, codec, nullptr);
+    if(err < 0)
+    {
+      avcodec_free_context(&m_codecContext);
+      closeFile();
+      return false;
+    }
   }
 
   // Update timing from codec context
@@ -208,6 +732,12 @@ bool DirectVideoNodeRenderer::openFile()
 
 void DirectVideoNodeRenderer::closeFile()
 {
+  if(m_swTransferFrame)
+  {
+    av_frame_free(&m_swTransferFrame);
+    m_swTransferFrame = nullptr;
+  }
+
   if(m_decodedFrame)
   {
     av_frame_free(&m_decodedFrame);
@@ -222,6 +752,12 @@ void DirectVideoNodeRenderer::closeFile()
     m_codec = nullptr;
   }
 
+  if(m_hwDeviceCtx)
+  {
+    av_buffer_unref(&m_hwDeviceCtx);
+    m_hwDeviceCtx = nullptr;
+  }
+
   if(m_formatContext)
   {
     avio_flush(m_formatContext->pb);
@@ -231,7 +767,12 @@ void DirectVideoNodeRenderer::closeFile()
   }
 
   m_avstream = nullptr;
+  m_hwPixelFormat = AV_PIX_FMT_NONE;
 }
+
+// ============================================================
+//  Packet reading / decoding
+// ============================================================
 
 // Check if we can just read the next packet sequentially instead of seeking.
 // For forward playback at normal speed, this avoids the expensive
@@ -300,15 +841,15 @@ bool DirectVideoNodeRenderer::readNextPacketAVCodec()
   bool found = false;
   int attempts = 0;
 
-  while(av_read_frame(m_formatContext, packet) >= 0 && attempts < 30)
+  while(av_read_frame(m_formatContext, packet) >= 0 && attempts < 64)
   {
-    attempts++;
     if(packet->stream_index != m_avstream->index)
     {
       av_packet_unref(packet);
       continue;
     }
 
+    attempts++;
     int ret = avcodec_send_packet(m_codecContext, packet);
     av_packet_unref(packet);
     if(ret < 0 && ret != AVERROR(EAGAIN))
@@ -319,12 +860,10 @@ bool DirectVideoNodeRenderer::readNextPacketAVCodec()
     {
       m_lastDecodedDts = m_decodedFrame->pkt_dts;
 
-      if(m_decodedFrame->width > 0 && m_decodedFrame->height > 0)
-      {
-        m_frameFormat.pixel_format = static_cast<AVPixelFormat>(m_decodedFrame->format);
-        m_frameFormat.width = m_decodedFrame->width;
-        m_frameFormat.height = m_decodedFrame->height;
-      }
+      // Note: do NOT update m_frameFormat here. The format change detection
+      // in update() compares the decoded frame format against m_frameFormat
+      // to know when to rebuild the GPU decoder. Updating it here would hide
+      // HW→SW fallback transitions (e.g. VideoToolbox rejecting a codec profile).
 
       found = true;
       break;
@@ -362,7 +901,7 @@ bool DirectVideoNodeRenderer::seekAndDecode(int64_t flicks)
     return readNextPacketRaw();
   }
 
-  // AVCodec path (ProRes, MJPEG, DNxHD, etc.)
+  // AVCodec path (ProRes, MJPEG, DNxHD, H.264, HEVC, etc.)
   if(!m_codecContext || !m_decodedFrame)
     return false;
 
@@ -377,298 +916,184 @@ bool DirectVideoNodeRenderer::seekAndDecode(int64_t flicks)
   return readNextPacketAVCodec();
 }
 
-// createGpuDecoder is identical to VideoNodeRenderer::createGpuDecoder
-// We delegate to the same factory logic
-void DirectVideoNodeRenderer::createGpuDecoder()
+// ============================================================
+//  GPU decoder creation
+// ============================================================
+
+PixelFormatInfo DirectVideoNodeRenderer::hwPixelFormatInfo() const
 {
-  auto& model = const_cast<VideoNodeBase&>(node());
-  auto& filter = model.m_filter;
-  switch(m_frameFormat.pixel_format)
+  auto codecparFmt = m_avstream
+      ? static_cast<AVPixelFormat>(m_avstream->codecpar->format)
+      : AV_PIX_FMT_NONE;
+  int bitsPerRaw = m_avstream ? m_avstream->codecpar->bits_per_raw_sample : 0;
+  return PixelFormatInfo::fromCodecParameters(m_hwSwFormat, codecparFmt, bitsPerRaw);
+}
+
+std::unique_ptr<GPUVideoDecoder>
+DirectVideoNodeRenderer::tryCreateZeroCopyDecoder(QRhi& rhi)
+{
+#if LIBAVUTIL_VERSION_MAJOR >= 57
+  switch(m_hwPixelFormat)
   {
-    case AV_PIX_FMT_YUV420P:
-    case AV_PIX_FMT_YUVJ420P:
-      m_gpu = std::make_unique<YUV420Decoder>(m_frameFormat);
-      break;
-    case AV_PIX_FMT_YUV420P10LE:
-      m_gpu = std::make_unique<YUV420P10Decoder>(m_frameFormat);
-      break;
-    case AV_PIX_FMT_YUV420P12LE:
-      m_gpu = std::make_unique<YUV420P12Decoder>(m_frameFormat);
-      break;
-    case AV_PIX_FMT_NV12:
-      m_gpu = std::make_unique<NV12Decoder>(m_frameFormat, false);
-      break;
-    case AV_PIX_FMT_NV21:
-      m_gpu = std::make_unique<NV12Decoder>(m_frameFormat, true);
-      break;
-    case AV_PIX_FMT_P010LE:
-      m_gpu = std::make_unique<P010Decoder>(m_frameFormat);
-      break;
-    case AV_PIX_FMT_P016LE:
-      m_gpu = std::make_unique<P016Decoder>(m_frameFormat);
-      break;
-    case AV_PIX_FMT_YUVA420P:
-      m_gpu = std::make_unique<YUVA420Decoder>(m_frameFormat);
-      break;
-    case AV_PIX_FMT_YUV444P:
-    case AV_PIX_FMT_YUVJ444P:
-      m_gpu = std::make_unique<YUV444Decoder>(m_frameFormat);
-      break;
-    case AV_PIX_FMT_YUV444P10LE:
-      m_gpu = std::make_unique<YUV444P10Decoder>(m_frameFormat);
-      break;
-    case AV_PIX_FMT_YUV444P12LE:
-      m_gpu = std::make_unique<YUV444P12Decoder>(m_frameFormat);
-      break;
-    case AV_PIX_FMT_YUVA444P:
-      m_gpu = std::make_unique<YUVA444Decoder>(m_frameFormat);
-      break;
-    case AV_PIX_FMT_YUVA444P10LE:
-      m_gpu = std::make_unique<YUVA444P10Decoder>(m_frameFormat);
-      break;
-    case AV_PIX_FMT_YUV440P:
-    case AV_PIX_FMT_YUVJ440P:
-      m_gpu = std::make_unique<YUV440Decoder>(m_frameFormat);
-      break;
-    case AV_PIX_FMT_YUVJ422P:
-    case AV_PIX_FMT_YUV422P:
-      m_gpu = std::make_unique<YUV422Decoder>(m_frameFormat);
-      break;
-    case AV_PIX_FMT_YUV422P10LE:
-      m_gpu = std::make_unique<YUV422P10Decoder>(m_frameFormat);
-      break;
-    case AV_PIX_FMT_YUV422P12LE:
-      m_gpu = std::make_unique<YUV422P12Decoder>(m_frameFormat);
-      break;
-    case AV_PIX_FMT_NV16:
-      m_gpu = std::make_unique<NV16Decoder>(m_frameFormat);
-      break;
-    case AV_PIX_FMT_UYVY422:
-      m_gpu = std::make_unique<UYVY422Decoder>(m_frameFormat);
-      break;
-    case AV_PIX_FMT_YUYV422:
-      m_gpu = std::make_unique<YUYV422Decoder>(m_frameFormat);
-      break;
-    case AV_PIX_FMT_RGB24:
-      m_gpu = std::make_unique<RGB24Decoder>(
-          m_frameFormat, "processed.a = 1.0; " + filter);
-      break;
-    case AV_PIX_FMT_BGR24:
-      m_gpu = std::make_unique<RGB24Decoder>(
-          m_frameFormat, "processed.rgb = tex.bgr; processed.a = 1.0; " + filter);
-      break;
-    case AV_PIX_FMT_RGB48LE:
-      m_gpu = std::make_unique<RGB48Decoder>(
-          m_frameFormat, "processed.a = 1.0; " + filter);
-      break;
-    case AV_PIX_FMT_BGR48LE:
-      m_gpu = std::make_unique<RGB48Decoder>(
-          m_frameFormat, "processed.rgb = tex.bgr; processed.a = 1.0; " + filter);
-      break;
-    case AV_PIX_FMT_RGB0:
-      m_gpu = std::make_unique<PackedDecoder>(
-          QRhiTexture::RGBA8, 4, m_frameFormat, "processed.a = 1.0; " + filter);
-      break;
-    case AV_PIX_FMT_RGBA:
-      m_gpu = std::make_unique<PackedDecoder>(
-          QRhiTexture::RGBA8, 4, m_frameFormat, filter);
-      break;
-    case AV_PIX_FMT_BGR0:
-      m_gpu = std::make_unique<PackedDecoder>(
-          QRhiTexture::BGRA8, 4, m_frameFormat, "processed.a = 1.0; " + filter);
-      break;
-    case AV_PIX_FMT_BGRA:
-      m_gpu = std::make_unique<PackedDecoder>(
-          QRhiTexture::BGRA8, 4, m_frameFormat, filter);
-      break;
-    case AV_PIX_FMT_ARGB:
-      m_gpu = std::make_unique<PackedDecoder>(
-          QRhiTexture::RGBA8, 4, m_frameFormat, "processed.rgba = tex.yzwx; " + filter);
-      break;
-    case AV_PIX_FMT_ABGR:
-      m_gpu = std::make_unique<PackedDecoder>(
-          QRhiTexture::RGBA8, 4, m_frameFormat, "processed.rgba = tex.abgr; " + filter);
-      break;
-    case AV_PIX_FMT_RGBA64LE:
-      m_gpu = std::make_unique<PackedDecoder>(
-          QRhiTexture::RGBA16F, 8, m_frameFormat, filter);
-      break;
-    case AV_PIX_FMT_BGRA64LE:
-      m_gpu = std::make_unique<PackedDecoder>(
-          QRhiTexture::RGBA16F, 8, m_frameFormat,
-          "processed.rgba = vec4(tex.b, tex.g, tex.r, tex.a); " + filter);
-      break;
-#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
-    case AV_PIX_FMT_X2RGB10LE:
-      m_gpu = std::make_unique<PackedDecoder>(
-          QRhiTexture::RGB10A2, 4, m_frameFormat,
-          "processed.rgba = vec4(tex.b, tex.g, tex.r, 1.0); " + filter);
-      break;
-#endif
-    case AV_PIX_FMT_GBRP:
-      m_gpu = std::make_unique<PlanarDecoder>(
-          QRhiTexture::R8, 1, "gbr", m_frameFormat, filter);
-      break;
-    case AV_PIX_FMT_GBRAP:
-      m_gpu = std::make_unique<PlanarDecoder>(
-          QRhiTexture::R8, 1, "gbra", m_frameFormat, filter);
-      break;
-
-#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(56, 19, 100)
-    case AV_PIX_FMT_GBRP10LE:
-      m_gpu = std::make_unique<PlanarDecoder>(
-          QRhiTexture::R16, 2, "gbr", m_frameFormat,
-          "processed.rgb *= 64.0; " + filter);
-      break;
-    case AV_PIX_FMT_GBRP12LE:
-      m_gpu = std::make_unique<PlanarDecoder>(
-          QRhiTexture::R16, 2, "gbr", m_frameFormat,
-          "processed.rgb *= 16.0; " + filter);
-      break;
-    case AV_PIX_FMT_GBRP16LE:
-      m_gpu = std::make_unique<PlanarDecoder>(
-          QRhiTexture::R16, 2, "gbr", m_frameFormat, filter);
-      break;
-    case AV_PIX_FMT_GBRAP10LE:
-      m_gpu = std::make_unique<PlanarDecoder>(
-          QRhiTexture::R16, 2, "gbra", m_frameFormat,
-          "processed *= 64.0; " + filter);
-      break;
-    case AV_PIX_FMT_GBRAP12LE:
-      m_gpu = std::make_unique<PlanarDecoder>(
-          QRhiTexture::R16, 2, "gbra", m_frameFormat,
-          "processed *= 16.0; " + filter);
-      break;
-    case AV_PIX_FMT_GBRAP16LE:
-      m_gpu = std::make_unique<PlanarDecoder>(
-          QRhiTexture::R16, 2, "gbra", m_frameFormat, filter);
-      break;
-    case AV_PIX_FMT_GBRPF32LE:
-      m_gpu = std::make_unique<PlanarDecoder>(
-          QRhiTexture::R32F, 4, "gbr", m_frameFormat, filter);
-      break;
-    case AV_PIX_FMT_GBRAPF32LE:
-      m_gpu = std::make_unique<PlanarDecoder>(
-          QRhiTexture::R32F, 4, "gbra", m_frameFormat, filter);
-      break;
-    case AV_PIX_FMT_NV24:
-      m_gpu = std::make_unique<NV24Decoder>(m_frameFormat, false);
-      break;
-    case AV_PIX_FMT_NV42:
-      m_gpu = std::make_unique<NV24Decoder>(m_frameFormat, true);
-      break;
-    case AV_PIX_FMT_Y210LE:
-      m_gpu = std::make_unique<Y210Decoder>(m_frameFormat);
-      break;
-#endif
-
-#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 17, 100)
-#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
-    case AV_PIX_FMT_X2BGR10LE:
-      m_gpu = std::make_unique<PackedDecoder>(
-          QRhiTexture::RGB10A2, 4, m_frameFormat, "processed.a = 1.0; " + filter);
-      break;
-#endif
-    case AV_PIX_FMT_P210LE:
-      m_gpu = std::make_unique<P210Decoder>(m_frameFormat);
-      break;
-    case AV_PIX_FMT_P410LE:
-      m_gpu = std::make_unique<P410Decoder>(m_frameFormat);
-      break;
-#endif
-
-    case AV_PIX_FMT_GRAY8:
-      m_gpu = std::make_unique<PackedDecoder>(
-          QRhiTexture::R8, 1, m_frameFormat,
-          "processed.rgba = vec4(tex.r, tex.r, tex.r, 1.0);" + filter);
-      break;
-    case AV_PIX_FMT_GRAY16:
-      m_gpu = std::make_unique<PackedDecoder>(
-          QRhiTexture::R16, 2, m_frameFormat,
-          "processed.rgba = vec4(tex.r, tex.r, tex.r, 1.0);" + filter);
-      break;
-#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(60, 8, 100)
-    case AV_PIX_FMT_GRAYF16:
-      m_gpu = std::make_unique<PackedDecoder>(
-          QRhiTexture::R16F, 2, m_frameFormat,
-          "processed.rgba = vec4(tex.r, tex.r, tex.r, 1.0);" + filter);
-      break;
-    case AV_PIX_FMT_RGBAF32LE:
-      m_gpu = std::make_unique<PackedDecoder>(
-          QRhiTexture::RGBA32F, 16, m_frameFormat, filter);
-      break;
-    case AV_PIX_FMT_VUYA:
-      m_gpu = std::make_unique<VUYADecoder>(m_frameFormat, false);
-      break;
-    case AV_PIX_FMT_VUYX:
-      m_gpu = std::make_unique<VUYADecoder>(m_frameFormat, true);
-      break;
-#endif
-    case AV_PIX_FMT_GRAYF32:
-      m_gpu = std::make_unique<PackedDecoder>(
-          QRhiTexture::R32F, 4, m_frameFormat,
-          "processed.rgba = vec4(tex.r, tex.r, tex.r, 1.0);" + filter);
-      break;
-    case AV_PIX_FMT_YA8:
-      m_gpu = std::make_unique<PackedDecoder>(
-          QRhiTexture::RG8, 2, m_frameFormat,
-          "processed.rgba = vec4(tex.r, tex.r, tex.r, tex.g);" + filter);
-      break;
-    case AV_PIX_FMT_YA16LE:
-      m_gpu = std::make_unique<PackedDecoder>(
-          QRhiTexture::RG16, 4, m_frameFormat,
-          "processed.rgba = vec4(tex.r, tex.r, tex.r, tex.g);" + filter);
-      break;
-
-    default: {
-      // HAP fourcc-based formats
-      std::string_view fourcc{(const char*)&m_frameFormat.pixel_format, 4};
-
-      if(fourcc == "Hap1")
-        m_gpu = std::make_unique<HAPDefaultDecoder>(
-            QRhiTexture::BC1, m_frameFormat, filter);
-      else if(fourcc == "Hap5")
-        m_gpu = std::make_unique<HAPDefaultDecoder>(
-            QRhiTexture::BC3, m_frameFormat, filter);
-      else if(fourcc == "HapY")
-        m_gpu = std::make_unique<HAPDefaultDecoder>(
-            QRhiTexture::BC3, m_frameFormat, HAPDefaultDecoder::ycocg_filter + filter);
-      else if(fourcc == "HapM")
-        m_gpu = std::make_unique<HAPMDecoder>(m_frameFormat, filter);
-      else if(fourcc == "HapA")
-        m_gpu = std::make_unique<HAPDefaultDecoder>(
-            QRhiTexture::BC4, m_frameFormat, filter);
-      else if(fourcc == "Hap7")
-        m_gpu = std::make_unique<HAPDefaultDecoder>(
-            QRhiTexture::BC7, m_frameFormat, filter);
-      else if(fourcc == "HapH")
-        m_gpu = std::make_unique<HAPDefaultDecoder>(
-            QRhiTexture::BC6H, m_frameFormat, filter);
-      // DXV fourcc-based formats
-      else if(fourcc == "Dxv1")
-        m_gpu = std::make_unique<DXVDecoder>(
-            QRhiTexture::BC1, m_frameFormat, filter);
-      else if(fourcc == "Dxv5")
-        m_gpu = std::make_unique<DXVDecoder>(
-            QRhiTexture::BC3, m_frameFormat, filter);
-      else if(fourcc == "DxvY")
-        m_gpu = std::make_unique<DXVYCoCgDecoder>(false, m_frameFormat, filter);
-      else if(fourcc == "DxvA")
-        m_gpu = std::make_unique<DXVYCoCgDecoder>(true, m_frameFormat, filter);
-
-      if(!m_gpu)
+#if defined(__linux__)
+    case AV_PIX_FMT_VAAPI:
+    {
+#if QT_HAS_VULKAN && defined(SCORE_HAS_DRM_HWCONTEXT) \
+    && defined(VK_EXT_image_drm_format_modifier) && defined(VK_KHR_external_memory_fd) \
+    && QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+      if(m_rhiApi == GraphicsApi::Vulkan
+         && HWVaapiVulkanDecoder::isAvailable(rhi))
       {
-        qDebug() << "DirectVideoNodeRenderer: Unhandled pixel format: '"
-                 << av_get_pix_fmt_name(m_frameFormat.pixel_format) << "'"
-                 << (uint32_t)(m_frameFormat.pixel_format);
-        m_gpu = std::make_unique<EmptyDecoder>();
+        return std::make_unique<HWVaapiVulkanDecoder>(
+            m_frameFormat, rhi, hwPixelFormatInfo());
       }
+#endif
       break;
     }
+#endif // __linux__
+    case AV_PIX_FMT_VULKAN:
+    {
+      // Shared device: GPU plane copy from multiplane to separate VkImages
+#if defined(SCORE_HAS_VULKAN_HWCONTEXT_SHARED) && QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+      if(m_sharedVulkanDevice
+         && m_rhiApi == GraphicsApi::Vulkan
+         && HWVulkanSharedDecoder::isAvailable(rhi))
+      {
+        // qDebug() << "DirectVideoNodeRenderer: zero-copy: HWVulkanSharedDecoder"
+        //          << "sw_format:" << av_get_pix_fmt_name(m_hwSwFormat);
+        return std::make_unique<HWVulkanSharedDecoder>(
+            m_frameFormat, rhi, hwPixelFormatInfo());
+      }
+#endif
+
+      // DMA-BUF bridge fallback disabled — it doesn't work on NVIDIA
+      // (can't export Vulkan Video decoded frames as DMA-BUF) and causes
+      // green screen when it fails. Fall through to HWTransferDecoder
+      // which does GPU decode + CPU transfer (still faster than software).
+      break;
+    }
+    case AV_PIX_FMT_CUDA:
+    {
+#if defined(SCORE_HAS_CUDA_HWCONTEXT) && QT_HAS_VULKAN \
+    && QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+      if(m_rhiApi == GraphicsApi::Vulkan
+         && HWCudaVulkanDecoder::isAvailable(rhi, m_hwDeviceCtx))
+      {
+        return std::make_unique<HWCudaVulkanDecoder>(
+            m_frameFormat, rhi, m_hwDeviceCtx, hwPixelFormatInfo());
+      }
+#endif
+      break;
+    }
+#if defined(_WIN32)
+    case AV_PIX_FMT_D3D11:
+    {
+#if defined(SCORE_HAS_D3D11_HWCONTEXT)
+      if(m_rhiApi == GraphicsApi::D3D11
+         && HWD3D11Decoder::isAvailable(rhi))
+      {
+        return std::make_unique<HWD3D11Decoder>(
+            m_frameFormat, rhi, hwPixelFormatInfo());
+      }
+#endif
+      break;
+    }
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(58, 29, 100)
+    case AV_PIX_FMT_D3D12:
+    {
+#if defined(SCORE_HAS_D3D12_HWCONTEXT)
+      if(m_rhiApi == GraphicsApi::D3D12
+         && HWD3D12Decoder::isAvailable(rhi))
+      {
+        return std::make_unique<HWD3D12Decoder>(
+            m_frameFormat, rhi, hwPixelFormatInfo());
+      }
+#endif
+      break;
+    }
+#endif
+#endif
+#if defined(__APPLE__)
+    case AV_PIX_FMT_VIDEOTOOLBOX:
+    {
+#if defined(SCORE_HAS_VTB_HWCONTEXT)
+      if(m_rhiApi == GraphicsApi::Metal
+         && HWVideoToolboxDecoder::isAvailable(rhi))
+      {
+        auto codecparFmt = m_avstream
+            ? static_cast<AVPixelFormat>(m_avstream->codecpar->format)
+            : AV_PIX_FMT_NONE;
+        int bitsPerRaw = m_avstream
+            ? m_avstream->codecpar->bits_per_raw_sample : 0;
+        auto fmtInfo = PixelFormatInfo::fromCodecParameters(
+            m_hwSwFormat, codecparFmt, bitsPerRaw);
+        return std::make_unique<HWVideoToolboxDecoder>(
+            m_frameFormat, rhi, fmtInfo);
+      }
+#endif
+      break;
+    }
+#endif
+    default:
+      break;
+  }
+#endif // LIBAVUTIL_VERSION_MAJOR >= 57
+  return nullptr;
+}
+
+void DirectVideoNodeRenderer::createGpuDecoder(QRhi& rhi)
+{
+#if LIBAVUTIL_VERSION_MAJOR >= 57
+  // If hardware acceleration is active, try zero-copy first,
+  // then fall back to HWTransferDecoder (GPU decode + DMA transfer).
+  if(m_hwPixelFormat != AV_PIX_FMT_NONE && m_hwDeviceCtx)
+  {
+    if(!m_zeroCopyFailed)
+    {
+      auto zc = tryCreateZeroCopyDecoder(rhi);
+      if(zc)
+      {
+        m_gpu = std::move(zc);
+        m_recomputeScale = true;
+        return;
+      }
+    }
+
+    // Zero-copy not available — use transfer decoder
+    // (GPU decode → DMA transfer to CPU → normal texture upload)
+    AVPixelFormat swFmt = m_hwSwFormat != AV_PIX_FMT_NONE
+                              ? m_hwSwFormat
+                              : AV_PIX_FMT_NV12;
+    m_gpu = std::make_unique<HWTransferDecoder>(m_frameFormat, swFmt);
+    // qDebug() << "DirectVideoNodeRenderer: using HW transfer decoder, sw_format:"
+    //          << av_get_pix_fmt_name(swFmt);
+    m_recomputeScale = true;
+    return;
+  }
+#endif
+
+  auto& model = const_cast<VideoNodeBase&>(node());
+  auto& filter = model.m_filter;
+
+  m_gpu = createGPUVideoDecoder(m_frameFormat, filter.toStdString());
+  if(m_gpu)
+  {
+    // qDebug() << "DirectVideoNodeRenderer: using SW decoder for"
+    //          << av_get_pix_fmt_name(m_frameFormat.pixel_format);
+  }
+  else
+  {
+    qDebug() << "DirectVideoNodeRenderer: Unhandled pixel format: '"
+             << av_get_pix_fmt_name(m_frameFormat.pixel_format) << "'";
+    m_gpu = std::make_unique<EmptyDecoder>();
   }
 
   m_recomputeScale = true;
 }
+
+// ============================================================
+//  Pipeline management
+// ============================================================
 
 void DirectVideoNodeRenderer::setupGpuDecoder(RenderList& r)
 {
@@ -680,7 +1105,7 @@ void DirectVideoNodeRenderer::setupGpuDecoder(RenderList& r)
     m_p.clear();
   }
 
-  createGpuDecoder();
+  createGpuDecoder(*r.state.rhi);
   createPipelines(r);
 }
 
@@ -716,20 +1141,26 @@ void DirectVideoNodeRenderer::init(RenderList& renderer, QRhiResourceUpdateBatch
   m_materialUBO->setName("DirectVideoNodeRenderer::m_materialUBO");
   m_materialUBO->create();
 
-  // Open our own decode context
-  if(!openFile())
+  // Open our own decode context, passing the RHI API for HW accel selection
+  if(!openFile(renderer.state.api, renderer.state.rhi))
   {
     qDebug() << "DirectVideoNodeRenderer: failed to open" << m_filePath.c_str();
   }
 
-  createGpuDecoder();
+  createGpuDecoder(rhi);
   createPipelines(renderer);
   m_recomputeScale = true;
 }
 
+// ============================================================
+//  Render pass
+// ============================================================
+
 void DirectVideoNodeRenderer::runRenderPass(
     RenderList& renderer, QRhiCommandBuffer& cb, Edge& edge)
 {
+  if(!m_gpu || !m_gpu->hasFrame)
+    return;
   score::gfx::quadRenderPass(renderer, m_meshBuffer, cb, edge, m_p);
 }
 
@@ -763,19 +1194,54 @@ void DirectVideoNodeRenderer::update(
     if(m_lastDecodedDts == INT64_MIN
        || std::abs(currentFlicks - lastDecodedFlicks) >= frameDurationFlicks)
     {
-      if(seekAndDecode(currentFlicks) && m_decodedFrame && m_decodedFrame->data[0])
+      // HW frames may store surface handles in data[3] (QSV, VAAPI)
+      // instead of data[0], so check format instead of data pointer.
+      if(seekAndDecode(currentFlicks) && m_decodedFrame
+         && (m_decodedFrame->data[0]
+             || Video::formatIsHardwareDecoded(
+                 static_cast<AVPixelFormat>(m_decodedFrame->format))))
       {
         // Check if format changed (e.g. resolution change)
         if(m_gpu && m_useAVCodec)
         {
           const auto& n = this->node();
           auto fmt = static_cast<AVPixelFormat>(m_decodedFrame->format);
+
+          // For HW decode: the actual sw_format is only known after
+          // the first decode when hw_frames_ctx is created. Check if it
+          // differs from what we assumed at init time.
+#if LIBAVUTIL_VERSION_MAJOR >= 57
+          if(Video::formatIsHardwareDecoded(fmt) && m_codecContext
+             && m_codecContext->hw_frames_ctx && !m_hwSwFormatChecked)
+          {
+            m_hwSwFormatChecked = true;
+            auto* fc = reinterpret_cast<AVHWFramesContext*>(
+                m_codecContext->hw_frames_ctx->data);
+            auto realSwFmt = static_cast<AVPixelFormat>(fc->sw_format);
+            if(realSwFmt != m_hwSwFormat)
+            {
+              m_hwSwFormat = realSwFmt;
+              setupGpuDecoder(renderer);
+            }
+          }
+#endif
+
           if(fmt != m_frameFormat.pixel_format
              || m_decodedFrame->width != m_frameFormat.width
              || m_decodedFrame->height != m_frameFormat.height
              || n.m_outputFormat != m_frameFormat.output_format
              || n.m_tonemap != m_frameFormat.tonemap)
           {
+            // Detect HW→SW fallback: we expected a HW format but got a SW one.
+            // This happens when the HW decoder rejects the codec profile
+            // (e.g. VideoToolbox can't handle certain ProRes profiles).
+            // Clear HW state so createGpuDecoder() uses the SW decoder path.
+            if(m_hwPixelFormat != AV_PIX_FMT_NONE
+               && !Video::formatIsHardwareDecoded(fmt))
+            {
+              m_hwPixelFormat = AV_PIX_FMT_NONE;
+            }
+
             m_frameFormat.pixel_format = fmt;
             m_frameFormat.width = m_decodedFrame->width;
             m_frameFormat.height = m_decodedFrame->height;
@@ -788,6 +1254,18 @@ void DirectVideoNodeRenderer::update(
         if(m_gpu)
         {
           m_gpu->exec(renderer, res, *m_decodedFrame);
+          m_gpu->hasFrame = true;
+
+          // If the GPU decoder flagged failure (e.g. incompatible VTB
+          // pixel format, CVMetalTextureCache error), fall back to
+          // HWTransferDecoder (GPU decode + CPU transfer + SW upload).
+          if(m_gpu->failed)
+          {
+            // Prevent tryCreateZeroCopyDecoder from being tried again,
+            // but keep m_hwDeviceCtx alive for HWTransferDecoder.
+            m_zeroCopyFailed = true;
+            setupGpuDecoder(renderer);
+          }
         }
       }
     }
@@ -812,8 +1290,14 @@ void DirectVideoNodeRenderer::update(
 
 void DirectVideoNodeRenderer::release(RenderList& r)
 {
+  // Destroy GPU decoder BEFORE closeFile() frees m_hwDeviceCtx.
+  // HW decoders (CUDA, Vulkan) hold references to the HW device context
+  // and must be destroyed while it's still valid.
   if(m_gpu)
+  {
     m_gpu->release(r);
+    m_gpu.reset();
+  }
 
   delete m_processUBO;
   m_processUBO = nullptr;

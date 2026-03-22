@@ -3,13 +3,19 @@
 #include <Gfx/Graph/VideoNode.hpp>
 #include <Video/VideoInterface.hpp>
 
+#include <vector>
+
+class QRhi;
+
 extern "C" {
 struct AVFormatContext;
 struct AVCodecContext;
 struct AVStream;
 struct AVFrame;
 struct AVPacket;
+struct AVBufferRef;
 struct SwsContext;
+#include <libavutil/pixfmt.h>
 }
 
 namespace Video
@@ -20,6 +26,7 @@ class Rescale;
 namespace score::gfx
 {
 class GPUVideoDecoder;
+struct PixelFormatInfo;
 
 /**
  * @brief Renderer for intra-only video codecs with instant seeking.
@@ -30,6 +37,11 @@ class GPUVideoDecoder;
  *
  * This enables instant seeking for all-intra codecs (ProRes, MJPEG, DNxHD, HAP, etc.)
  * where every frame is independently decodable.
+ *
+ * Supports hardware-accelerated decoding when available (VAAPI, D3D11VA, CUDA,
+ * VideoToolbox, Vulkan Video). When zero-copy GPU texture import is not possible
+ * for the current RHI backend, falls back to av_hwframe_transfer_data() which
+ * still avoids software decode CPU cost.
  */
 class DirectVideoNodeRenderer : public NodeRenderer
 {
@@ -57,16 +69,27 @@ private:
     return static_cast<const VideoNodeBase&>(NodeRenderer::node);
   }
 
-  bool openFile();
+  bool openFile(score::gfx::GraphicsApi api, QRhi* rhi = nullptr);
   void closeFile();
   bool seekAndDecode(int64_t flicks);
   bool isSequentialRead(int64_t flicks) const;
   bool readNextPacketRaw();
   bool readNextPacketAVCodec();
 
-  void createGpuDecoder();
+  void createGpuDecoder(QRhi& rhi);
+  score::gfx::PixelFormatInfo hwPixelFormatInfo() const;
+  std::unique_ptr<GPUVideoDecoder> tryCreateZeroCopyDecoder(QRhi& rhi);
   void setupGpuDecoder(RenderList& r);
   void createPipelines(RenderList& r);
+
+  // Hardware decoding
+  AVPixelFormat selectHardwareAcceleration(
+      score::gfx::GraphicsApi api, int codec_id) const;
+  bool setupHardwareDecoder(
+      const void* codec, AVPixelFormat hwPixFmt);
+  static enum AVPixelFormat negotiateHWFormat(
+      AVCodecContext* ctx, const enum AVPixelFormat* pix_fmts);
+  void transferHWFrame();
 
   // Video file info
   std::string m_filePath;
@@ -82,6 +105,18 @@ private:
   const void* m_codec{}; // AVCodec*
   AVStream* m_avstream{};
   AVFrame* m_decodedFrame{};
+
+  // Hardware decode state
+  AVBufferRef* m_hwDeviceCtx{};
+  AVPixelFormat m_hwPixelFormat{AV_PIX_FMT_NONE};
+  AVPixelFormat m_hwSwFormat{AV_PIX_FMT_NONE};
+  std::vector<const char*> m_vkEnabledExtensions; // kept alive for FFmpeg
+  AVFrame* m_swTransferFrame{};
+  score::gfx::GraphicsApi m_rhiApi{};
+  QRhi* m_rhi{};
+  bool m_hwSwFormatChecked{false};
+  bool m_zeroCopyFailed{false};
+  bool m_sharedVulkanDevice{false}; // true if FFmpeg uses QRhi's VkDevice
 
   // Render state
   PassMap m_p;

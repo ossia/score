@@ -21,6 +21,7 @@
 #include <score/gfx/Vulkan.hpp>
 #if QT_HAS_VULKAN
 #if __has_include(<QtGui/private/qrhivulkan_p.h>)
+#include <Gfx/Graph/VulkanVideoDevice.hpp>
 #include <QtGui/private/qrhivulkan_p.h>
 #if __has_include(<vulkan/vulkan_win32.h>)
 #include <vulkan/vulkan.h>
@@ -108,7 +109,43 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
       params.inst = score::gfx::staticVulkanInstance();
     }
     state.version = Gfx::Settings::shaderVersionForAPI(Vulkan);
-    state.rhi = QRhi::create(QRhi::Vulkan, &params, flags);
+
+    // Create shared VkDevice with video decode queues BEFORE QRhi.
+    // Use the first physical device from QVulkanInstance — this matches
+    // what QRhi would pick by default.
+#if defined(VK_KHR_video_decode_queue) && QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+    {
+      auto sharedDev = createSharedVulkanDevice(params.inst);
+      if(sharedDev)
+      {
+        QRhiVulkanNativeHandles importedHandles;
+        importedHandles.physDev = sharedDev.physDev;
+        importedHandles.dev = sharedDev.dev;
+        importedHandles.gfxQueueFamilyIdx = sharedDev.gfxQueueFamilyIdx;
+        importedHandles.gfxQueueIdx = 0;
+        importedHandles.gfxQueue = sharedDev.gfxQueue;
+        importedHandles.inst = params.inst;
+
+        state.rhi = QRhi::create(QRhi::Vulkan, &params, flags, &importedHandles);
+        if(state.rhi)
+        {
+          state.customDeviceCleanup = [dev = sharedDev.dev, inst = params.inst]() {
+            if(auto fn = reinterpret_cast<PFN_vkDestroyDevice>(
+                   inst->getInstanceProcAddr("vkDestroyDevice")))
+              fn(dev, nullptr);
+          };
+          state.renderSize = sz;
+          return st;
+        }
+        sharedDev.destroy();
+      }
+    }
+#endif
+
+    // Fallback: let QRhi create its own VkDevice (no video decode queues)
+    if(!state.rhi)
+      state.rhi = QRhi::create(QRhi::Vulkan, &params, flags);
+
     state.renderSize = sz;
     return st;
   }

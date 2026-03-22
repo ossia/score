@@ -5,6 +5,7 @@
 
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Settings/Model.hpp>
+#include <Video/GpuFormats.hpp>
 #include <Gfx/TexturePort.hpp>
 #include <Media/Commands/ChangeAudioFile.hpp>
 #include <Media/Sound/SoundModel.hpp>
@@ -73,9 +74,40 @@ static ::Video::DecoderConfiguration videoDecoderConfiguration() noexcept
   ::Video::DecoderConfiguration conf;
   auto& set = score::AppContext().settings<Gfx::Settings::Model>();
   conf.decoder = "";
+  conf.graphicsApi = static_cast<int>(set.graphicsApiEnum());
   if(auto hw = set.getHardwareDecode(); !hw.isEmpty() && hw != decoders.None)
   {
-    if(hw == decoders.CUDA)
+    if(hw == decoders.Auto)
+    {
+      // "Auto" mode: let DirectVideoNodeRenderer::selectHardwareAcceleration()
+      // pick the best backend per graphics API and codec at runtime.
+      // For the background-thread VideoDecoder path, we signal "auto" via
+      // a special sentinel value; the decoder will use the platform-preferred
+      // acceleration. For now, pick a reasonable default per platform.
+#if defined(_WIN32)
+      // Match the RHI backend when possible
+      if(conf.graphicsApi == static_cast<int>(score::gfx::D3D12))
+      {
+#if defined(_WIN32) && LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(58, 29, 100)
+        conf.hardwareAcceleration = AV_PIX_FMT_D3D12;
+#else
+        conf.hardwareAcceleration = AV_PIX_FMT_D3D11;
+#endif
+      }
+      else
+        conf.hardwareAcceleration = AV_PIX_FMT_D3D11;
+#elif defined(__APPLE__)
+      conf.hardwareAcceleration = AV_PIX_FMT_VIDEOTOOLBOX;
+#elif defined(__linux__)
+      if(::Video::hardwareDecoderIsAvailable(AV_PIX_FMT_VAAPI))
+        conf.hardwareAcceleration = AV_PIX_FMT_VAAPI;
+      else if(::Video::hardwareDecoderIsAvailable(AV_PIX_FMT_CUDA))
+        conf.hardwareAcceleration = AV_PIX_FMT_CUDA;
+      else if(::Video::hardwareDecoderIsAvailable(AV_PIX_FMT_VULKAN))
+        conf.hardwareAcceleration = AV_PIX_FMT_VULKAN;
+#endif
+    }
+    else if(hw == decoders.CUDA)
       conf.hardwareAcceleration = AV_PIX_FMT_CUDA;
     else if(hw == decoders.QSV)
       conf.hardwareAcceleration = AV_PIX_FMT_QSV;
@@ -85,12 +117,18 @@ static ::Video::DecoderConfiguration videoDecoderConfiguration() noexcept
       conf.hardwareAcceleration = AV_PIX_FMT_VAAPI;
     else if(hw == decoders.D3D)
       conf.hardwareAcceleration = AV_PIX_FMT_D3D11;
+#if defined(_WIN32) && LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(58, 29, 100)
+    else if(hw == decoders.D3D12)
+      conf.hardwareAcceleration = AV_PIX_FMT_D3D12;
+#endif
     else if(hw == decoders.DXVA)
       conf.hardwareAcceleration = AV_PIX_FMT_DXVA2_VLD;
     else if(hw == decoders.VideoToolbox)
       conf.hardwareAcceleration = AV_PIX_FMT_VIDEOTOOLBOX;
     else if(hw == decoders.V4L2)
       conf.hardwareAcceleration = AV_PIX_FMT_DRM_PRIME;
+    else if(hw == decoders.VulkanVideo)
+      conf.hardwareAcceleration = AV_PIX_FMT_VULKAN;
   }
   return conf;
 }

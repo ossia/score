@@ -151,41 +151,30 @@ bool LibAVDecoder::open_codec_context(
         {AV_CODEC_ID_VP8, "vp8_cuvid"},          {AV_CODEC_ID_VP9, "vp9_cuvid"},
     };
     */
-static std::string hwCodecMap(std::string name, AVHWDeviceType device)
-{
-  switch(device)
-  {
-    case AV_HWDEVICE_TYPE_CUDA:
-      return name + "_cuvid";
-    case AV_HWDEVICE_TYPE_QSV:
-      return name + "_qsv";
-    case AV_HWDEVICE_TYPE_VDPAU:
-      return name + "_vdpau";
-    case AV_HWDEVICE_TYPE_VAAPI:
-      return name + "_vaapi";
-    case AV_HWDEVICE_TYPE_DRM:
-      return name + "_v4l2m2m";
-    case AV_HWDEVICE_TYPE_DXVA2:
-    case AV_HWDEVICE_TYPE_D3D11VA:
-    case AV_HWDEVICE_TYPE_VIDEOTOOLBOX:
-      return name;
-    default:
-      return {};
-  }
-}
 std::pair<AVBufferRef*, const AVCodec*>
 LibAVDecoder::open_hwdec(const AVCodec& detected_codec) noexcept
 {
 #if LIBAVUTIL_VERSION_MAJOR >= 57
-  if(m_conf.hardwareAcceleration == AV_PIX_FMT_NONE)
+  auto hwAccel = m_conf.hardwareAcceleration;
+  if(hwAccel == AV_PIX_FMT_NONE)
     return {};
 
-  const auto device = ffmpegHardwareDecodingFormats(m_conf.hardwareAcceleration).device;
+  if(hwAccel == AV_PIX_FMT_NONE
+     || !codecSupportsHWPixelFormat(detected_codec.id, hwAccel))
+  {
+    auto autoFmt = selectHardwareAcceleration(
+        m_conf.graphicsApi, detected_codec.id, m_conf.gpuVendorId);
+    if(autoFmt != AV_PIX_FMT_NONE)
+      hwAccel = autoFmt;
+    else
+      return {};
+  }
+
+  const auto device = ffmpegHardwareDecodingFormats(hwAccel).device;
   if(device == AV_HWDEVICE_TYPE_NONE)
     return {};
 
-  // Look for a correct codec
-  auto mapped = hwCodecMap(detected_codec.name, device);
+  auto mapped = Video::hwCodecName(detected_codec.name, device);
   if(mapped.empty())
     return {};
 
@@ -195,10 +184,9 @@ LibAVDecoder::open_hwdec(const AVCodec& detected_codec) noexcept
   if(!codec)
     return {};
 
-  if(m_conf.hardwareAcceleration == AV_PIX_FMT_DRM_PRIME)
+  if(hwAccel == AV_PIX_FMT_DRM_PRIME)
   {
-    // FIXME right now this is just used for V4L2M2M:
-    // we basically just want to map h264 to h264_v4l2m2m,
+    // V4L2M2M: just want to map h264 to h264_v4l2m2m,
     // this isn't a true "hwdevice" accel
     return {nullptr, codec};
   }
@@ -206,12 +194,9 @@ LibAVDecoder::open_hwdec(const AVCodec& detected_codec) noexcept
   AVBufferRef* hw_device_ctx{};
   int ret = av_hwdevice_ctx_create(&hw_device_ctx, device, nullptr, nullptr, 0);
   if(ret != 0)
-  {
-    qDebug() << "Error while opening hardware decoder: " << av_to_string(ret);
     return {};
-  }
 
-  if(m_conf.hardwareAcceleration == AV_PIX_FMT_QSV)
+  if(hwAccel == AV_PIX_FMT_QSV)
     return {hw_device_ctx, codec};
   else
     return {hw_device_ctx, &detected_codec};
@@ -243,7 +228,6 @@ ReadFrame LibAVDecoder::enqueue_frame(const AVPacket* pkt) noexcept
   }
   else
   {
-    // it is already stored in "read" but well
     if(read.frame == frame.get())
       frame.release();
   }
@@ -319,19 +303,22 @@ ReadFrame readVideoFrame(
       if(ignorePts || frame->pts >= 0)
       {
 #if LIBAVUTIL_VERSION_MAJOR >= 57
-        // Process hardware acceleration
+        // Transfer HW frame to CPU
         if(formatIsHardwareDecoded(AVPixelFormat(frame->format)))
         {
           AVFrame* sw_frame = av_frame_alloc();
-          SCORE_LIBAV_FRAME_ALLOC_CHECK(sw_frame);
-          sw_frame->width = frame->width;
-          sw_frame->height = frame->height;
           sw_frame->format = AV_PIX_FMT_NONE;
 
-          av_hwframe_transfer_data(sw_frame, frame, 0);
-          sw_frame->pts = frame->pts;
-
-          return {sw_frame, ret};
+          int hw_ret = av_hwframe_transfer_data(sw_frame, frame, 0);
+          if(hw_ret >= 0)
+          {
+            sw_frame->pts = frame->pts;
+            av_frame_unref(frame);
+            av_frame_move_ref(frame, sw_frame);
+          }
+          av_frame_free(&sw_frame);
+          if(hw_ret < 0)
+            return {nullptr, hw_ret};
         }
 #endif
         return {frame, ret};
