@@ -15,7 +15,6 @@
 
 #include <score/widgets/MimeData.hpp>
 
-#include <QApplication>
 #include <QCursor>
 #include <QDrag>
 #include <QMimeData>
@@ -204,7 +203,7 @@ void IntervalView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
 void IntervalView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(qApp->keyboardModifiers() & Qt::ALT)
+  if(event->modifiers() & Qt::ALT)
   {
     if(auto si
        = dynamic_cast<Scenario::ScenarioInterface*>(presenter().model().parent()))
