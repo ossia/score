@@ -340,6 +340,10 @@ void NodalIntervalView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 
 void NodalIntervalView::wheelEvent(QGraphicsSceneWheelEvent* event)
 {
+  if(m_itemsToShow != NodalIntervalView::AllItems
+     && event->modifiers() != Qt::KeyboardModifier::NoModifier)
+    return;
+
   static constexpr double sensitivity = 120.0;
   double numDegrees = event->delta();
   if(numDegrees == 0)
