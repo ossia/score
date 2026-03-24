@@ -174,6 +174,12 @@ void GpuNode::uiMessage(const QVariant& v)
 
 void GpuNode::stateElementChanged(const QString& k, const ossia::value& v)
 {
+  // Keep m_modelState in sync so that engine recreation loads current state
+  if(v.valid())
+    m_modelState[k] = v;
+  else
+    m_modelState.erase(k);
+
   m_engines.visit_all([&, p = std::make_pair(k, v)] (auto& elt) {
     elt.second->ui_messages.emplace(p);
   });
