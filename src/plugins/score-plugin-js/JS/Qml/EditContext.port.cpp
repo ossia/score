@@ -118,7 +118,7 @@ QObject* EditJsContext::createCable(QObject* outlet, QObject* inlet)
 
   auto& root = score::IDocument::get<Scenario::ScenarioDocumentModel>(doc->document);
   auto [m, _] = macro(*doc);
-  auto& c = m->createCable(root, *src, *sink);
+  auto& c = m->createCable(root, *src, *sink, Process::CableType::ImmediateGlutton);
   return &c;
 }
 

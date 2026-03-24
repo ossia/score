@@ -221,7 +221,9 @@ score::gfx::OutputNodeRenderer*
 ShmdataOutputNode::createRenderer(score::gfx::RenderList& r) const noexcept
 {
   score::gfx::TextureRenderTarget rt{
-      m_texture, nullptr, nullptr, m_renderState->renderPassDescriptor, m_renderTarget};
+      .texture = m_texture,
+      .renderPass = m_renderState->renderPassDescriptor,
+      .renderTarget = m_renderTarget};
   return new Gfx::InvertYRenderer{
       *this, rt, const_cast<QRhiReadbackResult&>(m_readback)};
 }

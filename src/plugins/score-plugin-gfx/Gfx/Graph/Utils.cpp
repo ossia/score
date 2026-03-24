@@ -61,6 +61,7 @@ TextureRenderTarget createRenderTarget(
     const RenderState& state, QRhiTexture::Format fmt, QSize sz, int samples, bool depth,
     QRhiTexture::Flags flags)
 {
+  // FIXME not every RT needs mipmap / generatemips
   auto texture = state.rhi->newTexture(
       fmt, sz, 1,
       QRhiTexture::RenderTarget | QRhiTexture::UsedWithLoadStore | QRhiTexture::MipMapped
@@ -68,6 +69,75 @@ TextureRenderTarget createRenderTarget(
   texture->setName("createRenderTarget::texture");
   SCORE_ASSERT(texture->create());
   return createRenderTarget(state, texture, samples, depth);
+}
+
+TextureRenderTarget createRenderTarget(
+    const RenderState& state,
+    std::span<QRhiTexture* const> colorTextures,
+    QRhiTexture* depthTex,
+    int samples)
+{
+  TextureRenderTarget ret;
+  SCORE_ASSERT(!colorTextures.empty());
+
+  ret.texture = colorTextures[0];
+  for(std::size_t i = 1; i < colorTextures.size(); i++)
+    ret.additionalColorTextures.push_back(colorTextures[i]);
+
+  QList<QRhiColorAttachment> attachments;
+  for(auto* tex : colorTextures)
+  {
+    if(samples == 1)
+    {
+      attachments.append(QRhiColorAttachment(tex));
+    }
+    else
+    {
+      auto* rb = state.rhi->newRenderBuffer(
+          QRhiRenderBuffer::Color, tex->pixelSize(), samples, {}, tex->format());
+      rb->setName("createRenderTarget::MRT::colorRB");
+      SCORE_ASSERT(rb->create());
+
+      QRhiColorAttachment att(rb);
+      att.setResolveTexture(tex);
+      attachments.append(att);
+    }
+  }
+
+  QRhiTextureRenderTargetDescription desc;
+  desc.setColorAttachments(attachments.begin(), attachments.end());
+
+  if(depthTex)
+  {
+    ret.depthTexture = depthTex;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+    desc.setDepthTexture(depthTex);
+#else
+    // Qt < 6.6 doesn't support sampleable depth textures in render targets;
+    // fall back to a depth renderbuffer (depth won't be sampleable)
+    ret.depthRenderBuffer = state.rhi->newRenderBuffer(
+        QRhiRenderBuffer::DepthStencil, colorTextures[0]->pixelSize(), samples, {},
+        QRhiTexture::D32F);
+    ret.depthRenderBuffer->setName("createRenderTarget::MRT::depthRB_fallback");
+    SCORE_ASSERT(ret.depthRenderBuffer->create());
+    desc.setDepthStencilBuffer(ret.depthRenderBuffer);
+#endif
+  }
+
+  auto renderTarget = state.rhi->newTextureRenderTarget(desc);
+  renderTarget->setName("createRenderTarget::MRT::renderTarget");
+  SCORE_ASSERT(renderTarget);
+
+  auto renderPass = renderTarget->newCompatibleRenderPassDescriptor();
+  renderPass->setName("createRenderTarget::MRT::renderPass");
+  SCORE_ASSERT(renderPass);
+
+  renderTarget->setRenderPassDescriptor(renderPass);
+  SCORE_ASSERT(renderTarget->create());
+
+  ret.renderTarget = renderTarget;
+  ret.renderPass = renderPass;
+  return ret;
 }
 
 void replaceBuffer(
@@ -269,6 +339,49 @@ void replaceTexture(
   srb.create();
 }
 
+bool remapPipelineVertexInputs(
+    QRhiGraphicsPipeline& pip, const QShader& vertexShader,
+    const ossia::geometry& geom)
+{
+  const auto& shader_inputs = vertexShader.description().inputVariables();
+  if(shader_inputs.empty())
+    return true;
+
+  QVarLengthArray<QRhiVertexInputAttribute> remappedAttrs;
+
+  for(const auto& shader_var : shader_inputs)
+  {
+    // Resolve shader variable name to semantic
+    auto sem = ossia::name_to_semantic(
+        std::string_view(shader_var.name.constData(), shader_var.name.size()));
+
+    // Find matching geometry attribute by semantic or by name
+    const ossia::geometry::attribute* match = nullptr;
+    if(sem != ossia::attribute_semantic::custom)
+      match = geom.find(sem);
+    else
+      match = geom.find(
+          std::string_view(shader_var.name.constData(), shader_var.name.size()));
+
+    if(!match)
+      return false;
+
+    // binding/format/offset from GEOMETRY, location from SHADER
+    remappedAttrs.append(QRhiVertexInputAttribute(
+        match->binding, shader_var.location,
+        static_cast<QRhiVertexInputAttribute::Format>(match->format),
+        match->byte_offset));
+  }
+
+  // Override vertex input layout, keeping the bindings (stride/classification)
+  QRhiVertexInputLayout inputLayout;
+  const auto& prevLayout = pip.vertexInputLayout();
+  inputLayout.setBindings(prevLayout.cbeginBindings(), prevLayout.cendBindings());
+  inputLayout.setAttributes(remappedAttrs.begin(), remappedAttrs.end());
+  pip.setVertexInputLayout(inputLayout);
+  return true;
+}
+
 Pipeline buildPipeline(
     const RenderList& renderer, const Mesh& mesh, const QShader& vertexS,
     const QShader& fragmentS, const TextureRenderTarget& rt,
@@ -285,11 +398,30 @@ Pipeline buildPipeline(
   premulAlphaBlend.dstColor = QRhiGraphicsPipeline::BlendFactor::OneMinusSrcAlpha;
   premulAlphaBlend.srcAlpha = QRhiGraphicsPipeline::BlendFactor::SrcAlpha;
   premulAlphaBlend.dstAlpha = QRhiGraphicsPipeline::BlendFactor::OneMinusSrcAlpha;
-  ps->setTargetBlends({premulAlphaBlend});
+
+  // MRT: one blend state per color attachment
+  int numColorAttachments = rt.colorAttachmentCount();
+  QList<QRhiGraphicsPipeline::TargetBlend> blends;
+  for(int i = 0; i < std::max(1, numColorAttachments); i++)
+    blends.append(premulAlphaBlend);
+  ps->setTargetBlends(blends.begin(), blends.end());
 
   ps->setSampleCount(renderer.samples());
 
   mesh.preparePipeline(*ps);
+
+  // Remap vertex inputs by semantic if the mesh provides semantic geometry.
+  // This matches shader input variable names to geometry attribute semantics,
+  // so that locations are determined by the shader, not by the geometry producer.
+  if(auto* geom = mesh.semanticGeometry())
+  {
+    if(!remapPipelineVertexInputs(*ps, vertexS, *geom))
+    {
+      qDebug() << "Warning! Shader requires attributes not present in mesh";
+      delete ps;
+      return {nullptr, srb};
+    }
+  }
 
   // FIXME does that check make sense?
   if(!renderer.anyNodeRequiresDepth())
@@ -649,8 +781,7 @@ computeScaleForTexcoordSizing(ScaleMode mode, QSizeF renderSize, QSizeF textureS
 }
 
 std::vector<Sampler> initInputSamplers(
-    const score::gfx::Node& node, RenderList& renderer, const std::vector<Port*>& ports,
-    ossia::small_flat_map<const Port*, TextureRenderTarget, 2>& m_rts)
+    const score::gfx::Node& node, RenderList& renderer, const std::vector<Port*>& ports)
 {
   std::vector<Sampler> samplers;
   QRhi& rhi = *renderer.state.rhi;
@@ -694,10 +825,13 @@ std::vector<Sampler> initInputSamplers(
           SCORE_ASSERT(sampler->create());
 
           samplers.push_back({sampler, srcTex});
-          // No entry in m_rts — there is no render target for this port
         }
         else
         {
+          // Look up the pre-created render target from the RenderList
+          auto rt = renderer.renderTargetForInputPort(*in);
+          auto* texture = rt.texture ? rt.texture : &renderer.emptyTexture();
+
           auto spec = node.resolveRenderTargetSpecs(cur_port, renderer);
           auto sampler = rhi.newSampler(
               spec.mag_filter, spec.min_filter, spec.mipmap_mode, spec.address_u,
@@ -705,13 +839,7 @@ std::vector<Sampler> initInputSamplers(
           sampler->setName("initInputSamplers::sampler");
           SCORE_ASSERT(sampler->create());
 
-          auto rt = score::gfx::createRenderTarget(
-              renderer.state, spec.format, spec.size, renderer.samples(),
-              renderer.requiresDepth(*in));
-          auto texture = rt.texture;
           samplers.push_back({sampler, texture});
-
-          m_rts[in] = std::move(rt);
         }
         break;
       }

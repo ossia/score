@@ -94,23 +94,23 @@ toHalpClassification(bool instanced) noexcept
 }
 
 // Convert location int to attribute_location enum
-[[nodiscard]] constexpr halp::attribute_location toHalpLocation(int32_t loc) noexcept
+[[nodiscard]] constexpr halp::attribute_semantic toHalpLocation(int32_t loc) noexcept
 {
   // Standard locations
   switch(loc)
   {
     case 0:
-      return halp::attribute_location::position;
+      return halp::attribute_semantic::position;
     case 1:
-      return halp::attribute_location::tex_coord;
+      return halp::attribute_semantic::texcoord0;
     case 2:
-      return halp::attribute_location::color;
+      return halp::attribute_semantic::color0;
     case 3:
-      return halp::attribute_location::normal;
+      return halp::attribute_semantic::normal;
     case 4:
-      return halp::attribute_location::tangent;
+      return halp::attribute_semantic::tangent;
     default:
-      return static_cast<halp::attribute_location>(loc);
+      return halp::attribute_semantic::custom;
   }
 }
 
@@ -344,7 +344,7 @@ void BuffersToGeometry::operator()()
     mesh.attributes.push_back(
         halp::geometry_attribute{
             .binding = bindingIndex,
-            .location = toHalpLocation(cfg.location),
+            .semantic = toHalpLocation(cfg.location), //!!!!!!!!!! FIXME
             .format = toHalpFormat(cfg.format),
             .byte_offset = 0 // Offset within stride is 0 since we use input offset
         });

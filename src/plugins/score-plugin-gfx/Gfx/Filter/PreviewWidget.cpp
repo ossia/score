@@ -167,6 +167,8 @@ struct PreviewInputVisitor
     img_count = img_count % 3;
     return image_node;
   }
+
+  score::gfx::NodeModel* operator()(const isf::geometry_input& v) { return nullptr; }
 };
 
 struct PreviewPresetVisitor
@@ -242,10 +244,12 @@ struct PreviewPresetVisitor
   
   // CSF-specific input handlers
   void operator()(const isf::storage_input& v) { }
-  
+
   void operator()(const isf::texture_input& v) { }
-  
+
   void operator()(const isf::csf_image_input& v) { }
+
+  void operator()(const isf::geometry_input& v) { }
 };
 }
 
@@ -371,7 +375,8 @@ public:
 
     m_graph.addNode(m_isf.get());
     // Edge from filter to output
-    m_graph.addEdge(m_isf->output[0], m_screen->input[0]);
+    m_graph.addEdge(
+        m_isf->output[0], m_screen->input[0], Process::CableType::ImmediateGlutton);
 
     // Edges from image nodes to image inputs
     int image_i = 0;
@@ -383,7 +388,8 @@ public:
       {
         m_graph.addNode(node);
 
-        m_graph.addEdge(node->output[0], m_isf->input[i]);
+        m_graph.addEdge(
+            node->output[0], m_isf->input[i], Process::CableType::ImmediateGlutton);
         m_previewEdges.emplace_back(node->output[0], m_isf->input[i]);
 
         m_textures.push_back(std::unique_ptr<score::gfx::Node>(node));

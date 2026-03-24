@@ -21,13 +21,31 @@ void gfx_exec_node::link_cable_to_inlet(ossia::inlet* inlet, int inlet_i)
     // Should be impossible to not be connected to a gfx_exec_node
     if(auto src_gfx = dynamic_cast<gfx_exec_node*>(cable->out_node.get()))
     {
-      if(src_gfx->executed())
+      if(src_gfx->executed() || cable->delayed())
       {
         int32_t port_idx = index_of(src_gfx->m_outlets, cable->out);
         assert(port_idx != -1);
         {
+          Process::CableType t{};
+          switch(cable->con.index())
+          {
+            case 0:
+            case 4:
+              t = Process::CableType::ImmediateGlutton;
+              break;
+            case 1:
+              t = Process::CableType::ImmediateStrict;
+              break;
+            case 2:
+              t = Process::CableType::DelayedGlutton;
+              break;
+            case 3:
+              t = Process::CableType::DelayedStrict;
+              break;
+          }
+
           exec_context->setEdge(
-              port_index{src_gfx->id, port_idx}, port_index{this->id, inlet_i});
+              port_index{src_gfx->id, port_idx}, port_index{this->id, inlet_i}, t);
         }
       }
     }

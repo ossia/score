@@ -242,17 +242,6 @@ void main ()
 )_";
 
   std::vector<score::gfx::Sampler> m_inputSamplers;
-  ossia::small_flat_map<const score::gfx::Port*, score::gfx::TextureRenderTarget, 2>
-      m_rts;
-
-  score::gfx::TextureRenderTarget
-  renderTargetForInput(const score::gfx::Port& p) override
-  {
-    auto res = m_rts.find(&p);
-    if(res != m_rts.end() && res->second)
-      return res->second;
-    return {};
-  }
 
   void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
@@ -272,7 +261,7 @@ void main ()
         = score::gfx::makeShaders(renderer.state, vertex_shader, fragment_shader);
 
     m_inputSamplers
-        = score::gfx::initInputSamplers(this->node, renderer, this->node.input, m_rts);
+        = score::gfx::initInputSamplers(this->node, renderer, this->node.input);
 
     // Create the sampler in which we are going to put the texture
     {
@@ -322,8 +311,9 @@ void main ()
         QQuickRenderTarget::fromRhiRenderTarget(m_internalTex.renderTarget));
   }
 
-  void reloadEngine(QRhi* rhi)
+  void reloadEngine(score::gfx::RenderList& renderer)
   {
+    auto* rhi = renderer.state.rhi;
     auto oldSourceIndex = this->sourceIndex.exchange(this->node.sourceIndex);
     //= std::exchange(this->sourceIndex, this->node.sourceIndex.load());
     // yes technically there is the overflow case but it's 2^64 editions away...
@@ -348,10 +338,11 @@ void main ()
           SCORE_ASSERT(this->node.input.size() > i);
           score::gfx::Port* port = this->node.input[i];
           SCORE_ASSERT(port->type == score::gfx::Types::Image);
-          auto& rt = m_rts[port];
+          auto rt = renderer.renderTargetForInputPort(*port);
           auto item = qobject_cast<JS::TextureInletItem*>(texture_in->item());
           SCORE_ASSERT(item);
-          item->setSize(rt.texture->pixelSize());
+          if(rt.texture)
+            item->setSize(rt.texture->pixelSize());
         }
       }
     }
@@ -361,7 +352,7 @@ void main ()
       score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res,
       score::gfx::Edge* edge) override
   {
-    reloadEngine(renderer.state.rhi);
+    reloadEngine(renderer);
     defaultUBOUpdate(renderer, res);
 
     // Schedule a copy of the input textures into the actual textures
@@ -371,12 +362,12 @@ void main ()
         SCORE_ASSERT(this->node.input.size() > i);
         score::gfx::Port* port = this->node.input[i];
         SCORE_ASSERT(port->type == score::gfx::Types::Image);
-        auto& rt = m_rts[port];
+        auto rt = renderer.renderTargetForInputPort(*port);
         auto item = qobject_cast<JS::TextureInletItem*>(texture_in->item());
         SCORE_ASSERT(item);
-        auto renderer = item->renderer;
+        auto itemRenderer = item->renderer;
         auto texture = item->texture;
-        if(renderer && texture)
+        if(itemRenderer && texture && rt.texture)
         {
           if(rt.texture->pixelSize() == texture->pixelSize()
              && rt.texture->sampleCount() == texture->sampleCount())
@@ -389,9 +380,6 @@ void main ()
             qDebug() << "Mismatch!!!" << rt.texture->pixelSize() << texture->pixelSize()
                      << rt.texture->sampleCount() << texture->sampleCount();
           }
-        }
-        else
-        {
         }
       }
     }
@@ -485,12 +473,6 @@ void main ()
     {
       m_engine->releaseItem();
     }
-
-    for(auto [edge, rt] : m_rts)
-    {
-      rt.release();
-    }
-    m_rts.clear();
 
     for(auto sampler : m_inputSamplers)
     {

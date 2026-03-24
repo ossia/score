@@ -71,5 +71,19 @@ struct isf_input_size_vis
       (*this)(isf::long_input{});
     }
   }
+
+  void operator()(const isf::geometry_input& in) noexcept
+  {
+    // Geometry inputs don't contribute to the material UBO size.
+    // Their buffers are bound separately as SSBOs.
+    // But $USER ports create long_input (int) entries in the material UBO.
+    if(in.vertex_count.find("$USER") != std::string::npos)
+      (*this)(isf::long_input{});
+    if(in.instance_count.find("$USER") != std::string::npos)
+      (*this)(isf::long_input{});
+    for(const auto& aux : in.auxiliary)
+      if(aux.size.find("$USER") != std::string::npos)
+        (*this)(isf::long_input{});
+  }
 };
 }

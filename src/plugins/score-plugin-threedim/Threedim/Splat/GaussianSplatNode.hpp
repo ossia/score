@@ -77,7 +77,6 @@ public:
   explicit GaussianSplatRenderer(const GaussianSplatNode& node);
   ~GaussianSplatRenderer();
 
-  TextureRenderTarget renderTargetForInput(const Port& p) override;
   void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
   void update(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge) override;
   void runInitialPasses(
@@ -92,9 +91,6 @@ private:
   void createSortPipelines(RenderList& renderer);
 
   const GaussianSplatNode& m_node;
-
-  // Input render target
-  TextureRenderTarget m_inputTarget;
 
   // Render pipeline resources
   QRhiBuffer* m_uniformBuffer{};

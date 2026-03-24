@@ -9,11 +9,12 @@
 #include <score/gfx/Vulkan.hpp>
 #include <score/tools/Debug.hpp>
 
-#include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/flat_set.hpp>
+#include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/ssize.hpp>
 
 #include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/filtered_graph.hpp>
 #include <boost/graph/topological_sort.hpp>
 
 namespace score::gfx
@@ -47,9 +48,27 @@ void print_graph(Graph_T& g, IO& stream)
 }
 
 using Vertex = score::gfx::Node*;
-using GraphImpl
-    = boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, Vertex>;
+using GraphImpl = boost::adjacency_list<
+    boost::vecS, boost::vecS, boost::directedS, Vertex, Process::CableType>;
 using VertexMap = ossia::hash_map<score::gfx::Node*, GraphImpl::vertex_descriptor>;
+
+struct no_delay_edges
+{
+  const GraphImpl* g{};
+
+  bool operator()(const boost::graph_traits<GraphImpl>::edge_descriptor& e) const
+  {
+    switch((*g)[e])
+    {
+      case Process::CableType::ImmediateGlutton:
+      case Process::CableType::ImmediateStrict:
+        return true;
+      default:
+        return false;
+    }
+  }
+};
+
 static void graphwalk(
     score::gfx::Node* node, std::vector<score::gfx::Node*>& list, GraphImpl& g,
     VertexMap& m)
@@ -66,12 +85,12 @@ static void graphwalk(
         auto src_desc = boost::add_vertex(edge->source->node, g);
         m[edge->source->node] = src_desc;
         edge->source->node->addedToGraph = true;
-        boost::add_edge(src_desc, sink_desc, g);
+        boost::add_edge(src_desc, sink_desc, edge->type, g);
       }
       else
       {
         auto src_desc = m[edge->source->node];
-        boost::add_edge(src_desc, sink_desc, g);
+        boost::add_edge(src_desc, sink_desc, edge->type, g);
       }
     }
   }
@@ -97,7 +116,8 @@ static void graphwalk(std::vector<score::gfx::Node*>& model_nodes)
   try
   {
     model_nodes.clear();
-    boost::topological_sort(g, std::back_inserter(topo_order));
+    auto view = boost::filtered_graph(g, no_delay_edges{&g});
+    boost::topological_sort(view, std::back_inserter(topo_order));
     for(auto it = topo_order.begin(); it != topo_order.end(); ++it)
     {
       auto e = *it;
@@ -444,6 +464,11 @@ Graph::createRenderList(OutputNode* output, std::shared_ptr<RenderState> state)
 
     if(model_nodes.size() > 1)
     {
+      // Create all input render targets centrally before any node init().
+      // This ensures RTs are available regardless of init order
+      // (matches what maybeRebuild does).
+      r.createAllInputRenderTargets();
+
       auto batch = r.initialBatch();
       for(auto node : r.renderers)
         node->init(r, *batch);
@@ -489,22 +514,23 @@ void Graph::clearEdges()
   m_edges.clear();
 }
 
-void Graph::addEdge(Port* source, Port* sink)
+void Graph::addEdge(Port* source, Port* sink, Process::CableType t)
 {
   auto it = ossia::find_if(
       m_edges, [=](Edge* e) { return e->source == source && e->sink == sink; });
 
   if(it == m_edges.end())
   {
-    m_edges.push_back(new Edge{source, sink});
+    m_edges.push_back(new Edge{source, sink, t});
   }
-#if defined(SCORE_DEBUG)
   else
   {
+    (*it)->type = t;
+#if defined(SCORE_DEBUG)
     qDebug() << "Tried to add edge between " << source << sink << "\n   ==> "
              << typeid(*source->node).name() << typeid(*sink->node).name();
-  }
 #endif
+  }
 }
 
 void Graph::removeEdge(Port* source, Port* sink)
@@ -518,9 +544,9 @@ void Graph::removeEdge(Port* source, Port* sink)
   }
 }
 
-void Graph::addAndLinkEdge(Port* source, Port* sink)
+void Graph::addAndLinkEdge(Port* source, Port* sink, Process::CableType t)
 {
-  addEdge(source, sink);
+  addEdge(source, sink, t);
 
   auto output = dynamic_cast<OutputNode*>(sink->node);
   SCORE_ASSERT(output);

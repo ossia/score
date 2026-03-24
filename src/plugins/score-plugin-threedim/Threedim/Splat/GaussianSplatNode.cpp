@@ -1,5 +1,7 @@
 #include "GaussianSplatNode.hpp"
 
+#include "Gfx/Graph/RhiComputeBarrier.hpp"
+
 #include <Gfx/Graph/RenderList.hpp>
 
 #include <ossia/network/value/value_conversion.hpp>
@@ -89,11 +91,6 @@ GaussianSplatRenderer::GaussianSplatRenderer(const GaussianSplatNode& node)
 }
 
 GaussianSplatRenderer::~GaussianSplatRenderer() = default;
-
-TextureRenderTarget GaussianSplatRenderer::renderTargetForInput(const Port& p)
-{
-  return m_inputTarget;
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Preprocess pipeline: raw 256B splats → compact 64B rendering splats
@@ -550,7 +547,7 @@ void GaussianSplatRenderer::init(RenderList& renderer, QRhiResourceUpdateBatch& 
            << rhi.backendName()
            << "compute=" << rhi.isFeatureSupported(QRhi::Compute);
 
-  // Create input render target
+  // Look up the pre-created input render target from the RenderList
   auto rt_spec = m_node.resolveRenderTargetSpecs(0, renderer);
   auto sampler = rhi.newSampler(
       rt_spec.min_filter, rt_spec.mag_filter, QRhiSampler::Linear,
@@ -558,12 +555,9 @@ void GaussianSplatRenderer::init(RenderList& renderer, QRhiResourceUpdateBatch& 
   sampler->setName("GaussianSplat::sampler");
   sampler->create();
 
-  m_inputTarget = score::gfx::createRenderTarget(
-      renderer.state, rt_spec.format, rt_spec.size, renderer.samples(),
-      true, // renderer.requiresDepth(),
-      QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips);
-
-  m_samplers.push_back({sampler, m_inputTarget.texture});
+  auto inputRT = renderer.renderTargetForInputPort(*m_node.input[0]);
+  auto* texture = inputRT.texture ? inputRT.texture : &renderer.emptyTexture();
+  m_samplers.push_back({sampler, texture});
 
   // Render uniform buffer
   const int64_t uniformSize = 3 * 64 + 16;
@@ -802,12 +796,15 @@ void GaussianSplatRenderer::runInitialPasses(
   // ── Pass 1: SH preprocess (raw → compact) ────────────────────────────
   if(m_preprocessResourcesCreated && m_preprocessPipeline)
   {
-    cb.beginComputePass(res);
+    cb.beginComputePass(res, QRhiCommandBuffer::BeginPassFlag::ExternalContent);
 
     cb.setComputePipeline(m_preprocessPipeline);
     cb.setShaderResources(m_preprocessSrb);
     cb.dispatch(numWorkgroups, 1, 1);
 
+    cb.beginExternal();
+    insertComputeBarrier(*renderer.state.rhi, cb);
+    cb.endExternal();
     cb.endComputePass();
   }
   else
@@ -842,12 +839,15 @@ void GaussianSplatRenderer::runInitialPasses(
   auto& rhi = *renderer.state.rhi;
 
   // Generate depth keys from compact buffer
-  cb.beginComputePass(res);
+  cb.beginComputePass(res, QRhiCommandBuffer::BeginPassFlag::ExternalContent);
 
   cb.setComputePipeline(m_depthKeyPipeline);
   cb.setShaderResources(m_depthKeySrb);
   cb.dispatch(numWorkgroups, 1, 1);
 
+  cb.beginExternal();
+  insertComputeBarrier(*renderer.state.rhi, cb);
+  cb.endExternal();
   cb.endComputePass();
 
   // Upload prefix sum uniforms (constant across all passes)
@@ -899,24 +899,30 @@ void GaussianSplatRenderer::runInitialPasses(
 
     // Histogram: count digits per workgroup
     // Even passes read from keysBuffer, odd from keysAltBuffer
-    cb.beginComputePass(res);
+    cb.beginComputePass(res, QRhiCommandBuffer::BeginPassFlag::ExternalContent);
     res = nullptr;
     cb.setComputePipeline(m_histogramPipeline);
     cb.setShaderResources(pass % 2 == 0 ? m_histogramSrb : m_histogramSrbAlt);
     cb.dispatch(numWorkgroups, 1, 1);
+    cb.beginExternal();
+    insertComputeBarrier(*renderer.state.rhi, cb);
+    cb.endExternal();
     cb.endComputePass();
 
     // Prefix sum: convert per-workgroup histograms to global prefix sums
     // Single workgroup of 256 threads (one per digit)
-    cb.beginComputePass(res);
+    cb.beginComputePass(res, QRhiCommandBuffer::BeginPassFlag::ExternalContent);
     res = nullptr;
     cb.setComputePipeline(m_prefixSumPipeline);
     cb.setShaderResources(m_prefixSumSrb);
     cb.dispatch(1, 1, 1);
+    cb.beginExternal();
+    insertComputeBarrier(*renderer.state.rhi, cb);
+    cb.endExternal();
     cb.endComputePass();
 
     // Scatter: reorder keys+indices using prefix sums (ping-pong)
-    cb.beginComputePass(res);
+    cb.beginComputePass(res, QRhiCommandBuffer::BeginPassFlag::ExternalContent);
     res = nullptr;
     cb.setComputePipeline(m_sortPipeline);
     cb.setShaderResources(pass % 2 == 0 ? m_sortSrb : m_sortSrbAlt);
@@ -979,8 +985,6 @@ void GaussianSplatRenderer::runRenderPass(
 void GaussianSplatRenderer::release(RenderList& r)
 {
   qDebug() << "[GaussianSplat] release";
-
-  m_inputTarget.release();
 
   for(auto& sampler : m_samplers)
     delete sampler.sampler;

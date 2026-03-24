@@ -1,4 +1,6 @@
 #pragma once
+#include <Process/Dataflow/CableData.hpp>
+
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 
@@ -34,7 +36,7 @@ struct SCORE_PLUGIN_GFX_EXPORT Graph
   /**
    * @brief Add an edge between two nodes.
    */
-  void addEdge(Port* source, Port* sink);
+  void addEdge(Port* source, Port* sink, Process::CableType t);
 
   /**
    * @brief Remove an edge between two nodes.
@@ -44,7 +46,7 @@ struct SCORE_PLUGIN_GFX_EXPORT Graph
   /**
    * @brief Add an edge between two nodes and creates relevant pipelines.
    */
-  void addAndLinkEdge(Port* source, Port* sink);
+  void addAndLinkEdge(Port* source, Port* sink, Process::CableType t);
 
   /**
    * @brief Remove an edge between two nodes and free the pipelines

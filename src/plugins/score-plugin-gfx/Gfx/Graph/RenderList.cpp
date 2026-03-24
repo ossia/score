@@ -103,12 +103,50 @@ QRhiResourceUpdateBatch* RenderList::initialBatch() const noexcept
   return m_initialBatch;
 }
 
+void RenderList::createAllInputRenderTargets()
+{
+  int cur_port = 0;
+  for(auto* node : nodes)
+  {
+    // Output node manages its own RT via its renderer (e.g. ScaledRenderer::m_inputTarget)
+    if(node == &output)
+      continue;
+    cur_port = 0;
+    for(auto* in : node->input)
+    {
+      if(in->type == Types::Image
+         && (in->flags & Flag::GrabsFromSource) != Flag::GrabsFromSource)
+      {
+        auto spec = node->resolveRenderTargetSpecs(cur_port, *this);
+        auto rt = score::gfx::createRenderTarget(
+            state, spec.format, spec.size, samples(), requiresDepth(*in));
+        m_inputRenderTargets[in] = std::move(rt);
+      }
+      cur_port++;
+    }
+  }
+}
+
+TextureRenderTarget RenderList::renderTargetForInputPort(const Port& p) const noexcept
+{
+  auto it = m_inputRenderTargets.find(&p);
+  if(it != m_inputRenderTargets.end())
+    return it->second;
+  return {};
+}
+
 void RenderList::release()
 {
   for(auto node : renderers)
   {
     node->release(*this);
   }
+
+  for(auto& [port, rt] : m_inputRenderTargets)
+  {
+    rt.release();
+  }
+  m_inputRenderTargets.clear();
 
   for(auto& bufs : m_vertexBuffers)
   {
@@ -156,7 +194,10 @@ void RenderList::releaseBuffer(QRhiBuffer* buf)
         return;
   }
 
-  buf->destroy();
+  // Don't call destroy() immediately — the buffer may still be referenced
+  // by pending uploadStaticBuffer operations in the current frame's batch.
+  // deleteLater() defers destruction to the next beginFrame(), ensuring
+  // the GPU handle stays valid for all queued operations this frame.
   buf->deleteLater();
 }
 
@@ -178,8 +219,11 @@ bool RenderList::maybeRebuild(bool force)
     for(auto node : nodes)
       m_requiresDepth |= node->requiresDepth;
 
-    // We init the nodes in reverse orders as
-    // the render targets of subsequent nodes must be initialized
+    // Create all input render targets centrally before any node init().
+    // This ensures RTs are available regardless of init order,
+    // which is required for delayed (feedback) edges.
+    createAllInputRenderTargets();
+
     for(auto node : renderers)
     {
       node->init(*this, *m_initialBatch);
@@ -197,6 +241,8 @@ bool RenderList::maybeRebuild(bool force)
 
 TextureRenderTarget RenderList::renderTargetForOutput(const Edge& edge) const noexcept
 {
+  // Check renderer's own override first (output nodes, Crousti/halp renderers
+  // that manage their own render targets)
   if(auto sink_node = edge.sink->node)
     if(auto it = sink_node->renderedNodes.find(this);
        it != sink_node->renderedNodes.end())
@@ -206,6 +252,14 @@ TextureRenderTarget RenderList::renderTargetForOutput(const Edge& edge) const no
       if(tex.renderTarget && tex.renderPass)
         return tex;
     }
+
+  // Fall through to centralized render target map.
+  // This covers nodes whose renderers don't manage their own RTs
+  // (ISF, CSF, etc.) and delayed (feedback) edges where the sink
+  // renderer may not have been init'd yet.
+  if(auto it = m_inputRenderTargets.find(edge.sink); it != m_inputRenderTargets.end())
+    if(it->second.renderTarget && it->second.renderPass)
+      return it->second;
 
   return {};
 }
@@ -434,6 +488,13 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
     {
       node->release(*this);
     }
+
+    // Recreate centralized input render targets
+    for(auto& [port, rt] : m_inputRenderTargets)
+      rt.release();
+    m_inputRenderTargets.clear();
+    createAllInputRenderTargets();
+
     for(auto node : renderers)
     {
       node->init(*this, *updateBatch);
@@ -568,7 +629,11 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
             auto rendered = node->renderedNodes.find(this);
             SCORE_ASSERT(rendered != node->renderedNodes.end());
             NodeRenderer* renderer = rendered->second;
-            if(auto rt = renderer->renderTargetForInput(*input))
+
+            auto rt = renderer->renderTargetForInput(*input);
+            if(!rt)
+              rt = renderTargetForInputPort(*input);
+            if(rt)
             {
               QColor bg = (it + 1 == this->nodes.rend() ? Qt::black : Qt::transparent);
               // Normal drawing node
@@ -656,7 +721,7 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
 
       // FIXME remove this hack
       score::gfx::Port p;
-      score::gfx::Edge dummy{&p, &p};
+      score::gfx::Edge dummy{&p, &p, Process::CableType::ImmediateGlutton};
       output_renderer->update(*this, *updateBatch, nullptr);
       output_renderer->runInitialPasses(*this, commands, updateBatch, dummy);
       output_renderer->runRenderPass(*this, commands, dummy);

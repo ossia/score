@@ -34,7 +34,12 @@ struct long_input
   using has_minmax = std::true_type;
   std::vector<ossia::variant<int64_t, double, std::string>> values;
   std::vector<std::string> labels;
-  std::size_t def{}; // index of default value
+  std::size_t def{}; // index of default value (enum mode) or default value (numeric mode)
+
+  // Numeric mode: when values/labels are empty and min/max are set,
+  // create an IntSpinBox instead of a ComboBox.
+  std::optional<int64_t> min;
+  std::optional<int64_t> max;
 };
 struct float_input
 {
@@ -74,6 +79,7 @@ struct color_input
 
 struct image_input
 {
+  int dimensions{2}; // 2 or 3
 };
 
 struct cubemap_input
@@ -111,7 +117,7 @@ struct storage_input
 
 struct texture_input
 {
-  // For sampled textures in CSF
+  int dimensions{2}; // 2 or 3
 };
 
 struct csf_image_input
@@ -121,6 +127,38 @@ struct csf_image_input
 
   std::string width_expression;
   std::string height_expression;
+  std::string depth_expression; // non-empty means 3D texture
+};
+
+// CSF geometry port input: SoA layout, one SSBO per attribute.
+// Declares which geometry attributes the compute shader wants to access.
+struct geometry_input
+{
+  struct attribute_request
+  {
+    std::string name;     // Attribute name used in GLSL (e.g. "position", "velocity")
+    std::string semantic; // Maps to ossia::attribute_semantic name (e.g. "position", "custom")
+    std::string type;     // GLSL type (e.g. "vec3", "vec4", "float")
+    std::string access;   // "read_only", "write_only", "read_write"
+    std::string rate;     // "vertex" (default) or "instance"
+    bool required{true};  // false = optional, zero fallback if missing
+  };
+
+  // Structured SSBOs that travel with the geometry (matched by name
+  // against ossia::geometry::auxiliary_buffer entries).
+  struct auxiliary_request
+  {
+    std::string name;
+    std::string access; // "read_only", "write_only", "read_write"
+    std::vector<storage_input::layout_field> layout;
+    std::string size; // expression for flexible array count, may contain $USER
+  };
+
+  std::vector<attribute_request> attributes;
+  std::vector<auxiliary_request> auxiliary;
+
+  std::string vertex_count;   // expression string, may contain $USER
+  std::string instance_count; // expression string, may contain $USER
 };
 
 struct input
@@ -128,7 +166,8 @@ struct input
   using input_impl = ossia::variant<
       float_input, long_input, event_input, bool_input, color_input, point2d_input,
       point3d_input, image_input, cubemap_input, audio_input, audioFFT_input,
-      audioHist_input, storage_input, texture_input, csf_image_input>;
+      audioHist_input, storage_input, texture_input, csf_image_input,
+      geometry_input>;
 
   std::string name;
   std::string label;
@@ -250,6 +289,12 @@ struct pass
   std::string height_expression{};
 };
 
+struct output_declaration
+{
+  std::string name;     // User-chosen name (e.g. "color", "sceneDepth")
+  std::string type;     // "color" (default) or "depth"
+};
+
 struct descriptor
 {
   enum Mode
@@ -263,6 +308,7 @@ struct descriptor
   std::string credits;
   std::vector<std::string> categories;
   std::vector<input> inputs;
+  std::vector<output_declaration> outputs; // Parsed from OUTPUTS array; empty = single color output
   std::vector<pass> passes;
   std::vector<std::string> pass_targets;
   bool default_vertex_shader{};
@@ -284,10 +330,11 @@ struct descriptor
   struct dispatch_info
   {
     std::array<int, 3> local_size{16, 16, 1};
-    std::string execution_type{"2D_IMAGE"}; // "2D_IMAGE", "1D_BUFFER", "MANUAL", etc.
+    std::string execution_type{"2D_IMAGE"}; // "2D_IMAGE", "1D_BUFFER", "PER_VERTEX", "PER_INSTANCE", "MANUAL", "USER"
     std::string target_resource;
     std::array<int, 3> workgroups{1, 1, 1}; // For MANUAL mode
-    int stride{1};                          // For 1D_BUFFER / 2D_IMAGE. 0 == default
+    std::array<std::string, 3> stride{"1", "1", "1"}; // Per-axis stride (supports formulas)
+    std::array<int, 3> user_dispatch_ports{-1, -1, -1}; // Port indices for USER mode (X, Y, Z)
   };
   std::vector<dispatch_info> csf_passes;
 

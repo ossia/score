@@ -224,7 +224,7 @@ public:
             auto& src = cable.source().find(m_context);
             if(src.type() == type)
             {
-              m.createCable(sm, src, *dst);
+              m.createCable(sm, src, *dst, cable.type());
             }
           }
           m.setProperty<Process::Port::p_address>(*dst, old_dst->address());
@@ -249,7 +249,7 @@ public:
             auto& dst = cable.sink().find(m_context);
             if(dst.type() == type)
             {
-              m.createCable(sm, *src, dst);
+              m.createCable(sm, *src, dst, cable.type());
             }
           }
           m.setProperty<Process::Port::p_address>(*src, old_src->address());

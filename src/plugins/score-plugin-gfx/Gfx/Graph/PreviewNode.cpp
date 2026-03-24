@@ -252,7 +252,9 @@ score::gfx::OutputNodeRenderer*
 PreviewNode::createRenderer(score::gfx::RenderList& r) const noexcept
 {
   score::gfx::TextureRenderTarget rt{
-      m_texture, nullptr, nullptr, m_renderState->renderPassDescriptor, m_renderTarget};
+      .texture = m_texture,
+      .renderPass = m_renderState->renderPassDescriptor,
+      .renderTarget = m_renderTarget};
   switch(r.state.api)
   {
     default:

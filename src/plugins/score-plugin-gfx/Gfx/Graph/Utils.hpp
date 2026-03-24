@@ -1,4 +1,5 @@
 #pragma once
+#include <Process/Dataflow/CableData.hpp>
 
 #include <Gfx/Graph/Mesh.hpp>
 #include <Gfx/Graph/RenderState.hpp>
@@ -72,9 +73,10 @@ struct Port
  */
 struct Edge
 {
-  Edge(Port* source, Port* sink)
+  Edge(Port* source, Port* sink, Process::CableType t)
       : source{source}
       , sink{sink}
+      , type{t}
   {
     source->edges.push_back(this);
     sink->edges.push_back(this);
@@ -92,6 +94,7 @@ struct Edge
 
   Port* source{};
   Port* sink{};
+  Process::CableType type{};
 };
 
 /**
@@ -117,13 +120,20 @@ struct Pipeline
  */
 struct TextureRenderTarget
 {
-  QRhiTexture* texture{};
+  QRhiTexture* texture{};                              // Primary color attachment (location 0)
+  std::vector<QRhiTexture*> additionalColorTextures;   // MRT: locations 1..N
   QRhiRenderBuffer* colorRenderBuffer{};
   QRhiRenderBuffer* depthRenderBuffer{};
+  QRhiTexture* depthTexture{};                         // Sampleable depth (alternative to depthRenderBuffer)
   QRhiRenderPassDescriptor* renderPass{};
   QRhiRenderTarget* renderTarget{};
 
   operator bool() const noexcept { return texture != nullptr; }
+
+  int colorAttachmentCount() const noexcept
+  {
+    return texture ? 1 + (int)additionalColorTextures.size() : 0;
+  }
 
   void release()
   {
@@ -132,11 +142,18 @@ struct TextureRenderTarget
       delete texture;
       texture = nullptr;
 
+      for(auto* t : additionalColorTextures)
+        delete t;
+      additionalColorTextures.clear();
+
       delete colorRenderBuffer;
       colorRenderBuffer = nullptr;
 
       delete depthRenderBuffer;
       depthRenderBuffer = nullptr;
+
+      delete depthTexture;
+      depthTexture = nullptr;
 
       delete renderPass;
       renderPass = nullptr;
@@ -172,6 +189,19 @@ SCORE_PLUGIN_GFX_EXPORT
 TextureRenderTarget createRenderTarget(
     const RenderState& state, QRhiTexture::Format fmt, QSize sz, int samples, bool depth,
     QRhiTexture::Flags = {});
+
+/**
+ * @brief Create a render target with multiple color attachments and optional sampleable depth.
+ *
+ * @param colorTextures All color attachment textures (must be non-empty, first becomes primary)
+ * @param depthTexture Sampleable depth texture, or nullptr for no depth / renderbuffer depth
+ */
+SCORE_PLUGIN_GFX_EXPORT
+TextureRenderTarget createRenderTarget(
+    const RenderState& state,
+    std::span<QRhiTexture* const> colorTextures,
+    QRhiTexture* depthTexture,
+    int samples);
 
 SCORE_PLUGIN_GFX_EXPORT
 void replaceBuffer(QRhiShaderResourceBindings&, int binding, QRhiBuffer* newBuffer);
@@ -226,6 +256,19 @@ QRhiShaderResourceBindings* createDefaultBindings(
     const RenderList& renderer, const TextureRenderTarget& rt, QRhiBuffer* processUBO,
     QRhiBuffer* materialUBO, std::span<const Sampler> samplers,
     std::span<QRhiShaderResourceBinding> additionalBindings = {});
+
+/**
+ * @brief Remap a pipeline's vertex input layout using semantic matching.
+ *
+ * For each shader input variable, resolves its name to an attribute semantic,
+ * finds the matching attribute in the geometry, then creates a vertex input
+ * attribute with binding/format/offset from the geometry and location from
+ * the shader. Returns true on success, false if a required attribute is missing.
+ */
+SCORE_PLUGIN_GFX_EXPORT
+bool remapPipelineVertexInputs(
+    QRhiGraphicsPipeline& pip, const QShader& vertexShader,
+    const ossia::geometry& geom);
 
 /**
  * @brief Create a render pipeline following the score conventions for shaders and materials.
@@ -369,6 +412,5 @@ inline void uploadStaticBufferWithStoredData(
 
 SCORE_PLUGIN_GFX_EXPORT
 std::vector<Sampler> initInputSamplers(
-    const score::gfx::Node& node, RenderList& renderer, const std::vector<Port*>& ports,
-    ossia::small_flat_map<const Port*, TextureRenderTarget, 2>& m_rts);
+    const score::gfx::Node& node, RenderList& renderer, const std::vector<Port*>& ports);
 }

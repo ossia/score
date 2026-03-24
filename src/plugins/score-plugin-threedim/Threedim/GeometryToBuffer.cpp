@@ -10,23 +10,23 @@ namespace Threedim
 
 ExtractBuffer::ExtractBuffer() { }
 
-halp::attribute_location ExtractBuffer::toAttributeLocation(Attribute attr) noexcept
+halp::attribute_semantic ExtractBuffer::toAttributeLocation(Attribute attr) noexcept
 {
   using namespace halp;
   switch(attr)
   {
     case Position:
-      return attribute_location::position;
+      return attribute_semantic::position;
     case TexCoord:
-      return attribute_location::tex_coord;
+      return attribute_semantic::texcoord0;
     case Color:
-      return attribute_location::color;
+      return attribute_semantic::color0;
     case Normal:
-      return attribute_location::normal;
+      return attribute_semantic::normal;
     case Tangent:
-      return attribute_location::tangent;
+      return attribute_semantic::tangent;
   }
-  return attribute_location::position;
+  return attribute_semantic::position;
 }
 
 void ExtractBuffer::init(

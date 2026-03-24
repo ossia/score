@@ -238,6 +238,18 @@ void Model::setupCSF(const isf::descriptor& desc)
 
     void operator()(const long_input& v)
     {
+      // Numeric mode: MIN/MAX set and no VALUES/LABELS → IntSpinBox
+      if(v.values.empty() && v.min && v.max)
+      {
+        auto port = new Process::IntSpinBox(
+            *v.min, *v.max, (int)v.def, QString::fromStdString(input.name),
+            Id<Process::Port>(input_i++), &self);
+        self.m_inlets.push_back(port);
+        self.controlAdded(port->id());
+        return;
+      }
+
+      // Enum mode: VALUES/LABELS → ComboBox
       std::vector<std::pair<QString, ossia::value>> alternatives;
       if(v.labels.size() == v.values.size())
       {
@@ -463,6 +475,88 @@ void Model::setupCSF(const isf::descriptor& desc)
         self.m_outlets.push_back(port);
       }
     }
+
+    void operator()(const geometry_input& v)
+    {
+      if(v.attributes.empty())
+      {
+        // No attributes declared: pure pass-through (input + output, forwards everything)
+        auto in_port = new Gfx::GeometryInlet(
+            QString::fromStdString(input.name), Id<Process::Port>(input_i++), &self);
+        self.m_inlets.push_back(in_port);
+
+        auto out_port = new Gfx::GeometryOutlet(
+            QString::fromStdString(input.name + "_out"),
+            Id<Process::Port>(output_i++), &self);
+        self.m_outlets.push_back(out_port);
+      }
+      else
+      {
+        // Create a geometry inlet if any attribute needs upstream data (read_only or read_write)
+        bool needs_input = false;
+        for(const auto& attr : v.attributes)
+        {
+          if(attr.access != "write_only")
+          {
+            needs_input = true;
+            break;
+          }
+        }
+        if(needs_input)
+        {
+          auto in_port = new Gfx::GeometryInlet(
+              QString::fromStdString(input.name), Id<Process::Port>(input_i++), &self);
+          self.m_inlets.push_back(in_port);
+        }
+
+        // If any attributes are writable, create a geometry output port
+        for(const auto& attr : v.attributes)
+        {
+          if(attr.access != "read_only")
+          {
+            auto out_port = new Gfx::GeometryOutlet(
+                QString::fromStdString(input.name + "_out"),
+                Id<Process::Port>(output_i++), &self);
+            self.m_outlets.push_back(out_port);
+            break;
+          }
+        }
+      }
+
+      // $USER in vertex_count creates an IntSpinBox
+      if(v.vertex_count.find("$USER") != std::string::npos)
+      {
+        auto port = new Process::IntSpinBox{
+            1, 536870911, 1024,
+            QString::fromStdString(input.name) + " vertex count",
+            Id<Process::Port>(input_i++), &self};
+        self.m_inlets.push_back(port);
+        self.controlAdded(port->id());
+      }
+      // $USER in instance_count creates an IntSpinBox
+      if(v.instance_count.find("$USER") != std::string::npos)
+      {
+        auto port = new Process::IntSpinBox{
+            1, 536870911, 1,
+            QString::fromStdString(input.name) + " instance count",
+            Id<Process::Port>(input_i++), &self};
+        self.m_inlets.push_back(port);
+        self.controlAdded(port->id());
+      }
+      // $USER in each auxiliary SIZE creates an IntSpinBox
+      for(const auto& aux : v.auxiliary)
+      {
+        if(aux.size.find("$USER") != std::string::npos)
+        {
+          auto port = new Process::IntSpinBox{
+              1, 536870911, 1024,
+              QString::fromStdString(aux.name) + " size",
+              Id<Process::Port>(input_i++), &self};
+          self.m_inlets.push_back(port);
+          self.controlAdded(port->id());
+        }
+      }
+    }
   };
 
   int input_i = 0;
@@ -470,6 +564,25 @@ void Model::setupCSF(const isf::descriptor& desc)
   for(const isf::input& input : desc.inputs)
   {
     ossia::visit(port_vis{input, input_i, output_i, *this}, input.data);
+  }
+
+  // Create USER dispatch ports (XYZ IntSpinBox per USER dispatch pass)
+  for(int pass_idx = 0; pass_idx < (int)desc.csf_passes.size(); pass_idx++)
+  {
+    const auto& pass = desc.csf_passes[pass_idx];
+    if(pass.execution_type == "USER")
+    {
+      static constexpr const char* axis_names[] = {"X", "Y", "Z"};
+      for(int axis = 0; axis < 3; axis++)
+      {
+        auto port = new Process::IntSpinBox{
+            1, 65535, 1,
+            QString("Dispatch %1 (pass %2)").arg(axis_names[axis]).arg(pass_idx),
+            Id<Process::Port>(input_i++), this};
+        m_inlets.push_back(port);
+        controlAdded(port->id());
+      }
+    }
   }
 }
 

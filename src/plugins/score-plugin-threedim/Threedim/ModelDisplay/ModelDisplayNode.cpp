@@ -625,11 +625,7 @@ public:
 private:
   ~Renderer() = default;
 
-  score::gfx::TextureRenderTarget m_inputTarget;
-  TextureRenderTarget renderTargetForInput(const Port& p) override
-  {
-    return m_inputTarget;
-  }
+  score::gfx::RenderList* m_renderer{};
 
   void initPasses_impl(RenderList& renderer, const Mesh& mesh, RenderShaders& shaders)
   {
@@ -820,30 +816,39 @@ private:
     }
     else if (!has_texcoord && !has_normals)
     {
-      switch(n.texture_projection)
+      if(has_colors)
       {
-        default:
-        case 0:
-        case 1:
-        case 2:
-        case 3:
-        case 6:
-        case 4: // Needs just position
-          defaultPassesInit(
-              renderer,
-              mesh,
-              shaders.viewspaceVS,
-              shaders.viewspaceFS,
-              additional_bindings);
-          break;
-        case 5: // Needs just position
-          defaultPassesInit(
-              renderer,
-              mesh,
-              shaders.barycentricVS,
-              shaders.barycentricFS,
-              additional_bindings);
-          break;
+        // Geometry has vertex colors but no texcoord/normals - use color shader
+        defaultPassesInit(
+            renderer, mesh, shaders.colorVS, shaders.colorFS, additional_bindings);
+      }
+      else
+      {
+        switch(n.texture_projection)
+        {
+          default:
+          case 0:
+          case 1:
+          case 2:
+          case 3:
+          case 6:
+          case 4: // Needs just position
+            defaultPassesInit(
+                renderer,
+                mesh,
+                shaders.viewspaceVS,
+                shaders.viewspaceFS,
+                additional_bindings);
+            break;
+          case 5: // Needs just position
+            defaultPassesInit(
+                renderer,
+                mesh,
+                shaders.barycentricVS,
+                shaders.barycentricFS,
+                additional_bindings);
+            break;
+        }
       }
     }
   }
@@ -1035,7 +1040,8 @@ private:
     auto& rhi = *renderer.state.rhi;
 
     SCORE_ASSERT(m_samplers.empty());
-    SCORE_ASSERT(!m_inputTarget);
+
+    m_renderer = &renderer;
 
     // Sampler for input texture
     auto rt_spec = node.resolveRenderTargetSpecs(0, renderer);
@@ -1046,12 +1052,8 @@ private:
     sampler->setName("ModelDisplayNode::init::sampler");
     SCORE_ASSERT(sampler->create());
 
-    m_inputTarget = score::gfx::createRenderTarget(
-        renderer.state, rt_spec.format, rt_spec.size, renderer.samples(),
-        renderer.requiresDepth(*this->node.input[0]),
-        QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips);
-
-    auto texture = m_inputTarget.texture;
+    auto inputRT = renderer.renderTargetForInputPort(*this->node.input[0]);
+    auto* texture = inputRT.texture ? inputRT.texture : &renderer.emptyTexture();
     m_samplers.push_back({sampler, texture});
   }
 
@@ -1181,7 +1183,9 @@ private:
       initPasses(renderer, mesh);
     }
 
-    res.generateMips(this->m_inputTarget.texture);
+    if(m_renderer)
+      if(auto inputRT = m_renderer->renderTargetForInputPort(*this->node.input[0]); inputRT.texture)
+        res.generateMips(inputRT.texture);
   }
 
   void runRenderPass(RenderList& renderer, QRhiCommandBuffer& cb, Edge& edge) override
@@ -1192,7 +1196,7 @@ private:
 
   void release(RenderList& r) override
   {
-    m_inputTarget.release();
+    m_renderer = nullptr;
     defaultRelease(r);
   }
 };

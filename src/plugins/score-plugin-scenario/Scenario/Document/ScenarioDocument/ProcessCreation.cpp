@@ -56,9 +56,12 @@ void createProcessInCable(
         {
           // orig_source goes into new_inlet
           // new_outlet goes into orig_sink
+
+          const auto t = cbl.type();
           m.removeCable(model, cbl);
-          m.createCable(model, orig_source, *new_inlet);
-          m.createCable(model, *new_outlet, orig_sink);
+          m.createCable(
+              model, orig_source, *new_inlet, Process::CableType::ImmediateGlutton);
+          m.createCable(model, *new_outlet, orig_sink, t);
         }
 
         context.selectionStack.pushNewSelection({proc});
@@ -103,9 +106,11 @@ void loadPresetInCable(
         {
           // orig_source goes into new_inlet
           // new_outlet goes into orig_sink
+          const auto t = cbl.type();
           m.removeCable(model, cbl);
-          m.createCable(model, orig_source, *new_inlet);
-          m.createCable(model, *new_outlet, orig_sink);
+          m.createCable(
+              model, orig_source, *new_inlet, Process::CableType::ImmediateGlutton);
+          m.createCable(model, *new_outlet, orig_sink, t);
         }
 
         context.selectionStack.pushNewSelection({proc});
@@ -146,7 +151,8 @@ void createProcessBeforePort(
         // Create a cable from the output to the input
         if(new_outlet->type() == p.type())
         {
-          m.createCable(parent.model(), *new_outlet, p);
+          m.createCable(
+              parent.model(), *new_outlet, p, Process::CableType::ImmediateGlutton);
         }
 
         if(!proc->inlets().empty())
@@ -197,7 +203,8 @@ void createProcessAfterPort(
         // Create a cable from the output to the input
         if(new_inlet->type() == p.type())
         {
-          m.createCable(parent.model(), p, *new_inlet);
+          m.createCable(
+              parent.model(), p, *new_inlet, Process::CableType::ImmediateGlutton);
         }
 
         if(!proc->outlets().empty())
@@ -242,7 +249,8 @@ void loadPresetBeforePort(
         // Create a cable from the output to the input
         if(new_outlet->type() == p.type())
         {
-          m.createCable(parent.model(), *new_outlet, p);
+          m.createCable(
+              parent.model(), *new_outlet, p, Process::CableType::ImmediateGlutton);
         }
 
         if(!proc->inlets().empty())
@@ -285,7 +293,8 @@ void loadPresetAfterPort(
         // Create a cable from the output to the input
         if(new_inlet->type() == p.type())
         {
-          m.createCable(parent.model(), p, *new_inlet);
+          m.createCable(
+              parent.model(), p, *new_inlet, Process::CableType::ImmediateGlutton);
         }
 
         if(!proc->outlets().empty())

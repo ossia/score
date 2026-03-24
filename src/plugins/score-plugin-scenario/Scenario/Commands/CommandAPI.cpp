@@ -379,11 +379,10 @@ void Macro::removeProcess(
 
 Process::Cable& Macro::createCable(
     const ScenarioDocumentModel& dp, const Process::Port& source,
-    const Process::Port& sink)
+    const Process::Port& sink, Process::CableType t)
 {
   auto id = getStrongId(dp.cables);
-  m.submit(new Dataflow::CreateCable(
-      dp, id, Process::CableType::ImmediateGlutton, source, sink));
+  m.submit(new Dataflow::CreateCable(dp, id, t, source, sink));
   return dp.cables.at(id);
 }
 
@@ -484,7 +483,7 @@ Macro::automate(const IntervalModel& parent, const Process::Inlet& inl)
   auto& ctx = this->m.stack().context();
   auto& plug = ctx.model<Scenario::ScenarioDocumentModel>();
   auto outl = static_cast<Automation::ProcessModel*>(autom)->outlet.get();
-  createCable(plug, *outl, inl);
+  createCable(plug, *outl, inl, Process::CableType::ImmediateGlutton);
 
   return {};
 }

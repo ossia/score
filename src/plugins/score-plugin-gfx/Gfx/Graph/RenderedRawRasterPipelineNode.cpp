@@ -1,5 +1,6 @@
 #include <Gfx/Graph/RenderedISFSamplerUtils.hpp>
 #include <Gfx/Graph/RenderedRawRasterPipelineNode.hpp>
+#include <Gfx/Graph/Utils.hpp>
 
 #include <score/tools/Debug.hpp>
 
@@ -13,14 +14,6 @@ RenderedRawRasterPipelineNode::RenderedRawRasterPipelineNode(
     : score::gfx::NodeRenderer{node}
     , n{const_cast<ISFNode&>(node)}
 {
-}
-
-TextureRenderTarget RenderedRawRasterPipelineNode::renderTargetForInput(const Port& p)
-{
-  auto it = m_rts.find(&p);
-  if(it != m_rts.end())
-    return it->second;
-  return {};
 }
 
 void RenderedRawRasterPipelineNode::updateInputTexture(const Port& input, QRhiTexture* tex)
@@ -99,6 +92,12 @@ void RenderedRawRasterPipelineNode::initPass(
     ps->setName("RenderedRawRasterPipelineNode::initPass::ps");
     SCORE_ASSERT(ps);
 
+    ps->setSampleCount(renderer.samples());
+
+    m_mesh->preparePipeline(*ps);
+
+    // Override topology and blend after preparePipeline,
+    // since the mesh may set its own defaults (e.g. CSF geometry outputs as points)
     QRhiGraphicsPipeline::TargetBlend premulAlphaBlend;
     premulAlphaBlend.enable = mat.enable_blend;
     premulAlphaBlend.srcColor = mat.src_color;
@@ -122,41 +121,22 @@ void RenderedRawRasterPipelineNode::initPass(
         break;
     }
 
-    ps->setSampleCount(renderer.samples());
-
-    m_mesh->preparePipeline(*ps);
-
-    // Check compatibility of shader and mesh
+    // Remap vertex inputs by semantic: match shader input variable names
+    // to geometry attribute semantics.
+    if(auto* geom = m_mesh->semanticGeometry())
     {
-      const auto& mesh_vars = ps->vertexInputLayout();
-      auto mesh_bindings_begin = mesh_vars.cbeginBindings();
-      auto mesh_bindings_end = mesh_vars.cendBindings();
-      auto mesh_attributes_begin = mesh_vars.cbeginAttributes();
-      auto mesh_attributes_end = mesh_vars.cendAttributes();
-      const int mesh_bindings = mesh_bindings_end - mesh_bindings_begin;
-      const int mesh_attributes = mesh_attributes_end - mesh_attributes_begin;
-      for(const auto& shader_var : v.description().inputVariables())
+      if(!remapPipelineVertexInputs(*ps, v, *geom))
       {
-        bool found = false;
-        for(int i = 0; i < mesh_attributes; i++)
-        {
-          const auto& attr = mesh_attributes_begin + i;
-          if(attr->location() == shader_var.location)
-          {
-            if(attr->binding() >= 0 && attr->binding() < mesh_bindings)
-            {
-              found = true;
-              break;
-            }
-          }
-        }
-        if(!found)
-        {
-          delete ps;
-          delete pubo;
-          return;
-        }
+        qDebug() << "RawRaster::initPass: remapPipelineVertexInputs FAILED";
+        delete ps;
+        delete pubo;
+        return;
       }
+      qDebug() << "RawRaster::initPass: remapPipelineVertexInputs OK";
+    }
+    else
+    {
+      qDebug() << "RawRaster::initPass: no semanticGeometry";
     }
 
     ps->setDepthTest(true);
@@ -232,12 +212,11 @@ void RenderedRawRasterPipelineNode::init(
   SCORE_ASSERT(m_modelUBO->create());
 
   // Create the samplers
-  SCORE_ASSERT(m_rts.empty());
   SCORE_ASSERT(m_passes.empty());
   SCORE_ASSERT(m_inputSamplers.empty());
   SCORE_ASSERT(m_audioSamplers.empty());
 
-  m_inputSamplers = initInputSamplers(this->n, renderer, n.input, m_rts);
+  m_inputSamplers = initInputSamplers(this->n, renderer, n.input);
 
   m_audioSamplers = initAudioTextures(renderer, n.m_audio_textures);
 
@@ -287,7 +266,7 @@ bool RenderedRawRasterPipelineNode::updateMaterials(
   if(m_materialUBO && m_materialSize > 0 && (materialChanged || audioChanged))
   {
     char* data = n.m_material_data.get();
-    SCORE_ASSERT(m_materialSize > size_of_pipeline_material);
+    SCORE_ASSERT(m_materialSize >= size_of_pipeline_material);
     if(std::memcmp(data, this->m_prevPipelineChangingMaterial, size_of_pipeline_material)
        != 0)
     {
@@ -322,7 +301,10 @@ void RenderedRawRasterPipelineNode::update(
   }
 
   if(!m_mesh)
+  {
+    qDebug() << "RawRaster::update: no mesh!";
     return;
+  }
 
   // FIXME is that neeeded?
   // FIXME also not handling geometry_filter dirty geom so far
@@ -367,12 +349,6 @@ void RenderedRawRasterPipelineNode::release(RenderList& r)
 {
   // customRelease
   {
-    for(auto [edge, rt] : m_rts)
-    {
-      rt.release();
-    }
-    m_rts.clear();
-
     for(auto& texture : n.m_audio_textures)
     {
       auto it = texture.samplers.find(&r);

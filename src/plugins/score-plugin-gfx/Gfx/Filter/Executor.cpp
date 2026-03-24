@@ -162,7 +162,15 @@ ProcessExecutorComponent::setup_node(Execution::Transaction& commands)
     // }
   }
 
-  outls.push_back(new ossia::texture_outlet);
+  for(auto* outlet : element.outlets())
+  {
+    if(qobject_cast<Gfx::TextureOutlet*>(outlet))
+      outls.push_back(new ossia::texture_outlet);
+  }
+
+  // Fallback: ensure at least one texture outlet
+  if(outls.empty())
+    outls.push_back(new ossia::texture_outlet);
 
   //! TODO the day we have audio outputs in some GFX node
   //! propagate will need to be handled ; right now here
