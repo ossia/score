@@ -3,6 +3,8 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 class QLineEdit;
+class QPlainTextEdit;
+class QSplitter;
 class QTextEdit;
 class QSpinBox;
 class QWidget;
@@ -21,10 +23,13 @@ public:
 protected:
   void setDefaults();
   void parseHost();
+  void validate();
 
 protected:
   QLineEdit* m_deviceNameEdit{};
   QLineEdit* m_addressNameEdit{};
+  QSplitter* m_splitter{};
   QTextEdit* m_codeEdit{};
+  QPlainTextEdit* m_errorPane{};
 };
 }

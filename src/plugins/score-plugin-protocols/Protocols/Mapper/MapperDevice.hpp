@@ -21,6 +21,8 @@ inline QDataStream& operator>>(QDataStream& st, std::vector<ossia::net::node_bas
 Q_DECLARE_METATYPE(std::vector<ossia::net::node_base*>)
 W_REGISTER_ARGTYPE(std::vector<ossia::net::node_base*>)
 class QCodeEditor;
+class QPlainTextEdit;
+class QSplitter;
 namespace Protocols
 {
 class Mapper : public QObject
@@ -77,10 +79,13 @@ public:
 
 protected:
   void setDefaults();
+  void validate();
 
 protected:
   QLineEdit* m_name{};
+  QSplitter* m_splitter{};
   QTextEdit* m_codeEdit{};
+  QPlainTextEdit* m_errorPane{};
 };
 }
 

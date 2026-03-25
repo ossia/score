@@ -6,6 +6,8 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 class QLineEdit;
+class QPlainTextEdit;
+class QSplitter;
 class QTextEdit;
 class QWidget;
 namespace score
@@ -26,12 +28,15 @@ public:
 
 protected:
   void setDefaults();
+  void validate();
 
 protected:
   QLineEdit* m_name{};
   score::ComboBox* m_port{};
   score::ComboBox* m_rate{};
+  QSplitter* m_splitter{};
   QTextEdit* m_codeEdit{};
+  QPlainTextEdit* m_errorPane{};
 };
 }
 

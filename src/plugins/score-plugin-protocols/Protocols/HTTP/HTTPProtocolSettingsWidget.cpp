@@ -16,6 +16,11 @@
 #include <QCodeEditor>
 #include <QGridLayout>
 #include <QLabel>
+#include <QPlainTextEdit>
+#include <QPushButton>
+#include <QQmlComponent>
+#include <QQmlEngine>
+#include <QSplitter>
 #include <QVariant>
 class QWidget;
 
@@ -31,11 +36,25 @@ HTTPProtocolSettingsWidget::HTTPProtocolSettingsWidget(QWidget* parent)
   m_codeEdit = Process::createScriptWidget("JS");
   checkForChanges(m_codeEdit);
 
+  m_errorPane = new QPlainTextEdit{this};
+  m_errorPane->setReadOnly(true);
+  m_errorPane->setMaximumHeight(120);
+
+  m_splitter = new QSplitter{Qt::Vertical, this};
+  m_splitter->addWidget(m_codeEdit);
+  m_splitter->addWidget(m_errorPane);
+  m_splitter->setStretchFactor(0, 3);
+  m_splitter->setStretchFactor(1, 1);
+
+  auto validateBtn = new QPushButton{tr("Validate"), this};
+  connect(validateBtn, &QPushButton::clicked, this, &HTTPProtocolSettingsWidget::validate);
+
   QGridLayout* gLayout = new QGridLayout;
 
   gLayout->addWidget(deviceNameLabel, 0, 0, 1, 1);
   gLayout->addWidget(m_deviceNameEdit, 0, 1, 1, 1);
-  gLayout->addWidget(m_codeEdit, 3, 0, 1, 2);
+  gLayout->addWidget(m_splitter, 3, 0, 1, 2);
+  gLayout->addWidget(validateBtn, 4, 0, 1, 2);
 
   setLayout(gLayout);
 
@@ -49,6 +68,43 @@ void HTTPProtocolSettingsWidget::setDefaults()
 
   m_deviceNameEdit->setText("newDevice");
   m_codeEdit->setPlainText("");
+}
+
+void HTTPProtocolSettingsWidget::validate()
+{
+  m_errorPane->clear();
+
+  auto code = m_codeEdit->toPlainText().toUtf8();
+  if(code.isEmpty())
+    return;
+
+  auto engine = new QQmlEngine{this};
+  auto comp = new QQmlComponent{engine};
+
+  connect(
+      comp, &QQmlComponent::statusChanged, this,
+      [this, comp, engine](QQmlComponent::Status status) {
+    switch(status)
+    {
+      case QQmlComponent::Status::Ready:
+        m_errorPane->setPlainText(tr("QML code is valid."));
+        break;
+      case QQmlComponent::Status::Error: {
+        auto errors = comp->errorString();
+        if(errors.startsWith(':'))
+          errors = QStringLiteral("L") + errors.mid(1);
+        errors.replace(QStringLiteral("\n:"), QStringLiteral("\nL"));
+        qDebug() << "HTTP:" << errors;
+        m_errorPane->setPlainText(errors);
+      } break;
+      default:
+        break;
+    }
+    comp->deleteLater();
+    engine->deleteLater();
+  });
+
+  comp->setData(code, QUrl{});
 }
 
 Device::DeviceSettings HTTPProtocolSettingsWidget::getSettings() const
