@@ -388,8 +388,10 @@ void Application::init()
     if(!qEnvironmentVariableIsSet("QT_QUICK_CONTROLS_STYLE"))
     {
       qputenv("QT_QUICK_CONTROLS_STYLE", "Basic");
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
       if(appSettings.gui)
         qGuiApp->styleHints()->setColorScheme(Qt::ColorScheme::Dark);
+#endif
     }
   }
 
