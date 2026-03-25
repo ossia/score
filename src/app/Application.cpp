@@ -38,6 +38,7 @@
 #include <QPushButton>
 #include <QResource>
 #include <QStandardPaths>
+#include <QStyleHints>
 #include <QUrl>
 #include <qconfig.h>
 #include <qobjectdefs.h>
@@ -383,8 +384,14 @@ void Application::init()
 #endif
 
   if(appSettings.ui.isEmpty())
+  {
     if(!qEnvironmentVariableIsSet("QT_QUICK_CONTROLS_STYLE"))
-      qputenv("QT_QUICK_CONTROLS_STYLE", "Fusion");
+    {
+      qputenv("QT_QUICK_CONTROLS_STYLE", "Basic");
+      if(appSettings.gui)
+        qGuiApp->styleHints()->setColorScheme(Qt::ColorScheme::Dark);
+    }
+  }
 
   // MVP
   if(appSettings.gui)
