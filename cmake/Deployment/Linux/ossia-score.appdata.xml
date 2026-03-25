@@ -41,6 +41,96 @@
     </screenshot>
   </screenshots>
   <releases>
+    <release version="3.8.1" date="2026-03-25">
+      <url type="details">https://github.com/ossia/score/releases/tag/v3.8.1</url>
+      <description>
+        <p>ossia score 3.8.1 brings major video and multi-window improvements, full backwards playback, and many bug fixes.</p>
+
+        <p>New features</p>
+        <ul>
+          <li>video: massive hardware decoding rework with D3D12 and Vulkan Video backends, thanks to FFMPEG.</li>
+          <li>video: added automatic mode to pick the best hardware decoder for a given task.</li>
+          <li>video: HDR support for Window output (tested on macOS and Windows).</li>
+          <li>video: HDR shaders added to user library: tonemapping, exposure, OETF, etc.</li>
+          <li>video: rework of color processing, proper support for full range MPEG, fix Cineform support</li>
+          <li>video: hardware-decoded DXV</li>
+          <li>video: finish the implementation for GPU-accelerated rendering of every YUV format in existence</li>
+          <li>video: add a direct synchronous playback option for formats that support it (HAP and other all-I formats)</li>
+          <li>video: add .ts as acceptable extension</li>
+          <li>video: add a multi-window output mode to handle multi-projector mapping, with soft-edge blending and warping.</li>
+          <li>scenario: allow backwards playback</li>
+          <li>time ruler: implement scrubbing by double-clicking and dragging</li>
+          <li>process: add a VU meter object for audio visualization</li>
+          <li>process: add a video mapper (rect-mapper) object in the user library for mapping multiple textures in one viewport.</li>
+          <li>process: add an advanced-text object in the user library for fancy text rendering.</li>
+          <li>process: add a presentation object in the user library because what use is a graphics software which isn't even able to render slides.</li>
+          <li>isf: initial infrastructure for cubemap textures</li>
+          <li>network: add a debug log panel to HTTP, WebSocket, etc.</li>
+          <li>js: add Util.environmentVariable(), Util.timestamp(), file info utility functions</li>
+          <li>js: add API functions for working with TimeVal</li>
+          <li>js: add a positionChanged signal for UIs ; implement Score.scrub(milliseconds)</li>
+          <li>js: store a path to allow processes that have local file dependencies to retrieve them ; enables creating advanced QML objects with multiple files.</li>
+          <li>js: give access to Util in JSProcessModel</li>
+          <li>cli: js: allow to run a script on startup with --script</li>
+          <li>gfx: add infrastructure to allow objects to fetch a texture from a previous node instead of being rendered into</li>
+          <li>ui: allow to disable the UI updates during execution for low power systems</li>
+          <li>core: add SCORE_PRETTIFY_JSON=1 environment variable to save JSON indented</li>
+          <li>tools: add a git update tool</li>
+        </ul>
+
+        <p>Improvements</p>
+        <ul>
+          <li>ui: improve styling for Qt Quick objects</li>
+          <li>ui: make it easier to start a drag from a port which already has a cable</li>
+          <li>ui: make port labels clickable</li>
+          <li>video: improve thumbnail computations and seeking logic</li>
+          <li>video: better heuristics for direct video playback</li>
+          <li>video: use software decoding as far as possible for thumbnails</li>
+          <li>js: use Basic style for QML UIs to match score style</li>
+          <li>js: force update of items on each tick to ensure View3D updates correctly</li>
+          <li>create-app: include assets from score file directory in create-app scripts for all platforms. Thanks @ogauthiersat!</li>
+          <li>3rdparty: broad library update</li>
+          <li>ci: update to SDK 36 (FFmpeg 8.1)</li>
+          <li>msvc: update to VS2026</li>
+        </ul>
+
+        <p>Bugfixes</p>
+        <ul>
+          <li>ui: fix that library download check had been moved to opening the settings UI</li>
+          <li>ui: fix wrong condition to check whether value input is some binary string</li>
+          <li>ui: fix scroll in timeline view scrolling the interior of nodal views</li>
+          <li>metal/d3d: fix background texture inverted. Fixes #1968</li>
+          <li>exec: fix looping when playing backwards</li>
+          <li>scenario: drop on cable: fix crash when a node would be changed in a separate slot upon drag and drop</li>
+          <li>video: fix IgnoreTempo property read missing regression. Thanks @ogauthiersat!</li>
+          <li>video decoder: add a missing flush</li>
+          <li>lfo: fix phase in quantified mode</li>
+          <li>lfo: fix phase missing a multiplication by pi</li>
+          <li>js: fix state not restoring on graph change</li>
+          <li>js: fix using background textures from QML in hidden views</li>
+          <li>js: fix a QtQuick3D deletion order issue</li>
+          <li>js: fix passing paths that have LIBRARY: or PROJECT: prefixes</li>
+          <li>js: GPU node fixes for state handling</li>
+          <li>qml: put the ASIO state in a separate thread-safe object to prevent concurrency issues in mapper device</li>
+          <li>qml: set simpler environment for Python support</li>
+          <li>coremidi: fix observer not being initialized</li>
+          <li>core: fix settings crash on close</li>
+          <li>core: make the settings children of qApp so that JS engine does not appropriate them</li>
+          <li>ports: fix changing between ControlInlet and ValueInlet at runtime for e.g. JS script</li>
+          <li>avnd: variable ports: fix missing resize of intermediary buffers</li>
+          <li>avnd: increase resiliency against 0 I/O channels ; fix order of calls for channel allocation</li>
+          <li>avnd: fix that buffers were only up to 31 bit size, instead of 32. 4GB buffers are now possible if the GPU handles it.</li>
+          <li>gfx: prevent a node that has been just removed to be added again as a preview node</li>
+          <li>gfx: null check fix in buffer release</li>
+          <li>preview: fix gamma blending</li>
+          <li>model display: fix that preview had broken</li>
+          <li>fft: kfr: fix an issue with deallocation</li>
+          <li>linux: fix missing avahi-daemon program warning on some distros. Thanks @ogauthiersat!</li>
+          <li>tools: fix missing line feed in mac custom app launcher environment. Thanks @ogauthiersat!</li>
+          <li>core: prevent dummy warning with Clang 22 on each __COUNTER__</li>
+        </ul>
+      </description>
+    </release>
     <release version="3.8.0" date="2026-02-03">
       <url type="details">https://github.com/ossia/score/releases/tag/v3.8.0</url>
       <description>
