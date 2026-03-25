@@ -320,6 +320,11 @@ void main ()
     m_renderControl->initialize();
     m_window->setRenderTarget(
         QQuickRenderTarget::fromRhiRenderTarget(m_internalTex.renderTarget));
+
+    // Mark the window as "visible" so that QQuickItem::grabToImage() works.
+    // The window is managed by QQuickRenderControl (no native OS window),
+    // so this only sets the internal flag without creating a real window.
+    QQuickWindowPrivate::get(m_window)->visible = true;
   }
 
   void reloadEngine(QRhi* rhi)
@@ -428,6 +433,13 @@ void main ()
       m_engine->tick();
       if(m_engine->m_item)
         m_engine->m_item->update();
+
+      // Mark texture inlet items dirty so the scene graph re-captures them
+      for(auto& [texture_in, i] : m_engine->m_texInlets)
+      {
+        if(auto item = texture_in->item())
+          item->update();
+      }
     }
 
     // 2. Render
