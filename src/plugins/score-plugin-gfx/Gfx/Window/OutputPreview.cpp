@@ -69,6 +69,14 @@ void PreviewWidget::setCornerWarp(const CornerWarp& warp)
   update();
 }
 
+void PreviewWidget::setTransform(int rotation, bool mirrorX, bool mirrorY)
+{
+  m_rotation = rotation;
+  m_mirrorX = mirrorX;
+  m_mirrorY = mirrorY;
+  update();
+}
+
 void PreviewWidget::setGlobalTestCard(const QImage& img)
 {
   m_globalTestCard = img;
@@ -148,7 +156,10 @@ void PreviewWidget::paintEvent(QPaintEvent*)
   QPainter p(this);
   p.fillRect(rect(), Qt::black);
 
-  // Apply corner warp transform if non-identity
+  // Build combined transform: content → warp → rotation+mirror → screen
+  QTransform combined;
+
+  // Corner warp (applied first to content coordinates)
   if(!m_cornerWarp.isIdentity())
   {
     double w = width(), h = height();
@@ -160,10 +171,29 @@ void PreviewWidget::paintEvent(QPaintEvent*)
         << QPointF(m_cornerWarp.bottomRight.x() * w, m_cornerWarp.bottomRight.y() * h)
         << QPointF(m_cornerWarp.bottomLeft.x() * w, m_cornerWarp.bottomLeft.y() * h);
 
-    QTransform t;
-    if(QTransform::quadToQuad(src, dst, t))
-      p.setTransform(t);
+    QTransform warpT;
+    if(QTransform::quadToQuad(src, dst, warpT))
+      combined = warpT;
   }
+
+  // Rotation + mirror (applied after warp, in screen space)
+  if(m_rotation != 0 || m_mirrorX || m_mirrorY)
+  {
+    double cx = width() / 2.0, cy = height() / 2.0;
+    QTransform rm;
+    rm.translate(cx, cy);
+    if(m_rotation != 0)
+      rm.rotate(m_rotation);
+    if(m_mirrorX)
+      rm.scale(-1, 1);
+    if(m_mirrorY)
+      rm.scale(1, -1);
+    rm.translate(-cx, -cy);
+    combined = rm * combined;
+  }
+
+  if(!combined.isIdentity())
+    p.setTransform(combined);
 
   switch(m_content)
   {
@@ -284,6 +314,7 @@ void OutputPreviewWindows::syncToMappings(const std::vector<OutputMapping>& mapp
     pw->setSourceRect(m.sourceRect);
     pw->setBlend(m.blendLeft, m.blendRight, m.blendTop, m.blendBottom);
     pw->setCornerWarp(m.cornerWarp);
+    pw->setTransform(m.rotation, m.mirrorX, m.mirrorY);
     if(!m_globalTestCard.isNull())
       pw->setGlobalTestCard(m_globalTestCard);
 

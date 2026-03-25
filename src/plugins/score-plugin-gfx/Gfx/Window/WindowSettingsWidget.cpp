@@ -350,6 +350,35 @@ WindowSettingsWidget::WindowSettingsWidget(QWidget* parent)
       outputSectionsLayout->addWidget(section);
     }
 
+    // -- Section: Transform (rotation + mirror, collapsed) --
+    {
+      auto* section = new CollapsibleSection(tr("Transform"));
+      auto* transformLayout = new QFormLayout;
+
+      m_rotationCombo = new QComboBox;
+      m_rotationCombo->addItem(tr("0°"));
+      m_rotationCombo->addItem(tr("90°"));
+      m_rotationCombo->addItem(tr("180°"));
+      m_rotationCombo->addItem(tr("270°"));
+      m_rotationCombo->setToolTip(
+          tr("Clockwise rotation of the output image"));
+      transformLayout->addRow(tr("Rotation"), m_rotationCombo);
+
+      m_mirrorXCheck = new QCheckBox;
+      m_mirrorXCheck->setToolTip(
+          tr("Flip the output image horizontally (applied after rotation)"));
+      transformLayout->addRow(tr("Mirror X"), m_mirrorXCheck);
+
+      m_mirrorYCheck = new QCheckBox;
+      m_mirrorYCheck->setToolTip(
+          tr("Flip the output image vertically (applied after rotation)"));
+      transformLayout->addRow(tr("Mirror Y"), m_mirrorYCheck);
+
+      section->setContentLayout(transformLayout);
+      section->setExpanded(false);
+      outputSectionsLayout->addWidget(section);
+    }
+
     inspectorLayout->addWidget(m_outputSectionsContainer);
     inspectorLayout->addStretch(1);
     scrollArea->setWidget(m_inspectorPanel);
@@ -535,6 +564,11 @@ WindowSettingsWidget::WindowSettingsWidget(QWidget* parent)
     connect(
         m_blendBottomG, qOverload<double>(&QDoubleSpinBox::valueChanged), this,
         applyProps);
+    connect(
+        m_rotationCombo, qOverload<int>(&QComboBox::currentIndexChanged), this,
+        applyProps);
+    connect(m_mirrorXCheck, &QCheckBox::toggled, this, applyProps);
+    connect(m_mirrorYCheck, &QCheckBox::toggled, this, applyProps);
 
     // Wire source rect spinboxes to update canvas item geometry
     auto applySrc = [this] { applySourceRectToSelection(); };
@@ -712,6 +746,16 @@ void WindowSettingsWidget::updatePropertiesFromSelection()
           m_blendBottomG->setValue(mi->blendBottom.gamma);
         }
 
+        {
+          const QSignalBlocker b19(m_rotationCombo);
+          const QSignalBlocker b20(m_mirrorXCheck);
+          const QSignalBlocker b21(m_mirrorYCheck);
+
+          m_rotationCombo->setCurrentIndex(mi->rotation / 90);
+          m_mirrorXCheck->setChecked(mi->mirrorX);
+          m_mirrorYCheck->setChecked(mi->mirrorY);
+        }
+
         updatePixelLabels();
         return;
       }
@@ -807,6 +851,9 @@ void WindowSettingsWidget::applyPropertiesToSelection()
         mi->blendTop = {(float)m_blendTopW->value(), (float)m_blendTopG->value()};
         mi->blendBottom
             = {(float)m_blendBottomW->value(), (float)m_blendBottomG->value()};
+        mi->rotation = m_rotationCombo->currentIndex() * 90;
+        mi->mirrorX = m_mirrorXCheck->isChecked();
+        mi->mirrorY = m_mirrorYCheck->isChecked();
         mi->update(); // Repaint to show blend zones
         // NOTE: caller is responsible for calling syncPreview with the correct flag
         return;

@@ -55,6 +55,7 @@ public:
   void setBlend(EdgeBlend left, EdgeBlend right, EdgeBlend top, EdgeBlend bottom);
   void setSourceRect(QRectF rect);
   void setCornerWarp(const CornerWarp& warp);
+  void setTransform(int rotation, bool mirrorX, bool mirrorY);
   void setGlobalTestCard(const QImage& img);
 
   // Called when fullscreen is toggled via double-click (index, isFullscreen)
@@ -75,5 +76,8 @@ private:
   EdgeBlend m_blendTop;
   EdgeBlend m_blendBottom;
   CornerWarp m_cornerWarp;
+  int m_rotation{0};
+  bool m_mirrorX{false};
+  bool m_mirrorY{false};
 };
 }

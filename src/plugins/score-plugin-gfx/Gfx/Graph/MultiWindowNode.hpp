@@ -48,6 +48,10 @@ struct SCORE_PLUGIN_GFX_EXPORT MultiWindowNode : OutputNode
     EdgeBlendData blendLeft, blendRight, blendTop, blendBottom;
 
     Gfx::CornerWarp cornerWarp;
+
+    int rotation{0};
+    bool mirrorX{false};
+    bool mirrorY{false};
   };
 
   const std::vector<WindowOutput>& windowOutputs() const noexcept
@@ -59,6 +63,7 @@ struct SCORE_PLUGIN_GFX_EXPORT MultiWindowNode : OutputNode
   void setSourceRect(int windowIndex, QRectF rect);
   void setEdgeBlend(int windowIndex, int side, float width, float gamma);
   void setCornerWarp(int windowIndex, const Gfx::CornerWarp& warp);
+  void setTransform(int windowIndex, int rotation, bool mirrorX, bool mirrorY);
   void setSwapchainFlag(Gfx::SwapchainFlag flag);
   void setSwapchainFormat(Gfx::SwapchainFormat format);
 

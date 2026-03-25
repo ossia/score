@@ -88,6 +88,10 @@ struct OutputMapping
   CornerWarp cornerWarp;
 
   OutputLockMode lockMode{OutputLockMode::Free};
+
+  int rotation{0};     // 0, 90, 180, 270 degrees clockwise
+  bool mirrorX{false}; // Flip output horizontally (after rotation)
+  bool mirrorY{false}; // Flip output vertically (after rotation)
 };
 
 }

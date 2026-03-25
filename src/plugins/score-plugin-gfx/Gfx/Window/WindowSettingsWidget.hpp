@@ -80,6 +80,9 @@ private:
   QDoubleSpinBox* m_blendBottomG{};
 
   QComboBox* m_lockModeCombo{};
+  QComboBox* m_rotationCombo{};
+  QCheckBox* m_mirrorXCheck{};
+  QCheckBox* m_mirrorYCheck{};
   QComboBox* m_flagCombo{};
   QComboBox* m_formatCombo{};
 

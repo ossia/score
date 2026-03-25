@@ -590,6 +590,9 @@ void OutputMappingCanvas::setMappings(const std::vector<OutputMapping>& mappings
     item->blendBottom = m.blendBottom;
     item->cornerWarp = m.cornerWarp;
     item->lockMode = m.lockMode;
+    item->rotation = m.rotation;
+    item->mirrorX = m.mirrorX;
+    item->mirrorY = m.mirrorY;
     item->applyLockedState();
     setupItemCallbacks(item);
     m_scene.addItem(item);
@@ -629,6 +632,9 @@ std::vector<OutputMapping> OutputMappingCanvas::getMappings() const
     m.blendBottom = item->blendBottom;
     m.cornerWarp = item->cornerWarp;
     m.lockMode = item->lockMode;
+    m.rotation = item->rotation;
+    m.mirrorX = item->mirrorX;
+    m.mirrorY = item->mirrorY;
     result.push_back(m);
   }
   return result;
@@ -1123,6 +1129,22 @@ void JSONReader::read(const Gfx::OutputMapping& n)
     stream.Int(int(n.lockMode));
   }
 
+  if(n.rotation != 0)
+  {
+    stream.Key("Rotation");
+    stream.Int(n.rotation);
+  }
+  if(n.mirrorX)
+  {
+    stream.Key("MirrorX");
+    stream.Bool(n.mirrorX);
+  }
+  if(n.mirrorY)
+  {
+    stream.Key("MirrorY");
+    stream.Bool(n.mirrorY);
+  }
+
   stream.EndObject();
 }
 
@@ -1138,6 +1160,7 @@ void DataStreamReader::read(const Gfx::OutputMapping& n)
   m_stream << n.cornerWarp.topLeft << n.cornerWarp.topRight << n.cornerWarp.bottomLeft
            << n.cornerWarp.bottomRight;
   m_stream << int(n.lockMode);
+  m_stream << n.rotation << n.mirrorX << n.mirrorY;
 }
 
 template <>
@@ -1152,6 +1175,7 @@ void DataStreamWriter::write(Gfx::OutputMapping& n)
   m_stream >> n.cornerWarp.topLeft >> n.cornerWarp.topRight >> n.cornerWarp.bottomLeft
       >> n.cornerWarp.bottomRight;
   { int lm{}; m_stream >> lm; n.lockMode = Gfx::OutputLockMode(lm); }
+  m_stream >> n.rotation >> n.mirrorX >> n.mirrorY;
 }
 template <>
 void JSONWriter::write(Gfx::OutputMapping& n)
@@ -1223,4 +1247,10 @@ void JSONWriter::write(Gfx::OutputMapping& n)
     else if(lockSize)
       n.lockMode = Gfx::OutputLockMode::OneToOne;
   }
+  if(auto v = obj.tryGet("Rotation"))
+    n.rotation = v->toInt();
+  if(auto v = obj.tryGet("MirrorX"))
+    n.mirrorX = v->toBool();
+  if(auto v = obj.tryGet("MirrorY"))
+    n.mirrorY = v->toBool();
 }

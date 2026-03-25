@@ -38,6 +38,10 @@ public:
 
   OutputLockMode lockMode{OutputLockMode::Free};
 
+  int rotation{0};
+  bool mirrorX{false};
+  bool mirrorY{false};
+
   void applyLockedState();
 
   // Called when item is moved or resized in the canvas

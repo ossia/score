@@ -175,11 +175,36 @@ public:
           vec4 homographyCol1;
           vec4 homographyCol2;
           float warpEnabled;
+          float rotationDeg;  // 0, 90, 180, 270
+          float mirrorX;      // 0.0 or 1.0
+          float mirrorY;      // 0.0 or 1.0
       };
 
       void main()
       {
           vec2 tc = v_texcoord;
+
+          // Apply rotation + mirror transform (in screen UV space)
+          {
+              // Center at 0.5, 0.5
+              vec2 c = tc - 0.5;
+
+              // Rotation (clockwise in screen space)
+              if(rotationDeg > 225.0)       // 270
+                  c = vec2(c.y, -c.x);
+              else if(rotationDeg > 135.0)  // 180
+                  c = vec2(-c.x, -c.y);
+              else if(rotationDeg > 45.0)   // 90
+                  c = vec2(-c.y, c.x);
+
+              // Mirror (after rotation)
+              if(mirrorX > 0.5)
+                  c.x = -c.x;
+              if(mirrorY > 0.5)
+                  c.y = -c.y;
+
+              tc = c + 0.5;
+          }
 
           // Apply inverse homography if corner warp is active
           if(warpEnabled > 0.5)
@@ -286,10 +311,13 @@ public:
       {
         float warpEnabled = wo.cornerWarp.isIdentity() ? 0.0f : 1.0f;
         auto hom = computeHomographyUBO(wo.cornerWarp);
-        // 12 floats for 3 vec4 columns, then 1 float for warpEnabled (padded to vec4)
+        // 12 floats for 3 vec4 columns, then warpEnabled, rotationDeg, mirrorX, mirrorY
         float warpData[16] = {};
         std::copy(hom.begin(), hom.end(), warpData);
         warpData[12] = warpEnabled;
+        warpData[13] = (float)wo.rotation;
+        warpData[14] = wo.mirrorX ? 1.0f : 0.0f;
+        warpData[15] = wo.mirrorY ? 1.0f : 0.0f;
         res.updateDynamicBuffer(pw.warpUBO, 0, sizeof(warpData), warpData);
       }
 
@@ -422,6 +450,9 @@ private:
       float warpData[16] = {};
       std::copy(hom.begin(), hom.end(), warpData);
       warpData[12] = warpEnabled;
+      warpData[13] = (float)wo.rotation;
+      warpData[14] = wo.mirrorX ? 1.0f : 0.0f;
+      warpData[15] = wo.mirrorY ? 1.0f : 0.0f;
       res->updateDynamicBuffer(pw.warpUBO, 0, sizeof(warpData), warpData);
     }
 
@@ -520,6 +551,17 @@ void MultiWindowNode::setCornerWarp(int windowIndex, const Gfx::CornerWarp& warp
 {
   if(windowIndex >= 0 && windowIndex < (int)m_windowOutputs.size())
     m_windowOutputs[windowIndex].cornerWarp = warp;
+}
+
+void MultiWindowNode::setTransform(int windowIndex, int rotation, bool mirrorX, bool mirrorY)
+{
+  if(windowIndex >= 0 && windowIndex < (int)m_windowOutputs.size())
+  {
+    auto& wo = m_windowOutputs[windowIndex];
+    wo.rotation = rotation;
+    wo.mirrorX = mirrorX;
+    wo.mirrorY = mirrorY;
+  }
 }
 
 void MultiWindowNode::setSwapchainFlag(Gfx::SwapchainFlag flag)
@@ -718,6 +760,9 @@ void MultiWindowNode::initWindow(int index, GraphicsApi api)
   wo.blendTop = {mapping.blendTop.width, mapping.blendTop.gamma};
   wo.blendBottom = {mapping.blendBottom.width, mapping.blendBottom.gamma};
   wo.cornerWarp = mapping.cornerWarp;
+  wo.rotation = mapping.rotation;
+  wo.mirrorX = mapping.mirrorX;
+  wo.mirrorY = mapping.mirrorY;
 }
 
 void MultiWindowNode::createOutput(score::gfx::OutputConfiguration conf)
