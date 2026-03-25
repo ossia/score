@@ -150,7 +150,9 @@ void CreateCable::undo(const score::DocumentContext& ctx) const
     source->removeCable(ext);
   if(auto sink = m_dat.sink.try_find(ctx))
     sink->removeCable(ext);
-  m_model.find(ctx).cables.remove(m_cable);
+  auto& cables = m_model.find(ctx).cables;
+  if(cables.find(m_cable) != cables.end())
+    cables.remove(m_cable);
 
   if(source && m_previousPropagate && *m_previousPropagate)
   {
@@ -161,6 +163,9 @@ void CreateCable::undo(const score::DocumentContext& ctx) const
 void CreateCable::redo(const score::DocumentContext& ctx) const
 {
   auto& model = m_model.find(ctx);
+  if(model.cables.find(m_cable) != model.cables.end())
+    return;
+
   auto c = new Process::Cable{m_cable, m_dat, &model};
 
   model.cables.add(c);
