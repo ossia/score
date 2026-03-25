@@ -9,6 +9,8 @@
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 #include <score/widgets/MessageBox.hpp>
 
+#include <core/application/ApplicationSettings.hpp>
+
 #include <ossia/detail/algorithms.hpp>
 
 #include <QApplication>
@@ -44,6 +46,9 @@ PluginSettingsModel::PluginSettingsModel(
 {
   connect(
       &mgr, &QNetworkAccessManager::finished, this, &PluginSettingsModel::on_message);
+
+  if(ctx.applicationSettings.gui)
+    QTimer::singleShot(3000, this, &PluginSettingsModel::refresh);
 }
 
 PluginSettingsModel::~PluginSettingsModel() { }
@@ -138,7 +143,7 @@ void PluginSettingsModel::on_message(QNetworkReply* rep)
   if(!m_firstTimeCheck)
   {
     m_firstTimeCheck = true;
-    QTimer::singleShot(3000, this, &PluginSettingsModel::firstTimeLibraryDownload);
+    QTimer::singleShot(1000, this, &PluginSettingsModel::firstTimeLibraryDownload);
   }
 }
 
