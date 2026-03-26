@@ -626,7 +626,10 @@ public:
       // FIXME this must move in the Node dtor. See video_node
       auto& gfx_exec = this->system().doc.template plugin<Gfx::DocumentPlugin>().exec;
       if(node_id >= 0)
+      {
         gfx_exec.ui->unregister_node(node_id);
+        node_id = score::gfx::invalid_node_index;
+      }
     }
 
     // FIXME refactor this with other GFX processes

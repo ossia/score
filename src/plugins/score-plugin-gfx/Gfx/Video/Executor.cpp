@@ -42,6 +42,7 @@ public:
     impl = nullptr;
 
     exec_context->ui->unregister_node(id);
+    id = score::gfx::invalid_node_index;
 
     m_decoder = dec;
     if(m_decoder)
@@ -225,7 +226,7 @@ void ProcessExecutorComponent::cleanup()
   {
     if(auto out = qobject_cast<TextureOutlet*>(outlet))
     {
-      out->nodeId = -1;
+      out->nodeId = score::gfx::invalid_node_index;
     }
   }
   ProcessComponent_T::cleanup();

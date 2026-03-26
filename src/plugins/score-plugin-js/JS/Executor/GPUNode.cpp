@@ -870,6 +870,7 @@ void gpu_exec_node::setScript(
     const QString& root, const QString& str, JS::JSState&& new_state)
 {
   exec_context->ui->unregister_node(id);
+  id = score::gfx::invalid_node_index;
 
   //if(id < 0)
   {

@@ -37,6 +37,7 @@ public:
   void set_script(const isf::descriptor& isf, const QString& vert)
   {
     exec_context->ui->unregister_node(id);
+    id = score::gfx::invalid_node_index;
 
     index = ++filter_index;
     this->m_last_input_filters = {};
@@ -220,7 +221,7 @@ void ProcessExecutorComponent::cleanup()
   {
     if(auto out = qobject_cast<TextureOutlet*>(outlet))
     {
-      out->nodeId = -1;
+      out->nodeId = score::gfx::invalid_node_index;
     }
   }
   ProcessComponent_T::cleanup();

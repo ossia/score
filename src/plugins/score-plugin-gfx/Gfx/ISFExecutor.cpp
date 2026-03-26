@@ -85,7 +85,7 @@ void ISFExecutorComponent::cleanup()
   {
     if(auto out = qobject_cast<TextureOutlet*>(outlet))
     {
-      out->nodeId = -1;
+      out->nodeId = score::gfx::invalid_node_index;
     }
   }
   Execution::ProcessComponent::cleanup();

@@ -22,6 +22,7 @@ public:
   void set_script(const isf::descriptor& isf, const QString& vert, const QString& frag)
   {
     exec_context->ui->unregister_node(id);
+    id = score::gfx::invalid_node_index;
 
     for(int i = 0, n = std::ssize(controls); i < n; i++)
     {
@@ -72,6 +73,7 @@ public:
   void set_script(const isf::descriptor& isf, const QString& compute)
   {
     exec_context->ui->unregister_node(id);
+    id = score::gfx::invalid_node_index;
 
     for(int i = 0, n = std::ssize(controls); i < n; i++)
     {

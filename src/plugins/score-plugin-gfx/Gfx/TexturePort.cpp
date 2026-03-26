@@ -140,8 +140,8 @@ private:
   QWindow* qwindow{};
   QWidget* container{};
 
-  int screenId = -1;
-  int nodeId = -1;
+  int screenId = score::gfx::invalid_node_index;
+  int nodeId = score::gfx::invalid_node_index;
   int timerId{};
 };
 

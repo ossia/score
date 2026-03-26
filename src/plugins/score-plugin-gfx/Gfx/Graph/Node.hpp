@@ -158,7 +158,7 @@ public:
   }
   std::atomic_int64_t renderTargetSpecChanged{-1};
 
-  int32_t nodeId = -1;
+  int32_t nodeId = score::gfx::invalid_node_index;
   bool requiresDepth{};
   bool addedToGraph{};
 
