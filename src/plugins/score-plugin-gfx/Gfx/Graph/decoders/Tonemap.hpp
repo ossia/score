@@ -1,7 +1,7 @@
 #pragma once
 
 // ============================================================
-//  Tonemap.hpp — GLSL tone mapping functions for HDR→SDR
+//  Tonemap.hpp — GLSL tone mapping functions for HDR->SDR
 //
 //  Each function provides a `vec3 tonemap(vec3 color)` that maps
 //  linear-light RGB to the [0,1] range.
@@ -50,6 +50,33 @@ namespace score::gfx
 {
 
 // ============================================================
+//  Auto tonemapper resolution
+//
+//  Selects the best tonemapper based on the content's transfer
+//  function. Used when the user selects "Auto" in the UI.
+//
+//  - PQ (HDR10): BT.2390 (ITU-standard EETF for PQ->SDR)
+//  - HLG: Clamp (the OOTF in the SDR pipeline already adapts
+//    the rendering to the target display luminance)
+//  - SDR / other: Clamp (no tonemapping needed)
+// ============================================================
+
+static inline ::Video::Tonemap resolveAutoTonemap(int color_trc)
+{
+  // AVCOL_TRC_SMPTE2084 = 16 (PQ), AVCOL_TRC_ARIB_STD_B67 = 18 (HLG)
+  // Use integer values to avoid requiring libavutil header here.
+  constexpr int TRC_SMPTE2084 = 16;
+  constexpr int TRC_ARIB_STD_B67 = 18;
+
+  if(color_trc == TRC_SMPTE2084)
+    return ::Video::Tonemap::BT_2390;
+  else if(color_trc == TRC_ARIB_STD_B67)
+    return ::Video::Tonemap::Clamp;
+  else
+    return ::Video::Tonemap::Clamp;
+}
+
+// ============================================================
 //  Tonemapper classification
 //
 //  Returns true if the tonemapper operates on luminance only
@@ -75,7 +102,7 @@ static inline bool isLuminanceBasedTonemap(::Video::Tonemap mode)
 //  BT.2390 EETF
 //
 //  The ITU-R BT.2390 Electrical-Electrical Transfer Function.
-//  Operates in PQ domain: converts linear→PQ, applies a hermite
+//  Operates in PQ domain: converts linear->PQ, applies a hermite
 //  spline roll-off from the knee point to the target peak, then
 //  converts back to linear.
 //
@@ -85,7 +112,7 @@ static inline bool isLuminanceBasedTonemap(::Video::Tonemap mode)
 //    P(B) = h00(T)*KS + h10(T)*(1-KS) + h01(T)*maxLum
 //    where h00(t) = 2t³-3t²+1, h10(t) = t³-2t²+t, h01(t) = -2t³+3t²
 //
-//  The spline maps [KS, srcPeak] → [KS, dstPeak] in PQ domain.
+//  The spline maps [KS, srcPeak] -> [KS, dstPeak] in PQ domain.
 //  Slope at KS = 1 (continuity with 1:1 segment), slope at end = 0.
 // ============================================================
 
@@ -94,20 +121,20 @@ static constexpr auto TONEMAP_BT2390 = R"_(
 // Input: linear light, 1.0 = content peak.
 // Output: linear light, [0, 1].
 
-// PQ forward: linear [0,1] (where 1.0 = 10000 nits) → PQ [0,1]
+// PQ forward: linear [0,1] (where 1.0 = 10000 nits) -> PQ [0,1]
 float pqForward(float Y) {
   float Ym1 = pow(max(Y, 0.0), 0.1593017578125);
   return pow((0.8359375 + 18.8515625 * Ym1) / (1.0 + 18.6875 * Ym1), 78.84375);
 }
 
-// PQ inverse: PQ [0,1] → linear [0,1] (where 1.0 = 10000 nits)
+// PQ inverse: PQ [0,1] -> linear [0,1] (where 1.0 = 10000 nits)
 float pqInverse(float N) {
   float Nm = pow(max(N, 0.0), 1.0 / 78.84375);
   return pow(max(Nm - 0.8359375, 0.0) / (18.8515625 - 18.6875 * Nm), 1.0 / 0.1593017578125);
 }
 
 // BT.2390 hermite spline
-// Maps [KS, srcPeakPQ] → [KS, dstPeakPQ] with slope=1 at KS, slope=0 at end.
+// Maps [KS, srcPeakPQ] -> [KS, dstPeakPQ] with slope=1 at KS, slope=0 at end.
 float bt2390_eetf(float E, float KS, float srcPeakPQ, float dstPeakPQ) {
   if (E < KS) return E;
   if (srcPeakPQ <= KS) return dstPeakPQ;
@@ -126,7 +153,7 @@ float bt2390_eetf(float E, float KS, float srcPeakPQ, float dstPeakPQ) {
   //
   // At t=0: P = KS (continuity with linear segment)
   // At t=1: P = dstPeakPQ (reaches target peak)
-  // dP/dt at t=0 = (srcPeakPQ-KS) → dP/dE = 1 (slope continuity)
+  // dP/dt at t=0 = (srcPeakPQ-KS) -> dP/dE = 1 (slope continuity)
   // dP/dt at t=1 = 0 (smooth roll-off)
   float p = (2.0 * t3 - 3.0 * t2 + 1.0) * KS
           + (t3 - 2.0 * t2 + t) * (srcPeakPQ - KS)
@@ -143,8 +170,10 @@ vec3 tonemap(vec3 color) {
   float srcPeakPQ = pqForward(srcPeakNits / 10000.0);
   float dstPeakPQ = pqForward(dstPeakNits / 10000.0);
 
-  // Knee start: BT.2390 formula
-  float KS = 1.5 * dstPeakPQ - 0.5;
+  // Knee start: BT.2390 formula (in absolute PQ domain)
+  // Spec defines KS = 1.5*maxLum - 0.5 in normalized space (srcPeak=1.0).
+  // In absolute PQ: KS = 1.5*dstPeakPQ - 0.5*srcPeakPQ
+  float KS = 1.5 * dstPeakPQ - 0.5 * srcPeakPQ;
 
   // Operate on max-RGB to preserve hue ratios
   float maxC = max(color.r, max(color.g, color.b));
@@ -303,14 +332,14 @@ static constexpr auto TONEMAP_ACES2 = R"_(
 vec3 tonemap(vec3 color) {
   vec3 c = color * (contentPeakNits / sdrPeakNits);
 
-  // sRGB/BT.709 → AP1
+  // sRGB/BT.709 -> AP1
   const mat3 ACESInputMat = mat3(
     0.59719, 0.07600, 0.02840,
     0.35458, 0.90834, 0.13383,
     0.04823, 0.01566, 0.83777
   );
 
-  // AP1 → sRGB/BT.709
+  // AP1 -> sRGB/BT.709
   const mat3 ACESOutputMat = mat3(
      1.60475, -0.10208, -0.00327,
     -0.53108,  1.10813, -0.07276,
@@ -354,7 +383,7 @@ vec3 agxDefaultContrastApprox(vec3 x) {
 }
 
 vec3 agx(vec3 color) {
-  // sRGB/BT.709 linear → AgX log space
+  // sRGB/BT.709 linear -> AgX log space
   const mat3 agxTransform = mat3(
     0.842479062253094,  0.0423282422610123, 0.0423756549057051,
     0.0784335999999992, 0.878468636469772,  0.0784336,
@@ -374,7 +403,7 @@ vec3 agx(vec3 color) {
 }
 
 vec3 agxEotf(vec3 color) {
-  // AgX → sRGB/BT.709 linear
+  // AgX -> sRGB/BT.709 linear
   const mat3 agxInvTransform = mat3(
      1.19687900512017,  -0.0528968517574562, -0.0529716355144438,
     -0.0980208811401368,  1.15190312990417,  -0.0980434501171241,
@@ -479,45 +508,14 @@ static inline QString tonemapShader(
     case ::Video::Tonemap::ACES2:      shader += TONEMAP_ACES2;       break;
     case ::Video::Tonemap::AgX:        shader += TONEMAP_AGX;         break;
     case ::Video::Tonemap::PBR_Neutral: shader += TONEMAP_PBR_NEUTRAL; break;
+    case ::Video::Tonemap::Auto:
+      // Auto should be resolved before reaching here.
+      // Fall through to Clamp as safe default.
     case ::Video::Tonemap::Clamp:
     default:                            shader += TONEMAP_CLAMP;       break;
   }
 
   return shader;
 }
-
-// ============================================================
-//  Utility GLSL fragments
-// ============================================================
-
-static constexpr auto TONEMAP_BT2020_TO_BT709_MATRIX = R"_(
-const mat3 bt2020ToBt709 = mat3(
-   1.6605, -0.1246, -0.0182,
-  -0.5876,  1.1329, -0.1006,
-  -0.0728, -0.0083,  1.1187
-);
-)_";
-
-static constexpr auto TONEMAP_BT2020_TO_DISPLAY_P3_MATRIX = R"_(
-const mat3 bt2020ToDisplayP3 = mat3(
-   1.3434, -0.0653, -0.0029,
-  -0.2822,  1.0760, -0.0416,
-  -0.0612, -0.0107,  1.0445
-);
-)_";
-
-static constexpr auto TONEMAP_SRGB_OETF = R"_(
-vec3 srgbOetf(vec3 c) {
-  vec3 lo = c * 12.92;
-  vec3 hi = 1.055 * pow(max(c, 0.0), vec3(1.0 / 2.4)) - 0.055;
-  return mix(lo, hi, step(vec3(0.0031308), c));
-}
-)_";
-
-static constexpr auto TONEMAP_GAMMA22_OETF = R"_(
-vec3 gamma22Oetf(vec3 c) {
-  return pow(max(c, 0.0), vec3(1.0 / 2.2));
-}
-)_";
 
 }

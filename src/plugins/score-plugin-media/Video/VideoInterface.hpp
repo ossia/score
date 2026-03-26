@@ -42,7 +42,7 @@ struct SCORE_PLUGIN_MEDIA_EXPORT ImageFormat
 
   // Set by the user
   OutputFormat output_format = ::Video::OutputFormat::SDR;
-  Tonemap tonemap = ::Video::Tonemap::BT_2390;
+  Tonemap tonemap = ::Video::Tonemap::Auto;
 };
 
 struct SCORE_PLUGIN_MEDIA_EXPORT VideoMetadata : ImageFormat

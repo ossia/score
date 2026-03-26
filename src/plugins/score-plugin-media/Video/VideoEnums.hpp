@@ -18,6 +18,7 @@ enum Tonemap
   Hable,
   ACES2,
   AgX,
-  PBR_Neutral
+  PBR_Neutral,
+  Auto         // Selects best tonemapper based on content transfer function
 };
 }

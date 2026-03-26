@@ -386,7 +386,7 @@ void JSONWriter::write(Gfx::Video::Model& proc)
   if(auto pb = obj.tryGet("Tonemap"))
     proc.m_tonemap = static_cast<::Video::Tonemap>(pb->toInt());
   else
-    proc.m_tonemap = ::Video::Tonemap::Clamp;
+    proc.m_tonemap = ::Video::Tonemap::Auto;
 
   proc.m_nativeTempo = obj["Tempo"].toDouble();
   proc.m_ignoreTempo = obj["IgnoreTempo"].toBool();

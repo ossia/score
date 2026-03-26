@@ -782,17 +782,28 @@ bool VideoDecoder::open_stream() noexcept
         color_space = codecPar->color_space;
         chroma_location = codecPar->chroma_location;
 
-        // FIXME the user should be able to choose as it could be possible to have small videos
-        // without color space, e.g. screen recordings
+        // Detect wide-gamut / HDR evidence from primaries and transfer function.
+        // This is used to infer color_space when it is unspecified.
         const bool has_bt2020_evidence =
             color_primaries == AVCOL_PRI_BT2020
-            || color_trc == AVCOL_TRC_SMPTE2084      // PQ (HDR10)
-            || color_trc == AVCOL_TRC_ARIB_STD_B67;   // HLG
+            || color_trc == AVCOL_TRC_SMPTE2084      // PQ (HDR10 / BT.2100)
+            || color_trc == AVCOL_TRC_ARIB_STD_B67;   // HLG (BT.2100)
+
+        // Display P3 content may use BT.709 matrix coefficients
+        // but with wider primaries. Don't force it to BT.2020.
+        const bool has_p3_evidence =
+            color_primaries == AVCOL_PRI_SMPTE432     // Display P3 (D65)
+            || color_primaries == AVCOL_PRI_SMPTE431; // DCI-P3
 
         if(color_space == AVCOL_SPC_UNSPECIFIED)
         {
           if(has_bt2020_evidence)
             color_space = AVCOL_SPC_BT2020_NCL;
+          else if(has_p3_evidence)
+            // P3 content typically uses BT.709 matrix coefficients.
+            // colorMatrix() will detect the P3 primaries and route
+            // through the Display P3 pipeline.
+            color_space = AVCOL_SPC_BT709;
           else if(codecPar->height < 625)
             color_space = AVCOL_SPC_SMPTE170M;
           else if(codecPar->height < 720)

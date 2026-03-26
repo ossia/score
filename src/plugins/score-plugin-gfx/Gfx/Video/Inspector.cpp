@@ -60,7 +60,7 @@ InspectorWidget::InspectorWidget(
     formatCombo->setCurrentIndex((int)object.outputFormat());
 
     auto tonemapCombo = new QComboBox;
-    tonemapCombo->addItems({tr("Clamp"), tr("BT.2390"), tr("BT.2446"), tr("Reinhard"), tr("Hable"), tr("ACES2"), tr("AgX"), tr("PBR Neutral")});
+    tonemapCombo->addItems({tr("Clamp"), tr("BT.2390"), tr("BT.2446"), tr("Reinhard"), tr("Hable"), tr("ACES2"), tr("AgX"), tr("PBR Neutral"), tr("Auto")});
     tonemapCombo->setCurrentIndex((int)object.tonemap());
 
     con(object, &Gfx::Video::Model::ignoreTempoChanged, this, [=](bool ignore) {
