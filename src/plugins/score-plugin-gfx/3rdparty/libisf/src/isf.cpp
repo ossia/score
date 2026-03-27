@@ -1756,8 +1756,9 @@ void parser::parse_raw_raster_pipeline()
       default_inputs.push_back(
           input{.name = "Far", .label = "Far", .data = float_input{}});
 */
-      auto long_enum = [](auto&&... args) {
+      auto long_enum = [](int index, auto&&... args) {
         long_input l;
+        l.def = index;
         int64_t n = 0;
         auto add = [&l, &n](const auto& arg) {
           l.values.push_back(n++);
@@ -1770,15 +1771,15 @@ void parser::parse_raw_raster_pipeline()
           input{
               .name = "Mode",
               .label = "Mode",
-              .data = long_enum("Triangles", "Points", "Lines")});
+              .data = long_enum(0, "Triangles", "Points", "Lines")});
 
       static const auto blend_factors = long_enum(
-          "Zero", "One", "SrcColor", "OneMinusSrcColor", "DstColor", "OneMinusDstColor",
-          "SrcAlpha", "OneMinusSrcAlpha", "DstAlpha", "OneMinusDstAlpha",
-          "ConstantColor", "OneMinusConstantColor", "ConstantAlpha",
+          1, "Zero", "One", "SrcColor", "OneMinusSrcColor", "DstColor",
+          "OneMinusDstColor", "SrcAlpha", "OneMinusSrcAlpha", "DstAlpha",
+          "OneMinusDstAlpha", "ConstantColor", "OneMinusConstantColor", "ConstantAlpha",
           "OneMinusConstantAlpha", "SrcAlphaSaturate");
       static const auto blend_ops
-          = long_enum("Add", "Substract", "Reverse Substract", "Min", "Max");
+          = long_enum(0, "Add", "Substract", "Reverse Substract", "Min", "Max");
       default_inputs.push_back(
           input{.name = "EnableBlend", .label = "Enable blend", .data = bool_input{}});
       default_inputs.push_back(
