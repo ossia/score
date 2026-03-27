@@ -41,7 +41,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
     : InspectorWidgetBase{object,
                           ctx,
                           parent,
-                          (object.graphal() ? tr("Direct transition") : tr("Interval (%1)").arg(object.metadata().getName()))}
+                          (object.graphal() ? tr("Direct transition") : tr("Interval\n%1").arg(object.metadata().getName()))}
     , m_model{object}
 {
   using namespace score;
