@@ -41,6 +41,22 @@
     </screenshot>
   </screenshots>
   <releases>
+    <release version="3.8.2" date="2026-03-27">
+      <url type="details">https://github.com/ossia/score/releases/tag/v3.8.2</url>
+      <description>
+        <p>ossia score 3.8.2 is a minor hotfix release.</p>
+
+        <p>New features</p>
+        <ul>
+          <li>gfx: hdr: support for HLG format and ICtCp-encoded videos. Better support for Display P3 and BT.2100</li>
+        </ul>
+        <p>Bugfixes</p>
+        <ul>
+          <li>gfx: fix a double-uninit issue that could lead to crashes with some objects.</li>
+          <li>render pipeline: initialize blend modes to One instead of Zero in the raster pipeline renderer.</li>
+        </ul>
+      </description>
+    </release>
     <release version="3.8.1" date="2026-03-25">
       <url type="details">https://github.com/ossia/score/releases/tag/v3.8.1</url>
       <description>
