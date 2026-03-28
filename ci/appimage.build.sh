@@ -52,8 +52,8 @@ chmod a+x runtime-${CPU_ARCH}
 
 cp "$SOURCE_FOLDER/cmake/Deployment/Linux/AppImage/AppRun" build/score.AppDir/
 cp "$SOURCE_FOLDER/cmake/Deployment/Linux/AppImage/ossia-score.desktop" build/score.AppDir/
-sed -i "s/x86_64/$CPU_ARCH/" build/score.AppDir/ossia-score.Desktop
-sed -i "s/3.0.0/$GITTAGNOV/" build/score.AppDir/ossia-score.Desktop
+sed -i "s/x86_64/$CPU_ARCH/" build/score.AppDir/ossia-score.desktop
+sed -i "s/3.0.0/$GITTAGNOV/" build/score.AppDir/ossia-score.desktop
 cp "$SOURCE_FOLDER/src/lib/resources/ossia-score.png" build/score.AppDir/
 cp "$SOURCE_FOLDER/src/lib/resources/ossia-score.png" build/score.AppDir/.DirIcon
 
