@@ -45,7 +45,7 @@ public:
 
   const EventPresenter& presenter() const { return m_presenter; }
 
-  QRectF boundingRect() const override { return {-1, 0., 6, m_height}; }
+  QRectF boundingRect() const override { return {-4, 0., 12, m_height}; }
   void setStatus(ExecutionStatus);
 
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)

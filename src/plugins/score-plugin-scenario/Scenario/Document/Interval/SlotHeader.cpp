@@ -100,7 +100,7 @@ void SlotHeader::mousePressEvent(QGraphicsSceneMouseEvent* event)
   m_presenter.selectedSlot(m_slotIndex);
 
   const auto xpos = event->pos().x();
-  if(xpos >= 0 && xpos < 16)
+  if(xpos >= 0 && xpos < 30)
   {
     slot_header_drag.reset(new QDrag(event->widget()));
   }
@@ -159,7 +159,7 @@ void SlotHeader::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 
   const auto xpos = event->buttonDownPos(Qt::LeftButton).x();
-  if(xpos >= 0 && xpos < 16 && slot_header_drag)
+  if(xpos >= 0 && xpos < 30 && slot_header_drag)
   {
     auto min_dist = (event->screenPos() - event->buttonDownScreenPos(Qt::LeftButton))
                         .manhattanLength()
@@ -210,7 +210,7 @@ void SlotHeader::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 void SlotHeader::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 {
   const auto xpos = event->pos().x();
-  if(xpos >= 0 && xpos < 16)
+  if(xpos >= 0 && xpos < 30)
   {
     if(this->cursor().shape() != Qt::CrossCursor)
       setCursor(Qt::CrossCursor);
@@ -225,7 +225,7 @@ void SlotHeader::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 void SlotHeader::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
 {
   const auto xpos = event->pos().x();
-  if(xpos >= 0 && xpos < 16)
+  if(xpos >= 0 && xpos < 30)
   {
     if(this->cursor().shape() != Qt::CrossCursor)
       setCursor(Qt::CrossCursor);
@@ -387,12 +387,12 @@ void SlotDragOverlay::onDrag(QPointF pos)
 
   if(y <= height)
   {
-    m_drawnRect = {0, height - 2.5, rect.width(), 5};
+    m_drawnRect = {0, height - 6.0, rect.width(), 12.0};
     update();
   }
   else if(y > rect.height() - 5.)
   {
-    m_drawnRect = {0, rect.height() - 5., rect.width(), 5};
+    m_drawnRect = {0, rect.height() - 6.0, rect.width(), 12.0};
     update();
   }
   else
@@ -403,13 +403,13 @@ void SlotDragOverlay::onDrag(QPointF pos)
     {
       const auto next_height = itv.getSlotHeight({i, view}) + SlotHeader::headerHeight()
                                + SlotFooter::footerHeight();
-      if(y > height - 2.5 && y < height + 2.5)
+      if(y > height - 6.0 && y < height + 6.0)
       {
-        m_drawnRect = {0, height - 2.5, rect.width(), 5};
+        m_drawnRect = {0, height - 6.0, rect.width(), 12.0};
         update();
         break;
       }
-      else if(y < height + next_height - 2.5)
+      else if(y < height + next_height - 6.0)
       {
         m_drawnRect = {0, height, rect.width(), next_height};
         update();
@@ -419,9 +419,9 @@ void SlotDragOverlay::onDrag(QPointF pos)
       height += next_height;
     }
 
-    if(y > height - 2.5 && y < height + 2.5)
+    if(y > height - 6.0 && y < height + 6.0)
     {
-      m_drawnRect = {0, height - 2.5, rect.width(), 5};
+      m_drawnRect = {0, height - 6.0, rect.width(), 12.0};
       update();
     }
   }
@@ -461,13 +461,13 @@ void SlotDragOverlay::dropEvent(QGraphicsSceneDragDropEvent* event)
 
   if(y <= height)
   {
-    m_drawnRect = {0, height - 2.5, rect.width(), 5};
+    m_drawnRect = {0, height - 6.0, rect.width(), 12.0};
     dropBefore(0);
     update();
   }
   else if(y > rect.height() - 5.)
   {
-    m_drawnRect = {0, rect.height() - 5., rect.width(), 5};
+    m_drawnRect = {0, rect.height() - 6.0, rect.width(), 12.0};
     dropBefore(N);
     update();
   }
@@ -477,14 +477,14 @@ void SlotDragOverlay::dropEvent(QGraphicsSceneDragDropEvent* event)
     {
       const auto next_height = itv.getSlotHeight({i, view}) + SlotHeader::headerHeight()
                                + SlotFooter::footerHeight();
-      if(y > height - 2.5 && y < height + 2.5)
+      if(y > height - 6.0 && y < height + 6.0)
       {
-        m_drawnRect = {0, height - 2.5, rect.width(), 5};
+        m_drawnRect = {0, height - 6.0, rect.width(), 12.0};
         dropBefore(i);
         update();
         return;
       }
-      else if(y < height + next_height - 2.5)
+      else if(y < height + next_height - 6.0)
       {
         m_drawnRect = {0, height, rect.width(), next_height};
         dropIn(i);
@@ -495,9 +495,9 @@ void SlotDragOverlay::dropEvent(QGraphicsSceneDragDropEvent* event)
       height += next_height;
     }
 
-    if(y > height - 2.5 && y < height + 2.5)
+    if(y > height - 6.0 && y < height + 6.0)
     {
-      m_drawnRect = {0, height - 2.5, rect.width(), 5};
+      m_drawnRect = {0, height - 6.0, rect.width(), 12.0};
       dropBefore(N);
       update();
       return;
