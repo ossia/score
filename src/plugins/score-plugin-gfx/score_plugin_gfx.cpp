@@ -57,6 +57,9 @@
 #include <Gfx/Syphon/SyphonInput.hpp>
 #include <Gfx/Syphon/SyphonOutput.hpp>
 #endif
+#if defined(HAS_WINDOW_CAPTURE)
+#include <Gfx/WindowCapture/WindowCaptureDevice.hpp>
+#endif
 #if defined(HAS_FREENECT2)
 #include <Gfx/Kinect2Device.hpp>
 #endif
@@ -79,6 +82,9 @@ score_plugin_gfx::score_plugin_gfx()
   qRegisterMetaType<Gfx::LibavSettings>();
 #endif
 
+#if defined(HAS_WINDOW_CAPTURE)
+  qRegisterMetaType<Gfx::WindowCapture::WindowCaptureSettings>();
+#endif
 #if defined(HAS_FREENECT2)
   qRegisterMetaType<Gfx::Kinect2::Kinect2Settings>();
 #endif
@@ -117,6 +123,10 @@ std::vector<score::InterfaceBase*> score_plugin_gfx::factories(
 #if defined(HAS_SYPHON)
          ,
          Gfx::Syphon::InputFactory, Gfx::SyphonProtocolFactory
+#endif
+#if defined(HAS_WINDOW_CAPTURE)
+         ,
+         Gfx::WindowCapture::WindowCaptureProtocolFactory
 #endif
 #if defined(HAS_FREENECT2)
          ,

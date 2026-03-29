@@ -96,6 +96,35 @@ set(LIBAV_SRCS
   Gfx/Libav/LibavSettingsWidget.cpp
 )
 
+if(NOT EMSCRIPTEN)
+  set(WINDOW_CAPTURE_SRCS
+    Gfx/WindowCapture/WindowCaptureBackend.hpp
+    Gfx/WindowCapture/WindowCaptureNode.hpp
+    Gfx/WindowCapture/WindowCaptureNode.cpp
+    Gfx/WindowCapture/WindowCaptureDevice.hpp
+    Gfx/WindowCapture/WindowCaptureDevice.cpp
+  )
+  if(WIN32)
+    list(APPEND WINDOW_CAPTURE_SRCS Gfx/WindowCapture/WindowCapture_win.cpp)
+  elseif(APPLE)
+    list(APPEND WINDOW_CAPTURE_SRCS Gfx/WindowCapture/WindowCapture_mac.mm)
+    set_source_files_properties(
+      Gfx/WindowCapture/WindowCapture_mac.mm
+      PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON
+    )
+  else()
+    list(APPEND WINDOW_CAPTURE_SRCS
+      Gfx/WindowCapture/WindowCapture_x11.cpp
+      Gfx/WindowCapture/WindowCapture_pipewire.cpp
+    )
+    set_source_files_properties(
+      Gfx/WindowCapture/WindowCapture_x11.cpp
+      Gfx/WindowCapture/WindowCapture_pipewire.cpp
+      PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON
+    )
+  endif()
+endif()
+
 # Source files
 set(HDRS
     Gfx/CommandFactory.hpp
@@ -276,6 +305,7 @@ set(SRCS
     ${GPHOTO2_SRCS}
     ${GSTREAMER_SRCS}
     ${LIBAV_SRCS}
+    ${WINDOW_CAPTURE_SRCS}
 
     Gfx/Filter/Executor.cpp
     Gfx/Filter/Library.cpp
@@ -555,6 +585,9 @@ elseif(EMSCRIPTEN OR BSD)
 else()
   target_sources(${PROJECT_NAME} PRIVATE Gfx/CameraDevice.v4l2.cpp)
 
+  # PipeWire window capture backend uses QDBus for xdg-desktop-portal
+  target_link_libraries(${PROJECT_NAME} PRIVATE ${QT_PREFIX}::DBus)
+
   if(OSSIA_SDK)
     if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES aarch64)
       find_package(BZip2)
@@ -562,6 +595,14 @@ else()
     endif()
   endif()
   list(APPEND SCORE_FEATURES_LIST v4l2)
+endif()
+
+if(NOT EMSCRIPTEN)
+  target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_WINDOW_CAPTURE)
+  list(APPEND SCORE_FEATURES_LIST window_capture)
+  if(APPLE)
+    target_link_options(${PROJECT_NAME} PRIVATE -weak_framework ScreenCaptureKit)
+  endif()
 endif()
 
 if(freenect2_FOUND)
