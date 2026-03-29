@@ -55,6 +55,12 @@ struct OutputStream
 
   std::unique_ptr<AudioFrameEncoder> encoder;
 
+  // Pre-allocated buffers for audio resampling (avoid per-frame heap allocs)
+  std::vector<std::vector<double>> resample_in_buf;
+  std::vector<ossia::float_vector> resample_out_buf;
+
+  bool m_valid{};
+
   OutputStream(
       const LibavOutputSettings& set, AVFormatContext* oc, const StreamOptions& opts)
   {
@@ -62,44 +68,29 @@ struct OutputStream
     if(!codec)
     {
       qDebug() << "Could not find encoder for " << opts.codec.c_str();
-      exit(1);
+      return;
     }
 
     this->tmp_pkt = av_packet_alloc();
     if(!this->tmp_pkt)
     {
       qDebug() << "Could not allocate AVPacket";
-      exit(1);
+      return;
     }
 
     this->st = avformat_new_stream(oc, nullptr);
     if(!this->st)
     {
       qDebug() << "Could not allocate stream";
-      exit(1);
+      return;
     }
     this->st->id = oc->nb_streams - 1;
 
-    // Init hw accel
-    // FIXME IMPLEMENT
-#if 0
-    AVBufferRef* hw_ctx{};
-    {
-      // HW Accel
-      AVHWDeviceType device = AV_HWDEVICE_TYPE_QSV;
-      int ret = av_hwdevice_ctx_create(&hw_ctx, device, "auto", nullptr, 0);
-      if(ret != 0)
-      {
-        qDebug() << "Error while opening hardware encoder: " << av_to_string(ret);
-        exit(1);
-      }
-    }
-#endif
     this->enc = avcodec_alloc_context3(codec);
     if(!this->enc)
     {
       qDebug() << "Could not alloc an encoding context";
-      exit(1);
+      return;
     }
 
     switch(codec->type)
@@ -156,6 +147,7 @@ struct OutputStream
 
     c->ch_layout.order = AV_CHANNEL_ORDER_UNSPEC;
     c->ch_layout.nb_channels = set.audio_channels;
+    c->thread_count = set.threads > 0 ? set.threads : 0;
     if(set.audio_encoder_short == "pcm_s24le" || set.audio_encoder_short == "pcm_s24be")
       c->bits_per_raw_sample = 24;
 
@@ -169,17 +161,12 @@ struct OutputStream
   void init_video(const LibavOutputSettings& set, AVCodecContext* c)
   {
     c->codec_id = codec->id;
-    // c->bit_rate = 400000;
-    // c->bit_rate_tolerance = 10000;
-    // c->global_quality = 1;
-    // c->compression_level = 1;
-    // c->hw_device_ctx = hw_ctx;
-
-    // c->flags |= AV_CODEC_FLAG_QSCALE;
-    // c->global_quality = FF_QP2LAMBDA * 3.0;
-    /* Resolution must be a multiple of two. */
     c->width = set.width;
     c->height = set.height;
+
+    // Enable multi-threaded encoding (0 = auto-detect CPU count)
+    c->thread_count = set.threads > 0 ? set.threads : 0;
+    c->thread_type = FF_THREAD_FRAME | FF_THREAD_SLICE;
     /* timebase: This is the fundamental unit of time (in seconds) in terms
          * of which frame timestamps are represented. For fixed-fps content,
          * timebase should be 1/framerate and timestamp increments should be
@@ -188,27 +175,28 @@ struct OutputStream
     c->time_base = this->st->time_base;
     c->framerate = AVRational{this->st->time_base.den, this->st->time_base.num};
 
-    //c->gop_size = 12; /* emit one intra frame every twelve frames at most */
+    // gop_size and max_b_frames: use FFmpeg/codec defaults.
+    // Users can override via the options dict (g=<N>, bf=<N>).
+    // FFmpeg default: g=12, bf=0. Presets set explicit values where needed.
 
-    // ignored if frame->pict_type is AV_PICTURE_TYPE_I
-    c->gop_size = 0;
-    c->max_b_frames = 0;
-
-    // c->pix_fmt = AV_PIX_FMT_RGB24;
     c->pix_fmt = av_get_pix_fmt(set.video_converted_pixfmt.toStdString().c_str());
+    if(c->pix_fmt == AV_PIX_FMT_NONE)
+    {
+      // Default to first supported format of this codec
+      const AVPixelFormat* fmts = nullptr;
+#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(61, 19, 100)
+      avcodec_get_supported_config(
+          c, codec, AV_CODEC_CONFIG_PIX_FORMAT, 0,
+          (const void**)&fmts, nullptr);
+#else
+      fmts = codec->pix_fmts;
+#endif
+      if(fmts && fmts[0] != AV_PIX_FMT_NONE)
+        c->pix_fmt = fmts[0];
+      else
+        c->pix_fmt = AV_PIX_FMT_YUV420P;
+    }
     c->strict_std_compliance = FF_COMPLIANCE_NORMAL;
-    if(c->codec_id == AV_CODEC_ID_MPEG2VIDEO)
-    {
-      /* just for testing, we also add B-frames */
-      c->max_b_frames = 2;
-    }
-    if(c->codec_id == AV_CODEC_ID_MPEG1VIDEO)
-    {
-      /* Needed to avoid using macroblocks in which some coeffs overflow.
-       * This does not happen with normal video, it just happens here as
-       * the motion of the chroma plane does not match the luma plane. */
-      c->mb_decision = 2;
-    }
   }
 
   void open_audio(
@@ -224,7 +212,7 @@ struct OutputStream
     if(ret < 0)
     {
       qDebug() << "Could not open audio codec: " << av_to_string(ret);
-      exit(1);
+      return;
     }
 
     int nb_samples = 0;
@@ -249,15 +237,17 @@ struct OutputStream
     if(ret < 0)
     {
       qDebug() << "Could not copy the stream parameters";
-      exit(1);
+      return;
     }
 
     {
-      auto input_fmt = AV_SAMPLE_FMT_FLTP;
       auto conv_fmt
           = av_get_sample_fmt(set.audio_converted_smpfmt.toStdString().c_str());
-      SCORE_ASSERT(input_fmt != -1);
-      SCORE_ASSERT(conv_fmt != -1);
+      if(conv_fmt == AV_SAMPLE_FMT_NONE)
+      {
+        qDebug() << "Invalid audio sample format:" << set.audio_converted_smpfmt;
+        return;
+      }
 
       auto& ctx = score::AppContext().settings<Audio::Settings::Model>();
 
@@ -292,18 +282,27 @@ struct OutputStream
 
         case AV_SAMPLE_FMT_U8P:
         case AV_SAMPLE_FMT_S16P:
+          encoder = std::make_unique<S16PAudioFrameEncoder>(nb_samples);
+          break;
         case AV_SAMPLE_FMT_S32P:
+          encoder = std::make_unique<S32PAudioFrameEncoder>(nb_samples);
+          break;
         case AV_SAMPLE_FMT_FLTP:
           encoder = std::make_unique<FltPAudioFrameEncoder>(nb_samples);
           break;
         case AV_SAMPLE_FMT_DBLP:
+          encoder = std::make_unique<DblPAudioFrameEncoder>(nb_samples);
+          break;
         case AV_SAMPLE_FMT_S64:
         case AV_SAMPLE_FMT_S64P:
+          qDebug() << "64-bit integer audio sample format not supported for encoding";
           break;
         default:
           break;
       }
     }
+
+    m_valid = true;
 #endif
   }
 
@@ -316,12 +315,11 @@ struct OutputStream
     if(!frame)
     {
       qDebug() << "Error allocating an audio frame";
-      exit(1);
+      return nullptr;
     }
 
     frame->format = sample_fmt;
-    frame->ch_layout.order = channel_layout->order;
-    frame->ch_layout.nb_channels = channel_layout->nb_channels;
+    av_channel_layout_copy(&frame->ch_layout, channel_layout);
     frame->sample_rate = sample_rate;
     frame->nb_samples = nb_samples;
 
@@ -330,7 +328,8 @@ struct OutputStream
       if(av_frame_get_buffer(frame, 0) < 0)
       {
         qDebug() << "Error allocating an audio buffer";
-        exit(1);
+        av_frame_free(&frame);
+        return nullptr;
       }
     }
 
@@ -353,7 +352,8 @@ struct OutputStream
     if(ret < 0)
     {
       qDebug() << "Could not allocate frame data.";
-      exit(1);
+      av_frame_free(&frame);
+      return nullptr;
     }
 
     return frame;
@@ -368,21 +368,13 @@ struct OutputStream
 
     av_dict_copy(&opt, opt_arg, 0);
 
-    /* set some options */
-    int err = av_opt_set_double(this->enc->priv_data, "crf", 0.0, 0);
-    if(err < 0)
-    {
-      qDebug() << "failed to initialize encoder: " << av_to_string(err);
-    }
-
     /* open the codec */
-    SCORE_ASSERT(this->enc->flags & AV_CODEC_FLAG_GLOBAL_HEADER);
     int ret = avcodec_open2(this->enc, codec, &opt);
     av_dict_free(&opt);
     if(ret < 0)
     {
       qDebug() << "Could not open video codec: " << av_to_string(ret);
-      exit(1);
+      return;
     }
 
     /* allocate and init a re-usable frame */
@@ -390,26 +382,32 @@ struct OutputStream
     if(!this->cache_input_frame)
     {
       qDebug() << "Could not allocate video frame";
-      exit(1);
+      return;
     }
 
     this->tmp_frame = nullptr;
-    // If conversion is needed :
-    // if(c->pix_fmt != AV_PIX_FMT_YUVJ420P)
     {
       auto input_fmt = av_get_pix_fmt(set.video_render_pixfmt.toStdString().c_str());
       auto conv_fmt = av_get_pix_fmt(set.video_converted_pixfmt.toStdString().c_str());
-      SCORE_ASSERT(input_fmt != -1);
-      SCORE_ASSERT(conv_fmt != -1);
+      if(input_fmt == AV_PIX_FMT_NONE || conv_fmt == AV_PIX_FMT_NONE)
+      {
+        qDebug() << "Invalid pixel format:" << set.video_render_pixfmt
+                 << "->" << set.video_converted_pixfmt;
+        return;
+      }
       sws_ctx = sws_getContext(
-          set.width, set.height, input_fmt, set.width, set.height, conv_fmt, 1, nullptr,
-          nullptr, nullptr);
-      SCORE_ASSERT(sws_ctx);
+          set.width, set.height, input_fmt, set.width, set.height, conv_fmt,
+          SWS_FAST_BILINEAR, nullptr, nullptr, nullptr);
+      if(!sws_ctx)
+      {
+        qDebug() << "Could not create swscale context";
+        return;
+      }
       this->tmp_frame = alloc_video_frame(conv_fmt, c->width, c->height);
       if(!this->tmp_frame)
       {
         qDebug() << "Could not allocate temporary video frame";
-        exit(1);
+        return;
       }
     }
 
@@ -418,8 +416,10 @@ struct OutputStream
     if(ret < 0)
     {
       qDebug() << "Could not copy the stream parameters";
-      exit(1);
+      return;
     }
+
+    m_valid = true;
   }
 
   void open(
@@ -428,7 +428,6 @@ struct OutputStream
   {
     SCORE_ASSERT(oc);
     SCORE_ASSERT(codec);
-    SCORE_ASSERT(opt_arg);
     if(codec->type == AVMEDIA_TYPE_AUDIO)
     {
       open_audio(set, oc, codec, opt_arg);
@@ -451,50 +450,54 @@ struct OutputStream
 
   AVFrame* get_video_frame()
   {
-    /* when we pass a frame to the encoder, it may keep a reference to it
-     * internally; make sure we do not overwrite it here */
+    if(!m_valid || !this->cache_input_frame)
+      return nullptr;
     if(av_frame_make_writable(this->cache_input_frame) < 0)
-      exit(1);
+      return nullptr;
 
     this->cache_input_frame->pts = this->next_pts++;
-
     return this->cache_input_frame;
   }
 
   AVFrame* get_audio_frame()
   {
-    /* when we pass a frame to the encoder, it may keep a reference to it
-     * internally; make sure we do not overwrite it here */
+    if(!m_valid || !this->cache_input_frame)
+      return nullptr;
     if(av_frame_make_writable(this->cache_input_frame) < 0)
-      exit(1);
+      return nullptr;
 
     this->cache_input_frame->pts = this->next_pts;
     this->next_pts += this->enc->frame_size;
-
     return this->cache_input_frame;
   }
 
   int write_video_frame(AVFormatContext* fmt_ctx, AVFrame* input_frame)
   {
+    if(!m_valid)
+      return -1;
 #if LIBSWSCALE_VERSION_INT >= AV_VERSION_INT(7, 5, 100)
+    // Must unref before reuse — sws_scale_frame allocates internal buffers
+    av_frame_unref(tmp_frame);
+    tmp_frame->format = enc->pix_fmt;
+    tmp_frame->width = enc->width;
+    tmp_frame->height = enc->height;
+
     // scale the frame
     int ret = sws_scale_frame(sws_ctx, tmp_frame, input_frame);
     if(ret < 0)
     {
       qDebug() << "Error during sws_scale_frame: " << av_to_string(ret);
-      exit(1);
+      return ret;
     }
 
-    tmp_frame->quality = FF_LAMBDA_MAX; //c->global_quality;
-    tmp_frame->pict_type = AV_PICTURE_TYPE_I;
-    tmp_frame->pts++;
+    tmp_frame->pts = input_frame->pts;
 
     // send the frame to the encoder
     ret = avcodec_send_frame(enc, tmp_frame);
     if(ret < 0)
     {
       qDebug() << "Error sending a frame to the encoder: " << av_to_string(ret);
-      exit(1);
+      return ret;
     }
 
     while(ret >= 0)
@@ -505,19 +508,18 @@ struct OutputStream
       else if(ret < 0)
       {
         qDebug() << "Error encoding a frame: " << av_to_string(ret);
-        exit(1);
+        return ret;
       }
 
       /* rescale output packet timestamp values from codec to stream timebase */
       av_packet_rescale_ts(tmp_pkt, enc->time_base, st->time_base);
       tmp_pkt->stream_index = st->index;
-      tmp_pkt->flags |= AV_PKT_FLAG_KEY;
 
       ret = av_interleaved_write_frame(fmt_ctx, tmp_pkt);
       if(ret < 0)
       {
         qDebug() << "Error while writing output packet: " << av_to_string(ret);
-        exit(1);
+        return ret;
       }
     }
 
@@ -526,31 +528,18 @@ struct OutputStream
     return 1;
   }
 
-  // #define SRC_RATE SAMPLE_RATE_TEST
-  // #define DST_RATE SAMPLE_RATE_TEST
-  //   static int64_t conv_audio_pts(SwrContext* ctx, int64_t in, int sample_rate)
-  //   {
-  //     //int64_t d = (int64_t) AUDIO_RATE * AUDIO_RATE;
-  //     int64_t d = (int64_t)sample_rate * sample_rate;
-  //
-  //     /* Convert from audio_src_tb to 1/(src_samplerate * dst_samplerate) */
-  //     in = av_rescale_rnd(in, d, SRC_RATE, AV_ROUND_NEAR_INF);
-  //
-  //     /* In units of 1/(src_samplerate * dst_samplerate) */
-  //     in = swr_next_pts(ctx, in);
-  //
-  //     /* Convert from 1/(src_samplerate * dst_samplerate) to audio_dst_tb */
-  //     return av_rescale_rnd(in, DST_RATE, d, AV_ROUND_NEAR_INF);
-  //   }
-
-  int write_audio_frame(AVFormatContext* fmt_ctx, AVFrame* input_frame)
+  // Write a pre-converted frame directly to the encoder — no sws_scale.
+  // The frame must already be in enc->pix_fmt with correct dimensions.
+  int write_video_frame_direct(AVFormatContext* fmt_ctx, AVFrame* frame)
   {
-    // send the frame to the encoder
-    int ret = avcodec_send_frame(enc, input_frame);
+    if(!m_valid)
+      return -1;
+
+    int ret = avcodec_send_frame(enc, frame);
     if(ret < 0)
     {
       qDebug() << "Error sending a frame to the encoder: " << av_to_string(ret);
-      exit(1);
+      return ret;
     }
 
     while(ret >= 0)
@@ -561,7 +550,44 @@ struct OutputStream
       else if(ret < 0)
       {
         qDebug() << "Error encoding a frame: " << av_to_string(ret);
-        exit(1);
+        return ret;
+      }
+
+      av_packet_rescale_ts(tmp_pkt, enc->time_base, st->time_base);
+      tmp_pkt->stream_index = st->index;
+
+      ret = av_interleaved_write_frame(fmt_ctx, tmp_pkt);
+      if(ret < 0)
+      {
+        qDebug() << "Error while writing output packet: " << av_to_string(ret);
+        return ret;
+      }
+    }
+
+    return ret == AVERROR_EOF ? 1 : 0;
+  }
+
+  int write_audio_frame(AVFormatContext* fmt_ctx, AVFrame* input_frame)
+  {
+    if(!m_valid)
+      return -1;
+    // send the frame to the encoder
+    int ret = avcodec_send_frame(enc, input_frame);
+    if(ret < 0)
+    {
+      qDebug() << "Error sending a frame to the encoder: " << av_to_string(ret);
+      return ret;
+    }
+
+    while(ret >= 0)
+    {
+      ret = avcodec_receive_packet(enc, tmp_pkt);
+      if(ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
+        break;
+      else if(ret < 0)
+      {
+        qDebug() << "Error encoding a frame: " << av_to_string(ret);
+        return ret;
       }
 
       /* rescale output packet timestamp values from codec to stream timebase */
@@ -572,7 +598,7 @@ struct OutputStream
       if(ret < 0)
       {
         qDebug() << "Error while writing output packet: " << av_to_string(ret);
-        exit(1);
+        return ret;
       }
     }
 

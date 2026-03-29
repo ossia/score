@@ -21,7 +21,7 @@ struct LibavOutputSettings
   AVPixelFormat hardwareAcceleration{AV_PIX_FMT_NONE};
   QString audio_encoder_short, audio_encoder_long;
   QString audio_converted_smpfmt;
-  double audio_sample_rate{44100.};
+  int audio_sample_rate{44100};
   int audio_channels{2};
   QString video_encoder_short, video_encoder_long;
   QString video_render_pixfmt;
@@ -29,5 +29,6 @@ struct LibavOutputSettings
   QString muxer, muxer_long;
   ossia::hash_map<QString, QString> options;
   int threads{};
+  int input_transfer{13}; // AVColorTransferCharacteristic: 13=sRGB, 8=Linear, 16=PQ, 18=HLG, 2=Passthrough
 };
 }

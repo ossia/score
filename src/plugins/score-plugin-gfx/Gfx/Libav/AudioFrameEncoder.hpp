@@ -29,21 +29,14 @@ struct S16IAudioFrameEncoder final : AudioFrameEncoder
 {
   using AudioFrameEncoder::AudioFrameEncoder;
 
-  boost::container::vector<int16_t> data;
-
   void add_frame(AVFrame& frame, const std::span<ossia::float_vector> vec) override
   {
     const int channels = vec.size();
     const int frames = vec[0].size();
-    data.clear();
-    data.resize(frames * channels, boost::container::default_init);
-    auto ptr = data.data();
+    auto* ptr = reinterpret_cast<int16_t*>(frame.data[0]);
     for(int i = 0; i < frames; i++)
       for(int c = 0; c < channels; c++)
         *ptr++ = ossia::float_to_sample<int16_t, 16>(vec[c][i]);
-
-    frame.data[0] = (uint8_t*)data.data();
-    frame.data[1] = nullptr;
   }
 };
 
@@ -51,20 +44,14 @@ struct S24IAudioFrameEncoder final : AudioFrameEncoder
 {
   using AudioFrameEncoder::AudioFrameEncoder;
 
-  boost::container::vector<int32_t> data;
   void add_frame(AVFrame& frame, const std::span<ossia::float_vector> vec) override
   {
     const int channels = vec.size();
     const int frames = vec[0].size();
-    data.clear();
-    data.resize(frames * channels, boost::container::default_init);
-    auto ptr = data.data();
+    auto* ptr = reinterpret_cast<int32_t*>(frame.data[0]);
     for(int i = 0; i < frames; i++)
       for(int c = 0; c < channels; c++)
         *ptr++ = ossia::float_to_sample<int32_t, 24>(vec[c][i]);
-
-    frame.data[0] = (uint8_t*)data.data();
-    frame.data[1] = nullptr;
   }
 };
 
@@ -72,20 +59,14 @@ struct S32IAudioFrameEncoder final : AudioFrameEncoder
 {
   using AudioFrameEncoder::AudioFrameEncoder;
 
-  boost::container::vector<int32_t> data;
   void add_frame(AVFrame& frame, const std::span<ossia::float_vector> vec) override
   {
     const int channels = vec.size();
     const int frames = vec[0].size();
-    data.clear();
-    data.resize(frames * channels, boost::container::default_init);
-    auto ptr = data.data();
+    auto* ptr = reinterpret_cast<int32_t*>(frame.data[0]);
     for(int i = 0; i < frames; i++)
       for(int c = 0; c < channels; c++)
         *ptr++ = ossia::float_to_sample<int32_t, 32>(vec[c][i]);
-
-    frame.data[0] = (uint8_t*)data.data();
-    frame.data[1] = nullptr;
   }
 };
 
@@ -93,21 +74,14 @@ struct FltIAudioFrameEncoder final : AudioFrameEncoder
 {
   using AudioFrameEncoder::AudioFrameEncoder;
 
-  boost::container::vector<float> data;
-
   void add_frame(AVFrame& frame, const std::span<ossia::float_vector> vec) override
   {
     const int channels = vec.size();
     const int frames = vec[0].size();
-    data.clear();
-    data.resize(frames * channels, boost::container::default_init);
-    auto ptr = data.data();
+    auto* ptr = reinterpret_cast<float*>(frame.data[0]);
     for(int i = 0; i < frames; i++)
       for(int c = 0; c < channels; c++)
         *ptr++ = vec[c][i];
-
-    frame.data[0] = (uint8_t*)data.data();
-    frame.data[1] = nullptr;
   }
 };
 
@@ -115,21 +89,14 @@ struct DblIAudioFrameEncoder final : AudioFrameEncoder
 {
   using AudioFrameEncoder::AudioFrameEncoder;
 
-  boost::container::vector<double> data;
-
   void add_frame(AVFrame& frame, const std::span<ossia::float_vector> vec) override
   {
     const int channels = vec.size();
     const int frames = vec[0].size();
-    data.clear();
-    data.resize(frames * channels, boost::container::default_init);
-    auto ptr = data.data();
+    auto* ptr = reinterpret_cast<double*>(frame.data[0]);
     for(int i = 0; i < frames; i++)
       for(int c = 0; c < channels; c++)
         *ptr++ = vec[c][i];
-
-    frame.data[0] = (uint8_t*)data.data();
-    frame.data[1] = nullptr;
   }
 };
 
@@ -140,26 +107,73 @@ struct FltPAudioFrameEncoder final : AudioFrameEncoder
   void add_frame(AVFrame& frame, const std::span<ossia::float_vector> vec) override
   {
     const int channels = vec.size();
-    if(channels <= AV_NUM_DATA_POINTERS)
+    // Copy into the AVFrame's own planar buffers (allocated by av_frame_get_buffer)
+    for(int i = 0; i < channels; ++i)
     {
-      for(int i = 0; i < channels; ++i)
+      uint8_t* dst = (i < AV_NUM_DATA_POINTERS) ? frame.data[i]
+                                                 : frame.extended_data[i];
+      if(dst)
       {
-        frame.data[i] = reinterpret_cast<uint8_t*>(vec[i].data());
+        const int bytes = vec[i].size() * sizeof(float);
+        std::memcpy(dst, vec[i].data(), bytes);
       }
     }
-    else
+  }
+};
+
+struct S16PAudioFrameEncoder final : AudioFrameEncoder
+{
+  using AudioFrameEncoder::AudioFrameEncoder;
+
+  void add_frame(AVFrame& frame, const std::span<ossia::float_vector> vec) override
+  {
+    const int channels = vec.size();
+    const int frames = vec[0].size();
+    for(int i = 0; i < channels; ++i)
     {
-      // FIXME where does this get freed???
-      frame.extended_data
-          = static_cast<uint8_t**>(av_malloc(channels * sizeof(*frame.extended_data)));
-      int i = 0;
-      for(; i < AV_NUM_DATA_POINTERS; ++i)
-      {
-        frame.data[i] = reinterpret_cast<uint8_t*>(vec[i].data());
-        frame.extended_data[i] = reinterpret_cast<uint8_t*>(vec[i].data());
-      }
-      for(; i < channels; ++i)
-        frame.extended_data[i] = reinterpret_cast<uint8_t*>(vec[i].data());
+      auto* dst = reinterpret_cast<int16_t*>(
+          (i < AV_NUM_DATA_POINTERS) ? frame.data[i] : frame.extended_data[i]);
+      if(dst)
+        for(int j = 0; j < frames; ++j)
+          dst[j] = ossia::float_to_sample<int16_t, 16>(vec[i][j]);
+    }
+  }
+};
+
+struct S32PAudioFrameEncoder final : AudioFrameEncoder
+{
+  using AudioFrameEncoder::AudioFrameEncoder;
+
+  void add_frame(AVFrame& frame, const std::span<ossia::float_vector> vec) override
+  {
+    const int channels = vec.size();
+    const int frames = vec[0].size();
+    for(int i = 0; i < channels; ++i)
+    {
+      auto* dst = reinterpret_cast<int32_t*>(
+          (i < AV_NUM_DATA_POINTERS) ? frame.data[i] : frame.extended_data[i]);
+      if(dst)
+        for(int j = 0; j < frames; ++j)
+          dst[j] = ossia::float_to_sample<int32_t, 32>(vec[i][j]);
+    }
+  }
+};
+
+struct DblPAudioFrameEncoder final : AudioFrameEncoder
+{
+  using AudioFrameEncoder::AudioFrameEncoder;
+
+  void add_frame(AVFrame& frame, const std::span<ossia::float_vector> vec) override
+  {
+    const int channels = vec.size();
+    const int frames = vec[0].size();
+    for(int i = 0; i < channels; ++i)
+    {
+      auto* dst = reinterpret_cast<double*>(
+          (i < AV_NUM_DATA_POINTERS) ? frame.data[i] : frame.extended_data[i]);
+      if(dst)
+        for(int j = 0; j < frames; ++j)
+          dst[j] = static_cast<double>(vec[i][j]);
     }
   }
 };

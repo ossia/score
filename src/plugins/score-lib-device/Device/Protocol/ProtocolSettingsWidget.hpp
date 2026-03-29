@@ -12,10 +12,15 @@
 #include <verdigris>
 
 class QLineEdit;
+class QPushButton;
 class QComboBox;
 class QSpinBox;
 class QTextEdit;
 class QCheckBox;
+class QStackedWidget;
+class QPlainTextEdit;
+class QLabel;
+
 namespace Device
 {
 class SCORE_LIB_DEVICE_EXPORT ProtocolSettingsWidget : public QWidget

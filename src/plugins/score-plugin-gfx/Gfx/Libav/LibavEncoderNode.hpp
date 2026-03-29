@@ -1,5 +1,7 @@
 #pragma once
 #include <Gfx/Graph/OutputNode.hpp>
+#include <Gfx/Graph/encoders/GPUVideoEncoder.hpp>
+#include <Gfx/InvertYRenderer.hpp>
 #include <Gfx/Libav/LibavOutputSettings.hpp>
 
 namespace Gfx
@@ -16,9 +18,18 @@ struct LibavEncoderNode : score::gfx::OutputNode
 
   std::weak_ptr<score::gfx::RenderList> m_renderer{};
   QRhiTexture* m_texture{};
+  QRhiRenderBuffer* m_depthStencil{};
   QRhiTextureRenderTarget* m_renderTarget{};
   std::shared_ptr<score::gfx::RenderState> m_renderState{};
-  bool m_hasSender{};
+
+  // GPU encoder for YUV conversion (if target is not RGBA)
+  std::unique_ptr<score::gfx::GPUVideoEncoder> m_encoder[2];
+  int m_encoderIdx{};
+
+  // Double-buffered readback for RGBA path (NDI pattern)
+  QRhiReadbackResult m_readback[2];
+  QRhiReadbackResult* m_currentReadback{&m_readback[0]};
+  Gfx::InvertYRenderer* m_inv_y_renderer{};
 
   void startRendering() override;
   void onRendererChange() override;
@@ -38,7 +49,5 @@ struct LibavEncoderNode : score::gfx::OutputNode
   Configuration configuration() const noexcept override;
 
   LibavOutputSettings m_settings;
-
-  QRhiReadbackResult m_readback;
 };
 }

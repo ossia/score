@@ -21,7 +21,7 @@
 #include <Gfx/Images/Executor.hpp>
 #include <Gfx/Images/ImageListChooser.hpp>
 #include <Gfx/Images/Process.hpp>
-#include <Gfx/Libav/LibavOutputDevice.hpp>
+#include <Gfx/Libav/LibavDevice.hpp>
 #include <Gfx/Settings/Factory.hpp>
 #include <Gfx/SharedInputSettings.hpp>
 #include <Gfx/SharedOutputSettings.hpp>
@@ -69,8 +69,8 @@ score_plugin_gfx::score_plugin_gfx()
   qRegisterMetaType<Gfx::SharedInputSettings>();
   qRegisterMetaType<Gfx::SharedOutputSettings>();
   qRegisterMetaType<Gfx::CameraSettings>();
-#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 24, 100)
-  qRegisterMetaType<Gfx::LibavOutputSettings>();
+#if SCORE_HAS_LIBAV
+  qRegisterMetaType<Gfx::LibavSettings>();
 #endif
 
 #if defined(HAS_FREENECT2)
@@ -86,9 +86,9 @@ std::vector<score::InterfaceBase*> score_plugin_gfx::factories(
   return instantiate_factories<
       score::ApplicationContext,
       FW<Device::ProtocolFactory, Gfx::WindowProtocolFactory, Gfx::CameraProtocolFactory
-#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 24, 100)
+#if SCORE_HAS_LIBAV
          ,
-         Gfx::LibavOutputProtocolFactory
+         Gfx::LibavProtocolFactory
 #endif
 #if defined(SCORE_HAS_SH4LT)
          ,

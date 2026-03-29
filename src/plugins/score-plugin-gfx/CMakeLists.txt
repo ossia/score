@@ -70,15 +70,18 @@ if(freenect2_FOUND)
 endif()
 
 set(LIBAV_SRCS
+  Gfx/Libav/LibavDevice.hpp
   Gfx/Libav/LibavEncoder.hpp
   Gfx/Libav/LibavEncoderNode.hpp
-  Gfx/Libav/LibavOutputDevice.hpp
+  Gfx/Libav/LibavSettingsWidget.hpp
   Gfx/Libav/LibavOutputSettings.hpp
   Gfx/Libav/LibavOutputStream.hpp
 
-  Gfx/Libav/LibavOutputDevice.cpp
+  Gfx/Libav/LibavDevice.cpp
   Gfx/Libav/LibavEncoder.cpp
   Gfx/Libav/LibavEncoderNode.cpp
+  Gfx/Libav/LibavPresets.cpp
+  Gfx/Libav/LibavSettingsWidget.cpp
 )
 
 # Source files

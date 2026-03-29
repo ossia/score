@@ -6,6 +6,7 @@
 
 #include <ossia/detail/pod_vector.hpp>
 
+#include <mutex>
 #include <span>
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -27,18 +28,24 @@ struct LibavEncoder
   int start();
   int add_frame(std::span<ossia::float_vector>);
   int add_frame(const unsigned char* data, AVPixelFormat fmt, int width, int height);
+  // Pre-converted frame: data is already in the target pixel format.
+  // planes/strides/planeCount describe the YUV plane layout.
+  int add_frame_converted(
+      const unsigned char* const planes[], const int strides[], int planeCount,
+      int width, int height);
   int stop();
+  int stop_impl(); // Must be called with m_muxMutex held
 
   bool available() const noexcept { return m_formatContext; }
 
   LibavOutputSettings m_set;
-  AVDictionary* opt = NULL;
   AVFormatContext* m_formatContext{};
 
   std::vector<OutputStream> streams;
+  std::mutex m_muxMutex; // Protects av_interleaved_write_frame (not thread-safe)
 
-  int audio_stream_index = 0;
-  int video_stream_index = 0;
+  int audio_stream_index = -1;
+  int video_stream_index = -1;
 };
 
 }
