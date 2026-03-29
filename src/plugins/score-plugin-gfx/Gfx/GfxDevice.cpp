@@ -5,6 +5,7 @@
 #include <State/MessageListSerialization.hpp>
 
 #include <ossia/network/base/device.hpp>
+#include <ossia/network/value/value.hpp>
 
 #include <QMimeData>
 
@@ -63,12 +64,29 @@ static Device::Node ToDeviceExplorer(const ossia::net::node_base& ossia_node)
   Device::AddressSettings addr;
   addr.name = QString::fromStdString(ossia_node.get_name());
 
+  if(auto* param = ossia_node.get_parameter())
+  {
+    if(param->get_type() == ossia::parameter_type::MESSAGE)
+    {
+      addr.ioType = param->get_access();
+      addr.clipMode = param->get_bounding();
+      addr.domain = param->get_domain();
+      try
+      {
+        addr.value = param->value();
+      }
+      catch(...)
+      {
+        addr.value = ossia::init_value(param->get_value_type());
+      }
+    }
+  }
+
   Device::Node score_node{std::move(addr), nullptr};
   {
     const auto& cld = ossia_node.children();
     score_node.reserve(cld.size());
 
-    // 2. Recurse on the children
     for(const auto& ossia_child : cld)
     {
       if(!ossia::net::get_hidden(*ossia_child) && !ossia::net::get_zombie(*ossia_child))
