@@ -216,6 +216,7 @@ Audio::tick_fun makeExecutionTick(
   return [helper = std::make_shared<AudioTickHelper>(opt, plug, scenar)](
              const ossia::audio_tick_state& t) {
     Audio::execution_status.store(ossia::transport_status::playing);
+    Audio::execution_samples.fetch_add(t.frames, std::memory_order_release);
 
     helper->clearBuffers(t);
     helper->dequeueCommands();
@@ -232,6 +233,7 @@ Audio::tick_fun makeBenchmarkTick(
   return [helper = std::make_shared<AudioTickHelper>(opt, plug, scenar), plugPtr,
           i](const ossia::audio_tick_state& t) mutable {
     Audio::execution_status.store(ossia::transport_status::playing);
+    Audio::execution_samples.fetch_add(t.frames, std::memory_order_release);
 
     helper->clearBuffers(t);
     helper->dequeueCommands();

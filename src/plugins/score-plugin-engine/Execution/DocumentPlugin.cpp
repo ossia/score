@@ -15,6 +15,7 @@
 
 #include <Audio/AudioApplicationPlugin.hpp>
 #include <Audio/AudioDevice.hpp>
+#include <Audio/AudioTick.hpp>
 #include <Audio/Settings/Model.hpp>
 #include <Engine/ApplicationPlugin.hpp>
 #include <Execution/Settings/ExecutorModel.hpp>
@@ -249,6 +250,10 @@ void DocumentPlugin::makeGraph()
 
   execState->bufferSize = audiosettings.getBufferSize();
   execState->sampleRate = audiosettings.getRate();
+
+  // Publish audio clock state for video frame pacing
+  Audio::execution_samples.store(0, std::memory_order_relaxed);
+  Audio::execution_sample_rate.store(audiosettings.getRate(), std::memory_order_relaxed);
   execState->modelToSamplesRatio
       = audiosettings.getRate() / ossia::flicks_per_second<double>;
   execState->samplesToModelRatio
