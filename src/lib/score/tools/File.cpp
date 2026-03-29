@@ -107,35 +107,41 @@ QString
 relativizeFilePath(const QString& filename, const score::DocumentContext& ctx) noexcept
 {
   const QFileInfo info{filename};
-  QString path = filename;
 
-  if(info.isAbsolute())
+  if(!info.isAbsolute())
+    return filename;
+
+  // Canonicalize the input path to resolve symlinks,
+  // so it matches canonicalPath() of the document root.
+  QString path = info.canonicalFilePath();
+  if(path.isEmpty())
+    path = filename; // file doesn't exist yet, use as-is
+
+  const QFileInfo docroot{ctx.document.metadata().fileName()};
+  const auto& docpath = docroot.canonicalPath();
+  // 1. Check for whether the file is in the project's folder
+  if(!docpath.isEmpty() && path.startsWith(docpath))
   {
-    const QFileInfo docroot{ctx.document.metadata().fileName()};
-    const auto& docpath = docroot.canonicalPath();
-    // 1. Check for whether the file is in the project's folder
-    if(path.startsWith(docpath))
-    {
-      path.remove(0, docpath.length());
-      while(path.startsWith('/'))
-        path.remove(0, 1);
+    path.remove(0, docpath.length());
+    while(path.startsWith('/'))
+      path.remove(0, 1);
 
-      path.prepend("<PROJECT>:");
-    }
-    else
+    path.prepend("<PROJECT>:");
+  }
+  else
+  {
+    // 2. Check whether it's in the user library
+    QSettings set;
+    if(auto library = set.value("Library/RootPath").toString(); QDir{library}.exists())
     {
-      // 2. Check whether it's in the user library
-      QSettings set;
-      if(auto library = set.value("Library/RootPath").toString(); QDir{library}.exists())
+      auto canonicalLibrary = QFileInfo{library}.canonicalFilePath();
+      if(!canonicalLibrary.isEmpty() && path.startsWith(canonicalLibrary))
       {
-        if(path.startsWith(library))
-        {
-          path.remove(0, library.length());
-          if(path.startsWith('/'))
-            path.remove(0, 1);
+        path.remove(0, canonicalLibrary.length());
+        if(path.startsWith('/'))
+          path.remove(0, 1);
 
-          path.prepend("<LIBRARY>:");
-        }
+        path.prepend("<LIBRARY>:");
       }
     }
   }
