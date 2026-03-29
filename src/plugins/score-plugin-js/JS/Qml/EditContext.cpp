@@ -129,6 +129,24 @@ QString EditJsContext::readFile(QString path)
   }
 }
 
+QString EditJsContext::relativizeFilePath(QString path)
+{
+  auto doc = ctx();
+  if(!doc)
+    return path;
+
+  return score::relativizeFilePath(path, *doc);
+}
+
+QString EditJsContext::locateFilePath(QString path)
+{
+  auto doc = ctx();
+  if(!doc)
+    return path;
+
+  return score::locateFilePath(path, *doc);
+}
+
 QObject* EditJsContext::selectedObject()
 {
   auto doc = ctx();

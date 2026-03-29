@@ -13,6 +13,8 @@
 #include <QFile>
 #include <QFontMetrics>
 #include <QProcess>
+#include <QImageReader>
+#include <QUrl>
 #include <QTemporaryFile>
 #if __has_include(<PackageManager/Model.hpp>)
 #include <PackageManager/Model.hpp>
@@ -243,6 +245,18 @@ QString JsUtils::uuid()
 
   score::uuids::uuid u{uid.data};
   return score::uuids::toByteArray(u);
+}
+
+QString JsUtils::urlToLocalFile(QString url)
+{
+  return QUrl(url).toLocalFile();
+}
+
+QVariantMap JsUtils::imageSize(QString path)
+{
+  QImageReader reader(path);
+  auto sz = reader.size();
+  return {{"width", sz.width()}, {"height", sz.height()}};
 }
 
 QString JsUtils::environmentVariable(QString name)

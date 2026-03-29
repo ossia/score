@@ -41,6 +41,12 @@ public:
   QString uuid();
   W_SLOT(uuid)
 
+  QString urlToLocalFile(QString url);
+  W_SLOT(urlToLocalFile)
+
+  QVariantMap imageSize(QString path);
+  W_SLOT(imageSize)
+
   QString environmentVariable(QString name);
   W_SLOT(environmentVariable)
 

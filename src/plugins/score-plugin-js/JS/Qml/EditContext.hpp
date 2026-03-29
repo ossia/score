@@ -318,6 +318,12 @@ public:
   QString readFile(QString path);
   W_SLOT(readFile)
 
+  QString relativizeFilePath(QString path);
+  W_SLOT(relativizeFilePath)
+
+  QString locateFilePath(QString path);
+  W_SLOT(locateFilePath)
+
   ////////////////
   /// Score UI ///
   ////////////////
