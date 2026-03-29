@@ -167,6 +167,12 @@ set(HDRS
     
     Gfx/Graph/decoders/DXV.hpp
     Gfx/Graph/decoders/DMABufImport.hpp
+    Gfx/Graph/encoders/ColorSpaceOut.hpp
+    Gfx/Graph/encoders/GPUVideoEncoder.hpp
+    Gfx/Graph/encoders/UYVY.hpp
+    Gfx/Graph/encoders/NV12.hpp
+    Gfx/Graph/encoders/I420.hpp
+
     Gfx/Graph/decoders/GPUVideoDecoder.hpp
     Gfx/Graph/decoders/GPUVideoDecoderFactory.hpp
     Gfx/Graph/decoders/HAP.hpp
