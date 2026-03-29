@@ -17,6 +17,7 @@
 #include <JS/Qml/DeviceEnumerator.hpp>
 #include <JS/Qml/PortSink.hpp>
 #include <JS/Qml/PortSource.hpp>
+#include <JS/Qml/EditContext.hpp>
 #include <JS/Qml/QmlObjects.hpp>
 #include <JS/Qml/QmlProcess.hpp>
 #include <JS/Qml/TextureSource.hpp>
@@ -122,6 +123,11 @@ score_plugin_js::score_plugin_js()
   qmlRegisterType<JS::LineEdit>("Score", 1, 0, "LineEdit");
   qmlRegisterType<JS::Script>("Score", 1, 0, "Script");
   qmlRegisterType<JS::ScriptUI>("Score", 1, 0, "ScriptUI");
+
+  qmlRegisterSingletonType<JS::EditJsContext>("Score", 1, 0, "Editor",
+      [](QQmlEngine*, QJSEngine*) -> QObject* {
+          return new JS::EditJsContext();
+      });
 
   qmlRegisterType<JS::AddressSource>("Score.UI", 1, 0, "AddressSource");
   qmlRegisterType<JS::PortSource>("Score.UI", 1, 0, "PortSource");
