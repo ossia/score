@@ -235,6 +235,8 @@ void DeviceEditDialog::initAvailableProtocols()
     m_previousSettings.append(prot.defaultSettings());
   }
 
+  m_protocols->sortItems(0, Qt::AscendingOrder);
+
   for(int i = 0; i < m_protocols->topLevelItemCount(); i++)
   {
     setCategoryStyle(m_protocols->topLevelItem(i));
@@ -301,6 +303,8 @@ void DeviceEditDialog::selectedProtocolChanged()
   auto protocol = m_protocolList.get(key);
   for(auto [name, e] : protocol->getEnumerators(*doc))
     m_enumerators.emplace_back(name, e);
+  std::sort(m_enumerators.begin(), m_enumerators.end(),
+      [](const auto& a, const auto& b) { return a.first < b.first; });
   if(!m_enumerators.empty())
   {
     m_devices->setVisible(true);
