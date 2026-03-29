@@ -33,7 +33,7 @@
 namespace Gfx::WindowCapture
 {
 
-// ── Window enumeration (unchanged) ─────────────────────────────────
+// ── Window enumeration ────────────────────────────────────────────────
 
 static std::vector<CapturableWindow>& enumerationResult()
 {
@@ -66,6 +66,34 @@ static BOOL CALLBACK enumWindowProc(HWND hwnd, LPARAM)
 
   auto utf8 = QString::fromWCharArray(title, len).toStdString();
   enumerationResult().push_back({std::move(utf8), reinterpret_cast<uint64_t>(hwnd)});
+  return TRUE;
+}
+
+// ── Monitor enumeration ───────────────────────────────────────────────
+
+static std::vector<CapturableScreen>& monitorEnumerationResult()
+{
+  static thread_local std::vector<CapturableScreen> result;
+  return result;
+}
+
+static BOOL CALLBACK enumMonitorProc(HMONITOR hMon, HDC, LPRECT lpRect, LPARAM)
+{
+  MONITORINFOEXW info{};
+  info.cbSize = sizeof(info);
+  if(!GetMonitorInfoW(hMon, &info))
+    return TRUE;
+
+  auto name = QString::fromWCharArray(info.szDevice).toStdString();
+
+  CapturableScreen screen;
+  screen.name = std::move(name);
+  screen.id = reinterpret_cast<uint64_t>(hMon);
+  screen.x = info.rcMonitor.left;
+  screen.y = info.rcMonitor.top;
+  screen.width = info.rcMonitor.right - info.rcMonitor.left;
+  screen.height = info.rcMonitor.bottom - info.rcMonitor.top;
+  monitorEnumerationResult().push_back(std::move(screen));
   return TRUE;
 }
 
@@ -119,6 +147,20 @@ public:
     }
   }
 
+  bool supportsMode(CaptureMode mode) const override
+  {
+    switch(mode)
+    {
+      case CaptureMode::Window:
+      case CaptureMode::SingleScreen:
+        return true;
+      case CaptureMode::AllScreens:
+      case CaptureMode::Region:
+        return false;
+    }
+    return false;
+  }
+
   std::vector<CapturableWindow> enumerate() override
   {
     auto& result = enumerationResult();
@@ -127,13 +169,17 @@ public:
     return result;
   }
 
-  bool start(uint64_t windowId) override
+  std::vector<CapturableScreen> enumerateScreens() override
+  {
+    auto& result = monitorEnumerationResult();
+    result.clear();
+    EnumDisplayMonitors(nullptr, nullptr, enumMonitorProc, 0);
+    return result;
+  }
+
+  bool start(const CaptureTarget& target) override
   {
     stop();
-
-    m_hwnd = reinterpret_cast<HWND>(windowId);
-    if(!m_hwnd || !IsWindow(m_hwnd))
-      return false;
 
     try
     {
@@ -141,17 +187,47 @@ public:
       if(!createD3D11Device())
         return false;
 
-      // 2. Create capture item via interop
+      // 2. Create capture item
       auto interopFactory
           = winrt::get_activation_factory<
                 winrt::Windows::Graphics::Capture::GraphicsCaptureItem,
                 IGraphicsCaptureItemInterop>();
 
       winrt::Windows::Graphics::Capture::GraphicsCaptureItem item{nullptr};
-      winrt::check_hresult(interopFactory->CreateForWindow(
-          m_hwnd,
-          winrt::guid_of<winrt::Windows::Graphics::Capture::GraphicsCaptureItem>(),
-          winrt::put_abi(item)));
+
+      switch(target.mode)
+      {
+        case CaptureMode::Window:
+        {
+          m_hwnd = reinterpret_cast<HWND>(target.windowId);
+          if(!m_hwnd || !IsWindow(m_hwnd))
+            return false;
+
+          winrt::check_hresult(interopFactory->CreateForWindow(
+              m_hwnd,
+              winrt::guid_of<winrt::Windows::Graphics::Capture::GraphicsCaptureItem>(),
+              winrt::put_abi(item)));
+          break;
+        }
+
+        case CaptureMode::SingleScreen:
+        {
+          HMONITOR hMonitor = reinterpret_cast<HMONITOR>(target.screenId);
+          if(!hMonitor)
+            return false;
+
+          winrt::check_hresult(interopFactory->CreateForMonitor(
+              hMonitor,
+              winrt::guid_of<winrt::Windows::Graphics::Capture::GraphicsCaptureItem>(),
+              winrt::put_abi(item)));
+          break;
+        }
+
+        default:
+          // AllScreens and Region not supported
+          return false;
+      }
+
       m_item = item;
 
       // 3. Get initial size

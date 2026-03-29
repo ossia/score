@@ -19,6 +19,9 @@
 #include <QLineEdit>
 #include <QMimeData>
 #include <QPushButton>
+#include <QSpinBox>
+#include <QStackedWidget>
+#include <QStandardItemModel>
 
 #include <wobjectimpl.h>
 
@@ -97,9 +100,40 @@ public:
     checkForChanges(m_deviceNameEdit);
     m_deviceNameEdit->setText("Window Capture");
 
+    // ── Mode selector ──
+    m_modeCombo = new QComboBox{this};
+    m_modeCombo->addItem(tr("Window"), (int)CaptureMode::Window);
+    m_modeCombo->addItem(tr("All Screens"), (int)CaptureMode::AllScreens);
+    m_modeCombo->addItem(tr("Single Screen"), (int)CaptureMode::SingleScreen);
+    m_modeCombo->addItem(tr("Region"), (int)CaptureMode::Region);
+
+    // ── Window selection (for Window mode) ──
     m_windowList = new QComboBox{this};
     m_windowList->setEditable(false);
     m_windowList->setMinimumWidth(300);
+    m_windowLabel = new QLabel{tr("Window"), this};
+
+    // ── Screen selection (for SingleScreen mode) ──
+    m_screenList = new QComboBox{this};
+    m_screenList->setEditable(false);
+    m_screenList->setMinimumWidth(300);
+    m_screenLabel = new QLabel{tr("Screen"), this};
+
+    // ── Region (for Region mode) ──
+    m_regionX = new QSpinBox{this};
+    m_regionX->setRange(0, 32768);
+    m_regionY = new QSpinBox{this};
+    m_regionY->setRange(0, 32768);
+    m_regionW = new QSpinBox{this};
+    m_regionW->setRange(1, 32768);
+    m_regionW->setValue(1920);
+    m_regionH = new QSpinBox{this};
+    m_regionH->setRange(1, 32768);
+    m_regionH->setValue(1080);
+    m_regionXLabel = new QLabel{tr("Region X"), this};
+    m_regionYLabel = new QLabel{tr("Region Y"), this};
+    m_regionWLabel = new QLabel{tr("Region Width"), this};
+    m_regionHLabel = new QLabel{tr("Region Height"), this};
 
     m_refreshBtn = new QPushButton{tr("Refresh"), this};
 
@@ -115,7 +149,13 @@ public:
 
     auto layout = new QFormLayout;
     layout->addRow(tr("Device Name"), m_deviceNameEdit);
-    layout->addRow(tr("Window"), m_windowList);
+    layout->addRow(tr("Mode"), m_modeCombo);
+    layout->addRow(m_windowLabel, m_windowList);
+    layout->addRow(m_screenLabel, m_screenList);
+    layout->addRow(m_regionXLabel, m_regionX);
+    layout->addRow(m_regionYLabel, m_regionY);
+    layout->addRow(m_regionWLabel, m_regionW);
+    layout->addRow(m_regionHLabel, m_regionH);
     layout->addRow("", m_refreshBtn);
     layout->addRow(tr("Frame Rate"), m_fps);
     layout->addRow(tr("Preview"), m_preview);
@@ -134,12 +174,19 @@ public:
 
     setLayout(layout);
 
-    connect(m_refreshBtn, &QPushButton::clicked, this, [this] { refreshWindows(); });
+    connect(
+        m_modeCombo, &QComboBox::currentIndexChanged, this,
+        [this](int) { onModeChanged(); });
+    connect(m_refreshBtn, &QPushButton::clicked, this, [this] { refreshLists(); });
     connect(
         m_windowList, &QComboBox::currentIndexChanged, this,
         [this](int) { updatePreview(); });
 
-    refreshWindows();
+    // Initialize backend and populate lists
+    m_previewBackend = createWindowCaptureBackend();
+    updateModeAvailability();
+    onModeChanged();
+    refreshLists();
   }
 
   Device::DeviceSettings getSettings() const override
@@ -149,13 +196,40 @@ public:
     s.protocol = WindowCaptureProtocolFactory::static_concreteKey();
 
     WindowCaptureSettings set;
+    set.mode = static_cast<CaptureMode>(
+        m_modeCombo->currentData().toInt());
     set.fps = m_fps->value();
 
-    int idx = m_windowList->currentIndex();
-    if(idx >= 0)
+    switch(set.mode)
     {
-      set.windowId = m_windowList->currentData().toULongLong();
-      set.windowTitle = m_windowList->currentText();
+      case CaptureMode::Window:
+      {
+        int idx = m_windowList->currentIndex();
+        if(idx >= 0)
+        {
+          set.windowId = m_windowList->currentData().toULongLong();
+          set.windowTitle = m_windowList->currentText();
+        }
+        break;
+      }
+      case CaptureMode::AllScreens:
+        break;
+      case CaptureMode::SingleScreen:
+      {
+        int idx = m_screenList->currentIndex();
+        if(idx >= 0)
+        {
+          set.screenId = m_screenList->currentData().toULongLong();
+          set.screenName = m_screenList->currentText();
+        }
+        break;
+      }
+      case CaptureMode::Region:
+        set.regionX = m_regionX->value();
+        set.regionY = m_regionY->value();
+        set.regionW = m_regionW->value();
+        set.regionH = m_regionH->value();
+        break;
     }
 
     s.deviceSpecificSettings = QVariant::fromValue(set);
@@ -172,18 +246,95 @@ public:
       const auto& set = settings.deviceSpecificSettings.value<WindowCaptureSettings>();
       m_fps->setValue(set.fps);
 
-      // Try to find the window in current list
-      int idx = m_windowList->findData(QVariant::fromValue(quint64(set.windowId)));
-      if(idx >= 0)
-        m_windowList->setCurrentIndex(idx);
+      // Set mode
+      int modeIdx = m_modeCombo->findData((int)set.mode);
+      if(modeIdx >= 0)
+        m_modeCombo->setCurrentIndex(modeIdx);
+
+      // Try to restore window selection
+      int wIdx = m_windowList->findData(QVariant::fromValue(quint64(set.windowId)));
+      if(wIdx >= 0)
+        m_windowList->setCurrentIndex(wIdx);
+
+      // Try to restore screen selection
+      int sIdx = m_screenList->findData(QVariant::fromValue(quint64(set.screenId)));
+      if(sIdx >= 0)
+        m_screenList->setCurrentIndex(sIdx);
+
+      // Restore region
+      m_regionX->setValue(set.regionX);
+      m_regionY->setValue(set.regionY);
+      m_regionW->setValue(set.regionW);
+      m_regionH->setValue(set.regionH);
     }
   }
 
 private:
+  void updateModeAvailability()
+  {
+    // Disable modes not supported by the current backend
+    if(!m_previewBackend || !m_previewBackend->available())
+      return;
+
+    for(int i = 0; i < m_modeCombo->count(); i++)
+    {
+      auto mode = static_cast<CaptureMode>(m_modeCombo->itemData(i).toInt());
+      bool supported = m_previewBackend->supportsMode(mode);
+      auto* model = qobject_cast<QStandardItemModel*>(m_modeCombo->model());
+      if(model)
+      {
+        auto* item = model->item(i);
+        if(item)
+        {
+          item->setEnabled(supported);
+          if(!supported)
+            item->setToolTip(tr("Not supported by the current capture backend"));
+        }
+      }
+    }
+  }
+
+  void onModeChanged()
+  {
+    auto mode = static_cast<CaptureMode>(
+        m_modeCombo->currentData().toInt());
+
+    bool showWindow = (mode == CaptureMode::Window);
+    bool showScreen = (mode == CaptureMode::SingleScreen);
+    bool showRegion = (mode == CaptureMode::Region);
+    bool showRefresh = showWindow || showScreen;
+
+    m_windowLabel->setVisible(showWindow);
+    m_windowList->setVisible(showWindow);
+    m_screenLabel->setVisible(showScreen);
+    m_screenList->setVisible(showScreen);
+    m_regionXLabel->setVisible(showRegion);
+    m_regionX->setVisible(showRegion);
+    m_regionYLabel->setVisible(showRegion);
+    m_regionY->setVisible(showRegion);
+    m_regionWLabel->setVisible(showRegion);
+    m_regionW->setVisible(showRegion);
+    m_regionHLabel->setVisible(showRegion);
+    m_regionH->setVisible(showRegion);
+    m_refreshBtn->setVisible(showRefresh);
+    m_preview->setVisible(showWindow);
+  }
+
+  void refreshLists()
+  {
+    if(!m_previewBackend)
+      m_previewBackend = createWindowCaptureBackend();
+    if(!m_previewBackend || !m_previewBackend->available())
+      return;
+
+    refreshWindows();
+    refreshScreens();
+  }
+
   void refreshWindows()
   {
     m_windowList->clear();
-    m_previewBackend = createWindowCaptureBackend();
+
     if(!m_previewBackend || !m_previewBackend->available())
     {
       m_windowList->addItem(tr("(No capture backend available)"));
@@ -204,6 +355,32 @@ private:
     }
   }
 
+  void refreshScreens()
+  {
+    m_screenList->clear();
+
+    if(!m_previewBackend || !m_previewBackend->available())
+    {
+      m_screenList->addItem(tr("(No capture backend available)"));
+      return;
+    }
+
+    auto screens = m_previewBackend->enumerateScreens();
+    if(screens.empty())
+    {
+      m_screenList->addItem(tr("(No screens found — or portal-based capture)"));
+      return;
+    }
+
+    for(const auto& s : screens)
+    {
+      QString label = QString::fromStdString(s.name);
+      if(s.width > 0 && s.height > 0)
+        label += QStringLiteral(" (%1x%2)").arg(s.width).arg(s.height);
+      m_screenList->addItem(label, QVariant::fromValue(quint64(s.id)));
+    }
+  }
+
   void updatePreview()
   {
     m_preview->clear();
@@ -220,7 +397,10 @@ private:
       return;
 
     // Grab a single frame for the preview
-    if(!m_previewBackend->start(windowId))
+    CaptureTarget target;
+    target.mode = CaptureMode::Window;
+    target.windowId = windowId;
+    if(!m_previewBackend->start(target))
       return;
 
     auto frame = m_previewBackend->grab();
@@ -258,7 +438,24 @@ private:
 
   Device::DeviceSettings m_settings;
   QLineEdit* m_deviceNameEdit{};
+
+  QComboBox* m_modeCombo{};
+
+  QLabel* m_windowLabel{};
   QComboBox* m_windowList{};
+
+  QLabel* m_screenLabel{};
+  QComboBox* m_screenList{};
+
+  QLabel* m_regionXLabel{};
+  QSpinBox* m_regionX{};
+  QLabel* m_regionYLabel{};
+  QSpinBox* m_regionY{};
+  QLabel* m_regionWLabel{};
+  QSpinBox* m_regionW{};
+  QLabel* m_regionHLabel{};
+  QSpinBox* m_regionH{};
+
   QPushButton* m_refreshBtn{};
   QDoubleSpinBox* m_fps{};
   QLabel* m_preview{};
@@ -358,29 +555,49 @@ bool WindowCaptureProtocolFactory::checkCompatibility(
 template <>
 void DataStreamReader::read(const Gfx::WindowCapture::WindowCaptureSettings& n)
 {
-  m_stream << n.windowTitle << n.windowId << n.fps;
+  m_stream << (int)n.mode << n.windowTitle << n.windowId << n.screenId
+           << n.screenName << n.regionX << n.regionY << n.regionW << n.regionH
+           << n.fps;
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(Gfx::WindowCapture::WindowCaptureSettings& n)
 {
-  m_stream >> n.windowTitle >> n.windowId >> n.fps;
+  int mode{};
+  m_stream >> mode >> n.windowTitle >> n.windowId >> n.screenId >> n.screenName
+      >> n.regionX >> n.regionY >> n.regionW >> n.regionH >> n.fps;
+  n.mode = static_cast<Gfx::WindowCapture::CaptureMode>(mode);
   checkDelimiter();
 }
 
 template <>
 void JSONReader::read(const Gfx::WindowCapture::WindowCaptureSettings& n)
 {
+  obj["Mode"] = (int)n.mode;
   obj["WindowTitle"] = n.windowTitle;
   obj["WindowId"] = (int64_t)n.windowId;
+  obj["ScreenId"] = (int64_t)n.screenId;
+  obj["ScreenName"] = n.screenName;
+  obj["RegionX"] = n.regionX;
+  obj["RegionY"] = n.regionY;
+  obj["RegionW"] = n.regionW;
+  obj["RegionH"] = n.regionH;
   obj["FPS"] = n.fps;
 }
 
 template <>
 void JSONWriter::write(Gfx::WindowCapture::WindowCaptureSettings& n)
 {
+  n.mode = static_cast<Gfx::WindowCapture::CaptureMode>(
+      obj["Mode"].toInt());
   n.windowTitle = obj["WindowTitle"].toString();
   n.windowId = obj["WindowId"].toUInt64();
+  n.screenId = obj["ScreenId"].toUInt64();
+  n.screenName = obj["ScreenName"].toString();
+  n.regionX = obj["RegionX"].toInt();
+  n.regionY = obj["RegionY"].toInt();
+  n.regionW = obj["RegionW"].toInt();
+  n.regionH = obj["RegionH"].toInt();
   n.fps = obj["FPS"].toDouble();
 }

@@ -565,10 +565,15 @@ static bool portalCall(
   return true;
 }
 
+// Portal source types
+static constexpr uint32_t PORTAL_SOURCE_MONITOR = 1;
+static constexpr uint32_t PORTAL_SOURCE_WINDOW = 2;
+
 // Perform the full portal ScreenCast flow and return the PipeWire fd.
 // Must be called from a thread with a Qt event loop (typically the UI thread).
+// sourceType: 1=MONITOR, 2=WINDOW
 // Returns -1 on failure.
-static int openPortalScreenCast()
+static int openPortalScreenCast(uint32_t sourceType = PORTAL_SOURCE_WINDOW)
 {
   auto bus = QDBusConnection::sessionBus();
   if(!bus.isConnected())
@@ -620,13 +625,13 @@ static int openPortalScreenCast()
     return -1;
   }
 
-  // ── Step 2: SelectSources (types=2 for WINDOW) ──
+  // ── Step 2: SelectSources ──
   requestToken = makeToken();
 
   QVariantMap selectOpts;
   selectOpts[QStringLiteral("handle_token")] = requestToken;
   selectOpts[QStringLiteral("types")]
-      = QVariant::fromValue(uint32_t(2)); // WINDOW
+      = QVariant::fromValue(sourceType);
   selectOpts[QStringLiteral("multiple")] = false;
 
   if(!portalCall(
@@ -724,6 +729,20 @@ public:
     return libpipewire_capture::instance().available && portalAvailable();
   }
 
+  bool supportsMode(CaptureMode mode) const override
+  {
+    switch(mode)
+    {
+      case CaptureMode::Window:
+      case CaptureMode::SingleScreen:
+      case CaptureMode::AllScreens:
+        return true;
+      case CaptureMode::Region:
+        return false;
+    }
+    return false;
+  }
+
   std::vector<CapturableWindow> enumerate() override
   {
     // Wayland does not allow window enumeration.
@@ -731,9 +750,15 @@ public:
     return {};
   }
 
-  bool start(uint64_t windowId) override
+  std::vector<CapturableScreen> enumerateScreens() override
   {
-    Q_UNUSED(windowId)
+    // Wayland does not allow screen enumeration.
+    // The portal picker dialog handles selection during start().
+    return {};
+  }
+
+  bool start(const CaptureTarget& target) override
+  {
     stop();
 
     auto& pw = libpipewire_capture::instance();
@@ -743,8 +768,24 @@ public:
     // Initialize PipeWire
     pw.init(nullptr, nullptr);
 
+    // Choose portal source type based on capture mode
+    uint32_t sourceType = PORTAL_SOURCE_WINDOW;
+    switch(target.mode)
+    {
+      case CaptureMode::Window:
+        sourceType = PORTAL_SOURCE_WINDOW;
+        break;
+      case CaptureMode::AllScreens:
+      case CaptureMode::SingleScreen:
+        sourceType = PORTAL_SOURCE_MONITOR;
+        break;
+      case CaptureMode::Region:
+        // Region not supported on PipeWire
+        return false;
+    }
+
     // Run the portal flow to get a PipeWire fd.
-    int fd = openPortalScreenCast();
+    int fd = openPortalScreenCast(sourceType);
     if(fd < 0)
     {
       qDebug() << "WindowCapture PipeWire: portal flow failed";

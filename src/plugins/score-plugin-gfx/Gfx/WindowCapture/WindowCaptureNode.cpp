@@ -122,7 +122,17 @@ public:
 
     // Start capturing
     if(node.backend && node.backend->available())
-      const_cast<WindowCaptureNode&>(node).backend->start(node.settings.windowId);
+    {
+      CaptureTarget target;
+      target.mode = node.settings.mode;
+      target.windowId = node.settings.windowId;
+      target.screenId = node.settings.screenId;
+      target.regionX = node.settings.regionX;
+      target.regionY = node.settings.regionY;
+      target.regionW = node.settings.regionW;
+      target.regionH = node.settings.regionH;
+      const_cast<WindowCaptureNode&>(node).backend->start(target);
+    }
   }
 
   void update(

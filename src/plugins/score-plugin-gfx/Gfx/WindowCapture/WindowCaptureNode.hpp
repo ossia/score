@@ -7,8 +7,12 @@ namespace Gfx::WindowCapture
 
 struct WindowCaptureSettings
 {
+  CaptureMode mode{CaptureMode::Window};
   QString windowTitle;
   uint64_t windowId{};
+  uint64_t screenId{};
+  QString screenName;
+  int regionX{}, regionY{}, regionW{}, regionH{};
   double fps{60.0};
 };
 

@@ -9,75 +9,24 @@
 #include <optional>
 #include <sys/ipc.h>
 #include <sys/shm.h>
-
+#if __has_include(<X11/Xlib.h>)
+#define _DEFAULT_SOURCE 1
+#include <X11/XKBlib.h>
+#include <X11/Xlib.h>
+#include <X11/extensions/XShm.h>
+#include <X11/extensions/Xcomposite.h>
+#include <X11/extensions/Xrandr.h>
+#include <X11/keysym.h>
+#endif
+#undef DefaultRootWindow
 // X11 types — forward declared to avoid including X11 headers
 extern "C" {
-typedef struct _XDisplay Display;
-typedef unsigned long XID;
-typedef XID Window;
-typedef XID Pixmap;
-typedef unsigned long Atom;
-typedef int Bool;
-typedef int Status;
 
-struct XWindowAttributes
-{
-  int x, y;
-  int width, height;
-  int border_width;
-  int depth;
-  void* visual;
-  Window root;
-  int c_class;
-  int bit_gravity, win_gravity;
-  int backing_store;
-  unsigned long backing_planes, backing_pixel;
-  Bool save_under;
-  long colormap;
-  Bool map_installed;
-  int map_state;
-  long all_event_masks, your_event_mask, do_not_propagate_mask;
-  Bool override_redirect;
-  void* screen;
-};
 // map_state values
 #define IsViewable 2
 
-struct XImage
-{
-  int width, height;
-  int xoffset;
-  int format;
-  char* data;
-  int byte_order;
-  int bitmap_unit, bitmap_bit_order, bitmap_pad;
-  int depth;
-  int bytes_per_line;
-  int bits_per_pixel;
-  unsigned long red_mask, green_mask, blue_mask;
-  void* obdata;
-  struct funcs
-  {
-    void* create_image;
-    void* destroy_image;
-    void* get_pixel;
-    void* put_pixel;
-    void* sub_image;
-    void* add_pixel;
-  } f;
-};
-
-struct XShmSegmentInfo
-{
-  long shmseg;
-  int shmid;
-  char* shmaddr;
-  Bool readOnly;
-};
-
 // Constants
 #define ZPixmap 2
-#define AllPlanes (~0UL)
 #define AnyPropertyType 0L
 #define XA_WINDOW 33L
 
@@ -112,6 +61,22 @@ using XCompositeUnredirectWindow_t = void (*)(Display*, Window, int);
 using XCompositeNameWindowPixmap_t = Pixmap (*)(Display*, Window);
 
 #define CompositeRedirectAutomatic 0
+
+// ── XRandR types (ABI-stable structs) ──────────────────────────────────
+
+typedef XID RROutput;
+typedef XID RRCrtc;
+typedef XID RRMode;
+
+// Connection status
+#define RR_Connected 0
+
+using XRRGetScreenResourcesCurrent_t = XRRScreenResources* (*)(Display*, Window);
+using XRRGetOutputInfo_t = XRROutputInfo* (*)(Display*, XRRScreenResources*, RROutput);
+using XRRGetCrtcInfo_t = XRRCrtcInfo* (*)(Display*, XRRScreenResources*, RRCrtc);
+using XRRFreeScreenResources_t = void (*)(XRRScreenResources*);
+using XRRFreeOutputInfo_t = void (*)(XRROutputInfo*);
+using XRRFreeCrtcInfo_t = void (*)(XRRCrtcInfo*);
 }
 
 namespace Gfx::WindowCapture
@@ -146,6 +111,15 @@ struct libx11
   XCompositeNameWindowPixmap_t CompositeNameWindowPixmap{};
   bool hasComposite{};
 
+  // XRandR (from libXrandr)
+  XRRGetScreenResourcesCurrent_t RRGetScreenResourcesCurrent{};
+  XRRGetOutputInfo_t RRGetOutputInfo{};
+  XRRGetCrtcInfo_t RRGetCrtcInfo{};
+  XRRFreeScreenResources_t RRFreeScreenResources{};
+  XRRFreeOutputInfo_t RRFreeOutputInfo{};
+  XRRFreeCrtcInfo_t RRFreeCrtcInfo{};
+  bool hasRandR{};
+
   bool available{};
 
   static const libx11& instance()
@@ -158,6 +132,7 @@ private:
   ossia::dylib_loader m_x11;
   ossia::dylib_loader m_xext;
   std::optional<ossia::dylib_loader> m_xcomposite;
+  std::optional<ossia::dylib_loader> m_xrandr;
 
   template <typename T>
   T sym(ossia::dylib_loader& lib, const char* name)
@@ -209,6 +184,30 @@ private:
       hasComposite = false;
     }
 
+    // XRandR is optional — needed for screen enumeration
+    try
+    {
+      m_xrandr.emplace(
+          std::vector<std::string_view>{"libXrandr.so.2", "libXrandr.so"});
+      RRGetScreenResourcesCurrent = sym<XRRGetScreenResourcesCurrent_t>(
+          *m_xrandr, "XRRGetScreenResourcesCurrent");
+      RRGetOutputInfo
+          = sym<XRRGetOutputInfo_t>(*m_xrandr, "XRRGetOutputInfo");
+      RRGetCrtcInfo = sym<XRRGetCrtcInfo_t>(*m_xrandr, "XRRGetCrtcInfo");
+      RRFreeScreenResources
+          = sym<XRRFreeScreenResources_t>(*m_xrandr, "XRRFreeScreenResources");
+      RRFreeOutputInfo
+          = sym<XRRFreeOutputInfo_t>(*m_xrandr, "XRRFreeOutputInfo");
+      RRFreeCrtcInfo
+          = sym<XRRFreeCrtcInfo_t>(*m_xrandr, "XRRFreeCrtcInfo");
+      hasRandR = RRGetScreenResourcesCurrent && RRGetOutputInfo && RRGetCrtcInfo
+                 && RRFreeScreenResources && RRFreeOutputInfo && RRFreeCrtcInfo;
+    }
+    catch(...)
+    {
+      hasRandR = false;
+    }
+
     available = OpenDisplay && CloseDisplay && DefaultRootWindow && InternAtom
                 && GetWindowProperty && Free && FetchName && GetWindowAttributes
                 && ShmQueryExtension && ShmCreateImage && ShmAttach && ShmDetach
@@ -223,6 +222,20 @@ class X11WindowCaptureBackend final : public WindowCaptureBackend
 {
 public:
   bool available() const override { return libx11::instance().available; }
+
+  bool supportsMode(CaptureMode mode) const override
+  {
+    switch(mode)
+    {
+      case CaptureMode::Window:
+      case CaptureMode::AllScreens:
+      case CaptureMode::Region:
+        return true;
+      case CaptureMode::SingleScreen:
+        return libx11::instance().hasRandR;
+    }
+    return false;
+  }
 
   // Read a UTF-8 window name via _NET_WM_NAME, falling back to WM_NAME (XFetchName).
   static std::string getWindowName(const libx11& x11, Display* dpy, Window win)
@@ -329,7 +342,57 @@ public:
     return result;
   }
 
-  bool start(uint64_t windowId) override
+  std::vector<CapturableScreen> enumerateScreens() override
+  {
+    std::vector<CapturableScreen> result;
+    auto& x11 = libx11::instance();
+    if(!x11.available || !x11.hasRandR)
+      return result;
+
+    Display* dpy = x11.OpenDisplay(nullptr);
+    if(!dpy)
+      return result;
+
+    Window root = x11.DefaultRootWindow(dpy);
+    XRRScreenResources* res = x11.RRGetScreenResourcesCurrent(dpy, root);
+    if(!res)
+    {
+      x11.CloseDisplay(dpy);
+      return result;
+    }
+
+    for(int i = 0; i < res->noutput; i++)
+    {
+      XRROutputInfo* outInfo = x11.RRGetOutputInfo(dpy, res, res->outputs[i]);
+      if(!outInfo)
+        continue;
+
+      // Only include connected outputs with an active CRTC
+      if(outInfo->connection == RR_Connected && outInfo->crtc != 0)
+      {
+        XRRCrtcInfo* crtcInfo = x11.RRGetCrtcInfo(dpy, res, outInfo->crtc);
+        if(crtcInfo)
+        {
+          CapturableScreen screen;
+          screen.name = std::string(outInfo->name, outInfo->nameLen);
+          screen.id = res->outputs[i];
+          screen.x = crtcInfo->x;
+          screen.y = crtcInfo->y;
+          screen.width = static_cast<int>(crtcInfo->width);
+          screen.height = static_cast<int>(crtcInfo->height);
+          result.push_back(std::move(screen));
+          x11.RRFreeCrtcInfo(crtcInfo);
+        }
+      }
+      x11.RRFreeOutputInfo(outInfo);
+    }
+
+    x11.RRFreeScreenResources(res);
+    x11.CloseDisplay(dpy);
+    return result;
+  }
+
+  bool start(const CaptureTarget& target) override
   {
     stop();
 
@@ -341,6 +404,157 @@ public:
     if(!m_display)
       return false;
 
+    m_captureMode = target.mode;
+    Window root = x11.DefaultRootWindow(m_display);
+
+    switch(target.mode)
+    {
+      case CaptureMode::Window:
+        return startWindow(x11, target.windowId);
+
+      case CaptureMode::AllScreens:
+      {
+        XWindowAttributes rootAttrs{};
+        if(!x11.GetWindowAttributes(m_display, root, &rootAttrs)
+           || rootAttrs.width <= 0 || rootAttrs.height <= 0)
+        {
+          x11.CloseDisplay(m_display);
+          m_display = nullptr;
+          return false;
+        }
+        m_width = rootAttrs.width;
+        m_height = rootAttrs.height;
+        m_captureX = 0;
+        m_captureY = 0;
+        m_rootWindow = root;
+        return startScreenCapture(x11);
+      }
+
+      case CaptureMode::SingleScreen:
+      {
+        // Look up current geometry for the requested screen via XRandR
+        if(!x11.hasRandR)
+        {
+          x11.CloseDisplay(m_display);
+          m_display = nullptr;
+          return false;
+        }
+
+        XRRScreenResources* res
+            = x11.RRGetScreenResourcesCurrent(m_display, root);
+        if(!res)
+        {
+          x11.CloseDisplay(m_display);
+          m_display = nullptr;
+          return false;
+        }
+
+        bool found = false;
+        for(int i = 0; i < res->noutput && !found; i++)
+        {
+          if(res->outputs[i] != static_cast<RROutput>(target.screenId))
+            continue;
+
+          XRROutputInfo* outInfo
+              = x11.RRGetOutputInfo(m_display, res, res->outputs[i]);
+          if(!outInfo)
+            continue;
+
+          if(outInfo->connection == RR_Connected && outInfo->crtc != 0)
+          {
+            XRRCrtcInfo* crtcInfo
+                = x11.RRGetCrtcInfo(m_display, res, outInfo->crtc);
+            if(crtcInfo && crtcInfo->width > 0 && crtcInfo->height > 0)
+            {
+              m_width = static_cast<int>(crtcInfo->width);
+              m_height = static_cast<int>(crtcInfo->height);
+              m_captureX = crtcInfo->x;
+              m_captureY = crtcInfo->y;
+              m_rootWindow = root;
+              found = true;
+              x11.RRFreeCrtcInfo(crtcInfo);
+            }
+          }
+          x11.RRFreeOutputInfo(outInfo);
+        }
+        x11.RRFreeScreenResources(res);
+
+        if(!found)
+        {
+          qDebug() << "WindowCapture X11: screen" << target.screenId
+                   << "not found";
+          x11.CloseDisplay(m_display);
+          m_display = nullptr;
+          return false;
+        }
+        return startScreenCapture(x11);
+      }
+
+      case CaptureMode::Region:
+      {
+        if(target.regionW <= 0 || target.regionH <= 0)
+        {
+          x11.CloseDisplay(m_display);
+          m_display = nullptr;
+          return false;
+        }
+        m_width = target.regionW;
+        m_height = target.regionH;
+        m_captureX = target.regionX;
+        m_captureY = target.regionY;
+        m_rootWindow = root;
+        return startScreenCapture(x11);
+      }
+    }
+
+    x11.CloseDisplay(m_display);
+    m_display = nullptr;
+    return false;
+  }
+
+  void stop() override
+  {
+    m_running = false;
+    m_lastFrame = {};
+    freeShmImage();
+    auto& x11 = libx11::instance();
+    if(m_display)
+    {
+      if(m_useComposite && m_captureMode == CaptureMode::Window)
+      {
+        if(m_pixmap)
+        {
+          x11.FreePixmap(m_display, m_pixmap);
+          m_pixmap = 0;
+        }
+        x11.CompositeUnredirectWindow(
+            m_display, m_windowId, CompositeRedirectAutomatic);
+        m_useComposite = false;
+      }
+      x11.CloseDisplay(m_display);
+      m_display = nullptr;
+    }
+    m_captureMode = CaptureMode::Window;
+  }
+
+  CapturedFrame grab() override
+  {
+    if(!m_running || !m_display || !m_ximage)
+      return m_lastFrame;
+
+    auto& x11 = libx11::instance();
+
+    if(m_captureMode == CaptureMode::Window)
+      return grabWindow(x11);
+    else
+      return grabScreen(x11);
+  }
+
+private:
+  // ── Window capture (existing logic) ──
+
+  bool startWindow(const libx11& x11, uint64_t windowId)
+  {
     m_windowId = windowId;
 
     // Check that the window exists and get its size
@@ -373,9 +587,6 @@ public:
       int eventBase{}, errorBase{};
       if(x11.CompositeQueryExtension(m_display, &eventBase, &errorBase))
       {
-        // Redirect in Automatic mode — the compositor (if any) still
-        // displays the window normally. If no compositor is running,
-        // the X server allocates a backing pixmap for us.
         x11.CompositeRedirectWindow(
             m_display, m_windowId, CompositeRedirectAutomatic);
         m_pixmap = x11.CompositeNameWindowPixmap(m_display, m_windowId);
@@ -385,7 +596,6 @@ public:
         }
         else
         {
-          // Undo redirect if pixmap failed
           x11.CompositeUnredirectWindow(
               m_display, m_windowId, CompositeRedirectAutomatic);
           qDebug() << "WindowCapture X11: XCompositeNameWindowPixmap failed,"
@@ -394,44 +604,15 @@ public:
       }
     }
 
-    if(!allocateShmImage())
+    if(!allocateShmImage(m_windowId))
       return false;
 
     m_running = true;
     return true;
   }
 
-  void stop() override
+  CapturedFrame grabWindow(const libx11& x11)
   {
-    m_running = false;
-    m_lastFrame = {};
-    freeShmImage();
-    auto& x11 = libx11::instance();
-    if(m_display)
-    {
-      if(m_useComposite)
-      {
-        if(m_pixmap)
-        {
-          x11.FreePixmap(m_display, m_pixmap);
-          m_pixmap = 0;
-        }
-        x11.CompositeUnredirectWindow(
-            m_display, m_windowId, CompositeRedirectAutomatic);
-        m_useComposite = false;
-      }
-      x11.CloseDisplay(m_display);
-      m_display = nullptr;
-    }
-  }
-
-  CapturedFrame grab() override
-  {
-    if(!m_running || !m_display || !m_ximage)
-      return m_lastFrame;
-
-    auto& x11 = libx11::instance();
-
     // Check if window still exists and get current size
     XWindowAttributes attrs{};
     if(!x11.GetWindowAttributes(m_display, m_windowId, &attrs))
@@ -441,16 +622,13 @@ public:
     if(!m_useComposite && attrs.map_state != IsViewable)
       return m_lastFrame;
 
-    // Handle window resize — only when the window is actually viewable
-    // (unmapped windows may report stale or zero dimensions)
-    if(attrs.map_state == IsViewable
-       && attrs.width > 0 && attrs.height > 0
+    // Handle window resize
+    if(attrs.map_state == IsViewable && attrs.width > 0 && attrs.height > 0
        && (attrs.width != m_width || attrs.height != m_height))
     {
       m_width = attrs.width;
       m_height = attrs.height;
 
-      // XComposite pixmap becomes invalid on resize — re-acquire
       if(m_useComposite)
       {
         if(m_pixmap)
@@ -461,14 +639,10 @@ public:
       }
 
       freeShmImage();
-      if(!allocateShmImage())
+      if(!allocateShmImage(m_windowId))
         return m_lastFrame;
     }
 
-    // Read from the composite backing pixmap (occlusion-free) or
-    // directly from the window (legacy fallback).
-    // If the window is unmapped (other desktop), XShmGetImage will fail —
-    // we return the last successfully captured frame (frozen but not black).
     XID target = m_useComposite ? m_pixmap : m_windowId;
     if(!x11.ShmGetImage(m_display, target, m_ximage, 0, 0, AllPlanes))
       return m_lastFrame;
@@ -481,13 +655,49 @@ public:
     return m_lastFrame;
   }
 
-private:
-  bool allocateShmImage()
+  // ── Screen/region capture ──
+
+  bool startScreenCapture(const libx11& x11)
+  {
+    // Check XShm support
+    if(!x11.ShmQueryExtension(m_display))
+    {
+      qDebug() << "WindowCapture X11: MIT-SHM extension not available";
+      x11.CloseDisplay(m_display);
+      m_display = nullptr;
+      return false;
+    }
+
+    if(!allocateShmImage(m_rootWindow))
+      return false;
+
+    m_running = true;
+    return true;
+  }
+
+  CapturedFrame grabScreen(const libx11& x11)
+  {
+    if(!x11.ShmGetImage(
+           m_display, m_rootWindow, m_ximage, m_captureX, m_captureY,
+           AllPlanes))
+      return m_lastFrame;
+
+    m_lastFrame.type = CapturedFrame::CPU_BGRA;
+    m_lastFrame.data = reinterpret_cast<const uint8_t*>(m_ximage->data);
+    m_lastFrame.stride = m_ximage->bytes_per_line;
+    m_lastFrame.width = m_width;
+    m_lastFrame.height = m_height;
+    return m_lastFrame;
+  }
+
+  // ── SHM image management ──
+
+  bool allocateShmImage(Window attrWindow)
   {
     auto& x11 = libx11::instance();
 
     XWindowAttributes attrs{};
-    x11.GetWindowAttributes(m_display, m_windowId, &attrs);
+    x11.GetWindowAttributes(m_display, attrWindow, &attrs);
 
     std::memset(&m_shmInfo, 0, sizeof(m_shmInfo));
 
@@ -556,12 +766,16 @@ private:
 
   Display* m_display{};
   Window m_windowId{};
+  Window m_rootWindow{};
   Pixmap m_pixmap{};
   XImage* m_ximage{};
   XShmSegmentInfo m_shmInfo{};
   CapturedFrame m_lastFrame{};
+  CaptureMode m_captureMode{CaptureMode::Window};
   int m_width{};
   int m_height{};
+  int m_captureX{};
+  int m_captureY{};
   bool m_running{};
   bool m_useComposite{};
 };
@@ -572,9 +786,6 @@ private:
 
 std::unique_ptr<WindowCaptureBackend> createX11Backend()
 {
-  // Don't trust XDG_SESSION_TYPE — some users have it set to "tty" even when
-  // running X11. Instead, check if we can actually connect to an X display.
-  // Skip only if we're certain there's no X11 (Wayland-only session).
   auto& x11 = libx11::instance();
   if(!x11.available)
     return nullptr;
@@ -588,5 +799,4 @@ std::unique_ptr<WindowCaptureBackend> createX11Backend()
   auto backend = std::make_unique<X11WindowCaptureBackend>();
   return backend;
 }
-
 }

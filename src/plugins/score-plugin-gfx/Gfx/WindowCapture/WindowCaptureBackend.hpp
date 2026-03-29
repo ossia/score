@@ -7,6 +7,14 @@
 namespace Gfx::WindowCapture
 {
 
+enum class CaptureMode : int
+{
+  Window = 0,
+  AllScreens = 1,
+  SingleScreen = 2,
+  Region = 3
+};
+
 struct CapturedFrame
 {
   enum Type
@@ -44,12 +52,29 @@ struct CapturableWindow
   uint64_t id{};
 };
 
+struct CapturableScreen
+{
+  std::string name;
+  uint64_t id{};
+  int x{}, y{}, width{}, height{};
+};
+
+struct CaptureTarget
+{
+  CaptureMode mode{CaptureMode::Window};
+  uint64_t windowId{};
+  uint64_t screenId{};
+  int regionX{}, regionY{}, regionW{}, regionH{};
+};
+
 struct WindowCaptureBackend
 {
   virtual ~WindowCaptureBackend() = default;
   virtual bool available() const = 0;
+  virtual bool supportsMode(CaptureMode mode) const = 0;
   virtual std::vector<CapturableWindow> enumerate() = 0;
-  virtual bool start(uint64_t windowId) = 0;
+  virtual std::vector<CapturableScreen> enumerateScreens() = 0;
+  virtual bool start(const CaptureTarget& target) = 0;
   virtual void stop() = 0;
   virtual CapturedFrame grab() = 0;
 };
