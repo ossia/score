@@ -734,6 +734,11 @@ QString ProtocolFactory::prettyName() const noexcept
   return QObject::tr("Kinect Input");
 }
 
+QString ProtocolFactory::category() const noexcept
+{
+  return StandardCategories::tracking;
+}
+
 QUrl ProtocolFactory::manual() const noexcept
 {
   return QUrl("https://ossia.io/score-docs/devices/kinect-device.html");

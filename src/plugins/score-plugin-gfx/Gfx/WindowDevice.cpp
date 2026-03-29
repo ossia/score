@@ -148,7 +148,7 @@ QString WindowProtocolFactory::prettyName() const noexcept
 
 QString WindowProtocolFactory::category() const noexcept
 {
-  return StandardCategories::video;
+  return StandardCategories::video_out;
 }
 
 QUrl WindowProtocolFactory::manual() const noexcept

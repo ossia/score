@@ -253,7 +253,7 @@ QUrl CameraProtocolFactory::manual() const noexcept
 
 QString CameraProtocolFactory::category() const noexcept
 {
-  return StandardCategories::video;
+  return StandardCategories::video_in;
 }
 
 Device::DeviceEnumerators

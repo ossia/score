@@ -13,7 +13,7 @@ SharedInputProtocolFactory::~SharedInputProtocolFactory() = default;
 
 QString SharedInputProtocolFactory::category() const noexcept
 {
-  return StandardCategories::video;
+  return StandardCategories::video_in;
 }
 
 Device::AddressDialog* SharedInputProtocolFactory::makeAddAddressDialog(

@@ -56,6 +56,9 @@ public:
     static const constexpr auto osc = "Network";
     static const constexpr auto audio = "Audio";
     static const constexpr auto video = "Video";
+    static const constexpr auto video_in = "Video In";
+    static const constexpr auto video_out = "Video Out";
+    static const constexpr auto media = "Media";
     static const constexpr auto web = "Web";
     static const constexpr auto hardware = "Hardware";
     static const constexpr auto software = "Software";

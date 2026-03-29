@@ -14,7 +14,7 @@ SharedOutputProtocolFactory::~SharedOutputProtocolFactory() = default;
 
 QString SharedOutputProtocolFactory::category() const noexcept
 {
-  return StandardCategories::video;
+  return StandardCategories::video_out;
 }
 
 Device::AddressDialog* SharedOutputProtocolFactory::makeAddAddressDialog(
