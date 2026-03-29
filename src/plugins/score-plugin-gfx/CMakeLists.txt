@@ -69,6 +69,14 @@ if(freenect2_FOUND)
   set(KINECT2_SRCS Gfx/Kinect2Device.hpp Gfx/Kinect2Device.cpp)
 endif()
 
+if(NOT EMSCRIPTEN)
+  set(GSTREAMER_SRCS
+    Gfx/GStreamer/GStreamerLoader.hpp
+    Gfx/GStreamer/GStreamerDevice.hpp
+    Gfx/GStreamer/GStreamerDevice.cpp
+    Gfx/GStreamer/GStreamerOutputDevice.cpp
+  )
+endif()
 set(LIBAV_SRCS
   Gfx/Libav/LibavDevice.hpp
   Gfx/Libav/LibavEncoder.hpp
@@ -261,6 +269,7 @@ set(SRCS
     ${SYPHON_SRCS}
     ${VTB_SRCS}
     ${KINECT2_SRCS}
+    ${GSTREAMER_SRCS}
     ${LIBAV_SRCS}
 
     Gfx/Filter/Executor.cpp
@@ -556,6 +565,10 @@ if(freenect2_FOUND)
   target_link_libraries(${PROJECT_NAME} PRIVATE ${freenect2_LIBRARIES})
 endif()
 
+if(NOT EMSCRIPTEN)
+  target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_GPHOTO2 HAS_GSTREAMER)
+  list(APPEND SCORE_FEATURES_LIST gphoto2 gstreamer)
+endif()
 # Target-specific options
 setup_score_plugin(${PROJECT_NAME})
 
