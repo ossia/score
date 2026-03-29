@@ -60,6 +60,9 @@
 #if defined(HAS_FREENECT2)
 #include <Gfx/Kinect2Device.hpp>
 #endif
+#if defined(HAS_GPHOTO2)
+#include <Gfx/GPhoto2/GPhoto2Device.hpp>
+#endif
 #if defined(HAS_GSTREAMER)
 #include <Gfx/GStreamer/GStreamerDevice.hpp>
 #endif
@@ -78,6 +81,9 @@ score_plugin_gfx::score_plugin_gfx()
 
 #if defined(HAS_FREENECT2)
   qRegisterMetaType<Gfx::Kinect2::Kinect2Settings>();
+#endif
+#if defined(HAS_GPHOTO2)
+  qRegisterMetaType<Gfx::GPhoto2::GPhoto2Settings>();
 #endif
 #if defined(HAS_GSTREAMER)
   qRegisterMetaType<Gfx::GStreamer::GStreamerSettings>();
@@ -115,6 +121,10 @@ std::vector<score::InterfaceBase*> score_plugin_gfx::factories(
 #if defined(HAS_FREENECT2)
          ,
          Gfx::Kinect2::ProtocolFactory
+#endif
+#if defined(HAS_GPHOTO2)
+         ,
+         Gfx::GPhoto2::ProtocolFactory
 #endif
 #if defined(HAS_GSTREAMER)
          ,

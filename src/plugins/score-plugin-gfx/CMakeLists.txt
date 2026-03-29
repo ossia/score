@@ -70,6 +70,10 @@ if(freenect2_FOUND)
 endif()
 
 if(NOT EMSCRIPTEN)
+  set(GPHOTO2_SRCS Gfx/GPhoto2/GPhoto2Device.hpp Gfx/GPhoto2/GPhoto2Device.cpp)
+endif()
+
+if(NOT EMSCRIPTEN)
   set(GSTREAMER_SRCS
     Gfx/GStreamer/GStreamerLoader.hpp
     Gfx/GStreamer/GStreamerDevice.hpp
@@ -269,6 +273,7 @@ set(SRCS
     ${SYPHON_SRCS}
     ${VTB_SRCS}
     ${KINECT2_SRCS}
+    ${GPHOTO2_SRCS}
     ${GSTREAMER_SRCS}
     ${LIBAV_SRCS}
 
