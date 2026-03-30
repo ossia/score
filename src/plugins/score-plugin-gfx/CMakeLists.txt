@@ -566,7 +566,7 @@ if(WIN32)
       PROPERTIES
         SKIP_UNITY_BUILD_INCLUSION ON
   )
-  target_link_libraries(${PROJECT_NAME} PRIVATE dxguid avrt winmm d3d12)
+  target_link_libraries(${PROJECT_NAME} PRIVATE dxguid avrt winmm d3d12 d3d11 dxgi dwmapi windowsapp)
 elseif(APPLE)
   target_sources(${PROJECT_NAME} PRIVATE Gfx/CameraDevice.avf.mm)
 
