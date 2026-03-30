@@ -2,23 +2,14 @@
 
 #include <ossia/detail/dylib_loader.hpp>
 
-#include <QDBusConnection>
-#include <QDBusInterface>
-#include <QDBusMessage>
-#include <QDBusReply>
-#include <QDBusUnixFileDescriptor>
 #include <QDebug>
-#include <QEventLoop>
-#include <QRandomGenerator>
-#include <QTimer>
-
-#include <verdigris>
-#include <wobjectimpl.h>
 
 #include <atomic>
+#include <chrono>
 #include <cstdlib>
 #include <cstring>
 #include <mutex>
+#include <string>
 #include <unistd.h>
 
 // ─── PipeWire types and constants (no PipeWire headers needed) ───────────────
@@ -228,6 +219,22 @@ struct spa_pod_object
 // SPA media type/subtype
 #define SPA_MEDIA_TYPE_video 2
 #define SPA_MEDIA_SUBTYPE_raw 1
+
+// ─── sd-bus types (no systemd headers needed) ───────────────────────────────
+
+struct sd_bus;
+struct sd_bus_message;
+struct sd_bus_slot;
+
+struct sd_bus_error
+{
+  const char* name;
+  const char* message;
+  int _need_free;
+};
+
+using sd_bus_message_handler_t
+    = int (*)(sd_bus_message*, void*, sd_bus_error*);
 
 } // extern "C"
 
@@ -468,251 +475,553 @@ private:
   }
 };
 
-// ─── Portal Response Watcher (verdigris QObject for D-Bus signal) ────────────
+// ─── sd-bus symbol loader ───────────────────────────────────────────────────
 
-class PortalResponseWatcher : public QObject
+extern "C"
 {
-  W_OBJECT(PortalResponseWatcher)
-public:
-  explicit PortalResponseWatcher(QObject* parent = nullptr)
-      : QObject(parent)
+using sd_bus_open_user_t = int (*)(sd_bus**);
+using sd_bus_unref_t = sd_bus* (*)(sd_bus*);
+using sd_bus_get_unique_name_t = int (*)(sd_bus*, const char**);
+using sd_bus_call_t = int (*)(
+    sd_bus*, sd_bus_message*, uint64_t usec, sd_bus_error*,
+    sd_bus_message**);
+using sd_bus_message_new_method_call_t = int (*)(
+    sd_bus*, sd_bus_message**, const char*, const char*, const char*,
+    const char*);
+using sd_bus_message_unref_t = sd_bus_message* (*)(sd_bus_message*);
+using sd_bus_message_append_basic_t
+    = int (*)(sd_bus_message*, char, const void*);
+using sd_bus_message_open_container_t
+    = int (*)(sd_bus_message*, char, const char*);
+using sd_bus_message_close_container_t = int (*)(sd_bus_message*);
+using sd_bus_message_read_basic_t
+    = int (*)(sd_bus_message*, char, void*);
+using sd_bus_message_enter_container_t
+    = int (*)(sd_bus_message*, char, const char*);
+using sd_bus_message_exit_container_t = int (*)(sd_bus_message*);
+using sd_bus_message_skip_t = int (*)(sd_bus_message*, const char*);
+using sd_bus_add_match_t = int (*)(
+    sd_bus*, sd_bus_slot**, const char*, sd_bus_message_handler_t,
+    void*);
+using sd_bus_slot_unref_t = sd_bus_slot* (*)(sd_bus_slot*);
+using sd_bus_process_t = int (*)(sd_bus*, sd_bus_message**);
+using sd_bus_wait_t = int (*)(sd_bus*, uint64_t);
+using sd_bus_error_free_t = void (*)(sd_bus_error*);
+}
+
+struct libsdbus
+{
+  sd_bus_open_user_t open_user{};
+  sd_bus_unref_t unref{};
+  sd_bus_get_unique_name_t get_unique_name{};
+  sd_bus_call_t call{};
+  sd_bus_message_new_method_call_t message_new_method_call{};
+  sd_bus_message_unref_t message_unref{};
+  sd_bus_message_append_basic_t message_append_basic{};
+  sd_bus_message_open_container_t message_open_container{};
+  sd_bus_message_close_container_t message_close_container{};
+  sd_bus_message_read_basic_t message_read_basic{};
+  sd_bus_message_enter_container_t message_enter_container{};
+  sd_bus_message_exit_container_t message_exit_container{};
+  sd_bus_message_skip_t message_skip{};
+  sd_bus_add_match_t add_match{};
+  sd_bus_slot_unref_t slot_unref{};
+  sd_bus_process_t process{};
+  sd_bus_wait_t wait{};
+  sd_bus_error_free_t error_free{};
+
+  bool available{};
+
+  static const libsdbus& instance()
   {
+    static const libsdbus self;
+    return self;
   }
 
-  uint responseCode{99};
-  QVariantMap results;
-  bool received{false};
+private:
+  ossia::dylib_loader m_lib;
 
-  void onResponse(uint response, QVariantMap res)
+  template <typename T>
+  T sym(const char* name)
   {
-    responseCode = response;
-    results = std::move(res);
-    received = true;
-    done();
+    return m_lib.symbol<T>(name);
   }
-  W_SLOT(onResponse)
 
-  void done() W_SIGNAL(done);
+  libsdbus()
+  try
+    : m_lib{std::vector<std::string_view>{
+          "libsystemd.so.0", "libsystemd.so"}}
+  {
+    open_user = sym<sd_bus_open_user_t>("sd_bus_open_user");
+    unref = sym<sd_bus_unref_t>("sd_bus_unref");
+    get_unique_name
+        = sym<sd_bus_get_unique_name_t>("sd_bus_get_unique_name");
+    call = sym<sd_bus_call_t>("sd_bus_call");
+    message_new_method_call = sym<sd_bus_message_new_method_call_t>(
+        "sd_bus_message_new_method_call");
+    message_unref
+        = sym<sd_bus_message_unref_t>("sd_bus_message_unref");
+    message_append_basic = sym<sd_bus_message_append_basic_t>(
+        "sd_bus_message_append_basic");
+    message_open_container = sym<sd_bus_message_open_container_t>(
+        "sd_bus_message_open_container");
+    message_close_container = sym<sd_bus_message_close_container_t>(
+        "sd_bus_message_close_container");
+    message_read_basic = sym<sd_bus_message_read_basic_t>(
+        "sd_bus_message_read_basic");
+    message_enter_container = sym<sd_bus_message_enter_container_t>(
+        "sd_bus_message_enter_container");
+    message_exit_container = sym<sd_bus_message_exit_container_t>(
+        "sd_bus_message_exit_container");
+    message_skip
+        = sym<sd_bus_message_skip_t>("sd_bus_message_skip");
+    add_match = sym<sd_bus_add_match_t>("sd_bus_add_match");
+    slot_unref = sym<sd_bus_slot_unref_t>("sd_bus_slot_unref");
+    process = sym<sd_bus_process_t>("sd_bus_process");
+    wait = sym<sd_bus_wait_t>("sd_bus_wait");
+    error_free = sym<sd_bus_error_free_t>("sd_bus_error_free");
+
+    available = open_user && unref && get_unique_name && call
+                && message_new_method_call && message_unref
+                && message_append_basic && message_open_container
+                && message_close_container && message_read_basic
+                && message_enter_container && message_exit_container
+                && message_skip && add_match && slot_unref && process
+                && wait && error_free;
+  }
+  catch(...)
+  {
+    available = false;
+  }
 };
-W_OBJECT_IMPL(PortalResponseWatcher)
 
-// ─── xdg-desktop-portal D-Bus helpers ────────────────────────────────────────
+// ─── xdg-desktop-portal helpers (sd-bus) ────────────────────────────────────
 
 namespace
 {
 
-static QString makeToken()
+static std::string makeToken()
 {
-  return QStringLiteral("ossia_score_%1")
-      .arg(QRandomGenerator::global()->generate());
+  static std::atomic<int> counter{0};
+  return "ossia_score_"
+         + std::to_string(static_cast<unsigned>(getpid())) + "_"
+         + std::to_string(counter.fetch_add(1));
 }
 
-// Helper: call a portal method, wait for the async Response signal, return
-// the response code and results. Returns false on failure.
-static bool portalCall(
-    QDBusInterface& portal, const QString& method,
-    const QList<QVariant>& args, const QString& requestToken,
-    uint32_t& outResponse, QVariantMap& outResults, int timeoutMs = 60000)
+// Helper: append a string→string entry into an open a{sv} container
+static void appendDictString(
+    const libsdbus& sd, sd_bus_message* m, const char* key,
+    const char* value)
 {
-  auto bus = QDBusConnection::sessionBus();
-  QString senderName = bus.baseService().mid(1).replace('.', '_');
-  QString requestPath
-      = QStringLiteral(
-            "/org/freedesktop/portal/desktop/request/%1/%2")
-            .arg(senderName, requestToken);
+  sd.message_open_container(m, 'e', "sv");
+  sd.message_append_basic(m, 's', key);
+  sd.message_open_container(m, 'v', "s");
+  sd.message_append_basic(m, 's', value);
+  sd.message_close_container(m);
+  sd.message_close_container(m);
+}
 
-  PortalResponseWatcher watcher;
-  QEventLoop loop;
-  QObject::connect(&watcher, &PortalResponseWatcher::done, &loop, &QEventLoop::quit);
+// Helper: append a string→uint32 entry into an open a{sv} container
+static void appendDictUint32(
+    const libsdbus& sd, sd_bus_message* m, const char* key,
+    uint32_t value)
+{
+  sd.message_open_container(m, 'e', "sv");
+  sd.message_append_basic(m, 's', key);
+  sd.message_open_container(m, 'v', "u");
+  sd.message_append_basic(m, 'u', &value);
+  sd.message_close_container(m);
+  sd.message_close_container(m);
+}
 
-  bus.connect(
-      QString(), requestPath,
-      QStringLiteral("org.freedesktop.portal.Request"),
-      QStringLiteral("Response"),
-      &watcher, SLOT(onResponse(uint,QVariantMap)));
+// Helper: append a string→bool entry into an open a{sv} container
+static void appendDictBool(
+    const libsdbus& sd, sd_bus_message* m, const char* key, bool value)
+{
+  sd.message_open_container(m, 'e', "sv");
+  sd.message_append_basic(m, 's', key);
+  sd.message_open_container(m, 'v', "b");
+  int v = value ? 1 : 0;
+  sd.message_append_basic(m, 'b', &v);
+  sd.message_close_container(m);
+  sd.message_close_container(m);
+}
 
-  // Build and send the D-Bus call
-  QDBusMessage msg = QDBusMessage::createMethodCall(
-      portal.service(), portal.path(), portal.interface(), method);
-  msg.setArguments(args);
-  QDBusMessage reply = bus.call(msg);
+// Data passed to the Response signal callback
+struct PortalResponse
+{
+  const libsdbus* sd{};
+  uint32_t code{99};
+  std::string session_handle;
+  bool received{false};
+};
 
-  if(reply.type() == QDBusMessage::ErrorMessage)
+// sd-bus callback for the Response(u, a{sv}) signal
+static int onPortalResponse(
+    sd_bus_message* m, void* userdata, sd_bus_error*)
+{
+  auto* resp = static_cast<PortalResponse*>(userdata);
+  auto& sd = *resp->sd;
+
+  // Read response code
+  sd.message_read_basic(m, 'u', &resp->code);
+
+  // Read results dict a{sv}
+  if(sd.message_enter_container(m, 'a', "{sv}") >= 0)
   {
-    qDebug() << "WindowCapture PipeWire:" << method
-             << "failed:" << reply.errorMessage();
-    return false;
+    while(sd.message_enter_container(m, 'e', "sv") > 0)
+    {
+      const char* key = nullptr;
+      sd.message_read_basic(m, 's', &key);
+
+      if(key && std::strcmp(key, "session_handle") == 0)
+      {
+        if(sd.message_enter_container(m, 'v', "s") >= 0)
+        {
+          const char* val = nullptr;
+          sd.message_read_basic(m, 's', &val);
+          if(val)
+            resp->session_handle = val;
+          sd.message_exit_container(m);
+        }
+      }
+      else
+      {
+        sd.message_skip(m, "v");
+      }
+      sd.message_exit_container(m);
+    }
+    sd.message_exit_container(m);
   }
 
-  QTimer::singleShot(timeoutMs, &loop, &QEventLoop::quit);
-  if(!watcher.received)
-    loop.exec();
+  resp->received = true;
+  return 0;
+}
 
-  bus.disconnect(
-      QString(), requestPath,
-      QStringLiteral("org.freedesktop.portal.Request"),
-      QStringLiteral("Response"),
-      &watcher, SLOT(onResponse(uint,QVariantMap)));
+// Wait for a Response signal on the bus, with timeout.
+static bool waitForResponse(
+    const libsdbus& sd, sd_bus* bus, PortalResponse& resp,
+    int timeoutMs)
+{
+  auto deadline = std::chrono::steady_clock::now()
+                  + std::chrono::milliseconds(timeoutMs);
 
-  if(!watcher.received)
+  while(!resp.received)
   {
-    qDebug() << "WindowCapture PipeWire:" << method << "timed out";
-    return false;
+    auto now = std::chrono::steady_clock::now();
+    if(now >= deadline)
+      break;
+
+    int r = sd.process(bus, nullptr);
+    if(r < 0)
+      break;
+    if(r > 0)
+      continue; // more work queued
+
+    auto remaining_us
+        = std::chrono::duration_cast<std::chrono::microseconds>(
+              deadline - now)
+              .count();
+    sd.wait(bus, static_cast<uint64_t>(
+                     std::min(remaining_us, (int64_t)100000)));
   }
 
-  outResponse = watcher.responseCode;
-  outResults = watcher.results;
-  return true;
+  return resp.received;
+}
+
+// Build the request object path for the portal Response signal.
+static std::string makeRequestPath(
+    const libsdbus& sd, sd_bus* bus, const std::string& token)
+{
+  const char* uniqueName = nullptr;
+  sd.get_unique_name(bus, &uniqueName);
+  if(!uniqueName)
+    return {};
+
+  // Skip leading ':' and replace '.' with '_'
+  std::string sender(uniqueName + 1);
+  for(auto& c : sender)
+    if(c == '.')
+      c = '_';
+
+  return "/org/freedesktop/portal/desktop/request/" + sender + "/"
+         + token;
 }
 
 // Portal source types
 static constexpr uint32_t PORTAL_SOURCE_MONITOR = 1;
 static constexpr uint32_t PORTAL_SOURCE_WINDOW = 2;
 
+static constexpr const char* PORTAL_DEST
+    = "org.freedesktop.portal.Desktop";
+static constexpr const char* PORTAL_PATH
+    = "/org/freedesktop/portal/desktop";
+static constexpr const char* PORTAL_SCREENCAST_IFACE
+    = "org.freedesktop.portal.ScreenCast";
+
 // Perform the full portal ScreenCast flow and return the PipeWire fd.
-// Must be called from a thread with a Qt event loop (typically the UI thread).
 // sourceType: 1=MONITOR, 2=WINDOW
 // Returns -1 on failure.
-static int openPortalScreenCast(uint32_t sourceType = PORTAL_SOURCE_WINDOW)
+static int openPortalScreenCast(uint32_t sourceType)
 {
-  auto bus = QDBusConnection::sessionBus();
-  if(!bus.isConnected())
+  auto& sd = libsdbus::instance();
+  if(!sd.available)
+    return -1;
+
+  sd_bus* bus = nullptr;
+  if(sd.open_user(&bus) < 0 || !bus)
   {
-    qDebug() << "WindowCapture PipeWire: D-Bus session bus not connected";
+    qDebug() << "WindowCapture PipeWire: sd_bus_open_user failed";
     return -1;
   }
 
-  QDBusInterface portal(
-      QStringLiteral("org.freedesktop.portal.Desktop"),
-      QStringLiteral("/org/freedesktop/portal/desktop"),
-      QStringLiteral("org.freedesktop.portal.ScreenCast"), bus);
-  if(!portal.isValid())
-  {
-    qDebug() << "WindowCapture PipeWire: portal interface not available";
-    return -1;
-  }
-
-  uint32_t response{};
-  QVariantMap results;
+  int result_fd = -1;
+  sd_bus_error error{nullptr, nullptr, 0};
 
   // ── Step 1: CreateSession ──
-  QString sessionToken = makeToken();
-  QString requestToken = makeToken();
+  std::string sessionToken = makeToken();
+  std::string requestToken = makeToken();
+  std::string requestPath = makeRequestPath(sd, bus, requestToken);
 
-  QVariantMap createOpts;
-  createOpts[QStringLiteral("handle_token")] = requestToken;
-  createOpts[QStringLiteral("session_handle_token")] = sessionToken;
+  PortalResponse resp{&sd};
+  sd_bus_slot* slot = nullptr;
 
-  if(!portalCall(
-         portal, QStringLiteral("CreateSession"),
-         {QVariant::fromValue(createOpts)}, requestToken, response,
-         results, 30000))
-    return -1;
-
-  if(response != 0)
   {
-    qDebug() << "WindowCapture PipeWire: CreateSession rejected:"
-             << response;
+    std::string matchRule
+        = "type='signal',interface='org.freedesktop.portal.Request'"
+          ",member='Response',path='"
+          + requestPath + "'";
+    sd.add_match(bus, &slot, matchRule.c_str(), onPortalResponse, &resp);
+  }
+
+  {
+    sd_bus_message* msg = nullptr;
+    sd.message_new_method_call(
+        bus, &msg, PORTAL_DEST, PORTAL_PATH, PORTAL_SCREENCAST_IFACE,
+        "CreateSession");
+    sd.message_open_container(msg, 'a', "{sv}");
+    appendDictString(sd, msg, "handle_token", requestToken.c_str());
+    appendDictString(
+        sd, msg, "session_handle_token", sessionToken.c_str());
+    sd.message_close_container(msg);
+
+    sd_bus_message* reply = nullptr;
+    int r = sd.call(bus, msg, 0, &error, &reply);
+    sd.message_unref(msg);
+    if(reply)
+      sd.message_unref(reply);
+
+    if(r < 0)
+    {
+      qDebug() << "WindowCapture PipeWire: CreateSession call failed:"
+               << (error.message ? error.message : "unknown");
+      sd.error_free(&error);
+      sd.slot_unref(slot);
+      sd.unref(bus);
+      return -1;
+    }
+  }
+
+  if(!waitForResponse(sd, bus, resp, 30000) || resp.code != 0)
+  {
+    qDebug() << "WindowCapture PipeWire: CreateSession rejected or timed out";
+    sd.slot_unref(slot);
+    sd.unref(bus);
     return -1;
   }
 
-  QDBusObjectPath sessionPath
-      = results[QStringLiteral("session_handle")]
-            .value<QDBusObjectPath>();
-  if(sessionPath.path().isEmpty())
+  std::string sessionHandle = resp.session_handle;
+  sd.slot_unref(slot);
+  slot = nullptr;
+
+  if(sessionHandle.empty())
   {
     qDebug() << "WindowCapture PipeWire: no session handle in response";
+    sd.unref(bus);
     return -1;
   }
 
   // ── Step 2: SelectSources ──
   requestToken = makeToken();
+  requestPath = makeRequestPath(sd, bus, requestToken);
+  resp = PortalResponse{&sd};
 
-  QVariantMap selectOpts;
-  selectOpts[QStringLiteral("handle_token")] = requestToken;
-  selectOpts[QStringLiteral("types")]
-      = QVariant::fromValue(sourceType);
-  selectOpts[QStringLiteral("multiple")] = false;
-
-  if(!portalCall(
-         portal, QStringLiteral("SelectSources"),
-         {QVariant::fromValue(sessionPath), QVariant::fromValue(selectOpts)},
-         requestToken, response, results, 60000))
-    return -1;
-
-  if(response != 0)
   {
-    qDebug() << "WindowCapture PipeWire: SelectSources rejected:"
-             << response;
-    return -1;
+    std::string matchRule
+        = "type='signal',interface='org.freedesktop.portal.Request'"
+          ",member='Response',path='"
+          + requestPath + "'";
+    sd.add_match(bus, &slot, matchRule.c_str(), onPortalResponse, &resp);
   }
 
-  // ── Step 3: Start (user confirms the window picker) ──
+  {
+    sd_bus_message* msg = nullptr;
+    sd.message_new_method_call(
+        bus, &msg, PORTAL_DEST, PORTAL_PATH, PORTAL_SCREENCAST_IFACE,
+        "SelectSources");
+    sd.message_append_basic(msg, 'o', sessionHandle.c_str());
+    sd.message_open_container(msg, 'a', "{sv}");
+    appendDictString(sd, msg, "handle_token", requestToken.c_str());
+    appendDictUint32(sd, msg, "types", sourceType);
+    appendDictBool(sd, msg, "multiple", false);
+    sd.message_close_container(msg);
+
+    sd_bus_message* reply = nullptr;
+    int r = sd.call(bus, msg, 0, &error, &reply);
+    sd.message_unref(msg);
+    if(reply)
+      sd.message_unref(reply);
+
+    if(r < 0)
+    {
+      qDebug() << "WindowCapture PipeWire: SelectSources call failed:"
+               << (error.message ? error.message : "unknown");
+      sd.error_free(&error);
+      sd.slot_unref(slot);
+      sd.unref(bus);
+      return -1;
+    }
+  }
+
+  if(!waitForResponse(sd, bus, resp, 60000) || resp.code != 0)
+  {
+    qDebug() << "WindowCapture PipeWire: SelectSources rejected or timed out";
+    sd.slot_unref(slot);
+    sd.unref(bus);
+    return -1;
+  }
+  sd.slot_unref(slot);
+  slot = nullptr;
+
+  // ── Step 3: Start (user confirms the picker) ──
   requestToken = makeToken();
+  requestPath = makeRequestPath(sd, bus, requestToken);
+  resp = PortalResponse{&sd};
 
-  QVariantMap startOpts;
-  startOpts[QStringLiteral("handle_token")] = requestToken;
-
-  if(!portalCall(
-         portal, QStringLiteral("Start"),
-         {QVariant::fromValue(sessionPath), QString(),
-          QVariant::fromValue(startOpts)},
-         requestToken, response, results, 60000))
-    return -1;
-
-  if(response != 0)
   {
-    qDebug() << "WindowCapture PipeWire: Start rejected:" << response;
+    std::string matchRule
+        = "type='signal',interface='org.freedesktop.portal.Request'"
+          ",member='Response',path='"
+          + requestPath + "'";
+    sd.add_match(bus, &slot, matchRule.c_str(), onPortalResponse, &resp);
+  }
+
+  {
+    sd_bus_message* msg = nullptr;
+    sd.message_new_method_call(
+        bus, &msg, PORTAL_DEST, PORTAL_PATH, PORTAL_SCREENCAST_IFACE,
+        "Start");
+    sd.message_append_basic(msg, 'o', sessionHandle.c_str());
+    sd.message_append_basic(msg, 's', ""); // parent window identifier
+    sd.message_open_container(msg, 'a', "{sv}");
+    appendDictString(sd, msg, "handle_token", requestToken.c_str());
+    sd.message_close_container(msg);
+
+    sd_bus_message* reply = nullptr;
+    int r = sd.call(bus, msg, 0, &error, &reply);
+    sd.message_unref(msg);
+    if(reply)
+      sd.message_unref(reply);
+
+    if(r < 0)
+    {
+      qDebug() << "WindowCapture PipeWire: Start call failed:"
+               << (error.message ? error.message : "unknown");
+      sd.error_free(&error);
+      sd.slot_unref(slot);
+      sd.unref(bus);
+      return -1;
+    }
+  }
+
+  if(!waitForResponse(sd, bus, resp, 60000) || resp.code != 0)
+  {
+    qDebug() << "WindowCapture PipeWire: Start rejected or timed out";
+    sd.slot_unref(slot);
+    sd.unref(bus);
     return -1;
   }
+  sd.slot_unref(slot);
+  slot = nullptr;
 
   // ── Step 4: OpenPipeWireRemote ──
-  QVariantMap openOpts;
-  QDBusMessage openMsg = QDBusMessage::createMethodCall(
-      portal.service(), portal.path(), portal.interface(),
-      QStringLiteral("OpenPipeWireRemote"));
-  openMsg.setArguments(
-      {QVariant::fromValue(sessionPath), QVariant::fromValue(openOpts)});
-
-  QDBusMessage openReply = bus.call(openMsg);
-  if(openReply.type() == QDBusMessage::ErrorMessage)
   {
-    qDebug() << "WindowCapture PipeWire: OpenPipeWireRemote failed:"
-             << openReply.errorMessage();
-    return -1;
+    sd_bus_message* msg = nullptr;
+    sd.message_new_method_call(
+        bus, &msg, PORTAL_DEST, PORTAL_PATH, PORTAL_SCREENCAST_IFACE,
+        "OpenPipeWireRemote");
+    sd.message_append_basic(msg, 'o', sessionHandle.c_str());
+    sd.message_open_container(msg, 'a', "{sv}");
+    sd.message_close_container(msg);
+
+    sd_bus_message* reply = nullptr;
+    int r = sd.call(bus, msg, 0, &error, &reply);
+    sd.message_unref(msg);
+
+    if(r < 0 || !reply)
+    {
+      qDebug() << "WindowCapture PipeWire: OpenPipeWireRemote failed:"
+               << (error.message ? error.message : "unknown");
+      sd.error_free(&error);
+      if(reply)
+        sd.message_unref(reply);
+      sd.unref(bus);
+      return -1;
+    }
+
+    int fd = -1;
+    sd.message_read_basic(reply, 'h', &fd);
+    sd.message_unref(reply);
+
+    if(fd < 0)
+    {
+      qDebug() << "WindowCapture PipeWire: invalid fd from OpenPipeWireRemote";
+      sd.unref(bus);
+      return -1;
+    }
+
+    // dup() so the fd outlives the bus connection
+    result_fd = ::dup(fd);
   }
 
-  if(openReply.arguments().isEmpty())
-  {
-    qDebug() << "WindowCapture PipeWire: OpenPipeWireRemote returned "
-                "no arguments";
-    return -1;
-  }
-
-  QDBusUnixFileDescriptor dbusfd
-      = openReply.arguments().at(0).value<QDBusUnixFileDescriptor>();
-  if(!dbusfd.isValid())
-  {
-    qDebug() << "WindowCapture PipeWire: invalid fd from "
-                "OpenPipeWireRemote";
-    return -1;
-  }
-
-  // dup() so the fd outlives the QDBusUnixFileDescriptor
-  return ::dup(dbusfd.fileDescriptor());
+  sd.unref(bus);
+  return result_fd;
 }
 
 static bool portalAvailable()
 {
-  auto bus = QDBusConnection::sessionBus();
-  if(!bus.isConnected())
+  auto& sd = libsdbus::instance();
+  if(!sd.available)
     return false;
 
-  QDBusInterface portal(
-      QStringLiteral("org.freedesktop.portal.Desktop"),
-      QStringLiteral("/org/freedesktop/portal/desktop"),
-      QStringLiteral("org.freedesktop.portal.ScreenCast"), bus);
-  return portal.isValid();
+  sd_bus* bus = nullptr;
+  if(sd.open_user(&bus) < 0 || !bus)
+    return false;
+
+  // Try to introspect the portal — just create a method call to verify it exists
+  sd_bus_message* msg = nullptr;
+  int r = sd.message_new_method_call(
+      bus, &msg, PORTAL_DEST, PORTAL_PATH,
+      "org.freedesktop.DBus.Properties", "Get");
+  if(r >= 0 && msg)
+  {
+    sd.message_append_basic(msg, 's', PORTAL_SCREENCAST_IFACE);
+    sd.message_append_basic(msg, 's', "AvailableSourceTypes");
+
+    sd_bus_error error{nullptr, nullptr, 0};
+    sd_bus_message* reply = nullptr;
+    r = sd.call(bus, msg, 5000000, &error, &reply); // 5s timeout
+    sd.message_unref(msg);
+    if(reply)
+      sd.message_unref(reply);
+    sd.error_free(&error);
+
+    sd.unref(bus);
+    return r >= 0;
+  }
+
+  sd.unref(bus);
+  return false;
 }
 
 } // anonymous namespace
@@ -992,8 +1301,8 @@ private:
       void* data, enum pw_stream_state old_state,
       enum pw_stream_state state, const char* error)
   {
-    Q_UNUSED(old_state)
-    Q_UNUSED(data)
+    (void)old_state;
+    (void)data;
 
     static constexpr const char* stateNames[]
         = {"error", "unconnected", "connecting", "paused", "streaming"};

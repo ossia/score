@@ -601,7 +601,7 @@ if(NOT EMSCRIPTEN)
   target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_WINDOW_CAPTURE)
   list(APPEND SCORE_FEATURES_LIST window_capture)
   if(APPLE)
-    target_link_options(${PROJECT_NAME} PRIVATE -weak_framework ScreenCaptureKit)
+    target_link_options(${PROJECT_NAME} PUBLIC -weak_framework ScreenCaptureKit)
   endif()
 endif()
 

@@ -19,6 +19,7 @@ $SUDO apt-get install -qq --force-yes -t bullseye-backports \
      libclang-13-dev llvm-13-dev \
      libdrm-dev libgbm-dev \
      libdbus-1-dev \
+     libx11-dev libxext-dev libxcomposite-dev libxrandr-dev \
      qt6-base-dev qt6-base-dev-tools qt6-base-private-dev \
      qt6-declarative-dev qt6-declarative-dev-tools qt6-declarative-private-dev \
      qt6-scxml-dev \

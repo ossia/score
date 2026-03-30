@@ -10,7 +10,9 @@
 #if defined(__linux__)
 #include <score/gfx/Vulkan.hpp>
 #if QT_HAS_VULKAN
-#if __has_include(<Gfx/Graph/decoders/DMABufImport.hpp>)
+#include <vulkan/vulkan.h>
+#if defined(VK_EXT_image_drm_format_modifier) && defined(VK_KHR_external_memory_fd) \
+    && QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
 #include <Gfx/Graph/decoders/DMABufImport.hpp>
 #define HAS_DMABUF_IMPORT 1
 #endif

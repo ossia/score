@@ -22,6 +22,7 @@ $SUDO apt-get install -qq --force-yes \
      libsuil-dev liblilv-dev lv2-dev \
      libdrm-dev libgbm-dev \
      libdbus-1-dev \
+     libx11-dev libxext-dev libxcomposite-dev libxrandr-dev \
      qt6-base-dev qt6-base-dev-tools qt6-base-private-dev \
      qt6-declarative-dev qt6-declarative-dev-tools qt6-declarative-private-dev \
      qt6-scxml-dev qt6-svg-dev qt6-connectivity-dev \
