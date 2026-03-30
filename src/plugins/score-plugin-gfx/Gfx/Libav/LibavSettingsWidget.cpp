@@ -5,6 +5,8 @@
 #include <Gfx/Libav/LibavDevice.hpp>
 #include <Media/LibavIntrospection.hpp>
 
+#include <ossia-qt/name_utils.hpp>
+
 #include <QComboBox>
 #include <QDialog>
 #include <QDialogButtonBox>
