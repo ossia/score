@@ -44,6 +44,8 @@ jobs:
           submodules: 'recursive'
 
       - name: Dependencies
+        env:
+          PKGS: ${{ matrix.PKGS }}
         run: |
           ./ci/${{ matrix.distro }}.deps.sh
 
