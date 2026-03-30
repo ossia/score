@@ -4,15 +4,22 @@ source ci/common.setup.sh
 
 echo 'debconf debconf/frontend select Noninteractive' | $SUDO debconf-set-selections
 
+if [[ -z "$PKGS" ]]; then
+  echo "PKGS must be defined (for instance PKGS=clang-21, PKGS=gcc...)"
+  exit 1
+fi
+
 # For newer CMake
-$SUDO apt-get install -y ca-certificates gpg wget lsb-release software-properties-common
-$SUDO apt-get update -qq
-$SUDO apt-get install -y \
+$SUDO apt install -y ca-certificates gpg wget lsb-release software-properties-common
+$SUDO apt update -qq
+$SUDO apt install -y \
     --allow-change-held-packages \
     --allow-downgrades \
     --allow-remove-essential \
     --allow-unauthenticated \
-     binutils gcc-14 g++-14 clang-19 lld-19 \
+     $PKGS \
+     build-essential \
+     binutils \
      software-properties-common wget \
      libasound-dev \
      ninja-build cmake \
@@ -30,12 +37,11 @@ $SUDO apt-get install -y \
      libavahi-compat-libdnssd-dev libsamplerate0-dev \
      portaudio19-dev \
      libpipewire-0.3-dev \
-     libclang-19-dev llvm-19-dev \
+     libclang-dev llvm-dev \
      libvulkan-dev \
      libavcodec-dev libavdevice-dev libavutil-dev libavfilter-dev libavformat-dev libswresample-dev \
      file \
-     dpkg-dev \
-     lsb-release
+     dpkg-dev
 
 
 source ci/common.deps.sh LINUX
