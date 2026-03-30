@@ -585,9 +585,6 @@ elseif(EMSCRIPTEN OR BSD)
 else()
   target_sources(${PROJECT_NAME} PRIVATE Gfx/CameraDevice.v4l2.cpp)
 
-  # PipeWire window capture backend uses QDBus for xdg-desktop-portal
-  target_link_libraries(${PROJECT_NAME} PRIVATE ${QT_PREFIX}::DBus)
-
   if(OSSIA_SDK)
     if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES aarch64)
       find_package(BZip2)
