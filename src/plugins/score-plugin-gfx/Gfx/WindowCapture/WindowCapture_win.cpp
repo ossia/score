@@ -23,7 +23,25 @@
 
 // Interop headers
 #include <windows.graphics.capture.interop.h>
+#if __has_include(<windows.graphics.directx.direct3d11.interop.h>)
 #include <windows.graphics.directx.direct3d11.interop.h>
+#else
+// Manual declaration when the interop header is not available.
+// CreateDirect3D11DeviceFromDXGIDevice wraps a DXGI device as a WinRT IDirect3DDevice.
+extern "C" HRESULT __stdcall CreateDirect3D11DeviceFromDXGIDevice(
+    IDXGIDevice* dxgiDevice, IInspectable** graphicsDevice);
+
+// IDirect3DDxgiInterfaceAccess lets us extract native DXGI interfaces from WinRT surfaces.
+MIDL_INTERFACE("A9B3D012-3DF2-4EE3-B8D1-8695F457D3C1")
+IDirect3DDxgiInterfaceAccess : public IUnknown
+{
+  virtual HRESULT STDMETHODCALLTYPE GetInterface(REFIID iid, void** p) = 0;
+};
+namespace Windows::Graphics::DirectX::Direct3D11
+{
+using IDirect3DDxgiInterfaceAccess = ::IDirect3DDxgiInterfaceAccess;
+}
+#endif
 
 #include <inspectable.h>
 

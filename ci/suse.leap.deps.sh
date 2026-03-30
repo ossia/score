@@ -15,6 +15,7 @@ $SUDO zypper -n install \
    fftw3-devel fftw3-threads-devel \
    bluez-devel \
    dbus-1-devel \
+   libX11-devel libXext-devel libXcomposite-devel libXrandr-devel \
    qt6-base-devel qt6-base-private-devel  \
    qt6-declarative-devel qt6-declarative-private-devel \
    qt6-tools \

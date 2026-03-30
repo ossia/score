@@ -20,6 +20,7 @@ dnf -y install --allowerasing \
      avahi-devel \
      dbus-devel \
      libxkbcommon-x11-devel libxkbcommon-devel \
+     libX11-devel libXext-devel libXcomposite-devel libXrandr-devel \
      bluez-libs-devel \
      qt6-qtbase-devel \
      qt6-qtbase-private-devel \

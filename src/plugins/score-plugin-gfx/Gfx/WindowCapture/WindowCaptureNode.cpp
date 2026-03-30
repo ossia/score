@@ -18,13 +18,7 @@
 #endif
 
 #if defined(__APPLE__)
-// Forward declarations for Metal IOSurface import
-#ifdef __OBJC__
-#import <Metal/Metal.h>
-#import <IOSurface/IOSurface.h>
-#else
-typedef void* IOSurfaceRef;
-#endif
+#include <IOSurface/IOSurface.h>
 #endif
 
 namespace Gfx::WindowCapture
