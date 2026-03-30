@@ -16,6 +16,7 @@ RUN yum -y install llvm-toolset gcc-toolset-14 \
     rsync \
     bluez-libs-devel avahi-devel  wayland-devel  wayland-protocols-devel libwayland-egl libwayland-cursor libwayland-client ninja-build \
     libxkbfile-devel xcb-util xorg-x11-proto-devel bzip2 systemd-devel systemd-udev mesa-libgbm-devel \
+    libX11-devel libXext-devel libXcomposite-devel libXrandr-devel \
     && yum clean all
 
 
