@@ -32,11 +32,14 @@ extern "C" HRESULT __stdcall CreateDirect3D11DeviceFromDXGIDevice(
     IDXGIDevice* dxgiDevice, IInspectable** graphicsDevice);
 
 // IDirect3DDxgiInterfaceAccess lets us extract native DXGI interfaces from WinRT surfaces.
-MIDL_INTERFACE("A9B3D012-3DF2-4EE3-B8D1-8695F457D3C1")
-IDirect3DDxgiInterfaceAccess : public IUnknown
+// Use plain struct + __CRT_UUID_DECL instead of MIDL_INTERFACE so that
+// MinGW's __uuidof() works in the constexpr context required by WinRT's guid_of<T>().
+struct IDirect3DDxgiInterfaceAccess : public IUnknown
 {
   virtual HRESULT STDMETHODCALLTYPE GetInterface(REFIID iid, void** p) = 0;
 };
+__CRT_UUID_DECL(IDirect3DDxgiInterfaceAccess, 0xA9B3D012, 0x3DF2, 0x4EE3, 0xB8, 0xD1, 0x86, 0x95, 0xF4, 0x57, 0xD3, 0xC1)
+
 namespace Windows::Graphics::DirectX::Direct3D11
 {
 using IDirect3DDxgiInterfaceAccess = ::IDirect3DDxgiInterfaceAccess;
