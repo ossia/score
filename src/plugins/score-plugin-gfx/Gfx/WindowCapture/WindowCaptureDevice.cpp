@@ -18,6 +18,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QMimeData>
+#include <QPalette>
 #include <QPushButton>
 #include <QSpinBox>
 #include <QStackedWidget>
@@ -145,7 +146,12 @@ public:
     m_preview = new QLabel{this};
     m_preview->setFixedSize(320, 180);
     m_preview->setAlignment(Qt::AlignCenter);
-    m_preview->setStyleSheet("QLabel { background-color: #222; }");
+    {
+      QPalette pal = m_preview->palette();
+      pal.setColor(QPalette::Window, QColor(0x22, 0x22, 0x22));
+      m_preview->setAutoFillBackground(true);
+      m_preview->setPalette(pal);
+    }
 
     auto layout = new QFormLayout;
     layout->addRow(tr("Device Name"), m_deviceNameEdit);

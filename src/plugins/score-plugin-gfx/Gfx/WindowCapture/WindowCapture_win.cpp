@@ -1,6 +1,12 @@
 #include <Gfx/WindowCapture/WindowCaptureBackend.hpp>
 
 #if defined(_WIN32)
+
+// Prevent IReference<boolean> / IReference<BYTE> redefinition in MinGW headers
+#if defined(__MINGW32__)
+#define ____FIReference_1_boolean_INTERFACE_DEFINED__ 1
+#endif
+
 #include <QDebug>
 
 #include <dwmapi.h>

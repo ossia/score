@@ -57,7 +57,9 @@ API_AVAILABLE(macos(13.0))
 - (void)dealloc
 {
   [self invalidate];
+#if !__has_feature(objc_arc)
   [super dealloc];
+#endif
 }
 
 - (void)invalidate
@@ -444,7 +446,7 @@ private:
                                     {
                                       if(win.windowID == windowId)
                                       {
-                                        targetWindow = [win retain];
+                                        targetWindow = win;
                                         break;
                                       }
                                     }
@@ -482,8 +484,6 @@ private:
 
     bool ok = startCapture(filter, captureWidth, captureHeight, CGRectNull);
 
-    [filter release];
-    [targetWindow release];
     return ok;
   }
 
@@ -504,7 +504,7 @@ private:
                                     {
                                       if(display.displayID == (CGDirectDisplayID)displayID)
                                       {
-                                        targetDisplay = [display retain];
+                                        targetDisplay = display;
                                         break;
                                       }
                                     }
@@ -543,8 +543,6 @@ private:
 
     bool ok = startCapture(filter, captureWidth, captureHeight, sourceRect);
 
-    [filter release];
-    [targetDisplay release];
     return ok;
   }
 
@@ -596,7 +594,6 @@ private:
                  << (addOutputError
                          ? addOutputError.localizedDescription.UTF8String
                          : "unknown error");
-      [config release];
       cleanup();
       return false;
     }
@@ -609,7 +606,7 @@ private:
     [m_stream startCaptureWithCompletionHandler:^(NSError* error) {
       if(error)
       {
-        startError = [error retain];
+        startError = error;
         startSuccess = NO;
       }
       else
@@ -622,16 +619,12 @@ private:
     dispatch_semaphore_wait(
         startSem, dispatch_time(DISPATCH_TIME_NOW, 5 * NSEC_PER_SEC));
 
-    [config release];
-
     if(!startSuccess)
     {
       qWarning() << "ScreenCaptureKit: failed to start capture:"
                  << (startError
                          ? startError.localizedDescription.UTF8String
                          : "timed out");
-      if(startError)
-        [startError release];
       cleanup();
       return false;
     }
@@ -652,12 +645,10 @@ private:
       if(m_delegate)
       {
         [m_delegate invalidate];
-        [m_delegate release];
         m_delegate = nil;
       }
       if(m_stream)
       {
-        [m_stream release];
         m_stream = nil;
       }
       m_captureQueue = nil;

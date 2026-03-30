@@ -38,6 +38,7 @@
 , spdlog
 , suil
 , udev
+, xorg
 }:
 
 # TODO: figure out LLVM jit
@@ -92,6 +93,10 @@ clangStdenv.mkDerivation (finalAttrs: {
     spdlog
     suil
     udev
+    xorg.libX11
+    xorg.libXext
+    xorg.libXcomposite
+    xorg.libXrandr
   ];
 
   cmakeFlags = [

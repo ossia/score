@@ -9,26 +9,14 @@
 #include <optional>
 #include <sys/ipc.h>
 #include <sys/shm.h>
-#if __has_include(<X11/Xlib.h>)
-#define _DEFAULT_SOURCE 1
-#include <X11/XKBlib.h>
+// X11 types — headers required at build time, libs loaded at runtime via dylib_loader.
 #include <X11/Xlib.h>
 #include <X11/extensions/XShm.h>
 #include <X11/extensions/Xcomposite.h>
 #include <X11/extensions/Xrandr.h>
-#include <X11/keysym.h>
-#endif
 #undef DefaultRootWindow
-// X11 types — forward declared to avoid including X11 headers
+
 extern "C" {
-
-// map_state values
-#define IsViewable 2
-
-// Constants
-#define ZPixmap 2
-#define AnyPropertyType 0L
-#define XA_WINDOW 33L
 
 // Function types we need
 using XOpenDisplay_t = Display* (*)(const char*);
@@ -62,14 +50,11 @@ using XCompositeNameWindowPixmap_t = Pixmap (*)(Display*, Window);
 
 #define CompositeRedirectAutomatic 0
 
-// ── XRandR types (ABI-stable structs) ──────────────────────────────────
+// ── XRandR function pointer types ──────────────────────────────────────
 
-typedef XID RROutput;
-typedef XID RRCrtc;
-typedef XID RRMode;
-
-// Connection status
+#ifndef RR_Connected
 #define RR_Connected 0
+#endif
 
 using XRRGetScreenResourcesCurrent_t = XRRScreenResources* (*)(Display*, Window);
 using XRRGetOutputInfo_t = XRROutputInfo* (*)(Display*, XRRScreenResources*, RROutput);

@@ -10,7 +10,10 @@
 #if defined(__linux__)
 #include <score/gfx/Vulkan.hpp>
 #if QT_HAS_VULKAN
+#if __has_include(<Gfx/Graph/decoders/DMABufImport.hpp>)
 #include <Gfx/Graph/decoders/DMABufImport.hpp>
+#define HAS_DMABUF_IMPORT 1
+#endif
 #endif
 #endif
 
@@ -84,7 +87,7 @@ public:
         QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
     m_sampler->create();
 
-#if defined(__linux__) && QT_HAS_VULKAN
+#if HAS_DMABUF_IMPORT
     // Initialize DMA-BUF importer if Vulkan is the backend
     if(score::gfx::DMABufPlaneImporter::isAvailable(rhi))
     {
@@ -199,7 +202,7 @@ public:
       }
       case CapturedFrame::DMA_BUF_FD:
       {
-#if defined(__linux__) && QT_HAS_VULKAN
+#if HAS_DMABUF_IMPORT
         // Vulkan DMA-BUF import for PipeWire frames
         if(m_dmaBufImporter && frame.dmabufFd >= 0)
         {
@@ -238,7 +241,7 @@ public:
     if(node.backend)
       const_cast<WindowCaptureNode&>(node).backend->stop();
 
-#if defined(__linux__) && QT_HAS_VULKAN
+#if HAS_DMABUF_IMPORT
     if(m_dmaBufImporter)
       m_dmaBufImporter->cleanupPlane(m_dmaBufPlane);
 #endif
@@ -280,7 +283,7 @@ private:
   int m_width{};
   int m_height{};
 
-#if defined(__linux__) && QT_HAS_VULKAN
+#if HAS_DMABUF_IMPORT
   std::optional<score::gfx::DMABufPlaneImporter> m_dmaBufImporter;
   score::gfx::DMABufPlaneImporter::PlaneImport m_dmaBufPlane{};
 #endif
