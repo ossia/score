@@ -24,10 +24,10 @@ jobs:
           - { deploy: true,  distro: ubuntu.noble,  image: noble,  CMAKEFLAGS: "-DCMAKE_UNITY_BUILD=1", CC: clang-19,            CXX: clang++-19,          CFLAGS: "-O3", LDFLAGS: "-fuse-ld=lld-19", PKGS: "" }
           - { deploy: false, distro: ubuntu.plucky, image: plucky, CMAKEFLAGS: "-DSCORE_PCH=1",         CC: gcc,                 CXX: g++,                 CFLAGS: "-O0", LDFLAGS: ""               , PKGS: "" }
           - { deploy: true,  distro: ubuntu.plucky, image: plucky, CMAKEFLAGS: "-DCMAKE_UNITY_BUILD=1", CC: clang-20,            CXX: clang++-20,          CFLAGS: "-O3", LDFLAGS: "-fuse-ld=lld-20", PKGS: "" }
-          - { deploy: false, distro: ubuntu.2604,   image: 26.04,  CMAKEFLAGS: "-DSCORE_PCH=1",         CC: gcc,                 CXX: g++,                 CFLAGS: "-O0", LDFLAGS: ""               , PKGS: "" } # GCC comes with build-essential
-          - { deploy: true,  distro: ubuntu.2604,   image: 26.04,  CMAKEFLAGS: "-DCMAKE_UNITY_BUILD=1", CC: clang,               CXX: clang++,             CFLAGS: "-O3", LDFLAGS: "-fuse-ld=lld"   , PKGS: "clang lld" }
-          - { deploy: false, distro: ubuntu.2604,   image: 26.04,  CMAKEFLAGS: "-DSCORE_PCH=1",         CC: gcc-16,              CXX: g++-16,              CFLAGS: "-O0", LDFLAGS: ""               , PKGS: "gcc-16 g++-16" }
-          - { deploy: true,  distro: ubuntu.2604,   image: 26.04,  CMAKEFLAGS: "-DCMAKE_UNITY_BUILD=1", CC: clang-22,            CXX: clang++-22,          CFLAGS: "-O3", LDFLAGS: "-fuse-ld=lld-22", PKGS: "clang-22 lld-22" }
+          - { deploy: false, distro: ubuntu.2604,   image: 26.04,  CMAKEFLAGS: "-DSCORE_PCH=1",         CC: gcc,                 CXX: g++,                 CFLAGS: "-O0", LDFLAGS: ""               , PKGS: "libclang-dev llvm-dev" } # GCC comes with build-essential
+          - { deploy: true,  distro: ubuntu.2604,   image: 26.04,  CMAKEFLAGS: "-DCMAKE_UNITY_BUILD=1", CC: clang,               CXX: clang++,             CFLAGS: "-O3", LDFLAGS: "-fuse-ld=lld"   , PKGS: "clang lld libclang-dev llvm-dev" }
+          - { deploy: false, distro: ubuntu.2604,   image: 26.04,  CMAKEFLAGS: "-DSCORE_PCH=1",         CC: gcc-16,              CXX: g++-16,              CFLAGS: "-O0", LDFLAGS: ""               , PKGS: "gcc-16 g++-16 libclang-dev llvm-dev" }
+          - { deploy: true,  distro: ubuntu.2604,   image: 26.04,  CMAKEFLAGS: "-DCMAKE_UNITY_BUILD=1", CC: clang-22,            CXX: clang++-22,          CFLAGS: "-O3", LDFLAGS: "-fuse-ld=lld-22", PKGS: "clang-22 lld-22 libclang-22-dev llvm-22-dev" }
 
     container:
       image: ubuntu:${{ matrix.image }}
