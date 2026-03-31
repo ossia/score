@@ -11,7 +11,7 @@ echo 'deb http://deb.debian.org/debian bullseye-backports main' | $SUDO tee -a /
 # libsdl2-dev libsdl2-2.0-0
 $SUDO apt-get update -qq
 $SUDO apt-get install -qq --force-yes -t bullseye-backports \
-     binutils gcc g++ clang-13 cmake \
+     binutils gcc g++ clang-13 cmake dpkg-dev lsb-release \
      libasound-dev \
      ninja-build \
      libfftw3-dev \

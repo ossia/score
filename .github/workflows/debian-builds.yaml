@@ -22,11 +22,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { distro: debian.bookworm     , image: bookworm, CC: clang-19,            CXX: clang++-19,          PACKAGES: "clang-19" }
-          - { distro: debian.bookworm     , image: bookworm, CC: /opt/gcc-14/bin/gcc, CXX: /opt/gcc-14/bin/g++, PACKAGES: "build-essential" }
-          - { distro: debian.trixie       , image: trixie,   CC: gcc,                 CXX: g++,                 PACKAGES: "build-essential gcc-14 g++-14 llvm-19-dev libclang-19-dev " }
-          - { distro: debian.trixie-system, image: trixie,   CC: gcc,                 CXX: g++,                 PACKAGES: "build-essential gcc-14 g++-14 llvm-19-dev libclang-19-dev " }
-          - { distro: debian.trixie       , image: trixie,   CC: clang-19,            CXX: clang++-19,          PACKAGES: "build-essential clang-19 llvm-19-dev libclang-19-dev lld-19 " }
+          - { deploy: true,  distro: debian.bookworm     , image: bookworm, CC: clang-19,            CXX: clang++-19,          PACKAGES: "clang-19" }
+          - { deploy: false, distro: debian.bookworm     , image: bookworm, CC: /opt/gcc-14/bin/gcc, CXX: /opt/gcc-14/bin/g++, PACKAGES: "build-essential" }
+          - { deploy: false, distro: debian.trixie       , image: trixie,   CC: gcc,                 CXX: g++,                 PACKAGES: "build-essential gcc-14 g++-14 llvm-19-dev libclang-19-dev " }
+          - { deploy: false, distro: debian.trixie-system, image: trixie,   CC: gcc,                 CXX: g++,                 PACKAGES: "build-essential gcc-14 g++-14 llvm-19-dev libclang-19-dev " }
+          - { deploy: true,  distro: debian.trixie       , image: trixie,   CC: clang-19,            CXX: clang++-19,          PACKAGES: "build-essential clang-19 llvm-19-dev libclang-19-dev lld-19 " }
     steps:
       - name: Install git
         run: |
@@ -52,3 +52,37 @@ jobs:
           CXX: ${{ matrix.CXX }}
         run: |
           ./ci/${{ matrix.distro }}.build.sh
+
+      - name: Deploy
+        run: |
+          ./ci/${{ matrix.distro }}.deploy.sh
+
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        if: matrix.deploy
+        with:
+          name: ${{ matrix.distro }}
+          path: |
+            *.deb
+
+      - name: Continuous
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/master'
+        with:
+          name: "Continuous"
+          tag_name: "continuous"
+          body: ""
+          append_body: true
+          generate_release_notes: false
+          files: |
+            *.deb
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          body: ""
+          append_body: true
+          generate_release_notes: false
+          files: |
+            *.deb

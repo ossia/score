@@ -63,7 +63,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: matrix.deploy
         with:
-          name: ${{ matrix.distro }}-amd64
+          name: ${{ matrix.distro }}
           path: |
             *.deb
 

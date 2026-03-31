@@ -19,7 +19,7 @@ $SUDO mv xpack-gcc-14.2.0-2 /opt/gcc-14
 # libsdl2-dev libsdl2-2.0-0
 $SUDO apt-get update -qq
 $SUDO apt-get install -qq --force-yes \
-     binutils gcc g++ cmake/bookworm-backports \
+     binutils gcc g++ cmake/bookworm-backports dpkg-dev \
      libasound-dev \
      ninja-build \
      libclang-$CLANG_VERSION-dev llvm-$CLANG_VERSION-dev \

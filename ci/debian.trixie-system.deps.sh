@@ -14,7 +14,7 @@ export CLANG_VERSION=19
 $SUDO apt-get update -qq
 $SUDO apt-get install -qq --force-yes \
      ${PACKAGES:=} \
-     build-essential binutils cmake \
+     build-essential binutils cmake dpkg-dev lsb-release \
      libasound2-dev \
      ninja-build \
      clang-$CLANG_VERSION lld-$CLANG_VERSION libclang-$CLANG_VERSION-dev llvm-$CLANG_VERSION-dev \

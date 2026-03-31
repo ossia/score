@@ -6,6 +6,8 @@ cd build
 cmake .. \
   -GNinja \
   -DSCORE_DEPLOYMENT_BUILD=1 \
+  -DSCORE_STATIC_PLUGINS=1 \
+  -DSCORE_FHS_BUILD=1 \
   -DBUILD_SHARED_LIBS=0 \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_INSTALL_PREFIX=install \
