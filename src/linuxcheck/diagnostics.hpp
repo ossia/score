@@ -3,8 +3,13 @@
 
 #include <boost/algorithm/string.hpp>
 
+#include <sys/types.h>
+
 #include <dlfcn.h>
 #include <elf.h>
+#include <grp.h>
+#include <stdio.h>
+#include <unistd.h>
 
 #include <cstring>
 #include <fstream>
@@ -14,6 +19,8 @@
 #include <string>
 #include <vector>
 
+namespace linuxcheck
+{
 class ElfInspector
 {
 public:
@@ -137,10 +144,64 @@ private:
   std::ifstream m_file;
 };
 
-namespace linuxcheck
+inline bool is_in_group(std::string_view group)
 {
-inline void check_libraries() { }
-inline std::string diagnostics(std::string_view path_to_binary)
+  struct group* grp = ::getgrnam(group.data());
+  if(!grp)
+    return false;
+
+  gid_t target_gid = grp->gr_gid;
+  int ngroups = ::getgroups(0, nullptr);
+  auto groups = (gid_t*)alloca(ngroups * sizeof(gid_t));
+
+  if(::getgroups(ngroups, groups) == -1)
+    return false;
+
+  for(int i = 0; i < ngroups; i++)
+  {
+    if(groups[i] == target_gid)
+      return true;
+  }
+  return false;
+}
+
+inline void check_cpu(std::string& ret)
+{
+#if defined(__x86_64__)
+  if(!__builtin_cpu_supports("avx2"))
+  {
+    ret += 
+        "AVX2 not supported! Use at your own risk. For a build which works on older "
+        "CPUs, use Flatpak, the .deb packages or build from source.\n";
+  }
+#endif
+}
+
+inline void check_groups(std::string& ret)
+{
+  if(!is_in_group("audio"))
+    ret += "Unix user is not in audio group! Some audio features will not work.\n";
+  if(!is_in_group("realtime"))
+    ret += "User not in realtime group! "
+        "If doing audio or precise control, consider setting up your OS for real-time processing.\n";
+  if(!is_in_group("uucp") && !is_in_group("dialout"))
+    ret += "User not in uucp (Arch, Suse, Nix) / dialout (Debian, Ubuntu Fedora) group! "
+        "Some features such as serial port access or some DMX chips won't work.\n";
+  if(!is_in_group("input"))
+    ret += "User not in input group! Raw evdev device access and some gamepads will not work.\n";
+  if(!is_in_group("video"))
+    ret += "User not in video group! Some camera features may not work.\n";
+  if(!is_in_group("bluetooth"))
+    ret += "User not in bluetooth group! Bluetooth support will not work.\n";
+#if !defined(__x86_64__)
+  if(!is_in_group("gpio"))
+    ret += "User not in gpio group! Raw GPIO access will not work.\n";
+  if(!is_in_group("i2c"))
+    ret += "User not in i2c group! Raw hardware access (I2C, etc.) will not work.\n";
+#endif
+}
+
+inline void check_libraries(std::string_view path_to_binary, std::string& ret)
 {
   static constexpr std::string_view libraries[]
       = {"libudev.so.1",
@@ -152,7 +213,6 @@ inline std::string diagnostics(std::string_view path_to_binary)
          "libv4l2.so.0",
          "libavahi-client.so.3"};
 
-  std::string ret;
   for(auto dylib : ElfInspector{}.get_dt_needed(path_to_binary))
   {
     if(auto lib = dlopen(dylib.data(), RTLD_LAZY))
@@ -185,9 +245,13 @@ inline std::string diagnostics(std::string_view path_to_binary)
       ret += fmt::format("{}: MISSING LIBRARY!\n", dylibs);
     }
   }
+}
 
+inline void check_binaries(std::string_view path_to_binary, std::string& ret)
+{
   static constexpr std::string_view binaries[]
-      = {"avahi-daemon|/usr/sbin/avahi-daemon", "dbus-broker|dbus-daemon", "jackd|jackd2|pipewire"};
+      = {"avahi-daemon|/usr/sbin/avahi-daemon", "dbus-broker|dbus-daemon",
+         "jackd|jackd2|pipewire"};
   for(auto programs : binaries)
   {
     std::vector<std::string> split_program_on_pipe;
@@ -207,7 +271,15 @@ inline std::string diagnostics(std::string_view path_to_binary)
       ret += fmt::format("{}: MISSING PROGRAM!\n", programs);
     }
   }
+}
 
+inline std::string diagnostics(std::string_view path_to_binary)
+{
+  std::string ret;
+  check_cpu(ret);
+  check_groups(ret);
+  check_libraries(path_to_binary, ret);
+  check_binaries(path_to_binary, ret);
   return ret;
 }
 }

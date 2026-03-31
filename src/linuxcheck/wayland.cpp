@@ -46,6 +46,11 @@ static const uint16_t wayland_wl_surface_attach_opcode = 1;
 static const uint16_t wayland_xdg_surface_get_toplevel_opcode = 1;
 static const uint16_t wayland_wl_surface_commit_opcode = 6;
 static const uint16_t wayland_wl_display_error_event = 0;
+static const uint16_t wayland_wl_seat_event_capabilities = 0;
+static const uint16_t wayland_wl_seat_get_pointer_opcode = 0;
+static const uint16_t wayland_wl_seat_get_keyboard_opcode = 1;
+static const uint16_t wayland_wl_pointer_event_button = 3;
+static const uint16_t wayland_wl_keyboard_event_key = 3;
 static const uint32_t wayland_format_xrgb8888 = 1;
 static const uint32_t wayland_header_size = 8;
 static const uint32_t color_channels = 4;
@@ -75,6 +80,9 @@ struct state_t
   uint32_t shm_pool_size;
   int shm_fd;
   uint8_t* shm_pool_data;
+  uint32_t wl_seat;
+  uint32_t wl_keyboard;
+  uint32_t wl_pointer;
 
   state_state_t state;
 };
@@ -513,6 +521,51 @@ static void wayland_wl_surface_commit(int fd, state_t* state)
     exit(errno);
 }
 
+static uint32_t wayland_wl_seat_get_keyboard(int fd, state_t* state)
+{
+  assert(state->wl_seat > 0);
+
+  uint64_t msg_size = 0;
+  char msg[128] = "";
+  buf_write_u32(msg, &msg_size, sizeof(msg), state->wl_seat);
+
+  buf_write_u16(msg, &msg_size, sizeof(msg), wayland_wl_seat_get_keyboard_opcode);
+
+  uint16_t msg_announced_size = wayland_header_size + sizeof(wayland_current_id);
+  assert(roundup_4(msg_announced_size) == msg_announced_size);
+  buf_write_u16(msg, &msg_size, sizeof(msg), msg_announced_size);
+
+  wayland_current_id++;
+  buf_write_u32(msg, &msg_size, sizeof(msg), wayland_current_id);
+
+  if((int64_t)msg_size != send(fd, msg, msg_size, 0))
+    exit(errno);
+
+  return wayland_current_id;
+}
+
+static uint32_t wayland_wl_seat_get_pointer(int fd, state_t* state)
+{
+  assert(state->wl_seat > 0);
+
+  uint64_t msg_size = 0;
+  char msg[128] = "";
+  buf_write_u32(msg, &msg_size, sizeof(msg), state->wl_seat);
+
+  buf_write_u16(msg, &msg_size, sizeof(msg), wayland_wl_seat_get_pointer_opcode);
+
+  uint16_t msg_announced_size = wayland_header_size + sizeof(wayland_current_id);
+  assert(roundup_4(msg_announced_size) == msg_announced_size);
+  buf_write_u16(msg, &msg_size, sizeof(msg), msg_announced_size);
+
+  wayland_current_id++;
+  buf_write_u32(msg, &msg_size, sizeof(msg), wayland_current_id);
+
+  if((int64_t)msg_size != send(fd, msg, msg_size, 0))
+    exit(errno);
+
+  return wayland_current_id;
+}
 static void wayland_handle_message(int fd, state_t* state, char** msg, uint64_t* msg_len)
 {
   assert(*msg_len >= 8);
@@ -569,6 +622,12 @@ static void wayland_handle_message(int fd, state_t* state, char** msg, uint64_t*
           fd, state->wl_registry, name, interface, interface_len, version);
     }
 
+    char wl_seat_interface[] = "wl_seat";
+    if(strcmp(wl_seat_interface, interface) == 0)
+    {
+      state->wl_seat = wayland_wl_registry_bind(
+          fd, state->wl_registry, name, interface, interface_len, version);
+    }
     return;
   }
   else if(
@@ -646,7 +705,55 @@ static void wayland_handle_message(int fd, state_t* state, char** msg, uint64_t*
     // buf_read_n(msg, msg_len, NULL, *msg_len);
     return;
   }
+  else if(object_id == state->wl_seat && opcode == wayland_wl_seat_event_capabilities)
+  {
+    uint32_t capabilities = buf_read_u32(msg, msg_len);
 
+    // Bit 0 (value 1) is WL_SEAT_CAPABILITY_POINTER
+    if((capabilities & 1) != 0 && state->wl_pointer == 0)
+    {
+      state->wl_pointer = wayland_wl_seat_get_pointer(fd, state);
+    }
+
+    // Bit 1 (value 2) is WL_SEAT_CAPABILITY_KEYBOARD
+    if((capabilities & 2) != 0 && state->wl_keyboard == 0)
+    {
+      state->wl_keyboard = wayland_wl_seat_get_keyboard(fd, state);
+    }
+    return;
+  }
+  else if(
+      (object_id == state->wl_keyboard && opcode == wayland_wl_keyboard_event_key)
+      || (object_id == state->wl_pointer && opcode == wayland_wl_pointer_event_button))
+  {
+    uint32_t serial = buf_read_u32(msg, msg_len);
+    uint32_t time = buf_read_u32(msg, msg_len);
+    uint32_t key_or_button = buf_read_u32(msg, msg_len);
+    uint32_t input_state = buf_read_u32(msg, msg_len);
+
+    // input_state: 0 is released, 1 is pressed
+    if(input_state == 1)
+    {
+      printf("Input detected! Exiting...\n");
+      exit(0);
+    }
+    return;
+  }
+  else if(
+      object_id == state->wl_seat || object_id == state->wl_keyboard
+      || object_id == state->wl_pointer)
+  {
+    // Catch-all to skip unhandled events (keymaps, mouse motion, enters/leaves)
+    uint32_t payload_size = announced_size - 8;
+    char dummy[4096];
+    assert(payload_size <= sizeof(dummy));
+
+    if(payload_size > 0 && payload_size <= *msg_len)
+    {
+      buf_read_n(msg, msg_len, dummy, payload_size);
+    }
+    return;
+  }
   return;
   assert(0 && "todo");
 }

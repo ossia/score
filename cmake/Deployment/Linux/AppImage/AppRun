@@ -34,7 +34,8 @@ if [[ -d "$SCORE_SUPPORT_DIR" ]]; then
 fi
 
 export LD_LIBRARY_PATH="${APPIMAGE_LIBRARY_PATH}:${APPDIR}/usr/lib:${LD_LIBRARY_PATH}"
-"${APPDIR}/usr/bin/linuxcheck" "${APPDIR}/usr/bin/ossia-score"
+
+"${APPDIR}/usr/bin/linuxcheck" "${APPDIR}/usr/bin/ossia-score" "$@"
 
 APP_SUFFIX=""
 
