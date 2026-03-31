@@ -297,6 +297,7 @@ void DeviceExplorerWidget::buildGUI()
   m_refreshValueAction = new QAction(tr("Refresh value"), this);
 
   m_removeNodeAction = new QAction(tr("Remove"), this);
+  m_importDeviceAction = new QAction{tr("Import device"), this};
   m_exportDeviceAction = new QAction{tr("Export device"), this};
   m_learnAction = new QAction{tr("Learn"), this};
   m_findUsageAction = new QAction{tr("Find usage"), this};
@@ -313,6 +314,7 @@ void DeviceExplorerWidget::buildGUI()
   m_removeNodeAction->setEnabled(false);
   m_disconnect->setEnabled(false);
   m_reconnect->setEnabled(false);
+  m_importDeviceAction->setEnabled(true);
   m_exportDeviceAction->setEnabled(false);
   m_learnAction->setEnabled(false);
   m_findUsageAction->setEnabled(false);
@@ -323,6 +325,7 @@ void DeviceExplorerWidget::buildGUI()
   m_removeNodeAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   m_disconnect->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   m_reconnect->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+  m_importDeviceAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   m_exportDeviceAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   m_learnAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   m_findUsageAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
@@ -336,6 +339,9 @@ void DeviceExplorerWidget::buildGUI()
   connect(m_reconnect, &QAction::triggered, this, &DeviceExplorerWidget::reconnect);
   connect(
       m_removeNodeAction, &QAction::triggered, this, &DeviceExplorerWidget::removeNodes);
+  connect(
+      m_importDeviceAction, &QAction::triggered, this,
+      &DeviceExplorerWidget::importDevice);
   connect(
       m_exportDeviceAction, &QAction::triggered, this,
       &DeviceExplorerWidget::exportDevice);
@@ -380,6 +386,7 @@ void DeviceExplorerWidget::buildGUI()
 
   QMenu* addMenu = new QMenu(this);
   addMenu->addAction(m_addDeviceAction);
+  addMenu->addAction(m_importDeviceAction);
   addMenu->addAction(m_addSiblingAction);
   addMenu->addAction(m_addChildAction);
   addMenu->addAction(m_exportDeviceAction);
@@ -393,6 +400,7 @@ void DeviceExplorerWidget::buildGUI()
   // Add actions to the current widget so that shortcuts work
   {
     this->addAction(m_addDeviceAction);
+    this->addAction(m_importDeviceAction);
     this->addAction(m_addSiblingAction);
     this->addAction(m_addChildAction);
     this->addAction(m_exportDeviceAction);
@@ -526,6 +534,7 @@ void DeviceExplorerWidget::contextMenuEvent(QContextMenuEvent* event)
 
   contextMenu->addSeparator();
   contextMenu->addAction(m_addDeviceAction);
+  contextMenu->addAction(m_importDeviceAction);
   contextMenu->addAction(m_addSiblingAction);
   contextMenu->addAction(m_addChildAction);
   contextMenu->addAction(m_exportDeviceAction);
@@ -631,6 +640,7 @@ void DeviceExplorerWidget::updateActions()
 
   const bool editable = this->editable();
   m_addDeviceAction->setEnabled(true);
+  m_importDeviceAction->setEnabled(true);
   m_exportDeviceAction->setEnabled(false);
   m_learnAction->setEnabled(false);
   m_addSiblingAction->setEnabled(false);
@@ -672,6 +682,7 @@ void DeviceExplorerWidget::updateActions()
         m_refreshAction->setEnabled(capas.canRefreshTree && editable);
         m_reconnect->setEnabled(capas.canDisconnect && editable);
         m_disconnect->setEnabled(capas.canDisconnect && editable);
+        m_importDeviceAction->setEnabled(false);
         m_exportDeviceAction->setEnabled(true);
         m_addSiblingAction->setEnabled(false);
         m_addChildAction->setEnabled(capas.canAddNode && editable);
@@ -1031,6 +1042,42 @@ void DeviceExplorerWidget::addDevice()
   });
 
   m_deviceDialog->show();
+}
+
+void DeviceExplorerWidget::importDevice()
+{
+  auto m = model();
+  if(!m)
+    return;
+
+  auto fileName = QFileDialog::getOpenFileName(
+      this, tr("Device file"), QString{}, tr("Device file (*.device)"));
+  if(fileName.isEmpty())
+    return;
+
+  Device::Node n;
+  if(!Device::loadDeviceFromScoreJSON(fileName, n))
+    return;
+
+  if(!n.is<Device::DeviceSettings>())
+    return;
+
+  auto& deviceSettings = n.get<Device::DeviceSettings>();
+
+  // Check that this protocol is known
+  auto prot = m_protocolList.get(deviceSettings.protocol);
+  if(!prot)
+    return;
+
+  if(!m->checkDeviceInstantiatable(deviceSettings))
+    return;
+
+  ossia::net::sanitize_device_name(deviceSettings.name);
+
+  auto& devplug = m->deviceModel();
+  blockGUI(true);
+  m_cmdDispatcher->submit(new Command::LoadDevice{devplug, std::move(n)});
+  blockGUI(false);
 }
 
 void DeviceExplorerWidget::exportDevice()

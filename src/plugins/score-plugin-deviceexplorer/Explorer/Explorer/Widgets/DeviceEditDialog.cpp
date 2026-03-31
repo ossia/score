@@ -20,15 +20,22 @@
 
 #include <ossia/detail/algorithms.hpp>
 
+#include <Device/Loading/ScoreDeviceLoader.hpp>
+
 #include <QComboBox>
 #include <QDesktopServices>
 #include <QDialogButtonBox>
+#include <QCoreApplication>
+#include <QDirIterator>
 #include <QFormLayout>
 #include <QHeaderView>
 #include <QLabel>
 #include <QListWidget>
 #include <QPushButton>
+#include <QSettings>
 #include <QSplitter>
+#include <QStackedWidget>
+#include <QStandardPaths>
 #include <QTreeWidget>
 #include <QVariant>
 #include <QWidget>
@@ -72,15 +79,54 @@ DeviceEditDialog::DeviceEditDialog(
 
   auto column1 = new QWidget;
   auto column1_layout = new score::MarginLess<QVBoxLayout>{column1};
-  m_protocolsLabel = new QLabel{tr("Protocols"), this};
-  setHeaderTextFormat(m_protocolsLabel);
-  column1_layout->addWidget(m_protocolsLabel);
-  m_protocolsLabel->setAlignment(Qt::AlignTop);
-  m_protocolsLabel->setAlignment(Qt::AlignHCenter);
+
+  // Tab buttons for Protocols / Presets
+  {
+    auto tabBar = new QWidget{this};
+    auto tabLayout = new score::MarginLess<QHBoxLayout>{tabBar};
+
+    m_protocolsTabButton = new QPushButton{tr("Protocols"), this};
+    m_presetsTabButton = new QPushButton{tr("Presets"), this};
+
+    m_protocolsTabButton->setCheckable(true);
+    m_presetsTabButton->setCheckable(true);
+    m_protocolsTabButton->setChecked(true);
+    m_protocolsTabButton->setFlat(true);
+    m_presetsTabButton->setFlat(true);
+
+    tabLayout->addWidget(m_protocolsTabButton);
+    tabLayout->addWidget(m_presetsTabButton);
+    tabBar->setLayout(tabLayout);
+    column1_layout->addWidget(tabBar);
+  }
+
+  // Stacked widget: page 0 = protocols tree, page 1 = presets tree
+  m_column1Stack = new QStackedWidget{this};
+
   m_protocols = new QTreeWidget{this};
   m_protocols->header()->hide();
   m_protocols->setSelectionMode(QAbstractItemView::SingleSelection);
-  column1_layout->addWidget(m_protocols);
+  m_column1Stack->addWidget(m_protocols);
+
+  m_presets = new QTreeWidget{this};
+  m_presets->header()->hide();
+  m_presets->setSelectionMode(QAbstractItemView::SingleSelection);
+  m_column1Stack->addWidget(m_presets);
+
+  m_column1Stack->setCurrentIndex(0);
+  column1_layout->addWidget(m_column1Stack);
+
+  connect(m_protocolsTabButton, &QPushButton::clicked, this, [this] {
+    m_protocolsTabButton->setChecked(true);
+    m_presetsTabButton->setChecked(false);
+    m_column1Stack->setCurrentIndex(0);
+  });
+  connect(m_presetsTabButton, &QPushButton::clicked, this, [this] {
+    m_presetsTabButton->setChecked(true);
+    m_protocolsTabButton->setChecked(false);
+    m_column1Stack->setCurrentIndex(1);
+  });
+
   column1->setLayout(column1_layout);
   column1->setFixedWidth(200);
   base_layout->addWidget(column1);
@@ -169,10 +215,12 @@ DeviceEditDialog::DeviceEditDialog(
   });
 
   initAvailableProtocols();
+  initPresets();
 
   connect(
       m_protocols, &QTreeView::activated, this, [this] { selectedProtocolChanged(); });
   connect(m_devices, &QTreeView::activated, this, [this] { selectedDeviceChanged(); });
+  connect(m_presets, &QTreeView::activated, this, [this] { selectedPresetChanged(); });
 
   if(m_protocols->topLevelItemCount() > 0)
   {
@@ -245,6 +293,126 @@ void DeviceEditDialog::initAvailableProtocols()
   m_index = 0;
 }
 
+void DeviceEditDialog::initPresets()
+{
+  m_presets->clear();
+
+  // Read the library root path directly from QSettings
+  // to avoid a dependency on score-plugin-library
+  QSettings s;
+  QString rootPath = s.value("Library/RootPath").toString();
+  if(rootPath.isEmpty())
+  {
+    auto paths = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation);
+    if(!paths.isEmpty())
+    {
+      rootPath = QString("%1/%2/%3")
+                     .arg(
+                         paths[0], QCoreApplication::organizationName(),
+                         QCoreApplication::applicationName());
+    }
+  }
+
+  if(rootPath.isEmpty())
+    return;
+
+  QStringList searchPaths;
+  searchPaths << rootPath + "/packages/user/devices";
+  searchPaths << rootPath + "/packages/default/devices";
+
+  // for(const auto& dir : searchPaths)
+  {
+    QDirIterator it{
+        rootPath, QStringList{QStringLiteral("*.device")}, QDir::Files,
+        QDirIterator::Subdirectories};
+
+    while(it.hasNext())
+    {
+      it.next();
+      auto item = new QTreeWidgetItem;
+      item->setText(0, it.fileInfo().completeBaseName());
+      item->setData(0, Qt::UserRole, it.filePath());
+      item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+      m_presets->addTopLevelItem(item);
+    }
+  }
+
+  m_presets->sortItems(0, Qt::AscendingOrder);
+}
+
+void DeviceEditDialog::selectedPresetChanged()
+{
+  if(m_presets->selectedItems().isEmpty())
+    return;
+
+  auto item = m_presets->currentItem();
+  if(!item)
+    return;
+
+  auto filePath = item->data(0, Qt::UserRole).toString();
+  if(filePath.isEmpty())
+    return;
+
+  // Load the full device node from the .device file
+  Device::Node n;
+  if(!Device::loadDeviceFromScoreJSON(filePath, n))
+    return;
+
+  if(!n.is<Device::DeviceSettings>())
+    return;
+
+  auto& deviceSettings = n.get<Device::DeviceSettings>();
+
+  // Find the protocol factory for this device
+  auto protocol = m_protocolList.get(deviceSettings.protocol);
+  if(!protocol)
+    return;
+
+  // Clear previous state
+  m_enumerators.clear();
+  m_devices->clear();
+  if(m_protocolWidget)
+  {
+    if(m_index >= 0 && m_index < m_previousSettings.count())
+      m_previousSettings[m_index] = m_protocolWidget->getSettings();
+    m_column3Layout->removeWidget(m_protocolWidget);
+    delete m_protocolWidget;
+    m_protocolWidget = nullptr;
+  }
+
+  // Hide devices column — presets don't use enumerators
+  m_devices->setVisible(false);
+  m_devicesLabel->setVisible(false);
+  if(m_splitter->count() > 0)
+    m_splitter->widget(0)->hide();
+
+  // Create the correct settings widget for this protocol
+  m_protocolNameLabel->setText(tr("Settings (%1)").arg(protocol->prettyName()));
+  m_protocolWidget = protocol->makeSettingsWidget();
+
+  if(m_protocolWidget)
+  {
+    m_protocolWidget->setSettings(deviceSettings);
+    connect(
+        m_protocolWidget, &Device::ProtocolSettingsWidget::changed, this,
+        &DeviceEditDialog::updateValidity);
+
+    m_column3Layout->insertWidget(1, m_protocolWidget);
+
+    QSizePolicy pol{QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding};
+    pol.setVerticalStretch(255);
+    m_protocolWidget->setSizePolicy(pol);
+    m_protocolWidget->setMinimumHeight(200);
+    this->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    updateGeometry();
+  }
+
+  // Save the full node so getDevice() returns it with the address tree
+  m_presetNode = std::move(n);
+
+  updateValidity();
+}
+
 void DeviceEditDialog::selectedDeviceChanged()
 {
   if(!m_devices->isVisible())
@@ -281,6 +449,9 @@ void DeviceEditDialog::selectedProtocolChanged()
       = selected_item->data(0, Qt::UserRole).value<UuidKey<Device::ProtocolFactory>>();
   if(key == UuidKey<Device::ProtocolFactory>{})
     return;
+
+  // Clear preset state
+  m_presetNode = Device::Node{};
 
   // Clear listener
   m_enumerators.clear();
@@ -392,10 +563,20 @@ Device::DeviceSettings DeviceEditDialog::getSettings() const
 
 Device::Node DeviceEditDialog::getDevice() const
 {
-  if(m_protocolWidget)
-    return m_protocolWidget->getDevice();
+  if(!m_protocolWidget)
+    return {};
 
-  return {};
+  // If a preset was loaded, return the full node (with address tree)
+  // but re-apply the current widget settings (user may have edited name, ports, etc.)
+  if(m_presetNode.is<Device::DeviceSettings>())
+  {
+    Device::Node n = m_presetNode;
+    if(auto dev = n.target<Device::DeviceSettings>())
+      *dev = m_protocolWidget->getSettings();
+    return n;
+  }
+
+  return m_protocolWidget->getDevice();
 }
 
 void DeviceEditDialog::setSettings(const Device::DeviceSettings& settings)
@@ -436,10 +617,14 @@ void DeviceEditDialog::setBrowserEnabled(bool st)
   {
     m_enumerators.clear();
 
-    delete m_protocols;
+    delete m_column1Stack;
+    m_column1Stack = nullptr;
     m_protocols = nullptr;
-    delete m_protocolsLabel;
-    m_protocolsLabel = nullptr;
+    m_presets = nullptr;
+    delete m_protocolsTabButton;
+    m_protocolsTabButton = nullptr;
+    delete m_presetsTabButton;
+    m_presetsTabButton = nullptr;
     delete m_devices;
     m_devices = nullptr;
     delete m_devicesLabel;

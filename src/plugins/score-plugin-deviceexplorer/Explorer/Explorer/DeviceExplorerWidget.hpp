@@ -75,6 +75,7 @@ private:
 
   void addAddress(InsertMode insertType);
   void addDevice();
+  void importDevice();
   void exportDevice();
   void addChild();
   void addSibling();
@@ -114,6 +115,7 @@ private:
   QAction* m_addDeviceAction{};
   QAction* m_addSiblingAction{};
   QAction* m_addChildAction{};
+  QAction* m_importDeviceAction{};
   QAction* m_exportDeviceAction{};
 
   QAction* m_removeNodeAction{};

@@ -16,9 +16,11 @@ class QFormLayout;
 class QWidget;
 class QListWidget;
 class QTreeWidget;
+class QStackedWidget;
 class QVBoxLayout;
 class QLabel;
 class QDialogButtonBox;
+class QPushButton;
 
 namespace Device
 {
@@ -61,7 +63,9 @@ public:
 private:
   void selectedProtocolChanged();
   void selectedDeviceChanged();
+  void selectedPresetChanged();
   void initAvailableProtocols();
+  void initPresets();
 
   const DeviceExplorerModel& m_model;
   const Device::ProtocolFactoryList& m_protocolList;
@@ -73,10 +77,16 @@ private:
   QDialogButtonBox* m_buttonBox{};
   QPushButton* m_okButton{};
   QPushButton* m_helpButton{};
+
+  // Column 1: tab buttons + stacked protocols/presets
+  QPushButton* m_protocolsTabButton{};
+  QPushButton* m_presetsTabButton{};
+  QStackedWidget* m_column1Stack{};
   QTreeWidget* m_protocols{};
+  QTreeWidget* m_presets{};
+
   QTreeWidget* m_devices{};
   // QWidget* m_main{};
-  QLabel* m_protocolsLabel{};
   QLabel* m_devicesLabel{};
   Device::ProtocolSettingsWidget* m_protocolWidget{};
   // QFormLayout* m_settingsFormLayout{};
@@ -84,6 +94,9 @@ private:
   QList<Device::DeviceSettings> m_previousSettings;
   QLabel* m_invalidLabel{};
   QLabel* m_protocolNameLabel{};
+
+  // For presets: the loaded node with full address tree
+  Device::Node m_presetNode{};
 
   QString m_originalName{};
   int m_index{};
