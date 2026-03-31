@@ -718,12 +718,13 @@ static bool waitForResponse(
     if(r > 0)
       continue; // more work queued
 
-    auto remaining_us
+    int64_t remaining_us
         = std::chrono::duration_cast<std::chrono::microseconds>(
               deadline - now)
               .count();
-    sd.wait(bus, static_cast<uint64_t>(
-                     std::min(remaining_us, (int64_t)100000)));
+    if(remaining_us > 100000)
+      remaining_us = 100000;
+    sd.wait(bus, static_cast<uint64_t>(remaining_us));
   }
 
   return resp.received;
