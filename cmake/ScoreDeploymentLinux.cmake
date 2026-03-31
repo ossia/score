@@ -126,6 +126,35 @@ set(CPACK_DEB_COMPONENT_INSTALL ON)
 
 set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 
+# dpkg-shlibdeps fails on optional CUDA/TensorRT provider libraries from
+# onnxruntime because the CUDA shared libraries are not present on the build
+# system. We still ship these providers for users who have CUDA installed.
+# Fix: wrap dpkg-shlibdeps to skip scanning those specific .so files.
+# CPACK_PROJECT_CONFIG_FILE pre-sets the SHLIBDEPS_EXECUTABLE cache variable
+# before CPackDeb.cmake's find_program.
+find_program(_DPKG_SHLIBDEPS_REAL dpkg-shlibdeps)
+if(_DPKG_SHLIBDEPS_REAL)
+  file(WRITE "${CMAKE_BINARY_DIR}/dpkg-shlibdeps-filtered" [=[
+#!/bin/sh
+filtered_args=""
+for arg in "$@"; do
+  case "$arg" in
+    *libonnxruntime_providers_cuda*|*libonnxruntime_providers_tensorrt*)
+      ;;
+    *)
+      filtered_args="$filtered_args $arg"
+      ;;
+  esac
+done
+exec ]=] "\"${_DPKG_SHLIBDEPS_REAL}\"" [=[ $filtered_args
+]=])
+  file(CHMOD "${CMAKE_BINARY_DIR}/dpkg-shlibdeps-filtered"
+    PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+  file(WRITE "${CMAKE_BINARY_DIR}/CPackCustomDeb.cmake"
+    "set(SHLIBDEPS_EXECUTABLE \"${CMAKE_BINARY_DIR}/dpkg-shlibdeps-filtered\" CACHE FILEPATH \"\" FORCE)\n")
+  set(CPACK_PROJECT_CONFIG_FILE "${CMAKE_BINARY_DIR}/CPackCustomDeb.cmake")
+endif()
+
 set(CPACK_STRIP_FILES TRUE)
 set(CPACK_COMPONENTS_ALL OssiaScore)
 endif()
