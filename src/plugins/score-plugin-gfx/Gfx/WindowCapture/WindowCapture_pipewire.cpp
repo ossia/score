@@ -653,6 +653,7 @@ struct PortalResponse
   const libsdbus* sd{};
   uint32_t code{99};
   std::string session_handle;
+  uint32_t pipewire_node{0}; // PipeWire node ID from Start response
   bool received{false};
 };
 
@@ -682,6 +683,25 @@ static int onPortalResponse(
           sd.message_read_basic(m, 's', &val);
           if(val)
             resp->session_handle = val;
+          sd.message_exit_container(m);
+        }
+      }
+      else if(key && std::strcmp(key, "streams") == 0)
+      {
+        // streams: a(ua{sv}) — array of structs with node_id + properties
+        // We read the first stream's node ID.
+        if(sd.message_enter_container(m, 'v', "a(ua{sv})") >= 0)
+        {
+          if(sd.message_enter_container(m, 'a', "(ua{sv})") >= 0)
+          {
+            if(sd.message_enter_container(m, 'r', "ua{sv}") >= 0)
+            {
+              sd.message_read_basic(m, 'u', &resp->pipewire_node);
+              sd.message_skip(m, "a{sv}"); // skip properties
+              sd.message_exit_container(m);
+            }
+            sd.message_exit_container(m);
+          }
           sd.message_exit_container(m);
         }
       }
@@ -753,6 +773,11 @@ static std::string makeRequestPath(
 static constexpr uint32_t PORTAL_SOURCE_MONITOR = 1;
 static constexpr uint32_t PORTAL_SOURCE_WINDOW = 2;
 
+// Portal cursor modes
+static constexpr uint32_t PORTAL_CURSOR_HIDDEN = 1;
+static constexpr uint32_t PORTAL_CURSOR_EMBEDDED = 2;
+static constexpr uint32_t PORTAL_CURSOR_METADATA = 4;
+
 static constexpr const char* PORTAL_DEST
     = "org.freedesktop.portal.Desktop";
 static constexpr const char* PORTAL_PATH
@@ -760,23 +785,29 @@ static constexpr const char* PORTAL_PATH
 static constexpr const char* PORTAL_SCREENCAST_IFACE
     = "org.freedesktop.portal.ScreenCast";
 
-// Perform the full portal ScreenCast flow and return the PipeWire fd.
+// Result of the portal ScreenCast flow
+struct PortalScreenCastResult
+{
+  int fd{-1};
+  uint32_t pipewire_node{0};
+};
+
+// Perform the full portal ScreenCast flow and return the PipeWire fd + node ID.
 // sourceType: 1=MONITOR, 2=WINDOW
-// Returns -1 on failure.
-static int openPortalScreenCast(uint32_t sourceType)
+static PortalScreenCastResult openPortalScreenCast(uint32_t sourceType)
 {
   auto& sd = libsdbus::instance();
   if(!sd.available)
-    return -1;
+    return {};
 
   sd_bus* bus = nullptr;
   if(sd.open_user(&bus) < 0 || !bus)
   {
     qDebug() << "WindowCapture PipeWire: sd_bus_open_user failed";
-    return -1;
+    return {};
   }
 
-  int result_fd = -1;
+  PortalScreenCastResult result;
   sd_bus_error error{nullptr, nullptr, 0};
 
   // ── Step 1: CreateSession ──
@@ -784,7 +815,7 @@ static int openPortalScreenCast(uint32_t sourceType)
   std::string requestToken = makeToken();
   std::string requestPath = makeRequestPath(sd, bus, requestToken);
 
-  PortalResponse resp{&sd};
+  PortalResponse resp{&sd, {}, {}, {}, false};
   sd_bus_slot* slot = nullptr;
 
   {
@@ -819,7 +850,7 @@ static int openPortalScreenCast(uint32_t sourceType)
       sd.error_free(&error);
       sd.slot_unref(slot);
       sd.unref(bus);
-      return -1;
+      return {};
     }
   }
 
@@ -828,7 +859,7 @@ static int openPortalScreenCast(uint32_t sourceType)
     qDebug() << "WindowCapture PipeWire: CreateSession rejected or timed out";
     sd.slot_unref(slot);
     sd.unref(bus);
-    return -1;
+    return {};
   }
 
   std::string sessionHandle = resp.session_handle;
@@ -839,13 +870,13 @@ static int openPortalScreenCast(uint32_t sourceType)
   {
     qDebug() << "WindowCapture PipeWire: no session handle in response";
     sd.unref(bus);
-    return -1;
+    return {};
   }
 
   // ── Step 2: SelectSources ──
   requestToken = makeToken();
   requestPath = makeRequestPath(sd, bus, requestToken);
-  resp = PortalResponse{&sd};
+  resp = PortalResponse{&sd, {}, {}, {}, false};
 
   {
     std::string matchRule
@@ -865,6 +896,7 @@ static int openPortalScreenCast(uint32_t sourceType)
     appendDictString(sd, msg, "handle_token", requestToken.c_str());
     appendDictUint32(sd, msg, "types", sourceType);
     appendDictBool(sd, msg, "multiple", false);
+    appendDictUint32(sd, msg, "cursor_mode", PORTAL_CURSOR_EMBEDDED);
     sd.message_close_container(msg);
 
     sd_bus_message* reply = nullptr;
@@ -880,7 +912,7 @@ static int openPortalScreenCast(uint32_t sourceType)
       sd.error_free(&error);
       sd.slot_unref(slot);
       sd.unref(bus);
-      return -1;
+      return {};
     }
   }
 
@@ -889,7 +921,7 @@ static int openPortalScreenCast(uint32_t sourceType)
     qDebug() << "WindowCapture PipeWire: SelectSources rejected or timed out";
     sd.slot_unref(slot);
     sd.unref(bus);
-    return -1;
+    return {};
   }
   sd.slot_unref(slot);
   slot = nullptr;
@@ -897,7 +929,7 @@ static int openPortalScreenCast(uint32_t sourceType)
   // ── Step 3: Start (user confirms the picker) ──
   requestToken = makeToken();
   requestPath = makeRequestPath(sd, bus, requestToken);
-  resp = PortalResponse{&sd};
+  resp = PortalResponse{&sd, {}, {}, {}, false};
 
   {
     std::string matchRule
@@ -931,7 +963,7 @@ static int openPortalScreenCast(uint32_t sourceType)
       sd.error_free(&error);
       sd.slot_unref(slot);
       sd.unref(bus);
-      return -1;
+      return {};
     }
   }
 
@@ -940,8 +972,13 @@ static int openPortalScreenCast(uint32_t sourceType)
     qDebug() << "WindowCapture PipeWire: Start rejected or timed out";
     sd.slot_unref(slot);
     sd.unref(bus);
-    return -1;
+    return {};
   }
+
+  // Extract the PipeWire node ID from the Start response
+  result.pipewire_node = resp.pipewire_node;
+  qDebug() << "WindowCapture PipeWire: got node id:" << result.pipewire_node;
+
   sd.slot_unref(slot);
   slot = nullptr;
 
@@ -967,7 +1004,7 @@ static int openPortalScreenCast(uint32_t sourceType)
       if(reply)
         sd.message_unref(reply);
       sd.unref(bus);
-      return -1;
+      return {};
     }
 
     int fd = -1;
@@ -978,15 +1015,15 @@ static int openPortalScreenCast(uint32_t sourceType)
     {
       qDebug() << "WindowCapture PipeWire: invalid fd from OpenPipeWireRemote";
       sd.unref(bus);
-      return -1;
+      return {};
     }
 
     // dup() so the fd outlives the bus connection
-    result_fd = ::dup(fd);
+    result.fd = ::dup(fd);
   }
 
   sd.unref(bus);
-  return result_fd;
+  return result;
 }
 
 static bool portalAvailable()
@@ -1094,13 +1131,15 @@ public:
         return false;
     }
 
-    // Run the portal flow to get a PipeWire fd.
-    int fd = openPortalScreenCast(sourceType);
-    if(fd < 0)
+    // Run the portal flow to get a PipeWire fd and node ID.
+    auto portalResult = openPortalScreenCast(sourceType);
+    if(portalResult.fd < 0)
     {
       qDebug() << "WindowCapture PipeWire: portal flow failed";
       return false;
     }
+    int fd = portalResult.fd;
+    m_pipewireNode = portalResult.pipewire_node;
 
     // Create PipeWire thread loop
     m_loop = pw.thread_loop_new("score-wincap", nullptr);
@@ -1188,9 +1227,10 @@ public:
     spa_pod* formatPod = podBuilder.buildEnumFormat();
     const spa_pod* params[] = {formatPod};
 
-    // Connect the stream as input (we consume video from the portal)
+    // Connect the stream as input (we consume video from the portal).
+    // Use the specific node ID from the portal Start response.
     int ret = pw.stream_connect(
-        m_stream, PW_DIRECTION_INPUT, static_cast<uint32_t>(-1), // PW_ID_ANY
+        m_stream, PW_DIRECTION_INPUT, m_pipewireNode,
         static_cast<pw_stream_flags>(
             PW_STREAM_FLAG_AUTOCONNECT | PW_STREAM_FLAG_MAP_BUFFERS),
         params, 1);
@@ -1490,6 +1530,7 @@ private:
   pw_stream* m_stream{};
   pw_stream_events m_streamEvents{};
   spa_hook m_streamListener{};
+  uint32_t m_pipewireNode{0};
   std::atomic<bool> m_running{false};
 
   // Negotiated video format
