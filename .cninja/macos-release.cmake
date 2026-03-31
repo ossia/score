@@ -1,7 +1,7 @@
 cninja_require(compiler=xcode)
 cninja_require(static-release)
 cninja_require(linker-warnings=no)
-cninja_require(era=11.0)
+cninja_require(era=13.0)
 
 execute_process(
   COMMAND xcode-select --print-path
