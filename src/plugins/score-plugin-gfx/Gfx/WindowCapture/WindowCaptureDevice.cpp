@@ -181,16 +181,46 @@ public:
 
     setLayout(layout);
 
+    m_debounceTimer = new QTimer{this};
+    m_debounceTimer->setSingleShot(true);
+    m_debounceTimer->setInterval(100);
+    connect(m_debounceTimer, &QTimer::timeout, this, [this] { updatePreview(); });
+
     connect(
         m_modeCombo, &QComboBox::currentIndexChanged, this,
         [this](int) { onModeChanged(); });
     connect(m_refreshBtn, &QPushButton::clicked, this, [this] { refreshLists(); });
     connect(
         m_windowList, &QComboBox::currentIndexChanged, this,
-        [this](int) { updatePreview(); });
+        [this](int) { m_debounceTimer->start(); });
+    connect(
+        m_screenList, &QComboBox::currentIndexChanged, this,
+        [this](int) { m_debounceTimer->start(); });
+    for(auto* spin : {m_regionX, m_regionY, m_regionW, m_regionH})
+      connect(spin, &QSpinBox::valueChanged, this, [this] { m_debounceTimer->start(); });
+
+    // Permission warning (hidden by default)
+    m_permissionWarning = new QLabel{this};
+    m_permissionWarning->setWordWrap(true);
+    m_permissionWarning->setVisible(false);
+    {
+      QPalette pal = m_permissionWarning->palette();
+      pal.setColor(QPalette::WindowText, QColor(0xCC, 0x44, 0x44));
+      m_permissionWarning->setPalette(pal);
+    }
+    layout->addRow(m_permissionWarning);
 
     // Initialize backend and populate lists
     m_previewBackend = createWindowCaptureBackend();
+    if(!m_previewBackend || !m_previewBackend->available())
+    {
+      m_permissionWarning->setText(
+          tr("Screen capture is unavailable. On macOS, grant Screen Recording "
+             "permission in System Settings > Privacy & Security > Screen "
+             "Recording. On other platforms, ensure the required capture "
+             "libraries are installed."));
+      m_permissionWarning->setVisible(true);
+    }
     updateModeAvailability();
     onModeChanged();
     refreshLists();
@@ -324,7 +354,9 @@ private:
     m_regionHLabel->setVisible(showRegion);
     m_regionH->setVisible(showRegion);
     m_refreshBtn->setVisible(showRefresh);
-    m_preview->setVisible(showWindow);
+    m_preview->setVisible(showWindow || showScreen || showRegion);
+
+    m_debounceTimer->start();
   }
 
   void refreshLists()
@@ -332,10 +364,35 @@ private:
     if(!m_previewBackend)
       m_previewBackend = createWindowCaptureBackend();
     if(!m_previewBackend || !m_previewBackend->available())
+    {
+      m_permissionWarning->setText(
+          tr("Screen capture is unavailable. On macOS, grant Screen Recording "
+             "permission in System Settings > Privacy & Security > Screen "
+             "Recording. On other platforms, ensure the required capture "
+             "libraries are installed."));
+      m_permissionWarning->setVisible(true);
       return;
+    }
 
     refreshWindows();
     refreshScreens();
+
+    // On macOS, ScreenCaptureKit may report as available but return
+    // empty lists if the app lacks Screen Recording permission.
+    if(m_windowList->count() == 0
+       || (m_windowList->count() == 1
+           && m_windowList->currentData().toULongLong() == 0))
+    {
+      m_permissionWarning->setText(
+          tr("No windows or screens found. On macOS, ensure Screen Recording "
+             "permission is granted in System Settings > Privacy & Security > "
+             "Screen Recording, then click Refresh."));
+      m_permissionWarning->setVisible(true);
+    }
+    else
+    {
+      m_permissionWarning->setVisible(false);
+    }
   }
 
   void refreshWindows()
@@ -393,26 +450,58 @@ private:
     m_preview->clear();
     stopPreviewTimer();
 
-    int idx = m_windowList->currentIndex();
-    if(idx < 0)
-      return;
-
-    uint64_t windowId = m_windowList->currentData().toULongLong();
-    if(windowId == 0)
-      return;
-
     if(!m_previewBackend || !m_previewBackend->available())
       return;
 
-    // Grab a single frame for the preview
+    auto mode = static_cast<CaptureMode>(
+        m_modeCombo->currentData().toInt());
+
     CaptureTarget target;
-    target.mode = CaptureMode::Window;
-    target.windowId = windowId;
+    target.mode = mode;
+
+    switch(mode)
+    {
+      case CaptureMode::Window:
+      {
+        int idx = m_windowList->currentIndex();
+        if(idx < 0)
+          return;
+        target.windowId = m_windowList->currentData().toULongLong();
+        if(target.windowId == 0)
+          return;
+        break;
+      }
+      case CaptureMode::SingleScreen:
+      {
+        int idx = m_screenList->currentIndex();
+        if(idx < 0)
+          return;
+        target.screenId = m_screenList->currentData().toULongLong();
+        if(target.screenId == 0)
+          return;
+        break;
+      }
+      case CaptureMode::Region:
+      {
+        target.regionX = m_regionX->value();
+        target.regionY = m_regionY->value();
+        target.regionW = m_regionW->value();
+        target.regionH = m_regionH->value();
+        if(target.regionW <= 0 || target.regionH <= 0)
+          return;
+        break;
+      }
+      default:
+        return;
+    }
+
+    // Grab a single frame for the preview
     if(!m_previewBackend->start(target))
       return;
 
-    // WGC on Windows is asynchronous — the first frame is not available
-    // immediately after start().  Retry via a timer on the event loop.
+    // Capture backends deliver frames asynchronously — the first frame
+    // is not available immediately after start().  Retry via a timer
+    // on the event loop so we don't block the UI thread.
     m_previewRetries = 0;
     m_previewTimer = new QTimer{this};
     m_previewTimer->setInterval(16);
@@ -499,6 +588,8 @@ private:
   QPushButton* m_refreshBtn{};
   QDoubleSpinBox* m_fps{};
   QLabel* m_preview{};
+  QLabel* m_permissionWarning{};
+  QTimer* m_debounceTimer{};
   QTimer* m_previewTimer{};
   int m_previewRetries{};
   std::unique_ptr<WindowCaptureBackend> m_previewBackend;

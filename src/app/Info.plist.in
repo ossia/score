@@ -46,6 +46,9 @@
     <key>NSAppleEventsUsageDescription</key>
     <string>ossia score needs assistive access for MIDI keyboard input and minimap movement</string>
 
+    <key>NSScreenCaptureUsageDescription</key>
+    <string>This app requires screen capture access for the Window Capture feature to work.</string>
+
     <key>NSMicrophoneUsageDescription</key>
     <string>ossia score needs microphone permission for audio input.</string>
     

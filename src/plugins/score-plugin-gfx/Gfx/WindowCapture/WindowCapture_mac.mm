@@ -26,6 +26,15 @@ API_AVAILABLE(macos(13.0))
   IOSurfaceRef _latestSurface;
   int _surfaceWidth;
   int _surfaceHeight;
+  int _contentWidth;
+  int _contentHeight;
+
+  // For dynamic stream reconfiguration on resize (like OBS)
+  __unsafe_unretained SCStream* _stream;
+  SCStreamConfiguration* _config;
+  int _configuredWidth;
+  int _configuredHeight;
+  BOOL _isWindowCapture;
 }
 
 - (void)stream:(SCStream *)stream
@@ -36,6 +45,9 @@ API_AVAILABLE(macos(13.0))
 // The caller owns it and must call IOSurfaceUnlock + IOSurfaceDecrementUseCount
 // + CFRelease when done.
 - (IOSurfaceRef)copyAndLockSurface:(int *)outWidth height:(int *)outHeight;
+- (void)setStream:(SCStream*)stream
+    configuration:(SCStreamConfiguration*)config
+  isWindowCapture:(BOOL)isWindow;
 - (void)invalidate;
 
 @end
@@ -50,6 +62,13 @@ API_AVAILABLE(macos(13.0))
     _latestSurface = nullptr;
     _surfaceWidth = 0;
     _surfaceHeight = 0;
+    _contentWidth = 0;
+    _contentHeight = 0;
+    _stream = nil;
+    _config = nil;
+    _configuredWidth = 0;
+    _configuredHeight = 0;
+    _isWindowCapture = NO;
   }
   return self;
 }
@@ -60,6 +79,17 @@ API_AVAILABLE(macos(13.0))
 #if !__has_feature(objc_arc)
   [super dealloc];
 #endif
+}
+
+- (void)setStream:(SCStream*)stream
+    configuration:(SCStreamConfiguration*)config
+  isWindowCapture:(BOOL)isWindow
+{
+  _stream = stream;
+  _config = config;
+  _configuredWidth = (int)config.width;
+  _configuredHeight = (int)config.height;
+  _isWindowCapture = isWindow;
 }
 
 - (void)invalidate
@@ -73,6 +103,10 @@ API_AVAILABLE(macos(13.0))
   }
   _surfaceWidth = 0;
   _surfaceHeight = 0;
+  _contentWidth = 0;
+  _contentHeight = 0;
+  _stream = nil;
+  _config = nil;
 }
 
 - (void)stream:(SCStream *)stream
@@ -94,16 +128,107 @@ API_AVAILABLE(macos(13.0))
   CFRetain(newSurface);
   IOSurfaceIncrementUseCount(newSurface);
 
-  int w = (int)IOSurfaceGetWidth(newSurface);
-  int h = (int)IOSurfaceGetHeight(newSurface);
+  int surfW = (int)IOSurfaceGetWidth(newSurface);
+  int surfH = (int)IOSurfaceGetHeight(newSurface);
+
+  // Determine actual content dimensions
+  int contentW = surfW;
+  int contentH = surfH;
+  bool needsConfigUpdate = false;
+
+  if(_isWindowCapture)
+  {
+    // Read frame metadata to get actual window content dimensions (OBS approach).
+    // When a window is resized, the IOSurface may still be at the old configured
+    // size with black padding. The metadata gives us the real content bounds.
+    CFArrayRef attachments
+        = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, false);
+    if(attachments && CFArrayGetCount(attachments) > 0)
+    {
+      CFDictionaryRef dict
+          = (CFDictionaryRef)CFArrayGetValueAtIndex(attachments, 0);
+      if(dict)
+      {
+        float scaleFactor = 1.0f;
+        CFTypeRef scaleRef = CFDictionaryGetValue(
+            dict, (__bridge const void*)SCStreamFrameInfoScaleFactor);
+        if(scaleRef)
+          CFNumberGetValue(
+              (CFNumberRef)scaleRef, kCFNumberFloatType, &scaleFactor);
+
+        CFTypeRef contentRectRef = CFDictionaryGetValue(
+            dict, (__bridge const void*)SCStreamFrameInfoContentRect);
+        CFTypeRef contentScaleRef = CFDictionaryGetValue(
+            dict, (__bridge const void*)SCStreamFrameInfoContentScale);
+        if(contentRectRef && contentScaleRef)
+        {
+          CGRect contentRect = {};
+          float pointsToPixels = 1.0f;
+          if(CGRectMakeWithDictionaryRepresentation(
+                 (CFDictionaryRef)contentRectRef, &contentRect)
+             && CFNumberGetValue(
+                 (CFNumberRef)contentScaleRef, kCFNumberFloatType,
+                 &pointsToPixels)
+             && pointsToPixels > 0.f)
+          {
+            int metaW = (int)(contentRect.size.width / pointsToPixels
+                              * scaleFactor);
+            int metaH = (int)(contentRect.size.height / pointsToPixels
+                              * scaleFactor);
+            if(metaW > 0 && metaH > 0)
+            {
+              contentW = metaW;
+              contentH = metaH;
+            }
+          }
+        }
+      }
+    }
+
+    if(contentW != _configuredWidth || contentH != _configuredHeight)
+      needsConfigUpdate = true;
+  }
+  else
+  {
+    // For display/region capture, use pixel buffer dimensions
+    if(surfW != _configuredWidth || surfH != _configuredHeight)
+      needsConfigUpdate = true;
+  }
+
+  // Dynamically update stream configuration when dimensions change
+  if(needsConfigUpdate && _stream && _config)
+  {
+    int newW = _isWindowCapture ? contentW : surfW;
+    int newH = _isWindowCapture ? contentH : surfH;
+    _configuredWidth = newW;
+    _configuredHeight = newH;
+
+    _config.width = newW;
+    _config.height = newH;
+
+    [_stream updateConfiguration:_config
+               completionHandler:^(NSError* error) {
+                 if(error)
+                 {
+                   qWarning()
+                       << "ScreenCaptureKit: failed to update configuration:"
+                       << error.localizedDescription.UTF8String;
+                 }
+               }];
+  }
 
   std::lock_guard<std::mutex> lock(_mutex);
 
   // Release the old surface
   IOSurfaceRef old = _latestSurface;
   _latestSurface = newSurface;
-  _surfaceWidth = w;
-  _surfaceHeight = h;
+  _surfaceWidth = surfW;
+  _surfaceHeight = surfH;
+  // Clamp content dimensions to the actual IOSurface size — the metadata
+  // may report a larger size when the window is growing but the surface
+  // hasn't been reconfigured yet.
+  _contentWidth = std::min(contentW, surfW);
+  _contentHeight = std::min(contentH, surfH);
 
   if(old)
   {
@@ -133,8 +258,10 @@ API_AVAILABLE(macos(13.0))
   IOSurfaceIncrementUseCount(_latestSurface);
 
   IOSurfaceLock(_latestSurface, kIOSurfaceLockReadOnly, nullptr);
-  *outWidth = _surfaceWidth;
-  *outHeight = _surfaceHeight;
+  // Report content dimensions (not IOSurface dimensions) to avoid
+  // black borders when the window is mid-resize.
+  *outWidth = _contentWidth;
+  *outHeight = _contentHeight;
   return _latestSurface;
 }
 
@@ -482,7 +609,7 @@ private:
     if(captureHeight <= 0)
       captureHeight = 1080;
 
-    bool ok = startCapture(filter, captureWidth, captureHeight, CGRectNull);
+    bool ok = startCapture(filter, captureWidth, captureHeight, CGRectNull, true);
 
     return ok;
   }
@@ -541,35 +668,35 @@ private:
     if(captureWidth <= 0) captureWidth = 1920;
     if(captureHeight <= 0) captureHeight = 1080;
 
-    bool ok = startCapture(filter, captureWidth, captureHeight, sourceRect);
+    bool ok = startCapture(filter, captureWidth, captureHeight, sourceRect, false);
 
     return ok;
   }
 
   bool startCapture(
       SCContentFilter* filter, int captureWidth, int captureHeight,
-      CGRect sourceRect) API_AVAILABLE(macos(13.0))
+      CGRect sourceRect, bool isWindowCapture) API_AVAILABLE(macos(13.0))
   {
     // Create stream configuration
-    SCStreamConfiguration* config = [[SCStreamConfiguration alloc] init];
-    config.width = captureWidth;
-    config.height = captureHeight;
-    config.pixelFormat = kCVPixelFormatType_32BGRA;
-    config.showsCursor = YES;
-    config.minimumFrameInterval = CMTimeMake(1, 60); // 60 fps max
+    m_config = [[SCStreamConfiguration alloc] init];
+    m_config.width = captureWidth;
+    m_config.height = captureHeight;
+    m_config.pixelFormat = kCVPixelFormatType_32BGRA;
+    m_config.showsCursor = YES;
+    m_config.minimumFrameInterval = CMTimeMake(1, 60); // 60 fps max
 
     // Set source rect for region capture
     if(!CGRectIsNull(sourceRect))
     {
-      config.sourceRect = sourceRect;
-      config.destinationRect = CGRectMake(0, 0, captureWidth, captureHeight);
-      config.scalesToFit = YES;
+      m_config.sourceRect = sourceRect;
+      m_config.destinationRect = CGRectMake(0, 0, captureWidth, captureHeight);
+      m_config.scalesToFit = YES;
     }
 
     // Disable audio capture
     if(@available(macOS 13.0, *))
     {
-      config.capturesAudio = NO;
+      m_config.capturesAudio = NO;
     }
 
     // Create the delegate and dispatch queue
@@ -579,8 +706,14 @@ private:
 
     // Create the stream
     m_stream = [[SCStream alloc] initWithFilter:filter
-                                  configuration:config
+                                  configuration:m_config
                                        delegate:nil];
+
+    // Let the delegate know about the stream and config so it can
+    // dynamically update the configuration when dimensions change.
+    [m_delegate setStream:m_stream
+            configuration:m_config
+          isWindowCapture:(isWindowCapture ? YES : NO)];
 
     // Add ourselves as output
     NSError* addOutputError = nil;
@@ -651,6 +784,7 @@ private:
       {
         m_stream = nil;
       }
+      m_config = nil;
       m_captureQueue = nil;
     }
 #endif
@@ -674,6 +808,7 @@ private:
 
 #if HAS_SCREENCAPTUREKIT
   SCStream* m_stream API_AVAILABLE(macos(13.0)) = nil;
+  SCStreamConfiguration* m_config API_AVAILABLE(macos(13.0)) = nil;
   WindowCaptureDelegate* m_delegate API_AVAILABLE(macos(13.0)) = nil;
   dispatch_queue_t m_captureQueue = nil;
   IOSurfaceRef m_grabbedSurface = nullptr;
