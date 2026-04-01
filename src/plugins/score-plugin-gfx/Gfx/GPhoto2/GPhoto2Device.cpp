@@ -1048,7 +1048,8 @@ public:
     if(pull_calls % 100 == 0)
       qDebug("GPhoto2 param: pull_texture called %d times", pull_calls);
 
-    context->setEdge(port_index{this->node_id, 0}, idx);
+    context->setEdge(
+        port_index{this->node_id, 0}, idx, Process::CableType::ImmediateGlutton);
 
     score::gfx::Message m;
     m.node_id = node_id;
