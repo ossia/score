@@ -12,6 +12,7 @@
 #include <ossia-qt/name_utils.hpp>
 
 #include <QComboBox>
+#include <QTimer>
 #include <QDebug>
 #include <QDoubleSpinBox>
 #include <QFormLayout>
@@ -390,6 +391,7 @@ private:
   void updatePreview()
   {
     m_preview->clear();
+    stopPreviewTimer();
 
     int idx = m_windowList->currentIndex();
     if(idx < 0)
@@ -409,21 +411,41 @@ private:
     if(!m_previewBackend->start(target))
       return;
 
+    // WGC on Windows is asynchronous — the first frame is not available
+    // immediately after start().  Retry via a timer on the event loop.
+    m_previewRetries = 0;
+    m_previewTimer = new QTimer{this};
+    m_previewTimer->setInterval(16);
+    connect(m_previewTimer, &QTimer::timeout, this, [this] {
+      tryGrabPreview();
+    });
+    m_previewTimer->start();
+  }
+
+  void tryGrabPreview()
+  {
+    ++m_previewRetries;
+
     auto frame = m_previewBackend->grab();
 
-    if(frame.width <= 0 || frame.height <= 0 || !frame.data
-       || frame.stride <= 0)
+    if(frame.type == CapturedFrame::None || !frame.data
+       || frame.width <= 0 || frame.height <= 0 || frame.stride <= 0)
     {
-      m_previewBackend->stop();
+      if(m_previewRetries >= 60) // ~1 s total
+      {
+        m_previewBackend->stop();
+        stopPreviewTimer();
+      }
       return;
     }
 
+    // Got a valid frame — display it and clean up
     QImage::Format qfmt = (frame.type == CapturedFrame::CPU_BGRA)
                               ? QImage::Format_ARGB32
                               : QImage::Format_RGBA8888;
 
-    // Copy raw pixels into a QByteArray before stopping —
-    // stop() frees the SHM buffer that frame.data points to.
+    // Copy raw pixels before stopping —
+    // stop() frees the buffer that frame.data points to.
     const int dataSize = frame.stride * frame.height;
     QByteArray pixelData(reinterpret_cast<const char*>(frame.data), dataSize);
 
@@ -432,6 +454,7 @@ private:
     const int stride = frame.stride;
 
     m_previewBackend->stop();
+    stopPreviewTimer();
 
     QImage img(
         reinterpret_cast<const uchar*>(pixelData.constData()),
@@ -440,6 +463,17 @@ private:
     QPixmap pix = QPixmap::fromImage(img).scaled(
         m_preview->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
     m_preview->setPixmap(pix);
+  }
+
+  void stopPreviewTimer()
+  {
+    if(m_previewTimer)
+    {
+      m_previewTimer->stop();
+      delete m_previewTimer;
+      m_previewTimer = nullptr;
+    }
+    m_previewRetries = 0;
   }
 
   Device::DeviceSettings m_settings;
@@ -465,6 +499,8 @@ private:
   QPushButton* m_refreshBtn{};
   QDoubleSpinBox* m_fps{};
   QLabel* m_preview{};
+  QTimer* m_previewTimer{};
+  int m_previewRetries{};
   std::unique_ptr<WindowCaptureBackend> m_previewBackend;
 };
 

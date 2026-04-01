@@ -155,7 +155,7 @@ static winrt::com_ptr<ID3D11Texture2D> getSurfaceTexture(
 class WinGraphicsCaptureBackend final : public WindowCaptureBackend
 {
 public:
-  WinGraphicsCaptureBackend() { winrt::init_apartment(winrt::apartment_type::multi_threaded); }
+  WinGraphicsCaptureBackend() { }
 
   ~WinGraphicsCaptureBackend() override { stop(); }
 
@@ -180,9 +180,9 @@ public:
     {
       case CaptureMode::Window:
       case CaptureMode::SingleScreen:
+      case CaptureMode::Region:
         return true;
       case CaptureMode::AllScreens:
-      case CaptureMode::Region:
         return false;
     }
     return false;
@@ -250,8 +250,45 @@ public:
           break;
         }
 
+        case CaptureMode::Region:
+        {
+          // Find the monitor that contains the region's top-left corner
+          POINT pt{target.regionX, target.regionY};
+          HMONITOR hMonitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+          if(!hMonitor)
+            return false;
+
+          // Store the crop region in monitor-local coordinates
+          MONITORINFO mi{};
+          mi.cbSize = sizeof(mi);
+          if(!GetMonitorInfoW(hMonitor, &mi))
+            return false;
+
+          m_cropX = target.regionX - mi.rcMonitor.left;
+          m_cropY = target.regionY - mi.rcMonitor.top;
+          m_cropW = target.regionW;
+          m_cropH = target.regionH;
+
+          // Clamp to monitor bounds
+          int monW = mi.rcMonitor.right - mi.rcMonitor.left;
+          int monH = mi.rcMonitor.bottom - mi.rcMonitor.top;
+          if(m_cropX < 0) { m_cropW += m_cropX; m_cropX = 0; }
+          if(m_cropY < 0) { m_cropH += m_cropY; m_cropY = 0; }
+          if(m_cropX + m_cropW > monW) m_cropW = monW - m_cropX;
+          if(m_cropY + m_cropH > monH) m_cropH = monH - m_cropY;
+          if(m_cropW <= 0 || m_cropH <= 0)
+            return false;
+
+          m_regionMode = true;
+
+          winrt::check_hresult(interopFactory->CreateForMonitor(
+              hMonitor,
+              winrt::guid_of<winrt::Windows::Graphics::Capture::GraphicsCaptureItem>(),
+              winrt::put_abi(item)));
+          break;
+        }
+
         default:
-          // AllScreens and Region not supported
           return false;
       }
 
@@ -289,8 +326,11 @@ public:
       // 7. Optionally disable yellow border (Win11 / 10 22H1+)
       configureCaptureSession();
 
-      // 8. Create initial staging texture
-      createStagingTexture(m_width, m_height);
+      // 8. Create initial staging texture (sized to crop region if applicable)
+      if(m_regionMode)
+        createStagingTexture(m_cropW, m_cropH);
+      else
+        createStagingTexture(m_width, m_height);
 
       // 9. Start capture
       m_session.StartCapture();
@@ -345,6 +385,8 @@ public:
     m_hwnd = nullptr;
     m_width = 0;
     m_height = 0;
+    m_regionMode = false;
+    m_cropX = m_cropY = m_cropW = m_cropH = 0;
     m_cpuBuffer.clear();
   }
 
@@ -383,7 +425,10 @@ public:
             {m_width, m_height});
 
         // Recreate staging texture
-        createStagingTexture(m_width, m_height);
+        if(m_regionMode)
+          createStagingTexture(m_cropW, m_cropH);
+        else
+          createStagingTexture(m_width, m_height);
 
         // This frame might be stale after Recreate; try to get a fresh one
         frame.Close();
@@ -403,7 +448,29 @@ public:
       }
 
       // Copy the captured frame to our staging texture
-      m_d3dContext->CopyResource(m_stagingTexture.get(), sourceTexture.get());
+      int outW, outH;
+      if(m_regionMode)
+      {
+        // GPU-side crop: copy only the requested sub-region
+        D3D11_BOX box{};
+        box.left = static_cast<UINT>(m_cropX);
+        box.top = static_cast<UINT>(m_cropY);
+        box.right = static_cast<UINT>(m_cropX + m_cropW);
+        box.bottom = static_cast<UINT>(m_cropY + m_cropH);
+        box.front = 0;
+        box.back = 1;
+        m_d3dContext->CopySubresourceRegion(
+            m_stagingTexture.get(), 0, 0, 0, 0,
+            sourceTexture.get(), 0, &box);
+        outW = m_cropW;
+        outH = m_cropH;
+      }
+      else
+      {
+        m_d3dContext->CopyResource(m_stagingTexture.get(), sourceTexture.get());
+        outW = m_width;
+        outH = m_height;
+      }
 
       // Map the staging texture for CPU read
       D3D11_MAPPED_SUBRESOURCE mapped{};
@@ -416,8 +483,8 @@ public:
       }
 
       // Copy to our CPU buffer (the Map pointer is only valid until Unmap)
-      const int rowBytes = m_width * 4;
-      const size_t totalBytes = static_cast<size_t>(rowBytes) * m_height;
+      const int rowBytes = outW * 4;
+      const size_t totalBytes = static_cast<size_t>(rowBytes) * outH;
       if(m_cpuBuffer.size() != totalBytes)
         m_cpuBuffer.resize(totalBytes);
 
@@ -431,7 +498,7 @@ public:
       else
       {
         // Row pitch may differ from width * 4 due to alignment
-        for(int y = 0; y < m_height; ++y)
+        for(int y = 0; y < outH; ++y)
         {
           std::memcpy(dst + y * rowBytes, src + y * mapped.RowPitch, rowBytes);
         }
@@ -444,8 +511,8 @@ public:
       result.type = CapturedFrame::CPU_BGRA;
       result.data = m_cpuBuffer.data();
       result.stride = rowBytes;
-      result.width = m_width;
-      result.height = m_height;
+      result.width = outW;
+      result.height = outH;
       return result;
     }
     catch(winrt::hresult_error const& ex)
@@ -590,6 +657,10 @@ private:
   int m_width{};
   int m_height{};
   bool m_capturing{};
+
+  // Region capture: crop coordinates in monitor-local space
+  bool m_regionMode{};
+  int m_cropX{}, m_cropY{}, m_cropW{}, m_cropH{};
 };
 
 std::unique_ptr<WindowCaptureBackend> createWindowCaptureBackend()
