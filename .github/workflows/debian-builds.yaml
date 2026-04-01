@@ -22,11 +22,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { deploy: true,  distro: debian.bookworm     , image: bookworm, CC: clang-19,            CXX: clang++-19,          PACKAGES: "clang-19" }
-          - { deploy: false, distro: debian.bookworm     , image: bookworm, CC: /opt/gcc-14/bin/gcc, CXX: /opt/gcc-14/bin/g++, PACKAGES: "build-essential" }
-          - { deploy: false, distro: debian.trixie       , image: trixie,   CC: gcc,                 CXX: g++,                 PACKAGES: "build-essential gcc-14 g++-14 llvm-19-dev libclang-19-dev " }
-          - { deploy: false, distro: debian.trixie-system, image: trixie,   CC: gcc,                 CXX: g++,                 PACKAGES: "build-essential gcc-14 g++-14 llvm-19-dev libclang-19-dev " }
-          - { deploy: true,  distro: debian.trixie       , image: trixie,   CC: clang-19,            CXX: clang++-19,          PACKAGES: "build-essential clang-19 llvm-19-dev libclang-19-dev lld-19 " }
+          - { deploy: true,  distro: debian.bookworm     , image: bookworm, CC: clang-19,            CXX: clang++-19,          PACKAGES: "clang-19",                                                    CMAKEFLAGS: "" }
+          - { deploy: false, distro: debian.bookworm     , image: bookworm, CC: /opt/gcc-14/bin/gcc, CXX: /opt/gcc-14/bin/g++, PACKAGES: "build-essential",                                             CMAKEFLAGS: "-DCMAKE_UNITY_BUILD=0 -DSCORE_PCH=1" }
+          - { deploy: false, distro: debian.trixie       , image: trixie,   CC: gcc,                 CXX: g++,                 PACKAGES: "build-essential gcc-14 g++-14 llvm-19-dev libclang-19-dev ",   CMAKEFLAGS: "-DCMAKE_UNITY_BUILD=0 -DSCORE_PCH=1" }
+          - { deploy: false, distro: debian.trixie-system, image: trixie,   CC: gcc,                 CXX: g++,                 PACKAGES: "build-essential gcc-14 g++-14 llvm-19-dev libclang-19-dev ",   CMAKEFLAGS: "" }
+          - { deploy: true,  distro: debian.trixie       , image: trixie,   CC: clang-19,            CXX: clang++-19,          PACKAGES: "build-essential clang-19 llvm-19-dev libclang-19-dev lld-19 ", CMAKEFLAGS: "" }
     steps:
       - name: Install git
         run: |
@@ -50,6 +50,7 @@ jobs:
         env:
           CC: ${{ matrix.CC }}
           CXX: ${{ matrix.CXX }}
+          CMAKEFLAGS: ${{ matrix.CMAKEFLAGS }}
         run: |
           ./ci/${{ matrix.distro }}.build.sh
 
