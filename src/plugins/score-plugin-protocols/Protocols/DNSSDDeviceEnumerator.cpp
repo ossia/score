@@ -29,32 +29,9 @@ public:
     m_serv.addListener(static_cast<servus::Listener*>(this));
   }
 
-  void instanceAdded(const std::string& instance) override
+  void instanceResolved(
+      const std::string& instance, const std::string& ip, const std::string& port)
   {
-    // Already registered:
-    if(m_instances.count(instance) != 0)
-      return;
-
-    m_instances.insert(instance);
-
-    std::string ip = m_serv.get(instance, "servus_host");
-    if(ip.empty())
-    {
-      ip = m_serv.get(instance, "servus_ip");
-    }
-#if defined(_WIN32)
-    if(!ip.empty() && ip.back() == '.')
-      ip.pop_back();
-#endif
-
-    std::string port = m_serv.get(instance, "servus_port");
-
-    auto res = ossia::resolve_sync_v4<boost::asio::ip::tcp>(ip, port);
-    if(res)
-      ip = res->host;
-    else
-      qDebug() << "could not resolve host:" << ip.c_str();
-
     QMap<QString, QString> keys;
 
     for(auto& k : m_serv.getKeys(instance))
@@ -63,6 +40,54 @@ public:
     on_newHost(
         QString::fromStdString(instance), QString::fromStdString(ip),
         QString::fromStdString(port), keys);
+  }
+
+  static bool is_num_port(std::string_view v)
+  {
+    for(char c : v)
+      if(c < '0' || c > '9')
+        return false;
+    return true;
+  }
+
+  void instanceAdded(const std::string& instance) override
+  {
+    // Already registered:
+    if(m_instances.count(instance) != 0)
+      return;
+
+    m_instances.insert(instance);
+
+    std::string ip = m_serv.get(instance, "servus_ip");
+    std::string port = m_serv.get(instance, "servus_port");
+    if(!ip.empty() && is_num_port(port))
+    {
+      return instanceResolved(instance, ip, port);
+    }
+
+    std::string host = ip;
+    if(host.empty())
+      host = m_serv.get(instance, "servus_host");
+
+#if defined(_WIN32)
+    if(!host.empty() && host.back() == '.')
+      host.pop_back();
+#else
+    // FQDN resolves much faster
+    if(!host.empty() && host.back() != '.')
+      host += ".";
+#endif
+
+    auto res = ossia::resolve_sync_v4<boost::asio::ip::tcp>(host, port);
+    if(res)
+    {
+      ip = res->host;
+      instanceResolved(instance, ip, port);
+    }
+    else
+    {
+      qDebug() << "could not resolve host:" << ip.c_str();
+    }
   }
 
   void instanceRemoved(const std::string& instance) override
