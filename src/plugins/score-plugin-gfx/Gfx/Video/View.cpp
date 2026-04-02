@@ -49,7 +49,7 @@ View::~View()
   {
     ossia::qt::run_async(m_thumb, &QObject::deleteLater);
 
-    score::ThreadPool::instance().releaseThread();
+   // score::ThreadPool::instance().releaseThread();
   }
 }
 
