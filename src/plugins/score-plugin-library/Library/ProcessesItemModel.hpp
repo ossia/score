@@ -8,6 +8,7 @@
 #include <score/model/tree/TreeNode.hpp>
 #include <score/model/tree/TreeNodeItemModel.hpp>
 #include <score/tools/File.hpp>
+#include <score/tools/RecursiveWatch.hpp>
 #include <score/tools/std/Optional.hpp>
 #include <score/tools/std/StringHash.hpp>
 
@@ -155,6 +156,30 @@ struct Subcategories
     }
   }
 };
+
+/// Typed convenience wrapper: builds a RecursiveWatch::AsyncCallbacks
+/// from a typed filter/commit pair so that consumers don't have to
+/// manually wrap closures.
+///
+/// \a filter is called on the worker thread; return std::nullopt to reject.
+/// \a commit is called on the GUI thread with the path and the accepted payload.
+template <typename T>
+score::RecursiveWatch::AsyncCallbacks makeAsyncCallbacks(
+    std::function<std::optional<T>(std::string_view)> filter,
+    std::function<void(std::string_view, T&&)> commit)
+{
+  return {.filter = [filter = std::move(filter),
+                     commit = std::move(commit)](std::string_view path)
+              -> std::function<void()> {
+    auto result = filter(path);
+    if(!result)
+      return {};
+
+    return [commit, p = std::string(path), data = std::move(*result)]() mutable {
+      commit(p, std::move(data));
+    };
+  }};
+}
 
 }
 

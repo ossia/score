@@ -1,4 +1,9 @@
 #include <score/tools/RecursiveWatch.hpp>
+#include <score/tools/ThreadPool.hpp>
+
+#include <QCoreApplication>
+#include <QMetaObject>
+#include <Qt>
 
 #include <cstddef>
 #include <iostream>
@@ -42,8 +47,6 @@
 #if !defined(__has_extension)
 #define __has_extension(T) 0
 #endif
-
-#include <QApplication>
 
 #include <llfio.hpp>
 #elif SCORE_HAS_STD_FILESYSTEM
@@ -231,6 +234,52 @@ void RecursiveWatch::scan() const
         }
       }
     }
+  });
+}
+
+void RecursiveWatch::scanAsync(QObject* context)
+{
+#if !defined(SCORE_DEPLOYMENT_BUILD)
+  static const bool disable_library = qEnvironmentVariableIsSet("SCORE_DISABLE_LIBRARY");
+  if(Q_UNLIKELY(disable_library))
+    return;
+#endif
+
+  // Copy the state for the worker thread.
+  // The filter functions capture long-lived plugin objects so this is safe.
+  auto watched = m_asyncWatched;
+  auto root = m_root;
+
+  score::TaskPool::instance().post([watched = std::move(watched), root = std::move(root),
+                                    context = QPointer{context}] {
+    std::vector<std::function<void()>> actions;
+
+    for_all_files(root, [&](std::string_view path) {
+      if(path.empty())
+        return;
+      auto last_dot = path.find_last_of('.');
+      if(last_dot >= path.size() - 1)
+        return;
+
+      std::string_view suffix = path.substr(last_dot + 1);
+      auto it = watched.find(suffix);
+      if(it == watched.end())
+        return;
+
+      for(auto& handler : it->second)
+      {
+        if(auto action = handler.filter(path))
+          actions.push_back(std::move(action));
+      }
+    });
+
+    // Batch-deliver all commit actions to the GUI thread
+    QMetaObject::invokeMethod(QCoreApplication::instance(), [context, actions = std::move(actions)] {
+      if(!context)
+        return;
+      for(auto& action : actions)
+        action();
+    }, Qt::QueuedConnection);
   });
 }
 }

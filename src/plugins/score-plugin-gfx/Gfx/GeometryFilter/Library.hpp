@@ -16,6 +16,7 @@ class LibraryHandler final : public Library::LibraryInterface
       override;
 
   void addPath(std::string_view path) override;
+  std::function<void()> asyncAddPath(std::string_view path) override;
 
   Library::Subcategories categories;
 };

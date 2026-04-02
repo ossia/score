@@ -16,6 +16,7 @@ class LibraryHandler final : public Library::LibraryInterface
       override;
 
   void addPath(std::string_view path) override;
+  std::function<void()> asyncAddPath(std::string_view path) override;
   QWidget* previewWidget(const QString& path, QWidget* parent) const noexcept override;
   QWidget*
   previewWidget(const Process::Preset& path, QWidget* parent) const noexcept override;

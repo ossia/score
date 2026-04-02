@@ -22,6 +22,12 @@ void LibraryInterface::addPath(std::string_view) { }
 
 void LibraryInterface::removePath(std::string_view) { }
 
+std::function<void()> LibraryInterface::asyncAddPath(std::string_view path)
+{
+  std::string p{path};
+  return [this, p = std::move(p)]() { addPath(p); };
+}
+
 QSet<QString> LibraryInterface::acceptedFiles() const noexcept
 {
   return {};

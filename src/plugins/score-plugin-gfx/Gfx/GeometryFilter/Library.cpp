@@ -52,6 +52,27 @@ void LibraryHandler::addPath(std::string_view path)
   categories.add(file, std::move(pdata));
 }
 
+std::function<void()> LibraryHandler::asyncAddPath(std::string_view path)
+{
+  score::PathInfo file{path};
+  QFile f{path.data()};
+  if(!f.open(QIODevice::ReadOnly))
+    return {};
+  if(!f.read(512).contains("\"GEOMETRY_FILTER\""))
+    return {};
+
+  Library::ProcessData pdata;
+  pdata.prettyName
+      = QString::fromUtf8(file.completeBaseName.data(), file.completeBaseName.size());
+  pdata.key = Metadata<ConcreteKey_k, GeometryFilter::Model>::get();
+  pdata.customData = QString::fromUtf8(path.data(), path.size());
+
+  return [this, p = std::string(path), pdata = std::move(pdata)]() mutable {
+    score::PathInfo file{p};
+    categories.add(file, std::move(pdata));
+  };
+}
+
 QSet<QString> DropHandler::fileExtensions() const noexcept
 {
   return {"glsl"};

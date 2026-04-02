@@ -47,6 +47,26 @@ class LibraryHandler final
       registerDSP(std::string(path));
   }
 
+  std::function<void()> asyncAddPath(std::string_view path) override
+  {
+    score::PathInfo file{path};
+    if(file.fileName == "layout.dsp")
+      return {};
+
+    // We're already on a worker thread, so do the work directly
+    Library::ProcessData pdata;
+    pdata.prettyName = QString::fromUtf8(
+        file.completeBaseName.data(), file.completeBaseName.size());
+    pdata.key = Metadata<ConcreteKey_k, FaustEffectModel>::get();
+    pdata.customData = QString::fromUtf8(
+        file.absoluteFilePath.data(), file.absoluteFilePath.size());
+
+    return [this, p = std::string(path), pdata = std::move(pdata)]() mutable {
+      score::PathInfo file{p};
+      categories.add(file, std::move(pdata));
+    };
+  }
+
   void registerDSP(std::string path)
   {
     pool.post([this, path = std::move(path)] {

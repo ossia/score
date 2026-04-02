@@ -42,6 +42,20 @@ public:
     add(QString::fromUtf8(path.data(), path.length()));
   }
 
+  std::function<void()> asyncAddPath(std::string_view path) override
+  {
+    if(path.find("companion-bundled-modules") != std::string_view::npos)
+      return {};
+    if(path.find("node_modules") != std::string_view::npos)
+      return {};
+
+    // Everything else must happen on GUI thread (QML engine interaction)
+    QString qpath = QString::fromUtf8(path.data(), path.length());
+    return [this, qpath = std::move(qpath)]() {
+      add(qpath);
+    };
+  }
+
   bool onDoubleClick(const QString& path, const score::DocumentContext& ctx) override
   {
     return add(path);
@@ -121,6 +135,31 @@ class LibraryHandler final
     pdata.key = Metadata<ConcreteKey_k, JS::ProcessModel>::get();
     pdata.customData = fileinfo.absoluteFilePath();
     categories.add(fileinfo, std::move(pdata));
+  }
+
+  std::function<void()> asyncAddPath(std::string_view path) override
+  {
+    if(std::string_view{path}.ends_with(".ui.qml"))
+      return {};
+
+    QFileInfo fileinfo{QString::fromUtf8(path.data(), path.length())};
+    QFile file{fileinfo.absoluteFilePath()};
+    if(!file.open(QIODevice::ReadOnly))
+      return {};
+
+    auto data = file.readAll().trimmed();
+    auto matches = scoreImport.match(data);
+    if(!matches.hasMatch())
+      return {};
+
+    Library::ProcessData pdata;
+    pdata.prettyName = fileinfo.completeBaseName();
+    pdata.key = Metadata<ConcreteKey_k, JS::ProcessModel>::get();
+    pdata.customData = fileinfo.absoluteFilePath();
+
+    return [this, fileinfo, pdata = std::move(pdata)]() mutable {
+      categories.add(fileinfo, std::move(pdata));
+    };
   }
 };
 

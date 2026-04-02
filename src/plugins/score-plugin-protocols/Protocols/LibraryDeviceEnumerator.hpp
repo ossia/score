@@ -3,6 +3,8 @@
 
 #include <score/tools/RecursiveWatch.hpp>
 
+#include <functional>
+
 #include <score_plugin_protocols_export.h>
 
 namespace Protocols
@@ -22,6 +24,7 @@ public:
       std::function<QVariant(QByteArray)> createDev, const score::DocumentContext& ctx);
 
   void next(std::string_view path);
+  std::function<void()> asyncNext(std::string_view path);
 
   void enumerate(std::function<void(const QString&, const Device::DeviceSettings&)>
                      onDevice) const override;

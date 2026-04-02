@@ -48,6 +48,22 @@ class LibraryHandler final
     pdata.customData = file.absoluteFilePath();
     categories.add(file, std::move(pdata));
   }
+
+  std::function<void()> asyncAddPath(std::string_view path) override
+  {
+    score::PathInfo file{path};
+    Library::ProcessData pdata;
+    pdata.prettyName
+        = QString::fromUtf8(file.completeBaseName.data(), file.completeBaseName.size());
+    pdata.key = Metadata<ConcreteKey_k, Patternist::ProcessModel>::get();
+    pdata.customData
+        = QString::fromUtf8(file.absoluteFilePath.data(), file.absoluteFilePath.size());
+
+    return [this, p = std::string(path), pdata = std::move(pdata)]() mutable {
+      score::PathInfo file{p};
+      categories.add(file, std::move(pdata));
+    };
+  }
 };
 
 class DropHandler final : public Process::ProcessDropHandler

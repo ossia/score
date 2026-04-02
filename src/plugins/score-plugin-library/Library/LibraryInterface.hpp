@@ -6,6 +6,8 @@
 #include <score/tools/std/StringHash.hpp>
 
 #include <score_plugin_library_export.h>
+
+#include <functional>
 class QAbstractItemModel;
 class QMimeData;
 class QDir;
@@ -34,6 +36,13 @@ public:
   virtual void setup(ProcessesItemModel& model, const score::GUIApplicationContext& ctx);
   virtual void addPath(std::string_view);
   virtual void removePath(std::string_view);
+
+  /// Called on a worker thread during async scanning.
+  /// Return a non-empty function to accept the file; that function
+  /// will be invoked on the GUI thread (the "commit" phase).
+  /// Return {} to reject the file.
+  /// Default implementation defers everything to addPath on the GUI thread.
+  virtual std::function<void()> asyncAddPath(std::string_view path);
   virtual bool onDrop(const QMimeData& mime, int row, int column, const QDir& parent);
 
   virtual bool onDoubleClick(const QString& path, const score::DocumentContext& ctx);
