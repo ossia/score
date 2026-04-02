@@ -11,8 +11,11 @@
 #include <Avnd/Factories.hpp>
 #include <Threedim/ArrayToGeometry.hpp>
 #include <Threedim/ArrayToTexture.hpp>
+#include <Threedim/CubemapComposer.hpp>
+#include <Threedim/CubemapLoader.hpp>
 #include <Threedim/BufferLoader.hpp>
 #include <Threedim/BufferToGeometry.hpp>
+#include <Threedim/BufferToGeometry2.hpp>
 #include <Threedim/GeometryInfo.hpp>
 #include <Threedim/GeometryPacker.hpp>
 #include <Threedim/GeometryToBuffer.hpp>
@@ -202,8 +205,11 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
   oscr::instantiate_fx<Threedim::ExtractBuffer>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::GeometryPacker>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::BuffersToGeometry>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::BuffersToGeometry2>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::TextureToBuffer>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::SplatLoader>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::CubemapLoader>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::CubemapComposer>(fx, ctx, key);
   auto add = instantiate_factories<
       score::ApplicationContext,
       FW<Process::ProcessModelFactory, Gfx::ModelDisplay::ProcessFactory,
