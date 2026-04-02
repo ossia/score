@@ -570,10 +570,14 @@ if(WIN32)
   )
   target_link_libraries(${PROJECT_NAME} PRIVATE dxguid avrt winmm d3d12 d3d11 dxgi dwmapi windowsapp)
 elseif(APPLE)
-  target_sources(${PROJECT_NAME} PRIVATE Gfx/CameraDevice.avf.mm)
+  target_sources(${PROJECT_NAME} PRIVATE
+    Gfx/CameraDevice.avf.mm
+    Gfx/Graph/RhiBufferCopyMetal.mm
+  )
 
   set_source_files_properties(
     Gfx/CameraDevice.avf.mm
+    Gfx/Graph/RhiBufferCopyMetal.mm
     PROPERTIES
       SKIP_UNITY_BUILD_INCLUSION 1
   )

@@ -1,6 +1,9 @@
 #include <Gfx/Graph/RhiComputeBarrier.hpp>
 
 #include <QtGui/private/qrhi_p.h>
+#if __has_include(<QtGui/private/qrhigles2_p.h>)
+#include <QtGui/private/qrhigles2_p.h>
+#endif
 
 // On non-Apple, provide a no-op stub for copyBufferMetal
 // (the real implementation lives in RhiBufferCopyMetal.mm)
