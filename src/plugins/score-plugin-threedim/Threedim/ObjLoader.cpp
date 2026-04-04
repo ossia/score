@@ -85,6 +85,15 @@ void ObjLoader::rebuild_geometry()
               .classification = halp::binding_classification::per_vertex});
     }
 
+    if(m.tangents)
+    {
+      geom.bindings.push_back(
+          halp::geometry_binding{
+              .stride = 4 * sizeof(float),
+              .step_rate = 1,
+              .classification = halp::binding_classification::per_vertex});
+    }
+
     // Attributes
     geom.attributes.push_back(
         halp::geometry_attribute{
@@ -123,6 +132,16 @@ void ObjLoader::rebuild_geometry()
               .byte_offset = 0});
     }
 
+    if(m.tangents)
+    {
+      geom.attributes.push_back(
+          halp::geometry_attribute{
+              .binding = geom.attributes.back().binding + 1,
+              .semantic = halp::attribute_semantic::tangent,
+              .format = halp::attribute_format::float4,
+              .byte_offset = 0});
+    }
+
     // Vertex input;
     geom.input.push_back(
         halp::geometry_input{
@@ -148,6 +167,34 @@ void ObjLoader::rebuild_geometry()
           halp::geometry_input{
               .buffer = 0, .byte_offset = m.color_offset * (int)sizeof(float)});
     }
+
+    if(m.tangents)
+    {
+      geom.input.push_back(
+          halp::geometry_input{
+              .buffer = 0, .byte_offset = m.tangent_offset * (int)sizeof(float)});
+    }
+
+    for(auto& extra : m.extras)
+    {
+      geom.bindings.push_back(
+          halp::geometry_binding{
+              .stride = extra.components * (int)sizeof(float),
+              .step_rate = 1,
+              .classification = halp::binding_classification::per_vertex});
+
+      geom.attributes.push_back(
+          halp::geometry_attribute{
+              .binding = geom.attributes.back().binding + 1,
+              .semantic = extra.semantic,
+              .format = extra.format,
+              .byte_offset = 0});
+
+      geom.input.push_back(
+          halp::geometry_input{
+              .buffer = 0, .byte_offset = extra.offset * (int)sizeof(float)});
+    }
+
     outputs.geometry.mesh.push_back(std::move(geom));
     outputs.geometry.dirty_mesh = true;
   }

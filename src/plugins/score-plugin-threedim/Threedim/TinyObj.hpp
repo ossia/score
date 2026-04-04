@@ -16,14 +16,23 @@ namespace Threedim
 {
 using float_vec = boost::container::vector<float, ossia::pod_allocator<float>>;
 
+struct extra_attribute {
+  int64_t offset{}; // in elements (floats), not bytes
+  halp::attribute_semantic semantic{};
+  halp::attribute_format format{};
+  int components{}; // 1-4 floats
+};
+
 struct mesh {
   int64_t vertices{};
   // offset are in "elements", not bytes
-  int64_t pos_offset{}, texcoord_offset{}, normal_offset{}, color_offset{};
+  int64_t pos_offset{}, texcoord_offset{}, normal_offset{}, color_offset{}, tangent_offset{};
   bool texcoord{};
   bool normals{};
   bool colors{};
+  bool tangents{};
   bool points{};
+  std::vector<extra_attribute> extras;
 };
 
 std::vector<mesh> ObjFromString(

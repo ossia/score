@@ -2,6 +2,8 @@
 
 #include <miniply.h>
 
+#include <ossia/dataflow/geometry_port.hpp>
+
 #include <cmath>
 namespace Threedim
 {
@@ -14,9 +16,6 @@ struct TriMesh
   float* norm = nullptr;
   float* color = nullptr;
   uint32_t numVerts = 0;
-
-  int* indices = nullptr;
-  uint32_t numIndices = 0;
 };
 
 static bool print_ply_header(const char* filename)
@@ -68,8 +67,130 @@ static bool print_ply_header(const char* filename)
   return true;
 }
 
+// Known PLY multi-component property groups that map to a single semantic.
+// These are tried before individual scalar property matching.
+struct PlyPropertyGroup
+{
+  const char* names[4];
+  int count;
+  halp::attribute_semantic semantic;
+  halp::attribute_format format;
+};
+
+static constexpr PlyPropertyGroup known_groups[] = {
+    // Normals (alternate naming from PCL/PDAL — miniply's find_normal only checks nx/ny/nz)
+    {{"normal_x", "normal_y", "normal_z"}, 3,
+     halp::attribute_semantic::normal, halp::attribute_format::float3},
+
+    // Velocity (Houdini, simulation exports)
+    {{"velocity_x", "velocity_y", "velocity_z"}, 3,
+     halp::attribute_semantic::velocity, halp::attribute_format::float3},
+    {{"vx", "vy", "vz"}, 3,
+     halp::attribute_semantic::velocity, halp::attribute_format::float3},
+
+    // Scale (3DGS, instancing)
+    {{"scale_x", "scale_y", "scale_z"}, 3,
+     halp::attribute_semantic::scale, halp::attribute_format::float3},
+
+    // Rotation quaternion
+    {{"rot_x", "rot_y", "rot_z", "rot_w"}, 4,
+     halp::attribute_semantic::rotation, halp::attribute_format::float4},
+
+    // Angular velocity
+    {{"angular_velocity_x", "angular_velocity_y", "angular_velocity_z"}, 3,
+     halp::attribute_semantic::angular_velocity, halp::attribute_format::float3},
+
+    // Force
+    {{"force_x", "force_y", "force_z"}, 3,
+     halp::attribute_semantic::force, halp::attribute_format::float3},
+
+    // Acceleration
+    {{"acceleration_x", "acceleration_y", "acceleration_z"}, 3,
+     halp::attribute_semantic::acceleration, halp::attribute_format::float3},
+
+    // Previous position (Verlet)
+    {{"previous_position_x", "previous_position_y", "previous_position_z"}, 3,
+     halp::attribute_semantic::previous_position, halp::attribute_format::float3},
+
+    // Previous velocity
+    {{"previous_velocity_x", "previous_velocity_y", "previous_velocity_z"}, 3,
+     halp::attribute_semantic::previous_velocity, halp::attribute_format::float3},
+
+    // Target position
+    {{"target_position_x", "target_position_y", "target_position_z"}, 3,
+     halp::attribute_semantic::target_position, halp::attribute_format::float3},
+
+    // Rest position
+    {{"rest_position_x", "rest_position_y", "rest_position_z"}, 3,
+     halp::attribute_semantic::rest_position, halp::attribute_format::float3},
+
+    // Collision normal
+    {{"collision_normal_x", "collision_normal_y", "collision_normal_z"}, 3,
+     halp::attribute_semantic::collision_normal, halp::attribute_format::float3},
+
+    // Tangent
+    {{"tangent_x", "tangent_y", "tangent_z"}, 3,
+     halp::attribute_semantic::tangent, halp::attribute_format::float3},
+    {{"tx", "ty", "tz"}, 3,
+     halp::attribute_semantic::tangent, halp::attribute_format::float3},
+
+    // Bitangent
+    {{"bitangent_x", "bitangent_y", "bitangent_z"}, 3,
+     halp::attribute_semantic::bitangent, halp::attribute_format::float3},
+
+    // Emissive color
+    {{"emissive_r", "emissive_g", "emissive_b"}, 3,
+     halp::attribute_semantic::emissive, halp::attribute_format::float3},
+
+    // Anisotropy direction
+    {{"anisotropy_direction_x", "anisotropy_direction_y", "anisotropy_direction_z"}, 3,
+     halp::attribute_semantic::anisotropy_direction, halp::attribute_format::float3},
+
+    // Sprite size
+    {{"sprite_width", "sprite_height"}, 2,
+     halp::attribute_semantic::sprite_size, halp::attribute_format::float2},
+};
+
+// PLY property names that don't match the semantic table directly
+// but should map to known semantics. These are checked in the scalar
+// property scan phase (Phase 2) before falling through to name_to_semantic().
+struct PlyNameAlias {
+  const char* ply_name;
+  halp::attribute_semantic semantic;
+};
+
+static constexpr PlyNameAlias ply_aliases[] = {
+    // MeshLab/VCG: "radius" means point radius (maps to width semantic)
+    {"radius", halp::attribute_semantic::width},
+    // MeshLab/VCG: "quality" is a general scalar (maps to fx0)
+    {"quality", halp::attribute_semantic::fx0},
+    // MeshLab/VCG: "confidence" (maps to fx1)
+    {"confidence", halp::attribute_semantic::fx1},
+    // PCL/LiDAR: "intensity" (maps to fx2)
+    {"intensity", halp::attribute_semantic::fx2},
+    // PCL: "curvature" (maps to fx3)
+    {"curvature", halp::attribute_semantic::fx3},
+    // PLY spec / COLMAP: standalone alpha channel
+    {"alpha", halp::attribute_semantic::opacity},
+    {"diffuse_alpha", halp::attribute_semantic::opacity},
+    // CloudCompare scalar_ prefix variants
+    {"scalar_intensity", halp::attribute_semantic::fx2},
+};
+
+static halp::attribute_format format_for_components(int n)
+{
+  switch(n)
+  {
+    case 1: return halp::attribute_format::float1;
+    case 2: return halp::attribute_format::float2;
+    case 3: return halp::attribute_format::float3;
+    default: return halp::attribute_format::float4;
+  }
+}
+
 static bool
-load_vert_from_ply(miniply::PLYReader& reader, TriMesh* trimesh, float_vec& buf)
+load_vert_from_ply(miniply::PLYReader& reader, TriMesh* trimesh, float_vec& buf,
+                   std::vector<extra_attribute>& extras)
 {
   uint32_t pos_indices[3];
   uint32_t uv_indices[3];
@@ -94,21 +215,123 @@ load_vert_from_ply(miniply::PLYReader& reader, TriMesh* trimesh, float_vec& buf)
           col_indices, 3, "diffuse_red", "diffuse_green", "diffuse_blue");
     }
 
-    int num_elements = 0;
-    if (pos)
-      num_elements += 3;
-    if (uv)
-      num_elements += 2;
-    if (norms)
-      num_elements += 3;
-    if (col)
-      num_elements += 3;
-
     if (!pos)
       return false;
 
+    // Track which property indices are already consumed by standard extraction
+    const auto* elem = reader.element();
+    std::vector<bool> consumed(elem->properties.size(), false);
+
+    auto mark_consumed = [&](const uint32_t* indices, int count) {
+      for(int i = 0; i < count; i++)
+        if(indices[i] < consumed.size())
+          consumed[indices[i]] = true;
+    };
+
+    if(pos) mark_consumed(pos_indices, 3);
+    if(uv) mark_consumed(uv_indices, 2);
+    if(norms) mark_consumed(n_indices, 3);
+    if(col) mark_consumed(col_indices, 3);
+
+    // Phase 1: Try known multi-component property groups
+    struct PendingExtra {
+      uint32_t indices[4];
+      int count;
+      halp::attribute_semantic semantic;
+      halp::attribute_format format;
+    };
+    std::vector<PendingExtra> pending;
+
+    for(const auto& group : known_groups)
+    {
+      uint32_t indices[4];
+      bool all_found = true;
+      bool any_consumed = false;
+
+      for(int i = 0; i < group.count; i++)
+      {
+        indices[i] = elem->find_property(group.names[i]);
+        if(indices[i] == miniply::kInvalidIndex)
+        {
+          all_found = false;
+          break;
+        }
+        if(consumed[indices[i]])
+          any_consumed = true;
+      }
+
+      if(all_found && !any_consumed)
+      {
+        for(int i = 0; i < group.count; i++)
+          consumed[indices[i]] = true;
+
+        PendingExtra pe;
+        std::copy_n(indices, group.count, pe.indices);
+        pe.count = group.count;
+        pe.semantic = group.semantic;
+        pe.format = group.format;
+        pending.push_back(pe);
+      }
+    }
+
+    // Phase 2: Scan remaining scalar properties for known semantic names.
+    // First check PLY-specific aliases (radius→width, quality→fx0, etc.),
+    // then try the general name_to_semantic() lookup.
+    for(uint32_t pi = 0; pi < elem->properties.size(); pi++)
+    {
+      if(consumed[pi])
+        continue;
+
+      const auto& prop = elem->properties[pi];
+
+      // Skip list properties
+      if(prop.countType != miniply::PLYPropertyType::None)
+        continue;
+
+      // Check PLY-specific name aliases first
+      halp::attribute_semantic matched_sem = halp::attribute_semantic::custom;
+      for(const auto& alias : ply_aliases)
+      {
+        if(prop.name == alias.ply_name)
+        {
+          matched_sem = alias.semantic;
+          break;
+        }
+      }
+
+      // Fall back to the general semantic name table
+      if(matched_sem == halp::attribute_semantic::custom)
+      {
+        auto sem = ossia::name_to_semantic(prop.name);
+        if(sem != ossia::attribute_semantic::custom)
+          matched_sem = static_cast<halp::attribute_semantic>(sem);
+      }
+
+      if(matched_sem != halp::attribute_semantic::custom)
+      {
+        consumed[pi] = true;
+
+        PendingExtra pe;
+        pe.indices[0] = pi;
+        pe.count = 1;
+        pe.semantic = matched_sem;
+        pe.format = halp::attribute_format::float1;
+        pending.push_back(pe);
+      }
+    }
+
+    // Calculate total buffer size
+    int num_elements = 0;
+    if (pos) num_elements += 3;
+    if (uv)  num_elements += 2;
+    if (norms) num_elements += 3;
+    if (col) num_elements += 3;
+    for(auto& pe : pending)
+      num_elements += pe.count;
+
     buf.resize(num_elements * trimesh->numVerts, boost::container::default_init);
 
+    // Extract standard attributes
     float* cur = buf.data();
     if (pos)
     {
@@ -136,7 +359,7 @@ load_vert_from_ply(miniply::PLYReader& reader, TriMesh* trimesh, float_vec& buf)
 
     if (col)
     {
-      const auto t = reader.element()->properties[col_indices[0]].type;
+      const auto t = elem->properties[col_indices[0]].type;
       trimesh->color = cur;
       reader.extract_properties(
           col_indices, 3, miniply::PLYPropertyType::Float, trimesh->color);
@@ -157,19 +380,48 @@ load_vert_from_ply(miniply::PLYReader& reader, TriMesh* trimesh, float_vec& buf)
         default:
           break;
       }
+      cur += 3 * N;
     }
+
+    // Extract extra attributes
+    float* begin = buf.data();
+    for(auto& pe : pending)
+    {
+      extra_attribute ea;
+      ea.offset = cur - begin;
+      ea.semantic = pe.semantic;
+      ea.format = pe.format;
+      ea.components = pe.count;
+
+      // Normalize UChar properties (colors stored as 0-255) to 0-1
+      const auto t = elem->properties[pe.indices[0]].type;
+
+      reader.extract_properties(
+          pe.indices, pe.count, miniply::PLYPropertyType::Float, cur);
+
+      if(t == miniply::PLYPropertyType::UChar)
+      {
+        for(float *p = cur, *end = cur + pe.count * N; p != end; ++p)
+          *p /= 255.f;
+      }
+
+      cur += pe.count * N;
+      extras.push_back(ea);
+    }
+
     return true;
   }
   return false;
 }
 
-static TriMesh load_vertices_from_ply(miniply::PLYReader& reader, float_vec& buf)
+static TriMesh load_vertices_from_ply(miniply::PLYReader& reader, float_vec& buf,
+                                      std::vector<extra_attribute>& extras)
 {
   TriMesh mesh;
 
   while (reader.has_element())
   {
-    if (load_vert_from_ply(reader, &mesh, buf))
+    if (load_vert_from_ply(reader, &mesh, buf, extras))
       return mesh;
     reader.next_element();
   }
@@ -186,7 +438,8 @@ std::vector<mesh> PlyFromFile(std::string_view filename, float_vec& buf)
   if (!reader.valid())
     return {};
 
-  auto res = load_vertices_from_ply(reader, buf);
+  std::vector<extra_attribute> extras;
+  auto res = load_vertices_from_ply(reader, buf, extras);
   if (!res.pos)
     return {};
 
@@ -210,8 +463,9 @@ std::vector<mesh> PlyFromFile(std::string_view filename, float_vec& buf)
     m.color_offset = res.color - begin;
     m.colors = true;
   }
+  m.extras = std::move(extras);
 
-  meshes.push_back(m);
+  meshes.push_back(std::move(m));
   return meshes;
 }
 

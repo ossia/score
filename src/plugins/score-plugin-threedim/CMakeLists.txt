@@ -112,6 +112,7 @@ add_library(
   Threedim/Splat/GaussianSplatNode.cpp
 
   "${3RDPARTY_FOLDER}/miniply/miniply.cpp"
+  "${3RDPARTY_FOLDER}/mikktspace/mikktspace.c"
   score_plugin_threedim.hpp
   score_plugin_threedim.cpp)
 
@@ -125,7 +126,8 @@ target_include_directories(
   PRIVATE
     "${3RDPARTY_FOLDER}/libssynth/src"
     "${3RDPARTY_FOLDER}/vcglib"
-    "${3RDPARTY_FOLDER}/miniply")
+    "${3RDPARTY_FOLDER}/miniply"
+    "${3RDPARTY_FOLDER}/mikktspace")
 
 target_link_libraries(
   score_plugin_threedim PRIVATE score_plugin_engine score_plugin_avnd
