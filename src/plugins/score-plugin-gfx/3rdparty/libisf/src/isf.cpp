@@ -478,6 +478,12 @@ static void parse_input(storage_input& inp, const sajson::value& v)
         }
       }
     }
+    else if(k == "BUFFER_USAGE")
+    {
+      auto val = v.get_object_value(i);
+      if(val.get_type() == sajson::TYPE_STRING)
+        inp.buffer_usage = val.as_string();
+    }
   }
 }
 
@@ -642,6 +648,20 @@ static void parse_input(geometry_input& inp, const sajson::value& v)
           inp.auxiliary.push_back(std::move(ar));
         }
       }
+    }
+    else if(k == "INDIRECT_DRAW")
+    {
+      auto val = v.get_object_value(i);
+      if(val.get_type() == sajson::TYPE_TRUE)
+        inp.indirect_draw = true;
+      else if(val.get_type() == sajson::TYPE_FALSE)
+        inp.indirect_draw = false;
+    }
+    else if(k == "INDIRECT_DRAW_TYPE")
+    {
+      auto val = v.get_object_value(i);
+      if(val.get_type() == sajson::TYPE_STRING)
+        inp.indirect_draw_type = val.as_string();
     }
   }
 }

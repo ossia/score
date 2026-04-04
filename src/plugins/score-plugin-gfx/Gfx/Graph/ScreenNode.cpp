@@ -58,6 +58,16 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
   const auto& settings = score::AppContext().settings<Gfx::Settings::Model>();
   state.samples = settings.resolveSamples(graphicsApi);
 
+  auto populateCaps = [](RenderState& s) {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
+    if(s.rhi)
+    {
+      s.caps.drawIndirect = s.rhi->isFeatureSupported(QRhi::DrawIndirect);
+      s.caps.drawIndirectMulti = s.rhi->isFeatureSupported(QRhi::DrawIndirectMulti);
+    }
+#endif
+  };
+
   QRhi::Flags flags{};
 #ifndef NDEBUG
   flags |= QRhi::EnableDebugMarkers;
@@ -81,6 +91,7 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
     state.version = caps.qShaderVersion;
     state.rhi = QRhi::create(QRhi::OpenGLES2, &params, flags);
     state.renderSize = sz;
+    populateCaps(state);
     return st;
   }
 #endif
@@ -135,6 +146,7 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
               fn(dev, nullptr);
           };
           state.renderSize = sz;
+          populateCaps(state);
           return st;
         }
         sharedDev.destroy();
@@ -147,6 +159,7 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
       state.rhi = QRhi::create(QRhi::Vulkan, &params, flags);
 
     state.renderSize = sz;
+    populateCaps(state);
     return st;
   }
 #endif
@@ -166,6 +179,7 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
     state.version = Gfx::Settings::shaderVersionForAPI(D3D11);
     state.rhi = QRhi::create(QRhi::D3D11, &params, flags);
     state.renderSize = sz;
+    populateCaps(state);
     return st;
   }
 #if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
@@ -183,6 +197,7 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
     state.version = Gfx::Settings::shaderVersionForAPI(D3D12);
     state.rhi = QRhi::create(QRhi::D3D12, &params, flags);
     state.renderSize = sz;
+    populateCaps(state);
     return st;
   }
 #endif
@@ -195,6 +210,7 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
     state.version = Gfx::Settings::shaderVersionForAPI(Metal);
     state.rhi = QRhi::create(QRhi::Metal, &params, flags);
     state.renderSize = sz;
+    populateCaps(state);
     return st;
   }
 #endif
@@ -208,9 +224,11 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
     state.rhi = QRhi::create(QRhi::Null, &params, flags);
     state.renderSize = sz;
     state.api = GraphicsApi::Null;
+    populateCaps(state);
     return st;
   }
 
+  populateCaps(state);
   return st;
 }
 

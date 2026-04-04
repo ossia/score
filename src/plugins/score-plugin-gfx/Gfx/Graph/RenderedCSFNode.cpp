@@ -599,8 +599,15 @@ BufferView RenderedCSFNode::bufferForOutput(const Port& output)
 {
   for(auto& [port, index] : this->m_outStorageBuffers) {
     if(&output == port) {
-      auto handle = this->m_storageBuffers[index].buffer;
-      return {handle, 0, handle->size()};
+      auto& sb = this->m_storageBuffers[index];
+      BufferView bv{sb.buffer, 0, sb.buffer ? sb.buffer->size() : 0};
+#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
+      if(sb.buffer_usage == "indirect_draw")
+        bv.usage = BufferView::Usage::IndirectDraw;
+      else if(sb.buffer_usage == "indirect_draw_indexed")
+        bv.usage = BufferView::Usage::IndirectDrawIndexed;
+#endif
+      return bv;
     }
   }
   return {};
@@ -679,10 +686,38 @@ void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpd
       }
       else
       {
-        storageBuffer.buffer
-            = createStorageBuffer(
-                  renderer, storageBuffer.name, storageBuffer.access, requiredSize)
-                  .handle;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
+        if(!storageBuffer.buffer_usage.empty()
+           && (storageBuffer.buffer_usage == "indirect_draw"
+               || storageBuffer.buffer_usage == "indirect_draw_indexed"))
+        {
+          QRhi& rhi = *renderer.state.rhi;
+          storageBuffer.buffer = rhi.newBuffer(
+              QRhiBuffer::Static,
+              QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer
+                  | QRhiBuffer::IndirectBuffer,
+              requiredSize);
+          if(storageBuffer.buffer)
+          {
+            storageBuffer.buffer->setName(
+                QStringLiteral("CSF_IndirectStorageBuffer_%1")
+                    .arg(storageBuffer.name)
+                    .toLocal8Bit());
+            if(!storageBuffer.buffer->create())
+            {
+              delete storageBuffer.buffer;
+              storageBuffer.buffer = nullptr;
+            }
+          }
+        }
+        else
+#endif
+        {
+          storageBuffer.buffer
+              = createStorageBuffer(
+                    renderer, storageBuffer.name, storageBuffer.access, requiredSize)
+                    .handle;
+        }
       }
       storageBuffer.size = requiredSize;
       storageBuffer.lastKnownSize = requiredSize;
@@ -1514,6 +1549,18 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, Edge& edge)
       }
     }
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
+    // Propagate indirect draw buffer to downstream geometry
+    if(binding.uses_indirect_draw && binding.indirectDrawBuffer)
+    {
+      out_geo.indirect_count = ossia::geometry::gpu_buffer{
+          binding.indirectDrawBuffer,
+          binding.indirect_draw_indexed
+              ? (int64_t)sizeof(QRhiIndexedIndirectDrawCommand)
+              : (int64_t)sizeof(QRhiIndirectDrawCommand)};
+    }
+#endif
+
     meshes->meshes.push_back(std::move(out_geo));
 
     m_outputGeometry.meshes = meshes;
@@ -1888,6 +1935,16 @@ void RenderedCSFNode::initComputePass(
           }
         }
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
+        // Bind indirect draw buffer as read-write SSBO
+        if(binding.uses_indirect_draw && binding.indirectDrawBuffer)
+        {
+          bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
+              bindingIndex++, QRhiShaderResourceBinding::ComputeStage,
+              binding.indirectDrawBuffer));
+        }
+#endif
+
         geo_binding_index++;
       }
       // Inlet port if any attribute needs upstream data (not write_only)
@@ -2205,6 +2262,7 @@ void RenderedCSFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
       sb.size = 0;
       sb.lastKnownSize = 0; // Force initial creation
       sb.name = QString::fromStdString(input.name);
+      sb.buffer_usage = storage->buffer_usage;
       sb.access = QString::fromStdString(storage->access);
       sb.layout = storage->layout; // Store layout for size calculation
       m_storageBuffers.push_back(sb);
@@ -2325,6 +2383,32 @@ void RenderedCSFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
         if(aux.access != "read_only")
           binding.has_output = true;
       }
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
+      // Allocate indirect draw buffer if requested
+      if(geo->indirect_draw && renderer.state.caps.drawIndirect)
+      {
+        binding.uses_indirect_draw = true;
+        binding.indirect_draw_indexed = (geo->indirect_draw_type == "draw_indexed");
+
+        const int64_t indirectSize = binding.indirect_draw_indexed
+            ? (int64_t)sizeof(QRhiIndexedIndirectDrawCommand)
+            : (int64_t)sizeof(QRhiIndirectDrawCommand);
+
+        auto* buf = rhi.newBuffer(
+            QRhiBuffer::Static,
+            QRhiBuffer::StorageBuffer | QRhiBuffer::IndirectBuffer,
+            indirectSize);
+        buf->setName(QByteArray("CSF_IndirectDraw_") + input.name.c_str());
+        buf->create();
+
+        // Initialize with zeros (vertexCount=0, instanceCount=0)
+        QByteArray zero(indirectSize, 0);
+        res.uploadStaticBuffer(buf, 0, indirectSize, zero.constData());
+
+        binding.indirectDrawBuffer = buf;
+      }
+#endif
 
       const bool geo_has_output = binding.has_output;
       m_geometryBindings.push_back(std::move(binding));
@@ -2648,6 +2732,16 @@ void RenderedCSFNode::recreateShaderResourceBindings(RenderList& renderer, QRhiR
           }
         }
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
+        // Rebind indirect draw buffer
+        if(binding.uses_indirect_draw && binding.indirectDrawBuffer)
+        {
+          bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
+              bindingIndex++, QRhiShaderResourceBinding::ComputeStage,
+              binding.indirectDrawBuffer));
+        }
+#endif
+
         geo_binding_index++;
       }
       // Inlet port if any attribute needs upstream data (not write_only)
@@ -2759,6 +2853,13 @@ void RenderedCSFNode::release(RenderList& r)
       }
       aux.buffer = nullptr;
     }
+#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
+    if(binding.indirectDrawBuffer)
+    {
+      r.releaseBuffer(binding.indirectDrawBuffer);
+      binding.indirectDrawBuffer = nullptr;
+    }
+#endif
   }
   m_geometryBindings.clear();
   

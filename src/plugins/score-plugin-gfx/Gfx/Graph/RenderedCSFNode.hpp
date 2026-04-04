@@ -94,6 +94,7 @@ private:
     QString access; // "read_only", "write_only", "read_write"
     std::vector<isf::storage_input::layout_field> layout; // For size calculation
     bool owned{true}; // false when buffer comes from geometry auxiliary
+    std::string buffer_usage; // "", "indirect_draw", "indirect_draw_indexed"
   };
   std::vector<StorageBuffer> m_storageBuffers; // Contains both ins and outs
 
@@ -150,6 +151,12 @@ private:
     bool has_instance_count_spec{false}; // true if instance_count expression is set
     bool is_feedback_receiver{false};    // true = uses ping-pong double buffering for read_write attrs
     bool pending_initial_copy{false};    // first frame after read_buffer allocated: use same-buffer mode, then copy buffer→read_buffer
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
+    QRhiBuffer* indirectDrawBuffer{};   // StorageBuffer | IndirectBuffer for GPU-driven draw args
+    bool uses_indirect_draw{false};     // true when geometry_input has INDIRECT_DRAW: true
+    bool indirect_draw_indexed{false};  // true for drawIndexedIndirect, false for drawIndirect
+#endif
   };
   std::vector<GeometryBinding> m_geometryBindings;
 

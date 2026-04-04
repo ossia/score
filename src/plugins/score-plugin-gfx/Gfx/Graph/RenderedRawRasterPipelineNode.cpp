@@ -295,6 +295,34 @@ void RenderedRawRasterPipelineNode::update(
           = renderer.acquireMesh(geometry, res, m_mesh, m_meshbufs);
 
       this->meshChangedIndex = this->m_mesh->dirtyGeometryIndex;
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
+      // Check for standalone indirect draw buffer from Buffer input ports
+      if(!m_meshbufs.useIndirectDraw)
+      {
+        for(auto* port : n.input)
+        {
+          if(port->type == Types::Buffer && !port->edges.empty())
+          {
+            auto bv = renderer.bufferForInput(*port->edges.front());
+            if(bv.usage == BufferView::Usage::IndirectDraw)
+            {
+              m_meshbufs.indirectDrawBuffer = bv.handle;
+              m_meshbufs.useIndirectDraw = true;
+              m_meshbufs.indirectDrawIndexed = false;
+              break;
+            }
+            else if(bv.usage == BufferView::Usage::IndirectDrawIndexed)
+            {
+              m_meshbufs.indirectDrawBuffer = bv.handle;
+              m_meshbufs.useIndirectDraw = true;
+              m_meshbufs.indirectDrawIndexed = true;
+              break;
+            }
+          }
+        }
+      }
+#endif
     }
     mustRecreatePasses = true;
     this->geometryChanged = false;

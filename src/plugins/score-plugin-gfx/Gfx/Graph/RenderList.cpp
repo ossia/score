@@ -382,6 +382,46 @@ RenderList::Buffers RenderList::acquireMesh(
   auto m = new CustomMesh{*p, f};
   auto meshbufs = initMeshBuffer(*m, res);
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
+  // Check for well-known _indirect_draw auxiliary buffer convention
+  if(!meshbufs.useIndirectDraw && !p->meshes.empty())
+  {
+    const auto& mesh = p->meshes[0];
+    if(auto* aux = mesh.find_auxiliary("_indirect_draw"))
+    {
+      if(aux->buffer >= 0 && aux->buffer < (int)mesh.buffers.size())
+      {
+        const auto& buf_data = mesh.buffers[aux->buffer].data;
+        if(auto* gpu = ossia::get_if<ossia::geometry::gpu_buffer>(&buf_data))
+        {
+          if(gpu->handle)
+          {
+            meshbufs.indirectDrawBuffer = static_cast<QRhiBuffer*>(gpu->handle);
+            meshbufs.useIndirectDraw = true;
+            meshbufs.indirectDrawIndexed = false;
+          }
+        }
+      }
+    }
+    else if(auto* aux_idx = mesh.find_auxiliary("_indirect_draw_indexed"))
+    {
+      if(aux_idx->buffer >= 0 && aux_idx->buffer < (int)mesh.buffers.size())
+      {
+        const auto& buf_data = mesh.buffers[aux_idx->buffer].data;
+        if(auto* gpu = ossia::get_if<ossia::geometry::gpu_buffer>(&buf_data))
+        {
+          if(gpu->handle)
+          {
+            meshbufs.indirectDrawBuffer = static_cast<QRhiBuffer*>(gpu->handle);
+            meshbufs.useIndirectDraw = true;
+            meshbufs.indirectDrawIndexed = true;
+          }
+        }
+      }
+    }
+  }
+#endif
+
   this->m_customMeshCache[{p, f}] = m;
   return {m, meshbufs};
 }

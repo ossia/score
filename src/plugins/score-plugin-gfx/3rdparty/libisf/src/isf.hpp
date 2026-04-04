@@ -113,6 +113,8 @@ struct storage_input
   };
 
   std::vector<layout_field> layout;
+
+  std::string buffer_usage; // "", "indirect_draw", "indirect_draw_indexed"
 };
 
 struct texture_input
@@ -159,6 +161,9 @@ struct geometry_input
 
   std::string vertex_count;   // expression string, may contain $USER
   std::string instance_count; // expression string, may contain $USER
+
+  bool indirect_draw{false};            // compute shader writes draw args to an indirect buffer
+  std::string indirect_draw_type;       // "draw" (default) or "draw_indexed"
 };
 
 struct input

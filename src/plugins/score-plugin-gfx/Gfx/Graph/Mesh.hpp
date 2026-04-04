@@ -17,11 +17,27 @@ struct BufferView
   int64_t byte_offset{};
   int64_t byte_size{};
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
+  enum class Usage : uint8_t
+  {
+    Direct,
+    IndirectDraw,
+    IndirectDrawIndexed
+  };
+  Usage usage{Usage::Direct};
+#endif
+
   inline operator bool() const noexcept { return handle; }
 };
 struct MeshBuffers
 {
   ossia::small_vector<BufferView, 2> buffers;
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
+  QRhiBuffer* indirectDrawBuffer{};
+  bool useIndirectDraw{false};
+  bool indirectDrawIndexed{false};
+#endif
 };
 /**
  * @brief Data model for meshes.

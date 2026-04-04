@@ -104,6 +104,17 @@ MeshBuffers CustomMesh::init(QRhi &rhi) const noexcept
     }
     i++;
   }
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
+  // Populate indirect draw buffer from geometry's indirect_count
+  if(mesh.indirect_count.handle)
+  {
+    ret.indirectDrawBuffer = static_cast<QRhiBuffer*>(mesh.indirect_count.handle);
+    ret.useIndirectDraw = true;
+    ret.indirectDrawIndexed = (mesh.index.buffer >= 0);
+  }
+#endif
+
   return ret;
 }
 
@@ -229,6 +240,23 @@ void CustomMesh::update(
     }
     i++;
   }
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
+  // Update indirect draw buffer reference
+  if(input_mesh.indirect_count.handle)
+  {
+    output_meshbuf.indirectDrawBuffer
+        = static_cast<QRhiBuffer*>(input_mesh.indirect_count.handle);
+    output_meshbuf.useIndirectDraw = true;
+    output_meshbuf.indirectDrawIndexed = (input_mesh.index.buffer >= 0);
+  }
+  else
+  {
+    output_meshbuf.indirectDrawBuffer = nullptr;
+    output_meshbuf.useIndirectDraw = false;
+    output_meshbuf.indirectDrawIndexed = false;
+  }
+#endif
 }
 
 Mesh::Flags CustomMesh::flags() const noexcept
@@ -373,6 +401,17 @@ void CustomMesh::draw(const MeshBuffers &bufs, QRhiCommandBuffer &cb) const noex
     {
       cb.setVertexInput(0, sz, draw_inputs.data());
     }
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
+    if(bufs.useIndirectDraw && bufs.indirectDrawBuffer)
+    {
+      if(bufs.indirectDrawIndexed)
+        cb.drawIndexedIndirect(bufs.indirectDrawBuffer, 0, 1);
+      else
+        cb.drawIndirect(bufs.indirectDrawBuffer, 0, 1);
+      continue;
+    }
+#endif
 
     if(g.index.buffer > -1)
     {

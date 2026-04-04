@@ -55,6 +55,14 @@ struct RenderState
   GraphicsApi api{};
   QShaderVersion version{};
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
+  struct
+  {
+    bool drawIndirect{false};
+    bool drawIndirectMulti{false};
+  } caps;
+#endif
+
   // Called after QRhi is destroyed to clean up an imported VkDevice
   std::function<void()> customDeviceCleanup;
 
