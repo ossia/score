@@ -1,4 +1,5 @@
 #pragma once
+#include <Gfx/Graph/GPUBufferScatter.hpp>
 #include <Gfx/Graph/ISFNode.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 
@@ -128,6 +129,13 @@ private:
       std::string access;         // "read_only", "write_only", "read_write"
       bool per_instance{false};   // true = sized by instance_count, false = sized by vertex_count
       const void* lastUploadSrc{};// CPU data pointer from last upload (for dedup)
+
+      // GPU scatter state (used when format conversion is needed)
+      QRhiBuffer* scatterStaging{};      // Staging SSBO for raw CPU data
+      int64_t scatterStagingSize{};
+      GPUBufferScatter::PreparedOp scatterOp;
+      GPUBufferScatter::Params scatterParams;
+      bool scatterPending{false};        // true = needs dispatch this frame
     };
 
     // Structured SSBOs that travel with the geometry (matched by name
@@ -181,6 +189,10 @@ private:
   QRhiComputePipeline* m_computePipeline{};
   QShader m_computeShader;
   bool m_pipelinesDirty{true};
+
+  // GPU buffer scatter (format conversion on GPU)
+  GPUBufferScatter m_gpuScatter;
+  bool m_gpuScatterAvailable{false};
 };
 
 }

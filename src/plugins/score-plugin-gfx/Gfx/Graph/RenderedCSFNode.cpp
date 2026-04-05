@@ -1175,15 +1175,49 @@ void RenderedCSFNode::updateGeometryBindings(
             if(upload_size > 0)
               res.uploadStaticBuffer(ssbo.buffer, 0, upload_size, src + base_offset);
           }
+          else if(m_gpuScatterAvailable)
+          {
+            // GPU scatter: upload raw data to staging SSBO, dispatch compute to convert.
+            // This avoids expensive per-element CPU memcpy for large point clouds.
+            const int64_t raw_size = (int64_t)data_count * stride;
+            const int64_t staging_needed = base_offset + raw_size;
+
+            if(!ssbo.scatterStaging || ssbo.scatterStagingSize < staging_needed)
+            {
+              delete ssbo.scatterStaging;
+              ssbo.scatterStaging = renderer.state.rhi->newBuffer(
+                  QRhiBuffer::Static, QRhiBuffer::StorageBuffer, staging_needed);
+              ssbo.scatterStaging->setName(QByteArray("CSF_ScatterStaging_") + req.name.c_str());
+              ssbo.scatterStaging->create();
+              ssbo.scatterStagingSize = staging_needed;
+            }
+
+            // Bulk upload the raw CPU data as-is (no per-element processing)
+            const int64_t upload_size = std::min(staging_needed, cpu->byte_size);
+            res.uploadStaticBuffer(ssbo.scatterStaging, 0, upload_size, src);
+
+            // Prepare the scatter dispatch (will execute in runInitialPasses)
+            ssbo.scatterParams = GPUBufferScatter::Params{
+                .staging = ssbo.scatterStaging,
+                .output = ssbo.buffer,
+                .element_count = (uint32_t)data_count,
+                .src_components = (uint32_t)(attr_size / sizeof(float)),
+                .dst_components = (uint32_t)(elem_size / sizeof(float)),
+                .src_stride_floats = (uint32_t)(stride / sizeof(float)),
+                .src_offset_floats = (uint32_t)(base_offset / sizeof(float)),
+            };
+
+            if(!ssbo.scatterOp.srb)
+              ssbo.scatterOp = m_gpuScatter.prepare(*renderer.state.rhi, ssbo.scatterParams);
+
+            ssbo.scatterPending = true;
+          }
           else
           {
-            // AoS or SoA with format mismatch (e.g. float3 upstream → vec4 shader):
-            // scatter per-element, following GPU vertex attribute extension convention
-            // (missing components: x=0, y=0, z=0, w=1)
+            // CPU fallback: scatter per-element with format conversion
+            // (used when compute shaders are not available)
             QByteArray scattered(needed, 0);
 
-            // Pre-fill w=1.0 for each element when widening to vec4/vec3/vec2
-            // (matches GPU hardware behavior for vertex attribute promotion)
             if(elem_size > attr_size && elem_size >= (int)sizeof(float))
             {
               const float one = 1.0f;
@@ -1632,27 +1666,46 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, Edge& edge)
         }
       }
 
-      // Forward upstream auxiliary buffers
-      if(binding_upstream)
+      // Forward upstream auxiliary buffers from this binding's upstream
+      // AND from all other input bindings' upstreams (e.g. geoOut needs
+      // to carry forward auxiliary buffers that arrived on geoIn).
       {
-        const auto& in_mesh = *binding_upstream;
-        for(const auto& in_aux : in_mesh.auxiliary)
-        {
-          bool already_present = false;
-          for(const auto& sb : m_storageBuffers)
-            if(sb.name.toStdString() == in_aux.name) { already_present = true; break; }
-          for(const auto& aux : binding.auxiliary_ssbos)
-            if(aux.name == in_aux.name) { already_present = true; break; }
-          if(already_present)
-            continue;
-
-          if(in_aux.buffer >= 0 && in_aux.buffer < (int)in_mesh.buffers.size())
+        auto forward_auxiliaries = [&](const ossia::geometry& in_mesh) {
+          for(const auto& in_aux : in_mesh.auxiliary)
           {
-            const int aux_buf_idx = (int)out_geo.buffers.size();
-            out_geo.buffers.push_back(in_mesh.buffers[in_aux.buffer]);
-            out_geo.auxiliary.push_back({
-                .name = in_aux.name, .buffer = aux_buf_idx,
-                .byte_offset = in_aux.byte_offset, .byte_size = in_aux.byte_size});
+            bool already_present = false;
+            for(const auto& sb : m_storageBuffers)
+              if(sb.name.toStdString() == in_aux.name) { already_present = true; break; }
+            for(const auto& aux : binding.auxiliary_ssbos)
+              if(aux.name == in_aux.name) { already_present = true; break; }
+            for(const auto& existing : out_geo.auxiliary)
+              if(existing.name == in_aux.name) { already_present = true; break; }
+            if(already_present)
+              continue;
+
+            if(in_aux.buffer >= 0 && in_aux.buffer < (int)in_mesh.buffers.size())
+            {
+              const int aux_buf_idx = (int)out_geo.buffers.size();
+              out_geo.buffers.push_back(in_mesh.buffers[in_aux.buffer]);
+              out_geo.auxiliary.push_back({
+                  .name = in_aux.name, .buffer = aux_buf_idx,
+                  .byte_offset = in_aux.byte_offset, .byte_size = in_aux.byte_size});
+            }
+          }
+        };
+
+        // Forward from this binding's own upstream
+        if(binding_upstream)
+          forward_auxiliaries(*binding_upstream);
+
+        // Forward from all other input bindings' upstreams
+        for(const auto& [port_idx, geo_spec] : m_portGeometries)
+        {
+          if(geo_spec.meshes && !geo_spec.meshes->meshes.empty())
+          {
+            const auto& other_mesh = geo_spec.meshes->meshes[0];
+            if(&other_mesh != binding_upstream)
+              forward_auxiliaries(other_mesh);
           }
         }
       }
@@ -2524,7 +2577,10 @@ void RenderedCSFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
   }
   
   // ProcessUBO will be created per-pass in initComputePass
-  
+
+  // Initialize GPU buffer scatter for format conversion
+  m_gpuScatterAvailable = m_gpuScatter.init(renderer.state);
+
   // Create the material UBO
   m_materialSize = n.m_materialSize;
   if(m_materialSize > 0)
@@ -3174,6 +3230,10 @@ void RenderedCSFNode::release(RenderList& r)
   }
   m_storageBuffers.clear();
 
+  // Clean up GPU scatter
+  m_gpuScatter.release();
+  m_gpuScatterAvailable = false;
+
   // Clean up geometry bindings
   for(auto& binding : m_geometryBindings)
   {
@@ -3189,6 +3249,12 @@ void RenderedCSFNode::release(RenderList& r)
         r.releaseBuffer(ssbo.buffer);
       }
       ssbo.buffer = nullptr;
+      delete ssbo.scatterStaging;
+      ssbo.scatterStaging = nullptr;
+      delete ssbo.scatterOp.srb;
+      ssbo.scatterOp.srb = nullptr;
+      delete ssbo.scatterOp.paramsUBO;
+      ssbo.scatterOp.paramsUBO = nullptr;
     }
     for(auto& aux : binding.auxiliary_ssbos)
     {
@@ -3264,6 +3330,50 @@ void RenderedCSFNode::runInitialPasses(
     RenderList& renderer, QRhiCommandBuffer& commands, QRhiResourceUpdateBatch*& res,
     Edge& edge)
 {
+  // Dispatch pending GPU scatter operations (format conversion) before user passes.
+  // These convert raw CPU data (e.g. float3) uploaded to staging SSBOs into the
+  // format expected by the CSF shader (e.g. vec4), entirely on the GPU.
+  {
+    // Phase 1: update all scatter params UBOs and SRBs (needs live res batch)
+    bool anyScatter = false;
+    for(auto& binding : m_geometryBindings)
+      for(auto& ssbo : binding.attribute_ssbos)
+        if(ssbo.scatterPending)
+        {
+          anyScatter = true;
+          if(res)
+            m_gpuScatter.updateParams(*res, ssbo.scatterOp, ssbo.scatterParams);
+        }
+
+    // Phase 2: dispatch all scatters inside a single compute pass
+    if(anyScatter)
+    {
+      commands.beginComputePass(res, QRhiCommandBuffer::BeginPassFlag::ExternalContent);
+      res = nullptr;
+
+      for(auto& binding : m_geometryBindings)
+      {
+        for(auto& ssbo : binding.attribute_ssbos)
+        {
+          if(ssbo.scatterPending)
+          {
+            m_gpuScatter.dispatch(commands, ssbo.scatterOp, ssbo.scatterParams);
+
+            // Barrier so writes are visible to subsequent dispatches
+            commands.beginExternal();
+            insertComputeBarrier(*renderer.state.rhi, commands);
+            commands.endExternal();
+
+            ssbo.scatterPending = false;
+          }
+        }
+      }
+
+      commands.endComputePass();
+      res = renderer.state.rhi->nextResourceUpdateBatch();
+    }
+  }
+
   // Run all passes sequentially
   for(std::size_t passIndex = 0; passIndex < n.m_descriptor.csf_passes.size(); passIndex++)
   {

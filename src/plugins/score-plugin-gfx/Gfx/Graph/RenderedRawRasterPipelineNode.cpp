@@ -88,21 +88,30 @@ void RenderedRawRasterPipelineNode::initPass(
 
     for(auto& aux : m_auxiliarySSBOs)
     {
-      if(aux.buffer)
+      // If no buffer yet, create a small dummy so the descriptor set is valid
+      if(!aux.buffer)
       {
-        QRhiShaderResourceBinding binding;
-        if(aux.access == "read_only")
-          binding = QRhiShaderResourceBinding::bufferLoad(
-              max_binding, bindingStages, aux.buffer);
-        else if(aux.access == "write_only")
-          binding = QRhiShaderResourceBinding::bufferStore(
-              max_binding, bindingStages, aux.buffer);
-        else
-          binding = QRhiShaderResourceBinding::bufferLoadStore(
-              max_binding, bindingStages, aux.buffer);
-
-        additionalBindings.push_back(binding);
+        auto* dummy = rhi.newBuffer(
+            QRhiBuffer::Immutable, QRhiBuffer::StorageBuffer, 16);
+        dummy->setName("RRP_aux_dummy");
+        dummy->create();
+        aux.buffer = dummy;
+        aux.size = 16;
+        aux.owned = true;
       }
+
+      QRhiShaderResourceBinding binding;
+      if(aux.access == "read_only")
+        binding = QRhiShaderResourceBinding::bufferLoad(
+            max_binding, bindingStages, aux.buffer);
+      else if(aux.access == "write_only")
+        binding = QRhiShaderResourceBinding::bufferStore(
+            max_binding, bindingStages, aux.buffer);
+      else
+        binding = QRhiShaderResourceBinding::bufferLoadStore(
+            max_binding, bindingStages, aux.buffer);
+
+      additionalBindings.push_back(binding);
       max_binding++;
     }
 
@@ -278,6 +287,22 @@ void RenderedRawRasterPipelineNode::init(
                 ssbo.owned = false;
               }
             }
+            else if(auto* cpu = ossia::get_if<ossia::geometry::cpu_buffer>(&geo_buf.data))
+            {
+              if(cpu->raw_data && cpu->byte_size > 0)
+              {
+                int64_t sz = geo_aux->byte_size > 0 ? geo_aux->byte_size : cpu->byte_size;
+                auto* buf = rhi.newBuffer(
+                    QRhiBuffer::Immutable, QRhiBuffer::StorageBuffer, sz);
+                buf->setName(QByteArray("RRP_aux_") + ssbo.name.c_str());
+                buf->create();
+                res.uploadStaticBuffer(buf, 0, sz, cpu->raw_data.get());
+
+                ssbo.buffer = buf;
+                ssbo.size = sz;
+                ssbo.owned = true;
+              }
+            }
           }
         }
       }
@@ -424,11 +449,36 @@ void RenderedRawRasterPipelineNode::update(
                 auto* new_buf = static_cast<QRhiBuffer*>(gpu->handle);
                 if(aux.buffer != new_buf)
                 {
+                  if(aux.owned && aux.buffer)
+                    aux.buffer->deleteLater();
                   aux.buffer = new_buf;
                   aux.size = geo_aux->byte_size > 0 ? geo_aux->byte_size : gpu->byte_size;
                   aux.owned = false;
                   mustRecreatePasses = true;
                 }
+              }
+            }
+            else if(auto* cpu = ossia::get_if<ossia::geometry::cpu_buffer>(&geo_buf.data))
+            {
+              // CPU buffer: upload to GPU
+              if(cpu->raw_data && cpu->byte_size > 0)
+              {
+                auto& rhi = *renderer.state.rhi;
+                int64_t sz = geo_aux->byte_size > 0 ? geo_aux->byte_size : cpu->byte_size;
+
+                if(aux.owned && aux.buffer)
+                  aux.buffer->deleteLater();
+
+                auto* buf = rhi.newBuffer(
+                    QRhiBuffer::Immutable, QRhiBuffer::StorageBuffer, sz);
+                buf->setName(QByteArray("RRP_aux_") + aux.name.c_str());
+                buf->create();
+                res.uploadStaticBuffer(buf, 0, sz, cpu->raw_data.get());
+
+                aux.buffer = buf;
+                aux.size = sz;
+                aux.owned = true;
+                mustRecreatePasses = true;
               }
             }
           }
