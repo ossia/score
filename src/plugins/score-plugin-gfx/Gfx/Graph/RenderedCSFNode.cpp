@@ -795,9 +795,32 @@ static int geometryFormatSizeBytes(int format) noexcept
 void RenderedCSFNode::updateGeometryBindings(
     RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
-  qDebug() << "updateGeometryBindings:" << n.m_descriptor.description.c_str()
-           << "num_bindings=" << m_geometryBindings.size()
-           << "num_port_geometries=" << m_portGeometries.size();
+  // Pre-pass: populate vertex/instance counts from upstream for ALL bindings first,
+  // so that expression resolution (e.g. $VERTEX_COUNT_geoIn) can reference any binding.
+  {
+    int pre_idx = 0;
+    for(const auto& input : n.m_descriptor.inputs)
+    {
+      auto* geo_input = ossia::get_if<isf::geometry_input>(&input.data);
+      if(!geo_input)
+        continue;
+      if(pre_idx >= (int)m_geometryBindings.size())
+        break;
+      auto& binding = m_geometryBindings[pre_idx];
+      if(binding.input_port_index >= 0 && !binding.has_vertex_count_spec)
+      {
+        auto it = m_portGeometries.find(binding.input_port_index);
+        if(it != m_portGeometries.end()
+           && it->second.meshes && !it->second.meshes->meshes.empty())
+        {
+          binding.vertex_count = it->second.meshes->meshes[0].vertices;
+          if(it->second.meshes->meshes[0].instances > 0)
+            binding.instance_count = it->second.meshes->meshes[0].instances;
+        }
+      }
+      pre_idx++;
+    }
+  }
 
   int geo_binding_idx = 0;
 
