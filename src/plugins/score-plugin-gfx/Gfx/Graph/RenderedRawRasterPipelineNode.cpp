@@ -383,47 +383,11 @@ void RenderedRawRasterPipelineNode::update(
   {
     if(geometry.meshes)
     {
-      if(geometry.meshes && !geometry.meshes->meshes.empty())
-      {
-        const auto& geo = geometry.meshes->meshes[0];
-        qDebug() << "RRP update: incoming geometry:"
-                 << geo.buffers.size() << "bufs"
-                 << geo.attributes.size() << "attrs"
-                 << geo.bindings.size() << "bindings"
-                 << geo.input.size() << "inputs"
-                 << "verts=" << geo.vertices
-                 << "insts=" << geo.instances;
-        for(int i = 0; i < (int)geo.buffers.size(); i++)
-        {
-          const auto& b = geo.buffers[i];
-          if(auto* gpu = ossia::get_if<ossia::geometry::gpu_buffer>(&b.data))
-            qDebug() << "  buf" << i << "GPU handle=" << gpu->handle << "size=" << gpu->byte_size;
-          else if(auto* cpu = ossia::get_if<ossia::geometry::cpu_buffer>(&b.data))
-            qDebug() << "  buf" << i << "CPU size=" << cpu->byte_size;
-        }
-        for(int i = 0; i < (int)geo.attributes.size(); i++)
-        {
-          const auto& a = geo.attributes[i];
-          qDebug() << "  attr" << i << "sem=" << (int)a.semantic
-                   << "binding=" << a.binding << "fmt=" << (int)a.format;
-        }
-        for(int i = 0; i < (int)geo.input.size(); i++)
-          qDebug() << "  input" << i << "buf=" << geo.input[i].buffer
-                   << "offset=" << geo.input[i].byte_offset;
-      }
-
       const Mesh* prevMesh = m_mesh;
       std::tie(m_mesh, m_meshbufs)
           = renderer.acquireMesh(geometry, res, m_mesh, m_meshbufs);
 
       this->meshChangedIndex = this->m_mesh->dirtyGeometryIndex;
-
-      qDebug() << "RRP update: acquireMesh result:"
-               << m_meshbufs.buffers.size() << "mesh buffers";
-      for(int i = 0; i < (int)m_meshbufs.buffers.size(); i++)
-        qDebug() << "  meshbuf" << i << "handle=" << m_meshbufs.buffers[i].handle
-                 << "offset=" << m_meshbufs.buffers[i].byte_offset
-                 << "size=" << m_meshbufs.buffers[i].byte_size;
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
       // Check for standalone indirect draw buffer from Buffer input ports
@@ -510,6 +474,7 @@ void RenderedRawRasterPipelineNode::update(
                 buf->setName(QByteArray("RRP_aux_") + aux.name.c_str());
                 buf->create();
                 res.uploadStaticBuffer(buf, 0, sz, cpu->raw_data.get());
+                qDebug() << "RRP: UPLOAD auxiliary" << aux.name.c_str() << "size=" << sz;
 
                 aux.buffer = buf;
                 aux.size = sz;

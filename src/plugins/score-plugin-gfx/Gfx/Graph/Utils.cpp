@@ -363,16 +363,27 @@ bool remapPipelineVertexInputs(
   for(const auto& shader_var : shader_inputs)
   {
     // Resolve shader variable name to semantic
-    auto sem = ossia::name_to_semantic(
-        std::string_view(shader_var.name.constData(), shader_var.name.size()));
+    const std::string_view var_name(shader_var.name.constData(), shader_var.name.size());
+    auto sem = ossia::name_to_semantic(var_name);
 
-    // Find matching geometry attribute by semantic or by name
+    // Find matching geometry attribute: by semantic, then custom name, then display name
     const ossia::geometry::attribute* match = nullptr;
     if(sem != ossia::attribute_semantic::custom)
       match = geom.find(sem);
-    else
-      match = geom.find(
-          std::string_view(shader_var.name.constData(), shader_var.name.size()));
+    if(!match)
+      match = geom.find(var_name);
+    if(!match)
+    {
+      // Fallback: match shader variable name against attribute display names
+      for(const auto& a : geom.attributes)
+      {
+        if(ossia::geometry::display_name(a) == var_name)
+        {
+          match = &a;
+          break;
+        }
+      }
+    }
 
     if(!match)
       return false;

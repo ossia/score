@@ -186,8 +186,10 @@ private:
   QRhiTexture::Format m_outputFormat{QRhiTexture::RGBA8};
 
   // Compute shader specifics
-  QRhiComputePipeline* m_computePipeline{};
+  QRhiComputePipeline* m_computePipeline{}; // Points to first pass pipeline (backward compat)
   QShader m_computeShader;
+  QString m_computeShaderSource; // Template with ISF_LOCAL_SIZE_X/Y/Z placeholders
+  std::vector<QRhiComputePipeline*> m_perPassPipelines; // One pipeline per pass (different local_size)
   bool m_pipelinesDirty{true};
 
   // GPU buffer scatter (format conversion on GPU)

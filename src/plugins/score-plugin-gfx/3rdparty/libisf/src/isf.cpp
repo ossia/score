@@ -3511,18 +3511,11 @@ void parser::parse_csf()
   m_fragment += GLSL45.defaultUniforms;
   m_fragment += "\n";
 
-  // Add local_size declaration from first pass info
-  if(!m_desc.csf_passes.empty())
-  {
-    const auto& first_pass = m_desc.csf_passes[0];
-    m_fragment += "layout(local_size_x = ";
-    m_fragment += std::to_string(first_pass.local_size[0]);
-    m_fragment += ", local_size_y = ";
-    m_fragment += std::to_string(first_pass.local_size[1]);
-    m_fragment += ", local_size_z = ";
-    m_fragment += std::to_string(first_pass.local_size[2]);
-    m_fragment += ") in;\n\n";
-  }
+  // Add local_size placeholder — substituted per-pass at pipeline creation time
+  // to support different local_size per pass.
+  m_fragment += "layout(local_size_x = ISF_LOCAL_SIZE_X"
+                ", local_size_y = ISF_LOCAL_SIZE_Y"
+                ", local_size_z = ISF_LOCAL_SIZE_Z) in;\n\n";
 
   // Generate struct definitions from TYPES section
   if(!m_desc.types.empty())
