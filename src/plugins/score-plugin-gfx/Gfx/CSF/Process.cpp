@@ -103,6 +103,16 @@ bool Model::validate(const QString& txt) const noexcept
     // Generate the compute shader code
     auto computeShader = QString::fromStdString(p.compute_shader());
 
+    // Substitute LOCAL_SIZE placeholders with defaults for test compilation.
+    // The actual values are substituted per-pass at pipeline creation time.
+    if(!desc.csf_passes.empty())
+    {
+      const auto& ls = desc.csf_passes[0].local_size;
+      computeShader.replace("ISF_LOCAL_SIZE_X", QString::number(ls[0]));
+      computeShader.replace("ISF_LOCAL_SIZE_Y", QString::number(ls[1]));
+      computeShader.replace("ISF_LOCAL_SIZE_Z", QString::number(ls[2]));
+    }
+
     // Validate the compute shader compilation
     auto [shader, error] = score::gfx::ShaderCache::get(
         score::gfx::GraphicsApi::OpenGL, QShaderVersion(450), computeShader.toUtf8(),

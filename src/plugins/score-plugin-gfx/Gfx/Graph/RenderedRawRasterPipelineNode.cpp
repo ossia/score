@@ -467,14 +467,13 @@ void RenderedRawRasterPipelineNode::update(
                 int64_t sz = geo_aux->byte_size > 0 ? geo_aux->byte_size : cpu->byte_size;
 
                 if(aux.owned && aux.buffer)
-                  aux.buffer->deleteLater();
+                  renderer.releaseBuffer(aux.buffer);
 
                 auto* buf = rhi.newBuffer(
                     QRhiBuffer::Immutable, QRhiBuffer::StorageBuffer, sz);
                 buf->setName(QByteArray("RRP_aux_") + aux.name.c_str());
                 buf->create();
                 res.uploadStaticBuffer(buf, 0, sz, cpu->raw_data.get());
-                qDebug() << "RRP: UPLOAD auxiliary" << aux.name.c_str() << "size=" << sz;
 
                 aux.buffer = buf;
                 aux.size = sz;
@@ -592,6 +591,8 @@ void RenderedRawRasterPipelineNode::release(RenderList& r)
   delete m_modelUBO;
   m_modelUBO = nullptr;
 
+  // Note: release() doesn't have access to the RenderList, so we use deleteLater.
+  // These buffers are only used in the SRB which is already released above.
   for(auto& aux : m_auxiliarySSBOs)
   {
     if(aux.owned && aux.buffer)

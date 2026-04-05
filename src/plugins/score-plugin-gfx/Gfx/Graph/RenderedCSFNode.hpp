@@ -162,6 +162,10 @@ private:
     bool is_feedback_receiver{false};    // true = uses ping-pong double buffering for read_write attrs
     bool pending_initial_copy{false};    // first frame after read_buffer allocated: use same-buffer mode, then copy buffer→read_buffer
 
+    // GPU buffers allocated by COPY_FROM (CPU→GPU upload). Owned by this binding,
+    // must be released via renderer.releaseBuffer() since they escape into output geometry.
+    std::vector<QRhiBuffer*> copyFromBuffers;
+
     // Persistent output geometry — reused across frames to avoid per-frame shared_ptr allocation.
     // Updated in-place; dirty_index incremented when structure or handles change.
     ossia::geometry_spec outputGeometry;

@@ -1514,7 +1514,11 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
 
     if(structure_changed)
     {
-      qDebug() << "CSF pushOutput: STRUCTURAL REBUILD for" << input.name.c_str();
+      // Release previous COPY_FROM buffers (they escape into output geometry)
+      for(auto* buf : binding.copyFromBuffers)
+        renderer.releaseBuffer(buf);
+      binding.copyFromBuffers.clear();
+
       // Full rebuild: allocate new mesh_list and populate from scratch
       auto meshes = std::make_shared<ossia::mesh_list>();
       ossia::geometry out_geo;
@@ -1758,9 +1762,6 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
       {
         if(!attr_req.forward)
           continue;
-        qDebug() << "CSF COPY_FROM: processing" << attr_req.name.c_str()
-                 << "forward.geo=" << attr_req.forward->geometry.c_str()
-                 << "forward.attr=" << attr_req.forward->attribute.c_str();
 
         // Already present in output?
         bool already_present = false;
@@ -1774,7 +1775,6 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
         }
         if(already_present)
         {
-          qDebug() << "CSF COPY_FROM:" << attr_req.name.c_str() << "already present, skipping";
           continue;
         }
 
@@ -1805,21 +1805,14 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
 
           if(!found_geo)
           {
-            qDebug() << "CSF COPY_FROM: geometry" << src_geo_name.c_str()
-                     << "not matched at port" << port_idx;
             continue;
           }
 
           const auto& src_mesh = geo_spec.meshes->meshes[0];
           // Find the source attribute by name
-          qDebug() << "CSF COPY_FROM: searching" << src_mesh.attributes.size()
-                   << "attrs for" << src_attr_name.c_str();
           for(const auto& in_attr : src_mesh.attributes)
           {
             std::string_view attr_display = ossia::geometry::display_name(in_attr);
-            qDebug() << "  checking sem=" << (int)in_attr.semantic
-                     << "name=" << in_attr.name.c_str()
-                     << "display=" << std::string(attr_display).c_str();
             bool name_match = (!src_attr_name.empty() && attr_display == src_attr_name);
             if(!name_match)
             {
@@ -1853,8 +1846,8 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
                 gpu_buf->setName(QByteArray("CSF_CopyFrom_") + attr_req.name.c_str());
                 gpu_buf->create();
                 res.uploadStaticBuffer(gpu_buf, 0, cpu->byte_size, cpu->raw_data.get());
-                qDebug() << "CSF COPY_FROM: UPLOAD" << attr_req.name.c_str()
-                         << "size=" << cpu->byte_size;
+
+                binding.copyFromBuffers.push_back(gpu_buf);
 
                 out_geo.buffers.push_back({
                     .data = ossia::geometry::gpu_buffer{gpu_buf, cpu->byte_size},
@@ -2122,7 +2115,6 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
       // so downstream acquireMesh picks up the new buffers.
       if(any_handle_changed)
       {
-        qDebug() << "CSF pushOutput: FAST PATH handle changed for" << input.name.c_str();
         binding.outputGeometry.meshes->dirty_index++;
       }
     }
@@ -3528,6 +3520,9 @@ void RenderedCSFNode::release(RenderList& r)
       }
       aux.buffer = nullptr;
     }
+    for(auto* buf : binding.copyFromBuffers)
+      r.releaseBuffer(buf);
+    binding.copyFromBuffers.clear();
 #if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
     if(binding.indirectDrawBuffer)
     {
@@ -3788,27 +3783,6 @@ void RenderedCSFNode::runInitialPasses(
       const auto threadsPerWorkgroup = localX * localY * localZ;
       const int64_t totalWorkgroups = (requiredInvocations + threadsPerWorkgroup * strideX - 1)
                                       / (threadsPerWorkgroup * strideX);
-      qDebug() << "CSF dispatch:"
-               << "shader=" << ((ISFNode&)this->node).m_descriptor.description.c_str()
-               << "frame=" << ((ISFNode&)this->node).standardUBO.frameIndex << "pass"
-               << passIndex << "type=" << passDesc.execution_type.c_str() << "n=" << n
-               << "local=" << threadsPerWorkgroup << "workgroups=" << totalWorkgroups;
-      // Log SSBO sizes on first pass only
-      if(passIndex == 0)
-      {
-        for(int gi = 0; gi < (int)m_geometryBindings.size(); gi++)
-        {
-          const auto& gb = m_geometryBindings[gi];
-          for(int ai = 0; ai < (int)gb.attribute_ssbos.size(); ai++)
-          {
-            const auto& s = gb.attribute_ssbos[ai];
-            if(s.buffer)
-              qDebug() << "  geo" << gi << "ssbo" << ai << s.name.c_str()
-                       << "buf=" << (void*)s.buffer
-                       << "size=" << s.size << "access=" << s.access.c_str();
-          }
-        }
-      }
       static constexpr int64_t maxWorkgroups = 65535;
 
       if(totalWorkgroups > maxWorkgroups * maxWorkgroups * maxWorkgroups)
