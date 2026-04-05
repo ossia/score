@@ -112,3 +112,6 @@
 [submodule "3rdparty/xtl"]
 	path = 3rdparty/xtl
 	url = https://github.com/xtensor-stack/xtl
+[submodule "3rdparty/opengametools"]
+	path = 3rdparty/opengametools
+	url = https://github.com/jpaver/opengametools

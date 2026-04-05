@@ -153,6 +153,14 @@ private:
     bool is_feedback_receiver{false};    // true = uses ping-pong double buffering for read_write attrs
     bool pending_initial_copy{false};    // first frame after read_buffer allocated: use same-buffer mode, then copy buffer→read_buffer
 
+    // Persistent output geometry — reused across frames to avoid per-frame shared_ptr allocation.
+    // Updated in-place; dirty_index incremented when structure or handles change.
+    ossia::geometry_spec outputGeometry;
+    int prev_vertex_count{-1};   // Track structural changes
+    int prev_instance_count{-1};
+    int prev_attribute_count{-1};
+    int prev_upstream_attr_count{-1};
+
 #if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
     QRhiBuffer* indirectDrawBuffer{};   // StorageBuffer | IndirectBuffer for GPU-driven draw args
     bool uses_indirect_draw{false};     // true when geometry_input has INDIRECT_DRAW: true
@@ -160,9 +168,6 @@ private:
 #endif
   };
   std::vector<GeometryBinding> m_geometryBindings;
-
-  // Output geometry spec pushed to downstream nodes
-  ossia::geometry_spec m_outputGeometry;
 
   QRhiBuffer* m_materialUBO{};
   int m_materialSize{};

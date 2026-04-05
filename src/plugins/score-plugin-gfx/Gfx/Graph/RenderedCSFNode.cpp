@@ -1392,16 +1392,7 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, Edge& edge)
       continue;
     }
 
-    // Build output geometry_spec with the modified SSBO handles
-    auto meshes = std::make_shared<ossia::mesh_list>();
-    ossia::geometry out_geo;
-    out_geo.vertices = binding.vertex_count;
-    out_geo.instances = binding.instance_count;
-    out_geo.topology = ossia::geometry::points;
-    out_geo.cull_mode = ossia::geometry::none;
-    out_geo.front_face = ossia::geometry::counter_clockwise;
-
-    // Copy bounds from this binding's upstream geometry if available
+    // Determine upstream geometry for this binding
     const ossia::geometry* binding_upstream = nullptr;
     if(binding.input_port_index >= 0)
     {
@@ -1412,229 +1403,375 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, Edge& edge)
         binding_upstream = &it->second.meshes->meshes[0];
       }
     }
-    if(binding_upstream)
-      out_geo.bounds = binding_upstream->bounds;
 
-    for(int attr_idx = 0; attr_idx < (int)geo_input->attributes.size(); attr_idx++)
-    {
-      if(attr_idx >= (int)binding.attribute_ssbos.size())
-        break;
-
-      const auto& req = geo_input->attributes[attr_idx];
-      auto& ssbo = binding.attribute_ssbos[attr_idx];
-
-      if(!ssbo.buffer)
-        continue;
-
-      // Each attribute gets its own buffer (SoA)
-      const int buf_index = (int)out_geo.buffers.size();
-      const int elem_size = glslTypeSizeBytes(req.type);
-
-      ossia::geometry::buffer buf{
-          .data = ossia::geometry::gpu_buffer{ssbo.buffer, ssbo.size},
-          .dirty = false};
-      out_geo.buffers.push_back(std::move(buf));
-
-      ossia::geometry::binding bind;
-      bind.byte_stride = elem_size;
-      bind.classification = ssbo.per_instance
-          ? ossia::geometry::binding::per_instance
-          : ossia::geometry::binding::per_vertex;
-      bind.step_rate = ssbo.per_instance ? 1 : 0;
-      out_geo.bindings.push_back(bind);
-
-      ossia::geometry::attribute attr;
-      attr.binding = buf_index;
-      attr.location = attr_idx;
-      const auto sem = ossia::name_to_semantic(req.semantic);
-      attr.semantic = sem;
-      if(sem == ossia::attribute_semantic::custom)
-        attr.name = req.name;
-
-      // Map GLSL type to format enum
-      if(req.type == "vec4") attr.format = ossia::geometry::attribute::float4;
-      else if(req.type == "vec3") attr.format = ossia::geometry::attribute::float3;
-      else if(req.type == "vec2") attr.format = ossia::geometry::attribute::float2;
-      else if(req.type == "float") attr.format = ossia::geometry::attribute::float1;
-      else if(req.type == "ivec4" || req.type == "uvec4") attr.format = ossia::geometry::attribute::uint4;
-      else if(req.type == "ivec3" || req.type == "uvec3") attr.format = ossia::geometry::attribute::uint3;
-      else if(req.type == "ivec2" || req.type == "uvec2") attr.format = ossia::geometry::attribute::uint2;
-      else if(req.type == "int" || req.type == "uint") attr.format = ossia::geometry::attribute::uint1;
-      else attr.format = ossia::geometry::attribute::float4;
-
-      attr.byte_offset = 0;
-      out_geo.attributes.push_back(attr);
-
-      struct ossia::geometry::input geo_inp;
-      geo_inp.buffer = buf_index;
-      geo_inp.byte_offset = 0;
-      out_geo.input.push_back(geo_inp);
-    }
-
-    // Forward upstream attributes that this node didn't declare (pass-through).
-    // e.g. if upstream has position+color but this node only declared position,
-    // color must be forwarded so downstream nodes can still access it.
+    // Count upstream pass-through attributes for structural change detection
+    int upstream_attr_count = 0;
     if(binding_upstream)
     {
-      const auto& in_mesh = *binding_upstream;
-      for(const auto& in_attr : in_mesh.attributes)
+      for(const auto& in_attr : binding_upstream->attributes)
       {
-        // Check if this attribute was already output by the node's declared attributes
-        bool already_present = false;
-        for(const auto& out_attr : out_geo.attributes)
+        bool already_declared = false;
+        for(const auto& req : geo_input->attributes)
         {
+          const auto sem = ossia::name_to_semantic(req.semantic);
           if(in_attr.semantic != ossia::attribute_semantic::custom)
           {
-            if(out_attr.semantic == in_attr.semantic)
-            {
-              already_present = true;
-              break;
-            }
+            if(sem == in_attr.semantic) { already_declared = true; break; }
           }
           else
           {
-            if(out_attr.name == in_attr.name)
-            {
-              already_present = true;
-              break;
-            }
+            if(req.name == in_attr.name) { already_declared = true; break; }
           }
         }
-        if(already_present)
-          continue;
+        if(!already_declared)
+          upstream_attr_count++;
+      }
+    }
 
-        // Forward this attribute from upstream
-        if(in_attr.binding < 0 || in_attr.binding >= (int)in_mesh.buffers.size())
+    // Detect structural changes that require rebuilding the geometry from scratch
+    const int cur_attr_count = (int)geo_input->attributes.size();
+    bool structure_changed =
+        !binding.outputGeometry.meshes
+        || binding.prev_vertex_count != binding.vertex_count
+        || binding.prev_instance_count != binding.instance_count
+        || binding.prev_attribute_count != cur_attr_count
+        || binding.prev_upstream_attr_count != upstream_attr_count;
+
+    if(structure_changed)
+    {
+      // Full rebuild: allocate new mesh_list and populate from scratch
+      auto meshes = std::make_shared<ossia::mesh_list>();
+      ossia::geometry out_geo;
+      out_geo.vertices = binding.vertex_count;
+      out_geo.instances = binding.instance_count;
+      out_geo.topology = ossia::geometry::points;
+      out_geo.cull_mode = ossia::geometry::none;
+      out_geo.front_face = ossia::geometry::counter_clockwise;
+
+      if(binding_upstream)
+        out_geo.bounds = binding_upstream->bounds;
+
+      for(int attr_idx = 0; attr_idx < (int)geo_input->attributes.size(); attr_idx++)
+      {
+        if(attr_idx >= (int)binding.attribute_ssbos.size())
+          break;
+
+        const auto& req = geo_input->attributes[attr_idx];
+        auto& ssbo = binding.attribute_ssbos[attr_idx];
+
+        if(!ssbo.buffer)
           continue;
 
         const int buf_index = (int)out_geo.buffers.size();
-        out_geo.buffers.push_back(in_mesh.buffers[in_attr.binding]);
+        const int elem_size = glslTypeSizeBytes(req.type);
+
+        ossia::geometry::buffer buf{
+            .data = ossia::geometry::gpu_buffer{ssbo.buffer, ssbo.size},
+            .dirty = false};
+        out_geo.buffers.push_back(std::move(buf));
 
         ossia::geometry::binding bind;
-        if(in_attr.binding < (int)in_mesh.bindings.size())
-          bind = in_mesh.bindings[in_attr.binding];
-        else
-          bind.classification = ossia::geometry::binding::per_vertex;
+        bind.byte_stride = elem_size;
+        bind.classification = ssbo.per_instance
+            ? ossia::geometry::binding::per_instance
+            : ossia::geometry::binding::per_vertex;
+        bind.step_rate = ssbo.per_instance ? 1 : 0;
         out_geo.bindings.push_back(bind);
 
-        ossia::geometry::attribute attr = in_attr;
+        ossia::geometry::attribute attr;
         attr.binding = buf_index;
-        attr.location = (int)out_geo.attributes.size();
+        attr.location = attr_idx;
+        const auto sem = ossia::name_to_semantic(req.semantic);
+        attr.semantic = sem;
+        if(sem == ossia::attribute_semantic::custom)
+          attr.name = req.name;
+
+        if(req.type == "vec4") attr.format = ossia::geometry::attribute::float4;
+        else if(req.type == "vec3") attr.format = ossia::geometry::attribute::float3;
+        else if(req.type == "vec2") attr.format = ossia::geometry::attribute::float2;
+        else if(req.type == "float") attr.format = ossia::geometry::attribute::float1;
+        else if(req.type == "ivec4" || req.type == "uvec4") attr.format = ossia::geometry::attribute::uint4;
+        else if(req.type == "ivec3" || req.type == "uvec3") attr.format = ossia::geometry::attribute::uint3;
+        else if(req.type == "ivec2" || req.type == "uvec2") attr.format = ossia::geometry::attribute::uint2;
+        else if(req.type == "int" || req.type == "uint") attr.format = ossia::geometry::attribute::uint1;
+        else attr.format = ossia::geometry::attribute::float4;
+
+        attr.byte_offset = 0;
         out_geo.attributes.push_back(attr);
 
-        struct ossia::geometry::input inp;
-        inp.buffer = buf_index;
-        inp.byte_offset = 0;
-        out_geo.input.push_back(inp);
+        struct ossia::geometry::input geo_inp;
+        geo_inp.buffer = buf_index;
+        geo_inp.byte_offset = 0;
+        out_geo.input.push_back(geo_inp);
       }
-    }
 
-    // Attach geometry-level auxiliary SSBOs as auxiliary buffers
-    for(const auto& aux : binding.auxiliary_ssbos)
-    {
-      if(aux.buffer)
+      // Forward upstream attributes not declared by this node
+      if(binding_upstream)
       {
-        const int aux_buf_idx = (int)out_geo.buffers.size();
-        ossia::geometry::buffer buf{
-            .data = ossia::geometry::gpu_buffer{aux.buffer, aux.size},
-            .dirty = false};
-        out_geo.buffers.push_back(std::move(buf));
-
-        ossia::geometry::auxiliary_buffer ab;
-        ab.name = aux.name;
-        ab.buffer = aux_buf_idx;
-        ab.byte_offset = 0;
-        ab.byte_size = aux.size;
-        out_geo.auxiliary.push_back(std::move(ab));
-      }
-    }
-
-    // Attach standalone storage buffers as auxiliary buffers on the output geometry,
-    // so they travel with the geometry to downstream nodes.
-    for(const auto& sb : m_storageBuffers)
-    {
-      if(sb.buffer)
-      {
-        const int aux_buf_idx = (int)out_geo.buffers.size();
-        ossia::geometry::buffer buf{
-            .data = ossia::geometry::gpu_buffer{sb.buffer, sb.size},
-            .dirty = false};
-        out_geo.buffers.push_back(std::move(buf));
-
-        ossia::geometry::auxiliary_buffer aux;
-        aux.name = sb.name.toStdString();
-        aux.buffer = aux_buf_idx;
-        aux.byte_offset = 0;
-        aux.byte_size = sb.size;
-        out_geo.auxiliary.push_back(std::move(aux));
-      }
-    }
-
-    // Also forward any auxiliary buffers from this binding's upstream geometry
-    if(binding_upstream)
-    {
-      const auto& in_mesh = *binding_upstream;
-      for(const auto& in_aux : in_mesh.auxiliary)
-      {
-        // Skip if we already have a buffer with this name
-        // (our version takes precedence)
-        bool already_present = false;
-        for(const auto& sb : m_storageBuffers)
+        const auto& in_mesh = *binding_upstream;
+        for(const auto& in_attr : in_mesh.attributes)
         {
-          if(sb.name.toStdString() == in_aux.name)
+          bool already_present = false;
+          for(const auto& out_attr : out_geo.attributes)
           {
-            already_present = true;
-            break;
+            if(in_attr.semantic != ossia::attribute_semantic::custom)
+            {
+              if(out_attr.semantic == in_attr.semantic) { already_present = true; break; }
+            }
+            else
+            {
+              if(out_attr.name == in_attr.name) { already_present = true; break; }
+            }
           }
-        }
-        for(const auto& aux : binding.auxiliary_ssbos)
-        {
-          if(aux.name == in_aux.name)
-          {
-            already_present = true;
-            break;
-          }
-        }
-        if(already_present)
-          continue;
+          if(already_present)
+            continue;
 
-        if(in_aux.buffer >= 0 && in_aux.buffer < (int)in_mesh.buffers.size())
+          if(in_attr.binding < 0 || in_attr.binding >= (int)in_mesh.buffers.size())
+            continue;
+
+          const int buf_index = (int)out_geo.buffers.size();
+          out_geo.buffers.push_back(in_mesh.buffers[in_attr.binding]);
+
+          ossia::geometry::binding bind;
+          if(in_attr.binding < (int)in_mesh.bindings.size())
+            bind = in_mesh.bindings[in_attr.binding];
+          else
+            bind.classification = ossia::geometry::binding::per_vertex;
+          out_geo.bindings.push_back(bind);
+
+          ossia::geometry::attribute attr = in_attr;
+          attr.binding = buf_index;
+          attr.location = (int)out_geo.attributes.size();
+          out_geo.attributes.push_back(attr);
+
+          struct ossia::geometry::input inp;
+          inp.buffer = buf_index;
+          inp.byte_offset = 0;
+          out_geo.input.push_back(inp);
+        }
+      }
+
+      // Attach geometry-level auxiliary SSBOs
+      for(const auto& aux : binding.auxiliary_ssbos)
+      {
+        if(aux.buffer)
         {
           const int aux_buf_idx = (int)out_geo.buffers.size();
-          out_geo.buffers.push_back(in_mesh.buffers[in_aux.buffer]);
+          out_geo.buffers.push_back({
+              .data = ossia::geometry::gpu_buffer{aux.buffer, aux.size},
+              .dirty = false});
 
-          ossia::geometry::auxiliary_buffer aux;
-          aux.name = in_aux.name;
-          aux.buffer = aux_buf_idx;
-          aux.byte_offset = in_aux.byte_offset;
-          aux.byte_size = in_aux.byte_size;
-          out_geo.auxiliary.push_back(std::move(aux));
+          out_geo.auxiliary.push_back({
+              .name = aux.name, .buffer = aux_buf_idx,
+              .byte_offset = 0, .byte_size = aux.size});
         }
       }
-    }
+
+      // Attach standalone storage buffers as auxiliary
+      for(const auto& sb : m_storageBuffers)
+      {
+        if(sb.buffer)
+        {
+          const int aux_buf_idx = (int)out_geo.buffers.size();
+          out_geo.buffers.push_back({
+              .data = ossia::geometry::gpu_buffer{sb.buffer, sb.size},
+              .dirty = false});
+
+          out_geo.auxiliary.push_back({
+              .name = sb.name.toStdString(), .buffer = aux_buf_idx,
+              .byte_offset = 0, .byte_size = sb.size});
+        }
+      }
+
+      // Forward upstream auxiliary buffers
+      if(binding_upstream)
+      {
+        const auto& in_mesh = *binding_upstream;
+        for(const auto& in_aux : in_mesh.auxiliary)
+        {
+          bool already_present = false;
+          for(const auto& sb : m_storageBuffers)
+            if(sb.name.toStdString() == in_aux.name) { already_present = true; break; }
+          for(const auto& aux : binding.auxiliary_ssbos)
+            if(aux.name == in_aux.name) { already_present = true; break; }
+          if(already_present)
+            continue;
+
+          if(in_aux.buffer >= 0 && in_aux.buffer < (int)in_mesh.buffers.size())
+          {
+            const int aux_buf_idx = (int)out_geo.buffers.size();
+            out_geo.buffers.push_back(in_mesh.buffers[in_aux.buffer]);
+            out_geo.auxiliary.push_back({
+                .name = in_aux.name, .buffer = aux_buf_idx,
+                .byte_offset = in_aux.byte_offset, .byte_size = in_aux.byte_size});
+          }
+        }
+      }
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
-    // Propagate indirect draw buffer to downstream geometry
-    if(binding.uses_indirect_draw && binding.indirectDrawBuffer)
-    {
-      out_geo.indirect_count = ossia::geometry::gpu_buffer{
-          binding.indirectDrawBuffer,
-          binding.indirect_draw_indexed
-              ? (int64_t)sizeof(QRhiIndexedIndirectDrawCommand)
-              : (int64_t)sizeof(QRhiIndirectDrawCommand)};
-    }
+      if(binding.uses_indirect_draw && binding.indirectDrawBuffer)
+      {
+        out_geo.indirect_count = ossia::geometry::gpu_buffer{
+            binding.indirectDrawBuffer,
+            binding.indirect_draw_indexed
+                ? (int64_t)sizeof(QRhiIndexedIndirectDrawCommand)
+                : (int64_t)sizeof(QRhiIndirectDrawCommand)};
+      }
 #endif
 
-    meshes->meshes.push_back(std::move(out_geo));
+      meshes->meshes.push_back(std::move(out_geo));
+      meshes->dirty_index = 1; // Initial structural build
 
-    m_outputGeometry.meshes = meshes;
-    m_outputGeometry.filters = {};
+      binding.outputGeometry.meshes = meshes;
+      binding.outputGeometry.filters = {};
+      binding.prev_vertex_count = binding.vertex_count;
+      binding.prev_instance_count = binding.instance_count;
+      binding.prev_attribute_count = cur_attr_count;
+      binding.prev_upstream_attr_count = upstream_attr_count;
+    }
+    else
+    {
+      // Fast path: same structure, just update buffer handles in place.
+      // The mesh_list shared_ptr stays the same → downstream sees same pointer
+      // → geometryChanged not set → no pipeline recreation.
+      auto& out_geo = binding.outputGeometry.meshes->meshes[0];
+      out_geo.vertices = binding.vertex_count;
+      out_geo.instances = binding.instance_count;
 
-    // Find the geometry output port and push to downstream
-    // The output ports are ordered: first image output, then storage outputs,
-    // then geometry outputs
+      if(binding_upstream)
+        out_geo.bounds = binding_upstream->bounds;
+
+      // Update declared attribute buffer handles
+      bool any_handle_changed = false;
+      int buf_idx = 0;
+      for(int attr_idx = 0; attr_idx < (int)geo_input->attributes.size(); attr_idx++)
+      {
+        if(attr_idx >= (int)binding.attribute_ssbos.size())
+          break;
+        auto& ssbo = binding.attribute_ssbos[attr_idx];
+        if(!ssbo.buffer)
+          continue;
+
+        if(buf_idx < (int)out_geo.buffers.size())
+        {
+          auto& buf = out_geo.buffers[buf_idx];
+          auto* gpu = ossia::get_if<ossia::geometry::gpu_buffer>(&buf.data);
+          if(gpu && (gpu->handle != ssbo.buffer || gpu->byte_size != ssbo.size))
+          {
+            gpu->handle = ssbo.buffer;
+            gpu->byte_size = ssbo.size;
+            buf.dirty = true;
+            any_handle_changed = true;
+          }
+        }
+        buf_idx++;
+      }
+
+      // Update pass-through attribute buffer handles
+      if(binding_upstream)
+      {
+        const auto& in_mesh = *binding_upstream;
+        for(const auto& in_attr : in_mesh.attributes)
+        {
+          bool already_declared = false;
+          for(const auto& req : geo_input->attributes)
+          {
+            const auto sem = ossia::name_to_semantic(req.semantic);
+            if(in_attr.semantic != ossia::attribute_semantic::custom)
+            {
+              if(sem == in_attr.semantic) { already_declared = true; break; }
+            }
+            else
+            {
+              if(req.name == in_attr.name) { already_declared = true; break; }
+            }
+          }
+          if(already_declared)
+            continue;
+
+          if(in_attr.binding >= 0 && in_attr.binding < (int)in_mesh.buffers.size()
+             && buf_idx < (int)out_geo.buffers.size())
+          {
+            auto& src = in_mesh.buffers[in_attr.binding];
+            auto& dst = out_geo.buffers[buf_idx];
+            if(auto* src_gpu = ossia::get_if<ossia::geometry::gpu_buffer>(&src.data))
+            {
+              auto* dst_gpu = ossia::get_if<ossia::geometry::gpu_buffer>(&dst.data);
+              if(dst_gpu && (dst_gpu->handle != src_gpu->handle || dst_gpu->byte_size != src_gpu->byte_size))
+              {
+                dst_gpu->handle = src_gpu->handle;
+                dst_gpu->byte_size = src_gpu->byte_size;
+                dst.dirty = true;
+                any_handle_changed = true;
+              }
+            }
+            else
+            {
+              // CPU buffer — just copy
+              dst = src;
+              dst.dirty = true;
+              any_handle_changed = true;
+            }
+          }
+          buf_idx++;
+        }
+      }
+
+      // Update auxiliary buffer handles
+      int aux_buf_start = buf_idx;
+      for(const auto& aux : binding.auxiliary_ssbos)
+      {
+        if(aux.buffer && buf_idx < (int)out_geo.buffers.size())
+        {
+          auto& buf = out_geo.buffers[buf_idx];
+          auto* gpu = ossia::get_if<ossia::geometry::gpu_buffer>(&buf.data);
+          if(gpu && (gpu->handle != aux.buffer || gpu->byte_size != aux.size))
+          {
+            gpu->handle = aux.buffer;
+            gpu->byte_size = aux.size;
+            buf.dirty = true;
+            any_handle_changed = true;
+          }
+          buf_idx++;
+        }
+      }
+
+      for(const auto& sb : m_storageBuffers)
+      {
+        if(sb.buffer && buf_idx < (int)out_geo.buffers.size())
+        {
+          auto& buf = out_geo.buffers[buf_idx];
+          auto* gpu = ossia::get_if<ossia::geometry::gpu_buffer>(&buf.data);
+          if(gpu && (gpu->handle != sb.buffer || gpu->byte_size != sb.size))
+          {
+            gpu->handle = sb.buffer;
+            gpu->byte_size = sb.size;
+            buf.dirty = true;
+            any_handle_changed = true;
+          }
+          buf_idx++;
+        }
+      }
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
+      if(binding.uses_indirect_draw && binding.indirectDrawBuffer)
+      {
+        out_geo.indirect_count = ossia::geometry::gpu_buffer{
+            binding.indirectDrawBuffer,
+            binding.indirect_draw_indexed
+                ? (int64_t)sizeof(QRhiIndexedIndirectDrawCommand)
+                : (int64_t)sizeof(QRhiIndirectDrawCommand)};
+      }
+#endif
+
+      // Only bump dirty_index if any handle actually changed,
+      // so downstream acquireMesh picks up the new buffers.
+      if(any_handle_changed)
+        binding.outputGeometry.meshes->dirty_index++;
+    }
+
+    // Push to downstream
     const auto& outlets = n.output;
-    // Walk descriptor inputs to count outlet index for this geometry output
     int outlet_idx = 0;
     for(const auto& inp : n.m_descriptor.inputs)
     {
@@ -1650,15 +1787,13 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, Edge& edge)
       }
       else if(ossia::get_if<isf::geometry_input>(&inp.data))
       {
-        break; // this is our geometry_input
+        break;
       }
     }
     outlet_idx += geo_output_idx;
 
-    // Check if default image output exists (always first)
-    // Usually outlet[0] is the image output, geometry outputs come after
     if(!outlets.empty() && outlets[0]->type == Types::Image)
-      outlet_idx++; // skip the default image output
+      outlet_idx++;
 
     if(outlet_idx < (int)outlets.size())
     {
@@ -1679,7 +1814,7 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, Edge& edge)
           continue;
 
         int port_idx = it - sink->node->input.begin();
-        rendered->second->process(port_idx, m_outputGeometry);
+        rendered->second->process(port_idx, binding.outputGeometry);
       }
     }
 
