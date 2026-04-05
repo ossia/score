@@ -71,7 +71,15 @@ struct BackgroundNode : OutputNode
         QRhiTexture::RGBA8, m_renderState->renderSize, 1,
         QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource);
     m_texture->create();
-    m_renderTarget = rhi->newTextureRenderTarget({m_texture});
+
+    m_depthBuffer = rhi->newRenderBuffer(
+        QRhiRenderBuffer::DepthStencil, m_renderState->renderSize);
+    m_depthBuffer->create();
+
+    QRhiTextureRenderTargetDescription desc;
+    desc.setColorAttachments({QRhiColorAttachment(m_texture)});
+    desc.setDepthStencilBuffer(m_depthBuffer);
+    m_renderTarget = rhi->newTextureRenderTarget(desc);
     m_renderState->renderPassDescriptor
         = m_renderTarget->newCompatibleRenderPassDescriptor();
     m_renderTarget->setRenderPassDescriptor(m_renderState->renderPassDescriptor);
@@ -119,7 +127,18 @@ struct BackgroundNode : OutputNode
       m_texture->destroy();
       m_texture->setPixelSize(newSz);
       m_texture->create();
-      m_renderTarget = rhi->newTextureRenderTarget({m_texture});
+
+      if(m_depthBuffer)
+        m_depthBuffer->destroy();
+      else
+        m_depthBuffer = rhi->newRenderBuffer(QRhiRenderBuffer::DepthStencil, newSz);
+      m_depthBuffer->setPixelSize(newSz);
+      m_depthBuffer->create();
+
+      QRhiTextureRenderTargetDescription desc;
+      desc.setColorAttachments({QRhiColorAttachment(m_texture)});
+      desc.setDepthStencilBuffer(m_depthBuffer);
+      m_renderTarget = rhi->newTextureRenderTarget(desc);
       m_renderState->renderPassDescriptor
           = m_renderTarget->newCompatibleRenderPassDescriptor();
       m_renderTarget->setRenderPassDescriptor(m_renderState->renderPassDescriptor);
@@ -151,6 +170,7 @@ private:
 
   std::weak_ptr<score::gfx::RenderList> m_renderer{};
   QRhiTexture* m_texture{};
+  QRhiRenderBuffer* m_depthBuffer{};
   QRhiTextureRenderTarget* m_renderTarget{};
   std::shared_ptr<score::gfx::RenderState> m_renderState{};
 
