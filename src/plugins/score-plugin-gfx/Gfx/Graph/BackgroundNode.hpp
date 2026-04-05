@@ -88,7 +88,26 @@ struct BackgroundNode : OutputNode
     conf.onReady();
   }
 
-  void destroyOutput() override { }
+  void destroyOutput() override
+  {
+    if(m_renderState)
+    {
+      delete m_renderTarget;
+      m_renderTarget = nullptr;
+
+      delete m_depthBuffer;
+      m_depthBuffer = nullptr;
+
+      delete m_texture;
+      m_texture = nullptr;
+
+      delete m_renderState->renderPassDescriptor;
+      m_renderState->renderPassDescriptor = nullptr;
+
+      m_renderState->destroy();
+      m_renderState.reset();
+    }
+  }
   void updateGraphicsAPI(GraphicsApi) override { }
 
   void setSize(QSize newSz)
@@ -134,6 +153,9 @@ struct BackgroundNode : OutputNode
         m_depthBuffer = rhi->newRenderBuffer(QRhiRenderBuffer::DepthStencil, newSz);
       m_depthBuffer->setPixelSize(newSz);
       m_depthBuffer->create();
+
+      delete m_renderTarget;
+      delete m_renderState->renderPassDescriptor;
 
       QRhiTextureRenderTargetDescription desc;
       desc.setColorAttachments({QRhiColorAttachment(m_texture)});
