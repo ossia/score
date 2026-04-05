@@ -80,6 +80,7 @@ struct color_input
 struct image_input
 {
   int dimensions{2}; // 2 or 3
+  bool depth{false}; // true = shader wants sampleable depth on this input
 };
 
 struct cubemap_input

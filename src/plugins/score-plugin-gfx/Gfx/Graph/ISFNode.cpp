@@ -106,6 +106,8 @@ struct isf_input_port_vis
   void operator()(const isf::image_input& in) noexcept
   {
     auto flags = in.dimensions == 3 ? Flag::GrabsFromSource : Flag{};
+    if(in.depth)
+      flags = flags | Flag::SamplableDepth;
     self.input.push_back(new Port{&self, {}, Types::Image, flags, {}});
   }
 

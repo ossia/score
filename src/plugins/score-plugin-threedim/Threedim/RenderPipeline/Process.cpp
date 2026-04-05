@@ -7,6 +7,7 @@
 #include <Gfx/ISFProcess.hpp>
 #include <Gfx/TexturePort.hpp>
 
+#include <QDir>
 #include <QFileInfo>
 #include <QImageReader>
 
@@ -17,12 +18,29 @@ namespace Gfx::RenderPipeline
 {
 
 Model::Model(
-    const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
+    const TimeVal& duration, const QString& init, const Id<Process::ProcessModel>& id,
+    QObject* parent)
     : Process::ProcessModel{duration, id, "gfxProcess", parent}
 {
   metadata().setInstanceName(*this);
 
-  init();
+  {
+    if(QFileInfo fi{init}; fi.isFile())
+    {
+      if(QFile fs{init}; fs.open(QIODevice::ReadOnly))
+      {
+        QFile vs{fi.absolutePath() + QDir::separator() + fi.baseName() + ".vs"};
+        if(vs.open(QIODevice::ReadOnly))
+        {
+          (void)setProgram(
+              {ShaderSource::ProgramType::RawRasterPipeline, vs.readAll(),
+               fs.readAll()});
+          return;
+        }
+      }
+    }
+  }
+  this->init();
 }
 
 Model::~Model() = default;

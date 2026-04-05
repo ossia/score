@@ -208,6 +208,11 @@ void NodeRenderer::runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge&
 
 void NodeRenderer::process(int32_t port, const ossia::geometry_spec& v)
 {
+  // Store per-port for multi-geometry-port nodes (CSF)
+  m_portGeometries[port] = v;
+
+  // Backward compat: keep the single geometry field updated
+  // (used by GenericNodeRenderer, RenderedRawRasterPipelineNode, etc.)
   if(this->geometry != v)
   {
     this->geometry = v;

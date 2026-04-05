@@ -37,9 +37,87 @@
 
 #include <score_plugin_engine.hpp>
 #include <score_plugin_threedim_commands_files.hpp>
+namespace Gfx
+{
+
+class RawRasterLibraryHandler final : public Library::LibraryInterface
+{
+  SCORE_CONCRETE("439554e9-fabd-489b-b79e-84273aed0831")
+
+  QSet<QString> acceptedFiles() const noexcept override;
+
+  void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
+      override;
+
+  void addPath(std::string_view path) override;
+  QWidget* previewWidget(const QString& path, QWidget* parent) const noexcept override;
+  QWidget*
+  previewWidget(const Process::Preset& path, QWidget* parent) const noexcept override;
+
+  Library::Subcategories categories;
+};
+
+QSet<QString> RawRasterLibraryHandler::acceptedFiles() const noexcept
+{
+  return {"fs", "frag"};
+}
+
+void RawRasterLibraryHandler::setup(
+    Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
+{
+  // TODO relaunch whenever library path changes...
+  const auto& key = Metadata<ConcreteKey_k, Gfx::RenderPipeline::Model>::get();
+  QModelIndex node = model.find(key);
+  if(node == QModelIndex{})
+    return;
+
+  categories.init(
+      Metadata<PrettyName_k, Gfx::RenderPipeline::Model>::get().toStdString(), node,
+      ctx);
+}
+
+void RawRasterLibraryHandler::addPath(std::string_view path)
+{
+  // FIXME addAsync!
+  score::PathInfo file{path};
+  QFile f{file.absoluteFilePath.data()};
+  if(!f.open(QIODevice::ReadOnly))
+    return;
+  auto sz = std::min((int64_t)4096, (int64_t)f.size());
+  auto mapped = f.map(0, sz);
+  if(!mapped)
+    return;
+
+  const auto haystack = std::span<const char>((const char*)mapped, sz);
+  const auto needle = std::string_view("\"RAW_RASTER_PIPELINE\"");
+  if(std::search(haystack.begin(), haystack.end(), needle.begin(), needle.end())
+     == haystack.end())
+    return;
+
+  Library::ProcessData pdata;
+  pdata.prettyName
+      = QString::fromUtf8(file.completeBaseName.data(), file.completeBaseName.size());
+  pdata.key = Metadata<ConcreteKey_k, Gfx::RenderPipeline::Model>::get();
+  pdata.customData = QString::fromUtf8(path.data(), path.size());
+  categories.add(file, std::move(pdata));
+}
+
+QWidget* RawRasterLibraryHandler::previewWidget(
+    const QString& path, QWidget* parent) const noexcept
+{
+  return nullptr;
+}
+
+QWidget* RawRasterLibraryHandler::previewWidget(
+    const Process::Preset& path, QWidget* parent) const noexcept
+{
+  return nullptr;
+}
+}
 
 namespace Threedim
 {
+
 class SSynthLibraryHandler final
     : public QObject
     , public Library::LibraryInterface
@@ -216,7 +294,7 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
          Gfx::RenderPipeline::ProcessFactory, Gfx::Splat::ProcessFactory>,
       FW<Process::LayerFactory, Gfx::RenderPipeline::LayerFactory>,
       FW<Library::LibraryInterface, Threedim::SSynthLibraryHandler,
-         Threedim::OBJLibraryHandler>,
+         Threedim::OBJLibraryHandler, Gfx::RawRasterLibraryHandler>,
       FW<Process::ProcessDropHandler, Threedim::SSynthDropHandler,
          Threedim::OBJDropHandler>,
       FW<Execution::ProcessComponentFactory,

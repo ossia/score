@@ -26,7 +26,8 @@ enum class Flag : uint32_t
 {
   // Grabs texture at the source instead of
   // asking it to render. Used for instance to get cubemap textures.
-  GrabsFromSource = (1 << 0)
+  GrabsFromSource = (1 << 0),
+  SamplableDepth = (1 << 1)
 };
 
 static constexpr inline Flag operator&(Flag lhs, Flag rhs)

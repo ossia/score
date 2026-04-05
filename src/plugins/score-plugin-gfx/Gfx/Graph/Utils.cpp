@@ -8,7 +8,7 @@
 namespace score::gfx
 {
 TextureRenderTarget
-createRenderTarget(const RenderState& state, QRhiTexture* tex, int samples, bool depth)
+createRenderTarget(const RenderState& state, QRhiTexture* tex, int samples, bool depth, bool samplableDepth)
 {
   TextureRenderTarget ret;
   SCORE_ASSERT(tex);
@@ -31,11 +31,21 @@ createRenderTarget(const RenderState& state, QRhiTexture* tex, int samples, bool
     color0.setResolveTexture(tex);
     desc.setColorAttachments({color0});
   }
-  if(depth)
+  if(samplableDepth)
+  {
+    ret.depthTexture = state.rhi->newTexture(
+        QRhiTexture::D32F, tex->pixelSize(), 1,
+        QRhiTexture::RenderTarget);
+    ret.depthTexture->setName("createRenderTarget::depthTexture");
+    SCORE_ASSERT(ret.depthTexture->create());
+
+    desc.setDepthTexture(ret.depthTexture);
+  }
+  else if(depth)
   {
     ret.depthRenderBuffer = state.rhi->newRenderBuffer(
         QRhiRenderBuffer::DepthStencil, tex->pixelSize(), samples);
-    ret.depthRenderBuffer->setName("createRenderTarget::ret.colorRenderBuffer");
+    ret.depthRenderBuffer->setName("createRenderTarget::ret.depthRenderBuffer");
     SCORE_ASSERT(ret.depthRenderBuffer->create());
 
     desc.setDepthStencilBuffer(ret.depthRenderBuffer);
@@ -59,7 +69,7 @@ createRenderTarget(const RenderState& state, QRhiTexture* tex, int samples, bool
 
 TextureRenderTarget createRenderTarget(
     const RenderState& state, QRhiTexture::Format fmt, QSize sz, int samples, bool depth,
-    QRhiTexture::Flags flags)
+    bool samplableDepth, QRhiTexture::Flags flags)
 {
   // FIXME not every RT needs mipmap / generatemips
   auto texture = state.rhi->newTexture(
@@ -68,7 +78,7 @@ TextureRenderTarget createRenderTarget(
           | QRhiTexture::UsedWithGenerateMips | flags);
   texture->setName("createRenderTarget::texture");
   SCORE_ASSERT(texture->create());
-  return createRenderTarget(state, texture, samples, depth);
+  return createRenderTarget(state, texture, samples, depth, samplableDepth);
 }
 
 TextureRenderTarget createRenderTarget(
@@ -841,6 +851,19 @@ std::vector<Sampler> initInputSamplers(
           SCORE_ASSERT(sampler->create());
 
           samplers.push_back({sampler, texture});
+
+          // If this port has sampleable depth, add depth sampler
+          if((in->flags & Flag::SamplableDepth) == Flag::SamplableDepth)
+          {
+            auto depthSampler = rhi.newSampler(
+                QRhiSampler::Nearest, QRhiSampler::Nearest, QRhiSampler::None,
+                QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
+            depthSampler->setName("initInputSamplers::depth_sampler");
+            SCORE_ASSERT(depthSampler->create());
+
+            auto* depthTex = rt.depthTexture ? rt.depthTexture : &renderer.emptyTexture();
+            samplers.push_back({depthSampler, depthTex});
+          }
         }
         break;
       }

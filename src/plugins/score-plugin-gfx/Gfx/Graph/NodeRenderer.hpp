@@ -64,9 +64,17 @@ public:
    * @brief The geometry to use
    *
    * If not set, then a relevant default geometry for the node
-   * will be used, e.g. a full-screen quad or triangle
+   * will be used, e.g. a full-screen quad or triangle.
+   *
+   * For backward compatibility with single-port nodes (GenericNodeRenderer,
+   * RenderedRawRasterPipelineNode, etc.), this holds the last received geometry.
+   * Multi-geometry-port nodes (CSF) should use m_portGeometries instead.
    */
   ossia::geometry_spec geometry;
+
+  /// Per-port geometry storage for nodes with multiple geometry inputs.
+  /// Key is the input port index.
+  ossia::small_flat_map<int32_t, ossia::geometry_spec, 4> m_portGeometries;
 
   int32_t nodeId{-1};
   bool materialChanged{false};

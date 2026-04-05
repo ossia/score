@@ -620,12 +620,16 @@ void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpd
   // Check each storage buffer to see if it needs resizing
   for(auto& storageBuffer : m_storageBuffers)
   {
-    // Check if the incoming geometry has a matching auxiliary buffer.
+    // Check if any incoming geometry port has a matching auxiliary buffer.
     // If so, use that GPU buffer directly instead of creating our own.
-    if(this->geometry.meshes && !this->geometry.meshes->meshes.empty())
+    // Search all port geometries since storage buffers aren't tied to a specific port.
+    const auto stdName = storageBuffer.name.toStdString();
+    bool found_aux = false;
+    for(const auto& [port_idx, geo_spec] : m_portGeometries)
     {
-      const auto& mesh = this->geometry.meshes->meshes[0];
-      const auto stdName = storageBuffer.name.toStdString();
+      if(!geo_spec.meshes || geo_spec.meshes->meshes.empty())
+        continue;
+      const auto& mesh = geo_spec.meshes->meshes[0];
       if(auto* aux = mesh.find_auxiliary(stdName))
       {
         if(aux->buffer >= 0 && aux->buffer < (int)mesh.buffers.size())
@@ -649,12 +653,17 @@ void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpd
                 storageBuffer.owned = false;
                 buffersChanged = true;
               }
-              continue;
+              found_aux = true;
+              break;
             }
           }
         }
       }
+      if(found_aux)
+        break;
     }
+    if(found_aux)
+      continue;
 
     // No auxiliary buffer match — manage our own buffer
     if(!storageBuffer.owned && storageBuffer.buffer)
@@ -786,11 +795,9 @@ static int geometryFormatSizeBytes(int format) noexcept
 void RenderedCSFNode::updateGeometryBindings(
     RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
-  const bool has_upstream = this->geometry.meshes && !this->geometry.meshes->meshes.empty();
-
   qDebug() << "updateGeometryBindings:" << n.m_descriptor.description.c_str()
-           << "has_upstream=" << has_upstream
-           << "num_bindings=" << m_geometryBindings.size();
+           << "num_bindings=" << m_geometryBindings.size()
+           << "num_port_geometries=" << m_portGeometries.size();
 
   int geo_binding_idx = 0;
 
@@ -804,6 +811,25 @@ void RenderedCSFNode::updateGeometryBindings(
       break;
 
     auto& binding = m_geometryBindings[geo_binding_idx];
+
+    // Per-binding upstream lookup: use this binding's port index
+    bool binding_has_upstream = false;
+    const ossia::geometry* upstream_mesh = nullptr;
+    if(binding.input_port_index >= 0)
+    {
+      auto it = m_portGeometries.find(binding.input_port_index);
+      if(it != m_portGeometries.end()
+         && it->second.meshes && !it->second.meshes->meshes.empty())
+      {
+        binding_has_upstream = true;
+        upstream_mesh = &it->second.meshes->meshes[0];
+      }
+    }
+
+    qDebug() << "  binding" << geo_binding_idx
+             << "port=" << binding.input_port_index
+             << "has_upstream=" << binding_has_upstream
+             << "has_vertex_count_spec=" << binding.has_vertex_count_spec;
 
     // Resolve vertex_count expression if specified
     if(binding.has_vertex_count_spec)
@@ -860,44 +886,78 @@ void RenderedCSFNode::updateGeometryBindings(
       }
     }
 
-    // Detect feedback receiver: a node that owns its buffers ($USER vertex count)
-    // AND receives upstream geometry (feedback loop). Allocate ping-pong read
-    // buffers for read_write attributes so that feedback is explicit.
-    if(binding.has_vertex_count_spec && has_upstream && !binding.is_feedback_receiver)
+    // Detect feedback receiver: a GENERATOR (has vertex_count_spec) that receives
+    // upstream geometry ON ITS OWN PORT. Only then is it a feedback loop.
+    // Bindings whose port receives external data (from a different node) should
+    // NOT be marked as feedback receivers.
+    if(binding.has_vertex_count_spec && binding_has_upstream && !binding.is_feedback_receiver)
     {
-      binding.is_feedback_receiver = true;
-      binding.pending_initial_copy = true;
-      for(int attr_idx = 0; attr_idx < (int)geo_input->attributes.size(); attr_idx++)
+      // Heuristic: check if the upstream buffer pointers match our own SSBOs.
+      // If they do, this is genuine feedback (our own output looped back).
+      // If they don't, the upstream is from a different node.
+      bool is_self_feedback = false;
+      if(upstream_mesh)
       {
-        if(attr_idx >= (int)binding.attribute_ssbos.size())
-          break;
-        const auto& req = geo_input->attributes[attr_idx];
-        auto& ssbo = binding.attribute_ssbos[attr_idx];
-        if(req.access == "read_write" && !ssbo.read_buffer)
+        for(const auto& up_attr : upstream_mesh->attributes)
         {
-          const int elem_size = glslTypeSizeBytes(req.type);
-          const int count = ssbo.per_instance ? binding.instance_count : binding.vertex_count;
-          const int64_t buf_size = (int64_t)elem_size * count;
-          if(buf_size > 0)
+          if(up_attr.binding < 0 || up_attr.binding >= (int)upstream_mesh->buffers.size())
+            continue;
+          const auto& up_buf = upstream_mesh->buffers[up_attr.binding];
+          if(auto* gpu = ossia::get_if<ossia::geometry::gpu_buffer>(&up_buf.data))
           {
-            auto* buf = renderer.state.rhi->newBuffer(
-                QRhiBuffer::Static,
-                QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer, buf_size);
-            buf->setName(QByteArray("CSF_GeomPP_") + req.name.c_str());
-            buf->create();
-            QByteArray zero(buf_size, 0);
-            res.uploadStaticBuffer(buf, 0, buf_size, zero.constData());
-            ssbo.read_buffer = buf;
+            if(gpu->handle)
+            {
+              // Check if this GPU handle matches one of our own SSBOs
+              for(const auto& ssbo : binding.attribute_ssbos)
+              {
+                if(ssbo.buffer == static_cast<QRhiBuffer*>(gpu->handle))
+                {
+                  is_self_feedback = true;
+                  break;
+                }
+              }
+              if(is_self_feedback)
+                break;
+            }
+          }
+        }
+      }
+
+      if(is_self_feedback)
+      {
+        binding.is_feedback_receiver = true;
+        binding.pending_initial_copy = true;
+        for(int attr_idx = 0; attr_idx < (int)geo_input->attributes.size(); attr_idx++)
+        {
+          if(attr_idx >= (int)binding.attribute_ssbos.size())
+            break;
+          const auto& req = geo_input->attributes[attr_idx];
+          auto& ssbo = binding.attribute_ssbos[attr_idx];
+          if(req.access == "read_write" && !ssbo.read_buffer)
+          {
+            const int elem_size = glslTypeSizeBytes(req.type);
+            const int count = ssbo.per_instance ? binding.instance_count : binding.vertex_count;
+            const int64_t buf_size = (int64_t)elem_size * count;
+            if(buf_size > 0)
+            {
+              auto* buf = renderer.state.rhi->newBuffer(
+                  QRhiBuffer::Static,
+                  QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer, buf_size);
+              buf->setName(QByteArray("CSF_GeomPP_") + req.name.c_str());
+              buf->create();
+              QByteArray zero(buf_size, 0);
+              res.uploadStaticBuffer(buf, 0, buf_size, zero.constData());
+              ssbo.read_buffer = buf;
+            }
           }
         }
       }
     }
 
-    if(!has_upstream && !binding.has_vertex_count_spec)
+    if(!binding_has_upstream && !binding.has_vertex_count_spec)
     {
-      // No upstream geometry and no vertex_count spec.
-      // Clear any stale unowned pointers — the upstream that provided
-      // them may have freed the buffers.
+      // No upstream geometry on this binding's port and no vertex_count spec.
+      // Clear any stale unowned pointers.
       for(auto& ssbo : binding.attribute_ssbos)
       {
         if(!ssbo.owned)
@@ -918,9 +978,9 @@ void RenderedCSFNode::updateGeometryBindings(
       continue;
     }
 
-    if(has_upstream)
+    if(binding_has_upstream && upstream_mesh)
     {
-      const auto& mesh = this->geometry.meshes->meshes[0];
+      const auto& mesh = *upstream_mesh;
       if(!binding.has_vertex_count_spec)
         binding.vertex_count = mesh.vertices;
 
@@ -1347,9 +1407,19 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, Edge& edge)
     out_geo.cull_mode = ossia::geometry::none;
     out_geo.front_face = ossia::geometry::counter_clockwise;
 
-    // Copy bounds from input geometry if available
-    if(this->geometry.meshes && !this->geometry.meshes->meshes.empty())
-      out_geo.bounds = this->geometry.meshes->meshes[0].bounds;
+    // Copy bounds from this binding's upstream geometry if available
+    const ossia::geometry* binding_upstream = nullptr;
+    if(binding.input_port_index >= 0)
+    {
+      auto it = m_portGeometries.find(binding.input_port_index);
+      if(it != m_portGeometries.end()
+         && it->second.meshes && !it->second.meshes->meshes.empty())
+      {
+        binding_upstream = &it->second.meshes->meshes[0];
+      }
+    }
+    if(binding_upstream)
+      out_geo.bounds = binding_upstream->bounds;
 
     for(int attr_idx = 0; attr_idx < (int)geo_input->attributes.size(); attr_idx++)
     {
@@ -1410,9 +1480,9 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, Edge& edge)
     // Forward upstream attributes that this node didn't declare (pass-through).
     // e.g. if upstream has position+color but this node only declared position,
     // color must be forwarded so downstream nodes can still access it.
-    if(this->geometry.meshes && !this->geometry.meshes->meshes.empty())
+    if(binding_upstream)
     {
-      const auto& in_mesh = this->geometry.meshes->meshes[0];
+      const auto& in_mesh = *binding_upstream;
       for(const auto& in_attr : in_mesh.attributes)
       {
         // Check if this attribute was already output by the node's declared attributes
@@ -1506,10 +1576,10 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, Edge& edge)
       }
     }
 
-    // Also forward any auxiliary buffers from the input geometry
-    if(this->geometry.meshes && !this->geometry.meshes->meshes.empty())
+    // Also forward any auxiliary buffers from this binding's upstream geometry
+    if(binding_upstream)
     {
-      const auto& in_mesh = this->geometry.meshes->meshes[0];
+      const auto& in_mesh = *binding_upstream;
       for(const auto& in_aux : in_mesh.auxiliary)
       {
         // Skip if we already have a buffer with this name
@@ -2246,10 +2316,13 @@ void RenderedCSFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
   // Create samplers for input textures
   m_inputSamplers = initInputSamplers(this->n, renderer, n.input);
 
-  // Parse descriptor to create storage buffers and determine output texture requirements
-  
+  // Parse descriptor to create storage buffers and determine output texture requirements.
+  // We also track the input port index to build the geometry-binding-to-port mapping.
+  // The input port index mirrors the order in which ISFNode's visitor calls
+  // self.input.push_back() for each descriptor input.
   int sb_index = 0;
   int outlet_index = 0;
+  int input_port_index = 0; // tracks which input port we're at
   auto& outlets = n.output;
   for(const auto& input : n.m_descriptor.inputs)
   {
@@ -2271,6 +2344,9 @@ void RenderedCSFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
         m_outStorageBuffers.push_back({outlets[outlet_index], sb_index});
         outlet_index++;
       }
+      // read_only storage creates an input port
+      if(storage->access == "read_only")
+        input_port_index++;
       sb_index++;
     }
     // Handle CSF images
@@ -2287,11 +2363,25 @@ void RenderedCSFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
         m_outStorageImages.push_back({outlets[outlet_index], img_index});
         outlet_index++;
       }
+      // read_only CSF image creates an input port
+      if(image->access == "read_only")
+        input_port_index++;
     }
     // Handle geometry inputs
     else if(auto* geo = ossia::get_if<isf::geometry_input>(&input.data))
     {
+      // Determine if this geometry_input creates an input port
+      // (mirrors ISFNode visitor logic: input port if any attribute is read_only or read_write)
+      bool needs_input = geo->attributes.empty(); // empty = pass-through, always has input
+      if(!needs_input)
+      {
+        for(const auto& attr : geo->attributes)
+          if(attr.access != "write_only")
+          { needs_input = true; break; }
+      }
+
       GeometryBinding binding;
+      binding.input_port_index = needs_input ? input_port_index : -1;
       binding.has_output = geo->attributes.empty(); // Empty attributes = pure pass-through with output
       binding.has_vertex_count_spec = !geo->vertex_count.empty();
       binding.has_instance_count_spec = !geo->instance_count.empty();
@@ -2413,8 +2503,25 @@ void RenderedCSFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
       const bool geo_has_output = binding.has_output;
       m_geometryBindings.push_back(std::move(binding));
 
+      if(needs_input)
+        input_port_index++;
       if(geo_has_output)
         outlet_index++;
+
+      // $USER ports also create input ports (IntSpinBox), track them
+      if(geo->vertex_count.find("$USER") != std::string::npos)
+        input_port_index++;
+      if(geo->instance_count.find("$USER") != std::string::npos)
+        input_port_index++;
+      for(const auto& aux : geo->auxiliary)
+        if(aux.size.find("$USER") != std::string::npos)
+          input_port_index++;
+    }
+    else
+    {
+      // All other input types (float, long, bool, event, color, point2D, point3D,
+      // image, audio, audioFFT, audioHist, cubemap, texture) create one input port each.
+      input_port_index++;
     }
   }
 

@@ -107,12 +107,18 @@ layout(std140, binding = 1) uniform process_t {
 #define IMG_THIS_NORM_PIXEL(tex) texture(tex, ISF_FIXUP_TEXCOORD(isf_FragNormCoord))
 #define IMG_PIXEL(tex, coord) texture(tex, ISF_FIXUP_TEXCOORD(coord / RENDERSIZE))
 #define IMG_NORM_PIXEL(tex, coord) texture(tex, ISF_FIXUP_TEXCOORD(coord))
+#define IMG_THIS_DEPTH(tex) texture(tex##_depth, ISF_FIXUP_TEXCOORD(isf_FragNormCoord)).r
+#define IMG_DEPTH_PIXEL(tex, coord) texture(tex##_depth, ISF_FIXUP_TEXCOORD(coord / RENDERSIZE)).r
+#define IMG_DEPTH_NORM_PIXEL(tex, coord) texture(tex##_depth, ISF_FIXUP_TEXCOORD(coord)).r
 #else
 #define isf_FragCoord gl_FragCoord
 #define IMG_THIS_PIXEL(tex) texture(tex, isf_FragNormCoord)
 #define IMG_THIS_NORM_PIXEL(tex) texture(tex, isf_FragNormCoord)
 #define IMG_PIXEL(tex, coord) texture(tex, (coord) / RENDERSIZE)
 #define IMG_NORM_PIXEL(tex, coord) texture(tex, coord)
+#define IMG_THIS_DEPTH(tex) texture(tex##_depth, isf_FragNormCoord).r
+#define IMG_DEPTH_PIXEL(tex, coord) texture(tex##_depth, (coord) / RENDERSIZE).r
+#define IMG_DEPTH_NORM_PIXEL(tex, coord) texture(tex##_depth, coord).r
 #endif
 )_";
 
@@ -384,6 +390,11 @@ static void parse_input(image_input& inp, const sajson::value& v)
     auto val = v.get_object_value(k);
     if(val.get_type() == sajson::TYPE_INTEGER)
       inp.dimensions = val.get_integer_value();
+  }
+  if(auto k = v.find_object_key_insensitive(sajson::literal("DEPTH"));
+     k != v.get_length())
+  {
+    inp.depth = v.get_object_value(k).get_type() == sajson::TYPE_TRUE;
   }
 }
 static void parse_input(cubemap_input& inp, const sajson::value& v) { }
@@ -1985,6 +1996,19 @@ void parser::parse_isf()
             samplers += ";\n";
 
             sampler_binding++;
+
+            if(auto* img = ossia::get_if<isf::image_input>(&val.data))
+            {
+              if(img->depth)
+              {
+                samplers += "layout(binding = ";
+                samplers += std::to_string(sampler_binding);
+                samplers += ") uniform sampler2D ";
+                samplers += val.name;
+                samplers += "_depth;\n";
+                sampler_binding++;
+              }
+            }
           }
           else
           {
@@ -2205,6 +2229,19 @@ void parser::parse_raw_raster_pipeline()
           samplers += ";\n";
 
           sampler_binding++;
+
+          if(auto* img = ossia::get_if<isf::image_input>(&val.data))
+          {
+            if(img->depth)
+            {
+              samplers += "layout(binding = ";
+              samplers += std::to_string(sampler_binding);
+              samplers += ") uniform sampler2D ";
+              samplers += val.name;
+              samplers += "_depth;\n";
+              sampler_binding++;
+            }
+          }
         }
         else
         {
@@ -2930,7 +2967,12 @@ std::string parser::write_isf() const
           oss << "\n";
         }
 
-        void operator()(const image_input&) { oss << "      \"TYPE\": \"image\"\n"; }
+        void operator()(const image_input& img) {
+          oss << "      \"TYPE\": \"image\"";
+          if(img.depth)
+            oss << ",\n      \"DEPTH\": true";
+          oss << "\n";
+        }
         void operator()(const cubemap_input&) { oss << "      \"TYPE\": \"cubemap\"\n"; }
 
         void operator()(const audio_input& a)
@@ -3286,6 +3328,19 @@ void parser::parse_vsa()
         samplers += ";\n";
 
         sampler_binding++;
+
+        if(auto* img = ossia::get_if<isf::image_input>(&val.data))
+        {
+          if(img->depth)
+          {
+            samplers += "layout(binding = ";
+            samplers += std::to_string(sampler_binding);
+            samplers += ") uniform sampler2D ";
+            samplers += val.name;
+            samplers += "_depth;\n";
+            sampler_binding++;
+          }
+        }
       }
       else
       {

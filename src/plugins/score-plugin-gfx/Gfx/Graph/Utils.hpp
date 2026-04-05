@@ -178,7 +178,7 @@ struct Image
  */
 SCORE_PLUGIN_GFX_EXPORT
 TextureRenderTarget
-createRenderTarget(const RenderState& state, QRhiTexture* tex, int samples, bool depth);
+createRenderTarget(const RenderState& state, QRhiTexture* tex, int samples, bool depth, bool samplableDepth = false);
 
 /**
  * @brief Create a render target from a texture format and size.
@@ -188,7 +188,7 @@ createRenderTarget(const RenderState& state, QRhiTexture* tex, int samples, bool
 SCORE_PLUGIN_GFX_EXPORT
 TextureRenderTarget createRenderTarget(
     const RenderState& state, QRhiTexture::Format fmt, QSize sz, int samples, bool depth,
-    QRhiTexture::Flags = {});
+    bool samplableDepth = false, QRhiTexture::Flags flags = {});
 
 /**
  * @brief Create a render target with multiple color attachments and optional sampleable depth.

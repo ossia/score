@@ -118,8 +118,11 @@ void RenderList::createAllInputRenderTargets()
          && (in->flags & Flag::GrabsFromSource) != Flag::GrabsFromSource)
       {
         auto spec = node->resolveRenderTargetSpecs(cur_port, *this);
+        bool wantsDepth = requiresDepth(*in);
+        bool wantsSamplableDepth = (in->flags & Flag::SamplableDepth) == Flag::SamplableDepth;
         auto rt = score::gfx::createRenderTarget(
-            state, spec.format, spec.size, samples(), requiresDepth(*in));
+            state, spec.format, spec.size, samples(),
+            wantsDepth || wantsSamplableDepth, wantsSamplableDepth);
         m_inputRenderTargets[in] = std::move(rt);
       }
       cur_port++;

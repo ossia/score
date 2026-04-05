@@ -146,6 +146,7 @@ private:
     std::vector<AuxiliarySSBO> auxiliary_ssbos;
     int vertex_count{0};       // Number of elements (vertices) in the geometry
     int instance_count{1};      // Number of instances
+    int input_port_index{-1};   // Input port index for this binding (-1 = no input port, e.g. write_only generator)
     bool has_output{false};     // true if any attribute is writable
     bool has_vertex_count_spec{false};   // true if vertex_count expression is set
     bool has_instance_count_spec{false}; // true if instance_count expression is set

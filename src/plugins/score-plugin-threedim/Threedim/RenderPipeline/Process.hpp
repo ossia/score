@@ -30,8 +30,7 @@ class Model final : public Process::ProcessModel
 
 public:
   Model(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
+      const TimeVal& duration, const QString& init, const Id<Process::ProcessModel>& id,
       QObject* parent);
 
   template <typename Impl>
