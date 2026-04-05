@@ -1071,9 +1071,10 @@ void RenderedCSFNode::updateGeometryBindings(
 
         if(auto* gpu = ossia::get_if<ossia::geometry::gpu_buffer>(&geo_buf.data))
         {
-          if(is_soa && gpu->handle)
+          const int elem_size = glslTypeSizeBytes(req.type);
+          if(is_soa && gpu->handle && attr_size == elem_size)
           {
-            // SoA GPU buffer: bind directly (zero-copy)
+            // SoA GPU buffer with matching element size: bind directly (zero-copy)
             auto* rhi_buf = static_cast<QRhiBuffer*>(gpu->handle);
 
             // If this node has a vertex_count_spec ($USER), its own SSBOs are
@@ -1111,10 +1112,14 @@ void RenderedCSFNode::updateGeometryBindings(
             }
             continue;
           }
-          // AoS GPU buffer: would need scatter compute pass — not yet supported
-          qWarning() << "CSF geometry: AoS GPU buffer scatter not yet implemented for"
-                      << req.name.c_str();
-          continue;
+          // AoS GPU buffer or format mismatch (e.g. float3→vec4): would need
+          // scatter compute pass — not yet supported. Fall through to create
+          // a fallback buffer instead of silently binding misaligned data.
+          qWarning() << "CSF geometry: GPU buffer scatter not yet implemented for"
+                      << req.name.c_str()
+                      << "(upstream_size=" << attr_size << "shader_size=" << elem_size
+                      << "stride=" << stride << ")";
+          // Don't continue — fall through to create a fallback buffer below
         }
 
         if(auto* cpu = ossia::get_if<ossia::geometry::cpu_buffer>(&geo_buf.data))
@@ -1145,16 +1150,30 @@ void RenderedCSFNode::updateGeometryBindings(
             ssbo.owned = true;
           }
 
-          if(is_soa)
+          if(is_soa && attr_size == (int)elem_size)
           {
-            // SoA CPU buffer: upload directly
-            const int64_t upload_size = std::min(needed, cpu->byte_size);
-            res.uploadStaticBuffer(ssbo.buffer, 0, upload_size, src + geo_attr->byte_offset);
+            // SoA CPU buffer with matching element size: upload directly
+            const int64_t upload_size = std::min(needed, cpu->byte_size - geo_attr->byte_offset);
+            if(upload_size > 0)
+              res.uploadStaticBuffer(ssbo.buffer, 0, upload_size, src + geo_attr->byte_offset);
           }
           else
           {
-            // AoS CPU buffer: scatter attribute data into flat SoA buffer
+            // AoS or SoA with format mismatch (e.g. float3 upstream → vec4 shader):
+            // scatter per-element, following GPU vertex attribute extension convention
+            // (missing components: x=0, y=0, z=0, w=1)
             QByteArray scattered(needed, 0);
+
+            // Pre-fill w=1.0 for each element when widening to vec4/vec3/vec2
+            // (matches GPU hardware behavior for vertex attribute promotion)
+            if(elem_size > attr_size && elem_size >= (int)sizeof(float))
+            {
+              const float one = 1.0f;
+              for(int i = 0; i < data_count; i++)
+                std::memcpy(scattered.data() + (int64_t)i * elem_size + elem_size - sizeof(float),
+                            &one, sizeof(float));
+            }
+
             const int copy_size = std::min((int)elem_size, attr_size);
             for(int i = 0; i < data_count; i++)
             {
@@ -1449,7 +1468,13 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, Edge& edge)
       out_geo.front_face = ossia::geometry::counter_clockwise;
 
       if(binding_upstream)
+      {
         out_geo.bounds = binding_upstream->bounds;
+        // Inherit topology from upstream for filter-type nodes
+        out_geo.topology = (decltype(out_geo.topology))binding_upstream->topology;
+        out_geo.cull_mode = (decltype(out_geo.cull_mode))binding_upstream->cull_mode;
+        out_geo.front_face = (decltype(out_geo.front_face))binding_upstream->front_face;
+      }
 
       for(int attr_idx = 0; attr_idx < (int)geo_input->attributes.size(); attr_idx++)
       {
@@ -1608,6 +1633,18 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, Edge& edge)
         }
       }
 
+      // Forward index buffer from upstream
+      if(binding_upstream && binding_upstream->index.buffer >= 0
+         && binding_upstream->index.buffer < (int)binding_upstream->buffers.size())
+      {
+        const int idx_buf_idx = (int)out_geo.buffers.size();
+        out_geo.buffers.push_back(binding_upstream->buffers[binding_upstream->index.buffer]);
+        out_geo.index.buffer = idx_buf_idx;
+        out_geo.index.byte_offset = binding_upstream->index.byte_offset;
+        out_geo.index.format = (decltype(out_geo.index.format))binding_upstream->index.format;
+        out_geo.indices = binding_upstream->indices;
+      }
+
 #if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
       if(binding.uses_indirect_draw && binding.indirectDrawBuffer)
       {
@@ -1637,12 +1674,44 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, Edge& edge)
       auto& out_geo = binding.outputGeometry.meshes->meshes[0];
       out_geo.vertices = binding.vertex_count;
       out_geo.instances = binding.instance_count;
+      bool any_handle_changed = false;
 
       if(binding_upstream)
+      {
         out_geo.bounds = binding_upstream->bounds;
+        out_geo.topology = (decltype(out_geo.topology))binding_upstream->topology;
+        out_geo.cull_mode = (decltype(out_geo.cull_mode))binding_upstream->cull_mode;
+        out_geo.front_face = (decltype(out_geo.front_face))binding_upstream->front_face;
+
+        // Update index buffer handle from upstream
+        if(out_geo.index.buffer >= 0 && out_geo.index.buffer < (int)out_geo.buffers.size()
+           && binding_upstream->index.buffer >= 0
+           && binding_upstream->index.buffer < (int)binding_upstream->buffers.size())
+        {
+          const auto& src = binding_upstream->buffers[binding_upstream->index.buffer];
+          auto& dst = out_geo.buffers[out_geo.index.buffer];
+          if(auto* src_gpu = ossia::get_if<ossia::geometry::gpu_buffer>(&src.data))
+          {
+            auto* dst_gpu = ossia::get_if<ossia::geometry::gpu_buffer>(&dst.data);
+            if(dst_gpu && (dst_gpu->handle != src_gpu->handle || dst_gpu->byte_size != src_gpu->byte_size))
+            {
+              dst_gpu->handle = src_gpu->handle;
+              dst_gpu->byte_size = src_gpu->byte_size;
+              dst.dirty = true;
+              any_handle_changed = true;
+            }
+          }
+          else
+          {
+            dst = src;
+            dst.dirty = true;
+            any_handle_changed = true;
+          }
+          out_geo.indices = binding_upstream->indices;
+        }
+      }
 
       // Update declared attribute buffer handles
-      bool any_handle_changed = false;
       int buf_idx = 0;
       for(int attr_idx = 0; attr_idx < (int)geo_input->attributes.size(); attr_idx++)
       {
