@@ -127,6 +127,7 @@ private:
       std::string name;           // e.g. "position", "velocity"
       std::string access;         // "read_only", "write_only", "read_write"
       bool per_instance{false};   // true = sized by instance_count, false = sized by vertex_count
+      const void* lastUploadSrc{};// CPU data pointer from last upload (for dedup)
     };
 
     // Structured SSBOs that travel with the geometry (matched by name

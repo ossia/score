@@ -1055,14 +1055,22 @@ void RenderedCSFNode::updateGeometryBindings(
           continue;
         }
 
-        // Found the attribute — extract its buffer data
-        const int buf_idx = geo_attr->binding;
+        // Found the attribute — extract its buffer data.
+        // The attribute's binding index maps to a binding (stride/classification)
+        // and an input entry (which buffer + byte offset within that buffer).
+        const int binding_idx = geo_attr->binding;
+        if(binding_idx < 0 || binding_idx >= (int)mesh.input.size())
+          continue;
+
+        const auto& geo_inp = mesh.input[binding_idx];
+        const int buf_idx = geo_inp.buffer;
         if(buf_idx < 0 || buf_idx >= (int)mesh.buffers.size())
           continue;
 
+        const int64_t input_byte_offset = geo_inp.byte_offset;
         const auto& geo_buf = mesh.buffers[buf_idx];
-        const auto& geo_bind = (buf_idx < (int)mesh.bindings.size())
-                                   ? mesh.bindings[buf_idx]
+        const auto& geo_bind = (binding_idx < (int)mesh.bindings.size())
+                                   ? mesh.bindings[binding_idx]
                                    : mesh.bindings[0];
 
         const int attr_size = geometryFormatSizeBytes(geo_attr->format);
@@ -1109,6 +1117,7 @@ void RenderedCSFNode::updateGeometryBindings(
               ssbo.buffer = rhi_buf;
               ssbo.size = gpu->byte_size;
               ssbo.owned = false;
+              ssbo.lastUploadSrc = nullptr;
             }
             continue;
           }
@@ -1132,6 +1141,12 @@ void RenderedCSFNode::updateGeometryBindings(
           const int data_count = ssbo.per_instance ? mesh.instances : mesh.vertices;
           const int64_t needed = elem_size * data_count;
 
+          // Skip re-upload if we already own a correctly-sized buffer
+          // and the upstream data hasn't changed (same CPU pointer as last upload).
+          // This avoids expensive per-frame scatter+upload for static geometry.
+          if(ssbo.buffer && ssbo.owned && ssbo.size >= needed && ssbo.lastUploadSrc == src)
+            continue;
+
           // Create or resize the SSBO
           if(!ssbo.buffer || ssbo.size < needed || !ssbo.owned)
           {
@@ -1150,12 +1165,15 @@ void RenderedCSFNode::updateGeometryBindings(
             ssbo.owned = true;
           }
 
+          // Total byte offset into the buffer: input entry offset + attribute offset within stride
+          const int64_t base_offset = input_byte_offset + geo_attr->byte_offset;
+
           if(is_soa && attr_size == (int)elem_size)
           {
             // SoA CPU buffer with matching element size: upload directly
-            const int64_t upload_size = std::min(needed, cpu->byte_size - geo_attr->byte_offset);
+            const int64_t upload_size = std::min(needed, cpu->byte_size - base_offset);
             if(upload_size > 0)
-              res.uploadStaticBuffer(ssbo.buffer, 0, upload_size, src + geo_attr->byte_offset);
+              res.uploadStaticBuffer(ssbo.buffer, 0, upload_size, src + base_offset);
           }
           else
           {
@@ -1177,12 +1195,13 @@ void RenderedCSFNode::updateGeometryBindings(
             const int copy_size = std::min((int)elem_size, attr_size);
             for(int i = 0; i < data_count; i++)
             {
-              const int64_t src_off = (int64_t)i * stride + geo_attr->byte_offset;
+              const int64_t src_off = (int64_t)i * stride + base_offset;
               if(src_off + copy_size <= cpu->byte_size)
                 std::memcpy(scattered.data() + (int64_t)i * elem_size, src + src_off, copy_size);
             }
             res.uploadStaticBuffer(ssbo.buffer, 0, needed, scattered.constData());
           }
+          ssbo.lastUploadSrc = src;
         }
       }
 
@@ -1551,15 +1570,20 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, Edge& edge)
           if(already_present)
             continue;
 
-          if(in_attr.binding < 0 || in_attr.binding >= (int)in_mesh.buffers.size())
+          // Look up the actual buffer through the input array (binding→buffer indirection)
+          const int in_binding_idx = in_attr.binding;
+          if(in_binding_idx < 0 || in_binding_idx >= (int)in_mesh.input.size())
+            continue;
+          const auto& in_inp = in_mesh.input[in_binding_idx];
+          if(in_inp.buffer < 0 || in_inp.buffer >= (int)in_mesh.buffers.size())
             continue;
 
           const int buf_index = (int)out_geo.buffers.size();
-          out_geo.buffers.push_back(in_mesh.buffers[in_attr.binding]);
+          out_geo.buffers.push_back(in_mesh.buffers[in_inp.buffer]);
 
           ossia::geometry::binding bind;
-          if(in_attr.binding < (int)in_mesh.bindings.size())
-            bind = in_mesh.bindings[in_attr.binding];
+          if(in_binding_idx < (int)in_mesh.bindings.size())
+            bind = in_mesh.bindings[in_binding_idx];
           else
             bind.classification = ossia::geometry::binding::per_vertex;
           out_geo.bindings.push_back(bind);
@@ -1571,7 +1595,7 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, Edge& edge)
 
           struct ossia::geometry::input inp;
           inp.buffer = buf_index;
-          inp.byte_offset = 0;
+          inp.byte_offset = in_inp.byte_offset;
           out_geo.input.push_back(inp);
         }
       }
@@ -1758,10 +1782,13 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, Edge& edge)
           if(already_declared)
             continue;
 
-          if(in_attr.binding >= 0 && in_attr.binding < (int)in_mesh.buffers.size()
+          const int in_binding_idx = in_attr.binding;
+          if(in_binding_idx >= 0 && in_binding_idx < (int)in_mesh.input.size()
+             && in_mesh.input[in_binding_idx].buffer >= 0
+             && in_mesh.input[in_binding_idx].buffer < (int)in_mesh.buffers.size()
              && buf_idx < (int)out_geo.buffers.size())
           {
-            auto& src = in_mesh.buffers[in_attr.binding];
+            auto& src = in_mesh.buffers[in_mesh.input[in_binding_idx].buffer];
             auto& dst = out_geo.buffers[buf_idx];
             if(auto* src_gpu = ossia::get_if<ossia::geometry::gpu_buffer>(&src.data))
             {
