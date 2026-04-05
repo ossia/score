@@ -24,6 +24,7 @@
 #include <Threedim/Noise.hpp>
 #include <Threedim/ObjLoader.hpp>
 #include <Threedim/PCLToGeometry.hpp>
+#include <Threedim/VoxelLoader.hpp>
 #include <Threedim/Primitive.hpp>
 #include <Threedim/RenderPipeline/Executor.hpp>
 #include <Threedim/RenderPipeline/Layer.hpp>
@@ -253,6 +254,69 @@ class OBJDropHandler final : public Process::ProcessDropHandler
   }
 };
 
+class VoxLibraryHandler final
+    : public QObject
+    , public Library::LibraryInterface
+{
+  SCORE_CONCRETE("9f3a5cfe-962c-4c1c-b9ef-6f489da9734c")
+
+  QSet<QString> acceptedFiles() const noexcept override { return {"vox"}; }
+
+  Library::Subcategories categories;
+
+  using proc = oscr::ProcessModel<VoxelLoader>;
+  void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
+      override
+  {
+    // TODO relaunch whenever library path changes...
+    const auto& key = Metadata<ConcreteKey_k, proc>::get();
+    QModelIndex node = model.find(key);
+    if(node == QModelIndex{})
+      return;
+
+    categories.init("Voxel Loader", node, ctx);
+  }
+
+  void addPath(std::string_view path) override
+  {
+    auto p = QString::fromUtf8(path.data(), path.length());
+    QFileInfo file{p};
+
+    Library::ProcessData pdata;
+    pdata.prettyName = file.completeBaseName();
+    pdata.key = Metadata<ConcreteKey_k, proc>::get();
+    pdata.customData = p;
+    categories.add(file, std::move(pdata));
+  }
+};
+
+class VoxDropHandler final : public Process::ProcessDropHandler
+{
+  SCORE_CONCRETE("4e717693-0c51-454a-ae51-6808d002ff95")
+
+  QSet<QString> fileExtensions() const noexcept override { return {"vox"}; }
+
+  using proc = oscr::ProcessModel<VoxelLoader>;
+  void dropData(
+      std::vector<ProcessDrop>& vec, const DroppedFile& data,
+      const score::DocumentContext& ctx) const noexcept override
+  {
+    const auto& [filename, content] = data;
+
+    {
+      Process::ProcessDropHandler::ProcessDrop p;
+      p.creation.key = Metadata<ConcreteKey_k, proc>::get();
+      p.creation.prettyName = filename.basename;
+      p.setup = [s = filename.relative](
+                    Process::ProcessModel& m, score::Dispatcher& disp) mutable {
+        auto& pp = static_cast<proc&>(m);
+        auto& inl = *safe_cast<Process::ControlInlet*>(pp.inlets()[0]);
+        disp.submit(new Process::SetControlValue{inl, s.toStdString()});
+      };
+      vec.push_back(std::move(p));
+    }
+  }
+};
 }
 /**
  * This file instantiates the classes that are provided by this plug-in.
@@ -271,6 +335,7 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
   oscr::instantiate_fx<Threedim::Noise>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::StrucSynth>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::ObjLoader>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::VoxelLoader>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Plane>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Cube>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Sphere>(fx, ctx, key);
@@ -294,9 +359,10 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
          Gfx::RenderPipeline::ProcessFactory, Gfx::Splat::ProcessFactory>,
       FW<Process::LayerFactory, Gfx::RenderPipeline::LayerFactory>,
       FW<Library::LibraryInterface, Threedim::SSynthLibraryHandler,
-         Threedim::OBJLibraryHandler, Gfx::RawRasterLibraryHandler>,
+         Threedim::OBJLibraryHandler, Gfx::RawRasterLibraryHandler,
+         Threedim::VoxLibraryHandler>,
       FW<Process::ProcessDropHandler, Threedim::SSynthDropHandler,
-         Threedim::OBJDropHandler>,
+         Threedim::OBJDropHandler, Threedim::VoxDropHandler>,
       FW<Execution::ProcessComponentFactory,
          Gfx::ModelDisplay::ProcessExecutorComponentFactory,
          Gfx::RenderPipeline::ProcessExecutorComponentFactory,

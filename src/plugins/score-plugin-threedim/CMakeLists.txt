@@ -90,6 +90,10 @@ add_library(
   Threedim/TextureToBuffer.hpp
   Threedim/TinyObj.hpp
   Threedim/TinyObj.cpp
+  Threedim/Vox.hpp
+  Threedim/Vox.cpp
+  Threedim/VoxelLoader.hpp
+  Threedim/VoxelLoader.cpp
   Threedim/ModelDisplay/Executor.hpp
   Threedim/ModelDisplay/Executor.cpp
   Threedim/ModelDisplay/Metadata.hpp
@@ -127,7 +131,8 @@ target_include_directories(
     "${3RDPARTY_FOLDER}/libssynth/src"
     "${3RDPARTY_FOLDER}/vcglib"
     "${3RDPARTY_FOLDER}/miniply"
-    "${3RDPARTY_FOLDER}/mikktspace")
+    "${3RDPARTY_FOLDER}/mikktspace"
+    "${3RDPARTY_FOLDER}/opengametools/src")
 
 target_link_libraries(
   score_plugin_threedim PRIVATE score_plugin_engine score_plugin_avnd
