@@ -849,17 +849,11 @@ void RenderedCSFNode::updateGeometryBindings(
       }
     }
 
-    qDebug() << "  binding" << geo_binding_idx
-             << "port=" << binding.input_port_index
-             << "has_upstream=" << binding_has_upstream
-             << "has_vertex_count_spec=" << binding.has_vertex_count_spec;
 
     // Resolve vertex_count expression if specified
     if(binding.has_vertex_count_spec)
     {
       int count = resolveCountExpression(geo_input->vertex_count, *geo_input, "vertex_count");
-      qDebug() << "  vertex_count_spec resolved:" << count
-               << "current vertex_count=" << binding.vertex_count;
       if(count > 0)
         binding.vertex_count = count;
     }
@@ -1007,21 +1001,6 @@ void RenderedCSFNode::updateGeometryBindings(
       if(!binding.has_vertex_count_spec)
         binding.vertex_count = mesh.vertices;
 
-      qDebug() << "  has_upstream: mesh.vertices=" << mesh.vertices
-               << "mesh.attributes=" << mesh.attributes.size()
-               << "mesh.buffers=" << mesh.buffers.size()
-               << "mesh.auxiliary=" << mesh.auxiliary.size()
-               << "vertex_count=" << binding.vertex_count;
-      for(int dbg_i = 0; dbg_i < (int)mesh.attributes.size(); dbg_i++)
-      {
-        const auto& a = mesh.attributes[dbg_i];
-        qDebug() << "    upstream attr" << dbg_i
-                 << "semantic=" << (int)a.semantic
-                 << "name=" << a.name.c_str()
-                 << "binding=" << a.binding
-                 << "format=" << a.format;
-      }
-
       // For each attribute the shader declared interest in
       for(int attr_idx = 0; attr_idx < (int)geo_input->attributes.size(); attr_idx++)
       {
@@ -1041,19 +1020,18 @@ void RenderedCSFNode::updateGeometryBindings(
 
         if(!geo_attr)
         {
-          if(req.required)
-            qWarning() << "CSF geometry: required attribute" << req.name.c_str() << "not found"
-                       << "(semantic=" << (int)sem << ")";
-          else
-            qDebug() << "  attr" << req.name.c_str() << "not found in upstream (optional)";
-
-
           // Create or keep a zero-filled fallback buffer
           const int elem_size = glslTypeSizeBytes(req.type);
           const int fallback_count = ssbo.per_instance ? std::max(1, mesh.instances) : std::max(1, mesh.vertices);
           const int64_t needed = (int64_t)elem_size * fallback_count;
           if(!ssbo.buffer || ssbo.size < needed)
           {
+            if(req.required && req.access == "read_only")
+              qWarning() << "CSF geometry: required read_only attribute" << req.name.c_str() << "not found"
+                         << "(semantic=" << (int)sem << ")";
+            else
+              qDebug() << "  attr" << req.name.c_str() << "not in upstream — creating fallback buffer";
+
             if(ssbo.buffer && ssbo.owned)
             {
               renderer.releaseBuffer(ssbo.buffer);
@@ -1104,9 +1082,6 @@ void RenderedCSFNode::updateGeometryBindings(
               const int64_t needed = (int64_t)elem_size * attr_count;
               if(needed > 0 && gpu->byte_size < needed)
               {
-                qDebug() << "  attr" << req.name.c_str()
-                         << "SKIP undersized upstream: gpu.size=" << gpu->byte_size
-                         << "needed=" << needed;
                 continue;
               }
             }
@@ -1119,12 +1094,6 @@ void RenderedCSFNode::updateGeometryBindings(
               continue;
             }
 
-            bool same = (ssbo.buffer == rhi_buf);
-            qDebug() << "  attr" << req.name.c_str()
-                     << "GPU handle: same_ptr=" << same
-                     << "owned=" << ssbo.owned
-                     << "ssbo.size=" << ssbo.size
-                     << "gpu.size=" << gpu->byte_size;
             if(ssbo.buffer != rhi_buf)
             {
               if(ssbo.owned && ssbo.buffer)
@@ -1267,7 +1236,6 @@ void RenderedCSFNode::updateGeometryBindings(
       if((binding.has_vertex_count_spec && binding.vertex_count > 0)
          || (binding.has_instance_count_spec && binding.instance_count > 0))
       {
-        qDebug() << "  feedback resize check: vertex_count=" << binding.vertex_count;
         for(int attr_idx = 0; attr_idx < (int)geo_input->attributes.size(); attr_idx++)
         {
           if(attr_idx >= (int)binding.attribute_ssbos.size())
@@ -1275,16 +1243,11 @@ void RenderedCSFNode::updateGeometryBindings(
           auto& ssbo = binding.attribute_ssbos[attr_idx];
           if(!ssbo.owned || !ssbo.buffer)
           {
-            qDebug() << "    attr" << attr_idx << "skip: owned=" << ssbo.owned << "buf=" << (void*)ssbo.buffer;
             continue;
           }
           const int elem_size = glslTypeSizeBytes(geo_input->attributes[attr_idx].type);
           const int attr_count = ssbo.per_instance ? binding.instance_count : binding.vertex_count;
           const int64_t needed = (int64_t)elem_size * attr_count;
-          qDebug() << "    attr" << attr_idx
-                   << "owned=" << ssbo.owned
-                   << "cur_size=" << ssbo.size
-                   << "needed=" << needed;
           if(needed > 0 && ssbo.size != needed)
           {
             ssbo.buffer->destroy();

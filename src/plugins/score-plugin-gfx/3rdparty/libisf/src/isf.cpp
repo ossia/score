@@ -3703,7 +3703,6 @@ void parser::parse_csf()
           m_fragment += "layout(binding = " + std::to_string(binding) + ", std430) ";
           m_fragment += "readonly buffer " + prefix + "_in_buf { ";
           m_fragment += attr.type + " " + prefix + "_in[]; };\n";
-          m_fragment += "#define " + prefix + " " + prefix + "_in\n";
           binding++;
         }
         else if(attr.access == "write_only")
@@ -3712,7 +3711,6 @@ void parser::parse_csf()
           m_fragment += "layout(binding = " + std::to_string(binding) + ", std430) ";
           m_fragment += "writeonly buffer " + prefix + "_out_buf { ";
           m_fragment += attr.type + " " + prefix + "_out[]; };\n";
-          m_fragment += "#define " + prefix + " " + prefix + "_out\n";
           binding++;
         }
         else // read_write
@@ -3727,8 +3725,8 @@ void parser::parse_csf()
           m_fragment += "restrict buffer " + prefix + "_out_buf { ";
           m_fragment += attr.type + " " + prefix + "_out[]; };\n";
           binding++;
-          // No #define alias — forces explicit _in/_out usage
         }
+        // No shorthand alias — users must use ISF_READ(geo, attr) / ISF_WRITE(geo, attr)
       }
 
       // Auxiliary structured SSBOs (travel with the geometry)
