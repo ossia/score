@@ -56,7 +56,7 @@ private:
 
   // Geometry buffer management
   void updateGeometryBindings(RenderList& renderer, QRhiResourceUpdateBatch& res);
-  void pushOutputGeometry(RenderList& renderer, Edge& edge);
+  void pushOutputGeometry(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge& edge);
   int resolveCountExpression(
       const std::string& expr, const isf::geometry_input& geo,
       const std::string& fieldName) const;

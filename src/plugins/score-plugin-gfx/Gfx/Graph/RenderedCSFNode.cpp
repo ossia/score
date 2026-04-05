@@ -234,10 +234,11 @@ struct port_indices
     {
       // Inlet if any attribute needs upstream data (read_only or read_write)
       for(const auto& attr : v.attributes)
-        if(attr.access != "write_only") { inlet_i++; break; }
+        if(attr.access == "read_only" || attr.access == "read_write") { inlet_i++; break; }
+      // Outlet if any attribute is writable (write_only or read_write)
       for(const auto& attr : v.attributes)
       {
-        if(attr.access != "read_only")
+        if(attr.access == "write_only" || attr.access == "read_write")
         {
           outlet_i++; // one geometry output port if any attribute is writable
           break;
@@ -324,10 +325,10 @@ int RenderedCSFNode::resolveCountExpression(
     // For the matching geometry_input, find the $USER port index
     if(geo_inp && geo_inp == &geo)
     {
-      // Skip past geometry inlet port (exists if any attr is not write_only)
+      // Skip past geometry inlet port (exists if any attr reads from upstream)
       int cur = p.inlet_i;
       for(const auto& attr : geo.attributes)
-        if(attr.access != "write_only") { cur++; break; }
+        if(attr.access == "read_only" || attr.access == "read_write") { cur++; break; }
 
       if(fieldName == "vertex_count" && geo.vertex_count.find("$USER") != std::string::npos)
       {
@@ -1379,6 +1380,8 @@ void RenderedCSFNode::updateGeometryBindings(
             break;
           const auto& req = geo_input->attributes[attr_idx];
           auto& ssbo = binding.attribute_ssbos[attr_idx];
+          if(req.access == "none")
+            continue;
           const int count = ssbo.per_instance ? binding.instance_count : binding.vertex_count;
           if(count <= 0)
             continue;
@@ -1440,7 +1443,7 @@ void RenderedCSFNode::updateGeometryBindings(
   }
 }
 
-void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, Edge& edge)
+void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge& edge)
 {
   // For each geometry_input with writable attributes, construct output geometry
   // and push to downstream node's renderer
@@ -1457,6 +1460,12 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, Edge& edge)
       break;
 
     auto& binding = m_geometryBindings[geo_binding_idx];
+
+    qDebug() << "CSF pushOutputGeometry:" << input.name.c_str()
+             << "has_output=" << binding.has_output
+             << "binding_idx=" << geo_binding_idx
+             << "verts=" << binding.vertex_count
+             << "insts=" << binding.instance_count;
 
     if(!binding.has_output)
     {
@@ -1666,47 +1675,265 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, Edge& edge)
         }
       }
 
-      // Forward upstream auxiliary buffers from this binding's upstream
-      // AND from all other input bindings' upstreams (e.g. geoOut needs
-      // to carry forward auxiliary buffers that arrived on geoIn).
+      // Forward upstream auxiliary buffers from this binding's own upstream only.
+      // (Single-geometry case: implicit forwarding for pass-through nodes.)
+      if(binding_upstream)
       {
-        auto forward_auxiliaries = [&](const ossia::geometry& in_mesh) {
-          for(const auto& in_aux : in_mesh.auxiliary)
+        for(const auto& in_aux : binding_upstream->auxiliary)
+        {
+          bool already_present = false;
+          for(const auto& existing : out_geo.auxiliary)
+            if(existing.name == in_aux.name) { already_present = true; break; }
+          if(already_present)
+            continue;
+
+          if(in_aux.buffer >= 0 && in_aux.buffer < (int)binding_upstream->buffers.size())
           {
-            bool already_present = false;
-            for(const auto& sb : m_storageBuffers)
-              if(sb.name.toStdString() == in_aux.name) { already_present = true; break; }
-            for(const auto& aux : binding.auxiliary_ssbos)
-              if(aux.name == in_aux.name) { already_present = true; break; }
-            for(const auto& existing : out_geo.auxiliary)
-              if(existing.name == in_aux.name) { already_present = true; break; }
-            if(already_present)
-              continue;
-
-            if(in_aux.buffer >= 0 && in_aux.buffer < (int)in_mesh.buffers.size())
-            {
-              const int aux_buf_idx = (int)out_geo.buffers.size();
-              out_geo.buffers.push_back(in_mesh.buffers[in_aux.buffer]);
-              out_geo.auxiliary.push_back({
-                  .name = in_aux.name, .buffer = aux_buf_idx,
-                  .byte_offset = in_aux.byte_offset, .byte_size = in_aux.byte_size});
-            }
+            const int aux_buf_idx = (int)out_geo.buffers.size();
+            out_geo.buffers.push_back(binding_upstream->buffers[in_aux.buffer]);
+            out_geo.auxiliary.push_back({
+                .name = in_aux.name, .buffer = aux_buf_idx,
+                .byte_offset = in_aux.byte_offset, .byte_size = in_aux.byte_size});
           }
-        };
+        }
+      }
 
-        // Forward from this binding's own upstream
-        if(binding_upstream)
-          forward_auxiliaries(*binding_upstream);
+      // Explicit COPY_FROM: forward auxiliary buffers from other geometries
+      for(const auto& aux_req : geo_input->auxiliary)
+      {
+        if(!aux_req.forward)
+          continue;
 
-        // Forward from all other input bindings' upstreams
+        // Already attached by this binding's own auxiliary SSBOs?
+        bool already_present = false;
+        for(const auto& existing : out_geo.auxiliary)
+          if(existing.name == aux_req.name) { already_present = true; break; }
+        if(already_present)
+          continue;
+
+        // Find the source geometry by name
+        const std::string& src_geo_name = aux_req.forward->geometry;
+        const std::string src_aux_name
+            = aux_req.forward->auxiliary.empty() ? aux_req.name : aux_req.forward->auxiliary;
+
+        // Search all input port geometries for the source
         for(const auto& [port_idx, geo_spec] : m_portGeometries)
         {
-          if(geo_spec.meshes && !geo_spec.meshes->meshes.empty())
+          if(!geo_spec.meshes || geo_spec.meshes->meshes.empty())
+            continue;
+
+          // Match by geometry resource name → find the binding with that name
+          int src_binding_idx = 0;
+          bool found_geo = false;
+          for(const auto& inp : n.m_descriptor.inputs)
           {
-            const auto& other_mesh = geo_spec.meshes->meshes[0];
-            if(&other_mesh != binding_upstream)
-              forward_auxiliaries(other_mesh);
+            auto* src_geo = ossia::get_if<isf::geometry_input>(&inp.data);
+            if(!src_geo) continue;
+            if(src_binding_idx >= (int)m_geometryBindings.size()) break;
+            auto& src_binding = m_geometryBindings[src_binding_idx];
+            if(inp.name == src_geo_name && src_binding.input_port_index == port_idx)
+            {
+              found_geo = true;
+              break;
+            }
+            src_binding_idx++;
           }
+
+          if(!found_geo)
+            continue;
+
+          const auto& src_mesh = geo_spec.meshes->meshes[0];
+          if(auto* src_aux = src_mesh.find_auxiliary(src_aux_name))
+          {
+            if(src_aux->buffer >= 0 && src_aux->buffer < (int)src_mesh.buffers.size())
+            {
+              const int aux_buf_idx = (int)out_geo.buffers.size();
+              out_geo.buffers.push_back(src_mesh.buffers[src_aux->buffer]);
+              out_geo.auxiliary.push_back({
+                  .name = aux_req.name, .buffer = aux_buf_idx,
+                  .byte_offset = src_aux->byte_offset, .byte_size = src_aux->byte_size});
+              break;
+            }
+          }
+        }
+      }
+
+      // Explicit COPY_FROM: forward attributes from other geometries
+      qDebug() << "CSF pushOutputGeometry: checking COPY_FROM for"
+               << geo_input->attributes.size() << "attributes";
+      for(const auto& attr_req : geo_input->attributes)
+      {
+        if(!attr_req.forward)
+          continue;
+        qDebug() << "CSF COPY_FROM: looking for attr" << attr_req.name.c_str()
+                 << "from geo=" << attr_req.forward->geometry.c_str()
+                 << "attr=" << attr_req.forward->attribute.c_str()
+                 << "portGeometries.size=" << m_portGeometries.size();
+
+        // Already present in output?
+        bool already_present = false;
+        for(const auto& out_attr : out_geo.attributes)
+        {
+          const auto sem = ossia::name_to_semantic(attr_req.semantic);
+          if(sem != ossia::attribute_semantic::custom && out_attr.semantic == sem)
+          { already_present = true; break; }
+          if(sem == ossia::attribute_semantic::custom && out_attr.name == attr_req.name)
+          { already_present = true; break; }
+        }
+        if(already_present)
+        {
+          qDebug() << "CSF COPY_FROM: attr" << attr_req.name.c_str()
+                   << "sem=" << (int)ossia::name_to_semantic(attr_req.semantic)
+                   << "already present in" << out_geo.attributes.size() << "attrs:";
+          for(const auto& a : out_geo.attributes)
+            qDebug() << "  -" << (int)a.semantic << a.name.c_str();
+          continue;
+        }
+
+        const std::string& src_geo_name = attr_req.forward->geometry;
+        const std::string& src_attr_name = attr_req.forward->attribute;
+
+        qDebug() << "CSF COPY_FROM: iterating" << m_portGeometries.size() << "port geometries";
+        for(const auto& [port_idx, geo_spec] : m_portGeometries)
+        {
+          qDebug() << "CSF COPY_FROM: visiting port" << port_idx
+                   << "meshes=" << (bool)geo_spec.meshes
+                   << "count=" << (geo_spec.meshes ? (int)geo_spec.meshes->meshes.size() : -1);
+          if(!geo_spec.meshes || geo_spec.meshes->meshes.empty())
+          {
+            qDebug() << "CSF COPY_FROM: port" << port_idx << "has no geometry";
+            continue;
+          }
+
+          // Find the matching source geometry binding
+          int src_binding_idx = 0;
+          bool found_geo = false;
+          for(const auto& inp : n.m_descriptor.inputs)
+          {
+            auto* src_geo = ossia::get_if<isf::geometry_input>(&inp.data);
+            if(!src_geo) continue;
+            if(src_binding_idx >= (int)m_geometryBindings.size()) break;
+            auto& src_binding = m_geometryBindings[src_binding_idx];
+            qDebug() << "CSF COPY_FROM: checking inp=" << inp.name.c_str()
+                     << "binding_port=" << src_binding.input_port_index
+                     << "vs port_idx=" << port_idx
+                     << "want=" << src_geo_name.c_str();
+            if(inp.name == src_geo_name && src_binding.input_port_index == port_idx)
+            {
+              found_geo = true;
+              break;
+            }
+            src_binding_idx++;
+          }
+
+          if(!found_geo)
+          {
+            qDebug() << "CSF COPY_FROM: geometry" << src_geo_name.c_str()
+                     << "not matched at port" << port_idx;
+            continue;
+          }
+
+          const auto& src_mesh = geo_spec.meshes->meshes[0];
+          // Find the source attribute by name
+          for(const auto& in_attr : src_mesh.attributes)
+          {
+            std::string_view attr_display = ossia::geometry::display_name(in_attr);
+            bool name_match = (!src_attr_name.empty() && attr_display == src_attr_name);
+            if(!name_match)
+            {
+              auto src_sem = ossia::name_to_semantic(src_attr_name);
+              name_match = (src_sem != ossia::attribute_semantic::custom
+                            && in_attr.semantic == src_sem);
+            }
+            if(!name_match)
+              continue;
+
+            const int in_binding_idx = in_attr.binding;
+            if(in_binding_idx < 0 || in_binding_idx >= (int)src_mesh.input.size())
+              break;
+            const auto& in_inp = src_mesh.input[in_binding_idx];
+            if(in_inp.buffer < 0 || in_inp.buffer >= (int)src_mesh.buffers.size())
+              break;
+
+            const int buf_index = (int)out_geo.buffers.size();
+
+            // Upload CPU buffers to GPU so the output geometry is uniform.
+            const auto& src_buf = src_mesh.buffers[in_inp.buffer];
+            if(auto* cpu = ossia::get_if<ossia::geometry::cpu_buffer>(&src_buf.data))
+            {
+              if(cpu->raw_data && cpu->byte_size > 0)
+              {
+                auto& rhi = *renderer.state.rhi;
+                auto* gpu_buf = rhi.newBuffer(
+                    QRhiBuffer::Static,
+                    QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer,
+                    cpu->byte_size);
+                gpu_buf->setName(QByteArray("CSF_CopyFrom_") + attr_req.name.c_str());
+                gpu_buf->create();
+                res.uploadStaticBuffer(gpu_buf, 0, cpu->byte_size, cpu->raw_data.get());
+
+                out_geo.buffers.push_back({
+                    .data = ossia::geometry::gpu_buffer{gpu_buf, cpu->byte_size},
+                    .dirty = false});
+              }
+              else
+              {
+                out_geo.buffers.push_back(src_buf);
+              }
+            }
+            else
+            {
+              out_geo.buffers.push_back(src_buf);
+            }
+
+            // binding index = next slot in bindings array (NOT the buffer index)
+            const int binding_index = (int)out_geo.bindings.size();
+
+            ossia::geometry::binding bind;
+            if(in_binding_idx < (int)src_mesh.bindings.size())
+              bind = src_mesh.bindings[in_binding_idx];
+            else
+              bind.classification = ossia::geometry::binding::per_vertex;
+
+            // Override classification from the COPY_FROM attribute's rate
+            if(attr_req.rate == "instance")
+            {
+              bind.classification = ossia::geometry::binding::per_instance;
+              bind.step_rate = 1;
+            }
+            out_geo.bindings.push_back(bind);
+
+            ossia::geometry::attribute attr = in_attr;
+            attr.binding = binding_index;
+            attr.location = (int)out_geo.attributes.size();
+            // Override semantic from the request
+            auto sem = ossia::name_to_semantic(attr_req.semantic);
+            attr.semantic = sem;
+            if(sem == ossia::attribute_semantic::custom)
+              attr.name = attr_req.name;
+
+            // Override format from the request type
+            if(attr_req.type == "float") attr.format = ossia::geometry::attribute::float1;
+            else if(attr_req.type == "vec2") attr.format = ossia::geometry::attribute::float2;
+            else if(attr_req.type == "vec3") attr.format = ossia::geometry::attribute::float3;
+            else if(attr_req.type == "vec4") attr.format = ossia::geometry::attribute::float4;
+
+            out_geo.attributes.push_back(attr);
+
+            struct ossia::geometry::input inp_out;
+            inp_out.buffer = buf_index;
+            inp_out.byte_offset = in_inp.byte_offset;
+            out_geo.input.push_back(inp_out);
+
+            qDebug() << "CSF COPY_FROM: attr" << attr_req.name.c_str()
+                     << "from" << src_geo_name.c_str()
+                     << "buf_idx=" << buf_index
+                     << "byte_offset=" << in_inp.byte_offset
+                     << "rate=" << attr_req.rate.c_str()
+                     << "format=" << attr_req.type.c_str();
+            break;
+          }
+          break;
         }
       }
 
@@ -2204,6 +2431,10 @@ void RenderedCSFNode::initComputePass(
           const auto& req = geo_input->attributes[attr_idx];
           auto& ssbo = binding.attribute_ssbos[attr_idx];
 
+          // "none" access: forwarded via COPY_FROM, no binding needed
+          if(req.access == "none")
+            continue;
+
           if(!ssbo.buffer)
           {
             // Create a minimal fallback buffer so we don't crash
@@ -2299,9 +2530,9 @@ void RenderedCSFNode::initComputePass(
 
         geo_binding_index++;
       }
-      // Inlet port if any attribute needs upstream data (not write_only)
+      // Inlet port if any attribute reads from upstream
       for(const auto& attr : geo_input->attributes)
-        if(attr.access != "write_only") { input_port_index++; break; }
+        if(attr.access == "read_only" || attr.access == "read_write") { input_port_index++; break; }
       // Skip $USER ports for this geometry input
       if(geo_input->vertex_count.find("$USER") != std::string::npos) input_port_index++;
       if(geo_input->instance_count.find("$USER") != std::string::npos) input_port_index++;
@@ -2664,7 +2895,7 @@ void RenderedCSFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
       if(!needs_input)
       {
         for(const auto& attr : geo->attributes)
-          if(attr.access != "write_only")
+          if(attr.access == "read_only" || attr.access == "read_write")
           { needs_input = true; break; }
       }
 
@@ -2682,7 +2913,7 @@ void RenderedCSFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
         ssbo.per_instance = (attr.rate == "instance");
         binding.attribute_ssbos.push_back(std::move(ssbo));
 
-        if(attr.access != "read_only")
+        if(attr.access != "read_only" && attr.access != "none")
           binding.has_output = true;
       }
 
@@ -2709,6 +2940,8 @@ void RenderedCSFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
           if(attr_idx >= (int)binding.attribute_ssbos.size())
             break;
           auto& ssbo = binding.attribute_ssbos[attr_idx];
+          if(ssbo.access == "none")
+            continue;
           const int count = ssbo.per_instance ? binding.instance_count : binding.vertex_count;
           if(count <= 0)
             continue;
@@ -2730,6 +2963,10 @@ void RenderedCSFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
 
       for(const auto& aux : geo->auxiliary)
       {
+        // COPY_FROM auxiliaries are forwarded in pushOutputGeometry, no SSBO needed
+        if(aux.forward)
+          continue;
+
         GeometryBinding::AuxiliarySSBO ssbo;
         ssbo.name = aux.name;
         ssbo.access = aux.access;
@@ -3053,6 +3290,10 @@ void RenderedCSFNode::recreateShaderResourceBindings(RenderList& renderer, QRhiR
           const auto& req = geo_input->attributes[attr_idx];
           auto& ssbo = binding.attribute_ssbos[attr_idx];
 
+          // "none" access: forwarded via COPY_FROM, no binding needed
+          if(req.access == "none")
+            continue;
+
           if(!ssbo.buffer)
           {
             // Create a minimal fallback buffer so we don't skip a binding index
@@ -3144,9 +3385,9 @@ void RenderedCSFNode::recreateShaderResourceBindings(RenderList& renderer, QRhiR
 
         geo_binding_index++;
       }
-      // Inlet port if any attribute needs upstream data (not write_only)
+      // Inlet port if any attribute reads from upstream
       for(const auto& attr : geo_input->attributes)
-        if(attr.access != "write_only") { input_port_index++; break; }
+        if(attr.access == "read_only" || attr.access == "read_write") { input_port_index++; break; }
       // Skip $USER ports for this geometry input
       if(geo_input->vertex_count.find("$USER") != std::string::npos) input_port_index++;
       if(geo_input->instance_count.find("$USER") != std::string::npos) input_port_index++;
@@ -3585,7 +3826,9 @@ void RenderedCSFNode::runInitialPasses(
   // After all compute passes: push output geometry to downstream nodes
   if(!m_geometryBindings.empty())
   {
-    pushOutputGeometry(renderer, edge);
+    if(!res)
+      res = renderer.state.rhi->nextResourceUpdateBatch();
+    pushOutputGeometry(renderer, *res, edge);
   }
 
   // Ping-pong swap for feedback receivers: after pushing output,

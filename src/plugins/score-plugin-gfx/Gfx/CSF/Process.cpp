@@ -496,7 +496,7 @@ void Model::setupCSF(const isf::descriptor& desc)
         bool needs_input = false;
         for(const auto& attr : v.attributes)
         {
-          if(attr.access != "write_only")
+          if(attr.access == "read_only" || attr.access == "read_write")
           {
             needs_input = true;
             break;

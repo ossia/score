@@ -137,6 +137,15 @@ struct csf_image_input
 // Declares which geometry attributes the compute shader wants to access.
 struct geometry_input
 {
+  // Explicit cross-geometry forwarding directive.
+  // Used when an output geometry needs data from a different input geometry.
+  struct copy_from
+  {
+    std::string geometry;   // Source geometry resource name (e.g. "geoIn")
+    std::string attribute;  // Source attribute name (for attribute forwarding)
+    std::string auxiliary;  // Source auxiliary name (for auxiliary forwarding; defaults to this name)
+  };
+
   struct attribute_request
   {
     std::string name;     // Attribute name used in GLSL (e.g. "position", "velocity")
@@ -145,6 +154,10 @@ struct geometry_input
     std::string access;   // "read_only", "write_only", "read_write"
     std::string rate;     // "vertex" (default) or "instance"
     bool required{true};  // false = optional, zero fallback if missing
+
+    // If set, this attribute is forwarded from another geometry's buffer
+    // rather than being allocated/computed by this shader.
+    std::optional<copy_from> forward;
   };
 
   // Structured SSBOs that travel with the geometry (matched by name
@@ -155,6 +168,9 @@ struct geometry_input
     std::string access; // "read_only", "write_only", "read_write"
     std::vector<storage_input::layout_field> layout;
     std::string size; // expression for flexible array count, may contain $USER
+
+    // If set, this auxiliary is forwarded from another geometry's upstream.
+    std::optional<copy_from> forward;
   };
 
   std::vector<attribute_request> attributes;

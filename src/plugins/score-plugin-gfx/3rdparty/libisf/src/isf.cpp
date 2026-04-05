@@ -509,6 +509,35 @@ static void parse_input(texture_input& inp, const sajson::value& v)
   }
 }
 
+// Parse a COPY_FROM JSON object.
+static std::optional<geometry_input::copy_from>
+parse_copy_from(const sajson::value& obj)
+{
+  if(obj.get_type() != sajson::TYPE_OBJECT)
+    return std::nullopt;
+
+  geometry_input::copy_from cf;
+  for(std::size_t i = 0; i < obj.get_length(); i++)
+  {
+    auto k = obj.get_object_key(i).as_string();
+    auto v = obj.get_object_value(i);
+    if(v.get_type() != sajson::TYPE_STRING)
+      continue;
+
+    if(k == "GEOMETRY")
+      cf.geometry = v.as_string();
+    else if(k == "ATTRIBUTE")
+      cf.attribute = v.as_string();
+    else if(k == "AUXILIARY")
+      cf.auxiliary = v.as_string();
+  }
+
+  if(cf.geometry.empty())
+    return std::nullopt;
+
+  return cf;
+}
+
 // Parse an AUXILIARY JSON array into a vector of auxiliary_request.
 // Shared by geometry_input parsing and top-level AUXILIARY key.
 static void parse_auxiliary_array(
@@ -576,6 +605,10 @@ static void parse_auxiliary_array(
           ar.layout.push_back(lf);
         }
       }
+      else if(fkey == "COPY_FROM")
+      {
+        ar.forward = parse_copy_from(fval);
+      }
     }
 
     if(ar.access.empty())
@@ -629,6 +662,10 @@ static void parse_input(geometry_input& inp, const sajson::value& v)
                 ar.required = false;
               else if(fval.get_type() == sajson::TYPE_TRUE)
                 ar.required = true;
+            }
+            else if(fkey == "COPY_FROM")
+            {
+              ar.forward = parse_copy_from(fval);
             }
           }
 
@@ -2306,7 +2343,17 @@ void parser::parse_raw_raster_pipeline()
       ssbo_decls += "buffer " + aux.name + "_buf {\n";
       for(const auto& field : aux.layout)
       {
-        ssbo_decls += "    " + field.type + " " + field.name + ";\n";
+        // Handle array types: "vec4[512]" → "vec4 entries[512];"
+        auto bracket = field.type.find('[');
+        if(bracket != std::string::npos)
+        {
+          ssbo_decls += "    " + field.type.substr(0, bracket) + " " + field.name
+                        + field.type.substr(bracket) + ";\n";
+        }
+        else
+        {
+          ssbo_decls += "    " + field.type + " " + field.name + ";\n";
+        }
       }
       ssbo_decls += "} " + aux.name + ";\n\n";
 
@@ -3487,7 +3534,12 @@ void parser::parse_csf()
 
       for(const auto& field : type_def.layout)
       {
-        m_fragment += "  " + field.type + " " + field.name + ";\n";
+        auto bracket = field.type.find('[');
+        if(bracket != std::string::npos)
+          m_fragment += "  " + field.type.substr(0, bracket) + " " + field.name
+                        + field.type.substr(bracket) + ";\n";
+        else
+          m_fragment += "  " + field.type + " " + field.name + ";\n";
       }
 
       // Add padding calculation for struct alignment
@@ -3674,7 +3726,12 @@ void parser::parse_csf()
       // Add struct members based on layout
       for(const auto& field : storage.layout)
       {
-        m_fragment += "    " + field.type + " " + field.name + ";\n";
+        auto bracket = field.type.find('[');
+        if(bracket != std::string::npos)
+          m_fragment += "    " + field.type.substr(0, bracket) + " " + field.name
+                        + field.type.substr(bracket) + ";\n";
+        else
+          m_fragment += "    " + field.type + " " + field.name + ";\n";
       }
 
       m_fragment += "} " + inp.name + ";\n\n";
@@ -3732,6 +3789,10 @@ void parser::parse_csf()
 
       for(const auto& attr : geo.attributes)
       {
+        // "none" access: forwarded via COPY_FROM, no SSBO needed
+        if(attr.access == "none")
+          continue;
+
         const std::string prefix = inp.name + "_" + attr.name;
 
         if(attr.access == "read_only")
@@ -3769,6 +3830,10 @@ void parser::parse_csf()
       // Auxiliary structured SSBOs (travel with the geometry)
       for(const auto& aux : geo.auxiliary)
       {
+        // COPY_FROM auxiliaries are forwarded in pushOutputGeometry, no SSBO needed
+        if(aux.forward)
+          continue;
+
         const std::string aux_prefix = inp.name + "_" + aux.name;
 
         m_fragment += "layout(binding = " + std::to_string(binding) + ", std430) ";
@@ -3783,7 +3848,17 @@ void parser::parse_csf()
         m_fragment += "buffer " + aux_prefix + "_buf {\n";
         for(const auto& field : aux.layout)
         {
-          m_fragment += "    " + field.type + " " + field.name + ";\n";
+          // Handle array types: "vec4[512]" → "vec4 entries[512];"
+          auto bracket = field.type.find('[');
+          if(bracket != std::string::npos)
+          {
+            m_fragment += "    " + field.type.substr(0, bracket) + " " + field.name
+                          + field.type.substr(bracket) + ";\n";
+          }
+          else
+          {
+            m_fragment += "    " + field.type + " " + field.name + ";\n";
+          }
         }
         m_fragment += "} " + aux.name + ";\n";
 

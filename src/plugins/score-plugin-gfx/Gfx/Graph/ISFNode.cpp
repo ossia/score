@@ -191,7 +191,7 @@ struct isf_input_port_vis
       // Create geometry input port if any attribute needs upstream data (read_only or read_write)
       bool needs_input = false;
       for(const auto& attr : in.attributes)
-        if(attr.access != "write_only")
+        if(attr.access == "read_only" || attr.access == "read_write")
         { needs_input = true; break; }
 
       if(needs_input)
@@ -201,7 +201,7 @@ struct isf_input_port_vis
       bool has_output = false;
       for(const auto& attr : in.attributes)
       {
-        if(attr.access != "read_only")
+        if(attr.access == "write_only" || attr.access == "read_write")
         {
           has_output = true;
           break;
