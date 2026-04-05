@@ -81,10 +81,11 @@ std::vector<mesh> VoxPointCloudFromFile(
     return {};
   }
 
-  // 3 floats position + 1 float material_id per voxel
-  buf.resize(totalVoxels * 4, boost::container::default_init);
+  // 3 floats position + 1 float material_id + 1 float face_mask per voxel
+  buf.resize(totalVoxels * 5, boost::container::default_init);
   float* posOut = buf.data();
   float* matIdOut = buf.data() + totalVoxels * 3;
+  float* maskOut = buf.data() + totalVoxels * 4;
 
   uint64_t written = 0;
   for(uint32_t i = 0; i < scene->num_instances; i++)
@@ -99,15 +100,19 @@ std::vector<mesh> VoxPointCloudFromFile(
     const float py = float(model->size_y / 2);
     const float pz = float(model->size_z / 2);
 
-    for(uint32_t z = 0; z < model->size_z; z++)
+    const uint32_t sx = model->size_x;
+    const uint32_t sy = model->size_y;
+    const uint32_t sz = model->size_z;
+    const uint8_t* vd = model->voxel_data;
+
+    for(uint32_t z = 0; z < sz; z++)
     {
-      for(uint32_t y = 0; y < model->size_y; y++)
+      for(uint32_t y = 0; y < sy; y++)
       {
-        for(uint32_t x = 0; x < model->size_x; x++)
+        for(uint32_t x = 0; x < sx; x++)
         {
-          const uint32_t idx
-              = x + y * model->size_x + z * model->size_x * model->size_y;
-          const uint8_t ci = model->voxel_data[idx];
+          const uint32_t idx = x + y * sx + z * sx * sy;
+          const uint8_t ci = vd[idx];
           if(ci == 0)
             continue;
 
@@ -120,6 +125,21 @@ std::vector<mesh> VoxPointCloudFromFile(
           posOut[written * 3 + 2] = t.m02 * lx + t.m12 * ly + t.m22 * lz + t.m32;
 
           matIdOut[written] = float(ci);
+
+          // Face mask: bit set = face exposed (no solid neighbor)
+          // Bit 0: +Z, 1: -Z, 2: +X, 3: -X, 4: +Y, 5: -Y
+          uint32_t mask = 0;
+          auto solid = [&](uint32_t nx, uint32_t ny, uint32_t nz) {
+            return vd[nx + ny * sx + nz * sx * sy] != 0;
+          };
+          if(z + 1 >= sz || !solid(x, y, z + 1)) mask |= (1u << 0); // +Z
+          if(z == 0      || !solid(x, y, z - 1)) mask |= (1u << 1); // -Z
+          if(x + 1 >= sx || !solid(x + 1, y, z)) mask |= (1u << 2); // +X
+          if(x == 0      || !solid(x - 1, y, z)) mask |= (1u << 3); // -X
+          if(y + 1 >= sy || !solid(x, y + 1, z)) mask |= (1u << 4); // +Y
+          if(y == 0      || !solid(x, y - 1, z)) mask |= (1u << 5); // -Y
+          maskOut[written] = float(mask);
+
           written++;
         }
       }
@@ -139,6 +159,14 @@ std::vector<mesh> VoxPointCloudFromFile(
   matid_attr.format = halp::attribute_format::float1;
   matid_attr.components = 1;
   m.extras.push_back(matid_attr);
+
+  extra_attribute mask_attr;
+  mask_attr.offset = written * 4;
+  mask_attr.semantic = halp::attribute_semantic::custom;
+  mask_attr.format = halp::attribute_format::float1;
+  mask_attr.components = 1;
+  mask_attr.name = "face_mask";
+  m.extras.push_back(mask_attr);
 
   std::vector<mesh> meshes;
   meshes.push_back(std::move(m));

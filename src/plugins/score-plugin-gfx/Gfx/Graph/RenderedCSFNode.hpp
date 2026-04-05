@@ -189,7 +189,8 @@ private:
   QRhiComputePipeline* m_computePipeline{}; // Points to first pass pipeline (backward compat)
   QShader m_computeShader;
   QString m_computeShaderSource; // Template with ISF_LOCAL_SIZE_X/Y/Z placeholders
-  std::vector<QRhiComputePipeline*> m_perPassPipelines; // One pipeline per pass (different local_size)
+  std::vector<QRhiComputePipeline*> m_perPassPipelines; // One entry per pass (may share pipelines)
+  std::vector<QRhiComputePipeline*> m_ownedPipelines;   // Unique pipelines for cleanup
   bool m_pipelinesDirty{true};
 
   // GPU buffer scatter (format conversion on GPU)

@@ -21,6 +21,7 @@ struct extra_attribute {
   halp::attribute_semantic semantic{};
   halp::attribute_format format{};
   int components{}; // 1-4 floats
+  std::string name; // For custom semantics; empty = use semantic name
 };
 
 struct mesh {

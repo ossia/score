@@ -1566,7 +1566,7 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
         const auto sem = ossia::name_to_semantic(req.semantic);
         attr.semantic = sem;
         if(sem == ossia::attribute_semantic::custom)
-          attr.name = req.name;
+          attr.name = req.semantic; // Use SEMANTIC as matching name, not GLSL NAME
 
         if(req.type == "vec4") attr.format = ossia::geometry::attribute::float4;
         else if(req.type == "vec3") attr.format = ossia::geometry::attribute::float3;
@@ -2766,27 +2766,45 @@ void RenderedCSFNode::createComputePipeline(RenderList& renderer)
     // LOCAL_SIZE placeholders will be substituted per-pass below.
     m_computeShaderSource = updateShaderWithImageFormats(n.m_computeS);
 
-    // Compile one pipeline per pass (each may have a different LOCAL_SIZE)
+    // Compile one pipeline per unique LOCAL_SIZE, reuse when passes share the same size.
     m_perPassPipelines.clear();
+    std::map<std::array<int,3>, QRhiComputePipeline*> pipelineCache;
+
     for(std::size_t passIdx = 0; passIdx < n.m_descriptor.csf_passes.size(); passIdx++)
     {
       const auto& passDesc = n.m_descriptor.csf_passes[passIdx];
+      const auto key = passDesc.local_size;
 
-      // Substitute LOCAL_SIZE placeholders
-      QString src = m_computeShaderSource;
-      src.replace("ISF_LOCAL_SIZE_X", QString::number(passDesc.local_size[0]));
-      src.replace("ISF_LOCAL_SIZE_Y", QString::number(passDesc.local_size[1]));
-      src.replace("ISF_LOCAL_SIZE_Z", QString::number(passDesc.local_size[2]));
+      auto it = pipelineCache.find(key);
+      if(it != pipelineCache.end())
+      {
+        // Reuse existing pipeline
+        m_perPassPipelines.push_back(it->second);
+      }
+      else
+      {
+        // Compile new pipeline for this local_size
+        QString src = m_computeShaderSource;
+        src.replace("ISF_LOCAL_SIZE_X", QString::number(key[0]));
+        src.replace("ISF_LOCAL_SIZE_Y", QString::number(key[1]));
+        src.replace("ISF_LOCAL_SIZE_Z", QString::number(key[2]));
 
-      QShader compiled = score::gfx::makeCompute(renderer.state, src);
+        QShader compiled = score::gfx::makeCompute(renderer.state, src);
 
-      auto* pipeline = rhi.newComputePipeline();
-      pipeline->setShaderStage(QRhiShaderStage(QRhiShaderStage::Compute, compiled));
+        auto* pipeline = rhi.newComputePipeline();
+        pipeline->setShaderStage(QRhiShaderStage(QRhiShaderStage::Compute, compiled));
 
-      m_perPassPipelines.push_back(pipeline);
+        pipelineCache[key] = pipeline;
+        m_perPassPipelines.push_back(pipeline);
+      }
     }
 
-    // For backward compat: point m_computePipeline to the first pass
+    // Store unique pipelines for cleanup
+    m_ownedPipelines.clear();
+    for(auto& [k, v] : pipelineCache)
+      m_ownedPipelines.push_back(v);
+
+    // For backward compat
     m_computePipeline = m_perPassPipelines.empty() ? nullptr : m_perPassPipelines[0];
     if(!m_perPassPipelines.empty())
       m_computeShader = m_perPassPipelines[0]->shaderStage().shader();
@@ -3461,9 +3479,10 @@ void RenderedCSFNode::release(RenderList& r)
   }
   m_graphicsPasses.clear();
   
-  // Clean up pipelines
-  for(auto* pip : m_perPassPipelines)
+  // Clean up pipelines (m_ownedPipelines has unique entries, m_perPassPipelines may have duplicates)
+  for(auto* pip : m_ownedPipelines)
     delete pip;
+  m_ownedPipelines.clear();
   m_perPassPipelines.clear();
   m_computePipeline = nullptr;
   
@@ -3769,8 +3788,10 @@ void RenderedCSFNode::runInitialPasses(
       const auto threadsPerWorkgroup = localX * localY * localZ;
       const int64_t totalWorkgroups = (requiredInvocations + threadsPerWorkgroup * strideX - 1)
                                       / (threadsPerWorkgroup * strideX);
-      qDebug() << "CSF dispatch: pass" << passIndex
-               << "type=" << passDesc.execution_type.c_str() << "n=" << n
+      qDebug() << "CSF dispatch:"
+               << "shader=" << ((ISFNode&)this->node).m_descriptor.description.c_str()
+               << "frame=" << ((ISFNode&)this->node).standardUBO.frameIndex << "pass"
+               << passIndex << "type=" << passDesc.execution_type.c_str() << "n=" << n
                << "local=" << threadsPerWorkgroup << "workgroups=" << totalWorkgroups;
       // Log SSBO sizes on first pass only
       if(passIndex == 0)
@@ -3783,6 +3804,7 @@ void RenderedCSFNode::runInitialPasses(
             const auto& s = gb.attribute_ssbos[ai];
             if(s.buffer)
               qDebug() << "  geo" << gi << "ssbo" << ai << s.name.c_str()
+                       << "buf=" << (void*)s.buffer
                        << "size=" << s.size << "access=" << s.access.c_str();
           }
         }

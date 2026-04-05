@@ -121,7 +121,8 @@ void VoxelLoader::rebuild_geometry()
               .binding = geom.attributes.back().binding + 1,
               .semantic = extra.semantic,
               .format = extra.format,
-              .byte_offset = 0});
+              .byte_offset = 0,
+              .name = extra.name});
       geom.input.push_back(
           halp::geometry_input{
               .buffer = 0, .byte_offset = extra.offset * (int)sizeof(float)});
