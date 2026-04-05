@@ -509,6 +509,82 @@ static void parse_input(texture_input& inp, const sajson::value& v)
   }
 }
 
+// Parse an AUXILIARY JSON array into a vector of auxiliary_request.
+// Shared by geometry_input parsing and top-level AUXILIARY key.
+static void parse_auxiliary_array(
+    const sajson::value& val,
+    std::vector<geometry_input::auxiliary_request>& out)
+{
+  if(val.get_type() != sajson::TYPE_ARRAY)
+    return;
+
+  std::size_t aux_count = val.get_length();
+  out.reserve(aux_count);
+
+  for(std::size_t j = 0; j < aux_count; j++)
+  {
+    auto aux_obj = val.get_array_element(j);
+    if(aux_obj.get_type() != sajson::TYPE_OBJECT)
+      continue;
+
+    geometry_input::auxiliary_request ar;
+
+    for(std::size_t f = 0; f < aux_obj.get_length(); f++)
+    {
+      auto fkey = aux_obj.get_object_key(f).as_string();
+      auto fval = aux_obj.get_object_value(f);
+
+      if(fkey == "NAME" && fval.get_type() == sajson::TYPE_STRING)
+        ar.name = fval.as_string();
+      else if(fkey == "ACCESS" && fval.get_type() == sajson::TYPE_STRING)
+        ar.access = fval.as_string();
+      else if(fkey == "SIZE")
+      {
+        if(fval.get_type() == sajson::TYPE_STRING)
+          ar.size = fval.as_string();
+        else if(fval.get_type() == sajson::TYPE_INTEGER)
+          ar.size = std::to_string(fval.get_integer_value());
+        else if(fval.get_type() == sajson::TYPE_DOUBLE)
+          ar.size = std::to_string((int)fval.get_double_value());
+      }
+      else if(fkey == "LAYOUT" && fval.get_type() == sajson::TYPE_ARRAY)
+      {
+        std::size_t layout_size = fval.get_length();
+        ar.layout.reserve(layout_size);
+        for(std::size_t l = 0; l < layout_size; l++)
+        {
+          auto field = fval.get_array_element(l);
+          if(field.get_type() != sajson::TYPE_OBJECT)
+            continue;
+          storage_input::layout_field lf;
+          for(std::size_t ff = 0; ff < field.get_length(); ff++)
+          {
+            auto field_key = field.get_object_key(ff).as_string();
+            if(field_key == "NAME")
+            {
+              auto name_val = field.get_object_value(ff);
+              if(name_val.get_type() == sajson::TYPE_STRING)
+                lf.name = name_val.as_string();
+            }
+            else if(field_key == "TYPE")
+            {
+              auto type_val = field.get_object_value(ff);
+              if(type_val.get_type() == sajson::TYPE_STRING)
+                lf.type = type_val.as_string();
+            }
+          }
+          ar.layout.push_back(lf);
+        }
+      }
+    }
+
+    if(ar.access.empty())
+      ar.access = "read_only";
+
+    out.push_back(std::move(ar));
+  }
+}
+
 static void parse_input(geometry_input& inp, const sajson::value& v)
 {
   std::size_t N = v.get_length();
@@ -590,75 +666,7 @@ static void parse_input(geometry_input& inp, const sajson::value& v)
     }
     else if(k == "AUXILIARY")
     {
-      auto val = v.get_object_value(i);
-      if(val.get_type() == sajson::TYPE_ARRAY)
-      {
-        std::size_t aux_count = val.get_length();
-        inp.auxiliary.reserve(aux_count);
-
-        for(std::size_t j = 0; j < aux_count; j++)
-        {
-          auto aux_obj = val.get_array_element(j);
-          if(aux_obj.get_type() != sajson::TYPE_OBJECT)
-            continue;
-
-          geometry_input::auxiliary_request ar;
-
-          for(std::size_t f = 0; f < aux_obj.get_length(); f++)
-          {
-            auto fkey = aux_obj.get_object_key(f).as_string();
-            auto fval = aux_obj.get_object_value(f);
-
-            if(fkey == "NAME" && fval.get_type() == sajson::TYPE_STRING)
-              ar.name = fval.as_string();
-            else if(fkey == "ACCESS" && fval.get_type() == sajson::TYPE_STRING)
-              ar.access = fval.as_string();
-            else if(fkey == "SIZE")
-            {
-              if(fval.get_type() == sajson::TYPE_STRING)
-                ar.size = fval.as_string();
-              else if(fval.get_type() == sajson::TYPE_INTEGER)
-                ar.size = std::to_string(fval.get_integer_value());
-              else if(fval.get_type() == sajson::TYPE_DOUBLE)
-                ar.size = std::to_string((int)fval.get_double_value());
-            }
-            else if(fkey == "LAYOUT" && fval.get_type() == sajson::TYPE_ARRAY)
-            {
-              std::size_t layout_size = fval.get_length();
-              ar.layout.reserve(layout_size);
-              for(std::size_t l = 0; l < layout_size; l++)
-              {
-                auto field = fval.get_array_element(l);
-                if(field.get_type() != sajson::TYPE_OBJECT)
-                  continue;
-                storage_input::layout_field lf;
-                for(std::size_t ff = 0; ff < field.get_length(); ff++)
-                {
-                  auto field_key = field.get_object_key(ff).as_string();
-                  if(field_key == "NAME")
-                  {
-                    auto name_val = field.get_object_value(ff);
-                    if(name_val.get_type() == sajson::TYPE_STRING)
-                      lf.name = name_val.as_string();
-                  }
-                  else if(field_key == "TYPE")
-                  {
-                    auto type_val = field.get_object_value(ff);
-                    if(type_val.get_type() == sajson::TYPE_STRING)
-                      lf.type = type_val.as_string();
-                  }
-                }
-                ar.layout.push_back(lf);
-              }
-            }
-          }
-
-          if(ar.access.empty())
-            ar.access = "read_write";
-
-          inp.auxiliary.push_back(std::move(ar));
-        }
-      }
+      parse_auxiliary_array(v.get_object_value(i), inp.auxiliary);
     }
     else if(k == "INDIRECT_DRAW")
     {
@@ -1220,6 +1228,11 @@ static const ossia::string_map<root_fun>& root_parse{[] {
 
   p.insert({"FRAGMENT_OUTPUTS", [](descriptor& d, const sajson::value& v) {
     parse_attributes.operator()<fragment_output, &descriptor::fragment_outputs>(d, v);
+  }});
+
+  // Top-level AUXILIARY for RAW_RASTER_PIPELINE: SSBOs expected from upstream geometry
+  p.insert({"AUXILIARY", [](descriptor& d, const sajson::value& v) {
+    parse_auxiliary_array(v, d.auxiliary);
   }});
 
   // Add RESOURCES parsing for CSF (which can contain both inputs and resources)
@@ -2276,6 +2289,30 @@ void parser::parse_raw_raster_pipeline()
 
       material_ubos += samplers;
     }
+
+    // Auxiliary SSBOs (from top-level AUXILIARY key)
+    std::string ssbo_decls;
+    for(const auto& aux : d.auxiliary)
+    {
+      ssbo_decls += "layout(binding = " + std::to_string(sampler_binding) + ", std430) ";
+
+      if(aux.access == "read_only")
+        ssbo_decls += "readonly ";
+      else if(aux.access == "write_only")
+        ssbo_decls += "writeonly ";
+      else
+        ssbo_decls += "restrict ";
+
+      ssbo_decls += "buffer " + aux.name + "_buf {\n";
+      for(const auto& field : aux.layout)
+      {
+        ssbo_decls += "    " + field.type + " " + field.name + ";\n";
+      }
+      ssbo_decls += "} " + aux.name + ";\n\n";
+
+      sampler_binding++;
+    }
+    material_ubos += ssbo_decls;
 
     int model_ubo_binding = sampler_binding;
     material_ubos += fmt::format(

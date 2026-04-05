@@ -350,6 +350,10 @@ struct descriptor
   std::vector<vertex_output> vertex_outputs;
   std::vector<fragment_input> fragment_inputs;
   std::vector<fragment_output> fragment_outputs;
+
+  // Auxiliary SSBOs expected from upstream geometry (matched by name).
+  // Populated from top-level AUXILIARY key in RAW_RASTER_PIPELINE mode.
+  std::vector<geometry_input::auxiliary_request> auxiliary;
 };
 
 class SCORE_PLUGIN_GFX_EXPORT parser

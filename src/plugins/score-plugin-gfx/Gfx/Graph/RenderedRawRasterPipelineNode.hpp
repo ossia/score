@@ -50,6 +50,16 @@ private:
 
   QRhiBuffer* m_modelUBO{};
 
+  struct AuxiliarySSBO
+  {
+    QRhiBuffer* buffer{};
+    int64_t size{};
+    bool owned{true}; // false when adopted from upstream geometry
+    std::string name;
+    std::string access;
+  };
+  std::vector<AuxiliarySSBO> m_auxiliarySSBOs;
+
   std::optional<AudioTextureUpload> m_audioTex;
 
   // The part of the m_materialUBO for which changes

@@ -79,14 +79,40 @@ void RenderedRawRasterPipelineNode::initPass(
     auto samplers = allSamplers();
     if(!samplers.empty())
       max_binding += samplers.size();
-    auto model_ubo_binding = QRhiShaderResourceBinding::uniformBuffer(
-        max_binding,
-        QRhiShaderResourceBinding::StageFlag::VertexStage
-            | QRhiShaderResourceBinding::StageFlag::FragmentStage,
-        m_modelUBO);
+
+    // Build additional bindings: auxiliary SSBOs + model UBO
+    const auto bindingStages = QRhiShaderResourceBinding::StageFlag::VertexStage
+                               | QRhiShaderResourceBinding::StageFlag::FragmentStage;
+
+    ossia::small_vector<QRhiShaderResourceBinding, 4> additionalBindings;
+
+    for(auto& aux : m_auxiliarySSBOs)
+    {
+      if(aux.buffer)
+      {
+        QRhiShaderResourceBinding binding;
+        if(aux.access == "read_only")
+          binding = QRhiShaderResourceBinding::bufferLoad(
+              max_binding, bindingStages, aux.buffer);
+        else if(aux.access == "write_only")
+          binding = QRhiShaderResourceBinding::bufferStore(
+              max_binding, bindingStages, aux.buffer);
+        else
+          binding = QRhiShaderResourceBinding::bufferLoadStore(
+              max_binding, bindingStages, aux.buffer);
+
+        additionalBindings.push_back(binding);
+      }
+      max_binding++;
+    }
+
+    additionalBindings.push_back(QRhiShaderResourceBinding::uniformBuffer(
+        max_binding, bindingStages, m_modelUBO));
+
     auto bindings = createDefaultBindings(
         renderer, renderTarget, pubo, m_materialUBO, allSamplers(),
-        std::span<QRhiShaderResourceBinding>(&model_ubo_binding, 1));
+        std::span<QRhiShaderResourceBinding>(
+            additionalBindings.data(), additionalBindings.size()));
 
     auto& rhi = *renderer.state.rhi;
     auto ps = rhi.newGraphicsPipeline();
@@ -223,6 +249,43 @@ void RenderedRawRasterPipelineNode::init(
 
   m_audioSamplers = initAudioTextures(renderer, n.m_audio_textures);
 
+  // Initialize auxiliary SSBOs from descriptor
+  {
+    const auto& desc = n.descriptor();
+    m_auxiliarySSBOs.clear();
+    m_auxiliarySSBOs.reserve(desc.auxiliary.size());
+    for(const auto& aux : desc.auxiliary)
+    {
+      AuxiliarySSBO ssbo;
+      ssbo.name = aux.name;
+      ssbo.access = aux.access;
+
+      // Try to find a matching auxiliary buffer from upstream geometry
+      if(geometry.meshes && !geometry.meshes->meshes.empty())
+      {
+        const auto& mesh = geometry.meshes->meshes[0];
+        if(auto* geo_aux = mesh.find_auxiliary(ssbo.name))
+        {
+          if(geo_aux->buffer >= 0 && geo_aux->buffer < (int)mesh.buffers.size())
+          {
+            const auto& geo_buf = mesh.buffers[geo_aux->buffer];
+            if(auto* gpu = ossia::get_if<ossia::geometry::gpu_buffer>(&geo_buf.data))
+            {
+              if(gpu->handle)
+              {
+                ssbo.buffer = static_cast<QRhiBuffer*>(gpu->handle);
+                ssbo.size = geo_aux->byte_size > 0 ? geo_aux->byte_size : gpu->byte_size;
+                ssbo.owned = false;
+              }
+            }
+          }
+        }
+      }
+
+      m_auxiliarySSBOs.push_back(std::move(ssbo));
+    }
+  }
+
   if(!m_mesh)
     return;
 
@@ -342,6 +405,36 @@ void RenderedRawRasterPipelineNode::update(
       mustRecreatePasses = true;
     }
     this->geometryChanged = false;
+
+    // Re-match auxiliary SSBOs from updated geometry
+    if(geometry.meshes && !geometry.meshes->meshes.empty())
+    {
+      const auto& mesh = geometry.meshes->meshes[0];
+      for(auto& aux : m_auxiliarySSBOs)
+      {
+        if(auto* geo_aux = mesh.find_auxiliary(aux.name))
+        {
+          if(geo_aux->buffer >= 0 && geo_aux->buffer < (int)mesh.buffers.size())
+          {
+            const auto& geo_buf = mesh.buffers[geo_aux->buffer];
+            if(auto* gpu = ossia::get_if<ossia::geometry::gpu_buffer>(&geo_buf.data))
+            {
+              if(gpu->handle)
+              {
+                auto* new_buf = static_cast<QRhiBuffer*>(gpu->handle);
+                if(aux.buffer != new_buf)
+                {
+                  aux.buffer = new_buf;
+                  aux.size = geo_aux->byte_size > 0 ? geo_aux->byte_size : gpu->byte_size;
+                  aux.owned = false;
+                  mustRecreatePasses = true;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   bool recreateDueToGeometry = mustRecreatePasses && !recreateDueToMaterial;
@@ -447,6 +540,13 @@ void RenderedRawRasterPipelineNode::release(RenderList& r)
 
   delete m_modelUBO;
   m_modelUBO = nullptr;
+
+  for(auto& aux : m_auxiliarySSBOs)
+  {
+    if(aux.owned && aux.buffer)
+      aux.buffer->deleteLater();
+  }
+  m_auxiliarySSBOs.clear();
 }
 
 void RenderedRawRasterPipelineNode::runInitialPasses(
