@@ -353,16 +353,14 @@ RenderList::Buffers RenderList::acquireMesh(
   }
 
   // 2. If not found try to see if the mesh is already used
-  for(const auto& [k, v] : m_customMeshCache)
+  for(auto it = m_customMeshCache.begin(); it != m_customMeshCache.end(); ++it)
   {
-    if(v == current)
+    if(it->second == current)
     {
       if(auto m = const_cast<CustomMesh*>(safe_cast<const CustomMesh*>(current)))
       {
         auto meshbufs_it = this->m_vertexBuffers.find(m);
         SCORE_ASSERT(meshbufs_it != this->m_vertexBuffers.end());
-        // SCORE_ASSERT(meshbufs_it->second.index == currentbufs.index);
-        // SCORE_ASSERT(meshbufs_it->second.mesh == currentbufs.mesh);
         auto& mb = currentbufs;
         auto cur_idx = p->dirty_index;
 
@@ -376,6 +374,12 @@ RenderList::Buffers RenderList::acquireMesh(
         }
 
         m->dirtyGeometryIndex = cur_idx;
+
+        // Re-key: erase stale entry and insert under the new geometry_spec
+        // to prevent cache growth from feedback loops creating new shared_ptrs each frame.
+        m_customMeshCache.erase(it);
+        m_customMeshCache[spec] = m;
+
         return {m, mb};
       }
     }

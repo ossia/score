@@ -63,6 +63,7 @@ void RenderedRawRasterPipelineNode::initPass(
   QRhiBuffer* pubo{};
   pubo = rhi.newBuffer(
       QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(ProcessUBO));
+  qWarning() << "RRP ALLOC [processUBO] size=" << sizeof(ProcessUBO);
   pubo->setName("RenderedRawRasterPipelineNode::initPass::pubo");
   pubo->create();
 
@@ -202,12 +203,14 @@ void RenderedRawRasterPipelineNode::init(
   {
     m_materialUBO
         = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, m_materialSize);
+    qWarning() << "RRP ALLOC [materialUBO] size=" << m_materialSize;
     m_materialUBO->setName("RenderedRawRasterPipelineNode::init::m_materialUBO");
     SCORE_ASSERT(m_materialUBO->create());
   }
 
   m_modelUBO
       = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(float[16]));
+  qWarning() << "RRP ALLOC [modelUBO] size=" << sizeof(float[16]);
   m_modelUBO->setName("RenderedRawRasterPipelineNode::init::m_modelUBO");
   SCORE_ASSERT(m_modelUBO->create());
 
@@ -284,6 +287,7 @@ void RenderedRawRasterPipelineNode::update(
   // Update node materials. This must be before any initial return,
   // otherwise we miss the materialsChanged
   bool mustRecreatePasses = updateMaterials(renderer, res, edge);
+  bool recreateDueToMaterial = mustRecreatePasses;
 
   // Update the geometry (sync with ModelDisplayNode)
 
@@ -291,6 +295,7 @@ void RenderedRawRasterPipelineNode::update(
   {
     if(geometry.meshes)
     {
+      const Mesh* prevMesh = m_mesh;
       std::tie(m_mesh, m_meshbufs)
           = renderer.acquireMesh(geometry, res, m_mesh, m_meshbufs);
 
@@ -323,10 +328,23 @@ void RenderedRawRasterPipelineNode::update(
         }
       }
 #endif
+
+      // Only recreate passes when the mesh object itself changed (different
+      // vertex layout / topology). When the same mesh is reused with updated
+      // buffer contents (e.g. feedback ping-pong), the existing pipeline is
+      // still valid — acquireMesh already updated the buffers in place.
+      if(m_mesh != prevMesh || m_passes.empty())
+        mustRecreatePasses = true;
     }
-    mustRecreatePasses = true;
+    else
+    {
+      // Geometry removed — need to recreate
+      mustRecreatePasses = true;
+    }
     this->geometryChanged = false;
   }
+
+  bool recreateDueToGeometry = mustRecreatePasses && !recreateDueToMaterial;
 
   if(!m_mesh)
   {
@@ -336,15 +354,23 @@ void RenderedRawRasterPipelineNode::update(
 
   // FIXME is that neeeded?
   // FIXME also not handling geometry_filter dirty geom so far
-  if(m_mesh->hasGeometryChanged(meshChangedIndex))
+  bool meshDirty = m_mesh->hasGeometryChanged(meshChangedIndex);
+  if(meshDirty)
   {
     mustRecreatePasses = true;
   }
 
   if(mustRecreatePasses)
   {
+    qWarning() << "RRP: recreating passes:"
+               << "material=" << recreateDueToMaterial
+               << "geometryChanged=" << recreateDueToGeometry
+               << "meshDirty=" << meshDirty;
     for(auto& pass : m_passes)
+    {
       pass.second.p.release();
+      delete pass.second.processUBO;
+    }
     m_passes.clear();
 
     for(Edge* edge : n.output[0]->edges)

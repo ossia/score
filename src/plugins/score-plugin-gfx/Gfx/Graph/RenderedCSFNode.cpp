@@ -533,6 +533,7 @@ BufferView RenderedCSFNode::createStorageBuffer(
   QRhi& rhi = *renderer.state.rhi;
   QRhiBuffer* buffer = rhi.newBuffer(
       QRhiBuffer::Static, QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer, size);
+  qWarning() << "CSF ALLOC [createStorageBuffer]" << name << "size=" << size;
 
   if(buffer)
   {
@@ -706,6 +707,7 @@ void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpd
               QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer
                   | QRhiBuffer::IndirectBuffer,
               requiredSize);
+          qWarning() << "CSF ALLOC [updateStorage/indirect]" << storageBuffer.name << "size=" << requiredSize;
           if(storageBuffer.buffer)
           {
             storageBuffer.buffer->setName(
@@ -892,6 +894,7 @@ void RenderedCSFNode::updateGeometryBindings(
           auto* buf = renderer.state.rhi->newBuffer(
               QRhiBuffer::Static,
               QRhiBuffer::StorageBuffer, requiredSize);
+          qWarning() << "CSF ALLOC [auxResize]" << aux.name.c_str() << "size=" << requiredSize;
           buf->setName(QByteArray("CSF_GeoAux_") + aux.name.c_str());
           buf->create();
           aux.buffer = buf;
@@ -960,6 +963,7 @@ void RenderedCSFNode::updateGeometryBindings(
               auto* buf = renderer.state.rhi->newBuffer(
                   QRhiBuffer::Static,
                   QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer, buf_size);
+              qWarning() << "CSF ALLOC [feedbackPingPong]" << req.name.c_str() << "size=" << buf_size;
               buf->setName(QByteArray("CSF_GeomPP_") + req.name.c_str());
               buf->create();
               QByteArray zero(buf_size, 0);
@@ -1039,6 +1043,7 @@ void RenderedCSFNode::updateGeometryBindings(
             auto* buf = renderer.state.rhi->newBuffer(
                 QRhiBuffer::Static,
                 QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer, needed);
+            qWarning() << "CSF ALLOC [geomFallback]" << req.name.c_str() << "size=" << needed;
             buf->setName(QByteArray("CSF_GeomFallback_") + req.name.c_str());
             buf->create();
             QByteArray zero(needed, 0);
@@ -1132,6 +1137,7 @@ void RenderedCSFNode::updateGeometryBindings(
             auto* buf = renderer.state.rhi->newBuffer(
                 QRhiBuffer::Static,
                 QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer, needed);
+            qWarning() << "CSF ALLOC [geomUpload]" << req.name.c_str() << "size=" << needed;
             buf->setName(QByteArray("CSF_Geom_") + req.name.c_str());
             buf->create();
             ssbo.buffer = buf;
@@ -1218,6 +1224,7 @@ void RenderedCSFNode::updateGeometryBindings(
             auto* buf = renderer.state.rhi->newBuffer(
                 QRhiBuffer::Static,
                 QRhiBuffer::StorageBuffer, requiredSize);
+            qWarning() << "CSF ALLOC [geoAuxNoMatch]" << aux.name.c_str() << "size=" << requiredSize;
             buf->setName(QByteArray("CSF_GeoAux_") + aux.name.c_str());
             buf->create();
             QByteArray zero(requiredSize, 0);
@@ -1319,6 +1326,7 @@ void RenderedCSFNode::updateGeometryBindings(
               auto* buf = renderer.state.rhi->newBuffer(
                   QRhiBuffer::Static,
                   QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer, needed);
+              qWarning() << "CSF ALLOC [geomSpecResize]" << req.name.c_str() << "size=" << needed;
               buf->setName(QByteArray("CSF_GeomSpec_") + req.name.c_str());
               buf->create();
               ssbo.buffer = buf;
@@ -1842,6 +1850,7 @@ void RenderedCSFNode::initComputePass(
               QRhiTexture::Flags flags
                   = QRhiTexture::ThreeDimensional | QRhiTexture::UsedWithLoadStore;
               texture = rhi.newTexture(format, imageSize.width(), imageSize.height(), depth, 1, flags);
+              qWarning() << "CSF ALLOC [storageImage3D]" << input.name.c_str() << "size=" << imageSize.width() << "x" << imageSize.height() << "x" << depth;
             }
             else
             {
@@ -1850,6 +1859,7 @@ void RenderedCSFNode::initComputePass(
                   = QRhiTexture::RenderTarget | QRhiTexture::UsedWithLoadStore
                     | QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips;
               texture = rhi.newTexture(format, imageSize, 1, flags);
+              qWarning() << "CSF ALLOC [storageImage2D]" << input.name.c_str() << "size=" << imageSize;
             }
             texture->setName(("RenderedCSFNode::storageImage::" + input.name).c_str());
 
@@ -1917,6 +1927,7 @@ void RenderedCSFNode::initComputePass(
             ssbo.buffer = rhi.newBuffer(
                 QRhiBuffer::Static,
                 QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer, elem_size);
+            qWarning() << "CSF ALLOC [geomInit]" << req.name.c_str() << "size=" << elem_size;
             ssbo.buffer->setName(QByteArray("CSF_GeomInit_") + req.name.c_str());
             ssbo.buffer->create();
             ssbo.size = elem_size;
@@ -1968,6 +1979,7 @@ void RenderedCSFNode::initComputePass(
             // Create a minimal fallback buffer so we don't skip a binding index
             aux.buffer = rhi.newBuffer(
                 QRhiBuffer::Static, QRhiBuffer::StorageBuffer, 16);
+            qWarning() << "CSF ALLOC [auxInit]" << aux.name.c_str() << "size=16";
             aux.buffer->setName(QByteArray("CSF_AuxInit_") + aux.name.c_str());
             aux.buffer->create();
             aux.size = 16;
@@ -2028,6 +2040,7 @@ void RenderedCSFNode::initComputePass(
       // Create a separate ProcessUBO for this pass
       QRhiBuffer* passProcessUBO = rhi.newBuffer(
           QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(ProcessUBO));
+      qWarning() << "CSF ALLOC [passProcessUBO] pass=" << passIdx << "size=" << sizeof(ProcessUBO);
       passProcessUBO->setName(QStringLiteral("RenderedCSFNode::pass%1::processUBO")
                                   .arg(passIdx)
                                   .toLocal8Bit());
@@ -2040,6 +2053,7 @@ void RenderedCSFNode::initComputePass(
 
       // Create separate SRB for this pass with the specific ProcessUBO
       passSRB = rhi.newShaderResourceBindings();
+      qWarning() << "CSF ALLOC [passSRB] pass=" << passIdx;
       passSRB->setName(QString("passSRB.%1").arg(passIdx).toUtf8());
 
       // Replace the ProcessUBO binding (binding 1) with this pass's ProcessUBO
@@ -2286,6 +2300,7 @@ void RenderedCSFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
   {
     m_materialUBO = rhi.newBuffer(
         QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, m_materialSize);
+    qWarning() << "CSF ALLOC [materialUBO] size=" << m_materialSize;
     m_materialUBO->setName("RenderedCSFNode::init::m_materialUBO");
     if(!m_materialUBO->create())
     {
@@ -2415,6 +2430,7 @@ void RenderedCSFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
           auto* buf = rhi.newBuffer(
               QRhiBuffer::Static,
               QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer, needed);
+          qWarning() << "CSF ALLOC [geomSpecInit]" << ssbo.name.c_str() << "size=" << needed;
           buf->setName(QByteArray("CSF_GeomSpec_") + ssbo.name.c_str());
           buf->create();
           QByteArray zero(needed, 0);
@@ -2445,6 +2461,7 @@ void RenderedCSFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
           auto* buf = rhi.newBuffer(
               QRhiBuffer::Static,
               QRhiBuffer::StorageBuffer, requiredSize);
+          qWarning() << "CSF ALLOC [geoAuxInit]" << aux.name.c_str() << "size=" << requiredSize;
           buf->setName(QByteArray("CSF_GeoAux_") + aux.name.c_str());
           buf->create();
           QByteArray zero(requiredSize, 0);
@@ -2475,6 +2492,7 @@ void RenderedCSFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
             QRhiBuffer::Static,
             QRhiBuffer::StorageBuffer | QRhiBuffer::IndirectBuffer,
             indirectSize);
+        qWarning() << "CSF ALLOC [indirectDraw]" << input.name.c_str() << "size=" << indirectSize;
         buf->setName(QByteArray("CSF_IndirectDraw_") + input.name.c_str());
         buf->create();
 
@@ -2755,6 +2773,7 @@ void RenderedCSFNode::recreateShaderResourceBindings(RenderList& renderer, QRhiR
             ssbo.buffer = rhi.newBuffer(
                 QRhiBuffer::Static,
                 QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer, elem_size);
+            qWarning() << "CSF ALLOC [geomFBFallback]" << req.name.c_str() << "size=" << elem_size;
             ssbo.buffer->setName(QByteArray("CSF_GeomFB_") + req.name.c_str());
             ssbo.buffer->create();
             ssbo.size = elem_size;
@@ -2802,6 +2821,7 @@ void RenderedCSFNode::recreateShaderResourceBindings(RenderList& renderer, QRhiR
             // Create a minimal fallback buffer so we don't skip a binding index
             aux.buffer = rhi.newBuffer(
                 QRhiBuffer::Static, QRhiBuffer::StorageBuffer, 16);
+            qWarning() << "CSF ALLOC [auxFBFallback]" << aux.name.c_str() << "size=16";
             aux.buffer->setName(QByteArray("CSF_AuxFB_") + aux.name.c_str());
             aux.buffer->create();
             aux.size = 16;
@@ -2864,6 +2884,7 @@ void RenderedCSFNode::recreateShaderResourceBindings(RenderList& renderer, QRhiR
     {
       // Create new SRB
       pass.srb = rhi.newShaderResourceBindings();
+      qWarning() << "CSF ALLOC [recreateSRB] new SRB for pass";
     }
 
     // Set the ProcessUBO binding for this pass
