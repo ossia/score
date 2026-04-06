@@ -594,10 +594,13 @@ void ScreenNode::destroyOutput()
   delete m_depthStencil;
   m_depthStencil = nullptr;
 
-  if(auto s = m_window->state)
+  if(m_window)
   {
-    delete s->renderPassDescriptor;
-    s->renderPassDescriptor = nullptr;
+    if(auto s = m_window->state)
+    {
+      delete s->renderPassDescriptor;
+      s->renderPassDescriptor = nullptr;
+    }
   }
 
   //delete s.renderBuffer;
@@ -605,11 +608,18 @@ void ScreenNode::destroyOutput()
 
   delete m_swapChain;
   m_swapChain = nullptr;
-  m_window->m_swapChain = nullptr;
 
-  if(auto s = m_window->state)
+  if(m_window)
   {
-    s->destroy();
+    m_window->m_swapChain = nullptr;
+  }
+
+  if(m_window)
+  {
+    if(auto s = m_window->state)
+    {
+      s->destroy();
+    }
   }
 
   if(m_ownsWindow)

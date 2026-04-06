@@ -137,7 +137,7 @@ private:
 
   std::shared_ptr<score::gfx::Window> window;
 
-  QWindow* qwindow{};
+  QPointer<QWindow> qwindow{};
   QWidget* container{};
 
   int screenId = score::gfx::invalid_node_index;

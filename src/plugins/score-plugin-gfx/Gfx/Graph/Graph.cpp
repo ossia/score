@@ -588,6 +588,7 @@ void Graph::destroyOutputRenderList(score::gfx::OutputNode& output)
     }
   }
 
+  output.destroyOutput();
   ossia::remove_erase(m_outputs, &output);
 }
 
