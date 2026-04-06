@@ -46,6 +46,12 @@ public:
   std::function<void()> onUpdate;
   std::function<void(QRhiCommandBuffer&)> onRender;
   std::function<void()> onResize;
+  // Invoked when the window is closing or its platform surface is being
+  // destroyed, giving the owner a chance to release resources that reference
+  // this window's surface (swap chains, depth buffers, render pass
+  // descriptors). Used by MultiWindowNode where the swap chain is not stored
+  // in Window::m_swapChain but in an external owner.
+  std::function<void()> onClose;
 
   void tabletMove(QTabletEvent* ev) W_SIGNAL(tabletMove, ev);
 

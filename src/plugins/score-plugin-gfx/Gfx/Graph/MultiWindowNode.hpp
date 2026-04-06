@@ -1,5 +1,6 @@
 #pragma once
 #include <Gfx/Graph/OutputNode.hpp>
+#include <Gfx/Graph/Utils.hpp>
 #include <Gfx/WindowDevice.hpp>
 
 namespace score::gfx
@@ -59,6 +60,15 @@ struct SCORE_PLUGIN_GFX_EXPORT MultiWindowNode : OutputNode
     return m_windowOutputs;
   }
 
+  // Stable offscreen render target used as the input target for the upstream
+  // graph. Owned by the node so it exists independently of any window being
+  // ready. Every upstream pipeline renders into this target; the per-window
+  // blit pipelines sample from it.
+  const TextureRenderTarget& offscreenTarget() const noexcept
+  {
+    return m_offscreenTarget;
+  }
+
   void setRenderSize(QSize sz);
   void setSourceRect(int windowIndex, QRectF rect);
   void setEdgeBlend(int windowIndex, int side, float width, float gamma);
@@ -68,12 +78,21 @@ struct SCORE_PLUGIN_GFX_EXPORT MultiWindowNode : OutputNode
   void setSwapchainFormat(Gfx::SwapchainFormat format);
 
   std::function<void(float)> onFps;
-  // Called after all windows are created in createOutput(), before swap chains are initialized
+  // Called once all windows have been constructed in createOutput(),
+  // before any of them has a swap chain. Used by multiwindow_device to
+  // connect Qt signals.
   std::function<void()> onWindowsCreated;
 
 private:
   void renderBlack();
-  void initWindow(int index, GraphicsApi api);
+  // Per-window swap chain init / release. Idempotent and safe to call
+  // multiple times (e.g. on window re-expose after a close).
+  void initWindowSwapChain(int index);
+  void releaseWindowSwapChain(int index);
+  // (Re)creates the offscreen render target using the current
+  // renderSize / renderFormat / samples in m_renderState. The
+  // offscreen RPD is also assigned to m_renderState->renderPassDescriptor.
+  void recreateOffscreenTarget();
 
   Configuration m_conf;
   std::vector<Gfx::OutputMapping> m_mappings;
@@ -82,8 +101,14 @@ private:
   std::shared_ptr<RenderState> m_renderState;
   std::weak_ptr<RenderList> m_renderer;
 
+  TextureRenderTarget m_offscreenTarget;
+
   Gfx::SwapchainFlag m_swapchainFlag{};
   Gfx::SwapchainFormat m_swapchainFormat{};
   std::function<void()> m_vsyncCallback;
+  // Stored resize callback from createOutput() so per-window events can
+  // request a full render-list rebuild (e.g. when a window becomes ready
+  // after the render list has already been built).
+  std::function<void()> m_onResize;
 };
 }

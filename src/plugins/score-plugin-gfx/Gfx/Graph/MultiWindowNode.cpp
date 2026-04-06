@@ -103,9 +103,6 @@ static std::array<float, 12> computeHomographyUBO(const Gfx::CornerWarp& warp)
 class MultiWindowRenderer final : public score::gfx::OutputNodeRenderer
 {
 public:
-  // The input target where all upstream nodes render to
-  score::gfx::TextureRenderTarget m_inputTarget;
-
   QShader m_vertexS, m_fragmentS;
   score::gfx::MeshBuffers m_mesh{};
 
@@ -122,6 +119,7 @@ public:
   std::vector<PerWindowData> m_perWindow;
 
   const MultiWindowNode& m_multiNode;
+  bool m_initialized{false};
 
   explicit MultiWindowRenderer(
       const MultiWindowNode& node, const score::gfx::RenderState& state)
@@ -135,18 +133,14 @@ public:
   score::gfx::TextureRenderTarget
   renderTargetForInput(const score::gfx::Port& p) override
   {
-    return m_inputTarget;
+    // The upstream graph renders into the node-owned offscreen target.
+    // That target is always alive while the rhi is, independently of any
+    // specific window.
+    return m_multiNode.offscreenTarget();
   }
 
   void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
-    auto& rhi = *renderer.state.rhi;
-
-    // Create the input target where upstream nodes will render
-    m_inputTarget = score::gfx::createRenderTarget(
-        renderer.state, renderer.state.renderFormat, renderer.state.renderSize,
-        renderer.samples(), renderer.requiresDepth(*this->node.input[0]));
-
     const auto& mesh = renderer.defaultTriangle();
     m_mesh = renderer.initMeshBuffer(mesh, res);
 
@@ -269,86 +263,142 @@ public:
     std::tie(m_vertexS, m_fragmentS)
         = score::gfx::makeShaders(renderer.state, mesh.defaultVertexShader(), frag_shader);
 
-    // Create per-window pipeline data
+    // Reserve per-window slots. Pipelines are built lazily below for
+    // windows that already have a swap chain; others will be built when
+    // their swap chain becomes ready (via buildWindowPipeline()).
     const auto& outputs = m_multiNode.windowOutputs();
     m_perWindow.resize(outputs.size());
 
     for(int i = 0; i < (int)outputs.size(); ++i)
+      buildWindowPipeline(i, renderer, &res);
+
+    m_initialized = true;
+  }
+
+  // Build (or rebuild) the per-window GPU resources for a single window.
+  // Safe to call multiple times: an existing pipeline is released first.
+  // `res` may be null; UBO contents are refreshed every frame inside
+  // renderSubRegion() so we don't need to perform an initial upload here.
+  void buildWindowPipeline(
+      int index, score::gfx::RenderList& renderer, QRhiResourceUpdateBatch* res)
+  {
+    if(index < 0 || index >= (int)m_perWindow.size())
+      return;
+
+    auto& rhi = *renderer.state.rhi;
+    const auto& outputs = m_multiNode.windowOutputs();
+    if(index >= (int)outputs.size())
+      return;
+
+    const auto& wo = outputs[index];
+    auto& pw = m_perWindow[index];
+
+    // A window without an RPD has no swap chain yet; postpone build.
+    if(!wo.renderPassDescriptor)
+      return;
+    // The offscreen target must exist — the sampler binds to its texture.
+    if(!m_multiNode.offscreenTarget().texture)
+      return;
+
+    // Release any existing pipeline/resources for this window before
+    // rebuilding so the method is idempotent on re-expose.
+    releaseWindowPipeline(index);
+
+    pw.sourceRect = wo.sourceRect;
+
+    // Create UBO for source rect
+    pw.uvRectUBO = rhi.newBuffer(
+        QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 4 * sizeof(float));
+    pw.uvRectUBO->setName(
+        QByteArray("MultiWindowRenderer::uvRectUBO_") + QByteArray::number(index));
+    pw.uvRectUBO->create();
+
+    // Create UBO for blend parameters (4 widths + 4 gammas = 8 floats)
+    pw.blendUBO = rhi.newBuffer(
+        QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 8 * sizeof(float));
+    pw.blendUBO->setName(
+        QByteArray("MultiWindowRenderer::blendUBO_") + QByteArray::number(index));
+    pw.blendUBO->create();
+
+    // Create UBO for corner warp (3 vec4 columns + 4 floats trailing)
+    pw.warpUBO = rhi.newBuffer(
+        QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 16 * sizeof(float));
+    pw.warpUBO->setName(
+        QByteArray("MultiWindowRenderer::warpUBO_") + QByteArray::number(index));
+    pw.warpUBO->create();
+
+    // Seed initial UBO contents if we were given a batch to piggy-back on.
+    // When `res` is null (lazy build from initWindowSwapChain) we skip the
+    // initial upload; renderSubRegion() re-uploads every frame anyway.
+    if(res)
     {
-      auto& pw = m_perWindow[i];
-      const auto& wo = outputs[i];
-      pw.sourceRect = wo.sourceRect;
-
-      // Create UBO for source rect
-      pw.uvRectUBO = rhi.newBuffer(
-          QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 4 * sizeof(float));
-      pw.uvRectUBO->setName(QByteArray("MultiWindowRenderer::uvRectUBO_") + QByteArray::number(i));
-      pw.uvRectUBO->create();
-
-      // Upload initial source rect values
       float rectData[4] = {
           (float)pw.sourceRect.x(), (float)pw.sourceRect.y(),
           (float)pw.sourceRect.width(), (float)pw.sourceRect.height()};
-      res.updateDynamicBuffer(pw.uvRectUBO, 0, sizeof(rectData), rectData);
-
-      // Create UBO for blend parameters (4 widths + 4 gammas = 8 floats)
-      pw.blendUBO = rhi.newBuffer(
-          QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 8 * sizeof(float));
-      pw.blendUBO->setName(QByteArray("MultiWindowRenderer::blendUBO_") + QByteArray::number(i));
-      pw.blendUBO->create();
+      res->updateDynamicBuffer(pw.uvRectUBO, 0, sizeof(rectData), rectData);
 
       float blendData[8] = {
-          wo.blendLeft.width, wo.blendRight.width, wo.blendTop.width, wo.blendBottom.width,
-          wo.blendLeft.gamma, wo.blendRight.gamma, wo.blendTop.gamma, wo.blendBottom.gamma};
-      res.updateDynamicBuffer(pw.blendUBO, 0, sizeof(blendData), blendData);
+          wo.blendLeft.width,  wo.blendRight.width, wo.blendTop.width,
+          wo.blendBottom.width, wo.blendLeft.gamma, wo.blendRight.gamma,
+          wo.blendTop.gamma,   wo.blendBottom.gamma};
+      res->updateDynamicBuffer(pw.blendUBO, 0, sizeof(blendData), blendData);
 
-      // Create UBO for corner warp (3 vec4 columns + 1 float enabled = 52 bytes, round to 64)
-      pw.warpUBO = rhi.newBuffer(
-          QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 16 * sizeof(float));
-      pw.warpUBO->setName(QByteArray("MultiWindowRenderer::warpUBO_") + QByteArray::number(i));
-      pw.warpUBO->create();
+      float warpEnabled = wo.cornerWarp.isIdentity() ? 0.0f : 1.0f;
+      auto hom = computeHomographyUBO(wo.cornerWarp);
+      float warpData[16] = {};
+      std::copy(hom.begin(), hom.end(), warpData);
+      warpData[12] = warpEnabled;
+      warpData[13] = (float)wo.rotation;
+      warpData[14] = wo.mirrorX ? 1.0f : 0.0f;
+      warpData[15] = wo.mirrorY ? 1.0f : 0.0f;
+      res->updateDynamicBuffer(pw.warpUBO, 0, sizeof(warpData), warpData);
+    }
 
-      {
-        float warpEnabled = wo.cornerWarp.isIdentity() ? 0.0f : 1.0f;
-        auto hom = computeHomographyUBO(wo.cornerWarp);
-        // 12 floats for 3 vec4 columns, then warpEnabled, rotationDeg, mirrorX, mirrorY
-        float warpData[16] = {};
-        std::copy(hom.begin(), hom.end(), warpData);
-        warpData[12] = warpEnabled;
-        warpData[13] = (float)wo.rotation;
-        warpData[14] = wo.mirrorX ? 1.0f : 0.0f;
-        warpData[15] = wo.mirrorY ? 1.0f : 0.0f;
-        res.updateDynamicBuffer(pw.warpUBO, 0, sizeof(warpData), warpData);
-      }
-
-      // Create sampler pointing to input texture
+    // Create sampler reading from the node's offscreen target.
+    {
       auto sampler = rhi.newSampler(
           QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
           QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
       sampler->setName("MultiWindowRenderer::sampler");
       sampler->create();
 
-      pw.samplers[0] = {sampler, m_inputTarget.texture};
+      pw.samplers[0] = {sampler, m_multiNode.offscreenTarget().texture};
+    }
 
-      // Build pipeline for this window's render pass descriptor
-      // The actual render target is fetched at render time from the swap chain
-      if(wo.renderPassDescriptor)
-      {
-        score::gfx::TextureRenderTarget rt;
-        rt.renderPass = wo.renderPassDescriptor;
+    // Build the blit pipeline against this window's render pass descriptor.
+    {
+      score::gfx::TextureRenderTarget rt;
+      rt.renderPass = wo.renderPassDescriptor;
 
-        QRhiShaderResourceBinding extraBindings[2] = {
+      QRhiShaderResourceBinding extraBindings[2] = {
           QRhiShaderResourceBinding::uniformBuffer(
               4, QRhiShaderResourceBinding::FragmentStage, pw.blendUBO),
           QRhiShaderResourceBinding::uniformBuffer(
-              5, QRhiShaderResourceBinding::FragmentStage, pw.warpUBO)
-        };
+              5, QRhiShaderResourceBinding::FragmentStage, pw.warpUBO)};
 
-        pw.pipeline = score::gfx::buildPipeline(
-            renderer, mesh, m_vertexS, m_fragmentS, rt, nullptr, pw.uvRectUBO,
-            pw.samplers, {extraBindings, 2});
-      }
+      const auto& mesh = renderer.defaultTriangle();
+      pw.pipeline = score::gfx::buildPipeline(
+          renderer, mesh, m_vertexS, m_fragmentS, rt, nullptr, pw.uvRectUBO,
+          pw.samplers, {extraBindings, 2});
     }
+  }
+
+  void releaseWindowPipeline(int index)
+  {
+    if(index < 0 || index >= (int)m_perWindow.size())
+      return;
+
+    auto& pw = m_perWindow[index];
+    pw.pipeline.release();
+    for(auto& s : pw.samplers)
+      delete s.sampler;
+    pw.samplers = {};
+    delete pw.uvRectUBO;
+    pw.uvRectUBO = nullptr;
+    delete pw.blendUBO;
+    pw.blendUBO = nullptr;
+    delete pw.warpUBO;
+    pw.warpUBO = nullptr;
   }
 
   void update(
@@ -359,35 +409,24 @@ public:
 
   void release(score::gfx::RenderList&) override
   {
-    for(auto& pw : m_perWindow)
-    {
-      pw.pipeline.release();
-      for(auto& s : pw.samplers)
-        delete s.sampler;
-      pw.samplers = {};
-      delete pw.uvRectUBO;
-      pw.uvRectUBO = nullptr;
-      delete pw.blendUBO;
-      pw.blendUBO = nullptr;
-      delete pw.warpUBO;
-      pw.warpUBO = nullptr;
-    }
+    for(int i = 0; i < (int)m_perWindow.size(); ++i)
+      releaseWindowPipeline(i);
     m_perWindow.clear();
-    m_inputTarget.release();
+    m_initialized = false;
+    // m_offscreenTarget is owned by MultiWindowNode; do NOT release it here.
   }
 
-  // Called during RenderList::render() for the primary window (index 0)
+  // Sub-region 0 is no longer special — it's blitted in its own per-window
+  // frame just like all other windows. finishFrame is a no-op so that
+  // rl->render(cb) can be invoked inside an offscreen frame that is not
+  // attached to any swap chain.
   void finishFrame(
-      score::gfx::RenderList& renderer, QRhiCommandBuffer& cb,
-      QRhiResourceUpdateBatch*& res) override
+      score::gfx::RenderList& /*renderer*/, QRhiCommandBuffer& /*cb*/,
+      QRhiResourceUpdateBatch*& /*res*/) override
   {
-    if(m_perWindow.empty())
-      return;
-
-    renderSubRegion(0, renderer, cb, res);
   }
 
-  // Called by MultiWindowNode::render() for secondary windows (index >= 1)
+  // Called by MultiWindowNode::render() for each live window.
   void renderToWindow(
       int windowIndex, score::gfx::RenderList& renderer, QRhiCommandBuffer& cb)
   {
@@ -411,6 +450,12 @@ private:
     auto& pw = m_perWindow[index];
 
     if(!wo.swapChain || !wo.hasSwapChain)
+      return;
+
+    // Skip windows whose pipeline hasn't been built yet (e.g. window
+    // became ready after the initial renderer init and we haven't had a
+    // chance to lazily build it).
+    if(!pw.pipeline.pipeline || !pw.pipeline.srb)
       return;
 
     auto rt = wo.swapChain->currentFrameRenderTarget();
@@ -492,16 +537,33 @@ MultiWindowNode::~MultiWindowNode()
 
 bool MultiWindowNode::canRender() const
 {
-  return !m_windowOutputs.empty() && m_renderState && m_renderState->rhi;
+  // With offscreen-first rendering we don't need any window to be alive:
+  // the upstream graph renders into the offscreen target regardless.
+  // Per-window blitting skips dead windows individually.
+  return m_renderState && m_renderState->rhi
+         && m_offscreenTarget.renderPass != nullptr;
 }
 
 void MultiWindowNode::setRenderSize(QSize sz)
 {
-  if(m_renderState)
-  {
-    if(sz.width() >= 1 && sz.height() >= 1)
-      m_renderState->renderSize = sz;
-  }
+  if(!m_renderState)
+    return;
+  if(sz.width() < 1 || sz.height() < 1)
+    return;
+  if(sz == m_renderState->renderSize)
+    return;
+
+  m_renderState->renderSize = sz;
+
+  // The offscreen target must be recreated BEFORE the render-list
+  // rebuild so that the new upstream pipelines are built against the
+  // new RPD and sample from the new offscreen texture. The old
+  // pipelines briefly reference the deleted RPD, but their destruction
+  // (inside the upcoming m_onResize) doesn't dereference it.
+  recreateOffscreenTarget();
+
+  if(m_onResize)
+    m_onResize();
 }
 
 void MultiWindowNode::setSourceRect(int windowIndex, QRectF rect)
@@ -602,66 +664,60 @@ void MultiWindowNode::renderBlack()
 
 void MultiWindowNode::render()
 {
-  auto rl = m_renderer.lock();
-  if(!rl || rl->renderers.size() <= 1)
-  {
-    // No active render graph — clear all windows to black
-    renderBlack();
+  if(!m_renderState || !m_renderState->rhi)
     return;
-  }
 
   auto rhi = m_renderState->rhi;
 
-  // Handle swap chain resizes for all windows
+  // Handle swap chain resizes for all live windows. Dead (closed) windows
+  // have wo.swapChain == nullptr and are skipped naturally.
   for(auto& wo : m_windowOutputs)
   {
     if(!wo.window || !wo.swapChain)
       continue;
     if(wo.swapChain->currentPixelSize() != wo.swapChain->surfacePixelSize())
-    {
       wo.hasSwapChain = wo.swapChain->createOrResize();
-    }
   }
 
-  // Phase 1: Render upstream graph + blit sub-region 0 via the primary window
-  if(m_windowOutputs.empty())
-    return;
-
-  auto& primaryWO = m_windowOutputs[0];
-  if(!primaryWO.window || !primaryWO.swapChain || !primaryWO.hasSwapChain)
-    return;
-
-  QRhi::FrameOpResult r = rhi->beginFrame(primaryWO.swapChain);
-  if(r == QRhi::FrameOpSwapChainOutOfDate)
+  auto rl = m_renderer.lock();
+  if(!rl || rl->renderers.size() <= 1)
   {
-    primaryWO.hasSwapChain = primaryWO.swapChain->createOrResize();
-    if(!primaryWO.hasSwapChain)
-      return;
-    r = rhi->beginFrame(primaryWO.swapChain);
-  }
-  if(r != QRhi::FrameOpSuccess)
+    // No active render graph — just clear every live window to black.
+    renderBlack();
     return;
+  }
 
-  auto cb = primaryWO.swapChain->currentFrameCommandBuffer();
-  rl->render(*cb);
+  // Phase 1: render the upstream graph into the offscreen target, in a
+  // frame that is not attached to any swap chain. This is what decouples
+  // upstream rendering from any specific window's lifetime.
+  {
+    QRhiCommandBuffer* cb = nullptr;
+    QRhi::FrameOpResult r = rhi->beginOffscreenFrame(&cb);
+    if(r != QRhi::FrameOpSuccess || !cb)
+      return;
 
-  rhi->endFrame(primaryWO.swapChain);
+    rl->render(*cb);
 
-  // Phase 2: For each additional window, blit the sub-region
+    rhi->endOffscreenFrame();
+  }
+
+  // Phase 2: for each live window, blit its sub-region in its own frame.
+  // Any window whose swap chain is gone or out-of-date is skipped without
+  // affecting the others.
   if(this->renderedNodes.empty())
     return;
-  auto outRenderer = dynamic_cast<MultiWindowRenderer*>(
-      this->renderedNodes.begin()->second);
+  auto outRenderer
+      = dynamic_cast<MultiWindowRenderer*>(this->renderedNodes.begin()->second);
   if(!outRenderer)
     return;
 
-  for(int i = 1; i < (int)m_windowOutputs.size(); ++i)
+  for(int i = 0; i < (int)m_windowOutputs.size(); ++i)
   {
     auto& wo = m_windowOutputs[i];
     if(!wo.window || !wo.swapChain || !wo.hasSwapChain)
       continue;
 
-    r = rhi->beginFrame(wo.swapChain);
+    QRhi::FrameOpResult r = rhi->beginFrame(wo.swapChain);
     if(r == QRhi::FrameOpSwapChainOutOfDate)
     {
       wo.hasSwapChain = wo.swapChain->createOrResize();
@@ -672,7 +728,7 @@ void MultiWindowNode::render()
     if(r != QRhi::FrameOpSuccess)
       continue;
 
-    cb = wo.swapChain->currentFrameCommandBuffer();
+    auto cb = wo.swapChain->currentFrameCommandBuffer();
     outRenderer->renderToWindow(i, *rl, *cb);
 
     rhi->endFrame(wo.swapChain);
@@ -699,31 +755,71 @@ RenderList* MultiWindowNode::renderer() const
   return m_renderer.lock().get();
 }
 
-void MultiWindowNode::initWindow(int index, GraphicsApi api)
+void MultiWindowNode::recreateOffscreenTarget()
 {
-  auto& wo = m_windowOutputs[index];
-  auto& mapping = m_mappings[index];
+  if(!m_renderState || !m_renderState->rhi)
+    return;
 
+  // Tear down any previous offscreen target, including its RPD. Any
+  // pipelines built against this RPD must have been released already;
+  // the callers of this method are responsible for that (createOutput,
+  // destroyOutput, and the renderSize-change path which triggers a full
+  // render-list rebuild).
+  m_offscreenTarget.release();
+
+  QSize sz = m_renderState->renderSize;
+  if(sz.width() <= 0 || sz.height() <= 0)
+    sz = QSize{1280, 720};
+
+  m_offscreenTarget = score::gfx::createRenderTarget(
+      *m_renderState, m_renderState->renderFormat, sz, m_renderState->samples,
+      /*depth*/ true);
+
+  // Publish the RPD so that any code path that reads
+  // state.renderPassDescriptor (ScaledRenderer-style renderers) sees a
+  // stable, window-independent value. Not strictly required by
+  // MultiWindowRenderer (which uses per-window RPDs for its blit
+  // pipelines) but it keeps the contract of RenderState consistent with
+  // other output nodes.
+  m_renderState->renderPassDescriptor = m_offscreenTarget.renderPass;
+}
+
+void MultiWindowNode::initWindowSwapChain(int index)
+{
+  if(index < 0 || index >= (int)m_windowOutputs.size())
+    return;
+  if(!m_renderState || !m_renderState->rhi)
+    return;
+
+  auto& wo = m_windowOutputs[index];
+  if(!wo.window)
+    return;
+
+  // Release any existing swap chain for this window first. This makes
+  // initWindowSwapChain idempotent so it can be called again when a
+  // closed window is re-exposed.
+  releaseWindowSwapChain(index);
+
+  auto& mapping = m_mappings[index];
   auto rhi = m_renderState->rhi;
 
-  // Create swap chain
   wo.swapChain = rhi->newSwapChain();
   wo.swapChain->setWindow(wo.window.get());
-#if QT_VERSION > QT_VERSION_CHECK(6,4,0)
+#if QT_VERSION > QT_VERSION_CHECK(6, 4, 0)
   wo.swapChain->setFormat((QRhiSwapChain::Format)m_swapchainFormat);
 #endif
+
   wo.depthStencil = rhi->newRenderBuffer(
-      QRhiRenderBuffer::DepthStencil, QSize(),
-      m_renderState->samples, QRhiRenderBuffer::UsedWithSwapChainOnly);
+      QRhiRenderBuffer::DepthStencil, QSize(), m_renderState->samples,
+      QRhiRenderBuffer::UsedWithSwapChainOnly);
   wo.swapChain->setDepthStencil(wo.depthStencil);
   wo.swapChain->setSampleCount(m_renderState->samples);
 
   QRhiSwapChain::Flags flags = QRhiSwapChain::MinimalBufferCount;
-  // Only first window may use VSync; others use NoVSync
-  if(index > 0)
-    flags |= QRhiSwapChain::NoVSync;
-  else if(!score::AppContext().settings<Gfx::Settings::Model>().getVSync())
-    flags |= QRhiSwapChain::NoVSync;
+  // With multi-window we drive rendering from the node's timer and don't
+  // rely on swap-chain vsync. Keep NoVSync on every window so no single
+  // swap chain blocks the others.
+  flags |= QRhiSwapChain::NoVSync;
   if(m_swapchainFlag == Gfx::SwapchainFlag::sRGB)
     flags |= QRhiSwapChain::sRGB;
   wo.swapChain->setFlags(flags);
@@ -731,20 +827,74 @@ void MultiWindowNode::initWindow(int index, GraphicsApi api)
   wo.renderPassDescriptor = wo.swapChain->newCompatibleRenderPassDescriptor();
   wo.swapChain->setRenderPassDescriptor(wo.renderPassDescriptor);
 
-  // Store the first window's RPD in the render state
-  if(index == 0)
-    m_renderState->renderPassDescriptor = wo.renderPassDescriptor;
+  // Note: mapping-derived fields (sourceRect, blend*, cornerWarp,
+  // rotation, mirror*) are seeded once from `m_mappings[index]` in
+  // createOutput(). They are deliberately not touched here so that
+  // live parameter changes survive a close + re-expose cycle.
+  (void)mapping;
 
-  wo.sourceRect = mapping.sourceRect;
+  wo.hasSwapChain = wo.swapChain->createOrResize();
+  if(wo.hasSwapChain)
+  {
+    if(m_renderState->outputSize.isEmpty())
+      m_renderState->outputSize = wo.swapChain->currentPixelSize();
+  }
 
-  wo.blendLeft = {mapping.blendLeft.width, mapping.blendLeft.gamma};
-  wo.blendRight = {mapping.blendRight.width, mapping.blendRight.gamma};
-  wo.blendTop = {mapping.blendTop.width, mapping.blendTop.gamma};
-  wo.blendBottom = {mapping.blendBottom.width, mapping.blendBottom.gamma};
-  wo.cornerWarp = mapping.cornerWarp;
-  wo.rotation = mapping.rotation;
-  wo.mirrorX = mapping.mirrorX;
-  wo.mirrorY = mapping.mirrorY;
+  // If a renderer already exists, lazily build the per-window pipeline
+  // for this newly-ready window so the next frame can blit to it.
+  if(auto rl = m_renderer.lock())
+  {
+    if(auto it = this->renderedNodes.find(rl.get());
+       it != this->renderedNodes.end())
+    {
+      if(auto* mwr = dynamic_cast<MultiWindowRenderer*>(it->second))
+      {
+        mwr->buildWindowPipeline(index, *rl, nullptr);
+      }
+    }
+  }
+}
+
+void MultiWindowNode::releaseWindowSwapChain(int index)
+{
+  if(index < 0 || index >= (int)m_windowOutputs.size())
+    return;
+  if(!m_renderState || !m_renderState->rhi)
+    return;
+
+  auto& wo = m_windowOutputs[index];
+  if(!wo.swapChain && !wo.depthStencil && !wo.renderPassDescriptor)
+    return;
+
+  // Wait for any in-flight frames touching this swap chain before tearing
+  // its resources down.
+  m_renderState->rhi->finish();
+
+  // Release the renderer's per-window GPU state first, so its pipeline
+  // (built against wo.renderPassDescriptor) is gone before we delete the
+  // RPD itself.
+  if(auto rl = m_renderer.lock())
+  {
+    if(auto it = this->renderedNodes.find(rl.get());
+       it != this->renderedNodes.end())
+    {
+      if(auto* mwr = dynamic_cast<MultiWindowRenderer*>(it->second))
+      {
+        mwr->releaseWindowPipeline(index);
+      }
+    }
+  }
+
+  delete wo.swapChain;
+  wo.swapChain = nullptr;
+
+  delete wo.depthStencil;
+  wo.depthStencil = nullptr;
+
+  delete wo.renderPassDescriptor;
+  wo.renderPassDescriptor = nullptr;
+
+  wo.hasSwapChain = false;
 }
 
 void MultiWindowNode::createOutput(score::gfx::OutputConfiguration conf)
@@ -752,25 +902,76 @@ void MultiWindowNode::createOutput(score::gfx::OutputConfiguration conf)
   if(m_mappings.empty())
     return;
 
-  // Create shared QRhi without a specific window
-  m_renderState = score::gfx::createRenderState(conf.graphicsApi, QSize{1280, 720}, nullptr);
+  // Create shared QRhi without a specific window. The rhi will be used
+  // by every window's swap chain as well as by the offscreen target.
+  m_renderState
+      = score::gfx::createRenderState(conf.graphicsApi, QSize{1280, 720}, nullptr);
   if(!m_renderState || !m_renderState->rhi)
     return;
 
   m_renderState->renderFormat = (m_swapchainFormat != Gfx::SwapchainFormat::SDR)
-      ? QRhiTexture::RGBA32F : QRhiTexture::RGBA8;
+                                    ? QRhiTexture::RGBA32F
+                                    : QRhiTexture::RGBA8;
+  m_renderState->outputSize = m_renderState->renderSize;
+
+  // Stash onResize so per-window events (re-expose, close+reopen) can
+  // request a full render-list rebuild when they need one.
+  m_onResize = conf.onResize;
+
+  // 1. Create the offscreen target that is the stable render target
+  //    for the upstream graph. This must exist BEFORE the render list is
+  //    built because the renderer queries offscreenTarget() in its init.
+  recreateOffscreenTarget();
 
   m_windowOutputs.resize(m_mappings.size());
 
-  // Create all windows
+  // 2. Create every window. Their swap chains will be created lazily
+  //    per-window in onWindowReady as each platform surface becomes
+  //    available — we no longer wait on window 0 to drive all of them.
   for(int i = 0; i < (int)m_mappings.size(); ++i)
   {
     auto& wo = m_windowOutputs[i];
     auto& mapping = m_mappings[i];
 
+    // Seed the live per-window state from the mapping exactly once.
+    // Parameter callbacks mutate these fields afterwards, and we want
+    // those mutations to survive a close+re-expose cycle, so
+    // initWindowSwapChain() never touches them.
+    wo.sourceRect = mapping.sourceRect;
+    wo.blendLeft = {mapping.blendLeft.width, mapping.blendLeft.gamma};
+    wo.blendRight = {mapping.blendRight.width, mapping.blendRight.gamma};
+    wo.blendTop = {mapping.blendTop.width, mapping.blendTop.gamma};
+    wo.blendBottom = {mapping.blendBottom.width, mapping.blendBottom.gamma};
+    wo.cornerWarp = mapping.cornerWarp;
+    wo.rotation = mapping.rotation;
+    wo.mirrorX = mapping.mirrorX;
+    wo.mirrorY = mapping.mirrorY;
+
     wo.window = std::make_shared<Window>(conf.graphicsApi);
-    wo.window->setTitle(
-        QString("Output %1").arg(i));
+    wo.window->setTitle(QString("Output %1").arg(i));
+
+    // Each window gets its own onWindowReady callback. When the native
+    // surface becomes ready (first expose, or re-expose after a close),
+    // we create / recreate just this window's swap chain and lazily
+    // build its blit pipeline.
+    wo.window->onWindowReady = [this, i] { initWindowSwapChain(i); };
+
+    // When the user closes the window (or the platform destroys the
+    // surface), tear down that window's swap chain so the other windows
+    // keep running. The QWindow itself stays alive so the user can
+    // later re-show it via the ossia parameters.
+    wo.window->onClose = [this, i] { releaseWindowSwapChain(i); };
+
+    // A per-window resize event only needs to poke its own swap chain.
+    // The upstream graph's size is governed by the offscreen target and
+    // by setRenderSize(), independently of any window.
+    wo.window->onResize = [this, i] {
+      if(i >= (int)m_windowOutputs.size())
+        return;
+      auto& w = m_windowOutputs[i];
+      if(w.swapChain)
+        w.hasSwapChain = w.swapChain->createOrResize();
+    };
 
     // Determine target screen
     QScreen* targetScreen = nullptr;
@@ -783,9 +984,6 @@ void MultiWindowNode::createOutput(score::gfx::OutputConfiguration conf)
 
     if(mapping.fullscreen)
     {
-      // On Windows, showFullScreen() can default to the primary monitor
-      // unless the window is already positioned within the target screen.
-      // Set geometry to the target screen's bounds first to anchor it.
       if(targetScreen)
       {
         wo.window->setScreen(targetScreen);
@@ -797,51 +995,22 @@ void MultiWindowNode::createOutput(score::gfx::OutputConfiguration conf)
     {
       if(targetScreen)
         wo.window->setScreen(targetScreen);
-      wo.window->setGeometry(
-          QRect(mapping.windowPosition, mapping.windowSize));
+      wo.window->setGeometry(QRect(mapping.windowPosition, mapping.windowSize));
       wo.window->show();
     }
   }
 
-  // Notify the device that windows are available for signal connections
+  // Notify the device that the QWindow objects exist (it uses this to
+  // connect Qt signals like mouseMove, key, etc).
   if(onWindowsCreated)
     onWindowsCreated();
 
-  // Set up a callback to initialize swap chains once first window is exposed
-  auto initAll = [this, onReady = std::move(conf.onReady)]() mutable {
-    for(int i = 0; i < (int)m_windowOutputs.size(); ++i)
-    {
-      initWindow(i, m_renderState->api);
-      auto& wo = m_windowOutputs[i];
-      wo.hasSwapChain = wo.swapChain->createOrResize();
-      if(wo.hasSwapChain && wo.window)
-      {
-        m_renderState->outputSize = wo.swapChain->currentPixelSize();
-      }
-    }
-
-    if(onReady)
-      onReady();
-  };
-
-  // The first window's onWindowReady triggers initialization
-  m_windowOutputs[0].window->onWindowReady = std::move(initAll);
-
-  // Wire resize for all windows
-  for(int i = 0; i < (int)m_windowOutputs.size(); ++i)
-  {
-    m_windowOutputs[i].window->onResize = [this, i, onResize = conf.onResize] {
-      if(i < (int)m_windowOutputs.size())
-      {
-        auto& wo = m_windowOutputs[i];
-        if(wo.swapChain)
-          wo.hasSwapChain = wo.swapChain->createOrResize();
-      }
-      // Only trigger pipeline rebuild from first window resize
-      if(i == 0 && onResize)
-        onResize();
-    };
-  }
+  // 3. The graph can build the render list right now — it only needs
+  //    rhi + offscreen target, both of which are ready synchronously.
+  //    This means the upstream graph renders from the very first frame,
+  //    regardless of whether any window has been exposed yet.
+  if(conf.onReady)
+    conf.onReady();
 }
 
 void MultiWindowNode::destroyOutput()
@@ -851,6 +1020,7 @@ void MultiWindowNode::destroyOutput()
   {
     // Still release any windows that may have been created before init failed.
     m_windowOutputs.clear();
+    m_offscreenTarget = {};
     if(m_renderState)
       m_renderState.reset();
     return;
@@ -862,10 +1032,21 @@ void MultiWindowNode::destroyOutput()
   // there are still frames in flight when resources are destroyed.
   m_renderState->rhi->finish();
 
-  // 1. Destroy per-window GPU resources — but keep the QWindow shared_ptrs
-  //    alive. The surfaces owned by the windows must outlive the QRhi
-  //    because the backend may still touch them while destroying the
-  //    swap chains / command pools attached to them.
+  // Detach Window callbacks so a close that races with destruction can't
+  // reach back into us while we're tearing things down.
+  for(auto& wo : m_windowOutputs)
+  {
+    if(wo.window)
+    {
+      wo.window->onWindowReady = {};
+      wo.window->onClose = {};
+      wo.window->onResize = {};
+    }
+  }
+
+  // 1. Destroy per-window GPU resources (swap chain, depth, RPD) first.
+  //    Keep the QWindow shared_ptrs alive — their VkSurfaceKHR must
+  //    outlive the rhi's teardown of per-window state.
   for(auto& wo : m_windowOutputs)
   {
     delete wo.swapChain;
@@ -874,30 +1055,29 @@ void MultiWindowNode::destroyOutput()
     delete wo.depthStencil;
     wo.depthStencil = nullptr;
 
-    // Window 0's RPD is aliased by m_renderState->renderPassDescriptor,
-    // delete it only once via m_renderState below.
-    if(wo.renderPassDescriptor != m_renderState->renderPassDescriptor)
-    {
-      delete wo.renderPassDescriptor;
-    }
+    delete wo.renderPassDescriptor;
     wo.renderPassDescriptor = nullptr;
 
     wo.hasSwapChain = false;
   }
 
-  // 2. Destroy the shared RPD (which was window 0's) and tear down the rhi.
-  //    Must happen while the windows (and thus their VkSurfaceKHR) are
-  //    still alive.
-  delete m_renderState->renderPassDescriptor;
+  // 2. Release the offscreen target (texture + depth + RT + RPD). This
+  //    must happen before `destroy()` on the rhi. It's also where
+  //    m_renderState->renderPassDescriptor is cleared (we aliased the
+  //    pointer in recreateOffscreenTarget()).
+  m_offscreenTarget.release();
   m_renderState->renderPassDescriptor = nullptr;
+
+  // 3. Tear down the rhi. Must happen while the windows (and thus
+  //    their VkSurfaceKHR) are still alive.
   m_renderState->destroy();
 
-  // 3. Now that the rhi is gone, releasing the windows / their surfaces
+  // 4. Now that the rhi is gone, releasing the windows / their surfaces
   //    is safe. Clearing the vector destroys each WindowOutput which in
   //    turn releases its shared_ptr<Window>.
   m_windowOutputs.clear();
 
-  // 4. Release our reference to the now-empty RenderState so we don't
+  // 5. Release our reference to the now-empty RenderState so we don't
   //    touch it again.
   m_renderState.reset();
 }

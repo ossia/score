@@ -346,6 +346,8 @@ bool Window::event(QEvent* e)
         m_hasSwapChain = false;
         m_notExposed = true;
         m_closed = true;
+        if(onClose)
+          onClose();
       }
       break;
 
