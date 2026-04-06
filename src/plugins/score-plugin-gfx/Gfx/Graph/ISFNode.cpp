@@ -229,7 +229,7 @@ struct isf_input_port_vis
     if(in.access == "read_only")
     {
       // Input port for read-only image; 3D textures use GrabsFromSource
-      auto flags = !in.depth_expression.empty() ? Flag::GrabsFromSource : Flag{};
+      auto flags = in.is3D() ? Flag::GrabsFromSource : Flag{};
       self.input.push_back(new Port{&self, {}, Types::Image, flags, {}});
     }
     else if(in.access == "write_only" || in.access == "read_write")

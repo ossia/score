@@ -131,6 +131,10 @@ struct csf_image_input
   std::string width_expression;
   std::string height_expression;
   std::string depth_expression; // non-empty means 3D texture
+
+  int dimensions{2}; // 2 or 3 (alternative to depth_expression for declaring 3D)
+
+  bool is3D() const noexcept { return dimensions == 3 || !depth_expression.empty(); }
 };
 
 // CSF geometry port input: SoA layout, one SSBO per attribute.

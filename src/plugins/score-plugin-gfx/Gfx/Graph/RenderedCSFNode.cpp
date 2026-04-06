@@ -2326,10 +2326,12 @@ void RenderedCSFNode::initComputePass(
           if(!it->texture)
           {
             QRhiTexture* texture{};
-            if(!image->depth_expression.empty())
+            if(image->is3D())
             {
               // 3D texture
-              int depth = resolveDispatchExpression(image->depth_expression);
+              int depth = !image->depth_expression.empty()
+                  ? resolveDispatchExpression(image->depth_expression)
+                  : imageSize.height(); // Default: cubic if only DIMENSIONS:3
 
               QRhiTexture::Flags flags
                   = QRhiTexture::ThreeDimensional | QRhiTexture::UsedWithLoadStore;

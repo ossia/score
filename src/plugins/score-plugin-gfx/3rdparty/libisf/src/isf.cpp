@@ -792,6 +792,14 @@ static void parse_input(csf_image_input& inp, const sajson::value& v)
         inp.depth_expression = std::to_string(val.get_integer_value());
       }
     }
+    else if(k == "DIMENSIONS")
+    {
+      auto val = v.get_object_value(i);
+      if(val.get_type() == sajson::TYPE_INTEGER)
+        inp.dimensions = val.get_integer_value();
+      else if(val.get_type() == sajson::TYPE_DOUBLE)
+        inp.dimensions = (int)val.get_double_value();
+    }
   }
 }
 
@@ -1768,7 +1776,7 @@ struct create_val_visitor_450
   return_type operator()(const audioHist_input&) { return {"uniform sampler2D", true}; }
   return_type operator()(const storage_input&) { return {"buffer", true}; }
   return_type operator()(const texture_input& i) { return {i.dimensions == 3 ? "uniform sampler3D" : "uniform sampler2D", true}; }
-  return_type operator()(const csf_image_input& i) { return {i.depth_expression.empty() ? "uniform image2D" : "uniform image3D", true}; }
+  return_type operator()(const csf_image_input& i) { return {i.is3D() ? "uniform image3D" : "uniform image2D", true}; }
   return_type operator()(const geometry_input&) { return {"buffer", true}; }
 };
 
@@ -3760,7 +3768,7 @@ void parser::parse_csf()
         m_fragment += "restrict ";
 
       auto prefix = glsl_type_prefix(img.format);
-      m_fragment += "uniform " + prefix + (img.depth_expression.empty() ? "image2D " : "image3D ");
+      m_fragment += "uniform " + prefix + (img.is3D() ? "image3D " : "image2D ");
       m_fragment += inp.name + ";\n";
       binding++;
     }
