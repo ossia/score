@@ -484,28 +484,10 @@ MultiWindowNode::MultiWindowNode(
 
 MultiWindowNode::~MultiWindowNode()
 {
-  for(auto& wo : m_windowOutputs)
-  {
-    if(wo.swapChain)
-    {
-      wo.swapChain->deleteLater();
-      wo.swapChain = nullptr;
-    }
-    delete wo.depthStencil;
-    wo.depthStencil = nullptr;
-    delete wo.renderPassDescriptor;
-    wo.renderPassDescriptor = nullptr;
-  }
-
-  if(m_renderState)
-  {
-    // Window 0's RPD was already deleted in the loop above
-    m_renderState->renderPassDescriptor = nullptr;
-    delete m_renderState->rhi;
-    m_renderState->rhi = nullptr;
-    delete m_renderState->surface;
-    m_renderState->surface = nullptr;
-  }
+  // Delegate to destroyOutput() to ensure a single, consistent cleanup path.
+  // destroyOutput() is idempotent so calling it here after Graph::~Graph
+  // already called it is safe.
+  destroyOutput();
 }
 
 bool MultiWindowNode::canRender() const
@@ -864,32 +846,60 @@ void MultiWindowNode::createOutput(score::gfx::OutputConfiguration conf)
 
 void MultiWindowNode::destroyOutput()
 {
+  // Nothing to clean up if the rhi was never successfully created.
+  if(!m_renderState || !m_renderState->rhi)
+  {
+    // Still release any windows that may have been created before init failed.
+    m_windowOutputs.clear();
+    if(m_renderState)
+      m_renderState.reset();
+    return;
+  }
+
+  // Ensure the GPU has no outstanding work on any of our swap chains before
+  // we start tearing resources down. Without this, the validation layer may
+  // report leaked VkBuffer / VkCommandBuffer / VkInstance at shutdown because
+  // there are still frames in flight when resources are destroyed.
+  m_renderState->rhi->finish();
+
+  // 1. Destroy per-window GPU resources — but keep the QWindow shared_ptrs
+  //    alive. The surfaces owned by the windows must outlive the QRhi
+  //    because the backend may still touch them while destroying the
+  //    swap chains / command pools attached to them.
   for(auto& wo : m_windowOutputs)
   {
+    delete wo.swapChain;
+    wo.swapChain = nullptr;
+
     delete wo.depthStencil;
     wo.depthStencil = nullptr;
 
-    // Don't delete RPD for index 0 as it's owned by m_renderState
-    // Actually, we manage them all individually
-    if(wo.renderPassDescriptor && wo.renderPassDescriptor != m_renderState->renderPassDescriptor)
+    // Window 0's RPD is aliased by m_renderState->renderPassDescriptor,
+    // delete it only once via m_renderState below.
+    if(wo.renderPassDescriptor != m_renderState->renderPassDescriptor)
     {
       delete wo.renderPassDescriptor;
     }
     wo.renderPassDescriptor = nullptr;
 
-    delete wo.swapChain;
-    wo.swapChain = nullptr;
-
-    wo.window.reset();
+    wo.hasSwapChain = false;
   }
+
+  // 2. Destroy the shared RPD (which was window 0's) and tear down the rhi.
+  //    Must happen while the windows (and thus their VkSurfaceKHR) are
+  //    still alive.
+  delete m_renderState->renderPassDescriptor;
+  m_renderState->renderPassDescriptor = nullptr;
+  m_renderState->destroy();
+
+  // 3. Now that the rhi is gone, releasing the windows / their surfaces
+  //    is safe. Clearing the vector destroys each WindowOutput which in
+  //    turn releases its shared_ptr<Window>.
   m_windowOutputs.clear();
 
-  if(m_renderState)
-  {
-    delete m_renderState->renderPassDescriptor;
-    m_renderState->renderPassDescriptor = nullptr;
-    m_renderState->destroy();
-  }
+  // 4. Release our reference to the now-empty RenderState so we don't
+  //    touch it again.
+  m_renderState.reset();
 }
 
 void MultiWindowNode::updateGraphicsAPI(GraphicsApi api)
