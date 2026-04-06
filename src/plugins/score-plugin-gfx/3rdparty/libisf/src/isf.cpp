@@ -12,6 +12,8 @@
 #include <fmt/format.h>
 #include <array>
 #include <iostream>
+#include <map>
+#include <set>
 #include <sstream>
 #include <unordered_map>
 #include <vector>
@@ -3705,6 +3707,33 @@ void parser::parse_csf()
     return "";
   };
 
+  // Detect aux name collisions across multiple geometry_inputs.
+  // When the same aux name appears in more than one geometry input, the GLSL
+  // interface block instance names would collide, so we prefix them with the
+  // geometry input name. Single-geometry shaders keep the legacy unprefixed
+  // instance name for backwards compatibility.
+  std::set<std::string> colliding_aux_names;
+  {
+    std::map<std::string, int> aux_name_counts;
+    for(const auto& inp : m_desc.inputs)
+    {
+      if(auto* g = ossia::get_if<geometry_input>(&inp.data))
+      {
+        for(const auto& aux : g->auxiliary)
+        {
+          if(aux.forward)
+            continue;
+          aux_name_counts[aux.name]++;
+        }
+      }
+    }
+    for(const auto& [name, count] : aux_name_counts)
+    {
+      if(count > 1)
+        colliding_aux_names.insert(name);
+    }
+  }
+
   // Generate resource bindings
   m_fragment += "// From RESOURCES - bindings assigned automatically\n";
   for(const auto& inp : m_desc.inputs)
@@ -3837,6 +3866,13 @@ void parser::parse_csf()
 
         const std::string aux_prefix = inp.name + "_" + aux.name;
 
+        // Use a prefixed instance name when the same aux name appears in
+        // multiple geometry inputs (otherwise GLSL would reject the duplicate
+        // interface block instance name). Single-geometry shaders keep the
+        // legacy unprefixed instance name for backwards compatibility.
+        const bool collides = colliding_aux_names.count(aux.name) > 0;
+        const std::string instance_name = collides ? aux_prefix : aux.name;
+
         m_fragment += "layout(binding = " + std::to_string(binding) + ", std430) ";
 
         if(aux.access == "read_only")
@@ -3861,23 +3897,25 @@ void parser::parse_csf()
             m_fragment += "    " + field.type + " " + field.name + ";\n";
           }
         }
-        m_fragment += "} " + aux.name + ";\n";
+        m_fragment += "} " + instance_name + ";\n";
 
         // Generate ISF_READ/ISF_WRITE-compatible aliases
         if(aux.access == "read_only")
         {
-          m_fragment += "#define " + aux_prefix + "_in " + aux.name + "\n";
-          m_fragment += "#define " + aux_prefix + " " + aux.name + "\n";
+          m_fragment += "#define " + aux_prefix + "_in " + instance_name + "\n";
+          if(!collides)
+            m_fragment += "#define " + aux_prefix + " " + instance_name + "\n";
         }
         else if(aux.access == "write_only")
         {
-          m_fragment += "#define " + aux_prefix + "_out " + aux.name + "\n";
-          m_fragment += "#define " + aux_prefix + " " + aux.name + "\n";
+          m_fragment += "#define " + aux_prefix + "_out " + instance_name + "\n";
+          if(!collides)
+            m_fragment += "#define " + aux_prefix + " " + instance_name + "\n";
         }
         else // read_write
         {
-          m_fragment += "#define " + aux_prefix + "_in " + aux.name + "\n";
-          m_fragment += "#define " + aux_prefix + "_out " + aux.name + "\n";
+          m_fragment += "#define " + aux_prefix + "_in " + instance_name + "\n";
+          m_fragment += "#define " + aux_prefix + "_out " + instance_name + "\n";
         }
         m_fragment += "\n";
 

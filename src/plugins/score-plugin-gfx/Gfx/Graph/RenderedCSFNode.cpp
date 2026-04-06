@@ -913,9 +913,11 @@ void RenderedCSFNode::updateGeometryBindings(
     // NOT be marked as feedback receivers.
     if(binding.has_vertex_count_spec && binding_has_upstream && !binding.is_feedback_receiver)
     {
-      // Heuristic: check if the upstream buffer pointers match our own SSBOs.
-      // If they do, this is genuine feedback (our own output looped back).
-      // If they don't, the upstream is from a different node.
+      // Heuristic: check if the upstream buffer pointers match our OWN (owned)
+      // SSBOs. If they do, this is genuine feedback (our own output looped back).
+      // If the matching buffer is merely ADOPTED from upstream (ssbo.owned==false),
+      // this is a linear chain where last frame's adoption left ssbo.buffer pointing
+      // at the upstream node's buffer — that must NOT be treated as self-feedback.
       bool is_self_feedback = false;
       if(upstream_mesh)
       {
@@ -931,7 +933,8 @@ void RenderedCSFNode::updateGeometryBindings(
               // Check if this GPU handle matches one of our own SSBOs
               for(const auto& ssbo : binding.attribute_ssbos)
               {
-                if(ssbo.buffer == static_cast<QRhiBuffer*>(gpu->handle))
+                if(ssbo.owned
+                   && ssbo.buffer == static_cast<QRhiBuffer*>(gpu->handle))
                 {
                   is_self_feedback = true;
                   break;
@@ -971,6 +974,25 @@ void RenderedCSFNode::updateGeometryBindings(
               res.uploadStaticBuffer(buf, 0, buf_size, zero.constData());
               ssbo.read_buffer = buf;
             }
+          }
+        }
+
+        // Allocate ping-pong read_buffers for read_write auxiliary SSBOs.
+        // Mirrors the attribute path above so that aux state (e.g. uint counters,
+        // free lists) can persist across feedback frames the same way attributes do.
+        for(auto& aux : binding.auxiliary_ssbos)
+        {
+          if(aux.access == "read_write" && !aux.read_buffer && aux.size > 0)
+          {
+            auto* buf = renderer.state.rhi->newBuffer(
+                QRhiBuffer::Static,
+                QRhiBuffer::StorageBuffer, aux.size);
+            qWarning() << "CSF ALLOC [feedbackPingPongAux]" << aux.name.c_str() << "size=" << aux.size;
+            buf->setName(QByteArray("CSF_GeomPPAux_") + aux.name.c_str());
+            buf->create();
+            QByteArray zero(aux.size, 0);
+            res.uploadStaticBuffer(buf, 0, aux.size, zero.constData());
+            aux.read_buffer = buf;
           }
         }
       }

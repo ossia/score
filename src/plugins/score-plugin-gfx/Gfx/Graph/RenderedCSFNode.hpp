@@ -142,7 +142,8 @@ private:
     // against ossia::geometry::auxiliary_buffer entries).
     struct AuxiliarySSBO
     {
-      QRhiBuffer* buffer{};
+      QRhiBuffer* buffer{};       // GPU SSBO (write target / primary)
+      QRhiBuffer* read_buffer{};  // Separate read buffer for ping-pong (nullptr = use buffer for both)
       int64_t size{};
       bool owned{true};
       std::string name;
