@@ -73,11 +73,12 @@ struct BackgroundNode : OutputNode
     m_texture->create();
 
     m_depthBuffer = rhi->newRenderBuffer(
-        QRhiRenderBuffer::DepthStencil, m_renderState->renderSize);
+        QRhiRenderBuffer::DepthStencil, m_renderState->renderSize, 1);
     m_depthBuffer->create();
 
     QRhiTextureRenderTargetDescription desc;
     desc.setColorAttachments({QRhiColorAttachment(m_texture)});
+
     desc.setDepthStencilBuffer(m_depthBuffer);
     m_renderTarget = rhi->newTextureRenderTarget(desc);
     m_renderState->renderPassDescriptor

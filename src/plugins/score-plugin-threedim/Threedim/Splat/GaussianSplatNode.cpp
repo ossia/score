@@ -484,7 +484,6 @@ void GaussianSplatRenderer::createRenderPipeline(RenderList& renderer)
 
   m_pipeline->setTopology(QRhiGraphicsPipeline::Triangles);
   m_pipeline->setCullMode(QRhiGraphicsPipeline::None);
-  m_pipeline->setSampleCount(renderer.samples());
   // Depth test + write: provides correct occlusion as a safety net.
   // Framework clears depth to 1.0 (far), so all valid splats pass initially.
   // With back-to-front sorting, depth test always passes (each splat is closer).
@@ -506,19 +505,28 @@ void GaussianSplatRenderer::createRenderPipeline(RenderList& renderer)
 
   m_pipeline->setShaderResourceBindings(m_bindings);
 
+  // Find the destination render target so we can match its sample count
+  // (must agree exactly with renderTarget->sampleCount() — Vulkan rejects
+  //  pipelines whose sampleCount differs from the render pass).
   bool foundRenderPass = false;
+  int rtSamples = renderer.samples();
   for(auto* edge : node.output[0]->edges)
   {
     auto rt = renderer.renderTargetForOutput(*edge);
     if(rt.renderTarget)
     {
       m_pipeline->setRenderPassDescriptor(rt.renderPass);
+      const int s = rt.sampleCount();
+      if(s > 0)
+        rtSamples = s;
       foundRenderPass = true;
       break;
     }
   }
   if(!foundRenderPass)
     qWarning() << "[GaussianSplat] No render pass descriptor found from output edges!";
+
+  m_pipeline->setSampleCount(rtSamples);
 
   if(!m_pipeline->create())
   {

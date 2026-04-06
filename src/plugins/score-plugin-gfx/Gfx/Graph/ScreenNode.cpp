@@ -66,6 +66,43 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
       s.caps.drawIndirectMulti = s.rhi->isFeatureSupported(QRhi::DrawIndirectMulti);
     }
 #endif
+    // Clamp the requested sample count against what the hardware actually
+    // supports. Without this, asking for e.g. 16x MSAA on a card that only
+    // does 8x silently mismatches between the value stored in
+    // RenderList::m_samples (16) and what QRhi actually uses on render
+    // targets (8 — clamped via effectiveSampleCount), which breaks
+    // pipeline/RT sample-count matching on Vulkan.
+    if(s.rhi && s.samples > 1)
+    {
+      const auto supported = s.rhi->supportedSampleCounts();
+      if(supported.isEmpty())
+      {
+        s.samples = 1;
+      }
+      else
+      {
+        // supportedSampleCounts() is sorted ascending. Pick exact match or
+        // the largest value <= requested; otherwise fall back to smallest.
+        int chosen = supported.first();
+        for(int v : supported)
+        {
+          if(v == s.samples)
+          {
+            chosen = v;
+            break;
+          }
+          if(v < s.samples)
+            chosen = v;
+        }
+        if(chosen != s.samples)
+        {
+          qWarning() << "createRenderState: requested samples=" << s.samples
+                     << "not in supported list" << supported
+                     << "— clamping to" << chosen;
+          s.samples = chosen;
+        }
+      }
+    }
   };
 
   QRhi::Flags flags{};
@@ -639,12 +676,43 @@ void ScreenNode::updateGraphicsAPI(GraphicsApi api)
   }
   else if(this->m_window)
   {
-    if(this->m_window->state)
+    if(auto& s = this->m_window->state)
     {
-      const int samples
+      // FIXME refactor with createRenderState
+      // FIXME implement for other output nodes
+      int samples_request
           = score::AppContext().settings<Gfx::Settings::Model>().resolveSamples(api);
 
-      if(this->m_window->state->samples != samples)
+      if(!s->rhi)
+        return;
+      const auto supported = s->rhi->supportedSampleCounts();
+      if(supported.isEmpty())
+      {
+        samples_request = 1;
+      }
+      else
+      {
+        int chosen = supported.first();
+        for(int v : supported)
+        {
+          if(v == samples_request)
+          {
+            chosen = v;
+            break;
+          }
+          if(v < samples_request)
+            chosen = v;
+        }
+        if(chosen != samples_request)
+        {
+          qWarning() << "updateGraphicsAPI: requested samples=" << samples_request
+                     << "not in supported list" << supported << "— clamping to"
+                     << chosen;
+          samples_request = chosen;
+        }
+      }
+
+      if(this->m_window->state->samples != samples_request)
       {
         destroyOutput();
       }

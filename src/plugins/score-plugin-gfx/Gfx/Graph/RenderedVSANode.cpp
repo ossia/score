@@ -95,7 +95,11 @@ void SimpleRenderedVSANode::initPass(
     bg_pip->setRenderPassDescriptor(renderTarget.renderPass);
     bg_pip->setDepthTest(false);
     bg_pip->setDepthWrite(false);
-    bg_pip->setSampleCount(renderer.samples());
+    // Use the actual RT sample count to stay in sync with the render target
+    {
+      const int rtS = renderTarget.sampleCount();
+      bg_pip->setSampleCount(rtS > 0 ? rtS : renderer.samples());
+    }
     bg_mesh.preparePipeline(*bg_pip);
     bg_tri = renderer.initMeshBuffer(bg_mesh, res);
     bg_pip->setRenderPassDescriptor(renderTarget.renderPass);

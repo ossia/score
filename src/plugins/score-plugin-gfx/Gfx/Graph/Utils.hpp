@@ -125,6 +125,7 @@ struct TextureRenderTarget
   QRhiRenderBuffer* colorRenderBuffer{};
   QRhiRenderBuffer* depthRenderBuffer{};
   QRhiTexture* depthTexture{};                         // Sampleable depth (alternative to depthRenderBuffer)
+  QRhiTexture* msDepthTexture{};                       // MSAA depth attachment when depthTexture is the resolve target
   QRhiRenderPassDescriptor* renderPass{};
   QRhiRenderTarget* renderTarget{};
 
@@ -133,6 +134,24 @@ struct TextureRenderTarget
   int colorAttachmentCount() const noexcept
   {
     return texture ? 1 + (int)additionalColorTextures.size() : 0;
+  }
+
+  // Returns the actual MSAA sample count of this render target, or -1 if it
+  // cannot be determined from the stored fields (e.g. when only renderPass is
+  // set, as for placeholders that target a swap chain). Callers must treat
+  // -1 as "unknown — fall back to the renderlist's global sample count".
+  // This value is the authoritative input to QRhiGraphicsPipeline::setSampleCount()
+  // when known, since an RT may have been degraded (samplable-depth + MSAA
+  // without depth-resolve support).
+  int sampleCount() const noexcept
+  {
+    if(renderTarget)
+      return renderTarget->sampleCount();
+    if(colorRenderBuffer)
+      return colorRenderBuffer->sampleCount();
+    if(texture)
+      return texture->sampleCount();
+    return -1;
   }
 
   void release()
@@ -154,6 +173,9 @@ struct TextureRenderTarget
 
       delete depthTexture;
       depthTexture = nullptr;
+
+      delete msDepthTexture;
+      msDepthTexture = nullptr;
 
       delete renderPass;
       renderPass = nullptr;

@@ -206,7 +206,14 @@ Model::Model(
 
 int Model::resolveSamples(score::gfx::GraphicsApi api) const noexcept
 {
-  return m_Samples;
+  // Clamp the user setting against per-API minima. Hardware-level clamping
+  // (vs. QRhi::supportedSampleCounts()) happens later, in createRenderState
+  // once the QRhi instance exists, since the Settings model has no access
+  // to a backend at this point.
+  int s = m_Samples < 1 ? 1 : m_Samples;
+  if(api == score::gfx::D3D12 && s < 2)
+    s = 2; // D3D12 swap chains require at least 2 samples in QRhi
+  return s;
 }
 
 score::gfx::GraphicsApi Model::graphicsApiEnum() const noexcept

@@ -128,7 +128,19 @@ void RenderedRawRasterPipelineNode::initPass(
     ps->setName("RenderedRawRasterPipelineNode::initPass::ps");
     SCORE_ASSERT(ps);
 
-    ps->setSampleCount(renderer.samples());
+    // Use the actual RT sample count whenever queryable — never assume
+    // renderer.samples() — so the pipeline matches the render target it
+    // will be bound to. They can differ if an RT was degraded for
+    // samplable-depth + MSAA combos. -1 means the RT didn't carry enough
+    // information (placeholder), in which case we trust renderer.samples().
+    const int rtSamples = renderTarget.sampleCount();
+    const int pipelineSamples = (rtSamples > 0) ? rtSamples : renderer.samples();
+    if(rtSamples > 0 && rtSamples != renderer.samples())
+    {
+      qWarning() << "RawRaster::initPass: RT sampleCount=" << rtSamples
+                 << "differs from renderer.samples()=" << renderer.samples();
+    }
+    ps->setSampleCount(pipelineSamples);
 
     m_mesh->preparePipeline(*ps);
 

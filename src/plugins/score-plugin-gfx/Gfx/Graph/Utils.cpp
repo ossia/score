@@ -14,8 +14,33 @@ createRenderTarget(const RenderState& state, QRhiTexture* tex, int samples, bool
   SCORE_ASSERT(tex);
   ret.texture = tex;
 
+  // The color "tex" is the resolve target — it is always single-sampled.
+  //
+  // When samplable depth is requested alongside MSAA we need depth resolve:
+  // render into a multisample depth attachment, resolve into a single-sample
+  // depth texture that downstream shaders can sample. This requires the
+  // QRhi::ResolveDepthStencil feature, which is supported on Vulkan 1.2+ and
+  // Metal but NOT on D3D11/12. On unsupported backends we degrade the RT to
+  // samples=1 — Vulkan/Metal otherwise reject the render pass for mixed
+  // sample counts across attachments.
+  int effectiveSamples = samples;
+  bool useDepthResolve = false;
+  if(samplableDepth && samples > 1)
+  {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+    useDepthResolve = state.rhi->isFeatureSupported(QRhi::ResolveDepthStencil);
+#endif
+    if(!useDepthResolve)
+    {
+      qWarning() << "createRenderTarget: samplable depth + samples=" << samples
+                 << "but QRhi::ResolveDepthStencil is unsupported on this backend"
+                 << "— degrading this RT to samples=1.";
+      effectiveSamples = 1;
+    }
+  }
+
   QRhiTextureRenderTargetDescription desc;
-  if(samples == 1)
+  if(effectiveSamples == 1)
   {
     QRhiColorAttachment color0(tex);
     desc.setColorAttachments({color0});
@@ -23,7 +48,7 @@ createRenderTarget(const RenderState& state, QRhiTexture* tex, int samples, bool
   else
   {
     ret.colorRenderBuffer = state.rhi->newRenderBuffer(
-        QRhiRenderBuffer::Color, tex->pixelSize(), samples, {}, tex->format());
+        QRhiRenderBuffer::Color, tex->pixelSize(), effectiveSamples, {}, tex->format());
     ret.colorRenderBuffer->setName("createRenderTarget::ret.colorRenderBuffer");
     SCORE_ASSERT(ret.colorRenderBuffer->create());
 
@@ -33,18 +58,38 @@ createRenderTarget(const RenderState& state, QRhiTexture* tex, int samples, bool
   }
   if(samplableDepth)
   {
+    // The single-sample depth texture is what downstream shaders sample.
     ret.depthTexture = state.rhi->newTexture(
         QRhiTexture::D32F, tex->pixelSize(), 1,
         QRhiTexture::RenderTarget);
     ret.depthTexture->setName("createRenderTarget::depthTexture");
     SCORE_ASSERT(ret.depthTexture->create());
 
-    desc.setDepthTexture(ret.depthTexture);
+    if(useDepthResolve)
+    {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+      // Multisample depth attachment used during rendering; resolves into
+      // ret.depthTexture at endPass(). Owned via ret.msDepthTexture so it
+      // is released alongside the rest of the RT.
+      ret.msDepthTexture = state.rhi->newTexture(
+          QRhiTexture::D32F, tex->pixelSize(), effectiveSamples,
+          QRhiTexture::RenderTarget);
+      ret.msDepthTexture->setName("createRenderTarget::msDepthTexture");
+      SCORE_ASSERT(ret.msDepthTexture->create());
+
+      desc.setDepthTexture(ret.msDepthTexture);
+      desc.setDepthResolveTexture(ret.depthTexture);
+#endif
+    }
+    else
+    {
+      desc.setDepthTexture(ret.depthTexture);
+    }
   }
   else if(depth)
   {
     ret.depthRenderBuffer = state.rhi->newRenderBuffer(
-        QRhiRenderBuffer::DepthStencil, tex->pixelSize(), samples);
+        QRhiRenderBuffer::DepthStencil, tex->pixelSize(), effectiveSamples);
     ret.depthRenderBuffer->setName("createRenderTarget::ret.depthRenderBuffer");
     SCORE_ASSERT(ret.depthRenderBuffer->create());
 
@@ -94,17 +139,37 @@ TextureRenderTarget createRenderTarget(
   for(std::size_t i = 1; i < colorTextures.size(); i++)
     ret.additionalColorTextures.push_back(colorTextures[i]);
 
+  // depthTex is the single-sample resolve target supplied by the caller; if
+  // MSAA is requested we need depth-resolve support to keep both. Without it
+  // (e.g. D3D11/12) all attachments must share a sample count, so degrade
+  // this RT to samples=1 — see the matching comment in the non-MRT overload.
+  int effectiveSamples = samples;
+  bool useDepthResolve = false;
+  if(depthTex && samples > 1)
+  {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+    useDepthResolve = state.rhi->isFeatureSupported(QRhi::ResolveDepthStencil);
+#endif
+    if(!useDepthResolve)
+    {
+      qWarning() << "createRenderTarget(MRT): samplable depth + samples=" << samples
+                 << "but QRhi::ResolveDepthStencil is unsupported on this backend"
+                 << "— degrading this RT to samples=1.";
+      effectiveSamples = 1;
+    }
+  }
+
   QList<QRhiColorAttachment> attachments;
   for(auto* tex : colorTextures)
   {
-    if(samples == 1)
+    if(effectiveSamples == 1)
     {
       attachments.append(QRhiColorAttachment(tex));
     }
     else
     {
       auto* rb = state.rhi->newRenderBuffer(
-          QRhiRenderBuffer::Color, tex->pixelSize(), samples, {}, tex->format());
+          QRhiRenderBuffer::Color, tex->pixelSize(), effectiveSamples, {}, tex->format());
       rb->setName("createRenderTarget::MRT::colorRB");
       SCORE_ASSERT(rb->create());
 
@@ -121,12 +186,30 @@ TextureRenderTarget createRenderTarget(
   {
     ret.depthTexture = depthTex;
 #if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
-    desc.setDepthTexture(depthTex);
+    if(useDepthResolve)
+    {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+      // Multisample depth attachment used during rendering, resolves into
+      // the caller-supplied depthTex on endPass(). We own msDepthTexture.
+      ret.msDepthTexture = state.rhi->newTexture(
+          QRhiTexture::D32F, depthTex->pixelSize(), effectiveSamples,
+          QRhiTexture::RenderTarget);
+      ret.msDepthTexture->setName("createRenderTarget::MRT::msDepthTexture");
+      SCORE_ASSERT(ret.msDepthTexture->create());
+
+      desc.setDepthTexture(ret.msDepthTexture);
+      desc.setDepthResolveTexture(depthTex);
+#endif
+    }
+    else
+    {
+      desc.setDepthTexture(depthTex);
+    }
 #else
     // Qt < 6.6 doesn't support sampleable depth textures in render targets;
     // fall back to a depth renderbuffer (depth won't be sampleable)
     ret.depthRenderBuffer = state.rhi->newRenderBuffer(
-        QRhiRenderBuffer::DepthStencil, colorTextures[0]->pixelSize(), samples, {},
+        QRhiRenderBuffer::DepthStencil, colorTextures[0]->pixelSize(), effectiveSamples, {},
         QRhiTexture::D32F);
     ret.depthRenderBuffer->setName("createRenderTarget::MRT::depthRB_fallback");
     SCORE_ASSERT(ret.depthRenderBuffer->create());
@@ -428,7 +511,22 @@ Pipeline buildPipeline(
     blends.append(premulAlphaBlend);
   ps->setTargetBlends(blends.begin(), blends.end());
 
-  ps->setSampleCount(renderer.samples());
+  // Use the render target's actual sample count whenever it can be queried,
+  // NOT renderer.samples(). The two can differ when an RT was degraded
+  // (e.g. samplable-depth + MSAA without depth-resolve support) — in that
+  // case the pipeline must agree with the RT or Vulkan will reject the
+  // render pass. When only renderPass is set (e.g. MultiWindowNode passes
+  // a placeholder rt that targets a swap chain), sampleCount() returns -1
+  // and we have to trust the renderlist value.
+  const int rtSamplesQueried = rt.sampleCount();
+  const int pipelineSamples = (rtSamplesQueried > 0) ? rtSamplesQueried : renderer.samples();
+  if(rtSamplesQueried > 0 && rtSamplesQueried != renderer.samples())
+  {
+    qWarning() << "buildPipeline: RT sampleCount=" << rtSamplesQueried
+               << "differs from renderer.samples()=" << renderer.samples()
+               << "— pipeline will use" << pipelineSamples;
+  }
+  ps->setSampleCount(pipelineSamples);
 
   mesh.preparePipeline(*ps);
 
