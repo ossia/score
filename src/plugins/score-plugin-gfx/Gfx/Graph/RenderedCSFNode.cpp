@@ -16,6 +16,9 @@
 
 #include <boost/algorithm/string/replace.hpp>
 
+#include <unordered_map>
+#include <unordered_set>
+
 namespace score::gfx
 {
 static QRhiTexture::Format
@@ -2210,9 +2213,57 @@ void RenderedCSFNode::initComputePass(
   // Ensure storage buffers are created before setting up bindings
   updateStorageBuffers(renderer, res);
 
+  // Eagerly populate geometry bindings so we can detect buffer aliasing across
+  // attribute/auxiliary SSBOs (caused by feedback edges sharing the same
+  // physical buffer with conflicting access modes) BEFORE we emit any binding.
+  updateGeometryBindings(renderer, res);
+
+  // Pre-pass: collect physical buffers used with conflicting access modes
+  // (read on one binding, write on another) so we can promote them to
+  // bufferLoadStore. The Qt RHI / Vulkan validation layer rejects bindings
+  // that reference the same buffer with different access flags within a pass.
+  std::unordered_set<QRhiBuffer*> aliased_buffers;
+  {
+    std::unordered_map<QRhiBuffer*, int> access_flags; // 1=read, 2=write, 3=both
+    int gb_idx = 0;
+    for(const auto& inp : n.m_descriptor.inputs)
+    {
+      auto* g = ossia::get_if<isf::geometry_input>(&inp.data);
+      if(!g)
+        continue;
+      if(gb_idx >= (int)m_geometryBindings.size())
+        break;
+      const auto& gb = m_geometryBindings[gb_idx++];
+
+      for(int ai = 0; ai < (int)g->attributes.size() && ai < (int)gb.attribute_ssbos.size(); ai++)
+      {
+        const auto& req = g->attributes[ai];
+        const auto& ssbo = gb.attribute_ssbos[ai];
+        if(req.access == "none" || !ssbo.buffer)
+          continue;
+        int f = (req.access == "read_only") ? 1 : (req.access == "write_only") ? 2 : 3;
+        access_flags[ssbo.buffer] |= f;
+        if(req.access == "read_write" && ssbo.read_buffer && ssbo.read_buffer != ssbo.buffer)
+          access_flags[ssbo.read_buffer] |= 1;
+      }
+      for(const auto& aux : gb.auxiliary_ssbos)
+      {
+        if(!aux.buffer)
+          continue;
+        int f = (aux.access == "read_only") ? 1 : (aux.access == "write_only") ? 2 : 3;
+        access_flags[aux.buffer] |= f;
+        if(aux.read_buffer && aux.read_buffer != aux.buffer)
+          access_flags[aux.read_buffer] |= 1;
+      }
+    }
+    for(const auto& [buf, flags] : access_flags)
+      if(flags == 3)
+        aliased_buffers.insert(buf);
+  }
+
   // Create shader resource bindings
   QList<QRhiShaderResourceBinding> bindings;
-  
+
   // Binding 0: Renderer UBO (part of ProcessUBO in defaultUniforms)
   bindings.append(QRhiShaderResourceBinding::uniformBuffer(
       0, QRhiShaderResourceBinding::ComputeStage, &renderer.outputUBO()));
@@ -2413,12 +2464,32 @@ void RenderedCSFNode::initComputePass(
     // Geometry inputs: bind per-attribute SSBOs
     else if(auto* geo_input = ossia::get_if<isf::geometry_input>(&input.data))
     {
-      // Update geometry bindings from incoming geometry data
-      updateGeometryBindings(renderer, res);
-
       if(geo_binding_index < (int)m_geometryBindings.size())
       {
         auto& binding = m_geometryBindings[geo_binding_index];
+
+        // Helper: emit a binding for buf with the given access mode, promoting
+        // to bufferLoadStore when the buffer is aliased across multiple bindings
+        // with conflicting accesses (avoids Vulkan validation warnings).
+        auto appendBufBinding = [&](QRhiBuffer* buf, const std::string& access)
+        {
+          const bool aliased = aliased_buffers.count(buf) > 0;
+          if(access == "read_write" || aliased)
+          {
+            bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
+                bindingIndex++, QRhiShaderResourceBinding::ComputeStage, buf));
+          }
+          else if(access == "read_only")
+          {
+            bindings.append(QRhiShaderResourceBinding::bufferLoad(
+                bindingIndex++, QRhiShaderResourceBinding::ComputeStage, buf));
+          }
+          else // write_only
+          {
+            bindings.append(QRhiShaderResourceBinding::bufferStore(
+                bindingIndex++, QRhiShaderResourceBinding::ComputeStage, buf));
+          }
+        };
 
         for(int attr_idx = 0; attr_idx < (int)geo_input->attributes.size(); attr_idx++)
         {
@@ -2446,17 +2517,11 @@ void RenderedCSFNode::initComputePass(
             ssbo.owned = true;
           }
 
-          if(req.access == "read_only")
+          if(req.access == "read_only" || req.access == "write_only")
           {
-            bindings.append(QRhiShaderResourceBinding::bufferLoad(
-                bindingIndex++, QRhiShaderResourceBinding::ComputeStage, ssbo.buffer));
+            appendBufBinding(ssbo.buffer, req.access);
           }
-          else if(req.access == "write_only")
-          {
-            bindings.append(QRhiShaderResourceBinding::bufferStore(
-                bindingIndex++, QRhiShaderResourceBinding::ComputeStage, ssbo.buffer));
-          }
-          else // read_write -> 2 bindings: _in (readonly) + _out (writeonly)
+          else // read_write -> 2 bindings: _in (readonly) + _out (read-write)
           {
             // On the first feedback frame (pending_initial_copy), use the same
             // buffer for both _in and _out so the shader can init + simulate
@@ -2466,7 +2531,6 @@ void RenderedCSFNode::initComputePass(
             if(read_buf == ssbo.buffer)
             {
               // Same physical buffer for both _in and _out (non-feedback in-place).
-              // Use bufferLoadStore for both to avoid "different accesses" validation error.
               bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
                   bindingIndex++, QRhiShaderResourceBinding::ComputeStage, ssbo.buffer));
               bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
@@ -2475,8 +2539,7 @@ void RenderedCSFNode::initComputePass(
             else
             {
               // Distinct buffers (feedback receiver): _in readonly, _out read-write
-              bindings.append(QRhiShaderResourceBinding::bufferLoad(
-                  bindingIndex++, QRhiShaderResourceBinding::ComputeStage, read_buf));
+              appendBufBinding(read_buf, "read_only");
               bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
                   bindingIndex++, QRhiShaderResourceBinding::ComputeStage, ssbo.buffer));
             }
@@ -2498,21 +2561,7 @@ void RenderedCSFNode::initComputePass(
             aux.owned = true;
           }
 
-          if(aux.access == "read_only")
-          {
-            bindings.append(QRhiShaderResourceBinding::bufferLoad(
-                bindingIndex++, QRhiShaderResourceBinding::ComputeStage, aux.buffer));
-          }
-          else if(aux.access == "write_only")
-          {
-            bindings.append(QRhiShaderResourceBinding::bufferStore(
-                bindingIndex++, QRhiShaderResourceBinding::ComputeStage, aux.buffer));
-          }
-          else
-          {
-            bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
-                bindingIndex++, QRhiShaderResourceBinding::ComputeStage, aux.buffer));
-          }
+          appendBufBinding(aux.buffer, aux.access);
         }
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
@@ -3163,10 +3212,55 @@ void RenderedCSFNode::update(
 void RenderedCSFNode::recreateShaderResourceBindings(RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
   QRhi& rhi = *renderer.state.rhi;
-  
+
+  // Pre-pass: collect physical buffers used with conflicting access modes
+  // (read on one binding, write on another) so we can promote them to
+  // bufferLoadStore. The Qt RHI / Vulkan validation layer rejects bindings
+  // that reference the same buffer with different access flags within a pass.
+  // (geometry bindings are assumed up-to-date here — recreateShaderResourceBindings
+  // is called after the geometry update path)
+  std::unordered_set<QRhiBuffer*> aliased_buffers;
+  {
+    std::unordered_map<QRhiBuffer*, int> access_flags; // 1=read, 2=write, 3=both
+    int gb_idx = 0;
+    for(const auto& inp : n.m_descriptor.inputs)
+    {
+      auto* g = ossia::get_if<isf::geometry_input>(&inp.data);
+      if(!g)
+        continue;
+      if(gb_idx >= (int)m_geometryBindings.size())
+        break;
+      const auto& gb = m_geometryBindings[gb_idx++];
+
+      for(int ai = 0; ai < (int)g->attributes.size() && ai < (int)gb.attribute_ssbos.size(); ai++)
+      {
+        const auto& req = g->attributes[ai];
+        const auto& ssbo = gb.attribute_ssbos[ai];
+        if(req.access == "none" || !ssbo.buffer)
+          continue;
+        int f = (req.access == "read_only") ? 1 : (req.access == "write_only") ? 2 : 3;
+        access_flags[ssbo.buffer] |= f;
+        if(req.access == "read_write" && ssbo.read_buffer && ssbo.read_buffer != ssbo.buffer)
+          access_flags[ssbo.read_buffer] |= 1;
+      }
+      for(const auto& aux : gb.auxiliary_ssbos)
+      {
+        if(!aux.buffer)
+          continue;
+        int f = (aux.access == "read_only") ? 1 : (aux.access == "write_only") ? 2 : 3;
+        access_flags[aux.buffer] |= f;
+        if(aux.read_buffer && aux.read_buffer != aux.buffer)
+          access_flags[aux.read_buffer] |= 1;
+      }
+    }
+    for(const auto& [buf, flags] : access_flags)
+      if(flags == 3)
+        aliased_buffers.insert(buf);
+  }
+
   // Build the bindings list (same as in initComputePass)
   QList<QRhiShaderResourceBinding> bindings;
-  
+
   // Binding 0: Renderer UBO
   bindings.append(QRhiShaderResourceBinding::uniformBuffer(
       0, QRhiShaderResourceBinding::ComputeStage, &renderer.outputUBO()));
@@ -3318,6 +3412,29 @@ void RenderedCSFNode::recreateShaderResourceBindings(RenderList& renderer, QRhiR
       {
         auto& binding = m_geometryBindings[geo_binding_index];
 
+        // Helper: emit a binding for buf with the given access mode, promoting
+        // to bufferLoadStore when the buffer is aliased across multiple bindings
+        // with conflicting accesses (avoids Vulkan validation warnings).
+        auto appendBufBinding = [&](QRhiBuffer* buf, const std::string& access)
+        {
+          const bool aliased = aliased_buffers.count(buf) > 0;
+          if(access == "read_write" || aliased)
+          {
+            bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
+                bindingIndex++, QRhiShaderResourceBinding::ComputeStage, buf));
+          }
+          else if(access == "read_only")
+          {
+            bindings.append(QRhiShaderResourceBinding::bufferLoad(
+                bindingIndex++, QRhiShaderResourceBinding::ComputeStage, buf));
+          }
+          else // write_only
+          {
+            bindings.append(QRhiShaderResourceBinding::bufferStore(
+                bindingIndex++, QRhiShaderResourceBinding::ComputeStage, buf));
+          }
+        };
+
         for(int attr_idx = 0; attr_idx < (int)geo_input->attributes.size(); attr_idx++)
         {
           if(attr_idx >= (int)binding.attribute_ssbos.size())
@@ -3344,17 +3461,11 @@ void RenderedCSFNode::recreateShaderResourceBindings(RenderList& renderer, QRhiR
             ssbo.owned = true;
           }
 
-          if(req.access == "read_only")
+          if(req.access == "read_only" || req.access == "write_only")
           {
-            bindings.append(QRhiShaderResourceBinding::bufferLoad(
-                bindingIndex++, QRhiShaderResourceBinding::ComputeStage, ssbo.buffer));
+            appendBufBinding(ssbo.buffer, req.access);
           }
-          else if(req.access == "write_only")
-          {
-            bindings.append(QRhiShaderResourceBinding::bufferStore(
-                bindingIndex++, QRhiShaderResourceBinding::ComputeStage, ssbo.buffer));
-          }
-          else // read_write -> 2 bindings: _in (readonly) + _out (writeonly)
+          else // read_write -> 2 bindings: _in (readonly) + _out (read-write)
           {
             QRhiBuffer* read_buf = (ssbo.read_buffer && !binding.pending_initial_copy)
                 ? ssbo.read_buffer : ssbo.buffer;
@@ -3369,8 +3480,7 @@ void RenderedCSFNode::recreateShaderResourceBindings(RenderList& renderer, QRhiR
             else
             {
               // Distinct buffers (feedback receiver): _in readonly, _out read-write
-              bindings.append(QRhiShaderResourceBinding::bufferLoad(
-                  bindingIndex++, QRhiShaderResourceBinding::ComputeStage, read_buf));
+              appendBufBinding(read_buf, "read_only");
               bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
                   bindingIndex++, QRhiShaderResourceBinding::ComputeStage, ssbo.buffer));
             }
@@ -3392,21 +3502,7 @@ void RenderedCSFNode::recreateShaderResourceBindings(RenderList& renderer, QRhiR
             aux.owned = true;
           }
 
-          if(aux.access == "read_only")
-          {
-            bindings.append(QRhiShaderResourceBinding::bufferLoad(
-                bindingIndex++, QRhiShaderResourceBinding::ComputeStage, aux.buffer));
-          }
-          else if(aux.access == "write_only")
-          {
-            bindings.append(QRhiShaderResourceBinding::bufferStore(
-                bindingIndex++, QRhiShaderResourceBinding::ComputeStage, aux.buffer));
-          }
-          else
-          {
-            bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
-                bindingIndex++, QRhiShaderResourceBinding::ComputeStage, aux.buffer));
-          }
+          appendBufBinding(aux.buffer, aux.access);
         }
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
