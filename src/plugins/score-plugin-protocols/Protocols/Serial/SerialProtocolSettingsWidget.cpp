@@ -58,10 +58,10 @@ SerialProtocolSettingsWidget::SerialProtocolSettingsWidget(QWidget* parent)
   auto validateBtn = new QPushButton{tr("Validate"), this};
   connect(validateBtn, &QPushButton::clicked, this, &SerialProtocolSettingsWidget::validate);
 
-  for(auto port : QSerialPortInfo::availablePorts())
-    m_port->addItem(port.portName());
+  for(const auto& port : serial::available_ports())
+    m_port->addItem(QString::fromStdString(port.port_name));
 
-  for(auto rate : QSerialPortInfo::standardBaudRates())
+  for(auto rate : serial::standard_baud_rates())
     m_rate->addItem(QString::number(rate));
 
   QGridLayout* gLayout = new QGridLayout;
@@ -137,17 +137,19 @@ Device::DeviceSettings SerialProtocolSettingsWidget::getSettings() const
   s.protocol = SerialProtocolFactory::static_concreteKey();
 
   SerialSpecificSettings specific;
-  for(auto port : QSerialPortInfo::availablePorts())
-    if(port.portName() == m_port->currentText())
+  const auto& ports = serial::available_ports();
+  const auto& current_ui_port = m_port->currentText().toStdString();
+  for(const auto& port : ports)
+    if(port.port_name == current_ui_port)
       specific.port = port;
-  if(specific.port.isNull())
+  if(specific.port.port_name.empty())
   {
     QFileInfo ff{m_port->currentText()};
-    auto port_fd = ff.canonicalFilePath();
+    auto port_fd = ff.canonicalFilePath().toStdString();
 
-    for(const auto& port : QSerialPortInfo::availablePorts())
+    for(const auto& port : ports)
     {
-      if(port.systemLocation() == port_fd)
+      if(port.system_location == port_fd)
         specific.port = port;
     }
   }
@@ -175,7 +177,7 @@ void SerialProtocolSettingsWidget::setSettings(const Device::DeviceSettings& set
     if(rate <= 0)
       rate = 9600;
 
-    m_port->setCurrentText(specific.port.portName());
+    m_port->setCurrentText(QString::fromStdString(specific.port.port_name));
     m_rate->setCurrentText(QString::number(rate));
     m_codeEdit->setPlainText(specific.text);
   }

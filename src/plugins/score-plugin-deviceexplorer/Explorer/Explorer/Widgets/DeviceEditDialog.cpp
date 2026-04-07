@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DeviceEditDialog.hpp"
 
+#include <Device/Loading/ScoreDeviceLoader.hpp>
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include <Device/Protocol/ProtocolList.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
@@ -20,12 +21,10 @@
 
 #include <ossia/detail/algorithms.hpp>
 
-#include <Device/Loading/ScoreDeviceLoader.hpp>
-
 #include <QComboBox>
+#include <QCoreApplication>
 #include <QDesktopServices>
 #include <QDialogButtonBox>
-#include <QCoreApplication>
 #include <QDirIterator>
 #include <QFormLayout>
 #include <QHeaderView>

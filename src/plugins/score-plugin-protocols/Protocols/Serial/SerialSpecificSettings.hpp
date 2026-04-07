@@ -2,7 +2,8 @@
 
 #include <ossia/detail/config.hpp>
 #if defined(OSSIA_PROTOCOL_SERIAL)
-#include <QSerialPortInfo>
+#include <Protocols/Serial/SerialInfo.hpp>
+
 #include <QString>
 
 #include <verdigris>
@@ -11,7 +12,7 @@ namespace Protocols
 {
 struct SerialSpecificSettings
 {
-  QSerialPortInfo port;
+  serial::port_info port;
   QString text;
   int32_t rate{0};
 };

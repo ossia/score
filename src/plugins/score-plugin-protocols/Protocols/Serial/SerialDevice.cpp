@@ -60,7 +60,7 @@ bool SerialDevice::reconnect()
 
     ossia::net::serial_configuration conf;
     conf.baud_rate = stgs.rate;
-    conf.port = stgs.port.systemLocation().toStdString();
+    conf.port = stgs.port.system_location;
 
     m_dev = std::make_unique<ossia::net::serial_device>(
         std::make_unique<ossia::net::serial_protocol>(m_ctx, stgs.text.toUtf8(), conf),

@@ -150,12 +150,14 @@ set(WS_SRCS
 set(SERIAL_HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Serial/SerialProtocolFactory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Serial/SerialDevice.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Serial/SerialInfo.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Serial/SerialProtocolSettingsWidget.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Serial/SerialSpecificSettings.hpp"
 )
 set(SERIAL_SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Serial/SerialProtocolSettingsWidget.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Serial/SerialDevice.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Serial/SerialInfo.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Serial/SerialProtocolFactory.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Serial/SerialSpecificSettingsSerialization.cpp"
 )

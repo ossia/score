@@ -11,6 +11,8 @@ extern "C" {
 #include <libswresample/swresample.h>
 }
 
+#include <ossia/detail/pod_vector.hpp>
+
 #include <score_plugin_media_export.h>
 
 #include <atomic>

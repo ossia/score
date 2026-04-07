@@ -17,6 +17,7 @@
 #endif
 
 #if defined(OSSIA_PROTOCOL_SERIAL)
+#include <Protocols/Serial/SerialInfo.hpp>
 #include <Protocols/Serial/SerialProtocolFactory.hpp>
 #include <Protocols/Serial/SerialSpecificSettings.hpp>
 #endif
@@ -290,16 +291,16 @@ void EditJsContext::createQMLSerialDevice(QString name, QString port, QString te
   if(!doc)
     return;
 
-  QSerialPortInfo info;
-  for(auto& p : QSerialPortInfo::availablePorts())
+  serial::port_info info;
+  for(auto& p : serial::available_ports())
   {
-    if(p.portName() == port)
+    if(p.port_name == port)
     {
       info = p;
       break;
     }
   }
-  if(info.isNull())
+  if(info.port_name.empty())
   {
     qDebug() << "Serial port " << port << " was not found";
     return;

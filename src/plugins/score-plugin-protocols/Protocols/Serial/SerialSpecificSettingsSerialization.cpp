@@ -13,7 +13,7 @@
 template <>
 void DataStreamReader::read(const Protocols::SerialSpecificSettings& n)
 {
-  m_stream << n.port.serialNumber() << n.text << n.rate;
+  m_stream << n.port.serial_number << n.text << n.rate;
   insertDelimiter();
 }
 
@@ -23,8 +23,9 @@ void DataStreamWriter::write(Protocols::SerialSpecificSettings& n)
   QString sn;
   m_stream >> sn >> n.text >> n.rate;
 
-  for(const auto& port : QSerialPortInfo::availablePorts())
-    if(port.serialNumber() == sn)
+  const auto& sn_str = sn.toStdString();
+  for(const auto& port : serial::available_ports())
+    if(port.serial_number == sn_str)
     {
       n.port = port;
       break;
@@ -36,9 +37,9 @@ void DataStreamWriter::write(Protocols::SerialSpecificSettings& n)
 template <>
 void JSONReader::read(const Protocols::SerialSpecificSettings& n)
 {
-  obj["Port"] = n.port.portName();
-  obj["PortLocation"] = n.port.systemLocation();
-  obj["PortSN"] = n.port.systemLocation();
+  obj["Port"] = n.port.port_name;
+  obj["PortLocation"] = n.port.system_location;
+  obj["PortSN"] = n.port.serial_number;
   obj["Text"] = n.text;
   obj["Rate"] = n.rate;
 }
@@ -54,19 +55,22 @@ void JSONWriter::write(Protocols::SerialSpecificSettings& n)
   if(auto opt_loc = obj.tryGet("PortLocation"))
     location = opt_loc->toString();
 
-  for(const auto& port : QSerialPortInfo::availablePorts())
+  const auto& sn_str = sn.toStdString();
+  const auto& loc_str = location.toStdString();
+  const auto& name_str = name.toStdString();
+  for(const auto& port : serial::available_ports())
   {
-    if(!sn.isEmpty() && port.serialNumber() == sn)
+    if(!sn_str.empty() && port.serial_number == sn_str)
     {
       n.port = port;
       break;
     }
-    if(!location.isEmpty() && port.systemLocation() == location)
+    if(!loc_str.empty() && port.system_location == loc_str)
     {
       n.port = port;
       break;
     }
-    if(!name.isEmpty() && port.portName() == name)
+    if(!name_str.empty() && port.port_name == name_str)
     {
       n.port = port;
       break;
