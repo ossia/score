@@ -20,30 +20,61 @@
 
 namespace Audio
 {
-PipeWireAudioFactory::PipeWireAudioFactory()
+namespace
 {
+// Tear down and rebuild the shared pipewire context + its QSocketNotifier.
+// Used both on initial construction and when the context gets marked as
+// broken (timeout, protocol error) — without this, a single sync timeout
+// would wedge the factory until the user quits and relaunches the app.
+void reinitPipeWireClient(
+    std::shared_ptr<ossia::pipewire_context>& client, QSocketNotifier*& fd,
+    QObject* owner)
+{
+  if(fd)
+  {
+    delete fd;
+    fd = nullptr;
+  }
+  client.reset();
+
   try
   {
-    m_client = std::make_shared<ossia::pipewire_context>();
+    client = std::make_shared<ossia::pipewire_context>();
+    if(client->broken())
     {
-      if(int fd = m_client->get_fd(); fd != -1)
-      {
-        m_fd = new QSocketNotifier{fd, QSocketNotifier::Read};
-        connect(m_fd, &QSocketNotifier::activated, this, [clt = m_client] {
-          if(auto lp = clt->lp)
-          {
-            int result = pw_loop_iterate(lp, 0);
-            if(result < 0)
-              qDebug() << "pw_loop_iterate: " << spa_strerror(result);
-          }
-        });
-        m_fd->setEnabled(true);
-      }
+      client.reset();
+      return;
+    }
+
+    if(int rawfd = client->get_fd(); rawfd != -1)
+    {
+      fd = new QSocketNotifier{rawfd, QSocketNotifier::Read};
+      QObject::connect(
+          fd, &QSocketNotifier::activated, owner, [clt = client] {
+        // If the core has gone south we must NOT keep iterating the
+        // loop — doing so could spin against a wedged fd forever.
+        if(clt->broken())
+          return;
+        if(auto lp = clt->lp)
+        {
+          int result = pw_loop_iterate(lp, 0);
+          if(result < 0)
+            qDebug() << "pw_loop_iterate: " << spa_strerror(result);
+        }
+          });
+      fd->setEnabled(true);
     }
   }
   catch(...)
   {
+    client.reset();
   }
+}
+}
+
+PipeWireAudioFactory::PipeWireAudioFactory()
+{
+  reinitPipeWireClient(m_client, m_fd, this);
 }
 
 PipeWireAudioFactory::~PipeWireAudioFactory()
@@ -81,7 +112,19 @@ std::shared_ptr<ossia::audio_engine> PipeWireAudioFactory::make_engine(
 {
   static_assert(std::is_base_of_v<ossia::audio_engine, ossia::pipewire_audio_protocol>);
 
+  // If the shared context has entered an error state (initial sync
+  // timeout, protocol error, daemon restarted, prior engine tear-down
+  // failed), rebuild it. Otherwise we'd hand out engines that would
+  // themselves immediately fail or hang on synchronize().
+  if(m_client && m_client->broken())
+  {
+    reinitPipeWireClient(m_client, m_fd, this);
+  }
+
   if(!this->m_client)
+    return {};
+
+  if(this->m_client->broken())
     return {};
 
   if(!this->m_client->lp)
@@ -135,12 +178,16 @@ void PipeWireAudioFactory::setupSettingsWidget(
     return;
   }
 
+  if(m_client && m_client->broken())
+  {
+    reinitPipeWireClient(m_client, m_fd, this);
+  }
   if(!m_client)
   {
-    m_client = std::make_shared<ossia::pipewire_context>();
+    reinitPipeWireClient(m_client, m_fd, this);
   }
 
-  if(!m_client->registry)
+  if(!m_client || !m_client->registry || m_client->broken())
   {
     on_noPipeWire();
     return;

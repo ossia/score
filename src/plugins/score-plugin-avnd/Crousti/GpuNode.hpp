@@ -146,7 +146,15 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
     premulAlphaBlend.dstAlpha = QRhiGraphicsPipeline::BlendFactor::OneMinusSrcAlpha;
     ps->setTargetBlends({premulAlphaBlend});
 
-    ps->setSampleCount(1);
+    // Match the destination render target's actual sample count, with the
+    // standard -1 fallback to renderer.samples() for placeholder RTs that
+    // only carry a renderPass descriptor. Without this, MSAA renderlists
+    // create RTs with samples=N but this pipeline would default to 1, and
+    // Vulkan rejects the render pass for sample-count mismatch.
+    {
+      const int rtS = rt.sampleCount();
+      ps->setSampleCount(rtS > 0 ? rtS : renderer.samples());
+    }
 
     mesh.preparePipeline(*ps);
 
