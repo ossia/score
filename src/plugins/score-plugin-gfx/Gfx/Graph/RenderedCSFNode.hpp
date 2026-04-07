@@ -201,6 +201,13 @@ private:
   // GPU buffer scatter (format conversion on GPU)
   GPUBufferScatter m_gpuScatter;
   bool m_gpuScatterAvailable{false};
+
+  // True once at least one frame's worth of upstream rendering has happened
+  // for this renderer's input textures. Used to gate generateMips() so we
+  // don't trip a Vulkan validation error on freshly-allocated textures whose
+  // layout is still PREINITIALIZED. Reset on init() / after release() so a
+  // RenderList rebuild starts the cycle over.
+  bool m_inputsHaveBeenWritten{false};
 };
 
 }

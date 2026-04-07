@@ -2885,6 +2885,11 @@ void RenderedCSFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
   QRhi& rhi = *renderer.state.rhi;
 
+  // Reset the "first frame" gate so that generateMips() in update() waits
+  // for the upstream pass to actually write the input textures before being
+  // called — see the matching comment in update().
+  m_inputsHaveBeenWritten = false;
+
   // Check for compute support
   if(!rhi.isFeatureSupported(QRhi::Compute))
   {
@@ -3202,8 +3207,24 @@ void RenderedCSFNode::update(
 
   for(auto& [sampler, texture] : this->m_inputSamplers)
   {
+    // Skip generateMips on textures that have not yet been written to.
+    // Their Vulkan layout is still VK_IMAGE_LAYOUT_PREINITIALIZED, and Qt RHI's
+    // GenMips path (qrhivulkan.cpp ~4685) transitions FROM TRANSFER_*_OPTIMAL
+    // back to the texture's stored layout — which would be PREINITIALIZED here,
+    // an invalid newLayout per VUID-VkImageMemoryBarrier-newLayout-01198.
+    // Also skip non-mipmapped textures: nothing to generate.
+    if(!texture)
+      continue;
+    if(!(texture->flags() & QRhiTexture::MipMapped))
+      continue;
+    if(!m_inputsHaveBeenWritten)
+      continue;
     res.generateMips(texture);
   }
+  // After this update completes, the upstream nodes will run their render
+  // passes for the current frame and the input textures will be transitioned
+  // out of PREINITIALIZED — so the *next* update() can safely generate mips.
+  m_inputsHaveBeenWritten = true;
   
   // Update output texture size if it has changed
   // TODO: Check if texture size inputs have changed and recreate texture if needed
