@@ -25,6 +25,9 @@ finish-args:
   # X11 is used by default
   - --socket=x11
 
+  # Wayland is available
+  - --socket=wayland
+
   # Used by X11
   - --share=ipc
 
