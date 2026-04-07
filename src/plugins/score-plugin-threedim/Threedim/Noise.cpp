@@ -73,8 +73,9 @@ void Noise::operator()()
 
   // Find the position attribute:
   auto& attr = mesh.attributes;
-  auto it
-      = std::find_if(attr.begin(), attr.end(), [](auto& a) { return a.location == halp::attribute_location::position; });
+  auto it = std::find_if(attr.begin(), attr.end(), [](auto& a) {
+    return a.semantic == halp::attribute_semantic::position;
+  });
   if (it == attr.end())
     return;
 

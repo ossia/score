@@ -16,7 +16,7 @@ public:
   }
   virtual ~NodeRenderer();
 
-  virtual TextureRenderTarget renderTargetForInput(const Port& input) = 0;
+  virtual TextureRenderTarget renderTargetForInput(const Port& input);
   virtual BufferView bufferForInput(const Port& input);
   virtual BufferView bufferForOutput(const Port& output);
 
@@ -110,7 +110,6 @@ public:
   {
   }
 
-  TextureRenderTarget renderTargetForInput(const Port& p) override;
   virtual ~GenericNodeRenderer() { }
 
   ossia::small_vector<Sampler, 8> m_samplers;

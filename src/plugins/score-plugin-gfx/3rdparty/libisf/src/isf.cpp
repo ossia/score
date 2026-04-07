@@ -141,14 +141,24 @@ static const ossia::hash_map<std::string, attribute_type>& attribute_type_parse{
       {"dmat4x2", attribute_type::DMat4x2}, {"dmat4x3", attribute_type::DMat4x3}};
   return i;
 }()};
-static const std::array<std::string_view, 39>& attribute_type_map{[] {
-  static const std::array<std::string_view, 39> i{
+static const std::array<std::string_view, 70>& attribute_type_map{[] {
+  static const std::array<std::string_view, 70> i{
       "Unknown", "float", "vec2",    "vec3",    "vec4",    "mat2",   "mat2x3",
       "mat2x4",  "mat3",  "mat3x2",  "mat3x4",  "mat4",    "mat4x2", "mat4x3",
       "int",     "ivec2", "ivec3",   "ivec4",   "uint",    "uvec2",  "uvec3",
       "uvec4",   "bool",  "bvec2",   "bvec3",   "bvec4",   "double", "dvec2",
       "dvec3",   "dvec4", "dmat2",   "dmat2x3", "dmat2x4", "dmat3",  "dmat3x2",
-      "dmat3x4", "dmat4", "dmat4x2", "dmat4x3"};
+      "dmat3x4", "dmat4", "dmat4x2", "dmat4x3",
+      "sampler1D", "sampler2D", "sampler2DMS", "sampler3D",
+      "samplerCube", "sampler1DArray", "sampler2DArray", "sampler2DMSArray",
+      "sampler3DArray", "samplerCubeArray", "samplerRect", "samplerBuffer",
+      "samplerExternalOES", "sampler",
+      "image1D", "image2D", "image2DMS", "image3D",
+      "imageCube", "image1DArray", "image2DArray", "image2DMSArray",
+      "image3DArray", "imageCubeArray", "imageRect", "imageBuffer",
+      "Unknown", // Struct
+      "float", "vec2", "vec3", "vec4" // Half, Half2, Half3, Half4
+  };
 
   return i;
 }()};
@@ -366,7 +376,16 @@ static bool parse_input_impl(sajson::value& v, bool)
   return v.get_type() == sajson::TYPE_TRUE;
 }
 
-static void parse_input(image_input& inp, const sajson::value& v) { }
+static void parse_input(image_input& inp, const sajson::value& v)
+{
+  if(auto k = v.find_object_key_insensitive(sajson::literal("DIMENSIONS"));
+     k != v.get_length())
+  {
+    auto val = v.get_object_value(k);
+    if(val.get_type() == sajson::TYPE_INTEGER)
+      inp.dimensions = val.get_integer_value();
+  }
+}
 static void parse_input(cubemap_input& inp, const sajson::value& v) { }
 
 static void parse_input(event_input& inp, const sajson::value& v) { }
@@ -464,7 +483,13 @@ static void parse_input(storage_input& inp, const sajson::value& v)
 
 static void parse_input(texture_input& inp, const sajson::value& v)
 {
-  // Texture inputs don't need additional parsing for basic CSF
+  if(auto k = v.find_object_key_insensitive(sajson::literal("DIMENSIONS"));
+     k != v.get_length())
+  {
+    auto val = v.get_object_value(k);
+    if(val.get_type() == sajson::TYPE_INTEGER)
+      inp.dimensions = val.get_integer_value();
+  }
 }
 
 static void parse_input(geometry_input& inp, const sajson::value& v)
@@ -503,6 +528,8 @@ static void parse_input(geometry_input& inp, const sajson::value& v)
               ar.type = fval.as_string();
             else if(fkey == "ACCESS" && fval.get_type() == sajson::TYPE_STRING)
               ar.access = fval.as_string();
+            else if(fkey == "RATE" && fval.get_type() == sajson::TYPE_STRING)
+              ar.rate = fval.as_string();
             else if(fkey == "REQUIRED")
             {
               if(fval.get_type() == sajson::TYPE_FALSE)
@@ -521,6 +548,98 @@ static void parse_input(geometry_input& inp, const sajson::value& v)
             ar.semantic = ar.name;
 
           inp.attributes.push_back(std::move(ar));
+        }
+      }
+    }
+    else if(k == "VERTEX_COUNT")
+    {
+      auto val = v.get_object_value(i);
+      if(val.get_type() == sajson::TYPE_STRING)
+        inp.vertex_count = val.as_string();
+      else if(val.get_type() == sajson::TYPE_INTEGER)
+        inp.vertex_count = std::to_string(val.get_integer_value());
+      else if(val.get_type() == sajson::TYPE_DOUBLE)
+        inp.vertex_count = std::to_string((int)val.get_double_value());
+    }
+    else if(k == "INSTANCE_COUNT")
+    {
+      auto val = v.get_object_value(i);
+      if(val.get_type() == sajson::TYPE_STRING)
+        inp.instance_count = val.as_string();
+      else if(val.get_type() == sajson::TYPE_INTEGER)
+        inp.instance_count = std::to_string(val.get_integer_value());
+      else if(val.get_type() == sajson::TYPE_DOUBLE)
+        inp.instance_count = std::to_string((int)val.get_double_value());
+    }
+    else if(k == "AUXILIARY")
+    {
+      auto val = v.get_object_value(i);
+      if(val.get_type() == sajson::TYPE_ARRAY)
+      {
+        std::size_t aux_count = val.get_length();
+        inp.auxiliary.reserve(aux_count);
+
+        for(std::size_t j = 0; j < aux_count; j++)
+        {
+          auto aux_obj = val.get_array_element(j);
+          if(aux_obj.get_type() != sajson::TYPE_OBJECT)
+            continue;
+
+          geometry_input::auxiliary_request ar;
+
+          for(std::size_t f = 0; f < aux_obj.get_length(); f++)
+          {
+            auto fkey = aux_obj.get_object_key(f).as_string();
+            auto fval = aux_obj.get_object_value(f);
+
+            if(fkey == "NAME" && fval.get_type() == sajson::TYPE_STRING)
+              ar.name = fval.as_string();
+            else if(fkey == "ACCESS" && fval.get_type() == sajson::TYPE_STRING)
+              ar.access = fval.as_string();
+            else if(fkey == "SIZE")
+            {
+              if(fval.get_type() == sajson::TYPE_STRING)
+                ar.size = fval.as_string();
+              else if(fval.get_type() == sajson::TYPE_INTEGER)
+                ar.size = std::to_string(fval.get_integer_value());
+              else if(fval.get_type() == sajson::TYPE_DOUBLE)
+                ar.size = std::to_string((int)fval.get_double_value());
+            }
+            else if(fkey == "LAYOUT" && fval.get_type() == sajson::TYPE_ARRAY)
+            {
+              std::size_t layout_size = fval.get_length();
+              ar.layout.reserve(layout_size);
+              for(std::size_t l = 0; l < layout_size; l++)
+              {
+                auto field = fval.get_array_element(l);
+                if(field.get_type() != sajson::TYPE_OBJECT)
+                  continue;
+                storage_input::layout_field lf;
+                for(std::size_t ff = 0; ff < field.get_length(); ff++)
+                {
+                  auto field_key = field.get_object_key(ff).as_string();
+                  if(field_key == "NAME")
+                  {
+                    auto name_val = field.get_object_value(ff);
+                    if(name_val.get_type() == sajson::TYPE_STRING)
+                      lf.name = name_val.as_string();
+                  }
+                  else if(field_key == "TYPE")
+                  {
+                    auto type_val = field.get_object_value(ff);
+                    if(type_val.get_type() == sajson::TYPE_STRING)
+                      lf.type = type_val.as_string();
+                  }
+                }
+                ar.layout.push_back(lf);
+              }
+            }
+          }
+
+          if(ar.access.empty())
+            ar.access = "read_write";
+
+          inp.auxiliary.push_back(std::move(ar));
         }
       }
     }
@@ -580,6 +699,23 @@ static void parse_input(csf_image_input& inp, const sajson::value& v)
         inp.height_expression = std::to_string(val.get_integer_value());
       }
     }
+    else if(k == "DEPTH")
+    {
+      auto val = v.get_object_value(i);
+      auto t = val.get_type();
+      if(t == sajson::TYPE_STRING)
+      {
+        inp.depth_expression = val.as_string();
+      }
+      else if(t == sajson::TYPE_DOUBLE)
+      {
+        inp.depth_expression = std::to_string(val.get_double_value());
+      }
+      else if(t == sajson::TYPE_INTEGER)
+      {
+        inp.depth_expression = std::to_string(val.get_integer_value());
+      }
+    }
   }
 }
 
@@ -622,7 +758,7 @@ static void parse_input(long_input& inp, const sajson::value& v)
           {
             inp.values.push_back(int64_t(arr_value.get_integer_value()));
           }
-          if(arr_value.get_type() == sajson::TYPE_DOUBLE)
+          else if(arr_value.get_type() == sajson::TYPE_DOUBLE)
           {
             inp.values.push_back(arr_value.get_double_value());
           }
@@ -655,13 +791,36 @@ static void parse_input(long_input& inp, const sajson::value& v)
       auto val = v.get_object_value(i);
       inp.def = parse_input_impl(val, int64_t{});
     }
+    else if(k == "MIN")
+    {
+      auto val = v.get_object_value(i);
+      if(val.get_type() == sajson::TYPE_INTEGER)
+        inp.min = val.get_integer_value();
+      else if(val.get_type() == sajson::TYPE_DOUBLE)
+        inp.min = static_cast<int64_t>(val.get_double_value());
+    }
+    else if(k == "MAX")
+    {
+      auto val = v.get_object_value(i);
+      if(val.get_type() == sajson::TYPE_INTEGER)
+        inp.max = val.get_integer_value();
+      else if(val.get_type() == sajson::TYPE_DOUBLE)
+        inp.max = static_cast<int64_t>(val.get_double_value());
+    }
   }
-  auto min_size = std::min(inp.labels.size(), inp.values.size());
-  inp.def = std::min(inp.def, min_size - 1);
-  if(inp.labels.size() < min_size)
-    inp.labels.resize(min_size);
-  if(inp.values.size() < min_size)
-    inp.values.resize(min_size);
+
+  // If we have VALUES/LABELS (enum mode), clamp def to valid index
+  if(!inp.values.empty())
+  {
+    inp.def = std::min((int64_t)inp.def, (int64_t)(inp.values.size()) - 1);
+    auto min_size = std::min(inp.labels.size(), inp.values.size());
+    if(min_size > 0)
+      inp.def = std::min(inp.def, min_size - 1);
+    if(inp.labels.size() < min_size)
+      inp.labels.resize(min_size);
+    if(inp.values.size() < min_size)
+      inp.values.resize(min_size);
+  }
 }
 
 static auto make_value(std::optional<double>& res, double f, auto op)
@@ -893,8 +1052,9 @@ static const ossia::string_map<root_fun>& root_parse{[] {
       std::size_t n = v.get_length();
       for(std::size_t i = 0; i < n; i++)
       {
-        if(v.get_type() == sajson::TYPE_STRING)
-          d.categories.push_back(v.as_string());
+        auto elem = v.get_array_element(i);
+        if(elem.get_type() == sajson::TYPE_STRING)
+          d.categories.push_back(elem.as_string());
       }
     }
   }});
@@ -977,24 +1137,9 @@ static const ossia::string_map<root_fun>& root_parse{[] {
             }
             else if(loc_obj.get_type() == sajson::TYPE_STRING)
             {
-              std::string type_str = loc_obj.as_string();
-              for(char& c : type_str)
-                if(c >= 'A' && c <= 'Z')
-                  c = c - ('A' - 'a');
-
-              // See oscr::standard_location_for_attribute
-              if(type_str.starts_with("position"))
-                ip.location = 0;
-              else if(type_str.starts_with("texcoord"))
-                ip.location = 1;
-              else if(type_str.starts_with("color"))
-                ip.location = 2;
-              else if(type_str.starts_with("normal"))
-                ip.location = 3;
-              else if(type_str.starts_with("tangent"))
-                ip.location = 4;
-              else
-                ip.location = std::stoi(type_str);
+              // Parse as integer, e.g. "LOCATION": "3"
+              ip.location = std::stoi(loc_obj.as_string());
+              // FIXME parse standard locations from ossia::geometry_port
             }
           }
 
@@ -1012,6 +1157,13 @@ static const ossia::string_map<root_fun>& root_parse{[] {
              k != obj.get_length())
           {
             ip.name = obj.get_object_value(k).as_string();
+          }
+
+          // If LOCATION was not specified, assign sequentially
+          // FIXME maybe try to match it from the name ?
+          if(ip.location < 0 && !ip.name.empty())
+          {
+            ip.location = (int)(d.*member).size();
           }
 
           if(ip.type != attribute_type::Unknown && ip.location >= 0 && !ip.name.empty())
@@ -1137,16 +1289,32 @@ static const ossia::string_map<root_fun>& root_parse{[] {
               dispatch.target_resource = target_val.as_string();
           }
 
-          // Parse STRIDE (for 1D buffer / 2D image)
+          // Parse STRIDE (legacy, sets X only) and STRIDE_X/Y/Z (per-axis, supports formulas)
           if(auto stride_k
              = em_val.find_object_key_insensitive(sajson::literal("STRIDE"));
              stride_k != em_val.get_length())
           {
             auto stride_val = em_val.get_object_value(stride_k);
             if(stride_val.get_type() == sajson::TYPE_INTEGER)
-            {
-              dispatch.stride = stride_val.get_integer_value();
-            }
+              dispatch.stride[0] = std::to_string(stride_val.get_integer_value());
+            else if(stride_val.get_type() == sajson::TYPE_STRING)
+              dispatch.stride[0] = stride_val.as_string();
+          }
+          {
+            auto parse_stride_axis = [&](const sajson::string& key, int axis) {
+              if(auto sk = em_val.find_object_key_insensitive(key);
+                 sk != em_val.get_length())
+              {
+                auto sv = em_val.get_object_value(sk);
+                if(sv.get_type() == sajson::TYPE_INTEGER)
+                  dispatch.stride[axis] = std::to_string(sv.get_integer_value());
+                else if(sv.get_type() == sajson::TYPE_STRING)
+                  dispatch.stride[axis] = sv.as_string();
+              }
+            };
+            parse_stride_axis(sajson::literal("STRIDE_X"), 0);
+            parse_stride_axis(sajson::literal("STRIDE_Y"), 1);
+            parse_stride_axis(sajson::literal("STRIDE_Z"), 2);
           }
 
           // Parse WORKGROUPS
@@ -1232,16 +1400,32 @@ static const ossia::string_map<root_fun>& root_parse{[] {
                     dispatch.target_resource = target_val.as_string();
                 }
 
-                // Parse STRIDE (for 1D buffer / 2D image)
+                // Parse STRIDE (legacy, sets X only) and STRIDE_X/Y/Z (per-axis, supports formulas)
                 if(auto stride_k
                    = em_val.find_object_key_insensitive(sajson::literal("STRIDE"));
                    stride_k != em_val.get_length())
                 {
                   auto stride_val = em_val.get_object_value(stride_k);
                   if(stride_val.get_type() == sajson::TYPE_INTEGER)
-                  {
-                    dispatch.stride = stride_val.get_integer_value();
-                  }
+                    dispatch.stride[0] = std::to_string(stride_val.get_integer_value());
+                  else if(stride_val.get_type() == sajson::TYPE_STRING)
+                    dispatch.stride[0] = stride_val.as_string();
+                }
+                {
+                  auto parse_stride_axis = [&](const sajson::string& key, int axis) {
+                    if(auto sk = em_val.find_object_key_insensitive(key);
+                       sk != em_val.get_length())
+                    {
+                      auto sv = em_val.get_object_value(sk);
+                      if(sv.get_type() == sajson::TYPE_INTEGER)
+                        dispatch.stride[axis] = std::to_string(sv.get_integer_value());
+                      else if(sv.get_type() == sajson::TYPE_STRING)
+                        dispatch.stride[axis] = sv.as_string();
+                    }
+                  };
+                  parse_stride_axis(sajson::literal("STRIDE_X"), 0);
+                  parse_stride_axis(sajson::literal("STRIDE_Y"), 1);
+                  parse_stride_axis(sajson::literal("STRIDE_Z"), 2);
                 }
 
                 // Parse WORKGROUPS
@@ -1346,6 +1530,39 @@ static const ossia::string_map<root_fun>& root_parse{[] {
 
             d.passes.push_back(std::move(p));
           }
+        }
+      }
+    }
+  }});
+
+  p.insert({"OUTPUTS", [](descriptor& d, const sajson::value& v) {
+    if(v.get_type() == sajson::TYPE_ARRAY)
+    {
+      std::size_t n = v.get_length();
+      for(std::size_t i = 0; i < n; i++)
+      {
+        auto obj = v.get_array_element(i);
+        if(obj.get_type() == sajson::TYPE_OBJECT)
+        {
+          output_declaration out;
+
+          if(auto name_k = obj.find_object_key_insensitive(sajson::literal("NAME"));
+             name_k != obj.get_length())
+          {
+            out.name = obj.get_object_value(name_k).as_string();
+          }
+
+          if(auto type_k = obj.find_object_key_insensitive(sajson::literal("TYPE"));
+             type_k != obj.get_length())
+          {
+            out.type = obj.get_object_value(type_k).as_string();
+          }
+
+          // Default type to "color" if not specified
+          if(out.type.empty())
+            out.type = "color";
+
+          d.outputs.push_back(std::move(out));
         }
       }
     }
@@ -1463,14 +1680,14 @@ struct create_val_visitor_450
   return_type operator()(const point2d_input&) { return {"vec2", false}; }
   return_type operator()(const point3d_input&) { return {"vec3", false}; }
   return_type operator()(const color_input&) { return {"vec4", false}; }
-  return_type operator()(const image_input&) { return {"uniform sampler2D", true}; }
+  return_type operator()(const image_input& i) { return {i.dimensions == 3 ? "uniform sampler3D" : "uniform sampler2D", true}; }
   return_type operator()(const cubemap_input&) { return {"uniform samplerCube", true}; }
   return_type operator()(const audio_input&) { return {"uniform sampler2D", true}; }
   return_type operator()(const audioFFT_input&) { return {"uniform sampler2D", true}; }
   return_type operator()(const audioHist_input&) { return {"uniform sampler2D", true}; }
   return_type operator()(const storage_input&) { return {"buffer", true}; }
-  return_type operator()(const texture_input&) { return {"uniform sampler2D", true}; }
-  return_type operator()(const csf_image_input&) { return {"uniform image2D", true}; }
+  return_type operator()(const texture_input& i) { return {i.dimensions == 3 ? "uniform sampler3D" : "uniform sampler2D", true}; }
+  return_type operator()(const csf_image_input& i) { return {i.depth_expression.empty() ? "uniform image2D" : "uniform image3D", true}; }
   return_type operator()(const geometry_input&) { return {"buffer", true}; }
 };
 
@@ -1682,7 +1899,43 @@ void parser::parse_isf()
       {
         // Setup fragment shader
         m_fragment = GLSL45.versionPrelude;
-        m_fragment += GLSL45.fragmentPrelude;
+
+        if(d.outputs.empty())
+        {
+          m_fragment += GLSL45.fragmentPrelude;
+        }
+        else
+        {
+          // MRT: generate per-output declarations
+          m_fragment += "\nlayout(location = 0) in vec2 isf_FragNormCoord;\n";
+          int color_location = 0;
+          for(const auto& out : d.outputs)
+          {
+            if(out.type == "depth")
+            {
+              // depth is written via gl_FragDepth; provide a #define alias
+              m_fragment += "#define ";
+              m_fragment += out.name;
+              m_fragment += " gl_FragDepth\n";
+            }
+            else
+            {
+              m_fragment += "layout(location = ";
+              m_fragment += std::to_string(color_location);
+              m_fragment += ") out vec4 ";
+              m_fragment += out.name;
+              m_fragment += ";\n";
+              // Alias the first color output as isf_FragColor for backward compat
+              if(color_location == 0)
+              {
+                m_fragment += "#define isf_FragColor ";
+                m_fragment += out.name;
+                m_fragment += "\n";
+              }
+              color_location++;
+            }
+          }
+        }
       }
 
       // Setup the parameters UBOs
@@ -1842,18 +2095,31 @@ void parser::parse_raw_raster_pipeline()
           "OneMinusConstantAlpha", "SrcAlphaSaturate");
       static const auto blend_ops
           = long_enum(0, "Add", "Substract", "Reverse Substract", "Min", "Max");
+
+      // Default blend: standard alpha blending
+      // SrcColor=SrcAlpha(6), DstColor=OneMinusSrcAlpha(7), OpColor=Add(0)
+      // SrcAlpha=One(1), DstAlpha=OneMinusSrcAlpha(7), OpAlpha=Add(0)
+      auto blend_factors_src_color = blend_factors;
+      blend_factors_src_color.def = 6; // SrcAlpha
+      auto blend_factors_dst_color = blend_factors;
+      blend_factors_dst_color.def = 7; // OneMinusSrcAlpha
+      auto blend_factors_src_alpha = blend_factors;
+      blend_factors_src_alpha.def = 1; // One
+      auto blend_factors_dst_alpha = blend_factors;
+      blend_factors_dst_alpha.def = 7; // OneMinusSrcAlpha
+
       default_inputs.push_back(
           input{.name = "EnableBlend", .label = "Enable blend", .data = bool_input{}});
       default_inputs.push_back(
-          input{.name = "SrcColor", .label = "Src Color", .data = blend_factors});
+          input{.name = "SrcColor", .label = "Src Color", .data = blend_factors_src_color});
       default_inputs.push_back(
-          input{.name = "DstColor", .label = "Dst Color", .data = blend_factors});
+          input{.name = "DstColor", .label = "Dst Color", .data = blend_factors_dst_color});
       default_inputs.push_back(
           input{.name = "OpColor", .label = "Op Color", .data = blend_ops});
       default_inputs.push_back(
-          input{.name = "SrcAlpha", .label = "Src Alpha", .data = blend_factors});
+          input{.name = "SrcAlpha", .label = "Src Alpha", .data = blend_factors_src_alpha});
       default_inputs.push_back(
-          input{.name = "DstAlpha", .label = "Dst Alpha", .data = blend_factors});
+          input{.name = "DstAlpha", .label = "Dst Alpha", .data = blend_factors_dst_alpha});
       default_inputs.push_back(
           input{.name = "OpAlpha", .label = "Op Alpha", .data = blend_ops});
       return default_inputs;
@@ -2568,6 +2834,10 @@ std::string parser::write_isf() const
             }
             oss << "],\n";
           }
+          if(l.min)
+            oss << "      \"MIN\": " << *l.min << ",\n";
+          if(l.max)
+            oss << "      \"MAX\": " << *l.max << ",\n";
           oss << "      \"DEFAULT\": " << l.def << "\n";
         }
 
@@ -2707,6 +2977,17 @@ std::string parser::write_isf() const
         void operator()(const geometry_input& geo)
         {
           oss << "      \"TYPE\": \"geometry\"";
+          if(!geo.vertex_count.empty())
+          {
+            // Try to emit as integer if possible, otherwise as string
+            try { std::stoi(geo.vertex_count); oss << ",\n      \"VERTEX_COUNT\": " << geo.vertex_count; }
+            catch(...) { oss << ",\n      \"VERTEX_COUNT\": \"" << escape_json(geo.vertex_count) << "\""; }
+          }
+          if(!geo.instance_count.empty())
+          {
+            try { std::stoi(geo.instance_count); oss << ",\n      \"INSTANCE_COUNT\": " << geo.instance_count; }
+            catch(...) { oss << ",\n      \"INSTANCE_COUNT\": \"" << escape_json(geo.instance_count) << "\""; }
+          }
           if(!geo.attributes.empty())
           {
             oss << ",\n      \"ATTRIBUTES\": [\n";
@@ -2720,10 +3001,46 @@ std::string parser::write_isf() const
                 oss << ", \"TYPE\": \"" << escape_json(attr.type) << "\"";
               if(!attr.access.empty())
                 oss << ", \"ACCESS\": \"" << escape_json(attr.access) << "\"";
+              if(!attr.rate.empty() && attr.rate != "vertex")
+                oss << ", \"RATE\": \"" << escape_json(attr.rate) << "\"";
               if(!attr.required)
                 oss << ", \"REQUIRED\": false";
               oss << "}";
               if(i < geo.attributes.size() - 1)
+                oss << ",";
+              oss << "\n";
+            }
+            oss << "      ]";
+          }
+          if(!geo.auxiliary.empty())
+          {
+            oss << ",\n      \"AUXILIARY\": [\n";
+            for(size_t i = 0; i < geo.auxiliary.size(); ++i)
+            {
+              const auto& aux = geo.auxiliary[i];
+              oss << "        {\"NAME\": \"" << escape_json(aux.name) << "\"";
+              if(!aux.access.empty())
+                oss << ", \"ACCESS\": \"" << escape_json(aux.access) << "\"";
+              if(!aux.size.empty())
+              {
+                try { std::stoi(aux.size); oss << ", \"SIZE\": " << aux.size; }
+                catch(...) { oss << ", \"SIZE\": \"" << escape_json(aux.size) << "\""; }
+              }
+              if(!aux.layout.empty())
+              {
+                oss << ", \"LAYOUT\": [";
+                for(size_t j = 0; j < aux.layout.size(); ++j)
+                {
+                  const auto& field = aux.layout[j];
+                  oss << "{\"NAME\": \"" << escape_json(field.name)
+                      << "\", \"TYPE\": \"" << escape_json(field.type) << "\"}";
+                  if(j < aux.layout.size() - 1)
+                    oss << ", ";
+                }
+                oss << "]";
+              }
+              oss << "}";
+              if(i < geo.auxiliary.size() - 1)
                 oss << ",";
               oss << "\n";
             }
@@ -3094,8 +3411,31 @@ void parser::parse_csf()
       break;
     }
 
+    // Geometry inputs with $USER specs contribute int uniforms to the material UBO
+    auto geo = ossia::get_if<geometry_input>(&inp.data);
+    if(geo)
+    {
+      if(geo->vertex_count.find("$USER") != std::string::npos
+         || geo->instance_count.find("$USER") != std::string::npos)
+      {
+        has_uniforms = true;
+        break;
+      }
+      for(const auto& aux : geo->auxiliary)
+      {
+        if(aux.size.find("$USER") != std::string::npos)
+        {
+          has_uniforms = true;
+          break;
+        }
+      }
+      if(has_uniforms)
+        break;
+      continue;
+    }
+
     if(!storage && !image && !ossia::get_if<texture_input>(&inp.data)
-       && !ossia::get_if<geometry_input>(&inp.data))
+       && !geo)
     {
       has_uniforms = true;
       break;
@@ -3149,6 +3489,28 @@ void parser::parse_csf()
         k++;
         material_block += "    bool " + inp.name + ";\n";
       }
+      else if(auto* geo = ossia::get_if<geometry_input>(&inp.data))
+      {
+        // $USER vertex_count/instance_count/aux sizes are int uniforms
+        if(geo->vertex_count.find("$USER") != std::string::npos)
+        {
+          k++;
+          material_block += "    int " + inp.name + "_vertex_count;\n";
+        }
+        if(geo->instance_count.find("$USER") != std::string::npos)
+        {
+          k++;
+          material_block += "    int " + inp.name + "_instance_count;\n";
+        }
+        for(const auto& aux : geo->auxiliary)
+        {
+          if(aux.size.find("$USER") != std::string::npos)
+          {
+            k++;
+            material_block += "    int " + inp.name + "_" + aux.name + "_size;\n";
+          }
+        }
+      }
     }
 
     material_block += "};\n\n";
@@ -3157,6 +3519,26 @@ void parser::parse_csf()
       m_fragment += material_block;
     binding++;
   }
+
+  // Helper: derive GLSL image/sampler prefix from format string.
+  // Unsigned integer formats (R32UI, RGBA16UI, ...) → "u"
+  // Signed integer formats (R32I, RGBA16I, ...) → "i"
+  // Float formats (R32F, RGBA8, ...) → ""
+  auto glsl_type_prefix = [](const std::string& format) -> std::string {
+    if(format.empty())
+      return "";
+    // Uppercase copy for matching
+    std::string fmt = format;
+    for(auto& c : fmt) c = toupper(c);
+    // Check for unsigned int formats (end with UI or contain UI before digits)
+    if(fmt.find("UI") != std::string::npos)
+      return "u";
+    // Check for signed int: ends with I (but not UI, F, or SNORM/UNORM)
+    // Integer formats: R8I, R16I, R32I, RG8I, RG16I, RG32I, RGBA8I, RGBA16I, RGBA32I
+    if(fmt.size() >= 2 && fmt.back() == 'I' && fmt[fmt.size()-2] != 'U')
+      return "i";
+    return "";
+  };
 
   // Generate resource bindings
   m_fragment += "// From RESOURCES - bindings assigned automatically\n";
@@ -3175,7 +3557,7 @@ void parser::parse_csf()
       else
         m_fragment += "restrict ";
 
-      m_fragment += "buffer " + inp.name + " {\n";
+      m_fragment += "buffer " + inp.name + "_buf {\n";
 
       // Add struct members based on layout
       for(const auto& field : storage.layout)
@@ -3183,7 +3565,7 @@ void parser::parse_csf()
         m_fragment += "    " + field.type + " " + field.name + ";\n";
       }
 
-      m_fragment += "};\n\n";
+      m_fragment += "} " + inp.name + ";\n\n";
 
       binding++;
     }
@@ -3215,13 +3597,17 @@ void parser::parse_csf()
       else
         m_fragment += "restrict ";
 
-      m_fragment += "uniform image2D " + inp.name + ";\n";
+      auto prefix = glsl_type_prefix(img.format);
+      m_fragment += "uniform " + prefix + (img.depth_expression.empty() ? "image2D " : "image3D ");
+      m_fragment += inp.name + ";\n";
       binding++;
     }
-    else if(ossia::get_if<texture_input>(&inp.data))
+    else if(auto* tex_ptr = ossia::get_if<texture_input>(&inp.data))
     {
       m_fragment += "layout(binding = " + std::to_string(binding) + ") ";
-      m_fragment += "uniform sampler2D " + inp.name + ";\n";
+      m_fragment += tex_ptr->dimensions == 3
+          ? "uniform sampler3D " : "uniform sampler2D ";
+      m_fragment += inp.name + ";\n";
       binding++;
     }
     else if(auto* geo_ptr = ossia::get_if<geometry_input>(&inp.data))
@@ -3229,21 +3615,85 @@ void parser::parse_csf()
       const auto& geo = *geo_ptr;
 
       m_fragment += "// Geometry input \"" + inp.name + "\" — SoA: one SSBO per attribute\n";
+      m_fragment += "#define ISF_READ(geo, attr) geo ## _ ## attr ## _in\n";
+      m_fragment += "#define ISF_WRITE(geo, attr) geo ## _ ## attr ## _out\n";
 
       for(const auto& attr : geo.attributes)
       {
-        m_fragment += "layout(binding = " + std::to_string(binding) + ", std430) ";
+        const std::string prefix = inp.name + "_" + attr.name;
 
         if(attr.access == "read_only")
-          m_fragment += "readonly ";
+        {
+          // Single readonly SSBO, 1 binding
+          m_fragment += "layout(binding = " + std::to_string(binding) + ", std430) ";
+          m_fragment += "readonly buffer " + prefix + "_in_buf { ";
+          m_fragment += attr.type + " " + prefix + "_in[]; };\n";
+          m_fragment += "#define " + prefix + " " + prefix + "_in\n";
+          binding++;
+        }
         else if(attr.access == "write_only")
+        {
+          // Single writeonly SSBO, 1 binding
+          m_fragment += "layout(binding = " + std::to_string(binding) + ", std430) ";
+          m_fragment += "writeonly buffer " + prefix + "_out_buf { ";
+          m_fragment += attr.type + " " + prefix + "_out[]; };\n";
+          m_fragment += "#define " + prefix + " " + prefix + "_out\n";
+          binding++;
+        }
+        else // read_write
+        {
+          // Two SSBOs: _in (readonly) and _out (read-write), 2 bindings
+          m_fragment += "layout(binding = " + std::to_string(binding) + ", std430) ";
+          m_fragment += "readonly buffer " + prefix + "_in_buf { ";
+          m_fragment += attr.type + " " + prefix + "_in[]; };\n";
+          binding++;
+
+          m_fragment += "layout(binding = " + std::to_string(binding) + ", std430) ";
+          m_fragment += "restrict buffer " + prefix + "_out_buf { ";
+          m_fragment += attr.type + " " + prefix + "_out[]; };\n";
+          binding++;
+          // No #define alias — forces explicit _in/_out usage
+        }
+      }
+
+      // Auxiliary structured SSBOs (travel with the geometry)
+      for(const auto& aux : geo.auxiliary)
+      {
+        const std::string aux_prefix = inp.name + "_" + aux.name;
+
+        m_fragment += "layout(binding = " + std::to_string(binding) + ", std430) ";
+
+        if(aux.access == "read_only")
+          m_fragment += "readonly ";
+        else if(aux.access == "write_only")
           m_fragment += "writeonly ";
         else
           m_fragment += "restrict ";
 
-        // Buffer block name: inputname_attrname_buf, array name: inputname_attrname
-        m_fragment += "buffer " + inp.name + "_" + attr.name + "_buf { ";
-        m_fragment += attr.type + " " + inp.name + "_" + attr.name + "[]; };\n";
+        m_fragment += "buffer " + aux_prefix + "_buf {\n";
+        for(const auto& field : aux.layout)
+        {
+          m_fragment += "    " + field.type + " " + field.name + ";\n";
+        }
+        m_fragment += "} " + aux.name + ";\n";
+
+        // Generate ISF_READ/ISF_WRITE-compatible aliases
+        if(aux.access == "read_only")
+        {
+          m_fragment += "#define " + aux_prefix + "_in " + aux.name + "\n";
+          m_fragment += "#define " + aux_prefix + " " + aux.name + "\n";
+        }
+        else if(aux.access == "write_only")
+        {
+          m_fragment += "#define " + aux_prefix + "_out " + aux.name + "\n";
+          m_fragment += "#define " + aux_prefix + " " + aux.name + "\n";
+        }
+        else // read_write
+        {
+          m_fragment += "#define " + aux_prefix + "_in " + aux.name + "\n";
+          m_fragment += "#define " + aux_prefix + "_out " + aux.name + "\n";
+        }
+        m_fragment += "\n";
 
         binding++;
       }

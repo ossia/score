@@ -375,7 +375,8 @@ public:
 
     m_graph.addNode(m_isf.get());
     // Edge from filter to output
-    m_graph.addEdge(m_isf->output[0], m_screen->input[0]);
+    m_graph.addEdge(
+        m_isf->output[0], m_screen->input[0], Process::CableType::ImmediateGlutton);
 
     // Edges from image nodes to image inputs
     int image_i = 0;
@@ -387,7 +388,8 @@ public:
       {
         m_graph.addNode(node);
 
-        m_graph.addEdge(node->output[0], m_isf->input[i]);
+        m_graph.addEdge(
+            node->output[0], m_isf->input[i], Process::CableType::ImmediateGlutton);
         m_previewEdges.emplace_back(node->output[0], m_isf->input[i]);
 
         m_textures.push_back(std::unique_ptr<score::gfx::Node>(node));

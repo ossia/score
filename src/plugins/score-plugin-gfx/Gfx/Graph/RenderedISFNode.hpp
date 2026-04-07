@@ -11,7 +11,6 @@ struct RenderedISFNode : score::gfx::NodeRenderer
 
   virtual ~RenderedISFNode();
 
-  TextureRenderTarget renderTargetForInput(const Port& p) override;
   void updateInputTexture(const Port& input, QRhiTexture* tex) override;
 
   void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
@@ -25,8 +24,6 @@ struct RenderedISFNode : score::gfx::NodeRenderer
   void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& edge) override;
 
 private:
-  ossia::small_flat_map<const Port*, TextureRenderTarget, 2> m_rts;
-
   std::pair<Pass, Pass> createPass(
       RenderList& renderer, ossia::small_vector<PassOutput, 1>& m_passSamplers,
       PassOutput target, bool previousPassIsPersistent);

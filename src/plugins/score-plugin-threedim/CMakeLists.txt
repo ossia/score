@@ -56,12 +56,17 @@ add_library(
 
   Threedim/ArrayToTexture.hpp
   Threedim/ArrayToTexture.cpp
+  Threedim/CubemapComposer.hpp
+  Threedim/CubemapLoader.hpp
+  Threedim/CubemapLoader.cpp
   Threedim/ArrayToGeometry.hpp
   Threedim/ArrayToGeometry.cpp
   Threedim/BufferLoader.hpp
   Threedim/BufferLoader.cpp
   Threedim/BufferToGeometry.hpp
   Threedim/BufferToGeometry.cpp
+  Threedim/BufferToGeometry2.hpp
+  Threedim/BufferToGeometry2.cpp
   Threedim/GeometryInfo.hpp
   Threedim/GeometryInfo.cpp
   Threedim/GeometryPacker.hpp

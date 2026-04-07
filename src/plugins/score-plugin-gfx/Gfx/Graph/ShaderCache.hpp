@@ -17,7 +17,7 @@ namespace score::gfx
 /**
  * @brief Cache of baked QShader instances
  */
-struct ShaderCache
+struct SCORE_PLUGIN_GFX_EXPORT ShaderCache
 {
 public:
   /**

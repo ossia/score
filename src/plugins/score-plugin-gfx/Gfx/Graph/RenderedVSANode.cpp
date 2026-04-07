@@ -33,14 +33,6 @@ SimpleRenderedVSANode::SimpleRenderedVSANode(const ISFNode& node) noexcept
 {
 }
 
-TextureRenderTarget SimpleRenderedVSANode::renderTargetForInput(const Port& p)
-{
-  auto it = m_rts.find(&p);
-  if(it != m_rts.end())
-    return it->second;
-  return {};
-}
-
 void SimpleRenderedVSANode::updateInputTexture(const Port& input, QRhiTexture* tex)
 {
   int sampler_idx = 0;
@@ -202,12 +194,11 @@ void SimpleRenderedVSANode::init(RenderList& renderer, QRhiResourceUpdateBatch& 
   }
 
   // Create the samplers
-  SCORE_ASSERT(m_rts.empty());
   SCORE_ASSERT(m_passes.empty());
   SCORE_ASSERT(m_inputSamplers.empty());
   SCORE_ASSERT(m_audioSamplers.empty());
 
-  m_inputSamplers = initInputSamplers(this->n, renderer, n.input, m_rts);
+  m_inputSamplers = initInputSamplers(this->n, renderer, n.input);
 
   m_audioSamplers = initAudioTextures(renderer, n.m_audio_textures);
 
@@ -295,12 +286,6 @@ void SimpleRenderedVSANode::release(RenderList& r)
 {
   // customRelease
   {
-    for(auto [edge, rt] : m_rts)
-    {
-      rt.release();
-    }
-    m_rts.clear();
-
     for(auto& texture : n.m_audio_textures)
     {
       auto it = texture.samplers.find(&r);

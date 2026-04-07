@@ -13,6 +13,7 @@ public:
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/extract-buffer.html")
   halp_meta(uuid, "207ab744-1f3e-4e72-9a77-db6017cf3dd5")
 
+  // FIXME allow to use strings instead.
   enum Attribute
   {
     Position,
@@ -81,7 +82,7 @@ public:
   void operator()();
 
 private:
-  [[nodiscard]] static halp::attribute_location
+  [[nodiscard]] static halp::attribute_semantic
   toAttributeLocation(Attribute attr) noexcept;
   void updateOutput();
 

@@ -19,6 +19,7 @@ class CustomMesh : public score::gfx::Mesh
 
   ossia::small_vector<QRhiVertexInputBinding, 2> vertexBindings;
   ossia::small_vector<QRhiVertexInputAttribute, 2> vertexAttributes;
+  ossia::small_vector<ossia::attribute_semantic, 2> attributeSemantics;
 
   ossia::small_vector<QRhiBuffer*, 2> buffers;
   QRhiBuffer* index{};
@@ -26,6 +27,8 @@ class CustomMesh : public score::gfx::Mesh
 public:
   explicit CustomMesh(
       const ossia::mesh_list& g, const ossia::geometry_filter_list_ptr& f);
+
+  const ossia::mesh_list& meshList() const noexcept { return geom; }
 
   [[nodiscard]]
   QRhiBuffer* init_vbo(const ossia::geometry::cpu_buffer& buf, QRhi& rhi) const noexcept;
@@ -70,6 +73,13 @@ public:
   void draw(const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexcept override;
 
   const char* defaultVertexShader() const noexcept override;
+
+  const ossia::geometry* semanticGeometry() const noexcept override
+  {
+    if(!geom.meshes.empty())
+      return &geom.meshes[0];
+    return nullptr;
+  }
 };
 
 }

@@ -14,7 +14,6 @@ struct RenderedRawRasterPipelineNode : score::gfx::NodeRenderer
 
   virtual ~RenderedRawRasterPipelineNode();
 
-  TextureRenderTarget renderTargetForInput(const Port& p) override;
   void updateInputTexture(const Port& input, QRhiTexture* tex) override;
 
   void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
@@ -31,8 +30,6 @@ struct RenderedRawRasterPipelineNode : score::gfx::NodeRenderer
   void process(int32_t port, const ossia::transform3d& v) override;
 
 private:
-  ossia::small_flat_map<const Port*, TextureRenderTarget, 2> m_rts;
-
   void initPass(const TextureRenderTarget& rt, RenderList& renderer, Edge& edge);
 
   std::vector<Sampler> allSamplers() const noexcept;

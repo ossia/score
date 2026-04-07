@@ -93,8 +93,9 @@ void replaceCable(
       return;
 
     Scenario::Command::Macro m{new ReplaceCable, ctx};
+    const auto t = currentCable.type();
     m.removeCable(plug, currentCable);
-    m.createCable(plug, *new_source, old_sink);
+    m.createCable(plug, *new_source, old_sink, t);
     m.commit();
   }
   else if(auto new_sink = qobject_cast<const Process::Inlet*>(&newPort))
@@ -104,8 +105,9 @@ void replaceCable(
       return;
 
     Scenario::Command::Macro m{new ReplaceCable, ctx};
+    const auto t = currentCable.type();
     m.removeCable(plug, currentCable);
-    m.createCable(plug, old_source, *new_sink);
+    m.createCable(plug, old_source, *new_sink, t);
     m.commit();
   }
 }
@@ -253,7 +255,7 @@ void RemoveCable::undo(const score::DocumentContext& ctx) const
   source->addCable(*cable);
   sink->addCable(*cable);
 
-  if(m_previousPropagate && !m_previousPropagate)
+  if(m_previousPropagate)
   {
     static_cast<Process::AudioOutlet&>(*source).setPropagate(false);
   }
@@ -268,14 +270,14 @@ void RemoveCable::redo(const score::DocumentContext& ctx) const
     auto& cable = *cable_it;
     auto source = cable.source().try_find(ctx);
     auto sink = cable.sink().try_find(ctx);
-    SCORE_ASSERT(source);
-    SCORE_ASSERT(sink);
-    source->removeCable(cable);
-    sink->removeCable(cable);
+    if(source)
+      source->removeCable(cable);
+    if(sink)
+      sink->removeCable(cable);
 
     cables.remove(m_cable);
 
-    if(m_previousPropagate && source->cables().size() == 0)
+    if(m_previousPropagate && source && source->cables().size() == 0)
     {
       static_cast<Process::AudioOutlet&>(*source).setPropagate(true);
     }

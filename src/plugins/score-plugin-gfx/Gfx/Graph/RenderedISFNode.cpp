@@ -83,14 +83,6 @@ RenderedISFNode::RenderedISFNode(const ISFNode& node) noexcept
 {
 }
 
-TextureRenderTarget RenderedISFNode::renderTargetForInput(const Port& p)
-{
-  auto it = m_rts.find(&p);
-  if(it != m_rts.end())
-    return it->second;
-  return {};
-}
-
 void RenderedISFNode::updateInputTexture(const Port& input, QRhiTexture* tex)
 {
   int sampler_idx = 0;
@@ -356,23 +348,20 @@ void RenderedISFNode::initPasses(
         auto& pass = passes.passes[i];
         auto& altpass = passes.altPasses[i];
 
-        if(pass.p.srb != altpass.p.srb)
-        {
-          altpass.p.srb->deleteLater();
-        }
-
-        pass.p.release();
-
         if(pass.processUBO)
           pass.processUBO->deleteLater();
-        if(pass.p.srb != altpass.p.srb)
-        {
-          altpass.p.srb->deleteLater();
-        }
 
         if(auto p = ossia::get_if<PersistSampler>(&passes.samplers[i]))
           delete p->sampler;
 
+        // Release altpass SRB only if it's a different object
+        if(altpass.p.srb && altpass.p.srb != pass.p.srb)
+        {
+          altpass.p.srb->deleteLater();
+        }
+        altpass.p.srb = nullptr;
+
+        // Release the main pass pipeline+srb
         pass.p.release();
       }
 
@@ -421,12 +410,11 @@ void RenderedISFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
   }
 
   // Create the samplers
-  SCORE_ASSERT(m_rts.empty());
   SCORE_ASSERT(m_passes.empty());
   SCORE_ASSERT(m_inputSamplers.empty());
   SCORE_ASSERT(m_audioSamplers.empty());
 
-  m_inputSamplers = initInputSamplers(this->n, renderer, n.input, m_rts);
+  m_inputSamplers = initInputSamplers(this->n, renderer, n.input);
 
   m_audioSamplers = initAudioTextures(renderer, n.m_audio_textures);
 
@@ -532,12 +520,6 @@ void RenderedISFNode::release(RenderList& r)
 {
   // customRelease
   {
-    for(auto [edge, rt] : m_rts)
-    {
-      rt.release();
-    }
-    m_rts.clear();
-
     for(auto& texture : n.m_audio_textures)
     {
       auto it = texture.samplers.find(&r);
@@ -770,6 +752,8 @@ void AudioTextureUpload::processHistogram(
   std::size_t audioInputBufferSize = audio.data.size() / audio.channels;
 
   // Effective size of the FFT data we want to use (e.g. without DC offset and nyquist coefficient at the end)
+  if(audioInputBufferSize < 4)
+    return;
   std::size_t fftSize = audioInputBufferSize / 2 - 2;
   m_scratchpad.resize(240 * fftSize);
   if(m_scratchpad.empty())

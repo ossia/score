@@ -234,24 +234,26 @@ void CustomMesh::update(
 Mesh::Flags CustomMesh::flags() const noexcept
 {
   Flags f{};
-  for(auto& attr : vertexAttributes)
+  for(auto sem : attributeSemantics)
   {
-    switch(attr.location())
+    switch(sem)
     {
-      case 0:
+      case ossia::attribute_semantic::position:
         f |= HasPosition;
         break;
-      case 1:
+      case ossia::attribute_semantic::texcoord0:
         f |= HasTexCoord;
         break;
-      case 2:
+      case ossia::attribute_semantic::color0:
         f |= HasColor;
         break;
-      case 3:
+      case ossia::attribute_semantic::normal:
         f |= HasNormals;
         break;
-      case 4:
+      case ossia::attribute_semantic::tangent:
         f |= HasTangents;
+        break;
+      default:
         break;
     }
   }
@@ -262,6 +264,7 @@ void CustomMesh::clear()
 {
   vertexBindings.clear();
   vertexAttributes.clear();
+  attributeSemantics.clear();
 }
 
 void CustomMesh::preparePipeline(QRhiGraphicsPipeline &pip) const noexcept
@@ -311,11 +314,19 @@ void CustomMesh::reload(const ossia::mesh_list &ml, const ossia::geometry_filter
   }
 
   vertexAttributes.clear();
+  attributeSemantics.clear();
+
+  // Assign linear locations (0, 1, 2, ...) in order of appearance.
+  // The actual semantic-to-shader-location mapping is done at pipeline
+  // creation time by remapPipelineVertexInputs(), which matches shader
+  // input variable names to geometry attribute semantics.
+  int location = 0;
   for(auto& attr : g.attributes)
   {
     vertexAttributes.emplace_back(
-        attr.binding, attr.location, (QRhiVertexInputAttribute::Format)attr.format,
+        attr.binding, location++, (QRhiVertexInputAttribute::Format)attr.format,
         attr.byte_offset);
+    attributeSemantics.push_back(attr.semantic);
   }
 
   if(g.buffers.empty())
@@ -354,7 +365,7 @@ void CustomMesh::draw(const MeshBuffers &bufs, QRhiCommandBuffer &cb) const noex
     {
       auto buf = bufs.buffers[g.index.buffer].handle;
       const auto idxFmt = g.index.format == decltype(g.index)::uint16
-                              ? QRhiCommandBuffer::IndexUInt32
+                              ? QRhiCommandBuffer::IndexUInt16
                               : QRhiCommandBuffer::IndexUInt32;
       cb.setVertexInput(0, sz, draw_inputs.data(), buf, g.index.byte_offset, idxFmt);
     }
