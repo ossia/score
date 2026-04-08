@@ -235,7 +235,7 @@ void ExtractBuffer::update(
   }
   else if(inputs.attribute.value == Attribute::Index)
   {
-    const auto strategy = std::get_if<DirectBufferReferenceStrategy>(&m_strategy);
+    auto* strategy = std::get_if<DirectBufferReferenceStrategy>(&m_strategy);
     if(!strategy)
     {
       release(renderer);
@@ -243,11 +243,31 @@ void ExtractBuffer::update(
       return;
     }
 
-    // Nothing to do in update
+    // Re-fetch the source buffer pointer in case the upstream rebuilt
+    // its index buffer (resize / new allocation). DirectBufferReference-
+    // Strategy only stores raw pointers + size, so re-init is just a
+    // pointer assignment -- safe to do every frame and necessary to
+    // avoid holding a stale handle when the upstream replaces it.
+    if(mesh.index.buffer >= 0 && mesh.index.buffer < (int)mesh.buffers.size())
+    {
+      int64_t index_byte_size = 0;
+      switch(mesh.index.format)
+      {
+        case halp::index_format::uint16:
+          index_byte_size = mesh.vertices * 2;
+          break;
+        case halp::index_format::uint32:
+          index_byte_size = mesh.vertices * 4;
+          break;
+      }
+      strategy->init(
+          renderer.state, rhi, mesh, mesh.index.buffer, mesh.index.byte_offset,
+          index_byte_size);
+    }
   }
   else if(inputs.attribute.value <= Attribute::Buffer_8)
   {
-    const auto strategy = std::get_if<DirectBufferReferenceStrategy>(&m_strategy);
+    auto* strategy = std::get_if<DirectBufferReferenceStrategy>(&m_strategy);
     if(!strategy)
     {
       release(renderer);
@@ -255,7 +275,18 @@ void ExtractBuffer::update(
       return;
     }
 
-    // Nothing to do in update
+    // Same re-fetch story as the Index branch above. The original code
+    // was the source of the "buffer_0 doesn't work" bug: when the
+    // upstream rebuilt its QRhiBuffer, the strategy kept its old
+    // pointer and downstream consumers got a stale (or freed) handle.
+    const int buffer_index
+        = inputs.attribute.value - std::to_underlying(Attribute::Buffer_0);
+    if(buffer_index >= 0 && buffer_index < (int)mesh.buffers.size())
+    {
+      strategy->init(
+          renderer.state, rhi, mesh, buffer_index, 0,
+          mesh.buffers[buffer_index].byte_size);
+    }
   }
   else
   {
