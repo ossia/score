@@ -15,9 +15,10 @@ namespace score::gfx
 
 void copyBufferMetal(
     QRhi& rhi, QRhiCommandBuffer& cb,
-    QRhiBuffer* src, QRhiBuffer* dst, int size)
+    QRhiBuffer* src, QRhiBuffer* dst, int size,
+    int srcOffset, int dstOffset)
 {
-  if(!src || !dst || size <= 0)
+  if(!src || !dst || size <= 0 || srcOffset < 0 || dstOffset < 0)
     return;
 
   const auto* handles
@@ -31,14 +32,22 @@ void copyBufferMetal(
     return;
 
   id<MTLCommandBuffer> cmdBuf = (id<MTLCommandBuffer>)handles->commandBuffer;
-  id<MTLBuffer> srcBuf = (__bridge id<MTLBuffer>)(void*)srcNative.objects[0];
-  id<MTLBuffer> dstBuf = (__bridge id<MTLBuffer>)(void*)dstNative.objects[0];
+  // QRhi documents NativeBuffer::objects[i] as a POINTER TO the native
+  // handle, not the handle itself. On Metal the handle is an MTLBuffer
+  // pointer, so objects[0] is `MTLBuffer * *`. Dereference once to get
+  // the actual handle.
+  void* const* srcSlot = static_cast<void* const*>(srcNative.objects[0]);
+  void* const* dstSlot = static_cast<void* const*>(dstNative.objects[0]);
+  id<MTLBuffer> srcBuf = (__bridge id<MTLBuffer>) (*srcSlot);
+  id<MTLBuffer> dstBuf = (__bridge id<MTLBuffer>) (*dstSlot);
+  if(!srcBuf || !dstBuf)
+    return;
 
   id<MTLBlitCommandEncoder> blit = [cmdBuf blitCommandEncoder];
   [blit copyFromBuffer:srcBuf
-          sourceOffset:0
+          sourceOffset:(NSUInteger)srcOffset
               toBuffer:dstBuf
-     destinationOffset:0
+     destinationOffset:(NSUInteger)dstOffset
                   size:(NSUInteger)size];
   [blit endEncoding];
 }
@@ -52,7 +61,7 @@ namespace score::gfx
 {
 void copyBufferMetal(
     QRhi&, QRhiCommandBuffer&,
-    QRhiBuffer*, QRhiBuffer*, int)
+    QRhiBuffer*, QRhiBuffer*, int, int, int)
 {
 }
 }

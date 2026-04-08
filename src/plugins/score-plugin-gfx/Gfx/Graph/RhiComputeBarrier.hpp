@@ -27,24 +27,30 @@ void insertComputeBarrier(QRhi& rhi, QRhiCommandBuffer& cb);
 /**
  * @brief Copy the contents of one GPU buffer to another.
  *
- * Performs a GPU-side buffer-to-buffer copy of @p size bytes.
- * Both buffers must already be created and large enough.
+ * Performs a GPU-side buffer-to-buffer copy of @p size bytes from
+ * @p src + @p srcOffset to @p dst + @p dstOffset. Both buffers must
+ * already be created and large enough to satisfy the requested region.
  * Must be called between beginExternal() and endExternal().
+ *
+ * The source and destination buffers must NOT overlap (the copy is
+ * unordered when src == dst).
  *
  * Per-backend behaviour:
  *  - Vulkan : vkCmdCopyBuffer
  *  - OpenGL : glCopyBufferSubData
  *  - D3D12  : CopyBufferRegion
- *  - D3D11  : CopySubresourceRegion
+ *  - D3D11  : CopySubresourceRegion (offsets supported via D3D11_BOX)
  *  - Metal  : MTLBlitCommandEncoder copyFromBuffer
  */
 SCORE_PLUGIN_GFX_EXPORT
 void copyBuffer(
     QRhi& rhi, QRhiCommandBuffer& cb,
-    QRhiBuffer* src, QRhiBuffer* dst, int size);
+    QRhiBuffer* src, QRhiBuffer* dst, int size,
+    int srcOffset = 0, int dstOffset = 0);
 
 // Metal-specific implementation (defined in RhiBufferCopyMetal.mm)
 void copyBufferMetal(
     QRhi& rhi, QRhiCommandBuffer& cb,
-    QRhiBuffer* src, QRhiBuffer* dst, int size);
+    QRhiBuffer* src, QRhiBuffer* dst, int size,
+    int srcOffset = 0, int dstOffset = 0);
 }

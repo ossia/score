@@ -10,7 +10,10 @@
 #if !defined(Q_OS_MACOS) && !defined(Q_OS_IOS)
 namespace score::gfx
 {
-void copyBufferMetal(QRhi&, QRhiCommandBuffer&, QRhiBuffer*, QRhiBuffer*, int) { }
+void copyBufferMetal(
+    QRhi&, QRhiCommandBuffer&, QRhiBuffer*, QRhiBuffer*, int, int, int)
+{
+}
 }
 #endif
 
@@ -141,9 +144,10 @@ void insertComputeBarrier(QRhi& rhi, QRhiCommandBuffer& cb)
 
 void copyBuffer(
     QRhi& rhi, QRhiCommandBuffer& cb,
-    QRhiBuffer* src, QRhiBuffer* dst, int size)
+    QRhiBuffer* src, QRhiBuffer* dst, int size,
+    int srcOffset, int dstOffset)
 {
-  if(!src || !dst || size <= 0)
+  if(!src || !dst || size <= 0 || srcOffset < 0 || dstOffset < 0)
     return;
 
   switch(rhi.backend())
@@ -169,8 +173,17 @@ void copyBuffer(
       if(!srcNative.objects[0] || !dstNative.objects[0])
         break;
 
-      auto srcBuf = reinterpret_cast<VkBuffer>(quintptr(srcNative.objects[0]));
-      auto dstBuf = reinterpret_cast<VkBuffer>(quintptr(dstNative.objects[0]));
+      // QRhi documents that NativeBuffer::objects[i] is a POINTER TO the
+      // native handle, not the handle itself. From qrhi.cpp's NativeBuffer
+      // doc: "the elements are always pointers to the native buffer handle
+      // type, even if the native type itself is a pointer (so the elements
+      // are VkBuffer * on Vulkan, even though VkBuffer itself is a pointer
+      // on 64-bit architectures)". So we must DEREFERENCE objects[0] as
+      // const VkBuffer* to get the actual VkBuffer handle.
+      VkBuffer srcBuf = *static_cast<const VkBuffer*>(srcNative.objects[0]);
+      VkBuffer dstBuf = *static_cast<const VkBuffer*>(dstNative.objects[0]);
+      if(srcBuf == VK_NULL_HANDLE || dstBuf == VK_NULL_HANDLE)
+        break;
 
       // Barrier: compute write → transfer read/write
       auto barrierFn = reinterpret_cast<PFN_vkCmdPipelineBarrier>(
@@ -186,9 +199,9 @@ void copyBuffer(
       }
 
       VkBufferCopy region{};
-      region.srcOffset = 0;
-      region.dstOffset = 0;
-      region.size = size;
+      region.srcOffset = static_cast<VkDeviceSize>(srcOffset);
+      region.dstOffset = static_cast<VkDeviceSize>(dstOffset);
+      region.size = static_cast<VkDeviceSize>(size);
 
       fn(native->commandBuffer, srcBuf, dstBuf, 1, &region);
 
@@ -221,13 +234,21 @@ void copyBuffer(
       if(!srcNative.objects[0] || !dstNative.objects[0])
         break;
 
-      auto srcId = GLuint(quintptr(srcNative.objects[0]));
-      auto dstId = GLuint(quintptr(dstNative.objects[0]));
+      // objects[0] is a `GLuint *`, not a GLuint. See the long comment in
+      // the Vulkan branch above.
+      GLuint srcId = *static_cast<const GLuint*>(srcNative.objects[0]);
+      GLuint dstId = *static_cast<const GLuint*>(dstNative.objects[0]);
+      if(srcId == 0 || dstId == 0)
+        break;
 
       auto* gl = native->context->functions();
       gl->glBindBuffer(GL_COPY_READ_BUFFER, srcId);
       gl->glBindBuffer(GL_COPY_WRITE_BUFFER, dstId);
-      f->glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, size);
+      f->glCopyBufferSubData(
+          GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER,
+          static_cast<GLintptr>(srcOffset),
+          static_cast<GLintptr>(dstOffset),
+          static_cast<GLsizeiptr>(size));
       gl->glBindBuffer(GL_COPY_READ_BUFFER, 0);
       gl->glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
       break;
@@ -248,10 +269,22 @@ void copyBuffer(
       if(!srcNative.objects[0] || !dstNative.objects[0])
         break;
 
-      auto* srcRes = static_cast<ID3D12Resource*>(const_cast<void*>(srcNative.objects[0]));
-      auto* dstRes = static_cast<ID3D12Resource*>(const_cast<void*>(dstNative.objects[0]));
+      // objects[0] is an `ID3D12Resource * *`, i.e. a pointer to the
+      // resource pointer slot. Same convention as Vulkan -- see the long
+      // comment in the Vulkan branch above.
+      auto* srcRes
+          = *static_cast<ID3D12Resource* const*>(srcNative.objects[0]);
+      auto* dstRes
+          = *static_cast<ID3D12Resource* const*>(dstNative.objects[0]);
+      if(!srcRes || !dstRes)
+        break;
 
-      cmdList->CopyBufferRegion(dstRes, 0, srcRes, 0, size);
+      cmdList->CopyBufferRegion(
+          dstRes,
+          static_cast<UINT64>(dstOffset),
+          srcRes,
+          static_cast<UINT64>(srcOffset),
+          static_cast<UINT64>(size));
       break;
     }
 #endif
@@ -268,23 +301,32 @@ void copyBuffer(
         break;
 
       auto* ctx = static_cast<ID3D11DeviceContext*>(native->context);
-      auto* srcBuf = static_cast<ID3D11Buffer*>(const_cast<void*>(srcNative.objects[0]));
-      auto* dstBuf = static_cast<ID3D11Buffer*>(const_cast<void*>(dstNative.objects[0]));
+      // objects[0] is an `ID3D11Buffer * *`. Same convention as Vulkan,
+      // see the long comment there.
+      auto* srcBuf
+          = *static_cast<ID3D11Buffer* const*>(srcNative.objects[0]);
+      auto* dstBuf
+          = *static_cast<ID3D11Buffer* const*>(dstNative.objects[0]);
+      if(!srcBuf || !dstBuf)
+        break;
 
+      // D3D11 buffer copies use a 1D box; offsets go into box.left and the
+      // destination's X coordinate.
       D3D11_BOX box{};
-      box.left = 0;
-      box.right = size;
+      box.left = static_cast<UINT>(srcOffset);
+      box.right = static_cast<UINT>(srcOffset + size);
       box.top = 0;
       box.bottom = 1;
       box.front = 0;
       box.back = 1;
-      ctx->CopySubresourceRegion(dstBuf, 0, 0, 0, 0, srcBuf, 0, &box);
+      ctx->CopySubresourceRegion(
+          dstBuf, 0, static_cast<UINT>(dstOffset), 0, 0, srcBuf, 0, &box);
 #endif
       break;
     }
 
     case QRhi::Metal:
-      copyBufferMetal(rhi, cb, src, dst, size);
+      copyBufferMetal(rhi, cb, src, dst, size, srcOffset, dstOffset);
       break;
 
     default:
