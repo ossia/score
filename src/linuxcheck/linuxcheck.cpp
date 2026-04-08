@@ -38,11 +38,9 @@ int main(int argc, char** argv)
       "Make sure that the following software, features, configuration and libraries "
       "are available on your system: \n \n"
       "{}"
-      "\n\nTo install relevant packages, you can look for the relevant scripts (for "
-      "instance, ubuntu.plucky.deps.sh),\n"
-      "at the following URL:\n"
-      "https://github.com/ossia/score/tree/master/ci\n\n"
-      "If you do not want to see this message, run the app with SCORE_SKIP_LINUXCHECK=1 "
+      "\n\n"
+      "If you do not want to see this message again, run the app with "
+      "SCORE_SKIP_LINUXCHECK=1 "
       "environment variable set.",
       app_name, text);
 
