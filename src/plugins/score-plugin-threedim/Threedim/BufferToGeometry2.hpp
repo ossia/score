@@ -1,4 +1,6 @@
 #pragma once
+#include "BufferToGeometryCommon.hpp"
+
 #include <Threedim/TinyObj.hpp>
 #include <halp/buffer.hpp>
 #include <halp/controls.hpp>
@@ -14,68 +16,11 @@ namespace Threedim
 class BuffersToGeometry2
 {
 public:
-  halp_meta(name, "Buffers to geometry (v2)")
+  halp_meta(name, "Buffers to geometry")
   halp_meta(category, "Visuals/Utilities")
-  halp_meta(c_name, "buffers_to_geometry2")
+  halp_meta(c_name, "buffers_to_geometry_v2")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/buffers-to-geometry.html")
   halp_meta(uuid, "a7c3e1f0-8b2d-4a6e-9f1c-5d3e7b8a0c2f")
-
-  // Matches QRhiVertexInputAttribute::Format
-  enum AttributeFormat
-  {
-    Float4,
-    Float3,
-    Float2,
-    Float,
-    UNormByte4,
-    UNormByte2,
-    UNormByte,
-    UInt4,
-    UInt2,
-    UInt,
-    SInt4,
-    SInt2,
-    SInt,
-    Half4,
-    Half3,
-    Half2,
-    Half,
-    UShort4,
-    UShort2,
-    UShort,
-    SShort4,
-    SShort2,
-    SShort,
-  };
-
-  enum PrimitiveTopology
-  {
-    Triangles,
-    TriangleStrip,
-    TriangleFan,
-    Lines,
-    LineStrip,
-    Points
-  };
-
-  enum CullMode
-  {
-    None,
-    Front,
-    Back
-  };
-
-  enum FrontFace
-  {
-    CounterClockwise,
-    Clockwise
-  };
-
-  enum IndexFormat
-  {
-    UInt16,
-    UInt32
-  };
 
   struct ins
   {

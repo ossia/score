@@ -1,4 +1,6 @@
 #pragma once
+#include "BufferToGeometryCommon.hpp"
+
 #include <Threedim/TinyObj.hpp>
 #include <halp/buffer.hpp>
 #include <halp/controls.hpp>
@@ -19,63 +21,7 @@ public:
   halp_meta(c_name, "buffers_to_geometry")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/buffers-to-geometry.html")
   halp_meta(uuid, "d5dd3b9a-f57b-4546-9890-d5b5e351dcea")
-
-  // Matches QRhiVertexInputAttribute::Format
-  enum AttributeFormat
-  {
-    Float4,
-    Float3,
-    Float2,
-    Float,
-    UNormByte4,
-    UNormByte2,
-    UNormByte,
-    UInt4,
-    UInt2,
-    UInt,
-    SInt4,
-    SInt2,
-    SInt,
-    Half4,
-    Half3,
-    Half2,
-    Half,
-    UShort4,
-    UShort2,
-    UShort,
-    SShort4,
-    SShort2,
-    SShort,
-  };
-
-  enum PrimitiveTopology
-  {
-    Triangles,
-    TriangleStrip,
-    TriangleFan,
-    Lines,
-    LineStrip,
-    Points
-  };
-
-  enum CullMode
-  {
-    None,
-    Front,
-    Back
-  };
-
-  enum FrontFace
-  {
-    CounterClockwise,
-    Clockwise
-  };
-
-  enum IndexFormat
-  {
-    UInt16,
-    UInt32
-  };
+  halp_flag(deprecated);
 
   struct ins
   {
