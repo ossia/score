@@ -32,16 +32,6 @@ public:
     return true;
   }
 
-  void addPath(std::string_view path) override
-  {
-    if(path.find("companion-bundled-modules") != std::string_view::npos)
-      return;
-    if(path.find("node_modules") != std::string_view::npos)
-      return;
-
-    add(QString::fromUtf8(path.data(), path.length()));
-  }
-
   std::function<void()> asyncAddPath(std::string_view path) override
   {
     if(path.find("companion-bundled-modules") != std::string_view::npos)
@@ -113,28 +103,6 @@ class LibraryHandler final
 
     categories.init(
         Metadata<PrettyName_k, JS::ProcessModel>::get().toStdString(), node, ctx);
-  }
-
-  void addPath(std::string_view path) override
-  {
-    if(path.ends_with(".ui.qml"))
-      return;
-
-    QFileInfo fileinfo{QString::fromUtf8(path.data(), path.length())};
-    QFile file{fileinfo.absoluteFilePath()};
-    if(!file.open(QIODevice::ReadOnly))
-      return;
-
-    auto data = file.readAll().trimmed();
-    auto matches = scoreImport.match(data);
-    if(!matches.hasMatch())
-      return;
-
-    Library::ProcessData pdata;
-    pdata.prettyName = fileinfo.completeBaseName();
-    pdata.key = Metadata<ConcreteKey_k, JS::ProcessModel>::get();
-    pdata.customData = fileinfo.absoluteFilePath();
-    categories.add(fileinfo, std::move(pdata));
   }
 
   std::function<void()> asyncAddPath(std::string_view path) override

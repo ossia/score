@@ -51,15 +51,20 @@ class LibraryHandler final
         Metadata<PrettyName_k, YSFX::ProcessModel>::get().toStdString(), node, ctx);
   }
 
-  void addPath(std::string_view path) override
+  std::function<void()> asyncAddPath(std::string_view path) override
   {
-    QFileInfo file{QString::fromUtf8(path.data(), path.length())};
+    score::PathInfo file{path};
     Library::ProcessData pdata;
-    pdata.prettyName = file.completeBaseName();
-
+    pdata.prettyName
+        = QString::fromUtf8(file.completeBaseName.data(), file.completeBaseName.size());
     pdata.key = Metadata<ConcreteKey_k, YSFX::ProcessModel>::get();
-    pdata.customData = file.absoluteFilePath();
-    categories.add(file, std::move(pdata));
+    pdata.customData
+        = QString::fromUtf8(file.absoluteFilePath.data(), file.absoluteFilePath.size());
+
+    return [this, p = std::string{path}, pdata = std::move(pdata)]() mutable {
+      score::PathInfo file{p};
+      categories.add(file, std::move(pdata));
+    };
   }
 };
 

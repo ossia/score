@@ -107,18 +107,6 @@ void LibraryHandler::setup(
   categories.init(Metadata<PrettyName_k, Filter::Model>::get().toStdString(), node, ctx);
 }
 
-void LibraryHandler::addPath(std::string_view path)
-{
-  score::PathInfo file{path};
-
-  Library::ProcessData pdata;
-  pdata.prettyName
-      = QString::fromUtf8(file.completeBaseName.data(), file.completeBaseName.size());
-  pdata.key = Metadata<ConcreteKey_k, Filter::Model>::get();
-  pdata.customData = QString::fromUtf8(path.data(), path.size());
-  categories.add(file, std::move(pdata));
-}
-
 std::function<void()> LibraryHandler::asyncAddPath(std::string_view path)
 {
   score::PathInfo file{path};

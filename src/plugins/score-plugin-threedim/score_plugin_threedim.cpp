@@ -50,7 +50,7 @@ class RawRasterLibraryHandler final : public Library::LibraryInterface
   void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
       override;
 
-  void addPath(std::string_view path) override;
+  std::function<void()> asyncAddPath(std::string_view path) override;
   QWidget* previewWidget(const QString& path, QWidget* parent) const noexcept override;
   QWidget*
   previewWidget(const Process::Preset& path, QWidget* parent) const noexcept override;
@@ -77,30 +77,32 @@ void RawRasterLibraryHandler::setup(
       ctx);
 }
 
-void RawRasterLibraryHandler::addPath(std::string_view path)
+std::function<void()> RawRasterLibraryHandler::asyncAddPath(std::string_view path)
 {
-  // FIXME addAsync!
   score::PathInfo file{path};
   QFile f{file.absoluteFilePath.data()};
   if(!f.open(QIODevice::ReadOnly))
-    return;
+    return {};
   auto sz = std::min((int64_t)4096, (int64_t)f.size());
   auto mapped = f.map(0, sz);
   if(!mapped)
-    return;
+    return {};
 
   const auto haystack = std::span<const char>((const char*)mapped, sz);
   const auto needle = std::string_view("\"RAW_RASTER_PIPELINE\"");
   if(std::search(haystack.begin(), haystack.end(), needle.begin(), needle.end())
      == haystack.end())
-    return;
+    return {};
 
   Library::ProcessData pdata;
   pdata.prettyName
       = QString::fromUtf8(file.completeBaseName.data(), file.completeBaseName.size());
   pdata.key = Metadata<ConcreteKey_k, Gfx::RenderPipeline::Model>::get();
   pdata.customData = QString::fromUtf8(path.data(), path.size());
-  categories.add(file, std::move(pdata));
+  return [this, p = std::string{path}, pdata = std::move(pdata)]() mutable {
+    score::PathInfo file{p};
+    categories.add(file, std::move(pdata));
+  };
 }
 
 QWidget* RawRasterLibraryHandler::previewWidget(
@@ -144,18 +146,22 @@ class SSynthLibraryHandler final
     categories.init("Structure Synth", node, ctx);
   }
 
-  void addPath(std::string_view path) override
+  std::function<void()> asyncAddPath(std::string_view path) override
   {
     QFileInfo file{QString::fromUtf8(path.data(), path.length())};
     QFile f{file.absoluteFilePath()};
     if (!f.open(QIODevice::ReadOnly))
-      return;
+      return {};
 
     Library::ProcessData pdata;
     pdata.prettyName = file.completeBaseName();
     pdata.key = Metadata<ConcreteKey_k, proc>::get();
     pdata.customData = score::readFileAsQString(f);
-    categories.add(file, std::move(pdata));
+
+    return [this, p = std::string{path}, pdata = std::move(pdata)]() mutable {
+      score::PathInfo file{p};
+      categories.add(file, std::move(pdata));
+    };
   }
 };
 
@@ -211,7 +217,7 @@ class OBJLibraryHandler final
     categories.init("Object Loader", node, ctx);
   }
 
-  void addPath(std::string_view path) override
+  std::function<void()> asyncAddPath(std::string_view path) override
   {
     auto p = QString::fromUtf8(path.data(), path.length());
     QFileInfo file{p};
@@ -220,7 +226,11 @@ class OBJLibraryHandler final
     pdata.prettyName = file.completeBaseName();
     pdata.key = Metadata<ConcreteKey_k, proc>::get();
     pdata.customData = p;
-    categories.add(file, std::move(pdata));
+
+    return [this, p = std::string{path}, pdata = std::move(pdata)]() mutable {
+      score::PathInfo file{p};
+      categories.add(file, std::move(pdata));
+    };
   }
 };
 
@@ -277,7 +287,7 @@ class VoxLibraryHandler final
     categories.init("Voxel Loader", node, ctx);
   }
 
-  void addPath(std::string_view path) override
+  std::function<void()> asyncAddPath(std::string_view path) override
   {
     auto p = QString::fromUtf8(path.data(), path.length());
     QFileInfo file{p};
@@ -286,7 +296,11 @@ class VoxLibraryHandler final
     pdata.prettyName = file.completeBaseName();
     pdata.key = Metadata<ConcreteKey_k, proc>::get();
     pdata.customData = p;
-    categories.add(file, std::move(pdata));
+
+    return [this, p = std::string{path}, pdata = std::move(pdata)]() mutable {
+      score::PathInfo file{p};
+      categories.add(file, std::move(pdata));
+    };
   }
 };
 

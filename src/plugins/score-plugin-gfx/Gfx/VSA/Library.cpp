@@ -28,31 +28,6 @@ void LibraryHandler::setup(
   categories.init(Metadata<PrettyName_k, VSA::Model>::get().toStdString(), node, ctx);
 }
 
-void LibraryHandler::addPath(std::string_view path)
-{
-  score::PathInfo file{path};
-  QFile f{file.absoluteFilePath.data()};
-  if(!f.open(QIODevice::ReadOnly))
-    return;
-  auto sz = std::min((int64_t)4096, (int64_t)f.size());
-  auto mapped = f.map(0, sz);
-  if(!mapped)
-    return;
-
-  const auto haystack = std::span<const char>((const char*)mapped, sz);
-  const auto needle = std::string_view("\"VERTEX_SHADER_ART\"");
-  if(std::search(haystack.begin(), haystack.end(), needle.begin(), needle.end())
-     == haystack.end())
-    return;
-
-  Library::ProcessData pdata;
-  pdata.prettyName
-      = QString::fromUtf8(file.completeBaseName.data(), file.completeBaseName.size());
-  pdata.key = Metadata<ConcreteKey_k, VSA::Model>::get();
-  pdata.customData = QString::fromUtf8(path.data(), path.size());
-  categories.add(file, std::move(pdata));
-}
-
 std::function<void()> LibraryHandler::asyncAddPath(std::string_view path)
 {
   score::PathInfo file{path};

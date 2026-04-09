@@ -34,17 +34,6 @@ class LibraryHandler final
         Metadata<PrettyName_k, Pd::ProcessModel>::get().toStdString(), node, ctx);
   }
 
-  void addPath(std::string_view path) override
-  {
-    QFileInfo file{QString::fromUtf8(path.data(), path.length())};
-    Library::ProcessData pdata;
-    pdata.prettyName = file.completeBaseName();
-    pdata.key = Metadata<ConcreteKey_k, Pd::ProcessModel>::get();
-    pdata.customData = [&] { return file.absoluteFilePath(); }();
-
-    categories.add(file, std::move(pdata));
-  }
-
   std::function<void()> asyncAddPath(std::string_view path) override
   {
     score::PathInfo file{path};

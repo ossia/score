@@ -21,8 +21,6 @@ class LibraryHandler final
 {
   SCORE_CONCRETE("e274ee7b-9142-43a0-9d77-9286a63af4d9")
 
-  score::TaskPool& pool = score::TaskPool::instance();
-
   QSet<QString> acceptedFiles() const noexcept override { return {"dsp"}; }
 
   Library::Subcategories categories;
@@ -40,13 +38,6 @@ class LibraryHandler final
         Metadata<PrettyName_k, Faust::FaustEffectModel>::get().toStdString(), node, ctx);
   }
 
-  void addPath(std::string_view path) override
-  {
-    score::PathInfo file{path};
-    if(file.fileName != "layout.dsp")
-      registerDSP(std::string(path));
-  }
-
   std::function<void()> asyncAddPath(std::string_view path) override
   {
     score::PathInfo file{path};
@@ -61,33 +52,17 @@ class LibraryHandler final
     pdata.customData = QString::fromUtf8(
         file.absoluteFilePath.data(), file.absoluteFilePath.size());
 
+    // FIXME:
+    /*
+      auto desc = initDescriptor(pdata.customData);
+      if(!desc.prettyName.isEmpty())
+        pdata.prettyName = desc.prettyName;
+    */
+
     return [this, p = std::string(path), pdata = std::move(pdata)]() mutable {
       score::PathInfo file{p};
       categories.add(file, std::move(pdata));
     };
-  }
-
-  void registerDSP(std::string path)
-  {
-    pool.post([this, path = std::move(path)] {
-      Library::ProcessData pdata;
-      score::PathInfo file{path};
-      pdata.prettyName = QString::fromUtf8(
-          file.completeBaseName.data(), file.completeBaseName.size());
-      pdata.key = Metadata<ConcreteKey_k, FaustEffectModel>::get();
-      pdata.customData = QString::fromUtf8(
-          file.absoluteFilePath.data(), file.absoluteFilePath.size());
-      /*
-      auto desc = initDescriptor(pdata.customData);
-      if(!desc.prettyName.isEmpty())
-        pdata.prettyName = desc.prettyName;
-*/
-      QMetaObject::invokeMethod(
-          qApp, [this, path = std::move(path), pdata = std::move(pdata)]() mutable {
-        score::PathInfo file{path};
-        categories.add(file, std::move(pdata));
-      }, Qt::QueuedConnection);
-    });
   }
 };
 
