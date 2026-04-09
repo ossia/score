@@ -1,7 +1,7 @@
 #pragma once
 #include <Gfx/Graph/RenderState.hpp>
 
-#include <rhi/qrhi.h>
+#include <private/qrhi_p.h>
 
 namespace score::gfx
 {
