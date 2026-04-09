@@ -13,6 +13,9 @@
 #include <score/model/Skin.hpp>
 #include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
+#include <score/tools/File.hpp>
+#include <score/tools/FilePath.hpp>
+#include <score/tools/RecursiveWatch.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/TextLabel.hpp>
@@ -317,26 +320,28 @@ void DeviceEditDialog::initPresets()
   if(rootPath.isEmpty())
     return;
 
-  QStringList searchPaths;
-  searchPaths << rootPath + "/packages/user/devices";
-  searchPaths << rootPath + "/packages/default/devices";
+  static score::RecursiveWatch r;
+  r.reset();
+  r.registerWatch(
+      "device", score::RecursiveWatch::AsyncCallbacks{
+                    .filter = [&](std::string_view path) -> std::function<void()> {
+    const auto path_info = score::PathInfo{path};
+    auto basename = QString::fromUtf8(
+        path_info.completeBaseName.data(), path_info.completeBaseName.size());
+    auto absolutePath = QString::fromUtf8(
+        path_info.absoluteFilePath.data(), path_info.absoluteFilePath.size());
 
-  // for(const auto& dir : searchPaths)
-  {
-    QDirIterator it{
-        rootPath, QStringList{QStringLiteral("*.device")}, QDir::Files,
-        QDirIterator::Subdirectories};
-
-    while(it.hasNext())
-    {
-      it.next();
+    return
+        [this, basename = std::move(basename), absolutePath = std::move(absolutePath)] {
       auto item = new QTreeWidgetItem;
-      item->setText(0, it.fileInfo().completeBaseName());
-      item->setData(0, Qt::UserRole, it.filePath());
+      item->setText(0, basename);
+      item->setData(0, Qt::UserRole, absolutePath);
       item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
       m_presets->addTopLevelItem(item);
-    }
-  }
+    };
+  }});
+  r.setWatchedFolder(rootPath.toStdString() + "/packages");
+  r.scanAsync(this);
 
   m_presets->sortItems(0, Qt::AscendingOrder);
 }
