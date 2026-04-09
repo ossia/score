@@ -142,71 +142,63 @@ bool CableItem::contains(const QPointF& point) const
 
 void CableItem::setPen(QPainter& painter, const Process::Style& style)
 {
+  auto& brush = [&]() -> score::BrushSet& {
+    if(!m_cable.selection.get())
+    {
+      [[likely]];
+      switch(m_type)
+      {
+        case Process::PortType::Message:
+          return style.skin.Cable2.main;
+        case Process::PortType::Audio:
+          return style.skin.Cable1.main;
+        case Process::PortType::Midi:
+          return style.skin.Cable3.main;
+        case Process::PortType::Texture:
+          return style.skin.LightGray.main;
+        case Process::PortType::Geometry:
+          return style.skin.Emphasis3.main;
+          break;
+      }
+    }
+    else
+    {
+      switch(m_type)
+      {
+        case Process::PortType::Message:
+          return style.skin.SelectedCable2.lighter;
+        case Process::PortType::Audio:
+          return style.skin.SelectedCable1.lighter;
+        case Process::PortType::Midi:
+          return style.skin.SelectedCable3.lighter;
+        case Process::PortType::Texture:
+          return style.skin.LightGray.lighter; // FIXME also selected color for those
+        case Process::PortType::Geometry:
+          return style.skin.Emphasis3.lighter;
+          break;
+      }
+    }
+  }();
+
   switch(m_mode)
   {
     case Full: {
       if(m_dropping)
       {
         [[unlikely]];
-        switch(m_type)
-        {
-          case Process::PortType::Message:
-            painter.setPen(style.DragDropDataCablePen());
-            break;
-          case Process::PortType::Audio:
-            painter.setPen(style.DragDropAudioCablePen());
-            break;
-          case Process::PortType::Midi:
-            painter.setPen(style.DragDropMidiCablePen());
-            break;
-          case Process::PortType::Texture:
-            painter.setPen(style.DragDropTextureCablePen());
-            break;
-          case Process::PortType::Geometry:
-            painter.setPen(style.DragDropGeometryCablePen());
-            break;
-        }
-      }
-      else if(!m_cable.selection.get())
-      {
-        [[likely]]
-        switch(m_type)
-        {
-          case Process::PortType::Message:
-            painter.setPen(style.DataCablePen());
-            break;
-          case Process::PortType::Audio:
-            painter.setPen(style.AudioCablePen());
-            break;
-          case Process::PortType::Midi:
-            painter.setPen(style.MidiCablePen());
-            break;
-          case Process::PortType::Texture:
-            painter.setPen(style.TextureCablePen());
-            break;
-          case Process::PortType::Geometry:
-            painter.setPen(style.GeometryCablePen());
-            break;
-        }
+        painter.setPen(brush.pen2_dotted_square_miter);
       }
       else
       {
-        switch(m_type)
+        switch(this->m_cable.type())
         {
-          case Process::PortType::Message:
-            painter.setPen(style.SelectedDataCablePen());
+          case Process::CableType::ImmediateGlutton:
+          case Process::CableType::ImmediateStrict:
+            painter.setPen(brush.pen3_solid_round_round);
             break;
-          case Process::PortType::Audio:
-            painter.setPen(style.SelectedAudioCablePen());
-            break;
-          case Process::PortType::Midi:
-            painter.setPen(style.SelectedMidiCablePen());
-            break;
-          case Process::PortType::Texture:
-            painter.setPen(style.SelectedTextureCablePen());
-            break;
-          case Process::PortType::Geometry:
-            painter.setPen(style.SelectedGeometryCablePen());
+          case Process::CableType::DelayedGlutton:
+          case Process::CableType::DelayedStrict:
+            painter.setPen(brush.pen3_dashed_flat_miter);
             break;
         }
       }
@@ -214,49 +206,7 @@ void CableItem::setPen(QPainter& painter, const Process::Style& style)
     }
     case Partial_P1:
     case Partial_P2: {
-      if(!m_cable.selection.get())
-      {
-        [[likely]]
-        switch(m_type)
-        {
-          case Process::PortType::Message:
-            painter.setPen(style.skin.Cable2.main.pen1_dotted);
-            break;
-          case Process::PortType::Audio:
-            painter.setPen(style.skin.Cable1.main.pen1_dotted);
-            break;
-          case Process::PortType::Midi:
-            painter.setPen(style.skin.Cable3.main.pen1_dotted);
-            break;
-          case Process::PortType::Texture:
-            painter.setPen(style.skin.LightGray.main.pen1_dotted);
-            break;
-          case Process::PortType::Geometry:
-            painter.setPen(style.skin.Emphasis3.main.pen1_dotted);
-            break;
-        }
-      }
-      else
-      {
-        switch(m_type)
-        {
-          case Process::PortType::Message:
-            painter.setPen(style.skin.SelectedCable2.lighter.pen1_dotted);
-            break;
-          case Process::PortType::Audio:
-            painter.setPen(style.skin.SelectedCable1.lighter.pen1_dotted);
-            break;
-          case Process::PortType::Midi:
-            painter.setPen(style.skin.SelectedCable3.lighter.pen1_dotted);
-            break;
-          case Process::PortType::Texture:
-            painter.setPen(style.skin.LightGray.lighter.pen1_dotted);
-            break;
-          case Process::PortType::Geometry:
-            painter.setPen(style.skin.Emphasis3.lighter.pen1_dotted);
-            break;
-        }
-      }
+      painter.setPen(brush.pen1_dotted);
       break;
     }
     default:
