@@ -79,6 +79,9 @@ enum ProcessFlags : int64_t
   //! No background will be drawn for the node
   NodeHasNoBackground = SCORE_FLAG(19),
 
+  //! Process kind is deprecated
+  Deprecated = SCORE_FLAG(20),
+
   // clang-format off
   SupportsLasting = SupportsTemporal | TimeIndependent,
   ExternalEffect  = SupportsTemporal | TimeIndependent | RequiresCustomData | ControlSurface,

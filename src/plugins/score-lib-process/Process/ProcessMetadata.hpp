@@ -23,14 +23,13 @@ enum ProcessCategory : uint64_t
   Generator,   // lfo, etc
   MediaSource, // sound, video, image, etc
   Analyzer,
-  AudioEffect,               // audio in and audio out
-  MidiEffect,                // midi in and midi out
-  Synth,                     // midi in and audio out
-  Mapping,                   // value in and value out
-  Script,                    // JS, PD, etc
-  Structure,                 // scenario, loop, etc
-  Visual,                    // gfx processes
-  Deprecated = (1ULL << 63), // gfx processes
+  AudioEffect, // audio in and audio out
+  MidiEffect,  // midi in and midi out
+  Synth,       // midi in and audio out
+  Mapping,     // value in and value out
+  Script,      // JS, PD, etc
+  Structure,   // scenario, loop, etc
+  Visual,      // gfx processes
 };
 
 struct Descriptor

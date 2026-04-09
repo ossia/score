@@ -84,12 +84,13 @@ void ProcessesItemModel::rescan()
 
   ossia::flat_map<QString, ossia::flat_map<QString, Process::ProcessModelFactory*>>
       sorted;
+  sorted.reserve(100);
   for(Process::ProcessModelFactory& proc : procs)
   {
     static_assert((1LL << 63) == (1ULL << 63));
-    static_assert(sizeof(Process::ProcessCategory::Deprecated) == sizeof(1ULL));
+    static_assert(sizeof(Process::ProcessFlags::Deprecated) == sizeof(1ULL));
     static_assert(sizeof(1ULL) == sizeof(uint64_t));
-    if(!(proc.descriptor({}).category & Process::ProcessCategory::Deprecated))
+    if(!(proc.flags() & Process::ProcessFlags::Deprecated))
       sorted[proc.category()][proc.prettyName()] = &proc;
   }
 
@@ -118,6 +119,7 @@ void ProcessesItemModel::rescan()
   w.setWatchedFolder(libpath.toStdString());
   auto& lib_setup = context.interfaces<Library::LibraryInterfaceList>();
   // TODO lib_setup.added.connect<&ProcessesItemModel::on_newPlugin>(*this);
+
   for(auto& lib : lib_setup)
   {
     lib.setup(*this, context);

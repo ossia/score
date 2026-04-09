@@ -197,9 +197,6 @@ struct Metadata<Process::Descriptor_k, oscr::ProcessModel<Info>>
       cat = Info::kind();
     else
       cat = Process::ProcessCategory::Other;
-
-    if constexpr(avnd::tag_deprecated<Info>)
-      cat = Process::ProcessCategory(cat | Process::ProcessCategory::Deprecated);
     return cat;
   }
   static Process::Descriptor get()
@@ -277,6 +274,8 @@ struct Metadata<Process::ProcessFlags_k, oscr::ProcessModel<Info>>
       if constexpr(avnd::dynamic_ports_output_introspection<Info>::size > 0)
         flags |= Process::ProcessFlags::DynamicPorts;
 
+      if constexpr(avnd::tag_deprecated<Info>)
+        flags |= Process::ProcessFlags::Deprecated;
       return flags;
     }
   }
