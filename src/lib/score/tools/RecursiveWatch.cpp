@@ -254,6 +254,19 @@ void RecursiveWatch::scanAsync(QObject* context)
                                     context = QPointer{context}] {
     std::vector<std::function<void()>> actions;
 
+    auto send_to_main_thread = [context, &actions] {
+      // Batch-deliver all commit actions to the GUI thread
+      QMetaObject::invokeMethod(
+          QCoreApplication::instance(), [context, actions = std::move(actions)] {
+        if(!context)
+          return;
+        for(auto& action : actions)
+          action();
+      }, Qt::QueuedConnection);
+
+      actions.clear();
+    };
+
     for_all_files(root, [&](std::string_view path) {
       if(path.empty())
         return;
@@ -265,21 +278,18 @@ void RecursiveWatch::scanAsync(QObject* context)
       auto it = watched.find(suffix);
       if(it == watched.end())
         return;
-
       for(auto& handler : it->second)
       {
         if(auto action = handler.filter(path))
+        {
           actions.push_back(std::move(action));
+          if(actions.size() >= 255)
+            send_to_main_thread();
+        }
       }
     });
 
-    // Batch-deliver all commit actions to the GUI thread
-    QMetaObject::invokeMethod(QCoreApplication::instance(), [context, actions = std::move(actions)] {
-      if(!context)
-        return;
-      for(auto& action : actions)
-        action();
-    }, Qt::QueuedConnection);
+    send_to_main_thread();
   });
 }
 }
