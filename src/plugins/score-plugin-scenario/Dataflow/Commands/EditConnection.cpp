@@ -9,6 +9,7 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
+#include <ossia/detail/flat_set.hpp>
 namespace Dataflow
 {
 
@@ -30,9 +31,6 @@ std::pair<const Process::Outlet*, const Process::Inlet*> getPortsForConnection(
     const Process::Port& port1,
     const Process::Port& port2)
 {
-  if(port1.parent() == port2.parent())
-    return {};
-
   if(!intersection_empty(port1.cables(), port2.cables()))
     return {};
 
@@ -68,11 +66,75 @@ void onCreateCable(
   if(!source || !sink)
     return;
 
-  Process::CableData cd;
-  cd.type = Process::CableType::ImmediateGlutton;
-  disp.submit<Dataflow::CreateCable>(
-      plug, getStrongId(plug.cables), Process::CableType::ImmediateGlutton, *source,
-      *sink);
+  Process::CableType cd = Process::CableType::ImmediateGlutton;
+
+  // Feedback handling
+  if(port1.parent() == port2.parent())
+  {
+    cd = Process::CableType::DelayedGlutton;
+  }
+  else
+  {
+    // Do a quick walk to see if we are already connected by a cable from sink to source
+    auto sourceProcess = qobject_cast<const Process::ProcessModel*>(source->parent());
+    auto sinkProcess = qobject_cast<const Process::ProcessModel*>(sink->parent());
+
+    if(sourceProcess && sinkProcess)
+    {
+      if(sourceProcess == sinkProcess)
+      {
+        cd = Process::CableType::DelayedGlutton;
+      }
+      else
+      {
+        std::vector<const Process::ProcessModel*> stack;
+        ossia::flat_set<const Process::ProcessModel*> visited;
+        stack.reserve(30);
+        visited.reserve(30);
+
+        stack.push_back(sinkProcess);
+
+        while(!stack.empty())
+        {
+          auto current = stack.back();
+          stack.pop_back();
+
+          if(current == sourceProcess)
+          {
+            cd = Process::CableType::DelayedGlutton;
+            break;
+          }
+
+          // Avoid infinite loops if the graph already contains cycles
+          if(visited.count(current))
+            continue;
+
+          visited.insert(current);
+
+          // Traverse outlets of the current process.
+          for(const auto& outlet : current->outlets())
+          {
+            for(const auto& cablePath : outlet->cables())
+            {
+              if(auto cable = cablePath.try_find(ctx))
+              {
+                if(auto nextInlet = cable->sink().try_find(ctx))
+                {
+                  if(auto nextProcess
+                     = qobject_cast<const Process::ProcessModel*>(nextInlet->parent()))
+                  {
+                    stack.push_back(nextProcess);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  disp.submit<Dataflow::CreateCable>(plug, getStrongId(plug.cables), cd, *source, *sink);
 }
 
 void replaceCable(
