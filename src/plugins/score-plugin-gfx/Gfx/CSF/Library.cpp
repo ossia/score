@@ -32,17 +32,8 @@ std::function<void()> LibraryHandler::asyncAddPath(std::string_view path)
 {
   score::PathInfo file{path};
   QFile f{file.absoluteFilePath.data()};
-  if(!f.open(QIODevice::ReadOnly))
-    return {};
-  auto sz = std::min((int64_t)4096, (int64_t)f.size());
-  auto mapped = f.map(0, sz);
-  if(!mapped)
-    return {};
 
-  const auto haystack = std::span<const char>((const char*)mapped, sz);
-  const auto needle = std::string_view("\"COMPUTE_SHADER\"");
-  if(std::search(haystack.begin(), haystack.end(), needle.begin(), needle.end())
-     == haystack.end())
+  if(!score::fileContains(f, "\"COMPUTE_SHADER\""))
     return {};
 
   Library::ProcessData pdata;

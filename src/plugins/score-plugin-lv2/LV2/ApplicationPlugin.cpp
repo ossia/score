@@ -101,6 +101,9 @@ void ApplicationPlugin::initialize()
 
 ApplicationPlugin::~ApplicationPlugin()
 {
+  abort_library_scan = true;
+  std::lock_guard lck{library_lock};
+
   suil.host_free(lv2_context->ui_host);
 }
 

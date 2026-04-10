@@ -110,6 +110,9 @@ void LibraryHandler::setup(
 std::function<void()> LibraryHandler::asyncAddPath(std::string_view path)
 {
   score::PathInfo file{path};
+  QFile f{file.absoluteFilePath.data()};
+  if(score::fileContains(f, "\"RAW_RASTER_PIPELINE\""))
+    return {};
 
   Library::ProcessData pdata;
   pdata.prettyName

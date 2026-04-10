@@ -10,6 +10,8 @@
 
 #include <lilv/lilvmm.hpp>
 
+#include <atomic>
+#include <mutex>
 #include <thread>
 #include <verdigris>
 
@@ -27,6 +29,9 @@ public:
   explicit ApplicationPlugin(const score::ApplicationContext& app);
   void initialize() override;
   ~ApplicationPlugin() override;
+
+  std::atomic_bool abort_library_scan{};
+  std::mutex library_lock;
 
 public:
   Lilv::World lilv;

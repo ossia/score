@@ -36,10 +36,9 @@ void LibraryHandler::setup(
 std::function<void()> LibraryHandler::asyncAddPath(std::string_view path)
 {
   score::PathInfo file{path};
-  QFile f{path.data()};
-  if(!f.open(QIODevice::ReadOnly))
-    return {};
-  if(!f.read(512).contains("\"GEOMETRY_FILTER\""))
+  QFile f{file.absoluteFilePath.data()};
+
+  if(!score::fileContains(f, "\"GEOMETRY_FILTER\""))
     return {};
 
   Library::ProcessData pdata;

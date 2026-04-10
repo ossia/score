@@ -81,17 +81,7 @@ std::function<void()> RawRasterLibraryHandler::asyncAddPath(std::string_view pat
 {
   score::PathInfo file{path};
   QFile f{file.absoluteFilePath.data()};
-  if(!f.open(QIODevice::ReadOnly))
-    return {};
-  auto sz = std::min((int64_t)4096, (int64_t)f.size());
-  auto mapped = f.map(0, sz);
-  if(!mapped)
-    return {};
-
-  const auto haystack = std::span<const char>((const char*)mapped, sz);
-  const auto needle = std::string_view("\"RAW_RASTER_PIPELINE\"");
-  if(std::search(haystack.begin(), haystack.end(), needle.begin(), needle.end())
-     == haystack.end())
+  if(!score::fileContains(f, "\"RAW_RASTER_PIPELINE\""))
     return {};
 
   Library::ProcessData pdata;

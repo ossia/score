@@ -435,19 +435,24 @@ public:
       tq.post([eff_ptr = std::move(eff_ptr), filename = str, &ctx, idx]() mutable {
         if(auto file = loadSoundfile(filename, ctx.doc, ctx.execState))
         {
-          ctx.executionQueue.enqueue(
-              [sf = std::move(file), p = std::weak_ptr{eff_ptr}, idx]() mutable {
-            auto eff_ptr = p.lock();
-            if(!eff_ptr)
-              return;
+          // Sadly we have to go back to the main thread as execution queue is SPSC
+          QMetaObject::invokeMethod(
+              QCoreApplication::instance(),
+              [&ctx, file = std::move(file), eff_ptr = std::move(eff_ptr), idx = idx] {
+            ctx.executionQueue.enqueue(
+                [sf = std::move(file), p = std::weak_ptr{eff_ptr}, idx]() mutable {
+              auto eff_ptr = p.lock();
+              if(!eff_ptr)
+                return;
 
-            avnd::effect_container<Node>& eff = eff_ptr->impl;
-            soundfile_inputs_type::for_nth_mapped_n2(
-                avnd::get_inputs<Node>(eff), idx,
-                [&]<std::size_t NField, std::size_t N>(
-                    auto& field, avnd::predicate_index<N> p,
-                    avnd::field_index<NField> f) {
-              eff_ptr->soundfile_loaded(sf, p, f);
+              avnd::effect_container<Node>& eff = eff_ptr->impl;
+              soundfile_inputs_type::for_nth_mapped_n2(
+                  avnd::get_inputs<Node>(eff), idx,
+                  [&]<std::size_t NField, std::size_t N>(
+                      auto& field, avnd::predicate_index<N> p,
+                      avnd::field_index<NField> f) {
+                eff_ptr->soundfile_loaded(sf, p, f);
+              });
             });
           });
         }

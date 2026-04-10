@@ -26,14 +26,23 @@ class LibraryHandler final : public Library::LibraryInterface
       ossia::flat_map<QString, QVector<QString>> categories;
       categories.reserve(50);
 
-      auto it = plugs.begin();
-      while(!plugs.is_end(it))
       {
-        auto plug = plugs.get(it);
-        const auto class_name = plug.get_class().get_label().as_string();
-        const auto plug_name = get_lv2_plugin_name(plug);
-        categories[class_name].push_back(plug_name);
-        it = plugs.next(it);
+        auto lck = std::unique_lock{plug.library_lock};
+        if(plug.abort_library_scan)
+          return;
+
+        auto it = plugs.begin();
+        while(!plugs.is_end(it))
+        {
+          if(plug.abort_library_scan)
+            return;
+
+          auto plug = plugs.get(it);
+          const auto class_name = plug.get_class().get_label().as_string();
+          const auto plug_name = get_lv2_plugin_name(plug);
+          categories[class_name].push_back(plug_name);
+          it = plugs.next(it);
+        }
       }
 
       // Back to main thread
