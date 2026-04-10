@@ -6,6 +6,8 @@
 
 #include <score/tools/ThreadPool.hpp>
 
+#include <QCoreApplication>
+
 namespace LV2
 {
 class LibraryHandler final : public Library::LibraryInterface
