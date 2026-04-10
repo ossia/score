@@ -1,5 +1,6 @@
 #pragma once
 #include <score/model/Skin.hpp>
+#include <score/tools/ThreadPool.hpp>
 #include <score/widgets/Pixmap.hpp>
 
 #include <core/view/QRecentFilesMenu.h>
@@ -16,6 +17,7 @@
 #include <QPointer>
 #include <QSettings>
 #include <QTextLayout>
+#include <QThread>
 
 #include <score_git_info.hpp>
 
@@ -51,7 +53,6 @@ public:
 
     QNetworkRequest req{std::move(url)};
     req.setRawHeader("User-Agent", "curl/7.35.0");
-
     req.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute, true);
     req.setAttribute(
         QNetworkRequest::RedirectPolicyAttribute,
@@ -331,27 +332,42 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
 
   {
     // new version
-    auto m_getLastVersion = new HTTPGet{
-        QUrl("https://ossia.io/score-last-version.txt"),
-        [this, titleFont](const QByteArray& data) {
-      auto version = QString::fromUtf8(data.simplified());
-      if(SCORE_TAG_NO_V < version)
-      {
-        QString text
-            = qApp->tr("New version %1 is available, click to update !").arg(version);
-        QString url = "https://github.com/ossia/score/releases/latest/";
-        InteractiveLabel* label = new InteractiveLabel{titleFont, text, url, this};
-        label->setPixmaps(
-            score::get_pixmap(":/icons/version_on.png"),
-            score::get_pixmap(":/icons/version_off.png"));
-        label->setOpenExternalLink(true);
-        label->setInactiveColor(QColor{"#f6a019"});
-        label->setActiveColor(QColor{"#f0f0f0"});
-        label->setFixedWidth(600);
-        label->move(280, 170);
-        label->show();
-      }
-    }, [] {}};
+    auto& tp = score::ThreadPool::instance();
+    auto t = tp.acquireThread();
+    QMetaObject::invokeMethod(t, [t, self = QPointer{this}, titleFont] {
+      auto m_getLastVersion = new HTTPGet{
+          QUrl("https://ossia.io/score-last-version.txt"),
+          [self, titleFont](const QByteArray& data) {
+        auto version = QString::fromUtf8(data.simplified());
+        if(SCORE_TAG_NO_V < version)
+        {
+          QString text
+              = qApp->tr("New version %1 is available, click to update !").arg(version);
+          QString url = "https://github.com/ossia/score/releases/latest/";
+          QMetaObject::invokeMethod(
+              QCoreApplication::instance(), [self, titleFont, text, url] {
+            if(!self)
+              return;
+            InteractiveLabel* label = new InteractiveLabel{titleFont, text, url, self};
+            label->setPixmaps(
+                score::get_pixmap(":/icons/version_on.png"),
+                score::get_pixmap(":/icons/version_off.png"));
+            label->setOpenExternalLink(true);
+            label->setInactiveColor(QColor{"#f6a019"});
+            label->setActiveColor(QColor{"#f0f0f0"});
+            label->setFixedWidth(600);
+            label->move(280, 170);
+            label->show();
+          });
+        }
+      }, [] { }};
+      connect(m_getLastVersion, &QObject::destroyed, t, [] {
+        QMetaObject::invokeMethod(QCoreApplication::instance(), [] {
+          auto& tp = score::ThreadPool::instance();
+          tp.releaseThread();
+        });
+      });
+    });
   }
 
   float label_x = 300;
