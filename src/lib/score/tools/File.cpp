@@ -5,6 +5,9 @@
 #include <QDir>
 #include <QSettings>
 
+#include <cstring>
+#include <string_view>
+
 namespace score
 {
 // Taken from https://stackoverflow.com/a/18073392/1495627
@@ -192,5 +195,19 @@ PathInfo::PathInfo(std::string_view v) noexcept
   std::cerr << " - absolutePath: " << absolutePath << "\n";
   std::cerr << " - parentDirName: " << parentDirName << "\n\n";
 */
+}
+
+alignas(32) thread_local char g_file_search_buffer[16384];
+bool fast_contains(std::string_view data, std::string_view pattern);
+
+bool fileContains(QFile& f, std::string_view pattern)
+{
+  if(!f.open(QIODevice::ReadOnly))
+    return {};
+  ssize_t sz = f.read(g_file_search_buffer, sizeof(g_file_search_buffer));
+  if(sz < pattern.size())
+    return {};
+
+  return fast_contains(std::string_view(g_file_search_buffer, sz), pattern);
 }
 }

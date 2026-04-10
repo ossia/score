@@ -91,4 +91,6 @@ inline QString readFileAsQString(QFile& f) noexcept
   return str;
 }
 
+SCORE_LIB_BASE_EXPORT
+bool fileContains(QFile& file, std::string_view pattern);
 }

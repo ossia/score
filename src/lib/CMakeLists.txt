@@ -458,6 +458,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/std/String.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Cuda.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/File.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/tools/FileContains.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/FileWatch.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/MDMEnrollmentDetection.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/RandomNameProvider.cpp"
