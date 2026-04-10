@@ -452,30 +452,6 @@ inline void check_cpu(std::string& ret)
 #endif
 }
 
-inline void check_groups(std::string& ret)
-{
-  if(!is_in_group("audio"))
-    ret += "Unix user is not in audio group! Some audio features will not work.\n";
-  if(!is_in_group("realtime"))
-    ret += "User not in realtime group! "
-        "If doing audio or precise control, consider setting up your OS for real-time processing.\n";
-  if(!is_in_group("uucp") && !is_in_group("dialout"))
-    ret += "User not in uucp (Arch, Suse, Nix) / dialout (Debian, Ubuntu Fedora) group! "
-        "Some features such as serial port access or some DMX chips won't work.\n";
-  if(!is_in_group("input"))
-    ret += "User not in input group! Raw evdev device access and some gamepads will not work.\n";
-  if(!is_in_group("video"))
-    ret += "User not in video group! Some camera features may not work.\n";
-  if(!is_in_group("bluetooth"))
-    ret += "User not in bluetooth group! Bluetooth support will not work.\n";
-#if !defined(__x86_64__)
-  if(!is_in_group("gpio"))
-    ret += "User not in gpio group! Raw GPIO access will not work.\n";
-  if(!is_in_group("i2c"))
-    ret += "User not in i2c group! Raw hardware access (I2C, etc.) will not work.\n";
-#endif
-}
-
 inline void check_libraries(std::string_view path_to_binary, std::string& ret)
 {
   std::set<std::string_view> suggested_packages_list;
@@ -633,7 +609,6 @@ inline std::string diagnostics(std::string_view path_to_binary)
 {
   std::string ret;
   check_cpu(ret);
-  check_groups(ret);
   check_libraries(path_to_binary, ret);
   check_binaries(path_to_binary, ret);
   return ret;

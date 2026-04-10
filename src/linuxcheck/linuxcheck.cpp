@@ -53,7 +53,7 @@ int main(int argc, char** argv)
     if(!system(fmt::format("kdialog --msgbox \"{}\"", text).c_str()))
       return 1;
   if(!system("command -v zenity > /dev/null 2>&1"))
-    if(!system(fmt::format("zenity --warning --text=\"{}\"", text).c_str()))
+    if(!system(fmt::format("zenity --width=800 --warning --text=\"{}\"", text).c_str()))
       return 1;
   if(!system("command -v Xdialog > /dev/null 2>&1"))
     if(!system(fmt::format("Xdialog --smooth  --msgbox \"{}\" 200 100", text).c_str()))
