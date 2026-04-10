@@ -251,15 +251,15 @@ void RecursiveWatch::scanAsync(QObject* context)
   auto watched = m_asyncWatched;
   auto root = m_root;
 
-  score::TaskPool::instance().post([watched = std::move(watched), root = std::move(root),
-                                    context = QPointer{context}] {
+  score::TaskPool::instance().post(
+      [watched = std::move(watched), root = std::move(root), pctx = QPointer{context}] {
     std::vector<std::function<void()>> actions;
 
-    auto send_to_main_thread = [context, &actions] {
+    auto send_to_main_thread = [pctx = pctx, &actions] {
       // Batch-deliver all commit actions to the GUI thread
       QMetaObject::invokeMethod(
-          QCoreApplication::instance(), [context, actions = std::move(actions)] {
-        if(!context)
+          QCoreApplication::instance(), [pctx = pctx, actions = std::move(actions)] {
+        if(!pctx)
           return;
         for(auto& action : actions)
           action();
