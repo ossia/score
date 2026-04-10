@@ -91,6 +91,14 @@ void ThreadPool::releaseThread()
 TaskPool::TaskPool()
 {
   m_running = true;
+  int max_n = std::thread::hardware_concurrency();
+  if(max_n > 8)
+    max_n = 4;
+  else if(max_n >= 4)
+    max_n = 2;
+  else
+    max_n = 1;
+
   int i = 0;
   for(auto& t : m_threads)
   {
@@ -105,6 +113,8 @@ TaskPool::TaskPool()
         }
       }
     }};
+    if(i >= max_n)
+      break;
   }
 }
 
@@ -113,7 +123,8 @@ TaskPool::~TaskPool()
   m_running = false;
   for(auto& t : m_threads)
   {
-    t.join();
+    if(t.joinable())
+      t.join();
   }
 }
 
