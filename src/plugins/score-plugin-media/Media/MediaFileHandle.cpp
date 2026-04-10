@@ -337,8 +337,10 @@ std::optional<AudioInfo> probe_drwav(const QFileInfo& fi);
 std::optional<AudioInfo> probe(const QString& path)
 {
   // FIXME we have to reload everything when the sample rate changes !!
-  auto it = AudioDecoder::database().find(path);
-  if(it == AudioDecoder::database().end())
+  QString real_path = QFileInfo{path}.canonicalFilePath();
+  auto& db = AudioDecoder::database();
+  auto it = db.find(real_path);
+  if(it == db.end())
   {
     QFileInfo fi{path};
     if(!fi.exists() || !fi.isFile() || !fi.isReadable())
@@ -349,7 +351,9 @@ std::optional<AudioInfo> probe(const QString& path)
     {
       if(auto ret = probe_drwav(fi))
       {
-        AudioDecoder::database().insert(path, *ret);
+        db.insert(path, *ret);
+        if(path != real_path)
+          db.insert(real_path, *ret);
         return ret;
       }
     }
@@ -357,14 +361,18 @@ std::optional<AudioInfo> probe(const QString& path)
     {
       if(auto ret = SndfileDecoder::do_probe(path))
       {
-        AudioDecoder::database().insert(path, *ret);
+        db.insert(path, *ret);
+        if(path != real_path)
+          db.insert(real_path, *ret);
         return ret;
       }
     }
 
     if(auto ret = AudioDecoder::do_probe(path))
     {
-      AudioDecoder::database().insert(path, *ret);
+      db.insert(path, *ret);
+      if(path != real_path)
+        db.insert(real_path, *ret);
       return ret;
     }
     return std::nullopt;
