@@ -195,7 +195,7 @@ void InteractiveLabel::paintEvent(QPaintEvent* event)
   QRectF textRect = rect();
   if(m_drawPixmap)
   {
-    int size = m_currentPixmap.width() / qApp->devicePixelRatio();
+    int size = m_currentPixmap.width() / m_currentPixmap.devicePixelRatio();
     int pixmapX = 0;
 
     if(m_textOption.alignment() == Qt::AlignRight)
@@ -210,8 +210,8 @@ void InteractiveLabel::paintEvent(QPaintEvent* event)
       pixmapX = lay.boundingRect().width();
     }
     painter.drawPixmap(
-        width() - pixmapX - m_currentPixmap.width() - 6,
-        (textRect.height() - size - 10) / 2, m_currentPixmap);
+        width() - pixmapX - size - 6, (textRect.height() - size - 10) / 2,
+        m_currentPixmap);
     textRect.setX(textRect.x() + size + 6);
   }
   painter.setFont(m_font);
