@@ -291,10 +291,11 @@ void EditJsContext::createQMLSerialDevice(QString name, QString port, QString te
   if(!doc)
     return;
 
+  auto port_str = port.toStdString();
   serial::port_info info;
   for(auto& p : serial::available_ports())
   {
-    if(p.port_name == port)
+    if(p.port_name == port_str)
     {
       info = p;
       break;
