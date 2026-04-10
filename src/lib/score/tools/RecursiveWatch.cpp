@@ -15,13 +15,8 @@
 
 // https://github.com/ned14/llfio/issues/144
 #if __has_include(<llfio.hpp>) \
-  && (__cpp_lib_concepts >= 202002L) \
-  && (__cpp_lib_span >= 202002L) && __has_include(<span>) \
-  && defined(__linux__) \
   && !defined(_WIN32) \
-  && !defined(__EMSCRIPTEN__) \
-  && !defined(__APPLE__) \
-&& (!defined(__clang_major__) || (__clang_major__ >= 14 && __clang_major__ < 21))
+  && !defined(__EMSCRIPTEN__)
 #define SCORE_HAS_LLFIO 1
 #elif defined(__APPLE__)
 #if __MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_15
@@ -37,7 +32,7 @@
 
 #if SCORE_HAS_LLFIO
 #define LLFIO_HEADERS_ONLY 1
-#define LLFIO_EXPERIMENTAL_STATUS_CODE 1
+//#define LLFIO_EXPERIMENTAL_STATUS_CODE 1
 #define LLFIO_DISABLE_OPENSSL 1
 #define QUICKCPPLIB_USE_STD_SPAN 1
 // #define OUTCOME_USE_SYSTEM_STATUS_CODE 0
