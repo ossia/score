@@ -204,10 +204,8 @@ public:
           if(warpEnabled > 0.5)
           {
               // Homography is computed in Y-down space (matching GUI).
-              // On OpenGL v_texcoord.y is flipped, so convert to Y-down first.
-#if !defined(QSHADER_SPIRV)
+              // v_texcoord.y is flipped, so convert to Y-down first.
               tc.y = 1.0 - tc.y;
-#endif
               vec3 p = vec3(tc, 1.0);
               vec3 warped = vec3(
                   dot(vec3(homographyCol0.xyz), p),
@@ -224,11 +222,8 @@ public:
               }
 
               // Convert back to native texture coord space for sourceRect lookup
-#if !defined(QSHADER_SPIRV)
               tc.y = 1.0 - tc.y;
-#endif
           }
-
           vec2 uv;
           uv.x = sourceRect.x + tc.x * sourceRect.z;
 #if defined(QSHADER_SPIRV)
@@ -237,8 +232,15 @@ public:
           float texSrcY = 1.0 - sourceRect.y - sourceRect.w;
           uv.y = texSrcY + tc.y * sourceRect.w;
 #endif
-          fragColor = texture(tex, uv);
 
+          if(uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0)
+          {
+            fragColor = vec4(0.0, 0.0, 0.0, 1.0);
+          }
+          else
+          {
+            fragColor = texture(tex, uv);
+          }
           // Soft-edge blending
           // v_texcoord.y is Y-up on both GL and Vulkan (Qt RHI normalizes this),
           // so tc.y=0 is screen bottom and tc.y=1 is screen top.
