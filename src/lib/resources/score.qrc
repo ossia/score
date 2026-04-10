@@ -1106,5 +1106,7 @@
         <file>about/about.svg</file>
         <file>startscreen/startscreen-pattern.svg</file>
         <file>startscreen/startscreen.svg</file>
+        <file>icons/exit_on@2x.png</file>
+        <file>icons/exit_off@2x.png</file>
     </qresource>
 </RCC>
