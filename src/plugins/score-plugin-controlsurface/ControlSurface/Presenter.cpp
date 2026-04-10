@@ -17,20 +17,15 @@
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/graphics/GraphicWidgets.hpp>
+#include <score/graphics/RectItem.hpp>
+#include <score/graphics/TextItem.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
 #include <ossia/detail/ssize.hpp>
 
-#include <QTimer>
-#pragma once
-#include <Process/Dataflow/PortFactory.hpp>
-#include <Process/Dataflow/PortItem.hpp>
-
-#include <score/graphics/RectItem.hpp>
-#include <score/graphics/TextItem.hpp>
-
 #include <QPointF>
+#include <QTimer>
 
 #include <cmath>
 

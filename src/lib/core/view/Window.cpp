@@ -3,6 +3,8 @@
 #include "HelperPanelDelegate.hpp"
 
 #include <score/actions/Menu.hpp>
+#include <score/application/ApplicationContext.hpp>
+#include <score/model/Skin.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
 #include <score/plugins/panel/PanelDelegate.hpp>
@@ -233,11 +235,12 @@ View::View(QObject* parent)
   totalWidg->addWidget(rightSplitter);
 
   setCentralWidget(totalWidg);
-  connect(
-      centralTabs, &QTabWidget::currentChanged, this,
-      [&](int index) {
+  connect(centralTabs, &QTabWidget::currentChanged, this, [&](int index) {
     static QMetaObject::Connection saved_connection;
     QObject::disconnect(saved_connection);
+
+    setCursor(score::Skin::instance().CursorPointer);
+
     auto widg = centralTabs->widget(index);
     auto doc = m_documents.find(widg);
     if(doc == m_documents.end())
@@ -253,8 +256,7 @@ View::View(QObject* parent)
     saved_connection = connect(
         &document.commandStack(), &score::CommandStack::saveIndexChanged, this,
         [this, doc = &document](bool state) { setTitle(*this, doc, !state); });
-  },
-      Qt::QueuedConnection);
+  }, Qt::QueuedConnection);
 
   connect(centralTabs, &QTabWidget::tabCloseRequested, this, [&](int index) {
     closeRequested(m_documents.at(centralTabs->widget(index))->document().model().id());

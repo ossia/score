@@ -139,47 +139,38 @@ Skin::Skin() noexcept
   SliderFont.setPixelSize(10 * 96. / 72.);
   SliderFont.setWeight(QFont::DemiBold);
 
-#if defined(__linux__)
-  const double dpr = qGuiApp->devicePixelRatio();
-#else
-  constexpr double dpr = 1.;
-#endif
+  int hotspotX = 12;
+  int hotspotY = 10;
+  CursorPointer = score::get_cursor(":/icons/cursor_pointer.png", hotspotX, hotspotY);
 
-  int hotspotX = 12 * dpr;
-  int hotspotY = 10 * dpr;
-  CursorPointer
-      = QCursor{score::get_pixmap(":/icons/cursor_pointer.png"), hotspotX, hotspotY};
+  int centerHotspot = 16;
+  CursorOpenHand
+      = score::get_cursor(":/icons/cursor_open_hand.png", centerHotspot, centerHotspot);
+  CursorClosedHand = score::get_cursor(
+      ":/icons/cursor_closed_hand.png", centerHotspot, centerHotspot);
+  CursorPointingHand = score::get_cursor(
+      ":/icons/cursor_pointing_hand.png", centerHotspot, centerHotspot);
 
-  int centerHotspot = 16 * dpr;
-  CursorOpenHand = QCursor{
-      score::get_pixmap(":/icons/cursor_open_hand.png"), centerHotspot, centerHotspot};
-  CursorClosedHand = QCursor{
-      score::get_pixmap(":/icons/cursor_closed_hand.png"), centerHotspot, centerHotspot};
-  CursorPointingHand = QCursor{
-      score::get_pixmap(":/icons/cursor_pointing_hand.png"), centerHotspot,
-      centerHotspot};
+  int hotspot = 15;
+  CursorMagnifier = score::get_cursor(":/icons/cursor_magnifier.png", hotspot, hotspot);
+  CursorMove = score::get_cursor(":/icons/cursor_move.png", hotspot, hotspot);
 
-  int hotspot = 15 * dpr;
-  CursorMagnifier
-      = QCursor{score::get_pixmap(":/icons/cursor_magnifier.png"), hotspot, hotspot};
-  CursorMove = QCursor{score::get_pixmap(":/icons/cursor_move.png"), hotspot, hotspot};
+  CursorScaleH
+      = score::get_cursor(":/icons/cursor_scale_h.png", centerHotspot, centerHotspot);
+  CursorScaleV
+      = score::get_cursor(":/icons/cursor_scale_v.png", centerHotspot, centerHotspot);
+  CursorScaleFDiag = score::get_cursor(
+      ":/icons/cursor_scale_fdiag.png", centerHotspot, centerHotspot);
 
-  CursorScaleH = QCursor{
-      score::get_pixmap(":/icons/cursor_scale_h.png"), centerHotspot, centerHotspot};
-  CursorScaleV = QCursor{
-      score::get_pixmap(":/icons/cursor_scale_v.png"), centerHotspot, centerHotspot};
-  CursorScaleFDiag = QCursor{
-      score::get_pixmap(":/icons/cursor_scale_fdiag.png"), centerHotspot, centerHotspot};
+  CursorSpin
+      = score::get_cursor(":/icons/cursor_spin.png", centerHotspot, centerHotspot);
 
-  CursorSpin = QCursor{
-      score::get_pixmap(":/icons/cursor_spin.png"), centerHotspot, centerHotspot};
-
-  hotspotX = 12 * dpr;
-  hotspotY = 10 * dpr;
-  CursorPlayFromHere = QCursor{
-      score::get_pixmap(":/icons/cursor_play_from_here.png"), hotspotX, hotspotY};
-  CursorCreationMode = QCursor{
-      score::get_pixmap(":/icons/cursor_creation_mode.png"), hotspotY, hotspotX};
+  hotspotX = 12;
+  hotspotY = 10;
+  CursorPlayFromHere
+      = score::get_cursor(":/icons/cursor_play_from_here.png", hotspotX, hotspotY);
+  CursorCreationMode
+      = score::get_cursor(":/icons/cursor_creation_mode.png", hotspotY, hotspotX);
 
   std::initializer_list<QFont*> mono_fonts = {&MonoFont, &MonoFontSmall};
   std::initializer_list<QFont*> fonts = {

@@ -12,6 +12,8 @@
 #include <QString>
 
 #include <score_git_info.hpp>
+
+#include <thread>
 namespace score
 {
 void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
@@ -49,6 +51,21 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
   QCommandLineOption autoplayOpt(
       "autoplay", QCoreApplication::translate("main", "Auto-play the loaded scenario"));
   parser.addOption(autoplayOpt);
+
+  QCommandLineOption vectorguiOpt(
+      "vector-gui",
+      QCoreApplication::translate(
+          "main",
+          "GUI will use vector rendering whenever possible. Slower but prettier."));
+  parser.addOption(vectorguiOpt);
+
+  QCommandLineOption no_vectorguiOpt(
+      "no-vector-gui",
+      QCoreApplication::translate(
+          "main",
+          "GUI will use pre-rendered pixmaps whenever possible. Faster but "
+          "looks pixelated when zooming."));
+  parser.addOption(no_vectorguiOpt);
 
   QCommandLineOption waitLoadOpt(
       "wait",
@@ -135,6 +152,12 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
     opengl = true;
   if(parser.isSet(noGL))
     opengl = false;
+
+  vector_gui = std::thread::hardware_concurrency() > 4;
+  if(parser.isSet(vectorguiOpt))
+    vector_gui = true;
+  if(parser.isSet(no_vectorguiOpt))
+    vector_gui = false;
 
   if(!gui)
     tryToRestore = false;

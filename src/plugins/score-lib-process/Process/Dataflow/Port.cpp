@@ -887,11 +887,11 @@ static auto makeLabelItemImpl(
     lab->setPos(layout.label);
     if(layout.labelAlignment == Qt::AlignLeft)
     {
-      lab->setPos(QPointF{layout.port.x() + 12., 5.});
+      lab->setPos(QPointF{layout.port.x() + 12., 3.5});
     }
     else
     {
-      lab->setPos(0, 5.);
+      lab->setPos(0, 3.5);
       port.setPos(lab->boundingRect().width() + 2., port.y());
       //lab->setPos(QPointF{layout.port.x() - lab->boundingRect().width(), 5.});
     }

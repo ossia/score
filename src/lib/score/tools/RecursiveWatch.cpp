@@ -3,6 +3,7 @@
 
 #include <QCoreApplication>
 #include <QMetaObject>
+#include <QPointer>
 #include <Qt>
 
 #include <cstddef>

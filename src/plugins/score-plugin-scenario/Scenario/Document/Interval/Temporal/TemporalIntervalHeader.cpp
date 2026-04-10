@@ -13,12 +13,15 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
 
+#include <score/application/ApplicationContext.hpp>
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/graphics/GraphicsSliderBaseImpl.hpp>
 #include <score/graphics/ItemBounder.hpp>
 #include <score/model/Skin.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/widgets/Pixmap.hpp>
+
+#include <core/application/ApplicationSettings.hpp>
 
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
@@ -67,6 +70,7 @@ void TemporalIntervalHeader::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   painter->setRenderHint(QPainter::Antialiasing, false);
+  painter->setRenderHint(QPainter::SmoothPixmapTransform, false);
 
   if(m_rackButton)
     m_rackButton->setState(m_state == State::RackHidden);
@@ -107,7 +111,38 @@ void TemporalIntervalHeader::paint(
     painter->setRenderHint(QPainter::Antialiasing, false);
   }
 
-  painter->drawPixmap(p, m_line);
+  static const bool vector_gui = score::AppContext().applicationSettings.vector_gui;
+  if(vector_gui)
+  {
+    const auto& model = m_presenter.model().metadata();
+    const auto& label = model.getLabel();
+    const auto& name = model.getName();
+    const auto& text = (m_state != State::Hidden || m_overlay)
+                           ? (label.isEmpty() ? name : label)
+                           : label;
+
+    if(!text.isEmpty())
+    {
+      const auto& skin = Process::Style::instance();
+      const auto& font = skin.skin.Bold10Pt;
+      painter->setFont(font);
+      if(m_hovered || m_selected)
+        painter->setPen(skin.IntervalBraceSelected());
+      else
+      {
+        const auto& col = model.getColor();
+        if(&col.getBrush() == &skin.IntervalDefaultBackground())
+          painter->setPen(skin.IntervalHeaderTextPen());
+        else
+          painter->setPen(QPen(col.getBrush().color()));
+      }
+      painter->drawText(QPointF{p.x(), p.y() + m_line.height() - 2.}, text);
+    }
+  }
+  else if(!m_line.isNull())
+  {
+    painter->drawPixmap(p, m_line);
+  }
   // painter->setPen(Qt::red);
   // painter->setBrush(Qt::transparent);
   // painter->drawPath(shape());

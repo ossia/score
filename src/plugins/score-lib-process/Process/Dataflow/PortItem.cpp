@@ -1,3 +1,4 @@
+
 #include <State/MessageListSerialization.hpp>
 
 #include <Device/Node/NodeListMimeSerialization.hpp>
@@ -9,6 +10,7 @@
 #include <Process/ProcessContext.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 
+#include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/graphics/TextItem.hpp>
@@ -16,6 +18,8 @@
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/selection/SelectionStack.hpp>
 #include <score/tools/Bind.hpp>
+
+#include <core/application/ApplicationSettings.hpp>
 
 #include <ossia/detail/algorithms.hpp>
 
@@ -50,6 +54,9 @@ static PortItem* magneticDropPort{};
 
 struct PortStyle
 {
+  Process::Style& skin = Process::Style::instance();
+  const QBrush& nobrush = skin.NoBrush();
+
   std::array<QPixmap, 5> SmallEllipsesIn;
   std::array<QPixmap, 5> LargeEllipsesIn;
 
@@ -66,6 +73,11 @@ struct PortStyle
   std::array<QPixmap, 5> Address_Inlet_Cable;
   std::array<QPixmap, 5> Address_Outlet_NoCable;
   std::array<QPixmap, 5> Address_Outlet_Cable;
+
+  QPainterPath down_arrow;
+  QPainterPath up_arrow;
+  QPainterPath down_arrow_zoom;
+  QPainterPath up_arrow_zoom;
 
   static constexpr int penSet(Process::PortType t) noexcept
   {
@@ -99,38 +111,46 @@ struct PortStyle
 
   static std::array<PenSet, 5> makePenSets()
   {
+    static const bool vector_gui = score::AppContext().applicationSettings.vector_gui;
     auto& skin = Process::Style::instance();
     const auto& audiopen = skin.AudioPortPen();
     auto audiocolor = audiopen.color();
-    static auto audiopen_cosmetic_nodot = skin.skin.Port1.main.pen_cosmetic;
+    static auto audiopen_cosmetic_nodot
+        = vector_gui ? skin.skin.Port1.main.pen1 : skin.skin.Port1.main.pen1;
     static auto audiopen_cosmetic_dot = audiopen_cosmetic_nodot;
     audiocolor.setAlphaF(0.25);
     audiopen_cosmetic_dot.setColor(audiocolor);
 
     const auto& datapen = skin.DataPortPen();
     auto datacolor = datapen.color();
-    static auto datapen_cosmetic_nodot = skin.skin.Port2.main.pen_cosmetic;
+    static auto datapen_cosmetic_nodot
+        = vector_gui ? skin.skin.Port2.main.pen1 : skin.skin.Port2.main.pen1;
     static auto datapen_cosmetic_dot = datapen_cosmetic_nodot;
     datacolor.setAlphaF(0.25);
     datapen_cosmetic_dot.setColor(datacolor);
 
     const auto& midipen = skin.MidiPortPen();
     auto midicolor = midipen.color();
-    static auto midipen_cosmetic_nodot = skin.skin.Port3.main.pen_cosmetic;
+    static auto midipen_cosmetic_nodot
+        = vector_gui ? skin.skin.Port3.main.pen1 : skin.skin.Port3.main.pen_cosmetic;
     static auto midipen_cosmetic_dot = midipen_cosmetic_nodot;
     midicolor.setAlphaF(0.25);
     midipen_cosmetic_dot.setColor(midicolor);
 
     const auto& texturepen = skin.TexturePortPen();
     auto texturecolor = texturepen.color();
-    static auto texturepen_cosmetic_nodot = skin.skin.LightGray.main.pen_cosmetic;
+    static auto texturepen_cosmetic_nodot = vector_gui
+                                                ? skin.skin.LightGray.main.pen1
+                                                : skin.skin.LightGray.main.pen_cosmetic;
     static auto texturepen_cosmetic_dot = texturepen_cosmetic_nodot;
     texturecolor.setAlphaF(0.25);
     texturepen_cosmetic_dot.setColor(audiocolor);
 
     const auto& geometrypen = skin.GeometryPortPen();
     auto geometrycolor = geometrypen.color();
-    static auto geometrypen_cosmetic_nodot = skin.skin.Emphasis3.main.pen_cosmetic;
+    static auto geometrypen_cosmetic_nodot = vector_gui
+                                                 ? skin.skin.Emphasis3.main.pen1
+                                                 : skin.skin.Emphasis3.main.pen_cosmetic;
     static auto geometrypen_cosmetic_dot = geometrypen_cosmetic_nodot;
     geometrycolor.setAlphaF(0.25);
     geometrypen_cosmetic_dot.setColor(geometrycolor);
@@ -170,117 +190,122 @@ struct PortStyle
     };
   }
 
+  static constexpr qreal smallRadius = 3.;
+  static constexpr qreal largeRadius = 5.;
+  static constexpr QRectF smallEllipse{3., 3., 2. * smallRadius, 2. * smallRadius};
+  static constexpr QRectF largeEllipse{1., 1., 2. * largeRadius, 2. * largeRadius};
   PortStyle()
       : pen_sets{makePenSets()}
   {
-    static constexpr qreal smallRadius = 3.;
-    static constexpr qreal largeRadius = 5.;
-    static constexpr QRectF smallEllipse{3., 3., 2. * smallRadius, 2. * smallRadius};
-    static constexpr QRectF largeEllipse{1., 1., 2. * largeRadius, 2. * largeRadius};
     const qreal dpi = qApp->devicePixelRatio();
     const qreal sz = dpi * 13.;
 
-#define DRAW_ELLIPSE(Image, Pen, Brush, Ellipse)              \
-  do                                                          \
-  {                                                           \
-    QImage temp(sz, sz, QImage::Format_ARGB32_Premultiplied); \
-    temp.fill(Qt::transparent);                               \
-    temp.setDevicePixelRatio(dpi);                            \
-    QPainter p(&temp);                                        \
-    p.setRenderHint(QPainter::Antialiasing, true);            \
-    p.setPen(Pen);                                            \
-    p.setBrush(Brush);                                        \
-    p.drawEllipse(Ellipse);                                   \
-    Image = QPixmap::fromImage(temp);                         \
+#define DRAW_TO_PIXMAP_SETUP                                \
+  QImage temp(sz, sz, QImage::Format_ARGB32_Premultiplied); \
+  temp.fill(Qt::transparent);                               \
+  temp.setDevicePixelRatio(dpi);                            \
+  QPainter p(&temp);                                        \
+  p.setRenderHint(QPainter::Antialiasing, true);
+
+#define DRAW_TO_PIXMAP_TEARDOWN(Image) Image = QPixmap::fromImage(temp);
+
+#define DRAW_ELLIPSE(Setup, Teardown, Image, Pen, Brush, Ellipse) \
+  do                                                              \
+  {                                                               \
+    Setup;                                                        \
+    p.setPen(Pen);                                                \
+    p.setBrush(Brush);                                            \
+    p.drawEllipse(Ellipse);                                       \
+    Teardown(Image);                                              \
   } while(0)
 
-#define DRAW_ELLIPSE_ADDR_IN(Image, Pen, Brush, Ellipse)                                \
+#define DRAW_ELLIPSE_ADDR_IN(Setup, Teardown, Image, Pen, Brush, Ellipse)               \
   do                                                                                    \
   {                                                                                     \
-    QImage temp(sz, sz, QImage::Format_ARGB32_Premultiplied);                           \
-    temp.fill(Qt::transparent);                                                         \
-    temp.setDevicePixelRatio(dpi);                                                      \
-    QPainter p(&temp);                                                                  \
-    p.setRenderHint(QPainter::Antialiasing, true);                                      \
+    Setup;                                                                              \
     p.setPen(Pen);                                                                      \
     p.setBrush(Brush);                                                                  \
     p.drawEllipse(Ellipse);                                                             \
     p.setCompositionMode(QPainter::CompositionMode_Overlay);                            \
     p.drawLine(QPointF{3. / dpi, 3. / dpi}, QPointF{(sz - 4.) / dpi, (sz - 4.) / dpi}); \
-    Image = QPixmap::fromImage(temp);                                                   \
+    Teardown(Image);                                                                    \
   } while(0)
-#define DRAW_ELLIPSE_ADDR_OUT(Image, Pen, Brush, Ellipse)                               \
+#define DRAW_ELLIPSE_ADDR_OUT(Setup, Teardown, Image, Pen, Brush, Ellipse)              \
   do                                                                                    \
   {                                                                                     \
-    QImage temp(sz, sz, QImage::Format_ARGB32_Premultiplied);                           \
-    temp.fill(Qt::transparent);                                                         \
-    temp.setDevicePixelRatio(dpi);                                                      \
-    QPainter p(&temp);                                                                  \
-    p.setRenderHint(QPainter::Antialiasing, true);                                      \
+    Setup;                                                                              \
     p.setPen(Pen);                                                                      \
     p.setBrush(Brush);                                                                  \
     p.drawEllipse(Ellipse);                                                             \
     p.setCompositionMode(QPainter::CompositionMode_ColorDodge);                         \
     p.drawLine(QPointF{3. / dpi, (sz - 4.) / dpi}, QPointF{(sz - 4.) / dpi, 3. / dpi}); \
-    Image = QPixmap::fromImage(temp);                                                   \
+    Teardown(Image);                                                                    \
   } while(0)
 
-#define DRAW_ARROW_ADDR_INLET(Image, Pen, Brush)              \
-  do                                                          \
-  {                                                           \
-    QImage temp(sz, sz, QImage::Format_ARGB32_Premultiplied); \
-    temp.fill(Qt::transparent);                               \
-    temp.setDevicePixelRatio(dpi);                            \
-    QPainter p(&temp);                                        \
-    p.setRenderHint(QPainter::Antialiasing, true);            \
-    p.setPen(Pen);                                            \
-    p.setBrush(Brush);                                        \
-    p.drawLine(QPointF{4.5, 9.5}, QPointF{4.5, 2.5});         \
-    p.drawLine(QPointF{2.5, 8}, QPointF{3.5, 9});             \
-    p.drawLine(QPointF{6.5, 7}, QPointF{5.5, 8});             \
-    Image = QPixmap::fromImage(temp);                         \
+#define DRAW_ARROW_ADDR_INLET(Setup, Teardown, Image, Pen, Brush) \
+  do                                                              \
+  {                                                               \
+    Setup;                                                        \
+    p.setPen(Pen);                                                \
+    p.setBrush(Brush);                                            \
+    p.drawPath(down_arrow);                                       \
+    Teardown(Image);                                              \
   } while(0)
 
-#define DRAW_ARROW_ADDR_OUTLET(Image, Pen, Brush)             \
-  do                                                          \
-  {                                                           \
-    QImage temp(sz, sz, QImage::Format_ARGB32_Premultiplied); \
-    temp.fill(Qt::transparent);                               \
-    temp.setDevicePixelRatio(dpi);                            \
-    QPainter p(&temp);                                        \
-    p.setRenderHint(QPainter::Antialiasing, true);            \
-    p.setPen(Pen);                                            \
-    p.setBrush(Brush);                                        \
-    p.drawLine(QPointF{4.5, 9}, QPointF{4.5, 1.5});           \
-    p.drawLine(QPointF{2.5, 3}, QPointF{3.5, 2});             \
-    p.drawLine(QPointF{6.5, 4}, QPointF{5.5, 3});             \
-    Image = QPixmap::fromImage(temp);                         \
+#define DRAW_ARROW_ADDR_OUTLET(Setup, Teardown, Image, Pen, Brush) \
+  do                                                               \
+  {                                                                \
+    Setup;                                                         \
+    p.setPen(Pen);                                                 \
+    p.setBrush(Brush);                                             \
+    p.drawPath(up_arrow);                                          \
+    Teardown(Image);                                               \
   } while(0)
 
-    auto& skin = Process::Style::instance();
-    const auto& nobrush = skin.NoBrush();
+    down_arrow.moveTo(4.5, 2.5);
+    down_arrow.lineTo(4.5, 9.5);
+    down_arrow.moveTo(2.5, 7.5);
+    down_arrow.lineTo(4.5, 9.5);
+    down_arrow.lineTo(6.5, 7.5);
+
+    up_arrow.moveTo(4.5, 9.0);
+    up_arrow.lineTo(4.5, 1.5);
+    up_arrow.moveTo(2.5, 3.5);
+    up_arrow.lineTo(4.5, 1.5);
+    up_arrow.lineTo(6.5, 3.5);
+
+    down_arrow_zoom.moveTo(4, 2.5);
+    down_arrow_zoom.lineTo(4, 9.5);
+    down_arrow_zoom.moveTo(2, 8.);
+    down_arrow_zoom.lineTo(4, 9.5);
+    down_arrow_zoom.lineTo(6, 7.5);
+
+    up_arrow_zoom.moveTo(4.5, 9.0);
+    up_arrow_zoom.lineTo(4.5, 1.5);
+    up_arrow_zoom.moveTo(2.5, 3.);
+    up_arrow_zoom.lineTo(4.5, 1.5);
+    up_arrow_zoom.lineTo(6.5, 3.5);
+
     for(int i = 0; i < 5; i++)
     {
       auto& pens = pen_sets[i];
 
       // clang-format off
-      DRAW_ELLIPSE(SmallEllipsesIn[i], pens.pen_base, nobrush, smallEllipse);
-      DRAW_ELLIPSE(LargeEllipsesIn[i], pens.pen_base, nobrush, largeEllipse);
-      DRAW_ELLIPSE(SmallEllipsesOut[i], pens.pen_base, pens.brush_base, smallEllipse);
-      DRAW_ELLIPSE(LargeEllipsesOut[i], pens.pen_base, pens.brush_base, largeEllipse);
-      DRAW_ELLIPSE(SmallEllipsesInLight[i], pens.pen_light, nobrush, smallEllipse);
-      DRAW_ELLIPSE(LargeEllipsesInLight[i], pens.pen_light, nobrush, largeEllipse);
-      DRAW_ELLIPSE(SmallEllipsesOutLight[i], pens.pen_light, pens.brush_light, smallEllipse);
-      DRAW_ELLIPSE(LargeEllipsesOutLight[i], pens.pen_light, pens.brush_light, largeEllipse);
+      DRAW_ELLIPSE(DRAW_TO_PIXMAP_SETUP, DRAW_TO_PIXMAP_TEARDOWN, SmallEllipsesIn[i], pens.pen_base, nobrush, smallEllipse);
+      DRAW_ELLIPSE(DRAW_TO_PIXMAP_SETUP, DRAW_TO_PIXMAP_TEARDOWN, LargeEllipsesIn[i], pens.pen_base, nobrush, largeEllipse);
+      DRAW_ELLIPSE(DRAW_TO_PIXMAP_SETUP, DRAW_TO_PIXMAP_TEARDOWN, SmallEllipsesOut[i], pens.pen_base, pens.brush_base, smallEllipse);
+      DRAW_ELLIPSE(DRAW_TO_PIXMAP_SETUP, DRAW_TO_PIXMAP_TEARDOWN, LargeEllipsesOut[i], pens.pen_base, pens.brush_base, largeEllipse);
+      DRAW_ELLIPSE(DRAW_TO_PIXMAP_SETUP, DRAW_TO_PIXMAP_TEARDOWN, SmallEllipsesInLight[i], pens.pen_light, nobrush, smallEllipse);
+      DRAW_ELLIPSE(DRAW_TO_PIXMAP_SETUP, DRAW_TO_PIXMAP_TEARDOWN, LargeEllipsesInLight[i], pens.pen_light, nobrush, largeEllipse);
+      DRAW_ELLIPSE(DRAW_TO_PIXMAP_SETUP, DRAW_TO_PIXMAP_TEARDOWN, SmallEllipsesOutLight[i], pens.pen_light, pens.brush_light, smallEllipse);
+      DRAW_ELLIPSE(DRAW_TO_PIXMAP_SETUP, DRAW_TO_PIXMAP_TEARDOWN, LargeEllipsesOutLight[i], pens.pen_light, pens.brush_light, largeEllipse);
 
-      DRAW_ARROW_ADDR_INLET(Address_Inlet_NoCable[i], pens.pen_cosmetic_nodot, nobrush);
-      DRAW_ARROW_ADDR_INLET(Address_Inlet_Cable[i], pens.pen_cosmetic_dot, nobrush);
-      DRAW_ARROW_ADDR_OUTLET(Address_Outlet_NoCable[i], pens.pen_cosmetic_nodot, nobrush);
-      DRAW_ARROW_ADDR_OUTLET(Address_Outlet_Cable[i], pens.pen_cosmetic_dot, nobrush);
+      DRAW_ARROW_ADDR_INLET(DRAW_TO_PIXMAP_SETUP,  DRAW_TO_PIXMAP_TEARDOWN, Address_Inlet_NoCable[i], pens.pen_cosmetic_nodot, nobrush);
+      DRAW_ARROW_ADDR_INLET(DRAW_TO_PIXMAP_SETUP,  DRAW_TO_PIXMAP_TEARDOWN, Address_Inlet_Cable[i], pens.pen_cosmetic_dot, nobrush);
+      DRAW_ARROW_ADDR_OUTLET(DRAW_TO_PIXMAP_SETUP, DRAW_TO_PIXMAP_TEARDOWN, Address_Outlet_NoCable[i], pens.pen_cosmetic_nodot, nobrush);
+      DRAW_ARROW_ADDR_OUTLET(DRAW_TO_PIXMAP_SETUP, DRAW_TO_PIXMAP_TEARDOWN, Address_Outlet_Cable[i], pens.pen_cosmetic_dot, nobrush);
       // clang-format on
     }
-
-#undef DRAW_ELLIPSE
   }
 };
 }
@@ -360,39 +385,87 @@ public:
     if(!has_address && !has_propagate)
       return;
 
+    painter->setRenderHint(QPainter::SmoothPixmapTransform, false);
     auto& arrows = *port_skin_p;
     const int n = arrows.penSet(type);
     static constexpr QPointF pos{0, 0};
 
-    if(inlet)
+    static const bool vector_gui = score::AppContext().applicationSettings.vector_gui;
+    if(vector_gui)
     {
-      if(has_address)
+      auto scale = painter->transform().m22();
+      auto& p = *painter;
+      auto& Brush = arrows.nobrush;
+
+      if(inlet)
       {
-        if(has_cables)
+        if(has_address)
         {
-          painter->drawPixmap(pos, arrows.Address_Inlet_Cable[n]);
+          auto& Pen = has_cables ? arrows.pen_sets[n].pen_cosmetic_nodot
+                                 : arrows.pen_sets[n].pen_cosmetic_nodot;
+          p.setPen(Pen);
+          p.setBrush(Brush);
+
+          painter->setRenderHint(QPainter::Antialiasing, true);
+          p.drawPath(scale > 1.1 ? arrows.down_arrow : arrows.down_arrow_zoom);
+          painter->setRenderHint(QPainter::Antialiasing, false);
         }
-        else
+      }
+      else
+      {
+        if(has_propagate)
         {
-          painter->drawPixmap(pos, arrows.Address_Inlet_NoCable[n]);
+          auto& Pen = arrows.pen_sets[n].pen_cosmetic_nodot;
+          p.setPen(Pen);
+          p.setBrush(Brush);
+          painter->setRenderHint(QPainter::Antialiasing, true);
+          p.drawPath(scale > 1.1 ? arrows.up_arrow : arrows.up_arrow_zoom);
+          painter->setRenderHint(QPainter::Antialiasing, false);
+        }
+        else if(has_address)
+        {
+          auto& Pen = has_cables ? arrows.pen_sets[n].pen_cosmetic_nodot
+                                 : arrows.pen_sets[n].pen_cosmetic_nodot;
+          p.setPen(Pen);
+          p.setBrush(Brush);
+          painter->setRenderHint(QPainter::Antialiasing, true);
+          p.drawPath(scale > 1.1 ? arrows.up_arrow : arrows.up_arrow_zoom);
+          painter->setRenderHint(QPainter::Antialiasing, false);
         }
       }
     }
     else
     {
-      if(has_propagate)
+      if(inlet)
       {
-        painter->drawPixmap(pos, arrows.Address_Outlet_NoCable[n]);
-      }
-      else if(has_address)
-      {
-        if(has_cables)
+        if(has_address)
         {
-          painter->drawPixmap(pos, arrows.Address_Outlet_Cable[n]);
+          if(has_cables)
+          {
+            painter->drawPixmap(pos, arrows.Address_Inlet_Cable[n]);
+          }
+          else
+          {
+            painter->drawPixmap(pos, arrows.Address_Inlet_NoCable[n]);
+          }
         }
-        else
+      }
+      else
+      {
+        if(has_propagate)
         {
           painter->drawPixmap(pos, arrows.Address_Outlet_NoCable[n]);
+        }
+        else if(has_address)
+        {
+          if(has_cables)
+          {
+            painter->drawPixmap(pos, arrows.Address_Outlet_Cable[n]);
+          }
+          else
+          {
+            painter->drawPixmap(pos, arrows.Address_Outlet_NoCable[n]);
+          }
         }
       }
     }
@@ -577,9 +650,28 @@ QRectF PortItem::boundingRect() const
 void PortItem::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  const QPixmap& img = portImage(
-      m_port.type(), m_inlet, m_diam == 8., m_highlight, m_port.address().isSet());
-  painter->drawPixmap(0, 0, img);
+  const bool small = m_diam == 8.;
+  const bool addr = m_port.address().isSet();
+  static const bool vector_gui = score::AppContext().applicationSettings.vector_gui;
+  if(vector_gui)
+  {
+    static const auto& skin = Process::Style::instance();
+    const auto& nobrush = skin.NoBrush();
+
+    auto& pens = port_skin_p->pen_sets[port_skin_p->penSet(m_port.type())];
+
+    painter->setPen(m_highlight ? pens.pen_light : pens.pen_base);
+    painter->setBrush(addr ? pens.brush_base : nobrush);
+
+    painter->setRenderHint(QPainter::Antialiasing, true);
+    painter->drawEllipse(small ? PortStyle::smallEllipse : PortStyle::largeEllipse);
+    painter->setRenderHint(QPainter::Antialiasing, false);
+  }
+  else
+  {
+    const QPixmap& img = portImage(m_port.type(), m_inlet, small, m_highlight, addr);
+    painter->drawPixmap(0, 0, img);
+  }
 }
 
 void PortItem::mousePressEvent(QGraphicsSceneMouseEvent* event)

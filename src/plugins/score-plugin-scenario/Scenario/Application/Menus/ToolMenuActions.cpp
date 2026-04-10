@@ -285,7 +285,7 @@ void ToolMenuActions::setExpandMode(ExpandMode mode)
       setIcons(
           m_scaleAction, QStringLiteral(":/icons/scale_content_on.png"),
           QStringLiteral(":/icons/scale_content_hover.png"),
-          QStringLiteral(":/icons/scale_on.png"),
+          QStringLiteral(":/icons/scale_tool_on.png"),
           QStringLiteral(":/icons/scale_content_disabled.png"));
       break;
     }
@@ -297,7 +297,7 @@ void ToolMenuActions::setExpandMode(ExpandMode mode)
       setIcons(
           m_scaleAction, QStringLiteral(":/icons/scale_content_on.png"),
           QStringLiteral(":/icons/scale_hover.png"),
-          QStringLiteral(":/icons/scale_on.png"),
+          QStringLiteral(":/icons/scale_tool_on.png"),
           QStringLiteral(":/icons/scale_disabled.png"));
       break;
     }

@@ -10,9 +10,12 @@
 #include <ossia/detail/hash_map.hpp>
 
 #include <QDebug>
+#include <QDirIterator>
 #include <QFile>
 #include <QGuiApplication>
 #include <QScreen>
+#include <QSvgRenderer>
+#include <QtSvg>
 
 namespace std
 {
@@ -184,15 +187,89 @@ QIcon genIconFromPixmaps(
 }
 namespace score
 {
-
-QPixmap get_pixmap(QString str)
+static ossia::hash_map<QString, QString> svg_pixmap_map{};
+static void init_svgmap()
 {
+  if(svg_pixmap_map.empty())
+  {
+    QDirIterator d{
+        ":/",
+        {"*.svg"},
+        QDir::Files | QDir::NoDotAndDotDot,
+        QDirIterator::Subdirectories};
+    while(d.hasNext())
+    {
+      const auto& file = d.nextFileInfo();
+      svg_pixmap_map[file.baseName()] = file.absoluteFilePath();
+    }
+  }
+}
+
+static QPixmap render_svg(const QString& svg, double scaleFactor)
+{
+  QSvgRenderer renderer{svg};
+
+  QSize baseSize = renderer.defaultSize();
+  QSize targetSize = baseSize * scaleFactor;
+  QPixmap img{targetSize};
+  img.fill(Qt::transparent);
+
+  QPainter painter{&img};
+  painter.setRenderHint(QPainter::Antialiasing);
+  renderer.render(&painter);
+  painter.end();
+
+  img.setDevicePixelRatio(scaleFactor);
+
+  return img;
+}
+
+static QImage render_svg_image(const QString& svg, double scaleFactor)
+{
+  QSvgRenderer renderer{svg};
+
+  QSize baseSize = renderer.defaultSize();
+  QSize targetSize = baseSize * scaleFactor;
+  QImage img{targetSize, QImage::Format_ARGB32_Premultiplied};
+  img.fill(Qt::transparent);
+
+  QPainter painter{&img};
+  painter.setRenderHint(QPainter::Antialiasing);
+  renderer.render(&painter);
+  painter.end();
+
+  img.setDevicePixelRatio(scaleFactor);
+
+  return img;
+}
+
+QPixmap get_pixmap(QString str, QString svg)
+{
+  init_svgmap();
+
   QPixmap img;
-  static const bool gui = score::AppContext().applicationSettings.gui;
-  if(!gui)
+  static const auto& appSettings = score::AppContext().applicationSettings;
+  if(!appSettings.gui)
     return img;
 
-  if(qGuiApp->devicePixelRatio() >= 1.5)
+  if(appSettings.vector_gui)
+  {
+    if(QFile::exists(svg))
+    {
+      return render_svg(svg, 4.);
+    }
+    else
+    {
+      QFileInfo f{str};
+      if(auto it = svg_pixmap_map.find(f.baseName()); it != svg_pixmap_map.end())
+      {
+        img.load(it->second);
+        return render_svg(it->second, 4.);
+      }
+    }
+  }
+
+  if(appSettings.vector_gui || qGuiApp->devicePixelRatio() >= 1.5)
   {
     auto newstr = str;
     newstr.replace(".png", "@2x.png", Qt::CaseInsensitive);
@@ -210,14 +287,63 @@ QPixmap get_pixmap(QString str)
   return img;
 }
 
-QImage get_image(QString str)
+QCursor get_cursor(QString str, double hotspot_x, double hotspot_y)
 {
+  QCursor cur;
+  static const auto& appSettings = score::AppContext().applicationSettings;
+  if(!appSettings.gui)
+    return cur;
+
+  // Here we don't care about the vector gui thing as cursors are never scaled
+  QPixmap img;
+  if(qGuiApp->devicePixelRatio() >= 1.5)
+  {
+    auto newstr = str;
+    newstr.replace(".png", "@2x.png", Qt::CaseInsensitive);
+    if(QFile::exists(newstr))
+    {
+      img.setDevicePixelRatio(2.);
+      hotspot_x *= 2.;
+      hotspot_y *= 2.;
+      str = newstr;
+    }
+    else
+    {
+      qDebug() << "hidpi pixmap not found: " << newstr;
+    }
+  }
+  img.load(str);
+  cur = QCursor{img, (int)hotspot_x, (int)hotspot_y};
+  return cur;
+}
+
+QImage get_image(QString str, QString svg)
+{
+  init_svgmap();
+
   QImage img;
-  static const bool gui = score::AppContext().applicationSettings.gui;
-  if(!gui)
+  static const auto& appSettings = score::AppContext().applicationSettings;
+  if(!appSettings.gui)
     return img;
 
-  if(qGuiApp->devicePixelRatio() >= 2.0)
+  if(appSettings.vector_gui)
+  {
+    if(QFile::exists(svg))
+    {
+      return render_svg_image(svg, 4.);
+    }
+    else
+    {
+      QFileInfo f{str};
+      if(auto it = svg_pixmap_map.find(f.baseName()); it != svg_pixmap_map.end())
+      {
+        img.load(it->second);
+        return render_svg_image(it->second, 4.);
+      }
+    }
+  }
+
+  if(appSettings.vector_gui || qGuiApp->devicePixelRatio() >= 2.0)
   {
     auto newstr = str;
     newstr.replace(".png", "@2x.png", Qt::CaseInsensitive);

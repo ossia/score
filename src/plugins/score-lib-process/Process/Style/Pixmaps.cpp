@@ -54,8 +54,8 @@ Pixmaps::Pixmaps() noexcept
     , timeline_off{score::get_pixmap(":/icons/timeline_off.png")}
     , timeline_on{score::get_pixmap(":/icons/timeline_on.png")}
 
-    , unmuted{score::get_pixmap(":/icons/process_on.png")}
-    , muted{score::get_pixmap(":/icons/process_off.png")}
+    , unmuted{score::get_pixmap(":/icons/process_interval_on.png")}
+    , muted{score::get_pixmap(":/icons/process_interval_off.png")}
 
     , play{score::get_pixmap(":/icons/play_off.png").scaled(15, 15)}
     , stop{score::get_pixmap(":/icons/stop_off.png").scaled(15, 15)}

@@ -1,5 +1,8 @@
+#include <score/application/ApplicationContext.hpp>
 #include <score/graphics/widgets/QGraphicsPixmapToggle.hpp>
 #include <score/model/Skin.hpp>
+
+#include <core/application/ApplicationSettings.hpp>
 
 #include <QGraphicsSceneMouseEvent>
 #include <QGuiApplication>
@@ -22,7 +25,8 @@ QGraphicsPixmapToggle::QGraphicsPixmapToggle(
   setCursor(skin.CursorPointingHand);
   this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
 
-  if(std::fmod(qGuiApp->devicePixelRatio(), 1.0f) != 0.f)
+  static const bool vector_gui = score::AppContext().applicationSettings.vector_gui;
+  if(vector_gui || std::fmod(qGuiApp->devicePixelRatio(), 1.0f) != 0.f)
     this->setTransformationMode(Qt::SmoothTransformation);
 }
 

@@ -30,6 +30,9 @@ struct SCORE_LIB_BASE_EXPORT ApplicationSettings
   //! If true, will start playing after loading the scenarios
   bool autoplay = false;
 
+  //! GUI will use not pre-rendered pixmaps whenever possible. Pixmaps are faster but looks pixelated when zooming.
+  bool vector_gui = true;
+
   //! The version of the base score framework's JSON save file.
   score::Version saveFormatVersion{4};
 

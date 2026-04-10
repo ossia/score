@@ -2,7 +2,10 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "TextItem.hpp"
 
+#include <score/application/ApplicationContext.hpp>
 #include <score/graphics/GraphicsItem.hpp>
+
+#include <core/application/ApplicationSettings.hpp>
 
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsView>
@@ -18,7 +21,7 @@ namespace score
 {
 
 TextItem::TextItem(QString text, QGraphicsItem* parent)
-    : QGraphicsTextItem{text, parent}
+    : QGraphicsTextItem{std::move(text), parent}
 {
   this->setFlag(QGraphicsItem::ItemIsFocusable);
   this->setDefaultTextColor(Qt::white);
@@ -44,15 +47,26 @@ QRectF SimpleTextItem::boundingRect() const
 void SimpleTextItem::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  if(!m_string.isEmpty())
+  static const bool vector_gui = score::AppContext().applicationSettings.vector_gui;
+  if(vector_gui)
   {
+    static const auto& skin = score::Skin::instance();
+    if(m_color)
+      painter->setPen(m_color->pen1);
+    painter->setFont(m_font);
+    painter->setBrush(skin.NoBrush);
+    painter->drawText(QPointF{0, (float)m_line.height() - 2.}, m_string);
+  }
+  else if(!m_string.isEmpty())
+  {
+    painter->setRenderHint(QPainter::SmoothPixmapTransform, false);
     painter->drawImage(QPointF{0, 0}, m_line);
   }
 }
 
 void SimpleTextItem::setFont(const QFont& f)
 {
-  m_font = std::move(f);
+  m_font = f;
   m_font.setStyleStrategy(QFont::PreferAntialias);
   updateImpl();
 }
@@ -63,7 +77,7 @@ const QString& SimpleTextItem::text() const noexcept
 }
 void SimpleTextItem::setText(const QString& s)
 {
-  m_string = std::move(s);
+  m_string = s;
   updateImpl();
 }
 

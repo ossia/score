@@ -177,6 +177,7 @@ void View::paint_impl(QPainter* painter) const
 
   auto it = images.cbegin();
 
+  painter->setRenderHint(QPainter::SmoothPixmapTransform, false);
   for(int i = 0; i < count; i++)
   {
     const int64_t rawFlicks = (start + i) * flicks_advance;

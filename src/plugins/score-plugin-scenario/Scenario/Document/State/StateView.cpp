@@ -12,8 +12,11 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 
+#include <score/application/ApplicationContext.hpp>
 #include <score/model/ColorReference.hpp>
 #include <score/widgets/MimeData.hpp>
+
+#include <core/application/ApplicationSettings.hpp>
 
 #include <QApplication>
 #include <QCursor>
@@ -73,7 +76,9 @@ static const QPainterPath fullProcessDilated{[] {
 }()};
 static bool is_hidpi()
 {
-  static const bool res = (qApp->screens().front()->devicePixelRatio() > 1.5);
+  static const bool vector_gui = score::AppContext().applicationSettings.vector_gui;
+  static const bool res
+      = vector_gui || (qApp->screens().front()->devicePixelRatio() > 1.5);
   return res;
 }
 StateView::StateView(StatePresenter& pres, QGraphicsItem* parent)

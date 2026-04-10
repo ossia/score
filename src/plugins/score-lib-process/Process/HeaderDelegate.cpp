@@ -240,6 +240,7 @@ void DefaultHeaderDelegate::updatePorts()
 void DefaultHeaderDelegate::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
+  painter->setRenderHint(QPainter::SmoothPixmapTransform, false);
   const auto start = 3. + m_portStartX;
   const auto w = boundingRect().width();
   if(w > minPortWidth())
