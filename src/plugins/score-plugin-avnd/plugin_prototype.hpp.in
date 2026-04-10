@@ -1,3 +1,4 @@
+#pragma once
 // clang-format off
 #include <score/application/ApplicationContext.hpp>
 #include <score/plugins/Interface.hpp>
