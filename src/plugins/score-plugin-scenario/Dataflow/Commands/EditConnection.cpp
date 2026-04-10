@@ -71,7 +71,9 @@ void onCreateCable(
   // Feedback handling
   if(port1.parent() == port2.parent())
   {
-    cd = Process::CableType::DelayedGlutton;
+    // Note: we can't really make it work for now,
+    // an intermediary passthrough node is always needed.
+    return;
   }
   else
   {
