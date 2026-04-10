@@ -23,7 +23,6 @@ int main(int argc, char** argv)
   }
 
   auto text = linuxcheck::diagnostics(argv[1]);
-  text += " ";
   if(text.empty())
     return 0;
 
