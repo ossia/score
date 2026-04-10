@@ -295,6 +295,8 @@ struct StartScreenLink
 StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget* parent)
     : QWidget(parent)
 {
+  auto& skin = score::Skin::instance();
+  setCursor(skin.CursorPointer);
 // Workaround until https://bugreports.qt.io/browse/QTBUG-103225 is fixed
 #if defined(__APPLE__)
   static constexpr double font_factor = 96. / 72.;
