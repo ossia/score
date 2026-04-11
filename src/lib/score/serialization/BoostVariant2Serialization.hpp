@@ -244,7 +244,7 @@ struct TSerializer<JSONObject, ossia::monostate>
   static void writeTo(JSONObject::Deserializer& s, ossia::monostate& var) { }
 };
 
-JSON_METADATA(std::string, "string")
+JSON_METADATA(std::string, "String")
 
 JSON_METADATA(std::uint8_t, "u8")
 JSON_METADATA(std::uint16_t, "u16")
@@ -253,7 +253,7 @@ JSON_METADATA(std::uint64_t, "u64")
 
 JSON_METADATA(std::int8_t, "i8")
 JSON_METADATA(std::int16_t, "i16")
-JSON_METADATA(std::int32_t, "i32")
+JSON_METADATA(std::int32_t, "Int")
 JSON_METADATA(std::int64_t, "i64")
 
 JSON_METADATA(std::monostate, "monostate")

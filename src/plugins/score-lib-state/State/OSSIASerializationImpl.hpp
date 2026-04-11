@@ -4,6 +4,7 @@
 #include <State/ValueConversion.hpp>
 #include <State/ValueSerialization.hpp>
 
+#include <score/serialization/BoostVariant2Serialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/MapSerialization.hpp>
 #include <score/serialization/VariantSerialization.hpp>
@@ -16,7 +17,7 @@
 
 #include <score_lib_state_export.h>
 JSON_METADATA(ossia::impulse, "Impulse")
-JSON_METADATA(int32_t, "Int")
+//JSON_METADATA(int32_t, "Int")
 JSON_METADATA(ossia::value_map_type, "Map")
 JSON_METADATA(bool, "Bool")
 JSON_METADATA(float, "Float")
@@ -24,7 +25,7 @@ JSON_METADATA(ossia::vec2f, "Vec2f")
 JSON_METADATA(ossia::vec3f, "Vec3f")
 JSON_METADATA(ossia::vec4f, "Vec4f")
 JSON_METADATA(std::vector<ossia::value>, "Tuple")
-JSON_METADATA(std::string, "String")
+//JSON_METADATA(std::string, "String")
 JSON_METADATA(ossia::domain_base<ossia::impulse>, "Impulse")
 JSON_METADATA(ossia::domain_base<int32_t>, "Int")
 JSON_METADATA(ossia::domain_base<bool>, "Bool")
