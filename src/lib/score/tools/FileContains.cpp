@@ -6,9 +6,23 @@
 #include <cstring>
 #include <string_view>
 
-#if defined(__x86_64__) && !defined(_MSC_VER) && __has_include(<immintrin.h>)
-#include <immintrin.h>
+namespace score
+{
+#if !defined(_MSC_VER)
+__attribute__((target("default")))
+#endif
+bool fast_contains(std::string_view data, std::string_view pattern)
+{
+  return data.contains(pattern);
+}
+}
 
+#if defined(__x86_64__) && !defined(_MSC_VER) && __has_include(<immintrin.h>)
+
+#pragma GCC push_options
+#pragma GCC target("avx2")
+
+#include <immintrin.h>
 namespace
 {
 struct NeedleCtxShort
@@ -20,7 +34,8 @@ struct NeedleCtxShort
   uint32_t len_mask;
 };
 
-NeedleCtxShort prepare_needle_short(const void* needle, size_t len)
+__attribute__((target("avx2"))) NeedleCtxShort
+prepare_needle_short(const void* needle, size_t len)
 {
   auto* p = (const uint8_t*)needle;
   NeedleCtxShort ctx;
@@ -38,7 +53,8 @@ NeedleCtxShort prepare_needle_short(const void* needle, size_t len)
   return ctx;
 }
 
-bool avx2_contains_short(const char* data, size_t size, const NeedleCtxShort& ctx)
+__attribute__((target("avx2"))) bool
+avx2_contains_short(const char* data, size_t size, const NeedleCtxShort& ctx)
 {
   if(size < ctx.len)
     return false;
@@ -194,12 +210,5 @@ fast_contains(std::string_view data, std::string_view pattern)
   }
 }
 }
+#pragma GCC pop_options
 #endif
-namespace score
-{
-__attribute__((target("default"))) bool
-fast_contains(std::string_view data, std::string_view pattern)
-{
-  return data.contains(pattern);
-}
-}

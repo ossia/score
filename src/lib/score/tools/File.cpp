@@ -198,6 +198,10 @@ PathInfo::PathInfo(std::string_view v) noexcept
 }
 
 alignas(32) thread_local char g_file_search_buffer[16384];
+
+#if !defined(_MSC_VER)
+__attribute__((target("default")))
+#endif
 bool fast_contains(std::string_view data, std::string_view pattern);
 
 bool fileContains(QFile& f, std::string_view pattern)
