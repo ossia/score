@@ -302,17 +302,20 @@ QCursor get_cursor(QString str, double hotspot_x, double hotspot_y)
     newstr.replace(".png", "@2x.png", Qt::CaseInsensitive);
     if(QFile::exists(newstr))
     {
-      img.setDevicePixelRatio(2.);
-      hotspot_x *= 2.;
-      hotspot_y *= 2.;
       str = newstr;
+      img.load(str);
+      img.setDevicePixelRatio(2.);
     }
     else
     {
       qDebug() << "hidpi pixmap not found: " << newstr;
+      img.load(str);
     }
   }
-  img.load(str);
+  else
+  {
+    img.load(str);
+  }
   cur = QCursor{img, (int)hotspot_x, (int)hotspot_y};
   return cur;
 }

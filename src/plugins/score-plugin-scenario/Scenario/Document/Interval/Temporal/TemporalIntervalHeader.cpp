@@ -136,7 +136,7 @@ void TemporalIntervalHeader::paint(
         else
           painter->setPen(QPen(col.getBrush().color()));
       }
-      painter->drawText(QPointF{p.x(), p.y() + m_line.height() - 2.}, text);
+      painter->drawText(QPointF{p.x(), p.y() + m_textRectCache.height() - 2.}, text);
     }
   }
   else if(!m_line.isNull())

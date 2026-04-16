@@ -55,7 +55,7 @@ void SimpleTextItem::paint(
       painter->setPen(m_color->pen1);
     painter->setFont(m_font);
     painter->setBrush(skin.NoBrush);
-    painter->drawText(QPointF{0, (float)m_line.height() - 2.}, m_string);
+    painter->drawText(QPointF{0, (float)m_rect.height() - 2.}, m_string);
   }
   else if(!m_string.isEmpty())
   {
