@@ -23,7 +23,10 @@ struct InfiniteScroller
 #if !defined(__EMSCRIPTEN__)
     self.setCursor(QCursor(Qt::BlankCursor));
 #endif
-    currentGeometry = qGuiApp->primaryScreen()->availableGeometry();
+    auto* screen = qGuiApp->screenAt(QCursor::pos());
+    if(!screen)
+      screen = qGuiApp->primaryScreen();
+    currentGeometry = screen->availableGeometry();
   }
 
   static void move_free(QGraphicsSceneMouseEvent* event)
@@ -36,14 +39,15 @@ struct InfiniteScroller
       currentDelta += ratio * delta;
     }
 
-    const double max = currentGeometry.height();
-    if(event->screenPos().y() <= 100)
+    const double top = currentGeometry.top();
+    const double bottom = currentGeometry.bottom();
+    if(event->screenPos().y() <= top + 100)
     {
-      score::setCursorPos(QPointF(event->screenPos().x(), max - 101));
+      score::setCursorPos(QPointF(event->screenPos().x(), bottom - 101));
     }
-    else if(event->screenPos().y() >= (max - 100))
+    else if(event->screenPos().y() >= bottom - 100)
     {
-      score::setCursorPos(QPointF(event->screenPos().x(), 101));
+      score::setCursorPos(QPointF(event->screenPos().x(), top + 101));
     }
   }
 
