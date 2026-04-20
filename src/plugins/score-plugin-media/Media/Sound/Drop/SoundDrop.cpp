@@ -22,7 +22,8 @@ DroppedAudioFiles::DroppedAudioFiles(
   for(const auto& url : urls)
   {
     QString filename = url.toLocalFile();
-    if(!AudioFile::isSupported(QFile{filename}))
+    if(!(AudioFile::isSupported(QFile{filename}) 
+      || AudioFile::isSupportedVideo(QFile{filename})))
       continue;
 
     if(auto info_opt = probe(filename))
@@ -50,7 +51,9 @@ QSet<QString> DropHandler::mimeTypes() const noexcept
 
 QSet<QString> DropHandler::fileExtensions() const noexcept
 {
-  return {"wav", "mp3", "m4a", "ogg", "flac", "aif", "aiff", "w64", "ape", "wv", "wma"};
+  return {"wav", "mp3", "m4a", "ogg", "flac", "aif", "aiff", "w64", "ape", "wv", "wma",
+          "mkv", "mov", "mp4", "h264", "avi", "hap",  "mpg", "mpeg",
+          "imf", "mxf", "mts", "m2ts", "mj2", "webm", "y4m", "nut", "ts"};
 }
 
 void DropHandler::dropCustom(

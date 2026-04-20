@@ -74,6 +74,7 @@ struct SCORE_PLUGIN_MEDIA_EXPORT AudioFile final : public QObject
 {
 public:
   static bool isSupported(const QFile& f);
+  static bool isSupportedVideo(const QFile& f);
 
   AudioFile();
   ~AudioFile() override;
