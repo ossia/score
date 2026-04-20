@@ -439,6 +439,9 @@ public:
       ossia::qt::qml_device_cache cache;
       for(auto node : r)
         cache.push_back(&node->get_device());
+      // Always keep the mapper device itself so Device.read() can access its own nodes
+      if(m_device)
+        cache.push_back(m_device);
       ossia::remove_duplicates(cache);
       device_obj->devices = cache;
       m_roots = std::move(r);
