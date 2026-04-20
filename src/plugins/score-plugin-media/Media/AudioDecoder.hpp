@@ -21,6 +21,7 @@ namespace Media
 {
 struct AudioInfo
 {
+  int32_t audioStream{-1};
   int32_t fileRate{};
   int32_t convertedRate{};
   int64_t channels{};

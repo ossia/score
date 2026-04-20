@@ -460,6 +460,7 @@ try
     {
       auto stream = fmt_ctx->streams[i];
       AudioInfo info;
+      info.audioStream = i;
       info.channels = ossia::avstream_get_audio_channels(*stream);
       if(info.channels == 0)
         return {};

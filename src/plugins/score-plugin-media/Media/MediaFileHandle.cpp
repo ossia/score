@@ -54,7 +54,12 @@ static DecodingMethod needsDecoding(const QString& path, int rate)
   }
   else
   {
-    return DecodingMethod::Libav;
+    if(AudioFile::isSupportedVideo(QFile{path}))
+    {
+      return DecodingMethod::LibavStream;
+    }
+    else
+      return DecodingMethod::Libav;
   }
 }
 
@@ -115,9 +120,16 @@ void AudioFile::load(DecodingSetup opt)
       load_sndfile();
       break;
     case DecodingMethod::LibavStream:
-      // FIXME
       if(m_track == -1)
-        m_track = 0;
+      {
+        const auto& info = probe(m_file);
+        if(info && info->audioStream)
+        {
+          m_track = info->audioStream;
+        }
+        else
+          m_track = 0;
+      }
       load_libav_stream();
       break;
     default:
@@ -143,7 +155,15 @@ int64_t AudioFile::decodedSamples() const
 
 bool AudioFile::isSupported(const QFile& file)
 {
-  constexpr auto rex = ".(wav|mp3|m4a|ogg|flac|aif|aiff|w64|ape|wv|wma)";
+  constexpr auto rex = ".(wav|mp3|m4a|ogg|flac|aif|aiff|w64|ape|wv|wma)$";
+  return file.exists()
+         && file.fileName().contains(
+             QRegularExpression(rex, QRegularExpression::CaseInsensitiveOption));
+}
+
+bool AudioFile::isSupportedVideo(const QFile& file)
+{
+  constexpr auto rex = ".(mkv|mov|mp4|h264|avi|hap|mpg|mpeg|imf|mxf|mts|m2ts|mj2|webm|y4m|nut|ts)$";
   return file.exists()
          && file.fileName().contains(
              QRegularExpression(rex, QRegularExpression::CaseInsensitiveOption));
