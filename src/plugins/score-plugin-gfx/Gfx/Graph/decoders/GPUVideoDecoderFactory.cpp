@@ -267,6 +267,7 @@ std::unique_ptr<GPUVideoDecoder> createGPUVideoDecoder(
       // Try fourcc-based formats (HAP, DXV)
       std::string_view fourcc{(const char*)&format.pixel_format, 4};
 
+#if !defined(__EMSCRIPTEN__)
       if(fourcc == "Hap1")
         return std::make_unique<HAPDefaultDecoder>(
             QRhiTexture::BC1, format, f);
@@ -299,7 +300,7 @@ std::unique_ptr<GPUVideoDecoder> createGPUVideoDecoder(
         return std::make_unique<DXVYCoCgDecoder>(false, format, f);
       else if(fourcc == "DxvA")
         return std::make_unique<DXVYCoCgDecoder>(true, format, f);
-
+#endif
       return nullptr;
     }
   }

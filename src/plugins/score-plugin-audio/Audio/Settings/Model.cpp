@@ -21,7 +21,7 @@ SETTINGS_PARAMETER_IMPL(Driver)
           "687d49cf-b58d-430f-8358-ec02cb50be36")} // PipeWire
 #elif defined(__EMSCRIPTEN__)
       Audio::AudioFactory::ConcreteKey{score::uuids::string_generator::compute(
-          "28b88e91-c5f0-4f13-834f-aa333d14aa81")} // SDL
+          "a2e8b688-521c-4755-b0b2-4e3d01807b8e")} // Web Audio (MiniAudio)
 #else
       Audio::AudioFactory::ConcreteKey
   {

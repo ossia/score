@@ -1,5 +1,7 @@
 #include "QmlProcess.hpp"
 
+#if !defined(__EMSCRIPTEN__)
+
 #include <QTimer>
 
 #include <wobjectimpl.h>
@@ -174,3 +176,4 @@ void QmlProcess::setWorkingDirectory(const QString& dir)
   workingDirectoryChanged();
 }
 }
+#endif
