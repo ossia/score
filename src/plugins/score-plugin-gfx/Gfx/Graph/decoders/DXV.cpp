@@ -3,6 +3,7 @@
 
 #include <cstring>
 
+#if !defined(__EMSCRIPTEN__)
 namespace score::gfx
 {
 
@@ -396,3 +397,4 @@ void DXVYCoCgDecoder::exec(RenderList&, QRhiResourceUpdateBatch& res, AVFrame& f
 }
 
 }
+#endif

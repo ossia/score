@@ -2,6 +2,7 @@
 #include <QProcess>
 #include <QQmlEngine>
 
+#if !defined(__EMSCRIPTEN__)
 #include <verdigris>
 
 namespace JS
@@ -110,3 +111,4 @@ private:
 W_REGISTER_ARGTYPE(QProcess::ProcessError)
 W_REGISTER_ARGTYPE(QProcess::ExitStatus)
 W_REGISTER_ARGTYPE(QProcess::ProcessState)
+#endif

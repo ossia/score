@@ -439,4 +439,6 @@ AVFrame* VideoFrameReader::nextFrame(
 
 }
 
+#if !defined(__EMSCRIPTEN__)
 #include <hap/source/hap.c>
+#endif

@@ -3,6 +3,7 @@
 
 #include <hap/source/hap.h>
 
+#if !defined(__EMSCRIPTEN__)
 #include <snappy.h>
 
 extern "C" {
@@ -141,3 +142,5 @@ void main ()
 };
 
 }
+
+#endif

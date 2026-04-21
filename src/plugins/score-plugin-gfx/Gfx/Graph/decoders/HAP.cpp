@@ -1,6 +1,7 @@
 
 #include <Gfx/Graph/decoders/HAP.hpp>
 
+#if !defined(__EMSCRIPTEN__)
 namespace score::gfx
 {
 HAPDecoder::HAPSection HAPDecoder::HAPSection::read(const uint8_t* bytes)
@@ -83,6 +84,7 @@ void HAPDecoder::setPixels_noEncoding(
 void HAPDecoder::setPixels_snappy(
     QRhiResourceUpdateBatch& res, const uint8_t* data_start, std::size_t size)
 {
+#if !defined(__EMSCRIPTEN__)
   size_t uncomp_size{};
   snappy::GetUncompressedLength((const char*)data_start, size, &uncomp_size);
 
@@ -97,6 +99,7 @@ void HAPDecoder::setPixels_snappy(
 
   auto y_tex = samplers[0].texture;
   res.uploadTexture(y_tex, desc);
+#endif
 }
 
 HAPDefaultDecoder::HAPDefaultDecoder(
@@ -221,3 +224,4 @@ void HAPMDecoder::setPixels(
 }
 
 }
+#endif

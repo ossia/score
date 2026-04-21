@@ -1,6 +1,7 @@
 #pragma once
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
 
+#if !defined(__EMSCRIPTEN__)
 extern "C" {
 #include <libavformat/avformat.h>
 #include <dxv.h>
@@ -81,3 +82,4 @@ private:
 };
 
 }
+#endif
