@@ -7,6 +7,8 @@
 #include <Scenario/Commands/Scenario/Creations/CreateInterval_State_Event.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateInterval_State_Event_TimeSync.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateSequence.hpp>
+#include <Scenario/Sequence/Commands/ExtendSequence.hpp>
+#include <Scenario/Sequence/SequenceModel.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreationMetaCommand.hpp>
 #include <Scenario/Commands/State/AddMessagesToState.hpp>
 #include <Scenario/Palette/ScenarioPaletteBaseStates.hpp>
@@ -182,19 +184,48 @@ protected:
     }
     else
     {
+      // Check if we're extending an existing sequence rather than creating a new one.
+      // This is the case when originalState is the end state of an interval
+      // that already contains a SequenceModel.
+      auto& st = this->m_parentSM.model().state(originalState);
+      bool isExtend = false;
+      if(st.previousInterval())
+      {
+        auto& prevItv
+            = this->m_parentSM.model().intervals.at(*st.previousInterval());
+        for(auto& proc : prevItv.processes)
+        {
+          if(qobject_cast<Sequence::SequenceModel*>(&proc))
+          {
+            isExtend = true;
+            break;
+          }
+        }
+      }
 
-      // This
-      auto cmd = Scenario::Command::CreateSequence::make(
-          this->m_parentSM.context().context, this->m_parentSM.model(),
-          originalState, // Put there in createInitialState
-          this->currentPoint.date, this->currentPoint.y);
+      if(isExtend)
+      {
+        auto cmd = Sequence::Command::ExtendSequence::make(
+            this->m_parentSM.model(), originalState, this->currentPoint.date,
+            this->currentPoint.y);
+        if(cmd)
+          m_dispatcher.submitQuiet(cmd);
+        // No new entities in the parent scenario — creation tracking stays empty.
+      }
+      else
+      {
+        auto cmd = Scenario::Command::CreateSequence::make(
+            this->m_parentSM.context().context, this->m_parentSM.model(),
+            originalState,
+            this->currentPoint.date, this->currentPoint.y);
 
-      m_dispatcher.submitQuiet(cmd);
+        m_dispatcher.submitQuiet(cmd);
 
-      this->createdStates.append(cmd->createdState());
-      this->createdEvents.append(cmd->createdEvent());
-      this->createdTimeSyncs.append(cmd->createdTimeSync());
-      this->createdIntervals.append(cmd->createdInterval());
+        this->createdStates.append(cmd->createdState());
+        this->createdEvents.append(cmd->createdEvent());
+        this->createdTimeSyncs.append(cmd->createdTimeSync());
+        this->createdIntervals.append(cmd->createdInterval());
+      }
     }
   }
 

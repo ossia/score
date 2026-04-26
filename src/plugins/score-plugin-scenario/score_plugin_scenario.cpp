@@ -62,6 +62,12 @@
 #include <Scenario/Library/SlotLibraryHandler.hpp>
 #include <Scenario/Process/ScenarioExecution.hpp>
 #include <Scenario/Process/ScenarioFactory.hpp>
+#include <Scenario/Sequence/SequenceExecution.hpp>
+#include <Scenario/Sequence/SequenceFactory.hpp>
+#include <Scenario/Sequence/SequenceLayerFactory.hpp>
+#include <Scenario/Sequence/SequenceProcessMetadata.hpp>
+#include <Scenario/Sequence/Inspector/SequenceInspector.hpp>
+#include <Process/GenericProcessFactory.hpp>
 #include <Scenario/Settings/ScenarioSettingsFactory.hpp>
 
 #include <score/command/Command.hpp>
@@ -245,13 +251,15 @@ std::vector<score::InterfaceBase*> score_plugin_scenario::factories(
   using namespace Scenario::Command;
   return instantiate_factories<
       score::ApplicationContext,
-      FW<Process::ProcessModelFactory, ScenarioFactory, Scenario::TempoFactory
+      FW<Process::ProcessModelFactory, ScenarioFactory, Scenario::TempoFactory,
+         Sequence::SequenceFactory
          //, LoopProcessFactory
          //       , Interpolation::InterpolationFactory
          >,
       FW<Process::LayerFactory,
          //         Interpolation::InterpolationLayerFactory,
-         Scenario::TempoLayerFactory>,
+         Scenario::TempoLayerFactory,
+         Sequence::SequenceLayerFactory>,
       FW<MoveEventFactoryInterface, MoveEventClassicFactory>,
       FW<DisplayedElementsToolPaletteFactory,
          BaseScenarioDisplayedElementsToolPaletteFactory,
@@ -273,14 +281,16 @@ std::vector<score::InterfaceBase*> score_plugin_scenario::factories(
          Scenario::DropLayerInInterval, Scenario::DropScoreInInterval,
          Scenario::AutomationDropHandler, Scenario::DropPresetInInterval>,
       FW<Inspector::InspectorWidgetFactory, ScenarioInspectorWidgetFactoryWrapper,
-         Scenario::TempoPointInspectorFactory, Scenario::InspectorWidgetDelegateFactory
+         Scenario::TempoPointInspectorFactory, Scenario::InspectorWidgetDelegateFactory,
+         Sequence::InspectorFactory
          //          , Interpolation::StateInspectorFactory
          //          , Interpolation::InspectorFactory
          >,
       FW<score::ValidityChecker, ScenarioValidityChecker>,
 
       FW<LocalTree::ProcessComponentFactory, LocalTree::ScenarioComponentFactory>,
-      FW<Execution::ProcessComponentFactory, Execution::ScenarioComponentFactory>,
+      FW<Execution::ProcessComponentFactory, Execution::ScenarioComponentFactory,
+         Execution::SequenceComponentFactory>,
       FW<Library::LibraryInterface, Scenario::SlotLibraryHandler,
          Scenario::ScenarioLibraryHandler>,
       FW<Scenario::IntervalResizer, Scenario::ScenarioIntervalResizer,
@@ -294,6 +304,7 @@ score_plugin_scenario::make_commands()
   using namespace Scenario;
   using namespace Dataflow;
   using namespace Scenario::Command;
+  using namespace Sequence::Command;
   //using namespace Interpolation;
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       CommandFactoryName(), CommandGeneratorMap{}};

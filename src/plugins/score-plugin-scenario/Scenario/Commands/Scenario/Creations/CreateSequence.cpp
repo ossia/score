@@ -20,6 +20,7 @@
 #include <Scenario/Commands/Cohesion/CreateCurveFromStates.hpp>
 #include <Scenario/Commands/Cohesion/InterpolateMacro.hpp>
 #include <Scenario/Commands/Cohesion/InterpolateStates.hpp>
+#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateInterval_State_Event_TimeSync.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
@@ -27,6 +28,9 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Sequence/SequenceModel.hpp>
+#include <Scenario/Sequence/SequenceProcessMetadata.hpp>
+#include <Scenario/Sequence/Commands/SetSequenceNamespace.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
@@ -289,22 +293,46 @@ CreateSequence* CreateSequence::make(
   create_command->redo(ctx);
   cmd->addCommand(create_command);
 
-  auto proc_command = new CreateSequenceProcesses{
-      scenario, scenario.interval(create_command->createdInterval())};
+  auto& interval = scenario.interval(create_command->createdInterval());
 
-  if(proc_command->addedProcessCount() > 0)
-  {
-    proc_command->redo(ctx);
-    cmd->addCommand(proc_command);
+  // Populate end state with current device values and collect addresses for namespace
+  auto proc_command = new CreateSequenceProcesses{scenario, interval};
+  proc_command->redo(ctx);
+  cmd->addCommand(proc_command);
 
-    auto show_rack = new ShowRack{scenario.interval(create_command->createdInterval())};
-    show_rack->redo(ctx);
-    cmd->addCommand(show_rack);
-  }
-  else
+  auto seq_command = new AddOnlyProcessToInterval{
+      interval, Metadata<ConcreteKey_k, Sequence::SequenceModel>::get(), QString{}, {}};
+  seq_command->redo(ctx);
+  cmd->addCommand(seq_command);
+
+  auto show_rack = new ShowRack{interval};
+  show_rack->redo(ctx);
+  cmd->addCommand(show_rack);
+
+  // Initialize the SequenceModel namespace from the start state's addresses
+  if(!score::AppContext().settings<Scenario::Settings::Model>().getAutoSequence())
+    return cmd;
+
+  Sequence::SequenceModel* seqModel = nullptr;
+  for(auto& proc : interval.processes)
   {
-    delete proc_command;
+    if((seqModel = qobject_cast<Sequence::SequenceModel*>(&proc)))
+      break;
   }
+  if(!seqModel)
+    return cmd;
+
+  const auto& startMessages
+      = Process::flatten(Scenario::startState(interval, scenario).messages().rootNode());
+  for(const auto& msg : startMessages)
+  {
+    if(seqModel->parameterNamespace().contains(msg.address))
+      continue;
+    auto add_param = new Sequence::Command::AddSequenceParameter{*seqModel, msg.address};
+    add_param->redo(ctx);
+    cmd->addCommand(add_param);
+  }
+
   return cmd;
 }
 }
