@@ -295,11 +295,6 @@ CreateSequence* CreateSequence::make(
 
   auto& interval = scenario.interval(create_command->createdInterval());
 
-  // Populate end state with current device values and collect addresses for namespace
-  auto proc_command = new CreateSequenceProcesses{scenario, interval};
-  proc_command->redo(ctx);
-  cmd->addCommand(proc_command);
-
   auto seq_command = new AddOnlyProcessToInterval{
       interval, Metadata<ConcreteKey_k, Sequence::SequenceModel>::get(), QString{}, {}};
   seq_command->redo(ctx);
