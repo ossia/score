@@ -9,6 +9,7 @@
 #include <Scenario/Commands/Scenario/Creations/CreateInterval_State_Event_TimeSync.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateSequence.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateState.hpp>
+#include <Scenario/Sequence/Commands/ExtendSequence.hpp>
 
 #include <score/command/Command.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
@@ -29,7 +30,8 @@ void ScenarioRollbackStrategy::rollback(
        || cmds[i]->key() == CreateInterval_State::static_key()
        || cmds[i]->key() == CreateInterval_State_Event::static_key()
        || cmds[i]->key() == CreateInterval_State_Event_TimeSync::static_key()
-       || cmds[i]->key() == CreateSequence::static_key())
+       || cmds[i]->key() == CreateSequence::static_key()
+       || cmds[i]->key() == Sequence::Command::ExtendSequence::static_key())
     {
       cmds[i]->undo(ctx);
     }

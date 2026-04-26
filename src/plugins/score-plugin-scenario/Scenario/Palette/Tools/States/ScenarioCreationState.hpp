@@ -209,7 +209,10 @@ protected:
             this->m_parentSM.model(), originalState, this->currentPoint.date,
             this->currentPoint.y);
         if(cmd)
+        {
+          cmd->redo(this->m_parentSM.context().context);
           m_dispatcher.submitQuiet(cmd);
+        }
         // No new entities in the parent scenario — creation tracking stays empty.
       }
       else
