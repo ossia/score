@@ -162,6 +162,34 @@ public:
       });
 
       QObject::connect(move_nothing, &QState::entered, [&]() {
+        // Extend-sequence: rollback+recreate every frame to update section duration.
+        if(this->m_parentSM.editionSettings().tool() == Tool::CreateSequence
+           && this->clickedState)
+        {
+          const auto& clickedSt
+              = this->m_parentSM.model().state(*this->clickedState);
+          if(clickedSt.previousInterval())
+          {
+            bool isExtend = false;
+            auto& prevItv = this->m_parentSM.model().intervals.at(
+                *clickedSt.previousInterval());
+            for(auto& proc : prevItv.processes)
+            {
+              if(qobject_cast<Sequence::SequenceModel*>(&proc))
+              {
+                isExtend = true;
+                break;
+              }
+            }
+            if(isExtend)
+            {
+              this->rollback();
+              createToNothing();
+              return;
+            }
+          }
+        }
+
         if(this->createdIntervals.empty() || this->createdEvents.empty())
         {
           this->rollback();
