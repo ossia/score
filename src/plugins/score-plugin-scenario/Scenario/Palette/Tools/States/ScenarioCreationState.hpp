@@ -205,6 +205,21 @@ protected:
 
       if(isExtend)
       {
+        // Populate sentinel IDs so mapWithCollision excludes the moving end
+        // elements from collision detection, and move_nothing doesn't
+        // loop via the empty-check. These are cleared by rollback() each frame
+        // and re-added here by createToNothing_base.
+        auto& endSt = this->m_parentSM.model().state(originalState);
+        auto& endEv = this->m_parentSM.model().events.at(endSt.eventId());
+        if(!this->createdIntervals.contains(*endSt.previousInterval()))
+          this->createdIntervals.append(*endSt.previousInterval());
+        if(!this->createdEvents.contains(endSt.eventId()))
+          this->createdEvents.append(endSt.eventId());
+        if(!this->createdStates.contains(originalState))
+          this->createdStates.append(originalState);
+        if(!this->createdTimeSyncs.contains(endEv.timeSync()))
+          this->createdTimeSyncs.append(endEv.timeSync());
+
         auto cmd = Sequence::Command::ExtendSequence::make(
             this->m_parentSM.model(), originalState, this->currentPoint.date,
             this->currentPoint.y);
@@ -213,7 +228,6 @@ protected:
           cmd->redo(this->m_parentSM.context().context);
           m_dispatcher.submitQuiet(cmd);
         }
-        // No new entities in the parent scenario — creation tracking stays empty.
       }
       else
       {
