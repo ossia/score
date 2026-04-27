@@ -73,6 +73,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioComponentBase
 {
   W_OBJECT(ScenarioComponentBase)
   COMPONENT_METADATA("4e4b1c1a-1a2a-4ae6-a1a1-38d0900e74e8")
+  friend struct ScenarioExecImpl;
 
 public:
   ScenarioComponentBase(

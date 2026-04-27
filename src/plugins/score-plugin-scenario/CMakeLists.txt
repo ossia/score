@@ -300,6 +300,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/ScenarioGlobalCommandManager.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/ScenarioInterface.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/ScenarioModel.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/ScenarioExecImpl.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/ScenarioExecution.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/ScenarioProcessMetadata.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Sequence/Commands/AppendSequenceSection.hpp"
