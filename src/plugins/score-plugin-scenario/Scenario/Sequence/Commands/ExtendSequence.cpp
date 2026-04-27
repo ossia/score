@@ -28,13 +28,7 @@ ExtendSequence::ExtendSequence(
   SCORE_ASSERT(endState.previousInterval());
   auto& parentItv = scenario.intervals.at(*endState.previousInterval());
 
-  Sequence::SequenceModel* seqModel = nullptr;
-  for(auto& proc : parentItv.processes)
-  {
-    seqModel = qobject_cast<Sequence::SequenceModel*>(&proc);
-    if(seqModel)
-      break;
-  }
+  auto* seqModel = Sequence::findSequenceProcess(parentItv);
   SCORE_ASSERT(seqModel);
 
   m_endEventId = endState.eventId();

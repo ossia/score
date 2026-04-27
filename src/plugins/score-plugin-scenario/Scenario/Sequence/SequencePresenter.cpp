@@ -126,7 +126,7 @@ void SequencePresenter::rebuildSections()
     // start/end timeSyncs — section intervals connect intermediate ISes
     // or the boundaries themselves, but never skip them).
     auto* pres = new Scenario::TemporalIntervalPresenter{
-        m_zoom, itv, m_context, false, &m_view, this};
+        m_zoom, itv, m_context.context, false, &m_view, this};
     pres->on_zoomRatioChanged(m_zoom);
     m_sectionPresenters.append(pres);
   }

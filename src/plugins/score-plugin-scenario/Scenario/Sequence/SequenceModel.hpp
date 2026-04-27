@@ -255,6 +255,14 @@ inline auto& events(const SequenceModel& seq) { return seq.events; }
 inline auto& timeSyncs(const SequenceModel& seq) { return seq.timeSyncs; }
 inline auto& states(const SequenceModel& seq) { return seq.states; }
 
+inline SequenceModel* findSequenceProcess(Scenario::IntervalModel& itv) noexcept
+{
+  for(auto& proc : itv.processes)
+    if(auto* seq = qobject_cast<SequenceModel*>(&proc))
+      return seq;
+  return nullptr;
+}
+
 } // namespace Sequence
 
 // ElementTraits specialisations for SequenceModel

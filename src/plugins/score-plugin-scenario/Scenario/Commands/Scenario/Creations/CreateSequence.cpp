@@ -313,12 +313,7 @@ CreateSequence* CreateSequence::make(
   if(!score::AppContext().settings<Scenario::Settings::Model>().getAutoSequence())
     return cmd;
 
-  Sequence::SequenceModel* seqModel = nullptr;
-  for(auto& proc : interval.processes)
-  {
-    if((seqModel = qobject_cast<Sequence::SequenceModel*>(&proc)))
-      break;
-  }
+  auto* seqModel = Sequence::findSequenceProcess(interval);
   if(!seqModel)
     return cmd;
 
