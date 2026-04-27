@@ -62,6 +62,7 @@
 #include <Scenario/Library/SlotLibraryHandler.hpp>
 #include <Scenario/Process/ScenarioExecution.hpp>
 #include <Scenario/Process/ScenarioFactory.hpp>
+#include <Scenario/Sequence/SequenceDropHandler.hpp>
 #include <Scenario/Sequence/SequenceExecution.hpp>
 #include <Scenario/Sequence/SequenceFactory.hpp>
 #include <Scenario/Sequence/SequenceLayerFactory.hpp>
@@ -279,6 +280,7 @@ std::vector<score::InterfaceBase*> score_plugin_scenario::factories(
          Scenario::DropPresetInScenario, Scenario::DropLayerInScenario>,
       FW<Scenario::IntervalDropHandler, Scenario::DropProcessInInterval,
          Scenario::DropLayerInInterval, Scenario::DropScoreInInterval,
+         Sequence::SequenceDropHandler,
          Scenario::AutomationDropHandler, Scenario::DropPresetInInterval>,
       FW<Inspector::InspectorWidgetFactory, ScenarioInspectorWidgetFactoryWrapper,
          Scenario::TempoPointInspectorFactory, Scenario::InspectorWidgetDelegateFactory,
