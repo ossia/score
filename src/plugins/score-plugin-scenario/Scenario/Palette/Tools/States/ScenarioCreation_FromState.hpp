@@ -162,7 +162,8 @@ public:
       });
 
       QObject::connect(move_nothing, &QState::entered, [&]() {
-        // Extend-sequence: rollback+recreate every frame to update section duration.
+        // Extend-sequence: use the ongoing ExtendSequence command which
+        // calls update()+redo() each frame without rollback — no flicker.
         if(this->m_parentSM.editionSettings().tool() == Tool::CreateSequence
            && this->clickedState)
         {
@@ -183,8 +184,12 @@ public:
             }
             if(isExtend)
             {
-              this->rollback();
-              createToNothing();
+              if(this->currentPoint.date > this->m_clickedPoint.date)
+              {
+                this->m_dispatcher.template submit<Sequence::Command::ExtendSequence>(
+                    this->m_parentSM.model(), *this->clickedState,
+                    this->currentPoint.date, this->currentPoint.y);
+              }
               return;
             }
           }

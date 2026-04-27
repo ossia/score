@@ -6,6 +6,7 @@
 
 #include <score/model/Skin.hpp>
 
+#include <QGraphicsLineItem>
 #include <QGraphicsSceneMouseEvent>
 #include <QKeyEvent>
 #include <QPainter>
@@ -18,6 +19,7 @@ namespace Sequence
 {
 
 static constexpr double k_handleHalfWidth = 5.0;
+static constexpr double k_handleZValue = 10.0; // on top of child section views
 
 SequenceView::SequenceView(QGraphicsItem* parent)
     : Process::LayerView{parent}
@@ -30,7 +32,36 @@ SequenceView::~SequenceView() = default;
 void SequenceView::setHandles(const QVector<HandleData>& handles)
 {
   m_handles = handles;
+
+  // Grow or shrink the handle-line pool to match
+  while(m_handleLines.size() > handles.size())
+  {
+    delete m_handleLines.takeLast();
+  }
+  while(m_handleLines.size() < handles.size())
+  {
+    auto* line = new QGraphicsLineItem{this};
+    line->setZValue(k_handleZValue);
+    m_handleLines.append(line);
+  }
+
+  updateHandleLines();
   update();
+}
+
+void SequenceView::updateHandleLines()
+{
+  const qreal h = height();
+  auto& style = Process::Style::instance();
+
+  for(int i = 0; i < m_handles.size(); ++i)
+  {
+    const double x = m_handles[i].x;
+    const bool active = (i == m_activeHandle);
+    m_handleLines[i]->setLine(x, 0., x, h);
+    m_handleLines[i]->setPen(
+        active ? style.skin.Base3.main.pen2 : style.skin.Base2.main.pen1);
+  }
 }
 
 int SequenceView::handleAt(double x) const
@@ -52,21 +83,9 @@ void SequenceView::paint_impl(QPainter* p) const
   p->setBrush(style.skin.Background2.main.brush);
   p->drawRect(boundingRect());
 
-  // IS handle lines
-  const qreal h = height();
-  p->setPen(style.skin.Base2.main.pen1);
-  for(const auto& handle : m_handles)
-  {
-    p->drawLine(QPointF(handle.x, 0.), QPointF(handle.x, h));
-  }
-
-  // Hover/drag highlight
-  if(m_activeHandle >= 0 && m_activeHandle < m_handles.size())
-  {
-    p->setPen(style.skin.Base3.main.pen2);
-    const double x = m_handles[m_activeHandle].x;
-    p->drawLine(QPointF(x, 0.), QPointF(x, h));
-  }
+  // IS handle lines are rendered by QGraphicsLineItem children — no manual
+  // drawing needed here. The items have k_handleZValue so they float above
+  // any child section views that SequencePresenter adds at lower z-values.
 }
 
 void SequenceView::mousePressEvent(QGraphicsSceneMouseEvent* e)
@@ -76,8 +95,8 @@ void SequenceView::mousePressEvent(QGraphicsSceneMouseEvent* e)
   if(m_activeHandle >= 0)
   {
     m_dragStartX = m_handles[m_activeHandle].x;
+    updateHandleLines();
     e->accept();
-    update();
   }
   else
   {
@@ -92,7 +111,7 @@ void SequenceView::mouseMoveEvent(QGraphicsSceneMouseEvent* e)
 
   const double newX = qBound(0.0, e->pos().x(), width());
   m_handles[m_activeHandle].x = newX;
-  update();
+  updateHandleLines();
   handleDragMoved(m_handles[m_activeHandle].tsId, newX);
   e->accept();
 }
@@ -104,7 +123,7 @@ void SequenceView::mouseReleaseEvent(QGraphicsSceneMouseEvent* e)
     const double finalX = qBound(0.0, e->pos().x(), width());
     handleDragReleased(m_handles[m_activeHandle].tsId, finalX);
     m_activeHandle = -1;
-    update();
+    updateHandleLines();
     e->accept();
   }
   else
@@ -118,7 +137,7 @@ void SequenceView::keyPressEvent(QKeyEvent* e)
   if(e->key() == Qt::Key_Escape && m_activeHandle >= 0)
   {
     m_activeHandle = -1;
-    update();
+    updateHandleLines();
     handleDragCancelled();
     e->accept();
   }

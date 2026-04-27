@@ -180,6 +180,10 @@ public:
   // Linear structure mutation
   // Appends a new section of `duration`; returns IDs of created entities (for undo).
   AppendedSection appendSection(const TimeVal& duration);
+  // Same as appendSection, but uses the IDs already filled into `info` instead of
+  // generating fresh ones. Required so that AppendSequenceSection::redo() produces
+  // stable IDs across undo/redo cycles (otherwise Path<> handles dangle).
+  void appendSectionWithIds(const AppendedSection& info, const TimeVal& duration);
   // Reverses appendSection using the returned AppendedSection.
   void undoAppendSection(const AppendedSection& info);
 
@@ -217,8 +221,11 @@ private:
   void setSelection(const Selection& s) const noexcept override;
 
   // Internal helpers
+  // Pulls the given `val` into the curve endpoints adjacent to `tsId` for `addr`,
+  // normalizing it against the device-explorer-resolved domain.
   void syncAutomationEndpoints(
-      const Id<Scenario::TimeSyncModel>& tsId, const State::AddressAccessor& addr);
+      const Id<Scenario::TimeSyncModel>& tsId, const State::AddressAccessor& addr,
+      const ossia::value& val);
   void rebuildAutomations(const State::AddressAccessor& addr);
 
   const score::DocumentContext& m_context;

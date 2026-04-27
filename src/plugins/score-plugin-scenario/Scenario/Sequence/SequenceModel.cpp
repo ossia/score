@@ -8,14 +8,24 @@
 #include <Curve/CurveModel.hpp>
 #include <Curve/Segment/Linear/LinearSegment.hpp>
 
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Node/DeviceNode.hpp>
+
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
+
+#include <State/Message.hpp>
+
+#include <ossia/network/value/value_conversion.hpp>
 
 #include <Process/TimeValue.hpp>
 
@@ -30,13 +40,47 @@ W_OBJECT_IMPL(Sequence::SequenceModel)
 namespace Sequence
 {
 
-// Helper: create a flat linear automation curve
-static void initFlatCurve(Curve::Model& curve, double val)
+// Helper: create a flat linear automation curve at a given normalized Y in [0,1]
+static void initFlatCurve(Curve::Model& curve, double normY)
 {
   auto seg = new Curve::LinearSegment(Id<Curve::SegmentModel>(0), &curve);
-  seg->setStart({0.0, val});
-  seg->setEnd({1.0, val});
+  seg->setStart({0.0, normY});
+  seg->setEnd({1.0, normY});
   curve.addSegment(seg);
+}
+
+// Compute the curve domain (min/max + start/end normalized in [0,1]) for an
+// address by querying the device explorer. Returns std::nullopt if the address
+// is unknown — the caller should fall back to a sensible default.
+struct ResolvedDomain
+{
+  Curve::CurveDomain dom;
+  double normY; // (dom.start - dom.min) / (dom.max - dom.min), clamped to [0,1]
+};
+
+static std::optional<ResolvedDomain>
+resolveDomain(const score::DocumentContext& ctx, const State::AddressAccessor& addr)
+{
+  auto* devPlugin = ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
+  if(!devPlugin)
+    return std::nullopt;
+
+  auto* node = Device::try_getNodeFromAddress(devPlugin->rootNode(), addr.address);
+  if(!node || !node->is<Device::AddressSettings>())
+    return std::nullopt;
+
+  const auto& settings = node->get<Device::AddressSettings>();
+  Curve::CurveDomain dom{settings.domain.get(), settings.value};
+  // Guarantee a non-degenerate domain so the normalization below is finite.
+  if(dom.max - dom.min < 1e-9)
+    dom.max = dom.min + 1.0;
+
+  double normY = (dom.start - dom.min) / (dom.max - dom.min);
+  if(normY < 0.0)
+    normY = 0.0;
+  if(normY > 1.0)
+    normY = 1.0;
+  return ResolvedDomain{dom, normY};
 }
 
 // Helper: create a TimeSync + Event + State chain at a given date
@@ -104,10 +148,13 @@ SequenceModel::SequenceModel(
         duration, id, Metadata<ObjectKey_k, SequenceModel>::get(), parent}
     , m_context{ctx}
 {
-  // Create start boundary node at time 0
-  m_startTimeSyncId = Id<Scenario::TimeSyncModel>(0);
-  m_startEventId = Id<Scenario::EventModel>(0);
-  const auto startStId = Id<Scenario::StateModel>(0);
+  // Create start boundary node at time 0.
+  // Boundary IDs follow the Scenario convention (start = 0, end = 1) so that
+  // ScenarioInterface helpers and execution components agree on which TS / Event /
+  // State is the "structural" entry / exit of the sub-scenario.
+  m_startTimeSyncId = Scenario::startId<Scenario::TimeSyncModel>();
+  m_startEventId = Scenario::startId<Scenario::EventModel>();
+  const auto startStId = Scenario::startId<Scenario::StateModel>();
 
   auto startTs = new Scenario::TimeSyncModel(m_startTimeSyncId, TimeVal::zero(), this);
   startTs->setStartPoint(true);
@@ -123,9 +170,9 @@ SequenceModel::SequenceModel(
   startEv->addState(startStId);
 
   // Create end boundary node at duration
-  m_endTimeSyncId = Id<Scenario::TimeSyncModel>(1);
-  m_endEventId = Id<Scenario::EventModel>(1);
-  const auto endStId = Id<Scenario::StateModel>(1);
+  m_endTimeSyncId = Scenario::endId<Scenario::TimeSyncModel>();
+  m_endEventId = Scenario::endId<Scenario::EventModel>();
+  const auto endStId = Scenario::endId<Scenario::StateModel>();
 
   auto endTs = new Scenario::TimeSyncModel(m_endTimeSyncId, duration, this);
   timeSyncs.add(endTs);
@@ -232,23 +279,29 @@ std::optional<Id<Scenario::IntervalModel>> SequenceModel::intervalAfter(
 // ---- Namespace management ----
 
 void SequenceModel::addParameter(
-    const State::AddressAccessor& addr, const ossia::value& currentVal)
+    const State::AddressAccessor& addr, const ossia::value& /*currentVal*/)
 {
   if(m_namespace.contains(addr))
     return;
   m_namespace.append(addr);
 
-  // Create a flat automation in all existing section intervals
+  // Look up the actual current value + domain in the device explorer.
+  // If absent (offline device, address removed), fall back to a flat midpoint.
+  auto resolved = resolveDomain(m_context, addr);
+  const double normY = resolved ? resolved->normY : 0.5;
+  const double minVal = resolved ? resolved->dom.min : 0.0;
+  const double maxVal = resolved ? resolved->dom.max : 1.0;
+
+  // Create a flat automation at the resolved value in every section.
   for(auto& itv : intervals)
   {
     auto autoId = getStrongId(itv.processes);
     auto* automation
         = new Automation::ProcessModel(itv.duration.defaultDuration(), autoId, &itv);
     automation->setAddress(addr);
-
-    // Flat curve at 0.5 (normalized mid-value)
-    initFlatCurve(automation->curve(), 0.5);
-
+    automation->setMin(minVal);
+    automation->setMax(maxVal);
+    initFlatCurve(automation->curve(), normY);
     Scenario::AddProcess(itv, automation);
   }
 
@@ -289,7 +342,54 @@ void SequenceModel::mergeNamespace(const QList<State::AddressAccessor>& addrs)
 
 // ---- Linear structure mutation ----
 
+// Section helper that uses caller-supplied IDs. The IDs are passed through
+// directly; no getStrongId() calls so that the same IDs survive across
+// undo/redo cycles.
+static Id<Scenario::IntervalModel> createSectionWithId(
+    const Id<Scenario::IntervalModel>& itvId,
+    const Id<Scenario::StateModel>& startSt, const Id<Scenario::StateModel>& endSt,
+    const score::DocumentContext& ctx, SequenceModel& seq)
+{
+  auto& sst = seq.states.at(startSt);
+  auto& est = seq.states.at(endSt);
+  const auto& sev = seq.events.at(sst.eventId());
+  const auto& eev = seq.events.at(est.eventId());
+
+  auto itv = new Scenario::IntervalModel(itvId, 0.0, ctx, &seq);
+  itv->setStartState(startSt);
+  itv->setEndState(endSt);
+  seq.intervals.add(itv);
+
+  Scenario::SetNextInterval(sst, *itv);
+  Scenario::SetPreviousInterval(est, *itv);
+
+  auto dur = eev.date() - sev.date();
+  itv->setStartDate(sev.date());
+  Scenario::IntervalDurations::Algorithms::fixAllDurations(*itv, dur);
+
+  return itvId;
+}
+
 SequenceModel::AppendedSection SequenceModel::appendSection(const TimeVal& duration)
+{
+  // Single source of truth: pre-allocate fresh IDs and delegate to the
+  // caller-supplied-IDs variant. Keeps direct callers (tests, programmatic
+  // scenarios) working without needing to know about ID stability rules.
+  AppendedSection info;
+  info.prevEndTimeSyncId = m_endTimeSyncId;
+  info.prevEndEventId = m_endEventId;
+  info.prevDuration = this->duration();
+  info.newEndTimeSyncId = getStrongId(timeSyncs);
+  info.newEndEventId = getStrongId(events);
+  info.newEndStateId = getStrongId(states);
+  info.newIntervalId = getStrongId(intervals);
+
+  appendSectionWithIds(info, duration);
+  return info;
+}
+
+void SequenceModel::appendSectionWithIds(
+    const AppendedSection& info, const TimeVal& duration)
 {
   // The current end IS stays at its date, becoming an intermediate IS.
   // A new end IS is created at current_end_date + duration.
@@ -297,57 +397,53 @@ SequenceModel::AppendedSection SequenceModel::appendSection(const TimeVal& durat
   const TimeVal oldEndDate = endTs.date();
   const TimeVal newEndDate = oldEndDate + duration;
 
-  AppendedSection info;
-  info.prevEndTimeSyncId = m_endTimeSyncId;
-  info.prevEndEventId = m_endEventId;
-  info.prevDuration = this->duration();
-
-  // Create new end IS
-  auto newEndId = getStrongId(timeSyncs);
-  auto newEvId = getStrongId(events);
-  auto newStId = getStrongId(states);
-
-  auto newTs = new Scenario::TimeSyncModel(newEndId, newEndDate, this);
+  // Create new end IS using pre-allocated IDs
+  auto newTs = new Scenario::TimeSyncModel(info.newEndTimeSyncId, newEndDate, this);
   timeSyncs.add(newTs);
 
-  auto newEv = new Scenario::EventModel(newEvId, newEndId, newEndDate, this);
+  auto newEv
+      = new Scenario::EventModel(info.newEndEventId, info.newEndTimeSyncId, newEndDate, this);
   events.add(newEv);
-  newTs->addEvent(newEvId);
+  newTs->addEvent(info.newEndEventId);
 
-  auto newSt = new Scenario::StateModel(newStId, newEvId, 0.02, m_context, this);
+  auto newSt = new Scenario::StateModel(
+      info.newEndStateId, info.newEndEventId, 0.02, m_context, this);
   states.add(newSt);
-  newEv->addState(newStId);
+  newEv->addState(info.newEndStateId);
 
   // Create interval from old end boundary to new end boundary
   const auto oldEndStId = stateForTimeSync(m_endTimeSyncId);
-  auto itvId = createSection(oldEndStId, newStId, m_context, *this);
+  createSectionWithId(
+      info.newIntervalId, oldEndStId, info.newEndStateId, m_context, *this);
 
-  // Create flat automations in the new interval for all namespace parameters
-  auto& newItv = intervals.at(itvId);
+  // Create flat automations in the new interval for all namespace parameters,
+  // initialized to the actual current device value (same logic as addParameter).
+  auto& newItv = intervals.at(info.newIntervalId);
   for(const auto& addr : m_namespace)
   {
+    auto resolved = resolveDomain(m_context, addr);
+    const double normY = resolved ? resolved->normY : 0.5;
+    const double minVal = resolved ? resolved->dom.min : 0.0;
+    const double maxVal = resolved ? resolved->dom.max : 1.0;
+
     auto autoId = getStrongId(newItv.processes);
     auto* automation = new Automation::ProcessModel(
         newItv.duration.defaultDuration(), autoId, &newItv);
     automation->setAddress(addr);
-    initFlatCurve(automation->curve(), 0.5);
+    automation->setMin(minVal);
+    automation->setMax(maxVal);
+    initFlatCurve(automation->curve(), normY);
     Scenario::AddProcess(newItv, automation);
   }
 
-  info.newEndTimeSyncId = newEndId;
-  info.newEndEventId = newEvId;
-  info.newEndStateId = newStId;
-  info.newIntervalId = itvId;
-
   // Update end pointers
-  m_endTimeSyncId = newEndId;
-  m_endEventId = newEvId;
+  m_endTimeSyncId = info.newEndTimeSyncId;
+  m_endEventId = info.newEndEventId;
 
   // Update process duration
   setDuration(newEndDate);
 
   structureChanged();
-  return info;
 }
 
 void SequenceModel::undoAppendSection(const AppendedSection& info)
@@ -416,10 +512,37 @@ void SequenceModel::moveIS(
 
 // ---- IS value management ----
 
-void SequenceModel::syncAutomationEndpoints(
-    const Id<Scenario::TimeSyncModel>& tsId, const State::AddressAccessor& addr)
+namespace
 {
-  // Update the end of the automation in the interval arriving at tsId
+// Normalize an ossia::value into [0,1] against the resolved domain.
+// Falls back to 0.5 if the value can't be reduced to a finite scalar.
+double normalizeValue(const ossia::value& val, double minVal, double maxVal)
+{
+  const float v = ossia::convert<float>(val);
+  const double range = maxVal - minVal;
+  if(range < 1e-9)
+    return 0.5;
+  double norm = (double(v) - minVal) / range;
+  if(norm < 0.0)
+    norm = 0.0;
+  if(norm > 1.0)
+    norm = 1.0;
+  return norm;
+}
+}
+
+void SequenceModel::syncAutomationEndpoints(
+    const Id<Scenario::TimeSyncModel>& tsId, const State::AddressAccessor& addr,
+    const ossia::value& val)
+{
+  auto resolved = resolveDomain(m_context, addr);
+  if(!resolved)
+    return;
+
+  const double normY
+      = normalizeValue(val, resolved->dom.min, resolved->dom.max);
+
+  // Update end point of left-adjacent automation (curve x=1)
   if(auto leftItvId = intervalBefore(tsId))
   {
     auto& leftItv = intervals.at(*leftItvId);
@@ -429,16 +552,12 @@ void SequenceModel::syncAutomationEndpoints(
       {
         if(auto_proc->address() == addr)
         {
-          // Update end point of the curve
-          // (the curve's x=1 endpoint)
           auto& curve = auto_proc->curve();
           auto segs = curve.sortedSegments();
           if(!segs.empty())
           {
             auto* lastSeg = segs.back();
-            auto endPt = lastSeg->end();
-            // Value already updated in StateModel — here we just mark dirty
-            // The actual value normalization needs domain info; for now leave as-is.
+            lastSeg->setEnd({1.0, normY});
             curve.changed();
           }
           break;
@@ -447,7 +566,7 @@ void SequenceModel::syncAutomationEndpoints(
     }
   }
 
-  // Update the start of the automation in the interval leaving tsId
+  // Update start point of right-adjacent automation (curve x=0)
   if(auto rightItvId = intervalAfter(tsId))
   {
     auto& rightItv = intervals.at(*rightItvId);
@@ -458,7 +577,13 @@ void SequenceModel::syncAutomationEndpoints(
         if(auto_proc->address() == addr)
         {
           auto& curve = auto_proc->curve();
-          curve.changed();
+          auto segs = curve.sortedSegments();
+          if(!segs.empty())
+          {
+            auto* firstSeg = segs.front();
+            firstSeg->setStart({0.0, normY});
+            curve.changed();
+          }
           break;
         }
       }
@@ -470,14 +595,19 @@ void SequenceModel::setISValue(
     const Id<Scenario::TimeSyncModel>& tsId, const State::AddressAccessor& addr,
     const ossia::value& val)
 {
-  const auto stId = stateForTimeSync(tsId);
-  // Updating message in StateModel is done via MessageItemModel;
-  // for now, store as a direct message update (simplified)
-  // Full message-tree integration is Phase 6.
+  // 1. Persist the user-supplied value on the IS state as a flat message.
+  //    The MessageItemModel is what the inspector and the executor read.
+  if(auto* state = findState(stateForTimeSync(tsId)))
+  {
+    State::MessageList lst{State::Message{addr, val}};
+    Scenario::updateModelWithMessageList(state->messages(), std::move(lst));
+  }
 
-  syncAutomationEndpoints(tsId, addr);
+  // 2. Pull the new value into the adjacent automations' endpoints.
+  syncAutomationEndpoints(tsId, addr, val);
 
-  // Freeze propagation: walk forward through consecutive frozen IS
+  // 3. Freeze propagation: walk forward through consecutive frozen IS so that
+  //    each one stores the same value and its automations stay flat.
   auto ordered = orderedTimeSyncs();
   int tsIdx = ordered.indexOf(tsId);
   if(tsIdx < 0)
@@ -488,8 +618,12 @@ void SequenceModel::setISValue(
     const auto& nextTsId = ordered[i];
     if(!isParamFrozen(nextTsId, addr))
       break;
-    // Propagate value to frozen IS
-    syncAutomationEndpoints(nextTsId, addr);
+    if(auto* state = findState(stateForTimeSync(nextTsId)))
+    {
+      State::MessageList lst{State::Message{addr, val}};
+      Scenario::updateModelWithMessageList(state->messages(), std::move(lst));
+    }
+    syncAutomationEndpoints(nextTsId, addr, val);
   }
 }
 
@@ -533,11 +667,18 @@ void SequenceModel::rebuildAutomations(const State::AddressAccessor& addr)
 
     if(!found)
     {
+      auto resolved = resolveDomain(m_context, addr);
+      const double normY = resolved ? resolved->normY : 0.5;
+      const double minVal = resolved ? resolved->dom.min : 0.0;
+      const double maxVal = resolved ? resolved->dom.max : 1.0;
+
       auto autoId = getStrongId(itv.processes);
       auto* automation = new Automation::ProcessModel(
           itv.duration.defaultDuration(), autoId, &itv);
       automation->setAddress(addr);
-      initFlatCurve(automation->curve(), 0.5);
+      automation->setMin(minVal);
+      automation->setMax(maxVal);
+      initFlatCurve(automation->curve(), normY);
       Scenario::AddProcess(itv, automation);
     }
   }
@@ -581,14 +722,94 @@ void SequenceModel::setDurationAndScale(const TimeVal& newDuration) noexcept
   setDuration(newDuration);
 }
 
+// Last-section-absorbs-slack strategy when the parent interval grows or shrinks
+// in non-Scale mode. Mirrors how Nodal::Model defers to its child processes
+// instead of silently keeping their old extents.
+static Scenario::IntervalModel*
+findLastSectionInterval(const score::EntityMap<Scenario::IntervalModel>& intervals)
+{
+  Scenario::IntervalModel* last = nullptr;
+  TimeVal lastDate = TimeVal::zero();
+  for(auto& itv : intervals)
+  {
+    if(!last || itv.date() >= lastDate)
+    {
+      lastDate = itv.date();
+      last = &const_cast<Scenario::IntervalModel&>(itv);
+    }
+  }
+  return last;
+}
+
 void SequenceModel::setDurationAndGrow(const TimeVal& newDuration) noexcept
 {
+  const auto cur = duration();
+  if(newDuration <= cur)
+  {
+    setDuration(newDuration);
+    return;
+  }
+
+  auto* lastItv = findLastSectionInterval(intervals);
+  if(!lastItv)
+  {
+    setDuration(newDuration);
+    return;
+  }
+
+  const auto extra = newDuration - cur;
+
+  // Move end boundary forward by the extra delta
+  timeSyncs.at(m_endTimeSyncId).setDate(timeSyncs.at(m_endTimeSyncId).date() + extra);
+  events.at(m_endEventId).setDate(events.at(m_endEventId).date() + extra);
+  states.at(stateForTimeSync(m_endTimeSyncId)); // touch — keep symmetry; state has no date
+
+  // Stretch the last section
+  const auto newSecDur = lastItv->duration.defaultDuration() + extra;
+  Scenario::IntervalDurations::Algorithms::fixAllDurations(*lastItv, newSecDur);
+  for(auto& proc : lastItv->processes)
+    proc.setParentDuration(ExpandMode::GrowShrink, newSecDur);
+
   setDuration(newDuration);
 }
 
 void SequenceModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
 {
-  setDuration(newDuration);
+  const auto cur = duration();
+  if(newDuration >= cur)
+  {
+    setDuration(newDuration);
+    return;
+  }
+
+  auto* lastItv = findLastSectionInterval(intervals);
+  if(!lastItv)
+  {
+    setDuration(newDuration);
+    return;
+  }
+
+  const auto delta = cur - newDuration;
+  const auto curSecDur = lastItv->duration.defaultDuration();
+  // Clamp the last section to a strictly-positive minimum so the executor
+  // does not see a zero-length interval. If the request would underflow
+  // (the sum of fixed earlier sections already exceeds newDuration) we
+  // clamp the last section and propagate the clamped delta upwards.
+  const auto minSecDur = TimeVal::fromMsecs(1.);
+  auto newSecDur = curSecDur - delta;
+  if(newSecDur < minSecDur)
+    newSecDur = minSecDur;
+  const auto actualDelta = curSecDur - newSecDur;
+  const auto actualDuration = cur - actualDelta;
+
+  timeSyncs.at(m_endTimeSyncId).setDate(timeSyncs.at(m_endTimeSyncId).date() - actualDelta);
+  events.at(m_endEventId).setDate(events.at(m_endEventId).date() - actualDelta);
+
+  Scenario::IntervalDurations::Algorithms::fixAllDurations(*lastItv, newSecDur);
+  for(auto& proc : lastItv->processes)
+    proc.setParentDuration(ExpandMode::GrowShrink, newSecDur);
+
+  setDuration(actualDuration);
 }
 
 Selection SequenceModel::selectableChildren() const noexcept

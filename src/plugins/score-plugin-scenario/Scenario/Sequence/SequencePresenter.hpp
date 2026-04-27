@@ -7,8 +7,15 @@
 
 #include <score/model/Identifier.hpp>
 
+#include <QVector>
+
 #include <score_plugin_scenario_export.h>
 #include <verdigris>
+
+namespace Scenario
+{
+class TemporalIntervalPresenter;
+}
 
 namespace Sequence
 {
@@ -35,10 +42,17 @@ public:
 
 private:
   void updateHandles();
+  // Destroy and recreate all child section presenters from the current model.
+  void rebuildSections();
+  // Reposition existing section presenters based on current zoom + interval dates.
+  void updateSectionLayout();
 
   const SequenceModel& m_model;
   SequenceView& m_view;
   ZoomRatio m_zoom{};
+
+  // One TemporalIntervalPresenter per section interval, owned by this presenter.
+  QVector<Scenario::TemporalIntervalPresenter*> m_sectionPresenters;
 };
 
 } // namespace Sequence

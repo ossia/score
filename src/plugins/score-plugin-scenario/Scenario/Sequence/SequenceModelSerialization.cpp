@@ -16,10 +16,21 @@
 #include <score/serialization/VisitorCommon.hpp>
 
 // -- DataStream serialization --
+//
+// Versioning: a int32_t version prefix is read/written before the payload.
+// Bump kSequenceModelSerializationVersion when adding fields and branch on
+// the version in DataStreamWriter::write(). JSON does not need a version
+// because new keys are forward-compatible (missing keys read as default).
+namespace
+{
+constexpr int32_t kSequenceModelSerializationVersion = 1;
+}
 
 template <>
 void DataStreamReader::read(const Sequence::SequenceModel& seq)
 {
+  m_stream << kSequenceModelSerializationVersion;
+
   m_stream << seq.m_startTimeSyncId << seq.m_startEventId;
   m_stream << seq.m_endTimeSyncId << seq.m_endEventId;
 
@@ -61,6 +72,10 @@ void DataStreamReader::read(const Sequence::SequenceModel& seq)
 template <>
 void DataStreamWriter::write(Sequence::SequenceModel& seq)
 {
+  int32_t version = 0;
+  m_stream >> version;
+  SCORE_ASSERT(version >= 1 && version <= kSequenceModelSerializationVersion);
+
   m_stream >> seq.m_startTimeSyncId >> seq.m_startEventId;
   m_stream >> seq.m_endTimeSyncId >> seq.m_endEventId;
 

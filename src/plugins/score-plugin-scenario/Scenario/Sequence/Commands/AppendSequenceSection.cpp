@@ -6,6 +6,7 @@
 
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
 
 namespace Sequence
 {
@@ -16,6 +17,17 @@ AppendSequenceSection::AppendSequenceSection(const SequenceModel& seq, TimeVal d
     : m_path{seq}
     , m_duration{duration}
 {
+  // Pre-allocate IDs at construction time so they remain stable across
+  // undo/redo cycles. If we generated them inside redo(), every redo would
+  // pick a new max+1 and any Path<> handle held by selections, inspector
+  // widgets, or executor components would dangle.
+  m_info.prevEndTimeSyncId = seq.endTimeSyncId();
+  m_info.prevEndEventId = seq.endEventId();
+  m_info.prevDuration = seq.duration();
+  m_info.newEndTimeSyncId = getStrongId(seq.timeSyncs);
+  m_info.newEndEventId = getStrongId(seq.events);
+  m_info.newEndStateId = getStrongId(seq.states);
+  m_info.newIntervalId = getStrongId(seq.intervals);
 }
 
 void AppendSequenceSection::undo(const score::DocumentContext& ctx) const
@@ -27,7 +39,7 @@ void AppendSequenceSection::undo(const score::DocumentContext& ctx) const
 void AppendSequenceSection::redo(const score::DocumentContext& ctx) const
 {
   auto& seq = m_path.find(ctx);
-  m_info = seq.appendSection(m_duration);
+  seq.appendSectionWithIds(m_info, m_duration);
   m_firstRedo = false;
 }
 

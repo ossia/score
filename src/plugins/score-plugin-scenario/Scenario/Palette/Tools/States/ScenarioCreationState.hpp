@@ -206,9 +206,9 @@ protected:
       if(isExtend)
       {
         // Populate sentinel IDs so mapWithCollision excludes the moving end
-        // elements from collision detection, and move_nothing doesn't
-        // loop via the empty-check. These are cleared by rollback() each frame
-        // and re-added here by createToNothing_base.
+        // elements from collision detection, and move_nothing's empty-check
+        // does not trigger a spurious rollback. These are stable for the
+        // entire drag (no rollback between frames any more).
         auto& endSt = this->m_parentSM.model().state(originalState);
         auto& endEv = this->m_parentSM.model().events.at(endSt.eventId());
         if(!this->createdIntervals.contains(*endSt.previousInterval()))
@@ -220,13 +220,15 @@ protected:
         if(!this->createdTimeSyncs.contains(endEv.timeSync()))
           this->createdTimeSyncs.append(endEv.timeSync());
 
-        auto cmd = Sequence::Command::ExtendSequence::make(
-            this->m_parentSM.model(), originalState, this->currentPoint.date,
-            this->currentPoint.y);
-        if(cmd)
+        // Submit the ongoing ExtendSequence command via the dispatcher.
+        // On first call this constructs the command and calls redo(); on
+        // subsequent calls (from move_nothing.entered) it calls update()+redo()
+        // without any rollback between frames — eliminating the flicker.
+        if(this->currentPoint.date > this->m_clickedPoint.date)
         {
-          cmd->redo(this->m_parentSM.context().context);
-          m_dispatcher.submitQuiet(cmd);
+          m_dispatcher.template submit<Sequence::Command::ExtendSequence>(
+              this->m_parentSM.model(), originalState,
+              this->currentPoint.date, this->currentPoint.y);
         }
       }
       else

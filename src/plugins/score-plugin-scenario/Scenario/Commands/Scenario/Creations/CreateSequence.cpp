@@ -20,6 +20,7 @@
 #include <Scenario/Commands/Cohesion/CreateCurveFromStates.hpp>
 #include <Scenario/Commands/Cohesion/InterpolateMacro.hpp>
 #include <Scenario/Commands/Cohesion/InterpolateStates.hpp>
+#include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateInterval_State_Event_TimeSync.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
@@ -299,6 +300,10 @@ CreateSequence* CreateSequence::make(
       interval, Metadata<ConcreteKey_k, Sequence::SequenceModel>::get(), QString{}, {}};
   seq_command->redo(ctx);
   cmd->addCommand(seq_command);
+
+  auto add_slot = new AddLayerInNewSlot{interval, seq_command->processId()};
+  add_slot->redo(ctx);
+  cmd->addCommand(add_slot);
 
   auto show_rack = new ShowRack{interval};
   show_rack->redo(ctx);

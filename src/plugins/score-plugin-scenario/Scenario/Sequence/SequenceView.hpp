@@ -10,6 +10,8 @@
 #include <score_plugin_scenario_export.h>
 #include <verdigris>
 
+class QGraphicsLineItem;
+
 namespace Sequence
 {
 
@@ -45,8 +47,13 @@ protected:
 
 private:
   int handleAt(double x) const; // returns handle index or -1
+  void updateHandleLines();
 
+  // IS handle data (parallel arrays — same length)
   QVector<HandleData> m_handles;
+  // One QGraphicsLineItem child per IS handle; stays on top of section views via zValue.
+  QVector<QGraphicsLineItem*> m_handleLines;
+
   int m_activeHandle{-1};
   double m_dragStartX{};
 };
