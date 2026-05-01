@@ -80,8 +80,10 @@ if(OSSIA_SDK)
   endif()
 endif()
 
-set(CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ScoreUserMakeRulesOverride.cmake")
 project(score LANGUAGES C CXX)
+
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/ScoreCodeviewWindows.cmake")
+
 if(APPLE)
   enable_language(OBJC)
   enable_language(OBJCXX)
