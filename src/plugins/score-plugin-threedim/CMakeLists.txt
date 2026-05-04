@@ -174,6 +174,12 @@ add_library(
   Threedim/TextToMesh.hpp
   Threedim/TextToMesh.cpp
   Threedim/TextToTexture.hpp
+  Threedim/ExtractBuffer2.hpp
+  Threedim/ExtractBuffer2.cpp
+  Threedim/ExtractSceneBuffer.hpp
+  Threedim/ExtractSceneBuffer.cpp
+  Threedim/ExtractTexture.hpp
+  Threedim/ExtractTexture.cpp
   Threedim/BufferInfo.hpp
   Threedim/TextureInfo.hpp
   Threedim/ImageLoader.hpp
