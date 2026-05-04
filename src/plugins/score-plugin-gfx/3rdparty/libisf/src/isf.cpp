@@ -1017,6 +1017,13 @@ static void parse_input(Input_T& inp, const sajson::value& v)
       auto val = v.get_object_value(i);
       inp.def = parse_input_impl(val, value_type{});
     }
+    else if(k == "AS_COLOR")
+    {
+      if constexpr(requires { inp.as_color; })
+      {
+        inp.as_color = v.get_object_value(i).get_type() == sajson::TYPE_TRUE;
+      }
+    }
   }
 
   // Handle shaders without min / max
@@ -3044,6 +3051,8 @@ std::string parser::write_isf() const
             oss << ",\n      \"DEFAULT\": [" << (*p.def)[0] << ", " << (*p.def)[1]
                 << ", " << (*p.def)[2] << "]";
           }
+          if(p.as_color)
+            oss << ",\n      \"AS_COLOR\": true";
           oss << "\n";
         }
 

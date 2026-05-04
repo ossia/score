@@ -66,6 +66,12 @@ struct point3d_input
   std::optional<value_type> def{};
   std::optional<value_type> min{};
   std::optional<value_type> max{};
+
+  // AS_COLOR: hint to the UI that this vec3 should be shown as a color
+  // swatch (RGB picker) rather than three spin boxes. Useful for e.g.
+  // direction-as-RGB visualisations where editing components individually
+  // is awkward. Does not affect the GLSL type (still vec3).
+  bool as_color{false};
 };
 
 struct color_input
