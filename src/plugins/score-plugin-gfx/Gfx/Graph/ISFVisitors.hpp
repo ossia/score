@@ -61,6 +61,12 @@ struct isf_input_size_vis
     }
   }
 
+  void operator()(const isf::uniform_input&) noexcept
+  {
+    // UBO inputs are bound from an upstream Buffer port; they do not
+    // contribute to the material UBO size.
+  }
+
   void operator()(const isf::texture_input in) noexcept { }
 
   void operator()(const isf::csf_image_input& in) noexcept
