@@ -10,6 +10,7 @@
 #include <halp/texture.hpp>
 
 #include <algorithm>
+#include <cstring>
 
 #if (!defined(__linux__) && !defined(_MSC_VER))
 #define SCORE_LIBC_HAS_FLOAT16 1
@@ -102,6 +103,41 @@ public:
 
 #if (SCORE_LIBC_HAS_FLOAT16 && SCORE_COMPILER_HAS_FLOAT16)
         std::copy_n(value.data(), to_copy, (_Float16*)out);
+#else
+      {
+        // No native _Float16: software IEEE 754 binary16 conversion
+        // (round-to-nearest-even) so the upload is still meaningful.
+        auto* dst = (uint16_t*)out;
+        for(std::size_t i = 0; i < to_copy; i++)
+        {
+          const float f = value.data()[i];
+          uint32_t x;
+          std::memcpy(&x, &f, 4);
+          const uint32_t sign = (x >> 16) & 0x8000;
+          x &= 0x7FFFFFFF;
+          if(x >= 0x47800000) // overflow / inf / NaN -> inf (or NaN)
+            dst[i] = sign | 0x7C00 | (x > 0x7F800000 ? 0x200 : 0);
+          else if(x < 0x38800000) // too small for a normal half
+          {
+            const uint32_t shift = 126 - (x >> 23); // >= 14
+            uint32_t half = 0;
+            if(shift <= 24)
+            {
+              const uint32_t mant = (x & 0x7FFFFF) | 0x800000;
+              half = mant >> shift;
+              half += ((mant >> (shift - 1)) & 1)
+                      && ((mant & ((1u << (shift - 1)) - 1)) || (half & 1));
+            }
+            dst[i] = sign | half;
+          }
+          else
+          {
+            uint32_t half = ((x - 0x38000000) >> 13);
+            half += ((x >> 12) & 1) && ((x & 0xFFF) || (half & 1));
+            dst[i] = sign | half;
+          }
+        }
+      }
 #endif
         break;
 
