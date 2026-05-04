@@ -22,7 +22,10 @@
 #include <Threedim/ModelDisplay/Executor.hpp>
 #include <Threedim/ModelDisplay/Process.hpp>
 #include <Threedim/Noise.hpp>
-#include <Threedim/ObjLoader.hpp>
+#include <Threedim/BufferInfo.hpp>
+#include <Threedim/GeometryLoader.hpp>
+#include <Threedim/ImageLoader.hpp>
+#include <Threedim/TextureInfo.hpp>
 #include <Threedim/PCLToGeometry.hpp>
 #include <Threedim/VoxelLoader.hpp>
 #include <Threedim/Primitive.hpp>
@@ -194,7 +197,7 @@ class OBJLibraryHandler final
 
   Library::Subcategories categories;
 
-  using proc = oscr::ProcessModel<ObjLoader>;
+  using proc = oscr::ProcessModel<GeometryLoader>;
   void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
       override
   {
@@ -230,7 +233,7 @@ class OBJDropHandler final : public Process::ProcessDropHandler
 
   QSet<QString> fileExtensions() const noexcept override { return {"obj", "ply"}; }
 
-  using proc = oscr::ProcessModel<ObjLoader>;
+  using proc = oscr::ProcessModel<GeometryLoader>;
   void dropData(
       std::vector<ProcessDrop>& vec,
       const DroppedFile& data,
@@ -338,7 +341,10 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
   oscr::instantiate_fx<Threedim::ArrayToTexture>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Noise>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::StrucSynth>(fx, ctx, key);
-  oscr::instantiate_fx<Threedim::ObjLoader>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::GeometryLoader>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::BufferInfo>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::TextureInfo>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::ImageLoader>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::VoxelLoader>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Plane>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Cube>(fx, ctx, key);

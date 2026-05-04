@@ -77,8 +77,16 @@ add_library(
   Threedim/GeometryToBufferStrategies.cpp
   Threedim/Noise.hpp
   Threedim/Noise.cpp
-  Threedim/ObjLoader.hpp
-  Threedim/ObjLoader.cpp
+  Threedim/GeometryLoader.hpp
+  Threedim/GeometryLoader.cpp
+  Threedim/BufferInfo.hpp
+  Threedim/TextureInfo.hpp
+  Threedim/ImageLoader.hpp
+  Threedim/ImageLoader.cpp
+  Threedim/TangentUtils.hpp
+  Threedim/BufferToGeometryCommon.hpp
+  Threedim/Debug.hpp
+  Threedim/MeshHelpers.hpp
   Threedim/PCLToGeometry.hpp
   Threedim/PCLToGeometry.cpp
   Threedim/Ply.hpp
