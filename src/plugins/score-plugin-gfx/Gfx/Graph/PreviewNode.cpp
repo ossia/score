@@ -233,7 +233,7 @@ public:
       score::gfx::RenderList& renderer, QRhiCommandBuffer& cb,
       QRhiResourceUpdateBatch*& res) override
   {
-    cb.beginPass(m_renderTarget.renderTarget, Qt::black, {1.0f, 0}, res);
+    cb.beginPass(m_renderTarget.renderTarget, Qt::black, {0.0f, 0}, res);
     res = nullptr;
     {
       const auto sz = renderer.state.renderSize;

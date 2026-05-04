@@ -227,7 +227,7 @@ struct RenderedDepthNode : score::gfx::NodeRenderer
   Pass createPass(Renderer& renderer, Sampler target)
   {
     QRhi& rhi = *renderer.state.rhi;
-    auto [sampler, tex] = target;
+    auto [sampler, tex, fb_] = target;
 
     auto rt = rhi.newTextureRenderTarget({tex});
     auto rp = rt->newCompatibleRenderPassDescriptor();
@@ -238,6 +238,7 @@ struct RenderedDepthNode : score::gfx::NodeRenderer
     QRhiBuffer* pubo{};
     pubo = rhi.newBuffer(
         QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(ProcessUBO));
+    pubo->setName("DepthNode::createPass::pubo");
     pubo->create();
 
     auto pip = buildPassPipeline(renderer, TextureRenderTarget{.texture = tex, .renderPass = rp, .renderTarget = rt}, pubo);
@@ -337,7 +338,7 @@ struct RenderedDepthNode : score::gfx::NodeRenderer
     for(auto& audio : n.audio_textures)
     {
       bool textureChanged = false;
-      auto& [rhiSampler, rhiTexture] = audio.samplers[&renderer];
+      auto& [rhiSampler, rhiTexture, fb_] = audio.samplers[&renderer];
       const auto curSz = (rhiTexture) ? rhiTexture->pixelSize() : QSize{};
       int numSamples = curSz.width() * curSz.height();
       if(numSamples != audio.data.size())
@@ -466,7 +467,7 @@ struct RenderedDepthNode : score::gfx::NodeRenderer
       auto texture = pass.renderTarget.texture;
 
       // TODO need to free stuff
-      cb.beginPass(rt, Qt::black, {1.0f, 0}, updateBatch);
+      cb.beginPass(rt, Qt::black, {0.0f, 0}, updateBatch);
       {
         cb.setGraphicsPipeline(pipeline);
         cb.setShaderResources(srb);

@@ -1,11 +1,22 @@
 #pragma once
 #include <Gfx/Graph/CommonUBOs.hpp>
+#include <Gfx/Graph/GpuTiming.hpp>
 #include <Gfx/Graph/Node.hpp>
 
+#include <ossia/detail/hash_map.hpp>
+
+#include <memory>
+
+namespace Gfx
+{
+class AssetTable;
+}
 namespace score::gfx
 {
 
+class GpuResourceRegistry;
 class OutputNode;
+class VertexFallbackPool;
 /**
  * @brief List of nodes to be rendered to an output.
  *
@@ -17,6 +28,7 @@ class OutputNode;
  */
 class SCORE_PLUGIN_GFX_EXPORT RenderList
 {
+  friend struct Graph;
 private:
   std::shared_ptr<RenderState> m_state;
 
@@ -35,6 +47,14 @@ public:
    * See QRhiResourceUpdateBatch::merge for documentation on this
    */
   [[nodiscard]] QRhiResourceUpdateBatch* initialBatch() const noexcept;
+
+  /**
+   * @brief Store a resource update batch to be submitted on the next render frame.
+   *
+   * Used by incremental edge additions that happen after the first render frame
+   * (when the original m_initialBatch has already been consumed).
+   */
+  void setInitialBatch(QRhiResourceUpdateBatch* batch) noexcept { m_initialBatch = batch; }
 
   /**
    * @brief Create buffers for a mesh and mark them for upload.
@@ -120,9 +140,24 @@ public:
   void clearRenderers();
 
   /**
-   * @brief Texture to use when a texture is missing
+   * @brief Texture to use when a texture is missing (2D)
    */
   QRhiTexture& emptyTexture() const noexcept { return *m_emptyTexture; }
+
+  /**
+   * @brief Texture to use when a 3D (sampler3D) texture is missing
+   */
+  QRhiTexture& emptyTexture3D() const noexcept { return *m_emptyTexture3D; }
+
+  /**
+   * @brief Texture to use when a cubemap (samplerCube) is missing
+   */
+  QRhiTexture& emptyTextureCube() const noexcept { return *m_emptyTextureCube; }
+
+  /**
+   * @brief Texture to use when a 2D array (sampler2DArray) is missing
+   */
+  QRhiTexture& emptyTextureArray() const noexcept { return *m_emptyTextureArray; }
 
   /**
    * @brief UBO corresponding to the output parameters:
@@ -131,6 +166,55 @@ public:
    *  - Per-API adjustments and globals
    */
   QRhiBuffer& outputUBO() const noexcept { return *m_outputUBO; }
+
+  /**
+   * @brief Per-RenderList GPU arena store for scene-graph source nodes.
+   *
+   * Returns a reference to the registry that owns the Camera / Light /
+   * Material / PerDraw arena buffers. Source nodes (Camera, Light,
+   * PBRMesh, …) allocate a slot from this registry at construction and
+   * write their packed bytes into it at their own update().
+   *
+   * Valid between init() and release().
+   */
+  GpuResourceRegistry& registry() noexcept { return *m_registry; }
+  const GpuResourceRegistry& registry() const noexcept { return *m_registry; }
+
+  /**
+   * @brief Per-RenderList pool of neutral fallback vertex buffers for
+   *        "REQUIRED: false" VERTEX_INPUTS whose upstream geometry does
+   *        not provide a matching attribute.
+   *
+   * Valid between init() and release(). See VertexFallbackPool.hpp.
+   */
+  VertexFallbackPool& vertexFallbackPool() noexcept { return *m_vertexFallbackPool; }
+
+  /**
+   * @brief Per-RenderList GPU-timing collector.
+   *
+   * Renderers wrap their begin/endPass regions in `ScopedGpuTimer` to
+   * attribute the CB-wide lastCompletedGpuTime to the named pass. The
+   * result is one frame stale — see GpuTiming.hpp for details.
+   *
+   * The S6 observability panel reads `gpuTimings().snapshot()` on its
+   * UI tick and displays per-pass rolling means.
+   */
+  GpuTimings& gpuTimings() noexcept { return m_gpuTimings; }
+  const GpuTimings& gpuTimings() const noexcept { return m_gpuTimings; }
+
+  /**
+   * @brief Session-wide asset decode cache.
+   *
+   * Set by Graph::createRenderList from GfxContext's AssetTable.
+   * May be null on test RenderLists or after teardown. Consumers
+   * must guard.
+   *
+   * Plan 09 S1: one decode per asset per session; preprocessor's
+   * texture-decode path checks this first, falls back to decode +
+   * stage otherwise.
+   */
+  Gfx::AssetTable* assetTable() const noexcept { return m_assetTable; }
+  void setAssetTable(Gfx::AssetTable* t) noexcept { m_assetTable = t; }
 
   /**
    * @brief A quad mesh correct for this API
@@ -147,7 +231,7 @@ public:
    * 
    * e.g. it's not needed if we're just doing some generative shaders.
    */
-  bool requiresDepth(score::gfx::Port& p) const noexcept;
+  bool requiresDepth(const score::gfx::Port& p) const noexcept;
   bool anyNodeRequiresDepth() const noexcept { return m_requiresDepth; }
 
   int samples() const noexcept { return m_samples; }
@@ -160,14 +244,68 @@ public:
 
   void createAllInputRenderTargets();
 
+  /**
+   * @brief Mark this render list as fully built.
+   *
+   * Prevents maybeRebuild() from unnecessarily tearing down and
+   * recreating all resources on the first render frame after
+   * createRenderList() has already fully initialized everything.
+   */
+  void markBuilt() noexcept { m_built = true; m_lastSize = state.renderSize; }
+
+  /// Notify that an edge was removed. Notifies renderers, releases RT if unused.
+  ///
+  /// @param preserveSinks Optional set of sink Ports that should keep their
+  ///   input render target even if this edge was their only feed. Used by
+  ///   batched edge updates (see GfxContext::incrementalEdgeUpdate) so that
+  ///   inserting a filter between two nodes doesn't destroy and immediately
+  ///   re-allocate the same RT when the old and new edges share a sink port.
+  void
+  onEdgeRemoved(Edge& edge, const ossia::hash_set<const Port*>* preserveSinks = nullptr);
+
+  /// Remove the render target for a specific input port.
+  void removeInputRenderTarget(const Port* port);
+
+  /**
+   * @brief Resolve the downstream render target size for a node.
+   *
+   * Returns the maximum size across all downstream render targets that
+   * this node renders to. Used as fallback when a node's input port
+   * has no explicit render target size.
+   */
+  QSize resolveDownstreamSize(
+      const Node* node,
+      const ossia::small_flat_map<const Port*, RenderTargetSpecs, 16>& resolvedSpecs)
+      const noexcept;
+
 private:
   OutputUBO m_outputUBOData;
 
   QRhiResourceUpdateBatch* m_initialBatch{};
 
+  // Scene-graph arena store (camera / light / material / per_draw buffers).
+  // Owned by this RenderList; lifetime matches init/release.
+  std::unique_ptr<GpuResourceRegistry> m_registry;
+
+  // Pool of tiny shared vertex buffers used to satisfy "REQUIRED: false"
+  // VERTEX_INPUTS whose upstream geometry is missing an attribute.
+  // Same lifetime as m_registry.
+  std::unique_ptr<VertexFallbackPool> m_vertexFallbackPool;
+
+  // GPU-timing collector. Lives as long as the RenderList — outlives
+  // individual renderers so per-pass measurements survive node churn.
+  GpuTimings m_gpuTimings;
+
+  // Session-wide asset decode cache. Non-owning; GfxContext is the
+  // owner. May be null.
+  Gfx::AssetTable* m_assetTable{};
+
   // Material
   QRhiBuffer* m_outputUBO{};
   QRhiTexture* m_emptyTexture{};
+  QRhiTexture* m_emptyTexture3D{};
+  QRhiTexture* m_emptyTextureCube{};
+  QRhiTexture* m_emptyTextureArray{};
 
   /**
    * @brief Cache of vertex buffers.
