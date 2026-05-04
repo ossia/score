@@ -1,12 +1,14 @@
 #include <Process/Preset.hpp>
 
 #include <Gfx/Filter/PreviewWidget.hpp>
+#include <Gfx/Graph/BackgroundNode.hpp>
 #include <Gfx/Graph/ISFNode.hpp>
-#include <Gfx/Graph/ScreenNode.hpp>
 #include <Gfx/Settings/Model.hpp>
+#include <Gfx/Widgets/RhiPreviewWidget.hpp>
 
 #include <score/application/ApplicationContext.hpp>
 
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/network/value/value.hpp>
 
 #include <QApplication>
@@ -137,7 +139,8 @@ struct PreviewInputVisitor
   
   // CSF-specific input handlers
   score::gfx::NodeModel* operator()(const isf::storage_input& v) { return nullptr; }
-  
+  score::gfx::NodeModel* operator()(const isf::uniform_input& v) { return nullptr; }
+
   score::gfx::NodeModel* operator()(const isf::texture_input& v)
   {
     static std::array<QImage, 3> images{
@@ -244,6 +247,7 @@ struct PreviewPresetVisitor
   
   // CSF-specific input handlers
   void operator()(const isf::storage_input& v) { }
+  void operator()(const isf::uniform_input& v) { }
 
   void operator()(const isf::texture_input& v) { }
 
@@ -256,18 +260,17 @@ struct PreviewPresetVisitor
 ShaderPreviewManager* g_shaderPreview{};
 bool g_shaderPreviewScheduledForDeletion{};
 
-// Creating and destroying QRhi is fairly expensive, so
-// we keep one around when we are showing ISF previews
+// Holds the source ISF + image nodes shared across hover previews.
+// The output side is owned by individual ShaderPreviewWidget /
+// RhiPreviewWidget instances: each contributes a score::gfx::PreviewNode
+// targeting its own QRhiWidget render target. Multiple previews can be
+// attached at once (e.g. library hover + live texture-port preview).
 class ShaderPreviewManager : public QObject
 {
 public:
   ShaderPreviewManager()
       : QObject{qApp}
   {
-    score::gfx::OutputNode::Configuration conf{};
-    m_screen = std::make_unique<score::gfx::ScreenNode>(conf, true);
-    m_graph.addNode(m_screen.get());
-
     connect(qApp, &QCoreApplication::aboutToQuit, this, [] {
       delete g_shaderPreview;
       g_shaderPreviewScheduledForDeletion = false;
@@ -288,7 +291,8 @@ public:
     if(path.contains(".vs") || path.contains(".vert"))
       program = programFromVSAVertexShaderPath(path, {});
 
-    if(const auto& [processed, error] = ProgramCache::instance().get(program);
+    if(const auto& [processed, error]
+       = ProgramCache::instance().get(program, path);
        bool(processed))
     {
       m_program = *processed;
@@ -311,6 +315,8 @@ public:
     auto vert = obj["Vertex"].GetString();
     ShaderSource program{type, vert, frag};
 
+    // Preset-loaded source has no origin file; includes resolve against
+    // global search paths only.
     if(const auto& [processed, error] = ProgramCache::instance().get(program);
        bool(processed))
     {
@@ -334,11 +340,25 @@ public:
     }
   }
 
-  std::shared_ptr<QWindow> getWindow()
+  score::gfx::Graph& graph() noexcept { return m_graph; }
+
+  void attachPreview(score::gfx::BackgroundNode& node)
   {
-    if(m_screen && m_screen.get())
-      return m_screen.get()->window();
-    return {};
+    m_previews.push_back(&node);
+    if(m_isf)
+    {
+      m_graph.addEdge(
+          m_isf->output[0], node.input[0], Process::CableType::ImmediateGlutton);
+      const auto& settings = score::AppContext().settings<Gfx::Settings::Model>();
+      m_graph.createAllRenderLists(settings.graphicsApiEnum());
+    }
+  }
+
+  void detachPreview(score::gfx::BackgroundNode& node)
+  {
+    ossia::remove_erase(m_previews, &node);
+    if(m_isf)
+      m_graph.removeEdge(m_isf->output[0], node.input[0]);
   }
 
   std::vector<std::pair<score::gfx::Port*, score::gfx::Port*>> m_previewEdges;
@@ -346,7 +366,7 @@ public:
   void setup()
   {
     const auto& settings = score::AppContext().settings<Gfx::Settings::Model>();
-    // Create our graph
+    // Tear down the previous set of source nodes.
     for(auto [a, b] : m_previewEdges)
       m_graph.removeEdge(a, b);
     m_previewEdges.clear();
@@ -359,11 +379,10 @@ public:
 
     if(m_isf)
     {
-      m_graph.removeEdge(m_isf->output[0], m_screen->input[0]);
+      for(auto* p : m_previews)
+        m_graph.removeEdge(m_isf->output[0], p->input[0]);
       m_graph.removeNode(m_isf.get());
     }
-
-    m_graph.removeNode(m_screen.get());
 
     // Clear the graph, renderers etc.
     m_graph.createAllRenderLists(settings.graphicsApiEnum());
@@ -371,17 +390,16 @@ public:
     m_isf.reset();
     m_textures.clear();
 
-    // Recreate what we need
-    m_graph.addNode(m_screen.get());
-
     // FIXME add an error image if the shader did not parse
     m_isf = std::make_unique<score::gfx::ISFNode>(
         m_program.descriptor, m_program.vertex, m_program.fragment);
 
     m_graph.addNode(m_isf.get());
-    // Edge from filter to output
-    m_graph.addEdge(
-        m_isf->output[0], m_screen->input[0], Process::CableType::ImmediateGlutton);
+
+    // Wire ISF output to every currently-attached preview.
+    for(auto* p : m_previews)
+      m_graph.addEdge(
+          m_isf->output[0], p->input[0], Process::CableType::ImmediateGlutton);
 
     // Edges from image nodes to image inputs
     int image_i = 0;
@@ -463,10 +481,10 @@ public:
     }
   }
 
-  std::unique_ptr<score::gfx::ScreenNode> m_screen{};
 private:
   std::unique_ptr<score::gfx::ISFNode> m_isf{};
   std::vector<std::unique_ptr<score::gfx::Node>> m_textures;
+  std::vector<score::gfx::BackgroundNode*> m_previews;
   score::gfx::Graph m_graph{};
   ProcessedProgram m_program;
 };
@@ -497,6 +515,13 @@ ShaderPreviewWidget::ShaderPreviewWidget(const Process::Preset& preset, QWidget*
 
 ShaderPreviewWidget::~ShaderPreviewWidget()
 {
+  // Tearing down the RhiPreviewWidget triggers detachPreview() on the
+  // manager, which removes the producer→preview edge. Do this before
+  // scheduling manager deletion so the deferred delete sees a clean
+  // graph.
+  delete m_rhi;
+  m_rhi = nullptr;
+
   g_shaderPreviewScheduledForDeletion = true;
   QTimer::singleShot(std::chrono::seconds(5), qApp, []() {
     if(g_shaderPreviewScheduledForDeletion)
@@ -506,36 +531,35 @@ ShaderPreviewWidget::~ShaderPreviewWidget()
       g_shaderPreviewScheduledForDeletion = false;
     }
   });
-
-  if(m_window)
-    m_window->setParent(nullptr);
 }
 
 void ShaderPreviewWidget::setup()
 {
   // UI setup
   auto lay = new QHBoxLayout(this);
-  if((m_window = g_shaderPreview->getWindow()))
-  {
-    auto widg = createWindowContainer(m_window.get(), this);
-    widg->setMinimumWidth(300);
-    widg->setMaximumWidth(300);
-    widg->setMinimumHeight(200);
-    widg->setMaximumHeight(200);
-    lay->addWidget(widg);
-  }
-  // FIXME else { display error widget }
+  m_rhi = new RhiPreviewWidget(this);
+  m_rhi->setMinimumSize(300, 200);
+  m_rhi->setMaximumSize(300, 200);
+  m_rhi->useGraph(
+      &g_shaderPreview->graph(),
+      [](score::gfx::BackgroundNode& n) {
+        if(g_shaderPreview)
+          g_shaderPreview->attachPreview(n);
+      },
+      [](score::gfx::BackgroundNode& n) {
+        if(g_shaderPreview)
+          g_shaderPreview->detachPreview(n);
+      });
+  lay->addWidget(m_rhi);
 
-  // so anyways, I started blasting...
+  // Drives ISF time/progress uniforms. Frame submission is owned by
+  // the QRhiWidget (it calls update() each render).
   startTimer(16);
 }
 
 void ShaderPreviewWidget::timerEvent(QTimerEvent* event)
 {
   if(g_shaderPreview)
-  {
     g_shaderPreview->updateControls();
-    g_shaderPreview->m_screen->render();
-  }
 }
 }

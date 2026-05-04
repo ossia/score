@@ -11,8 +11,10 @@
 #include <Gfx/TexturePort.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
+#include <score/document/DocumentInterface.hpp>
 #include <score/tools/DeleteAll.hpp>
 #include <score/tools/File.hpp>
+#include <score/tools/FilePath.hpp>
 
 #include <QFileInfo>
 
@@ -71,10 +73,12 @@ Model::Model(
 
   if(init.endsWith("fs") || init.endsWith("frag"))
   {
+    m_scriptPath = init;
     (void)setProgram(programFromISFFragmentShaderPath(init, {}));
   }
   else if(init.endsWith("vs") || init.endsWith("vert"))
   {
+    m_scriptPath = init;
     (void)setProgram(programFromVSAVertexShaderPath(init, {}));
   }
 }
@@ -83,7 +87,7 @@ Model::~Model() { }
 
 bool Model::validate(const ShaderSource& txt) const noexcept
 {
-  const auto& [_, error] = ProgramCache::instance().get(txt);
+  const auto& [_, error] = ProgramCache::instance().get(txt, m_scriptPath);
   if(!error.isEmpty())
   {
     this->errorMessage(error);
@@ -116,7 +120,9 @@ Process::ScriptChangeResult Model::setProgram(const ShaderSource& f)
 {
   setVertex(f.vertex);
   setFragment(f.fragment);
-  if(const auto& [processed, error] = ProgramCache::instance().get(f); bool(processed))
+  if(const auto& [processed, error]
+     = ProgramCache::instance().get(f, m_scriptPath);
+     bool(processed))
   {
     ossia::flat_map<QString, ossia::value> previous_values;
     for(auto inl : m_inlets)
@@ -203,7 +209,9 @@ void DataStreamWriter::write(Gfx::ShaderSource& p)
 template <>
 void DataStreamReader::read(const Gfx::Filter::Model& proc)
 {
-  m_stream << proc.m_program;
+  auto& ctx = score::IDocument::documentContext(proc);
+  m_stream << proc.m_program
+           << score::relativizeFilePath(proc.m_scriptPath, ctx);
 
   readPorts(*this, proc.m_inlets, proc.m_outlets);
 
@@ -214,7 +222,12 @@ template <>
 void DataStreamWriter::write(Gfx::Filter::Model& proc)
 {
   Gfx::ShaderSource s;
-  m_stream >> s;
+  m_stream >> s >> proc.m_scriptPath;
+  if(!proc.m_scriptPath.isEmpty())
+  {
+    auto& ctx = score::IDocument::documentContext(proc);
+    proc.m_scriptPath = score::locateFilePath(proc.m_scriptPath, ctx);
+  }
   s.type = isf::parser::ShaderType::ISF;
   (void)proc.setProgram(s);
 
@@ -230,6 +243,11 @@ void JSONReader::read(const Gfx::Filter::Model& proc)
 {
   obj["Vertex"] = proc.vertex();
   obj["Fragment"] = proc.fragment();
+  if(!proc.m_scriptPath.isEmpty())
+  {
+    auto& ctx = score::IDocument::documentContext(proc);
+    obj["Root"] = score::relativizeFilePath(proc.m_scriptPath, ctx);
+  }
 
   readPorts(*this, proc.m_inlets, proc.m_outlets);
 }
@@ -241,6 +259,15 @@ void JSONWriter::write(Gfx::Filter::Model& proc)
   s.vertex = obj["Vertex"].toString();
   s.fragment = obj["Fragment"].toString();
   s.type = isf::parser::ShaderType::ISF;
+  if(auto r = obj.tryGet("Root"))
+  {
+    proc.m_scriptPath <<= *r;
+    if(!proc.m_scriptPath.isEmpty())
+    {
+      auto& ctx = score::IDocument::documentContext(proc);
+      proc.m_scriptPath = score::locateFilePath(proc.m_scriptPath, ctx);
+    }
+  }
   (void)proc.setProgram(s);
 
   writePorts(
