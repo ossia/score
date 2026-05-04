@@ -151,6 +151,16 @@ add_library(
   Threedim/InjectBuffer.cpp
   Threedim/InjectTexture.hpp
   Threedim/InjectTexture.cpp
+  Threedim/PBRMesh.hpp
+  Threedim/PBRMesh.cpp
+  Threedim/MaterialOverride.hpp
+  Threedim/MaterialOverride.cpp
+  Threedim/ConfigurePrimitive.hpp
+  Threedim/ConfigurePrimitive.cpp
+  Threedim/Instancer.hpp
+  Threedim/Instancer.cpp
+  Threedim/ShadowCascadeSetup.hpp
+  Threedim/ShadowCascadeSetup.cpp
   Threedim/BufferInfo.hpp
   Threedim/TextureInfo.hpp
   Threedim/ImageLoader.hpp
