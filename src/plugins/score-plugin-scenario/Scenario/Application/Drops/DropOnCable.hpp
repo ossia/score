@@ -221,10 +221,10 @@ public:
           for(auto& edge : old.inlets()[0]->cables())
           {
             auto& cable = edge.find(m_context);
-            auto& src = cable.source().find(m_context);
-            if(src.type() == type)
+            auto* src = cable.source().try_find(m_context);
+            if(src && src->type() == type)
             {
-              m.createCable(sm, src, *dst, cable.type());
+              m.createCable(sm, *src, *dst, cable.type());
             }
           }
           m.setProperty<Process::Port::p_address>(*dst, old_dst->address());
@@ -246,10 +246,10 @@ public:
           for(auto& edge : old.outlets()[0]->cables())
           {
             auto& cable = edge.find(m_context);
-            auto& dst = cable.sink().find(m_context);
-            if(dst.type() == type)
+            auto* dst = cable.sink().try_find(m_context);
+            if(dst && dst->type() == type)
             {
-              m.createCable(sm, *src, dst, cable.type());
+              m.createCable(sm, *src, *dst, cable.type());
             }
           }
           m.setProperty<Process::Port::p_address>(*src, old_src->address());
@@ -264,6 +264,94 @@ public:
           src->setAddress(old_src->address());
         }
       }
+    }
+
+    relinkNamedPorts(p, m);
+  }
+
+  // For inlets and outlets beyond index 0, preserve cables and addresses on
+  // ports whose name and type match exactly between old and new process. This
+  // is the preset-replacement use case: e.g. both processes expose "Audio In"
+  // and "MIDI In", we want to keep both wirings, not just the first.
+  void relinkNamedPorts(Process::ProcessModel* p, Scenario::Command::Macro& m)
+  {
+    if(!item)
+      return;
+    auto& old = item->model();
+
+    const auto new_in_count = p->inlets().size();
+    const auto old_in_count = old.inlets().size();
+    for(std::size_t i = 1; i < old_in_count; ++i)
+    {
+      auto* old_in = old.inlets()[i];
+      Process::Inlet* dst = nullptr;
+      for(std::size_t j = 1; j < new_in_count; ++j)
+      {
+        auto* candidate = p->inlets()[j];
+        if(candidate->name() == old_in->name()
+           && candidate->type() == old_in->type())
+        {
+          dst = candidate;
+          break;
+        }
+      }
+      if(!dst)
+        continue;
+
+      const auto type = dst->type();
+      for(auto& edge : old_in->cables())
+      {
+        auto& cable = edge.find(m_context);
+        auto* src = cable.source().try_find(m_context);
+        if(src && src->type() == type)
+        {
+          m.createCable(sm, *src, *dst, cable.type());
+        }
+      }
+      m.setProperty<Process::Port::p_address>(*dst, old_in->address());
+    }
+
+    const auto new_out_count = p->outlets().size();
+    const auto old_out_count = old.outlets().size();
+    for(std::size_t i = 1; i < old_out_count; ++i)
+    {
+      auto* old_out = old.outlets()[i];
+      Process::Outlet* src = nullptr;
+      for(std::size_t j = 1; j < new_out_count; ++j)
+      {
+        auto* candidate = p->outlets()[j];
+        if(candidate->name() == old_out->name()
+           && candidate->type() == old_out->type())
+        {
+          src = candidate;
+          break;
+        }
+      }
+      if(!src)
+        continue;
+
+      const auto type = src->type();
+      for(auto& edge : old_out->cables())
+      {
+        auto& cable = edge.find(m_context);
+        auto* dst = cable.sink().try_find(m_context);
+        if(dst && dst->type() == type)
+        {
+          m.createCable(sm, *src, *dst, cable.type());
+        }
+      }
+      m.setProperty<Process::Port::p_address>(*src, old_out->address());
+      if(type == Process::PortType::Audio)
+      {
+        auto* old_audio = qobject_cast<Process::AudioOutlet*>(old_out);
+        auto* new_audio = qobject_cast<Process::AudioOutlet*>(src);
+        if(old_audio && new_audio)
+        {
+          m.setProperty<Process::AudioOutlet::p_propagate>(
+              *new_audio, old_audio->propagate());
+        }
+      }
+      src->setAddress(old_out->address());
     }
   }
 
