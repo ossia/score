@@ -3,6 +3,7 @@
 #include <Gfx/Graph/GeometryFilterNodeRenderer.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
+#include <ossia/detail/algorithms.hpp>
 #include <Gfx/Graph/RenderState.hpp>
 #include <boost/algorithm/string.hpp>
 #include <ossia/detail/fmt.hpp>
@@ -62,6 +63,8 @@ layout(std140, binding = 2) uniform camera_t { \n\
       mat4 matrixProjection; \n\
       mat3 matrixNormal; \n\
       float fov; \n\
+      float near; \n\
+      float far; \n\
 } camera; \n\
  \n\
 "
@@ -81,29 +84,160 @@ float gl_PointSize;
 const constexpr auto vtx_projection_perspective = R"_(
 vec4 v_projected = camera.matrixModelViewProjection * vec4(in_position.xyz, 1.0);
 )_";
-const constexpr auto vtx_projection_fulldome = R"_(
-vec4 v_projected = vec4(1.0);
+// ----------------------------------------------------------------------------
+// Fulldome fisheye projections
+//
+// All four variants share the same θ/φ derivation and the same reverse-Z
+// depth; they differ only in the `r_ndc = f(θ)` mapping. Kept as separate
+// vertex-shader snippets (rather than a runtime branch on a uniform) so
+// the GPU dispatches branch-free code for the selected projection.
+//
+//   equidistant   — r = θ / (FOV/2)          (domemaster, uniform angular resolution; default)
+//   equisolid     — r = sin(θ/2) / sin(FOV/4) (equal-area; typical of photographic fisheye lenses)
+//   stereographic — r = tan(θ/2) / tan(FOV/4) (conformal; "little planet" look)
+//   orthographic  — r = sin(θ)   / sin(FOV/2) (parallel-projection sphere; FOV ≤ 180° only)
+//
+// Points with r_ndc > 1 fall outside the NDC unit square and are hardware-
+// clipped, so FOV > 180° works out of the box for equidistant / equisolid /
+// stereographic. Orthographic cannot exceed 180° geometrically.
+// ----------------------------------------------------------------------------
+const constexpr auto vtx_projection_fulldome_equidistant = R"_(
+//
+// Fulldome / domemaster (equidistant angular fisheye).
+//
+//   r_2D = theta / (fov/2)           — radial image distance (NDC units)
+//   theta = angle from dome forward axis (view-space +Z in this convention)
+//   phi   = azimuth around forward axis
+//
+// Convention kept from the original implementation: the .xzy swizzle re-
+// orients world +Z as dome-up, world +Y as dome-forward; the view matrix
+// then places the zenith along view-space +Z.
+//
+// Works for FOV > 180° (e.g. 240°): points with theta > FOV/2 land outside
+// the NDC unit square and get hardware-clipped. For point clouds each
+// vertex is a single point, so no per-primitive clipping subtleties.
+//
+// Depth: linear reverse-Z in radial distance. z_gl in [-1,+1] such that
+// renderer.clipSpaceCorrMatrix (GL→Vulkan Z remap) yields z_vulkan=1 at
+// near, z_vulkan=0 at far. Matches the project-wide reverse-Z convention
+// (depth cleared to 0.0, compare op Greater).
+//
+vec4 v_projected = vec4(0.0, 0.0, 0.0, 1.0);
 {
   vec4 viewspace = camera.matrixModelView * vec4(in_position.xzy, 1.0);
-  // Code from Emmanuel Durand:
-  // https://emmanueldurand.net/spherical_projection/
-  // - inlined as another function injected could be called toSphere or do #define pi. yay GLSL...
-  float r = length(viewspace.xyz);
-  float val = clamp(viewspace.z / r, -1.0, 1.0);
-  float theta = atan(length(viewspace.xy), viewspace.z);
+  vec3 d = viewspace.xyz;
+  float r = length(d);
 
-  val = viewspace.x / (r * sin(theta));
-  float first = acos(clamp(val, -1.0, 1.0));
-  val = viewspace.y / (r * sin(theta));
-  float second = asin(clamp(val, -1.0, 1.0));
+  const float PI = 3.14159265358979323846264338327;
 
-  float phi = mix(2.0 * 3.14159265358979323846264338327 - first, first, second >= 0.0);
-  const float proj_ratio = 3.14159265358979323846264338327 / (360.0 / camera.fov);
-  v_projected.x = theta * cos(phi);
-  v_projected.y = theta * sin(phi);
-  v_projected.y /= proj_ratio;
-  v_projected.x /= proj_ratio;
-  v_projected.z = r / 1000.;
+  if(r > 1e-6)
+  {
+    float theta = acos(clamp(d.z / r, -1.0, 1.0));
+    float phi   = (length(d.xy) > 1e-6) ? atan(d.y, d.x) : 0.0;
+    float half_fov_rad = max(radians(camera.fov * 0.5), 1e-6);
+    float r_ndc = theta / half_fov_rad;
+
+    v_projected.x = r_ndc * cos(phi);
+    v_projected.y = r_ndc * sin(phi);
+  }
+
+  // Reverse-Z linear depth: z_gl = 1 at r = near (gets remapped to
+  // z_vulkan = 1 by clipSpaceCorrMatrix), z_gl = -1 at r = far.
+  float t = clamp(
+      (r - camera.near) / max(camera.far - camera.near, 1e-6),
+      0.0, 1.0);
+  v_projected.z = 1.0 - 2.0 * t;
+  v_projected.w = 1.0;
+}
+)_";
+
+// Equisolid-angle (equal-area fisheye). Matches the response of most
+// physical fisheye camera lenses (Nikon, Canon). Areas-on-the-sphere map
+// to equal areas-on-the-image, so the edge gets less angular resolution
+// than the centre.
+const constexpr auto vtx_projection_fulldome_equisolid = R"_(
+vec4 v_projected = vec4(0.0, 0.0, 0.0, 1.0);
+{
+  vec4 viewspace = camera.matrixModelView * vec4(in_position.xzy, 1.0);
+  vec3 d = viewspace.xyz;
+  float r = length(d);
+
+  if(r > 1e-6)
+  {
+    float theta = acos(clamp(d.z / r, -1.0, 1.0));
+    float phi   = (length(d.xy) > 1e-6) ? atan(d.y, d.x) : 0.0;
+    float quarter_fov_rad = max(radians(camera.fov * 0.25), 1e-6);
+    float r_ndc = sin(theta * 0.5) / sin(quarter_fov_rad);
+
+    v_projected.x = r_ndc * cos(phi);
+    v_projected.y = r_ndc * sin(phi);
+  }
+
+  float t = clamp(
+      (r - camera.near) / max(camera.far - camera.near, 1e-6),
+      0.0, 1.0);
+  v_projected.z = 1.0 - 2.0 * t;
+  v_projected.w = 1.0;
+}
+)_";
+
+// Stereographic fisheye. Conformal — local angles / shapes preserved,
+// circles on the sphere stay circles in the image. No edge compression of
+// shape. Good for VR / architectural preview, less good for uniform
+// pixel-per-degree on a dome.
+const constexpr auto vtx_projection_fulldome_stereographic = R"_(
+vec4 v_projected = vec4(0.0, 0.0, 0.0, 1.0);
+{
+  vec4 viewspace = camera.matrixModelView * vec4(in_position.xzy, 1.0);
+  vec3 d = viewspace.xyz;
+  float r = length(d);
+
+  if(r > 1e-6)
+  {
+    float theta = acos(clamp(d.z / r, -1.0, 1.0));
+    float phi   = (length(d.xy) > 1e-6) ? atan(d.y, d.x) : 0.0;
+    float quarter_fov_rad = max(radians(camera.fov * 0.25), 1e-6);
+    // tan diverges at θ=π; rely on hardware clipping for θ ≥ FOV/2.
+    float r_ndc = tan(theta * 0.5) / tan(quarter_fov_rad);
+
+    v_projected.x = r_ndc * cos(phi);
+    v_projected.y = r_ndc * sin(phi);
+  }
+
+  float t = clamp(
+      (r - camera.near) / max(camera.far - camera.near, 1e-6),
+      0.0, 1.0);
+  v_projected.z = 1.0 - 2.0 * t;
+  v_projected.w = 1.0;
+}
+)_";
+
+// Orthographic sphere projection. Parallel projection — the image looks
+// like a billiard-ball photographed from infinity. FOV must be ≤ 180°;
+// beyond that the mapping collapses (sin(θ) decreases past π/2).
+const constexpr auto vtx_projection_fulldome_orthographic = R"_(
+vec4 v_projected = vec4(0.0, 0.0, 0.0, 1.0);
+{
+  vec4 viewspace = camera.matrixModelView * vec4(in_position.xzy, 1.0);
+  vec3 d = viewspace.xyz;
+  float r = length(d);
+
+  if(r > 1e-6)
+  {
+    float theta = acos(clamp(d.z / r, -1.0, 1.0));
+    float phi   = (length(d.xy) > 1e-6) ? atan(d.y, d.x) : 0.0;
+    float half_fov_rad = max(radians(camera.fov * 0.5), 1e-6);
+    float r_ndc = sin(theta) / sin(half_fov_rad);
+
+    v_projected.x = r_ndc * cos(phi);
+    v_projected.y = r_ndc * sin(phi);
+  }
+
+  float t = clamp(
+      (r - camera.near) / max(camera.far - camera.near, 1e-6),
+      0.0, 1.0);
+  v_projected.z = 1.0 - 2.0 * t;
+  v_projected.w = 1.0;
 }
 )_";
 const constexpr auto vtx_output_process_triangle = R"_()_";
@@ -149,6 +283,17 @@ void main()
   %vtx_do_projection%
 
   gl_Position = renderer.clipSpaceCorrMatrix * v_projected;
+#if defined(QSHADER_HLSL) || defined(QSHADER_MSL)
+  // Match the codebase Y-handling convention used by ImageNode et al.:
+  // GL is Y-up framebuffer (no flip), Vulkan's Y flip is baked into
+  // QRhi's clipSpaceCorrMatrix, but D3D/Metal share Vulkan's framebuffer
+  // origin without sharing its NDC sign convention — so we flip here so
+  // the offscreen texture lands top-row-first like the other backends,
+  // and the screen compositor (ScaledRenderer) keeps its SPIRV-only UV
+  // flip. Without this the model rendered fine on GL/Vulkan but ended
+  // up upside-down on D3D11/12.
+  gl_Position.y = -gl_Position.y;
+#endif
 
   %vtx_output_process%
 }
@@ -237,6 +382,17 @@ void main()
   %vtx_do_projection%
 
   gl_Position = renderer.clipSpaceCorrMatrix * v_projected;
+#if defined(QSHADER_HLSL) || defined(QSHADER_MSL)
+  // Match the codebase Y-handling convention used by ImageNode et al.:
+  // GL is Y-up framebuffer (no flip), Vulkan's Y flip is baked into
+  // QRhi's clipSpaceCorrMatrix, but D3D/Metal share Vulkan's framebuffer
+  // origin without sharing its NDC sign convention — so we flip here so
+  // the offscreen texture lands top-row-first like the other backends,
+  // and the screen compositor (ScaledRenderer) keeps its SPIRV-only UV
+  // flip. Without this the model rendered fine on GL/Vulkan but ended
+  // up upside-down on D3D11/12.
+  gl_Position.y = -gl_Position.y;
+#endif
 
   %vtx_output_process%
 }
@@ -292,6 +448,17 @@ void main()
   %vtx_do_projection%
 
   gl_Position = renderer.clipSpaceCorrMatrix * v_projected;
+#if defined(QSHADER_HLSL) || defined(QSHADER_MSL)
+  // Match the codebase Y-handling convention used by ImageNode et al.:
+  // GL is Y-up framebuffer (no flip), Vulkan's Y flip is baked into
+  // QRhi's clipSpaceCorrMatrix, but D3D/Metal share Vulkan's framebuffer
+  // origin without sharing its NDC sign convention — so we flip here so
+  // the offscreen texture lands top-row-first like the other backends,
+  // and the screen compositor (ScaledRenderer) keeps its SPIRV-only UV
+  // flip. Without this the model rendered fine on GL/Vulkan but ended
+  // up upside-down on D3D11/12.
+  gl_Position.y = -gl_Position.y;
+#endif
 
   %vtx_output_process%
 }
@@ -358,6 +525,17 @@ void main()
   %vtx_do_projection%
 
   gl_Position = renderer.clipSpaceCorrMatrix * v_projected;
+#if defined(QSHADER_HLSL) || defined(QSHADER_MSL)
+  // Match the codebase Y-handling convention used by ImageNode et al.:
+  // GL is Y-up framebuffer (no flip), Vulkan's Y flip is baked into
+  // QRhi's clipSpaceCorrMatrix, but D3D/Metal share Vulkan's framebuffer
+  // origin without sharing its NDC sign convention — so we flip here so
+  // the offscreen texture lands top-row-first like the other backends,
+  // and the screen compositor (ScaledRenderer) keeps its SPIRV-only UV
+  // flip. Without this the model rendered fine on GL/Vulkan but ended
+  // up upside-down on D3D11/12.
+  gl_Position.y = -gl_Position.y;
+#endif
 
   %vtx_output_process%
 }
@@ -413,6 +591,17 @@ void main()
   %vtx_do_projection%
 
   gl_Position = renderer.clipSpaceCorrMatrix * v_projected;
+#if defined(QSHADER_HLSL) || defined(QSHADER_MSL)
+  // Match the codebase Y-handling convention used by ImageNode et al.:
+  // GL is Y-up framebuffer (no flip), Vulkan's Y flip is baked into
+  // QRhi's clipSpaceCorrMatrix, but D3D/Metal share Vulkan's framebuffer
+  // origin without sharing its NDC sign convention — so we flip here so
+  // the offscreen texture lands top-row-first like the other backends,
+  // and the screen compositor (ScaledRenderer) keeps its SPIRV-only UV
+  // flip. Without this the model rendered fine on GL/Vulkan but ended
+  // up upside-down on D3D11/12.
+  gl_Position.y = -gl_Position.y;
+#endif
 
   %vtx_output_process%
 }
@@ -461,6 +650,17 @@ void main()
   %vtx_do_projection%
 
   gl_Position = renderer.clipSpaceCorrMatrix * v_projected;
+#if defined(QSHADER_HLSL) || defined(QSHADER_MSL)
+  // Match the codebase Y-handling convention used by ImageNode et al.:
+  // GL is Y-up framebuffer (no flip), Vulkan's Y flip is baked into
+  // QRhi's clipSpaceCorrMatrix, but D3D/Metal share Vulkan's framebuffer
+  // origin without sharing its NDC sign convention — so we flip here so
+  // the offscreen texture lands top-row-first like the other backends,
+  // and the screen compositor (ScaledRenderer) keeps its SPIRV-only UV
+  // flip. Without this the model rendered fine on GL/Vulkan but ended
+  // up upside-down on D3D11/12.
+  gl_Position.y = -gl_Position.y;
+#endif
 
   %vtx_output_process%
 }
@@ -510,6 +710,17 @@ void main()
   %vtx_do_projection%
 
   gl_Position = renderer.clipSpaceCorrMatrix * v_projected;
+#if defined(QSHADER_HLSL) || defined(QSHADER_MSL)
+  // Match the codebase Y-handling convention used by ImageNode et al.:
+  // GL is Y-up framebuffer (no flip), Vulkan's Y flip is baked into
+  // QRhi's clipSpaceCorrMatrix, but D3D/Metal share Vulkan's framebuffer
+  // origin without sharing its NDC sign convention — so we flip here so
+  // the offscreen texture lands top-row-first like the other backends,
+  // and the screen compositor (ScaledRenderer) keeps its SPIRV-only UV
+  // flip. Without this the model rendered fine on GL/Vulkan but ended
+  // up upside-down on D3D11/12.
+  gl_Position.y = -gl_Position.y;
+#endif
 
   %vtx_output_process%
 }
@@ -557,6 +768,17 @@ void main()
   %vtx_do_projection%
 
   gl_Position = renderer.clipSpaceCorrMatrix * v_projected;
+#if defined(QSHADER_HLSL) || defined(QSHADER_MSL)
+  // Match the codebase Y-handling convention used by ImageNode et al.:
+  // GL is Y-up framebuffer (no flip), Vulkan's Y flip is baked into
+  // QRhi's clipSpaceCorrMatrix, but D3D/Metal share Vulkan's framebuffer
+  // origin without sharing its NDC sign convention — so we flip here so
+  // the offscreen texture lands top-row-first like the other backends,
+  // and the screen compositor (ScaledRenderer) keeps its SPIRV-only UV
+  // flip. Without this the model rendered fine on GL/Vulkan but ended
+  // up upside-down on D3D11/12.
+  gl_Position.y = -gl_Position.y;
+#endif
 
   %vtx_output_process%
 }
@@ -608,7 +830,19 @@ public:
     QShader viewspaceVS, viewspaceFS;
     QShader barycentricVS, barycentricFS;
     QShader colorVS, colorFS;
-  } triangle_perspective, point_perspective, triangle_fulldome, point_fulldome;
+  };
+
+  // Camera mode enum — matches the UI ordering. Index into
+  // triangle_shaders / point_shaders arrays.
+  //
+  //   0 = Perspective
+  //   1 = Fulldome (Equidistant, domemaster)
+  //   2 = Fulldome (Equisolid-angle, photographic fisheye)
+  //   3 = Fulldome (Stereographic, conformal)
+  //   4 = Fulldome (Orthographic, ≤ 180° only)
+  static constexpr int CAMERA_MODE_COUNT = 5;
+  RenderShaders triangle_shaders[CAMERA_MODE_COUNT];
+  RenderShaders point_shaders[CAMERA_MODE_COUNT];
 
   int64_t meshChangedIndex{-1};
   int m_curShader{0};
@@ -870,32 +1104,14 @@ private:
     m_blend_alpha_op = n.blend_alpha_op;
     m_blend_enabled = n.blend_enabled;
 
-    switch(m_draw_mode)
-    {
-      case 0:
-      case 2:
-        switch(m_camera_mode)
-        {
-          case 0:
-            initPasses_impl(renderer, mesh, triangle_perspective);
-            break;
-          case 1:
-            initPasses_impl(renderer, mesh, triangle_fulldome);
-            break;
-        }
-        break;
-      case 1:
-        switch(m_camera_mode)
-        {
-          case 0:
-            initPasses_impl(renderer, mesh, point_perspective);
-            break;
-          case 1:
-            initPasses_impl(renderer, mesh, point_fulldome);
-            break;
-        }
-        break;
-    }
+    // Pick triangle- vs point-topology shader set, then index by
+    // camera_mode. Values outside [0, CAMERA_MODE_COUNT) clamp to
+    // perspective so a stale UI value never indexes out-of-bounds.
+    const int mode = (m_camera_mode >= 0 && m_camera_mode < CAMERA_MODE_COUNT)
+                         ? m_camera_mode
+                         : 0;
+    auto& set = (m_draw_mode == 1) ? point_shaders[mode] : triangle_shaders[mode];
+    initPasses_impl(renderer, mesh, set);
 
     QRhiGraphicsPipeline::TargetBlend blend;
     blend.enable = m_blend_enabled;
@@ -908,24 +1124,33 @@ private:
 
     for(auto& [e, pass] : this->m_p)
     {
-      pass.pipeline->destroy();
+      pass.p.pipeline->destroy();
 
-      pass.pipeline->setTargetBlends({blend});
+      pass.p.pipeline->setTargetBlends({blend});
 
       switch(m_draw_mode)
       {
         case 0:
-          pass.pipeline->setTopology(QRhiGraphicsPipeline::Triangles);
+          pass.p.pipeline->setTopology(QRhiGraphicsPipeline::Triangles);
           break;
         case 1:
-          pass.pipeline->setTopology(QRhiGraphicsPipeline::Points);
+          pass.p.pipeline->setTopology(QRhiGraphicsPipeline::Points);
           break;
         case 2:
-          pass.pipeline->setTopology(QRhiGraphicsPipeline::Lines);
+          pass.p.pipeline->setTopology(QRhiGraphicsPipeline::Lines);
           break;
       }
 
-      pass.pipeline->create();
+      // Reverse-Z project rule (matches PipelineStateHelpers::applyPipelineState
+      // default). buildPipeline leaves DepthOp at QRhi's default `Less` which
+      // rejects every fragment against the 0.0-cleared reverse-Z buffer.
+      // ModelDisplay's projection matrix now produces reverse-Z NDC, so we
+      // must also flip the compare op.
+      pass.p.pipeline->setDepthTest(true);
+      pass.p.pipeline->setDepthWrite(true);
+      pass.p.pipeline->setDepthOp(QRhiGraphicsPipeline::Greater);
+
+      pass.p.pipeline->create();
     }
   }
 
@@ -1019,19 +1244,25 @@ private:
 
   void createShaders(RenderList& renderer, const score::gfx::Mesh& mesh)
   {
-    createShaders(
-        this->triangle_perspective, renderer, vtx_output_triangle,
-        vtx_output_process_triangle, vtx_projection_perspective, mesh);
-    createShaders(
-        this->point_perspective, renderer, vtx_output_point, vtx_output_process_point,
-        vtx_projection_perspective, mesh);
+    // One projection snippet per camera_mode — order MUST match the UI
+    // enum ordering described on RenderShaders.
+    const char* projections[CAMERA_MODE_COUNT] = {
+        vtx_projection_perspective,
+        vtx_projection_fulldome_equidistant,
+        vtx_projection_fulldome_equisolid,
+        vtx_projection_fulldome_stereographic,
+        vtx_projection_fulldome_orthographic,
+    };
 
-    createShaders(
-        this->triangle_fulldome, renderer, vtx_output_triangle,
-        vtx_output_process_triangle, vtx_projection_fulldome, mesh);
-    createShaders(
-        this->point_fulldome, renderer, vtx_output_point, vtx_output_process_point,
-        vtx_projection_fulldome, mesh);
+    for(int i = 0; i < CAMERA_MODE_COUNT; ++i)
+    {
+      createShaders(
+          triangle_shaders[i], renderer, vtx_output_triangle,
+          vtx_output_process_triangle, projections[i], mesh);
+      createShaders(
+          point_shaders[i], renderer, vtx_output_point, vtx_output_process_point,
+          projections[i], mesh);
+    }
   }
 
   void recreateRenderTarget(RenderList& renderer)
@@ -1057,7 +1288,7 @@ private:
     m_samplers.push_back({sampler, texture});
   }
 
-  void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  void initState(RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
     recreateRenderTarget(renderer);
     const auto& mesh = m_mesh ? *m_mesh : renderer.defaultQuad();
@@ -1066,6 +1297,62 @@ private:
     processUBOInit(renderer);
     m_material.init(renderer, node.input, m_samplers);
 
+    m_initialized = true;
+  }
+
+  void addOutputPass(
+      RenderList& renderer, Edge& edge, QRhiResourceUpdateBatch& res) override
+  {
+    // The shader selection depends on mesh properties and node settings.
+    // initPasses() creates passes for ALL edges at once, so we only call it
+    // the first time (when m_p is empty). Subsequent edges are already covered.
+    if(m_p.empty())
+    {
+      const auto& mesh = m_mesh ? *m_mesh : renderer.defaultQuad();
+      initPasses(renderer, mesh);
+    }
+  }
+
+  bool hasOutputPassForEdge(Edge& edge) const override
+  {
+    return ossia::find_if(m_p, [&](const auto& p) { return p.first == &edge; })
+           != m_p.end();
+  }
+
+  void releaseState(RenderList& r) override
+  {
+    if(!m_initialized)
+      return;
+
+    m_renderer = nullptr;
+
+    // Release any remaining passes
+    for(auto& pass : m_p)
+      pass.second.release();
+    m_p.clear();
+
+    for(auto sampler : m_samplers)
+    {
+      delete sampler.sampler;
+    }
+    m_samplers.clear();
+
+    delete m_processUBO;
+    m_processUBO = nullptr;
+
+    delete m_material.buffer;
+    m_material.buffer = nullptr;
+
+    m_meshbufs = {};
+
+    m_initialized = false;
+  }
+
+  void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  {
+    initState(renderer, res);
+
+    const auto& mesh = m_mesh ? *m_mesh : renderer.defaultQuad();
     initPasses(renderer, mesh);
   }
 
@@ -1085,9 +1372,19 @@ private:
     memcpy(to, from.data(), sizeof(float[N]));
   }
 
+  int mdupdate_log = 0;
   void update(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge) override
   {
     auto& n = static_cast<const ModelDisplayNode&>(this->node);
+
+    if(mdupdate_log < 3)
+    {
+      qDebug() << "ModelDisplay::update materialChanged=" << this->materialChanged
+               << "geometryChanged=" << this->geometryChanged
+               << "fov=" << n.fov
+               << "passes=" << m_p.size();
+      mdupdate_log++;
+    }
 
     bool mustRecreatePasses = false;
     if(this->materialChanged)
@@ -1103,6 +1400,21 @@ private:
           qreal(renderer.state.renderSize.width()) / renderer.state.renderSize.height(),
           n.near,
           n.far);
+
+      // Project-wide reverse-Z convention: near=1, far=0, depth cleared to
+      // 0.0, depth op Greater. QMatrix4x4::perspective() produces standard
+      // GL Z (near=-1, far=+1) which clipSpaceCorrMatrix then maps to
+      // Vulkan [0, 1] — the wrong direction for reverse-Z.
+      //
+      // Pre-multiplying by a Z-flip matrix flips the NDC z output of the
+      // perspective: z_ndc → -z_ndc. After clipSpaceCorrMatrix's [-1,1] →
+      // [0,1] remap, that gives near→1, far→0, exactly what the rest of
+      // the pipeline expects.
+      {
+        QMatrix4x4 zFlip;
+        zFlip(2, 2) = -1.0f;
+        projection = zFlip * projection;
+      }
       QMatrix4x4 view;
 
       view.lookAt(
@@ -1122,6 +1434,8 @@ private:
       toGL(mvp, mc.mvp);
       toGL(norm, mc.modelNormal);
       mc.fov = n.fov;
+      mc.near = n.near;
+      mc.far = n.far;
 
       res.updateDynamicBuffer(m_material.buffer, 0, sizeof(ModelCameraUBO), &mc);
 
@@ -1146,6 +1460,7 @@ private:
       if(m_blend_enabled != n.blend_enabled)
         mustRecreatePasses = true;
     }
+    this->materialChanged = false;
 
     res.updateDynamicBuffer(m_processUBO, 0, sizeof(ProcessUBO), &n.standardUBO);
 

@@ -68,12 +68,17 @@ public:
 
   void errorMessage(const QString& arg_2) const W_SIGNAL(errorMessage, arg_2);
 
+  // Absolute path of the shader file this model was loaded from. Used as
+  // the base for quoted #include resolution. Empty for in-memory source.
+  QString rootPath() const noexcept { return m_scriptPath; }
+
 private:
   void init();
   void initDefaultPorts();
   QString prettyName() const noexcept override;
   ShaderSource m_program;
   ProcessedProgram m_processedProgram;
+  QString m_scriptPath;
 };
 
 struct ProcessFactory final : Process::ProcessFactory_T<Gfx::RenderPipeline::Model>

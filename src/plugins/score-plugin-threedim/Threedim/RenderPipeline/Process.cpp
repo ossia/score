@@ -7,6 +7,9 @@
 #include <Gfx/ISFProcess.hpp>
 #include <Gfx/TexturePort.hpp>
 
+#include <score/document/DocumentInterface.hpp>
+#include <score/tools/FilePath.hpp>
+
 #include <QDir>
 #include <QFileInfo>
 #include <QImageReader>
@@ -29,8 +32,18 @@ Model::Model(
     {
       if(QFile fs{init}; fs.open(QIODevice::ReadOnly))
       {
-        QFile vs{fi.absolutePath() + QDir::separator() + fi.baseName() + ".vs"};
-        if(vs.open(QIODevice::ReadOnly))
+        m_scriptPath = init;
+        if(QFile vs{fi.absolutePath() + QDir::separator() + fi.baseName() + ".vs"};
+           vs.open(QIODevice::ReadOnly))
+        {
+          (void)setProgram(
+              {ShaderSource::ProgramType::RawRasterPipeline, vs.readAll(),
+               fs.readAll()});
+          return;
+        }
+        else if(
+            QFile vs{fi.absolutePath() + QDir::separator() + fi.baseName() + ".vert"};
+            vs.open(QIODevice::ReadOnly))
         {
           (void)setProgram(
               {ShaderSource::ProgramType::RawRasterPipeline, vs.readAll(),
@@ -118,7 +131,7 @@ bool Model::validate(const std::vector<QString>& txt) const noexcept
 {
   ShaderSource src{txt};
   src.type = isf::parser::ShaderType::RawRasterPipeline;
-  const auto& [_, error] = ProgramCache::instance().get(src);
+  const auto& [_, error] = ProgramCache::instance().get(src, m_scriptPath);
   if(!error.isEmpty())
   {
     this->errorMessage(error);
@@ -152,7 +165,9 @@ Process::ScriptChangeResult Model::setProgram(ShaderSource f)
   f.type = ProcessedProgram::ProgramType::RawRasterPipeline;
   setVertex(f.vertex);
   setFragment(f.fragment);
-  if(const auto& [processed, error] = ProgramCache::instance().get(f); bool(processed))
+  if(const auto& [processed, error]
+     = ProgramCache::instance().get(f, m_scriptPath);
+     bool(processed))
   {
     ossia::flat_map<QString, ossia::value> previous_values;
     for(auto inl : m_inlets)
@@ -190,7 +205,9 @@ Process::Descriptor ProcessFactory::descriptor(QString path) const noexcept
 template <>
 void DataStreamReader::read(const Gfx::RenderPipeline::Model& proc)
 {
-  m_stream << proc.m_program;
+  auto& ctx = score::IDocument::documentContext(proc);
+  m_stream << proc.m_program
+           << score::relativizeFilePath(proc.m_scriptPath, ctx);
 
   readPorts(*this, proc.m_inlets, proc.m_outlets);
 
@@ -201,7 +218,12 @@ template <>
 void DataStreamWriter::write(Gfx::RenderPipeline::Model& proc)
 {
   Gfx::ShaderSource s;
-  m_stream >> s;
+  m_stream >> s >> proc.m_scriptPath;
+  if(!proc.m_scriptPath.isEmpty())
+  {
+    auto& ctx = score::IDocument::documentContext(proc);
+    proc.m_scriptPath = score::locateFilePath(proc.m_scriptPath, ctx);
+  }
   s.type = isf::parser::ShaderType::RawRasterPipeline;
   (void)proc.setProgram(s);
 
@@ -217,6 +239,11 @@ void JSONReader::read(const Gfx::RenderPipeline::Model& proc)
 {
   obj["Vertex"] = proc.vertex();
   obj["Fragment"] = proc.fragment();
+  if(!proc.m_scriptPath.isEmpty())
+  {
+    auto& ctx = score::IDocument::documentContext(proc);
+    obj["Root"] = score::relativizeFilePath(proc.m_scriptPath, ctx);
+  }
 
   readPorts(*this, proc.m_inlets, proc.m_outlets);
 }
@@ -228,6 +255,15 @@ void JSONWriter::write(Gfx::RenderPipeline::Model& proc)
   s.vertex = obj["Vertex"].toString();
   s.fragment = obj["Fragment"].toString();
   s.type = isf::parser::ShaderType::ISF;
+  if(auto r = obj.tryGet("Root"))
+  {
+    proc.m_scriptPath <<= *r;
+    if(!proc.m_scriptPath.isEmpty())
+    {
+      auto& ctx = score::IDocument::documentContext(proc);
+      proc.m_scriptPath = score::locateFilePath(proc.m_scriptPath, ctx);
+    }
+  }
   (void)proc.setProgram(s);
 
   writePorts(

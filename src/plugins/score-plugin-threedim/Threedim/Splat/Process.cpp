@@ -59,18 +59,21 @@ void Model::init()
         0.001, 10000., 100000., "Far", Id<Process::Port>(8), this});
   }
 
-  std::vector<std::pair<QString, ossia::value>> projmodes{
-      {"Perspective", 0},
-      {"Fulldome (1-pass)", 1},
-  };
+  if(m_inlets.size() <= 9)
+  {
+    std::vector<std::pair<QString, ossia::value>> projmodes{
+        {"Perspective", 0},
+        {"Fulldome (1-pass)", 1},
+    };
 
-  m_inlets.push_back(
-      new Process::ComboBox{projmodes, 0, "Camera", Id<Process::Port>(9), this});
+    m_inlets.push_back(
+        new Process::ComboBox{projmodes, 0, "Camera", Id<Process::Port>(9), this});
+  }
 }
 
 QString Model::prettyName() const noexcept
 {
-  return tr("Model Display");
+  return tr("Splat");
 }
 
 }
