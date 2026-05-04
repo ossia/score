@@ -190,6 +190,7 @@ set(HDRS
     Gfx/Graph/OutputNode.hpp
     Gfx/Graph/PhongNode.hpp
     Gfx/Graph/PreviewNode.hpp
+    Gfx/Graph/SceneGPUState.hpp
     Gfx/Graph/GpuResourceRegistry.hpp
     Gfx/Graph/VertexFallbackDefaults.hpp
     Gfx/Graph/VertexFallbackPlan.hpp
@@ -376,6 +377,7 @@ set(SRCS
     Gfx/Graph/OutputNode.cpp
     Gfx/Graph/PhongNode.cpp
     Gfx/Graph/PreviewNode.cpp
+    Gfx/Graph/SceneGPUState.cpp
     Gfx/Graph/GpuResourceRegistry.cpp
     Gfx/Graph/VertexFallbackDefaults.cpp
     Gfx/Graph/VertexFallbackPool.cpp
