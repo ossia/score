@@ -73,9 +73,6 @@ public:
 
   ~offscreen_device()
   {
-    // The graph owns the node: gfx_parameter_base hands it to register_node as
-    // a unique_ptr and gives it back in its own destructor, which
-    // clear_children() runs. Teardown order is the same as background_device's.
     m_protocol->stop();
     m_root.clear_children();
     m_protocol.reset();
