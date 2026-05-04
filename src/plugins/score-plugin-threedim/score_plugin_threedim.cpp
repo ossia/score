@@ -24,6 +24,9 @@
 #include <Threedim/ModelDisplay/Process.hpp>
 #include <Threedim/ConfigurePrimitive.hpp>
 #include <Threedim/EnvironmentLoader.hpp>
+#include <Threedim/ExtractBuffer2.hpp>
+#include <Threedim/ExtractSceneBuffer.hpp>
+#include <Threedim/ExtractTexture.hpp>
 #include <Threedim/Instancer.hpp>
 #include <Threedim/MaterialOverride.hpp>
 #include <Threedim/PBRMesh.hpp>
@@ -425,6 +428,9 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
   oscr::instantiate_fx<Threedim::Torus>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::PCLToMesh2>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::ExtractBuffer>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::ExtractBuffer2>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::ExtractSceneBuffer>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::ExtractTexture>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::GeometryPacker>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::BuffersToGeometry>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::BuffersToGeometry2>(fx, ctx, key);
