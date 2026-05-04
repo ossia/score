@@ -14,6 +14,14 @@ endif()
 
 find_package(${QT_VERSION} REQUIRED COMPONENTS Xml)
 
+# fastgltf — vendored glTF 2.0 parser. The library auto-downloads simdjson
+# on first configure (into 3rdparty/fastgltf/deps/simdjson/) unless a
+# system simdjson is found via find_package.
+if(NOT TARGET fastgltf)
+  set(FASTGLTF_COMPILE_AS_CPP20 ON CACHE BOOL "" FORCE)
+  add_subdirectory("${3RDPARTY_FOLDER}/fastgltf" "${CMAKE_CURRENT_BINARY_DIR}/fastgltf" EXCLUDE_FROM_ALL)
+endif()
+
 # libssynth
 add_library(
   ssynth STATIC
@@ -79,6 +87,14 @@ add_library(
   Threedim/Noise.cpp
   Threedim/GeometryLoader.hpp
   Threedim/GeometryLoader.cpp
+  Threedim/AssetLoader.hpp
+  Threedim/AssetLoader.cpp
+  Threedim/FbxParser.hpp
+  Threedim/FbxParser.cpp
+  Threedim/GltfParser.hpp
+  Threedim/GltfParser.cpp
+  Threedim/VcgImporters.hpp
+  Threedim/VcgImporters.cpp
   Threedim/BufferInfo.hpp
   Threedim/TextureInfo.hpp
   Threedim/ImageLoader.hpp
@@ -125,6 +141,7 @@ add_library(
 
   "${3RDPARTY_FOLDER}/miniply/miniply.cpp"
   "${3RDPARTY_FOLDER}/mikktspace/mikktspace.c"
+  "${3RDPARTY_FOLDER}/ufbx/ufbx.c"
   score_plugin_threedim.hpp
   score_plugin_threedim.cpp)
 
@@ -140,8 +157,10 @@ target_include_directories(
     "${3RDPARTY_FOLDER}/vcglib"
     "${3RDPARTY_FOLDER}/miniply"
     "${3RDPARTY_FOLDER}/mikktspace"
-    "${3RDPARTY_FOLDER}/opengametools/src")
+    "${3RDPARTY_FOLDER}/opengametools/src"
+    "${3RDPARTY_FOLDER}/ufbx")
 
 target_link_libraries(
   score_plugin_threedim PRIVATE score_plugin_engine score_plugin_avnd
-                                score_plugin_gfx fmt::fmt ssynth Eigen3::Eigen)
+                                score_plugin_gfx fmt::fmt ssynth Eigen3::Eigen
+                                fastgltf::fastgltf)
