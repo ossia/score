@@ -8,6 +8,7 @@
 #include <Crousti/GppCoroutines.hpp>
 #include <Crousti/GppShaders.hpp>
 #include <Crousti/MessageBus.hpp>
+#include <Crousti/SceneConcepts.hpp>
 #include <Crousti/TextureConversion.hpp>
 #include <Crousti/TextureFormat.hpp>
 #include <Gfx/GfxExecNode.hpp>
@@ -35,6 +36,7 @@
 #include <avnd/introspection/output.hpp>
 #include <fmt/format.h>
 #include <gpp/layout.hpp>
+#include <halp/texture.hpp>
 
 #include <score_plugin_avnd_export.h>
 
@@ -170,6 +172,8 @@ struct GpuProcessIns
   {
     using node_type = std::remove_cvref_t<decltype(gpu.node())>;
     auto& node = const_cast<node_type&>(gpu.node());
+    if(field_index >= mess.input.size())
+      return;
     auto val = ossia::get_if<ossia::render_target_spec>(&mess.input[field_index]);
     if(!val)
       return;
@@ -181,6 +185,8 @@ struct GpuProcessIns
   {
     using node_type = std::remove_cvref_t<decltype(gpu.node())>;
     auto& node = const_cast<node_type&>(gpu.node());
+    if(field_index >= mess.input.size())
+      return;
     auto val = ossia::get_if<ossia::render_target_spec>(&mess.input[field_index]);
     if(!val)
       return;
@@ -188,6 +194,15 @@ struct GpuProcessIns
   }
 
   template <avnd::geometry_port Field, std::size_t NField>
+  void operator()(Field& t, avnd::field_index<NField> field_index)
+  {
+    using node_type = std::remove_cvref_t<decltype(gpu.node())>;
+    auto& node = const_cast<node_type&>(gpu.node());
+
+    // FIXME
+  }
+
+  template <scene_port Field, std::size_t NField>
   void operator()(Field& t, avnd::field_index<NField> field_index)
   {
     using node_type = std::remove_cvref_t<decltype(gpu.node())>;
@@ -423,8 +438,20 @@ struct port_to_type_enum
   {
     return score::gfx::Types::Image;
   }
+  template <std::size_t I, avnd::gpu_render_target_output_port F>
+  constexpr auto operator()(avnd::field_reflection<I, F> p)
+  {
+    return score::gfx::Types::Image;
+  }
 
   template <std::size_t I, avnd::geometry_port F>
+  constexpr auto operator()(avnd::field_reflection<I, F> p)
+  {
+    return score::gfx::Types::Geometry;
+  }
+  // Scene ports reuse Types::Geometry — a scene is a richer form of geometry.
+  template <std::size_t I, scene_port F>
+    requires(!avnd::geometry_port<F>)
   constexpr auto operator()(avnd::field_reflection<I, F> p)
   {
     return score::gfx::Types::Geometry;
@@ -484,19 +511,41 @@ struct port_to_type_enum
   }
 };
 
+// Compile-time port flags derived from a field's declarative metadata.
+// Today only texture_kind is inspected, but this is the hook if more
+// producer/consumer hints need to flow through.
+template <typename Field>
+constexpr score::gfx::Flag port_flags_for_field() noexcept
+{
+  if constexpr(avnd::gpu_texture_port<Field>)
+  {
+    constexpr auto kind = halp::texture_kind_of<Field>();
+    // Non-2D textures cannot be "rendered into" as a plain colour
+    // attachment by the upstream — the consumer has to borrow the actual
+    // QRhiTexture (cube, array, 3D volume). Flag::GrabsFromSource tells
+    // Graph::updateSinkSampler to route via textureForOutput instead of
+    // allocating a 2D render target on the sink's side.
+    if constexpr(kind != halp::texture_kind::texture_2d)
+      return score::gfx::Flag::GrabsFromSource;
+  }
+  return score::gfx::Flag{};
+}
+
 template <typename Node_T>
 inline void initGfxPorts(auto* self, auto& input, auto& output)
 {
   avnd::input_introspection<Node_T>::for_all(
       [self, &input]<typename Field, std::size_t I>(avnd::field_reflection<I, Field> f) {
     static constexpr auto type = port_to_type_enum{}(f);
-    input.push_back(new score::gfx::Port{self, {}, type, {}, {}});
+    static constexpr auto flags = port_flags_for_field<Field>();
+    input.push_back(new score::gfx::Port{self, {}, type, flags, {}});
   });
   avnd::output_introspection<Node_T>::for_all(
       [self,
        &output]<typename Field, std::size_t I>(avnd::field_reflection<I, Field> f) {
     static constexpr auto type = port_to_type_enum{}(f);
-    output.push_back(new score::gfx::Port{self, {}, type, {}, {}});
+    static constexpr auto flags = port_flags_for_field<Field>();
+    output.push_back(new score::gfx::Port{self, {}, type, flags, {}});
   });
 }
 
@@ -689,6 +738,13 @@ struct geometry_inputs_storage<T>
           buf->create();
           allocated.push_back(buf);
           meshes.buffers[buffer_index] = buf;
+        }
+        else if(auto* existing = meshes.buffers[buffer_index];
+                existing && existing->size() < bytesize)
+        {
+          // Buffer exists but is too small — resize it.
+          existing->setSize(bytesize);
+          existing->create();
         }
 
         res->uploadStaticBuffer(meshes.buffers[buffer_index], 0, bytesize, data);
@@ -1065,6 +1121,21 @@ struct texture_inputs_storage<T>
     avnd::texture_input_introspection<T>::for_all_n2(
         avnd::get_inputs<T>(*self.state),
         [&]<typename F, std::size_t K, std::size_t N>(F& t, avnd::predicate_index<K>, avnd::field_index<N>) {
+      // Non-2D GPU texture inputs (cube / array / 3D) don't get a local
+      // render target — the port carries Flag::GrabsFromSource (set by
+      // initGfxPorts via texture_kind_of<F>()), the graph will populate
+      // t.texture.handle through updateInputTexture when the edge
+      // resolves. Skipping the allocation here avoids wasting a 2D
+      // colour attachment that would never be rendered into anyway.
+      if constexpr(avnd::gpu_texture_port<F>
+                   && halp::texture_kind_of<F>() != halp::texture_kind::texture_2d)
+      {
+        t.texture.kind = halp::texture_kind_of<F>();
+        // Handle + size populated later by updateInputTexture once the
+        // upstream is resolved.
+        return;
+      }
+
       auto& parent = self.node();
       auto spec = parent.resolveRenderTargetSpecs(N, renderer);
       if constexpr(requires {
@@ -1196,7 +1267,7 @@ struct texture_inputs_storage<T>
 template <avnd::cpu_texture Tex>
 static QRhiTexture* updateTexture(auto& self, score::gfx::RenderList& renderer, int k, const Tex& cpu_tex)
 {
-  auto& [sampler, texture] = self.m_samplers[k];
+  auto& [sampler, texture, fb_] = self.m_samplers[k];
   if(texture)
   {
     auto sz = texture->pixelSize();
@@ -1213,8 +1284,8 @@ static QRhiTexture* updateTexture(auto& self, score::gfx::RenderList& renderer, 
         QRhiTexture::Flag{});
     newtex->create();
     for(auto& [edge, pass] : self.m_p)
-      if(pass.srb)
-        score::gfx::replaceTexture(*pass.srb, sampler, newtex);
+      if(pass.p.srb)
+        score::gfx::replaceTexture(*pass.p.srb, sampler, newtex);
     texture = newtex;
 
     if(oldtex && oldtex != &renderer.emptyTexture())
@@ -1227,8 +1298,8 @@ static QRhiTexture* updateTexture(auto& self, score::gfx::RenderList& renderer, 
   else
   {
     for(auto& [edge, pass] : self.m_p)
-      if(pass.srb)
-        score::gfx::replaceTexture(*pass.srb, sampler, &renderer.emptyTexture());
+      if(pass.p.srb)
+        score::gfx::replaceTexture(*pass.p.srb, sampler, &renderer.emptyTexture());
 
     return &renderer.emptyTexture();
   }
@@ -1362,7 +1433,7 @@ struct texture_outputs_storage<T>
   void release(auto& self, score::gfx::RenderList& r)
   {
     // Free outputs
-    for(auto& [sampl, texture] : self.m_samplers)
+    for(auto& [sampl, texture, fb_] : self.m_samplers)
     {
       if(texture != &r.emptyTexture())
         texture->deleteLater();
@@ -1491,7 +1562,7 @@ struct geometry_outputs_storage<T>
       SCORE_ASSERT(it != edge_sink->node->input.end());
       int n = it - edge_sink->node->input.begin();
 
-      rendered_node->second->process(n, spc);
+      rendered_node->second->process(n, spc, edge.source);
 
       // 3. Same for transform3d
 
@@ -1530,6 +1601,119 @@ struct geometry_outputs_storage<T>
 
   }
 };
+
+// Scene output support (Crousti-side pending promotion to avendish).
+// The `scene_port` concept and `scene_dirt_flags` live in SceneConcepts.hpp
+// so the port-creation visitor in ProcessModelPortInit.hpp can reuse them.
+
+template <typename Field>
+using is_scene_port_t = boost::mp11::mp_bool<scene_port<Field>>;
+
+template <typename T>
+using scene_output_introspection =
+    avnd::predicate_introspection<typename avnd::outputs_type<T>::type, is_scene_port_t>;
+
+template <typename T>
+using scene_input_introspection =
+    avnd::predicate_introspection<typename avnd::inputs_type<T>::type, is_scene_port_t>;
+
+// Scene input transport: NodeRenderer::process(port, scene_spec, source)
+// already merges multi-producer scenes into `this->scene`, so scene_inputs_storage
+// only needs to copy that merged scene_spec into each halp scene input field
+// before operator()() runs. Cheap (shared_ptr assignment), no decode.
+template <typename T>
+struct scene_inputs_storage;
+
+template <typename T>
+  requires(scene_input_introspection<T>::size > 0)
+struct scene_inputs_storage<T>
+{
+  void readInputScenes(const ossia::scene_spec& scene, auto& state)
+  {
+    scene_input_introspection<T>::for_all(
+        avnd::get_inputs<T>(state), [&](auto& field) { field.scene = scene; });
+  }
+
+  static void release(score::gfx::RenderList&) { }
+};
+
+template <typename T>
+  requires(scene_input_introspection<T>::size == 0)
+struct scene_inputs_storage<T>
+{
+  static void readInputScenes(auto&&...) { }
+  static void release(auto&&...) { }
+};
+
+template <typename T>
+struct scene_outputs_storage;
+
+template <typename T>
+  requires(scene_output_introspection<T>::size > 0)
+struct scene_outputs_storage<T>
+{
+  template <scene_port Field, std::size_t N>
+  void upload(
+      score::gfx::RenderList& renderer, Field& ctrl, score::gfx::Edge& edge,
+      avnd::predicate_index<N>)
+  {
+    // Publish the scene every frame. The old behaviour skipped the push
+    // when `ctrl.dirty == 0` — but that broke multi-producer graphs: any
+    // other producer on the same downstream inlet (e.g. a legacy Geometry
+    // outlet of the same loader, or a Light node) pushes every frame
+    // unconditionally, and the consumer's NodeRenderer::process(...) logic
+    // replaces `this->scene` on the first push of each frame when
+    // `sceneChanged` is false (i.e. at frame start). A once-only scene push
+    // then gets overwritten every subsequent frame and its transforms are
+    // lost. Downstream consumers already short-circuit via shared_ptr
+    // identity + version (ScenePreprocessor checks m_cachedSceneState), so
+    // pushing every frame is cheap — just a few atomic refcount bumps.
+    //
+    // Producers can still use `ctrl.dirty` to track what changed for their
+    // own purposes; we don't consume the bits here anymore.
+    if(!ctrl.scene.state)
+      return;
+
+    auto* edge_sink = edge.sink;
+    if(!edge_sink || !edge_sink->node)
+      return;
+
+    auto rendered_node = edge_sink->node->renderedNodes.find(&renderer);
+    if(rendered_node == edge_sink->node->renderedNodes.end())
+      return;
+
+    auto it = std::find(
+        edge_sink->node->input.begin(), edge_sink->node->input.end(), edge_sink);
+    if(it == edge_sink->node->input.end())
+      return;
+    int n = it - edge_sink->node->input.begin();
+
+    // NodeRenderer::process(port, scene_spec, source_key) handles additive
+    // merging across multiple producers converging on the same sink port
+    // (keyed on the source edge's producer Port pointer), extracts a legacy
+    // geometry_spec for downstream consumers that only understand geometry,
+    // and sets sceneChanged=true.
+    rendered_node->second->process(n, ctrl.scene, edge.source);
+
+    if constexpr(requires { ctrl.dirty; })
+      ctrl.dirty = 0;
+  }
+
+  void upload(score::gfx::RenderList& renderer, auto& state, score::gfx::Edge& edge)
+  {
+    scene_output_introspection<T>::for_all_n(
+        avnd::get_outputs(state),
+        [&](auto& field, auto pred) { this->upload(renderer, field, edge, pred); });
+  }
+};
+
+template <typename T>
+  requires(scene_output_introspection<T>::size == 0)
+struct scene_outputs_storage<T>
+{
+  static void upload(auto&&...) { }
+};
+
 }
 
 #endif

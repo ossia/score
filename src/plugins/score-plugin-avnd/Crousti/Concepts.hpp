@@ -451,6 +451,34 @@ make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
                                        qname,        id,           parent};
     }
   }
+  else if constexpr(widg.widget == avnd::widget_type::xyzw_spinbox)
+  {
+    static constexpr auto c = avnd::get_range<T>();
+    if constexpr(requires {
+                   c.min == 0.f;
+                   c.max == 0.f;
+                   c.init == 0.f;
+                 })
+    {
+      return new Process::XYZSpinboxes{
+          {c.min, c.min, c.min},
+          {c.max, c.max, c.max},
+          {c.init, c.init, c.init},
+          false,
+          qname,
+          id,
+          parent};
+    }
+    else
+    {
+      auto [mx, my, mz, mw] = c.min;
+      auto [Mx, My, Mz, Mw] = c.max;
+      auto [ix, iy, iz, iw] = c.init;
+      // FIXME we don't have a good 4-way widget
+      return new Process::XYZSpinboxes{{mx, my, mz}, {Mx, My, Mz}, {ix, iy, iz},
+                                       qname,        id,           parent};
+    }
+  }
   else if constexpr(widg.widget == avnd::widget_type::color)
   {
     static constexpr auto c = avnd::get_range<T>();

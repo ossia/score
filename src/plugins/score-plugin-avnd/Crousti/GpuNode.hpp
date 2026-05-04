@@ -6,6 +6,7 @@
 #include <Crousti/Metadatas.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
+#include <ossia/detail/algorithms.hpp>
 #include <Gfx/Graph/Uniforms.hpp>
 
 // #include <gpp/ports.hpp>
@@ -30,6 +31,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
   score::gfx::MeshBuffers m_meshBuffer{};
 
   bool m_createdPipeline{};
+  QRhiShaderResourceBindings* m_srb{};
 
   int sampler_k = 0;
   ossia::flat_map<int, QRhiBuffer*> createdUbos;
@@ -201,7 +203,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
     createdUbos[ubo_type::binding()] = ubo;
   }
 
-  void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  void initState(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
     auto& parent = node();
     if constexpr(requires { states[0].prepare(); })
@@ -224,34 +226,109 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
     avnd::input_introspection<Node_T>::for_all(
         [this, &renderer](auto f) { init_input(renderer, f); });
 
-    // Create the initial srbs
-    // TODO when implementing multi-pass, we may have to
-    // move this back inside the loop below as they may depend on the pipelines...
-    auto srb = initBindings(renderer);
+    // Create the shared shader resource bindings
+    m_srb = initBindings(renderer);
 
-    // Create the states and pipelines
-    for(score::gfx::Edge* edge : parent.output[0]->edges)
+    m_initialized = true;
+  }
+
+  void addOutputPass(
+      score::gfx::RenderList& renderer, score::gfx::Edge& edge,
+      QRhiResourceUpdateBatch& res) override
+  {
+    auto& parent = node();
+    auto rt = renderer.renderTargetForOutput(edge);
+    if(rt.renderTarget)
     {
-      auto rt = renderer.renderTargetForOutput(*edge);
-      if(rt.renderTarget)
+      states.push_back(std::make_shared<Node_T>());
+      prepareNewState(states.back(), parent);
+
+      auto ps = createRenderPipeline(renderer, rt);
+      ps->setShaderResourceBindings(m_srb);
+
+      m_p.emplace_back(&edge, score::gfx::Pass{rt, score::gfx::Pipeline{ps, m_srb}, nullptr});
+
+      // No update step: we can directly create the pipeline here
+      if constexpr(!requires { &Node_T::update; })
       {
-        states.push_back(std::make_shared<Node_T>());
-        prepareNewState(states.back(), parent);
+        SCORE_ASSERT(m_srb->create());
+        SCORE_ASSERT(ps->create());
+        m_createdPipeline = true;
+      }
+    }
+  }
 
-        auto ps = createRenderPipeline(renderer, rt);
-        ps->setShaderResourceBindings(srb);
+  bool hasOutputPassForEdge(score::gfx::Edge& edge) const override
+  {
+    return ossia::find_if(m_p, [&](const auto& p) { return p.first == &edge; })
+           != m_p.end();
+  }
 
-        m_p.emplace_back(edge, score::gfx::Pipeline{ps, srb});
+  void releaseState(score::gfx::RenderList& r) override
+  {
+    if(!m_initialized)
+      return;
 
-        // No update step: we can directly create the pipeline here
-        if constexpr(!requires { &Node_T::update; })
+    m_createdPipeline = false;
+
+    // Release the object's internal states
+    if constexpr(requires { &Node_T::release; })
+    {
+      for(auto& state : states)
+      {
+        for(auto& promise : state->release())
         {
-          SCORE_ASSERT(srb->create());
-          SCORE_ASSERT(ps->create());
-          m_createdPipeline = true;
+          gpp::qrhi::handle_release handler{*r.state.rhi};
+          visit(handler, promise.current_command);
         }
       }
     }
+    states.clear();
+
+    // Release the allocated mesh buffers
+    m_meshBuffer = {};
+
+    // Release the allocated textures
+    for(auto& [id, tex] : this->createdTexs)
+      tex->deleteLater();
+    this->createdTexs.clear();
+
+    // Release the allocated samplers
+    for(auto& [id, sampl] : this->createdSamplers)
+      sampl->deleteLater();
+    this->createdSamplers.clear();
+
+    // Release the allocated ubos
+    for(auto& [id, ubo] : this->createdUbos)
+      ubo->deleteLater();
+    this->createdUbos.clear();
+
+    // Release the allocated rts
+    for(auto [port, rt] : m_rts)
+      rt.release();
+    m_rts.clear();
+
+    // Release the allocated pipelines
+    for(auto& pass : m_p)
+      pass.second.release();
+    m_p.clear();
+
+    m_srb = nullptr;
+    m_meshBuffer = {};
+    m_createdPipeline = false;
+
+    sampler_k = 0;
+
+    m_initialized = false;
+  }
+
+  void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  {
+    initState(renderer, res);
+
+    auto& parent = node();
+    for(score::gfx::Edge* edge : parent.output[0]->edges)
+      addOutputPass(renderer, *edge, res);
   }
 
   std::vector<QRhiShaderResourceBinding> tmp;
@@ -296,7 +373,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
         auto& pass = m_p[k].second;
 
         bool srb_touched{false};
-        tmp.assign(pass.srb->cbeginBindings(), pass.srb->cendBindings());
+        tmp.assign(pass.p.srb->cbeginBindings(), pass.p.srb->cendBindings());
         for(auto& promise : state.update())
         {
           using ret_type = decltype(promise.feedback_value);
@@ -308,15 +385,15 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
         if(srb_touched)
         {
           if(m_createdPipeline)
-            pass.srb->destroy();
+            pass.p.srb->destroy();
 
-          pass.srb->setBindings(tmp.begin(), tmp.end());
+          pass.p.srb->setBindings(tmp.begin(), tmp.end());
         }
 
         if(!m_createdPipeline)
         {
-          SCORE_ASSERT(pass.srb->create());
-          SCORE_ASSERT(pass.pipeline->create());
+          SCORE_ASSERT(pass.p.srb->create());
+          SCORE_ASSERT(pass.p.pipeline->create());
         }
       }
       m_createdPipeline = true;
