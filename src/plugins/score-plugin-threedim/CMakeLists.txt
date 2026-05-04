@@ -95,6 +95,16 @@ add_library(
   Threedim/GltfParser.cpp
   Threedim/VcgImporters.hpp
   Threedim/VcgImporters.cpp
+  Threedim/Camera.hpp
+  Threedim/Camera.cpp
+  Threedim/CameraArray.hpp
+  Threedim/CameraArray.cpp
+  Threedim/CameraSwitch.hpp
+  Threedim/Light.hpp
+  Threedim/Light.cpp
+  Threedim/Transform3D.hpp
+  Threedim/Transform3D.cpp
+  Threedim/TransformHelper.hpp
   Threedim/BufferInfo.hpp
   Threedim/TextureInfo.hpp
   Threedim/ImageLoader.hpp

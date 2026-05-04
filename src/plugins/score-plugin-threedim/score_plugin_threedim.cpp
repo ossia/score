@@ -24,9 +24,14 @@
 #include <Threedim/Noise.hpp>
 #include <Threedim/AssetLoader.hpp>
 #include <Threedim/BufferInfo.hpp>
+#include <Threedim/Camera.hpp>
+#include <Threedim/CameraArray.hpp>
+#include <Threedim/CameraSwitch.hpp>
 #include <Threedim/GeometryLoader.hpp>
 #include <Threedim/ImageLoader.hpp>
+#include <Threedim/Light.hpp>
 #include <Threedim/TextureInfo.hpp>
+#include <Threedim/Transform3D.hpp>
 #include <Threedim/PCLToGeometry.hpp>
 #include <Threedim/VoxelLoader.hpp>
 #include <Threedim/Primitive.hpp>
@@ -354,6 +359,11 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
   oscr::instantiate_fx<Threedim::BufferInfo>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::TextureInfo>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::ImageLoader>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::Camera>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::CameraArray>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::CameraSwitch>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::Light>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::Transform3D>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::VoxelLoader>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Plane>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Cube>(fx, ctx, key);
