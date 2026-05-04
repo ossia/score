@@ -18,16 +18,51 @@ QImage renderTestCard(int w, int h)
   const int gridStep = qMax(20, qMin(w, h) / 20);
   const double dim = qMin(w, h);
 
+  // // Layer 1: Checkerboard background
+  // {
+  //   p.setRenderHint(QPainter::Antialiasing, false);
+  //   QColor light(60, 60, 60);
+  //   QColor dark(30, 30, 30);
+  //   for(int y = 0; y < h; y += gridStep)
+  //     for(int x = 0; x < w; x += gridStep)
+  //     {
+  //       bool even = ((x / gridStep) + (y / gridStep)) % 2 == 0;
+  //       p.fillRect(x, y, gridStep, gridStep, even ? dark : light);
+  //     }
+  // }
+
   // Layer 1: Checkerboard background
   {
     p.setRenderHint(QPainter::Antialiasing, false);
     QColor light(60, 60, 60);
     QColor dark(30, 30, 30);
+    
+    QFont font = p.font();
+    font.setPixelSize(qMax(9, gridStep / 4));
+    p.setFont(font);
+
     for(int y = 0; y < h; y += gridStep)
       for(int x = 0; x < w; x += gridStep)
       {
         bool even = ((x / gridStep) + (y / gridStep)) % 2 == 0;
         p.fillRect(x, y, gridStep, gridStep, even ? dark : light);
+        
+        int col = x / gridStep;
+        int row = y / gridStep;
+        char letter = 'A' + (col % 26); // Loops back to 'A' after 'Z'
+        QString text = QString("%1%2").arg(letter).arg(row);
+        
+        QRect rect(x, y, gridStep, gridStep);
+        
+        p.setRenderHint(QPainter::Antialiasing, true);
+        
+        p.setPen(QColor(0, 0, 0, 40)); 
+        p.drawText(rect.translated(1, 1), Qt::AlignCenter, text);
+        
+        p.setPen(QColor(255, 255, 255, 40)); 
+        p.drawText(rect, Qt::AlignCenter, text);
+        
+        p.setRenderHint(QPainter::Antialiasing, false);
       }
   }
 
