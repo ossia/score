@@ -22,6 +22,7 @@
 #include <Threedim/ModelDisplay/Executor.hpp>
 #include <Threedim/ModelDisplay/Process.hpp>
 #include <Threedim/ConfigurePrimitive.hpp>
+#include <Threedim/EnvironmentLoader.hpp>
 #include <Threedim/Instancer.hpp>
 #include <Threedim/MaterialOverride.hpp>
 #include <Threedim/PBRMesh.hpp>
@@ -402,6 +403,7 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
   oscr::instantiate_fx<Threedim::ConfigurePrimitive>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Instancer>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::ShadowCascadeSetup>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::EnvironmentLoader>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::VoxelLoader>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Plane>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Cube>(fx, ctx, key);

@@ -161,6 +161,8 @@ add_library(
   Threedim/Instancer.cpp
   Threedim/ShadowCascadeSetup.hpp
   Threedim/ShadowCascadeSetup.cpp
+  Threedim/EnvironmentLoader.hpp
+  Threedim/EnvironmentLoader.cpp
   Threedim/BufferInfo.hpp
   Threedim/TextureInfo.hpp
   Threedim/ImageLoader.hpp
