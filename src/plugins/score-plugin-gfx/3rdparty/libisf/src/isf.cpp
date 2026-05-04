@@ -99,8 +99,15 @@ layout(std140, binding = 1) uniform process_t {
 
   static constexpr auto defaultFunctions =
       R"_(
+// GLSL's textureSize is overloaded by sampler dimensionality — sampler2D
+// returns ivec2, sampler3D returns ivec3. Authors typically reach for
+// TEX_DIMENSIONS regardless of 2D/3D; the *_2D / *_3D aliases below make
+// the intended dimensionality explicit in shader source.
 #define TEX_DIMENSIONS(tex) textureSize(tex, 0)
+#define TEX_DIMENSIONS_2D(tex) textureSize(tex, 0)
+#define TEX_DIMENSIONS_3D(tex) textureSize(tex, 0)
 #define IMG_SIZE(tex) textureSize(tex, 0)
+#define IMG_SIZE_3D(tex) textureSize(tex, 0)
 
 #if defined(QSHADER_SPIRV)
 #define isf_FragCoord vec4(gl_FragCoord.x, RENDERSIZE.y - gl_FragCoord.y, gl_FragCoord.z, gl_FragCoord.w)
