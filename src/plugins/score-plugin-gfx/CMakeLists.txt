@@ -136,6 +136,8 @@ set(HDRS
     Gfx/Filter/Library.hpp
     Gfx/Filter/PreviewWidget.hpp
 
+    Gfx/Widgets/RhiPreviewWidget.hpp
+
     Gfx/GeometryFilter/Executor.hpp
     Gfx/GeometryFilter/Metadata.hpp
     Gfx/GeometryFilter/Process.hpp
@@ -274,6 +276,7 @@ set(HDRS
     Gfx/Window/CollapsibleSection.hpp
     Gfx/Window/DesktopLayout.hpp
     Gfx/Window/MultiWindowDevice.hpp
+    Gfx/Window/OffscreenDevice.hpp
     Gfx/Window/OutputMapping.hpp
     Gfx/Window/OutputPreview.hpp
     Gfx/Window/TestCard.hpp
@@ -322,6 +325,8 @@ set(SRCS
     Gfx/Filter/Library.cpp
     Gfx/Filter/Process.cpp
     Gfx/Filter/PreviewWidget.cpp
+
+    Gfx/Widgets/RhiPreviewWidget.cpp
 
     Gfx/GeometryFilter/Executor.cpp
     Gfx/GeometryFilter/Process.cpp
