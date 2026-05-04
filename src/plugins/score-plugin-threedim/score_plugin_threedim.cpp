@@ -21,6 +21,8 @@
 #include <Threedim/GeometryToBuffer.hpp>
 #include <Threedim/ModelDisplay/Executor.hpp>
 #include <Threedim/ModelDisplay/Process.hpp>
+#include <Threedim/ScenePreprocessor/Executor.hpp>
+#include <Threedim/ScenePreprocessor/Process.hpp>
 #include <Threedim/Noise.hpp>
 #include <Threedim/AssetLoader.hpp>
 #include <Threedim/BufferInfo.hpp>
@@ -385,7 +387,8 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
   auto add = instantiate_factories<
       score::ApplicationContext,
       FW<Process::ProcessModelFactory, Gfx::ModelDisplay::ProcessFactory,
-         Gfx::RenderPipeline::ProcessFactory, Gfx::Splat::ProcessFactory>,
+         Gfx::RenderPipeline::ProcessFactory, Gfx::Splat::ProcessFactory,
+         Gfx::ScenePreprocessor::ProcessFactory>,
       FW<Process::LayerFactory, Gfx::RenderPipeline::LayerFactory>,
       FW<Library::LibraryInterface, Threedim::SSynthLibraryHandler,
          Threedim::AssetLibraryHandler, Gfx::RawRasterLibraryHandler,
@@ -395,7 +398,8 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
       FW<Execution::ProcessComponentFactory,
          Gfx::ModelDisplay::ProcessExecutorComponentFactory,
          Gfx::RenderPipeline::ProcessExecutorComponentFactory,
-         Gfx::Splat::ProcessExecutorComponentFactory>>(ctx, key);
+         Gfx::Splat::ProcessExecutorComponentFactory,
+         Gfx::ScenePreprocessor::ProcessExecutorComponentFactory>>(ctx, key);
   fx.insert(
       fx.end(),
       std::make_move_iterator(add.begin()),
