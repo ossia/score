@@ -731,6 +731,30 @@ static void parse_input(geometry_input& inp, const sajson::value& v)
   }
 }
 
+// Known GLSL image format qualifiers. Used for a parse-time sanity check —
+// lets the shader author see a typo ("rgba16" vs "rgba16f") before the
+// runtime silently falls back to rgba8. Strict GLSL image-format typing
+// validation (matching imageStore argument types to declared formats) would
+// need a full GLSL AST which this parser does not build; the most useful
+// check we can do cheaply is reject unknown format strings.
+static bool isf_is_known_image_format(std::string fmt)
+{
+  boost::algorithm::to_lower(fmt);
+  static const ossia::hash_set<std::string> known{
+      "rgba8",  "rgba8_snorm",  "rgba8ui", "rgba8i",
+      "rgba16", "rgba16_snorm", "rgba16f", "rgba16ui", "rgba16i",
+      "rgba32f","rgba32ui",     "rgba32i",
+      "rg8",    "rg8_snorm",    "rg8ui",   "rg8i",
+      "rg16",   "rg16_snorm",   "rg16f",   "rg16ui", "rg16i",
+      "rg32f",  "rg32ui",       "rg32i",
+      "r8",     "r8_snorm",     "r8ui",    "r8i",
+      "r16",    "r16_snorm",    "r16f",    "r16ui",  "r16i",
+      "r32f",   "r32ui",        "r32i",
+      "rgb10_a2", "rgb10_a2ui", "r11f_g11f_b10f",
+      "bgra8"};
+  return known.count(fmt) > 0;
+}
+
 static void parse_input(csf_image_input& inp, const sajson::value& v)
 {
   std::size_t N = v.get_length();
@@ -748,7 +772,18 @@ static void parse_input(csf_image_input& inp, const sajson::value& v)
     {
       auto val = v.get_object_value(i);
       if(val.get_type() == sajson::TYPE_STRING)
+      {
         inp.format = val.as_string();
+        if(!inp.format.empty() && !isf_is_known_image_format(inp.format))
+        {
+          fmt::print(
+              stderr,
+              "[isf] csf_image_input FORMAT \"{}\" is not a recognised GLSL "
+              "image qualifier — will fall back to rgba8 at runtime. Check "
+              "for typos (e.g. \"rgba16\" vs \"rgba16f\").\n",
+              inp.format);
+        }
+      }
     }
     else if(k == "WIDTH")
     {
