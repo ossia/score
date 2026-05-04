@@ -21,6 +21,11 @@
 #include <Threedim/GeometryToBuffer.hpp>
 #include <Threedim/ModelDisplay/Executor.hpp>
 #include <Threedim/ModelDisplay/Process.hpp>
+#include <Threedim/ConfigurePrimitive.hpp>
+#include <Threedim/Instancer.hpp>
+#include <Threedim/MaterialOverride.hpp>
+#include <Threedim/PBRMesh.hpp>
+#include <Threedim/ShadowCascadeSetup.hpp>
 #include <Threedim/FlattenedSceneFilter/Executor.hpp>
 #include <Threedim/FlattenedSceneFilter/Process.hpp>
 #include <Threedim/InjectBuffer.hpp>
@@ -392,6 +397,11 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
   oscr::instantiate_fx<Threedim::SceneResourceRoute>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::InjectBuffer>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::InjectTexture>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::PBRMesh>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::MaterialOverride>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::ConfigurePrimitive>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::Instancer>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::ShadowCascadeSetup>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::VoxelLoader>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Plane>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Cube>(fx, ctx, key);
