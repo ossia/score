@@ -435,7 +435,13 @@ public:
     if(windowIndex < 0 || windowIndex >= (int)m_perWindow.size())
       return;
 
-    auto* res = renderer.state.rhi->nextResourceUpdateBatch();
+    // Don't pre-allocate a batch here: renderSubRegion has early-return
+    // paths before any consumer (beginPass), and pre-allocating leaks
+    // one pool slot per discarded window on every render. The three
+    // UBO blocks inside renderSubRegion lazily allocate via
+    // `if(!res) res = ...->nextResourceUpdateBatch()`, and beginPass
+    // accepts a null batch — so passing nullptr here is safe.
+    QRhiResourceUpdateBatch* res = nullptr;
     renderSubRegion(windowIndex, renderer, cb, res);
   }
 
@@ -503,7 +509,7 @@ private:
       res->updateDynamicBuffer(pw.warpUBO, 0, sizeof(warpData), warpData);
     }
 
-    cb.beginPass(rt, Qt::black, {1.0f, 0}, res);
+    cb.beginPass(rt, Qt::black, {0.0f, 0}, res);
     res = nullptr;
     {
       auto sz = wo.swapChain->currentPixelSize();
@@ -657,7 +663,7 @@ void MultiWindowNode::renderBlack()
 
     auto cb = wo.swapChain->currentFrameCommandBuffer();
     auto batch = rhi->nextResourceUpdateBatch();
-    cb->beginPass(wo.swapChain->currentFrameRenderTarget(), Qt::black, {1.0f, 0}, batch);
+    cb->beginPass(wo.swapChain->currentFrameRenderTarget(), Qt::black, {0.0f, 0}, batch);
     cb->endPass();
 
     rhi->endFrame(wo.swapChain);

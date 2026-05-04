@@ -216,7 +216,7 @@ void Window::render()
 
     auto buf = m_swapChain->currentFrameCommandBuffer();
     auto batch = state->rhi->nextResourceUpdateBatch();
-    buf->beginPass(m_swapChain->currentFrameRenderTarget(), Qt::black, {1.0f, 0}, batch);
+    buf->beginPass(m_swapChain->currentFrameRenderTarget(), Qt::black, {0.0f, 0}, batch);
     buf->endPass();
 
     state->rhi->endFrame(m_swapChain, {});
@@ -250,7 +250,6 @@ void Window::exposeEvent(QExposeEvent* ev)
 
   if(m_hasSwapChain && !m_swapChain)
   {
-    qDebug("exposeEvent: m_hasSwapChain && !m_swapChain");
     m_hasSwapChain = false;
   }
 
