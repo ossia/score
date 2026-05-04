@@ -14,6 +14,11 @@ void copyBufferMetal(
     QRhi&, QRhiCommandBuffer&, QRhiBuffer*, QRhiBuffer*, int, int, int)
 {
 }
+void copyBufferRegionsMetal(
+    QRhi&, QRhiCommandBuffer&, QRhiBuffer*, QRhiBuffer*,
+    const BufferCopyRegion*, int)
+{
+}
 }
 #endif
 
@@ -142,13 +147,85 @@ void insertComputeBarrier(QRhi& rhi, QRhiCommandBuffer& cb)
   }
 }
 
+void beginBufferCopyBarrier(QRhi& rhi, QRhiCommandBuffer& cb)
+{
+  switch(rhi.backend())
+  {
+#if SCORE_HAS_VULKAN
+    case QRhi::Vulkan: {
+      auto* inst = score::gfx::staticVulkanInstance();
+      if(!inst)
+        break;
+      auto barrierFn = reinterpret_cast<PFN_vkCmdPipelineBarrier>(
+          inst->getInstanceProcAddr("vkCmdPipelineBarrier"));
+      if(!barrierFn)
+        break;
+      auto* native
+          = static_cast<const QRhiVulkanCommandBufferNativeHandles*>(cb.nativeHandles());
+      if(!native || !native->commandBuffer)
+        break;
+      VkMemoryBarrier pre{};
+      pre.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+      pre.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+      pre.dstAccessMask
+          = VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
+      barrierFn(native->commandBuffer, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 1, &pre, 0, nullptr, 0, nullptr);
+      break;
+    }
+#endif
+    default:
+      // D3D11, D3D12, OpenGL, Metal: no explicit pre-barrier needed or
+      // handled by the backend when the encoder transitions.
+      break;
+  }
+}
+
+void endBufferCopyBarrier(QRhi& rhi, QRhiCommandBuffer& cb)
+{
+  switch(rhi.backend())
+  {
+#if SCORE_HAS_VULKAN
+    case QRhi::Vulkan: {
+      auto* inst = score::gfx::staticVulkanInstance();
+      if(!inst)
+        break;
+      auto barrierFn = reinterpret_cast<PFN_vkCmdPipelineBarrier>(
+          inst->getInstanceProcAddr("vkCmdPipelineBarrier"));
+      if(!barrierFn)
+        break;
+      auto* native
+          = static_cast<const QRhiVulkanCommandBufferNativeHandles*>(cb.nativeHandles());
+      if(!native || !native->commandBuffer)
+        break;
+      VkMemoryBarrier post{};
+      post.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+      post.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+      post.dstAccessMask
+          = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT
+            | VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT
+            | VK_ACCESS_INDEX_READ_BIT;
+      barrierFn(native->commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT
+                    | VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
+                0, 1, &post, 0, nullptr, 0, nullptr);
+      break;
+    }
+#endif
+    default:
+      break;
+  }
+}
+
 void copyBuffer(
     QRhi& rhi, QRhiCommandBuffer& cb,
     QRhiBuffer* src, QRhiBuffer* dst, int size,
-    int srcOffset, int dstOffset)
+    int srcOffset, int dstOffset,
+    BufferCopyBarrier barrier)
 {
   if(!src || !dst || size <= 0 || srcOffset < 0 || dstOffset < 0)
     return;
+  const bool emit_barriers = (barrier == BufferCopyBarrier::Auto);
 
   switch(rhi.backend())
   {
@@ -185,10 +262,11 @@ void copyBuffer(
       if(srcBuf == VK_NULL_HANDLE || dstBuf == VK_NULL_HANDLE)
         break;
 
-      // Barrier: compute write → transfer read/write
+      // Barrier: compute write → transfer read/write. Skipped when the
+      // caller batches multiple copies inside explicit begin/endBufferCopyBarrier.
       auto barrierFn = reinterpret_cast<PFN_vkCmdPipelineBarrier>(
           inst->getInstanceProcAddr("vkCmdPipelineBarrier"));
-      if(barrierFn)
+      if(emit_barriers && barrierFn)
       {
         VkMemoryBarrier pre{};
         pre.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
@@ -205,8 +283,8 @@ void copyBuffer(
 
       fn(native->commandBuffer, srcBuf, dstBuf, 1, &region);
 
-      // Barrier: transfer write → compute read
-      if(barrierFn)
+      // Barrier: transfer write → compute/vertex read
+      if(emit_barriers && barrierFn)
       {
         VkMemoryBarrier post{};
         post.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
@@ -327,6 +405,192 @@ void copyBuffer(
 
     case QRhi::Metal:
       copyBufferMetal(rhi, cb, src, dst, size, srcOffset, dstOffset);
+      break;
+
+    default:
+      break;
+  }
+}
+
+void copyBufferRegions(
+    QRhi& rhi, QRhiCommandBuffer& cb,
+    QRhiBuffer* src, QRhiBuffer* dst,
+    const BufferCopyRegion* regions, int count,
+    BufferCopyBarrier barrier)
+{
+  if(!src || !dst || !regions || count <= 0)
+    return;
+  const bool emit_barriers = (barrier == BufferCopyBarrier::Auto);
+
+  switch(rhi.backend())
+  {
+#if SCORE_HAS_VULKAN
+    case QRhi::Vulkan: {
+      auto* inst = score::gfx::staticVulkanInstance();
+      if(!inst)
+        break;
+      auto fn = reinterpret_cast<PFN_vkCmdCopyBuffer>(
+          inst->getInstanceProcAddr("vkCmdCopyBuffer"));
+      if(!fn)
+        break;
+      auto* native
+          = static_cast<const QRhiVulkanCommandBufferNativeHandles*>(cb.nativeHandles());
+      if(!native || !native->commandBuffer)
+        break;
+
+      auto srcNative = src->nativeBuffer();
+      auto dstNative = dst->nativeBuffer();
+      if(!srcNative.objects[0] || !dstNative.objects[0])
+        break;
+      VkBuffer srcBuf = *static_cast<const VkBuffer*>(srcNative.objects[0]);
+      VkBuffer dstBuf = *static_cast<const VkBuffer*>(dstNative.objects[0]);
+      if(srcBuf == VK_NULL_HANDLE || dstBuf == VK_NULL_HANDLE)
+        break;
+
+      auto barrierFn = reinterpret_cast<PFN_vkCmdPipelineBarrier>(
+          inst->getInstanceProcAddr("vkCmdPipelineBarrier"));
+      if(emit_barriers && barrierFn)
+      {
+        VkMemoryBarrier pre{};
+        pre.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+        pre.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+        pre.dstAccessMask
+            = VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
+        barrierFn(native->commandBuffer, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                  VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 1, &pre, 0, nullptr, 0, nullptr);
+      }
+
+      // Build region array once and issue a single vkCmdCopyBuffer.
+      // Small-stack path for the common ≤1024 vertex case; heap fallback
+      // for larger point clouds.
+      constexpr int kStackMax = 1024;
+      VkBufferCopy stack_regions[kStackMax];
+      std::vector<VkBufferCopy> heap_regions;
+      VkBufferCopy* vk_regions;
+      if(count <= kStackMax)
+      {
+        vk_regions = stack_regions;
+      }
+      else
+      {
+        heap_regions.resize(count);
+        vk_regions = heap_regions.data();
+      }
+      for(int i = 0; i < count; ++i)
+      {
+        vk_regions[i].srcOffset = static_cast<VkDeviceSize>(regions[i].src_offset);
+        vk_regions[i].dstOffset = static_cast<VkDeviceSize>(regions[i].dst_offset);
+        vk_regions[i].size = static_cast<VkDeviceSize>(regions[i].size);
+      }
+      fn(native->commandBuffer, srcBuf, dstBuf, (uint32_t)count, vk_regions);
+
+      if(emit_barriers && barrierFn)
+      {
+        VkMemoryBarrier post{};
+        post.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+        post.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        post.dstAccessMask
+            = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+        barrierFn(native->commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                  VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 1, &post, 0, nullptr, 0, nullptr);
+      }
+      break;
+    }
+#endif
+
+#if SCORE_HAS_GL
+    case QRhi::OpenGLES2: {
+      auto* native = static_cast<const QRhiGles2NativeHandles*>(rhi.nativeHandles());
+      if(!native || !native->context)
+        break;
+      auto* f = native->context->extraFunctions();
+      if(!f)
+        break;
+      auto srcNative = src->nativeBuffer();
+      auto dstNative = dst->nativeBuffer();
+      if(!srcNative.objects[0] || !dstNative.objects[0])
+        break;
+      GLuint srcId = *static_cast<const GLuint*>(srcNative.objects[0]);
+      GLuint dstId = *static_cast<const GLuint*>(dstNative.objects[0]);
+      if(srcId == 0 || dstId == 0)
+        break;
+      auto* gl = native->context->functions();
+      gl->glBindBuffer(GL_COPY_READ_BUFFER, srcId);
+      gl->glBindBuffer(GL_COPY_WRITE_BUFFER, dstId);
+      for(int i = 0; i < count; ++i)
+      {
+        f->glCopyBufferSubData(
+            GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER,
+            static_cast<GLintptr>(regions[i].src_offset),
+            static_cast<GLintptr>(regions[i].dst_offset),
+            static_cast<GLsizeiptr>(regions[i].size));
+      }
+      gl->glBindBuffer(GL_COPY_READ_BUFFER, 0);
+      gl->glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
+      break;
+    }
+#endif
+
+#if SCORE_HAS_D3D
+    case QRhi::D3D12: {
+      auto* native
+          = static_cast<const QRhiD3D12CommandBufferNativeHandles*>(cb.nativeHandles());
+      if(!native || !native->commandList)
+        break;
+      auto* cmdList = static_cast<ID3D12GraphicsCommandList*>(native->commandList);
+      auto srcNative = src->nativeBuffer();
+      auto dstNative = dst->nativeBuffer();
+      if(!srcNative.objects[0] || !dstNative.objects[0])
+        break;
+      auto* srcRes
+          = *static_cast<ID3D12Resource* const*>(srcNative.objects[0]);
+      auto* dstRes
+          = *static_cast<ID3D12Resource* const*>(dstNative.objects[0]);
+      if(!srcRes || !dstRes)
+        break;
+      for(int i = 0; i < count; ++i)
+      {
+        cmdList->CopyBufferRegion(
+            dstRes, static_cast<UINT64>(regions[i].dst_offset),
+            srcRes, static_cast<UINT64>(regions[i].src_offset),
+            static_cast<UINT64>(regions[i].size));
+      }
+      break;
+    }
+#endif
+
+    case QRhi::D3D11: {
+#if SCORE_HAS_D3D
+      auto* native = static_cast<const QRhiD3D11NativeHandles*>(rhi.nativeHandles());
+      if(!native || !native->context)
+        break;
+      auto srcNative = src->nativeBuffer();
+      auto dstNative = dst->nativeBuffer();
+      if(!srcNative.objects[0] || !dstNative.objects[0])
+        break;
+      auto* ctx = static_cast<ID3D11DeviceContext*>(native->context);
+      auto* srcBuf
+          = *static_cast<ID3D11Buffer* const*>(srcNative.objects[0]);
+      auto* dstBuf
+          = *static_cast<ID3D11Buffer* const*>(dstNative.objects[0]);
+      if(!srcBuf || !dstBuf)
+        break;
+      for(int i = 0; i < count; ++i)
+      {
+        D3D11_BOX box{};
+        box.left = static_cast<UINT>(regions[i].src_offset);
+        box.right = static_cast<UINT>(regions[i].src_offset + regions[i].size);
+        box.top = 0; box.bottom = 1; box.front = 0; box.back = 1;
+        ctx->CopySubresourceRegion(
+            dstBuf, 0, static_cast<UINT>(regions[i].dst_offset), 0, 0,
+            srcBuf, 0, &box);
+      }
+#endif
+      break;
+    }
+
+    case QRhi::Metal:
+      copyBufferRegionsMetal(rhi, cb, src, dst, regions, count);
       break;
 
     default:

@@ -75,6 +75,11 @@ public:
   void errorMessage(int line, const QString& err) const
       W_SIGNAL(errorMessage, line, err);
 
+  // Absolute path of the shader file this model was loaded from. Used as
+  // the base for quoted #include resolution in ProgramCache::get. Empty
+  // when the shader source is in-memory. Mirrors JS::ProcessModel::m_root.
+  QString rootPath() const noexcept { return m_scriptPath; }
+
 private:
   void loadPreset(const Process::Preset& preset) override;
   Process::Preset savePreset() const noexcept override;
@@ -84,6 +89,7 @@ private:
 
   QString m_compute;
   ProcessedProgram m_processedProgram;
+  QString m_scriptPath;
 };
 
 struct ProcessFactory final : Process::ProcessFactory_T<Gfx::CSF::Model>
