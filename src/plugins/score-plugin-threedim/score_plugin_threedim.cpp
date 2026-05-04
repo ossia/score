@@ -25,10 +25,14 @@
 #include <Threedim/FlattenedSceneFilter/Process.hpp>
 #include <Threedim/MergeGeometries/Executor.hpp>
 #include <Threedim/MergeGeometries/Process.hpp>
+#include <Threedim/CreateCollection.hpp>
+#include <Threedim/SceneDuplicator.hpp>
 #include <Threedim/SceneFilter/Executor.hpp>
 #include <Threedim/SceneFilter/Process.hpp>
 #include <Threedim/SceneGraphFilter.hpp>
 #include <Threedim/SceneGroup.hpp>
+#include <Threedim/SceneInspector.hpp>
+#include <Threedim/SceneResourceRoute.hpp>
 #include <Threedim/SceneSelector.hpp>
 #include <Threedim/SceneSwitch.hpp>
 #include <Threedim/ScenePreprocessor/Executor.hpp>
@@ -380,6 +384,10 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
   oscr::instantiate_fx<Threedim::SceneSwitch>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::SceneGroup>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::SceneSelector>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::SceneInspector>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::SceneDuplicator>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::CreateCollection>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::SceneResourceRoute>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::VoxelLoader>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Plane>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Cube>(fx, ctx, key);

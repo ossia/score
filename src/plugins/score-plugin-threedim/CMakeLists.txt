@@ -137,6 +137,16 @@ add_library(
   Threedim/SceneSelector.cpp
   Threedim/SceneGroup.hpp
   Threedim/SceneGroup.cpp
+  Threedim/SceneDuplicator.hpp
+  Threedim/SceneDuplicator.cpp
+  Threedim/SceneFromMeshes.hpp
+  Threedim/SceneFromMeshes.cpp
+  Threedim/SceneInspector.hpp
+  Threedim/SceneInspector.cpp
+  Threedim/CreateCollection.hpp
+  Threedim/CreateCollection.cpp
+  Threedim/SceneResourceRoute.hpp
+  Threedim/SceneResourceRoute.cpp
   Threedim/BufferInfo.hpp
   Threedim/TextureInfo.hpp
   Threedim/ImageLoader.hpp
