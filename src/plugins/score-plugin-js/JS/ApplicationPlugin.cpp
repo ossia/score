@@ -17,6 +17,8 @@
 #include <ossia-qt/qml_protocols.hpp>
 
 #include <QCommandLineParser>
+#include <QFileInfo>
+#include <QString>
 
 #if __has_include(<QQuickWindow>)
 #include <QGuiApplication>
@@ -32,6 +34,27 @@
 
 namespace JS
 {
+// Check whether the input is a script, or a file path
+static bool stringIsScript(const QString& input)
+{
+  if(input.length() > 4096)
+    return true;
+
+  for(QChar ch : input)
+  {
+    const char16_t c = ch.unicode();
+    if(c == '\n' || c == '\r' || c == ';' || c == '{' || c == '}' || c == '('
+       || c == ')')
+      return true;
+  }
+
+  QFileInfo fileInfo{input};
+  if(fileInfo.exists() && fileInfo.isFile())
+    return false;
+
+  return true;
+}
+
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
     : score::GUIApplicationPlugin{ctx}
 {
@@ -79,7 +102,20 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
   parser.addOption(script_opt);
 
   parser.parse(ctx.applicationSettings.arguments);
-  this->m_start_script = parser.value(script_opt);
+  auto script = parser.value(script_opt);
+  if(stringIsScript(script))
+  {
+    this->m_start_script = script;
+  }
+  else
+  {
+    QFile f{script};
+    if(f.open(QIODevice::ReadOnly))
+    {
+      this->m_start_script = f.readAll();
+      this->m_start_script_path = QFileInfo{f}.canonicalPath();
+    }
+  }
 }
 
 void ApplicationPlugin::on_newDocument(score::Document& doc)
@@ -124,7 +160,11 @@ void ApplicationPlugin::on_createdDocument(score::Document& doc)
 
   if(!m_start_script.isEmpty())
   {
-    QTimer::singleShot(100, this, [this] { m_consoleEngine.evaluate(m_start_script); });
+    QTimer::singleShot(100, this, [this] {
+      if(!m_start_script_path.isEmpty())
+        m_consoleEngine.addImportPath(m_start_script_path);
+      m_consoleEngine.evaluate(m_start_script);
+    });
   }
 }
 void ApplicationPlugin::afterStartup()

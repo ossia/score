@@ -1,4 +1,5 @@
 #pragma once
+#include <Process/Dataflow/CableData.hpp>
 #include <Process/TimeValue.hpp>
 
 #include <score/document/DocumentContext.hpp>
@@ -152,7 +153,9 @@ public:
   W_SLOT(outlets)
 
   QObject* createCable(QObject* outlet, QObject* inlet);
-  W_SLOT(createCable)
+  W_SLOT(createCable, (QObject*, QObject*))
+  QObject* createCable(QObject* outlet, QObject* inlet, Process::CableType type);
+  W_SLOT(createCable, (QObject*, QObject*, Process::CableType))
 
   void setAddress(QObject* obj, QString addr);
   W_SLOT(setAddress)
