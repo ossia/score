@@ -345,8 +345,10 @@ bool DocumentManager::saveDocument(Document& doc)
 
     if(f.commit())
     {
-      m_recentFiles->addRecentFile(savename);
-      saveRecentFilesState();
+      if(m_recentFiles) {
+        m_recentFiles->addRecentFile(savename);
+        saveRecentFilesState();
+      }
     }
     else
     {
@@ -426,8 +428,10 @@ bool DocumentManager::saveDocumentAs(Document& doc, const QString& savename)
 
   if(f.commit())
   {
-    m_recentFiles->addRecentFile(savename);
-    saveRecentFilesState();
+    if(m_recentFiles) {
+      m_recentFiles->addRecentFile(savename);
+      saveRecentFilesState();
+    }
     doc.backupManager()->updateBackupData();
     return true;
   }
