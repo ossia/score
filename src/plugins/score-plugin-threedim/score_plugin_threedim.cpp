@@ -21,6 +21,12 @@
 #include <Threedim/GeometryToBuffer.hpp>
 #include <Threedim/ModelDisplay/Executor.hpp>
 #include <Threedim/ModelDisplay/Process.hpp>
+#include <Threedim/FlattenedSceneFilter/Executor.hpp>
+#include <Threedim/FlattenedSceneFilter/Process.hpp>
+#include <Threedim/MergeGeometries/Executor.hpp>
+#include <Threedim/MergeGeometries/Process.hpp>
+#include <Threedim/SceneFilter/Executor.hpp>
+#include <Threedim/SceneFilter/Process.hpp>
 #include <Threedim/ScenePreprocessor/Executor.hpp>
 #include <Threedim/ScenePreprocessor/Process.hpp>
 #include <Threedim/Noise.hpp>
@@ -388,7 +394,10 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
       score::ApplicationContext,
       FW<Process::ProcessModelFactory, Gfx::ModelDisplay::ProcessFactory,
          Gfx::RenderPipeline::ProcessFactory, Gfx::Splat::ProcessFactory,
-         Gfx::ScenePreprocessor::ProcessFactory>,
+         Gfx::ScenePreprocessor::ProcessFactory,
+         Gfx::SceneFilter::ProcessFactory,
+         Gfx::FlattenedSceneFilter::ProcessFactory,
+         Gfx::MergeGeometries::ProcessFactory>,
       FW<Process::LayerFactory, Gfx::RenderPipeline::LayerFactory>,
       FW<Library::LibraryInterface, Threedim::SSynthLibraryHandler,
          Threedim::AssetLibraryHandler, Gfx::RawRasterLibraryHandler,
@@ -399,7 +408,10 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
          Gfx::ModelDisplay::ProcessExecutorComponentFactory,
          Gfx::RenderPipeline::ProcessExecutorComponentFactory,
          Gfx::Splat::ProcessExecutorComponentFactory,
-         Gfx::ScenePreprocessor::ProcessExecutorComponentFactory>>(ctx, key);
+         Gfx::ScenePreprocessor::ProcessExecutorComponentFactory,
+         Gfx::SceneFilter::ProcessExecutorComponentFactory,
+         Gfx::FlattenedSceneFilter::ProcessExecutorComponentFactory,
+         Gfx::MergeGeometries::ProcessExecutorComponentFactory>>(ctx, key);
   fx.insert(
       fx.end(),
       std::make_move_iterator(add.begin()),

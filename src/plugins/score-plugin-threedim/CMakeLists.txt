@@ -111,6 +111,24 @@ add_library(
   Threedim/ScenePreprocessor/Metadata.hpp
   Threedim/ScenePreprocessor/Process.hpp
   Threedim/ScenePreprocessor/Process.cpp
+
+  Threedim/SceneFilter/Executor.hpp
+  Threedim/SceneFilter/Executor.cpp
+  Threedim/SceneFilter/Metadata.hpp
+  Threedim/SceneFilter/Process.hpp
+  Threedim/SceneFilter/Process.cpp
+
+  Threedim/FlattenedSceneFilter/Executor.hpp
+  Threedim/FlattenedSceneFilter/Executor.cpp
+  Threedim/FlattenedSceneFilter/Metadata.hpp
+  Threedim/FlattenedSceneFilter/Process.hpp
+  Threedim/FlattenedSceneFilter/Process.cpp
+
+  Threedim/MergeGeometries/Executor.hpp
+  Threedim/MergeGeometries/Executor.cpp
+  Threedim/MergeGeometries/Metadata.hpp
+  Threedim/MergeGeometries/Process.hpp
+  Threedim/MergeGeometries/Process.cpp
   Threedim/BufferInfo.hpp
   Threedim/TextureInfo.hpp
   Threedim/ImageLoader.hpp
