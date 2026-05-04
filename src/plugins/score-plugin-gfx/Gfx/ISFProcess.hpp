@@ -168,8 +168,18 @@ struct ISFHelpers
           alternatives.emplace_back("2", 2);
         }
 
+        // ComboBox::init expects the VALUE to be initially selected, not
+        // an index. libisf's `v.def` is the INDEX into values for enum
+        // mode — passing it raw was making `DEFAULT: <value>` silently
+        // fall back to alternatives[0] when <value> didn't equal a valid
+        // index. Look up the alternative at v.def and forward its value.
+        // Same fix lives in CSF/Process.cpp + GeometryFilter/Process.cpp.
+        const std::size_t def_idx
+            = std::min<std::size_t>(v.def, alternatives.size() - 1);
+        const ossia::value& init_value = alternatives[def_idx].second;
+
         auto port = new Process::ComboBox(
-            std::move(alternatives), (int)v.def, nm, Id<Process::Port>(i), &self);
+            std::move(alternatives), init_value, nm, Id<Process::Port>(i), &self);
 
         if(auto it = previous_values.find(nm);
            it != previous_values.end()
@@ -340,9 +350,49 @@ struct ISFHelpers
       }
       
       // CSF-specific input handlers
-      Process::Inlet* operator()(const storage_input& v) { return nullptr; }
+      Process::Inlet* operator()(const storage_input& v)
+      {
+        // storage_input declares an SSBO the shader reads from. Create a
+        // Process-level TextureInlet so an upstream Buffer-producing node
+        // (ScenePreprocessor's scene_* auxes extracted via ExtractBuffer2, etc.)
+        // has a target to connect to. Note that for
+        // aux-named storage_inputs (scene_lights, scene_materials, per_draw),
+        // the RawRaster renderer auto-binds from the upstream geometry's
+        // auxiliary_buffer[] by matching on name — so this inlet is
+        // optional for those; leaving it exposed makes explicit wiring
+        // possible when no preprocessor sits upstream.
+        auto port = new Gfx::TextureInlet(
+            QString::fromStdString(input.name), Id<Process::Port>(i), &self);
+        self.m_inlets.push_back(port);
+        return port;
+      }
+      Process::Inlet* operator()(const uniform_input& v)
+      {
+        // uniform_input expects an upstream Buffer port (ScenePreprocessor's
+        // camera/env aux buffers, ExtractBuffer2 outputs, etc.). TextureInlet
+        // is score's Process-layer inlet for SSBO / texture / UBO data flow.
+        // Without this, the Process model has no inlet for the cable to land
+        // on and Score.inlet(proc, i) returns null.
+        auto port = new Gfx::TextureInlet(
+            QString::fromStdString(input.name), Id<Process::Port>(i), &self);
+        self.m_inlets.push_back(port);
+        return port;
+      }
       Process::Inlet* operator()(const texture_input& v) { return nullptr; }
-      Process::Inlet* operator()(const csf_image_input& v) { return nullptr; }
+      Process::Inlet* operator()(const csf_image_input& v)
+      {
+        // csf_image_input is a storage image bound to the graphics pipeline
+        // (vertex / fragment) for imageLoad / imageStore. Like uniform_input
+        // and the existing image samplers, it needs a Process-layer inlet so
+        // that an upstream texture cable can land on it (e.g. read_only
+        // images sourced from another node's output, or scratch images that
+        // ping-pong with an upstream allocator). TextureInlet is the generic
+        // GPU-resource port used elsewhere in score for textures / SSBOs.
+        auto port = new Gfx::TextureInlet(
+            QString::fromStdString(input.name), Id<Process::Port>(i), &self);
+        self.m_inlets.push_back(port);
+        return port;
+      }
       Process::Inlet* operator()(const geometry_input& v) { return nullptr; }
     };
 
