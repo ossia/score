@@ -105,6 +105,12 @@ add_library(
   Threedim/Transform3D.hpp
   Threedim/Transform3D.cpp
   Threedim/TransformHelper.hpp
+
+  Threedim/ScenePreprocessor/Executor.hpp
+  Threedim/ScenePreprocessor/Executor.cpp
+  Threedim/ScenePreprocessor/Metadata.hpp
+  Threedim/ScenePreprocessor/Process.hpp
+  Threedim/ScenePreprocessor/Process.cpp
   Threedim/BufferInfo.hpp
   Threedim/TextureInfo.hpp
   Threedim/ImageLoader.hpp
