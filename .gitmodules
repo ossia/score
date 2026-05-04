@@ -115,3 +115,6 @@
 [submodule "3rdparty/opengametools"]
 	path = 3rdparty/opengametools
 	url = https://github.com/jpaver/opengametools
+[submodule "3rdparty/ufbx"]
+	path = 3rdparty/ufbx
+	url = https://github.com/ufbx/ufbx
