@@ -4,8 +4,11 @@
 #include <Gfx/GfxExecContext.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
+#include <Gfx/Graph/Utils.hpp>
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
 #include <Gfx/Graph/decoders/RGBA.hpp>
+
+#include <ossia/detail/algorithms.hpp>
 
 #include <score/gfx/OpenGL.hpp>
 #include <score/gfx/QRhiGles2.hpp>
@@ -91,6 +94,7 @@ private:
 
   score::gfx::VideoMaterialUBO material;
   std::unique_ptr<score::gfx::GPUVideoDecoder> m_gpu{};
+  std::pair<QShader, QShader> m_shaders;
 
   // Spout receiver (for OpenGL)
   ::SpoutReceiver m_receiver;
@@ -130,7 +134,7 @@ private:
     return {};
   }
 
-  void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  void initState(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
     auto& rhi = *renderer.state.rhi;
     m_backend = rhi.backend();
@@ -191,12 +195,61 @@ private:
                       ? QRhiTexture::BGRA8
                       : QRhiTexture::RGBA8;
     m_gpu = std::make_unique<score::gfx::PackedDecoder>(format, 4, metadata, QString{}, true);
-    createPipelines(renderer);
+
+    // Cache shaders from GPU decoder init
+    if(m_gpu)
+      m_shaders = m_gpu->init(renderer);
 
     material.textureSize[0] = metadata.width;
     material.textureSize[1] = metadata.height;
     res.updateDynamicBuffer(
         m_materialUBO, 0, sizeof(score::gfx::VideoMaterialUBO), &material);
+
+    m_initialized = true;
+  }
+
+  void addOutputPass(
+      score::gfx::RenderList& renderer, score::gfx::Edge& edge,
+      QRhiResourceUpdateBatch& res) override
+  {
+    if(!m_gpu)
+      return;
+    if(!m_shaders.first.isValid() || !m_shaders.second.isValid())
+      return;
+
+    auto rt = renderer.renderTargetForOutput(edge);
+    if(rt.renderTarget)
+    {
+      auto pip = score::gfx::buildPipeline(
+          renderer, renderer.defaultTriangle(), m_shaders.first, m_shaders.second, rt,
+          m_processUBO, m_materialUBO, m_gpu->samplers);
+      if(pip.pipeline)
+        m_p.emplace_back(&edge, score::gfx::Pass{rt, pip, nullptr});
+    }
+  }
+
+  void removeOutputPass(score::gfx::RenderList& renderer, score::gfx::Edge& edge) override
+  {
+    auto it = ossia::find_if(m_p, [&](const auto& p) { return p.first == &edge; });
+    if(it != m_p.end())
+    {
+      it->second.release();
+      m_p.erase(it);
+    }
+  }
+
+  bool hasOutputPassForEdge(score::gfx::Edge& edge) const override
+  {
+    return ossia::find_if(m_p, [&](const auto& p) { return p.first == &edge; })
+           != m_p.end();
+  }
+
+  void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  {
+    initState(renderer, res);
+
+    for(auto* edge : this->node.output[0]->edges)
+      addOutputPass(renderer, *edge, res);
   }
 
   void initOpenGL(QRhi& rhi, unsigned int& w, unsigned int& h)
@@ -319,17 +372,6 @@ private:
   }
 #endif
 
-  void createPipelines(score::gfx::RenderList& r)
-  {
-    if(m_gpu)
-    {
-      auto shaders = m_gpu->init(r);
-      SCORE_ASSERT(m_p.empty());
-      score::gfx::defaultPassesInit(
-          m_p, this->node.output[0]->edges, r, r.defaultTriangle(), shaders.first,
-          shaders.second, m_processUBO, m_materialUBO, m_gpu->samplers);
-    }
-  }
 
   void update(
       score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res,
@@ -824,7 +866,7 @@ private:
 
       // Recreate shader resource bindings
       for(auto& pass : m_p)
-        pass.second.srb->create();
+        pass.second.p.srb->create();
     }
 
     // The texture content is automatically synchronized because
@@ -880,7 +922,7 @@ private:
     tex->create();
 
     for(auto& pass : m_p)
-      pass.second.srb->create();
+      pass.second.p.srb->create();
   }
 
   void runRenderPass(
@@ -891,8 +933,11 @@ private:
     score::gfx::defaultRenderPass(renderer, mesh, m_meshBuffer, cb, edge, m_p);
   }
 
-  void release(score::gfx::RenderList& r) override
+  void releaseState(score::gfx::RenderList& r) override
   {
+    if(!m_initialized)
+      return;
+
     switch(m_backend)
     {
       case QRhi::OpenGLES2:
@@ -959,7 +1004,15 @@ private:
       p.second.release();
     m_p.clear();
 
-    m_meshBuffer.buffers.clear();
+    m_meshBuffer = {};
+    m_shaders = {};
+
+    m_initialized = false;
+  }
+
+  void release(score::gfx::RenderList& r) override
+  {
+    releaseState(r);
   }
 };
 

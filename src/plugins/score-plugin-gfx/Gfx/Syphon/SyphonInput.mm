@@ -8,7 +8,10 @@
 #include <Gfx/GfxExecContext.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
+#include <Gfx/Graph/Utils.hpp>
 #include <Gfx/Graph/decoders/RGBA.hpp>
+
+#include <ossia/detail/algorithms.hpp>
 #include <Gfx/Syphon/SyphonHelpers.hpp>
 #include <Syphon/SyphonClient.h>
 #include <Syphon/SyphonOpenGLClient.h>
@@ -67,6 +70,7 @@ private:
 
   score::gfx::VideoMaterialUBO material;
   std::unique_ptr<score::gfx::GPUVideoDecoder> m_gpu{};
+  std::pair<QShader, QShader> m_shaders;
 
   // OpenGL receiver
   SyphonOpenGLClient* m_receiver{};
@@ -147,7 +151,8 @@ private:
   }
 
   score::gfx::TextureRenderTarget renderTargetForInput(const score::gfx::Port& p) override { return { }; }
-  void init(score::gfx::RenderList &renderer, QRhiResourceUpdateBatch &res) override
+
+  void initState(score::gfx::RenderList &renderer, QRhiResourceUpdateBatch &res) override
   {
     // Initialize our rendering structures
     auto& rhi = *renderer.state.rhi;
@@ -216,7 +221,10 @@ private:
     {
       m_gpu = std::make_unique<score::gfx::PackedRectDecoder>(QRhiTexture::RGBA8, 4, metadata, QString{});
     }
-    createPipelines(renderer);
+
+    // Cache shaders from GPU decoder init
+    if (m_gpu)
+      m_shaders = m_gpu->init(renderer);
 
     if (m_usingMetal && mtlTex)
     {
@@ -226,25 +234,52 @@ private:
     {
       rebuildTexture(glImg);
     }
+
+    m_initialized = true;
   }
 
-  void createPipelines(score::gfx::RenderList& r)
+  void addOutputPass(
+      score::gfx::RenderList& renderer, score::gfx::Edge& edge,
+      QRhiResourceUpdateBatch& res) override
   {
-    if (m_gpu)
+    if (!m_gpu)
+      return;
+    if (!m_shaders.first.isValid() || !m_shaders.second.isValid())
+      return;
+
+    auto rt = renderer.renderTargetForOutput(edge);
+    if (rt.renderTarget)
     {
-      auto shaders = m_gpu->init(r);
-      SCORE_ASSERT(m_p.empty());
-      score::gfx::defaultPassesInit(
-          m_p,
-          this->node.output[0]->edges,
-          r,
-          r.defaultTriangle(),
-          shaders.first,
-          shaders.second,
-          m_processUBO,
-          m_materialUBO,
-          m_gpu->samplers);
+      auto pip = score::gfx::buildPipeline(
+          renderer, renderer.defaultTriangle(), m_shaders.first, m_shaders.second, rt,
+          m_processUBO, m_materialUBO, m_gpu->samplers);
+      if (pip.pipeline)
+        m_p.emplace_back(&edge, score::gfx::Pass{rt, pip, nullptr});
     }
+  }
+
+  void removeOutputPass(score::gfx::RenderList& renderer, score::gfx::Edge& edge) override
+  {
+    auto it = ossia::find_if(m_p, [&](const auto& p) { return p.first == &edge; });
+    if (it != m_p.end())
+    {
+      it->second.release();
+      m_p.erase(it);
+    }
+  }
+
+  bool hasOutputPassForEdge(score::gfx::Edge& edge) const override
+  {
+    return ossia::find_if(m_p, [&](const auto& p) { return p.first == &edge; })
+           != m_p.end();
+  }
+
+  void init(score::gfx::RenderList &renderer, QRhiResourceUpdateBatch &res) override
+  {
+    initState(renderer, res);
+
+    for (auto* edge : this->node.output[0]->edges)
+      addOutputPass(renderer, *edge, res);
   }
 
   void rebuildTexture(SyphonOpenGLImage* img)
@@ -274,7 +309,7 @@ private:
       t->gltype = GL_UNSIGNED_INT_8_8_8_8_REV;
     }
     for(auto& pass : m_p)
-      pass.second.srb->create();
+      pass.second.p.srb->create();
   }
 
   void rebuildTextureMetal(id<MTLTexture> mtlTex)
@@ -293,7 +328,7 @@ private:
     tex->createFrom(nativeTex);
 
     for(auto& pass : m_p)
-      pass.second.srb->create();
+      pass.second.p.srb->create();
   }
 
   void update(score::gfx::RenderList &renderer,
@@ -370,8 +405,11 @@ private:
     score::gfx::defaultRenderPass(renderer, mesh, m_meshBuffer, cb, edge, m_p);
   }
 
-  void release(score::gfx::RenderList& r) override
+  void releaseState(score::gfx::RenderList& r) override
   {
+    if (!m_initialized)
+      return;
+
     if (enabled)
     {
       if (m_mtlReceiver)
@@ -404,7 +442,15 @@ private:
       p.second.release();
     m_p.clear();
 
-    m_meshBuffer.buffers.clear();
+    m_meshBuffer = {};
+    m_shaders = {};
+
+    m_initialized = false;
+  }
+
+  void release(score::gfx::RenderList& r) override
+  {
+    releaseState(r);
   }
 };
 

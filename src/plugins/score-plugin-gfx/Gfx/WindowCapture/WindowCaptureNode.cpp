@@ -3,7 +3,10 @@
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/RenderState.hpp>
+#include <Gfx/Graph/Utils.hpp>
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
+
+#include <ossia/detail/algorithms.hpp>
 
 #include <QDebug>
 
@@ -52,7 +55,7 @@ public:
     return {};
   }
 
-  void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  void initState(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
     auto& rhi = *renderer.state.rhi;
 
@@ -112,11 +115,8 @@ public:
     {
       auto [vertS, fragS] = score::gfx::makeShaders(
           renderer.state, score::gfx::GPUVideoDecoder::vertexShader(), frag);
-
-      const score::gfx::Sampler samplers[] = {{m_sampler, m_texture}};
-      score::gfx::defaultPassesInit(
-          m_p, this->node.output[0]->edges, renderer, mesh, vertS, fragS,
-          m_processUBO, m_materialUBO, samplers);
+      m_vertexS = vertS;
+      m_fragmentS = fragS;
     }
 
     // Start capturing
@@ -132,6 +132,83 @@ public:
       target.regionH = node.settings.regionH;
       const_cast<WindowCaptureNode&>(node).backend->start(target);
     }
+
+    m_initialized = true;
+  }
+
+  void addOutputPass(
+      score::gfx::RenderList& renderer, score::gfx::Edge& edge,
+      QRhiResourceUpdateBatch& res) override
+  {
+    if(!m_vertexS.isValid() || !m_fragmentS.isValid())
+      return;
+
+    auto rt = renderer.renderTargetForOutput(edge);
+    if(rt.renderTarget)
+    {
+      const score::gfx::Sampler samplers[] = {{m_sampler, m_texture}};
+      auto pip = score::gfx::buildPipeline(
+          renderer, renderer.defaultTriangle(), m_vertexS, m_fragmentS, rt,
+          m_processUBO, m_materialUBO, samplers);
+      if(pip.pipeline)
+        m_p.emplace_back(&edge, score::gfx::Pass{rt, pip, nullptr});
+    }
+  }
+
+  void removeOutputPass(score::gfx::RenderList& renderer, score::gfx::Edge& edge) override
+  {
+    auto it = ossia::find_if(m_p, [&](const auto& p) { return p.first == &edge; });
+    if(it != m_p.end())
+    {
+      it->second.release();
+      m_p.erase(it);
+    }
+  }
+
+  bool hasOutputPassForEdge(score::gfx::Edge& edge) const override
+  {
+    return ossia::find_if(m_p, [&](const auto& p) { return p.first == &edge; })
+           != m_p.end();
+  }
+
+  void releaseState(score::gfx::RenderList& r) override
+  {
+    if(!m_initialized)
+      return;
+
+    if(node.backend)
+      const_cast<WindowCaptureNode&>(node).backend->stop();
+
+#if HAS_DMABUF_IMPORT
+    if(m_dmaBufImporter)
+      m_dmaBufImporter->cleanupPlane(m_dmaBufPlane);
+#endif
+
+    for(auto& [edge, pass] : m_p)
+      pass.release();
+    m_p.clear();
+
+    delete m_texture;
+    m_texture = nullptr;
+    delete m_sampler;
+    m_sampler = nullptr;
+    delete m_processUBO;
+    m_processUBO = nullptr;
+    delete m_materialUBO;
+    m_materialUBO = nullptr;
+    m_meshBuffer = {};
+    m_vertexS = {};
+    m_fragmentS = {};
+
+    m_initialized = false;
+  }
+
+  void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  {
+    initState(renderer, res);
+
+    for(auto* edge : this->node.output[0]->edges)
+      addOutputPass(renderer, *edge, res);
   }
 
   void update(
@@ -234,27 +311,7 @@ public:
 
   void release(score::gfx::RenderList& r) override
   {
-    if(node.backend)
-      const_cast<WindowCaptureNode&>(node).backend->stop();
-
-#if HAS_DMABUF_IMPORT
-    if(m_dmaBufImporter)
-      m_dmaBufImporter->cleanupPlane(m_dmaBufPlane);
-#endif
-
-    for(auto& [edge, pass] : m_p)
-      pass.release();
-    m_p.clear();
-
-    delete m_texture;
-    m_texture = nullptr;
-    delete m_sampler;
-    m_sampler = nullptr;
-    delete m_processUBO;
-    m_processUBO = nullptr;
-    delete m_materialUBO;
-    m_materialUBO = nullptr;
-    m_meshBuffer = {};
+    releaseState(r);
   }
 
   void runRenderPass(
@@ -274,6 +331,8 @@ private:
   QRhiBuffer* m_materialUBO{};
   QRhiTexture* m_texture{};
   QRhiSampler* m_sampler{};
+  QShader m_vertexS;
+  QShader m_fragmentS;
   score::gfx::VideoMaterialUBO m_material;
 
   int m_width{};
