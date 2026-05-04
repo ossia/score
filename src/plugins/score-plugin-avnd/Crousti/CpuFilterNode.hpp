@@ -3,12 +3,14 @@
 #if SCORE_PLUGIN_GFX
 #include <Crousti/GfxNode.hpp>
 
+#include <halp/texture.hpp>
+
 namespace oscr
 {
 
 template <typename Node_T>
   requires(
-    (avnd::texture_output_introspection<Node_T>::size + avnd::buffer_output_introspection<Node_T>::size + avnd::geometry_output_introspection<Node_T>::size) >= 1
+    (avnd::texture_output_introspection<Node_T>::size + avnd::buffer_output_introspection<Node_T>::size + avnd::geometry_output_introspection<Node_T>::size + scene_output_introspection<Node_T>::size) >= 1
   )
 struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
 {
@@ -24,6 +26,8 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
 
   AVND_NO_UNIQUE_ADDRESS geometry_inputs_storage<Node_T> geometry_ins;
   AVND_NO_UNIQUE_ADDRESS geometry_outputs_storage<Node_T> geometry_outs;
+  AVND_NO_UNIQUE_ADDRESS scene_inputs_storage<Node_T> scene_ins;
+  AVND_NO_UNIQUE_ADDRESS scene_outputs_storage<Node_T> scene_outs;
 
   const GfxNode<Node_T>& node() const noexcept
   {
@@ -42,8 +46,14 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
   {
     if constexpr(avnd::texture_input_introspection<Node_T>::size > 0)
     {
+      // Only texture-RT inputs live in m_rts. Geometry / buffer / scene
+      // inputs on the same node (e.g. PBRMesh: 4 gpu_texture_inputs + a
+      // dynamic_gpu_geometry mesh in) land here through the generic
+      // renderTargetForOutput path — return empty so the upstream's
+      // addOutputPass skips creating a graphics render pass for them.
       auto it = texture_ins.m_rts.find(&p);
-      SCORE_ASSERT(it != texture_ins.m_rts.end());
+      if(it == texture_ins.m_rts.end())
+        return {};
       return it->second;
     }
     return {};
@@ -58,6 +68,60 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
           return b;
     }
     return {};
+  }
+
+  // For non-2D gpu_texture_input fields (cubemap / array / 3D): the port
+  // is flagged GrabsFromSource (see initGfxPorts +
+  // port_flags_for_field), so Graph::updateSinkSampler calls us here
+  // with the upstream's QRhiTexture. Write it into the matching halp
+  // field so the node's operator()() / runInitialPasses see the handle.
+  // 2D (classic RT-rendered) inputs ignore this path — their handle is
+  // set up at init() time by texture_inputs_storage::init.
+  void updateInputTexture(
+      const score::gfx::Port& input, QRhiTexture* tex,
+      QRhiTexture* /*depthTex*/ = nullptr) override
+  {
+    if constexpr(avnd::texture_input_introspection<Node_T>::size > 0)
+    {
+      const auto& inputs = this->node().input;
+      int port_idx = -1;
+      for(int i = 0, n = (int)inputs.size(); i < n; ++i)
+      {
+        if(inputs[i] == &input)
+        {
+          port_idx = i;
+          break;
+        }
+      }
+      if(port_idx < 0)
+        return;
+
+      avnd::texture_input_introspection<Node_T>::for_all_n2(
+          avnd::get_inputs<Node_T>(*state),
+          [&]<typename F, std::size_t K, std::size_t N>(
+              F& t, avnd::predicate_index<K>, avnd::field_index<N>) {
+        if constexpr(avnd::gpu_texture_port<F>
+                     && halp::texture_kind_of<F>() != halp::texture_kind::texture_2d)
+        {
+          if((int)N == port_idx)
+          {
+            t.texture.handle = tex;
+            if(tex)
+            {
+              const auto sz = tex->pixelSize();
+              t.texture.width = sz.width();
+              t.texture.height = sz.height();
+            }
+            else
+            {
+              t.texture.width = 0;
+              t.texture.height = 0;
+            }
+            t.texture.kind = halp::texture_kind_of<F>();
+          }
+        }
+      });
+    }
   }
 
   QRhiTexture* textureForOutput(const score::gfx::Port& output) override
@@ -95,9 +159,29 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
     return nullptr;
   }
 
-  void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  // All of the setup lives in initState(), not init(). The incremental
+  // edge-rewire path (Graph::createPassForEdgeIfMissing) only calls
+  // initState() on newly-created renderers — so a halp scene-in/scene-out
+  // node inserted live would otherwise never allocate its storage, its
+  // operator()() would run against uninitialised state every frame, and
+  // nothing would flow downstream until a stop/start cycle forced a full
+  // rebuild through init().
+  void initState(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
+    if(m_initialized)
+      return;
+
     auto& parent = node();
+
+    // Optional renderlist backchannel for CPU halp nodes that need to
+    // reach their hosting RenderList's GpuResourceRegistry / AssetTable
+    // (e.g. Camera / Light / PBRMesh / MaterialOverride allocating arena
+    // slots). Populated by SFINAE so nodes that don't declare the member
+    // pay nothing. Lifetime: valid from initState until releaseState
+    // clears it back to nullptr.
+    if constexpr(requires { state->renderlist = &renderer; })
+      state->renderlist = &renderer;
+
     if constexpr(requires { state->prepare(); })
     {
       parent.processControlIn(
@@ -116,6 +200,68 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
       buffer_outs.init(renderer, *state, parent);
 
     if_possible(state->init(renderer, res));
+
+    m_initialized = true;
+  }
+
+  void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  {
+    initState(renderer, res);
+  }
+
+  // Called by Graph::reconcileAllRenderLists right after this renderer is
+  // spawned (in particular when the user live-inserts a scene-producing
+  // node — Camera, EnvironmentLoader, Light — into a running
+  // graph). Runs the node's operator()() once to populate its outputs and
+  // then pushes the result into every downstream sink's per-port scene
+  // cache immediately, rather than waiting for the first render-frame's
+  // upstream-input scan to find our new edge. Without this, the Camera
+  // live-insertion symptom is that the camera has no visible effect until
+  // the user stops and restarts transport (triggering a full render-list
+  // rebuild where every renderer's runInitialPasses runs from clean
+  // state).
+  void seedInitialOutputs(score::gfx::RenderList& renderer) override
+  {
+    if constexpr(
+        scene_output_introspection<Node_T>::size > 0
+        || avnd::geometry_output_introspection<Node_T>::size > 0)
+    {
+      auto& parent = node();
+      // Apply any control values that arrived before we were created.
+      // processControlIn is normally called from update() but the render
+      // loop won't run update() until the first frame after reconcile
+      // — the inserted Camera's slider defaults would leak through for
+      // one frame otherwise.
+      parent.processControlIn(
+          *this, *state, m_last_message, parent.last_message, parent.m_ctx);
+
+      if_possible((*state)());
+
+      // Push to every existing output edge on scene/geometry ports. The
+      // upload helpers look at edge.sink to find the downstream renderer
+      // and call its NodeRenderer::process(port, scene_spec, source) —
+      // seeding exactly the same m_portScenes slot the first runInitialPasses
+      // would have filled one frame later.
+      const auto& outs = parent.output;
+      for(std::size_t i = 0; i < outs.size(); ++i)
+      {
+        auto* port = outs[i];
+        if(!port || port->edges.empty())
+          continue;
+        if(port->type == score::gfx::Types::Scene)
+        {
+          if constexpr(scene_output_introspection<Node_T>::size > 0)
+            for(auto* edge : port->edges)
+              scene_outs.upload(renderer, *this->state, *edge);
+        }
+        else if(port->type == score::gfx::Types::Geometry)
+        {
+          if constexpr(avnd::geometry_output_introspection<Node_T>::size > 0)
+            for(auto* edge : port->edges)
+              geometry_outs.upload(renderer, *this->state, *edge);
+        }
+      }
+    }
   }
 
   void update(
@@ -145,8 +291,11 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
     }
   }
 
-  void release(score::gfx::RenderList& r) override
+  void releaseState(score::gfx::RenderList& r) override
   {
+    if(!m_initialized)
+      return;
+
     if constexpr(avnd::texture_input_introspection<Node_T>::size > 0)
       texture_ins.release();
 
@@ -159,12 +308,28 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
     if constexpr(avnd::geometry_input_introspection<Node_T>::size > 0)
       geometry_ins.release(r);
 
+    if constexpr(scene_input_introspection<Node_T>::size > 0)
+      scene_ins.release(r);
+
     if constexpr(avnd::texture_input_introspection<Node_T>::size > 0 || avnd::texture_output_introspection<Node_T>::size > 0)
     {
       this->defaultRelease(r);
     }
 
     if_possible(state->release(r));
+
+    // Clear the optional renderlist backchannel. Paired with the init
+    // assignment; same SFINAE guard so nodes without the member are
+    // unaffected.
+    if constexpr(requires { state->renderlist = nullptr; })
+      state->renderlist = nullptr;
+
+    m_initialized = false;
+  }
+
+  void release(score::gfx::RenderList& r) override
+  {
+    releaseState(r);
   }
 
   void inputAboutToFinish(
@@ -207,9 +372,18 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
       rhi.finish();
     }
 
-    // If we are paused, we don't run the processor implementation.
-    if(parent.last_message.token.date == m_last_time)
-      return;
+    // Always run operator()() — no transport gate. The old guard
+    // (`if(token.date == m_last_time) return;`) made sense for halp
+    // render-target nodes where re-running a fullscreen pass each
+    // frame is expensive, but silently broke live parameter updates on
+    // halp *scene* producers: processControlIn had applied the new
+    // slider value to `state->inputs` in update(), but with the
+    // transport paused `token.date` never advanced, so operator()()
+    // never rebuilt the output scene — the user had to stop/restart
+    // to see changes. Scene-producer operator()() is cheap (build a
+    // handful of shared_ptrs, bump a version counter); downstream
+    // ScenePreprocessor already guards actual GPU uploads via
+    // state-ptr + version checks plus per-buffer memcmp diffs.
     m_last_time = parent.last_message.token.date;
 
     if constexpr(avnd::texture_input_introspection<Node_T>::size > 0)
@@ -218,6 +392,8 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
       buffer_ins.readInputBuffers(renderer, parent, *state);
     if constexpr(avnd::geometry_input_introspection<Node_T>::size > 0)
       geometry_ins.readInputGeometries(renderer, this->geometry, parent, *state);
+    if constexpr(scene_input_introspection<Node_T>::size > 0)
+      scene_ins.readInputScenes(this->scene, *state);
 
     buffer_outs.prepareUpload(*res);
 
@@ -242,6 +418,11 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
     if constexpr(avnd::geometry_output_introspection<Node_T>::size > 0)
       geometry_outs.upload(renderer, *this->state, edge);
 
+    // Copy the scene (travels on the same Gfx::GeometryOutlet as geometry,
+    // published via NodeRenderer::process(scene_spec)).
+    if constexpr(scene_output_introspection<Node_T>::size > 0)
+      scene_outs.upload(renderer, *this->state, edge);
+
     // Copy the data to the model node
     parent.processControlOut(*this->state);
   }
@@ -249,7 +430,7 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
 
 template <typename Node_T>
   requires(
-    (avnd::texture_output_introspection<Node_T>::size + avnd::buffer_output_introspection<Node_T>::size + avnd::geometry_output_introspection<Node_T>::size) >= 1
+    (avnd::texture_output_introspection<Node_T>::size + avnd::buffer_output_introspection<Node_T>::size + avnd::geometry_output_introspection<Node_T>::size + scene_output_introspection<Node_T>::size) >= 1
   )
 struct GfxNode<Node_T> final
     : CustomGfxNodeBase
