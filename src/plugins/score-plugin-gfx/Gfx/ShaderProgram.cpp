@@ -7,11 +7,13 @@
 #include <score/application/ApplicationContext.hpp>
 
 #include <ossia/detail/flat_map.hpp>
+#include <ossia/detail/hash_map.hpp>
 
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QRegularExpression>
+
 namespace Gfx
 {
 
@@ -20,15 +22,35 @@ namespace
 
 QStringList shaderIncludePaths()
 {
-  // Resolve includes ; for now we have one hardcoded library...
   QStringList shaderIncludePath;
 
-  // FIXME refactor that !
+  // Default path: the library packages dir so users' own GLSL snippets
+  // drop in without ceremony. Additional search roots are expected to be
+  // supplied via a user-facing include-paths GUI (not yet wired up) —
+  // no static registration mechanism lives here anymore.
   auto& lib_settings = score::AppContext().settings<Library::Settings::Model>();
+  const QString lib_path = lib_settings.getPackagesPath();
+  if(QDir{}.exists(lib_path))
   {
-    QString lib_path = lib_settings.getPackagesPath();
-    if(QDir{}.exists(lib_path))
-      shaderIncludePath.append(lib_path);
+    shaderIncludePath.append(lib_path);
+
+    // Also register every first-level subdirectory of `packages/` so
+    // shader libraries shipping as standalone packages (openpbr/,
+    // lygia/, MaterialX/, …) can be `#include`d by their bare header
+    // name from any user shader without the consumer having to know
+    // the install layout. Internal cross-includes inside a library
+    // keep working via the origin-dir-first lookup in
+    // tryResolveQuoted.
+    //
+    // Collision policy: if two libraries ship the same header
+    // basename, the one earlier in QDir iteration order wins. In
+    // practice shader libs prefix their headers (`openpbr_*.h`) so
+    // collisions are vanishingly unlikely.
+    QDir packagesDir{lib_path};
+    const auto subdirs = packagesDir.entryList(
+        QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
+    for(const auto& sub : subdirs)
+      shaderIncludePath.append(packagesDir.filePath(sub));
   }
 
   return shaderIncludePath;
@@ -113,53 +135,233 @@ void updateToGlsl45(ShaderSource& program)
   program.fragment.remove("highp ");
 }
 
-static bool resolveGLSLIncludes(
-    QByteArray& data, const QStringList& includes, QString rootPath, int iterations);
-
-static std::optional<QByteArray> resolveFile_relative(
-    const QString& name, const QStringList& includes, const QString& rootPath,
-    int iterations)
+// Resolver state shared across recursive include expansion.
+//
+// `searchPaths` holds roots applied to both quoted and bracketed
+// includes. `originDir` is the directory the current buffer was loaded
+// from; it becomes the first place quoted includes are looked up and is
+// pushed/popped as we descend into included files so relative headers
+// resolve against their own sibling dir, not the top-level shader's.
+// `visited` holds canonicalised paths already expanded in the current
+// chain — revisiting one is a cycle.
+struct IncludeContext
 {
-  QFile f{rootPath + "/" + name};
-  if(f.open(QIODevice::ReadOnly))
+  QStringList searchPaths;
+  QString originDir;
+  ossia::hash_set<QString> visited;
+  int depth = 0;
+  int maxDepth = 16;
+  QString error;             // first fatal error encountered
+  QStringList missing;       // unresolved headers, for diagnostics
+};
+
+static void removeIncludesInComments(QByteArray& data);
+static QByteArray resolveIncludes(QByteArray data, IncludeContext& ctx);
+
+static std::optional<QString> tryResolveQuoted(
+    const QString& header, const IncludeContext& ctx)
+{
+  // Quoted: origin dir first, then search paths.
+  if(!ctx.originDir.isEmpty())
   {
-    QByteArray res = f.readAll();
-    if(resolveGLSLIncludes(res, includes, QFileInfo{f}.absolutePath(), iterations))
-      return res;
-    return std::nullopt;
+    const QString candidate = ctx.originDir + QLatin1Char('/') + header;
+    if(QFileInfo::exists(candidate))
+      return QFileInfo{candidate}.canonicalFilePath();
   }
-  return {};
-}
-
-static std::optional<QByteArray>
-resolveFile_in_paths(const QString& name, const QStringList& includes, int iterations)
-{
-  for(auto& path : includes)
+  for(const auto& path : ctx.searchPaths)
   {
-    if(auto res = resolveFile_relative(name, includes, path, iterations))
-      return res;
+    const QString candidate = path + QLatin1Char('/') + header;
+    if(QFileInfo::exists(candidate))
+      return QFileInfo{candidate}.canonicalFilePath();
   }
   return std::nullopt;
 }
 
-static std::optional<QByteArray> resolveFile_quotes(
-    const QString& name, const QStringList& includes, const QString& rootPath,
-    int iterations)
+static std::optional<QString> tryResolveBracketed(
+    const QString& header, const IncludeContext& ctx)
 {
-  if(auto res = resolveFile_relative(name, includes, rootPath, iterations))
-    return res;
-  if(auto res = resolveFile_in_paths(name, includes, iterations))
-    return res;
+  // Bracketed: search paths only (no origin-dir lookup).
+  for(const auto& path : ctx.searchPaths)
+  {
+    const QString candidate = path + QLatin1Char('/') + header;
+    if(QFileInfo::exists(candidate))
+      return QFileInfo{candidate}.canonicalFilePath();
+  }
   return std::nullopt;
 }
 
-static std::optional<QByteArray> resolveFile_brackets(
-    const QString& name, const QStringList& includes, const QString& rootPath,
-    int iterations)
+// Expand one resolved include file into `ctx`-tracked source, emitting
+// `#line` markers so glslang error messages point at the included file.
+// On cycle / depth / unreadable-file failure, sets ctx.error and returns
+// an empty byte array (caller must abort).
+static QByteArray expandFile(
+    const QString& canonicalPath, IncludeContext& ctx, int parentLine,
+    const QString& parentPath)
 {
-  if(auto res = resolveFile_in_paths(name, includes, iterations))
-    return res;
-  return std::nullopt;
+  if(ctx.depth >= ctx.maxDepth)
+  {
+    ctx.error = QStringLiteral("Shader include depth limit (%1) exceeded at '%2'")
+                    .arg(ctx.maxDepth)
+                    .arg(canonicalPath);
+    return {};
+  }
+  if(ctx.visited.contains(canonicalPath))
+  {
+    ctx.error
+        = QStringLiteral("Shader include cycle detected: '%1' re-entered")
+              .arg(canonicalPath);
+    return {};
+  }
+
+  QFile f{canonicalPath};
+  if(!f.open(QIODevice::ReadOnly))
+  {
+    ctx.error
+        = QStringLiteral("Shader include: failed to read '%1'").arg(canonicalPath);
+    return {};
+  }
+  QByteArray body = f.readAll();
+
+  // Recurse with a pushed origin dir so relative includes in this file
+  // resolve against its own sibling dir. Save/restore on return.
+  const QString savedOriginDir = ctx.originDir;
+  ctx.originDir = QFileInfo{canonicalPath}.absolutePath();
+  ctx.visited.insert(canonicalPath);
+  ctx.depth++;
+
+  QByteArray expanded = resolveIncludes(std::move(body), ctx);
+
+  ctx.depth--;
+  ctx.visited.erase(canonicalPath);
+  ctx.originDir = savedOriginDir;
+
+  if(!ctx.error.isEmpty())
+    return {};
+
+  // Frame with #line markers: enter the included file at line 1, return
+  // to the parent at the line just after the #include directive. We pass
+  // filenames through as string tokens — glslang accepts that form.
+  QByteArray framed;
+  framed.reserve(expanded.size() + 256);
+  framed.append("#line 1 \"");
+  framed.append(canonicalPath.toUtf8());
+  framed.append("\"\n");
+  framed.append(expanded);
+  if(!framed.endsWith('\n'))
+    framed.append('\n');
+  framed.append("#line ");
+  framed.append(QByteArray::number(parentLine + 1));
+  framed.append(" \"");
+  framed.append(parentPath.toUtf8());
+  framed.append("\"\n");
+  return framed;
+}
+
+// Single-pass textual expansion. Walks from top to bottom, replacing
+// each `#include` line with the (already-expanded) body of the target.
+// Comments are neutralised before the scan so `#include` inside // or /*
+// doesn't trigger.
+static QByteArray resolveIncludes(QByteArray data, IncludeContext& ctx)
+{
+  removeIncludesInComments(data);
+
+  // Anchor to start-of-line (optional leading whitespace only) so an
+  // `#include "..."` substring inside an #error string or a string-
+  // literal payload doesn't get misidentified as a directive. The
+  // openpbr headers exercise this: `#error "... Add #include
+  // <glm/glm.hpp> ..."` would otherwise trip a "<glm/glm.hpp> not found"
+  // hard error even though no actual GLSL include is needed.
+  static const QRegularExpression quoted{
+      R"_(^\s*#include\s*"([^"]+)")_",
+      QRegularExpression::MultilineOption};
+  static const QRegularExpression bracket{
+      R"_(^\s*#include\s*<([^>]+)>)_",
+      QRegularExpression::MultilineOption};
+
+  QByteArray out;
+  out.reserve(data.size());
+
+  // Lightweight "current file" tag for the parent-line #line marker;
+  // when the outer buffer came from disk, originDir points to the file's
+  // dir but we don't have the filename itself — fall back to "<shader>"
+  // for in-memory / unknown roots.
+  const QString parentPath
+      = ctx.originDir.isEmpty() ? QStringLiteral("<shader>") : ctx.originDir;
+
+  int cursor = 0;
+  int line = 1;
+  while(cursor < data.size())
+  {
+    const int eol = data.indexOf('\n', cursor);
+    const int lineEnd = eol == -1 ? data.size() : eol;
+    const QByteArray lineBytes = data.mid(cursor, lineEnd - cursor);
+
+    // Only scan lines that look like include directives at all.
+    const int hashIdx = lineBytes.indexOf('#');
+    if(hashIdx != -1 && lineBytes.indexOf("include", hashIdx) != -1)
+    {
+      const QString lineStr = QString::fromUtf8(lineBytes);
+      if(auto m = quoted.match(lineStr); m.hasMatch())
+      {
+        const QString header = m.captured(1);
+        if(auto resolved = tryResolveQuoted(header, ctx))
+        {
+          QByteArray body = expandFile(*resolved, ctx, line, parentPath);
+          if(!ctx.error.isEmpty())
+            return {};
+          out.append(body);
+          cursor = lineEnd + (eol == -1 ? 0 : 1);
+          line++;
+          continue;
+        }
+        ctx.missing.push_back(header);
+        ctx.error = QStringLiteral(
+                        "Shader include not found: \"%1\" (searched: %2)")
+                        .arg(header)
+                        .arg(ctx.originDir.isEmpty()
+                                 ? ctx.searchPaths.join(", ")
+                                 : (ctx.originDir + QStringLiteral(", ")
+                                    + ctx.searchPaths.join(", ")));
+        return {};
+      }
+      if(auto m = bracket.match(lineStr); m.hasMatch())
+      {
+        const QString header = m.captured(1);
+        if(auto resolved = tryResolveBracketed(header, ctx))
+        {
+          QByteArray body = expandFile(*resolved, ctx, line, parentPath);
+          if(!ctx.error.isEmpty())
+            return {};
+          out.append(body);
+          cursor = lineEnd + (eol == -1 ? 0 : 1);
+          line++;
+          continue;
+        }
+        // Bracketed include not found: NON-fatal. Emit the line verbatim
+        // and let the downstream preprocessor (glslang/QShaderBaker)
+        // handle gating. This is what makes openpbr work without an
+        // `#if`-aware resolver: openpbr_interop.h pulls in
+        // `openpbr_interop_cpp.h` (gated by `#if defined(__cplusplus)`),
+        // which itself includes `<cstdint>` / `<cassert>`. We don't
+        // honour the `#if`, so we textually inline the C++ branch's
+        // contents — but glslang DOES honour the `#if`, sees that
+        // `__cplusplus` is undefined for shader compilation, and skips
+        // the entire C++ branch (including the orphan `<cstdint>`
+        // line) at preprocess time. Tracking in `missing` keeps the
+        // diagnostic visible if the user wants to debug.
+        ctx.missing.push_back(header);
+        // fall through to the verbatim-line append below
+      }
+    }
+
+    out.append(lineBytes);
+    if(eol != -1)
+      out.append('\n');
+    cursor = lineEnd + (eol == -1 ? 0 : 1);
+    line++;
+  }
+
+  return out;
 }
 
 static void removeIncludesInComments(QByteArray& data)
@@ -245,59 +447,6 @@ static void removeIncludesInComments(QByteArray& data)
   }
 }
 
-static bool resolveGLSLIncludes(
-    QByteArray& data, const QStringList& includes, QString rootPath, int iterations)
-{
-  removeIncludesInComments(data);
-
-  iterations++;
-  if(iterations > 1000)
-  {
-    qDebug() << "More than 1000 iterations, shader include loop likely. Stopping.";
-    return false;
-  }
-  int idx = data.indexOf("#include");
-  if(idx == -1)
-    return true;
-
-  int end_line = data.indexOf('\n', idx);
-  int len = end_line - idx;
-  static QRegularExpression quoted_include{R"_(#include\s*"(.*)")_"};
-  auto cap = quoted_include.match(data.mid(idx, len)).capturedTexts();
-  if(cap.size() == 2)
-  {
-    if(auto f = resolveFile_quotes(cap[1], includes, rootPath, iterations))
-    {
-      data.replace(idx, len, *f);
-    }
-    else
-    {
-      qDebug().noquote() << "Could not resolve: " << cap[0]
-                         << " while processing shader";
-      return false;
-    }
-  }
-  else
-  {
-    static QRegularExpression bracket_include{R"_(#include\s*<(.*)>)_"};
-    auto cap = bracket_include.match(data.mid(idx, len)).capturedTexts();
-    if(cap.size() == 2)
-    {
-      if(auto f = resolveFile_brackets(cap[1], includes, rootPath, iterations))
-      {
-        data.replace(idx, len, *f);
-      }
-      else
-      {
-        qDebug().noquote() << "Could not resolve: " << cap[0]
-                           << " while processing shader";
-        return false;
-      }
-    }
-  }
-
-  return resolveGLSLIncludes(data, includes, rootPath, iterations);
-}
 }
 
 ProgramCache& ProgramCache::instance() noexcept
@@ -307,19 +456,42 @@ ProgramCache& ProgramCache::instance() noexcept
 }
 
 std::pair<std::optional<ProcessedProgram>, QString>
-ProgramCache::get(const ShaderSource& program) noexcept
+ProgramCache::get(const ShaderSource& program, const QString& originPath) noexcept
 {
-  auto it = programs.find(program);
+  // Derive the origin dir once — it's both the cache-key disambiguator
+  // (two shaders with identical text but different origin dirs resolve
+  // different sibling includes and must not collide) and the first
+  // search root for quoted #include resolution.
+  const QString originDir
+      = originPath.isEmpty() ? QString{} : QFileInfo{originPath}.absolutePath();
+  const ProgramCacheKey cacheKey{program, originDir};
+
+  auto it = programs.find(cacheKey);
   if(it != programs.end())
     return {it->second, QString{}};
 
   try
   {
-    // Resolve includes
-    QByteArray source_frag = program.fragment.toUtf8();
-    QByteArray source_vert = program.vertex.toUtf8();
-    resolveGLSLIncludes(source_frag, shaderIncludePaths(), {}, 0);
-    resolveGLSLIncludes(source_vert, shaderIncludePaths(), {}, 0);
+    // Resolve includes. Empty originDir → in-memory source, falls back
+    // to the search paths only.
+    IncludeContext ctx;
+    ctx.searchPaths = shaderIncludePaths();
+    ctx.originDir = originDir;
+
+    QByteArray source_frag = resolveIncludes(program.fragment.toUtf8(), ctx);
+    if(!ctx.error.isEmpty())
+      return {std::nullopt, QStringLiteral("Fragment: ") + ctx.error};
+
+    // Reset per-file state (visited chain, depth, errors); keep search
+    // paths and origin dir across the two shader stages.
+    ctx.visited.clear();
+    ctx.depth = 0;
+    ctx.error.clear();
+    ctx.missing.clear();
+
+    QByteArray source_vert = resolveIncludes(program.vertex.toUtf8(), ctx);
+    if(!ctx.error.isEmpty())
+      return {std::nullopt, QStringLiteral("Vertex: ") + ctx.error};
 
     switch(program.type)
     {
@@ -387,7 +559,7 @@ ProgramCache::get(const ShaderSource& program) noexcept
 
           if(vertexS.isValid() && fragmentS.isValid())
           {
-            programs[program] = processed;
+            programs[cacheKey] = processed;
             return {processed, {}};
           }
         }
@@ -468,5 +640,19 @@ programFromVSAVertexShaderPath(const QString& vertexFilename, QByteArray vertexD
   }
 
   return {ShaderSource::ProgramType::VertexShaderArt, vertexData, ""};
+}
+
+std::pair<QByteArray, QString>
+preprocessShaderIncludes(QByteArray source, const QString& originPath) noexcept
+{
+  IncludeContext ctx;
+  ctx.searchPaths = shaderIncludePaths();
+  if(!originPath.isEmpty())
+    ctx.originDir = QFileInfo{originPath}.absolutePath();
+
+  QByteArray expanded = resolveIncludes(std::move(source), ctx);
+  if(!ctx.error.isEmpty())
+    return {{}, ctx.error};
+  return {std::move(expanded), {}};
 }
 }
