@@ -27,6 +27,10 @@
 #include <Threedim/MergeGeometries/Process.hpp>
 #include <Threedim/SceneFilter/Executor.hpp>
 #include <Threedim/SceneFilter/Process.hpp>
+#include <Threedim/SceneGraphFilter.hpp>
+#include <Threedim/SceneGroup.hpp>
+#include <Threedim/SceneSelector.hpp>
+#include <Threedim/SceneSwitch.hpp>
 #include <Threedim/ScenePreprocessor/Executor.hpp>
 #include <Threedim/ScenePreprocessor/Process.hpp>
 #include <Threedim/Noise.hpp>
@@ -372,6 +376,10 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
   oscr::instantiate_fx<Threedim::CameraSwitch>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Light>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Transform3D>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::SceneGraphFilter>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::SceneSwitch>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::SceneGroup>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::SceneSelector>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::VoxelLoader>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Plane>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Cube>(fx, ctx, key);
