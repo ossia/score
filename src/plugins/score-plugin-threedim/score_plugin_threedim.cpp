@@ -9,6 +9,7 @@
 #include <score/plugins/FactorySetup.hpp>
 
 #include <Avnd/Factories.hpp>
+#include <Threedim/AnimationPlayer.hpp>
 #include <Threedim/ArrayToGeometry.hpp>
 #include <Threedim/ArrayToTexture.hpp>
 #include <Threedim/CubemapComposer.hpp>
@@ -29,6 +30,8 @@
 #include <Threedim/ShadowCascadeSetup.hpp>
 #include <Threedim/FlattenedSceneFilter/Executor.hpp>
 #include <Threedim/FlattenedSceneFilter/Process.hpp>
+#include <Threedim/HumanoidRetarget.hpp>
+#include <Threedim/InverseKinematics.hpp>
 #include <Threedim/InjectBuffer.hpp>
 #include <Threedim/InjectTexture.hpp>
 #include <Threedim/MergeGeometries/Executor.hpp>
@@ -404,6 +407,9 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
   oscr::instantiate_fx<Threedim::Instancer>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::ShadowCascadeSetup>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::EnvironmentLoader>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::AnimationPlayer>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::HumanoidRetarget>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::InverseKinematics>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::VoxelLoader>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Plane>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Cube>(fx, ctx, key);

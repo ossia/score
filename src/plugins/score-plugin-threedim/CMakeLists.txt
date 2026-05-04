@@ -163,6 +163,14 @@ add_library(
   Threedim/ShadowCascadeSetup.cpp
   Threedim/EnvironmentLoader.hpp
   Threedim/EnvironmentLoader.cpp
+  Threedim/AnimationPlayer.hpp
+  Threedim/AnimationPlayer.cpp
+  Threedim/HumanoidPose.hpp
+  Threedim/HumanoidPresets.hpp
+  Threedim/HumanoidRetarget.hpp
+  Threedim/HumanoidSourceAdapters.hpp
+  Threedim/HumanoidSourceMaps.hpp
+  Threedim/InverseKinematics.hpp
   Threedim/BufferInfo.hpp
   Threedim/TextureInfo.hpp
   Threedim/ImageLoader.hpp
