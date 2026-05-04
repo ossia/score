@@ -559,9 +559,8 @@ void Application::initDocuments()
   }
   else
   {
-#if !defined(SCORE_SPLASH_SCREEN)
-    openNewDocument();
-#endif
+    if(!m_startScreen)
+      openNewDocument();
   }
 }
 
