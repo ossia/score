@@ -83,7 +83,7 @@ void InvertYRenderer::finishFrame(
     score::gfx::RenderList& renderer, QRhiCommandBuffer& cb,
     QRhiResourceUpdateBatch*& res)
 {
-  cb.beginPass(m_renderTarget.renderTarget, Qt::black, {1.0f, 0}, res);
+  cb.beginPass(m_renderTarget.renderTarget, Qt::black, {0.0f, 0}, res);
   res = nullptr;
   {
     const auto sz = renderer.state.renderSize;
@@ -170,7 +170,7 @@ void ScaledRenderer::runRenderPass(score::gfx::RenderList &, QRhiCommandBuffer &
 
 void ScaledRenderer::finishFrame(score::gfx::RenderList &renderer, QRhiCommandBuffer &cb, QRhiResourceUpdateBatch *&res)
 {
-  cb.beginPass(m_renderTarget.renderTarget, Qt::black, {1.0f, 0}, res);
+  cb.beginPass(m_renderTarget.renderTarget, Qt::black, {0.0f, 0}, res);
   res = nullptr;
   {
     const auto sz = renderer.state.outputSize;

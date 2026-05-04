@@ -2,6 +2,25 @@
 
 #include <cstdint>
 
+#if defined(_WIN32)
+#if !defined(WIN32_LEAN_AND_MEAN)
+#define WIN32_LEAN_AND_MEAN
+#endif
+#if !defined(NOMINMAX)
+#define NOMINMAX
+#endif
+#if !defined(UNICODE)
+#define UNICODE 1
+#endif
+#if !defined(_UNICODE)
+#define _UNICODE 1
+#endif
+#include <windows.h>
+#include <mmsystem.h>
+#undef near
+#undef far
+#endif
+
 namespace score::gfx
 {
 #pragma pack(push, 1)
@@ -20,6 +39,15 @@ struct ProcessUBO
 
   float renderSize[2]{2048, 2048};
   float date[4]{0.f, 0.f, 0.f, 0.f};
+
+  // Mirrors gl_NumWorkGroups for CSF compute shaders. Populated by
+  // RenderedCSFNode just before dispatch so the libisf-injected
+  // `#define gl_NumWorkGroups isf_process_uniforms.NUMWORKGROUPS_`
+  // resolves to real dispatch counts on every backend (especially D3D
+  // where SPIRV-Cross refuses to emit the built-in directly).
+  // std140 packs uvec3 into a vec4 slot — the trailing word is padding.
+  uint32_t numWorkgroups[3]{};
+  uint32_t _numWorkgroups_pad{};
 };
 
 /**
@@ -40,12 +68,15 @@ struct ModelCameraUBO
   float projection[16]{};
   float modelNormal[9]{};
   float padding[3]; // Needed as a mat3 needs a bit more space...
-  float fov = 90.;
+  float fov = 90.f;
+  float near = 0.001f;   //!< Used by non-matrix projections (fulldome, …) for reverse-Z depth.
+  float far = 10000.f;   //!< idem.
   // clang-format on
 };
 
 static_assert(
-    sizeof(ModelCameraUBO) == sizeof(float) * (16 + 16 + 16 + 16 + 16 + 9 + 3 + 1));
+    sizeof(ModelCameraUBO)
+    == sizeof(float) * (16 + 16 + 16 + 16 + 16 + 9 + 3 + 1 + 1 + 1));
 
 /**
  * @brief UBO shared across all entities shown on the same output.
@@ -55,6 +86,13 @@ struct OutputUBO
   float clipSpaceCorrMatrix[16]{};
 
   float renderSize[2]{};
+
+  // MSAA sample count of the bound output target. Mirrors
+  // RenderList::samples(); shaders need it because gl_NumSamples is
+  // stripped by glslang under SPIR-V. The trailing pad keeps the UBO
+  // aligned to a vec4 boundary (std140-friendly).
+  int32_t sampleCount{1};
+  int32_t _pad0{0};
 };
 
 /**

@@ -72,14 +72,20 @@ struct BackgroundNode : OutputNode
         QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource);
     m_texture->create();
 
-    m_depthBuffer = rhi->newRenderBuffer(
-        QRhiRenderBuffer::DepthStencil, m_renderState->renderSize, 1);
-    m_depthBuffer->create();
+    // Reverse-Z project rule: depth attachment is D32F (float). Fixed-point
+    // D24 combined with reverse-Z gives strictly worse precision than
+    // standard-Z, so we must allocate a float texture here. RenderTarget
+    // flag is required for attaching as a depth target.
+    m_depthTexture = rhi->newTexture(
+        QRhiTexture::D32F, m_renderState->renderSize, 1,
+        QRhiTexture::RenderTarget);
+    m_depthTexture->setName("BackgroundNode::m_depthTexture");
+    m_depthTexture->create();
 
     QRhiTextureRenderTargetDescription desc;
     desc.setColorAttachments({QRhiColorAttachment(m_texture)});
 
-    desc.setDepthStencilBuffer(m_depthBuffer);
+    desc.setDepthTexture(m_depthTexture);
     m_renderTarget = rhi->newTextureRenderTarget(desc);
     m_renderState->renderPassDescriptor
         = m_renderTarget->newCompatibleRenderPassDescriptor();
@@ -96,8 +102,8 @@ struct BackgroundNode : OutputNode
       delete m_renderTarget;
       m_renderTarget = nullptr;
 
-      delete m_depthBuffer;
-      m_depthBuffer = nullptr;
+      delete m_depthTexture;
+      m_depthTexture = nullptr;
 
       delete m_texture;
       m_texture = nullptr;
@@ -148,19 +154,20 @@ struct BackgroundNode : OutputNode
       m_texture->setPixelSize(newSz);
       m_texture->create();
 
-      if(m_depthBuffer)
-        m_depthBuffer->destroy();
+      if(m_depthTexture)
+        m_depthTexture->destroy();
       else
-        m_depthBuffer = rhi->newRenderBuffer(QRhiRenderBuffer::DepthStencil, newSz);
-      m_depthBuffer->setPixelSize(newSz);
-      m_depthBuffer->create();
+        m_depthTexture = rhi->newTexture(
+            QRhiTexture::D32F, newSz, 1, QRhiTexture::RenderTarget);
+      m_depthTexture->setPixelSize(newSz);
+      m_depthTexture->create();
 
       delete m_renderTarget;
       delete m_renderState->renderPassDescriptor;
 
       QRhiTextureRenderTargetDescription desc;
       desc.setColorAttachments({QRhiColorAttachment(m_texture)});
-      desc.setDepthStencilBuffer(m_depthBuffer);
+      desc.setDepthTexture(m_depthTexture);
       m_renderTarget = rhi->newTextureRenderTarget(desc);
       m_renderState->renderPassDescriptor
           = m_renderTarget->newCompatibleRenderPassDescriptor();
@@ -178,6 +185,7 @@ struct BackgroundNode : OutputNode
   {
     score::gfx::TextureRenderTarget rt{
         .texture = m_texture,
+        .depthTexture = m_depthTexture,
         .renderPass = m_renderState->renderPassDescriptor,
         .renderTarget = m_renderTarget};
     return new Gfx::InvertYRenderer{
@@ -193,7 +201,7 @@ private:
 
   std::weak_ptr<score::gfx::RenderList> m_renderer{};
   QRhiTexture* m_texture{};
-  QRhiRenderBuffer* m_depthBuffer{};
+  QRhiTexture* m_depthTexture{};
   QRhiTextureRenderTarget* m_renderTarget{};
   std::shared_ptr<score::gfx::RenderState> m_renderState{};
 
