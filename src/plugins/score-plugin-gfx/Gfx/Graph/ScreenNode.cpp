@@ -42,12 +42,66 @@
 #include <QtGui/private/qrhimetal_p.h>
 #endif
 
+#include <QCryptographicHash>
+#include <QDir>
+#include <QFile>
 #include <QOffscreenSurface>
 #include <QScreen>
+#include <QStandardPaths>
 #include <QWindow>
 
 namespace score::gfx
 {
+namespace
+{
+// Persistent pipeline cache. Saved on QRhi destruction, loaded right after
+// QRhi creation. Keyed per backend so different APIs don't overwrite each
+// other's cache. Gated on QRhi::Feature::PipelineCacheDataLoadSave.
+static QString pipelineCacheFilePath(GraphicsApi api)
+{
+  QString root = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
+  if(root.isEmpty())
+    root = QDir::tempPath();
+  QDir().mkpath(root + QStringLiteral("/ossia-score/pipeline-cache"));
+  const char* apiName = "unknown";
+  switch(api)
+  {
+    case Null:   apiName = "null"; break;
+    case OpenGL: apiName = "gl"; break;
+    case Vulkan: apiName = "vk"; break;
+    case D3D11:  apiName = "d3d11"; break;
+    case D3D12:  apiName = "d3d12"; break;
+    case Metal:  apiName = "metal"; break;
+  }
+  return QStringLiteral("%1/ossia-score/pipeline-cache/%2.bin")
+      .arg(root)
+      .arg(QString::fromLatin1(apiName));
+}
+
+static void tryLoadPipelineCache(QRhi* rhi, GraphicsApi api)
+{
+  if(!rhi || !rhi->isFeatureSupported(QRhi::PipelineCacheDataLoadSave))
+    return;
+  QFile f(pipelineCacheFilePath(api));
+  if(!f.open(QIODevice::ReadOnly))
+    return;
+  rhi->setPipelineCacheData(f.readAll());
+}
+
+static void tryStorePipelineCache(QRhi* rhi, GraphicsApi api)
+{
+  if(!rhi || !rhi->isFeatureSupported(QRhi::PipelineCacheDataLoadSave))
+    return;
+  QByteArray data = rhi->pipelineCacheData();
+  if(data.isEmpty())
+    return;
+  QFile f(pipelineCacheFilePath(api));
+  if(!f.open(QIODevice::WriteOnly | QIODevice::Truncate))
+    return;
+  f.write(data);
+}
+}
+
 std::shared_ptr<RenderState>
 createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
 {
@@ -58,7 +112,23 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
   const auto& settings = score::AppContext().settings<Gfx::Settings::Model>();
   state.samples = settings.resolveSamples(graphicsApi);
 
-  auto populateCaps = [](RenderState& s) {
+  auto populateCaps = [graphicsApi](RenderState& s) {
+    // Load persisted pipeline cache (if any) and set up a save-on-destroy
+    // hook that writes it back before QRhi is deleted.
+    if(s.rhi)
+    {
+      tryLoadPipelineCache(s.rhi, graphicsApi);
+      QRhi* rhiPtr = s.rhi;
+      s.preRhiDestroy = [rhiPtr, graphicsApi]() {
+        tryStorePipelineCache(rhiPtr, graphicsApi);
+      };
+      // Plan 09 S6: mid-session flush for crash-resilient cache
+      // persistence. RenderList::render throttles this after PSO
+      // stalls; it's cheap enough to run a few times per session.
+      s.savePipelineCache = [rhiPtr, graphicsApi]() {
+        tryStorePipelineCache(rhiPtr, graphicsApi);
+      };
+    }
 #if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
     if(s.rhi)
     {
@@ -66,6 +136,27 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
       s.caps.drawIndirectMulti = s.rhi->isFeatureSupported(QRhi::DrawIndirectMulti);
     }
 #endif
+    if(s.rhi)
+    {
+      s.caps.multiview = s.rhi->isFeatureSupported(QRhi::MultiView);
+      s.caps.resolveDepthStencil = s.rhi->isFeatureSupported(QRhi::ResolveDepthStencil);
+      s.caps.tessellation = s.rhi->isFeatureSupported(QRhi::Tessellation);
+      s.caps.geometryShader = s.rhi->isFeatureSupported(QRhi::GeometryShader);
+
+      // Extended feature set (Plan 09 S0). Guarded #if QT_VERSION checks
+      // only where the enumerator is version-gated — the rest are in
+      // every Qt 6.5+ build and can be queried unconditionally.
+      s.caps.baseInstance = s.rhi->isFeatureSupported(QRhi::BaseInstance);
+      s.caps.instanceIndexIncludesBaseInstance
+          = s.rhi->isFeatureSupported(QRhi::InstanceIndexIncludesBaseInstance);
+      s.caps.timestamps = s.rhi->isFeatureSupported(QRhi::Timestamps);
+      s.caps.pipelineCacheDataLoadSave
+          = s.rhi->isFeatureSupported(QRhi::PipelineCacheDataLoadSave);
+      s.caps.textureViewFormat = s.rhi->isFeatureSupported(QRhi::TextureViewFormat);
+      s.caps.depthClamp = s.rhi->isFeatureSupported(QRhi::DepthClamp);
+      s.caps.variableRateShading
+          = s.rhi->isFeatureSupported(QRhi::VariableRateShading);
+    }
     // Clamp the requested sample count against what the hardware actually
     // supports. Without this, asking for e.g. 16x MSAA on a card that only
     // does 8x silently mismatches between the value stored in
@@ -109,6 +200,15 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
 #ifndef NDEBUG
   flags |= QRhi::EnableDebugMarkers;
 #endif
+  // Let the RHI save per-backend pipeline binary cache so subsequent runs
+  // skip the initial pipeline compilation cost (big win for Vulkan/D3D12).
+  flags |= QRhi::EnablePipelineCacheDataSave;
+
+  // Enable per-command-buffer GPU timestamps. Required for the per-pass
+  // GPU timing panel (Plan 09 S6) — without this flag,
+  // QRhiCommandBuffer::lastCompletedGpuTime() returns 0 on Vulkan/D3D12/Metal.
+  // Negligible overhead when no timer instance is active.
+  flags |= QRhi::EnableTimestamps;
 
 #ifndef QT_NO_OPENGL
   if(graphicsApi == OpenGL)
@@ -742,6 +842,13 @@ score::gfx::OutputNodeRenderer* ScreenNode::createRenderer(RenderList& r) const 
   score::gfx::TextureRenderTarget rt;
   rt.renderTarget = m_swapChain->currentFrameRenderTarget();
   rt.renderPass = r.state.renderPassDescriptor;
+  // No depth attachment exposed here on purpose: ScaledRenderer is a
+  // fullscreen-quad blit that samples the upstream color texture and does
+  // not run depth test. All precision-critical 3D rendering happens
+  // upstream into an intermediate D32F offscreen render target allocated
+  // by createRenderTarget(...) in Utils.cpp. The swap chain's D24S8
+  // DepthStencil buffer is only attached at the QRhi level for the final
+  // blit pass — irrelevant to 3D depth precision.
   // FIXME why doesn't it work?
   // return new BasicRenderer{rt, r.state, *this};
   return new Gfx::ScaledRenderer{rt, r.state, *this};
