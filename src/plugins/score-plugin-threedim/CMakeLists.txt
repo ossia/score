@@ -171,6 +171,9 @@ add_library(
   Threedim/HumanoidSourceAdapters.hpp
   Threedim/HumanoidSourceMaps.hpp
   Threedim/InverseKinematics.hpp
+  Threedim/TextToMesh.hpp
+  Threedim/TextToMesh.cpp
+  Threedim/TextToTexture.hpp
   Threedim/BufferInfo.hpp
   Threedim/TextureInfo.hpp
   Threedim/ImageLoader.hpp

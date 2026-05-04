@@ -68,6 +68,8 @@
 #include <Threedim/Splat/Executor.hpp>
 #include <Threedim/Splat/Process.hpp>
 #include <Threedim/StructureSynth.hpp>
+#include <Threedim/TextToMesh.hpp>
+#include <Threedim/TextToTexture.hpp>
 #include <Threedim/TextureToBuffer.hpp>
 #include <avendish/examples/Gpu/ArrayToBuffer.hpp>
 #include <avendish/examples/Gpu/BufferToArray.hpp>
@@ -410,6 +412,8 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
   oscr::instantiate_fx<Threedim::AnimationPlayer>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::HumanoidRetarget>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::InverseKinematics>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::TextToMesh>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::TextToTexture>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::VoxelLoader>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Plane>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Cube>(fx, ctx, key);
