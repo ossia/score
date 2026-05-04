@@ -147,6 +147,10 @@ add_library(
   Threedim/CreateCollection.cpp
   Threedim/SceneResourceRoute.hpp
   Threedim/SceneResourceRoute.cpp
+  Threedim/InjectBuffer.hpp
+  Threedim/InjectBuffer.cpp
+  Threedim/InjectTexture.hpp
+  Threedim/InjectTexture.cpp
   Threedim/BufferInfo.hpp
   Threedim/TextureInfo.hpp
   Threedim/ImageLoader.hpp

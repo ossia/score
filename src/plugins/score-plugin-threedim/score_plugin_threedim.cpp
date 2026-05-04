@@ -23,6 +23,8 @@
 #include <Threedim/ModelDisplay/Process.hpp>
 #include <Threedim/FlattenedSceneFilter/Executor.hpp>
 #include <Threedim/FlattenedSceneFilter/Process.hpp>
+#include <Threedim/InjectBuffer.hpp>
+#include <Threedim/InjectTexture.hpp>
 #include <Threedim/MergeGeometries/Executor.hpp>
 #include <Threedim/MergeGeometries/Process.hpp>
 #include <Threedim/CreateCollection.hpp>
@@ -388,6 +390,8 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
   oscr::instantiate_fx<Threedim::SceneDuplicator>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::CreateCollection>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::SceneResourceRoute>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::InjectBuffer>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::InjectTexture>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::VoxelLoader>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Plane>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Cube>(fx, ctx, key);
