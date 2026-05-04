@@ -5,10 +5,10 @@
 
 namespace oscr
 {
-
 template <typename Node_T>
   requires(
-      (avnd::texture_output_introspection<Node_T>::size + avnd::buffer_output_introspection<Node_T>::size + avnd::geometry_output_introspection<Node_T>::size) == 0
+      (avnd::texture_output_introspection<Node_T>::size + avnd::buffer_output_introspection<Node_T>::size + avnd::geometry_output_introspection<Node_T>::size + scene_output_introspection<Node_T>::size) == 0
+      && (avnd::gpu_render_target_output_port_output_introspection<Node_T>::size == 0)
   )
 struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
 {
@@ -44,9 +44,19 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
     return {};
   }
 
-  void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  // See CpuFilterNode.hpp for the reasoning: init must live in initState
+  // so the incremental edge-rewire path also runs it.
+  void initState(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
-    auto& parent = node();
+    if(m_initialized)
+      return;
+
+    // See CpuFilterNode for the reasoning: optional renderlist
+    // backchannel populated via SFINAE so nodes can reach the
+    // RenderList's GpuResourceRegistry / AssetTable without plumbing.
+    if constexpr(requires { state->renderlist = &renderer; })
+      state->renderlist = &renderer;
+
     if constexpr(requires { state->prepare(); })
     {
       this->node().processControlIn(
@@ -59,6 +69,13 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
       texture_ins.init(*this, renderer);
 
     if_possible(state->init(renderer, res));
+
+    m_initialized = true;
+  }
+
+  void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  {
+    initState(renderer, res);
   }
 
   void update(
@@ -82,8 +99,11 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
     }
   }
 
-  void release(score::gfx::RenderList& r) override
+  void releaseState(score::gfx::RenderList& r) override
   {
+    if(!m_initialized)
+      return;
+
     if constexpr(avnd::texture_input_introspection<Node_T>::size > 0)
       texture_ins.release();
 
@@ -98,6 +118,18 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
     }
 
     if_possible(state->release(r));
+
+    // Clear the optional renderlist backchannel. Paired with initState;
+    // same SFINAE guard.
+    if constexpr(requires { state->renderlist = nullptr; })
+      state->renderlist = nullptr;
+
+    m_initialized = false;
+  }
+
+  void release(score::gfx::RenderList& r) override
+  {
+    releaseState(r);
   }
 
   void inputAboutToFinish(
@@ -158,9 +190,13 @@ struct GfxRenderer<Node_T> final : score::gfx::OutputNodeRenderer
 };
 
 template <typename Node_T>
-  requires(
-    (avnd::texture_output_introspection<Node_T>::size + avnd::buffer_output_introspection<Node_T>::size + avnd::geometry_output_introspection<Node_T>::size) == 0
-  )
+  requires((avnd::texture_output_introspection<Node_T>::size
+            + avnd::buffer_output_introspection<Node_T>::size
+            + avnd::geometry_output_introspection<Node_T>::size
+            + scene_output_introspection<Node_T>::size)
+               == 0
+           && (avnd::gpu_render_target_output_port_output_introspection<Node_T>::size
+               == 0))
 struct GfxNode<Node_T> final
     : CustomGpuOutputNodeBase
     , GpuNodeElements<Node_T>
