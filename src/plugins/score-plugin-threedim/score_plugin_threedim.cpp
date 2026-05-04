@@ -22,6 +22,7 @@
 #include <Threedim/ModelDisplay/Executor.hpp>
 #include <Threedim/ModelDisplay/Process.hpp>
 #include <Threedim/Noise.hpp>
+#include <Threedim/AssetLoader.hpp>
 #include <Threedim/BufferInfo.hpp>
 #include <Threedim/GeometryLoader.hpp>
 #include <Threedim/ImageLoader.hpp>
@@ -187,27 +188,30 @@ class SSynthDropHandler final : public Process::ProcessDropHandler
   }
 };
 
-class OBJLibraryHandler final
+class AssetLibraryHandler final
     : public QObject
     , public Library::LibraryInterface
 {
   SCORE_CONCRETE("da4af155-3cb6-41df-8c10-5a002b9d97ca")
 
-  QSet<QString> acceptedFiles() const noexcept override { return {"obj", "ply"}; }
+  QSet<QString> acceptedFiles() const noexcept override
+  {
+    return {"fbx", "gltf", "glb", "obj", "ply", "stl", "off",
+            "usd", "usda", "usdc", "usdz"};
+  }
 
   Library::Subcategories categories;
 
-  using proc = oscr::ProcessModel<GeometryLoader>;
+  using proc = oscr::ProcessModel<AssetLoader>;
   void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
       override
   {
-    // TODO relaunch whenever library path changes...
     const auto& key = Metadata<ConcreteKey_k, proc>::get();
     QModelIndex node = model.find(key);
-    if (node == QModelIndex{})
+    if(node == QModelIndex{})
       return;
 
-    categories.init("Object Loader", node, ctx);
+    categories.init("Asset Loader", node, ctx);
   }
 
   std::function<void()> asyncAddPath(std::string_view path) override
@@ -227,13 +231,17 @@ class OBJLibraryHandler final
   }
 };
 
-class OBJDropHandler final : public Process::ProcessDropHandler
+class AssetDropHandler final : public Process::ProcessDropHandler
 {
   SCORE_CONCRETE("1d6cac56-2059-4fb8-9cef-19301a1fba3d")
 
-  QSet<QString> fileExtensions() const noexcept override { return {"obj", "ply"}; }
+  QSet<QString> fileExtensions() const noexcept override
+  {
+    return {"fbx", "gltf", "glb", "obj", "ply", "stl", "off",
+            "usd", "usda", "usdc", "usdz"};
+  }
 
-  using proc = oscr::ProcessModel<GeometryLoader>;
+  using proc = oscr::ProcessModel<AssetLoader>;
   void dropData(
       std::vector<ProcessDrop>& vec,
       const DroppedFile& data,
@@ -342,6 +350,7 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
   oscr::instantiate_fx<Threedim::Noise>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::StrucSynth>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::GeometryLoader>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::AssetLoader>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::BufferInfo>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::TextureInfo>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::ImageLoader>(fx, ctx, key);
@@ -369,10 +378,10 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
          Gfx::RenderPipeline::ProcessFactory, Gfx::Splat::ProcessFactory>,
       FW<Process::LayerFactory, Gfx::RenderPipeline::LayerFactory>,
       FW<Library::LibraryInterface, Threedim::SSynthLibraryHandler,
-         Threedim::OBJLibraryHandler, Gfx::RawRasterLibraryHandler,
+         Threedim::AssetLibraryHandler, Gfx::RawRasterLibraryHandler,
          Threedim::VoxLibraryHandler>,
       FW<Process::ProcessDropHandler, Threedim::SSynthDropHandler,
-         Threedim::OBJDropHandler, Threedim::VoxDropHandler>,
+         Threedim::AssetDropHandler, Threedim::VoxDropHandler>,
       FW<Execution::ProcessComponentFactory,
          Gfx::ModelDisplay::ProcessExecutorComponentFactory,
          Gfx::RenderPipeline::ProcessExecutorComponentFactory,
