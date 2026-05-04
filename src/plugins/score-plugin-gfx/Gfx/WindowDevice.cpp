@@ -2,6 +2,7 @@
 
 #include <Gfx/Window/BackgroundDevice.hpp>
 #include <Gfx/Window/MultiWindowDevice.hpp>
+#include <Gfx/Window/OffscreenDevice.hpp>
 #include <Gfx/Window/WindowDevice.hpp>
 #include <Gfx/Window/WindowSettingsWidget.hpp>
 
@@ -18,6 +19,24 @@ W_OBJECT_IMPL(Gfx::WindowDevice)
 
 namespace Gfx
 {
+
+// SCORE_FORCE_OFFSCREEN_WINDOW=Name1,Name2 forces any matching WindowDevice
+// (whatever its Single/Background/MultiWindow mode) into a headless offscreen
+// render path. Used by tests that need grabTo output but must not pop a
+// platform window.
+static bool shouldForceOffscreen(const QString& name)
+{
+  static const QByteArray env = qgetenv("SCORE_FORCE_OFFSCREEN_WINDOW");
+  if(env.isEmpty())
+    return false;
+  for(const auto& part : env.split(','))
+  {
+    const auto trimmed = QString::fromUtf8(part).trimmed();
+    if(!trimmed.isEmpty() && trimmed == name)
+      return true;
+  }
+  return false;
+}
 
 score::gfx::Window* WindowDevice::window() const noexcept
 {
@@ -75,6 +94,44 @@ void WindowDevice::disconnect()
   deviceChanged(prev.get(), nullptr);
 }
 
+void WindowDevice::grabTo(const QString& path) const
+{
+  if(auto dev = dynamic_cast<window_device*>(m_dev.get()))
+  {
+    if(auto screen = dev->screen())
+    {
+      if(auto win = screen->window())
+      {
+        auto screen = win->screen();
+        auto wid = win->winId();
+        auto grab = screen->grabWindow(wid);
+        grab.save(path);
+      }
+    }
+  }
+  else if(auto dev = dynamic_cast<background_device*>(m_dev.get()))
+  {
+    // TODO
+  }
+  else if(auto dev = dynamic_cast<offscreen_device*>(m_dev.get()))
+  {
+    if(auto node = dev->node(); node && node->shared_readback)
+    {
+      const auto& rb = *node->shared_readback;
+      const int w = rb.pixelSize.width();
+      const int h = rb.pixelSize.height();
+      const int expected = w * h * 4;
+      if(w > 0 && h > 0 && rb.data.size() >= expected)
+      {
+        QImage img{
+            reinterpret_cast<const unsigned char*>(rb.data.constData()), w, h, w * 4,
+            QImage::Format_RGBA8888};
+        img.save(path);
+      }
+    }
+  }
+}
+
 bool WindowDevice::reconnect()
 {
   disconnect();
@@ -90,6 +147,18 @@ bool WindowDevice::reconnect()
       auto view = m_ctx.document.view();
       auto main_view = view ? qobject_cast<Scenario::ScenarioDocumentView*>(
           &view->viewDelegate()) : nullptr;
+
+      if(shouldForceOffscreen(m_settings.name))
+      {
+        m_dev = std::make_unique<offscreen_device>(
+            std::unique_ptr<gfx_protocol_base>(m_protocol),
+            m_settings.name.toStdString());
+
+        enableCallbacks();
+        deviceChanged(nullptr, m_dev.get());
+        return connected();
+      }
+
       switch(set.mode)
       {
         case WindowMode::Background: {
