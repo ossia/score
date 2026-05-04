@@ -31,7 +31,24 @@ struct isf_input_port_vis
 
   void operator()(const isf::long_input& in) noexcept
   {
-    *reinterpret_cast<int*>(data) = in.def;
+    // Enum mode (VALUES/LABELS set): in.def is the *index* into VALUES, but
+    // the shader and the UI pipeline downstream consume the numeric VALUE at
+    // that index. Look it up here so the initial UBO state matches what the
+    // ComboBox emits after any user interaction. String-valued VALUES fall
+    // back to the index (GLSL can't receive strings).
+    int initial = (int)in.def;
+    if(!in.values.empty())
+    {
+      auto idx = std::min<std::size_t>(in.def, in.values.size() - 1);
+      const auto& v = in.values[idx];
+      if(auto i = ossia::get_if<int64_t>(&v))
+        initial = (int)*i;
+      else if(auto d = ossia::get_if<double>(&v))
+        initial = (int)*d;
+      else
+        initial = (int)idx;
+    }
+    *reinterpret_cast<int*>(data) = initial;
     self.input.push_back(new Port{&self, data, Types::Int, {}});
     data += 4;
     sz += 4;
@@ -105,15 +122,38 @@ struct isf_input_port_vis
 
   void operator()(const isf::image_input& in) noexcept
   {
-    auto flags = in.dimensions == 3 ? Flag::GrabsFromSource : Flag{};
+    // GrabsFromSource = "fetch the QRhiTexture* straight from the upstream
+    // renderer's textureForOutput() instead of allocating our own render
+    // target". Required for:
+    //  - 3D textures (volumes): no render-target path exists for them.
+    //  - Texture arrays: consumers (e.g. classic_pbr_textured sampling a
+    //    per-material base_color_array from ScenePreprocessor) need the
+    //    producer's actual QRhiTexture array, not an empty render-target
+    //    texture created on their side.
+    //  - "STATIC: true" image inputs (shader-author opt-in): the upstream
+    //    is a CPU producer that publishes a long-lived QRhiTexture
+    //    (precomputed LUTs, IBL bakes, asset caches). Without this opt-in
+    //    the consumer would silently allocate an unused render target and
+    //    bind that empty texture instead of the producer's real one,
+    //    making the input read all zeros.
+    auto flags = (in.dimensions == 3 || in.is_array || in.is_static)
+                     ? Flag::GrabsFromSource
+                     : Flag{};
     if(in.depth)
       flags = flags | Flag::SamplableDepth;
+    if(in.is_array)
+      flags = flags | Flag::TextureArray;
+    if(in.dimensions == 3)
+      flags = flags | Flag::ThreeDimensional;
     self.input.push_back(new Port{&self, {}, Types::Image, flags, {}});
   }
 
   void operator()(const isf::cubemap_input& in) noexcept
   {
-    self.input.push_back(new Port{&self, {}, Types::Image, Flag::GrabsFromSource, {}});
+    auto flags = Flag::GrabsFromSource | Flag::Cubemap;
+    if(in.depth)
+      flags = flags | Flag::SamplableDepth;
+    self.input.push_back(new Port{&self, {}, Types::Image, flags, {}});
   }
 
   void operator()(const isf::audio_input& audio) noexcept
@@ -121,6 +161,8 @@ struct isf_input_port_vis
     self.m_audio_textures.push_back({});
     auto& data = self.m_audio_textures.back();
     data.fixedSize = audio.max;
+    data.filter = audio.sampler.filter;
+    data.wrap = audio.sampler.wrap;
     self.input.push_back(new Port{&self, &data, Types::Audio, {}});
   }
 
@@ -130,6 +172,8 @@ struct isf_input_port_vis
     auto& data = self.m_audio_textures.back();
     data.fixedSize = audio.max;
     data.mode = data.Histogram;
+    data.filter = audio.sampler.filter;
+    data.wrap = audio.sampler.wrap;
     self.input.push_back(new Port{&self, &data, Types::Audio, {}});
   }
 
@@ -139,6 +183,8 @@ struct isf_input_port_vis
     auto& data = self.m_audio_textures.back();
     data.fixedSize = audio.max;
     data.mode = AudioTexture::Mode::FFT;
+    data.filter = audio.sampler.filter;
+    data.wrap = audio.sampler.wrap;
     self.input.push_back(new Port{&self, &data, Types::Audio, {}});
   }
 
@@ -149,16 +195,24 @@ struct isf_input_port_vis
     // - read_only: input port
     // - write_only: output port
     // - read_write: output port only, buffer is persistent
+    //
+    // BUFFER_USAGE="indirect_draw[_indexed]": port additionally carries the
+    // IndirectDraw flag so renderers can route it to the indirect-draw
+    // mechanism on MeshBuffers.
+
+    auto extra_flags = Flag{};
+    if(in.buffer_usage == "indirect_draw" || in.buffer_usage == "indirect_draw_indexed")
+      extra_flags = extra_flags | Flag::IndirectDraw;
 
     if(in.access == "read_only")
     {
       // Create input port for read-only storage buffer
-      self.input.push_back(new Port{&self, {}, Types::Buffer, {}});
+      self.input.push_back(new Port{&self, {}, Types::Buffer, extra_flags, {}});
     }
     else if(in.access.contains("write"))
     {
       // Create output port for write-only storage buffer
-      self.output.push_back(new Port{&self, {}, Types::Buffer, {}});
+      self.output.push_back(new Port{&self, {}, Types::Buffer, extra_flags, {}});
 
       // Check for flexible array member
       if(!in.layout.empty())
@@ -172,9 +226,18 @@ struct isf_input_port_vis
     }
   }
 
+  void operator()(const isf::uniform_input& in) noexcept
+  {
+    // Read-only UBO sourced from upstream Buffer port. Renderers bind it via
+    // QRhiShaderResourceBinding::uniformBuffer (not bufferLoad).
+    self.input.push_back(new Port{&self, {}, Types::Buffer, Flag::UniformBuffer, {}});
+  }
+
   void operator()(const isf::texture_input& in) noexcept
   {
-    auto flags = in.dimensions == 3 ? Flag::GrabsFromSource : Flag{};
+    auto flags = in.dimensions == 3
+                     ? (Flag::GrabsFromSource | Flag::ThreeDimensional)
+                     : Flag{};
     self.input.push_back(new Port{&self, {}, Types::Image, flags, {}});
   }
 
@@ -229,7 +292,9 @@ struct isf_input_port_vis
     if(in.access == "read_only")
     {
       // Input port for read-only image; 3D textures use GrabsFromSource
-      auto flags = in.is3D() ? Flag::GrabsFromSource : Flag{};
+      auto flags = in.is3D()
+                       ? (Flag::GrabsFromSource | Flag::ThreeDimensional)
+                       : Flag{};
       self.input.push_back(new Port{&self, {}, Types::Image, flags, {}});
     }
     else if(in.access == "write_only" || in.access == "read_write")

@@ -1,5 +1,6 @@
 #pragma once
 #include <Gfx/Graph/ISFNode.hpp>
+#include <Gfx/Graph/IsfBindingsBuilder.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderedISFUtils.hpp>
 
@@ -11,11 +12,21 @@ struct RenderedISFNode : score::gfx::NodeRenderer
 
   virtual ~RenderedISFNode();
 
-  void updateInputTexture(const Port& input, QRhiTexture* tex) override;
+  void updateInputTexture(const Port& input, QRhiTexture* tex, QRhiTexture* depthTex = nullptr) override;
+  void updateInputSamplerFilter(const Port& input, const RenderTargetSpecs& spec) override;
+  void addInputEdge(RenderList& renderer, Edge& edge, QRhiResourceUpdateBatch& res) override;
+  void removeInputEdge(RenderList& renderer, Edge& edge) override;
 
   void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
   void update(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* e) override;
   void release(RenderList& r) override;
+
+  void initState(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
+  void releaseState(RenderList& renderer) override;
+  void addOutputPass(
+      RenderList& renderer, Edge& edge, QRhiResourceUpdateBatch& res) override;
+  void removeOutputPass(RenderList& renderer, Edge& edge) override;
+  bool hasOutputPassForEdge(Edge& edge) const override;
 
   void runInitialPasses(
       RenderList&, QRhiCommandBuffer& commands, QRhiResourceUpdateBatch*& res,
@@ -26,7 +37,8 @@ struct RenderedISFNode : score::gfx::NodeRenderer
 private:
   std::pair<Pass, Pass> createPass(
       RenderList& renderer, ossia::small_vector<PassOutput, 1>& m_passSamplers,
-      PassOutput target, bool previousPassIsPersistent);
+      PassOutput target, const isf::pass& modelPass,
+      bool previousPassIsPersistent);
 
   std::pair<Pass, Pass> createFinalPass(
       RenderList& renderer, ossia::small_vector<PassOutput, 1>& m_passSamplers,
@@ -65,6 +77,22 @@ private:
   int m_materialSize{};
 
   AudioTextureUpload m_audioTex;
+
+  // Graphics-visible storage buffers / images declared by the shader
+  // (storage_input / csf_image_input / uniform_input). See IsfBindingsBuilder.
+  GraphicsStorageResources m_storage;
+
+  // Multiview UBO: N × mat4 view-projection matrices, when MULTIVIEW >= 2.
+  QRhiBuffer* m_multiViewUBO{};
+
+  // First binding slot reserved for storage resources; determined lazily in
+  // initPasses once the pass-sampler count is known (Rendered differs from
+  // Simple by having one extra sampler per inner pass).
+  int m_firstStorageBinding{-1};
+
+  // Guard so the persistent-SSBO state swap runs exactly once per frame even
+  // when the node has multiple output edges (each triggers runRenderPass).
+  bool m_storageSwappedThisFrame{false};
 };
 
 }
