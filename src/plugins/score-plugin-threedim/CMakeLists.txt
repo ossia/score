@@ -129,6 +129,14 @@ add_library(
   Threedim/MergeGeometries/Metadata.hpp
   Threedim/MergeGeometries/Process.hpp
   Threedim/MergeGeometries/Process.cpp
+
+  Threedim/SceneGraphFilter.hpp
+  Threedim/SceneGraphFilter.cpp
+  Threedim/SceneSwitch.hpp
+  Threedim/SceneSelector.hpp
+  Threedim/SceneSelector.cpp
+  Threedim/SceneGroup.hpp
+  Threedim/SceneGroup.cpp
   Threedim/BufferInfo.hpp
   Threedim/TextureInfo.hpp
   Threedim/ImageLoader.hpp
