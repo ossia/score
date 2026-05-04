@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Crousti/Concepts.hpp>
+#include <Crousti/SceneConcepts.hpp>
 
 #include <ossia/dataflow/safe_nodes/port.hpp>
 
@@ -11,12 +12,16 @@
 namespace oscr
 {
 template <typename T>
-concept GpuNode = avnd::texture_input_introspection<T>::size > 0
-                  || avnd::texture_output_introspection<T>::size > 0
-                  || avnd::buffer_input_introspection<T>::size > 0
-                  || avnd::buffer_output_introspection<T>::size > 0
-                  || avnd::geometry_input_introspection<T>::size > 0
-                  || avnd::geometry_output_introspection<T>::size > 0;
+concept GpuNode
+    = avnd::texture_input_introspection<T>::size > 0
+      || avnd::texture_output_introspection<T>::size > 0
+      || avnd::buffer_input_introspection<T>::size > 0
+      || avnd::buffer_output_introspection<T>::size > 0
+      || avnd::geometry_input_introspection<T>::size > 0
+      || avnd::geometry_output_introspection<T>::size > 0
+      || scene_input_introspection<T>::size > 0
+      || scene_output_introspection<T>::size > 0
+      || avnd::gpu_render_target_output_port_output_introspection<T>::size > 0;
 
 template <typename T>
 concept GpuGraphicsNode2 = requires
