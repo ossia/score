@@ -25,7 +25,7 @@ QImage renderTestCard(int w, int h)
     QColor dark(30, 30, 30);
     
     QFont font = p.font();
-    font.setPixelSize(qMax(9, gridStep / 4));
+    font.setPixelSize(qMax(9, (int)(gridStep * 0.60)));
     p.setFont(font);
 
     for(int y = 0; y < h; y += gridStep)
