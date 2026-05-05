@@ -742,6 +742,10 @@ static void setup_qml()
     qputenv("QV4_JS_MAX_STACK_SIZE", "16777216");
   if(!qEnvironmentVariableIsSet("QV4_GC_MAX_STACK_SIZE"))
     qputenv("QV4_GC_MAX_STACK_SIZE", "16777216");
+  if(!qEnvironmentVariableIsSet("QML_XHR_ALLOW_FILE_READ"))
+    qputenv("QML_XHR_ALLOW_FILE_READ", "1");
+  if(!qEnvironmentVariableIsSet("QML_XHR_ALLOW_FILE_WRITE"))
+    qputenv("QML_XHR_ALLOW_FILE_WRITE", "1");
 }
 
 struct failsafe
