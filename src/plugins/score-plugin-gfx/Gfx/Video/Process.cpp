@@ -5,11 +5,12 @@
 
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Settings/Model.hpp>
-#include <Video/GpuFormats.hpp>
 #include <Gfx/TexturePort.hpp>
 #include <Media/Commands/ChangeAudioFile.hpp>
+#include <Media/LibavMediaInfo.hpp>
 #include <Media/Sound/SoundModel.hpp>
 #include <Media/Tempo.hpp>
+#include <Video/GpuFormats.hpp>
 
 #include <score/tools/File.hpp>
 
@@ -34,38 +35,19 @@ struct VideoProps
 
 static std::optional<VideoProps> guessVideoProps(const QString& path)
 {
-  AVFormatContext* ctx = avformat_alloc_context();
-  int ret = avformat_open_input(&ctx, path.toStdString().c_str(), nullptr, nullptr);
-  if(ret == 0)
-  {
-    avformat_find_stream_info(ctx, nullptr);
-    if(ctx->nb_streams == 0)
-      return std::nullopt;
-
-    VideoProps ret;
-
-    // Parse streams
-    for(std::size_t i = 0; i < ctx->nb_streams; i++)
-    {
-      ret.streams.push_back(ctx->streams[i]->codecpar->codec_type);
-    }
-
-    // Parse duration
-    int64_t duration = ctx->duration;
-    auto flicks_per_av_time_base = ossia::flicks_per_second<double> / AV_TIME_BASE;
-    ret.duration = TimeVal{(int64_t)(duration * flicks_per_av_time_base)};
-
-    avformat_close_input(&ctx);
-    avformat_free_context(ctx);
-
-    return ret;
-  }
-  else
-  {
-    avformat_close_input(&ctx);
-    avformat_free_context(ctx);
+  auto info = score::libav::probe(path);
+  if(!info)
     return std::nullopt;
+
+  VideoProps ret;
+  ret.streams = info->streams;
+
+  if(info->duration_av)
+  {
+    const auto flicks_per_av_time_base = ossia::flicks_per_second<double> / AV_TIME_BASE;
+    ret.duration = TimeVal{(int64_t)(*info->duration_av * flicks_per_av_time_base)};
   }
+  return ret;
 }
 
 static ::Video::DecoderConfiguration videoDecoderConfiguration() noexcept
@@ -180,7 +162,8 @@ void Model::setPath(const QString& f)
     video_decoder decoder(videoDecoderConfiguration());
     decoder.open(absolutePath().toStdString());
 
-    setLoopDuration(TimeVal{decoder.duration()});
+    if(auto prop = guessVideoProps(absolutePath()); prop && prop->duration.impl > 0)
+      setLoopDuration(prop->duration);
   }
   pathChanged(f);
 }

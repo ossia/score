@@ -93,7 +93,7 @@ public:
 
     if(auto dec = vnode.decoder())
     {
-      if(!this->m_loops)
+      if(!this->m_loops || this->m_loop_duration.impl <= 0)
       {
         dec->seek(this->m_start_offset.impl + date.impl);
       }

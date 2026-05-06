@@ -784,7 +784,7 @@ void NodeItem::setPlayPercentage(float f, TimeVal parent_dur)
   if(m_playPercentage != f)
   {
     // Comes from the interval -> if we are looping we make a small modulo of it
-    if(m_model.loops())
+    if(m_model.loops() && m_model.loopDuration().impl > 0)
     {
       auto loopDur = m_model.loopDuration().impl;
       double playdur = double(f) * parent_dur.impl;

@@ -18,6 +18,7 @@
 #include <cstring>
 
 #if SCORE_HAS_LIBAV
+#include <Media/LibavMediaInfo.hpp>
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
@@ -515,15 +516,21 @@ auto debug_ffmpeg(int ret, QString ctx)
 double AudioDecoder::read_length(const QString& path)
 {
 #if SCORE_HAS_LIBAV
-  auto fmt_ctx = open_audio(path);
+  auto info = score::libav::probe_or_throw(path);
 
-  auto ret = avformat_find_stream_info(fmt_ctx.get(), nullptr);
-  if(ret != 0)
-    throw std::runtime_error("Couldn't find stream information");
+  AVDictionaryEntry* tag = nullptr;
+  while(
+      (tag = av_dict_get(info.format_context->metadata, "", tag, AV_DICT_IGNORE_SUFFIX)))
+  {
+    using namespace std::literals;
+    if(tag->key != "Comment"sv)
+      qDebug() << tag->key << "=" << tag->value;
+  }
 
-  return fmt_ctx->duration / double(AV_TIME_BASE);
-#endif
+  return info.duration_seconds().value_or(0.);
+#else
   return 0;
+#endif
 }
 
 void AudioDecoder::decode(const QString& path, int trackToUse, audio_handle hdl)
