@@ -218,6 +218,12 @@ set(HDRS
     Gfx/Graph/encoders/UYVY.hpp
     Gfx/Graph/encoders/NV12.hpp
     Gfx/Graph/encoders/I420.hpp
+    Gfx/Graph/encoders/BGRA.hpp
+    Gfx/Graph/encoders/V210.hpp
+    Gfx/Graph/encoders/V210Compute.hpp
+    Gfx/Graph/encoders/UYVYCompute.hpp
+    Gfx/Graph/encoders/BGRACompute.hpp
+    Gfx/Graph/encoders/ComputeEncoder.hpp
 
     Gfx/Graph/decoders/GPUVideoDecoder.hpp
     Gfx/Graph/decoders/GPUVideoDecoderFactory.hpp
@@ -240,6 +246,7 @@ set(HDRS
     Gfx/Graph/decoders/P210.hpp
     Gfx/Graph/decoders/P410.hpp
     Gfx/Graph/decoders/RGBA.hpp
+    Gfx/Graph/decoders/V210.hpp
     Gfx/Graph/decoders/VUYA.hpp
     Gfx/Graph/decoders/Y210.hpp
     Gfx/Graph/decoders/YUV420.hpp
