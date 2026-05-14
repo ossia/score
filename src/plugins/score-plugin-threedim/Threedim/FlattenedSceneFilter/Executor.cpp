@@ -51,8 +51,8 @@ ProcessExecutorComponent::ProcessExecutorComponent(
   // Port 0: geometry input
   n->add_geometry();
 
-  // Ports 1-2: Mode + Match controls
-  for(std::size_t i = 1; i <= 2; i++)
+  // Ports 1-3: Mode + Match (int) + Match (string) controls
+  for(std::size_t i = 1; i <= 3; i++)
   {
     auto ctrl = qobject_cast<Process::ControlInlet*>(element.inlets()[i]);
     auto& p = n->add_control();

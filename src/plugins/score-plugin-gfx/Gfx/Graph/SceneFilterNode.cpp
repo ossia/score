@@ -72,10 +72,36 @@ struct SceneFilterVisitor
       bool identical = true;
       for(std::size_t i = 0; i < newChildren->size(); ++i)
       {
-        // Can't compare scene_payload by identity portably; rely on pointer
-        // equality in each variant alternative where applicable.
-        (void)i;
-        break;
+        const auto& a = (*newChildren)[i];
+        const auto& b = (*src->children)[i];
+        if(a.index() != b.index())
+        {
+          identical = false;
+          break;
+        }
+        // scene_payload is a variant of shared_ptr-to-component types
+        // (plus scene_transform). For shared_ptr alternatives, identity
+        // is the correct check: a freshly-rewritten subtree returns a
+        // different shared_ptr than the original, while pass-through
+        // payloads keep the same pointer. scene_transform is always
+        // pass-through in filter_payload so equality of the variant
+        // index is sufficient — no transform value is mutated here.
+        const bool same = ossia::visit(
+            [&]<typename T>(const T& av) -> bool {
+              const auto* bv = ossia::get_if<T>(&b);
+              if(!bv)
+                return false;
+              if constexpr(requires { av.get() == bv->get(); })
+                return av.get() == bv->get();
+              else
+                return true; // scene_transform: pass-through, treat as same
+            },
+            a);
+        if(!same)
+        {
+          identical = false;
+          break;
+        }
       }
       if(identical)
         return src;
@@ -185,6 +211,9 @@ struct RenderedSceneFilterNode final : NodeRenderer
   }
 
   void runRenderPass(RenderList&, QRhiCommandBuffer&, Edge&) override { }
+
+  // Data-only renderer — no per-edge GPU pass state to release.
+  void removeOutputPass(RenderList&, Edge&) override { }
 };
 
 SceneFilterNode::SceneFilterNode()

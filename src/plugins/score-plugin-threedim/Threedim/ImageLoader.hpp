@@ -86,6 +86,14 @@ public:
   void operator()() { }
 
   QImage m_pendingImage;
+  // Persistent CPU copy of the last successfully uploaded image. Kept
+  // alive across RenderList rebuilds (resize) so that init() can
+  // re-upload to the freshly allocated QRhiTexture without needing the
+  // user to re-trigger the file-port. Without this, release() drops
+  // m_tex AND clears m_pendingImage in update() — the next init() has
+  // nothing to upload, the texture port stays bound to the empty
+  // placeholder for the rest of the session.
+  QImage m_keptImage;
   QRhiTexture* m_tex{};
   bool m_changed{};
 };

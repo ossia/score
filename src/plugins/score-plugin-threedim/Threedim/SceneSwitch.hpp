@@ -64,6 +64,11 @@ public:
     halp::spinbox_i32<"Index", halp::irange{0, 3, 0}> index;
   } inputs;
 
+  // Cache for upstream-change detection (mirrors CameraSwitch.Select).
+  const ossia::scene_state* m_cached_state{};
+  int64_t m_cached_version{-1};
+  int m_cached_index{-1};
+
   struct outs
   {
     struct
@@ -87,10 +92,18 @@ public:
       default: picked = &inputs.scene0.scene; break;
     }
     outputs.scene_out.scene = *picked;
-    // Dirty flag drives downstream re-evaluation. Only raise it when
-    // the selected input's contents are non-empty — otherwise
-    // downstream shouldn't react to "we're on an empty slot".
-    outputs.scene_out.dirty = picked->state ? 0xFF : 0;
+
+    // Dirty flag drives downstream re-evaluation. Raise it only on
+    // real change: index switch, picked-input pointer change, or
+    // picked-input version bump. Empty slots stay quiet.
+    const auto* s = picked->state.get();
+    const int64_t v = s ? s->version : -1;
+    const bool changed = (idx != m_cached_index) || (s != m_cached_state)
+                         || (v != m_cached_version);
+    outputs.scene_out.dirty = (s && changed) ? 0xFF : 0;
+    m_cached_index = idx;
+    m_cached_state = s;
+    m_cached_version = v;
   }
 };
 

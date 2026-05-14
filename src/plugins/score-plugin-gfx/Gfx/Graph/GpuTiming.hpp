@@ -49,6 +49,7 @@ public:
     double max_ms{0.0};
     std::array<double, kHistorySize> history{};
     int history_index{0};
+    int sample_count{0};   // capped at kHistorySize; used to avoid cold-start bias
     int frames_since_observed{0};
   };
 
@@ -92,22 +93,19 @@ private:
 };
 
 /**
- * @brief RAII helper that names the region between `beginPass` and
- * `endPass` for GPU timing attribution.
+ * @brief RAII helper that brackets a named pass region for GPU frame-debug.
  *
- * The actual timestamp comes from the CB's lastCompletedGpuTime() in
- * the NEXT frame — this is a QRhi constraint. ScopedGpuTimer only
- * emits a debug marker pair so the pass boundary is visible in
- * captures (RenderDoc etc.) AND stamps the RenderList-scoped
- * GpuTimings collector with the previous frame's GPU time on the
- * first marker hit. This one-frame-stale read is what `lastCompletedGpuTime`
- * exposes — not fixable without adding per-pass timestamp queries,
- * which QRhi doesn't expose.
+ * Emits `debugMarkBegin` / `debugMarkEnd` around the enclosed code so
+ * RenderDoc, Nsight, and Metal Frame Debugger show pass boundaries in
+ * captures. Does NOT record timing data — `QRhiCommandBuffer::lastCompletedGpuTime()`
+ * returns a CB-wide delta with no per-pass resolution, so attributing it
+ * to individual passes would print the same full-frame cost against every
+ * named region.
  *
- * In practice this means: the S6 panel shows per-frame whole-CB GPU
- * time under the outermost pass's name. For finer granularity, users
- * can wrap individual passes and read the data from debug captures.
- * A future QRhi feature may expose sub-CB query ranges.
+ * The whole-CB frame time is recorded once per frame in
+ * `RenderList::renderInternal` under the `"frame"` bucket. Per-pass
+ * sub-range timestamps require explicit QRhi timestamp queries, which
+ * are not yet exposed by the RHI abstraction layer.
  */
 class SCORE_PLUGIN_GFX_EXPORT ScopedGpuTimer
 {

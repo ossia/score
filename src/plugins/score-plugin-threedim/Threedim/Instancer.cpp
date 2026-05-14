@@ -432,13 +432,32 @@ void Instancer::operator()()
   // Upstream scene_state / buffer-handle / point-cloud dirty flags can
   // change without a port-update event — detect here and call
   // rebuild(). Controls themselves trigger rebuild via update().
+  //
+  // The Points-input cache also has to compare the current vertex count
+  // and the primary buffer handle against the cached values written in
+  // rebuild() (m_cached_points_vertices / m_cached_points_buf). When an
+  // upstream CSF compute regenerates its point cloud with a different
+  // count (3500 → 4000) but reuses the same persistent QRhiBuffer, the
+  // dirty_mesh flag is NOT set (the buffer handle didn't change), and
+  // without these comparisons Instancer kept publishing the stale
+  // instance_count. Downstream ScenePreprocessor's update() then took
+  // its meshesUnchanged early-return; the persistent m_pendingGpuCopies
+  // queue kept firing the OLD count for the GPU translation/color copy,
+  // appearing as "instances frozen at the previous count, then snapping
+  // back at random intervals" whenever some unrelated rebuild kicked in.
   const auto& in = inputs.scene_in.scene;
   const ossia::scene_state* in_state = in.state.get();
+  void* points_primary
+      = !inputs.points.mesh.buffers.empty()
+            ? inputs.points.mesh.buffers[0].handle
+            : nullptr;
   const bool upstream_changed
       = m_cached_in_state != in_state
         || m_cached_transforms != inputs.transforms.buffer.handle
         || m_cached_colors != inputs.colors.buffer.handle
         || m_cached_custom != inputs.custom.buffer.handle
+        || m_cached_points_buf != points_primary
+        || m_cached_points_vertices != inputs.points.mesh.vertices
         || inputs.points.dirty_mesh;
   if(!m_wrapped_state || upstream_changed)
     rebuild();
@@ -492,6 +511,8 @@ void Instancer::release(score::gfx::RenderList& r)
   if(raw_transform_slot.valid())
     r.registry().free(raw_transform_slot);
   m_xform_ref = {};
+  // Producer-state-drift Option A — see Light::release.
+  m_wrapped_state.reset();
 }
 
 } // namespace Threedim

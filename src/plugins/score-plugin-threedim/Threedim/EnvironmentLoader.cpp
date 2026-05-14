@@ -146,6 +146,8 @@ void EnvironmentLoader::release(score::gfx::RenderList& r)
   if(env_slot.valid())
     r.registry().free(env_slot);
   m_env_ref = {};
+  // Producer-state-drift Option A — see Light::release.
+  m_state.reset();
 }
 
 }

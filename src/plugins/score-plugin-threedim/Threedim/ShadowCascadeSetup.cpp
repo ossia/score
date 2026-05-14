@@ -138,6 +138,64 @@ bool findDirectionalLight(
   return false;
 }
 
+// Resolve the active camera's view + projection matrices from the scene
+// tree. Walks the same way as findDirectionalLight: per-node TRS
+// accumulation into a world matrix, then on hitting a camera_component
+// we invert the world matrix to obtain the view. Matching policy:
+//   - if `state.active_camera_id` is non-zero, only the scene_node whose
+//     id equals it is accepted;
+//   - otherwise the first camera encountered wins (matches the "single
+//     Camera node is auto-picked" convention from Camera.hpp).
+bool findActiveCamera(
+    const ossia::scene_node& n, const QMatrix4x4& parentWorld,
+    const ossia::scene_state& state, float aspect,
+    QMatrix4x4& outView, QMatrix4x4& outProj) noexcept
+{
+  QMatrix4x4 local;
+  if(n.children)
+  {
+    for(const auto& p : *n.children)
+    {
+      if(auto* xf = ossia::get_if<ossia::scene_transform>(&p))
+      {
+        local.translate(xf->translation[0], xf->translation[1], xf->translation[2]);
+        local.rotate(QQuaternion(
+            xf->rotation[3], xf->rotation[0], xf->rotation[1], xf->rotation[2]));
+        local.scale(xf->scale[0], xf->scale[1], xf->scale[2]);
+        break;
+      }
+    }
+  }
+  const QMatrix4x4 world = parentWorld * local;
+  const bool id_filter = state.active_camera_id.value != 0;
+  const bool id_matches = !id_filter || n.id == state.active_camera_id;
+  if(n.children)
+  {
+    for(const auto& p : *n.children)
+    {
+      if(id_matches)
+      {
+        if(auto* cc = ossia::get_if<ossia::camera_component_ptr>(&p))
+        {
+          if(*cc)
+          {
+            const auto& cam = **cc;
+            outView = world.inverted();
+            outProj = QMatrix4x4{};
+            outProj.perspective(
+                cam.yfov * 180.f / float(M_PI), aspect, cam.znear, cam.zfar);
+            return true;
+          }
+        }
+      }
+      if(auto* sub = ossia::get_if<ossia::scene_node_ptr>(&p))
+        if(*sub && findActiveCamera(**sub, world, state, aspect, outView, outProj))
+          return true;
+    }
+  }
+  return false;
+}
+
 } // namespace
 
 void ShadowCascadeSetup::rebuild()
@@ -192,27 +250,28 @@ void ShadowCascadeSetup::rebuild()
   }
   lightDir.normalize();
 
-  // Find the active camera's view_projection. Fall back to identity when
-  // the scene has none (the cascades will be garbage but the node stays
-  // safe to wire in early).
+  // Find the active camera's view_projection by walking the scene tree
+  // the same way findDirectionalLight does. The camera's placement lives
+  // on its owning scene_node's scene_transform, so view = inverse(world).
+  // Fall back to identity when the scene has no camera (the cascades
+  // will be approximate but the node stays safe to wire in early).
+  //
+  // Aspect is unknown at this stage (ScenePreprocessor is the canonical
+  // source of the render-target aspect); 16:9 is a reasonable default
+  // and the cascade fit is approximate anyway.
   QMatrix4x4 cameraVP;
-  if(in_state->cameras && !in_state->cameras->empty() && in_state->cameras->front())
+  const float aspect = 16.f / 9.f;
+  if(in_state->roots)
   {
-    // The scene_state's cameras list stores camera_component only (no
-    // placement). Placement lives on the owning scene_node's
-    // scene_transform. For a first pass we build a view from the
-    // identity-placed camera — good enough while ScenePreprocessor is the
-    // canonical source for camera matrices. A later refinement can walk
-    // the tree like findDirectionalLight does.
-    const auto& cam = *in_state->cameras->front();
-    QMatrix4x4 proj;
-    // Aspect unknown at this point — use 16:9 default. ScenePreprocessor
-    // applies the render target aspect to its own camera UBO; our
-    // cascade fit is approximate anyway.
-    const float aspect = 16.f / 9.f;
-    proj.perspective(
-        cam.yfov * 180.f / float(M_PI), aspect, cam.znear, cam.zfar);
-    cameraVP = proj; // view = identity placeholder
+    QMatrix4x4 view, proj;
+    for(const auto& r : *in_state->roots)
+    {
+      if(r && findActiveCamera(*r, QMatrix4x4{}, *in_state, aspect, view, proj))
+      {
+        cameraVP = proj * view;
+        break;
+      }
+    }
   }
 
   const QMatrix4x4 cameraVPInv = cameraVP.inverted();

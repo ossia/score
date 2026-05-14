@@ -59,7 +59,7 @@ public:
 protected:
   virtual void dropCustom(
       std::vector<ProcessDrop>& drops, const QMimeData& mime,
-      const score::DocumentContext& ctx) const noexcept;
+      const score::DocumentContext& ctx) const;
 
   virtual void dropPath(
       std::vector<ProcessDrop>& drops, const score::FilePath& path,

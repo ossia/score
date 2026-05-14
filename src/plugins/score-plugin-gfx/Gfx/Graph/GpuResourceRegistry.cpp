@@ -2,6 +2,7 @@
 
 #include <Gfx/Graph/CustomMesh.hpp>  // BUFTRACE
 #include <Gfx/Graph/RenderList.hpp>
+#include <Gfx/Graph/RhiClearBuffer.hpp>
 #include <Gfx/Graph/SceneGPUState.hpp>  // MaterialGPU layout
 
 #include <score/tools/Debug.hpp>
@@ -76,7 +77,7 @@ GpuResourceRegistry::~GpuResourceRegistry()
   destroy();
 }
 
-void GpuResourceRegistry::init(QRhi& rhi)
+void GpuResourceRegistry::init(QRhi& rhi, QRhiResourceUpdateBatch& batch)
 {
   SCORE_ASSERT(!m_rhi);
   m_rhi = &rhi;
@@ -98,6 +99,29 @@ void GpuResourceRegistry::init(QRhi& rhi)
       a.buffer = nullptr;
       continue;
     }
+    // Zero-fill the arena. Vulkan does NOT initialise VkBuffer memory
+    // — the underlying device-memory page contains whatever was there
+    // before. Arenas are sparse-uploaded by producers (each Light /
+    // Material / Transform / Camera node writes only its own slot);
+    // unused slots stay at their initial value. After a fresh
+    // RenderList (resize), every consumer indexing past the populated
+    // range reads device-memory garbage. Especially visible for lights:
+    // shaders compose world-space light positions via
+    // world_transforms.data[L.transform_slot], and L.color/range read
+    // from the RawLight arena — both arenas garbage on the resize
+    // frame produces the user's "wildly different lighting per
+    // resize" symptom (saturated colours, blown-out highlights, very
+    // dark, varying per attempt).
+    //
+    // Cost: ~4 MiB total upload per RenderList init across all arenas
+    // (RawCamera 2 KiB + RawLight 256 KiB + RawTransform 1 MiB +
+    // Material 2.5 MiB + Env 512 B). One-time per resize, negligible.
+    // RhiClearBuffer routes Dynamic buffers via chunked
+    // updateDynamicBuffer and Static buffers via uploadStaticBuffer
+    // — both fed from a thread-local zero pool so we don't pay a
+    // per-arena std::vector<char>(bytes, 0) allocation on every
+    // RenderList init.
+    RhiClearBuffer::clearBuffer(rhi, batch, a.buffer, 0, bytes);
 
     a.slot_stride = cfg.slot_stride;
     a.slot_count = cfg.slot_count;
@@ -265,6 +289,8 @@ void GpuResourceRegistry::destroy(RenderList& renderer)
     ch.buckets.clear();
     ch.dynamicSlotMap.clear();
     ch.dynamicTextures.clear();
+    ch.dynamicSlotLastUse.clear();
+    ch.dynamicSlotCounter = 0;
   }
   // Mesh arena teardown. Route through releaseBuffer (same invariant
   // as the component arenas) so downstream MeshBuffers that still
@@ -276,6 +302,68 @@ void GpuResourceRegistry::destroy(RenderList& renderer)
       renderer.releaseBuffer(s.buffer);
       s.buffer = nullptr;
     }
+    s.capacity_bytes = 0;
+  }
+  m_vertexAllocator.reset();
+  m_indexAllocator.reset();
+  m_vertexSlotsCapacity = 0;
+  m_indexSlotsCapacity = 0;
+  m_vertexSlotsUsed = 0;
+  m_indexSlotsUsed = 0;
+  m_meshSlabs.clear();
+  m_pendingReleases.clear();
+  m_rhi = nullptr;
+}
+
+void GpuResourceRegistry::destroyOwned()
+{
+  // OutputNode-side teardown. The registry now persists across
+  // RenderList rebuilds (resize fast path), so destroy(RenderList&)'s
+  // RL-routed releaseBuffer path is bypassed during normal RL rebuild.
+  // When the OutputNode's QRhi is about to go away (destroyOutput,
+  // setSwapchainFormat, ~OutputNode), we have to tear down our QRhi
+  // resources directly — there is no live RenderList to plumb through
+  // and the QRhi is still alive (callers MUST invoke this BEFORE
+  // RenderState::destroy()).
+  //
+  // `delete` on a QRhiBuffer / QRhiTexture / QRhiSampler runs its
+  // destructor which calls destroy() on the underlying GPU resource
+  // and then frees the wrapper. Mirrors the direct deletes
+  // RenderList::release does for m_outputUBO / m_emptyTexture* — same
+  // safety contract (QRhi still alive).
+  for(auto& a : m_arenas)
+  {
+    delete a.buffer;
+    a.buffer = nullptr;
+    a.slot_stride = 0;
+    a.slot_count = 0;
+    for(auto& g : a.slot_generations)
+      ++g;
+    a.slot_generations.clear();
+    a.free_slots.clear();
+  }
+  m_defaults_seeded = false;
+  for(auto& ch : m_textureChannels)
+  {
+    for(auto& b : ch.buckets)
+    {
+      delete b.array;
+      b.array = nullptr;
+      delete b.sampler;
+      b.sampler = nullptr;
+      b.layers = 0;
+      b.layerMap.clear();
+    }
+    ch.buckets.clear();
+    ch.dynamicSlotMap.clear();
+    ch.dynamicTextures.clear();
+    ch.dynamicSlotLastUse.clear();
+    ch.dynamicSlotCounter = 0;
+  }
+  for(auto& s : m_meshStreams)
+  {
+    delete s.buffer;
+    s.buffer = nullptr;
     s.capacity_bytes = 0;
   }
   m_vertexAllocator.reset();
@@ -322,6 +410,8 @@ void GpuResourceRegistry::destroy()
     ch.buckets.clear();
     ch.dynamicSlotMap.clear();
     ch.dynamicTextures.clear();
+    ch.dynamicSlotLastUse.clear();
+    ch.dynamicSlotCounter = 0;
   }
   // Mesh arena: null the buffers (leaking the wrappers, same rule);
   // tear down allocators since those are pure CPU-side.
@@ -382,47 +472,73 @@ QRhiTexture::Flags GpuResourceRegistry::textureChannelFlags(TextureChannel ch) n
   }
 }
 
-int GpuResourceRegistry::resolveStaticLayer(
-    TextureChannel channel, const ossia::texture_source* src,
-    QRhiResourceUpdateBatch& /*res*/) noexcept
-{
-  if(!src)
-    return -1;
-  auto& ch = textureChannel(channel);
-  // Wave 1: exactly one bucket live. Walk buckets[] and return the
-  // first match; Wave 2 will return a (bucket, layer) pair instead.
-  for(const auto& b : ch.buckets)
-  {
-    auto it = b.layerMap.find(src);
-    if(it != b.layerMap.end())
-      return it->second;
-  }
-  // Lazy-upload of newly-encountered sources is preprocessor-owned
-  // for now (it has the QImage decode helper + the list-of-all-
-  // materials context to size the array correctly). Producers calling
-  // into the registry during their own update() accept -1 for an
-  // as-yet-unregistered source; the preprocessor's next rebuildChannel()
-  // pass will decode + register + patch refs for them. Once
-  // decodeTextureSource moves here, this branch becomes the
-  // decode + newTextureArray + uploadTexture path.
-  return -1;
-}
 
 int GpuResourceRegistry::resolveDynamicSlot(
     TextureChannel channel, void* native_handle) noexcept
 {
   if(!native_handle)
     return -1;
+  auto* tex = static_cast<QRhiTexture*>(native_handle);
+  // Key by QRhi's monotonic globalResourceId rather than the raw
+  // pointer. The pointer can be recycled by the heap allocator after
+  // the previous QRhiTexture is destroyed (qrhivulkan.cpp:5909-5912
+  // documents this exact hazard for QRhi's own SRB tracking, which
+  // pairs the pointer with `m_id`). Using the id makes a stale entry
+  // simply mismatch instead of aliasing onto a fresh resource.
+  const quint64 key = tex->globalResourceId();
   auto& ch = textureChannel(channel);
-  auto it = ch.dynamicSlotMap.find(native_handle);
+  const uint64_t now = ++ch.dynamicSlotCounter;
+
+  // Hit: refresh access stamp and return existing slot.
+  auto it = ch.dynamicSlotMap.find(key);
   if(it != ch.dynamicSlotMap.end())
-    return it->second;
-  if((int)ch.dynamicTextures.size() >= kMaxDynamicSlots)
-    return -1;
-  const int slot = (int)ch.dynamicTextures.size();
-  ch.dynamicSlotMap[native_handle] = slot;
-  ch.dynamicTextures.push_back(static_cast<QRhiTexture*>(native_handle));
-  return slot;
+  {
+    const int slot = it->second;
+    if(slot >= 0 && slot < (int)ch.dynamicSlotLastUse.size())
+      ch.dynamicSlotLastUse[slot] = now;
+    return slot;
+  }
+
+  // Miss with room: append a new slot.
+  if((int)ch.dynamicTextures.size() < kMaxDynamicSlots)
+  {
+    const int slot = (int)ch.dynamicTextures.size();
+    ch.dynamicSlotMap[key] = slot;
+    ch.dynamicTextures.push_back(tex);
+    ch.dynamicSlotLastUse.push_back(now);
+    return slot;
+  }
+
+  // Miss with full map: LRU-evict the slot with the oldest access stamp.
+  // Without this branch a long session that swaps capture sources or
+  // resizes a video texture more than kMaxDynamicSlots times pinned the
+  // map at its initial entries; every subsequent texture returned -1 and
+  // dynamic-textured materials silently blanked.
+  int victim = 0;
+  uint64_t victimStamp = ch.dynamicSlotLastUse[0];
+  for(int i = 1; i < (int)ch.dynamicSlotLastUse.size(); ++i)
+  {
+    if(ch.dynamicSlotLastUse[i] < victimStamp)
+    {
+      victim = i;
+      victimStamp = ch.dynamicSlotLastUse[i];
+    }
+  }
+  // Drop the old key→slot mapping (linear scan since flat_map keys are
+  // ids, not slot indices). N is bounded by kMaxDynamicSlots so this is
+  // a few comparisons.
+  for(auto it2 = ch.dynamicSlotMap.begin(); it2 != ch.dynamicSlotMap.end(); ++it2)
+  {
+    if(it2->second == victim)
+    {
+      ch.dynamicSlotMap.erase(it2);
+      break;
+    }
+  }
+  ch.dynamicSlotMap[key] = victim;
+  ch.dynamicTextures[victim] = tex;
+  ch.dynamicSlotLastUse[victim] = now;
+  return victim;
 }
 
 
@@ -522,7 +638,8 @@ void GpuResourceRegistry::updateSlot(
 // ─── Mesh arena manager ──────────────────────────────────────────
 
 GpuResourceRegistry::MeshSlab* GpuResourceRegistry::acquireMeshSlab(
-    uint64_t stable_id, uint32_t vertex_count, uint32_t index_count) noexcept
+    uint64_t stable_id, uint32_t vertex_count, uint32_t index_count,
+    uint32_t current_frame) noexcept
 {
   if(stable_id == 0)
     return nullptr;  // caller without stable_id — skip slab caching
@@ -540,17 +657,53 @@ GpuResourceRegistry::MeshSlab* GpuResourceRegistry::acquireMeshSlab(
     // Count mismatch — same mesh primitive re-emitting with different
     // counts. Defer the free to the grace queue so an in-flight draw
     // referencing the old offset doesn't read freed-and-reused bytes.
+    //
+    // Stamp `released_frame = current_frame` so the next sweep waits
+    // `grace` frames *from this enqueue*, matching QRhi's deferred-
+    // release contract (which keys on the submission frame slot, not 0).
+    // Stamping 0 here would collapse the safety to "wait `grace` frames
+    // after boot" — a one-time delay that vanishes the moment
+    // current_frame >= grace, after which every count-mismatch enqueue
+    // is freed on the very next sweep (same-frame UAF).
+    //
+    // Decrement the *Used trackers eagerly here so the new allocation
+    // below sees an accurate "live slabs" footprint while the old slot
+    // sits in pending-releases. The actual OffsetAllocator::free runs
+    // in sweepMeshSlabs phase-2 once `released_frame + grace <=
+    // current_frame`, but that path will NOT decrement again (single
+    // decrement per slab — at logical-release time).
+    if(m_vertexAllocator
+       && slab.vertex_slot.metadata != OffsetAllocator::Allocation::NO_SPACE)
+    {
+      const auto sz = m_vertexAllocator->allocationSize(slab.vertex_slot);
+      if(m_vertexSlotsUsed >= sz)
+        m_vertexSlotsUsed -= sz;
+    }
+    if(m_indexAllocator
+       && slab.index_slot.metadata != OffsetAllocator::Allocation::NO_SPACE)
+    {
+      const auto sz = m_indexAllocator->allocationSize(slab.index_slot);
+      if(m_indexSlotsUsed >= sz)
+        m_indexSlotsUsed -= sz;
+    }
     PendingRelease pr;
     pr.stable_id = stable_id;
-    // released_frame=0 is fine here: the next sweep at frame F will see
-    // 0 + grace <= F (true once F >= grace), which gives the same
-    // ≥grace-frames safety. We don't have current_frame in scope.
-    pr.released_frame = 0;
+    pr.released_frame = current_frame;
     pr.vertex_slot = slab.vertex_slot;
     pr.index_slot = slab.index_slot;
     m_pendingReleases.push_back(pr);
     m_meshSlabs.erase(it);
   }
+
+  // Drain any pending releases that have served their grace BEFORE
+  // attempting the fresh allocate. Otherwise an immediate count-mismatch
+  // (this call) plus a previously-queued release that is grace-elapsed
+  // would force the OffsetAllocator to find space for `new + old` bytes,
+  // even though the old bytes are safe to reuse — manifesting as a
+  // spurious "vertex/index pool exhausted" qWarning under live-edit on
+  // a near-capacity scene. The same `grace=2` invariant that
+  // sweepMeshSlabs uses is preserved here.
+  drainExpiredPendingReleases(current_frame, /*grace=*/2u);
 
   if(!m_vertexAllocator || !m_indexAllocator)
     return nullptr;
@@ -620,6 +773,44 @@ void GpuResourceRegistry::markMeshSlabSeen(
     it->second.last_seen_frame = current_frame;
 }
 
+void GpuResourceRegistry::drainExpiredPendingReleases(
+    uint32_t current_frame, uint32_t grace) noexcept
+{
+  // Process the grace queue: any release submitted at least `grace`
+  // frames ago is safe to actually free from the OffsetAllocator now.
+  // The *Used trackers are NOT decremented here — the enqueue site
+  // (releaseMeshSlab / sweepMeshSlabs phase-1 / acquireMeshSlab's
+  // count-mismatch path) decrements eagerly so callers see "live
+  // slabs" as the footprint, not "live + grace-pending".
+  for(auto it = m_pendingReleases.begin(); it != m_pendingReleases.end();)
+  {
+    if(current_frame >= grace
+       && it->released_frame + grace <= current_frame)
+    {
+      BUFTRACE() << "[MeshSlab] free  id=" << qulonglong(it->stable_id)
+                 << " vSlot=" << it->vertex_slot.offset
+                 << " iSlot=" << it->index_slot.offset
+                 << " released_at=" << it->released_frame
+                 << " current=" << current_frame;
+      if(m_vertexAllocator
+         && it->vertex_slot.metadata != OffsetAllocator::Allocation::NO_SPACE)
+      {
+        m_vertexAllocator->free(it->vertex_slot);
+      }
+      if(m_indexAllocator
+         && it->index_slot.metadata != OffsetAllocator::Allocation::NO_SPACE)
+      {
+        m_indexAllocator->free(it->index_slot);
+      }
+      it = m_pendingReleases.erase(it);
+    }
+    else
+    {
+      ++it;
+    }
+  }
+}
+
 void GpuResourceRegistry::sweepMeshSlabs(
     uint32_t current_frame, uint32_t grace) noexcept
 {
@@ -640,6 +831,26 @@ void GpuResourceRegistry::sweepMeshSlabs(
     if(current_frame >= grace
        && it->second.last_seen_frame + grace <= current_frame)
     {
+      // Eagerly decrement *Used trackers at logical-release time so
+      // the per-frame "live footprint" reflects active slabs only,
+      // not grace-pending ones. Phase-2 (drainExpiredPendingReleases)
+      // performs the OffsetAllocator::free without re-decrementing.
+      if(m_vertexAllocator
+         && it->second.vertex_slot.metadata
+                != OffsetAllocator::Allocation::NO_SPACE)
+      {
+        const auto sz
+            = m_vertexAllocator->allocationSize(it->second.vertex_slot);
+        if(m_vertexSlotsUsed >= sz) m_vertexSlotsUsed -= sz;
+      }
+      if(m_indexAllocator
+         && it->second.index_slot.metadata
+                != OffsetAllocator::Allocation::NO_SPACE)
+      {
+        const auto sz
+            = m_indexAllocator->allocationSize(it->second.index_slot);
+        if(m_indexSlotsUsed >= sz) m_indexSlotsUsed -= sz;
+      }
       PendingRelease pr;
       pr.stable_id = it->first;
       pr.released_frame = current_frame;
@@ -654,63 +865,47 @@ void GpuResourceRegistry::sweepMeshSlabs(
     }
   }
 
-  // Process the grace queue: anything submitted at least `grace`
-  // frames ago is safely freed from the OffsetAllocator now.
-  for(auto it = m_pendingReleases.begin(); it != m_pendingReleases.end();)
-  {
-    if(current_frame >= grace
-       && it->released_frame + grace <= current_frame)
-    {
-      BUFTRACE() << "[MeshSlab] free  id=" << qulonglong(it->stable_id)
-                 << " vSlot=" << it->vertex_slot.offset
-                 << " iSlot=" << it->index_slot.offset
-                 << " released_at=" << it->released_frame
-                 << " current=" << current_frame;
-      if(m_vertexAllocator
-         && it->vertex_slot.metadata != OffsetAllocator::Allocation::NO_SPACE)
-      {
-        const auto sz
-            = m_vertexAllocator->allocationSize(it->vertex_slot);
-        m_vertexAllocator->free(it->vertex_slot);
-        if(m_vertexSlotsUsed >= sz) m_vertexSlotsUsed -= sz;
-      }
-      if(m_indexAllocator
-         && it->index_slot.metadata != OffsetAllocator::Allocation::NO_SPACE)
-      {
-        const auto sz
-            = m_indexAllocator->allocationSize(it->index_slot);
-        m_indexAllocator->free(it->index_slot);
-        if(m_indexSlotsUsed >= sz) m_indexSlotsUsed -= sz;
-      }
-      it = m_pendingReleases.erase(it);
-    }
-    else
-    {
-      ++it;
-    }
-  }
+  drainExpiredPendingReleases(current_frame, grace);
 }
 
-void GpuResourceRegistry::releaseMeshSlab(uint64_t stable_id) noexcept
+void GpuResourceRegistry::releaseMeshSlab(
+    uint64_t stable_id, uint32_t current_frame) noexcept
 {
   auto it = m_meshSlabs.find(stable_id);
   if(it == m_meshSlabs.end())
     return;
-  auto& slab = it->second;
+  // Route through the pending-releases grace queue rather than freeing the
+  // OffsetAllocator sub-allocation immediately. The backing QRhiBuffer is
+  // long-lived; only the sub-allocation offset is guarded here. Freeing it
+  // at once would let the allocator hand the same offset out again this frame,
+  // producing a UAF for any in-flight GPU draw that still references it.
+  // sweepMeshSlabs() drains m_pendingReleases once released_frame + grace <=
+  // current_frame, matching QRhi's own deferred-release contract.
+  //
+  // Eagerly decrement *Used trackers at logical-release time (single
+  // decrement per slab; phase-2 drain does not re-decrement).
   if(m_vertexAllocator
-     && slab.vertex_slot.metadata != OffsetAllocator::Allocation::NO_SPACE)
+     && it->second.vertex_slot.metadata
+            != OffsetAllocator::Allocation::NO_SPACE)
   {
-    const auto sz = m_vertexAllocator->allocationSize(slab.vertex_slot);
-    m_vertexAllocator->free(slab.vertex_slot);
+    const auto sz
+        = m_vertexAllocator->allocationSize(it->second.vertex_slot);
     if(m_vertexSlotsUsed >= sz) m_vertexSlotsUsed -= sz;
   }
   if(m_indexAllocator
-     && slab.index_slot.metadata != OffsetAllocator::Allocation::NO_SPACE)
+     && it->second.index_slot.metadata
+            != OffsetAllocator::Allocation::NO_SPACE)
   {
-    const auto sz = m_indexAllocator->allocationSize(slab.index_slot);
-    m_indexAllocator->free(slab.index_slot);
+    const auto sz
+        = m_indexAllocator->allocationSize(it->second.index_slot);
     if(m_indexSlotsUsed >= sz) m_indexSlotsUsed -= sz;
   }
+  PendingRelease pr;
+  pr.stable_id = stable_id;
+  pr.released_frame = current_frame;
+  pr.vertex_slot = it->second.vertex_slot;
+  pr.index_slot = it->second.index_slot;
+  m_pendingReleases.push_back(pr);
   m_meshSlabs.erase(it);
 }
 

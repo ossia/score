@@ -11,20 +11,30 @@ namespace score::gfx
  * Receives a `scene_spec` on its input port, walks the hierarchy, and emits
  * a `geometry_spec` on its output port containing one geometry per scene
  * mesh primitive. Each output geometry carries a set of well-known
- * auxiliary buffers shared across all draws:
+ * auxiliary buffers:
  *
- *   - `scene_lights`    : LightGPU[]  (per scene_payload light_component)
- *   - `scene_materials` : MaterialGPU[]  (per scene material)
- *   - `model_matrices`  : mat4[]  (one per draw, in scene-walk order)
- *   - `draw_cmds`       : DrawCmdMeta[]  (per draw: material_index + padding)
+ *   - `scene_lights`           : LightGPU[]     (per scene light_component)
+ *   - `scene_materials`        : MaterialGPU[]  (per scene material)
+ *   - `scene_materials_ext`    : MaterialExtGPU[] (extended material data)
+ *   - `per_draws`              : PerDrawGPU[]   (one per draw: model/normal mat,
+ *                                                material/transform/skeleton slots)
+ *   - `indirect_draw_cmds`     : IndirectCmd[]  (MDI command buffer; one per draw)
+ *   - `scene_counts`           : SceneCountsUBO (draw/light/material counts)
+ *   - `camera`                 : CameraUBO      (current-frame camera matrices)
+ *   - `camera_prev`            : CameraUBO      (previous-frame camera matrices)
+ *   - `env`                    : EnvUBO         (environment/fog parameters)
+ *   - `world_transforms`       : mat4[]         (current frame, slot-indexed)
+ *   - `world_transforms_prev`  : mat4[]         (previous frame, for TAA/motion)
+ *   - `scene_light_indices`    : uint[]         (light culling index list)
  *
- * Plus a per-mesh aux `this_draw` carrying the draw index into the shared
- * tables, so consumer shaders can look up `model_matrices[this_draw.idx]`
- * etc. without needing `gl_DrawID` / multi-draw indirect.
+ * Conditionally emitted (when present in the scene):
+ *   - `scene_material_uv_xforms` : mat3[]       (per-material UV transforms)
+ *   - `per_draw_bounds`          : AABB[]        (per-draw world-space bounds)
+ *   - `shadow_cascades`          : CascadeUBO[]  (shadow cascade matrices)
  *
- * The auxiliary layouts are also documented in the shipped
- * `scene_preprocessor.csf` packer shaders — they are the canonical
- * source of truth. C++ here just packs identical bytes.
+ * Per-draw indexing in shaders uses the MDI `firstInstance` / `gl_DrawID`
+ * mechanism. Shaders read `per_draws[gl_DrawID]` to recover model/normal
+ * matrices and slot indices into the shared tables.
  *
  * Inputs:
  *   - Port 0: Scene (Types::Scene)

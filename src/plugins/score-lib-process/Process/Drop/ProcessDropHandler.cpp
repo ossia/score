@@ -4,6 +4,7 @@
 
 #include <ossia/detail/algorithms.hpp>
 
+#include <QDebug>
 #include <QFile>
 #include <QFileInfo>
 #include <QSet>
@@ -19,8 +20,22 @@ void ProcessDropHandler::getCustomDrops(
     std::vector<ProcessDropHandler::ProcessDrop>& drops, const QMimeData& mime,
     const score::DocumentContext& ctx) const noexcept
 {
-  // Check for special mime handling code
-  return dropCustom(drops, mime, ctx);
+  // dropCustom is no longer noexcept (some overrides invoke parsers that
+  // can throw on malformed input — see ProcessDropHandler.hpp). Catch
+  // here so a throwing handler never escapes through the noexcept
+  // public API and tears down the editor.
+  try
+  {
+    dropCustom(drops, mime, ctx);
+  }
+  catch(const std::exception& e)
+  {
+    qWarning() << "ProcessDropHandler::dropCustom threw:" << e.what();
+  }
+  catch(...)
+  {
+    qWarning() << "ProcessDropHandler::dropCustom threw an unknown exception";
+  }
 }
 
 void ProcessDropHandler::getMimeDrops(
@@ -61,7 +76,7 @@ QSet<QString> ProcessDropHandler::fileExtensions() const noexcept
 
 void ProcessDropHandler::dropCustom(
     std::vector<ProcessDropHandler::ProcessDrop>&, const QMimeData& data,
-    const score::DocumentContext& ctx) const noexcept
+    const score::DocumentContext& ctx) const
 {
 }
 

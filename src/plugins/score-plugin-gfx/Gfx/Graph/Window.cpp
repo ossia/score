@@ -248,11 +248,12 @@ void Window::exposeEvent(QExposeEvent* ev)
     resizeSwapChain();
   }
 
-  if(m_hasSwapChain && !m_swapChain)
-  {
-    m_hasSwapChain = false;
-  }
-
+  // The (m_hasSwapChain, m_swapChain) pair is kept consistent at the
+  // teardown sites in ScreenNode (~ScreenNode, destroyOutput) and
+  // MultiWindowNode (releaseWindowSwapChain, destroyOutput): the flag is
+  // cleared and the alias is nulled BEFORE the QRhiSwapChain is released,
+  // so we can never observe (m_hasSwapChain == true && m_swapChain ==
+  // nullptr) here. See diagnostic 047.
   const QSize surfaceSize = m_hasSwapChain ? m_swapChain->surfacePixelSize() : QSize();
 
   if((!isExposed() || (m_hasSwapChain && surfaceSize.isEmpty())) && m_running)

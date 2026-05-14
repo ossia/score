@@ -230,6 +230,12 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
     createdUbos[ubo_type::binding()] = ubo;
   }
 
+  // Compute renderers own a single shared compute pipeline + SRB; they
+  // don't allocate any per-output-edge state. Edge add/remove is a no-op
+  // for them. This override is required because NodeRenderer
+  // ::removeOutputPass is now pure-virtual.
+  void removeOutputPass(score::gfx::RenderList&, score::gfx::Edge&) override { }
+
   void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
     auto& parent = node();

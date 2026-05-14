@@ -76,9 +76,14 @@ public:
     m_width = 640;
     m_height = 480;
 
-    // Use BGRA8 — native format for all capture backends
+    // BGRA8 covers Windows / macOS / X11 backends. PipeWire on Wayland may
+    // negotiate SPA_VIDEO_FORMAT_RGBA / RGBx (mapped to CapturedFrame::CPU_RGBA)
+    // — we recreate the texture in QRhiTexture::RGBA8 the first time a CPU_RGBA
+    // frame arrives. Without that branch, RGBA bytes were uploaded as BGRA and
+    // displayed with R/B swapped.
+    m_textureFormat = QRhiTexture::BGRA8;
     m_texture = rhi.newTexture(
-        QRhiTexture::BGRA8, QSize{m_width, m_height}, 1, QRhiTexture::Flag{});
+        m_textureFormat, QSize{m_width, m_height}, 1, QRhiTexture::Flag{});
     m_texture->create();
 
     m_sampler = rhi.newSampler(
@@ -222,16 +227,41 @@ public:
     if(frame.type == CapturedFrame::None || frame.width <= 0 || frame.height <= 0)
       return;
 
-    // Handle resize
-    if(frame.width != m_width || frame.height != m_height)
+    // Detect format mismatch and recreate the texture in the matching format.
+    // PipeWire negotiates RGBA/RGBx on some compositors (yields CPU_RGBA);
+    // X11 / Windows / macOS yield CPU_BGRA. The two formats can both arrive
+    // in a single session if the user changes Wayland compositors mid-session
+    // or if the backend renegotiates. Done before the resize check so a
+    // simultaneous resize+format change is handled in a single create.
+    QRhiTexture::Format wanted = m_textureFormat;
+    if(frame.type == CapturedFrame::CPU_RGBA)
+      wanted = QRhiTexture::RGBA8;
+    else if(frame.type == CapturedFrame::CPU_BGRA)
+      wanted = QRhiTexture::BGRA8;
+    // Other branches (D3D11_Texture / IOSurface_Ref / DMABUF) recreate the
+    // texture below via createFrom(...) on the native handle and don't go
+    // through this CPU upload path.
+
+    const bool formatChanged = (wanted != m_textureFormat);
+    const bool sizeChanged = (frame.width != m_width || frame.height != m_height);
+
+    if(formatChanged || sizeChanged)
     {
       m_width = frame.width;
       m_height = frame.height;
 
-      // Only resize for CPU upload path — GPU paths recreate from native handle
+      // Only the CPU upload paths participate in setPixelSize/setFormat
+      // recreation. GPU import paths replace the texture wholesale via
+      // createFrom() further down.
       if(frame.type == CapturedFrame::CPU_BGRA || frame.type == CapturedFrame::CPU_RGBA)
       {
-        m_texture->setPixelSize(QSize{m_width, m_height});
+        if(formatChanged)
+        {
+          m_texture->setFormat(wanted);
+          m_textureFormat = wanted;
+        }
+        if(sizeChanged)
+          m_texture->setPixelSize(QSize{m_width, m_height});
         m_texture->create();
       }
     }
@@ -330,6 +360,7 @@ private:
   QRhiBuffer* m_processUBO{};
   QRhiBuffer* m_materialUBO{};
   QRhiTexture* m_texture{};
+  QRhiTexture::Format m_textureFormat{QRhiTexture::BGRA8};
   QRhiSampler* m_sampler{};
   QShader m_vertexS;
   QShader m_fragmentS;

@@ -41,10 +41,14 @@ layout(location = 0) out vec2 isf_FragNormCoord;
   static constexpr auto vertexInitFunc = R"_(
 void isf_vertShaderInit()
 {
-  gl_Position = clipSpaceCorrMatrix * vec4( position, 0.0, 1.0 );
+  gl_Position = clipSpaceCorrMatrix * vec4(position, 0.0, 1.0);
   isf_FragNormCoord = vec2((gl_Position.x+1.0)/2.0, (gl_Position.y+1.0)/2.0);
+}
+
+void isf_vertShaderFinish()
+{
 #if defined(QSHADER_SPIRV) || defined(QSHADER_HLSL) || defined(QSHADER_MSL)
-  gl_Position.y = - gl_Position.y;
+  gl_Position.y = -gl_Position.y;
 #endif
 }
 )_";
@@ -53,6 +57,7 @@ void isf_vertShaderInit()
 void main()
 {
   isf_vertShaderInit();
+  isf_vertShaderFinish();
 }
 )_";
 
@@ -503,7 +508,14 @@ static void parse_input(image_input& inp, const sajson::value& v)
   {
     auto val = v.get_object_value(k);
     if(val.get_type() == sajson::TYPE_INTEGER)
-      inp.dimensions = val.get_integer_value();
+    {
+      auto d = val.get_integer_value();
+      if(d != 2 && d != 3)
+        throw invalid_file{
+            "image_input DIMENSIONS must be 2 or 3 (got " + std::to_string(d)
+            + "). 1D and 4D textures are not supported."};
+      inp.dimensions = d;
+    }
   }
   if(auto k = v.find_object_key_insensitive(sajson::literal("DEPTH"));
      k != v.get_length())
@@ -538,11 +550,10 @@ static void parse_input(image_input& inp, const sajson::value& v)
     drop_unsupported_compare_3d(inp.sampler, "image input (DIMENSIONS: 3)");
     if(inp.is_array)
     {
-      fmt::print(
-          stderr,
-          "[isf] image input: DIMENSIONS: 3 with ARRAY: true is not supported "
-          "— sampler3DArray is not a core GLSL type. Dropping ARRAY.\n");
-      inp.is_array = false;
+      throw invalid_file{
+          "image input: DIMENSIONS: 3 with ARRAY: true is not supported — "
+          "sampler3DArray is not a core GLSL type. Use a 3D texture and drop "
+          "ARRAY, or a 2D-array texture and drop DIMENSIONS: 3."};
     }
   }
 }
@@ -672,13 +683,33 @@ static void parse_input(storage_input& inp, const sajson::value& v)
   // supposed to read back, so it's silently always zero.
   if(inp.persistent && inp.access == "write_only")
   {
-    fmt::print(
-        stderr,
-        "[isf] storage input declared as PERSISTENT + ACCESS: write_only — "
-        "the ping-pong pair still allocates but _prev will always read zero "
-        "(no read path exists to populate it). Use ACCESS: read_write or "
-        "read_only with PERSISTENT, or drop PERSISTENT if you don't need "
-        "frame history.\n");
+    throw invalid_file{
+        "storage input declared as PERSISTENT + ACCESS: write_only is "
+        "invalid — _prev would always read zero (no read path exists to "
+        "populate it). Use ACCESS: read_write or read_only with PERSISTENT, "
+        "or drop PERSISTENT if you don't need frame history."};
+  }
+
+  // Reject empty LAYOUT for non-indirect storage_inputs. The graphics
+  // emit at isf_emit_graphics_storage / isf_emit_ssbo_decl produces an
+  // empty `readonly buffer NAME_buf { };` block which is invalid GLSL
+  // (`buffer { };` requires at least one member declarator). shaderc
+  // then fails with a cryptic message pointing at the auto-emitted
+  // block. uniform_input has the symmetric check at parse_input(uniform).
+  // Indirect-draw SSBOs LEGITIMATELY have empty LAYOUT — they are
+  // skipped from graphics emit (isf.cpp:3361-3363) when buffer_usage is
+  // non-empty. Match that gate here so legitimate indirect-draw paths
+  // pass through unchallenged.
+  if(inp.layout.empty() && inp.buffer_usage.empty())
+  {
+    throw invalid_file{
+        "storage_input declares an empty LAYOUT and no BUFFER_USAGE — "
+        "the SSBO graphics emit would produce `readonly buffer NAME_buf "
+        "{ };` which is invalid GLSL (a buffer block must have at least "
+        "one member declarator). Empty LAYOUT only makes sense for "
+        "indirect-draw SSBOs which set BUFFER_USAGE: \"indirect_draw\" "
+        "or \"indirect_draw_indexed\". Either declare members in LAYOUT "
+        "or set BUFFER_USAGE."};
   }
 }
 
@@ -728,6 +759,13 @@ static void parse_input(uniform_input& inp, const sajson::value& v)
         inp.visibility = val.as_string();
     }
   }
+  if(inp.layout.empty())
+  {
+    throw invalid_file{
+        "uniform_input declares an empty LAYOUT — std140 interface blocks "
+        "must contain at least one field. Either declare its members in "
+        "LAYOUT: [{ NAME, TYPE }, ...] or remove the input."};
+  }
 }
 
 static void parse_input(texture_input& inp, const sajson::value& v)
@@ -737,7 +775,14 @@ static void parse_input(texture_input& inp, const sajson::value& v)
   {
     auto val = v.get_object_value(k);
     if(val.get_type() == sajson::TYPE_INTEGER)
-      inp.dimensions = val.get_integer_value();
+    {
+      auto d = val.get_integer_value();
+      if(d != 2 && d != 3)
+        throw invalid_file{
+            "texture_input DIMENSIONS must be 2 or 3 (got " + std::to_string(d)
+            + "). 1D and 4D textures are not supported."};
+      inp.dimensions = d;
+    }
   }
   parse_sampler_config(inp.sampler, v);
   if(inp.dimensions == 3)
@@ -950,14 +995,11 @@ static void parse_auxiliary_texture(
   // bindings. Same story for 3D cubemaps (nonsensical).
   if(out.is_cubemap && out.is_array)
   {
-    fmt::print(
-        stderr,
-        "[isf] auxiliary texture '{}': cubemap + ARRAY is not supported on "
-        "any QRhi backend (cube-array views are not constructible). "
-        "Dropping ARRAY — use a plain cubemap, or decompose to a 2D array "
-        "and do face math in the shader.\n",
-        out.name);
-    out.is_array = false;
+    throw invalid_file{
+        "auxiliary texture '" + out.name
+        + "': cubemap + ARRAY is not supported on any QRhi backend "
+          "(cube-array views are not constructible). Use a plain cubemap, "
+          "or decompose to a 2D array and do face math in the shader."};
   }
   if(out.is_cubemap && out.dimensions == 3)
   {
@@ -1073,6 +1115,48 @@ static void parse_auxiliary_array(
   }
 }
 
+// Validate that every geometry_input ATTRIBUTE.TYPE either names a
+// built-in GLSL scalar/vector/matrix type or matches a user-defined
+// struct declared in descriptor::types. Run AFTER both RESOURCES and
+// TYPES are parsed (TYPES may appear in any order in the JSON) — i.e.
+// once at the end of parse_csf / parse_raw_raster_pipeline. Catches
+// typos in TYPE strings at parse time instead of as a confusing
+// "undefined identifier" GLSL compile error 30 lines deep into the
+// generated shader.
+static void validate_attribute_types(const descriptor& d)
+{
+  static constexpr std::string_view builtins[] = {
+    "float", "int",   "uint",  "bool",
+    "vec2",  "vec3",  "vec4",
+    "ivec2", "ivec3", "ivec4",
+    "uvec2", "uvec3", "uvec4",
+    "mat2",  "mat3",  "mat4"
+  };
+  auto is_builtin = [](std::string_view t) noexcept {
+    for(auto b : builtins) if(t == b) return true;
+    return false;
+  };
+  auto is_user_type = [&](std::string_view t) noexcept {
+    for(const auto& td : d.types) if(td.name == t) return true;
+    return false;
+  };
+  for(const auto& inp : d.inputs)
+  {
+    auto* gi = ossia::get_if<geometry_input>(&inp.data);
+    if(!gi) continue;
+    for(const auto& ar : gi->attributes)
+    {
+      if(ar.type.empty()) continue;
+      if(is_builtin(ar.type) || is_user_type(ar.type)) continue;
+      throw invalid_file{
+          "ATTRIBUTES \"" + ar.name + "\" on geometry resource \"" + inp.name
+          + "\" declares TYPE \"" + ar.type
+          + "\", which is neither a built-in GLSL scalar/vector/matrix type "
+            "nor a user-defined type from the TYPES section."};
+    }
+  }
+}
+
 static void parse_input(geometry_input& inp, const sajson::value& v)
 {
   std::size_t N = v.get_length();
@@ -1155,6 +1239,16 @@ static void parse_input(geometry_input& inp, const sajson::value& v)
         inp.instance_count = std::to_string(val.get_integer_value());
       else if(val.get_type() == sajson::TYPE_DOUBLE)
         inp.instance_count = std::to_string((int)val.get_double_value());
+    }
+    else if(k == "FORMAT_ID")
+    {
+      // String tag stamped on the consumer geometry's filter_tag
+      // (rapidhash truncated to 32 bits). Lets a CSF that produces
+      // primitive-cloud-shaped output declare its format identity in
+      // the JSON header without engine-side knowledge of the format.
+      auto val = v.get_object_value(i);
+      if(val.get_type() == sajson::TYPE_STRING)
+        inp.format_id = val.as_string();
     }
     else if(k == "AUXILIARY")
     {
@@ -1304,9 +1398,23 @@ static void parse_input(csf_image_input& inp, const sajson::value& v)
     {
       auto val = v.get_object_value(i);
       if(val.get_type() == sajson::TYPE_INTEGER)
-        inp.dimensions = val.get_integer_value();
+      {
+        auto d = val.get_integer_value();
+        if(d != 2 && d != 3)
+          throw invalid_file{
+              "csf_image_input DIMENSIONS must be 2 or 3 (got " + std::to_string(d)
+              + "). 1D and 4D textures are not supported."};
+        inp.dimensions = d;
+      }
       else if(val.get_type() == sajson::TYPE_DOUBLE)
-        inp.dimensions = (int)val.get_double_value();
+      {
+        auto d = (int)val.get_double_value();
+        if(d != 2 && d != 3)
+          throw invalid_file{
+              "csf_image_input DIMENSIONS must be 2 or 3 (got " + std::to_string(d)
+              + "). 1D and 4D textures are not supported."};
+        inp.dimensions = d;
+      }
     }
     else if(k == "VISIBILITY")
     {
@@ -1337,17 +1445,21 @@ static void parse_input(csf_image_input& inp, const sajson::value& v)
       else if(t == sajson::TYPE_DOUBLE)
         inp.layers_expression = std::to_string(val.get_double_value());
     }
+    else if(k == "CUBEMAP" || k == "IS_CUBE")
+    {
+      inp.cubemap = v.get_object_value(i).get_type() == sajson::TYPE_TRUE;
+    }
   }
 
   // See the matching note on storage_input — persistent + write_only has no
   // useful semantics because _prev is readonly and nothing writes it.
   if(inp.persistent && inp.access == "write_only")
   {
-    fmt::print(
-        stderr,
-        "[isf] image resource declared as PERSISTENT + ACCESS: write_only — "
-        "_prev will always be zero (no read path to populate it). Use "
-        "ACCESS: read_write or read_only, or drop PERSISTENT.\n");
+    throw invalid_file{
+        "csf_image_input declared as PERSISTENT + ACCESS: write_only is "
+        "invalid — _prev would always read zero (no read path exists to "
+        "populate it). Use ACCESS: read_write or read_only with PERSISTENT, "
+        "or drop PERSISTENT."};
   }
 
   // Cube-array writable images are unsupported (see sampler-side analysis in
@@ -1355,13 +1467,11 @@ static void parse_input(csf_image_input& inp, const sajson::value& v)
   // and the GLSL emitter can assume the combo never shows up.
   if(inp.is_array && inp.cubemap)
   {
-    fmt::print(
-        stderr,
-        "[isf] csf_image_input: IS_ARRAY + image_cube is not supported — "
-        "imageCubeArray views are broken on every QRhi backend. Dropping "
-        "IS_ARRAY. Bind N separate cubemaps or use image2DArray and do face "
-        "math in the shader.\n");
-    inp.is_array = false;
+    throw invalid_file{
+        "csf_image_input: IS_ARRAY + image_cube is not supported — "
+        "imageCubeArray views are broken on every QRhi backend. Bind N "
+        "separate cubemaps or use image2DArray and do face math in the "
+        "shader."};
   }
   // 3D arrays do not exist as a core GLSL image type either.
   if(inp.is_array && inp.is3D())
@@ -1928,7 +2038,9 @@ static const ossia::string_map<root_fun>& root_parse{[] {
           auto k = obj.find_object_key_insensitive(sajson::literal("TYPE"));
           if(k != obj.get_length())
           {
-            std::string type_str = obj.get_object_value(k).as_string();
+            std::string type_str;
+            if(!get_str(obj.get_object_value(k), type_str))
+              continue;
             boost::algorithm::to_lower(type_str);
 
             // "image" with ACCESS or FORMAT → storage image (csf_image_input),
@@ -1954,6 +2066,25 @@ static const ossia::string_map<root_fun>& root_parse{[] {
           }
           else
           {
+            // No TYPE specified — default to storage (SSBO). Matches the
+            // nested-AUXILIARY default (`aux_entry_kind`, ~L820) so the
+            // top-level INPUTS dispatcher behaves the same as nested
+            // declarations. This is the right default because:
+            //   - The dual-bind UBO/SSBO design (scene_counts etc.) is
+            //     SSBO-only after the cross-backend cleanup; readers
+            //     declare `TYPE: "storage", ACCESS: "read_only"`.
+            //   - Authors who omit TYPE on a buffer-shaped declaration
+            //     almost always mean storage, not uniform — uniforms
+            //     have a much smaller addressable subset (no runtime
+            //     arrays, std140 padding) and writers always need
+            //     storage anyway.
+            //   - The previous behaviour silently dropped the entry
+            //     without an error, so a typo'd `TYPE: "uniform"` →
+            //     missing TYPE flipped scene_counts off entirely with
+            //     no warning. Defaulting to storage means the next
+            //     stage (binding emission) will catch the misuse via
+            //     a layout/std430 check rather than a silent skip.
+            d.inputs.push_back(parse<storage_input>(obj));
           }
         }
       }
@@ -2012,26 +2143,48 @@ static const ossia::string_map<root_fun>& root_parse{[] {
             }
             else if(loc_obj.get_type() == sajson::TYPE_STRING)
             {
-              // Parse as integer, e.g. "LOCATION": "3"
-              ip.location = std::stoi(loc_obj.as_string());
+              // Parse as integer, e.g. "LOCATION": "3". std::stoi throws
+              // std::invalid_argument (a logic_error, not runtime_error)
+              // on non-numeric input — catch it locally and surface a
+              // useful invalid_file message instead. The previous
+              // unguarded call escaped through the parser's outer
+              // catch(const std::runtime_error&) and either terminated
+              // (when the parser was invoked from a noexcept context;
+              // see ProcessDropHandler.cpp) or surfaced as the generic
+              // "Unknown error" via the catch(...) fallback at
+              // ShaderProgram.cpp.
               // FIXME parse standard locations from ossia::geometry_port
+              try
+              {
+                ip.location = std::stoi(loc_obj.as_string());
+              }
+              catch(const std::exception&)
+              {
+                throw invalid_file{
+                  std::string("LOCATION must be integer or numeric "
+                              "string, got: \"")
+                  + std::string(loc_obj.as_string()) + "\""};
+              }
             }
           }
 
           if(auto k = obj.find_object_key_insensitive(sajson::literal("TYPE"));
              k != obj.get_length())
           {
-            std::string type_str = obj.get_object_value(k).as_string();
-            boost::algorithm::to_lower(type_str);
-            auto inp = attribute_type_parse.find(type_str);
-            if(inp != attribute_type_parse.end())
-              ip.type = inp->second;
+            std::string type_str;
+            if(get_str(obj.get_object_value(k), type_str))
+            {
+              boost::algorithm::to_lower(type_str);
+              auto inp = attribute_type_parse.find(type_str);
+              if(inp != attribute_type_parse.end())
+                ip.type = inp->second;
+            }
           }
 
           if(auto k = obj.find_object_key_insensitive(sajson::literal("NAME"));
              k != obj.get_length())
           {
-            ip.name = obj.get_object_value(k).as_string();
+            get_str(obj.get_object_value(k), ip.name);
           }
 
           // SEMANTIC (only meaningful on vertex_input): explicit ossia
@@ -2173,7 +2326,9 @@ static const ossia::string_map<root_fun>& root_parse{[] {
           auto k = obj.find_object_key_insensitive(sajson::literal("TYPE"));
           if(k != obj.get_length())
           {
-            std::string type_str = obj.get_object_value(k).as_string();
+            std::string type_str;
+            if(!get_str(obj.get_object_value(k), type_str))
+              continue;
 
             boost::algorithm::to_lower(type_str);
             // Handle special cases for CSF image types
@@ -2429,8 +2584,8 @@ static const ossia::string_map<root_fun>& root_parse{[] {
                = obj.find_object_key_insensitive(sajson::literal("TARGET"));
                target_k != obj.get_length())
             {
-              p.target = obj.get_object_value(target_k).as_string();
-              if(!p.target.empty())
+              if(get_str(obj.get_object_value(target_k), p.target)
+                 && !p.target.empty())
               {
                 d.pass_targets.push_back(p.target);
               }
@@ -2569,13 +2724,13 @@ static const ossia::string_map<root_fun>& root_parse{[] {
           if(auto name_k = obj.find_object_key_insensitive(sajson::literal("NAME"));
              name_k != obj.get_length())
           {
-            out.name = obj.get_object_value(name_k).as_string();
+            get_str(obj.get_object_value(name_k), out.name);
           }
 
           if(auto type_k = obj.find_object_key_insensitive(sajson::literal("TYPE"));
              type_k != obj.get_length())
           {
-            out.type = obj.get_object_value(type_k).as_string();
+            get_str(obj.get_object_value(type_k), out.type);
           }
 
           // Default type to "color" if not specified
@@ -2815,7 +2970,7 @@ static const ossia::string_map<root_fun>& root_parse{[] {
           auto name_key = obj.find_object_key_insensitive(sajson::literal("NAME"));
           if(name_key != obj.get_length())
           {
-            type_def.name = obj.get_object_value(name_key).as_string();
+            get_str(obj.get_object_value(name_key), type_def.name);
           }
 
           // Parse LAYOUT field
@@ -2838,7 +2993,7 @@ static const ossia::string_map<root_fun>& root_parse{[] {
                       = field_obj.find_object_key_insensitive(sajson::literal("NAME"));
                   if(field_name_key != field_obj.get_length())
                   {
-                    field.name = field_obj.get_object_value(field_name_key).as_string();
+                    get_str(field_obj.get_object_value(field_name_key), field.name);
                   }
 
                   // Parse field TYPE
@@ -2846,7 +3001,7 @@ static const ossia::string_map<root_fun>& root_parse{[] {
                       = field_obj.find_object_key_insensitive(sajson::literal("TYPE"));
                   if(field_type_key != field_obj.get_length())
                   {
-                    field.type = field_obj.get_object_value(field_type_key).as_string();
+                    get_str(field_obj.get_object_value(field_type_key), field.type);
                   }
 
                   type_def.layout.push_back(field);
@@ -3226,7 +3381,20 @@ static std::string isf_emit_image_decl(
   auto prefix = isf_glsl_type_prefix(img.format);
   out += "uniform ";
   out += prefix;
-  out += img.is3D() ? "image3D " : "image2D ";
+  // Shape dispatch must mirror the compute-stage emit at isf_emit_compute_-
+  // image_decl below: parser admits CUBEMAP / IS_ARRAY / 3D shapes; the
+  // bound texture's QRhi flags must agree with the GLSL declaration.
+  // Cube and array variants on graphics-stage csf_image_input were
+  // previously emitted as flat image2D, mismatching the cube/array texture
+  // bound by IsfBindingsBuilder's allocator and triggering Vulkan
+  // VUID-VkGraphicsPipelineCreateInfo-layout-07990.
+  // Priority: cubemap > 3D > array > 2D (matches the parser's own reject
+  // table at isf.cpp:1446-1463 which forbids cube+array and array+3D).
+  const char* shape = "image2D ";
+  if(img.isCube())      shape = "imageCube ";
+  else if(img.is3D())   shape = "image3D ";
+  else if(img.is_array) shape = "image2DArray ";
+  out += shape;
   out += name;
   out += ";\n";
   return out;
@@ -3338,6 +3506,35 @@ void parser::parse_isf()
   if(m_desc.passes.empty())
   {
     m_desc.passes.push_back(isf::pass{});
+  }
+
+  // Fragment-mode ISF cannot drive PASSES that target a 3D / Z-sliced
+  // OUTPUT: that requires per-Z-slice color attachments / 3D image
+  // storage plumbing through the pass-target allocator and the
+  // beginPass site, which the RenderedISFNode renderer does not yet
+  // wire end-to-end. Authors should use a CSF compute shader
+  // (EXECUTION_MODEL: 3D_IMAGE) for true volumetric writes; refusing
+  // to load here is loud and prevents a silent 2D downgrade that
+  // would make every imageStore / fragment write target the wrong
+  // memory.
+  for(const auto& pass : m_desc.passes)
+  {
+    bool target_is_3d = false;
+    for(const auto& out : m_desc.outputs)
+    {
+      if(out.name == pass.target && out.depth > 1)
+      {
+        target_is_3d = true;
+        break;
+      }
+    }
+    if(!pass.z_expression.empty() || target_is_3d)
+    {
+      throw invalid_file{
+          "fragment-mode ISF with PASSES targeting Z / 3D OUTPUTS is not "
+          "yet supported in this engine — use CSF compute "
+          "(EXECUTION_MODEL: 3D_IMAGE) for volumetric writes."};
+    }
   }
 
   auto& d = m_desc;
@@ -4106,6 +4303,9 @@ void parser::parse_raw_raster_pipeline()
   // Replace the special ISF stuff
   boost::replace_all(m_fragment, "gl_FragColor", "isf_FragColor");
   boost::replace_all(m_fragment, "vv_Frag", "isf_Frag");
+
+  // Sanity-check ATTRIBUTES.TYPE references — see helper above.
+  validate_attribute_types(m_desc);
 }
 
 void parser::parse_shadertoy()
@@ -4968,6 +5168,8 @@ std::string parser::write_isf() const
             try { std::stoi(geo.instance_count); oss << ",\n      \"INSTANCE_COUNT\": " << geo.instance_count; }
             catch(...) { oss << ",\n      \"INSTANCE_COUNT\": \"" << escape_json(geo.instance_count) << "\""; }
           }
+          if(!geo.format_id.empty())
+            oss << ",\n      \"FORMAT_ID\": \"" << escape_json(geo.format_id) << "\"";
           if(!geo.attributes.empty())
           {
             oss << ",\n      \"ATTRIBUTES\": [\n";
@@ -5714,7 +5916,11 @@ void parser::parse_csf()
           m_fragment += "restrict ";
 
         auto prefix = glsl_type_prefix(img.format);
-        m_fragment += "uniform " + prefix + (img.is3D() ? "image3D " : "image2D ");
+        const char* shape = "image2D";
+        if(img.isCube())      shape = "imageCube";
+        else if(img.is3D())   shape = "image3D";
+        else if(img.is_array) shape = "image2DArray";
+        m_fragment += "uniform " + prefix + shape + " ";
         m_fragment += decl_name + ";\n";
       };
 
@@ -6003,6 +6209,11 @@ void parser::parse_csf()
   // Add the user's compute shader code (without the JSON header)
   boost::algorithm::trim(compWithoutCSF);
   m_fragment += compWithoutCSF;
+
+  // Sanity-check: every ATTRIBUTES.TYPE references a real GLSL built-in
+  // or a TYPES entry. Throws invalid_file with the offending name on
+  // miss — surfaces typos at parse time.
+  validate_attribute_types(m_desc);
 }
 
 descriptor::Mode parser::mode() const

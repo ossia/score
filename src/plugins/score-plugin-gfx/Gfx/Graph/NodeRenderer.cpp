@@ -24,13 +24,6 @@ void NodeRenderer::releaseState(RenderList&) { }
 
 void NodeRenderer::addOutputPass(RenderList&, Edge&, QRhiResourceUpdateBatch&) { }
 
-void NodeRenderer::removeOutputPass(RenderList& renderer, Edge& edge)
-{
-  // Default: find the pass for this edge in m_passes (if the renderer
-  // uses the base-class m_passes storage) and release it.
-  // Renderers that don't store passes in m_passes should override.
-}
-
 void NodeRenderer::updateInputSamplerFilter(
     const Port& input, const RenderTargetSpecs& spec)
 {

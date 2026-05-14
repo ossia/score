@@ -56,7 +56,9 @@ struct RenderedMergeGeometriesNode final : NodeRenderer
   void rebuild()
   {
     auto list = std::make_shared<ossia::mesh_list>();
+    auto filters = std::make_shared<ossia::geometry_filter_list>();
     int64_t maxDirty = 0;
+    int64_t maxFilterDirty = 0;
     for(int i = 0; i < MergeGeometriesNode::kMaxInputs; ++i)
     {
       const auto* found = findFirstByPort((int32_t)i);
@@ -71,13 +73,21 @@ struct RenderedMergeGeometriesNode final : NodeRenderer
           in.meshes->meshes.begin(),
           in.meshes->meshes.end());
       maxDirty = std::max(maxDirty, in.meshes->dirty_index);
+      if(in.filters)
+      {
+        filters->filters.insert(
+            filters->filters.end(),
+            in.filters->filters.begin(),
+            in.filters->filters.end());
+        maxFilterDirty = std::max(maxFilterDirty, in.filters->dirty_index);
+      }
       m_cachedInputs[i] = in;
     }
     list->dirty_index = maxDirty + 1;
+    filters->dirty_index = maxFilterDirty + 1;
 
     m_outputSpec.meshes = std::move(list);
-    if(!m_outputSpec.filters)
-      m_outputSpec.filters = std::make_shared<ossia::geometry_filter_list>();
+    m_outputSpec.filters = std::move(filters);
   }
 
   void update(RenderList&, QRhiResourceUpdateBatch&, Edge*) override
@@ -109,6 +119,9 @@ struct RenderedMergeGeometriesNode final : NodeRenderer
   }
 
   void runRenderPass(RenderList&, QRhiCommandBuffer&, Edge&) override { }
+
+  // Data-only renderer — no per-edge GPU pass state to release.
+  void removeOutputPass(RenderList&, Edge&) override { }
 };
 
 MergeGeometriesNode::MergeGeometriesNode()

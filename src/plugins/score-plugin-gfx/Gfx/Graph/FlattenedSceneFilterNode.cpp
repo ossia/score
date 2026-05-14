@@ -2,6 +2,7 @@
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 
+#include <ossia/detail/hash.hpp>
 #include <ossia/network/value/value_conversion.hpp>
 
 #include <algorithm>
@@ -16,6 +17,7 @@ struct RenderedFlattenedSceneFilterNode final : NodeRenderer
   ossia::geometry_spec m_lastInput;
   int m_lastMode{-1};
   int m_lastMatch{0};
+  std::string m_lastMatchStr;
 
   RenderedFlattenedSceneFilterNode(const FlattenedSceneFilterNode& n)
       : NodeRenderer{n}
@@ -29,10 +31,13 @@ struct RenderedFlattenedSceneFilterNode final : NodeRenderer
     m_outputSpec = {};
     m_lastInput = {};
     m_lastMode = -1;
+    m_lastMatchStr.clear();
     m_initialized = false;
   }
 
-  bool predicate(const ossia::geometry& g, int mode, uint32_t match) const noexcept
+  bool predicate(
+      const ossia::geometry& g, int mode, uint32_t match,
+      uint32_t match_str_hash) const noexcept
   {
     switch(mode)
     {
@@ -48,6 +53,8 @@ struct RenderedFlattenedSceneFilterNode final : NodeRenderer
       case 9:  return (uint32_t)g.cull_mode != match;
       case 10: return (uint32_t)g.topology == match;
       case 11: return (uint32_t)g.topology != match;
+      case 12: return g.filter_tag == match_str_hash;
+      case 13: return g.filter_tag != match_str_hash;
       default: return true;
     }
   }
@@ -64,9 +71,17 @@ struct RenderedFlattenedSceneFilterNode final : NodeRenderer
       return;
 
     const uint32_t matchU = (uint32_t)m_node.m_match;
+    // Same hash producers stamp on filter_tag (rapidhash truncated to 32
+    // bits). Empty match_str short-circuits to 0u so it matches the
+    // "untagged" sentinel rather than rapidhash-of-empty (a non-zero
+    // value that would never match anything in practice).
+    const uint32_t matchStrHash
+        = m_node.m_match_str.empty()
+              ? 0u
+              : (uint32_t)ossia::hash_string(m_node.m_match_str);
     for(const auto& g : this->geometry.meshes->meshes)
     {
-      if(predicate(g, m_node.m_mode, matchU))
+      if(predicate(g, m_node.m_mode, matchU, matchStrHash))
         m_outputSpec.meshes->meshes.push_back(g);
     }
     m_outputSpec.meshes->dirty_index = this->geometry.meshes->dirty_index;
@@ -76,7 +91,8 @@ struct RenderedFlattenedSceneFilterNode final : NodeRenderer
   {
     const bool geomChanged = (this->geometry != m_lastInput) || this->geometryChanged;
     const bool paramsChanged
-        = (m_node.m_mode != m_lastMode) || (m_node.m_match != m_lastMatch);
+        = (m_node.m_mode != m_lastMode) || (m_node.m_match != m_lastMatch)
+          || (m_node.m_match_str != m_lastMatchStr);
     if(!geomChanged && !paramsChanged && m_outputSpec.meshes)
       return;
 
@@ -84,6 +100,7 @@ struct RenderedFlattenedSceneFilterNode final : NodeRenderer
     m_lastInput = this->geometry;
     m_lastMode = m_node.m_mode;
     m_lastMatch = m_node.m_match;
+    m_lastMatchStr = m_node.m_match_str;
     this->geometryChanged = false;
   }
 
@@ -107,6 +124,9 @@ struct RenderedFlattenedSceneFilterNode final : NodeRenderer
   }
 
   void runRenderPass(RenderList&, QRhiCommandBuffer&, Edge&) override { }
+
+  // Data-only renderer — no per-edge GPU pass state to release.
+  void removeOutputPass(RenderList&, Edge&) override { }
 };
 
 FlattenedSceneFilterNode::FlattenedSceneFilterNode()
@@ -118,10 +138,17 @@ FlattenedSceneFilterNode::FlattenedSceneFilterNode()
     auto* data = new int{0};
     input.push_back(new Port{this, data, Types::Int, {}});
   }
-  // Port 2: match value
+  // Port 2: match value (int, modes 0..11)
   {
     auto* data = new int{0};
     input.push_back(new Port{this, data, Types::Int, {}});
+  }
+  // Port 3: match string (modes 12/13). Carried as a control-only port
+  // (no GPU edge type — strings flow through ossia::value via process()
+  // rather than as a GPU resource handle).
+  {
+    auto* data = new std::string{};
+    input.push_back(new Port{this, data, Types::Empty, {}});
   }
   output.push_back(new Port{this, {}, Types::Geometry, {}});
 }
@@ -138,6 +165,10 @@ void FlattenedSceneFilterNode::process(int32_t port, const ossia::value& v)
       break;
     case 2:
       m_match = ossia::convert<int>(v);
+      materialChange();
+      break;
+    case 3:
+      m_match_str = ossia::convert<std::string>(v);
       materialChange();
       break;
     default:

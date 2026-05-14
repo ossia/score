@@ -13,6 +13,20 @@
 namespace score::gfx
 {
 
+// Pre-condition: cb must NOT have an active render or compute pass.
+// Metal allows only one encoder open on a command buffer at a time; calling
+// [MTLCommandBuffer blitCommandEncoder] while a render or compute encoder is
+// still open will trigger a Metal internal assertion or silent misbehaviour.
+// Call this between cb.endPass() and the next cb.beginPass().
+//
+// Hazard tracking: Metal's default MTLHazardTrackingModeTracked automatically
+// inserts a dependency between this blit encoder and any subsequent encoder on
+// the same command buffer that accesses the same buffer. No explicit MTLFence
+// or MTLBarrier is required for tracked resources.
+//
+// Note: QRhi's own QRhiResourceUpdateBatch::copyBuffer enforces the
+// no-active-pass contract internally. This native-handle path bypasses that
+// check, so the caller is responsible for ensuring no encoder is open.
 void copyBufferMetal(
     QRhi& rhi, QRhiCommandBuffer& cb,
     QRhiBuffer* src, QRhiBuffer* dst, int size,
@@ -52,6 +66,14 @@ void copyBufferMetal(
   [blit endEncoding];
 }
 
+// Pre-condition: cb must NOT have an active render or compute pass.
+// Same contract as copyBufferMetal above: only one encoder may be open on a
+// MTLCommandBuffer at a time. Caller is responsible for ensuring no render or
+// compute encoder is currently open before calling this function.
+//
+// Metal's default hazard tracking inserts the required memory dependency
+// between this blit and subsequent encoders on the same command buffer that
+// read the destination buffer; no explicit fence is needed.
 void copyBufferRegionsMetal(
     QRhi& rhi, QRhiCommandBuffer& cb,
     QRhiBuffer* src, QRhiBuffer* dst,

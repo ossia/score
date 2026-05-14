@@ -46,6 +46,61 @@
 
 namespace Gfx::Spout
 {
+namespace
+{
+// Cached snapshot of what we last observed from the Spout sender.
+// Allows detecting size/format/handle changes between frames.
+struct SpoutSenderInfo
+{
+  unsigned int width{};
+  unsigned int height{};
+  DWORD dxgiFormat{};
+  HANDLE handle{};
+
+  friend bool operator==(const SpoutSenderInfo&, const SpoutSenderInfo&) noexcept
+      = default;
+};
+
+bool querySpoutSender(const char* name, SpoutSenderInfo& out) noexcept
+{
+  spoutSenderNames senders;
+  return senders.GetSenderInfo(name, out.width, out.height, out.handle, out.dxgiFormat);
+}
+
+QRhiTexture::Format
+dxgiToQRhiFormat(DWORD dxgi, QRhi::Implementation backend) noexcept
+{
+  // For OpenGL we keep RGBA channel order regardless of sender layout:
+  // Spout's GL-DX interop handles the BGRA<->RGBA conversion on its side.
+  const bool wantNativeBGRA = (backend == QRhi::D3D11 || backend == QRhi::D3D12
+                               || backend == QRhi::Vulkan);
+
+  switch(static_cast<DXGI_FORMAT>(dxgi))
+  {
+    case DXGI_FORMAT_R8G8B8A8_UNORM:
+    case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+    case DXGI_FORMAT_R8G8B8A8_TYPELESS:
+      return QRhiTexture::RGBA8;
+    case DXGI_FORMAT_B8G8R8A8_UNORM:
+    case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
+    case DXGI_FORMAT_B8G8R8A8_TYPELESS:
+      return wantNativeBGRA ? QRhiTexture::BGRA8 : QRhiTexture::RGBA8;
+    case DXGI_FORMAT_R10G10B10A2_UNORM:
+    case DXGI_FORMAT_R10G10B10A2_TYPELESS:
+      return QRhiTexture::RGB10A2;
+    case DXGI_FORMAT_R16G16B16A16_UNORM:
+    case DXGI_FORMAT_R16G16B16A16_FLOAT:
+    case DXGI_FORMAT_R16G16B16A16_TYPELESS:
+      return QRhiTexture::RGBA16F;
+    case DXGI_FORMAT_R32G32B32A32_FLOAT:
+    case DXGI_FORMAT_R32G32B32A32_TYPELESS:
+      return QRhiTexture::RGBA32F;
+    default:
+      return wantNativeBGRA ? QRhiTexture::BGRA8 : QRhiTexture::RGBA8;
+  }
+}
+}
+
 class InputSettingsWidget final : public SharedInputSettingsWidget
 {
 public:
@@ -102,14 +157,12 @@ private:
   // Spout DirectX (for D3D11)
   spoutDirectX m_spoutDX;
   ID3D11Texture2D* m_receivedTexture{};
-  HANDLE m_sharedHandle{};
 
   // D3D11On12 interop (for D3D12)
   ID3D11On12Device* m_d3d11On12Device{};
   ID3D11Device* m_d3d11Device{};
   ID3D11DeviceContext* m_d3d11Context{};
   ID3D11Resource* m_wrappedTexture{};
-  ID3D11Texture2D* m_spoutSharedTexture{}; // Cached Spout shared texture
 
 #if SCORE_SPOUT_VULKAN
   // Vulkan-D3D11 interop using KMT handles (SpoutVK approach)
@@ -117,11 +170,13 @@ private:
   // using the legacy DXGI shared handle (KMT type)
   VkImage m_vkLinkedImage{};              // VkImage linked to Spout's shared D3D11 texture
   VkDeviceMemory m_vkLinkedMemory{};      // Device memory imported from D3D11 texture
-  unsigned int m_vkSenderWidth{};
-  unsigned int m_vkSenderHeight{};
-  DWORD m_vkSenderFormat{};
   bool m_vkInitialized{};
 #endif
+
+  // Last-known sender info — used to detect size/format/handle changes.
+  SpoutSenderInfo m_lastSender{};
+  // Current destination texture format (may differ from sender DXGI byte-order on OpenGL).
+  QRhiTexture::Format m_textureFormat{QRhiTexture::RGBA8};
 
   bool enabled{};
   QRhi::Implementation m_backend{QRhi::Null};
@@ -155,46 +210,57 @@ private:
         sizeof(score::gfx::VideoMaterialUBO));
     m_materialUBO->create();
 
-    // Initialize based on backend
-    unsigned int w = 0, h = 0;
-
+    // Backend-specific bring-up (creates D3D11On12 device, OpenGL receiver context, etc.)
+    // Does NOT allocate the destination texture — that happens once we know the format.
     switch(m_backend)
     {
       case QRhi::OpenGLES2:
-        initOpenGL(rhi, w, h);
+        initOpenGL(rhi);
         break;
       case QRhi::D3D11:
-        initD3D11(rhi, w, h);
+        initD3D11(rhi);
         break;
       case QRhi::D3D12:
-        initD3D12(rhi, w, h);
+        initD3D12(rhi);
         break;
 #if SCORE_SPOUT_VULKAN
       case QRhi::Vulkan:
-        initVulkan(rhi, w, h);
+        initVulkan(rhi);
         break;
 #endif
       default:
         break;
     }
 
-    // Use reasonable defaults if no sender found yet
-    if(w == 0 || h == 0)
+    // Probe sender once up-front so we can pick a matching texture format.
+    // If no sender is present yet, fall through to safe defaults and let the
+    // first successful update() reconfigure to the real format.
+    SpoutSenderInfo si;
+    if(querySpoutSender(node.settings.path.toStdString().c_str(), si)
+       && si.width > 0 && si.height > 0)
     {
-      w = 1280;
-      h = 720;
+      enabled = true;
+    }
+    else
+    {
+      si = {};
+      si.width = 1280;
+      si.height = 720;
+      // Default DXGI format mirrors the previous fallback (BGRA on D3D/Vulkan, RGBA on GL)
+      si.dxgiFormat = (m_backend == QRhi::D3D11 || m_backend == QRhi::D3D12
+                       || m_backend == QRhi::Vulkan)
+                          ? DXGI_FORMAT_B8G8R8A8_UNORM
+                          : DXGI_FORMAT_R8G8B8A8_UNORM;
       enabled = false;
     }
 
-    metadata.width = w;
-    metadata.height = h;
+    m_lastSender = si;
+    m_textureFormat = dxgiToQRhiFormat(si.dxgiFormat, m_backend);
+    metadata.width = si.width;
+    metadata.height = si.height;
 
-    // Use BGRA for D3D/Vulkan backends (native DXGI format), RGBA for OpenGL
-    auto format = (m_backend == QRhi::D3D11 || m_backend == QRhi::D3D12
-                   || m_backend == QRhi::Vulkan)
-                      ? QRhiTexture::BGRA8
-                      : QRhiTexture::RGBA8;
-    m_gpu = std::make_unique<score::gfx::PackedDecoder>(format, 4, metadata, QString{}, true);
+    m_gpu = std::make_unique<score::gfx::PackedDecoder>(
+        m_textureFormat, 4, metadata, QString{}, true);
 
     // Cache shaders from GPU decoder init
     if(m_gpu)
@@ -252,54 +318,25 @@ private:
       addOutputPass(renderer, *edge, res);
   }
 
-  void initOpenGL(QRhi& rhi, unsigned int& w, unsigned int& h)
+  void initOpenGL(QRhi& rhi)
   {
     m_receiver.SetReceiverName(node.settings.path.toStdString().c_str());
     rhi.makeThreadLocalNativeContextCurrent();
-
-    if(m_receiver.ReceiveTexture())
-    {
-      w = m_receiver.GetSenderWidth();
-      h = m_receiver.GetSenderHeight();
-      enabled = true;
-    }
   }
 
-  void initD3D11(QRhi& rhi, unsigned int& w, unsigned int& h)
+  void initD3D11(QRhi& rhi)
   {
-    // Get the D3D11 device from QRhi
     auto nativeHandles
         = static_cast<const QRhiD3D11NativeHandles*>(rhi.nativeHandles());
     if(!nativeHandles || !nativeHandles->dev)
       return;
 
     auto device = static_cast<ID3D11Device*>(nativeHandles->dev);
-
-    // Initialize Spout DirectX with the QRhi device
-    if(!m_spoutDX.OpenDirectX11(device))
-      return;
-
-    // Try to find and connect to the sender
-    spoutSenderNames senderNames;
-    char senderName[256]{0};
-    strncpy_s(senderName, node.settings.path.toStdString().c_str(), 255);
-
-    unsigned int senderWidth = 0, senderHeight = 0;
-    DWORD dwFormat = 0;
-    HANDLE shareHandle = nullptr;
-
-    if(senderNames.GetSenderInfo(senderName, senderWidth, senderHeight, shareHandle, dwFormat))
-    {
-      w = senderWidth;
-      h = senderHeight;
-      m_sharedHandle = shareHandle;
-      enabled = true;
-    }
+    m_spoutDX.OpenDirectX11(device);
   }
 
-  void initD3D12(QRhi& rhi, unsigned int& w, unsigned int& h)
+  void initD3D12(QRhi& rhi)
   {
-    // Get D3D12 device and command queue from QRhi
     auto nativeHandles
         = static_cast<const QRhiD3D12NativeHandles*>(rhi.nativeHandles());
     if(!nativeHandles || !nativeHandles->dev || !nativeHandles->commandQueue)
@@ -317,7 +354,6 @@ private:
     if(FAILED(hr) || !m_d3d11Device)
       return;
 
-    // Get the D3D11On12Device interface
     hr = m_d3d11Device->QueryInterface(
         __uuidof(ID3D11On12Device), reinterpret_cast<void**>(&m_d3d11On12Device));
     if(FAILED(hr) || !m_d3d11On12Device)
@@ -326,50 +362,11 @@ private:
       m_d3d11Device = nullptr;
       m_d3d11Context->Release();
       m_d3d11Context = nullptr;
-      return;
-    }
-
-    // Try to find and connect to the sender
-    spoutSenderNames senderNames;
-    char senderName[256]{0};
-    strncpy_s(senderName, node.settings.path.toStdString().c_str(), 255);
-
-    unsigned int senderWidth = 0, senderHeight = 0;
-    DWORD dwFormat = 0;
-    HANDLE shareHandle = nullptr;
-
-    if(senderNames.GetSenderInfo(senderName, senderWidth, senderHeight, shareHandle, dwFormat))
-    {
-      w = senderWidth;
-      h = senderHeight;
-      m_sharedHandle = shareHandle;
-      enabled = true;
     }
   }
 
 #if SCORE_SPOUT_VULKAN
-  void initVulkan(QRhi& rhi, unsigned int& w, unsigned int& h)
-  {
-    // Try to find and connect to the sender
-    spoutSenderNames senderNames;
-    char senderName[256]{0};
-    strncpy_s(senderName, node.settings.path.toStdString().c_str(), 255);
-
-    unsigned int senderWidth = 0, senderHeight = 0;
-    DWORD dwFormat = 0;
-    HANDLE shareHandle = nullptr;
-
-    if(senderNames.GetSenderInfo(senderName, senderWidth, senderHeight, shareHandle, dwFormat))
-    {
-      w = senderWidth;
-      h = senderHeight;
-      m_sharedHandle = shareHandle;
-      m_vkSenderWidth = senderWidth;
-      m_vkSenderHeight = senderHeight;
-      m_vkSenderFormat = dwFormat;
-      enabled = true;
-    }
-  }
+  void initVulkan(QRhi& /*rhi*/) { }
 #endif
 
 
@@ -413,6 +410,8 @@ private:
     auto tex = m_gpu->samplers[0].texture;
     auto gltex = static_cast<QGles2Texture*>(tex);
 
+    // Probe sender presence — this also lets Spout update its internal
+    // m_bUpdated flag, which IsUpdated() then reports/clears.
     if(!m_receiver.ReceiveTexture())
     {
       enabled = false;
@@ -421,16 +420,14 @@ private:
 
     enabled = true;
 
-    if(m_receiver.IsUpdated())
+    // Pull the full sender state (size + DXGI format + handle) for change detection.
+    // GetSenderInfo reads from the Spout sender-names shared memory and is cheap.
+    SpoutSenderInfo si;
+    if(querySpoutSender(node.settings.path.toStdString().c_str(), si)
+       && si.width > 0 && si.height > 0)
     {
-      unsigned int w = m_receiver.GetSenderWidth();
-      unsigned int h = m_receiver.GetSenderHeight();
-
-      if(w > 0 && h > 0 && (w != metadata.width || h != metadata.height))
-      {
-        resizeTexture(tex, w, h);
+      if(reconfigureIfNeeded(rhi, si))
         gltex->specified = true;
-      }
     }
 
     GLuint texId = gltex->texture;
@@ -452,16 +449,8 @@ private:
     auto device = static_cast<ID3D11Device*>(nativeHandles->dev);
     auto context = static_cast<ID3D11DeviceContext*>(nativeHandles->context);
 
-    // Check for sender updates
-    spoutSenderNames senderNames;
-    char senderName[256]{0};
-    strncpy_s(senderName, node.settings.path.toStdString().c_str(), 255);
-
-    unsigned int senderWidth = 0, senderHeight = 0;
-    DWORD dwFormat = 0;
-    HANDLE shareHandle = nullptr;
-
-    if(!senderNames.GetSenderInfo(senderName, senderWidth, senderHeight, shareHandle, dwFormat))
+    SpoutSenderInfo si;
+    if(!querySpoutSender(node.settings.path.toStdString().c_str(), si))
     {
       enabled = false;
       return;
@@ -469,25 +458,16 @@ private:
 
     enabled = true;
 
-    // Check if size or handle changed
-    if(senderWidth != metadata.width || senderHeight != metadata.height
-       || shareHandle != m_sharedHandle)
-    {
-      // Release cached shared texture if handle changed
-      if(m_receivedTexture && shareHandle != m_sharedHandle)
-      {
-        m_receivedTexture->Release();
-        m_receivedTexture = nullptr;
-      }
-      m_sharedHandle = shareHandle;
-      resizeTexture(tex, senderWidth, senderHeight);
-    }
+    // Recreate the destination texture if anything changed.
+    // Important: D3D11 CopyResource requires source & destination formats to match,
+    // so we have to honor the sender's DXGI format here.
+    reconfigureIfNeeded(rhi, si);
 
     // Open the shared texture (cache it to avoid reopening every frame)
-    if(!m_receivedTexture && m_sharedHandle)
+    if(!m_receivedTexture && m_lastSender.handle)
     {
-      HRESULT hr
-          = device->OpenSharedResource(m_sharedHandle, IID_PPV_ARGS(&m_receivedTexture));
+      HRESULT hr = device->OpenSharedResource(
+          m_lastSender.handle, IID_PPV_ARGS(&m_receivedTexture));
       if(FAILED(hr))
         m_receivedTexture = nullptr;
     }
@@ -507,16 +487,8 @@ private:
     SCORE_ASSERT(!m_gpu->samplers.empty());
     auto tex = m_gpu->samplers[0].texture;
 
-    // Check for sender updates
-    spoutSenderNames senderNames;
-    char senderName[256]{0};
-    strncpy_s(senderName, node.settings.path.toStdString().c_str(), 255);
-
-    unsigned int senderWidth = 0, senderHeight = 0;
-    DWORD dwFormat = 0;
-    HANDLE shareHandle = nullptr;
-
-    if(!senderNames.GetSenderInfo(senderName, senderWidth, senderHeight, shareHandle, dwFormat))
+    SpoutSenderInfo si;
+    if(!querySpoutSender(node.settings.path.toStdString().c_str(), si))
     {
       enabled = false;
       return;
@@ -524,24 +496,9 @@ private:
 
     enabled = true;
 
-    // Check if size changed - need to re-wrap the texture
-    bool sizeChanged = (senderWidth != metadata.width || senderHeight != metadata.height);
-    bool handleChanged = (shareHandle != m_sharedHandle);
-
-    if(sizeChanged || handleChanged)
-    {
-      // Release old wrapped resource
-      if(m_wrappedTexture)
-      {
-        m_wrappedTexture->Release();
-        m_wrappedTexture = nullptr;
-      }
-
-      m_sharedHandle = shareHandle;
-
-      if(sizeChanged)
-        resizeTexture(tex, senderWidth, senderHeight);
-    }
+    // Recreate destination texture (and drop the cached D3D11 wrapped resource)
+    // when the sender's size, format or share handle changes.
+    reconfigureIfNeeded(rhi, si);
 
     // Get the native D3D12 resource from QRhiTexture
     auto nativeTex = tex->nativeTexture();
@@ -571,8 +528,8 @@ private:
 
     // Open the Spout shared texture via D3D11
     ID3D11Texture2D* sharedTex = nullptr;
-    HRESULT hr
-        = m_d3d11Device->OpenSharedResource(m_sharedHandle, IID_PPV_ARGS(&sharedTex));
+    HRESULT hr = m_d3d11Device->OpenSharedResource(
+        m_lastSender.handle, IID_PPV_ARGS(&sharedTex));
     if(FAILED(hr) || !sharedTex)
       return;
 
@@ -614,13 +571,11 @@ private:
     }
   }
 
-  // Link a Vulkan image to D3D11 shared texture memory using KMT handle
-  // Based on SpoutVK::LinkVulkanImage from the official SpoutVulkan examples
+  // Link a Vulkan image to D3D11 shared texture memory using KMT handle.
+  // Caller is expected to have torn down any prior linked resources via
+  // releaseVulkanResources() and the QRhiTexture's destroy() before calling.
   bool linkVulkanImage(QRhi& rhi, HANDLE dxShareHandle, unsigned int w, unsigned int h, DWORD dwFormat)
   {
-    if(m_vkInitialized)
-      return false;
-
     auto nativeHandles = static_cast<const QRhiVulkanNativeHandles*>(rhi.nativeHandles());
     if(!nativeHandles || !nativeHandles->dev || !nativeHandles->physDev)
       return false;
@@ -630,33 +585,12 @@ private:
 
     VkFormat vulkanFormat = dxgiToVulkanFormat(dwFormat);
 
-    // Release any previous resources
+    // Defensive: ensure nothing leaks if caller did not release first.
     releaseVulkanResources(rhi);
 
-    // The handle type for Spout sender is KMT (legacy shared handle)
-    // NOT NT handle - this is critical for Spout compatibility
-    VkExternalMemoryHandleTypeFlags handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_D3D11_TEXTURE_KMT_BIT;
+    // Spout shares D3D11 textures via legacy KMT handles (NOT NT handles).
+    constexpr auto handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_D3D11_TEXTURE_KMT_BIT;
 
-    // Query support for external image format using KMT handles
-    VkPhysicalDeviceImageFormatInfo2 formatInfo = {};
-    formatInfo.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_FORMAT_INFO_2;
-    formatInfo.format = vulkanFormat;
-    formatInfo.type = VK_IMAGE_TYPE_2D;
-    formatInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-    formatInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-
-    VkPhysicalDeviceExternalImageFormatInfo externalFormatInfo = {};
-    externalFormatInfo.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_IMAGE_FORMAT_INFO;
-    externalFormatInfo.handleType = (VkExternalMemoryHandleTypeFlagBits)handleType;
-    formatInfo.pNext = &externalFormatInfo;
-
-    VkExternalImageFormatProperties externalImageFormatProps = {};
-    externalImageFormatProps.sType = VK_STRUCTURE_TYPE_EXTERNAL_IMAGE_FORMAT_PROPERTIES;
-    VkImageFormatProperties2 imageFormatProps2 = {};
-    imageFormatProps2.sType = VK_STRUCTURE_TYPE_IMAGE_FORMAT_PROPERTIES_2;
-    imageFormatProps2.pNext = &externalImageFormatProps;
-
-    // Use vkGetPhysicalDeviceImageFormatProperties2 to check support
     auto* inst = score::gfx::staticVulkanInstance();
     if(!inst)
       return false;
@@ -667,33 +601,69 @@ private:
     if(!dfuncs)
       return false;
 
-    // We need to use the device-level function for this
-    auto vkGetPhysicalDeviceImageFormatProperties2Func
-        = reinterpret_cast<PFN_vkGetPhysicalDeviceImageFormatProperties2>(
-            inst->getInstanceProcAddr("vkGetPhysicalDeviceImageFormatProperties2"));
-    if(!vkGetPhysicalDeviceImageFormatProperties2Func)
-      return false;
-
-    VkResult result = vkGetPhysicalDeviceImageFormatProperties2Func(vkPhysDev, &formatInfo, &imageFormatProps2);
-    if(result != VK_SUCCESS)
+    // Resolve vkGetMemoryWin32HandlePropertiesKHR via vkGetDeviceProcAddr.
+    //
+    // Why not inst->getInstanceProcAddr("vkGetMemoryWin32HandlePropertiesKHR")?
+    // Qt forwards that to vkGetInstanceProcAddr, which for device-level
+    // extension functions can return a non-null trampoline that CRASHES
+    // when called: the instance loader has no per-device dispatch for
+    // device extensions, so calling that pointer dereferences garbage.
+    //
+    // vkGetDeviceProcAddr is itself a core 1.0 function, so resolving IT
+    // through inst->getInstanceProcAddr is safe — that part of the loader
+    // has proper dispatch. We then call the device-level resolver to get
+    // a pointer that's valid for THIS device's enabled extensions.
+    PFN_vkGetMemoryWin32HandlePropertiesKHR pfnGetMemWin32Props = nullptr;
     {
-      qWarning() << "SpoutInput: KMT handle type not supported for Vulkan external memory";
-      return false;
+      auto pfnGetDeviceProcAddr = reinterpret_cast<PFN_vkGetDeviceProcAddr>(
+          inst->getInstanceProcAddr("vkGetDeviceProcAddr"));
+      if(pfnGetDeviceProcAddr)
+      {
+        pfnGetMemWin32Props
+            = reinterpret_cast<PFN_vkGetMemoryWin32HandlePropertiesKHR>(
+                pfnGetDeviceProcAddr(
+                    vkDevice, "vkGetMemoryWin32HandlePropertiesKHR"));
+      }
     }
 
-    // Check if import is supported
-    VkExternalMemoryFeatureFlags externalMemoryFeatures
-        = externalImageFormatProps.externalMemoryProperties.externalMemoryFeatures;
-    if(!(externalMemoryFeatures & VK_EXTERNAL_MEMORY_FEATURE_IMPORTABLE_BIT))
+    // Probe whether import for this format/handle type is supported.
+    // Note: this is informational; the real test is the memory-type
+    // intersection below.
+    VkExternalMemoryFeatureFlags externalMemoryFeatures = 0;
     {
-      qWarning() << "SpoutInput: Cannot import memory with KMT handle type";
-      return false;
+      VkPhysicalDeviceExternalImageFormatInfo externalFormatInfo = {};
+      externalFormatInfo.sType
+          = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_IMAGE_FORMAT_INFO;
+      externalFormatInfo.handleType = handleType;
+
+      VkPhysicalDeviceImageFormatInfo2 formatInfo = {};
+      formatInfo.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_FORMAT_INFO_2;
+      formatInfo.pNext = &externalFormatInfo;
+      formatInfo.format = vulkanFormat;
+      formatInfo.type = VK_IMAGE_TYPE_2D;
+      formatInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+      formatInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+
+      VkExternalImageFormatProperties extProps = {};
+      extProps.sType = VK_STRUCTURE_TYPE_EXTERNAL_IMAGE_FORMAT_PROPERTIES;
+
+      VkImageFormatProperties2 props2 = {};
+      props2.sType = VK_STRUCTURE_TYPE_IMAGE_FORMAT_PROPERTIES_2;
+      props2.pNext = &extProps;
+
+      auto pfnGetPhysFmt2 = reinterpret_cast<PFN_vkGetPhysicalDeviceImageFormatProperties2>(
+          inst->getInstanceProcAddr("vkGetPhysicalDeviceImageFormatProperties2"));
+      if(pfnGetPhysFmt2)
+      {
+        VkResult r = pfnGetPhysFmt2(vkPhysDev, &formatInfo, &props2);
+        if(r == VK_SUCCESS)
+          externalMemoryFeatures = extProps.externalMemoryProperties.externalMemoryFeatures;
+      }
     }
 
-    // Create the Vulkan import image with external memory info
+    // Create the VkImage with external memory info.
     VkExternalMemoryImageCreateInfo extMemoryImageInfo = {};
     extMemoryImageInfo.sType = VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO;
-    extMemoryImageInfo.pNext = nullptr;
     extMemoryImageInfo.handleTypes = handleType;
 
     VkImageCreateInfo imageCreateInfo = {};
@@ -706,81 +676,122 @@ private:
     imageCreateInfo.arrayLayers = 1;
     imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
     imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-    imageCreateInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+    imageCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
     imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
-    result = dfuncs->vkCreateImage(vkDevice, &imageCreateInfo, nullptr, &m_vkLinkedImage);
+    VkResult result
+        = dfuncs->vkCreateImage(vkDevice, &imageCreateInfo, nullptr, &m_vkLinkedImage);
     if(result != VK_SUCCESS)
     {
-      qWarning() << "SpoutInput: Could not create Vulkan image for external memory";
+      qWarning() << "SpoutInput: vkCreateImage failed for external memory:" << result;
+      m_vkLinkedImage = VK_NULL_HANDLE;
       return false;
     }
 
-    // Get memory requirements
+    // Memory requirements as dictated by the image we just created.
     VkMemoryRequirements memRequirements;
     dfuncs->vkGetImageMemoryRequirements(vkDevice, m_vkLinkedImage, &memRequirements);
 
-    // Find suitable memory type
-    VkPhysicalDeviceMemoryProperties memProperties;
-    funcs->vkGetPhysicalDeviceMemoryProperties(vkPhysDev, &memProperties);
-
-    uint32_t memoryTypeIndex = UINT32_MAX;
-    for(uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
+    // For an imported KMT handle, the spec requires picking a memoryTypeIndex
+    // from the intersection of memRequirements.memoryTypeBits and the bits
+    // returned by vkGetMemoryWin32HandlePropertiesKHR for that handle.
+    uint32_t handleMemoryTypeBits = 0;
+    if(pfnGetMemWin32Props)
     {
-      if((memRequirements.memoryTypeBits & (1 << i))
-         && (memProperties.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
-      {
-        memoryTypeIndex = i;
-        break;
-      }
+      VkMemoryWin32HandlePropertiesKHR handleProps = {};
+      handleProps.sType = VK_STRUCTURE_TYPE_MEMORY_WIN32_HANDLE_PROPERTIES_KHR;
+      VkResult hr
+          = pfnGetMemWin32Props(vkDevice, handleType, dxShareHandle, &handleProps);
+      if(hr == VK_SUCCESS)
+        handleMemoryTypeBits = handleProps.memoryTypeBits;
+      else
+        qWarning() << "SpoutInput: vkGetMemoryWin32HandlePropertiesKHR failed:" << hr;
+    }
+    else
+    {
+      qWarning() << "SpoutInput: vkGetMemoryWin32HandlePropertiesKHR not available";
     }
 
-    if(memoryTypeIndex == UINT32_MAX)
+    const uint32_t supportedBits
+        = memRequirements.memoryTypeBits & handleMemoryTypeBits;
+    if(supportedBits == 0)
     {
-      qWarning() << "SpoutInput: No suitable memory type for external import";
+      qWarning() << "SpoutInput: No memory type supports the shared KMT handle"
+                 << "(memReqBits=" << Qt::hex << memRequirements.memoryTypeBits
+                 << "handleBits=" << handleMemoryTypeBits << ")";
       dfuncs->vkDestroyImage(vkDevice, m_vkLinkedImage, nullptr);
       m_vkLinkedImage = VK_NULL_HANDLE;
       return false;
     }
 
-    // Set up import memory info with KMT handle
+    VkPhysicalDeviceMemoryProperties memProperties;
+    funcs->vkGetPhysicalDeviceMemoryProperties(vkPhysDev, &memProperties);
+
+    // Prefer DEVICE_LOCAL among compatible types; fall back to any compatible.
+    uint32_t memoryTypeIndex = UINT32_MAX;
+    for(uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
+    {
+      if((supportedBits & (1u << i))
+         && (memProperties.memoryTypes[i].propertyFlags
+             & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
+      {
+        memoryTypeIndex = i;
+        break;
+      }
+    }
+    if(memoryTypeIndex == UINT32_MAX)
+    {
+      for(uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
+      {
+        if(supportedBits & (1u << i))
+        {
+          memoryTypeIndex = i;
+          break;
+        }
+      }
+    }
+    if(memoryTypeIndex == UINT32_MAX)
+    {
+      dfuncs->vkDestroyImage(vkDevice, m_vkLinkedImage, nullptr);
+      m_vkLinkedImage = VK_NULL_HANDLE;
+      return false;
+    }
+
+    // Import the KMT handle.
     VkImportMemoryWin32HandleInfoKHR importMemoryInfo = {};
     importMemoryInfo.sType = VK_STRUCTURE_TYPE_IMPORT_MEMORY_WIN32_HANDLE_INFO_KHR;
-    importMemoryInfo.pNext = nullptr;
-    importMemoryInfo.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_D3D11_TEXTURE_KMT_BIT;
+    importMemoryInfo.handleType = handleType;
     importMemoryInfo.handle = dxShareHandle;
-    importMemoryInfo.name = nullptr;
 
-    // Check if dedicated allocation is required
-    bool dedicatedRequired = (externalMemoryFeatures & VK_EXTERNAL_MEMORY_FEATURE_DEDICATED_ONLY_BIT) != 0;
-
+    // Dedicated allocation: KMT-imported memory backs exactly one image,
+    // so we always dedicate. Required by some drivers, harmless on others.
+    (void)externalMemoryFeatures;
     VkMemoryDedicatedAllocateInfo dedicatedAllocInfo = {};
     dedicatedAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO;
     dedicatedAllocInfo.pNext = &importMemoryInfo;
     dedicatedAllocInfo.image = m_vkLinkedImage;
-    dedicatedAllocInfo.buffer = VK_NULL_HANDLE;
 
     VkMemoryAllocateInfo allocInfo = {};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.pNext = dedicatedRequired ? (void*)&dedicatedAllocInfo : (void*)&importMemoryInfo;
+    allocInfo.pNext = &dedicatedAllocInfo;
     allocInfo.allocationSize = memRequirements.size;
     allocInfo.memoryTypeIndex = memoryTypeIndex;
 
     result = dfuncs->vkAllocateMemory(vkDevice, &allocInfo, nullptr, &m_vkLinkedMemory);
     if(result != VK_SUCCESS)
     {
-      qWarning() << "SpoutInput: Could not allocate memory for external import";
+      qWarning() << "SpoutInput: vkAllocateMemory for external import failed:" << result;
       dfuncs->vkDestroyImage(vkDevice, m_vkLinkedImage, nullptr);
       m_vkLinkedImage = VK_NULL_HANDLE;
+      m_vkLinkedMemory = VK_NULL_HANDLE;
       return false;
     }
 
-    // Bind memory to the Vulkan image
     result = dfuncs->vkBindImageMemory(vkDevice, m_vkLinkedImage, m_vkLinkedMemory, 0);
     if(result != VK_SUCCESS)
     {
-      qWarning() << "SpoutInput: Could not bind memory to image";
+      qWarning() << "SpoutInput: vkBindImageMemory failed:" << result;
       dfuncs->vkFreeMemory(vkDevice, m_vkLinkedMemory, nullptr);
       m_vkLinkedMemory = VK_NULL_HANDLE;
       dfuncs->vkDestroyImage(vkDevice, m_vkLinkedImage, nullptr);
@@ -794,16 +805,8 @@ private:
 
   void updateVulkan(QRhi& rhi, QRhiResourceUpdateBatch& res)
   {
-    // Check for sender updates
-    spoutSenderNames senderNames;
-    char senderName[256]{0};
-    strncpy_s(senderName, node.settings.path.toStdString().c_str(), 255);
-
-    unsigned int senderWidth = 0, senderHeight = 0;
-    DWORD dwFormat = 0;
-    HANDLE shareHandle = nullptr;
-
-    if(!senderNames.GetSenderInfo(senderName, senderWidth, senderHeight, shareHandle, dwFormat))
+    SpoutSenderInfo si;
+    if(!querySpoutSender(node.settings.path.toStdString().c_str(), si))
     {
       enabled = false;
       return;
@@ -811,63 +814,16 @@ private:
 
     enabled = true;
 
-    // Check if size, format, or handle changed
-    bool needsRecreate = !m_vkInitialized
-                         || senderWidth != m_vkSenderWidth
-                         || senderHeight != m_vkSenderHeight
-                         || dwFormat != m_vkSenderFormat
-                         || shareHandle != m_sharedHandle;
-
-    if(needsRecreate)
+    // On Vulkan the destination QRhiTexture must be (re)linked to the
+    // sender's shared D3D11 memory whenever size, format or handle changes.
+    // The first frame after init also flows through here because m_vkInitialized
+    // is still false (initState only allocates a plain placeholder texture).
+    if(!m_vkInitialized)
     {
-      // Update stored values
-      m_sharedHandle = shareHandle;
-      m_vkSenderWidth = senderWidth;
-      m_vkSenderHeight = senderHeight;
-      m_vkSenderFormat = dwFormat;
-
-      // Create linked Vulkan image from Spout's shared handle
-      if(!linkVulkanImage(rhi, shareHandle, senderWidth, senderHeight, dwFormat))
-      {
-        enabled = false;
-        return;
-      }
-
-      // Update metadata and texture size
-      if(senderWidth != metadata.width || senderHeight != metadata.height)
-      {
-        metadata.width = senderWidth;
-        metadata.height = senderHeight;
-        material.scale[0] = 1.f;
-        material.scale[1] = 1.f;
-        material.textureSize[0] = metadata.width;
-        material.textureSize[1] = metadata.height;
-      }
-
-      // Update QRhiTexture to use the linked VkImage
-      SCORE_ASSERT(!m_gpu->samplers.empty());
-      auto tex = m_gpu->samplers[0].texture;
-
-      tex->destroy();
-      tex->setPixelSize(QSize(senderWidth, senderHeight));
-
-      QRhiTexture::NativeTexture nativeTex;
-      nativeTex.object = (quint64)m_vkLinkedImage;
-      // The linked image is in GENERAL layout for shared memory compatibility
-      nativeTex.layout = VK_IMAGE_LAYOUT_GENERAL;
-
-      if(!tex->createFrom(nativeTex))
-      {
-        qWarning() << "SpoutInput: Failed to create QRhiTexture from linked VkImage";
-        releaseVulkanResources(rhi);
-        enabled = false;
-        return;
-      }
-
-      // Recreate shader resource bindings
-      for(auto& pass : m_p)
-        pass.second.p.srb->create();
+      // Force reconfiguration even if state happens to match the placeholder.
+      m_lastSender = {};
     }
+    reconfigureIfNeeded(rhi, si);
 
     // The texture content is automatically synchronized because
     // the VkImage memory is linked to the D3D11 shared texture.
@@ -894,35 +850,156 @@ private:
     if(!dfuncs)
       return;
 
-    if(m_vkLinkedMemory)
-    {
-      dfuncs->vkFreeMemory(vkDevice, m_vkLinkedMemory, nullptr);
-      m_vkLinkedMemory = VK_NULL_HANDLE;
-    }
+    // Destroy the image (and any binding to memory) before freeing the memory.
     if(m_vkLinkedImage)
     {
       dfuncs->vkDestroyImage(vkDevice, m_vkLinkedImage, nullptr);
       m_vkLinkedImage = VK_NULL_HANDLE;
     }
+    if(m_vkLinkedMemory)
+    {
+      dfuncs->vkFreeMemory(vkDevice, m_vkLinkedMemory, nullptr);
+      m_vkLinkedMemory = VK_NULL_HANDLE;
+    }
     m_vkInitialized = false;
   }
 #endif
 
-  void resizeTexture(QRhiTexture* tex, unsigned int w, unsigned int h)
+  // Drop backend-specific caches that are tied to the previous sender handle,
+  // format or size. Called from reconfigureIfNeeded() before recreating the
+  // destination texture, and from releaseState() during teardown.
+  void releaseSharedResources(QRhi& rhi)
   {
-    metadata.width = w;
-    metadata.height = h;
+    switch(m_backend)
+    {
+      case QRhi::D3D11:
+        if(m_receivedTexture)
+        {
+          m_receivedTexture->Release();
+          m_receivedTexture = nullptr;
+        }
+        break;
+      case QRhi::D3D12:
+        if(m_wrappedTexture)
+        {
+          m_wrappedTexture->Release();
+          m_wrappedTexture = nullptr;
+        }
+        break;
+#if SCORE_SPOUT_VULKAN
+      case QRhi::Vulkan:
+        releaseVulkanResources(rhi);
+        break;
+#endif
+      default:
+        break;
+    }
+  }
+
+  // Returns true if anything was reconfigured (texture recreated). When that
+  // happens, callers may need to refresh backend-specific state that depends
+  // on the underlying QRhiTexture (e.g. OpenGL's `specified` flag).
+  //
+  // Always ensures the QRhiTexture has a valid backing on return (either a
+  // linked import or a plain placeholder), so the SRB rebuild that follows
+  // never produces a null VkImageView descriptor write.
+  bool reconfigureIfNeeded(QRhi& rhi, const SpoutSenderInfo& sender)
+  {
+    if(sender.width == 0 || sender.height == 0)
+      return false;
+
+    const QRhiTexture::Format newFormat
+        = dxgiToQRhiFormat(sender.dxgiFormat, m_backend);
+
+    const bool sizeChanged
+        = sender.width != m_lastSender.width || sender.height != m_lastSender.height;
+    const bool formatChanged = newFormat != m_textureFormat;
+    const bool handleChanged = sender.handle != m_lastSender.handle;
+    if(!sizeChanged && !formatChanged && !handleChanged)
+      return false;
+
+    SCORE_ASSERT(!m_gpu->samplers.empty());
+    auto tex = m_gpu->samplers[0].texture;
+
+    // Tear-down order matters: the QRhi-owned VkImageView (or D3D SRV) must
+    // be destroyed BEFORE the underlying native resource it was created
+    // from. Calling tex->destroy() first does the former; then
+    // releaseSharedResources() drops the latter.
+    tex->destroy();
+    releaseSharedResources(rhi);
+
+    tex->setPixelSize(QSize(sender.width, sender.height));
+    tex->setFormat(newFormat);
+
+    bool linked = false;
+#if SCORE_SPOUT_VULKAN
+    if(m_backend == QRhi::Vulkan)
+    {
+      if(linkVulkanImage(
+             rhi, sender.handle, sender.width, sender.height, sender.dxgiFormat))
+      {
+        QRhiTexture::NativeTexture nt;
+        nt.object = (quint64)m_vkLinkedImage;
+        nt.layout = VK_IMAGE_LAYOUT_GENERAL;
+        if(tex->createFrom(nt))
+        {
+          linked = true;
+        }
+        else
+        {
+          qWarning() << "SpoutInput: createFrom(VkImage) failed during reconfigure";
+          releaseVulkanResources(rhi);
+        }
+      }
+    }
+#endif
+
+    bool ok = linked;
+    if(!ok)
+    {
+      // Either non-Vulkan path, or Vulkan link failed. Allocate a normal
+      // QRhiTexture so the SRB has a valid view to bind. On Vulkan this
+      // yields a black/undefined image but avoids the
+      // VUID-VkWriteDescriptorSet-descriptorType-02997 validation error
+      // and the subsequent draw-time crash.
+      ok = tex->create();
+    }
+
+    if(!ok)
+    {
+      enabled = false;
+      // Do NOT advance m_lastSender — let the next frame retry from scratch.
+      return false;
+    }
+
+    // Update metadata + material UBO.
+    metadata.width = sender.width;
+    metadata.height = sender.height;
     material.scale[0] = 1.f;
     material.scale[1] = 1.f;
     material.textureSize[0] = metadata.width;
     material.textureSize[1] = metadata.height;
 
-    tex->destroy();
-    tex->setPixelSize(QSize(w, h));
-    tex->create();
+    m_textureFormat = newFormat;
+    m_lastSender = sender;
+#if SCORE_SPOUT_VULKAN
+    if(m_backend == QRhi::Vulkan && !linked)
+    {
+      // Link failed for this sender configuration. We mark the renderer as
+      // disabled (so callers can show a fallback frame) but record the
+      // sender state so we don't churn through destroy/create every frame.
+      // A natural retry happens when the sender's size, format or share
+      // handle changes.
+      enabled = false;
+    }
+#endif
 
+    // Pipelines stay valid (only the input sampler binding changed), but the
+    // SRB references the QRhiTexture pointer/format and must be rebuilt.
     for(auto& pass : m_p)
       pass.second.p.srb->create();
+
+    return true;
   }
 
   void runRenderPass(
@@ -938,26 +1015,26 @@ private:
     if(!m_initialized)
       return;
 
+    // Order matters: destroy QRhi-owned resources (QRhiTexture wrappers and
+    // their image views) BEFORE the underlying native shared resources they
+    // wrap. Otherwise the QRhiTexture destruction may operate on a view
+    // whose underlying VkImage / D3D resource has already been released.
+    if(m_gpu)
+    {
+      m_gpu->release(r);
+    }
+
+    // Now drop the native shared resources we hold.
+    releaseSharedResources(*r.state.rhi);
+
     switch(m_backend)
     {
       case QRhi::OpenGLES2:
         if(enabled)
           m_receiver.ReleaseReceiver();
         break;
-      case QRhi::D3D11:
-        if(m_receivedTexture)
-        {
-          m_receivedTexture->Release();
-          m_receivedTexture = nullptr;
-        }
-        break;
       case QRhi::D3D12:
-        // Release D3D11On12 resources
-        if(m_wrappedTexture)
-        {
-          m_wrappedTexture->Release();
-          m_wrappedTexture = nullptr;
-        }
+        // Release the D3D11On12 interop layer (set up in initD3D12).
         if(m_d3d11On12Device)
         {
           m_d3d11On12Device->Release();
@@ -974,26 +1051,13 @@ private:
           m_d3d11Device = nullptr;
         }
         break;
-#if SCORE_SPOUT_VULKAN
-      case QRhi::Vulkan:
-        releaseVulkanResources(*r.state.rhi);
-        m_vkSenderWidth = 0;
-        m_vkSenderHeight = 0;
-        m_vkSenderFormat = 0;
-        break;
-#endif
       default:
         break;
     }
 
     enabled = false;
-    m_receivedTexture = nullptr;
-    m_sharedHandle = nullptr;
-
-    if(m_gpu)
-    {
-      m_gpu->release(r);
-    }
+    m_lastSender = {};
+    m_textureFormat = QRhiTexture::RGBA8;
 
     delete m_processUBO;
     m_processUBO = nullptr;

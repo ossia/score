@@ -41,7 +41,6 @@ struct RenderedCSFNode : score::gfx::NodeRenderer
   void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& edge) override;
 
 private:
-  void initComputePass(const TextureRenderTarget& rt, RenderList& renderer, Edge& edge, QRhiResourceUpdateBatch& res);
   void initComputeSRBAndPasses(RenderList& renderer, QRhiResourceUpdateBatch& res);
   void createComputePipeline(RenderList& renderer);
   void createGraphicsPass(const TextureRenderTarget& rt, RenderList& renderer, Edge& edge, QRhiResourceUpdateBatch& res);
@@ -62,22 +61,24 @@ private:
       RenderList& renderer, const QString& name, const QString& access, int size);
   void updateStorageBuffers(RenderList& renderer, QRhiResourceUpdateBatch& res);
   void recreateShaderResourceBindings(RenderList& renderer, QRhiResourceUpdateBatch& res);
+
+  // Single source of truth for the CSF compute SRB binding list. Walks the
+  // descriptor's INPUTS / RESOURCES / AUXILIARIES in order and emits one
+  // QRhiShaderResourceBinding per shader binding slot. Both
+  // initComputeSRBAndPasses (init path) and recreateShaderResourceBindings
+  // (re-emit path) call this so the two paths can never drift in their
+  // emission order, indices, or fallback-on-missing-resource policy.
+  // Binding 1 (ProcessUBO) is left as a nullptr placeholder; each caller
+  // patches it per-pass. Output: appended to `bindings`.
+  void buildComputeSrbBindings(
+      RenderList& renderer, QRhiResourceUpdateBatch& res,
+      QList<QRhiShaderResourceBinding>& bindings);
   int getArraySizeFromUI(const QString& bufferName) const;
   QString updateShaderWithImageFormats(QString current);
 
   // Geometry buffer management
   void updateGeometryBindings(RenderList& renderer, QRhiResourceUpdateBatch& res);
 
-  /// Walk the scenes delivered on every geometry_input port and refresh the
-  /// broadcast match set (m_broadcastBindings). Short-circuits when the
-  /// upstream scene_state pointer + dirty_index match the cached keys — in
-  /// the steady state (unchanged glTF scene re-published every frame) this
-  /// is a couple of pointer compares and returns immediately.
-  ///
-  /// Does NOT allocate per-primitive SSBOs or SRBs: this is detection only.
-  /// The dispatch-wiring step happens in a separate follow-up that consumes
-  /// m_broadcastBindings.
-  void refreshBroadcastMatches();
   void pushOutputGeometry(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge& edge);
   int resolveCountExpression(
       const std::string& expr, const isf::geometry_input& geo,
@@ -91,6 +92,12 @@ private:
     QRhiComputePipeline* pipeline{};
     QRhiShaderResourceBindings* srb{};
     QRhiBuffer* processUBO{};
+    // Hash of the last bindings vector applied to `srb`. Compared in
+    // recreateShaderResourceBindings to skip a destroy+setBindings+
+    // create cycle when the bindings haven't actually changed since the
+    // previous frame. 0 = "never built / unknown" — first call always
+    // rebuilds. See RenderedCSFNode.cpp recreateShaderResourceBindings.
+    size_t srbBindingsHash{0};
   };
 
   struct GraphicsPass
@@ -220,6 +227,7 @@ private:
     std::vector<AttributeSSBO> attribute_ssbos;
     std::vector<AuxiliarySSBO> auxiliary_ssbos;
     std::vector<AuxiliaryTexture> auxiliary_textures;
+    std::string input_name;    // RESOURCES[].NAME (e.g. "geoIn", "geoOut") — used by PER_VERTEX/PER_INSTANCE TARGET filtering
     int vertex_count{0};       // Number of elements (vertices) in the geometry
     int instance_count{1};      // Number of instances
     int input_port_index{-1};   // Input port index for this binding (-1 = no input port, e.g. write_only generator)
@@ -248,70 +256,6 @@ private:
     bool uses_indirect_draw{false};
   };
   std::vector<GeometryBinding> m_geometryBindings;
-
-  // Scene-broadcast cache ---------------------------------------------------
-  //
-  // When a geometry_input port is wired to an upstream producing a scene with
-  // multiple mesh_primitives (glTF/FBX loaders, merged scenes, …), the CSF
-  // should dispatch once per matching primitive rather than just the first
-  // one. The single-primitive path (today's behavior, used by every existing
-  // shader) stays in m_geometryBindings; additional primitives live here.
-  //
-  // Lifetime: entries are allocated when a primitive first matches the
-  // geometry_input's declared attribute schema and released when the primitive
-  // leaves the match set (scene version changed, primitive removed). Keyed by
-  // `source_primitive` (raw pointer — stable across frames within one scene
-  // version).
-  //
-  // Steady-state (scene unchanged) fast path: the match walk is gated by a
-  // scene_state identity + dirty_index compare, so when upstream re-publishes
-  // the same scene the cache is reused verbatim — zero allocations, zero
-  // shared_ptr churn, just N setShaderResources + N dispatch calls per frame.
-  struct BroadcastPrimitive
-  {
-    // Stable pointer identity of the source. For modern scenes this is
-    // `const ossia::mesh_primitive*` (a pointer into mesh_component::primitives);
-    // for scenes wrapped from a legacy geometry_spec this is
-    // `const ossia::geometry*` (a pointer into legacy_geometry.meshes). Both
-    // are stable across frames within one scene version, which is all the
-    // match cache needs — the dispatch-wiring follow-up will re-discriminate
-    // by type when it allocates SSBOs.
-    const void* source_primitive{};
-
-    // Per-primitive attribute + auxiliary SSBOs. Same shape as
-    // GeometryBinding's nested types; a dedicated allocation so the primary
-    // path keeps referencing m_geometryBindings by index.
-    std::vector<GeometryBinding::AttributeSSBO> attribute_ssbos;
-    std::vector<GeometryBinding::AuxiliarySSBO> auxiliary_ssbos;
-
-    int vertex_count{0};
-    int instance_count{1};
-
-    // Cloned output mesh_primitive reused across frames — stable shared_ptr
-    // so the output scene_state pointer doesn't churn while upstream is
-    // unchanged. Rebuilt only when this primitive's GPU buffers are
-    // (re)allocated.
-    std::shared_ptr<const ossia::mesh_primitive> cached_output;
-  };
-
-  // Per geometry_input port: the primitives matched on that port (beyond the
-  // primary one tracked in m_geometryBindings). Outer vector is indexed in
-  // lock-step with m_geometryBindings; inner vector is the extra matches.
-  std::vector<std::vector<BroadcastPrimitive>> m_broadcastBindings;
-
-  // Cache invalidation keys for the broadcast match walk, per geometry_input
-  // port. When both match the current upstream, skip the walk entirely.
-  struct BroadcastCacheKey
-  {
-    ossia::scene_state_ptr last_state;
-    int64_t last_dirty_index{-1};
-    bool populated{false}; //!< True once the walk has run at least once
-                           //!< for this (state, dirty) pair. Needed so
-                           //!< legitimate matched==0 results also hit the
-                           //!< steady-state short-circuit instead of
-                           //!< re-walking every frame.
-  };
-  std::vector<BroadcastCacheKey> m_broadcastCacheKeys;
 
   QRhiBuffer* m_materialUBO{};
   int m_materialSize{};

@@ -418,6 +418,13 @@ struct geometry_input
   std::string vertex_count;   // expression string, may contain $USER
   std::string instance_count; // expression string, may contain $USER
 
+  // Optional format identity stamped onto the consumer geometry's
+  // filter_tag (rapidhash truncated to 32 bits). Only meaningful on
+  // RESOURCES of TYPE: geometry used as outputs (geoOut). Empty leaves
+  // filter_tag at 0 (the "untagged" sentinel) — no routing change for
+  // CSFs that don't author an output format.
+  std::string format_id;
+
   struct indirect_request
   {
     std::string count; // expression string (same resolver as vertex_count)

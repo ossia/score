@@ -81,7 +81,10 @@ public:
       RenderList& renderer, Edge& edge, QRhiResourceUpdateBatch& res);
 
   /// Remove the pass for a removed output edge.
-  virtual void removeOutputPass(RenderList& renderer, Edge& edge);
+  /// Pure-virtual: every concrete renderer must explicitly handle edge
+  /// removal. Sinks (OutputNodeRenderer) and data-only renderers that
+  /// store no per-edge GPU state can override with an empty body.
+  virtual void removeOutputPass(RenderList& renderer, Edge& edge) = 0;
 
   /// Notify the renderer that a new input edge was connected.
   /// Typically updates sampler textures or geometry bindings.

@@ -160,16 +160,12 @@ public:
   std::pair<const engine_key, std::shared_ptr<Engine>> acquireEngine(QRhi* rhi)
   {
     const auto key = engine_key{std::this_thread::get_id(), rhi};
-    // FIXME find if there's a more atomic way to implement this with insert_or_visit,
-    // without calling init() inside the map's lock.
     std::shared_ptr<Engine> res;
-    m_engines.visit(key, [&](const auto& engine) { res = engine.second; });
-
-    if(!res)
-    {
-      res = std::make_shared<Engine>();
-      m_engines.insert({key, res});
-    }
+    m_engines.try_emplace_and_visit(
+        key,
+        std::make_shared<Engine>(),
+        [&](auto& slot) { res = slot.second; },   // newly-inserted visitor
+        [&](auto& slot) { res = slot.second; });  // existing-key visitor
     return {key, res};
   }
 
@@ -463,6 +459,15 @@ void main ()
             QRhiTextureCopyDescription desc;
             res.copyTexture(texture, rt.texture, desc);
           }
+          else
+          {
+            // The upstream RT changed dimensions or sample count since the
+            // last initState()/reloadEngine(). Resize the inlet item so Qt
+            // Quick rebuilds its QSGRhiLayer at the new size; this frame's
+            // copy is intentionally skipped (src/dst pair is mismatched)
+            // and the next update() will copy correctly.
+            item->setSize(rt.texture->pixelSize());
+          }
         }
       }
     }
@@ -542,6 +547,15 @@ void main ()
     // setCustomCommandBuffer(cb) with setCustomCommandBuffer(nullptr)
     // to avoid leaving a dangling pointer past the frame.
     cd->setCustomCommandBuffer(nullptr);
+    // Symmetric reset of QQuickRenderControlPrivate::cb. The earlier
+    // assignment at `rc->cb = &cb` (line ~523) bound the private field
+    // to a stack reference parameter; without this nullptr reset the
+    // pointer dangled into reclaimed stack memory after the frame
+    // returned. Whether Qt internals dereferenced it between frames
+    // depended on the QQuickRenderControlPrivate event-loop paths
+    // (animation tick / glyph upload completion / sync without render),
+    // but the fix is one line either way and removes the foot-gun.
+    rc->cb = nullptr;
 
     // Force-drain Qt Quick's glyph-cache resource-update batch. The batch
     // is lazily allocated in preprocess() (storeGlyphs → createTexture →
@@ -571,9 +585,8 @@ void main ()
     {
       m_engine->m_engine->collectGarbage();
     }
-
-    QEvent* updateRequest = new QEvent(QEvent::UpdateRequest);
-    QCoreApplication::postEvent(m_window, updateRequest);
+    // No UpdateRequest post needed: runInitialPasses drives sync/render
+    // directly via polishItems/syncSceneGraph/renderSceneGraph each frame.
   }
 
   void runRenderPass(
@@ -796,6 +809,15 @@ void GpuNode::Engine::releaseItem()
 {
   if(m_item)
   {
+    // LOAD-BEARING: these two detach calls must precede deleteLater().
+    // The immediate caller (GpuRenderer::reloadEngine, GPUNode.cpp:419-420)
+    // follows this with init(), whose QML reactive bindings and child-walkers
+    // must not observe the dying item. setParentItem(nullptr) removes it from
+    // contentItem->childItems() synchronously; setParent(nullptr) severs the
+    // QObject ownership chain. deleteLater() then safely defers actual
+    // destruction to the next event loop tick. Collapsing the two detach
+    // calls into deleteLater() alone would briefly expose two items under
+    // contentItem to the new createItem(), breaking the scene graph.
     m_item->setParent(nullptr);
     m_item->setParentItem(nullptr);
     m_item->deleteLater();
@@ -970,7 +992,7 @@ void GpuNode::Engine::init(
     if(!m_context)
     {
       m_context = new QQmlContext{m_engine.get()};
-      m_execFuncs = new DeviceContext{*m_engine};
+      m_execFuncs = new DeviceContext{*m_engine, m_context};
       m_execFuncs->init();
 
       m_context->setContextProperty("Device", m_execFuncs);
@@ -1040,62 +1062,45 @@ void gpu_exec_node::setScript(
   exec_context->ui->unregister_node(id);
   id = score::gfx::invalid_node_index;
 
-  //if(id < 0)
+  auto n = std::make_unique<JS::GpuNode>(
+      m_context, std::move(new_state), root, str, this->root_inputs(),
+      this->root_outputs());
+
   {
-    auto n = std::make_unique<JS::GpuNode>(
-        m_context, std::move(new_state), root, str, this->root_inputs(),
-        this->root_outputs());
+    auto& element = *m_context;
 
+    n->moveToThread(m_context->thread());
+    n->m_uiContext = m_context;
+    n->m_messageToUi = [ctx=m_context] (const QVariant& v){
+      OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
+      if(!ctx)
+        return;
+      ctx->executionToUi(v);
+    };
+
+    QObject::connect(
+        &element, &JS::ProcessModel::uiToExecution, n.get(), &JS::GpuNode::uiMessage);
+    QObject::connect(
+        &element, &JS::ProcessModel::stateElementChanged, n.get(),
+        &JS::GpuNode::stateElementChanged);
     {
-      auto& element = *m_context;
 
-      n->moveToThread(m_context->thread());
-      n->m_uiContext = m_context;
-      n->m_messageToUi = [ctx=m_context] (const QVariant& v){
-        OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
-        if(!ctx)
-          return;
-        ctx->executionToUi(v);
-      };
-
-      QObject::connect(
-          &element, &JS::ProcessModel::uiToExecution, n.get(), &JS::GpuNode::uiMessage);
-      QObject::connect(
-          &element, &JS::ProcessModel::stateElementChanged, n.get(),
-          &JS::GpuNode::stateElementChanged);
+      int i = 0;
+      for(auto& ctl : element.inlets())
       {
-
-        int i = 0;
-        for(auto& ctl : element.inlets())
+        if(auto ctrl = qobject_cast<Gfx::TextureInlet*>(ctl))
         {
-          if(auto ctrl = qobject_cast<Gfx::TextureInlet*>(ctl))
-          {
-            ossia::texture_inlet& inl
-                = static_cast<ossia::texture_inlet&>(*root_inputs()[i]);
-            n->process(i, inl.data); // Setup render_target_spec
-            // FIXME this should be done at a more general level, right now it's only done here
-            // and in avendish nodes
-          }
-          i++;
+          ossia::texture_inlet& inl
+              = static_cast<ossia::texture_inlet&>(*root_inputs()[i]);
+          n->process(i, inl.data); // Setup render_target_spec
+          // FIXME this should be done at a more general level, right now it's only done here
+          // and in avendish nodes
         }
+        i++;
       }
     }
-    id = exec_context->ui->register_node(std::move(n));
   }
-  /*
-  else
-  {
-    // FIXME need to update the ports if they changed on the host side!
-    auto msg = exec_context->allocateMessage(1);
-    msg.node_id = id;
-    msg.input.emplace_back(score::gfx::FunctionMessage{[str](score::gfx::Node& nn) {
-      auto& n = static_cast<GpuNode&>(nn);
-      n.source = str; // FIXME mutex
-      n.sourceIndex++;
-    }});
-    exec_context->ui->send_message(std::move(msg));
-  }
-*/
+  id = exec_context->ui->register_node(std::move(n));
 }
 }
 #endif

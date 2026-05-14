@@ -82,6 +82,8 @@ private:
 
   bool enabled{};
   bool m_usingMetal{};
+  int m_emptyFrameCount{0};
+  static constexpr int kReopenAfterEmpty = 60;
 
   ~Renderer() { }
 
@@ -339,13 +341,22 @@ private:
     {
       auto& rhi = *renderer.state.rhi;
       openServer(rhi);
+      m_emptyFrameCount = 0;
     }
 
     if (m_usingMetal)
     {
       // Metal path
       if (!m_mtlReceiver || !m_mtlReceiver.hasNewFrame)
+      {
+        if (++m_emptyFrameCount >= kReopenAfterEmpty)
+        {
+          enabled = false;
+          m_emptyFrameCount = 0;
+        }
         return;
+      }
+      m_emptyFrameCount = 0;
 
       id<MTLTexture> mtlTex = [m_mtlReceiver newFrameImage];
       if (!mtlTex)
@@ -371,7 +382,15 @@ private:
     {
       // OpenGL path
       if (!m_receiver || !m_receiver.hasNewFrame)
+      {
+        if (++m_emptyFrameCount >= kReopenAfterEmpty)
+        {
+          enabled = false;
+          m_emptyFrameCount = 0;
+        }
         return;
+      }
+      m_emptyFrameCount = 0;
 
       auto img = [m_receiver newFrameImage];
       if (!img)

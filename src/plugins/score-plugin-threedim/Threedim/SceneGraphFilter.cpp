@@ -509,12 +509,6 @@ void SceneGraphFilter::rebuild()
     m_cached_out = in.state;
     m_cached_in_state = in_state;
     m_cached_in_version = in_version;
-    m_cached_mode = inputs.mode.value;
-    m_cached_invert = inputs.invert.value;
-    m_cached_component = inputs.component.value;
-    m_cached_paths = inputs.paths.value;
-    m_cached_names = inputs.names.value;
-    m_cached_material_tags = inputs.material_tags.value;
     m_pending_dirty = 0xFF;
     return;
   }
@@ -555,12 +549,6 @@ void SceneGraphFilter::rebuild()
   m_cached_out = std::move(new_state);
   m_cached_in_state = in_state;
   m_cached_in_version = in_version;
-  m_cached_mode = inputs.mode.value;
-  m_cached_invert = inputs.invert.value;
-  m_cached_component = inputs.component.value;
-  m_cached_paths = inputs.paths.value;
-  m_cached_names = inputs.names.value;
-  m_cached_material_tags = inputs.material_tags.value;
   m_pending_dirty = 0xFF;
 }
 

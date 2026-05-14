@@ -87,6 +87,32 @@ public:
   bool maybeRebuild(bool force = false);
 
   /**
+   * @brief Fast-path for pure viewport resize.
+   *
+   * Update state.renderSize / state.outputSize / m_lastSize to @p newSize
+   * and mark every renderer's renderTargetSpecsChanged so the existing
+   * `rt_changed` surgical block in renderInternal handles the actual
+   * RT recreation + sampler rebinding on the next render frame.
+   *
+   * Skips the full `recreateOutputRenderList` teardown + rebuild
+   * (release+createRenderList) — saves the bulk of resize cost
+   * (pipeline compiles, ScenePreprocessor REBUILD, mesh slab uploads,
+   * texture array reallocation, etc.). Persistent registry +
+   * persistent ScenePreprocessor caches mean none of that work is
+   * actually needed for a pure size change.
+   *
+   * Returns true on success. Returns false (caller should fall back
+   * to recreateOutputRenderList) when:
+   *   - newSize is invalid
+   *   - renderers vector is empty (RL not yet initialised)
+   * The caller (Graph::onResize) handles the fallback path.
+   *
+   * Cost: O(N renderers), no GPU drain, no allocations until the
+   * next render frame's rt_changed block recreates the RTs.
+   */
+  bool resizeSwapchainSizedTargets(QSize newSize);
+
+  /**
    * @brief Obtain the texture corresponding to an output port.
    *
    * This is done by looking for the render target which corresponds to a given port.
@@ -168,12 +194,20 @@ public:
   QRhiBuffer& outputUBO() const noexcept { return *m_outputUBO; }
 
   /**
-   * @brief Per-RenderList GPU arena store for scene-graph source nodes.
+   * @brief Per-output GPU arena store for scene-graph source nodes.
    *
    * Returns a reference to the registry that owns the Camera / Light /
    * Material / PerDraw arena buffers. Source nodes (Camera, Light,
    * PBRMesh, …) allocate a slot from this registry at construction and
    * write their packed bytes into it at their own update().
+   *
+   * Persist-across-rebuild contract: the registry is owned by the
+   * OutputNode (OutputNode::m_registry) and survives RenderList
+   * rebuilds — the same registry pointer is observed by both the
+   * pre- and post-rebuild RenderList for a given OutputNode. Consumers
+   * that cache the registry pointer (e.g. ScenePreprocessor's
+   * m_registry) can compare against the new RL's registry on init(),
+   * skip cache wipes when unchanged.
    *
    * Valid between init() and release().
    */
@@ -253,6 +287,12 @@ public:
    */
   void markBuilt() noexcept { m_built = true; m_lastSize = state.renderSize; }
 
+  /// Set the "any node requires depth" flag computed from the node graph.
+  /// Mirrors what maybeRebuild() recomputes; called from
+  /// Graph::createRenderList so the freshly-built RL doesn't need a
+  /// first-frame maybeRebuild to populate it.
+  void markRequiresDepth(bool value) noexcept { m_requiresDepth = value; }
+
   /// Notify that an edge was removed. Notifies renderers, releases RT if unused.
   ///
   /// @param preserveSinks Optional set of sink Ports that should keep their
@@ -284,8 +324,16 @@ private:
   QRhiResourceUpdateBatch* m_initialBatch{};
 
   // Scene-graph arena store (camera / light / material / per_draw buffers).
-  // Owned by this RenderList; lifetime matches init/release.
-  std::unique_ptr<GpuResourceRegistry> m_registry;
+  // Persist-across-rebuild contract: ownership is on the OutputNode
+  // (OutputNode::m_registry), so the registry — and all its arena
+  // buffers, mesh slabs, texture-array channels, ScenePreprocessor
+  // material/env slots — survives `Graph::recreateOutputRenderList`
+  // (viewport resize / fallback rebuild). RenderList::init() either
+  // calls GpuResourceRegistry::init() once (first RL on this output)
+  // or adopts the populated state as-is (every subsequent rebuild).
+  // RenderList::release() does NOT destroy it. OutputNode::releaseRegistry()
+  // tears it down via destroyOwned() when its QRhi goes away.
+  GpuResourceRegistry* m_registry{};
 
   // Pool of tiny shared vertex buffers used to satisfy "REQUIRED: false"
   // VERTEX_INPUTS whose upstream geometry is missing an attribute.

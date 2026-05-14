@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Gfx/Graph/ISFNode.hpp>
+#include <Gfx/Graph/IsfBindingsBuilder.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderedISFUtils.hpp>
 #include <Gfx/Graph/VertexFallbackPlan.hpp>
@@ -148,6 +149,19 @@ private:
     int prev_binding{-1};
   };
   std::vector<AuxiliarySSBO> m_auxiliarySSBOs;
+
+  // Storage images (and the rest of the INPUTS storage trio: storage_input
+  // for SSBOs / csf_image_input for image2D/3D / uniform_input for UBOs)
+  // declared in the top-level INPUTS array. Wired via the shared
+  // IsfBindingsBuilder helpers so the SRB binding type matches the
+  // GLSL emission from `isf_emit_graphics_storage` (see
+  // `isf.cpp:3349-3395`). RenderedISFNode and SimpleRenderedISFNode use
+  // the same pattern. m_auxiliarySSBOs carries only the AUXILIARY-block
+  // entries for RawRaster — the dual-population kept here is intentional
+  // for the Q1 transition while the AUXILIARY path still has its own
+  // dispatch (line 1885+); a follow-up could fold that into m_storage too.
+  GraphicsStorageResources m_storage;
+  int m_firstStorageBinding{-1};
 
   // Texture auxes carried on the input geometry (see
   // ossia::geometry::auxiliary_textures). Each entry records a sampler

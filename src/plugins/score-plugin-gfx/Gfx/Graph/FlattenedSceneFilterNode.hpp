@@ -28,7 +28,13 @@ namespace score::gfx
  *       9  = cull_mode differs from match
  *       10 = topology equals match (0 = triangles, 1 = tri strip, …)
  *       11 = topology differs from match
+ *       12 = format_id equals match_str (rapidhash of match_str truncated
+ *            to 32 bits compared with filter_tag; an empty match_str
+ *            short-circuits to 0u so it matches the "untagged" sentinel
+ *            rather than the rapidhash of the empty string)
+ *       13 = format_id differs from match_str
  *   - Port 2: Match value (Types::Int) — user-supplied, interpreted per mode
+ *   - Port 3: Match string (Types::Empty control) — used by modes 12/13
  *
  * Per-draw filtering (e.g. "alphaMode=BLEND draws inside a single MDI
  * batch") is NOT handled here — ScenePreprocessor emits one geometry
@@ -51,6 +57,7 @@ public:
 
   int m_mode{0};
   int m_match{0};
+  std::string m_match_str;
 };
 
 }

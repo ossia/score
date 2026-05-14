@@ -185,8 +185,7 @@ void TextToMesh::rebuild()
         || m_cached_bold != inputs.bold.value
         || m_cached_italic != inputs.italic.value
         || m_cached_height != inputs.height.value
-        || m_cached_center != inputs.center_x.value
-        || m_cached_tol != inputs.curve_tolerance.value;
+        || m_cached_center != inputs.center_x.value;
 
   float scratch[16];
   CachedTRS xformCache = m_cachedTRS;
@@ -205,7 +204,6 @@ void TextToMesh::rebuild()
     m_cached_italic = inputs.italic.value;
     m_cached_height = inputs.height.value;
     m_cached_center = inputs.center_x.value;
-    m_cached_tol = inputs.curve_tolerance.value;
 
     // Build a QRawFont from the requested family. QRawFont::fromFont
     // resolves aliases (e.g. "Sans" → the system default).
@@ -449,6 +447,8 @@ void TextToMesh::release(score::gfx::RenderList& r)
   if(raw_transform_slot.valid())
     r.registry().free(raw_transform_slot);
   m_xform_ref = {};
+  // Producer-state-drift Option A — see Light::release.
+  m_wrapped_state.reset();
 }
 
 } // namespace Threedim

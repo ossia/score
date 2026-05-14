@@ -204,10 +204,12 @@ void endBufferCopyBarrier(QRhi& rhi, QRhiCommandBuffer& cb)
       post.dstAccessMask
           = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT
             | VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT
-            | VK_ACCESS_INDEX_READ_BIT;
+            | VK_ACCESS_INDEX_READ_BIT
+            | VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
       barrierFn(native->commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
                 VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT
-                    | VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
+                    | VK_PIPELINE_STAGE_VERTEX_INPUT_BIT
+                    | VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT,
                 0, 1, &post, 0, nullptr, 0, nullptr);
       break;
     }
@@ -289,9 +291,16 @@ void copyBuffer(
         VkMemoryBarrier post{};
         post.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
         post.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-        post.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+        post.dstAccessMask
+            = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT
+              | VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT
+              | VK_ACCESS_INDEX_READ_BIT
+              | VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
         barrierFn(native->commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
-            VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 1, &post, 0, nullptr, 0, nullptr);
+            VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT
+                | VK_PIPELINE_STAGE_VERTEX_INPUT_BIT
+                | VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT,
+            0, 1, &post, 0, nullptr, 0, nullptr);
       }
       break;
     }
@@ -347,13 +356,29 @@ void copyBuffer(
       if(!srcNative.objects[0] || !dstNative.objects[0])
         break;
 
-      // objects[0] is an `ID3D12Resource * *`, i.e. a pointer to the
-      // resource pointer slot. Same convention as Vulkan -- see the long
-      // comment in the Vulkan branch above.
-      auto* srcRes
-          = *static_cast<ID3D12Resource* const*>(srcNative.objects[0]);
-      auto* dstRes
-          = *static_cast<ID3D12Resource* const*>(dstNative.objects[0]);
+      // D3D12 is the ODD ONE OUT in QRhi: unlike Vulkan/Metal/D3D11/GL
+      // which store `&native_handle` (one extra indirection), the D3D12
+      // backend stores `res->resource` directly — i.e.
+      // `objects[0]` IS the `ID3D12Resource *`, NOT a pointer to it. See
+      // QD3D12Buffer::nativeBuffer in qrhid3d12.cpp:
+      //     b.objects[0] = res->resource;   // ID3D12Resource *
+      // vs. Vulkan/Metal:
+      //     b.objects[i] = &buffers[i];     // VkBuffer * / id<MTLBuffer> *
+      // vs. D3D11:
+      //     return { { &buffer }, 1 };      // ID3D11Buffer * *
+      // Dereferencing here as `**` would treat the COM vtable pointer as
+      // an `ID3D12Resource *` and hand garbage to CopyBufferRegion, which
+      // the D3D12 debug layer flags as
+      // "CORRUPTION: First parameter is corrupt — CORRUPTED_PARAMETER1".
+      // const_cast: NativeBuffer::objects is `const void *` (Qt's const-
+      // correct getter signal that the *array* is const for inspection),
+      // but CopyBufferRegion needs a non-const ID3D12Resource* — and the
+      // underlying resource is genuinely mutable (it is the GPU buffer
+      // we are about to write to).
+      auto* srcRes = static_cast<ID3D12Resource*>(
+          const_cast<void*>(srcNative.objects[0]));
+      auto* dstRes = static_cast<ID3D12Resource*>(
+          const_cast<void*>(dstNative.objects[0]));
       if(!srcRes || !dstRes)
         break;
 
@@ -490,9 +515,15 @@ void copyBufferRegions(
         post.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
         post.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
         post.dstAccessMask
-            = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+            = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT
+              | VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT
+              | VK_ACCESS_INDEX_READ_BIT
+              | VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
         barrierFn(native->commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                  VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 1, &post, 0, nullptr, 0, nullptr);
+                  VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT
+                      | VK_PIPELINE_STAGE_VERTEX_INPUT_BIT
+                      | VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT,
+                  0, 1, &post, 0, nullptr, 0, nullptr);
       }
       break;
     }
@@ -542,10 +573,13 @@ void copyBufferRegions(
       auto dstNative = dst->nativeBuffer();
       if(!srcNative.objects[0] || !dstNative.objects[0])
         break;
-      auto* srcRes
-          = *static_cast<ID3D12Resource* const*>(srcNative.objects[0]);
-      auto* dstRes
-          = *static_cast<ID3D12Resource* const*>(dstNative.objects[0]);
+      // D3D12 stores the raw ID3D12Resource* directly (no extra
+      // indirection). See the long comment in copyBuffer's D3D12 branch
+      // above for the Qt-source-level details.
+      auto* srcRes = static_cast<ID3D12Resource*>(
+          const_cast<void*>(srcNative.objects[0]));
+      auto* dstRes = static_cast<ID3D12Resource*>(
+          const_cast<void*>(dstNative.objects[0]));
       if(!srcRes || !dstRes)
         break;
       for(int i = 0; i < count; ++i)

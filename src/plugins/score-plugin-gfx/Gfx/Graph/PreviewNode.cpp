@@ -36,9 +36,37 @@ std::shared_ptr<RenderState> importRenderState(QSize sz, QRhi* rhi)
   }
   state.version = Gfx::Settings::shaderVersionForAPI(state.api);
   state.rhi = rhi;
-  state.samples = 1; // FIXME
+  // The host widget owns this rhi, so we can't follow the global samples
+  // setting here — but we should at least query what the rhi actually
+  // supports rather than assuming 1. Final RT sample count is set by the
+  // host via setSampleCount on its own swap chain.
+  state.samples = rhi->supportedSampleCounts().value(0, 1);
   state.renderSize = sz;
   state.outputSize = sz;
+
+  // Populate the same caps probe ScreenNode/Background/MultiWindow do via
+  // createRenderState(), so feature gating in shaders / renderers behaves
+  // identically when running inside a preview widget. The rhi is borrowed
+  // (host-owned), so we don't install preRhiDestroy / savePipelineCache —
+  // those are the host's responsibility.
+#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
+  state.caps.drawIndirect = rhi->isFeatureSupported(QRhi::DrawIndirect);
+  state.caps.drawIndirectMulti = rhi->isFeatureSupported(QRhi::DrawIndirectMulti);
+#endif
+  state.caps.multiview = rhi->isFeatureSupported(QRhi::MultiView);
+  state.caps.resolveDepthStencil = rhi->isFeatureSupported(QRhi::ResolveDepthStencil);
+  state.caps.tessellation = rhi->isFeatureSupported(QRhi::Tessellation);
+  state.caps.geometryShader = rhi->isFeatureSupported(QRhi::GeometryShader);
+  state.caps.baseInstance = rhi->isFeatureSupported(QRhi::BaseInstance);
+  state.caps.instanceIndexIncludesBaseInstance
+      = rhi->isFeatureSupported(QRhi::InstanceIndexIncludesBaseInstance);
+  state.caps.timestamps = rhi->isFeatureSupported(QRhi::Timestamps);
+  state.caps.pipelineCacheDataLoadSave
+      = rhi->isFeatureSupported(QRhi::PipelineCacheDataLoadSave);
+  state.caps.textureViewFormat = rhi->isFeatureSupported(QRhi::TextureViewFormat);
+  state.caps.depthClamp = rhi->isFeatureSupported(QRhi::DepthClamp);
+  state.caps.variableRateShading
+      = rhi->isFeatureSupported(QRhi::VariableRateShading);
   return st;
 }
 
@@ -106,7 +134,24 @@ void PreviewNode::createOutput(score::gfx::OutputConfiguration conf)
   conf.onReady();
 }
 
-void PreviewNode::destroyOutput() { }
+void PreviewNode::destroyOutput()
+{
+  // Persist-across-rebuild contract: registry survives RL teardown,
+  // so its QRhi resources must be released here (BEFORE we drop our
+  // RenderState reference) while the host-owned QRhi is still alive.
+  // The host (Qt widget) is responsible for outliving us, but we tear
+  // down our own resources first to keep the contract symmetric with
+  // ScreenNode / BackgroundNode / MultiWindowNode.
+  releaseRegistry();
+
+  // Host owns the underlying QRhi and the m_renderTarget / m_texture aliases
+  // — we don't free those. The shared_ptr<RenderState> is the only piece
+  // PreviewNode actually owns; reset it so a createOutput → destroyOutput →
+  // createOutput cycle drops the prior state instead of relying on
+  // make_shared assignment to release the previous holder. Matches the
+  // unified sink contract every other OutputNode subclass observes.
+  m_renderState.reset();
+}
 
 std::shared_ptr<score::gfx::RenderState> PreviewNode::renderState() const
 {

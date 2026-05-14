@@ -18,21 +18,22 @@ PassOutput RenderedISFNode::initPassSampler(
   QRhi& rhi = *renderer.state.rhi;
 
   // Volumetric fragment passes: a pass targeting a 3D output (OUTPUTS entry
-  // with DEPTH > 1) uses Z to pick a slice. Full 3D render targeting requires
-  // sharing one 3D texture across many passes and a persistent-pair variant
-  // for the ping-pong case — not yet wired in this node. Warn and fall back
-  // to a 2D render target so the shader still compiles; authors should use a
-  // CSF compute shader for true volumetric writes in the meantime.
+  // with DEPTH > 1) or carrying a Z expression requires per-slice color
+  // attachments / 3D image storage that this node does not wire end-to-end.
+  // The ISF parser rejects such shaders up-front (see isf.cpp parse_isf:
+  // "fragment-mode ISF with PASSES targeting Z / 3D OUTPUTS"); reaching this
+  // point with such a pass means the rejection drifted out of sync.
   if(!pass.z_expression.empty() || [&]{
        for(const auto& out : n.descriptor().outputs)
          if(out.name == pass.target && out.depth > 1) return true;
        return false;
      }())
   {
-    qWarning()
-        << "RenderedISFNode: fragment PASSES with Z / 3D OUTPUTS not yet"
-        << "wired end-to-end — rendering target" << pass.target.c_str()
-        << "as 2D; use CSF compute (EXECUTION_MODEL: 3D_IMAGE) instead.";
+    qFatal(
+        "RenderedISFNode: fragment PASSES with Z / 3D OUTPUTS reached the "
+        "renderer; parse-time rejection in isf::parser::parse_isf() should "
+        "have prevented this. Target: %s",
+        pass.target.c_str());
   }
 
   // Per-pass FORMAT override takes precedence over the legacy FLOAT flag.
@@ -939,7 +940,9 @@ void RenderedISFNode::runInitialPasses(
     auto srb = pass.p.srb;
     auto texture = pass.renderTarget.texture;
 
-    // TODO need to free stuff
+    // Note: updateBatch ownership transfers to QRhi on beginPass; per-pass
+    // state (pipeline/srb/processUBO/renderTarget) is owned by m_passes and
+    // released in releaseState() / removeOutputPass(). Nothing to free here.
     cb.beginPass(rt, Qt::black, {0.0f, 0}, updateBatch);
     updateBatch = nullptr;
     {
@@ -990,7 +993,10 @@ void RenderedISFNode::runRenderPass(
     auto srb = pass.p.srb;
     auto texture = pass.renderTarget.texture;
 
-    // TODO need to free stuff
+    // No allocations in this scope: this function records draw calls into a
+    // command buffer already opened by RenderList::render(). updateBatch is
+    // managed by the caller; per-pass state lives in m_passes and is released
+    // in releaseState() / removeOutputPass().
     {
       cb.setGraphicsPipeline(pipeline);
       cb.setShaderResources(srb);

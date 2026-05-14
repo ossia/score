@@ -3,6 +3,8 @@
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/SceneGPUState.hpp>
 
+#include <ossia/detail/ptr_set.hpp>
+
 #include <algorithm>
 #include <cstring>
 
@@ -11,9 +13,15 @@ namespace Threedim
 
 namespace
 {
-// Concatenate a shared vector from two nullable inputs. Reuses the
-// lone non-null input's shared_ptr when only one contributes — the
-// same identity-preserving passthrough merge_scenes does.
+// Concatenate a shared vector from two nullable inputs while deduping
+// by shared_ptr identity. Reuses the lone non-null input's shared_ptr
+// when only one contributes — the same identity-preserving passthrough
+// merge_scenes does. When both contribute, an entry from `b` is dropped
+// when its underlying object pointer already appeared in `a`. This is
+// the SceneGroup safety net for users who wire the same upstream to
+// more than one of the four input slots: each slot would otherwise
+// contribute the same component vectors and the downstream visitor
+// would walk every cloud / mesh / light N times.
 template <typename T>
 std::shared_ptr<const std::vector<T>> mergeSharedVec(
     const std::shared_ptr<const std::vector<T>>& a,
@@ -23,12 +31,23 @@ std::shared_ptr<const std::vector<T>> mergeSharedVec(
     return b;
   if(!b || b->empty())
     return a;
+  // Same shared_ptr-vector instance on both sides: nothing to dedup,
+  // return one copy. Cheaper than building a fresh vector + ptr_set.
+  if(a == b)
+    return a;
   auto merged = std::make_shared<std::vector<T>>();
   merged->reserve(a->size() + b->size());
+  ossia::ptr_set<const typename T::element_type*> seen;
   for(const auto& x : *a)
-    merged->push_back(x);
+  {
+    if(x && seen.insert(x.get()).second)
+      merged->push_back(x);
+  }
   for(const auto& x : *b)
-    merged->push_back(x);
+  {
+    if(x && seen.insert(x.get()).second)
+      merged->push_back(x);
+  }
   return merged;
 }
 } // namespace
@@ -48,16 +67,19 @@ void SceneGroup::rebuild()
     m_cached_in[i] = s;
     m_cached_ver[i] = v;
   }
-  m_cached_name = inputs.name.value;
-  float scratch[16];
-  CachedTRS xcache = m_cachedTRS;
-  computeTRSMatrix(inputs, scratch, xcache);
-  m_cachedTRS = xcache;
-
   // Collect roots from all non-empty inputs; also concat materials /
-  // animations / cameras / skeletons additively.
+  // animations / cameras / skeletons additively. Dedup roots by
+  // shared_ptr identity — wiring the same upstream into more than one
+  // SceneGroup input slot is a common authoring shape (especially when
+  // a user re-uses an AssetLoader output to position the same asset in
+  // multiple slots), and without this the same scene_node would land
+  // in the parent's children list four times. The downstream
+  // ScenePreprocessor visitor would then walk it four times and emit
+  // four cloud-bucket entries, quadrupling the GPU upload of every
+  // primitive_cloud / mesh / light reachable through that root.
   auto merged_roots
       = std::make_shared<std::vector<ossia::scene_node_ptr>>();
+  ossia::ptr_set<const ossia::scene_node*> seen_roots;
   std::shared_ptr<const std::vector<ossia::material_component_ptr>> mats;
   std::shared_ptr<const std::vector<ossia::animation_component_ptr>> anims;
   std::shared_ptr<const std::vector<ossia::camera_component_ptr>> cams;
@@ -72,7 +94,8 @@ void SceneGroup::rebuild()
       continue;
     if(s->roots)
       for(const auto& r : *s->roots)
-        merged_roots->push_back(r);
+        if(r && seen_roots.insert(r.get()).second)
+          merged_roots->push_back(r);
     mats = mergeSharedVec(mats, s->materials);
     anims = mergeSharedVec(anims, s->animations);
     cams = mergeSharedVec(cams, s->cameras);
@@ -154,6 +177,11 @@ void SceneGroup::operator()()
   m_pending_dirty = 0;
 }
 
+// Order invariant: called by GfxRenderer::initState BEFORE the first
+// operator()() and BEFORE processControlIn fires any rebuild() callback.
+// m_xform_ref populated here is therefore safe to read in rebuild()
+// without a guard. Adding prepare() to this node breaks the invariant —
+// see CpuFilterNode.hpp for details.
 void SceneGroup::init(score::gfx::RenderList& r, QRhiResourceUpdateBatch& res)
 {
   if(!raw_transform_slot.valid())
@@ -198,6 +226,10 @@ void SceneGroup::release(score::gfx::RenderList& r)
   if(raw_transform_slot.valid())
     r.registry().free(raw_transform_slot);
   m_xform_ref = {};
+  // Producer-state-drift Option A — see Light::release.
+  m_cached_out.reset();
+  for(auto& in : m_cached_in)
+    in = nullptr;
 }
 
 } // namespace Threedim
