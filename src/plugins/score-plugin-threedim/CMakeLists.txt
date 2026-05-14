@@ -26,6 +26,9 @@ endif()
 # v1-3 only (v4/ZSTD stubbed; see 3rdparty/spz/CMakeLists.txt). Pulls
 # in zlib via ZLIB::ZLIB.
 if(NOT TARGET spz)
+  set(SPZ_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
+  set(SPZ_BUILD_PYTHON_BINDINGS OFF CACHE BOOL "" FORCE)
+  set(SPZ_BUILD_EXTENSIONS OFF CACHE BOOL "" FORCE)
   add_subdirectory("${3RDPARTY_FOLDER}/spz" "${CMAKE_CURRENT_BINARY_DIR}/spz" EXCLUDE_FROM_ALL)
 endif()
 

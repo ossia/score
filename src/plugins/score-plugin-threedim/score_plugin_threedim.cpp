@@ -383,22 +383,6 @@ class VoxDropHandler final : public Process::ProcessDropHandler
  */
 score_plugin_threedim::score_plugin_threedim()
 {
-  // Built-in primitive_cloud format registry. Surfaces these in
-  // AssetLoader's "Format override" combobox and FlattenedSceneFilter's
-  // "Format ID" picker. Addons (score-addon-academy etc.) register
-  // their own formats through the same FormatRegistry::register_format
-  // entry point.
-  Gfx::FormatRegistry::register_format(
-      {"3dgs.classic",
-       "3D Gaussian Splat (INRIA, classic 62-float row layout)",
-       "PLY-formatted Gaussian splats with f_dc_*, f_rest_*, scale_*, "
-       "rot_*, opacity columns. Decoded by packages/splat-formats/"
-       "3dgs.classic. Auto-detected from PLY column names."});
-  Gfx::FormatRegistry::register_format(
-      {"3dgs.splat-binary",
-       "Antimatter15 .splat binary",
-       "Compact 32-byte-per-primitive 3DGS variant. Auto-detected from "
-       ".splat extension."});
 }
 score_plugin_threedim::~score_plugin_threedim() = default;
 
