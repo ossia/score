@@ -22,6 +22,13 @@ if(NOT TARGET fastgltf)
   add_subdirectory("${3RDPARTY_FOLDER}/fastgltf" "${CMAKE_CURRENT_BINARY_DIR}/fastgltf" EXCLUDE_FROM_ALL)
 endif()
 
+# spz — Niantic / Adobe reference SPZ decoder for compressed 3DGS files.
+# v1-3 only (v4/ZSTD stubbed; see 3rdparty/spz/CMakeLists.txt). Pulls
+# in zlib via ZLIB::ZLIB.
+if(NOT TARGET spz)
+  add_subdirectory("${3RDPARTY_FOLDER}/spz" "${CMAKE_CURRENT_BINARY_DIR}/spz" EXCLUDE_FROM_ALL)
+endif()
+
 # libssynth
 add_library(
   ssynth STATIC
@@ -151,6 +158,8 @@ add_library(
   Threedim/InjectBuffer.cpp
   Threedim/InjectTexture.hpp
   Threedim/InjectTexture.cpp
+  Threedim/TagAs.hpp
+  Threedim/TagAs.cpp
   Threedim/PBRMesh.hpp
   Threedim/PBRMesh.cpp
   Threedim/MaterialOverride.hpp
@@ -192,6 +201,16 @@ add_library(
   Threedim/PCLToGeometry.cpp
   Threedim/Ply.hpp
   Threedim/Ply.cpp
+  Threedim/PrimitiveCloud/PlyParser.hpp
+  Threedim/PrimitiveCloud/PlyParser.cpp
+  Threedim/PrimitiveCloud/SplatBinary.hpp
+  Threedim/PrimitiveCloud/SplatBinary.cpp
+  Threedim/PrimitiveCloud/SpzCodec.hpp
+  Threedim/PrimitiveCloud/SpzCodec.cpp
+  Threedim/PrimitiveCloud/SceneFromCloud.hpp
+  Threedim/PrimitiveCloud/SceneFromCloud.cpp
+  Threedim/PrimitiveCloud/FormatOverride.hpp
+  Threedim/PrimitiveCloud/FormatOverride.cpp
   Threedim/Primitive.hpp
   Threedim/Primitive.cpp
   Threedim/StructureSynth.hpp
@@ -215,14 +234,6 @@ add_library(
   Threedim/RenderPipeline/Process.hpp
   Threedim/RenderPipeline/Process.cpp
   Threedim/RenderPipeline/Layer.hpp
-
-  Threedim/Splat/Executor.hpp
-  Threedim/Splat/Executor.cpp
-  Threedim/Splat/Metadata.hpp
-  Threedim/Splat/Process.hpp
-  Threedim/Splat/Process.cpp
-  Threedim/Splat/GaussianSplatNode.hpp
-  Threedim/Splat/GaussianSplatNode.cpp
 
   "${3RDPARTY_FOLDER}/miniply/miniply.cpp"
   "${3RDPARTY_FOLDER}/mikktspace/mikktspace.c"
@@ -248,4 +259,4 @@ target_include_directories(
 target_link_libraries(
   score_plugin_threedim PRIVATE score_plugin_engine score_plugin_avnd
                                 score_plugin_gfx fmt::fmt ssynth Eigen3::Eigen
-                                fastgltf::fastgltf)
+                                fastgltf::fastgltf spz)

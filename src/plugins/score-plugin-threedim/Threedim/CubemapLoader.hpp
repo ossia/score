@@ -1,6 +1,7 @@
 #pragma once
 
 #include <halp/controls.hpp>
+#include <halp/file_port.hpp>
 #include <halp/meta.hpp>
 #include <halp/texture.hpp>
 
@@ -13,6 +14,7 @@
 #include <QImage>
 
 #include <cstdint>
+#include <functional>
 #include <memory>
 
 namespace Threedim
@@ -40,9 +42,37 @@ public:
 
   struct ins
   {
-    struct : halp::lineedit<"Image", "">
+    // File-port boilerplate — same pattern as ImageLoader. process()
+    // runs on the file-load worker thread, decodes the image off the
+    // render thread, returns a lambda that stages the decoded QImage
+    // onto the node from the execution thread. See diagnostic 041 —
+    // the previous lineedit<…> path called QImage(qpath) from update()
+    // on the render thread, blocking command recording for many frames
+    // on a large cube cross / equirect HDR.
+    struct image_t : halp::file_port<"Image", halp::mmap_file_view>
     {
-      void update(CubemapLoader& self) { self.m_imageChanged = true; }
+      halp_meta(extensions,
+          "Images (*.png *.jpg *.jpeg *.bmp *.tga *.webp *.tif *.tiff *.hdr *.exr)");
+      static std::function<void(CubemapLoader&)> process(file_type data)
+      {
+        QImage img;
+        if(!data.bytes.empty())
+        {
+          img.loadFromData(
+              reinterpret_cast<const uchar*>(data.bytes.data()),
+              (int)data.bytes.size());
+        }
+        if(img.isNull() && !data.filename.empty())
+        {
+          img = QImage(data.filename.data());
+        }
+        if(!img.isNull() && img.format() != QImage::Format_RGBA8888)
+          img = img.convertToFormat(QImage::Format_RGBA8888);
+        return [img = std::move(img)](CubemapLoader& self) mutable {
+          self.m_loadedImage = std::move(img);
+          self.m_imageChanged = true;
+        };
+      }
     } image;
 
     struct : halp::enum_t<CubemapLayout, "Layout">
@@ -127,7 +157,6 @@ public:
       QRhiResourceUpdateBatch*& res, score::gfx::Edge& edge);
 
 private:
-  void loadImage();
   void createCubemapTexture(QRhi& rhi, int faceSize);
   void releaseCubemapTexture();
   // `renderer` is optional: when non-null QRhiBuffers go through

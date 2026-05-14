@@ -48,24 +48,14 @@ public:
   halp_meta(authors, "ossia team")
   halp_meta(uuid, "7a3e8d2f-1b94-4c6a-b7f5-8e2d0c1a4b93")
 
-  // Pre-configured use cases. The defaults (origin=0, 6 GL-ordered
-  // faces at 90° FoV, 1:1 aspect) already match ReflectionProbe — the
-  // preset is mostly a naming/discoverability knob. PointShadowCube
-  // flips the sense: same 6 directions, but downstream shaders know
-  // to render depth only.
-  enum class Preset
-  {
-    ReflectionProbe,
-    PointShadowCube,
-    Custom,
-  };
-
+  // Six GL-ordered cubemap faces at 90° FoV, aspect 1:1. Suitable as
+  // both a reflection probe array and a point-shadow cube array — the
+  // distinction is downstream (which render target / depth-only flag),
+  // not in the camera math here.
   struct ins
   {
     // Port-driven rebuild: each control's update() callback fires
     // CameraArray::rebuild() on change. operator()() republishes.
-    struct : halp::enum_t<Preset, "Preset">
-    { void update(CameraArray& n) { n.rebuild(); } } preset;
     struct : halp::xyz_spinboxes_f32<"Origin", halp::range{-10000., 10000., 0.}>
     { void update(CameraArray& n) { n.rebuild(); } } origin;
     struct : halp::hslider_f32<"Near", halp::range{0.001, 10., 0.1}>

@@ -75,11 +75,6 @@ public:
     // at X=0). Useful for title cards.
     struct : halp::toggle<"Center X">
     { void update(TextToMesh& n) { n.rebuild(); } } center_x;
-    // Curve flattening resolution. Lower = smoother glyphs but more
-    // triangles. Qt's default error is 0.25 px; we expose it in the
-    // same "1 pixel of smoothing" units.
-    struct : halp::hslider_f32<"Curve tolerance", halp::range{0.05, 5., 0.5}>
-    { void update(TextToMesh& n) { n.rebuild(); } } curve_tolerance;
 
     struct : PositionControl
     { void update(TextToMesh& n) { n.rebuild(); } } position;
@@ -119,7 +114,6 @@ public:
   bool m_cached_italic{false};
   float m_cached_height{-1.f};
   bool m_cached_center{false};
-  float m_cached_tol{-1.f};
   std::shared_ptr<ossia::mesh_component> m_cached_mesh;
   int64_t m_version_counter{0};
   uint8_t m_pending_dirty{0xFF};

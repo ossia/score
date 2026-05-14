@@ -3,8 +3,6 @@
 #include <Gfx/Graph/ShaderCache.hpp>
 
 #include <QDebug>
-#include <QFile>
-#include <QFileInfo>
 
 #include <cmath>
 
@@ -123,32 +121,6 @@ void main()
   fragColor = texture(equirectMap, equirectUV);
 }
 )_";
-
-void CubemapLoader::loadImage()
-{
-  const auto& path = inputs.image.value;
-  if(path.empty())
-  {
-    m_loadedImage = QImage{};
-    return;
-  }
-
-  QString qpath = QString::fromStdString(path);
-  if(!QFileInfo::exists(qpath))
-  {
-    m_loadedImage = QImage{};
-    return;
-  }
-
-  QImage img(qpath);
-  if(img.isNull())
-  {
-    m_loadedImage = QImage{};
-    return;
-  }
-
-  m_loadedImage = img.convertToFormat(QImage::Format_RGBA8888);
-}
 
 QImage CubemapLoader::extractFace(int faceIndex) const
 {
@@ -405,10 +377,10 @@ void CubemapLoader::update(
     score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res,
     score::gfx::Edge* e)
 {
-  if(!m_imageChanged)
-    return;
-
-  loadImage();
+  // No-op on the render thread. The decode runs on the halp file-port
+  // worker (see image_t::process in CubemapLoader.hpp) which delivers
+  // the decoded QImage to m_loadedImage and sets m_imageChanged.
+  // runInitialPasses() picks that up and uploads + transcodes the cube.
 }
 
 void CubemapLoader::release(score::gfx::RenderList& r)

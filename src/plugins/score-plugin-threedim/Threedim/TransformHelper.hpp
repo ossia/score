@@ -126,11 +126,16 @@ inline std::shared_ptr<const ossia::scene_state> wrapSceneWithTransform(
 
   auto wrapped = std::make_shared<ossia::scene_state>();
   wrapped->roots       = std::move(new_roots);
-  // Identity-preserving passthrough so downstream caches stay warm.
+  // Identity-preserving passthrough of every scene_state shared field so
+  // downstream caches stay warm. `collections` was missed in the initial
+  // landing (CreateCollection writes them onto scene_state::collections,
+  // and dropping them here silently loses the named-collection list on
+  // every TRS pass) — diagnostic 026.
   wrapped->materials        = raw->materials;
   wrapped->animations       = raw->animations;
   wrapped->cameras          = raw->cameras;
   wrapped->skeletons        = raw->skeletons;
+  wrapped->collections      = raw->collections;
   wrapped->environment      = raw->environment;
   wrapped->active_camera_id = raw->active_camera_id;
   wrapped->version          = ++version_counter;

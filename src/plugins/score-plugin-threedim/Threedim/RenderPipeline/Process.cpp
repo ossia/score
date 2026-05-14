@@ -179,7 +179,6 @@ Process::ScriptChangeResult Model::setProgram(ShaderSource f)
 
     m_processedProgram = *processed;
 
-    qDebug() << (int)f.type << (int)processed->type;
     //    initDefaultPorts();
 
     m_inlets.push_back(new GeometryInlet{"Geometry In", Id<Process::Port>(1000), this});
@@ -192,7 +191,7 @@ Process::ScriptChangeResult Model::setProgram(ShaderSource f)
   }
   else
   {
-    qDebug() << "Error while processing program: " << error;
+    qWarning() << "RenderPipeline: error while processing program:" << error;
   }
   return {};
 }

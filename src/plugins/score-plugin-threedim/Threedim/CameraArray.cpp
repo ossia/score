@@ -28,6 +28,11 @@ constexpr std::array<Face, 6> kFaces{{
 }};
 }
 
+// Order invariant: called by GfxRenderer::initState BEFORE the first
+// operator()() and BEFORE processControlIn fires any rebuild() callback.
+// m_array_ref populated here is therefore safe to read in rebuild()
+// without a guard. Adding prepare() to this node breaks the invariant —
+// see CpuFilterNode.hpp for details.
 void CameraArray::init(
     score::gfx::RenderList& r, QRhiResourceUpdateBatch& res)
 {

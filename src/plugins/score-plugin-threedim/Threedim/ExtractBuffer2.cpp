@@ -188,14 +188,14 @@ void ExtractBuffer2::initStrategy(score::gfx::RenderList& renderer)
     const auto lookup = resolveAttribute(mesh, m_currentName);
     if(!lookup)
     {
-      qDebug() << this << "ExtractBuffer2: attribute not found:"
+      qWarning() << this << "ExtractBuffer2: attribute not found:"
                << QString::fromStdString(m_currentName);
       m_strategy = std::monostate{};
       return;
     }
     if(!lookup->buffer || !lookup->buffer->handle)
     {
-      qDebug() << this << "ExtractBuffer2: source buffer is null";
+      qWarning() << this << "ExtractBuffer2: source buffer is null";
       m_strategy = std::monostate{};
       return;
     }
@@ -221,7 +221,7 @@ void ExtractBuffer2::initStrategy(score::gfx::RenderList& renderer)
     }
     if(!ok)
     {
-      qDebug() << this << "ExtractBuffer2: strategy init failed";
+      qWarning() << this << "ExtractBuffer2: strategy init failed";
       m_strategy = std::monostate{};
     }
   }
@@ -230,7 +230,7 @@ void ExtractBuffer2::initStrategy(score::gfx::RenderList& renderer)
     const auto ref = resolveBuffer(mesh, m_currentName);
     if(ref.buffer_index < 0 || ref.byte_size <= 0)
     {
-      qDebug() << this << "ExtractBuffer2: buffer not found:"
+      qWarning() << this << "ExtractBuffer2: buffer not found:"
                << QString::fromStdString(m_currentName);
       m_strategy = std::monostate{};
       return;
@@ -238,7 +238,7 @@ void ExtractBuffer2::initStrategy(score::gfx::RenderList& renderer)
     auto& s = m_strategy.emplace<DirectBufferReferenceStrategy>();
     if(!s.init(renderer.state, rhi, mesh, ref.buffer_index, ref.byte_offset, ref.byte_size))
     {
-      qDebug() << this << "ExtractBuffer2: DirectBufferReferenceStrategy failed";
+      qWarning() << this << "ExtractBuffer2: DirectBufferReferenceStrategy failed";
       m_strategy = std::monostate{};
     }
   }
@@ -345,7 +345,7 @@ void ExtractBuffer2::update(
            renderer.state, rhi, mesh, ref.buffer_index, ref.byte_offset,
            ref.byte_size))
     {
-      qDebug() << this << "ExtractBuffer2: re-init failed in update";
+      qWarning() << this << "ExtractBuffer2: re-init failed in update";
       release(renderer);
       return;
     }

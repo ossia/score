@@ -6,6 +6,11 @@
 namespace Threedim
 {
 
+// Order invariant: called by GfxRenderer::initState BEFORE the first
+// operator()() and BEFORE processControlIn fires any rebuild() callback.
+// m_camera_ref / m_xform_ref populated here are therefore safe to read
+// in rebuild() without a guard. Adding prepare() to this node breaks the
+// invariant — see CpuFilterNode.hpp for details.
 void Camera::init(score::gfx::RenderList& r, QRhiResourceUpdateBatch& res)
 {
   if(!raw_camera_slot.valid())

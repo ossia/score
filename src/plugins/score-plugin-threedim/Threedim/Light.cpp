@@ -160,6 +160,11 @@ inline uint32_t toRawLightDecay(Light::Decay d) noexcept
 }
 }
 
+// Order invariant: called by GfxRenderer::initState BEFORE the first
+// operator()() and BEFORE processControlIn fires any rebuild() callback.
+// m_light_ref / m_xform_ref populated here are therefore safe to read
+// in rebuild() without a guard. Adding prepare() to this node breaks the
+// invariant — see CpuFilterNode.hpp for details.
 void Light::init(score::gfx::RenderList& r, QRhiResourceUpdateBatch& res)
 {
   if(!raw_light_slot.valid())
@@ -258,6 +263,16 @@ void Light::release(score::gfx::RenderList& r)
     r.registry().free(raw_transform_slot);
   m_light_ref = {};
   m_xform_ref = {};
+  // Clear the cached scene_state shared_ptr so the next operator()()
+  // re-runs rebuild() against the post-release registry. Without this,
+  // an in-place release+init path (relinkGraph / maybeRebuild) would
+  // republish a state whose lc->raw_slot still embeds the OLD
+  // (now-freed) slot index. ScenePreprocessor then harvests that
+  // stale index into scene_light_indices, the rasterizer reads from
+  // a different slot than the one Light::update() is now writing
+  // to → wildly wrong lighting that drifts each cycle as the LIFO
+  // free-list reshuffles. Producer-state-drift Option A.
+  m_state.reset();
 }
 
 } // namespace Threedim

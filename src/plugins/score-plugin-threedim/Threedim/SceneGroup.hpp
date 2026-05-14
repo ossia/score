@@ -1,6 +1,4 @@
 #pragma once
-#include "TransformHelper.hpp"
-
 #include <Threedim/TinyObj.hpp>
 #include <halp/controls.hpp>
 #include <halp/meta.hpp>
@@ -86,8 +84,6 @@ public:
   uint8_t m_pending_dirty{0xFF};
   const ossia::scene_state* m_cached_in[4]{};
   int64_t m_cached_ver[4]{-1, -1, -1, -1};
-  std::string m_cached_name;
-  CachedTRS m_cachedTRS{};
   int64_t m_version_counter{0};
 
   score::gfx::GpuResourceRegistry::Slot raw_transform_slot;

@@ -35,8 +35,10 @@
 #include <Threedim/FlattenedSceneFilter/Process.hpp>
 #include <Threedim/HumanoidRetarget.hpp>
 #include <Threedim/InverseKinematics.hpp>
+#include <Gfx/FormatRegistry.hpp>
 #include <Threedim/InjectBuffer.hpp>
 #include <Threedim/InjectTexture.hpp>
+#include <Threedim/TagAs.hpp>
 #include <Threedim/MergeGeometries/Executor.hpp>
 #include <Threedim/MergeGeometries/Process.hpp>
 #include <Threedim/CreateCollection.hpp>
@@ -68,8 +70,6 @@
 #include <Threedim/RenderPipeline/Executor.hpp>
 #include <Threedim/RenderPipeline/Layer.hpp>
 #include <Threedim/RenderPipeline/Process.hpp>
-#include <Threedim/Splat/Executor.hpp>
-#include <Threedim/Splat/Process.hpp>
 #include <Threedim/StructureSynth.hpp>
 #include <Threedim/TextToMesh.hpp>
 #include <Threedim/TextToTexture.hpp>
@@ -233,8 +233,15 @@ class AssetLibraryHandler final
 
   QSet<QString> acceptedFiles() const noexcept override
   {
+    // Extension list must stay aligned with AssetDropHandler::fileExtensions
+    // below — the Library panel surfaces files by acceptedFiles, the canvas
+    // drag-drop accepts them via fileExtensions, and AssetLoader::process
+    // routes the underlying parser by extension. .splat and .spz arrive
+    // through the splat_binary / spz parsers (see PrimitiveCloud/SplatBinary
+    // and SpzCodec); they were missing from the Library list even though
+    // the runtime fully handles them.
     return {"fbx", "gltf", "glb", "obj", "ply", "stl", "off",
-            "usd", "usda", "usdc", "usdz"};
+            "usd", "usda", "usdc", "usdz", "splat", "spz"};
   }
 
   Library::Subcategories categories;
@@ -275,6 +282,7 @@ class AssetDropHandler final : public Process::ProcessDropHandler
   QSet<QString> fileExtensions() const noexcept override
   {
     return {"fbx", "gltf", "glb", "obj", "ply", "stl", "off",
+            "splat", "spz",
             "usd", "usda", "usdc", "usdz"};
   }
 
@@ -373,7 +381,25 @@ class VoxDropHandler final : public Process::ProcessDropHandler
 /**
  * This file instantiates the classes that are provided by this plug-in.
  */
-score_plugin_threedim::score_plugin_threedim() = default;
+score_plugin_threedim::score_plugin_threedim()
+{
+  // Built-in primitive_cloud format registry. Surfaces these in
+  // AssetLoader's "Format override" combobox and FlattenedSceneFilter's
+  // "Format ID" picker. Addons (score-addon-academy etc.) register
+  // their own formats through the same FormatRegistry::register_format
+  // entry point.
+  Gfx::FormatRegistry::register_format(
+      {"3dgs.classic",
+       "3D Gaussian Splat (INRIA, classic 62-float row layout)",
+       "PLY-formatted Gaussian splats with f_dc_*, f_rest_*, scale_*, "
+       "rot_*, opacity columns. Decoded by packages/splat-formats/"
+       "3dgs.classic. Auto-detected from PLY column names."});
+  Gfx::FormatRegistry::register_format(
+      {"3dgs.splat-binary",
+       "Antimatter15 .splat binary",
+       "Compact 32-byte-per-primitive 3DGS variant. Auto-detected from "
+       ".splat extension."});
+}
 score_plugin_threedim::~score_plugin_threedim() = default;
 
 std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
@@ -406,6 +432,7 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
   oscr::instantiate_fx<Threedim::SceneResourceRoute>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::InjectBuffer>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::InjectTexture>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::TagAs>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::PBRMesh>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::MaterialOverride>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::ConfigurePrimitive>(fx, ctx, key);
@@ -438,10 +465,17 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
   oscr::instantiate_fx<Threedim::SplatLoader>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::CubemapLoader>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::CubemapComposer>(fx, ctx, key);
+  // Splat (legacy GaussianSplatNode) factories removed: AssetLoader now
+  // routes .splat / .spz / 3DGS .ply files through primitive_cloud_component
+  // and the new ScenePreprocessor / 3dgs.tile rendering pipeline. The legacy
+  // Splat process kept its own GaussianSplatNode renderer; superseded.
+  // Existing projects that referenced the legacy Splat UUID
+  // ("cdc15a16-e856-4e02-9339-7d9e48da10ce") get a UUID-rewrite alias to
+  // AssetLoader at load time (see C-22d).
   auto add = instantiate_factories<
       score::ApplicationContext,
       FW<Process::ProcessModelFactory, Gfx::ModelDisplay::ProcessFactory,
-         Gfx::RenderPipeline::ProcessFactory, Gfx::Splat::ProcessFactory,
+         Gfx::RenderPipeline::ProcessFactory,
          Gfx::ScenePreprocessor::ProcessFactory,
          Gfx::SceneFilter::ProcessFactory,
          Gfx::FlattenedSceneFilter::ProcessFactory,
@@ -455,7 +489,6 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
       FW<Execution::ProcessComponentFactory,
          Gfx::ModelDisplay::ProcessExecutorComponentFactory,
          Gfx::RenderPipeline::ProcessExecutorComponentFactory,
-         Gfx::Splat::ProcessExecutorComponentFactory,
          Gfx::ScenePreprocessor::ProcessExecutorComponentFactory,
          Gfx::SceneFilter::ProcessExecutorComponentFactory,
          Gfx::FlattenedSceneFilter::ProcessExecutorComponentFactory,
