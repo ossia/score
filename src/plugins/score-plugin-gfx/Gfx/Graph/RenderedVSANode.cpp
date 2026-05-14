@@ -136,35 +136,90 @@ void SimpleRenderedVSANode::initPass(
   pubo->setName("SimpleRenderedVSANode::initPass::pubo");
   pubo->create();
 
-  // Create the main pass
+  // Create the main pass.
+  // Apply cull-mode, front-face, and blend state BEFORE the first create()
+  // call so we only compile the PSO once instead of the previous two-compile
+  // pattern (buildPipeline::create + destroy + mutate + create).
   try
   {
     auto [v, s] = score::gfx::makeShaders(renderer.state, n.m_vertexS, n.m_fragmentS);
-    auto pip = score::gfx::buildPipeline(
-        renderer, *m_mesh, v, s, renderTarget, pubo, m_materialUBO, allSamplers());
-    if(pip.pipeline)
+    auto* srb = score::gfx::createDefaultBindings(
+        renderer, renderTarget, pubo, m_materialUBO, allSamplers());
+
+    // Inline the essential steps of buildPipeline(srb) so we can insert the
+    // VSA-specific cull/front-face/blend state before create().
+    auto* ps = rhi.newGraphicsPipeline();
+    SCORE_ASSERT(ps);
+    ps->setName("SimpleRenderedVSANode::initPass::ps");
+
+    // VSA blend: simple alpha blend (no premul factors needed here).
+    QRhiGraphicsPipeline::TargetBlend t{};
+    t.enable = true;
+    ps->setTargetBlends({t});
+
+    // API-specific cull mode for 3-D VSA meshes.
+    //
+    // Note: this is NOT a Y-up vs Y-down NDC issue. QRhi exposes
+    // QRhi::isYUpInNDC() and QRhi::clipSpaceCorrMatrix() (qrhi.h:2056,
+    // :2059) so a shader applying clipSpaceCorrMatrix uniformly across
+    // backends does not need a per-backend cull-flip. Other rendered-
+    // pipeline nodes (RenderedISFNode, RenderedRawRasterPipelineNode,
+    // CustomMesh) just use unconditional CullMode::Back.
+    //
+    // VSA emits its mesh procedurally (no clipSpaceCorrMatrix applied)
+    // and its triangle winding ends up CCW under GL's framebuffer-Y
+    // convention; flipping to CullMode::Front under GL is the workaround
+    // until VSA's procedural emit applies the corr matrix itself.
+    switch(renderer.state.api)
     {
-      QRhiGraphicsPipeline::TargetBlend t{};
-      t.enable = true;
-      pip.pipeline->destroy();
-      switch(renderer.state.api)
-      {
-        default:
-        case GraphicsApi::Vulkan:
-          pip.pipeline->setCullMode(QRhiGraphicsPipeline::CullMode::Back);
-          break;
-        case GraphicsApi::OpenGL:
-          pip.pipeline->setCullMode(QRhiGraphicsPipeline::CullMode::Front);
-          break;
-      }
-      pip.pipeline->setFrontFace(QRhiGraphicsPipeline::FrontFace::CW);
-      pip.pipeline->setTargetBlends({t});
-      pip.pipeline->create();
+      case GraphicsApi::Vulkan:
+      case GraphicsApi::D3D11:
+      case GraphicsApi::D3D12:
+      case GraphicsApi::Metal:
+      case GraphicsApi::Null:
+        ps->setCullMode(QRhiGraphicsPipeline::CullMode::Back);
+        break;
+      case GraphicsApi::OpenGL:
+        ps->setCullMode(QRhiGraphicsPipeline::CullMode::Front);
+        break;
+      default:
+        qWarning() << "RenderedVSANode: unhandled graphics API for cull mode; defaulting to Back";
+        ps->setCullMode(QRhiGraphicsPipeline::CullMode::Back);
+        break;
+    }
+    ps->setFrontFace(QRhiGraphicsPipeline::FrontFace::CW);
+
+    const int rtS = renderTarget.sampleCount();
+    ps->setSampleCount(rtS > 0 ? rtS : renderer.samples());
+
+    m_mesh->preparePipeline(*ps);
+
+    if(!renderer.anyNodeRequiresDepth())
+    {
+      ps->setDepthTest(false);
+      ps->setDepthWrite(false);
+    }
+
+    ps->setShaderStages(
+        {{QRhiShaderStage::Vertex, v}, {QRhiShaderStage::Fragment, s}});
+    ps->setShaderResourceBindings(srb);
+    SCORE_ASSERT(renderTarget.renderPass);
+    ps->setRenderPassDescriptor(renderTarget.renderPass);
+
+    Pipeline pip{};
+    if(ps->create())
+    {
+      pip = {ps, srb};
       m_passes.emplace_back(
           &edge, Pass{renderTarget, pip, pubo}, bg_pip, bg_srb, bg_ubo, bg_tri);
     }
     else
+    {
+      qDebug() << "Warning! VSA pipeline not created";
+      delete ps;
+      delete srb;
       delete pubo;
+    }
   }
   catch(...)
   {

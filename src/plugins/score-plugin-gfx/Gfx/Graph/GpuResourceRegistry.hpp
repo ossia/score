@@ -115,8 +115,30 @@ public:
    * Per-arena capacity is fixed at init time (grow-in-place reallocation
    * is a follow-up). If an arena runs out of room, allocate() returns
    * an invalid Slot and logs a warning.
+   *
+   * Persist-across-rebuild contract: the registry now lives on the
+   * OutputNode and survives RenderList rebuilds (e.g. viewport resize).
+   * The owning OutputNode lazy-calls init() exactly once for a given
+   * QRhi lifetime. Subsequent createRenderList calls reuse the registry
+   * as-is (texture arrays, mesh slabs, arena slot generations all
+   * preserved). Use isInitialized() to detect "registry already up".
    */
-  void init(QRhi& rhi);
+  void init(QRhi& rhi, QRhiResourceUpdateBatch& batch);
+
+  /**
+   * @brief True if init() has been called and destroyOwned()/destroy()
+   * has not. Used by RenderList::init to gate the (otherwise asserting)
+   * init() call when the registry is being reused across an RL rebuild.
+   */
+  bool isInitialized() const noexcept { return m_rhi != nullptr; }
+
+  /**
+   * @brief QRhi this registry was init()'d against. Null when not
+   * initialised. The owning OutputNode uses this to decide whether
+   * the registry is still bound to its QRhi (vs. a fresh QRhi created
+   * after a setSwapchainFormat-style teardown).
+   */
+  QRhi* boundRhi() const noexcept { return m_rhi; }
 
   /**
    * @brief Seed reserved arena slots with sensible defaults.
@@ -155,6 +177,24 @@ public:
    * use-after-free in the common "QRhi already dead" path.
    */
   void destroy();
+
+  /**
+   * @brief Tear down arena buffers + texture arrays + mesh streams
+   * directly (no RenderList plumbing). Called by the owning OutputNode
+   * when its QRhi is about to be destroyed (destroyOutput, ~OutputNode).
+   *
+   * Persist-across-rebuild contract: the registry survives across RL
+   * rebuilds (RenderList::release is a no-op for the registry now), so
+   * the QRhi-routed teardown that used to happen in destroy(RenderList&)
+   * has no live RenderList to run through any more. We `delete` the
+   * QRhiBuffer / QRhiTexture / QRhiSampler wrappers directly: the QRhi
+   * is still alive at this call site (callers MUST invoke this BEFORE
+   * RenderState::destroy() / setSwapchainFormat-style teardown), so the
+   * destructors free both the wrapper and the underlying GPU resource
+   * cleanly. After this call the registry is back to its pre-init()
+   * state and can be re-init()'d against a new QRhi.
+   */
+  void destroyOwned();
 
   /**
    * @brief Reserve a slot in the given arena for @p size bytes.
@@ -270,50 +310,47 @@ public:
   // samplers are interchangeable and consumer shaders can declare a
   // fixed sampler count.
   static constexpr int kTextureLayerSize = 1024;
-  static constexpr int kMaxDynamicSlots  = 2;
+  // Bumped from 2 to 4: with LRU eviction in place the cap matters less
+  // (recycled slots stay fresh), but a higher floor reduces churn in
+  // scenes that legitimately use 3-4 distinct dynamic textures per
+  // channel (multi-camera capture, layered video). Stays comfortably
+  // under the 16-samplers-per-stage RHI floor at 4 channels × 4 slots
+  // + static arrays + skybox/IBL.
+  static constexpr int kMaxDynamicSlots  = 4;
 
   // Wave 2 S2-shader: per-channel static buckets. Each bucket holds
   // textures of ONE (format, pixelSize) tuple. Distinct tuples go into
   // distinct buckets; consumer shaders declare N `sampler2DArray`s per
-  // channel and switch on the 6-bit `bucket` field from
-  // MaterialGPU::textureRefs.
+  // channel and switch on the bucket field decoded from
+  // MaterialGPU::textureRefs (see tex_ref_static in SceneGPUState.hpp).
   //
-  // Cap = 128 — matched with the widened 7-bit bucket field in the
-  // 32-bit texture-ref encoding (`source:2 | bucket:7 | layer:23`;
-  // see `tex_ref_static` in SceneGPUState.hpp). Every shader that
-  // decodes the packed ref (classic_pbr_full.frag et al.) must use
-  // the matching masks / shifts.
+  // Runtime cap is 16 (kMaxBuckets), chosen to stay within Vulkan's
+  // default VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER pool budget: 5
+  // channels × 16 buckets + ~10 dynamic slots ≈ 90 samplers per
+  // pipeline, well under 256. Real scenes typically need 1-3 buckets
+  // per channel. Shader sampler arrays in classic_pbr_full.frag MUST
+  // stay in sync (baseColorArray0..baseColorArray15 etc).
   //
-  // Per-stage sampler-binding footprint:
-  //   128 buckets × 4 PBR channels + 2 dyn × 4 channels = 520 bindings.
-  // Sized against a 512-sampler per-stage budget — well under the
-  // `maxPerStageDescriptorSamplers` reported by desktop Vulkan / Metal /
-  // D3D12 (typically 1024–4096 on anything modern).
+  // The tex_ref_static encoding (SceneGPUState.hpp:74) reserves a 7-bit
+  // bucket field (0..127), giving headroom to grow kMaxBuckets up to 128
+  // without changing the packed layout or shader decode masks. Growing
+  // beyond 16 requires enlarging the shader array declarations and
+  // verifying the descriptor pool budget on the target backend.
   //
   // GLES 3.1 / WebGL 2 guarantee only 16 textures per stage; those
   // targets need a reduced-bucket preset variant (follow-up).
   //
   // Small scenes pay nothing: buckets are allocated lazily as texture
-  // uploads discover new (format, size) combinations. Single-material
-  // assets still consume one bucket and leave the others dormant.
-  //
-  // Cap chosen at 16 to stay within Vulkan's default
-  // VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER pool budget (256
-  // descriptors). 5 channels × 16 buckets + ~10 dyn slots = ~90
-  // samplers per pipeline, well under 256. Real scenes typically
-  // need 1-3 buckets per channel; 16 leaves plenty of headroom for
-  // mixed-asset productions while preventing pool exhaustion.
-  // Shader sampler declarations in classic_pbr_full.frag MUST stay
-  // in sync with this value (baseColorArray0..baseColorArray15 etc).
+  // uploads discover new (format, size) combinations.
   static constexpr int kMaxBuckets = 16;
 
   /**
    * @brief Channel texture state with multi-bucket support.
    *
    * The MaterialGPU::textureRefs[] encoding is
-   * `source:2 | bucket:6 | layer:24` — the 6-bit bucket field
-   * addresses up to 64 distinct (format, pixelSize) tuples per
-   * channel. Wave 1 of the rollout (Plan 09 S2-infra) keeps exactly
+   * `source:2 | bucket:7 | layer:23` — the 7-bit bucket field
+   * addresses up to 128 distinct (format, pixelSize) tuples in the
+   * encoding; the runtime cap is kMaxBuckets (currently 16). Wave 1 of the rollout (Plan 09 S2-infra) keeps exactly
    * ONE bucket live per channel: same shipping behaviour as the
    * pre-refactor single-array path, shaders unchanged. Wave 2
    * (S2-shader) lifts the cap — the preprocessor allocates a new
@@ -351,13 +388,27 @@ public:
     // Wave 1 invariant: buckets.size() <= 1. Wave 2: up to 64.
     std::vector<Bucket> buckets;
 
-    // Dynamic (runtime-GPU) slot map. Keyed by gpu_texture_handle
-    // native_handle (QRhiTexture*). Rebuilt per frame because upstream
-    // can swap the texture pointer without the outer material_component
-    // pointer changing (video texture resized mid-stream). Channel-
-    // scoped deliberately — see struct doc above.
-    ossia::flat_map<void*, int> dynamicSlotMap;
-    std::vector<QRhiTexture*>   dynamicTextures; // slot idx → texture
+    // Dynamic (runtime-GPU) slot map. Keyed by the QRhi-assigned
+    // globally-unique resource id (`QRhiResource::globalResourceId()`,
+    // monotonic uint64) rather than the raw `QRhiTexture*` pointer.
+    // The system allocator is allowed to recycle freed pointer values,
+    // and qrhivulkan.cpp:5909-5912 explicitly documents the same hazard
+    // for SRB tracking — keying by the stable id makes a recycled
+    // address always look like a fresh resource here too.
+    //
+    // Slots are recycled via LRU eviction: when the map fills up and a
+    // new texture id arrives, the slot with the smallest dynamicSlotLastUse
+    // counter is evicted to make room. Without the eviction path, a long
+    // session with any resolution-changing producer (window-capture, NDI
+    // source-switch, video file resolution change mid-stream) hit the
+    // 2-slot cap after two distinct globalResourceIds and every subsequent
+    // texture returned -1 → tex_ref_none() (material's dynamic texture
+    // silently blanks). LRU bumps lastUse on every access so the evicted
+    // slot is always the one no longer referenced by any active material.
+    ossia::flat_map<quint64, int> dynamicSlotMap;
+    std::vector<QRhiTexture*>     dynamicTextures;       // slot idx → texture
+    std::vector<uint64_t>         dynamicSlotLastUse;    // slot idx → access counter at last lookup
+    uint64_t                      dynamicSlotCounter{0}; // monotonic, bumped on each resolve
 
     // Wave-1 shims. Callers that haven't been updated to loop over
     // buckets[] go through these for legacy single-bucket semantics.
@@ -473,30 +524,6 @@ public:
    * normal stay linear.
    */
   static QRhiTexture::Flags textureChannelFlags(TextureChannel ch) noexcept;
-
-  /**
-   * @brief Resolve a `texture_source*` to a layer index in the channel's
-   * static array. First call for a given source decodes + uploads;
-   * subsequent calls are O(1) map hits.
-   *
-   * Returns -1 when:
-   *   - `src == nullptr`
-   *   - the channel array hasn't been allocated yet (no prior rebuild
-   *     has determined a capacity). Producers calling this during
-   *     their own update() should accept the -1 → tex_ref_none()
-   *     fallback; the preprocessor's rebuildChannel() pass will
-   *     allocate the array from the scene-wide unique-source list on
-   *     its next frame.
-   *
-   * Intended for producers (PBRMesh, MaterialOverride, loaders) that
-   * want to stamp `tex_ref_static(0, layer)` directly into their
-   * Material arena slot's textureRefs[] and bypass the
-   * preprocessor's overlay pass.
-   */
-  int resolveStaticLayer(
-      TextureChannel channel,
-      const ossia::texture_source* src,
-      QRhiResourceUpdateBatch& res) noexcept;
 
   /**
    * @brief Register a runtime GPU texture handle for this channel's
@@ -634,10 +661,17 @@ public:
   ///
   /// `freshly_allocated` on the returned slab signals "caller must
   /// upload the mesh's bytes via uploadMeshStream(...)".
+  ///
+  /// `current_frame` is required so that the count-mismatch grace-queue
+  /// enqueue stamps a real release frame (not 0). Without it, after the
+  /// first `grace` frames of the session every count-mismatch deferred
+  /// release is freed instantly on the very next sweep, defeating the
+  /// guard against in-flight GPU draws referencing the old offset.
   MeshSlab* acquireMeshSlab(
       uint64_t stable_id,
       uint32_t vertex_count,
-      uint32_t index_count) noexcept;
+      uint32_t index_count,
+      uint32_t current_frame) noexcept;
 
   /// Mark a slab as seen this frame so sweep() doesn't reclaim it.
   void markMeshSlabSeen(uint64_t stable_id, uint32_t current_frame) noexcept;
@@ -646,8 +680,23 @@ public:
   /// Grace defaults to 2 (covers FramesInFlight+1 on typical backends).
   void sweepMeshSlabs(uint32_t current_frame, uint32_t grace = 2) noexcept;
 
+  /// Free pending-release slabs whose `released_frame + grace <= current_frame`
+  /// from the OffsetAllocator. Called by `sweepMeshSlabs` (phase-2) and by
+  /// `acquireMeshSlab` *before* its fresh allocate, so a count-mismatch whose
+  /// previous slot has served its grace can recycle that capacity in the same
+  /// `update()` instead of triggering a spurious "pool exhausted" warning.
+  /// Does not touch the *SlotsUsed trackers — those are decremented eagerly at
+  /// logical-release time (enqueue) so phase-2 free is purely allocator
+  /// bookkeeping.
+  void drainExpiredPendingReleases(
+      uint32_t current_frame, uint32_t grace = 2) noexcept;
+
   /// Explicit release of a slab by stable_id (used on scene teardown).
-  void releaseMeshSlab(uint64_t stable_id) noexcept;
+  /// The release is enqueued into the pending-releases grace queue and freed
+  /// from the OffsetAllocator only after `grace` frames have elapsed, matching
+  /// the same contract as sweepMeshSlabs. Pass the current render-frame counter
+  /// so the sweep can determine when it is safe to reclaim the sub-allocation.
+  void releaseMeshSlab(uint64_t stable_id, uint32_t current_frame) noexcept;
 
   /// Byte offset of a stream within its backing buffer. Use directly
   /// as `uploadStaticBuffer(buf, offset, size, data)`.

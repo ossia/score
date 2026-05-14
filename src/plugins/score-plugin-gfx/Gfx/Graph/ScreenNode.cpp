@@ -7,6 +7,7 @@
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/gfx/OpenGL.hpp>
+#include <score/tools/Debug.hpp>
 
 #include <QtGui/private/qrhinull_p.h>
 
@@ -389,13 +390,18 @@ ScreenNode::~ScreenNode()
 {
   if(m_swapChain)
   {
-    m_swapChain->deleteLater();
-
+    // Order matters: clear the alias + flag on the Window BEFORE releasing
+    // the QRhiSwapChain. A queued QExposeEvent landing between the deferred
+    // delete and the nullings would otherwise observe the inconsistent
+    // state (m_hasSwapChain == true && m_swapChain still aliasing freed
+    // memory). See diagnostic 047.
     if(m_window)
     {
-      m_window->m_swapChain = nullptr;
       m_window->m_hasSwapChain = false;
+      m_window->m_swapChain = nullptr;
     }
+
+    m_swapChain->deleteLater();
   }
 
   if(m_window && m_window->state)
@@ -460,8 +466,8 @@ void ScreenNode::onRendererChange()
         return;
       }
     }
+    m_window->m_canRender = false;
   }
-  m_window->m_canRender = false;
 }
 
 void ScreenNode::stopRendering()
@@ -480,7 +486,13 @@ void ScreenNode::stopRendering()
 
 void ScreenNode::setRenderer(std::shared_ptr<RenderList> r)
 {
-  m_window->state->renderer = r;
+  // m_window can be null after destroyOutput() (which calls m_window.reset()).
+  // Reachable from Graph::createOutputRenderList paths after a graphics-API
+  // switch / sample-count change / output-disable cycle. Sibling guards
+  // already exist in stopRendering and onRendererChange below; this one
+  // was missed when those were patched.
+  if(m_window && m_window->state)
+    m_window->state->renderer = r;
 }
 
 RenderList* ScreenNode::renderer() const
@@ -525,12 +537,28 @@ void ScreenNode::setConfiguration(Configuration conf)
 
 void ScreenNode::setSwapchainFlag(Gfx::SwapchainFlag flag)
 {
+  if(m_swapchainFlag == flag)
+    return;
   m_swapchainFlag = flag;
+  // Live flag change (sRGB toggle) requires the swapchain to be recreated
+  // with the new flag bits — setFlags happens in createOutput at line ~667.
+  // destroyOutput tears down; Graph::createOutputRenderList rebuilds on
+  // next reconcile (same pattern updateGraphicsAPI uses for sample-count).
+  if(m_window)
+    destroyOutput();
 }
 
 void ScreenNode::setSwapchainFormat(Gfx::SwapchainFormat format)
 {
+  if(m_swapchainFormat == format)
+    return;
   m_swapchainFormat = format;
+  // Same rebuild rationale as setSwapchainFlag above. setFormat happens at
+  // line ~650 inside createOutput; without the rebuild the field stayed
+  // updated but the live swapchain kept its prior format (HDR↔SDR toggle
+  // was silently inert).
+  if(m_window)
+    destroyOutput();
 }
 
 void ScreenNode::setSize(QSize sz)
@@ -728,6 +756,35 @@ void ScreenNode::destroyOutput()
   if(!m_window)
     return;
 
+  // Drain the GPU before tearing anything down. Without this, queued frames
+  // can still reference the swapchain / RPD / depth-stencil while we're
+  // freeing them — and worse, when setSwapchainFormat / setSwapchainFlag
+  // call destroyOutput synchronously (commit e2afe7874), the host window's
+  // last beginFrame may still hold an unfinished cbWrapper referenced by
+  // ScenePreprocessor's per-frame copyBuffer (commit fe146c8de). The next
+  // runInitialPasses then records vkCmdCopyBuffer / vkCmdPipelineBarrier
+  // into a CB whose underlying VkCommandBuffer was already vkEndCommandBuffer'd
+  // (VUID-vkCmdCopyBuffer-commandBuffer-recording / VUID-vkCmdPipelineBarrier-
+  // commandBuffer-recording), often followed by a device loss.
+  //
+  // MultiWindowNode::destroyOutput already does this at line ~1068; mirror it.
+  if(m_window->state && m_window->state->rhi)
+  {
+    // Pre-condition: destroyOutput must not be called inside a frame
+    // (between beginFrame and endFrame). If this fires, some upstream
+    // path triggered a teardown mid-render — the cascade would be
+    // worse than just deferring to next frame.
+    SCORE_ASSERT(!m_window->state->rhi->isRecordingFrame());
+    m_window->state->rhi->finish();
+  }
+
+  // Persist-across-rebuild contract: the registry survives RL teardown
+  // so we must explicitly release its QRhi resources here, BEFORE
+  // RenderState::destroy() (called below via m_window->state->destroy())
+  // frees the device. destroyOwned() `delete`s the buffer / texture /
+  // sampler wrappers directly while the QRhi is still alive.
+  releaseRegistry();
+
   delete m_depthStencil;
   m_depthStencil = nullptr;
 
@@ -743,13 +800,18 @@ void ScreenNode::destroyOutput()
   //delete s.renderBuffer;
   //s.renderBuffer = nullptr;
 
-  delete m_swapChain;
-  m_swapChain = nullptr;
-
+  // Order matters: clear the alias + flag on the Window BEFORE deleting
+  // the QRhiSwapChain (see diagnostic 047). A queued event reaching
+  // Window::exposeEvent between the delete and the nulling would
+  // otherwise observe (m_hasSwapChain == true && m_swapChain dangling).
   if(m_window)
   {
+    m_window->m_hasSwapChain = false;
     m_window->m_swapChain = nullptr;
   }
+
+  delete m_swapChain;
+  m_swapChain = nullptr;
 
   if(m_window)
   {

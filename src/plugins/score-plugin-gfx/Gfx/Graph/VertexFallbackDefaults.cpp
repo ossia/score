@@ -1,5 +1,7 @@
 #include <Gfx/Graph/VertexFallbackDefaults.hpp>
 
+#include <ossia/detail/hash.hpp>
+
 #include <cstring>
 
 namespace score::gfx
@@ -209,21 +211,16 @@ std::optional<VertexFallbackSpec> resolveVertexFallback(
 
 uint64_t hashVertexFallback(const VertexFallbackSpec& spec) noexcept
 {
-  // 64-bit FNV-1a over the used portion of the payload plus the format.
-  uint64_t h = 1469598103934665603ull;
-  auto mix = [&h](uint8_t b) {
-    h ^= b;
-    h *= 1099511628211ull;
-  };
-  mix((uint8_t)(spec.format & 0xff));
-  mix((uint8_t)((spec.format >> 8) & 0xff));
-  mix((uint8_t)(spec.stride_bytes & 0xff));
-  mix((uint8_t)((spec.stride_bytes >> 8) & 0xff));
-  mix((uint8_t)((spec.stride_bytes >> 16) & 0xff));
-  mix((uint8_t)((spec.stride_bytes >> 24) & 0xff));
-  for(uint32_t i = 0; i < spec.stride_bytes && i < spec.bytes.size(); ++i)
-    mix(spec.bytes[i]);
-  return h;
+  // rapidhash-tiered (ossia::hash_*); same primitive used everywhere
+  // else in the gfx pipeline. Mix format + stride into the seed via
+  // hash_combine, then fold in the active byte range so two specs
+  // with identical bytes but different formats / strides don't alias.
+  uint64_t seed = ossia::hash_trivial(spec.format);
+  ossia::hash_combine(seed, spec.stride_bytes);
+  const uint32_t active
+      = std::min<uint32_t>(spec.stride_bytes, (uint32_t)spec.bytes.size());
+  ossia::hash_combine(seed, ossia::hash_bytes(spec.bytes.data(), active));
+  return seed;
 }
 
 } // namespace score::gfx

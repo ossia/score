@@ -29,6 +29,7 @@ void GpuTimings::record(std::string_view name, double ms) noexcept
     e.max_ms = ms;
     e.history[0] = ms;
     e.history_index = 1 % kHistorySize;
+    e.sample_count = 1;
     e.frames_since_observed = 0;
     m_entries.push_back(std::move(e));
     return;
@@ -38,16 +39,19 @@ void GpuTimings::record(std::string_view name, double ms) noexcept
   it->last_ms = ms;
   it->history[it->history_index] = ms;
   it->history_index = (it->history_index + 1) % kHistorySize;
+  if(it->sample_count < kHistorySize)
+    ++it->sample_count;
   it->frames_since_observed = 0;
 
   double sum = 0.0;
   double m = 0.0;
-  for(double v : it->history)
+  for(int i = 0; i < it->sample_count; ++i)
   {
+    const double v = it->history[i];
     sum += v;
     m = std::max(m, v);
   }
-  it->mean_ms = sum / double(kHistorySize);
+  it->mean_ms = sum / double(it->sample_count);
   it->max_ms = m;
 }
 
@@ -86,21 +90,16 @@ ScopedGpuTimer::ScopedGpuTimer(
     , m_timings{timings}
     , m_name{name}
 {
-  // Read the CB-wide GPU time for the previously-completed frame and
-  // attribute it to this pass. This is the one-frame-stale path that
-  // QRhi supports out of the box. A future per-query-range API would
-  // let us be more precise; today this is what we have.
+  // QRhi only exposes a CB-wide timestamp via lastCompletedGpuTime() —
+  // there is no per-pass sub-range API. Recording that value here (under
+  // a per-pass name) would cause every ScopedGpuTimer in the same frame
+  // to write the identical number under different names, making the S6
+  // panel show the full-frame cost against every individual pass.
   //
-  // The CB keeps its own internal timestamp query pair; the returned
-  // value is independent of the marker we emit here. It's safe to
-  // read every frame — returns 0 until the first completion, then
-  // stable millisecond deltas.
-  const double ms = m_cb.lastCompletedGpuTime();
-  if(ms > 0.0)
-    m_timings.record(m_name, ms);
-
-  // Emit a debug marker so RenderDoc / Nsight captures show the pass
-  // boundary even when timestamps aren't available.
+  // The frame-total is recorded once per frame in RenderList::renderInternal
+  // under the "frame" bucket. ScopedGpuTimer's job is to emit the debug
+  // marker brackets (visible in RenderDoc / Nsight) without duplicating
+  // the timing attribution.
   m_cb.debugMarkBegin(QByteArray::fromRawData(m_name.data(), (qsizetype)m_name.size()));
 }
 

@@ -239,6 +239,62 @@ void Graph::recreateOutputRenderList(OutputNode& output)
     std::shared_ptr<RenderList>& renderer = *it;
     if(renderer.get() == output.renderer())
     {
+      // Pre-condition: recreateOutputRenderList MUST be called outside
+      // any active beginFrame/endFrame block. The Window::resize ->
+      // resizeSwapChain -> onResize -> here chain is invoked at the
+      // top of Window::render BEFORE beginFrame (Window.cpp:148-151),
+      // so this should always hold. Assert it to catch any future
+      // path that triggers the resize from inside a render frame.
+      if(auto rs = output.renderState(); rs && rs->rhi)
+        SCORE_ASSERT(!rs->rhi->isRecordingFrame());
+
+      // Drain the GPU before tearing down the old RenderList. release()
+      // walks every renderer and triggers a torrent of delete /
+      // deleteLater on QRhi objects (textures, samplers, buffers,
+      // SRBs, pipelines). On Vulkan, sibling outputs (BackgroundNode's
+      // beginOffscreenFrame, MultiWindowNode per-window CBs, the
+      // resizing window's own previous-frame CB) may still hold those
+      // resources in pending state. Without this drain, the next time
+      // ScenePreprocessor's runInitialPasses records vkCmdCopyBuffer /
+      // vkCmdPipelineBarrier into a CB the rhi believes is fresh,
+      // validation fires (-recording / -in-use), eventual device loss.
+      //
+      // FIX-A added rhi->finish() inside ScreenNode::destroyOutput and
+      // BackgroundNode::destroyOutput, but the
+      // `Window::resize → onResize → recreateOutputRenderList` path
+      // never enters those — it tears down the RenderList directly.
+      if(auto rs = output.renderState(); rs && rs->rhi)
+      {
+        auto* rhi = rs->rhi;
+        rhi->finish();
+
+        // Force a no-op offscreen frame on each frame slot so BOTH
+        // cmdPools are reset symmetrically. QRhi-Vulkan's finish()
+        // resets only `cmdPool[currentFrameSlot]`
+        // (qrhivulkan.cpp:2617-2629); the OTHER slot's pool stays
+        // untouched. If a sibling output (BackgroundNode /
+        // PreviewNode / MultiWindowNode) drives its own
+        // beginOffscreenFrame on a separate timer, its
+        // ensureCommandPoolForNewFrame on the un-reset slot finds
+        // CBs still in pending state from the pre-resize era →
+        // vkResetCommandPool VUID-00040, then vkBeginCommandBuffer
+        // on active CB, eventual device loss in vkQueueSubmit.
+        // The cascade fires ~16 frames after resize because that's
+        // when the sibling timer happens to phase-align with the
+        // un-drained slot.
+        //
+        // beginOffscreenFrame advances currentFrameSlot
+        // (qrhivulkan.cpp:3025-3031) and resets the new slot's pool;
+        // endOffscreenFrame waits on ofr.cmdFence (drains every
+        // queued CB before the fence signals). Two iterations cover
+        // QVK_FRAMES_IN_FLIGHT=2.
+        for(int i = 0; i < 2; ++i)
+        {
+          QRhiCommandBuffer* cb{};
+          if(rhi->beginOffscreenFrame(&cb) == QRhi::FrameOpSuccess)
+            rhi->endOffscreenFrame();
+        }
+      }
       auto old_renderer = renderer;
       old_renderer->release();
       old_renderer.reset();
@@ -270,7 +326,25 @@ void Graph::initializeOutput(OutputNode* output, GraphicsApi graphicsApi)
     };
 
     auto onResize = [this, output] {
-      // FIXME optimize if size did not change?
+      // FAST-PATH: pure viewport resize. Skip the full RL rebuild
+      // (release+createRenderList) — its cost (pipeline compiles,
+      // ScenePreprocessor REBUILD, mesh slab + texture array
+      // re-upload, every preprocessor SSBO from cap=0) is wasted
+      // when only the framebuffer size changed. Instead, mark every
+      // renderer's RT specs as dirty so the existing rt_changed
+      // surgical block in renderInternal recreates only the
+      // swapchain-sized RTs + rebinds the downstream samplers.
+      // Persistent GpuResourceRegistry + persistent ScenePreprocessor
+      // caches mean none of the heavier work is needed for a pure
+      // size change.
+      //
+      // Returns false if it cannot handle the change (no renderers
+      // yet, invalid size); the fallback below covers initial setup
+      // and any future "format / sample-count change" path.
+      if(auto* rl = output->renderer())
+        if(auto rs = output->renderState(); rs)
+          if(rl->resizeSwapchainSizedTargets(rs->outputSize))
+            return;
       recreateOutputRenderList(*output);
     };
 
@@ -488,6 +562,16 @@ Graph::createRenderList(OutputNode* output, std::shared_ptr<RenderState> state)
   {
     r.init();
 
+    // Compute m_requiresDepth from the node graph BEFORE
+    // createAllInputRenderTargets — RT creation reads it. Mirrors
+    // maybeRebuild's recompute at RenderList.cpp:484-486.
+    {
+      bool requiresDepth = false;
+      for(auto node : r.nodes)
+        requiresDepth |= node->requiresDepth;
+      r.markRequiresDepth(requiresDepth);
+    }
+
     // Create all input render targets centrally before any node init().
     // This ensures RTs are available regardless of init order
     // (matches what maybeRebuild does).
@@ -517,13 +601,23 @@ Graph::createRenderList(OutputNode* output, std::shared_ptr<RenderState> state)
       node->renderTargetSpecsChanged = false;
     }
 
-    // Don't call markBuilt() — let maybeRebuild() run on the first
-    // render frame. The full release+init cycle it performs is needed to
-    // properly initialize RenderList-level caches (vertex buffers, render
-    // targets with depth textures) that initState() alone doesn't cover.
-    // All the crashes that originally motivated markBuilt() have been
-    // fixed: null processUBO in MRT blit passes, feedback ISF persistent
-    // textures, and the surgical rt_changed handling.
+    // Mark built. Skips the wasteful + previously-dangerous mid-frame
+    // release()+init() that maybeRebuild(false) would otherwise fire on
+    // the first render frame. Without this, every viewport resize did
+    // a full RenderList teardown TWICE in quick succession (once here,
+    // once on the next frame in maybeRebuild) -- multi-second resizes
+    // for non-trivial scenes. The mid-frame teardown was also the root
+    // of the CB-cascade chased through commits 51400fc37 / 5b2da1d48 /
+    // 7f9f1e36a. The safety net (C2 drain in maybeRebuild) stays in
+    // place for forced rebuilds and the actual size-change cycle in
+    // maybeRebuild on subsequent frames.
+    //
+    // The historical concerns the previous comment cited (null
+    // processUBO in MRT blit passes, feedback ISF persistent textures,
+    // surgical rt_changed handling) were all fixed in their respective
+    // commits. The two missing pieces vs maybeRebuild's release+init
+    // (m_requiresDepth recompute, markBuilt) are now done here.
+    r.markBuilt();
   }
 
   return ptr;
@@ -784,10 +878,6 @@ void Graph::reconcileAllRenderLists()
     // 2. Find nodes that are newly reachable (no renderer yet)
     //    and nodes that are no longer reachable (have renderer but not in walk).
     ossia::flat_set<Node*> reachable(rl->nodes.begin(), rl->nodes.end());
-    ossia::flat_set<Node*> hadRenderer;
-    for(auto& [rlist, renderer] : outputNode->renderedNodes)
-      if(rlist == rl.get())
-        hadRenderer.insert(const_cast<Node*>(&renderer->node));
     // Collect all nodes that have renderers for this RL
     std::vector<Node*> nodesWithRenderers;
     for(auto* node : m_nodes)
@@ -991,6 +1081,19 @@ Graph::~Graph()
     out->destroyOutput();
   }
 
+  // Belt-and-braces: any OutputNode registered via addNode but not yet
+  // promoted into m_outputs (e.g. preview outputs added via
+  // createSingleRenderList without a subsequent createAllRenderLists)
+  // would otherwise leak its swapchain / RPD on shutdown.
+  for(auto* n : m_nodes)
+  {
+    if(auto* out = dynamic_cast<OutputNode*>(n))
+    {
+      if(!ossia::contains(m_outputs, out))
+        out->destroyOutput();
+    }
+  }
+
   clearEdges();
 }
 
@@ -1041,25 +1144,6 @@ void Graph::removeEdge(Port* source, Port* sink)
     delete *it;
     m_edges.erase(it);
   }
-}
-
-void Graph::addAndLinkEdge(Port* source, Port* sink, Process::CableType t)
-{
-  addEdge(source, sink, t);
-
-  auto output = dynamic_cast<OutputNode*>(sink->node);
-  SCORE_ASSERT(output);
-
-  recreateOutputRenderList(*output);
-}
-
-void Graph::unlinkAndRemoveEdge(Port* source, Port* sink)
-{
-  removeEdge(source, sink);
-  auto output = dynamic_cast<OutputNode*>(sink->node);
-  SCORE_ASSERT(output);
-
-  recreateOutputRenderList(*output);
 }
 
 void Graph::destroyOutputRenderList(score::gfx::OutputNode& output)

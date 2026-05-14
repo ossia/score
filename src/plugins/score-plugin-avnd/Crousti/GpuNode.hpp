@@ -205,6 +205,8 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
 
   void initState(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
+    if(m_initialized)
+      return;
     auto& parent = node();
     if constexpr(requires { states[0].prepare(); })
     {
@@ -262,6 +264,25 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
   {
     return ossia::find_if(m_p, [&](const auto& p) { return p.first == &edge; })
            != m_p.end();
+  }
+
+  void removeOutputPass(score::gfx::RenderList&, score::gfx::Edge& edge) override
+  {
+    // Mirror addOutputPass: each edge owns one entry in m_p (pipeline +
+    // SRB) and one parallel entry in `states`. Release both. The shared
+    // m_srb pointer is owned by initState; Pass::p.srb refers to the
+    // SAME pointer (see addOutputPass), so null it out before
+    // Pipeline::release() to avoid double-deleteLater of the shared SRB.
+    auto it
+        = ossia::find_if(m_p, [&](const auto& p) { return p.first == &edge; });
+    if(it == m_p.end())
+      return;
+    const auto idx = std::distance(m_p.begin(), it);
+    it->second.p.srb = nullptr; // shared with siblings — owned by initState
+    it->second.release();
+    m_p.erase(it);
+    if((std::size_t)idx < states.size())
+      states.erase(states.begin() + idx);
   }
 
   void releaseState(score::gfx::RenderList& r) override
@@ -401,58 +422,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
     }
   }
 
-  void release(score::gfx::RenderList& r) override
-  {
-    m_createdPipeline = false;
-
-    // Release the object's internal states
-    if constexpr(requires { &Node_T::release; })
-    {
-      for(auto& state : states)
-      {
-        for(auto& promise : state->release())
-        {
-          gpp::qrhi::handle_release handler{*r.state.rhi};
-          visit(handler, promise.current_command);
-        }
-      }
-    }
-    states.clear();
-
-    // Release the allocated mesh buffers
-    m_meshBuffer = {};
-
-    // Release the allocated textures
-    for(auto& [id, tex] : this->createdTexs)
-      tex->deleteLater();
-    this->createdTexs.clear();
-
-    // Release the allocated samplers
-    for(auto& [id, sampl] : this->createdSamplers)
-      sampl->deleteLater();
-    this->createdSamplers.clear();
-
-    // Release the allocated ubos
-    for(auto& [id, ubo] : this->createdUbos)
-      ubo->deleteLater();
-    this->createdUbos.clear();
-
-    // Release the allocated rts
-    // TODO investigate why reference does not work here:
-    for(auto [port, rt] : m_rts)
-      rt.release();
-    m_rts.clear();
-
-    // Release the allocated pipelines
-    for(auto& pass : m_p)
-      pass.second.release();
-    m_p.clear();
-
-    m_meshBuffer = {};
-    m_createdPipeline = false;
-
-    sampler_k = 0;
-  }
+  void release(score::gfx::RenderList& r) override { releaseState(r); }
 
   void runInitialPasses(
       score::gfx::RenderList& renderer, QRhiCommandBuffer& commands,

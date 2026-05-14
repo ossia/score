@@ -1,6 +1,7 @@
 #include <Gfx/Graph/SceneGPUState.hpp>
 
 #include <ossia/detail/hash_map.hpp>
+#include <ossia/detail/ptr_set.hpp>
 
 #include <QDebug>
 #include <QQuaternion>
@@ -437,21 +438,44 @@ struct FlattenVisitor
   // world_transforms / world_transforms_prev entry for motion vectors.
   std::uint32_t currentTransformSlot{0xFFFFFFFFu};
 
+  // Identity-based dedup for shared payload pointers reachable through
+  // multiple tree paths. The visitor's contract is "one entry per unique
+  // payload object" — repeating the same shared_ptr (e.g. a single
+  // primitive_cloud_component_ptr referenced by four distinct scene_node
+  // children, or a mesh_component shared across LOD levels) should
+  // contribute one bucket / draw call, not N. merge_scenes / SceneGroup
+  // already dedup roots, so this only triggers on actually-shared
+  // sub-tree references (the cases the upstream layers can't see).
+  ossia::ptr_set<const ossia::scene_node*> seenNodes;
+  ossia::ptr_set<const ossia::primitive_cloud_component*> seenClouds;
+  // Secondary dedup key for clouds: the raw_data pointer. FormatOverride
+  // clones the primitive_cloud_component to rewrite format_id but keeps
+  // the underlying raw_data (~1 GB for a 4M-splat scan) shared via
+  // shared_ptr — two distinct components pointing at the same raw_data
+  // are still one upload's worth of GPU bytes. Dedup by raw_data when
+  // present, fall back to component pointer when raw_data is null.
+  ossia::ptr_set<const ossia::buffer_resource*> seenCloudRawData;
+  ossia::ptr_set<const ossia::mesh_component*> seenMeshes;
+  ossia::ptr_set<const ossia::light_component*> seenLights;
+  ossia::ptr_set<const ossia::camera_component*> seenCameras;
+  ossia::ptr_set<const ossia::scene_data*> seenSceneData;
+  ossia::ptr_set<const ossia::instance_component*> seenInstances;
+
   void visitPayload(const ossia::scene_payload& payload)
   {
     if(auto* subnode = ossia::get_if<ossia::scene_node_ptr>(&payload))
     {
-      if(*subnode)
+      if(*subnode && seenNodes.insert(subnode->get()).second)
         visitNode(**subnode);
     }
     else if(auto* mesh = ossia::get_if<ossia::mesh_component_ptr>(&payload))
     {
-      if(*mesh)
+      if(*mesh && seenMeshes.insert(mesh->get()).second)
         visitMesh(**mesh);
     }
     else if(auto* light = ossia::get_if<ossia::light_component_ptr>(&payload))
     {
-      if(*light)
+      if(*light && seenLights.insert(light->get()).second)
       {
         // Arena slot index for shader-side arena-direct light reads
         // (task 28b/c — packLight path removed). 0xFFFFFFFF sentinel
@@ -466,7 +490,7 @@ struct FlattenVisitor
     }
     else if(auto* camera = ossia::get_if<ossia::camera_component_ptr>(&payload))
     {
-      if(*camera)
+      if(*camera && seenCameras.insert(camera->get()).second)
       {
         FlatScene::CameraEntry e;
         e.component = *camera;
@@ -498,15 +522,48 @@ struct FlattenVisitor
     {
       // Generic escape hatch: stash it; the ScenePreprocessor forwards every entry
       // as an auxiliary_buffer on the output geometry.
-      if(*sd)
+      if(*sd && seenSceneData.insert(sd->get()).second)
         out.scene_data.push_back(*sd);
     }
     else if(auto* inst = ossia::get_if<ossia::instance_component_ptr>(&payload))
     {
       // GPU-instanced mesh: collect — the ScenePreprocessor emits one DrawCall with
       // instances=instance_count and forwards the instance SSBOs.
-      if(*inst)
+      if(*inst && seenInstances.insert(inst->get()).second)
         out.instances.push_back({*inst, parentWorld});
+    }
+    else if(auto* pc
+            = ossia::get_if<ossia::primitive_cloud_component_ptr>(&payload))
+    {
+      // Format-agnostic point cloud / splat: collect — the
+      // ScenePreprocessor's primitive-cloud branch buckets these by
+      // format_id and emits one indirect-draw geometry per bucket
+      // alongside the existing mesh MDI. The cloud's data lives in
+      // raw_data + format_params; the bucket geometry's auxiliary
+      // ("raw_splats") forwards it to the format's CSF chain.
+      //
+      // Dedup by raw_data pointer rather than the component pointer:
+      // FormatOverride deliberately clones the component (fresh
+      // primitive_cloud_component shared_ptr) but keeps the heavy
+      // raw_data shared, and we don't want format-override to defeat
+      // dedup. Two distinct components with distinct raw_data are
+      // independent uploads and are kept; same raw_data through
+      // multiple paths counts once.
+      if(*pc)
+      {
+        const ossia::buffer_resource* raw = (*pc)->raw_data.get();
+        const bool unique
+            = raw ? seenCloudRawData.insert(raw).second
+                  : seenClouds.insert(pc->get()).second;
+        if(unique)
+        {
+          FlatScene::PrimitiveCloudDraw d;
+          d.cloud = *pc;
+          d.worldTransform = parentWorld;
+          d.transform_slot = currentTransformSlot;
+          out.primitive_clouds.push_back(std::move(d));
+        }
+      }
     }
     // gaussian_splat, voxel_field, point_cloud, volume — not rendered yet,
     // but the types are transported. Renderers will handle them later.
@@ -671,21 +728,63 @@ void flattenScene(const ossia::scene_spec& scene, FlatScene& out, float aspectRa
         continue;
       }
 
-      // Joints are expected to be topologically ordered: parent_index < i.
-      // If a loader ever emits out-of-order joints, a future version can
-      // do a multi-pass resolve.
-      std::vector<QMatrix4x4> world(sk->joints.size());
-      sg.joint_matrices.resize(sk->joints.size());
-      for(std::size_t i = 0; i < sk->joints.size(); ++i)
+      // Multi-pass forward kinematics: resolve any joint whose parent has
+      // already been resolved, looping until all are done. The glTF 2.0
+      // spec does NOT guarantee topological ordering of skin.joints, so
+      // we cannot assume parent_index < i. For DFS-ordered skins (the
+      // common case) this converges in a single pass.
+      const std::size_t N = sk->joints.size();
+      std::vector<QMatrix4x4> world(N);
+      std::vector<bool> resolved(N, false);
+      sg.joint_matrices.resize(N);
+      std::size_t resolvedCount = 0;
+      int passes = 0;
+      constexpr int maxPasses = 64; // covers any real skeleton depth
+      while(resolvedCount < N && passes < maxPasses)
       {
-        const auto& j = sk->joints[i];
-        QMatrix4x4 local = jointLocal(j);
-        if(j.parent_index >= 0 && j.parent_index < (int32_t)i)
-          world[i] = world[j.parent_index] * local;
-        else
-          world[i] = local;
-
-        const QMatrix4x4 ibm = QMatrix4x4(j.inverse_bind_matrix, 4, 4);
+        bool changed = false;
+        for(std::size_t i = 0; i < N; ++i)
+        {
+          if(resolved[i])
+            continue;
+          const auto& j = sk->joints[i];
+          // Root joint or invalid parent index: resolve immediately.
+          if(j.parent_index < 0 || j.parent_index >= (int32_t)N)
+          {
+            world[i] = jointLocal(j);
+            resolved[i] = true;
+            ++resolvedCount;
+            changed = true;
+            continue;
+          }
+          // Otherwise, parent must be resolved first.
+          if(!resolved[(std::size_t)j.parent_index])
+            continue;
+          world[i] = world[j.parent_index] * jointLocal(j);
+          resolved[i] = true;
+          ++resolvedCount;
+          changed = true;
+        }
+        ++passes;
+        if(!changed)
+          break; // cycle or orphan: bail out instead of spinning
+      }
+      if(resolvedCount < N)
+      {
+        qWarning() << "SceneGPUState: skeleton FK did not converge —"
+                   << (N - resolvedCount) << "joint(s) unresolved (cycle or"
+                   << "orphan parent). Falling back to local matrices.";
+        for(std::size_t i = 0; i < N; ++i)
+        {
+          if(!resolved[i])
+            world[i] = jointLocal(sk->joints[i]);
+        }
+      }
+      // Stamp joint_matrices = world × inverse_bind_matrix once FK is done.
+      for(std::size_t i = 0; i < N; ++i)
+      {
+        const QMatrix4x4 ibm
+            = QMatrix4x4(sk->joints[i].inverse_bind_matrix, 4, 4);
         sg.joint_matrices[i] = world[i] * ibm;
       }
       out.skins.push_back(std::move(sg));
@@ -704,7 +803,12 @@ void flattenScene(const ossia::scene_spec& scene, FlatScene& out, float aspectRa
   const auto& roots = *scene.state->roots;
   for(std::size_t ri = 0; ri < roots.size(); ++ri)
   {
-    if(!roots[ri])
+    // Same dedup contract as visitPayload's scene_node_ptr branch:
+    // skip roots whose pointer was already walked. merge_scenes /
+    // SceneGroup are expected to dedup before this point, but a
+    // scene_state assembled by hand could still place the same root
+    // in `roots[]` more than once.
+    if(!roots[ri] || !vis.seenNodes.insert(roots[ri].get()).second)
       continue;
     vis.visitNode(*roots[ri]);
   }
@@ -753,11 +857,16 @@ void flattenScene(const ossia::scene_spec& scene, FlatScene& out, float aspectRa
 
   // Also surface any cameras registered at scene_state level (producers
   // that don't want to embed a camera node can publish via `cameras` only).
+  // Dedup against the set the tree walk already collected: a camera that
+  // appears both as a tree payload (with worldTransform) AND in
+  // scene_state.cameras would otherwise be entered twice — once with
+  // its real placement, once at identity — and the active-camera resolver
+  // would pick the wrong one half the time.
   if(scene.state->cameras)
   {
     for(const auto& cam : *scene.state->cameras)
     {
-      if(!cam)
+      if(!cam || !vis.seenCameras.insert(cam.get()).second)
         continue;
       FlatScene::CameraEntry e;
       e.component = cam;

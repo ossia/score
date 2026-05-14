@@ -13,7 +13,9 @@
 
 #include <score_plugin_gfx_export.h>
 
+#include <cstdint>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace score::gfx
@@ -67,7 +69,11 @@ struct GraphicsStorageImage
   std::string access; //!< "read_only" / "write_only" / "read_write"
   std::string format; //!< e.g. "rgba8", "r32f", "r32ui"
   bool is3D{false};
+  bool cubemap{false};    //!< imageCube — 6-layer cubemap storage image
+  bool is_array{false};   //!< image2DArray — N-layer array texture
   bool persistent{false}; //!< Ping-pong two textures swapped every frame
+  int depth{0};   //!< Explicit Z dimension for 3D textures; 0 = use default (16)
+  int layers{0}; //!< Layer count for is_array (0 = use parser-supplied default)
 
   QRhiTexture* texture{}; //!< Current (write / read_write) slot
   QRhiTexture* prev{};    //!< Previous frame (read-only); only set when persistent
@@ -106,12 +112,25 @@ struct GraphicsStorageResources
   std::vector<GraphicsStorageImage> images;
   std::vector<GraphicsUBO> ubos;
 
-  // Quick aliases: first SSBO with BUFFER_USAGE="indirect_draw*". Populated by
-  // collectGraphicsStorageResources. The actual buffer pointer is refreshed
-  // each frame via refreshIndirectDrawBuffer.
+  // Quick aliases: first SSBO with BUFFER_USAGE="indirect_draw*". Populated
+  // by collectGraphicsStorageResources. Updated by callers when the underlying
+  // SSBO's buffer pointer changes (e.g. when an upstream CSF rebuilds it).
   QRhiBuffer* indirectDrawBuffer{};
   bool indirectDrawIndexed{false};
   int indirectDrawSsboIndex{-1};
+
+  // Sentinel zero-buffer bound when an SSBO/UBO upstream port disconnects
+  // mid-session. QRhi (especially Vulkan) requires every SRB binding to
+  // point at a valid resource — without a sentinel, a disconnect leaves
+  // the binding pointing at a dangling QRhiBuffer* (the prior upstream's
+  // buffer, which was deleteLater'd when the upstream node was destroyed).
+  // Lazily allocated on first disconnect, sized to the largest binding
+  // observed (kSentinelSize). Single buffer reused for both SSBO and UBO
+  // disconnects since the descriptor type is set on the SRB binding side,
+  // not the buffer side; QRhi accepts a buffer with both StorageBuffer and
+  // UniformBuffer usage flags. owned=true; freed in release().
+  QRhiBuffer* sentinelBuffer{};
+  uint32_t sentinelSize{0};
 
   void release()
   {
@@ -146,6 +165,13 @@ struct GraphicsStorageResources
       u.buffer = nullptr;
     }
     ubos.clear();
+
+    if(sentinelBuffer)
+    {
+      sentinelBuffer->deleteLater();
+      sentinelBuffer = nullptr;
+    }
+    sentinelSize = 0;
 
     indirectDrawBuffer = nullptr;
     indirectDrawSsboIndex = -1;
@@ -231,28 +257,74 @@ void swapPersistentSSBOsState(GraphicsStorageResources& store);
 /**
  * @brief Re-apply the current persistent-storage state to a single SRB.
  *
- * Pairs with swapPersistentSSBOsState: after swapping `store` once, call this
- * on every SRB that references the persistent bindings so the descriptor set
- * matches the new pointers. Calls srb.create() when any binding changed.
+ * Pairs with swapPersistentSSBOsState: after swapping `store` once, call
+ * this on every SRB that references the persistent bindings so the
+ * descriptor set matches the new pointers. Uses replaceBuffer's
+ * updateResources() fast path — no srb->create() rebuild — to avoid
+ * thrashing the SRB pool slot every frame on a static scene (the
+ * cf4b7d6f5 / diag-211 fix removed the trailing create() that earlier
+ * versions of this function called).
  */
 SCORE_PLUGIN_GFX_EXPORT
 void reapplyStorageBindings(
     const GraphicsStorageResources& store, QRhiShaderResourceBindings& srb);
 
 /**
- * @brief Refresh the indirect-draw buffer pointer from an upstream port.
+ * @brief Wire read-only csf_image_input storage images to an upstream
+ *        geometry's published auxiliary_textures.
  *
- * Extracted from RenderedRawRasterPipelineNode::update (lines ~932–957).
- * Used when the indirect draw args come from an upstream CSF/RawRaster
- * geometry_input that writes to an SSBO with BUFFER_USAGE="indirect_draw".
+ * Symmetric to `bindUpstreamBuffers` for SSBOs: when a csf_image_input is
+ * declared `read_only` AND the upstream geometry publishes a storage image
+ * with the same name (e.g. an upstream CSF wrote to it via image_input
+ * with `write_only`/`read_write`), this swaps the storage image's texture
+ * pointer to the upstream's published handle and frees the auto-allocated
+ * placeholder we created in `ensureStorageResources`.
  *
- * Returns true if `store.indirectDrawBuffer` changed — caller should then
- * refresh its MeshBuffers::indirectDrawBuffer.
+ * Without this, every read_only csf_image_input INPUTS in a downstream
+ * RawRaster / ISF stage reads from its OWN zero-initialised texture instead
+ * of the upstream's actual contents — silently broken.
+ *
+ * Called per-frame; idempotent. When `srb` is non-null, patches the binding
+ * in-place via `replaceTexture`. The lookup is purely by name match against
+ * `geometry.auxiliary_textures` (the same name-match pattern used by
+ * RawRaster's `m_auxTextureSamplers` rebind path).
  */
 SCORE_PLUGIN_GFX_EXPORT
-bool refreshIndirectDrawBuffer(
-    RenderList& renderer, const std::vector<Port*>& inputPorts,
-    GraphicsStorageResources& store);
+void bindUpstreamImagesFromGeometry(
+    GraphicsStorageResources& store, const ossia::geometry& geometry,
+    QRhiShaderResourceBindings* srb = nullptr);
+
+/**
+ * @brief Wire INPUTS storage_input / uniform_input bindings to upstream
+ *        geometry's published auxiliary_buffers list (name-match).
+ *
+ * SSBO/UBO sibling of `bindUpstreamImagesFromGeometry`. ScenePreprocessor
+ * publishes scene_lights / world_transforms / per_draws / scene_materials /
+ * scene_counts / scene_light_indices / camera UBO / env UBO as named aux
+ * buffers travelling along the geometry edge — flattened-scene shaders
+ * (classic_pbr et al.) declare matching INPUTS storage_input/uniform_input
+ * blocks and the runtime resolves them by name.
+ *
+ * Without this, INPUTS storage_input/uniform_input that go through the
+ * m_storage path stay at the 16-byte placeholder allocated by
+ * `ensureStorageResources` for owned SSBOs — vertices read a zero
+ * PerDraw, multiply by a zero world_transforms matrix, and collapse to
+ * origin. (Indirect-draw storage_inputs are skipped — they have no shader
+ * binding.)
+ *
+ * For CPU-backed aux buffers a fresh QRhiBuffer is allocated and the data
+ * uploaded immediately into `res`; the entry's `owned` flag is updated so
+ * `release()` cleans up correctly. For GPU-backed aux buffers we just
+ * adopt the upstream handle (`owned=false`).
+ *
+ * Patches the SRB in-place when a target SRB is provided; idempotent so
+ * multi-SRB callers can invoke once per SRB without re-running the lookup.
+ */
+SCORE_PLUGIN_GFX_EXPORT
+void bindUpstreamBuffersFromGeometry(
+    QRhi& rhi, QRhiResourceUpdateBatch& res,
+    GraphicsStorageResources& store, const ossia::geometry& geometry,
+    QRhiShaderResourceBindings* srb = nullptr);
 
 /**
  * @brief Decode an isf::storage_input::visibility string to Qt RHI stage flags.
@@ -265,5 +337,87 @@ bool refreshIndirectDrawBuffer(
  */
 SCORE_PLUGIN_GFX_EXPORT
 QRhiShaderResourceBinding::StageFlags visibilityToStages(std::string_view visibility) noexcept;
+
+/**
+ * @brief Byte size of a single GLSL primitive type as used for SSBO element
+ *        strides in this codebase.
+ *
+ * Coverage: scalars (`float`, `int`, `uint`, `bool`), vectors (`vec[234]`,
+ * `ivec[234]`, `uvec[234]`), and matrices (`mat2`, `mat3`, `mat4`). Sampler /
+ * image / opaque types are not covered (return the fallback). Returns 16 as a
+ * fallback for unknown / unsupported types.
+ *
+ * Conventions:
+ *  - Returns 12 for `vec3`/`ivec3`/`uvec3` (the bare component size). Consumers
+ *    that need std140 / std430 array stride must align to 16 themselves; for
+ *    that case prefer `std430ArrayStride` below, which encapsulates the rule
+ *    and keeps the two domains (bare type size vs. stride-in-SSBO) from
+ *    drifting at call sites. ISF auxiliary layouts continue to align at the
+ *    field level via `std430LayoutSize`.
+ *  - `mat2` is reported as 16 (two `vec2` columns, no per-column padding).
+ *  - `mat3` is reported as 48 (three `vec4`-padded columns); this matches both
+ *    std140 and std430 column-major layout for `mat3` in storage blocks.
+ *  - `mat4` is reported as 64.
+ *
+ * This is the single source of truth for GLSL type → element size in
+ * `score-plugin-gfx`; do not introduce private copies (see diagnostic 095).
+ *
+ * Note: For the vertex-attribute format → byte-size mapping
+ * (`ossia::geometry::attribute` enum), see the unrelated helper inside
+ * `RenderedCSFNode.cpp`; it operates on a different domain (binary attribute
+ * formats, not GLSL type strings).
+ */
+SCORE_PLUGIN_GFX_EXPORT
+int64_t glslTypeSizeBytes(std::string_view type) noexcept;
+
+/**
+ * @brief Same as glslTypeSizeBytes, but resolves user-defined types from
+ * the descriptor's TYPES section. Falls back to the built-in size table
+ * for primitives, then to descriptor.types lookup for struct names. The
+ * std430 size of a struct is the sum of its fields' sizes, each rounded
+ * up to a 16-byte boundary (matching the array-of-struct alignment rule
+ * already used by `std430LayoutSize` for AUXILIARY blocks). Returns 16
+ * (the lenient default) for unresolved names.
+ */
+SCORE_PLUGIN_GFX_EXPORT
+int64_t glslTypeSizeBytes(std::string_view type, const isf::descriptor& d) noexcept;
+
+/**
+ * @brief Compute the std430 element size of a layout (vector of
+ * `{name,type}` field entries), each field rounded up to 16 bytes per
+ * the array-of-struct alignment rule. Used by AUXILIARY blocks and by
+ * the user-defined struct lookup in glslTypeSizeBytes.
+ */
+SCORE_PLUGIN_GFX_EXPORT
+int64_t std430LayoutSize(
+    const std::vector<isf::storage_input::layout_field>& layout) noexcept;
+
+/**
+ * @brief std430 array stride for a GLSL primitive type when laid out as
+ * `T array[]` inside a shader storage block.
+ *
+ * Differs from `glslTypeSizeBytes` only for vec3-shaped vectors: per the
+ * std430 layout rules, an array of `vec3` (or `ivec3` / `uvec3`) keeps
+ * the element's vec4-aligned base alignment, so the per-element stride
+ * is 16 bytes — the trailing 4 bytes are padding the GPU does not write
+ * but consumer reads must skip. For scalars, vec2, vec4 and matrices,
+ * the stride equals the bare type size, so this returns
+ * `glslTypeSizeBytes(type)` unchanged.
+ *
+ * Use this — never `glslTypeSizeBytes` — when sizing a CSF SoA output
+ * SSBO buffer or setting a downstream vertex binding stride that mirrors
+ * the SSBO's std430 layout. Mixing the two is the source of the silent
+ * vec3 corruption diagnosed in the 3DGS pipeline.
+ */
+SCORE_PLUGIN_GFX_EXPORT
+int64_t std430ArrayStride(std::string_view type) noexcept;
+
+/**
+ * @brief Same as `std430ArrayStride`, but resolves user-defined struct
+ * names against the descriptor's TYPES section. Falls back to
+ * `glslTypeSizeBytes(type, d)` for non-vec3 primitives and structs.
+ */
+SCORE_PLUGIN_GFX_EXPORT
+int64_t std430ArrayStride(std::string_view type, const isf::descriptor& d) noexcept;
 
 }

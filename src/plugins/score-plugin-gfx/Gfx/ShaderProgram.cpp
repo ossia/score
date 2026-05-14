@@ -587,18 +587,30 @@ ShaderSource
 programFromISFFragmentShaderPath(const QString& fsFilename, QByteArray fsData)
 {
   // ISF works by storing a vertex shader next to the fragment shader.
-  QString vertexName = fsFilename;
-  vertexName.replace(".frag", ".vert");
-  vertexName.replace(".fs", ".vs");
+  // Score recognises both the long (.frag/.vert) and short (.fs/.vs)
+  // extension conventions; pairings are tried independently of the FS
+  // file's own naming so a `foo.frag` next to `foo.vs` (or `foo.fs` next
+  // to `foo.vert`) also resolves. Without this, the .vs sibling is
+  // silently ignored and the descriptor falls back to the ISF default
+  // vertex shader — which doesn't know about user-declared
+  // VERTEX_INPUTS, so the consumer renders nothing.
+  const QString candidates[] = {
+      QString(fsFilename).replace(".frag", ".vert").replace(".fs", ".vs"),
+      QString(fsFilename).replace(".frag", ".vs"),
+      QString(fsFilename).replace(".fs", ".vert"),
+  };
 
   // If empty: will be using the ISF's default
   QByteArray vertexData;
-  if(vertexName != fsFilename)
+  for(const QString& vertexName : candidates)
   {
+    if(vertexName == fsFilename)
+      continue;
     if(QFile vertexFile{vertexName};
        vertexFile.exists() && vertexFile.open(QIODevice::ReadOnly))
     {
       vertexData = vertexFile.readAll();
+      break;
     }
   }
 

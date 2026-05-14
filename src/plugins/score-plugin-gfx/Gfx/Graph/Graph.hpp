@@ -47,16 +47,6 @@ struct SCORE_PLUGIN_GFX_EXPORT Graph
    */
   void removeEdge(Port* source, Port* sink);
 
-  /**
-   * @brief Add an edge between two nodes and creates relevant pipelines.
-   */
-  void addAndLinkEdge(Port* source, Port* sink, Process::CableType t);
-
-  /**
-   * @brief Remove an edge between two nodes and free the pipelines
-   */
-  void unlinkAndRemoveEdge(Port* source, Port* sink);
-
   /// Remove a node's renderers from all render lists.
   void removeNodeFromRenderLists(Node* node);
 

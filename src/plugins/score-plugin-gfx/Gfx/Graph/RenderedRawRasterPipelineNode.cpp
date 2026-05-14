@@ -1,4 +1,5 @@
 #include <Gfx/Graph/CustomMesh.hpp>
+#include <Gfx/Graph/ISFVisitors.hpp>
 #include <Gfx/Graph/PipelineStateHelpers.hpp>
 #include <Gfx/Graph/RenderedISFSamplerUtils.hpp>
 #include <Gfx/Graph/RenderedRawRasterPipelineNode.hpp>
@@ -78,15 +79,30 @@ void RenderedRawRasterPipelineNode::updateInputTexture(const Port& input, QRhiTe
     }
   }
 
+  // Match key for replaceTexture MUST be the sampler that's actually
+  // in the SRB binding. allSamplers() (line ~155-170) substitutes
+  // m_inputSamplerOverrides[i] for m_inputSamplers[i] when an
+  // override is present (per-bucket sampler from ScenePreprocessor).
+  // Same fix as commit 7d1afd27b applied to FIX-C — see the long
+  // comment there. Without this updateInputTexture silently no-ops on
+  // every override-bound entry.
+  auto srbKey = [&](int i) -> QRhiSampler* {
+    if(i >= 0 && i < (int)m_inputSamplerOverrides.size()
+       && m_inputSamplerOverrides[i])
+      return m_inputSamplerOverrides[i];
+    return m_inputSamplers[i].sampler;
+  };
+
   if(sampler_idx < (int)m_inputSamplers.size())
   {
     auto& sampl = m_inputSamplers[sampler_idx];
     if(sampl.texture != tex)
     {
       sampl.texture = tex;
+      auto* key = srbKey(sampler_idx);
       for(auto& [e, pass] : m_passes)
         if(pass.p.srb)
-          score::gfx::replaceTexture(*pass.p.srb, sampl.sampler, tex);
+          score::gfx::replaceTexture(*pass.p.srb, key, tex);
     }
 
     if(depthTex
@@ -97,9 +113,10 @@ void RenderedRawRasterPipelineNode::updateInputTexture(const Port& input, QRhiTe
       if(depthSampl.texture != depthTex)
       {
         depthSampl.texture = depthTex;
+        auto* depthKey = srbKey(sampler_idx + 1);
         for(auto& [e, pass] : m_passes)
           if(pass.p.srb)
-            score::gfx::replaceTexture(*pass.p.srb, depthSampl.sampler, depthTex);
+            score::gfx::replaceTexture(*pass.p.srb, depthKey, depthTex);
       }
     }
   }
@@ -207,6 +224,19 @@ void RenderedRawRasterPipelineNode::initPass(
                                | QRhiShaderResourceBinding::StageFlag::FragmentStage;
 
     ossia::small_vector<QRhiShaderResourceBinding, 4> additionalBindings;
+
+    // INPUTS storage trio (storage_input SSBO / csf_image_input image2D /
+    // uniform_input UBO) — order MUST match isf_emit_graphics_storage's
+    // GLSL emission (declaration order, sequential bindings starting at
+    // max_binding == 3 + samplers count).
+    {
+      auto extras = buildExtraBindings(m_storage);
+      for(const auto& b : extras)
+      {
+        additionalBindings.push_back(b);
+        max_binding++;
+      }
+    }
 
     for(auto& aux : m_auxiliarySSBOs)
     {
@@ -1304,16 +1334,34 @@ void RenderedRawRasterPipelineNode::initMRTPass(
 
     ossia::small_vector<QRhiShaderResourceBinding, 4> additionalBindings;
 
+    // INPUTS storage trio (storage_input SSBO / csf_image_input image2D /
+    // uniform_input UBO) — order MUST match isf_emit_graphics_storage's
+    // GLSL emission (declaration order, sequential bindings starting at
+    // max_binding == 3 + samplers count).
+    {
+      auto extras = buildExtraBindings(m_storage);
+      for(const auto& b : extras)
+      {
+        additionalBindings.push_back(b);
+        max_binding++;
+      }
+    }
+
     for(auto& aux : m_auxiliarySSBOs)
     {
+      // Dummy usage flag matches the aux kind so the created buffer can be
+      // bound as the intended descriptor type (UBO for uniform_input, SSBO
+      // otherwise). Mirrors the non-MRT path.
       if(!aux.buffer)
       {
-        auto* dummy = rhi.newBuffer(
-            QRhiBuffer::Immutable, QRhiBuffer::StorageBuffer, 16);
-        dummy->setName("RRP_aux_dummy");
+        auto usage = aux.is_uniform ? QRhiBuffer::UniformBuffer
+                                    : QRhiBuffer::StorageBuffer;
+        const int64_t dummySize = aux.is_uniform ? 256 : 16;
+        auto* dummy = rhi.newBuffer(QRhiBuffer::Immutable, usage, dummySize);
+        dummy->setName(aux.is_uniform ? "RRP_ubo_dummy" : "RRP_aux_dummy");
         dummy->create();
         aux.buffer = dummy;
-        aux.size = 16;
+        aux.size = dummySize;
         aux.owned = true;
       }
 
@@ -1328,7 +1376,13 @@ void RenderedRawRasterPipelineNode::initMRTPass(
       }
 
       QRhiShaderResourceBinding binding;
-      if(aux.access == "read_only")
+      if(aux.is_uniform)
+      {
+        // uniform_input → std140 UBO binding
+        binding = QRhiShaderResourceBinding::uniformBuffer(
+            max_binding, bindingStages, aux.buffer);
+      }
+      else if(aux.access == "read_only")
         binding = QRhiShaderResourceBinding::bufferLoad(
             max_binding, bindingStages, aux.buffer);
       else if(aux.access == "write_only")
@@ -1747,10 +1801,17 @@ void RenderedRawRasterPipelineNode::initState(
       if(!aux.size.empty())
       {
         try { count = std::max<int64_t>(1, std::stoll(aux.size)); }
-        catch(...) { count = 1024; } // TODO: evaluate $USER when we add it
+        catch(const std::exception& e) {
+          count = 1024; // TODO: evaluate $USER when we add it
+          qWarning() << "RenderedRawRasterPipelineNode: aux SSBO size"
+                     << aux.size.c_str() << "could not be parsed (" << e.what()
+                     << "); falling back to 1024.";
+        }
       }
       else if(arr_elem_bytes > 0)
       {
+        qWarning() << "RenderedRawRasterPipelineNode: aux SSBO has element size but no count;"
+                      " falling back to 1024.";
         count = 1024;
       }
       return total + arr_elem_bytes * count;
@@ -1794,90 +1855,80 @@ void RenderedRawRasterPipelineNode::initState(
     }
 
     // INPUTS storage_input / uniform_input: these have a matching score
-    // input port created by ISFNode's isf_input_port_vis. We track the
+    // input port created by ISFNode's isf_input_port_vis. We record its
     // index so update() can re-pull the upstream buffer if it changes
-    // (useful when the upstream node's init() runs *after* ours and only
+    // (useful when the upstream node's init() runs after ours and only
     // publishes its Port::value then).
     //
-    // port_idx walks n.input[] in lockstep with isf_input_port_vis:
-    //  - RawRaster mode starts at 1 (port 0 is the mandatory Geometry in).
-    //  - Each desc.inputs entry advances the cursor by the number of input
-    //    ports it creates (usually 1; 0 for write-only storage and
-    //    write/read_write csf images, which create output ports instead;
-    //    +1 for the auto-injected long_input sizing control a flex-array
-    //    write-only storage emits).
+    // walk_descriptor_inputs() advances the cumulative port_counts in
+    // lockstep with isf_input_port_vis (single source of truth — see
+    // ISFVisitors.hpp). For RawRaster the cursor starts at 1 because
+    // port 0 is the mandatory Geometry input.
     //
-    // Ordering: storage_input / uniform_input appear in desc.inputs in the
-    // order they're declared. The GLSL emission walks desc.inputs in the
-    // same order then appends top-level AUXILIARY entries at the end, so
-    // we mirror that here: process desc.inputs FIRST, push to
-    // m_auxiliarySSBOs, then process desc.auxiliary AFTER. Reversing the
-    // two loops shifts every binding index by `desc.auxiliary.size()`
-    // relative to GLSL → Vulkan validation rejects the pipeline with
-    // "VkDescriptorType mismatch" on every binding past the new auxes.
+    // Ordering: GLSL emits desc.inputs first then top-level AUXILIARY,
+    // so we push AuxiliarySSBOs in the same order — reversing would
+    // shift every binding index by desc.auxiliary.size() and Vulkan
+    // would reject the pipeline with "VkDescriptorType mismatch".
     const bool isRawRaster = (desc.mode == isf::descriptor::RawRaster);
-    int port_idx = isRawRaster ? 1 : 0;
-    for(const auto& inp : desc.inputs)
+    const port_counts startPC{isRawRaster ? 1 : 0, 0, 0};
+    // INPUTS storage_input / csf_image_input / uniform_input are handled by
+    // IsfBindingsBuilder's m_storage path (allocateStorageResources +
+    // buildExtraBindings) so the SRB binding type matches what
+    // isf_emit_graphics_storage emits in GLSL. See `isf.cpp:4073` for the
+    // GLSL emission and `IsfBindingsBuilder.cpp:417` for the allocation
+    // path. The previous hand-rolled walker here only handled storage_input
+    // and uniform_input, silently skipping csf_image_input — the shader
+    // would emit `image2D NAME at binding=N` while no descriptor was added,
+    // triggering VUID-VkGraphicsPipelineCreateInfo-layout-07990 on bind.
+    //
+    // No-op for INPUTS storage/uniform/csf_image entries — IsfBindingsBuilder
+    // handles them. We still need the walker for indirect_draw storage_input
+    // (special-cased at runtime, no SRB binding).
+    walk_descriptor_inputs(
+        desc, startPC,
+        [&](const isf::input& inp, const port_counts&, const port_counts&) {
+          if(auto* s = ossia::get_if<isf::storage_input>(&inp.data))
+          {
+            if(!s->buffer_usage.empty())
+              return; // indirect_draw handled elsewhere
+          }
+          // INPUTS storage_input / uniform_input / csf_image_input now flow
+          // through m_storage (initialised below). All other variants:
+          // nothing to record here; the canonical walker still advances
+          // port_idx correctly via `delta`.
+        });
+
+    // Now init m_storage from desc.inputs (storage_input + csf_image_input
+    // + uniform_input). Bindings start at 3 + samplers count to align with
+    // the GLSL emission order (samplers first in the binding range, then
+    // INPUTS storage in declaration order via isf_emit_graphics_storage,
+    // then AUXILIARY storage, then AUXILIARY textures, then model UBO).
+    if(m_firstStorageBinding < 0)
     {
-      if(auto* s = ossia::get_if<isf::storage_input>(&inp.data))
-      {
-        if(!s->buffer_usage.empty()) continue;  // indirect_draw handled elsewhere
-        if(s->access == "read_only")
-        {
-          AuxiliarySSBO ssbo;
-          ssbo.name = inp.name;
-          ssbo.access = s->access;
-          ssbo.is_uniform = false;
-          ssbo.input_port_index = port_idx;
-          try_bind_from_geometry(ssbo);
-          if(!ssbo.buffer)
-            try_bind_from_input_port(ssbo);
-          m_auxiliarySSBOs.push_back(std::move(ssbo));
-          port_idx++;
-        }
-        else
-        {
-          // write-only / read_write → output port (no input port consumed
-          // here). Flex-array layouts inject a trailing long_input sizing
-          // control, which does consume an input port.
-          if(!s->layout.empty()
-             && s->layout.back().type.find("[]") != std::string::npos)
-            port_idx++;
-        }
-      }
-      else if(ossia::get_if<isf::uniform_input>(&inp.data))
-      {
-        AuxiliarySSBO ssbo;
-        ssbo.name = inp.name;
-        ssbo.access = "read_only";  // UBOs are always read-only
-        ssbo.is_uniform = true;
-        ssbo.input_port_index = port_idx;
-        try_bind_from_geometry(ssbo);
-        if(!ssbo.buffer)
-          try_bind_from_input_port(ssbo);
-        m_auxiliarySSBOs.push_back(std::move(ssbo));
-        port_idx++;
-      }
-      else if(auto* c = ossia::get_if<isf::csf_image_input>(&inp.data))
-      {
-        // read_only → input port; write_only / read_write → output port.
-        if(c->access == "read_only")
-          port_idx++;
-      }
-      else if(ossia::get_if<isf::geometry_input>(&inp.data))
-      {
-        // Complex: may produce 0, 1, or 2 input ports depending on attribute
-        // access modes and $USER counters. RawRaster scene shaders don't
-        // declare geometry_input (the vertex path uses VERTEX_INPUTS), so
-        // skipping the cursor advance is safe here.
-      }
-      else
-      {
-        // All other input kinds (float/long/event/bool/point2d/point3d/
-        // color/image/cubemap/audio/audioHist/audioFFT/texture): 1 input
-        // port each.
-        port_idx++;
-      }
+      const int firstStorageBinding
+          = 3 + (int)m_inputSamplers.size() + (int)m_audioSamplers.size();
+      m_firstStorageBinding = firstStorageBinding;
+      collectGraphicsStorageResources(desc, firstStorageBinding, m_storage);
+    }
+    ensureStorageResources(
+        *renderer.state.rhi, res, renderer, desc, m_storage,
+        renderer.state.renderSize);
+    bindUpstreamBuffers(renderer, n.input, m_storage);
+    // Read-only csf_image_input adopts the matching upstream
+    // auxiliary_texture by name (the storage image an upstream CSF /
+    // RawRaster published into its out_geo). The auto-allocated
+    // placeholder is freed inside the helper. The SRB doesn't exist
+    // yet at init time — patched in update() once the pass is built.
+    // INPUTS storage_input / uniform_input also name-match against the
+    // upstream geometry's auxiliary_buffers list — that's how
+    // ScenePreprocessor publishes scene_lights / world_transforms /
+    // per_draws / scene_materials / scene_counts / scene_light_indices /
+    // camera UBO / env UBO into flattened-scene shaders (classic_pbr et al.).
+    if(geometry.meshes && !geometry.meshes->meshes.empty())
+    {
+      bindUpstreamImagesFromGeometry(m_storage, geometry.meshes->meshes[0]);
+      bindUpstreamBuffersFromGeometry(
+          *renderer.state.rhi, res, m_storage, geometry.meshes->meshes[0]);
     }
 
     // Top-level AUXILIARY entries: no corresponding score input port —
@@ -2125,6 +2176,11 @@ void RenderedRawRasterPipelineNode::releaseState(RenderList& r)
   }
   m_auxiliarySSBOs.clear();
 
+  // INPUTS storage trio (storage_input/csf_image_input/uniform_input)
+  // — owned by m_storage; release frees the underlying QRhiBuffer/Texture.
+  m_storage.release();
+  m_firstStorageBinding = -1;
+
   for(auto& ats : m_auxTextureSamplers)
   {
     if(ats.sampler)
@@ -2324,6 +2380,40 @@ void RenderedRawRasterPipelineNode::update(
   // otherwise we miss the materialsChanged
   bool mustRecreatePasses = updateMaterials(renderer, res, edge);
   bool recreateDueToMaterial = mustRecreatePasses;
+
+  // Refresh upstream-bound storage_input / uniform_input buffers from input
+  // ports. The first pass will pick them up via the SRB; subsequent passes
+  // need bindUpstreamBuffers to patch their SRBs in-place — handled per-pass
+  // when m_passes is iterated for SRB updates further down. (Safe to call
+  // even with no SRB; the helper just refreshes the m_storage entries.)
+  bindUpstreamBuffers(renderer, n.input, m_storage);
+  // Same pattern for read-only csf_image_input: adopt the matching upstream
+  // auxiliary_texture (a storage image written by an upstream CSF /
+  // RawRaster). Called per-frame so a producer that switches its underlying
+  // QRhiTexture on resize / rebuild flows through. The helper is
+  // idempotent on the swap and unconditionally patches each SRB it's
+  // given — so calling it once per pass refreshes every SRB while only
+  // doing the actual upstream lookup + swap on the first iteration.
+  if(geometry.meshes && !geometry.meshes->meshes.empty())
+  {
+    // Per-pass refresh of name-matched-from-geometry bindings (SSBO/UBO/
+    // storage_image). bindUpstream*FromGeometry are idempotent on the
+    // swap and unconditionally patch each SRB they're given — so calling
+    // each once per pass refreshes every SRB while doing the actual
+    // upstream lookup + swap only on the first iteration that observed
+    // a change.
+    for(auto& [edge, pass] : m_passes)
+    {
+      if(pass.p.srb)
+      {
+        bindUpstreamImagesFromGeometry(
+            m_storage, geometry.meshes->meshes[0], pass.p.srb);
+        bindUpstreamBuffersFromGeometry(
+            *renderer.state.rhi, res, m_storage,
+            geometry.meshes->meshes[0], pass.p.srb);
+      }
+    }
+  }
 
   // Update the geometry (sync with ModelDisplayNode)
 
@@ -2532,6 +2622,108 @@ void RenderedRawRasterPipelineNode::update(
         }
       }
     }
+
+    // After pass recreation, the freshly built SRBs reference the
+    // CURRENT m_storage entries. For storage_input/uniform_input that
+    // are name-matched against the upstream geometry's auxiliary_buffers
+    // (the ScenePreprocessor publishing pattern: scene_lights /
+    // world_transforms / per_draws / scene_materials / scene_counts /
+    // scene_light_indices / camera UBO / env UBO), m_storage entries
+    // may still hold the 16-byte zero placeholder ensureStorageResources
+    // allocated for owned SSBOs — the per-pass refresh loop below
+    // (lines ~2640+) is gated on m_passes non-empty. On a fresh
+    // RenderList (resize / graph rebuild) the very first frame's
+    // initState ran with m_passes empty, init early-returned without
+    // building m_passes, then the per-pass refresh below was a no-op,
+    // and now mustRecreatePasses just built passes against the
+    // placeholder. Re-fire bindUpstream*FromGeometry on the freshly
+    // built SRBs so they pick up the live geometry buffers / textures
+    // immediately. Without this, classic_pbr's scene_counts.light_count
+    // reads as 0 on the resize frame → light loop runs 0 times → no
+    // specular until the next frame patches the SRB.
+    if(geometry.meshes && !geometry.meshes->meshes.empty())
+    {
+      for(auto& [edge, pass] : m_passes)
+      {
+        if(pass.p.srb)
+        {
+          bindUpstreamImagesFromGeometry(
+              m_storage, geometry.meshes->meshes[0], pass.p.srb);
+          bindUpstreamBuffersFromGeometry(
+              *renderer.state.rhi, res, m_storage,
+              geometry.meshes->meshes[0], pass.p.srb);
+        }
+      }
+
+      // Sampler refresh: FIX-C above only patches m_storage entries
+      // (csf_image_input / storage_input / uniform_input). Plain
+      // image_input INPUTS (sampler2DArray, sampler2D, sampler3D, etc.)
+      // live in m_inputSamplers and are refreshed only by
+      // rebindAuxTextures Path A — gated on `geometryChanged` and run
+      // ONCE earlier in update() (line ~2462). If
+      // `geometry.meshes` was null at THAT moment (or if a sibling
+      // renderer republishes a fresh mesh_list AFTER that call) the
+      // sampler binding stays at its empty-texture placeholder OR a
+      // stale (deleteLater'd) upstream pointer.
+      //
+      // For the textured-PBR pipelines this manifests as:
+      // baseColorArray sampler reads garbage / NaN → BRDF math
+      // collapses → specular vanishes (ambient + base color factor +
+      // emissive remain). Untextured classic_pbr has zero image_input
+      // INPUTS so its m_inputSamplers is empty and the bug can't
+      // trigger — exactly the user-reported asymmetry.
+      //
+      // Re-run rebindAuxTextures here (idempotent: short-circuits when
+      // the slot's cached texture pointer matches the upstream's
+      // current pointer). When it returns true, hot-patch the existing
+      // SRBs in place via replaceTexture rather than going through
+      // another full mustRecreatePasses cycle — the pipeline layout
+      // is unchanged, only the texture pointer needs swapping.
+      if(rebindAuxTextures())
+      {
+        // Match key for replaceTexture MUST be the sampler that's
+        // actually in the SRB binding. allSamplers() (line ~155-170)
+        // substitutes m_inputSamplerOverrides[i] for m_inputSamplers[i]
+        // when ScenePreprocessor publishes a per-bucket sampler_handle
+        // (e.g. baseColorArray gets the bucket's QRhiSampler so each
+        // glTF/FBX material's wrap/filter survives). replaceTexture
+        // matches by sampler-pointer (Utils.cpp:435); using the
+        // ORIGINAL m_inputSamplers[i].sampler as the key when the SRB
+        // has the OVERRIDE silently no-ops — so the texture refresh
+        // never lands on textured-PBR pipelines that go through
+        // ScenePreprocessor's per-bucket sampler overrides. That was
+        // the residual lighting glitch on resize.
+        const auto srb_key = [&](std::size_t i) -> QRhiSampler* {
+          if(i < m_inputSamplerOverrides.size() && m_inputSamplerOverrides[i])
+            return m_inputSamplerOverrides[i];
+          return m_inputSamplers[i].sampler;
+        };
+        for(auto& [edge, pass] : m_passes)
+        {
+          if(!pass.p.srb)
+            continue;
+          for(std::size_t i = 0; i < m_inputSamplers.size(); ++i)
+          {
+            auto& s = m_inputSamplers[i];
+            if(s.texture && s.sampler)
+              score::gfx::replaceTexture(
+                  *pass.p.srb, srb_key(i), s.texture);
+          }
+        }
+        for(auto* invSrb : m_perInvocationSRBs)
+        {
+          if(!invSrb)
+            continue;
+          for(std::size_t i = 0; i < m_inputSamplers.size(); ++i)
+          {
+            auto& s = m_inputSamplers[i];
+            if(s.texture && s.sampler)
+              score::gfx::replaceTexture(
+                  *invSrb, srb_key(i), s.texture);
+          }
+        }
+      }
+    }
   }
 
   m_mrtRenderedThisFrame = false;
@@ -2585,7 +2777,24 @@ void RenderedRawRasterPipelineNode::update(
         score::gfx::replaceBuffer(*pass.p.srb, aux.prev_binding, aux.prev_buffer);
         score::gfx::replaceBuffer(*pass.p.srb, aux.binding, aux.buffer);
       }
-      pass.p.srb->create();
+      // No trailing create() — replaceBuffer's updateResources() fast
+      // path already refreshes the backend descriptor state.
+    }
+    // Per-invocation SRB pool (PerMip / PerCubeFace / Manual EXECUTION_MODELs)
+    // shares the same persistent aux bindings as pass.p.srb. Without this
+    // loop, invocation 0 reads post-swap data while invocations 1..N-1 read
+    // the pre-swap (now `prev_buffer`-backed) buffers.
+    for(auto* invSrb : m_perInvocationSRBs)
+    {
+      if(!invSrb)
+        continue;
+      for(const auto& aux : m_auxiliarySSBOs)
+      {
+        if(!aux.persistent || aux.binding < 0 || aux.prev_binding < 0)
+          continue;
+        score::gfx::replaceBuffer(*invSrb, aux.prev_binding, aux.prev_buffer);
+        score::gfx::replaceBuffer(*invSrb, aux.binding, aux.buffer);
+      }
     }
   }
 }
@@ -2603,39 +2812,14 @@ void RenderedRawRasterPipelineNode::bindAuxTexturesInit(RenderList& /*renderer*/
   // initInputSamplers walks n.input[] and pushes samplers for each
   // Types::Image port: 1 sampler, plus an extra "depth sampler" when the
   // port has SamplableDepth (set for image_input.depth=true on a
-  // non-GrabsFromSource input). We walk desc.inputs in lockstep and
-  // advance sampler_idx by the same count so each image-like INPUT
-  // lands on its matching sampler slot.
-  int sampler_idx = 0;
-  for(const auto& inp : desc.inputs)
-  {
-    int samplersHere = 0;
-    bool imageLike = false;
-    if(auto* im = ossia::get_if<isf::image_input>(&inp.data))
-    {
-      const bool isGrabs = (im->dimensions == 3 || im->is_array);
-      samplersHere = 1 + ((im->depth && !isGrabs) ? 1 : 0);
-      imageLike = true;
-    }
-    else if(ossia::get_if<isf::cubemap_input>(&inp.data))
-    {
-      samplersHere = 1;
-      imageLike = true;
-    }
-    else if(ossia::get_if<isf::texture_input>(&inp.data))
-    {
-      samplersHere = 1;
-      imageLike = true;
-    }
-    // Every other isf::input_impl variant creates 0 samplers
-    // (storage_input, uniform_input, csf_image_input, geometry_input,
-    //  float_input, long_input, bool_input, …).
-
-    if(imageLike)
-      m_auxTextureBindings.push_back({sampler_idx, inp.name});
-
-    sampler_idx += samplersHere;
-  }
+  // non-GrabsFromSource input). walk_descriptor_inputs gives us the
+  // canonical sampler delta per input (see isf_input_port_count_vis),
+  // so each image-like INPUT lands on its matching sampler slot.
+  walk_descriptor_inputs(
+      desc, [&](const isf::input& inp, const port_counts& cur, const port_counts& delta) {
+        if(delta.samplers > 0)
+          m_auxTextureBindings.push_back({cur.samplers, inp.name});
+      });
 
   // Seed initial texture pointers from whatever geometry was already
   // published at init() time (typically none — the real lookup happens
@@ -2716,23 +2900,34 @@ bool RenderedRawRasterPipelineNode::rebindAuxTextures()
     // would trigger N full SRB rebuilds per pass per frame whenever
     // textures change. Using the vector overload lets us batch into a
     // single rebuild cycle.
-    for(auto& [e, pass] : m_passes)
-    {
-      if(!pass.p.srb)
-        continue;
+    auto rebuildSrb = [&](QRhiShaderResourceBindings* srb) {
+      if(!srb)
+        return;
       std::vector<QRhiShaderResourceBinding> tmp;
-      tmp.assign(
-          pass.p.srb->cbeginBindings(), pass.p.srb->cendBindings());
+      tmp.assign(srb->cbeginBindings(), srb->cendBindings());
       for(const auto& ats : m_auxTextureSamplers)
       {
         if(ats.binding < 0 || !ats.texture)
           continue;
         score::gfx::replaceTexture(tmp, ats.binding, ats.texture);
       }
-      pass.p.srb->destroy();
-      pass.p.srb->setBindings(tmp.begin(), tmp.end());
-      pass.p.srb->create();
-    }
+      srb->destroy();
+      srb->setBindings(tmp.begin(), tmp.end());
+      srb->create();
+    };
+    for(auto& [e, pass] : m_passes)
+      rebuildSrb(pass.p.srb);
+    // Per-invocation SRB pool (PerMip / PerCubeFace / Manual
+    // EXECUTION_MODELs) — clones of pass.p.srb taken at construction
+    // (see initPass / initMRTPass per-invocation push). Without this
+    // mirror, invocation 0 (which renders through pass.p.srb) sees the
+    // refreshed aux texture while invocations 1..N-1 keep sampling the
+    // stale handle indefinitely. Same shape as the SSBO ping-pong fix
+    // for m_perInvocationSRBs above (line ~2649) — symmetric, the bug
+    // here was that the SSBO fix didn't propagate to aux-texture
+    // rebinds.
+    for(auto* invSrb : m_perInvocationSRBs)
+      rebuildSrb(invSrb);
     changed = true;
   }
 

@@ -34,7 +34,9 @@ QRhiBuffer *CustomMesh::init_vbo(const ossia::geometry::cpu_buffer &buf, QRhi &r
       QRhiBuffer::Static, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer,
       vtx_buf_size);
   mesh_buf->setName(
-      QString("Mesh::vtx_buf.%1").arg(idx.load(std::memory_order_relaxed)).toLatin1());
+      QString("Mesh::vtx_buf.%1")
+          .arg(idx.fetch_add(1, std::memory_order_relaxed))
+          .toLatin1());
   mesh_buf->create();
 
   return mesh_buf;
@@ -47,11 +49,15 @@ QRhiBuffer *CustomMesh::init_vbo(const ossia::geometry::gpu_buffer &buf, QRhi &r
 
 QRhiBuffer *CustomMesh::init_index(const ossia::geometry::cpu_buffer &buf, QRhi &rhi) const noexcept
 {
+  static std::atomic_int idx = 0;
   QRhiBuffer* idx_buf{};
   if(const auto idx_buf_size = buf.byte_size; idx_buf_size > 0)
   {
     idx_buf = rhi.newBuffer(QRhiBuffer::Static, QRhiBuffer::IndexBuffer, idx_buf_size);
-    idx_buf->setName("Mesh::idx_buf");
+    idx_buf->setName(
+        QString("Mesh::idx_buf.%1")
+            .arg(idx.fetch_add(1, std::memory_order_relaxed))
+            .toLatin1());
     idx_buf->create();
   }
 
@@ -152,48 +158,93 @@ MeshBuffers CustomMesh::init(QRhi &rhi) const noexcept
 
 void CustomMesh::update_vbo(
     int buffer_index, const ossia::geometry::cpu_buffer& vtx_buf, MeshBuffers& meshbuf,
-    QRhiResourceUpdateBatch& rb) const noexcept
+    QRhi& rhi, QRhiResourceUpdateBatch& rb) const noexcept
 {
   if(meshbuf.buffers.size() <= buffer_index)
     return;
 
-  auto buffer = meshbuf.buffers[buffer_index].handle; // FIXME use offset here?
-  if(!buffer)
-    return;
-  if(auto sz = vtx_buf.byte_size; sz != buffer->size())
+  auto& slot = meshbuf.buffers[buffer_index];
+  // Diag 009 — guard the cpu→over-unowned-slot UAF: the slot was last
+  // populated by an upstream gpu_buffer producer (owned=false). Calling
+  // setSize/create on the upstream's QRhiBuffer destroys the underlying
+  // VkBuffer through QRhi's deferred-release queue and bumps the
+  // generation, silently clobbering every downstream consumer of that
+  // upstream handle. Allocate a fresh owned buffer instead — leave the
+  // upstream wrapper untouched.
+  if(!slot.handle || !slot.owned)
+  {
+    static std::atomic_int idx = 0;
+    auto* fresh = rhi.newBuffer(
+        QRhiBuffer::Static, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer,
+        vtx_buf.byte_size);
+    fresh->setName(
+        QString("Mesh::vtx_buf.%1")
+            .arg(idx.fetch_add(1, std::memory_order_relaxed))
+            .toLatin1());
+    if(!fresh->create())
+    {
+      qWarning() << "CustomMesh::update_vbo: fresh buffer->create() FAILED";
+      delete fresh;
+      return;
+    }
+    BUFTRACE() << "update_vbo(cpu) mesh=" << (void*)this
+               << " slot=" << buffer_index
+               << " allocating fresh owned buffer (was "
+               << (slot.handle ? "unowned upstream" : "empty") << ")"
+               << " new=" << (void*)fresh
+               << " size=" << (qint64)vtx_buf.byte_size;
+    slot.handle = fresh;
+    slot.owned = true;
+  }
+  else if(auto sz = vtx_buf.byte_size; sz != slot.handle->size())
   {
     qDebug() << "CustomMesh::update_vbo: resizing buffer from"
-             << buffer->size() << "to" << sz
-             << "buffer=" << (void*)buffer;
-    buffer->setSize(sz);
-    if(!buffer->create())
+             << slot.handle->size() << "to" << sz
+             << "buffer=" << (void*)slot.handle;
+    slot.handle->setSize(sz);
+    if(!slot.handle->create())
       qWarning() << "CustomMesh::update_vbo: buffer->create() FAILED after resize!";
   }
   // FIXME support offset
   uploadStaticBufferWithStoredData(
-      &rb, buffer, 0, buffer->size(), (const char*)vtx_buf.raw_data.get());
+      &rb, slot.handle, 0, slot.handle->size(), (const char*)vtx_buf.raw_data.get());
 }
 
 void CustomMesh::update_vbo(
     int buffer_index, const ossia::geometry::gpu_buffer& vtx_buf, MeshBuffers& meshbuf,
-    QRhiResourceUpdateBatch& rb) const noexcept
+    QRhi& rhi, QRhiResourceUpdateBatch& rb) const noexcept
 {
   if(meshbuf.buffers.size() <= buffer_index)
     return;
 
   // FIXME offset, size ?
-  // FIXME check if memory of previous buffer gets freed?
-  auto* old_buf = meshbuf.buffers[buffer_index].handle;
+  auto& slot = meshbuf.buffers[buffer_index];
+  auto* old_buf = slot.handle;
   auto* new_buf = static_cast<QRhiBuffer*>(vtx_buf.handle);
   if(old_buf != new_buf)
   {
-    BUFTRACE() << "update_vbo(gpu) mesh=" << (void*)this
-               << " slot=" << buffer_index
-               << " old=" << (void*)old_buf
-               << " new=" << (void*)new_buf
-               << " size=" << (qint64)vtx_buf.byte_size
-               << " (old handle abandoned without deleteLater — upstream "
-                  "owner must still hold it, ASan will flag if not)";
+    // Diag 009 — when the slot previously held an owned cpu-fed buffer,
+    // route it through deleteLater so QRhi's release queue tears it
+    // down (and any SRBs auto-rebind via m_id generation tracking on
+    // their next setShaderResources). Without this we leak both the
+    // QRhiBuffer wrapper and its underlying VkBuffer.
+    if(slot.owned && old_buf)
+    {
+      BUFTRACE() << "update_vbo(gpu) mesh=" << (void*)this
+                 << " slot=" << buffer_index
+                 << " deleteLater old owned=" << (void*)old_buf
+                 << " new=" << (void*)new_buf
+                 << " size=" << (qint64)vtx_buf.byte_size;
+      old_buf->deleteLater();
+    }
+    else
+    {
+      BUFTRACE() << "update_vbo(gpu) mesh=" << (void*)this
+                 << " slot=" << buffer_index
+                 << " old(unowned)=" << (void*)old_buf
+                 << " new=" << (void*)new_buf
+                 << " size=" << (qint64)vtx_buf.byte_size;
+    }
   }
   // Replacement entry must carry owned=false: the handle belongs to the
   // upstream gpu_buffer producer. Default-constructed BufferView has
@@ -201,39 +252,55 @@ void CustomMesh::update_vbo(
   BufferView bv{};
   bv.handle = new_buf;
   bv.owned = false;
-  meshbuf.buffers[buffer_index] = bv;
+  slot = bv;
 }
 
 void CustomMesh::update_index(
     int buffer_index, const ossia::geometry::cpu_buffer& idx_buf, MeshBuffers& meshbuf,
-    QRhiResourceUpdateBatch& rb) const noexcept
+    QRhi& rhi, QRhiResourceUpdateBatch& rb) const noexcept
 {
   if(meshbuf.buffers.size() <= buffer_index)
     return;
 
+  auto& slot = meshbuf.buffers[buffer_index];
   void* idx_buf_data = nullptr;
-  auto buffer = meshbuf.buffers[buffer_index].handle; // FIXME use offset here?
-  if(buffer)
+  if(geom.meshes[0].buffers.size() > 1)
   {
-    if(geom.meshes[0].buffers.size() > 1)
+    if(const auto idx_buf_size = idx_buf.byte_size; idx_buf_size > 0)
     {
-      if(const auto idx_buf_size = idx_buf.byte_size; idx_buf_size > 0)
+      idx_buf_data = idx_buf.raw_data.get();
+      // Diag 009 — same UAF guard as update_vbo(cpu): if the slot is
+      // empty or holds an upstream-owned (unowned) handle, do NOT
+      // setSize/create on it; allocate a fresh owned index buffer.
+      if(!slot.handle || !slot.owned)
       {
-        idx_buf_data = idx_buf.raw_data.get();
-        // FIXME what if index disappears
-        if(auto sz = idx_buf.byte_size; sz != buffer->size())
+        static std::atomic_int idx = 0;
+        auto* fresh = rhi.newBuffer(
+            QRhiBuffer::Static, QRhiBuffer::IndexBuffer, idx_buf_size);
+        fresh->setName(
+            QString("Mesh::idx_buf.%1")
+                .arg(idx.fetch_add(1, std::memory_order_relaxed))
+                .toLatin1());
+        if(!fresh->create())
         {
-          buffer->setSize(sz);
-          buffer->create();
+          qWarning() << "CustomMesh::update_index: fresh buffer->create() FAILED";
+          delete fresh;
+          return;
         }
-        else
-        {
-        }
+        BUFTRACE() << "update_index(cpu) mesh=" << (void*)this
+                   << " slot=" << buffer_index
+                   << " allocating fresh owned index buffer (was "
+                   << (slot.handle ? "unowned upstream" : "empty") << ")"
+                   << " new=" << (void*)fresh
+                   << " size=" << (qint64)idx_buf_size;
+        slot.handle = fresh;
+        slot.owned = true;
       }
-    }
-    else
-    {
-      // FIXME what if index appears
+      else if(auto sz = idx_buf.byte_size; sz != slot.handle->size())
+      {
+        slot.handle->setSize(sz);
+        slot.handle->create();
+      }
     }
   }
   else
@@ -241,34 +308,48 @@ void CustomMesh::update_index(
     // FIXME what if index appears
   }
 
-  if(buffer && idx_buf_data)
+  if(slot.handle && idx_buf_data)
   {
     // FIXME support offset
     uploadStaticBufferWithStoredData(
-        &rb, buffer, 0, buffer->size(), (const char*)idx_buf_data);
+        &rb, slot.handle, 0, slot.handle->size(), (const char*)idx_buf_data);
   }
 }
 
 void CustomMesh::update_index(
     int buffer_index, const ossia::geometry::gpu_buffer& idx_buf, MeshBuffers& meshbuf,
-    QRhiResourceUpdateBatch& rb) const noexcept
+    QRhi& rhi, QRhiResourceUpdateBatch& rb) const noexcept
 {
   SCORE_ASSERT(meshbuf.buffers.size() > buffer_index);
-  auto* old_buf = meshbuf.buffers[buffer_index].handle;
+  auto& slot = meshbuf.buffers[buffer_index];
+  auto* old_buf = slot.handle;
   auto* new_buf = static_cast<QRhiBuffer*>(idx_buf.handle);
   if(old_buf != new_buf)
   {
-    BUFTRACE() << "update_index(gpu) mesh=" << (void*)this
-               << " slot=" << buffer_index
-               << " old=" << (void*)old_buf
-               << " new=" << (void*)new_buf
-               << " size=" << (qint64)idx_buf.byte_size
-               << " (old handle abandoned — if ASan fires on this slot "
-                  "on next bind, the owner freed it too early)";
+    // Diag 009 — leak-fix: route a previously-owned handle through
+    // QRhi's release queue so we don't drop the wrapper on the floor
+    // when transitioning cpu→gpu on this slot.
+    if(slot.owned && old_buf)
+    {
+      BUFTRACE() << "update_index(gpu) mesh=" << (void*)this
+                 << " slot=" << buffer_index
+                 << " deleteLater old owned=" << (void*)old_buf
+                 << " new=" << (void*)new_buf
+                 << " size=" << (qint64)idx_buf.byte_size;
+      old_buf->deleteLater();
+    }
+    else
+    {
+      BUFTRACE() << "update_index(gpu) mesh=" << (void*)this
+                 << " slot=" << buffer_index
+                 << " old(unowned)=" << (void*)old_buf
+                 << " new=" << (void*)new_buf
+                 << " size=" << (qint64)idx_buf.byte_size;
+    }
     BufferView bv{};
     bv.handle = new_buf;
     bv.owned = false;
-    meshbuf.buffers[buffer_index] = bv;
+    slot = bv;
   }
 }
 
@@ -337,13 +418,13 @@ void CustomMesh::update(
       if(i != index_i)
       {
         ossia::visit(
-            [&](auto& buf) { return update_vbo(flat, buf, output_meshbuf, rb); },
+            [&](auto& buf) { return update_vbo(flat, buf, output_meshbuf, rhi, rb); },
             buf.data);
       }
       else
       {
         ossia::visit(
-            [&](auto& buf) { return update_index(flat, buf, output_meshbuf, rb); },
+            [&](auto& buf) { return update_index(flat, buf, output_meshbuf, rhi, rb); },
             buf.data);
       }
       i++;

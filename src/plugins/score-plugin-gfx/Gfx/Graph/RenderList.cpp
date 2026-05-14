@@ -10,6 +10,9 @@
 
 #include <score/tools/Debug.hpp>
 
+#include <QVarLengthArray>
+
+#include <array>
 #include <chrono>
 
 //#define RENDERDOC_PROFILING 0
@@ -141,13 +144,94 @@ void RenderList::init()
   m_emptyTextureArray->setName("RenderList::m_emptyTextureArray");
   SCORE_ASSERT(m_emptyTextureArray->create());
 
+  // Allocate the initial resource-update batch NOW (before the registry
+  // init below would otherwise allocate it) so we can queue zero-fills
+  // for the empty texture placeholders into the same batch. Vulkan does
+  // NOT zero-initialise new VkImage memory — without these uploads the
+  // placeholders carry device-memory garbage on every fresh RL.
+  //
+  // Why this matters: classic_pbr_openpbr samples cubemaps
+  // (irradiance_map, prefiltered_map, skybox) and a 2D LUT (brdf_lut).
+  // When NO upstream producer is wired for those inputs the consumer
+  // falls back to m_emptyTextureCube / m_emptyTexture. Sampling those
+  // returns the uninit page contents -> the BSDF math reads garbage
+  // -> wildly different IBL contribution per resize ("drift" symptom).
+  // classic_pbr_full doesn't sample any cubemap input, so it never
+  // hits the empty-cubemap fallback and is immune to this bug.
+  //
+  // 1x1 RGBA8 = 4 bytes per face. Cubemap = 6 faces. Total upload per
+  // RL init: ~16 bytes. Trivial.
+  SCORE_ASSERT(!m_initialBatch);
+  m_initialBatch = state.rhi->nextResourceUpdateBatch();
+  SCORE_ASSERT(m_initialBatch);
+  {
+    static const std::array<char, 4> blackPixel{0, 0, 0, 0};
+    QRhiTextureSubresourceUploadDescription src(blackPixel.data(), 4);
+    src.setSourceSize(QSize{1, 1});
+    // 2D
+    {
+      QRhiTextureUploadEntry e(0, 0, src);
+      m_initialBatch->uploadTexture(m_emptyTexture, {e});
+    }
+    // 3D — one slice
+    {
+      QRhiTextureUploadEntry e(0, 0, src);
+      m_initialBatch->uploadTexture(m_emptyTexture3D, {e});
+    }
+    // 2D Array — one layer
+    {
+      QRhiTextureUploadEntry e(0, 0, src);
+      m_initialBatch->uploadTexture(m_emptyTextureArray, {e});
+    }
+    // Cube — six faces
+    {
+      QRhiTextureUploadDescription cubeDesc;
+      QVarLengthArray<QRhiTextureUploadEntry, 6> entries;
+      for(int face = 0; face < 6; ++face)
+        entries.append(QRhiTextureUploadEntry(face, 0, src));
+      cubeDesc.setEntries(entries.cbegin(), entries.cend());
+      m_initialBatch->uploadTexture(m_emptyTextureCube, cubeDesc);
+    }
+  }
+
   // Scene-graph arena store (camera / light / material / per_draw
-  // buffers). Allocated here; source nodes grab slots from it at
-  // construction and write their own packed bytes at their own
-  // update(), so ScenePreprocessor never CPU-touches this data in the
-  // render path.
-  m_registry = std::make_unique<GpuResourceRegistry>();
-  m_registry->init(rhi);
+  // buffers). Source nodes grab slots from it at construction and
+  // write their own packed bytes at their own update(), so
+  // ScenePreprocessor never CPU-touches this data in the render path.
+  //
+  // Persist-across-rebuild contract: the registry is OWNED by the
+  // OutputNode (OutputNode::m_registry). On the first RL for this
+  // output it is freshly allocated + init()'d; on every subsequent
+  // RL rebuild (viewport resize / fallback rebuild path) we adopt
+  // the populated state as-is. Skipping the re-init() preserves
+  // ~100 MiB of texture-array layers, ~70 K-vertex mesh slabs, every
+  // arena buffer (no zero-fill), and all producer slot indices —
+  // none of that scene-content data depends on framebuffer size.
+  // See REPORT/OPT-resize-perf.md §3 #2 for the full cost analysis.
+  m_registry = &output.acquireRegistry();
+  if(!m_registry->isInitialized())
+  {
+    m_registry->init(rhi, *m_initialBatch);
+    // Seed reserved arena slots (e.g. Material slot 0 = default white
+    // dielectric). Runs after registry init so the seed lands AFTER the
+    // arena zero-fill (uploadStaticBuffer ordering is preserved within
+    // the same batch). Idempotent on repeat calls but we gate it here
+    // anyway so the explicit upload only happens when the arena was
+    // actually re-initialised this RL cycle.
+    m_registry->seedDefaults(*m_initialBatch);
+  }
+  else
+  {
+    // Reuse path. Arena buffers, texture arrays, mesh slabs and slot
+    // generations all carry over from the previous RL on this output.
+    // Producers' raw_*_slot members survive (the renderers themselves
+    // are recreated on RL rebuild — they re-allocate fresh slots — but
+    // the slot-stride / generation-table / free-list state is intact).
+    // ScenePreprocessor::init() compares against this same pointer to
+    // decide whether to wipe its m_loaderMaterialSlots / m_envSlot
+    // bookkeeping; matching pointer → no wipe → no re-allocation churn.
+    SCORE_ASSERT(m_registry->boundRhi() == &rhi);
+  }
 
   // Fallback vertex-buffer pool for "REQUIRED: false" VERTEX_INPUTS.
   // Lazy-allocates on first use (remapPipelineVertexInputs side), so
@@ -155,16 +239,6 @@ void RenderList::init()
   m_vertexFallbackPool = std::make_unique<VertexFallbackPool>();
 
   m_lastSize = state.renderSize;
-
-  SCORE_ASSERT(!m_initialBatch);
-  m_initialBatch = state.rhi->nextResourceUpdateBatch();
-  SCORE_ASSERT(m_initialBatch);
-
-  // Seed reserved arena slots (e.g. Material slot 0 = default white
-  // dielectric). Must run AFTER the batch is allocated since the upload
-  // is recorded into it; runs BEFORE any consumer reads the arena
-  // (downstream nodes' init() calls happen on subsequent frames).
-  m_registry->seedDefaults(*m_initialBatch);
 }
 
 QRhiResourceUpdateBatch* RenderList::initialBatch() const noexcept
@@ -382,16 +456,16 @@ void RenderList::release()
   delete m_emptyTextureArray;
   m_emptyTextureArray = nullptr;
 
-  // Destroy the GPU arena registry before the QRhi goes away — its
-  // buffers reference the same rhi, and we want them torn down while
-  // the backend is still valid. Route through the RenderList-aware
-  // overload so arena buffers go through releaseBuffer(), matching
-  // every other QRhiBuffer lifetime in the pipeline.
-  if(m_registry)
-  {
-    m_registry->destroy(*this);
-    m_registry.reset();
-  }
+  // Persist-across-rebuild contract: do NOT destroy the registry here.
+  // It is owned by the OutputNode and survives RL rebuild — the next
+  // createRenderList for this output will re-adopt the same instance
+  // and skip the (expensive) init() path. The actual QRhi-resource
+  // teardown lives in OutputNode::releaseRegistry() which the concrete
+  // sink (ScreenNode / BackgroundNode / MultiWindowNode / ...) calls
+  // from destroyOutput() before the QRhi itself is freed. Just clear
+  // our non-owning pointer so a stale dereference after release() is
+  // a clean nullptr crash, not a use-after-free.
+  m_registry = nullptr;
 
   if(m_vertexFallbackPool)
   {
@@ -437,6 +511,36 @@ bool RenderList::maybeRebuild(bool force)
   const QSize outputSize = state.renderSize;
   if(outputSize != m_lastSize || !m_built || force)
   {
+    // Drain the in-flight CB before the mid-frame release()+init().
+    //
+    // maybeRebuild is called from renderInternal (line ~845), which runs
+    // INSIDE Window::render's beginFrame/endFrame brackets. release()
+    // raw-deletes / deleteLater()s SRBs, samplers, UBOs, etc. that may
+    // be referenced by the resource-update batch already queued into
+    // cbD->commands earlier in renderInternal (commands.resourceUpdate
+    // around line 1036), or by ScenePreprocessor's runInitialPasses
+    // beginExternal/copyBuffer/endExternal block (which synchronously
+    // flushes cbD->commands into the VkCommandBuffer at
+    // qrhivulkan.cpp:6640-6643).
+    //
+    // Without this drain, recordPrimaryCommandBuffer at endFrame
+    // dereferences the released VkBuffer/VkSampler handles -> validation
+    // cascade (vkResetCommandPool with pending CBs, vkBeginCommandBuffer
+    // on active CB, eventual device loss in vkQueueSubmit /
+    // vkWaitForFences) -> CRASH in nvoglv64.dll (NVIDIA's unified Vulkan
+    // driver) at vkCmdBeginRenderPass.
+    //
+    // finish() mid-frame is a documented and supported QRhi operation
+    // (qrhivulkan.cpp:3121-3164): it submits the partial CB,
+    // vkQueueWaitIdle, then restarts a fresh CB on the same slot. After
+    // finish(), the CB queue is empty and we can safely tear down +
+    // re-init RenderList resources.
+    //
+    // Triggers only on first frame after a resize / m_built==false /
+    // forced rebuild. Steady-state cost: zero.
+    if(state.rhi && state.rhi->isRecordingFrame())
+      state.rhi->finish();
+
     m_built = false;
     release();
 
@@ -702,6 +806,50 @@ void RenderList::clearRenderers()
   m_built = false;
 }
 
+bool RenderList::resizeSwapchainSizedTargets(QSize newSize)
+{
+  // Bail to fallback if there's nothing to resize. The fallback
+  // (recreateOutputRenderList) handles initial output setup.
+  if(newSize.width() <= 0 || newSize.height() <= 0)
+    return false;
+  if(renderers.empty())
+    return false;
+
+  // Already at the right size — no-op success. Avoids a wasted
+  // round-trip through maybeRebuild when Qt fires multiple onResize
+  // callbacks for the same final size.
+  if(newSize == m_lastSize)
+    return true;
+
+  // Update the shared RenderState's size. m_lastSize stays at the
+  // OLD value here — we WANT maybeRebuild's `outputSize != m_lastSize`
+  // check to fire on the next render frame so it triggers a full
+  // release+init cycle. With the persistent GpuResourceRegistry
+  // (commit 703c2937f) and the rt_changed downstream-size
+  // propagation (createAllInputRenderTargets), maybeRebuild is now
+  // cheap enough to be the correct way to handle resize.
+  //
+  // Why we don't try to update RTs here directly: the rt_changed
+  // surgical block called resolveRenderTargetSpecs PER-PORT without
+  // the downstream-propagation that createAllInputRenderTargets
+  // applies. Nodes with explicit per-port sizes cached from earlier
+  // graph setup keep their explicit size on resize, while
+  // createAllInputRenderTargets uses resolveDownstreamSize to
+  // properly propagate the new output size upstream. The user's
+  // openpbr scene has nodes with cached explicit sizes that wouldn't
+  // update via the surgical path → low-resolution rendering on resize.
+  //
+  // maybeRebuild() routes through release()+init()+createAllInputRenderTargets()
+  // which IS the correct propagation; with registry persistence the
+  // cost is bounded (no arena destroy/create, no texture re-upload,
+  // pipeline cache stays warm).
+  state.renderSize = newSize;
+  state.outputSize = newSize;
+  m_built = false;  // forces maybeRebuild's release+init on next frame
+
+  return true;
+}
+
 bool RenderList::requiresDepth(const Port& p) const noexcept
 {
   for(auto& edge : p.edges)
@@ -896,6 +1044,10 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
       if(&renderer->node == &output)
         continue;
 
+      // Phase A: scan ports, recreate input RTs whose specs changed,
+      // and collect the changed-port set so phase C only re-adds
+      // upstream passes for those.
+      QVarLengthArray<Port*, 4> changedPorts;
       int cur_port = 0;
       for(auto* in : renderer->node.input)
       {
@@ -920,6 +1072,8 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
 
           if(specChanged)
           {
+            changedPorts.append(in);
+
             // Remove upstream passes that target this port
             for(auto* edge : in->edges)
             {
@@ -936,23 +1090,42 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
             oldIt->second = score::gfx::createRenderTarget(
                 state, newSpec.format, newSpec.size, samples(),
                 wantsDepth || wantsSamplableDepth, wantsSamplableDepth);
-
-            // Recreate upstream passes with the new RT
-            for(auto* edge : in->edges)
-            {
-              auto src_it = edge->source->node->renderedNodes.find(this);
-              if(src_it != edge->source->node->renderedNodes.end())
-                src_it->second->addOutputPass(*this, *edge, *updateBatch);
-            }
-
-            // Update this node's own sampler to point to the new RT texture.
-            // The sampler was created during initState() pointing to the old
-            // texture which was just released.
-            if(oldIt->second.texture)
-              renderer->updateInputTexture(*in, oldIt->second.texture, oldIt->second.depthTexture);
           }
         }
         cur_port++;
+      }
+
+      // Phase B: if ANY input RT actually changed shape, the renderer's
+      // INTERNAL size-dependent state (intermediate RTs, MRT,
+      // persistent AUX, depth/MSAA attachments sized to output, etc.)
+      // is stale and needs re-init. Without this, the resize-only
+      // fast path produced "internal render resolution not updated" --
+      // input RT was recreated correctly but the renderer's own
+      // internal RTs stayed at the old size. initState wires up
+      // samplers against the current m_inputRenderTargets so we
+      // don't need a separate updateInputTexture pass.
+      //
+      // Phase C: re-add upstream passes ONLY for the ports whose RT
+      // was recreated (others kept their existing passes intact in
+      // phase A). Done after Phase B so the upstream's addOutputPass
+      // sees this renderer's freshly-built per-pass state.
+      if(!changedPorts.empty())
+      {
+        renderer->releaseState(*this);
+        renderer->initState(*this, *updateBatch);
+        renderer->checkForChanges();
+        renderer->materialChanged = true;
+        renderer->geometryChanged = true;
+
+        for(auto* in : changedPorts)
+        {
+          for(auto* edge : in->edges)
+          {
+            auto src_it = edge->source->node->renderedNodes.find(this);
+            if(src_it != edge->source->node->renderedNodes.end())
+              src_it->second->addOutputPass(*this, *edge, *updateBatch);
+          }
+        }
       }
 
       renderer->renderTargetSpecsChanged = false;

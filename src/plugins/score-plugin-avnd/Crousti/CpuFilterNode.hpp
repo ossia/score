@@ -77,9 +77,13 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
   // field so the node's operator()() / runInitialPasses see the handle.
   // 2D (classic RT-rendered) inputs ignore this path — their handle is
   // set up at init() time by texture_inputs_storage::init.
+  //
+  // depthTex: when the port also opts in via halp_meta(samplable_depth,
+  // true), Graph passes the upstream's depth attachment here too. Stored
+  // on `texture.depth_handle` for the consumer to sample alongside color.
   void updateInputTexture(
       const score::gfx::Port& input, QRhiTexture* tex,
-      QRhiTexture* /*depthTex*/ = nullptr) override
+      QRhiTexture* depthTex = nullptr) override
   {
     if constexpr(avnd::texture_input_introspection<Node_T>::size > 0)
     {
@@ -118,6 +122,13 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
               t.texture.height = 0;
             }
             t.texture.kind = halp::texture_kind_of<F>();
+            if constexpr(halp::samplable_depth_of<F>())
+            {
+              t.texture.depth_handle = depthTex;
+              if(depthTex)
+                t.texture.depth_format
+                    = qrhiToHalpDepthFormat(depthTex->format());
+            }
           }
         }
       });
@@ -182,6 +193,24 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
     if constexpr(requires { state->renderlist = &renderer; })
       state->renderlist = &renderer;
 
+    // Ordering invariant: init → processControlIn → operator()()
+    //
+    // For nodes WITHOUT prepare(): processControlIn is NOT called here.
+    // state->init() therefore runs (line below) before any control-update
+    // callback can fire rebuild(). All five scene producers — Camera,
+    // CameraArray, Light, Transform3D, SceneGroup — rely on this: they
+    // populate m_*_ref arena handles in init(), and rebuild() reads those
+    // handles unconditionally. The invariant is also enforced at the two
+    // call-graph roots:
+    //   • Graph.cpp:865-893  (incremental edge update): initState() is
+    //     called before seedInitialOutputs() / operator()().
+    //   • RenderList.cpp:434-470 (full graph init): init() for all
+    //     renderers runs before the first render frame fires update().
+    //
+    // If you add prepare() to a scene producer, processControlIn becomes
+    // reachable BEFORE state->init() (see branch below vs. line 202) and
+    // any m_*_ref read inside rebuild() will observe an empty handle.
+    // Re-audit the producer's rebuild() ref-read sites before doing so.
     if constexpr(requires { state->prepare(); })
     {
       parent.processControlIn(
@@ -242,24 +271,26 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
       // and call its NodeRenderer::process(port, scene_spec, source) —
       // seeding exactly the same m_portScenes slot the first runInitialPasses
       // would have filled one frame later.
+      //
+      // Scene and geometry ports both stamp score::gfx::Types::Geometry (per
+      // port_to_type_enum in GpuUtils.hpp — Process::GeometryInlet carries
+      // either a geometry or a full scene by design). Dispatching on the
+      // runtime port->type can never see Types::Scene, so we branch on
+      // compile-time introspection instead. Each upload helper is a no-op
+      // for nodes that don't have the corresponding output kind, and both
+      // branches can fire for nodes with mixed outputs.
       const auto& outs = parent.output;
       for(std::size_t i = 0; i < outs.size(); ++i)
       {
         auto* port = outs[i];
         if(!port || port->edges.empty())
           continue;
-        if(port->type == score::gfx::Types::Scene)
-        {
-          if constexpr(scene_output_introspection<Node_T>::size > 0)
-            for(auto* edge : port->edges)
-              scene_outs.upload(renderer, *this->state, *edge);
-        }
-        else if(port->type == score::gfx::Types::Geometry)
-        {
-          if constexpr(avnd::geometry_output_introspection<Node_T>::size > 0)
-            for(auto* edge : port->edges)
-              geometry_outs.upload(renderer, *this->state, *edge);
-        }
+        if constexpr(scene_output_introspection<Node_T>::size > 0)
+          for(auto* edge : port->edges)
+            scene_outs.upload(renderer, *this->state, *edge);
+        if constexpr(avnd::geometry_output_introspection<Node_T>::size > 0)
+          for(auto* edge : port->edges)
+            geometry_outs.upload(renderer, *this->state, *edge);
       }
     }
   }
@@ -310,6 +341,16 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
 
     if constexpr(scene_input_introspection<Node_T>::size > 0)
       scene_ins.release(r);
+
+    // Symmetric with the other *_outs.release calls above. No-ops today
+    // (scene_outputs_storage / geometry_outputs_storage own no QRhi
+    // resources — scene_spec is value-semantics + a shared_ptr; geometry
+    // wraps non-owning pointers + transform values). Wired so future
+    // RHI handles on the storages release cleanly.
+    if constexpr(avnd::geometry_output_introspection<Node_T>::size > 0)
+      geometry_outs.release(r);
+    if constexpr(scene_output_introspection<Node_T>::size > 0)
+      scene_outs.release(r);
 
     if constexpr(avnd::texture_input_introspection<Node_T>::size > 0 || avnd::texture_output_introspection<Node_T>::size > 0)
     {
@@ -425,6 +466,34 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
 
     // Copy the data to the model node
     parent.processControlOut(*this->state);
+  }
+
+  // Customization point for halp nodes that produce their output via
+  // their own GPU pipeline (post-process effects, custom rasterizers).
+  //
+  // Default GenericNodeRenderer::runRenderPass calls defaultRenderPass,
+  // which uses a pre-built fullscreen-quad pipeline that samples
+  // m_samplers[0] (the upstream input texture, set up by
+  // m_material.init) and writes to the consumer's per-edge RT via the
+  // generic_texgen_fs shader. That hard-codes "blit upstream input →
+  // downstream input RT" — which is fine for halp filter nodes whose
+  // output IS just a CPU-uploaded copy of their input, but is wrong for
+  // any node that did real work in runInitialPasses (writing to its own
+  // m_outputTex / a private RT): the framework's input-blit overwrites
+  // the result, so the consumer sees the unmodified upstream.
+  //
+  // When the halp class declares its own runRenderPass, we hand off to
+  // it. The method runs INSIDE the consumer's beginPass/endPass cycle —
+  // it is expected to record draw commands only (no beginPass/endPass
+  // on its own) targeting the currently-bound (per-edge) render target.
+  void runRenderPass(
+      score::gfx::RenderList& renderer, QRhiCommandBuffer& commands,
+      score::gfx::Edge& edge) override
+  {
+    if constexpr(requires { state->runRenderPass(renderer, commands, edge); })
+      state->runRenderPass(renderer, commands, edge);
+    else
+      score::gfx::GenericNodeRenderer::runRenderPass(renderer, commands, edge);
   }
 };
 

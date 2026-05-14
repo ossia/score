@@ -75,12 +75,11 @@ inline constexpr uint32_t tex_ref_static(uint32_t bucket, uint32_t layer)
 {
   // Packed layout: source:2 | bucket:7 | layer:23
   //
-  // 7-bit bucket (0..127) feeds the kMaxBuckets = 128 configuration in
-  // GpuResourceRegistry so scenes with many distinct (format, pixelSize,
-  // sampler_config) tuples per PBR channel (architectural USD cities,
-  // Pixar Kitchen Set-class assemblies) don't silently overflow. Layer
-  // field at 23 bits still holds 8M layers — 8000× the default
-  // kTextureLayerSize of 1024, more headroom than we'll ever need.
+  // The 7-bit bucket field (0..127) gives encoding headroom for up to
+  // 128 buckets; the runtime cap is kMaxBuckets = 16 in
+  // GpuResourceRegistry.hpp. Growing the cap requires enlarging the
+  // shader sampler arrays but needs no change to this encoding. Layer
+  // field at 23 bits holds 8M layers — 8000× kTextureLayerSize of 1024.
   //
   // Shader-side decode mirror: `(ref >> 23) & 0x7Fu` for the bucket,
   // `ref & 0x007FFFFFu` for the layer. See classic_pbr_full.frag et al.
@@ -432,23 +431,26 @@ struct WorldTransformMat4
 // `cascade_index` lives in a separate `shadow_draw_cfg` UBO so the
 // two use-cases don't fight for the same binding.
 //
-// std140 layout, 544 B total. Fields mirror
+// std140 layout, 560 B total. Fields mirror
 // `ossia::shadow_cascades_info` in geometry_port.hpp:
-//   light_view_proj[8]          — world → cascade clip-space per cascade
-//   cascade_split_distances.xyz — view-space far-plane Z for cascades 0..2;
-//                                 .w = scene far (last cascade's far)
-//   cascade_count               — how many cascade entries are live (0..8)
+//   light_view_proj[8]           — world → cascade clip-space per cascade
+//   cascade_split_distances[8]   — view-space far-plane Z for cascades 0..7;
+//                                  entry k is the far plane of cascade k.
+//                                  Slots >= cascade_count read as 0.
+//   cascade_count                — how many cascade entries are live (0..8)
 struct ShadowCascadesUBO
 {
   float light_view_proj[8][16]{};
-  float cascade_split_distances[4]{};
+  // 8 split distances symmetric with light_view_proj[8].
+  // std140: two consecutive vec4 rows (32 B total).
+  float cascade_split_distances[8]{};
   uint32_t cascade_count{0};
   uint32_t _pad0{};
   uint32_t _pad1{};
   uint32_t _pad2{};
 };
-static_assert(sizeof(ShadowCascadesUBO) == 544,
-              "ShadowCascadesUBO must stay 544 B (mat4[8] + vec4 + 4×uint)");
+static_assert(sizeof(ShadowCascadesUBO) == 560,
+              "ShadowCascadesUBO size = mat4[8] (512) + float[8] (32) + 4×uint (16) = 560 B");
 
 #pragma pack(pop)
 
@@ -572,6 +574,22 @@ struct FlatScene
   };
   std::vector<InstanceDraw> instances;
 
+  // Primitive cloud (splat / point-cloud) entries. Format-agnostic
+  // payloads whose schema is described by their CSF chain (one
+  // AUXILIARY with LAYOUT). ScenePreprocessor buckets these by
+  // `format_id` and emits one indirect-draw geometry per bucket;
+  // entries with empty format_id are bucketed individually keyed on
+  // their stable id.
+  struct PrimitiveCloudDraw
+  {
+    ossia::primitive_cloud_component_ptr cloud;
+    QMatrix4x4 worldTransform;
+    // RawTransform arena slot index, or 0xFFFFFFFFu if no producer
+    // transform was on the walk path. Mirrors PerDrawGPU.transform_slot.
+    uint32_t transform_slot{0xFFFFFFFFu};
+  };
+  std::vector<PrimitiveCloudDraw> primitive_clouds;
+
   // Cameras collected from the scene tree. Each entry keeps its source
   // camera_component alive, its accumulated world transform (column 3 =
   // eye position, inverse = view matrix), and the scene_node_id of the
@@ -607,11 +625,13 @@ struct FlatScene
   void clear()
   {
     draws.clear();
+    lightArenaSlots.clear();
     materials.clear();
     material_extensions.clear();
     skins.clear();
     scene_data.clear();
     instances.clear();
+    primitive_clouds.clear();
     cameras.clear();
     worldTransforms.clear();
     activeCameraIndex = -1;

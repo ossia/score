@@ -208,6 +208,11 @@ void ImagesNode::process(Message&& msg)
 
         case 5: // Images
         {
+          // getImages() acquires every image from Gfx::ImageCache (refcount
+          // bumped per image). Without a matching release on the no-change
+          // branch below, the cache refcount accumulated by one acquire per
+          // re-emit of the same control value — long sessions that re-fed
+          // the same image list every tick bled cache memory until quit.
           auto new_images = Gfx::getImages(*val, this->ctx);
           auto diff = [](const score::gfx::Image& lhs, const score::gfx::Image& rhs) {
             return lhs.path != rhs.path;
@@ -245,6 +250,14 @@ void ImagesNode::process(Message&& msg)
             }
 
             ++this->imagesChanged;
+          }
+          else
+          {
+            // Same image set as before — release the freshly-acquired
+            // copy so the cache refcount returns to baseline. Without
+            // this, every re-emit on the same control value bumped
+            // ImageCache::m_refcounts by one per image and never paired.
+            Gfx::releaseImages(new_images);
           }
           break;
         }

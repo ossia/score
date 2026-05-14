@@ -225,7 +225,11 @@ bool stateAffectsPipeline(const isf::pipeline_state& s) noexcept
       || s.stencil_write_mask.has_value()
       || s.stencil_front.has_value()
       || s.stencil_back.has_value()
-      || s.topology.has_value();
+      || s.topology.has_value()
+#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
+      || s.shading_rate.has_value()
+#endif
+      ;
   // vertex_count / instance_count don't affect the pipeline itself
   // (they change draw arguments, not pipeline state), so they're
   // intentionally absent from this check.
@@ -320,18 +324,19 @@ void applyPipelineState(
   }
 
   // ── Stencil ─────────────────────────────────────────────────────────
+  // Toggle is gated on `stencil_test` only; sub-fields apply
+  // independently so a shader can override e.g. front op without
+  // re-stating `stencil_test`.
   if(state.stencil_test.has_value())
-  {
     pip.setStencilTest(*state.stencil_test);
-    if(state.stencil_front.has_value())
-      pip.setStencilFront(toStencilOpState(*state.stencil_front));
-    if(state.stencil_back.has_value())
-      pip.setStencilBack(toStencilOpState(*state.stencil_back));
-    if(state.stencil_read_mask.has_value())
-      pip.setStencilReadMask(*state.stencil_read_mask);
-    if(state.stencil_write_mask.has_value())
-      pip.setStencilWriteMask(*state.stencil_write_mask);
-  }
+  if(state.stencil_front.has_value())
+    pip.setStencilFront(toStencilOpState(*state.stencil_front));
+  if(state.stencil_back.has_value())
+    pip.setStencilBack(toStencilOpState(*state.stencil_back));
+  if(state.stencil_read_mask.has_value())
+    pip.setStencilReadMask(*state.stencil_read_mask);
+  if(state.stencil_write_mask.has_value())
+    pip.setStencilWriteMask(*state.stencil_write_mask);
 
   // ── Variable-rate shading (per-draw rate) ───────────────────────────
   // QRhiGraphicsPipeline::setShadingRate expects a ShadingRate enum value

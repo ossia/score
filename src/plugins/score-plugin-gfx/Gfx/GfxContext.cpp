@@ -186,11 +186,23 @@ void GfxContext::recompute_edges()
 {
   m_graph->clearEdges();
 
-  for(auto edge : edges)
+  // Snapshot under lock: writer in updateGraph reassigns `edges` under
+  // edges_lock on the render-driving thread, while this can be invoked from
+  // settings-change signals on the UI thread. Iterating the live container
+  // would race with that reassignment.
+  ossia::flat_set<EdgeSpec> edges_snapshot;
+  ossia::flat_set<EdgeSpec> preview_snapshot;
+  {
+    std::lock_guard l{edges_lock};
+    edges_snapshot = edges;
+    preview_snapshot = preview_edges;
+  }
+
+  for(auto edge : edges_snapshot)
   {
     add_edge(edge);
   }
-  for(auto edge : preview_edges)
+  for(auto edge : preview_snapshot)
   {
     add_edge(edge);
   }
@@ -555,7 +567,15 @@ void GfxContext::run_commands()
             }
             remove_node(nursery, cmd.index);
             if(is_output)
-              recompute = true;
+            {
+              // Recompute immediately so subsequent commands in this tick
+              // see a consistent graph state. Deferring until the end of
+              // the loop leaves the graph half-broken (node gone from
+              // m_nodes but renderer/output still wired) for any further
+              // commands or render frames that fire in this window.
+              recompute_graph();
+              m_fullRebuildThisFrame = true;
+            }
           }
           break;
         }

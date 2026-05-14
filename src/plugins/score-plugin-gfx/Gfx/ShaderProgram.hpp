@@ -1,8 +1,10 @@
 #pragma once
 #include <Gfx/Graph/RenderState.hpp>
+#include <Gfx/Hashes.hpp>
 
 #include <score/tools/Debug.hpp>
 
+#include <ossia/detail/hash.hpp>
 #include <ossia/detail/hash_map.hpp>
 
 #include <QDebug>
@@ -136,14 +138,11 @@ struct hash<Gfx::ShaderSource>
 {
   std::size_t operator()(const Gfx::ShaderSource& program) const noexcept
   {
-    constexpr const QtPrivate::QHashCombine combine{
-#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
-        0
-#endif
-    };
-    std::size_t seed{};
-    seed = combine(seed, program.vertex);
-    seed = combine(seed, program.fragment);
+    // rapidhash via the gfx Qt-aware adapters; same primitive that
+    // produces content_hash values throughout the gfx pipeline.
+    std::size_t seed{(std::size_t)program.type};
+    ossia::hash_combine(seed, score::gfx::hash_qstring(program.vertex));
+    ossia::hash_combine(seed, score::gfx::hash_qstring(program.fragment));
     return seed;
   }
 };
@@ -182,8 +181,8 @@ struct hash<Gfx::ProgramCacheKey>
   std::size_t operator()(const Gfx::ProgramCacheKey& k) const noexcept
   {
     std::size_t seed = std::hash<Gfx::ShaderSource>{}(k.source);
-    std::size_t h2 = std::hash<QString>{}(k.originDir);
-    return seed ^ (h2 + 0x9e3779b9 + (seed << 6) + (seed >> 2));
+    ossia::hash_combine(seed, score::gfx::hash_qstring(k.originDir));
+    return seed;
   }
 };
 }

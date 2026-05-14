@@ -2,6 +2,8 @@
 
 #include <Gfx/Graph/CommonUBOs.hpp>
 #include <Gfx/Graph/ISFNode.hpp>
+#include <Gfx/Graph/ISFVisitors.hpp>
+#include <Gfx/Graph/IsfBindingsBuilder.hpp>
 #include <Gfx/Graph/RenderedCSFNode.hpp>
 #include <Gfx/Graph/RenderedISFSamplerUtils.hpp>
 #include <Gfx/Graph/RhiComputeBarrier.hpp>
@@ -12,6 +14,7 @@
 
 #include <ossia/dataflow/geometry_port.hpp>
 #include <ossia/detail/algorithms.hpp>
+#include <ossia/detail/hash.hpp>
 #include <ossia/detail/hash_map.hpp>
 #include <ossia/math/math_expression.hpp>
 
@@ -247,57 +250,21 @@ struct is_output
   bool operator()(const auto& v) { return false; }
 };
 
+// Thin adapter over the canonical isf_input_port_count_vis (ISFVisitors.hpp) so
+// the existing call sites that do `ossia::visit(p, input.data)` keep working.
+// Use walk_descriptor_inputs() in new code; this shim preserves the
+// "inlet_i / outlet_i mid-loop" pattern these consumers rely on.
 struct port_indices
 {
   int inlet_i = 0;
   int outlet_i = 0;
-  void operator()(const isf::storage_input& v)
+  template <typename T>
+  void operator()(const T& v) noexcept
   {
-    if(v.access == "read_only")
-      inlet_i++;
-    else
-    {
-      inlet_i++;
-      outlet_i++;
-    }
+    auto c = isf_input_port_count_vis{}(v);
+    inlet_i += c.inlets;
+    outlet_i += c.outlets;
   }
-  void operator()(const isf::csf_image_input& v)
-  {
-    if(v.access == "read_only")
-      inlet_i++;
-    else
-      outlet_i++;
-  }
-  void operator()(const isf::geometry_input& v)
-  {
-    if(v.attributes.empty())
-    {
-      // Pure pass-through: one inlet + one outlet
-      inlet_i++;
-      outlet_i++;
-    }
-    else
-    {
-      // Inlet if any attribute needs upstream data (read_only or read_write)
-      for(const auto& attr : v.attributes)
-        if(attr.access == "read_only" || attr.access == "read_write") { inlet_i++; break; }
-      // Outlet if any attribute is writable (write_only or read_write)
-      for(const auto& attr : v.attributes)
-      {
-        if(attr.access == "write_only" || attr.access == "read_write")
-        {
-          outlet_i++; // one geometry output port if any attribute is writable
-          break;
-        }
-      }
-    }
-    // $USER ports for vertex_count, instance_count, aux.size
-    if(v.vertex_count.find("$USER") != std::string::npos) inlet_i++;
-    if(v.instance_count.find("$USER") != std::string::npos) inlet_i++;
-    for(const auto& aux : v.auxiliary)
-      if(aux.size.find("$USER") != std::string::npos) inlet_i++;
-  }
-  void operator()(const auto& v) { inlet_i++; }
 };
 QSize RenderedCSFNode::computeTextureSize(
     const isf::csf_image_input& pass) const noexcept
@@ -830,6 +797,8 @@ int RenderedCSFNode::getArraySizeFromUI(const QString& bufferName) const
   }
   
   // Default array size if not found
+  qWarning() << "RenderedCSFNode: storage size port not resolved (storageSizeInputIndex="
+             << storageSizeInputIndex << "); falling back to 1024.";
   return 1024;
 }
 
@@ -985,27 +954,21 @@ void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpd
   // intermediate SRBs that reference stale/dangling buffer pointers.
 }
 
-// Returns the byte size of a GLSL type for SoA SSBO element stride
-static int glslTypeSizeBytes(const std::string& type) noexcept
-{
-  if(type == "float" || type == "int" || type == "uint")
-    return 4;
-  if(type == "vec2" || type == "ivec2" || type == "uvec2")
-    return 8;
-  if(type == "vec3" || type == "ivec3" || type == "uvec3")
-    return 12;
-  if(type == "vec4" || type == "ivec4" || type == "uvec4")
-    return 16;
-  if(type == "mat4")
-    return 64;
-  return 16; // fallback
-}
+// GLSL type → byte size lives in IsfBindingsBuilder.hpp
+// (score::gfx::glslTypeSizeBytes for the bare type, std430ArrayStride for
+// the per-element stride inside an std430 SSBO array — these differ for
+// vec3, see header doc for the rationale). All call sites below resolve
+// via ADL inside `namespace score::gfx`.
 
-// Returns the byte size of an ossia::geometry attribute format
-static int geometryFormatSizeBytes(int format) noexcept
+// Returns the byte size of one upstream-side element of an
+// ossia::geometry attribute. For the user_struct format the producer
+// carries the size out-of-line on `element_byte_size` (sizeof of the
+// user-defined struct in std430); otherwise dispatches on the format
+// enum.
+static int geometryFormatSizeBytes(const ossia::geometry::attribute& a) noexcept
 {
   using F = ossia::geometry::attribute;
-  switch(format)
+  switch(a.format)
   {
     case F::float4: return 16;
     case F::float3: return 12;
@@ -1026,219 +989,14 @@ static int geometryFormatSizeBytes(int format) noexcept
     case F::half3: return 6;
     case F::half2: return 4;
     case F::half1: return 2;
+    case F::user_struct: return (int)a.element_byte_size;
     default: return 4;
-  }
-}
-
-void RenderedCSFNode::refreshBroadcastMatches()
-{
-  const auto& desc = n.descriptor();
-
-  // One cache slot per geometry_input in descriptor order.
-  std::size_t num_geo_inputs = 0;
-  for(const auto& inp : desc.inputs)
-    if(ossia::get_if<isf::geometry_input>(&inp.data))
-      num_geo_inputs++;
-
-  if(m_broadcastCacheKeys.size() != num_geo_inputs)
-    m_broadcastCacheKeys.assign(num_geo_inputs, BroadcastCacheKey{});
-  if(m_broadcastBindings.size() != num_geo_inputs)
-    m_broadcastBindings.assign(num_geo_inputs, {});
-
-  // Enumerate matched primitives for a single geometry_input declaration.
-  // `out` receives type-erased pointer identities — mesh_primitive* for the
-  // modern scene path, ossia::geometry* for scenes wrapped from a legacy
-  // geometry_spec (Primitive Cube, CSF producers, …). Dispatch-wiring will
-  // discriminate by source type when it lands.
-  auto match_primitives_for
-      = [&](const isf::geometry_input& geo, int geo_port_index,
-            std::vector<const void*>& out) {
-          out.clear();
-
-          // Resolve the required attribute semantics once per geometry_input.
-          ossia::small_vector<ossia::attribute_semantic, 8> required_sem;
-          for(const auto& attr : geo.attributes)
-          {
-            if(!attr.required)
-              continue;
-            if(attr.access == "write_only" || attr.access == "none")
-              continue; // write_only doesn't read upstream — no schema need.
-            required_sem.push_back(ossia::name_to_semantic(attr.semantic));
-          }
-
-          auto has_all_sems = [&](const auto& attrs) {
-            for(auto sem : required_sem)
-            {
-              if(sem == ossia::attribute_semantic::custom)
-                continue; // custom semantics matched by name later
-              bool found = false;
-              for(const auto& a : attrs)
-                if(a.semantic == sem)
-                {
-                  found = true;
-                  break;
-                }
-              if(!found)
-                return false;
-            }
-            return true;
-          };
-
-          forEachSceneOnPort(geo_port_index, [&](const ossia::scene_spec& scn) {
-            if(!scn.state || !scn.state->roots)
-              return;
-            // scene_node::get_component<T>() is declared in the header but
-            // never defined (dead symbol in libossia), so walk `children`
-            // directly and pull out mesh_components + nested scene_nodes by
-            // variant discrimination instead of calling it.
-            auto walk = [&](auto&& self, const ossia::scene_node& node) -> void {
-              if(!node.visible)
-                return;
-              if(node.children)
-              {
-                for(const auto& child : *node.children)
-                {
-                  if(auto* mp
-                     = ossia::get_if<ossia::mesh_component_ptr>(&child);
-                     mp && *mp)
-                  {
-                    const auto& mesh = **mp;
-
-                    // Modern path: mesh_primitive with semantic-tagged
-                    // vertex_attributes.
-                    for(const auto& prim : mesh.primitives)
-                      if(has_all_sems(prim.attributes))
-                        out.push_back(&prim);
-
-                    // Legacy path: mesh_component::legacy_geometry carries
-                    // zero-or-more ossia::geometry instances (Primitive Cube,
-                    // CSF producers, anything that went through
-                    // wrap_geometry_as_scene) — each one counts as one
-                    // primitive for broadcast purposes.
-                    if(mesh.legacy_geometry.meshes)
-                    {
-                      for(const auto& g : mesh.legacy_geometry.meshes->meshes)
-                        if(has_all_sems(g.attributes))
-                          out.push_back(&g);
-                    }
-                  }
-                  else if(auto* sub
-                          = ossia::get_if<ossia::scene_node_ptr>(&child);
-                          sub && *sub)
-                  {
-                    self(self, **sub);
-                  }
-                }
-              }
-            };
-            for(const auto& root : *scn.state->roots)
-              if(root)
-                walk(walk, *root);
-          });
-        };
-
-  int geo_idx = 0;
-  int port_idx = 0;
-  // port_idx walker mirrors the rule used by port_indices: each non-geometry
-  // input consumes one inlet, geometry_inputs advance the port cursor based
-  // on attribute access modes — but for broadcast detection we only need the
-  // *first* inlet associated with a geometry_input, which is m_geometryBindings
-  // input_port_index. Reuse it directly to avoid re-implementing the walk.
-  for(const auto& inp : desc.inputs)
-  {
-    auto* geo = ossia::get_if<isf::geometry_input>(&inp.data);
-    if(!geo)
-      continue;
-
-    // Look up the port index from the existing m_geometryBindings slot —
-    // already resolved by initState (first read_only/read_write attribute
-    // decides the inlet). Skip the match when no inlet is connected.
-    if(geo_idx >= (int)m_geometryBindings.size())
-    {
-      geo_idx++;
-      continue;
-    }
-    port_idx = m_geometryBindings[geo_idx].input_port_index;
-    if(port_idx < 0)
-    {
-      geo_idx++;
-      continue;
-    }
-
-    // Steady-state fast path: if the scene_state pointer + dirty_index on
-    // every slot at this port match what we saw last refresh, skip the walk.
-    auto& key = m_broadcastCacheKeys[geo_idx];
-    ossia::scene_state_ptr current_state;
-    int64_t current_dirty = -1;
-    forEachSceneOnPort(port_idx, [&](const ossia::scene_spec& scn) {
-      if(scn.state && !current_state)
-      {
-        current_state = scn.state;
-        current_dirty = scn.state->dirty_index;
-      }
-    });
-    if(key.populated && current_state == key.last_state
-       && current_dirty == key.last_dirty_index)
-    {
-      // Unchanged — keep cached BroadcastPrimitive entries in place.
-      // Short-circuit is unconditional on bucket size: a legitimate
-      // matched==0 on a stable scene must also skip the re-walk.
-      geo_idx++;
-      continue;
-    }
-
-    // Rebuild the match list. BroadcastPrimitive allocation (SSBOs, SRBs,
-    // cached_output) is deferred to the dispatch-wiring step that follows —
-    // for now we only establish the set of matched primitives so that
-    // downstream passes have a stable identity to key against.
-    std::vector<const void*> matched;
-    match_primitives_for(*geo, port_idx, matched);
-
-    auto& bucket = m_broadcastBindings[geo_idx];
-    const int prev_count = (int)bucket.size();
-
-    // Evict stale entries (primitives no longer in the match set).
-    std::erase_if(bucket, [&](const BroadcastPrimitive& b) {
-      return std::find(matched.begin(), matched.end(), b.source_primitive)
-             == matched.end();
-    });
-    // Add entries for newly-matched primitives.
-    for(const void* prim : matched)
-    {
-      auto it = std::find_if(bucket.begin(), bucket.end(), [&](const auto& b) {
-        return b.source_primitive == prim;
-      });
-      if(it == bucket.end())
-      {
-        BroadcastPrimitive bp;
-        bp.source_primitive = prim;
-        // vertex_count left at 0; the dispatch-wiring step fills it in
-        // after resolving the source type (mesh_primitive vs legacy
-        // ossia::geometry) — scaffolding only tracks identity.
-        bucket.push_back(std::move(bp));
-      }
-    }
-
-    // Diagnostic: only fires when the match set actually changes (not every
-    // frame). Tests read this to confirm the scaffolding sees the expected
-    // primitive count; steady-state frames produce no output.
-    key.last_state = current_state;
-    key.last_dirty_index = current_dirty;
-    key.populated = true;
-    geo_idx++;
   }
 }
 
 void RenderedCSFNode::updateGeometryBindings(
     RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
-  // Scene-broadcast detection — populates m_broadcastBindings. Runtime is
-  // not yet wired to dispatch the extras; the cache is cheap to maintain
-  // and readying it here means the dispatch-wiring follow-up is a local
-  // change to runRenderPass / SRB creation rather than another pass over
-  // descriptor.inputs.
-  refreshBroadcastMatches();
-
   // Pre-pass: populate vertex/instance counts from upstream for ALL bindings first,
   // so that expression resolution (e.g. $VERTEX_COUNT_geoIn) can reference any binding.
   {
@@ -1406,9 +1164,9 @@ void RenderedCSFNode::updateGeometryBindings(
           auto& ssbo = binding.attribute_ssbos[attr_idx];
           if(req.access == "read_write" && !ssbo.read_buffer)
           {
-            const int elem_size = glslTypeSizeBytes(req.type);
+            const int64_t elem_stride = std430ArrayStride(req.type, n.m_descriptor);
             const int count = ssbo.per_instance ? binding.instance_count : binding.vertex_count;
-            const int64_t buf_size = (int64_t)elem_size * count;
+            const int64_t buf_size = elem_stride * count;
             if(buf_size > 0)
             {
               auto* buf = renderer.state.rhi->newBuffer(
@@ -1492,10 +1250,12 @@ void RenderedCSFNode::updateGeometryBindings(
 
         if(!geo_attr)
         {
-          // Create or keep a zero-filled fallback buffer
-          const int elem_size = glslTypeSizeBytes(req.type);
+          // Create or keep a zero-filled fallback buffer. std430ArrayStride
+          // ensures vec3 attributes get 16-byte stride to match what the
+          // shader's `T array[]` SSBO actually reads in std430.
+          const int64_t elem_stride = std430ArrayStride(req.type, n.m_descriptor);
           const int fallback_count = ssbo.per_instance ? std::max(1, mesh.instances) : std::max(1, mesh.vertices);
-          const int64_t needed = (int64_t)elem_size * fallback_count;
+          const int64_t needed = elem_stride * fallback_count;
           if(!ssbo.buffer || ssbo.size < needed)
           {
             if(req.required && req.access == "read_only")
@@ -1550,14 +1310,21 @@ void RenderedCSFNode::updateGeometryBindings(
                                    ? mesh.bindings[binding_idx]
                                    : mesh.bindings[0];
 
-        const int attr_size = geometryFormatSizeBytes(geo_attr->format);
+        const int attr_size = geometryFormatSizeBytes(*geo_attr);
+        const int64_t csf_elem_stride = std430ArrayStride(req.type, n.m_descriptor);
         const int stride = geo_bind.byte_stride;
-        const bool is_soa = (stride == 0 || stride == attr_size);
+        // SoA upstream is bindable directly when the binding stride matches
+        // either the bare attribute size (tightly-packed mesh vertex buffer)
+        // or the std430 element stride (CSF SSBO output, vec3-padded). Both
+        // shapes are valid sources for an std430 SSBO consumer.
+        const bool is_soa = (stride == 0 || stride == attr_size
+                             || stride == (int)csf_elem_stride);
 
         if(auto* gpu = ossia::get_if<ossia::geometry::gpu_buffer>(&geo_buf.data))
         {
-          const int elem_size = glslTypeSizeBytes(req.type);
-          if(is_soa && gpu->handle && attr_size == elem_size)
+          const int elem_size = glslTypeSizeBytes(req.type, n.m_descriptor);
+          if(is_soa && gpu->handle
+             && (attr_size == elem_size || stride == (int)csf_elem_stride))
           {
             // SoA GPU buffer with matching element size: bind directly (zero-copy)
             auto* rhi_buf = static_cast<QRhiBuffer*>(gpu->handle);
@@ -1568,9 +1335,8 @@ void RenderedCSFNode::updateGeometryBindings(
             // feedback loop when the downstream node hasn't produced data yet).
             if(binding.has_vertex_count_spec && ssbo.owned && ssbo.buffer)
             {
-              const int elem_size = glslTypeSizeBytes(req.type);
               const int attr_count = ssbo.per_instance ? binding.instance_count : binding.vertex_count;
-              const int64_t needed = (int64_t)elem_size * attr_count;
+              const int64_t needed = csf_elem_stride * attr_count;
               if(needed > 0 && gpu->byte_size < needed)
               {
                 continue;
@@ -1614,9 +1380,10 @@ void RenderedCSFNode::updateGeometryBindings(
             continue;
 
           const auto* src = static_cast<const char*>(cpu->raw_data.get());
-          const int64_t elem_size = glslTypeSizeBytes(req.type);
+          const int64_t elem_size = glslTypeSizeBytes(req.type, n.m_descriptor);
+          const int64_t elem_stride = std430ArrayStride(req.type, n.m_descriptor);
           const int data_count = ssbo.per_instance ? mesh.instances : mesh.vertices;
-          const int64_t needed = elem_size * data_count;
+          const int64_t needed = elem_stride * data_count;
 
           // Skip re-upload if we already own a correctly-sized buffer
           // and the upstream data hasn't changed (same CPU pointer as last upload).
@@ -1655,9 +1422,14 @@ void RenderedCSFNode::updateGeometryBindings(
           // Total byte offset into the buffer: input entry offset + attribute offset within stride
           const int64_t base_offset = input_byte_offset + geo_attr->byte_offset;
 
-          if(is_soa && attr_size == (int)elem_size)
+          // Direct upload only when source and destination strides match
+          // exactly. For vec3 attributes, that means upstream must already
+          // be std430-strided (16 bytes per element) — a tightly-packed
+          // upstream vec3 (stride 12) routes through scatter so the
+          // destination's 4-byte trailing padding stays zeroed.
+          if(is_soa && (int64_t)stride == elem_stride)
           {
-            // SoA CPU buffer with matching element size: upload directly
+            // SoA CPU buffer with matching stride: upload directly
             const int64_t upload_size = std::min(needed, cpu->byte_size - base_offset);
             if(upload_size > 0)
               res.uploadStaticBuffer(ssbo.buffer, 0, upload_size, src + base_offset);
@@ -1683,7 +1455,13 @@ void RenderedCSFNode::updateGeometryBindings(
             const int64_t upload_size = std::min(staging_needed, cpu->byte_size);
             res.uploadStaticBuffer(ssbo.scatterStaging, 0, upload_size, src);
 
-            // Prepare the scatter dispatch (will execute in runInitialPasses)
+            // The scatter compute lays out destination elements at
+            // dst_components * sizeof(float) per slot — for vec3 in std430
+            // that's 3 floats of data + 1 float of padding implicit in the
+            // 16-byte stride. dst_components is 3 for vec3, so the compute
+            // writes 12 bytes per element and the buffer's std430 padding
+            // bytes stay at their zero-initialised value. That matches
+            // what a well-behaved compute shader would produce.
             ssbo.scatterParams = GPUBufferScatter::Params{
                 .staging = ssbo.scatterStaging,
                 .output = ssbo.buffer,
@@ -1702,14 +1480,16 @@ void RenderedCSFNode::updateGeometryBindings(
           else
           {
             // CPU fallback: scatter per-element with format conversion
-            // (used when compute shaders are not available)
+            // (used when compute shaders are not available). Destination
+            // slots are elem_stride bytes apart; the first elem_size bytes
+            // hold the data, any trailing std430 padding stays zero.
             QByteArray scattered(needed, 0);
 
             if(elem_size > attr_size && elem_size >= (int)sizeof(float))
             {
               const float one = 1.0f;
               for(int i = 0; i < data_count; i++)
-                std::memcpy(scattered.data() + (int64_t)i * elem_size + elem_size - sizeof(float),
+                std::memcpy(scattered.data() + (int64_t)i * elem_stride + elem_size - sizeof(float),
                             &one, sizeof(float));
             }
 
@@ -1718,7 +1498,7 @@ void RenderedCSFNode::updateGeometryBindings(
             {
               const int64_t src_off = (int64_t)i * stride + base_offset;
               if(src_off + copy_size <= cpu->byte_size)
-                std::memcpy(scattered.data() + (int64_t)i * elem_size, src + src_off, copy_size);
+                std::memcpy(scattered.data() + (int64_t)i * elem_stride, src + src_off, copy_size);
             }
             res.uploadStaticBuffer(ssbo.buffer, 0, needed, scattered.constData());
           }
@@ -1836,9 +1616,9 @@ void RenderedCSFNode::updateGeometryBindings(
           {
             continue;
           }
-          const int elem_size = glslTypeSizeBytes(geo_input->attributes[attr_idx].type);
+          const int64_t elem_stride = std430ArrayStride(geo_input->attributes[attr_idx].type, n.m_descriptor);
           const int attr_count = ssbo.per_instance ? binding.instance_count : binding.vertex_count;
-          const int64_t needed = (int64_t)elem_size * attr_count;
+          const int64_t needed = elem_stride * attr_count;
           if(needed > 0 && ssbo.size != needed)
           {
             ssbo.buffer->destroy();
@@ -1896,8 +1676,8 @@ void RenderedCSFNode::updateGeometryBindings(
           const int count = ssbo.per_instance ? binding.instance_count : binding.vertex_count;
           if(count <= 0)
             continue;
-          const int elem_size = glslTypeSizeBytes(req.type);
-          const int64_t needed = (int64_t)elem_size * count;
+          const int64_t elem_stride = std430ArrayStride(req.type, n.m_descriptor);
+          const int64_t needed = elem_stride * count;
 
           if(!ssbo.buffer || ssbo.size != needed)
           {
@@ -2066,7 +1846,12 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
           continue;
 
         const int buf_index = (int)out_geo.buffers.size();
-        const int elem_size = glslTypeSizeBytes(req.type);
+        // The buffer underneath is sized at std430 stride (16 bytes per
+        // vec3 element); declaring the binding stride to match is what
+        // lets a downstream raw-raster vertex shader read these
+        // attributes without the silent vec3-padding drift that left
+        // every fourth splat misaligned.
+        const int64_t elem_stride = std430ArrayStride(req.type, n.m_descriptor);
 
         ossia::geometry::buffer buf{
             .data = ossia::geometry::gpu_buffer{ssbo.buffer, ssbo.size},
@@ -2074,7 +1859,7 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
         out_geo.buffers.push_back(std::move(buf));
 
         ossia::geometry::binding bind;
-        bind.byte_stride = elem_size;
+        bind.byte_stride = (uint32_t)elem_stride;
         bind.classification = ssbo.per_instance
             ? ossia::geometry::binding::per_instance
             : ossia::geometry::binding::per_vertex;
@@ -2535,6 +2320,14 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
             binding_upstream->cpu_draw_commands.end());
       }
 
+      // Stamp format_id from the descriptor's RESOURCES[geoOut] so a
+      // CSF that produces a primitive-cloud-shaped output declares its
+      // format identity in JSON and downstream FlattenedSceneFilter
+      // mode-12 can route it. Same hash + truncation as the
+      // ScenePreprocessor splat-bucket stamp.
+      if(!geo_input->format_id.empty())
+        out_geo.filter_tag = (uint32_t)ossia::hash_string(geo_input->format_id);
+
       meshes->meshes.push_back(std::move(out_geo));
       meshes->dirty_index = 1; // Initial structural build
 
@@ -2877,582 +2670,6 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
   }
 }
 
-void RenderedCSFNode::initComputePass(
-    const TextureRenderTarget& rt, RenderList& renderer, Edge& edge, QRhiResourceUpdateBatch& res)
-{
-  QRhi& rhi = *renderer.state.rhi;
-  
-  if(!m_computePipeline)
-  {
-    createComputePipeline(renderer);
-  }
-  
-  if(!m_computePipeline)
-    return;
-    
-  // Ensure storage buffers are created before setting up bindings
-  updateStorageBuffers(renderer, res);
-
-  // Eagerly populate geometry bindings so we can detect buffer aliasing across
-  // attribute/auxiliary SSBOs (caused by feedback edges sharing the same
-  // physical buffer with conflicting access modes) BEFORE we emit any binding.
-  updateGeometryBindings(renderer, res);
-
-  // Pre-pass: collect physical buffers used with conflicting access modes
-  // (read on one binding, write on another) so we can promote them to
-  // bufferLoadStore. The Qt RHI / Vulkan validation layer rejects bindings
-  // that reference the same buffer with different access flags within a pass.
-  std::unordered_set<QRhiBuffer*> aliased_buffers;
-  {
-    std::unordered_map<QRhiBuffer*, int> access_flags; // 1=read, 2=write, 3=both
-    int gb_idx = 0;
-    for(const auto& inp : n.m_descriptor.inputs)
-    {
-      auto* g = ossia::get_if<isf::geometry_input>(&inp.data);
-      if(!g)
-        continue;
-      if(gb_idx >= (int)m_geometryBindings.size())
-        break;
-      const auto& gb = m_geometryBindings[gb_idx++];
-
-      for(int ai = 0; ai < (int)g->attributes.size() && ai < (int)gb.attribute_ssbos.size(); ai++)
-      {
-        const auto& req = g->attributes[ai];
-        const auto& ssbo = gb.attribute_ssbos[ai];
-        if(req.access == "none" || !ssbo.buffer)
-          continue;
-        int f = (req.access == "read_only") ? 1 : (req.access == "write_only") ? 2 : 3;
-        access_flags[ssbo.buffer] |= f;
-        if(req.access == "read_write" && ssbo.read_buffer && ssbo.read_buffer != ssbo.buffer)
-          access_flags[ssbo.read_buffer] |= 1;
-      }
-      for(const auto& aux : gb.auxiliary_ssbos)
-      {
-        if(!aux.buffer)
-          continue;
-        int f = (aux.access == "read_only") ? 1 : (aux.access == "write_only") ? 2 : 3;
-        access_flags[aux.buffer] |= f;
-        if(aux.read_buffer && aux.read_buffer != aux.buffer)
-          access_flags[aux.read_buffer] |= 1;
-      }
-    }
-    for(const auto& [buf, flags] : access_flags)
-      if(flags == 3)
-        aliased_buffers.insert(buf);
-  }
-
-  // Create shader resource bindings
-  QList<QRhiShaderResourceBinding> bindings;
-
-  // Binding 0: Renderer UBO (part of ProcessUBO in defaultUniforms)
-  bindings.append(QRhiShaderResourceBinding::uniformBuffer(
-      0, QRhiShaderResourceBinding::ComputeStage, &renderer.outputUBO()));
-
-  // Binding 1: Process UBO (time, passIndex, etc.)
-  // Per-pass: actual pointer will be set later
-  bindings.append(
-      QRhiShaderResourceBinding::uniformBuffer(
-          1, QRhiShaderResourceBinding::ComputeStage, nullptr));
-
-  // Binding 2: Material UBO (custom inputs)
-  int bindingIndex = 2;
-  if(m_materialUBO)
-  {
-    bindings.append(QRhiShaderResourceBinding::uniformBuffer(
-        bindingIndex++, QRhiShaderResourceBinding::ComputeStage, m_materialUBO));
-  }
-
-  int input_port_index = 0;
-  int input_image_index = 0;
-  int output_port_index = 0;
-  int output_image_index = 0;
-  int geo_binding_index = 0;
-  // Process all resources in the order they appear in the descriptor
-  // This ensures the binding indices match what the shader expects
-  for(const auto& input : n.m_descriptor.inputs)
-  {
-    // Storage buffers
-    if(ossia::get_if<isf::storage_input>(&input.data))
-    {
-      // Find the corresponding storage buffer
-      auto it = std::find_if(m_storageBuffers.begin(), m_storageBuffers.end(),
-          [&input](const StorageBuffer& sb) { 
-            return sb.name == QString::fromStdString(input.name); 
-          });
-      
-      if(it != m_storageBuffers.end() && it->buffer)
-      {
-        if(it->access == "read_only")
-        {
-          QRhiBuffer* buf = it->buffer; // Default dummy buffer
-          auto port = this->node.input[input_port_index];
-          if(!port->edges.empty())
-          {
-            auto input_buf = renderer.bufferForInput(*port->edges.front());
-            if(input_buf)
-            {
-              buf = input_buf.handle;
-            }
-          }
-          bindings.append(
-              QRhiShaderResourceBinding::bufferLoad(
-                  bindingIndex++, QRhiShaderResourceBinding::ComputeStage, buf));
-          input_port_index++;
-        }
-        else if(it->access == "write_only")
-        {
-          bindings.append(QRhiShaderResourceBinding::bufferStore(
-              bindingIndex++, QRhiShaderResourceBinding::ComputeStage, 
-              it->buffer));
-          output_port_index++;
-        }
-        else // read_write
-        {
-          bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
-              bindingIndex++, QRhiShaderResourceBinding::ComputeStage, 
-              it->buffer));
-          output_port_index++;
-        }
-      }
-      else if(it != m_storageBuffers.end())
-      {
-        if(!it->buffer) {
-          qDebug() << "CSF: cannot bind null buffer";
-        }
-        bindingIndex++;
-      }
-      else
-      {
-        qDebug() << "CSF: storage buffer not found";
-        bindingIndex++;
-      }
-    }
-    // Regular textures (sampled)
-    else if(ossia::get_if<isf::texture_input>(&input.data))
-    {
-      // Regular sampled textures from m_inputSamplers
-      SCORE_ASSERT(input_image_index < m_inputSamplers.size());
-      auto [sampler, tex, fb_] = m_inputSamplers[input_image_index];
-      SCORE_ASSERT(sampler);
-      SCORE_ASSERT(tex);
-      bindings.append(
-          QRhiShaderResourceBinding::sampledTexture(
-              bindingIndex++, QRhiShaderResourceBinding::ComputeStage, tex, sampler));
-      input_port_index++;
-      input_image_index++;
-    }
-    // CSF storage images
-    else if(auto image = ossia::get_if<isf::csf_image_input>(&input.data))
-    {
-      // Find the corresponding storage image
-      auto it = std::find_if(m_storageImages.begin(), m_storageImages.end(),
-          [&input](const StorageImage& si) { 
-            return si.name == QString::fromStdString(input.name); 
-          });
-      
-      if(it != m_storageImages.end())
-      {
-        if(it->access == "read_only")
-        {
-          SCORE_ASSERT(input_image_index < m_inputSamplers.size());
-          auto [sampler, tex, fb_] = m_inputSamplers[input_image_index];
-          SCORE_ASSERT(sampler);
-          SCORE_ASSERT(tex);
-
-          bindings.append(
-              QRhiShaderResourceBinding::imageLoad(
-                  bindingIndex++, QRhiShaderResourceBinding::ComputeStage, tex, 0));
-
-          input_port_index++;
-          input_image_index++;
-        }
-        else
-        {
-          QRhiTexture::Format format
-              = getTextureFormat(QString::fromStdString(image->format));
-          QSize imageSize = renderer.state.renderSize;
-          if(auto sz = getImageSize(*image))
-            imageSize = *sz;
-          if(imageSize.width() < 1 || imageSize.height() < 1)
-            imageSize = renderer.state.renderSize;
-
-          auto make_tex = [&](const char* suffix) -> QRhiTexture* {
-            QRhiTexture* t{};
-            if(image->isCube())
-            {
-              const int edge
-                  = std::max(imageSize.width(), imageSize.height());
-              QRhiTexture::Flags flags
-                  = QRhiTexture::CubeMap | QRhiTexture::UsedWithLoadStore;
-              t = rhi.newTexture(format, QSize(edge, edge), 1, flags);
-            }
-            else if(image->is3D())
-            {
-              int depth = !image->depth_expression.empty()
-                  ? resolveDispatchExpression(image->depth_expression)
-                  : imageSize.height();
-              QRhiTexture::Flags flags
-                  = QRhiTexture::ThreeDimensional | QRhiTexture::UsedWithLoadStore;
-              t = rhi.newTexture(
-                  format, imageSize.width(), imageSize.height(), depth, 1, flags);
-            }
-            else if(image->is_array)
-            {
-              int layers = !image->layers_expression.empty()
-                  ? resolveDispatchExpression(image->layers_expression)
-                  : 1;
-              if(layers < 1) layers = 1;
-              QRhiTexture::Flags flags = QRhiTexture::UsedWithLoadStore;
-              t = rhi.newTextureArray(format, layers, imageSize, 1, flags);
-            }
-            else
-            {
-              QRhiTexture::Flags flags
-                  = QRhiTexture::RenderTarget | QRhiTexture::UsedWithLoadStore
-                    | QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips;
-              t = rhi.newTexture(format, imageSize, 1, flags);
-            }
-            t->setName(
-                ("RenderedCSFNode::storageImage::" + input.name + suffix).c_str());
-            if(!t->create())
-            {
-              delete t;
-              return nullptr;
-            }
-            return t;
-          };
-
-          if(!it->texture)
-          {
-            it->texture = make_tex("");
-            if(it->texture && !m_outputTexture)
-            {
-              m_outputTexture = it->texture;
-              m_outputFormat = format;
-            }
-          }
-          if(it->persistent && !it->read_texture)
-            it->read_texture = make_tex("_prev");
-
-          it->binding = bindingIndex;
-          if(it->access == "write_only" && it->texture)
-          {
-            bindings.append(
-                QRhiShaderResourceBinding::imageStore(
-                    bindingIndex++, QRhiShaderResourceBinding::ComputeStage, it->texture,
-                    0));
-          }
-          else if(it->access == "read_write" && it->texture)
-          {
-            bindings.append(
-                QRhiShaderResourceBinding::imageLoadStore(
-                    bindingIndex++, QRhiShaderResourceBinding::ComputeStage, it->texture,
-                    0));
-          }
-          else
-          {
-            bindingIndex++; // keep indices synchronized with shader layout
-          }
-
-          // Persistent pair: bind `<name>_prev` as readonly image at the
-          // adjacent slot. On the first frame we haven't produced a prior
-          // result yet — alias back to `texture` so the shader reads a valid
-          // (zero-initialized) image instead of a dangling binding.
-          if(it->persistent)
-          {
-            QRhiTexture* prev_tex
-                = it->pending_initial_copy ? it->texture : it->read_texture;
-            if(!prev_tex)
-              prev_tex = it->texture;
-            it->prev_binding = bindingIndex;
-            if(prev_tex)
-            {
-              bindings.append(
-                  QRhiShaderResourceBinding::imageLoad(
-                      bindingIndex++, QRhiShaderResourceBinding::ComputeStage,
-                      prev_tex, 0));
-            }
-            else
-            {
-              bindingIndex++;
-            }
-          }
-          output_port_index++;
-          output_image_index++;
-        }
-      }
-    }
-    // Geometry inputs: bind per-attribute SSBOs
-    else if(auto* geo_input = ossia::get_if<isf::geometry_input>(&input.data))
-    {
-      if(geo_binding_index < (int)m_geometryBindings.size())
-      {
-        auto& binding = m_geometryBindings[geo_binding_index];
-
-        // Helper: emit a binding for buf with the given access mode, promoting
-        // to bufferLoadStore when the buffer is aliased across multiple bindings
-        // with conflicting accesses (avoids Vulkan validation warnings).
-        auto appendBufBinding = [&](QRhiBuffer* buf, const std::string& access)
-        {
-          const bool aliased = aliased_buffers.count(buf) > 0;
-          if(access == "read_write" || aliased)
-          {
-            bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
-                bindingIndex++, QRhiShaderResourceBinding::ComputeStage, buf));
-          }
-          else if(access == "read_only")
-          {
-            bindings.append(QRhiShaderResourceBinding::bufferLoad(
-                bindingIndex++, QRhiShaderResourceBinding::ComputeStage, buf));
-          }
-          else // write_only
-          {
-            bindings.append(QRhiShaderResourceBinding::bufferStore(
-                bindingIndex++, QRhiShaderResourceBinding::ComputeStage, buf));
-          }
-        };
-
-        for(int attr_idx = 0; attr_idx < (int)geo_input->attributes.size(); attr_idx++)
-        {
-          if(attr_idx >= (int)binding.attribute_ssbos.size())
-            break;
-
-          const auto& req = geo_input->attributes[attr_idx];
-          auto& ssbo = binding.attribute_ssbos[attr_idx];
-
-          // "none" access: forwarded via COPY_FROM, no binding needed
-          if(req.access == "none")
-            continue;
-
-          if(!ssbo.buffer)
-          {
-            // Create a minimal fallback buffer so we don't crash
-            const int elem_size = glslTypeSizeBytes(req.type);
-            ssbo.buffer = rhi.newBuffer(
-                QRhiBuffer::Static,
-                QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer, elem_size);
-            ssbo.buffer->setName(QByteArray("CSF_GeomInit_") + req.name.c_str());
-            ssbo.buffer->create();
-            ssbo.size = elem_size;
-            ssbo.owned = true;
-          }
-
-          if(req.access == "read_only" || req.access == "write_only")
-          {
-            appendBufBinding(ssbo.buffer, req.access);
-          }
-          else // read_write -> 2 bindings: _in (readonly) + _out (read-write)
-          {
-            // On the first feedback frame (pending_initial_copy), use the same
-            // buffer for both _in and _out so the shader can init + simulate
-            // in the same frame.  After the frame we copy buffer→read_buffer.
-            QRhiBuffer* read_buf = (ssbo.read_buffer && !binding.pending_initial_copy)
-                ? ssbo.read_buffer : ssbo.buffer;
-            if(read_buf == ssbo.buffer)
-            {
-              // Same physical buffer for both _in and _out (non-feedback in-place).
-              bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
-                  bindingIndex++, QRhiShaderResourceBinding::ComputeStage, ssbo.buffer));
-              bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
-                  bindingIndex++, QRhiShaderResourceBinding::ComputeStage, ssbo.buffer));
-            }
-            else
-            {
-              // Distinct buffers (feedback receiver): _in readonly, _out read-write
-              appendBufBinding(read_buf, "read_only");
-              bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
-                  bindingIndex++, QRhiShaderResourceBinding::ComputeStage, ssbo.buffer));
-            }
-          }
-        }
-
-        // Auxiliary SSBOs for this geometry input
-        for(auto& aux : binding.auxiliary_ssbos)
-        {
-          if(!aux.buffer)
-          {
-            // Create a minimal fallback buffer so we don't skip a binding
-            // index. Usage flag must match the aux kind — binding a
-            // StorageBuffer-only buffer as a UBO (or vice versa) is
-            // rejected by the Vulkan validation layer.
-            const auto fallback_usage = aux.is_uniform
-                ? QRhiBuffer::UniformBuffer
-                : QRhiBuffer::StorageBuffer;
-            const quint32 fallback_size = aux.is_uniform ? 256u : 16u;
-            aux.buffer = rhi.newBuffer(
-                QRhiBuffer::Static, fallback_usage, fallback_size);
-            aux.buffer->setName(QByteArray("CSF_AuxInit_") + aux.name.c_str());
-            aux.buffer->create();
-            aux.size = fallback_size;
-            aux.owned = true;
-          }
-
-          if(aux.is_uniform)
-          {
-            // std140 UBO kind: bind as uniform, not load/store. Access
-            // field is ignored (UBOs are read-only in GLSL).
-            bindings.append(
-                QRhiShaderResourceBinding::uniformBuffer(
-                    bindingIndex++, QRhiShaderResourceBinding::ComputeStage,
-                    aux.buffer));
-          }
-          else
-          {
-            appendBufBinding(aux.buffer, aux.access);
-          }
-        }
-
-        // Auxiliary textures for this geometry input — placed right
-        // after aux SSBOs, matching the GLSL emission order in
-        // parse_csf. Sampled entries → sampledTexture binding; storage
-        // entries → imageLoad / imageStore / imageLoadStore per access.
-        for(auto& at : binding.auxiliary_textures)
-        {
-          if(!at.texture)
-            at.texture = at.placeholder;
-
-          QRhiShaderResourceBinding b;
-          if(at.is_storage)
-          {
-            if(at.access == "read_only")
-              b = QRhiShaderResourceBinding::imageLoad(
-                  bindingIndex, QRhiShaderResourceBinding::ComputeStage,
-                  at.texture, 0);
-            else if(at.access == "write_only")
-              b = QRhiShaderResourceBinding::imageStore(
-                  bindingIndex, QRhiShaderResourceBinding::ComputeStage,
-                  at.texture, 0);
-            else
-              b = QRhiShaderResourceBinding::imageLoadStore(
-                  bindingIndex, QRhiShaderResourceBinding::ComputeStage,
-                  at.texture, 0);
-          }
-          else
-          {
-            b = QRhiShaderResourceBinding::sampledTexture(
-                bindingIndex, QRhiShaderResourceBinding::ComputeStage,
-                at.texture, at.sampler);
-          }
-          bindings.append(b);
-          at.binding = bindingIndex;
-          bindingIndex++;
-        }
-
-        if(binding.uses_indirect_draw && binding.indirectBuffer)
-        {
-          bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
-              bindingIndex++, QRhiShaderResourceBinding::ComputeStage,
-              binding.indirectBuffer));
-        }
-
-        geo_binding_index++;
-      }
-      // Inlet port for upstream geometry. Two cases create one:
-      //   - Empty ATTRIBUTES => pure pass-through: ISFNode unconditionally
-      //     pushes an input port (the visitor at ISFNode.cpp's
-      //     `if(in.attributes.empty())` branch).
-      //   - Non-empty ATTRIBUTES with at least one read_only / read_write
-      //     attribute => an upstream-feeding inlet.
-      // Either way the geometry input owns ONE entry in node.input,
-      // which subsequent storage_input / texture_input / etc. address by
-      // position. Without this increment the very next read_only
-      // storage_input picks up node.input[0] (the geometry port) by
-      // mistake — its edges point to upstream geometry, bufferForInput
-      // returns empty, and the storage_input falls back to its own
-      // zero-initialised dummy buffer. Symptom: storage data from the
-      // upstream cable never reaches the compute shader.
-      bool geo_creates_inlet = geo_input->attributes.empty();
-      if(!geo_creates_inlet)
-      {
-        for(const auto& attr : geo_input->attributes)
-        {
-          if(attr.access == "read_only" || attr.access == "read_write")
-          {
-            geo_creates_inlet = true;
-            break;
-          }
-        }
-      }
-      if(geo_creates_inlet)
-        input_port_index++;
-      // Skip $USER ports for this geometry input
-      if(geo_input->vertex_count.find("$USER") != std::string::npos) input_port_index++;
-      if(geo_input->instance_count.find("$USER") != std::string::npos) input_port_index++;
-      for(const auto& aux : geo_input->auxiliary)
-        if(aux.size.find("$USER") != std::string::npos) input_port_index++;
-      if(geo_input->indirect && geo_input->indirect->count.find("$USER") != std::string::npos) input_port_index++;
-    }
-    else
-    {
-      input_port_index++;
-    }
-  }
-
-  // Set the SRB on the pipeline and create it
-  {
-    QRhiShaderResourceBindings* passSRB{};
-    // Create one ComputePass entry for each CSF pass, each with their own pipeline, ProcessUBO and SRB
-    for(std::size_t passIdx = 0; passIdx < n.m_descriptor.csf_passes.size(); passIdx++)
-    {
-      // Create a separate ProcessUBO for this pass
-      QRhiBuffer* passProcessUBO = rhi.newBuffer(
-          QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(ProcessUBO));
-      passProcessUBO->setName(QStringLiteral("RenderedCSFNode::pass%1::processUBO")
-                                  .arg(passIdx)
-                                  .toLocal8Bit());
-      if(!passProcessUBO->create())
-      {
-        qWarning() << "Failed to create ProcessUBO for CSF pass" << passIdx;
-        delete passProcessUBO;
-        continue;
-      }
-
-      // Create separate SRB for this pass with the specific ProcessUBO
-      passSRB = rhi.newShaderResourceBindings();
-      passSRB->setName(QString("passSRB.%1").arg(passIdx).toUtf8());
-
-      // Replace the ProcessUBO binding (binding 1) with this pass's ProcessUBO
-      // We know binding 1 is the ProcessUBO because we created it that way
-      {
-        bindings[1] = QRhiShaderResourceBinding::uniformBuffer(
-            1, QRhiShaderResourceBinding::ComputeStage, passProcessUBO);
-      }
-
-      passSRB->setBindings(bindings.cbegin(), bindings.cend());
-      if(!passSRB->create())
-      {
-        qWarning() << "Failed to create SRB for CSF pass" << passIdx;
-        delete passSRB;
-        delete passProcessUBO;
-        passSRB = nullptr;
-        continue;
-      }
-
-      auto* passPipeline = (passIdx < m_perPassPipelines.size())
-                              ? m_perPassPipelines[passIdx]
-                              : m_computePipeline;
-
-      // Each pipeline needs its SRB set and finalized
-      passPipeline->setShaderResourceBindings(passSRB);
-      if(!passPipeline->create())
-      {
-        qWarning() << "Failed to create compute pipeline for pass" << passIdx;
-        delete passSRB;
-        delete passProcessUBO;
-        continue;
-      }
-
-      m_computePasses.emplace_back(
-          &edge, ComputePass{passPipeline, passSRB, passProcessUBO});
-    }
-
-    if(rt.renderTarget)
-    {
-      // Create the graphics pass for rendering this output to the render target
-      createGraphicsPass(rt, renderer, edge, res);
-    }
-  }
-}
 
 void RenderedCSFNode::createGraphicsPass(
     const TextureRenderTarget& rt, RenderList& renderer, Edge& edge, QRhiResourceUpdateBatch& res)
@@ -3676,26 +2893,11 @@ void RenderedCSFNode::createComputePipeline(RenderList& renderer)
   }
 }
 
-void RenderedCSFNode::initComputeSRBAndPasses(
-    RenderList& renderer, QRhiResourceUpdateBatch& res)
+void RenderedCSFNode::buildComputeSrbBindings(
+    RenderList& renderer, QRhiResourceUpdateBatch& res,
+    QList<QRhiShaderResourceBinding>& bindings)
 {
   QRhi& rhi = *renderer.state.rhi;
-
-  if(!m_computePipeline)
-  {
-    createComputePipeline(renderer);
-  }
-
-  if(!m_computePipeline)
-    return;
-
-  // Ensure storage buffers are created before setting up bindings
-  updateStorageBuffers(renderer, res);
-
-  // Eagerly populate geometry bindings so we can detect buffer aliasing across
-  // attribute/auxiliary SSBOs (caused by feedback edges sharing the same
-  // physical buffer with conflicting access modes) BEFORE we emit any binding.
-  updateGeometryBindings(renderer, res);
 
   // Pre-pass: collect physical buffers used with conflicting access modes
   // (read on one binding, write on another) so we can promote them to
@@ -3740,15 +2942,12 @@ void RenderedCSFNode::initComputeSRBAndPasses(
         aliased_buffers.insert(buf);
   }
 
-  // Create shader resource bindings
-  QList<QRhiShaderResourceBinding> bindings;
-
   // Binding 0: Renderer UBO (part of ProcessUBO in defaultUniforms)
   bindings.append(QRhiShaderResourceBinding::uniformBuffer(
       0, QRhiShaderResourceBinding::ComputeStage, &renderer.outputUBO()));
 
   // Binding 1: Process UBO (time, passIndex, etc.)
-  // Per-pass: actual pointer will be set later
+  // Per-pass: actual pointer is patched by each caller after this returns.
   bindings.append(
       QRhiShaderResourceBinding::uniformBuffer(
           1, QRhiShaderResourceBinding::ComputeStage, nullptr));
@@ -3813,16 +3012,18 @@ void RenderedCSFNode::initComputeSRBAndPasses(
           output_port_index++;
         }
       }
-      else if(it != m_storageBuffers.end())
-      {
-        if(!it->buffer) {
-          qDebug() << "CSF: cannot bind null buffer";
-        }
-        bindingIndex++;
-      }
       else
       {
-        qDebug() << "CSF: storage buffer not found";
+        // Missing storage buffer: warn (used to be silent on the recreate
+        // path / qDebug on the init path — unify to qWarning) and bump
+        // bindingIndex so the rest of the layout stays in sync with the
+        // shader's expected slots.
+        if(it == m_storageBuffers.end())
+          qWarning() << "CSF: storage buffer not found for input"
+                     << QString::fromStdString(input.name);
+        else
+          qWarning() << "CSF: cannot bind null buffer for input"
+                     << QString::fromStdString(input.name);
         bindingIndex++;
       }
     }
@@ -3830,13 +3031,28 @@ void RenderedCSFNode::initComputeSRBAndPasses(
     else if(ossia::get_if<isf::texture_input>(&input.data))
     {
       // Regular sampled textures from m_inputSamplers
-      SCORE_ASSERT(input_image_index < m_inputSamplers.size());
-      auto [sampler, tex, fb_] = m_inputSamplers[input_image_index];
-      SCORE_ASSERT(sampler);
-      SCORE_ASSERT(tex);
-      bindings.append(
-          QRhiShaderResourceBinding::sampledTexture(
-              bindingIndex++, QRhiShaderResourceBinding::ComputeStage, tex, sampler));
+      if(input_image_index < m_inputSamplers.size())
+      {
+        auto [sampler, tex, fb_] = m_inputSamplers[input_image_index];
+        if(sampler && tex)
+        {
+          bindings.append(
+              QRhiShaderResourceBinding::sampledTexture(
+                  bindingIndex, QRhiShaderResourceBinding::ComputeStage, tex, sampler));
+        }
+        else
+        {
+          qWarning() << "CSF: sampler/texture missing for texture_input"
+                     << QString::fromStdString(input.name);
+        }
+      }
+      else
+      {
+        qWarning() << "CSF: input_samplers under-allocated for texture_input"
+                   << QString::fromStdString(input.name);
+      }
+      // Always bump bindingIndex to keep the shader-layout slot count stable.
+      bindingIndex++;
       input_port_index++;
       input_image_index++;
     }
@@ -3853,15 +3069,27 @@ void RenderedCSFNode::initComputeSRBAndPasses(
       {
         if(it->access == "read_only")
         {
-          SCORE_ASSERT(input_image_index < m_inputSamplers.size());
-          auto [sampler, tex, fb_] = m_inputSamplers[input_image_index];
-          SCORE_ASSERT(sampler);
-          SCORE_ASSERT(tex);
-
-          bindings.append(
-              QRhiShaderResourceBinding::imageLoad(
-                  bindingIndex++, QRhiShaderResourceBinding::ComputeStage, tex, 0));
-
+          if(input_image_index < m_inputSamplers.size())
+          {
+            auto [sampler, tex, fb_] = m_inputSamplers[input_image_index];
+            if(tex)
+            {
+              bindings.append(
+                  QRhiShaderResourceBinding::imageLoad(
+                      bindingIndex, QRhiShaderResourceBinding::ComputeStage, tex, 0));
+            }
+            else
+            {
+              qWarning() << "CSF: missing read_only image texture for"
+                         << QString::fromStdString(input.name);
+            }
+          }
+          else
+          {
+            qWarning() << "CSF: input_samplers under-allocated for csf_image_input"
+                       << QString::fromStdString(input.name);
+          }
+          bindingIndex++;
           input_port_index++;
           input_image_index++;
         }
@@ -3875,6 +3103,10 @@ void RenderedCSFNode::initComputeSRBAndPasses(
           if(imageSize.width() < 1 || imageSize.height() < 1)
             imageSize = renderer.state.renderSize;
 
+          // Lazy-allocate the storage-image texture (and its persistent
+          // _prev twin) on first emission. After init this branch is a
+          // no-op (it->texture is already set), so the recreate path
+          // re-emits against the existing handle.
           auto make_tex = [&](const char* suffix) -> QRhiTexture* {
             QRhiTexture* t{};
             if(image->isCube())
@@ -3950,6 +3182,9 @@ void RenderedCSFNode::initComputeSRBAndPasses(
           }
           else
           {
+            if(!it->texture)
+              qWarning() << "CSF: missing storage-image texture for"
+                         << QString::fromStdString(input.name);
             bindingIndex++; // keep indices synchronized with shader layout
           }
 
@@ -3971,12 +3206,22 @@ void RenderedCSFNode::initComputeSRBAndPasses(
             }
             else
             {
+              qWarning() << "CSF: missing persistent _prev texture for"
+                         << QString::fromStdString(input.name);
               bindingIndex++;
             }
           }
           output_port_index++;
           output_image_index++;
         }
+      }
+      else
+      {
+        qWarning() << "CSF: storage image not found for"
+                   << QString::fromStdString(input.name);
+        bindingIndex++;
+        if(image->persistent)
+          bindingIndex++;
       }
     }
     // Geometry inputs: bind per-attribute SSBOs
@@ -4023,14 +3268,16 @@ void RenderedCSFNode::initComputeSRBAndPasses(
 
           if(!ssbo.buffer)
           {
-            // Create a minimal fallback buffer so we don't crash
-            const int elem_size = glslTypeSizeBytes(req.type);
+            // Create a minimal fallback buffer so we don't skip a binding
+            // index. Same fallback shape for both init and re-emit paths
+            // (the buffer name encodes the call site for debug clarity).
+            const int64_t elem_stride = std430ArrayStride(req.type, n.m_descriptor);
             ssbo.buffer = rhi.newBuffer(
                 QRhiBuffer::Static,
-                QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer, elem_size);
-            ssbo.buffer->setName(QByteArray("CSF_GeomInit_") + req.name.c_str());
+                QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer, elem_stride);
+            ssbo.buffer->setName(QByteArray("CSF_GeomFB_") + req.name.c_str());
             ssbo.buffer->create();
-            ssbo.size = elem_size;
+            ssbo.size = elem_stride;
             ssbo.owned = true;
           }
 
@@ -4078,7 +3325,7 @@ void RenderedCSFNode::initComputeSRBAndPasses(
             const quint32 fallback_size = aux.is_uniform ? 256u : 16u;
             aux.buffer = rhi.newBuffer(
                 QRhiBuffer::Static, fallback_usage, fallback_size);
-            aux.buffer->setName(QByteArray("CSF_AuxInit_") + aux.name.c_str());
+            aux.buffer->setName(QByteArray("CSF_AuxFB_") + aux.name.c_str());
             aux.buffer->create();
             aux.size = fallback_size;
             aux.owned = true;
@@ -4184,6 +3431,33 @@ void RenderedCSFNode::initComputeSRBAndPasses(
       input_port_index++;
     }
   }
+}
+
+void RenderedCSFNode::initComputeSRBAndPasses(
+    RenderList& renderer, QRhiResourceUpdateBatch& res)
+{
+  QRhi& rhi = *renderer.state.rhi;
+
+  if(!m_computePipeline)
+  {
+    createComputePipeline(renderer);
+  }
+
+  if(!m_computePipeline)
+    return;
+
+  // Ensure storage buffers are created before setting up bindings
+  updateStorageBuffers(renderer, res);
+
+  // Eagerly populate geometry bindings so we can detect buffer aliasing across
+  // attribute/auxiliary SSBOs (caused by feedback edges sharing the same
+  // physical buffer with conflicting access modes) BEFORE we emit any binding.
+  updateGeometryBindings(renderer, res);
+
+  // Single source of truth for the bindings list (also used by
+  // recreateShaderResourceBindings — see buildComputeSrbBindings).
+  QList<QRhiShaderResourceBinding> bindings;
+  buildComputeSrbBindings(renderer, res, bindings);
 
   // Set the SRB on the pipeline and create it
   {
@@ -4368,6 +3642,7 @@ void RenderedCSFNode::initState(RenderList& renderer, QRhiResourceUpdateBatch& r
       }
 
       GeometryBinding binding;
+      binding.input_name = input.name;
       binding.input_port_index = needs_input ? input_port_index : -1;
       binding.has_output = geo->attributes.empty(); // Empty attributes = pure pass-through with output
       binding.has_vertex_count_spec = !geo->vertex_count.empty();
@@ -4413,8 +3688,8 @@ void RenderedCSFNode::initState(RenderList& renderer, QRhiResourceUpdateBatch& r
           const int count = ssbo.per_instance ? binding.instance_count : binding.vertex_count;
           if(count <= 0)
             continue;
-          const int elem_size = glslTypeSizeBytes(geo->attributes[attr_idx].type);
-          const int64_t needed = (int64_t)elem_size * count;
+          const int64_t elem_stride = std430ArrayStride(geo->attributes[attr_idx].type, n.m_descriptor);
+          const int64_t needed = elem_stride * count;
           auto* buf = rhi.newBuffer(
               QRhiBuffer::Static,
               QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer, needed);
@@ -4784,11 +4059,6 @@ void RenderedCSFNode::releaseState(RenderList& r)
   }
   m_storageImages.clear();
 
-  // Scene-broadcast cache — BroadcastPrimitive entries hold no GPU
-  // ownership yet (dispatch-wiring step will extend this); just clear the
-  // match list and invalidation keys so the next init() rebuilds from zero.
-  m_broadcastBindings.clear();
-  m_broadcastCacheKeys.clear();
   m_outStorageImages.clear();
   m_outStorageBuffers.clear();
   m_outputTexture = nullptr;
@@ -4934,433 +4204,62 @@ void RenderedCSFNode::update(
   // TODO: Check if texture size inputs have changed and recreate texture if needed
 }
 
+// Hash the bindings list to detect frame-to-frame drift. Two binding
+// lists hash to the same value iff every entry's descriptor identity
+// matches — recreateShaderResourceBindings then skips the
+// destroy+setBindings+create dance when the per-pass binding list
+// hasn't actually changed since the previous frame (steady state for
+// a static scene; every frame would otherwise thrash the SRB pool slot).
+// Use Qt's own qHash(QRhiShaderResourceBinding) so the equivalence
+// matches QRhi's internal canonical representation — no need to pack
+// the private Data union by hand and risk drift on a Qt minor update.
+// Per-binding hashes are seeded by the binding's index so two
+// otherwise-equal bindings at different slots hash differently;
+// combined via ossia::hash_bytes over the per-binding hash vector.
+namespace
+{
+uint64_t hashBindings(const QList<QRhiShaderResourceBinding>& bindings) noexcept
+{
+  std::vector<size_t> per;
+  per.reserve(bindings.size());
+  size_t i = 0;
+  for(const auto& b : bindings)
+    per.push_back(qHash(b, /*seed=*/i++));
+  return ossia::hash_bytes(per.data(), per.size() * sizeof(size_t));
+}
+} // namespace
+
 void RenderedCSFNode::recreateShaderResourceBindings(RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
   QRhi& rhi = *renderer.state.rhi;
 
-  // Pre-pass: collect physical buffers used with conflicting access modes
-  // (read on one binding, write on another) so we can promote them to
-  // bufferLoadStore. The Qt RHI / Vulkan validation layer rejects bindings
-  // that reference the same buffer with different access flags within a pass.
-  // (geometry bindings are assumed up-to-date here — recreateShaderResourceBindings
-  // is called after the geometry update path)
-  std::unordered_set<QRhiBuffer*> aliased_buffers;
-  {
-    std::unordered_map<QRhiBuffer*, int> access_flags; // 1=read, 2=write, 3=both
-    int gb_idx = 0;
-    for(const auto& inp : n.m_descriptor.inputs)
-    {
-      auto* g = ossia::get_if<isf::geometry_input>(&inp.data);
-      if(!g)
-        continue;
-      if(gb_idx >= (int)m_geometryBindings.size())
-        break;
-      const auto& gb = m_geometryBindings[gb_idx++];
-
-      for(int ai = 0; ai < (int)g->attributes.size() && ai < (int)gb.attribute_ssbos.size(); ai++)
-      {
-        const auto& req = g->attributes[ai];
-        const auto& ssbo = gb.attribute_ssbos[ai];
-        if(req.access == "none" || !ssbo.buffer)
-          continue;
-        int f = (req.access == "read_only") ? 1 : (req.access == "write_only") ? 2 : 3;
-        access_flags[ssbo.buffer] |= f;
-        if(req.access == "read_write" && ssbo.read_buffer && ssbo.read_buffer != ssbo.buffer)
-          access_flags[ssbo.read_buffer] |= 1;
-      }
-      for(const auto& aux : gb.auxiliary_ssbos)
-      {
-        if(!aux.buffer)
-          continue;
-        int f = (aux.access == "read_only") ? 1 : (aux.access == "write_only") ? 2 : 3;
-        access_flags[aux.buffer] |= f;
-        if(aux.read_buffer && aux.read_buffer != aux.buffer)
-          access_flags[aux.read_buffer] |= 1;
-      }
-    }
-    for(const auto& [buf, flags] : access_flags)
-      if(flags == 3)
-        aliased_buffers.insert(buf);
-  }
-
-  // Build the bindings list (same as in initComputePass)
+  // Single source of truth for the bindings list (also used by
+  // initComputeSRBAndPasses — see buildComputeSrbBindings). Geometry bindings
+  // are assumed up-to-date here: the caller (update()) runs
+  // updateGeometryBindings before calling this function.
   QList<QRhiShaderResourceBinding> bindings;
+  buildComputeSrbBindings(renderer, res, bindings);
 
-  // Binding 0: Renderer UBO
-  bindings.append(QRhiShaderResourceBinding::uniformBuffer(
-      0, QRhiShaderResourceBinding::ComputeStage, &renderer.outputUBO()));
-
-  // Binding 1: Process UBO (will be set per-pass)
-  bindings.append(
-      QRhiShaderResourceBinding::uniformBuffer(
-          1, QRhiShaderResourceBinding::ComputeStage, nullptr));
-
-  // Binding 2: Material UBO (custom inputs)
-  int bindingIndex = 2;
-  if(m_materialUBO)
-  {
-    bindings.append(QRhiShaderResourceBinding::uniformBuffer(
-        bindingIndex++, QRhiShaderResourceBinding::ComputeStage, m_materialUBO));
-  }
-
-  int input_port_index = 0;
-  int input_image_index = 0;
-  int output_port_index = 0;
-  int output_image_index = 0;
-  int geo_binding_index = 0;
-
-  // Process all resources in the order they appear in the descriptor
-  for(const auto& input : n.m_descriptor.inputs)
-  {
-    // Storage buffers
-    if(ossia::get_if<isf::storage_input>(&input.data))
-    {
-      // Find the corresponding storage buffer
-      auto it = std::find_if(m_storageBuffers.begin(), m_storageBuffers.end(),
-          [&input](const StorageBuffer& sb) {
-            return sb.name == QString::fromStdString(input.name);
-          });
-
-      if(it != m_storageBuffers.end() && it->buffer)
-      {
-        if(it->access == "read_only")
-        {
-          QRhiBuffer* buf = it->buffer; // Default dummy buffer
-          auto port = this->node.input[input_port_index];
-          if(!port->edges.empty())
-          {
-            auto input_buf = renderer.bufferForInput(*port->edges.front());
-            if(input_buf)
-            {
-              buf = input_buf.handle;
-            }
-          }
-          bindings.append(
-              QRhiShaderResourceBinding::bufferLoad(
-                  bindingIndex++, QRhiShaderResourceBinding::ComputeStage, buf));
-          input_port_index++;
-        }
-        else if(it->access == "write_only")
-        {
-          bindings.append(QRhiShaderResourceBinding::bufferStore(
-              bindingIndex++, QRhiShaderResourceBinding::ComputeStage,
-              it->buffer));
-          output_port_index++;
-        }
-        else // read_write
-        {
-          bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
-              bindingIndex++, QRhiShaderResourceBinding::ComputeStage,
-              it->buffer));
-          output_port_index++;
-        }
-      }
-      else
-      {
-        bindingIndex++; // keep indices synchronized with shader layout
-      }
-    }
-    // Regular textures (sampled)
-    else if(ossia::get_if<isf::texture_input>(&input.data))
-    {
-      // Regular sampled textures from m_inputSamplers
-      if(input_image_index < m_inputSamplers.size())
-      {
-        auto [sampler, tex, fb_] = m_inputSamplers[input_image_index];
-        if(sampler && tex)
-        {
-          bindings.append(
-              QRhiShaderResourceBinding::sampledTexture(
-                  bindingIndex++, QRhiShaderResourceBinding::ComputeStage, tex, sampler));
-        }
-      }
-      input_port_index++;
-      input_image_index++;
-    }
-    // CSF storage images
-    else if(auto image = ossia::get_if<isf::csf_image_input>(&input.data))
-    {
-      // Find the corresponding storage image
-      auto it = std::find_if(m_storageImages.begin(), m_storageImages.end(),
-          [&input](const StorageImage& si) { 
-            return si.name == QString::fromStdString(input.name); 
-          });
-      
-      if(it != m_storageImages.end())
-      {
-        if(it->access == "read_only")
-        {
-          if(input_image_index < m_inputSamplers.size())
-          {
-            auto [sampler, tex, fb_] = m_inputSamplers[input_image_index];
-            if(sampler && tex)
-            {
-              bindings.append(
-                  QRhiShaderResourceBinding::imageLoad(
-                      bindingIndex++, QRhiShaderResourceBinding::ComputeStage, tex, 0));
-            }
-          }
-          input_port_index++;
-          input_image_index++;
-        }
-        else if(it->texture)
-        {
-          it->binding = bindingIndex;
-          if(it->access == "write_only")
-          {
-            bindings.append(
-                QRhiShaderResourceBinding::imageStore(
-                    bindingIndex++, QRhiShaderResourceBinding::ComputeStage, it->texture,
-                    0));
-          }
-          else if(it->access == "read_write")
-          {
-            bindings.append(
-                QRhiShaderResourceBinding::imageLoadStore(
-                    bindingIndex++, QRhiShaderResourceBinding::ComputeStage, it->texture,
-                    0));
-          }
-          // Persistent pair: keep the `_prev` binding in sync with what
-          // initComputeSRBAndPasses emitted at pipeline-build time — otherwise
-          // the per-frame SRB rebuild drops the binding and Vulkan rejects
-          // descriptor set / pipeline layout compatibility.
-          if(it->persistent)
-          {
-            QRhiTexture* prev_tex
-                = it->pending_initial_copy ? it->texture : it->read_texture;
-            if(!prev_tex)
-              prev_tex = it->texture;
-            it->prev_binding = bindingIndex;
-            if(prev_tex)
-            {
-              bindings.append(
-                  QRhiShaderResourceBinding::imageLoad(
-                      bindingIndex++, QRhiShaderResourceBinding::ComputeStage,
-                      prev_tex, 0));
-            }
-            else
-            {
-              bindingIndex++;
-            }
-          }
-          output_port_index++;
-          output_image_index++;
-        }
-        else
-        {
-          bindingIndex++; // keep indices synchronized with shader layout
-          if(image->persistent)
-            bindingIndex++; // and the _prev slot
-          output_port_index++;
-          output_image_index++;
-        }
-      }
-    }
-    // Geometry inputs: rebind per-attribute SSBOs
-    else if(auto* geo_input = ossia::get_if<isf::geometry_input>(&input.data))
-    {
-      if(geo_binding_index < (int)m_geometryBindings.size())
-      {
-        auto& binding = m_geometryBindings[geo_binding_index];
-
-        // Helper: emit a binding for buf with the given access mode, promoting
-        // to bufferLoadStore when the buffer is aliased across multiple bindings
-        // with conflicting accesses (avoids Vulkan validation warnings).
-        auto appendBufBinding = [&](QRhiBuffer* buf, const std::string& access)
-        {
-          const bool aliased = aliased_buffers.count(buf) > 0;
-          if(access == "read_write" || aliased)
-          {
-            bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
-                bindingIndex++, QRhiShaderResourceBinding::ComputeStage, buf));
-          }
-          else if(access == "read_only")
-          {
-            bindings.append(QRhiShaderResourceBinding::bufferLoad(
-                bindingIndex++, QRhiShaderResourceBinding::ComputeStage, buf));
-          }
-          else // write_only
-          {
-            bindings.append(QRhiShaderResourceBinding::bufferStore(
-                bindingIndex++, QRhiShaderResourceBinding::ComputeStage, buf));
-          }
-        };
-
-        for(int attr_idx = 0; attr_idx < (int)geo_input->attributes.size(); attr_idx++)
-        {
-          if(attr_idx >= (int)binding.attribute_ssbos.size())
-            break;
-
-          const auto& req = geo_input->attributes[attr_idx];
-          auto& ssbo = binding.attribute_ssbos[attr_idx];
-
-          // "none" access: forwarded via COPY_FROM, no binding needed
-          if(req.access == "none")
-            continue;
-
-          if(!ssbo.buffer)
-          {
-            // Create a minimal fallback buffer so we don't skip a binding index
-            const int elem_size = glslTypeSizeBytes(req.type);
-            ssbo.buffer = rhi.newBuffer(
-                QRhiBuffer::Static,
-                QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer, elem_size);
-            ssbo.buffer->setName(QByteArray("CSF_GeomFB_") + req.name.c_str());
-            ssbo.buffer->create();
-            ssbo.size = elem_size;
-            ssbo.owned = true;
-          }
-
-          if(req.access == "read_only" || req.access == "write_only")
-          {
-            appendBufBinding(ssbo.buffer, req.access);
-          }
-          else // read_write -> 2 bindings: _in (readonly) + _out (read-write)
-          {
-            QRhiBuffer* read_buf = (ssbo.read_buffer && !binding.pending_initial_copy)
-                ? ssbo.read_buffer : ssbo.buffer;
-            if(read_buf == ssbo.buffer)
-            {
-              // Same physical buffer for both _in and _out (non-feedback in-place).
-              bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
-                  bindingIndex++, QRhiShaderResourceBinding::ComputeStage, ssbo.buffer));
-              bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
-                  bindingIndex++, QRhiShaderResourceBinding::ComputeStage, ssbo.buffer));
-            }
-            else
-            {
-              // Distinct buffers (feedback receiver): _in readonly, _out read-write
-              appendBufBinding(read_buf, "read_only");
-              bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
-                  bindingIndex++, QRhiShaderResourceBinding::ComputeStage, ssbo.buffer));
-            }
-          }
-        }
-
-        // Auxiliary SSBOs for this geometry input
-        for(auto& aux : binding.auxiliary_ssbos)
-        {
-          if(!aux.buffer)
-          {
-            // Create a minimal fallback buffer. Usage flag matches aux
-            // kind — see the matching comment in the other SRB-build
-            // site at initComputeSRBAndPasses.
-            const auto fallback_usage = aux.is_uniform
-                ? QRhiBuffer::UniformBuffer
-                : QRhiBuffer::StorageBuffer;
-            const quint32 fallback_size = aux.is_uniform ? 256u : 16u;
-            aux.buffer = rhi.newBuffer(
-                QRhiBuffer::Static, fallback_usage, fallback_size);
-            aux.buffer->setName(QByteArray("CSF_AuxFB_") + aux.name.c_str());
-            aux.buffer->create();
-            aux.size = fallback_size;
-            aux.owned = true;
-          }
-
-          if(aux.is_uniform)
-          {
-            // std140 UBO kind: bind as uniform, not load/store. Access
-            // field is ignored (UBOs are read-only in GLSL).
-            bindings.append(
-                QRhiShaderResourceBinding::uniformBuffer(
-                    bindingIndex++, QRhiShaderResourceBinding::ComputeStage,
-                    aux.buffer));
-          }
-          else
-          {
-            appendBufBinding(aux.buffer, aux.access);
-          }
-        }
-
-        // Auxiliary textures for this geometry input — placed right
-        // after aux SSBOs, matching the GLSL emission order in
-        // parse_csf. Sampled entries → sampledTexture binding; storage
-        // entries → imageLoad / imageStore / imageLoadStore per access.
-        for(auto& at : binding.auxiliary_textures)
-        {
-          if(!at.texture)
-            at.texture = at.placeholder;  // safety net
-
-          QRhiShaderResourceBinding b;
-          if(at.is_storage)
-          {
-            if(at.access == "read_only")
-              b = QRhiShaderResourceBinding::imageLoad(
-                  bindingIndex, QRhiShaderResourceBinding::ComputeStage,
-                  at.texture, 0);
-            else if(at.access == "write_only")
-              b = QRhiShaderResourceBinding::imageStore(
-                  bindingIndex, QRhiShaderResourceBinding::ComputeStage,
-                  at.texture, 0);
-            else
-              b = QRhiShaderResourceBinding::imageLoadStore(
-                  bindingIndex, QRhiShaderResourceBinding::ComputeStage,
-                  at.texture, 0);
-          }
-          else
-          {
-            b = QRhiShaderResourceBinding::sampledTexture(
-                bindingIndex, QRhiShaderResourceBinding::ComputeStage,
-                at.texture, at.sampler);
-          }
-          bindings.append(b);
-          at.binding = bindingIndex;
-          bindingIndex++;
-        }
-
-        if(binding.uses_indirect_draw && binding.indirectBuffer)
-        {
-          bindings.append(QRhiShaderResourceBinding::bufferLoadStore(
-              bindingIndex++, QRhiShaderResourceBinding::ComputeStage,
-              binding.indirectBuffer));
-        }
-
-        geo_binding_index++;
-      }
-      // Inlet port for upstream geometry. Two cases create one:
-      //   - Empty ATTRIBUTES => pure pass-through: ISFNode unconditionally
-      //     pushes an input port (the visitor at ISFNode.cpp's
-      //     `if(in.attributes.empty())` branch).
-      //   - Non-empty ATTRIBUTES with at least one read_only / read_write
-      //     attribute => an upstream-feeding inlet.
-      // Either way the geometry input owns ONE entry in node.input,
-      // which subsequent storage_input / texture_input / etc. address by
-      // position. Without this increment the very next read_only
-      // storage_input picks up node.input[0] (the geometry port) by
-      // mistake — its edges point to upstream geometry, bufferForInput
-      // returns empty, and the storage_input falls back to its own
-      // zero-initialised dummy buffer. Symptom: storage data from the
-      // upstream cable never reaches the compute shader.
-      bool geo_creates_inlet = geo_input->attributes.empty();
-      if(!geo_creates_inlet)
-      {
-        for(const auto& attr : geo_input->attributes)
-        {
-          if(attr.access == "read_only" || attr.access == "read_write")
-          {
-            geo_creates_inlet = true;
-            break;
-          }
-        }
-      }
-      if(geo_creates_inlet)
-        input_port_index++;
-      // Skip $USER ports for this geometry input
-      if(geo_input->vertex_count.find("$USER") != std::string::npos) input_port_index++;
-      if(geo_input->instance_count.find("$USER") != std::string::npos) input_port_index++;
-      for(const auto& aux : geo_input->auxiliary)
-        if(aux.size.find("$USER") != std::string::npos) input_port_index++;
-      if(geo_input->indirect && geo_input->indirect->count.find("$USER") != std::string::npos) input_port_index++;
-    }
-    else
-    {
-      input_port_index++;
-    }
-  }
-
-  // Recreate SRBs for each compute pass
+  // Recreate SRBs for each compute pass — but only when the per-pass
+  // binding list actually changed. Hash the bindings (post per-pass
+  // ProcessUBO patch) and compare to the cached hash from the previous
+  // frame: identical → skip the destroy+setBindings+create cycle, which
+  // would otherwise thrash the QRhi SRB pool slot every frame on a
+  // static scene.
   for(auto& [edge, pass] : m_computePasses)
   {
+    // Set the ProcessUBO binding for this pass — must happen BEFORE
+    // hashing so a change in pass.processUBO triggers a rebuild.
+    if(pass.processUBO)
+    {
+      bindings[1] = QRhiShaderResourceBinding::uniformBuffer(
+          1, QRhiShaderResourceBinding::ComputeStage, pass.processUBO);
+    }
+
+    const uint64_t newHash = hashBindings(bindings);
+    if(pass.srb && pass.srbBindingsHash == newHash && newHash != 0)
+      continue; // bindings unchanged from last frame
+
     if(pass.srb)
     {
       // Delete old SRB
@@ -5372,22 +4271,18 @@ void RenderedCSFNode::recreateShaderResourceBindings(RenderList& renderer, QRhiR
       pass.srb = rhi.newShaderResourceBindings();
     }
 
-    // Set the ProcessUBO binding for this pass
-    if(pass.processUBO)
-    {
-      bindings[1] = QRhiShaderResourceBinding::uniformBuffer(
-          1, QRhiShaderResourceBinding::ComputeStage, pass.processUBO);
-    }
-    
     pass.srb->setBindings(bindings.cbegin(), bindings.cend());
     if(!pass.srb->create())
     {
       qWarning() << "Failed to recreate SRB for compute pass";
       delete pass.srb;
       pass.srb = nullptr;
+      pass.srbBindingsHash = 0;
+      continue;
     }
+    pass.srbBindingsHash = newHash;
   }
-  
+
   // Update the pipeline with one of the SRBs (they're all compatible)
   if(!m_computePasses.empty() && m_computePasses[0].second.srb)
   {
@@ -5608,27 +4503,55 @@ void RenderedCSFNode::runInitialPasses(
     {
       int n = 1;
 
-      if(passDesc.execution_type == "PER_VERTEX")
+      if(passDesc.execution_type == "PER_VERTEX"
+         || passDesc.execution_type == "PER_INSTANCE")
       {
-        // Dispatch one thread per vertex in the target geometry
-        for(const auto& geo_bind : m_geometryBindings)
+        const bool per_instance = (passDesc.execution_type == "PER_INSTANCE");
+        const std::string& tgt = passDesc.target_resource;
+        auto count_of = [per_instance](const auto& b) {
+          return per_instance ? b.instance_count : b.vertex_count;
+        };
+
+        // Recommended: TARGET names the geometry resource explicitly.
+        // Order-independent and self-documenting; should be set on every
+        // bundled preset (presets without it fall through to the legacy
+        // first-binding-with-positive-count form below).
+        bool resolved = false;
+        if(!tgt.empty())
         {
-          if(geo_bind.vertex_count > 0)
+          for(const auto& geo_bind : m_geometryBindings)
           {
-            n = geo_bind.vertex_count;
-            break;
+            if(geo_bind.input_name == tgt)
+            {
+              const int c = count_of(geo_bind);
+              if(c > 0)
+              {
+                n = c;
+                resolved = true;
+              }
+              break;
+            }
+          }
+          if(!resolved)
+          {
+            qWarning() << "CSF" << passDesc.execution_type.c_str()
+                       << "TARGET" << tgt.c_str()
+                       << "not found among geometry bindings, or has zero"
+                       << (per_instance ? "instance_count" : "vertex_count");
           }
         }
-      }
-      else if(passDesc.execution_type == "PER_INSTANCE")
-      {
-        // Dispatch one thread per instance in the target geometry
-        for(const auto& geo_bind : m_geometryBindings)
+
+        // Legacy / TARGET-less fallback: first binding with count > 0.
+        if(!resolved)
         {
-          if(geo_bind.instance_count > 0)
+          for(const auto& geo_bind : m_geometryBindings)
           {
-            n = geo_bind.instance_count;
-            break;
+            const int c = count_of(geo_bind);
+            if(c > 0)
+            {
+              n = c;
+              break;
+            }
           }
         }
       }
@@ -5886,7 +4809,70 @@ void RenderedCSFNode::runInitialPasses(
           if(si.prev_binding >= 0 && si.read_texture)
             score::gfx::replaceTexture(*cp.srb, si.prev_binding, si.read_texture);
         }
-        cp.srb->create();
+        // No trailing create() — replaceTexture's updateResources() fast
+        // path already refreshes the backend descriptor state.
+      }
+
+      // Diagnostic 014: graphics passes that visualize the persistent
+      // image bake the pre-swap `si.texture` pointer at construction time
+      // (createGraphicsPass calls textureForOutput for the edge's source
+      // port). After ping-pong, that bound handle now identifies the
+      // stale-frame slot. Patch every graphics SRB so it samples the
+      // post-swap writable target — i.e. what the next compute dispatch
+      // will write into and what we want to display.
+      for(auto& [e, gp] : m_graphicsPasses)
+      {
+        if(!gp.pipeline.srb || !gp.outputSampler)
+          continue;
+        // Resolve which storage image this graphics pass shows. Mirrors
+        // textureForOutput(): first the per-port mapping in
+        // m_outStorageImages, otherwise the m_outputTexture fallback.
+        QRhiTexture* newTex = nullptr;
+        for(const auto& [port, index] : m_outStorageImages)
+        {
+          if(port == e->source && index < (int)m_storageImages.size())
+          {
+            const auto& si = m_storageImages[index];
+            if(si.persistent)
+              newTex = si.texture;
+            break;
+          }
+        }
+        if(!newTex)
+        {
+          // Fallback path — graphics pass uses m_outputTexture. Find the
+          // persistent entry whose post-swap read_texture equals the
+          // pre-swap m_outputTexture (= what the SRB currently binds).
+          for(const auto& si : m_storageImages)
+          {
+            if(si.persistent && si.read_texture == m_outputTexture)
+            {
+              newTex = si.texture;
+              break;
+            }
+          }
+        }
+        if(newTex)
+          score::gfx::replaceTexture(*gp.pipeline.srb, gp.outputSampler, newTex);
+      }
+
+      // Diagnostic 014: m_outputTexture is the fallback returned by
+      // textureForOutput()/resolveDispatchTexture() for default-port
+      // queries. It was captured from the first persistent storage
+      // image's primary `texture` at build time; after the swap that
+      // pointer is the stale-frame slot. Identify the entry whose
+      // post-swap read_texture (= pre-swap texture) matches the cached
+      // m_outputTexture and refresh it to the new writable target.
+      if(m_outputTexture)
+      {
+        for(const auto& si : m_storageImages)
+        {
+          if(si.persistent && si.read_texture == m_outputTexture && si.texture)
+          {
+            m_outputTexture = si.texture;
+            break;
+          }
+        }
       }
     }
   }

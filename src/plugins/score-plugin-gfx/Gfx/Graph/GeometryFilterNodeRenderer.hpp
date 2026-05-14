@@ -22,6 +22,9 @@ struct SCORE_PLUGIN_GFX_EXPORT GeometryFilterNodeRenderer : score::gfx::NodeRend
 
   void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& edge) override;
 
+  // Data-only renderer — no per-edge GPU pass state to release.
+  void removeOutputPass(RenderList&, Edge&) override { }
+
   QRhiBuffer* material() const noexcept { return m_materialUBO; }
 
 private:
