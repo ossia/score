@@ -44,40 +44,7 @@ std::shared_ptr<RenderState> importRenderState(QSize sz, QRhi* rhi)
   state.renderSize = sz;
   state.outputSize = sz;
 
-  // Populate the same caps probe ScreenNode/Background/MultiWindow do via
-  // createRenderState(), so feature gating in shaders / renderers behaves
-  // identically when running inside a preview widget. The rhi is borrowed
-  // (host-owned), so we don't install preRhiDestroy / savePipelineCache —
-  // those are the host's responsibility.
-#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
-  state.caps.drawIndirect = rhi->isFeatureSupported(QRhi::DrawIndirect);
-  state.caps.drawIndirectMulti = rhi->isFeatureSupported(QRhi::DrawIndirectMulti);
-#endif
-#if QT_VERSION >= QT_VERSION_CHECK(6, 11, 0)
-  state.caps.instanceIndexIncludesBaseInstance
-      = rhi->isFeatureSupported(QRhi::InstanceIndexIncludesBaseInstance);
-  state.caps.depthClamp = rhi->isFeatureSupported(QRhi::DepthClamp);
-#endif
-#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
-#endif
-#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
-  state.caps.variableRateShading = rhi->isFeatureSupported(QRhi::VariableRateShading);
-#endif
-#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
-  state.caps.textureViewFormat = rhi->isFeatureSupported(QRhi::TextureViewFormat);
-  state.caps.resolveDepthStencil = rhi->isFeatureSupported(QRhi::ResolveDepthStencil);
-#endif
-#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
-  state.caps.multiview = rhi->isFeatureSupported(QRhi::MultiView);
-#endif
-
-  state.caps.timestamps = rhi->isFeatureSupported(QRhi::Timestamps);
-  state.caps.tessellation = rhi->isFeatureSupported(QRhi::Tessellation);
-  state.caps.geometryShader = rhi->isFeatureSupported(QRhi::GeometryShader);
-  state.caps.baseInstance = rhi->isFeatureSupported(QRhi::BaseInstance);
-  state.caps.pipelineCacheDataLoadSave
-      = rhi->isFeatureSupported(QRhi::PipelineCacheDataLoadSave);
-
+  state.caps.populate(*rhi);
   return st;
 }
 

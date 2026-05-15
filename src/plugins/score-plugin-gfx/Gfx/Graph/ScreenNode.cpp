@@ -130,33 +130,9 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
         tryStorePipelineCache(rhiPtr, graphicsApi);
       };
     }
-#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
     if(s.rhi)
     {
-      s.caps.drawIndirect = s.rhi->isFeatureSupported(QRhi::DrawIndirect);
-      s.caps.drawIndirectMulti = s.rhi->isFeatureSupported(QRhi::DrawIndirectMulti);
-    }
-#endif
-    if(s.rhi)
-    {
-      s.caps.multiview = s.rhi->isFeatureSupported(QRhi::MultiView);
-      s.caps.resolveDepthStencil = s.rhi->isFeatureSupported(QRhi::ResolveDepthStencil);
-      s.caps.tessellation = s.rhi->isFeatureSupported(QRhi::Tessellation);
-      s.caps.geometryShader = s.rhi->isFeatureSupported(QRhi::GeometryShader);
-
-      // Extended feature set (Plan 09 S0). Guarded #if QT_VERSION checks
-      // only where the enumerator is version-gated — the rest are in
-      // every Qt 6.5+ build and can be queried unconditionally.
-      s.caps.baseInstance = s.rhi->isFeatureSupported(QRhi::BaseInstance);
-      s.caps.instanceIndexIncludesBaseInstance
-          = s.rhi->isFeatureSupported(QRhi::InstanceIndexIncludesBaseInstance);
-      s.caps.timestamps = s.rhi->isFeatureSupported(QRhi::Timestamps);
-      s.caps.pipelineCacheDataLoadSave
-          = s.rhi->isFeatureSupported(QRhi::PipelineCacheDataLoadSave);
-      s.caps.textureViewFormat = s.rhi->isFeatureSupported(QRhi::TextureViewFormat);
-      s.caps.depthClamp = s.rhi->isFeatureSupported(QRhi::DepthClamp);
-      s.caps.variableRateShading
-          = s.rhi->isFeatureSupported(QRhi::VariableRateShading);
+      s.caps.populate(*s.rhi);
     }
     // Clamp the requested sample count against what the hardware actually
     // supports. Without this, asking for e.g. 16x MSAA on a card that only
