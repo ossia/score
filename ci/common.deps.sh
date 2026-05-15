@@ -5,7 +5,7 @@ cd src/addons
 
 clone_addon() {
   local url=${1}
-  local ref=${2}
+  local ref=${2:-}
   local folder=$(echo "${url}" | awk -F'/' '{print $NF}')
 
   (
