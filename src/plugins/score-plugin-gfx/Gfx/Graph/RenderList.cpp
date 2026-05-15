@@ -1413,4 +1413,34 @@ void RenderList::update(QRhiResourceUpdateBatch& res)
   }
 }
 
+void RenderState::Caps::populate(QRhi& rhi)
+{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
+  state.caps.drawIndirect = rhi.isFeatureSupported(QRhi::DrawIndirect);
+  drawIndirectMulti = rhi.isFeatureSupported(QRhi::DrawIndirectMulti);
+#endif
+#if QT_VERSION >= QT_VERSION_CHECK(6, 11, 0)
+  instanceIndexIncludesBaseInstance
+      = rhi.isFeatureSupported(QRhi::InstanceIndexIncludesBaseInstance);
+  depthClamp = rhi.isFeatureSupported(QRhi::DepthClamp);
+#endif
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
+#endif
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
+  variableRateShading = rhi.isFeatureSupported(QRhi::VariableRateShading);
+#endif
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
+  textureViewFormat = rhi.isFeatureSupported(QRhi::TextureViewFormat);
+  resolveDepthStencil = rhi.isFeatureSupported(QRhi::ResolveDepthStencil);
+#endif
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+  multiview = rhi.isFeatureSupported(QRhi::MultiView);
+#endif
+
+  timestamps = rhi.isFeatureSupported(QRhi::Timestamps);
+  tessellation = rhi.isFeatureSupported(QRhi::Tessellation);
+  geometryShader = rhi.isFeatureSupported(QRhi::GeometryShader);
+  baseInstance = rhi.isFeatureSupported(QRhi::BaseInstance);
+  pipelineCacheDataLoadSave = rhi.isFeatureSupported(QRhi::PipelineCacheDataLoadSave);
+}
 }

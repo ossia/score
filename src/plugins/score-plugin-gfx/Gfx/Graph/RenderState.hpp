@@ -55,7 +55,7 @@ struct RenderState
   GraphicsApi api{};
   QShaderVersion version{};
 
-  struct
+  struct Caps
   {
     // Indirect draw — Qt 6.12+; populated only on compatible builds.
     bool drawIndirect{false};
@@ -108,6 +108,8 @@ struct RenderState
     bool pipelineCacheDataLoadSave{false};
     bool textureViewFormat{false};
     bool depthClamp{false};
+
+    void populate(QRhi& rhi);
   } caps;
 
   // Called after QRhi is destroyed to clean up an imported VkDevice
