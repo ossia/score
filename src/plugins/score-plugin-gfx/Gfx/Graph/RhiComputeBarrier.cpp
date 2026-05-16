@@ -59,8 +59,11 @@ void copyBufferRegionsMetal(
 
 // D3D12 / D3D11
 #if defined(Q_OS_WIN)
+// clang-format off
+#include <windows.h>
 #include <d3d11.h>
 #include <d3d12.h>
+// clang-format on
 #if __has_include(<QtGui/rhi/qrhi_platform.h>)
 #include <QtGui/rhi/qrhi_platform.h>
 #endif
