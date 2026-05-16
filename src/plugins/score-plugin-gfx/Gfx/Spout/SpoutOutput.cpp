@@ -25,8 +25,11 @@
 #include <private/qrhid3d11_p.h>
 #include <private/qrhid3d12_p.h>
 
+// clang-format off
 // D3D11On12 for D3D12 interop
+#include <windows.h>
 #include <d3d11on12.h>
+// clang-format on
 
 // Vulkan interop
 #if __has_include(<private/qrhivulkan_p.h>) && defined(QT_FEATURE_vulkan) && __has_include(<vulkan/vulkan.h>)

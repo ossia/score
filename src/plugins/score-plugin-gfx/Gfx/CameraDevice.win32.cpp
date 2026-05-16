@@ -10,12 +10,13 @@ extern "C" {
 
 // !
 #include <initguid.h>
+#include <windows.h>
 // ! Needs to be present before, to ensure uuids get enumerated
 
 #include <dshow.h>
 #include <dvdmedia.h>
-#include <wmcodecdsp.h>
 #include <oleauto.h>
+#include <wmcodecdsp.h>
 
 namespace Gfx
 {
