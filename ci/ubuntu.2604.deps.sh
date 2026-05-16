@@ -42,7 +42,8 @@ $SUDO apt install -y \
      libvulkan-dev \
      libavcodec-dev libavdevice-dev libavutil-dev libavfilter-dev libavformat-dev libswresample-dev \
      file \
-     dpkg-dev
+     dpkg-dev \
+     libzstd-dev
 
 
 source ci/common.deps.sh LINUX

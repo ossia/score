@@ -205,6 +205,7 @@ jobs:
             fftw:p
             ffmpeg:p
             SDL2:p
+            zstd:p
 
       - name: Build
         shell: msys2 {0}

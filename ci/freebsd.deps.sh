@@ -18,6 +18,7 @@ pkg install -y \
   libcoap \
   freetype2 harfbuzz fontconfig \
   alsa-lib \
-  jackit
+  jackit \
+  zstd
 
 source ci/common.deps.sh FREEBSD

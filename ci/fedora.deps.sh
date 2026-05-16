@@ -34,6 +34,7 @@ dnf -y install --allowerasing \
      qt6-qtsvg-devel \
      qt6-qtconnectivity-devel \
      pipewire-devel \
-     zlib-ng-compat-static zlib-ng-compat-devel
+     zlib-ng-compat-static zlib-ng-compat-devel \
+     libzstd-devel
 
 source ci/common.deps.sh LINUX

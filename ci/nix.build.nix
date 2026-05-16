@@ -39,6 +39,7 @@
 , suil
 , udev
 , xorg
+, zstd
 }:
 
 # TODO: figure out LLVM jit

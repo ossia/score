@@ -31,5 +31,6 @@ $SUDO zypper -n install \
    qt6-qml-devel qt6-qml-private-devel \
    qt6-svg-devel \
    ffmpeg-7-libavcodec-devel ffmpeg-7-libavdevice-devel ffmpeg-7-libavfilter-devel ffmpeg-7-libavformat-devel ffmpeg-7-libswresample-devel \
-   zlib-devel zlib-devel-static
+   zlib-devel zlib-devel-static \
+   libzstd-devel
 

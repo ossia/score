@@ -48,6 +48,7 @@ $SUDO apt-get install -y \
      libavcodec-dev libavdevice-dev libavutil-dev libavfilter-dev libavformat-dev libswresample-dev \
      file \
      dpkg-dev \
-     lsb-release
+     lsb-release \
+     libzstd-dev
 
 source ci/common.deps.sh LINUX
