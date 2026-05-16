@@ -55,7 +55,8 @@ $SUDO apt-get install -qq --force-yes \
      libzita-alsa-pcmi-dev \
      libvst3sdk-dev \
      puredata-dev \
-     libpd-dev
+     libpd-dev \
+     libzstd-dev
 
 
 source ci/common.deps.sh LINUX

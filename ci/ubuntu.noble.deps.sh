@@ -43,7 +43,8 @@ $SUDO apt-get install -y \
      libavcodec-dev libavdevice-dev libavutil-dev libavfilter-dev libavformat-dev libswresample-dev \
      file \
      dpkg-dev \
-     lsb-release
+     lsb-release \
+     libzstd-dev
 
 # needed because GCC does not support -fuse-ld=lld-19
 $SUDO rm -rf /usr/bin/lld /usr/bin/ld.lld
