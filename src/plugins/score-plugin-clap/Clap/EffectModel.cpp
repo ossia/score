@@ -411,10 +411,14 @@ static constexpr clap_host_gui_t host_gui_ext
        .request_hide = request_hide,
        .closed = closed};
 
+// [main-thread] — plug-in queries the enclosing track's name/colour. We
+// look up the closest parent interval and report its metadata. This is
+// what AIDA-X et al. show in the title bar.
 static constexpr clap_host_track_info_t host_track_info_ext
     = {.get = [](const clap_host_t* host, clap_track_info_t* info) -> bool {
   auto& m = *static_cast<Clap::PluginHandle*>(host->host_data);
-  return false;
+  if(!m.model || !info)
+    return false;
   auto* parent = Scenario::closestParentInterval(m.model);
   if(!parent)
     return false;
@@ -749,10 +753,6 @@ PluginHandle::PluginHandle()
       return &host_context_menu_ext;
     if(strcmp(extension_id, "clap.context-menu.draft/0") == 0)
       return &host_context_menu_ext;
-    if(strcmp(extension_id, CLAP_EXT_PRESET_LOAD) == 0)
-      return &host_preset_load_ext;
-    if(strcmp(extension_id, "clap.preset-load.draft/2") == 0)
-      return &host_preset_load_ext;
     return nullptr;
   };
   host.request_restart = [](const clap_host* host) {
