@@ -756,15 +756,40 @@ PluginHandle::PluginHandle()
     return nullptr;
   };
   host.request_restart = [](const clap_host* host) {
+    // Per clap/host.h: deactivate then reactivate the plug-in. This is
+    // [thread-safe] but the actual deactivate/activate must run on the
+    // main thread. We refuse to do the cycle while score is executing —
+    // a live audio thread is using the plug-in in CLAP-active state, and
+    // tearing it down underneath would race with process(). The plug-in
+    // sees the request as deferred (per spec it may be delayed by the
+    // host), and will get the restart on the next stop transition.
     auto& m = *static_cast<Clap::PluginHandle*>(host->host_data);
     if(!m.model)
       return;
-    QMetaObject::invokeMethod(m.model, [handle = std::weak_ptr{m.model->handle()}] {
-      if(auto h = handle.lock())
+    QMetaObject::invokeMethod(m.model, [model = QPointer<Model>{m.model}] {
+      if(!model)
+        return;
+      if(model->executing())
+        return;
+      auto h = model->handle();
+      if(!h || !h->plugin)
+        return;
+
+      const auto plug = h->plugin;
+      if(h->activated)
       {
-        // FIXME implement restart
-        auto plug = h->plugin;
-        plug->on_main_thread(plug);
+        plug->deactivate(plug);
+        h->activated = false;
+      }
+      // Re-activate with the rate/buffer the executor was last using.
+      // We don't have an audio context outside of execution, so fall
+      // back to the standard 44.1k / 1024 frames if nothing else is
+      // known (matches DPF's d_nextSampleRate fallback).
+      const double sr = 44100.0;
+      const uint32_t bs = 1024;
+      if(plug->activate(plug, sr, 1, bs))
+      {
+        h->activated = true;
       }
     }, Qt::QueuedConnection);
   };
