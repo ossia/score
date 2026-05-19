@@ -212,6 +212,15 @@ public:
 
   [[nodiscard]] bool start_plugin(const clap_plugin_t* plugin)
   {
+    // CLAP spec (plugin.h): reset() "clears all buffers, performs a full
+    // reset of the processing state (filters, oscillators, envelopes,
+    // lfo, ...) and kills all voices" and is the right call when
+    // clap_process.steady_time may jump backward — exactly what happens
+    // when score (re)starts a transport that has been idle. It's a cheap
+    // mandatory entry point, and gets rid of residual reverb tails /
+    // filter ringing between plays.
+    plugin->reset(plugin);
+
     if(plugin->start_processing(plugin))
     {
       init_parameter_values(plugin);
