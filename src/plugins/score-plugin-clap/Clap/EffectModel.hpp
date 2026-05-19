@@ -157,6 +157,16 @@ public:
 
   bool currentlyReadingValues{};
 
+  // Per-parameter gesture state for debounced
+  // CLAP_EVENT_PARAM_GESTURE_BEGIN / _END wrapping around live GUI changes.
+  struct GestureState
+  {
+    QTimer* endTimer{};
+    bool active{};
+    void* cookie{};
+  };
+  ossia::hash_map<clap_id, GestureState> gestures;
+
 private:
   void loadPlugin();
   void createControls(bool loading);
@@ -166,6 +176,9 @@ private:
   void setupControlOutlet(
       const clap_plugin_params_t&, const clap_param_info_t& info, int index,
       Process::ControlOutlet* ctl);
+
+  void sendParamChange(const clap_param_info_t& info, double value);
+  void endGesture(clap_id param_id, void* cookie);
 
   QString m_pluginPath;
   QString m_pluginId;

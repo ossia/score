@@ -393,16 +393,15 @@ static constexpr clap_host_params_t host_params_ext
   if(!m.model)
     return;
 
-  auto plugin = m.plugin;
-  auto params
-      = (const clap_plugin_params_t*)plugin->get_extension(plugin, CLAP_EXT_PARAMS);
-  if(!params)
-    return;
-  if(!params->flush)
-    return;
-
-  if(!m.model->executing())
-    m.model->flushFromPluginToHost();
+  // Per CLAP spec, request_flush is [thread-safe, !audio-thread] and the host
+  // must SCHEDULE a call to flush() — not invoke it inline. Plugins sometimes
+  // call request_flush from inside their own state.load() / flush() / GUI
+  // event handler, so calling flushFromPluginToHost synchronously here could
+  // reenter clap_plugin_params.flush().
+  QMetaObject::invokeMethod(m.model, [model = QPointer<Model>{m.model}] {
+    if(model && !model->executing())
+      model->flushFromPluginToHost();
+  }, Qt::QueuedConnection);
 }};
 
 static constexpr clap_host_gui_t host_gui_ext
@@ -1013,17 +1012,19 @@ void Model::loadPlugin()
       if(!plugin)
         return;
       auto params = m_plugin->ext_params;
-      std::size_t control_idx = 0;
+      if(!params || !params->get_value)
+        return;
+
+      // Writable params -> ControlInlets.
+      std::size_t inlet_idx = 0;
       for(auto* inlet : inlets())
       {
         if(auto* control = qobject_cast<Process::ControlInlet*>(inlet))
         {
-          if(control_idx < m_plugin->m_parameters_ins.size())
+          if(inlet_idx < m_plugin->m_parameters_ins.size())
           {
-            const auto& param_info = m_plugin->m_parameters_ins[control_idx];
+            const auto& param_info = m_plugin->m_parameters_ins[inlet_idx];
             double current_value = 0.0;
-
-            // Read current parameter value from plugin
             if(params->get_value(plugin, param_info.id, &current_value))
             {
               currentlyReadingValues = true;
@@ -1031,7 +1032,28 @@ void Model::loadPlugin()
               currentlyReadingValues = false;
             }
           }
-          control_idx++;
+          inlet_idx++;
+        }
+      }
+
+      // Read-only params -> ControlOutlets (Bargraph meters etc.).
+      std::size_t outlet_idx = 0;
+      for(auto* outlet : outlets())
+      {
+        if(auto* control = qobject_cast<Process::ControlOutlet*>(outlet))
+        {
+          if(outlet_idx < m_plugin->m_parameters_outs.size())
+          {
+            const auto& param_info = m_plugin->m_parameters_outs[outlet_idx];
+            double current_value = 0.0;
+            if(params->get_value(plugin, param_info.id, &current_value))
+            {
+              currentlyReadingValues = true;
+              control->setValue(current_value);
+              currentlyReadingValues = false;
+            }
+          }
+          outlet_idx++;
         }
       }
     });
@@ -1045,6 +1067,143 @@ void Model::loadPlugin()
       m_plugin->activated = false;
     }
   }, Qt::QueuedConnection);
+}
+
+// Gesture debounce window: a slider drag is treated as one gesture if changes
+// keep arriving within this window after the last sample.
+static constexpr int CLAP_GESTURE_DEBOUNCE_MS = 200;
+
+namespace
+{
+// Build a clap_input_events_t backed by a std::vector of event pointers.
+struct ParamInputCtx
+{
+  std::vector<const clap_event_header_t*> events;
+};
+inline clap_input_events_t make_input_events(ParamInputCtx& ctx)
+{
+  return {
+      .ctx = &ctx,
+      .size = +[](const clap_input_events* list) -> uint32_t {
+    return static_cast<const ParamInputCtx*>(list->ctx)->events.size();
+  },
+      .get = +[](const clap_input_events* list,
+                 uint32_t index) -> const clap_event_header_t* {
+    auto* c = static_cast<const ParamInputCtx*>(list->ctx);
+    return index < c->events.size() ? c->events[index] : nullptr;
+  }};
+}
+
+inline clap_event_param_value_t
+make_param_value(const clap_param_info_t& info, double value)
+{
+  clap_event_param_value_t ev{};
+  ev.header.size = sizeof(clap_event_param_value_t);
+  ev.header.time = 0;
+  ev.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
+  ev.header.type = CLAP_EVENT_PARAM_VALUE;
+  ev.header.flags = CLAP_EVENT_IS_LIVE;
+  ev.param_id = info.id;
+  ev.cookie = info.cookie;
+  ev.note_id = -1;
+  ev.port_index = -1;
+  ev.channel = -1;
+  ev.key = -1;
+  ev.value = value;
+  return ev;
+}
+
+inline clap_event_param_gesture_t
+make_param_gesture(clap_id pid, uint16_t type)
+{
+  clap_event_param_gesture_t ev{};
+  ev.header.size = sizeof(clap_event_param_gesture_t);
+  ev.header.time = 0;
+  ev.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
+  ev.header.type = type;
+  ev.header.flags = CLAP_EVENT_IS_LIVE;
+  ev.param_id = pid;
+  return ev;
+}
+} // namespace
+
+void Model::sendParamChange(const clap_param_info_t& info, double value)
+{
+  auto plugin = m_plugin->plugin;
+  if(!plugin)
+    return;
+  auto params
+      = (const clap_plugin_params_t*)plugin->get_extension(plugin, CLAP_EXT_PARAMS);
+  if(!params || !params->flush)
+    return;
+
+  // Manage the gesture state for this parameter.
+  auto& gs = gestures[info.id];
+  if(!gs.endTimer)
+  {
+    gs.endTimer = new QTimer{this};
+    gs.endTimer->setSingleShot(true);
+    gs.endTimer->setInterval(CLAP_GESTURE_DEBOUNCE_MS);
+    QObject::connect(gs.endTimer, &QTimer::timeout, this, [this, pid = info.id] {
+      auto it = gestures.find(pid);
+      if(it == gestures.end())
+        return;
+      endGesture(pid, it->second.cookie);
+    });
+  }
+  gs.cookie = info.cookie;
+
+  const bool was_active = gs.active;
+  if(!gs.active)
+    gs.active = true;
+  gs.endTimer->start();
+
+  // Build event stream: optional GESTURE_BEGIN + PARAM_VALUE.
+  clap_event_param_gesture_t begin_ev{};
+  clap_event_param_value_t value_ev = make_param_value(info, value);
+  ParamInputCtx ctx;
+  ctx.events.reserve(2);
+  if(!was_active)
+  {
+    begin_ev = make_param_gesture(info.id, CLAP_EVENT_PARAM_GESTURE_BEGIN);
+    ctx.events.push_back(&begin_ev.header);
+  }
+  ctx.events.push_back(&value_ev.header);
+
+  clap_input_events_t ip = make_input_events(ctx);
+  clap_output_events_t op{
+      .ctx = this,
+      .try_push = [](const struct clap_output_events*,
+                     const clap_event_header_t*) { return false; }};
+  params->flush(plugin, &ip, &op);
+}
+
+void Model::endGesture(clap_id param_id, void* cookie)
+{
+  auto plugin = m_plugin->plugin;
+  if(!plugin)
+    return;
+  auto params
+      = (const clap_plugin_params_t*)plugin->get_extension(plugin, CLAP_EXT_PARAMS);
+  if(!params || !params->flush)
+    return;
+
+  auto it = gestures.find(param_id);
+  if(it != gestures.end())
+    it->second.active = false;
+
+  clap_event_param_gesture_t end_ev = make_param_gesture(
+      param_id, CLAP_EVENT_PARAM_GESTURE_END);
+  end_ev.header.flags = 0;
+
+  ParamInputCtx ctx;
+  ctx.events.push_back(&end_ev.header);
+  clap_input_events_t ip = make_input_events(ctx);
+  clap_output_events_t op{
+      .ctx = this,
+      .try_push = [](const struct clap_output_events*,
+                     const clap_event_header_t*) { return false; }};
+  params->flush(plugin, &ip, &op);
 }
 
 void Model::setupControlInlet(
@@ -1074,46 +1233,13 @@ void Model::setupControlInlet(
       [this, i = index](const ossia::value& v) {
     if(executing())
       return;
+    if(currentlyReadingValues)
+      return;
     SCORE_ASSERT(this->parameterInputs().size() > i);
     auto& param_info = this->parameterInputs()[i];
-    double val = ossia::convert<double>(v);
-
-    auto plugin = m_plugin->plugin;
-    auto params
-        = (const clap_plugin_params_t*)plugin->get_extension(plugin, CLAP_EXT_PARAMS);
-    if(!params)
-      return;
-    clap_event_param_value_t param_event{};
-    param_event.header.size = sizeof(clap_event_param_value_t);
-    param_event.header.time = 0; // Beginning of buffer for now
-    param_event.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
-    param_event.header.type = CLAP_EVENT_PARAM_VALUE;
-    param_event.header.flags = CLAP_EVENT_IS_LIVE;
-    param_event.param_id = param_info.id;
-    param_event.cookie = param_info.cookie;
-    param_event.note_id = -1;
-    param_event.port_index = -1;
-    param_event.channel = -1;
-    param_event.key = -1;
-    param_event.value = val;
-    clap_input_events_t ip;
-    ip.ctx = &param_event;
-    ip.get = +[](const struct clap_input_events* list,
-                 uint32_t index) -> const clap_event_header_t* {
-      if(index == 0)
-      {
-        return (const clap_event_header_t*)&list->ctx;
-      }
-      return nullptr;
-    };
-    ip.size = +[](const struct clap_input_events* list) -> uint32_t { return 1; };
-
-    clap_output_events_t op{
-        .ctx = this,
-        .try_push = [](const struct clap_output_events* list,
-                       const clap_event_header_t* event) { return false; }};
-
-    params->flush(plugin, &ip, &op);
+    double val
+        = std::clamp(ossia::convert<double>(v), param_info.min_value, param_info.max_value);
+    sendParamChange(param_info, val);
   });
 }
 
@@ -1649,73 +1775,151 @@ std::vector<Process::Preset> Model::builtinPresets() const noexcept
   return presets;
 }
 
+namespace
+{
+// Find and update the i-th ControlInlet / ControlOutlet on a Model under
+// the currentlyReadingValues guard, so the GUI handler does not echo the
+// value back into a fresh params->flush() call.
+template <typename Port>
+void apply_value_at(Model& self, std::size_t idx, double v)
+{
+  std::size_t found = 0;
+  if constexpr(std::is_same_v<Port, Process::ControlInlet>)
+  {
+    for(auto* inlet : self.inlets())
+    {
+      if(auto* ctl = qobject_cast<Process::ControlInlet*>(inlet))
+      {
+        if(found == idx)
+        {
+          self.currentlyReadingValues = true;
+          ctl->setValue(v);
+          self.currentlyReadingValues = false;
+          return;
+        }
+        ++found;
+      }
+    }
+  }
+  else
+  {
+    for(auto* outlet : self.outlets())
+    {
+      if(auto* ctl = qobject_cast<Process::ControlOutlet*>(outlet))
+      {
+        if(found == idx)
+        {
+          self.currentlyReadingValues = true;
+          ctl->setValue(v);
+          self.currentlyReadingValues = false;
+          return;
+        }
+        ++found;
+      }
+    }
+  }
+}
+} // namespace
+
 void Model::flushFromPluginToHost()
 {
   auto plugin = m_plugin->plugin;
+  if(!plugin)
+    return;
   auto params
       = (const clap_plugin_params_t*)plugin->get_extension(plugin, CLAP_EXT_PARAMS);
-  if(!params)
+  if(!params || !params->flush)
     return;
-
-  std::size_t control_idx = 0;
-  for(auto* inlet : inlets())
-  {
-    if(auto* control = qobject_cast<Process::ControlInlet*>(inlet))
-    {
-      if(control_idx < m_plugin->m_parameters_ins.size())
-      {
-        const auto& param_info = m_plugin->m_parameters_ins[control_idx];
-        double current_value = 0.0;
-
-        // Read current parameter value from plugin
-        // Note how here the plug-in changed its values: we want to save this in the data model.
-        if(params->get_value(plugin, param_info.id, &current_value))
-        {
-          control->setValue(current_value);
-        }
-      }
-      control_idx++;
-    }
-  }
-
   if(this->executing())
     return;
-  /*
-  SCORE_ASSERT(this->parameterInputs().size() > i);
-  auto& param_info = this->parameterInputs()[i];
-  double val = ossia::convert<double>(v);
 
-  clap_event_param_value_t param_event{};
-  param_event.header.size = sizeof(clap_event_param_value_t);
-  param_event.header.time = 0; // Beginning of buffer for now
-  param_event.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
-  param_event.header.type = CLAP_EVENT_PARAM_VALUE;
-  param_event.header.flags = 0;
-  param_event.param_id = param_info.id;
-  param_event.cookie = param_info.cookie;
-  param_event.note_id = -1;
-  param_event.port_index = -1;
-  param_event.channel = -1;
-  param_event.key = -1;
-  param_event.value = val;
-*/
-  clap_input_events_t ip;
-  ip.ctx = this;
-  ip.get = +[](const struct clap_input_events* list,
-               uint32_t index) -> const clap_event_header_t* {
-    if(index == 0)
-    {
-      return (const clap_event_header_t*)&list->ctx;
-    }
-    return nullptr;
-  };
-  ip.size = +[](const struct clap_input_events* list) -> uint32_t { return 1; };
+  // The plugin asked the host to flush so it can deliver its accumulated
+  // parameter change events. We have nothing to send it; provide an empty
+  // input list and route its CLAP_EVENT_PARAM_VALUE events to the matching
+  // inlets (writable params) or outlets (read-only params).
+  ParamInputCtx in_ctx; // empty
+  clap_input_events_t ip = make_input_events(in_ctx);
 
   clap_output_events_t op{
       .ctx = this,
       .try_push = [](const struct clap_output_events* list,
-                     const clap_event_header_t* event) { return false; }};
+                     const clap_event_header_t* event) -> bool {
+    auto* self = static_cast<Model*>(list->ctx);
+    if(!event || event->space_id != CLAP_CORE_EVENT_SPACE_ID)
+      return true;
+    if(event->type != CLAP_EVENT_PARAM_VALUE)
+      return true;
+    if(event->size < sizeof(clap_event_param_value_t))
+      return true;
+
+    auto* pv = reinterpret_cast<const clap_event_param_value_t*>(event);
+
+    std::size_t idx = 0;
+    for(auto& info : self->m_plugin->m_parameters_ins)
+    {
+      if(info.id == pv->param_id)
+      {
+        apply_value_at<Process::ControlInlet>(*self, idx, pv->value);
+        return true;
+      }
+      ++idx;
+    }
+    idx = 0;
+    for(auto& info : self->m_plugin->m_parameters_outs)
+    {
+      if(info.id == pv->param_id)
+      {
+        apply_value_at<Process::ControlOutlet>(*self, idx, pv->value);
+        return true;
+      }
+      ++idx;
+    }
+    return true;
+  }};
+
   params->flush(plugin, &ip, &op);
+
+  // Plugins that update internal state silently (without pushing events
+  // through `out`) still expose fresh values via get_value(); poll them so
+  // the GUI mirrors the plugin state, for both writable and read-only params.
+  std::size_t inlet_idx = 0;
+  for(auto* inlet : inlets())
+  {
+    if(auto* control = qobject_cast<Process::ControlInlet*>(inlet))
+    {
+      if(inlet_idx < m_plugin->m_parameters_ins.size())
+      {
+        const auto& param_info = m_plugin->m_parameters_ins[inlet_idx];
+        double current_value = 0.0;
+        if(params->get_value(plugin, param_info.id, &current_value))
+        {
+          currentlyReadingValues = true;
+          control->setValue(current_value);
+          currentlyReadingValues = false;
+        }
+      }
+      inlet_idx++;
+    }
+  }
+  std::size_t outlet_idx = 0;
+  for(auto* outlet : outlets())
+  {
+    if(auto* control = qobject_cast<Process::ControlOutlet*>(outlet))
+    {
+      if(outlet_idx < m_plugin->m_parameters_outs.size())
+      {
+        const auto& param_info = m_plugin->m_parameters_outs[outlet_idx];
+        double current_value = 0.0;
+        if(params->get_value(plugin, param_info.id, &current_value))
+        {
+          currentlyReadingValues = true;
+          control->setValue(current_value);
+          currentlyReadingValues = false;
+        }
+      }
+      outlet_idx++;
+    }
+  }
 }
 }
 
