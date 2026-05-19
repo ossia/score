@@ -945,6 +945,20 @@ void PluginHandle::load(Model& context, QByteArray path, QByteArray id)
 {
   this->model = &context;
 
+  // Helper to roll back partial-load state. CLAP entry init/deinit is
+  // refcounted (see clap/entry.h): we must NOT call deinit unless init
+  // returned true, otherwise we corrupt the refcount and eventually crash
+  // other plug-ins that share the .clap bundle. Same idea for
+  // dlclose(library) — only meaningful if dlopen succeeded.
+  auto rollback = [this](bool entry_inited) {
+    if(!entry_inited)
+      entry = nullptr;
+    if(!library)
+      return;
+    // If we never reached entry->init() successfully, don't deinit; just
+    // release the library handle so ~PluginHandle doesn't redo it.
+  };
+
   // Load the library
 #if defined(_WIN32)
   library = LoadLibraryA(path.data());
@@ -958,8 +972,21 @@ void PluginHandle::load(Model& context, QByteArray path, QByteArray id)
   entry = (const clap_plugin_entry_t*)dlsym(library, "clap_entry");
 #endif
 
-  if(!entry || !entry->init(path.data()))
+  if(!entry)
+  {
+    // No clap_entry symbol — drop the library handle and bail.
+    rollback(false);
     return;
+  }
+
+  if(!entry->init(path.data()))
+  {
+    // init() failed: entry pointer is valid but the DSO is uninitialized,
+    // so we must NOT call entry->deinit() later. Forget the entry pointer
+    // so ~PluginHandle's `if(entry) entry->deinit();` is skipped.
+    rollback(false);
+    return;
+  }
 
   factory = (const clap_plugin_factory_t*)entry->get_factory(CLAP_PLUGIN_FACTORY_ID);
   if(!factory)
