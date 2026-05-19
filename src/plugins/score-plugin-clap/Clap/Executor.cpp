@@ -350,7 +350,11 @@ public:
   }
   void process_controls(uint32_t samples)
   {
-    // Process control inlets and create parameter events
+    // Process control inlets and create parameter events. Each ossia
+    // timed_value carries its own frame offset within the block, so emit
+    // one CLAP_EVENT_PARAM_VALUE per timestamp instead of collapsing them
+    // all to frame 0 — that lets sample-accurate automation (LFO, curve,
+    // MIDI mapping) drive plug-in smoothers correctly.
     std::size_t param_idx = 0;
 
     for(std::size_t i = 0; i < m_inlets.size(); ++i)
@@ -361,29 +365,41 @@ public:
         if(!data.empty() && param_idx < m_param_ins.size())
         {
           auto& param_info = m_param_ins[param_idx];
-          double value = ossia::convert<double>(data.back().value);
+          for(const auto& tv : data)
+          {
+            double value = std::clamp(
+                ossia::convert<double>(tv.value), param_info.min_value,
+                param_info.max_value);
 
-          // Clamp value to parameter range
-          value = std::clamp(value, param_info.min_value, param_info.max_value);
+            // Map ossia's signed frame offset onto CLAP's unsigned uint32
+            // time field. Negative timestamps (carry-over from the previous
+            // block) clamp to 0; out-of-block timestamps clamp to samples-1
+            // so the plug-in still sees the change within the current block.
+            const int64_t t = tv.timestamp;
+            const uint32_t time
+                = t <= 0 ? 0u
+                         : static_cast<uint32_t>(
+                               std::min<int64_t>(t, samples > 0 ? samples - 1 : 0));
 
-          clap_event_param_value_t param_event{};
-          param_event.header.size = sizeof(clap_event_param_value_t);
-          param_event.header.time = 0; // Beginning of buffer for now
-          param_event.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
-          param_event.header.type = CLAP_EVENT_PARAM_VALUE;
-          param_event.header.flags = CLAP_EVENT_IS_LIVE;
-          param_event.param_id = param_info.id;
-          param_event.cookie = param_info.cookie;
-          param_event.note_id = -1;
-          param_event.port_index = -1;
-          param_event.channel = -1;
-          param_event.key = -1;
-          param_event.value = value;
+            clap_event_param_value_t param_event{};
+            param_event.header.size = sizeof(clap_event_param_value_t);
+            param_event.header.time = time;
+            param_event.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
+            param_event.header.type = CLAP_EVENT_PARAM_VALUE;
+            param_event.header.flags = CLAP_EVENT_IS_LIVE;
+            param_event.param_id = param_info.id;
+            param_event.cookie = param_info.cookie;
+            param_event.note_id = -1;
+            param_event.port_index = -1;
+            param_event.channel = -1;
+            param_event.key = -1;
+            param_event.value = value;
 
-          m_input_events.param_events.push_back(param_event);
-          m_input_events.all_events.push_back(
-              reinterpret_cast<clap_event_header_t*>(
-                  &m_input_events.param_events.back()));
+            m_input_events.param_events.push_back(param_event);
+            m_input_events.all_events.push_back(
+                reinterpret_cast<clap_event_header_t*>(
+                    &m_input_events.param_events.back()));
+          }
         }
         param_idx++;
       }
