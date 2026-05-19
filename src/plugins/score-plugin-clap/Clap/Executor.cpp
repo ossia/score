@@ -111,6 +111,12 @@ struct event_storage
   std::vector<clap_event_midi2_t> midi2_events;
   std::vector<clap_event_note_t> note_events;
   std::vector<clap_event_param_value_t> param_events;
+  // Sysex events captured from plug-in output. The CLAP spec says
+  // clap_event_midi_sysex_t.buffer is only valid for the duration of
+  // try_push, so we copy each payload into sysex_data and rewrite the
+  // event to point at our copy.
+  std::vector<clap_event_midi_sysex_t> sysex_events;
+  std::vector<std::vector<uint8_t>> sysex_data;
   std::vector<clap_event_header_t*> all_events;
 
   void clear()
@@ -119,6 +125,8 @@ struct event_storage
     midi2_events.clear();
     note_events.clear();
     param_events.clear();
+    sysex_events.clear();
+    sysex_data.clear();
     all_events.clear();
   }
 };
@@ -688,8 +696,49 @@ public:
             return true;
           }
           return false;
+        case CLAP_EVENT_NOTE_ON:
+        case CLAP_EVENT_NOTE_OFF:
+        case CLAP_EVENT_NOTE_END:
+        case CLAP_EVENT_NOTE_CHOKE:
+          // Plug-in voice events: useful both as plain MIDI fanout to a
+          // downstream MidiOutlet (we convert later) and, for NOTE_END
+          // specifically, so polyphonic hosts can release a voice slot.
+          if(event->size >= sizeof(clap_event_note_t))
+          {
+            storage->note_events.push_back(
+                *reinterpret_cast<const clap_event_note_t*>(event));
+            return true;
+          }
+          return false;
+        case CLAP_EVENT_MIDI2:
+          // MIDI 2.0 / UMP packets — forward 1:1 to libremidi::ump in
+          // the post-process step below.
+          if(event->size >= sizeof(clap_event_midi2_t))
+          {
+            storage->midi2_events.push_back(
+                *reinterpret_cast<const clap_event_midi2_t*>(event));
+            return true;
+          }
+          return false;
+        case CLAP_EVENT_MIDI_SYSEX:
+          // The buffer pointer is only valid for the duration of this
+          // try_push call (clap/events.h), so copy the bytes into our
+          // own storage and rewrite the event to point there.
+          if(event->size >= sizeof(clap_event_midi_sysex_t))
+          {
+            auto* sx
+                = reinterpret_cast<const clap_event_midi_sysex_t*>(event);
+            if(sx->size == 0 || sx->buffer == nullptr)
+              return false;
+            storage->sysex_data.emplace_back(
+                sx->buffer, sx->buffer + sx->size);
+            clap_event_midi_sysex_t copy = *sx;
+            copy.buffer = storage->sysex_data.back().data();
+            storage->sysex_events.push_back(copy);
+            return true;
+          }
+          return false;
         default:
-          // FIXME notes, note-end, etc.
           return false;
       }
     }};
@@ -702,6 +751,14 @@ public:
     dispatch_param_outputs();
 
     // Process MIDI output
+    forward_midi_outputs();
+  }
+
+  // Fan plug-in MIDI / note / sysex output events out to score's MIDI
+  // outlets, converting to UMP packets. Shared between clap_node and
+  // clap_node_mono so they don't drift.
+  void forward_midi_outputs()
+  {
     std::size_t midi_port_index = 0;
     for(std::size_t i = 0; i < m_outlets.size(); ++i)
     {
@@ -710,18 +767,102 @@ public:
         auto& port_messages = midi_out->messages;
         port_messages.clear();
 
+        // CLAP_EVENT_MIDI: MIDI 1.0 → UMP via cmidi2.
         for(const auto& midi_event : m_output_events.midi_events)
         {
-          if(midi_event.port_index == midi_port_index)
+          if(midi_event.port_index != midi_port_index)
+            continue;
+          libremidi::ump msg;
+          if(cmidi2_midi1_channel_voice_to_midi2(midi_event.data, 3, msg.data))
           {
-            libremidi::ump msg;
-            if(cmidi2_midi1_channel_voice_to_midi2(midi_event.data, 3, msg.data))
-            {
-              msg.timestamp = midi_event.header.time;
-              port_messages.push_back(msg);
-            }
+            msg.timestamp = midi_event.header.time;
+            port_messages.push_back(msg);
           }
         }
+
+        // CLAP_EVENT_NOTE_*: synthesize a MIDI 1.0 message and convert.
+        // NOTE_END / NOTE_CHOKE have no direct MIDI equivalent — both
+        // mean "this voice is over", so emit NOTE_OFF (velocity 0) so a
+        // downstream MIDI device sees the voice released.
+        for(const auto& ne : m_output_events.note_events)
+        {
+          if(ne.port_index != midi_port_index)
+            continue;
+          const uint8_t ch = static_cast<uint8_t>(ne.channel & 0x0F);
+          const uint8_t key = static_cast<uint8_t>(std::clamp<int>(ne.key, 0, 127));
+          uint8_t bytes[3]{};
+          switch(ne.header.type)
+          {
+            case CLAP_EVENT_NOTE_ON: {
+              const uint8_t vel = static_cast<uint8_t>(std::clamp(
+                  static_cast<int>(ne.velocity * 127.0 + 0.5), 0, 127));
+              bytes[0] = 0x90 | ch;
+              bytes[1] = key;
+              bytes[2] = vel;
+              break;
+            }
+            case CLAP_EVENT_NOTE_OFF: {
+              const uint8_t vel = static_cast<uint8_t>(std::clamp(
+                  static_cast<int>(ne.velocity * 127.0 + 0.5), 0, 127));
+              bytes[0] = 0x80 | ch;
+              bytes[1] = key;
+              bytes[2] = vel;
+              break;
+            }
+            case CLAP_EVENT_NOTE_END:
+            case CLAP_EVENT_NOTE_CHOKE:
+              bytes[0] = 0x80 | ch;
+              bytes[1] = key;
+              bytes[2] = 0;
+              break;
+            default:
+              continue;
+          }
+          libremidi::ump msg;
+          if(cmidi2_midi1_channel_voice_to_midi2(bytes, 3, msg.data))
+          {
+            msg.timestamp = ne.header.time;
+            port_messages.push_back(msg);
+          }
+        }
+
+        // CLAP_EVENT_MIDI2: already UMP-shaped — copy verbatim.
+        for(const auto& m2 : m_output_events.midi2_events)
+        {
+          if(m2.port_index != midi_port_index)
+            continue;
+          libremidi::ump msg;
+          std::memcpy(msg.data, m2.data, sizeof(m2.data));
+          msg.timestamp = m2.header.time;
+          port_messages.push_back(msg);
+        }
+
+        // CLAP_EVENT_MIDI_SYSEX: encode the captured byte buffer into
+        // one or more UMP sysex7 packets (6 data bytes per packet).
+        for(const auto& sx : m_output_events.sysex_events)
+        {
+          if(sx.port_index != midi_port_index)
+            continue;
+          if(sx.size == 0 || sx.buffer == nullptr)
+            continue;
+          const std::size_t num_packets
+              = cmidi2_ump_sysex_get_num_packets(sx.size, 6);
+          for(std::size_t pkt = 0; pkt < num_packets; ++pkt)
+          {
+            libremidi::ump msg{};
+            uint64_t r1 = 0, r2 = 0;
+            cmidi2_ump_sysex_get_packet_of(
+                &r1, &r2, /*group*/ 0, sx.size, sx.buffer,
+                static_cast<int32_t>(pkt), CMIDI2_MESSAGE_TYPE_SYSEX7, 6,
+                /*hasStreamId*/ false, /*streamId*/ 0);
+            // sysex7 packets are 64-bit; libremidi::ump.data[0..1] holds it.
+            msg.data[0] = static_cast<uint32_t>(r1 >> 32);
+            msg.data[1] = static_cast<uint32_t>(r1 & 0xFFFFFFFFu);
+            msg.timestamp = sx.header.time;
+            port_messages.push_back(msg);
+          }
+        }
+
         midi_port_index++;
       }
     }
