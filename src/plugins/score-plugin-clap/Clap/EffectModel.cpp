@@ -372,13 +372,16 @@ static constexpr clap_host_posix_fd_support_t host_posix_fd_ext = {
     .register_fd = register_fd, .modify_fd = modify_fd, .unregister_fd = unregister_fd};
 
 static constexpr clap_host_state_t host_state_ext
-    = {.mark_dirty = [](const clap_host_t*) {
-  // qDebug(Q_FUNC_INFO);
-  // TODO
-
-  // FIXME likely we want to accumulate and serialize the state of the plugin
-  // so that we can restore in case of a crash.
-  // But plug-ins may spam things so we need some debounce.
+    = {.mark_dirty = [](const clap_host_t* host) {
+  // [main-thread] per CLAP spec. The plug-in says its state changed
+  // (typically because the user manipulated its own UI). Forward to the
+  // model, which debounces and snapshots. Plug-ins are known to spam
+  // this — Vital fires it multiple times per knob movement — so the
+  // debounce is mandatory.
+  auto& m = *static_cast<Clap::PluginHandle*>(host->host_data);
+  if(!m.model)
+    return;
+  m.model->markStateDirty();
 }};
 static constexpr clap_host_params_t host_params_ext
     = {.rescan = [](const clap_host_t* host, clap_param_rescan_flags flags) {
@@ -1872,6 +1875,28 @@ void apply_value_at(Model& self, std::size_t idx, double v)
   }
 }
 } // namespace
+
+void Model::markStateDirty()
+{
+  // Plug-ins spam this — Vital, Surge XT etc. fire it on every parameter
+  // tweak from their own UI. Snapshot at most once per ~400 ms.
+  constexpr int kStateDirtyDebounceMs = 400;
+
+  if(!m_stateDirtyTimer)
+  {
+    m_stateDirtyTimer = new QTimer(this);
+    m_stateDirtyTimer->setSingleShot(true);
+    m_stateDirtyTimer->setInterval(kStateDirtyDebounceMs);
+    connect(m_stateDirtyTimer, &QTimer::timeout, this, [this] {
+      if(!m_plugin || !m_plugin->plugin)
+        return;
+      QByteArray blob = Clap::readCLAPState(*m_plugin->plugin);
+      if(!blob.isEmpty())
+        stateSnapshotChanged(blob);
+    });
+  }
+  m_stateDirtyTimer->start();
+}
 
 void Model::flushFromPluginToHost()
 {

@@ -167,6 +167,16 @@ public:
   };
   ossia::hash_map<clap_id, GestureState> gestures;
 
+  // CLAP host.state.mark_dirty bridge: the plug-in calls it when its
+  // internal state has drifted from the last value the host saw (e.g.
+  // user manipulated the plug-in's own UI). We debounce because some
+  // plug-ins call mark_dirty several times per second, then snapshot
+  // the state once and emit stateSnapshotChanged so the document layer
+  // (or any future crash-recovery system) can react.
+  void markStateDirty();
+  void stateSnapshotChanged(const QByteArray& blob)
+      W_SIGNAL(stateSnapshotChanged, blob);
+
 private:
   void loadPlugin();
   void createControls(bool loading);
@@ -179,6 +189,10 @@ private:
 
   void sendParamChange(const clap_param_info_t& info, double value);
   void endGesture(clap_id param_id, void* cookie);
+
+  // Debounce timer for markStateDirty(); created lazily on first
+  // mark_dirty call and parented to *this for automatic Qt cleanup.
+  QTimer* m_stateDirtyTimer{};
 
   QString m_pluginPath;
   QString m_pluginId;
