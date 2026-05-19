@@ -603,6 +603,14 @@ public:
   const std::vector<clap_note_port_info_t>& m_midi_outs;
   double m_sample_rate{44100.0};
   uint32_t m_buffer_size{512};
+
+  // Last clap_process_status returned by the plugin. CLAP_PROCESS_SLEEP
+  // tells us "no more processing needed until next event or audio input
+  // variation" — we use this to skip plugin->process on instruments that
+  // are idle (audio_ins empty + no events). For effects (audio_ins
+  // non-empty) we always process: detecting "audio input variation"
+  // accurately would require a per-frame scan we don't want to pay for.
+  clap_process_status m_last_status{CLAP_PROCESS_CONTINUE};
 };
 
 // Normal implementation
@@ -689,7 +697,7 @@ public:
     process.in_events = &evs;
     process.out_events = &o_evs;
 
-    m_instance.plugin->process(m_instance.plugin, &process);
+    m_last_status = m_instance.plugin->process(m_instance.plugin, &process);
 
     dispatch_param_outputs();
 
@@ -770,6 +778,37 @@ public:
     output_channel_ptrs.clear();
 
     prepare_input_events(samples);
+
+    // Honour CLAP_PROCESS_SLEEP: the plug-in told us it needs no further
+    // work until an event arrives or audio input varies. We trust the
+    // event check; for audio-input variation we conservatively bail only
+    // on instruments (no audio input ports) — for effects, scanning every
+    // input frame for non-zero content would cost more than just running
+    // the plug-in's process() and is exactly what plug-ins themselves do.
+    if(m_last_status == CLAP_PROCESS_SLEEP && audio_ins.empty()
+       && m_input_events.all_events.empty())
+    {
+      // Stay asleep — emit silence on the audio outputs so downstream
+      // sees a clean signal instead of stale data from the last block.
+      std::size_t out_idx = 0;
+      for(ossia::audio_outlet* audio_out : audio_outs)
+      {
+        if(out_idx >= m_expected_audio_outputs.size())
+          break;
+        const auto& info = m_expected_audio_outputs[out_idx];
+        audio_out->data.set_channels(info.channel_count);
+        for(auto& ch : audio_out->data.get())
+        {
+          ch.resize(std::max<std::size_t>(ch.size(), e.bufferSize()));
+          std::fill_n(ch.data() + offset, samples, 0.0);
+        }
+        out_idx++;
+      }
+      // Also clear any midi outlets so we don't repeat last block's MIDI.
+      for(ossia::midi_outlet* midi_out : midi_outs)
+        midi_out->data.messages.clear();
+      return;
+    }
 
     // Setup audio input buffers
     // We must create exactly the number of buffers the plugin expects
@@ -957,6 +996,29 @@ public:
 
     // Process parameter changes
     prepare_input_events(samples);
+
+    // Honour CLAP_PROCESS_SLEEP — see clap_node_32::run for rationale.
+    if(m_last_status == CLAP_PROCESS_SLEEP && audio_ins.empty()
+       && m_input_events.all_events.empty())
+    {
+      std::size_t out_idx = 0;
+      for(ossia::audio_outlet* audio_out : audio_outs)
+      {
+        if(out_idx >= m_expected_audio_outputs.size())
+          break;
+        const auto& info = m_expected_audio_outputs[out_idx];
+        audio_out->data.set_channels(info.channel_count);
+        for(auto& ch : audio_out->data.get())
+        {
+          ch.resize(std::max<std::size_t>(ch.size(), e.bufferSize()));
+          std::fill_n(ch.data() + offset, samples, 0.0);
+        }
+        out_idx++;
+      }
+      for(ossia::midi_outlet* midi_out : midi_outs)
+        midi_out->data.messages.clear();
+      return;
+    }
 
     // Setup audio input buffers
     std::size_t audio_in_idx = 0;
@@ -1273,7 +1335,12 @@ public:
     process.in_events = &evs;
     process.out_events = &o_evs;
 
-    plug->process(plug, &process);
+    // We track m_last_status mainly for diagnostics in the mono path. We
+    // don't act on CLAP_PROCESS_SLEEP for monophonic-faked plugins because
+    // each m_poly[i] has independent processing state and a per-channel
+    // skip would require per-channel status tracking + audio-input
+    // variation detection per channel — more bookkeeping than it's worth.
+    m_last_status = plug->process(plug, &process);
 
     // In poly mode, we have to save the parameter changes from the first node and replicate
     // it to the other nodes to handle the case where the user moves something in the UI.
