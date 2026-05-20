@@ -114,6 +114,38 @@ QRectF StateView::boundingRect() const
   return {-radius, -radius, 2. * radius, 2. * radius};
 }
 
+QPainterPath StateView::shape() const
+{
+  QPainterPath p;
+  if(m_dilated)
+  {
+    p = smallDilated;
+    if(m_containMessage)
+      p |= fullDilated;
+    if(m_containProcess)
+      p |= fullProcessDilated;
+  }
+  else
+  {
+    p = smallNonDilated;
+    if(m_containMessage)
+      p |= fullNonDilated;
+    if(m_containProcess)
+      p |= fullProcessNonDilated;
+  }
+  return p;
+}
+
+QPainterPath StateView::opaqueArea() const
+{
+  return shape();
+}
+
+bool StateView::contains(const QPointF& point) const
+{
+  return shape().contains(point);
+}
+
 void StateView::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {

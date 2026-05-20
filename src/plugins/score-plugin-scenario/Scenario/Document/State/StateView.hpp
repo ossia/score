@@ -5,6 +5,7 @@
 #include <score/model/ColorInterpolator.hpp>
 
 #include <QGraphicsItem>
+#include <QPainterPath>
 #include <QRect>
 
 #include <score_plugin_scenario_export.h>
@@ -44,6 +45,9 @@ public:
   StatePresenter& presenter() const { return m_presenter; }
 
   QRectF boundingRect() const override;
+  QPainterPath shape() const override;
+  QPainterPath opaqueArea() const override;
+  bool contains(const QPointF& point) const override;
 
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
       override;
