@@ -13,6 +13,7 @@
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/graphics/ZoomItem.hpp>
+#include <score/selection/Selection.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/selection/SelectionStack.hpp>
 #include <score/tools/Bind.hpp>
@@ -21,6 +22,8 @@
 
 #include <QGraphicsSceneDragDropEvent>
 #include <QGraphicsView>
+#include <QPainter>
+#include <QStyleOptionGraphicsItem>
 #include <QTimer>
 
 #include <wobjectimpl.h>
@@ -316,35 +319,88 @@ void NodalIntervalView::dropEvent(QGraphicsSceneDragDropEvent* event)
 
 void NodalIntervalView::mousePressEvent(QGraphicsSceneMouseEvent* e)
 {
-  this->m_context.selectionStack.deselect();
-  auto focus = Process::ProcessFocusManager::get(this->m_context);
-  focus->focusNothing();
-
-  m_pressedPos = e->scenePos();
+  if(e->button() == Qt::LeftButton)
+  {
+    if(!(e->modifiers() & Qt::ControlModifier))
+    {
+      this->m_context.selectionStack.deselect();
+      auto focus = Process::ProcessFocusManager::get(this->m_context);
+      if(focus)
+        focus->focusNothing();
+    }
+    m_rubberBanding = true;
+    m_rubberBandOrigin = e->pos();
+    m_rubberBandRect = QRectF{m_rubberBandOrigin, m_rubberBandOrigin};
+  }
+  else if(e->button() == Qt::MiddleButton)
+  {
+    m_pressedPos = e->scenePos();
+  }
   e->accept();
-
-  score::SelectionDispatcher disp{m_context.selectionStack};
-  disp.select(m_model);
 }
 
 void NodalIntervalView::mouseMoveEvent(QGraphicsSceneMouseEvent* e)
 {
-  const auto delta = e->scenePos() - m_pressedPos;
-  m_container->setPos(m_container->pos() + delta);
-  m_pressedPos = e->scenePos();
+  if(m_rubberBanding && (e->buttons() & Qt::LeftButton))
+  {
+    m_rubberBandRect = QRectF{m_rubberBandOrigin, e->pos()}.normalized();
+    update();
+  }
+  else if(e->buttons() & Qt::MiddleButton)
+  {
+    const auto delta = e->scenePos() - m_pressedPos;
+    m_container->setPos(m_container->pos() + delta);
+    m_pressedPos = e->scenePos();
+    const_cast<IntervalModel&>(m_model).setNodalOffset(m_model.nodalOffset() + delta);
+  }
   e->accept();
-  const_cast<IntervalModel&>(m_model).setNodalOffset(m_model.nodalOffset() + delta);
 }
 
 void NodalIntervalView::mouseReleaseEvent(QGraphicsSceneMouseEvent* e)
 {
-  const auto delta = e->scenePos() - m_pressedPos;
+  if(e->button() == Qt::LeftButton && m_rubberBanding)
+  {
+    m_rubberBanding = false;
 
-  m_container->setPos(m_container->pos() + delta);
-  m_pressedPos = e->scenePos();
+    const bool cumulation = e->modifiers() & Qt::ControlModifier;
+    Selection sel;
+    for(auto* node : m_nodeItems)
+    {
+      const QRectF nodeRect = mapRectFromScene(node->sceneBoundingRect());
+      if(m_rubberBandRect.intersects(nodeRect))
+        sel.append(node->model());
+    }
+    sel = filterSelections(sel, m_context.selectionStack.currentSelection(), cumulation);
+    score::SelectionDispatcher{m_context.selectionStack}.select(sel);
+
+    m_rubberBandRect = {};
+    update();
+  }
+  else if(e->button() == Qt::MiddleButton)
+  {
+    const auto delta = e->scenePos() - m_pressedPos;
+    m_container->setPos(m_container->pos() + delta);
+    m_pressedPos = e->scenePos();
+    const_cast<IntervalModel&>(m_model).setNodalOffset(m_model.nodalOffset() + delta);
+  }
   e->accept();
+}
 
-  const_cast<IntervalModel&>(m_model).setNodalOffset(m_model.nodalOffset() + delta);
+void NodalIntervalView::paint(
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+{
+  EmptyRectItem::paint(painter, option, widget);
+
+  if(m_rubberBanding && !m_rubberBandRect.isEmpty())
+  {
+    painter->setRenderHint(QPainter::Antialiasing, false);
+    painter->setCompositionMode(QPainter::CompositionMode_Xor);
+    painter->setPen(
+        QPen{QColor{0, 0, 0, 127}, 2, Qt::DashLine, Qt::SquareCap, Qt::BevelJoin});
+    painter->setBrush(Qt::transparent);
+    painter->drawRect(m_rubberBandRect);
+    painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
+  }
 }
 
 void NodalIntervalView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)

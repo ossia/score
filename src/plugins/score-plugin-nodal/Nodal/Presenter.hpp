@@ -7,6 +7,9 @@
 #include <Nodal/Process.hpp>
 
 #include <score/model/Identifier.hpp>
+
+#include <QRectF>
+
 namespace Nodal
 {
 class Model;
@@ -33,6 +36,7 @@ public:
   void on_created(Process::ProcessModel& n);
   void on_removing(const Process::ProcessModel& n);
   void on_drop(const QPointF& pos, const QMimeData& mime);
+  void on_areaSelect(QRectF rect, bool cumulation);
 
 private:
   IdContainer<Process::NodeItem, Process::ProcessModel> m_nodes;
