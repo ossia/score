@@ -7,6 +7,8 @@
 
 #include <QRectF>
 
+class QGraphicsRectItem;
+
 #include <nano_observer.hpp>
 
 namespace Scenario
@@ -60,14 +62,12 @@ private:
   void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
   void wheelEvent(QGraphicsSceneWheelEvent* event) override;
 
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
-      override;
-
   const IntervalModel& m_model;
   const Process::Context& m_context;
   ItemsToShow m_itemsToShow{};
   std::vector<Process::NodeItem*> m_nodeItems;
   QGraphicsItem* m_container{};
+  QGraphicsRectItem* m_selectionRect{};
   QPointF m_pressedPos{};
   double m_zoomLevel = 0;
 
