@@ -2,6 +2,7 @@
 
 #include <Process/Style/ScenarioStyle.hpp>
 
+#include <QGraphicsRectItem>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 
@@ -15,31 +16,28 @@ View::View(QGraphicsItem* parent)
     : LayerView{parent}
 {
   setFlag(ItemClipsChildrenToShape);
+
+  m_selectionRect = new QGraphicsRectItem(this);
+  m_selectionRect->setZValue(1000.);
+  m_selectionRect->setPen(QPen{QColor{0, 255, 255, 200}, 1, Qt::DashLine, Qt::SquareCap, Qt::BevelJoin});
+  m_selectionRect->setBrush(QColor{0, 255, 255, 20});
+  m_selectionRect->setAcceptedMouseButtons(Qt::NoButton);
+  m_selectionRect->setVisible(false);
 }
 
 View::~View() { }
 
-void View::paint_impl(QPainter* painter) const
-{
-  if(m_rubberBanding && !m_rubberBandRect.isEmpty())
-  {
-    painter->setRenderHint(QPainter::Antialiasing, false);
-    painter->setCompositionMode(QPainter::CompositionMode_Xor);
-    painter->setPen(
-        QPen{QColor{0, 0, 0, 127}, 2, Qt::DashLine, Qt::SquareCap, Qt::BevelJoin});
-    painter->setBrush(Qt::transparent);
-    painter->drawRect(m_rubberBandRect);
-    painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
-  }
-}
+void View::paint_impl(QPainter* painter) const { }
 
 void View::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(event->button() == Qt::LeftButton)
+  if(event->button() == Qt::LeftButton && (event->modifiers() & Qt::ControlModifier))
   {
     m_rubberBanding = true;
     m_rubberBandOrigin = event->pos();
     m_rubberBandRect = QRectF{m_rubberBandOrigin, m_rubberBandOrigin};
+    m_selectionRect->setVisible(true);
+    m_selectionRect->setRect(QRectF{});
     event->accept();
   }
   else
@@ -53,7 +51,7 @@ void View::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   if(m_rubberBanding && (event->buttons() & Qt::LeftButton))
   {
     m_rubberBandRect = QRectF{m_rubberBandOrigin, event->pos()}.normalized();
-    update();
+    m_selectionRect->setRect(m_rubberBandRect);
     event->accept();
   }
   else
@@ -67,10 +65,11 @@ void View::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   if(event->button() == Qt::LeftButton && m_rubberBanding)
   {
     m_rubberBanding = false;
+    m_selectionRect->setVisible(false);
+    m_selectionRect->setRect(QRectF{});
     const bool cumulation = event->modifiers() & Qt::ControlModifier;
     areaSelectRequested(m_rubberBandRect, cumulation);
     m_rubberBandRect = {};
-    update();
     event->accept();
   }
   else

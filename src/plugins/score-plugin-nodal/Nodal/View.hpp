@@ -4,6 +4,8 @@
 #include <QPointF>
 #include <QRectF>
 
+class QGraphicsRectItem;
+
 #include <score_plugin_deviceexplorer_export.h>
 
 #include <verdigris>
@@ -32,6 +34,7 @@ private:
   void dragMoveEvent(QGraphicsSceneDragDropEvent* event) override;
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 
+  QGraphicsRectItem* m_selectionRect{};
   QPointF m_rubberBandOrigin{};
   QRectF m_rubberBandRect{};
   bool m_rubberBanding{false};

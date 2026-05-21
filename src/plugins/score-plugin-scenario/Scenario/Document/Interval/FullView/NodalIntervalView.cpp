@@ -20,10 +20,10 @@
 
 #include <ossia/detail/math.hpp>
 
+#include <QGraphicsRectItem>
 #include <QGraphicsSceneDragDropEvent>
 #include <QGraphicsView>
 #include <QPainter>
-#include <QStyleOptionGraphicsItem>
 #include <QTimer>
 
 #include <wobjectimpl.h>
@@ -115,6 +115,13 @@ NodalIntervalView::NodalIntervalView(
   }
 
   QTimer::singleShot(1, this, &NodalIntervalView::recenterRelativeToView);
+
+  m_selectionRect = new QGraphicsRectItem(this);
+  m_selectionRect->setZValue(1000.);
+  m_selectionRect->setPen(QPen{QColor{0, 255, 255, 200}, 1, Qt::DashLine, Qt::SquareCap, Qt::BevelJoin});
+  m_selectionRect->setBrush(QColor{0, 255, 255, 20});
+  m_selectionRect->setAcceptedMouseButtons(Qt::NoButton);
+  m_selectionRect->setVisible(false);
 }
 
 void NodalIntervalView::zoomPlus()
@@ -321,16 +328,22 @@ void NodalIntervalView::mousePressEvent(QGraphicsSceneMouseEvent* e)
 {
   if(e->button() == Qt::LeftButton)
   {
-    if(!(e->modifiers() & Qt::ControlModifier))
+    if(e->modifiers() & Qt::ControlModifier)
+    {
+      m_rubberBanding = true;
+      m_rubberBandOrigin = e->pos();
+      m_rubberBandRect = QRectF{m_rubberBandOrigin, m_rubberBandOrigin};
+      m_selectionRect->setVisible(true);
+      m_selectionRect->setRect(QRectF{});
+    }
+    else
     {
       this->m_context.selectionStack.deselect();
       auto focus = Process::ProcessFocusManager::get(this->m_context);
       if(focus)
         focus->focusNothing();
+      m_pressedPos = e->scenePos();
     }
-    m_rubberBanding = true;
-    m_rubberBandOrigin = e->pos();
-    m_rubberBandRect = QRectF{m_rubberBandOrigin, m_rubberBandOrigin};
   }
   else if(e->button() == Qt::MiddleButton)
   {
@@ -344,9 +357,9 @@ void NodalIntervalView::mouseMoveEvent(QGraphicsSceneMouseEvent* e)
   if(m_rubberBanding && (e->buttons() & Qt::LeftButton))
   {
     m_rubberBandRect = QRectF{m_rubberBandOrigin, e->pos()}.normalized();
-    update();
+    m_selectionRect->setRect(m_rubberBandRect);
   }
-  else if(e->buttons() & Qt::MiddleButton)
+  else if(e->buttons() & (Qt::LeftButton | Qt::MiddleButton))
   {
     const auto delta = e->scenePos() - m_pressedPos;
     m_container->setPos(m_container->pos() + delta);
@@ -361,6 +374,8 @@ void NodalIntervalView::mouseReleaseEvent(QGraphicsSceneMouseEvent* e)
   if(e->button() == Qt::LeftButton && m_rubberBanding)
   {
     m_rubberBanding = false;
+    m_selectionRect->setVisible(false);
+    m_selectionRect->setRect(QRectF{});
 
     const bool cumulation = e->modifiers() & Qt::ControlModifier;
     Selection sel;
@@ -372,36 +387,11 @@ void NodalIntervalView::mouseReleaseEvent(QGraphicsSceneMouseEvent* e)
     }
     sel = filterSelections(sel, m_context.selectionStack.currentSelection(), cumulation);
     score::SelectionDispatcher{m_context.selectionStack}.select(sel);
-
     m_rubberBandRect = {};
-    update();
-  }
-  else if(e->button() == Qt::MiddleButton)
-  {
-    const auto delta = e->scenePos() - m_pressedPos;
-    m_container->setPos(m_container->pos() + delta);
-    m_pressedPos = e->scenePos();
-    const_cast<IntervalModel&>(m_model).setNodalOffset(m_model.nodalOffset() + delta);
   }
   e->accept();
 }
 
-void NodalIntervalView::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
-{
-  EmptyRectItem::paint(painter, option, widget);
-
-  if(m_rubberBanding && !m_rubberBandRect.isEmpty())
-  {
-    painter->setRenderHint(QPainter::Antialiasing, false);
-    painter->setCompositionMode(QPainter::CompositionMode_Xor);
-    painter->setPen(
-        QPen{QColor{0, 0, 0, 127}, 2, Qt::DashLine, Qt::SquareCap, Qt::BevelJoin});
-    painter->setBrush(Qt::transparent);
-    painter->drawRect(m_rubberBandRect);
-    painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
-  }
-}
 
 void NodalIntervalView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
