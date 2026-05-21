@@ -17,12 +17,17 @@ View::View(QGraphicsItem* parent)
 {
   setFlag(ItemClipsChildrenToShape);
 
-  m_selectionRect = new QGraphicsRectItem(this);
-  m_selectionRect->setZValue(1000.);
-  m_selectionRect->setPen(QPen{QColor{0, 255, 255, 200}, 1, Qt::DashLine, Qt::SquareCap, Qt::BevelJoin});
-  m_selectionRect->setBrush(QColor{0, 255, 255, 20});
-  m_selectionRect->setAcceptedMouseButtons(Qt::NoButton);
-  m_selectionRect->setVisible(false);
+  {
+    auto selColor = score::Skin::instance().Base2.darker.brush.color();
+    auto selFill = selColor;
+    selFill.setAlpha(40);
+    m_selectionRect = new QGraphicsRectItem(this);
+    m_selectionRect->setZValue(1000.);
+    m_selectionRect->setPen(QPen{selColor, 1, Qt::DashLine, Qt::SquareCap, Qt::BevelJoin});
+    m_selectionRect->setBrush(selFill);
+    m_selectionRect->setAcceptedMouseButtons(Qt::NoButton);
+    m_selectionRect->setVisible(false);
+  }
 }
 
 View::~View() { }
