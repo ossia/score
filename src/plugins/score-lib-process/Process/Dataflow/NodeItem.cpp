@@ -21,6 +21,7 @@
 #include <score/graphics/GraphicsLayout.hpp>
 #include <score/graphics/TextItem.hpp>
 #include <score/model/Skin.hpp>
+#include <score/selection/Selection.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/selection/SelectionStack.hpp>
 #include <score/tools/Bind.hpp>
@@ -963,7 +964,12 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
     {
       m_context.focusDispatcher.focus(m_presenter);
     }
-    score::SelectionDispatcher{m_context.selectionStack}.select(m_model);
+    {
+      const bool cumulation = event->modifiers() & Qt::ControlModifier;
+      Selection sel = filterSelections(
+          &m_model, m_context.selectionStack.currentSelection(), cumulation);
+      score::SelectionDispatcher{m_context.selectionStack}.select(sel);
+    }
     event->accept();
   }
   else

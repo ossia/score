@@ -13,6 +13,9 @@
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/model/EntitySerialization.hpp>
+#include <score/selection/Selection.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
+#include <score/selection/SelectionStack.hpp>
 #include <score/tools/Bind.hpp>
 
 #include <ossia/detail/math.hpp>
@@ -31,6 +34,7 @@ Presenter::Presenter(
   bind(layer.nodes, *this);
 
   connect(view, &View::dropReceived, this, &Presenter::on_drop);
+  connect(view, &View::areaSelectRequested, this, &Presenter::on_areaSelect);
 
   if(auto itv = Scenario::closestParentInterval(m_model.parent()))
   {
@@ -153,5 +157,18 @@ void Presenter::on_created(Process::ProcessModel& n)
 void Presenter::on_removing(const Process::ProcessModel& n)
 {
   m_nodes.erase(n.id());
+}
+
+void Presenter::on_areaSelect(QRectF rect, bool cumulation)
+{
+  Selection sel;
+  for(Process::NodeItem& node : m_nodes)
+  {
+    const QRectF nodeRect = m_view->mapRectFromScene(node.sceneBoundingRect());
+    if(rect.intersects(nodeRect))
+      sel.append(node.model());
+  }
+  sel = filterSelections(sel, m_context.context.selectionStack.currentSelection(), cumulation);
+  score::SelectionDispatcher{m_context.context.selectionStack}.select(sel);
 }
 }
