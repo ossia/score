@@ -6,7 +6,7 @@
 
 class QGraphicsRectItem;
 
-#include <score_plugin_deviceexplorer_export.h>
+#include <score_plugin_nodal_export.h>
 
 #include <verdigris>
 
@@ -20,7 +20,7 @@ public:
   ~View() override;
 
   void areaSelectRequested(QRectF area, bool cumulation)
-      E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, areaSelectRequested, area, cumulation)
+      E_SIGNAL(SCORE_PLUGIN_NODAL_EXPORT, areaSelectRequested, area, cumulation)
 
 private:
   void paint_impl(QPainter*) const override;
