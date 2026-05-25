@@ -66,3 +66,5 @@ Documentation/Doc_sources/score-documentation/site
 ./*.cxxflags
 ./*.includes
 ./*.files
+
+.claude
