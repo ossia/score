@@ -32,7 +32,9 @@ void ProcessTreeView::selectionChanged(
 
   if(!sel.isEmpty())
   {
-    selected(*dataFromViewIndex(sel.indexes().front()));
+    // guard against transient null internalPointer from async scan rebuild
+    if(auto* data = dataFromViewIndex(sel.indexes().front()))
+      selected(*data);
   }
   else if(desel.size() > 0)
   {

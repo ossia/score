@@ -49,6 +49,10 @@ public:
   using QAbstractItemModel::beginRemoveRows;
   using QAbstractItemModel::endRemoveRows;
 
+  // async scanners (LV2, CLAP) rebuild whole subtrees on descriptorsChanged
+  using QAbstractItemModel::beginResetModel;
+  using QAbstractItemModel::endResetModel;
+
   ProcessesItemModel(const score::GUIApplicationContext& ctx, QObject* parent);
 
   void rescan();
