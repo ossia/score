@@ -13,78 +13,22 @@
 #include <QFormLayout>
 #include <QLabel>
 #include <QSpinBox>
-#include <QTimer>
 
 #if defined(OSSIA_AUDIO_PIPEWIRE)
-#include <QSocketNotifier>
+#include <libremidi/backends/linux/pipewire/context.hpp>
+#include <libremidi/backends/linux/pipewire/loader.hpp>
 
 namespace Audio
 {
-namespace
-{
-// Tear down and rebuild the shared pipewire context + its QSocketNotifier.
-// Used both on initial construction and when the context gets marked as
-// broken (timeout, protocol error) — without this, a single sync timeout
-// would wedge the factory until the user quits and relaunches the app.
-void reinitPipeWireClient(
-    std::shared_ptr<ossia::pipewire_context>& client, QSocketNotifier*& fd,
-    QObject* owner)
-{
-  if(fd)
-  {
-    delete fd;
-    fd = nullptr;
-  }
-  client.reset();
-
-  try
-  {
-    client = std::make_shared<ossia::pipewire_context>();
-    if(client->broken())
-    {
-      client.reset();
-      return;
-    }
-
-    if(int rawfd = client->get_fd(); rawfd != -1)
-    {
-      fd = new QSocketNotifier{rawfd, QSocketNotifier::Read};
-      QObject::connect(
-          fd, &QSocketNotifier::activated, owner, [clt = client] {
-        // If the core has gone south we must NOT keep iterating the
-        // loop — doing so could spin against a wedged fd forever.
-        if(clt->broken())
-          return;
-        if(auto lp = clt->lp)
-        {
-          int result = pw_loop_iterate(lp, 0);
-          if(result < 0)
-            qDebug() << "pw_loop_iterate: " << spa_strerror(result);
-        }
-          });
-      fd->setEnabled(true);
-    }
-  }
-  catch(...)
-  {
-    client.reset();
-  }
-}
-}
 
 PipeWireAudioFactory::PipeWireAudioFactory()
 {
-  reinitPipeWireClient(m_client, m_fd, this);
+  m_client = libremidi::pipewire::shared_context();
 }
 
 PipeWireAudioFactory::~PipeWireAudioFactory()
 {
-  if(m_client)
-  {
-    m_client->synchronize();
-    delete m_fd;
-    m_client.reset();
-  }
+  m_client.reset();
 }
 
 QString PipeWireAudioFactory::prettyName() const
@@ -95,7 +39,7 @@ QString PipeWireAudioFactory::prettyName() const
 bool PipeWireAudioFactory::available() const noexcept
 try
 {
-  return ossia::libpipewire::instance().init;
+  return libremidi::pipewire::load().filter_available;
 }
 catch(...)
 {
@@ -112,22 +56,17 @@ std::shared_ptr<ossia::audio_engine> PipeWireAudioFactory::make_engine(
 {
   static_assert(std::is_base_of_v<ossia::audio_engine, ossia::pipewire_audio_protocol>);
 
-  // If the shared context has entered an error state (initial sync
-  // timeout, protocol error, daemon restarted, prior engine tear-down
-  // failed), rebuild it. Otherwise we'd hand out engines that would
-  // themselves immediately fail or hang on synchronize().
-  if(m_client && m_client->broken())
+  if(!m_client)
+    m_client = libremidi::pipewire::shared_context();
+  if(m_client && m_client->state() == libremidi::pipewire::connection_state::broken)
   {
-    reinitPipeWireClient(m_client, m_fd, this);
+    if(!m_client->reconnect())
+    {
+      m_client.reset();
+      m_client = libremidi::pipewire::shared_context();
+    }
   }
-
-  if(!this->m_client)
-    return {};
-
-  if(this->m_client->broken())
-    return {};
-
-  if(!this->m_client->lp)
+  if(!m_client || !m_client->ok())
     return {};
 
   ossia::audio_setup settings;
@@ -178,16 +117,17 @@ void PipeWireAudioFactory::setupSettingsWidget(
     return;
   }
 
-  if(m_client && m_client->broken())
-  {
-    reinitPipeWireClient(m_client, m_fd, this);
-  }
   if(!m_client)
+    m_client = libremidi::pipewire::shared_context();
+  if(m_client && m_client->state() == libremidi::pipewire::connection_state::broken)
   {
-    reinitPipeWireClient(m_client, m_fd, this);
+    if(!m_client->reconnect())
+    {
+      m_client.reset();
+      m_client = libremidi::pipewire::shared_context();
+    }
   }
-
-  if(!m_client || !m_client->registry || m_client->broken())
+  if(!m_client || !m_client->ok())
   {
     on_noPipeWire();
     return;
@@ -219,23 +159,6 @@ void PipeWireAudioFactory::setupSettingsWidget(
       "environment variable before starting ossia:\n\n"
       "    #Set buffer size to 256 and sample rate to 48000\n"
       "    export PIPEWIRE_QUANTUM=256/48000\n")});
-  /*
-  {
-    auto rate = jack_get_sample_rate(clt);
-    auto rate_label = new QLabel{QString::number(rate)};
-    rate_label->setObjectName("Rate");
-    lay->addRow(QObject::tr("Rate"), rate_label);
-    m.setRate(rate);
-  }
-
-  {
-    auto bs = jack_get_buffer_size(clt);
-    auto bs_label = new QLabel{QString::number(bs)};
-    bs_label->setObjectName("BufferSize");
-    lay->addRow(QObject::tr("Buffer size"), bs_label);
-    m.setBufferSize(bs);
-  }
-  */
 
   auto autoconnect = new QCheckBox{w};
   {

@@ -7,16 +7,16 @@
 
 class QFormLayout;
 #if defined(OSSIA_AUDIO_PIPEWIRE)
-namespace ossia
+namespace libremidi::pipewire
 {
-struct pipewire_context;
+class context;
+class subscription;
 }
 
-class QSocketNotifier;
 namespace Audio
 {
 
-class PipeWireAudioFactory final
+class SCORE_PLUGIN_AUDIO_EXPORT PipeWireAudioFactory final
     : public QObject
     , public AudioFactory
 {
@@ -43,8 +43,7 @@ public:
       score::SettingsCommandDispatcher& m_disp, QWidget* parent) override;
 
 private:
-  std::shared_ptr<ossia::pipewire_context> m_client{};
-  QSocketNotifier* m_fd{};
+  std::shared_ptr<libremidi::pipewire::context> m_client;
 };
 }
 #endif
