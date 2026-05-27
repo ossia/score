@@ -28,6 +28,10 @@ if(APPLE OR WIN32 OR TARGET X11::X11)
   if(TARGET score_plugin_clap)
     add_subdirectory(clappuppet)
   endif()
+
+  if(TARGET score_plugin_lv2)
+    add_subdirectory(lv2puppet)
+  endif()
 endif()
 
 if(LINUX)

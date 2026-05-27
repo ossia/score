@@ -6,8 +6,11 @@
 #include <Control/DefaultEffectItem.hpp>
 #include <Effect/EffectFactory.hpp>
 #include <LV2/Context.hpp>
+#include <Process/Preset.hpp>
 
 #include <ossia/dataflow/node_process.hpp>
+
+#include <QTimer>
 
 #include <lilv/lilvmm.hpp>
 
@@ -16,6 +19,8 @@
 namespace LV2
 {
 class Model;
+// Call after a rescan: LilvPlugin* values may dangle if lilv rebuilt its index
+void clearPluginCache();
 }
 PROCESS_METADATA(
     , LV2::Model, "fd5243ba-70b5-4164-b44a-ecb0dcdc0494", "LV2", "LV2",
@@ -49,6 +54,10 @@ public:
   QString prettyName() const noexcept override;
 
   bool hasExternalUI() const noexcept;
+
+  void loadPreset(const Process::Preset& preset) override;
+  Process::Preset savePreset() const noexcept override;
+  std::vector<Process::Preset> builtinPresets() const noexcept override;
 
   const LilvPlugin* plugin{};
   mutable LV2::EffectContext effectContext;
@@ -88,6 +97,15 @@ public:
   void
   writeAtomToUi(uint32_t port_index, uint32_t type, uint32_t size, const void* body);
   void writeAtomToUi(uint32_t port_index, LV2_Atom& atom);
+
+private:
+  // per_channel voice-pool grower (main thread). Audio thread pushes high-water mark.
+  QTimer* m_grow_timer{};
+  int m_pool_sample_rate{};
+  std::size_t m_pool_pushed{};
+  std::size_t m_pool_max_requested{};
+
+  void growVoicePoolTick();
 };
 }
 
