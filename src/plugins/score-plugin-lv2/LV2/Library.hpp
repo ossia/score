@@ -4,73 +4,60 @@
 #include <Library/LibraryInterface.hpp>
 #include <Library/ProcessesItemModel.hpp>
 
-#include <score/tools/ThreadPool.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <QCoreApplication>
+#include <QMap>
 
 namespace LV2
 {
 class LibraryHandler final : public Library::LibraryInterface
 {
   SCORE_CONCRETE("570f0b92-a091-47ff-a5c3-a585e07df2bf")
+
   void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
       override
   {
-    score::TaskPool::instance().post([model = QPointer{&model}, &ctx] {
-      auto& plug = ctx.applicationPlugin<LV2::ApplicationPlugin>();
-      auto& world = plug.lilv;
+    constexpr static const auto key = Metadata<ConcreteKey_k, LV2::Model>::get();
 
-      // This part can take a few seconds so we do it in threadpool
-      auto plugs = world.get_all_plugins();
+    QModelIndex node = model.find(key);
+    if(node == QModelIndex{})
+      return;
 
-      ossia::flat_map<QString, QVector<QString>> categories;
-      categories.reserve(50);
+    auto& parent = *reinterpret_cast<Library::ProcessNode*>(node.internalPointer());
+    parent.key = {};
 
+    auto& plug = ctx.applicationPlugin<LV2::ApplicationPlugin>();
+
+    auto reset_plugs = [&plug, &parent] {
+      QMap<QString, Library::ProcessNode*> categories;
+      for(const auto& info : plug.cachedDescriptors())
       {
-        auto lck = std::unique_lock{plug.library_lock};
-        if(plug.abort_library_scan)
-          return;
-
-        auto it = plugs.begin();
-        while(!plugs.is_end(it))
+        if(!info.valid)
+          continue;
+        QString category
+            = info.class_label.isEmpty() ? QStringLiteral("Other") : info.class_label;
+        if(!categories.contains(category))
         {
-          if(plug.abort_library_scan)
-            return;
-
-          auto plug = plugs.get(it);
-          const auto class_name = plug.get_class().get_label().as_string();
-          const auto plug_name = get_lv2_plugin_name(plug);
-          categories[class_name].push_back(plug_name);
-          it = plugs.next(it);
+          auto& cat_node = parent.emplace_back(
+              Library::ProcessData{{{}, category, {}}, {}}, &parent);
+          categories[category] = &cat_node;
         }
+        Library::ProcessData pdata{{key, info.name, info.uri}, {}};
+        Library::addToLibrary(*categories[category], std::move(pdata));
       }
+    };
 
-      // Back to main thread
-      QMetaObject::invokeMethod(
-          QCoreApplication::instance(), [model, categories = std::move(categories)] {
-        if(!model)
-          return;
+    reset_plugs();
 
-        const auto& key = LV2::ProcessFactory{}.concreteKey();
-        QModelIndex node = model->find(key);
-        if(node == QModelIndex{})
-          return;
-
-        auto& parent = *reinterpret_cast<Library::ProcessNode*>(node.internalPointer());
-
-        for(auto& category : categories)
-        {
-          // Already sorted through the map
-          auto& cat = parent.emplace_back(
-              Library::ProcessData{Process::ProcessData{{}, category.first, {}}, {}},
-              &parent);
-          for(auto& plug : category.second)
-          {
-            Library::addToLibrary(
-                cat, Library::ProcessData{Process::ProcessData{key, plug, plug}, {}});
-          }
-        }
-      });
+    // Full reset: tree edits below are plain-data; partial signals would dangle indexes
+    QObject::connect(
+        &plug, &LV2::ApplicationPlugin::descriptorsChanged, &model,
+        [&model, &parent, reset_plugs] {
+      model.beginResetModel();
+      parent.resize(0);
+      reset_plugs();
+      model.endResetModel();
     });
   }
 };
