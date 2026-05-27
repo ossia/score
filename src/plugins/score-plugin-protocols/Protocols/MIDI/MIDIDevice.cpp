@@ -163,6 +163,10 @@ makeInputConfiguration(MIDIDevice& self, MIDISpecificSettings& set)
       conf.timestamps = libremidi::timestamp_mode::AudioFrame;
       break;
     }
+    case libremidi::API::PIPEWIRE_UMP: {
+      conf.timestamps = libremidi::timestamp_mode::AudioFrame;
+      break;
+    }
     case libremidi::API::KEYBOARD: {
       auto ptr = get_if<libremidi::kbd_input_configuration>(&api_conf);
       SCORE_ASSERT(ptr);

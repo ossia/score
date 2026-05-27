@@ -85,7 +85,13 @@ if(OSSIA_ENABLE_JACK)
 endif()
 
 if(OSSIA_ENABLE_PIPEWIRE)
-  target_link_libraries(${PROJECT_NAME} PRIVATE $<BUILD_INTERFACE:pipewire::pipewire>)
+  # include-only; libpipewire is dlopened by libremidi at runtime
+  if(TARGET pipewire::pipewire)
+    get_target_property(_pw_includes pipewire::pipewire INTERFACE_INCLUDE_DIRECTORIES)
+    if(_pw_includes)
+      target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${_pw_includes})
+    endif()
+  endif()
   list(APPEND SCORE_FEATURES_LIST pipewire)
 endif()
 
