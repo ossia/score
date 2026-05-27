@@ -151,6 +151,8 @@ public:
         if(auto nr = std::dynamic_pointer_cast<ossia::nodes::sound_ref>(old_node))
         {
           update_ref(nr, file, r, component, commands);
+          // Reloaded in place: signal HandleNodeChange to re-issue transport.
+          component.nodeChanged(old_node, old_node, &commands);
         }
         else
         {
@@ -170,6 +172,7 @@ public:
         if(auto nr = std::dynamic_pointer_cast<ossia::nodes::sound_libav>(old_node))
         {
           update_libav(nr, file, r, component, commands);
+          component.nodeChanged(old_node, old_node, &commands);
         }
         else
         {
@@ -189,6 +192,7 @@ public:
         if(auto nr = std::dynamic_pointer_cast<ossia::nodes::sound_ref>(old_node))
         {
           update_sndfile(nr, file, r, component, commands);
+          component.nodeChanged(old_node, old_node, &commands);
         }
         else
         {
@@ -211,6 +215,7 @@ public:
         if(auto nm = std::dynamic_pointer_cast<ossia::nodes::sound_mmap>(old_node))
         {
           update_mmap(nm, file, r, component, commands);
+          component.nodeChanged(old_node, old_node, &commands);
         }
         else
         {

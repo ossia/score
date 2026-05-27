@@ -248,6 +248,7 @@ struct HandleNodeChange
 {
   std::weak_ptr<ossia::graph_node> cst_node_weak;
   std::weak_ptr<ossia::time_process> oproc_weak;
+  std::weak_ptr<ossia::time_interval> itv_weak;
   std::weak_ptr<ossia::graph_interface> g_weak;
   Process::ProcessModel& proc;
 
@@ -257,7 +258,9 @@ struct HandleNodeChange
   {
     OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
 
-    commands->push_back([cst_node_weak = this->cst_node_weak, g_weak = this->g_weak,
+    commands->push_back([cst_node_weak = this->cst_node_weak,
+                         oproc_weak = this->oproc_weak,
+                         itv_weak = this->itv_weak, g_weak = this->g_weak,
                          propagated = propagatedOutlets(proc.outlets()), old_node,
                          new_node] {
       OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
@@ -266,6 +269,24 @@ struct HandleNodeChange
         return;
       auto g = g_weak.lock();
       if(!g)
+        return;
+
+      // Re-seek the resampler to the current model time so a file swap
+      // on a running interval lands in phase.
+      if(auto itv = itv_weak.lock())
+      {
+        if(auto oproc = oproc_weak.lock())
+        {
+          const auto date = itv->get_date();
+          if(date.impl != 0)
+          {
+            oproc->transport(date, itv->current_transport_info());
+          }
+        }
+      }
+
+      // In-place reload: skip the rewire to avoid a momentary audio break.
+      if(old_node == new_node)
         return;
 
       // Remove propagate edges from the old node
