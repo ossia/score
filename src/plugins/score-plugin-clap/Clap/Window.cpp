@@ -195,7 +195,7 @@ void Window::showEvent(QShowEvent* event)
     if(m_gui_ext->set_transient)
     {
       // FIXME should be the main window WId instead?
-      clap_window_t parent_window;
+      clap_window_t parent_window{};
       parent_window.api = m_gui_api.c_str();
 #if defined(__APPLE__)
       parent_window.cocoa = reinterpret_cast<clap_nsview>(windowHandle()->winId());

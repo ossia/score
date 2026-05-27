@@ -7,7 +7,9 @@
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/dataflow/port.hpp>
+#include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/lockfree_queue.hpp>
+#include <ossia/detail/nullable_variant.hpp>
 
 #include <QCoreApplication>
 #include <QDebug>
@@ -92,6 +94,47 @@ inline void apply_clap_state(const clap_plugin_t* plugin, const QByteArray& blob
 
   state->load(plugin, &stream);
 }
+
+// Per-voice slice; mirrors LV2's voice_control_value in score-plugin-lv2/LV2/Node.hpp.
+inline std::optional<double>
+voice_control_value(const ossia::value& val, std::size_t voice_idx) noexcept
+{
+  return ossia::apply_nonnull(
+      [voice_idx](const auto& v) -> std::optional<double> {
+    using T = std::decay_t<decltype(v)>;
+    if constexpr(std::is_same_v<T, std::vector<ossia::value>>)
+    {
+      if(v.empty())
+        return std::nullopt;
+      const auto& elem = (voice_idx < v.size()) ? v[voice_idx] : v.back();
+      return ossia::convert<double>(elem);
+    }
+    else if constexpr(std::is_same_v<T, ossia::vec2f>)
+      return v[std::min<std::size_t>(voice_idx, 1)];
+    else if constexpr(std::is_same_v<T, ossia::vec3f>)
+      return v[std::min<std::size_t>(voice_idx, 2)];
+    else if constexpr(std::is_same_v<T, ossia::vec4f>)
+      return v[std::min<std::size_t>(voice_idx, 3)];
+    else if constexpr(
+        std::is_same_v<T, float> || std::is_same_v<T, double>
+        || std::is_same_v<T, int> || std::is_same_v<T, bool>)
+      return double(v);
+    else
+      return std::nullopt;
+  },
+      val.v);
+}
+
+inline bool is_vector_value(const ossia::value& val) noexcept
+{
+  return ossia::apply_nonnull([](const auto& v) noexcept -> bool {
+    using T = std::decay_t<decltype(v)>;
+    return std::is_same_v<T, std::vector<ossia::value>>
+           || std::is_same_v<T, ossia::vec2f>
+           || std::is_same_v<T, ossia::vec3f>
+           || std::is_same_v<T, ossia::vec4f>;
+  }, val.v);
+}
 }
 
 static auto dummy_audio_buffer() noexcept
@@ -141,6 +184,7 @@ public:
       , m_param_outs{handle->m_parameters_outs}
       , m_midi_ins{handle->m_midi_ins}
       , m_midi_outs{handle->m_midi_outs}
+      , m_param_out_index{handle->param_outs_by_id}
   {
     set_not_fp_safe();
     midi_ins.reserve(m_midi_ins.size());
@@ -372,53 +416,49 @@ public:
     // one CLAP_EVENT_PARAM_VALUE per timestamp instead of collapsing them
     // all to frame 0 — that lets sample-accurate automation (LFO, curve,
     // MIDI mapping) drive plug-in smoothers correctly.
-    std::size_t param_idx = 0;
-
-    for(std::size_t i = 0; i < m_inlets.size(); ++i)
+    for(std::size_t i = 0; i < parameter_ins.size(); ++i)
     {
-      if(auto ctrl_in = m_inlets[i]->target<ossia::value_port>())
+      const auto& data = parameter_ins[i]->data.get_data();
+      if(data.empty())
+        continue;
+      const auto& param_info = m_param_ins[i];
+      for(const auto& tv : data)
       {
-        const auto& data = ctrl_in->get_data();
-        if(!data.empty() && param_idx < m_param_ins.size())
-        {
-          auto& param_info = m_param_ins[param_idx];
-          for(const auto& tv : data)
-          {
-            double value = std::clamp(
-                ossia::convert<double>(tv.value), param_info.min_value,
-                param_info.max_value);
+        // Vector values are addressed per-voice by prepare_voice_overrides.
+        if(is_vector_value(tv.value))
+          continue;
+        double value = std::clamp(
+            ossia::convert<double>(tv.value), param_info.min_value,
+            param_info.max_value);
 
-            // Map ossia's signed frame offset onto CLAP's unsigned uint32
-            // time field. Negative timestamps (carry-over from the previous
-            // block) clamp to 0; out-of-block timestamps clamp to samples-1
-            // so the plug-in still sees the change within the current block.
-            const int64_t t = tv.timestamp;
-            const uint32_t time
-                = t <= 0 ? 0u
-                         : static_cast<uint32_t>(
-                               std::min<int64_t>(t, samples > 0 ? samples - 1 : 0));
+        // Map ossia's signed frame offset onto CLAP's unsigned uint32
+        // time field. Negative timestamps (carry-over from the previous
+        // block) clamp to 0; out-of-block timestamps clamp to samples-1
+        // so the plug-in still sees the change within the current block.
+        const int64_t t = tv.timestamp;
+        const uint32_t time
+            = t <= 0 ? 0u
+                     : static_cast<uint32_t>(
+                           std::min<int64_t>(t, samples > 0 ? samples - 1 : 0));
 
-            clap_event_param_value_t param_event{};
-            param_event.header.size = sizeof(clap_event_param_value_t);
-            param_event.header.time = time;
-            param_event.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
-            param_event.header.type = CLAP_EVENT_PARAM_VALUE;
-            param_event.header.flags = CLAP_EVENT_IS_LIVE;
-            param_event.param_id = param_info.id;
-            param_event.cookie = param_info.cookie;
-            param_event.note_id = -1;
-            param_event.port_index = -1;
-            param_event.channel = -1;
-            param_event.key = -1;
-            param_event.value = value;
+        clap_event_param_value_t param_event{};
+        param_event.header.size = sizeof(clap_event_param_value_t);
+        param_event.header.time = time;
+        param_event.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
+        param_event.header.type = CLAP_EVENT_PARAM_VALUE;
+        param_event.header.flags = CLAP_EVENT_IS_LIVE;
+        param_event.param_id = param_info.id;
+        param_event.cookie = param_info.cookie;
+        param_event.note_id = -1;
+        param_event.port_index = -1;
+        param_event.channel = -1;
+        param_event.key = -1;
+        param_event.value = value;
 
-            m_input_events.param_events.push_back(param_event);
-            m_input_events.all_events.push_back(
-                reinterpret_cast<clap_event_header_t*>(
-                    &m_input_events.param_events.back()));
-          }
-        }
-        param_idx++;
+        m_input_events.param_events.push_back(param_event);
+        m_input_events.all_events.push_back(
+            reinterpret_cast<clap_event_header_t*>(
+                &m_input_events.param_events.back()));
       }
     }
   }
@@ -560,6 +600,9 @@ public:
                     .size()); // Important to reserve one additional buffer of parameters for the mono case
     m_input_events.all_events.reserve((param_event_count + midi_event_count + 1) * 1.1);
 
+    if(m_pending_all_notes_off.exchange(false, std::memory_order_acq_rel))
+      inject_all_notes_off();
+
     // Process parameter changes
     process_controls(samples);
     process_midi();
@@ -572,25 +615,68 @@ public:
     });
   }
 
+  // NOTE_CHOKE wildcard + CC#120/123 on all 16 channels covers every dialect.
+  void inject_all_notes_off()
+  {
+    {
+      clap_event_note_t ev{};
+      ev.header.size = sizeof(clap_event_note_t);
+      ev.header.time = 0;
+      ev.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
+      ev.header.type = CLAP_EVENT_NOTE_CHOKE;
+      ev.header.flags = 0;
+      ev.note_id = -1;
+      ev.port_index = -1;
+      ev.channel = -1;
+      ev.key = -1;
+      ev.velocity = 0.0;
+      m_input_events.note_events.push_back(ev);
+      m_input_events.all_events.push_back(
+          reinterpret_cast<clap_event_header_t*>(&m_input_events.note_events.back()));
+    }
+    for(uint8_t ch = 0; ch < 16; ++ch)
+    {
+      for(uint8_t cc : {uint8_t(120), uint8_t(123)})
+      {
+        clap_event_midi_t ev{};
+        ev.header.size = sizeof(clap_event_midi_t);
+        ev.header.time = 0;
+        ev.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
+        ev.header.type = CLAP_EVENT_MIDI;
+        ev.header.flags = 0;
+        ev.port_index = 0;
+        ev.data[0] = uint8_t(0xB0 | ch);
+        ev.data[1] = cc;
+        ev.data[2] = 0;
+        m_input_events.midi_events.push_back(ev);
+        m_input_events.all_events.push_back(
+            reinterpret_cast<clap_event_header_t*>(&m_input_events.midi_events.back()));
+      }
+    }
+  }
+
+  void all_notes_off() noexcept override
+  {
+    m_pending_all_notes_off.store(true, std::memory_order_release);
+  }
+
   // Forward any CLAP_EVENT_PARAM_VALUE events the plugin emitted during
   // process() to the matching `parameter_outs` value_outlet so downstream
   // ossia nodes (and the GUI bargraphs) see live values.
   void dispatch_param_outputs()
   {
-    if(m_output_events.param_events.empty() || m_param_outs.empty())
+    if(m_output_events.param_events.empty())
       return;
 
     for(const auto& ev : m_output_events.param_events)
     {
-      for(std::size_t i = 0; i < m_param_outs.size(); ++i)
-      {
-        if(m_param_outs[i].id == ev.param_id && i < parameter_outs.size())
-        {
-          parameter_outs[i]->data.write_value(
-              ossia::value{ev.value}, static_cast<int64_t>(ev.header.time));
-          break;
-        }
-      }
+      auto it = m_param_out_index.find(ev.param_id);
+      if(it == m_param_out_index.end())
+        continue;
+      const auto idx = it->second;
+      if(idx < parameter_outs.size())
+        parameter_outs[idx]->data.write_value(
+            ossia::value{ev.value}, static_cast<int64_t>(ev.header.time));
     }
   }
 
@@ -600,7 +686,7 @@ public:
   ossia::small_vector<ossia::midi_outlet*, 2> midi_outs;
   std::vector<ossia::value_inlet*> parameter_ins;
   std::vector<ossia::value_outlet*> parameter_outs;
-  clap_event_transport_t m_current_transport;
+  clap_event_transport_t m_current_transport{};
 
   event_storage m_input_events;
   event_storage m_output_events;
@@ -609,6 +695,7 @@ public:
   const std::vector<clap_param_info_t>& m_param_outs;
   const std::vector<clap_note_port_info_t>& m_midi_ins;
   const std::vector<clap_note_port_info_t>& m_midi_outs;
+  const ossia::flat_map<clap_id, std::uint32_t>& m_param_out_index;
   double m_sample_rate{44100.0};
   uint32_t m_buffer_size{512};
 
@@ -619,6 +706,8 @@ public:
   // non-empty) we always process: detecting "audio input variation"
   // accurately would require a per-frame scan we don't want to pay for.
   clap_process_status m_last_status{CLAP_PROCESS_CONTINUE};
+
+  std::atomic<bool> m_pending_all_notes_off{false};
 };
 
 // Normal implementation
@@ -1342,14 +1431,8 @@ public:
     return p;
   }
 
-  // [audio-thread] Drain any new instances that the main-thread grower
-  // has handed us through m_incoming.
-  void drain_incoming() noexcept
-  {
-    poly_plugin p;
-    while(m_incoming.try_dequeue(p))
-      m_poly.push_back(p);
-  }
+  // [audio-thread] Called by grow_pool_tick via in_exec.
+  void append_poly(poly_plugin p) noexcept { m_poly.push_back(p); }
 
   // [audio-thread] Tell the grower we need at least `n` total instances.
   // Monotonically-increasing: a brief drop to a smaller channel count
@@ -1403,22 +1486,11 @@ public:
       }
     }
 
-    // Drain any instances the grower had pushed but the audio thread did
-    // not consume yet. They are already created/init'd/activated, so we
-    // must deactivate + destroy them on the main thread alongside m_poly.
-    std::vector<poly_plugin> pending;
-    {
-      poly_plugin tmp{};
-      while(m_incoming.try_dequeue(tmp))
-        pending.push_back(tmp);
-    }
-
-    // m_poly[0] is the Clap::Model's shared handle: Model::~Model and the
-    // resetExecution handler take care of deactivating it on the main
-    // thread (and they will, because the ctor synced handle.activated).
+    // m_poly[0] is the Model's shared handle; deactivated by Model::~Model.
+    // Orphaned grower output is cleaned up via grow_pool_tick's weak_ptr.
     QMetaObject::invokeMethod(
         QCoreApplication::instance(),
-        [poly = std::move(m_poly), pending = std::move(pending)]() mutable {
+        [poly = std::move(m_poly)]() mutable {
       auto destroy = [](const poly_plugin& p) {
         if(!p.plugin)
           return;
@@ -1428,8 +1500,6 @@ public:
       };
       for(std::size_t i = 1; i < poly.size(); ++i)
         destroy(poly[i]);
-      for(auto& p : pending)
-        destroy(p);
     });
   }
 
@@ -1482,75 +1552,161 @@ public:
     // skip would require per-channel status tracking + audio-input
     // variation detection per channel — more bookkeeping than it's worth.
     m_last_status = plug->process(plug, &process);
+    (void)current_channel;
+  }
 
-    // In poly mode, we have to save the parameter changes from the first node and replicate
-    // it to the other nodes to handle the case where the user moves something in the UI.
+  // Snapshot voice-0 params into voices 1+ so UI edits propagate (CLAP UI binds to voice 0).
+  void replicate_voice0_state(
+      const clap_plugin_t* plug, event_storage& input_storage) noexcept
+  {
     auto params = this->handle->ext_params;
-    if(params && current_channel == 0)
-    {
-      const int orig = input_storage.param_events.size();
-      int cur = input_storage.param_events.size();
-      const int param_count = params->count(plug);
-      if(param_count > 0)
-      {
-        input_storage.param_events.resize(
-            input_storage.param_events.size() + param_count);
-        clap_event_param_value_t* cur_p = &input_storage.param_events[cur];
-        for(auto& p : m_param_ins)
-        {
-          double current_value;
-          // Read current parameter value from plugin
-          if(params->get_value(plug, p.id, &current_value))
-          {
-            clap_event_param_value_t& param_event = *cur_p;
-            param_event.header.size = sizeof(clap_event_param_value_t);
-            param_event.header.time = 0; // Beginning of buffer for now
-            param_event.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
-            param_event.header.type = CLAP_EVENT_PARAM_VALUE;
-            param_event.header.flags = CLAP_EVENT_IS_LIVE;
-            param_event.param_id = p.id;
-            param_event.cookie = p.cookie;
-            param_event.note_id = -1;
-            param_event.port_index = -1;
-            param_event.channel = -1;
-            param_event.key = -1;
-            param_event.value = current_value;
-            ++cur;
-            ++cur_p;
-          }
-        }
+    if(!params)
+      return;
+    const int param_count = params->count(plug);
+    if(param_count <= 0)
+      return;
 
-        if(cur > orig)
+    const int orig = input_storage.param_events.size();
+    int cur = orig;
+    input_storage.param_events.resize(orig + param_count);
+    clap_event_param_value_t* cur_p = &input_storage.param_events[cur];
+    for(auto& p : m_param_ins)
+    {
+      // Per-voice slice would be clobbered by voice-0's value here.
+      if(m_overridden_params.contains(p.id))
+        continue;
+      double current_value;
+      if(params->get_value(plug, p.id, &current_value))
+      {
+        clap_event_param_value_t& param_event = *cur_p;
+        param_event.header.size = sizeof(clap_event_param_value_t);
+        param_event.header.time = 0;
+        param_event.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
+        param_event.header.type = CLAP_EVENT_PARAM_VALUE;
+        param_event.header.flags = CLAP_EVENT_IS_LIVE;
+        param_event.param_id = p.id;
+        param_event.cookie = p.cookie;
+        param_event.note_id = -1;
+        param_event.port_index = -1;
+        param_event.channel = -1;
+        param_event.key = -1;
+        param_event.value = current_value;
+        ++cur;
+        ++cur_p;
+      }
+    }
+
+    if(cur > orig)
+    {
+      auto it = std::upper_bound(
+          input_storage.all_events.begin(), input_storage.all_events.end(), 0,
+          [](auto& t1, auto& ev2) { return t1 < ev2->time; });
+      const auto r = std::span<clap_event_param_value_t>(
+                         input_storage.param_events.data() + orig,
+                         input_storage.param_events.data() + cur)
+                     | std::views::transform([](clap_event_param_value_t& elem) {
+        return &elem.header;
+      });
+      input_storage.all_events.insert(it, std::begin(r), std::end(r));
+    }
+  }
+
+  // Must run after prepare_input_events and before the per-voice loop.
+  void prepare_voice_overrides(uint32_t samples) noexcept
+  {
+    m_voice_overrides.resize(m_poly.size());
+    for(auto& vec : m_voice_overrides)
+      vec.clear();
+    m_overridden_params.clear();
+
+    for(std::size_t i = 0; i < parameter_ins.size(); ++i)
+    {
+      const auto& data = parameter_ins[i]->data.get_data();
+      if(data.empty())
+        continue;
+      const auto& param_info = m_param_ins[i];
+      for(const auto& tv : data)
+      {
+        if(!is_vector_value(tv.value))
+          continue;
+        m_overridden_params.insert(param_info.id);
+        const int64_t t = tv.timestamp;
+        const uint32_t time
+            = t <= 0
+                  ? 0u
+                  : static_cast<uint32_t>(
+                        std::min<int64_t>(t, samples > 0 ? samples - 1 : 0));
+        for(std::size_t v = 0; v < m_poly.size(); ++v)
         {
-          auto it = std::upper_bound(
-              input_storage.all_events.begin(), input_storage.all_events.end(), 0,
-              [](auto& t1, auto& ev2) { return t1 < ev2->time; });
-          const auto r = std::span<clap_event_param_value_t>(
-                             input_storage.param_events.data() + orig,
-                             input_storage.param_events.data() + cur)
-                         | std::views::transform([](clap_event_param_value_t& elem) {
-            return &elem.header;
-          });
-          input_storage.all_events.insert(it, std::begin(r), std::end(r));
+          auto sliced = voice_control_value(tv.value, v);
+          if(!sliced)
+            continue;
+          const double value = std::clamp(
+              *sliced, param_info.min_value, param_info.max_value);
+          clap_event_param_value_t ev{};
+          ev.header.size = sizeof(clap_event_param_value_t);
+          ev.header.time = time;
+          ev.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
+          ev.header.type = CLAP_EVENT_PARAM_VALUE;
+          ev.header.flags = CLAP_EVENT_IS_LIVE;
+          ev.param_id = param_info.id;
+          ev.cookie = param_info.cookie;
+          ev.note_id = -1;
+          ev.port_index = -1;
+          ev.channel = -1;
+          ev.key = -1;
+          ev.value = value;
+          m_voice_overrides[v].push_back(ev);
         }
       }
     }
+  }
+
+  // Compose shared base + this voice's overrides into one sorted event stream.
+  void build_voice_input(event_storage& dst, std::size_t voice_idx)
+  {
+    dst.midi_events = m_input_events.midi_events;
+    dst.midi2_events = m_input_events.midi2_events;
+    dst.note_events = m_input_events.note_events;
+    dst.param_events = m_input_events.param_events;
+    dst.sysex_events = m_input_events.sysex_events;
+    dst.sysex_data = m_input_events.sysex_data;
+    const auto& overrides = m_voice_overrides[voice_idx];
+    dst.param_events.insert(
+        dst.param_events.end(), overrides.begin(), overrides.end());
+
+    dst.all_events.clear();
+    dst.all_events.reserve(
+        dst.midi_events.size() + dst.midi2_events.size() + dst.note_events.size()
+        + dst.param_events.size() + dst.sysex_events.size());
+    for(auto& ev : dst.midi_events)
+      dst.all_events.push_back(reinterpret_cast<clap_event_header_t*>(&ev));
+    for(auto& ev : dst.midi2_events)
+      dst.all_events.push_back(reinterpret_cast<clap_event_header_t*>(&ev));
+    for(auto& ev : dst.note_events)
+      dst.all_events.push_back(reinterpret_cast<clap_event_header_t*>(&ev));
+    for(auto& ev : dst.param_events)
+      dst.all_events.push_back(reinterpret_cast<clap_event_header_t*>(&ev));
+    for(auto& ev : dst.sysex_events)
+      dst.all_events.push_back(reinterpret_cast<clap_event_header_t*>(&ev));
+    std::sort(
+        dst.all_events.begin(), dst.all_events.end(),
+        [](const clap_event_header_t* a, const clap_event_header_t* b) {
+      return a->time < b->time;
+    });
   }
 
   PluginHandle& m_instance;
   std::vector<poly_plugin> m_poly;
   std::string m_plugin_id;
 
-  // Lock-free channel for the main-thread grower (Executor::grow_pool_tick)
-  // to hand fully-constructed instances to the audio thread. Single
-  // producer (the QTimer slot) / single consumer (run()), but mpmc is fine
-  // and what the rest of the codebase uses.
-  ossia::mpmc_queue<poly_plugin> m_incoming;
-
-  // Highest poly count the audio thread has ever needed for this node.
-  // The main-thread grower reads this and creates additional instances
-  // until the queue + m_poly reach this size.
   std::atomic<std::size_t> m_requested_pool{0};
+
+  std::vector<std::vector<clap_event_param_value_t>> m_voice_overrides;
+
+  ossia::hash_set<clap_id> m_overridden_params;
+
+  event_storage m_voice_input;
 };
 
 class clap_node_mono_32 final : public clap_node_mono
@@ -1579,6 +1735,7 @@ public:
     output_channel_storage.resize(samples);
 
     prepare_input_events(samples);
+    prepare_voice_overrides(samples);
 
     float* ins_pointer[1]{input_channel_storage.data()};
     float* outs_pointer[1]{output_channel_storage.data()};
@@ -1590,11 +1747,6 @@ public:
     const auto upstream_channels = audio_in->data.channels();
     if(upstream_channels == 0)
       return;
-    // Pick up any newly-created polyphonic instances handed to us by the
-    // Executor's main-thread grower, then announce our current need so it
-    // can keep growing the pool. The audio thread never creates plug-ins
-    // itself (CLAP requires create_plugin/init on the main thread).
-    drain_incoming();
     request_pool_size(upstream_channels);
     const std::size_t poly_channels
         = std::min<std::size_t>(upstream_channels, m_poly.size());
@@ -1651,7 +1803,10 @@ public:
       process.audio_outputs = &out_buffer;
       process.audio_inputs_count = 1;
       process.audio_outputs_count = 1;
-      do_process(cur, process, m_input_events, m_output_events, current_channel);
+      build_voice_input(m_voice_input, current_channel);
+      do_process(cur, process, m_voice_input, m_output_events, current_channel);
+      if(current_channel == 0)
+        replicate_voice0_state(cur, m_input_events);
 
       // 4. Copy float back to matching output channel. Resize to the full
       //    block size first — writing samples frames starting at `offset`
@@ -1686,6 +1841,7 @@ public:
     m_current_transport = make_transport(t, e);
 
     prepare_input_events(samples);
+    prepare_voice_overrides(samples);
 
     double* ins_pointer[1]{};
     double* outs_pointer[1]{};
@@ -1696,10 +1852,6 @@ public:
     const auto upstream_channels = audio_in->data.channels();
     if(upstream_channels == 0)
       return;
-    // See clap_node_mono_32::run — never create_plugin/init from here;
-    // ask the main-thread grower to do it and use whatever it's handed us
-    // so far.
-    drain_incoming();
     request_pool_size(upstream_channels);
     const std::size_t poly_channels
         = std::min<std::size_t>(upstream_channels, m_poly.size());
@@ -1760,7 +1912,10 @@ public:
       process.audio_outputs = &out_buffer;
       process.audio_inputs_count = 1;
       process.audio_outputs_count = 1;
-      do_process(cur, process, m_input_events, m_output_events, current_channel);
+      build_voice_input(m_voice_input, current_channel);
+      do_process(cur, process, m_voice_input, m_output_events, current_channel);
+      if(current_channel == 0)
+        replicate_voice0_state(cur, m_input_events);
     }
 
     dispatch_param_outputs();
@@ -1931,46 +2086,45 @@ void Executor::grow_pool_tick()
   if(m_pool_pushed >= m_pool_max_requested)
     return;
 
-  // Snapshot the primary plug-in's state once per growth burst so newly
-  // created instances inherit loaded models / presets (AIDA-X et al.).
-  // Re-captured on each call to track ongoing edits while we're growing.
+  // Snapshot primary's state so new instances inherit loaded models/presets.
   auto handle = this->process().handle();
   if(!handle || !handle->plugin)
     return;
   const QByteArray state = snapshot_clap_state(handle->plugin);
 
-  // Create at most a few per tick — each new instance can be expensive
-  // (AIDA-X loads a neural model on state.load) and we don't want to
-  // stall the UI thread. The 50 ms tick + batch of 4 gives ~80
-  // instances/sec, fast enough to grow 8 → 512 in ~6 s while remaining
-  // responsive.
+  // Few per tick: each instance can be expensive (e.g. AIDA-X neural model load).
   constexpr std::size_t kBatch = 4;
   const std::size_t to_add
       = std::min(kBatch, m_pool_max_requested - m_pool_pushed);
+  auto weak_node = std::weak_ptr{this->node};
   for(std::size_t i = 0; i < to_add; ++i)
   {
     try
     {
       auto p
           = mono->make_poly_instance(m_pool_sample_rate, m_pool_buffer_size, state);
-      if(!mono->m_incoming.enqueue(p))
-      {
-        // Queue's heap alloc failed: roll back this instance and stop
-        // growing for this tick — we'll try again on the next one.
-        if(p.activated && p.plugin)
-          p.plugin->deactivate(p.plugin);
-        if(p.plugin)
-          p.plugin->destroy(p.plugin);
-        qWarning() << "CLAP: poly queue enqueue failed; will retry";
-        break;
-      }
+      // Orphaned if the node dies before in_exec fires; post destroy to main thread.
+      in_exec([weak_node, p]() mutable {
+        if(auto n = weak_node.lock())
+        {
+          static_cast<clap_node_mono*>(n.get())->append_poly(p);
+        }
+        else
+        {
+          QMetaObject::invokeMethod(QCoreApplication::instance(), [p] {
+            if(!p.plugin)
+              return;
+            if(p.activated)
+              p.plugin->deactivate(p.plugin);
+            p.plugin->destroy(p.plugin);
+          });
+        }
+      });
       ++m_pool_pushed;
     }
     catch(const std::exception& ex)
     {
       qWarning() << "CLAP: failed to grow polyphonic pool:" << ex.what();
-      // Give up trying to reach the current target; future requests
-      // larger than what we've already pushed will retry naturally.
       break;
     }
   }

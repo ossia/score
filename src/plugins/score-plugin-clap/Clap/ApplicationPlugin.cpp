@@ -127,6 +127,15 @@ void ApplicationPlugin::rescanPlugins()
 #endif
 
   paths << QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/.clap";
+
+  // $CLAP_PATH (per CLAP entry.h), supplementing standard locations.
+  if(qEnvironmentVariableIsSet("CLAP_PATH"))
+  {
+    const auto extra = qEnvironmentVariable("CLAP_PATH")
+                           .split(QDir::listSeparator(), Qt::SkipEmptyParts);
+    paths.append(extra);
+  }
+
   for(auto it = paths.begin(); it != paths.end();)
   {
     auto& path = *it;
