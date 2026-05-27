@@ -39,10 +39,80 @@
 #include <dlfcn.h>
 #endif
 
+#include <boost/asio/post.hpp>
+#include <boost/asio/thread_pool.hpp>
+
+#include <latch>
+#include <thread>
+
 W_OBJECT_IMPL(Clap::Model)
 
 namespace Clap
 {
+
+// Shared fork-join pool for CLAP_EXT_THREAD_POOL.request_exec.
+class ClapThreadPool
+{
+public:
+  static ClapThreadPool& instance()
+  {
+    static ClapThreadPool pool;
+    return pool;
+  }
+
+  bool dispatch(
+      const clap_plugin_t* plugin, const clap_plugin_thread_pool_t* ext,
+      uint32_t num_tasks) noexcept
+  {
+    if(num_tasks == 0)
+      return false;
+    std::latch done(num_tasks);
+    for(uint32_t i = 0; i < num_tasks; ++i)
+    {
+      boost::asio::post(m_pool, [plugin, ext, i, &done] {
+        ext->exec(plugin, i);
+        done.count_down();
+      });
+    }
+    done.wait();
+    return true;
+  }
+
+private:
+  ClapThreadPool()
+      : m_pool{std::max(1u, std::thread::hardware_concurrency() - 1)}
+  {
+  }
+  boost::asio::thread_pool m_pool;
+};
+
+// Some plug-ins (e.g. Octasine) don't zero-init info.name; reject garbage.
+static QString
+clap_safe_name(const char* raw, const QString& fallback) noexcept
+{
+  if(!raw)
+    return fallback;
+  const auto len = qstrnlen(raw, CLAP_NAME_SIZE);
+  if(len == 0)
+    return fallback;
+  const QString name = QString::fromUtf8(raw, len);
+  if(name.isEmpty())
+    return fallback;
+  qsizetype letters = 0;
+  for(QChar c : name)
+  {
+    if(c == QChar::ReplacementCharacter)
+      return fallback;
+    if(!c.isPrint())
+      return fallback;
+    if(c.isLetter())
+      ++letters;
+  }
+  if(letters < 2 && letters < name.length())
+    return fallback;
+  return name;
+}
+
 // Host GUI callbacks
 extern "C" {
 static void resize_hints_changed(const clap_host_t* host)
@@ -385,8 +455,16 @@ static constexpr clap_host_state_t host_state_ext
 }};
 static constexpr clap_host_params_t host_params_ext
     = {.rescan = [](const clap_host_t* host, clap_param_rescan_flags flags) {
-  // TODO
-  // qDebug(Q_FUNC_INFO);
+  // Spec: [main-thread]. Defer — plug-ins may call from state.load().
+  if(!host || !host->host_data)
+    return;
+  auto& h = *static_cast<Clap::PluginHandle*>(host->host_data);
+  if(!h.model)
+    return;
+  QMetaObject::invokeMethod(h.model, [model = QPointer<Model>{h.model}, flags] {
+    if(model)
+      model->onParamRescan(flags);
+  }, Qt::AutoConnection);
 }, .clear = [](const clap_host_t* host, clap_id param_id, clap_param_clear_flags flags) {
   // TODO
   //  qDebug(Q_FUNC_INFO);
@@ -531,9 +609,16 @@ static constexpr clap_host_thread_check_t host_thread_check_ext = {
 
 static constexpr clap_host_thread_pool host_thread_pool_ext
     = {.request_exec = [](const clap_host_t* host, uint32_t num_tasks) -> bool {
-  //   qDebug(Q_FUNC_INFO);
-  // TODO
-  return false;
+  if(!host || !host->host_data)
+    return false;
+  auto& h = *static_cast<PluginHandle*>(host->host_data);
+  if(!h.plugin)
+    return false;
+  auto ext = static_cast<const clap_plugin_thread_pool_t*>(
+      h.plugin->get_extension(h.plugin, CLAP_EXT_THREAD_POOL));
+  if(!ext || !ext->exec)
+    return false;
+  return ClapThreadPool::instance().dispatch(h.plugin, ext, num_tasks);
 }};
 
 static constexpr clap_host_voice_info_t host_voice_info_ext
@@ -1121,6 +1206,12 @@ void Model::loadPlugin()
       m_plugin->plugin->deactivate(m_plugin->plugin);
       m_plugin->activated = false;
     }
+    // Drain RESCAN_ALL deferred during execution (spec needs deactivate).
+    if(m_pendingRescanFlags != 0)
+    {
+      auto pending = std::exchange(m_pendingRescanFlags, 0u);
+      onParamRescan(pending);
+    }
   }, Qt::QueuedConnection);
 }
 
@@ -1340,14 +1431,16 @@ void Model::createControls(bool loading)
     auto input_count = audio_ports->count(m_plugin->plugin, true);
     for(uint32_t i = 0; i < input_count; ++i)
     {
-      clap_audio_port_info_t info;
+      clap_audio_port_info_t info{};
       if(audio_ports->get(m_plugin->plugin, i, true, &info))
       {
         m_supports64 &= (info.flags & CLAP_AUDIO_PORT_SUPPORTS_64BITS);
 
         if(!loading)
         {
-          auto name = QString::fromUtf8(info.name);
+          QString name = clap_safe_name(
+              info.name, input_count == 1 ? QStringLiteral("Audio In")
+                                          : QStringLiteral("Audio In %1").arg(i + 1));
           if(i == 0 && name.toLower() == "audio input")
             name = "Audio In";
           auto inlet = new Process::AudioInlet(
@@ -1362,14 +1455,16 @@ void Model::createControls(bool loading)
     auto output_count = audio_ports->count(m_plugin->plugin, false);
     for(uint32_t i = 0; i < output_count; ++i)
     {
-      clap_audio_port_info_t info;
+      clap_audio_port_info_t info{};
       if(audio_ports->get(m_plugin->plugin, i, false, &info))
       {
         m_supports64 &= (info.flags & CLAP_AUDIO_PORT_SUPPORTS_64BITS);
 
         if(!loading)
         {
-          auto name = QString::fromUtf8(info.name);
+          QString name = clap_safe_name(
+              info.name, output_count == 1 ? QStringLiteral("Audio Out")
+                                           : QStringLiteral("Audio Out %1").arg(i + 1));
           if(i == 0 && name.toLower() == "audio output")
             name = "Audio Out";
           auto outlet = new Process::AudioOutlet(
@@ -1397,12 +1492,14 @@ void Model::createControls(bool loading)
     uint32_t input_count = note_ports->count(m_plugin->plugin, true);
     for(uint32_t i = 0; i < input_count; ++i)
     {
-      clap_note_port_info_t info;
+      clap_note_port_info_t info{};
       if(note_ports->get(m_plugin->plugin, i, true, &info))
       {
         if(!loading)
         {
-          auto name = QString::fromUtf8(info.name);
+          QString name = clap_safe_name(
+              info.name, input_count == 1 ? QStringLiteral("MIDI In")
+                                          : QStringLiteral("MIDI In %1").arg(i + 1));
           if(i == 0 && name.toLower() == "midi input")
             name = "MIDI In";
           auto inlet = new Process::MidiInlet(
@@ -1417,12 +1514,14 @@ void Model::createControls(bool loading)
     uint32_t output_count = note_ports->count(m_plugin->plugin, false);
     for(uint32_t i = 0; i < output_count; ++i)
     {
-      clap_note_port_info_t info;
+      clap_note_port_info_t info{};
       if(note_ports->get(m_plugin->plugin, i, false, &info))
       {
         if(!loading)
         {
-          auto name = QString::fromUtf8(info.name);
+          QString name = clap_safe_name(
+              info.name, output_count == 1 ? QStringLiteral("MIDI Out")
+                                           : QStringLiteral("MIDI Out %1").arg(i + 1));
           if(i == 0 && name.toLower() == "midi output")
             name = "MIDI Out";
           auto outlet = new Process::MidiOutlet(
@@ -1444,7 +1543,7 @@ void Model::createControls(bool loading)
     uint32_t param_count = params->count(m_plugin->plugin);
     for(uint32_t i = 0; i < param_count; ++i)
     {
-      clap_param_info_t info;
+      clap_param_info_t info{};
       if(params->get_info(m_plugin->plugin, i, &info))
       {
         if(info.flags & CLAP_PARAM_IS_HIDDEN)
@@ -1453,15 +1552,15 @@ void Model::createControls(bool loading)
         {
           if(!loading)
           {
+            const QString param_name = clap_safe_name(
+                info.name, QStringLiteral("Param %1").arg(i + 1));
             Process::ControlInlet* inlet{};
             if(info.flags & CLAP_PARAM_IS_STEPPED)
               inlet = new Process::IntSlider(
-                  QString::fromUtf8(info.name), Id<Process::Port>(getStrongId(m_inlets)),
-                  this);
+                  param_name, Id<Process::Port>(getStrongId(m_inlets)), this);
             else
               inlet = new Process::FloatSlider(
-                  QString::fromUtf8(info.name), Id<Process::Port>(getStrongId(m_inlets)),
-                  this);
+                  param_name, Id<Process::Port>(getStrongId(m_inlets)), this);
 
             setupControlInlet(*params, info, i, inlet);
 
@@ -1482,10 +1581,11 @@ void Model::createControls(bool loading)
         {
           if(!loading)
           {
+            const QString param_name = clap_safe_name(
+                info.name, QStringLiteral("Out %1").arg(i + 1));
             Process::ControlOutlet* port{};
             port = new Process::Bargraph(
-                QString::fromUtf8(info.name), Id<Process::Port>(getStrongId(m_outlets)),
-                this);
+                param_name, Id<Process::Port>(getStrongId(m_outlets)), this);
 
             setupControlOutlet(*params, info, i, port);
 
@@ -1505,6 +1605,12 @@ void Model::createControls(bool loading)
       }
     }
   }
+
+  m_plugin->param_outs_by_id.clear();
+  m_plugin->param_outs_by_id.reserve(m_plugin->m_parameters_outs.size());
+  for(std::size_t i = 0; i < m_plugin->m_parameters_outs.size(); ++i)
+    m_plugin->param_outs_by_id.emplace(
+        m_plugin->m_parameters_outs[i].id, static_cast<std::uint32_t>(i));
 
   inletsChanged();
   outletsChanged();
@@ -1876,10 +1982,180 @@ void apply_value_at(Model& self, std::size_t idx, double v)
 }
 } // namespace
 
+void Model::refreshParamValues()
+{
+  if(!m_plugin || !m_plugin->plugin)
+    return;
+  auto* plugin = m_plugin->plugin;
+  auto params = m_plugin->ext_params;
+  if(!params || !params->get_value)
+    return;
+
+  std::size_t inlet_idx = 0;
+  for(auto* inlet : inlets())
+  {
+    if(auto* control = qobject_cast<Process::ControlInlet*>(inlet))
+    {
+      if(inlet_idx < m_plugin->m_parameters_ins.size())
+      {
+        const auto& info = m_plugin->m_parameters_ins[inlet_idx];
+        double v = 0.0;
+        if(params->get_value(plugin, info.id, &v))
+        {
+          currentlyReadingValues = true;
+          control->setValue(v);
+          currentlyReadingValues = false;
+        }
+      }
+      ++inlet_idx;
+    }
+  }
+
+  std::size_t outlet_idx = 0;
+  for(auto* outlet : outlets())
+  {
+    if(auto* control = qobject_cast<Process::ControlOutlet*>(outlet))
+    {
+      if(outlet_idx < m_plugin->m_parameters_outs.size())
+      {
+        const auto& info = m_plugin->m_parameters_outs[outlet_idx];
+        double v = 0.0;
+        if(params->get_value(plugin, info.id, &v))
+        {
+          currentlyReadingValues = true;
+          control->setValue(v);
+          currentlyReadingValues = false;
+        }
+      }
+      ++outlet_idx;
+    }
+  }
+}
+
+bool Model::refreshParamInfoIfStable()
+{
+  if(!m_plugin || !m_plugin->plugin)
+    return true;
+  auto* plugin = m_plugin->plugin;
+  auto params = m_plugin->ext_params;
+  if(!params || !params->count || !params->get_info)
+    return true;
+
+  const uint32_t new_count = params->count(plugin);
+  const std::size_t old_count
+      = m_plugin->m_parameters_ins.size() + m_plugin->m_parameters_outs.size();
+  if(new_count != old_count)
+    return false;
+
+  std::size_t in_idx = 0, out_idx = 0;
+  for(uint32_t i = 0; i < new_count; ++i)
+  {
+    clap_param_info_t info{};
+    if(!params->get_info(plugin, i, &info))
+      return false;
+    if(info.flags & CLAP_PARAM_IS_HIDDEN)
+      continue;
+    if(!(info.flags & CLAP_PARAM_IS_READONLY))
+    {
+      if(in_idx >= m_plugin->m_parameters_ins.size())
+        return false;
+      if(m_plugin->m_parameters_ins[in_idx].id != info.id)
+        return false;
+      m_plugin->m_parameters_ins[in_idx] = info;
+      ++in_idx;
+    }
+    else
+    {
+      if(out_idx >= m_plugin->m_parameters_outs.size())
+        return false;
+      if(m_plugin->m_parameters_outs[out_idx].id != info.id)
+        return false;
+      m_plugin->m_parameters_outs[out_idx] = info;
+      ++out_idx;
+    }
+  }
+  if(in_idx != m_plugin->m_parameters_ins.size()
+     || out_idx != m_plugin->m_parameters_outs.size())
+    return false;
+
+  // Don't re-invoke setupControlInlet: it would duplicate valueChanged connections.
+  std::size_t inlet_idx = 0, outlet_idx = 0;
+  for(auto* inlet : inlets())
+  {
+    if(auto* ctl = qobject_cast<Process::ControlInlet*>(inlet))
+    {
+      if(inlet_idx < m_plugin->m_parameters_ins.size())
+      {
+        const auto& info = m_plugin->m_parameters_ins[inlet_idx];
+        ctl->setName(clap_safe_name(
+            info.name, QStringLiteral("Param %1").arg(inlet_idx + 1)));
+        ctl->setDomain(ossia::make_domain(info.min_value, info.max_value));
+      }
+      ++inlet_idx;
+    }
+  }
+  for(auto* outlet : outlets())
+  {
+    if(auto* ctl = qobject_cast<Process::ControlOutlet*>(outlet))
+    {
+      if(outlet_idx < m_plugin->m_parameters_outs.size())
+      {
+        const auto& info = m_plugin->m_parameters_outs[outlet_idx];
+        ctl->setName(clap_safe_name(
+            info.name, QStringLiteral("Out %1").arg(outlet_idx + 1)));
+        ctl->setDomain(ossia::make_domain(info.min_value, info.max_value));
+      }
+      ++outlet_idx;
+    }
+  }
+  return true;
+}
+
+void Model::onParamRescan(clap_param_rescan_flags flags)
+{
+  if(!m_plugin || !m_plugin->plugin)
+    return;
+
+  // RESCAN_ALL needs deactivation; defer if executing.
+  if((flags & CLAP_PARAM_RESCAN_ALL) && executing())
+  {
+    m_pendingRescanFlags |= flags;
+    return;
+  }
+
+  // RESCAN_TEXT: nothing cached, display strings fetched on demand.
+  (void)CLAP_PARAM_RESCAN_TEXT;
+
+  if(flags & CLAP_PARAM_RESCAN_INFO)
+  {
+    if(!refreshParamInfoIfStable())
+      flags |= CLAP_PARAM_RESCAN_ALL;
+  }
+
+  if(flags & CLAP_PARAM_RESCAN_ALL)
+  {
+    if(refreshParamInfoIfStable())
+    {
+      refreshParamValues();
+      return;
+    }
+    // FIXME score does not rebuild inlets dynamically (see VST2/VST3 backends).
+    qWarning() << "CLAP: parameter layout changed at runtime for"
+               << m_pluginId
+               << "— score doesn't yet rebuild inlets dynamically. "
+                  "Remove and re-add the plug-in to pick up the new "
+                  "parameter set.";
+    restartPlugin();
+    return;
+  }
+
+  if(flags & CLAP_PARAM_RESCAN_VALUES)
+    refreshParamValues();
+}
+
 void Model::markStateDirty()
 {
-  // Plug-ins spam this — Vital, Surge XT etc. fire it on every parameter
-  // tweak from their own UI. Snapshot at most once per ~400 ms.
+  // Plug-ins (Vital, Surge XT) fire this on every UI tweak; debounce.
   constexpr int kStateDirtyDebounceMs = 400;
 
   if(!m_stateDirtyTimer)
@@ -1910,10 +2186,6 @@ void Model::flushFromPluginToHost()
   if(this->executing())
     return;
 
-  // The plugin asked the host to flush so it can deliver its accumulated
-  // parameter change events. We have nothing to send it; provide an empty
-  // input list and route its CLAP_EVENT_PARAM_VALUE events to the matching
-  // inlets (writable params) or outlets (read-only params).
   ParamInputCtx in_ctx; // empty
   clap_input_events_t ip = make_input_events(in_ctx);
 

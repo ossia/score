@@ -50,27 +50,13 @@ void LibraryHandler::setup(
 
   reset_plugs();
 
+  // Async rescan: addToLibrary doesn't emit per-row signals, so reset whole subtree.
   con(plug, &Clap::ApplicationPlugin::pluginsChanged, this,
-      [&plug, &model, node, &parent, reset_plugs] {
-    if(parent.childCount() > 0)
-    {
-      model.beginRemoveRows(node, 0, parent.childCount() - 1);
-      parent.resize(0);
-      model.endRemoveRows();
-    }
-
-    int k = 0;
-    for(const auto& clap : plug.plugins())
-    {
-      if(clap.valid)
-        k++;
-    }
-    if(k > 0)
-    {
-      model.beginInsertRows(node, 0, k - 1);
-      reset_plugs();
-      model.endInsertRows();
-    }
+      [&model, &parent, reset_plugs] {
+    model.beginResetModel();
+    parent.resize(0);
+    reset_plugs();
+    model.endResetModel();
   });
 }
 

@@ -96,7 +96,7 @@ void Window::showEvent(QShowEvent* event)
   else
   {
     // For floating windows on macOS
-    clap_window_t parent_window;
+    clap_window_t parent_window{};
     parent_window.api = CLAP_WINDOW_API_COCOA;
     
     // Get the NSView from the Qt window
