@@ -46,6 +46,7 @@
 #include <cstdarg>
 #include <cstdio>
 #include <functional>
+#include <memory>
 #include <vector>
 
 #include <suil-0/suil/suil.h>
@@ -100,6 +101,15 @@ struct HostContext
   Lilv::Node fixed_size{make_node(LV2_UI__fixedSize)};
   Lilv::Node no_user_resize{make_node(LV2_UI__noUserResize)};
 
+  Lilv::Node state_loadDefaultState_node{make_node(LV2_STATE__loadDefaultState)};
+
+  Lilv::Node integer_property{make_node("http://lv2plug.in/ns/lv2core#integer")};
+  Lilv::Node toggled_property{make_node("http://lv2plug.in/ns/lv2core#toggled")};
+  Lilv::Node enumeration_property{
+      make_node("http://lv2plug.in/ns/lv2core#enumeration")};
+  Lilv::Node logarithmic_property{make_node(LV2_PORT_PROPS__logarithmic)};
+  Lilv::Node notOnGUI_property{make_node(LV2_PORT_PROPS__notOnGUI)};
+
   Lilv::Node host_ui_type{make_node("http://lv2plug.in/ns/extensions/ui#Qt6UI")};
 
   int32_t midi_buffer_size = 2048;
@@ -109,6 +119,12 @@ struct HostContext
   LV2_URID atom_object_id{};
   LV2_URID null_id{};
   LV2_URID atom_eventTransfer{};
+
+  // state:port-restore payload types; see Ardour set_port_value (lv2_plugin.cc:313)
+  LV2_URID atom_Float_id{};
+  LV2_URID atom_Double_id{};
+  LV2_URID atom_Int_id{};
+  LV2_URID atom_Long_id{};
 
   LV2_URID time_Time_id{};
   LV2_URID time_Position_id{};
@@ -138,12 +154,44 @@ struct HostContext
   }
 
   ossia::mpmc_queue<std::vector<char>> worker_datas_pool{};
+
+  // Set by the audio node per-voice so work_schedule routes to the right queue
+  ossia::mpmc_queue<std::vector<char>>* current_worker_datas{};
 };
+
+// shared_ptr<InstanceHandle>: refcounted LilvInstance. Last drop MUST be on the main thread.
+struct InstanceHandle
+{
+  LilvInstance* instance{};
+  bool activated{false};
+
+  InstanceHandle() = default;
+  explicit InstanceHandle(LilvInstance* i) noexcept
+      : instance{i}
+  {
+  }
+  InstanceHandle(const InstanceHandle&) = delete;
+  InstanceHandle& operator=(const InstanceHandle&) = delete;
+  InstanceHandle(InstanceHandle&&) = delete;
+  InstanceHandle& operator=(InstanceHandle&&) = delete;
+  ~InstanceHandle() noexcept
+  {
+    if(!instance)
+      return;
+    if(activated)
+      lilv_instance_deactivate(instance);
+    lilv_instance_free(instance);
+  }
+};
+
+using SharedInstance = std::shared_ptr<InstanceHandle>;
 
 struct EffectContext
 {
   Lilv::Plugin plugin{nullptr};
+  // alias for instance_holder->instance
   LilvInstance* instance{};
+  SharedInstance instance_holder{};
   const LV2_Worker_Interface* worker{};
   LV2_Extension_Data_Feature data{};
   const LilvUI* ui{};

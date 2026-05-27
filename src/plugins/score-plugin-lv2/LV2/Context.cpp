@@ -101,13 +101,16 @@ struct worker
 {
   LV2::HostContext* host;
   LV2::EffectContext* fx;
+  LilvInstance* instance;
+  const LV2_Worker_Interface* worker_iface;
+  ossia::mpmc_queue<std::vector<char>>* response_queue;
   std::vector<char> dat;
 
   void operator()()
   {
     // 3. Process the work
-    fx->worker->work(
-        fx->instance->lv2_handle, &worker::work_done, this, dat.size(), dat.data());
+    worker_iface->work(
+        instance->lv2_handle, &worker::work_done, this, dat.size(), dat.data());
 
     // Give back the worker buffer
     host->release_worker_data(std::move(dat));
@@ -120,7 +123,7 @@ struct worker
     auto& self = *(worker*)sub_h;
     auto response_data = self.host->acquire_worker_data((const char*)sub_d, sub_s);
 
-    self.fx->worker_datas.enqueue(std::move(response_data));
+    self.response_queue->enqueue(std::move(response_data));
 
     return LV2_WORKER_SUCCESS;
   }
@@ -137,12 +140,22 @@ do_worker(LV2_Worker_Schedule_Handle ptr, uint32_t s, const void* data)
     auto& w = *cur->worker;
     if(w.work)
     {
+      // Per-voice queue if the audio node set one; shared effectContext otherwise
+      auto* response_queue
+          = c.host.current_worker_datas ? c.host.current_worker_datas : &cur->worker_datas;
+
       // 1. Acquire a buffer to copy the data in audio thread
       std::vector<char> cp = c.host.acquire_worker_data((const char*)data, s);
 
       // 2. Move that buffer to the thread pool
       auto& tq = score::TaskPool::instance();
-      tq.post(worker{.host = &c.host, .fx = cur, .dat = std::move(cp)});
+      tq.post(worker{
+          .host = &c.host,
+          .fx = cur,
+          .instance = cur->instance,
+          .worker_iface = cur->worker,
+          .response_queue = response_queue,
+          .dat = std::move(cp)});
 
       return LV2_WORKER_SUCCESS;
     }
@@ -307,7 +320,6 @@ void LV2::GlobalContext::loadPlugins()
     qputenv("LV2_PATH", paths.toUtf8());
   }
 #endif
-  host.world.load_all();
 
   // Atom stuff
   host.null_id = map.map(map.handle, "");
@@ -330,6 +342,12 @@ void LV2::GlobalContext::loadPlugins()
   host.time_frame_id = map.map(map.handle, LV2_TIME__frame);
   host.time_framesPerSecond_id = map.map(map.handle, LV2_TIME__framesPerSecond);
   host.time_speed_id = map.map(map.handle, LV2_TIME__speed);
+
+  // For state:port-restore decoding; see lv2_set_port_value in EffectModel.cpp
+  host.atom_Float_id = map.map(map.handle, LV2_ATOM__Float);
+  host.atom_Double_id = map.map(map.handle, LV2_ATOM__Double);
+  host.atom_Int_id = map.map(map.handle, LV2_ATOM__Int);
+  host.atom_Long_id = map.map(map.handle, LV2_ATOM__Long);
 
   lv2_atom_forge_init(&host.forge, &map);
 }
