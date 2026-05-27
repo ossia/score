@@ -1,11 +1,14 @@
 #include <Process/Dataflow/PortSerialization.hpp>
 
 #include <Audio/Settings/Model.hpp>
+#include <Media/AudioDecoder.hpp>
 #include <Media/Sound/SoundModel.hpp>
 #include <Media/Tempo.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
+#include <score/document/DocumentContext.hpp>
 #include <score/tools/File.hpp>
+#include <score/tools/FilePath.hpp>
 
 #include <QRegularExpression>
 
@@ -130,13 +133,16 @@ void ProcessModel::setFile(const QString& file)
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
       {
         using namespace Qt::StringLiterals;
-        static constexpr QLatin1String melodic[] = {
-            "pad"_L1,      "key"_L1,      "piano"_L1,    "lead"_L1,        "flute"_L1,
-            "guitar"_L1,   "violin"_L1,   "viola"_L1,    "cello"_L1,       "banjo"_L1,
-            "sax"_L1,      "clarinet"_L1, "oboe"_L1,     "harpischord"_L1, "clavinet"_L1,
-            "string"_L1,   "choir"_L1,    "ensemble"_L1, "vocal"_L1,       "voice"_L1,
-            "vox"_L1,      "brass"_L1,    "marimba"_L1,  "bell"_L1,        "bell"_L1,
-            "bassline"_L1, "ambiance"_L1, "ambient"_L1};
+        static constexpr QLatin1String melodic[]
+            = {"pad"_L1,     "key"_L1,         "piano"_L1,     "lead"_L1,
+               "flute"_L1,   "guitar"_L1,      "violin"_L1,    "viola"_L1,
+               "cello"_L1,   "banjo"_L1,       "sax"_L1,       "clarinet"_L1,
+               "oboe"_L1,    "harpischord"_L1, "clavinet"_L1,  "string"_L1,
+               "choir"_L1,   "ensemble"_L1,    "vocal"_L1,     "voice"_L1,
+               "vox"_L1,     "brass"_L1,       "marimba"_L1,   "bell"_L1,
+               "bell"_L1,    "bassline"_L1,    "ambiance"_L1,  "ambient"_L1,
+               "sitar"_L1,   "mandolin"_L1,    "bandoneon"_L1, "melody"_L1,
+               "melodic"_L1, "orchestra"_L1};
         QLatin1StringMatcher matcher;
         for(auto& m : melodic)
         {
@@ -147,6 +153,17 @@ void ProcessModel::setFile(const QString& file)
 #endif
       setStretchMode(mode);
       setLoops(true);
+
+      // Loop the file itself, not the parent interval, so RubberBand reads
+      // the correct loop_duration before ChangeAudioFile::redo settles it.
+      auto& ctx = score::IDocument::documentContext(*this);
+      const auto& db = AudioDecoder::database();
+      if(auto it = db.find(score::locateFilePath(file, ctx)); it != db.end())
+      {
+        const auto file_duration = it->duration();
+        if(file_duration > TimeVal::zero())
+          setLoopDuration(file_duration);
+      }
     }
     else
     {

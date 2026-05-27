@@ -623,7 +623,9 @@ IntervalComponentBase::make(ProcessComponentFactory& fac, Process::ProcessModel&
 
       connect(
           plug.get(), &ProcessComponent::nodeChanged, this,
-          HandleNodeChange{m_ossia_interval->node, oproc, system().execGraph, proc});
+          HandleNodeChange{
+              m_ossia_interval->node, oproc, m_ossia_interval, system().execGraph,
+              proc});
       return plug.get();
     }
   }
