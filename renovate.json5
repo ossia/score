@@ -51,14 +51,20 @@
   // so missing fields don't bleed into the next dep.
   // ---------------------------------------------------------------
   customManagers: [
+    // Renovate uses RE2 (no lookahead/lookbehind). Each regex matches
+    // the three consecutive lines of one entry in deps.yaml. The three
+    // managers are mutually exclusive by:
+    //   - field name (`upstream_version` vs `upstream_sha`), and
+    //   - whether the upstream slug starts with `"gitlab:` (quoted prefix).
+    // GitHub slug character class [A-Za-z0-9._/-] excludes the ':' and '"'
+    // that would appear in a GitLab-prefixed value.
+
     // (1) GitHub upstreams with version tags
-    //     Rejects "(none)" placeholders and pure 12-hex SHAs
-    //     (those are owned by customManager (3) below).
     {
       customType: "regex",
       managerFilePatterns: ["^3rdparty/deps\\.yaml$"],
       matchStrings: [
-        "- name:\\s*(?<depName>\\S+)\\s*\\n(?:(?!  - name:)[\\s\\S])*?upstream:\\s*(?<packageName>(?!gitlab:)[^\\s\"']+)\\s*\\n(?:(?!  - name:)[\\s\\S])*?upstream_version:\\s*\"(?<currentValue>(?!\\(none\\))(?![a-f0-9]{12}\")[^\"]+)\"",
+        "- name: (?<depName>\\S+)\\n +upstream: (?<packageName>[A-Za-z0-9._/-]+)\\n +upstream_version: \"(?<currentValue>[^\"]+)\"",
       ],
       datasourceTemplate: "github-tags",
       versioningTemplate: "semver-coerced",
@@ -70,7 +76,7 @@
       customType: "regex",
       managerFilePatterns: ["^3rdparty/deps\\.yaml$"],
       matchStrings: [
-        "- name:\\s*(?<depName>\\S+)\\s*\\n(?:(?!  - name:)[\\s\\S])*?upstream:\\s*\"?gitlab:(?<packageName>[^\\s\"']+)\"?\\s*\\n(?:(?!  - name:)[\\s\\S])*?upstream_version:\\s*\"(?<currentValue>(?!\\(none\\))[^\"]+)\"",
+        "- name: (?<depName>\\S+)\\n +upstream: \"gitlab:(?<packageName>[^\"]+)\"\\n +upstream_version: \"(?<currentValue>[^\"]+)\"",
       ],
       registryUrlTemplate: "https://gitlab.com",
       datasourceTemplate: "gitlab-tags",
@@ -78,11 +84,13 @@
     },
 
     // (3) Untagged GitHub upstreams — track default-branch HEAD via 12-hex SHA
+    //     Uses a distinct field name (`upstream_sha`) so this can't collide
+    //     with manager (1) above.
     {
       customType: "regex",
       managerFilePatterns: ["^3rdparty/deps\\.yaml$"],
       matchStrings: [
-        "- name:\\s*(?<depName>\\S+)\\s*\\n(?:(?!  - name:)[\\s\\S])*?upstream:\\s*(?<sourceRepo>(?!gitlab:)[^\\s\"']+)\\s*\\n(?:(?!  - name:)[\\s\\S])*?upstream_version:\\s*\"(?<currentDigest>[a-f0-9]{12})\"",
+        "- name: (?<depName>\\S+)\\n +upstream: (?<sourceRepo>[A-Za-z0-9._/-]+)\\n +upstream_sha: \"(?<currentDigest>[a-f0-9]+)\"",
       ],
       datasourceTemplate: "git-refs",
       currentValueTemplate: "HEAD",
