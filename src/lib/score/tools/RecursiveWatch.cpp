@@ -210,6 +210,37 @@ void for_all_files(std::string_view root, std::function<void(std::string_view)> 
 
 namespace score
 {
+namespace
+{
+// Mitigation for same bug as https://github.com/microsoft/STL/issues/165
+struct AsyncScanState
+{
+  using Map = ossia::string_map<std::vector<RecursiveWatch::AsyncCallbacks>>;
+
+  Map watched;
+  std::string root;
+  QPointer<QObject> ctx;
+
+  AsyncScanState(Map&& w, std::string r, QObject* c)
+      : watched{std::move(w)}
+      , root{std::move(r)}
+      , ctx{c}
+  {
+  }
+
+  AsyncScanState(AsyncScanState&& other) noexcept
+      : watched{std::move(other.watched)}
+      , root{std::move(other.root)}
+      , ctx{std::move(other.ctx)}
+  {
+  }
+
+  AsyncScanState(const AsyncScanState&) = delete;
+  AsyncScanState& operator=(AsyncScanState&&) = delete;
+  AsyncScanState& operator=(const AsyncScanState&) = delete;
+};
+}
+
 void RecursiveWatch::scan() const
 {
 #if !defined(SCORE_DEPLOYMENT_BUILD)
@@ -243,17 +274,13 @@ void RecursiveWatch::scanAsync(QObject* context)
     return;
 #endif
 
-  // Hand the watch state off to the worker thread.
-  // Callers always do reset()+registerWatch() before each scan, so
-  // moving m_asyncWatched out is safe.
-  auto watched = std::move(m_asyncWatched);
-  auto root = m_root;
-
+  // Note that callers should always set a new set of watched things
+  // before calling scanAsync.
   score::TaskPool::instance().post(
-      [watched = std::move(watched), root = std::move(root), pctx = QPointer{context}] {
+      [state = AsyncScanState{std::move(m_asyncWatched), m_root, context}] {
     std::vector<std::function<void()>> actions;
 
-    auto send_to_main_thread = [pctx = pctx, &actions] {
+    auto send_to_main_thread = [pctx = state.ctx, &actions] {
       // Batch-deliver all commit actions to the GUI thread
       QMetaObject::invokeMethod(
           QCoreApplication::instance(), [pctx = pctx, actions = std::move(actions)] {
@@ -266,7 +293,7 @@ void RecursiveWatch::scanAsync(QObject* context)
       actions.clear();
     };
 
-    for_all_files(root, [&](std::string_view path) {
+    for_all_files(state.root, [&](std::string_view path) {
       if(path.empty())
         return;
       auto last_dot = path.find_last_of('.');
@@ -274,8 +301,8 @@ void RecursiveWatch::scanAsync(QObject* context)
         return;
 
       std::string_view suffix = path.substr(last_dot + 1);
-      auto it = watched.find(suffix);
-      if(it == watched.end())
+      auto it = state.watched.find(suffix);
+      if(it == state.watched.end())
         return;
       for(auto& handler : it->second)
       {
