@@ -40,7 +40,7 @@ jobs:
         arch: ${{ matrix.arch }}
 
     - name: Continuous
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v3
       if: github.ref == 'refs/heads/master'
       with:
         name: "Continuous"
@@ -52,7 +52,7 @@ jobs:
           *.flatpak
 
     - name: Release
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v3
       if: startsWith(github.ref, 'refs/tags/')
       with:
         body: ""
