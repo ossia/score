@@ -1,32 +1,16 @@
 # ossia 3rd-party dependency registry.
 #
-# This file is consumed by Renovate (via a customManager in renovate.json5)
-# to detect upstream releases for every vendored dependency, including the
-# forks we maintain at jcelerier/* / ossia/* / celtera/* on which we carry
-# local patches.
+# Consumed by Renovate's customManagers (see renovate.json5). The only
+# fields read are `name`, `upstream`, and `upstream_version`:
 #
-# Field reference:
 #   name              human label for the dependency
-#   path              path of the submodule/vendored copy from repo root
-#   kind              fork | upstream | original | vendored
-#                       - fork:      submodule URL is our fork; track upstream
-#                       - upstream:  submodule URL already points at upstream
-#                       - original:  we ARE the upstream (no fork distinction)
-#                       - vendored:  source copied in-tree (no submodule)
-#   fork              URL of the fork submodule (only if kind: fork|original)
-#   upstream          owner/repo slug of the true upstream
-#                       - GitHub:  "owner/repo"
-#                       - GitLab:  "gitlab:owner/repo"  (prefix used by the
-#                                  Renovate manager regex)
-#   pinned_sha        commit pinned in the submodule (omit for vendored)
-#   pinned_version    best-effort tag matching pinned_sha, if knowable
-#   upstream_version  latest upstream tag known at the time this file was
-#                     last edited. Renovate rewrites this line when upstream
-#                     publishes a newer release; the PR is the human signal
-#                     that a patch-rebase is due.
-#   notes             free-form context: why a fork exists, EOL status, etc.
+#   upstream          true upstream slug. Prefix with "gitlab:" for GitLab.
+#   upstream_version  latest known upstream version. Renovate rewrites this
+#                     line when upstream publishes a newer release; the PR
+#                     is the human signal that a patch-rebase is due.
 #
-# Order: grouped by repo (score, then libossia), then by kind within each.
+# Entries with no `upstream_version` (or "(none)") are inert — kept as a
+# manifest of what's vendored, but not tracked by Renovate.
 
 deps:
 
@@ -37,384 +21,202 @@ deps:
 # --- forks we maintain (carry local patches) --------------------------
 
   - name: QProgressIndicator
-    path: 3rdparty/QProgressIndicator
-    kind: fork
-    fork: https://github.com/jcelerier/QProgressIndicator
     upstream: QSL/QProgressIndicator
-    pinned_sha: 341e02ecdb5c337214dac2792dfa077d4a4b9b14
     upstream_version: "1.0.2"
 
   - name: Qt-Color-Widgets
-    path: 3rdparty/Qt-Color-Widgets
-    kind: fork
-    fork: https://github.com/jcelerier/Qt-Color-Widgets
     upstream: mbasaglia/Qt-Color-Widgets
-    pinned_sha: 50921c3a1d6d76a6d19433d46a31b863f76b8112
     upstream_version: "9613f3fb7210"
-    notes: "upstream is untagged; tracked by branch HEAD (master)"
 
   - name: phantomstyle
-    path: 3rdparty/phantomstyle
-    kind: fork
-    fork: https://github.com/jcelerier/phantomstyle
     upstream: randrew/phantomstyle
-    pinned_sha: 509868360ffbf2b3e756f66c5c8a9e9011d87595
     upstream_version: "309c97a955f6"
-    notes: "upstream is untagged; tracked by branch HEAD (master)"
 
   - name: QCodeEditor
-    path: 3rdparty/QCodeEditor
-    kind: fork
-    fork: https://github.com/jcelerier/QCodeEditor
     upstream: Megaxela/QCodeEditor
-    pinned_sha: be3cd8c3a0b7e68109fe6d4b55f3056fff13ea2a
     upstream_version: "dc644d41b689"
-    notes: "upstream is untagged"
 
   - name: vst3_public_sdk
-    path: 3rdparty/vst3/public.sdk
-    kind: fork
-    fork: https://github.com/jcelerier/vst3_public_sdk
     upstream: steinbergmedia/vst3_public_sdk
-    pinned_sha: 5b08fc99f158a4e530c7ba41db59d5c8ba3b2108
     upstream_version: "v3.8.0_build_66"
 
   - name: vst3_pluginterfaces
-    path: 3rdparty/vst3/pluginterfaces
-    kind: fork
-    fork: https://github.com/jcelerier/vst3_pluginterfaces
     upstream: steinbergmedia/vst3_pluginterfaces
-    pinned_sha: 65c5ae6d81f301198262fefd5ea654a47777392c
     upstream_version: "v3.8.0_build_66"
 
   - name: vst3_cmake
-    path: 3rdparty/vst3/cmake
-    kind: fork
-    fork: https://github.com/jcelerier/vst3_cmake
     upstream: steinbergmedia/vst3_cmake
-    pinned_sha: 0557022d92562d81227ebf87008a8438e9da9293
     upstream_version: "v3.8.0_build_66"
 
   - name: libpd
-    path: 3rdparty/libpd
-    kind: fork
-    fork: https://github.com/jcelerier/libpd
     upstream: libpd/libpd
-    pinned_sha: 243ffdc17d043d1cdfd2cd230cb83cddcef0168f
     upstream_version: "0.15.0"
 
   - name: snappy
-    path: 3rdparty/snappy
-    kind: fork
-    fork: https://github.com/jcelerier/snappy
     upstream: google/snappy
-    pinned_sha: 4724fc2ca69c17343184d637c8429d83db05f6aa
     upstream_version: "1.2.2"
 
   - name: libsndfile
-    path: 3rdparty/libsndfile
-    kind: fork
-    fork: https://github.com/jcelerier/libsndfile
     upstream: libsndfile/libsndfile
-    pinned_sha: aad9bb08d7c7e074faef7483c5b57d2734f4c6fc
     upstream_version: "1.2.2"
 
   - name: Gist
-    path: 3rdparty/Gist
-    kind: fork
-    fork: https://github.com/jcelerier/Gist
     upstream: adamstark/Gist
-    pinned_sha: b64eb9df0f681e07352bd40f538566b962bad3d5
     upstream_version: "1.0.7"
 
   - name: Syphon-Framework
-    path: 3rdparty/Syphon-Framework
-    kind: fork
-    fork: https://github.com/jcelerier/Syphon-Framework
     upstream: Syphon/Syphon-Framework
-    pinned_sha: 830ab8a365a8fd3d245ba1248a5bc0e176f58d53
     upstream_version: "5"
 
   - name: DSPFilters
-    path: 3rdparty/DSPFilters
-    kind: fork
-    fork: https://github.com/jcelerier/DSPFilters
     upstream: olilarkin/DSPFilters
-    pinned_sha: b0688e6417a4915b4000ebc41836485911631857
     upstream_version: "b0688e6417a4"
-    notes: "upstream is untagged; pinned SHA equals upstream master HEAD at time of writing"
 
   - name: Aether
-    path: 3rdparty/Aether
-    kind: fork
-    fork: https://github.com/jcelerier/Aether
     upstream: Dougal-s/Aether
-    pinned_sha: 96d733a7ca8e0dc86c4c8dee7f745d9e70bd3dc8
     upstream_version: "v1.2.1"
 
 # --- direct-upstream submodules (no fork) -----------------------------
 
   - name: vst3_base
-    path: 3rdparty/vst3/base
-    kind: upstream
     upstream: steinbergmedia/vst3_base
-    pinned_sha: 4aa851d4e54993b19717539aa520deadc945148d
     upstream_version: "v3.8.0_build_66"
 
   - name: libossia
-    path: 3rdparty/libossia
-    kind: original
-    fork: https://github.com/ossia/libossia
     upstream: ossia/libossia
-    pinned_sha: 2c41454fbcafc16cb6533b48980ea25c8b307c0e
-    notes: "we are the upstream; tracked as a project subdir, deps inside listed below"
 
   - name: hap
-    path: 3rdparty/hap
-    kind: upstream
     upstream: Vidvox/hap
-    pinned_sha: d847f6bbd3be88575dd4ef33a877243780e3be76
     upstream_version: "d847f6bbd3be"
-    notes: "upstream is untagged; pinned SHA equals current master HEAD"
 
   - name: shmdata
-    path: 3rdparty/shmdata
-    kind: upstream
     upstream: "gitlab:sat-metalab/shmdata"
-    pinned_sha: 96e044d1c6330e5fc9993cda2abc695a1dbc656e
     upstream_version: "1.3.74"
 
   - name: avendish
-    path: 3rdparty/avendish
-    kind: upstream
     upstream: celtera/avendish
-    pinned_sha: 4dd978410f81b3d88b1ffaffd8a9f07f489a9cf6
     upstream_version: "v3.1"
-    notes: "we co-maintain via celtera org; effectively another original"
 
   - name: llfio
-    path: 3rdparty/llfio
-    kind: upstream
     upstream: ned14/llfio
-    pinned_sha: 059630a28754145dbd35a83391eabd4473186cf4
     upstream_version: "20260506"
 
   - name: quickcpplib
-    path: 3rdparty/quickcpplib
-    kind: upstream
     upstream: ned14/quickcpplib
-    pinned_sha: 1875add409aee9e7aad75526cfefb3d571351095
     upstream_version: "9e75ac18694b"
-    notes: "upstream is untagged"
 
   - name: outcome
-    path: 3rdparty/outcome
-    kind: upstream
     upstream: ned14/outcome
-    pinned_sha: 2db94be7aa1c65115d1942042238317d53ab601c
     upstream_version: "v2.2.15"
 
   - name: Gamma
-    path: 3rdparty/Gamma
-    kind: upstream
     upstream: LancePutnam/Gamma
-    pinned_sha: 65f98a3bfcc476e8434f94ea712c67d0f589321d
     upstream_version: "0.9.8"
 
   - name: doxygen-bootstrapped
-    path: docs/Doxygen/doxygen-bootstrapped
-    kind: upstream
     upstream: Velron/doxygen-bootstrapped
-    pinned_sha: 4bfd385c1a5c1ae163f445ed1c84062d25b73147
     upstream_version: "v1.2.3"
-    notes: "docs only; low-priority for renovate"
 
   - name: flatpak-shared-modules
-    path: cmake/Deployment/Linux/Flatpak/shared-modules
-    kind: upstream
     upstream: flathub/shared-modules
-    pinned_sha: 93694efc475bc1c0b9be39a0743e33b7426c9f12
     upstream_version: "c57634787a59"
-    notes: "untagged repository; track master HEAD"
 
   - name: sh4lt
-    path: 3rdparty/sh4lt
-    kind: upstream
     upstream: "gitlab:sh4lt/sh4lt"
-    pinned_sha: 7ee08acb46487885c82262d6699ba04d41f002c8
     upstream_version: "0.3.2"
 
   - name: snmalloc
-    path: 3rdparty/snmalloc
-    kind: upstream
     upstream: microsoft/snmalloc
-    pinned_sha: 229c6d04fea5b6b0757be99a2b6394e3aea5d562
     upstream_version: "0.7.4"
 
   - name: vcglib
-    path: 3rdparty/vcglib
-    kind: upstream
     upstream: cnr-isti-vclab/vcglib
-    pinned_sha: c94ef4e12e9ea3ae986d9af91005be8328d13719
     upstream_version: "2025.07"
 
   - name: eigen
-    path: 3rdparty/eigen
-    kind: upstream
     upstream: "gitlab:libeigen/eigen"
-    pinned_sha: bc3b39870ecb690a623a3f49149a358b95c5781d
     upstream_version: "5.0.1"
 
   - name: miniply
-    path: 3rdparty/miniply
-    kind: upstream
     upstream: vilya/miniply
-    pinned_sha: 1a235c70390fadf789695c9ccbf285ae712416b3
     upstream_version: "1a235c70390f"
-    notes: "upstream is untagged; pinned SHA equals current master HEAD"
 
   - name: suil
-    path: 3rdparty/suil
-    kind: upstream
     upstream: lv2/suil
-    pinned_sha: 1fa21a3aeb0b527058338a1eab403e47b123434f
     upstream_version: "v0.10.26"
 
   - name: clap
-    path: 3rdparty/clap
-    kind: upstream
     upstream: free-audio/clap
-    pinned_sha: 29ffcc273be7c7c651f6c9953b99e69700e2387a
     upstream_version: "1.2.8"
 
   - name: xtensor
-    path: 3rdparty/xtensor
-    kind: upstream
     upstream: xtensor-stack/xtensor
-    pinned_sha: 18f6524829d8ac6399374f9ecbd21b959f75424d
     upstream_version: "0.27.1"
 
   - name: xsimd
-    path: 3rdparty/xsimd
-    kind: upstream
     upstream: xtensor-stack/xsimd
-    pinned_sha: 6842624fc8adafd7168a999e7150b384411da448
     upstream_version: "14.2.0"
 
   - name: xtl
-    path: 3rdparty/xtl
-    kind: upstream
     upstream: xtensor-stack/xtl
-    pinned_sha: c52350e283b98e5d69dbc50726925a1f8e16c57c
     upstream_version: "0.8.2"
 
   - name: opengametools
-    path: 3rdparty/opengametools
-    kind: upstream
     upstream: jpaver/opengametools
-    pinned_sha: dcabf82345979a2d937a5ea29a0b14683a3aa838
     upstream_version: "opengametools-v0.0.2-alpha"
 
 # --- jcelerier/ossia originals (we are upstream) -----------------------
 
   - name: zipdownloader
-    path: 3rdparty/zipdownloader
-    kind: original
-    fork: https://github.com/jcelerier/zipdownloader
     upstream: jcelerier/zipdownloader
-    pinned_sha: 57d4394ec4fcaa3995670abd0aa94e36b69dcc60
-    notes: "we are the upstream; no release tags"
 
   - name: magicitems
-    path: 3rdparty/magicitems
-    kind: original
-    fork: https://github.com/jcelerier/magicitems
     upstream: jcelerier/magicitems
-    pinned_sha: fc6c44f2851d43b1a67e0f333c6c5f4b70db17b8
-    notes: "we are the upstream; no release tags"
 
   - name: libssynth
-    path: 3rdparty/libssynth
-    kind: original
-    fork: https://github.com/jcelerier/libssynth
     upstream: jcelerier/libssynth
-    pinned_sha: b7b2ca5317de822baf9c6e80cdc0883a333c8520
-    notes: "we are the upstream; no release tags"
 
 # --- vendored copies (no submodule) -----------------------------------
 
   - name: D3D12MemoryAllocator
-    path: 3rdparty/D3D12MemoryAllocator
-    kind: vendored
     upstream: GPUOpen-LibrariesAndSDKs/D3D12MemoryAllocator
     upstream_version: "v3.1.0"
-    notes: "AMD-licensed; only two source files vendored — manual bumps"
 
   - name: Guitarix
-    path: 3rdparty/Guitarix
-    kind: vendored
     upstream: brummer10/guitarix
     upstream_version: "V0.47.0"
-    notes: "generated tube-transfer tables only; not the full project"
 
   - name: QMenuView
-    path: 3rdparty/QMenuView
-    kind: vendored
     upstream: "(XINX, CeCILL)"
-    notes: "two-file widget extracted from XINX (no living upstream repo)"
 
   - name: STK
-    path: 3rdparty/STK
-    kind: vendored
     upstream: thestk/stk
     upstream_version: "5.0.1"
-    notes: "selected instruments only, hand-extracted; manual bumps"
 
   - name: Spout
-    path: 3rdparty/Spout
-    kind: vendored
     upstream: leadedge/Spout2
     upstream_version: "2.007.017"
-    notes: "Windows-only; sender/receiver source vendored, manual bumps"
 
   - name: csv2
-    path: 3rdparty/csv2
-    kind: vendored
     upstream: p-ranav/csv2
     upstream_version: "(none)"
-    notes: "header-only; upstream is untagged"
 
   - name: dxv
-    path: 3rdparty/dxv
-    kind: vendored
     upstream: "(ffmpeg dxv decoder, hand-ported)"
-    notes: "no separate upstream — derived from ffmpeg's libavcodec/dxv.c"
 
   - name: glsl-parser
-    path: 3rdparty/glsl-parser
-    kind: vendored
     upstream: graphitemaster/glsl-parser
     upstream_version: "(none)"
-    notes: "upstream is untagged"
 
   - name: libsimpleio
-    path: 3rdparty/libsimpleio
-    kind: vendored
     upstream: "(Munts Technologies)"
-    notes: "Philip Munts (pmunts/libsimpleio on GitHub) — Linux GPIO/I2C/SPI bindings; vendored subset"
 
   - name: mikktspace
-    path: 3rdparty/mikktspace
-    kind: vendored
     upstream: "(Morten S. Mikkelsen, public domain)"
-    notes: "single-file MikkTSpace tangent-space library; bundled in Blender — copy is effectively frozen"
 
   - name: tiny_obj_loader
-    path: 3rdparty/tiny_obj_loader.h
-    kind: vendored
     upstream: tinyobjloader/tinyobjloader
     upstream_version: "v2.0.0rc13"
-    notes: "single header"
 
 # ======================================================================
 # libossia/3rdparty   —   submodules tracked at the libossia repo
@@ -424,348 +226,180 @@ deps:
 # --- forks we maintain (carry local patches) --------------------------
 
   - name: oscpack
-    path: 3rdparty/libossia/3rdparty/oscpack
-    kind: fork
-    fork: https://github.com/jcelerier/oscpack
     upstream: svn2github/oscpack
-    pinned_sha: bf3d46b35604c4f576dceef28287c438c1e836a3
     upstream_version: "10392376a3ff"
-    notes: "true upstream (rossbencina.com) is no longer maintained; svn2github mirror is stale — our fork is effectively canonical"
 
   - name: nano-signal-slot
-    path: 3rdparty/libossia/3rdparty/nano-signal-slot
-    kind: fork
-    fork: https://github.com/jcelerier/nano-signal-slot
     upstream: NoAvailableAlias/nano-signal-slot
-    pinned_sha: 4a10cafd55d66f0d5d1996744b8f95fa6199a0db
     upstream_version: "v2.0.1"
 
   - name: rapidjson
-    path: 3rdparty/libossia/3rdparty/rapidjson
-    kind: fork
-    fork: https://github.com/jcelerier/rapidjson
     upstream: Tencent/rapidjson
-    pinned_sha: b1e23a17f4de21b313aa1fc578a30563401f081a
     upstream_version: "v1.1.0"
-    notes: "upstream is essentially abandoned (last release 2016)"
 
   - name: websocketpp
-    path: 3rdparty/libossia/3rdparty/websocketpp
-    kind: fork
-    fork: https://github.com/jcelerier/websocketpp
     upstream: zaphoyd/websocketpp
-    pinned_sha: 3b86173af2b936df997f1a32609ea09336447eb1
     upstream_version: "0.8.2"
-    notes: "upstream is mostly inactive; consider migrating off"
 
   - name: Servus
-    path: 3rdparty/libossia/3rdparty/Servus
-    kind: fork
-    fork: https://github.com/jcelerier/Servus
     upstream: HBPVIS/Servus
-    pinned_sha: 19492c2cf719c77cd8e305ee45bbbe7a2e3badf3
     upstream_version: "1.5.2"
 
   - name: whereami
-    path: 3rdparty/libossia/3rdparty/whereami
-    kind: fork
-    fork: https://github.com/jcelerier/whereami
     upstream: gpakosz/whereami
-    pinned_sha: 963497c778c4c1a972c1368bb2b9687f60032dac
     upstream_version: "dcb52a058dc1"
-    notes: "upstream is untagged"
 
   - name: SmallFunction
-    path: 3rdparty/libossia/3rdparty/SmallFunction
-    kind: fork
-    fork: https://github.com/jcelerier/SmallFunction
     upstream: LoopPerfect/smallfunction
-    pinned_sha: a1a050d1656b40b02f542a7fdbfe0933e4e18135
     upstream_version: "04d6a1d2cdda"
-    notes: "upstream abandoned (last commit ~2017); fork is effectively canonical"
 
   - name: verdigris
-    path: 3rdparty/libossia/3rdparty/verdigris
-    kind: fork
-    fork: https://github.com/jcelerier/verdigris
     upstream: woboq/verdigris
-    pinned_sha: 7596684dbb65f1132a0c494576a45caa5cad16d7
     upstream_version: "v1.3"
 
   - name: weakjack
-    path: 3rdparty/libossia/3rdparty/weakjack
-    kind: fork
-    fork: https://github.com/jcelerier/weakjack
     upstream: x42/weakjack
-    pinned_sha: 47a617a31adb65562a4e8bc854812589e8615691
     upstream_version: "61389602c521"
-    notes: "upstream is essentially frozen"
 
   - name: concurrentqueue
-    path: 3rdparty/libossia/3rdparty/concurrentqueue
-    kind: fork
-    fork: https://github.com/jcelerier/concurrentqueue
     upstream: cameron314/concurrentqueue
-    pinned_sha: da14b8bf89beb4af434ec94faa2fa5d84f1d2be1
     upstream_version: "v1.0.5"
 
   - name: rubberband
-    path: 3rdparty/libossia/3rdparty/rubberband
-    kind: fork
-    fork: https://github.com/jcelerier/rubberband
     upstream: breakfastquay/rubberband
-    pinned_sha: c82b3e8924b5c31b082c9d19bae01e0c66f36aaf
     upstream_version: "v4.0.0"
 
   - name: libsamplerate
-    path: 3rdparty/libossia/3rdparty/libsamplerate
-    kind: fork
-    fork: https://github.com/jcelerier/libsamplerate
     upstream: libsndfile/libsamplerate
-    pinned_sha: 3d7ea00ed04528b48e62bad5cf2b054b5f3ff294
     upstream_version: "0.2.2"
 
   - name: tuplet
-    path: 3rdparty/libossia/3rdparty/tuplet
-    kind: fork
-    fork: https://github.com/jcelerier/tuplet
     upstream: codeinred/tuplet
-    pinned_sha: ffd73720f5c8864437fedccf767736258aa4ebd2
     upstream_version: "v2.1.1"
 
   - name: kfr
-    path: 3rdparty/libossia/3rdparty/kfr
-    kind: fork
-    fork: https://github.com/jcelerier/kfr
     upstream: kfrlib/kfr
-    pinned_sha: 5200ac5e3b60e2a0077e019d6363f3ed5ab8118d
     upstream_version: "7.0.1"
 
   - name: PerlinNoise
-    path: 3rdparty/libossia/3rdparty/PerlinNoise
-    kind: fork
-    fork: https://github.com/jcelerier/PerlinNoise
     upstream: Reputeless/PerlinNoise
-    pinned_sha: e3e040eb9326a90eb8cb7a3cdadb72f78bb465f3
     upstream_version: "v3.0.0"
 
   - name: unordered_dense
-    path: 3rdparty/libossia/3rdparty/unordered_dense
-    kind: fork
-    fork: https://github.com/jcelerier/unordered_dense
     upstream: martinus/unordered_dense
-    pinned_sha: 5bdd46cbb988634ecd9642658c4b286cbb626f67
     upstream_version: "v4.8.1"
 
   - name: max-sdk
-    path: 3rdparty/libossia/3rdparty/max-sdk
-    kind: fork
-    fork: https://github.com/ossia/max-sdk
     upstream: Cycling74/max-sdk
-    pinned_sha: 91a3f06ae9bf7b63e3a1a6395570ac367d6dd44c
     upstream_version: "v8.2.0"
 
   - name: wiiuse
-    path: 3rdparty/libossia/3rdparty/wiiuse
-    kind: fork
-    fork: https://github.com/OSSIA/wiiuse
     upstream: wiiuse/wiiuse
-    pinned_sha: e657989e95dd39453bff7c0f90ae91f1437ca090
     upstream_version: "0.15.7"
 
   - name: ios-cmake
-    path: 3rdparty/libossia/3rdparty/ios-cmake
-    kind: fork
-    fork: https://github.com/avilleret/ios-cmake
     upstream: leetal/ios-cmake
-    pinned_sha: e1738585c0745f9512371cb97f1eedfe834b83f2
     upstream_version: "4.5.0"
-    notes: "fork maintained by Antoine Villeret (avilleret)"
 
 # --- direct-upstream submodules (no fork) -----------------------------
 
   - name: spdlog
-    path: 3rdparty/libossia/3rdparty/spdlog
-    kind: upstream
     upstream: gabime/spdlog
-    pinned_sha: f1d748e5e3edfa4b1778edea003bac94781bc7b7
     upstream_version: "v1.17.0"
 
   - name: fmt
-    path: 3rdparty/libossia/3rdparty/fmt
-    kind: upstream
     upstream: fmtlib/fmt
-    pinned_sha: e424e3f2e607da02742f73db84873b8084fc714c
     upstream_version: "12.1.0"
 
   - name: readerwriterqueue
-    path: 3rdparty/libossia/3rdparty/readerwriterqueue
-    kind: upstream
     upstream: cameron314/readerwriterqueue
-    pinned_sha: 16b48ae1148284e7b40abf72167206a4390a4592
     upstream_version: "v1.0.7"
 
   - name: pybind11
-    path: 3rdparty/libossia/3rdparty/pybind11
-    kind: upstream
     upstream: pybind/pybind11
-    pinned_sha: 941f45bcb51457884fa1afd6e24a67377d70f75c
     upstream_version: "v3.0.4"
 
   - name: exprtk
-    path: 3rdparty/libossia/3rdparty/exprtk
-    kind: upstream
     upstream: ArashPartow/exprtk
-    pinned_sha: dd7b1ff4ad66572e09078a49eaf5bfec5adeaedb
     upstream_version: "0.0.3"
 
   - name: dr_libs
-    path: 3rdparty/libossia/3rdparty/dr_libs
-    kind: upstream
     upstream: mackron/dr_libs
-    pinned_sha: c729134b41cf09542542b5da841ac2f933b36cba
     upstream_version: "wav-0.14.5"
-    notes: "upstream tags per single-file-lib (wav-x.y.z / flac-x.y.z / etc.) — regex may need per-file granularity later"
 
   - name: r8brain-free-src
-    path: 3rdparty/libossia/3rdparty/r8brain-free-src
-    kind: upstream
     upstream: avaneev/r8brain-free-src
-    pinned_sha: b3f0753d90b3325b8ea8a08fd699e8e6db26e5b5
     upstream_version: "version-6.5"
 
   - name: Flicks
-    path: 3rdparty/libossia/3rdparty/Flicks
-    kind: upstream
     upstream: OculusVR/Flicks
-    pinned_sha: 6d6362fb77e7645a0d45e1ba8a2f6de8bda3bdfa
     upstream_version: "6d6362fb77e7"
-    notes: "upstream is a single-commit repo — effectively frozen"
 
   - name: rapidfuzz-cpp
-    path: 3rdparty/libossia/3rdparty/rapidfuzz-cpp
-    kind: upstream
     upstream: maxbachmann/rapidfuzz-cpp
-    pinned_sha: 10426d24cd7479df0fe8c78b17877e756e1c3cd5
     upstream_version: "v3.3.3"
 
   - name: Catch2
-    path: 3rdparty/libossia/3rdparty/Catch2
-    kind: upstream
     upstream: catchorg/Catch2
-    pinned_sha: 914aeecfe23b1e16af6ea675a4fb5dbd5a5b8d0a
     upstream_version: "v3.15.0"
 
   - name: mdspan
-    path: 3rdparty/libossia/3rdparty/mdspan
-    kind: upstream
     upstream: kokkos/mdspan
-    pinned_sha: 546d4dd63697c6a331554adb6fe650e09b690812
     upstream_version: "mdspan-0.6.0"
 
   - name: dno
-    path: 3rdparty/libossia/3rdparty/dno
-    kind: upstream
     upstream: thibaudk/dno
-    pinned_sha: 18a823daed9904478802951f0a2e1141cf55bedb
     upstream_version: "2c5ea419d289"
-    notes: "upstream is untagged"
 
   - name: span
-    path: 3rdparty/libossia/3rdparty/span
-    kind: upstream
     upstream: tcbrindle/span
-    pinned_sha: 836dc6a0efd9849cb194e88e4aa2387436bb079b
     upstream_version: "836dc6a0efd9"
-    notes: "upstream is untagged"
 
   - name: re2
-    path: 3rdparty/libossia/3rdparty/re2
-    kind: upstream
     upstream: google/re2
-    pinned_sha: c9cba76063cf4235c1a15dd14a24a4ef8d623761
     upstream_version: "2025-11-05"
 
   - name: compile-time-regular-expressions
-    path: 3rdparty/libossia/3rdparty/compile-time-regular-expressions
-    kind: upstream
     upstream: hanickadot/compile-time-regular-expressions
-    pinned_sha: e34c26ba149b9fd9c34aa0f678e39739641a0d1e
     upstream_version: "v3.11.0"
 
   - name: async-mqtt5
-    path: 3rdparty/libossia/3rdparty/async-mqtt5
-    kind: upstream
     upstream: mireo/async-mqtt5
-    pinned_sha: 1225cc778a89b86e2203cb73437e249d5a18b3cb
     upstream_version: "v1.0.3"
 
   - name: magic_enum
-    path: 3rdparty/libossia/3rdparty/magic_enum
-    kind: upstream
     upstream: Neargye/magic_enum
-    pinned_sha: a72a0536c716fdef4f029fb43e1fd7e7b3d9ac9b
     upstream_version: "v0.9.8"
 
   - name: miniaudio
-    path: 3rdparty/libossia/3rdparty/miniaudio
-    kind: upstream
     upstream: mackron/miniaudio
-    pinned_sha: f40cf03f80cdb7e741d43e53b7e706e8c1394bcf
     upstream_version: "0.11.25"
 
   - name: libcoap
-    path: 3rdparty/libossia/3rdparty/libcoap
-    kind: upstream
     upstream: obgm/libcoap
-    pinned_sha: 4fa3dfa0c75e2222663d534a97f1ca62fbdbfe18
     upstream_version: "v4.3.5"
 
 # --- jcelerier/ossia originals (we are upstream) ----------------------
 
   - name: libremidi
-    path: 3rdparty/libossia/3rdparty/libremidi
-    kind: original
-    fork: https://github.com/jcelerier/libremidi
     upstream: jcelerier/libremidi
-    pinned_sha: 1c446daa71217aea1f0b9f4daab168c15449e3e4
     upstream_version: "v5.4.3"
-    notes: "we are the upstream (jcelerier maintains it)"
 
   - name: rnd
-    path: 3rdparty/libossia/3rdparty/rnd
-    kind: original
-    fork: https://github.com/jcelerier/rnd
     upstream: jcelerier/rnd
-    pinned_sha: 721a3e22fb86fcae904bfd107b7e2821d9b1f745
-    notes: "we are the upstream; no release tags"
 
   - name: cmake-modules
-    path: 3rdparty/libossia/cmake/cmake-modules
-    kind: original
-    fork: https://github.com/OSSIA/cmake-modules
     upstream: OSSIA/cmake-modules
-    pinned_sha: f87b72bc7068c6023fad4def5dd1350aca82c1db
-    notes: "ossia-owned helper repo; no release tags"
 
 # --- vendored copies (no submodule) -----------------------------------
 
   - name: libe131
-    path: 3rdparty/libossia/3rdparty/libe131
-    kind: vendored
     upstream: hhromic/libe131
     upstream_version: "v1.4.0"
-    notes: "Apache-2.0; small vendored copy"
 
   - name: timertt
-    path: 3rdparty/libossia/3rdparty/timertt
-    kind: vendored
     upstream: stiffstream/timertt
     upstream_version: "(none)"
-    notes: "header-only; upstream lives on stiffstream.com — no GitHub releases"
 
   - name: zita-alsa-pcmi
-    path: 3rdparty/libossia/3rdparty/zita-alsa-pcmi
-    kind: vendored
     upstream: "(Fons Adriaensen / Ardour fork)"
-    notes: "upstream is the Linux Audio kokkonut.org tarball; this is the Ardour-patched variant — manual bumps"
