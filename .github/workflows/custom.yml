@@ -91,7 +91,7 @@ jobs:
 
   m1-package:
     name: macOS (AppleSilicon Release)
-    runs-on: macos-15
+    runs-on: macos-26
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
