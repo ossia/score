@@ -23,7 +23,7 @@ jobs:
     runs-on: ${{ matrix.image }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: 'recursive'
 
@@ -60,7 +60,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: 'recursive'
 
@@ -94,7 +94,7 @@ jobs:
     runs-on: macos-15
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: 'recursive'
 
