@@ -208,8 +208,8 @@ bool fileContains(QFile& f, std::string_view pattern)
 {
   if(!f.open(QIODevice::ReadOnly))
     return {};
-  ssize_t sz = f.read(g_file_search_buffer, sizeof(g_file_search_buffer));
-  if(sz < pattern.size())
+  const qint64 sz = f.read(g_file_search_buffer, sizeof(g_file_search_buffer));
+  if(sz < qint64(pattern.size()))
     return {};
 
   return fast_contains(std::string_view(g_file_search_buffer, sz), pattern);
