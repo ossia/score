@@ -224,7 +224,7 @@ jobs:
           submodules: 'recursive'
 
       - name: Install Qt
-        uses: jurplel/install-qt-action@v4.3.0
+        uses: jurplel/install-qt-action@v4.3.1
         with:
           version: 6.10.*
           modules: qtwebsockets qtserialport qtscxml qtshadertools qtquick3d qtconnectivity
