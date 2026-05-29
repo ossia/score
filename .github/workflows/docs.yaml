@@ -56,7 +56,7 @@ jobs:
           touch build/.nojekyll
 
       - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@4.1.1
+        uses: JamesIves/github-pages-deploy-action@v4.8.0
         with:
           repository-name: ossia/score-api-docs
           token: ${{ secrets.API_TOKEN_GITHUB }}
