@@ -243,9 +243,10 @@ void RecursiveWatch::scanAsync(QObject* context)
     return;
 #endif
 
-  // Copy the state for the worker thread.
-  // The filter functions capture long-lived plugin objects so this is safe.
-  auto watched = m_asyncWatched;
+  // Hand the watch state off to the worker thread.
+  // Callers always do reset()+registerWatch() before each scan, so
+  // moving m_asyncWatched out is safe.
+  auto watched = std::move(m_asyncWatched);
   auto root = m_root;
 
   score::TaskPool::instance().post(

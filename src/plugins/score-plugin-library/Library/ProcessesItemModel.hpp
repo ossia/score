@@ -168,16 +168,21 @@ score::RecursiveWatch::AsyncCallbacks makeAsyncCallbacks(
     std::function<std::optional<T>(std::string_view)> filter,
     std::function<void(std::string_view, T&&)> commit)
 {
-  return {.filter = [filter = std::move(filter),
-                     commit = std::move(commit)](std::string_view path)
+  struct State
+  {
+    std::function<std::optional<T>(std::string_view)> filter;
+    std::function<void(std::string_view, T&&)> commit;
+  };
+  auto state = std::make_shared<State>(State{std::move(filter), std::move(commit)});
+
+  return {.filter = [state = std::move(state)](std::string_view path)
               -> std::function<void()> {
-    auto result = filter(path);
+    auto result = state->filter(path);
     if(!result)
       return {};
 
-    return [commit, p = std::string(path), data = std::move(*result)]() mutable {
-      commit(p, std::move(data));
-    };
+    return [commit = state->commit, p = std::string(path),
+            data = std::move(*result)]() mutable { commit(p, std::move(data)); };
   }};
 }
 

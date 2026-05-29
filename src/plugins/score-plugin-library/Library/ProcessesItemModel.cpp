@@ -123,12 +123,14 @@ void ProcessesItemModel::rescan()
   for(auto& lib : lib_setup)
   {
     lib.setup(*this, context);
-    score::RecursiveWatch::AsyncCallbacks cbs;
-    cbs.filter = [&lib](std::string_view path) -> std::function<void()> {
-      return lib.asyncAddPath(path);
-    };
     for(const QString& ext : lib.acceptedFiles())
-      w.registerWatch(ext.toStdString(), cbs);
+    {
+      score::RecursiveWatch::AsyncCallbacks cbs;
+      cbs.filter = [&lib](std::string_view path) -> std::function<void()> {
+        return lib.asyncAddPath(path);
+      };
+      w.registerWatch(ext.toStdString(), std::move(cbs));
+    }
   }
 
   if(!QDir{libpath}.exists())

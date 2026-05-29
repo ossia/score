@@ -6,6 +6,7 @@
 #include <QString>
 
 #include <score_lib_base_export.h>
+#include <smallfun.hpp>
 
 #include <functional>
 #include <vector>
@@ -36,7 +37,16 @@ public:
   /// Return an empty std::function (or {}) to reject the file.
   struct AsyncCallbacks
   {
-    std::function<std::function<void()>(std::string_view path)> filter;
+    using Filter = smallfun::function<
+        std::function<void()>(std::string_view),
+#if defined(_MSC_VER) && !defined(NDEBUG)
+        128,
+#else
+        64,
+#endif
+        smallfun::DefaultAlign, smallfun::Methods::Move>;
+
+    Filter filter;
   };
 
   void setWatchedFolder(std::string root) { m_root = root; }

@@ -23,13 +23,14 @@ LibraryDeviceEnumerator::LibraryDeviceEnumerator(
   m_watch.setWatchedFolder(
       ctx.app.settings<Library::Settings::Model>().getPackagesPath().toStdString());
 
-  score::RecursiveWatch::AsyncCallbacks cb;
-  cb.filter = [this](std::string_view path) -> std::function<void()> {
-    return asyncNext(path);
-  };
-
   for(auto& e : ext)
-    m_watch.registerWatch(e.toStdString(), cb);
+  {
+    score::RecursiveWatch::AsyncCallbacks cb;
+    cb.filter = [this](std::string_view path) -> std::function<void()> {
+      return asyncNext(path);
+    };
+    m_watch.registerWatch(e.toStdString(), std::move(cb));
+  }
 
   // Done delayed to leave the time to calling code to connect to deviceAdded, etc.
   QTimer::singleShot(1, this, [this] { m_watch.scanAsync(this); });
