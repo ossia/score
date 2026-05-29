@@ -20,7 +20,7 @@ jobs:
         run: git config --global core.longpaths true
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: 'recursive'
 
@@ -84,7 +84,7 @@ jobs:
         run: git config --global core.longpaths true
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: 'recursive'
 
@@ -171,7 +171,7 @@ jobs:
         run: git config --global core.longpaths true
 
       - name: Check out repository code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: 'recursive'
 
@@ -219,7 +219,7 @@ jobs:
         run: git config --global core.longpaths true
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: 'recursive'
 
