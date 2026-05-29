@@ -64,7 +64,7 @@ jobs:
           ./ci/${{ matrix.distro }}.deploy.sh
 
       - name: Upload build
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: matrix.deploy
         with:
           name: ${{ matrix.distro }}
