@@ -1,0 +1,255 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+
+  // ---------------------------------------------------------------
+  // Baseline behaviour
+  // ---------------------------------------------------------------
+  extends: [
+    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticCommits",
+    ":disableRateLimiting",
+  ],
+
+  // Run weekly; the dependency dashboard refreshes more often anyway.
+  schedule: ["* * * * 1"],
+
+  dependencyDashboard: true,
+  dependencyDashboardTitle: "3rd-party dependency dashboard",
+  dependencyDashboardOSVVulnerabilitySummary: "all",
+
+  // Don't drown reviewers — cap concurrent PRs.
+  prConcurrentLimit: 8,
+  prHourlyLimit: 0,
+
+  labels: ["dependencies"],
+
+  // ---------------------------------------------------------------
+  // (a) Built-in submodule manager
+  //   Catches every `kind: upstream` submodule (URL points at the
+  //   real upstream) — Renovate notices when our pinned SHA is
+  //   behind the tracked branch and opens a PR bumping the SHA.
+  //   It will ALSO fire on forks (jcelerier/*) when *we* push new
+  //   commits there; that's informational rather than a stale signal.
+  // ---------------------------------------------------------------
+  "git-submodules": {
+    enabled: true,
+    // Track branch HEAD; tag-based detection is via the customManager below.
+    versioning: "git",
+  },
+
+  // ---------------------------------------------------------------
+  // (b) Custom managers — read 3rdparty/deps.yaml
+  //
+  // Three managers run in parallel, each scoped to a different
+  // datasource because the YAML mixes:
+  //   - GitHub-tagged upstreams       → github-tags
+  //   - GitLab-tagged upstreams       → gitlab-tags  (prefix "gitlab:")
+  //   - Untagged repos tracked by HEAD → git-refs    (12-hex SHA value)
+  //
+  // The regex matches one YAML block bounded by `- name:` / next entry,
+  // so missing fields don't bleed into the next dep.
+  // ---------------------------------------------------------------
+  customManagers: [
+    // (1) GitHub upstreams with version tags
+    //     Rejects "(none)" placeholders and pure 12-hex SHAs
+    //     (those are owned by customManager (3) below).
+    {
+      customType: "regex",
+      managerFilePatterns: ["^3rdparty/deps\\.yaml$"],
+      matchStrings: [
+        "- name:\\s*(?<depName>\\S+)\\s*\\n(?:(?!  - name:)[\\s\\S])*?upstream:\\s*(?<packageName>(?!gitlab:)[^\\s\"']+)\\s*\\n(?:(?!  - name:)[\\s\\S])*?upstream_version:\\s*\"(?<currentValue>(?!\\(none\\))(?![a-f0-9]{12}\")[^\"]+)\"",
+      ],
+      datasourceTemplate: "github-tags",
+      versioningTemplate: "semver-coerced",
+      extractVersionTemplate: "^v?(?<version>.+)$",
+    },
+
+    // (2) GitLab upstreams (shmdata, sh4lt, eigen)
+    {
+      customType: "regex",
+      managerFilePatterns: ["^3rdparty/deps\\.yaml$"],
+      matchStrings: [
+        "- name:\\s*(?<depName>\\S+)\\s*\\n(?:(?!  - name:)[\\s\\S])*?upstream:\\s*\"?gitlab:(?<packageName>[^\\s\"']+)\"?\\s*\\n(?:(?!  - name:)[\\s\\S])*?upstream_version:\\s*\"(?<currentValue>(?!\\(none\\))[^\"]+)\"",
+      ],
+      registryUrlTemplate: "https://gitlab.com",
+      datasourceTemplate: "gitlab-tags",
+      versioningTemplate: "semver-coerced",
+    },
+
+    // (3) Untagged GitHub upstreams — track default-branch HEAD via 12-hex SHA
+    {
+      customType: "regex",
+      managerFilePatterns: ["^3rdparty/deps\\.yaml$"],
+      matchStrings: [
+        "- name:\\s*(?<depName>\\S+)\\s*\\n(?:(?!  - name:)[\\s\\S])*?upstream:\\s*(?<sourceRepo>(?!gitlab:)[^\\s\"']+)\\s*\\n(?:(?!  - name:)[\\s\\S])*?upstream_version:\\s*\"(?<currentDigest>[a-f0-9]{12})\"",
+      ],
+      datasourceTemplate: "git-refs",
+      currentValueTemplate: "HEAD",
+      packageNameTemplate: "https://github.com/{{{sourceRepo}}}",
+      depNameTemplate: "{{{sourceRepo}}}",
+    },
+  ],
+
+  packageRules: [
+    // -------------------------------------------------------------
+    // Originals — we ARE upstream, no point chasing ourselves
+    // -------------------------------------------------------------
+    {
+      matchPackageNames: [
+        "jcelerier/zipdownloader",
+        "jcelerier/magicitems",
+        "jcelerier/libssynth",
+        "jcelerier/libremidi",
+        "jcelerier/rnd",
+        "OSSIA/cmake-modules",
+        "ossia/libossia",
+        "celtera/avendish",
+      ],
+      enabled: false,
+    },
+
+    // -------------------------------------------------------------
+    // Grouping — co-released libs land in single PRs
+    // -------------------------------------------------------------
+    {
+      matchPackageNames: [
+        "steinbergmedia/vst3_public_sdk",
+        "steinbergmedia/vst3_pluginterfaces",
+        "steinbergmedia/vst3_base",
+        "steinbergmedia/vst3_cmake",
+      ],
+      groupName: "Steinberg VST3 SDK",
+      // Tag format: v3.8.0_build_66  → custom regex versioning
+      versioning: "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)_build_(?<build>\\d+)$",
+    },
+    {
+      matchPackageNames: [
+        "xtensor-stack/xtensor",
+        "xtensor-stack/xsimd",
+        "xtensor-stack/xtl",
+      ],
+      groupName: "xtensor stack",
+    },
+    {
+      matchPackageNames: [
+        "ned14/llfio",
+        "ned14/quickcpplib",
+        "ned14/outcome",
+      ],
+      groupName: "ned14 LLFIO stack",
+    },
+
+    // -------------------------------------------------------------
+    // Date-versioned releases — Renovate can't semver-coerce these
+    // -------------------------------------------------------------
+    {
+      matchPackageNames: ["google/re2"],
+      versioning: "regex:^(?<major>\\d{4})-(?<minor>\\d{2})-(?<patch>\\d{2})$",
+    },
+    {
+      matchPackageNames: ["ned14/llfio"],
+      // llfio mixes `all_tests_*` CI markers with `YYYYMMDD` release tags.
+      // The regex versioning filters to only the date-shaped tags.
+      versioning: "regex:^(?<major>\\d{4})(?<minor>\\d{2})(?<patch>\\d{2})$",
+    },
+
+    // -------------------------------------------------------------
+    // Prefixed tag schemes — strip the prefix before versioning
+    // -------------------------------------------------------------
+    {
+      // dr_libs is a meta-repo of single-file libs (wav, mp3, flac, …)
+      // each with its own version line. We track the `wav-*` line only,
+      // since that's the most-watched header in ossia's audio I/O.
+      matchPackageNames: ["mackron/dr_libs"],
+      extractVersion: "^wav-(?<version>.+)$",
+    },
+    {
+      matchPackageNames: ["avaneev/r8brain-free-src"],
+      extractVersion: "^version-(?<version>.+)$",
+    },
+    {
+      matchPackageNames: ["jpaver/opengametools"],
+      // Upstream only ships pre-releases (-alpha tags); without the
+      // override Renovate's `ignoreUnstable` skips them entirely.
+      extractVersion: "^opengametools-v?(?<version>.+)$",
+      ignoreUnstable: false,
+    },
+    {
+      matchPackageNames: ["kokkos/mdspan"],
+      extractVersion: "^mdspan-(?<version>.+)$",
+    },
+    {
+      // Guitarix tags use both `V0.47.0` and `v0.47.0` (case-insensitive).
+      matchPackageNames: ["brummer10/guitarix"],
+      extractVersion: "^[Vv](?<version>.+)$",
+    },
+
+    // -------------------------------------------------------------
+    // Effectively-abandoned upstreams — we're the canonical fork
+    // Move these to the monthly cadence and require manual approval,
+    // because any bump is really a "rare upstream wake-up" event.
+    // -------------------------------------------------------------
+    {
+      matchPackageNames: [
+        "svn2github/oscpack",
+        "LoopPerfect/smallfunction",
+        "x42/weakjack",
+        "Tencent/rapidjson",
+        "OculusVR/Flicks",
+        "zaphoyd/websocketpp",
+        "HBPVIS/Servus",
+        "Megaxela/QCodeEditor",
+        "mbasaglia/Qt-Color-Widgets",
+        "randrew/phantomstyle",
+        "QSL/QProgressIndicator",
+        "olilarkin/DSPFilters",
+        "adamstark/Gist",
+      ],
+      labels: ["dependencies", "upstream-stale"],
+      schedule: ["before 5am on the first day of the month"],
+      dependencyDashboardApproval: true,
+    },
+
+    // -------------------------------------------------------------
+    // Docs / packaging — low-priority noise
+    // -------------------------------------------------------------
+    {
+      matchPackageNames: [
+        "Velron/doxygen-bootstrapped",
+        "flathub/shared-modules",
+      ],
+      labels: ["dependencies", "docs"],
+      schedule: ["before 5am on the first day of the month"],
+      dependencyDashboardApproval: true,
+    },
+
+    // -------------------------------------------------------------
+    // Triage labels per manager
+    // -------------------------------------------------------------
+    {
+      matchManagers: ["git-submodules"],
+      addLabels: ["deps:submodule"],
+    },
+    {
+      matchManagers: ["custom.regex"],
+      addLabels: ["deps:registry"],
+      // The registry file is informational — each bump is a human
+      // "go rebase patches" prompt, not an auto-mergeable change.
+      automerge: false,
+      prBodyNotes: [
+        ":warning: This PR updates `3rdparty/deps.yaml` only. Once merged, you still need to:\n1. Pull the new upstream tag into the corresponding fork.\n2. Rebase the ossia patches on top.\n3. Push the fork and bump the submodule SHA in a follow-up PR.",
+      ],
+    },
+  ],
+
+  // ---------------------------------------------------------------
+  // OSV vulnerability scanning — independent of version freshness,
+  // gives the dashboard a "security" section.
+  // ---------------------------------------------------------------
+  osvVulnerabilityAlerts: true,
+  vulnerabilityAlerts: {
+    enabled: true,
+    labels: ["security"],
+  },
+}
