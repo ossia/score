@@ -14,9 +14,7 @@
 #endif
 
 // https://github.com/ned14/llfio/issues/144
-#if __has_include(<llfio.hpp>) \
-  && !defined(_WIN32) \
-  && !defined(__EMSCRIPTEN__)
+#if __has_include(<llfio.hpp>) && !defined(__EMSCRIPTEN__)
 #define SCORE_HAS_LLFIO 1
 #elif defined(__APPLE__)
 #if __MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_15
@@ -36,6 +34,10 @@
 #define LLFIO_DISABLE_OPENSSL 1
 #define QUICKCPPLIB_USE_STD_SPAN 1
 // #define OUTCOME_USE_SYSTEM_STATUS_CODE 0
+
+#if defined(__MINGW32__)
+#define LLFIO_DISABLE_SIGNAL_GUARD 1
+#endif
 
 #if !defined(__has_feature)
 #define __has_feature(T) 0
