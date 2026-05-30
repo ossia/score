@@ -60,7 +60,7 @@
 	url = https://github.com/celtera/avendish
 [submodule "3rdparty/llfio"]
 	path = 3rdparty/llfio
-	url = https://github.com/ned14/llfio
+	url = https://github.com/jcelerier/llfio
 [submodule "3rdparty/quickcpplib"]
 	path = 3rdparty/quickcpplib
 	url = https://github.com/ned14/quickcpplib
