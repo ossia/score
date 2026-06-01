@@ -12,6 +12,7 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
+#include <ossia/dataflow/exec_pool.hpp>
 #include <ossia/detail/json.hpp>
 #include <ossia/detail/thread.hpp>
 #include <ossia/network/domain/domain.hpp>
@@ -39,52 +40,10 @@
 #include <dlfcn.h>
 #endif
 
-#include <boost/asio/post.hpp>
-#include <boost/asio/thread_pool.hpp>
-
-#include <latch>
-#include <thread>
-
 W_OBJECT_IMPL(Clap::Model)
 
 namespace Clap
 {
-
-// Shared fork-join pool for CLAP_EXT_THREAD_POOL.request_exec.
-class ClapThreadPool
-{
-public:
-  static ClapThreadPool& instance()
-  {
-    static ClapThreadPool pool;
-    return pool;
-  }
-
-  bool dispatch(
-      const clap_plugin_t* plugin, const clap_plugin_thread_pool_t* ext,
-      uint32_t num_tasks) noexcept
-  {
-    if(num_tasks == 0)
-      return false;
-    std::latch done(num_tasks);
-    for(uint32_t i = 0; i < num_tasks; ++i)
-    {
-      boost::asio::post(m_pool, [plugin, ext, i, &done] {
-        ext->exec(plugin, i);
-        done.count_down();
-      });
-    }
-    done.wait();
-    return true;
-  }
-
-private:
-  ClapThreadPool()
-      : m_pool{std::max(1u, std::thread::hardware_concurrency() - 1)}
-  {
-  }
-  boost::asio::thread_pool m_pool;
-};
 
 // Some plug-ins (e.g. Octasine) don't zero-init info.name; reject garbage.
 static QString
@@ -603,7 +562,11 @@ static constexpr clap_host_thread_check_t host_thread_check_ext = {
   return ossia::get_current_thread_type() == ossia::thread_type::Ui;
 },
     .is_audio_thread = [](const clap_host_t* host) -> bool {
-  return ossia::get_current_thread_type() == ossia::thread_type::Audio;
+  // The shared task pool pins its workers as AudioTask; they run plug-in
+  // process() / thread-pool exec() under the audio thread's umbrella, so both
+  // count as "the audio thread" for the plug-in (matches ensure_current_thread_kind).
+  const auto t = ossia::get_current_thread_type();
+  return t == ossia::thread_type::Audio || t == ossia::thread_type::AudioTask;
 },
 };
 
@@ -618,7 +581,25 @@ static constexpr clap_host_thread_pool host_thread_pool_ext
       h.plugin->get_extension(h.plugin, CLAP_EXT_THREAD_POOL));
   if(!ext || !ext->exec)
     return false;
-  return ClapThreadPool::instance().dispatch(h.plugin, ext, num_tasks);
+  if(num_tasks == 0)
+    return false;
+
+  // Synchronous fork-join on the shared realtime pool: workers are RT-pinned
+  // AudioTask threads, the calling (audio) thread participates, and nothing is
+  // allocated here. exec() is C ABI but some plug-ins are C++ inside, so guard
+  // against an escaping exception terminating the audio thread.
+  const clap_plugin_t* plugin = h.plugin;
+  ossia::task_pool::instance().fork_n(
+      static_cast<int>(num_tasks), [plugin, ext](int i) noexcept {
+    try
+    {
+      ext->exec(plugin, static_cast<uint32_t>(i));
+    }
+    catch(...)
+    {
+    }
+  });
+  return true;
 }};
 
 static constexpr clap_host_voice_info_t host_voice_info_ext
