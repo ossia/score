@@ -285,78 +285,63 @@ public:
 
   void init_parameter_values(const clap_plugin_t* plugin)
   {
-    if(!plugin)
+    if(!plugin || m_param_ins.empty())
       return;
 
-    int param_i = 0;
-    // Get parameter extension to set initial values
-    for(const auto& param_info : m_param_ins)
+    // Push initial parameter values via clap.params.flush, not process().
+    // process() requires the plugin's declared audio port layout (a plugin may
+    // assert on it, e.g. Floe), and the spec reserves process() for actual
+    // audio rendering; flush() exists precisely to set parameters with no
+    // audio. We're on the audio thread, active and not concurrently
+    // processing, which is a legal context for flush.
+    auto params = static_cast<const clap_plugin_params_t*>(
+        plugin->get_extension(plugin, CLAP_EXT_PARAMS));
+    if(!params || !params->flush)
+      return;
+
+    event_storage in;
+    in.param_events.reserve(m_param_ins.size());
+    in.all_events.reserve(m_param_ins.size());
+    for(std::size_t i = 0; i < m_param_ins.size(); ++i)
     {
-      // Create parameter value event with default value
-      clap_event_param_value_t param_event{};
-      param_event.header.size = sizeof(clap_event_param_value_t);
-      param_event.header.time = 0;
-      param_event.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
-      param_event.header.type = CLAP_EVENT_PARAM_VALUE;
-      param_event.header.flags = 0;
-      param_event.param_id = param_info.id;
-      param_event.cookie = param_info.cookie;
-      param_event.note_id = -1;
-      param_event.port_index = -1;
-      param_event.channel = -1;
-      param_event.key = -1;
-      auto& v = parameter_ins[param_i]->data.get_data();
-      if(!v.empty())
-        param_event.value = ossia::convert<float>(v.back().value);
-      else
-        param_event.value = param_info.default_value;
-      param_i++;
-
-      // Create temporary input events structure to send the parameter
-      event_storage temp_events;
-      temp_events.param_events.push_back(param_event);
-      temp_events.all_events.push_back(
-          reinterpret_cast<clap_event_header_t*>(&temp_events.param_events.back()));
-
-      // Create input events interface
-      clap_input_events evs{
-          .ctx = &temp_events,
-          .size = +[](const clap_input_events* list) -> uint32_t {
-        auto* storage = static_cast<event_storage*>(list->ctx);
-        return storage->all_events.size();
-      },
-          .get = +[](const clap_input_events* list,
-                     uint32_t index) -> const clap_event_header_t* {
-        auto* storage = static_cast<event_storage*>(list->ctx);
-        if(index < storage->all_events.size())
-          return storage->all_events[index];
-        return nullptr;
-      }};
-
-      // Create dummy output events
-      event_storage temp_output;
-      clap_output_events_t o_evs{
-          .ctx = &temp_output,
-          .try_push = [](const struct clap_output_events* list,
-                         const clap_event_header_t* event) -> bool {
-        return false; // Ignore output events during initialization
-      }};
-
-      // Create minimal process structure just for parameter setting
-      clap_process_t process{};
-      process.frames_count = 0;
-      process.audio_inputs = nullptr;
-      process.audio_outputs = nullptr;
-      process.audio_inputs_count = 0;
-      process.audio_outputs_count = 0;
-      process.steady_time = -1;
-      process.in_events = &evs;
-      process.out_events = &o_evs;
-      process.transport = nullptr;
-
-      // Send the parameter to the plugin
-      plugin->process(plugin, &process);
+      const auto& param_info = m_param_ins[i];
+      clap_event_param_value_t ev{};
+      ev.header.size = sizeof(clap_event_param_value_t);
+      ev.header.time = 0;
+      ev.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
+      ev.header.type = CLAP_EVENT_PARAM_VALUE;
+      ev.header.flags = 0;
+      ev.param_id = param_info.id;
+      ev.cookie = param_info.cookie;
+      ev.note_id = -1;
+      ev.port_index = -1;
+      ev.channel = -1;
+      ev.key = -1;
+      const auto& v = parameter_ins[i]->data.get_data();
+      ev.value = v.empty() ? param_info.default_value
+                           : ossia::convert<float>(v.back().value);
+      in.param_events.push_back(ev);
     }
+    for(auto& ev : in.param_events)
+      in.all_events.push_back(reinterpret_cast<clap_event_header_t*>(&ev));
+
+    clap_input_events evs{
+        .ctx = &in,
+        .size = +[](const clap_input_events* list) -> uint32_t {
+      return static_cast<event_storage*>(list->ctx)->all_events.size();
+    },
+        .get = +[](const clap_input_events* list,
+                   uint32_t index) -> const clap_event_header_t* {
+      auto* storage = static_cast<event_storage*>(list->ctx);
+      return index < storage->all_events.size() ? storage->all_events[index]
+                                                : nullptr;
+    }};
+    clap_output_events_t o_evs{
+        .ctx = nullptr,
+        .try_push = [](const struct clap_output_events*,
+                       const clap_event_header_t*) -> bool { return false; }};
+
+    params->flush(plugin, &evs, &o_evs);
   }
 
   [[nodiscard]]
