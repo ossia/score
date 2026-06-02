@@ -43,6 +43,7 @@ then
   clone_addon https://github.com/ossia/score-addon-spatgris
   clone_addon https://github.com/ossia/score-addon-hdf5
   clone_addon https://github.com/ossia/score-addon-onnx
+  ( cd score-addon-onnx ; git checkout feature/detector )
   clone_addon https://github.com/ossia/score-addon-deuterium
   clone_addon https://github.com/ossia/score-addon-airwindows
   clone_addon https://github.com/ossia/score-addon-lsl
