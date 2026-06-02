@@ -37,6 +37,15 @@ set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
 \\\${registerExtension} '\\\$INSTDIR\\\\score.exe' '.scorejson' 'score file'
 \\\${registerExtension} '\\\$INSTDIR\\\\score.exe' '.score' 'score file'
 
+; Deploy the bundled user library into the user's library folder so that it is
+; available on first start. firstTimeLibraryDownload() looks for package.json
+; there and skips the network download when it is present.
+; Don't overwrite an existing (possibly customized) library on reinstall.
+IfFileExists '\\\$DOCUMENTS\\\\ossia\\\\score\\\\packages\\\\default\\\\package.json' score_default_library_done 0
+CreateDirectory '\\\$DOCUMENTS\\\\ossia\\\\score\\\\packages\\\\default'
+CopyFiles /SILENT '\\\$INSTDIR\\\\default-library\\\\*.*' '\\\$DOCUMENTS\\\\ossia\\\\score\\\\packages\\\\default'
+score_default_library_done:
+
 SetOutPath '\\\$INSTDIR'
 CreateShortcut '\\\$DESKTOP\\\\score.lnk' '\\\$INSTDIR\\\\score.exe' '' '\\\$INSTDIR\\\\score.ico'
 SetRegView 64
