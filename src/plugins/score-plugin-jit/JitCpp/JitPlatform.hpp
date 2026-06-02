@@ -862,7 +862,6 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
         "/3rdparty/libossia/3rdparty/readerwriterqueue",
         "/3rdparty/libossia/3rdparty/concurrentqueue",
         "/3rdparty/libossia/3rdparty/SmallFunction/smallfun/include",
-        "/3rdparty/libossia/3rdparty/websocketpp",
         "/3rdparty/libossia/3rdparty/rapidjson/include",
         "/3rdparty/libossia/3rdparty/libremidi/include",
         "/3rdparty/libossia/3rdparty/oscpack",

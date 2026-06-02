@@ -28,7 +28,7 @@
 #include <QInputDialog>
 #include <QTimer>
 
-#include <websocketpp/base64/base64.hpp>
+#include <ossia/detail/base64.hpp>
 
 #include <cmath>
 #include <wobjectimpl.h>
@@ -966,7 +966,7 @@ void JSONReader::read(const vst::Model& eff)
       auto res = eff.fx->dispatch(effGetChunk, 0, 0, &ptr, 0.f);
       if(ptr && res > 0)
       {
-        obj["Data"] = websocketpp::base64_encode((const unsigned char*)ptr, res);
+        obj["Data"] = ossia::base64_encode((const unsigned char*)ptr, res);
       }
     }
     else
@@ -1034,7 +1034,7 @@ void JSONWriter::write(vst::Model& eff)
     {
       if(data_it != base.MemberEnd())
       {
-        auto b64 = websocketpp::base64_decode(JsonValue{data_it->value}.toStdString());
+        auto b64 = ossia::base64_decode(JsonValue{data_it->value}.toStdString());
         eff.fx->dispatch(effSetChunk, 0, b64.size(), b64.data(), 0.f);
       }
     }
