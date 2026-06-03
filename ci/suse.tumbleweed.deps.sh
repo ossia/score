@@ -4,7 +4,7 @@ source ci/common.setup.sh
 
 # Disabling libSDL2-devel until -fPIC problem is sorted...
 
-$SUDO zypper -n install awk
+$SUDO zypper -n install --force-resolution gawk
 
 source ci/common.deps.sh LINUX
 
