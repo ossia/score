@@ -41,6 +41,10 @@ W_OBJECT_IMPL(Scenario::NodalContainer)
 namespace Scenario
 {
 constexpr double g_zoom_base = 1.2;
+// g_zoom_base is used as a logarithm base (std::log(g_zoom_base) as a
+// denominator); it must be strictly greater than 1, otherwise the division
+// would yield NaN / a division by zero.
+static_assert(g_zoom_base > 1.0);
 NodalIntervalView::NodalIntervalView(
     NodalIntervalView::ItemsToShow sh, const IntervalModel& model,
     const Process::Context& ctx, QGraphicsItem* parent)
