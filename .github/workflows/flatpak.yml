@@ -45,8 +45,8 @@ jobs:
       with:
         name: "Continuous"
         tag_name: "continuous"
-        body: ""
-        append_body: true
+        body: "Continuous (development) build of ossia score, automatically rebuilt from the latest commit on master. For stable versions, see the tagged releases."
+        append_body: false
         generate_release_notes: false
         files: |
           *.flatpak
