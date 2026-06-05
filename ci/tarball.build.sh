@@ -91,14 +91,17 @@ printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)" >
   find . -name '*.user.*' -exec rm {} \;
 )
 
-if [[ -v GPG_SIGN_PUBKEY ]]; then
+tar caf ossia-score.tar.xz --transform "s,^\.\/,ossia-score-$GITTAGNOV/," ./*
+
+if [[ -n "$GPG_SIGN_PUBKEY" && -n "$GPG_SIGN_PRIVKEY" ]]; then
   export PUBKEY_SECUREFILEPATH=gpg.pub.asc
   export PRIVKEY_SECUREFILEPATH=gpg.priv.asc
   echo "$GPG_SIGN_PUBKEY" > "$PUBKEY_SECUREFILEPATH"
   echo "$GPG_SIGN_PRIVKEY" > "$PRIVKEY_SECUREFILEPATH"
-fi
 
-tar caf ossia-score.tar.xz --transform "s,^\.\/,ossia-score-$GITTAGNOV/," ./*
-gpg --import "$PUBKEY_SECUREFILEPATH"
-gpg --allow-secret-key-import --import "$PRIVKEY_SECUREFILEPATH"
-gpg -ab ossia-score.tar.xz
+  gpg --import "$PUBKEY_SECUREFILEPATH"
+  gpg --allow-secret-key-import --import "$PRIVKEY_SECUREFILEPATH"
+  gpg -ab ossia-score.tar.xz
+else
+  echo "No GPG signing key available: skipping tarball signature."
+fi
