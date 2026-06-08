@@ -86,7 +86,7 @@ class VideoNode;
  * See RGB0Decoder for an example with a single texture, YUV420Decoder for an
  * example with multiple textures.
  */
-class GPUVideoDecoder
+class SCORE_PLUGIN_GFX_EXPORT GPUVideoDecoder
 {
 public:
   GPUVideoDecoder();
