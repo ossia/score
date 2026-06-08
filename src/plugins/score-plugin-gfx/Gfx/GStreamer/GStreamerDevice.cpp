@@ -53,6 +53,7 @@ struct gstreamer_pipeline
     AVPixelFormat pixfmt{AV_PIX_FMT_NONE};
     int channels{};
     int rate{};
+    std::function<void(int, int, AVPixelFormat)> on_format_change;
   };
 
   std::vector<AppsinkInfo> appsinks;
@@ -450,6 +451,33 @@ private:
           continue;
         }
 
+        if(info.is_video)
+        {
+          if(GstCaps* caps = gst.sample_get_caps(sample))
+          {
+            int new_w = info.width;
+            int new_h = info.height;
+            AVPixelFormat new_pf = info.pixfmt;
+            if(GstStructure* s = gst.caps_get_structure(caps, 0))
+            {
+              AppsinkInfo probed = info;
+              parse_video_caps(gst, s, probed);
+              new_w = probed.width;
+              new_h = probed.height;
+              new_pf = probed.pixfmt;
+            }
+            if(new_w != info.width || new_h != info.height
+               || new_pf != info.pixfmt)
+            {
+              info.width = new_w;
+              info.height = new_h;
+              info.pixfmt = new_pf;
+              if(info.on_format_change)
+                info.on_format_change(new_w, new_h, new_pf);
+            }
+          }
+        }
+
         GstMapInfo map_info{};
         if(gst.buffer_map(buffer, &map_info, GST_MAP_READ))
         {
@@ -549,6 +577,17 @@ public:
 
   AVFrame* dequeue_frame() noexcept override { return queue->dequeue(); }
   void release_frame(AVFrame* frame) noexcept override { queue->release(frame); }
+
+  // Mid-stream caps change: drain stale frames before the renderer
+  // dequeues, then commit the metadata update.
+  bool notifyFormatChange(
+      int new_w, int new_h, AVPixelFormat new_pixfmt) noexcept override
+  {
+    if(new_w == width && new_h == height && new_pixfmt == pixel_format)
+      return false;
+    queue->drain();
+    return ::Video::ExternalInput::notifyFormatChange(new_w, new_h, new_pixfmt);
+  }
 };
 
 class gstreamer_audio_parameter final : public ossia::audio_parameter
@@ -671,6 +710,13 @@ public:
         decoder->width = sink.width;
         decoder->height = sink.height;
         decoder->fps = 30;
+
+        std::weak_ptr<gstreamer_video_decoder> dec_weak{decoder};
+        sink.on_format_change
+            = [dec_weak](int w, int h, AVPixelFormat f) {
+                if(auto d = dec_weak.lock())
+                  d->notifyFormatChange(w, h, f);
+              };
 
         root.add_child(std::make_unique<Gfx::simple_texture_input_node>(
             new score::gfx::CameraNode(decoder), &ctx, *this, sink.name));

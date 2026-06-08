@@ -177,7 +177,7 @@ struct V210Encoder : GPUVideoEncoder
 
   void exec(QRhi& rhi, QRhiCommandBuffer& cb) override
   {
-    cb.beginPass(m_renderTarget, Qt::black, {1.0f, 0});
+    cb.beginPass(m_renderTarget, Qt::black, {0.0f, 0});
     cb.setGraphicsPipeline(m_pipeline);
     cb.setShaderResources(m_srb);
     cb.setViewport(QRhiViewport(0, 0, m_outW, m_height));
