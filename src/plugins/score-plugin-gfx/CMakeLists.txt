@@ -15,6 +15,8 @@ score_common_setup()
 
 find_package(${QT_VERSION} REQUIRED Gui)
 
+add_subdirectory(3rdparty/nv-dvp-bridge)
+
 if(NOT TARGET avformat AND NOT EMSCRIPTEN)
   find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVUTIL AVDEVICE)
 endif()
@@ -53,9 +55,11 @@ set(SYPHON_SRCS
 set(VTB_SRCS
     Gfx/Graph/decoders/HWVideoToolbox_metal.hpp
     Gfx/Graph/decoders/HWVideoToolbox_metal.mm
+    Gfx/Graph/interop/TextureShareMetal.mm
 )
 set_source_files_properties(
     Gfx/Graph/decoders/HWVideoToolbox_metal.mm
+    Gfx/Graph/interop/TextureShareMetal.mm
     PROPERTIES
       SKIP_UNITY_BUILD_INCLUSION ON
 )
@@ -225,7 +229,9 @@ set(HDRS
     Gfx/Graph/Window.hpp
     
     Gfx/Graph/decoders/DXV.hpp
-    Gfx/Graph/decoders/DMABufImport.hpp
+    Gfx/Graph/interop/DMABufImport.hpp
+    Gfx/Graph/interop/EglDmaBufImport.hpp
+    Gfx/Graph/interop/EglDmaBufExport.hpp
     Gfx/Graph/encoders/ColorSpaceOut.hpp
     Gfx/Graph/encoders/GPUVideoEncoder.hpp
     Gfx/Graph/encoders/UYVY.hpp
@@ -238,9 +244,41 @@ set(HDRS
     Gfx/Graph/encoders/BGRACompute.hpp
     Gfx/Graph/encoders/ComputeEncoder.hpp
 
+    Gfx/Graph/interop/CudaFunctions.hpp
+    Gfx/Graph/interop/CudaP2PBridge.h
+    Gfx/Graph/interop/CudaP2PBridge.cpp
+    Gfx/Graph/interop/VkExternalMemoryHelpers.hpp
+    Gfx/Graph/interop/VkExternalMemoryHelpers.cpp
+    Gfx/Graph/interop/TextureShare.hpp
+    Gfx/Graph/interop/TextureShare.cpp
+    Gfx/Graph/interop/AVHWFrameToQRhi.hpp
+    Gfx/Graph/interop/GpuRingBuffer.hpp
+    Gfx/Graph/interop/GpuRingBuffer.cpp
+    Gfx/Graph/interop/InteropFence.hpp
+    Gfx/Graph/interop/InteropFence.cpp
+    Gfx/Graph/interop/ComputeRingDispatcher.hpp
+    Gfx/Graph/interop/GpuDirectStrategy.hpp
+    Gfx/Graph/interop/GpuDirectCaptureStrategy.hpp
+    Gfx/Graph/interop/GpuDirectOutput.hpp
+    Gfx/Graph/interop/GpuDirectOutput.cpp
+    Gfx/Graph/interop/GpuCapabilities.hpp
+    Gfx/Graph/interop/GpuCapabilities.cpp
+    Gfx/Graph/interop/CudaVmmAllocator.hpp
+    Gfx/Graph/interop/CudaVmmAllocator.cpp
+    Gfx/Graph/interop/AmdPinnedBuffers.hpp
+    Gfx/Graph/interop/AmdPinnedBuffers.cpp
+    Gfx/Graph/interop/HostPinnedRing.hpp
+    Gfx/Graph/interop/HostPinnedRing.cpp
+    Gfx/Graph/interop/VkCudaSemaphore.hpp
+    Gfx/Graph/interop/VkCudaSemaphore.cpp
+    Gfx/Graph/interop/VideoPixelFormat.hpp
+    Gfx/Graph/interop/VideoPixelFormat.cpp
+
     Gfx/Graph/decoders/GPUVideoDecoder.hpp
     Gfx/Graph/decoders/GPUVideoDecoderFactory.hpp
     Gfx/Graph/decoders/HAP.hpp
+    Gfx/Graph/decoders/FormatDecoders.hpp
+    Gfx/Graph/decoders/FormatDecoders.cpp
     Gfx/Graph/decoders/HWTransfer.hpp
     Gfx/Graph/decoders/HWVAAPI.hpp
     Gfx/Graph/decoders/HWCUDA.hpp
@@ -494,6 +532,10 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
    ${QT_PREFIX}::ShaderTools ${QT_PREFIX}::ShaderToolsPrivate  ${QT_PREFIX}::GuiPrivate
    "$<BUILD_INTERFACE:r8brain>"
 )
+
+# nv-dvp-bridge: HostPinnedRing's DVP backend uses the bridge C API
+# directly; needs the include path and the static lib.
+target_link_libraries(${PROJECT_NAME} PRIVATE score_nv_dvp_bridge)
 if(TARGET ${QT_PREFIX}::Svg)
   target_link_libraries(${PROJECT_NAME} PUBLIC "${QT_PREFIX}::Svg")
 endif()
@@ -658,6 +700,30 @@ if(NOT EMSCRIPTEN)
   if(APPLE)
     target_link_options(${PROJECT_NAME} PUBLIC -weak_framework ScreenCaptureKit)
   endif()
+endif()
+
+if(NOT EMSCRIPTEN AND NOT APPLE AND NOT WIN32 AND TARGET pipewire::pipewire)
+  target_sources(${PROJECT_NAME} PRIVATE
+    Gfx/Pipewire/PipewireFormats.hpp
+    Gfx/Pipewire/PipewireInputDevice.hpp
+    Gfx/Pipewire/PipewireInputDevice.cpp
+    Gfx/Pipewire/PipewireOutputDevice.hpp
+    Gfx/Pipewire/PipewireOutputDevice.cpp
+  )
+  set_source_files_properties(
+    Gfx/Pipewire/PipewireInputDevice.cpp
+    Gfx/Pipewire/PipewireOutputDevice.cpp
+    PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON
+  )
+  # Include-only: pull pipewire's INTERFACE_INCLUDE_DIRECTORIES without
+  # linking libpipewire-0.3 (DT_NEEDED would defeat dlopen). The shared
+  # layer in libremidi resolves every pw_* symbol at runtime.
+  get_target_property(_pw_includes pipewire::pipewire INTERFACE_INCLUDE_DIRECTORIES)
+  if(_pw_includes)
+    target_include_directories(${PROJECT_NAME} PRIVATE ${_pw_includes})
+  endif()
+  target_compile_definitions(${PROJECT_NAME} PRIVATE SCORE_HAS_PIPEWIRE_VIDEO_IO)
+  list(APPEND SCORE_FEATURES_LIST pipewire_video)
 endif()
 
 if(freenect2_FOUND)

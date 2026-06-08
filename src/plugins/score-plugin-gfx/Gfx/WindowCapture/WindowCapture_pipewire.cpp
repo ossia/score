@@ -8,220 +8,33 @@
 #include <chrono>
 #include <cstdlib>
 #include <cstring>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <unistd.h>
 
-// ─── PipeWire types and constants (no PipeWire headers needed) ───────────────
+#if defined(SCORE_HAS_PIPEWIRE_VIDEO_IO)
 
-extern "C"
-{
-// Opaque PipeWire types
-struct pw_thread_loop;
-struct pw_context;
-struct pw_core;
-struct pw_stream;
-struct pw_properties;
-struct pw_loop;
+#include <pipewire/pipewire.h>
+#include <pipewire/stream.h>
+#include <spa/param/format-utils.h>
+#include <spa/param/video/format-utils.h>
+#include <spa/pod/builder.h>
+#include <spa/utils/result.h>
 
-// spa_hook: doubly-linked listener node.
-// Must be fully defined because PipeWire writes into it.
-struct spa_list
-{
-  struct spa_list* next;
-  struct spa_list* prev;
-};
-
-struct spa_hook
-{
-  struct spa_list link;
-  struct
-  {
-    struct spa_list link;
-    const void* funcs;
-    void* data;
-  } cb;
-  void (*removed)(struct spa_hook* hook);
-  void* priv;
-};
-
-// PipeWire stream states
-enum pw_stream_state
-{
-  PW_STREAM_STATE_ERROR = -1,
-  PW_STREAM_STATE_UNCONNECTED = 0,
-  PW_STREAM_STATE_CONNECTING = 1,
-  PW_STREAM_STATE_PAUSED = 2,
-  PW_STREAM_STATE_STREAMING = 3
-};
-
-enum pw_direction
-{
-  PW_DIRECTION_INPUT = 0,
-  PW_DIRECTION_OUTPUT = 1
-};
-
-enum pw_stream_flags
-{
-  PW_STREAM_FLAG_AUTOCONNECT = (1 << 0),
-  PW_STREAM_FLAG_MAP_BUFFERS = (1 << 2)
-};
-
-// SPA data types
-enum spa_data_type
-{
-  SPA_DATA_Invalid = 0,
-  SPA_DATA_MemPtr = 1,
-  SPA_DATA_MemFd = 2,
-  SPA_DATA_DmaBuf = 3
-};
-
-// SPA video formats matching PipeWire/SPA definitions
-enum spa_video_format
-{
-  SPA_VIDEO_FORMAT_UNKNOWN = 0,
-  SPA_VIDEO_FORMAT_ENCODED = 1,
-  SPA_VIDEO_FORMAT_I420 = 2,
-  SPA_VIDEO_FORMAT_YV12 = 3,
-  SPA_VIDEO_FORMAT_YUY2 = 4,
-  SPA_VIDEO_FORMAT_UYVY = 5,
-  SPA_VIDEO_FORMAT_AYUV = 6,
-  SPA_VIDEO_FORMAT_RGBx = 7,
-  SPA_VIDEO_FORMAT_BGRx = 8,
-  SPA_VIDEO_FORMAT_xRGB = 9,
-  SPA_VIDEO_FORMAT_xBGR = 10,
-  SPA_VIDEO_FORMAT_RGBA = 11,
-  SPA_VIDEO_FORMAT_BGRA = 12,
-  SPA_VIDEO_FORMAT_ARGB = 13,
-  SPA_VIDEO_FORMAT_ABGR = 14,
-  SPA_VIDEO_FORMAT_RGB = 15,
-  SPA_VIDEO_FORMAT_BGR = 16
-};
-
-// SPA buffer layout
-struct spa_chunk
-{
-  uint32_t offset;
-  uint32_t size;
-  int32_t stride;
-  int32_t flags;
-};
-
-struct spa_data
-{
-  uint32_t type;
-  uint32_t flags;
-  int fd;
-  uint32_t mapoffset;
-  uint32_t maxsize;
-  void* data;
-  struct spa_chunk* chunk;
-};
-
-struct spa_meta
-{
-  uint32_t type;
-  uint32_t size;
-  void* data;
-};
-
-struct spa_buffer
-{
-  uint32_t n_metas;
-  uint32_t n_datas;
-  struct spa_meta* metas;
-  struct spa_data* datas;
-};
-
-struct pw_buffer
-{
-  struct spa_buffer* buffer;
-  void* user_data;
-  uint64_t size;
-  uint64_t requested;
-};
-
-// Stream events callback table
-struct pw_stream_events
-{
-  uint32_t version;
-  void (*destroy)(void*);
-  void (*state_changed)(
-      void*, enum pw_stream_state old, enum pw_stream_state state,
-      const char* error);
-  void (*control_info)(void*, uint32_t id, const void* info);
-  void (*io_changed)(void*, uint32_t id, void* area, uint32_t size);
-  void (*param_changed)(void*, uint32_t id, const void* param);
-  void (*add_buffer)(void*, struct pw_buffer*);
-  void (*remove_buffer)(void*, struct pw_buffer*);
-  void (*process)(void*);
-  void (*drained)(void*);
-  void (*command)(void*, const void*);
-  void (*trigger_done)(void*);
-};
-
-#define PW_VERSION_STREAM_EVENTS 2
-
-// SPA pod type system identifiers
-#define SPA_TYPE_None 1
-#define SPA_TYPE_Bool 2
-#define SPA_TYPE_Id 3
-#define SPA_TYPE_Int 4
-#define SPA_TYPE_Long 5
-#define SPA_TYPE_Float 6
-#define SPA_TYPE_Double 7
-#define SPA_TYPE_String 8
-#define SPA_TYPE_Bytes 9
-#define SPA_TYPE_Rectangle 10
-#define SPA_TYPE_Fraction 11
-#define SPA_TYPE_Bitmap 12
-#define SPA_TYPE_Array 13
-#define SPA_TYPE_POINTER_BASE 0x10000
-#define SPA_TYPE_Fd (SPA_TYPE_POINTER_BASE + 1)
-#define SPA_TYPE_OBJECT_BASE 0x20000
-#define SPA_TYPE_OBJECT_PropInfo (SPA_TYPE_OBJECT_BASE + 1)
-#define SPA_TYPE_OBJECT_Props (SPA_TYPE_OBJECT_BASE + 2)
-#define SPA_TYPE_OBJECT_Format (SPA_TYPE_OBJECT_BASE + 3)
-#define SPA_TYPE_OBJECT_ParamBuffers (SPA_TYPE_OBJECT_BASE + 4)
-#define SPA_TYPE_OBJECT_ParamMeta (SPA_TYPE_OBJECT_BASE + 5)
-#define SPA_TYPE_OBJECT_ParamIO (SPA_TYPE_OBJECT_BASE + 6)
-
-// SPA pod structures
-struct spa_pod
-{
-  uint32_t size;
-  uint32_t type;
-};
-
-struct spa_pod_object_body
-{
-  uint32_t type;
-  uint32_t id;
-};
-
-struct spa_pod_object
-{
-  struct spa_pod pod;
-  struct spa_pod_object_body body;
-};
-
-// SPA param IDs
-#define SPA_PARAM_EnumFormat 3
-#define SPA_PARAM_Format 4
-
-// SPA format property keys
-#define SPA_FORMAT_mediaType 1
-#define SPA_FORMAT_mediaSubtype 2
-#define SPA_FORMAT_VIDEO_format 3
-#define SPA_FORMAT_VIDEO_size 4
-#define SPA_FORMAT_VIDEO_framerate 5
-
-// SPA media type/subtype
-#define SPA_MEDIA_TYPE_video 2
-#define SPA_MEDIA_SUBTYPE_raw 1
+#include <libremidi/backends/linux/pipewire/context.hpp>
+#include <libremidi/backends/linux/pipewire/instance.hpp>
+#include <libremidi/backends/linux/pipewire/loader.hpp>
+#include <libremidi/backends/linux/pipewire/subscription.hpp>
+// Note: WindowCapture doesn't currently use format_negotiation because
+// the portal source defines its own width/height/format; we just
+// accept whatever it offers. If we ever want to advertise GPU-supported
+// modifiers to the portal compositor, we'd add format_negotiation here.
 
 // ─── sd-bus types (no systemd headers needed) ───────────────────────────────
 
+extern "C"
+{
 struct sd_bus;
 struct sd_bus_message;
 struct sd_bus_slot;
@@ -235,80 +48,7 @@ struct sd_bus_error
 
 using sd_bus_message_handler_t
     = int (*)(sd_bus_message*, void*, sd_bus_error*);
-
 } // extern "C"
-
-// ─── SPA pod builder (minimal, raw bytes) ────────────────────────────────────
-
-namespace
-{
-
-struct PodBuilder
-{
-  uint8_t buf[1024]{};
-  uint32_t offset{0};
-
-  void write_bytes(const void* data, uint32_t len)
-  {
-    std::memcpy(buf + offset, data, len);
-    offset += len;
-  }
-
-  void write_u32(uint32_t v) { write_bytes(&v, 4); }
-
-  void write_pod(uint32_t size, uint32_t type)
-  {
-    write_u32(size);
-    write_u32(type);
-  }
-
-  void write_id(uint32_t value)
-  {
-    write_pod(4, SPA_TYPE_Id);
-    write_u32(value);
-  }
-
-  void write_prop(uint32_t key, uint32_t flags)
-  {
-    write_u32(key);
-    write_u32(flags);
-  }
-
-  // Build the EnumFormat object pod for video capture.
-  // Specifies media type=video, subtype=raw, and lets PipeWire
-  // negotiate format, size, and framerate from the portal source.
-  spa_pod* buildEnumFormat()
-  {
-    offset = 0;
-    uint32_t objStart = offset;
-
-    // Object pod header (placeholder size, type)
-    write_pod(0, SPA_TYPE_OBJECT_Format);
-    // Object body: type, id
-    write_u32(SPA_TYPE_OBJECT_Format);
-    write_u32(SPA_PARAM_EnumFormat);
-
-    // Property: mediaType = video
-    write_prop(SPA_FORMAT_mediaType, 0);
-    write_id(SPA_MEDIA_TYPE_video);
-
-    // Property: mediaSubtype = raw
-    write_prop(SPA_FORMAT_mediaSubtype, 0);
-    write_id(SPA_MEDIA_SUBTYPE_raw);
-
-    // No further constraints: the portal source provides its own format.
-
-    // Patch the object pod size (excludes the 8-byte pod header)
-    uint32_t totalSize = offset - objStart - 8;
-    std::memcpy(buf + objStart, &totalSize, 4);
-
-    return reinterpret_cast<spa_pod*>(buf + objStart);
-  }
-};
-
-} // anonymous namespace
-
-// ─── PipeWire symbol loader ──────────────────────────────────────────────────
 
 namespace Gfx::WindowCapture
 {
@@ -316,164 +56,28 @@ namespace Gfx::WindowCapture
 // Forward declaration from the X11 backend
 std::unique_ptr<WindowCaptureBackend> createX11Backend();
 
-// Function pointer types for the PipeWire C API (no headers needed)
-extern "C"
+namespace
 {
-using pw_init_t = void (*)(int* argc, char*** argv);
-using pw_deinit_t = void (*)();
 
-using pw_thread_loop_new_t
-    = pw_thread_loop* (*)(const char* name, const void* props);
-using pw_thread_loop_destroy_t = void (*)(pw_thread_loop*);
-using pw_thread_loop_start_t = int (*)(pw_thread_loop*);
-using pw_thread_loop_stop_t = void (*)(pw_thread_loop*);
-using pw_thread_loop_get_loop_t = pw_loop* (*)(pw_thread_loop*);
-using pw_thread_loop_lock_t = void (*)(pw_thread_loop*);
-using pw_thread_loop_unlock_t = void (*)(pw_thread_loop*);
-using pw_thread_loop_signal_t = void (*)(pw_thread_loop*, bool);
-using pw_thread_loop_wait_t = void (*)(pw_thread_loop*);
-
-using pw_context_new_t
-    = pw_context* (*)(pw_loop*, pw_properties*, size_t);
-using pw_context_destroy_t = void (*)(pw_context*);
-using pw_context_connect_fd_t
-    = pw_core* (*)(pw_context*, int fd, pw_properties*, size_t);
-
-using pw_core_disconnect_t = int (*)(pw_core*);
-
-using pw_stream_new_t
-    = pw_stream* (*)(pw_core*, const char* name, pw_properties*);
-using pw_stream_destroy_t = void (*)(pw_stream*);
-using pw_stream_connect_t = int (*)(
-    pw_stream*, enum pw_direction, uint32_t target_id,
-    enum pw_stream_flags flags, const spa_pod** params,
-    uint32_t n_params);
-using pw_stream_disconnect_t = int (*)(pw_stream*);
-using pw_stream_dequeue_buffer_t = pw_buffer* (*)(pw_stream*);
-using pw_stream_queue_buffer_t = int (*)(pw_stream*, pw_buffer*);
-using pw_stream_add_listener_t = void (*)(
-    pw_stream*, spa_hook*, const pw_stream_events*, void*);
-using pw_stream_set_active_t = int (*)(pw_stream*, bool);
-
-using pw_properties_new_t = pw_properties* (*)(const char* key, ...);
-using pw_properties_free_t = void (*)(pw_properties*);
+// Build the EnumFormat object pod for portal video capture.
+// media.type=video, subtype=raw — the portal source provides its own
+// width/height/format, so we don't constrain further. The buffer is
+// caller-owned and must outlive the returned spa_pod*.
+inline const spa_pod*
+buildEnumFormatPod(uint8_t* buffer, std::size_t buffer_size)
+{
+  spa_pod_builder b
+      = SPA_POD_BUILDER_INIT(buffer, static_cast<uint32_t>(buffer_size));
+  spa_pod_frame frame{};
+  spa_pod_builder_push_object(
+      &b, &frame, SPA_TYPE_OBJECT_Format, SPA_PARAM_EnumFormat);
+  spa_pod_builder_add(
+      &b, SPA_FORMAT_mediaType, SPA_POD_Id(SPA_MEDIA_TYPE_video),
+      SPA_FORMAT_mediaSubtype, SPA_POD_Id(SPA_MEDIA_SUBTYPE_raw), 0);
+  return static_cast<const spa_pod*>(spa_pod_builder_pop(&b, &frame));
 }
 
-struct libpipewire_capture
-{
-  pw_init_t init{};
-  pw_deinit_t deinit{};
-
-  pw_thread_loop_new_t thread_loop_new{};
-  pw_thread_loop_destroy_t thread_loop_destroy{};
-  pw_thread_loop_start_t thread_loop_start{};
-  pw_thread_loop_stop_t thread_loop_stop{};
-  pw_thread_loop_get_loop_t thread_loop_get_loop{};
-  pw_thread_loop_lock_t thread_loop_lock{};
-  pw_thread_loop_unlock_t thread_loop_unlock{};
-  pw_thread_loop_signal_t thread_loop_signal{};
-  pw_thread_loop_wait_t thread_loop_wait{};
-
-  pw_context_new_t context_new{};
-  pw_context_destroy_t context_destroy{};
-  pw_context_connect_fd_t context_connect_fd{};
-
-  pw_core_disconnect_t core_disconnect{};
-
-  pw_stream_new_t stream_new{};
-  pw_stream_destroy_t stream_destroy{};
-  pw_stream_connect_t stream_connect{};
-  pw_stream_disconnect_t stream_disconnect{};
-  pw_stream_dequeue_buffer_t stream_dequeue_buffer{};
-  pw_stream_queue_buffer_t stream_queue_buffer{};
-  pw_stream_add_listener_t stream_add_listener{};
-  pw_stream_set_active_t stream_set_active{};
-
-  pw_properties_new_t properties_new{};
-  pw_properties_free_t properties_free{};
-
-  bool available{};
-
-  static const libpipewire_capture& instance()
-  {
-    static const libpipewire_capture self;
-    return self;
-  }
-
-private:
-  ossia::dylib_loader m_lib;
-
-  template <typename T>
-  T sym(const char* name)
-  {
-    return m_lib.symbol<T>(name);
-  }
-
-  libpipewire_capture()
-  try
-    : m_lib{std::vector<std::string_view>{
-          "libpipewire-0.3.so.0", "libpipewire-0.3.so"}}
-  {
-    init = sym<pw_init_t>("pw_init");
-    deinit = sym<pw_deinit_t>("pw_deinit");
-
-    thread_loop_new = sym<pw_thread_loop_new_t>("pw_thread_loop_new");
-    thread_loop_destroy
-        = sym<pw_thread_loop_destroy_t>("pw_thread_loop_destroy");
-    thread_loop_start
-        = sym<pw_thread_loop_start_t>("pw_thread_loop_start");
-    thread_loop_stop
-        = sym<pw_thread_loop_stop_t>("pw_thread_loop_stop");
-    thread_loop_get_loop
-        = sym<pw_thread_loop_get_loop_t>("pw_thread_loop_get_loop");
-    thread_loop_lock
-        = sym<pw_thread_loop_lock_t>("pw_thread_loop_lock");
-    thread_loop_unlock
-        = sym<pw_thread_loop_unlock_t>("pw_thread_loop_unlock");
-    thread_loop_signal
-        = sym<pw_thread_loop_signal_t>("pw_thread_loop_signal");
-    thread_loop_wait
-        = sym<pw_thread_loop_wait_t>("pw_thread_loop_wait");
-
-    context_new = sym<pw_context_new_t>("pw_context_new");
-    context_destroy = sym<pw_context_destroy_t>("pw_context_destroy");
-    context_connect_fd
-        = sym<pw_context_connect_fd_t>("pw_context_connect_fd");
-
-    core_disconnect = sym<pw_core_disconnect_t>("pw_core_disconnect");
-
-    stream_new = sym<pw_stream_new_t>("pw_stream_new");
-    stream_destroy = sym<pw_stream_destroy_t>("pw_stream_destroy");
-    stream_connect = sym<pw_stream_connect_t>("pw_stream_connect");
-    stream_disconnect
-        = sym<pw_stream_disconnect_t>("pw_stream_disconnect");
-    stream_dequeue_buffer
-        = sym<pw_stream_dequeue_buffer_t>("pw_stream_dequeue_buffer");
-    stream_queue_buffer
-        = sym<pw_stream_queue_buffer_t>("pw_stream_queue_buffer");
-    stream_add_listener
-        = sym<pw_stream_add_listener_t>("pw_stream_add_listener");
-    stream_set_active
-        = sym<pw_stream_set_active_t>("pw_stream_set_active");
-
-    properties_new = sym<pw_properties_new_t>("pw_properties_new");
-    properties_free = sym<pw_properties_free_t>("pw_properties_free");
-
-    available = init && deinit && thread_loop_new && thread_loop_destroy
-                && thread_loop_start && thread_loop_stop
-                && thread_loop_get_loop && thread_loop_lock
-                && thread_loop_unlock && context_new && context_destroy
-                && context_connect_fd && core_disconnect && stream_new
-                && stream_destroy && stream_connect && stream_disconnect
-                && stream_dequeue_buffer && stream_queue_buffer
-                && stream_add_listener && properties_new
-                && properties_free;
-  }
-  catch(...)
-  {
-    available = false;
-  }
-};
+} // anonymous namespace
 
 // ─── sd-bus symbol loader ───────────────────────────────────────────────────
 
@@ -1073,7 +677,8 @@ public:
 
   bool available() const override
   {
-    return libpipewire_capture::instance().available && portalAvailable();
+    auto& pw = libremidi::pipewire::load();
+    return pw.stream_available && pw.context_connect_fd && portalAvailable();
   }
 
   bool supportsMode(CaptureMode mode) const override
@@ -1108,12 +713,9 @@ public:
   {
     stop();
 
-    auto& pw = libpipewire_capture::instance();
-    if(!pw.available)
+    auto& pw = libremidi::pipewire::load();
+    if(!pw.stream_available || !pw.context_connect_fd)
       return false;
-
-    // Initialize PipeWire
-    pw.init(nullptr, nullptr);
 
     // Choose portal source type based on capture mode
     uint32_t sourceType = PORTAL_SOURCE_WINDOW;
@@ -1138,109 +740,101 @@ public:
       qDebug() << "WindowCapture PipeWire: portal flow failed";
       return false;
     }
-    int fd = portalResult.fd;
     m_pipewireNode = portalResult.pipewire_node;
 
-    // Create PipeWire thread loop
-    m_loop = pw.thread_loop_new("score-wincap", nullptr);
-    if(!m_loop)
+    // Build a per-session pipewire context attached to the portal's
+    // socket fd. Different from the process-wide shared_context() —
+    // portal sessions get a private connection scoped to the
+    // screencast permission grant. The context takes ownership of
+    // the fd and closes it on destruction.
+    libremidi::pipewire::context_config cfg{};
+    cfg.kind = libremidi::pipewire::loop_kind::thread;
+    cfg.loop_name = "score-wincap";
+    cfg.fd = portalResult.fd;
+    cfg.auto_reconnect = false; // Portal session is one-shot; if the
+                                // socket dies, the permission is gone.
+
+    m_pwContext = libremidi::pipewire::context::make(
+        libremidi::pipewire::shared_instance(), cfg);
+    if(!m_pwContext || !m_pwContext->ok())
     {
-      qDebug() << "WindowCapture PipeWire: pw_thread_loop_new failed";
-      ::close(fd);
+      qDebug()
+          << "WindowCapture PipeWire: context attach to portal fd failed";
+      m_pwContext.reset();
       return false;
     }
 
-    pw_loop* loop = pw.thread_loop_get_loop(m_loop);
+    // Watch for the portal revoking the screencast permission (user
+    // hits "Stop sharing" or the source closes). The daemon takes
+    // away our node id when that happens; we flip m_running so the
+    // next onProcess bails and frames stop being produced.
+    m_pwSubs.clear();
+    const std::uint32_t targetNodeId = m_pipewireNode;
+    m_pwSubs.push_back(m_pwContext->on_node_removed(
+        [this, targetNodeId](std::uint32_t removed_id) {
+      if(removed_id == targetNodeId)
+      {
+        qDebug() << "WindowCapture PipeWire: portal source revoked";
+        m_running.store(false, std::memory_order_release);
+      }
+    }));
+    m_pwSubs.push_back(m_pwContext->on_state_changed(
+        [](libremidi::pipewire::connection_state s) {
+      using cs = libremidi::pipewire::connection_state;
+      const char* name = (s == cs::connected)    ? "connected"
+                         : (s == cs::connecting) ? "connecting"
+                         : (s == cs::broken)     ? "broken"
+                                                 : "disconnected";
+      qDebug() << "WindowCapture PipeWire: portal context ->" << name;
+    }));
 
-    m_context = pw.context_new(loop, nullptr, 0);
-    if(!m_context)
-    {
-      qDebug() << "WindowCapture PipeWire: pw_context_new failed";
-      pw.thread_loop_destroy(m_loop);
-      m_loop = nullptr;
-      ::close(fd);
-      return false;
-    }
+    // Stream lifecycle under the thread-loop lock. The new shared
+    // context drives its own thread; we just create + connect the
+    // stream and stash the listener.
+    int connect_rc = 0;
+    m_pwContext->with_lock([&] {
+      pw_properties* props = pw.properties_new(
+          PW_KEY_MEDIA_TYPE, "Video", PW_KEY_MEDIA_CATEGORY, "Capture",
+          PW_KEY_MEDIA_ROLE, "Screen", nullptr);
 
-    if(pw.thread_loop_start(m_loop) != 0)
-    {
-      qDebug() << "WindowCapture PipeWire: pw_thread_loop_start failed";
-      pw.context_destroy(m_context);
-      m_context = nullptr;
-      pw.thread_loop_destroy(m_loop);
-      m_loop = nullptr;
-      ::close(fd);
-      return false;
-    }
+      m_stream = pw.stream_new(
+          m_pwContext->pw_core_ptr(), "score-window-capture", props);
+      if(!m_stream)
+      {
+        qDebug() << "WindowCapture PipeWire: pw_stream_new failed";
+        return;
+      }
 
-    pw.thread_loop_lock(m_loop);
+      m_streamEvents = {};
+      m_streamEvents.version = PW_VERSION_STREAM_EVENTS;
+      m_streamEvents.state_changed
+          = &PipeWireWindowCaptureBackend::onStateChanged;
+      m_streamEvents.param_changed
+          = &PipeWireWindowCaptureBackend::onParamChanged;
+      m_streamEvents.process
+          = &PipeWireWindowCaptureBackend::onProcess;
 
-    // Connect to PipeWire via the portal fd
-    m_core = pw.context_connect_fd(m_context, fd, nullptr, 0);
-    if(!m_core)
-    {
-      qDebug() << "WindowCapture PipeWire: pw_context_connect_fd failed";
-      pw.thread_loop_unlock(m_loop);
-      pw.thread_loop_stop(m_loop);
-      pw.context_destroy(m_context);
-      m_context = nullptr;
-      pw.thread_loop_destroy(m_loop);
-      m_loop = nullptr;
-      return false;
-    }
+      m_streamListener = {};
+      pw.stream_add_listener(
+          m_stream, &m_streamListener, &m_streamEvents, this);
 
-    // Create stream
-    pw_properties* props = pw.properties_new(
-        "media.type", "Video", "media.category", "Capture",
-        "media.role", "Screen", nullptr);
+      // Build EnumFormat into a scratch buffer; lifetime is fine as
+      // pipewire copies the pod during stream_connect.
+      uint8_t pod_buf[1024];
+      const spa_pod* params[1] = {
+          buildEnumFormatPod(pod_buf, sizeof(pod_buf))};
 
-    m_stream = pw.stream_new(m_core, "score-window-capture", props);
-    if(!m_stream)
-    {
-      qDebug() << "WindowCapture PipeWire: pw_stream_new failed";
-      pw.core_disconnect(m_core);
-      m_core = nullptr;
-      pw.thread_loop_unlock(m_loop);
-      pw.thread_loop_stop(m_loop);
-      pw.context_destroy(m_context);
-      m_context = nullptr;
-      pw.thread_loop_destroy(m_loop);
-      m_loop = nullptr;
-      return false;
-    }
+      connect_rc = pw.stream_connect(
+          m_stream, PW_DIRECTION_INPUT, m_pipewireNode,
+          (pw_stream_flags)(
+              PW_STREAM_FLAG_AUTOCONNECT | PW_STREAM_FLAG_MAP_BUFFERS),
+          params, 1);
+    });
 
-    // Set up stream events
-    std::memset(&m_streamEvents, 0, sizeof(m_streamEvents));
-    m_streamEvents.version = PW_VERSION_STREAM_EVENTS;
-    m_streamEvents.state_changed
-        = &PipeWireWindowCaptureBackend::onStateChanged;
-    m_streamEvents.param_changed
-        = &PipeWireWindowCaptureBackend::onParamChanged;
-    m_streamEvents.process = &PipeWireWindowCaptureBackend::onProcess;
-
-    std::memset(&m_streamListener, 0, sizeof(m_streamListener));
-    pw.stream_add_listener(
-        m_stream, &m_streamListener, &m_streamEvents, this);
-
-    // Build format params
-    PodBuilder podBuilder;
-    spa_pod* formatPod = podBuilder.buildEnumFormat();
-    const spa_pod* params[] = {formatPod};
-
-    // Connect the stream as input (we consume video from the portal).
-    // Use the specific node ID from the portal Start response.
-    int ret = pw.stream_connect(
-        m_stream, PW_DIRECTION_INPUT, m_pipewireNode,
-        static_cast<pw_stream_flags>(
-            PW_STREAM_FLAG_AUTOCONNECT | PW_STREAM_FLAG_MAP_BUFFERS),
-        params, 1);
-
-    pw.thread_loop_unlock(m_loop);
-
-    if(ret < 0)
+    if(!m_stream || connect_rc < 0)
     {
       qDebug() << "WindowCapture PipeWire: pw_stream_connect failed:"
-               << ret;
+               << connect_rc;
       stop();
       return false;
     }
@@ -1253,43 +847,35 @@ public:
   {
     m_running.store(false, std::memory_order_release);
 
-    auto& pw = libpipewire_capture::instance();
-    if(!pw.available)
-      return;
+    auto& pw = libremidi::pipewire::load();
 
-    if(m_loop)
-      pw.thread_loop_lock(m_loop);
+    // Subscriptions hold weak refs to m_pwContext; release before
+    // dropping the context so the dtor path doesn't double-dispatch.
+    m_pwSubs.clear();
 
-    if(m_stream)
+    // Tear down our stream under the thread-loop lock BEFORE releasing
+    // the context. The shared context's own destructor handles the
+    // remaining proxy/core/loop teardown in the right order (locked +
+    // pre-stop), matching the pattern from libremidi MIDI fix.
+    if(m_pwContext && m_stream)
     {
-      pw.stream_disconnect(m_stream);
-      pw.stream_destroy(m_stream);
-      m_stream = nullptr;
+      m_pwContext->with_lock([&] {
+        if(pw.stream_disconnect)
+          pw.stream_disconnect(m_stream);
+        if(pw.stream_destroy)
+          pw.stream_destroy(m_stream);
+        m_stream = nullptr;
+      });
     }
 
-    if(m_core)
-    {
-      pw.core_disconnect(m_core);
-      m_core = nullptr;
-    }
-
-    if(m_loop)
-      pw.thread_loop_unlock(m_loop);
-
-    if(m_loop)
-      pw.thread_loop_stop(m_loop);
-
-    if(m_context)
-    {
-      pw.context_destroy(m_context);
-      m_context = nullptr;
-    }
-
-    if(m_loop)
-    {
-      pw.thread_loop_destroy(m_loop);
-      m_loop = nullptr;
-    }
+    // Releasing the shared_ptr triggers context::~context, which:
+    //   - acquires the thread-loop lock
+    //   - tears down registry/core/context proxies
+    //   - releases the lock, stops + destroys the thread_loop
+    // No "wrong context" errors because everything proxy-shaped is
+    // destroyed while the loop is still alive (we patched this in
+    // libremidi earlier).
+    m_pwContext.reset();
 
     {
       std::lock_guard lock(m_frameMutex);
@@ -1355,72 +941,35 @@ private:
       qDebug() << "WindowCapture PipeWire: stream error:" << error;
   }
 
-  static void onParamChanged(void* data, uint32_t id, const void* param)
+  static void
+  onParamChanged(void* data, uint32_t id, const spa_pod* param)
   {
     if(!param || id != SPA_PARAM_Format)
       return;
 
     auto* self = static_cast<PipeWireWindowCaptureBackend*>(data);
 
-    // Parse the spa_pod_object to extract video format, width, height.
-    const auto* pod = static_cast<const spa_pod*>(param);
-    if(pod->type != SPA_TYPE_OBJECT_Format)
+    // Real spa_format_video_raw_parse from <spa/param/video/format-utils.h>
+    // is a static-inline that walks the object via SPA's iteration
+    // macros; no extern symbol, no DT_NEEDED.
+    spa_video_info_raw info{};
+    if(spa_format_video_raw_parse(param, &info) < 0)
       return;
 
-    const auto* obj = static_cast<const spa_pod_object*>(param);
-    const uint8_t* body = reinterpret_cast<const uint8_t*>(&obj->body);
-    const uint8_t* end = body + pod->size;
-
-    // Skip object body header (type 4 + id 4 = 8 bytes)
-    const uint8_t* p = body + 8;
-
-    while(p + 8 <= end)
-    {
-      uint32_t key, flags;
-      std::memcpy(&key, p, 4);
-      p += 4;
-      std::memcpy(&flags, p, 4);
-      p += 4;
-
-      if(p + 8 > end)
-        break;
-
-      uint32_t valSize, valType;
-      std::memcpy(&valSize, p, 4);
-      std::memcpy(&valType, p + 4, 4);
-      const uint8_t* valData = p + 8;
-
-      if(key == SPA_FORMAT_VIDEO_format && valType == SPA_TYPE_Id
-         && valSize >= 4)
-      {
-        uint32_t fmt;
-        std::memcpy(&fmt, valData, 4);
-        self->m_spaVideoFormat = static_cast<spa_video_format>(fmt);
-        qDebug() << "WindowCapture PipeWire: negotiated format:" << fmt;
-      }
-      else if(
-          key == SPA_FORMAT_VIDEO_size
-          && valType == SPA_TYPE_Rectangle && valSize >= 8)
-      {
-        uint32_t w, h;
-        std::memcpy(&w, valData, 4);
-        std::memcpy(&h, valData + 4, 4);
-        self->m_negotiatedWidth = w;
-        self->m_negotiatedHeight = h;
-        qDebug() << "WindowCapture PipeWire: negotiated size:" << w
-                 << "x" << h;
-      }
-
-      // Advance past the value pod (8-byte header + padded size)
-      uint32_t paddedSize = (valSize + 7) & ~7u;
-      p = p + 8 + paddedSize;
-    }
+    self->m_spaVideoFormat = info.format;
+    self->m_negotiatedWidth = info.size.width;
+    self->m_negotiatedHeight = info.size.height;
+    qDebug() << "WindowCapture PipeWire: negotiated"
+             << info.size.width << "x" << info.size.height
+             << "format:" << info.format;
   }
 
   static void onProcess(void* data)
   {
     auto* self = static_cast<PipeWireWindowCaptureBackend*>(data);
-    auto& pw = libpipewire_capture::instance();
+    auto& pw = libremidi::pipewire::load();
+    if(!pw.stream_available || !self->m_stream)
+      return;
 
     pw_buffer* buf = pw.stream_dequeue_buffer(self->m_stream);
     if(!buf)
@@ -1524,14 +1073,14 @@ private:
 
   // ── Member state ──
 
-  pw_thread_loop* m_loop{};
-  pw_context* m_context{};
-  pw_core* m_core{};
+  std::shared_ptr<libremidi::pipewire::context> m_pwContext;
   pw_stream* m_stream{};
   pw_stream_events m_streamEvents{};
   spa_hook m_streamListener{};
   uint32_t m_pipewireNode{0};
   std::atomic<bool> m_running{false};
+
+  std::vector<libremidi::pipewire::subscription> m_pwSubs;
 
   // Negotiated video format
   spa_video_format m_spaVideoFormat{SPA_VIDEO_FORMAT_UNKNOWN};
@@ -1571,3 +1120,17 @@ std::unique_ptr<WindowCaptureBackend> createWindowCaptureBackend()
 }
 
 } // namespace Gfx::WindowCapture
+
+#else // !SCORE_HAS_PIPEWIRE_VIDEO_IO
+
+namespace Gfx::WindowCapture
+{
+std::unique_ptr<WindowCaptureBackend> createX11Backend();
+
+std::unique_ptr<WindowCaptureBackend> createWindowCaptureBackend()
+{
+  return createX11Backend();
+}
+} // namespace Gfx::WindowCapture
+
+#endif // SCORE_HAS_PIPEWIRE_VIDEO_IO
