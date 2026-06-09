@@ -1,5 +1,14 @@
 #!/usr/bin/env bash
 
+# TEMPORARY: build against the Avendish "addon-cmake" PR (celtera/avendish#97) to verify
+# the new addon CMake doesn't break score or its avnd addons. Revert once it is merged.
+(
+  cd 3rdparty/avendish
+  git fetch origin addon-cmake
+  git checkout FETCH_HEAD
+  git submodule update --init --recursive || true
+)
+
 (
 cd src/addons
 
