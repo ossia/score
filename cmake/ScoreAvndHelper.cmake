@@ -1,3 +1,8 @@
+get_filename_component(_avnd_root "${CMAKE_CURRENT_LIST_DIR}/../3rdparty/avendish" ABSOLUTE)
+if(EXISTS "${_avnd_root}/AvendishConfig.cmake")
+  list(APPEND CMAKE_PREFIX_PATH "${_avnd_root}")
+endif()
+
 function(avnd_score_plugin_init)
   cmake_parse_arguments(AVND "" "BASE_TARGET" "" ${ARGN})
   if(NOT TARGET ${AVND_BASE_TARGET})
