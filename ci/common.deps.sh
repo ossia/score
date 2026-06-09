@@ -4,7 +4,7 @@
 # the new addon CMake doesn't break score or its avnd addons. Revert once it is merged.
 (
   cd 3rdparty/avendish
-  git fetch origin addon-cmake-score-ci
+  git fetch origin addon-cmake-score-ci-main
   git checkout FETCH_HEAD
   git submodule update --init --recursive || true
 )
