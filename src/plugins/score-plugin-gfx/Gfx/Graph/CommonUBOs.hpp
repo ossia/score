@@ -16,7 +16,6 @@
 #define _UNICODE 1
 #endif
 #include <windows.h>
-#include <mmsystem.h>
 #undef near
 #undef far
 #endif
