@@ -1,0 +1,16 @@
+# JSON parser used by fastgltf (glTF support in score-plugin-threedim).
+# Provided here so that fastgltf does not try to download it at configure
+# time, which is impossible in the sandboxed flatpak build.
+name: simdjson
+buildsystem: cmake-ninja
+builddir: true
+config-opts:
+  - -Wno-dev
+  - -DCMAKE_BUILD_TYPE=RelWithDebInfo
+  - -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+  - -DBUILD_SHARED_LIBS=ON
+  - -DSIMDJSON_DEVELOPER_MODE=OFF
+sources:
+  - type: archive
+    url: https://github.com/simdjson/simdjson/archive/refs/tags/v3.12.3.tar.gz
+    sha256: d0af071f2f4187d8b26b556e83ef832b634bd5feb4e2f537b9dabbd334d4e334
