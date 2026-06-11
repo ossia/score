@@ -33,6 +33,7 @@
 , rapidfuzz-cpp
 , re2
 , rubberband
+, simdjson
 , snappy
 , SDL2
 , spdlog
@@ -89,6 +90,7 @@ clangStdenv.mkDerivation (finalAttrs: {
     rapidfuzz-cpp
     re2
     rubberband
+    simdjson
     snappy
     SDL2
     spdlog

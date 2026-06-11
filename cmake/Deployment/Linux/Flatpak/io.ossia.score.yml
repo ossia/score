@@ -120,6 +120,7 @@ modules:
   - modules/re2.yaml
   - modules/libcoap.yaml
   - modules/boost.yaml
+  - modules/simdjson.yaml
   - modules/snappy.yaml
   - modules/avahi.yaml
   - modules/suil.yaml
