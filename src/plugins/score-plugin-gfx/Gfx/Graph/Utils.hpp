@@ -147,14 +147,18 @@ struct Pipeline
  */
 struct TextureRenderTarget
 {
+  // The first five members must keep this order: out-of-tree addons
+  // aggregate-initialize {texture, colorRenderBuffer, depthRenderBuffer,
+  // renderPass, renderTarget}.
   QRhiTexture* texture{};                              // Primary color attachment (location 0)
-  std::vector<QRhiTexture*> additionalColorTextures;   // MRT: locations 1..N
   QRhiRenderBuffer* colorRenderBuffer{};
   QRhiRenderBuffer* depthRenderBuffer{};
-  QRhiTexture* depthTexture{};                         // Sampleable depth (alternative to depthRenderBuffer)
-  QRhiTexture* msDepthTexture{};                       // MSAA depth attachment when depthTexture is the resolve target
   QRhiRenderPassDescriptor* renderPass{};
   QRhiRenderTarget* renderTarget{};
+
+  std::vector<QRhiTexture*> additionalColorTextures;   // MRT: locations 1..N
+  QRhiTexture* depthTexture{};                         // Sampleable depth (alternative to depthRenderBuffer)
+  QRhiTexture* msDepthTexture{};                       // MSAA depth attachment when depthTexture is the resolve target
 
   // A 1×1 color texture allocated when the backend requires a color attachment
   // but the user only wants depth-only rendering. Owned by this RT.
