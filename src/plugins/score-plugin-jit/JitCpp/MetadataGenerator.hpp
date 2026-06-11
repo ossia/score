@@ -63,9 +63,9 @@ static void loadCMakeAddon(const QString& addon, AddonData& data, QString cm)
   static const QRegularExpression includes{
       R"_(target_include_directories\(\s*[[:graph:]]+\s*[[:graph:]]+([a-zA-Z0-9_\/ ]+)\))_"};
   static const QRegularExpression avnd{
-      R"_(avnd_score_plugin_add\(([a-zA-Z0-9_\/.\n ]+)\))_"};
+      R"_((?:avnd_score_plugin_add|avnd_addon_object)\(([a-zA-Z0-9_\/.\n" -]+)\))_"};
   static const QRegularExpression avnd_finalize{
-      R"_(avnd_score_plugin_finalize\(([a-zA-Z0-9_\/.\n" -]+)\))_"};
+      R"_((?:avnd_score_plugin_finalize|avnd_addon_finalize)\(([a-zA-Z0-9_\/.\n" -]+)\))_"};
 
   auto avnds = avnd.globalMatch(cm);
   auto avnd_finalizes = avnd_finalize.globalMatch(cm);
@@ -81,6 +81,11 @@ static void loadCMakeAddon(const QString& addon, AddonData& data, QString cm)
     for(const QString& file : res)
     {
       QString filename = QString{R"_(%1/%2)_"}.arg(addon).arg(file);
+
+      // Skip add_library keywords (STATIC, INTERFACE, ...) and anything else
+      // that is not an actual file
+      if(!QFile::exists(filename))
+        continue;
 
       QString path = QString{R"_(#include "%1/%2"
 )_"}
@@ -148,19 +153,19 @@ static void loadCMakeAddon(const QString& addon, AddonData& data, QString cm)
     avnd_plugin_group plug;
     for(auto it = res.begin(); it != res.end(); ++it)
     {
-      if(*it == "BASE_TARGET")
+      if(*it == "BASE_TARGET" || *it == "NAME")
       {
         ++it;
         if(it != res.end())
           plug.base_target = *it;
       }
-      else if(*it == "PLUGIN_VERSION")
+      else if(*it == "PLUGIN_VERSION" || *it == "VERSION")
       {
         ++it;
         if(it != res.end())
           plug.version = *it;
       }
-      else if(*it == "PLUGIN_UUID")
+      else if(*it == "PLUGIN_UUID" || *it == "UUID")
       {
         ++it;
         if(it != res.end())
@@ -177,9 +182,13 @@ static void loadCMakeAddon(const QString& addon, AddonData& data, QString cm)
     auto m = avnds.next();
     auto res = m.captured(1).replace('\n', ' ').split(space, Qt::SkipEmptyParts);
     avnd_plugin plug;
+    auto unquote = [](QString s) {
+      s.remove('"');
+      return s;
+    };
     for(auto it = res.begin(); it != res.end(); ++it)
     {
-      if(*it == "BASE_TARGET")
+      if(*it == "BASE_TARGET" || *it == "BASE")
       {
         ++it;
         if(it != res.end())
@@ -188,11 +197,13 @@ static void loadCMakeAddon(const QString& addon, AddonData& data, QString cm)
       else if(*it == "SOURCES")
       {
         ++it;
-        while(it != res.end() && QFile::exists(QString{"%1/%2"}.arg(addon).arg(*it)))
+        while(it != res.end()
+              && QFile::exists(QString{"%1/%2"}.arg(addon).arg(unquote(*it))))
         {
+          const QString file = unquote(*it);
           avnd_plugin::source_file sf;
-          sf.filename = QString{"%1/%2"}.arg(addon).arg(*it);
-          sf.path = QString{"#include \"%1/%2\"\n"}.arg(addon).arg(*it);
+          sf.filename = QString{"%1/%2"}.arg(addon).arg(file);
+          sf.path = QString{"#include \"%1/%2\"\n"}.arg(addon).arg(file);
 
           QFile f{sf.filename};
           if(f.open(QIODevice::ReadOnly))
@@ -207,13 +218,13 @@ static void loadCMakeAddon(const QString& addon, AddonData& data, QString cm)
 
         --it;
       }
-      else if(*it == "MAIN_CLASS")
+      else if(*it == "MAIN_CLASS" || *it == "CLASS")
       {
         ++it;
         if(it != res.end())
           plug.main_class = *it;
       }
-      else if(*it == "TARGET")
+      else if(*it == "TARGET" || *it == "C_NAME")
       {
         ++it;
         if(it != res.end())
