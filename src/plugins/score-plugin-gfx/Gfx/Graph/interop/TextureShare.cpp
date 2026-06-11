@@ -1060,6 +1060,17 @@ public:
 #endif // Q_OS_WIN
 
 #if QT_HAS_VULKAN
+// Qt < 6.6 does not expose the QVulkanInstance in QRhiVulkanNativeHandles;
+// score always creates its Vulkan QRhi from staticVulkanInstance().
+static QVulkanInstance* rhiVulkanInstance(const QRhiVulkanNativeHandles* h)
+{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+  if(h->inst)
+    return h->inst;
+#endif
+  return score::gfx::staticVulkanInstance(false);
+}
+
 class TextureShareVulkan : public TextureShareBackendBase
 {
   // Helper handle type selection (matches the original platform ifdef)
@@ -1214,7 +1225,7 @@ public:
       return false;
 
     // Get QVulkanInstance and device functions
-    QVulkanInstance* vkInst = producerHandles->inst;
+    QVulkanInstance* vkInst = rhiVulkanInstance(producerHandles);
     if(!vkInst)
       return false;
 
@@ -1225,7 +1236,7 @@ public:
       return false;
 
     // Build the helper context for producer-side operations
-    m_producerCtx.instance = producerHandles->inst->vkInstance();
+    m_producerCtx.instance = vkInst->vkInstance();
     m_producerCtx.physDev = m_producerPhysDev;
     m_producerCtx.dev = m_producerVkDevice;
     m_producerCtx.qInst = vkInst;
@@ -1384,7 +1395,7 @@ public:
       return false;
 
     // Get device functions for consumer
-    QVulkanInstance* vkInst = consumerHandles->inst;
+    QVulkanInstance* vkInst = rhiVulkanInstance(consumerHandles);
     if(!vkInst)
       return false;
 
@@ -1393,7 +1404,7 @@ public:
       return false;
 
     // Build the helper context for consumer-side operations
-    m_consumerCtx.instance = consumerHandles->inst->vkInstance();
+    m_consumerCtx.instance = vkInst->vkInstance();
     m_consumerCtx.physDev = m_consumerPhysDev;
     m_consumerCtx.dev = m_consumerVkDevice;
     m_consumerCtx.qInst = vkInst;
