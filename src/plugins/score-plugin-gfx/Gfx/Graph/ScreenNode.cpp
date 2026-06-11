@@ -185,7 +185,9 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
   // GPU timing panel (Plan 09 S6) — without this flag,
   // QRhiCommandBuffer::lastCompletedGpuTime() returns 0 on Vulkan/D3D12/Metal.
   // Negligible overhead when no timer instance is active.
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
   flags |= QRhi::EnableTimestamps;
+#endif
 
 #ifndef QT_NO_OPENGL
   if(graphicsApi == OpenGL)

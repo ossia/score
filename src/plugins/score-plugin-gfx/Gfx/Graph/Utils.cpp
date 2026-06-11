@@ -1598,7 +1598,9 @@ TextureRenderTarget createMultiViewRenderTarget(
     QRhiColorAttachment color0(colorTextureArray);
     // Render to layers [0..multiViewCount-1] via gl_ViewIndex.
     color0.setLayer(0);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
     color0.setMultiViewCount(multiViewCount);
+#endif
     desc.setColorAttachments({color0});
   }
 

@@ -925,6 +925,7 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
   // One-frame staleness is a QRhi contract: `lastCompletedGpuTime()`
   // returns the PREVIOUS frame's elapsed GPU time, not the in-progress
   // one. The panel reports it as such.
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
   static int s_frameNumber = 0;
   ++s_frameNumber;
   if(state.caps.timestamps)
@@ -968,6 +969,7 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
     // time. Zero deltas are filtered out by GpuTimings::record.
     m_gpuTimings.record("pso_compile", delta_ms);
   }
+#endif
   m_gpuTimings.tickFrame();
 
   bool rt_changed = false;
@@ -1416,7 +1418,7 @@ void RenderList::update(QRhiResourceUpdateBatch& res)
 void RenderState::Caps::populate(QRhi& rhi)
 {
 #if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
-  state.caps.drawIndirect = rhi.isFeatureSupported(QRhi::DrawIndirect);
+  drawIndirect = rhi.isFeatureSupported(QRhi::DrawIndirect);
   drawIndirectMulti = rhi.isFeatureSupported(QRhi::DrawIndirectMulti);
 #endif
 #if QT_VERSION >= QT_VERSION_CHECK(6, 11, 0)
