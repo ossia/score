@@ -2,8 +2,9 @@
 
 #include <Gfx/Graph/interop/AmdPinnedBuffers.hpp>
 #include <Gfx/Graph/interop/CudaFunctions.hpp>
+#include <Gfx/Graph/interop/VideoPixelFormat.hpp>
 
-#include <rhi/qrhi.h>
+#include <private/qrhi_p.h>
 
 #include <QByteArray>
 #include <QDebug>
@@ -34,11 +35,6 @@ namespace score::gfx::interop
 
 namespace
 {
-
-constexpr std::size_t alignUp(std::size_t v, std::size_t a) noexcept
-{
-  return (v + a - 1) & ~(a - 1);
-}
 
 std::size_t defaultStride(HostPinnedFormat fmt, uint32_t width) noexcept
 {

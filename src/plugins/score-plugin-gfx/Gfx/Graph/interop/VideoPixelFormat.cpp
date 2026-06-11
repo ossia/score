@@ -221,16 +221,6 @@ const char* formatName(VideoPixelFormat f) noexcept
   return formatInfo(f).name;
 }
 
-namespace
-{
-
-constexpr std::size_t alignUp(std::size_t v, std::size_t a) noexcept
-{
-  return (v + a - 1) & ~(a - 1);
-}
-
-} // namespace
-
 std::size_t defaultStride(VideoPixelFormat f, uint32_t width) noexcept
 {
   // V210 has a non-trivial stride formula per SMPTE 296M.

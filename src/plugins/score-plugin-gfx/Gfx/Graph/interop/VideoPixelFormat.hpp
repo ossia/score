@@ -112,6 +112,12 @@ struct VideoPixelFormatInfo
   uint16_t defaultStrideAlignment{256}; /**< Bytes; vendors typically need 128 or 256. */
 };
 
+/** Round `v` up to the next multiple of `a` (`a` must be a power of two). */
+constexpr std::size_t alignUp(std::size_t v, std::size_t a) noexcept
+{
+  return (v + a - 1) & ~(a - 1);
+}
+
 /** Get the descriptive info for `f`. Returns a static reference; the
  *  pointer is stable for the duration of the program. */
 SCORE_PLUGIN_GFX_EXPORT
