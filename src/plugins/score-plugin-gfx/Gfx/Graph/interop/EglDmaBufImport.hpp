@@ -45,7 +45,7 @@
 #include <QOpenGLExtraFunctions>
 #endif
 
-#include <rhi/qrhi.h>
+#include <private/qrhi_p.h>
 
 #include <cstdint>
 #include <cstring>

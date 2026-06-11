@@ -8,7 +8,7 @@
 #include <QString>
 #include <QStringList>
 
-#include <rhi/qrhi.h>
+#include <private/qrhi_p.h>
 
 #include <cstring>
 

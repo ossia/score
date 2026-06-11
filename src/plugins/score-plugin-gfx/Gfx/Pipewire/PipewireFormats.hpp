@@ -20,7 +20,7 @@ extern "C" {
 #include <libavutil/pixfmt.h>
 }
 
-#include <rhi/qrhi.h>
+#include <private/qrhi_p.h>
 
 #include <QString>
 

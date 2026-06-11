@@ -1,6 +1,6 @@
 #include <Gfx/Graph/VertexFallbackPool.hpp>
 
-#include <QtGui/rhi/qrhi.h>
+#include <private/qrhi_p.h>
 
 namespace score::gfx
 {
