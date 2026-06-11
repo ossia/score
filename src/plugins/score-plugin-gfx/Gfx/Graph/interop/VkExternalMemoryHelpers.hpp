@@ -25,6 +25,8 @@
 
 #include <score/gfx/Vulkan.hpp>
 
+#if QT_HAS_VULKAN
+
 #include <vector>
 
 #include <vulkan/vulkan.h>
@@ -206,3 +208,5 @@ std::vector<std::uint64_t> supported_dmabuf_modifiers(
     const VulkanCtx& v, VkFormat format) noexcept;
 
 } // namespace score::gfx::vkinterop
+
+#endif // QT_HAS_VULKAN

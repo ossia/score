@@ -1,5 +1,7 @@
 #include <Gfx/Graph/interop/VkExternalMemoryHelpers.hpp>
 
+#if QT_HAS_VULKAN
+
 #include <QVulkanDeviceFunctions>
 #include <QVulkanFunctions>
 #include <QVulkanInstance>
@@ -739,3 +741,5 @@ supported_dmabuf_modifiers(const VulkanCtx&, VkFormat) noexcept
 #endif
 
 } // namespace score::gfx::vkinterop
+
+#endif // QT_HAS_VULKAN

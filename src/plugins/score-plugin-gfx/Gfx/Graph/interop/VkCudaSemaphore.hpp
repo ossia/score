@@ -39,6 +39,8 @@
 
 #include <cstdint>
 
+#if QT_HAS_VULKAN
+
 namespace score::gfx::vkinterop
 {
 
@@ -92,3 +94,5 @@ private:
 };
 
 } // namespace score::gfx::vkinterop
+
+#endif // QT_HAS_VULKAN

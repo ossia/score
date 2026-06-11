@@ -1,8 +1,18 @@
 #include "VkCudaSemaphore.hpp"
 
+#if QT_HAS_VULKAN
+
 #include <QDebug>
 #include <QVulkanFunctions>
 #include <QVulkanInstance>
+
+#if defined(_WIN32)
+#ifndef VK_USE_PLATFORM_WIN32_KHR
+#define VK_USE_PLATFORM_WIN32_KHR
+#endif
+#include <windows.h>
+#include <vulkan/vulkan_win32.h>
+#endif
 
 namespace score::gfx::vkinterop
 {
@@ -202,3 +212,5 @@ bool VkCudaTimelineSemaphore::hostSignal(uint64_t value)
 }
 
 } // namespace score::gfx::vkinterop
+
+#endif // QT_HAS_VULKAN
