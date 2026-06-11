@@ -127,8 +127,10 @@ QRhiBackendKind backendFromRhi(QRhi* rhi) noexcept
       return QRhiBackendKind::Vulkan;
     case QRhi::D3D11:
       return QRhiBackendKind::D3D11;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
     case QRhi::D3D12:
       return QRhiBackendKind::D3D12;
+#endif
     case QRhi::Metal:
       return QRhiBackendKind::Metal;
     case QRhi::Null:

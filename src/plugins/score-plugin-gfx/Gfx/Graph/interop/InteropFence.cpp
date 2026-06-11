@@ -114,8 +114,10 @@ std::unique_ptr<InteropFence> makeInteropFence(QRhi& rhi)
       return std::make_unique<InteropFenceGL>();
     case QRhi::Vulkan:
       return std::make_unique<InteropFenceVulkanStub>();
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
     case QRhi::D3D12:
       return std::make_unique<InteropFenceD3D12Stub>();
+#endif
     default:
       qWarning() << "makeInteropFence: unsupported backend" << rhi.backend();
       return std::make_unique<InteropFenceVulkanStub>(); // returns invalid()

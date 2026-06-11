@@ -60,7 +60,12 @@ struct MeshBuffers
 
   // Readback result storage for the synchronous GPU→CPU fallback in
   // RenderedRawRasterPipelineNode::runInitialPasses.
+  // Qt < 6.6 has a separate type for buffer readbacks.
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
   QRhiReadbackResult readbackResult;
+#else
+  QRhiBufferReadbackResult readbackResult;
+#endif
 };
 /**
  * @brief Data model for meshes.

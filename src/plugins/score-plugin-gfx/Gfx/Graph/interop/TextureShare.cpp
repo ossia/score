@@ -12,6 +12,8 @@
 #if QT_HAS_VULKAN
 #include <Gfx/Graph/interop/VkExternalMemoryHelpers.hpp>
 
+#include <private/qrhivulkan_p.h>
+
 #include <QVulkanFunctions>
 #include <QVulkanInstance>
 #if defined(Q_OS_WIN)

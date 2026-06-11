@@ -1095,8 +1095,10 @@ void RenderedRawRasterPipelineNode::initMRTPass(
 
         QRhiColorAttachment color(targetTex);
         color.setLevel(i);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
         if(wantMultiview)
           color.setMultiViewCount(mvCount);
+#endif
 
         // Depth must match multiview shape: a plain 2D texture as the
         // depth attachment against a multiview color attachment fails
@@ -1445,8 +1447,10 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     // (mat4[] viewProjection etc., emitted by the ISF layer). Must match
     // the color attachment's setMultiViewCount set in
     // createMultiViewRenderTarget above.
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
     if(wantMultiview)
       ps->setMultiViewCount(mvCount);
+#endif
 
     // preparePipeline sets the vertex-input layout from the mesh's
     // attributes. Skip for procedural draws (VERTEX_INPUTS: []): the
