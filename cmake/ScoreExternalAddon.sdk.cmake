@@ -10,10 +10,20 @@ set(CMAKE_MODULE_PATH
 # Useful variables
 set(SCORE_AVND_SOURCE_DIR "${SCORE_SDK}/lib/cmake/score")
 
-# Find the clang version
-file(GLOB CLANG_RESOURCE_DIR "${SCORE_SDK}/lib/clang/*")
-list(GET CLANG_RESOURCE_DIR 0 CLANG_RESOURCE_DIR)
-string(STRIP "${CLANG_RESOURCE_DIR}" CLANG_RESOURCE_DIR)
+# Use the resource dir of the compiler actually in use, so that the builtin headers
+# always match it (e.g. AppleClang vs the LLVM the SDK was built with); fall back to
+# the headers shipped in the SDK.
+execute_process(
+  COMMAND "${CMAKE_CXX_COMPILER}" -print-resource-dir
+  OUTPUT_VARIABLE CLANG_RESOURCE_DIR
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  ERROR_QUIET
+)
+if(NOT CLANG_RESOURCE_DIR OR NOT EXISTS "${CLANG_RESOURCE_DIR}")
+  file(GLOB CLANG_RESOURCE_DIR "${SCORE_SDK}/lib/clang/*")
+  list(GET CLANG_RESOURCE_DIR 0 CLANG_RESOURCE_DIR)
+  string(STRIP "${CLANG_RESOURCE_DIR}" CLANG_RESOURCE_DIR)
+endif()
 
 # Find the Qt version
 file(GLOB QTCORE_FILES LIST_DIRECTORIES true "${SCORE_SDK}/include/qt/QtCore/*")
