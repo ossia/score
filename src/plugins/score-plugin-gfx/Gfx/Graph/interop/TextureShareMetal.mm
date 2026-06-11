@@ -188,8 +188,8 @@ public:
       if (!producerHandles)
         return false;
 
-      m_producerDevice = (__bridge id<MTLDevice>)producerHandles->dev;
-      m_producerQueue = (__bridge id<MTLCommandQueue>)producerHandles->cmdQueue;
+      m_producerDevice = (__bridge id<MTLDevice>)(void*)producerHandles->dev;
+      m_producerQueue = (__bridge id<MTLCommandQueue>)(void*)producerHandles->cmdQueue;
 
       if (!m_producerDevice)
         return false;
@@ -286,8 +286,8 @@ public:
       if (!consumerHandles)
         return false;
 
-      m_consumerDevice = (__bridge id<MTLDevice>)consumerHandles->dev;
-      m_consumerQueue = (__bridge id<MTLCommandQueue>)consumerHandles->cmdQueue;
+      m_consumerDevice = (__bridge id<MTLDevice>)(void*)consumerHandles->dev;
+      m_consumerQueue = (__bridge id<MTLCommandQueue>)(void*)consumerHandles->cmdQueue;
 
       if (!m_consumerDevice)
         return false;
@@ -396,6 +396,13 @@ public:
     return m_producerSlots[m_currentWriteSlot].renderTarget;
   }
 
+  QRhiTexture* currentProducerTexture() override
+  {
+    if(m_currentWriteSlot < 0 || m_currentWriteSlot >= 3)
+      return nullptr;
+    return m_producerSlots[m_currentWriteSlot].texture;
+  }
+
   void endProducerFrame(QRhiCommandBuffer* cb) override
   {
     @autoreleasepool {
@@ -413,7 +420,7 @@ public:
           cb->nativeHandles());
       if (cbHandles && cbHandles->commandBuffer)
       {
-        id<MTLCommandBuffer> mtlCb = (__bridge id<MTLCommandBuffer>)cbHandles->commandBuffer;
+        id<MTLCommandBuffer> mtlCb = (__bridge id<MTLCommandBuffer>)(void*)cbHandles->commandBuffer;
 
         // Increment event value and signal
         m_eventValues[m_currentWriteSlot]++;
@@ -444,7 +451,7 @@ public:
           cb->nativeHandles());
       if (cbHandles && cbHandles->commandBuffer)
       {
-        id<MTLCommandBuffer> mtlCb = (__bridge id<MTLCommandBuffer>)cbHandles->commandBuffer;
+        id<MTLCommandBuffer> mtlCb = (__bridge id<MTLCommandBuffer>)(void*)cbHandles->commandBuffer;
 
         // GPU wait for producer's signal
         [mtlCb encodeWaitForEvent:m_sharedEvents[readSlot]
