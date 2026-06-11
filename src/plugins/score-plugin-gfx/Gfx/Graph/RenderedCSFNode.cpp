@@ -1261,7 +1261,7 @@ void RenderedCSFNode::updateGeometryBindings(
             if(req.required && req.access == "read_only")
               qWarning() << "CSF geometry: required read_only attribute"
                          << req.name.c_str() << "not found"
-                         << "(semantic=" << req.semantic << ")";
+                         << "(semantic=" << req.semantic.c_str() << ")";
             else
               qDebug() << "  attr" << req.name.c_str() << "not in upstream — creating fallback buffer";
 

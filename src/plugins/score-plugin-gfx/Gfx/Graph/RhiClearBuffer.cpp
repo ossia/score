@@ -191,7 +191,9 @@ static bool clearBufferNative(
     case QRhi::Metal:
       return clearBufferMetal(rhi, cb, buf, offset, size, pattern);
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
     case QRhi::D3D12:
+#endif
     case QRhi::D3D11:
     case QRhi::OpenGLES2:
     default:
