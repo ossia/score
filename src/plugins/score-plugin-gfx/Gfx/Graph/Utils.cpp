@@ -936,10 +936,12 @@ Pipeline buildPipelineWithState(
   // variable-rate shading (cap set in ScreenNode::populateCaps). The
   // actual shading-rate map or per-draw rate is set on the render
   // target / command buffer; the pipeline just needs the flag.
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
   if(useShadingRate && renderer.state.caps.variableRateShading)
   {
     ps->setFlags(ps->flags() | QRhiGraphicsPipeline::UsesShadingRate);
   }
+#endif
 
   const bool depthAvailable
       = (rt.depthTexture != nullptr) || (rt.depthRenderBuffer != nullptr)
