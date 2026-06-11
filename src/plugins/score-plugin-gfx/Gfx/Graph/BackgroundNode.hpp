@@ -271,9 +271,9 @@ struct BackgroundNode : OutputNode
   {
     score::gfx::TextureRenderTarget rt{
         .texture = m_texture,
-        .depthTexture = m_depthTexture,
         .renderPass = m_renderState->renderPassDescriptor,
-        .renderTarget = m_renderTarget};
+        .renderTarget = m_renderTarget,
+        .depthTexture = m_depthTexture};
     return new Gfx::InvertYRenderer{
         *this, rt, const_cast<QRhiReadbackResult&>(*shared_readback)};
   }
