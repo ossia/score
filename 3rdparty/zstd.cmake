@@ -32,3 +32,18 @@ if(NOT TARGET zstd::libzstd_static AND NOT TARGET zstd::libzstd_shared AND NOT T
 
   set(BUILD_SHARED_LIBS ${old_BUILD_SHARED_LIBS})
 endif()
+
+# Make later find_package(zstd) calls (e.g. 3rdparty/spz) resolve to the
+# targets configured above: some prebuilt SDKs ship zstd configs pointing to
+# files that do not exist, and a not-found result would trigger FetchContent
+# fallbacks that clash with the vendored targets.
+file(WRITE "${CMAKE_FIND_PACKAGE_REDIRECTS_DIR}/zstd-config.cmake" [=[
+if(TARGET libzstd_static AND NOT TARGET zstd::libzstd_static)
+  add_library(zstd::libzstd_static INTERFACE IMPORTED GLOBAL)
+  target_link_libraries(zstd::libzstd_static INTERFACE libzstd_static)
+endif()
+if(TARGET libzstd_shared AND NOT TARGET zstd::libzstd_shared)
+  add_library(zstd::libzstd_shared INTERFACE IMPORTED GLOBAL)
+  target_link_libraries(zstd::libzstd_shared INTERFACE libzstd_shared)
+endif()
+]=])
