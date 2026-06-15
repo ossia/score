@@ -84,23 +84,7 @@ else()
   score-plugin-nodal
   score-plugin-controlsurface
   score-plugin-remotecontrol
-  score-plugin-spline
-
-
 
   score-plugin-avnd
-  score-plugin-jit
-  score-plugin-spline3d
-  score-plugin-vst
-  score-plugin-vst3
-  score-plugin-lv2
-  score-plugin-clap
-  score-plugin-faust
-  score-plugin-pd
-  score-plugin-ysfx
-  score-plugin-fx
-  score-plugin-ui
-  score-plugin-analysis
-  score-plugin-threedim
   )
 endif()
