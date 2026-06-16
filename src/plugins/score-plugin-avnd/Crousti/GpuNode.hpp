@@ -28,9 +28,16 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
 
   score::gfx::PassMap m_p;
 
+  // Per-pass "pipeline + SRB created" flags, kept index-parallel with m_p
+  // and `states` (same push_back in addOutputPass / same erase in
+  // removeOutputPass). A single global m_createdPipeline could not handle
+  // a pass added live onto an update()-driven node: the first frame would
+  // (re)create already-live passes, or skip the new one entirely. Each
+  // pass now gates its own srb->create()/pipeline->create().
+  ossia::small_vector<bool, 2> m_passCreated;
+
   score::gfx::MeshBuffers m_meshBuffer{};
 
-  bool m_createdPipeline{};
   QRhiShaderResourceBindings* m_srb{};
 
   int sampler_k = 0;
@@ -207,16 +214,14 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
   {
     if(m_initialized)
       return;
-    auto& parent = node();
-    if constexpr(requires { states[0].prepare(); })
-    {
-      for(auto& state : states)
-      {
-        parent.processControlIn(
-            *this, *state, m_last_message, parent.last_message, parent.m_ctx);
-        state.prepare();
-      }
-    }
+
+    // NB: prepare()/processControlIn for graphics nodes is NOT invoked
+    // here — `states` is empty at initState time (states are constructed
+    // per-edge in addOutputPass), so there is nothing to prepare. The old
+    // `states[0].prepare()` detection was also doubly-wrong: `states[0]`
+    // is a shared_ptr, so the requires-expression never matched, and even
+    // if it had, indexing an empty vector is UB. The prepare/control-in
+    // call now happens in addOutputPass right after each state is built.
 
     if(m_meshBuffer.buffers.empty())
     {
@@ -245,17 +250,32 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
       states.push_back(std::make_shared<Node_T>());
       prepareNewState(states.back(), parent);
 
+      // Graphics nodes that declare prepare(): apply any pending control
+      // input and run prepare() on the freshly-constructed state, here —
+      // not in initState, where `states` is still empty. Detection uses
+      // operator-> because states.back() is a shared_ptr<Node_T>.
+      if constexpr(requires { states.back()->prepare(); })
+      {
+        parent.processControlIn(
+            *this, *states.back(), m_last_message, parent.last_message, parent.m_ctx);
+        states.back()->prepare();
+      }
+
       auto ps = createRenderPipeline(renderer, rt);
       ps->setShaderResourceBindings(m_srb);
 
       m_p.emplace_back(&edge, score::gfx::Pass{rt, score::gfx::Pipeline{ps, m_srb}, nullptr});
+      m_passCreated.push_back(false);
 
-      // No update step: we can directly create the pipeline here
+      // No update step: we can directly create this pass's pipeline here.
+      // The SRB is shared across all passes (m_srb); creating it is
+      // idempotent for our purposes, and the per-pass flag tracks the
+      // pipeline that is genuinely per-edge.
       if constexpr(!requires { &Node_T::update; })
       {
         SCORE_ASSERT(m_srb->create());
         SCORE_ASSERT(ps->create());
-        m_createdPipeline = true;
+        m_passCreated.back() = true;
       }
     }
   }
@@ -283,6 +303,8 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
     m_p.erase(it);
     if((std::size_t)idx < states.size())
       states.erase(states.begin() + idx);
+    if((std::size_t)idx < m_passCreated.size())
+      m_passCreated.erase(m_passCreated.begin() + idx);
   }
 
   void releaseState(score::gfx::RenderList& r) override
@@ -290,7 +312,7 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
     if(!m_initialized)
       return;
 
-    m_createdPipeline = false;
+    m_passCreated.clear();
 
     // Release the object's internal states
     if constexpr(requires { &Node_T::release; })
@@ -329,14 +351,23 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
       rt.release();
     m_rts.clear();
 
-    // Release the allocated pipelines
+    // Release the allocated pipelines. Each Pass::p.srb refers to the
+    // SAME shared m_srb (see addOutputPass); null it out per-pass before
+    // Pipeline::release() so the shared SRB isn't deleteLater'd once per
+    // pass (it survived previously only via QRhi's QSet dedup), then
+    // delete it exactly once below — covering the m_p-empty case too,
+    // which formerly leaked m_srb. Mirrors removeOutputPass.
     for(auto& pass : m_p)
+    {
+      pass.second.p.srb = nullptr; // shared — owned by initState
       pass.second.release();
+    }
     m_p.clear();
-
+    if(m_srb)
+      m_srb->deleteLater();
     m_srb = nullptr;
+
     m_meshBuffer = {};
-    m_createdPipeline = false;
 
     sampler_k = 0;
 
@@ -387,11 +418,19 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
       // as we have to take into account that buffers could be allocated, freed, etc.
       // and thus updated in the shader resource bindings
       SCORE_ASSERT(states.size() == m_p.size());
+      SCORE_ASSERT(states.size() == m_passCreated.size());
       //SCORE_SOFT_ASSERT(state.size() == edges);
       for(int k = 0; k < states.size(); k++)
       {
         auto& state = *states[k];
         auto& pass = m_p[k].second;
+
+        // Per-pass creation flag: a pass added live (e.g. a new output
+        // edge onto an update()-driven node) starts at false and gets its
+        // srb/pipeline created on the next update; passes already live
+        // keep their pipeline. A single global flag would skip the new
+        // pass entirely (or needlessly destroy the live ones).
+        const bool created = m_passCreated[k];
 
         bool srb_touched{false};
         tmp.assign(pass.p.srb->cbeginBindings(), pass.p.srb->cendBindings());
@@ -405,19 +444,19 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
 
         if(srb_touched)
         {
-          if(m_createdPipeline)
+          if(created)
             pass.p.srb->destroy();
 
           pass.p.srb->setBindings(tmp.begin(), tmp.end());
         }
 
-        if(!m_createdPipeline)
+        if(!created)
         {
           SCORE_ASSERT(pass.p.srb->create());
           SCORE_ASSERT(pass.p.pipeline->create());
+          m_passCreated[k] = true;
         }
       }
-      m_createdPipeline = true;
       tmp.clear();
     }
   }

@@ -448,7 +448,7 @@ make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
       auto [Mx, My, Mz] = c.max;
       auto [ix, iy, iz] = c.init;
       return new Process::XYZSpinboxes{{mx, my, mz}, {Mx, My, Mz}, {ix, iy, iz},
-                                       qname,        id,           parent};
+                                       false,        qname,        id,           parent};
     }
   }
   else if constexpr(widg.widget == avnd::widget_type::xyzw_spinbox)
@@ -476,7 +476,7 @@ make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
       auto [ix, iy, iz, iw] = c.init;
       // FIXME we don't have a good 4-way widget
       return new Process::XYZSpinboxes{{mx, my, mz}, {Mx, My, Mz}, {ix, iy, iz},
-                                       qname,        id,           parent};
+                                       false,        qname,        id,           parent};
     }
   }
   else if constexpr(widg.widget == avnd::widget_type::color)

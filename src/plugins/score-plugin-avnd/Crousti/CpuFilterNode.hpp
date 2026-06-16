@@ -10,13 +10,18 @@ namespace oscr
 
 template <typename Node_T>
   requires(
-    (avnd::texture_output_introspection<Node_T>::size + avnd::buffer_output_introspection<Node_T>::size + avnd::geometry_output_introspection<Node_T>::size + scene_output_introspection<Node_T>::size) >= 1
+    (avnd::texture_output_introspection<Node_T>::size + avnd::buffer_output_introspection<Node_T>::size + avnd::geometry_output_introspection<Node_T>::size + scene_output_introspection<Node_T>::size + avnd::gpu_render_target_output_port_output_introspection<Node_T>::size) >= 1
   )
 struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
 {
   std::shared_ptr<Node_T> state;
   score::gfx::Message m_last_message{};
-  ossia::time_value m_last_time{-1};
+  // RenderList::frame id of the last frame on which we ran the expensive
+  // once-per-frame body of runInitialPasses (input readbacks, operator()(),
+  // output uploads). runInitialPasses is invoked once PER OUTGOING EDGE, so
+  // without this guard that whole body re-ran for every downstream edge,
+  // every frame. -1 = never run yet.
+  int64_t m_last_frame{-1};
 
   AVND_NO_UNIQUE_ADDRESS texture_inputs_storage<Node_T> texture_ins;
   AVND_NO_UNIQUE_ADDRESS texture_outputs_storage<Node_T> texture_outs;
@@ -403,57 +408,69 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
     auto& parent = node();
     auto& rhi = *renderer.state.rhi;
 
-    if constexpr(
-        avnd::texture_input_introspection<Node_T>::size > 0
-        || avnd::buffer_input_introspection<Node_T>::size > 0
-        || avnd::geometry_input_introspection<Node_T>::size > 0)
+    // runInitialPasses is called once PER OUTGOING EDGE per frame. The
+    // expensive work below — rhi.finish() sync point, input readbacks,
+    // operator()(), and output buffer/texture uploads — only needs to run
+    // ONCE per frame: its result lives in `*this->state` and the storages,
+    // identical for every edge. We dedupe on RenderList::frame, which is
+    // bumped exactly once at the end of each RenderList::render() (see
+    // RenderList.cpp). This is NOT a transport-date gate: it does not
+    // freeze scene producers when the transport is paused (token.date
+    // frozen) — operator()() still re-runs every frame so live parameter
+    // edits take effect immediately. The per-edge geometry/scene uploads
+    // (which genuinely differ per edge — they target edge.sink) run for
+    // EVERY edge, below the guard.
+    const bool firstEdgeThisFrame = (renderer.frame != m_last_frame);
+    if(firstEdgeThisFrame)
     {
-      // FIXME: for geometry, here we should optimize if we know we aren't going to need them on the CPU, OR if it is a type ?
-      // Insert a synchronisation point to allow readbacks to complete
-      rhi.finish();
+      m_last_frame = renderer.frame;
+
+      if constexpr(
+          avnd::texture_input_introspection<Node_T>::size > 0
+          || avnd::buffer_input_introspection<Node_T>::size > 0
+          || avnd::geometry_input_introspection<Node_T>::size > 0)
+      {
+        // FIXME: for geometry, here we should optimize if we know we aren't going to need them on the CPU, OR if it is a type ?
+        // Insert a synchronisation point to allow readbacks to complete
+        rhi.finish();
+      }
+
+      if constexpr(avnd::texture_input_introspection<Node_T>::size > 0)
+        texture_ins.runInitialPasses(*this, rhi);
+      if constexpr(avnd::buffer_input_introspection<Node_T>::size > 0)
+        buffer_ins.readInputBuffers(renderer, parent, *state);
+      if constexpr(avnd::geometry_input_introspection<Node_T>::size > 0)
+        geometry_ins.readInputGeometries(renderer, this->geometry, parent, *state);
+      if constexpr(scene_input_introspection<Node_T>::size > 0)
+        scene_ins.readInputScenes(this->scene, *state);
+
+      buffer_outs.prepareUpload(*res);
+
+      // Run the processor
+      if_possible(state->runInitialPasses(renderer, commands, res, edge));
+      if_possible((*state)());
+
+      // Upload output buffers
+      if constexpr(avnd::buffer_output_introspection<Node_T>::size > 0)
+        buffer_outs.upload(renderer, *state, *res);
+
+      // Upload output textures
+      if constexpr(avnd::texture_output_introspection<Node_T>::size > 0)
+      {
+        texture_outs.runInitialPasses(*this, renderer, res);
+
+        commands.resourceUpdate(res);
+        res = renderer.state.rhi->nextResourceUpdateBatch();
+      }
+
+      // Copy the data to the model node
+      parent.processControlOut(*this->state);
     }
 
-    // Always run operator()() — no transport gate. The old guard
-    // (`if(token.date == m_last_time) return;`) made sense for halp
-    // render-target nodes where re-running a fullscreen pass each
-    // frame is expensive, but silently broke live parameter updates on
-    // halp *scene* producers: processControlIn had applied the new
-    // slider value to `state->inputs` in update(), but with the
-    // transport paused `token.date` never advanced, so operator()()
-    // never rebuilt the output scene — the user had to stop/restart
-    // to see changes. Scene-producer operator()() is cheap (build a
-    // handful of shared_ptrs, bump a version counter); downstream
-    // ScenePreprocessor already guards actual GPU uploads via
-    // state-ptr + version checks plus per-buffer memcmp diffs.
-    m_last_time = parent.last_message.token.date;
-
-    if constexpr(avnd::texture_input_introspection<Node_T>::size > 0)
-      texture_ins.runInitialPasses(*this, rhi);
-    if constexpr(avnd::buffer_input_introspection<Node_T>::size > 0)
-      buffer_ins.readInputBuffers(renderer, parent, *state);
-    if constexpr(avnd::geometry_input_introspection<Node_T>::size > 0)
-      geometry_ins.readInputGeometries(renderer, this->geometry, parent, *state);
-    if constexpr(scene_input_introspection<Node_T>::size > 0)
-      scene_ins.readInputScenes(this->scene, *state);
-
-    buffer_outs.prepareUpload(*res);
-
-    // Run the processor
-    if_possible(state->runInitialPasses(renderer, commands, res, edge));
-    if_possible((*state)());
-
-    // Upload output buffers
-    if constexpr(avnd::buffer_output_introspection<Node_T>::size > 0)
-      buffer_outs.upload(renderer, *state, *res);
-
-    // Upload output textures
-    if constexpr(avnd::texture_output_introspection<Node_T>::size > 0)
-    {
-      texture_outs.runInitialPasses(*this, renderer, res);
-
-      commands.resourceUpdate(res);
-      res = renderer.state.rhi->nextResourceUpdateBatch();
-    }
+    // Per-edge uploads: these target the specific downstream sink
+    // (edge.sink) and must run for every outgoing edge, even on edges
+    // after the first this frame. The producer's output is already
+    // populated in *this->state by the once-per-frame body above.
 
     // Copy the geometry
     if constexpr(avnd::geometry_output_introspection<Node_T>::size > 0)
@@ -463,9 +480,6 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
     // published via NodeRenderer::process(scene_spec)).
     if constexpr(scene_output_introspection<Node_T>::size > 0)
       scene_outs.upload(renderer, *this->state, edge);
-
-    // Copy the data to the model node
-    parent.processControlOut(*this->state);
   }
 
   // Customization point for halp nodes that produce their output via
@@ -499,7 +513,7 @@ struct GfxRenderer<Node_T> final : score::gfx::GenericNodeRenderer
 
 template <typename Node_T>
   requires(
-    (avnd::texture_output_introspection<Node_T>::size + avnd::buffer_output_introspection<Node_T>::size + avnd::geometry_output_introspection<Node_T>::size + scene_output_introspection<Node_T>::size) >= 1
+    (avnd::texture_output_introspection<Node_T>::size + avnd::buffer_output_introspection<Node_T>::size + avnd::geometry_output_introspection<Node_T>::size + scene_output_introspection<Node_T>::size + avnd::gpu_render_target_output_port_output_introspection<Node_T>::size) >= 1
   )
 struct GfxNode<Node_T> final
     : CustomGfxNodeBase

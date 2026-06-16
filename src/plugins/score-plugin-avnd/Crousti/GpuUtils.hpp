@@ -589,8 +589,14 @@ inline void initGfxPorts(auto* self, auto& input, auto& output)
       [self,
        &output]<typename Field, std::size_t I>(avnd::field_reflection<I, Field> f) {
     static constexpr auto type = port_to_type_enum{}(f);
-    static constexpr auto flags = port_flags_for_field<Field>();
-    output.push_back(new score::gfx::Port{self, {}, type, flags, {}});
+    // port_flags_for_field encodes INPUT-side sink semantics
+    // (GrabsFromSource → "sample the upstream's texture directly";
+    // SamplableDepth → "ask the producer for a sampleable depth
+    // attachment"). Neither has any meaning on an OUTPUT port — emitting
+    // them here would make the graph treat this node's own output as if it
+    // grabbed from / sampled some upstream source. Outputs carry no such
+    // flags.
+    output.push_back(new score::gfx::Port{self, {}, type, score::gfx::Flag{}, {}});
   });
 }
 
@@ -828,9 +834,11 @@ template <typename T>
   requires(avnd::geometry_input_introspection<T>::size == 0)
 struct geometry_inputs_storage<T>
 {
-  static void readInputBuffers(auto&&...) { }
+  static void readInputGeometries(auto&&...) { }
 
   static void inputAboutToFinish(auto&&...) { }
+
+  static void release(auto&&...) { }
 };
 
 template<typename T>
