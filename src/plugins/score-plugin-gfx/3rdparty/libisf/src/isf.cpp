@@ -4041,11 +4041,41 @@ void parser::parse_raw_raster_pipeline()
       uniforms += "layout(std140, binding = 2) uniform material_t {\n";
       for(const isf::input& val : d.inputs)
       {
-        // Storage buffers / storage images / geometry inputs / UBOs declared
-        // separately after samplers — skip them here.
-        if(ossia::get_if<isf::storage_input>(&val.data)
-           || ossia::get_if<isf::csf_image_input>(&val.data)
-           || ossia::get_if<isf::geometry_input>(&val.data)
+        // Storage buffers / storage images / geometry inputs / UBOs are declared
+        // separately after samplers. BUT their synthesized host-side size ints
+        // (storage flex-array size, geometry $USER counts) ARE packed into this
+        // material blob, so they must be declared here too — otherwise every
+        // uniform after them reads shifted. Mirrors the CSF Params block.
+        if(auto* storage = ossia::get_if<isf::storage_input>(&val.data))
+        {
+          if(storage->access.find("write") != std::string::npos
+             && !storage->layout.empty()
+             && storage->layout.back().type.find("[]") != std::string::npos)
+          {
+            num_uniform++;
+            uniforms += "int " + val.name + "_size;\n";
+            globalvars += "int " + val.name + "_size = isf_material_uniforms."
+                          + val.name + "_size;\n";
+          }
+          continue;
+        }
+        if(auto* geo = ossia::get_if<isf::geometry_input>(&val.data))
+        {
+          auto emit_synth_int = [&](const std::string& nm) {
+            num_uniform++;
+            uniforms += "int " + nm + ";\n";
+            globalvars += "int " + nm + " = isf_material_uniforms." + nm + ";\n";
+          };
+          if(geo->vertex_count.find("$USER") != std::string::npos)
+            emit_synth_int(val.name + "_vertex_count");
+          if(geo->instance_count.find("$USER") != std::string::npos)
+            emit_synth_int(val.name + "_instance_count");
+          for(const auto& aux : geo->auxiliary)
+            if(aux.size.find("$USER") != std::string::npos)
+              emit_synth_int(val.name + "_" + aux.name + "_size");
+          continue;
+        }
+        if(ossia::get_if<isf::csf_image_input>(&val.data)
            || ossia::get_if<isf::uniform_input>(&val.data))
           continue;
 
@@ -5790,6 +5820,20 @@ void parser::parse_csf()
             k++;
             material_block += "    int " + inp.name + "_" + aux.name + "_size;\n";
           }
+        }
+      }
+      else if(auto* storage = ossia::get_if<storage_input>(&inp.data))
+      {
+        // A writable storage buffer whose LAYOUT ends in a flexible-array
+        // member gets a synthesized host-side size int (see ISFVisitors /
+        // RenderedCSFNode). Declare it here so this std140 block matches the
+        // packed material blob; otherwise every uniform after it reads shifted.
+        if(storage->access.find("write") != std::string::npos
+           && !storage->layout.empty()
+           && storage->layout.back().type.find("[]") != std::string::npos)
+        {
+          k++;
+          material_block += "    int " + inp.name + "_size;\n";
         }
       }
     }

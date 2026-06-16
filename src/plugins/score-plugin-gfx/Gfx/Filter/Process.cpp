@@ -209,9 +209,17 @@ void DataStreamWriter::write(Gfx::ShaderSource& p)
 template <>
 void DataStreamReader::read(const Gfx::Filter::Model& proc)
 {
-  auto& ctx = score::IDocument::documentContext(proc);
-  m_stream << proc.m_program
-           << score::relativizeFilePath(proc.m_scriptPath, ctx);
+  // documentContext() SCORE_ASSERTs when the model isn't in a document
+  // (e.g. saving a template / copy). Only relativize against the document
+  // when there's an actual script path to relativize — mirrors the
+  // JSON/load guards. The empty case writes an empty path verbatim.
+  QString relativeScriptPath;
+  if(!proc.m_scriptPath.isEmpty())
+  {
+    auto& ctx = score::IDocument::documentContext(proc);
+    relativeScriptPath = score::relativizeFilePath(proc.m_scriptPath, ctx);
+  }
+  m_stream << proc.m_program << relativeScriptPath;
 
   readPorts(*this, proc.m_inlets, proc.m_outlets);
 

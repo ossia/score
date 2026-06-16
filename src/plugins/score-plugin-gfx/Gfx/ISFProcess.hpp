@@ -16,6 +16,8 @@
 
 #include <isf.hpp>
 
+#include <algorithm>
+
 namespace Gfx
 {
 struct ISFHelpers
@@ -79,6 +81,10 @@ struct ISFHelpers
       const isf::input& input;
       const int i;
       T& self;
+      // Outlet id allocator for write-access storage / image inputs. Starts at
+      // a high base so it never collides with inlet ids (input index `i`), the
+      // default "Texture Out" outlet (id 1), or the MRT outlet base (10000).
+      int& outlet_id;
 
       Process::Inlet* operator()(const float_input& v)
       {
@@ -352,19 +358,45 @@ struct ISFHelpers
       // CSF-specific input handlers
       Process::Inlet* operator()(const storage_input& v)
       {
-        // storage_input declares an SSBO the shader reads from. Create a
-        // Process-level TextureInlet so an upstream Buffer-producing node
-        // (ScenePreprocessor's scene_* auxes extracted via ExtractBuffer2, etc.)
-        // has a target to connect to. Note that for
-        // aux-named storage_inputs (scene_lights, scene_materials, per_draw),
-        // the RawRaster renderer auto-binds from the upstream geometry's
-        // auxiliary_buffer[] by matching on name — so this inlet is
-        // optional for those; leaving it exposed makes explicit wiring
-        // possible when no preprocessor sits upstream.
-        auto port = new Gfx::TextureInlet(
-            QString::fromStdString(input.name), Id<Process::Port>(i), &self);
-        self.m_inlets.push_back(port);
-        return port;
+        // Mirror the renderer (isf_input_port_vis in ISFNode.cpp): the access
+        // qualifier decides inlet vs outlet. Treating every storage_input as a
+        // read inlet gave write buffers a phantom TextureInlet — shifting every
+        // later port by one (positional routing) and never exposing the
+        // TextureOutlet the renderer actually produces.
+        if(v.access == "read_only")
+        {
+          // read inlet: an upstream Buffer-producing node (ScenePreprocessor's
+          // scene_* auxes, ExtractBuffer2 outputs, ...) has a target to land on.
+          // For aux-named storage_inputs the RawRaster renderer also auto-binds
+          // by name, so this inlet is optional but allows explicit wiring.
+          auto port = new Gfx::TextureInlet(
+              QString::fromStdString(input.name), Id<Process::Port>(i), &self);
+          self.m_inlets.push_back(port);
+          return port;
+        }
+
+        // write_only / read_write: the renderer pushes a Buffer OUTPUT port for
+        // the produced SSBO so downstream nodes can connect to it.
+        auto outport = new Gfx::TextureOutlet(
+            QString::fromStdString(input.name), Id<Process::Port>(outlet_id++),
+            &self);
+        self.m_outlets.push_back(outport);
+
+        // Conditional sizing inlet: only buffers whose layout ends in a
+        // flexible-array member synthesize a "size" control — SAME condition as
+        // CSF/Process.cpp setupCSF, the renderer, and the generated GLSL.
+        if(!v.layout.empty()
+           && v.layout.back().type.find("[]") != std::string::npos)
+        {
+          auto size_inl = new Process::IntSpinBox{
+              1, 536870911, 1024,
+              QString::fromStdString(input.name) + " size",
+              Id<Process::Port>(i), &self};
+          self.m_inlets.push_back(size_inl);
+          self.controlAdded(size_inl->id());
+          return size_inl;
+        }
+        return nullptr;
       }
       Process::Inlet* operator()(const uniform_input& v)
       {
@@ -378,35 +410,80 @@ struct ISFHelpers
         self.m_inlets.push_back(port);
         return port;
       }
-      Process::Inlet* operator()(const texture_input& v) { return nullptr; }
-      Process::Inlet* operator()(const csf_image_input& v)
+      Process::Inlet* operator()(const texture_input& v)
       {
-        // csf_image_input is a storage image bound to the graphics pipeline
-        // (vertex / fragment) for imageLoad / imageStore. Like uniform_input
-        // and the existing image samplers, it needs a Process-layer inlet so
-        // that an upstream texture cable can land on it (e.g. read_only
-        // images sourced from another node's output, or scratch images that
-        // ping-pong with an upstream allocator). TextureInlet is the generic
-        // GPU-resource port used elsewhere in score for textures / SSBOs.
+        // The renderer (isf_input_port_vis) creates an Image input port for
+        // every texture_input; returning nullptr here dropped the inlet and
+        // shifted all subsequent ports (same off-by-one drift family as the
+        // storage / csf_image cases).
         auto port = new Gfx::TextureInlet(
             QString::fromStdString(input.name), Id<Process::Port>(i), &self);
         self.m_inlets.push_back(port);
         return port;
       }
+      Process::Inlet* operator()(const csf_image_input& v)
+      {
+        // Mirror the renderer: read_only → input port (an upstream texture
+        // cable lands on it); write_only / read_write → output port for the
+        // produced storage image. Always creating an inlet gave write images a
+        // phantom inlet (port shift) and no outlet for downstream connection.
+        if(v.access == "read_only")
+        {
+          auto port = new Gfx::TextureInlet(
+              QString::fromStdString(input.name), Id<Process::Port>(i), &self);
+          self.m_inlets.push_back(port);
+          return port;
+        }
+        auto outport = new Gfx::TextureOutlet(
+            QString::fromStdString(input.name), Id<Process::Port>(outlet_id++),
+            &self);
+        self.m_outlets.push_back(outport);
+        return nullptr;
+      }
       Process::Inlet* operator()(const geometry_input& v) { return nullptr; }
     };
 
+    // Outlet ids for write-access storage / image inputs. Base 20000 keeps
+    // them clear of inlet ids (input index), the default outlet (id 1) and the
+    // MRT base (10000), and lets the MRT block below tell them apart.
+    static constexpr int storage_outlet_base = 20000;
+    int outlet_id = storage_outlet_base;
+
     for(const isf::input& input : desc.inputs)
     {
-      ossia::visit(input_vis{previous_values, input, i, self}, input.data);
+      ossia::visit(input_vis{previous_values, input, i, self, outlet_id}, input.data);
       i++;
     }
 
-    // MRT: recreate outlets from OUTPUTS declarations
+    // The renderer (isf_input_port_vis) pushes write-storage / write-image
+    // OUTPUT ports first (in input order), then the color / MRT outputs. The
+    // model's outlets must follow the same order for positional routing. The
+    // default "Texture Out" outlet was created by the constructor *before* this
+    // loop, so it currently sits ahead of any storage outlets — pull the
+    // storage outlets (ids >= storage_outlet_base) to the front to match.
+    {
+      std::stable_partition(
+          self.m_outlets.begin(), self.m_outlets.end(),
+          [](Process::Outlet* o) { return o->id().val() >= storage_outlet_base; });
+    }
+
+    // MRT: recreate the color outlets from OUTPUTS declarations. Preserve the
+    // storage / image write outlets (ids >= storage_outlet_base); only the
+    // color / default outlets are replaced.
     if(!desc.outputs.empty())
     {
-      qDeleteAll(self.m_outlets);
-      self.m_outlets.clear();
+      for(auto it = self.m_outlets.begin(); it != self.m_outlets.end();)
+      {
+        if((*it)->id().val() < storage_outlet_base)
+        {
+          delete *it;
+          it = self.m_outlets.erase(it);
+        }
+        else
+        {
+          ++it;
+        }
+      }
 
       int outId = 10000; // High base to avoid ID collisions with inlets
       for(const auto& out : desc.outputs)

@@ -2970,7 +2970,7 @@ void RenderedCSFNode::buildComputeSrbBindings(
   for(const auto& input : n.m_descriptor.inputs)
   {
     // Storage buffers
-    if(ossia::get_if<isf::storage_input>(&input.data))
+    if(auto* storage_in = ossia::get_if<isf::storage_input>(&input.data))
     {
       // Find the corresponding storage buffer
       auto it = std::find_if(m_storageBuffers.begin(), m_storageBuffers.end(),
@@ -3025,6 +3025,20 @@ void RenderedCSFNode::buildComputeSrbBindings(
           qWarning() << "CSF: cannot bind null buffer for input"
                      << QString::fromStdString(input.name);
         bindingIndex++;
+      }
+
+      // Write-access buffers whose layout ends in a flexible-array member get a
+      // synthesized "size" INPUT port on the model (setupCSF / isf_input_port_-
+      // vis). The read_only branch advanced input_port_index for its own inlet,
+      // but the write branches above only touched output_port_index — so this
+      // sizing inlet was never skipped and every later storage input resolved
+      // the wrong port (its upstream buffer silently never bound). The geometry
+      // branch already does the equivalent for its $USER ports. Advance here
+      // under the SAME flex-array condition used everywhere else.
+      if(storage_in->access.contains("write") && !storage_in->layout.empty()
+         && storage_in->layout.back().type.find("[]") != std::string::npos)
+      {
+        input_port_index++;
       }
     }
     // Regular textures (sampled)
@@ -4653,11 +4667,14 @@ void RenderedCSFNode::runInitialPasses(
 
       if(totalWorkgroups > maxWorkgroups * maxWorkgroups * maxWorkgroups)
       {
-        // Workgroup count overflow: skip this pass. We haven't yet
+        // Workgroup count overflow: skip THIS pass only. We haven't yet
         // opened a compute pass at this point (the begin/end for this
         // dispatch is now hoisted *after* the size calculation), so
-        // there is nothing to close — just bail to the next pass.
-        return;
+        // there is nothing to close — continue to the next pass. Using
+        // `return` here aborted every remaining pass and desynced the
+        // ping-pong buffer swaps; mirror the dispatch(0,0,0) guard below
+        // which already uses `continue`.
+        continue;
       }
       if(totalWorkgroups > maxWorkgroups * maxWorkgroups)
       {
@@ -4715,21 +4732,19 @@ void RenderedCSFNode::runInitialPasses(
           pass.processUBO, 0, sizeof(ProcessUBO), &n.standardUBO);
     }
 
-    // Begin compute pass with ExternalContent flag so we can insert
-    // native memory barriers between dispatches via beginExternal/endExternal.
-    commands.beginComputePass(res, QRhiCommandBuffer::BeginPassFlag::ExternalContent);
+    // Each CSF pass issues exactly ONE dispatch in its own begin/endComputePass.
+    // QRhi automatically inserts the compute→compute memory barrier between
+    // consecutive passes that touch the same SSBO/image, so the previous
+    // per-pass ExternalContent flag + native barrier was redundant here — and
+    // ExternalContent needlessly forced Vulkan secondary command buffers. The
+    // native-barrier path stays for the genuinely multi-dispatch scatter loop
+    // (above), which issues several dispatches inside a single pass.
+    commands.beginComputePass(res);
     res = nullptr;
 
     commands.setComputePipeline(pass.pipeline);
     commands.setShaderResources(pass.srb);
     commands.dispatch(dispatchX, dispatchY, dispatchZ);
-
-    // Insert a compute→compute memory barrier so that SSBO writes from
-    // this dispatch are visible to the next dispatch. QRhi does not
-    // insert these automatically between consecutive compute passes.
-    commands.beginExternal();
-    insertComputeBarrier(*renderer.state.rhi, commands);
-    commands.endExternal();
 
     commands.endComputePass();
   }

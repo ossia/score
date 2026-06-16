@@ -485,15 +485,23 @@ void Model::setupCSF(const isf::descriptor& desc)
             QString::fromStdString(input.name), Id<Process::Port>(output_i++), &self);
         self.m_outlets.push_back(port);
 
-        auto size_inl = new Process::IntSpinBox{
-            1,
-            536870911,
-            1024,
-            QString::fromStdString(input.name) + " size",
-            Id<Process::Port>(input_i++),
-            &self};
-        self.m_inlets.push_back(size_inl);
-        self.controlAdded(size_inl->id());
+        // Only writable buffers whose layout ends in a flexible-array member
+        // get a synthesized "size" inlet — this MUST match the renderer
+        // (isf_input_port_count_vis / isf_input_port_vis) and the generated
+        // GLSL, or every later control routes to the wrong port.
+        if(!v.layout.empty()
+           && v.layout.back().type.find("[]") != std::string::npos)
+        {
+          auto size_inl = new Process::IntSpinBox{
+              1,
+              536870911,
+              1024,
+              QString::fromStdString(input.name) + " size",
+              Id<Process::Port>(input_i++),
+              &self};
+          self.m_inlets.push_back(size_inl);
+          self.controlAdded(size_inl->id());
+        }
       }
     }
 
@@ -651,9 +659,17 @@ Process::Descriptor ProcessFactory::descriptor(QString) const noexcept
 template <>
 void DataStreamReader::read(const Gfx::CSF::Model& proc)
 {
-  auto& ctx = score::IDocument::documentContext(proc);
-  m_stream << proc.m_compute
-           << score::relativizeFilePath(proc.m_scriptPath, ctx);
+  // documentContext() SCORE_ASSERTs when the model isn't in a document
+  // (e.g. saving a template / copy). Only relativize against the document
+  // when there's an actual script path to relativize — mirrors the
+  // JSON/load guards. The empty case writes an empty path verbatim.
+  QString relativeScriptPath;
+  if(!proc.m_scriptPath.isEmpty())
+  {
+    auto& ctx = score::IDocument::documentContext(proc);
+    relativeScriptPath = score::relativizeFilePath(proc.m_scriptPath, ctx);
+  }
+  m_stream << proc.m_compute << relativeScriptPath;
   readPorts(*this, proc.m_inlets, proc.m_outlets);
 
   insertDelimiter();

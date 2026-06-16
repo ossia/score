@@ -199,7 +199,13 @@ struct isf_input_size_vis
   // CSF-specific input handlers
   void operator()(const isf::storage_input& in) noexcept
   {
-    if(in.access.contains("write"))
+    // Must match what isf_input_port_vis (ISFNode.cpp) actually writes into the
+    // blob — and the synthesized "size" int it creates: ONLY a writable buffer
+    // whose layout ends in a flexible-array member. Reserving for every write
+    // buffer over-allocated the UBO (harmless, but desynced from the port
+    // visitor and the generated GLSL Params/material_t block).
+    if(in.access.contains("write") && !in.layout.empty()
+       && in.layout.back().type.find("[]") != std::string::npos)
     {
       (*this)(isf::long_input{});
     }
@@ -215,11 +221,10 @@ struct isf_input_size_vis
 
   void operator()(const isf::csf_image_input& in) noexcept
   {
-    if(in.access.contains("write"))
-    {
-      (*this)(isf::point2d_input{});
-      (*this)(isf::long_input{});
-    }
+    // isf_input_port_vis does NOT write anything into the material blob for
+    // write csf_image inputs (its point2d/long synthesis is commented out), so
+    // reserve nothing here — keep the size visitor and the port visitor (and
+    // hence the generated uniform block) in agreement.
   }
 
   void operator()(const isf::geometry_input& in) noexcept

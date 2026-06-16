@@ -95,7 +95,12 @@ struct SCORE_PLUGIN_GFX_EXPORT ShaderSource
   }
   friend bool operator==(const ShaderSource& lhs, const ShaderSource& rhs) noexcept
   {
-    return lhs.vertex == rhs.vertex && lhs.fragment == rhs.fragment;
+    // `type` MUST be part of equality: std::hash<ShaderSource> seeds with
+    // `type`, so two sources differing only by type hash differently. If ==
+    // ignored type they'd be "equal but unequal-hash", breaking the
+    // unordered-container invariant for ProgramCache / ProgramCacheKey.
+    return lhs.type == rhs.type && lhs.vertex == rhs.vertex
+           && lhs.fragment == rhs.fragment;
   }
   friend bool operator!=(const ShaderSource& lhs, const ShaderSource& rhs) noexcept
   {
