@@ -375,9 +375,17 @@ void GfxContext::incrementalEdgeUpdate(
     auto sink_it = nodes.find(spec.second.node);
     if(sink_it == nodes.end())
       continue;
-    // Same indexing the add-loop below does unchecked; if that is safe,
-    // so is this.
-    preserveSinks.insert(sink_it->second->input[spec.second.port]);
+    // EdgeSpecs are script-supplied: guard against null nodes and
+    // out-of-range port indices before indexing, exactly as
+    // add_edge/remove_edge do. An OOB std::vector access is UB, not a
+    // catchable exception, so the try/catch around the caller cannot
+    // save us here.
+    if(!sink_it->second)
+      continue;
+    auto& sink_ports = sink_it->second->input;
+    if(spec.second.port >= sink_ports.size())
+      continue;
+    preserveSinks.insert(sink_ports[spec.second.port]);
   }
 
   // Process removals first (while edge objects still exist).
@@ -387,9 +395,17 @@ void GfxContext::incrementalEdgeUpdate(
     auto sink_it = nodes.find(spec.second.node);
     if(source_it == nodes.end() || sink_it == nodes.end())
       continue;
+    if(!source_it->second || !sink_it->second)
+      continue;
 
-    auto* source_port = source_it->second->output[spec.first.port];
-    auto* sink_port = sink_it->second->input[spec.second.port];
+    auto& source_ports = source_it->second->output;
+    auto& sink_ports = sink_it->second->input;
+    if(spec.first.port >= source_ports.size()
+       || spec.second.port >= sink_ports.size())
+      continue;
+
+    auto* source_port = source_ports[spec.first.port];
+    auto* sink_port = sink_ports[spec.second.port];
 
     // Find the actual Edge object
     score::gfx::Edge* edge = nullptr;
@@ -421,9 +437,17 @@ void GfxContext::incrementalEdgeUpdate(
     auto sink_it = nodes.find(spec.second.node);
     if(source_it == nodes.end() || sink_it == nodes.end())
       continue;
+    if(!source_it->second || !sink_it->second)
+      continue;
 
-    auto* source_port = source_it->second->output[spec.first.port];
-    auto* sink_port = sink_it->second->input[spec.second.port];
+    auto& source_ports = source_it->second->output;
+    auto& sink_ports = sink_it->second->input;
+    if(spec.first.port >= source_ports.size()
+       || spec.second.port >= sink_ports.size())
+      continue;
+
+    auto* source_port = source_ports[spec.first.port];
+    auto* sink_port = sink_ports[spec.second.port];
 
     m_graph->addEdge(source_port, sink_port, spec.type);
   }
@@ -466,13 +490,17 @@ void GfxContext::update_inputs()
 void GfxContext::remove_node(
     std::vector<std::unique_ptr<score::gfx::Node>>& nursery, int32_t index)
 {
-  // Remove all edges involving that node
-  for(auto it = this->edges.begin(); it != this->edges.end();)
+  // Remove all edges involving that node. recompute_edges snapshots
+  // `edges` under edges_lock, so take it here too while mutating.
   {
-    if(it->first.node == index || it->second.node == index)
-      it = this->edges.erase(it);
-    else
-      ++it;
+    std::lock_guard l{edges_lock};
+    for(auto it = this->edges.begin(); it != this->edges.end();)
+    {
+      if(it->first.node == index || it->second.node == index)
+        it = this->edges.erase(it);
+      else
+        ++it;
+    }
   }
 
   if(auto node_it = nodes.find(index); node_it != nodes.end())
@@ -542,13 +570,27 @@ void GfxContext::run_commands()
           auto n = dynamic_cast<score::gfx::OutputNode*>(node.get());
           SCORE_ASSERT(n);
           {
-            auto it = ossia::find_if(this->preview_edges, [idx = cmd.index](EdgeSpec e) {
-              return e.second.node == idx;
-            });
-            if(it != this->preview_edges.end())
+            // recompute_edges snapshots preview_edges under edges_lock,
+            // so guard reads/mutations of it here too. remove_edge only
+            // touches m_graph, so keep it outside the lock.
+            EdgeSpec to_remove;
+            bool found = false;
             {
-              this->remove_edge(*it);
-              this->preview_edges.erase(*it);
+              std::lock_guard l{edges_lock};
+              auto it = ossia::find_if(this->preview_edges, [idx = cmd.index](EdgeSpec e) {
+                return e.second.node == idx;
+              });
+              if(it != this->preview_edges.end())
+              {
+                to_remove = *it;
+                found = true;
+              }
+            }
+            if(found)
+            {
+              this->remove_edge(to_remove);
+              std::lock_guard l{edges_lock};
+              this->preview_edges.erase(to_remove);
             }
           }
           m_graph->destroyOutputRenderList(*n);
@@ -591,12 +633,18 @@ void GfxContext::run_commands()
       switch(cmd.cmd)
       {
         case EdgeCommand::CONNECT_PREVIEW_NODE: {
-          this->preview_edges.emplace(cmd.edge);
+          {
+            std::lock_guard l{edges_lock};
+            this->preview_edges.emplace(cmd.edge);
+          }
           add_edge(cmd.edge);
           break;
         }
         case EdgeCommand::DISCONNECT_PREVIEW_NODE: {
-          this->preview_edges.erase(cmd.edge);
+          {
+            std::lock_guard l{edges_lock};
+            this->preview_edges.erase(cmd.edge);
+          }
           remove_edge(cmd.edge);
           break;
         }
@@ -636,15 +684,22 @@ void GfxContext::updateGraph()
 
   update_inputs();
 
-  if(edges_changed)
+  // Clear the flag BEFORE copying new_edges so a producer that publishes a
+  // fresh edge set after our copy (and re-sets the flag) cannot have its
+  // signal lost: the worst case is one redundant reprocess next tick, never
+  // a dropped update. Clearing it after the copy (the previous behaviour)
+  // could clobber a set-after-copy and, with prev_edges dedup on the
+  // producer side, that update would never be re-sent.
+  if(edges_changed.exchange(false))
   {
     ossia::flat_set<EdgeSpec> old_edges;
+    ossia::flat_set<EdgeSpec> cur_edges;
     {
       std::lock_guard l{edges_lock};
       old_edges = edges;
       edges = new_edges;
+      cur_edges = edges;
     }
-    edges_changed = false;
 
     // If a full rebuild happened this frame (nodes added/removed),
     // use the nuclear path for edges too. The incremental path
@@ -659,7 +714,7 @@ void GfxContext::updateGraph()
     // Incremental edge update: apply the diff between old and new edges.
     try
     {
-      incrementalEdgeUpdate(old_edges, edges);
+      incrementalEdgeUpdate(old_edges, cur_edges);
     }
     catch(const std::exception& e)
     {

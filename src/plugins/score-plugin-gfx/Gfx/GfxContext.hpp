@@ -150,8 +150,8 @@ private:
 
   std::mutex edges_lock;
   ossia::flat_set<EdgeSpec> new_edges TS_GUARDED_BY(edges_lock);
-  ossia::flat_set<EdgeSpec> edges;
-  ossia::flat_set<EdgeSpec> preview_edges;
+  ossia::flat_set<EdgeSpec> edges TS_GUARDED_BY(edges_lock);
+  ossia::flat_set<EdgeSpec> preview_edges TS_GUARDED_BY(edges_lock);
   std::atomic_bool edges_changed{};
   bool m_fullRebuildThisFrame{};
 
