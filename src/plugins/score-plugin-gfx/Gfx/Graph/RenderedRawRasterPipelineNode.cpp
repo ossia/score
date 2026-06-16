@@ -884,16 +884,12 @@ void RenderedRawRasterPipelineNode::initMRTPass(
   // if the shader didn't declare one explicitly.
   if(colorTextures.empty() && depthTex)
   {
-    // Depth-only shader (e.g. shadow_cascades.frag).
+    // Depth-only shader (e.g. shadow_cascades.frag). Build the RT AROUND the
+    // node-owned depth texture (possibly a TextureArray) instead of letting
+    // the helper allocate one and then deleting it while the render pass
+    // still references it (use-after-free + never-rendered output texture).
     m_mrtRenderTarget = createDepthOnlyRenderTarget(
-        renderer.state, sz, mrtSamples, /*samplableDepth=*/true,
-        depthTex->format());
-    if(m_mrtRenderTarget.depthTexture
-       && m_mrtRenderTarget.depthTexture != depthTex)
-    {
-      m_mrtRenderTarget.depthTexture->deleteLater();
-    }
-    m_mrtRenderTarget.depthTexture = depthTex;
+        renderer.state, depthTex, mrtSamples, /*samplableDepth=*/true);
   }
   else if(wantMultiview && !colorTextures.empty())
   {
@@ -909,19 +905,21 @@ void RenderedRawRasterPipelineNode::initMRTPass(
           "RenderedRawRasterPipelineNode::MRT::depthTextureArray (D32F)");
       SCORE_ASSERT(depthTex->create());
     }
+    // Attach ALL color textures so attachments == pipeline blend targets.
     m_mrtRenderTarget = createMultiViewRenderTarget(
-        renderer.state, colorTextures[0], mvCount, depthTex, mrtSamples);
-    for(std::size_t i = 1; i < colorTextures.size(); ++i)
-      m_mrtRenderTarget.additionalColorTextures.push_back(colorTextures[i]);
+        renderer.state,
+        std::span<QRhiTexture* const>{colorTextures.data(), colorTextures.size()},
+        mvCount, depthTex, mrtSamples);
   }
   else if(maxLayers > 1 && !colorTextures.empty())
   {
     // Layered but not multiview — render to layer 0 by default; downstream
     // per-pass LAYER selection (once PASSES loop lands) will pick others.
+    // Attach ALL color textures so attachments == pipeline blend targets.
     m_mrtRenderTarget = createLayeredRenderTarget(
-        renderer.state, colorTextures[0], 0, depthTex, mrtSamples);
-    for(std::size_t i = 1; i < colorTextures.size(); ++i)
-      m_mrtRenderTarget.additionalColorTextures.push_back(colorTextures[i]);
+        renderer.state,
+        std::span<QRhiTexture* const>{colorTextures.data(), colorTextures.size()},
+        0, depthTex, mrtSamples);
   }
   else if(!colorTextures.empty())
   {
@@ -2945,11 +2943,23 @@ void RenderedRawRasterPipelineNode::runInitialPasses(
   // MDI readback fallback: when the backend doesn't support drawIndirect,
   // synchronously read back the GPU indirect buffer so the CPU draw loop
   // has the commands ready for this frame's draw call.
+  //
+  // This MUST re-run every frame: the indirect buffer is GPU-generated (e.g.
+  // by a GPU culling compute pass) and changes frame to frame. Gating on
+  // cpuDrawCommands.empty() would freeze the draw list permanently after the
+  // first readback, so GPU culling output would diverge forever. We re-derive
+  // cpuDrawCommands from the latest indirect buffer contents each frame.
+  //
+  // Guard behind ReadBackNonUniformBuffer: this is exactly the feature missing
+  // on OpenGL ES 2.0 (GLES 3.x and desktop backends have it). Without it the
+  // readBackBuffer call would fail silently / assert, so we degrade gracefully
+  // (the draw falls back to whatever cpuDrawCommands already holds, or a single
+  // drawIndexed) and warn once.
   if(m_meshbufs.useIndirectDraw
      && !m_meshbufs.gpuIndirectSupported
-     && m_meshbufs.cpuDrawCommands.empty()
      && m_meshbufs.indirectDrawBuffer
-     && m_meshbufs.indirectDrawBuffer->size() > 0)
+     && m_meshbufs.indirectDrawBuffer->size() > 0
+     && renderer.state.rhi->isFeatureSupported(QRhi::ReadBackNonUniformBuffer))
   {
     QRhi& rhi = *renderer.state.rhi;
     auto* rb = rhi.nextResourceUpdateBatch();
@@ -2975,6 +2985,26 @@ void RenderedRawRasterPipelineNode::runInitialPasses(
     rb->readBackBuffer(m_meshbufs.indirectDrawBuffer, 0, bufSize, &m_meshbufs.readbackResult);
     cb.resourceUpdate(rb);
     rhi.finish();
+  }
+  else if(
+      m_meshbufs.useIndirectDraw && !m_meshbufs.gpuIndirectSupported
+      && m_meshbufs.indirectDrawBuffer && m_meshbufs.indirectDrawBuffer->size() > 0
+      && !renderer.state.rhi->isFeatureSupported(QRhi::ReadBackNonUniformBuffer))
+  {
+    // Graceful degradation: the backend (e.g. OpenGL ES 2.0) can neither
+    // draw indirect nor read back the GPU-generated indirect buffer. The draw
+    // loop falls back to cpuDrawCommands (if a producer ever filled them) or a
+    // single drawIndexed. Warn once so the missing GPU-culled commands are
+    // diagnosable rather than a silent visual divergence.
+    static bool warned = false;
+    if(!warned)
+    {
+      warned = true;
+      qWarning() << "RenderedRawRasterPipelineNode: GPU-generated indirect draws "
+                    "require QRhi::ReadBackNonUniformBuffer, unsupported on this "
+                    "backend (e.g. OpenGL ES 2.0) — falling back to CPU draw "
+                    "commands; GPU culling output will not be reflected.";
+    }
   }
 
   if(!m_hasMRT || m_passes.empty())

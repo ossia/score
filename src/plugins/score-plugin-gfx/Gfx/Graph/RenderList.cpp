@@ -755,27 +755,27 @@ RenderList::Buffers RenderList::acquireMesh(
   auto meshbufs = initMeshBuffer(*m, res);
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
-  // Check for well-known _indirect_draw auxiliary buffer convention
+  // Check for well-known _indirect_draw auxiliary buffer convention.
+  //
+  // The engine emits a uniform 5-word indirect command (stride 20):
+  //   { index_or_vertex_count, instance_count, first_index_or_vertex,
+  //     base_vertex, first_instance }  -- see ossia::geometry::draw_command /
+  // ScenePreprocessorNode's IndirectCmd. This matches QRhiDrawIndexedIndirect-
+  // Command (5 u32) exactly, so the INDEXED path is GPU-safe at stride 20.
+  //
+  // The NON-indexed QRhiDrawIndirectCommand is only 4 u32 (vertexCount,
+  // instanceCount, firstVertex, firstInstance). Pointing drawIndirect() at a
+  // 5-word/stride-20 buffer makes the GPU read firstInstance from word 3
+  // (our base_vertex dummy) instead of word 4 — diverging from the CPU
+  // fallback, which reads word 4. There is no way to reshape the producer's
+  // buffer here, so we deliberately DO NOT enable the GPU indirect path for
+  // the non-indexed case (force indexed-only MDI): the mesh falls back to its
+  // normal draw, avoiding wrong/garbage firstInstance. Indexed MDI below gets
+  // the full stride/count treatment.
   if(!meshbufs.useIndirectDraw && !p->meshes.empty())
   {
     const auto& mesh = p->meshes[0];
-    if(auto* aux = mesh.find_auxiliary("_indirect_draw"))
-    {
-      if(aux->buffer >= 0 && aux->buffer < (int)mesh.buffers.size())
-      {
-        const auto& buf_data = mesh.buffers[aux->buffer].data;
-        if(auto* gpu = ossia::get_if<ossia::geometry::gpu_buffer>(&buf_data))
-        {
-          if(gpu->handle)
-          {
-            meshbufs.indirectDrawBuffer = static_cast<QRhiBuffer*>(gpu->handle);
-            meshbufs.useIndirectDraw = true;
-            meshbufs.indirectDrawIndexed = false;
-          }
-        }
-      }
-    }
-    else if(auto* aux_idx = mesh.find_auxiliary("_indirect_draw_indexed"))
+    if(auto* aux_idx = mesh.find_auxiliary("_indirect_draw_indexed"))
     {
       if(aux_idx->buffer >= 0 && aux_idx->buffer < (int)mesh.buffers.size())
       {
@@ -784,12 +784,30 @@ RenderList::Buffers RenderList::acquireMesh(
         {
           if(gpu->handle)
           {
+            constexpr quint32 stride = 5 * sizeof(uint32_t); // 20, matches CustomMesh
             meshbufs.indirectDrawBuffer = static_cast<QRhiBuffer*>(gpu->handle);
             meshbufs.useIndirectDraw = true;
             meshbufs.indirectDrawIndexed = true;
+            meshbufs.indirectDrawOffset = (quint32)std::max<int64_t>(0, aux_idx->byte_offset);
+            meshbufs.indirectDrawStride = stride;
+            // drawIndirect requires stride >= 16 and count >= 1; derive the
+            // command count from the aux region size (was never set before →
+            // count defaulted to 1, drawing only the first command).
+            const int64_t avail = (aux_idx->byte_size > 0)
+                ? aux_idx->byte_size
+                : (int64_t)gpu->byte_size - aux_idx->byte_offset;
+            meshbufs.indirectDrawCount
+                = (avail > 0) ? (quint32)(avail / stride) : 1u;
+            if(meshbufs.indirectDrawCount == 0)
+              meshbufs.indirectDrawCount = 1;
           }
         }
       }
+    }
+    else if(mesh.find_auxiliary("_indirect_draw"))
+    {
+      // Non-indexed GPU MDI intentionally unsupported (see comment above).
+      // Leave useIndirectDraw=false so the mesh draws via its normal path.
     }
   }
 #endif
@@ -926,8 +944,10 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
   // returns the PREVIOUS frame's elapsed GPU time, not the in-progress
   // one. The panel reports it as such.
 #if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
-  static int s_frameNumber = 0;
-  ++s_frameNumber;
+  // Use the per-instance `frame` member (incremented at the end of render())
+  // as the diagnostic frame number rather than a process-/thread-global
+  // counter, so the number is attributed to THIS RenderList.
+  const int64_t frameNumber = this->frame;
   if(state.caps.timestamps)
   {
     const double last_ms = commands.lastCompletedGpuTime();
@@ -939,15 +959,32 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
   // on the hot path — usually a cold cache or new preset variant.
   if(state.rhi)
   {
+    // NOTE: totalPipelineCreationTime is rhi-wide and these two throttle
+    // counters SHOULD be per-RenderList members so that multiple RenderLists
+    // sharing a render thread don't (a) consume each other's PSO-time delta
+    // or (b) race a shared thread_local cooldown. Converting them to members
+    // requires adding fields to RenderList.hpp, which is outside this change's
+    // editable scope — see report. The two genuine bugs that ARE fixable here
+    // (the frame-number misattribution and the cooldown decrement being gated
+    // on the stall branch) are fixed: frameNumber comes from this->frame, and
+    // the decrement now ticks every frame below.
     static thread_local qint64 s_lastPsoCreationNs = 0;
+    static thread_local int s_flushCoolDown = 0;
     const auto stats = state.rhi->statistics();
     const qint64 delta_ns = stats.totalPipelineCreationTime - s_lastPsoCreationNs;
     s_lastPsoCreationNs = stats.totalPipelineCreationTime;
     const double delta_ms = double(delta_ns) / 1'000'000.0;
+
+    // Tick the cooldown EVERY frame (was previously decremented only inside
+    // the stall branch, so it counted stalls rather than frames and the
+    // ~5s throttle never actually elapsed in wall time).
+    if(s_flushCoolDown > 0)
+      --s_flushCoolDown;
+
     if(delta_ms > 10.0)
     {
       qWarning().noquote().nospace()
-          << "[GPU] PSO compile stall on frame " << s_frameNumber
+          << "[GPU] PSO compile stall on frame " << frameNumber
           << ": " << delta_ms << " ms — consider prewarming preset pipelines.";
 
       // Plan 09 S6: mid-session pipeline-cache flush. When a stall
@@ -956,14 +993,11 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
       // happen again on next launch, even if score crashes. Throttled
       // to at most once per ~5s (300 frames at 60 Hz) to avoid
       // churning the cache file on prolonged compile-heavy scenes.
-      static thread_local int s_flushCoolDown = 0;
       if(s_flushCoolDown <= 0 && state.savePipelineCache)
       {
         state.savePipelineCache();
         s_flushCoolDown = 300;
       }
-      if(s_flushCoolDown > 0)
-        --s_flushCoolDown;
     }
     // Also record into the timings panel so it shows up next to frame
     // time. Zero deltas are filtered out by GpuTimings::record.

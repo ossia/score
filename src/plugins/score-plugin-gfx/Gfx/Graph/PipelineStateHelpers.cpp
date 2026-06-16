@@ -226,7 +226,11 @@ bool stateAffectsPipeline(const isf::pipeline_state& s) noexcept
       || s.stencil_front.has_value()
       || s.stencil_back.has_value()
       || s.topology.has_value()
-#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
+      // shading_rate toggles the QRhiGraphicsPipeline::UsesShadingRate opt-in
+      // flag (set in Utils.cpp buildPipelineWithState), so it does affect the
+      // pipeline even though the per-draw rate itself is recorded on the
+      // command buffer at draw time.
       || s.shading_rate.has_value()
 #endif
       ;
@@ -339,31 +343,18 @@ void applyPipelineState(
     pip.setStencilWriteMask(*state.stencil_write_mask);
 
   // ── Variable-rate shading (per-draw rate) ───────────────────────────
-  // QRhiGraphicsPipeline::setShadingRate expects a ShadingRate enum value
-  // encoded as width/height pair. VRS is only honoured on backends that
-  // advertise QRhi::Feature::VariableRateShading; calling the setter on
-  // other backends is a no-op.
-#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
-  if(state.shading_rate.has_value())
-  {
-    const auto& sr = *state.shading_rate;
-    auto clamp_rate = [](int v) {
-      if(v >= 4) return 4;
-      if(v >= 2) return 2;
-      return 1;
-    };
-    const int w = clamp_rate(sr[0]);
-    const int h = clamp_rate(sr[1]);
-    // QRhi encodes the shading rate as a small enum; we build it here from
-    // the requested w,h pair. The encoding follows Vulkan's
-    // VkFragmentShadingRateNV / VK_KHR_fragment_shading_rate convention:
-    // log2(w) << 2 | log2(h).
-    int rateEnum = 0;
-    switch(w) { case 2: rateEnum |= (1 << 2); break; case 4: rateEnum |= (2 << 2); break; }
-    switch(h) { case 2: rateEnum |= 1; break; case 4: rateEnum |= 2; break; }
-    pip.setShadingRate(static_cast<QRhiGraphicsPipeline::ShadingRate>(rateEnum));
-  }
-#endif
+  // NOTE: there is NO QRhiGraphicsPipeline::setShadingRate() and no
+  // QRhiGraphicsPipeline::ShadingRate enum in ANY Qt version (the previous
+  // code here did not compile on the >=6.12 builds it claimed to target).
+  // The pipeline only carries the opt-in flag
+  // QRhiGraphicsPipeline::UsesShadingRate, which Utils.cpp's
+  // buildPipelineWithState() already sets when caps.variableRateShading is
+  // true. The actual per-draw coarse-pixel rate is the command-buffer state
+  // QRhiCommandBuffer::setShadingRate(QSize), which must be recorded between
+  // setGraphicsPipeline() and draw() at the draw site (CustomMesh::draw /
+  // Mesh::draw). applyPipelineState() has no command buffer in scope, so it
+  // intentionally does nothing with state.shading_rate here. The requested
+  // {w,h} maps directly to the coarse-pixel QSize (clamped to {1,2,4}).
 }
 
 }

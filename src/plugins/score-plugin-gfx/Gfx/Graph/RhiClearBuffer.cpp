@@ -1,5 +1,7 @@
 #include <Gfx/Graph/RhiClearBuffer.hpp>
 
+#include <Gfx/Graph/RhiComputeBarrier.hpp>
+
 #include <QtGui/private/qrhi_p.h>
 
 // Vulkan
@@ -170,6 +172,14 @@ static bool clearBufferNative(
         return false;
 
       cb.beginExternal();
+      // vkCmdFillBuffer bypasses QRhi's resource tracking, so we must emit the
+      // same compute→transfer→compute/vertex/indirect barriers the copyBuffer
+      // path uses. Without the pre-barrier a prior compute write may not be
+      // visible to the fill; without the post-barrier a subsequent draw/compute
+      // read may race the fill. beginBufferCopyBarrier/endBufferCopyBarrier are
+      // designed to run inside an existing beginExternal/endExternal bracket
+      // (they record vkCmdPipelineBarrier directly), which is exactly here.
+      beginBufferCopyBarrier(rhi, cb);
       // vkCmdFillBuffer signature: (cb, buffer, offset, size, data).
       // - offset and size MUST be multiples of 4. Caller is required to
       //   honour this; we don't silently round here because doing so
@@ -183,6 +193,7 @@ static bool clearBufferNative(
          static_cast<VkDeviceSize>(offset),
          static_cast<VkDeviceSize>(size),
          pattern);
+      endBufferCopyBarrier(rhi, cb);
       cb.endExternal();
       return true;
     }

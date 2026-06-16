@@ -330,31 +330,30 @@ void SimpleRenderedISFNode::initMRTPass(RenderList& renderer, QRhiResourceUpdate
   // Depth-only shader: the only output is depth.
   if(colorTextures.empty() && depthTex)
   {
+    // Build the RT AROUND the node-owned depth texture (which may be a
+    // TextureArray when maxLayers > 1). The previous code asked
+    // createDepthOnlyRenderTarget to allocate its own depth texture and then
+    // deleted it — but the render pass still referenced it (use-after-free),
+    // and textureForOutput() returned a texture that was never rendered to.
     m_mrtRenderTarget = createDepthOnlyRenderTarget(
-        renderer.state, sz, mrtSamples, /*samplableDepth=*/true,
-        depthTex->format());
-    // Replace the newly-allocated depth texture with the one we created
-    // so that textureForOutput() returns the user-named texture.
-    if(m_mrtRenderTarget.depthTexture && m_mrtRenderTarget.depthTexture != depthTex)
-    {
-      m_mrtRenderTarget.depthTexture->deleteLater();
-    }
-    m_mrtRenderTarget.depthTexture = depthTex;
+        renderer.state, depthTex, mrtSamples, /*samplableDepth=*/true);
   }
   else if(wantMultiview && !colorTextures.empty())
   {
+    // Attach ALL color textures so attachments == pipeline blend targets.
     m_mrtRenderTarget = createMultiViewRenderTarget(
-        renderer.state, colorTextures[0], mvCount, depthTex, mrtSamples);
-    for(std::size_t i = 1; i < colorTextures.size(); ++i)
-      m_mrtRenderTarget.additionalColorTextures.push_back(colorTextures[i]);
+        renderer.state,
+        std::span<QRhiTexture* const>{colorTextures.data(), colorTextures.size()},
+        mvCount, depthTex, mrtSamples);
   }
   else if(maxLayers > 1 && !colorTextures.empty())
   {
     // Pick layer 0 by default; per-pass LAYER is handled by the pass loop.
+    // Attach ALL color textures so attachments == pipeline blend targets.
     m_mrtRenderTarget = createLayeredRenderTarget(
-        renderer.state, colorTextures[0], 0, depthTex, mrtSamples);
-    for(std::size_t i = 1; i < colorTextures.size(); ++i)
-      m_mrtRenderTarget.additionalColorTextures.push_back(colorTextures[i]);
+        renderer.state,
+        std::span<QRhiTexture* const>{colorTextures.data(), colorTextures.size()},
+        0, depthTex, mrtSamples);
   }
   else if(!colorTextures.empty())
   {

@@ -49,7 +49,10 @@
 #include <QOffscreenSurface>
 #include <QScreen>
 #include <QStandardPaths>
+#include <QThreadPool>
 #include <QWindow>
+
+#include <utility>
 
 namespace score::gfx
 {
@@ -89,17 +92,43 @@ static void tryLoadPipelineCache(QRhi* rhi, GraphicsApi api)
   rhi->setPipelineCacheData(f.readAll());
 }
 
-static void tryStorePipelineCache(QRhi* rhi, GraphicsApi api)
+// Pure disk I/O — no QRhi access, so it is safe to run off the render thread.
+static void writePipelineCacheToDisk(QByteArray data, GraphicsApi api)
 {
-  if(!rhi || !rhi->isFeatureSupported(QRhi::PipelineCacheDataLoadSave))
-    return;
-  QByteArray data = rhi->pipelineCacheData();
   if(data.isEmpty())
     return;
   QFile f(pipelineCacheFilePath(api));
   if(!f.open(QIODevice::WriteOnly | QIODevice::Truncate))
     return;
   f.write(data);
+}
+
+// Synchronous store: grabs the cache bytes from the QRhi (must be on the
+// render thread) and writes them inline. Used on shutdown (preRhiDestroy)
+// where the QRhi is about to be destroyed and we must finish before it goes.
+static void tryStorePipelineCache(QRhi* rhi, GraphicsApi api)
+{
+  if(!rhi || !rhi->isFeatureSupported(QRhi::PipelineCacheDataLoadSave))
+    return;
+  writePipelineCacheToDisk(rhi->pipelineCacheData(), api);
+}
+
+// Mid-session store: grabs the cache bytes on the render thread (QRhi access),
+// then offloads the blocking file write to a worker thread so the render
+// thread doesn't stall on disk I/O right after a PSO-compile burst. The
+// QByteArray is copied into the task (implicitly shared, cheap) and outlives
+// the QRhi-independent write.
+static void tryStorePipelineCacheAsync(QRhi* rhi, GraphicsApi api)
+{
+  if(!rhi || !rhi->isFeatureSupported(QRhi::PipelineCacheDataLoadSave))
+    return;
+  QByteArray data = rhi->pipelineCacheData();
+  if(data.isEmpty())
+    return;
+  QThreadPool::globalInstance()->start(
+      [data = std::move(data), api]() mutable {
+    writePipelineCacheToDisk(std::move(data), api);
+  });
 }
 }
 
@@ -125,9 +154,11 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
       };
       // Plan 09 S6: mid-session flush for crash-resilient cache
       // persistence. RenderList::render throttles this after PSO
-      // stalls; it's cheap enough to run a few times per session.
+      // stalls; the QRhi read happens here on the render thread but the
+      // blocking file write is offloaded to a worker so the render
+      // thread isn't stalled on disk right after a PSO-compile burst.
       s.savePipelineCache = [rhiPtr, graphicsApi]() {
-        tryStorePipelineCache(rhiPtr, graphicsApi);
+        tryStorePipelineCacheAsync(rhiPtr, graphicsApi);
       };
     }
     if(s.rhi)

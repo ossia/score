@@ -119,7 +119,11 @@ void insertComputeBarrier(QRhi& rhi, QRhiCommandBuffer& cb)
     }
 #endif
 
-#if SCORE_HAS_D3D
+// The QRhi::D3D12 enum value and QRhiD3D12CommandBufferNativeHandles (declared
+// in qrhi_platform.h) only exist from Qt 6.6 onward — guard the whole case so
+// it doesn't break the Win build on Qt < 6.6. (RhiClearBuffer.cpp guards its
+// D3D12 case the same way.)
+#if SCORE_HAS_D3D && QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
     case QRhi::D3D12: {
       auto* native
           = static_cast<const QRhiD3D12CommandBufferNativeHandles*>(cb.nativeHandles());
@@ -230,6 +234,15 @@ void copyBuffer(
 {
   if(!src || !dst || size <= 0 || srcOffset < 0 || dstOffset < 0)
     return;
+
+  // Dynamic buffers rotate over 2-3 backing slots per frame, but every
+  // backend's nativeBuffer().objects[0] only exposes slot 0 — copying that
+  // slot would hit a stale/wrong frame's data. The compute/MDI callers of
+  // these helpers all use Static/Immutable storage buffers; bail on Dynamic
+  // as defence-in-depth, matching clearBufferNative()'s Dynamic bail.
+  if(src->type() == QRhiBuffer::Dynamic || dst->type() == QRhiBuffer::Dynamic)
+    return;
+
   const bool emit_barriers = (barrier == BufferCopyBarrier::Auto);
 
   switch(rhi.backend())
@@ -345,7 +358,7 @@ void copyBuffer(
     }
 #endif
 
-#if SCORE_HAS_D3D
+#if SCORE_HAS_D3D && QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
     case QRhi::D3D12: {
       auto* native
           = static_cast<const QRhiD3D12CommandBufferNativeHandles*>(cb.nativeHandles());
@@ -385,12 +398,51 @@ void copyBuffer(
       if(!srcRes || !dstRes)
         break;
 
+      // D3D12 has explicit resource states (unlike Vulkan's access masks the
+      // backend handles for tracked resources). The buffers are written by a
+      // compute pass as UAVs, so transition src→COPY_SOURCE and dst→COPY_DEST
+      // before CopyBufferRegion, then back to UNORDERED_ACCESS so subsequent
+      // compute/draw reads see the data. Mirrors the Vulkan compute→transfer→
+      // compute barrier intent and is gated on emit_barriers the same way.
+      const auto transition
+          = [cmdList](
+                ID3D12Resource* res, D3D12_RESOURCE_STATES before,
+                D3D12_RESOURCE_STATES after) {
+        D3D12_RESOURCE_BARRIER b{};
+        b.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+        b.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+        b.Transition.pResource = res;
+        b.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+        b.Transition.StateBefore = before;
+        b.Transition.StateAfter = after;
+        cmdList->ResourceBarrier(1, &b);
+      };
+      if(emit_barriers)
+      {
+        transition(
+            srcRes, D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+            D3D12_RESOURCE_STATE_COPY_SOURCE);
+        transition(
+            dstRes, D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+            D3D12_RESOURCE_STATE_COPY_DEST);
+      }
+
       cmdList->CopyBufferRegion(
           dstRes,
           static_cast<UINT64>(dstOffset),
           srcRes,
           static_cast<UINT64>(srcOffset),
           static_cast<UINT64>(size));
+
+      if(emit_barriers)
+      {
+        transition(
+            srcRes, D3D12_RESOURCE_STATE_COPY_SOURCE,
+            D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        transition(
+            dstRes, D3D12_RESOURCE_STATE_COPY_DEST,
+            D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+      }
       break;
     }
 #endif
@@ -448,6 +500,13 @@ void copyBufferRegions(
 {
   if(!src || !dst || !regions || count <= 0)
     return;
+
+  // See copyBuffer(): Dynamic buffers expose only slot 0 via objects[0], so a
+  // native copy would read/write the wrong frame slot. Bail like
+  // clearBufferNative() does.
+  if(src->type() == QRhiBuffer::Dynamic || dst->type() == QRhiBuffer::Dynamic)
+    return;
+
   const bool emit_barriers = (barrier == BufferCopyBarrier::Auto);
 
   switch(rhi.backend())
@@ -565,7 +624,7 @@ void copyBufferRegions(
     }
 #endif
 
-#if SCORE_HAS_D3D
+#if SCORE_HAS_D3D && QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
     case QRhi::D3D12: {
       auto* native
           = static_cast<const QRhiD3D12CommandBufferNativeHandles*>(cb.nativeHandles());
@@ -585,12 +644,49 @@ void copyBufferRegions(
           const_cast<void*>(dstNative.objects[0]));
       if(!srcRes || !dstRes)
         break;
+
+      // UAV(compute-write) → COPY_SOURCE/COPY_DEST around the copies, then
+      // back to UAV. One transition pair brackets all regions (same src/dst).
+      // See the matching comment in copyBuffer's D3D12 branch.
+      const auto transition
+          = [cmdList](
+                ID3D12Resource* res, D3D12_RESOURCE_STATES before,
+                D3D12_RESOURCE_STATES after) {
+        D3D12_RESOURCE_BARRIER b{};
+        b.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+        b.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+        b.Transition.pResource = res;
+        b.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+        b.Transition.StateBefore = before;
+        b.Transition.StateAfter = after;
+        cmdList->ResourceBarrier(1, &b);
+      };
+      if(emit_barriers)
+      {
+        transition(
+            srcRes, D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+            D3D12_RESOURCE_STATE_COPY_SOURCE);
+        transition(
+            dstRes, D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+            D3D12_RESOURCE_STATE_COPY_DEST);
+      }
+
       for(int i = 0; i < count; ++i)
       {
         cmdList->CopyBufferRegion(
             dstRes, static_cast<UINT64>(regions[i].dst_offset),
             srcRes, static_cast<UINT64>(regions[i].src_offset),
             static_cast<UINT64>(regions[i].size));
+      }
+
+      if(emit_barriers)
+      {
+        transition(
+            srcRes, D3D12_RESOURCE_STATE_COPY_SOURCE,
+            D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        transition(
+            dstRes, D3D12_RESOURCE_STATE_COPY_DEST,
+            D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
       }
       break;
     }

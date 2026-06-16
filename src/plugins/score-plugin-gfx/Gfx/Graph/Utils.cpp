@@ -34,7 +34,7 @@ createRenderTarget(const RenderState& state, QRhiTexture* tex, int samples, bool
   bool useDepthResolve = false;
   if(samplableDepth && samples > 1)
   {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
     useDepthResolve = state.rhi->isFeatureSupported(QRhi::ResolveDepthStencil);
 #endif
     if(!useDepthResolve)
@@ -74,7 +74,7 @@ createRenderTarget(const RenderState& state, QRhiTexture* tex, int samples, bool
 
     if(useDepthResolve)
     {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
       // Multisample depth attachment used during rendering; resolves into
       // ret.depthTexture at endPass(). Owned via ret.msDepthTexture so it
       // is released alongside the rest of the RT.
@@ -160,7 +160,7 @@ TextureRenderTarget createRenderTarget(
   bool useDepthResolve = false;
   if(depthTex && samples > 1)
   {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
     useDepthResolve = state.rhi->isFeatureSupported(QRhi::ResolveDepthStencil);
 #endif
     if(!useDepthResolve)
@@ -201,7 +201,7 @@ TextureRenderTarget createRenderTarget(
 #if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
     if(useDepthResolve)
     {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
       // Multisample depth attachment used during rendering, resolves into
       // the caller-supplied depthTex on endPass(). We own msDepthTexture.
       ret.msDepthTexture = state.rhi->newTexture(
@@ -246,6 +246,16 @@ TextureRenderTarget createRenderTarget(
   return ret;
 }
 
+// NOTE on the reinterpret_cast<QRhiShaderResourceBinding::Data*> below (and in
+// replaceSampler / replaceTexture / etc.): QRhiShaderResourceBinding stores its
+// payload in a private nested ::Data whose only public accessor is the const
+// data() method — there is no public mutator. We rebind buffers/samplers/
+// textures in-place by casting the binding to its layout-compatible private
+// Data. This relies on QRhiShaderResourceBinding being a thin wrapper whose
+// first (and only) data member IS that Data struct; that layout has been stable
+// across Qt 6.4..dev, but it is NOT a guaranteed/forward-compatible ABI. If a
+// future Qt reorders QRhiShaderResourceBinding's members this will silently
+// corrupt bindings — revisit if QRhi ever exposes a public mutating accessor.
 void replaceBuffer(
     std::vector<QRhiShaderResourceBinding>& tmp, int binding, QRhiBuffer* newBuffer)
 {
@@ -999,10 +1009,17 @@ Pipeline buildPipelineWithState(
   SCORE_ASSERT(rt.renderPass);
   ps->setRenderPassDescriptor(rt.renderPass);
 
-  // Multiview is carried via the render pass descriptor's color attachment
-  // (see createMultiViewRenderTarget). The pipeline picks it up automatically
-  // from the render pass descriptor.
+  // Multiview: on Vulkan/GL the multiViewCount is picked up from the render
+  // pass descriptor's color attachment (see createMultiViewRenderTarget), but
+  // D3D12 ViewInstancing and Metal vertex amplification read it from the
+  // pipeline itself via QRhiGraphicsPipeline::multiViewCount(). So we must set
+  // it explicitly here for those backends to produce correct multiview output.
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+  if(multiViewCount > 1 && renderer.state.caps.multiview)
+    ps->setMultiViewCount(multiViewCount);
+#else
   (void)multiViewCount;
+#endif
 
   if(!ps->create())
   {
@@ -1443,7 +1460,7 @@ TextureRenderTarget createDepthOnlyRenderTarget(
   bool useDepthResolve = false;
   if(samplableDepth && samples > 1)
   {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
     useDepthResolve = state.rhi->isFeatureSupported(QRhi::ResolveDepthStencil);
 #endif
     if(!useDepthResolve)
@@ -1465,7 +1482,7 @@ TextureRenderTarget createDepthOnlyRenderTarget(
 
     if(useDepthResolve)
     {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
       ret.msDepthTexture = state.rhi->newTexture(
           depthFmt, sz, effectiveSamples, QRhiTexture::RenderTarget);
       ret.msDepthTexture->setName("createDepthOnlyRenderTarget::msDepthTexture");
@@ -1503,7 +1520,7 @@ TextureRenderTarget createDepthOnlyRenderTarget(
   {
     if(useDepthResolve)
     {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
       desc.setDepthTexture(ret.msDepthTexture);
       desc.setDepthResolveTexture(ret.depthTexture);
 #else
@@ -1616,6 +1633,214 @@ TextureRenderTarget createMultiViewRenderTarget(
 
   auto* renderPass = renderTarget->newCompatibleRenderPassDescriptor();
   renderPass->setName("createMultiViewRenderTarget::rp");
+  SCORE_ASSERT(renderPass);
+
+  renderTarget->setRenderPassDescriptor(renderPass);
+  SCORE_ASSERT(renderTarget->create());
+
+  ret.renderTarget = renderTarget;
+  ret.renderPass = renderPass;
+  (void)samples;
+  return ret;
+}
+
+TextureRenderTarget createDepthOnlyRenderTarget(
+    const RenderState& state, QRhiTexture* externalDepthTexture, int samples,
+    bool samplableDepth)
+{
+  // Like createDepthOnlyRenderTarget(sz, ...) but builds the RT AROUND a
+  // caller-supplied depth texture instead of allocating (and the old buggy
+  // call site then immediately deleting) an internal one. The supplied
+  // texture may be a plain 2D depth texture or a TextureArray (layered /
+  // shadow-cascade depth) — in both cases QRhi attaches layer 0 by default
+  // for a depth-only pass, which is what we want here.
+  //
+  // Ownership: `externalDepthTexture` becomes `ret.depthTexture` and is
+  // released with the RT (TextureRenderTarget::release()), matching the
+  // ownership the previous (broken) code implied.
+  TextureRenderTarget ret;
+  SCORE_ASSERT(externalDepthTexture);
+  ret.texture = nullptr;
+  ret.arrayLayers = std::max(externalDepthTexture->arraySize(), 1);
+
+  // Depth resolve for MSAA sampleable depth — matches the sz overload.
+  int effectiveSamples = samples;
+  bool useDepthResolve = false;
+  if(samplableDepth && samples > 1)
+  {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
+    useDepthResolve = state.rhi->isFeatureSupported(QRhi::ResolveDepthStencil);
+#endif
+    if(!useDepthResolve)
+    {
+      qWarning() << "createDepthOnlyRenderTarget(external): samplable depth + samples="
+                 << samples
+                 << "unsupported on this backend; degrading to samples=1.";
+      effectiveSamples = 1;
+    }
+  }
+
+  ret.depthTexture = externalDepthTexture;
+
+  if(useDepthResolve)
+  {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
+    ret.msDepthTexture = state.rhi->newTexture(
+        externalDepthTexture->format(), externalDepthTexture->pixelSize(),
+        effectiveSamples, QRhiTexture::RenderTarget);
+    ret.msDepthTexture->setName(
+        "createDepthOnlyRenderTarget(external)::msDepthTexture");
+    SCORE_ASSERT(ret.msDepthTexture->create());
+#endif
+  }
+
+  // Some backends (notably GL ES) REQUIRE a color attachment — same dummy
+  // 1×1 color texture as the sz overload.
+  ret.dummyColorTexture = state.rhi->newTexture(
+      QRhiTexture::RGBA8, QSize(1, 1), effectiveSamples, QRhiTexture::RenderTarget);
+  ret.dummyColorTexture->setName(
+      "createDepthOnlyRenderTarget(external)::dummyColor");
+  SCORE_ASSERT(ret.dummyColorTexture->create());
+
+  QRhiTextureRenderTargetDescription desc;
+  {
+    QRhiColorAttachment color0(ret.dummyColorTexture);
+    desc.setColorAttachments({color0});
+  }
+
+  if(useDepthResolve)
+  {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
+    desc.setDepthTexture(ret.msDepthTexture);
+    desc.setDepthResolveTexture(ret.depthTexture);
+#else
+    desc.setDepthTexture(ret.depthTexture);
+#endif
+  }
+  else
+  {
+    desc.setDepthTexture(ret.depthTexture);
+  }
+
+  auto* renderTarget = state.rhi->newTextureRenderTarget(desc);
+  renderTarget->setName("createDepthOnlyRenderTarget(external)::rt");
+  SCORE_ASSERT(renderTarget);
+
+  auto* renderPass = renderTarget->newCompatibleRenderPassDescriptor();
+  renderPass->setName("createDepthOnlyRenderTarget(external)::rp");
+  SCORE_ASSERT(renderPass);
+
+  renderTarget->setRenderPassDescriptor(renderPass);
+  SCORE_ASSERT(renderTarget->create());
+
+  ret.renderTarget = renderTarget;
+  ret.renderPass = renderPass;
+  return ret;
+}
+
+TextureRenderTarget createLayeredRenderTarget(
+    const RenderState& state, std::span<QRhiTexture* const> colorTextures,
+    int renderLayer, QRhiTexture* depthTex, int samples)
+{
+  // Multi-attachment (MRT) layered variant: attaches ALL color textures to
+  // the render pass so the pipeline blend-state count (driven by
+  // rt.colorAttachmentCount()) agrees with the actual attachment count.
+  // Attaching only color[0] while the pipeline declares N blend targets is a
+  // Vulkan pipeline-create validation error AND silently drops outputs 1..N.
+  TextureRenderTarget ret;
+  SCORE_ASSERT(!colorTextures.empty());
+  SCORE_ASSERT(colorTextures[0]);
+  SCORE_ASSERT(renderLayer >= 0);
+
+  ret.texture = colorTextures[0];
+  for(std::size_t i = 1; i < colorTextures.size(); i++)
+    ret.additionalColorTextures.push_back(colorTextures[i]);
+  ret.arrayLayers = std::max(colorTextures[0]->arraySize(), 1);
+  ret.renderLayer = renderLayer;
+
+  QList<QRhiColorAttachment> attachments;
+  for(auto* tex : colorTextures)
+  {
+    QRhiColorAttachment att(tex);
+    // Layered textures select the rendered layer; plain 2D color textures in
+    // a mixed MRT keep their (single) layer 0 and ignore this.
+    if(tex->arraySize() > 1)
+      att.setLayer(renderLayer);
+    attachments.append(att);
+  }
+
+  QRhiTextureRenderTargetDescription desc;
+  desc.setColorAttachments(attachments.begin(), attachments.end());
+
+  if(depthTex)
+  {
+    ret.depthTexture = depthTex;
+    desc.setDepthTexture(depthTex);
+  }
+
+  auto* renderTarget = state.rhi->newTextureRenderTarget(desc);
+  renderTarget->setName("createLayeredRenderTarget(MRT)::rt");
+  SCORE_ASSERT(renderTarget);
+
+  auto* renderPass = renderTarget->newCompatibleRenderPassDescriptor();
+  renderPass->setName("createLayeredRenderTarget(MRT)::rp");
+  SCORE_ASSERT(renderPass);
+
+  renderTarget->setRenderPassDescriptor(renderPass);
+  SCORE_ASSERT(renderTarget->create());
+
+  ret.renderTarget = renderTarget;
+  ret.renderPass = renderPass;
+  (void)samples;
+  return ret;
+}
+
+TextureRenderTarget createMultiViewRenderTarget(
+    const RenderState& state, std::span<QRhiTexture* const> colorTextures,
+    int multiViewCount, QRhiTexture* depthTextureArray, int samples)
+{
+  // Multi-attachment (MRT) multiview variant: attaches ALL color textures
+  // (each a TextureArray with >= multiViewCount layers) with per-attachment
+  // setMultiViewCount, so attachments == pipeline blend targets. See the
+  // layered overload above for why attaching only color[0] is a bug.
+  TextureRenderTarget ret;
+  SCORE_ASSERT(!colorTextures.empty());
+  SCORE_ASSERT(colorTextures[0]);
+  SCORE_ASSERT(multiViewCount >= 2);
+
+  ret.texture = colorTextures[0];
+  for(std::size_t i = 1; i < colorTextures.size(); i++)
+    ret.additionalColorTextures.push_back(colorTextures[i]);
+  ret.arrayLayers = std::max(colorTextures[0]->arraySize(), multiViewCount);
+  ret.multiViewCount = multiViewCount;
+
+  QList<QRhiColorAttachment> attachments;
+  for(auto* tex : colorTextures)
+  {
+    QRhiColorAttachment att(tex);
+    // Render to layers [0..multiViewCount-1] via gl_ViewIndex.
+    att.setLayer(0);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+    att.setMultiViewCount(multiViewCount);
+#endif
+    attachments.append(att);
+  }
+
+  QRhiTextureRenderTargetDescription desc;
+  desc.setColorAttachments(attachments.begin(), attachments.end());
+
+  if(depthTextureArray)
+  {
+    ret.depthTexture = depthTextureArray;
+    desc.setDepthTexture(depthTextureArray);
+  }
+
+  auto* renderTarget = state.rhi->newTextureRenderTarget(desc);
+  renderTarget->setName("createMultiViewRenderTarget(MRT)::rt");
+  SCORE_ASSERT(renderTarget);
+
+  auto* renderPass = renderTarget->newCompatibleRenderPassDescriptor();
+  renderPass->setName("createMultiViewRenderTarget(MRT)::rp");
   SCORE_ASSERT(renderPass);
 
   renderTarget->setRenderPassDescriptor(renderPass);

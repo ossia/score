@@ -326,6 +326,24 @@ TextureRenderTarget createDepthOnlyRenderTarget(
     QRhiTexture::Format depthFmt = QRhiTexture::D32F);
 
 /**
+ * @brief Create a depth-only render target around an EXTERNAL depth texture.
+ *
+ * Builds the RT around `externalDepthTexture` (caller-allocated, already
+ * created) instead of allocating its own. Use this when the depth texture is
+ * named/owned by the node (so textureForOutput() can return it) — it avoids
+ * the previous bug where the RT was built around an internal texture that was
+ * then immediately deleted while still referenced by the render pass.
+ *
+ * `externalDepthTexture` may be a plain 2D depth texture or a TextureArray
+ * (layered / shadow-cascade depth). It becomes `ret.depthTexture` and is
+ * released with the RT.
+ */
+SCORE_PLUGIN_GFX_EXPORT
+TextureRenderTarget createDepthOnlyRenderTarget(
+    const RenderState& state, QRhiTexture* externalDepthTexture, int samples,
+    bool samplableDepth = true);
+
+/**
  * @brief Create a render target that targets a single layer of a texture array.
  *
  * colorTextureArray must have been created with QRhiTexture::TextureArray
@@ -340,6 +358,19 @@ TextureRenderTarget createLayeredRenderTarget(
     QRhiTexture* depthTexture, int samples);
 
 /**
+ * @brief Multi-attachment (MRT) layered render target.
+ *
+ * Same as the single-texture overload but attaches ALL `colorTextures` to the
+ * render pass (locations 0..N-1), so the number of attachments matches the
+ * pipeline blend-state count (rt.colorAttachmentCount()). Each layered color
+ * texture renders to `renderLayer`; plain 2D textures keep layer 0.
+ */
+SCORE_PLUGIN_GFX_EXPORT
+TextureRenderTarget createLayeredRenderTarget(
+    const RenderState& state, std::span<QRhiTexture* const> colorTextures,
+    int renderLayer, QRhiTexture* depthTexture, int samples);
+
+/**
  * @brief Create a multiview render target (single RT drawing N views at once).
  *
  * colorTextureArray must be a TextureArray with at least multiViewCount layers.
@@ -352,6 +383,18 @@ SCORE_PLUGIN_GFX_EXPORT
 TextureRenderTarget createMultiViewRenderTarget(
     const RenderState& state, QRhiTexture* colorTextureArray, int multiViewCount,
     QRhiTexture* depthTextureArray, int samples);
+
+/**
+ * @brief Multi-attachment (MRT) multiview render target.
+ *
+ * Same as the single-texture overload but attaches ALL `colorTextures` (each a
+ * TextureArray with >= multiViewCount layers) with per-attachment multiview, so
+ * attachments == pipeline blend targets. Requires state.caps.multiview == true.
+ */
+SCORE_PLUGIN_GFX_EXPORT
+TextureRenderTarget createMultiViewRenderTarget(
+    const RenderState& state, std::span<QRhiTexture* const> colorTextures,
+    int multiViewCount, QRhiTexture* depthTextureArray, int samples);
 
 /**
  * @brief Map an ISF/CSF FORMAT string to a QRhiTexture::Format.
