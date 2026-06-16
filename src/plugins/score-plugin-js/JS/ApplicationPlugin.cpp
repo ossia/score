@@ -35,9 +35,19 @@
 
 namespace JS
 {
-// Check whether the input is a script, or a file path
+// Check whether the input is a script, or a file path.
+// An existing file always wins: a real path may legitimately contain
+// characters (parentheses, braces, ...) that also occur in inline source,
+// so the file-existence check must come FIRST. Only when the input is not
+// an existing file do we fall back to the inline-source heuristic.
 static bool stringIsScript(const QString& input)
 {
+  if(input.isEmpty())
+    return false;
+
+  if(QFileInfo fileInfo{input}; fileInfo.exists() && fileInfo.isFile())
+    return false;
+
   if(input.length() > 4096)
     return true;
 
@@ -48,10 +58,6 @@ static bool stringIsScript(const QString& input)
        || c == ')')
       return true;
   }
-
-  QFileInfo fileInfo{input};
-  if(fileInfo.exists() && fileInfo.isFile())
-    return false;
 
   return true;
 }
@@ -111,13 +117,18 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
   {
     this->m_start_script = script;
   }
-  else
+  else if(!script.isEmpty())
   {
     QFile f{script};
     if(f.open(QIODevice::ReadOnly))
     {
       this->m_start_script = f.readAll();
       this->m_start_script_path = QFileInfo{f}.canonicalPath();
+    }
+    else
+    {
+      qWarning() << "JS::ApplicationPlugin: could not open --script file"
+                 << script << ":" << f.errorString();
     }
   }
 }

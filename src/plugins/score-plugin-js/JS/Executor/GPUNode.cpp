@@ -35,6 +35,7 @@
 #include <private/qsgdefaultrendercontext_p.h>
 
 #include <compare>
+#include <set>
 namespace JS
 {
 struct engine_key
@@ -94,7 +95,6 @@ public:
     // see the note in GpuRenderer::release() for why this matters.
     QQuickRenderControl* m_quickRenderControl{};
     QQuickWindow* m_quickWindow{};
-    QRhi* m_rhi{};
 
     std::vector<Inlet*> m_jsInlets;
     std::vector<std::pair<ControlInlet*, int>> m_ctrlInlets;
@@ -169,7 +169,12 @@ public:
     return {key, res};
   }
 
-  void releaseEngine(QRhi* rhi) { m_engines.erase({std::this_thread::get_id(), rhi}); }
+  // Release by the key stored at acquire time, NOT by the current thread id.
+  // If releaseState() ever runs on a different thread than initState()'s
+  // insert (e.g. under SCORE_THREADED_GFX), erasing by the current-thread
+  // key would leave the stale Engine (with m_quickWindow set) mapped, and
+  // the next acquire would return it and trip the SCORE_ASSERT in initState().
+  void releaseEngine(const engine_key& key) { m_engines.erase(key); }
 
   boost::concurrent_flat_map<engine_key, std::shared_ptr<Engine>, engine_key_hash>
       m_engines;
@@ -325,7 +330,7 @@ void main ()
     // all QRhi-owned buffers before the RHI itself is destroyed in
     // Graph::~Graph.
     auto [key, engine] = node.acquireEngine(&rhi);
-    m_tid = key.id;
+    m_engineKey = key;
     m_engine = engine;
     if(!m_engine)
     {
@@ -334,7 +339,6 @@ void main ()
     }
 
     SCORE_ASSERT(!m_engine->m_quickWindow);
-    m_engine->m_rhi = &rhi;
     m_engine->m_quickRenderControl = new QQuickRenderControl{};
     m_engine->m_quickWindow = new QQuickWindow{m_engine->m_quickRenderControl};
 
@@ -376,18 +380,20 @@ void main ()
     m_window->setRenderTarget(
         QQuickRenderTarget::fromRhiRenderTarget(m_internalTex.renderTarget));
 
-    // Seed sourceIndex from the node so reloadEngine()'s check sees them
-    // equal on first update() — avoids a script reload on every resize.
     m_engine->init(*this, node, m_window, renderer);
+    // Tolerant of script/port mismatches (live-edited QML may not line up
+    // with the node's declared ports): skip bad inlets instead of aborting.
+    // Mirrors Engine::setupComponent's guards.
     for(auto& [texture_in, i] : this->m_engine->m_texInlets)
     {
-      SCORE_ASSERT(this->node.input.size() > i);
+      if(i >= (int)this->node.input.size())
+        continue;
       score::gfx::Port* port = this->node.input[i];
-      SCORE_ASSERT(port->type == score::gfx::Types::Image);
+      if(!port || port->type != score::gfx::Types::Image)
+        continue;
       auto rt = renderer.renderTargetForInputPort(*port);
       auto item = qobject_cast<JS::TextureInletItem*>(texture_in->item());
-      SCORE_ASSERT(item);
-      if(rt.texture)
+      if(item && rt.texture)
         item->setSize(rt.texture->pixelSize());
     }
     sourceIndex.store(node.sourceIndex.load());
@@ -402,31 +408,13 @@ void main ()
     if(!m_window || !m_renderControl || !m_engine)
       return;
 
-    auto oldSourceIndex = this->sourceIndex.exchange(this->node.sourceIndex);
-    //= std::exchange(this->sourceIndex, this->node.sourceIndex.load());
-    // yes technically there is the overflow case but it's 2^64 editions away...
-    if(oldSourceIndex < this->node.sourceIndex)
-    {
-      // Script changed mid-play: drop the QML tree but keep the
-      // Engine and its QQuickWindow (this isn't a RenderList rebuild,
-      // so the RHI-tied state is fine). Engine::releaseItem() clears
-      // m_component/m_object/inlets so Engine::init()'s `if(!m_item)`
-      // rebuild path fires cleanly.
-      m_engine->releaseItem();
-      m_engine->init(*this, node, m_window, renderer);
-
-      for(auto& [texture_in, i] : this->m_engine->m_texInlets)
-      {
-        SCORE_ASSERT(this->node.input.size() > i);
-        score::gfx::Port* port = this->node.input[i];
-        SCORE_ASSERT(port->type == score::gfx::Types::Image);
-        auto rt = renderer.renderTargetForInputPort(*port);
-        auto item = qobject_cast<JS::TextureInletItem*>(texture_in->item());
-        SCORE_ASSERT(item);
-        if(rt.texture)
-          item->setSize(rt.texture->pixelSize());
-      }
-    }
+    // NOTE: GpuNode::sourceIndex is fixed at 1 and never incremented (the
+    // incrementer that drove the in-place script reload was removed), so the
+    // GpuRenderer::sourceIndex seeded in initState() always equals it. The
+    // mid-play "drop the QML tree, keep the QQuickWindow, re-init" reload
+    // branch that used to live here was therefore dead code and has been
+    // removed. A live script change currently goes through a full
+    // releaseState()/initState() cycle instead.
   }
 
   void update(
@@ -439,34 +427,61 @@ void main ()
     if(!m_engine)
       return;
 
-    // Schedule a copy of the input textures into the actual textures
+    // Schedule a copy of the input textures into the actual textures.
+    // Tolerant of script/port mismatches (live-edited QML): skip bad inlets
+    // instead of asserting. Mirrors Engine::setupComponent's guards.
     {
       for(auto& [texture_in, i] : this->m_engine->m_texInlets)
       {
-        SCORE_ASSERT(this->node.input.size() > i);
+        if(i >= (int)this->node.input.size())
+          continue;
         score::gfx::Port* port = this->node.input[i];
-        SCORE_ASSERT(port->type == score::gfx::Types::Image);
+        if(!port || port->type != score::gfx::Types::Image)
+          continue;
         auto rt = renderer.renderTargetForInputPort(*port);
         auto item = qobject_cast<JS::TextureInletItem*>(texture_in->item());
-        SCORE_ASSERT(item);
+        if(!item)
+          continue;
         auto itemRenderer = item->renderer;
         auto texture = item->texture;
         if(itemRenderer && texture && rt.texture)
         {
-          if(rt.texture->pixelSize() == texture->pixelSize()
-             && rt.texture->sampleCount() == texture->sampleCount())
+          const bool sameSize = rt.texture->pixelSize() == texture->pixelSize();
+          const bool sameSamples
+              = rt.texture->sampleCount() == texture->sampleCount();
+          if(sameSize && sameSamples)
           {
             QRhiTextureCopyDescription desc;
             res.copyTexture(texture, rt.texture, desc);
           }
+          else if(!sameSize)
+          {
+            // The upstream RT changed dimensions since the last initState().
+            // Resize the inlet item so Qt Quick rebuilds its QSGRhiLayer at
+            // the new size; this frame's copy is intentionally skipped
+            // (src/dst pair is mismatched) and the next update() will copy
+            // correctly once the layer texture is recreated.
+            item->setSize(rt.texture->pixelSize());
+          }
           else
           {
-            // The upstream RT changed dimensions or sample count since the
-            // last initState()/reloadEngine(). Resize the inlet item so Qt
-            // Quick rebuilds its QSGRhiLayer at the new size; this frame's
-            // copy is intentionally skipped (src/dst pair is mismatched)
-            // and the next update() will copy correctly.
-            item->setSize(rt.texture->pixelSize());
+            // Size matches but sample count differs (e.g. the inlet item's
+            // QSGRhiLayer is single-sampled while the upstream RT is MSAA).
+            // QRhi::copyTexture requires matching sample counts, so the copy
+            // can't run and setSize() is a no-op here — without a diagnostic
+            // the inlet would stay silently black. We can't resolve/recreate
+            // the layer at a different sample count from outside Qt Quick, so
+            // the defined fallback is: skip the copy (the inlet keeps its
+            // last content rather than showing undefined data) and warn once
+            // per item so the condition is observable.
+            if(m_warnedSampleMismatch.insert(item).second)
+            {
+              qWarning() << "JS::GPUNode: texture inlet" << i
+                         << "sample-count mismatch (upstream"
+                         << rt.texture->sampleCount() << "vs inlet"
+                         << texture->sampleCount()
+                         << ") - copy skipped, inlet may appear stale/black";
+            }
           }
         }
       }
@@ -491,7 +506,6 @@ void main ()
   {
     if(!m_window || !m_renderControl || !m_engine)
       return;
-    auto& rhi = *renderer.state.rhi;
     // Here we run the Qt Quick render loop which handles its own pass
     if(auto sz = m_window->size(); sz != m_window->contentItem()->size())
     {
@@ -601,8 +615,6 @@ void main ()
 
   void releaseState(score::gfx::RenderList& r) override
   {
-    auto& rhi = *r.state.rhi;
-
     for(auto sampler : m_inputSamplers)
     {
       delete sampler.sampler;
@@ -635,12 +647,23 @@ void main ()
     // live disconnect — the next reconnection's acquireEngine returned
     // the stale entry with m_quickWindow already set and tripped the
     // SCORE_ASSERT in initState().
+    //
+    // USER-VISIBLE BEHAVIOR (known tradeoff): destroying the Engine here
+    // discards the entire QML runtime — the QQmlEngine, the Script object
+    // and ALL its script-side runtime state (JS variables, timers,
+    // accumulated/animation state, etc.). Because releaseState()/initState()
+    // run on every output resize (the render-target dimensions change), a
+    // mid-performance window/output resize silently restarts the user's
+    // script from scratch. Only the declared model state (node.m_modelState,
+    // replayed via Script.loadState() in Engine::setupComponent) survives;
+    // anything the script kept in plain JS variables is lost. This is
+    // accepted for the deterministic-teardown lifetime guarantees above.
     m_window = nullptr;
     m_renderControl = nullptr;
     if(m_engine)
     {
       m_engine.reset();
-      node.releaseEngine(&rhi);
+      node.releaseEngine(m_engineKey);
     }
 
     m_internalTex.release();
@@ -656,8 +679,14 @@ void main ()
   QQuickWindow* m_window{};
 
   ossia::spsc_queue<score::gfx::Message> m_messages;
-  std::thread::id m_tid;
+  // Key under which our Engine was inserted in node.m_engines at acquire
+  // time. We release by this stored key (see GpuNode::releaseEngine).
+  JS::engine_key m_engineKey{};
   std::shared_ptr<GpuNode::Engine> m_engine;
+
+  // Texture inlet items for which a sample-count mismatch has already been
+  // reported, to rate-limit the warning to once per item (see update()).
+  std::set<const void*> m_warnedSampleMismatch;
 
   friend struct GpuNode;
 };
