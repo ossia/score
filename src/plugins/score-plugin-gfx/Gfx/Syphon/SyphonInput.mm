@@ -105,9 +105,36 @@ private:
     return nullptr;
   }
 
+  // Whether the server we are bound to is still advertised in the Syphon
+  // directory. A *static* sender (publishes one frame then idles) keeps no
+  // "new frame" coming but stays in the directory — so we must NOT reconnect
+  // just because frames stopped; only reconnect once the server truly vanished.
+  bool serverStillPresent()
+  {
+    SyphonServerDirectory* ssd = [SyphonServerDirectory sharedDirectory];
+    NSArray* servers = [ssd serversMatchingName:NULL appName:NULL];
+    return findServer(servers, node.settings.path) != nullptr;
+  }
+
   void openServer(QRhi& rhi)
   {
     enabled = false;
+
+    // Symmetric with releaseState(): stop any client we already hold before
+    // replacing it, otherwise the previous SyphonClient leaks (and keeps a
+    // connection open to the server).
+    if (m_mtlReceiver)
+    {
+      [m_mtlReceiver stop];
+      m_mtlReceiver = nil;
+    }
+    if (m_receiver)
+    {
+      [m_receiver stop];
+      m_receiver = nil;
+    }
+    m_currentMtlTexture = nil;
+    currentTex = 0;
 
     SyphonServerDirectory *ssd = [SyphonServerDirectory sharedDirectory];
     NSArray *servers = [ssd serversMatchingName:NULL appName:NULL];
@@ -351,8 +378,12 @@ private:
       {
         if (++m_emptyFrameCount >= kReopenAfterEmpty)
         {
-          enabled = false;
           m_emptyFrameCount = 0;
+          // Only reconnect if the server is actually gone. A healthy static
+          // sender simply stops producing new frames while staying present;
+          // dropping it here would reconnect forever and lose the last frame.
+          if (!m_mtlReceiver || !serverStillPresent())
+            enabled = false;
         }
         return;
       }
@@ -385,8 +416,11 @@ private:
       {
         if (++m_emptyFrameCount >= kReopenAfterEmpty)
         {
-          enabled = false;
           m_emptyFrameCount = 0;
+          // Only reconnect if the server actually vanished (see Metal path):
+          // a static sender stays present but stops sending new frames.
+          if (!m_receiver || !serverStillPresent())
+            enabled = false;
         }
         return;
       }
@@ -429,20 +463,22 @@ private:
     if (!m_initialized)
       return;
 
-    if (enabled)
+    // Stop whenever a receiver exists — NOT only when enabled. A receiver can
+    // be alive while enabled==false (e.g. after the empty-frame path cleared
+    // enabled but left the client connected), and skipping -stop in that case
+    // leaks the SyphonClient. This also mirrors openServer(), which is the only
+    // other place receivers are created.
+    if (m_mtlReceiver)
     {
-      if (m_mtlReceiver)
-      {
-        [m_mtlReceiver stop];
-        m_mtlReceiver = nil;
-      }
-      if (m_receiver)
-      {
-        [m_receiver stop];
-        m_receiver = nil;
-      }
-      enabled = false;
+      [m_mtlReceiver stop];
+      m_mtlReceiver = nil;
     }
+    if (m_receiver)
+    {
+      [m_receiver stop];
+      m_receiver = nil;
+    }
+    enabled = false;
 
     m_currentMtlTexture = nil;
     currentTex = 0;

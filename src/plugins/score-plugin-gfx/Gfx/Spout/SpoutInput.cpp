@@ -94,6 +94,13 @@ dxgiToQRhiFormat(DWORD dxgi, QRhi::Implementation backend) noexcept
     case DXGI_FORMAT_R16G16B16A16_UNORM:
     case DXGI_FORMAT_R16G16B16A16_FLOAT:
     case DXGI_FORMAT_R16G16B16A16_TYPELESS:
+      // RGBA16F is the only 4x16 format QRhi exposes (no RGBA16-UNORM). For a
+      // _UNORM sender this samples as half-float (color-inaccurate) but is the
+      // only available 64-bit/pixel format; dxgiToVulkanFormat() maps the same
+      // DXGI formats to VK_FORMAT_R16G16B16A16_SFLOAT so the imported VkImage
+      // and the QRhi-created view agree (no validation violation). On D3D the
+      // CopyResource between _UNORM and _FLOAT is permitted (shared TYPELESS
+      // family) and bit-preserving.
       return QRhiTexture::RGBA16F;
     case DXGI_FORMAT_R32G32B32A32_FLOAT:
     case DXGI_FORMAT_R32G32B32A32_TYPELESS:
@@ -563,8 +570,17 @@ private:
       case DXGI_FORMAT_R10G10B10A2_UNORM:
         return VK_FORMAT_A2B10G10R10_UNORM_PACK32;
       case DXGI_FORMAT_R16G16B16A16_UNORM:
-        return VK_FORMAT_R16G16B16A16_UNORM;
       case DXGI_FORMAT_R16G16B16A16_FLOAT:
+        // The QRhi destination texture for both of these is RGBA16F (the only
+        // 4x16 format QRhi exposes — there is no RGBA16-UNORM). The imported
+        // VkImage MUST use the same format as the QRhi-created image view,
+        // otherwise QVkTexture::createFrom() builds an SFLOAT view over a
+        // non-MUTABLE_FORMAT UNORM image, which is a Vulkan validation
+        // violation (VUID-VkImageViewCreateInfo-image-01762) and samples
+        // garbage. Both _UNORM and _FLOAT are 64-bit/pixel, so the KMT import
+        // succeeds; we therefore map both to SFLOAT to stay consistent with
+        // dxgiToQRhiFormat(). (UNORM data read as half-float is still color-
+        // inaccurate, but that is an inherent QRhi limitation, not a crash.)
         return VK_FORMAT_R16G16B16A16_SFLOAT;
       case DXGI_FORMAT_R32G32B32A32_FLOAT:
         return VK_FORMAT_R32G32B32A32_SFLOAT;
