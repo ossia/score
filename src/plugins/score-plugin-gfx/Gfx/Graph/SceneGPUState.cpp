@@ -6,8 +6,11 @@
 #include <QDebug>
 #include <QQuaternion>
 
+#include <array>
 #include <cmath>
+#include <cstdint>
 #include <cstring>
+#include <functional>
 
 namespace score::gfx
 {
@@ -137,8 +140,13 @@ primitiveToGeometry(const ossia::mesh_primitive& prim)
   if(prim.index_buffer)
     appendBufferResource(*out, *prim.index_buffer);
 
-  // 2) Bindings: one per unique vertex_buffer_index. Stride taken from the
-  //    first attribute landing in that binding.
+  // 2) Bindings: one per unique (buffer_index, byte_stride, rate) tuple.
+  //    Deduping by buffer_index alone is wrong for SceneFromMeshes-style
+  //    primitives, which pack planar pos(12)/uv(8)/color(16) blocks all into
+  //    buffer 0 with distinct strides: collapsing them to a single binding
+  //    would force every attribute through the first stride (12) and produce
+  //    garbage UVs/colors/tangents. The glTF path uses one buffer per
+  //    attribute, so this keying leaves it unchanged.
   struct BindingInfo
   {
     uint32_t buffer_index{};
@@ -146,21 +154,28 @@ primitiveToGeometry(const ossia::mesh_primitive& prim)
     bool per_instance{};
   };
   std::vector<BindingInfo> bindings;
-  auto findBinding = [&](uint32_t bi) -> int {
+  auto findBinding = [&](uint32_t bi, uint32_t stride, bool per_instance) -> int {
     for(std::size_t k = 0; k < bindings.size(); ++k)
-      if(bindings[k].buffer_index == bi)
+      if(bindings[k].buffer_index == bi && bindings[k].stride == stride
+         && bindings[k].per_instance == per_instance)
         return (int)k;
     return -1;
   };
+  auto attrBinding = [&](const ossia::vertex_attribute& a) -> int {
+    return findBinding(
+        a.buffer_index, a.byte_stride,
+        a.rate == ossia::vertex_attribute::input_rate::per_instance);
+  };
   for(const auto& a : prim.attributes)
   {
-    if(findBinding(a.buffer_index) < 0)
+    const bool per_instance
+        = (a.rate == ossia::vertex_attribute::input_rate::per_instance);
+    if(findBinding(a.buffer_index, a.byte_stride, per_instance) < 0)
     {
       BindingInfo b;
       b.buffer_index = a.buffer_index;
       b.stride = a.byte_stride;
-      b.per_instance
-          = (a.rate == ossia::vertex_attribute::input_rate::per_instance);
+      b.per_instance = per_instance;
       bindings.push_back(b);
     }
   }
@@ -193,7 +208,7 @@ primitiveToGeometry(const ossia::mesh_primitive& prim)
   for(const auto& a : prim.attributes)
   {
     ossia::geometry::attribute ga{};
-    ga.binding = findBinding(a.buffer_index);
+    ga.binding = attrBinding(a);
     ga.location = 0; // resolved by the renderer's semantic remap
     ga.format = toGeomAttrFormat(a.format);
     ga.byte_offset = a.byte_offset;
@@ -422,6 +437,59 @@ MaterialExtensionsGPU packMaterialExtensions(const ossia::material_component& mc
   return gpu;
 }
 
+// Dedup key combining a payload identity pointer with the accumulated
+// world transform on the walk path that reached it. Plain pointer dedup
+// (threedim#1) collapses every instance of a shared prototype into one:
+// when an upstream SceneDuplicator references a single prototype
+// scene_node_ptr under N distinct transforms, the pointer-only `seenNodes`
+// set lets only the first through and silently drops the other N-1
+// instances. Keying by (pointer, world-matrix) instead keeps genuinely
+// distinct instances (same prototype, different transform) apart while
+// still deduping true DAG re-references reached through an identical
+// transform path (bit-identical accumulated matrix → same key). Mesh GPU
+// vertex uploads are deduped separately downstream by DrawCall::stable_id,
+// so emitting N draws here still uploads the prototype's bytes once.
+struct InstanceKey
+{
+  const void* ptr{};
+  std::array<float, 16> world{};
+
+  bool operator==(const InstanceKey& o) const noexcept
+  {
+    return ptr == o.ptr && world == o.world;
+  }
+};
+
+struct InstanceKeyHash
+{
+  // No is_avalanching marker: the combined pointer+matrix mix below is not
+  // guaranteed well-distributed (std::hash<void*> is often identity), so we
+  // let unordered_dense apply its own final avalanche step.
+  std::size_t operator()(const InstanceKey& k) const noexcept
+  {
+    std::size_t h = std::hash<const void*>{}(k.ptr);
+    for(float f : k.world)
+    {
+      // Normalize -0.0f to +0.0f so the two compare/hash identically; the
+      // exact float compare in operator== handles the rest.
+      std::uint32_t bits;
+      const float v = (f == 0.f) ? 0.f : f;
+      std::memcpy(&bits, &v, sizeof(bits));
+      h ^= std::size_t(bits) + 0x9e3779b97f4a7c15ULL + (h << 6) + (h >> 2);
+    }
+    return h;
+  }
+};
+
+static InstanceKey makeInstanceKey(const void* p, const QMatrix4x4& m)
+{
+  InstanceKey k;
+  k.ptr = p;
+  // QMatrix4x4::constData() is column-major, 16 contiguous floats.
+  std::memcpy(k.world.data(), m.constData(), sizeof(float) * 16);
+  return k;
+}
+
 // Visitor that walks the scene_payload tree and collects draw calls, lights, cameras.
 struct FlattenVisitor
 {
@@ -446,16 +514,22 @@ struct FlattenVisitor
   // contribute one bucket / draw call, not N. merge_scenes / SceneGroup
   // already dedup roots, so this only triggers on actually-shared
   // sub-tree references (the cases the upstream layers can't see).
-  ossia::ptr_set<const ossia::scene_node*> seenNodes;
-  ossia::ptr_set<const ossia::primitive_cloud_component*> seenClouds;
+  // Nodes / meshes / clouds dedup by (pointer, accumulated world transform)
+  // so distinct instances of a shared prototype (SceneDuplicator) survive
+  // — see InstanceKey above. Lights / cameras / scene_data / instances keep
+  // plain pointer dedup: they aren't multiplied by the duplicator path here.
+  ossia::hash_set<InstanceKey, InstanceKeyHash> seenNodes;
+  ossia::hash_set<InstanceKey, InstanceKeyHash> seenClouds;
   // Secondary dedup key for clouds: the raw_data pointer. FormatOverride
   // clones the primitive_cloud_component to rewrite format_id but keeps
   // the underlying raw_data (~1 GB for a 4M-splat scan) shared via
   // shared_ptr — two distinct components pointing at the same raw_data
   // are still one upload's worth of GPU bytes. Dedup by raw_data when
   // present, fall back to component pointer when raw_data is null.
-  ossia::ptr_set<const ossia::buffer_resource*> seenCloudRawData;
-  ossia::ptr_set<const ossia::mesh_component*> seenMeshes;
+  // Still combined with the world transform so a cloud reused under two
+  // duplicator transforms renders twice.
+  ossia::hash_set<InstanceKey, InstanceKeyHash> seenCloudRawData;
+  ossia::hash_set<InstanceKey, InstanceKeyHash> seenMeshes;
   ossia::ptr_set<const ossia::light_component*> seenLights;
   ossia::ptr_set<const ossia::camera_component*> seenCameras;
   ossia::ptr_set<const ossia::scene_data*> seenSceneData;
@@ -465,12 +539,16 @@ struct FlattenVisitor
   {
     if(auto* subnode = ossia::get_if<ossia::scene_node_ptr>(&payload))
     {
-      if(*subnode && seenNodes.insert(subnode->get()).second)
+      // Key on (node, parentWorld): the same prototype node reached under a
+      // different accumulated transform (duplicator) is a distinct instance.
+      if(*subnode
+         && seenNodes.insert(makeInstanceKey(subnode->get(), parentWorld)).second)
         visitNode(**subnode);
     }
     else if(auto* mesh = ossia::get_if<ossia::mesh_component_ptr>(&payload))
     {
-      if(*mesh && seenMeshes.insert(mesh->get()).second)
+      if(*mesh
+         && seenMeshes.insert(makeInstanceKey(mesh->get(), parentWorld)).second)
         visitMesh(**mesh);
     }
     else if(auto* light = ossia::get_if<ossia::light_component_ptr>(&payload))
@@ -553,8 +631,10 @@ struct FlattenVisitor
       {
         const ossia::buffer_resource* raw = (*pc)->raw_data.get();
         const bool unique
-            = raw ? seenCloudRawData.insert(raw).second
-                  : seenClouds.insert(pc->get()).second;
+            = raw ? seenCloudRawData.insert(makeInstanceKey(raw, parentWorld))
+                        .second
+                  : seenClouds.insert(makeInstanceKey(pc->get(), parentWorld))
+                        .second;
         if(unique)
         {
           FlatScene::PrimitiveCloudDraw d;
@@ -804,11 +884,14 @@ void flattenScene(const ossia::scene_spec& scene, FlatScene& out, float aspectRa
   for(std::size_t ri = 0; ri < roots.size(); ++ri)
   {
     // Same dedup contract as visitPayload's scene_node_ptr branch:
-    // skip roots whose pointer was already walked. merge_scenes /
-    // SceneGroup are expected to dedup before this point, but a
-    // scene_state assembled by hand could still place the same root
-    // in `roots[]` more than once.
-    if(!roots[ri] || !vis.seenNodes.insert(roots[ri].get()).second)
+    // skip roots whose (pointer, world transform) was already walked.
+    // merge_scenes / SceneGroup are expected to dedup before this point,
+    // but a scene_state assembled by hand could still place the same root
+    // in `roots[]` more than once. Roots are walked at the visitor's
+    // current world (identity here), matching the key visitPayload uses.
+    if(!roots[ri]
+       || !vis.seenNodes.insert(makeInstanceKey(roots[ri].get(), vis.parentWorld))
+               .second)
       continue;
     vis.visitNode(*roots[ri]);
   }

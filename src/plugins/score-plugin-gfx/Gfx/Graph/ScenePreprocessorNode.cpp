@@ -485,6 +485,15 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   // Cleared on teardown (see release()).
   int64_t m_lastSnapshotFrame{-1};
 
+  // Single-fire-per-frame guard for issuePendingGpuCopies (threedim#13).
+  // runInitialPasses fires once per outgoing edge; without a gate a node
+  // feeding K consumers issues K identical copy batches per frame (the
+  // destination MDI buffers are shared, so one batch already serves every
+  // consumer). Kept separate from m_lastSnapshotFrame because the snapshot
+  // block only sets that token when the world-transforms buffer exists —
+  // a dedicated token gates the copies unconditionally. Cleared on teardown.
+  int64_t m_lastGpuCopiesFrame{-1};
+
   // Environment params UBO: preprocessor-owned Env arena slot. Each
   // EnvironmentLoader / CubemapLoader contributes disjoint fields (via
   // `params_set` bits on scene_environment); merge_scenes composes them
@@ -738,6 +747,17 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   // primitiveToGeometry() wrapper that's freshly allocated on every
   // flattenScene() call and therefore changes every frame.
   std::vector<uint64_t> m_cachedMeshFingerprint;
+  // Fingerprint of the primitive_cloud set (threedim#2). The fast path
+  // (`meshesUnchanged`) skips rebuildPrimitiveClouds entirely — clouds are
+  // NOT covered by m_cachedMeshFingerprint — so without this a cloud added
+  // / removed / moved while the mesh fingerprint is unchanged would render
+  // nothing / leave stale geometry / keep a stale CloudMetaGPU.model. Mixing
+  // the cloud set into the fast-path gate forces the full rebuild branch
+  // (which re-runs rebuildMDI + rebuildPrimitiveClouds) on any cloud change.
+  // Covers the same fields rebuildPrimitiveClouds' internal per-bucket
+  // fingerprint depends on (raw_data identity/content version, primitive
+  // count, transform), plus the bucket key so add/remove is detected.
+  uint64_t m_cachedCloudFingerprint{};
   // m_cachedMaterials is gone — scene_materials is the registry's
   // Material arena, not a preprocessor CPU mirror. Producers + the
   // loader-material upload pass write directly into arena slots.
@@ -918,6 +938,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     m_cachedVersion = -1;
     m_cachedMaterialsFingerprint.clear();
     m_cachedMeshFingerprint.clear();
+    m_cachedCloudFingerprint = 0;
     m_cachedMaterialExt.clear();
     m_cachedPerDraws.clear();
     m_cachedPerDrawBounds.clear();
@@ -1113,6 +1134,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     // against any future reordering. Defensive.
     m_pendingGpuCopies.clear();
     m_pendingGpuCopies.shrink_to_fit();
+    m_lastGpuCopiesFrame = -1;
     // Env arena buffer is owned by GpuResourceRegistry — nothing to drop here.
     // Plan 09 S4: stream byte-size trackers removed (see m_mdi comment).
 
@@ -1150,10 +1172,42 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     m_initialized = false;
   }
 
+  // Source byte size of one element of an ossia::geometry attribute format.
+  // Used to bound CPU attribute reads so an attribute authored in a smaller
+  // format than the consumer expects (threedim#10: an unorm-byte4 color, 4 B,
+  // read as float4, 16 B) doesn't over-read the source buffer.
+  static int geomAttrFormatByteSize(int format) noexcept
+  {
+    using A = ossia::geometry::attribute;
+    switch(format)
+    {
+      case A::float4:                            return 16;
+      case A::float3:                            return 12;
+      case A::float2:                            return 8;
+      case A::float1:                            return 4;
+      case A::unormbyte4:                        return 4;
+      case A::unormbyte2:                        return 2;
+      case A::unormbyte1:                        return 1;
+      case A::uint4: case A::sint4:              return 16;
+      case A::uint3: case A::sint3:              return 12;
+      case A::uint2: case A::sint2:              return 8;
+      case A::uint1: case A::sint1:              return 4;
+      case A::half4:                             return 8;
+      case A::half3:                             return 6;
+      case A::half2:                             return 4;
+      case A::half1:                             return 2;
+      case A::ushort4: case A::sshort4:          return 8;
+      case A::ushort3: case A::sshort3:          return 6;
+      case A::ushort2: case A::sshort2:          return 4;
+      case A::ushort1: case A::sshort1:          return 2;
+      default:                                   return 0; // user_struct / unknown
+    }
+  }
+
   // Read a single vertex attribute's full range from a CPU-backed source
   // geometry into a freshly-allocated contiguous byte buffer. Returns empty
   // if the source uses a GPU handle, is missing, or has an unsupported
-  // format. `outBytesPerVertex` is filled with the expected element size.
+  // format. `BytesPerVertex` is the consumer's expected element size.
   template <int BytesPerVertex>
   static std::vector<std::byte> extractCpuAttribute(
       const ossia::geometry& g, ossia::attribute_semantic sem)
@@ -1175,17 +1229,40 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         ? (int)g.bindings[a->binding].byte_stride
         : BytesPerVertex;
 
-    std::vector<std::byte> out(g.vertices * BytesPerVertex);
-    const auto* base = reinterpret_cast<const std::byte*>(cpu->raw_data.get())
-                       + in.byte_offset + a->byte_offset;
-    if(stride == BytesPerVertex)
+    // Copy at most the source element's byte size into the destination
+    // element (the rest stays zero-filled). An attribute whose source
+    // format is narrower than BytesPerVertex (e.g. unorm-byte4 color, 4 B,
+    // consumed as float4, 16 B) must not pull 12 stray bytes per vertex.
+    const int srcElem = geomAttrFormatByteSize(a->format);
+    const int copyPerVertex
+        = (srcElem > 0) ? std::min(BytesPerVertex, srcElem) : BytesPerVertex;
+
+    // Bound every read against the source buffer's actual byte_size:
+    // an inconsistent producer (short buffer, wrong vertex_count) must not
+    // over-read off the end of the heap allocation (threedim#10).
+    const int64_t baseOff = (int64_t)in.byte_offset + (int64_t)a->byte_offset;
+    const int64_t srcBytes = cpu->byte_size;
+    if(baseOff < 0 || (srcBytes > 0 && baseOff >= srcBytes))
+      return {};
+
+    std::vector<std::byte> out(std::size_t(g.vertices) * BytesPerVertex);
+    const auto* raw = reinterpret_cast<const std::byte*>(cpu->raw_data.get());
+    const auto* base = raw + baseOff;
+    for(int i = 0; i < g.vertices; ++i)
     {
-      std::memcpy(out.data(), base, out.size());
-    }
-    else
-    {
-      for(int i = 0; i < g.vertices; ++i)
-        std::memcpy(out.data() + i * BytesPerVertex, base + i * stride, BytesPerVertex);
+      const int64_t off = baseOff + (int64_t)i * stride;
+      // Clamp this element's copy so it never reads past byte_size.
+      int n = copyPerVertex;
+      if(srcBytes > 0)
+      {
+        const int64_t avail = srcBytes - off;
+        if(avail <= 0)
+          break; // remaining vertices stay zero-filled
+        if(avail < n)
+          n = (int)avail;
+      }
+      std::memcpy(out.data() + std::size_t(i) * BytesPerVertex,
+                  base + (int64_t)i * stride, n);
     }
     return out;
   }
@@ -1234,20 +1311,64 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     if(!cpu || !cpu->raw_data)
       return {};
 
-    std::vector<uint32_t> out(g.indices);
+    // Bound the index read against the source byte_size (threedim#10): a
+    // short / inconsistent index buffer must not over-read the heap. Clamp
+    // the readable index count to what fits past byte_offset.
+    const int idxBytes
+        = (g.index.format == decltype(g.index)::uint16) ? 2 : 4;
+    const int64_t baseOff = (int64_t)g.index.byte_offset;
+    const int64_t srcBytes = cpu->byte_size;
+    if(baseOff < 0 || (srcBytes > 0 && baseOff >= srcBytes))
+      return {};
+    int readable = g.indices;
+    if(srcBytes > 0)
+    {
+      const int64_t avail = (srcBytes - baseOff) / idxBytes;
+      if(avail < readable)
+        readable = (int)std::max<int64_t>(avail, 0);
+    }
+
+    std::vector<uint32_t> out(g.indices); // tail (if clamped) stays 0
     const auto* base = reinterpret_cast<const std::byte*>(cpu->raw_data.get())
-                       + g.index.byte_offset;
+                       + baseOff;
     if(g.index.format == decltype(g.index)::uint16)
     {
       const auto* src = reinterpret_cast<const uint16_t*>(base);
-      for(int i = 0; i < g.indices; ++i)
+      for(int i = 0; i < readable; ++i)
         out[i] = src[i];
     }
     else
     {
-      std::memcpy(out.data(), base, g.indices * 4);
+      std::memcpy(out.data(), base, std::size_t(readable) * 4);
     }
     return out;
+  }
+
+  // Mesh-deterministic subset of emitDraw's skip predicate (threedim#3).
+  // emitDraw drops a draw when:
+  //   (a) the mesh has no usable positions (neither CPU nor GPU sourced), or
+  //   (b) it has indices but they're GPU-backed (extractCpuIndices empty).
+  // Both depend only on the mesh's buffers, which are invariant while the
+  // mesh fingerprint matches — so the fast path can replicate them here to
+  // keep its freshPerDraws mirror in lock-step with what emitDraw packed.
+  // The remaining emitDraw skips (null mesh / vertices<=0 / null registry /
+  // slab exhaustion) are handled at the fast-path call site or cannot occur
+  // once a slab is already resident.
+  static bool meshEmitsDraw(const ossia::geometry& mesh)
+  {
+    const bool hasCpuPos
+        = !extractCpuAttribute<12>(mesh, ossia::attribute_semantic::position)
+               .empty();
+    if(!hasCpuPos)
+    {
+      const auto gpu_pos
+          = extractGpuAttribute(mesh, ossia::attribute_semantic::position);
+      if(!gpu_pos.buf)
+        return false; // no positions → emitDraw skips
+    }
+    if(mesh.indices > 0 && extractCpuIndices(mesh).empty())
+      return false; // GPU-backed indices unsupported → emitDraw skips
+    return true;
   }
 
   // Grow-only allocate / reuse a single QRhiBuffer.
@@ -2371,6 +2492,14 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           /*instanceCount=*/1u);
     }
 
+    // Number of per_draws entries that the fs.draws loop actually emitted
+    // (i.e. after emitDraw's skip predicate). The fast path's diff-upload
+    // mirror must be seeded from exactly this prefix — emitDraw can skip
+    // draws (slab exhaustion, GPU-backed indices, missing positions) that a
+    // naive `vertices > 0` filter would wrongly keep, which would desync the
+    // mirror from the GPU per_draws layout (threedim#3).
+    const std::size_t meshDrawCount = acc.perDraws.size();
+
     // ── fs.instances ── one cmd per instance_component, instanceCount =
     // group's instance count, firstInstance = slot_cursor before the
     // cmd. Per-instance translations / colors are GPU-copied from the
@@ -2609,6 +2738,20 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     if(pdbBytes > 0)
       res.uploadStaticBuffer(
           m_mdi.per_draw_bounds, 0, pdbBytes, acc.perDrawBounds.data());
+
+    // Seed the fast-path diff-upload mirror from the ACTUALLY-EMITTED set
+    // (acc.perDraws / acc.perDrawBounds), restricted to the fs.draws prefix
+    // (instance-group entries are never compared on the fast path — it's
+    // gated on fs.instances.empty()). Seeding from `freshPerDraws` (filtered
+    // only by vertices>0) would diverge whenever emitDraw skipped a draw,
+    // making diffUpload write a neighbour's model matrix into the wrong slot
+    // (threedim#3).
+    m_cachedPerDraws.assign(
+        acc.perDraws.begin(),
+        acc.perDraws.begin() + (std::ptrdiff_t)meshDrawCount);
+    m_cachedPerDrawBounds.assign(
+        acc.perDrawBounds.begin(),
+        acc.perDrawBounds.begin() + (std::ptrdiff_t)meshDrawCount);
 
     // ── Per-instance concat buffers (Phase 2 unified MDI) ──────────────
     //
@@ -4149,12 +4292,20 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     //     motion-vector correctness independent of which producer is in
     //     play.
     //
-    // flattenScene is O(scene_nodes) and bounded — cheap compared to a
-    // single Dynamic-UBO write; running it twice on rebuild frames (once
-    // here, once below in the rebuild block) is well within budget.
     // packAndUploadCameras synthesises a default camera when fs.cameras
     // is empty, so this runs unconditionally — keeps m_camerasBuffer
     // allocated and bound even when no scene producer is wired yet.
+    //
+    // Per-frame guard (threedim#12): update() is dispatched once per
+    // outgoing edge, and packAndUploadCameras already early-returns when
+    // it has already run this frame (m_lastCameraUploadFrame ==
+    // renderer.frame). But the flattenScene() feeding it is NOT free — it
+    // packs every material, runs skeleton FK and allocates a shared_ptr
+    // wrapper per primitive — so running it once per edge wastes that work
+    // on edges 2..K whose packAndUploadCameras is a no-op anyway. Gate the
+    // whole camera flatten+upload on the same per-frame token so it runs at
+    // most once per frame regardless of edge count.
+    if(m_lastCameraUploadFrame != renderer.frame)
     {
       FlatScene cameraFs;
       flattenScene(this->scene, cameraFs, /*aspectRatio=*/1.f);
@@ -4456,6 +4607,20 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           maxArenaSlot
               = std::max(maxArenaSlot, arenaSlotForMaterial(m.get()));
         }
+      }
+      // Instancer / loader prototype materials are NOT in
+      // scene.state->materials but DO get an arena slot via
+      // m_loaderMaterialSlots (registered above), and their slot is what
+      // arenaSlotForMaterial() — hence PerDrawGPU.material_index — resolves
+      // to for those draws. If such a slot exceeds the scene-material max,
+      // the shader's `scene_materials_ext[material_index]` /
+      // `uv_xforms[material_index]` would read past the bound aux range
+      // (threedim#11). Fold those slots into the extent so the aux buffers
+      // are sized to cover every reachable material_index.
+      for(const auto& [mat, slot] : m_loaderMaterialSlots)
+      {
+        if(slot.valid())
+          maxArenaSlot = std::max(maxArenaSlot, slot.slot_index);
       }
       const std::size_t arenaSlotEntries
           = (std::size_t)maxArenaSlot + 1;
@@ -4776,7 +4941,15 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       freshPerDrawBounds.reserve(fs.draws.size());
       for(const auto& dc : fs.draws)
       {
-        if(!dc.mesh || dc.mesh->vertices <= 0)
+        // Mirror emitDraw's skip predicate exactly (threedim#3): a draw with
+        // no usable positions, or with GPU-backed indices, is dropped by
+        // rebuildMDI and therefore occupies NO per_draws slot. Filtering the
+        // fast-path mirror only by `vertices > 0` would keep such draws and
+        // shift every following slot, so diffUpload would write a draw's
+        // model matrix into its neighbour's GPU slot.
+        if(!dc.mesh || dc.mesh->vertices <= 0 || !m_registry)
+          continue;
+        if(!meshEmitsDraw(*dc.mesh))
           continue;
         PerDrawGPU pd{};
         writeMat4(pd.model, dc.worldTransform);
@@ -4847,6 +5020,49 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         }
       }
 
+      // Cloud fingerprint (threedim#2): rebuildPrimitiveClouds is only
+      // invoked on the full-rebuild branch, so any change to the primitive
+      // cloud set must mismatch this fingerprint to force that branch. We
+      // hash the same fields the function's internal per-bucket fingerprint
+      // and bucket geometry depend on — raw_data identity + content version,
+      // primitive_count, transform_slot, the world matrix (drives
+      // CloudMetaGPU.model + AABBs), and the bucket key derived from
+      // format_id — so added / removed / moved / re-uploaded clouds all flip
+      // it. Count is mixed first so a pure add/remove is always detected.
+      uint64_t freshCloudFingerprint = 0;
+      ossia::hash_combine(
+          freshCloudFingerprint, (uint64_t)fs.primitive_clouds.size());
+      for(const auto& d : fs.primitive_clouds)
+      {
+        if(!d.cloud)
+        {
+          ossia::hash_combine(freshCloudFingerprint, (uint64_t)0);
+          continue;
+        }
+        // Bucket key (mirrors rebuildPrimitiveClouds): hash(format_id), or
+        // the cloud pointer when format_id is empty.
+        const uint64_t bucket_key
+            = !d.cloud->format_id.empty()
+                  ? (uint64_t)(uint32_t)ossia::hash_string(d.cloud->format_id)
+                  : (uint64_t)(uintptr_t)d.cloud.get();
+        ossia::hash_combine(freshCloudFingerprint, bucket_key);
+
+        const auto* raw = d.cloud->raw_data.get();
+        ossia::hash_combine(freshCloudFingerprint, (uint64_t)(uintptr_t)raw);
+        const uint64_t content_id
+            = raw ? (raw->content_hash != 0 ? raw->content_hash
+                                            : (uint64_t)raw->dirty_index)
+                  : 0u;
+        ossia::hash_combine(freshCloudFingerprint, content_id);
+        ossia::hash_combine(
+            freshCloudFingerprint, (uint64_t)d.cloud->primitive_count);
+        ossia::hash_combine(
+            freshCloudFingerprint, (uint64_t)d.transform_slot);
+        ossia::hash_combine(
+            freshCloudFingerprint,
+            ossia::hash_bytes(d.worldTransform.constData(), 64));
+      }
+
       // Pack per-material UV transforms (KHR_texture_transform) and
       // material extensions. Both buffers are read by the shader as
       // `entries[pd.material_index]` where pd.material_index is the
@@ -4902,6 +5118,11 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
             // rebuildMDI does this cleanly by building a fresh geometry
             // with wrapGpu() wrappers over the current buffer pointers.
             && !auxBuffersChanged
+            // Cloud set unchanged (threedim#2): rebuildPrimitiveClouds only
+            // runs on the full-rebuild branch and re-appends its bucket
+            // geometries onto the freshly rebuilt mesh list, so any cloud
+            // add / remove / move / re-upload must drop us off the fast path.
+            && (freshCloudFingerprint == m_cachedCloudFingerprint)
             // The fast path's freshPerDraws / freshMeshFingerprint cover
             // fs.draws ONLY. fs.instances cmds (their world transforms,
             // instance counts, prototype identities, per-instance
@@ -4971,11 +5192,16 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         // Seed the CPU mirrors from the fresh data so subsequent frames
         // can take the fast path via diffUpload.
         m_cachedMeshFingerprint = std::move(freshMeshFingerprint);
+        m_cachedCloudFingerprint = freshCloudFingerprint;
         m_cachedLightIndices = std::move(freshLightIndices);
         m_cachedMaterialExt = std::move(freshMaterialExtensions);
         m_cachedMaterialUVTransforms = std::move(freshMaterialUVTransforms);
-        m_cachedPerDraws   = std::move(freshPerDraws);
-        m_cachedPerDrawBounds = std::move(freshPerDrawBounds);
+        // m_cachedPerDraws / m_cachedPerDrawBounds are NOT seeded here:
+        // rebuildMDI() already assigned them from acc.perDraws (the
+        // actually-emitted set, after emitDraw's skip predicate), so the
+        // mirror matches the GPU per_draws layout slot-for-slot. Seeding
+        // from freshPerDraws (filtered only by vertices>0) would reintroduce
+        // the threedim#3 divergence whenever a draw was skipped.
       }
 
       // Camera + Env UBOs are packed above, before rebuildMDI, so that the
@@ -5179,8 +5405,16 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
 
     // GPU→GPU copies run before the geometry_spec hand-off so the
     // destination MDI buffers are populated by the time the downstream
-    // rasterizer starts reading them.
-    issuePendingGpuCopies(renderer, commands);
+    // rasterizer starts reading them. Frame-gated (threedim#13) — the
+    // copies target shared MDI buffers, so one batch per frame serves every
+    // consumer; without the gate a node feeding K downstreams issues K
+    // identical copy batches. Same renderer.frame token discipline as the
+    // world-transforms snapshot below.
+    if(m_lastGpuCopiesFrame != renderer.frame)
+    {
+      issuePendingGpuCopies(renderer, commands);
+      m_lastGpuCopiesFrame = renderer.frame;
+    }
 
     // Snapshot last frame's world_transforms into the prev buffer via
     // a pure GPU copy, then apply this frame's per-slot writes via the
