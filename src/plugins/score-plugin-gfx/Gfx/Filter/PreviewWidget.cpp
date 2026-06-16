@@ -3,6 +3,7 @@
 #include <Gfx/Filter/PreviewWidget.hpp>
 #include <Gfx/Graph/BackgroundNode.hpp>
 #include <Gfx/Graph/ISFNode.hpp>
+#include <Gfx/Graph/ISFVisitors.hpp>
 #include <Gfx/Settings/Model.hpp>
 #include <Gfx/Widgets/RhiPreviewWidget.hpp>
 
@@ -178,61 +179,80 @@ struct PreviewPresetVisitor
 {
   score::gfx::ISFNode& node;
   ossia::flat_map<int, ossia::value>& controls;
+  // Descriptor-input index: matches both the saved preset control keys
+  // (model inlet id == desc.inputs index, see setupISFModelPorts) and the
+  // controls flat_map key.
   int i{};
+  // Render-port index: index into node.input[], advanced via
+  // walk_descriptor_inputs (an input may create 0 or 2 ports, so this
+  // drifts from the descriptor index).
+  int port{};
+
+  // Guarded material pointer for the current render port: nullptr if the
+  // port index is out of range or the port carries no material storage.
+  float* portValue() const noexcept
+  {
+    if(port < 0 || port >= (int)node.input.size())
+      return nullptr;
+    return reinterpret_cast<float*>(node.input[port]->value);
+    // NB: for scalar/vector inputs value always points into the material
+    // UBO blob; image/audio inputs never reach this (their visitors no-op).
+  }
+
   void operator()(const isf::float_input& v)
   {
-    if(float* v = controls[i].target<float>())
-    {
-      (*(float*)node.input[i]->value) = *v;
-    }
+    if(float* dst = portValue(); dst)
+      if(float* val = controls[i].target<float>())
+        *dst = *val;
   }
 
   void operator()(const isf::long_input& v)
   {
-    if(int* v = controls[i].target<int>())
-    {
-      (*(int*)node.input[i]->value) = *v;
-    }
+    if(float* dst = portValue(); dst)
+      if(int* val = controls[i].target<int>())
+        *reinterpret_cast<int*>(dst) = *val;
   }
 
   void operator()(const isf::event_input& v) { }
 
   void operator()(const isf::bool_input& v)
   {
-    if(bool* v = controls[i].target<bool>())
-    {
-      (*(int*)node.input[i]->value) = *v ? 1 : 0;
-    }
+    if(float* dst = portValue(); dst)
+      if(bool* val = controls[i].target<bool>())
+        *reinterpret_cast<int*>(dst) = *val ? 1 : 0;
   }
 
   void operator()(const isf::point2d_input& v)
   {
-    if(ossia::vec2f* v = controls[i].target<ossia::vec2f>())
-    {
-      (*(float*)node.input[i]->value) = (*v)[0];
-      (*((float*)node.input[i]->value + 1)) = (*v)[1];
-    }
+    if(float* dst = portValue(); dst)
+      if(ossia::vec2f* val = controls[i].target<ossia::vec2f>())
+      {
+        dst[0] = (*val)[0];
+        dst[1] = (*val)[1];
+      }
   }
 
   void operator()(const isf::point3d_input& v)
   {
-    if(ossia::vec3f* v = controls[i].target<ossia::vec3f>())
-    {
-      (*(float*)node.input[i]->value) = (*v)[0];
-      (*((float*)node.input[i]->value + 1)) = (*v)[1];
-      (*((float*)node.input[i]->value + 2)) = (*v)[2];
-    }
+    if(float* dst = portValue(); dst)
+      if(ossia::vec3f* val = controls[i].target<ossia::vec3f>())
+      {
+        dst[0] = (*val)[0];
+        dst[1] = (*val)[1];
+        dst[2] = (*val)[2];
+      }
   }
 
   void operator()(const isf::color_input& v)
   {
-    if(ossia::vec4f* v = controls[i].target<ossia::vec4f>())
-    {
-      (*(float*)node.input[i]->value) = (*v)[0];
-      (*((float*)node.input[i]->value + 1)) = (*v)[1];
-      (*((float*)node.input[i]->value + 2)) = (*v)[2];
-      (*((float*)node.input[i]->value + 3)) = (*v)[3];
-    }
+    if(float* dst = portValue(); dst)
+      if(ossia::vec4f* val = controls[i].target<ossia::vec4f>())
+      {
+        dst[0] = (*val)[0];
+        dst[1] = (*val)[1];
+        dst[2] = (*val)[2];
+        dst[3] = (*val)[3];
+      }
   }
 
   void operator()(const isf::image_input& v) { }
@@ -330,17 +350,31 @@ public:
           controls[arr[0].GetInt()] = JsonValue{arr[1]}.to<ossia::value>();
         }
 
+        // controls is keyed by descriptor-input index (== model inlet id);
+        // node.input[] is keyed by render-port index. walk_descriptor_inputs
+        // gives the render-port index (cur.inlets) for each descriptor entry,
+        // which drifts from the descriptor index for 0-/2-port inputs.
         int i = 0;
-        for(const isf::input& input : m_program.descriptor.inputs)
-        {
-          ossia::visit(PreviewPresetVisitor{*m_isf, controls, i}, input.data);
-          i++;
-        }
+        score::gfx::walk_descriptor_inputs(
+            m_program.descriptor,
+            [&](const isf::input& input, const score::gfx::port_counts& cur,
+                const score::gfx::port_counts&) {
+              ossia::visit(
+                  PreviewPresetVisitor{*m_isf, controls, i, cur.inlets},
+                  input.data);
+              i++;
+            });
       }
     }
   }
 
   score::gfx::Graph& graph() noexcept { return m_graph; }
+
+  // True while at least one preview widget is still attached to the shared
+  // graph. The deferred manager deletion must NOT fire while this holds, or
+  // a surviving widget's RhiPreviewWidget::m_graph would dangle (UAF on its
+  // detach()).
+  bool hasPreviews() const noexcept { return !m_previews.empty(); }
 
   void attachPreview(score::gfx::BackgroundNode& node)
   {
@@ -401,24 +435,41 @@ public:
       m_graph.addEdge(
           m_isf->output[0], p->input[0], Process::CableType::ImmediateGlutton);
 
-    // Edges from image nodes to image inputs
+    // Edges from image nodes to image inputs. The render-port index of an
+    // input (cur.inlets, via walk_descriptor_inputs) drifts from the
+    // descriptor index for inputs that create 0 or 2 ports, so we must not
+    // equate them. PreviewInputVisitor only yields a node for image-like
+    // inputs, each of which creates exactly one input port at cur.inlets.
     int image_i = 0;
-    int i = 0;
-    for(const isf::input& input : m_program.descriptor.inputs)
-    {
-      auto node = ossia::visit(PreviewInputVisitor{image_i}, input.data);
-      if(node)
-      {
-        m_graph.addNode(node);
+    score::gfx::walk_descriptor_inputs(
+        m_program.descriptor,
+        [&](const isf::input& input, const score::gfx::port_counts& cur,
+            const score::gfx::port_counts& delta) {
+          auto node = ossia::visit(PreviewInputVisitor{image_i}, input.data);
+          if(node)
+          {
+            const int port_idx = cur.inlets;
+            // Only wire when this input actually creates an input port:
+            // write-access csf_image_input yields a node but 0 inlets, and
+            // the render-port index must come from cur.inlets (not the
+            // descriptor index, which drifts for 0-/2-port inputs).
+            if(delta.inlets < 1 || port_idx < 0
+               || port_idx >= (int)m_isf->input.size())
+            {
+              delete node;
+              return;
+            }
 
-        m_graph.addEdge(
-            node->output[0], m_isf->input[i], Process::CableType::ImmediateGlutton);
-        m_previewEdges.emplace_back(node->output[0], m_isf->input[i]);
+            m_graph.addNode(node);
 
-        m_textures.push_back(std::unique_ptr<score::gfx::Node>(node));
-      }
-      i++;
-    }
+            m_graph.addEdge(
+                node->output[0], m_isf->input[port_idx],
+                Process::CableType::ImmediateGlutton);
+            m_previewEdges.emplace_back(node->output[0], m_isf->input[port_idx]);
+
+            m_textures.push_back(std::unique_ptr<score::gfx::Node>(node));
+          }
+        });
 
     m_graph.createAllRenderLists(settings.graphicsApiEnum());
   }
@@ -524,7 +575,15 @@ ShaderPreviewWidget::~ShaderPreviewWidget()
 
   g_shaderPreviewScheduledForDeletion = true;
   QTimer::singleShot(std::chrono::seconds(5), qApp, []() {
-    if(g_shaderPreviewScheduledForDeletion)
+    // Multi-client safety: several ShaderPreviewWidgets can share the same
+    // manager (library hover + live texture-port preview). Destroying one
+    // schedules this deletion, but another may still be attached — its
+    // RhiPreviewWidget holds a raw pointer into g_shaderPreview->graph().
+    // Only tear the manager down once no preview remains attached, otherwise
+    // the surviving widget would dereference a freed Graph on its own
+    // destruction (use-after-free).
+    if(g_shaderPreviewScheduledForDeletion && g_shaderPreview
+       && !g_shaderPreview->hasPreviews())
     {
       delete g_shaderPreview;
       g_shaderPreview = nullptr;
