@@ -908,24 +908,24 @@ private:
 
     for(auto& [e, pass] : this->m_p)
     {
-      pass.pipeline->destroy();
+      pass.p.pipeline->destroy();
 
-      pass.pipeline->setTargetBlends({blend});
+      pass.p.pipeline->setTargetBlends({blend});
 
       switch(m_draw_mode)
       {
         case 0:
-          pass.pipeline->setTopology(QRhiGraphicsPipeline::Triangles);
+          pass.p.pipeline->setTopology(QRhiGraphicsPipeline::Triangles);
           break;
         case 1:
-          pass.pipeline->setTopology(QRhiGraphicsPipeline::Points);
+          pass.p.pipeline->setTopology(QRhiGraphicsPipeline::Points);
           break;
         case 2:
-          pass.pipeline->setTopology(QRhiGraphicsPipeline::Lines);
+          pass.p.pipeline->setTopology(QRhiGraphicsPipeline::Lines);
           break;
       }
 
-      pass.pipeline->create();
+      pass.p.pipeline->create();
     }
   }
 
