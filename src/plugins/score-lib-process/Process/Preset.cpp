@@ -36,6 +36,10 @@ Preset::fromJson(const ProcessFactoryList& procs, const QByteArray& obj) noexcep
   p.data = QByteArray(buf.GetString(), buf.GetSize());
   p.name = wr.obj["Name"].toString();
 
+  // Optional: old presets do not have a category
+  if(doc.GetObject().HasMember("Category"))
+    p.category = wr.obj["Category"].toString();
+
   return std::make_shared<Process::Preset>(std::move(p));
 }
 
@@ -51,14 +55,14 @@ QByteArray Preset::toJson() const noexcept
 template <>
 SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read(const Process::Preset& p)
 {
-  m_stream << p.key.key << p.key.effect << p.data << p.name;
+  m_stream << p.key.key << p.key.effect << p.data << p.name << p.category;
 }
 
 // We only load the members of the process here.
 template <>
 SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write(Process::Preset& p)
 {
-  m_stream >> p.key.key >> p.key.effect >> p.data >> p.name;
+  m_stream >> p.key.key >> p.key.effect >> p.data >> p.name >> p.category;
 }
 
 template <>
@@ -74,6 +78,8 @@ SCORE_LIB_PROCESS_EXPORT void JSONReader::read(const Process::Preset& p)
   stream.EndObject();
 
   obj["Name"] = p.name;
+  if(!p.category.isEmpty())
+    obj["Category"] = p.category;
 
   {
     // TODO not very optimal...
@@ -102,4 +108,6 @@ SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::Preset& p)
     p.data = QByteArray(buf.GetString(), buf.GetSize());
   }
   p.name = obj["Name"].toString();
+  if(auto cat = obj.tryGet("Category"))
+    p.category = cat->toString();
 }

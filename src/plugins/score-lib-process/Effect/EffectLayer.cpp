@@ -20,6 +20,7 @@
 
 #include <ossia/detail/thread.hpp>
 
+#include <QHash>
 #include <QMenu>
 
 #include <wobjectimpl.h>
@@ -205,6 +206,16 @@ QGraphicsItem* makeExternalUIButton(
   return nullptr;
 }
 
+// Order presets the way the menu displays them: grouped by category so each
+// submenu's entries stay together, then alphabetically by name within a category.
+static bool
+presetMenuOrder(const Process::Preset* lhs, const Process::Preset* rhs) noexcept
+{
+  if(lhs->category != rhs->category)
+    return lhs->category < rhs->category;
+  return lhs->name < rhs->name;
+}
+
 score::QGraphicsDraggablePixmap* makePresetButton(
     const ProcessModel& proc, const score::DocumentContext& context, QObject* self,
     QGraphicsItem* root)
@@ -246,6 +257,45 @@ score::QGraphicsDraggablePixmap* makePresetButton(
         menu->addAction(
             "Save current preset", menu, [&proc, &pplug] { pplug.savePreset(&proc); });
 
+        auto loadPreset = [&proc, &context](const Process::Preset& preset) {
+          auto& load_preset_ifaces
+              = context.app.interfaces<LoadPresetCommandFactoryList>();
+
+          auto cmd = load_preset_ifaces.make(
+              &LoadPresetCommandFactory::make, proc, preset, context);
+          if(cmd)
+          {
+            CommandDispatcher<> c{context.commandStack};
+            c.submit(cmd);
+          }
+        };
+
+        // Resolve a "Foo/Bar/Baz" category path to the submenu it designates,
+        // creating (and caching) the intermediate submenus on the way.
+        // An empty category resolves to the root menu.
+        QHash<QString, QMenu*> submenus;
+        auto categoryMenu = [&](const QString& category) -> QMenu* {
+          QMenu* current = menu;
+          QString path;
+          const auto parts = category.split('/', Qt::SkipEmptyParts);
+          for(const QString& rawPart : parts)
+          {
+            const QString part = rawPart.trimmed();
+            if(part.isEmpty())
+              continue;
+            if(!path.isEmpty())
+              path += '/';
+            path += part;
+
+            auto it = submenus.find(path);
+            if(it != submenus.end())
+              current = it.value();
+            else
+              current = *submenus.insert(path, current->addMenu(part));
+          }
+          return current;
+        };
+
         std::vector<const Process::Preset*> goodPresets;
         const auto& k = proc.concreteKey();
         const auto& e = proc.effect();
@@ -254,23 +304,14 @@ score::QGraphicsDraggablePixmap* makePresetButton(
           if(preset.key.key == k && preset.key.effect == e)
             goodPresets.push_back(&preset);
         }
+        std::sort(goodPresets.begin(), goodPresets.end(), presetMenuOrder);
 
         menu->addSeparator();
 
         for(auto p : goodPresets)
         {
-          menu->addAction(p->name, menu, [p, &proc, &context] {
-            auto& load_preset_ifaces
-                = context.app.interfaces<LoadPresetCommandFactoryList>();
-
-            auto cmd = load_preset_ifaces.make(
-                &LoadPresetCommandFactory::make, proc, *p, context);
-            if(cmd)
-            {
-              CommandDispatcher<> c{context.commandStack};
-              c.submit(cmd);
-            }
-          });
+          categoryMenu(p->category)
+              ->addAction(p->name, menu, [p, loadPreset] { loadPreset(*p); });
         }
 
         if(auto proc_builtins = proc.builtinPresets(); !proc_builtins.empty())
@@ -281,17 +322,9 @@ score::QGraphicsDraggablePixmap* makePresetButton(
           for(auto& p : proc_builtins)
           {
             // FIXME try to understand why just p.name does not work here
-            menu->addAction("" + p.name, menu, [p = std::move(p), &proc, &context] {
-              auto& load_preset_ifaces
-                  = context.app.interfaces<LoadPresetCommandFactoryList>();
-
-              auto cmd = load_preset_ifaces.make(
-                  &LoadPresetCommandFactory::make, proc, std::move(p), context);
-              if(cmd)
-              {
-                CommandDispatcher<> c{context.commandStack};
-                c.submit(cmd);
-              }
+            categoryMenu(p.category)
+                ->addAction("" + p.name, menu, [p = std::move(p), loadPreset] {
+              loadPreset(p);
             });
           }
         }
@@ -313,25 +346,33 @@ score::QGraphicsDraggablePixmap* makePresetButton(
         for(auto& bp : bps)
           goodPresets.push_back(&bp);
 
+        // Cycle in the same order the menu displays them.
+        std::sort(goodPresets.begin(), goodPresets.end(), presetMenuOrder);
+
         if(goodPresets.size() < 2)
           return;
-        int i = 0;
-        for(auto& fx : goodPresets)
+
+        // loadPreset() renames the process to the preset's name, so the
+        // currently-loaded preset is the one whose name matches.
+        const QString cur = proc.metadata().getName();
+        int i = -1;
+        for(int j = 0; j < std::ssize(goodPresets); j++)
         {
-          if(fx->key.effect == e)
+          if(goodPresets[j]->name == cur)
+          {
+            i = j;
             break;
-          i++;
+          }
         }
 
-        if(btn == Qt::ForwardButton)
-          i++;
+        const int n = std::ssize(goodPresets);
+        if(i < 0)
+          // Nothing matches (renamed / never loaded): start at the relevant end.
+          i = (btn == Qt::ForwardButton) ? 0 : (n - 1);
+        else if(btn == Qt::ForwardButton)
+          i = (i + 1) % n;
         else
-          i--;
-
-        if(i >= std::ssize(goodPresets))
-          i = 0;
-        else if(i < 0)
-          i = std::ssize(goodPresets) - 1;
+          i = (i - 1 + n) % n;
 
         auto& load_preset_ifaces
             = context.app.interfaces<LoadPresetCommandFactoryList>();

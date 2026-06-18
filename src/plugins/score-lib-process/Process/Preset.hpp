@@ -34,6 +34,10 @@ struct SCORE_LIB_PROCESS_EXPORT Preset
   ProcessIdentifier key;
   QByteArray data;
 
+  // Optional hierarchical category used to group presets into submenus.
+  // Empty means "root"; "Foo/Bar/Baz" nests the preset under Foo > Bar > Baz.
+  QString category;
+
   static std::shared_ptr<Process::Preset>
   fromJson(const Process::ProcessFactoryList& procs, const QByteArray& obj) noexcept;
 
@@ -41,7 +45,8 @@ struct SCORE_LIB_PROCESS_EXPORT Preset
 
   friend bool operator==(const Preset& lhs, const Preset& rhs) noexcept
   {
-    return lhs.name == rhs.name && lhs.key == rhs.key && lhs.data == rhs.data;
+    return lhs.name == rhs.name && lhs.key == rhs.key && lhs.data == rhs.data
+           && lhs.category == rhs.category;
   }
   friend bool operator!=(const Preset& lhs, const Preset& rhs) noexcept
   {
