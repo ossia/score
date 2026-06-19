@@ -8,15 +8,19 @@ extern "C" {
 #include <libavutil/pixfmt.h>
 }
 
-// !
+// clang-format off
+// Order-sensitive — do NOT let clang-format sort these:
+//  - <initguid.h> must precede <windows.h>/<dshow.h> so the DirectShow GUIDs get
+//    a real definition (not just an extern declaration);
+//  - the Windows system headers must come before <dshow.h>/<dvdmedia.h>.
 #include <initguid.h>
 #include <windows.h>
-// ! Needs to be present before, to ensure uuids get enumerated
 
 #include <dshow.h>
 #include <dvdmedia.h>
 #include <oleauto.h>
 #include <wmcodecdsp.h>
+// clang-format on
 
 namespace Gfx
 {

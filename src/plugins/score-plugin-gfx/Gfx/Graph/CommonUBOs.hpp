@@ -2,24 +2,6 @@
 
 #include <cstdint>
 
-#if defined(_WIN32)
-#if !defined(WIN32_LEAN_AND_MEAN)
-#define WIN32_LEAN_AND_MEAN
-#endif
-#if !defined(NOMINMAX)
-#define NOMINMAX
-#endif
-#if !defined(UNICODE)
-#define UNICODE 1
-#endif
-#if !defined(_UNICODE)
-#define _UNICODE 1
-#endif
-#include <windows.h>
-#undef near
-#undef far
-#endif
-
 namespace score::gfx
 {
 #pragma pack(push, 1)
@@ -68,8 +50,11 @@ struct ModelCameraUBO
   float modelNormal[9]{};
   float padding[3]; // Needed as a mat3 needs a bit more space...
   float fov = 90.f;
-  float near = 0.001f;   //!< Used by non-matrix projections (fulldome, …) for reverse-Z depth.
-  float far = 10000.f;   //!< idem.
+  // NB: must NOT be named `near`/`far` — those are legacy macros defined by
+  // <windows.h>; naming members after them forces an #undef that then breaks
+  // any Windows system header (mmeapi.h, combaseapi.h) included afterwards.
+  float znear = 0.001f;  //!< Used by non-matrix projections (fulldome, …) for reverse-Z depth.
+  float zfar = 10000.f;  //!< idem.
   // clang-format on
 };
 

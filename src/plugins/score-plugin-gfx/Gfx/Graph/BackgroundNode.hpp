@@ -7,6 +7,7 @@
 #include <Gfx/Settings/Model.hpp>
 #include <Gfx/Window/WindowSettings.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/tools/Debug.hpp>
 
 namespace score::gfx
