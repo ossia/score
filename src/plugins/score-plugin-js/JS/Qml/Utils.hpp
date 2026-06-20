@@ -35,6 +35,16 @@ public:
   void shell(QString cmd, QJSValue onFinish);
   W_SLOT(shell)
 
+  // Native, asynchronous file dialogs usable from any Qt Quick app.
+  // onAccept is a JS callback invoked with the chosen path (empty string if
+  // the dialog was cancelled). The dialog never blocks the QML thread.
+  void openFileDialog(QString title, QString filters, QString folder, QJSValue onAccept);
+  W_SLOT(openFileDialog)
+  void saveFileDialog(
+      QString title, QString filters, QString folder, QString defaultName,
+      QJSValue onAccept);
+  W_SLOT(saveFileDialog)
+
   QString layoutTextLines(QString text, QString font, int pointSize, int maxWidth);
   W_SLOT(layoutTextLines)
 
