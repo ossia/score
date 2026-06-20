@@ -152,6 +152,14 @@ inline located_sdk locateSDKWithFallback()
   else
     ret.sdk_kind = located_sdk::platform;
 
+  // An explicitly-provided or relocatable SDK (SCORE_JIT_SDK, an AppImage / .app
+  // bundle) can live outside /usr; trust it as official when it actually ships the
+  // deployed score files the addon compiler needs, otherwise prototype and include
+  // resolution wrongly falls back to the build-time source tree (absent at runtime).
+  if(ret.sdk_kind == located_sdk::platform
+     && QDir(QString::fromStdString(ret.path)).exists("lib/cmake/score/prototype.cpp.in"))
+    ret.sdk_kind = located_sdk::official;
+
   {
     QDir dir(QString::fromStdString(ret.path));
     if(!dir.exists())
