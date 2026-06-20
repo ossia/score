@@ -223,6 +223,19 @@ static std::unique_ptr<llvm::orc::LLJIT> jitBuilder(JitCompiler& self)
     auto ObjLinkingLayer
         = std::make_unique<llvm::orc::ObjectLinkingLayer>(ES, *self.m_memmgr);
 
+    // COFF needs the same responsibility setup LLJIT applies to its own COFF
+    // object layer; a hand-built ObjectLinkingLayer omits it, so JIT-linking COFF
+    // objects fails with "Could not find symbol at given index, did you add it to
+    // JITSymbolTable?" on symbols the layer never claimed.
+#if LLVM_VERSION_MAJOR >= 21
+    const llvm::Triple& TT = ES.getTargetTriple();
+#endif
+    if(TT.isOSBinFormatCOFF())
+    {
+      ObjLinkingLayer->setOverrideObjectFlagsWithResponsibilityFlags(true);
+      ObjLinkingLayer->setAutoClaimResponsibilityForObjectSymbols(true);
+    }
+
     ObjLinkingLayer->addPlugin(std::make_shared<RuntimeInterposePlugin>(self.m_mangler));
     ObjLinkingLayer->addPlugin(std::make_shared<EagerLinkingPlugin>(ES));
 
