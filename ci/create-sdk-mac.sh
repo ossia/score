@@ -57,4 +57,27 @@ for fw in IOKit CFNetwork CoreFoundation CoreAudio CoreText Foundation DiskArbit
   fi
 done
 
+# Make CoreFoundation's CF_ENUM / CF_CLOSED_ENUM compile as plain C++.
+#
+# Apple's CFAvailability.h, when a fixed underlying type is available -- which it
+# is in C++ via cxx_strong_enums -- defines these macros with the Objective-C
+# form `enum E : T E; enum E : T`, i.e. a non-defining fixed-underlying-type enum
+# used as a declarator in the enclosing `typedef`. That is only legal in
+# Objective-C(++) (objc_fixed_enum); the JIT compiles add-ons as C++23, where it
+# is a hard error ("non-defining declaration of enumeration with a fixed
+# underlying type is only permitted as a standalone declaration"), which clang's
+# elaborated-enum-base diagnostic does not let us suppress in this LLVM build.
+# Rewrite the C++ branch to the standards-compliant form newer SDKs already ship:
+# a standalone forward declaration, a typedef of the (unfixed) enum, then the
+# definition. The Objective-C branch is kept verbatim via #else.
+CFAV="$INCLUDE/macos-sdks/CoreFoundation/CFAvailability.h"
+if [[ -f "$CFAV" ]]; then
+  perl -0pi -e 's{^(\#define (?:__CF_NAMED_ENUM|CF_CLOSED_ENUM)\(_type, _name\))[ \t]+enum (\S+) _name : _type _name; enum _name : _type[ \t]*$}{#if defined(__cplusplus)\n$1 enum $2 _name : _type; typedef enum _name _name; enum _name : _type\n#else\n$1 enum $2 _name : _type _name; enum _name : _type\n#endif}gm' "$CFAV"
+  if grep -q '^#if defined(__cplusplus)$' "$CFAV" && grep -q 'typedef enum _name _name;' "$CFAV"; then
+    echo "Patched CF_ENUM/CF_CLOSED_ENUM in CFAvailability.h for C++"
+  else
+    echo "WARNING: CFAvailability.h CF_ENUM patch did not apply -- macOS JIT may fail to compile CoreFoundation; check whether Apple changed the macro form"
+  fi
+fi
+
 source $SCRIPTDIR/cleanup-sdk-common.sh
