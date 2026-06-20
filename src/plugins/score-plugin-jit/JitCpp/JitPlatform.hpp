@@ -257,6 +257,16 @@ populateCompileOptions(std::vector<std::string>& args, CompilerOptions opts)
 
 #if defined(__APPLE__)
   args.push_back("-fmax-type-align=16");
+
+  // Apple's CoreFoundation CF_ENUM / CF_OPTIONS macros expand (when the fixed
+  // underlying type is available, as in C++) to a non-defining fixed-underlying-
+  // type enum embedded in a typedef, e.g. `typedef enum E : long E; enum E : long
+  // {...};`. That form is only valid in Objective-C(++) where objc_fixed_enum is
+  // a feature; in plain C++23 clang rejects it as -Welaborated-enum-base. The JIT
+  // compiles the addon as C++ but pulls these headers in transitively (Qt, ossia),
+  // so accept the Apple idiom as the extension it is. clang still assigns the enum
+  // its correct fixed-type values.
+  args.push_back("-Wno-elaborated-enum-base");
 #endif
   args.push_back("-mrelocation-model");
   args.push_back("pic");
