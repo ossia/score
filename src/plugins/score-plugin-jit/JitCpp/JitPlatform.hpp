@@ -676,6 +676,22 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
   args.push_back(sdk + "/include/c++/v1");
 #endif
 
+  // libc++'s per-target __config_site lives at include/<triple>/c++/v1 (multiarch
+  // layout) and is #include'd by the main libc++ headers, so that dir must also be
+  // on the search path.
+  {
+    const QDir incdir(qsdk + "/include");
+    for(const auto& d : incdir.entryList(QDir::Dirs | QDir::NoDotAndDotDot))
+    {
+      if(QFileInfo::exists(qsdk + "/include/" + d + "/c++/v1/__config_site"))
+      {
+        args.push_back("-internal-isystem");
+        args.push_back(sdk + "/include/" + d.toStdString() + "/c++/v1");
+        break;
+      }
+    }
+  }
+
 #elif defined(_GLIBCXX_RELEASE)
   // Try to locate the correct libstdc++ folder
   // TODO these are only heuristics. how to make them better ?
@@ -727,6 +743,15 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
   args.push_back(sdk + "/lib/clang/" + llvm_lib_version + "/include");
   args.push_back("-internal-externc-isystem");
   args.push_back(sdk + "/include");
+#endif
+
+#if defined(__APPLE__)
+  // macOS framework headers are bundled flat in the SDK under include/macos-sdks
+  // (e.g. macos-sdks/ApplicationServices/ApplicationServices.h). In -cc1 mode no
+  // default framework path is added, so addons that transitively include a system
+  // framework (e.g. ApplicationServices via score/tools/Cursor.hpp) need this.
+  if(QFileInfo{qsdk + "/include/macos-sdks"}.isDir())
+    args.push_back("-isystem" + sdk + "/include/macos-sdks");
 #endif
 
   // -resource-dir
