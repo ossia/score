@@ -1,0 +1,13 @@
+score_use_system(use_sys quickcpplib)
+set(QUICKCPPLIB_INC "${CMAKE_CURRENT_LIST_DIR}/quickcpplib/include")
+if(use_sys)
+  find_path(QUICKCPPLIB_INCLUDE_DIR quickcpplib/config.hpp)
+  if(QUICKCPPLIB_INCLUDE_DIR)
+    set(QUICKCPPLIB_INC "${QUICKCPPLIB_INCLUDE_DIR}")
+  endif()
+endif()
+
+if(NOT TARGET quickcpplib)
+  add_library(quickcpplib INTERFACE IMPORTED GLOBAL)
+  target_include_directories(quickcpplib SYSTEM INTERFACE "${QUICKCPPLIB_INC}")
+endif()
