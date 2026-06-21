@@ -1,0 +1,13 @@
+score_use_system(use_sys outcome)
+set(OUTCOME_INC "${CMAKE_CURRENT_LIST_DIR}/outcome/include")
+if(use_sys)
+  find_path(OUTCOME_INCLUDE_DIR outcome/outcome.hpp)
+  if(OUTCOME_INCLUDE_DIR)
+    set(OUTCOME_INC "${OUTCOME_INCLUDE_DIR}")
+  endif()
+endif()
+
+if(NOT TARGET outcome)
+  add_library(outcome INTERFACE IMPORTED GLOBAL)
+  target_include_directories(outcome SYSTEM INTERFACE "${OUTCOME_INC}")
+endif()
