@@ -106,6 +106,11 @@ public:
   QObject* createProcess(QObject* interval, QString name, QString data);
   W_SLOT(createProcess)
 
+  void loadPreset(QObject* process, QString json);
+  W_SLOT(loadPreset)
+  QString savePreset(QObject* process);
+  W_SLOT(savePreset)
+
   void setName(QObject* sel, QString new_name);
   W_SLOT(setName)
 

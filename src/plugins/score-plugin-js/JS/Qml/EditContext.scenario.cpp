@@ -1,3 +1,4 @@
+#include <Process/Preset.hpp>
 #include <Process/ProcessList.hpp>
 
 #include <Scenario/Commands/CommandAPI.hpp>
@@ -164,6 +165,28 @@ QObject* EditJsContext::createProcess(QObject* interval, QString name, QString d
     return m->createProcess(*st, f->concreteKey(), data);
   }
   return nullptr;
+}
+
+void EditJsContext::loadPreset(QObject* process, QString json)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+  auto* proc = qobject_cast<Process::ProcessModel*>(process);
+  if(!proc)
+    return;
+
+  auto& factories = doc->app.interfaces<Process::ProcessFactoryList>();
+  if(auto preset = Process::Preset::fromJson(factories, json.toUtf8()))
+    proc->loadPreset(*preset);
+}
+
+QString EditJsContext::savePreset(QObject* process)
+{
+  auto* proc = qobject_cast<Process::ProcessModel*>(process);
+  if(!proc)
+    return {};
+  return QString::fromUtf8(proc->savePreset().toJson());
 }
 
 void EditJsContext::setName(QObject* sel, QString new_name)
