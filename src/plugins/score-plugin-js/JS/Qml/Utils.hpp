@@ -32,6 +32,15 @@ public:
   void writeFile(QString path, QByteArray content);
   W_SLOT(writeFile)
 
+  // Absolute paths of the files in a directory matching the given glob filters
+  // (e.g. "*.scp" or "*.scp;*.json"; empty = all files). Empty if the directory
+  // does not exist. <LIBRARY>:/<PROJECT>: paths are resolved like readFile.
+  QStringList listFiles(QString path, QString filters);
+  W_SLOT(listFiles)
+  // Absolute paths of the immediate sub-directories of a directory.
+  QStringList listDirectories(QString path);
+  W_SLOT(listDirectories)
+
   void shell(QString cmd, QJSValue onFinish);
   W_SLOT(shell)
 

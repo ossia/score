@@ -10,6 +10,7 @@
 #include <ossia/detail/algorithms.hpp>
 
 #include <QCoreApplication>
+#include <QDir>
 #include <QFile>
 #include <QFileDialog>
 #include <QFontMetrics>
@@ -87,6 +88,45 @@ void JsUtils::writeFile(QString path, QByteArray content)
   QFile f(path);
   if(f.open(QIODevice::WriteOnly))
     f.write(content);
+}
+
+QStringList JsUtils::listFiles(QString path, QString filters)
+{
+  if(auto doc = score::AppContext().currentDocument())
+    path = score::locateFilePath(path, *doc);
+
+  QDir dir(path);
+  if(!dir.exists())
+    return {};
+
+  QStringList nameFilters;
+  if(!filters.isEmpty())
+    nameFilters = filters.split(';', Qt::SkipEmptyParts);
+
+  QStringList res;
+  const auto entries = dir.entryInfoList(nameFilters, QDir::Files, QDir::Name);
+  res.reserve(entries.size());
+  for(const auto& fi : entries)
+    res.push_back(fi.absoluteFilePath());
+  return res;
+}
+
+QStringList JsUtils::listDirectories(QString path)
+{
+  if(auto doc = score::AppContext().currentDocument())
+    path = score::locateFilePath(path, *doc);
+
+  QDir dir(path);
+  if(!dir.exists())
+    return {};
+
+  QStringList res;
+  const auto entries
+      = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
+  res.reserve(entries.size());
+  for(const auto& fi : entries)
+    res.push_back(fi.absoluteFilePath());
+  return res;
 }
 
 void JsUtils::shell(QString cmd, QJSValue onFinish)
