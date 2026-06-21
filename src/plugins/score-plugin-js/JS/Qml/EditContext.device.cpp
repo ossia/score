@@ -244,7 +244,12 @@ void EditJsContext::createDevice(QString name, QString uuid, QJSValue obj)
   set.name = name;
   set.protocol = UuidKey<Device::ProtocolFactory>::fromString(uuid);
   const QVariant& var = obj.toVariant();
-  if(var.canConvert<QVariantMap>())
+  if(var.canConvert<Device::DeviceSettings>())
+  {
+    set.deviceSpecificSettings
+        = var.value<Device::DeviceSettings>().deviceSpecificSettings;
+  }
+  else if(var.canConvert<QVariantMap>())
   {
     auto json = QJsonDocument::fromVariant(var.value<QVariantMap>()).toJson();
 
@@ -259,11 +264,6 @@ void EditJsContext::createDevice(QString name, QString uuid, QJSValue obj)
       qDebug() << "Cannot create device: missing protocol" << name << uuid;
       return;
     }
-  }
-  else if(var.canConvert<Device::DeviceSettings>())
-  {
-    set.deviceSpecificSettings
-        = var.value<Device::DeviceSettings>().deviceSpecificSettings;
   }
 
   auto [m, _] = macro(*doc);
