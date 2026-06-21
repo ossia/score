@@ -1,4 +1,5 @@
-if(OSSIA_USE_SYSTEM_LIBRARIES AND LINUX)
+score_use_system(use_sys vst3)
+if(use_sys AND LINUX)
   find_path(VST3_SDK_MODULE_DIR
       public.sdk/source/vst/hosting/module_linux.cpp
       PATH_SUFFIXES vst3sdk

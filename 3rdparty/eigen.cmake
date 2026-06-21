@@ -1,4 +1,5 @@
-if(SCORE_USE_SYSTEM_LIBRARIES)
+score_use_system(use_sys eigen)
+if(use_sys)
   find_package(eigen 3.4 GLOBAL CONFIG)
 endif()
 
