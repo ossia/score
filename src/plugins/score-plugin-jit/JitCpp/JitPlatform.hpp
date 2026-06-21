@@ -258,6 +258,14 @@ populateCompileOptions(std::vector<std::string>& args, CompilerOptions opts)
 #if defined(__APPLE__)
   args.push_back("-fmax-type-align=16");
 
+  // Apple framework headers (CoreGraphics, ImageIO, Metadata, ...) declare
+  // block-typed parameters (`void (^)(...)`), the Apple "blocks" extension. The
+  // JIT pulls them in transitively, so enable blocks or every such declaration is
+  // a hard error ("blocks support disabled - compile with -fblocks"). We only
+  // parse these signatures; the add-on does not invoke them, so no blocks runtime
+  // is needed.
+  args.push_back("-fblocks");
+
   // Apple's CoreFoundation CF_ENUM / CF_OPTIONS macros expand (when the fixed
   // underlying type is available, as in C++) to a non-defining fixed-underlying-
   // type enum embedded in a typedef, e.g. `typedef enum E : long E; enum E : long
