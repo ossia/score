@@ -1,6 +1,6 @@
 name: Linux distro build
 on:
-  # pull_request:  # TEMP: disabled to focus CI on the macOS JIT fix; re-enable when the Mac build works
+  pull_request:
   push:
     branches:
       - master
