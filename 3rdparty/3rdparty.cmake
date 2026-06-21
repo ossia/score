@@ -1,7 +1,13 @@
 include(3rdparty/libossia.cmake)
 
-add_subdirectory(3rdparty/QCodeEditor)
-disable_qt_plugins(QCodeEditor)
+score_use_system(use_sys QCodeEditor)
+if(use_sys)
+  find_package(QCodeEditor GLOBAL QUIET)
+endif()
+if(NOT TARGET QCodeEditor)
+  add_subdirectory(3rdparty/QCodeEditor)
+  disable_qt_plugins(QCodeEditor)
+endif()
 
 function(disable_var VAR)
   if(${${VAR}})
