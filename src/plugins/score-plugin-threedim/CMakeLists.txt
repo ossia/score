@@ -36,7 +36,7 @@ add_library(
   "${3RDPARTY_FOLDER}/libssynth/src/ssynth/MiniParser.cpp"
   "${3RDPARTY_FOLDER}/libssynth/src/ssynth/RandomStreams.cpp")
 target_include_directories(ssynth SYSTEM
-                           PRIVATE "${3RDPARTY_FOLDER}/libssynth/src")
+                           PUBLIC "${3RDPARTY_FOLDER}/libssynth/src")
 
 target_link_libraries(ssynth PRIVATE "${QT_PREFIX}::Core" "${QT_PREFIX}::Gui"
                                      "${QT_PREFIX}::Xml" score_lib_base)
@@ -44,6 +44,20 @@ target_link_libraries(ssynth PRIVATE "${QT_PREFIX}::Core" "${QT_PREFIX}::Gui"
 if(NOT MSVC)
   target_compile_options(ssynth PRIVATE -w)
 endif()
+
+add_library(miniply STATIC "${3RDPARTY_FOLDER}/miniply/miniply.cpp")
+target_include_directories(miniply SYSTEM PUBLIC "${3RDPARTY_FOLDER}/miniply")
+set_target_properties(miniply PROPERTIES UNITY_BUILD 0)
+
+add_library(mikktspace STATIC "${3RDPARTY_FOLDER}/mikktspace/mikktspace.c")
+target_include_directories(mikktspace SYSTEM PUBLIC "${3RDPARTY_FOLDER}/mikktspace")
+set_target_properties(mikktspace PROPERTIES UNITY_BUILD 0)
+
+add_library(vcglib INTERFACE IMPORTED GLOBAL)
+target_include_directories(vcglib SYSTEM INTERFACE "${3RDPARTY_FOLDER}/vcglib")
+
+add_library(opengametools INTERFACE IMPORTED GLOBAL)
+target_include_directories(opengametools SYSTEM INTERFACE "${3RDPARTY_FOLDER}/opengametools/src")
 
 # threedim addon
 add_library(
@@ -115,8 +129,6 @@ add_library(
   Threedim/Splat/GaussianSplatNode.hpp
   Threedim/Splat/GaussianSplatNode.cpp
 
-  "${3RDPARTY_FOLDER}/miniply/miniply.cpp"
-  "${3RDPARTY_FOLDER}/mikktspace/mikktspace.c"
   score_plugin_threedim.hpp
   score_plugin_threedim.cpp)
 
@@ -125,15 +137,7 @@ setup_score_plugin(score_plugin_threedim)
 
 score_generate_command_list_file(score_plugin_threedim "Threedim/RenderPipeline/Process.hpp") 
 
-target_include_directories(
-  score_plugin_threedim SYSTEM
-  PRIVATE
-    "${3RDPARTY_FOLDER}/libssynth/src"
-    "${3RDPARTY_FOLDER}/vcglib"
-    "${3RDPARTY_FOLDER}/miniply"
-    "${3RDPARTY_FOLDER}/mikktspace"
-    "${3RDPARTY_FOLDER}/opengametools/src")
-
 target_link_libraries(
   score_plugin_threedim PRIVATE score_plugin_engine score_plugin_avnd
-                                score_plugin_gfx fmt::fmt ssynth Eigen3::Eigen)
+                                score_plugin_gfx fmt::fmt ssynth Eigen3::Eigen
+                                miniply mikktspace vcglib opengametools)
