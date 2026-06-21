@@ -1,4 +1,5 @@
-if(SCORE_USE_SYSTEM_LIBRARIES)
+score_use_system(use_sys xtensor)
+if(use_sys)
   find_package(xtl 0.8.0 GLOBAL CONFIG)
   find_package(xsimd 13.2.0 GLOBAL CONFIG)
   find_package(xtensor 0.27.0 GLOBAL CONFIG)
