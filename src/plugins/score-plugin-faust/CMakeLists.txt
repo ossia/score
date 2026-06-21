@@ -63,7 +63,8 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${FAUST_INCLUDE_DIR})
 setup_score_plugin(${PROJECT_NAME})
 
 
-if(NOT SCORE_USE_SYSTEM_LIBRARIES)
+score_use_system(use_sys Faust)
+if(NOT use_sys)
   message("Downloading Faust libs...")
 
   ExternalProject_Add(

@@ -1,4 +1,5 @@
-if(OSSIA_USE_SYSTEM_LIBRARIES)
+score_use_system(use_sys Suil)
+if(use_sys)
   return()
 endif()
 

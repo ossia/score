@@ -6,7 +6,8 @@ if(EMSCRIPTEN OR BSD)
   return()
 endif()
 
-if(SCORE_USE_SYSTEM_LIBRARIES)
+score_use_system(use_sys sh4lt)
+if(use_sys)
   find_package(sh4lt GLOBAL)
 else()
   add_library(sh4lt STATIC

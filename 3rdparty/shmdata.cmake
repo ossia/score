@@ -6,7 +6,8 @@ if(EMSCRIPTEN OR BSD)
   return()
 endif()
 
-if(SCORE_USE_SYSTEM_LIBRARIES)
+score_use_system(use_sys shmdata)
+if(use_sys)
   find_package(shmdata GLOBAL)
 else()
   add_library(shmdata STATIC
