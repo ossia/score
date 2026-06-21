@@ -125,8 +125,10 @@ private:
 class EagerLinkingPlugin : public llvm::orc::ObjectLinkingLayer::Plugin
 {
 public:
-  explicit EagerLinkingPlugin(llvm::orc::ExecutionSession& ES)
+  EagerLinkingPlugin(
+      llvm::orc::ExecutionSession& ES, llvm::orc::MangleAndInterner& mangler)
       : ES{ES}
+      , m_mangler{mangler}
   {
   }
 
@@ -143,9 +145,15 @@ public:
 
       for(auto* Sym : G.external_symbols())
       {
-        if((*Sym->getName()).starts_with("__lljit"))
+        // __lljit on ELF, ___lljit once Mach-O adds its global '_' prefix.
+        if((*Sym->getName()).starts_with("__lljit")
+           || (*Sym->getName()).starts_with("___lljit"))
           continue;
-        if((*Sym->getName()).starts_with("atexit"))
+        // atexit is interposed by RuntimeInterposePlugin; skip the *mangled*
+        // name so it matches on Mach-O too (_atexit), not just ELF (atexit).
+        // Otherwise the orphaned external symbol is force-resolved here and
+        // fails with "Symbols not found: [ _atexit ]".
+        if(Sym->getName() == m_mangler("atexit"))
           continue;
         ExternalSymbols.add(ES.intern(*Sym->getName()));
       }
@@ -196,6 +204,7 @@ public:
   }
 
   llvm::orc::ExecutionSession& ES;
+  llvm::orc::MangleAndInterner& m_mangler;
 };
 
 static std::unique_ptr<llvm::orc::LLJIT> jitBuilder(JitCompiler& self)
@@ -237,7 +246,8 @@ static std::unique_ptr<llvm::orc::LLJIT> jitBuilder(JitCompiler& self)
     }
 
     ObjLinkingLayer->addPlugin(std::make_shared<RuntimeInterposePlugin>(self.m_mangler));
-    ObjLinkingLayer->addPlugin(std::make_shared<EagerLinkingPlugin>(ES));
+    ObjLinkingLayer->addPlugin(
+        std::make_shared<EagerLinkingPlugin>(ES, self.m_mangler));
 
     // crash in deregisterEHFrames
     //ObjLinkingLayer->addPlugin(
