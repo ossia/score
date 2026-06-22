@@ -17,6 +17,10 @@
 
 #include <QDir>
 #include <QIcon>
+#include <QTimer>
+
+#include <atomic>
+#include <memory>
 
 #include <nano_observer.hpp>
 #include <score_plugin_library_export.h>
@@ -38,6 +42,7 @@ class SCORE_PLUGIN_LIBRARY_EXPORT ProcessesItemModel
 {
 public:
   ProcessesItemModel(const score::GUIApplicationContext& ctx, QObject* parent);
+  ~ProcessesItemModel();
 
   void rescan();
   QModelIndex find(const Process::ProcessModelFactory::ConcreteKey& k);
@@ -101,6 +106,7 @@ private:
   QModelIndex indexFromNode(ProcessNode& n);
   void publishRun(PendingEntry* entries, std::size_t count);
   void scheduleFlush();
+  void indexForSearch();
 
   const score::GUIApplicationContext& context;
   ProcessNode m_root;
@@ -114,6 +120,12 @@ private:
   score::RecursiveWatch m_watch;
   bool m_flushQueued{};
   bool m_inReset{};
+
+  QTimer m_searchIndexTimer;
+  uint64_t m_searchIndexGeneration{};
+  bool m_searchIndexRunning{};
+  bool m_searchIndexPending{};
+  std::shared_ptr<std::atomic_bool> m_alive;
 };
 
 }
