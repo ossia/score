@@ -13,6 +13,7 @@
 #include <QElapsedTimer>
 #include <QIcon>
 #include <QMimeData>
+#include <QThreadPool>
 #include <QTimer>
 
 namespace Library
@@ -35,13 +36,119 @@ ProcessesItemModel::ProcessesItemModel(
     const score::GUIApplicationContext& ctx, QObject* parent)
     : TreeNodeBasedItemModel<ProcessNode>{parent}
     , context{ctx}
+    , m_alive{std::make_shared<std::atomic_bool>(true)}
 {
   auto& procs = ctx.interfaces<Process::ProcessFactoryList>();
   procs.added.connect<&ProcessesItemModel::on_newPlugin>(*this);
 
+  // Node pointers handed to the search indexing worker are invalidated by
+  // resets and removals; drop any in-flight result when that happens.
+  auto invalidate = [this] { ++m_searchIndexGeneration; };
+  connect(this, &QAbstractItemModel::modelAboutToBeReset, this, invalidate);
+  connect(this, &QAbstractItemModel::rowsAboutToBeRemoved, this, invalidate);
+
+  // Some scanners (LV2, RecursiveWatch commits...) add nodes without
+  // begin/endInsertRows, so there is no reliable "node added" signal: poll
+  // instead. The sweep is a cheap in-memory tree walk when there is nothing
+  // new to index.
+  m_searchIndexTimer.setInterval(3000);
+  connect(&m_searchIndexTimer, &QTimer::timeout, this, [this] { indexForSearch(); });
+  m_searchIndexTimer.start();
+
   auto& lib = context.settings<Library::Settings::Model>();
   con(lib, &Library::Settings::Model::rescanLibrary, this, &ProcessesItemModel::rescan);
   rescan();
+}
+
+ProcessesItemModel::~ProcessesItemModel()
+{
+  *m_alive = false;
+}
+
+void ProcessesItemModel::indexForSearch()
+{
+  if(m_searchIndexRunning)
+    return;
+
+  struct Item
+  {
+    ProcessNode* node{};
+    Process::ProcessModelFactory* factory{};
+    QString customData;
+    QString prettyName;
+  };
+
+  // GUI thread: collect the nodes which still need their search data, and
+  // resolve their factory here so that the worker never touches the
+  // interface list (which can grow when addons are loaded).
+  auto items = std::make_shared<std::vector<Item>>();
+  auto& factories = context.interfaces<Process::ProcessFactoryList>();
+  auto collect = [&](auto&& self, ProcessNode& node) -> void {
+    if(node.key != Process::ProcessModelFactory::ConcreteKey{}
+       && node.searchString.isEmpty())
+    {
+      if(auto* f = factories.get(node.key))
+        items->push_back({&node, f, node.customData, node.prettyName});
+    }
+    for(auto& child : node)
+      self(self, child);
+  };
+  collect(collect, m_root);
+
+  if(items->empty())
+    return;
+
+  m_searchIndexRunning = true;
+  const auto generation = m_searchIndexGeneration;
+
+  // Worker thread: descriptor() is potentially very slow (it may parse the
+  // file behind the node); this is the whole reason this runs off the GUI
+  // thread. Results are delivered in packets to avoid clobbering the main
+  // loop with tens of thousands of queued events.
+  QThreadPool::globalInstance()->start(
+      [this, items = std::move(items), generation, alive = m_alive] {
+    constexpr std::size_t packetSize = 100;
+    std::vector<std::pair<ProcessNode*, QString>> packet;
+    packet.reserve(packetSize);
+
+    auto flush = [&] {
+      if(packet.empty())
+        return;
+      QMetaObject::invokeMethod(
+          this, [this, generation, packet = std::move(packet)] {
+        if(generation != m_searchIndexGeneration)
+          return;
+        for(const auto& [node, str] : packet)
+          node->searchString = str;
+      }, Qt::QueuedConnection);
+      packet.clear();
+      packet.reserve(packetSize);
+    };
+
+    for(const Item& item : *items)
+    {
+      if(!*alive)
+        return;
+
+      const auto desc = item.factory->descriptor(item.customData);
+      QStringList parts{item.prettyName, desc.prettyName, desc.description};
+      parts += desc.tags;
+      parts.removeAll(QString{});
+      parts.removeDuplicates();
+
+      // Never leave the string empty: an empty searchString means
+      // "not indexed yet" and the node would be rescanned forever.
+      QString str = parts.isEmpty() ? QStringLiteral("|") : parts.join(u'|').toLower();
+
+      packet.emplace_back(item.node, std::move(str));
+      if(packet.size() >= packetSize)
+        flush();
+    }
+    flush();
+
+    QMetaObject::invokeMethod(
+        this, [this] { m_searchIndexRunning = false; }, Qt::QueuedConnection);
+  });
 }
 
 ProcessNode& ProcessesItemModel::addCategory(const QString& c)

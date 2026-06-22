@@ -77,6 +77,12 @@ bool ProcessFilterProxy::filterAcceptsRowItself(
   auto model = static_cast<ProcessesItemModel*>(sourceModel());
   auto& node = model->nodeFromModelIndex(index);
 
-  return node.prettyName.contains(m_textPattern, Qt::CaseInsensitive);
+  if(node.prettyName.contains(m_textPattern, Qt::CaseInsensitive))
+    return true;
+
+  // Also match against the search data (tags, description...) computed
+  // asynchronously by ProcessesItemModel::indexForSearch(). Purely in-memory:
+  // the search path never calls into the factories.
+  return node.searchString.contains(m_textPattern, Qt::CaseInsensitive);
 }
 }
