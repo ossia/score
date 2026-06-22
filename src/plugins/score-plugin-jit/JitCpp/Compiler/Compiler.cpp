@@ -26,9 +26,11 @@ static void jitAtExit(void (*f)())
   globalAtExit.functions[globalAtExit.currentCompiler].push_back(f);
 }
 
-void setTargetOptions(llvm::TargetOptions& opts)
+void setTargetOptions(llvm::TargetOptions& opts, bool useNativePlatform = false)
 {
-  opts.EmulatedTLS = true;
+  // With ExecutorNativePlatform (orc_rt) we get native thread-locals; without it
+  // the JIT has no TLS runtime, so fall back to emulated TLS as before.
+  opts.EmulatedTLS = !useNativePlatform;
 
   //opts.ExplicitEmulatedTLS = false;
 
@@ -216,7 +218,18 @@ static std::unique_ptr<llvm::orc::LLJIT> jitBuilder(JitCompiler& self)
 
   JTMB->setCodeGenOptLevel(llvm::CodeGenOptLevel::Aggressive);
 
-  setTargetOptions(JTMB->getOptions());
+  // When the SDK ships LLVM's ORC runtime, drive the executor through the native
+  // platform (native TLS, real static-init/atexit and -- on COFF -- exception
+  // registration). Otherwise keep the legacy path (emulated TLS + atexit
+  // interpose + EH disabled).
+#if LLVM_VERSION_MAJOR >= 22
+  const std::string orcRuntime = Jit::locateOrcRuntime();
+#else
+  const std::string orcRuntime;
+#endif
+  const bool useNativePlatform = !orcRuntime.empty();
+
+  setTargetOptions(JTMB->getOptions(), useNativePlatform);
 
   builder.setJITTargetMachineBuilder(std::move(*JTMB));
   builder.setNumCompileThreads(4);
@@ -245,17 +258,33 @@ static std::unique_ptr<llvm::orc::LLJIT> jitBuilder(JitCompiler& self)
       ObjLinkingLayer->setAutoClaimResponsibilityForObjectSymbols(true);
     }
 
-    ObjLinkingLayer->addPlugin(std::make_shared<RuntimeInterposePlugin>(self.m_mangler));
+    // The atexit interpose and EH-frame handling are owned by the native
+    // platform / orc_rt when it is in use; only install our replacements on the
+    // legacy path.
+    if(!useNativePlatform)
+    {
+      ObjLinkingLayer->addPlugin(
+          std::make_shared<RuntimeInterposePlugin>(self.m_mangler));
+
+      // crash in deregisterEHFrames
+      //ObjLinkingLayer->addPlugin(
+      //    std::make_shared<llvm::orc::EHFrameRegistrationPlugin>(
+      //        ES, std::make_unique<llvm::jitlink::InProcessEHFrameRegistrar>()));
+    }
     ObjLinkingLayer->addPlugin(
         std::make_shared<EagerLinkingPlugin>(ES, self.m_mangler));
 
-    // crash in deregisterEHFrames
-    //ObjLinkingLayer->addPlugin(
-    //    std::make_shared<llvm::orc::EHFrameRegistrationPlugin>(
-    //        ES, std::make_unique<llvm::jitlink::InProcessEHFrameRegistrar>()));
-
     return ObjLinkingLayer;
   });
+
+#if LLVM_VERSION_MAJOR >= 22
+  // Install the native executor platform (COFF/ELFNix/MachO). It reuses the
+  // ObjectLinkingLayer created above and adds its own generator/plugins; the
+  // process-symbols JITDylib it needs exists by default
+  // (LinkProcessSymbolsByDefault).
+  if(useNativePlatform)
+    builder.setPlatformSetUp(llvm::orc::ExecutorNativePlatform(orcRuntime));
+#endif
 
   auto p = builder.create();
   SCORE_ASSERT(p);
