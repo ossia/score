@@ -7,6 +7,8 @@
 #include <QDebug>
 #include <QDir>
 #include <QDirIterator>
+#include <QFileInfo>
+#include <QStringList>
 
 #include <llvm/ADT/StringMap.h>
 #include <llvm/ADT/StringRef.h>
@@ -180,6 +182,41 @@ inline located_sdk locateSDKWithFallback()
     }
   }
   return ret;
+}
+
+// Locate the SDK's LLVM ORC runtime archive (compiler-rt orc_rt), if shipped.
+// The native ExecutorNativePlatform loads it into the executor to provide native
+// TLS, static-init/atexit scheduling and (COFF) exception-table registration.
+// Name and location vary per platform (liborc_rt.a / liborc_rt_osx.a /
+// liborc_rt-x86_64.a, under llvm/ or llvm-libs/), so search a few candidate roots
+// rather than hard-coding. Returns "" when absent (e.g. Windows-arm64, or an SDK
+// built before orc_rt was shipped) -- callers then keep the non-platform path.
+static inline std::string locateOrcRuntime()
+{
+  if(QString p = qgetenv("SCORE_JIT_ORC_RUNTIME"); !p.isEmpty())
+    return p.toStdString();
+
+  auto sdk = locateSDKWithFallback();
+  if(sdk.path.empty())
+    return {};
+
+  const QString base = QString::fromStdString(sdk.path);
+  const QString parent = QFileInfo(base).absolutePath();
+  const QStringList roots{base,           parent,
+                          parent + "/llvm", parent + "/llvm-libs",
+                          base + "/llvm",   base + "/llvm-libs"};
+  for(const QString& root : roots)
+  {
+    // orc_rt lives under the clang resource dir: <root>/lib/clang/<v>/lib/<t>/.
+    const QString clangLibs = root + "/lib/clang";
+    if(!QDir(clangLibs).exists())
+      continue;
+    QDirIterator it(
+        clangLibs, {"liborc_rt*.a"}, QDir::Files, QDirIterator::Subdirectories);
+    if(it.hasNext())
+      return it.next().toStdString();
+  }
+  return {};
 }
 
 static inline void
