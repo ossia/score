@@ -16,7 +16,40 @@ struct LanguageSpec
   static constexpr const char* language = "JS";
 };
 
-using ProcessFactory = Process::ProcessFactory_T<JS::ProcessModel>;
+// Scan the first lines of a QML script for a `// @documentation <url>`
+// comment so a preset can point F1 to its own help page.
+inline QUrl documentationUrlFromScript(const QString& script) noexcept
+{
+  static const QString tag = QStringLiteral("// @documentation");
+  int line = 0;
+  for(const QString& raw : script.split('\n'))
+  {
+    if(++line > 20)
+      break;
+    const QString trimmed = raw.trimmed();
+    if(trimmed.startsWith(tag))
+    {
+      const QString url = trimmed.mid(tag.size()).trimmed();
+      if(!url.isEmpty())
+        return QUrl(url);
+    }
+  }
+  return {};
+}
+
+class ProcessFactory final : public Process::ProcessFactory_T<JS::ProcessModel>
+{
+public:
+  using Process::ProcessFactory_T<JS::ProcessModel>::descriptor;
+  Process::Descriptor descriptor(const Process::ProcessModel& m) const noexcept override
+  {
+    auto desc = Metadata<Process::Descriptor_k, JS::ProcessModel>::get();
+    const auto& js = safe_cast<const JS::ProcessModel&>(m);
+    if(auto url = documentationUrlFromScript(js.executionScript()); !url.isEmpty())
+      desc.documentationLink = url;
+    return desc;
+  }
+};
 struct LayerFactory : Process::EffectLayerFactory_Base
 {
   using Model_T = JS::ProcessModel;

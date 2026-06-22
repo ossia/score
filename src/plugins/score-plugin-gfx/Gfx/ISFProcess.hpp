@@ -42,6 +42,8 @@ struct ISFHelpers
         base.author = QString::fromStdString(desc.credits);
       if(!desc.description.empty())
         base.description = QString::fromStdString(desc.description);
+      if(!desc.documentation.empty())
+        base.documentationLink = QUrl(QString::fromStdString(desc.documentation));
       for(auto& cat : desc.categories)
         base.tags.push_back(QString::fromStdString(cat));
     }
