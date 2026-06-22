@@ -14,50 +14,11 @@ endif()
 
 find_package(${QT_VERSION} REQUIRED COMPONENTS Xml)
 
-# libssynth
-add_library(
-  ssynth STATIC
-  "${3RDPARTY_FOLDER}/libssynth/src/ssynth/Parser/EisenParser.cpp"
-  "${3RDPARTY_FOLDER}/libssynth/src/ssynth/Parser/Preprocessor.cpp"
-  "${3RDPARTY_FOLDER}/libssynth/src/ssynth/Parser/Tokenizer.cpp"
-  "${3RDPARTY_FOLDER}/libssynth/src/ssynth/Model/Action.cpp"
-  "${3RDPARTY_FOLDER}/libssynth/src/ssynth/Model/AmbiguousRule.cpp"
-  "${3RDPARTY_FOLDER}/libssynth/src/ssynth/Model/Builder.cpp"
-  "${3RDPARTY_FOLDER}/libssynth/src/ssynth/Model/CustomRule.cpp"
-  "${3RDPARTY_FOLDER}/libssynth/src/ssynth/Model/PrimitiveRule.cpp"
-  "${3RDPARTY_FOLDER}/libssynth/src/ssynth/Model/RuleSet.cpp"
-  "${3RDPARTY_FOLDER}/libssynth/src/ssynth/Model/State.cpp"
-  "${3RDPARTY_FOLDER}/libssynth/src/ssynth/Model/Transformation.cpp"
-  "${3RDPARTY_FOLDER}/libssynth/src/ssynth/Model/Rendering/TemplateRenderer.cpp"
-  "${3RDPARTY_FOLDER}/libssynth/src/ssynth/Model/Rendering/ObjRenderer.cpp"
-  "${3RDPARTY_FOLDER}/libssynth/src/ssynth/ColorPool.cpp"
-  "${3RDPARTY_FOLDER}/libssynth/src/ssynth/ColorUtils.cpp"
-  "${3RDPARTY_FOLDER}/libssynth/src/ssynth/Logging.cpp"
-  "${3RDPARTY_FOLDER}/libssynth/src/ssynth/MiniParser.cpp"
-  "${3RDPARTY_FOLDER}/libssynth/src/ssynth/RandomStreams.cpp")
-target_include_directories(ssynth SYSTEM
-                           PUBLIC "${3RDPARTY_FOLDER}/libssynth/src")
-
-target_link_libraries(ssynth PRIVATE "${QT_PREFIX}::Core" "${QT_PREFIX}::Gui"
-                                     "${QT_PREFIX}::Xml" score_lib_base)
-
-if(NOT MSVC)
-  target_compile_options(ssynth PRIVATE -w)
-endif()
-
-add_library(miniply STATIC "${3RDPARTY_FOLDER}/miniply/miniply.cpp")
-target_include_directories(miniply SYSTEM PUBLIC "${3RDPARTY_FOLDER}/miniply")
-set_target_properties(miniply PROPERTIES UNITY_BUILD 0)
-
-add_library(mikktspace STATIC "${3RDPARTY_FOLDER}/mikktspace/mikktspace.c")
-target_include_directories(mikktspace SYSTEM PUBLIC "${3RDPARTY_FOLDER}/mikktspace")
-set_target_properties(mikktspace PROPERTIES UNITY_BUILD 0)
-
-add_library(vcglib INTERFACE IMPORTED GLOBAL)
-target_include_directories(vcglib SYSTEM INTERFACE "${3RDPARTY_FOLDER}/vcglib")
-
-add_library(opengametools INTERFACE IMPORTED GLOBAL)
-target_include_directories(opengametools SYSTEM INTERFACE "${3RDPARTY_FOLDER}/opengametools/src")
+include("${3RDPARTY_FOLDER}/ssynth.cmake")
+include("${3RDPARTY_FOLDER}/miniply.cmake")
+include("${3RDPARTY_FOLDER}/mikktspace.cmake")
+include("${3RDPARTY_FOLDER}/vcglib.cmake")
+include("${3RDPARTY_FOLDER}/opengametools.cmake")
 
 # threedim addon
 add_library(
