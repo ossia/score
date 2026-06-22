@@ -9,7 +9,9 @@ endif()
 score_use_system(use_sys sh4lt)
 if(use_sys)
   find_package(sh4lt GLOBAL)
-else()
+endif()
+
+if(NOT TARGET sh4lt)
   add_library(sh4lt STATIC
       "${CMAKE_CURRENT_LIST_DIR}/sh4lt/sh4lt/c/cfollower.cpp"
       "${CMAKE_CURRENT_LIST_DIR}/sh4lt/sh4lt/c/clogger.cpp"
