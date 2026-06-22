@@ -14,6 +14,7 @@
 #include <QIcon>
 #include <QMimeData>
 #include <QPointer>
+#include <QThreadPool>
 #include <QTimer>
 
 namespace Library
@@ -62,13 +63,117 @@ ProcessesItemModel::ProcessesItemModel(
     const score::GUIApplicationContext& ctx, QObject* parent)
     : TreeNodeBasedItemModel<ProcessNode>{parent}
     , context{ctx}
+    , m_alive{std::make_shared<std::atomic_bool>(true)}
 {
   auto& procs = ctx.interfaces<Process::ProcessFactoryList>();
   procs.added.connect<&ProcessesItemModel::on_newPlugin>(*this);
 
+  auto invalidate = [this] { ++m_searchIndexGeneration; };
+  connect(this, &QAbstractItemModel::modelAboutToBeReset, this, invalidate);
+  connect(this, &QAbstractItemModel::rowsAboutToBeRemoved, this, invalidate);
+
+  m_searchIndexTimer.setSingleShot(true);
+  m_searchIndexTimer.setInterval(250);
+  connect(&m_searchIndexTimer, &QTimer::timeout, this, [this] { indexForSearch(); });
+  auto scheduleIndex = [this] {
+    if(!m_searchIndexTimer.isActive())
+      m_searchIndexTimer.start();
+  };
+  connect(this, &QAbstractItemModel::modelReset, this, scheduleIndex);
+  connect(this, &QAbstractItemModel::rowsInserted, this, scheduleIndex);
+
   auto& lib = context.settings<Library::Settings::Model>();
   con(lib, &Library::Settings::Model::rescanLibrary, this, &ProcessesItemModel::rescan);
   rescan();
+}
+
+ProcessesItemModel::~ProcessesItemModel()
+{
+  *m_alive = false;
+}
+
+void ProcessesItemModel::indexForSearch()
+{
+  if(m_searchIndexRunning)
+  {
+    m_searchIndexPending = true;
+    return;
+  }
+  m_searchIndexPending = false;
+
+  struct Item
+  {
+    ProcessNode* node{};
+    Process::ProcessModelFactory* factory{};
+    QString customData;
+    QString prettyName;
+  };
+
+  auto items = std::make_shared<std::vector<Item>>();
+  auto& factories = context.interfaces<Process::ProcessFactoryList>();
+  auto collect = [&](auto&& self, ProcessNode& node) -> void {
+    if(node.key != Process::ProcessModelFactory::ConcreteKey{}
+       && node.searchString.isEmpty())
+    {
+      if(auto* f = factories.get(node.key))
+        items->push_back({&node, f, node.customData, node.prettyName});
+    }
+    for(auto& child : node)
+      self(self, child);
+  };
+  collect(collect, m_root);
+
+  if(items->empty())
+    return;
+
+  m_searchIndexRunning = true;
+  const auto generation = m_searchIndexGeneration;
+
+  QThreadPool::globalInstance()->start(
+      [this, items = std::move(items), generation, alive = m_alive] {
+    constexpr std::size_t packetSize = 100;
+    std::vector<std::pair<ProcessNode*, QString>> packet;
+    packet.reserve(packetSize);
+
+    auto flush = [&] {
+      if(packet.empty())
+        return;
+      QMetaObject::invokeMethod(
+          this, [this, generation, packet = std::move(packet)] {
+        if(generation != m_searchIndexGeneration)
+          return;
+        for(const auto& [node, str] : packet)
+          node->searchString = str;
+      }, Qt::QueuedConnection);
+      packet.clear();
+      packet.reserve(packetSize);
+    };
+
+    for(const Item& item : *items)
+    {
+      if(!*alive)
+        return;
+
+      const auto desc = item.factory->descriptor(item.customData);
+      QStringList parts{item.prettyName, desc.prettyName, desc.description};
+      parts += desc.tags;
+      parts.removeAll(QString{});
+      parts.removeDuplicates();
+
+      QString str = parts.isEmpty() ? QStringLiteral("|") : parts.join(u'|').toLower();
+
+      packet.emplace_back(item.node, std::move(str));
+      if(packet.size() >= packetSize)
+        flush();
+    }
+    flush();
+
+    QMetaObject::invokeMethod(this, [this, generation] {
+      m_searchIndexRunning = false;
+      if(m_searchIndexPending || generation != m_searchIndexGeneration)
+        m_searchIndexTimer.start();
+    }, Qt::QueuedConnection);
+  });
 }
 
 ProcessNode& ProcessesItemModel::addCategory(const QString& c)
