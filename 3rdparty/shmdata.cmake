@@ -9,7 +9,9 @@ endif()
 score_use_system(use_sys shmdata)
 if(use_sys)
   find_package(shmdata GLOBAL)
-else()
+endif()
+
+if(NOT TARGET shmdata)
   add_library(shmdata STATIC
       "${CMAKE_CURRENT_LIST_DIR}/shmdata/shmdata/cfollower.cpp"
       "${CMAKE_CURRENT_LIST_DIR}/shmdata/shmdata/clogger.cpp"
