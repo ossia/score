@@ -17,6 +17,6 @@ PROCESS_METADATA(
     (QStringList{"gfx", "text"}),     // Tags
     {},                               // Inputs
     {},                               // Outputs
-    QUrl(""),
+    QUrl("https://ossia.io/score-docs/processes/text.html"),
     Process::ProcessFlags::SupportsAll | Process::ProcessFlags::ControlSurface // Flags
 )
