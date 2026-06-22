@@ -1,0 +1,73 @@
+# TEMPORARY: diagnose the Windows JIT COFF "Could not find symbol at given index"
+# error. Runs the real score JIT --compile-addon on Windows, captures the exact
+# cc1 flags (SCORE_JIT_OPTION_DUMP) and the emitted bitcode (cached at
+# <CacheLocation>/score-jit/<commit>/*.bc), and uploads them so the COFF object
+# can be reproduced + inspected (llvm-readobj / llvm-jitlink -noexec) off-runner.
+# Delete this branch once symbol #9 / section 45 is identified.
+name: tmp-windows-jit-diag
+
+on:
+  push:
+    branches: [tmp-windows-jit-diag]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  win-jit-diag:
+    runs-on: windows-latest
+    steps:
+      - name: Download score Windows SDK + app (continuous)
+        shell: bash
+        run: |
+          set -x
+          curl -L -o sdk.zip   "https://github.com/ossia/score/releases/download/continuous/sdk-windows-x86_64.zip"
+          curl -L -o score.exe.zip "https://github.com/ossia/score/releases/download/continuous/ossia.score-master-win64.exe"
+          7z x -y sdk.zip      -osdk   >/dev/null
+          7z x -y score.exe.zip -oapp  >/dev/null || true
+          echo "=== sdk usr present? ==="; ls sdk/usr | head
+          echo "=== app contents (find score.exe) ==="; find app -iname "score.exe" -o -iname "ossia score.exe" 2>/dev/null | head
+
+      - name: Get the test addon
+        shell: bash
+        run: git clone --depth 1 https://github.com/celtera/avendish-audio-processor-template addon
+
+      - name: Run JIT compile-addon with cc1 option dump
+        shell: bash
+        env:
+          SCORE_JIT_OPTION_DUMP: "1"
+          QT_FORCE_STDERR_LOGGING: "1"
+          QT_ASSUME_STDERR_HAS_CONSOLE: "1"
+          SCORE_AUDIO_BACKEND: "dummy"
+        run: |
+          set -x
+          SCOREEXE=$(find "$PWD/app" -iname "score.exe" -o -iname "ossia score.exe" | head -1)
+          echo "score exe: $SCOREEXE"
+          export SCORE_JIT_SDK="$(cygpath -w "$PWD/sdk/usr")"
+          echo "SCORE_JIT_SDK=$SCORE_JIT_SDK"
+          "$SCOREEXE" --no-gui --compile-addon ./addon \; > out.log 2>&1 || true
+          echo "=== tail of out.log ==="; tail -40 out.log
+
+      - name: Collect bitcode + preproc + cc1 dump
+        shell: bash
+        run: |
+          set -x
+          mkdir -p collected
+          cp out.log collected/ || true
+          # cached bitcode: <CacheLocation>/score-jit/<commit>/*.bc
+          for root in "/c/Users/runneradmin/AppData/Local" "$LOCALAPPDATA" "$TEMP" "/tmp" "$PWD"; do
+            [ -d "$root" ] || continue
+            find "$root" -type f \( -iname "*.bc" -o -iname "*.preproc.cpp" -o -iname "*score-jit*" \) 2>/dev/null \
+              | grep -iE "score-jit|\.bc$|preproc" | while read f; do
+                echo "found: $f"; cp "$f" "collected/$(echo "$f" | tr '/\\:' '___')" 2>/dev/null || true
+              done
+          done
+          echo "=== collected ==="; ls -la collected; du -sh collected
+
+      - name: Upload diagnostics
+        uses: actions/upload-artifact@v4
+        with:
+          name: win-jit-diag
+          path: collected
+          if-no-files-found: warn
