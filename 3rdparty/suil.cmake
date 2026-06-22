@@ -1,8 +1,3 @@
-score_use_system(use_sys Suil)
-if(use_sys)
-  return()
-endif()
-
 if(NOT LV2_PATH)
   return()
 endif()

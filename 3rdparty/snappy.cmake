@@ -1,7 +1,9 @@
 score_use_system(use_sys Snappy)
 if(use_sys)
   find_package(Snappy GLOBAL CONFIG)
-else()
+endif()
+
+if(NOT TARGET Snappy::snappy AND NOT TARGET snappy)
   set(SNAPPY_BUILD_TESTS OFF)
   set(SNAPPY_BUILD_BENCHMARKS OFF)
   set(SNAPPY_INSTALL OFF)
