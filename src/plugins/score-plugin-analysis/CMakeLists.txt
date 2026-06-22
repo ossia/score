@@ -33,19 +33,7 @@ add_library(
   score_plugin_analysis.cpp
 )
 
-add_library(Gist STATIC
-  "${3RDPARTY_FOLDER}/Gist/src/CoreFrequencyDomainFeatures.cpp"
-  "${3RDPARTY_FOLDER}/Gist/src/CoreTimeDomainFeatures.cpp"
-  "${3RDPARTY_FOLDER}/Gist/src/Gist.cpp"
-  "${3RDPARTY_FOLDER}/Gist/src/MFCC.cpp"
-  "${3RDPARTY_FOLDER}/Gist/src/OnsetDetectionFunction.cpp"
-  "${3RDPARTY_FOLDER}/Gist/src/WindowFunctions.cpp"
-  "${3RDPARTY_FOLDER}/Gist/src/Yin.cpp"
-)
-target_compile_definitions(Gist PUBLIC USE_OSSIA_FFT=1)
-target_include_directories(Gist SYSTEM PUBLIC "${3RDPARTY_FOLDER}/Gist/src")
-target_link_libraries(Gist PUBLIC ossia)
-set_target_properties(Gist PROPERTIES UNITY_BUILD 0)
+include("${3RDPARTY_FOLDER}/gist.cmake")
 
 target_link_libraries(score_plugin_analysis PUBLIC score_plugin_engine score_plugin_avnd Gist)
 if(OSSIA_ENABLE_KFR AND TARGET kfr)
