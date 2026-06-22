@@ -27,8 +27,10 @@ jobs:
           curl -L -o sdk.7z https://github.com/ossia/sdk/releases/download/sdk36/sdk-mingw-x86_64.7z
           7z x -y sdk.7z >/dev/null
           ls
-          echo "=== llvm cmake + tools present? ==="
-          ls llvm/lib/cmake/llvm/LLVMConfig.cmake 2>/dev/null || echo "no LLVMConfig"
+          echo "=== locate LLVMConfig.cmake / llvm-config / libLLVMCore ==="
+          find . -iname "LLVMConfig.cmake" 2>/dev/null | head
+          find . -iname "llvm-config.exe" 2>/dev/null | head
+          find . -name "libLLVMCore.a" -o -name "LLVMCore.lib" 2>/dev/null | head
           ls llvm/bin/clang++.exe llvm/bin/llvm-readobj.exe llvm/bin/llvm-jitlink.exe 2>/dev/null || true
 
       - name: Configure + build jit_repro
@@ -36,12 +38,20 @@ jobs:
         run: |
           set -x
           export PATH="/c/ossia-sdk-x86_64/cmake/bin:/c/ossia-sdk-x86_64/llvm/bin:$PATH"
+          # Find the LLVM cmake package dir wherever the SDK puts it.
+          LLVMCFG=$(find /c/ossia-sdk-x86_64 -iname LLVMConfig.cmake 2>/dev/null | head -1)
+          if [ -z "$LLVMCFG" ]; then
+            CMDIR=$(/c/ossia-sdk-x86_64/llvm/bin/llvm-config.exe --cmakedir 2>/dev/null || true)
+            [ -n "$CMDIR" ] && LLVMCFG="$CMDIR/LLVMConfig.cmake"
+          fi
+          LLVM_DIR=$(cygpath -m "$(dirname "$LLVMCFG")")
+          echo "Using LLVM_DIR=$LLVM_DIR"
           cmake -GNinja -S tools/jit-repro -B build \
             -DCMAKE_C_COMPILER=c:/ossia-sdk-x86_64/llvm/bin/clang.exe \
             -DCMAKE_CXX_COMPILER=c:/ossia-sdk-x86_64/llvm/bin/clang++.exe \
-            -DLLVM_DIR=c:/ossia-sdk-x86_64/llvm/lib/cmake/llvm \
+            -DLLVM_DIR="$LLVM_DIR" \
             -DCMAKE_BUILD_TYPE=Release 2>&1 | tail -25
-          cmake --build build 2>&1 | tail -30
+          cmake --build build 2>&1 | tail -40
 
       - name: Run reproducer (dumps the object + the JIT error)
         shell: bash
