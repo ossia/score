@@ -1,0 +1,77 @@
+# TEMPORARY: standalone reproducer for the Windows JIT COFF failure. Builds a tiny
+# exe (tools/jit-repro) that replicates score's JIT path against the ossia-sdk LLVM,
+# JIT-links the precompiled addon bitcode, dumps the exact object ORC feeds JITLink,
+# and reads symbol 9 / section 45. Windows-only; no full score build.
+name: tmp-jit-repro
+
+on:
+  push:
+    branches: [tmp-jit-repro]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  win-jit-repro:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch ossia-sdk (mingw LLVM, same as score's build)
+        shell: bash
+        run: |
+          set -x
+          mkdir -p /c/ossia-sdk-x86_64
+          cd /c/ossia-sdk-x86_64
+          curl -L -o sdk.7z https://github.com/ossia/sdk/releases/download/sdk36/sdk-mingw-x86_64.7z
+          7z x -y sdk.7z >/dev/null
+          ls
+          echo "=== llvm cmake + tools present? ==="
+          ls llvm/lib/cmake/llvm/LLVMConfig.cmake 2>/dev/null || echo "no LLVMConfig"
+          ls llvm/bin/clang++.exe llvm/bin/llvm-readobj.exe llvm/bin/llvm-jitlink.exe 2>/dev/null || true
+
+      - name: Configure + build jit_repro
+        shell: bash
+        run: |
+          set -x
+          export PATH="/c/ossia-sdk-x86_64/cmake/bin:/c/ossia-sdk-x86_64/llvm/bin:$PATH"
+          cmake -GNinja -S tools/jit-repro -B build \
+            -DCMAKE_C_COMPILER=c:/ossia-sdk-x86_64/llvm/bin/clang.exe \
+            -DCMAKE_CXX_COMPILER=c:/ossia-sdk-x86_64/llvm/bin/clang++.exe \
+            -DLLVM_DIR=c:/ossia-sdk-x86_64/llvm/lib/cmake/llvm \
+            -DCMAKE_BUILD_TYPE=Release 2>&1 | tail -25
+          cmake --build build 2>&1 | tail -30
+
+      - name: Run reproducer (dumps the object + the JIT error)
+        shell: bash
+        run: |
+          set -x
+          ./build/jit_repro.exe tools/jit-repro/addon.bc 2>&1 | tee repro.log || true
+          echo "=== dumped objects ==="; ls -la jit_obj_*.o 2>/dev/null || echo "(none dumped)"
+
+      - name: Inspect symbol 9 / section 45 of the dumped object
+        shell: bash
+        run: |
+          RO=/c/ossia-sdk-x86_64/llvm/bin/llvm-readobj.exe
+          JL=/c/ossia-sdk-x86_64/llvm/bin/llvm-jitlink.exe
+          for o in jit_obj_*.o; do
+            [ -f "$o" ] || continue
+            echo "######## $o ########"
+            "$RO" --coff-symbols --section-headers "$o" > "$o.readobj.txt" 2>&1 || true
+            echo "--- section count ---"; grep -c "^  Section" "$o.readobj.txt" || true
+            echo "--- symbols around index 9 (Symbol entries) ---"
+            grep -nE "Symbol \{|Name:|Section:|Value:|StorageClass:|AuxSymbolCount" "$o.readobj.txt" | head -80
+            echo "--- reproduce via llvm-jitlink -noexec ---"
+            "$JL" -noexec "$o" 2>&1 | grep -iE "Could not find symbol|index:|section:|error" | head || true
+          done
+
+      - name: Upload objects + logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: jit-repro
+          path: |
+            jit_obj_*.o
+            *.readobj.txt
+            repro.log
+          if-no-files-found: warn
