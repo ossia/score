@@ -32,6 +32,11 @@ export LLVM_VER=$(ls $XCODE_TOOLCHAIN/usr/lib/clang | sort -r | head -1)
 mkdir -p "$LIB/clang/$LLVM_VER"
 rsync -ar "$XCODE_TOOLCHAIN/usr/lib/clang/$LLVM_VER/include" "$LIB/clang/$LLVM_VER/"
 
+# Ship the ORC runtime (orc_rt) so the JIT can use ExecutorNativePlatform. Unlike
+# the headers above, orc_rt comes from the ossia-sdk LLVM (where it is built), not
+# the Xcode toolchain; it lands under its own clang/<llvm-ver>/ dir.
+ship_orc_runtime "$OSSIA_SDK/llvm-libs/lib/clang" "$LIB"
+
 # Copy Qt frameworks
 QT_FRAMEWORKS=$(find "$OSSIA_SDK/qt6-static/lib" -name '*.framework' | grep -E --only-matching 'Qt[a-zA-Z0-9_]+') 
 

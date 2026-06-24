@@ -24,5 +24,8 @@ mkdir -p "$DST/usr/lib/clang/$LLVM_VER/include"
 
 cp -rf "$OSSIA_SDK/llvm-libs/lib/clang/$LLVM_VER/include" "$LIB/clang/$LLVM_VER/"
 
+# Ship the ORC runtime (orc_rt) so the JIT can use ExecutorNativePlatform.
+ship_orc_runtime "$OSSIA_SDK/llvm-libs/lib/clang" "$LIB"
+
 source $SCRIPTDIR/cleanup-sdk-common.sh
 
