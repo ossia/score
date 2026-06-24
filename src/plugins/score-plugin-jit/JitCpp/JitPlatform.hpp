@@ -324,9 +324,22 @@ populateCompileOptions(std::vector<std::string>& args, CompilerOptions opts)
 
   args.push_back("-fvisibility-inlines-hidden");
 
-  // // tls:
-  args.push_back("-ftls-model=local-exec");
-  args.push_back("-femulated-tls");
+  // TLS: when an Orc Platform (orc_rt) drives the executor we get *native*
+  // thread-locals on every target, and TargetOptions.EmulatedTLS is set false
+  // (see Compiler.cpp). In that case we must NOT force emulated TLS here: codegen
+  // would emit __emutls_* references the platform does not provide. Only request
+  // emulated/local-exec TLS on the legacy (no-orc_rt) path. This mirrors
+  // useNativePlatform in Compiler.cpp (same locateOrcRuntime() result).
+#if LLVM_VERSION_MAJOR >= 22
+  const bool useNativePlatform = !locateOrcRuntime().empty();
+#else
+  const bool useNativePlatform = false;
+#endif
+  if(!useNativePlatform)
+  {
+    args.push_back("-ftls-model=local-exec");
+    args.push_back("-femulated-tls");
+  }
 
   // if fsanitize:
   args.push_back("-mrelax-all");
