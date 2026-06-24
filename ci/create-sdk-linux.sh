@@ -28,6 +28,9 @@ export LLVM_VER=$(ls $OSSIA_SDK/llvm/lib/clang/)
 mkdir -p "$LIB/clang/$LLVM_VER/include"
 rsync -ar "$OSSIA_SDK/llvm/lib/clang/$LLVM_VER/include/" "$LIB/clang/$LLVM_VER/include/"
 
+# Ship the ORC runtime (orc_rt) so the JIT can use ExecutorNativePlatform.
+ship_orc_runtime "$OSSIA_SDK/llvm/lib/clang" "$LIB"
+
 find "$LIB" -name "libossia*.a" -delete
 
 source $SCRIPTDIR/cleanup-sdk-common.sh

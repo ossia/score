@@ -39,3 +39,23 @@ else
     cp -rf "$BOOST" "$INCLUDE/"
   fi
 fi
+
+# Ship compiler-rt's ORC runtime (liborc_rt*.a) into the JIT SDK so the JIT's
+# ExecutorNativePlatform can load it at runtime: native TLS, real static-init /
+# atexit and -- on COFF -- the __ImageBase platform symbol & exception registration.
+# Args: <source clang-resource dir> <dest .../usr/lib dir>. The archive is copied
+# preserving its clang/<ver>/lib/<triple>/ layout; locateOrcRuntime() finds it by
+# a recursive liborc_rt*.a search under <dest>/clang. No-op where orc_rt is not
+# built (e.g. Windows-arm64) -- the JIT then keeps its legacy non-platform path.
+ship_orc_runtime() {
+  local src_clang="$1" dst_lib="$2" found=0 f rel
+  [[ -d "$src_clang" ]] || { echo "ship_orc_runtime: no $src_clang, skipping"; return 0; }
+  while IFS= read -r f; do
+    rel="${f#"$src_clang"/}"
+    mkdir -p "$dst_lib/clang/$(dirname "$rel")"
+    cp -f "$f" "$dst_lib/clang/$rel"
+    echo "ship_orc_runtime: shipped clang/$rel"
+    found=1
+  done < <(find "$src_clang" -name 'liborc_rt*.a')
+  [[ "$found" = 1 ]] || echo "ship_orc_runtime: no liborc_rt*.a under $src_clang (JIT native platform unavailable here)"
+}
