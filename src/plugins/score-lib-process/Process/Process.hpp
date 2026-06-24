@@ -80,9 +80,13 @@ public:
 
   // A user-friendly text to show to the users
   virtual QString prettyName() const noexcept;
+  W_INVOKABLE(prettyName)
   virtual QString prettyShortName() const noexcept = 0;
+  W_INVOKABLE(prettyShortName)
   virtual QString category() const noexcept = 0;
+  W_INVOKABLE(category)
   virtual QStringList tags() const noexcept = 0;
+  W_INVOKABLE(tags)
   virtual ProcessFlags flags() const noexcept = 0;
 
   //// Features of a process
@@ -93,6 +97,22 @@ public:
 
   void setDuration(const TimeVal& other) noexcept;
   const TimeVal& duration() const noexcept;
+
+  /// QML helpers for port access
+  QList<Process::Inlet*> inletsList() const noexcept;
+  W_INVOKABLE(inletsList)
+  QList<Process::Outlet*> outletsList() const noexcept;
+  W_INVOKABLE(outletsList)
+  Process::Inlet* inletAt(int index) const noexcept;
+  W_INVOKABLE(inletAt)
+  Process::Outlet* outletAt(int index) const noexcept;
+  W_INVOKABLE(outletAt)
+  int inletCount() const noexcept;
+  W_INVOKABLE(inletCount)
+  int outletCount() const noexcept;
+  W_INVOKABLE(outletCount)
+  bool hasFlag(int flag) const noexcept;
+  W_INVOKABLE(hasFlag)
 
   /// Nodal things
   QPointF position() const noexcept;
@@ -263,3 +283,7 @@ W_REGISTER_ARGTYPE(QPointer<Process::ProcessModel>)
 
 Q_DECLARE_METATYPE(std::shared_ptr<Process::Preset>)
 W_REGISTER_ARGTYPE(std::shared_ptr<Process::Preset>)
+Q_DECLARE_METATYPE(QList<Process::Inlet*>)
+Q_DECLARE_METATYPE(QList<Process::Outlet*>)
+W_REGISTER_ARGTYPE(QList<Process::Inlet*>)
+W_REGISTER_ARGTYPE(QList<Process::Outlet*>)

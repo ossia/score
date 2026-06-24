@@ -14,7 +14,7 @@
 #include <score/plugins/SerializableHelpers.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
-#include <score_plugin_deviceexplorer_export.h>
+#include <score_plugin_nodal_export.h>
 
 namespace Nodal
 {
@@ -25,7 +25,7 @@ class DropNodesMacro final : public score::AggregateCommand
   SCORE_COMMAND_DECL(CommandFactoryName(), DropNodesMacro, "Drop nodes")
 };
 
-class CreateNode final : public score::Command
+class SCORE_PLUGIN_NODAL_EXPORT CreateNode final : public score::Command
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), CreateNode, "Create a node")
 public:
@@ -52,7 +52,7 @@ private:
   Id<Process::ProcessModel> m_createdNodeId;
 };
 
-class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT RemoveNode final : public score::Command
+class SCORE_PLUGIN_NODAL_EXPORT RemoveNode final : public score::Command
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), RemoveNode, "Remove a node")
 public:

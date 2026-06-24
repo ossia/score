@@ -27,11 +27,11 @@ if(CMAKE_SYSTEM_NAME MATCHES Emscripten)
   score-plugin-media
 
 #  score-plugin-gfx
+  score-plugin-nodal
   score-plugin-js
   score-plugin-midi
   score-plugin-recording
 
-  score-plugin-nodal
   score-plugin-controlsurface
   score-plugin-remotecontrol
   score-plugin-spline
@@ -74,14 +74,14 @@ else()
   score-plugin-media
   score-plugin-gfx
   score-plugin-packagemanager
-
+  
+  score-plugin-nodal
   score-plugin-js
 
 
   score-plugin-midi
   score-plugin-recording
 
-  score-plugin-nodal
   score-plugin-controlsurface
   score-plugin-remotecontrol
   score-plugin-spline

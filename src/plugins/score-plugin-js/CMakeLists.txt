@@ -41,6 +41,8 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/QmlProcess.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/TextureSource.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/Utils.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/PatcherContext.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/PatcherWindow.hpp"
 
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/ApplicationPlugin.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/DocumentPlugin.hpp"
@@ -83,6 +85,9 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/TextureSource.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/ValueTypes.Qt6.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/Utils.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/EditContext.patcher.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/PatcherContext.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/PatcherWindow.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/ApplicationPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/DocumentPlugin.cpp"
@@ -91,7 +96,9 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_js.cpp"
 )
 
-add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
+qt_add_resources(PATCHER_QRC "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/qml/patcher/patcher.qrc")
+
+add_library(${PROJECT_NAME} ${SRCS} ${HDRS} ${PATCHER_QRC})
 # TODO make this automatic in some way, and extend to other components
 score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 
@@ -103,6 +110,9 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
                      score_plugin_deviceexplorer score_plugin_protocols
                      )
 
+if(TARGET score_plugin_nodal)
+  target_link_libraries(${PROJECT_NAME} PUBLIC score_plugin_nodal)
+endif()
 if(TARGET score_plugin_media)
   target_link_libraries(${PROJECT_NAME} PUBLIC score_plugin_media)
 endif()

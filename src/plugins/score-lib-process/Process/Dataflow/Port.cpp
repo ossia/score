@@ -149,6 +149,16 @@ const QString& Port::description() const noexcept
   return m_description;
 }
 
+bool Port::isInlet() const noexcept
+{
+  return qobject_cast<const Inlet*>(this) != nullptr;
+}
+
+int Port::cableCount() const noexcept
+{
+  return m_cables.size();
+}
+
 Device::FullAddressAccessorSettings Port::settings() const noexcept
 {
   Device::FullAddressAccessorSettings set;
