@@ -97,6 +97,14 @@ set(SRCS
     JitCpp/ClangDriver.cpp
 )
 
+# MinGWCOFFPlatform.cpp includes llvm/BinaryFormat/COFF.h, whose SectionCharacteristics
+# enum collides with <windows.h>'s IMAGE_SCN_* macros. In a unity build it can be
+# concatenated after a sibling that pulls in <windows.h>, breaking COFF.h. Compile
+# it on its own so its include order is self-contained.
+set_source_files_properties(
+    JitCpp/Compiler/MinGWCOFFPlatform.cpp
+    PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
+
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 if(TARGET score_plugin_gfx)
   set(HDRS ${HDRS} Texgen/Texgen.hpp)
