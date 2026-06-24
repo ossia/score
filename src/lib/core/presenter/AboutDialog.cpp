@@ -185,8 +185,6 @@ AboutDialog::AboutDialog(QWidget* parent)
       "https://github.com/jcelerier/weakjack",
       "Based on https://github.com/x42/weakjack\nGNU "
       "General Public License version 2 (or later)"};
-  map["websocketpp"]
-      = License{"https://github.com/jcelerier/websocketpp", websocketpp_LICENSE};
   map["wiiuse"] = License{"https://github.com/ossia/wiiuse", wiiuse_LICENSE};
   map["zipdownloader"]
       = License{"https://github.com/jcelerier/zipdownloader", zipdownloader_LICENSE};

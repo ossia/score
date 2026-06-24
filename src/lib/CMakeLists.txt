@@ -749,7 +749,6 @@ if(NOT _score_license_written)
   AddLicenseFile(license_text vst3 "${CMAKE_SOURCE_DIR}/3rdparty/vst3/LICENSE.txt")
   AddLicenseFile(license_text whereami "${OSSIA_3RDPARTY_FOLDER}/whereami/LICENSE.MIT")
   AddLicenseFile(license_text wiiuse "${OSSIA_3RDPARTY_FOLDER}/wiiuse/LICENSE")
-  AddLicenseFile(license_text websocketpp "${OSSIA_3RDPARTY_FOLDER}/websocketpp/COPYING")
   AddLicenseFile(license_text zipdownloader "${CMAKE_SOURCE_DIR}/3rdparty/zipdownloader/LICENSE")
 
 

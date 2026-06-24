@@ -33,7 +33,7 @@
 #include <pluginterfaces/vst/ivstaudioprocessor.h>
 #include <pluginterfaces/vst/ivstmidicontrollers.h>
 #include <pluginterfaces/vst/ivstprocesscontext.h>
-#include <websocketpp/base64/base64.hpp>
+#include <ossia/detail/base64.hpp>
 
 #include <cmath>
 #include <wobjectimpl.h>

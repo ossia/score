@@ -1,6 +1,6 @@
 
 #include <ossia/detail/fmt.hpp>
-#include <ossia/network/sockets/websocket.hpp>
+#include <ossia/network/sockets/websocket_header_client.hpp>
 
 #include <pluginterfaces/base/funknown.h>
 #include <pluginterfaces/vst/ivstaudioprocessor.h>
@@ -124,7 +124,7 @@ struct app
 {
 
   boost::asio::io_context ctx;
-  ossia::net::websocket_simple_client socket{{.url = "ws://127.0.0.1:37588"}, ctx};
+  ossia::net::websocket_simple_header_client socket{ctx};
 
   bool socket_ready{}, vst_ready{};
   std::string json_ret;
@@ -135,7 +135,7 @@ struct app
     socket.on_fail.connect<&app::on_error>(*this);
     socket.on_close.connect<&app::on_error>(*this);
 
-    socket.websocket_client::connect("ws://127.0.0.1:37588");
+    socket.connect("ws://127.0.0.1:37588");
   }
 
   void on_ready()
