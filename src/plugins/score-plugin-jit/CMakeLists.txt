@@ -74,6 +74,7 @@ set(HDRS
     JitCpp/MetadataGenerator.hpp
     JitCpp/Compiler/Compiler.hpp
     JitCpp/Compiler/Driver.hpp
+    JitCpp/Compiler/MinGWCOFFPlatform.hpp
 
     Bytebeat/Bytebeat.hpp
 
@@ -82,6 +83,7 @@ set(HDRS
 
 set(SRCS
     JitCpp/Compiler/Compiler.cpp
+    JitCpp/Compiler/MinGWCOFFPlatform.cpp
     JitCpp/AddonCompiler.cpp
     JitCpp/JitModel.cpp
     JitCpp/ApplicationPlugin.cpp
