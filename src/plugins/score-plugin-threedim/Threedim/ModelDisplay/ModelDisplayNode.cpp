@@ -1442,8 +1442,8 @@ private:
             mc.modelNormal[c * 4 + r] = nd[c * 3 + r];
       }
       mc.fov = n.fov;
-      mc.near = n.near;
-      mc.far = n.far;
+      mc.znear = n.near;
+      mc.zfar = n.far;
 
       res.updateDynamicBuffer(m_material.buffer, 0, sizeof(ModelCameraUBO), &mc);
 
