@@ -942,10 +942,6 @@ enum Interaction
 } nodeItemInteraction{};
 QSizeF origNodeSize{};
 bool nodeDidMove{};
-// When pressing on an already-selected node, the selection change is deferred
-// to the release event so that the whole selection can be dragged. The
-// toggle/collapse only happens on release if no drag occurred. The modifier
-// state at press time is captured for that deferred handling.
 bool nodeSelectOnRelease{};
 bool nodeSelectCumulation{};
 }
@@ -972,11 +968,6 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
     }
     {
       const bool cumulation = event->modifiers() & Qt::ControlModifier;
-      // If the node is already part of the (possibly multi-) selection, defer
-      // the selection change to the release event. This way, pressing on an
-      // already-selected node and dragging moves the whole selection instead
-      // of collapsing it to (or toggling off) this single node. The
-      // toggle/collapse still happens on a click without drag (see release).
       if(m_model.selection.get())
       {
         nodeSelectOnRelease = true;
@@ -1059,8 +1050,6 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   }
   else if(nodeSelectOnRelease)
   {
-    // Click (no drag) on an already-selected node: apply the standard GUI
-    // selection logic now (collapse to this node, or toggle it off if Ctrl).
     Selection sel = filterSelections(
         &m_model, m_context.selectionStack.currentSelection(), nodeSelectCumulation);
     score::SelectionDispatcher{m_context.selectionStack}.select(sel);

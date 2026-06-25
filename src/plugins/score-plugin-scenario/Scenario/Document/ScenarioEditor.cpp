@@ -327,6 +327,39 @@ bool ScenarioEditor::paste(
 
 bool ScenarioEditor::remove(const Selection& s, const score::DocumentContext& ctx)
 {
+  if(s.size() > 1)
+  {
+    std::vector<std::pair<IntervalModel*, const Process::ProcessModel*>> procs;
+    procs.reserve(s.size());
+    bool only_interval_processes = true;
+    for(auto& elt : s)
+    {
+      auto proc = qobject_cast<const Process::ProcessModel*>(elt.data());
+      if(!proc)
+      {
+        only_interval_processes = false;
+        break;
+      }
+      auto itv = qobject_cast<IntervalModel*>(proc->parent());
+      if(!itv)
+      {
+        only_interval_processes = false;
+        break;
+      }
+      procs.push_back({itv, proc});
+    }
+
+    if(only_interval_processes && !procs.empty())
+    {
+      Scenario::Command::Macro m{
+          new Scenario::Command::RemoveMultipleProcessesFromInterval, ctx};
+      for(auto& [itv, proc] : procs)
+        m.removeProcess(*itv, proc->id());
+      m.commit();
+      return true;
+    }
+  }
+
   if(s.size() == 1)
   {
     auto first = s.begin()->data();
