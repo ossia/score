@@ -5,7 +5,6 @@
 #include <ossia/dataflow/safe_nodes/port.hpp>
 
 #include <boost/mp11/algorithm.hpp>
-#include <boost/pfr.hpp>
 
 #include <avnd/introspection/input.hpp>
 #include <avnd/introspection/output.hpp>

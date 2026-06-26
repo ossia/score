@@ -113,14 +113,14 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
     if constexpr(requires { decltype(Node_T::layout::bindings){}; })
     {
       using bindings_type = decltype(Node_T::layout::bindings);
-      boost::pfr::for_each_field(bindings_type{}, [&](auto f) {
+      avnd::pfr::for_each_field(bindings_type{}, [&](auto f) {
         bindings.push_back(initBinding(renderer, f));
       });
     }
     else if constexpr(requires { sizeof(typename Node_T::layout::bindings); })
     {
       using bindings_type = typename Node_T::layout::bindings;
-      boost::pfr::for_each_field(bindings_type{}, [&](auto f) {
+      avnd::pfr::for_each_field(bindings_type{}, [&](auto f) {
         bindings.push_back(initBinding(renderer, f));
       });
     }

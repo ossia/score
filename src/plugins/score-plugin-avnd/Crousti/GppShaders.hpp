@@ -154,7 +154,7 @@ struct generate_shaders
             ,
             C::binding(), C::name());
 
-        boost::pfr::for_each_field(field, write_binding{shader});
+        avnd::pfr::for_each_field(field, write_binding{shader});
 
         shader += fmt::format("}};\n\n");
       }
@@ -166,7 +166,7 @@ struct generate_shaders
             ,
             C::binding(), C::name());
 
-        boost::pfr::for_each_field(field, write_binding{shader});
+        avnd::pfr::for_each_field(field, write_binding{shader});
 
         shader += fmt::format("}};\n\n");
       }
@@ -180,24 +180,24 @@ struct generate_shaders
     std::string shader = "#version 450\n\n";
 
     if constexpr(requires { lay.vertex_input; })
-      boost::pfr::for_each_field(lay.vertex_input, write_input{shader});
+      avnd::pfr::for_each_field(lay.vertex_input, write_input{shader});
     else if constexpr(requires { typename T::vertex_input; })
-      boost::pfr::for_each_field(typename T::vertex_input{}, write_input{shader});
+      avnd::pfr::for_each_field(typename T::vertex_input{}, write_input{shader});
     else
-      boost::pfr::for_each_field(
+      avnd::pfr::for_each_field(
           DefaultPipeline::layout::vertex_input{}, write_input{shader});
 
     if constexpr(requires { lay.vertex_output; })
-      boost::pfr::for_each_field(lay.vertex_output, write_output{shader});
+      avnd::pfr::for_each_field(lay.vertex_output, write_output{shader});
     else if constexpr(requires { typename T::vertex_output; })
-      boost::pfr::for_each_field(typename T::vertex_output{}, write_output{shader});
+      avnd::pfr::for_each_field(typename T::vertex_output{}, write_output{shader});
 
     shader += "\n";
 
     if constexpr(requires { lay.bindings; })
-      boost::pfr::for_each_field(lay.bindings, write_bindings{shader});
+      avnd::pfr::for_each_field(lay.bindings, write_bindings{shader});
     else if constexpr(requires { typename T::bindings; })
-      boost::pfr::for_each_field(typename T::bindings{}, write_bindings{shader});
+      avnd::pfr::for_each_field(typename T::bindings{}, write_bindings{shader});
 
     return shader;
   }
@@ -208,21 +208,21 @@ struct generate_shaders
     std::string shader = "#version 450\n\n";
 
     if constexpr(requires { lay.fragment_input; })
-      boost::pfr::for_each_field(lay.fragment_input, write_input{shader});
+      avnd::pfr::for_each_field(lay.fragment_input, write_input{shader});
     else if constexpr(requires { typename T::fragment_input; })
-      boost::pfr::for_each_field(typename T::fragment_input{}, write_input{shader});
+      avnd::pfr::for_each_field(typename T::fragment_input{}, write_input{shader});
 
     if constexpr(requires { lay.fragment_output; })
-      boost::pfr::for_each_field(lay.fragment_output, write_output{shader});
+      avnd::pfr::for_each_field(lay.fragment_output, write_output{shader});
     else if constexpr(requires { typename T::fragment_output; })
-      boost::pfr::for_each_field(typename T::fragment_output{}, write_output{shader});
+      avnd::pfr::for_each_field(typename T::fragment_output{}, write_output{shader});
 
     shader += "\n";
 
     if constexpr(requires { lay.bindings; })
-      boost::pfr::for_each_field(lay.bindings, write_bindings{shader});
+      avnd::pfr::for_each_field(lay.bindings, write_bindings{shader});
     else if constexpr(requires { typename T::bindings; })
-      boost::pfr::for_each_field(typename T::bindings{}, write_bindings{shader});
+      avnd::pfr::for_each_field(typename T::bindings{}, write_bindings{shader});
 
     return shader;
   }
@@ -250,7 +250,7 @@ struct generate_shaders
     fstr.resize(fstr.size() - 2);
     fstr += ") in;\n\n";
 
-    boost::pfr::for_each_field(lay.bindings, write_bindings{fstr});
+    avnd::pfr::for_each_field(lay.bindings, write_bindings{fstr});
 
     return fstr;
   }
