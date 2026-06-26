@@ -16,6 +16,36 @@
 namespace Scenario
 {
 
+QByteArray renderSceneToSvg(QGraphicsScene& scene, const QString& path, QRectF rect)
+{
+#if __has_include(<QSvgGenerator>)
+  // Create a SVG from the scene
+  QBuffer b;
+  QSvgGenerator p;
+  p.setOutputDevice(&b);
+  QPainter painter;
+  painter.begin(&p);
+  painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+
+  scene.render(&painter, rect, rect);
+  painter.end();
+
+  if(!path.isEmpty())
+  {
+    QFile screenshot(path);
+    if(screenshot.open(QFile::WriteOnly))
+    {
+      screenshot.write(b.buffer());
+      screenshot.close();
+    }
+  }
+
+  return b.buffer();
+#else
+  return {};
+#endif
+}
+
 SnapshotAction::SnapshotAction(QGraphicsScene& scene, QWidget* parent)
     : QAction{tr("Scenario screenshot"), parent}
 {
@@ -27,35 +57,22 @@ SnapshotAction::SnapshotAction(QGraphicsScene& scene, QWidget* parent)
 
 void SnapshotAction::takeScreenshot(QGraphicsScene& scene)
 {
-#if __has_include(<QSvgGenerator>)
-  // Create a SVG from the scene
-  QBuffer b;
-  QSvgGenerator p;
-  p.setOutputDevice(&b);
-  QPainter painter;
-  painter.begin(&p);
-  painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+// Render the scene and save a file for convenience
+#if defined(__APPLE__) || defined(__linux__)
+  auto path = QStringLiteral("/tmp/screenshot.svg");
+#else
+  auto path = QStringLiteral("screenshot.svg");
+#endif
 
-  scene.render(&painter, QRectF(0, 0, 1920, 1080), QRectF(0, 0, 1920, 1080));
-  painter.end();
+  QByteArray svg = renderSceneToSvg(scene, path);
+  if(svg.isEmpty())
+    return;
 
   // Set the clipboard
   auto d = new QMimeData;
-  d->setData("image/svg+xml", b.buffer());
+  d->setData("image/svg+xml", svg);
   // TODO investigate : the doc says that setMimeData takes ownership.
   QApplication::clipboard()->setMimeData(d, QClipboard::Clipboard);
   QApplication::clipboard()->setMimeData(d, QClipboard::Selection);
-
-// Also save a file for convenience
-#if defined(__APPLE__) || defined(__linux__)
-  auto path = "/tmp/screenshot.svg";
-#else
-  auto path = "screenshot.svg";
-#endif
-  QFile screenshot(path);
-  screenshot.open(QFile::WriteOnly);
-  screenshot.write(b.buffer());
-  screenshot.close();
-#endif
 }
 }
