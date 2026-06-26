@@ -175,7 +175,7 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
     QVarLengthArray<QRhiShaderResourceBinding, 8> bindings;
 
     using bindings_type = decltype(Node_T::layout::bindings);
-    boost::pfr::for_each_field(
+    avnd::pfr::for_each_field(
         bindings_type{}, [&](auto f) { bindings.push_back(initBinding(renderer, f)); });
 
     srb->setBindings(bindings.begin(), bindings.end());

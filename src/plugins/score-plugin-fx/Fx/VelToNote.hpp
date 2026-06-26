@@ -4,8 +4,6 @@
 #include <ossia/dataflow/value_port.hpp>
 #include <ossia/detail/math.hpp>
 
-#include <boost/pfr.hpp>
-
 #include <halp/controls.hpp>
 #include <halp/meta.hpp>
 #include <halp/midi.hpp>

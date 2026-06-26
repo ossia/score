@@ -19,7 +19,7 @@ struct Serializer
     if constexpr(std::is_arithmetic_v<F>)
       r.stream().stream << f;
     else if constexpr(std::is_aggregate_v<F>)
-      boost::pfr::for_each_field(f, *this);
+      avnd::pfr::for_each_field(f, *this);
     else if constexpr(avnd::list_ish<F>)
     {
       r.stream().stream << (int64_t)std::ssize(f);
@@ -115,8 +115,11 @@ struct Deserializer
   DataStreamWriter& r;
 
   template <typename F>
-  requires std::is_aggregate_v<F>
-  void operator()(F& f) { boost::pfr::for_each_field(f, *this); }
+    requires std::is_aggregate_v<F>
+  void operator()(F& f)
+  {
+    avnd::pfr::for_each_field(f, *this);
+  }
 
   template <typename F>
     requires(std::is_arithmetic_v<F>)

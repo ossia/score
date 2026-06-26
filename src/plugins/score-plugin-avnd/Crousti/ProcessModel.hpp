@@ -19,8 +19,6 @@
 #include <ossia/detail/type_if.hpp>
 #include <ossia/detail/typelist.hpp>
 
-#include <boost/pfr.hpp>
-
 #include <QTimer>
 
 #include <avnd/binding/ossia/data_node.hpp>

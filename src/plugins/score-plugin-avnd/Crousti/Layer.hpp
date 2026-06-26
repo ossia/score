@@ -16,6 +16,8 @@
 #include <avnd/common/aggregates.hpp>
 #include <avnd/concepts/layout.hpp>
 
+#include <avnd/common/aggregates.hpp>
+
 namespace oscr
 {
 template <typename Item>
@@ -335,13 +337,11 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
 
     {
 #if AVND_USE_BOOST_PFR
-      using namespace boost::pfr;
-      using namespace boost::pfr::detail;
-      static constexpr int N = boost::pfr::tuple_size_v<Item>;
-      auto t = boost::pfr::structure_tie(item);
+      static constexpr int N = avnd::pfr::tuple_size_v<Item>;
+      auto t = avnd::pfr::detail::tie_as_tuple(item);
       [&]<std::size_t... I>(std::index_sequence<I...>) {
         using namespace std;
-        using namespace boost::pfr;
+        using namespace avnd::pfr;
 
         (this->walkLayout(get<I>(t), recursive_members...), ...);
       }(std::make_index_sequence<N>{});
