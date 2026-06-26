@@ -280,9 +280,10 @@ NV_DVP_API NvDvpError nv_dvp_init_gl(NvDvpContextHandle* out_ctx)
   auto ctx = std::make_unique<NvDvpContext_t>();
   ctx->backend = NvDvpContext_t::Backend::GL;
 
-  if(dvpInitGLContext(0) != DVP_STATUS_OK)
+  if(auto _st = dvpInitGLContext(0); _st != DVP_STATUS_OK)
   {
-    setError(ctx.get(), "dvpInitGLContext failed");
+    fprintf(stderr, "[nv-dvp] dvpInitGLContext failed: DVP_STATUS=%d\n", (int)_st);
+    setError(ctx.get(), "dvpInitGLContext failed", _st);
     return NV_DVP_ERROR_INIT_FAILED;
   }
 
