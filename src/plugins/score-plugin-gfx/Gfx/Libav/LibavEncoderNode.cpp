@@ -6,6 +6,9 @@
 #include <Gfx/Graph/encoders/NV12.hpp>
 #include <Gfx/Graph/encoders/UYVY.hpp>
 #include <Gfx/InvertYRenderer.hpp>
+
+#include <cmath>
+#include <cstdint>
 #include <Gfx/Libav/LibavEncoder.hpp>
 
 #include <score/gfx/OpenGL.hpp>
@@ -31,6 +34,34 @@ makeEncoderForPixfmt(const QString& pixfmt)
   if(pixfmt == "uyvy422")
     return std::make_unique<score::gfx::UYVYEncoder>();
   return nullptr;
+}
+
+// Bit depth of an ffmpeg pixel-format name (8 if unknown).
+static int pixfmtDepth(const QString& name)
+{
+  const AVPixelFormat f = av_get_pix_fmt(name.toUtf8().constData());
+  if(f == AV_PIX_FMT_NONE)
+    return 8;
+  const AVPixFmtDescriptor* d = av_pix_fmt_desc_get(f);
+  return (d && d->nb_components > 0) ? d->comp[0].depth : 8;
+}
+
+// IEEE-754 binary16 -> normalized uint16 (clamped to [0,1]).
+static inline uint16_t halfToU16(uint16_t h)
+{
+  const uint32_t exp = (h >> 10) & 0x1Fu, mant = h & 0x3FFu;
+  if(h & 0x8000u)
+    return 0; // negative -> 0
+  float v;
+  if(exp == 0u)
+    v = std::ldexp(float(mant), -24);
+  else if(exp == 31u)
+    v = 1.f; // inf/nan -> white
+  else
+    v = std::ldexp(float(mant | 0x400u), int(exp) - 25);
+  if(v >= 1.f)
+    return 65535;
+  return uint16_t(v * 65535.f + 0.5f);
 }
 
 LibavEncoderNode::LibavEncoderNode(
@@ -113,13 +144,29 @@ void LibavEncoderNode::render()
       rhi->endOffscreenFrame();
 
       auto& readback = *m_currentReadback;
-      int sz = readback.pixelSize.width() * readback.pixelSize.height() * 4;
-      int bytes = readback.data.size();
+      const int w = readback.pixelSize.width(), h = readback.pixelSize.height();
+      const int bpp = m_tenBit ? 8 : 4; // RGBA16F (4x half) vs RGBA8
+      const int sz = w * h * bpp;
+      const int bytes = readback.data.size();
       if(bytes > 0 && bytes >= sz)
       {
-        encoder.add_frame(
-            (const unsigned char*)readback.data.constData(), AV_PIX_FMT_RGBA,
-            readback.pixelSize.width(), readback.pixelSize.height());
+        if(m_tenBit)
+        {
+          // RGBA16F (half) -> RGBA64 (uint16) so swscale gets real 10-bit.
+          const auto* src = (const uint16_t*)readback.data.constData();
+          const size_t n = size_t(w) * h * 4;
+          m_rgba64.resize(n);
+          for(size_t i = 0; i < n; ++i)
+            m_rgba64[i] = halfToU16(src[i]);
+          encoder.add_frame(
+              (const unsigned char*)m_rgba64.data(), AV_PIX_FMT_RGBA64, w, h);
+        }
+        else
+        {
+          encoder.add_frame(
+              (const unsigned char*)readback.data.constData(), AV_PIX_FMT_RGBA,
+              w, h);
+        }
       }
 
       // Swap readback buffer for next frame
@@ -164,8 +211,14 @@ void LibavEncoderNode::createOutput(score::gfx::OutputConfiguration conf)
   m_renderState->outputSize = m_renderState->renderSize;
 
   auto rhi = m_renderState->rhi;
+  // A 10-bit target codec (e.g. yuv422p10le / ProRes) with no dedicated 8-bit
+  // GPU encoder gets a >8-bit scene render target so the readback -> swscale
+  // carries real 10-bit precision rather than 8-bit upsampled.
+  m_tenBit = pixfmtDepth(m_settings.video_converted_pixfmt) > 8
+             && !makeEncoderForPixfmt(m_settings.video_converted_pixfmt);
   m_texture = rhi->newTexture(
-      QRhiTexture::RGBA8, m_renderState->renderSize, 1,
+      m_tenBit ? QRhiTexture::RGBA16F : QRhiTexture::RGBA8,
+      m_renderState->renderSize, 1,
       QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource);
   m_texture->create();
 
