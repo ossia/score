@@ -324,7 +324,7 @@ static QRhiBuffer* allocateSsbo(
   QRhiBuffer::UsageFlags flags = QRhiBuffer::StorageBuffer;
 #if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
   if(buffer_usage == "indirect_draw" || buffer_usage == "indirect_draw_indexed")
-    flags |= QRhiBuffer::IndirectBuffer;
+    flags = (QRhiBuffer::UsageFlags)((uint64_t)flags | (uint64_t)QRhiBuffer::IndirectBuffer);
 #else
   (void)buffer_usage;
 #endif
