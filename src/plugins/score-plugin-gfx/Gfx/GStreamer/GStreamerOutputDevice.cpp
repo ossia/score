@@ -14,6 +14,7 @@
 #include <Gfx/Graph/encoders/NV12.hpp>
 #include <Gfx/Graph/encoders/UYVY.hpp>
 #include <Gfx/Graph/encoders/V210.hpp>
+#include <Gfx/Graph/encoders/YUV422P10.hpp>
 #include <Gfx/InvertYRenderer.hpp>
 
 #include <score/gfx/OpenGL.hpp>
@@ -641,9 +642,10 @@ struct GStreamerOutputNode : score::gfx::OutputNode
     if(!pipeline_ok)
       qWarning() << "GStreamerOutputNode: pipeline init failed; output disabled";
 
-    // 10-bit packed output (v210) needs a >8-bit scene render target for real
-    // precision; everything else renders RGBA8.
-    const bool tenBit = (m_detectedFormat == "v210");
+    // 10-bit output (packed v210 or planar I422_10LE) needs a >8-bit scene
+    // render target for real precision; everything else renders RGBA8.
+    const bool is_v210 = (m_detectedFormat == "v210");
+    const bool tenBit = is_v210 || (m_detectedFormat == "I422_10LE");
     m_renderState->renderFormat
         = tenBit ? QRhiTexture::RGBA16F : QRhiTexture::RGBA8;
     m_texture = rhi->newTexture(
@@ -669,6 +671,8 @@ struct GStreamerOutputNode : score::gfx::OutputNode
           return std::make_unique<score::gfx::I420Encoder>();
         else if(m_detectedFormat == "v210")
           return std::make_unique<score::gfx::V210Encoder>();
+        else if(m_detectedFormat == "I422_10LE")
+          return std::make_unique<score::gfx::YUV422P10Encoder>();
         return nullptr;
       };
 
@@ -693,8 +697,11 @@ struct GStreamerOutputNode : score::gfx::OutputNode
         // a multiple of 48 for the tight readback to match GStreamer's v210
         // stride (((w+47)/48)*128); it has no vertical subsampling. Other
         // formats: mult-of-8 width (covers 4:2:2 / 4:2:0) and even height.
-        const int enc_w = tenBit ? std::max(48, (m_settings.width / 48) * 48)
-                                 : std::max(8, m_settings.width & ~7);
+        // v210 packs 6-px groups into 128-byte rows (width % 48). Planar
+        // I422_10LE / 8-bit formats need mult-of-8 width; 4:2:2 keeps full
+        // vertical resolution.
+        const int enc_w = is_v210 ? std::max(48, (m_settings.width / 48) * 48)
+                                  : std::max(8, m_settings.width & ~7);
         const int enc_h = tenBit ? m_settings.height
                                  : std::max(2, m_settings.height & ~1);
         if(enc_w != m_settings.width || enc_h != m_settings.height)

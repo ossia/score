@@ -240,6 +240,7 @@ set(HDRS
     Gfx/Graph/encoders/I420.hpp
     Gfx/Graph/encoders/BGRA.hpp
     Gfx/Graph/encoders/V210.hpp
+    Gfx/Graph/encoders/YUV422P10.hpp
     Gfx/Graph/encoders/V210Compute.hpp
     Gfx/Graph/encoders/UYVYCompute.hpp
     Gfx/Graph/encoders/BGRACompute.hpp
