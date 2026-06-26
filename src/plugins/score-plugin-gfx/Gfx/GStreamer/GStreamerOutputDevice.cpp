@@ -13,6 +13,7 @@
 #include <Gfx/Graph/encoders/I420.hpp>
 #include <Gfx/Graph/encoders/NV12.hpp>
 #include <Gfx/Graph/encoders/UYVY.hpp>
+#include <Gfx/Graph/encoders/V210.hpp>
 #include <Gfx/InvertYRenderer.hpp>
 
 #include <score/gfx/OpenGL.hpp>
@@ -632,8 +633,21 @@ struct GStreamerOutputNode : score::gfx::OutputNode
     m_renderState->outputSize = m_renderState->renderSize;
 
     auto rhi = m_renderState->rhi;
+
+    // init_pipeline() negotiates with GStreamer and fills m_detectedFormat, so
+    // the scene render-target format (which depends on whether the output is
+    // 10-bit) must be chosen AFTER it.
+    const bool pipeline_ok = init_pipeline();
+    if(!pipeline_ok)
+      qWarning() << "GStreamerOutputNode: pipeline init failed; output disabled";
+
+    // 10-bit packed output (v210) needs a >8-bit scene render target for real
+    // precision; everything else renders RGBA8.
+    const bool tenBit = (m_detectedFormat == "v210");
+    m_renderState->renderFormat
+        = tenBit ? QRhiTexture::RGBA16F : QRhiTexture::RGBA8;
     m_texture = rhi->newTexture(
-        QRhiTexture::RGBA8, m_renderState->renderSize, 1,
+        m_renderState->renderFormat, m_renderState->renderSize, 1,
         QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource);
     m_texture->create();
     m_renderTarget = rhi->newTextureRenderTarget({m_texture});
@@ -642,10 +656,6 @@ struct GStreamerOutputNode : score::gfx::OutputNode
     m_renderTarget->setRenderPassDescriptor(
         m_renderState->renderPassDescriptor);
     m_renderTarget->create();
-
-    const bool pipeline_ok = init_pipeline();
-    if(!pipeline_ok)
-      qWarning() << "GStreamerOutputNode: pipeline init failed; output disabled";
 
     // Create GPU encoder if a YUV target format was detected
     if(pipeline_ok && !m_detectedFormat.isEmpty() && rhi)
@@ -657,6 +667,8 @@ struct GStreamerOutputNode : score::gfx::OutputNode
           return std::make_unique<score::gfx::NV12Encoder>();
         else if(m_detectedFormat == "I420" || m_detectedFormat == "YV12")
           return std::make_unique<score::gfx::I420Encoder>();
+        else if(m_detectedFormat == "v210")
+          return std::make_unique<score::gfx::V210Encoder>();
         return nullptr;
       };
 
@@ -677,8 +689,14 @@ struct GStreamerOutputNode : score::gfx::OutputNode
         // we never sample past the rendered texture, and feed the SAME aligned
         // dimensions to both the encoder and the negotiated caps so the tight
         // readback matches GStreamer's expected (now no-op ROUND_UP_4) strides.
-        const int enc_w = std::max(8, m_settings.width & ~7);  // mult of 8 (covers 4 & 2)
-        const int enc_h = std::max(2, m_settings.height & ~1); // mult of 2
+        // v210 packs 6-px groups into a 128-byte-aligned row, so width must be
+        // a multiple of 48 for the tight readback to match GStreamer's v210
+        // stride (((w+47)/48)*128); it has no vertical subsampling. Other
+        // formats: mult-of-8 width (covers 4:2:2 / 4:2:0) and even height.
+        const int enc_w = tenBit ? std::max(48, (m_settings.width / 48) * 48)
+                                 : std::max(8, m_settings.width & ~7);
+        const int enc_h = tenBit ? m_settings.height
+                                 : std::max(2, m_settings.height & ~1);
         if(enc_w != m_settings.width || enc_h != m_settings.height)
           qDebug() << "GStreamer output: aligning" << m_detectedFormat
                    << "from" << m_settings.width << "x" << m_settings.height
