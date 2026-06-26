@@ -5,6 +5,7 @@
 #include <Gfx/Graph/encoders/I420.hpp>
 #include <Gfx/Graph/encoders/NV12.hpp>
 #include <Gfx/Graph/encoders/UYVY.hpp>
+#include <Gfx/Graph/encoders/YUV422P10.hpp>
 #include <Gfx/InvertYRenderer.hpp>
 
 #include <cmath>
@@ -33,6 +34,8 @@ makeEncoderForPixfmt(const QString& pixfmt)
     return std::make_unique<score::gfx::NV12Encoder>();
   if(pixfmt == "uyvy422")
     return std::make_unique<score::gfx::UYVYEncoder>();
+  if(pixfmt == "yuv422p10le" || pixfmt == "yuv422p10")
+    return std::make_unique<score::gfx::YUV422P10Encoder>();
   return nullptr;
 }
 
@@ -211,13 +214,15 @@ void LibavEncoderNode::createOutput(score::gfx::OutputConfiguration conf)
   m_renderState->outputSize = m_renderState->renderSize;
 
   auto rhi = m_renderState->rhi;
-  // A 10-bit target codec (e.g. yuv422p10le / ProRes) with no dedicated 8-bit
-  // GPU encoder gets a >8-bit scene render target so the readback -> swscale
-  // carries real 10-bit precision rather than 8-bit upsampled.
-  m_tenBit = pixfmtDepth(m_settings.video_converted_pixfmt) > 8
+  // A 10-bit target codec gets a >8-bit (RGBA16F) scene render target so the
+  // encoder reads real >8-bit precision. If a 10-bit GPU encoder exists
+  // (yuv422p10le) it consumes that directly; otherwise we fall back to an
+  // RGBA64 readback + swscale (m_tenBit).
+  const bool tenBitOut = pixfmtDepth(m_settings.video_converted_pixfmt) > 8;
+  m_tenBit = tenBitOut
              && !makeEncoderForPixfmt(m_settings.video_converted_pixfmt);
   m_texture = rhi->newTexture(
-      m_tenBit ? QRhiTexture::RGBA16F : QRhiTexture::RGBA8,
+      tenBitOut ? QRhiTexture::RGBA16F : QRhiTexture::RGBA8,
       m_renderState->renderSize, 1,
       QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource);
   m_texture->create();
