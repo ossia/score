@@ -106,6 +106,11 @@ public:
   void stopTimeBar();
 
   bool isNodal() const noexcept;
+  // Switch between temporal and dataflow (nodal) mode, keeping the toolbar
+  // action in sync. Exposed for JS view automation.
+  void setNodalMode(bool nodal);
+  // Recenter the view (nodal mode). Exposed for JS view automation.
+  void recenter();
 
   void setAutoScroll(bool);
 

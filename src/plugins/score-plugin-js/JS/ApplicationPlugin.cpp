@@ -4,6 +4,7 @@
 #include <JS/Qml/DeviceContext.hpp>
 #include <JS/Qml/EditContext.hpp>
 #include <JS/Qml/Utils.hpp>
+#include <JS/Qml/ViewContext.hpp>
 #include <Library/LibrarySettings.hpp>
 #include <LocalTree/LocalTreeDocumentPlugin.hpp>
 
@@ -43,6 +44,7 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
   m_consoleEngine.globalObject().setProperty(
       "Library", m_consoleEngine.newQObject(new JsLibrary));
   m_consoleEngine.globalObject().setProperty("Device", m_consoleEngine.newQObject(new DeviceContext{m_consoleEngine}));
+  m_consoleEngine.globalObject().setProperty("View", m_consoleEngine.newQObject(new JsViewContext));
   connect(&m_consoleEngine, &QQmlEngine::exit, this, [&] {
     for(auto& doc : score::GUIAppContext().docManager.documents())
       doc->commandStack().markCurrentIndexAsSaved();
@@ -70,6 +72,8 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
       "System", m_scriptProcessUIEngine.newQObject(new JsSystem));
   m_scriptProcessUIEngine.globalObject().setProperty(
       "Library", m_scriptProcessUIEngine.newQObject(new JsLibrary));
+  m_scriptProcessUIEngine.globalObject().setProperty(
+      "View", m_scriptProcessUIEngine.newQObject(new JsViewContext));
 
   // Command-line option parsing
   QCommandLineParser parser;

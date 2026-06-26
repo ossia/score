@@ -290,6 +290,21 @@ void ScenarioDocumentPresenter::recenterNodal()
   ossia::visit(vis, m_centralDisplay);
 }
 
+void ScenarioDocumentPresenter::recenter()
+{
+  recenterNodal();
+}
+
+void ScenarioDocumentPresenter::setNodalMode(bool nodal)
+{
+  // Route through the toolbar action so its checked state stays in sync:
+  // toggling it triggers on_timelineModeSwitch() -> switchMode().
+  if(m_timelineAction)
+    m_timelineAction->setChecked(!nodal);
+  else
+    switchMode(nodal);
+}
+
 void ScenarioDocumentPresenter::switchMode(bool nodal)
 {
   const auto mode

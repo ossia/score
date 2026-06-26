@@ -41,6 +41,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/QmlProcess.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/TextureSource.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/Utils.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/ViewContext.hpp"
 
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/ApplicationPlugin.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/DocumentPlugin.hpp"
@@ -83,6 +84,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/TextureSource.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/ValueTypes.Qt6.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/Utils.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/ViewContext.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/ApplicationPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/DocumentPlugin.cpp"
