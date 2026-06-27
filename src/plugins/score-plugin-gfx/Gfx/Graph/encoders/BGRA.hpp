@@ -18,6 +18,21 @@ namespace score::gfx
  */
 struct BGRAEncoder : GPUVideoEncoder
 {
+  // Output byte order in memory (the RGBA8 texel bytes [0,1,2,3]):
+  enum class Swizzle
+  {
+    BGRA, // (b,g,r,a) — NTV2_FBF_ARGB, DXGI B8G8R8A8, QImage RGB32
+    RGBA, // (r,g,b,a) — NTV2_FBF_RGBA (straight passthrough)
+    ABGR  // (a,b,g,r) — NTV2_FBF_ABGR
+  };
+  Swizzle m_swizzle{Swizzle::BGRA};
+
+  explicit BGRAEncoder(Swizzle s = Swizzle::BGRA)
+      : m_swizzle{s}
+  {
+  }
+
+  // %1 = the output swizzle expression.
   static constexpr const char* frag = R"_(#version 450
     layout(location = 0) in vec2 v_texcoord;
     layout(location = 0) out vec4 fragColor;
@@ -33,7 +48,7 @@ struct BGRAEncoder : GPUVideoEncoder
 
     void main() {
       vec4 c = texture(src_tex, flip_y(v_texcoord));
-      fragColor = vec4(c.b, c.g, c.r, c.a);
+      fragColor = %1;
     }
   )_";
 
@@ -76,8 +91,13 @@ struct BGRAEncoder : GPUVideoEncoder
     });
     m_srb->create();
 
+    const char* swiz = (m_swizzle == Swizzle::RGBA) ? "vec4(c.r, c.g, c.b, c.a)"
+                       : (m_swizzle == Swizzle::ABGR)
+                           ? "vec4(c.a, c.b, c.g, c.r)"
+                           : "vec4(c.b, c.g, c.r, c.a)";
     auto [vertS, fragS] = makeShaders(
-        state, QString::fromLatin1(vertex_shader), QString::fromLatin1(frag));
+        state, QString::fromLatin1(vertex_shader),
+        QString::fromLatin1(frag).arg(QString::fromLatin1(swiz)));
 
     m_pipeline = rhi.newGraphicsPipeline();
     m_pipeline->setShaderStages({
