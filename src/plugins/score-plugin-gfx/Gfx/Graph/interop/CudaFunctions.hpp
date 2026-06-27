@@ -430,6 +430,8 @@ struct CudaFunctions
   // -- Memcpy -------------------------------------------------------------
   using FN_cuMemcpy2DAsync = CUresult (*)(const CUDA_MEMCPY2D*, CUstream);
   FN_cuMemcpy2DAsync memcpy2DAsync{};
+  using FN_cuMemcpyHtoD = CUresult (*)(CUdeviceptr, const void*, size_t);
+  FN_cuMemcpyHtoD memcpyHtoD{};
 
   // -- VMM (Virtual Memory Management) — CUDA 10.2+, OPTIONAL ------------
   // All-or-nothing: either every entry point resolves and `vmmSupported`
@@ -548,6 +550,7 @@ struct CudaFunctions
 
     // Memcpy — REQUIRED
     memcpy2DAsync = (FN_cuMemcpy2DAsync)sym("cuMemcpy2DAsync_v2");
+    memcpyHtoD = (FN_cuMemcpyHtoD)sym("cuMemcpyHtoD_v2");
 
     // VMM — OPTIONAL (CUDA 10.2+). All-or-nothing: if any entry is
     // missing, mark the whole bundle unsupported. The driver exports
@@ -574,7 +577,8 @@ struct CudaFunctions
                     && graphicsGetMappedPointer && importExtMem
                     && extMemGetMappedBuffer && getMapArray && getLevel
                     && destroyMipArray && destroyExtMem && importExtSem
-                    && waitExtSems && destroyExtSem && memcpy2DAsync;
+                    && waitExtSems && destroyExtSem && memcpy2DAsync
+                    && memcpyHtoD;
     if(!ok)
     {
       unload();
