@@ -241,6 +241,7 @@ set(HDRS
     Gfx/Graph/encoders/BGRA.hpp
     Gfx/Graph/encoders/V210.hpp
     Gfx/Graph/encoders/YUV422P10.hpp
+    Gfx/Graph/encoders/P010.hpp
     Gfx/Graph/encoders/V210Compute.hpp
     Gfx/Graph/encoders/UYVYCompute.hpp
     Gfx/Graph/encoders/BGRACompute.hpp
@@ -750,5 +751,13 @@ endif()
 if(SCORE_VIDEO_TESTER)
 add_executable(VideoTester tests/VideoTester.cpp)
 target_link_libraries(VideoTester PRIVATE score_plugin_gfx)
+endif()
+
+# Offscreen unit test for the GPU video encoders (no AJA/libav/gst needed).
+option(SCORE_ENCODER_TESTER "Build the GPU encoder offscreen self-test" ON)
+if(SCORE_ENCODER_TESTER)
+add_executable(EncoderTester tests/EncoderTester.cpp)
+target_link_libraries(EncoderTester PRIVATE
+  score_plugin_gfx score_plugin_media ${QT_PREFIX}::Gui)
 endif()
 
