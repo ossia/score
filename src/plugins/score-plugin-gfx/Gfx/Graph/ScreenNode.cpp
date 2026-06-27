@@ -247,6 +247,14 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
   if(graphicsApi == Vulkan)
   {
     QRhiVulkanInitParams params;
+    // External-memory/-semaphore extensions for GPU interop (CUDA P2P, Spout,
+    // DMA-BUF). These are required so vkGetMemoryFdKHR / vkGetMemoryWin32HandleKHR
+    // resolve — without them the zero-copy capture/output paths (e.g. AJA Vulkan
+    // tier-3) can't export a VkBuffer/VkImage to CUDA. The shared-device path
+    // (Qt>=6.6) already requests them via sharedVulkanDeviceExtensions(); this
+    // covers the fallback QRhi-owned device too. On desktop Linux/Windows these
+    // are universally supported; QRhi/vkCreateDevice would fail if not, so they
+    // stay platform-gated to where the handle types exist.
 #if defined(_WIN32)
     params.deviceExtensions << VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME
                             << VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME
@@ -254,6 +262,18 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
                             << VK_KHR_EXTERNAL_SEMAPHORE_EXTENSION_NAME
                             << VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME
                             << VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME
+        ;
+#else
+    params.deviceExtensions << VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME
+                            << VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME
+                            << VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME
+                            << VK_KHR_EXTERNAL_SEMAPHORE_EXTENSION_NAME
+#ifdef VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME
+                            << VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME
+#endif
+#ifdef VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME
+                            << VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME
+#endif
         ;
 #endif
 

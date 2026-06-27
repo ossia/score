@@ -25,6 +25,8 @@
 
 #include <score/gfx/Vulkan.hpp>
 
+#include <score_plugin_gfx_export.h>
+
 #if QT_HAS_VULKAN
 
 #include <vector>
@@ -120,7 +122,7 @@ struct ExternalBuffer
  * Memory is DEVICE_LOCAL by default; falls back to any compatible type if
  * preferDeviceLocal is true but no DEVICE_LOCAL type matches the requirements.
  */
-std::optional<ExternalImage>
+SCORE_PLUGIN_GFX_EXPORT std::optional<ExternalImage>
 createExportableImage(const VulkanCtx&, const ExternalImageDesc&);
 
 /**
@@ -128,7 +130,7 @@ createExportableImage(const VulkanCtx&, const ExternalImageDesc&);
  *
  * Symmetric with createExportableImage. Future use: RdmaInteropVulkanTier3.
  */
-std::optional<ExternalBuffer>
+SCORE_PLUGIN_GFX_EXPORT std::optional<ExternalBuffer>
 createExportableBuffer(const VulkanCtx&, const ExternalBufferDesc&);
 
 /**
@@ -140,7 +142,7 @@ createExportableBuffer(const VulkanCtx&, const ExternalBufferDesc&);
  * separately. For OPAQUE_WIN32 / D3D11_*: caller owns the HANDLE and must
  * CloseHandle() when done (CUDA does not take ownership).
  */
-std::optional<ExternalHandle> exportMemoryHandle(
+SCORE_PLUGIN_GFX_EXPORT std::optional<ExternalHandle> exportMemoryHandle(
     const VulkanCtx&, VkDeviceMemory, VkExternalMemoryHandleTypeFlagBits);
 
 // =============================================================================
@@ -160,13 +162,13 @@ std::optional<ExternalHandle> exportMemoryHandle(
  *   4. VkMemoryDedicatedAllocateInfo (when desc.dedicated)
  *   5. vkAllocateMemory + vkBindImageMemory
  */
-std::optional<ExternalImage> importExternalImage(
+SCORE_PLUGIN_GFX_EXPORT std::optional<ExternalImage> importExternalImage(
     const VulkanCtx&, const ExternalImageDesc&, const ExternalHandle&);
 
 /**
  * @brief Create a VkBuffer backed by memory imported from an external handle.
  */
-std::optional<ExternalBuffer> importExternalBuffer(
+SCORE_PLUGIN_GFX_EXPORT std::optional<ExternalBuffer> importExternalBuffer(
     const VulkanCtx&, const ExternalBufferDesc&, const ExternalHandle&);
 
 // =============================================================================
@@ -175,8 +177,8 @@ std::optional<ExternalBuffer> importExternalBuffer(
 // <QVulkanDeviceFunctions> into every consumer of this header.
 // =============================================================================
 
-void destroyExternal(const VulkanCtx& v, ExternalImage& img);
-void destroyExternal(const VulkanCtx& v, ExternalBuffer& buf);
+SCORE_PLUGIN_GFX_EXPORT void destroyExternal(const VulkanCtx& v, ExternalImage& img);
+SCORE_PLUGIN_GFX_EXPORT void destroyExternal(const VulkanCtx& v, ExternalBuffer& buf);
 
 // =============================================================================
 // DMA-BUF modifier capability probes (Phase 5)
