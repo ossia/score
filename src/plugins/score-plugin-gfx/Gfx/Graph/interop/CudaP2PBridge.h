@@ -177,6 +177,35 @@ CUDA_P2P_API void cuda_p2p_release_image(
     CudaP2PImageHandle h);
 
 /* ============================================================================
+ * Device-side copies (the Vulkan tier-3 capture per-frame buffer->texture copy)
+ * ============================================================================ */
+
+/**
+ * @brief Copy a flat device buffer (e.g. an AJA-DMA'd VkBuffer, CUDA-imported)
+ *        into a CUDA array (level 0 of a CUDA-imported VkImage). Synchronous
+ *        (stream-synchronized on return). Rows are @p width_bytes wide, @p
+ *        height of them, source row stride @p src_pitch_bytes.
+ */
+CUDA_P2P_API CudaP2PError cuda_p2p_copy_buffer_to_array(
+    CudaP2PContextHandle ctx,
+    void* src_device_ptr,
+    void* dst_cuda_array,
+    uint32_t width_bytes,
+    uint32_t height,
+    uint32_t src_pitch_bytes);
+
+/**
+ * @brief Upload host bytes into a flat device pointer (cuMemcpyHtoD).
+ *        Utility — mainly for tests that need to seed a device buffer without
+ *        a peer DMA source.
+ */
+CUDA_P2P_API CudaP2PError cuda_p2p_upload_buffer(
+    CudaP2PContextHandle ctx,
+    void* dst_device_ptr,
+    const void* host_data,
+    uint64_t size);
+
+/* ============================================================================
  * External semaphore primitives (D3D12 fence + Vulkan timeline)
  * ============================================================================ */
 

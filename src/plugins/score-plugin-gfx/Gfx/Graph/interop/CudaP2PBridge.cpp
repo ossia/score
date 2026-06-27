@@ -657,3 +657,49 @@ CudaP2PError cuda_p2p_sync(CudaP2PContextHandle ctx)
       "cuStreamSynchronize");
   return CUDA_P2P_SUCCESS;
 }
+
+CudaP2PError cuda_p2p_copy_buffer_to_array(
+    CudaP2PContextHandle ctx, void* src_device_ptr, void* dst_cuda_array,
+    uint32_t width_bytes, uint32_t height, uint32_t src_pitch_bytes)
+{
+  if(!ctx || !src_device_ptr || !dst_cuda_array || width_bytes == 0
+     || height == 0)
+    return CUDA_P2P_ERROR_INVALID_PARAMETER;
+  std::lock_guard<std::mutex> lock(ctx->mutex);
+  CU_CHECK(
+      ctx->cu.ctxSetCurrent(ctx->cuContext), ctx, CUDA_P2P_ERROR_COPY_FAILED,
+      "cuCtxSetCurrent");
+
+  CUDA_MEMCPY2D m{};
+  m.srcMemoryType = CU_MEMORYTYPE_DEVICE;
+  m.srcDevice = reinterpret_cast<CUdeviceptr>(src_device_ptr);
+  m.srcPitch = src_pitch_bytes;
+  m.dstMemoryType = CU_MEMORYTYPE_ARRAY;
+  m.dstArray = reinterpret_cast<CUarray>(dst_cuda_array);
+  m.WidthInBytes = width_bytes;
+  m.Height = height;
+  CU_CHECK(
+      ctx->cu.memcpy2DAsync(&m, ctx->stream), ctx, CUDA_P2P_ERROR_COPY_FAILED,
+      "cuMemcpy2DAsync");
+  CU_CHECK(
+      ctx->cu.streamSync(ctx->stream), ctx, CUDA_P2P_ERROR_SYNC_FAILED,
+      "cuStreamSynchronize");
+  return CUDA_P2P_SUCCESS;
+}
+
+CudaP2PError cuda_p2p_upload_buffer(
+    CudaP2PContextHandle ctx, void* dst_device_ptr, const void* host_data,
+    uint64_t size)
+{
+  if(!ctx || !dst_device_ptr || !host_data || size == 0)
+    return CUDA_P2P_ERROR_INVALID_PARAMETER;
+  std::lock_guard<std::mutex> lock(ctx->mutex);
+  CU_CHECK(
+      ctx->cu.ctxSetCurrent(ctx->cuContext), ctx, CUDA_P2P_ERROR_COPY_FAILED,
+      "cuCtxSetCurrent");
+  CU_CHECK(
+      ctx->cu.memcpyHtoD(
+          reinterpret_cast<CUdeviceptr>(dst_device_ptr), host_data, size),
+      ctx, CUDA_P2P_ERROR_COPY_FAILED, "cuMemcpyHtoD");
+  return CUDA_P2P_SUCCESS;
+}
