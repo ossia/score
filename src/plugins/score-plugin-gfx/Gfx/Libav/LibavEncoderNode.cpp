@@ -4,6 +4,7 @@
 #include <Gfx/Graph/RenderState.hpp>
 #include <Gfx/Graph/encoders/I420.hpp>
 #include <Gfx/Graph/encoders/NV12.hpp>
+#include <Gfx/Graph/encoders/P010.hpp>
 #include <Gfx/Graph/encoders/UYVY.hpp>
 #include <Gfx/Graph/encoders/YUV422P10.hpp>
 #include <Gfx/InvertYRenderer.hpp>
@@ -36,6 +37,8 @@ makeEncoderForPixfmt(const QString& pixfmt)
     return std::make_unique<score::gfx::UYVYEncoder>();
   if(pixfmt == "yuv422p10le" || pixfmt == "yuv422p10")
     return std::make_unique<score::gfx::YUV422P10Encoder>();
+  if(pixfmt == "p010le" || pixfmt == "p010")
+    return std::make_unique<score::gfx::P010Encoder>();
   return nullptr;
 }
 
