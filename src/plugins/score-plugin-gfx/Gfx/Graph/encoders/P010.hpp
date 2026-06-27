@@ -7,19 +7,25 @@ namespace score::gfx
 /**
  * @brief GPU RGBA -> p010le encoder (semi-planar 4:2:0, 10-bit).
  *
- * Same structure as NV12Encoder, but:
- *   - planes are R16 / RG16 (16-bit) instead of R8 / RG8,
- *   - each 10-bit sample (0..1023) is written into the HIGH 10 bits of the
- *     16-bit word with the low 6 bits zero, matching AV_PIX_FMT_P010LE /
- *     GStreamer P010_10LE.
+ * Each 10-bit sample (0..1023) sits in the HIGH 10 bits of its 16-bit word
+ * (low 6 bits zero), matching AV_PIX_FMT_P010LE / GStreamer P010_10LE. Two
+ * planes: Y full-res, interleaved UV half-res. Feed a >8-bit source texture
+ * (RGBA16F) for real 10-bit precision.
  *
- * Two render passes (Y full-res, interleaved UV half-res), two readbacks.
- * Feed a >8-bit source texture (RGBA16F) for real 10-bit precision.
+ * Two implementations selected at compile time (see YUV422P10Encoder for the
+ * full rationale and the qtbase commit reference):
  *
- * Packing: an R16 UNORM target stores round(f * 65535). Writing
- * f = round(v*1023) * 64 / 65535 stores round(v*1023) << 6 — the 10-bit value
- * in the high 10 bits, low 6 bits zero, which is exactly P010's layout.
+ *   - Qt >= 6.10: native R16 (Y) / RG16 (UV) targets; QRhi reads them back
+ *     tightly. Bilinear sampling averages the 2x2 chroma block.
+ *
+ *   - Qt < 6.10: the GL backend reads 16-bit single/dual-channel textures back
+ *     as 8-bit RGBA, so we pack the bytes into RGBA8 ourselves.
+ *
+ * BOTH paths expose the SAME readback byte layout (Y = 2w bytes/row over h
+ * rows, UV = 2w bytes/row over h/2 rows, U then V interleaved per site), so
+ * consumers are agnostic. Requires width % 2 == 0.
  */
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
 struct P010Encoder : GPUVideoEncoder
 {
   static constexpr const char* pack_fn = R"_(
@@ -198,5 +204,174 @@ struct P010Encoder : GPUVideoEncoder
     m_sampler = nullptr;
   }
 };
+#else  // Qt < 6.10: pack 16-bit samples into RGBA8 for a tight GL readback.
+struct P010Encoder : GPUVideoEncoder
+{
+  static constexpr const char* common = R"_(
+    int flip_y_int(int y, int h) {
+    #if defined(QSHADER_MSL) || defined(QSHADER_HLSL)
+      return y;
+    #else
+      return h - 1 - y;
+    #endif
+    }
+    // 10-bit component (0=Y,1=U,2=V) shifted into the high 10 bits of 16 bits.
+    uint hi10(vec3 rgb, int c) {
+      vec3 yuv = clamp(convert_from_rgb(rgb), 0.0, 1.0);
+      float v = (c == 0) ? yuv.x : (c == 1 ? yuv.y : yuv.z);
+      return uint(v * 1023.0 + 0.5) << 6u;
+    }
+    vec4 pack2(uint a, uint b) {
+      return vec4(float(a & 0xFFu), float((a >> 8u) & 0xFFu),
+                  float(b & 0xFFu), float((b >> 8u) & 0xFFu)) / 255.0;
+    }
+  )_";
+
+  // %1 = colorMatrixOut(), %2 = common. Y: 2 full-res luma per texel.
+  static constexpr const char* y_frag = R"_(#version 450
+    layout(location = 0) in vec2 v_texcoord;
+    layout(location = 0) out vec4 fragColor;
+    layout(binding = 3) uniform sampler2D src_tex;
+    )_" "%1" R"_(
+    )_" "%2" R"_(
+    void main() {
+      ivec2 sz = textureSize(src_tex, 0);
+      ivec2 o = ivec2(gl_FragCoord.xy);
+      int sy = flip_y_int(o.y, sz.y);
+      int x0 = o.x * 2;
+      uint a = hi10(texelFetch(src_tex, ivec2(min(x0,     sz.x - 1), sy), 0).rgb, 0);
+      uint b = hi10(texelFetch(src_tex, ivec2(min(x0 + 1, sz.x - 1), sy), 0).rgb, 0);
+      fragColor = pack2(a, b);
+    }
+  )_";
+
+  // %1 = colorMatrixOut(), %2 = common. UV: one chroma site per texel,
+  // averaged over the 2x2 source block; U then V.
+  static constexpr const char* uv_frag = R"_(#version 450
+    layout(location = 0) in vec2 v_texcoord;
+    layout(location = 0) out vec4 fragColor;
+    layout(binding = 3) uniform sampler2D src_tex;
+    )_" "%1" R"_(
+    )_" "%2" R"_(
+    uint avg(int x, int y0, int y1, ivec2 sz, int c) {
+      int xa = min(x, sz.x - 1), xb = min(x + 1, sz.x - 1);
+      uint s = hi10(texelFetch(src_tex, ivec2(xa, y0), 0).rgb, c)
+             + hi10(texelFetch(src_tex, ivec2(xb, y0), 0).rgb, c)
+             + hi10(texelFetch(src_tex, ivec2(xa, y1), 0).rgb, c)
+             + hi10(texelFetch(src_tex, ivec2(xb, y1), 0).rgb, c);
+      return (s >> 2u) & 0xFFC0u; // keep 10 bits in the high position
+    }
+    void main() {
+      ivec2 sz = textureSize(src_tex, 0);
+      ivec2 o = ivec2(gl_FragCoord.xy);
+      int x0 = o.x * 2;
+      int y0 = flip_y_int(o.y * 2,     sz.y);
+      int y1 = flip_y_int(o.y * 2 + 1, sz.y);
+      fragColor = pack2(avg(x0, y0, y1, sz, 1), avg(x0, y0, y1, sz, 2));
+    }
+  )_";
+
+  struct PlaneResources
+  {
+    QRhiTexture* texture{};
+    QRhiTextureRenderTarget* rt{};
+    QRhiRenderPassDescriptor* rp{};
+    QRhiShaderResourceBindings* srb{};
+    QRhiGraphicsPipeline* pipeline{};
+    QRhiReadbackResult readback{};
+    int w{}, h{};
+
+    void destroy()
+    {
+      delete pipeline; delete srb; delete rp; delete rt; delete texture;
+      pipeline = nullptr; srb = nullptr; rp = nullptr; rt = nullptr; texture = nullptr;
+    }
+  };
+
+  PlaneResources m_y, m_uv;
+  QRhiSampler* m_sampler{};
+  int m_width{};
+  int m_height{};
+
+  void initPlane(
+      QRhi& rhi, const RenderState& state, QRhiTexture* inputRGBA,
+      PlaneResources& p, int packW, int packH, const QString& frag)
+  {
+    p.w = packW;
+    p.h = packH;
+    p.texture = rhi.newTexture(
+        QRhiTexture::RGBA8, QSize{packW, packH}, 1,
+        QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource);
+    p.texture->create();
+    p.rt = rhi.newTextureRenderTarget({p.texture});
+    p.rp = p.rt->newCompatibleRenderPassDescriptor();
+    p.rt->setRenderPassDescriptor(p.rp);
+    p.rt->create();
+    p.srb = rhi.newShaderResourceBindings();
+    p.srb->setBindings({QRhiShaderResourceBinding::sampledTexture(
+        3, QRhiShaderResourceBinding::FragmentStage, inputRGBA, m_sampler)});
+    p.srb->create();
+    auto [vs, fs] = makeShaders(state, QString::fromLatin1(vertex_shader), frag);
+    p.pipeline = rhi.newGraphicsPipeline();
+    p.pipeline->setShaderStages({
+        {QRhiShaderStage::Vertex, vs}, {QRhiShaderStage::Fragment, fs}});
+    p.pipeline->setVertexInputLayout({});
+    p.pipeline->setShaderResourceBindings(p.srb);
+    p.pipeline->setRenderPassDescriptor(p.rp);
+    p.pipeline->create();
+  }
+
+  void execPlane(QRhi& rhi, QRhiCommandBuffer& cb, PlaneResources& p)
+  {
+    cb.beginPass(p.rt, Qt::black, {0.0f, 0});
+    cb.setGraphicsPipeline(p.pipeline);
+    cb.setShaderResources(p.srb);
+    cb.setViewport(QRhiViewport(0, 0, p.w, p.h));
+    cb.draw(3);
+    auto* batch = rhi.nextResourceUpdateBatch();
+    batch->readBackTexture(QRhiReadbackDescription{p.texture}, &p.readback);
+    cb.endPass(batch);
+  }
+
+  void init(
+      QRhi& rhi, const RenderState& state, QRhiTexture* inputRGBA, int width,
+      int height, const QString& colorConversion = colorMatrixOut()) override
+  {
+    m_width = width;
+    m_height = height;
+    m_sampler = rhi.newSampler(
+        QRhiSampler::Nearest, QRhiSampler::Nearest, QRhiSampler::None,
+        QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
+    m_sampler->create();
+
+    const QString cm = QString::fromLatin1(common);
+    const QString y = QString::fromLatin1(y_frag).arg(colorConversion, cm);
+    const QString uv = QString::fromLatin1(uv_frag).arg(colorConversion, cm);
+    initPlane(rhi, state, inputRGBA, m_y, width / 2, height, y);
+    initPlane(rhi, state, inputRGBA, m_uv, width / 2, height / 2, uv);
+  }
+
+  void exec(QRhi& rhi, QRhiCommandBuffer& cb) override
+  {
+    execPlane(rhi, cb, m_y);
+    execPlane(rhi, cb, m_uv);
+  }
+
+  int planeCount() const override { return 2; }
+
+  const QRhiReadbackResult& readback(int plane) const override
+  {
+    return plane == 0 ? m_y.readback : m_uv.readback;
+  }
+
+  void release() override
+  {
+    m_y.destroy();
+    m_uv.destroy();
+    delete m_sampler;
+    m_sampler = nullptr;
+  }
+};
+#endif
 
 } // namespace score::gfx
