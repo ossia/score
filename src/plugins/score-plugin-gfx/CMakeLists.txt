@@ -262,6 +262,7 @@ set(HDRS
     Gfx/Graph/interop/ComputeRingDispatcher.hpp
     Gfx/Graph/interop/GpuDirectStrategy.hpp
     Gfx/Graph/interop/GpuDirectCaptureStrategy.hpp
+    Gfx/Graph/interop/GLCaptureUpload.hpp
     Gfx/Graph/interop/GpuDirectOutput.hpp
     Gfx/Graph/interop/GpuDirectOutput.cpp
     Gfx/Graph/interop/GpuCapabilities.hpp
