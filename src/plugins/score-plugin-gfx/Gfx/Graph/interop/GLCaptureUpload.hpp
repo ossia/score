@@ -2,17 +2,16 @@
 
 /**
  * @file GLCaptureUpload.hpp
- * @brief Vendor-neutral OpenGL plumbing shared by GPU-direct video CAPTURE
+ * @brief OpenGL-specific upload helpers for GPU-direct video CAPTURE
  *        strategies that land a captured frame in a QRhi GL texture.
  *
  * Extracted from the per-strategy headers in the AJA addon
  * (CaptureInteropGLCpu, CaptureInteropGLTier3) which had byte-for-byte
- * identical copies of the SPSC slot handoff, the output-texture byte-size
- * validation, and the `glTexSubImage2D` upload skeleton. Per the
- * GpuDirectCaptureStrategy.hpp contract the reusable plumbing lives here so
- * each per-vendor strategy file stays small; the vendor-specific concerns
- * (DMABufferLock, buffer allocation, P2P/DVP bridge calls, pacing) stay in
- * the addon.
+ * identical copies of the `glTexSubImage2D` upload skeleton. The
+ * backend-neutral plumbing (slot handoff, byte-size validation) lives in
+ * CaptureStrategyCommon.hpp, which this file includes; the vendor-specific
+ * concerns (DMABufferLock, buffer allocation, P2P/DVP bridge calls, pacing)
+ * stay in the addon.
  *
  * The two upload helpers intentionally keep distinct behaviour matching the
  * paths they replace:
@@ -23,64 +22,17 @@
  *     source buffer and uploads from offset 0.
  */
 
+#include <Gfx/Graph/interop/CaptureStrategyCommon.hpp>
+
 #include <QtGui/private/qrhigles2_p.h>
 
-#include <QDebug>
 #include <QOpenGLContext>
 #include <QOpenGLExtraFunctions>
 
-#include <atomic>
-#include <cstddef>
 #include <cstdint>
 
 namespace score::gfx::interop
 {
-
-/**
- * @brief Lock-free single-producer/single-consumer slot handoff.
- *
- * The vendor capture thread publishes the index of the slot it just filled;
- * the render thread consumes it with an acquire-exchange. -1 means "nothing
- * pending". This is the single-atomic form used by the GL capture strategies
- * (simpler than GpuDirectCaptureSlotRing's frame-id + slot pair, which the
- * polling input-node renderer doesn't need here).
- */
-struct CaptureSlotPublisher
-{
-  std::atomic<int> pending{-1};
-
-  void publish(std::size_t i) noexcept
-  {
-    pending.store(static_cast<int>(i), std::memory_order_release);
-  }
-  /// Returns the published slot index, or -1 if none is pending.
-  int consume() noexcept { return pending.exchange(-1, std::memory_order_acquire); }
-  void reset() noexcept { pending.store(-1, std::memory_order_relaxed); }
-};
-
-/**
- * @brief Validate that an RGBA8-typed output texture's byte footprint matches
- *        the captured frame size (width * 4 * height == frameByteSize).
- *
- * Logs and returns false on mismatch so a strategy can bail before DMAing into
- * a wrongly-sized texture. @p tag is a per-strategy prefix for the warning.
- */
-inline bool validateCaptureTextureBytes(
-    const QRhiTexture* tex, std::uint32_t frameByteSize, const char* tag) noexcept
-{
-  if(!tex)
-    return false;
-  const auto sz = tex->pixelSize();
-  const auto expected = static_cast<std::uint32_t>(sz.width()) * 4u
-                        * static_cast<std::uint32_t>(sz.height());
-  if(expected != frameByteSize)
-  {
-    qWarning() << tag << "outputTexture byte size" << expected
-               << "!= captured frame size" << frameByteSize;
-    return false;
-  }
-  return true;
-}
 
 /**
  * @brief Upload one captured frame from client memory into a QRhi GL texture.
