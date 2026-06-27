@@ -7,6 +7,7 @@
 // No AJA / libav / gstreamer needed; just a QRhi offscreen context.
 
 #include <Gfx/Graph/RenderState.hpp>
+#include <Gfx/Graph/encoders/BGRA.hpp>
 #include <Gfx/Graph/encoders/P010.hpp>
 #include <Gfx/Graph/encoders/YUV422P10.hpp>
 
@@ -128,6 +129,53 @@ void testP010(
   enc.release();
 }
 
+// RGB byte-order swizzles. A uniform colored pixel (distinct channels)
+// distinguishes the orders that a gray gradient cannot.
+void testBGRA(QRhi& rhi, const RenderState& state)
+{
+  std::printf("BGRAEncoder (RGB byte-order swizzles):\n");
+  const int w = 16, h = 4;
+  auto* input = rhi.newTexture(
+      QRhiTexture::RGBA8, QSize(w, h), 1, QRhiTexture::UsedAsTransferSource);
+  input->create();
+  std::vector<uint8_t> px(size_t(w) * h * 4);
+  for(size_t i = 0; i < px.size(); i += 4)
+  {
+    px[i] = 11;       // R
+    px[i + 1] = 22;   // G
+    px[i + 2] = 33;   // B
+    px[i + 3] = 255;  // A
+  }
+  struct Case
+  {
+    BGRAEncoder::Swizzle s;
+    const char* name;
+    uint8_t e[4];
+  };
+  const Case cases[] = {
+      {BGRAEncoder::Swizzle::BGRA, "BGRA", {33, 22, 11, 255}},
+      {BGRAEncoder::Swizzle::RGBA, "RGBA", {11, 22, 33, 255}},
+      {BGRAEncoder::Swizzle::ABGR, "ABGR", {255, 33, 22, 11}},
+  };
+  for(const auto& c : cases)
+  {
+    BGRAEncoder enc(c.s);
+    enc.init(rhi, state, input, w, h);
+    uploadAndExec(rhi, enc, input, px);
+    const auto& rb = enc.readback(0);
+    const auto* b = reinterpret_cast<const uint8_t*>(rb.data.constData());
+    const bool ok = b && b[0] == c.e[0] && b[1] == c.e[1] && b[2] == c.e[2]
+                    && b[3] == c.e[3];
+    char msg[80];
+    std::snprintf(
+        msg, sizeof msg, "%s memory order = %d,%d,%d,%d", c.name, c.e[0],
+        c.e[1], c.e[2], c.e[3]);
+    check(ok, msg);
+    enc.release();
+  }
+  delete input;
+}
+
 void runTests()
 {
   const int W = 192, H = 64; // W % 48 == 0, even H
@@ -179,6 +227,7 @@ void runTests()
 
   testYUV422P10(rhi, *state, input, px, W, H);
   testP010(rhi, *state, input, px, W, H);
+  testBGRA(rhi, *state);
 
   std::printf("\n%s (%d failures)\n", g_fail ? "FAILED" : "ALL PASS", g_fail);
 }
