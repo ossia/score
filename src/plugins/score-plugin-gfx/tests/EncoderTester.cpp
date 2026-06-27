@@ -131,7 +131,12 @@ void testP010(
 void runTests()
 {
   const int W = 192, H = 64; // W % 48 == 0, even H
-  auto state = createRenderState(GraphicsApi::OpenGL, QSize(W, H), nullptr);
+  // Backend selectable via SCORE_TEST_API=vulkan|opengl (default OpenGL).
+  const QByteArray apiEnv = qgetenv("SCORE_TEST_API").toLower();
+  const GraphicsApi api = (apiEnv == "vulkan" || apiEnv == "vk")
+                              ? GraphicsApi::Vulkan
+                              : GraphicsApi::OpenGL;
+  auto state = createRenderState(api, QSize(W, H), nullptr);
   if(!state || !state->rhi)
   {
     std::printf("ERROR: no QRhi (need a GL-capable display)\n");
