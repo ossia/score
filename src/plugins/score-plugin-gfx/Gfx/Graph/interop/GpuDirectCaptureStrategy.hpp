@@ -28,6 +28,7 @@
 
 class QRhi;
 class QRhiTexture;
+class QRhiResourceUpdateBatch;
 
 namespace score::gfx
 {
@@ -106,6 +107,15 @@ struct GpuDirectCaptureStrategy
   /// RDMA impls use it to copy buffer → texture on the render thread.
   virtual void acquireForRender() = 0;
   virtual void releaseAfterRender() = 0;
+
+  /// Batch-aware variant, called by the renderer with the active QRhi
+  /// resource-update batch. Backends that upload through a raw graphics API
+  /// (GL glTexSubImage2D, DVP/D3D copies) ignore the batch and fall through to
+  /// the no-arg acquireForRender(). A portable CPU-staging strategy overrides
+  /// this to issue a backend-neutral QRhiResourceUpdateBatch::uploadTexture
+  /// (the only path that works on Vulkan/Metal/D3D where there is no raw upload
+  /// API at hand).
+  virtual void acquireForRender(QRhiResourceUpdateBatch&) { acquireForRender(); }
 };
 
 /**
