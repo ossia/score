@@ -32,22 +32,12 @@ void check(bool ok, const char* what)
     ++g_fail;
 }
 
-// uint16 sample at (x,y), component `comp`. The QRhi GL backend reads single-
-// and dual-channel 16-bit textures back PADDED (R16 -> 4 bytes/pixel, RG16 ->
-// 8), so derive the real per-pixel uint16 stride from the readback size.
-uint16_t sample(const QRhiReadbackResult& rb, int x, int y, int comp)
+// Planes are packed into RGBA8 (two 16-bit samples per texel), so the readback
+// bytes ARE the plane's little-endian uint16 samples, contiguous and tight on
+// every backend. Read sample at flat index k.
+uint16_t u16at(const QRhiReadbackResult& rb, size_t k)
 {
-  const int w = rb.pixelSize.width(), h = rb.pixelSize.height();
-  const int u16pp = int(rb.data.size() / (size_t(w) * h) / 2);
-  const auto* p = reinterpret_cast<const uint16_t*>(rb.data.constData());
-  return p[((size_t(y) * w + x) * u16pp) + comp];
-}
-
-// Per-pixel uint16 stride of a readback plane (incl. backend padding).
-int u16stride(const QRhiReadbackResult& rb)
-{
-  const int w = rb.pixelSize.width(), h = rb.pixelSize.height();
-  return int(rb.data.size() / (size_t(w) * h) / 2);
+  return reinterpret_cast<const uint16_t*>(rb.data.constData())[k];
 }
 
 // Upload the input pixels and run the encoder in the SAME offscreen frame
@@ -81,24 +71,25 @@ void testYUV422P10(
   const auto& V = enc.readback(2);
   check(!Y.data.isEmpty() && !U.data.isEmpty() && !V.data.isEmpty(), "readbacks present");
 
-  // Bit packing: every Y value (component 0) must fit in 10 bits.
+  // Packed-RGBA8 readback == contiguous LE uint16. Logical sizes: Y = w x h,
+  // U/V = w/2 x h (4:2:2).
+  auto Yat = [&](int x, int yy) { return u16at(Y, size_t(yy) * w + x); };
+  auto Uat = [&](int x, int yy) { return u16at(U, size_t(yy) * (w / 2) + x); };
+  auto Vat = [&](int x, int yy) { return u16at(V, size_t(yy) * (w / 2) + x); };
+
   bool low10 = true;
-  for(int yy = 0; yy < Y.pixelSize.height() && low10; ++yy)
-    for(int xx = 0; xx < Y.pixelSize.width(); ++xx)
-      if(sample(Y, xx, yy, 0) > 1023) { low10 = false; break; }
+  for(size_t k = 0, n = size_t(w) * h; k < n && low10; ++k)
+    if(u16at(Y, k) > 1023)
+      low10 = false;
   check(low10, "Y values fit in low 10 bits (<=1023)");
 
-  // Neutral chroma for gray: U == V == 512.
-  const int u = sample(U, U.pixelSize.width() / 2, h / 2, 0);
-  const int v = sample(V, V.pixelSize.width() / 2, h / 2, 0);
-  check(std::abs(u - 512) <= 4 && std::abs(v - 512) <= 4, "gray -> neutral chroma (U=V=512)");
+  const int u = Uat(w / 4, h / 2), v = Vat(w / 4, h / 2);
+  check(std::abs(u - 512) <= 4 && std::abs(v - 512) <= 4,
+        "gray -> neutral chroma (U=V=512)");
 
-  // Monotonic luma across the gradient.
-  const int yL = sample(Y, w / 8, h / 2, 0);
-  const int yR = sample(Y, 7 * w / 8, h / 2, 0);
+  const int yL = Yat(w / 8, h / 2), yR = Yat(7 * w / 8, h / 2);
   check(yR > yL + 200, "luma increases left->right");
-  std::printf("    Y[L]=%d Y[R]=%d  U=%d V=%d  (Y stride=%d u16/px)\n", yL, yR,
-              u, v, u16stride(Y));
+  std::printf("    Y[L]=%d Y[R]=%d  U=%d V=%d\n", yL, yR, u, v);
   enc.release();
 }
 
@@ -111,27 +102,29 @@ void testP010(
   enc.init(rhi, state, input, w, h);
   uploadAndExec(rhi, enc, input, px);
 
-  const auto& Y = enc.readback(0);  // R16
-  const auto& UV = enc.readback(1); // RG16 interleaved
+  const auto& Y = enc.readback(0);
+  const auto& UV = enc.readback(1);
   check(!Y.data.isEmpty() && !UV.data.isEmpty(), "readbacks present");
 
-  // P010 packs into the high 10 bits: the Y component (0) is a multiple of 64.
+  // Packed RGBA8 -> contiguous LE uint16. Y = w x h; UV = (w/2 x h/2),
+  // interleaved U,V per site. 10-bit value in the high 10 bits (low 6 zero).
+  auto Yat = [&](int x, int yy) { return u16at(Y, size_t(yy) * w + x); };
+  auto Uat = [&](int x, int yy) { return u16at(UV, size_t(yy) * w + 2 * x); };
+  auto Vat = [&](int x, int yy) { return u16at(UV, size_t(yy) * w + 2 * x + 1); };
+
   bool hi10 = true;
-  for(int yy = 0; yy < Y.pixelSize.height() && hi10; ++yy)
-    for(int xx = 0; xx < Y.pixelSize.width(); ++xx)
-      if((sample(Y, xx, yy, 0) & 0x3F) != 0) { hi10 = false; break; }
+  for(size_t k = 0, n = size_t(w) * h; k < n && hi10; ++k)
+    if((u16at(Y, k) & 0x3F) != 0)
+      hi10 = false;
   check(hi10, "Y values have low 6 bits zero (10 bits in MSBs)");
 
-  // Neutral chroma (decoded from the high 10 bits): UV is interleaved R=U,G=V.
-  const int u = sample(UV, UV.pixelSize.width() / 2, h / 4, 0) >> 6;
-  const int v = sample(UV, UV.pixelSize.width() / 2, h / 4, 1) >> 6;
-  check(std::abs(u - 512) <= 4 && std::abs(v - 512) <= 4, "gray -> neutral chroma (U=V=512)");
+  const int u = Uat(w / 4, h / 4) >> 6, v = Vat(w / 4, h / 4) >> 6;
+  check(std::abs(u - 512) <= 4 && std::abs(v - 512) <= 4,
+        "gray -> neutral chroma (U=V=512)");
 
-  const int yL = sample(Y, w / 8, h / 2, 0) >> 6;
-  const int yR = sample(Y, 7 * w / 8, h / 2, 0) >> 6;
+  const int yL = Yat(w / 8, h / 2) >> 6, yR = Yat(7 * w / 8, h / 2) >> 6;
   check(yR > yL + 200, "luma increases left->right");
-  std::printf("    Y[L]=%d Y[R]=%d  U=%d V=%d  (UV stride=%d u16/px)\n", yL, yR,
-              u, v, u16stride(UV));
+  std::printf("    Y[L]=%d Y[R]=%d  U=%d V=%d\n", yL, yR, u, v);
   enc.release();
 }
 
@@ -146,6 +139,7 @@ void runTests()
     return;
   }
   auto& rhi = *state->rhi;
+  std::printf("backend=%s\n", rhi.backendName());
 
   // Gray horizontal gradient in an RGBA8 input texture.
   auto* input = rhi.newTexture(
