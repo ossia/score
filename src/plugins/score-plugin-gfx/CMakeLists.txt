@@ -277,6 +277,8 @@ set(HDRS
     Gfx/Graph/interop/PacedFramePump.hpp
     Gfx/Graph/interop/PacedFramePump.cpp
     Gfx/Graph/interop/GpuDirectStrategySelect.hpp
+    Gfx/Graph/interop/VideoPixelFormatAV.hpp
+    Gfx/Graph/interop/VideoPixelFormatAV.cpp
     Gfx/Graph/interop/GpuCapabilities.hpp
     Gfx/Graph/interop/GpuCapabilities.cpp
     Gfx/Graph/interop/CudaVmmAllocator.hpp
