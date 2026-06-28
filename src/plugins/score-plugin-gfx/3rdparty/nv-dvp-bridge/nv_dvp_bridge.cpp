@@ -163,6 +163,30 @@ DVPBufferFormats toDvpFormat(NvDvpFormat f)
   return DVP_RGBA;
 }
 
+/* Sticky last-init error. On init failure we destroy the context (the caller's
+ * out_ctx stays null), so the per-context lastError is lost and a subsequent
+ * nv_dvp_get_error_string(nullptr) would fall back to the generic "Invalid
+ * context" string. Stash the real failure (incl. DVP status) here so callers
+ * get the actual cause (e.g. "dvpInitGLContext failed (DVP status=-1)" — the
+ * runtime rejecting a non-Quadro GPU). */
+std::mutex& initErrorMutex()
+{
+  static std::mutex m;
+  return m;
+}
+std::string& lastInitErrorStorage()
+{
+  static std::string e;
+  return e;
+}
+void setInitError(const char* msg, DVPStatus status)
+{
+  std::lock_guard<std::mutex> lk{initErrorMutex()};
+  char buf[160];
+  std::snprintf(buf, sizeof(buf), "%s (DVP status=%d)", msg, int(status));
+  lastInitErrorStorage().assign(buf);
+}
+
 /* Set ctx->lastError. Called under ctx->mtx. */
 void setError(NvDvpContext_t* ctx, const char* msg, DVPStatus status = DVP_STATUS_OK)
 {
@@ -217,6 +241,14 @@ NV_DVP_API const char* nv_dvp_get_error_string(NvDvpContextHandle ctx)
     const char* loadErr = nv_dvp_get_runtime_error();
     if(loadErr && loadErr[0])
       return loadErr;
+    /* Init-time error (e.g. dvpInit*Context rejecting a non-Quadro GPU) is
+     * also sticky: the context is destroyed on failure so it can't carry the
+     * message itself. */
+    {
+      std::lock_guard<std::mutex> lk{initErrorMutex()};
+      if(!lastInitErrorStorage().empty())
+        return lastInitErrorStorage().c_str();
+    }
     return "Invalid context";
   }
   return ctx->lastError.c_str();
@@ -243,9 +275,12 @@ NV_DVP_API NvDvpError nv_dvp_init_d3d11(
   ctx->backend = NvDvpContext_t::Backend::D3D11;
   ctx->d3d11Device = static_cast<ID3D11Device*>(d3d11_device);
 
-  if(dvpInitD3D11Device(ctx->d3d11Device, 0) != DVP_STATUS_OK)
+  if(auto _st = dvpInitD3D11Device(ctx->d3d11Device, 0); _st != DVP_STATUS_OK)
   {
-    setError(ctx.get(), "dvpInitD3D11Device failed");
+    fprintf(
+        stderr, "[nv-dvp] dvpInitD3D11Device failed: DVP_STATUS=%d\n", (int)_st);
+    setError(ctx.get(), "dvpInitD3D11Device failed", _st);
+    setInitError("dvpInitD3D11Device failed", _st);
     return NV_DVP_ERROR_INIT_FAILED;
   }
 
@@ -284,6 +319,7 @@ NV_DVP_API NvDvpError nv_dvp_init_gl(NvDvpContextHandle* out_ctx)
   {
     fprintf(stderr, "[nv-dvp] dvpInitGLContext failed: DVP_STATUS=%d\n", (int)_st);
     setError(ctx.get(), "dvpInitGLContext failed", _st);
+    setInitError("dvpInitGLContext failed", _st);
     return NV_DVP_ERROR_INIT_FAILED;
   }
 
@@ -317,9 +353,12 @@ NV_DVP_API NvDvpError nv_dvp_init_cuda(NvDvpContextHandle* out_ctx)
   auto ctx = std::make_unique<NvDvpContext_t>();
   ctx->backend = NvDvpContext_t::Backend::CUDA;
 
-  if(dvpInitCUDAContext(0) != DVP_STATUS_OK)
+  if(auto _st = dvpInitCUDAContext(0); _st != DVP_STATUS_OK)
   {
-    setError(ctx.get(), "dvpInitCUDAContext failed");
+    fprintf(
+        stderr, "[nv-dvp] dvpInitCUDAContext failed: DVP_STATUS=%d\n", (int)_st);
+    setError(ctx.get(), "dvpInitCUDAContext failed", _st);
+    setInitError("dvpInitCUDAContext failed", _st);
     return NV_DVP_ERROR_INIT_FAILED;
   }
 
