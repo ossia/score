@@ -28,9 +28,10 @@ Date: 2026-06-28. Branch baseline: `split/gpu-interop`.
   - **DeckLink** & **Bluefish** = NVIDIA GPUDirect-for-Video (DVP) on GL/D3D11(/CUDA) only;
     D3D12 & Vulkan fall back to the CUDA-import (Tier3) path; no AMD.
   - **Magewell** = capture-only, host-staged only (no GPU-direct in the public API).
-- **Remaining shared-code work is four extractions** (§6): `makeWireEncoder(VideoPixelFormat)`,
-  `PacedFramePump`, a generic strategy picker, and a `VideoInputNode` base — plus an optional
-  `VendorIoBackend` interface that turns "a new addon" into "fill ~6 callbacks + a format table."
+- **The shared foundation is now BUILT and AJA-validated** (§6, done 2026-06-28): `makeWireEncoder`,
+  `PacedFramePump`, `selectGpuDirectStrategy`, and the `DMACaptureInputNode`/`DMACaptureBackend` input
+  base. A new addon is now "fill the per-direction seams + a format table" (§6, "vendor authoring
+  surface"). The per-vendor addons themselves are not yet written.
 
 After that, a new vendor addon ≈ **device open + format-enum translation + signal/standard
 setup + pin adapter + submit/pace hook** (+ GPU-direct binding per API where the SDK supports it).
@@ -166,19 +167,41 @@ absorb the rest.
 
 ---
 
-## 6. Shared-code extractions (do these once, all vendors benefit)
+## 6. Shared-code extractions
 
-Status from the architecture map. Two are foundational (#3, #2); two are quality-of-life (#4, base
-class); one new proposal (`VendorIoBackend`) makes addons tiny.
+**IMPLEMENTED (2026-06-28).** The shared foundation is built, AJA-validated, and committed.
+A new vendor addon now reuses all of it and supplies only vendor glue + a format table.
 
-| # | Extraction | From | Value | Effort |
-|---|---|---|---|---|
-| ✅ | `HostStagedOutput`, `VendorDmaRegistrar`, `GpuDirect*` ifaces | already lifted | done | — |
-| **#3** | **`makeWireEncoder(VideoPixelFormat)`** factory | `AJAOutputNode.cpp:504` switch + `Tier3Common.hpp:14` | every addon stops writing a 60-line encoder switch; vendor only maps `vendorFmt→VideoPixelFormat` | small (enum exists) |
-| **#2** | **`PacedFramePump<Submit>`** | `AJAConsumerThread.{hpp,cpp}` | every vendor needs a paced SPSC submit ring; abstract ring + push/drop/underrun counters, hooks `waitForTick()`+`submit(ptr)` | medium |
-| **#4** | generic **strategy picker** `select{Output,Capture}Strategy(candidates, forceEnv)` | `AJAOutputNode.cpp:416`, `AJAInputNode.cpp:296` | dedupes the DVP→Tier3→CPU walk + `SCORE_*_FORCE_INTEROP`; strategy classes stay per-vendor | small |
-| **base** | **`VideoInputNode` / `VideoInputNodeRenderer`** base | none (inputs are raw `Node`s today) | mirrors `OutputNode`; dedupes capture-node strategy-pick + upload loop | medium |
-| **new** | **`VendorIoBackend`** interface (see below) | — | turns an addon into ~6 callbacks + 1 table; optional but high-leverage | medium |
+| # | Extraction | Where it landed | Status |
+|---|---|---|---|
+| ✅ | `HostStagedOutput`, `VendorDmaRegistrar`, `GpuDirect{Output,Strategy,CaptureStrategy}` | `interop/` | done (earlier) |
+| **#3** | **`makeWireEncoder(VideoPixelFormat)`** / `makeWireComputeEncoder` / `wireComputeSupports` | `encoders/WireEncoderFactory.hpp` | **done** — AJA reseated via `AjaFormatMap.hpp` (`ntv2FormatTo`); `VideoPixelFormat` extended (RGB24/BGR24/ARGB10/DPX10[LE]/RGB12P/RGB48/YUV420P10) |
+| **#2** | **`PacedFramePump`** (ring + clock-paced consumer thread + drain-to-newest + drop/underrun; hooks `waitForTick`/`canAccept`/`submit`) | `interop/PacedFramePump.{hpp,cpp}` | **done** — `AJAConsumerThread` is now a thin wrapper |
+| **#4** | **`selectGpuDirectStrategy(cfg, candidates, onEngaged, onFailed)`** (DVP→Tier3→fallback init/log/release loop) | `interop/GpuDirectStrategySelect.hpp` | **done** — AJA output dispatch reseated |
+| **base** | **`DMACaptureInputNode` / `DMACaptureRenderer`** + the **`DMACaptureBackend`** vendor seam | `Gfx/Graph/DMACaptureInputNode.{hpp,cpp}` | **done** — `AJAInputNode` is now a thin subclass (`AJACaptureBackend`) |
+
+### Naming / scoping decisions (2026-06-28)
+- The input base is **`DMACaptureInputNode`**, *not* a universal `VideoInputNode`. A survey of the
+  existing input nodes confirmed three distinct frame-delivery models: AVFrame-upload (camera + NDI,
+  served by `VideoNodeRenderer`), shared-texture (Spout/Syphon, duplicated renderers), and GPU-direct
+  **DMA** (AJA + the new capture cards). Only the DMA family shares the strategy + slot-ring machinery,
+  so the base is scoped to it. There is no pre-existing base it reinvents.
+- **No monolithic `VendorIoBackend`.** The input vendor seam *is* `DMACaptureBackend` (open / geometry /
+  colour metadata / `makeDecoder` / `pickStrategy` / `makeCpuStrategy` / `setStrategy` / start-stop — the
+  "6 hooks + format table"). The output side is already fully seamed
+  (`HostStagedOutput` + `GpuDirectStrategy`/`selectGpuDirectStrategy` + `PacedFramePump` + `makeWireEncoder`),
+  so a single cross-direction interface would be redundant. The two per-direction seams are the surface.
+
+### The vendor authoring surface (what a new addon implements)
+- **Output node** (`: score::gfx::OutputNode`): device open + signal/standard setup; a `VendorDmaRegistrar`
+  (pin/unpin); `vendorFmt → VideoPixelFormat` table (→ `makeWireEncoder`); a `HostStagedOutput` for the
+  CPU-staged path and/or `GpuDirectStrategy` candidates (→ `selectGpuDirectStrategy`); a `PacedFramePump`
+  with `waitForTick`/`canAccept`/`submit` hooks.
+- **Input node** (`: score::gfx::DMACaptureInputNode`): a `DMACaptureBackend` (the 8 methods above);
+  the capture thread feeding a `GpuDirectCaptureSlotRing`.
+- Net: device open + format-enum translation + signal setup + pin adapter + pace/submit hook +
+  capture thread. All conversion/staging/GPU-direct tiers, ring/fence/P2P plumbing, ~40 decoders and
+  ~15 encoders are reused unchanged.
 
 ### Proposed `VendorIoBackend` seam
 
