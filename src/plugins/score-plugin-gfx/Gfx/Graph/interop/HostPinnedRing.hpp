@@ -35,6 +35,7 @@
  */
 
 #include <Gfx/Graph/interop/GpuCapabilities.hpp>
+#include <Gfx/Graph/interop/VideoPixelFormat.hpp>
 
 #include <score_plugin_gfx_export.h>
 
@@ -58,16 +59,6 @@ enum class HostPinnedRingBackend : uint8_t
   AmdPinned,       /**< AMD GL pinned-memory or virtual-memory. */
   CudaHostReg,     /**< cudaHostRegister + cuMemcpy2D. */
   CpuStaging,      /**< QRhi uploadTexture / readbackTexture fallback. */
-};
-
-/** Pixel format the ring carries. Lightweight enum — full
- *  `score::video::PixelFormat` lives separately (see §14 #6). */
-enum class HostPinnedFormat : uint8_t
-{
-  BGRA8 = 0,
-  RGBA8,
-  UYVY422,    /**< 16-bpp packed YUV; width counted in pixels but stride is 2*width. */
-  V210,       /**< 10-bit YUV packed; stride = ceil(width*8/3) rounded to 128. */
 };
 
 /** Direction of the per-slot transfer. */
@@ -94,7 +85,9 @@ struct HostPinnedRingConfig
   QRhi* rhi{};
   const GpuCapabilities* caps{}; /**< Borrowed; must outlive the ring. */
   HostPinnedDirection direction{HostPinnedDirection::CaptureToTexture};
-  HostPinnedFormat format{HostPinnedFormat::BGRA8};
+  /** Wire format the ring carries (the shared neutral enum). Only the packed
+   *  subset is meaningful here — stride comes from interop::defaultStride. */
+  VideoPixelFormat format{VideoPixelFormat::BGRA8};
   uint32_t width{};
   uint32_t height{};
   uint32_t stride{0}; /**< 0 = compute from format + width with default padding. */

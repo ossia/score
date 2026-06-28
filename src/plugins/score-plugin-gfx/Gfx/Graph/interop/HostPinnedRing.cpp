@@ -36,37 +36,18 @@ namespace score::gfx::interop
 namespace
 {
 
-std::size_t defaultStride(HostPinnedFormat fmt, uint32_t width) noexcept
-{
-  switch(fmt)
-  {
-    case HostPinnedFormat::BGRA8:
-    case HostPinnedFormat::RGBA8:
-      return alignUp(std::size_t(width) * 4u, 256);
-    case HostPinnedFormat::UYVY422:
-      return alignUp(std::size_t(width) * 2u, 256);
-    case HostPinnedFormat::V210:
-      return alignUp(((std::size_t(width) + 47u) / 48u) * 128u, 128);
-  }
-  return alignUp(std::size_t(width) * 4u, 256);
-}
+// Stride comes from the shared interop::defaultStride(VideoPixelFormat) — the
+// V210 (width+47)/48*128 rule and the packed RGB/UYVY rules already live there
+// and produce identical values to the former local table.
 
-NvDvpFormat toDvpFormat(HostPinnedFormat f) noexcept
+NvDvpFormat toDvpFormat(VideoPixelFormat f) noexcept
 {
-  // DVP knows RGBA8 / BGRA8 only. Packed-YUV slots are passed as
-  // RGBA8 with a stride that already encodes the packing; the
-  // decode shader downstream unpacks. The DVP DMA doesn't care about
-  // pixel meaning, only stride × height × bytes-per-pixel.
-  switch(f)
-  {
-    case HostPinnedFormat::BGRA8:
-      return NV_DVP_FORMAT_BGRA8;
-    case HostPinnedFormat::RGBA8:
-    case HostPinnedFormat::UYVY422:
-    case HostPinnedFormat::V210:
-      return NV_DVP_FORMAT_RGBA8;
-  }
-  return NV_DVP_FORMAT_RGBA8;
+  // DVP knows RGBA8 / BGRA8 only. Packed-YUV slots are passed as RGBA8 with a
+  // stride that already encodes the packing; the decode shader downstream
+  // unpacks. The DVP DMA doesn't care about pixel meaning, only
+  // stride × height × bytes-per-pixel.
+  return (f == VideoPixelFormat::BGRA8) ? NV_DVP_FORMAT_BGRA8
+                                        : NV_DVP_FORMAT_RGBA8;
 }
 
 /* Pick the best backend supported by the live system. */
@@ -529,7 +510,7 @@ struct HostPinnedRing::Impl
     constexpr unsigned int GL_BGRA_v = 0x80E1;
     constexpr unsigned int GL_UNSIGNED_BYTE_v = 0x1401;
     const unsigned int glFmt
-        = (cfg.format == HostPinnedFormat::BGRA8) ? GL_BGRA_v : GL_RGBA_v;
+        = (cfg.format == VideoPixelFormat::BGRA8) ? GL_BGRA_v : GL_RGBA_v;
 
     funcs->glBindBuffer(GL_PIXEL_UNPACK_BUFFER_v, amdSlotGlBuffers[i]);
     funcs->glBindTexture(GL_TEXTURE_2D_v, texId);
@@ -563,7 +544,7 @@ struct HostPinnedRing::Impl
     constexpr unsigned int GL_BGRA_v = 0x80E1;
     constexpr unsigned int GL_UNSIGNED_BYTE_v = 0x1401;
     const unsigned int glFmt
-        = (cfg.format == HostPinnedFormat::BGRA8) ? GL_BGRA_v : GL_RGBA_v;
+        = (cfg.format == VideoPixelFormat::BGRA8) ? GL_BGRA_v : GL_RGBA_v;
 
     funcs->glBindBuffer(GL_PIXEL_PACK_BUFFER_v, amdSlotGlBuffers[i]);
     funcs->glBindTexture(GL_TEXTURE_2D_v, texId);
