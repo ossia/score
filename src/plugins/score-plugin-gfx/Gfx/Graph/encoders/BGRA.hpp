@@ -18,12 +18,16 @@ namespace score::gfx
  */
 struct BGRAEncoder : GPUVideoEncoder
 {
-  // Output byte order in memory (the RGBA8 texel bytes [0,1,2,3]):
+  // Output byte order in memory (the RGBA8 texel bytes [0,1,2,3]).
+  // NOTE: these are *memory* byte orders, which do NOT match AJA's NTV2_FBF_*
+  // names — see the AJA FBF->memory mapping in AJAOutputNode (verified against
+  // ntv2transcode.cpp ConvertARGBYCbCrTo*).
   enum class Swizzle
   {
-    BGRA, // (b,g,r,a) — NTV2_FBF_ARGB, DXGI B8G8R8A8, QImage RGB32
-    RGBA, // (r,g,b,a) — NTV2_FBF_RGBA (straight passthrough)
-    ABGR  // (a,b,g,r) — NTV2_FBF_ABGR
+    BGRA, // (b,g,r,a) — DXGI B8G8R8A8, QImage RGB32, NTV2_FBF_ARGB
+    RGBA, // (r,g,b,a) — straight passthrough, NTV2_FBF_ABGR
+    ABGR, // (a,b,g,r)
+    ARGB  // (a,r,g,b) — NTV2_FBF_RGBA
   };
   Swizzle m_swizzle{Swizzle::BGRA};
 
@@ -94,6 +98,8 @@ struct BGRAEncoder : GPUVideoEncoder
     const char* swiz = (m_swizzle == Swizzle::RGBA) ? "vec4(c.r, c.g, c.b, c.a)"
                        : (m_swizzle == Swizzle::ABGR)
                            ? "vec4(c.a, c.b, c.g, c.r)"
+                       : (m_swizzle == Swizzle::ARGB)
+                           ? "vec4(c.a, c.r, c.g, c.b)"
                            : "vec4(c.b, c.g, c.r, c.a)";
     auto [vertS, fragS] = makeShaders(
         state, QString::fromLatin1(vertex_shader),
