@@ -246,6 +246,10 @@ set(HDRS
     Gfx/Graph/encoders/UYVYCompute.hpp
     Gfx/Graph/encoders/BGRACompute.hpp
     Gfx/Graph/encoders/ComputeEncoder.hpp
+    Gfx/Graph/encoders/PackedRGB.hpp
+    Gfx/Graph/encoders/YUY2.hpp
+    Gfx/Graph/encoders/YUVPlanar.hpp
+    Gfx/Graph/encoders/WireEncoderFactory.hpp
 
     Gfx/Graph/interop/CudaFunctions.hpp
     Gfx/Graph/interop/CudaP2PBridge.h
@@ -269,6 +273,8 @@ set(HDRS
     Gfx/Graph/interop/HostStagedOutput.hpp
     Gfx/Graph/interop/HostStagedOutput.cpp
     Gfx/Graph/interop/VendorDmaRegistrar.hpp
+    Gfx/Graph/interop/PacedFramePump.hpp
+    Gfx/Graph/interop/PacedFramePump.cpp
     Gfx/Graph/interop/GpuCapabilities.hpp
     Gfx/Graph/interop/GpuCapabilities.cpp
     Gfx/Graph/interop/CudaVmmAllocator.hpp
