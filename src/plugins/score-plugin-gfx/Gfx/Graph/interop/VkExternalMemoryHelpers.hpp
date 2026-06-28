@@ -64,7 +64,29 @@ struct ExternalHandle
     return fd >= 0;
 #endif
   }
+
+  // OS handle encoded as a void* for the CUDA P2P bridge / DVP, which expect
+  // the Win32 HANDLE directly or the fd cast to pointer width (see
+  // CudaP2PBridge.cpp's CUDA_EXTERNAL_MEMORY_HANDLE_DESC fill-in).
+  void* osHandle() const noexcept
+  {
+#if defined(_WIN32)
+    return handle;
+#else
+    return reinterpret_cast<void*>(static_cast<intptr_t>(fd));
+#endif
+  }
 };
+
+// Platform-preferred opaque external-memory handle type: OPAQUE_WIN32 on
+// Windows, OPAQUE_FD on Linux. Use this instead of hardcoding OPAQUE_FD so
+// the same export/import code compiles and runs on both platforms.
+inline constexpr VkExternalMemoryHandleTypeFlagBits kOpaqueHandleType =
+#if defined(_WIN32)
+    VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT;
+#else
+    VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
+#endif
 
 /** @brief Description of an image to create with exportable / importable memory. */
 struct ExternalImageDesc
