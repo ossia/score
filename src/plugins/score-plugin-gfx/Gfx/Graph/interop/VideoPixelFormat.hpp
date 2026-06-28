@@ -50,11 +50,18 @@ enum class VideoPixelFormat : uint16_t
   RGBA8 = 2,
   ARGB8 = 3,
   ABGR8 = 4,
+  RGB24 = 5,      /**< Packed 24-bit, byte order R,G,B (3 bpp). */
+  BGR24 = 6,      /**< Packed 24-bit, byte order B,G,R (3 bpp). */
 
   // -- Packed 10/12-bit RGB --------------------------------------------
   R210 = 10,      /**< 10-bit RGB, 4 bytes/pixel, big-endian word packing. */
   R12B = 11,      /**< 12-bit RGB big-endian, AJA + DeckLink. */
   R12L = 12,      /**< 12-bit RGB little-endian. */
+  ARGB10 = 13,    /**< A2R10G10B10 packed (AJA NTV2_FBF_10BIT_ARGB). */
+  DPX10 = 14,     /**< 10-bit RGB DPX/Cineon, big-endian (AJA NTV2_FBF_10BIT_DPX). */
+  DPX10LE = 15,   /**< 10-bit RGB DPX/Cineon, little-endian. */
+  RGB12P = 16,    /**< 12-bit RGB packed, 2px/9 bytes (AJA NTV2_FBF_12BIT_RGB_PACKED). */
+  RGB48 = 17,     /**< 16-bit-per-channel RGB, no alpha (AJA NTV2_FBF_48BIT_RGB). */
 
   // -- Packed 8-bit YUV 4:2:2 -----------------------------------------
   UYVY422 = 20,   /**< Most common SDI; 16-bpp packed UYVY. */
@@ -70,6 +77,7 @@ enum class VideoPixelFormat : uint16_t
   NV12 = 40,      /**< Y plane + interleaved UV plane; HEVC standard. */
   P010 = 41,      /**< NV12 with 10-bit upshifted to 16-bit lanes. */
   YUV420P = 42,   /**< Three-plane 4:2:0; FFmpeg standard. */
+  YUV420P10 = 43, /**< Three-plane 4:2:0, 10-bit (AJA NTV2_FBF_10BIT_YCBCR_420PL3_LE). */
 
   // -- Planar 4:2:2 ----------------------------------------------------
   P210 = 50,      /**< NV12-shape with 4:2:2 sub-sampling at 10-bit. */

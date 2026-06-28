@@ -72,6 +72,16 @@ const VideoPixelFormatInfo& formatInfo(VideoPixelFormat f) noexcept
       static constexpr auto i = makeRgb("ABGR8", 32);
       return i;
     }
+    case VideoPixelFormat::RGB24:
+    {
+      static constexpr auto i = makeRgb("RGB24", 24, 64);
+      return i;
+    }
+    case VideoPixelFormat::BGR24:
+    {
+      static constexpr auto i = makeRgb("BGR24", 24, 64);
+      return i;
+    }
     case VideoPixelFormat::R210:
     {
       static constexpr auto i = makeRgb("R210", 32, 256);
@@ -85,6 +95,31 @@ const VideoPixelFormatInfo& formatInfo(VideoPixelFormat f) noexcept
     case VideoPixelFormat::R12L:
     {
       static constexpr auto i = makeRgb("R12L", 36, 256);
+      return i;
+    }
+    case VideoPixelFormat::ARGB10:
+    {
+      static constexpr auto i = makeRgb("ARGB10", 32, 256);
+      return i;
+    }
+    case VideoPixelFormat::DPX10:
+    {
+      static constexpr auto i = makeRgb("DPX10", 32, 256);
+      return i;
+    }
+    case VideoPixelFormat::DPX10LE:
+    {
+      static constexpr auto i = makeRgb("DPX10LE", 32, 256);
+      return i;
+    }
+    case VideoPixelFormat::RGB12P:
+    {
+      static constexpr auto i = makeRgb("RGB12P", 36, 256);
+      return i;
+    }
+    case VideoPixelFormat::RGB48:
+    {
+      static constexpr auto i = makeRgb("RGB48", 48, 256);
       return i;
     }
     case VideoPixelFormat::UYVY422:
@@ -138,6 +173,11 @@ const VideoPixelFormatInfo& formatInfo(VideoPixelFormat f) noexcept
     case VideoPixelFormat::YUV420P:
     {
       static constexpr auto i = makePlanar("YUV420P", 12, 2, 2);
+      return i;
+    }
+    case VideoPixelFormat::YUV420P10:
+    {
+      static constexpr auto i = makePlanar("YUV420P10", 24, 2, 2);
       return i;
     }
     case VideoPixelFormat::YUV422P:
