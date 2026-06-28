@@ -37,6 +37,7 @@
 #include <Gfx/Graph/interop/CudaP2PBridge.h>
 #include <Gfx/Graph/interop/GpuRingBuffer.hpp>
 #include <Gfx/Graph/interop/InteropFence.hpp>
+#include <Gfx/Graph/interop/VendorDmaRegistrar.hpp>
 #include <score_plugin_gfx_export.h>
 
 #include <cstdint>
@@ -55,19 +56,8 @@ struct RenderState;
 namespace score::gfx::interop
 {
 
-/**
- * @brief Per-slot register/release hooks supplied by the vendor adapter.
- *
- * Both are called from the render thread during `GpuDirectOutput::init()`
- * (register, once per slot) and `release()` (release, once per slot).
- * `registerSlot` returning false aborts init; partial state is rolled
- * back before `init()` returns.
- */
-struct VendorDmaRegistrar
-{
-  std::function<bool(void* gpuPtr, std::uint32_t size)> registerSlot;
-  std::function<void(void* gpuPtr, std::uint32_t size)> releaseSlot;
-};
+// VendorDmaRegistrar (the per-slot pin/unpin hooks supplied by the vendor
+// adapter) now lives in VendorDmaRegistrar.hpp, shared with HostStagedOutput.
 
 struct GpuDirectOutputConfig
 {

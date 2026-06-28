@@ -266,6 +266,9 @@ set(HDRS
     Gfx/Graph/interop/GLCaptureUpload.hpp
     Gfx/Graph/interop/GpuDirectOutput.hpp
     Gfx/Graph/interop/GpuDirectOutput.cpp
+    Gfx/Graph/interop/HostStagedOutput.hpp
+    Gfx/Graph/interop/HostStagedOutput.cpp
+    Gfx/Graph/interop/VendorDmaRegistrar.hpp
     Gfx/Graph/interop/GpuCapabilities.hpp
     Gfx/Graph/interop/GpuCapabilities.cpp
     Gfx/Graph/interop/CudaVmmAllocator.hpp
