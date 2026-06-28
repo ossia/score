@@ -43,14 +43,6 @@ struct V210Encoder : GPUVideoEncoder
     #endif
     }
 
-    int flip_y_int(int y, int h) {
-    #if defined(QSHADER_MSL) || defined(QSHADER_HLSL)
-      return y;
-    #else
-      return h - 1 - y;
-    #endif
-    }
-
     // 10-bit unsigned (0..1023) for one source pixel.
     uvec3 to_yuv10(vec3 rgb) {
       vec3 yuv = clamp(convert_from_rgb(rgb), 0.0, 1.0);
@@ -68,13 +60,21 @@ struct V210Encoder : GPUVideoEncoder
 
     void main() {
       ivec2 srcSize = textureSize(src_tex, 0);
-      ivec2 outPos  = ivec2(gl_FragCoord.xy);
+
+      // Output word index (X): gl_FragCoord.x is exact and never flipped.
+      int outX = int(gl_FragCoord.x);
+
+      // Source row (Y): derive from the interpolated texcoord, exactly like
+      // UYVYEncoder. gl_FragCoord.y's origin differs after HLSL/MSL cross-
+      // compilation (it flipped the v210 output vertically on D3D11), whereas
+      // flip_y_uv(v_texcoord) is correct on GL, Vulkan and D3D alike.
+      int srcY = clamp(
+          int(flip_y_uv(v_texcoord).y * float(srcSize.y)), 0, srcSize.y - 1);
 
       // Each output row is N v210 words (RGBA8 texels), N == srcWidth/6 * 4.
-      int wordInGroup = outPos.x & 3;     // 0..3
-      int groupIdx    = outPos.x >> 2;    // 6-pixel group index
-      int srcX0       = groupIdx * 6;     // first source pixel in group
-      int srcY        = flip_y_int(outPos.y, srcSize.y);
+      int wordInGroup = outX & 3;     // 0..3
+      int groupIdx    = outX >> 2;    // 6-pixel group index
+      int srcX0       = groupIdx * 6; // first source pixel in group
 
       // texelFetch is clamped via sampler/edge handling; for safety on the
       // last partial group (shouldn't happen since width % 6 == 0) we clamp.
