@@ -61,14 +61,22 @@ struct SCORE_PLUGIN_GFX_EXPORT DirectVideoOutputBackend
 
   virtual ~DirectVideoOutputBackend();
 
-  /// Open the device + set the video standard, link/routing, VPID and HDR ANC
-  /// for the active graphics API. Returns false on failure (the node aborts the
-  /// output). Geometry / format / planes are valid only after a true return.
-  virtual bool open(QRhi* rhi, GraphicsApi api) = 0;
+  /// Open the device + set the video standard, link/routing, VPID and HDR ANC.
+  /// Called before the QRhi exists (the node sizes the QRhi to the negotiated
+  /// geometry), so no QRhi here — `api` is for vendors that pick a topology by
+  /// backend. Returns false on failure. Geometry/format/planes valid only after
+  /// a true return.
+  virtual bool open(GraphicsApi api) = 0;
 
   /// Negotiated raster geometry (the QRhi scene texture is sized to this).
   virtual int width() const noexcept = 0;
   virtual int height() const noexcept = 0;
+
+  /// Frame rate (Hz) — drives the node's manual rendering rate.
+  virtual double frameRate() const noexcept = 0;
+
+  /// True once open() has succeeded (drives canRender()).
+  virtual bool isOpen() const noexcept = 0;
 
   /// The on-wire pixel format the card framestore expects (-> makeWireEncoder).
   virtual interop::VideoPixelFormat wireFormat() const noexcept = 0;
