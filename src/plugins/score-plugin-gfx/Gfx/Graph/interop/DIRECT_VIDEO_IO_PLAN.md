@@ -23,18 +23,24 @@ backend, not a special case.
 Why unified (vs. one addon per vendor):
 - One protocol/device/settings/enumerator/UI written **once** (today AJA has its own).
 - One node pair (`DirectVideoOutputNode` / `DirectVideoInputNode`) — vendor-agnostic.
-- A new vendor = implement two backend interfaces + register. No UI/protocol code.
-- Natural home for "branch on detected card": the registry enumerates all vendors;
-  the device id carries the vendor tag; open() routes to that vendor's factory.
+- A new vendor = implement two backend interfaces + add it to the dispatch. No UI/protocol code.
+
+**No registry — hardcoded dispatch (decided 2026-06-29).** There will only ever be a
+handful of vendors, so the unified device just *hardcodes* the compiled-in vendor list
+behind `#if SCORE_HAS_<VENDOR>` and dispatches with a plain switch on a vendor tag — no
+registration indirection, no process-global registry. enumerate() concatenates each
+vendor's `enumerate()`; openOutput/openInput switch on the device id's vendor tag and
+`std::make_unique<VendorOutputBackend>(...)`.
 
 Where the code lives:
 - **`score-plugin-gfx`** (the shared lib, already depends on score-lib-device): the
-  backend *interfaces*, the two nodes, the vendor *registry*, and the Direct Video
-  I/O *protocol/device/settings/enumerator*. **No vendor SDK headers here.**
-- **`score-addon-videoio`** (new) OR per-vendor addons: the vendor backend
-  *implementations* + GPU-direct strategy classes + SDK link + a `registerVendor()`
-  call at plugin load. The SDKs (commercial, heavy) stay isolated to the addon,
-  each gated by a `SCORE_HAS_<VENDOR>` CMake switch.
+  backend *interfaces* and the two nodes. **No vendor SDK headers here, no device layer
+  here** (the unified device needs to reference the vendor backends to dispatch, so it
+  lives with them in the addon).
+- **`score-addon-videoio`** (new): all vendor backend *implementations* + GPU-direct
+  strategy classes + SDK links, **plus** the unified Direct Video I/O
+  protocol/device/settings/enumerator that hardcodes the dispatch over them. The SDKs
+  (commercial, heavy) stay isolated to this addon, each gated by `SCORE_HAS_<VENDOR>`.
 
 AJA migration: move the AJA vendor code (`AJA/*` minus the node/protocol/settings,
 which the shared layer replaces) into a `videoio/aja/` backend that registers like
@@ -55,7 +61,7 @@ for building; the runtime needs each vendor's *driver* installed. Gating per
 
 ```
                          ┌─────────────────────── score-plugin-gfx ───────────────────────┐
- UI device "Direct       │  VideoVendorRegistry  ──enumerate()──►  [ {vendor,id,name,caps} ]│
+ UI device "Direct       │  enumerateVideoDevices() (hardcoded, #if-gated) ► [{vendor,id,…}]│
   Video Out/In" ───────► │  DirectVideoProtocol/Device/Settings/Enumerator (shared)         │
                          │                                                                  │
    open(deviceId) ──────►│  DirectVideoOutputNode : OutputNode      DirectVideoInputNode    │
@@ -112,27 +118,37 @@ for building; the runtime needs each vendor's *driver* installed. Gating per
   `makeWireEncoder(backend->wireFormat())`, GPU-direct via `selectGpuDirectStrategy(
   backend->gpuDirectCandidates(...))`, else `HostStagedOutput` (planes/registrar/customStage),
   pacing via `PacedFramePump(backend->pacingHooks())`. (This is AJAOutputNode generalised.)
-- **`VideoVendorRegistry`** — process-global list a vendor registers into:
+- **Hardcoded vendor dispatch** (in the `score-addon-videoio` addon, NOT a registry):
   ```cpp
-  struct VideoVendorDevice { std::string vendor, id, displayName; bool canOutput, canInput; };
-  struct VideoVendorPlugin {
-    const char* name;
-    std::function<std::vector<VideoVendorDevice>()> enumerate;
-    std::function<std::unique_ptr<DirectVideoOutputBackend>()> makeOutput;          // bound to id
-    std::function<std::unique_ptr<DMACaptureBackend>(GpuDirectCaptureSlotRing&)> makeInput;
-  };
-  void registerVideoVendor(VideoVendorPlugin);  // called from each addon's plugin init
+  enum class VideoVendor { AJA, DeckLink, Bluefish, Deltacast, Magewell };
+  struct VideoDevice { VideoVendor vendor; std::string id, displayName; bool canOut, canIn; };
+
+  std::vector<VideoDevice> enumerateVideoDevices() {       // concat compiled-in vendors
+    std::vector<VideoDevice> out;
+  #if defined(SCORE_HAS_AJA)      aja::appendDevices(out);      #endif
+  #if defined(SCORE_HAS_DECKLINK) decklink::appendDevices(out); #endif
+    /* ... */ return out;
+  }
+  std::unique_ptr<DirectVideoOutputBackend> makeOutputBackend(const VideoDevice& d) {
+    switch(d.vendor) {
+  #if defined(SCORE_HAS_AJA)      case VideoVendor::AJA: return std::make_unique<AjaOutputBackend>(...);      #endif
+  #if defined(SCORE_HAS_DECKLINK) case VideoVendor::DeckLink: return std::make_unique<DeckLinkOutputBackend>(...); #endif
+      default: return nullptr;
+    }
+  }  // + makeInputBackend(d, ring) likewise
   ```
-- **Direct Video I/O protocol/device/settings/enumerator** (shared, in score-plugin-gfx,
-  no SDK deps): `DirectVideoOutputDevice`/`DirectVideoInputDevice` (`GfxOutputDevice`/
-  `GfxInputDevice` subclasses), a `ProtocolFactory` pair (fresh UUIDs), a settings model
-  (device dropdown from the registry + format/pixfmt/rate + the options of §5), and a
-  settings widget. Input picks GPU-direct vs CPU like `AJAInputDevice` does today.
+- **Direct Video I/O protocol/device/settings/enumerator** (in `score-addon-videoio`, so it
+  can reference the vendor backends to dispatch): `DirectVideoOutputDevice`/
+  `DirectVideoInputDevice` (`GfxOutputDevice`/`GfxInputDevice` subclasses), a `ProtocolFactory`
+  pair (fresh UUIDs), a settings model (device dropdown from `enumerateVideoDevices()` +
+  format/pixfmt/rate + the options of §5), and a settings widget. Input picks GPU-direct vs
+  CPU like `AJAInputDevice` does today.
 
 ### 1.3 To build — per vendor (🧩), four times
 For each vendor: an output backend, an input backend (capture-capable vendors), the
 GPU-direct strategy classes per (graphics API × tier), a `vendorFmt ⇄ VideoPixelFormat`
-table, device enumeration, signal/HDR/ANC plumbing, and CMake SDK detection + `register()`.
+table, device enumeration (`appendDevices`), signal/HDR/ANC plumbing, CMake SDK detection,
+and the two switch cases in the hardcoded dispatch above.
 
 ---
 
@@ -141,11 +157,11 @@ table, device enumeration, signal/HDR/ANC plumbing, and CMake SDK detection + `r
 1. **Extract `DirectVideoOutputBackend`** from `AJAOutputNode::createOutput`; create
    `DirectVideoOutputNode`. Port AJA onto it (AJA becomes `AjaOutputBackend`) and
    re-validate on the 2-card rig (the proven method) — must stay byte-identical.
-2. **Build `VideoVendorRegistry`** + the shared Direct Video I/O protocol/device/settings/
-   enumerator. Register the AJA backend; confirm the AJA card shows up under the new
-   "Direct Video I/O" device and round-trips.
+2. **Build the hardcoded dispatch** + the shared Direct Video I/O protocol/device/settings/
+   enumerator (in `score-addon-videoio`). Wire the AJA backend into the switch; confirm the
+   AJA card shows up under the new "Direct Video I/O" device and round-trips.
 3. **Generalise the test harness**: make `AJARoundtrip` vendor-parametric
-   (`--vendor aja|decklink|...`), driven by the registry, so every vendor reuses the
+   (`--vendor aja|decklink|...`), so every vendor reuses the
    same PSNR/latency/ordering matrix sweep.
 4. **Compat shim**: map the legacy AJA device UUID → Direct Video I/O + AJA filter so
    existing saved scores keep working.
