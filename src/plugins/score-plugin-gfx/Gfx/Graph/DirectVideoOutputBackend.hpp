@@ -31,6 +31,8 @@
 
 #include <score_plugin_gfx_export.h>
 
+#include <QString>
+
 #include <cstdint>
 #include <functional>
 #include <memory>
@@ -70,6 +72,22 @@ struct SCORE_PLUGIN_GFX_EXPORT DirectVideoOutputBackend
 
   /// The on-wire pixel format the card framestore expects (-> makeWireEncoder).
   virtual interop::VideoPixelFormat wireFormat() const noexcept = 0;
+
+  /// The pixel format the GPU encoder should *produce*. Equals wireFormat()
+  /// unless a CPU repack bridges them (e.g. AJA v210 at non-mod-6 widths emits
+  /// UYVY on the GPU and packs to v210 in customStage). Default: wireFormat().
+  virtual interop::VideoPixelFormat encoderFormat() const noexcept
+  {
+    return wireFormat();
+  }
+
+  /// Render the scene into an RGBA16F intermediate (true) instead of RGBA8, for
+  /// >8-bit / HDR wire formats so the encoder sees real precision.
+  virtual bool prefersFloatRender() const noexcept { return false; }
+
+  /// The RGB->wire colour-conversion shader fragment (e.g. score::gfx::
+  /// colorMatrixOut(...)) for the active colour space / HDR mode.
+  virtual QString colorConversion() const = 0;
 
   /// Total framestore byte size (accounts for stride padding) and the number of
   /// visible rows to copy; plus the per-plane geometry for HostStagedOutput.
