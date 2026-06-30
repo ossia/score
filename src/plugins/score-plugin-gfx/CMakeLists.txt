@@ -292,6 +292,8 @@ set(HDRS
     Gfx/Graph/interop/GpuCapabilities.cpp
     Gfx/Graph/interop/CudaVmmAllocator.hpp
     Gfx/Graph/interop/CudaVmmAllocator.cpp
+    Gfx/Graph/interop/RdmaGpuBuffer.hpp
+    Gfx/Graph/interop/RdmaGpuBuffer.cpp
     Gfx/Graph/interop/AmdPinnedBuffers.hpp
     Gfx/Graph/interop/AmdPinnedBuffers.cpp
     Gfx/Graph/interop/HostPinnedRing.hpp
