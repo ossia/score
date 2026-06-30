@@ -374,6 +374,139 @@ std::optional<ExternalHandle> exportMemoryHandle(
 }
 
 // =============================================================================
+// RDMA (VK_NV_external_memory_rdma)
+// =============================================================================
+
+#ifdef VK_NV_external_memory_rdma
+
+std::optional<std::uint64_t>
+getMemoryRemoteAddress(const VulkanCtx& v, VkDeviceMemory mem)
+{
+  if(!v.dev || !mem)
+    return std::nullopt;
+  auto fp = (PFN_vkGetMemoryRemoteAddressNV)resolveDeviceFn(
+      v, "vkGetMemoryRemoteAddressNV");
+  if(!fp)
+  {
+    qWarning() << "getMemoryRemoteAddress: vkGetMemoryRemoteAddressNV unavailable";
+    return std::nullopt;
+  }
+  VkMemoryGetRemoteAddressInfoNV info{};
+  info.sType = VK_STRUCTURE_TYPE_MEMORY_GET_REMOTE_ADDRESS_INFO_NV;
+  info.memory = mem;
+  info.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_RDMA_ADDRESS_BIT_NV;
+  VkRemoteAddressNV addr{};
+  if(fp(v.dev, &info, &addr) != VK_SUCCESS)
+  {
+    qWarning() << "getMemoryRemoteAddress: vkGetMemoryRemoteAddressNV failed";
+    return std::nullopt;
+  }
+  return static_cast<std::uint64_t>(reinterpret_cast<std::uintptr_t>(addr));
+}
+
+std::optional<RdmaBuffer> createRdmaBuffer(const VulkanCtx& v, VkDeviceSize size)
+{
+  auto df = devFuncs(v);
+  if(!df || !v.physDev || size == 0)
+    return std::nullopt;
+
+  VkExternalMemoryBufferCreateInfo extBufInfo{};
+  extBufInfo.sType = VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_BUFFER_CREATE_INFO;
+  extBufInfo.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_RDMA_ADDRESS_BIT_NV;
+
+  VkBufferCreateInfo bufInfo{};
+  bufInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+  bufInfo.pNext = &extBufInfo;
+  bufInfo.size = size;
+  bufInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT
+                  | VK_BUFFER_USAGE_TRANSFER_DST_BIT
+                  | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+  bufInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+  RdmaBuffer out{};
+  if(df->vkCreateBuffer(v.dev, &bufInfo, nullptr, &out.buffer) != VK_SUCCESS)
+  {
+    qWarning() << "createRdmaBuffer: vkCreateBuffer failed";
+    return std::nullopt;
+  }
+
+  VkMemoryRequirements memReq{};
+  df->vkGetBufferMemoryRequirements(v.dev, out.buffer, &memReq);
+  out.size = memReq.size;
+
+  // RDMA-capable memory type only — no fallback (a non-RDMA type would not be
+  // remotely addressable by the card).
+  auto memType = findMemoryType(
+      v, memReq.memoryTypeBits, VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV,
+      /*allowFallback=*/false);
+  if(!memType)
+  {
+    qWarning() << "createRdmaBuffer: no RDMA-capable memory type";
+    df->vkDestroyBuffer(v.dev, out.buffer, nullptr);
+    return std::nullopt;
+  }
+
+  VkExportMemoryAllocateInfo exportInfo{};
+  exportInfo.sType = VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO;
+  exportInfo.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_RDMA_ADDRESS_BIT_NV;
+
+  VkMemoryAllocateInfo allocInfo{};
+  allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+  allocInfo.pNext = &exportInfo;
+  allocInfo.allocationSize = memReq.size;
+  allocInfo.memoryTypeIndex = *memType;
+
+  if(df->vkAllocateMemory(v.dev, &allocInfo, nullptr, &out.memory) != VK_SUCCESS)
+  {
+    qWarning() << "createRdmaBuffer: vkAllocateMemory failed";
+    df->vkDestroyBuffer(v.dev, out.buffer, nullptr);
+    return std::nullopt;
+  }
+  if(df->vkBindBufferMemory(v.dev, out.buffer, out.memory, 0) != VK_SUCCESS)
+  {
+    qWarning() << "createRdmaBuffer: vkBindBufferMemory failed";
+    destroyRdma(v, out);
+    return std::nullopt;
+  }
+
+  auto addr = getMemoryRemoteAddress(v, out.memory);
+  if(!addr)
+  {
+    destroyRdma(v, out);
+    return std::nullopt;
+  }
+  out.remoteAddress = *addr;
+  return out;
+}
+
+void destroyRdma(const VulkanCtx& v, RdmaBuffer& b)
+{
+  auto df = devFuncs(v);
+  if(df)
+  {
+    if(b.buffer)
+      df->vkDestroyBuffer(v.dev, b.buffer, nullptr);
+    if(b.memory)
+      df->vkFreeMemory(v.dev, b.memory, nullptr);
+  }
+  b = {};
+}
+
+#else // VK_NV_external_memory_rdma not in these Vulkan headers
+
+std::optional<RdmaBuffer> createRdmaBuffer(const VulkanCtx&, VkDeviceSize)
+{
+  return std::nullopt;
+}
+std::optional<std::uint64_t> getMemoryRemoteAddress(const VulkanCtx&, VkDeviceMemory)
+{
+  return std::nullopt;
+}
+void destroyRdma(const VulkanCtx&, RdmaBuffer&) { }
+
+#endif // VK_NV_external_memory_rdma
+
+// =============================================================================
 // IMPORT
 // =============================================================================
 

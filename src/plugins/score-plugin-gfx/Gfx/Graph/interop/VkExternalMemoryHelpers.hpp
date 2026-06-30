@@ -33,6 +33,7 @@
 
 #include <vulkan/vulkan.h>
 
+#include <cstdint>
 #include <optional>
 
 class QVulkanInstance;
@@ -132,6 +133,34 @@ struct ExternalBuffer
   VkDeviceMemory memory{VK_NULL_HANDLE};
   VkDeviceSize size{0};
 };
+
+// =============================================================================
+// RDMA (VK_NV_external_memory_rdma) — GPU VRAM a third-party DMA engine
+// (capture card with GPUDirect RDMA) can target via a remote address. Used by
+// the RdmaGpuBuffer "Seam B" allocator. All functions return empty/nullopt when
+// the extension is unavailable in the headers or at runtime (safe fallback).
+// =============================================================================
+
+struct RdmaBuffer
+{
+  VkBuffer buffer{VK_NULL_HANDLE};
+  VkDeviceMemory memory{VK_NULL_HANDLE};
+  VkDeviceSize size{0};
+  std::uint64_t remoteAddress{0}; ///< VkRemoteAddressNV, for the card's SDK.
+};
+
+/// Allocate an RDMA-capable buffer (RDMA_CAPABLE memory type + RDMA_ADDRESS
+/// export) and fetch its remote address. nullopt if VK_NV_external_memory_rdma
+/// is unavailable.
+SCORE_PLUGIN_GFX_EXPORT std::optional<RdmaBuffer>
+createRdmaBuffer(const VulkanCtx&, VkDeviceSize size);
+
+/// Fetch the RDMA remote address for RDMA-capable device memory.
+/// nullopt if vkGetMemoryRemoteAddressNV is unavailable.
+SCORE_PLUGIN_GFX_EXPORT std::optional<std::uint64_t>
+getMemoryRemoteAddress(const VulkanCtx&, VkDeviceMemory);
+
+SCORE_PLUGIN_GFX_EXPORT void destroyRdma(const VulkanCtx&, RdmaBuffer&);
 
 // =============================================================================
 // EXPORT — score allocates the resource, hands the handle to a peer.
