@@ -111,6 +111,13 @@ struct SCORE_PLUGIN_GFX_EXPORT DirectVideoOutputBackend
   /// swap). Empty = plain row-stride copy.
   virtual CustomStage customStage() { return {}; }
 
+  /// Prefer a GPU-direct (DVP) download in the host-staged path: the node lets
+  /// HostStagedOutput DMA the encoder texture straight to a vendor-registered
+  /// sysmem ring (skipping the QRhi readback) when a GPU-direct backend exists,
+  /// falling back to CPU readback otherwise. Default false (AJA uses its own
+  /// gpuDirectCandidates strategy instead). DeckLink opts in.
+  virtual bool prefersGpuDownload() const noexcept { return false; }
+
   /// GPU-direct output strategy candidates for the active graphics API, in
   /// priority order (DVP before tier-3 RDMA, etc). Empty => host-staged only.
   /// The node feeds these to selectGpuDirectStrategy().
