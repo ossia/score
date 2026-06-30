@@ -195,6 +195,22 @@ CUDA_P2P_API CudaP2PError cuda_p2p_copy_buffer_to_array(
     uint32_t src_pitch_bytes);
 
 /**
+ * @brief Copy a CUDA array (level 0 of a CUDA-imported VkImage) into a flat
+ *        device buffer (e.g. an RDMA-capable CUDA VMM slot the card DMAs out).
+ *        Synchronous (stream-synchronized on return). The inverse of
+ *        cuda_p2p_copy_buffer_to_array — the per-frame texture->buffer copy for
+ *        GPU-direct OUTPUT. Rows are @p width_bytes wide, @p height of them,
+ *        destination row stride @p dst_pitch_bytes.
+ */
+CUDA_P2P_API CudaP2PError cuda_p2p_copy_array_to_buffer(
+    CudaP2PContextHandle ctx,
+    void* src_cuda_array,
+    void* dst_device_ptr,
+    uint32_t width_bytes,
+    uint32_t height,
+    uint32_t dst_pitch_bytes);
+
+/**
  * @brief Upload host bytes into a flat device pointer (cuMemcpyHtoD).
  *        Utility — mainly for tests that need to seed a device buffer without
  *        a peer DMA source.
