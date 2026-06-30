@@ -17,6 +17,7 @@
 
 #include <Gfx/Graph/DirectVideoOutputBackend.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
+#include <Gfx/Graph/interop/GpuCapabilities.hpp>
 
 #include <score_plugin_gfx_export.h>
 
@@ -76,6 +77,10 @@ protected:
   std::unique_ptr<interop::HostStagedOutput> m_hostStaged;
   std::unique_ptr<interop::GpuDirectStrategy> m_rdma;
   std::unique_ptr<interop::PacedFramePump> m_pump;
+
+  /// GPU interop probe, borrowed by HostStagedOutput's DVP HostPinnedRing; must
+  /// outlive m_hostStaged, hence a node member.
+  interop::GpuCapabilities m_caps{};
 
   std::atomic<bool> m_running{false};
   GraphicsApi m_graphicsApi{};

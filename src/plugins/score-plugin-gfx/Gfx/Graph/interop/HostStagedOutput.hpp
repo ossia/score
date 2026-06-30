@@ -57,6 +57,8 @@ struct GPUVideoEncoder;
 namespace score::gfx::interop
 {
 
+struct GpuCapabilities;
+
 /// Per-plane destination geometry, from the card's format descriptor.
 struct HostStagedPlane
 {
@@ -76,6 +78,14 @@ struct HostStagedOutputConfig
   std::vector<HostStagedPlane> planes;  ///< 1 entry = single-plane, N = planar
   VendorDmaRegistrar registrar;    ///< page-lock callbacks (both required)
   bool directDmaEnabled{true};
+
+  /// Opt-in GPU-direct download: when true AND a GPU-direct HostPinnedRing
+  /// backend (DVP/AMD-pinned/CudaHostReg) is available, the encoder output
+  /// texture is DMA'd straight to the (vendor-registered) sysmem ring instead
+  /// of the QRhi readback — and the encoder's readback is skipped (no double
+  /// transfer). Falls back to the CPU readback path otherwise. Default false.
+  bool preferGpuDownload{false};
+  const GpuCapabilities* caps{nullptr}; ///< borrowed; required iff preferGpuDownload
 
   /// Optional vendor-specific single-plane staging (return true if fully
   /// handled, false to fall back to the default row-stride copy). Used for

@@ -138,6 +138,10 @@ void DirectVideoOutputNode::createOutput(OutputConfiguration conf)
 
   m_rhi = m_renderState->rhi;
 
+  // Probe GPU interop once (borrowed by HostStagedOutput's DVP ring below).
+  m_caps = interop::probeContextFree();
+  interop::probeFromQRhi(m_caps, m_rhi);
+
   // VBI-paced submit pump (backend hooks wait on the output tick and submit the
   // frame off the render thread).
   m_pump = std::make_unique<interop::PacedFramePump>(
@@ -229,6 +233,8 @@ void DirectVideoOutputNode::createOutput(OutputConfiguration conf)
   hcfg.planes = m_backend->planes();
   hcfg.registrar = m_backend->registrar();
   hcfg.customStage = m_backend->customStage();
+  hcfg.preferGpuDownload = m_backend->prefersGpuDownload();
+  hcfg.caps = &m_caps;
 
   m_hostStaged = std::make_unique<interop::HostStagedOutput>();
   if(!m_hostStaged->init(std::move(hcfg), std::move(enc0), std::move(enc1)))
