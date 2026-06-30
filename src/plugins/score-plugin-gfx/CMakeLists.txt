@@ -270,6 +270,13 @@ set(HDRS
     Gfx/Graph/interop/GpuDirectStrategy.hpp
     Gfx/Graph/interop/GpuDirectCaptureStrategy.hpp
     Gfx/Graph/interop/CaptureStrategyCommon.hpp
+    # Shared, vendor-neutral NVIDIA-DVP shim templates (parameterized by a
+    # per-vendor DMA-lock policy). Header-only; consumed by capture-card addons.
+    Gfx/Graph/interop/DmaLockPolicy.hpp
+    Gfx/Graph/interop/DvpCaptureGl.hpp
+    Gfx/Graph/interop/DvpCaptureD3D11.hpp
+    Gfx/Graph/interop/DvpOutputGl.hpp
+    Gfx/Graph/interop/DvpOutputD3D11.hpp
     Gfx/Graph/interop/GLCaptureUpload.hpp
     Gfx/Graph/interop/GpuDirectOutput.hpp
     Gfx/Graph/interop/GpuDirectOutput.cpp
