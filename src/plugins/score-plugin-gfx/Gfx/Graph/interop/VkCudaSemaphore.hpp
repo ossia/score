@@ -63,10 +63,13 @@ public:
    *  @param cudaCtx    Pre-initialised CudaP2PContextHandle (the CUDA
    *                    context that will wait/signal on this).
    *  @param initialValue  Initial counter value for the timeline
-   *                       semaphore (typically 0).
+   *                       semaphore (typically 0). Ignored when @p binary.
+   *  @param binary     If true, create a BINARY semaphore (no timeline value)
+   *                    and import it into CUDA as an opaque binary semaphore.
+   *                    Default false (timeline).
    *  @return true on success. On failure both sides are torn down. */
   bool create(const VulkanCtx& vk, CudaP2PContextHandle cudaCtx,
-              uint64_t initialValue = 0);
+              uint64_t initialValue = 0, bool binary = false);
 
   /** Tear down both sides. Idempotent. */
   void destroy() noexcept;

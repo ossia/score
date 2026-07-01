@@ -67,7 +67,8 @@ VkCudaTimelineSemaphore::operator=(VkCudaTimelineSemaphore&& other) noexcept
 }
 
 bool VkCudaTimelineSemaphore::create(
-    const VulkanCtx& vk, CudaP2PContextHandle cudaCtx, uint64_t initialValue)
+    const VulkanCtx& vk, CudaP2PContextHandle cudaCtx, uint64_t initialValue,
+    bool binary)
 {
   destroy();
   if(!cudaCtx || vk.dev == VK_NULL_HANDLE || !vk.qInst)
@@ -87,6 +88,8 @@ bool VkCudaTimelineSemaphore::create(
   expCi.sType = VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO;
   expCi.handleTypes = kExportType;
 
+  // Timeline chains a VkSemaphoreTypeCreateInfo; binary chains only the export
+  // info (a default VkSemaphoreCreateInfo is already BINARY).
   VkSemaphoreTypeCreateInfo typeCi{};
   typeCi.sType = VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO;
   typeCi.pNext = &expCi;
@@ -95,7 +98,8 @@ bool VkCudaTimelineSemaphore::create(
 
   VkSemaphoreCreateInfo ci{};
   ci.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-  ci.pNext = &typeCi;
+  ci.pNext = binary ? static_cast<const void*>(&expCi)
+                    : static_cast<const void*>(&typeCi);
 
   if(df->vkCreateSemaphore(vk.dev, &ci, nullptr, &m_vkSem) != VK_SUCCESS
      || m_vkSem == VK_NULL_HANDLE)
@@ -162,15 +166,25 @@ bool VkCudaTimelineSemaphore::create(
   osHandle = reinterpret_cast<void*>(static_cast<intptr_t>(fd));
 #endif
 
-  // 3. CUDA-side import via the existing CudaP2PBridge entry point.
-  if(::cuda_p2p_import_vulkan_semaphore(cudaCtx, osHandle, &m_cudaSem)
-     != CUDA_P2P_SUCCESS)
+  // 3. CUDA-side import via the existing CudaP2PBridge entry points (binary vs
+  //    timeline handle type).
+  const auto importRes
+      = binary
+            ? ::cuda_p2p_import_vulkan_semaphore_binary(cudaCtx, osHandle, &m_cudaSem)
+            : ::cuda_p2p_import_vulkan_semaphore(cudaCtx, osHandle, &m_cudaSem);
+  if(importRes != CUDA_P2P_SUCCESS)
   {
-    qWarning() << "VkCudaTimelineSemaphore: cuda_p2p_import_vulkan_semaphore "
-                  "failed";
+    qWarning() << "VkCudaTimelineSemaphore: CUDA semaphore import failed";
     destroy();
     return false;
   }
+
+  // On Win32 the exported HANDLE is ours; CUDA duplicates it during import, so
+  // release our reference now to avoid a per-semaphore handle leak. On Linux the
+  // OPAQUE_FD ownership transfers to CUDA — do not close the fd.
+#if defined(_WIN32)
+  CloseHandle(h);
+#endif
   return true;
 }
 
