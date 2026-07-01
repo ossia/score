@@ -464,6 +464,15 @@ struct CudaFunctions
   FN_cuMemRelease memRelease{};
   FN_cuMemGetAllocationGranularity memGetGranularity{};
 
+  // -- Pointer attributes — OPTIONAL --------------------------------------
+  // cuPointerSetAttribute(CU_POINTER_ATTRIBUTE_SYNC_MEMOPS) marks a device
+  // range for synchronous memory ops so third-party DMA engines (Deltacast
+  // VHD_CreateSlotEx RDMAEnabled, Rivermax, ...) can target it. Null on very
+  // old drivers; callers null-check.
+  using FN_cuPointerSetAttribute
+      = CUresult (*)(const void*, int /*CUpointer_attribute*/, CUdeviceptr);
+  FN_cuPointerSetAttribute pointerSetAttribute{};
+
   /** True when every VMM entry point resolved. False on pre-CUDA-10.2
    *  drivers; callers must check before calling memCreate et al. */
   bool vmmSupported{};
@@ -565,6 +574,8 @@ struct CudaFunctions
     memRelease = (FN_cuMemRelease)sym("cuMemRelease");
     memGetGranularity = (FN_cuMemGetAllocationGranularity)sym(
         "cuMemGetAllocationGranularity");
+    pointerSetAttribute
+        = (FN_cuPointerSetAttribute)sym("cuPointerSetAttribute");
     vmmSupported = memCreate && memAddressReserve && memMap && memSetAccess
                    && memUnmap && memAddressFree && memRelease
                    && memGetGranularity;
