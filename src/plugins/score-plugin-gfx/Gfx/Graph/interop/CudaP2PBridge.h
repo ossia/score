@@ -236,6 +236,19 @@ CUDA_P2P_API CudaP2PError cuda_p2p_import_vulkan_semaphore(
     CudaP2PSemaphoreHandle* sem);
 
 /**
+ * @brief Import a BINARY Vulkan external semaphore (OPAQUE_WIN32 / OPAQUE_FD).
+ *        Sibling of cuda_p2p_import_vulkan_semaphore (which imports a TIMELINE
+ *        semaphore). Used by the GPU-direct OUTPUT fence, where QRhi signals a
+ *        binary VkSemaphore at queue-submit and CUDA waits on it before the
+ *        array->buffer copy. Wait with cuda_p2p_wait_semaphore(value=0) — the
+ *        value is ignored for binary (OPAQUE) semaphore types.
+ */
+CUDA_P2P_API CudaP2PError cuda_p2p_import_vulkan_semaphore_binary(
+    CudaP2PContextHandle ctx,
+    void* external_semaphore_handle,
+    CudaP2PSemaphoreHandle* sem);
+
+/**
  * @brief Schedule a wait on the given external-semaphore value inside the
  *        bridge's CUDA stream. Non-blocking on the host.
  */

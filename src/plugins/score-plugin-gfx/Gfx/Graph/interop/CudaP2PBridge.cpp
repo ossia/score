@@ -614,6 +614,19 @@ CudaP2PError cuda_p2p_import_vulkan_semaphore(
   return importSemaphore(ctx, t, external_semaphore_handle, sem);
 }
 
+CudaP2PError cuda_p2p_import_vulkan_semaphore_binary(
+    CudaP2PContextHandle ctx,
+    void* external_semaphore_handle,
+    CudaP2PSemaphoreHandle* sem)
+{
+#if defined(_WIN32)
+  const auto t = CU_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_WIN32;
+#else
+  const auto t = CU_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD;
+#endif
+  return importSemaphore(ctx, t, external_semaphore_handle, sem);
+}
+
 CudaP2PError cuda_p2p_wait_semaphore(
     CudaP2PContextHandle ctx,
     CudaP2PSemaphoreHandle sem,
