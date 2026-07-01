@@ -15,6 +15,8 @@
 #include <QVulkanFunctions>
 #include <QVulkanInstance>
 
+#include <Gfx/Graph/interop/VkCudaSemaphore.hpp>
+
 #if defined(_WIN32)
 #ifndef VK_USE_PLATFORM_WIN32_KHR
 #define VK_USE_PLATFORM_WIN32_KHR
@@ -121,25 +123,13 @@ struct InteropFenceVulkan final : InteropFence
 {
   static constexpr int kRing = 3;
 
-#if defined(_WIN32)
-  static constexpr VkExternalSemaphoreHandleTypeFlagBits kExportType
-      = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_WIN32_BIT;
-#else
-  static constexpr VkExternalSemaphoreHandleTypeFlagBits kExportType
-      = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT;
-#endif
-
   QRhi* m_rhi{};
-  QVulkanInstance* m_inst{};
-  QVulkanDeviceFunctions* m_df{};
-  VkDevice m_dev{VK_NULL_HANDLE};
   CudaP2PContextHandle m_cudaCtx{};
 
-  VkSemaphore m_vkSem[kRing]{};
-  CudaP2PSemaphoreHandle m_cudaSem[kRing]{};
-#if defined(_WIN32)
-  HANDLE m_osHandle[kRing]{};
-#endif
+  // Reuse the exportable-semaphore + CUDA-import helper (in binary mode)
+  // instead of re-rolling vkCreateSemaphore / export / import here.
+  vkinterop::VkCudaTimelineSemaphore m_sem[kRing];
+  VkSemaphore m_vk[kRing]{}; // stable storage for setQueueSubmitParams pointers
   bool m_ok{};
 
   bool valid() const noexcept override { return m_ok; }
@@ -154,90 +144,24 @@ struct InteropFenceVulkan final : InteropFence
     if(!nh || nh->dev == VK_NULL_HANDLE || !nh->inst)
       return false;
 
-    m_rhi = &rhi;
-    m_dev = nh->dev;
-    m_inst = nh->inst;
-    m_cudaCtx = cudaCtx;
-    m_df = m_inst->deviceFunctions(m_dev);
-    if(!m_df)
-      return false;
-
-    // Resolve the platform export fn (device-level dispatch via the instance).
-#if defined(_WIN32)
-    auto exportFn = reinterpret_cast<PFN_vkGetSemaphoreWin32HandleKHR>(
-        m_inst->getInstanceProcAddr("vkGetSemaphoreWin32HandleKHR"));
-#else
-    auto exportFn = reinterpret_cast<PFN_vkGetSemaphoreFdKHR>(
-        m_inst->getInstanceProcAddr("vkGetSemaphoreFdKHR"));
-#endif
-    if(!exportFn)
-    {
-      qDebug() << "InteropFence(Vulkan): semaphore export fn unresolved "
-                  "(VK_KHR_external_semaphore_* not enabled?)";
-      release();
-      return false;
-    }
+    vkinterop::VulkanCtx vk{};
+    vk.instance = nh->inst->vkInstance();
+    vk.physDev = nh->physDev;
+    vk.dev = nh->dev;
+    vk.qInst = nh->inst;
 
     for(int i = 0; i < kRing; ++i)
     {
-      VkExportSemaphoreCreateInfo expCi{};
-      expCi.sType = VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO;
-      expCi.handleTypes = kExportType;
-
-      // Binary semaphore: no VkSemaphoreTypeCreateInfo (default is BINARY).
-      VkSemaphoreCreateInfo ci{};
-      ci.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-      ci.pNext = &expCi;
-
-      if(m_df->vkCreateSemaphore(m_dev, &ci, nullptr, &m_vkSem[i]) != VK_SUCCESS
-         || m_vkSem[i] == VK_NULL_HANDLE)
+      if(!m_sem[i].create(vk, cudaCtx, /*initialValue=*/0, /*binary=*/true))
       {
-        qDebug() << "InteropFence(Vulkan): vkCreateSemaphore(exportable) failed";
         release();
         return false;
       }
-
-      void* osHandle = nullptr;
-#if defined(_WIN32)
-      VkSemaphoreGetWin32HandleInfoKHR gi{};
-      gi.sType = VK_STRUCTURE_TYPE_SEMAPHORE_GET_WIN32_HANDLE_INFO_KHR;
-      gi.semaphore = m_vkSem[i];
-      gi.handleType = kExportType;
-      HANDLE h = nullptr;
-      if(exportFn(m_dev, &gi, &h) != VK_SUCCESS || !h)
-      {
-        qDebug() << "InteropFence(Vulkan): vkGetSemaphoreWin32HandleKHR failed";
-        release();
-        return false;
-      }
-      m_osHandle[i] = h;
-      osHandle = h;
-#else
-      VkSemaphoreGetFdInfoKHR gi{};
-      gi.sType = VK_STRUCTURE_TYPE_SEMAPHORE_GET_FD_INFO_KHR;
-      gi.semaphore = m_vkSem[i];
-      gi.handleType = kExportType;
-      int fd = -1;
-      if(exportFn(m_dev, &gi, &fd) != VK_SUCCESS || fd < 0)
-      {
-        qDebug() << "InteropFence(Vulkan): vkGetSemaphoreFdKHR failed";
-        release();
-        return false;
-      }
-      osHandle = reinterpret_cast<void*>(static_cast<intptr_t>(fd));
-#endif
-
-      if(cuda_p2p_import_vulkan_semaphore_binary(m_cudaCtx, osHandle, &m_cudaSem[i])
-             != CUDA_P2P_SUCCESS
-         || !m_cudaSem[i])
-      {
-        qDebug() << "InteropFence(Vulkan): cuda_p2p_import_vulkan_semaphore_binary "
-                    "failed";
-        release();
-        return false;
-      }
+      m_vk[i] = m_sem[i].vk();
     }
 
+    m_rhi = &rhi;
+    m_cudaCtx = cudaCtx;
     m_ok = true;
     return true;
   }
@@ -247,16 +171,11 @@ struct InteropFenceVulkan final : InteropFence
     if(!m_ok)
       return;
     const int i = int(value % kRing);
-    // QRhi copies these fields into its internal submit state at set-time and
-    // clears them after each submit, so this must run every frame. The
-    // signalSemaphores pointer targets a member array (stays valid).
+    // QRhi copies these fields at set-time and clears them after each submit, so
+    // this must run every frame. m_vk[i] is stable member storage.
     QRhiVulkanQueueSubmitParams params{};
-    params.waitSemaphoreCount = 0;
-    params.waitSemaphores = nullptr;
     params.signalSemaphoreCount = 1;
-    params.signalSemaphores = &m_vkSem[i];
-    params.presentWaitSemaphoreCount = 0;
-    params.presentWaitSemaphores = nullptr;
+    params.signalSemaphores = &m_vk[i];
     m_rhi->setQueueSubmitParams(&params);
   }
 
@@ -265,8 +184,8 @@ struct InteropFenceVulkan final : InteropFence
     if(!m_ok)
       return false;
     const int i = int(value % kRing);
-    // Binary semaphore: value is ignored by CUDA for OPAQUE types → pass 0.
-    return cuda_p2p_wait_semaphore(m_cudaCtx, m_cudaSem[i], 0)
+    // Binary semaphore: CUDA ignores the value for OPAQUE types → pass 0.
+    return cuda_p2p_wait_semaphore(m_cudaCtx, m_sem[i].cuda(), 0)
            == CUDA_P2P_SUCCESS;
   }
 
@@ -274,20 +193,11 @@ struct InteropFenceVulkan final : InteropFence
   {
     for(int i = 0; i < kRing; ++i)
     {
-      if(m_cudaCtx && m_cudaSem[i])
-        cuda_p2p_release_semaphore(m_cudaCtx, m_cudaSem[i]);
-      m_cudaSem[i] = nullptr;
-
-      if(m_df && m_dev != VK_NULL_HANDLE && m_vkSem[i] != VK_NULL_HANDLE)
-        m_df->vkDestroySemaphore(m_dev, m_vkSem[i], nullptr);
-      m_vkSem[i] = VK_NULL_HANDLE;
-
-#if defined(_WIN32)
-      if(m_osHandle[i])
-        CloseHandle(m_osHandle[i]);
-      m_osHandle[i] = nullptr;
-#endif
+      m_sem[i].destroy();
+      m_vk[i] = VK_NULL_HANDLE;
     }
+    m_rhi = nullptr;
+    m_cudaCtx = nullptr;
     m_ok = false;
   }
 };
