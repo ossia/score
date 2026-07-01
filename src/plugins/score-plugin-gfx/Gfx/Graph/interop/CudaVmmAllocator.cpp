@@ -41,6 +41,9 @@ std::size_t roundUp(std::size_t v, std::size_t multiple) noexcept
   return ((v + multiple - 1) / multiple) * multiple;
 }
 
+// CUpointer_attribute::CU_POINTER_ATTRIBUTE_SYNC_MEMOPS (driver ABI value).
+constexpr int kCuPointerAttributeSyncMemops = 6;
+
 } // namespace
 
 std::size_t CudaVmmAllocator::alignedSize(
@@ -110,6 +113,16 @@ CudaVmmAllocation CudaVmmAllocator::allocate(
     cu.memAddressFree(dptr, alignedBytes);
     cu.memRelease(handle);
     return result;
+  }
+
+  // 5. Mark the range for synchronous memory ops so a third-party card DMA
+  //    engine (Deltacast VHD_CreateSlotEx RDMAEnabled, Rivermax, ...) can
+  //    target it directly. Best-effort hint: honoured on GPUDirect-RDMA
+  //    capable GPUs, harmless (and may fail) elsewhere — not fatal.
+  if(cu.pointerSetAttribute)
+  {
+    const int one = 1;
+    cu.pointerSetAttribute(&one, kCuPointerAttributeSyncMemops, dptr);
   }
 
   result.m_cu = &cu;
