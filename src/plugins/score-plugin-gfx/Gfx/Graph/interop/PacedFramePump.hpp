@@ -22,6 +22,15 @@
  *                      accept. Returning false drops the frame (counted).
  *   - `submit(ptr)`    DMA/schedule the frame at `ptr`; return false on failure.
  *
+ * Pacing order: the pump first waits until at least one frame has been
+ * push()ed, and only THEN calls waitForTick(). Consequences vendors can rely
+ * on: (a) waitForTick() is never invoked with an empty ring, so a hook that
+ * consumes a scarce resource per call (e.g. a free-output-slot permit) never
+ * loses it to an idle tick; (b) an always-true waitForTick() does not
+ * busy-spin — the pump blocks on frame arrival, not on the hook; (c) if
+ * waitForTick() returns false (timeout), the pending frame stays queued and
+ * the tick is retried.
+ *
  * The producer must ensure all GPU work filling `ptr` is complete before push()
  * (the pump does no cross-backend sync — strategies sync inside prepareNextFrame).
  *
@@ -35,6 +44,7 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <semaphore>
 #include <thread>
 #include <vector>
 
@@ -46,9 +56,11 @@ class SCORE_PLUGIN_GFX_EXPORT PacedFramePump
 public:
   struct Hooks
   {
-    /// Block until the next output tick. Return false on timeout (the loop
-    /// re-checks shutdown and waits again). Must return periodically so stop()
-    /// is responsive.
+    /// Block until the next output tick. Return false on timeout (the pending
+    /// frame stays queued and the tick is retried). Only ever called when at
+    /// least one frame is pending — see the pacing-order note above. Should
+    /// return periodically so stop() stays responsive while frames are
+    /// pending.
     std::function<bool()> waitForTick;
     /// Optional card-side back-pressure. nullptr => always accept. Returning
     /// false drops the current frame (counted as a drop).
@@ -88,6 +100,11 @@ private:
   std::vector<std::atomic<void*>> m_slots;
   std::atomic<uint32_t> m_writeIdx{0};
   std::atomic<uint32_t> m_readIdx{0};
+
+  // One permit per successfully push()ed frame; the consumer blocks here (not
+  // in waitForTick) while idle. Drained-ahead frames return their permits via
+  // try_acquire so the count tracks the ring.
+  std::counting_semaphore<> m_framesAvail{0};
 
   std::thread m_thread;
   std::atomic<bool> m_running{false};
