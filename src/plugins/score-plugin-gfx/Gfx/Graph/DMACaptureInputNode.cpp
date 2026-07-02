@@ -133,6 +133,7 @@ public:
     {
       delete m_gpu->samplers[0].texture; // decoder's original input texture
       m_gpu->samplers[0].texture = st;
+      m_strategyOwnsTexture = true;
     }
 
     score::gfx::defaultPassesInit(
@@ -222,14 +223,14 @@ public:
           << ") mean " << (double(m_uploadTotalNs) / m_uploadCount / 1000.0)
           << " us over " << m_uploadCount << " frames";
     }
-    // If the strategy owns the decoder's sampler texture (Vulkan tier-3 swap),
-    // detach it before either release() runs so the decoder doesn't free a
-    // texture the strategy also frees. Compare while the strategy still reports
-    // its owned texture (before m_strategy->release()).
-    if(m_strategy && m_gpu && !m_gpu->samplers.empty()
-       && m_gpu->samplers[0].texture == m_strategy->outputTexture()
-       && m_strategy->outputTexture() != nullptr)
+    // If the strategy owns the decoder's sampler texture (Vulkan tier-3 swap,
+    // recorded at init), detach it before either release() runs so the decoder
+    // doesn't free a texture the strategy also frees. For every other strategy
+    // outputTexture() IS the decoder's own texture — detaching would leak it,
+    // since GPUVideoDecoder::release() is what deletes it.
+    if(m_strategyOwnsTexture && m_gpu && !m_gpu->samplers.empty())
       m_gpu->samplers[0].texture = nullptr;
+    m_strategyOwnsTexture = false;
     if(m_strategy && m_renderHoldsTexture)
     {
       m_strategy->releaseAfterRender();
@@ -268,6 +269,10 @@ private:
   score::gfx::interop::GpuDirectCaptureSlotRing m_ring;
   uint64_t m_lastIngestedFrameId{0};
   bool m_renderHoldsTexture{false};
+  /// True when the strategy swapped its own texture into the decoder sampler
+  /// (Vulkan tier-3); gates the detach in release() so decoder-owned textures
+  /// are still freed by GPUVideoDecoder::release().
+  bool m_strategyOwnsTexture{false};
 
   std::unique_ptr<score::gfx::GPUVideoDecoder> m_gpu;
   score::gfx::PassMap m_p;
