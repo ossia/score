@@ -256,6 +256,12 @@ void DirectVideoOutputNode::destroyOutput()
     m_pump->stop();
     m_pump.reset();
   }
+  // Let the backend stop streaming and wait out any frames its hardware still
+  // holds (DeckLink's scheduled queue, Deltacast's registered RDMA slots)
+  // while the buffers below are still alive. Must precede the strategy/ring
+  // teardown or the card DMA-reads freed memory.
+  if(m_backend)
+    m_backend->quiesce();
   if(m_rdma)
   {
     m_rdma->release();

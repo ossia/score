@@ -129,6 +129,19 @@ struct SCORE_PLUGIN_GFX_EXPORT DirectVideoOutputBackend
   /// card). The node owns the PacedFramePump built from these.
   virtual interop::PacedFramePump::Hooks pacingHooks() = 0;
 
+  /// Stop the card from reading ANY application buffer, synchronously.
+  ///
+  /// Called by DirectVideoOutputNode::destroyOutput() after the pump thread
+  /// has stopped but BEFORE the GPU-direct strategy and host-staged ring are
+  /// released. Backends whose submit path hands buffers to an asynchronous /
+  /// retained queue (DeckLink ScheduleVideoFrame, Deltacast RDMA application-
+  /// buffer slots) must stop streaming here and wait until the hardware has
+  /// let go of every in-flight buffer — otherwise the node frees memory the
+  /// card is still DMA-reading. Synchronous-submit vendors (AJA DMAWriteFrame)
+  /// keep the default no-op. close() still runs afterwards and must tolerate
+  /// quiesce() having already stopped the stream.
+  virtual void quiesce() { }
+
   /// Tear down the device (stop AutoCirculate/streams, restore task mode, close).
   virtual void close() = 0;
 };
