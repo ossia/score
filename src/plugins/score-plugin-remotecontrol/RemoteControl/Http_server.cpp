@@ -7,7 +7,13 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
+#include <Library/LibrarySettings.hpp>
 #include <RemoteControl/Http_server.hpp>
+
+#include <cstdlib>
+#include <iostream>
+#include <fstream>
+
 
 //------------------------------------------------------------------------------
 
@@ -174,7 +180,7 @@ Http_server::handle_request(
     // Cache the size since we need it after the move
     auto const size = body.size();
 
-    if ( req.target().find("remote.html") != std::string::npos )
+    if ( req.target().find("ossia_remote.html") != std::string::npos )
     {
         // Load file
         QFile f(path.c_str());
@@ -307,13 +313,9 @@ Http_server::open_server()
     {
         auto const address2 = net::ip::make_address("0.0.0.0");
         auto const port = static_cast<unsigned short>(std::atoi("8080"));
-<<<<<<< HEAD:src/plugins/score-plugin-remotecontrol/RemoteControl/Http_server.cpp
-        auto const m_docRoot = std::make_shared<std::string>("./src/plugins/score-plugin-remotecontrol/CMakeFiles/score_plugin_remotecontrol.dir/RemoteControl/build-wasm/");
-=======
         std::string packagesPath = score::AppContext().settings<Library::Settings::Model>().getPackagesPath().toStdString();
-        m_buildWasmPath = packagesPath + "/build-wasm/";
+        m_buildWasmPath = packagesPath + "/wasm-remote/";
         auto const m_docRoot = std::make_shared<std::string>(m_buildWasmPath);
->>>>>>> c8b914cd2 (changes from the review):src/plugins/score-plugin-remotecontrol/RemoteControl/HttpServer.cpp
 
         bool is_ip_address_set = false;
 
