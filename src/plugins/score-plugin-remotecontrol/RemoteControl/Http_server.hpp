@@ -16,12 +16,10 @@
 #include <boost/beast/version.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/config.hpp>
-#include <cstdlib>
-#include <iostream>
+
 #include <memory>
 #include <string>
 #include <thread>
-#include <fstream>
 
 #ifdef _WIN32
 #define SHUT_RDWR 2
