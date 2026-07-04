@@ -30,7 +30,7 @@ extern "C" {
 #if __has_include(<libavutil/hwcontext.h>)
 #include <libavutil/hwcontext.h>
 #endif
-#if QT_HAS_VULKAN && __has_include(<libavutil/hwcontext_vulkan.h>)
+#if QT_HAS_VULKAN && __has_include(<libavutil/hwcontext_vulkan.h>) && (LIBAVUTIL_VERSION_INT > AV_VERSION_INT(60, 0, 0))
 #include <libavutil/hwcontext_vulkan.h>
 #define SCORE_HAS_VULKAN_HWCONTEXT 1
 #endif
@@ -171,7 +171,10 @@ bool DirectVideoNodeRenderer::setupHardwareDecoder(
       using FN_cuInit = int (*)(unsigned int);
       auto fn = (FN_cuInit)dlsym(lib, "cuInit");
       if(!fn)
+      {
         qDebug("no cuInit!");
+        return false;
+      }
       auto res = fn(0);
       qDebug() << res;
 
