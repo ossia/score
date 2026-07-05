@@ -60,6 +60,8 @@ QVulkanInstance* staticVulkanInstance(bool create)
     if(!instance.create())
     {
       g_staticVulkanInstanceInvalid = true;
+      delete g_staticVulkanInstance;
+      g_staticVulkanInstance = nullptr;
     }
   });
 
