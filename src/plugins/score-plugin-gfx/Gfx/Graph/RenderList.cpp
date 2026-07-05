@@ -1303,7 +1303,38 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
       // For each edge incoming to each image input ports of this node,
       // we render the edge source's content.
       if(input->edges.empty())
+      {
+        // An image input with no incoming edge must still have its render
+        // target cleared each frame; otherwise removing a cable while both
+        // endpoints stay alive leaves the last frame stuck in the consumer
+        // (e.g. a mixer keeps compositing a source that was disconnected).
+        if(input->type == Types::Image
+           && (input->flags & Flag::GrabsFromSource) != Flag::GrabsFromSource)
+        {
+          auto rendered = node->renderedNodes.find(this);
+          SCORE_ASSERT(rendered != node->renderedNodes.end());
+          NodeRenderer* renderer = rendered->second;
+
+          auto rt = renderer->renderTargetForInput(*input);
+          if(!rt)
+            rt = renderTargetForInputPort(*input);
+          if(rt)
+          {
+            QColor bg = (it + 1 == this->nodes.rend() ? Qt::black : Qt::transparent);
+            commands.beginPass(rt.renderTarget, bg, {1.0f, 0}, updateBatch);
+            updateBatch = nullptr;
+            commands.endPass(updateBatch);
+            updateBatch = nullptr;
+
+            if(node != &output)
+            {
+              updateBatch = state.rhi->nextResourceUpdateBatch();
+              SCORE_ASSERT(updateBatch);
+            }
+          }
+        }
         continue;
+      }
 
       if(input->type == Types::Image)
       {
