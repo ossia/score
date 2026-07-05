@@ -59,6 +59,8 @@ public:
   ObjectPath() noexcept { }
   ~ObjectPath() noexcept = default;
   QString toString() const noexcept;
+  static ObjectPath fromString(const QString& str) noexcept;
+  QObject* findObject(const score::DocumentContext& ctx) const noexcept;
 
   explicit ObjectPath(std::vector<ObjectIdentifier> vec) noexcept
       : m_objectIdentifiers{std::move(vec)}
