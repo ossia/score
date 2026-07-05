@@ -59,6 +59,14 @@ DeviceDocumentPlugin::DeviceDocumentPlugin(
   m_explorer = new DeviceExplorerModel{*this, this};
 }
 
+void DeviceDocumentPlugin::on_documentClosing()
+{
+  for(auto dev : this->m_list.devices())
+  {
+    dev->disconnect();
+  }
+}
+
 DeviceDocumentPlugin::~DeviceDocumentPlugin()
 {
   for(auto dev : this->m_list.devices())

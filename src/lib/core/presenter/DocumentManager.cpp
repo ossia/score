@@ -158,6 +158,17 @@ DocumentManager::~DocumentManager()
   // ApplicationPlugin.
   for(auto document : m_documents)
   {
+    // Reverse creation order, to match ~DocumentModel (e.g. the execution
+    // plugin must be torn down before the device explorer plugin).
+    auto& plugs = document->model().pluginModels();
+    for(auto it = plugs.rbegin(); it != plugs.rend(); ++it)
+    {
+      (*it)->on_documentClosing();
+    }
+  }
+
+  for(auto document : m_documents)
+  {
     document->deleteLater();
   }
 

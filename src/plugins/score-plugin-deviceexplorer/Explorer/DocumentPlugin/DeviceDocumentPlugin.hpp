@@ -49,6 +49,8 @@ public:
 
   void init();
 
+  void on_documentClosing() override;
+
   Device::Node& rootNode() { return m_rootNode; }
   const Device::Node& rootNode() const { return m_rootNode; }
 
