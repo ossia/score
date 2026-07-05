@@ -131,36 +131,6 @@ void DocumentPlugin::cleanup()
   m_root = nullptr;
 }
 
-ObjectPath fromString(const QString& str)
-{
-  auto res = str.split("/");
-  if(res.empty())
-    return {};
-  if(res[0].isEmpty())
-    res.pop_front();
-  if(res.empty())
-    return {};
-
-  ObjectIdentifierVector i;
-  for(const QString& is : res)
-  {
-    int idx = is.lastIndexOf('.');
-    if(idx == -1)
-      return {};
-    auto name = is.mid(0, idx);
-    auto index = is.mid(idx + 1);
-
-    bool ok = false;
-    int num = index.toInt(&ok);
-    if(!ok)
-      return {};
-
-    i.emplace_back(name, num);
-  }
-
-  return ObjectPath{std::move(i)};
-}
-
 template <typename T>
 static Path<T> readPathFromValue(const rapidjson::Value& val)
 {
@@ -168,7 +138,7 @@ static Path<T> readPathFromValue(const rapidjson::Value& val)
   {
     auto str = QString::fromUtf8(val.GetString(), val.GetStringLength());
 
-    auto path = fromString(str);
+    auto path = ObjectPath::fromString(str);
     if(path.vec().empty())
       return {};
 
