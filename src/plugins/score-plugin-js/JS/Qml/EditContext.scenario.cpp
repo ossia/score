@@ -1,6 +1,9 @@
+#include <Process/Commands/Properties.hpp>
+#include <Process/Dataflow/Cable.hpp>
 #include <Process/Preset.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
+#include <Scenario/Commands/TimeSync/SetAutoTrigger.hpp>
 
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
@@ -721,5 +724,33 @@ void EditJsContext::setIntervalSpeed(QObject* object, double s)
     return;
 
   i->duration.setSpeed(s);
+}
+
+void EditJsContext::setAutoTrigger(QObject* object, bool b)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+
+  auto ts = qobject_cast<Scenario::TimeSyncModel*>(object);
+  if(!ts)
+    return;
+
+  auto [m, _] = macro(*doc);
+  m->setProperty<Scenario::TimeSyncModel::p_autotrigger>(*ts, b);
+}
+
+void EditJsContext::setProcessLoop(QObject* object, bool b)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+
+  auto proc = qobject_cast<Process::ProcessModel*>(object);
+  if(!proc)
+    return;
+
+  auto [m, _] = macro(*doc);
+  m->setProperty<Process::ProcessModel::p_loops>(*proc, b);
 }
 }

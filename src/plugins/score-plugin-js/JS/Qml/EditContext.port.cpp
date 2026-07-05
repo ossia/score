@@ -10,6 +10,8 @@
 
 #include <JS/Qml/EditContext.hpp>
 
+#include <core/document/Document.hpp>
+
 #include <ossia/network/domain/domain.hpp>
 
 #include <vector>
@@ -225,6 +227,29 @@ QObject* EditJsContext::sink(QObject* cable)
   if(!c)
     return nullptr;
   return c->sink().try_find(*doc);
+}
+
+// Find the cable currently connecting a given outlet to a given inlet, or null.
+// Derives connection state from the live graph (cables are unnamed and their
+// ids are reused, so they cannot be tracked reliably by name or path).
+QObject* EditJsContext::cable(QObject* outlet, QObject* inlet)
+{
+  auto doc = ctx();
+  if(!doc)
+    return nullptr;
+  auto src = qobject_cast<Process::Outlet*>(outlet);
+  auto sink = qobject_cast<Process::Inlet*>(inlet);
+  if(!src || !sink)
+    return nullptr;
+
+  auto& root = score::IDocument::get<Scenario::ScenarioDocumentModel>(doc->document);
+  auto& ctx = doc->document.context();
+  for(auto& c : root.cables)
+  {
+    if(c.source().try_find(ctx) == src && c.sink().try_find(ctx) == sink)
+      return &c;
+  }
+  return nullptr;
 }
 
 void EditJsContext::setAddress(QObject* obj, QString addr)
