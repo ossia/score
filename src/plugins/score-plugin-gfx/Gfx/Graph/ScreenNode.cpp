@@ -175,9 +175,12 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
       qCritical() << "createRenderState: QRhi::create(OpenGLES2) FAILED. "
                      "This output will never render.";
     }
-    state.renderSize = sz;
-    populateCaps(state);
-    return st;
+    else
+    {
+      state.renderSize = sz;
+      populateCaps(state);
+      return st;
+    }
   }
 #endif
 
@@ -247,9 +250,12 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
     if(!state.rhi)
       state.rhi = QRhi::create(QRhi::Vulkan, &params, flags);
 
-    state.renderSize = sz;
-    populateCaps(state);
-    return st;
+    if(state.rhi)
+    {
+      state.renderSize = sz;
+      populateCaps(state);
+      return st;
+    }
   }
 #endif
 
@@ -267,9 +273,12 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
     // }
     state.version = Gfx::Settings::shaderVersionForAPI(D3D11);
     state.rhi = QRhi::create(QRhi::D3D11, &params, flags);
-    state.renderSize = sz;
-    populateCaps(state);
-    return st;
+    if(state.rhi)
+    {
+      state.renderSize = sz;
+      populateCaps(state);
+      return st;
+    }
   }
 #if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
   else if(graphicsApi == D3D12)
@@ -285,9 +294,12 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
     // }
     state.version = Gfx::Settings::shaderVersionForAPI(D3D12);
     state.rhi = QRhi::create(QRhi::D3D12, &params, flags);
-    state.renderSize = sz;
-    populateCaps(state);
-    return st;
+    if(state.rhi)
+    {
+      state.renderSize = sz;
+      populateCaps(state);
+      return st;
+    }
   }
 #endif
 #endif
@@ -298,9 +310,12 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
     QRhiMetalInitParams params;
     state.version = Gfx::Settings::shaderVersionForAPI(Metal);
     state.rhi = QRhi::create(QRhi::Metal, &params, flags);
-    state.renderSize = sz;
-    populateCaps(state);
-    return st;
+    if(state.rhi)
+    {
+      state.renderSize = sz;
+      populateCaps(state);
+      return st;
+    }
   }
 #endif
 
