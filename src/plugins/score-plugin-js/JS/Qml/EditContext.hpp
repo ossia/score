@@ -190,6 +190,12 @@ public:
   void setIntervalSpeed(QObject* object, double);
   W_SLOT(setIntervalSpeed)
 
+  void setAutoTrigger(QObject* timeSync, bool);
+  W_SLOT(setAutoTrigger)
+
+  void setProcessLoop(QObject* process, bool);
+  W_SLOT(setProcessLoop)
+
   //! A port of a process by name, inlets first. Prefer inlet() / outlet() when
   //! a process has an input and an output sharing a name.
   QObject* port(QObject* obj, QString name);
@@ -222,7 +228,7 @@ public:
 
   //! The index-th cable attached to a port. Works for inlets and outlets alike.
   QObject* cable(QObject* port, int index);
-  W_SLOT(cable)
+  W_SLOT(cable, (QObject*, int))
 
   //! Number of cables attached to a port. Works for inlets and outlets alike.
   int cables(QObject* port);
@@ -235,6 +241,10 @@ public:
   //! The inlet a cable ends at, or null if it no longer resolves.
   QObject* sink(QObject* cable);
   W_SLOT(sink)
+
+  //! The cable joining an outlet to an inlet, or null if there is none.
+  QObject* cable(QObject* outlet, QObject* inlet);
+  W_SLOT(cable, (QObject*, QObject*))
 
   void setAddress(QObject* obj, QString addr);
   W_SLOT(setAddress)
@@ -364,6 +374,10 @@ public:
 
   QObject* findByLabel(QString p);
   W_SLOT(findByLabel)
+  QString path(QObject* obj);
+  W_SLOT(path)
+  QObject* findByPath(QString path);
+  W_SLOT(findByPath)
 
   QObject* document();
   W_SLOT(document)
