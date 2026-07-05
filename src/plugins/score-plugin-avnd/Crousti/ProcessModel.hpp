@@ -42,6 +42,12 @@
 namespace oscr
 {
 
+// The condition under which a process needs the port-callback storage (a
+// model-side Info instance). The storage member and its init guard below must
+// both use it — keep them in sync.
+template <typename Info>
+concept needs_ports_callback_storage = has_dynamic_ports<Info>;
+
 template <typename Info>
 struct MessageBusWrapperToUi
 {
@@ -96,7 +102,7 @@ public:
   oscr::dynamic_ports_storage<Info> dynamic_ports;
 
   [[no_unique_address]]
-  ossia::type_if<Info, oscr::has_ports_callbacks<Info>>
+  ossia::type_if<Info, oscr::needs_ports_callback_storage<Info>>
       object_storage_for_ports_callbacks;
 
   ProcessModel(
@@ -316,7 +322,7 @@ private:
 
   void init_controller_ports()
   {
-    if constexpr(oscr::has_ports_callbacks<Info>)
+    if constexpr(oscr::needs_ports_callback_storage<Info>)
     {
       avnd::control_input_introspection<Info>::for_all_n2(
           avnd::get_inputs<Info>((Info&)this->object_storage_for_ports_callbacks),
