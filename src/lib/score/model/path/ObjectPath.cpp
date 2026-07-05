@@ -147,6 +147,30 @@ QString ObjectPath::toString() const noexcept
   return s;
 }
 
+ObjectPath ObjectPath::fromString(const QString& str) noexcept
+{
+  std::vector<ObjectIdentifier> v;
+  for(const auto& seg : QStringView{str}.split(QLatin1Char('/'), Qt::SkipEmptyParts))
+  {
+    const auto dot = seg.lastIndexOf(QLatin1Char('.'));
+    if(dot <= 0)
+      return {};
+    bool ok{};
+    const int32_t id = seg.mid(dot + 1).toInt(&ok);
+    if(!ok)
+      return {};
+    v.emplace_back(seg.left(dot).toString(), id);
+  }
+  return ObjectPath{std::move(v)};
+}
+
+QObject* ObjectPath::findObject(const score::DocumentContext& ctx) const noexcept
+{
+  if(m_objectIdentifiers.empty())
+    return nullptr;
+  return find_impl_unsafe(ctx);
+}
+
 QObject* ObjectPath::find_impl(const score::DocumentContext& ctx) const
 {
   using namespace score;
