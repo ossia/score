@@ -572,6 +572,16 @@ IntervalComponentBase::make(ProcessComponentFactory& fac, Process::ProcessModel&
       if(auto& onode = plug->node)
         ctx.setup.register_node(proc, onode);
 
+      // Processes added during execution must be flagged like the others.
+      // Guard on !proc.executing() so a graph rebuild during playback (which
+      // re-runs make() for already-running processes) doesn't re-emit
+      // startExecution.
+      if(interval().executing() && !proc.executing())
+      {
+        proc.setExecuting(true);
+        proc.startExecution();
+      }
+
       // Selection
       QObject::connect(
           &proc.selection, &Selectable::changed, plug.get(),
