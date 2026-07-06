@@ -108,6 +108,11 @@ void InvertYRenderer::finishFrame(
 {
   cb.beginPass(m_renderTarget.renderTarget, Qt::black, {0.0f, 0}, res);
   res = nullptr;
+  // m_p.pipeline is null when buildPipeline's QRhiGraphicsPipeline::create()
+  // failed (transient during graph rebuild). setGraphicsPipeline asserts on a
+  // null pipeline (Q_ASSERT) and dereferences it in release builds, so skip
+  // the draw — the target is still cleared and read back (as black).
+  if(m_p.pipeline)
   {
     const auto sz = renderer.state.renderSize;
     cb.setGraphicsPipeline(m_p.pipeline);
@@ -195,6 +200,9 @@ void ScaledRenderer::finishFrame(score::gfx::RenderList &renderer, QRhiCommandBu
 {
   cb.beginPass(m_renderTarget.renderTarget, Qt::black, {0.0f, 0}, res);
   res = nullptr;
+  // See InvertYRenderer::finishFrame: skip the draw if the pipeline failed to
+  // build (null), rather than asserting/dereferencing in setGraphicsPipeline.
+  if(m_p.pipeline)
   {
     const auto sz = renderer.state.outputSize;
 
