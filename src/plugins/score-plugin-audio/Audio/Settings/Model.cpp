@@ -2,6 +2,8 @@
 #include <Audio/Settings/Model.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
+
+#include <optional>
 namespace Audio::Settings
 {
 namespace Parameters
@@ -50,6 +52,43 @@ static auto list()
 }
 }
 
+// Maps the SCORE_AUDIO_BACKEND environment variable to a concrete driver key.
+// Used both at startup (so headless/CI/test runs can force a backend such as
+// "dummy") and from the settings GUI. Returns std::nullopt when the variable is
+// unset or unrecognized.
+static std::optional<Audio::AudioFactory::ConcreteKey> driverFromEnv()
+{
+  auto env = qEnvironmentVariable("SCORE_AUDIO_BACKEND").toLower();
+  if(env.isEmpty())
+    return std::nullopt;
+
+  QByteArray uid;
+  if(env == "dummy")
+    uid = "13dabcc3-9cda-422f-a8c7-5fef5c220677";
+  else if(env == "jack")
+    uid = "7ff2af00-f2f5-4930-beec-0e2d21eda195";
+  else if(env == "sdl")
+    uid = "28b88e91-c5f0-4f13-834f-aa333d14aa81";
+  else if(env == "pipewire")
+    uid = "687d49cf-b58d-430f-8358-ec02cb50be36";
+  else if(env == "coreaudio")
+    uid = "85115103-694a-4a3b-9274-76ef47aec5a9";
+  else if(env == "alsa")
+    uid = "a390218a-a951-4cda-b4ee-c41d2df44236";
+  else if(env == "alsa_portaudio")
+    uid = "3533ee88-9a8d-486c-b20b-6c966cf4eaa0";
+  else if(env == "alsa_miniaudio")
+    uid = "e0c533da-a1f4-4795-90b5-a805cdfcb79f";
+
+  if(uid.isEmpty())
+    return std::nullopt;
+
+  const char* data = uid.data();
+  using uid_t = const char(&)[37];
+  return Audio::AudioFactory::ConcreteKey{
+      score::uuids::string_generator::compute((uid_t)*data)};
+}
+
 Model::Model(
     const UuidKey<score::SettingsDelegateFactory>& k, QSettings& set,
     const score::ApplicationContext& ctx)
@@ -63,6 +102,11 @@ Model::Model(
   {
     m_Driver = Parameters::Driver.def;
   }
+
+  // Allow forcing the audio backend at startup, e.g. SCORE_AUDIO_BACKEND=dummy
+  // for headless / CI / test runs.
+  if(auto k = driverFromEnv())
+    m_Driver = *k;
 }
 
 Audio::AudioFactory::ConcreteKey Model::getDriver() const
@@ -72,35 +116,9 @@ Audio::AudioFactory::ConcreteKey Model::getDriver() const
 
 void Model::initDriver(Audio::AudioFactory::ConcreteKey val)
 {
-  if(auto env = qEnvironmentVariable("SCORE_AUDIO_BACKEND"); !env.isEmpty())
-  {
-    QByteArray uid;
-    env = env.toLower();
-    if(env == "dummy")
-      uid = "13dabcc3-9cda-422f-a8c7-5fef5c220677";
-    else if(env == "jack")
-      uid = "7ff2af00-f2f5-4930-beec-0e2d21eda195";
-    else if(env == "sdl")
-      uid = "28b88e91-c5f0-4f13-834f-aa333d14aa81";
-    else if(env == "pipewire")
-      uid = "687d49cf-b58d-430f-8358-ec02cb50be36";
-    else if(env == "coreaudio")
-      uid = "85115103-694a-4a3b-9274-76ef47aec5a9";
-    else if(env == "alsa")
-      uid = "a390218a-a951-4cda-b4ee-c41d2df44236";
-    else if(env == "alsa_portaudio")
-      uid = "3533ee88-9a8d-486c-b20b-6c966cf4eaa0";
-    else if(env == "alsa_miniaudio")
-      uid = "e0c533da-a1f4-4795-90b5-a805cdfcb79f";
+  if(auto k = driverFromEnv())
+    val = *k;
 
-    if(!uid.isEmpty())
-    {
-      const char* data = uid.data();
-      using uid_t = const char(&)[37];
-      val = Audio::AudioFactory::ConcreteKey{
-          score::uuids::string_generator::compute((uid_t)*data)};
-    }
-  }
   // Reset to default in case of invalid parameters.
   auto& ctx = score::AppContext();
   auto& factories = ctx.interfaces<AudioFactoryList>();

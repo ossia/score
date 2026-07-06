@@ -9,6 +9,7 @@
 #include <QApplication>
 
 #include <clocale>
+#include <memory>
 
 #if defined(SCORE_STATIC_PLUGINS)
 #include <score_static_plugins.hpp>
@@ -38,7 +39,7 @@ public:
 #endif
 
     m_instance = this;
-    this->setParent(m_app);
+    this->setParent(m_app.get());
 
     m_presenter
         = new score::Presenter{m_applicationSettings, m_settings, m_pset, nullptr, this};
@@ -52,7 +53,9 @@ public:
     delete m_presenter;
 
     QApplication::processEvents();
-    delete m_app;
+    // m_app (the QApplication) is destroyed last, after the score::Settings /
+    // ProjectSettings members below: their models are parented to the
+    // QApplication, so destroying it first would double-free them.
   }
 
   const score::GUIApplicationContext& context() const override
@@ -72,7 +75,9 @@ public:
 
   int exec() { return m_app->exec(); }
 
-  QApplication* m_app;
+  // Declared first so it is destroyed last (after the settings members, whose
+  // models are parented to it).
+  std::unique_ptr<QApplication> m_app;
   score::Settings m_settings;
   score::ProjectSettings m_pset;
   score::Presenter* m_presenter{};
