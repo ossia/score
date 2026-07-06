@@ -122,6 +122,11 @@ if(NOT SCORE_DYNAMIC_PLUGINS)
   set(SCORE_STATIC_PLUGINS ON)
 endif()
 
+# Unified switch for the score test suite (unit + integration + testbeds).
+# Decoupled from deployment builds on purpose: tests are meant to be run from a
+# normal developer (ideally dynamic-plugin) build, e.g. `cninja testing`.
+option(SCORE_TESTING "Build the score test suite (unit, integration, testbeds)" OFF)
+
 get_property(is_multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if(NOT "${is_multi_config}")
   if("${CMAKE_BUILD_TYPE}" STREQUAL "")
@@ -320,24 +325,19 @@ add_subdirectory(src)
 
 include(cmake/ScoreFeatureCheck.cmake)
 
-if(SCORE_TESTBED)
-  add_subdirectory(Tests/testbed)
-endif()
-
 if(EXISTS Documentation/Models/score.qmodel)
   add_custom_target(Docs SOURCES Documentation/Models/score.qmodel)
 endif()
 
-if(INTEGRATION_TESTING)
-  file(COPY
-       "${CMAKE_CURRENT_SOURCE_DIR}/tests/testdata"
-       DESTINATION
-       "${CMAKE_CURRENT_BINARY_DIR}/tests/Integration/")
+# Unified test suite. Replaces the old INTEGRATION_TESTING / SCORE_TESTBED flags.
+if(SCORE_TESTING)
+  include(ScoreTests)
+  add_subdirectory(tests)
+endif()
 
-  include_directories("${CMAKE_CURRENT_SOURCE_DIR}/tests")
-  file(GLOB_RECURSE TESTS_HDRS "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.hpp")
-  add_custom_target(MocksHeaders SOURCES ${TESTS_HDRS})
-  setup_score_tests(tests/Integration)
+# Backwards-compatible aliases for the legacy flags (kept temporarily).
+if(INTEGRATION_TESTING AND NOT SCORE_TESTING)
+  message(WARNING "INTEGRATION_TESTING is deprecated; configure with -DSCORE_TESTING=ON instead.")
 endif()
 
 include(CTest)
