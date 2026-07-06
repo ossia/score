@@ -53,6 +53,7 @@ Http_server::mime_type(beast::string_view path)
     if(iequals(ext, ".json")) return "application/json";
     if(iequals(ext, ".xml"))  return "application/xml";
     if(iequals(ext, ".swf"))  return "application/x-shockwave-flash";
+    if(iequals(ext, ".wasm")) return "application/wasm";
     if(iequals(ext, ".flv"))  return "video/x-flv";
     if(iequals(ext, ".png"))  return "image/png";
     if(iequals(ext, ".jpe"))  return "image/jpeg";
@@ -129,7 +130,7 @@ Http_server::handle_request(
         res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
         res.set(http::field::content_type, "text/html");
         res.keep_alive(req.keep_alive());
-        res.body() = "The resource '" + std::string(target) + "' was not found.y<br> Go to the following address : http://ip_address:port/remote.html.";
+        res.body() = "The resource '" + std::string(target) + "' was not found.<br> Go to the following address : http://ip_address:port/ossia_remote.html.";
         res.prepare_payload();
         return res;
     };
@@ -180,20 +181,6 @@ Http_server::handle_request(
     // Cache the size since we need it after the move
     auto const size = body.size();
 
-    if ( req.target().find("ossia_remote.html") != std::string::npos )
-    {
-        // Load file
-        QFile f(path.c_str());
-        f.open(QIODevice::ReadOnly);
-        QByteArray remote = f.readAll();
-
-        // Write ip address in the std::string
-        std::string string_remote = remote.toStdString();
-        std::string::size_type position = string_remote.find("%SCORE_IP_ADDRESS%");
-        std::string addr = "\"" + m_ipAddress + "\"";
-        string_remote = string_remote.replace(position, 18, addr);
-    }
-
     // Respond to HEAD request
     if(req.method() == http::verb::head)
     {
@@ -210,6 +197,12 @@ Http_server::handle_request(
         std::piecewise_construct,
         std::make_tuple(std::move(body)),
         std::make_tuple(http::status::ok, req.version())};
+
+    // Allow Cross-Origin Resource Sharing (CORS).
+    res.set(http::field::access_control_allow_headers, "*");
+    res.set(http::field::access_control_allow_origin, "*");
+    res.set(http::field::access_control_allow_methods, "GET");
+
     res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
     res.set(http::field::content_type, mime_type(path));
     res.content_length(size);
@@ -343,7 +336,7 @@ Http_server::open_server()
     }
     catch (const std::exception& e)
     {
-        std::cerr << "Error: " << e.what() << std::endl;
+        std::cerr << "Error: " << e.what() << '\n';
         return EXIT_FAILURE;
     }
 }
