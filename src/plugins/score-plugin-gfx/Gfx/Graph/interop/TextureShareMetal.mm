@@ -188,8 +188,8 @@ public:
       if (!producerHandles)
         return false;
 
-      m_producerDevice = (__bridge id<MTLDevice>)(void*)producerHandles->dev;
-      m_producerQueue = (__bridge id<MTLCommandQueue>)(void*)producerHandles->cmdQueue;
+      m_producerDevice = (__bridge id<MTLDevice>)(__bridge void*)producerHandles->dev;
+      m_producerQueue = (__bridge id<MTLCommandQueue>)(__bridge void*)producerHandles->cmdQueue;
 
       if (!m_producerDevice)
         return false;
@@ -286,8 +286,8 @@ public:
       if (!consumerHandles)
         return false;
 
-      m_consumerDevice = (__bridge id<MTLDevice>)(void*)consumerHandles->dev;
-      m_consumerQueue = (__bridge id<MTLCommandQueue>)(void*)consumerHandles->cmdQueue;
+      m_consumerDevice = (__bridge id<MTLDevice>)(__bridge void*)consumerHandles->dev;
+      m_consumerQueue = (__bridge id<MTLCommandQueue>)(__bridge void*)consumerHandles->cmdQueue;
 
       if (!m_consumerDevice)
         return false;
@@ -420,7 +420,7 @@ public:
           cb->nativeHandles());
       if (cbHandles && cbHandles->commandBuffer)
       {
-        id<MTLCommandBuffer> mtlCb = (__bridge id<MTLCommandBuffer>)(void*)cbHandles->commandBuffer;
+        id<MTLCommandBuffer> mtlCb = (__bridge id<MTLCommandBuffer>)(__bridge void*)cbHandles->commandBuffer;
 
         // Increment event value and signal
         m_eventValues[m_currentWriteSlot]++;
@@ -451,7 +451,7 @@ public:
           cb->nativeHandles());
       if (cbHandles && cbHandles->commandBuffer)
       {
-        id<MTLCommandBuffer> mtlCb = (__bridge id<MTLCommandBuffer>)(void*)cbHandles->commandBuffer;
+        id<MTLCommandBuffer> mtlCb = (__bridge id<MTLCommandBuffer>)(__bridge void*)cbHandles->commandBuffer;
 
         // GPU wait for producer's signal
         [mtlCb encodeWaitForEvent:m_sharedEvents[readSlot]

@@ -782,8 +782,10 @@ target_link_libraries(VideoTester PRIVATE score_plugin_gfx)
 endif()
 
 # Offscreen unit test for the GPU video encoders (no AJA/libav/gst needed).
+# Static-plugin builds can't link it: score_init_static_plugins() references
+# every configured addon and the tester only links score_plugin_gfx/media.
 option(SCORE_ENCODER_TESTER "Build the GPU encoder offscreen self-test" ON)
-if(SCORE_ENCODER_TESTER)
+if(SCORE_ENCODER_TESTER AND NOT SCORE_STATIC_PLUGINS)
 add_executable(EncoderTester tests/EncoderTester.cpp)
 target_link_libraries(EncoderTester PRIVATE
   score_plugin_gfx score_plugin_media ${QT_PREFIX}::Gui)
