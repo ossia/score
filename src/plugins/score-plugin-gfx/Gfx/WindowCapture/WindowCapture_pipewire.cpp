@@ -10,6 +10,7 @@
 #include <cstring>
 #include <mutex>
 #include <string>
+#include <fcntl.h>
 #include <unistd.h>
 
 // ─── PipeWire types and constants (no PipeWire headers needed) ───────────────
@@ -1294,10 +1295,15 @@ public:
     {
       std::lock_guard lock(m_frameMutex);
       m_frameData.clear();
+      m_grabData.clear();
+      m_frameNew = false;
       m_frameWidth = 0;
       m_frameHeight = 0;
       m_frameStride = 0;
       m_frameFormat = CapturedFrame::None;
+      if(m_dmabufFdDup >= 0)
+        ::close(m_dmabufFdDup);
+      m_dmabufFdDup = -1;
       m_dmabufFd = -1;
     }
   }
@@ -1327,8 +1333,16 @@ public:
     }
     else
     {
+      // Double buffer: hand the consumer its own vector so the pipewire
+      // thread's next resize/memcpy can't reallocate storage the render
+      // thread is still reading from.
+      if(m_frameNew)
+      {
+        std::swap(m_frameData, m_grabData);
+        m_frameNew = false;
+      }
       frame.type = m_frameFormat;
-      frame.data = m_frameData.data();
+      frame.data = m_grabData.data();
       frame.stride = m_frameStride;
     }
 
@@ -1476,6 +1490,7 @@ private:
           self->m_frameHeight = height;
           self->m_frameStride = stride;
           self->m_frameFormat = frameType;
+          self->m_frameNew = true;
           self->m_dmabufFd = -1;
         }
       }
@@ -1490,7 +1505,15 @@ private:
         self->m_frameHeight = height;
         self->m_frameStride = 0;
         self->m_frameFormat = CapturedFrame::DMA_BUF_FD;
-        self->m_dmabufFd = d.fd;
+        // The buffer is requeued to pipewire at the end of this callback,
+        // after which the server may close its fds (renegotiation,
+        // teardown). Publish a dup we own so grab()'s import always sees
+        // a valid fd. (Producer-side rewrites can still tear; avoiding
+        // that needs holding the pw_buffer until the consumer is done.)
+        if(self->m_dmabufFdDup >= 0)
+          ::close(self->m_dmabufFdDup);
+        self->m_dmabufFdDup = fcntl(d.fd, F_DUPFD_CLOEXEC, 0);
+        self->m_dmabufFd = self->m_dmabufFdDup;
         self->m_dmabufStride
             = d.chunk ? d.chunk->stride : (width * 4);
         self->m_dmabufOffset
@@ -1503,10 +1526,10 @@ private:
             self->m_drmFormat = 0x34325258; // DRM_FORMAT_XRGB8888
             break;
           case SPA_VIDEO_FORMAT_BGRA:
-            self->m_drmFormat = 0x34324152; // DRM_FORMAT_ARGB8888
+            self->m_drmFormat = 0x34325241; // DRM_FORMAT_ARGB8888 'AR24'
             break;
           case SPA_VIDEO_FORMAT_RGBx:
-            self->m_drmFormat = 0x34325842; // DRM_FORMAT_XBGR8888
+            self->m_drmFormat = 0x34324258; // DRM_FORMAT_XBGR8888 'XB24'
             break;
           case SPA_VIDEO_FORMAT_RGBA:
             self->m_drmFormat = 0x34324241; // DRM_FORMAT_ABGR8888
@@ -1541,6 +1564,12 @@ private:
   // Latest frame (written from PipeWire thread, read from grab())
   std::mutex m_frameMutex;
   std::vector<uint8_t> m_frameData;
+  // Consumer-side half of the CPU double buffer; only touched by grab().
+  std::vector<uint8_t> m_grabData;
+  bool m_frameNew{false};
+  // Our own dup of the latest DMA-BUF fd; the original belongs to the
+  // pw_buffer which is requeued (and may be torn down) before import.
+  int m_dmabufFdDup{-1};
   int m_frameWidth{0};
   int m_frameHeight{0};
   int m_frameStride{0};

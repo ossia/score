@@ -232,17 +232,15 @@ void GenericNodeRenderer::addOutputPass(
     return;
 
   // Reuse an existing pipeline when this renderer already has one built
-  // against the same QRhiRenderPassDescriptor. Same rp-desc pointer ⇒
-  // same owning RT ⇒ every pipeline compatibility rule on Vulkan,
-  // D3D12 and Metal is satisfied. A different rt with an isCompatible
-  // rp-desc at a *different* pointer is deliberately not matched here:
-  // it would require tracking which pipelines still have a live rp-desc,
-  // and the common sharing case (two edges to the same sink port) already
-  // falls out of the pointer check.
+  // against a compatible renderpass layout. serializedFormat() is QRhi's
+  // documented in-memory compatibility key (identical ⇔ isCompatible),
+  // which both makes the reuse valid on Vulkan/D3D12/Metal and avoids the
+  // pointer-ABA hazard of keying on the rp-desc address.
+  const QVector<quint32> rpFormat = rt.renderPass->serializedFormat();
   QRhiGraphicsPipeline* pipeline = nullptr;
   for(auto& [desc, pipe] : m_pipelineCache)
   {
-    if(desc == rt.renderPass && pipe)
+    if(desc == rpFormat && pipe)
     {
       pipeline = pipe;
       break;
@@ -259,7 +257,7 @@ void GenericNodeRenderer::addOutputPass(
       return;
     }
     pipeline = pip.pipeline;
-    m_pipelineCache.emplace_back(rt.renderPass, pipeline);
+    m_pipelineCache.emplace_back(rpFormat, pipeline);
   }
 
   // Pass::p.pipeline is non-owning here — the cache owns it. removeOutputPass

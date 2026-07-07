@@ -950,6 +950,14 @@ void Graph::reconcileAllRenderLists()
     // 5. Create renderers for newly-reachable nodes (AFTER render targets
     //    exist so that initState → initInputSamplers finds the correct textures).
     QRhiResourceUpdateBatch* batch = rl->state.rhi->nextResourceUpdateBatch();
+    if(!batch)
+    {
+      // Pool exhausted (64 live batches — indicates a leak elsewhere);
+      // renderer creation is retried on the next reconcile rather than
+      // dereferencing null here.
+      qWarning("reconcileAllRenderLists: resource update batch pool exhausted");
+      continue;
+    }
     bool batchUsed = false;
 
     for(auto* node : rl->nodes)

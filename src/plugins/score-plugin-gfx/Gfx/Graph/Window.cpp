@@ -248,12 +248,16 @@ void Window::exposeEvent(QExposeEvent* ev)
     resizeSwapChain();
   }
 
-  // The (m_hasSwapChain, m_swapChain) pair is kept consistent at the
-  // teardown sites in ScreenNode (~ScreenNode, destroyOutput) and
-  // MultiWindowNode (releaseWindowSwapChain, destroyOutput): the flag is
-  // cleared and the alias is nulled BEFORE the QRhiSwapChain is released,
-  // so we can never observe (m_hasSwapChain == true && m_swapChain ==
-  // nullptr) here. See diagnostic 047.
+  // The teardown sites (ScreenNode / MultiWindowNode destroyOutput) clear
+  // the flag before nulling the alias, but they run on the render thread
+  // while this runs on the GUI thread with no synchronization — the two
+  // plain writes are not ordered for us, so the inconsistent pair IS
+  // observable mid-teardown. Self-heal instead of dereferencing null.
+  if(m_hasSwapChain && !m_swapChain)
+  {
+    qDebug("exposeEvent: m_hasSwapChain && !m_swapChain");
+    m_hasSwapChain = false;
+  }
   const QSize surfaceSize = m_hasSwapChain ? m_swapChain->surfacePixelSize() : QSize();
 
   if((!isExposed() || (m_hasSwapChain && surfaceSize.isEmpty())) && m_running)

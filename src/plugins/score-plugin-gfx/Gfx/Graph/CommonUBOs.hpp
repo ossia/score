@@ -47,8 +47,11 @@ struct ModelCameraUBO
   };
   float view[16]{};
   float projection[16]{};
-  float modelNormal[9]{};
-  float padding[3]; // Needed as a mat3 needs a bit more space...
+  // std140 mat3: three column vectors, each padded to vec4 alignment.
+  // Column c lives at modelNormal[c * 4 + row]; the 4th float of each
+  // column is padding. Writing 9 contiguous floats here garbles columns
+  // 1 and 2 as read by the shader.
+  float modelNormal[12]{};
   float fov = 90.f;
   // NB: must NOT be named `near`/`far` — those are legacy macros defined by
   // <windows.h>; naming members after them forces an #undef that then breaks
@@ -60,7 +63,7 @@ struct ModelCameraUBO
 
 static_assert(
     sizeof(ModelCameraUBO)
-    == sizeof(float) * (16 + 16 + 16 + 16 + 16 + 9 + 3 + 1 + 1 + 1));
+    == sizeof(float) * (16 + 16 + 16 + 16 + 16 + 12 + 1 + 1 + 1));
 
 /**
  * @brief UBO shared across all entities shown on the same output.

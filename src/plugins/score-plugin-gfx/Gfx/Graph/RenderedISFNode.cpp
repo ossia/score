@@ -497,6 +497,18 @@ void RenderedISFNode::initPasses(
           sizeof(float[16]) * mvCount);
       m_multiViewUBO->setName("RenderedISFNode::multiview_ubo");
       SCORE_ASSERT(m_multiViewUBO->create());
+
+      // No producer fills the per-view matrices yet; seed identities so
+      // MULTIVIEW shaders get a pass-through viewProjection[] instead of
+      // all-zero matrices collapsing every vertex to the origin.
+      {
+        std::vector<float> ident(16 * mvCount, 0.f);
+        for(int v = 0; v < mvCount; v++)
+          for(int i = 0; i < 4; i++)
+            ident[v * 16 + i * 5] = 1.f;
+        res.updateDynamicBuffer(
+            m_multiViewUBO, 0, sizeof(float[16]) * mvCount, ident.data());
+      }
     }
   }
 

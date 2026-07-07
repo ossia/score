@@ -412,8 +412,7 @@ static void removeIncludesInComments(QByteArray& data)
       if(*pos == '"')
       {
         int num_backslashes_before = 0;
-        auto p = pos - 1;
-        while(p >= data.begin() && *p == '\\')
+        for(auto p = pos - 1; p >= data.begin() && *p == '\\'; --p)
           num_backslashes_before++;
 
         if(num_backslashes_before % 2 == 0)

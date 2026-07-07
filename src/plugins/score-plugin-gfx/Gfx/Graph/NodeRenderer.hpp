@@ -328,16 +328,13 @@ public:
   // Pipeline
   PassMap m_p;
 
-  // Per-renderer pipeline cache, keyed by QRhiRenderPassDescriptor pointer.
-  // Edges targeting the same QRhiRenderTarget (and therefore the same
-  // rp-desc pointer) share one QRhiGraphicsPipeline — the pipeline object
-  // is bound to an rp-desc layout, not to the RT object itself, and QRhi
-  // guarantees the same pipeline can be used with any RT whose rp-desc
-  // isCompatible with the pipeline's. Looking up by pointer (rather than
-  // by serialized format) is the conservative choice: a pointer match
-  // means "same rp-desc, same owning RT alive" and cannot collide with a
-  // stale entry because a freshly allocated rp-desc always sits at a
-  // different address than one that was just destroyed via deleteLater.
+  // Per-renderer pipeline cache, keyed by the rp-desc's serializedFormat().
+  // QRhi guarantees a pipeline can be used with any render target whose
+  // rp-desc isCompatible with the pipeline's, and serializedFormat() is
+  // documented as the in-memory comparison key for exactly that relation —
+  // identical blobs ⇔ isCompatible. Keying by pointer instead would be
+  // ABA-unsafe: a freshly allocated rp-desc can reuse the address of one
+  // just destroyed, silently serving a pipeline built for a dead layout.
   //
   // Ownership: Pass::p.pipeline is NON-OWNING — the actual QRhiGraphicsPipeline
   // lives in this cache. Pass::p.srb is still per-edge and owned by the Pass.
@@ -345,7 +342,7 @@ public:
   // nulling Pass::p.pipeline before calling Pipeline::release() so it
   // does not try to deleteLater() a pointer we still own here.
   ossia::small_vector<
-      std::pair<QRhiRenderPassDescriptor*, QRhiGraphicsPipeline*>, 2>
+      std::pair<QVector<quint32>, QRhiGraphicsPipeline*>, 2>
       m_pipelineCache;
 
   MeshBuffers m_meshbufs;
