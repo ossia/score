@@ -3881,9 +3881,9 @@ void RenderedCSFNode::initState(RenderList& renderer, QRhiResourceUpdateBatch& r
 
         const int64_t indirectSize = (int64_t)count * 5 * sizeof(uint32_t);
 
-        auto usageFlags = QRhiBuffer::StorageBuffer;
+        QRhiBuffer::UsageFlags usageFlags = QRhiBuffer::StorageBuffer;
 #if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
-        usageFlags = (QRhiBuffer::UsageFlags)((uint64_t)usageFlags | (uint64_t)QRhiBuffer::IndirectBuffer);
+        usageFlags |= QRhiBuffer::IndirectBuffer;
 #endif
 
         auto* buf = rhi.newBuffer(QRhiBuffer::Static, usageFlags, indirectSize);
