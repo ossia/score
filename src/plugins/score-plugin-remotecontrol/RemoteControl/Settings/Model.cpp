@@ -12,9 +12,12 @@ namespace Settings
 namespace Parameters
 {
 SETTINGS_PARAMETER_IMPL(Enabled){QStringLiteral("RemoteControl/Enabled"), false};
+SETTINGS_PARAMETER_IMPL(ServerEnabled){QStringLiteral("RemoteControl/ServerEnabled"), false};
+SETTINGS_PARAMETER_IMPL(ServerAddress){QStringLiteral("RemoteControl/ServerAddress"), "0.0.0.0"};
+SETTINGS_PARAMETER_IMPL(ServerPort){QStringLiteral("RemoteControl/ServerPort"), 8080};
 static auto list()
 {
-  return std::tie(Enabled);
+  return std::tie(Enabled, ServerEnabled, ServerAddress, ServerPort);
 }
 }
 
@@ -27,5 +30,8 @@ Model::Model(
 }
 
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, Enabled)
+SCORE_SETTINGS_PARAMETER_CPP(bool, Model, ServerEnabled)
+SCORE_SETTINGS_PARAMETER_CPP(QString, Model, ServerAddress)
+SCORE_SETTINGS_PARAMETER_CPP(unsigned short, Model, ServerPort)
 }
 }

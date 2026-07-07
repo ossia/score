@@ -27,11 +27,20 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
       }
     });
 
+    con(v, &View::serverEnabledChanged, this, [&](auto val) {
+      if(val != m.getServerEnabled())
+      {
+        m_disp.submit<SetModelServerEnabled>(this->model(this), val);
+      }
+    });
+
     // model -> view
     con(m, &Model::EnabledChanged, &v, &View::setEnabled);
+    con(m, &Model::ServerEnabledChanged, &v, &View::setServerEnabled);
 
     // initial value
     v.setEnabled(m.getEnabled());
+    v.setServerEnabled(m.getServerEnabled());
   }
 }
 

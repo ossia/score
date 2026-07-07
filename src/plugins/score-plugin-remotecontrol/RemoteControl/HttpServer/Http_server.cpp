@@ -7,8 +7,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
+#include "Http_server.hpp"
 #include <Library/LibrarySettings.hpp>
-#include <RemoteControl/Http_server.hpp>
 
 #include <cstdlib>
 #include <iostream>
@@ -21,15 +21,11 @@ namespace RemoteControl
 {
 
 Http_server::Http_server()
-{
-  // m_docRoot = "/tmp";
-}
+{ }
 
 Http_server::~Http_server()
 {
-     shutdown(m_listenSocket, SHUT_RDWR);
-     ioc.stop();
-     m_serverThread.join();
+  stop_thread();
 }
 
 // Return a reasonable mime type based on the extension of a file.
@@ -264,28 +260,28 @@ Http_server::do_session(
 
 //------------------------------------------------------------------------------
 
-// Set the IP address in the remote.html file
-void
-Http_server::set_ip_address(std::string address)
-{
-    qDebug() << "buildWasmPath :" << QString::fromStdString(m_buildWasmPath);
-    std::rename((m_buildWasmPath + "remote.html").c_str(), (m_buildWasmPath + "remote.html~").c_str());
+// // Set the IP address in the remote.html file
+// void
+// Http_server::set_ip_address(std::string address)
+// {
+//     qDebug() << "buildWasmPath :" << QString::fromStdString(m_buildWasmPath);
+//     std::rename((m_buildWasmPath + "remote.html").c_str(), (m_buildWasmPath + "remote.html~").c_str());
 
-    std::ifstream old_file(m_buildWasmPath + "remote.html~");
-    std::ofstream new_file(m_buildWasmPath + "remote.html");
+//     std::ifstream old_file(m_buildWasmPath + "remote.html~");
+//     std::ofstream new_file(m_buildWasmPath + "remote.html");
 
-    std::string addr = "\"" + m_ipAddress + "\"";
+//     std::string addr = "\"" + m_ipAddress + "\"";
 
-    for( std::string contents_of_file; std::getline(old_file, contents_of_file); ) {
-      std::string::size_type position = contents_of_file.find("%SCORE_IP_ADDRESS%");
-      if( position != std::string::npos )
-      {
-        //contents_of_file = contents_of_file.replace(position, 18, addr);
-        contents_of_file = contents_of_file.replace(position, 18, "%SCORE_IP_ADDRESS%");
-      }
-      new_file << contents_of_file << '\n';
-    }
-}
+//     for( std::string contents_of_file; std::getline(old_file, contents_of_file); ) {
+//       std::string::size_type position = contents_of_file.find("%SCORE_IP_ADDRESS%");
+//       if( position != std::string::npos )
+//       {
+//         //contents_of_file = contents_of_file.replace(position, 18, addr);
+//         contents_of_file = contents_of_file.replace(position, 18, "%SCORE_IP_ADDRESS%");
+//       }
+//       new_file << contents_of_file << '\n';
+//     }
+// }
 
 //------------------------------------------------------------------------------
 
@@ -294,6 +290,17 @@ void
 Http_server::start_thread()
 {
     m_serverThread = std::thread{[this] { open_server(); }};
+}
+
+//------------------------------------------------------------------------------
+
+void Http_server::stop_thread()
+{
+  if (!m_serverThread.joinable()) return;
+
+  shutdown(m_listenSocket, SHUT_RDWR);
+  ioc.stop();
+  m_serverThread.join();
 }
 
 //------------------------------------------------------------------------------
