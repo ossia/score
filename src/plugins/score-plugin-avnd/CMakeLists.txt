@@ -1161,7 +1161,7 @@ function(addAvndTest TESTNAME TESTSRCS)
         "${AVND_FOLDER}/include"
     )
     target_link_libraries(Avnd_${TESTNAME} PRIVATE ossia Catch2::Catch2WithMain score_plugin_avnd)
-    add_test(Avnd_${TESTNAME}_target Avnd_${TESTNAME})
+    add_test(NAME Avnd_${TESTNAME}_target COMMAND Avnd_${TESTNAME})
 endFunction()
 
 # Commands

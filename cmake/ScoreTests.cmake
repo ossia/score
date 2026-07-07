@@ -54,11 +54,17 @@ function(score_add_test NAME)
 
   target_link_libraries(${NAME} PRIVATE
     score_lib_base
-    score_test_fixtures
     Catch2::Catch2WithMain
     ${ARG_PLUGINS}
     ${ARG_LIBS}
     ${QT_PREFIX}::Core)
+
+  # The app/document fixtures library is defined late (tests/fixtures, after
+  # src/). Per-plugin unit tests built during src/ are app-free and don't need
+  # it, so only link it when it already exists.
+  if(TARGET score_test_fixtures)
+    target_link_libraries(${NAME} PRIVATE score_test_fixtures)
+  endif()
 
   if(ARG_GUI OR ARG_APP)
     target_link_libraries(${NAME} PRIVATE

@@ -1,24 +1,16 @@
-project(StateTests)
-enable_testing()
-find_package(${QT_VERSION} REQUIRED COMPONENTS Core)
-find_package(Catch2 QUIET)
-function(addStateTest TESTNAME TESTSRCS)
-    add_executable(State_${TESTNAME} ${TESTSRCS})
-    setup_score_common_test_features(State_${TESTNAME})
-    target_link_libraries(State_${TESTNAME} PRIVATE ${QT_PREFIX}::Core score_lib_base score_lib_state  Catch2::Catch2WithMain )
-    add_test(State_${TESTNAME}_target State_${TESTNAME})
-endFunction()
+# Unit tests for score-lib-state. App-free (Catch2), driven by score_add_test.
+score_add_test(test_state_expression
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/ExpressionParsingTests.cpp"
+  PLUGINS score_lib_state)
 
+score_add_test(test_state_serialization
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/SerializationTest.cpp"
+  PLUGINS score_lib_state)
 
-# Commands
-addStateTest(ExpressionTest
-             "${CMAKE_CURRENT_SOURCE_DIR}/ExpressionParsingTests.cpp")
+score_add_test(test_state_equality
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/EqualityTest.cpp"
+  PLUGINS score_lib_state)
 
-addStateTest(SerializationTest
-             "${CMAKE_CURRENT_SOURCE_DIR}/SerializationTest.cpp")
-addStateTest(EqualityTest
-             "${CMAKE_CURRENT_SOURCE_DIR}/EqualityTest.cpp")
-addStateTest(UnitTest
-             "${CMAKE_CURRENT_SOURCE_DIR}/UnitTests.cpp")
-
-set(CMAKE_AUTOMOC OFF)
+score_add_test(test_state_units
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/UnitTests.cpp"
+  PLUGINS score_lib_state)

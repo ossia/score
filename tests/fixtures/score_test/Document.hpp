@@ -8,6 +8,7 @@
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/Debug.hpp>
 
 namespace score::test
@@ -26,6 +27,24 @@ inline score::Document* new_document(const score::GUIApplicationContext& ctx)
   QApplication::processEvents();
   QApplication::processEvents();
   return doc;
+}
+
+/// Serialize a document to the binary format and load it back as a new
+/// document. Returns the reloaded document (owned by the DocumentManager).
+inline score::Document*
+reload_via_bytes(const score::GUIApplicationContext& ctx, score::Document& doc,
+                 const QString& name = QStringLiteral("roundtrip"))
+{
+  auto& delegates = ctx.interfaces<score::DocumentDelegateList>();
+  SCORE_ASSERT(!delegates.empty());
+
+  const QByteArray bytes = doc.saveAsByteArray();
+  auto reloaded = ctx.docManager.loadDocument(
+      ctx, name, bytes, DataStream::type(), *delegates.begin());
+
+  QApplication::processEvents();
+  QApplication::processEvents();
+  return reloaded;
 }
 
 }
