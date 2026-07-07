@@ -255,6 +255,11 @@ struct Pass
   Pass() = default;
   Pass(TextureRenderTarget rt, Pipeline pi, QRhiBuffer* ubo)
       : renderTarget{std::move(rt)}, p{pi}, processUBO{ubo} {}
+  // Compat for addons written against the old engine where PassMap stored
+  // a bare Pipeline per edge; such passes fetch their render target through
+  // renderer.renderTargetForOutput(edge) at draw time.
+  Pass(Pipeline pi)
+      : p{pi} {}
 
   TextureRenderTarget renderTarget;
   Pipeline p;
