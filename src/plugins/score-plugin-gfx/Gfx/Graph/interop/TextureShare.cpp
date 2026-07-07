@@ -1935,7 +1935,7 @@ createTextureShareBackend(QRhi* producer, QRhi* consumer)
       return std::make_unique<TextureShareD3D12>();
 #endif
 
-#if defined(QT_HAS_VULKAN)
+#if QT_HAS_VULKAN
     case QRhi::Vulkan:
       return std::make_unique<TextureShareVulkan>();
 #endif

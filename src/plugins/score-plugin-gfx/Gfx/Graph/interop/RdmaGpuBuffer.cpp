@@ -17,7 +17,7 @@ namespace
 {
 constexpr std::size_t kRdmaAlign = 65536; // 64 KiB (RDMA + host fallback)
 
-std::size_t roundUp(std::size_t n, std::size_t a) noexcept
+std::size_t roundUpRdma(std::size_t n, std::size_t a) noexcept
 {
   return (n + a - 1) / a * a;
 }
@@ -168,7 +168,7 @@ bool RdmaGpuBuffer::create(const RdmaGpuBufferConfig& cfg)
 
     case RdmaGpuApi::HostFallback:
     {
-      const std::size_t sz = roundUp(cfg.frameBytes, kRdmaAlign);
+      const std::size_t sz = roundUpRdma(cfg.frameBytes, kRdmaAlign);
       for(std::uint32_t i = 0; i < cfg.slotCount && ok; ++i)
       {
         void* p = ::operator new(
