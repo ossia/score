@@ -129,14 +129,10 @@ public:
       cam->aspect_ratio = 1.f;
       cam->znear = near_f;
       cam->zfar = far_f;
-      // Each face owns one RawCameraData inside our single 6-wide slot.
-      // Stamp a derived ref with the face's offset — same arena /
-      // internal_index / generation, offset bumped by i entries.
-      if(m_array_ref.valid())
+      // Each face owns its own RawCamera slot; stamp its ref directly.
+      if(m_array_ref[std::size_t(i)].valid())
       {
-        cam->raw_slot = m_array_ref;
-        cam->raw_slot.offset = m_array_ref.offset
-            + uint32_t(i * sizeof(score::gfx::RawCameraData));
+        cam->raw_slot = m_array_ref[std::size_t(i)];
         cam->raw_slot.size = uint32_t(sizeof(score::gfx::RawCameraData));
       }
 
@@ -165,11 +161,9 @@ public:
       xform.scale[2] = 1.f;
       // Per-face RawTransform slot ref — same shape as the camera
       // array ref, offset bumped to the i-th RawLocalTransform slot.
-      if(m_xform_array_ref.valid())
+      if(m_xform_array_ref[std::size_t(i)].valid())
       {
-        xform.raw_slot = m_xform_array_ref;
-        xform.raw_slot.offset = m_xform_array_ref.offset
-            + uint32_t(i * sizeof(score::gfx::RawLocalTransform));
+        xform.raw_slot = m_xform_array_ref[std::size_t(i)];
         xform.raw_slot.size
             = uint32_t(sizeof(score::gfx::RawLocalTransform));
       }
@@ -215,14 +209,12 @@ public:
       score::gfx::Edge* e);
   void release(score::gfx::RenderList& r);
 
-  score::gfx::GpuResourceRegistry::Slot raw_camera_slot;
-  score::gfx::GpuResourceRegistry::Slot raw_transform_slot;
-
-  // Ossia-facing base refs for our 6-wide RawCamera + 6-wide
-  // RawTransform slots. Each emitted camera_component / scene_transform
-  // gets these refs with its per-face offset bumped.
-  ossia::gpu_slot_ref m_array_ref{};
-  ossia::gpu_slot_ref m_xform_array_ref{};
+  // One slot + ref per face: the fixed-stride arenas cannot hand out a
+  // contiguous 6-wide block, so each face owns an independent slot.
+  score::gfx::GpuResourceRegistry::Slot raw_camera_slot[6];
+  score::gfx::GpuResourceRegistry::Slot raw_transform_slot[6];
+  ossia::gpu_slot_ref m_array_ref[6]{};
+  ossia::gpu_slot_ref m_xform_array_ref[6]{};
 };
 
 }

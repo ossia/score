@@ -137,6 +137,15 @@ inline std::shared_ptr<const ossia::scene_state> wrapSceneWithTransform(
   wrapped->skeletons        = raw->skeletons;
   wrapped->collections      = raw->collections;
   wrapped->environment      = raw->environment;
+  // Same diagnostic-026 bug class for the newer fields: a Transform3D
+  // downstream of ShadowCascadeSetup (or of buffer/texture injectors)
+  // must not zero these out.
+  wrapped->shadow_cascades      = raw->shadow_cascades;
+  wrapped->inject_buffers       = raw->inject_buffers;
+  wrapped->inject_textures      = raw->inject_textures;
+  wrapped->time_seconds         = raw->time_seconds;
+  wrapped->active_variant_index = raw->active_variant_index;
+  wrapped->variant_names        = raw->variant_names;
   wrapped->active_camera_id = raw->active_camera_id;
   wrapped->version          = ++version_counter;
   wrapped->dirty_index      = 1;

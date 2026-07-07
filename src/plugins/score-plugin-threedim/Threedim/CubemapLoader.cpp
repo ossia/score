@@ -184,6 +184,11 @@ QImage CubemapLoader::extractFace(int faceIndex) const
       return {};
   }
 
+  // A zero face size (image narrower than the grid) would make copy()
+  // receive a null QRect, which copies the whole image instead of a face.
+  if(faceW <= 0 || faceH <= 0)
+    return {};
+
   return m_loadedImage.copy(fx, fy, faceW, faceH);
 }
 
@@ -442,25 +447,36 @@ void CubemapLoader::renderEquirectangular(
 {
   auto& rhi = *renderer.state.rhi;
 
-  // Upload equirectangular source texture
-  if(!m_equirectTex)
+  // The source size is file-controlled: clamp to the device limit, or
+  // newTexture below fails create() and the SRB would bind a dead
+  // texture (black output / validation aborts).
   {
-    m_equirectTex = rhi.newTexture(
-        QRhiTexture::RGBA8,
-        QSize{m_loadedImage.width(), m_loadedImage.height()}, 1,
-        QRhiTexture::Flag{});
-    m_equirectTex->create();
+    const int maxSz = rhi.resourceLimit(QRhi::TextureSizeMax);
+    if(m_loadedImage.width() > maxSz || m_loadedImage.height() > maxSz)
+      m_loadedImage = m_loadedImage.scaled(
+          std::min(m_loadedImage.width(), maxSz),
+          std::min(m_loadedImage.height(), maxSz), Qt::KeepAspectRatio,
+          Qt::SmoothTransformation);
   }
-  else if(
-      m_equirectTex->pixelSize()
-      != QSize{m_loadedImage.width(), m_loadedImage.height()})
+
+  // Upload equirectangular source texture
+  const QSize srcSize{m_loadedImage.width(), m_loadedImage.height()};
+  if(m_equirectTex && m_equirectTex->pixelSize() != srcSize)
   {
     m_equirectTex->deleteLater();
-    m_equirectTex = rhi.newTexture(
-        QRhiTexture::RGBA8,
-        QSize{m_loadedImage.width(), m_loadedImage.height()}, 1,
-        QRhiTexture::Flag{});
-    m_equirectTex->create();
+    m_equirectTex = nullptr;
+  }
+  if(!m_equirectTex)
+  {
+    m_equirectTex
+        = rhi.newTexture(QRhiTexture::RGBA8, srcSize, 1, QRhiTexture::Flag{});
+    if(!m_equirectTex->create())
+    {
+      qWarning() << "CubemapLoader: equirect texture creation failed" << srcSize;
+      m_equirectTex->deleteLater();
+      m_equirectTex = nullptr;
+      return;
+    }
   }
 
   res->uploadTexture(m_equirectTex, m_loadedImage);

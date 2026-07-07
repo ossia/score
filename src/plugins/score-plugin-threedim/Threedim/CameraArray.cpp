@@ -36,36 +36,43 @@ constexpr std::array<Face, 6> kFaces{{
 void CameraArray::init(
     score::gfx::RenderList& r, QRhiResourceUpdateBatch& res)
 {
-  if(!raw_camera_slot.valid())
+  // One slot per face: the RawCamera / RawTransform arenas are
+  // fixed-stride (one 64-byte entry per slot), so a contiguous 6-wide
+  // block cannot be allocated — allocate() rejects any size above the
+  // stride and the whole array would silently produce no GPU data.
+  for(int i = 0; i < 6; ++i)
   {
-    raw_camera_slot = r.registry().allocate(
-        score::gfx::GpuResourceRegistry::Arena::RawCamera,
-        6 * sizeof(score::gfx::RawCameraData));
-    m_array_ref = r.registry().toOssiaRef(raw_camera_slot);
-  }
-  if(raw_camera_slot.valid())
-  {
-    score::gfx::RawCameraData seed[6]{};
-    r.registry().updateSlot(res, raw_camera_slot, &seed, sizeof(seed));
-  }
-  if(!raw_transform_slot.valid())
-  {
-    raw_transform_slot = r.registry().allocate(
-        score::gfx::GpuResourceRegistry::Arena::RawTransform,
-        6 * sizeof(score::gfx::RawLocalTransform));
-    m_xform_array_ref = r.registry().toOssiaRef(raw_transform_slot);
-  }
-  if(raw_transform_slot.valid())
-  {
-    score::gfx::RawLocalTransform seed[6]{};
-    r.registry().updateSlot(res, raw_transform_slot, &seed, sizeof(seed));
+    if(!raw_camera_slot[i].valid())
+    {
+      raw_camera_slot[i] = r.registry().allocate(
+          score::gfx::GpuResourceRegistry::Arena::RawCamera,
+          sizeof(score::gfx::RawCameraData));
+      m_array_ref[i] = r.registry().toOssiaRef(raw_camera_slot[i]);
+    }
+    if(raw_camera_slot[i].valid())
+    {
+      score::gfx::RawCameraData seed{};
+      r.registry().updateSlot(res, raw_camera_slot[i], &seed, sizeof(seed));
+    }
+    if(!raw_transform_slot[i].valid())
+    {
+      raw_transform_slot[i] = r.registry().allocate(
+          score::gfx::GpuResourceRegistry::Arena::RawTransform,
+          sizeof(score::gfx::RawLocalTransform));
+      m_xform_array_ref[i] = r.registry().toOssiaRef(raw_transform_slot[i]);
+    }
+    if(raw_transform_slot[i].valid())
+    {
+      score::gfx::RawLocalTransform seed{};
+      r.registry().updateSlot(res, raw_transform_slot[i], &seed, sizeof(seed));
+    }
   }
 }
 
 void CameraArray::update(
     score::gfx::RenderList& r, QRhiResourceUpdateBatch& res, score::gfx::Edge*)
 {
-  if(!raw_camera_slot.valid())
+  if(!raw_camera_slot[0].valid())
     return;
 
   const float eye[3]{
@@ -90,9 +97,11 @@ void CameraArray::update(
     raw[i].zfar = zfar;
     raw[i].projection = 0u;  // perspective
   }
-  r.registry().updateSlot(res, raw_camera_slot, &raw, sizeof(raw));
+  for(int i = 0; i < 6; ++i)
+    if(raw_camera_slot[i].valid())
+      r.registry().updateSlot(res, raw_camera_slot[i], &raw[i], sizeof(raw[i]));
 
-  if(raw_transform_slot.valid())
+  if(raw_transform_slot[0].valid())
   {
     // Per-face scene_transform local TRS: translation = origin;
     // rotation from -forward via QQuaternion::fromDirection (same as
@@ -115,19 +124,30 @@ void CameraArray::update(
       xforms[i].scale[1] = 1.f;
       xforms[i].scale[2] = 1.f;
     }
-    r.registry().updateSlot(
-        res, raw_transform_slot, &xforms, sizeof(xforms));
+    for(int i = 0; i < 6; ++i)
+      if(raw_transform_slot[i].valid())
+        r.registry().updateSlot(
+            res, raw_transform_slot[i], &xforms[i], sizeof(xforms[i]));
   }
 }
 
 void CameraArray::release(score::gfx::RenderList& r)
 {
-  if(raw_camera_slot.valid())
-    r.registry().free(raw_camera_slot);
-  if(raw_transform_slot.valid())
-    r.registry().free(raw_transform_slot);
-  m_array_ref = {};
-  m_xform_array_ref = {};
+  for(int i = 0; i < 6; ++i)
+  {
+    if(raw_camera_slot[i].valid())
+      r.registry().free(raw_camera_slot[i]);
+    raw_camera_slot[i] = {};
+    if(raw_transform_slot[i].valid())
+      r.registry().free(raw_transform_slot[i]);
+    raw_transform_slot[i] = {};
+    m_array_ref[i] = {};
+    m_xform_array_ref[i] = {};
+  }
+  // Same producer-state-drift fix as Light/Transform3D: a republished
+  // state must not carry raw_slot refs into freed slots after a
+  // release/init cycle.
+  m_state.reset();
 }
 
 }

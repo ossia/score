@@ -889,11 +889,15 @@ private:
                   additional_bindings.push_back(QRhiShaderResourceBinding::uniformBuffer(
                       cur_binding, QRhiShaderResourceBinding::VertexStage, mat));
                 }
-                cur_binding++;
-                break;
               }
+              break;
             }
           }
+          // One binding slot per filter, matching the shader generator
+          // which advances %next% per filter unconditionally — a filter
+          // whose renderer isn't resolved yet must not shift every
+          // subsequent filter's UBO binding.
+          cur_binding++;
         }
       }
     }
@@ -1303,14 +1307,19 @@ private:
   void addOutputPass(
       RenderList& renderer, Edge& edge, QRhiResourceUpdateBatch& res) override
   {
-    // The shader selection depends on mesh properties and node settings.
-    // initPasses() creates passes for ALL edges at once, so we only call it
-    // the first time (when m_p is empty). Subsequent edges are already covered.
-    if(m_p.empty())
-    {
-      const auto& mesh = m_mesh ? *m_mesh : renderer.defaultQuad();
-      initPasses(renderer, mesh);
-    }
+    // initPasses() creates passes for ALL current edges at once; it only
+    // covers edges that exist when it runs. An edge connected after the
+    // initial build needs the full rebuild too, or it renders nothing
+    // until an unrelated material/geometry change happens to retrigger
+    // mustRecreatePasses.
+    if(!m_p.empty() && hasOutputPassForEdge(edge))
+      return;
+    for(auto& pass : m_p)
+      pass.second.release();
+    m_p.clear();
+
+    const auto& mesh = m_mesh ? *m_mesh : renderer.defaultQuad();
+    initPasses(renderer, mesh);
   }
 
   bool hasOutputPassForEdge(Edge& edge) const override

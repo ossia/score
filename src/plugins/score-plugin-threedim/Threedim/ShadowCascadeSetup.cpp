@@ -71,17 +71,29 @@ QMatrix4x4 cascadeLightVP(
     maxLS.setY(std::max(maxLS.y(), ls.y()));
     maxLS.setZ(std::max(maxLS.z(), ls.z()));
   }
-  // Expand the depth range a bit so occluders just outside the camera
-  // frustum can still cast shadows into it.
+  // Expand the depth range toward the light so occluders between the
+  // light and the slice (e.g. a tall object above the view frustum) are
+  // kept by the near plane and still cast into the slice. In light-view
+  // space the eye looks along the light direction, so "toward the
+  // light" is +Z (maxLS); padding minLS would only include geometry
+  // beyond the slice, which cannot cast shadows into it.
   const float zPad = (maxLS.z() - minLS.z()) * 0.25f + 1.f;
-  minLS.setZ(minLS.z() - zPad);
+  maxLS.setZ(maxLS.z() + zPad);
 
   QMatrix4x4 lightProj;
   lightProj.ortho(
       minLS.x(), maxLS.x(), minLS.y(), maxLS.y(),
       -maxLS.z(), -minLS.z());
 
-  return lightProj * lightView;
+  // The shadow depth passes run with the project's reverse-Z convention
+  // (depth op Greater, clear 0); a standard-Z ortho would keep the
+  // farthest surface instead of the nearest occluder. Flip NDC z so
+  // near→+1 / far→-1, the same bake ModelDisplay applies to its
+  // perspective projection.
+  QMatrix4x4 zFlip;
+  zFlip(2, 2) = -1.0f;
+
+  return zFlip * lightProj * lightView;
 }
 
 // Resolve the first directional light's world direction from the scene
@@ -260,6 +272,7 @@ void ShadowCascadeSetup::rebuild()
   // source of the render-target aspect); 16:9 is a reasonable default
   // and the cascade fit is approximate anyway.
   QMatrix4x4 cameraVP;
+  QMatrix4x4 cameraProj;
   const float aspect = 16.f / 9.f;
   if(in_state->roots)
   {
@@ -269,6 +282,7 @@ void ShadowCascadeSetup::rebuild()
       if(r && findActiveCamera(*r, QMatrix4x4{}, *in_state, aspect, view, proj))
       {
         cameraVP = proj * view;
+        cameraProj = proj;
         break;
       }
     }
@@ -299,12 +313,12 @@ void ShadowCascadeSetup::rebuild()
   // pre-correction, so [-1, 1] is correct.
   for(int i = 0; i < count; ++i)
   {
-    // Convert view-space Z to NDC Z via the projection we computed above.
-    // Re-derive via the projection: ndcZ = (proj.z * view.z + proj.w.z) /
-    // (-view.z). Easier: just probe two world-space points at known view
-    // depths through cameraVP and read their .z.
-    QVector4D p0 = cameraVP * QVector4D(0, 0, -info.split_view_depths[i], 1);
-    QVector4D p1 = cameraVP * QVector4D(0, 0, -info.split_view_depths[i + 1], 1);
+    // Convert view-space Z to NDC Z. (0, 0, -d) is a VIEW-space point,
+    // so it goes through the projection alone — pushing it through the
+    // full view-projection would treat it as world-space and fit the
+    // cascade to the wrong depth range for any non-identity camera.
+    QVector4D p0 = cameraProj * QVector4D(0, 0, -info.split_view_depths[i], 1);
+    QVector4D p1 = cameraProj * QVector4D(0, 0, -info.split_view_depths[i + 1], 1);
     const float ndc0 = p0.w() != 0.f ? p0.z() / p0.w() : -1.f;
     const float ndc1 = p1.w() != 0.f ? p1.z() / p1.w() : 1.f;
     QMatrix4x4 m = cascadeLightVP(cameraVPInv, ndc0, ndc1, lightDir);

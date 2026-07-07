@@ -1042,10 +1042,22 @@ std::function<void(FbxParser&)> FbxParser::ins::fbx_t::process(file_type tv)
   opts.space_conversion = UFBX_SPACE_CONVERSION_ADJUST_TRANSFORMS;
   opts.use_blender_pbr_material = true;
 
+  // File-controlled allocation ceilings: a hostile or corrupt FBX can
+  // otherwise declare huge counts and OOM the process during parse.
+  opts.temp_allocator.memory_limit = 2ull * 1024 * 1024 * 1024;
+  opts.result_allocator.memory_limit = 2ull * 1024 * 1024 * 1024;
+
   ufbx_error error{};
   ufbx_scene* scene = ufbx_load_file(tv.filename.data(), &opts, &error);
   if(!scene)
     return {};
+  // Everything below may allocate (bad_alloc on hostile counts) —
+  // guarantee the scene is freed on every path.
+  struct SceneGuard
+  {
+    ufbx_scene* s;
+    ~SceneGuard() { ufbx_free_scene(s); }
+  } scene_guard{scene};
 
   // Extract hierarchical scene (drives rebuild_scene).
   std::vector<FbxParser::SceneNode> scene_nodes;
@@ -1054,8 +1066,6 @@ std::function<void(FbxParser&)> FbxParser::ins::fbx_t::process(file_type tv)
   FbxSceneExtractor scene_ex{scene_nodes, materials, skeleton, {}, {}, {}};
   scene_ex.extract_scene(scene);
   scene_ex.link_joint_parents();
-
-  ufbx_free_scene(scene);
 
   if(scene_nodes.empty())
     return {};

@@ -156,9 +156,16 @@ static std::shared_ptr<ossia::material_component> to_material(
           if constexpr(std::is_same_v<T, fastgltf::sources::URI>)
           {
             // Relative URI → join with the glTF file's parent dir.
-            auto p = dir / std::filesystem::path(std::string_view(
-                data.uri.path()));
-            src->file_path = p.lexically_normal().string();
+            // Contain the result inside that dir: URIs come from the
+            // asset file, and "../" chains or absolute paths would let
+            // a shared scene read arbitrary local files.
+            auto p = (dir / std::filesystem::path(std::string_view(
+                data.uri.path()))).lexically_normal();
+            const auto base = dir.lexically_normal();
+            auto [bEnd, pIt] = std::mismatch(
+                base.begin(), base.end(), p.begin(), p.end());
+            if(bEnd == base.end())
+              src->file_path = p.string();
           }
           else if constexpr(std::is_same_v<T, fastgltf::sources::Array>)
           {
@@ -759,8 +766,13 @@ static ossia::mesh_primitive part_to_primitive(
 static int emit_node(
     const fastgltf::Asset& asset, std::size_t nodeIdx, int parent_index,
     std::vector<GltfParser::SceneNode>& out,
-    const std::vector<int>& material_index_remap)
+    const std::vector<int>& material_index_remap, int depth = 0)
 {
+  // Node children come straight from the file; validate() does not
+  // reject cycles, and a cyclic or absurdly deep chain would overflow
+  // the stack here.
+  if(depth > 256)
+    return -1;
   const auto& n = asset.nodes[nodeIdx];
 
   GltfParser::SceneNode sn;
@@ -796,7 +808,7 @@ static int emit_node(
   const int self = (int)out.size();
   out.push_back(std::move(sn));
   for(std::size_t ci : asset.nodes[nodeIdx].children)
-    emit_node(asset, ci, self, out, material_index_remap);
+    emit_node(asset, ci, self, out, material_index_remap, depth + 1);
   return self;
 }
 
