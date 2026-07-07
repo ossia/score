@@ -941,6 +941,15 @@ std::function<void(GltfParser&)> GltfParser::ins::gltf_t::process(file_type tv)
     return {};
   fastgltf::Asset asset = std::move(assetE.get());
 
+  // The extraction below indexes accessors / meshes / skins straight from
+  // file-provided indices; validate() bounds-checks all of them so a
+  // malformed or hostile file can't drive out-of-bounds reads.
+  if(fastgltf::validate(asset) != fastgltf::Error::None)
+  {
+    qDebug() << "GltfParser: asset failed validation:" << path.string().c_str();
+    return {};
+  }
+
   // Materials first so primitives can remap their material indices.
   std::vector<std::shared_ptr<ossia::material_component>> materials;
   std::vector<int> material_index_remap(asset.materials.size(), -1);
