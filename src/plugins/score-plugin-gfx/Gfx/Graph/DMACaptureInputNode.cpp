@@ -90,6 +90,8 @@ public:
       return;
     }
     auto shaders = m_gpu->init(renderer);
+    m_vertexS = shaders.first;
+    m_fragmentS = shaders.second;
     SCORE_ASSERT(!m_gpu->samplers.empty());
 
     // Strategy init must precede defaultPassesInit: a zero-copy strategy may
@@ -208,10 +210,34 @@ public:
   {
     score::gfx::quadRenderPass(renderer, m_meshBuffer, cb, edge, m_p);
   }
+  void addOutputPass(
+      score::gfx::RenderList& renderer, score::gfx::Edge& edge,
+      QRhiResourceUpdateBatch& res) override
+  {
+    if(!m_gpu || m_gpu->samplers.empty() || !m_vertexS.isValid()
+       || !m_fragmentS.isValid())
+      return;
+
+    auto rt = renderer.renderTargetForOutput(edge);
+    if(rt.renderTarget)
+    {
+      auto pip = score::gfx::buildPipeline(
+          renderer, renderer.defaultQuad(), m_vertexS, m_fragmentS, rt,
+          m_processUBO, m_materialUBO, m_gpu->samplers);
+      if(pip.pipeline)
+        m_p.emplace_back(&edge, score::gfx::Pass{rt, pip, nullptr});
+    }
+  }
+
   void removeOutputPass(
       score::gfx::RenderList& renderer, score::gfx::Edge& edge) override
   {
-    // FIXME
+    auto it = ossia::find_if(m_p, [&](const auto& p) { return p.first == &edge; });
+    if(it != m_p.end())
+    {
+      it->second.release();
+      m_p.erase(it);
+    }
   }
 
   void release(score::gfx::RenderList& r) override
@@ -275,6 +301,7 @@ private:
   bool m_strategyOwnsTexture{false};
 
   std::unique_ptr<score::gfx::GPUVideoDecoder> m_gpu;
+  QShader m_vertexS, m_fragmentS;
   score::gfx::PassMap m_p;
   score::gfx::MeshBuffers m_meshBuffer{};
   QRhiBuffer* m_processUBO{};
