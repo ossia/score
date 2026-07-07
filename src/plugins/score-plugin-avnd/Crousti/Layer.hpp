@@ -16,8 +16,6 @@
 #include <avnd/common/aggregates.hpp>
 #include <avnd/concepts/layout.hpp>
 
-#include <avnd/common/aggregates.hpp>
-
 namespace oscr
 {
 template <typename Item>
