@@ -227,6 +227,23 @@ inline uint32_t bytesPerPixel(Tag t)
   return 4;
 }
 
+/** Total bytes of one tightly-packed frame including chroma planes.
+ *  bytesPerPixel() alone under-counts planar formats (it returns the
+ *  Y-plane lane size), which matters both for advertising
+ *  SPA_PARAM_BUFFERS_size and for validating incoming chunk sizes. */
+inline uint64_t frameBytes(Tag t, int w, int h) noexcept
+{
+  const uint64_t wh = uint64_t(w) * uint64_t(h);
+  switch(t)
+  {
+    case Tag::NV12:
+    case Tag::YUV420P: return wh * 3 / 2; // 8-bit 4:2:0
+    case Tag::P010:    return wh * 3;     // 16-bit lanes, 4:2:0
+    case Tag::P210:    return wh * 4;     // 16-bit lanes, 4:2:2
+    default:           return wh * bytesPerPixel(t);
+  }
+}
+
 /** True if the SPA format is a planar layout (multi-plane in
  *  buf->datas[]). PipeWire's typical convention for these formats is
  *  to put all planes in datas[0] sequentially, but multi-plane
@@ -254,8 +271,8 @@ inline uint32_t toDrmFourcc(Tag t) noexcept
   // surface.
   switch(t)
   {
-    case Tag::RGBA8:    return 0x41424752u; /* DRM_FORMAT_ABGR8888 ('RGBA' little-endian) */
-    case Tag::BGRA8:    return 0x41524742u; /* DRM_FORMAT_ARGB8888 ('BGRA' little-endian) */
+    case Tag::RGBA8:    return 0x34324241u; /* DRM_FORMAT_ABGR8888 'AB24' */
+    case Tag::BGRA8:    return 0x34325241u; /* DRM_FORMAT_ARGB8888 'AR24' */
     case Tag::RGB10A2:  return 0x30334241u; /* DRM_FORMAT_ABGR2101010 */
     case Tag::BGR10A2:  return 0x30335241u; /* DRM_FORMAT_ARGB2101010 */
     case Tag::RGBA16F:  return 0x48344241u; /* DRM_FORMAT_ABGR16161616F */

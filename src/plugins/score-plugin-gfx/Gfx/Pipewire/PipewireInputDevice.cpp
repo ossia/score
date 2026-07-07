@@ -553,6 +553,13 @@ bool InputStream::start() noexcept
   if(m_running.exchange(true))
     return true;
 
+  // If the previous stream ended via on_node_removed (m_running was
+  // cleared without stop() running), it is still alive here — tear it
+  // down before creating a new one, or its listener keeps firing into
+  // this object alongside the new stream's.
+  m_pw_subs.clear();
+  m_data->cleanup();
+
   auto& pw = libremidi::pipewire::load();
   if(!pw.stream_available)
   {
@@ -704,8 +711,10 @@ bool InputStream::start() noexcept
 
 void InputStream::stop() noexcept
 {
-  if(!m_running.exchange(false))
-    return;
+  // No early-return on m_running: on_node_removed clears the flag when
+  // the producer vanishes, but the stream and subscriptions still exist
+  // and must be torn down here (both are safe to tear down twice).
+  m_running.store(false, std::memory_order_release);
   // Drop subscriptions before the shared context ref so each
   // subscription RAII goes through the live context (the subscription
   // dtor calls back into context::unsubscribe).
@@ -852,7 +861,11 @@ void InputStream::on_stream_param_changed(
   const formats::Tag tag = formats::tagFromAvPixFmt(new_pf);
   const int bpp = int(formats::bytesPerPixel(tag));
   const int stride = new_w * bpp;
-  const int size = stride * new_h;
+  // Full frame including chroma planes: stride * h alone under-counts
+  // planar formats (NV12 needs 1.5×, P010 3×, P210 4× of w*h), and a
+  // producer honouring our suggestion would then deliver buffers the
+  // chroma reads in on_stream_process run past.
+  const int size = int(formats::frameBytes(tag, new_w, new_h));
 
   uint8_t buffer[1024];
   spa_pod_builder b = SPA_POD_BUILDER_INIT(buffer, sizeof(buffer));
@@ -944,10 +957,26 @@ void InputStream::on_stream_process(void* data)
   // PW_STREAM_FLAG_MAP_BUFFERS gives us a usable `datas[0].data`
   // pointer regardless of underlying SPA type — including DMA-BUF
   // when mmap'd.
-  if(buf->datas[0].data == nullptr)
+  if(buf->datas[0].data == nullptr || buf->datas[0].chunk == nullptr)
   {
     pw.stream_queue_buffer(self->m_data->stream, b);
     return;
+  }
+
+  // Drop frames whose mapped payload can't hold the negotiated geometry:
+  // the plane copies below are sized from m_width/m_height, and reading
+  // chroma at ySize + uvSize past a smaller chunk runs off the mmap.
+  // av_image_get_buffer_size is the tight size of exactly the layout the
+  // av_image_copy_plane calls below consume.
+  {
+    const int neededBytes = av_image_get_buffer_size(
+        self->m_pixelFormat, self->m_width, self->m_height, 1);
+    if(neededBytes > 0
+       && int64_t(buf->datas[0].chunk->size) < int64_t(neededBytes))
+    {
+      pw.stream_queue_buffer(self->m_data->stream, b);
+      return;
+    }
   }
 
   AVFrame* frame = nullptr;

@@ -222,6 +222,13 @@ struct HWCudaVulkanDecoder : GPUVideoDecoder
       {
         qDebug() << "HWCudaVulkanDecoder: interop setup failed";
         cleanup();
+        // setupPlane may already have re-pointed a sampler texture at a
+        // VkImage cleanup() just destroyed (createFrom). Recreate each
+        // texture with its own QRhi-owned storage so the material keeps
+        // binding valid images (rendering black instead of faulting).
+        for(auto& s : samplers)
+          if(s.texture)
+            s.texture->create();
       }
 
       return score::gfx::makeShaders(
@@ -257,6 +264,13 @@ struct HWCudaVulkanDecoder : GPUVideoDecoder
       {
         qDebug() << "HWCudaVulkanDecoder: interop setup failed";
         cleanup();
+        // setupPlane may already have re-pointed a sampler texture at a
+        // VkImage cleanup() just destroyed (createFrom). Recreate each
+        // texture with its own QRhi-owned storage so the material keeps
+        // binding valid images (rendering black instead of faulting).
+        for(auto& s : samplers)
+          if(s.texture)
+            s.texture->create();
       }
 
       QString frag = NV12Decoder::nv12_filter_prologue;
