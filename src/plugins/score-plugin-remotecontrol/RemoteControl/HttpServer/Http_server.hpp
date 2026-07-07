@@ -127,15 +127,21 @@ public:
 
     //------------------------------------------------------------------------------
 
-    // Set the IP address in the remote.html file
-    void
-    set_ip_address(std::string address);
+    // // Set the IP address in the remote.html file
+    // set_ip_address(std::string address);
+    // void
 
     //------------------------------------------------------------------------------
 
     // Launch the open_server function in a thread
     void
     start_thread();
+
+    //------------------------------------------------------------------------------
+
+    // Launch the open_server function in a thread
+    void
+    stop_thread();
 
     //------------------------------------------------------------------------------
 

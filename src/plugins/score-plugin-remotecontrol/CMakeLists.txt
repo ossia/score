@@ -38,7 +38,8 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/i-score-remote/RemoteApplication.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_remotecontrol.hpp"
 
-  "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Http_server.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/HttpServer/DocumentPlugin.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/HttpServer/Http_server.hpp"
   )
 
 set(SRCS
@@ -59,7 +60,8 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/ApplicationPlugin.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Http_server.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/HttpServer/DocumentPlugin.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/HttpServer/Http_server.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_remotecontrol.cpp"
 )

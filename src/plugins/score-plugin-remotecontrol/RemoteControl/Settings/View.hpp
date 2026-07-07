@@ -19,14 +19,17 @@ class View : public score::GlobalSettingsView
 public:
   View();
   void setEnabled(bool);
+  void setServerEnabled(bool);
 
   void enabledChanged(bool b) W_SIGNAL(enabledChanged, b);
+  void serverEnabledChanged(bool b) W_SIGNAL(serverEnabledChanged, b);
 
 private:
   QWidget* getWidget() override;
   score::FormWidget* m_widg{};
 
   QCheckBox* m_enabled{};
+  QCheckBox* m_server_enabled{};
 };
 
 }
