@@ -126,7 +126,7 @@ class LibraryHandler final : public Library::LibraryInterface
   QSet<QString> acceptedFiles() const noexcept override
   {
     return {"wav",  "mp3", "m4a", "ogg", "flac", "aif",
-            "aiff", "w64", "ape", "wv",  "wma"};
+            "aiff", "w64", "ape", "wv",  "wma", "aac", "opus", "ac3", "dts", "dtshd"};
   }
 
   QWidget* previewWidget(const QString& path, QWidget* parent) const noexcept override

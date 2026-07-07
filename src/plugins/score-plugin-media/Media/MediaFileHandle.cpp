@@ -155,7 +155,7 @@ int64_t AudioFile::decodedSamples() const
 
 bool AudioFile::isSupported(const QFile& file)
 {
-  constexpr auto rex = ".(wav|mp3|m4a|ogg|flac|aif|aiff|w64|ape|wv|wma)$";
+  constexpr auto rex = ".(wav|mp3|m4a|ogg|flac|aif|aiff|w64|ape|wv|wma|aac|opus|ac3|dts|dtshd)$";
   return file.exists()
          && file.fileName().contains(
              QRegularExpression(rex, QRegularExpression::CaseInsensitiveOption));

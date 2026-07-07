@@ -75,6 +75,35 @@ std::optional<AudioInfo> probe_drwav(const QFileInfo& fi)
       ossia::drwav_handle h;
       h.open_memory(data, f.size());
 
+      // Skip DTS in WAV, dr_wav does not decode them
+      if (h.wav()) {
+        auto tag = h.wav()->fmt.formatTag;
+        if (tag == 0x2001 || tag == 0x0008)
+        {
+          return std::nullopt;
+        }
+        else if (tag == 0x0092)
+        {
+          return std::nullopt;
+        }
+        else if (tag == DR_WAVE_FORMAT_EXTENSIBLE) {
+          uint8_t guid_dts_0008[16] = {
+              0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00,
+              0x80, 0x00, 0x00, 0xAA, 0x00, 0x38, 0x9B, 0x71
+          };
+
+          uint8_t guid_dts_2001[16] = {
+              0x01, 0x20, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00,
+              0x80, 0x00, 0x00, 0xAA, 0x00, 0x38, 0x9B, 0x71
+          };
+
+          if (memcmp(h.wav()->fmt.subFormat, guid_dts_0008, 16) == 0 ||
+             memcmp(h.wav()->fmt.subFormat, guid_dts_2001, 16) == 0) {
+            return std::nullopt;
+          }
+        }
+      }
+
       AudioInfo info;
       info.fileRate = h.sampleRate();
       info.channels = h.channels();
