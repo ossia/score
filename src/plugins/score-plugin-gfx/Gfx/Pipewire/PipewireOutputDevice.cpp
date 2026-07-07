@@ -293,8 +293,8 @@ public:
   }
 
   /** EGL dequeue: render thread variant. Returns the GL texture id
-   *  associated with this buffer. Holds the thread-loop lock until
-   *  dmabuf_queue_egl. */
+   *  associated with this buffer. The loop lock is only held inside
+   *  this call; it is re-taken by dmabuf_queue_egl. */
   pw_buffer* dmabuf_dequeue_egl(unsigned int* out_glTexture) noexcept
   {
     auto* lp = loop();
@@ -325,6 +325,11 @@ public:
       return nullptr;
     }
     *out_glTexture = it->second.slot.glTexture;
+    // Release the loop lock for the render + glFinish window (see the
+    // Vulkan path). Safe against on_remove_buffer_egl: it keeps the map
+    // entry (needs_cleanup) and the imported EGLImage pins the dmabuf
+    // pages, so the GL texture stays writable until process_pending.
+    pw.thread_loop_unlock(lp);
     return b;
   }
 
@@ -334,29 +339,34 @@ public:
       return;
     auto& pw = libremidi::pipewire::load();
     auto* lp = loop();
+    if(!lp)
+      return;
+    pw.thread_loop_lock(lp);
     if(pw.stream_available && m_stream)
     {
       auto it = m_eglSlots.find(b);
-      if(it != m_eglSlots.end())
+      // needs_cleanup means the server removed the buffer while we were
+      // rendering: b is dangling, drop the frame instead of queueing.
+      if(it != m_eglSlots.end() && !it->second.needs_cleanup)
       {
         auto* chunk = b->buffer->datas[0].chunk;
         chunk->offset = uint32_t(it->second.slot.offset);
         chunk->size = uint32_t(it->second.slot.size);
         chunk->stride = int32_t(it->second.slot.stride);
+        pw.stream_queue_buffer(m_stream, b);
       }
-      pw.stream_queue_buffer(m_stream, b);
     }
-    if(lp)
-      pw.thread_loop_unlock(lp);
+    pw.thread_loop_unlock(lp);
   }
 #endif
 
 #if defined(SCORE_PIPEWIRE_OUT_DMABUF)
 
   /** Dequeue a pipewire buffer for filling. Returns the buf pointer
-   *  and writes the associated VkImage handle to `out_image`. The
-   *  caller (PipewireOutputNode::render) holds the loop lock for the
-   *  duration of render → copy → queue. */
+   *  and writes the associated VkImage handle to `out_image`. The loop
+   *  lock is only held inside this call — the render → copy → GPU-wait
+   *  window runs unlocked so the pipewire data thread keeps servicing
+   *  its loop; dmabuf_queue re-takes the lock. */
   pw_buffer* dmabuf_dequeue(VkImage* out_image, VkDeviceMemory* out_memory) noexcept
   {
     auto* lp = loop();
@@ -382,19 +392,42 @@ public:
     }
     *out_image = it->second.img.image;
     *out_memory = it->second.img.memory;
-    // Caller is now responsible for calling dmabuf_queue() to release
-    // both the buffer and the thread-loop lock.
+    // Release the loop lock for the render + GPU-sync window; holding it
+    // across endOffscreenFrame stalls the pipewire data thread for the
+    // whole GPU wait (xruns). on_remove_buffer defers this buffer's
+    // teardown to dmabuf_queue while it is checked out.
+    m_inFlight = b;
+    m_inFlightRemoved = false;
+    pw.thread_loop_unlock(lp);
     return b;
   }
 
   /** Commit a previously-dequeued buffer back to pipewire (making it
-   *  visible to the consumer). Releases the thread-loop lock. */
+   *  visible to the consumer). Takes the thread-loop lock. */
   void dmabuf_queue(pw_buffer* b) noexcept
   {
     if(!b)
       return;
     auto& pw = libremidi::pipewire::load();
     auto* lp = loop();
+    if(!lp)
+      return;
+    pw.thread_loop_lock(lp);
+    if(m_inFlightRemoved)
+    {
+      // The server removed this buffer while we were rendering into it;
+      // b is dangling (pipewire frees it after on_remove_buffer), so
+      // only destroy the deferred image and drop the frame.
+      if(m_inFlightDeferred.fd >= 0)
+        ::close(m_inFlightDeferred.fd);
+      score::gfx::vkinterop::destroyExternal(m_vk, m_inFlightDeferred.img);
+      m_inFlightDeferred = {};
+      m_inFlightRemoved = false;
+      m_inFlight = nullptr;
+      pw.thread_loop_unlock(lp);
+      return;
+    }
+    m_inFlight = nullptr;
     if(pw.stream_available && m_stream)
     {
       auto it = m_dmabufSlots.find(b);
@@ -407,8 +440,7 @@ public:
       }
       pw.stream_queue_buffer(m_stream, b);
     }
-    if(lp)
-      pw.thread_loop_unlock(lp);
+    pw.thread_loop_unlock(lp);
   }
 #endif
 
@@ -747,6 +779,16 @@ private:
     auto it = self->m_dmabufSlots.find(b);
     if(it == self->m_dmabufSlots.end())
       return;
+    if(b == self->m_inFlight)
+    {
+      // The render thread is writing into this buffer's image with the
+      // loop lock released; destroying the VkImage now would fault the
+      // in-flight frame. Park the resources for dmabuf_queue.
+      self->m_inFlightDeferred = it->second;
+      self->m_inFlightRemoved = true;
+      self->m_dmabufSlots.erase(it);
+      return;
+    }
     if(it->second.fd >= 0)
       ::close(it->second.fd);
     score::gfx::vkinterop::destroyExternal(self->m_vk, it->second.img);
@@ -847,6 +889,16 @@ private:
 #if defined(SCORE_PIPEWIRE_OUT_DMABUF)
   score::gfx::vkinterop::VulkanCtx m_vk{};
   std::unordered_map<pw_buffer*, DmaBufSlot> m_dmabufSlots;
+
+  // Buffer checked out by the render thread between dmabuf_dequeue and
+  // dmabuf_queue. The loop lock is RELEASED during that window (so the
+  // pipewire data thread isn't stalled by the multi-ms GPU wait inside
+  // endOffscreenFrame); if the server removes the buffer meanwhile,
+  // on_remove_buffer parks its resources here and dmabuf_queue destroys
+  // them instead of queueing the now-dangling pw_buffer.
+  pw_buffer* m_inFlight{nullptr};
+  DmaBufSlot m_inFlightDeferred{};
+  bool m_inFlightRemoved{false};
 #endif
 
 #if defined(SCORE_PIPEWIRE_OUT_DMABUF) || defined(SCORE_PIPEWIRE_OUT_DMABUF_EGL)

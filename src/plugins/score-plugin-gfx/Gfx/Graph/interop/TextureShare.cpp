@@ -392,11 +392,12 @@ public:
         m_producerSlots[m_currentWriteSlot].texture, copyDesc);
     cb->resourceUpdate(batch);
 
-    // Create GL fence for synchronization (must be done after commands are flushed)
-    // Note: The fence is created here but becomes valid after the command buffer is submitted.
-    // For proper sync, we should create the fence after endFrame(), but since QRhi doesn't
-    // expose that, we create it here and the consumer will wait on it.
-    if(m_producer->makeThreadLocalNativeContextCurrent())
+    // On GL, resourceUpdate only records into QRhi's deferred command
+    // list; nothing reaches the GL stream until endFrame/finish/
+    // beginExternal (executeCommandBuffer). The fence must be inserted
+    // AFTER the copy is actually in the stream, so flush via
+    // beginExternal first — same pattern as the D3D11 backend.
+    cb->beginExternal();
     {
       auto* gl = QOpenGLContext::currentContext();
       if(gl)
@@ -406,11 +407,12 @@ public:
         if(m_fences[m_currentWriteSlot])
           f->glDeleteSync(m_fences[m_currentWriteSlot]);
 
-        // Create new fence - this will be signaled when prior commands complete
+        // This fence signals once the copy above has completed on the GPU.
         m_fences[m_currentWriteSlot] = f->glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
         f->glFlush(); // Ensure fence is in the command stream
       }
     }
+    cb->endExternal();
 
     m_tripleBuffer.publishWriteIndex();
     m_currentWriteSlot = -1;
