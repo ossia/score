@@ -448,6 +448,8 @@ struct CustomGpuRenderer final : score::gfx::NodeRenderer
             pass.p.srb->destroy();
 
           pass.p.srb->setBindings(tmp.begin(), tmp.end());
+          if(created && !pass.p.srb->create())
+            qWarning("GpuNode: SRB recreation failed");
         }
 
         if(!created)

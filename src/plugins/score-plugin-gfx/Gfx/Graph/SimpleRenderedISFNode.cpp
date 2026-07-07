@@ -695,6 +695,8 @@ void SimpleRenderedISFNode::releaseState(RenderList& r)
 
   // Release storage resources (owned SSBOs + storage images).
   m_storage.release();
+  m_lastMRTRenderFrame = -1;
+  m_lastStorageSwapFrame = -1;
 
   if(m_multiViewUBO)
   {
@@ -753,8 +755,6 @@ void SimpleRenderedISFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& 
 void SimpleRenderedISFNode::update(
     RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge)
 {
-  m_mrtRenderedThisFrame = false;
-
   n.standardUBO.passIndex = 0;
   n.standardUBO.frameIndex++;
   auto sz = renderer.renderSize(edge);
@@ -840,10 +840,11 @@ void SimpleRenderedISFNode::runInitialPasses(
   if(!m_hasMRT || m_passes.empty())
     return;
 
-  // Only render once per frame even if multiple downstream nodes trigger us
-  if(m_mrtRenderedThisFrame)
+  // Only render once per frame even if multiple downstream nodes trigger us.
+  // update() runs once per sink, so the guard is keyed on the frame counter.
+  if(m_lastMRTRenderFrame == renderer.frame)
     return;
-  m_mrtRenderedThisFrame = true;
+  m_lastMRTRenderFrame = renderer.frame;
 
   // MRT: render into our internal multi-attachment render target
   auto& pass = m_passes[0].second;
@@ -943,8 +944,17 @@ void SimpleRenderedISFNode::runRenderPass(
       drawMeshWithOptionalIndirect(*m_mesh, this->m_meshBuffer, cb);
     }
 
-    // Persistent SSBO ping-pong for next frame.
-    swapPersistentSSBOs(m_storage, *srb);
+    // Persistent SSBO ping-pong: mutate the shared state exactly once per
+    // frame, then re-apply bindings to every edge's SRB — patching only
+    // this edge's SRB would leave the others reading the stale half.
+    if(m_lastStorageSwapFrame != renderer.frame)
+    {
+      m_lastStorageSwapFrame = renderer.frame;
+      swapPersistentSSBOsState(m_storage);
+      for(auto& [e, p] : this->m_passes)
+        if(p.p.srb)
+          reapplyStorageBindings(m_storage, *p.p.srb);
+    }
   }
 }
 

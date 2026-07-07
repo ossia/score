@@ -563,20 +563,20 @@ void MultiWindowNode::setRenderSize(QSize sz)
 
   m_renderState->renderSize = sz;
 
-  // Tear down the existing render list (and all pipelines built against
-  // the old offscreen RPD) BEFORE recreating the offscreen target, so
-  // no pipeline ever references a freed RPD pointer. m_onResize triggers
-  // recreateOutputRenderList which calls release() on every pass — the
-  // pipeline destructors enqueue their underlying GPU resources via
-  // QRhi's deferred-release queue and never dereference the RPD again.
-  // Only after the render list has released its references is it safe
-  // to swap the offscreen RT/RPD; the subsequent createOutputRenderList
-  // (kicked off by the same m_onResize callback) will then build new
-  // pipelines against the freshly recreated m_offscreenTarget.
+  // Recreate the offscreen target BEFORE poking the render list: when
+  // m_onResize takes the synchronous rebuild path (recreateOutputRenderList,
+  // used when the surgical resize fast-path can't apply), the new render
+  // list copies the offscreen RT/RPD pointers and compiles pipelines against
+  // them — so they must already be the new ones, or the fresh render list
+  // holds dangling pointers as soon as we release the old target here.
+  // The old target's objects go through QRhi's deferred-release queue
+  // (deleteLater), so pipelines from the fast path that still reference
+  // them are rebuilt by the rt_changed pass before anything dereferences
+  // a destroyed handle.
+  recreateOffscreenTarget();
+
   if(m_onResize)
     m_onResize();
-
-  recreateOffscreenTarget();
 }
 
 void MultiWindowNode::setSourceRect(int windowIndex, QRectF rect)

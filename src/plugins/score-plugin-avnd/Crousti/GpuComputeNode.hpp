@@ -329,6 +329,8 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
         if(m_createdPipeline)
           m_srb->destroy();
         m_srb->setBindings(tmp.begin(), tmp.end());
+        if(m_createdPipeline && !m_srb->create())
+          qWarning("GpuComputeNode: SRB recreation failed");
       }
 
       /*

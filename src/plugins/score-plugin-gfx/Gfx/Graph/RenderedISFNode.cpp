@@ -702,11 +702,9 @@ bool RenderedISFNode::hasOutputPassForEdge(Edge& edge) const
 void RenderedISFNode::update(
     RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge)
 {
-  SCORE_ASSERT(m_passes.size() > 0);
-
-  // Persistent-storage ping-pong happens once per frame. Reset the guard
-  // here so whichever edge's runRenderPass fires first does the swap.
-  m_storageSwappedThisFrame = false;
+  // Pipeline creation may have legitimately failed and cleaned up.
+  if(m_passes.empty())
+    return;
 
   // passIndex gets set per-pass in the processUBO update loop below; no
   // need to seed a value here (previous code used m_passes.size() — which
@@ -893,7 +891,7 @@ void RenderedISFNode::releaseState(RenderList& r)
   // Release storage resources (owned SSBOs + storage images).
   m_storage.release();
   m_firstStorageBinding = -1;
-  m_storageSwappedThisFrame = false;
+  m_lastStorageSwapFrame = -1;
 
   if(m_multiViewUBO)
   {
@@ -1023,9 +1021,9 @@ void RenderedISFNode::runRenderPass(
   // frame, then re-apply bindings to every SRB across every edge/chain so
   // each draw next frame sees the swapped pointers. Patching only one SRB
   // would leave others referencing stale buffers and read wrong data.
-  if(!m_storageSwappedThisFrame)
+  if(m_lastStorageSwapFrame != renderer.frame)
   {
-    m_storageSwappedThisFrame = true;
+    m_lastStorageSwapFrame = renderer.frame;
     swapPersistentSSBOsState(m_storage);
     for(auto& [e, p] : m_passes)
     {

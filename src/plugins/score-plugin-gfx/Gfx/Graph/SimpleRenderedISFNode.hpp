@@ -68,7 +68,10 @@ private:
   // MRT: internally-owned render target with multiple attachments
   TextureRenderTarget m_mrtRenderTarget;
   bool m_hasMRT{false};
-  bool m_mrtRenderedThisFrame{false};
+  // update() runs once per downstream sink; once-per-frame work is keyed
+  // on the RenderList frame counter instead of bools reset in update().
+  int64_t m_lastMRTRenderFrame{-1};
+  int64_t m_lastStorageSwapFrame{-1};
 
   // Graphics-visible storage buffers / images (see IsfBindingsBuilder).
   GraphicsStorageResources m_storage;

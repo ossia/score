@@ -948,8 +948,10 @@ void RenderedRawRasterPipelineNode::initMRTPass(
 
       // Reverse-Z project rule: D32F float depth. D24 + reverse-Z is strictly
       // worse than standard-Z. Stencil dropped (unused elsewhere).
+      // Sample count must match the single-sample color attachments above,
+      // or renderTarget->create() fails.
       m_mrtRenderTarget.depthTexture = rhi.newTexture(
-          QRhiTexture::D32F, sz, renderer.samples(),
+          QRhiTexture::D32F, sz, 1,
           QRhiTexture::RenderTarget);
       m_mrtRenderTarget.depthTexture->setName(
           "RenderedRawRasterPipelineNode::MRT::depthTexture (D32F)");
@@ -1436,8 +1438,26 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     ps->setName("RenderedRawRasterPipelineNode::initMRTPass::ps");
     SCORE_ASSERT(ps);
 
-    const int rtSamples = m_mrtRenderTarget.sampleCount();
-    const int pipelineSamples = (rtSamples > 0) ? rtSamples : renderer.samples();
+    // Execution-model modes (PerMip / PerCubeFace / PerLayer color) draw
+    // exclusively into the per-iteration RTs held in m_mipRTs, never into
+    // m_mrtRenderTarget — the pipeline must be built against THEIR render
+    // pass (1 color attachment, 1 sample) to satisfy QRhi's renderpass
+    // compatibility check on Vulkan/Metal/D3D. The PerLayer depth path
+    // leaves m_mipRTs empty and its shared RT deliberately mirrors
+    // m_mrtRenderTarget's attachment shape, so the MRT descriptor is
+    // correct in every other case.
+    QRhiRenderPassDescriptor* pipelineRP = m_mrtRenderTarget.renderPass;
+    int pipelineColorCount = m_mrtRenderTarget.colorAttachmentCount();
+    int pipelineSamples = m_mrtRenderTarget.sampleCount() > 0
+                              ? m_mrtRenderTarget.sampleCount()
+                              : renderer.samples();
+    if(m_executionMode != ExecutionMode::Single && !m_mipRTs.empty()
+       && m_mipRTs[0].renderPass)
+    {
+      pipelineRP = m_mipRTs[0].renderPass;
+      pipelineColorCount = 1;
+      pipelineSamples = 1;
+    }
     ps->setSampleCount(pipelineSamples);
 
     // Multiview: activate the matching view count on the pipeline so that
@@ -1472,7 +1492,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
       seededBlend.dstAlpha = mat.dst_alpha;
       seededBlend.opAlpha = mat.op_alpha;
       QList<QRhiGraphicsPipeline::TargetBlend> seedBlends;
-      for(int i = 0; i < std::max(1, m_mrtRenderTarget.colorAttachmentCount()); i++)
+      for(int i = 0; i < std::max(1, pipelineColorCount); i++)
         seedBlends.append(seededBlend);
       ps->setTargetBlends(seedBlends.begin(), seedBlends.end());
       ps->setDepthTest(true);
@@ -1486,7 +1506,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
             || (m_mrtRenderTarget.depthRenderBuffer != nullptr)
             || (m_mrtRenderTarget.msDepthTexture != nullptr);
       applyPipelineState(
-          *ps, desc.default_state, m_mrtRenderTarget.colorAttachmentCount(),
+          *ps, desc.default_state, pipelineColorCount,
           depthAvailable, /*wantsDepthByDefault=*/true);
     }
     else
@@ -1502,7 +1522,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
       premulAlphaBlend.opAlpha = mat.op_alpha;
 
       QList<QRhiGraphicsPipeline::TargetBlend> blends;
-      for(int i = 0; i < m_mrtRenderTarget.colorAttachmentCount(); i++)
+      for(int i = 0; i < std::max(1, pipelineColorCount); i++)
         blends.append(premulAlphaBlend);
       ps->setTargetBlends(blends.begin(), blends.end());
 
@@ -1550,8 +1570,8 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     ps->setShaderStages({{QRhiShaderStage::Vertex, v}, {QRhiShaderStage::Fragment, s}});
     ps->setShaderResourceBindings(bindings);
 
-    SCORE_ASSERT(m_mrtRenderTarget.renderPass);
-    ps->setRenderPassDescriptor(m_mrtRenderTarget.renderPass);
+    SCORE_ASSERT(pipelineRP);
+    ps->setRenderPassDescriptor(pipelineRP);
 
     if(!ps->create())
     {

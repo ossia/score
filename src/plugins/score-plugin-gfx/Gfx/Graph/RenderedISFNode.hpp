@@ -92,7 +92,9 @@ private:
 
   // Guard so the persistent-SSBO state swap runs exactly once per frame even
   // when the node has multiple output edges (each triggers runRenderPass).
-  bool m_storageSwappedThisFrame{false};
+  // update() runs once per downstream sink, so once-per-frame work must be
+  // keyed on the RenderList's frame counter, not a bool reset in update().
+  int64_t m_lastStorageSwapFrame{-1};
 };
 
 }

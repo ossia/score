@@ -379,7 +379,27 @@ void RenderList::onEdgeRemoved(
   if(edge.sink->edges.size() <= 1)
   {
     if(!preserveSinks || !preserveSinks->contains(edge.sink))
+    {
+      // The sink node may stay reachable through other edges: its renderer
+      // is kept, and its SRB would keep sampling the RT texture released
+      // below (master's full rebuild re-bound every SRB; the incremental
+      // path must rebind explicitly). Point the sampler back at the empty
+      // texture first — including the depth slot for SamplableDepth ports,
+      // whose depth texture is released together with the RT.
+      if(!((edge.sink->flags & Flag::GrabsFromSource) == Flag::GrabsFromSource))
+      {
+        if(auto sink_it = edge.sink->node->renderedNodes.find(this);
+           sink_it != edge.sink->node->renderedNodes.end())
+        {
+          const bool samplableDepth
+              = (edge.sink->flags & Flag::SamplableDepth) == Flag::SamplableDepth;
+          sink_it->second->updateInputTexture(
+              *edge.sink, &emptyTexture(),
+              samplableDepth ? &emptyTexture() : nullptr);
+        }
+      }
       removeInputRenderTarget(edge.sink);
+    }
   }
 }
 
@@ -1225,7 +1245,11 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
         commands.resourceUpdate(updateBatch);
       }
       updateBatch = state.rhi->nextResourceUpdateBatch();
-      SCORE_ASSERT(updateBatch);
+      if(!updateBatch)
+      {
+        qWarning("RenderList: resource update batch pool exhausted");
+        return;
+      }
     }
     else
     {
@@ -1239,7 +1263,11 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
           commands.resourceUpdate(updateBatch);
         }
         updateBatch = state.rhi->nextResourceUpdateBatch();
-        SCORE_ASSERT(updateBatch);
+        if(!updateBatch)
+        {
+          qWarning("RenderList: resource update batch pool exhausted");
+          return;
+        }
 
         prev_renderer->runInitialPasses(*this, commands, updateBatch, *edge);
       }
@@ -1343,7 +1371,11 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
         {
           SCORE_ASSERT(!updateBatch);
           updateBatch = state.rhi->nextResourceUpdateBatch();
-          SCORE_ASSERT(updateBatch);
+          if(!updateBatch)
+          {
+            qWarning("RenderList: resource update batch pool exhausted");
+            return;
+          }
         }
       }
       else if(input->type == Types::Buffer || input->type == Types::Geometry || input->type == Types::Scene)
@@ -1375,7 +1407,11 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
         {
           SCORE_ASSERT(!updateBatch);
           updateBatch = state.rhi->nextResourceUpdateBatch();
-          SCORE_ASSERT(updateBatch);
+          if(!updateBatch)
+          {
+            qWarning("RenderList: resource update batch pool exhausted");
+            return;
+          }
         }
       }
     }
@@ -1406,7 +1442,11 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
       if(!updateBatch)
       {
         updateBatch = state.rhi->nextResourceUpdateBatch();
-        SCORE_ASSERT(updateBatch);
+        if(!updateBatch)
+        {
+          qWarning("RenderList: resource update batch pool exhausted");
+          return;
+        }
       }
 
       // FIXME remove this hack
