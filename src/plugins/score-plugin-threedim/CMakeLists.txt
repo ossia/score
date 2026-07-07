@@ -30,6 +30,14 @@ if(NOT TARGET spz)
   set(SPZ_BUILD_PYTHON_BINDINGS OFF CACHE BOOL "" FORCE)
   set(SPZ_BUILD_EXTENSIONS OFF CACHE BOOL "" FORCE)
   add_subdirectory("${3RDPARTY_FOLDER}/spz" "${CMAKE_CURRENT_BINARY_DIR}/spz" EXCLUDE_FROM_ALL)
+
+  if(MSVC)
+    # The prebuilt sysroot's zconf.h includes <unistd.h> unconditionally;
+    # provide a stub so spz's zlib usage compiles with MSVC / clang-cl.
+    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/spz-msvc-compat/unistd.h"
+         "#include <io.h>\n#include <process.h>\n")
+    target_include_directories(spz PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/spz-msvc-compat")
+  endif()
 endif()
 
 # libssynth
