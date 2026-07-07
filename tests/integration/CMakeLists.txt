@@ -5,3 +5,7 @@
 score_add_test(test_integration_document
   SOURCES DocumentLifecycleTest.cpp
   APP)
+
+score_add_test(test_integration_roundtrip
+  SOURCES DocumentRoundtripTest.cpp
+  APP)

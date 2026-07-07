@@ -63,5 +63,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     ${QT_PREFIX}::Core ${QT_PREFIX}::Widgets score_lib_base)
 setup_score_library(${PROJECT_NAME})
 
-# setup_score_tests(Tests)
+if(SCORE_TESTING)
+  add_subdirectory(Tests)
+endif()
 

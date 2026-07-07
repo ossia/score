@@ -412,7 +412,7 @@ TEST_CASE("test_parse_rel_member", "test_parse_rel_member")
     State::RelationMember val;
     bool r = parse(first, last, parser, val);
 
-    qDebug() << str.c_str() << r << val.which();
+    qDebug() << str.c_str() << r;
   }
 }
 
