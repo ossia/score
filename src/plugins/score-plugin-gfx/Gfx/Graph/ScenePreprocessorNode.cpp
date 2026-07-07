@@ -5257,19 +5257,19 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
             sizeof(sh.light_view_proj));
         // Shaders sample cascade_split_distances[k] for cascade picks;
         // slot k is the far-plane Z of cascade k (view-space).
-        // CPU-side stores count+1 entries in split_view_depths[]; copy
-        // up to max_cascades slots so UBO and source stay symmetric.
-        // For k >= count we emit 0 — the shader's pickCascade() clamps
-        // against cascade_count first, so trailing zeros are never read.
+        // CPU-side stores count+1 BOUNDARIES in split_view_depths[]:
+        // entry k is the near plane of cascade k, entry count is the
+        // scene far plane. The UBO contract wants slot k = FAR plane of
+        // cascade k, i.e. boundary k+1 — copying boundary k instead
+        // shifts every split by one slice (slot 0 would hold the camera
+        // near plane and shaders would assign fragments to the wrong
+        // cascade), and drops the real far distance at count == 8.
         const uint32_t kLayoutSlots = ossia::shadow_cascades_info::max_cascades; // 8
         for(uint32_t k = 0; k < kLayoutSlots; ++k)
         {
-          // split_view_depths[] has (count+1) entries; slot k is the far
-          // plane of cascade k. Guard with <= cascade_count (not <) so
-          // the sentinel entry at index cascade_count is also copied.
           sh.cascade_split_distances[k]
-              = (k <= sh.cascade_count)
-                    ? src.split_view_depths[k]
+              = (k < sh.cascade_count)
+                    ? src.split_view_depths[k + 1]
                     : 0.f;
         }
       }

@@ -715,6 +715,41 @@ bool CustomMesh::drawSingleMesh(
   return true;
 }
 
+// The pipeline's vertex layout is derived from meshes[0] only (see
+// init/reload); a sub-mesh whose bindings or attributes differ would be
+// fetched through the wrong strides/offsets — garbled geometry or an
+// out-of-bounds attribute fetch. Skip those instead of drawing them.
+bool CustomMesh::subMeshLayoutMatchesFirst(std::size_t i) const noexcept
+{
+  if(i == 0)
+    return true;
+  const auto& a = geom.meshes[0];
+  const auto& b = geom.meshes[i];
+  if(a.topology != b.topology)
+    return false;
+  if(a.bindings.size() != b.bindings.size()
+     || a.attributes.size() != b.attributes.size())
+    return false;
+  for(std::size_t k = 0; k < a.bindings.size(); ++k)
+  {
+    const auto& x = a.bindings[k];
+    const auto& y = b.bindings[k];
+    if(x.byte_stride != y.byte_stride || x.classification != y.classification
+       || x.step_rate != y.step_rate)
+      return false;
+  }
+  for(std::size_t k = 0; k < a.attributes.size(); ++k)
+  {
+    const auto& x = a.attributes[k];
+    const auto& y = b.attributes[k];
+    if(x.binding != y.binding || x.location != y.location
+       || x.format != y.format || x.byte_offset != y.byte_offset
+       || x.element_byte_size != y.element_byte_size)
+      return false;
+  }
+  return true;
+}
+
 void CustomMesh::draw(const MeshBuffers &bufs, QRhiCommandBuffer &cb) const noexcept
 {
   // Default draw path: iterate sub-meshes without any per-mesh state swap.
@@ -725,7 +760,8 @@ void CustomMesh::draw(const MeshBuffers &bufs, QRhiCommandBuffer &cb) const noex
   std::size_t base = 0;
   for(std::size_t i = 0; i < geom.meshes.size(); ++i)
   {
-    drawSingleMesh(i, base, bufs, cb);
+    if(subMeshLayoutMatchesFirst(i))
+      drawSingleMesh(i, base, bufs, cb);
     base += geom.meshes[i].buffers.size();
   }
 }
@@ -741,7 +777,8 @@ void CustomMesh::drawWithFallbackBindings(
   std::size_t base = 0;
   for(std::size_t i = 0; i < geom.meshes.size(); ++i)
   {
-    drawSingleMesh(i, base, bufs, cb, fallback_slots);
+    if(subMeshLayoutMatchesFirst(i))
+      drawSingleMesh(i, base, bufs, cb, fallback_slots);
     base += geom.meshes[i].buffers.size();
   }
 }

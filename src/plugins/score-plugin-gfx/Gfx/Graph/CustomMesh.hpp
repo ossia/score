@@ -111,6 +111,11 @@ public:
       const MeshBuffers& bufs, QRhiCommandBuffer& cb,
       std::span<const FallbackBindingPlan::Slot> fallback_slots = {}) const noexcept;
 
+  //! True when sub-mesh i shares meshes[0]'s vertex layout — the only
+  //! layout the pipeline was built for; mismatching sub-meshes are
+  //! skipped by the default draw paths.
+  bool subMeshLayoutMatchesFirst(std::size_t i) const noexcept;
+
   const char* defaultVertexShader() const noexcept override;
 
   const ossia::geometry* semanticGeometry() const noexcept override
