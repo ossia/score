@@ -127,14 +127,22 @@ spa_video_format avToSpaPixFmt(AVPixelFormat fmt) noexcept
 // sends DmaBuf with a fourcc DRMPrimeDecoder doesn't recognise), we
 // fall back to the memcpy path automatically.
 
-// Holds the per-frame context for the deferred queue-back path. The
-// pipewire context is held by weak_ptr so a stale release (after the
-// stream / context have been torn down) cannot dereference a dead
-// pointer — it just no-ops.
+// Published pw_stream pointer, shared between the stream owner and every
+// in-flight frame's release context. The owner nulls it on the pipewire
+// loop (before pw_stream_destroy) so a frame released after stop() sees
+// null and no-ops instead of queueing a buffer on a destroyed stream.
+// The process-wide pipewire context outlives any one stream, so the
+// weak_ctx guard alone is not enough to detect stream teardown.
+struct PwStreamToken
+{
+  std::atomic<pw_stream*> stream{nullptr};
+};
+
+// Holds the per-frame context for the deferred queue-back path.
 struct PwBufferReleaseCtx
 {
   std::weak_ptr<libremidi::pipewire::context> weak_ctx;
-  pw_stream* stream{};
+  std::shared_ptr<PwStreamToken> token;
   pw_buffer* buffer{};
   AVDRMFrameDescriptor* desc{};
 };
@@ -149,18 +157,19 @@ struct PwBufferReleaseCtx
 extern "C" void score_pw_release_avframe(void* opaque, uint8_t* /*data*/)
 {
   auto* ctx = static_cast<PwBufferReleaseCtx*>(opaque);
-  // Upgrade weak_ptr to shared. If the shared context died before
-  // the renderer got around to releasing this frame, just free the
-  // descriptor — the pipewire side is already gone and the buffer
-  // it pointed at has been destroyed with the stream.
-  if(auto shared = ctx->weak_ctx.lock(); shared && ctx->stream && ctx->buffer)
+  // The token's stream pointer is read on the pipewire loop thread,
+  // where the owner also nulls it before destroying the stream — so
+  // either we queue the buffer back on a live stream, or we see null
+  // and only free our descriptor.
+  if(auto shared = ctx->weak_ctx.lock(); shared && ctx->token && ctx->buffer)
   {
     auto& pw = libremidi::pipewire::load();
-    pw_stream* stream = ctx->stream;
     pw_buffer* buf = ctx->buffer;
+    const auto& token = ctx->token;
     shared->invoke_sync([&] {
-      if(pw.stream_queue_buffer)
-        pw.stream_queue_buffer(stream, buf);
+      if(pw_stream* stream = token->stream.load(std::memory_order_relaxed))
+        if(pw.stream_queue_buffer)
+          pw.stream_queue_buffer(stream, buf);
     });
   }
   if(ctx->desc)
@@ -186,8 +195,8 @@ extern "C" void score_pw_release_avframe(void* opaque, uint8_t* /*data*/)
  * back to mmap+memcpy). */
 AVFrame* wrap_dmabuf_as_drm_prime(
     const std::shared_ptr<libremidi::pipewire::context>& shared,
-    pw_stream* stream, pw_buffer* b, int width, int height,
-    uint64_t modifier, formats::Tag tag)
+    const std::shared_ptr<PwStreamToken>& token, pw_buffer* b, int width,
+    int height, uint64_t modifier, formats::Tag tag)
 {
   spa_buffer* buf = b->buffer;
   if(!buf || buf->n_datas < 1)
@@ -309,7 +318,7 @@ AVFrame* wrap_dmabuf_as_drm_prime(
   f->data[0] = reinterpret_cast<uint8_t*>(desc);
 
   auto* ctx = new PwBufferReleaseCtx{
-      std::weak_ptr<libremidi::pipewire::context>{shared}, stream, b, desc};
+      std::weak_ptr<libremidi::pipewire::context>{shared}, token, b, desc};
   f->buf[0] = av_buffer_create(
       reinterpret_cast<uint8_t*>(desc), sizeof(*desc),
       &score_pw_release_avframe, ctx, AV_BUFFER_FLAG_READONLY);
@@ -359,6 +368,8 @@ private:
     // registry — we just attach a pw_stream to its loop.
     std::shared_ptr<libremidi::pipewire::context> shared;
     pw_stream* stream{nullptr};
+    // Handed to every DRM_PRIME frame's release context; see PwStreamToken.
+    std::shared_ptr<PwStreamToken> token = std::make_shared<PwStreamToken>();
     spa_hook stream_listener{};
     spa_video_info_raw format{};
 
@@ -373,10 +384,16 @@ private:
       {
         auto& pw = libremidi::pipewire::load();
         shared->with_lock([&] {
+          // Invalidate in-flight frame releases before the stream dies;
+          // both run on the loop thread, so this is race-free.
+          token->stream.store(nullptr, std::memory_order_relaxed);
           if(pw.stream_destroy)
             pw.stream_destroy(stream);
           stream = nullptr;
         });
+        // Frames released after this point must not queue into a future
+        // stream: they keep the old token, we start over with a new one.
+        token = std::make_shared<PwStreamToken>();
       }
       shared.reset();
     }
@@ -500,6 +517,9 @@ void InputStream::init_frames()
   // frames that'll never be used.
   if(m_pixelFormat == AV_PIX_FMT_DRM_PRIME)
     return;
+  // Runs on the pipewire loop thread (renegotiation) concurrently with
+  // the render thread's release_frame; the pool needs the lock.
+  std::lock_guard<std::mutex> lock(m_frameMutex);
   for(int i = 0; i < kDefaultPoolSize; ++i)
   {
     AVFrame* f = av_frame_alloc();
@@ -615,6 +635,7 @@ bool InputStream::start() noexcept
           m_data->shared->pw_core_ptr(), "score-input", props);
       if(!m_data->stream)
         return;
+      m_data->token->stream.store(m_data->stream, std::memory_order_relaxed);
       pw.stream_add_listener(
           m_data->stream, &m_data->stream_listener, &stream_events, this);
       ok = true;
@@ -897,7 +918,7 @@ void InputStream::on_stream_process(void* data)
 
     const formats::Tag tag = formats::tagFromAvPixFmt(self->m_sw_format);
     AVFrame* f = wrap_dmabuf_as_drm_prime(
-        self->m_data->shared, self->m_data->stream, b,
+        self->m_data->shared, self->m_data->token, b,
         self->m_width, self->m_height,
         self->m_data->format.modifier, tag);
     if(f)
@@ -943,6 +964,25 @@ void InputStream::on_stream_process(void* data)
   {
     pw.stream_queue_buffer(self->m_data->stream, b);
     return;
+  }
+
+  // A frame checked out by the renderer across a format renegotiation
+  // returns to the pool with the old geometry; copying the new size
+  // through its old linesize/allocation would overflow the heap.
+  // Reallocate it to the current negotiated state before use.
+  if(frame->width != self->m_width || frame->height != self->m_height
+     || frame->format != self->m_pixelFormat)
+  {
+    av_frame_unref(frame);
+    frame->format = self->m_pixelFormat;
+    frame->width = self->m_width;
+    frame->height = self->m_height;
+    if(av_frame_get_buffer(frame, 32) < 0)
+    {
+      av_frame_free(&frame);
+      pw.stream_queue_buffer(self->m_data->stream, b);
+      return;
+    }
   }
 
   // Copy from pipewire-mapped sysmem into the AVFrame. We honour the
