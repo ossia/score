@@ -99,7 +99,7 @@ struct InteropFenceVulkanStub final : InteropFence
   bool waitOnCuda(std::uint64_t) override { return false; }
 };
 
-#if QT_HAS_VULKAN
+#if QT_HAS_VULKAN && QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
 // =============================================================================
 // Vulkan — real: a small ring of BINARY VkSemaphores exported to CUDA.
 //
@@ -234,7 +234,7 @@ std::unique_ptr<InteropFence> makeInteropFence(QRhi& rhi)
     case QRhi::OpenGLES2:
       return std::make_unique<InteropFenceGL>();
     case QRhi::Vulkan:
-#if QT_HAS_VULKAN
+#if QT_HAS_VULKAN && QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
       return std::make_unique<InteropFenceVulkan>();
 #else
       return std::make_unique<InteropFenceVulkanStub>();
