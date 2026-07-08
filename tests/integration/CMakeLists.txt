@@ -24,3 +24,13 @@ score_add_test(test_integration_js_process
   SOURCES JsProcessTest.cpp
   GUI
   PLUGINS score_plugin_scenario score_lib_process score_plugin_js)
+
+score_add_test(test_integration_scenario_rename
+  SOURCES ScenarioRenameTest.cpp
+  APP
+  PLUGINS score_plugin_scenario score_lib_process)
+
+score_add_test(test_integration_scenario_create
+  SOURCES ScenarioCreateTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process)
