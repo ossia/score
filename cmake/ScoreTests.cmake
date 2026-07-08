@@ -83,7 +83,18 @@ function(score_add_test NAME)
   # "<cwd>/plugins": run them from the build root where <build>/plugins lives.
   if(ARG_APP OR ARG_GUI)
     set_tests_properties(${NAME} PROPERTIES
-      WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}"
+      WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+  endif()
+
+  if(ARG_APP)
+    # Headless: force the offscreen platform.
+    set_tests_properties(${NAME} PROPERTIES
       ENVIRONMENT "QT_QPA_PLATFORM=offscreen;SCORE_AUDIO_BACKEND=dummy")
+  elseif(ARG_GUI)
+    # GUI tests need a real display (X11 locally, Xvfb in CI): do NOT force
+    # offscreen. Labelled "gui" so CI can gate them behind a display.
+    set_tests_properties(${NAME} PROPERTIES
+      ENVIRONMENT "SCORE_AUDIO_BACKEND=dummy"
+      LABELS "gui")
   endif()
 endfunction()
