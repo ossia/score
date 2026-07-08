@@ -9,3 +9,8 @@ score_add_test(test_integration_document
 score_add_test(test_integration_roundtrip
   SOURCES DocumentRoundtripTest.cpp
   APP)
+
+score_add_test(test_integration_scenario_undo
+  SOURCES ScenarioUndoTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process)

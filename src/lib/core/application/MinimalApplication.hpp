@@ -89,16 +89,17 @@ class MinimalGUIApplication final
     , public score::GUIApplicationInterface
 {
 public:
-  MinimalGUIApplication(int& argc, char** argv)
+  MinimalGUIApplication(int& argc, char** argv, bool show = true)
       : QObject{nullptr}
       , m_app{new QApplication{argc, argv}}
   {
+    m_show = show;
 #if defined(SCORE_STATIC_PLUGINS)
     score_init_static_plugins();
 #endif
 
     m_instance = this;
-    this->setParent(m_app);
+    this->setParent(m_app.get());
 
     m_view = new score::View{nullptr};
     m_presenter
@@ -106,7 +107,8 @@ public:
 
     GUIApplicationInterface::loadPluginData(m_settings, *m_presenter);
 
-    m_view->show();
+    if(m_show)
+      m_view->show();
   }
 
   ~MinimalGUIApplication() override
@@ -115,7 +117,8 @@ public:
     delete m_presenter;
 
     QApplication::processEvents();
-    delete m_app;
+    // m_app (the QApplication) is destroyed last (declared first), after the
+    // score::Settings members whose models are parented to it.
   }
 
   const score::GUIApplicationContext& context() const override
@@ -137,7 +140,13 @@ public:
 
   int exec() { return m_app->exec(); }
 
-  QApplication* m_app{};
+  // Whether to show() the main window. Tests that only need a valid document
+  // presenter (not actual painting) can leave it hidden.
+  bool m_show{true};
+
+  // Declared first so it is destroyed last (after the settings members, whose
+  // models are parented to it).
+  std::unique_ptr<QApplication> m_app;
   score::Settings m_settings;
   score::ProjectSettings m_pset;
   score::View* m_view{};
