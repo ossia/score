@@ -13,12 +13,9 @@
 #include <QObject>
 
 static auto init = [] {
+  // Qt6: QDataStream stream operators and comparators for registered metatypes
+  // are picked up automatically (qRegisterMetaTypeStreamOperators /
+  // QMetaType::registerComparators were removed).
   static score::MinimalApplication app;
-  qRegisterMetaTypeStreamOperators<State::Address>();
-
-  QMetaType::registerComparators<State::MessageList>();
-  qRegisterMetaTypeStreamOperators<State::Message>();
-  qRegisterMetaTypeStreamOperators<State::MessageList>();
-  qRegisterMetaTypeStreamOperators<ossia::value>();
   return 0;
 }();
