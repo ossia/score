@@ -10,6 +10,7 @@
 
 #include <score/plugins/FactorySetup.hpp>
 
+#include <Expr2/Expr2.hpp>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Support/ManagedStatic.h>
 #include <llvm/Support/Signals.h>
@@ -45,7 +46,8 @@ std::vector<score::InterfaceBase*> score_plugin_jit::factories(
 {
   return instantiate_factories<
       score::ApplicationContext,
-      FW<Process::ProcessModelFactory, Jit::JitEffectFactory, Jit::BytebeatEffectFactory
+      FW<Process::ProcessModelFactory, Jit::JitEffectFactory, Jit::BytebeatEffectFactory,
+         Jit::Expr2EffectFactory
 #if defined(SCORE_PLUGIN_AVND)
          ,
          AvndJit::JitEffectFactory
@@ -56,7 +58,8 @@ std::vector<score::InterfaceBase*> score_plugin_jit::factories(
 #endif
          >,
 
-      FW<Process::LayerFactory, Jit::LayerFactory, Jit::BytebeatLayerFactory
+      FW<Process::LayerFactory, Jit::LayerFactory, Jit::BytebeatLayerFactory,
+         Jit::Expr2LayerFactory
 #if defined(SCORE_PLUGIN_AVND)
          ,
          AvndJit::LayerFactory
@@ -68,7 +71,7 @@ std::vector<score::InterfaceBase*> score_plugin_jit::factories(
          >,
 
       FW<Execution::ProcessComponentFactory, Execution::JitEffectComponentFactory,
-         Jit::BytebeatExecutorFactory
+         Jit::BytebeatExecutorFactory, Jit::Expr2ExecutorFactory
 #if defined(SCORE_PLUGIN_AVND)
          ,
          AvndJit::JitEffectComponentFactory
