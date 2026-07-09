@@ -54,7 +54,8 @@ enum class VideoPixelFormat : uint16_t
   BGR24 = 6,      /**< Packed 24-bit, byte order B,G,R (3 bpp). */
 
   // -- Packed 10/12-bit RGB --------------------------------------------
-  R210 = 10,      /**< 10-bit RGB, 4 bytes/pixel, big-endian word packing. */
+  R210 = 10,      /**< DeckLink r210 / AV_CODEC_ID_R210: word
+                       (R<<20)|(G<<10)|B, 4 bytes/pixel, big-endian. */
   R12B = 11,      /**< 12-bit RGB big-endian, AJA + DeckLink. */
   R12L = 12,      /**< 12-bit RGB little-endian. */
   ARGB10 = 13,    /**< A2R10G10B10 packed (AJA NTV2_FBF_10BIT_ARGB). */
@@ -62,6 +63,8 @@ enum class VideoPixelFormat : uint16_t
   DPX10LE = 15,   /**< 10-bit RGB DPX/Cineon, little-endian. */
   RGB12P = 16,    /**< 12-bit RGB packed, 2px/9 bytes (AJA NTV2_FBF_12BIT_RGB_PACKED). */
   RGB48 = 17,     /**< 16-bit-per-channel RGB, no alpha (AJA NTV2_FBF_48BIT_RGB). */
+  RGB10 = 18,     /**< AJA NTV2_FBF_10BIT_RGB: word (B<<20)|(G<<10)|R, LE.
+                       Distinct from R210 (DeckLink r210: R high, BE). */
 
   // -- Packed 8-bit YUV 4:2:2 -----------------------------------------
   UYVY422 = 20,   /**< Most common SDI; 16-bpp packed UYVY. */
@@ -118,6 +121,12 @@ struct VideoPixelFormatInfo
   bool isYuv{};
   bool isPlanar{};
   uint16_t defaultStrideAlignment{256}; /**< Bytes; vendors typically need 128 or 256. */
+  /**< Bytes of ONE primary-plane (luma) sample: 1 for 8-bit planar
+   *   (NV12, YUV420P), 2 for 10/16-bit planar (P010, P210, YUV420P10).
+   *   0 for packed formats, where the primary-plane stride is
+   *   width*bitsPerPixel/8. Using the average bitsPerPixel for a planar
+   *   primary plane over-computes its stride (NV12 1.5×, P010 3×). */
+  uint8_t bytesPerPrimarySample{0};
 };
 
 /** Round `v` up to the next multiple of `a` (`a` must be a power of two). */

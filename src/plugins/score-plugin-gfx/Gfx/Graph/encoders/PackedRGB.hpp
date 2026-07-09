@@ -190,6 +190,19 @@ struct PackedRGBEncoder : GPUVideoEncoder
     )_");
   }
 
+  // DeckLink r210 / AV_CODEC_ID_R210: word = (R<<20)|(G<<10)|B, stored
+  // BIG-ENDIAN, 1 px/word. R in the high bits, opposite channel order and
+  // opposite endianness to AJA's NTV2_FBF_10BIT_RGB above.
+  static std::unique_ptr<PackedRGBEncoder> r210be()
+  {
+    return std::make_unique<PackedRGBEncoder>(4, 1, 1023, 0, R"_(
+      int px = b >> 2; int k = b & 3;
+      uvec4 c = rgb_at(px, srcY);
+      uint w = (c.r << 20) | (c.g << 10) | c.b;
+      return (w >> uint(8 * (3 - k))) & 0xFFu;
+    )_");
+  }
+
   // NTV2_FBF_10BIT_DPX (big-endian): value=(R<<22)|(G<<12)|(B<<2), stored BE.
   static std::unique_ptr<PackedRGBEncoder> dpx10be()
   {

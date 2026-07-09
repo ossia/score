@@ -343,57 +343,72 @@ struct GStreamerOutputNode : score::gfx::OutputNode
     if(!bus)
       return;
 
-    // timeout==0 => return immediately if no matching message is queued.
-    while(GstMessage* msg = gst.bus_timed_pop_filtered(
-              bus, 0, (GstMessageType)GST_MESSAGE_ERROR))
+    // Drain WARNINGs first (non-fatal: QoS, v4l2/muxer notices) — log and
+    // discard, they must NOT stop the pipeline (would truncate the recording).
+    while(GstMessage* msg
+          = gst.bus_timed_pop_filtered(bus, 0, GST_MESSAGE_WARNING))
+    {
+      qWarning() << "GStreamer output: pipeline warning on the bus";
+      if(gst.message_unref)
+        gst.message_unref(msg);
+    }
+    // Only an ERROR is fatal: stop feeding frames, but deliberately leave
+    // m_started set so stop_pipeline() still runs EOS + drives to NULL.
+    if(GstMessage* msg = gst.bus_timed_pop_filtered(bus, 0, GST_MESSAGE_ERROR))
     {
       qWarning() << "GStreamer output: fatal error on the bus; stopping frame "
                     "feed (pipeline will still be finalized)";
       if(gst.message_unref)
         gst.message_unref(msg);
       m_feeding = false;
-      break;
     }
     gst.object_unref(bus);
   }
 
   void stop_pipeline()
   {
-    if(!m_pipeline || !m_started)
+    if(!m_pipeline)
       return;
 
     auto& gst = libgstreamer::instance();
 
-    // Send EOS to appsrc elements so downstream can finalize
-    if(m_video_src && gst.app_src_end_of_stream)
-      gst.app_src_end_of_stream(m_video_src);
-    if(m_audio_src && gst.app_src_end_of_stream)
-      gst.app_src_end_of_stream(m_audio_src);
-
-    // appsrc EOS is ASYNC: it travels through the pipeline as a buffer would,
-    // and muxers (mp4mux/matroskamux/...) only finalize the file once EOS
-    // reaches them. Setting the pipeline to NULL immediately would truncate
-    // the moov atom / cluster index, producing unplayable files. Wait for the
-    // EOS (or ERROR) message on the bus, with a bounded timeout so we never
-    // hang the UI thread on a stuck pipeline.
-    if(gst.element_get_bus && gst.bus_timed_pop_filtered)
+    // Only the EOS handshake is gated on m_started: if we were never
+    // pushing (or an ERROR already stopped us) there's nothing to
+    // flush, but we must still bring the pipeline to NULL below — an
+    // early return here would leak a still-PLAYING pipeline.
+    if(m_started)
     {
-      if(GstBus* bus = gst.element_get_bus(m_pipeline))
+      // Send EOS to appsrc elements so downstream can finalize
+      if(m_video_src && gst.app_src_end_of_stream)
+        gst.app_src_end_of_stream(m_video_src);
+      if(m_audio_src && gst.app_src_end_of_stream)
+        gst.app_src_end_of_stream(m_audio_src);
+
+      // appsrc EOS is ASYNC: it travels through the pipeline as a buffer would,
+      // and muxers (mp4mux/matroskamux/...) only finalize the file once EOS
+      // reaches them. Setting the pipeline to NULL immediately would truncate
+      // the moov atom / cluster index, producing unplayable files. Wait for the
+      // EOS (or ERROR) message on the bus, with a bounded timeout so we never
+      // hang the UI thread on a stuck pipeline.
+      if(gst.element_get_bus && gst.bus_timed_pop_filtered)
       {
-        GstMessage* msg = gst.bus_timed_pop_filtered(
-            bus, 5 * GST_SECOND,
-            (GstMessageType)(GST_MESSAGE_EOS | GST_MESSAGE_ERROR));
-        if(msg)
+        if(GstBus* bus = gst.element_get_bus(m_pipeline))
         {
-          if(gst.message_unref)
-            gst.message_unref(msg);
+          GstMessage* msg = gst.bus_timed_pop_filtered(
+              bus, 5 * GST_SECOND,
+              (GstMessageType)(GST_MESSAGE_EOS | GST_MESSAGE_ERROR));
+          if(msg)
+          {
+            if(gst.message_unref)
+              gst.message_unref(msg);
+          }
+          else
+          {
+            qWarning() << "GStreamer output: timed out waiting for EOS; "
+                          "output file may be truncated";
+          }
+          gst.object_unref(bus);
         }
-        else
-        {
-          qWarning() << "GStreamer output: timed out waiting for EOS; "
-                        "output file may be truncated";
-        }
-        gst.object_unref(bus);
       }
     }
 

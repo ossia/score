@@ -46,7 +46,8 @@ AVPixelFormat toAVPixelFormat(VideoPixelFormat f) noexcept
     // -- wire-only: no AVPixelFormat (FFmpeg models these as codecs) --
     case V::V210:      // AV_CODEC_ID_V210
     case V::V216:      // AV_CODEC_ID_V210X
-    case V::R210:      // AV_CODEC_ID_R210 / R10K
+    case V::R210:      // AV_CODEC_ID_R210 (big-endian, R high)
+    case V::RGB10:     // AJA NTV2_FBF_10BIT_RGB (little-endian, B high)
     case V::R12B:      // AV_CODEC_ID_DPX
     case V::R12L:
     case V::ARGB10:    // A2R10G10B10 packed

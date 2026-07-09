@@ -276,6 +276,12 @@ void DirectVideoOutputNode::destroyOutput()
   }
   if(m_renderState)
   {
+    // Persist-across-rebuild contract (OutputNode.hpp): the registry
+    // outlives the RenderList, so its QRhi resources must be torn down
+    // here BEFORE RenderState::destroy() frees the device — otherwise
+    // they leak every teardown and re-create asserts boundRhi()==&rhi.
+    releaseRegistry();
+
     delete m_renderTarget;
     m_renderTarget = nullptr;
     delete m_renderState->renderPassDescriptor;
