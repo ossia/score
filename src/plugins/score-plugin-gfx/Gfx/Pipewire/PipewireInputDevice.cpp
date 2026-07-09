@@ -963,16 +963,39 @@ void InputStream::on_stream_process(void* data)
     return;
   }
 
-  // Drop frames whose mapped payload can't hold the negotiated geometry:
-  // the plane copies below are sized from m_width/m_height, and reading
-  // chroma at ySize + uvSize past a smaller chunk runs off the mmap.
-  // av_image_get_buffer_size is the tight size of exactly the layout the
-  // av_image_copy_plane calls below consume.
+  // Drop frames whose mapped payload can't hold what the plane copies
+  // below will read. Those copies advance at chunk->stride (not the tight
+  // stride), so bound against the ACTUAL stride: an over-large stride
+  // from a hostile/misconfigured producer would otherwise pass a
+  // tight-size check yet still read past the mmap. plane-0 stride ×
+  // (1 for packed, 1.5 for 4:2:0, 2 for 4:2:2) covers Y + chroma.
   {
-    const int neededBytes = av_image_get_buffer_size(
-        self->m_pixelFormat, self->m_width, self->m_height, 1);
-    if(neededBytes > 0
-       && int64_t(buf->datas[0].chunk->size) < int64_t(neededBytes))
+    const auto* chunk = buf->datas[0].chunk;
+    const int64_t tightStride
+        = int64_t(self->m_width)
+          * formats::bytesPerPixel(formats::tagFromAvPixFmt(self->m_pixelFormat));
+    int64_t stride0 = chunk->stride > 0 ? int64_t(chunk->stride) : tightStride;
+    if(stride0 < tightStride) // producer under-reports; copies use tightStride
+      stride0 = tightStride;
+
+    double planeFactor = 1.0;
+    switch(self->m_pixelFormat)
+    {
+      case AV_PIX_FMT_YUV420P:
+      case AV_PIX_FMT_NV12:
+      case AV_PIX_FMT_P010LE:
+        planeFactor = 1.5;
+        break;
+      case AV_PIX_FMT_P210LE:
+        planeFactor = 2.0;
+        break;
+      default:
+        planeFactor = 1.0; // packed
+        break;
+    }
+    const int64_t neededBytes
+        = int64_t(double(stride0) * self->m_height * planeFactor);
+    if(neededBytes > 0 && int64_t(chunk->size) < neededBytes)
     {
       pw.stream_queue_buffer(self->m_data->stream, b);
       return;
@@ -1020,10 +1043,11 @@ void InputStream::on_stream_process(void* data)
   // server buffers).
   auto* src = static_cast<const uint8_t*>(buf->datas[0].data);
   const auto* chunk = buf->datas[0].chunk;
+  // Leave the raw stride (possibly <= 0) for each case to default from:
+  // the packed and planar branches below set the correct per-format
+  // stride when the producer reports none. A blanket w*4 default here
+  // would shadow those and corrupt the planar copies.
   int src_stride = chunk->stride;
-  if(src_stride <= 0)
-    src_stride = self->m_width * 4; // pessimistic default; planar paths
-                                    // override below
 
   const int w = self->m_width;
   const int h = self->m_height;

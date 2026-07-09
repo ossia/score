@@ -242,6 +242,17 @@ public:
     }
   }
 
+  bool hasOutputPassForEdge(score::gfx::Edge& edge) const override
+  {
+    // Without this, Graph::createAllMissingPasses (re-run on every
+    // document edit) can't tell this edge already has a pass and stacks
+    // duplicates; removeOutputPass then drops only the first, leaving a
+    // stale pass bound to a destroyed render target — the UAF class
+    // addOutputPass/removeOutputPass exist to prevent.
+    return ossia::find_if(m_p, [&](const auto& p) { return p.first == &edge; })
+           != m_p.end();
+  }
+
   void release(score::gfx::RenderList& r) override
   {
     if(m_timeUpload && m_uploadCount > 0) [[unlikely]]
