@@ -27,6 +27,27 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
       }
     });
 
+    con(v, &View::webUiPathChanged, this, [&](auto val) {
+      if(val != m.getWebUiPath())
+      {
+        m_disp.submit<SetModelWebUiPath>(this->model(this), val);
+      }
+    });
+
+    con(v, &View::serverAddressChanged, this, [&](auto val) {
+      if(val != m.getServerAddress())
+      {
+        m_disp.submit<SetModelServerAddress>(this->model(this), val);
+      }
+    });
+
+    con(v, &View::serverPortChanged, this, [&](auto val) {
+      if(val != m.getServerPort())
+      {
+        m_disp.submit<SetModelServerPort>(this->model(this), val);
+      }
+    });
+
     con(v, &View::serverEnabledChanged, this, [&](auto val) {
       if(val != m.getServerEnabled())
       {
@@ -36,10 +57,16 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
 
     // model -> view
     con(m, &Model::EnabledChanged, &v, &View::setEnabled);
+    con(m, &Model::WebUiPathChanged, &v, &View::setWebUiPath);
+    con(m, &Model::ServerAddressChanged, &v, &View::setServerAddress);
+    con(m, &Model::ServerPortChanged, &v, &View::setServerPort);
     con(m, &Model::ServerEnabledChanged, &v, &View::setServerEnabled);
 
     // initial value
     v.setEnabled(m.getEnabled());
+    v.setWebUiPath(m.getWebUiPath());
+    v.setServerAddress(m.getServerAddress());
+    v.setServerPort(m.getServerPort());
     v.setServerEnabled(m.getServerEnabled());
   }
 }
