@@ -1325,7 +1325,13 @@ public:
     if(m_frameFormat == CapturedFrame::DMA_BUF_FD)
     {
       frame.type = CapturedFrame::DMA_BUF_FD;
-      frame.dmabufFd = m_dmabufFd;
+      // Hand the consumer its OWN dup: our m_dmabufFdDup is closed and
+      // replaced by the pipewire thread on the next frame, which would
+      // otherwise race the consumer's import (EBADF / wrong buffer).
+      // The consumer owns and closes this fd (ownsDmabufFd).
+      frame.dmabufFd
+          = m_dmabufFd >= 0 ? ::fcntl(m_dmabufFd, F_DUPFD_CLOEXEC, 0) : -1;
+      frame.ownsDmabufFd = (frame.dmabufFd >= 0);
       frame.drmFormat = m_drmFormat;
       frame.drmModifier = m_drmModifier;
       frame.dmabufStride = m_dmabufStride;

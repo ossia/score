@@ -925,6 +925,11 @@ void RenderedISFNode::runInitialPasses(
 
   // Even with a single output if a node renders to two "edges"..
 
+  // Pipeline creation may have failed and left m_passes empty (same case
+  // update() guards against) — don't index [0].
+  if(this->m_passes.empty())
+    return;
+
   // Check if we just have one pass (thus nothing to render here).
   if(this->m_passes[0].second.passes.size() == 1)
     return;

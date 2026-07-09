@@ -4912,7 +4912,13 @@ void RenderedCSFNode::runInitialPasses(
         continue;
       if(!(si.texture->flags() & QRhiTexture::MipMapped))
         continue;
-      res->generateMips(si.texture);
+      // res is nulled by the preceding beginComputePass and only
+      // re-acquired when geometry bindings run; an image-only CSF gets
+      // here with res == nullptr. Acquire one so generateMips has a batch.
+      if(!res)
+        res = renderer.state.rhi->nextResourceUpdateBatch();
+      if(res)
+        res->generateMips(si.texture);
     }
   }
 }

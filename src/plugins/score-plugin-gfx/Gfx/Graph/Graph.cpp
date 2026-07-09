@@ -949,20 +949,20 @@ void Graph::reconcileAllRenderLists()
 
     // 5. Create renderers for newly-reachable nodes (AFTER render targets
     //    exist so that initState → initInputSamplers finds the correct textures).
+    // Pool exhausted (64 live batches — indicates a leak elsewhere): skip
+    // creating renderers this pass (retried next reconcile) but STILL fall
+    // through to step 7, which rebuilds rl->renderers from renderedNodes —
+    // step 3 above already deleted unreachable renderers, so a `continue`
+    // here would leave their freed pointers live in rl->renderers → UAF.
     QRhiResourceUpdateBatch* batch = rl->state.rhi->nextResourceUpdateBatch();
     if(!batch)
-    {
-      // Pool exhausted (64 live batches — indicates a leak elsewhere);
-      // renderer creation is retried on the next reconcile rather than
-      // dereferencing null here.
       qWarning("reconcileAllRenderLists: resource update batch pool exhausted");
-      continue;
-    }
     bool batchUsed = false;
 
     for(auto* node : rl->nodes)
     {
-      if(node->renderedNodes.find(rl.get()) == node->renderedNodes.end())
+      if(batch
+         && node->renderedNodes.find(rl.get()) == node->renderedNodes.end())
       {
         if(auto* rn = node->createRenderer(*rl))
         {

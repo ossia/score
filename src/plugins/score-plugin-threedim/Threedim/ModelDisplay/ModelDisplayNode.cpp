@@ -1120,7 +1120,15 @@ private:
       toGL(view, mc.view);
       toGL(mv, mc.mv);
       toGL(mvp, mc.mvp);
-      toGL(norm, mc.modelNormal);
+      // std140 mat3 = three vec4-aligned columns. modelNormal is 12
+      // floats; toGL would memcpy 48 bytes from the 36-byte QMatrix3x3
+      // (OOB read + garbled columns). Spread the 9 values by column.
+      {
+        const float* nd = norm.constData();
+        for(int c = 0; c < 3; c++)
+          for(int r = 0; r < 3; r++)
+            mc.modelNormal[c * 4 + r] = nd[c * 3 + r];
+      }
       mc.fov = n.fov;
 
       res.updateDynamicBuffer(m_material.buffer, 0, sizeof(ModelCameraUBO), &mc);

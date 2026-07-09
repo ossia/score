@@ -251,9 +251,16 @@ Process::Descriptor ProcessFactory::descriptor(QString path) const noexcept
 template <>
 void DataStreamReader::read(const Gfx::VSA::Model& proc)
 {
-  auto& ctx = score::IDocument::documentContext(proc);
-  m_stream << proc.m_program
-           << score::relativizeFilePath(proc.m_scriptPath, ctx);
+  // documentContext() SCORE_ASSERTs when the model isn't in a document
+  // (saving a template / copy); only relativize when there's a path,
+  // mirroring the Filter/ISF siblings.
+  QString relativeScriptPath;
+  if(!proc.m_scriptPath.isEmpty())
+  {
+    auto& ctx = score::IDocument::documentContext(proc);
+    relativeScriptPath = score::relativizeFilePath(proc.m_scriptPath, ctx);
+  }
+  m_stream << proc.m_program << relativeScriptPath;
 
   readPorts(*this, proc.m_inlets, proc.m_outlets);
 

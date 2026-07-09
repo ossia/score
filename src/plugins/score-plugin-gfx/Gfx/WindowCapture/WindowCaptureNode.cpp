@@ -11,6 +11,10 @@
 #include <QDebug>
 
 #if defined(__linux__)
+#include <unistd.h>
+#endif
+
+#if defined(__linux__)
 #include <score/gfx/Vulkan.hpp>
 #if QT_HAS_VULKAN
 #include <vulkan/vulkan.h>
@@ -323,6 +327,12 @@ public:
                 quint64(m_dmaBufPlane.image), VK_IMAGE_LAYOUT_UNDEFINED});
           }
         }
+#endif
+        // The importer dup'd the fd into the VkImage; close the consumer's
+        // copy handed over by grab(). DMA_BUF_FD is Linux-only.
+#if defined(__linux__)
+        if(frame.ownsDmabufFd && frame.dmabufFd >= 0)
+          ::close(frame.dmabufFd);
 #endif
         break;
       }

@@ -232,11 +232,16 @@ void GenericNodeRenderer::addOutputPass(
     return;
 
   // Reuse an existing pipeline when this renderer already has one built
-  // against a compatible renderpass layout. serializedFormat() is QRhi's
+  // against a compatible render target. serializedFormat() is QRhi's
   // documented in-memory compatibility key (identical ⇔ isCompatible),
-  // which both makes the reuse valid on Vulkan/D3D12/Metal and avoids the
-  // pointer-ABA hazard of keying on the rp-desc address.
-  const QVector<quint32> rpFormat = rt.renderPass->serializedFormat();
+  // which avoids the pointer-ABA hazard of keying on the rp-desc address.
+  // But serializedFormat omits the sample count on Metal/D3D and is empty
+  // on GL, while the pipeline bakes in per-RT sample and multiview counts
+  // — so fold those into the key too, or two out-edges at differing
+  // sample counts would share a wrongly-multisampled pipeline.
+  QVector<quint32> rpFormat = rt.renderPass->serializedFormat();
+  rpFormat.push_back(quint32(rt.sampleCount()));
+  rpFormat.push_back(quint32(rt.multiViewCount));
   QRhiGraphicsPipeline* pipeline = nullptr;
   for(auto& [desc, pipe] : m_pipelineCache)
   {

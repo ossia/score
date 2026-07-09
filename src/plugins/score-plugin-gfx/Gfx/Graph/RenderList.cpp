@@ -1051,6 +1051,11 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
   {
     updateBatch = state.rhi->nextResourceUpdateBatch();
   }
+  if(!updateBatch)
+  {
+    qWarning("RenderList::render: resource update batch pool exhausted");
+    return;
+  }
 
   if(rt_changed && !rebuilt)
   {
@@ -1332,6 +1337,12 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
                 updateBatch = nullptr;
               }
               updateBatch = state.rhi->nextResourceUpdateBatch();
+              if(!updateBatch)
+              {
+                qWarning("RenderList::render: resource update batch pool "
+                         "exhausted");
+                return;
+              }
               continue;
             }
             NodeRenderer* renderer = rendered->second;
