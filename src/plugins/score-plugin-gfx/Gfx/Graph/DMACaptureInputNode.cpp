@@ -5,6 +5,8 @@
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
 #include <Gfx/Graph/interop/GpuDirectCaptureStrategy.hpp>
 
+#include <ossia/detail/algorithms.hpp>
+
 #include <QDebug>
 
 #include <chrono>
