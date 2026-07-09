@@ -82,7 +82,9 @@ makeWireEncoder(score::gfx::interop::VideoPixelFormat fmt)
 
     // -- packed 10/12-bit RGB --
     case F::R210:
-      return PackedRGBEncoder::rgb10();
+      return PackedRGBEncoder::r210be(); // DeckLink r210: R-high, big-endian
+    case F::RGB10:
+      return PackedRGBEncoder::rgb10();   // AJA 10BIT_RGB: B-high, little-endian
     case F::ARGB10:
       return PackedRGBEncoder::argb10();
     case F::DPX10:

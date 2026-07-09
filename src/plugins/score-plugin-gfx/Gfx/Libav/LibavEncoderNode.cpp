@@ -224,9 +224,14 @@ void LibavEncoderNode::createOutput(score::gfx::OutputConfiguration conf)
   const bool tenBitOut = pixfmtDepth(m_settings.video_converted_pixfmt) > 8;
   m_tenBit = tenBitOut
              && !makeEncoderForPixfmt(m_settings.video_converted_pixfmt);
+  // renderFormat drives the readback/flip stage's output texture (and the
+  // upstream RLs). Without setting it, the flip pass stays RGBA8 and the
+  // readback is w*h*4 while the 10-bit branch requires w*h*8 → the
+  // condition never holds and NO video is emitted. Mirror GStreamer.
+  m_renderState->renderFormat
+      = tenBitOut ? QRhiTexture::RGBA16F : QRhiTexture::RGBA8;
   m_texture = rhi->newTexture(
-      tenBitOut ? QRhiTexture::RGBA16F : QRhiTexture::RGBA8,
-      m_renderState->renderSize, 1,
+      m_renderState->renderFormat, m_renderState->renderSize, 1,
       QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource);
   m_texture->create();
 

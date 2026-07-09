@@ -24,18 +24,26 @@ constexpr VideoPixelFormatInfo makeYuv422Packed(const char* name,
 
 constexpr VideoPixelFormatInfo makeNv12(const char* name, uint8_t bpp) noexcept
 {
-  return VideoPixelFormatInfo{name, bpp, 2, 2, 2, true, true, 256};
+  // 4:2:0 semi-planar. Primary-sample bytes = bpp / (8 + 16/(hs*vs)) =
+  // bpp/12 here: exact for NV12 (12→1) and P010 (24→2).
+  return VideoPixelFormatInfo{name, bpp, 2, 2, 2, true, true, 256,
+                              uint8_t(bpp / 12u)};
 }
 
 constexpr VideoPixelFormatInfo makeNv16(const char* name, uint8_t bpp) noexcept
 {
-  return VideoPixelFormatInfo{name, bpp, 2, 2, 1, true, true, 256};
+  // 4:2:2 semi-planar. bpp/16: exact for P210 (32→2).
+  return VideoPixelFormatInfo{name, bpp, 2, 2, 1, true, true, 256,
+                              uint8_t(bpp / 16u)};
 }
 
 constexpr VideoPixelFormatInfo
 makePlanar(const char* name, uint8_t bpp, uint8_t hs, uint8_t vs) noexcept
 {
-  return VideoPixelFormatInfo{name, bpp, 3, hs, vs, true, true, 256};
+  // Fully planar. Primary-sample bytes = bpp / (8 + 16/(hs*vs)); exact
+  // for all 4:2:0 / 4:2:2 / 4:4:4 8/10/12-bit variants.
+  return VideoPixelFormatInfo{name, bpp, 3, hs, vs, true, true, 256,
+                              uint8_t(bpp / (8u + 16u / (uint32_t(hs) * vs)))};
 }
 
 constexpr VideoPixelFormatInfo makeMono(const char* name, uint8_t bpp) noexcept
@@ -99,7 +107,10 @@ const VideoPixelFormatInfo& formatInfo(VideoPixelFormat f) noexcept
     }
     case VideoPixelFormat::ARGB10:
     {
-      static constexpr auto i = makeRgb("ARGB10", 32, 256);
+      // 4×10-bit channels packed into 5 bytes/pixel (see PackedRGB::argb10,
+      // 40 bits). Declaring 32 here under-sized the stride by 20% → the
+      // encoder's readback wrote past DMA/ring allocations sized from it.
+      static constexpr auto i = makeRgb("ARGB10", 40, 256);
       return i;
     }
     case VideoPixelFormat::DPX10:
@@ -120,6 +131,11 @@ const VideoPixelFormatInfo& formatInfo(VideoPixelFormat f) noexcept
     case VideoPixelFormat::RGB48:
     {
       static constexpr auto i = makeRgb("RGB48", 48, 256);
+      return i;
+    }
+    case VideoPixelFormat::RGB10:
+    {
+      static constexpr auto i = makeRgb("RGB10", 32, 256);
       return i;
     }
     case VideoPixelFormat::UYVY422:
@@ -270,9 +286,14 @@ std::size_t defaultStride(VideoPixelFormat f, uint32_t width) noexcept
   const auto& info = formatInfo(f);
   if(info.bitsPerPixel == 0)
     return 0;
-  // Packed and semi-planar: stride = width * bpp/8 for the primary plane.
+  // Planar/semi-planar: the primary (luma) plane row is
+  // width * bytesPerPrimarySample — NOT width * average-bpp/8, which
+  // over-computes (NV12 1.5×, P010 3×). Packed formats have no separate
+  // primary plane, so they keep width * bitsPerPixel/8.
   const std::size_t bytesPerRow
-      = (std::size_t(width) * info.bitsPerPixel + 7u) / 8u;
+      = (info.isPlanar && info.bytesPerPrimarySample > 0)
+            ? std::size_t(width) * info.bytesPerPrimarySample
+            : (std::size_t(width) * info.bitsPerPixel + 7u) / 8u;
   return alignUp(bytesPerRow, info.defaultStrideAlignment);
 }
 
