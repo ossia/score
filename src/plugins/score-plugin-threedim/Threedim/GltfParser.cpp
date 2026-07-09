@@ -157,11 +157,19 @@ static std::shared_ptr<ossia::material_component> to_material(
           {
             // Relative URI → join with the glTF file's parent dir.
             // Contain the result inside that dir: URIs come from the
-            // asset file, and "../" chains or absolute paths would let
-            // a shared scene read arbitrary local files.
-            auto p = (dir / std::filesystem::path(std::string_view(
-                data.uri.path()))).lexically_normal();
-            const auto base = dir.lexically_normal();
+            // asset file, and "../" chains, absolute paths or symlinks
+            // would let a shared scene read arbitrary local files.
+            // weakly_canonical resolves symlinks; an empty base dir
+            // (bare-filename load) can't be contained, so reject.
+            std::error_code ec;
+            const auto base = std::filesystem::weakly_canonical(dir, ec);
+            if(ec || base.empty())
+              return;
+            const auto p = std::filesystem::weakly_canonical(
+                dir / std::filesystem::path(std::string_view(data.uri.path())),
+                ec);
+            if(ec)
+              return;
             auto [bEnd, pIt] = std::mismatch(
                 base.begin(), base.end(), p.begin(), p.end());
             if(bEnd == base.end())
@@ -766,13 +774,16 @@ static ossia::mesh_primitive part_to_primitive(
 static int emit_node(
     const fastgltf::Asset& asset, std::size_t nodeIdx, int parent_index,
     std::vector<GltfParser::SceneNode>& out,
-    const std::vector<int>& material_index_remap, int depth = 0)
+    const std::vector<int>& material_index_remap,
+    std::vector<char>& visited, int depth = 0)
 {
-  // Node children come straight from the file; validate() does not
-  // reject cycles, and a cyclic or absurdly deep chain would overflow
-  // the stack here.
-  if(depth > 256)
+  // Node indices come straight from the file; validate() checks neither
+  // their range nor for cycles. Bound the index, cap depth, and mark
+  // visited so a diamond/cyclic child graph can't re-expand the same
+  // subtree exponentially or loop forever.
+  if(depth > 256 || nodeIdx >= asset.nodes.size() || visited[nodeIdx])
     return -1;
+  visited[nodeIdx] = 1;
   const auto& n = asset.nodes[nodeIdx];
 
   GltfParser::SceneNode sn;
@@ -808,7 +819,7 @@ static int emit_node(
   const int self = (int)out.size();
   out.push_back(std::move(sn));
   for(std::size_t ci : asset.nodes[nodeIdx].children)
-    emit_node(asset, ci, self, out, material_index_remap, depth + 1);
+    emit_node(asset, ci, self, out, material_index_remap, visited, depth + 1);
   return self;
 }
 
@@ -985,8 +996,9 @@ std::function<void(GltfParser&)> GltfParser::ins::gltf_t::process(file_type tv)
       = asset.defaultScene.value_or(asset.scenes.empty() ? 0 : 0);
   if(sceneIdx < asset.scenes.size())
   {
+    std::vector<char> visited(asset.nodes.size(), 0);
     for(std::size_t rootIdx : asset.scenes[sceneIdx].nodeIndices)
-      emit_node(asset, rootIdx, -1, scene_nodes, material_index_remap);
+      emit_node(asset, rootIdx, -1, scene_nodes, material_index_remap, visited);
   }
 
   if(scene_nodes.empty())

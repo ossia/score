@@ -298,11 +298,10 @@ void TextToMesh::rebuild()
     // Stable id: unique per rebuilt mesh, stable across TRS-only edits
     // (this block only runs when text/font inputs changed). Must be
     // nonzero for the registry's mesh-slab allocator, and must never
-    // repeat — the registry treats (id, vertex_count, index_count)
-    // equality as "content unchanged", so a recycled heap address
-    // (the previous scheme) could serve a stale slab for anagram-sized
-    // rebuilds. A monotonic counter cannot collide.
-    mp.stable_id = uint64_t(++m_version_counter);
+    // repeat ACROSS PRODUCERS — the registry keys slabs on the bare id
+    // process-wide, so it has to come from the global mint (like
+    // PBRMesh/Light/the loaders do), not a per-instance counter.
+    mp.stable_id = ossia::mint_stable_id();
     mp.topology = ossia::primitive_topology::triangles;
     mp.vertex_count = uint32_t(vcount);
     mp.index_count = uint32_t(idx_buf->size());
