@@ -6,6 +6,13 @@
 #include <Gfx/GfxDevice.hpp>
 #include <Gfx/SharedOutputSettings.hpp>
 
+#include <score_plugin_gfx_export.h>
+
+namespace score::gfx
+{
+class OutputNode;
+}
+
 namespace Gfx::PipeWire
 {
 
@@ -33,5 +40,15 @@ public:
 
   Device::ProtocolSettingsWidget* makeSettingsWidget() override;
 };
+
+/** Headless factory for the PipeWire producer output node (no
+ *  Device/Document machinery) — for test harnesses. The returned node is
+ *  a score::gfx::OutputNode that owns its offscreen RenderState; caller
+ *  owns the pointer (delete after removing from the Graph).
+ *
+ *  Settings: path = "<node-name>[?format=rgba&dmabuf=on]", width/height/rate.
+ */
+SCORE_PLUGIN_GFX_EXPORT
+score::gfx::OutputNode* makePipewireOutput(const Gfx::SharedOutputSettings& s);
 
 } // namespace Gfx::PipeWire

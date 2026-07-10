@@ -77,6 +77,8 @@
 #include <Gfx/Graph/interop/VkExternalMemoryHelpers.hpp>
 #if QT_HAS_VULKAN && QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
 #include <QtGui/private/qrhivulkan_p.h>
+
+#include <QVulkanFunctions>
 #define SCORE_PIPEWIRE_OUT_DMABUF 1
 #endif
 // EGL DMA-BUF output is available whenever EglDmaBufImport works.
@@ -142,6 +144,7 @@ struct DmaBufSlot
 #if defined(SCORE_PIPEWIRE_OUT_DMABUF)
   score::gfx::vkinterop::ExternalImage img{};
   int fd{-1};
+  uint32_t rowPitch{0}; ///< LINEAR image row pitch from the driver.
 #endif
 };
 
@@ -254,25 +257,9 @@ public:
         // were populated on pipewire thread; we just consume them.
         if(auto* ctx = QOpenGLContext::currentContext(); ctx)
         {
-          auto* gl = ctx->extraFunctions();
-          gl->glGenTextures(1, &s.slot.glTexture);
-          constexpr unsigned int GL_TEXTURE_2D_v = 0x0DE1;
-          constexpr unsigned int GL_TEXTURE_MIN_FILTER_v = 0x2801;
-          constexpr unsigned int GL_TEXTURE_MAG_FILTER_v = 0x2800;
-          constexpr unsigned int GL_TEXTURE_WRAP_S_v = 0x2802;
-          constexpr unsigned int GL_TEXTURE_WRAP_T_v = 0x2803;
-          constexpr unsigned int GL_LINEAR_v = 0x2601;
-          constexpr unsigned int GL_CLAMP_TO_EDGE_v = 0x812F;
-          gl->glBindTexture(GL_TEXTURE_2D_v, s.slot.glTexture);
-          gl->glTexParameteri(
-              GL_TEXTURE_2D_v, GL_TEXTURE_MIN_FILTER_v, GL_LINEAR_v);
-          gl->glTexParameteri(
-              GL_TEXTURE_2D_v, GL_TEXTURE_MAG_FILTER_v, GL_LINEAR_v);
-          gl->glTexParameteri(
-              GL_TEXTURE_2D_v, GL_TEXTURE_WRAP_S_v, GL_CLAMP_TO_EDGE_v);
-          gl->glTexParameteri(
-              GL_TEXTURE_2D_v, GL_TEXTURE_WRAP_T_v, GL_CLAMP_TO_EDGE_v);
-          if(m_eglImporter->importPlane(
+          s.slot.glTexture = score::gfx::createLinearClampGlTexture2D();
+          if(s.slot.glTexture
+             && m_eglImporter->importPlane(
                  s.slot.plane, s.slot.glTexture, s.slot.fd,
                  s.slot.modifier, s.slot.offset, s.slot.stride,
                  s.slot.drm_fourcc, int(s.slot.width), int(s.slot.height)))
@@ -282,7 +269,8 @@ public:
           else
           {
             qWarning() << "PipewireProducer: EGL importPlane failed";
-            gl->glDeleteTextures(1, &s.slot.glTexture);
+            if(s.slot.glTexture)
+              ctx->extraFunctions()->glDeleteTextures(1, &s.slot.glTexture);
             s.slot.glTexture = 0;
           }
         }
@@ -436,7 +424,11 @@ public:
         auto* chunk = b->buffer->datas[0].chunk;
         chunk->offset = 0;
         chunk->size = uint32_t(it->second.img.size);
-        chunk->stride = int32_t(m_width * m_bpp);
+        // Use the driver-reported LINEAR row pitch; width*bpp shears on
+        // pitch-padded allocations.
+        chunk->stride = it->second.rowPitch > 0
+                            ? int32_t(it->second.rowPitch)
+                            : int32_t(m_width * m_bpp);
       }
       pw.stream_queue_buffer(m_stream, b);
     }
@@ -575,7 +567,9 @@ public:
     spa_video_info_raw fmt{};
     fmt.format = formats::toSpa(m_fmt);
     fmt.size = SPA_RECTANGLE((uint32_t)m_width, (uint32_t)m_height);
-    fmt.framerate = SPA_FRACTION((uint32_t)m_fps, 1);
+    // Rational framerate: 29.97 -> 29970/1000, not a truncated 29/1.
+    fmt.framerate
+        = SPA_FRACTION((uint32_t)std::lround(m_fps * 1000.0), 1000u);
 #if defined(SCORE_PIPEWIRE_OUT_DMABUF) || defined(SCORE_PIPEWIRE_OUT_DMABUF_EGL)
     if(m_dmabufBackend != DmaBufBackend::None)
     {
@@ -634,6 +628,9 @@ public:
       m_shared.reset();
       return;
     }
+    // Destroy under the thread-loop lock: the nested blocking data-loop
+    // invoke inside stream_disconnect releases/retakes our lock via the
+    // loop-control hooks, which is exactly the documented contract.
     if(auto* lp = loop())
     {
       pw.thread_loop_lock(lp);
@@ -763,6 +760,19 @@ private:
     DmaBufSlot slot;
     slot.img = *extImg;
     slot.fd = h->fd;
+    // LINEAR images are routinely pitch-padded by the driver (alignment,
+    // odd widths); consumers must be told the real row pitch, not
+    // width*bpp, or the image shears.
+    if(auto* df = self->m_vk.qInst
+                      ? self->m_vk.qInst->deviceFunctions(self->m_vk.dev)
+                      : nullptr)
+    {
+      VkImageSubresource sub{VK_IMAGE_ASPECT_COLOR_BIT, 0, 0};
+      VkSubresourceLayout layout{};
+      df->vkGetImageSubresourceLayout(
+          self->m_vk.dev, extImg->image, &sub, &layout);
+      slot.rowPitch = uint32_t(layout.rowPitch);
+    }
     self->m_dmabufSlots[b] = slot;
 
     auto& d = b->buffer->datas[0];
@@ -920,6 +930,120 @@ public:
 #endif
 };
 
+// ============================================================================
+// PwWireRenderer — InvertYRenderer variant that (a) creates its readback
+// target with the WIRE pixel format instead of renderer.state.renderFormat
+// (which is always RGBA8 — reading back RGBA8 while advertising
+// 10-bit/F16/BGRA on the wire produced garbage or, for F16, no frames at
+// all because the readback byte count never reached w*h*8), and (b) only
+// flips Y when the backend's framebuffer is Y-up (GL). score's shaders
+// apply clipSpaceCorrMatrix, so on Vulkan/D3D/Metal the rendered texture
+// is already top-down; the unconditional flip inverted every Vulkan frame.
+// ============================================================================
+struct PwWireRenderer final : score::gfx::OutputNodeRenderer
+{
+  PwWireRenderer(
+      const score::gfx::Node& n, score::gfx::TextureRenderTarget rt,
+      QRhiReadbackResult& readback, QRhiTexture::Format fmt)
+      : score::gfx::OutputNodeRenderer{n}
+      , m_inputTarget{std::move(rt)}
+      , m_wireFormat{fmt}
+      , m_readback{&readback}
+  {
+  }
+
+  score::gfx::TextureRenderTarget m_inputTarget;
+  score::gfx::TextureRenderTarget m_renderTarget;
+  QRhiTexture::Format m_wireFormat{QRhiTexture::RGBA8};
+  QShader m_vertexS, m_fragmentS;
+  std::vector<score::gfx::Sampler> m_samplers;
+  score::gfx::Pipeline m_p;
+  score::gfx::MeshBuffers m_mesh{};
+
+  score::gfx::TextureRenderTarget
+  renderTargetForInput(const score::gfx::Port&) override
+  {
+    return m_inputTarget;
+  }
+
+  void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  {
+    m_renderTarget = score::gfx::createRenderTarget(
+        renderer.state, m_wireFormat, m_inputTarget.texture->pixelSize(),
+        renderer.samples(), renderer.requiresDepth(*this->node.input[0]));
+
+    const auto& mesh = renderer.defaultTriangle();
+    m_mesh = renderer.initMeshBuffer(mesh, res);
+
+    // GL renders bottom-up (Y-up framebuffer): flip to get top-down wire
+    // memory. Vulkan/D3D/Metal are already top-down: sample straight.
+    static const constexpr auto flip_filter = R"_(#version 450
+    layout(location = 0) in vec2 v_texcoord;
+    layout(location = 0) out vec4 fragColor;
+    layout(binding = 3) uniform sampler2D tex;
+    void main() { fragColor = texture(tex, vec2(v_texcoord.x, 1. - v_texcoord.y)); }
+    )_";
+    static const constexpr auto copy_filter = R"_(#version 450
+    layout(location = 0) in vec2 v_texcoord;
+    layout(location = 0) out vec4 fragColor;
+    layout(binding = 3) uniform sampler2D tex;
+    void main() { fragColor = texture(tex, v_texcoord); }
+    )_";
+    const bool flip = renderer.state.rhi->isYUpInFramebuffer();
+    std::tie(m_vertexS, m_fragmentS) = score::gfx::makeShaders(
+        renderer.state, mesh.defaultVertexShader(),
+        flip ? flip_filter : copy_filter);
+
+    auto sampler = renderer.state.rhi->newSampler(
+        QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
+        QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
+    sampler->setName("PwWireRenderer::sampler");
+    sampler->create();
+    m_samplers.push_back({sampler, this->m_inputTarget.texture});
+
+    m_p = score::gfx::buildPipeline(
+        renderer, mesh, m_vertexS, m_fragmentS, m_renderTarget, nullptr,
+        nullptr, m_samplers);
+  }
+
+  void update(
+      score::gfx::RenderList&, QRhiResourceUpdateBatch&, score::gfx::Edge*) override
+  {
+  }
+
+  void release(score::gfx::RenderList&) override
+  {
+    m_p.release();
+    for(auto& s : m_samplers)
+      delete s.sampler;
+    m_samplers.clear();
+    m_renderTarget.release();
+  }
+
+  void finishFrame(
+      score::gfx::RenderList& renderer, QRhiCommandBuffer& cb,
+      QRhiResourceUpdateBatch*& res) override
+  {
+    cb.beginPass(m_renderTarget.renderTarget, Qt::black, {0.0f, 0}, res);
+    res = nullptr;
+    {
+      const auto sz = renderer.state.renderSize;
+      cb.setGraphicsPipeline(m_p.pipeline);
+      cb.setShaderResources(m_p.srb);
+      cb.setViewport(QRhiViewport(0, 0, sz.width(), sz.height()));
+      const auto& mesh = renderer.defaultTriangle();
+      mesh.draw(this->m_mesh, cb);
+    }
+    auto next = renderer.state.rhi->nextResourceUpdateBatch();
+    QRhiReadbackDescription rb(m_renderTarget.texture);
+    next->readBackTexture(rb, m_readback);
+    cb.endPass(next);
+  }
+
+private:
+  QRhiReadbackResult* m_readback{};
+};
+
 } // namespace
 
 // ============================================================================
@@ -957,6 +1081,8 @@ struct PipewireOutputNode : score::gfx::OutputNode
   SharedOutputSettings m_settings;
   QRhiReadbackResult m_readback;
   int m_bytesPerPixel{4}; /**< Bytes per pixel of the negotiated format. */
+  formats::Tag m_tag{formats::Tag::RGBA8}; /**< Wire pixel format. */
+  std::vector<uint8_t> m_repack; /**< Scratch for wire-format repacking. */
 
 #if defined(SCORE_PIPEWIRE_OUT_DMABUF)
   // DMA-BUF output mode (Vulkan): a "bridge" QRhiTexture that wraps the
@@ -1129,7 +1255,7 @@ void PipewireOutputNode::render()
   rl->render(*cb);
   rhi->endOffscreenFrame();
 
-  // m_readback was populated by InvertYRenderer during the frame.
+  // m_readback was populated by PwWireRenderer during the frame.
   // QRhi reads back tightly-packed bytes at the texture's actual
   // bit-depth, so the byte count is `w * h * bytesPerPixel(format)`.
   const int sz = m_readback.pixelSize.width()
@@ -1137,9 +1263,46 @@ void PipewireOutputNode::render()
   const int bytes = m_readback.data.size();
   if(bytes > 0 && bytes >= sz)
   {
-    m_producer->push_frame(
-        reinterpret_cast<const uint8_t*>(m_readback.data.constData()),
-        std::size_t(sz));
+    const auto* src = reinterpret_cast<const uint8_t*>(m_readback.data.constData());
+    // Repack readback bytes to the advertised wire layout where QRhi's
+    // memory order differs from the SPA format:
+    //  - BGRA8: readback is RGBA-ordered (RGBA8 target) -> swap R/B bytes.
+    //  - RGB10A2: QRhi RGB10A2 words are A2B10G10R10 (R in bits 0-9;
+    //    GL 2_10_10_10_REV / VK_FORMAT_A2B10G10R10) but SPA xRGB_210LE
+    //    wants R in bits 20-29 -> swap the two 10-bit fields.
+    //  - BGR10A2: QRhi's word layout already matches SPA xBGR_210LE -> raw.
+    //  - RGBA8 / RGBA16F / RGBA32F: raw.
+    switch(m_tag)
+    {
+      case formats::Tag::BGRA8: {
+        m_repack.resize(std::size_t(sz));
+        for(int i = 0; i < sz; i += 4)
+        {
+          m_repack[i + 0] = src[i + 2];
+          m_repack[i + 1] = src[i + 1];
+          m_repack[i + 2] = src[i + 0];
+          m_repack[i + 3] = src[i + 3];
+        }
+        src = m_repack.data();
+        break;
+      }
+      case formats::Tag::RGB10A2: {
+        m_repack.resize(std::size_t(sz));
+        const auto* in = reinterpret_cast<const uint32_t*>(src);
+        auto* out = reinterpret_cast<uint32_t*>(m_repack.data());
+        const int n = sz / 4;
+        for(int i = 0; i < n; ++i)
+        {
+          const uint32_t w = in[i];
+          out[i] = (w & 0xC00FFC00u) | ((w & 0x3FFu) << 20) | ((w >> 20) & 0x3FFu);
+        }
+        src = m_repack.data();
+        break;
+      }
+      default:
+        break;
+    }
+    m_producer->push_frame(src, std::size_t(sz));
   }
 }
 
@@ -1181,8 +1344,26 @@ void PipewireOutputNode::createOutput(score::gfx::OutputConfiguration conf)
         if(k == "format")
         {
           const auto t = formats::tagFromString(v);
-          if(t != formats::Tag::Unknown)
-            tag = t;
+          // The output can only produce formats QRhi can render into.
+          // Everything else (YUV/planar/packed-YUV tags) used to be
+          // accepted silently while RGBA8 readback bytes were pushed under
+          // the advertised format — consumer-visible garbage. Reject.
+          switch(t)
+          {
+            case formats::Tag::RGBA8:
+            case formats::Tag::BGRA8:
+            case formats::Tag::RGB10A2:
+            case formats::Tag::BGR10A2:
+            case formats::Tag::RGBA16F:
+            case formats::Tag::RGBA32F:
+              tag = t;
+              break;
+            default:
+              qWarning() << "PipewireOutputNode: format" << v
+                         << "cannot be produced by the output path — "
+                            "falling back to rgba";
+              break;
+          }
         }
         else if(k == "dmabuf")
         {
@@ -1192,6 +1373,18 @@ void PipewireOutputNode::createOutput(score::gfx::OutputConfiguration conf)
     }
   }
 
+  // The DMA-BUF paths hand raw GPU texture bytes (R,G,B,A component
+  // order) to the consumer with no CPU repack opportunity, so only the
+  // RGBA8 wire format is honest there. Other tags fall back to the
+  // readback path, which repacks on the CPU.
+  if(wantDmaBuf && tag != formats::Tag::RGBA8)
+  {
+    qWarning() << "PipewireOutputNode: dmabuf=on only supports format=rgba —"
+                  " using the CPU readback path for tag" << int(tag);
+    wantDmaBuf = false;
+  }
+
+  m_tag = tag;
   m_producer = std::make_unique<PipewireProducer>(
       m_settings.width, m_settings.height, m_settings.rate, tag, nodeName);
 
@@ -1277,14 +1470,15 @@ void PipewireOutputNode::createOutput(score::gfx::OutputConfiguration conf)
           QRhiTexture::UsedAsTransferSource);
       m_dmabufBridgeEgl->create();
 
-      // ARGB8888 is what gbm_bo_create maps RGBA8 to (the LE byte order
-      // for the score format). For BGRA8 we'd use DRM_FORMAT_ABGR8888.
-      // 10-bit / float formats add modes; punt — most consumers expect
-      // 8-bit ARGB anyway on the OpenGL path.
-      uint32_t fourcc
-          = score::gfx::GbmDmaBufExport::DRM_FORMAT_ARGB8888_v;
-      if(tag == formats::Tag::BGRA8)
-        fourcc = score::gfx::GbmDmaBufExport::DRM_FORMAT_ABGR8888_v;
+      // The GBM BO receives a raw GPU copy of the texture's component
+      // bytes, which are R,G,B,A order for every QRhi format we render
+      // (GL stores "BGRA8" as RGBA components internally). Per the DRM
+      // fourcc spec, [R,G,B,A] memory on LE is DRM_FORMAT_ABGR8888 —
+      // the previous ARGB/ABGR mapping here was inverted. Since we
+      // cannot swizzle on this pure-GPU path, dmabuf mode only supports
+      // the RGBA8 wire format (validated in createOutput below).
+      const uint32_t fourcc
+          = score::gfx::GbmDmaBufExport::DRM_FORMAT_ABGR8888_v;
 
       if(m_producer->enable_dmabuf_mode_egl(&m_eglImporter, fourcc))
       {
@@ -1310,6 +1504,13 @@ void PipewireOutputNode::createOutput(score::gfx::OutputConfiguration conf)
 #if !defined(SCORE_PIPEWIRE_OUT_DMABUF) && !defined(SCORE_PIPEWIRE_OUT_DMABUF_EGL)
   (void)wantDmaBuf;
 #endif
+
+  // Connect the producer stream. Must happen AFTER the dmabuf-mode flags
+  // above (enable_dmabuf_mode* document "call before start()") — start()
+  // builds the EnumFormat/stream events from them.
+  if(!m_producer->start())
+    qWarning() << "PipewireOutputNode: producer stream failed to start — "
+                  "no frames will be published";
 
   conf.onReady();
 }
@@ -1368,8 +1569,13 @@ score::gfx::OutputNodeRenderer* PipewireOutputNode::createRenderer(
       .texture = m_texture,
       .renderPass = m_renderState->renderPassDescriptor,
       .renderTarget = m_renderTarget};
-  return new Gfx::InvertYRenderer{
-      *this, rt, const_cast<QRhiReadbackResult&>(m_readback)};
+  // BGRA8 renders/reads back through an RGBA8 target: GL has no true BGRA
+  // storage (QRhi readback yields R,G,B,A component order regardless), so
+  // the wire byte order is produced by a CPU swizzle in render() instead.
+  const auto rbFormat = m_tag == formats::Tag::BGRA8 ? QRhiTexture::RGBA8
+                                                     : formats::toQRhi(m_tag);
+  return new PwWireRenderer{
+      *this, rt, const_cast<QRhiReadbackResult&>(m_readback), rbFormat};
 }
 
 // ============================================================================
@@ -1569,6 +1775,11 @@ const Device::DeviceSettings& OutputFactory::defaultSettings() const noexcept
 Device::ProtocolSettingsWidget* OutputFactory::makeSettingsWidget()
 {
   return new PipewireOutputSettingsWidget;
+}
+
+score::gfx::OutputNode* makePipewireOutput(const Gfx::SharedOutputSettings& s)
+{
+  return new PipewireOutputNode{s};
 }
 
 } // namespace Gfx::PipeWire
