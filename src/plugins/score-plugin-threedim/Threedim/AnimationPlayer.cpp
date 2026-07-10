@@ -225,16 +225,37 @@ void AnimationPlayer::operator()()
     return;
   }
 
-  float t = inputs.time.value;
-  // The speed control contributes purely additive offset between
-  // consecutive calls so users who wire only the Time inlet get
-  // unmodified behavior. If the user leaves Time at 0 and moves Speed,
-  // we integrate Speed over frame-delta (approximated as 1/60 s per
-  // call — halp doesn't expose a deterministic dt yet).
+  // Time / Speed resolution. Users who drive the Time inlet directly get
+  // unmodified behavior: whenever the incoming Time value changes we
+  // follow it verbatim and resync the auto-advance accumulator to it.
+  // When Time is held constant and Speed is engaged (≠1 and ≠0), we
+  // instead integrate Speed over frame-delta into a dedicated accumulator
+  // (m_playback_time), approximating dt as 1/60 s per call — halp doesn't
+  // expose a deterministic dt yet.
+  //
+  // The accumulator is decoupled from the change-detection value: the old
+  // code stored the advanced time back into m_prev_time, so the next
+  // frame's incoming Time (still 0) no longer matched, the advance gate
+  // flipped off, and playback ping-ponged 0 → speed/60 → 0 forever.
+  const float time_in = inputs.time.value;
   const float speed = inputs.speed.value;
-  if(t == m_prev_time && speed != 1.f && speed != 0.f)
-    t = m_prev_time + speed * (1.f / 60.f);
-  m_prev_time = t;
+  const bool time_driven = (time_in != m_prev_time);
+  m_prev_time = time_in;
+
+  float t;
+  if(time_driven || speed == 1.f || speed == 0.f)
+  {
+    // Time is the sole driver: follow it and keep the accumulator in sync
+    // so a later Speed engagement continues from the current position.
+    t = time_in;
+    m_playback_time = time_in;
+  }
+  else
+  {
+    // Time held constant, Speed engaged: advance monotonically.
+    m_playback_time += speed * (1.f / 60.f);
+    t = m_playback_time;
+  }
 
   // Collect animation_components to sample.
   const auto& anims = *in.state->animations;
