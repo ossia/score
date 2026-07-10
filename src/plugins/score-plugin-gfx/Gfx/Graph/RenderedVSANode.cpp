@@ -177,44 +177,40 @@ void SimpleRenderedVSANode::initPass(
 
     m_mesh->preparePipeline(*ps);
 
-    // API-specific cull mode for 3-D VSA meshes.
+    // INVARIANT: VSA (Vertex Shader Art) draws are NEVER face-culled — they
+    // MUST use CullMode::None on every backend.
     //
-    // IMPORTANT: this MUST run AFTER m_mesh->preparePipeline() above, because
+    // This MUST run AFTER m_mesh->preparePipeline() above, because
     // BasicMesh::preparePipeline() unconditionally calls setCullMode()/
-    // setFrontFace() (Mesh.cpp:47-49) — and DummyMesh keeps the base default
-    // CullMode::None. Setting the cull mode before preparePipeline() (as an
-    // earlier refactor did) is dead: it is clobbered back to None, so every
-    // triangle-mode VSA shader ended up rendering backfaces on every backend.
+    // setFrontFace() (Mesh.cpp:47-49); we override its result here.
     //
-    // Note: this is NOT a Y-up vs Y-down NDC issue. QRhi exposes
-    // QRhi::isYUpInNDC() and QRhi::clipSpaceCorrMatrix() (qrhi.h:2056,
-    // :2059) so a shader applying clipSpaceCorrMatrix uniformly across
-    // backends does not need a per-backend cull-flip. Other rendered-
-    // pipeline nodes (RenderedISFNode, RenderedRawRasterPipelineNode,
-    // CustomMesh) just use unconditional CullMode::Back.
+    // Why None (and why a per-backend cull can NEVER be consistent here):
+    // face-culling is decided from the triangle's *window-space* winding
+    // sign, which QRhi does NOT normalise across backends. It stays
+    // consistent ONLY for shaders that follow the QRhi convention, i.e. that
+    // multiply gl_Position by QRhi::clipSpaceCorrMatrix() and do NOT flip Y
+    // on SPIRV/Vulkan — that is what the consistent paths do (ISF blit_vs in
+    // libisf isf.cpp:44, RenderedRawRasterPipelineNode, the RGBA decoder),
+    // all of which then cull with a single CullMode::Back.
     //
-    // VSA emits its mesh procedurally (no clipSpaceCorrMatrix applied)
-    // and its triangle winding ends up CCW under GL's framebuffer-Y
-    // convention; flipping to CullMode::Front under GL is the workaround
-    // until VSA's procedural emit applies the corr matrix itself.
-    switch(renderer.state.api)
-    {
-      case GraphicsApi::Vulkan:
-      case GraphicsApi::D3D11:
-      case GraphicsApi::D3D12:
-      case GraphicsApi::Metal:
-      case GraphicsApi::Null:
-        ps->setCullMode(QRhiGraphicsPipeline::CullMode::Back);
-        break;
-      case GraphicsApi::OpenGL:
-        ps->setCullMode(QRhiGraphicsPipeline::CullMode::Front);
-        break;
-      default:
-        qWarning() << "RenderedVSANode: unhandled graphics API for cull mode; defaulting to Back";
-        ps->setCullMode(QRhiGraphicsPipeline::CullMode::Back);
-        break;
-    }
-    ps->setFrontFace(QRhiGraphicsPipeline::FrontFace::CW);
+    // VSA does the OPPOSITE (libisf isf.cpp:5620): it skips
+    // clipSpaceCorrMatrix and instead manually does `gl_Position.y = -y` on
+    // SPIRV/HLSL/MSL. That keeps the rendered image ORIENTATION consistent
+    // across backends, but it INVERTS the window-space winding sign on
+    // Vulkan relative to OpenGL (GL: identity corr + Y-up framebuffer;
+    // Vulkan: manual Y-flip + Y-down, positive-height viewport). The upshot,
+    // verified against the L3 matrix: for ANY single triangle winding,
+    // exactly one of GL/Vulkan keeps the face and the other culls it — so no
+    // per-backend CullMode + FrontFace combination can make one
+    // front-facing VSA triangle visible on both. (Front on GL / Back on
+    // Vulkan, as tried before, still diverged.)
+    //
+    // VSA art is 2-D procedural geometry driven purely by gl_VertexIndex;
+    // "front vs back face" is not a meaningful notion for it. Drawing both
+    // faces (None) is the only choice that is visible AND identical on every
+    // backend. Points/line VSA modes are unaffected either way (only
+    // triangles/polygons are ever culled).
+    ps->setCullMode(QRhiGraphicsPipeline::CullMode::None);
 
     if(!renderer.anyNodeRequiresDepth())
     {
