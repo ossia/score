@@ -228,7 +228,10 @@ void ExtractBuffer2::initStrategy(score::gfx::RenderList& renderer)
     if(!ok)
     {
       qWarning() << this << "ExtractBuffer2: strategy init failed";
-      m_strategy = std::monostate{};
+      // init() may have created QRhi resources before failing; the strategy
+      // classes have no destructor and only free them in release(), so release
+      // before discarding to avoid leaking them.
+      release(renderer);
     }
   }
   else // Buffer
@@ -245,7 +248,8 @@ void ExtractBuffer2::initStrategy(score::gfx::RenderList& renderer)
     if(!s.init(renderer.state, rhi, mesh, ref.buffer_index, ref.byte_offset, ref.byte_size))
     {
       qWarning() << this << "ExtractBuffer2: DirectBufferReferenceStrategy failed";
-      m_strategy = std::monostate{};
+      // Release any QRhi resources init() allocated before failing (no dtor).
+      release(renderer);
     }
   }
 }
