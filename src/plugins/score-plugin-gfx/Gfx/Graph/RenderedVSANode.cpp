@@ -136,19 +136,34 @@ void SimpleRenderedVSANode::initPass(
   pubo->setName("SimpleRenderedVSANode::initPass::pubo");
   pubo->create();
 
+  // The background-pass objects (bg_pip/bg_srb/bg_ubo) were already created
+  // above and are only ever adopted into m_passes on the success path below.
+  // Every failure exit from the main-pass build (ps->create() failing, or any
+  // exception out of makeShaders / SCORE_ASSERT) must release them, otherwise
+  // they leak on each addOutputPass — e.g. a TriangleFan primitive on D3D11,
+  // re-triggered on every render-target-spec change. bg_tri is NOT released:
+  // its buffers are cached/owned by RenderList::m_vertexBuffers (shared).
+  auto releaseBackground = [&] {
+    delete bg_pip;
+    delete bg_srb;
+    delete bg_ubo;
+  };
+
   // Create the main pass.
   // Apply cull-mode, front-face, and blend state BEFORE the first create()
   // call so we only compile the PSO once instead of the previous two-compile
   // pattern (buildPipeline::create + destroy + mutate + create).
+  QRhiGraphicsPipeline* ps = nullptr;
+  QRhiShaderResourceBindings* srb = nullptr;
   try
   {
     auto [v, s] = score::gfx::makeShaders(renderer.state, n.m_vertexS, n.m_fragmentS);
-    auto* srb = score::gfx::createDefaultBindings(
+    srb = score::gfx::createDefaultBindings(
         renderer, renderTarget, pubo, m_materialUBO, allSamplers());
 
     // Inline the essential steps of buildPipeline(srb) so we can insert the
     // VSA-specific cull/front-face/blend state before create().
-    auto* ps = rhi.newGraphicsPipeline();
+    ps = rhi.newGraphicsPipeline();
     SCORE_ASSERT(ps);
     ps->setName("SimpleRenderedVSANode::initPass::ps");
 
@@ -157,7 +172,19 @@ void SimpleRenderedVSANode::initPass(
     t.enable = true;
     ps->setTargetBlends({t});
 
+    const int rtS = renderTarget.sampleCount();
+    ps->setSampleCount(rtS > 0 ? rtS : renderer.samples());
+
+    m_mesh->preparePipeline(*ps);
+
     // API-specific cull mode for 3-D VSA meshes.
+    //
+    // IMPORTANT: this MUST run AFTER m_mesh->preparePipeline() above, because
+    // BasicMesh::preparePipeline() unconditionally calls setCullMode()/
+    // setFrontFace() (Mesh.cpp:47-49) — and DummyMesh keeps the base default
+    // CullMode::None. Setting the cull mode before preparePipeline() (as an
+    // earlier refactor did) is dead: it is clobbered back to None, so every
+    // triangle-mode VSA shader ended up rendering backfaces on every backend.
     //
     // Note: this is NOT a Y-up vs Y-down NDC issue. QRhi exposes
     // QRhi::isYUpInNDC() and QRhi::clipSpaceCorrMatrix() (qrhi.h:2056,
@@ -189,11 +216,6 @@ void SimpleRenderedVSANode::initPass(
     }
     ps->setFrontFace(QRhiGraphicsPipeline::FrontFace::CW);
 
-    const int rtS = renderTarget.sampleCount();
-    ps->setSampleCount(rtS > 0 ? rtS : renderer.samples());
-
-    m_mesh->preparePipeline(*ps);
-
     if(!renderer.anyNodeRequiresDepth())
     {
       ps->setDepthTest(false);
@@ -219,10 +241,18 @@ void SimpleRenderedVSANode::initPass(
       delete ps;
       delete srb;
       delete pubo;
+      releaseBackground();
     }
   }
   catch(...)
   {
+    // makeShaders / SCORE_ASSERT(renderTarget.renderPass) etc. can throw after
+    // some of the objects were created: release everything that is not owned by
+    // an m_passes entry (the success path is the only one that adopts them).
+    delete ps;
+    delete srb;
+    delete pubo;
+    releaseBackground();
   }
 }
 
