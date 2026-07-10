@@ -583,8 +583,25 @@ void RenderedISFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
   initState(renderer, res);
 
-  for(Edge* edge : n.output[0]->edges)
-    addOutputPass(renderer, *edge, res);
+  // Create the render passes for the COLOR (Types::Image) output port's edges.
+  // Invariant: the color output is NOT necessarily n.output[0]. A write /
+  // read_write storage_input declares a Types::Buffer OUTPUT port, and ISFNode
+  // walks desc.inputs (appending those buffer output ports) BEFORE it appends
+  // the implicit color output (ISFNode.cpp: input walk at ~line 344, color
+  // output pushed at ~line 349). So for a multipass shader that also uses a
+  // storage buffer, output[0] is the (usually edge-less) buffer port and the
+  // color output lands at output[1]. Hardcoding output[0] here created passes
+  // for the buffer port and none for the color output → runRenderPass found no
+  // pass for the sink's edge → the final pass never reached the sink (all-black
+  // output). Mirror SimpleRenderedISFNode::init: iterate every output port and
+  // restrict to Types::Image so buffer/geometry outputs are ignored.
+  for(auto* out_port : n.output)
+  {
+    if(out_port->type != Types::Image)
+      continue;
+    for(Edge* edge : out_port->edges)
+      addOutputPass(renderer, *edge, res);
+  }
 }
 
 void RenderedISFNode::initState(RenderList& renderer, QRhiResourceUpdateBatch& res)
