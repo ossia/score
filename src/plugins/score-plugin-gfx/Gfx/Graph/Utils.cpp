@@ -1499,14 +1499,22 @@ TextureRenderTarget createDepthOnlyRenderTarget(
   }
 
   // Some backends (notably GL ES) REQUIRE a color attachment — allocate a
-  // 1×1 dummy color texture that never gets written to. The depth-only RT
+  // dummy color texture that never gets written to. The depth-only RT
   // stores it in dummyColorTexture (owned, released with the RT).
   //
   // On desktop Vulkan/Metal/D3D a depth-only RT is usually accepted without
-  // a color attachment. We always allocate the dummy for portability —
-  // the memory cost (4 bytes) is negligible.
+  // a color attachment. We always allocate the dummy for portability.
+  //
+  // IMPORTANT: the dummy MUST match the depth extent (`sz`), NOT be 1×1.
+  // The Vulkan backend derives the framebuffer / renderArea from the FIRST
+  // color attachment whenever colorAttCount>0 (qrhivulkan.cpp:8290-8293);
+  // the depth-texture-size fallback (8332-8335) only fires at colorAttCount==0.
+  // A 1×1 dummy therefore clamps the render area to 1×1, so all depth written
+  // beyond pixel (0,0) is undefined — shadow_cascades / PER_LAYER depth then
+  // copyTexture() a full 2048² of garbage. Sizing the dummy to `sz` makes the
+  // render area span the whole depth target.
   ret.dummyColorTexture = state.rhi->newTexture(
-      QRhiTexture::RGBA8, QSize(1, 1), effectiveSamples, QRhiTexture::RenderTarget);
+      QRhiTexture::RGBA8, sz, effectiveSamples, QRhiTexture::RenderTarget);
   ret.dummyColorTexture->setName("createDepthOnlyRenderTarget::dummyColor");
   SCORE_ASSERT(ret.dummyColorTexture->create());
 
@@ -1695,9 +1703,13 @@ TextureRenderTarget createDepthOnlyRenderTarget(
   }
 
   // Some backends (notably GL ES) REQUIRE a color attachment — same dummy
-  // 1×1 color texture as the sz overload.
+  // color texture as the sz overload. It MUST match the depth extent, not be
+  // 1×1: the Vulkan backend takes the render area from color attachment 0
+  // (qrhivulkan.cpp:8290-8293), so a 1×1 dummy clamps the render area to 1×1
+  // and every depth pixel past (0,0) is undefined. See the sz overload above.
   ret.dummyColorTexture = state.rhi->newTexture(
-      QRhiTexture::RGBA8, QSize(1, 1), effectiveSamples, QRhiTexture::RenderTarget);
+      QRhiTexture::RGBA8, externalDepthTexture->pixelSize(), effectiveSamples,
+      QRhiTexture::RenderTarget);
   ret.dummyColorTexture->setName(
       "createDepthOnlyRenderTarget(external)::dummyColor");
   SCORE_ASSERT(ret.dummyColorTexture->create());

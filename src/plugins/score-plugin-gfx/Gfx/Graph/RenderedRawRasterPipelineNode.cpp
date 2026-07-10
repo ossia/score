@@ -103,6 +103,15 @@ void RenderedRawRasterPipelineNode::updateInputTexture(const Port& input, QRhiTe
       for(auto& [e, pass] : m_passes)
         if(pass.p.srb)
           score::gfx::replaceTexture(*pass.p.srb, key, tex);
+      // Also patch the per-invocation SRB pool (PER_LAYER / PER_MIP /
+      // MANUAL COUNT>1 clone the main SRB). Invocations 1..N-1 hold their
+      // own QRhiShaderResourceBindings; QRhi generation-tracking only covers
+      // rebuilding the *same* object, and this swaps to a *different*
+      // QRhiTexture* — so without this mirror they keep the stale pointer and
+      // UAF/garbage on every layer/mip past the first when upstream reallocs.
+      for(auto* invSrb : m_perInvocationSRBs)
+        if(invSrb)
+          score::gfx::replaceTexture(*invSrb, key, tex);
     }
 
     if(depthTex
@@ -117,6 +126,10 @@ void RenderedRawRasterPipelineNode::updateInputTexture(const Port& input, QRhiTe
         for(auto& [e, pass] : m_passes)
           if(pass.p.srb)
             score::gfx::replaceTexture(*pass.p.srb, depthKey, depthTex);
+        // Mirror onto the per-invocation SRB pool (see comment above).
+        for(auto* invSrb : m_perInvocationSRBs)
+          if(invSrb)
+            score::gfx::replaceTexture(*invSrb, depthKey, depthTex);
       }
     }
   }
@@ -2435,6 +2448,21 @@ void RenderedRawRasterPipelineNode::update(
             geometry.meshes->meshes[0], pass.p.srb);
       }
     }
+    // Mirror onto the per-invocation SRB pool (PER_LAYER / PER_MIP /
+    // MANUAL COUNT>1 clone the main SRB): invocations 1..N-1 own separate
+    // SRBs and must pick up the same geometry-published buffer/image swaps,
+    // otherwise they keep the stale (possibly deleteLater'd) upstream handle
+    // -> UAF/garbage on all layers/mips but the first when upstream reallocs.
+    for(auto* invSrb : m_perInvocationSRBs)
+    {
+      if(!invSrb)
+        continue;
+      bindUpstreamImagesFromGeometry(
+          m_storage, geometry.meshes->meshes[0], invSrb);
+      bindUpstreamBuffersFromGeometry(
+          *renderer.state.rhi, res, m_storage,
+          geometry.meshes->meshes[0], invSrb);
+    }
   }
 
   // Update the geometry (sync with ModelDisplayNode)
@@ -2675,6 +2703,19 @@ void RenderedRawRasterPipelineNode::update(
               *renderer.state.rhi, res, m_storage,
               geometry.meshes->meshes[0], pass.p.srb);
         }
+      }
+      // Mirror onto the per-invocation SRB pool (see the symmetric loop in
+      // the per-frame refresh above): invocations 1..N-1 own separate SRBs
+      // and must pick up the same freshly-bound geometry buffers/images.
+      for(auto* invSrb : m_perInvocationSRBs)
+      {
+        if(!invSrb)
+          continue;
+        bindUpstreamImagesFromGeometry(
+            m_storage, geometry.meshes->meshes[0], invSrb);
+        bindUpstreamBuffersFromGeometry(
+            *renderer.state.rhi, res, m_storage,
+            geometry.meshes->meshes[0], invSrb);
       }
 
       // Sampler refresh: FIX-C above only patches m_storage entries
@@ -3552,7 +3593,18 @@ int RenderedRawRasterPipelineNode::resolveIntExpression(
 
   ossia::math_expression e;
   ossia::small_pod_vector<double, 16> data;
-  data.reserve(16);
+  // ossia::math_expression::add_constant stores a double& into `data`, so the
+  // reserve MUST cover every emplace_back below: a realloc past capacity
+  // dangles all previously-registered references (same root cause as CSF's
+  // registerCommonExpressionVariables). Upper bound: up to 4 doubles per
+  // image-type input (+4 one-time) + 1 per scalar input + 2 ($COUNT/$BYTESIZE)
+  // per INPUTS storage/uniform (subset of inputs) and per top-level AUXILIARY.
+  // Each descriptor input hits exactly one category (max 4/input), so 6*inputs
+  // covers the inputs' contribution and the fixed 16 absorbs the one-time set.
+  {
+    const auto& desc0 = n.descriptor();
+    data.reserve(16 + 6 * desc0.inputs.size() + 2 * desc0.auxiliary.size());
+  }
 
   auto register_size = [&](const std::string& name, QRhiTexture* tex,
                            bool& first) {
