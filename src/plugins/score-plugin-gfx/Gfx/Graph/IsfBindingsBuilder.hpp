@@ -119,6 +119,17 @@ struct GraphicsStorageResources
   bool indirectDrawIndexed{false};
   int indirectDrawSsboIndex{-1};
 
+  // Next free binding index after all graphics-visible storage resources
+  // (SSBOs + images + UBOs) have been assigned by
+  // collectGraphicsStorageResources. This is exactly the value libisf's
+  // isf_emit_graphics_storage() returns (isf.cpp:3406-3449) and the binding
+  // at which the codegen places the multiview UBO (isf.cpp:3773-3783). Callers
+  // that append a multiview UBO MUST use this rather than re-deriving a max
+  // over ssbos/images alone — that omission ignored uniform_input UBOs and
+  // collided the multiview binding with the last UBO's slot. -1 until the
+  // first collectGraphicsStorageResources() call.
+  int nextBinding{-1};
+
   // Sentinel zero-buffer bound when an SSBO/UBO upstream port disconnects
   // mid-session. QRhi (especially Vulkan) requires every SRB binding to
   // point at a valid resource — without a sentinel, a disconnect leaves
@@ -175,6 +186,7 @@ struct GraphicsStorageResources
 
     indirectDrawBuffer = nullptr;
     indirectDrawSsboIndex = -1;
+    nextBinding = -1;
   }
 };
 

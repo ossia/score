@@ -193,7 +193,15 @@ void RenderedISFNode::updateInputSamplerFilter(
     if(p == &input)
       break;
     if(p->type == Types::Image)
+    {
       sampler_idx++;
+      // A SamplableDepth port pushes TWO samplers (color + depth companion)
+      // in initInputSamplers (Utils.cpp:1420-1432); advance past both so this
+      // matches updateInputTexture's counting. Without it every port after a
+      // SamplableDepth image edited the wrong sampler.
+      if((p->flags & Flag::SamplableDepth) == Flag::SamplableDepth)
+        sampler_idx++;
+    }
   }
 
   if(sampler_idx < (int)m_inputSamplers.size())
@@ -324,15 +332,16 @@ std::pair<Pass, Pass> RenderedISFNode::createPass(
   auto extraRhiBindings = buildExtraBindings(m_storage);
   if(m_multiViewUBO)
   {
-    // Multiview UBO binds right after storage resources.
-    int mvBinding = m_firstStorageBinding;
-    for(const auto& e : m_storage.ssbos)
-    {
-      if(e.binding >= 0) mvBinding = std::max(mvBinding, e.binding + 1);
-      if(e.prev_binding >= 0) mvBinding = std::max(mvBinding, e.prev_binding + 1);
-    }
-    for(const auto& e : m_storage.images)
-      if(e.binding >= 0) mvBinding = std::max(mvBinding, e.binding + 1);
+    // Multiview UBO binds right after ALL storage resources — SSBOs, images
+    // AND uniform_input UBOs. collectGraphicsStorageResources records exactly
+    // that slot in m_storage.nextBinding (== isf_emit_graphics_storage's
+    // return value, where the codegen places the multiview UBO at
+    // isf.cpp:3773-3783). The previous max over ssbos/images alone omitted the
+    // UBOs, so a graphics uniform_input holding the top binding collided the
+    // multiview UBO with the camera UBO and left the shader's real multiview
+    // binding without an SRB descriptor → Vulkan/D3D12 crash / GL aliasing.
+    const int mvBinding
+        = m_storage.nextBinding >= 0 ? m_storage.nextBinding : m_firstStorageBinding;
 
     extraRhiBindings.append(QRhiShaderResourceBinding::uniformBuffer(
         mvBinding,

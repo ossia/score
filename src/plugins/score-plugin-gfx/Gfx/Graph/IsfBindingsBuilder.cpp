@@ -181,11 +181,30 @@ QRhiShaderResourceBinding::StageFlags visibilityToStages(std::string_view v) noe
   return Stage::FragmentStage;
 }
 
+// Whether an INPUTS storage/uniform entry consumes a GRAPHICS-pipeline
+// binding. This MUST match libisf's is_graphics_visibility() verbatim
+// (isf.cpp:3269): the GLSL codegen only emits a `layout(binding=N)`
+// declaration — and only advances its binding counter — for these exact
+// visibility strings. The runtime SRB assignment below has to agree per-entry,
+// otherwise a value the codegen skips (e.g. "all", "compute", or a typo) still
+// consumes a runtime binding and every subsequent storage resource drifts one
+// slot away from the `layout(binding=...)` the shader was compiled with. Since
+// the SRB *is* the pipeline layout on Vulkan/D3D12, that drift silently binds
+// the wrong buffer/image at each slot. Keep this as a thin mirror of the
+// codegen predicate rather than reusing visibilityToStages(), whose lenient
+// "all"/unknown->fragment mapping is deliberately NOT the graphics-binding set.
+static bool isGraphicsVisibility(std::string_view v) noexcept
+{
+  return v == "fragment" || v == "vertex" || v == "vertex+fragment"
+         || v == "both" || v == "graphics";
+}
+
 void collectGraphicsStorageResources(
     const isf::descriptor& desc, int firstBinding, GraphicsStorageResources& out)
 {
   out.ssbos.clear();
   out.images.clear();
+  out.ubos.clear();
   out.indirectDrawBuffer = nullptr;
   out.indirectDrawIndexed = false;
   out.indirectDrawSsboIndex = -1;
@@ -226,9 +245,14 @@ void collectGraphicsStorageResources(
             out.indirectDrawIndexed = (s->buffer_usage == "indirect_draw_indexed");
             return;
           }
-          auto stages = visibilityToStages(s->visibility);
-          if(stages == QRhiShaderResourceBinding::StageFlags{})
+          // Gate on the SAME predicate the GLSL codegen uses
+          // (isf_emit_graphics_storage, isf.cpp:3413). visibilityToStages()
+          // maps "all"/unknown to a non-empty (fragment) stage set, so the
+          // old `stages == {}` skip let those consume a runtime binding the
+          // codegen never emitted — shifting every later storage binding.
+          if(!isGraphicsVisibility(s->visibility))
             return;
+          auto stages = visibilityToStages(s->visibility);
           GraphicsSSBO e;
           e.name = inp.name;
           e.access = s->access;
@@ -247,10 +271,12 @@ void collectGraphicsStorageResources(
         }
         else if(auto* img = ossia::get_if<isf::csf_image_input>(&inp.data))
         {
-          auto stages = visibilityToStages(img->visibility);
-          if(stages == QRhiShaderResourceBinding::StageFlags{}
-             || stages == QRhiShaderResourceBinding::ComputeStage)
+          // Match isf_emit_graphics_storage (isf.cpp:3429): only the graphics
+          // visibility set gets a binding. This also subsumes the previous
+          // compute-stage skip (compute is not a graphics visibility).
+          if(!isGraphicsVisibility(img->visibility))
             return;
+          auto stages = visibilityToStages(img->visibility);
           GraphicsStorageImage e;
           e.name = inp.name;
           e.access = img->access;
@@ -300,10 +326,12 @@ void collectGraphicsStorageResources(
         }
         else if(auto* uni = ossia::get_if<isf::uniform_input>(&inp.data))
         {
-          auto stages = visibilityToStages(uni->visibility);
-          if(stages == QRhiShaderResourceBinding::StageFlags{}
-             || stages == QRhiShaderResourceBinding::ComputeStage)
+          // Match isf_emit_graphics_storage (isf.cpp:3442): only the graphics
+          // visibility set gets a binding (compute UBOs are handled by the
+          // compute path, unknown/"all" are skipped by the codegen too).
+          if(!isGraphicsVisibility(uni->visibility))
             return;
+          auto stages = visibilityToStages(uni->visibility);
           GraphicsUBO e;
           e.name = inp.name;
           e.owned = false; // sourced from upstream port each frame
@@ -313,6 +341,15 @@ void collectGraphicsStorageResources(
           out.ubos.push_back(std::move(e));
         }
       });
+
+  // Record the next free binding after all graphics-visible storage. Because
+  // the walk above assigns bindings from a single counter across SSBOs,
+  // images AND uniform_input UBOs in declaration order — exactly as
+  // isf_emit_graphics_storage() does (isf.cpp:3406-3449) — `binding` now
+  // equals that function's return value. Callers append the multiview UBO at
+  // this slot (isf.cpp:3773-3783 emits it there), so they reuse this rather
+  // than re-deriving a max that would forget the UBOs.
+  out.nextBinding = binding;
 }
 
 // --- SSBO allocation ------------------------------------------------------

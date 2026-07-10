@@ -104,7 +104,15 @@ void SimpleRenderedISFNode::updateInputSamplerFilter(
     if(p == &input)
       break;
     if(p->type == Types::Image)
+    {
       sampler_idx++;
+      // Mirror updateInputTexture: a SamplableDepth port contributes a second
+      // (depth companion) sampler in initInputSamplers (Utils.cpp:1420-1432),
+      // so skip it too or every later port's filter edit lands on the wrong
+      // QRhiSampler.
+      if((p->flags & Flag::SamplableDepth) == Flag::SamplableDepth)
+        sampler_idx++;
+    }
   }
 
   if(sampler_idx < (int)m_inputSamplers.size())
@@ -230,15 +238,13 @@ void SimpleRenderedISFNode::initPass(
   auto extraRhiBindings = buildExtraBindings(m_storage);
   if(m_multiViewUBO)
   {
-    // Multiview UBO binds right after storage resources.
-    int mvBinding = m_firstStorageBinding;
-    for(const auto& e : m_storage.ssbos)
-    {
-      if(e.binding >= 0) mvBinding = std::max(mvBinding, e.binding + 1);
-      if(e.prev_binding >= 0) mvBinding = std::max(mvBinding, e.prev_binding + 1);
-    }
-    for(const auto& e : m_storage.images)
-      if(e.binding >= 0) mvBinding = std::max(mvBinding, e.binding + 1);
+    // Multiview UBO binds right after ALL storage resources (SSBOs + images +
+    // uniform_input UBOs). Reuse the next-free binding recorded by
+    // collectGraphicsStorageResources — the exact slot isf_emit_multiview_ubo
+    // uses (isf.cpp:3773-3783). The old max over ssbos/images alone ignored
+    // uniform_input UBOs and collided the multiview binding with the last UBO.
+    const int mvBinding
+        = m_storage.nextBinding >= 0 ? m_storage.nextBinding : m_firstStorageBinding;
 
     extraRhiBindings.append(QRhiShaderResourceBinding::uniformBuffer(
         mvBinding,
@@ -424,14 +430,12 @@ void SimpleRenderedISFNode::initMRTPass(RenderList& renderer, QRhiResourceUpdate
   auto extraRhiBindings = buildExtraBindings(m_storage);
   if(m_multiViewUBO)
   {
-    int mvBinding = m_firstStorageBinding;
-    for(const auto& e : m_storage.ssbos)
-    {
-      if(e.binding >= 0) mvBinding = std::max(mvBinding, e.binding + 1);
-      if(e.prev_binding >= 0) mvBinding = std::max(mvBinding, e.prev_binding + 1);
-    }
-    for(const auto& e : m_storage.images)
-      if(e.binding >= 0) mvBinding = std::max(mvBinding, e.binding + 1);
+    // Same slot as the codegen's multiview UBO (isf.cpp:3773-3783): the next
+    // free binding after ALL storage including uniform_input UBOs, recorded by
+    // collectGraphicsStorageResources. The old ssbos/images-only max ignored
+    // UBOs and collided the multiview binding — see initPass above.
+    const int mvBinding
+        = m_storage.nextBinding >= 0 ? m_storage.nextBinding : m_firstStorageBinding;
 
     extraRhiBindings.append(QRhiShaderResourceBinding::uniformBuffer(
         mvBinding,
