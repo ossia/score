@@ -431,14 +431,30 @@ void GfxContext::incrementalEdgeUpdate(
   // at a time doesn't work because edge ordering creates dependencies
   // (e.g. edge A->B is skipped because B isn't in the RL yet, then
   // edge B->C brings B into the RL, but A never gets a renderer).
+  // Edges whose endpoint node is not present YET (its ADD_NODE command has
+  // not been dequeued when this edge diff runs — the two channels are
+  // independent). These must NOT be treated as applied: updateGraph already
+  // committed cur_edges to the authoritative `edges` baseline, so unless we
+  // roll them back the next diff sees old_edges == cur_edges for them and
+  // never re-emits them — the connection is lost forever until an unrelated
+  // full rebuild. We drop them from the baseline and re-raise edges_changed
+  // so the next tick (by which the node has been added) re-emits and wires
+  // them.
+  std::vector<EdgeSpec> deferred;
   for(auto& spec : added)
   {
     auto source_it = nodes.find(spec.first.node);
     auto sink_it = nodes.find(spec.second.node);
     if(source_it == nodes.end() || sink_it == nodes.end())
+    {
+      deferred.push_back(spec);
       continue;
+    }
     if(!source_it->second || !sink_it->second)
+    {
+      deferred.push_back(spec);
       continue;
+    }
 
     auto& source_ports = source_it->second->output;
     auto& sink_ports = sink_it->second->input;
@@ -450,6 +466,17 @@ void GfxContext::incrementalEdgeUpdate(
     auto* sink_port = sink_ports[spec.second.port];
 
     m_graph->addEdge(source_port, sink_port, spec.type);
+  }
+
+  if(!deferred.empty())
+  {
+    std::lock_guard l{edges_lock};
+    for(const auto& spec : deferred)
+      edges.erase(spec);
+    // Force updateGraph to re-enter the edge-diff path next tick even if the
+    // producer does not republish new_edges; old_edges will then lack the
+    // deferred edges so set_difference re-emits them once their node exists.
+    edges_changed.store(true);
   }
 
   // Reconcile: ensure all reachable nodes have renderers and passes.
