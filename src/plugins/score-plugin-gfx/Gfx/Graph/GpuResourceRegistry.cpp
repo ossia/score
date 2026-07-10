@@ -499,6 +499,22 @@ int GpuResourceRegistry::resolveDynamicSlot(
     return slot;
   }
 
+  // Miss: first reuse a slot that sweepStaleDynamicTextureSlots() previously
+  // cleared (nulled) — otherwise a producer that keeps swapping its texture
+  // id would grow the vector to the cap and force needless LRU eviction even
+  // though dead slots are sitting free. Reusing the index keeps the slot
+  // count bounded to the live set.
+  for(int s = 0; s < (int)ch.dynamicTextures.size(); ++s)
+  {
+    if(ch.dynamicTextures[s] == nullptr)
+    {
+      ch.dynamicSlotMap[key] = s;
+      ch.dynamicTextures[s] = tex;
+      ch.dynamicSlotLastUse[s] = now;
+      return s;
+    }
+  }
+
   // Miss with room: append a new slot.
   if((int)ch.dynamicTextures.size() < kMaxDynamicSlots)
   {
@@ -539,6 +555,54 @@ int GpuResourceRegistry::resolveDynamicSlot(
   ch.dynamicTextures[victim] = tex;
   ch.dynamicSlotLastUse[victim] = now;
   return victim;
+}
+
+void GpuResourceRegistry::sweepStaleDynamicTextureSlots() noexcept
+{
+  // A dynamic slot caches a NON-OWNING raw QRhiTexture* that belongs to an
+  // upstream producer (video/NDI/window-capture/scene node). When that
+  // producer changes resolution or format it destroys the old QRhiTexture and
+  // creates a new one with a fresh globalResourceId — resolveDynamicSlot then
+  // returns a *different* slot for the new id, leaving the old slot holding a
+  // freed pointer. There is no teardown callback from producers, so we detect
+  // the staleness structurally: resolveDynamicSlot stamps every slot it
+  // resolves this frame with a fresh dynamicSlotCounter value. Any slot whose
+  // stamp is <= the counter value captured at the previous sweep was NOT
+  // resolved by any live material since then, so its texture is orphaned and
+  // must not be bound.
+  //
+  // Ordering contract (see header): this runs once per frame after the resolve
+  // pass and before the bind pass, so a genuinely-live slot is always
+  // re-stamped this frame (stamp > checkpoint) and never cleared here.
+  for(auto& ch : m_textureChannels)
+  {
+    const uint64_t checkpoint = ch.dynamicSweepCheckpoint;
+    for(int s = 0; s < (int)ch.dynamicTextures.size(); ++s)
+    {
+      if(ch.dynamicTextures[s] == nullptr)
+        continue;
+      if(ch.dynamicSlotLastUse[s] <= checkpoint)
+      {
+        // Orphaned: drop the raw pointer and its id→slot mapping. The slot
+        // index stays valid (nulled) so resolveDynamicSlot can reuse it and
+        // material SSBO refs computed elsewhere stay index-stable this frame.
+        ch.dynamicTextures[s] = nullptr;
+        ch.dynamicSlotLastUse[s] = 0;
+        for(auto it = ch.dynamicSlotMap.begin(); it != ch.dynamicSlotMap.end();
+            ++it)
+        {
+          if(it->second == s)
+          {
+            ch.dynamicSlotMap.erase(it);
+            break;
+          }
+        }
+      }
+    }
+    // Capture the current counter so the next sweep clears whatever isn't
+    // re-resolved before it.
+    ch.dynamicSweepCheckpoint = ch.dynamicSlotCounter;
+  }
 }
 
 
@@ -814,6 +878,13 @@ void GpuResourceRegistry::drainExpiredPendingReleases(
 void GpuResourceRegistry::sweepMeshSlabs(
     uint32_t current_frame, uint32_t grace) noexcept
 {
+  // Piggyback the per-frame dynamic-texture-slot staleness sweep on this
+  // per-frame reconciliation call. The consumer (ScenePreprocessor::update →
+  // rebuildMDI) invokes sweepMeshSlabs after its resolveDynamicSlot pass and
+  // before binding the dynamic slots, which is exactly the ordering
+  // sweepStaleDynamicTextureSlots() requires to avoid clearing live slots.
+  sweepStaleDynamicTextureSlots();
+
   // Two-phase: move slabs past their grace into m_pendingReleases
   // (carrying their vertex+index Allocations), then process already-
   // pending releases whose grace has elapsed and actually free from

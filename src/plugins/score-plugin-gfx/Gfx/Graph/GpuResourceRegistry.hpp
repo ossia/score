@@ -409,6 +409,13 @@ public:
     std::vector<QRhiTexture*>     dynamicTextures;       // slot idx → texture
     std::vector<uint64_t>         dynamicSlotLastUse;    // slot idx → access counter at last lookup
     uint64_t                      dynamicSlotCounter{0}; // monotonic, bumped on each resolve
+    // Value of dynamicSlotCounter at the previous sweepStaleDynamicTextureSlots()
+    // pass. A slot whose dynamicSlotLastUse is <= this value was NOT re-resolved
+    // by any live material since the last sweep, so its stored QRhiTexture* is
+    // orphaned (the producing node destroyed/recreated its texture, or the
+    // material referencing it was removed) and must be cleared before it can be
+    // bound as a stale/dangling pointer. See sweepStaleDynamicTextureSlots().
+    uint64_t                      dynamicSweepCheckpoint{0};
 
     // Wave-1 shims. Callers that haven't been updated to loop over
     // buckets[] go through these for legacy single-bucket semantics.
@@ -679,6 +686,17 @@ public:
   /// Release slabs whose `last_seen_frame < current_frame - grace`.
   /// Grace defaults to 2 (covers FramesInFlight+1 on typical backends).
   void sweepMeshSlabs(uint32_t current_frame, uint32_t grace = 2) noexcept;
+
+  /// Clear dynamic texture slots that were not re-resolved by any live
+  /// material since the previous sweep (their producer swapped/destroyed the
+  /// backing QRhiTexture, or the referencing material was removed), so the
+  /// consumer's "bind every non-null dynamic slot" loop can never bind a
+  /// dangling pointer. MUST be called once per frame AFTER the per-frame
+  /// resolveDynamicSlot pass (rebuildDynamicSlots) and BEFORE the slots are
+  /// bound (appendTextureAuxes) — the current call site inside sweepMeshSlabs
+  /// satisfies this because ScenePreprocessor::update() runs its rebuildChannel
+  /// (resolve) loop before rebuildMDI(), which sweeps then binds.
+  void sweepStaleDynamicTextureSlots() noexcept;
 
   /// Free pending-release slabs whose `released_frame + grace <= current_frame`
   /// from the OffsetAllocator. Called by `sweepMeshSlabs` (phase-2) and by
