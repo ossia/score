@@ -106,14 +106,20 @@ ExtractBuffer2::BufferRef ExtractBuffer2::resolveBuffer(
   {
     if(mesh.index.buffer < 0 || mesh.index.buffer >= (int)mesh.buffers.size())
       return {};
+    // The index buffer length is mesh.indices (the index-element count), which
+    // is a distinct field from mesh.vertices. A zero count means a
+    // non-indexed / unpopulated mesh: clear the outlet rather than publishing a
+    // garbage-sized range.
+    if(mesh.indices <= 0)
+      return {};
     int64_t bytes = 0;
     switch(mesh.index.format)
     {
       case halp::index_format::uint16:
-        bytes = (int64_t)mesh.vertices * 2;
+        bytes = (int64_t)mesh.indices * 2;
         break;
       case halp::index_format::uint32:
-        bytes = (int64_t)mesh.vertices * 4;
+        bytes = (int64_t)mesh.indices * 4;
         break;
     }
     return {
