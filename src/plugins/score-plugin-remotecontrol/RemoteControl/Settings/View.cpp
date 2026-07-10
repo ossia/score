@@ -3,7 +3,6 @@
 
 #include <score/widgets/FormWidget.hpp>
 #include <score/widgets/SignalUtils.hpp>
-#include <Library/LibrarySettings.hpp>
 
 #include <QCheckBox>
 #include <QFormLayout>
@@ -31,9 +30,11 @@ View::View()
       {
         case Qt::Unchecked:
           enabledChanged(false);
+          m_web_ui->setEnabled(false);
           break;
         case Qt::Checked:
           enabledChanged(true);
+          m_web_ui->setEnabled(true);
           break;
         default:
           break;
@@ -54,19 +55,11 @@ View::View()
     auto browse{new QPushButton{tr("Browse...")}};
     browse->setMaximumWidth(100);
 
-    const QString webUiPath{score::AppContext()
-                                .settings<Library::Settings::Model>()
-                                .getPackagesPath()
-                            + "/wasm-remote/"};
-
-    connect(browse, &QPushButton::clicked, this, [this, webUiPath]
+    connect(browse, &QPushButton::clicked, this, [this]
     {
       auto f{QFileDialog::getExistingDirectory(
-          nullptr, tr("Web UI folder"), webUiPath)};
-      if(!f.isEmpty())
-      {
-        webUiPathChanged(f);
-      }
+          nullptr, tr("Web UI folder"), m_web_ui_path->displayText())};
+      if (!f.isEmpty()) webUiPathChanged(f);
     });
 
     sublay->addWidget(m_web_ui_path);
@@ -80,7 +73,7 @@ View::View()
 
     m_server_port = new QSpinBox{};
     m_server_port->setRange(0, 9999);
-    m_server_port->setMinimumWidth(200);
+    m_server_port->setMaximumWidth(100);
 
     sublay->addWidget(m_server_address);
     sublay->addWidget(m_server_port);
