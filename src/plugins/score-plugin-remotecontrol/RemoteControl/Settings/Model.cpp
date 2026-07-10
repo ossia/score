@@ -1,6 +1,9 @@
 #include "Model.hpp"
 
+#include <Library/LibrarySettings.hpp>
+
 #include <QSettings>
+#include <QDir>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(RemoteControl::Settings::Model)
@@ -32,6 +35,17 @@ Model::Model(
     : score::SettingsDelegateModel{k, nullptr} 
 {
   score::setupDefaultSettings(set, Parameters::list(), *this);
+
+  if (m_WebUiPath.isEmpty())
+  {
+    const auto path{score::AppContext()
+      .settings<Library::Settings::Model>()
+              .getPackagesPath()
+          + "/wasm-remote/"};
+
+    if (QDir{path}.exists())
+      setWebUiPath(path);
+  }
 }
 
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, Enabled)
