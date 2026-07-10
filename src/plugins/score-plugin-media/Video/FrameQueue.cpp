@@ -146,12 +146,19 @@ AVFrame* FrameQueue::discard_and_dequeue() noexcept
 
   if(auto to_discard = m_discardUntil.exchange(nullptr))
   {
-    while(available.try_dequeue(f) && f != to_discard)
+    // Drain up to and including the marker frame and return it — but only if
+    // we actually find it in the queue. If it isn't there (already consumed by
+    // a prior normal dequeue, or a torn set_discard_frame/enqueue), we must NOT
+    // return it: we don't own it and doing so would double-own the frame.
+    // Fall through to a normal dequeue instead (the queue is drained here, so
+    // that yields nullptr — no new frame this tick, safe seek behaviour).
+    while(available.try_dequeue(f))
     {
+      if(f == to_discard)
+        return to_discard;
       release(f);
     }
-
-    return to_discard;
+    return nullptr;
   }
   // We only want the latest frame
   while(available.try_dequeue(f))
@@ -169,12 +176,16 @@ AVFrame* FrameQueue::discard_and_dequeue_one() noexcept
 
   if(auto to_discard = m_discardUntil.exchange(nullptr))
   {
-    while(available.try_dequeue(f) && f != to_discard)
+    // Same contract as discard_and_dequeue(): return the marker frame only if
+    // it is actually present, otherwise fall through rather than returning a
+    // frame we don't own (double-ownership / UAF guard).
+    while(available.try_dequeue(f))
     {
+      if(f == to_discard)
+        return to_discard;
       release(f);
     }
-
-    return to_discard;
+    return nullptr;
   }
 
   available.try_dequeue(f);

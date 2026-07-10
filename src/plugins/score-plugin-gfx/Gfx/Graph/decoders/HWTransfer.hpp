@@ -169,10 +169,23 @@ struct HWTransferDecoder : GPUVideoDecoder
       // This should rarely happen since we pre-set sw_format at construction.
       if(m_delegate)
       {
-        m_delegate->samplers.clear();
+        // Call the base release() FIRST: the old delegate owns QRhiTextures
+        // (deleteLater) and QRhiSamplers (delete) created in init(). Merely
+        // clearing its samplers vector and resetting the unique_ptr (as before)
+        // ran the empty ~GPUVideoDecoder and leaked every texture/sampler on
+        // each mid-stream sw-format change.
+        m_delegate->release(r);
         m_delegate.reset();
       }
+      // Our samplers vector shared the same pointers the delegate just freed;
+      // drop the now-dangling copies WITHOUT re-freeing.
       samplers.clear();
+
+      // NOTE: any renderer pipeline/SRB already built from the OLD samplers is
+      // now stale — it still references the freed textures/samplers. Rebuilding
+      // those SRBs must happen at the node/renderer level (it can flag a
+      // decoder-format change and re-run setupGpuDecoder); it cannot be done
+      // purely here in the decoder, which has no handle on the renderer's SRBs.
 
       m_delegate = createDelegateForFormat(sw_fmt);
       if(m_delegate)

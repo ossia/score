@@ -94,13 +94,22 @@ dxgiToQRhiFormat(DWORD dxgi, QRhi::Implementation backend) noexcept
     case DXGI_FORMAT_R16G16B16A16_UNORM:
     case DXGI_FORMAT_R16G16B16A16_FLOAT:
     case DXGI_FORMAT_R16G16B16A16_TYPELESS:
-      // RGBA16F is the only 4x16 format QRhi exposes (no RGBA16-UNORM). For a
-      // _UNORM sender this samples as half-float (color-inaccurate) but is the
-      // only available 64-bit/pixel format; dxgiToVulkanFormat() maps the same
-      // DXGI formats to VK_FORMAT_R16G16B16A16_SFLOAT so the imported VkImage
-      // and the QRhi-created view agree (no validation violation). On D3D the
-      // CopyResource between _UNORM and _FLOAT is permitted (shared TYPELESS
-      // family) and bit-preserving.
+      // RGBA16F is the only 4x16 format QRhi exposes (no RGBA16-UNORM), and
+      // dxgiToVulkanFormat() maps the same DXGI formats to
+      // VK_FORMAT_R16G16B16A16_SFLOAT so the imported VkImage and the
+      // QRhi-created view agree (no validation violation).
+      //
+      // WARNING (unfixed — needs a format-converting import): for a _UNORM
+      // sender the raw 16-bit UNORM bits are reinterpreted as IEEE half-float
+      // at sample time. This is NOT merely "color-inaccurate": UNORM values
+      // whose bit pattern falls in the half-float NaN/Inf range (e.g. 1.0 =
+      // 0xFFFF = half NaN, and everything >= 0x7C01) sample as NaN/Inf, which
+      // then propagates through downstream blends. A correct fix requires
+      // converting UNORM->float during the import (a Vulkan vkCmdBlitImage
+      // UNORM->SFLOAT, or a D3D shader copy) rather than the current
+      // bit-preserving CopyResource/KMT import — a post-sample renormalize pass
+      // cannot recover data already collapsed to NaN. Both _UNORM and _FLOAT
+      // are 64-bit/pixel so the import itself still succeeds.
       return QRhiTexture::RGBA16F;
     case DXGI_FORMAT_R32G32B32A32_FLOAT:
     case DXGI_FORMAT_R32G32B32A32_TYPELESS:
@@ -579,8 +588,14 @@ private:
         // violation (VUID-VkImageViewCreateInfo-image-01762) and samples
         // garbage. Both _UNORM and _FLOAT are 64-bit/pixel, so the KMT import
         // succeeds; we therefore map both to SFLOAT to stay consistent with
-        // dxgiToQRhiFormat(). (UNORM data read as half-float is still color-
-        // inaccurate, but that is an inherent QRhi limitation, not a crash.)
+        // dxgiToQRhiFormat().
+        //
+        // WARNING (unfixed): for a _UNORM sender this reinterprets the UNORM
+        // bits as half-float, so bright values (>= 0x7C01, incl. 1.0 = 0xFFFF)
+        // sample as NaN/Inf and propagate through blends — see the fuller note
+        // in dxgiToQRhiFormat(). Correcting it needs a format-converting import
+        // (vkCmdBlitImage UNORM->SFLOAT into a separate QRhi-owned image);
+        // sampling this SFLOAT-viewed image can never recover the UNORM value.
         return VK_FORMAT_R16G16B16A16_SFLOAT;
       case DXGI_FORMAT_R32G32B32A32_FLOAT:
         return VK_FORMAT_R32G32B32A32_SFLOAT;
