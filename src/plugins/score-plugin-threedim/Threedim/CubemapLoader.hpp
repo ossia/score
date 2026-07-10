@@ -157,7 +157,7 @@ public:
       QRhiResourceUpdateBatch*& res, score::gfx::Edge& edge);
 
 private:
-  void createCubemapTexture(QRhi& rhi, int faceSize);
+  bool createCubemapTexture(QRhi& rhi, int faceSize);
   void releaseCubemapTexture();
   // `renderer` is optional: when non-null QRhiBuffers go through
   // RenderList::releaseBuffer (the project-wide lifetime invariant);
@@ -173,7 +173,7 @@ private:
       score::gfx::RenderList& renderer, QRhiCommandBuffer& commands,
       QRhiResourceUpdateBatch*& res);
 
-  void setupEquirectPipeline(score::gfx::RenderList& renderer);
+  bool setupEquirectPipeline(score::gfx::RenderList& renderer);
 
   // Extract face from cross/strip layout
   QImage extractFace(int faceIndex) const;

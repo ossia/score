@@ -192,16 +192,30 @@ QImage CubemapLoader::extractFace(int faceIndex) const
   return m_loadedImage.copy(fx, fy, faceW, faceH);
 }
 
-void CubemapLoader::createCubemapTexture(QRhi& rhi, int faceSize)
+bool CubemapLoader::createCubemapTexture(QRhi& rhi, int faceSize)
 {
   releaseCubemapTexture();
+
+  // Resolution is a user spinbox up to 8192. A CubeMap|RenderTarget|MipMapped
+  // 8192^2 RGBA8 texture is ~1.5 GB (6 faces + mips) and can exceed the
+  // device TextureSizeMax or exhaust VRAM on lower-tier GPUs. Clamp to the
+  // hard device limit; VRAM exhaustion is caught by the create() check below.
+  const int maxSz = rhi.resourceLimit(QRhi::TextureSizeMax);
+  if(maxSz > 0 && faceSize > maxSz)
+    faceSize = maxSz;
 
   m_faceSize = faceSize;
   m_cubemapTex = rhi.newTexture(
       QRhiTexture::RGBA8, QSize{faceSize, faceSize}, 1,
       QRhiTexture::CubeMap | QRhiTexture::RenderTarget | QRhiTexture::MipMapped
           | QRhiTexture::UsedWithGenerateMips);
-  m_cubemapTex->create();
+  if(!m_cubemapTex->create())
+  {
+    qWarning() << "CubemapLoader: cubemap texture creation failed at faceSize"
+               << faceSize << "- skipping render";
+    releaseCubemapTexture();
+    return false;
+  }
 
   outputs.cubemap.texture.handle = m_cubemapTex;
 
@@ -221,6 +235,7 @@ void CubemapLoader::createCubemapTexture(QRhi& rhi, int faceSize)
     outputs.scene_out.scene.state = m_sceneState;
     outputs.scene_out.dirty = ossia::scene_port::dirty_environment;
   }
+  return true;
 }
 
 void CubemapLoader::releaseCubemapTexture()
@@ -299,7 +314,7 @@ void CubemapLoader::releaseEquirectResources(score::gfx::RenderList* renderer)
   }
 }
 
-void CubemapLoader::setupEquirectPipeline(score::gfx::RenderList& renderer)
+bool CubemapLoader::setupEquirectPipeline(score::gfx::RenderList& renderer)
 {
   auto& rhi = *renderer.state.rhi;
 
@@ -351,7 +366,11 @@ void CubemapLoader::setupEquirectPipeline(score::gfx::RenderList& renderer)
         = m_faceRTs[face].renderTarget->newCompatibleRenderPassDescriptor();
     m_faceRTs[face].renderTarget->setRenderPassDescriptor(
         m_faceRTs[face].renderPass);
-    m_faceRTs[face].renderTarget->create();
+    if(!m_faceRTs[face].renderTarget->create())
+    {
+      qWarning() << "CubemapLoader: face render target creation failed" << face;
+      return false;
+    }
   }
 
   // Compile shaders
@@ -369,7 +388,12 @@ void CubemapLoader::setupEquirectPipeline(score::gfx::RenderList& renderer)
   m_equirectPipeline->setVertexInputLayout({});
   m_equirectPipeline->setShaderResourceBindings(m_equirectSrb);
   m_equirectPipeline->setRenderPassDescriptor(m_faceRTs[0].renderPass);
-  m_equirectPipeline->create();
+  if(!m_equirectPipeline->create())
+  {
+    qWarning() << "CubemapLoader: equirect pipeline creation failed";
+    return false;
+  }
+  return true;
 }
 
 void CubemapLoader::init(
@@ -484,7 +508,13 @@ void CubemapLoader::renderEquirectangular(
   // Setup pipeline if needed
   if(!m_equirectPipeline)
   {
-    setupEquirectPipeline(renderer);
+    if(!setupEquirectPipeline(renderer))
+    {
+      // A face render target or the pipeline failed to create — bail out
+      // cleanly instead of recording passes into a dead render target.
+      releaseEquirectResources(&renderer);
+      return;
+    }
   }
   else
   {
@@ -547,11 +577,20 @@ void CubemapLoader::runInitialPasses(
 
   auto& rhi = *renderer.state.rhi;
 
-  const int faceSize = inputs.resolution.value;
+  int faceSize = inputs.resolution.value;
+  // Clamp before the re-create guard so the comparison against m_faceSize
+  // (which createCubemapTexture stores post-clamp) stays stable frame to
+  // frame instead of forcing a rebuild every frame when resolution > max.
+  {
+    const int maxSz = rhi.resourceLimit(QRhi::TextureSizeMax);
+    if(maxSz > 0 && faceSize > maxSz)
+      faceSize = maxSz;
+  }
   if(faceSize != m_faceSize || !m_cubemapTex)
   {
     releaseEquirectResources();
-    createCubemapTexture(rhi, faceSize);
+    if(!createCubemapTexture(rhi, faceSize))
+      return;
   }
 
   const CubemapLayout layout = inputs.layout.value;
