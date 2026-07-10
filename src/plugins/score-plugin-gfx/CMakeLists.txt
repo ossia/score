@@ -234,6 +234,8 @@ set(HDRS
     
     Gfx/Graph/decoders/DXV.hpp
     Gfx/Graph/interop/DMABufImport.hpp
+    Gfx/Graph/interop/DrmFourcc.hpp
+    Gfx/Graph/interop/DrmPrimeWrap.hpp
     Gfx/Graph/interop/EglDmaBufImport.hpp
     Gfx/Graph/interop/EglDmaBufExport.hpp
     Gfx/Graph/encoders/ColorSpaceOut.hpp
@@ -789,5 +791,23 @@ if(SCORE_ENCODER_TESTER AND NOT SCORE_STATIC_PLUGINS)
 add_executable(EncoderTester tests/EncoderTester.cpp)
 target_link_libraries(EncoderTester PRIVATE
   score_plugin_gfx score_plugin_media ${QT_PREFIX}::Gui)
+endif()
+
+# PipeWire video round-trip harness: drives the real Gfx/Pipewire producer +
+# consumer against the live daemon across all pixel formats and transports.
+option(SCORE_PIPEWIRE_TESTER "Build the PipeWire video round-trip harness" ON)
+if(SCORE_PIPEWIRE_TESTER
+   AND NOT EMSCRIPTEN AND NOT APPLE AND NOT WIN32
+   AND TARGET pipewire::pipewire)
+add_executable(PipewireRoundtrip tests/PipewireRoundtrip.cpp)
+# pipewire::pipewire is include-only (score dlopens libpipewire); the
+# harness's raw reference producer calls libpipewire directly, so link it.
+find_library(PIPEWIRE_LIBRARY NAMES pipewire-0.3)
+target_link_libraries(PipewireRoundtrip PRIVATE
+  score_plugin_gfx score_plugin_media ${QT_PREFIX}::Gui ${QT_PREFIX}::Widgets
+  pipewire::pipewire ${PIPEWIRE_LIBRARY} swscale)
+if(SCORE_STATIC_PLUGINS)
+  target_link_libraries(PipewireRoundtrip PRIVATE ${SCORE_PLUGINS_LIST})
+endif()
 endif()
 
