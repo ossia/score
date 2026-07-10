@@ -11,6 +11,7 @@
 
 #include <QtGui/private/qrhi_p.h>
 
+#include <QDebug>
 #include <QImage>
 
 #include <cstdint>
@@ -51,8 +52,14 @@ public:
     // on a large cube cross / equirect HDR.
     struct image_t : halp::file_port<"Image", halp::mmap_file_view>
     {
+      // Only LDR formats are advertised: decode goes through QImage, which
+      // has no stock Radiance-HDR / OpenEXR handler, and both the equirect
+      // source and cube textures are RGBA8. .hdr/.exr were previously
+      // listed but would silently decode to null (no cube, no error) or be
+      // truncated to 8-bit — no float decoder is vendored in this tree, so
+      // they are dropped rather than silently mishandled.
       halp_meta(extensions,
-          "Images (*.png *.jpg *.jpeg *.bmp *.tga *.webp *.tif *.tiff *.hdr *.exr)");
+          "Images (*.png *.jpg *.jpeg *.bmp *.tga *.webp *.tif *.tiff)");
       static std::function<void(CubemapLoader&)> process(file_type data)
       {
         QImage img;
@@ -66,7 +73,16 @@ public:
         {
           img = QImage(data.filename.data());
         }
-        if(!img.isNull() && img.format() != QImage::Format_RGBA8888)
+        if(img.isNull())
+        {
+          // Never fail silently — surface unsupported/corrupt inputs
+          // (e.g. an HDR/EXR file QImage cannot decode).
+          qWarning() << "CubemapLoader: failed to decode environment image"
+                     << data.filename.data()
+                     << "- unsupported or corrupt format (HDR/EXR float"
+                        " formats are not supported)";
+        }
+        else if(img.format() != QImage::Format_RGBA8888)
           img = img.convertToFormat(QImage::Format_RGBA8888);
         return [img = std::move(img)](CubemapLoader& self) mutable {
           self.m_loadedImage = std::move(img);
