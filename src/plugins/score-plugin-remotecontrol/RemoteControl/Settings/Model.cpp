@@ -11,7 +11,6 @@ namespace RemoteControl
 {
 namespace Settings
 {
-
 namespace Parameters
 {
 SETTINGS_PARAMETER_IMPL(Enabled){QStringLiteral("RemoteControl/Enabled"), false};
@@ -27,7 +26,7 @@ static auto list()
                   , ServerPort
                   , ServerEnabled);
 }
-}
+} // namespace Parameters
 
 Model::Model(
     const UuidKey<score::SettingsDelegateFactory>& k, QSettings& set,
@@ -53,5 +52,6 @@ SCORE_SETTINGS_PARAMETER_CPP(QString, Model, WebUiPath)
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, ServerAddress)
 SCORE_SETTINGS_PARAMETER_CPP(unsigned short, Model, ServerPort)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, ServerEnabled)
-}
-}
+
+} // namespace Settings
+} // namespace RemoteControl

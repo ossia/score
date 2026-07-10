@@ -13,13 +13,9 @@
 #include <cstdlib>
 #include <iostream>
 
-//------------------------------------------------------------------------------
-
 namespace RemoteControl
 {
-
-Http_server::Http_server()
-{ }
+Http_server::Http_server() { }
 
 Http_server::~Http_server()
 {
@@ -64,13 +60,11 @@ beast::string_view Http_server::mime_type(beast::string_view path)
 
 // Append an HTTP rel-path to a local filesystem path.
 // The returned path is normalized for the platform.
-std::string Http_server::path_cat(
-    beast::string_view base
-    , beast::string_view path)
+std::string Http_server::path_cat(beast::string_view path)
 {
-  if (base.empty())
+  if (m_buildWasmPath.empty())
     return std::string(path);
-  std::string result(base);
+  std::string result(m_buildWasmPath);
 #ifdef BOOST_MSVC
   char constexpr path_separator = '\\';
   if(result.back() == path_separator)
@@ -94,8 +88,7 @@ std::string Http_server::path_cat(
 // caller to pass a generic lambda for receiving the response.
 template<class Body, class Allocator, class Send>
 void Http_server::handle_request(
-    beast::string_view doc_root
-    , http::request<Body, http::basic_fields<Allocator>>&& req
+    http::request<Body, http::basic_fields<Allocator>>&& req
     , Send&& send)
 {
   // Returns a bad request response
@@ -149,7 +142,7 @@ void Http_server::handle_request(
     return send(bad_request("Illegal request-target"));
 
   // Build the path to the requested file
-  std::string path = path_cat(doc_root, req.target());
+  std::string path = path_cat(req.target());
   if(req.target().back() == '/')
     path.append("index.html");
 
@@ -200,8 +193,6 @@ void Http_server::handle_request(
   return send(std::move(res));
 }
 
-//------------------------------------------------------------------------------
-
 // Report a failure
 void Http_server::fail(beast::error_code ec, char const* what)
 {
@@ -209,9 +200,7 @@ void Http_server::fail(beast::error_code ec, char const* what)
 }
 
 // Handles an HTTP server connection
-void Http_server::do_session(
-    tcp::socket& socket
-    , std::shared_ptr<std::string const> const& doc_root)
+void Http_server::do_session(tcp::socket& socket)
 {
   bool close = false;
   beast::error_code ec;
@@ -233,7 +222,7 @@ void Http_server::do_session(
       return Http_server::fail(ec, "read");
 
     // Send the response
-    Http_server::handle_request(*doc_root, std::move(req), lambda);
+    Http_server::handle_request(std::move(req), lambda);
     if(ec)
       return Http_server::fail(ec, "write");
     if(close)
@@ -250,60 +239,61 @@ void Http_server::do_session(
   // At this point the connection is closed gracefully
 }
 
-//------------------------------------------------------------------------------
-
 // Launch the open_server function in a thread
 void Http_server::start_thread()
 {
   m_serverThread = std::thread{[this] { open_server(); }};
 }
 
-//------------------------------------------------------------------------------
-
 void Http_server::stop_thread()
 {
-  if (!m_serverThread.joinable()) return;
+  if (!running()) return;
 
   shutdown(m_listenSocket, SHUT_RDWR);
-  ioc.stop();
+  m_ioc.stop();
   m_serverThread.join();
 }
 
-//------------------------------------------------------------------------------
+void Http_server::set_path(const std::string& str)
+{
+  // FIXME : Not thread safe, but is it that bad ?
+  m_buildWasmPath = str;
+}
+
+void Http_server::set_address(const std::string& str)
+{
+  bool is_runnig{running()};
+  if (is_runnig) stop_thread();
+  m_endpoint.address(net::ip::make_address(str.c_str()));
+  if (is_runnig) start_thread();
+}
+
+void Http_server::set_port(unsigned short prt)
+{
+  bool is_runnig{running()};
+  if (is_runnig) stop_thread();
+  m_endpoint.port(prt);
+  if (is_runnig) start_thread();
+}
 
 // Open a server using sockets
 int Http_server::open_server()
 {
   try
   {
-    auto const address2 = net::ip::make_address("0.0.0.0");
-    auto const port = static_cast<unsigned short>(std::atoi("8080"));
-    std::string packagesPath = score::AppContext().settings<Library::Settings::Model>().getPackagesPath().toStdString();
-    m_buildWasmPath = packagesPath + "/wasm-remote/";
-    auto const m_docRoot = std::make_shared<std::string>(m_buildWasmPath);
-
-    bool is_ip_address_set = false;
-
     // The acceptor receives incoming connections
-    tcp::acceptor acceptor{ioc, {address2, port}};
+    tcp::acceptor acceptor{m_ioc, m_endpoint};
     m_listenSocket = acceptor.native_handle();
     for(;;)
     {
       // This will receive the new connection
-      tcp::socket socket{ioc};
+      tcp::socket socket{m_ioc};
 
       // Block until we get a connection
       acceptor.accept(socket);
 
-      // Set ip address
-      if(!is_ip_address_set)
-      {
-        m_ipAddress = socket.local_endpoint().address().to_string();
-        is_ip_address_set = true;
-      }
-
       // Launch the session, transferring ownership of the socket
-      do_session(socket, m_docRoot);
+      do_session(socket);
     }
   }
   catch (const std::exception& e)
@@ -311,6 +301,11 @@ int Http_server::open_server()
     std::cerr << "Error: " << e.what() << '\n';
     return EXIT_FAILURE;
   }
+}
+
+bool Http_server::running()
+{
+  return m_serverThread.joinable();
 }
 
 }
