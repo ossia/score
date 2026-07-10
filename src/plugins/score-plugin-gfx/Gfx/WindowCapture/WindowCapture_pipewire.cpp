@@ -1,3 +1,4 @@
+#include <Gfx/Graph/interop/DrmFourcc.hpp>
 #include <Gfx/WindowCapture/WindowCaptureBackend.hpp>
 
 #include <ossia/detail/dylib_loader.hpp>
@@ -1074,25 +1075,11 @@ private:
         self->m_dmabufOffset
             = d.chunk ? static_cast<int>(d.chunk->offset) : 0;
 
-        // Map SPA video format to DRM fourcc
-        switch(self->m_spaVideoFormat)
-        {
-          case SPA_VIDEO_FORMAT_BGRx:
-            self->m_drmFormat = 0x34325258; // DRM_FORMAT_XRGB8888
-            break;
-          case SPA_VIDEO_FORMAT_BGRA:
-            self->m_drmFormat = 0x34325241; // DRM_FORMAT_ARGB8888 'AR24'
-            break;
-          case SPA_VIDEO_FORMAT_RGBx:
-            self->m_drmFormat = 0x34324258; // DRM_FORMAT_XBGR8888 'XB24'
-            break;
-          case SPA_VIDEO_FORMAT_RGBA:
-            self->m_drmFormat = 0x34324241; // DRM_FORMAT_ABGR8888
-            break;
-          default:
-            self->m_drmFormat = 0x34325258;
-            break;
-        }
+        // Map SPA video format to DRM fourcc via the shared interop table;
+        // keep the historical XRGB8888 fallback for unmapped formats.
+        const uint32_t fcc
+            = score::gfx::interop::spaToDrmFourcc(self->m_spaVideoFormat);
+        self->m_drmFormat = fcc ? fcc : score::gfx::interop::DRM_XRGB8888;
         self->m_drmModifier = 0; // LINEAR
       }
     }
