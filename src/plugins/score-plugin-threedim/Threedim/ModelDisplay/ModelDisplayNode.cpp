@@ -486,7 +486,7 @@ void main ()
   vec4 xaxis = texture(y_tex, v_coords.yz * scale);
   vec4 yaxis = texture(y_tex, v_coords.xz * scale);
   vec4 zaxis = texture(y_tex, v_coords.xy * scale);
-  vec4 tex = xaxis * blending.x + xaxis * blending.y + zaxis * blending.z;
+  vec4 tex = xaxis * blending.x + yaxis * blending.y + zaxis * blending.z;
 
   fragColor = tex;
 }
