@@ -268,15 +268,22 @@ struct BackgroundNode : OutputNode
 
   std::shared_ptr<RenderState> renderState() const override { return m_renderState; }
 
-  score::gfx::OutputNodeRenderer* createRenderer(RenderList& r) const noexcept override
+  score::gfx::TextureRenderTarget currentRenderTarget() const noexcept override
   {
-    score::gfx::TextureRenderTarget rt{
+    if(!m_renderState)
+      return {};
+    return score::gfx::TextureRenderTarget{
         .texture = m_texture,
         .renderPass = m_renderState->renderPassDescriptor,
         .renderTarget = m_renderTarget,
         .depthTexture = m_depthTexture};
+  }
+
+  score::gfx::OutputNodeRenderer* createRenderer(RenderList& r) const noexcept override
+  {
     return new Gfx::InvertYRenderer{
-        *this, rt, const_cast<QRhiReadbackResult&>(*shared_readback)};
+        *this, currentRenderTarget(),
+        const_cast<QRhiReadbackResult&>(*shared_readback)};
   }
 
   OutputNode::Configuration configuration() const noexcept override { return m_conf; }

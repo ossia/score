@@ -80,6 +80,26 @@ public:
   virtual Configuration configuration() const noexcept = 0;
 
   /**
+   * @brief The output's *current* backing render target + render-pass
+   *        descriptor, as the upstream nodes should render into it NOW.
+   *
+   * A sink whose render target / render-pass descriptor can be recreated
+   * mid-session (e.g. an offscreen BackgroundNode on a viewport resize,
+   * which deleteLater()s the old target and installs a fresh one) must
+   * override this so that a renderer which cached the target by value at
+   * construction can re-adopt the live handles when it is rebuilt
+   * (RenderList::maybeRebuild -> OutputNodeRenderer::init). The default
+   * returns an empty target, meaning "nothing to refresh — keep the value
+   * captured at createRenderer() time".
+   *
+   * Without this, the resize fast-path (resizeSwapchainSizedTargets, which
+   * rebuilds the RenderList in place instead of reconstructing the
+   * renderer) leaves the upstream node's final pass bound to the freed
+   * render-pass descriptor — a Vulkan use-after-free of the VkRenderPass.
+   */
+  virtual TextureRenderTarget currentRenderTarget() const noexcept { return {}; }
+
+  /**
    * @brief Persistent GPU resource registry for this output.
    *
    * Persist-across-rebuild contract: this used to live on the
