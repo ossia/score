@@ -157,42 +157,26 @@ struct HWTransferDecoder : GPUVideoDecoder
 
     auto sw_fmt = static_cast<AVPixelFormat>(m_swFrame->format);
 
-    // If the software format changed (first frame, or dynamic change), rebuild delegate
+    // If the software format changed (first frame, or dynamic change), the
+    // delegate's plane textures/samplers no longer match the incoming data and
+    // must be rebuilt. We must NOT free-and-rebuild here, however: the owning
+    // renderer's pipeline SRBs were baked with the current sampler.texture
+    // pointers and may still be sampled this frame — freeing now converts into
+    // a use-after-free on the next render pass. Instead record the new format
+    // and raise formatChanged; the renderer checks it right after exec() and
+    // calls setupGpuDecoder(), which tears down the decoder and its pipelines
+    // together and recreates textures + SRBs in lockstep. See
+    // GPUVideoDecoder::formatChanged. We deliberately do not upload this frame
+    // into the stale delegate — the old textures stay valid & bound until the
+    // renderer rebuilds (which resets hasFrame, so no stale content is shown).
     if(sw_fmt != m_swFormat)
     {
       m_swFormat = sw_fmt;
       decoder.pixel_format = sw_fmt;
       decoder.width = m_swFrame->width;
       decoder.height = m_swFrame->height;
-
-      // Format changed — rebuild delegate with correct textures/shaders.
-      // This should rarely happen since we pre-set sw_format at construction.
-      if(m_delegate)
-      {
-        // Call the base release() FIRST: the old delegate owns QRhiTextures
-        // (deleteLater) and QRhiSamplers (delete) created in init(). Merely
-        // clearing its samplers vector and resetting the unique_ptr (as before)
-        // ran the empty ~GPUVideoDecoder and leaked every texture/sampler on
-        // each mid-stream sw-format change.
-        m_delegate->release(r);
-        m_delegate.reset();
-      }
-      // Our samplers vector shared the same pointers the delegate just freed;
-      // drop the now-dangling copies WITHOUT re-freeing.
-      samplers.clear();
-
-      // NOTE: any renderer pipeline/SRB already built from the OLD samplers is
-      // now stale — it still references the freed textures/samplers. Rebuilding
-      // those SRBs must happen at the node/renderer level (it can flag a
-      // decoder-format change and re-run setupGpuDecoder); it cannot be done
-      // purely here in the decoder, which has no handle on the renderer's SRBs.
-
-      m_delegate = createDelegateForFormat(sw_fmt);
-      if(m_delegate)
-      {
-        m_delegate->init(r);
-        samplers = m_delegate->samplers;
-      }
+      formatChanged = true;
+      return;
     }
 
     if(m_delegate)

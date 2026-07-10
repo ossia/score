@@ -312,6 +312,13 @@ void VideoNodeRenderer::displayFrame(
   {
     m_gpu->exec(renderer, res, frame);
     m_gpu->hasFrame = true;
+
+    // A decoder that defers a mid-stream format change (e.g. HWTransferDecoder)
+    // leaves its plane textures/samplers stale but still bound in our SRBs.
+    // Rebuild decoder + pipelines together so textures and SRBs are recreated
+    // in lockstep instead of freeing textures still referenced by the SRBs.
+    if(m_gpu->formatChanged)
+      setupGpuDecoder(renderer);
   }
 }
 

@@ -1288,6 +1288,18 @@ void DirectVideoNodeRenderer::update(
             m_zeroCopyFailed = true;
             setupGpuDecoder(renderer);
           }
+          else if(m_gpu->formatChanged)
+          {
+            // HWTransferDecoder detected a mid-stream software-format change.
+            // It deferred its own teardown so our pipeline SRBs (built from the
+            // old plane textures) are still valid this frame. Adopt the new
+            // software format (recorded into m_frameFormat.pixel_format by the
+            // decoder) so the rebuilt HWTransferDecoder is constructed for it,
+            // then rebuild decoder + pipelines together — recreating the plane
+            // textures and the SRBs that reference them in lockstep.
+            m_hwSwFormat = static_cast<AVPixelFormat>(m_frameFormat.pixel_format);
+            setupGpuDecoder(renderer);
+          }
         }
       }
     }
