@@ -27,6 +27,10 @@
 
 #include "PipewireFormats.hpp"
 
+#include <Gfx/Graph/interop/DrmPrimeWrap.hpp>
+
+#include <cmath>
+
 #include <libremidi/backends/linux/pipewire/context.hpp>
 #include <libremidi/backends/linux/pipewire/format.hpp>
 #include <libremidi/backends/linux/pipewire/loader.hpp>
@@ -79,6 +83,7 @@ extern "C" {
 #include <mutex>
 #include <stdexcept>
 #include <thread>
+#include <span>
 #include <vector>
 
 namespace Gfx::PipeWire
@@ -102,6 +107,30 @@ AVPixelFormat spaToAvPixFmt(uint32_t spaFmt) noexcept
 spa_video_format avToSpaPixFmt(AVPixelFormat fmt) noexcept
 {
   return formats::toSpa(formats::tagFromAvPixFmt(fmt));
+}
+
+/** DMA-BUF modifiers this consumer advertises in EnumFormat — the seam for
+ *  GPU-capability-driven negotiation.
+ *
+ *  Baseline: LINEAR + INVALID (portable; every import path handles LINEAR,
+ *  INVALID lets implicit-modifier producers connect). The interop layer
+ *  already has the real probes — `score::gfx::vkinterop::
+ *  supported_dmabuf_modifiers(VulkanCtx, VkFormat)` and
+ *  `EglDmaBufImporter::supportedModifiers(drm_fourcc)` — but at
+ *  InputStream::start() time no renderer (and thus no VkDevice / GL
+ *  context) exists yet: the stream is created by the device layer before
+ *  any RenderList. Wiring them in needs either a deferred renegotiation
+ *  (pw_stream_update_params once the first renderer attaches) or a
+ *  graphics-context handle plumbed into the device settings; until then
+ *  every tiled producer fixates down to LINEAR. The tag parameter is
+ *  what the eventual probe needs to pick the right VkFormat/fourcc. */
+std::span<const std::uint64_t> consumerDmabufModifiers(formats::Tag) noexcept
+{
+  static constexpr std::uint64_t mods[]{
+      0ULL,                 // DRM_FORMAT_MOD_LINEAR
+      0x00FFFFFFFFFFFFFFULL // DRM_FORMAT_MOD_INVALID
+  };
+  return {mods, std::size(mods)};
 }
 
 // DMA-BUF handling:
@@ -206,127 +235,33 @@ AVFrame* wrap_dmabuf_as_drm_prime(
   if(fourcc == 0)
     return nullptr;
 
-  auto* desc = static_cast<AVDRMFrameDescriptor*>(
-      std::calloc(1, sizeof(AVDRMFrameDescriptor)));
+  // Adapt the spa_data blocks to the protocol-agnostic span shape and let
+  // the shared interop helper (Gfx/Graph/interop/DrmPrimeWrap.hpp) build the
+  // descriptor + frame; plane layout is derived from the DRM fourcc there.
+  // Only the release plumbing (queue the pw_buffer back on the loop thread)
+  // stays pipewire-specific.
+  namespace interop = score::gfx::interop;
+  interop::DrmPlaneSpan blocks[AV_DRM_MAX_PLANES];
+  const int n = std::min(int(buf->n_datas), int(AV_DRM_MAX_PLANES));
+  for(int i = 0; i < n; ++i)
+  {
+    blocks[i].fd = int(buf->datas[i].fd);
+    blocks[i].maxsize = buf->datas[i].maxsize;
+    blocks[i].stride = buf->datas[i].chunk ? buf->datas[i].chunk->stride : 0;
+    blocks[i].offset = buf->datas[i].chunk ? buf->datas[i].chunk->offset : 0;
+  }
+  auto* desc
+      = interop::buildDrmDescriptor(blocks, n, fourcc, modifier, width, height);
   if(!desc)
     return nullptr;
 
-  // Two shapes:
-  //   1) n_datas == 1  → single object with optional multi-plane layer
-  //   2) n_datas > 1   → multi-object multi-layer
-  // For shape 1, planar formats need to lay out N planes within the
-  // single object using the chunk's stride / total size.
-  if(buf->n_datas == 1)
-  {
-    desc->nb_objects = 1;
-    desc->objects[0].fd = int(buf->datas[0].fd);
-    desc->objects[0].size = buf->datas[0].maxsize;
-    desc->objects[0].format_modifier = modifier;
-
-    desc->nb_layers = 1;
-    desc->layers[0].format = fourcc;
-
-    const int srcStride = buf->datas[0].chunk
-                              ? buf->datas[0].chunk->stride
-                              : 0;
-    const std::size_t srcOffset = buf->datas[0].chunk
-                                      ? buf->datas[0].chunk->offset
-                                      : 0;
-
-    switch(tag)
-    {
-      case formats::Tag::NV12:
-      case formats::Tag::P010:
-      {
-        // 2 planes: Y at offset 0, UV interleaved at offset Y_size.
-        const int pitch = srcStride > 0
-                              ? srcStride
-                              : (tag == formats::Tag::P010 ? width * 2 : width);
-        const std::size_t y_size = std::size_t(pitch) * height;
-        desc->layers[0].nb_planes = 2;
-        desc->layers[0].planes[0].object_index = 0;
-        desc->layers[0].planes[0].offset = srcOffset;
-        desc->layers[0].planes[0].pitch = pitch;
-        desc->layers[0].planes[1].object_index = 0;
-        desc->layers[0].planes[1].offset = srcOffset + y_size;
-        desc->layers[0].planes[1].pitch = pitch; // UV interleaved → same pitch
-        break;
-      }
-      case formats::Tag::YUV420P:
-      {
-        // 3 planes: Y, U, V at offsets 0, y_size, y_size + uv_size.
-        const int yPitch = srcStride > 0 ? srcStride : width;
-        const int uvPitch = yPitch / 2;
-        const std::size_t y_size = std::size_t(yPitch) * height;
-        const std::size_t uv_size = std::size_t(uvPitch) * (height / 2);
-        desc->layers[0].nb_planes = 3;
-        desc->layers[0].planes[0].object_index = 0;
-        desc->layers[0].planes[0].offset = srcOffset;
-        desc->layers[0].planes[0].pitch = yPitch;
-        desc->layers[0].planes[1].object_index = 0;
-        desc->layers[0].planes[1].offset = srcOffset + y_size;
-        desc->layers[0].planes[1].pitch = uvPitch;
-        desc->layers[0].planes[2].object_index = 0;
-        desc->layers[0].planes[2].offset = srcOffset + y_size + uv_size;
-        desc->layers[0].planes[2].pitch = uvPitch;
-        break;
-      }
-      default:
-      {
-        // Single-plane packed.
-        desc->layers[0].nb_planes = 1;
-        desc->layers[0].planes[0].object_index = 0;
-        desc->layers[0].planes[0].offset = srcOffset;
-        desc->layers[0].planes[0].pitch = srcStride;
-        break;
-      }
-    }
-  }
-  else
-  {
-    // n_datas > 1: producer split planes across separate DMA-BUFs.
-    // Mirror to N objects + 1 layer with N planes (one plane per
-    // object). Common consumers (Vulkan VK_EXT_image_drm_format_modifier,
-    // EGL EGL_EXT_image_dma_buf_import_modifiers) accept this shape.
-    const int n = std::min(int(buf->n_datas), int(AV_DRM_MAX_PLANES));
-    desc->nb_objects = n;
-    desc->nb_layers = 1;
-    desc->layers[0].format = fourcc;
-    desc->layers[0].nb_planes = n;
-    for(int i = 0; i < n; ++i)
-    {
-      desc->objects[i].fd = int(buf->datas[i].fd);
-      desc->objects[i].size = buf->datas[i].maxsize;
-      desc->objects[i].format_modifier = modifier;
-      desc->layers[0].planes[i].object_index = i;
-      desc->layers[0].planes[i].offset
-          = buf->datas[i].chunk ? buf->datas[i].chunk->offset : 0;
-      desc->layers[0].planes[i].pitch
-          = buf->datas[i].chunk ? buf->datas[i].chunk->stride : 0;
-    }
-  }
-
-  AVFrame* f = av_frame_alloc();
-  if(!f)
-  {
-    std::free(desc);
-    return nullptr;
-  }
-  f->format = AV_PIX_FMT_DRM_PRIME;
-  f->width = width;
-  f->height = height;
-  f->data[0] = reinterpret_cast<uint8_t*>(desc);
-
   auto* ctx = new PwBufferReleaseCtx{
       std::weak_ptr<libremidi::pipewire::context>{shared}, token, b, desc};
-  f->buf[0] = av_buffer_create(
-      reinterpret_cast<uint8_t*>(desc), sizeof(*desc),
-      &score_pw_release_avframe, ctx, AV_BUFFER_FLAG_READONLY);
-  if(!f->buf[0])
+  AVFrame* f = interop::wrapDescriptorAsDrmPrime(
+      desc, width, height, &score_pw_release_avframe, ctx);
+  if(!f)
   {
-    delete ctx;
-    std::free(desc);
-    av_frame_free(&f);
+    delete ctx; // desc already freed by the helper
     return nullptr;
   }
   return f;
@@ -433,6 +368,11 @@ private:
   int m_height{1080};
   double m_fps{30.0};
   AVPixelFormat m_pixelFormat{AV_PIX_FMT_RGB24};
+  // Requested wire format from the URL. Kept as the Tag (not just the
+  // AVPixelFormat) because the Tag→AV mapping is lossy: YV12 and I420
+  // both publish AVFrames as YUV420P, but negotiate different SPA
+  // formats and need a U/V plane swap on copy.
+  formats::Tag m_formatTag{formats::Tag::RGB24};
   // When the producer chose DMA-BUF allocation (latched on first
   // DmaBuf frame), m_pixelFormat above transitions to AV_PIX_FMT_DRM_PRIME
   // and m_sw_format below tracks the underlying SW pixel format
@@ -486,8 +426,16 @@ InputStream::InputStream(const QString& path) noexcept
           // same name set as the settings widget and the SPA enum.
           const auto tag = formats::tagFromString(v);
           const auto av = formats::toAvPixFmt(tag);
-          m_pixelFormat
-              = (av != AV_PIX_FMT_NONE) ? av : AV_PIX_FMT_RGB24;
+          if(av != AV_PIX_FMT_NONE)
+          {
+            m_formatTag = tag;
+            m_pixelFormat = av;
+          }
+          else
+          {
+            m_formatTag = formats::Tag::RGB24;
+            m_pixelFormat = AV_PIX_FMT_RGB24;
+          }
         }
       }
     }
@@ -596,8 +544,13 @@ bool InputStream::start() noexcept
     if(match.hasMatch() && !match.captured(1).isEmpty())
     {
       targetName = match.captured(1);
+      // node.target is deprecated since 0.3.64; WirePlumber 0.5+ only
+      // honors target.object (name or serial). Set both so by-name
+      // source selection works on every session manager generation.
       pw.properties_set(
           props, PW_KEY_NODE_TARGET, targetName.toUtf8().constData());
+      pw.properties_set(
+          props, "target.object", targetName.toUtf8().constData());
     }
 
     // Resolve target node id from the snapshot so on_node_removed
@@ -660,21 +613,17 @@ bool InputStream::start() noexcept
 
     libremidi::pipewire::format_negotiation neg;
     neg.set_size(m_width, m_height);
-    neg.set_framerate(static_cast<int>(m_fps), 1, static_cast<int>(m_fps));
-    neg.set_video_format(avToSpaPixFmt(m_pixelFormat));
+    // Keep fractional rates exact: 29.97→29970/1000, 59.94→59940/1000.
+    // A plain (int) cast truncated NTSC rates to 29/1 and 59/1.
+    const int fps_num = int(std::lround(m_fps * 1000.0));
+    neg.set_framerate(fps_num, 1000, fps_num);
+    // Negotiate the URL's Tag, not the AVPixelFormat: the Tag→AV mapping
+    // is lossy (YV12 publishes as YUV420P) and would lose the requested
+    // wire format.
+    neg.set_video_format(formats::toSpa(m_formatTag));
     neg.set_shm_fallback(true);
     if(!force_shm)
-    {
-      // LINEAR + INVALID as a portable baseline. Phase 6 follow-up:
-      // query the GPU (vkinterop::supported_dmabuf_modifiers + EGL
-      // EglDmaBufImporter::supportedModifiers) and emit the full set.
-      static constexpr std::uint64_t cons_mods[]{
-          0ULL, // DRM_FORMAT_MOD_LINEAR
-          0x00FFFFFFFFFFFFFFULL // DRM_FORMAT_MOD_INVALID
-      };
-      neg.set_dmabuf_modifiers(
-          std::span<const std::uint64_t>(cons_mods, std::size(cons_mods)));
-    }
+      neg.set_dmabuf_modifiers(consumerDmabufModifiers(m_formatTag));
     m_neg = std::move(neg);
 
     uint8_t buffer[2048];
@@ -1056,9 +1005,10 @@ void InputStream::on_stream_process(void* data)
   switch(fmt)
   {
     // Packed RGB / YUV (8-bit), packed 10/16-bit RGB: single plane,
-    // single contiguous buffer. `av_get_bits_per_pixel` gives the
-    // correct bytes/pixel for all of these (4 for RGBA/BGRA/X2RGB10/
-    // X2BGR10, 8 for RGBA64, 2 for YUYV/UYVY, 3 for RGB24).
+    // single contiguous buffer. Use the PADDED bits-per-pixel: the
+    // plain av_get_bits_per_pixel sums component depths only, so the
+    // X2RGB10/X2BGR10 formats come out as 30 bits → bpp 3 and the copy
+    // silently drops the right quarter of every row.
     case AV_PIX_FMT_RGB24:
     case AV_PIX_FMT_RGBA:
     case AV_PIX_FMT_BGRA:
@@ -1068,9 +1018,47 @@ void InputStream::on_stream_process(void* data)
     case AV_PIX_FMT_X2BGR10LE:
     case AV_PIX_FMT_RGBA64LE:
     {
-      const int bpp = av_get_bits_per_pixel(av_pix_fmt_desc_get(fmt)) / 8;
+      const int bpp
+          = (av_get_padded_bits_per_pixel(av_pix_fmt_desc_get(fmt)) + 7) / 8;
       if(src_stride <= 0)
         src_stride = w * bpp;
+
+      // Half-float wire (SPA RGBA_F16): there is no packed half-float
+      // AVFrame format with wide support, so the frame is RGBA64LE
+      // (16-bit unsigned). Convert sample-by-sample instead of memcpy —
+      // a raw copy would hand IEEE-754 half bit patterns to consumers
+      // expecting integers.
+      if(fmt == AV_PIX_FMT_RGBA64LE
+         && self->m_data->format.format == SPA_VIDEO_FORMAT_RGBA_F16)
+      {
+        auto halfToU16 = [](uint16_t hbits) -> uint16_t {
+          const uint32_t sign = (hbits >> 15) & 1;
+          const uint32_t exp = (hbits >> 10) & 0x1F;
+          const uint32_t mant = hbits & 0x3FF;
+          float v;
+          if(exp == 0)
+            v = std::ldexp(float(mant), -24); // subnormal
+          else if(exp == 31)
+            v = mant ? 0.f : 1.f; // NaN → 0, inf → clamp
+          else
+            v = std::ldexp(float(mant + 1024), int(exp) - 25);
+          if(sign)
+            v = 0.f; // negative → clamp to 0
+          v = std::min(v, 1.f);
+          return uint16_t(std::lround(v * 65535.f));
+        };
+        for(int y = 0; y < h; ++y)
+        {
+          const auto* srow = reinterpret_cast<const uint16_t*>(
+              src + std::size_t(y) * src_stride);
+          auto* drow = reinterpret_cast<uint16_t*>(
+              frame->data[0] + std::size_t(y) * frame->linesize[0]);
+          for(int x = 0; x < w * 4; ++x)
+            drow[x] = halfToU16(srow[x]);
+        }
+        break;
+      }
+
       av_image_copy_plane(
           frame->data[0], frame->linesize[0], src, src_stride, w * bpp, h);
       break;
@@ -1088,8 +1076,11 @@ void InputStream::on_stream_process(void* data)
       const std::size_t ySize = std::size_t(src_stride) * h;
       const int chromaStride = src_stride / 2;
       const std::size_t uvSize = std::size_t(chromaStride) * (h / 2);
-      const uint8_t* srcU = src + ySize;
-      const uint8_t* srcV = srcU + uvSize;
+      // YV12 carries V before U on the wire; the AVFrame is always
+      // I420-ordered (data[1]=U, data[2]=V), so swap the source planes.
+      const bool yv12 = self->m_data->format.format == SPA_VIDEO_FORMAT_YV12;
+      const uint8_t* srcU = src + ySize + (yv12 ? uvSize : 0);
+      const uint8_t* srcV = src + ySize + (yv12 ? 0 : uvSize);
 
       av_image_copy_plane(
           frame->data[0], frame->linesize[0], src, src_stride, w, h);
@@ -1153,7 +1144,17 @@ void InputStream::on_stream_process(void* data)
       return;
   }
 
-  frame->pts = chunk->offset;
+  // Timestamp from the SPA header meta (same as the DRM-PRIME path).
+  // chunk->offset is a byte offset into the buffer, not a time.
+  if(auto* hdr = static_cast<spa_meta_header*>(spa_buffer_find_meta_data(
+         buf, SPA_META_Header, sizeof(spa_meta_header))))
+  {
+    frame->pts = int64_t(hdr->pts);
+  }
+  else
+  {
+    frame->pts = 0;
+  }
   frame->pkt_dts = frame->pts;
 
   {
@@ -1443,6 +1444,11 @@ const Device::DeviceSettings& InputFactory::defaultSettings() const noexcept
 Device::ProtocolSettingsWidget* InputFactory::makeSettingsWidget()
 {
   return new PipeWireSettingsWidget;
+}
+
+std::shared_ptr<::Video::ExternalInput> makePipewireCapture(const QString& path)
+{
+  return std::make_shared<InputStream>(path);
 }
 
 Device::DeviceEnumerators

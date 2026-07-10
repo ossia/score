@@ -6,6 +6,15 @@
 #include <Gfx/GfxInputDevice.hpp>
 #include <Gfx/SharedInputSettings.hpp>
 
+#include <score_plugin_gfx_export.h>
+
+#include <memory>
+
+namespace Video
+{
+class ExternalInput;
+}
+
 namespace Gfx::PipeWire
 {
 
@@ -36,5 +45,14 @@ public:
 };
 
 class PipeWireDevice;
+
+/** Headless factory for the PipeWire capture stream (no Device/Document
+ *  machinery) — mirrors videoio's makeAJACapture so test harnesses can
+ *  drive the real consumer path directly.
+ *
+ *  @param path input URL, e.g. "pipewire://<node-name>?width=1280&height=720&fps=60&format=rgba"
+ */
+SCORE_PLUGIN_GFX_EXPORT
+std::shared_ptr<::Video::ExternalInput> makePipewireCapture(const QString& path);
 
 } // namespace Gfx::PipeWire
