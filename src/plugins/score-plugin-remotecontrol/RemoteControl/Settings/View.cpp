@@ -25,7 +25,10 @@ View::View()
   {
     m_enabled = new QCheckBox{tr("Enabled")};
 
-    connect(m_enabled, SignalUtils::QCheckBox_checkStateChanged(), this, [&](int t) {
+    connect(m_enabled
+            , SignalUtils::QCheckBox_checkStateChanged()
+            , this
+            , [&](int t) {
       switch(t)
       {
         case Qt::Unchecked:
@@ -71,9 +74,20 @@ View::View()
     m_server_address = new QLineEdit{};
     m_server_address->setPlaceholderText("0.0.0.0");
 
+    connect(m_server_address
+            , &QLineEdit::textEdited
+            , this, [&](const QString& str)
+    { if (!str.isEmpty()) serverAddressChanged(str); });
+
     m_server_port = new QSpinBox{};
     m_server_port->setRange(0, 9999);
     m_server_port->setMaximumWidth(100);
+
+    connect(m_server_port
+            , SignalUtils::QSpinBox_valueChanged_int()
+            , this
+            , [&](int t)
+    { serverPortChanged(t); });
 
     sublay->addWidget(m_server_address);
     sublay->addWidget(m_server_port);
@@ -81,7 +95,10 @@ View::View()
 
     m_server_enabled = new QCheckBox{tr("Enable HTTP server")};
 
-    connect(m_server_enabled, SignalUtils::QCheckBox_checkStateChanged(), this, [&](int t) {
+    connect(m_server_enabled
+            , SignalUtils::QCheckBox_checkStateChanged()
+            , this
+            , [&](int t) {
       switch(t)
       {
         case Qt::Unchecked:
