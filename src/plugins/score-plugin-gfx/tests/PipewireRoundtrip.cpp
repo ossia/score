@@ -44,6 +44,7 @@ extern "C" {
 #include <QCommandLineParser>
 #include <QElapsedTimer>
 #include <QEventLoop>
+#include <QImage>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -238,6 +239,11 @@ struct Metrics
       ++badConvert;
       return;
     }
+    // Debug: SCORE_PWRT_DUMP=<prefix> dumps the 30th converted frame.
+    static const QByteArray dumpPrefix = qgetenv("SCORE_PWRT_DUMP");
+    if(!dumpPrefix.isEmpty() && frames == 30)
+      QImage(rgba.data(), f->width, f->height, QImage::Format_RGBA8888)
+          .save(QString::fromUtf8(dumpPrefix) + ".png");
     const int idx = idxFromRgba(rgba.data(), f->width, f->height);
     if(idx >= 0 && lastIdx >= 0 && !warm)
     {
@@ -273,6 +279,7 @@ struct Metrics
 struct Result
 {
   std::string cell, transport, status;
+  std::string wire; // consumer-negotiated transport ("shm"/"dmabuf"/"none")
   int recv = 0, gaps = 0, repeats = 0, badConvert = 0;
   double fps = 0, minPsnr = 0, meanLatMs = 0;
   bool drmPrime = false;
@@ -975,11 +982,26 @@ Result runScoreToScore(
   runSeconds(seconds);
   render.stop();
   lk.stop();
+  // Transport truth must be sampled BEFORE stop(): stop() resets the
+  // negotiation latch (part of the DRM_PRIME staleness fix).
+  const std::string wire
+      = Gfx::PipeWire::pipewireInputNegotiatedTransport(*rcv.input)
+            .toStdString();
   rcv.stop();
 
   r = finish(cell, transport, rcv.m, seconds, 24.0);
   if(r.status == "SKIP(no-frames)" && !lk.linked.load())
     r.status = "SKIP(no-link)";
+  // Transport truth: what the producer engaged and what the consumer
+  // negotiated — a dmabuf-requested cell that ran on fallback must say so.
+  const bool prodDma = Gfx::PipeWire::pipewireOutputDmabufEngaged(*out);
+  r.wire = wire;
+  if(dmabuf && !prodDma)
+  {
+    r.transport = "dma!fb"; // requested dmabuf, producer fell back
+    if(r.status == "PASS")
+      r.status = "PASS(fallback)";
+  }
   graph.reset();
   delete out;
   delete src;
@@ -1030,6 +1052,10 @@ Result runPwToScore(
   lk.start(QString::fromStdString(nodeName), "PipewireRoundtrip");
   runSeconds(seconds);
   lk.stop();
+  const std::string wire
+      = rcv.input ? Gfx::PipeWire::pipewireInputNegotiatedTransport(*rcv.input)
+                        .toStdString()
+                  : std::string{};
   rcv.stop();
   prod.stop();
   qunsetenv("SCORE_PIPEWIRE_FORCE_SHM");
@@ -1037,6 +1063,7 @@ Result runPwToScore(
   // YUV 4:2:0 double-conversion is lossier than SDI: accept >= 20 dB.
   const double thr = 20.0;
   r = finish(cell, r.transport, rcv.m, seconds, thr);
+  r.wire = wire;
   if(r.status == "SKIP(no-frames)")
   {
     if(!lk.linked.load())
@@ -1050,16 +1077,17 @@ Result runPwToScore(
 void printMatrix(const std::vector<Result>& rows)
 {
   std::printf(
-      "\n%-28s %-7s %6s %6s %5s %5s %5s %8s %8s %-5s %s\n", "cell", "trans",
-      "recv", "fps", "lost", "rep", "badcv", "lat(ms)", "minPSNR", "drm",
-      "status");
-  std::printf("%s\n", std::string(110, '-').c_str());
+      "\n%-28s %-7s %-7s %6s %6s %5s %5s %5s %8s %8s %-5s %s\n", "cell",
+      "trans", "wire", "recv", "fps", "lost", "rep", "badcv", "lat(ms)",
+      "minPSNR", "drm", "status");
+  std::printf("%s\n", std::string(118, '-').c_str());
   for(const auto& r : rows)
     std::printf(
-        "%-28s %-7s %6d %6.1f %5d %5d %5d %8.2f %8.2f %-5s %s\n",
-        r.cell.c_str(), r.transport.c_str(), r.recv, r.fps, r.gaps, r.repeats,
-        r.badConvert, r.meanLatMs, r.minPsnr, r.drmPrime ? "yes" : "no",
-        r.status.c_str());
+        "%-28s %-7s %-7s %6d %6.1f %5d %5d %5d %8.2f %8.2f %-5s %s\n",
+        r.cell.c_str(), r.transport.c_str(),
+        r.wire.empty() ? "-" : r.wire.c_str(), r.recv, r.fps, r.gaps,
+        r.repeats, r.badConvert, r.meanLatMs, r.minPsnr,
+        r.drmPrime ? "yes" : "no", r.status.c_str());
 }
 
 } // namespace
@@ -1070,6 +1098,12 @@ int main(int argc, char** argv)
   std::setlocale(LC_ALL, "C");
   qputenv("SCORE_DISABLE_AUDIOPLUGINS", "1");
   qputenv("SCORE_AUDIO_BACKEND", "dummy");
+  // Match score's production startup (src/app/main.cpp): EGL is the only
+  // way to get zero-copy dma-buf import on X11; Qt defaults to GLX.
+#if defined(__linux__)
+  if(!qEnvironmentVariableIsSet("QT_XCB_GL_INTEGRATION"))
+    qputenv("QT_XCB_GL_INTEGRATION", "xcb_egl");
+#endif
 
   // Static builds never run Application::loadResources(); register the
   // score_lib_base resources by hand or startup aborts on the missing skin
@@ -1144,11 +1178,11 @@ int main(int argc, char** argv)
             rows.push_back(
                 runScoreToScore(a.api, a.name, f, false, W, H, FPS, seconds));
           }
-        // dmabuf output: EGL path (GL backend).
+        // dmabuf output: EGL/GBM path on GL, exportable-VkImage path on
+        // Vulkan (the latter needs Qt >= 6.6; on older Qt the producer
+        // falls back and the cell reports PASS(fallback)).
         for(const auto& a : apis)
         {
-          if(a.api != score::gfx::GraphicsApi::OpenGL)
-            continue;
           for(const std::string f : {"rgba", "bgra"})
           {
             const std::string cell = std::string("s2s-") + a.name + "-" + f;
