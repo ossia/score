@@ -84,7 +84,12 @@ struct GStreamerOutputNode : score::gfx::OutputNode
   GstElement* m_video_src{};
   GstElement* m_audio_src{};
   GStreamerSettings m_settings;
+  // m_started: the pipeline is live and still needs finalization (EOS + NULL).
+  // m_feeding: it is safe to push frames. Decoupled so a fatal bus ERROR stops
+  // feeding without neutralizing stop_pipeline()'s EOS finalization (which is
+  // what writes the muxer's moov atom / cluster index). See poll_bus_errors().
   bool m_started{};
+  bool m_feeding{};
   uint64_t m_video_max_bytes{}; // appsrc queue cap; 0 = disabled
   std::unique_ptr<score::gfx::GPUVideoEncoder> m_encoder[2];
   int m_encoderIdx{}; // ping-pong index for double-buffered encoder
@@ -305,11 +310,23 @@ struct GStreamerOutputNode : score::gfx::OutputNode
     auto& gst = libgstreamer::instance();
     gst.element_set_state(m_pipeline, GST_STATE_PLAYING);
     m_started = true;
+    m_feeding = true;
   }
 
   // Non-blocking bus poll: surfaces otherwise-silent encoder/filesink/muxer
-  // errors. Called once per rendered frame; logs the first error then stops
-  // pushing (m_started=false) so we don't spam or feed a dead pipeline.
+  // errors. Called once per rendered frame.
+  //
+  // Only a genuine GST_MESSAGE_ERROR is fatal. GStreamer routinely posts
+  // GST_MESSAGE_WARNING during healthy encoding (late/dropped buffers, missing
+  // PTS, encoder rate warnings); treating those as fatal would truncate an
+  // otherwise-fine recording. We therefore filter on GST_MESSAGE_ERROR alone —
+  // bus_timed_pop_filtered discards the non-matching (warning) messages it
+  // encounters, so warnings are drained (no unbounded bus growth) but ignored.
+  //
+  // On a real error we clear m_feeding (stop pushing frames) but deliberately
+  // leave m_started set: stop_pipeline() must still run, emit EOS and drive the
+  // pipeline to GST_STATE_NULL so the muxer finalizes the file rather than
+  // leaving it truncated/unplayable (or leaking a PLAYING pipeline).
   void poll_bus_errors()
   {
     if(!m_pipeline || !m_started)
@@ -325,13 +342,13 @@ struct GStreamerOutputNode : score::gfx::OutputNode
 
     // timeout==0 => return immediately if no matching message is queued.
     while(GstMessage* msg = gst.bus_timed_pop_filtered(
-              bus, 0, (GstMessageType)(GST_MESSAGE_ERROR | GST_MESSAGE_WARNING)))
+              bus, 0, (GstMessageType)GST_MESSAGE_ERROR))
     {
-      qWarning() << "GStreamer output: pipeline error/warning on the bus";
+      qWarning() << "GStreamer output: fatal error on the bus; stopping frame "
+                    "feed (pipeline will still be finalized)";
       if(gst.message_unref)
         gst.message_unref(msg);
-      // An ERROR aborts the pipeline; stop feeding it.
-      m_started = false;
+      m_feeding = false;
       break;
     }
     gst.object_unref(bus);
@@ -379,6 +396,7 @@ struct GStreamerOutputNode : score::gfx::OutputNode
 
     gst.element_set_state(m_pipeline, GST_STATE_NULL);
     m_started = false;
+    m_feeding = false;
   }
 
   void cleanup_pipeline()
@@ -419,7 +437,7 @@ struct GStreamerOutputNode : score::gfx::OutputNode
   // The QByteArray's refcount keeps the data alive until GStreamer is done.
   void push_video_frame_zerocopy(QByteArray data)
   {
-    if(!m_video_src || !m_started)
+    if(!m_video_src || !m_feeding)
       return;
     if(video_queue_full())
       return; // drop: downstream can't keep up
@@ -451,7 +469,7 @@ struct GStreamerOutputNode : score::gfx::OutputNode
   // Copy push: allocates a GstBuffer and memcpys into it.
   void push_video_frame_copy(const unsigned char* data, int size)
   {
-    if(!m_video_src || !m_started)
+    if(!m_video_src || !m_feeding)
       return;
 
     auto& gst = libgstreamer::instance();
@@ -472,7 +490,7 @@ struct GStreamerOutputNode : score::gfx::OutputNode
 
   void push_audio_frame(const float* interleaved, int num_samples, int channels)
   {
-    if(!m_audio_src || !m_started)
+    if(!m_audio_src || !m_feeding)
       return;
 
     auto& gst = libgstreamer::instance();
