@@ -212,55 +212,6 @@ struct CloneVisitor
   }
 };
 
-// Compute world-space transform matrix for a scene_transform payload.
-QMatrix4x4 trsToMat(const ossia::scene_transform& t) noexcept
-{
-  QMatrix4x4 m;
-  m.translate(t.translation[0], t.translation[1], t.translation[2]);
-  m.rotate(QQuaternion(
-      t.rotation[3], t.rotation[0], t.rotation[1], t.rotation[2]));
-  m.scale(t.scale[0], t.scale[1], t.scale[2]);
-  return m;
-}
-
-// Walk the (post-override) scene tree collecting world-space transform
-// matrices keyed by scene_node_id::value. Used by the skinning path to
-// resolve each joint's glTF joint_node_ids[i] → world matrix without
-// re-walking the tree per joint.
-using WorldMatMap = std::unordered_map<std::uint64_t, QMatrix4x4>;
-void collectNodeWorldMatrices(
-    const ossia::scene_node& n, const QMatrix4x4& parentWorld,
-    WorldMatMap& out)
-{
-  // A node's TRS is conventionally stored as the first scene_transform
-  // payload among its children (GltfParser / FbxParser / SceneGroup all
-  // follow this).
-  QMatrix4x4 local;
-  if(n.children)
-  {
-    for(const auto& p : *n.children)
-    {
-      if(auto* xf = ossia::get_if<ossia::scene_transform>(&p))
-      {
-        local = trsToMat(*xf);
-        break;
-      }
-    }
-  }
-  const QMatrix4x4 world = parentWorld * local;
-  if(n.id.value != 0)
-    out[n.id.value] = world;
-  if(n.children)
-  {
-    for(const auto& p : *n.children)
-    {
-      if(auto* sub = ossia::get_if<ossia::scene_node_ptr>(&p))
-        if(*sub)
-          collectNodeWorldMatrices(**sub, world, out);
-    }
-  }
-}
-
 } // namespace
 
 void AnimationPlayer::operator()()
@@ -377,18 +328,21 @@ void AnimationPlayer::operator()()
   new_state->dirty_index = in.state->dirty_index + 1;
 
   // ── Skinning update ──────────────────────────────────────────────
-  // When the scene has skeletons, walk the (post-override) tree once,
-  // cache every node's world-space matrix, then compute each skin's
-  // joint_matrix[i] = worldMat[joint_node_ids[i]] × inverse_bind.
-  // Pack into a fresh buffer_resource per skin and republish the
-  // skeletons list so downstream consumers see the new matrices.
+  // Skinned meshes are deformed by the renderer's forward kinematics
+  // over skeleton_component::joints[].{translation,rotation,scale}
+  // (SceneGPUState.cpp packs joint_matrix[i] = FK(joints)[i] ×
+  // inverse_bind[i]). glTF joint tracks target the joints' backing
+  // scene_nodes, so the overrides sampled above (keyed by scene_node id)
+  // are precisely each joint's new *local* TRS. Map joint j back to its
+  // node via joint_node_ids[j] and write the override into the cloned
+  // skeleton's joints[], then bump dirty_index so the renderer re-runs
+  // FK against the animated pose.
+  //
+  // NOTE: joint_matrices_buffer is intentionally left untouched — no
+  // skinning consumer reads it (verified across src/ + libossia); the
+  // joints[] route is the one the actual consumer (SceneGPUState) uses.
   if(in.state->skeletons && !in.state->skeletons->empty())
   {
-    WorldMatMap worlds;
-    for(const auto& r : *new_roots)
-      if(r)
-        collectNodeWorldMatrices(*r, QMatrix4x4{}, worlds);
-
     auto new_skels
         = std::make_shared<std::vector<ossia::skeleton_component_ptr>>();
     new_skels->reserve(in.state->skeletons->size());
@@ -399,37 +353,29 @@ void AnimationPlayer::operator()()
         new_skels->push_back(src);
         continue;
       }
-      const std::size_t n = src->joints.size();
-      // Pack N joint matrices as column-major float[16] entries.
-      auto matrices = std::make_shared<std::vector<float>>(n * 16, 0.f);
-      for(std::size_t j = 0; j < n; ++j)
-      {
-        QMatrix4x4 ibm;
-        std::memcpy(
-            ibm.data(), src->joints[j].inverse_bind_matrix,
-            sizeof(float) * 16);
-        QMatrix4x4 world;
-        if(j < src->joint_node_ids.size())
-        {
-          auto it = worlds.find(src->joint_node_ids[j].value);
-          if(it != worlds.end())
-            world = it->second;
-        }
-        const QMatrix4x4 jm = world * ibm;
-        std::memcpy(
-            matrices->data() + j * 16, jm.constData(), sizeof(float) * 16);
-      }
-      auto buf = std::make_shared<ossia::buffer_resource>();
-      ossia::buffer_data bd;
-      bd.data = std::shared_ptr<const void>(matrices, matrices->data());
-      bd.byte_size = int64_t(matrices->size() * sizeof(float));
-      bd.usage_hint = ossia::buffer_data::usage::storage_buffer;
-      buf->resource = std::move(bd);
-      buf->dirty_index = new_state->version;
 
       auto cloned = std::make_shared<ossia::skeleton_component>(*src);
-      cloned->joint_matrices_buffer = std::move(buf);
-      cloned->dirty_index = new_state->version;
+      const std::size_t n
+          = std::min(cloned->joints.size(), cloned->joint_node_ids.size());
+      bool any = false;
+      for(std::size_t j = 0; j < n; ++j)
+      {
+        auto it = overrides.find(cloned->joint_node_ids[j].value);
+        if(it == overrides.end())
+          continue;
+        const TRSOverride& ov = it->second;
+        // Only overwrite the animated components; leave the bind-pose
+        // value for channels the clip doesn't drive.
+        if(ov.has_translation)
+          std::memcpy(cloned->joints[j].translation, ov.translation, 12);
+        if(ov.has_rotation)
+          std::memcpy(cloned->joints[j].rotation, ov.rotation, 16);
+        if(ov.has_scale)
+          std::memcpy(cloned->joints[j].scale, ov.scale, 12);
+        any = true;
+      }
+      if(any)
+        cloned->dirty_index = new_state->version;
       new_skels->push_back(std::move(cloned));
     }
     new_state->skeletons = std::move(new_skels);
