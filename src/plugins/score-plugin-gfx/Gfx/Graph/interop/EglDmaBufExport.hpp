@@ -299,27 +299,7 @@ struct GbmDmaBufExport
     // Create a fresh GL texture to receive the import. Persistent: the
     // OutputNode createFrom-wraps it once and the same texture id
     // serves every frame this slot is the active pipewire buffer.
-    if(auto* ctx = QOpenGLContext::currentContext(); ctx)
-    {
-      auto* gl = ctx->extraFunctions();
-      gl->glGenTextures(1, &out.glTexture);
-      constexpr unsigned int GL_TEXTURE_2D_v = 0x0DE1;
-      constexpr unsigned int GL_TEXTURE_MIN_FILTER_v = 0x2801;
-      constexpr unsigned int GL_TEXTURE_MAG_FILTER_v = 0x2800;
-      constexpr unsigned int GL_TEXTURE_WRAP_S_v = 0x2802;
-      constexpr unsigned int GL_TEXTURE_WRAP_T_v = 0x2803;
-      constexpr unsigned int GL_LINEAR_v = 0x2601;
-      constexpr unsigned int GL_CLAMP_TO_EDGE_v = 0x812F;
-      gl->glBindTexture(GL_TEXTURE_2D_v, out.glTexture);
-      gl->glTexParameteri(
-          GL_TEXTURE_2D_v, GL_TEXTURE_MIN_FILTER_v, GL_LINEAR_v);
-      gl->glTexParameteri(
-          GL_TEXTURE_2D_v, GL_TEXTURE_MAG_FILTER_v, GL_LINEAR_v);
-      gl->glTexParameteri(
-          GL_TEXTURE_2D_v, GL_TEXTURE_WRAP_S_v, GL_CLAMP_TO_EDGE_v);
-      gl->glTexParameteri(
-          GL_TEXTURE_2D_v, GL_TEXTURE_WRAP_T_v, GL_CLAMP_TO_EDGE_v);
-    }
+    out.glTexture = createLinearClampGlTexture2D();
     if(out.glTexture == 0)
     {
       qWarning() << "EglDmaBufExport: failed to create GL texture";
