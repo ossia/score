@@ -136,18 +136,44 @@ QRhiTexture* SimpleRenderedISFNode::textureForOutput(const Port& output)
   if(!m_hasMRT)
     return nullptr;
 
-  // Find which output port index this is
+  // Map an OUTPUT Port -> its MRT color/depth texture.
+  //
+  // INVARIANT: n.output may INTERLEAVE non-image output ports among the
+  // image ones. A write/read_write storage_input pushes a Types::Buffer
+  // OUTPUT port, and a writable geometry_input pushes a Types::Geometry
+  // OUTPUT port, during ISFNode's desc.inputs walk (ISFNode.cpp:215,250,275)
+  // — i.e. BEFORE ISFNode appends one Types::Image port per desc.outputs
+  // entry (ISFNode.cpp:354). Meanwhile initMRTPass builds the color/depth
+  // attachments by iterating descriptor().outputs, which lists ONLY the
+  // image/depth outputs (no Buffer/Geometry).
+  //
+  // Therefore the descriptor index of an image port is its position AMONG
+  // IMAGE PORTS ONLY, NOT its raw index in n.output. The old code used the
+  // raw n.output index i to read outputs[i]: with a leading Buffer port every
+  // color output shifted by one, so the 1st color sampled the 2nd
+  // attachment and the 2nd color ran past outputs.size() and returned black
+  // (the isf-mrt-persistent-ssbo finding). Skip the non-image ports so the
+  // mapping matches initMRTPass's attachment order.
   const auto& outputs = n.descriptor().outputs;
-  for(int i = 0; i < (int)n.output.size() && i < (int)outputs.size(); i++)
+  int descIdx = 0; // index into descriptor().outputs (image/depth only)
+  for(int i = 0; i < (int)n.output.size(); i++)
   {
+    // Buffer/Geometry output ports are not color/depth attachments: skip
+    // them without advancing descIdx.
+    if(n.output[i]->type != Types::Image)
+      continue;
+
+    if(descIdx >= (int)outputs.size())
+      break;
+
     if(n.output[i] == &output)
     {
-      if(outputs[i].type == "depth")
+      if(outputs[descIdx].type == "depth")
         return m_mrtRenderTarget.depthTexture;
 
       // Color output: index 0 = primary texture, 1+ = additional
       int colorIdx = 0;
-      for(int j = 0; j < i; j++)
+      for(int j = 0; j < descIdx; j++)
         if(outputs[j].type != "depth")
           colorIdx++;
 
@@ -156,6 +182,7 @@ QRhiTexture* SimpleRenderedISFNode::textureForOutput(const Port& output)
       else if(colorIdx - 1 < (int)m_mrtRenderTarget.additionalColorTextures.size())
         return m_mrtRenderTarget.additionalColorTextures[colorIdx - 1];
     }
+    descIdx++;
   }
   return nullptr;
 }
