@@ -47,9 +47,11 @@ namespace Gfx
  *     the caller re-decodes and restage()s.
  *
  * Transitions:
- *   - `stage()` inserts into hot map (or no-op if already present).
- *   - `acquire()` bumps refcount and (if resurrecting) splices out
- *     of the LRU list.
+ *   - `stage()` inserts a refcount==0 entry directly into the cold
+ *     LRU pool (or no-op if already present), so a stage that is
+ *     never acquired remains trimmable rather than leaking.
+ *   - `acquire()` bumps refcount and (if the entry is cold) splices
+ *     it out of the LRU list.
  *   - `release()` decrements; at 0 the entry moves to the LRU head.
  *   - `trim(max_bytes)` pops from the LRU tail until under budget.
  *   - `maybeAutoTrim()` called periodically: reads a supplied
