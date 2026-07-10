@@ -385,6 +385,12 @@ private:
   std::mutex m_frameMutex;
   std::vector<AVFrame*> m_availableFrames;
   std::vector<AVFrame*> m_usedFrames;
+
+public:
+  // Testability: what the last format negotiation settled on.
+  // 0 = none yet, 1 = shm, 2 = dmabuf. Read by
+  // pipewireInputNegotiatedTransport (harness transport-truth column).
+  std::atomic<int> m_negotiatedKind{0};
 };
 
 const struct pw_stream_events InputStream::stream_events = []() {
@@ -671,6 +677,14 @@ void InputStream::stop() noexcept
   // The shared context's thread_loop keeps running; we just unhook
   // and destroy our stream. cleanup() takes the lock internally.
   m_data->cleanup();
+
+  // Reset the DMA-BUF latch: m_drm_prime_mode/m_sw_format are decided on
+  // the FIRST DmaBuf frame of a stream. A restarted stream (new producer,
+  // possibly a different format) must re-latch — keeping the stale values
+  // would wrap the new producer's buffers with the old fourcc/sw-format.
+  m_drm_prime_mode = false;
+  m_sw_format = AV_PIX_FMT_NONE;
+  m_negotiatedKind.store(0, std::memory_order_relaxed);
 }
 
 AVFrame* InputStream::dequeue_frame() noexcept
@@ -804,6 +818,16 @@ void InputStream::on_stream_param_changed(
            << av_get_pix_fmt_name(new_pf) << "mod" << pc.chosen_modifier
            << "kind" << (pc.kind == ng::result::dmabuf_fixated
                              ? "dmabuf" : "shm");
+  self->m_negotiatedKind.store(
+      pc.kind == ng::result::dmabuf_fixated ? 2 : 1,
+      std::memory_order_relaxed);
+
+  // A (re)negotiated format invalidates the DMA-BUF latch: the next DmaBuf
+  // frame re-latches m_sw_format from the fresh negotiation instead of
+  // wrapping new buffers with the previous format's fourcc. Same-thread
+  // as the latch in on_stream_process (both on the pw loop).
+  self->m_drm_prime_mode = false;
+  self->m_sw_format = AV_PIX_FMT_NONE;
 
   self->notifyFormatChange(new_w, new_h, new_pf);
 
@@ -1449,6 +1473,23 @@ Device::ProtocolSettingsWidget* InputFactory::makeSettingsWidget()
 std::shared_ptr<::Video::ExternalInput> makePipewireCapture(const QString& path)
 {
   return std::make_shared<InputStream>(path);
+}
+
+QString pipewireInputNegotiatedTransport(::Video::ExternalInput& input)
+{
+  if(auto* s = dynamic_cast<InputStream*>(&input))
+  {
+    switch(s->m_negotiatedKind.load(std::memory_order_relaxed))
+    {
+      case 1:
+        return QStringLiteral("shm");
+      case 2:
+        return QStringLiteral("dmabuf");
+      default:
+        return QStringLiteral("none");
+    }
+  }
+  return {};
 }
 
 Device::DeviceEnumerators

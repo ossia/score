@@ -259,6 +259,15 @@ struct GbmDmaBufExport
     }
     if(!out.bo)
     {
+      // NVIDIA's GBM backend (nvidia-drm) rejects USE_RENDERING and the
+      // with_modifiers2 entry point outright, but allocates fine with
+      // USE_LINEAR alone (verified: driver 595, all 8888 fourccs). The
+      // BO is only ever written through an EGLImage-bound GL texture
+      // copy, so the RENDERING usage bit is not load-bearing for us.
+      out.bo = m_bo_create(m_device, w, h, drm_fourcc, GBM_BO_USE_LINEAR_v);
+    }
+    if(!out.bo)
+    {
       qWarning() << "EglDmaBufExport: gbm_bo_create failed";
       return false;
     }
