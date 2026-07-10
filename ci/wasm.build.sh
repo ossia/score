@@ -2,8 +2,10 @@
 
 export SCORE_DIR=$PWD
 
-mkdir -p /build || true
-chown -R $(whoami) /build
+# /build is shared with wasm.deploy.sh. On the ubuntu-24.04 runner (no container)
+# the script runs as non-root, so create it via sudo instead of plain mkdir.
+sudo mkdir -p /build
+sudo chown -R "$(whoami)" /build
 cd /build
 
 source /opt/ossia-sdk-wasm/emsdk/emsdk_env.sh
