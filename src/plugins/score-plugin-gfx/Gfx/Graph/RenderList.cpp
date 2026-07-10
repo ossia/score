@@ -1178,6 +1178,24 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
         renderer->materialChanged = true;
         renderer->geometryChanged = true;
 
+        // releaseState() cleared this renderer's OWN output passes (the
+        // per-edge m_p / m_passes list) together with its input-dependent
+        // state, but initState() deliberately does NOT recreate them — only
+        // init() does, via addOutputPass (NodeRenderer.cpp:190-191,
+        // SimpleRenderedISFNode.cpp:812-814). Rebuild them here exactly as
+        // init() does, otherwise this intermediate node silently stops
+        // producing into its (unchanged) downstream sinks after a runtime
+        // render-target-spec change. Phase C below only re-adds the UPSTREAM
+        // producers' passes that feed this node's changed input ports, which
+        // is a disjoint set from this node's own output passes.
+        for(auto* out : renderer->node.output)
+        {
+          if(out->type != Types::Image)
+            continue;
+          for(auto* edge : out->edges)
+            renderer->addOutputPass(*this, *edge, *updateBatch);
+        }
+
         for(auto* in : changedPorts)
         {
           for(auto* edge : in->edges)
