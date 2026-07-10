@@ -4814,7 +4814,18 @@ void RenderedCSFNode::runInitialPasses(
 
     commands.setComputePipeline(pass.pipeline);
     commands.setShaderResources(pass.srb);
-    commands.dispatch(dispatchX, dispatchY, dispatchZ);
+    // Qt's GL backend binds 3D storage images non-layered, so an image3D
+    // imageStore would only write slice 0 (black volume everywhere else on
+    // OpenGL, correct on Vulkan). When this pass writes a 3D storage image on
+    // GL, dispatchComputeLayered3D re-binds it layered and issues the dispatch;
+    // it returns false (and we fall through to the normal path) for every other
+    // backend and for the 2D image path.
+    if(!score::gfx::dispatchComputeLayered3D(
+           *renderer.state.rhi, commands, *pass.srb, dispatchX, dispatchY,
+           dispatchZ))
+    {
+      commands.dispatch(dispatchX, dispatchY, dispatchZ);
+    }
 
     commands.endComputePass();
   }

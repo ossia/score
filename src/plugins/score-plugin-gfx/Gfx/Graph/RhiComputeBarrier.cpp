@@ -1,5 +1,7 @@
 #include <Gfx/Graph/RhiComputeBarrier.hpp>
 
+#include <vector>
+
 #include <QtGui/private/qrhi_p.h>
 #if __has_include(<QtGui/private/qrhigles2_p.h>)
 #include <QtGui/private/qrhigles2_p.h>
@@ -42,6 +44,21 @@ void copyBufferRegionsMetal(
 #include <QtGui/rhi/qrhi_platform.h>
 #endif
 
+#ifndef GL_IMAGE_BINDING_FORMAT
+#define GL_IMAGE_BINDING_FORMAT 0x906E
+#endif
+#ifndef GL_READ_ONLY
+#define GL_READ_ONLY 0x88B8
+#endif
+#ifndef GL_WRITE_ONLY
+#define GL_WRITE_ONLY 0x88B9
+#endif
+#ifndef GL_READ_WRITE
+#define GL_READ_WRITE 0x88BA
+#endif
+#ifndef GL_ALL_BARRIER_BITS
+#define GL_ALL_BARRIER_BITS 0xFFFFFFFF
+#endif
 #ifndef GL_SHADER_STORAGE_BARRIER_BIT
 #define GL_SHADER_STORAGE_BARRIER_BIT 0x00002000
 #endif
@@ -152,6 +169,91 @@ void insertComputeBarrier(QRhi& rhi, QRhiCommandBuffer& cb)
     default:
       break;
   }
+}
+
+bool dispatchComputeLayered3D(
+    QRhi& rhi, QRhiCommandBuffer& cb, QRhiShaderResourceBindings& srb,
+    int x, int y, int z)
+{
+#if SCORE_HAS_GL
+  if(rhi.backend() != QRhi::OpenGLES2)
+    return false;
+
+  // Scan the bound SRB for storage-image bindings whose texture is 3D. Qt's
+  // GL backend binds these non-layered (only slice 0 accessible), which is
+  // exactly what corrupts an image3D imageStore — see the header doc.
+  struct Img
+  {
+    int unit;
+    GLuint tex;
+    GLenum access;
+  };
+  std::vector<Img> imgs;
+  for(auto it = srb.cbeginBindings(); it != srb.cendBindings(); ++it)
+  {
+    const auto* d
+        = reinterpret_cast<const QRhiShaderResourceBinding::Data*>(&*it);
+    GLenum access;
+    switch(d->type)
+    {
+      case QRhiShaderResourceBinding::ImageLoad:
+        access = GL_READ_ONLY;
+        break;
+      case QRhiShaderResourceBinding::ImageStore:
+        access = GL_WRITE_ONLY;
+        break;
+      case QRhiShaderResourceBinding::ImageLoadStore:
+        access = GL_READ_WRITE;
+        break;
+      default:
+        continue;
+    }
+    QRhiTexture* tex = d->u.simage.tex;
+    if(!tex || !tex->flags().testFlag(QRhiTexture::ThreeDimensional))
+      continue;
+    imgs.push_back(
+        {d->binding, GLuint(tex->nativeTexture().object), access});
+  }
+
+  // No 3D storage image in this pass → let QRhi issue the dispatch as usual.
+  // The 2D image path is thus completely unaffected.
+  if(imgs.empty())
+    return false;
+
+  auto* native = static_cast<const QRhiGles2NativeHandles*>(rhi.nativeHandles());
+  if(!native || !native->context)
+    return false;
+  auto* f = native->context->extraFunctions();
+  if(!f)
+    return false;
+
+  // beginExternal() flushes QRhi's queued pipeline + resource bindings (which
+  // include the mis-bound, non-layered 3D image). We then re-bind each 3D
+  // storage image LAYERED (layered=GL_TRUE) using the very format QRhi chose
+  // for it (queried back from GL, so no format table needs duplicating), issue
+  // the dispatch natively, and emit a full barrier so the downstream sampler /
+  // next dispatch sees the whole volume.
+  cb.beginExternal();
+  for(const auto& im : imgs)
+  {
+    GLint fmt = 0;
+    f->glGetIntegeri_v(GL_IMAGE_BINDING_FORMAT, im.unit, &fmt);
+    f->glBindImageTexture(
+        im.unit, im.tex, 0, GL_TRUE, 0, im.access, GLenum(fmt));
+  }
+  f->glDispatchCompute(GLuint(x), GLuint(y), GLuint(z));
+  f->glMemoryBarrier(GL_ALL_BARRIER_BITS);
+  cb.endExternal();
+  return true;
+#else
+  (void)rhi;
+  (void)cb;
+  (void)srb;
+  (void)x;
+  (void)y;
+  (void)z;
+  return false;
+#endif
 }
 
 void beginBufferCopyBarrier(QRhi& rhi, QRhiCommandBuffer& cb)
