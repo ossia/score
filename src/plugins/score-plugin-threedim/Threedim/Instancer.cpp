@@ -185,6 +185,28 @@ PointCloudRouting extractPointCloud(
   return out;
 }
 
+// Fold every Points buffer handle into a single fingerprint. rebuild()
+// routes instance_transforms / instance_colors from arbitrary attribute
+// buffers (buffers[1], buffers[2], ...) and stores those raw QRhiBuffer*
+// inside the persistent m_wrapped_state. operator()() only cached the
+// PRIMARY buffer (buffers[0]) handle, so a producer that reallocated a
+// SECONDARY buffer (new QRhiBuffer for the transform_matrix / color0
+// attribute) while keeping buffers[0] and the vertex count identical, and
+// without raising dirty_mesh, would leave a dangling handle in the
+// republished state -> GPU use-after-free. Fingerprinting all handles
+// forces a rebuild whenever any consumed buffer is replaced.
+uintptr_t pointsBufferFingerprint(
+    const halp::dynamic_gpu_geometry& mesh) noexcept
+{
+  uintptr_t fp = 1469598103934665603ull; // FNV-1a offset basis
+  for(const auto& b : mesh.buffers)
+  {
+    fp ^= reinterpret_cast<uintptr_t>(b.handle);
+    fp *= 1099511628211ull;
+  }
+  return fp;
+}
+
 } // namespace
 
 void Instancer::rebuild()
@@ -329,6 +351,7 @@ void Instancer::rebuild()
   m_cached_format = inputs.format.value;
   m_cached_points_buf = points_primary;
   m_cached_points_vertices = inputs.points.mesh.vertices;
+  m_cached_points_fingerprint = pointsBufferFingerprint(inputs.points.mesh);
 
   if(!proto)
   {
@@ -534,6 +557,8 @@ void Instancer::operator()()
         || m_cached_custom != inputs.custom.buffer.handle
         || m_cached_points_buf != points_primary
         || m_cached_points_vertices != inputs.points.mesh.vertices
+        || m_cached_points_fingerprint
+               != pointsBufferFingerprint(inputs.points.mesh)
         || inputs.points.dirty_mesh;
   if(!m_wrapped_state || upstream_changed)
     rebuild();

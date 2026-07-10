@@ -160,6 +160,11 @@ public:
   // every frame.
   void* m_cached_points_buf{};
   int64_t m_cached_points_vertices{-1};
+  // Fingerprint of ALL Points buffer handles (not just buffers[0]), so a
+  // reallocated secondary attribute buffer (transform_matrix / color0)
+  // that leaves the primary buffer + vertex count untouched still forces a
+  // rebuild instead of republishing a dangling handle.
+  uintptr_t m_cached_points_fingerprint{};
   int64_t m_version_counter{0};
 
   score::gfx::GpuResourceRegistry::Slot raw_transform_slot;
