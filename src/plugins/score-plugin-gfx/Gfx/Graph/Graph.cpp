@@ -682,12 +682,20 @@ void Graph::removeNodeAndEdges(Node* node)
   // 3. Release the node's own renderers from all render lists.
   removeNodeFromRenderLists(node);
 
-  // 4. Retopological sort all affected render lists and notify outputs.
-  for(auto& rl : m_renderers)
-  {
-    retopologicalSort(*rl);
-    rl->output.onRendererChange();
-  }
+  // 4. Reconcile all render lists. Removing an intermediate node can make its
+  //    entire upstream chain transitively unreachable (A→M→N→Output: removing
+  //    N orphans both M and A). A bare retopologicalSort() only rebuilds
+  //    rl->nodes/rl->renderers from the reachable set — it never releases the
+  //    now-unreachable upstream renderers (GPU-resource leak) nor erases their
+  //    node->renderedNodes[rl] entries (a later use-after-free when the
+  //    RenderList is destroyed and those renderers call releaseState on it).
+  //    reconcileAllRenderLists() step 3 deletes+erases exactly those
+  //    unreachable renderers — the same cleanup the edge-removal path already
+  //    relies on (onEdgeRemoved → reconcileAllRenderLists) — and step 8 calls
+  //    output.onRendererChange() per render list, so this fully subsumes the
+  //    old loop. No new nodes become reachable by a removal, so step 5 creates
+  //    nothing.
+  reconcileAllRenderLists();
 
   // Note: does NOT remove from m_nodes — the caller (GfxContext::remove_node)
   // handles that via Graph::removeNode().
