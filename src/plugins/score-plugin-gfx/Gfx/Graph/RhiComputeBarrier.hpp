@@ -8,31 +8,35 @@ class QRhiShaderResourceBindings;
 namespace score::gfx
 {
 /**
- * @brief Dispatch a compute pass, working around Qt's non-layered bind of 3D
- *        storage images on the OpenGL backend.
+ * @brief Dispatch a compute pass, working around Qt's non-layered bind of
+ *        layered (3D / cube / array) storage images on the OpenGL backend.
  *
- * Qt's QRhi OpenGL backend (at least through 6.4/6.9) binds a 3D (also cube /
- * array) storage image with `glBindImageTexture(..., layered=GL_FALSE,
- * layer=0)`. That exposes only slice 0 of the volume to the shader, so an
- * `imageStore` into an `image3D` writes ONLY z=0 and every other slice stays
- * uninitialised — the classic "3D compute output reads back black on GL, fine
- * on Vulkan" symptom. (Fixed upstream in later Qt: qrhigles2.cpp treats 3D /
- * cube / array as layered; there this call is a harmless identical re-bind.)
+ * Qt's QRhi OpenGL backend (before the fix that shipped in 6.10) binds a 3D,
+ * cube-map OR 2D-texture-array storage image with
+ * `glBindImageTexture(..., layered=GL_FALSE, layer=0)`. That exposes only
+ * slice/face/layer 0 to the shader, so an `imageStore` into an `image3D`,
+ * `imageCube` or `image2DArray` writes ONLY that single slice and every other
+ * slice/face/layer stays uninitialised — the classic "layered compute output
+ * reads back black on GL, fine on Vulkan" symptom. (Fixed upstream in Qt 6.10:
+ * qrhigles2.cpp binds `layered = CubeMap || ThreeDimensional || TextureArray`;
+ * there this call is a harmless identical re-bind.)
  *
- * When @p srb contains at least one 3D storage-image binding AND the backend is
- * OpenGL, this issues the dispatch itself: it flushes QRhi's own (mis-)binding
- * via beginExternal(), re-binds each 3D storage image LAYERED (all slices
- * writable), dispatches, emits a full memory barrier, and returns true.
+ * When @p srb contains at least one layered storage-image binding (3D, cube or
+ * array) AND the backend is OpenGL, this issues the dispatch itself: it flushes
+ * QRhi's own (mis-)binding via beginExternal(), re-binds each layered storage
+ * image LAYERED (all slices/faces/layers writable), dispatches, emits a full
+ * memory barrier, and returns true. The predicate is kept EXACTLY in sync with
+ * qrhigles2's own `layered` determination.
  *
  * Returns false when the caller should issue the ordinary QRhi dispatch
- * (non-OpenGL backend, or no 3D storage image in the SRB) — every other backend
- * and the 2D image path are left completely untouched.
+ * (non-OpenGL backend, or no layered storage image in the SRB) — every other
+ * backend and the 2D image path are left completely untouched.
  *
  * Must be called inside an active compute pass, after setComputePipeline() and
  * setShaderResources().
  */
 SCORE_PLUGIN_GFX_EXPORT
-bool dispatchComputeLayered3D(
+bool dispatchComputeLayeredImages(
     QRhi& rhi, QRhiCommandBuffer& cb, QRhiShaderResourceBindings& srb,
     int x, int y, int z);
 

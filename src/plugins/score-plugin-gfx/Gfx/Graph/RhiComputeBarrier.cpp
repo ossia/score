@@ -171,7 +171,7 @@ void insertComputeBarrier(QRhi& rhi, QRhiCommandBuffer& cb)
   }
 }
 
-bool dispatchComputeLayered3D(
+bool dispatchComputeLayeredImages(
     QRhi& rhi, QRhiCommandBuffer& cb, QRhiShaderResourceBindings& srb,
     int x, int y, int z)
 {
@@ -179,9 +179,12 @@ bool dispatchComputeLayered3D(
   if(rhi.backend() != QRhi::OpenGLES2)
     return false;
 
-  // Scan the bound SRB for storage-image bindings whose texture is 3D. Qt's
-  // GL backend binds these non-layered (only slice 0 accessible), which is
-  // exactly what corrupts an image3D imageStore — see the header doc.
+  // Scan the bound SRB for storage-image bindings whose texture is layered
+  // (3D, cube map, or 2D texture array). Qt's GL backend binds exactly these
+  // non-layered on the affected versions (only slice/face/layer 0 accessible),
+  // which is what corrupts an imageStore into an image3D / imageCube /
+  // image2DArray — see the header doc. This must mirror qrhigles2's own
+  // `layered` determination (CubeMap || ThreeDimensional || TextureArray).
   struct Img
   {
     int unit;
@@ -209,14 +212,20 @@ bool dispatchComputeLayered3D(
         continue;
     }
     QRhiTexture* tex = d->u.simage.tex;
-    if(!tex || !tex->flags().testFlag(QRhiTexture::ThreeDimensional))
+    // Match qrhigles2.cpp's layered determination EXACTLY: arrays, cubemaps
+    // and 3D textures expose the whole texture with all layers/slices when
+    // bound with glBindImageTexture(..., layered=GL_TRUE, layer=0).
+    if(!tex
+       || !(tex->flags().testFlag(QRhiTexture::ThreeDimensional)
+            || tex->flags().testFlag(QRhiTexture::CubeMap)
+            || tex->flags().testFlag(QRhiTexture::TextureArray)))
       continue;
     imgs.push_back(
         {d->binding, GLuint(tex->nativeTexture().object), access});
   }
 
-  // No 3D storage image in this pass → let QRhi issue the dispatch as usual.
-  // The 2D image path is thus completely unaffected.
+  // No layered storage image in this pass → let QRhi issue the dispatch as
+  // usual. The 2D image path is thus completely unaffected.
   if(imgs.empty())
     return false;
 
@@ -228,11 +237,11 @@ bool dispatchComputeLayered3D(
     return false;
 
   // beginExternal() flushes QRhi's queued pipeline + resource bindings (which
-  // include the mis-bound, non-layered 3D image). We then re-bind each 3D
-  // storage image LAYERED (layered=GL_TRUE) using the very format QRhi chose
-  // for it (queried back from GL, so no format table needs duplicating), issue
-  // the dispatch natively, and emit a full barrier so the downstream sampler /
-  // next dispatch sees the whole volume.
+  // include the mis-bound, non-layered layered image). We then re-bind each
+  // layered storage image LAYERED (layered=GL_TRUE) using the very format QRhi
+  // chose for it (queried back from GL, so no format table needs duplicating),
+  // issue the dispatch natively, and emit a full barrier so the downstream
+  // sampler / next dispatch sees the whole volume / all faces / all layers.
   cb.beginExternal();
   for(const auto& im : imgs)
   {
