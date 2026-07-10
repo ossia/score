@@ -29,10 +29,20 @@ void AssetTable::stage(uint64_t content_hash, QImage image)
   auto e = std::make_shared<DecodedAsset>();
   e->image = std::move(image);
   e->byte_size = estimateSize(*e);
-  m_total_bytes += e->byte_size;
+  const std::size_t sz = e->byte_size;
+  m_total_bytes += sz;
 
   Slot s;
   s.asset = std::move(e);
+  // A freshly-staged entry has refcount 0 and no holder yet. Put it in the
+  // cold LRU immediately so that a stage() whose consumer never acquire()s it
+  // (material removed / model swapped / undo before upload) is still trimmable;
+  // otherwise it would be counted in m_total_bytes forever with no path to
+  // eviction. acquire() splices it back out of the cold pool on first use.
+  m_lru.push_front(content_hash);
+  s.lru_it = m_lru.begin();
+  s.in_lru = true;
+  m_cold_bytes += sz;
   m_entries.emplace(content_hash, std::move(s));
 }
 
@@ -50,10 +60,17 @@ void AssetTable::stage(
   e->bytes = std::move(bytes);
   e->mime_type = std::move(mime_type);
   e->byte_size = estimateSize(*e);
-  m_total_bytes += e->byte_size;
+  const std::size_t sz = e->byte_size;
+  m_total_bytes += sz;
 
   Slot s;
   s.asset = std::move(e);
+  // See the QImage stage() overload: staged-but-never-acquired entries must be
+  // reclaimable, so seed them into the cold LRU. acquire() removes them again.
+  m_lru.push_front(content_hash);
+  s.lru_it = m_lru.begin();
+  s.in_lru = true;
+  m_cold_bytes += sz;
   m_entries.emplace(content_hash, std::move(s));
 }
 
