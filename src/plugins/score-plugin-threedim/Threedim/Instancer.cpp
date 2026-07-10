@@ -8,6 +8,7 @@
 #include <QQuaternion>
 #include <QVector3D>
 
+#include <algorithm>
 #include <cstring>
 
 namespace Threedim
@@ -234,9 +235,84 @@ void Instancer::rebuild()
       = has_points_input && !inputs.points.mesh.buffers.empty()
           ? inputs.points.mesh.buffers[0].handle
           : nullptr;
-  const int effective_count
+  int effective_count
       = routing.instance_count > 0 ? routing.instance_count
                                    : inputs.count.value;
+
+  // Clamp instance_count to the capacity of the wired buffers. The user's
+  // Count spinbox ranges up to 1000000 and is otherwise decoupled from the
+  // Transforms buffer size; downstream ScenePreprocessor issues a strided
+  // GPU copy of `instance_count` regions out of the source QRhiBuffer with
+  // NO capacity guard, so an unclamped count reads far past the source
+  // buffer -> Vulkan/RHI out-of-bounds copy / device-lost. We compute the
+  // maximum instance count each source buffer can back, using the same
+  // per-format stride as the preprocessor (translation=16, trs=40,
+  // mat4=64 bytes), and clamp to the tightest constraint.
+  {
+    // Transform stride mirrors ScenePreprocessorNode::srcTranslationStride.
+    uint32_t transform_stride = 64; // mat4
+    if(routing.has_matrix)
+      transform_stride = 64;
+    else if(routing.transforms)
+      transform_stride = 16; // translation
+    else
+    {
+      switch(inputs.format.value)
+      {
+        case TRS:         transform_stride = 40; break;
+        case Translation: transform_stride = 16; break;
+        default:          transform_stride = 64; break;
+      }
+    }
+
+    // Capacity (in instances) of a source buffer given a per-instance
+    // stride. Returns -1 when there is no buffer to bound against.
+    auto capacityFor
+        = [](const ossia::buffer_resource_ptr& routed,
+             const halp::gpu_buffer& raw, uint32_t stride) -> int64_t
+    {
+      if(stride == 0)
+        return -1;
+      int64_t byte_size = 0, byte_offset = 0;
+      bool have = false;
+      if(routed)
+      {
+        if(auto* gpu = ossia::get_if<ossia::gpu_buffer_handle>(&routed->resource))
+        {
+          if(gpu->native_handle)
+          {
+            byte_size = (int64_t)gpu->byte_size;
+            byte_offset = (int64_t)gpu->byte_offset;
+            have = true;
+          }
+        }
+      }
+      else if(raw.handle)
+      {
+        byte_size = raw.byte_size;
+        byte_offset = raw.byte_offset;
+        have = true;
+      }
+      if(!have)
+        return -1;
+      const int64_t avail = byte_size - byte_offset;
+      return avail > 0 ? avail / (int64_t)stride : 0;
+    };
+
+    int64_t max_count = -1;
+    const int64_t tcap
+        = capacityFor(routing.transforms, inputs.transforms.buffer, transform_stride);
+    if(tcap >= 0)
+      max_count = tcap;
+    // Colors are copied tightly at 16 bytes/instance (vec4).
+    const int64_t ccap
+        = capacityFor(routing.colors, inputs.colors.buffer, 16u);
+    if(ccap >= 0)
+      max_count = (max_count < 0) ? ccap : std::min(max_count, ccap);
+
+    if(max_count >= 0 && (int64_t)effective_count > max_count)
+      effective_count = (int)max_count;
+  }
 
   // TRS recomputed; we reuse computeTRSMatrix from TransformHelper
   // even though we're not targeting a halp::mesh — the cache keeps the
