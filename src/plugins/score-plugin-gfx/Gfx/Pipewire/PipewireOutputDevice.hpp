@@ -51,4 +51,9 @@ public:
 SCORE_PLUGIN_GFX_EXPORT
 score::gfx::OutputNode* makePipewireOutput(const Gfx::SharedOutputSettings& s);
 
+/** Testability: true iff the producer engaged a DMA-BUF publish mode
+ *  (Vulkan or EGL/GBM) rather than the CPU-readback fallback. */
+SCORE_PLUGIN_GFX_EXPORT
+bool pipewireOutputDmabufEngaged(const score::gfx::OutputNode& node);
+
 } // namespace Gfx::PipeWire

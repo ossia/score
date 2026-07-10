@@ -55,4 +55,10 @@ class PipeWireDevice;
 SCORE_PLUGIN_GFX_EXPORT
 std::shared_ptr<::Video::ExternalInput> makePipewireCapture(const QString& path);
 
+/** Testability: transport the capture stream's last negotiation settled on —
+ *  "shm", "dmabuf", "none" (not negotiated yet), or empty (not a PipeWire
+ *  capture stream). */
+SCORE_PLUGIN_GFX_EXPORT
+QString pipewireInputNegotiatedTransport(::Video::ExternalInput& input);
+
 } // namespace Gfx::PipeWire

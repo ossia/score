@@ -966,6 +966,12 @@ struct PwWireRenderer final : score::gfx::OutputNodeRenderer
     return m_inputTarget;
   }
 
+  /** The flip-corrected, wire-format texture — what actually goes on the
+   *  wire. The DMA-BUF publish path must copy from THIS (not the upstream
+   *  input texture): on GL the upstream render is Y-up, and only this
+   *  pass applies the orientation correction. */
+  QRhiTexture* wireTexture() const noexcept { return m_renderTarget.texture; }
+
   void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
     m_renderTarget = score::gfx::createRenderTarget(
@@ -1073,6 +1079,9 @@ struct PipewireOutputNode : score::gfx::OutputNode
   Configuration configuration() const noexcept override;
 
   std::weak_ptr<score::gfx::RenderList> m_renderer{};
+  // Cached by createRenderer (mutable: createRenderer is const). Owned by
+  // the render list; refreshed whenever the graph rebuilds renderers.
+  mutable PwWireRenderer* m_wireRenderer{};
   QRhiTexture* m_texture{};
   QRhiTextureRenderTarget* m_renderTarget{};
   std::shared_ptr<score::gfx::RenderState> m_renderState{};
@@ -1170,29 +1179,35 @@ void PipewireOutputNode::render()
 
     // Queue the texture-to-texture copy. QRhi inserts the
     // appropriate layout transitions + barriers around vkCmdCopyImage.
+    // Copy from the renderer's WIRE texture (orientation-corrected,
+    // wire-format — the same texture the readback path verifies), not
+    // the upstream render target: copying m_texture directly puts a
+    // vertically-flipped raster on the wire (harness-proven via frame
+    // dump on NVIDIA/Vulkan).
     auto* batch = rhi->nextResourceUpdateBatch();
     QRhiTextureCopyDescription cdesc;
     cdesc.setPixelSize(QSize{m_settings.width, m_settings.height});
-    batch->copyTexture(m_dmabufBridge, m_texture, cdesc);
+    QRhiTexture* wireSrc
+        = (m_wireRenderer && m_wireRenderer->wireTexture())
+              ? m_wireRenderer->wireTexture()
+              : m_texture;
+    batch->copyTexture(m_dmabufBridge, wireSrc, cdesc);
     cb->resourceUpdate(batch);
 
     rhi->endOffscreenFrame();
 
+    // pipewire's `queue_buffer == ready` contract wants the GPU work
+    // COMPLETE, not just submitted — the harness proved the gamble
+    // loses on NVIDIA 595: consumers mmap-read the dma-buf immediately
+    // and see stale/partial content (~74/93 repeated frames, ~10 dB).
+    // QRhi::finish() waits for the queue to drain — the pragmatic
+    // correct sync. Upgrade path: VkFence on just this submission, or
+    // explicit-sync metadata (SPA_META_SyncTimeline).
+    rhi->finish();
+
     // Hand to pipewire. dmabuf_queue handles releasing the thread-loop
     // lock that dmabuf_dequeue acquired, so the buffer's visible to
     // consumers exactly when this returns.
-    //
-    // Note: endOffscreenFrame doesn't fence the GPU — it submits.
-    // For strict correctness pipewire's `queue_buffer = ready`
-    // contract wants the GPU work to be COMPLETE, not just submitted.
-    // QRhi's offscreen frame submits to the graphics queue; on
-    // Vulkan the next vkQueueSubmit waits on previous submits in the
-    // same queue, and a consumer reading via DMA-BUF gets its own
-    // memory barrier from the kernel. In practice this works without
-    // an explicit vkWaitFences (tested with OBS as consumer). If
-    // tearing appears under load, the right fix is to wrap the
-    // render+copy in an explicit VkFence + vkWaitFences before
-    // queue_buffer — that's the more-correct path.
     m_producer->dmabuf_queue(pwbuf);
     return;
   }
@@ -1225,22 +1240,51 @@ void PipewireOutputNode::render()
 
     rl->render(*cb);
 
-    auto* batch = rhi->nextResourceUpdateBatch();
-    QRhiTextureCopyDescription cdesc;
-    cdesc.setPixelSize(QSize{m_settings.width, m_settings.height});
-    batch->copyTexture(m_dmabufBridgeEgl, m_texture, cdesc);
-    cb->resourceUpdate(batch);
-
     rhi->endOffscreenFrame();
 
-    // GL submits to a driver-side queue; glFlush doesn't wait, so
-    // consumers reading the DMA-BUF may race. glFinish is the
-    // conservative-correct sync point — works on every Mesa / NVIDIA /
-    // Mali driver. Upgrade path is EGL_KHR_fence_sync +
-    // EGL_ANDROID_native_fence_sync wired into explicit-sync metadata,
-    // but that's a separate concern (same future hardening as Vulkan).
-    if(auto* ctx = QOpenGLContext::currentContext(); ctx)
-      ctx->extraFunctions()->glFinish();
+    // Copy the flip-corrected wire texture into the EGLImage-bound target
+    // with an explicit framebuffer blit. QRhi's copyTexture path
+    // (glCopyImageSubData) does not reliably write into EGLImage-backed
+    // external textures on NVIDIA — the copy silently no-ops and the
+    // consumer reads black. A two-FBO glBlitFramebuffer goes through the
+    // normal raster path and works everywhere.
+    QRhiTexture* wireSrc
+        = (m_wireRenderer && m_wireRenderer->wireTexture())
+              ? m_wireRenderer->wireTexture()
+              : m_texture;
+    if(auto* ctx = QOpenGLContext::currentContext(); ctx && wireSrc)
+    {
+      auto* f = ctx->extraFunctions();
+      const GLuint srcTex = GLuint(wireSrc->nativeTexture().object);
+      const int w = m_settings.width, h = m_settings.height;
+      GLuint fbos[2]{};
+      f->glGenFramebuffers(2, fbos);
+      f->glBindFramebuffer(GL_READ_FRAMEBUFFER, fbos[0]);
+      f->glFramebufferTexture2D(
+          GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, srcTex, 0);
+      f->glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbos[1]);
+      f->glFramebufferTexture2D(
+          GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, targetTex,
+          0);
+      f->glBlitFramebuffer(
+          0, 0, w, h, 0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+      f->glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+      f->glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+      f->glDeleteFramebuffers(2, fbos);
+      // glFinish: consumers may mmap-read the DMA-BUF immediately after
+      // the buffer is queued; make sure the blit fully landed. Upgrade
+      // path: EGL_KHR_fence_sync + explicit-sync metadata.
+      f->glFinish();
+      if(const auto err = f->glGetError(); err != 0)
+      {
+        static bool warned = false;
+        if(!warned)
+        {
+          warned = true;
+          qWarning() << "PipewireOutputNode: dmabuf blit GL error" << err;
+        }
+      }
+    }
 
     m_producer->dmabuf_queue_egl(pwbuf);
     return;
@@ -1459,11 +1503,50 @@ void PipewireOutputNode::createOutput(score::gfx::OutputConfiguration conf)
   // The Vulkan branch above only triggers on QRhi::Vulkan; the EGL one
   // only on QRhi::OpenGLES2. Mutually exclusive — no flag needed to
   // gate against double-enable.
+  // GPU-writability probe: allocate one small BO, import it, and check it
+  // can be an FBO color attachment. On NVIDIA's GBM backend, BOs can only
+  // be allocated with USE_LINEAR (USE_RENDERING is refused) and the
+  // resulting EGLImage-bound texture is sample-only — every GPU write
+  // (blit or glCopyImageSubData) fails with GL_INVALID_OPERATION, so the
+  // consumer would receive black frames. Detect that here and fall back
+  // to the readback path honestly.
+  const auto eglDmabufGpuWritable
+      = [](score::gfx::EglDmaBufImporter& imp) noexcept {
+    auto* ctx = QOpenGLContext::currentContext();
+    if(!ctx)
+      return false;
+    score::gfx::GbmDmaBufExport ex;
+    if(!ex.init())
+      return false;
+    score::gfx::GbmDmaBufExport::Slot s{};
+    bool ok = false;
+    if(ex.allocSlot(
+           s, 64, 64, score::gfx::GbmDmaBufExport::DRM_FORMAT_ABGR8888_v,
+           imp))
+    {
+      auto* f = ctx->extraFunctions();
+      GLuint fbo = 0;
+      f->glGenFramebuffers(1, &fbo);
+      f->glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+      f->glFramebufferTexture2D(
+          GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, s.glTexture, 0);
+      ok = f->glCheckFramebufferStatus(GL_FRAMEBUFFER)
+           == GL_FRAMEBUFFER_COMPLETE;
+      f->glBindFramebuffer(GL_FRAMEBUFFER, 0);
+      f->glDeleteFramebuffers(1, &fbo);
+      while(f->glGetError() != 0)
+        ; // drain
+      ex.destroySlot(s, imp);
+    }
+    ex.shutdown();
+    return ok;
+  };
+
   if(wantDmaBuf && rhi->backend() == QRhi::OpenGLES2)
   {
     if(score::gfx::GbmDmaBufExport::isAvailable()
        && score::gfx::EglDmaBufImporter::isAvailable(*rhi)
-       && m_eglImporter.init(*rhi))
+       && m_eglImporter.init(*rhi) && eglDmabufGpuWritable(m_eglImporter))
     {
       m_dmabufBridgeEgl = rhi->newTexture(
           formats::toQRhi(tag), m_renderState->renderSize, 1,
@@ -1574,8 +1657,14 @@ score::gfx::OutputNodeRenderer* PipewireOutputNode::createRenderer(
   // the wire byte order is produced by a CPU swizzle in render() instead.
   const auto rbFormat = m_tag == formats::Tag::BGRA8 ? QRhiTexture::RGBA8
                                                      : formats::toQRhi(m_tag);
-  return new PwWireRenderer{
+  auto* r = new PwWireRenderer{
       *this, rt, const_cast<QRhiReadbackResult&>(m_readback), rbFormat};
+  // The DMA-BUF publish path copies from the renderer's wire texture
+  // (flip-corrected). Renderer lifetime == render list lifetime; the graph
+  // rebuilds it through this same function, so the cached pointer is
+  // refreshed with it.
+  m_wireRenderer = r;
+  return r;
 }
 
 // ============================================================================
@@ -1780,6 +1869,22 @@ Device::ProtocolSettingsWidget* OutputFactory::makeSettingsWidget()
 score::gfx::OutputNode* makePipewireOutput(const Gfx::SharedOutputSettings& s)
 {
   return new PipewireOutputNode{s};
+}
+
+bool pipewireOutputDmabufEngaged(const score::gfx::OutputNode& node)
+{
+  if(auto* n = dynamic_cast<const PipewireOutputNode*>(&node))
+  {
+    bool engaged = false;
+#if defined(SCORE_PIPEWIRE_OUT_DMABUF)
+    engaged = engaged || n->m_dmabufMode;
+#endif
+#if defined(SCORE_PIPEWIRE_OUT_DMABUF_EGL)
+    engaged = engaged || n->m_dmabufEglMode;
+#endif
+    return engaged;
+  }
+  return false;
 }
 
 } // namespace Gfx::PipeWire
