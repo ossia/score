@@ -14,17 +14,12 @@ concurrency:
 jobs:
   wasm:
     name: WebAssembly
-    runs-on: ubuntu-latest
-    container:
-      image: archlinux:latest
+    # Build on the same image the wasm SDK is built on (ubuntu-24.04), so the
+    # prebuilt qt6-host tools find a matching system ICU. The old archlinux
+    # container shipped a too-new ICU (78) for the SDK's host tools (needs 74/76).
+    runs-on: ubuntu-24.04
 
     steps:
-      - name: Install git
-        run: |
-          pacman -Syy --noconfirm
-          pacman -S glibc --noconfirm
-          pacman -S git --noconfirm
-
       - name: Checkout code
         uses: actions/checkout@v6
         with:
