@@ -374,6 +374,25 @@ void SimpleRenderedISFNode::initMRTPass(RenderList& renderer, QRhiResourceUpdate
   pubo->setName("SimpleRenderedISFNode::initMRTPass::pubo");
   pubo->create();
 
+  // Allocate the shader-declared storage resources (SSBOs + images) and borrow
+  // any upstream buffers BEFORE building the extra bindings — exactly as the
+  // non-MRT initPass does (see lines ~198-203). Invariant: buildExtraBindings
+  // only emits an SRB entry for a storage resource whose GPU buffer/texture is
+  // already allocated (IsfBindingsBuilder.cpp: `if(!e.buffer || e.binding < 0)
+  // continue`). The MRT path used to skip ensureStorageResources entirely, so
+  // every fragment storage buffer stayed null and was OMITTED from the MRT
+  // pipeline's SRB — even though the codegen declares it in the shader (SPIR-V
+  // Set 0, bindings 3/4 for a persistent read_write SSBO). On Vulkan the SRB
+  // *is* the pipeline layout (qrhivulkan.cpp derives VkPipelineLayout from the
+  // SRB), so vkCreateGraphicsPipelines reported VUID-...-layout-07988 and the
+  // draw SIGSEGV'd on the missing descriptor; on OpenGL the 2nd attachment
+  // rendered blank. Allocating here makes the MRT SRB carry the same storage
+  // bindings the shader uses. ensureStorageResources is idempotent (guarded on
+  // e.buffer), so this runs once when the shared MRT target is first built.
+  ensureStorageResources(
+      rhi, res, renderer, n.descriptor(), m_storage, renderer.state.renderSize);
+  bindUpstreamBuffers(renderer, n.input, m_storage);
+
   // Extra bindings: storage + multiview UBO (same as initPass).
   auto extraRhiBindings = buildExtraBindings(m_storage);
   if(m_multiViewUBO)
