@@ -131,6 +131,11 @@ public:
   QRhiBuffer* m_equirectUbo{};
   QRhiBuffer* m_quadVbuf{};
 
+  // Per-face stride into m_equirectUbo. The 6 equirect->cube face passes
+  // each need their own FaceInfo slot bound via a dynamic offset, so the
+  // UBO holds 6 blocks spaced by aligned(UniformBufferOffsetAlignment).
+  quint32 m_equirectUboStride{0};
+
   int m_faceSize{0};
   bool m_imageChanged{true};
   QImage m_loadedImage;

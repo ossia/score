@@ -318,9 +318,17 @@ bool CubemapLoader::setupEquirectPipeline(score::gfx::RenderList& renderer)
 {
   auto& rhi = *renderer.state.rhi;
 
-  // UBO for face index
+  // UBO for face index. Each of the 6 face passes must sample with its own
+  // faceIndex, but all 6 passes are recorded into one command buffer and
+  // executed together at endFrame. Writing one Dynamic UBO region at
+  // offset 0 per face (the old behaviour) leaves offset 0 holding the LAST
+  // face's value by the time any draw runs on Vulkan/Metal/D3D, so all 6
+  // faces sample the -Z direction. Instead give each face its own slot,
+  // spaced by the device's uniform-buffer offset alignment, and bind
+  // per-pass with a QRhiCommandBuffer::DynamicOffset.
+  m_equirectUboStride = rhi.ubufAligned(sizeof(int32_t) * 4);
   m_equirectUbo = rhi.newBuffer(
-      QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(int32_t) * 4);
+      QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 6 * m_equirectUboStride);
   m_equirectUbo->setName("CubemapLoader::equirect_ubo");
   m_equirectUbo->create();
 
@@ -343,10 +351,11 @@ bool CubemapLoader::setupEquirectPipeline(score::gfx::RenderList& renderer)
            QRhiShaderResourceBinding::VertexStage
                | QRhiShaderResourceBinding::FragmentStage,
            &renderer.outputUBO()),
-       QRhiShaderResourceBinding::uniformBuffer(
+       QRhiShaderResourceBinding::uniformBufferWithDynamicOffset(
            2,
            QRhiShaderResourceBinding::FragmentStage,
-           m_equirectUbo),
+           m_equirectUbo,
+           sizeof(int32_t) * 4),
        QRhiShaderResourceBinding::sampledTexture(
            3,
            QRhiShaderResourceBinding::FragmentStage,
@@ -527,10 +536,11 @@ void CubemapLoader::renderEquirectangular(
              QRhiShaderResourceBinding::VertexStage
                  | QRhiShaderResourceBinding::FragmentStage,
              &renderer.outputUBO()),
-         QRhiShaderResourceBinding::uniformBuffer(
+         QRhiShaderResourceBinding::uniformBufferWithDynamicOffset(
              2,
              QRhiShaderResourceBinding::FragmentStage,
-             m_equirectUbo),
+             m_equirectUbo,
+             sizeof(int32_t) * 4),
          QRhiShaderResourceBinding::sampledTexture(
              3,
              QRhiShaderResourceBinding::FragmentStage,
@@ -539,23 +549,31 @@ void CubemapLoader::renderEquirectangular(
     m_equirectSrb->create();
   }
 
-  // Commit the source texture upload before rendering
+  // Write all 6 face indices once, each into its own aligned slot. These
+  // land before any draw runs, and each pass binds its own slot via a
+  // dynamic offset, so every face samples with its own direction.
+  for(int face = 0; face < 6; face++)
+  {
+    int32_t faceIdx = face;
+    res->updateDynamicBuffer(
+        m_equirectUbo, face * m_equirectUboStride, sizeof(int32_t), &faceIdx);
+  }
+
+  // Commit the source texture upload + face UBO writes before rendering
   commands.resourceUpdate(res);
   res = rhi.nextResourceUpdateBatch();
 
   // Render each face
   for(int face = 0; face < 6; face++)
   {
-    // Update face index UBO
-    int32_t faceIdx = face;
-    auto* faceRes = rhi.nextResourceUpdateBatch();
-    faceRes->updateDynamicBuffer(m_equirectUbo, 0, sizeof(int32_t), &faceIdx);
-
     commands.beginPass(
-        m_faceRTs[face].renderTarget, Qt::black, {1.0f, 0}, faceRes);
+        m_faceRTs[face].renderTarget, Qt::black, {1.0f, 0}, nullptr);
     commands.setGraphicsPipeline(m_equirectPipeline);
     commands.setViewport(QRhiViewport(0, 0, m_faceSize, m_faceSize));
-    commands.setShaderResources();
+    // Bind FaceInfo (binding 2) at this face's slot via a dynamic offset.
+    const QRhiCommandBuffer::DynamicOffset faceOffset{
+        2, quint32(face * m_equirectUboStride)};
+    commands.setShaderResources(m_equirectSrb, 1, &faceOffset);
     commands.draw(3); // Fullscreen triangle
     commands.endPass();
   }
