@@ -51,6 +51,13 @@ private:
   void registerCommonExpressionVariables(
       ossia::math_expression& e, ossia::small_pod_vector<double, 16>& data) const;
 
+  // Upper bound on the number of doubles registerCommonExpressionVariables (+
+  // the small extra a caller adds, e.g. $USER) will emplace into the backing
+  // vector. ossia::math_expression::add_constant stores a double& INTO that
+  // vector, so the reserve MUST cover the full count: any emplace_back past
+  // capacity reallocates and dangles every previously-registered reference.
+  std::size_t expressionSymbolReserveCount() const noexcept;
+
   // Image management
   std::optional<QSize> getImageSize(const isf::csf_image_input&) const noexcept;
   QSize computeTextureSize(const isf::csf_image_input& img) const noexcept;
@@ -282,6 +289,16 @@ private:
   // layout is still PREINITIALIZED. Reset on init() / after release() so a
   // RenderList rebuild starts the cycle over.
   bool m_inputsHaveBeenWritten{false};
+
+  // Once-per-frame guard for runInitialPasses. RenderList calls update() +
+  // runInitialPasses() once per incoming edge of every sink port, so a CSF
+  // feeding >=2 sinks would otherwise re-dispatch every compute pass and
+  // double-swap the feedback SSBOs / persistent images per frame (simulation
+  // advancing at N x). Keyed on renderer.frame (a monotonic counter) rather
+  // than a reset-in-update() bool, because update() is interleaved per-port
+  // before each runInitialPasses and would reset such a bool between edges.
+  // Mirrors SimpleRenderedISFNode::m_lastMRTRenderFrame. Reset in release().
+  int64_t m_lastRunFrame{-1};
 };
 
 }

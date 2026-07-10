@@ -5840,9 +5840,19 @@ void parser::parse_csf()
 
     material_block += "};\n\n";
 
+    // Only advance `binding` when the Params UBO is actually emitted. k==0
+    // means has_uniforms was set by a write storage/image (or similar) but no
+    // scalar / $USER / flex-array-size member was declared, so the block is
+    // dropped. The runtime SRB (RenderedCSFNode) gates the binding-2 material
+    // UBO on m_materialSize>0, which is also 0 in that case — so it binds the
+    // first real resource at slot 2. Advancing `binding` unconditionally here
+    // made the shader declare that resource at slot 3 -> pipeline-layout
+    // mismatch / create failure for no-parameter write generators.
     if(k > 0)
+    {
       m_fragment += material_block;
-    binding++;
+      binding++;
+    }
   }
 
   // Helper: derive GLSL image/sampler prefix from format string.

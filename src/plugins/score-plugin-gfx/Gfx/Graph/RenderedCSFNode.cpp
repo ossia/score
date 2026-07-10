@@ -274,7 +274,7 @@ QSize RenderedCSFNode::computeTextureSize(
 
   // Note : reserve is super important here,
   // as the expression parser takes *references* to the variables.
-  data.reserve(2 + 2 * m_inputSamplers.size() + n.descriptor().inputs.size() + 2 * m_geometryBindings.size());
+  data.reserve(expressionSymbolReserveCount());
 
   registerCommonExpressionVariables(e, data);
 
@@ -343,7 +343,8 @@ int RenderedCSFNode::resolveCountExpression(
   ossia::small_pod_vector<double, 16> data;
 
   const auto& desc = n.descriptor();
-  data.reserve(2 + 2 * m_inputSamplers.size() + desc.inputs.size() + 2 * m_geometryBindings.size() + 1);
+  // +1 for the var_USER constant this function registers below.
+  data.reserve(expressionSymbolReserveCount() + 1);
 
   registerCommonExpressionVariables(e, data);
 
@@ -409,6 +410,30 @@ int RenderedCSFNode::resolveCountExpression(
 
   qDebug() << "resolveCountExpression failed:" << e.error().c_str() << eval_expr.c_str();
   return 0;
+}
+
+std::size_t RenderedCSFNode::expressionSymbolReserveCount() const noexcept
+{
+  // registerCommonExpressionVariables emplaces up to:
+  //   - 4 doubles per image-type descriptor input (WIDTH/HEIGHT/DEPTH/LAYERS)
+  //     + 4 one-time unsuffixed ($WIDTH/$HEIGHT/$DEPTH/$LAYERS)
+  //   - 1 per scalar (float/long) input
+  //   - 2 per geometry binding (VERTEX_COUNT_x/INSTANCE_COUNT_x) + 2 one-time
+  //   - 2 ($COUNT_x/$BYTESIZE_x) per addressable SSBO/UBO (top-level +
+  //     per-geometry auxiliaries)
+  // Callers additionally register a couple of $USER constants. Each descriptor
+  // input contributes to exactly one of the image/scalar/geometry/buffer
+  // categories, so bounding the image+scalar contribution by 6*inputs (max is
+  // 4 per input) is safe, and the fixed 16 absorbs all the one-time and $USER
+  // registrations. The old formula (2 + 2*samplers + inputs + 2*geo) budgeted
+  // only 2 doubles per image and NOTHING for the per-buffer COUNT/BYTESIZE
+  // pair, so a node with enough images+buffers overran the inline capacity and
+  // reallocated -> dangling exprtk references (ASan UAF).
+  std::size_t buffers = m_storageBuffers.size();
+  for(const auto& binding : m_geometryBindings)
+    buffers += binding.auxiliary_ssbos.size();
+  return 16 + 6 * n.descriptor().inputs.size() + 4 * m_geometryBindings.size()
+         + 2 * buffers;
 }
 
 void RenderedCSFNode::registerCommonExpressionVariables(
@@ -695,7 +720,7 @@ int RenderedCSFNode::resolveDispatchExpression(const std::string& expr) const
   // Build expression evaluator
   ossia::math_expression e;
   ossia::small_pod_vector<double, 16> data;
-  data.reserve(2 + 2 * m_inputSamplers.size() + n.descriptor().inputs.size() + 2 * m_geometryBindings.size());
+  data.reserve(expressionSymbolReserveCount());
 
   registerCommonExpressionVariables(e, data);
 
@@ -3433,12 +3458,14 @@ void RenderedCSFNode::buildComputeSrbBindings(
       }
       if(geo_creates_inlet)
         input_port_index++;
-      // Skip $USER ports for this geometry input
+      // Skip $USER ports for this geometry input. INDIRECT.COUNT is NOT counted:
+      // ISFNode's visitor creates no port for a $USER in INDIRECT.COUNT
+      // (ISFNode.cpp:244-287), so skipping one here shifted every later input
+      // port by one. (Mirrors the same removal in initState.)
       if(geo_input->vertex_count.find("$USER") != std::string::npos) input_port_index++;
       if(geo_input->instance_count.find("$USER") != std::string::npos) input_port_index++;
       for(const auto& aux : geo_input->auxiliary)
         if(aux.size.find("$USER") != std::string::npos) input_port_index++;
-      if(geo_input->indirect && geo_input->indirect->count.find("$USER") != std::string::npos) input_port_index++;
     }
     else
     {
@@ -3603,11 +3630,22 @@ void RenderedCSFNode::initState(RenderList& renderer, QRhiResourceUpdateBatch& r
       m_storageBuffers.push_back(sb);
 
       if(sb.access.contains("write")) {
-        m_outStorageBuffers.push_back({outlets[outlet_index], sb_index});
+        if(outlet_index < (int)outlets.size())
+          m_outStorageBuffers.push_back({outlets[outlet_index], sb_index});
+        else
+          qWarning() << "CSF: outlet index out of range for write storage_input"
+                     << QString::fromStdString(input.name);
         outlet_index++;
       }
-      // read_only storage creates an input port
+      // read_only storage creates an input port; a WRITE buffer whose layout
+      // ends in a flexible-array member ALSO gets a synthesized long_input
+      // sizing inlet (ISFNode.cpp:217-225 / isf_input_port_count_vis). Without
+      // this increment every later input port resolved one slot too low — the
+      // same drift buildComputeSrbBindings (~3063) already guards against.
       if(storage->access == "read_only")
+        input_port_index++;
+      else if(storage->access.contains("write") && !storage->layout.empty()
+              && storage->layout.back().type.find("[]") != std::string::npos)
         input_port_index++;
       sb_index++;
     }
@@ -3635,7 +3673,11 @@ void RenderedCSFNode::initState(RenderList& renderer, QRhiResourceUpdateBatch& r
 
       if(m_storageImages.back().access.contains("write")) {
         int img_index = (int)m_storageImages.size() - 1;
-        m_outStorageImages.push_back({outlets[outlet_index], img_index});
+        if(outlet_index < (int)outlets.size())
+          m_outStorageImages.push_back({outlets[outlet_index], img_index});
+        else
+          qWarning() << "CSF: outlet index out of range for write csf_image_input"
+                     << QString::fromStdString(input.name);
         outlet_index++;
       }
       // read_only CSF image creates an input port
@@ -3897,15 +3939,31 @@ void RenderedCSFNode::initState(RenderList& renderer, QRhiResourceUpdateBatch& r
         binding.indirectBufferSize = indirectSize;
       }
 
-      const bool geo_has_output = binding.has_output;
+      // A geometry_input creates a score Geometry OUTLET only when it has empty
+      // attributes (pass-through) or at least one WRITABLE attribute — NOT when
+      // it merely has a writable AUXILIARY (ISFNode.cpp:263-276 /
+      // isf_input_port_count_vis). binding.has_output is broader: it is also set
+      // true for writable aux SSBOs (which write buffers but publish no geometry
+      // outlet), so advancing outlet_index on has_output over-counted and pushed
+      // every later write storage/image output onto the wrong (or OOB) outlet.
+      bool geo_creates_outlet = geo->attributes.empty();
+      if(!geo_creates_outlet)
+        for(const auto& attr : geo->attributes)
+          if(attr.access == "write_only" || attr.access == "read_write")
+          { geo_creates_outlet = true; break; }
+
       m_geometryBindings.push_back(std::move(binding));
 
       if(needs_input)
         input_port_index++;
-      if(geo_has_output)
+      if(geo_creates_outlet)
         outlet_index++;
 
-      // $USER ports also create input ports (IntSpinBox), track them
+      // $USER ports also create input ports (IntSpinBox), track them.
+      // NOTE: INDIRECT.COUNT is intentionally NOT counted here — ISFNode's
+      // visitor (ISFNode.cpp:244-287) creates NO port for a $USER in
+      // INDIRECT.COUNT, so counting one shifted every subsequent input port by
+      // one. (Mirrors the same removal in buildComputeSrbBindings.)
       if(geo->vertex_count.find("$USER") != std::string::npos)
         input_port_index++;
       if(geo->instance_count.find("$USER") != std::string::npos)
@@ -3913,8 +3971,6 @@ void RenderedCSFNode::initState(RenderList& renderer, QRhiResourceUpdateBatch& r
       for(const auto& aux : geo->auxiliary)
         if(aux.size.find("$USER") != std::string::npos)
           input_port_index++;
-      if(geo->indirect && geo->indirect->count.find("$USER") != std::string::npos)
-        input_port_index++;
     }
     else
     {
@@ -4088,6 +4144,9 @@ void RenderedCSFNode::releaseState(RenderList& r)
     // texture is deleted elsewhere
   }
   m_inputSamplers.clear();
+
+  // Reset the once-per-frame guard so a RenderList rebuild starts a fresh cycle.
+  m_lastRunFrame = -1;
 
   m_initialized = false;
 }
@@ -4339,6 +4398,17 @@ void RenderedCSFNode::runInitialPasses(
     RenderList& renderer, QRhiCommandBuffer& commands, QRhiResourceUpdateBatch*& res,
     Edge& edge)
 {
+  // Only dispatch the compute passes and perform the ping-pong swaps once per
+  // frame, even when several downstream sinks each trigger us. RenderList calls
+  // runInitialPasses() once per incoming edge; without this guard a CSF feeding
+  // N sinks would advance its simulation N x and swap feedback SSBOs /
+  // persistent images N times. Keyed on the monotonic frame counter (see the
+  // note on m_lastRunFrame). Leaves `res` untouched so the caller keeps using it
+  // for the remaining nodes. Reset in release().
+  if(m_lastRunFrame == renderer.frame)
+    return;
+  m_lastRunFrame = renderer.frame;
+
   // Plan 09 S6: debug marker for capture-tool readability.
   commands.debugMarkBegin(QByteArrayLiteral("CSF"));
   struct MarkEnd
