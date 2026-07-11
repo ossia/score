@@ -570,6 +570,13 @@ if(SCORE_HAS_SPOUT)
 endif()
 
 if(WIN32)
+  # Qt's static qrhid3d12_p.h #includes D3D12MemAlloc.h, but the static Qt install
+  # does not ship that 3rdparty header. Provide our vendored copy on the include
+  # path for every Windows build (previously this only happened via SCORE_HAS_SPOUT,
+  # so arm64 -- where Spout is off -- failed with 'D3D12MemAlloc.h not found').
+  # The allocator symbols come from static Qt, so we don't compile the .cpp here.
+  target_include_directories(${PROJECT_NAME} PRIVATE "${3RDPARTY_FOLDER}/D3D12MemoryAllocator")
+
   target_sources(${PROJECT_NAME} PRIVATE Gfx/CameraDevice.win32.cpp)
 
   set_source_files_properties(
