@@ -107,10 +107,23 @@ public:
    *  importable type.
    *
    *  Returns -1 when the device lacks CU_DEVICE_ATTRIBUTE_DMA_BUF_SUPPORTED
-   *  (the export returns CUDA_ERROR_NOT_SUPPORTED) — empirically the case
-   *  on the Quadro RTX 4000 + GeForce RTX 4090 in this rig under driver 595,
-   *  which is why option (d) is NOT wired into the capture strategies and
-   *  the bounce path is retained. Verified by scratchpad/rdmaprobe4.
+   *  (the export returns CUDA_ERROR_NOT_SUPPORTED). NOTE (open-module update,
+   *  driver 595.71.05 open kernel module): the *export* half now SUCCEEDS on
+   *  the Quadro RTX 4000 (DMA_BUF_SUPPORTED=1, GPUDIRECT_RDMA=1) and
+   *  DMABufferLock(inRDMA=true) even accepts a VMM allocation directly — so
+   *  the AJA-pin + dma-buf-export chain works. Option (d) is STILL not wired,
+   *  because the blocker moved to the NVIDIA graphics-side *import* of the
+   *  CUDA-exported dma-buf, which is unsupported on this driver:
+   *    - Vulkan: NVIDIA advertises NO VK_EXT_external_memory_dma_buf (only
+   *      VK_EXT_image_drm_format_modifier), so the dma-buf fd cannot be
+   *      imported as a VkImage at all.
+   *    - GL/EGL: EGL_EXT_image_dma_buf_import IS advertised, but importing a
+   *      CUDA-VMM-exported dma-buf fails with EGL_BAD_ALLOC — NVIDIA's EGL
+   *      importer rejects a dma-buf carrying no graphics-allocator metadata.
+   *  The intra-GPU CUDA<->graphics route that DOES work on NVIDIA remains the
+   *  OPAQUE_FD external-memory path, and DMABufferLock refuses CUDA-imported
+   *  Vulkan memory — hence the per-frame CUDA bounce is retained. Verified by
+   *  scratchpad/rdmaprobe4 (Vulkan) + rdmaprobe4gl (GL/EGL) on the open module.
    *
    *  @param pciBar1  If true, request a PCIe/BAR1 mapping for the dma-buf
    *                  (CU_MEM_RANGE_FLAG_DMA_BUF_MAPPING_TYPE_PCIE), needed
