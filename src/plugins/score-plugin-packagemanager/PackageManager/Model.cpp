@@ -149,6 +149,11 @@ void PluginSettingsModel::on_message(QNetworkReply* rep)
 
 void PluginSettingsModel::firstTimeLibraryDownload()
 {
+  // Never block a non-interactive session (tests, CI, headless) on a modal
+  // question; same escape hatch as refresh().
+  if(qEnvironmentVariableIsSet("SCORE_SANITIZE_SKIP_CHECKS"))
+    return;
+
   const auto& lib = score::GUIAppContext().settings<Library::Settings::Model>();
   const QString lib_folder = lib.getPackagesPath() + "/default";
   const QString lib_info = lib_folder + "/package.json";
