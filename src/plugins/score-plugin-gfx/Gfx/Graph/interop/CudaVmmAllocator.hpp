@@ -98,6 +98,27 @@ public:
    *  Vulkan import consumes it on success). Returns -1 on failure. */
   int exportPosixFd() const noexcept;
 
+  /** Export this mapped range as a **dma-buf** fd via
+   *  cuMemGetHandleForAddressRange — the cross-API handle type that
+   *  Vulkan (VK_EXT_external_memory_dma_buf) and GL (EGLImage) can import
+   *  as an *aliasing* image, i.e. the CUDA→graphics zero-copy route behind
+   *  AJA "capture-collapse" option (d). Unlike exportPosixFd() (opaque fd,
+   *  which does NOT alias into Vulkan), a dma-buf fd is the spec-defined
+   *  importable type.
+   *
+   *  Returns -1 when the device lacks CU_DEVICE_ATTRIBUTE_DMA_BUF_SUPPORTED
+   *  (the export returns CUDA_ERROR_NOT_SUPPORTED) — empirically the case
+   *  on the Quadro RTX 4000 + GeForce RTX 4090 in this rig under driver 595,
+   *  which is why option (d) is NOT wired into the capture strategies and
+   *  the bounce path is retained. Verified by scratchpad/rdmaprobe4.
+   *
+   *  @param pciBar1  If true, request a PCIe/BAR1 mapping for the dma-buf
+   *                  (CU_MEM_RANGE_FLAG_DMA_BUF_MAPPING_TYPE_PCIE), needed
+   *                  for third-party DMA peers; default is the plain export.
+   *  The caller owns the returned fd (close() it, or the Vulkan/GL import
+   *  dups it). Returns -1 on any failure. */
+  int exportDmaBufFd(bool pciBar1 = false) const noexcept;
+
   /** Release the underlying physical-handle reference *while keeping*
    *  the mapping alive. Useful when the caller wants to ensure no
    *  inter-process handle leak after a successful map+setaccess.

@@ -79,6 +79,13 @@ typedef enum CUdevice_attribute_enum
   CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR = 75,
   CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR = 76,
   CU_DEVICE_ATTRIBUTE_UNIFIED_ADDRESSING = 41,
+  // Whether cuMemGetHandleForAddressRange(..., DMA_BUF_FD) is usable on
+  // this device. 0 on Turing/Ada consumer + Quadro RTX parts under driver
+  // 595 (empirically: Quadro RTX 4000 and GeForce RTX 4090 both report 0),
+  // so the CUDA→dma-buf export half of "capture-collapse" option (d) is
+  // unavailable there — see rdmaprobe4 in the interop analysis. Non-zero on
+  // data-center parts (A100/H100 class) with a dma-buf-capable kernel.
+  CU_DEVICE_ATTRIBUTE_DMA_BUF_SUPPORTED = 124,
 } CUdevice_attribute;
 
 typedef enum CUexternalMemoryHandleType_enum
@@ -168,6 +175,24 @@ typedef enum CUmemAllocationGranularity_flags_enum
   CU_MEM_ALLOC_GRANULARITY_MINIMUM = 0,
   CU_MEM_ALLOC_GRANULARITY_RECOMMENDED = 1,
 } CUmemAllocationGranularity_flags;
+
+// Handle type for cuMemGetHandleForAddressRange — export a *mapped* device
+// VA range (VMM- or cuMemAlloc-backed) as an OS handle. Unlike
+// cuMemExportToShareableHandle (opaque POSIX fd only), this can produce a
+// dma-buf fd, which is the cross-API handle type Vulkan can import as an
+// aliasing VkImage (VK_EXT_external_memory_dma_buf). Gated on
+// CU_DEVICE_ATTRIBUTE_DMA_BUF_SUPPORTED.
+typedef enum CUmemRangeHandleType_enum
+{
+  CU_MEM_RANGE_HANDLE_TYPE_DMA_BUF_FD = 0x1,
+} CUmemRangeHandleType;
+
+// Optional flag for cuMemGetHandleForAddressRange: request a PCIe (BAR1)
+// mapping type for the exported dma-buf rather than the default.
+enum
+{
+  CU_MEM_RANGE_FLAG_DMA_BUF_MAPPING_TYPE_PCIE = 0x1,
+};
 
 typedef struct CUmemLocation_st
 {
@@ -484,6 +509,16 @@ struct CudaFunctions
   FN_cuMemExportToShareableHandle memExportToShareableHandle{};
   FN_cuMemGetAllocationGranularity memGetGranularity{};
 
+  /// Optional: export a mapped device VA range as a dma-buf fd (the
+  /// cross-API handle type importable into Vulkan/GL as an aliasing image).
+  /// Present in libcuda since 11.7, but only *usable* when the device
+  /// reports CU_DEVICE_ATTRIBUTE_DMA_BUF_SUPPORTED != 0 — otherwise it
+  /// returns CUDA_ERROR_NOT_SUPPORTED (801). Null on very old drivers.
+  using FN_cuMemGetHandleForAddressRange
+      = CUresult (*)(void*, CUdeviceptr, size_t, CUmemRangeHandleType,
+                     unsigned long long);
+  FN_cuMemGetHandleForAddressRange memGetHandleForAddressRange{};
+
   // -- Pointer attributes — OPTIONAL --------------------------------------
   // cuPointerSetAttribute(CU_POINTER_ATTRIBUTE_SYNC_MEMOPS) marks a device
   // range for synchronous memory ops so third-party DMA engines (Deltacast
@@ -602,6 +637,8 @@ struct CudaFunctions
         = (FN_cuMemExportToShareableHandle)sym("cuMemExportToShareableHandle");
     memGetGranularity = (FN_cuMemGetAllocationGranularity)sym(
         "cuMemGetAllocationGranularity");
+    memGetHandleForAddressRange = (FN_cuMemGetHandleForAddressRange)sym(
+        "cuMemGetHandleForAddressRange");
     pointerSetAttribute
         = (FN_cuPointerSetAttribute)sym("cuPointerSetAttribute");
     vmmSupported = memCreate && memAddressReserve && memMap && memSetAccess
@@ -625,6 +662,24 @@ struct CudaFunctions
       return false;
     }
     return true;
+  }
+
+  /** True when `device` can export a mapped VA range as a dma-buf fd via
+   *  cuMemGetHandleForAddressRange (the CUDA→Vulkan/GL zero-copy aliasing
+   *  route behind capture-collapse option (d)). This queries
+   *  CU_DEVICE_ATTRIBUTE_DMA_BUF_SUPPORTED; it is 0 on the Turing/Ada
+   *  Quadro+GeForce parts in this rig (driver 595), so callers MUST check
+   *  this and fall back to the bounce path — the export otherwise returns
+   *  CUDA_ERROR_NOT_SUPPORTED. Requires a current context on the device. */
+  bool dmaBufExportSupported(CUdevice device) const noexcept
+  {
+    if(!deviceGetAttribute || !memGetHandleForAddressRange)
+      return false;
+    int v = 0;
+    if(deviceGetAttribute(&v, CU_DEVICE_ATTRIBUTE_DMA_BUF_SUPPORTED, device)
+       != CUDA_SUCCESS)
+      return false;
+    return v != 0;
   }
 
   void unload() noexcept

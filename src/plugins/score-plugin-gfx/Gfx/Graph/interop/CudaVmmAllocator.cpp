@@ -149,4 +149,26 @@ int CudaVmmAllocation::exportPosixFd() const noexcept
 #endif
 }
 
+int CudaVmmAllocation::exportDmaBufFd(bool pciBar1) const noexcept
+{
+#if defined(_WIN32)
+  return -1;
+#else
+  // Exports the *mapped VA range* (not the physical handle), so it works
+  // whether or not releaseHandleEarly() was called — only the mapping
+  // needs to be live.
+  if(!m_cu || m_dptr == 0 || m_size == 0
+     || !m_cu->memGetHandleForAddressRange)
+    return -1;
+  const unsigned long long flags
+      = pciBar1 ? CU_MEM_RANGE_FLAG_DMA_BUF_MAPPING_TYPE_PCIE : 0ull;
+  int fd = -1;
+  if(m_cu->memGetHandleForAddressRange(
+         &fd, m_dptr, m_size, CU_MEM_RANGE_HANDLE_TYPE_DMA_BUF_FD, flags)
+     != CUDA_SUCCESS)
+    return -1; // CUDA_ERROR_NOT_SUPPORTED on non-dma-buf-capable devices
+  return fd;
+#endif
+}
+
 } // namespace score::gfx::interop
