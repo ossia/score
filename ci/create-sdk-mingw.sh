@@ -3,7 +3,11 @@
 : "$SDK_DIR"
 : "$SCORE_DIR"
 
-export OSSIA_SDK="/c/ossia-sdk-x86_64"
+if [[ "${RUNNER_ARCH:-X64}" == "ARM64" ]]; then
+  export OSSIA_SDK="/c/ossia-sdk-aarch64"
+else
+  export OSSIA_SDK="/c/ossia-sdk-x86_64"
+fi
 export DST="$SDK_DIR"
 export INCLUDE="$DST/usr/include"
 export LIB="$DST/usr/lib"

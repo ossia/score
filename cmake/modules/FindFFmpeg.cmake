@@ -209,7 +209,14 @@ if(TARGET avutil)
       )
       imported_link_libraries(avdevice shlwapi.lib)
     else()
-      find_library(BCRYPT_LIBRARY libbcrypt.a HINTS ${OSSIA_SDK}/llvm/x86_64-w64-mingw32/lib)
+      # llvm-mingw ships per-triple import libs; pick the one matching the target
+      # arch (hardcoding x86_64 pulled an x64 libbcrypt.a into arm64 links).
+      if(CMAKE_SYSTEM_PROCESSOR MATCHES "ARM64|aarch64|arm64")
+        set(_ossia_mingw_triple aarch64-w64-mingw32)
+      else()
+        set(_ossia_mingw_triple x86_64-w64-mingw32)
+      endif()
+      find_library(BCRYPT_LIBRARY libbcrypt.a HINTS ${OSSIA_SDK}/llvm/${_ossia_mingw_triple}/lib)
       
       if(BCRYPT_LIBRARY)
         set_target_properties(winbcrypt PROPERTIES
