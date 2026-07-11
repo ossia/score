@@ -47,6 +47,13 @@ public:
   void setupView();
   void teardownView();
 
+  /** Destroy the registered settings models. The models are QObjects: they
+   *  must go before the QApplication does. Owners that also own the
+   *  QApplication (the Minimal*Application test scaffolding) call this
+   *  explicitly before deleting the app; the destructor calls it too
+   *  (idempotent) for the normal case where the app outlives us. */
+  void teardownModels() noexcept;
+
   Settings(const Settings&) = delete;
   Settings(Settings&&) = delete;
   Settings& operator=(const Settings&) = delete;
