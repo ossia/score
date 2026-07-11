@@ -1424,12 +1424,11 @@ void DeviceExplorerWidget::addAddress(InsertMode insert)
 DeviceExplorerWidget*
 findDeviceExplorerWidgetInstance(const score::GUIApplicationContext& ctx) noexcept
 {
-  for(auto& cpt : ctx.panels())
+  // findPanel tolerates empty slots in the panel list (indirect iteration
+  // dereferences unconditionally and asserts on hardened stdlibs).
+  if(auto* panel = ctx.components.findPanel<Explorer::PanelDelegate>())
   {
-    if(Explorer::PanelDelegate* panel = dynamic_cast<Explorer::PanelDelegate*>(&cpt))
-    {
-      return static_cast<Explorer::DeviceExplorerWidget*>(panel->widget());
-    }
+    return static_cast<Explorer::DeviceExplorerWidget*>(panel->widget());
   }
   return nullptr;
 }
