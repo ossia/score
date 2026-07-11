@@ -162,6 +162,8 @@ void DataStreamWriter::write(Sequence::SequenceModel& seq)
     Scenario::SetNextInterval(seq.states.at(itv.startState()), itv);
   }
 
+  seq.repairSectionRacks();
+
   checkDelimiter();
 }
 
@@ -274,4 +276,6 @@ void JSONWriter::write(Sequence::SequenceModel& seq)
     Scenario::SetPreviousInterval(seq.states.at(itv.endState()), itv);
     Scenario::SetNextInterval(seq.states.at(itv.startState()), itv);
   }
+
+  seq.repairSectionRacks();
 }

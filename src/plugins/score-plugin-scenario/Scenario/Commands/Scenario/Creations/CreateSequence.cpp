@@ -328,6 +328,34 @@ CreateSequence* CreateSequence::make(
     cmd->addCommand(add_param);
   }
 
+  // Capture the boundary values: the start IS takes the start state's recorded
+  // value, the end IS takes the current device value. setISValue also pulls the
+  // automation curve endpoints, so a changed parameter yields a ramp from the
+  // start value to the current value instead of a flat line.
+  auto& devPlugin = ctx.plugin<Explorer::DeviceDocumentPlugin>();
+  for(const auto& msg : startMessages)
+  {
+    if(!ossia::is_numeric(msg.value))
+      continue;
+
+    auto node = Device::try_getNodeFromAddress(devPlugin.rootNode(), msg.address.address);
+    if(!node || !node->is<Device::AddressSettings>())
+      continue;
+
+    devPlugin.updateProxy.refreshRemoteValue(msg.address.address);
+    const auto& endVal = node->get<Device::AddressSettings>().value;
+
+    auto set_start = new Sequence::Command::SetSequenceISValue{
+        *seqModel, seqModel->startTimeSyncId(), msg.address, msg.value};
+    set_start->redo(ctx);
+    cmd->addCommand(set_start);
+
+    auto set_end = new Sequence::Command::SetSequenceISValue{
+        *seqModel, seqModel->endTimeSyncId(), msg.address, endVal};
+    set_end->redo(ctx);
+    cmd->addCommand(set_end);
+  }
+
   return cmd;
 }
 }

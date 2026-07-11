@@ -220,11 +220,17 @@ protected:
         if(!this->createdTimeSyncs.contains(endEv.timeSync()))
           this->createdTimeSyncs.append(endEv.timeSync());
 
+        // Remember where the end event was at press time: the drag must go
+        // past this date before an ExtendSequence can be constructed
+        // (its section duration must be strictly positive), and MoveEventMeta
+        // moves the event every frame so the live date is useless as a guard.
+        this->m_extendOrigin = endEv.date();
+
         // Submit the ongoing ExtendSequence command via the dispatcher.
         // On first call this constructs the command and calls redo(); on
         // subsequent calls (from move_nothing.entered) it calls update()+redo()
         // without any rollback between frames — eliminating the flicker.
-        if(this->currentPoint.date > this->m_clickedPoint.date)
+        if(this->currentPoint.date > this->m_extendOrigin)
         {
           m_dispatcher.template submit<Sequence::Command::ExtendSequence>(
               this->m_parentSM.model(), originalState,
@@ -348,5 +354,7 @@ protected:
   MultiOngoingCommandDispatcher m_dispatcher;
 
   Scenario::Point m_clickedPoint{};
+  // Date of the sequence end event at press time (extend-drag gesture)
+  TimeVal m_extendOrigin{};
 };
 }

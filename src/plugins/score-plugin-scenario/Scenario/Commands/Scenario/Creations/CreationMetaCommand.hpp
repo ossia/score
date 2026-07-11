@@ -8,6 +8,8 @@
 #include "CreateSequence.hpp"
 #include "CreateState.hpp"
 
+#include <Scenario/Sequence/Commands/ExtendSequence.hpp>
+
 #include <score/command/AggregateCommand.hpp>
 
 #include <boost/range/adaptor/reversed.hpp>
@@ -35,7 +37,8 @@ public:
          || cmd->key() == CreateInterval_State::static_key()
          || cmd->key() == CreateInterval_State_Event::static_key()
          || cmd->key() == CreateInterval_State_Event_TimeSync::static_key()
-         || cmd->key() == CreateSequence::static_key())
+         || cmd->key() == CreateSequence::static_key()
+         || cmd->key() == Sequence::Command::ExtendSequence::static_key())
       {
         cmd->undo(ctx);
       }

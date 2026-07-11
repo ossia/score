@@ -184,7 +184,7 @@ public:
             }
             if(isExtend)
             {
-              if(this->currentPoint.date > this->m_clickedPoint.date)
+              if(this->currentPoint.date > this->m_extendOrigin)
               {
                 this->m_dispatcher.template submit<Sequence::Command::ExtendSequence>(
                     this->m_parentSM.model(), *this->clickedState,

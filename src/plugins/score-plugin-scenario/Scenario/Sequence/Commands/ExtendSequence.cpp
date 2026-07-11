@@ -72,14 +72,18 @@ void ExtendSequence::redo(const score::DocumentContext& ctx) const
 
 void ExtendSequence::undo(const score::DocumentContext& ctx) const
 {
-  // Reverse: undo the event move first so setDurationAndShrink shrinks
-  // the appended section, then remove the section entirely.
-  m_moveCmd->undo(ctx);
+  // Remove the appended section first, while the live SequenceModel still
+  // owns it. MoveEvent::undo (GoodOldDisplacementPolicy::revertPositions)
+  // does not merely move dates back: it deletes the parent interval's
+  // processes and reloads them from a snapshot serialized at command
+  // construction — i.e. before the section existed. Undoing the section
+  // after that would look up entities that are gone and assert.
   if(m_sectionApplied)
   {
     m_appendCmd->undo(ctx);
     m_sectionApplied = false;
   }
+  m_moveCmd->undo(ctx);
 }
 
 void ExtendSequence::serializeImpl(DataStreamInput& s) const
