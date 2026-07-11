@@ -134,8 +134,12 @@ struct V210Encoder : GPUVideoEncoder
   {
     m_width = width;
     m_height = height;
-    // Output: one RGBA8 texel per v210 ULWord. 4 words per 6 source pixels.
-    m_outW = (width / 6) * 4;
+    // Output: one RGBA8 texel per v210 ULWord, on the PADDED wire row
+    // (((width+47)/48)*128 bytes — SMPTE/DeckLink/AJA row stride). (width/6)*4
+    // truncated the tail group at widths not divisible by 6 (1280, 2048-DCI)
+    // and made the readback row differ from the framestore row, forcing a
+    // re-stride copy; padded, they are byte-identical.
+    m_outW = ((width + 47) / 48) * 32;
 
     m_outTexture = rhi.newTexture(
         QRhiTexture::RGBA8, QSize{m_outW, height}, 1,

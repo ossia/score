@@ -18,6 +18,7 @@
 
 #include <Gfx/Graph/decoders/NV12.hpp>
 #include <Gfx/Graph/decoders/P010.hpp>
+#include <Gfx/Graph/decoders/R210.hpp>
 #include <Gfx/Graph/decoders/RGBA.hpp>
 #include <Gfx/Graph/decoders/V210.hpp>
 #include <Gfx/Graph/decoders/YUV422P10.hpp>
@@ -52,6 +53,10 @@ makeWireDecoder(score::gfx::interop::VideoPixelFormat fmt, Video::ImageFormat& d
       return std::make_unique<PackedDecoder>(QRhiTexture::BGRA8, 4, d);
     case F::RGBA8: // memory [R,G,B,A]
       return std::make_unique<PackedDecoder>(QRhiTexture::RGBA8, 4, d);
+
+    // -- packed 10-bit RGB (r210, DeckLink SDI 4:4:4 wire) --
+    case F::R210:
+      return std::make_unique<R210Decoder>(d);
 
     // -- packed RGB 24/48-bit --
     case F::RGB24:

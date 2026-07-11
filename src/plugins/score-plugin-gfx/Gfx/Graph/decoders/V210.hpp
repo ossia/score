@@ -21,9 +21,11 @@ namespace score::gfx
  * height — each RGBA8 texel is one v210 ULWord, byte-for-byte. For the
  * AJA capture path, that's exactly what DVP DMAs from sysmem to GPU.
  *
- * Width must be a multiple of 6 (and is in practice always a multiple
- * of 48 for SDI: 1920, 3840, 7680). Non-aligned widths would need row
- * padding, which we don't bother with — SDI doesn't produce them.
+ * The wire pads each row to a 128-byte multiple (((width + 47) / 48) * 128
+ * bytes — SMPTE/DeckLink/AJA all agree), so the input texture is sized on
+ * that padded stride. At widths not divisible by 6 (1280, 2048-DCI) the
+ * tail group carries the remaining 2/4 pixels; group-indexed reads stay
+ * in-bounds because the padding guarantees the full 4-word group exists.
  *
  * Output: full-width RGB. The fragment shader extracts the 10-bit
  * Y/Cb/Cr fields, normalizes to [0, 1] (10-bit limited range maps to
@@ -134,8 +136,10 @@ void main() {
     auto& rhi = *r.state.rhi;
     const auto w = decoder.width, h = decoder.height;
 
-    // v210 input texture: 4 RGBA8 texels per 6-pixel group.
-    const int texW = (w / 6) * 4;
+    // v210 input texture: one RGBA8 texel per ULWord on the PADDED wire row
+    // (128-byte multiple). (w/6)*4 would truncate the tail group at widths
+    // not divisible by 6 and, worse, skew every row against the wire stride.
+    const int texW = ((w + 47) / 48) * 32;
     {
       auto tex
           = rhi.newTexture(QRhiTexture::RGBA8, {texW, h}, 1, QRhiTexture::Flag{});
@@ -159,10 +163,8 @@ void main() {
   void exec(RenderList&, QRhiResourceUpdateBatch& res, AVFrame& frame) override
   {
     // CPU-staging path: AVFrame.data[0] is raw v210 with row stride =
-    // frame.linesize[0] = ((width+47)/48)*128. The texture row is
-    // (width/6)*4 RGBA8 texels = width*16/6 bytes; for width % 48 == 0
-    // that exactly matches the AJA stride.
-    const int texW = (decoder.width / 6) * 4;
+    // frame.linesize[0] = ((width+47)/48)*128 — exactly the texture row.
+    const int texW = ((decoder.width + 47) / 48) * 32;
     auto y_tex = samplers[0].texture;
     QRhiTextureUploadEntry entry{
         0, 0,
