@@ -52,6 +52,10 @@ public:
     delete m_presenter;
 
     QApplication::processEvents();
+    // The settings models are QObjects owned by value members of this class;
+    // members destruct after this body, i.e. after the QApplication is gone,
+    // which Qt >= 6.11 does not survive. Take them down while the app lives.
+    m_settings.teardownModels();
     delete m_app;
   }
 
@@ -110,6 +114,9 @@ public:
     delete m_presenter;
 
     QApplication::processEvents();
+    // See ~MinimalApplication: QObject settings models must not outlive the
+    // QApplication.
+    m_settings.teardownModels();
     delete m_app;
   }
 
