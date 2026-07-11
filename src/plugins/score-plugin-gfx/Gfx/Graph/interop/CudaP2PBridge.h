@@ -134,6 +134,73 @@ CUDA_P2P_API void cuda_p2p_release_buffer(
     CudaP2PContextHandle ctx,
     CudaP2PResourceHandle h);
 
+/**
+ * @brief Register a GL buffer for CUDA interop WITHOUT keeping it mapped.
+ *
+ * Unlike cuda_p2p_import_gl_buffer (which maps once and leaves the buffer
+ * mapped for its lifetime — correct when CUDA only ever *reads* a GL-written
+ * buffer, e.g. the output path), this registers the buffer and immediately
+ * returns it to GL ownership. Use it when CUDA *writes* the buffer and GL then
+ * reads it: the write must go through cuda_p2p_gl_write_buffer, which maps,
+ * copies, and unmaps so the CUDA writes are flushed before GL samples. A GL
+ * buffer that stays mapped while CUDA writes it is never seen coherently by GL.
+ */
+CUDA_P2P_API CudaP2PError cuda_p2p_register_gl_buffer(
+    CudaP2PContextHandle ctx,
+    uint32_t gl_buffer_id,
+    uint32_t buffer_size,
+    CudaP2PResourceHandle* out_handle);
+
+/**
+ * @brief Map a GL buffer registered with cuda_p2p_register_gl_buffer, copy
+ *        @p size bytes from @p src_device_ptr into it, then unmap (which
+ *        flushes the writes back to GL). Stream-synchronised on return, so the
+ *        caller may issue the GL read immediately afterwards.
+ */
+CUDA_P2P_API CudaP2PError cuda_p2p_gl_write_buffer(
+    CudaP2PContextHandle ctx,
+    CudaP2PResourceHandle h,
+    void* src_device_ptr,
+    uint32_t size);
+
+/* ============================================================================
+ * CUDA-owned linear buffers (the DMA-pinnable tier)
+ *
+ * nvidia_p2p_get_pages — the kernel interface behind every vendor's
+ * "pin GPU memory" call (AJA DMABufferLock(inRDMA=true), Magewell, ...) —
+ * only accepts VA ranges owned by the CUDA allocator. Graphics-API memory
+ * imported into CUDA (cuGraphicsGLRegisterBuffer et al) can be *read* by
+ * CUDA but never pinned for third-party DMA. Strategies that need a
+ * vendor-pinnable buffer therefore allocate it here and bridge to/from
+ * the graphics API with cuda_p2p_copy_dtod (one VRAM->VRAM copy).
+ * ============================================================================ */
+
+/**
+ * @brief Allocate `size` bytes of CUDA linear device memory
+ *        (cuMemAlloc). The range is marked SYNC_MEMOPS when the driver
+ *        supports it so third-party DMA engines stay coherent with
+ *        in-stream work. Free with cuda_p2p_free_buffer.
+ */
+CUDA_P2P_API CudaP2PError cuda_p2p_alloc_buffer(
+    CudaP2PContextHandle ctx,
+    uint64_t size,
+    void** out_device_ptr);
+
+CUDA_P2P_API void cuda_p2p_free_buffer(
+    CudaP2PContextHandle ctx,
+    void* device_ptr);
+
+/**
+ * @brief Flat device-to-device copy (cuMemcpyDtoDAsync on the bridge
+ *        stream + stream sync — synchronous on return). Either pointer
+ *        may be CUDA-owned or a mapped graphics resource.
+ */
+CUDA_P2P_API CudaP2PError cuda_p2p_copy_dtod(
+    CudaP2PContextHandle ctx,
+    void* dst_device_ptr,
+    void* src_device_ptr,
+    uint64_t size);
+
 /* ============================================================================
  * Shared GPU image importers
  *
@@ -219,6 +286,17 @@ CUDA_P2P_API CudaP2PError cuda_p2p_upload_buffer(
     CudaP2PContextHandle ctx,
     void* dst_device_ptr,
     const void* host_data,
+    uint64_t size);
+
+/**
+ * @brief Download bytes from a flat device pointer into host memory
+ *        (cuMemcpyDtoH). Utility — inverse of cuda_p2p_upload_buffer;
+ *        used by tests / diagnostics to inspect a device buffer.
+ */
+CUDA_P2P_API CudaP2PError cuda_p2p_download_buffer(
+    CudaP2PContextHandle ctx,
+    void* host_data,
+    void* src_device_ptr,
     uint64_t size);
 
 /* ============================================================================

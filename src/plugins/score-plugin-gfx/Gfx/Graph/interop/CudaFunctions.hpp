@@ -432,6 +432,20 @@ struct CudaFunctions
   FN_cuMemcpy2DAsync memcpy2DAsync{};
   using FN_cuMemcpyHtoD = CUresult (*)(CUdeviceptr, const void*, size_t);
   FN_cuMemcpyHtoD memcpyHtoD{};
+  using FN_cuMemcpyDtoH = CUresult (*)(void*, CUdeviceptr, size_t);
+  FN_cuMemcpyDtoH memcpyDtoH{};
+  using FN_cuMemcpyDtoDAsync
+      = CUresult (*)(CUdeviceptr, CUdeviceptr, size_t, CUstream);
+  FN_cuMemcpyDtoDAsync memcpyDtoDAsync{};
+
+  // -- Linear device allocation --------------------------------------------
+  // cuMemAlloc'd memory is what third-party kernel DMA engines can pin
+  // (nvidia_p2p_get_pages accepts only CUDA-allocator VA ranges — never
+  // GL/D3D-owned memory mapped into CUDA).
+  using FN_cuMemAlloc = CUresult (*)(CUdeviceptr*, size_t);
+  using FN_cuMemFree = CUresult (*)(CUdeviceptr);
+  FN_cuMemAlloc memAlloc{};
+  FN_cuMemFree memFree{};
 
   // -- VMM (Virtual Memory Management) — CUDA 10.2+, OPTIONAL ------------
   // All-or-nothing: either every entry point resolves and `vmmSupported`
@@ -560,6 +574,12 @@ struct CudaFunctions
     // Memcpy — REQUIRED
     memcpy2DAsync = (FN_cuMemcpy2DAsync)sym("cuMemcpy2DAsync_v2");
     memcpyHtoD = (FN_cuMemcpyHtoD)sym("cuMemcpyHtoD_v2");
+    memcpyDtoH = (FN_cuMemcpyDtoH)sym("cuMemcpyDtoH_v2");
+    memcpyDtoDAsync = (FN_cuMemcpyDtoDAsync)sym("cuMemcpyDtoDAsync_v2");
+
+    // Linear alloc — REQUIRED (core API since CUDA 3.2)
+    memAlloc = (FN_cuMemAlloc)sym("cuMemAlloc_v2");
+    memFree = (FN_cuMemFree)sym("cuMemFree_v2");
 
     // VMM — OPTIONAL (CUDA 10.2+). All-or-nothing: if any entry is
     // missing, mark the whole bundle unsupported. The driver exports
@@ -589,7 +609,8 @@ struct CudaFunctions
                     && extMemGetMappedBuffer && getMapArray && getLevel
                     && destroyMipArray && destroyExtMem && importExtSem
                     && waitExtSems && destroyExtSem && memcpy2DAsync
-                    && memcpyHtoD;
+                    && memcpyHtoD && memcpyDtoH && memcpyDtoDAsync && memAlloc
+                    && memFree;
     if(!ok)
     {
       unload();

@@ -64,19 +64,46 @@ bool GpuDirectOutput::init(const GpuDirectOutputConfig& cfg)
     return false;
   }
 
-  // Vendor register pass — one call per slot. Track which ones succeeded
-  // so a partial-failure rollback unpins only the slots we pinned.
+  // Bounce + vendor register pass — one call per slot. The vendor pins the
+  // CUDA-owned bounce buffer, never the ring's graphics-API buffer:
+  // nvidia_p2p_get_pages (behind DMABufferLock(inRDMA=true) et al) only
+  // accepts CUDA-allocator VA ranges. prepareNextFrame() bridges the gap
+  // with one VRAM->VRAM copy. Track successes so a partial-failure
+  // rollback unpins only the slots we pinned.
+  m_bounce.assign(m_ring.slotCount(), nullptr);
   m_pinned.assign(m_ring.slotCount(), false);
   for(std::size_t i = 0; i < m_ring.slotCount(); ++i)
   {
-    void* gpuPtr = m_ring.slot(i).gpuDevicePtr;
-    if(!m_cfg.registrar.registerSlot(gpuPtr, m_cfg.frameByteSize))
+    if(cuda_p2p_alloc_buffer(m_cudaCtx, m_cfg.frameByteSize, &m_bounce[i])
+           != CUDA_P2P_SUCCESS
+       || !m_bounce[i])
+    {
+      qWarning() << "GpuDirectOutput: bounce alloc failed at slot" << i << ":"
+                 << cuda_p2p_get_error_string(m_cudaCtx);
+      release();
+      return false;
+    }
+    if(!m_cfg.registrar.registerSlot(m_bounce[i], m_cfg.frameByteSize))
     {
       qWarning() << "GpuDirectOutput: vendor registerSlot failed at slot" << i;
       release();
       return false;
     }
     m_pinned[i] = true;
+
+    // One-time transfer probe on the first pinned slot: pinning only proves
+    // the pages were accepted, not that the PCIe path permits P2P in the
+    // playout direction. Bail cleanly here so the strategy chain falls back
+    // rather than dropping every frame at submit time.
+    if(i == 0 && m_cfg.registrar.verifyTransfer
+       && !m_cfg.registrar.verifyTransfer(m_bounce[0], m_cfg.frameByteSize))
+    {
+      qWarning() << "GpuDirectOutput: vendor transfer probe failed — the "
+                    "card↔GPU PCIe path does not permit P2P playout "
+                    "(pin succeeded but DMA does not). Falling back.";
+      release();
+      return false;
+    }
   }
   return true;
 }
@@ -84,16 +111,22 @@ bool GpuDirectOutput::init(const GpuDirectOutputConfig& cfg)
 void GpuDirectOutput::release()
 {
   // Vendor release: unpin the slots we successfully pinned, in reverse
-  // order so the vendor sees a clean LIFO if it cares.
+  // order so the vendor sees a clean LIFO if it cares. Then free the
+  // bounce buffers (only after the vendor let go of them).
   for(std::size_t i = m_pinned.size(); i-- > 0;)
   {
-    if(m_pinned[i] && m_cfg.registrar.releaseSlot && i < m_ring.slotCount())
+    if(m_pinned[i] && m_cfg.registrar.releaseSlot && i < m_bounce.size())
     {
-      m_cfg.registrar.releaseSlot(
-          m_ring.slot(i).gpuDevicePtr, m_cfg.frameByteSize);
+      m_cfg.registrar.releaseSlot(m_bounce[i], m_cfg.frameByteSize);
     }
   }
   m_pinned.clear();
+  for(void* b : m_bounce)
+  {
+    if(b)
+      cuda_p2p_free_buffer(m_cudaCtx, b);
+  }
+  m_bounce.clear();
 
   m_dispatcher.release();
 
@@ -125,7 +158,22 @@ void* GpuDirectOutput::prepareNextFrame()
     return nullptr;
   if(!m_dispatcher.waitOnCuda(m_fenceValue))
     return nullptr;
-  return m_dispatcher.finishedSlot().gpuDevicePtr;
+  // The encoder's output is now visible (fence / glFinish above); bridge
+  // it into the vendor-pinned bounce buffer. copy_dtod stream-syncs, so
+  // the vendor may DMA the moment we return.
+  const std::size_t idx = m_ring.writeIndex();
+  if(idx >= m_bounce.size() || !m_bounce[idx])
+    return nullptr;
+  if(cuda_p2p_copy_dtod(
+         m_cudaCtx, m_bounce[idx], m_dispatcher.finishedSlot().gpuDevicePtr,
+         m_cfg.frameByteSize)
+     != CUDA_P2P_SUCCESS)
+  {
+    qWarning() << "GpuDirectOutput: bounce copy failed:"
+               << cuda_p2p_get_error_string(m_cudaCtx);
+    return nullptr;
+  }
+  return m_bounce[idx];
 }
 
 void GpuDirectOutput::advance()

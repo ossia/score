@@ -163,11 +163,27 @@ bool GpuRingBuffer::createOpenGL()
     if(glBufferId == 0)
       return false;
 
-    if(cuda_p2p_import_gl_buffer(
-           m_cfg.cudaCtx, glBufferId, m_cfg.bufferSize, &slot.gpuDevicePtr,
-           &slot.cudaHandle)
-           != CUDA_P2P_SUCCESS
-       || !slot.gpuDevicePtr)
+    if(m_cfg.glRegisterOnly)
+    {
+      // CAPTURE: register only; gpuDevicePtr stays null. The consumer writes
+      // each frame via cuda_p2p_gl_write_buffer (map→copy→unmap) so GL sees
+      // the data. Keeping it mapped here would make GL read stale memory.
+      if(cuda_p2p_register_gl_buffer(
+             m_cfg.cudaCtx, glBufferId, m_cfg.bufferSize, &slot.cudaHandle)
+             != CUDA_P2P_SUCCESS
+         || !slot.cudaHandle)
+      {
+        qWarning() << "GpuRingBuffer(GL): bridge register failed:"
+                   << cuda_p2p_get_error_string(m_cfg.cudaCtx);
+        return false;
+      }
+    }
+    else if(
+        cuda_p2p_import_gl_buffer(
+            m_cfg.cudaCtx, glBufferId, m_cfg.bufferSize, &slot.gpuDevicePtr,
+            &slot.cudaHandle)
+            != CUDA_P2P_SUCCESS
+        || !slot.gpuDevicePtr)
     {
       qWarning() << "GpuRingBuffer(GL): bridge import failed:"
                  << cuda_p2p_get_error_string(m_cfg.cudaCtx);

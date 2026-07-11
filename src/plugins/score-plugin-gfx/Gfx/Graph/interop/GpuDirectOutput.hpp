@@ -121,9 +121,14 @@ public:
   void encodeFrame(QRhiCommandBuffer& cb);
 
   /// After `endOffscreenFrame`: schedule the CUDA-side fence wait (no-op
-  /// on D3D11/GL backends) and return the GPU pointer of the just-encoded
-  /// slot — the value the vendor's submission API consumes. Returns
-  /// nullptr if the fence wait fails.
+  /// on D3D11/GL backends), DtoD-copy the encoded slot into its CUDA-owned
+  /// bounce buffer, and return the bounce pointer — the value the vendor's
+  /// submission API consumes. Returns nullptr if the fence wait or the
+  /// copy fails.
+  ///
+  /// The bounce hop exists because vendor pin APIs (nvidia_p2p underneath)
+  /// only accept CUDA-allocator memory — the ring's graphics-API buffers
+  /// can be read by CUDA but never pinned. One VRAM->VRAM copy per frame.
   ///
   /// After the vendor accepts the pointer, call `advance()` to rotate.
   void* prepareNextFrame();
@@ -138,6 +143,9 @@ private:
   GpuRingBuffer m_ring;
   std::unique_ptr<InteropFence> m_fence;
   ComputeRingDispatcher m_dispatcher;
+  /// Parallel to slots: CUDA-owned (cuMemAlloc) bounce buffers — the
+  /// pointers actually registered with the vendor's DMA-pin API.
+  std::vector<void*> m_bounce;
   std::vector<bool> m_pinned;  ///< parallel to slots, tracks vendor register success
   std::uint64_t m_fenceValue{0};
 };
