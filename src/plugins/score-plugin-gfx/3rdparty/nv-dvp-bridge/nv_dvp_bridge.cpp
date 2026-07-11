@@ -315,7 +315,13 @@ NV_DVP_API NvDvpError nv_dvp_init_gl(NvDvpContextHandle* out_ctx)
   auto ctx = std::make_unique<NvDvpContext_t>();
   ctx->backend = NvDvpContext_t::Backend::GL;
 
-  if(auto _st = dvpInitGLContext(0); _st != DVP_STATUS_OK)
+  /* DVP_DEVICE_FLAGS_SHARE_APP_CONTEXT (1): make libdvp share the app's GL
+   * context instead of creating its own internal one. Without it, only the
+   * FIRST dvpInitGLContext'd context in the process can transfer — a second
+   * one (e.g. an output node and a capture node each with their own QRhi)
+   * gets DVP_STATUS_ERROR from every dvpMemcpyLined while all setup calls
+   * report success. Verified with a standalone two-context probe. */
+  if(auto _st = dvpInitGLContext(1); _st != DVP_STATUS_OK)
   {
     fprintf(stderr, "[nv-dvp] dvpInitGLContext failed: DVP_STATUS=%d\n", (int)_st);
     setError(ctx.get(), "dvpInitGLContext failed", _st);
@@ -525,6 +531,12 @@ NV_DVP_API NvDvpError nv_dvp_register_gl_texture(
   }
   /* GL textures are implicitly bound to the GL context dvpInitGLContext
    * was called against; no separate dvpBindToGLCtx for GPU textures. */
+
+  /* Texture-destination copies (buffer->texture) need a sync object to
+   * signal on completion — dvpMemcpyLined rejects a null dstSync.
+   * (Blender/UPBGE's VideoDeckLink allocates a "gpu sync" per texture
+   * for exactly this.) */
+  initSyncSlot(ctx, r->bufSync);
 
   auto* raw = r.get();
   ctx->resources.emplace(raw, std::move(r));
@@ -815,32 +827,59 @@ NV_DVP_API NvDvpError nv_dvp_copy_buffer_to_texture(
 
   std::lock_guard<std::mutex> lock(ctx->mtx);
 
+  /* Upload sequence per Blender/UPBGE VideoDeckLink (the reference libdvp
+   * consumer): EndAPI marks the API stream done with the texture BEFORE the
+   * DVP scope; the copy waits on the sysmem buffer's sync (CPU-signalled
+   * "data ready") and signals the texture's own sync on completion; WaitAPI
+   * after the scope makes the API stream wait for the copy before sampling.
+   * Deviating from this exact shape makes dvpMemcpyLined return
+   * DVP_STATUS_ERROR. */
+  const char* step = "dvpMapBufferEndAPI(tex)";
+  DVPStatus status = dvpMapBufferEndAPI(tex->dvp);
+  if(status != DVP_STATUS_OK)
+  {
+    setError(ctx, step, status);
+    return NV_DVP_ERROR_TRANSFER_FAILED;
+  }
+
   DVP_CHECK(dvpBegin(), ctx, NV_DVP_ERROR_SYNC_FAILED);
 
-  DVPStatus status = dvpMapBufferWaitDVP(tex->dvp);
+  step = "dvpMapBufferWaitDVP(tex)";
+  status = dvpMapBufferWaitDVP(tex->dvp);
   if(status == DVP_STATUS_OK)
   {
-    buf->bufSync.releaseValue++;
+    step = "dvpMemcpyLined(buf->tex)";
+    buf->bufSync.acquireValue++;
+    *buf->bufSync.sem = buf->bufSync.acquireValue;
+    tex->bufSync.releaseValue++;
     status = dvpMemcpyLined(
-        buf->dvp, /*srcSync=*/0, /*srcWaitValue=*/0, DVP_TIMEOUT_IGNORED,
-        tex->dvp, buf->bufSync.obj, buf->bufSync.releaseValue,
+        buf->dvp, buf->bufSync.obj, buf->bufSync.acquireValue,
+        DVP_TIMEOUT_IGNORED, tex->dvp, tex->bufSync.obj,
+        tex->bufSync.releaseValue,
         /*startingLine=*/0, /*numberOfLines=*/tex->height);
   }
   if(status == DVP_STATUS_OK)
+  {
+    step = "dvpMapBufferEndDVP(tex)";
     status = dvpMapBufferEndDVP(tex->dvp);
-  if(status == DVP_STATUS_OK)
-    status = dvpSyncObjClientWaitPartial(
-        buf->bufSync.obj, buf->bufSync.releaseValue, DVP_TIMEOUT_IGNORED);
+  }
 
   DVPStatus endStatus = dvpEnd();
   if(status != DVP_STATUS_OK)
   {
-    setError(ctx, "DVP buffer->texture transfer failed", status);
+    setError(ctx, step, status);
     return NV_DVP_ERROR_TRANSFER_FAILED;
   }
   if(endStatus != DVP_STATUS_OK)
   {
     setError(ctx, "dvpEnd after buffer->texture", endStatus);
+    return NV_DVP_ERROR_SYNC_FAILED;
+  }
+
+  status = dvpMapBufferWaitAPI(tex->dvp);
+  if(status != DVP_STATUS_OK)
+  {
+    setError(ctx, "dvpMapBufferWaitAPI(tex)", status);
     return NV_DVP_ERROR_SYNC_FAILED;
   }
 

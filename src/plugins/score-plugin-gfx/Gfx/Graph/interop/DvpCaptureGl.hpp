@@ -1,4 +1,5 @@
 #pragma once
+#include <Gfx/Graph/interop/CaptureStrategyCommon.hpp>
 #include <Gfx/Graph/interop/GpuDirectCaptureStrategy.hpp>
 #include <nv_dvp_bridge.h>
 
@@ -42,6 +43,7 @@ struct DvpCaptureGl : score::gfx::interop::GpuDirectCaptureStrategy
 
   NvDvpContextHandle m_dvpCtx{};
   NvDvpResourceHandle m_dvpTex{};
+  QRhiTexture* m_ownTexture{};
   bool m_threadStarted{};
 
   static constexpr std::size_t kSlotCount = 3;
@@ -106,9 +108,29 @@ struct DvpCaptureGl : score::gfx::interop::GpuDirectCaptureStrategy
       return false;
     }
 
-    auto nt = cfg.outputTexture->nativeTexture();
-    if(!nt.object)
+    // DVP writes into a texture through an FBO-attachment path — the plain
+    // decoder input texture (created with no flags) is rejected by
+    // dvpMemcpyLined with DVP_STATUS_ERROR. Create our own RenderTarget-
+    // flagged clone; the capture node swaps it into the decoder's sampler
+    // (strategy-owned texture protocol via outputTexture()).
+    m_ownTexture
+        = cfg.rhi->newTexture(cfg.outputTexture->format(), texSize, 1,
+                              QRhiTexture::RenderTarget);
+    if(!m_ownTexture || !m_ownTexture->create())
+    {
+      qWarning() << "DVP-IN(GL): could not create render-target texture";
+      delete m_ownTexture;
+      m_ownTexture = nullptr;
       return false;
+    }
+
+    auto nt = m_ownTexture->nativeTexture();
+    if(!nt.object)
+    {
+      delete m_ownTexture;
+      m_ownTexture = nullptr;
+      return false;
+    }
     const uint32_t glTexId = uint32_t(nt.object);
 
     qDebug() << "DVP-IN(GL): loading dvp.dll...";
@@ -207,7 +229,11 @@ struct DvpCaptureGl : score::gfx::interop::GpuDirectCaptureStrategy
       nv_dvp_shutdown(m_dvpCtx);
       m_dvpCtx = nullptr;
     }
-    // Don't delete cfg.outputTexture — we don't own it.
+    // Don't delete cfg.outputTexture — we don't own it. m_ownTexture is
+    // ours; the capture node detaches it from the decoder before release()
+    // (strategy-owned texture protocol).
+    delete m_ownTexture;
+    m_ownTexture = nullptr;
     m_glCtx = nullptr;
   }
 
@@ -217,36 +243,47 @@ struct DvpCaptureGl : score::gfx::interop::GpuDirectCaptureStrategy
     return i < kSlotCount ? m_slots[i].sysmem : nullptr;
   }
 
+  // The capture thread only publishes the filled slot: dvpMemcpyLined into a
+  // GL texture fails (DVP_STATUS_ERROR) when issued from a thread without the
+  // owning GL context current, so the actual DVP upload happens in
+  // acquireForRender() on the render thread — same SPSC pattern as the tier-3
+  // CUDA capture strategies.
+  CaptureSlotPublisher m_publisher;
+
   bool ingestFrame(std::size_t i) override
   {
     if(i >= kSlotCount)
       return false;
-    auto& slot = m_slots[i];
-    if(!slot.dvpBuf || !m_dvpTex)
+    if(!m_slots[i].dvpBuf || !m_dvpTex)
       return false;
-    if(nv_dvp_copy_buffer_to_texture(m_dvpCtx, slot.dvpBuf, m_dvpTex)
-       != NV_DVP_SUCCESS)
-    {
-      qWarning() << "DVP-IN(GL): copy_buffer_to_texture failed:"
-                 << nv_dvp_get_error_string(m_dvpCtx);
-      return false;
-    }
+    m_publisher.publish(i);
     return true;
   }
 
-  QRhiTexture* outputTexture() const noexcept override { return cfg.outputTexture; }
+  QRhiTexture* outputTexture() const noexcept override
+  {
+    return m_ownTexture ? m_ownTexture : cfg.outputTexture;
+  }
 
   void acquireForRender() override
   {
-    if(m_dvpCtx && m_dvpTex)
-      nv_dvp_acquire_texture(m_dvpCtx, m_dvpTex);
+    if(!m_dvpCtx || !m_dvpTex)
+      return;
+    // The upload brackets its own EndAPI ... WaitAPI pair (UPBGE shape);
+    // no separate per-frame acquire/release, and no DVP calls at all on
+    // frames without a fresh capture.
+    if(const int i = m_publisher.consume(); i >= 0)
+    {
+      if(nv_dvp_copy_buffer_to_texture(m_dvpCtx, m_slots[i].dvpBuf, m_dvpTex)
+         != NV_DVP_SUCCESS)
+      {
+        qWarning() << "DVP-IN(GL): copy_buffer_to_texture failed:"
+                   << nv_dvp_get_error_string(m_dvpCtx);
+      }
+    }
   }
 
-  void releaseAfterRender() override
-  {
-    if(m_dvpCtx && m_dvpTex)
-      nv_dvp_release_texture(m_dvpCtx, m_dvpTex);
-  }
+  void releaseAfterRender() override { }
 };
 
 } // namespace score::gfx::interop
