@@ -11,6 +11,10 @@
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/panel/PanelDelegateFactory.hpp>
 
+#include <QDebug>
+
+#include <typeinfo>
+
 #include <core/presenter/Presenter.hpp>
 #include <core/settings/Settings.hpp>
 #include <core/view/Window.hpp>
@@ -98,6 +102,14 @@ SCORE_LIB_BASE_EXPORT
 void GUIApplicationRegistrar::registerPanel(PanelDelegateFactory& factory)
 {
   auto panel = factory.make(m_context);
+  // A factory may decline (e.g. missing hardware / headless environment);
+  // a null panel in the list would crash every panels() iteration later.
+  if(!panel)
+  {
+    qWarning() << "registerPanel: factory made no panel:"
+               << typeid(factory).name();
+    return;
+  }
   panel->setModel(std::nullopt);
 
   m_components.panels.push_back(std::move(panel));
