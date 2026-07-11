@@ -19,7 +19,12 @@ GpuRingBuffer::~GpuRingBuffer()
 
 bool GpuRingBuffer::create(const GpuRingBufferConfig& cfg)
 {
-  if(!cfg.rhi || !cfg.cudaCtx || cfg.bufferSize == 0 || cfg.slotCount <= 0)
+  if(!cfg.rhi || cfg.bufferSize == 0 || cfg.slotCount <= 0)
+    return false;
+  // Vulkan plain mode is the one shape with no CUDA bridge: the tier-3
+  // strategies bounce through VulkanCudaBounce instead of importing the
+  // ring's buffers. Every other backend requires the bridge context.
+  if(!cfg.cudaCtx && cfg.rhi->backend() != QRhi::Vulkan)
     return false;
   destroy();
   m_cfg = cfg;
@@ -199,14 +204,40 @@ bool GpuRingBuffer::createOpenGL()
 
 bool GpuRingBuffer::createVulkanStub()
 {
-  qDebug() << "GpuRingBuffer(Vulkan): unsupported — QRhi VMA-allocates "
-              "buffers without VkExportMemoryAllocateInfo, so "
-              "cudaImportExternalMemory cannot pick up the underlying "
-              "VkBuffer. Real impl requires either patching QVkBuffer via "
-              "QRhi private API to inject the export-info chain, or a "
-              "parallel externally-managed buffer + beginExternal compute "
-              "dispatch path.";
-  return false;
+  // Vulkan "plain" mode: QRhi-owned storage buffers only, with the native
+  // VkBuffer captured per slot. There is deliberately NO CUDA import here —
+  // QRhi VMA-allocates without VkExportMemoryAllocateInfo, so the buffers
+  // are not externally importable. The Vulkan tier-3 strategies instead
+  // bridge through a CUDA-VMM bounce imported INTO Vulkan (VulkanCudaBounce)
+  // and record a vkCmdCopyBuffer between these slots and the bounce.
+  m_slots.resize(std::size_t(m_cfg.slotCount));
+  for(auto& slot : m_slots)
+  {
+    slot.qrhiBuffer = m_cfg.rhi->newBuffer(
+        QRhiBuffer::Static, QRhiBuffer::StorageBuffer,
+        quint32(m_cfg.bufferSize));
+    if(!slot.qrhiBuffer || !slot.qrhiBuffer->create())
+    {
+      qWarning() << "GpuRingBuffer(Vulkan): storage buffer create failed";
+      return false;
+    }
+    auto native = slot.qrhiBuffer->nativeBuffer();
+    if(!native.objects[0])
+    {
+      qWarning() << "GpuRingBuffer(Vulkan): nativeBuffer() unavailable";
+      return false;
+    }
+    // QRhi NativeBuffer convention (Vulkan): objects[0] is a pointer TO the
+    // VkBuffer handle (see RhiClearBuffer.cpp / RhiComputeBarrier.cpp).
+    slot.nativeVkBuffer
+        = *static_cast<void* const*>(native.objects[0]);
+    if(!slot.nativeVkBuffer)
+    {
+      qWarning() << "GpuRingBuffer(Vulkan): null VkBuffer";
+      return false;
+    }
+  }
+  return true;
 }
 
 // =============================================================================

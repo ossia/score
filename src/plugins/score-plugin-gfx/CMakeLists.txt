@@ -260,6 +260,8 @@ set(HDRS
     Gfx/Graph/interop/CudaP2PBridge.h
     Gfx/Graph/interop/CudaP2PBridge.cpp
     Gfx/Graph/interop/VkExternalMemoryHelpers.hpp
+    Gfx/Graph/interop/VulkanCudaBounce.hpp
+    Gfx/Graph/interop/VulkanCudaBounce.cpp
     Gfx/Graph/interop/VkExternalMemoryHelpers.cpp
     Gfx/Graph/interop/TextureShare.hpp
     Gfx/Graph/interop/TextureShare.cpp
@@ -294,6 +296,7 @@ set(HDRS
     Gfx/Graph/interop/GpuCapabilities.cpp
     Gfx/Graph/interop/CudaVmmAllocator.hpp
     Gfx/Graph/interop/CudaVmmAllocator.cpp
+    Gfx/Graph/interop/StageProfiler.hpp
     Gfx/Graph/interop/RdmaGpuBuffer.hpp
     Gfx/Graph/interop/RdmaGpuBuffer.cpp
     Gfx/Graph/interop/AmdPinnedBuffers.hpp

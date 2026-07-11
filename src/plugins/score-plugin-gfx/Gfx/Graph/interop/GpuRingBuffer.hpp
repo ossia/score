@@ -53,6 +53,10 @@ struct GpuRingBufferSlot
   QRhiBuffer* qrhiBuffer{};            ///< QRhi-owned UAV / Storage buffer.
   CudaP2PResourceHandle cudaHandle{};  ///< Bridge handle for cleanup.
   void* gpuDevicePtr{};                ///< Flat GPU device pointer the peer DMA's.
+  /// Vulkan plain mode only: the buffer's VkBuffer (dereferenced from
+  /// QRhiBuffer::nativeBuffer()). No CUDA import — the Vulkan tier-3
+  /// strategies bridge via an externally-allocated bounce instead.
+  void* nativeVkBuffer{};
 };
 
 struct GpuRingBufferConfig

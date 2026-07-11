@@ -220,11 +220,24 @@ inline SharedVulkanDevice createSharedVulkanDevice(
   funcs->vkEnumeratePhysicalDevices(inst->vkInstance(), &devCount, physDevs.data());
 
   // Use the caller-specified physical device (matching QRhi's GPU),
-  // or fall back to the first one.
+  // else honour QT_VK_PHYSICAL_DEVICE_INDEX (the same env QRhi's own
+  // device selection respects — critical on multi-GPU boxes where CUDA
+  // interop pins the workload to one specific GPU), else the first one.
+  result.physDev = VK_NULL_HANDLE;
   if(preferredPhysDev != VK_NULL_HANDLE)
+  {
     result.physDev = preferredPhysDev;
+  }
   else
-    result.physDev = physDevs[0];
+  {
+    bool ok = false;
+    const int idx
+        = qEnvironmentVariableIntValue("QT_VK_PHYSICAL_DEVICE_INDEX", &ok);
+    if(ok && idx >= 0 && uint32_t(idx) < devCount)
+      result.physDev = physDevs[uint32_t(idx)];
+    else
+      result.physDev = physDevs[0];
+  }
 
   uint32_t qfCount = 0;
   funcs->vkGetPhysicalDeviceQueueFamilyProperties(

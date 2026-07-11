@@ -133,4 +133,20 @@ CudaVmmAllocation CudaVmmAllocator::allocate(
   return result;
 }
 
+int CudaVmmAllocation::exportPosixFd() const noexcept
+{
+#if defined(_WIN32)
+  return -1;
+#else
+  if(!m_cu || !m_handle || m_handleReleased
+     || !m_cu->memExportToShareableHandle)
+    return -1;
+  int fd = -1;
+  // 1 == CU_MEM_HANDLE_TYPE_POSIX_FILE_DESCRIPTOR
+  if(m_cu->memExportToShareableHandle(&fd, m_handle, 1, 0) != CUDA_SUCCESS)
+    return -1;
+  return fd;
+#endif
+}
+
 } // namespace score::gfx::interop

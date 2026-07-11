@@ -195,6 +195,20 @@ CUDA_P2P_API void cuda_p2p_free_buffer(
  *        stream + stream sync — synchronous on return). Either pointer
  *        may be CUDA-owned or a mapped graphics resource.
  */
+/**
+ * @brief Pitched flat device-to-device copy (cuMemcpy2DAsync + stream sync).
+ *        For bridging between a tightly-packed wire frame and a row-padded
+ *        linear image/buffer view.
+ */
+CUDA_P2P_API CudaP2PError cuda_p2p_copy_dtod_2d(
+    CudaP2PContextHandle ctx,
+    void* dst_device_ptr,
+    uint64_t dst_pitch_bytes,
+    void* src_device_ptr,
+    uint64_t src_pitch_bytes,
+    uint64_t width_bytes,
+    uint64_t height);
+
 CUDA_P2P_API CudaP2PError cuda_p2p_copy_dtod(
     CudaP2PContextHandle ctx,
     void* dst_device_ptr,

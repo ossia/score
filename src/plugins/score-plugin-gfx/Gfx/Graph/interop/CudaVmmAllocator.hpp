@@ -91,6 +91,13 @@ public:
    *  rounding. */
   std::size_t size() const noexcept { return m_size; }
 
+  /** Export the underlying allocation as an OS shareable handle for
+   *  Vulkan/D3D external-memory import (POSIX fd on Linux). Requires
+   *  `exportable=true` at allocate() and a driver exposing
+   *  cuMemExportToShareableHandle. The caller owns the fd (but note the
+   *  Vulkan import consumes it on success). Returns -1 on failure. */
+  int exportPosixFd() const noexcept;
+
   /** Release the underlying physical-handle reference *while keeping*
    *  the mapping alive. Useful when the caller wants to ensure no
    *  inter-process handle leak after a successful map+setaccess.

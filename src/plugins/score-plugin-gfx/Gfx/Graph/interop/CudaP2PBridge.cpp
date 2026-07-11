@@ -880,6 +880,41 @@ void cuda_p2p_free_buffer(CudaP2PContextHandle ctx, void* device_ptr)
   ctx->cu.memFree(reinterpret_cast<CUdeviceptr>(device_ptr));
 }
 
+CudaP2PError cuda_p2p_copy_dtod_2d(
+    CudaP2PContextHandle ctx,
+    void* dst_device_ptr,
+    uint64_t dst_pitch_bytes,
+    void* src_device_ptr,
+    uint64_t src_pitch_bytes,
+    uint64_t width_bytes,
+    uint64_t height)
+{
+  if(!ctx || !dst_device_ptr || !src_device_ptr || width_bytes == 0
+     || height == 0 || dst_pitch_bytes < width_bytes
+     || src_pitch_bytes < width_bytes)
+    return CUDA_P2P_ERROR_INVALID_PARAMETER;
+  std::lock_guard<std::mutex> lock(ctx->mutex);
+  CU_CHECK(
+      ctx->cu.ctxSetCurrent(ctx->cuContext), ctx, CUDA_P2P_ERROR_COPY_FAILED,
+      "cuCtxSetCurrent");
+  CUDA_MEMCPY2D m{};
+  m.srcMemoryType = CU_MEMORYTYPE_DEVICE;
+  m.srcDevice = reinterpret_cast<CUdeviceptr>(src_device_ptr);
+  m.srcPitch = src_pitch_bytes;
+  m.dstMemoryType = CU_MEMORYTYPE_DEVICE;
+  m.dstDevice = reinterpret_cast<CUdeviceptr>(dst_device_ptr);
+  m.dstPitch = dst_pitch_bytes;
+  m.WidthInBytes = width_bytes;
+  m.Height = height;
+  CU_CHECK(
+      ctx->cu.memcpy2DAsync(&m, ctx->stream), ctx, CUDA_P2P_ERROR_COPY_FAILED,
+      "cuMemcpy2DAsync(dtod2d)");
+  CU_CHECK(
+      ctx->cu.streamSync(ctx->stream), ctx, CUDA_P2P_ERROR_COPY_FAILED,
+      "cuStreamSynchronize");
+  return CUDA_P2P_SUCCESS;
+}
+
 CudaP2PError cuda_p2p_copy_dtod(
     CudaP2PContextHandle ctx, void* dst_device_ptr, void* src_device_ptr,
     uint64_t size)

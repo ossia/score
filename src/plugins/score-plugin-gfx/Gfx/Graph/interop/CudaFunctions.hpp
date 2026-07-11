@@ -465,6 +465,8 @@ struct CudaFunctions
   using FN_cuMemUnmap = CUresult (*)(CUdeviceptr, size_t);
   using FN_cuMemAddressFree = CUresult (*)(CUdeviceptr, size_t);
   using FN_cuMemRelease = CUresult (*)(CUmemGenericAllocationHandle);
+  using FN_cuMemExportToShareableHandle
+      = CUresult (*)(void*, CUmemGenericAllocationHandle, int, unsigned long long);
   using FN_cuMemGetAllocationGranularity
       = CUresult (*)(size_t*, const CUmemAllocationProp*,
                      CUmemAllocationGranularity_flags);
@@ -476,6 +478,10 @@ struct CudaFunctions
   FN_cuMemUnmap memUnmap{};
   FN_cuMemAddressFree memAddressFree{};
   FN_cuMemRelease memRelease{};
+  /// Optional (not part of the vmmSupported bundle): export a VMM
+  /// allocation as an OS shareable handle (POSIX fd / NT handle) for
+  /// Vulkan/D3D import. Null on very old drivers.
+  FN_cuMemExportToShareableHandle memExportToShareableHandle{};
   FN_cuMemGetAllocationGranularity memGetGranularity{};
 
   // -- Pointer attributes — OPTIONAL --------------------------------------
@@ -592,6 +598,8 @@ struct CudaFunctions
     memUnmap = (FN_cuMemUnmap)sym("cuMemUnmap");
     memAddressFree = (FN_cuMemAddressFree)sym("cuMemAddressFree");
     memRelease = (FN_cuMemRelease)sym("cuMemRelease");
+    memExportToShareableHandle
+        = (FN_cuMemExportToShareableHandle)sym("cuMemExportToShareableHandle");
     memGetGranularity = (FN_cuMemGetAllocationGranularity)sym(
         "cuMemGetAllocationGranularity");
     pointerSetAttribute

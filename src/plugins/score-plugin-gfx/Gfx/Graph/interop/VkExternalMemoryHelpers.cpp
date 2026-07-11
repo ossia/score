@@ -91,6 +91,20 @@ std::optional<uint32_t> intersectImportTypeBits(
 {
   uint32_t externalAllowed = 0xFFFFFFFFu; // default: don't restrict
 
+  // The handle-properties query is spec-forbidden for OPAQUE handle types
+  // (VUID-vkGetMemoryFdPropertiesKHR-handleType-00674): opaque handles carry
+  // no importer-visible type restriction — the resource's own memory
+  // requirements are authoritative. Only DMA_BUF / D3D-texture handles get
+  // queried.
+  if(h.type == VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT
+     || h.type == VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT
+     || h.type == VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_KMT_BIT)
+  {
+    return findMemoryType(
+        v, typeBitsFromReqs, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        /*allowFallback=*/true);
+  }
+
 #if defined(_WIN32)
   auto fp = (PFN_vkGetMemoryWin32HandlePropertiesKHR)resolveDeviceFn(
       v, "vkGetMemoryWin32HandlePropertiesKHR");
