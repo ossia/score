@@ -230,6 +230,14 @@ void GUIApplicationInterface::registerPlugin(Plugin_QtInterface& p)
     for(auto& panel_fac : panels_ifaces)
     {
       auto p = static_cast<score::PanelDelegateFactory*>(panel_fac)->make(context);
+      // A factory may decline (missing hardware, headless environment); a
+      // null panel in the list crashes every later panels() iteration.
+      if(!p)
+      {
+        qWarning() << "loadPluginData: panel factory made no panel:"
+                   << typeid(*panel_fac).name();
+        continue;
+      }
       p->setModel(std::nullopt); // TODO why not current document
       components.panels.push_back(std::move(p));
       presenter->view()->setupPanel(components.panels.back().get());
