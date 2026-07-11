@@ -98,23 +98,10 @@ struct DvpOutputGl : score::gfx::interop::GpuDirectStrategy
       return false;
     }
 
-    qDebug() << "DVP(GL): loading dvp.dll...";
-    if(nv_dvp_init_gl(&m_dvpCtx) != NV_DVP_SUCCESS || !m_dvpCtx)
-    {
-      qWarning() << "DVP(GL): init failed:" << nv_dvp_get_error_string(m_dvpCtx);
-      return false;
-    }
-    qDebug() << "DVP(GL): dvp.dll loaded + GL context bound";
-    if(nv_dvp_thread_begin(m_dvpCtx) != NV_DVP_SUCCESS)
-    {
-      qWarning() << "DVP(GL): thread_begin failed:"
-                 << nv_dvp_get_error_string(m_dvpCtx);
-      nv_dvp_shutdown(m_dvpCtx);
-      m_dvpCtx = nullptr;
-      return false;
-    }
-    m_threadStarted = true;
-
+    // Build and validate the encoder BEFORE dvpInitGLContext: closing a DVP
+    // GL binding poisons the context it was bound to, and on an init-failure
+    // exit the caller keeps rendering on this very context (crashes later in
+    // endOffscreenFrame). Everything that can fail cheaply must fail here.
     auto colorShader = score::gfx::colorMatrixOut(
         AVCOL_SPC_BT709, AVCOL_TRC_BT709, AVCOL_RANGE_MPEG, AVCOL_PRI_BT709);
 
@@ -122,7 +109,6 @@ struct DvpOutputGl : score::gfx::interop::GpuDirectStrategy
     if(!m_encoder)
     {
       qWarning() << "DVP(GL): no fragment encoder for format";
-      release();
       return false;
     }
     m_encoder->init(
@@ -148,6 +134,23 @@ struct DvpOutputGl : score::gfx::interop::GpuDirectStrategy
       release();
       return false;
     }
+
+    qDebug() << "DVP(GL): loading dvp.dll...";
+    if(nv_dvp_init_gl(&m_dvpCtx) != NV_DVP_SUCCESS || !m_dvpCtx)
+    {
+      qWarning() << "DVP(GL): init failed:" << nv_dvp_get_error_string(m_dvpCtx);
+      release();
+      return false;
+    }
+    qDebug() << "DVP(GL): dvp.dll loaded + GL context bound";
+    if(nv_dvp_thread_begin(m_dvpCtx) != NV_DVP_SUCCESS)
+    {
+      qWarning() << "DVP(GL): thread_begin failed:"
+                 << nv_dvp_get_error_string(m_dvpCtx);
+      release();
+      return false;
+    }
+    m_threadStarted = true;
 
     m_sysmem = nv_dvp_aligned_alloc(m_sysmemBytes);
     if(!m_sysmem)
@@ -202,6 +205,12 @@ struct DvpOutputGl : score::gfx::interop::GpuDirectStrategy
 
   void release() override
   {
+    // DVP requires the GL context it was bound to to be current for
+    // unregister/close — at destroyOutput time nothing guarantees that.
+    if(m_dvpCtx && m_glCtx && cfg.state && cfg.state->surface
+       && QOpenGLContext::currentContext() != m_glCtx)
+      m_glCtx->makeCurrent(cfg.state->surface);
+
     if(m_dvpCtx)
     {
       if(m_dvpTex)

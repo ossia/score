@@ -90,6 +90,27 @@ struct DvpCaptureGl : score::gfx::interop::GpuDirectCaptureStrategy
       return false;
     }
 
+    // Validate everything that can fail cheaply BEFORE dvpInitGLContext:
+    // closing a DVP GL binding poisons the context it was bound to, and on
+    // an init-failure exit the caller keeps rendering on this context.
+    const QSize texSize = cfg.outputTexture->pixelSize();
+    m_texW = texSize.width();
+    m_texH = texSize.height();
+    m_sysmemStrideBytes = static_cast<uint32_t>(m_texW) * 4u;
+    m_sysmemBytes = m_sysmemStrideBytes * static_cast<uint32_t>(m_texH);
+
+    if(m_sysmemBytes != cfg.frameByteSize)
+    {
+      qWarning() << "DVP-IN(GL): texture byte size" << m_sysmemBytes
+                 << "!=" << cfg.frameByteSize;
+      return false;
+    }
+
+    auto nt = cfg.outputTexture->nativeTexture();
+    if(!nt.object)
+      return false;
+    const uint32_t glTexId = uint32_t(nt.object);
+
     qDebug() << "DVP-IN(GL): loading dvp.dll...";
     if(nv_dvp_init_gl(&m_dvpCtx) != NV_DVP_SUCCESS || !m_dvpCtx)
     {
@@ -104,28 +125,6 @@ struct DvpCaptureGl : score::gfx::interop::GpuDirectCaptureStrategy
     }
     m_threadStarted = true;
     qDebug() << "DVP-IN(GL): dvp.dll loaded + GL context bound";
-
-    const QSize texSize = cfg.outputTexture->pixelSize();
-    m_texW = texSize.width();
-    m_texH = texSize.height();
-    m_sysmemStrideBytes = static_cast<uint32_t>(m_texW) * 4u;
-    m_sysmemBytes = m_sysmemStrideBytes * static_cast<uint32_t>(m_texH);
-
-    if(m_sysmemBytes != cfg.frameByteSize)
-    {
-      qWarning() << "DVP-IN(GL): texture byte size" << m_sysmemBytes
-                 << "!=" << cfg.frameByteSize;
-      release();
-      return false;
-    }
-
-    auto nt = cfg.outputTexture->nativeTexture();
-    if(!nt.object)
-    {
-      release();
-      return false;
-    }
-    const uint32_t glTexId = uint32_t(nt.object);
 
     const NvDvpFormat dvpFmt = m_dvpFormat;
 
@@ -169,6 +168,12 @@ struct DvpCaptureGl : score::gfx::interop::GpuDirectCaptureStrategy
 
   void release() override
   {
+    // DVP requires its GL context current for unregister/close; nothing
+    // guarantees that at destroyOutput time.
+    if(m_dvpCtx && m_glCtx && cfg.state && cfg.state->surface
+       && QOpenGLContext::currentContext() != m_glCtx)
+      m_glCtx->makeCurrent(cfg.state->surface);
+
     if(m_dvpCtx)
     {
       for(auto& slot : m_slots)
