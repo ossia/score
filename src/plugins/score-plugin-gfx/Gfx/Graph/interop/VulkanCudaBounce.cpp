@@ -64,6 +64,25 @@ bool VulkanCudaBounce::init(const VulkanCudaBounceConfig& cfg)
     return false;
   }
 
+  // Timeline-semaphore fast path (optional — callers fall back to
+  // QRhi::finish() when unsupported). Needs the QRhi graphics queue for the
+  // empty signaling submit.
+  m_gfxQueue = h->gfxQueue;
+  m_fnQueueSubmit
+      = reinterpret_cast<void*>(qInst->getInstanceProcAddr("vkQueueSubmit"));
+  m_semValue = 0;
+  // Only when the VkDevice was created WITH timelineSemaphore enabled
+  // (score's shared-device path). On QRhi-created devices the feature is
+  // not enabled and using it is a spec violation even where the driver
+  // tolerates it — callers fall back to QRhi::finish().
+  if(m_gfxQueue && m_fnQueueSubmit
+     && vkinterop::deviceTimelineSemaphoresEnabled())
+  {
+    if(!m_sem.create(m_vk, m_p2p, /*initialValue=*/0))
+      qDebug() << cfg.debugName
+               << ": timeline semaphore unavailable — finish() fallback";
+  }
+
   m_frameBytes = cfg.frameBytes;
   m_slots.reserve(std::size_t(cfg.slotCount));
   for(int i = 0; i < cfg.slotCount; ++i)
@@ -134,6 +153,18 @@ bool VulkanCudaBounce::init(const VulkanCudaBounceConfig& cfg)
 
 void VulkanCudaBounce::release()
 {
+  // Drain the queue before destroying the semaphore: the last empty signal
+  // submit may still be in flight (VUID-vkDestroySemaphore-semaphore-05149).
+  if(m_sem.valid() && m_gfxQueue && m_vk.qInst)
+  {
+    if(auto waitIdle = reinterpret_cast<PFN_vkQueueWaitIdle>(
+           m_vk.qInst->getInstanceProcAddr("vkQueueWaitIdle")))
+      waitIdle(VkQueue(m_gfxQueue));
+  }
+  m_sem.destroy();
+  m_semValue = 0;
+  m_gfxQueue = nullptr;
+  m_fnQueueSubmit = nullptr;
   for(auto& s : m_slots)
   {
     if(s.bouncePtr && m_p2p)
@@ -151,6 +182,42 @@ void VulkanCudaBounce::release()
   }
   m_vk = {};
   m_frameBytes = 0;
+}
+
+bool VulkanCudaBounce::signalCopyDoneOnQueue()
+{
+  if(!timelineSupported())
+    return false;
+  const uint64_t value = m_semValue + 1;
+
+  VkTimelineSemaphoreSubmitInfo tsi{};
+  tsi.sType = VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO;
+  tsi.signalSemaphoreValueCount = 1;
+  tsi.pSignalSemaphoreValues = &value;
+
+  VkSemaphore sem = m_sem.vk();
+  VkSubmitInfo si{};
+  si.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+  si.pNext = &tsi;
+  si.signalSemaphoreCount = 1;
+  si.pSignalSemaphores = &sem;
+
+  auto pSubmit = reinterpret_cast<PFN_vkQueueSubmit>(m_fnQueueSubmit);
+  if(pSubmit(VkQueue(m_gfxQueue), 1, &si, VK_NULL_HANDLE) != VK_SUCCESS)
+  {
+    qWarning() << "vk-cuda-bounce: signal submit failed — finish() fallback";
+    return false;
+  }
+  m_semValue = value;
+  return true;
+}
+
+bool VulkanCudaBounce::waitCopyDoneOnStream()
+{
+  if(!timelineSupported() || m_semValue == 0)
+    return false;
+  return cuda_p2p_wait_semaphore(m_p2p, m_sem.cuda(), m_semValue)
+         == CUDA_P2P_SUCCESS;
 }
 
 bool VulkanCudaBounce::flushToBounce(std::size_t i, std::size_t bytes)

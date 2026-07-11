@@ -1,3 +1,4 @@
+#include <atomic>
 #include <Gfx/Graph/interop/VkExternalMemoryHelpers.hpp>
 
 #if QT_HAS_VULKAN
@@ -17,6 +18,18 @@
 
 namespace score::gfx::vkinterop
 {
+static std::atomic<bool> g_deviceTimelineSemaphores{false};
+
+void setDeviceTimelineSemaphoresEnabled(bool enabled)
+{
+  g_deviceTimelineSemaphores.store(enabled, std::memory_order_relaxed);
+}
+
+bool deviceTimelineSemaphoresEnabled()
+{
+  return g_deviceTimelineSemaphores.load(std::memory_order_relaxed);
+}
+
 namespace
 {
 

@@ -120,6 +120,14 @@ struct VulkanCtx
   QVulkanInstance* qInst{}; // for getInstanceProcAddr (PFN resolution)
 };
 
+/** Whether the live VkDevice was created WITH the timelineSemaphore feature
+ *  (and the external-semaphore-fd extensions) enabled. Set by score's
+ *  shared-device creation (Qt >= 6.6 path); stays false on QRhi-created
+ *  devices, where using timeline semaphores is a spec violation even when
+ *  the driver happens to tolerate it. Interop fast paths must gate on this. */
+SCORE_PLUGIN_GFX_EXPORT void setDeviceTimelineSemaphoresEnabled(bool enabled);
+SCORE_PLUGIN_GFX_EXPORT bool deviceTimelineSemaphoresEnabled();
+
 struct ExternalImage
 {
   VkImage image{VK_NULL_HANDLE};

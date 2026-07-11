@@ -23,6 +23,7 @@
 #if QT_HAS_VULKAN
 #if __has_include(<QtGui/private/qrhivulkan_p.h>)
 #include <Gfx/Graph/VulkanVideoDevice.hpp>
+#include <Gfx/Graph/interop/VkExternalMemoryHelpers.hpp>
 #include <QtGui/private/qrhivulkan_p.h>
 #if __has_include(<vulkan/vulkan_win32.h>)
 #include <vulkan/vulkan.h>
@@ -296,6 +297,11 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
       auto sharedDev = createSharedVulkanDevice(params.inst);
       if(sharedDev)
       {
+        // The shared device enables every queried feature, so interop fast
+        // paths (timeline-semaphore ordering) are legal on it — unlike on
+        // QRhi-created devices.
+        vkinterop::setDeviceTimelineSemaphoresEnabled(
+            sharedDev.timelineSemaphores);
         QRhiVulkanNativeHandles importedHandles;
         importedHandles.physDev = sharedDev.physDev;
         importedHandles.dev = sharedDev.dev;

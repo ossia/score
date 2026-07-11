@@ -31,6 +31,7 @@
 #define SCORE_HAS_VULKAN_CUDA_BOUNCE 1
 
 #include <Gfx/Graph/interop/CudaP2PBridge.h>
+#include <Gfx/Graph/interop/VkCudaSemaphore.hpp>
 #include <Gfx/Graph/interop/VkExternalMemoryHelpers.hpp>
 
 #include <cstdint>
@@ -93,6 +94,25 @@ public:
    *  ground truth after a finish()). */
   void debugPeek(std::size_t i, const char* tag);
 
+  /** True when the exported timeline semaphore + queue handle are live and
+   *  the signal/wait fast path can replace QRhi::finish(). */
+  bool timelineSupported() const noexcept
+  {
+    return m_gfxQueue && m_fnQueueSubmit && m_sem.valid();
+  }
+
+  /** GPU-side "copy done" signal: submits an EMPTY batch on the QRhi
+   *  graphics queue that signals the timeline semaphore at the next value.
+   *  Per the Vulkan spec a signal operation's first synchronization scope
+   *  includes everything earlier in submission order on the queue — i.e.
+   *  the just-submitted copy frame. Call after endOffscreenFrame(). */
+  bool signalCopyDoneOnQueue();
+
+  /** Schedule a wait for the last signalCopyDoneOnQueue() value on the
+   *  bridge's CUDA stream (async; the next copy_dtod on that stream is
+   *  ordered after it). */
+  bool waitCopyDoneOnStream();
+
   /** Record a buffer→image copy of slot i into a QRhi texture (the decode
    *  input). Handles layout transitions + setNativeLayout. `texelBytes` is
    *  bytes per texel of the texture's format (the wire frame must be
@@ -119,6 +139,12 @@ private:
   void* m_fnCopyBuffer{};
   void* m_fnCopyBufferToImage{};
   void* m_fnPipelineBarrier{};
+
+  // Timeline-semaphore fast path (replaces QRhi::finish() when supported).
+  vkinterop::VkCudaTimelineSemaphore m_sem;
+  uint64_t m_semValue{0};
+  void* m_gfxQueue{};      ///< VkQueue from QRhiVulkanNativeHandles.
+  void* m_fnQueueSubmit{}; ///< PFN_vkQueueSubmit.
 };
 
 } // namespace score::gfx::interop

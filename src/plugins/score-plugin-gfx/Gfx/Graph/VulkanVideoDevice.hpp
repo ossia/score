@@ -38,6 +38,11 @@ struct SharedVulkanDevice
   VkQueue gfxQueue{VK_NULL_HANDLE};
   uint32_t gfxQueueFamilyIdx{0};
   bool hasVideoDecodeQueue{false};
+  /// timelineSemaphore was queried-supported and therefore ENABLED at
+  /// device creation (we enable everything the query returns). QRhi-created
+  /// devices (Qt < 6.6 path) do NOT enable it — interop fast paths must
+  /// check vkinterop::deviceTimelineSemaphoresEnabled().
+  bool timelineSemaphores{false};
   uint32_t videoDecodeQueueFamilyIdx{0};
 
   // Persistent storage for extension name strings (FFmpeg needs const char*)
@@ -324,6 +329,7 @@ inline SharedVulkanDevice createSharedVulkanDevice(
 
   // Query fills all fields with what the device supports
   vkGetPhysicalDeviceFeatures2Fn(result.physDev, &features2);
+  result.timelineSemaphores = vk12.timelineSemaphore == VK_TRUE;
 
   // --- Create queue infos (1 queue per family) ---
 
