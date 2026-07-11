@@ -26,6 +26,11 @@
 
 #include <verdigris>
 
+namespace Automation
+{
+class ProcessModel;
+}
+
 namespace Sequence
 {
 
@@ -190,6 +195,36 @@ public:
   // Resizes adjacent intervals when an intermediate IS is moved
   void moveIS(const Id<Scenario::TimeSyncModel>& tsId, const TimeVal& newDate);
 
+  // Ripple move: the IS and everything after it shift by (newDate - oldDate);
+  // the left-adjacent section resizes, following sections keep their durations,
+  // and the process duration changes by the same delta. The caller is
+  // responsible for moving the parent interval's end event accordingly.
+  void moveISRipple(const Id<Scenario::TimeSyncModel>& tsId, const TimeVal& newDate);
+
+  // IDs of entities created by insertIS; used by InsertSequenceIS for undo.
+  struct InsertedIS
+  {
+    Id<Scenario::TimeSyncModel> newTsId;
+    Id<Scenario::EventModel> newEvId;
+    Id<Scenario::StateModel> newStId;
+    Id<Scenario::IntervalModel> rightItvId;
+    Id<Scenario::IntervalModel> leftItvId; // the section that gets split (kept)
+  };
+
+  // The section interval strictly containing `date`, if any.
+  std::optional<Id<Scenario::IntervalModel>> sectionAt(const TimeVal& date) const;
+
+  // Splits the section containing `date`: inserts a new IS there, shortens the
+  // containing interval, creates a new interval from the new IS to the old
+  // section end, splits every automation curve at that point and records each
+  // parameter's value on the new IS state.
+  void insertISWithIds(const InsertedIS& info, const TimeVal& date);
+  void undoInsertIS(const InsertedIS& info);
+
+  // Post-load repair: ensures every section process sits in a small-view slot
+  // and that section racks are visible (files saved before slots existed).
+  void repairSectionRacks();
+
   // IS value management
   void setISValue(
       const Id<Scenario::TimeSyncModel>& tsId, const State::AddressAccessor& addr,
@@ -222,11 +257,23 @@ private:
 
   // Internal helpers
   // Pulls the given `val` into the curve endpoints adjacent to `tsId` for `addr`,
-  // normalizing it against the device-explorer-resolved domain.
+  // normalizing it against the sequence-wide automation range for that address.
   void syncAutomationEndpoints(
       const Id<Scenario::TimeSyncModel>& tsId, const State::AddressAccessor& addr,
       const ossia::value& val);
   void rebuildAutomations(const State::AddressAccessor& addr);
+
+  // The automation for `addr` inside a given section interval, or nullptr.
+  Automation::ProcessModel* automationForAddr(
+      Scenario::IntervalModel& itv, const State::AddressAccessor& addr) const;
+  // The sequence-wide range for `addr`, read from the first automation found.
+  // Returns false if no automation exists yet for that address.
+  bool currentParamRange(
+      const State::AddressAccessor& addr, double& min, double& max) const;
+  // Widens the sequence-wide range for `addr` to include `v` (ranges only grow,
+  // never shrink) and renormalizes every existing automation curve so the
+  // curves keep denoting the same actual values.
+  void ensureParamRange(const State::AddressAccessor& addr, double v);
 
   const score::DocumentContext& m_context;
 

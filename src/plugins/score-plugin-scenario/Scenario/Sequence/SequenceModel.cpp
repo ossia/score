@@ -16,6 +16,7 @@
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
@@ -23,8 +24,12 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 
-#include <State/Message.hpp>
+#include <Process/State/MessageNode.hpp>
 
+#include <State/Message.hpp>
+#include <State/ValueConversion.hpp>
+
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/network/value/value_conversion.hpp>
 
 #include <Process/TimeValue.hpp>
@@ -40,22 +45,133 @@ W_OBJECT_IMPL(Sequence::SequenceModel)
 namespace Sequence
 {
 
-// Helper: create a flat linear automation curve at a given normalized Y in [0,1]
-static void initFlatCurve(Curve::Model& curve, double normY)
+// Height of the small-view slot created for each automation inside a section
+// interval. Kept small so several parameters fit inside the sequence layer.
+static constexpr qreal kSectionSlotHeight = 60.;
+
+// Normalize a scalar into [0,1] against a range, clamped.
+static double normalizeScalar(double v, double minVal, double maxVal)
 {
+  const double range = maxVal - minVal;
+  if(range < 1e-9)
+    return 0.5;
+  double norm = (v - minVal) / range;
+  if(norm < 0.0)
+    norm = 0.0;
+  if(norm > 1.0)
+    norm = 1.0;
+  return norm;
+}
+
+// Helper: create a single linear automation segment from y0 to y1 (normalized).
+// The Automation constructor installs a default 0→1 ramp segment; clear it first,
+// otherwise both segments coexist and the curve renders/executes garbage.
+static void initSegmentCurve(Curve::Model& curve, double y0, double y1)
+{
+  curve.clear();
   auto seg = new Curve::LinearSegment(Id<Curve::SegmentModel>(0), &curve);
-  seg->setStart({0.0, normY});
-  seg->setEnd({1.0, normY});
+  seg->setStart({0.0, y0});
+  seg->setEnd({1.0, y1});
   curve.addSegment(seg);
 }
 
-// Compute the curve domain (min/max + start/end normalized in [0,1]) for an
-// address by querying the device explorer. Returns std::nullopt if the address
-// is unknown — the caller should fall back to a sensible default.
+static void initFlatCurve(Curve::Model& curve, double normY)
+{
+  initSegmentCurve(curve, normY, normY);
+}
+
+// ---- Polyline helpers for curve splitting / merging ----
+// Curves are flattened to their segment endpoints (exact for the linear
+// segments the sequence generates; curved segments are linearized).
+
+static QVector<QPointF> curveToPolyline(const Curve::Model& curve)
+{
+  QVector<QPointF> pts;
+  const auto segs = curve.sortedSegments();
+  for(const auto* seg : segs)
+  {
+    if(pts.empty() || pts.back().x() < seg->start().x())
+      pts.push_back({seg->start().x(), seg->start().y()});
+    pts.push_back({seg->end().x(), seg->end().y()});
+  }
+  if(pts.empty())
+    pts = {{0., 0.}, {1., 0.}};
+  return pts;
+}
+
+static double polylineValueAt(const QVector<QPointF>& pts, double x)
+{
+  if(x <= pts.front().x())
+    return pts.front().y();
+  for(int i = 1; i < pts.size(); ++i)
+  {
+    if(x <= pts[i].x())
+    {
+      const double x0 = pts[i - 1].x(), y0 = pts[i - 1].y();
+      const double x1 = pts[i].x(), y1 = pts[i].y();
+      if(x1 - x0 < 1e-9)
+        return y1;
+      return y0 + (y1 - y0) * (x - x0) / (x1 - x0);
+    }
+  }
+  return pts.back().y();
+}
+
+static void polylineToCurve(Curve::Model& curve, const QVector<QPointF>& pts)
+{
+  curve.clear();
+  int64_t idx = 0;
+  Curve::LinearSegment* prev{};
+  for(int i = 1; i < pts.size(); ++i)
+  {
+    if(pts[i].x() - pts[i - 1].x() < 1e-9)
+      continue;
+    auto seg = new Curve::LinearSegment(Id<Curve::SegmentModel>(idx), &curve);
+    seg->setStart({pts[i - 1].x(), pts[i - 1].y()});
+    seg->setEnd({pts[i].x(), pts[i].y()});
+    if(prev)
+    {
+      prev->setFollowing(seg->id());
+      seg->setPrevious(prev->id());
+    }
+    curve.addSegment(seg);
+    prev = seg;
+    ++idx;
+  }
+  if(idx == 0)
+    initFlatCurve(curve, pts.empty() ? 0. : pts.front().y());
+}
+
+// Restrict a polyline to [a, b] and rescale that span to [0, 1].
+static QVector<QPointF>
+polylineSlice(const QVector<QPointF>& pts, double a, double b)
+{
+  QVector<QPointF> out;
+  const double span = b - a;
+  if(span < 1e-9)
+    return {{0., polylineValueAt(pts, a)}, {1., polylineValueAt(pts, a)}};
+
+  out.push_back({0., polylineValueAt(pts, a)});
+  for(const auto& p : pts)
+  {
+    if(p.x() > a + 1e-9 && p.x() < b - 1e-9)
+      out.push_back({(p.x() - a) / span, p.y()});
+  }
+  out.push_back({1., polylineValueAt(pts, b)});
+  return out;
+}
+
+// Compute the range (min/max) and the current value for an address by querying
+// the device explorer. Returns std::nullopt if the address is unknown — the
+// caller should fall back to a sensible default. Unlike Curve::CurveDomain,
+// `value` is NOT clamped into the declared domain: unclipped parameters can
+// legitimately sit outside it, and the sequence widens its range to match.
 struct ResolvedDomain
 {
-  Curve::CurveDomain dom;
-  double normY; // (dom.start - dom.min) / (dom.max - dom.min), clamped to [0,1]
+  double min;
+  double max;
+  double value; // current device value, unclamped
+  double normY; // (value - min) / (max - min), clamped to [0,1] for curve use
 };
 
 static std::optional<ResolvedDomain>
@@ -75,12 +191,14 @@ resolveDomain(const score::DocumentContext& ctx, const State::AddressAccessor& a
   if(dom.max - dom.min < 1e-9)
     dom.max = dom.min + 1.0;
 
-  double normY = (dom.start - dom.min) / (dom.max - dom.min);
+  const double value = State::convert::value<double>(settings.value);
+
+  double normY = (value - dom.min) / (dom.max - dom.min);
   if(normY < 0.0)
     normY = 0.0;
   if(normY > 1.0)
     normY = 1.0;
-  return ResolvedDomain{dom, normY};
+  return ResolvedDomain{dom.min, dom.max, value, normY};
 }
 
 // Helper: create a TimeSync + Event + State chain at a given date
@@ -287,10 +405,12 @@ void SequenceModel::addParameter(
 
   // Look up the actual current value + domain in the device explorer.
   // If absent (offline device, address removed), fall back to a flat midpoint.
+  // The range starts as the declared domain widened by the current value —
+  // unclipped parameters can sit outside their domain.
   auto resolved = resolveDomain(m_context, addr);
-  const double normY = resolved ? resolved->normY : 0.5;
-  const double minVal = resolved ? resolved->dom.min : 0.0;
-  const double maxVal = resolved ? resolved->dom.max : 1.0;
+  const double minVal = resolved ? std::min(resolved->min, resolved->value) : 0.0;
+  const double maxVal = resolved ? std::max(resolved->max, resolved->value) : 1.0;
+  const double normY = resolved ? normalizeScalar(resolved->value, minVal, maxVal) : 0.5;
 
   // Create a flat automation at the resolved value in every section.
   for(auto& itv : intervals)
@@ -303,6 +423,10 @@ void SequenceModel::addParameter(
     automation->setMax(maxVal);
     initFlatCurve(automation->curve(), normY);
     Scenario::AddProcess(itv, automation);
+    // Add to small-view rack so it renders in the section presenter
+    Scenario::Slot slot{{autoId}, autoId, kSectionSlotHeight};
+    itv.addSlot(std::move(slot));
+    itv.setSmallViewVisible(true);
   }
 
   namespaceChanged();
@@ -416,15 +540,45 @@ void SequenceModel::appendSectionWithIds(
   createSectionWithId(
       info.newIntervalId, oldEndStId, info.newEndStateId, m_context, *this);
 
-  // Create flat automations in the new interval for all namespace parameters,
-  // initialized to the actual current device value (same logic as addParameter).
+  // Create automations in the new interval for all namespace parameters.
+  // Each one ramps from the value carried by the previous end IS (which is
+  // becoming an intermediate boundary and keeps its value) to the current
+  // device value, which lands on the new end IS.
   auto& newItv = intervals.at(info.newIntervalId);
+  auto& newEndSt = states.at(info.newEndStateId);
+  auto& prevEndSt = states.at(stateForTimeSync(info.prevEndTimeSyncId));
+  const auto prevEndMessages = Process::flatten(prevEndSt.messages().rootNode());
   for(const auto& addr : m_namespace)
   {
     auto resolved = resolveDomain(m_context, addr);
-    const double normY = resolved ? resolved->normY : 0.5;
-    const double minVal = resolved ? resolved->dom.min : 0.0;
-    const double maxVal = resolved ? resolved->dom.max : 1.0;
+    const double devVal = resolved ? resolved->value : 0.5;
+
+    // Value at the section start = the value recorded on the previous end IS,
+    // falling back to the current device value if none was recorded.
+    double startVal = devVal;
+    for(const auto& msg : prevEndMessages)
+    {
+      if(msg.address == addr)
+      {
+        startVal = State::convert::value<double>(msg.value);
+        break;
+      }
+    }
+
+    // Widen the existing automations' range first if either value falls
+    // outside it, then adopt the (possibly widened) sequence-wide range for
+    // the new section so all sections share the same normalization.
+    if(resolved)
+    {
+      ensureParamRange(addr, startVal);
+      ensureParamRange(addr, devVal);
+    }
+    double minVal, maxVal;
+    if(!currentParamRange(addr, minVal, maxVal))
+    {
+      minVal = resolved ? std::min(resolved->min, std::min(startVal, devVal)) : 0.0;
+      maxVal = resolved ? std::max(resolved->max, std::max(startVal, devVal)) : 1.0;
+    }
 
     auto autoId = getStrongId(newItv.processes);
     auto* automation = new Automation::ProcessModel(
@@ -432,8 +586,25 @@ void SequenceModel::appendSectionWithIds(
     automation->setAddress(addr);
     automation->setMin(minVal);
     automation->setMax(maxVal);
-    initFlatCurve(automation->curve(), normY);
+    if(resolved)
+      initSegmentCurve(
+          automation->curve(), normalizeScalar(startVal, minVal, maxVal),
+          normalizeScalar(devVal, minVal, maxVal));
+    else
+      initFlatCurve(automation->curve(), 0.5);
     Scenario::AddProcess(newItv, automation);
+
+    // Add to small-view rack so it renders in the section presenter
+    Scenario::Slot slot{{autoId}, autoId, kSectionSlotHeight};
+    newItv.addSlot(std::move(slot));
+    newItv.setSmallViewVisible(true);
+
+    // Record the current device value on the new end state
+    if(resolved)
+    {
+      State::MessageList msgs{State::Message{addr, ossia::value{devVal}}};
+      Scenario::updateModelWithMessageList(newEndSt.messages(), std::move(msgs));
+    }
   }
 
   // Update end pointers
@@ -495,6 +666,8 @@ void SequenceModel::moveIS(
         = events.at(states.at(leftItv.startState()).eventId());
     auto newDur = newDate - startEv.date();
     Scenario::IntervalDurations::Algorithms::fixAllDurations(leftItv, newDur);
+    for(auto& proc : leftItv.processes)
+      proc.setParentDuration(ExpandMode::Scale, newDur);
   }
 
   // Resize right-adjacent interval
@@ -505,63 +678,305 @@ void SequenceModel::moveIS(
     auto newDur = endEv.date() - newDate;
     rightItv.setStartDate(newDate);
     Scenario::IntervalDurations::Algorithms::fixAllDurations(rightItv, newDur);
+    for(auto& proc : rightItv.processes)
+      proc.setParentDuration(ExpandMode::Scale, newDur);
   }
+
+  structureChanged();
+}
+
+void SequenceModel::moveISRipple(
+    const Id<Scenario::TimeSyncModel>& tsId, const TimeVal& newDate)
+{
+  SCORE_ASSERT(tsId != m_startTimeSyncId);
+
+  auto& ts = timeSyncs.at(tsId);
+  const TimeVal oldDate = ts.date();
+  const TimeVal delta = newDate - oldDate;
+  if(delta == TimeVal::zero())
+    return;
+
+  const auto leftItvId = intervalBefore(tsId);
+
+  // Shift this IS and everything at or after it
+  for(auto& t : timeSyncs)
+  {
+    if(t.date() >= oldDate)
+      t.setDate(t.date() + delta);
+  }
+  for(auto& ev : events)
+  {
+    if(ev.date() >= oldDate)
+      ev.setDate(ev.date() + delta);
+  }
+
+  // Translate the intervals that start at or after the moved IS; their
+  // durations are preserved.
+  for(auto& itv : intervals)
+  {
+    if(leftItvId && itv.id() == *leftItvId)
+      continue;
+    if(itv.date() >= oldDate)
+      itv.setStartDate(itv.date() + delta);
+  }
+
+  // Resize the left-adjacent interval; its processes scale with it.
+  if(leftItvId)
+  {
+    auto& leftItv = intervals.at(*leftItvId);
+    const auto& startEv = events.at(states.at(leftItv.startState()).eventId());
+    auto newDur = newDate - startEv.date();
+    Scenario::IntervalDurations::Algorithms::fixAllDurations(leftItv, newDur);
+    for(auto& proc : leftItv.processes)
+      proc.setParentDuration(ExpandMode::Scale, newDur);
+  }
+
+  setDuration(duration() + delta);
+  structureChanged();
+}
+
+std::optional<Id<Scenario::IntervalModel>>
+SequenceModel::sectionAt(const TimeVal& date) const
+{
+  const auto eps = TimeVal::fromMsecs(1);
+  for(const auto& itv : intervals)
+  {
+    if(itv.date() + eps < date
+       && date < itv.date() + itv.duration.defaultDuration() - eps)
+      return itv.id();
+  }
+  return std::nullopt;
+}
+
+void SequenceModel::insertISWithIds(const InsertedIS& info, const TimeVal& date)
+{
+  auto& leftItv = intervals.at(info.leftItvId);
+  const TimeVal leftStart = leftItv.date();
+  const TimeVal oldDur = leftItv.duration.defaultDuration();
+  const double t = (date - leftStart) / oldDur;
+
+  const auto oldEndStId = leftItv.endState();
+  auto& oldEndSt = states.at(oldEndStId);
+
+  // Create the new IS at `date`
+  auto newTs = new Scenario::TimeSyncModel(info.newTsId, date, this);
+  timeSyncs.add(newTs);
+  auto newEv = new Scenario::EventModel(info.newEvId, info.newTsId, date, this);
+  events.add(newEv);
+  newTs->addEvent(info.newEvId);
+  auto newSt
+      = new Scenario::StateModel(info.newStId, info.newEvId, 0.02, m_context, this);
+  states.add(newSt);
+  newEv->addState(info.newStId);
+
+  // Rewire: the left interval now ends at the new IS. Its processes are no
+  // longer "before" the old end state.
+  for(auto& proc : leftItv.processes)
+    Scenario::RemoveProcessBeforeState(oldEndSt, proc);
+  oldEndSt.setPreviousInterval(std::nullopt);
+  leftItv.setEndState(info.newStId);
+  Scenario::SetPreviousInterval(*newSt, leftItv);
+
+  // Create the right interval from the new IS to the old section end
+  createSectionWithId(info.rightItvId, info.newStId, oldEndStId, m_context, *this);
+  auto& rightItv = intervals.at(info.rightItvId);
+
+  // Split every automation curve at t, record the value on the new IS state.
+  // Iterate the namespace so the right section's slot order matches every
+  // other section — otherwise the rows don't line up across the boundary.
+  for(const auto& addr : m_namespace)
+  {
+    auto* leftAuto = automationForAddr(leftItv, addr);
+    if(!leftAuto)
+      continue;
+
+    const auto pts = curveToPolyline(leftAuto->curve());
+    const double vNorm = polylineValueAt(pts, t);
+    const double vReal
+        = leftAuto->min() + vNorm * (leftAuto->max() - leftAuto->min());
+
+    // Right part
+    auto autoId = getStrongId(rightItv.processes);
+    auto* rightAuto = new Automation::ProcessModel(
+        rightItv.duration.defaultDuration(), autoId, &rightItv);
+    rightAuto->setAddress(leftAuto->address());
+    rightAuto->setMin(leftAuto->min());
+    rightAuto->setMax(leftAuto->max());
+    polylineToCurve(rightAuto->curve(), polylineSlice(pts, t, 1.));
+    Scenario::AddProcess(rightItv, rightAuto);
+    Scenario::Slot slot{{autoId}, autoId, kSectionSlotHeight};
+    rightItv.addSlot(std::move(slot));
+    rightItv.setSmallViewVisible(true);
+
+    // Left part
+    polylineToCurve(leftAuto->curve(), polylineSlice(pts, 0., t));
+
+    // Record the value on the new IS state
+    State::MessageList msgs{
+        State::Message{leftAuto->address(), ossia::value{vReal}}};
+    Scenario::updateModelWithMessageList(newSt->messages(), std::move(msgs));
+  }
+
+  // Shorten the left interval. Scale mode: the curves were already re-sliced
+  // to the new span, they must not be x-rescaled again.
+  const TimeVal newLeftDur = date - leftStart;
+  Scenario::IntervalDurations::Algorithms::fixAllDurations(leftItv, newLeftDur);
+  for(auto& proc : leftItv.processes)
+    proc.setParentDuration(ExpandMode::Scale, newLeftDur);
+
+  structureChanged();
+}
+
+void SequenceModel::undoInsertIS(const InsertedIS& info)
+{
+  auto& leftItv = intervals.at(info.leftItvId);
+  auto& rightItv = intervals.at(info.rightItvId);
+  const auto endStId = rightItv.endState();
+  auto& endSt = states.at(endStId);
+
+  const TimeVal leftDur = leftItv.duration.defaultDuration();
+  const TimeVal rightDur = rightItv.duration.defaultDuration();
+  const TimeVal mergedDur = leftDur + rightDur;
+  const double t = leftDur / mergedDur;
+
+  // Merge the split automation curves back
+  for(auto& proc : leftItv.processes)
+  {
+    auto* leftAuto = qobject_cast<Automation::ProcessModel*>(&proc);
+    if(!leftAuto)
+      continue;
+    auto* rightAuto = automationForAddr(rightItv, leftAuto->address());
+    if(!rightAuto)
+      continue;
+
+    QVector<QPointF> merged;
+    for(const auto& p : curveToPolyline(leftAuto->curve()))
+      merged.push_back({p.x() * t, p.y()});
+    for(const auto& p : curveToPolyline(rightAuto->curve()))
+    {
+      const double x = t + p.x() * (1. - t);
+      if(merged.empty() || x > merged.back().x() + 1e-9)
+        merged.push_back({x, p.y()});
+    }
+    polylineToCurve(leftAuto->curve(), merged);
+  }
+
+  // Rewire the left interval back to the old section end. The right interval's
+  // processes must be unregistered from the surviving end state first.
+  for(auto& proc : rightItv.processes)
+    Scenario::RemoveProcessBeforeState(endSt, proc);
+  auto& newSt = states.at(info.newStId);
+  newSt.setPreviousInterval(std::nullopt);
+  newSt.setNextInterval(std::nullopt);
+  endSt.setPreviousInterval(std::nullopt);
+  leftItv.setEndState(endStId);
+  Scenario::SetPreviousInterval(endSt, leftItv);
+
+  // Remove the right interval and the inserted IS entities
+  intervals.remove(info.rightItvId);
+  states.remove(info.newStId);
+  events.remove(info.newEvId);
+  timeSyncs.remove(info.newTsId);
+
+  // Restore the merged duration. Scale mode: the curves were already merged
+  // back to the full span, they must not be x-rescaled again.
+  Scenario::IntervalDurations::Algorithms::fixAllDurations(leftItv, mergedDur);
+  for(auto& proc : leftItv.processes)
+    proc.setParentDuration(ExpandMode::Scale, mergedDur);
 
   structureChanged();
 }
 
 // ---- IS value management ----
 
-namespace
+Automation::ProcessModel* SequenceModel::automationForAddr(
+    Scenario::IntervalModel& itv, const State::AddressAccessor& addr) const
 {
-// Normalize an ossia::value into [0,1] against the resolved domain.
-// Falls back to 0.5 if the value can't be reduced to a finite scalar.
-double normalizeValue(const ossia::value& val, double minVal, double maxVal)
-{
-  const float v = ossia::convert<float>(val);
-  const double range = maxVal - minVal;
-  if(range < 1e-9)
-    return 0.5;
-  double norm = (double(v) - minVal) / range;
-  if(norm < 0.0)
-    norm = 0.0;
-  if(norm > 1.0)
-    norm = 1.0;
-  return norm;
+  for(auto& proc : itv.processes)
+  {
+    if(auto* auto_proc = qobject_cast<Automation::ProcessModel*>(&proc))
+    {
+      if(auto_proc->address() == addr)
+        return auto_proc;
+    }
+  }
+  return nullptr;
 }
+
+bool SequenceModel::currentParamRange(
+    const State::AddressAccessor& addr, double& min, double& max) const
+{
+  for(auto& itv : intervals)
+  {
+    if(auto* ap
+       = automationForAddr(const_cast<Scenario::IntervalModel&>(itv), addr))
+    {
+      min = ap->min();
+      max = ap->max();
+      return true;
+    }
+  }
+  return false;
+}
+
+void SequenceModel::ensureParamRange(const State::AddressAccessor& addr, double v)
+{
+  double curMin{}, curMax{};
+  if(!currentParamRange(addr, curMin, curMax))
+    return;
+
+  if(v >= curMin && v <= curMax)
+    return;
+
+  const double newMin = std::min(curMin, v);
+  const double newMax = std::max(curMax, v);
+  const double oldRange = curMax - curMin;
+  const double newRange = newMax - newMin;
+  if(oldRange < 1e-9 || newRange < 1e-9)
+    return;
+
+  // Renormalize every automation curve for this address so the curves keep
+  // denoting the same actual values within the widened range.
+  for(auto& itv : intervals)
+  {
+    auto* ap = automationForAddr(const_cast<Scenario::IntervalModel&>(itv), addr);
+    if(!ap)
+      continue;
+
+    auto& curve = ap->curve();
+    for(auto* seg : curve.sortedSegments())
+    {
+      const auto s = seg->start();
+      const auto e = seg->end();
+      seg->setStart({s.x(), ((s.y() * oldRange + curMin) - newMin) / newRange});
+      seg->setEnd({e.x(), ((e.y() * oldRange + curMin) - newMin) / newRange});
+    }
+    curve.changed();
+    ap->setMin(newMin);
+    ap->setMax(newMax);
+  }
 }
 
 void SequenceModel::syncAutomationEndpoints(
     const Id<Scenario::TimeSyncModel>& tsId, const State::AddressAccessor& addr,
     const ossia::value& val)
 {
-  auto resolved = resolveDomain(m_context, addr);
-  if(!resolved)
-    return;
+  const double v = State::convert::value<double>(val);
 
-  const double normY
-      = normalizeValue(val, resolved->dom.min, resolved->dom.max);
+  // Out-of-range values widen the sequence-wide range (unclipped parameters).
+  ensureParamRange(addr, v);
 
   // Update end point of left-adjacent automation (curve x=1)
   if(auto leftItvId = intervalBefore(tsId))
   {
-    auto& leftItv = intervals.at(*leftItvId);
-    for(auto& proc : leftItv.processes)
+    if(auto* ap = automationForAddr(intervals.at(*leftItvId), addr))
     {
-      if(auto* auto_proc = qobject_cast<Automation::ProcessModel*>(&proc))
+      auto& curve = ap->curve();
+      auto segs = curve.sortedSegments();
+      if(!segs.empty())
       {
-        if(auto_proc->address() == addr)
-        {
-          auto& curve = auto_proc->curve();
-          auto segs = curve.sortedSegments();
-          if(!segs.empty())
-          {
-            auto* lastSeg = segs.back();
-            lastSeg->setEnd({1.0, normY});
-            curve.changed();
-          }
-          break;
-        }
+        segs.back()->setEnd({1.0, normalizeScalar(v, ap->min(), ap->max())});
+        curve.changed();
       }
     }
   }
@@ -569,23 +984,14 @@ void SequenceModel::syncAutomationEndpoints(
   // Update start point of right-adjacent automation (curve x=0)
   if(auto rightItvId = intervalAfter(tsId))
   {
-    auto& rightItv = intervals.at(*rightItvId);
-    for(auto& proc : rightItv.processes)
+    if(auto* ap = automationForAddr(intervals.at(*rightItvId), addr))
     {
-      if(auto* auto_proc = qobject_cast<Automation::ProcessModel*>(&proc))
+      auto& curve = ap->curve();
+      auto segs = curve.sortedSegments();
+      if(!segs.empty())
       {
-        if(auto_proc->address() == addr)
-        {
-          auto& curve = auto_proc->curve();
-          auto segs = curve.sortedSegments();
-          if(!segs.empty())
-          {
-            auto* firstSeg = segs.front();
-            firstSeg->setStart({0.0, normY});
-            curve.changed();
-          }
-          break;
-        }
+        segs.front()->setStart({0.0, normalizeScalar(v, ap->min(), ap->max())});
+        curve.changed();
       }
     }
   }
@@ -668,9 +1074,16 @@ void SequenceModel::rebuildAutomations(const State::AddressAccessor& addr)
     if(!found)
     {
       auto resolved = resolveDomain(m_context, addr);
-      const double normY = resolved ? resolved->normY : 0.5;
-      const double minVal = resolved ? resolved->dom.min : 0.0;
-      const double maxVal = resolved ? resolved->dom.max : 1.0;
+      // Prefer the sequence-wide range from sibling sections, so every
+      // section shares the same normalization.
+      double minVal, maxVal;
+      if(!currentParamRange(addr, minVal, maxVal))
+      {
+        minVal = resolved ? std::min(resolved->min, resolved->value) : 0.0;
+        maxVal = resolved ? std::max(resolved->max, resolved->value) : 1.0;
+      }
+      const double normY
+          = resolved ? normalizeScalar(resolved->value, minVal, maxVal) : 0.5;
 
       auto autoId = getStrongId(itv.processes);
       auto* automation = new Automation::ProcessModel(
@@ -680,7 +1093,36 @@ void SequenceModel::rebuildAutomations(const State::AddressAccessor& addr)
       automation->setMax(maxVal);
       initFlatCurve(automation->curve(), normY);
       Scenario::AddProcess(itv, automation);
+      Scenario::Slot slot{{autoId}, autoId, kSectionSlotHeight};
+      itv.addSlot(std::move(slot));
+      itv.setSmallViewVisible(true);
     }
+  }
+}
+
+void SequenceModel::repairSectionRacks()
+{
+  // Files saved before slots were added to section intervals have automations
+  // that are in no small-view slot, so nothing renders in the section
+  // presenters. Give every slot-less process its own slot.
+  for(auto& itv : intervals)
+  {
+    for(const auto& proc : itv.processes)
+    {
+      bool inSlot = false;
+      for(const auto& slot : itv.smallView())
+      {
+        if(ossia::contains(slot.processes, proc.id()))
+        {
+          inSlot = true;
+          break;
+        }
+      }
+      if(!inSlot)
+        itv.addSlot(Scenario::Slot{{proc.id()}, proc.id(), kSectionSlotHeight});
+    }
+    if(!itv.smallView().empty())
+      itv.setSmallViewVisible(true);
   }
 }
 
@@ -764,11 +1206,13 @@ void SequenceModel::setDurationAndGrow(const TimeVal& newDuration) noexcept
   events.at(m_endEventId).setDate(events.at(m_endEventId).date() + extra);
   states.at(stateForTimeSync(m_endTimeSyncId)); // touch — keep symmetry; state has no date
 
-  // Stretch the last section
+  // Stretch the last section. Its processes scale with it: section curves are
+  // normalized between the surrounding ISes (endpoints pinned to IS values),
+  // so GrowShrink would squash them into the left of the grown section.
   const auto newSecDur = lastItv->duration.defaultDuration() + extra;
   Scenario::IntervalDurations::Algorithms::fixAllDurations(*lastItv, newSecDur);
   for(auto& proc : lastItv->processes)
-    proc.setParentDuration(ExpandMode::GrowShrink, newSecDur);
+    proc.setParentDuration(ExpandMode::Scale, newSecDur);
 
   setDuration(newDuration);
 }
@@ -807,7 +1251,7 @@ void SequenceModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
 
   Scenario::IntervalDurations::Algorithms::fixAllDurations(*lastItv, newSecDur);
   for(auto& proc : lastItv->processes)
-    proc.setParentDuration(ExpandMode::GrowShrink, newSecDur);
+    proc.setParentDuration(ExpandMode::Scale, newSecDur);
 
   setDuration(actualDuration);
 }
