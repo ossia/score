@@ -2,6 +2,12 @@
 export SCORE_DIR="$PWD"
 export SDK_DIR="$PWD/build/SDK"
 
+if [[ "${RUNNER_ARCH:-X64}" == "ARM64" ]]; then
+  SDK_ARCH=aarch64
+else
+  SDK_ARCH=x86_64
+fi
+
 # Copy windows binary
 (
   cd build
@@ -20,5 +26,5 @@ export SDK_DIR="$PWD/build/SDK"
 # Copy SDK
 (
     cd build/SDK
-    7z a "$BUILD_ARTIFACTSTAGINGDIRECTORY/sdk-windows-x86_64.zip" usr
+    7z a "$BUILD_ARTIFACTSTAGINGDIRECTORY/sdk-windows-$SDK_ARCH.zip" usr
 )
