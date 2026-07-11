@@ -274,6 +274,7 @@ set(HDRS
     Gfx/Graph/interop/GpuDirectStrategy.hpp
     Gfx/Graph/interop/GpuDirectCaptureStrategy.hpp
     Gfx/Graph/interop/CaptureStrategyCommon.hpp
+    Gfx/Graph/interop/RdmaRingDepth.hpp
     # Shared, vendor-neutral NVIDIA-DVP shim templates (parameterized by a
     # per-vendor DMA-lock policy). Header-only; consumed by capture-card addons.
     Gfx/Graph/interop/DmaLockPolicy.hpp

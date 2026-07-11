@@ -761,6 +761,71 @@ void destroyExternal(const VulkanCtx& v, ExternalBuffer& buf)
 }
 
 // =============================================================================
+// Layout transition
+// =============================================================================
+
+bool transitionImageLayout(
+    const VulkanCtx& v, VkQueue queue, std::uint32_t queueFamily, VkImage image,
+    VkImageLayout oldLayout, VkImageLayout newLayout)
+{
+  auto df = devFuncs(v);
+  if(!df || !queue || !image)
+    return false;
+
+  VkCommandPool pool{VK_NULL_HANDLE};
+  VkCommandPoolCreateInfo pci{};
+  pci.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+  pci.queueFamilyIndex = queueFamily;
+  if(df->vkCreateCommandPool(v.dev, &pci, nullptr, &pool) != VK_SUCCESS)
+    return false;
+
+  VkCommandBuffer cb{VK_NULL_HANDLE};
+  VkCommandBufferAllocateInfo ai{};
+  ai.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+  ai.commandPool = pool;
+  ai.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+  ai.commandBufferCount = 1;
+  bool ok = df->vkAllocateCommandBuffers(v.dev, &ai, &cb) == VK_SUCCESS;
+  if(ok)
+  {
+    VkCommandBufferBeginInfo bi{};
+    bi.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    bi.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    df->vkBeginCommandBuffer(cb, &bi);
+
+    VkImageMemoryBarrier b{};
+    b.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    b.oldLayout = oldLayout;
+    b.newLayout = newLayout;
+    b.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    b.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    b.image = image;
+    b.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
+    // Conservative masks — a superset of the shader-read (capture) and
+    // transfer-write (output) uses; the vkQueueWaitIdle below makes the exact
+    // choice immaterial for this one-time init transition.
+    b.srcAccessMask = 0;
+    b.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT
+                      | VK_ACCESS_TRANSFER_READ_BIT;
+    df->vkCmdPipelineBarrier(
+        cb, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+        VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, nullptr, 0, nullptr, 1, &b);
+    df->vkEndCommandBuffer(cb);
+
+    VkSubmitInfo si{};
+    si.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    si.commandBufferCount = 1;
+    si.pCommandBuffers = &cb;
+    ok = df->vkQueueSubmit(queue, 1, &si, VK_NULL_HANDLE) == VK_SUCCESS;
+    if(ok)
+      df->vkQueueWaitIdle(queue);
+    df->vkFreeCommandBuffers(v.dev, pool, 1, &cb);
+  }
+  df->vkDestroyCommandPool(v.dev, pool, nullptr);
+  return ok;
+}
+
+// =============================================================================
 // DMA-BUF modifier capability probes
 // =============================================================================
 

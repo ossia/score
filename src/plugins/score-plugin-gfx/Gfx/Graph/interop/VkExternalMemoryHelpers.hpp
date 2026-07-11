@@ -240,6 +240,23 @@ SCORE_PLUGIN_GFX_EXPORT void destroyExternal(const VulkanCtx& v, ExternalImage& 
 SCORE_PLUGIN_GFX_EXPORT void destroyExternal(const VulkanCtx& v, ExternalBuffer& buf);
 
 // =============================================================================
+// Layout transition — one-time image layout change via a transient command
+// buffer (create pool + buffer, record a VkImageMemoryBarrier, submit, wait
+// idle). Used by the RDMA capture/output paths to move a freshly-created
+// exportable VkImage UNDEFINED -> GENERAL once, so the QRhi-adopted texture
+// (told GENERAL via createFrom) and CUDA (which reads/writes the memory) agree.
+//
+// Broad, conservative access/stage masks cover both the capture (shader-read)
+// and output (transfer-write) uses; the following vkQueueWaitIdle makes the
+// choice of masks immaterial to correctness for a one-time init transition.
+// @p queue / @p queueFamily are the graphics queue + family the barrier submits
+// on (from QRhiVulkanNativeHandles). Returns false on any Vulkan failure.
+// =============================================================================
+SCORE_PLUGIN_GFX_EXPORT bool transitionImageLayout(
+    const VulkanCtx& v, VkQueue queue, std::uint32_t queueFamily, VkImage image,
+    VkImageLayout oldLayout, VkImageLayout newLayout);
+
+// =============================================================================
 // DMA-BUF modifier capability probes (Phase 5)
 // =============================================================================
 
