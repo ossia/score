@@ -62,6 +62,17 @@ struct GpuRingBufferConfig
   std::uint32_t bufferSize{};
   int slotCount{2};
   const char* debugName{"score-gpu-ring"};
+
+  /// OpenGL only. When false (default, OUTPUT path): each slot's GL buffer is
+  /// CUDA-registered *and* kept mapped, so `gpuDevicePtr` is a stable pointer
+  /// CUDA reads every frame. When true (CAPTURE path): the GL buffer is
+  /// registered but NOT kept mapped — `gpuDevicePtr` stays null and the
+  /// consumer must do a per-frame `cuda_p2p_gl_write_buffer` (map→copy→unmap)
+  /// so CUDA's writes are flushed and visible to the subsequent GL read. A
+  /// permanently-mapped buffer written by CUDA is never seen by GL (the copy
+  /// lands but GL samples stale memory), which is why the two directions
+  /// differ.
+  bool glRegisterOnly{false};
 };
 
 /**

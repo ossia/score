@@ -452,6 +452,79 @@ void cuda_p2p_release_buffer(CudaP2PContextHandle ctx, CudaP2PResourceHandle h)
   delete h;
 }
 
+CudaP2PError cuda_p2p_register_gl_buffer(
+    CudaP2PContextHandle ctx, uint32_t gl_buffer_id, uint32_t buffer_size,
+    CudaP2PResourceHandle* out_handle)
+{
+  if(!ctx || !out_handle || buffer_size == 0)
+    return CUDA_P2P_ERROR_INVALID_PARAMETER;
+  if(!ctx->cu.graphicsGLRegisterBuffer)
+  {
+    ctx->lastError = "cuGraphicsGLRegisterBuffer symbol not available";
+    return CUDA_P2P_ERROR_INTEROP_FAILED;
+  }
+  *out_handle = nullptr;
+  std::lock_guard<std::mutex> lock(ctx->mutex);
+  CU_CHECK(
+      ctx->cu.ctxSetCurrent(ctx->cuContext), ctx,
+      CUDA_P2P_ERROR_INTEROP_FAILED, "cuCtxSetCurrent");
+
+  CUgraphicsResource resource{};
+  CU_CHECK(
+      ctx->cu.graphicsGLRegisterBuffer(
+          &resource, gl_buffer_id, CU_GRAPHICS_REGISTER_FLAGS_NONE),
+      ctx, CUDA_P2P_ERROR_INTEROP_FAILED, "cuGraphicsGLRegisterBuffer");
+
+  // Register-only: do NOT keep it mapped. cuda_p2p_gl_write_buffer maps and
+  // unmaps per frame so the buffer is GL-owned (and CUDA writes are visible)
+  // whenever GL reads it.
+  auto* h = new CudaP2PResource_t();
+  h->graphicsResource = resource;
+  h->byteSize = buffer_size;
+  *out_handle = h;
+  return CUDA_P2P_SUCCESS;
+}
+
+CudaP2PError cuda_p2p_gl_write_buffer(
+    CudaP2PContextHandle ctx, CudaP2PResourceHandle h, void* src_device_ptr,
+    uint32_t size)
+{
+  if(!ctx || !h || !h->graphicsResource || !src_device_ptr || size == 0)
+    return CUDA_P2P_ERROR_INVALID_PARAMETER;
+  std::lock_guard<std::mutex> lock(ctx->mutex);
+  CU_CHECK(
+      ctx->cu.ctxSetCurrent(ctx->cuContext), ctx, CUDA_P2P_ERROR_COPY_FAILED,
+      "cuCtxSetCurrent");
+
+  CU_CHECK(
+      ctx->cu.graphicsMap(1, &h->graphicsResource, ctx->stream), ctx,
+      CUDA_P2P_ERROR_INTEROP_FAILED, "cuGraphicsMapResources(GL write)");
+
+  CUdeviceptr dstPtr{};
+  size_t mappedSize = 0;
+  if(ctx->cu.graphicsGetMappedPointer(&dstPtr, &mappedSize, h->graphicsResource)
+         != CUDA_SUCCESS
+     || !dstPtr || mappedSize < size)
+  {
+    ctx->cu.graphicsUnmap(1, &h->graphicsResource, ctx->stream);
+    ctx->lastError = "cuGraphicsResourceGetMappedPointer(GL write) failed";
+    return CUDA_P2P_ERROR_INTEROP_FAILED;
+  }
+
+  CUresult cr = ctx->cu.memcpyDtoDAsync(
+      dstPtr, reinterpret_cast<CUdeviceptr>(src_device_ptr), size, ctx->stream);
+  if(cr == CUDA_SUCCESS)
+    cr = ctx->cu.streamSync(ctx->stream);
+
+  // Unmap regardless: it flushes CUDA writes to GL AND returns ownership so
+  // the subsequent glTexSubImage2D reads coherent data.
+  ctx->cu.graphicsUnmap(1, &h->graphicsResource, ctx->stream);
+  if(cr != CUDA_SUCCESS)
+    return reportCuError(ctx, cr, CUDA_P2P_ERROR_COPY_FAILED,
+                         "cuMemcpyDtoDAsync(GL write)");
+  return CUDA_P2P_SUCCESS;
+}
+
 // =============================================================================
 // Shared-image importer (Vulkan external-memory → CUmipmappedArray)
 // =============================================================================
@@ -743,5 +816,87 @@ CudaP2PError cuda_p2p_upload_buffer(
       ctx->cu.memcpyHtoD(
           reinterpret_cast<CUdeviceptr>(dst_device_ptr), host_data, size),
       ctx, CUDA_P2P_ERROR_COPY_FAILED, "cuMemcpyHtoD");
+  return CUDA_P2P_SUCCESS;
+}
+
+CudaP2PError cuda_p2p_download_buffer(
+    CudaP2PContextHandle ctx, void* host_data, void* src_device_ptr,
+    uint64_t size)
+{
+  if(!ctx || !host_data || !src_device_ptr || size == 0)
+    return CUDA_P2P_ERROR_INVALID_PARAMETER;
+  std::lock_guard<std::mutex> lock(ctx->mutex);
+  CU_CHECK(
+      ctx->cu.ctxSetCurrent(ctx->cuContext), ctx, CUDA_P2P_ERROR_COPY_FAILED,
+      "cuCtxSetCurrent");
+  CU_CHECK(
+      ctx->cu.memcpyDtoH(
+          host_data, reinterpret_cast<CUdeviceptr>(src_device_ptr), size),
+      ctx, CUDA_P2P_ERROR_COPY_FAILED, "cuMemcpyDtoH");
+  return CUDA_P2P_SUCCESS;
+}
+
+// =============================================================================
+// CUDA-owned linear buffers (vendor-pinnable) + flat DtoD copy
+// =============================================================================
+
+// CUpointer_attribute::CU_POINTER_ATTRIBUTE_SYNC_MEMOPS (driver ABI value).
+static constexpr int kCuPointerAttributeSyncMemops = 6;
+
+CudaP2PError cuda_p2p_alloc_buffer(
+    CudaP2PContextHandle ctx, uint64_t size, void** out_device_ptr)
+{
+  if(!ctx || !out_device_ptr || size == 0)
+    return CUDA_P2P_ERROR_INVALID_PARAMETER;
+  *out_device_ptr = nullptr;
+  std::lock_guard<std::mutex> lock(ctx->mutex);
+  CU_CHECK(
+      ctx->cu.ctxSetCurrent(ctx->cuContext), ctx, CUDA_P2P_ERROR_ALLOC_FAILED,
+      "cuCtxSetCurrent");
+  CUdeviceptr dptr{};
+  CU_CHECK(
+      ctx->cu.memAlloc(&dptr, size), ctx, CUDA_P2P_ERROR_ALLOC_FAILED,
+      "cuMemAlloc");
+  // Mark for synchronous memops so the vendor's DMA engine and in-stream
+  // compute stay coherent. Best-effort: absent on very old drivers, and
+  // some drivers refuse it on specific ranges — the explicit stream sync
+  // in cuda_p2p_copy_dtod keeps us correct either way.
+  if(ctx->cu.pointerSetAttribute)
+  {
+    const int one = 1;
+    ctx->cu.pointerSetAttribute(&one, kCuPointerAttributeSyncMemops, dptr);
+  }
+  *out_device_ptr = reinterpret_cast<void*>(static_cast<uintptr_t>(dptr));
+  return CUDA_P2P_SUCCESS;
+}
+
+void cuda_p2p_free_buffer(CudaP2PContextHandle ctx, void* device_ptr)
+{
+  if(!ctx || !device_ptr)
+    return;
+  std::lock_guard<std::mutex> lock(ctx->mutex);
+  if(ctx->cu.ctxSetCurrent(ctx->cuContext) != CUDA_SUCCESS)
+    return;
+  ctx->cu.memFree(reinterpret_cast<CUdeviceptr>(device_ptr));
+}
+
+CudaP2PError cuda_p2p_copy_dtod(
+    CudaP2PContextHandle ctx, void* dst_device_ptr, void* src_device_ptr,
+    uint64_t size)
+{
+  if(!ctx || !dst_device_ptr || !src_device_ptr || size == 0)
+    return CUDA_P2P_ERROR_INVALID_PARAMETER;
+  std::lock_guard<std::mutex> lock(ctx->mutex);
+  CU_CHECK(
+      ctx->cu.ctxSetCurrent(ctx->cuContext), ctx, CUDA_P2P_ERROR_COPY_FAILED,
+      "cuCtxSetCurrent");
+  CU_CHECK(
+      ctx->cu.memcpyDtoDAsync(
+          reinterpret_cast<CUdeviceptr>(dst_device_ptr),
+          reinterpret_cast<CUdeviceptr>(src_device_ptr), size, ctx->stream),
+      ctx, CUDA_P2P_ERROR_COPY_FAILED, "cuMemcpyDtoDAsync");
+  CU_CHECK(
+      ctx->cu.streamSync(ctx->stream), ctx, CUDA_P2P_ERROR_SYNC_FAILED,
+      "cuStreamSynchronize");
   return CUDA_P2P_SUCCESS;
 }

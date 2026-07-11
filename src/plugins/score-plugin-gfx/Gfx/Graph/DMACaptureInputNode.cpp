@@ -275,16 +275,21 @@ public:
       m_strategy->releaseAfterRender();
       m_renderHoldsTexture = false;
     }
+    // Stop the vendor capture thread first (no more DMA in flight), then
+    // release the strategy — which unpins its DMA buffers *through the card*
+    // — and only afterwards destroy the backend that owns the card handle.
+    // Resetting the backend before the strategy would close the card out from
+    // under DMABufferUnlock (a use-after-free that only surfaces once a
+    // real GPUDirect-RDMA capture strategy actually pinned buffers).
     if(m_backend)
-    {
       m_backend->stop();
-      m_backend.reset();
-    }
     if(m_strategy)
     {
       m_strategy->release();
       m_strategy.reset();
     }
+    if(m_backend)
+      m_backend.reset();
     for(auto& p : m_p)
       p.second.release();
     m_p.clear();
