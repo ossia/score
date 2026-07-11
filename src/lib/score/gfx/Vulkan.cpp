@@ -63,6 +63,12 @@ QVulkanInstance* staticVulkanInstance(bool create)
     }
   });
 
+  // Re-check: on the very first call, create() may just have failed inside
+  // call_once — returning the half-initialized instance would send callers
+  // (Graph's API-fallback check, QRhi::create) straight into a crash.
+  if(g_staticVulkanInstanceInvalid)
+    return nullptr;
+
   return g_staticVulkanInstance;
 }
 }
