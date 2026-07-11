@@ -18,8 +18,7 @@
 
 namespace Scenario
 {
-static void
-AddProcessBeforeState(StateModel& statemodel, const Process::ProcessModel& proc)
+void AddProcessBeforeState(StateModel& statemodel, const Process::ProcessModel& proc)
 {
   // TODO this should be fused with the notion of State Process.
   ProcessStateDataInterface* state = proc.endStateData();
@@ -52,8 +51,7 @@ AddProcessBeforeState(StateModel& statemodel, const Process::ProcessModel& proc)
   prev_proc_fun();
 }
 
-static void
-AddProcessAfterState(StateModel& statemodel, const Process::ProcessModel& proc)
+void AddProcessAfterState(StateModel& statemodel, const Process::ProcessModel& proc)
 {
   ProcessStateDataInterface* state = proc.startStateData();
   if(!state)
@@ -80,8 +78,7 @@ AddProcessAfterState(StateModel& statemodel, const Process::ProcessModel& proc)
   next_proc_fun();
 }
 
-static void
-RemoveProcessBeforeState(StateModel& statemodel, const Process::ProcessModel& proc)
+void RemoveProcessBeforeState(StateModel& statemodel, const Process::ProcessModel& proc)
 {
   ProcessStateDataInterface* state = proc.endStateData();
   if(!state)
@@ -100,8 +97,7 @@ RemoveProcessBeforeState(StateModel& statemodel, const Process::ProcessModel& pr
     statemodel.previousProcesses().erase(it);
 }
 
-static void
-RemoveProcessAfterState(StateModel& statemodel, const Process::ProcessModel& proc)
+void RemoveProcessAfterState(StateModel& statemodel, const Process::ProcessModel& proc)
 {
   ProcessStateDataInterface* state = proc.startStateData();
   if(!state)

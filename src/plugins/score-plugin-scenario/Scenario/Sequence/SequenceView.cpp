@@ -6,7 +6,6 @@
 
 #include <score/model/Skin.hpp>
 
-#include <QGraphicsLineItem>
 #include <QGraphicsSceneMouseEvent>
 #include <QKeyEvent>
 #include <QPainter>
@@ -15,16 +14,170 @@
 
 W_OBJECT_IMPL(Sequence::SequenceView)
 
+static constexpr double k_handleHalfWidth = 5.0;
+static constexpr double k_handleZValue = 10.0;
+
+// ---------------------------------------------------------------------------
+// SequenceHandleItem — one vertical drag handle per intermediate IS position.
+// Lives as a child of SequenceView at the appropriate x offset.
+// Has its own mouse handling so it captures events even when TemporalIntervalView
+// siblings (which default to Qt::AllButtons) overlap the same pixel column.
+// ---------------------------------------------------------------------------
+class SequenceHandleItem final : public QGraphicsItem
+{
+public:
+  Id<Scenario::TimeSyncModel> tsId;
+
+  explicit SequenceHandleItem(Sequence::SequenceView* parent)
+      : QGraphicsItem{parent}
+  {
+    setAcceptedMouseButtons(Qt::LeftButton);
+    setZValue(k_handleZValue);
+  }
+
+  void setHeight(qreal h)
+  {
+    if(h == m_height)
+      return;
+    prepareGeometryChange();
+    m_height = h;
+  }
+
+  QRectF boundingRect() const override
+  {
+    // Extra top margin for the state dot (radius 4.5 * 2 = 9px)
+    return {-k_handleHalfWidth, -9., k_handleHalfWidth * 2., m_height + 9.};
+  }
+
+  void paint(QPainter* p, const QStyleOptionGraphicsItem*, QWidget*) override
+  {
+    static constexpr qreal dotR = 4.5;
+    auto& style = Process::Style::instance();
+    const auto& pen = m_active ? style.skin.Base3.main.pen2 : style.skin.Base2.main.pen1;
+    p->setPen(pen);
+    p->drawLine(QPointF{0., 0.}, QPointF{0., m_height});
+    // State indicator dot at top
+    p->setPen(style.NoPen());
+    p->setBrush(pen.color());
+    p->drawEllipse(QPointF{0., dotR}, dotR, dotR);
+  }
+
+protected:
+  void mousePressEvent(QGraphicsSceneMouseEvent* e) override
+  {
+    m_active = true;
+    // Ripple mode is decided at press time and kept for the whole drag, so a
+    // single gesture never mixes two different ongoing commands.
+    m_ripple = e->modifiers().testFlag(Qt::ShiftModifier);
+    update();
+    e->accept();
+  }
+
+  void mouseMoveEvent(QGraphicsSceneMouseEvent* e) override
+  {
+    auto* sv = static_cast<Sequence::SequenceView*>(parentItem());
+    const double newX = qBound(0., mapToParent(e->pos()).x(), sv->width());
+    setX(newX);
+    sv->handleDragMoved(tsId, newX, m_ripple);
+    e->accept();
+  }
+
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent* e) override
+  {
+    auto* sv = static_cast<Sequence::SequenceView*>(parentItem());
+    const double finalX = qBound(0., mapToParent(e->pos()).x(), sv->width());
+    setX(finalX);
+    m_active = false;
+    update();
+    sv->handleDragReleased(tsId, finalX, m_ripple);
+    e->accept();
+  }
+
+  void keyPressEvent(QKeyEvent* e) override
+  {
+    if(e->key() == Qt::Key_Escape && m_active)
+    {
+      m_active = false;
+      update();
+      static_cast<Sequence::SequenceView*>(parentItem())->handleDragCancelled();
+      e->accept();
+    }
+    else
+    {
+      e->ignore();
+    }
+  }
+
+private:
+  qreal m_height{100.};
+  bool m_active{false};
+  bool m_ripple{false};
+};
+
+// ---------------------------------------------------------------------------
+// SequenceRailItem — dedicated strip at the top of the sequence layer where
+// the IS handles' dots live. Double-clicking it inserts a new IS.
+// ---------------------------------------------------------------------------
+class SequenceRailItem final : public QGraphicsItem
+{
+public:
+  explicit SequenceRailItem(Sequence::SequenceView* parent)
+      : QGraphicsItem{parent}
+  {
+    setAcceptedMouseButtons(Qt::LeftButton);
+    // Below the handles (z=10) so they keep receiving their drags.
+    setZValue(k_handleZValue - 1.);
+  }
+
+  void setWidth(qreal w)
+  {
+    if(w == m_width)
+      return;
+    prepareGeometryChange();
+    m_width = w;
+  }
+
+  QRectF boundingRect() const override
+  {
+    return {0., 0., m_width, Sequence::SequenceView::RailHeight};
+  }
+
+  void paint(QPainter* p, const QStyleOptionGraphicsItem*, QWidget*) override
+  {
+    auto& style = Process::Style::instance();
+    p->setPen(style.NoPen());
+    p->setBrush(style.skin.Background1.main.brush);
+    p->drawRect(boundingRect());
+    p->setPen(style.skin.Base2.darker.pen1);
+    const double midY = Sequence::SequenceView::RailHeight / 2.;
+    p->drawLine(QPointF{0., midY}, QPointF{m_width, midY});
+  }
+
+protected:
+  void mousePressEvent(QGraphicsSceneMouseEvent* e) override { e->accept(); }
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent* e) override { e->accept(); }
+
+  void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e) override
+  {
+    static_cast<Sequence::SequenceView*>(parentItem())
+        ->railDoubleClicked(e->pos().x());
+    e->accept();
+  }
+
+private:
+  qreal m_width{100.};
+};
+
+// ---------------------------------------------------------------------------
+
 namespace Sequence
 {
-
-static constexpr double k_handleHalfWidth = 5.0;
-static constexpr double k_handleZValue = 10.0; // on top of child section views
 
 SequenceView::SequenceView(QGraphicsItem* parent)
     : Process::LayerView{parent}
 {
   setAcceptedMouseButtons(Qt::LeftButton);
+  m_rail = new SequenceRailItem{this};
 }
 
 SequenceView::~SequenceView() = default;
@@ -33,17 +186,11 @@ void SequenceView::setHandles(const QVector<HandleData>& handles)
 {
   m_handles = handles;
 
-  // Grow or shrink the handle-line pool to match
   while(m_handleLines.size() > handles.size())
-  {
     delete m_handleLines.takeLast();
-  }
+
   while(m_handleLines.size() < handles.size())
-  {
-    auto* line = new QGraphicsLineItem{this};
-    line->setZValue(k_handleZValue);
-    m_handleLines.append(line);
-  }
+    m_handleLines.append(new SequenceHandleItem{this});
 
   updateHandleLines();
   update();
@@ -51,100 +198,24 @@ void SequenceView::setHandles(const QVector<HandleData>& handles)
 
 void SequenceView::updateHandleLines()
 {
+  m_rail->setWidth(width());
+
   const qreal h = height();
-  auto& style = Process::Style::instance();
-
   for(int i = 0; i < m_handles.size(); ++i)
   {
-    const double x = m_handles[i].x;
-    const bool active = (i == m_activeHandle);
-    m_handleLines[i]->setLine(x, 0., x, h);
-    m_handleLines[i]->setPen(
-        active ? style.skin.Base3.main.pen2 : style.skin.Base2.main.pen1);
+    m_handleLines[i]->tsId = m_handles[i].tsId;
+    m_handleLines[i]->setX(m_handles[i].x);
+    m_handleLines[i]->setY(0.);
+    m_handleLines[i]->setHeight(h);
   }
-}
-
-int SequenceView::handleAt(double x) const
-{
-  for(int i = 0; i < m_handles.size(); ++i)
-  {
-    if(std::abs(m_handles[i].x - x) <= k_handleHalfWidth)
-      return i;
-  }
-  return -1;
 }
 
 void SequenceView::paint_impl(QPainter* p) const
 {
   auto& style = Process::Style::instance();
-
-  // Background
   p->setPen(style.NoPen());
   p->setBrush(style.skin.Background2.main.brush);
   p->drawRect(boundingRect());
-
-  // IS handle lines are rendered by QGraphicsLineItem children — no manual
-  // drawing needed here. The items have k_handleZValue so they float above
-  // any child section views that SequencePresenter adds at lower z-values.
-}
-
-void SequenceView::mousePressEvent(QGraphicsSceneMouseEvent* e)
-{
-  const double x = e->pos().x();
-  m_activeHandle = handleAt(x);
-  if(m_activeHandle >= 0)
-  {
-    m_dragStartX = m_handles[m_activeHandle].x;
-    updateHandleLines();
-    e->accept();
-  }
-  else
-  {
-    e->ignore();
-  }
-}
-
-void SequenceView::mouseMoveEvent(QGraphicsSceneMouseEvent* e)
-{
-  if(m_activeHandle < 0 || m_activeHandle >= m_handles.size())
-    return;
-
-  const double newX = qBound(0.0, e->pos().x(), width());
-  m_handles[m_activeHandle].x = newX;
-  updateHandleLines();
-  handleDragMoved(m_handles[m_activeHandle].tsId, newX);
-  e->accept();
-}
-
-void SequenceView::mouseReleaseEvent(QGraphicsSceneMouseEvent* e)
-{
-  if(m_activeHandle >= 0 && m_activeHandle < m_handles.size())
-  {
-    const double finalX = qBound(0.0, e->pos().x(), width());
-    handleDragReleased(m_handles[m_activeHandle].tsId, finalX);
-    m_activeHandle = -1;
-    updateHandleLines();
-    e->accept();
-  }
-  else
-  {
-    e->ignore();
-  }
-}
-
-void SequenceView::keyPressEvent(QKeyEvent* e)
-{
-  if(e->key() == Qt::Key_Escape && m_activeHandle >= 0)
-  {
-    m_activeHandle = -1;
-    updateHandleLines();
-    handleDragCancelled();
-    e->accept();
-  }
-  else
-  {
-    e->ignore();
-  }
 }
 
 } // namespace Sequence

@@ -10,7 +10,8 @@
 #include <score_plugin_scenario_export.h>
 #include <verdigris>
 
-class QGraphicsLineItem;
+class SequenceHandleItem;
+class SequenceRailItem;
 
 namespace Sequence
 {
@@ -26,36 +27,33 @@ public:
     double x{}; // pixels from left edge
   };
 
+  // Height of the IS rail strip at the top of the layer: handles' state dots
+  // sit on it, double-clicking it inserts a new IS.
+  static constexpr double RailHeight = 14.;
+
   explicit SequenceView(QGraphicsItem* parent);
   ~SequenceView() override;
 
   void setHandles(const QVector<HandleData>& handles);
 
-  void handleDragMoved(Id<Scenario::TimeSyncModel> tsId, double newX)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, handleDragMoved, tsId, newX)
-  void handleDragReleased(Id<Scenario::TimeSyncModel> tsId, double finalX)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, handleDragReleased, tsId, finalX)
+  void handleDragMoved(Id<Scenario::TimeSyncModel> tsId, double newX, bool ripple)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, handleDragMoved, tsId, newX, ripple)
+  void handleDragReleased(Id<Scenario::TimeSyncModel> tsId, double finalX, bool ripple)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, handleDragReleased, tsId, finalX, ripple)
   void handleDragCancelled()
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, handleDragCancelled)
+  void railDoubleClicked(double x)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, railDoubleClicked, x)
 
 protected:
   void paint_impl(QPainter*) const override;
-  void mousePressEvent(QGraphicsSceneMouseEvent*) override;
-  void mouseMoveEvent(QGraphicsSceneMouseEvent*) override;
-  void mouseReleaseEvent(QGraphicsSceneMouseEvent*) override;
-  void keyPressEvent(QKeyEvent*) override;
 
 private:
-  int handleAt(double x) const; // returns handle index or -1
   void updateHandleLines();
 
-  // IS handle data (parallel arrays — same length)
   QVector<HandleData> m_handles;
-  // One QGraphicsLineItem child per IS handle; stays on top of section views via zValue.
-  QVector<QGraphicsLineItem*> m_handleLines;
-
-  int m_activeHandle{-1};
-  double m_dragStartX{};
+  QVector<SequenceHandleItem*> m_handleLines;
+  SequenceRailItem* m_rail{};
 };
 
 } // namespace Sequence

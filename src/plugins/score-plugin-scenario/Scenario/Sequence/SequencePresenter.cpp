@@ -9,6 +9,7 @@
 
 #include <Process/TimeValue.hpp>
 
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/OngoingCommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 
@@ -34,26 +35,45 @@ SequencePresenter::SequencePresenter(
         updateHandles();
       });
 
-  // Handle drag: dispatch ongoing MoveSequenceIS command
+  // Handle drag: dispatch the ongoing move command — plain (neighbours
+  // resize) or ripple (shift held: what follows shifts, parent end moves).
   connect(
       view, &SequenceView::handleDragMoved, this,
-      [this](Id<Scenario::TimeSyncModel> tsId, double newX) {
+      [this](Id<Scenario::TimeSyncModel> tsId, double newX, bool ripple) {
         if(m_zoom <= 0)
           return;
         const auto newDate = TimeVal::fromPixels(newX, m_zoom);
-        m_context.context.dispatcher.submit<Sequence::Command::MoveSequenceIS>(
-            m_model, tsId, newDate);
+        if(ripple)
+          m_context.context.dispatcher
+              .submit<Sequence::Command::MoveSequenceISRipple>(
+                  m_model, tsId, newDate);
+        else
+          m_context.context.dispatcher.submit<Sequence::Command::MoveSequenceIS>(
+              m_model, tsId, newDate);
       });
 
   connect(
       view, &SequenceView::handleDragReleased, this,
-      [this](Id<Scenario::TimeSyncModel>, double) {
+      [this](Id<Scenario::TimeSyncModel>, double, bool) {
         m_context.context.dispatcher.commit();
       });
 
   connect(view, &SequenceView::handleDragCancelled, this, [this]() {
     m_context.context.dispatcher.rollback();
     updateHandles();
+  });
+
+  // Rail double-click: insert an IS at that date, splitting the section and
+  // its automation curves.
+  connect(view, &SequenceView::railDoubleClicked, this, [this](double x) {
+    if(m_zoom <= 0)
+      return;
+    const auto date = TimeVal::fromPixels(x, m_zoom);
+    auto cmd = new Sequence::Command::InsertSequenceIS{m_model, date};
+    if(cmd->valid())
+      CommandDispatcher<>{m_context.context.commandStack}.submit(cmd);
+    else
+      delete cmd;
   });
 
   // Build section presenters for initial model state.
@@ -144,7 +164,7 @@ void SequencePresenter::updateSectionLayout()
     const auto& itv = pres->model();
     const double x = itv.date().toPixels(m_zoom);
     const double w = itv.duration.defaultDuration().toPixels(m_zoom);
-    pres->view()->setPos(x, 0.0);
+    pres->view()->setPos(x, SequenceView::RailHeight);
     pres->view()->setDefaultWidth(w);
     pres->view()->setMinWidth(itv.duration.minDuration().toPixels(m_zoom));
     pres->view()->setMaxWidth(
