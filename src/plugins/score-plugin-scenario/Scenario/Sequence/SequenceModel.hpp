@@ -30,6 +30,10 @@ namespace Automation
 {
 class ProcessModel;
 }
+namespace Gradient
+{
+class ProcessModel;
+}
 
 namespace Sequence
 {
@@ -265,6 +269,9 @@ private:
 
   // The automation for `addr` inside a given section interval, or nullptr.
   Automation::ProcessModel* automationForAddr(
+      Scenario::IntervalModel& itv, const State::AddressAccessor& addr) const;
+  // The gradient for a color-unit `addr` inside a section interval, or nullptr.
+  Gradient::ProcessModel* gradientForAddr(
       Scenario::IntervalModel& itv, const State::AddressAccessor& addr) const;
   // The sequence-wide range for `addr`, read from the first automation found.
   // Returns false if no automation exists yet for that address.

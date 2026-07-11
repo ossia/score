@@ -335,7 +335,9 @@ CreateSequence* CreateSequence::make(
   auto& devPlugin = ctx.plugin<Explorer::DeviceDocumentPlugin>();
   for(const auto& msg : startMessages)
   {
-    if(!ossia::is_numeric(msg.value))
+    const bool isColor
+        = bool(msg.address.qualifiers.get().unit.v.target<ossia::color_u>());
+    if(!ossia::is_numeric(msg.value) && !isColor)
       continue;
 
     auto node = Device::try_getNodeFromAddress(devPlugin.rootNode(), msg.address.address);

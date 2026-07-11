@@ -5,6 +5,8 @@
 #include <Automation/AutomationModel.hpp>
 #include <Automation/AutomationProcessMetadata.hpp>
 
+#include <Color/GradientModel.hpp>
+
 #include <Curve/CurveModel.hpp>
 #include <Curve/Segment/Linear/LinearSegment.hpp>
 
@@ -30,7 +32,12 @@
 #include <State/ValueConversion.hpp>
 
 #include <ossia/detail/algorithms.hpp>
+#include <ossia/network/common/destination_qualifiers.hpp>
+#include <ossia/network/dataspace/dataspace_variant_visitors.hpp>
+#include <ossia/network/dataspace/dataspace_visitors.hpp>
 #include <ossia/network/value/value_conversion.hpp>
+
+#include <QColor>
 
 #include <Process/TimeValue.hpp>
 
@@ -48,6 +55,83 @@ namespace Sequence
 // Height of the small-view slot created for each automation inside a section
 // interval. Kept small so several parameters fit inside the sequence layer.
 static constexpr qreal kSectionSlotHeight = 60.;
+
+// ---- Color parameter helpers ----
+// A parameter whose address carries a color unit is automated with a
+// Gradient process instead of an Automation.
+
+static const ossia::color_u* colorUnit(const State::AddressAccessor& addr)
+{
+  return addr.qualifiers.get().unit.v.target<ossia::color_u>();
+}
+
+// Mirrors the converter used by the legacy auto-sequence path.
+struct color_to_qcolor
+{
+  template <typename Color>
+  QColor operator()(const typename Color::value_type& value, const Color&)
+  {
+    auto rgba = ossia::rgba{ossia::strong_value<Color>{value}};
+    auto& col = rgba.dataspace_value;
+    return QColor::fromRgbF((qreal)col[0], (qreal)col[1], (qreal)col[2], (qreal)col[3]);
+  }
+
+  template <typename... Args>
+  QColor operator()(Args&&...)
+  {
+    return QColor{};
+  }
+};
+
+static QColor valueToColor(const ossia::value& v, const ossia::color_u& u)
+{
+  QColor c = ossia::apply(color_to_qcolor{}, v.v, u);
+  if(!c.isValid())
+  {
+    // Device values may be stored as generic lists instead of vec4f;
+    // coerce and retry, otherwise the converter's fallback yields an
+    // invalid color which renders black.
+    const ossia::value coerced{ossia::convert<ossia::vec4f>(v)};
+    c = ossia::apply(color_to_qcolor{}, coerced.v, u);
+  }
+  return c.isValid() ? c : QColor::fromRgbF(0., 0., 0., 1.);
+}
+
+// QColor → ossia value expressed in the address's own color unit.
+static ossia::value colorToValue(const QColor& c, const ossia::color_u& u)
+{
+  ossia::rgba col{
+      (float)c.redF(), (float)c.greenF(), (float)c.blueF(), (float)c.alphaF()};
+  return ossia::to_value(ossia::convert(col, ossia::unit_t{u}));
+}
+
+static QColor lerpColor(const QColor& a, const QColor& b, double t)
+{
+  return QColor::fromRgbF(
+      a.redF() + (b.redF() - a.redF()) * t, a.greenF() + (b.greenF() - a.greenF()) * t,
+      a.blueF() + (b.blueF() - a.blueF()) * t,
+      a.alphaF() + (b.alphaF() - a.alphaF()) * t);
+}
+
+// Interpolated color of a gradient at position t (same linear semantics as the
+// gradient rendering: flat before the first and after the last stop).
+static QColor
+gradientValueAt(const ossia::flat_map<double, QColor>& stops, double t)
+{
+  if(stops.empty())
+    return QColor::fromRgbF(0., 0., 0., 1.);
+  auto it = stops.lower_bound(t);
+  if(it == stops.begin())
+    return it->second;
+  if(it == stops.end())
+    return std::prev(it)->second;
+  if(it->first == t)
+    return it->second;
+  auto prev = std::prev(it);
+  const double span = it->first - prev->first;
+  const double u = span < 1e-9 ? 0. : (t - prev->first) / span;
+  return lerpColor(prev->second, it->second, u);
+}
 
 // Normalize a scalar into [0,1] against a range, clamped.
 static double normalizeScalar(double v, double minVal, double maxVal)
@@ -199,6 +283,30 @@ resolveDomain(const score::DocumentContext& ctx, const State::AddressAccessor& a
   if(normY > 1.0)
     normY = 1.0;
   return ResolvedDomain{dom.min, dom.max, value, normY};
+}
+
+// Current device value of a color parameter, both as QColor and as the raw
+// ossia value (the latter is what gets recorded on IS states).
+struct ResolvedColor
+{
+  QColor color;
+  ossia::value raw;
+};
+
+static std::optional<ResolvedColor> resolveDeviceColor(
+    const score::DocumentContext& ctx, const State::AddressAccessor& addr,
+    const ossia::color_u& u)
+{
+  auto* devPlugin = ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
+  if(!devPlugin)
+    return std::nullopt;
+
+  auto* node = Device::try_getNodeFromAddress(devPlugin->rootNode(), addr.address);
+  if(!node || !node->is<Device::AddressSettings>())
+    return std::nullopt;
+
+  const auto& settings = node->get<Device::AddressSettings>();
+  return ResolvedColor{valueToColor(settings.value, u), settings.value};
 }
 
 // Helper: create a TimeSync + Event + State chain at a given date
@@ -403,6 +511,33 @@ void SequenceModel::addParameter(
     return;
   m_namespace.append(addr);
 
+  // Color parameters are automated with a Gradient process per section,
+  // flat at the current device color.
+  if(auto* cu = colorUnit(addr))
+  {
+    auto resolved = resolveDeviceColor(m_context, addr, *cu);
+    const QColor c
+        = resolved ? resolved->color : QColor::fromRgbF(0.5, 0.5, 0.5, 1.);
+
+    for(auto& itv : intervals)
+    {
+      auto procId = getStrongId(itv.processes);
+      auto* grad
+          = new Gradient::ProcessModel(itv.duration.defaultDuration(), procId, &itv);
+      grad->outlet->setAddress(addr);
+      Gradient::ProcessModel::gradient_colors g;
+      g[0.] = c;
+      g[1.] = c;
+      grad->setGradient(g);
+      Scenario::AddProcess(itv, grad);
+      itv.addSlot(Scenario::Slot{{procId}, procId, kSectionSlotHeight});
+      itv.setSmallViewVisible(true);
+    }
+
+    namespaceChanged();
+    return;
+  }
+
   // Look up the actual current value + domain in the device explorer.
   // If absent (offline device, address removed), fall back to a flat midpoint.
   // The range starts as the declared domain widened by the current value —
@@ -436,7 +571,7 @@ void SequenceModel::removeParameter(const State::AddressAccessor& addr)
 {
   m_namespace.removeAll(addr);
 
-  // Remove automations for this address from all section intervals
+  // Remove automations / gradients for this address from all section intervals
   for(auto& itv : intervals)
   {
     for(const auto& proc : itv.processes)
@@ -444,6 +579,14 @@ void SequenceModel::removeParameter(const State::AddressAccessor& addr)
       if(auto* auto_proc = qobject_cast<const Automation::ProcessModel*>(&proc))
       {
         if(auto_proc->address() == addr)
+        {
+          Scenario::RemoveProcess(itv, proc.id());
+          break;
+        }
+      }
+      else if(auto* grad = qobject_cast<const Gradient::ProcessModel*>(&proc))
+      {
+        if(grad->address() == addr)
         {
           Scenario::RemoveProcess(itv, proc.id());
           break;
@@ -550,6 +693,44 @@ void SequenceModel::appendSectionWithIds(
   const auto prevEndMessages = Process::flatten(prevEndSt.messages().rootNode());
   for(const auto& addr : m_namespace)
   {
+    // Color parameters: gradient from the previous end IS color to the
+    // current device color.
+    if(auto* cu = colorUnit(addr))
+    {
+      auto resolved = resolveDeviceColor(m_context, addr, *cu);
+      const QColor devColor
+          = resolved ? resolved->color : QColor::fromRgbF(0.5, 0.5, 0.5, 1.);
+
+      QColor startColor = devColor;
+      for(const auto& msg : prevEndMessages)
+      {
+        if(msg.address == addr)
+        {
+          startColor = valueToColor(msg.value, *cu);
+          break;
+        }
+      }
+
+      auto procId = getStrongId(newItv.processes);
+      auto* grad = new Gradient::ProcessModel(
+          newItv.duration.defaultDuration(), procId, &newItv);
+      grad->outlet->setAddress(addr);
+      Gradient::ProcessModel::gradient_colors g;
+      g[0.] = startColor;
+      g[1.] = devColor;
+      grad->setGradient(g);
+      Scenario::AddProcess(newItv, grad);
+      newItv.addSlot(Scenario::Slot{{procId}, procId, kSectionSlotHeight});
+      newItv.setSmallViewVisible(true);
+
+      if(resolved)
+      {
+        State::MessageList msgs{State::Message{addr, resolved->raw}};
+        Scenario::updateModelWithMessageList(newEndSt.messages(), std::move(msgs));
+      }
+      continue;
+    }
+
     auto resolved = resolveDomain(m_context, addr);
     const double devVal = resolved ? resolved->value : 0.5;
 
@@ -786,6 +967,43 @@ void SequenceModel::insertISWithIds(const InsertedIS& info, const TimeVal& date)
   // other section — otherwise the rows don't line up across the boundary.
   for(const auto& addr : m_namespace)
   {
+    // Color parameters: split the gradient at t
+    if(auto* cu = colorUnit(addr))
+    {
+      auto* leftGrad = gradientForAddr(leftItv, addr);
+      if(!leftGrad)
+        continue;
+
+      const auto stops = leftGrad->gradient();
+      const QColor cAt = gradientValueAt(stops, t);
+
+      Gradient::ProcessModel::gradient_colors leftStops, rightStops;
+      for(const auto& [pos, col] : stops)
+      {
+        if(pos < t)
+          leftStops[pos / t] = col;
+        else if(pos > t)
+          rightStops[(pos - t) / (1. - t)] = col;
+      }
+      leftStops[1.] = cAt;
+      rightStops[0.] = cAt;
+
+      auto procId = getStrongId(rightItv.processes);
+      auto* rightGrad = new Gradient::ProcessModel(
+          rightItv.duration.defaultDuration(), procId, &rightItv);
+      rightGrad->outlet->setAddress(addr);
+      rightGrad->setGradient(rightStops);
+      Scenario::AddProcess(rightItv, rightGrad);
+      rightItv.addSlot(Scenario::Slot{{procId}, procId, kSectionSlotHeight});
+      rightItv.setSmallViewVisible(true);
+
+      leftGrad->setGradient(leftStops);
+
+      State::MessageList msgs{State::Message{addr, colorToValue(cAt, *cu)}};
+      Scenario::updateModelWithMessageList(newSt->messages(), std::move(msgs));
+      continue;
+    }
+
     auto* leftAuto = automationForAddr(leftItv, addr);
     if(!leftAuto)
       continue;
@@ -839,9 +1057,33 @@ void SequenceModel::undoInsertIS(const InsertedIS& info)
   const TimeVal mergedDur = leftDur + rightDur;
   const double t = leftDur / mergedDur;
 
-  // Merge the split automation curves back
+  // Merge the split automation / gradient curves back
   for(auto& proc : leftItv.processes)
   {
+    if(auto* leftGrad = qobject_cast<Gradient::ProcessModel*>(&proc))
+    {
+      auto* rightGrad = gradientForAddr(rightItv, leftGrad->address());
+      if(!rightGrad)
+        continue;
+
+      // The stops at the junction (left pos 1, right pos 0) were inserted
+      // artificially by the split — drop them so undo restores the original
+      // gradient without a leftover point.
+      Gradient::ProcessModel::gradient_colors merged;
+      for(const auto& [pos, col] : leftGrad->gradient())
+      {
+        if(pos < 1. - 1e-9)
+          merged[pos * t] = col;
+      }
+      for(const auto& [pos, col] : rightGrad->gradient())
+      {
+        if(pos > 1e-9)
+          merged[t + pos * (1. - t)] = col;
+      }
+      leftGrad->setGradient(merged);
+      continue;
+    }
+
     auto* leftAuto = qobject_cast<Automation::ProcessModel*>(&proc);
     if(!leftAuto)
       continue;
@@ -849,14 +1091,19 @@ void SequenceModel::undoInsertIS(const InsertedIS& info)
     if(!rightAuto)
       continue;
 
+    // Drop the junction point at t (last left point / first right point):
+    // it was inserted artificially by the split, and the surrounding points
+    // are collinear through it, so removal restores the original curve.
     QVector<QPointF> merged;
-    for(const auto& p : curveToPolyline(leftAuto->curve()))
-      merged.push_back({p.x() * t, p.y()});
-    for(const auto& p : curveToPolyline(rightAuto->curve()))
+    const auto leftPts = curveToPolyline(leftAuto->curve());
+    for(int i = 0; i < leftPts.size() - 1; ++i)
+      merged.push_back({leftPts[i].x() * t, leftPts[i].y()});
+    const auto rightPts = curveToPolyline(rightAuto->curve());
+    for(int i = 1; i < rightPts.size(); ++i)
     {
-      const double x = t + p.x() * (1. - t);
+      const double x = t + rightPts[i].x() * (1. - t);
       if(merged.empty() || x > merged.back().x() + 1e-9)
-        merged.push_back({x, p.y()});
+        merged.push_back({x, rightPts[i].y()});
     }
     polylineToCurve(leftAuto->curve(), merged);
   }
@@ -898,6 +1145,20 @@ Automation::ProcessModel* SequenceModel::automationForAddr(
     {
       if(auto_proc->address() == addr)
         return auto_proc;
+    }
+  }
+  return nullptr;
+}
+
+Gradient::ProcessModel* SequenceModel::gradientForAddr(
+    Scenario::IntervalModel& itv, const State::AddressAccessor& addr) const
+{
+  for(auto& proc : itv.processes)
+  {
+    if(auto* grad = qobject_cast<Gradient::ProcessModel*>(&proc))
+    {
+      if(grad->address() == addr)
+        return grad;
     }
   }
   return nullptr;
@@ -961,6 +1222,31 @@ void SequenceModel::syncAutomationEndpoints(
     const Id<Scenario::TimeSyncModel>& tsId, const State::AddressAccessor& addr,
     const ossia::value& val)
 {
+  // Color parameters: pull the value into the adjacent gradients' boundary stops.
+  if(auto* cu = colorUnit(addr))
+  {
+    const QColor c = valueToColor(val, *cu);
+    if(auto leftItvId = intervalBefore(tsId))
+    {
+      if(auto* grad = gradientForAddr(intervals.at(*leftItvId), addr))
+      {
+        auto g = grad->gradient();
+        g[1.] = c;
+        grad->setGradient(g);
+      }
+    }
+    if(auto rightItvId = intervalAfter(tsId))
+    {
+      if(auto* grad = gradientForAddr(intervals.at(*rightItvId), addr))
+      {
+        auto g = grad->gradient();
+        g[0.] = c;
+        grad->setGradient(g);
+      }
+    }
+    return;
+  }
+
   const double v = State::convert::value<double>(val);
 
   // Out-of-range values widen the sequence-wide range (unclipped parameters).
@@ -1055,6 +1341,30 @@ bool SequenceModel::isParamFrozen(
 
 void SequenceModel::rebuildAutomations(const State::AddressAccessor& addr)
 {
+  if(auto* cu = colorUnit(addr))
+  {
+    auto resolved = resolveDeviceColor(m_context, addr, *cu);
+    const QColor c
+        = resolved ? resolved->color : QColor::fromRgbF(0.5, 0.5, 0.5, 1.);
+    for(auto& itv : intervals)
+    {
+      if(gradientForAddr(const_cast<Scenario::IntervalModel&>(itv), addr))
+        continue;
+      auto procId = getStrongId(itv.processes);
+      auto* grad
+          = new Gradient::ProcessModel(itv.duration.defaultDuration(), procId, &itv);
+      grad->outlet->setAddress(addr);
+      Gradient::ProcessModel::gradient_colors g;
+      g[0.] = c;
+      g[1.] = c;
+      grad->setGradient(g);
+      Scenario::AddProcess(itv, grad);
+      itv.addSlot(Scenario::Slot{{procId}, procId, kSectionSlotHeight});
+      itv.setSmallViewVisible(true);
+    }
+    return;
+  }
+
   for(auto& itv : intervals)
   {
     // Check if an automation for addr already exists
