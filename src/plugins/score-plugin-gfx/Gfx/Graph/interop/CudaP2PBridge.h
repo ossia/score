@@ -163,6 +163,41 @@ CUDA_P2P_API CudaP2PError cuda_p2p_gl_write_buffer(
     void* src_device_ptr,
     uint32_t size);
 
+/**
+ * @brief Register a GL *texture* (image) for CUDA interop — the capture-collapse
+ *        option (a) path. Unlike cuda_p2p_register_gl_buffer (which stages
+ *        through an SSBO the caller must then glTexSubImage2D into the sampled
+ *        texture), this registers the sampled texture itself so
+ *        cuda_p2p_gl_write_image can cuMemcpy2D a bounce straight into its
+ *        level-0 array — collapsing the two render-thread VRAM copies into one.
+ *        Register-only (not kept mapped); the write path maps/unmaps per frame
+ *        so GL sees coherent data. @p gl_target is the raw GL texture target
+ *        (e.g. GL_TEXTURE_2D). Returns CUDA_P2P_ERROR_INTEROP_FAILED if the
+ *        driver lacks cuGraphicsGLRegisterImage or the texture isn't
+ *        CUDA-registrable — callers fall back to the buffer path.
+ */
+CUDA_P2P_API CudaP2PError cuda_p2p_register_gl_image(
+    CudaP2PContextHandle ctx,
+    uint32_t gl_texture_id,
+    uint32_t gl_target,
+    CudaP2PResourceHandle* out_handle);
+
+/**
+ * @brief Map a GL texture registered with cuda_p2p_register_gl_image, copy a
+ *        pitched region from @p src_device_ptr into its level-0 array via
+ *        cuMemcpy2D, then unmap (flushing the CUDA writes back to GL).
+ *        Stream-synchronised on return, so the caller may sample the texture
+ *        immediately afterwards. Rows are @p width_bytes wide, @p height of
+ *        them, source row stride @p src_pitch_bytes.
+ */
+CUDA_P2P_API CudaP2PError cuda_p2p_gl_write_image(
+    CudaP2PContextHandle ctx,
+    CudaP2PResourceHandle h,
+    void* src_device_ptr,
+    uint32_t width_bytes,
+    uint32_t height,
+    uint32_t src_pitch_bytes);
+
 /* ============================================================================
  * CUDA-owned linear buffers (the DMA-pinnable tier)
  *

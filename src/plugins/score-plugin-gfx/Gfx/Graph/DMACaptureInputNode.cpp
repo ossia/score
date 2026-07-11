@@ -139,6 +139,11 @@ public:
       m_gpu->samplers[0].texture = st;
       m_strategyOwnsTexture = true;
     }
+    // Baseline for the per-frame rebind below: the texture the passes are about
+    // to be built against. A double-buffering strategy will swap to a different
+    // slot texture on later frames (currentTexture()); single-texture
+    // strategies keep this forever.
+    m_currentTex = m_gpu->samplers[0].texture;
 
     score::gfx::defaultPassesInit(
         m_p, this->node.output[0]->edges, renderer, renderer.defaultQuad(),
@@ -203,6 +208,25 @@ public:
       }
       m_lastIngestedFrameId = latest;
       m_renderHoldsTexture = true;
+
+      // Double-buffered strategies (Vulkan tier-3) publish a fresh sampled
+      // texture per frame so the capture-thread write and the render-thread
+      // sample never touch the same VkImage. When the current texture changes,
+      // rebind every pass's SRB to it (updateResources only — no pipeline
+      // rebuild). No-op for single-texture strategies: their currentTexture()
+      // is constant, so cur == m_currentTex every frame.
+      if(m_gpu && !m_gpu->samplers.empty())
+      {
+        if(auto* cur = m_strategy->currentTexture(); cur && cur != m_currentTex)
+        {
+          QRhiSampler* s = m_gpu->samplers[0].sampler;
+          for(auto& pass : m_p)
+            if(pass.second.p.srb)
+              score::gfx::replaceTexture(*pass.second.p.srb, s, cur);
+          m_gpu->samplers[0].texture = cur;
+          m_currentTex = cur;
+        }
+      }
     }
   }
 
@@ -317,6 +341,10 @@ private:
   /// (Vulkan tier-3); gates the detach in release() so decoder-owned textures
   /// are still freed by GPUVideoDecoder::release().
   bool m_strategyOwnsTexture{false};
+  /// The texture currently bound in every pass's SRB. Tracked so a
+  /// double-buffering strategy's per-frame texture change triggers exactly one
+  /// SRB rebind; constant for single-texture strategies.
+  QRhiTexture* m_currentTex{};
 
   std::unique_ptr<score::gfx::GPUVideoDecoder> m_gpu;
   QShader m_vertexS, m_fragmentS;

@@ -525,6 +525,92 @@ CudaP2PError cuda_p2p_gl_write_buffer(
   return CUDA_P2P_SUCCESS;
 }
 
+CudaP2PError cuda_p2p_register_gl_image(
+    CudaP2PContextHandle ctx, uint32_t gl_texture_id, uint32_t gl_target,
+    CudaP2PResourceHandle* out_handle)
+{
+  if(!ctx || !out_handle || gl_texture_id == 0)
+    return CUDA_P2P_ERROR_INVALID_PARAMETER;
+  if(!ctx->cu.graphicsGLRegisterImage
+     || !ctx->cu.graphicsSubResourceGetMappedArray)
+  {
+    ctx->lastError
+        = "cuGraphicsGLRegisterImage/SubResourceGetMappedArray not available";
+    return CUDA_P2P_ERROR_INTEROP_FAILED;
+  }
+  *out_handle = nullptr;
+  std::lock_guard<std::mutex> lock(ctx->mutex);
+  CU_CHECK(
+      ctx->cu.ctxSetCurrent(ctx->cuContext), ctx,
+      CUDA_P2P_ERROR_INTEROP_FAILED, "cuCtxSetCurrent");
+
+  // FLAGS_NONE: the texture is only ever a cuMemcpy2D destination (never a
+  // surface load/store in a kernel), so SURFACE_LDST is not required.
+  CUgraphicsResource resource{};
+  CU_CHECK(
+      ctx->cu.graphicsGLRegisterImage(
+          &resource, gl_texture_id, gl_target,
+          CU_GRAPHICS_REGISTER_FLAGS_NONE),
+      ctx, CUDA_P2P_ERROR_INTEROP_FAILED, "cuGraphicsGLRegisterImage");
+
+  // Register-only: do NOT keep it mapped. cuda_p2p_gl_write_image maps and
+  // unmaps per frame so the texture is GL-owned (and CUDA writes are visible)
+  // whenever GL samples it — same coherency discipline as the buffer path.
+  auto* h = new CudaP2PResource_t();
+  h->graphicsResource = resource;
+  *out_handle = h;
+  return CUDA_P2P_SUCCESS;
+}
+
+CudaP2PError cuda_p2p_gl_write_image(
+    CudaP2PContextHandle ctx, CudaP2PResourceHandle h, void* src_device_ptr,
+    uint32_t width_bytes, uint32_t height, uint32_t src_pitch_bytes)
+{
+  if(!ctx || !h || !h->graphicsResource || !src_device_ptr || width_bytes == 0
+     || height == 0)
+    return CUDA_P2P_ERROR_INVALID_PARAMETER;
+  std::lock_guard<std::mutex> lock(ctx->mutex);
+  CU_CHECK(
+      ctx->cu.ctxSetCurrent(ctx->cuContext), ctx, CUDA_P2P_ERROR_COPY_FAILED,
+      "cuCtxSetCurrent");
+
+  CU_CHECK(
+      ctx->cu.graphicsMap(1, &h->graphicsResource, ctx->stream), ctx,
+      CUDA_P2P_ERROR_INTEROP_FAILED, "cuGraphicsMapResources(GL image)");
+
+  CUarray dstArray{};
+  if(ctx->cu.graphicsSubResourceGetMappedArray(
+         &dstArray, h->graphicsResource, 0, 0)
+         != CUDA_SUCCESS
+     || !dstArray)
+  {
+    ctx->cu.graphicsUnmap(1, &h->graphicsResource, ctx->stream);
+    ctx->lastError = "cuGraphicsSubResourceGetMappedArray failed";
+    return CUDA_P2P_ERROR_INTEROP_FAILED;
+  }
+
+  CUDA_MEMCPY2D m{};
+  m.srcMemoryType = CU_MEMORYTYPE_DEVICE;
+  m.srcDevice = reinterpret_cast<CUdeviceptr>(src_device_ptr);
+  m.srcPitch = src_pitch_bytes;
+  m.dstMemoryType = CU_MEMORYTYPE_ARRAY;
+  m.dstArray = dstArray;
+  m.WidthInBytes = width_bytes;
+  m.Height = height;
+
+  CUresult cr = ctx->cu.memcpy2DAsync(&m, ctx->stream);
+  if(cr == CUDA_SUCCESS)
+    cr = ctx->cu.streamSync(ctx->stream);
+
+  // Unmap regardless: it flushes CUDA writes to GL AND returns ownership so
+  // the subsequent sample reads coherent data.
+  ctx->cu.graphicsUnmap(1, &h->graphicsResource, ctx->stream);
+  if(cr != CUDA_SUCCESS)
+    return reportCuError(
+        ctx, cr, CUDA_P2P_ERROR_COPY_FAILED, "cuMemcpy2DAsync(GL image write)");
+  return CUDA_P2P_SUCCESS;
+}
+
 // =============================================================================
 // Shared-image importer (Vulkan external-memory → CUmipmappedArray)
 // =============================================================================

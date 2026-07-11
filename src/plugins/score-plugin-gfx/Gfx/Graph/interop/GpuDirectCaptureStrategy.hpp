@@ -102,6 +102,15 @@ struct GpuDirectCaptureStrategy
   /// owned depending on the impl; convenience accessor either way.
   virtual QRhiTexture* outputTexture() const noexcept = 0;
 
+  /// The texture holding the frame just made available by the most recent
+  /// acquireForRender(). For strategies that upload into a single fixed
+  /// texture this is always outputTexture(); strategies that double-buffer
+  /// the sampled resource (Vulkan tier-3, to avoid the capture-write /
+  /// render-sample race) return the freshest completed slot's texture, and
+  /// the renderer rebinds its passes to it when it changes. Called on the
+  /// render thread, after acquireForRender().
+  virtual QRhiTexture* currentTexture() const noexcept { return outputTexture(); }
+
   /// Render-thread bracket around sampling outputTexture(). DVP impls
   /// use this to handshake with the vendor's API/DVP semaphore; tier-3
   /// RDMA impls use it to copy buffer → texture on the render thread.

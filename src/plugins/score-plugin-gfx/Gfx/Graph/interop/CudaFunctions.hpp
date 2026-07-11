@@ -420,6 +420,22 @@ struct CudaFunctions
       = CUresult (*)(CUgraphicsResource*, unsigned int, unsigned int);
   FN_cuGraphicsGLRegisterBuffer graphicsGLRegisterBuffer{};
 
+  // Register a GL *texture* (image) for CUDA interop and fetch its level-0
+  // CUarray so a cuMemcpy2D can blit straight into the texture — the
+  // capture-collapse option (a) path (one DtoD→array copy instead of
+  // DtoD→SSBO + glTexSubImage2D). Driver-API symbols in libcuda.so; OPTIONAL
+  // (null when the driver/GL-interop pairing doesn't expose them — callers
+  // null-check and fall back to the buffer+PBO path).
+  using FN_cuGraphicsGLRegisterImage = CUresult (*)(
+      CUgraphicsResource*, unsigned int /*image*/, unsigned int /*target*/,
+      unsigned int /*flags*/);
+  FN_cuGraphicsGLRegisterImage graphicsGLRegisterImage{};
+
+  using FN_cuGraphicsSubResourceGetMappedArray = CUresult (*)(
+      CUarray*, CUgraphicsResource, unsigned int /*arrayIndex*/,
+      unsigned int /*mipLevel*/);
+  FN_cuGraphicsSubResourceGetMappedArray graphicsSubResourceGetMappedArray{};
+
   // -- External memory ----------------------------------------------------
   using FN_cuImportExternalMemory
       = CUresult (*)(CUexternalMemory*, const CUDA_EXTERNAL_MEMORY_HANDLE_DESC*);
@@ -593,6 +609,11 @@ struct CudaFunctions
 #endif
     graphicsGLRegisterBuffer
         = (FN_cuGraphicsGLRegisterBuffer)sym("cuGraphicsGLRegisterBuffer");
+    graphicsGLRegisterImage
+        = (FN_cuGraphicsGLRegisterImage)sym("cuGraphicsGLRegisterImage");
+    graphicsSubResourceGetMappedArray
+        = (FN_cuGraphicsSubResourceGetMappedArray)sym(
+            "cuGraphicsSubResourceGetMappedArray");
 
     // External memory — REQUIRED
     importExtMem = (FN_cuImportExternalMemory)sym("cuImportExternalMemory");
