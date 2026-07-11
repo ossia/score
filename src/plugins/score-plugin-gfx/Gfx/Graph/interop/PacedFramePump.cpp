@@ -83,12 +83,35 @@ void PacedFramePump::run()
        == m_readIdx.load(std::memory_order_relaxed))
       continue;
 
-    // 2. Block until the next output tick (vendor hook). false = timeout; the
-    //    frame stays pending, so put its permit back and retry.
-    if(!m_hooks.waitForTick || !m_hooks.waitForTick())
+    // 2. Pacing. Two vendor shapes:
+    //    - canAccept provided (AJA AutoCirculate): the card paces playout
+    //      from its own frame ring — stuff that ring back-to-back whenever
+    //      it can accept, and block on the vendor tick ONLY when it can't.
+    //      Ticking before *every* submit (the previous behaviour)
+    //      serialises tick-period + DMA and caps throughput at
+    //      1/(VBI + transfer): ~46 fps at UHD60, ~24 fps at 8K.
+    //    - canAccept null (DeckLink free-pool semaphore, Bluefish output
+    //      sync, Deltacast blocking submit): waitForTick IS the
+    //      back-pressure — keep the one-tick-per-submit contract.
+    if(m_hooks.canAccept)
     {
-      m_framesAvail.release();
-      continue;
+      while(m_running.load(std::memory_order_relaxed) && !m_hooks.canAccept())
+      {
+        if(m_hooks.waitForTick)
+          (void)m_hooks.waitForTick(); // timeout => re-check shutdown
+        else
+          break;
+      }
+      if(!m_running.load(std::memory_order_relaxed))
+        break;
+    }
+    else
+    {
+      if(!m_hooks.waitForTick || !m_hooks.waitForTick())
+      {
+        m_framesAvail.release();
+        continue;
+      }
     }
 
     if(!m_running.load(std::memory_order_relaxed))
@@ -126,12 +149,20 @@ void PacedFramePump::run()
     if(!framePtr)
       continue;
 
-    // Card-side back-pressure (optional vendor hook).
-    if(m_hooks.canAccept && !m_hooks.canAccept())
+    // Re-check back-pressure right before submit (the gate above ran before
+    // the drain; a canAccept flip in between is unlikely but cheap to guard).
+    // Unlike before, do NOT discard the frame — wait the tick out.
+    while(m_running.load(std::memory_order_relaxed) && m_hooks.canAccept
+          && !m_hooks.canAccept())
     {
       m_drops.fetch_add(1, std::memory_order_relaxed);
-      continue;
+      if(m_hooks.waitForTick)
+        (void)m_hooks.waitForTick();
+      else
+        break;
     }
+    if(!m_running.load(std::memory_order_relaxed))
+      break;
 
     if(!m_hooks.submit || !m_hooks.submit(framePtr))
       continue;

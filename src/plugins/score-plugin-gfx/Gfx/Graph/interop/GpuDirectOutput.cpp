@@ -1,5 +1,7 @@
 #include <Gfx/Graph/interop/GpuDirectOutput.hpp>
 
+#include <Gfx/Graph/interop/StageProfiler.hpp>
+
 #include <QDebug>
 
 namespace score::gfx::interop
@@ -156,14 +158,18 @@ void* GpuDirectOutput::prepareNextFrame()
 {
   if(!valid())
     return nullptr;
-  if(!m_dispatcher.waitOnCuda(m_fenceValue))
-    return nullptr;
+  {
+    SCORE_STAGE_PROFILE(profWait, "gdo-wait-encoder(sync)");
+    if(!m_dispatcher.waitOnCuda(m_fenceValue))
+      return nullptr;
+  }
   // The encoder's output is now visible (fence / glFinish above); bridge
   // it into the vendor-pinned bounce buffer. copy_dtod stream-syncs, so
   // the vendor may DMA the moment we return.
   const std::size_t idx = m_ring.writeIndex();
   if(idx >= m_bounce.size() || !m_bounce[idx])
     return nullptr;
+  SCORE_STAGE_PROFILE(profDtoD, "gdo-dtod-bounce");
   if(cuda_p2p_copy_dtod(
          m_cudaCtx, m_bounce[idx], m_dispatcher.finishedSlot().gpuDevicePtr,
          m_cfg.frameByteSize)
