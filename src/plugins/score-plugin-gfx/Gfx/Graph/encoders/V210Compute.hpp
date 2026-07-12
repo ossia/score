@@ -13,10 +13,10 @@ namespace score::gfx
  * @brief Compute-shader RGBA -> v210 encoder targeting an external SSBO.
  *
  * Unlike the fragment V210Encoder, this writes directly to a caller-owned
- * QRhiBuffer (Storage). Designed for the AJA tier-3 path: the buffer is
- * backed by a SHARED, CUDA-importable, AJA-DMA-locked GPU allocation, so
- * the encoder's writes ARE the bytes AJA P2P-DMAs to the card. Zero
- * intermediate copies, zero CUDA-side conversion.
+ * QRhiBuffer (Storage). Designed for the AJA zero-copy output path: the
+ * buffer is backed by a SHARED, CUDA-importable, AJA-DMA-locked GPU
+ * allocation, so the encoder's writes ARE the bytes AJA P2P-DMAs to the
+ * card. Zero intermediate copies, zero CUDA-side conversion.
  *
  * Each compute thread handles one 6-pixel v210 group: reads 6 RGBA
  * pixels, applies the colour matrix from %1, averages chroma pairs,
@@ -73,13 +73,16 @@ struct V210ComputeEncoder final : ComputeEncoder
       int src_y = srcSize.y - 1 - int(y);
     #endif
 
-      uint x0 = group_x * 6u;
-      uvec3 a = to_yuv10(texelFetch(src_tex, ivec2(int(x0    ), src_y), 0).rgb);
-      uvec3 b = to_yuv10(texelFetch(src_tex, ivec2(int(x0 + 1u), src_y), 0).rgb);
-      uvec3 c = to_yuv10(texelFetch(src_tex, ivec2(int(x0 + 2u), src_y), 0).rgb);
-      uvec3 d = to_yuv10(texelFetch(src_tex, ivec2(int(x0 + 3u), src_y), 0).rgb);
-      uvec3 e = to_yuv10(texelFetch(src_tex, ivec2(int(x0 + 4u), src_y), 0).rgb);
-      uvec3 f = to_yuv10(texelFetch(src_tex, ivec2(int(x0 + 5u), src_y), 0).rgb);
+      // Edge-clamp: the tail group at widths not divisible by 6 has fewer
+      // than 6 source pixels (texelFetch does NOT clamp on its own).
+      int xmax = src_size.x - 1;
+      int x0i = int(group_x * 6u);
+      uvec3 a = to_yuv10(texelFetch(src_tex, ivec2(min(x0i    , xmax), src_y), 0).rgb);
+      uvec3 b = to_yuv10(texelFetch(src_tex, ivec2(min(x0i + 1, xmax), src_y), 0).rgb);
+      uvec3 c = to_yuv10(texelFetch(src_tex, ivec2(min(x0i + 2, xmax), src_y), 0).rgb);
+      uvec3 d = to_yuv10(texelFetch(src_tex, ivec2(min(x0i + 3, xmax), src_y), 0).rgb);
+      uvec3 e = to_yuv10(texelFetch(src_tex, ivec2(min(x0i + 4, xmax), src_y), 0).rgb);
+      uvec3 f = to_yuv10(texelFetch(src_tex, ivec2(min(x0i + 5, xmax), src_y), 0).rgb);
 
       uint cb01 = (a.y + b.y) >> 1;
       uint cr01 = (a.z + b.z) >> 1;
@@ -117,14 +120,17 @@ struct V210ComputeEncoder final : ComputeEncoder
       int height, QRhiBuffer* outputBuffer,
       const QString& colorConversion = colorMatrixOut()) override
   {
-    if(!outputBuffer || width % 6 != 0)
+    if(!outputBuffer || width % 2 != 0)
       return false;
     if(!rhi.isFeatureSupported(QRhi::Compute))
       return false;
 
     m_width = width;
     m_height = height;
-    m_groupsPerRow = width / 6;
+    // Ceil: the tail group of a width not divisible by 6 (1280, 2048-DCI)
+    // still occupies a full 4-word group on the padded wire row; the shader
+    // edge-clamps its source fetches.
+    m_groupsPerRow = (width + 5) / 6;
     m_lineStrideBytes = ((width + 47) / 48) * 128;
 
     // Params UBO (std140, 32 bytes).

@@ -18,6 +18,25 @@ namespace score::gfx
  */
 struct BGRAEncoder : GPUVideoEncoder
 {
+  // Output byte order in memory (the RGBA8 texel bytes [0,1,2,3]).
+  // NOTE: these are *memory* byte orders, which do NOT match AJA's NTV2_FBF_*
+  // names — see the AJA FBF->memory mapping in AJAOutputNode (verified against
+  // ntv2transcode.cpp ConvertARGBYCbCrTo*).
+  enum class Swizzle
+  {
+    BGRA, // (b,g,r,a) — DXGI B8G8R8A8, QImage RGB32, NTV2_FBF_ARGB
+    RGBA, // (r,g,b,a) — straight passthrough, NTV2_FBF_ABGR
+    ABGR, // (a,b,g,r)
+    ARGB  // (a,r,g,b) — NTV2_FBF_RGBA
+  };
+  Swizzle m_swizzle{Swizzle::BGRA};
+
+  explicit BGRAEncoder(Swizzle s = Swizzle::BGRA)
+      : m_swizzle{s}
+  {
+  }
+
+  // %1 = the output swizzle expression.
   static constexpr const char* frag = R"_(#version 450
     layout(location = 0) in vec2 v_texcoord;
     layout(location = 0) out vec4 fragColor;
@@ -33,7 +52,7 @@ struct BGRAEncoder : GPUVideoEncoder
 
     void main() {
       vec4 c = texture(src_tex, flip_y(v_texcoord));
-      fragColor = vec4(c.b, c.g, c.r, c.a);
+      fragColor = %1;
     }
   )_";
 
@@ -46,6 +65,7 @@ struct BGRAEncoder : GPUVideoEncoder
   QRhiReadbackResult m_readback{};
   int m_width{};
   int m_height{};
+  bool m_readbackEnabled{true};
 
   void init(
       QRhi& rhi, const RenderState& state, QRhiTexture* inputRGBA, int width,
@@ -76,8 +96,15 @@ struct BGRAEncoder : GPUVideoEncoder
     });
     m_srb->create();
 
+    const char* swiz = (m_swizzle == Swizzle::RGBA) ? "vec4(c.r, c.g, c.b, c.a)"
+                       : (m_swizzle == Swizzle::ABGR)
+                           ? "vec4(c.a, c.b, c.g, c.r)"
+                       : (m_swizzle == Swizzle::ARGB)
+                           ? "vec4(c.a, c.r, c.g, c.b)"
+                           : "vec4(c.b, c.g, c.r, c.a)";
     auto [vertS, fragS] = makeShaders(
-        state, QString::fromLatin1(vertex_shader), QString::fromLatin1(frag));
+        state, QString::fromLatin1(vertex_shader),
+        QString::fromLatin1(frag).arg(QString::fromLatin1(swiz)));
 
     m_pipeline = rhi.newGraphicsPipeline();
     m_pipeline->setShaderStages({
@@ -92,20 +119,29 @@ struct BGRAEncoder : GPUVideoEncoder
 
   void exec(QRhi& rhi, QRhiCommandBuffer& cb) override
   {
-    cb.beginPass(m_renderTarget, Qt::black, {1.0f, 0});
+    cb.beginPass(m_renderTarget, Qt::black, {0.0f, 0});
     cb.setGraphicsPipeline(m_pipeline);
     cb.setShaderResources(m_srb);
     cb.setViewport(QRhiViewport(0, 0, m_width, m_height));
     cb.draw(3);
 
-    auto* readbackBatch = rhi.nextResourceUpdateBatch();
-    readbackBatch->readBackTexture(QRhiReadbackDescription{m_outTexture}, &m_readback);
-    cb.endPass(readbackBatch);
+    if(m_readbackEnabled)
+    {
+      auto* readbackBatch = rhi.nextResourceUpdateBatch();
+      readbackBatch->readBackTexture(QRhiReadbackDescription{m_outTexture}, &m_readback);
+      cb.endPass(readbackBatch);
+    }
+    else
+    {
+      cb.endPass();
+    }
   }
 
   int planeCount() const override { return 1; }
 
   const QRhiReadbackResult& readback(int) const override { return m_readback; }
+  QRhiTexture* outputTexture() const noexcept override { return m_outTexture; }
+  void setReadbackEnabled(bool e) noexcept override { m_readbackEnabled = e; }
 
   void release() override
   {

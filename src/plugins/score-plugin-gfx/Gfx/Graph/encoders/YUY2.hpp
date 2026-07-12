@@ -5,15 +5,13 @@ namespace score::gfx
 {
 
 /**
- * @brief GPU RGBA->UYVY encoder (packed 4:2:2).
+ * @brief GPU RGBA->YUY2 encoder (packed 4:2:2, NTV2_FBF_8BIT_YCBCR_YUY2).
  *
- * Output: RGBA8 texture at half width. Each output texel encodes 2 source
- * pixels as (U, Y0, V, Y1). Single render pass, single readback.
- *
- * The readback data is directly in UYVY memory layout, ready for
- * GStreamer `video/x-raw,format=UYVY`.
+ * Identical to UYVYEncoder except the output byte order is Y0, Cb, Y1, Cr
+ * (YUY2 / YUYV) instead of Cb, Y0, Cr, Y1 (UYVY / 2vuy). Output is an RGBA8
+ * texture at half width; each texel encodes 2 source pixels.
  */
-struct UYVYEncoder : GPUVideoEncoder
+struct YUY2Encoder : GPUVideoEncoder
 {
   // %1 = colorMatrixOut() shader defining convert_from_rgb(vec3)
   static constexpr const char* frag = R"_(#version 450
@@ -45,12 +43,11 @@ struct UYVYEncoder : GPUVideoEncoder
       vec3 yuv0 = convert_from_rgb(rgb0);
       vec3 yuv1 = convert_from_rgb(rgb1);
 
-      // Average chroma
       float u = (yuv0.y + yuv1.y) * 0.5;
       float v = (yuv0.z + yuv1.z) * 0.5;
 
-      // UYVY: U, Y0, V, Y1
-      fragColor = vec4(u, yuv0.x, v, yuv1.x);
+      // YUY2: Y0, Cb, Y1, Cr
+      fragColor = vec4(yuv0.x, u, yuv1.x, v);
     }
   )_";
 
@@ -63,7 +60,6 @@ struct UYVYEncoder : GPUVideoEncoder
   QRhiReadbackResult m_readback{};
   int m_width{};
   int m_height{};
-  bool m_readbackEnabled{true};
 
   void init(
       QRhi& rhi, const RenderState& state, QRhiTexture* inputRGBA, int width,
@@ -72,7 +68,6 @@ struct UYVYEncoder : GPUVideoEncoder
     m_width = width;
     m_height = height;
 
-    // Output: RGBA8 at half width (each texel = 2 source pixels packed as UYVY)
     m_outTexture = rhi.newTexture(
         QRhiTexture::RGBA8, QSize{width / 2, height}, 1,
         QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource);
@@ -88,7 +83,6 @@ struct UYVYEncoder : GPUVideoEncoder
         QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
     m_sampler->create();
 
-    // Shader resource bindings — only the source texture sampler
     m_srb = rhi.newShaderResourceBindings();
     m_srb->setBindings({
         QRhiShaderResourceBinding::sampledTexture(
@@ -96,23 +90,19 @@ struct UYVYEncoder : GPUVideoEncoder
     });
     m_srb->create();
 
-    // Compile shaders
     auto [vertS, fragS] = makeShaders(
         state, QString::fromLatin1(vertex_shader),
         QString::fromLatin1(frag).arg(colorConversion));
 
-    // Graphics pipeline
     m_pipeline = rhi.newGraphicsPipeline();
     m_pipeline->setShaderStages({
         {QRhiShaderStage::Vertex, vertS},
         {QRhiShaderStage::Fragment, fragS},
     });
-
     m_pipeline->setVertexInputLayout({});
     m_pipeline->setShaderResourceBindings(m_srb);
     m_pipeline->setRenderPassDescriptor(m_rpDesc);
     m_pipeline->create();
-
   }
 
   void exec(QRhi& rhi, QRhiCommandBuffer& cb) override
@@ -123,39 +113,22 @@ struct UYVYEncoder : GPUVideoEncoder
     cb.setViewport(QRhiViewport(0, 0, m_width / 2, m_height));
     cb.draw(3);
 
-    if(m_readbackEnabled)
-    {
-      auto* readbackBatch = rhi.nextResourceUpdateBatch();
-      QRhiReadbackDescription rb(m_outTexture);
-      readbackBatch->readBackTexture(rb, &m_readback);
-      cb.endPass(readbackBatch);
-    }
-    else
-    {
-      cb.endPass();
-    }
+    auto* readbackBatch = rhi.nextResourceUpdateBatch();
+    readbackBatch->readBackTexture(QRhiReadbackDescription{m_outTexture}, &m_readback);
+    cb.endPass(readbackBatch);
   }
 
   int planeCount() const override { return 1; }
-
   const QRhiReadbackResult& readback(int) const override { return m_readback; }
-  QRhiTexture* outputTexture() const noexcept override { return m_outTexture; }
-  void setReadbackEnabled(bool e) noexcept override { m_readbackEnabled = e; }
 
   void release() override
   {
-    delete m_pipeline;
-    m_pipeline = nullptr;
-    delete m_srb;
-    m_srb = nullptr;
-    delete m_sampler;
-    m_sampler = nullptr;
-    delete m_rpDesc;
-    m_rpDesc = nullptr;
-    delete m_renderTarget;
-    m_renderTarget = nullptr;
-    delete m_outTexture;
-    m_outTexture = nullptr;
+    delete m_pipeline;     m_pipeline = nullptr;
+    delete m_srb;          m_srb = nullptr;
+    delete m_sampler;      m_sampler = nullptr;
+    delete m_rpDesc;       m_rpDesc = nullptr;
+    delete m_renderTarget; m_renderTarget = nullptr;
+    delete m_outTexture;   m_outTexture = nullptr;
   }
 };
 
