@@ -7,23 +7,23 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#include "Http_server.hpp"
+#include "HttpServer.hpp"
 #include <Library/LibrarySettings.hpp>
 
 #include <cstdlib>
 #include <iostream>
 
-namespace RemoteControl
+namespace RemoteControl::HttpServer
 {
-Http_server::Http_server() { }
+HttpServer::HttpServer() { }
 
-Http_server::~Http_server()
+HttpServer::~HttpServer()
 {
   stop_thread();
 }
 
 // Return a reasonable mime type based on the extension of a file.
-beast::string_view Http_server::mime_type(beast::string_view path)
+beast::string_view HttpServer::mime_type(beast::string_view path)
 {
   using beast::iequals;
   auto const ext = [&path]
@@ -60,7 +60,7 @@ beast::string_view Http_server::mime_type(beast::string_view path)
 
 // Append an HTTP rel-path to a local filesystem path.
 // The returned path is normalized for the platform.
-std::string Http_server::path_cat(beast::string_view path)
+std::string HttpServer::path_cat(beast::string_view path)
 {
   if (m_buildWasmPath.empty())
     return std::string(path);
@@ -87,9 +87,9 @@ std::string Http_server::path_cat(beast::string_view path)
 // contents of the request, so the interface requires the
 // caller to pass a generic lambda for receiving the response.
 template<class Body, class Allocator, class Send>
-void Http_server::handle_request(
+void HttpServer::handle_request(
     http::request<Body, http::basic_fields<Allocator>>&& req
-    , Send&& send)
+    , const Send& send)
 {
   // Returns a bad request response
   auto const bad_request =
@@ -194,13 +194,13 @@ void Http_server::handle_request(
 }
 
 // Report a failure
-void Http_server::fail(beast::error_code ec, char const* what)
+void HttpServer::fail(beast::error_code ec, char const* what)
 {
   std::cerr << what << ": " << ec.message() << "\n";
 }
 
 // Handles an HTTP server connection
-void Http_server::do_session(tcp::socket& socket)
+void HttpServer::do_session(tcp::socket& socket)
 {
   bool close = false;
   beast::error_code ec;
@@ -209,7 +209,21 @@ void Http_server::do_session(tcp::socket& socket)
   beast::flat_buffer buffer;
 
   // This lambda is used to send messages
-  send_lambda<tcp::socket> lambda{socket, close, ec};
+  const auto lambda{[&close, &socket, &ec]
+              <bool isRequest
+               , class Body
+               , class Fields>
+              (http::message<isRequest, Body, Fields>&& msg)
+  {
+    // Determine if we should close the connection after
+    close = msg.need_eof();
+
+    // We need the serializer here because the serializer requires
+    // a non-const file_body, and the message oriented version of
+    // http::write only works with const messages.
+    http::serializer<isRequest, Body, Fields> sr{msg};
+    http::write(socket, sr, ec);
+  }};
 
   for(;;)
   {
@@ -219,12 +233,13 @@ void Http_server::do_session(tcp::socket& socket)
     if(ec == http::error::end_of_stream)
       break;
     if(ec)
-      return Http_server::fail(ec, "read");
+      return HttpServer::fail(ec, "read");
 
     // Send the response
-    Http_server::handle_request(std::move(req), lambda);
-    if(ec)
-      return Http_server::fail(ec, "write");
+    HttpServer::handle_request(std::move(req), lambda);
+
+    if (ec)
+      return HttpServer::fail(ec, "write");
     if(close)
     {
       // This means we should close the connection, usually because
@@ -240,12 +255,12 @@ void Http_server::do_session(tcp::socket& socket)
 }
 
 // Launch the open_server function in a thread
-void Http_server::start_thread()
+void HttpServer::start_thread()
 {
   m_serverThread = std::thread{[this] { open_server(); }};
 }
 
-void Http_server::stop_thread()
+void HttpServer::stop_thread()
 {
   if (!running()) return;
 
@@ -254,13 +269,13 @@ void Http_server::stop_thread()
   m_serverThread.join();
 }
 
-void Http_server::set_path(const std::string& str)
+void HttpServer::set_path(const std::string& str)
 {
   // FIXME : Not thread safe, but is it that bad ?
   m_buildWasmPath = str;
 }
 
-void Http_server::set_address(const std::string& str)
+void HttpServer::set_address(const std::string& str)
 {
   bool is_runnig{running()};
   if (is_runnig) stop_thread();
@@ -268,7 +283,7 @@ void Http_server::set_address(const std::string& str)
   if (is_runnig) start_thread();
 }
 
-void Http_server::set_port(unsigned short prt)
+void HttpServer::set_port(unsigned short prt)
 {
   bool is_runnig{running()};
   if (is_runnig) stop_thread();
@@ -277,7 +292,7 @@ void Http_server::set_port(unsigned short prt)
 }
 
 // Open a server using sockets
-int Http_server::open_server()
+int HttpServer::open_server()
 {
   try
   {
@@ -303,7 +318,7 @@ int Http_server::open_server()
   }
 }
 
-bool Http_server::running()
+bool HttpServer::running()
 {
   return m_serverThread.joinable();
 }
