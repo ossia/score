@@ -1,5 +1,5 @@
 #pragma once
-#include "Http_server.hpp"
+#include "HttpServer.hpp"
 
 #include <score_plugin_remotecontrol_export.h>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
@@ -13,7 +13,7 @@ public:
   ~DocumentPlugin();
 
 private:
-  Http_server m_server;
+  HttpServer m_server;
 };
 
 } // namespace RemoteControl::HttpServer
