@@ -9,6 +9,7 @@
 #include <QSvgRenderer>
 #endif
 
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/math.hpp>
 #include <ossia/gfx/port_index.hpp>
 #include <ossia/network/value/value_conversion.hpp>
@@ -207,6 +208,11 @@ void ImagesNode::process(Message&& msg)
 
         case 5: // Images
         {
+          // getImages() acquires every image from Gfx::ImageCache (refcount
+          // bumped per image). Without a matching release on the no-change
+          // branch below, the cache refcount accumulated by one acquire per
+          // re-emit of the same control value — long sessions that re-fed
+          // the same image list every tick bled cache memory until quit.
           auto new_images = Gfx::getImages(*val, this->ctx);
           auto diff = [](const score::gfx::Image& lhs, const score::gfx::Image& rhs) {
             return lhs.path != rhs.path;
@@ -244,6 +250,14 @@ void ImagesNode::process(Message&& msg)
             }
 
             ++this->imagesChanged;
+          }
+          else
+          {
+            // Same image set as before — release the freshly-acquired
+            // copy so the cache refcount returns to baseline. Without
+            // this, every re-emit on the same control value bumped
+            // ImageCache::m_refcounts by one per image and never paired.
+            Gfx::releaseImages(new_images);
           }
           break;
         }
@@ -381,13 +395,13 @@ private:
   }
 
   TextureRenderTarget renderTargetForInput(const Port& p) override { return {}; }
-  void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  void initState(RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
     auto& n = static_cast<const ImagesNode&>(this->node);
     const auto& rs = renderer.state;
-    const Mesh& mesh = renderer.defaultQuad();
+    m_mesh = &renderer.defaultQuad();
 
-    defaultMeshInit(renderer, mesh, res);
+    defaultMeshInit(renderer, *m_mesh, res);
     processUBOInit(renderer);
     m_material.init(renderer, node.input, m_samplers);
 
@@ -398,8 +412,14 @@ private:
     recreateTextures(rhi);
 
     tile = n.tileMode;
+
+    // Compile shaders for the "single" case
     std::tie(m_vertexS, m_fragmentS) = score::gfx::makeShaders(
         rs, images_single_vertex_shader, images_single_fragment_shader);
+
+    // Compile shaders for the "tiled" case
+    std::tie(m_tiledVertexS, m_tiledFragmentS) = score::gfx::makeShaders(
+        rs, images_tiled_vertex_shader, images_tiled_fragment_shader);
 
     // Create the sampler in which we are going to put the texture
     {
@@ -408,24 +428,52 @@ private:
       m_samplers.push_back({sampler, tex});
     }
 
-    // Initialize the passes for the "single" case
-    defaultPassesInit(renderer, mesh);
+    m_initialized = true;
+  }
 
-    // Initialize the passes for the "tiled" case
+  void addOutputPass(
+      RenderList& renderer, Edge& edge, QRhiResourceUpdateBatch& res) override
+  {
+    if(!m_mesh)
+      return;
+    if(this->node.output[0]->type != score::gfx::Types::Image)
+      return;
+
+    auto rt = renderer.renderTargetForOutput(edge);
+    if(rt.renderTarget)
     {
-      auto [v, f] = score::gfx::makeShaders(
-          rs, images_tiled_vertex_shader, images_tiled_fragment_shader);
-      for(Edge* edge : this->node.output[0]->edges)
+      // Pass for the "single" case
       {
-        auto rt = renderer.renderTargetForOutput(*edge);
-        if(rt.renderTarget)
-        {
-          m_altPasses.emplace_back(
-              edge, score::gfx::buildPipeline(
-                        renderer, mesh, v, f, rt, m_processUBO, m_material.buffer,
-                        m_samplers));
-        }
+        auto pip = score::gfx::buildPipeline(
+            renderer, *m_mesh, m_vertexS, m_fragmentS, rt, m_processUBO,
+            m_material.buffer, m_samplers);
+        if(pip.pipeline)
+          m_p.emplace_back(&edge, Pass{rt, pip, nullptr});
       }
+
+      // Pass for the "tiled" case
+      {
+        auto pip = score::gfx::buildPipeline(
+            renderer, *m_mesh, m_tiledVertexS, m_tiledFragmentS, rt, m_processUBO,
+            m_material.buffer, m_samplers);
+        if(pip.pipeline)
+          m_altPasses.emplace_back(&edge, Pass{rt, pip, nullptr});
+      }
+    }
+  }
+
+  void removeOutputPass(RenderList& renderer, Edge& edge) override
+  {
+    // Remove from the single passes
+    GenericNodeRenderer::removeOutputPass(renderer, edge);
+
+    // Remove from the tiled passes
+    auto it
+        = ossia::find_if(m_altPasses, [&](const auto& p) { return p.first == &edge; });
+    if(it != m_altPasses.end())
+    {
+      it->second.release();
+      m_altPasses.erase(it);
     }
   }
 
@@ -435,7 +483,7 @@ private:
     if(n.tileMode != tile)
     {
       tile = n.tileMode;
-      auto [s, tex] = m_samplers[0];
+      auto [s, tex, fb_] = m_samplers[0];
       m_samplers.clear();
 
       // Create a new sampler
@@ -445,7 +493,7 @@ private:
       // Replace it in the render passes
       auto replace_sampler = [](PassMap& passes, QRhiSampler* oldS, QRhiSampler* newS) {
         for(auto& pass : passes)
-          score::gfx::replaceSampler(*pass.second.srb, oldS, newS);
+          score::gfx::replaceSampler(*pass.second.p.srb, oldS, newS);
       };
 
       replace_sampler(m_p, s, new_sampler);
@@ -539,7 +587,7 @@ private:
       auto replace_texture
           = [](PassMap& passes, QRhiSampler* sampler, QRhiTexture* tex) {
         for(auto& pass : passes)
-          score::gfx::replaceTexture(*pass.second.srb, sampler, tex);
+          score::gfx::replaceTexture(*pass.second.p.srb, sampler, tex);
       };
 
       currentImageIndex = imageIndex(n.ubo.currentImageIndex, m_textures.size());
@@ -639,6 +687,7 @@ private:
       {
         res.updateDynamicBuffer(m_material.buffer, 0, m_material.size, &m_ubo);
       }
+      materialChanged = false;
     }
   }
 
@@ -651,7 +700,7 @@ private:
       defaultRenderPass(renderer, mesh, cb, edge, m_altPasses);
   }
 
-  void release(RenderList& r) override
+  void releaseState(RenderList& r) override
   {
     for(auto tex : m_textures)
     {
@@ -659,17 +708,17 @@ private:
     }
     m_textures.clear();
 
-    defaultRelease(r);
+    for(auto& pass : m_altPasses)
+      pass.second.release();
+    m_altPasses.clear();
 
-    {
-      for(auto& pass : m_altPasses)
-        pass.second.release();
-      m_altPasses.clear();
-    }
+    GenericNodeRenderer::releaseState(r);
   }
 
   struct ImagesNode::UBO m_ubo;
-  ossia::small_vector<std::pair<Edge*, Pipeline>, 2> m_altPasses;
+  QShader m_tiledVertexS;
+  QShader m_tiledFragmentS;
+  ossia::small_vector<std::pair<Edge*, Pass>, 2> m_altPasses;
   std::vector<QRhiTexture*> m_textures;
   bool m_uploaded = false;
 };
@@ -755,9 +804,9 @@ private:
         if(rt.renderTarget)
         {
           m_altPasses.emplace_back(
-              edge, score::gfx::buildPipeline(
+              edge, Pass{rt, score::gfx::buildPipeline(
                         renderer, mesh, v, f, rt, m_processUBO, m_material.buffer,
-                        m_samplers));
+                        m_samplers), nullptr});
         }
       }
     }
@@ -770,7 +819,7 @@ private:
     if(n.tileMode != tile)
     {
       tile = n.tileMode;
-      auto [s, tex] = m_samplers[0];
+      auto [s, tex, fb_] = m_samplers[0];
 
       m_samplers.clear();
 
@@ -781,7 +830,7 @@ private:
       // Replace it in the render passes
       auto replace_sampler = [](PassMap& passes, QRhiSampler* oldS, QRhiSampler* newS) {
         for(auto& pass : passes)
-          score::gfx::replaceSampler(*pass.second.srb, oldS, newS);
+          score::gfx::replaceSampler(*pass.second.p.srb, oldS, newS);
       };
 
       replace_sampler(m_p, s, new_sampler);
@@ -803,7 +852,7 @@ private:
       auto replace_texture
           = [](PassMap& passes, QRhiSampler* sampler, QRhiTexture* tex) {
         for(auto& pass : passes)
-          score::gfx::replaceTexture(*pass.second.srb, sampler, tex);
+          score::gfx::replaceTexture(*pass.second.p.srb, sampler, tex);
       };
 
       auto sampler = m_samplers[0].sampler;
@@ -854,7 +903,7 @@ private:
   }
 
   struct ImagesNode::UBO m_prev_ubo;
-  ossia::small_vector<std::pair<Edge*, Pipeline>, 2> m_altPasses;
+  ossia::small_vector<std::pair<Edge*, Pass>, 2> m_altPasses;
   QRhiTexture* m_texture{};
   bool m_uploaded = false;
 };
@@ -929,10 +978,10 @@ private:
   ~Renderer() { }
 
   TextureRenderTarget renderTargetForInput(const Port& p) override { return {}; }
-  void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  void initState(RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
-    const auto& mesh = renderer.defaultTriangle();
-    defaultMeshInit(renderer, mesh, res);
+    m_mesh = &renderer.defaultTriangle();
+    defaultMeshInit(renderer, *m_mesh, res);
     processUBOInit(renderer);
     m_material.init(renderer, node.input, m_samplers);
     std::tie(m_vertexS, m_fragmentS) = score::gfx::makeShaders(
@@ -962,7 +1011,7 @@ private:
       m_samplers.push_back({sampler, m_texture});
     }
 
-    defaultPassesInit(renderer, mesh);
+    m_initialized = true;
   }
 
   void update(RenderList& renderer, QRhiResourceUpdateBatch& res, score::gfx::Edge* edge)
@@ -985,12 +1034,15 @@ private:
     defaultRenderPass(renderer, mesh, cb, edge);
   }
 
-  void release(RenderList& r) override
+  void releaseState(RenderList& r) override
   {
-    m_texture->deleteLater();
-    m_texture = nullptr;
+    if(m_texture)
+    {
+      m_texture->deleteLater();
+      m_texture = nullptr;
+    }
 
-    defaultRelease(r);
+    GenericNodeRenderer::releaseState(r);
   }
 
   QRhiTexture* m_texture{};

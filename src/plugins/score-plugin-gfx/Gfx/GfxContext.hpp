@@ -1,6 +1,7 @@
 #pragma once
 #include <Process/Dataflow/CableData.hpp>
 
+#include <Gfx/AssetTable.hpp>
 #include <Gfx/Graph/Node.hpp>
 
 #include <score/tools/Timers.hpp>
@@ -75,6 +76,11 @@ public:
   void recompute_edges();
   void recompute_graph();
   void recompute_connections();
+  void recomputeTimers();
+  void recomputeGraphTopology();
+  void incrementalEdgeUpdate(
+      const ossia::flat_set<EdgeSpec>& old_edges,
+      const ossia::flat_set<EdgeSpec>& cur_edges);
 
   void update_inputs();
   void updateGraph();
@@ -83,6 +89,18 @@ public:
   {
     tick_messages.enqueue(std::move(msg));
   }
+
+  /**
+   * @brief Session-wide content-hash decode cache.
+   *
+   * Shared across all RenderLists in this GfxContext. Loaders stage
+   * decoded bytes here on their worker thread; downstream consumers
+   * (texture upload, mesh VB/IB assembly) acquire by content hash,
+   * avoiding re-decoding the same source asset across multiple outputs
+   * or reloads. See Gfx/AssetTable.hpp.
+   */
+  AssetTable& assets() noexcept { return m_assets; }
+  const AssetTable& assets() const noexcept { return m_assets; }
 
 private:
   void run_commands();
@@ -132,9 +150,10 @@ private:
 
   std::mutex edges_lock;
   ossia::flat_set<EdgeSpec> new_edges TS_GUARDED_BY(edges_lock);
-  ossia::flat_set<EdgeSpec> edges;
-  ossia::flat_set<EdgeSpec> preview_edges;
+  ossia::flat_set<EdgeSpec> edges TS_GUARDED_BY(edges_lock);
+  ossia::flat_set<EdgeSpec> preview_edges TS_GUARDED_BY(edges_lock);
   std::atomic_bool edges_changed{};
+  bool m_fullRebuildThisFrame{};
 
   score::HighResolutionTimer* m_no_vsync_timer{};
   score::HighResolutionTimer* m_watchdog_timer{};
@@ -142,6 +161,8 @@ private:
   ossia::small_flat_map<score::HighResolutionTimer*, ossia::flat_set<score::gfx::OutputNode*>, 8> m_manualTimers;
 
   ossia::object_pool<std::vector<score::gfx::gfx_input>> m_buffers;
+
+  AssetTable m_assets;
 
   score::Timers m_timers;
 };

@@ -2,9 +2,24 @@
 #include <score/tools/Debug.hpp>
 #include <Gfx/Graph/Utils.hpp>
 
+#include <QDebug>
+
+#include <cstdlib>
+
 // TODO: extend MeshBufs to hold multiple buffers
 // TODO: check that rendering e.g. sponza still works
 namespace score::gfx{
+
+// [BUFTRACE] implementation — see CustomMesh.hpp. Turn off at runtime
+// by setting SCORE_BUFTRACE=0.
+bool buftrace_enabled()
+{
+  static const bool on = [] {
+    const char* v = std::getenv("SCORE_BUFTRACE");
+    return !v || v[0] != '0';
+  }();
+  return on;
+}
 
 CustomMesh::CustomMesh(const ossia::mesh_list &g, const ossia::geometry_filter_list_ptr &f)
 {
@@ -19,7 +34,9 @@ QRhiBuffer *CustomMesh::init_vbo(const ossia::geometry::cpu_buffer &buf, QRhi &r
       QRhiBuffer::Static, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer,
       vtx_buf_size);
   mesh_buf->setName(
-      QString("Mesh::vtx_buf.%1").arg(idx.load(std::memory_order_relaxed)).toLatin1());
+      QString("Mesh::vtx_buf.%1")
+          .arg(idx.fetch_add(1, std::memory_order_relaxed))
+          .toLatin1());
   mesh_buf->create();
 
   return mesh_buf;
@@ -32,11 +49,15 @@ QRhiBuffer *CustomMesh::init_vbo(const ossia::geometry::gpu_buffer &buf, QRhi &r
 
 QRhiBuffer *CustomMesh::init_index(const ossia::geometry::cpu_buffer &buf, QRhi &rhi) const noexcept
 {
+  static std::atomic_int idx = 0;
   QRhiBuffer* idx_buf{};
   if(const auto idx_buf_size = buf.byte_size; idx_buf_size > 0)
   {
     idx_buf = rhi.newBuffer(QRhiBuffer::Static, QRhiBuffer::IndexBuffer, idx_buf_size);
-    idx_buf->setName("Mesh::idx_buf");
+    idx_buf->setName(
+        QString("Mesh::idx_buf.%1")
+            .arg(idx.fetch_add(1, std::memory_order_relaxed))
+            .toLatin1());
     idx_buf->create();
   }
 
@@ -54,132 +75,232 @@ MeshBuffers CustomMesh::init(QRhi &rhi) const noexcept
   {
     return {};
   }
-  if(geom.meshes[0].buffers.empty())
-  {
-    return {};
-  }
 
   MeshBuffers ret;
-  // FIXME multi-mesh
-  auto& mesh = geom.meshes[0];
 
-  // 1. Null check
-  bool any_is_null = false;
-  for(const auto& buf : mesh.buffers)
+  // Multi-mesh: concatenate every mesh's buffers into ret.buffers in order.
+  // Each sub-mesh's local `input[].buffer` / `index.buffer` indices are
+  // remapped at draw time by adding the sub-mesh's starting offset in
+  // ret.buffers. The first sub-mesh's layout drives the pipeline
+  // (vertex bindings / attributes) in reload() — sub-meshes with a
+  // different layout are not supported today and will draw incorrectly.
+  for(std::size_t mi = 0; mi < geom.meshes.size(); ++mi)
   {
-    any_is_null |= ossia::visit([&]<typename Buffer>(Buffer& buf) {
-      if constexpr(std::is_same_v<Buffer, ossia::geometry::cpu_buffer>)
-      {
-        return buf.byte_size == 0 || buf.data == nullptr;
-      }
-      else if constexpr(std::is_same_v<Buffer, ossia::geometry::gpu_buffer>)
-      {
-        return buf.handle == nullptr;
-      }
-      return false;
-    }, buf.data);
+    const auto& mesh = geom.meshes[mi];
+    if(mesh.buffers.empty())
+      continue;
+
+    // Null check — skip a sub-mesh whose data isn't ready yet.
+    bool any_is_null = false;
+    for(const auto& buf : mesh.buffers)
+    {
+      any_is_null |= ossia::visit([&]<typename Buffer>(Buffer& buf) {
+        if constexpr(std::is_same_v<Buffer, ossia::geometry::cpu_buffer>)
+          return buf.byte_size == 0 || buf.data == nullptr;
+        else if constexpr(std::is_same_v<Buffer, ossia::geometry::gpu_buffer>)
+          return buf.handle == nullptr;
+        return false;
+      }, buf.data);
+    }
+    if(any_is_null)
+    {
+      // Emit null placeholders so indexing stays aligned with geom.meshes.
+      for(std::size_t k = 0; k < mesh.buffers.size(); ++k)
+        ret.buffers.emplace_back(nullptr, 0, 0);
+      continue;
+    }
+
+    int i = 0;
+    const int index_i = mesh.index.buffer;
+    for(const auto& buf : mesh.buffers)
+    {
+      QRhiBuffer* rhi_buf = (i != index_i)
+          ? ossia::visit([&](auto& b) { return init_vbo(b, rhi); }, buf.data)
+          : ossia::visit([&](auto& b) { return init_index(b, rhi); }, buf.data);
+      // Ownership follows the source variant: cpu_buffer paths allocate
+      // fresh QRhiBuffers (owned), gpu_buffer paths borrow an upstream
+      // handle (unowned — the original producer still owns it).
+      const bool owned = ossia::visit(
+          []<typename Buffer>(const Buffer&) {
+            return std::is_same_v<Buffer, ossia::geometry::cpu_buffer>;
+          }, buf.data);
+      BufferView bv{};
+      bv.handle = rhi_buf;
+      bv.owned = owned;
+      ret.buffers.emplace_back(bv);
+      i++;
+    }
   }
 
-  if(any_is_null)
-  {
+  if(ret.buffers.empty())
     return {};
-  }
 
-  int i = 0;
-  int index_i = mesh.index.buffer;
-
-  for(const auto& buf : mesh.buffers)
+  // Indirect draw / cpu_draw_commands: only meaningful when a single output
+  // mesh carries them (ScenePreprocessor's MDI mode). Pick them up from mesh[0].
+  const auto& first_mesh = geom.meshes[0];
+  if(first_mesh.indirect_count.handle)
   {
-    if(i != index_i)
-    {
-      auto rhi_buf
-          = ossia::visit([&](auto& buf) { return init_vbo(buf, rhi); }, buf.data);
-      ret.buffers.emplace_back(rhi_buf, 0, 0);
-    }
-    else
-    {
-      auto rhi_buf
-          = ossia::visit([&](auto& buf) { return init_index(buf, rhi); }, buf.data);
-      ret.buffers.emplace_back(rhi_buf, 0, 0);
-    }
-    i++;
-  }
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
-  // Populate indirect draw buffer from geometry's indirect_count
-  if(mesh.indirect_count.handle)
-  {
-    ret.indirectDrawBuffer = static_cast<QRhiBuffer*>(mesh.indirect_count.handle);
+    ret.indirectDrawBuffer = static_cast<QRhiBuffer*>(first_mesh.indirect_count.handle);
     ret.useIndirectDraw = true;
-    ret.indirectDrawIndexed = (mesh.index.buffer >= 0);
+    ret.indirectDrawIndexed = (first_mesh.index.buffer >= 0);
+    ret.indirectDrawCount
+        = first_mesh.indirect_count.byte_size / (5 * sizeof(uint32_t));
+    ret.indirectDrawStride = 5 * sizeof(uint32_t);
+    if(ret.indirectDrawCount == 0)
+      ret.indirectDrawCount = 1;
   }
-#endif
+  if(!first_mesh.cpu_draw_commands.empty())
+    ret.cpuDrawCommands.assign(
+        first_mesh.cpu_draw_commands.begin(), first_mesh.cpu_draw_commands.end());
 
   return ret;
 }
 
 void CustomMesh::update_vbo(
     int buffer_index, const ossia::geometry::cpu_buffer& vtx_buf, MeshBuffers& meshbuf,
-    QRhiResourceUpdateBatch& rb) const noexcept
+    QRhi& rhi, QRhiResourceUpdateBatch& rb) const noexcept
 {
   if(meshbuf.buffers.size() <= buffer_index)
     return;
 
-  auto buffer = meshbuf.buffers[buffer_index].handle; // FIXME use offset here?
-  if(auto sz = vtx_buf.byte_size; sz != buffer->size())
+  auto& slot = meshbuf.buffers[buffer_index];
+  // Diag 009 — guard the cpu→over-unowned-slot UAF: the slot was last
+  // populated by an upstream gpu_buffer producer (owned=false). Calling
+  // setSize/create on the upstream's QRhiBuffer destroys the underlying
+  // VkBuffer through QRhi's deferred-release queue and bumps the
+  // generation, silently clobbering every downstream consumer of that
+  // upstream handle. Allocate a fresh owned buffer instead — leave the
+  // upstream wrapper untouched.
+  if(!slot.handle || !slot.owned)
   {
-    buffer->destroy();
-    buffer->setSize(sz);
-    buffer->create();
+    static std::atomic_int idx = 0;
+    auto* fresh = rhi.newBuffer(
+        QRhiBuffer::Static, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer,
+        vtx_buf.byte_size);
+    fresh->setName(
+        QString("Mesh::vtx_buf.%1")
+            .arg(idx.fetch_add(1, std::memory_order_relaxed))
+            .toLatin1());
+    if(!fresh->create())
+    {
+      qWarning() << "CustomMesh::update_vbo: fresh buffer->create() FAILED";
+      delete fresh;
+      return;
+    }
+    BUFTRACE() << "update_vbo(cpu) mesh=" << (void*)this
+               << " slot=" << buffer_index
+               << " allocating fresh owned buffer (was "
+               << (slot.handle ? "unowned upstream" : "empty") << ")"
+               << " new=" << (void*)fresh
+               << " size=" << (qint64)vtx_buf.byte_size;
+    slot.handle = fresh;
+    slot.owned = true;
+  }
+  else if(auto sz = vtx_buf.byte_size; sz != slot.handle->size())
+  {
+    qDebug() << "CustomMesh::update_vbo: resizing buffer from"
+             << slot.handle->size() << "to" << sz
+             << "buffer=" << (void*)slot.handle;
+    slot.handle->setSize(sz);
+    if(!slot.handle->create())
+      qWarning() << "CustomMesh::update_vbo: buffer->create() FAILED after resize!";
   }
   // FIXME support offset
   uploadStaticBufferWithStoredData(
-      &rb, buffer, 0, buffer->size(), (const char*)vtx_buf.raw_data.get());
+      &rb, slot.handle, 0, slot.handle->size(), (const char*)vtx_buf.raw_data.get());
 }
 
 void CustomMesh::update_vbo(
     int buffer_index, const ossia::geometry::gpu_buffer& vtx_buf, MeshBuffers& meshbuf,
-    QRhiResourceUpdateBatch& rb) const noexcept
+    QRhi& rhi, QRhiResourceUpdateBatch& rb) const noexcept
 {
   if(meshbuf.buffers.size() <= buffer_index)
     return;
 
   // FIXME offset, size ?
-  // FIXME check if memory of previous buffer gets freed?
-  meshbuf.buffers[buffer_index] = {static_cast<QRhiBuffer*>(vtx_buf.handle), 0, 0};
+  auto& slot = meshbuf.buffers[buffer_index];
+  auto* old_buf = slot.handle;
+  auto* new_buf = static_cast<QRhiBuffer*>(vtx_buf.handle);
+  if(old_buf != new_buf)
+  {
+    // Diag 009 — when the slot previously held an owned cpu-fed buffer,
+    // route it through deleteLater so QRhi's release queue tears it
+    // down (and any SRBs auto-rebind via m_id generation tracking on
+    // their next setShaderResources). Without this we leak both the
+    // QRhiBuffer wrapper and its underlying VkBuffer.
+    if(slot.owned && old_buf)
+    {
+      BUFTRACE() << "update_vbo(gpu) mesh=" << (void*)this
+                 << " slot=" << buffer_index
+                 << " deleteLater old owned=" << (void*)old_buf
+                 << " new=" << (void*)new_buf
+                 << " size=" << (qint64)vtx_buf.byte_size;
+      old_buf->deleteLater();
+    }
+    else
+    {
+      BUFTRACE() << "update_vbo(gpu) mesh=" << (void*)this
+                 << " slot=" << buffer_index
+                 << " old(unowned)=" << (void*)old_buf
+                 << " new=" << (void*)new_buf
+                 << " size=" << (qint64)vtx_buf.byte_size;
+    }
+  }
+  // Replacement entry must carry owned=false: the handle belongs to the
+  // upstream gpu_buffer producer. Default-constructed BufferView has
+  // owned=true → RenderList::release would `delete` a borrowed handle.
+  BufferView bv{};
+  bv.handle = new_buf;
+  bv.owned = false;
+  slot = bv;
 }
 
 void CustomMesh::update_index(
     int buffer_index, const ossia::geometry::cpu_buffer& idx_buf, MeshBuffers& meshbuf,
-    QRhiResourceUpdateBatch& rb) const noexcept
+    QRhi& rhi, QRhiResourceUpdateBatch& rb) const noexcept
 {
   if(meshbuf.buffers.size() <= buffer_index)
     return;
 
+  auto& slot = meshbuf.buffers[buffer_index];
   void* idx_buf_data = nullptr;
-  auto buffer = meshbuf.buffers[buffer_index].handle; // FIXME use offset here?
-  if(buffer)
+  if(geom.meshes[0].buffers.size() > 1)
   {
-    if(geom.meshes[0].buffers.size() > 1)
+    if(const auto idx_buf_size = idx_buf.byte_size; idx_buf_size > 0)
     {
-      if(const auto idx_buf_size = idx_buf.byte_size; idx_buf_size > 0)
+      idx_buf_data = idx_buf.raw_data.get();
+      // Diag 009 — same UAF guard as update_vbo(cpu): if the slot is
+      // empty or holds an upstream-owned (unowned) handle, do NOT
+      // setSize/create on it; allocate a fresh owned index buffer.
+      if(!slot.handle || !slot.owned)
       {
-        idx_buf_data = idx_buf.raw_data.get();
-        // FIXME what if index disappears
-        if(auto sz = idx_buf.byte_size; sz != buffer->size())
+        static std::atomic_int idx = 0;
+        auto* fresh = rhi.newBuffer(
+            QRhiBuffer::Static, QRhiBuffer::IndexBuffer, idx_buf_size);
+        fresh->setName(
+            QString("Mesh::idx_buf.%1")
+                .arg(idx.fetch_add(1, std::memory_order_relaxed))
+                .toLatin1());
+        if(!fresh->create())
         {
-          buffer->destroy();
-          buffer->setSize(sz);
-          buffer->create();
+          qWarning() << "CustomMesh::update_index: fresh buffer->create() FAILED";
+          delete fresh;
+          return;
         }
-        else
-        {
-        }
+        BUFTRACE() << "update_index(cpu) mesh=" << (void*)this
+                   << " slot=" << buffer_index
+                   << " allocating fresh owned index buffer (was "
+                   << (slot.handle ? "unowned upstream" : "empty") << ")"
+                   << " new=" << (void*)fresh
+                   << " size=" << (qint64)idx_buf_size;
+        slot.handle = fresh;
+        slot.owned = true;
       }
-    }
-    else
-    {
-      // FIXME what if index appears
+      else if(auto sz = idx_buf.byte_size; sz != slot.handle->size())
+      {
+        slot.handle->setSize(sz);
+        slot.handle->create();
+      }
     }
   }
   else
@@ -187,19 +308,49 @@ void CustomMesh::update_index(
     // FIXME what if index appears
   }
 
-  if(buffer && idx_buf_data)
+  if(slot.handle && idx_buf_data)
   {
     // FIXME support offset
     uploadStaticBufferWithStoredData(
-        &rb, buffer, 0, buffer->size(), (const char*)idx_buf_data);
+        &rb, slot.handle, 0, slot.handle->size(), (const char*)idx_buf_data);
   }
 }
 
 void CustomMesh::update_index(
     int buffer_index, const ossia::geometry::gpu_buffer& idx_buf, MeshBuffers& meshbuf,
-    QRhiResourceUpdateBatch& rb) const noexcept
+    QRhi& rhi, QRhiResourceUpdateBatch& rb) const noexcept
 {
   SCORE_ASSERT(meshbuf.buffers.size() > buffer_index);
+  auto& slot = meshbuf.buffers[buffer_index];
+  auto* old_buf = slot.handle;
+  auto* new_buf = static_cast<QRhiBuffer*>(idx_buf.handle);
+  if(old_buf != new_buf)
+  {
+    // Diag 009 — leak-fix: route a previously-owned handle through
+    // QRhi's release queue so we don't drop the wrapper on the floor
+    // when transitioning cpu→gpu on this slot.
+    if(slot.owned && old_buf)
+    {
+      BUFTRACE() << "update_index(gpu) mesh=" << (void*)this
+                 << " slot=" << buffer_index
+                 << " deleteLater old owned=" << (void*)old_buf
+                 << " new=" << (void*)new_buf
+                 << " size=" << (qint64)idx_buf.byte_size;
+      old_buf->deleteLater();
+    }
+    else
+    {
+      BUFTRACE() << "update_index(gpu) mesh=" << (void*)this
+                 << " slot=" << buffer_index
+                 << " old(unowned)=" << (void*)old_buf
+                 << " new=" << (void*)new_buf
+                 << " size=" << (qint64)idx_buf.byte_size;
+    }
+    BufferView bv{};
+    bv.handle = new_buf;
+    bv.owned = false;
+    slot = bv;
+  }
 }
 
 void CustomMesh::update(
@@ -208,47 +359,87 @@ void CustomMesh::update(
   if(geom.meshes.empty())
     return;
 
-  // FIXME multi-mesh
-  auto& input_mesh = geom.meshes[0];
-  if(input_mesh.buffers.empty())
+  // Grow output_meshbuf.buffers when the geometry has added more
+  // buffers than mb has slots for (e.g. a model swap from Box.gltf →
+  // Duck.gltf where Duck has more vertex buffers, or
+  // ScenePreprocessor appending instance + scene-aux entries beyond
+  // the existing slot count). Without this, update_vbo's
+  // `if(meshbuf.buffers.size() <= buffer_index) return;` silently
+  // drops writes for new high-index buffers, stale handles persist,
+  // and the next setVertexInput binds them as vertex inputs —
+  // validation flags `pBuffers[N] is INDEX_BUFFER / STORAGE_BUFFER,
+  // requires VERTEX_BUFFER`.
+  //
+  // We *grow* rather than re-init: re-initialising forces init()
+  // through its any-buffer-null bail-out (which emits null placeholders
+  // for the WHOLE sub-mesh whenever any single buffer is null), which
+  // breaks scenes where a conditional aux buffer transiently goes
+  // null. Growing preserves the live handles already bound to
+  // populated slots; new slots get null placeholders and the
+  // update_vbo / update_index loop below fills them in.
+  //
+  // Shrinking is intentionally not done: extra trailing slots beyond
+  // what g.input / g.index reference are harmless (the draw path
+  // never indexes into them), and shrinking would require explicit
+  // release of the truncated owned buffers.
+  std::size_t total_geom_buffers = 0;
+  for(const auto& m : geom.meshes)
+    total_geom_buffers += m.buffers.size();
+  if(output_meshbuf.buffers.size() < total_geom_buffers)
   {
-    return;
+    BUFTRACE() << "CustomMesh::update: growing MeshBuffers from "
+               << (qsizetype)output_meshbuf.buffers.size()
+               << " to " << (qsizetype)total_geom_buffers
+               << " slots (preserving existing handles)";
+    output_meshbuf.buffers.resize(
+        total_geom_buffers, BufferView{nullptr, 0, 0});
   }
+
   if(output_meshbuf.buffers.empty())
-  {
     output_meshbuf = init(rhi);
-  }
   if(output_meshbuf.buffers.empty())
-  {
     return;
-  }
 
-  int i = 0;
-  int index_i = input_mesh.index.buffer;
-
-  for(const auto& buf : input_mesh.buffers)
+  // Upload each sub-mesh's buffers, remapping local indices to the flat
+  // offset in output_meshbuf.buffers built by init().
+  std::size_t base = 0;
+  for(const auto& input_mesh : geom.meshes)
   {
-    if(i != index_i)
+    if(input_mesh.buffers.empty())
+      continue;
+    if(base + input_mesh.buffers.size() > output_meshbuf.buffers.size())
+      break;
+
+    int i = 0;
+    const int index_i = input_mesh.index.buffer;
+    for(const auto& buf : input_mesh.buffers)
     {
-      ossia::visit(
-          [&](auto& buf) { return update_vbo(i, buf, output_meshbuf, rb); }, buf.data);
+      const int flat = int(base) + i;
+      if(i != index_i)
+      {
+        ossia::visit(
+            [&](auto& buf) { return update_vbo(flat, buf, output_meshbuf, rhi, rb); },
+            buf.data);
+      }
+      else
+      {
+        ossia::visit(
+            [&](auto& buf) { return update_index(flat, buf, output_meshbuf, rhi, rb); },
+            buf.data);
+      }
+      i++;
     }
-    else
-    {
-      ossia::visit(
-          [&](auto& buf) { return update_index(i, buf, output_meshbuf, rb); }, buf.data);
-    }
-    i++;
+    base += input_mesh.buffers.size();
   }
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
-  // Update indirect draw buffer reference
-  if(input_mesh.indirect_count.handle)
+  // Indirect draw / cpu_draw_commands: same single-mesh scoping as init().
+  const auto& first_mesh = geom.meshes[0];
+  if(first_mesh.indirect_count.handle)
   {
     output_meshbuf.indirectDrawBuffer
-        = static_cast<QRhiBuffer*>(input_mesh.indirect_count.handle);
+        = static_cast<QRhiBuffer*>(first_mesh.indirect_count.handle);
     output_meshbuf.useIndirectDraw = true;
-    output_meshbuf.indirectDrawIndexed = (input_mesh.index.buffer >= 0);
+    output_meshbuf.indirectDrawIndexed = (first_mesh.index.buffer >= 0);
   }
   else
   {
@@ -256,7 +447,16 @@ void CustomMesh::update(
     output_meshbuf.useIndirectDraw = false;
     output_meshbuf.indirectDrawIndexed = false;
   }
-#endif
+
+  if(!first_mesh.cpu_draw_commands.empty())
+  {
+    output_meshbuf.cpuDrawCommands.assign(
+        first_mesh.cpu_draw_commands.begin(), first_mesh.cpu_draw_commands.end());
+  }
+
+  // Note: GPU readback for the indirect draw fallback is handled
+  // synchronously in RenderedRawRasterPipelineNode::runInitialPasses,
+  // which has access to both the command buffer and QRhi::finish().
 }
 
 Mesh::Flags CustomMesh::flags() const noexcept
@@ -306,6 +506,8 @@ void CustomMesh::preparePipeline(QRhiGraphicsPipeline &pip) const noexcept
   {
     pip.setDepthTest(true);
     pip.setDepthWrite(true);
+    // Reverse-Z project rule.
+    pip.setDepthOp(QRhiGraphicsPipeline::Greater);
   }
 
   pip.setTopology(this->topology);
@@ -321,6 +523,11 @@ void CustomMesh::preparePipeline(QRhiGraphicsPipeline &pip) const noexcept
 
 void CustomMesh::reload(const ossia::mesh_list &ml, const ossia::geometry_filter_list_ptr &f)
 {
+  BUFTRACE() << "CustomMesh::reload mesh=" << (void*)this
+             << " meshes=" << (qsizetype)ml.meshes.size()
+             << " first_buf_count="
+             << (ml.meshes.empty() ? (qsizetype)-1
+                                    : (qsizetype)ml.meshes[0].buffers.size());
   this->geom = ml;
   this->filters = f;
 
@@ -368,59 +575,211 @@ void CustomMesh::reload(const ossia::mesh_list &ml, const ossia::geometry_filter
   frontFace = (QRhiGraphicsPipeline::FrontFace)g.front_face;
 }
 
-void CustomMesh::draw(const MeshBuffers &bufs, QRhiCommandBuffer &cb) const noexcept
+bool CustomMesh::drawSingleMesh(
+    std::size_t mesh_index, std::size_t base, const MeshBuffers& bufs,
+    QRhiCommandBuffer& cb,
+    std::span<const FallbackBindingPlan::Slot> fallback_slots) const noexcept
 {
-  for(auto& g : this->geom.meshes)
+  if(mesh_index >= geom.meshes.size())
+    return false;
+  const auto& g = geom.meshes[mesh_index];
+
+  // Total vertex-input count = mesh bindings + fallback bindings. The
+  // fallback slots' binding_index values were allocated sequentially
+  // past the mesh's own bindings when the pipeline was built
+  // (remapPipelineVertexInputs); they land at indices sz, sz+1, ... here.
+  const auto mesh_input_count = g.input.size();
+  const auto total = mesh_input_count + fallback_slots.size();
+  QVarLengthArray<QRhiCommandBuffer::VertexInput> draw_inputs(total);
+
+  int i = 0;
+  for(auto& in : g.input)
   {
-    const auto sz = g.input.size();
+    const std::size_t flat = base + (std::size_t)in.buffer;
+    if(flat >= bufs.buffers.size())
+      return false;
+    auto buf = bufs.buffers[flat].handle;
+    if(!buf)
+      return false;
+    draw_inputs[i++] = {buf, in.byte_offset};
+  }
 
-    QVarLengthArray<QRhiCommandBuffer::VertexInput> draw_inputs(sz);
+  // Fallback slots. Each Slot::binding_index is expressed in the global
+  // binding-index space; for a single-sub-mesh raw-raster draw it's
+  // always `mesh_input_count + k` for the k'th slot, so we place the
+  // buffers by index.
+  for(const auto& slot : fallback_slots)
+  {
+    const std::size_t idx = (std::size_t)slot.binding_index;
+    if(idx >= total || !slot.buffer)
+      continue;   // defensive: skip malformed plans rather than dropping the draw
+    draw_inputs[idx] = {slot.buffer, 0};
+  }
 
-    int i = 0;
-    for(auto& in : g.input)
-    {
-      // FIXME buffer offset? input offset?
-      if(bufs.buffers.size() <= in.buffer)
-        return;
+  if(g.index.buffer >= 0)
+  {
+    const std::size_t flat_idx = base + (std::size_t)g.index.buffer;
+    if(flat_idx >= bufs.buffers.size())
+      return false;
+    auto buf = bufs.buffers[flat_idx].handle;
+    const auto idxFmt = g.index.format == decltype(g.index)::uint16
+                            ? QRhiCommandBuffer::IndexUInt16
+                            : QRhiCommandBuffer::IndexUInt32;
+    // If this bind crashes with a dangling buffer, the `buf` pointer
+    // logged here will match ASan's freed-at report. The mesh= and
+    // slot= fields tell us which CustomMesh and which MeshBuffers
+    // entry retained it.
+    BUFTRACE() << "bindIndexBuffer mesh=" << (void*)this
+               << " sub=" << mesh_index << " slot=" << flat_idx
+               << " buf=" << (void*)buf
+               << " offset=" << (qint64)g.index.byte_offset
+               << " bufs.size=" << (qsizetype)bufs.buffers.size();
+    cb.setVertexInput(
+        0, (int)total, draw_inputs.data(), buf, g.index.byte_offset, idxFmt);
+  }
+  else
+  {
+    cb.setVertexInput(0, (int)total, draw_inputs.data());
+  }
 
-      auto buf = bufs.buffers[in.buffer].handle;
-      if(!buf)
-        return;
-      draw_inputs[i++] = {buf, in.byte_offset};
-    }
+  // Per-mesh indirect override: when THIS submesh carries its own
+  // `indirect_count` handle (different from bufs.indirectDrawBuffer),
+  // use it instead. Required for multi-batch MDI (opaque + transparent
+  // split emitted by ScenePreprocessor) where each sub-mesh drives a
+  // separate indirect-cmd list. Same rule for `cpu_draw_commands`.
+  QRhiBuffer* effIndirectBuf = bufs.indirectDrawBuffer;
+  quint32     effIndirectCount = bufs.indirectDrawCount;
+  const auto* effCpuCmds = &bufs.cpuDrawCommands;
+  std::decay_t<decltype(bufs.cpuDrawCommands)> perMeshCmds;
+  if(auto* h = static_cast<QRhiBuffer*>(g.indirect_count.handle))
+  {
+    effIndirectBuf = h;
+    effIndirectCount
+        = (quint32)(g.indirect_count.byte_size / (5 * sizeof(uint32_t)));
+    if(effIndirectCount == 0)
+      effIndirectCount = 1;
+  }
+  if(!g.cpu_draw_commands.empty())
+  {
+    perMeshCmds.assign(g.cpu_draw_commands.begin(), g.cpu_draw_commands.end());
+    effCpuCmds = &perMeshCmds;
+  }
 
-    if(g.index.buffer >= 0)
-    {
-      auto buf = bufs.buffers[g.index.buffer].handle;
-      const auto idxFmt = g.index.format == decltype(g.index)::uint16
-                              ? QRhiCommandBuffer::IndexUInt16
-                              : QRhiCommandBuffer::IndexUInt32;
-      cb.setVertexInput(0, sz, draw_inputs.data(), buf, g.index.byte_offset, idxFmt);
-    }
-    else
-    {
-      cb.setVertexInput(0, sz, draw_inputs.data());
-    }
-
+  // Multi-draw indirect: runtime capability check, not compile-time.
+  // Only meaningful for single-sub-mesh MDI-mode geometries.
+  if(bufs.useIndirectDraw && effIndirectBuf)
+  {
 #if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
-    if(bufs.useIndirectDraw && bufs.indirectDrawBuffer)
+    if(bufs.gpuIndirectSupported)
     {
       if(bufs.indirectDrawIndexed)
-        cb.drawIndexedIndirect(bufs.indirectDrawBuffer, 0, 1);
+        cb.drawIndexedIndirect(
+            effIndirectBuf, bufs.indirectDrawOffset,
+            effIndirectCount, bufs.indirectDrawStride);
       else
-        cb.drawIndirect(bufs.indirectDrawBuffer, 0, 1);
-      continue;
+        cb.drawIndirect(
+            effIndirectBuf, bufs.indirectDrawOffset,
+            effIndirectCount, bufs.indirectDrawStride);
+      return true;
     }
 #endif
 
-    if(g.index.buffer > -1)
+    // CPU fallback: iterate draw commands with correct firstInstance /
+    // baseVertex so each sub-draw gets its own per-draw data via
+    // gl_BaseInstance. Commands come from either the producer
+    // (ScenePreprocessor) or GPU readback (CSF).
+    if(!effCpuCmds->empty())
     {
-      cb.drawIndexed(g.indices, g.instances);
+      const bool indexed = (g.index.buffer >= 0);
+      for(const auto& cmd : *effCpuCmds)
+      {
+        if(indexed)
+          cb.drawIndexed(
+              cmd.index_or_vertex_count, cmd.instance_count,
+              cmd.first_index_or_vertex, cmd.base_vertex, cmd.first_instance);
+        else
+          cb.draw(
+              cmd.index_or_vertex_count, cmd.instance_count,
+              cmd.first_index_or_vertex, cmd.first_instance);
+      }
+      return true;
     }
-    else
-    {
-      cb.draw(g.vertices, g.instances);
-    }
+    // No CPU commands yet (readback pending or first frame) — skip.
+    return false;
+  }
+
+  if(g.index.buffer > -1)
+    cb.drawIndexed(g.indices, g.instances);
+  else
+    cb.draw(g.vertices, g.instances);
+  return true;
+}
+
+// The pipeline's vertex layout is derived from meshes[0] only (see
+// init/reload); a sub-mesh whose bindings or attributes differ would be
+// fetched through the wrong strides/offsets — garbled geometry or an
+// out-of-bounds attribute fetch. Skip those instead of drawing them.
+bool CustomMesh::subMeshLayoutMatchesFirst(std::size_t i) const noexcept
+{
+  if(i == 0)
+    return true;
+  const auto& a = geom.meshes[0];
+  const auto& b = geom.meshes[i];
+  if(a.topology != b.topology)
+    return false;
+  if(a.bindings.size() != b.bindings.size()
+     || a.attributes.size() != b.attributes.size())
+    return false;
+  for(std::size_t k = 0; k < a.bindings.size(); ++k)
+  {
+    const auto& x = a.bindings[k];
+    const auto& y = b.bindings[k];
+    if(x.byte_stride != y.byte_stride || x.classification != y.classification
+       || x.step_rate != y.step_rate)
+      return false;
+  }
+  for(std::size_t k = 0; k < a.attributes.size(); ++k)
+  {
+    const auto& x = a.attributes[k];
+    const auto& y = b.attributes[k];
+    if(x.binding != y.binding || x.location != y.location
+       || x.format != y.format || x.byte_offset != y.byte_offset
+       || x.element_byte_size != y.element_byte_size)
+      return false;
+  }
+  return true;
+}
+
+void CustomMesh::draw(const MeshBuffers &bufs, QRhiCommandBuffer &cb) const noexcept
+{
+  // Default draw path: iterate sub-meshes without any per-mesh state swap.
+  // Works for single-mesh geometries and for MDI mode (one sub-mesh with an
+  // indirect buffer). For multi-sub-mesh + per-mesh SRB auxes (classic
+  // per-mesh ScenePreprocessor output), the caller should instead iterate
+  // drawSingleMesh() itself and rebind the SRB between sub-meshes.
+  std::size_t base = 0;
+  for(std::size_t i = 0; i < geom.meshes.size(); ++i)
+  {
+    if(subMeshLayoutMatchesFirst(i))
+      drawSingleMesh(i, base, bufs, cb);
+    base += geom.meshes[i].buffers.size();
+  }
+}
+
+void CustomMesh::drawWithFallbackBindings(
+    const MeshBuffers& bufs, QRhiCommandBuffer& cb,
+    std::span<const FallbackBindingPlan::Slot> fallback_slots) const noexcept
+{
+  // Same as draw() but with the caller's fallback-binding plan threaded
+  // down to drawSingleMesh so the extra PerInstance identity buffers
+  // land in the vertex-input array at the indices the pipeline
+  // allocated for them.
+  std::size_t base = 0;
+  for(std::size_t i = 0; i < geom.meshes.size(); ++i)
+  {
+    if(subMeshLayoutMatchesFirst(i))
+      drawSingleMesh(i, base, bufs, cb, fallback_slots);
+    base += geom.meshes[i].buffers.size();
   }
 }
 

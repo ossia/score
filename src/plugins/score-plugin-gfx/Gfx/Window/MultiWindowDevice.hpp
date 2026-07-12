@@ -123,9 +123,13 @@ public:
       rendersize_param->add_callback([this](const ossia::value& v) {
         if(auto val = v.target<ossia::vec2f>())
         {
-          m_node->setRenderSize({(int)(*val)[0], (int)(*val)[1]});
-          for(auto& pw : m_perWindow)
-            update_viewport(pw);
+          // setRenderSize tears down GPU resources: marshal to the Qt
+          // thread like the per-window callbacks below.
+          ossia::qt::run_async(&m_qtContext, [this, v = *val] {
+            m_node->setRenderSize({(int)v[0], (int)v[1]});
+            for(auto& pw : m_perWindow)
+              update_viewport(pw);
+          });
         }
       });
       m_root.add_child(std::move(rs_node));
