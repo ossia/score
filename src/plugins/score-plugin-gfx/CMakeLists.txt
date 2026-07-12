@@ -231,6 +231,7 @@ set(HDRS
     Gfx/Graph/Window.hpp
     
     Gfx/Graph/decoders/DXV.hpp
+    Gfx/Graph/interop/DMABufImport.hpp
     Gfx/Graph/interop/DrmFourcc.hpp
     Gfx/Graph/interop/DrmPrimeWrap.hpp
     Gfx/Graph/interop/EglDmaBufImport.hpp
@@ -311,6 +312,7 @@ set(HDRS
     Gfx/Graph/decoders/GPUVideoDecoder.hpp
     Gfx/Graph/decoders/GPUVideoDecoderFactory.hpp
     Gfx/Graph/decoders/HAP.hpp
+    Gfx/Graph/decoders/WireDecoderFactory.hpp
     Gfx/Graph/decoders/HWTransfer.hpp
     Gfx/Graph/decoders/HWVAAPI.hpp
     Gfx/Graph/decoders/HWCUDA.hpp

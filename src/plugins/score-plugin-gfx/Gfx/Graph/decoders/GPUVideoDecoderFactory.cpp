@@ -1,5 +1,6 @@
 #include <Gfx/Graph/decoders/GPUVideoDecoderFactory.hpp>
 
+#include <Gfx/Graph/decoders/DRMPrime.hpp>
 #include <Gfx/Graph/decoders/DXV.hpp>
 #include <Gfx/Graph/decoders/HAP.hpp>
 #include <Gfx/Graph/decoders/NV12.hpp>
@@ -215,6 +216,19 @@ std::unique_ptr<GPUVideoDecoder> createGPUVideoDecoder(
       return std::make_unique<P210Decoder>(format);
     case AV_PIX_FMT_P410LE:
       return std::make_unique<P410Decoder>(format);
+#endif
+
+    // DRM-PRIME — AVFrames whose data[0] is an AVDRMFrameDescriptor*
+    // negotiated. The decoder imports the FD as either:
+    //   - VkImage (QRhi::Vulkan backend, via VK_EXT_image_drm_format_modifier
+    //     + VK_KHR_external_memory_fd), or
+    //   - EGLImage bound to a GL texture (QRhi::OpenGLES2 backend on
+    //     an EGL-backed Qt context, via EGL_EXT_image_dma_buf_import_modifiers
+    //     + glEGLImageTargetTexture2DOES).
+#if defined(__linux__) && defined(SCORE_DRMPRIME_HAS_HWCONTEXT_DRM) \
+    && QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+    case AV_PIX_FMT_DRM_PRIME:
+      return std::make_unique<DRMPrimeDecoder>(format);
 #endif
 
     // Grey
