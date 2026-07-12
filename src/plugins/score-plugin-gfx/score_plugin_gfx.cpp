@@ -69,6 +69,10 @@
 #if defined(HAS_GSTREAMER)
 #include <Gfx/GStreamer/GStreamerDevice.hpp>
 #endif
+#if defined(SCORE_HAS_PIPEWIRE_VIDEO_IO)
+#include <Gfx/Pipewire/PipewireInputDevice.hpp>
+#include <Gfx/Pipewire/PipewireOutputDevice.hpp>
+#endif
 #include <QWindow>
 
 #include <score_plugin_engine.hpp>
@@ -139,6 +143,10 @@ std::vector<score::InterfaceBase*> score_plugin_gfx::factories(
 #if defined(HAS_GSTREAMER)
          ,
          Gfx::GStreamer::ProtocolFactory
+#endif
+#if defined(SCORE_HAS_PIPEWIRE_VIDEO_IO)
+         ,
+         Gfx::PipeWire::InputFactory, Gfx::PipeWire::OutputFactory
 #endif
          >,
       FW<Process::ProcessModelFactory, Gfx::Filter::ProcessFactory,
