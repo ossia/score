@@ -236,10 +236,17 @@ set(HDRS
     Gfx/Graph/encoders/I420.hpp
     Gfx/Graph/encoders/BGRA.hpp
     Gfx/Graph/encoders/V210.hpp
+    Gfx/Graph/encoders/YUV422P10.hpp
+    Gfx/Graph/encoders/P010.hpp
     Gfx/Graph/encoders/V210Compute.hpp
     Gfx/Graph/encoders/UYVYCompute.hpp
     Gfx/Graph/encoders/BGRACompute.hpp
     Gfx/Graph/encoders/ComputeEncoder.hpp
+    Gfx/Graph/encoders/PackedRGB.hpp
+    Gfx/Graph/encoders/YUY2.hpp
+    Gfx/Graph/encoders/YUVPlanar.hpp
+    Gfx/Graph/encoders/WireEncoderFactory.hpp
+
     Gfx/Graph/interop/VideoPixelFormatAV.hpp
     Gfx/Graph/interop/VideoPixelFormatAV.cpp
     Gfx/Graph/interop/VideoPixelFormat.hpp
