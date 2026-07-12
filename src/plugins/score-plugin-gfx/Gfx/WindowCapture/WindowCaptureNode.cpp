@@ -20,7 +20,11 @@
 #include <vulkan/vulkan.h>
 #if defined(VK_EXT_image_drm_format_modifier) && defined(VK_KHR_external_memory_fd) \
     && QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
-#include <Gfx/Graph/decoders/DMABufImport.hpp>
+#include <Gfx/Graph/interop/DMABufImport.hpp>
+#include <Gfx/Graph/interop/EglDmaBufImport.hpp>
+
+#include <QOpenGLContext>
+#include <QOpenGLExtraFunctions>
 #define HAS_DMABUF_IMPORT 1
 #endif
 #endif
@@ -96,11 +100,50 @@ public:
     m_sampler->create();
 
 #if HAS_DMABUF_IMPORT
-    // Initialize DMA-BUF importer if Vulkan is the backend
+    // Initialize DMA-BUF importer for whichever backend matches the
+    // live QRhi. Vulkan is preferred (broader format support); EGL
+    // is the OpenGL fallback on Wayland and EGL-X11 setups.
     if(score::gfx::DMABufPlaneImporter::isAvailable(rhi))
     {
       m_dmaBufImporter.emplace();
       m_dmaBufImporter->init(rhi);
+    }
+    else if(score::gfx::EglDmaBufImporter::isAvailable(rhi))
+    {
+      m_eglDmaBufImporter.emplace();
+      if(m_eglDmaBufImporter->init(rhi))
+      {
+        // Pre-create a persistent GL texture id; the EGL importer
+        // re-targets its storage via glEGLImageTargetTexture2DOES
+        // each frame, so the GL id is stable and we createFrom once.
+        if(auto* ctx = QOpenGLContext::currentContext())
+        {
+          if(auto* funcs = ctx->extraFunctions())
+          {
+            funcs->glGenTextures(1, &m_eglGlTexture);
+            constexpr unsigned int GL_TEXTURE_2D_v = 0x0DE1;
+            constexpr unsigned int GL_LINEAR_v = 0x2601;
+            constexpr unsigned int GL_TEXTURE_MIN_FILTER_v = 0x2801;
+            constexpr unsigned int GL_TEXTURE_MAG_FILTER_v = 0x2800;
+            constexpr unsigned int GL_TEXTURE_WRAP_S_v = 0x2802;
+            constexpr unsigned int GL_TEXTURE_WRAP_T_v = 0x2803;
+            constexpr unsigned int GL_CLAMP_TO_EDGE_v = 0x812F;
+            funcs->glBindTexture(GL_TEXTURE_2D_v, m_eglGlTexture);
+            funcs->glTexParameteri(
+                GL_TEXTURE_2D_v, GL_TEXTURE_MIN_FILTER_v, GL_LINEAR_v);
+            funcs->glTexParameteri(
+                GL_TEXTURE_2D_v, GL_TEXTURE_MAG_FILTER_v, GL_LINEAR_v);
+            funcs->glTexParameteri(
+                GL_TEXTURE_2D_v, GL_TEXTURE_WRAP_S_v, GL_CLAMP_TO_EDGE_v);
+            funcs->glTexParameteri(
+                GL_TEXTURE_2D_v, GL_TEXTURE_WRAP_T_v, GL_CLAMP_TO_EDGE_v);
+          }
+        }
+      }
+      else
+      {
+        m_eglDmaBufImporter.reset();
+      }
     }
 #endif
 
@@ -191,6 +234,19 @@ public:
 #if HAS_DMABUF_IMPORT
     if(m_dmaBufImporter)
       m_dmaBufImporter->cleanupPlane(m_dmaBufPlane);
+    if(m_eglDmaBufImporter)
+    {
+      m_eglDmaBufImporter->cleanupPlane(m_eglDmaBufPlane);
+      if(m_eglGlTexture != 0)
+      {
+        if(auto* ctx = QOpenGLContext::currentContext())
+        {
+          if(auto* funcs = ctx->extraFunctions())
+            funcs->glDeleteTextures(1, &m_eglGlTexture);
+        }
+        m_eglGlTexture = 0;
+      }
+    }
 #endif
 
     for(auto& [edge, pass] : m_p)
@@ -310,21 +366,41 @@ public:
       case CapturedFrame::DMA_BUF_FD:
       {
 #if HAS_DMABUF_IMPORT
-        // Vulkan DMA-BUF import for PipeWire frames
-        if(m_dmaBufImporter && frame.dmabufFd >= 0)
-        {
-          // Clean up previous import
-          m_dmaBufImporter->cleanupPlane(m_dmaBufPlane);
+        if(frame.dmabufFd < 0)
+          break;
 
+        // Vulkan path (preferred)
+        if(m_dmaBufImporter)
+        {
+          m_dmaBufImporter->cleanupPlane(m_dmaBufPlane);
           // DRM_FORMAT_XRGB8888 / ARGB8888 → VK_FORMAT_B8G8R8A8_UNORM
           if(m_dmaBufImporter->importPlane(
-                 m_dmaBufPlane, frame.dmabufFd, frame.drmModifier, frame.dmabufOffset,
-                 frame.dmabufStride, VK_FORMAT_B8G8R8A8_UNORM, frame.width,
-                 frame.height))
+                 m_dmaBufPlane, frame.dmabufFd, frame.drmModifier,
+                 frame.dmabufOffset, frame.dmabufStride,
+                 VK_FORMAT_B8G8R8A8_UNORM, frame.width, frame.height))
           {
             m_texture->setPixelSize(QSize{frame.width, frame.height});
             m_texture->createFrom(QRhiTexture::NativeTexture{
                 quint64(m_dmaBufPlane.image), VK_IMAGE_LAYOUT_UNDEFINED});
+          }
+        }
+        // EGL path (fallback for QRhi::OpenGLES2 backend)
+        else if(m_eglDmaBufImporter && m_eglGlTexture != 0)
+        {
+          m_eglDmaBufImporter->cleanupPlane(m_eglDmaBufPlane);
+          if(m_eglDmaBufImporter->importPlane(
+                 m_eglDmaBufPlane, m_eglGlTexture, frame.dmabufFd,
+                 frame.drmModifier, frame.dmabufOffset, frame.dmabufStride,
+                 frame.drmFormat, frame.width, frame.height))
+          {
+            m_texture->setPixelSize(QSize{frame.width, frame.height});
+            // The GL texture id is stable; createFrom re-binds the
+            // QRhiTexture's native pointer to that id. Doing this
+            // every frame is cheap because the underlying GL object
+            // hasn't changed — only its storage (via the EGLImage
+            // re-target inside importPlane).
+            m_texture->createFrom(
+                QRhiTexture::NativeTexture{quint64(m_eglGlTexture), 0});
           }
         }
 #endif
@@ -382,6 +458,10 @@ private:
 #if HAS_DMABUF_IMPORT
   std::optional<score::gfx::DMABufPlaneImporter> m_dmaBufImporter;
   score::gfx::DMABufPlaneImporter::PlaneImport m_dmaBufPlane{};
+  // GL fallback
+  std::optional<score::gfx::EglDmaBufImporter> m_eglDmaBufImporter;
+  score::gfx::EglDmaBufImporter::PlaneImport m_eglDmaBufPlane{};
+  unsigned int m_eglGlTexture{0};
 #endif
 };
 
