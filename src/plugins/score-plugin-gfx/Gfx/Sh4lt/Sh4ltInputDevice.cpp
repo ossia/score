@@ -128,6 +128,29 @@ public:
 
   void release_frame(AVFrame* frame) noexcept override { m_frames.release(frame); }
 
+  bool notifyFormatChange(
+      int new_w, int new_h, AVPixelFormat new_pixfmt) noexcept override
+  {
+    const bool needsRescale = ::Video::formatNeedsDecoding(new_pixfmt);
+    const AVPixelFormat outFmt = needsRescale ? AV_PIX_FMT_RGBA : new_pixfmt;
+    if(new_w == width && new_h == height && outFmt == pixel_format)
+      return false;
+
+    m_frames.drain();
+    m_rescale.close();
+
+    if(needsRescale)
+    {
+      // Rescale::open reads source metadata from *this; expose source
+      // format temporarily, then commit RGBA below.
+      this->pixel_format = new_pixfmt;
+      this->width = new_w;
+      this->height = new_h;
+      m_rescale.open(*this);
+    }
+    return ::Video::ExternalInput::notifyFormatChange(new_w, new_h, outFmt);
+  }
+
 private:
   void setup(const std::string& str)
   {
@@ -196,24 +219,19 @@ private:
     }
 
     const auto& fmts = ::Video::gstreamerToLibav();
+    AVPixelFormat parsedPixFmt = AV_PIX_FMT_NONE;
     if(auto it = fmts.find(format.toUpper().toStdString()); it != fmts.end())
     {
       qDebug() << "Sh4ltInput: supported format" << format;
-      this->pixel_format = it->second;
+      parsedPixFmt = it->second;
     }
     else
     {
       qDebug() << "Sh4ltInput: unhandled format" << format;
       return;
     }
-    this->width = w;
-    this->height = h;
 
-    if(::Video::formatNeedsDecoding(pixel_format))
-    {
-      m_rescale.open(*this);
-      pixel_format = AV_PIX_FMT_RGBA;
-    }
+    notifyFormatChange(w, h, parsedPixFmt);
   }
 
   void on_data(void* p, std::size_t sz)
