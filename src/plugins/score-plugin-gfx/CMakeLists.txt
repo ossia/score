@@ -195,6 +195,7 @@ set(HDRS
     Gfx/Graph/Node.hpp
     Gfx/Graph/NodeRenderer.hpp
     Gfx/Graph/OutputNode.hpp
+    Gfx/Graph/RenderClock.hpp
     Gfx/Graph/DMACaptureInputNode.hpp
     Gfx/Graph/DirectVideoOutputBackend.hpp
     Gfx/Graph/DirectVideoOutputNode.hpp
@@ -461,6 +462,7 @@ set(SRCS
     Gfx/Graph/Node.cpp
     Gfx/Graph/NodeRenderer.cpp
     Gfx/Graph/OutputNode.cpp
+    Gfx/Graph/RenderClock.cpp
     Gfx/Graph/DMACaptureInputNode.cpp
     Gfx/Graph/DirectVideoOutputBackend.cpp
     Gfx/Graph/DirectVideoOutputNode.cpp
