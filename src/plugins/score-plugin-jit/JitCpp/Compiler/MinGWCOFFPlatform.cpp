@@ -518,7 +518,6 @@ void MinGWCOFFPlatform::rt_pushInitializers(
     SendResult(JDDepMap.takeError());
     return;
   }
-
   pushInitializersLoop(std::move(SendResult), JD, *JDDepMap);
 }
 
@@ -615,6 +614,52 @@ Error MinGWCOFFPlatform::runBootstrapSubsectionInitializers(
   return Error::success();
 }
 
+Error MinGWCOFFPlatform::runJDInitializers(JITDylib& JD)
+{
+  SmallVector<std::pair<std::string, ExecutorAddr>, 16> Inits;
+  {
+    std::lock_guard<std::mutex> Lock(PlatformMutex);
+    auto It = JDInitializers.find(&JD);
+    if(It != JDInitializers.end())
+      Inits.assign(It->second.begin(), It->second.end());
+  }
+  llvm::sort(Inits);
+
+  auto runIf = [&](auto pred) -> Error {
+    for(auto& I : Inits)
+      if(I.second && pred(StringRef(I.first)))
+      {
+        auto Res = ES.getExecutorProcessControl().runAsVoidFunction(I.second);
+        if(!Res)
+          return Res.takeError();
+      }
+    return Error::success();
+  };
+  // C init (.CRT$XI*), C++ ctors (.CRT$XC*), then GNU-style .init_array / .ctors
+  // (windows-gnu may emit those instead of the MSVC .CRT$XC* section).
+  if(auto E = runIf([](StringRef n) { return n >= ".CRT$XIA" && n <= ".CRT$XIZ"; }))
+    return E;
+  if(auto E = runIf([](StringRef n) { return n >= ".CRT$XCA" && n <= ".CRT$XCZ"; }))
+    return E;
+  if(auto E = runIf([](StringRef n) { return n.starts_with(".init_array"); }))
+    return E;
+  // Scraped init functions ($.<module>.ll.__inits.N, stored under ".jit$init")
+  // and GNU-style .ctors come last.
+  if(auto E = runIf([](StringRef n) { return n == ".jit$init"; }))
+    return E;
+  return runIf([](StringRef n) { return n.starts_with(".ctors"); });
+}
+
+Error MinGWCOFFPlatform::initializeJITDylib(JITDylib& JD)
+{
+  {
+    std::lock_guard<std::mutex> Lock(PlatformMutex);
+    if(!InitializedJDs.insert(&JD).second)
+      return Error::success(); // already initialized
+  }
+  return runJDInitializers(JD);
+}
+
 Error MinGWCOFFPlatform::bootstrapCOFFRuntime(JITDylib& PlatformJD)
 {
   if(auto Err = lookupAndRecordAddrs(
@@ -703,6 +748,7 @@ void MinGWCOFFPlatform::MinGWCOFFPlatformPlugin::modifyPassConfig(
     Config.PrePrunePasses.push_back([this, &MR](jitlink::LinkGraph& G) {
       return preserveInitializerSections(G, MR);
     });
+
   }
 
   if(!IsBootstrapping)
@@ -772,6 +818,52 @@ Error MinGWCOFFPlatform::MinGWCOFFPlatformPlugin::registerObjectPlatformSections
            CP.orc_rt_coff_register_object_sections, HeaderAddr, ObjSecs, true)),
        cantFail(WrapperFunctionCall::Create<SPSCOFFDeregisterObjectSectionsArgs>(
            CP.orc_rt_coff_deregister_object_sections, HeaderAddr, ObjSecs))});
+
+  // Collect this object's MSVC-style (.CRT$X*) and GNU-style (.ctors/.init_array)
+  // static initializer section edges, so MinGWCOFFPlatformSupport can run them
+  // directly (orc_rt's COFF dlopen init is MSVC-coupled and faults on MinGW).
+  // Most IR add-ons have none of these (the ctors live in __cxx_global_var_init,
+  // collected from the link graph by the init-extract post-fixup pass instead).
+  {
+    std::lock_guard<std::mutex> Lock(CP.PlatformMutex);
+    auto& Inits = CP.JDInitializers[&JD];
+    size_t before = Inits.size();
+    for(auto& S : G.sections())
+    {
+      StringRef N = S.getName();
+      if(isCOFFInitializerSection(N) || N.starts_with(".ctors")
+         || N.starts_with(".init_array"))
+        for(auto* B : S.blocks())
+          for(auto& E : B->edges())
+            Inits.push_back(std::make_pair(
+                N.str(), E.getTarget().getAddress() + E.getAddend()));
+    }
+
+    // Fallback for pre-scraped IR modules (e.g. addIRModule of a .ll): LLJIT's
+    // IR scraper consumed llvm.global_ctors into a body-less side-effect symbol
+    // and left .ctors empty, so the loop above found nothing. The runnable init
+    // code is then clang's entry point -- _GLOBAL__sub_I_<tu> (chains every
+    // __cxx_global_var_init in order) if present, else the lone
+    // __cxx_global_var_init. Only used when no init-section edges exist, so we
+    // never double-run the constructors collected from .ctors/.CRT$XC* above.
+    if(Inits.size() == before)
+    {
+      SmallVector<ExecutorAddr, 4> SubI, CxxInit;
+      for(auto* Sym : G.defined_symbols())
+      {
+        if(!Sym->hasName())
+          continue;
+        StringRef N = *Sym->getName();
+        if(N.starts_with("_GLOBAL__sub_I_"))
+          SubI.push_back(Sym->getAddress());
+        else if(N == "__cxx_global_var_init"
+                || N.starts_with("__cxx_global_var_init."))
+          CxxInit.push_back(Sym->getAddress());
+      }
+      for(auto A : (!SubI.empty() ? SubI : CxxInit))
+        Inits.push_back(std::make_pair(std::string(".jit$init"), A));
+    }
+  }
 
   return Error::success();
 }

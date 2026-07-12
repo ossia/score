@@ -24,6 +24,12 @@ cp -rf "$SCORE_DIR/3rdparty/DSPFilters/include/." "$INCLUDE/"
 cp -rf "$SCORE_DIR/3rdparty/xsimd/include/." "$INCLUDE/"
 cp -rf "$SCORE_DIR/3rdparty/xtensor/include/." "$INCLUDE/"
 cp -rf "$SCORE_DIR/3rdparty/xtl/include/." "$INCLUDE/"
+# SmallFunction/smallfun: halp/curve.hpp gates the curve segment's map/function
+# member on __has_include(<smallfun_trivial.hpp>). Without it on the JIT include
+# path, curve controls (e.g. Wavecycle) get a bare float segment that satisfies no
+# make_segment overload and fail to compile -- while score, which has this dir on
+# its include path, builds them fine.
+cp -rf "$SCORE_DIR/3rdparty/libossia/3rdparty/SmallFunction/smallfun/include/." "$INCLUDE/"
 cp -rf "$SCORE_DIR/3rdparty/eigen/Eigen" "$INCLUDE/"
 cp -rf "$SCORE_DIR/3rdparty/Gamma/Gamma" "$INCLUDE/"
 cp -rf "$SCORE_DIR/3rdparty/vcglib/vcg" "$INCLUDE/"

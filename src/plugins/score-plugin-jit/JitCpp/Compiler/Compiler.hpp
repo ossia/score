@@ -49,7 +49,7 @@ public:
   {
     return m_errors;
   }
-  std::unique_ptr<llvm::jitlink::InProcessMemoryManager> m_memmgr;
+  std::unique_ptr<llvm::jitlink::JITLinkMemoryManager> m_memmgr;
   ClangCC1Driver m_driver;
   std::unique_ptr<llvm::orc::LLJIT> m_jit;
 
