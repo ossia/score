@@ -39,6 +39,9 @@ public:
   AVFrame* dequeue_frame() noexcept override;
   void release_frame(AVFrame* frame) noexcept override;
 
+  bool notifyFormatChange(
+      int new_w, int new_h, AVPixelFormat new_pixfmt) noexcept override;
+
 private:
   void buffer_thread() noexcept;
   void close_file() noexcept;
