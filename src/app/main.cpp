@@ -254,6 +254,9 @@ static void setup_x11(int argc, char** argv)
 
         helper_dylibs.run_under_x11 = true;
         helper_dylibs.xwayland = wayland;
+
+        // EGL is the only way to get zero-copy with dma-buf import
+        qputenv("QT_XCB_GL_INTEGRATION", "xcb_egl");
       }
     }
   };
@@ -499,6 +502,7 @@ static void setup_opengl(bool& enable_opengl_ui)
 
 #ifndef QT_NO_OPENGL
 #if (defined(__arm__) || defined(__aarch64__)) && !defined(_WIN32) && !defined(__APPLE__)
+  // Raspberry Pi & such
   QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
   fmt.setRenderableType(QSurfaceFormat::OpenGLES);
   fmt.setSwapInterval(1);
@@ -514,6 +518,7 @@ static void setup_opengl(bool& enable_opengl_ui)
   fmt.setDefaultFormat(fmt);
 #else
   {
+    // Desktop GL
     std::vector<std::pair<int, int>> versions_to_test
         = {{4, 6}, {4, 5}, {4, 4}, {4, 3}, {4, 2}, {4, 1}, {4, 0},
            {3, 3}, {3, 2}, {3, 1}, {3, 0}, {2, 1}, {2, 0}};
@@ -552,7 +557,9 @@ static void setup_opengl(bool& enable_opengl_ui)
 
     QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
     fmt.setProfile(QSurfaceFormat::CoreProfile);
+    fmt.setRenderableType(QSurfaceFormat::OpenGL);
     fmt.setSwapInterval(1);
+    fmt.setStencilBufferSize(8);
     bool ok = false;
     for(auto [maj, min] : versions_to_test)
     {
