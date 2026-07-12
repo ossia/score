@@ -1,5 +1,6 @@
 #include <Gfx/Graph/decoders/GPUVideoDecoderFactory.hpp>
 
+#include <Gfx/Graph/decoders/DRMPrime.hpp>
 #include <Gfx/Graph/decoders/DXV.hpp>
 #include <Gfx/Graph/decoders/HAP.hpp>
 #include <Gfx/Graph/decoders/NV12.hpp>
@@ -144,14 +145,13 @@ std::unique_ptr<GPUVideoDecoder> createGPUVideoDecoder(
           QRhiTexture::RGBA8, 4, format,
           "processed.rgba = tex.abgr; " + f);
 
-    // RGBA 16-bit
+    // RGBA 16-bit (uint16 UNORM data -> R16 packed texture + texelFetch, NOT the
+    // half-float RGBA16F path which reinterpreted the bytes as halfs -> black).
     case AV_PIX_FMT_RGBA64LE:
-      return std::make_unique<PackedDecoder>(
-          QRhiTexture::RGBA16F, 8, format, f);
+      return std::make_unique<RGBA64Decoder>(format, f);
     case AV_PIX_FMT_BGRA64LE:
-      return std::make_unique<PackedDecoder>(
-          QRhiTexture::RGBA16F, 8, format,
-          "processed.rgba = vec4(tex.b, tex.g, tex.r, tex.a); " + f);
+      return std::make_unique<RGBA64Decoder>(
+          format, "processed.rgb = tex.bgr; " + f);
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
     case AV_PIX_FMT_X2RGB10LE:
@@ -215,6 +215,19 @@ std::unique_ptr<GPUVideoDecoder> createGPUVideoDecoder(
       return std::make_unique<P210Decoder>(format);
     case AV_PIX_FMT_P410LE:
       return std::make_unique<P410Decoder>(format);
+#endif
+
+    // DRM-PRIME — AVFrames whose data[0] is an AVDRMFrameDescriptor*
+    // negotiated. The decoder imports the FD as either:
+    //   - VkImage (QRhi::Vulkan backend, via VK_EXT_image_drm_format_modifier
+    //     + VK_KHR_external_memory_fd), or
+    //   - EGLImage bound to a GL texture (QRhi::OpenGLES2 backend on
+    //     an EGL-backed Qt context, via EGL_EXT_image_dma_buf_import_modifiers
+    //     + glEGLImageTargetTexture2DOES).
+#if defined(__linux__) && defined(SCORE_DRMPRIME_HAS_HWCONTEXT_DRM) \
+    && QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+    case AV_PIX_FMT_DRM_PRIME:
+      return std::make_unique<DRMPrimeDecoder>(format);
 #endif
 
     // Grey
