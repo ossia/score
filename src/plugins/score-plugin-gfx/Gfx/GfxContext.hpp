@@ -3,6 +3,7 @@
 
 #include <Gfx/AssetTable.hpp>
 #include <Gfx/Graph/Node.hpp>
+#include <Gfx/Graph/RenderClock.hpp>
 
 #include <score/tools/Timers.hpp>
 
@@ -112,7 +113,6 @@ private:
 
   void on_no_vsync_timer(score::HighResolutionTimer* self);
   void on_watchdog_timer(score::HighResolutionTimer* self);
-  void on_manual_timer(score::HighResolutionTimer* self);
   const score::DocumentContext& m_context;
   std::atomic_int32_t index{1};
   ossia::hash_map<int32_t, NodePtr> nodes;
@@ -158,7 +158,15 @@ private:
   score::HighResolutionTimer* m_no_vsync_timer{};
   score::HighResolutionTimer* m_watchdog_timer{};
 
-  ossia::small_flat_map<score::HighResolutionTimer*, ossia::flat_set<score::gfx::OutputNode*>, 8> m_manualTimers;
+  // Per-output render clocks (the render-clock / genlock abstraction).
+  //
+  // These replace the old timer->set<OutputNode*> map: each TimerClock owns
+  // one shared HighResolutionTimer at a given manualRenderingRate and the
+  // coalesced set of outputs driven by it (clock #2, the default), while the
+  // single DisplayVSyncClock wraps the swap-chain vsync callback (clock #1).
+  // Behaviour is byte-identical to the previous inline timer bookkeeping.
+  std::vector<std::unique_ptr<score::gfx::TimerClock>> m_renderClocks;
+  std::unique_ptr<score::gfx::DisplayVSyncClock> m_vsyncClock;
 
   ossia::object_pool<std::vector<score::gfx::gfx_input>> m_buffers;
 
