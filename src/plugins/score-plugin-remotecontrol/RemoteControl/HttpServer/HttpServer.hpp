@@ -11,10 +11,10 @@
 
 #define BOOST_DATE_TIME_NO_LIB 1
 
+#include <boost/asio/ip/tcp.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
-#include <boost/asio/ip/tcp.hpp>
 #include <boost/config.hpp>
 
 #include <string>
@@ -24,10 +24,10 @@
 #define SHUT_RDWR 2
 #endif
 
-namespace beast = boost::beast;         // from <boost/beast.hpp>
-namespace http = beast::http;           // from <boost/beast/http.hpp>
-namespace net = boost::asio;            // from <boost/asio.hpp>
-using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
+namespace beast = boost::beast;   // from <boost/beast.hpp>
+namespace http = beast::http;     // from <boost/beast/http.hpp>
+namespace net = boost::asio;      // from <boost/asio.hpp>
+using tcp = boost::asio::ip::tcp; // from <boost/asio/ip/tcp.hpp>
 
 namespace RemoteControl::HttpServer
 {
@@ -55,10 +55,9 @@ private:
   // request. The type of the response object depends on the
   // contents of the request, so the interface requires the
   // caller to pass a generic lambda for receiving the response.
-  template<class Body, class Allocator, class Send>
+  template <class Body, class Allocator, class Send>
   void handle_request(
-      http::request<Body, http::basic_fields<Allocator>>&& req
-      , const Send& send);
+      http::request<Body, http::basic_fields<Allocator>>&& req, const Send& send);
 
   // Report a failure
   void fail(beast::error_code ec, char const* what);
