@@ -74,7 +74,7 @@ public:
       QRhiResourceUpdateBatch*& res) override;
 };
 
-class BasicRenderer : public score::gfx::OutputNodeRenderer
+class SCORE_PLUGIN_GFX_EXPORT BasicRenderer : public score::gfx::OutputNodeRenderer
 {
 public:
   score::gfx::TextureRenderTarget m_rt;
