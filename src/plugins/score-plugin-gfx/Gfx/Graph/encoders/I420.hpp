@@ -145,7 +145,7 @@ struct I420Encoder : GPUVideoEncoder
 
   void execPlane(QRhi& rhi, QRhiCommandBuffer& cb, PlaneResources& plane, int w, int h)
   {
-    cb.beginPass(plane.rt, Qt::black, {1.0f, 0});
+    cb.beginPass(plane.rt, Qt::black, {0.0f, 0});
     cb.setGraphicsPipeline(plane.pipeline);
     cb.setShaderResources(plane.srb);
     cb.setViewport(QRhiViewport(0, 0, w, h));

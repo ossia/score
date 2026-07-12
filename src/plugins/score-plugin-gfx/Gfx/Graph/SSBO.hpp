@@ -223,6 +223,193 @@ static inline LayoutResult calculateStructLayout(
   return {currentOffset, maxAlignment};
 }
 
+// --- std140 (uniform block) layout ---------------------------------------
+//
+// OpenGL 4.6 core profile, 7.6.2.2 "Standard Uniform Block Layout": std140
+// differs from std430 in exactly two rules.
+//
+//   (4) "If the member is an array of scalars or vectors, the base alignment
+//        and array stride are set to match the base alignment of a single
+//        array element, according to rules (1), (2), and (3), and rounded up
+//        to the base alignment of a vec4."
+//   (9) "If the member is a structure, the base alignment of the structure is
+//        N, where N is the largest base alignment value of any of its members,
+//        and rounded up to the base alignment of a vec4."
+//
+// and, via rules (5) and (7), a matrix is laid out as an array of column
+// vectors, so its columns get the same vec4 rounding.
+static constexpr int kStd140Vec4Alignment = 16;
+
+struct MatrixShape
+{
+  int columns{};
+  QString columnType;
+
+  bool isValid() const { return columns > 0; }
+};
+
+// "mat3x2" -> 3 columns of vec2; "mat3" -> 3 columns of vec3;
+// "dmat4x3" -> 4 columns of dvec3. Anything else -> invalid.
+static inline MatrixShape parseMatrixShape(const QString& typeStr)
+{
+  const bool isDouble = typeStr.startsWith("dmat");
+  if(!isDouble && !typeStr.startsWith("mat"))
+    return {};
+
+  const QString dims = typeStr.mid(isDouble ? 4 : 3);
+  if(dims.isEmpty())
+    return {};
+
+  int columns = 0, rows = 0;
+  const int x = dims.indexOf('x');
+  bool ok = false;
+  if(x < 0)
+  {
+    columns = rows = dims.toInt(&ok);
+  }
+  else
+  {
+    columns = dims.left(x).toInt(&ok);
+    bool ok2 = false;
+    rows = dims.mid(x + 1).toInt(&ok2);
+    ok = ok && ok2;
+  }
+  if(!ok || columns < 2 || columns > 4 || rows < 2 || rows > 4)
+    return {};
+
+  return {columns, (isDouble ? QString("dvec") : QString("vec")) + QString::number(rows)};
+}
+
+static inline Std430TypeInfo getStd140BaseTypeInfo(const QString& typeStr)
+{
+  if(const MatrixShape m = parseMatrixShape(typeStr); m.isValid())
+  {
+    const Std430TypeInfo col = getStd430BaseTypeInfo(m.columnType);
+    if(!col.isValid())
+      return {};
+    const int align = (int)std::max<int64_t>(col.baseAlignment, kStd140Vec4Alignment);
+    const int stride = (int)alignUp(col.baseSize, align);
+    return {stride * m.columns, align};
+  }
+
+  // Scalars and vectors follow the same rules (1)-(3) in std140 and std430.
+  return getStd430BaseTypeInfo(typeStr);
+}
+
+static inline LayoutResult calculateStructLayout140(
+    std::span<const isf::storage_input::layout_field> layout,
+    std::span<const isf::descriptor::type_definition> typeDefinitions);
+
+// Size + alignment of one std140 member, before any array multiplication.
+static inline LayoutResult std140MemberInfo(
+    const QString& baseType,
+    std::span<const isf::descriptor::type_definition> typeDefinitions)
+{
+  if(const Std430TypeInfo info = getStd140BaseTypeInfo(baseType); info.isValid())
+    return {info.baseSize, info.baseAlignment};
+
+  for(const auto& typeDef : typeDefinitions)
+  {
+    if(QString::fromStdString(typeDef.name) == baseType)
+      return calculateStructLayout140(typeDef.layout, typeDefinitions);
+  }
+
+  qWarning() << "Unknown type in uniform block layout:" << baseType;
+  return {kStd140Vec4Alignment, kStd140Vec4Alignment};
+}
+
+static inline LayoutResult calculateStructLayout140(
+    std::span<const isf::storage_input::layout_field> layout,
+    std::span<const isf::descriptor::type_definition> typeDefinitions)
+{
+  if(layout.empty())
+    return {0, 0};
+
+  int64_t currentOffset = 0;
+  int64_t maxAlignment = kStd140Vec4Alignment; // rule (9)
+
+  for(const auto& field : layout)
+  {
+    const ArrayParseResult parsed = parseArrayType(QString::fromStdString(field.type));
+    if(parsed.arrayCount == -1)
+    {
+      qWarning() << "Flexible array found inside std140 struct. Invalid GLSL, skipping:"
+                 << QString::fromStdString(field.name);
+      continue;
+    }
+
+    const LayoutResult member = std140MemberInfo(parsed.baseType, typeDefinitions);
+    int64_t fieldAlign = member.alignment;
+    int64_t total = member.size;
+
+    if(parsed.arrayCount > 0)
+    {
+      fieldAlign = std::max<int64_t>(fieldAlign, kStd140Vec4Alignment); // rule (4)
+      total = alignUp(member.size, fieldAlign) * parsed.arrayCount;
+    }
+
+    currentOffset = alignUp(currentOffset, fieldAlign);
+    currentOffset += total;
+    maxAlignment = std::max(maxAlignment, fieldAlign);
+  }
+
+  return {(int)alignUp(currentOffset, maxAlignment), (int)maxAlignment};
+}
+
+/**
+ * @brief Byte size of a std140 uniform block declared by @p layout.
+ *
+ * @p arrayCount is the element count substituted for a trailing flexible
+ * array member (`type[]`), matching calculateStorageBufferSize's contract.
+ * Returns 0 for an empty layout.
+ *
+ * Templated over the field range because libisf declares an independent
+ * `layout_field` type inside each of storage_input / uniform_input, with
+ * identical `name` + `type` members.
+ */
+template <typename Layout>
+static inline int64_t
+calculateUniformBlockSize(const Layout& layout, int arrayCount, const isf::descriptor& d)
+{
+  if(std::empty(layout))
+    return 0;
+
+  if(arrayCount < 0)
+    arrayCount = 0;
+
+  const auto& typeDefinitions = d.types;
+
+  int64_t currentOffset = 0;
+  int64_t maxBufferAlignment = kStd140Vec4Alignment;
+
+  for(const auto& field : layout)
+  {
+    const ArrayParseResult parsed = parseArrayType(QString::fromStdString(field.type));
+    const LayoutResult member = std140MemberInfo(parsed.baseType, typeDefinitions);
+
+    const bool isFlexibleArray = (parsed.arrayCount == -1);
+    const bool isFixedArray = (parsed.arrayCount > 0);
+
+    int64_t fieldAlign = member.alignment;
+    if(isFlexibleArray || isFixedArray)
+      fieldAlign = std::max<int64_t>(fieldAlign, kStd140Vec4Alignment); // rule (4)
+
+    const int64_t elementStride = alignUp(member.size, fieldAlign);
+
+    currentOffset = alignUp(currentOffset, fieldAlign);
+    if(isFlexibleArray)
+      currentOffset += elementStride * arrayCount;
+    else if(isFixedArray)
+      currentOffset += elementStride * parsed.arrayCount;
+    else
+      currentOffset += member.size;
+
+    maxBufferAlignment = std::max(maxBufferAlignment, fieldAlign);
+  }
+
+  return alignUp(currentOffset, maxBufferAlignment);
+}
+
 static inline int64_t calculateStorageBufferSize(
     std::span<const isf::storage_input::layout_field> layout, int arrayCount,
     const isf::descriptor& d)

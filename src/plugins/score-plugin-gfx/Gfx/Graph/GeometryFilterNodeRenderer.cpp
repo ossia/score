@@ -21,6 +21,11 @@ TextureRenderTarget GeometryFilterNodeRenderer::renderTargetForInput(const Port&
 
 void GeometryFilterNodeRenderer::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
+  initState(renderer, res);
+}
+
+void GeometryFilterNodeRenderer::initState(RenderList& renderer, QRhiResourceUpdateBatch& res)
+{
   QRhi& rhi = *renderer.state.rhi;
 
   m_materialSize = node().m_materialSize;
@@ -30,7 +35,10 @@ void GeometryFilterNodeRenderer::init(RenderList& renderer, QRhiResourceUpdateBa
         = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, m_materialSize);
     m_materialUBO->setName("GeometryFilterNodeRenderer.ubo");
     SCORE_ASSERT(m_materialUBO->create());
+    if(node().m_material_data)
+      res.updateDynamicBuffer(m_materialUBO, 0, m_materialSize, node().m_material_data.get());
   }
+  m_initialized = true;
 }
 
 void GeometryFilterNodeRenderer::update(
@@ -47,8 +55,17 @@ void GeometryFilterNodeRenderer::update(
 
 void GeometryFilterNodeRenderer::release(RenderList& r)
 {
-  delete m_materialUBO;
+  releaseState(r);
+}
+
+void GeometryFilterNodeRenderer::releaseState(RenderList& r)
+{
+  if(!m_initialized)
+    return;
+  if(m_materialUBO)
+    m_materialUBO->deleteLater();
   m_materialUBO = nullptr;
+  m_initialized = false;
 }
 
 void GeometryFilterNodeRenderer::runInitialPasses(
