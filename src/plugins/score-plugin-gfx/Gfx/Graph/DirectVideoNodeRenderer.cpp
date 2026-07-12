@@ -1117,6 +1117,8 @@ void DirectVideoNodeRenderer::createPipelines(RenderList& r)
   if(m_gpu)
   {
     auto shaders = m_gpu->init(r);
+    m_cachedVertexShader = shaders.first;
+    m_cachedFragmentShader = shaders.second;
     SCORE_ASSERT(m_p.empty());
     score::gfx::defaultPassesInit(
         m_p, this->node().output[0]->edges, r, r.defaultQuad(), shaders.first,
@@ -1125,6 +1127,15 @@ void DirectVideoNodeRenderer::createPipelines(RenderList& r)
 }
 
 void DirectVideoNodeRenderer::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
+{
+  initState(renderer, res);
+
+  for(Edge* edge : this->node().output[0]->edges)
+    addOutputPass(renderer, *edge, res);
+}
+
+void DirectVideoNodeRenderer::initState(
+    RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
   auto& rhi = *renderer.state.rhi;
 
@@ -1151,7 +1162,15 @@ void DirectVideoNodeRenderer::init(RenderList& renderer, QRhiResourceUpdateBatch
   }
 
   createGpuDecoder(rhi);
-  createPipelines(renderer);
+
+  // Cache shaders from the GPU decoder so addOutputPass() can use them
+  if(m_gpu)
+  {
+    auto shaders = m_gpu->init(renderer);
+    m_cachedVertexShader = shaders.first;
+    m_cachedFragmentShader = shaders.second;
+  }
+
   m_recomputeScale = true;
 }
 
@@ -1269,6 +1288,18 @@ void DirectVideoNodeRenderer::update(
             m_zeroCopyFailed = true;
             setupGpuDecoder(renderer);
           }
+          else if(m_gpu->formatChanged)
+          {
+            // HWTransferDecoder detected a mid-stream software-format change.
+            // It deferred its own teardown so our pipeline SRBs (built from the
+            // old plane textures) are still valid this frame. Adopt the new
+            // software format (recorded into m_frameFormat.pixel_format by the
+            // decoder) so the rebuilt HWTransferDecoder is constructed for it,
+            // then rebuild decoder + pipelines together — recreating the plane
+            // textures and the SRBs that reference them in lockstep.
+            m_hwSwFormat = static_cast<AVPixelFormat>(m_frameFormat.pixel_format);
+            setupGpuDecoder(renderer);
+          }
         }
       }
     }
@@ -1293,6 +1324,48 @@ void DirectVideoNodeRenderer::update(
 
 void DirectVideoNodeRenderer::release(RenderList& r)
 {
+  releaseState(r);
+}
+
+void DirectVideoNodeRenderer::addOutputPass(
+    RenderList& renderer, Edge& edge, QRhiResourceUpdateBatch& res)
+{
+  if(!m_gpu)
+    return;
+  if(!m_cachedVertexShader.isValid() || !m_cachedFragmentShader.isValid())
+    return;
+
+  auto rt = renderer.renderTargetForOutput(edge);
+  if(rt.renderTarget)
+  {
+    auto pip = score::gfx::buildPipeline(
+        renderer, renderer.defaultQuad(), m_cachedVertexShader, m_cachedFragmentShader,
+        rt, m_processUBO, m_materialUBO, m_gpu->samplers);
+    if(pip.pipeline)
+      m_p.emplace_back(&edge, Pass{rt, pip, nullptr});
+  }
+}
+
+void DirectVideoNodeRenderer::removeOutputPass(RenderList& renderer, Edge& edge)
+{
+  auto it = ossia::find_if(m_p, [&](auto& p) { return p.first == &edge; });
+  if(it != m_p.end())
+  {
+    it->second.p.release();
+    if(it->second.processUBO)
+      it->second.processUBO->deleteLater();
+    m_p.erase(it);
+  }
+}
+
+bool DirectVideoNodeRenderer::hasOutputPassForEdge(Edge& edge) const
+{
+  return ossia::find_if(m_p, [&](const auto& p) { return p.first == &edge; })
+         != m_p.end();
+}
+
+void DirectVideoNodeRenderer::releaseState(RenderList& r)
+{
   // Destroy GPU decoder BEFORE closeFile() frees m_hwDeviceCtx.
   // HW decoders (CUDA, Vulkan) hold references to the HW device context
   // and must be destroyed while it's still valid.
@@ -1301,6 +1374,9 @@ void DirectVideoNodeRenderer::release(RenderList& r)
     m_gpu->release(r);
     m_gpu.reset();
   }
+
+  m_cachedVertexShader = {};
+  m_cachedFragmentShader = {};
 
   delete m_processUBO;
   m_processUBO = nullptr;
