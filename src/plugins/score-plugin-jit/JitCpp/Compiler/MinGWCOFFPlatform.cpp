@@ -5,6 +5,7 @@
 #include <llvm/ExecutionEngine/JITLink/x86_64.h>
 #include <llvm/ExecutionEngine/Orc/AbsoluteSymbols.h>
 #include <llvm/ExecutionEngine/Orc/COFF.h>
+#include <llvm/ExecutionEngine/Orc/ExecutionUtils.h>
 #include <llvm/ExecutionEngine/Orc/LookupAndRecordAddrs.h>
 #include <llvm/ExecutionEngine/Orc/ObjectFileInterface.h>
 #include <llvm/ExecutionEngine/Orc/Shared/ObjectFormats.h>
@@ -14,6 +15,22 @@
 using namespace llvm;
 using namespace llvm::orc;
 using namespace llvm::orc::shared;
+
+// x64 SEH function-table registration (from ntdll/kernel32; score links them).
+// Declared locally to avoid pulling <windows.h> into an LLVM translation unit.
+extern "C"
+{
+struct JIT_RUNTIME_FUNCTION
+{
+  uint32_t BeginAddress;
+  uint32_t EndAddress;
+  uint32_t UnwindData;
+};
+__declspec(dllimport) unsigned char __stdcall RtlAddFunctionTable(
+    JIT_RUNTIME_FUNCTION* FunctionTable, uint32_t EntryCount, uint64_t BaseAddress);
+__declspec(dllimport) unsigned char __stdcall RtlDeleteFunctionTable(
+    JIT_RUNTIME_FUNCTION* FunctionTable);
+}
 
 namespace llvm
 {
@@ -274,6 +291,31 @@ Error MinGWCOFFPlatform::setupJITDylib(JITDylib& JD)
 
   // No VC-runtime load here: on MinGW the CRT/C++/EH symbols are resolved from
   // the host process (score.exe) via the process-symbols generator.
+
+  // Resolve Itanium C++ ABI RTTI/vtable DATA symbols (typeinfo _ZTI*, typeinfo
+  // name _ZTS*, vtable _ZTV*, VTT _ZTT*, construction vtable _ZTC*) directly to
+  // the host process's real addresses, BEFORE the DLLImport generator below.
+  //
+  // DLLImportDefinitionGenerator synthesizes a jmp thunk ($__DLLIMPORT_STUBS) for
+  // every external symbol it serves. That is correct for imported *functions* (a
+  // near REL32 call/branch needs a nearby stub to reach a host DLL >4GB away), but
+  // fatal for imported *data*: taking the address of a type_info (e.g. _ZTIi)
+  // would then yield the thunk address instead of the object, so __cxa_throw and
+  // the EH personality dereference stub instruction bytes as a type_info and
+  // crash. type_infos and vtables are always data and always referenced by 64-bit
+  // relocations (CodeModel::Large), so resolving them to the true host address is
+  // both correct and reachable. Functions still fall through to DLLImport.
+  if(auto G = DynamicLibrarySearchGenerator::GetForCurrentProcess(
+         /*GlobalPrefix (none on x86_64 COFF)*/ '\0',
+         [](const SymbolStringPtr& S) {
+    StringRef N(*S);
+    return N.starts_with("_ZTV") || N.starts_with("_ZTI")
+           || N.starts_with("_ZTS") || N.starts_with("_ZTT")
+           || N.starts_with("_ZTC");
+  }))
+    JD.addGenerator(std::move(*G));
+  else
+    consumeError(G.takeError());
 
   JD.addGenerator(DLLImportDefinitionGenerator::Create(ES, ObjLinkingLayer));
   return Error::success();
@@ -660,6 +702,13 @@ Error MinGWCOFFPlatform::initializeJITDylib(JITDylib& JD)
   return runJDInitializers(JD);
 }
 
+MinGWCOFFPlatform::~MinGWCOFFPlatform()
+{
+  std::lock_guard<std::mutex> Lock(PlatformMutex);
+  for(void* Table : RegisteredEHTables)
+    RtlDeleteFunctionTable(static_cast<JIT_RUNTIME_FUNCTION*>(Table));
+}
+
 Error MinGWCOFFPlatform::bootstrapCOFFRuntime(JITDylib& PlatformJD)
 {
   if(auto Err = lookupAndRecordAddrs(
@@ -806,11 +855,31 @@ Error MinGWCOFFPlatform::MinGWCOFFPlatformPlugin::registerObjectPlatformSections
   COFFObjectSectionsMap ObjSecs;
   auto HeaderAddr = CP.JITDylibToHeaderAddr[&JD];
   assert(HeaderAddr && "Must be registered jitdylib");
+  jitlink::Section* PData = nullptr;
   for(auto& S : G.sections())
   {
     jitlink::SectionRange Range(S);
     if(Range.getSize())
       ObjSecs.push_back(std::make_pair(S.getName().str(), Range.getRange()));
+    if(S.getName() == ".pdata" && Range.getSize())
+      PData = &S;
+  }
+
+  // Register the object's .pdata with the OS x64 unwinder so exceptions thrown in
+  // JIT'd code unwind. The .pdata holds RUNTIME_FUNCTION entries with RVAs from
+  // __ImageBase (== HeaderAddr, the slab base). In-process JIT, so call directly
+  // here (post-fixup: addresses and RVAs are final). The matching
+  // RtlDeleteFunctionTable happens in ~MinGWCOFFPlatform.
+  if(PData)
+  {
+    jitlink::SectionRange Range(*PData);
+    auto* Table = Range.getRange().Start.toPtr<JIT_RUNTIME_FUNCTION*>();
+    auto Count = static_cast<uint32_t>(Range.getSize() / sizeof(JIT_RUNTIME_FUNCTION));
+    if(Count && RtlAddFunctionTable(Table, Count, HeaderAddr.getValue()))
+    {
+      std::lock_guard<std::mutex> Lock(CP.PlatformMutex);
+      CP.RegisteredEHTables.push_back(Table);
+    }
   }
 
   G.allocActions().push_back(
