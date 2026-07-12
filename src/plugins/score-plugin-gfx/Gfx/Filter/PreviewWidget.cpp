@@ -1,12 +1,15 @@
 #include <Process/Preset.hpp>
 
 #include <Gfx/Filter/PreviewWidget.hpp>
+#include <Gfx/Graph/BackgroundNode.hpp>
 #include <Gfx/Graph/ISFNode.hpp>
-#include <Gfx/Graph/ScreenNode.hpp>
+#include <Gfx/Graph/ISFVisitors.hpp>
 #include <Gfx/Settings/Model.hpp>
+#include <Gfx/Widgets/RhiPreviewWidget.hpp>
 
 #include <score/application/ApplicationContext.hpp>
 
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/network/value/value.hpp>
 
 #include <QApplication>
@@ -137,7 +140,8 @@ struct PreviewInputVisitor
   
   // CSF-specific input handlers
   score::gfx::NodeModel* operator()(const isf::storage_input& v) { return nullptr; }
-  
+  score::gfx::NodeModel* operator()(const isf::uniform_input& v) { return nullptr; }
+
   score::gfx::NodeModel* operator()(const isf::texture_input& v)
   {
     static std::array<QImage, 3> images{
@@ -175,61 +179,80 @@ struct PreviewPresetVisitor
 {
   score::gfx::ISFNode& node;
   ossia::flat_map<int, ossia::value>& controls;
+  // Descriptor-input index: matches both the saved preset control keys
+  // (model inlet id == desc.inputs index, see setupISFModelPorts) and the
+  // controls flat_map key.
   int i{};
+  // Render-port index: index into node.input[], advanced via
+  // walk_descriptor_inputs (an input may create 0 or 2 ports, so this
+  // drifts from the descriptor index).
+  int port{};
+
+  // Guarded material pointer for the current render port: nullptr if the
+  // port index is out of range or the port carries no material storage.
+  float* portValue() const noexcept
+  {
+    if(port < 0 || port >= (int)node.input.size())
+      return nullptr;
+    return reinterpret_cast<float*>(node.input[port]->value);
+    // NB: for scalar/vector inputs value always points into the material
+    // UBO blob; image/audio inputs never reach this (their visitors no-op).
+  }
+
   void operator()(const isf::float_input& v)
   {
-    if(float* v = controls[i].target<float>())
-    {
-      (*(float*)node.input[i]->value) = *v;
-    }
+    if(float* dst = portValue(); dst)
+      if(float* val = controls[i].target<float>())
+        *dst = *val;
   }
 
   void operator()(const isf::long_input& v)
   {
-    if(int* v = controls[i].target<int>())
-    {
-      (*(int*)node.input[i]->value) = *v;
-    }
+    if(float* dst = portValue(); dst)
+      if(int* val = controls[i].target<int>())
+        *reinterpret_cast<int*>(dst) = *val;
   }
 
   void operator()(const isf::event_input& v) { }
 
   void operator()(const isf::bool_input& v)
   {
-    if(bool* v = controls[i].target<bool>())
-    {
-      (*(int*)node.input[i]->value) = *v ? 1 : 0;
-    }
+    if(float* dst = portValue(); dst)
+      if(bool* val = controls[i].target<bool>())
+        *reinterpret_cast<int*>(dst) = *val ? 1 : 0;
   }
 
   void operator()(const isf::point2d_input& v)
   {
-    if(ossia::vec2f* v = controls[i].target<ossia::vec2f>())
-    {
-      (*(float*)node.input[i]->value) = (*v)[0];
-      (*((float*)node.input[i]->value + 1)) = (*v)[1];
-    }
+    if(float* dst = portValue(); dst)
+      if(ossia::vec2f* val = controls[i].target<ossia::vec2f>())
+      {
+        dst[0] = (*val)[0];
+        dst[1] = (*val)[1];
+      }
   }
 
   void operator()(const isf::point3d_input& v)
   {
-    if(ossia::vec3f* v = controls[i].target<ossia::vec3f>())
-    {
-      (*(float*)node.input[i]->value) = (*v)[0];
-      (*((float*)node.input[i]->value + 1)) = (*v)[1];
-      (*((float*)node.input[i]->value + 2)) = (*v)[2];
-    }
+    if(float* dst = portValue(); dst)
+      if(ossia::vec3f* val = controls[i].target<ossia::vec3f>())
+      {
+        dst[0] = (*val)[0];
+        dst[1] = (*val)[1];
+        dst[2] = (*val)[2];
+      }
   }
 
   void operator()(const isf::color_input& v)
   {
-    if(ossia::vec4f* v = controls[i].target<ossia::vec4f>())
-    {
-      (*(float*)node.input[i]->value) = (*v)[0];
-      (*((float*)node.input[i]->value + 1)) = (*v)[1];
-      (*((float*)node.input[i]->value + 2)) = (*v)[2];
-      (*((float*)node.input[i]->value + 3)) = (*v)[3];
-    }
+    if(float* dst = portValue(); dst)
+      if(ossia::vec4f* val = controls[i].target<ossia::vec4f>())
+      {
+        dst[0] = (*val)[0];
+        dst[1] = (*val)[1];
+        dst[2] = (*val)[2];
+        dst[3] = (*val)[3];
+      }
   }
 
   void operator()(const isf::image_input& v) { }
@@ -244,6 +267,7 @@ struct PreviewPresetVisitor
   
   // CSF-specific input handlers
   void operator()(const isf::storage_input& v) { }
+  void operator()(const isf::uniform_input& v) { }
 
   void operator()(const isf::texture_input& v) { }
 
@@ -256,18 +280,17 @@ struct PreviewPresetVisitor
 ShaderPreviewManager* g_shaderPreview{};
 bool g_shaderPreviewScheduledForDeletion{};
 
-// Creating and destroying QRhi is fairly expensive, so
-// we keep one around when we are showing ISF previews
+// Holds the source ISF + image nodes shared across hover previews.
+// The output side is owned by individual ShaderPreviewWidget /
+// RhiPreviewWidget instances: each contributes a score::gfx::PreviewNode
+// targeting its own QRhiWidget render target. Multiple previews can be
+// attached at once (e.g. library hover + live texture-port preview).
 class ShaderPreviewManager : public QObject
 {
 public:
   ShaderPreviewManager()
       : QObject{qApp}
   {
-    score::gfx::OutputNode::Configuration conf{};
-    m_screen = std::make_unique<score::gfx::ScreenNode>(conf, true);
-    m_graph.addNode(m_screen.get());
-
     connect(qApp, &QCoreApplication::aboutToQuit, this, [] {
       delete g_shaderPreview;
       g_shaderPreviewScheduledForDeletion = false;
@@ -288,7 +311,8 @@ public:
     if(path.contains(".vs") || path.contains(".vert"))
       program = programFromVSAVertexShaderPath(path, {});
 
-    if(const auto& [processed, error] = ProgramCache::instance().get(program);
+    if(const auto& [processed, error]
+       = ProgramCache::instance().get(program, path);
        bool(processed))
     {
       m_program = *processed;
@@ -311,6 +335,8 @@ public:
     auto vert = obj["Vertex"].GetString();
     ShaderSource program{type, vert, frag};
 
+    // Preset-loaded source has no origin file; includes resolve against
+    // global search paths only.
     if(const auto& [processed, error] = ProgramCache::instance().get(program);
        bool(processed))
     {
@@ -324,21 +350,49 @@ public:
           controls[arr[0].GetInt()] = JsonValue{arr[1]}.to<ossia::value>();
         }
 
+        // controls is keyed by descriptor-input index (== model inlet id);
+        // node.input[] is keyed by render-port index. walk_descriptor_inputs
+        // gives the render-port index (cur.inlets) for each descriptor entry,
+        // which drifts from the descriptor index for 0-/2-port inputs.
         int i = 0;
-        for(const isf::input& input : m_program.descriptor.inputs)
-        {
-          ossia::visit(PreviewPresetVisitor{*m_isf, controls, i}, input.data);
-          i++;
-        }
+        score::gfx::walk_descriptor_inputs(
+            m_program.descriptor,
+            [&](const isf::input& input, const score::gfx::port_counts& cur,
+                const score::gfx::port_counts&) {
+              ossia::visit(
+                  PreviewPresetVisitor{*m_isf, controls, i, cur.inlets},
+                  input.data);
+              i++;
+            });
       }
     }
   }
 
-  std::shared_ptr<QWindow> getWindow()
+  score::gfx::Graph& graph() noexcept { return m_graph; }
+
+  // True while at least one preview widget is still attached to the shared
+  // graph. The deferred manager deletion must NOT fire while this holds, or
+  // a surviving widget's RhiPreviewWidget::m_graph would dangle (UAF on its
+  // detach()).
+  bool hasPreviews() const noexcept { return !m_previews.empty(); }
+
+  void attachPreview(score::gfx::BackgroundNode& node)
   {
-    if(m_screen && m_screen.get())
-      return m_screen.get()->window();
-    return {};
+    m_previews.push_back(&node);
+    if(m_isf)
+    {
+      m_graph.addEdge(
+          m_isf->output[0], node.input[0], Process::CableType::ImmediateGlutton);
+      const auto& settings = score::AppContext().settings<Gfx::Settings::Model>();
+      m_graph.createAllRenderLists(settings.graphicsApiEnum());
+    }
+  }
+
+  void detachPreview(score::gfx::BackgroundNode& node)
+  {
+    ossia::remove_erase(m_previews, &node);
+    if(m_isf)
+      m_graph.removeEdge(m_isf->output[0], node.input[0]);
   }
 
   std::vector<std::pair<score::gfx::Port*, score::gfx::Port*>> m_previewEdges;
@@ -346,7 +400,7 @@ public:
   void setup()
   {
     const auto& settings = score::AppContext().settings<Gfx::Settings::Model>();
-    // Create our graph
+    // Tear down the previous set of source nodes.
     for(auto [a, b] : m_previewEdges)
       m_graph.removeEdge(a, b);
     m_previewEdges.clear();
@@ -359,11 +413,10 @@ public:
 
     if(m_isf)
     {
-      m_graph.removeEdge(m_isf->output[0], m_screen->input[0]);
+      for(auto* p : m_previews)
+        m_graph.removeEdge(m_isf->output[0], p->input[0]);
       m_graph.removeNode(m_isf.get());
     }
-
-    m_graph.removeNode(m_screen.get());
 
     // Clear the graph, renderers etc.
     m_graph.createAllRenderLists(settings.graphicsApiEnum());
@@ -371,36 +424,52 @@ public:
     m_isf.reset();
     m_textures.clear();
 
-    // Recreate what we need
-    m_graph.addNode(m_screen.get());
-
     // FIXME add an error image if the shader did not parse
     m_isf = std::make_unique<score::gfx::ISFNode>(
         m_program.descriptor, m_program.vertex, m_program.fragment);
 
     m_graph.addNode(m_isf.get());
-    // Edge from filter to output
-    m_graph.addEdge(
-        m_isf->output[0], m_screen->input[0], Process::CableType::ImmediateGlutton);
 
-    // Edges from image nodes to image inputs
+    // Wire ISF output to every currently-attached preview.
+    for(auto* p : m_previews)
+      m_graph.addEdge(
+          m_isf->output[0], p->input[0], Process::CableType::ImmediateGlutton);
+
+    // Edges from image nodes to image inputs. The render-port index of an
+    // input (cur.inlets, via walk_descriptor_inputs) drifts from the
+    // descriptor index for inputs that create 0 or 2 ports, so we must not
+    // equate them. PreviewInputVisitor only yields a node for image-like
+    // inputs, each of which creates exactly one input port at cur.inlets.
     int image_i = 0;
-    int i = 0;
-    for(const isf::input& input : m_program.descriptor.inputs)
-    {
-      auto node = ossia::visit(PreviewInputVisitor{image_i}, input.data);
-      if(node)
-      {
-        m_graph.addNode(node);
+    score::gfx::walk_descriptor_inputs(
+        m_program.descriptor,
+        [&](const isf::input& input, const score::gfx::port_counts& cur,
+            const score::gfx::port_counts& delta) {
+          auto node = ossia::visit(PreviewInputVisitor{image_i}, input.data);
+          if(node)
+          {
+            const int port_idx = cur.inlets;
+            // Only wire when this input actually creates an input port:
+            // write-access csf_image_input yields a node but 0 inlets, and
+            // the render-port index must come from cur.inlets (not the
+            // descriptor index, which drifts for 0-/2-port inputs).
+            if(delta.inlets < 1 || port_idx < 0
+               || port_idx >= (int)m_isf->input.size())
+            {
+              delete node;
+              return;
+            }
 
-        m_graph.addEdge(
-            node->output[0], m_isf->input[i], Process::CableType::ImmediateGlutton);
-        m_previewEdges.emplace_back(node->output[0], m_isf->input[i]);
+            m_graph.addNode(node);
 
-        m_textures.push_back(std::unique_ptr<score::gfx::Node>(node));
-      }
-      i++;
-    }
+            m_graph.addEdge(
+                node->output[0], m_isf->input[port_idx],
+                Process::CableType::ImmediateGlutton);
+            m_previewEdges.emplace_back(node->output[0], m_isf->input[port_idx]);
+
+            m_textures.push_back(std::unique_ptr<score::gfx::Node>(node));
+          }
+        });
 
     m_graph.createAllRenderLists(settings.graphicsApiEnum());
   }
@@ -463,10 +532,10 @@ public:
     }
   }
 
-  std::unique_ptr<score::gfx::ScreenNode> m_screen{};
 private:
   std::unique_ptr<score::gfx::ISFNode> m_isf{};
   std::vector<std::unique_ptr<score::gfx::Node>> m_textures;
+  std::vector<score::gfx::BackgroundNode*> m_previews;
   score::gfx::Graph m_graph{};
   ProcessedProgram m_program;
 };
@@ -497,45 +566,59 @@ ShaderPreviewWidget::ShaderPreviewWidget(const Process::Preset& preset, QWidget*
 
 ShaderPreviewWidget::~ShaderPreviewWidget()
 {
+  // Tearing down the RhiPreviewWidget triggers detachPreview() on the
+  // manager, which removes the producer→preview edge. Do this before
+  // scheduling manager deletion so the deferred delete sees a clean
+  // graph.
+  delete m_rhi;
+  m_rhi = nullptr;
+
   g_shaderPreviewScheduledForDeletion = true;
   QTimer::singleShot(std::chrono::seconds(5), qApp, []() {
-    if(g_shaderPreviewScheduledForDeletion)
+    // Multi-client safety: several ShaderPreviewWidgets can share the same
+    // manager (library hover + live texture-port preview). Destroying one
+    // schedules this deletion, but another may still be attached — its
+    // RhiPreviewWidget holds a raw pointer into g_shaderPreview->graph().
+    // Only tear the manager down once no preview remains attached, otherwise
+    // the surviving widget would dereference a freed Graph on its own
+    // destruction (use-after-free).
+    if(g_shaderPreviewScheduledForDeletion && g_shaderPreview
+       && !g_shaderPreview->hasPreviews())
     {
       delete g_shaderPreview;
       g_shaderPreview = nullptr;
       g_shaderPreviewScheduledForDeletion = false;
     }
   });
-
-  if(m_window)
-    m_window->setParent(nullptr);
 }
 
 void ShaderPreviewWidget::setup()
 {
   // UI setup
   auto lay = new QHBoxLayout(this);
-  if((m_window = g_shaderPreview->getWindow()))
-  {
-    auto widg = createWindowContainer(m_window.get(), this);
-    widg->setMinimumWidth(300);
-    widg->setMaximumWidth(300);
-    widg->setMinimumHeight(200);
-    widg->setMaximumHeight(200);
-    lay->addWidget(widg);
-  }
-  // FIXME else { display error widget }
+  m_rhi = new RhiPreviewWidget(this);
+  m_rhi->setMinimumSize(300, 200);
+  m_rhi->setMaximumSize(300, 200);
+  m_rhi->useGraph(
+      &g_shaderPreview->graph(),
+      [](score::gfx::BackgroundNode& n) {
+        if(g_shaderPreview)
+          g_shaderPreview->attachPreview(n);
+      },
+      [](score::gfx::BackgroundNode& n) {
+        if(g_shaderPreview)
+          g_shaderPreview->detachPreview(n);
+      });
+  lay->addWidget(m_rhi);
 
-  // so anyways, I started blasting...
+  // Drives ISF time/progress uniforms. Frame submission is owned by
+  // the QRhiWidget (it calls update() each render).
   startTimer(16);
 }
 
 void ShaderPreviewWidget::timerEvent(QTimerEvent* event)
 {
   if(g_shaderPreview)
-  {
     g_shaderPreview->updateControls();
-    g_shaderPreview->m_screen->render();
-  }
 }
 }

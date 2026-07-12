@@ -908,24 +908,24 @@ private:
 
     for(auto& [e, pass] : this->m_p)
     {
-      pass.pipeline->destroy();
+      pass.p.pipeline->destroy();
 
-      pass.pipeline->setTargetBlends({blend});
+      pass.p.pipeline->setTargetBlends({blend});
 
       switch(m_draw_mode)
       {
         case 0:
-          pass.pipeline->setTopology(QRhiGraphicsPipeline::Triangles);
+          pass.p.pipeline->setTopology(QRhiGraphicsPipeline::Triangles);
           break;
         case 1:
-          pass.pipeline->setTopology(QRhiGraphicsPipeline::Points);
+          pass.p.pipeline->setTopology(QRhiGraphicsPipeline::Points);
           break;
         case 2:
-          pass.pipeline->setTopology(QRhiGraphicsPipeline::Lines);
+          pass.p.pipeline->setTopology(QRhiGraphicsPipeline::Lines);
           break;
       }
 
-      pass.pipeline->create();
+      pass.p.pipeline->create();
     }
   }
 
@@ -1120,7 +1120,15 @@ private:
       toGL(view, mc.view);
       toGL(mv, mc.mv);
       toGL(mvp, mc.mvp);
-      toGL(norm, mc.modelNormal);
+      // std140 mat3 = three vec4-aligned columns. modelNormal is 12
+      // floats; toGL would memcpy 48 bytes from the 36-byte QMatrix3x3
+      // (OOB read + garbled columns). Spread the 9 values by column.
+      {
+        const float* nd = norm.constData();
+        for(int c = 0; c < 3; c++)
+          for(int r = 0; r < 3; r++)
+            mc.modelNormal[c * 4 + r] = nd[c * 3 + r];
+      }
       mc.fov = n.fov;
 
       res.updateDynamicBuffer(m_material.buffer, 0, sizeof(ModelCameraUBO), &mc);

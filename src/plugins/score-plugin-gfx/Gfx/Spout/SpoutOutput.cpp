@@ -6,6 +6,7 @@
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
 #include <Gfx/Graph/RenderList.hpp>
+#include <Gfx/Graph/RenderState.hpp>
 #include <Gfx/Settings/Model.hpp>
 #include <score/gfx/OpenGL.hpp>
 #include <score/gfx/QRhiGles2.hpp>
@@ -24,8 +25,11 @@
 #include <private/qrhid3d11_p.h>
 #include <private/qrhid3d12_p.h>
 
+// clang-format off
 // D3D11On12 for D3D12 interop
+#include <windows.h>
 #include <d3d11on12.h>
+// clang-format on
 
 // Vulkan interop
 #if __has_include(<private/qrhivulkan_p.h>) && defined(QT_FEATURE_vulkan) && __has_include(<vulkan/vulkan.h>)
@@ -533,8 +537,6 @@ struct SpoutNode final : score::gfx::OutputNode
 
   void createOutput(score::gfx::OutputConfiguration conf) override
   {
-    m_renderState = std::make_shared<score::gfx::RenderState>();
-
     // Choose backend based on requested API
     switch(conf.graphicsApi)
     {
@@ -555,12 +557,13 @@ struct SpoutNode final : score::gfx::OutputNode
         break;
     }
 
-    auto rhi = m_renderState->rhi;
-    if(!rhi)
+    if(!m_renderState || !m_renderState->rhi)
     {
       qWarning() << "Failed to create QRhi for Spout output";
+      m_renderState.reset();
       return;
     }
+    auto rhi = m_renderState->rhi;
 
     // Use BGRA for D3D/Vulkan backends, RGBA for OpenGL
     auto format = (m_backend == QRhi::D3D11 || m_backend == QRhi::D3D12 || m_backend == QRhi::Vulkan)
@@ -586,43 +589,36 @@ struct SpoutNode final : score::gfx::OutputNode
     m_backend = QRhi::OpenGLES2;
     m_spout = std::make_shared<SpoutSender>();
 
-    m_renderState->surface = QRhiGles2InitParams::newFallbackSurface();
-    QRhiGles2InitParams params;
-    params.fallbackSurface = m_renderState->surface;
-    score::GLCapabilities caps;
-    caps.setupFormat(params.format);
-    m_renderState->rhi = QRhi::create(QRhi::OpenGLES2, &params, {});
-    m_renderState->renderSize = QSize(m_settings.width, m_settings.height);
-    m_renderState->outputSize = m_renderState->renderSize;
-    m_renderState->api = score::gfx::GraphicsApi::OpenGL;
-    m_renderState->version = caps.qShaderVersion;
+    m_renderState = score::gfx::createRenderState(
+        score::gfx::GraphicsApi::OpenGL,
+        QSize(m_settings.width, m_settings.height), nullptr);
+    if(m_renderState)
+      m_renderState->outputSize = m_renderState->renderSize;
   }
 
   void createOutputD3D11()
   {
     m_backend = QRhi::D3D11;
 
-    QRhiD3D11InitParams params;
-    m_renderState->rhi = QRhi::create(QRhi::D3D11, &params, {});
-    m_renderState->renderSize = QSize(m_settings.width, m_settings.height);
-    m_renderState->outputSize = m_renderState->renderSize;
-    m_renderState->api = score::gfx::GraphicsApi::D3D11;
-    m_renderState->version = Gfx::Settings::shaderVersionForAPI(score::gfx::GraphicsApi::D3D11);
+    m_renderState = score::gfx::createRenderState(
+        score::gfx::GraphicsApi::D3D11,
+        QSize(m_settings.width, m_settings.height), nullptr);
+    if(m_renderState)
+      m_renderState->outputSize = m_renderState->renderSize;
   }
 
   void createOutputD3D12()
   {
     m_backend = QRhi::D3D12;
 
-    QRhiD3D12InitParams params;
-    m_renderState->rhi = QRhi::create(QRhi::D3D12, &params, {});
-    m_renderState->renderSize = QSize(m_settings.width, m_settings.height);
-    m_renderState->outputSize = m_renderState->renderSize;
-    m_renderState->api = score::gfx::GraphicsApi::D3D12;
-    m_renderState->version = Gfx::Settings::shaderVersionForAPI(score::gfx::GraphicsApi::D3D12);
+    m_renderState = score::gfx::createRenderState(
+        score::gfx::GraphicsApi::D3D12,
+        QSize(m_settings.width, m_settings.height), nullptr);
+    if(m_renderState)
+      m_renderState->outputSize = m_renderState->renderSize;
 
     // Get D3D12 device and command queue from QRhi
-    if(m_renderState->rhi)
+    if(m_renderState && m_renderState->rhi)
     {
       auto nativeHandles = static_cast<const QRhiD3D12NativeHandles*>(
           m_renderState->rhi->nativeHandles());
@@ -653,33 +649,16 @@ struct SpoutNode final : score::gfx::OutputNode
   {
     m_backend = QRhi::Vulkan;
 
-    // Create Vulkan instance with required extensions
-    auto* vkInst = score::gfx::staticVulkanInstance();
-    if(!vkInst)
-    {
-      qWarning() << "SpoutOutput: No Vulkan instance available";
-      return;
-    }
-
-    QRhiVulkanInitParams params;
-    params.inst = vkInst;
-
-    // Enable required device extensions for external memory
-    params.deviceExtensions << VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME
-                            << VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME
-                            << VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME
-                            << VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME
-                            << VK_KHR_EXTERNAL_SEMAPHORE_EXTENSION_NAME
-                            << VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME;
-
-    m_renderState->rhi = QRhi::create(QRhi::Vulkan, &params, QRhi::EnableDebugMarkers, nullptr);
-    m_renderState->renderSize = QSize(m_settings.width, m_settings.height);
-    m_renderState->outputSize = m_renderState->renderSize;
-    m_renderState->api = score::gfx::GraphicsApi::Vulkan;
-    m_renderState->version = Gfx::Settings::shaderVersionForAPI(score::gfx::GraphicsApi::Vulkan);
+    // createRenderState already adds the VK_KHR_EXTERNAL_MEMORY{,_WIN32}, etc.
+    // extensions on Windows, plus shares the video-decode-capable VkDevice.
+    m_renderState = score::gfx::createRenderState(
+        score::gfx::GraphicsApi::Vulkan,
+        QSize(m_settings.width, m_settings.height), nullptr);
+    if(m_renderState)
+      m_renderState->outputSize = m_renderState->renderSize;
 
     // Create a D3D11 device for creating the shared texture
-    if(m_renderState->rhi)
+    if(m_renderState && m_renderState->rhi)
     {
       D3D_FEATURE_LEVEL featureLevels[] = {D3D_FEATURE_LEVEL_11_1, D3D_FEATURE_LEVEL_11_0};
       UINT createDeviceFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
@@ -781,6 +760,29 @@ struct SpoutNode final : score::gfx::OutputNode
         break;
     }
     m_created = false;
+
+    // Backend-specific interop handles are gone above; now release the
+    // QRhi-owned resources. Order: render target -> render pass descriptor
+    // -> texture -> rhi (which is what RenderState::destroy() does).
+    if(!m_renderState)
+      return;
+
+    // Persist-across-rebuild contract: registry survives RL teardown,
+    // so we tear down its QRhi resources here BEFORE
+    // RenderState::destroy() (called below) frees the device.
+    releaseRegistry();
+
+    delete m_renderTarget;
+    m_renderTarget = nullptr;
+
+    delete m_renderState->renderPassDescriptor;
+    m_renderState->renderPassDescriptor = nullptr;
+
+    delete m_texture;
+    m_texture = nullptr;
+
+    m_renderState->destroy();
+    m_renderState.reset();
   }
 
   std::shared_ptr<score::gfx::RenderState> renderState() const override
