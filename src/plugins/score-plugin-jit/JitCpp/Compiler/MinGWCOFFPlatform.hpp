@@ -34,6 +34,7 @@
 #include <llvm/ExecutionEngine/Orc/Core.h>
 #include <llvm/ExecutionEngine/Orc/ExecutionUtils.h>
 #include <llvm/ExecutionEngine/Orc/ExecutorProcessControl.h>
+#include <llvm/ExecutionEngine/Orc/LLJIT.h>
 #include <llvm/ExecutionEngine/Orc/ObjectLinkingLayer.h>
 #include <llvm/ExecutionEngine/Orc/Shared/ExecutorAddress.h>
 
@@ -79,6 +80,12 @@ public:
   llvm::Error
   notifyAdding(llvm::orc::ResourceTracker& RT, const llvm::orc::MaterializationUnit& MU) override;
   llvm::Error notifyRemoving(llvm::orc::ResourceTracker& RT) override;
+
+  /// Run JD's collected static initializers (.CRT$XI*/.CRT$XC*) directly via
+  /// runAsVoidFunction, exactly like the bootstrap does. orc_rt's COFF dlopen
+  /// init path is MSVC-coupled (_initterm) and segfaults on MinGW, so the custom
+  /// MinGWCOFFPlatformSupport calls this instead of going through orc_rt.
+  llvm::Error initializeJITDylib(llvm::orc::JITDylib& JD);
 
   /// Default aliases for the platform (orc_rt utility forwarders).
   static llvm::orc::SymbolAliasMap standardPlatformAliases(llvm::orc::ExecutionSession& ES);
@@ -191,6 +198,9 @@ private:
   void rt_lookupSymbol(
       SendSymbolAddressFn SendResult, llvm::orc::ExecutorAddr Handle, llvm::StringRef SymbolName);
 
+  // Run one JD's collected .CRT$XI* then .CRT$XC* initializers directly.
+  llvm::Error runJDInitializers(llvm::orc::JITDylib& JD);
+
   llvm::orc::ExecutionSession& ES;
   llvm::orc::ObjectLinkingLayer& ObjLinkingLayer;
 
@@ -215,7 +225,40 @@ private:
 
   llvm::DenseMap<llvm::orc::JITDylib*, llvm::orc::SymbolLookupSet> RegisteredInitSymbols;
 
+  // Per-JD static initializers (.CRT$XI*/.CRT$XC* ctor addresses) collected at
+  // materialization, run directly by initializeJITDylib() (see header above).
+  llvm::DenseMap<
+      llvm::orc::JITDylib*,
+      llvm::SmallVector<std::pair<std::string, llvm::orc::ExecutorAddr>>>
+      JDInitializers;
+  // JDs whose initializers have already been run (bootstrap JD + initialized
+  // add-ons), so we never run them twice.
+  std::set<llvm::orc::JITDylib*> InitializedJDs;
+
   std::mutex PlatformMutex;
+};
+
+/// LLJIT PlatformSupport that runs add-on static initializers via the platform's
+/// direct path instead of orc_rt's MSVC-coupled COFF dlopen init (which segfaults
+/// on MinGW). LLJIT::initialize(JD) -> this -> MinGWCOFFPlatform::initializeJITDylib.
+class MinGWCOFFPlatformSupport : public llvm::orc::LLJIT::PlatformSupport
+{
+public:
+  explicit MinGWCOFFPlatformSupport(MinGWCOFFPlatform& P)
+      : P{P}
+  {
+  }
+  llvm::Error initialize(llvm::orc::JITDylib& JD) override
+  {
+    return P.initializeJITDylib(JD);
+  }
+  llvm::Error deinitialize(llvm::orc::JITDylib& JD) override
+  {
+    return llvm::Error::success();
+  }
+
+private:
+  MinGWCOFFPlatform& P;
 };
 
 }
