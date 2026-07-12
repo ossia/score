@@ -2,6 +2,7 @@
 #include <Process/ProcessMetadata.hpp>
 
 #include <Crousti/Concepts.hpp>
+#include <Crousti/SceneConcepts.hpp>
 
 #include <QString>
 
@@ -154,7 +155,20 @@ struct ProcessPortVisitor
     this->texture();
   }
 
+  template <std::size_t N, avnd::gpu_render_target_output_port Port>
+  void operator()(const avnd::field_reflection<N, Port>)
+  {
+    this->texture();
+  }
   template <std::size_t N, avnd::geometry_port Port>
+  void operator()(const avnd::field_reflection<N, Port>)
+  {
+    this->geometry();
+  }
+
+  // Scene ports travel through the same Process::PortType::Geometry slot.
+  template <std::size_t N, oscr::scene_port Port>
+    requires(!avnd::geometry_port<Port>)
   void operator()(const avnd::field_reflection<N, Port>)
   {
     this->geometry();
