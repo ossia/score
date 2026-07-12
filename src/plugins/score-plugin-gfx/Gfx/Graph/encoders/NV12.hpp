@@ -9,10 +9,27 @@ namespace score::gfx
  *
  * Two render passes:
  *   Pass 1: Y plane -> R8 texture at full resolution
- *   Pass 2: UV plane -> RG8 texture at half resolution (width/2 × height/2)
+ *   Pass 2: UV plane -> interleaved chroma at half vertical resolution
  *
  * Two readbacks. The caller concatenates Y + UV data for GStreamer
  * `video/x-raw,format=NV12`.
+ *
+ * Two UV implementations selected at compile time (see YUV422P10Encoder for
+ * the full rationale and the qtbase commit reference):
+ *
+ *   - Qt >= 6.10: RG8 target at width/2 × height/2; QRhi reads it back
+ *     tightly (2 bytes per chroma site). Bilinear sampling averages the
+ *     2x2 source block.
+ *
+ *   - Qt < 6.10: the GL backend reads RG8 render targets back RGBA-expanded
+ *     (4 bytes per site, U,V,0,255) — the pre-6.10 readback special-cases
+ *     only R8 and float formats. So we render the interleaved U,V bytes into
+ *     an R8 target of width × height/2 instead: one byte per texel, U in
+ *     even columns, V in odd ones, each averaged over the same 2x2 block.
+ *
+ * BOTH paths expose the SAME readback byte layout (w bytes per row over h/2
+ * rows, U then V per site), so consumers are agnostic. The Y plane is R8 and
+ * reads back tightly everywhere.
  */
 struct NV12Encoder : GPUVideoEncoder
 {
@@ -55,6 +72,42 @@ struct NV12Encoder : GPUVideoEncoder
       fragColor = vec4(yuv.y, yuv.z, 0.0, 1.0);
     }
   )_";
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 10, 0)
+  // Qt < 6.10 fallback: interleaved UV bytes in an R8 target (width ×
+  // height/2). Output texel x holds U (x even) or V (x odd) of chroma site
+  // x/2, averaged over the 2x2 source block like the bilinear RG8 path.
+  static constexpr const char* uv_frag_packed = R"_(#version 450
+    layout(location = 0) in vec2 v_texcoord;
+    layout(location = 0) out vec4 fragColor;
+    layout(binding = 3) uniform sampler2D src_tex;
+    )_" "%1" R"_(
+    int flip_y_int(int y, int h) {
+    #if defined(QSHADER_MSL) || defined(QSHADER_HLSL)
+      return y;
+    #else
+      return h - 1 - y;
+    #endif
+    }
+    float chroma(ivec2 p, int c) {
+      vec3 yuv = clamp(convert_from_rgb(texelFetch(src_tex, p, 0).rgb), 0.0, 1.0);
+      return c == 1 ? yuv.y : yuv.z;
+    }
+    void main() {
+      ivec2 sz = textureSize(src_tex, 0);
+      ivec2 o = ivec2(gl_FragCoord.xy);
+      int c = ((o.x & 1) == 0) ? 1 : 2;   // even byte: U, odd byte: V
+      int x0 = (o.x >> 1) * 2;
+      int xa = min(x0,     sz.x - 1);
+      int xb = min(x0 + 1, sz.x - 1);
+      int y0 = flip_y_int(min(o.y * 2,     sz.y - 1), sz.y);
+      int y1 = flip_y_int(min(o.y * 2 + 1, sz.y - 1), sz.y);
+      float s = chroma(ivec2(xa, y0), c) + chroma(ivec2(xb, y0), c)
+              + chroma(ivec2(xa, y1), c) + chroma(ivec2(xb, y1), c);
+      fragColor = vec4(s * 0.25, 0.0, 0.0, 1.0);
+    }
+  )_";
+#endif
 
   // Y plane resources
   QRhiTexture* m_yTexture{};
@@ -125,9 +178,17 @@ struct NV12Encoder : GPUVideoEncoder
 
     // UV plane setup
     {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
       m_uvTexture = rhi.newTexture(
           QRhiTexture::RG8, QSize{width / 2, height / 2}, 1,
           QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource);
+#else
+      // Tight RG8 GL readback needs Qt >= 6.10; use an R8 target holding the
+      // interleaved U,V bytes directly (same readback byte layout).
+      m_uvTexture = rhi.newTexture(
+          QRhiTexture::R8, QSize{width, height / 2}, 1,
+          QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource);
+#endif
       m_uvTexture->create();
 
       m_uvRT = rhi.newTextureRenderTarget({m_uvTexture});
@@ -142,8 +203,13 @@ struct NV12Encoder : GPUVideoEncoder
       });
       m_uvSRB->create();
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
+      const char* uv_src = uv_frag;
+#else
+      const char* uv_src = uv_frag_packed;
+#endif
       auto [vs, fs]
-          = makeShaders(state, vertSrc, QString::fromLatin1(uv_frag).arg(colorConversion));
+          = makeShaders(state, vertSrc, QString::fromLatin1(uv_src).arg(colorConversion));
       m_uvPipeline = rhi.newGraphicsPipeline();
       m_uvPipeline->setShaderStages({
           {QRhiShaderStage::Vertex, vs},
@@ -169,11 +235,16 @@ struct NV12Encoder : GPUVideoEncoder
     yReadbackBatch->readBackTexture(QRhiReadbackDescription{m_yTexture}, &m_yReadback);
     cb.endPass(yReadbackBatch);
 
-    // Pass 2: UV plane (half resolution)
+    // Pass 2: UV plane (half resolution; on Qt < 6.10 the target is R8 at
+    // full width with U,V interleaved per texel)
     cb.beginPass(m_uvRT, Qt::black, {0.0f, 0});
     cb.setGraphicsPipeline(m_uvPipeline);
     cb.setShaderResources(m_uvSRB);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
     cb.setViewport(QRhiViewport(0, 0, m_width / 2, m_height / 2));
+#else
+    cb.setViewport(QRhiViewport(0, 0, m_width, m_height / 2));
+#endif
     cb.draw(3);
 
     auto* uvReadbackBatch = rhi.nextResourceUpdateBatch();
