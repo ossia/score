@@ -7,6 +7,13 @@
 #include <qvulkanfunctions.h>
 #include <vulkan/vulkan.h>
 
+#if __has_include(<vulkan/vulkan_win32.h>)
+#include <vulkan/vulkan.h>
+#ifdef Q_OS_WIN
+#include <vulkan/vulkan_win32.h>
+#endif
+#endif
+
 #include <cstring>
 #include <string>
 #include <vector>

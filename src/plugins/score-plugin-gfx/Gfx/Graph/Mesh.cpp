@@ -40,6 +40,8 @@ void BasicMesh::preparePipeline(QRhiGraphicsPipeline& pip) const noexcept
   {
     pip.setDepthTest(true);
     pip.setDepthWrite(true);
+    // Reverse-Z project rule.
+    pip.setDepthOp(QRhiGraphicsPipeline::Greater);
   }
 
   pip.setTopology(this->topology);
@@ -60,6 +62,32 @@ void BasicMesh::draw(const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexc
   SCORE_ASSERT(buf);
   SCORE_ASSERT(buf->usage().testFlag(QRhiBuffer::VertexBuffer));
   setupBindings(bufs, cb);
+
+  if(bufs.useIndirectDraw && bufs.indirectDrawBuffer)
+  {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
+    if(bufs.gpuIndirectSupported)
+    {
+      if(bufs.indirectDrawIndexed)
+        cb.drawIndexedIndirect(
+            bufs.indirectDrawBuffer, bufs.indirectDrawOffset,
+            bufs.indirectDrawCount, bufs.indirectDrawStride);
+      else
+        cb.drawIndirect(
+            bufs.indirectDrawBuffer, bufs.indirectDrawOffset,
+            bufs.indirectDrawCount, bufs.indirectDrawStride);
+      return;
+    }
+#endif
+    if(!bufs.cpuDrawCommands.empty())
+    {
+      for(const auto& cmd : bufs.cpuDrawCommands)
+        cb.draw(cmd.index_or_vertex_count, cmd.instance_count,
+                cmd.first_index_or_vertex, cmd.first_instance);
+      return;
+    }
+    return; // skip — no commands available yet
+  }
 
   cb.draw(vertexCount);
 }
@@ -210,5 +238,16 @@ void TexturedQuad::setupBindings(
       = {{buf, 0}, {buf, 4 * 2 * sizeof(float)}};
 
   cb.setVertexInput(0, 2, bindings);
+}
+
+void drawMeshWithOptionalIndirect(
+    const Mesh& mesh, const MeshBuffers& bufs, QRhiCommandBuffer& cb) noexcept
+{
+  // All Mesh subclasses (BasicMesh, CustomMesh) now handle useIndirectDraw
+  // internally — they check bufs.useIndirectDraw after binding vertex inputs
+  // and dispatch to cb.drawIndirect/drawIndexedIndirect when set. So this
+  // helper just forwards to mesh.draw(). It exists as an explicit opt-in
+  // marker for renderers that intend to support indirect multi-draw.
+  mesh.draw(bufs, cb);
 }
 }
