@@ -53,6 +53,17 @@ struct GPUVideoEncoder
   /// Get the readback result for a given plane. Valid after endOffscreenFrame.
   virtual const QRhiReadbackResult& readback(int plane) const = 0;
 
+  /// The single output texture (RGBA8, format-dependent dimensions) for
+  /// single-plane encoders, so vendor-neutral code (CpuStagedVideoOutput's DVP
+  /// download) can copy it straight to sysmem instead of using readback().
+  /// Default nullptr (multi-plane encoders) => callers must use readback().
+  virtual QRhiTexture* outputTexture() const noexcept { return nullptr; }
+
+  /// Enable/disable the GPU->CPU readback scheduled in exec(). Default enabled
+  /// (readback runs). Disable when a GPU-direct download reads outputTexture()
+  /// directly, so exec() doesn't also pay the readback (no double transfer).
+  virtual void setReadbackEnabled(bool) noexcept {}
+
   /// Release all GPU resources.
   virtual void release() = 0;
 
