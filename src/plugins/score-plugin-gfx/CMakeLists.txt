@@ -55,9 +55,11 @@ set(SYPHON_SRCS
 set(VTB_SRCS
     Gfx/Graph/decoders/HWVideoToolbox_metal.hpp
     Gfx/Graph/decoders/HWVideoToolbox_metal.mm
+    Gfx/Graph/interop/TextureShareMetal.mm
 )
 set_source_files_properties(
     Gfx/Graph/decoders/HWVideoToolbox_metal.mm
+    Gfx/Graph/interop/TextureShareMetal.mm
     PROPERTIES
       SKIP_UNITY_BUILD_INCLUSION ON
 )
@@ -229,6 +231,10 @@ set(HDRS
     Gfx/Graph/Window.hpp
     
     Gfx/Graph/decoders/DXV.hpp
+    Gfx/Graph/interop/DrmFourcc.hpp
+    Gfx/Graph/interop/DrmPrimeWrap.hpp
+    Gfx/Graph/interop/EglDmaBufImport.hpp
+    Gfx/Graph/interop/EglDmaBufExport.hpp
     Gfx/Graph/encoders/ColorSpaceOut.hpp
     Gfx/Graph/encoders/GPUVideoEncoder.hpp
     Gfx/Graph/encoders/UYVY.hpp
@@ -247,8 +253,58 @@ set(HDRS
     Gfx/Graph/encoders/YUVPlanar.hpp
     Gfx/Graph/encoders/WireEncoderFactory.hpp
 
+    Gfx/Graph/interop/CudaFunctions.hpp
+    Gfx/Graph/interop/CudaInterop.h
+    Gfx/Graph/interop/CudaInterop.cpp
+    Gfx/Graph/interop/VkExternalMemoryHelpers.hpp
+    Gfx/Graph/interop/VulkanCudaBounce.hpp
+    Gfx/Graph/interop/VulkanCudaBounce.cpp
+    Gfx/Graph/interop/VkExternalMemoryHelpers.cpp
+    Gfx/Graph/interop/TextureShare.hpp
+    Gfx/Graph/interop/TextureShare.cpp
+    Gfx/Graph/interop/AVHWFrameToQRhi.hpp
+    Gfx/Graph/interop/ImportedGpuBufferRing.hpp
+    Gfx/Graph/interop/ImportedGpuBufferRing.cpp
+    Gfx/Graph/interop/InteropFence.hpp
+    Gfx/Graph/interop/InteropFence.cpp
+    Gfx/Graph/interop/ComputeRingDispatcher.hpp
+    Gfx/Graph/interop/VideoOutputStrategy.hpp
+    Gfx/Graph/interop/VideoCaptureStrategy.hpp
+    Gfx/Graph/interop/CaptureStrategyCommon.hpp
+    Gfx/Graph/interop/CpuStagedCapture.hpp
+    Gfx/Graph/interop/RdmaRingDepth.hpp
+    Gfx/Graph/interop/VulkanRhiContext.hpp
+    # Shared, vendor-neutral NVIDIA-DVP shim templates (parameterized by a
+    # per-vendor DMA-lock policy). Header-only; consumed by capture-card addons.
+    Gfx/Graph/interop/DmaLockPolicy.hpp
+    Gfx/Graph/interop/DvpCaptureGl.hpp
+    Gfx/Graph/interop/DvpCaptureD3D11.hpp
+    Gfx/Graph/interop/DvpOutputGl.hpp
+    Gfx/Graph/interop/DvpOutputD3D11.hpp
+    Gfx/Graph/interop/GLCaptureUpload.hpp
+    Gfx/Graph/interop/RdmaVideoOutput.hpp
+    Gfx/Graph/interop/RdmaVideoOutput.cpp
+    Gfx/Graph/interop/CpuStagedVideoOutput.hpp
+    Gfx/Graph/interop/CpuStagedVideoOutput.cpp
+    Gfx/Graph/interop/VendorDmaRegistrar.hpp
+    Gfx/Graph/interop/PacedFramePump.hpp
+    Gfx/Graph/interop/PacedFramePump.cpp
+    Gfx/Graph/interop/VideoOutputStrategySelect.hpp
     Gfx/Graph/interop/VideoPixelFormatAV.hpp
     Gfx/Graph/interop/VideoPixelFormatAV.cpp
+    Gfx/Graph/interop/GpuCapabilities.hpp
+    Gfx/Graph/interop/GpuCapabilities.cpp
+    Gfx/Graph/interop/CudaVmmAllocator.hpp
+    Gfx/Graph/interop/CudaVmmAllocator.cpp
+    Gfx/Graph/interop/StageProfiler.hpp
+    Gfx/Graph/interop/RdmaGpuBuffer.hpp
+    Gfx/Graph/interop/RdmaGpuBuffer.cpp
+    Gfx/Graph/interop/AmdPinnedBuffers.hpp
+    Gfx/Graph/interop/AmdPinnedBuffers.cpp
+    Gfx/Graph/interop/HostPinnedRing.hpp
+    Gfx/Graph/interop/HostPinnedRing.cpp
+    Gfx/Graph/interop/VkCudaSemaphore.hpp
+    Gfx/Graph/interop/VkCudaSemaphore.cpp
     Gfx/Graph/interop/VideoPixelFormat.hpp
     Gfx/Graph/interop/VideoPixelFormat.cpp
 
