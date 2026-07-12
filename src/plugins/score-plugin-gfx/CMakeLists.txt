@@ -55,9 +55,11 @@ set(SYPHON_SRCS
 set(VTB_SRCS
     Gfx/Graph/decoders/HWVideoToolbox_metal.hpp
     Gfx/Graph/decoders/HWVideoToolbox_metal.mm
+    Gfx/Graph/interop/TextureShareMetal.mm
 )
 set_source_files_properties(
     Gfx/Graph/decoders/HWVideoToolbox_metal.mm
+    Gfx/Graph/interop/TextureShareMetal.mm
     PROPERTIES
       SKIP_UNITY_BUILD_INCLUSION ON
 )
@@ -208,6 +210,9 @@ set(HDRS
     Gfx/Graph/Node.hpp
     Gfx/Graph/NodeRenderer.hpp
     Gfx/Graph/OutputNode.hpp
+    Gfx/Graph/DMACaptureInputNode.hpp
+    Gfx/Graph/DirectVideoOutputBackend.hpp
+    Gfx/Graph/DirectVideoOutputNode.hpp
     Gfx/Graph/PreviewNode.hpp
     Gfx/Graph/RenderClock.hpp
     Gfx/Graph/SceneGPUState.hpp
@@ -244,6 +249,10 @@ set(HDRS
     Gfx/Graph/Window.hpp
     
     Gfx/Graph/decoders/DXV.hpp
+    Gfx/Graph/interop/DrmFourcc.hpp
+    Gfx/Graph/interop/DrmPrimeWrap.hpp
+    Gfx/Graph/interop/EglDmaBufImport.hpp
+    Gfx/Graph/interop/EglDmaBufExport.hpp
     Gfx/Graph/encoders/ColorSpaceOut.hpp
     Gfx/Graph/encoders/GPUVideoEncoder.hpp
     Gfx/Graph/encoders/UYVY.hpp
@@ -262,8 +271,58 @@ set(HDRS
     Gfx/Graph/encoders/YUVPlanar.hpp
     Gfx/Graph/encoders/WireEncoderFactory.hpp
 
+    Gfx/Graph/interop/CudaFunctions.hpp
+    Gfx/Graph/interop/CudaInterop.h
+    Gfx/Graph/interop/CudaInterop.cpp
+    Gfx/Graph/interop/VkExternalMemoryHelpers.hpp
+    Gfx/Graph/interop/VulkanCudaBounce.hpp
+    Gfx/Graph/interop/VulkanCudaBounce.cpp
+    Gfx/Graph/interop/VkExternalMemoryHelpers.cpp
+    Gfx/Graph/interop/TextureShare.hpp
+    Gfx/Graph/interop/TextureShare.cpp
+    Gfx/Graph/interop/AVHWFrameToQRhi.hpp
+    Gfx/Graph/interop/ImportedGpuBufferRing.hpp
+    Gfx/Graph/interop/ImportedGpuBufferRing.cpp
+    Gfx/Graph/interop/InteropFence.hpp
+    Gfx/Graph/interop/InteropFence.cpp
+    Gfx/Graph/interop/ComputeRingDispatcher.hpp
+    Gfx/Graph/interop/VideoOutputStrategy.hpp
+    Gfx/Graph/interop/VideoCaptureStrategy.hpp
+    Gfx/Graph/interop/CaptureStrategyCommon.hpp
+    Gfx/Graph/interop/CpuStagedCapture.hpp
+    Gfx/Graph/interop/RdmaRingDepth.hpp
+    Gfx/Graph/interop/VulkanRhiContext.hpp
+    # Shared, vendor-neutral NVIDIA-DVP shim templates (parameterized by a
+    # per-vendor DMA-lock policy). Header-only; consumed by capture-card addons.
+    Gfx/Graph/interop/DmaLockPolicy.hpp
+    Gfx/Graph/interop/DvpCaptureGl.hpp
+    Gfx/Graph/interop/DvpCaptureD3D11.hpp
+    Gfx/Graph/interop/DvpOutputGl.hpp
+    Gfx/Graph/interop/DvpOutputD3D11.hpp
+    Gfx/Graph/interop/GLCaptureUpload.hpp
+    Gfx/Graph/interop/RdmaVideoOutput.hpp
+    Gfx/Graph/interop/RdmaVideoOutput.cpp
+    Gfx/Graph/interop/CpuStagedVideoOutput.hpp
+    Gfx/Graph/interop/CpuStagedVideoOutput.cpp
+    Gfx/Graph/interop/VendorDmaRegistrar.hpp
+    Gfx/Graph/interop/PacedFramePump.hpp
+    Gfx/Graph/interop/PacedFramePump.cpp
+    Gfx/Graph/interop/VideoOutputStrategySelect.hpp
     Gfx/Graph/interop/VideoPixelFormatAV.hpp
     Gfx/Graph/interop/VideoPixelFormatAV.cpp
+    Gfx/Graph/interop/GpuCapabilities.hpp
+    Gfx/Graph/interop/GpuCapabilities.cpp
+    Gfx/Graph/interop/CudaVmmAllocator.hpp
+    Gfx/Graph/interop/CudaVmmAllocator.cpp
+    Gfx/Graph/interop/StageProfiler.hpp
+    Gfx/Graph/interop/RdmaGpuBuffer.hpp
+    Gfx/Graph/interop/RdmaGpuBuffer.cpp
+    Gfx/Graph/interop/AmdPinnedBuffers.hpp
+    Gfx/Graph/interop/AmdPinnedBuffers.cpp
+    Gfx/Graph/interop/HostPinnedRing.hpp
+    Gfx/Graph/interop/HostPinnedRing.cpp
+    Gfx/Graph/interop/VkCudaSemaphore.hpp
+    Gfx/Graph/interop/VkCudaSemaphore.cpp
     Gfx/Graph/interop/VideoPixelFormat.hpp
     Gfx/Graph/interop/V4L2PixelFormat.hpp
     Gfx/Graph/interop/DirectShowPixelFormat.hpp
@@ -426,6 +485,9 @@ set(SRCS
     Gfx/Graph/Node.cpp
     Gfx/Graph/NodeRenderer.cpp
     Gfx/Graph/OutputNode.cpp
+    Gfx/Graph/DMACaptureInputNode.cpp
+    Gfx/Graph/DirectVideoOutputBackend.cpp
+    Gfx/Graph/DirectVideoOutputNode.cpp
     Gfx/Graph/PreviewNode.cpp
     Gfx/Graph/RenderClock.cpp
     Gfx/Graph/SceneGPUState.cpp
@@ -535,6 +597,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
    ${QT_PREFIX}::ShaderTools ${QT_PREFIX}::ShaderToolsPrivate  ${QT_PREFIX}::GuiPrivate ${QT_PREFIX}::Quick
    "$<BUILD_INTERFACE:r8brain>"
 )
+
 # nv-dvp-bridge: HostPinnedRing's DVP backend uses the bridge C API
 # directly; needs the include path and the static lib.
 target_link_libraries(${PROJECT_NAME} PRIVATE score_nv_dvp_bridge)
@@ -732,6 +795,38 @@ if(NOT EMSCRIPTEN)
 endif()
 # Target-specific options
 setup_score_plugin(${PROJECT_NAME})
+
+# --- Direct DRM/KMS output (Linux only; libdrm + gbm) -------------------------
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  find_package(PkgConfig QUIET)
+  if(PkgConfig_FOUND)
+    pkg_check_modules(SCORE_LIBDRM QUIET libdrm)
+    pkg_check_modules(SCORE_GBM QUIET gbm)
+  endif()
+  if(SCORE_LIBDRM_FOUND)
+    target_sources(score_plugin_gfx PRIVATE
+      "${CMAKE_CURRENT_SOURCE_DIR}/Gfx/Graph/interop/DrmKmsDevice.cpp"
+      "${CMAKE_CURRENT_SOURCE_DIR}/Gfx/Graph/interop/DrmKmsDevice.hpp"
+      "${CMAKE_CURRENT_SOURCE_DIR}/Gfx/Graph/KmsOutputNode.cpp"
+      "${CMAKE_CURRENT_SOURCE_DIR}/Gfx/Graph/KmsOutputNode.hpp")
+    # Headers only: libdrm is dlopen'd at runtime (DrmFunctions.hpp), so a
+    # machine without it still builds and simply reports the rung unavailable.
+    target_include_directories(score_plugin_gfx PUBLIC ${SCORE_LIBDRM_INCLUDE_DIRS})
+    target_compile_definitions(score_plugin_gfx PRIVATE SCORE_HAS_DRM_KMS=1)
+
+    add_executable(DrmOutputTest tests/DrmOutputTest.cpp)
+    target_link_libraries(DrmOutputTest PRIVATE score_plugin_gfx)
+    target_include_directories(DrmOutputTest PRIVATE ${SCORE_LIBDRM_INCLUDE_DIRS})
+
+    add_executable(KmsOutputTest tests/KmsOutputTest.cpp)
+    target_link_libraries(KmsOutputTest PRIVATE
+      score_plugin_gfx ${QT_PREFIX}::Gui ${QT_PREFIX}::Widgets)
+    target_include_directories(KmsOutputTest PRIVATE ${SCORE_LIBDRM_INCLUDE_DIRS})
+    message(STATUS "score-plugin-gfx: direct DRM/KMS output enabled")
+  else()
+    message(STATUS "score-plugin-gfx: DRM/KMS output disabled (libdrm headers missing)")
+  endif()
+endif()
 
 if(SCORE_ISF_TESTER)
 add_executable(ISFTester tests/ISFTester.cpp)
