@@ -3,11 +3,9 @@
 
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 
-#include <score_plugin_remotecontrol_export.h>
-
 namespace RemoteControl::HttpServer
 {
-struct SCORE_PLUGIN_REMOTECONTROL_EXPORT DocumentPlugin : score::DocumentPlugin
+struct DocumentPlugin : score::DocumentPlugin
 {
 public:
   DocumentPlugin(const score::DocumentContext& doc, QObject* parent);
@@ -17,4 +15,4 @@ private:
   HttpServer m_server;
 };
 
-} // namespace RemoteControl::HttpServer
+}

@@ -286,21 +286,21 @@ void HttpServer::set_path(const std::string& str)
 
 void HttpServer::set_address(const std::string& str)
 {
-  bool is_runnig{running()};
-  if(is_runnig)
+  bool is_running{running()};
+  if(is_running)
     stop_thread();
   m_endpoint.address(net::ip::make_address(str.c_str()));
-  if(is_runnig)
+  if(is_running)
     start_thread();
 }
 
 void HttpServer::set_port(unsigned short prt)
 {
-  bool is_runnig{running()};
-  if(is_runnig)
+  bool is_running{running()};
+  if(is_running)
     stop_thread();
   m_endpoint.port(prt);
-  if(is_runnig)
+  if(is_running)
     start_thread();
 }
 
