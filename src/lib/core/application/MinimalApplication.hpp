@@ -49,9 +49,13 @@ public:
   ~MinimalApplication() override
   {
     this->setParent(nullptr);
+    // Drain the event queue BEFORE deleting the presenter: deferred slots
+    // queued during plugin load (e.g. Scenario::SearchWidget's deferred init
+    // → findDeviceExplorerWidgetInstance) read the presenter-owned application
+    // context, so dispatching them after delete m_presenter is a use-after-free.
+    QApplication::processEvents();
     delete m_presenter;
 
-    QApplication::processEvents();
     // The settings models are QObjects owned by value members of this class;
     // members destruct after this body, i.e. after the QApplication is gone,
     // which Qt >= 6.11 does not survive. Take them down while the app lives.
@@ -111,9 +115,12 @@ public:
   ~MinimalGUIApplication() override
   {
     this->setParent(nullptr);
+    // Drain queued slots while m_presenter is still alive (see
+    // ~MinimalApplication): deferred plugin-load slots read the presenter-owned
+    // context — dispatching them after delete m_presenter is a use-after-free.
+    QApplication::processEvents();
     delete m_presenter;
 
-    QApplication::processEvents();
     // See ~MinimalApplication: QObject settings models must not outlive the
     // QApplication.
     m_settings.teardownModels();
