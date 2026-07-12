@@ -43,11 +43,6 @@ namespace interop
 {
 struct VideoCaptureStrategy;
 struct VideoCaptureSlotRing;
-// Transitional aliases (introduced Phase 2, removed Phase 5): the out-of-tree
-// addon still names these types by their old "GpuDirect" spelling through this
-// forward-declaring header, so alias the incomplete types here too.
-using GpuDirectCaptureStrategy = VideoCaptureStrategy;
-using GpuDirectCaptureSlotRing = VideoCaptureSlotRing;
 }
 
 /**

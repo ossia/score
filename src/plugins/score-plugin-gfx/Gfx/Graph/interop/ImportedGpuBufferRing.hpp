@@ -143,10 +143,4 @@ private:
   bool createD3D12Stub();
 };
 
-// Transitional aliases (introduced Phase 2, removed Phase 5): old name — this
-// is a ring of QRhi buffers imported into CUDA, distinct from RdmaGpuBuffer
-// (natively-RDMA VRAM).
-using GpuRingBuffer = ImportedGpuBufferRing;
-using GpuRingBufferConfig = ImportedGpuBufferRingConfig;
-
 } // namespace score::gfx::interop

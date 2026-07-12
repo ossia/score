@@ -148,10 +148,4 @@ struct VideoCaptureSlotRing
   std::atomic<std::size_t> latestSlot{0};
 };
 
-// Transitional aliases (introduced Phase 2, removed Phase 5): old "GpuDirect"
-// names (CaptureInteropCpu, pure sysmem, also implements this interface).
-using GpuDirectCaptureStrategy = VideoCaptureStrategy;
-using GpuDirectCaptureStrategyConfig = VideoCaptureStrategyConfig;
-using GpuDirectCaptureSlotRing = VideoCaptureSlotRing;
-
 } // namespace score::gfx::interop

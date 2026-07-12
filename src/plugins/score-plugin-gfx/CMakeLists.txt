@@ -274,12 +274,6 @@ set(HDRS
     Gfx/Graph/interop/VideoOutputStrategy.hpp
     Gfx/Graph/interop/VideoCaptureStrategy.hpp
     Gfx/Graph/interop/CaptureStrategyCommon.hpp
-    Gfx/Graph/interop/GpuDirectStrategy.hpp
-    Gfx/Graph/interop/GpuDirectCaptureStrategy.hpp
-    Gfx/Graph/interop/GpuDirectStrategySelect.hpp
-    Gfx/Graph/interop/GpuDirectOutput.hpp
-    Gfx/Graph/interop/HostStagedOutput.hpp
-    Gfx/Graph/interop/GpuRingBuffer.hpp
     Gfx/Graph/interop/CpuStagedCapture.hpp
     Gfx/Graph/interop/RdmaRingDepth.hpp
     Gfx/Graph/interop/VulkanRhiContext.hpp

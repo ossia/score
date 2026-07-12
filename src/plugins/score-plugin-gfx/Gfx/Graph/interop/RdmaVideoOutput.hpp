@@ -150,9 +150,4 @@ private:
   std::uint64_t m_fenceValue{0};
 };
 
-// Transitional aliases (introduced Phase 2, removed Phase 5): old "GpuDirect"
-// names — this is specifically the RDMA-tier output helper.
-using GpuDirectOutput = RdmaVideoOutput;
-using GpuDirectOutputConfig = RdmaVideoOutputConfig;
-
 } // namespace score::gfx::interop

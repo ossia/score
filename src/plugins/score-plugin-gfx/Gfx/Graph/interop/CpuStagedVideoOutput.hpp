@@ -140,7 +140,4 @@ private:
   std::unique_ptr<Slot> m_state;
 };
 
-// Transitional alias (introduced Phase 2, removed Phase 5): old name.
-using HostStagedOutput = CpuStagedVideoOutput;
-
 } // namespace score::gfx::interop

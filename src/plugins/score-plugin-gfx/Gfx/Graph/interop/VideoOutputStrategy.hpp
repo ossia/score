@@ -113,10 +113,4 @@ struct VideoOutputStrategy
   virtual void* prepareNextFrame() = 0;
 };
 
-// Transitional aliases (introduced Phase 2, removed Phase 5): the old, actively
-// misleading "GpuDirect" names — this interface is implemented by every tier,
-// including CPU staging, so it is not GPU-direct-specific.
-using GpuDirectStrategy = VideoOutputStrategy;
-using GpuDirectStrategyConfig = VideoOutputStrategyConfig;
-
 } // namespace score::gfx::interop
