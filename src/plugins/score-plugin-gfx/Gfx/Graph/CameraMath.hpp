@@ -4,6 +4,7 @@
 #include <QVector3D>
 
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <cstring>
 
@@ -28,6 +29,15 @@ struct CameraUBOData
   float params[4]{};
 };
 static_assert(sizeof(CameraUBOData) == 240, "CameraUBO layout must match shader");
+
+// Byte range the ScenePreprocessor advertises for its `camera` / `camera_prev`
+// auxiliary buffers, given the number of cameras it packed into them.
+inline constexpr int64_t cameraAuxByteSize(std::size_t cameraCount) noexcept
+{
+  // The buffer always holds at least one entry: flattenScene publishes a default
+  // camera when the scene has none, so a consumer never sees a null binding.
+  return (int64_t)((cameraCount < 1 ? 1 : cameraCount) * sizeof(CameraUBOData));
+}
 
 inline void writeMat4(float dst[16], const QMatrix4x4& src)
 {
