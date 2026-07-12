@@ -1,8 +1,9 @@
 #pragma once
 #include "HttpServer.hpp"
 
-#include <score_plugin_remotecontrol_export.h>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
+
+#include <score_plugin_remotecontrol_export.h>
 
 namespace RemoteControl::HttpServer
 {
