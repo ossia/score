@@ -68,7 +68,7 @@ set(SRCS
 
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS} ${QRCS})
 
-target_link_libraries(${PROJECT_NAME} PUBLIC score_plugin_scenario score_plugin_js ${QT_PREFIX}::WebSockets ossia)
+target_link_libraries(${PROJECT_NAME} PUBLIC score_plugin_scenario score_plugin_js ${QT_PREFIX}::WebSockets)
 
 setup_score_plugin(${PROJECT_NAME})
 
