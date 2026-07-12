@@ -2,7 +2,6 @@
 #include <score_plugin_gfx_export.h>
 
 #include <QMetaObject>
-#include <QObject>
 
 #include <atomic>
 #include <functional>
@@ -107,15 +106,6 @@ private:
   QMetaObject::Connection m_conn;
   std::function<void()> m_tick;
   std::vector<OutputNode*> m_outputs;
-
-  // Receiver context for the queued timeout connection. Destroying this (a
-  // member, so torn down with the TimerClock) removes any already-posted
-  // queued timeout events targeting it — QObject::disconnect() alone does not,
-  // which let a pending tick fire the lambda on this freed TimerClock during
-  // shutdown (heap-use-after-free, RenderClock.cpp `if(m_tick)`). Lives on the
-  // same (render) thread as m_owner since TimerClocks are built there, so the
-  // tick is still delivered on that thread.
-  QObject m_receiver;
 };
 
 /**

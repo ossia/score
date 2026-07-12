@@ -195,11 +195,11 @@ set(HDRS
     Gfx/Graph/Node.hpp
     Gfx/Graph/NodeRenderer.hpp
     Gfx/Graph/OutputNode.hpp
+    Gfx/Graph/RenderClock.hpp
     Gfx/Graph/DMACaptureInputNode.hpp
     Gfx/Graph/DirectVideoOutputBackend.hpp
     Gfx/Graph/DirectVideoOutputNode.hpp
     Gfx/Graph/PreviewNode.hpp
-    Gfx/Graph/RenderClock.hpp
     Gfx/Graph/SceneGPUState.hpp
     Gfx/Graph/GpuResourceRegistry.hpp
     Gfx/Graph/VertexFallbackDefaults.hpp
@@ -462,11 +462,11 @@ set(SRCS
     Gfx/Graph/Node.cpp
     Gfx/Graph/NodeRenderer.cpp
     Gfx/Graph/OutputNode.cpp
+    Gfx/Graph/RenderClock.cpp
     Gfx/Graph/DMACaptureInputNode.cpp
     Gfx/Graph/DirectVideoOutputBackend.cpp
     Gfx/Graph/DirectVideoOutputNode.cpp
     Gfx/Graph/PreviewNode.cpp
-    Gfx/Graph/RenderClock.cpp
     Gfx/Graph/SceneGPUState.cpp
     Gfx/Graph/GpuResourceRegistry.cpp
     Gfx/Graph/VertexFallbackDefaults.cpp
