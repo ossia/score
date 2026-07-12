@@ -16,7 +16,7 @@ std::optional<Gfx::ProcessedProgram>
 loadVSA(const QString& path, QByteArray data, QString& error)
 {
   const auto source = Gfx::programFromVSAVertexShaderPath(path, std::move(data));
-  auto [program, err] = Gfx::ProgramCache::instance().get(source);
+  auto [program, err] = Gfx::ProgramCache::instance().get(source, path);
   error = err;
   return program;
 }

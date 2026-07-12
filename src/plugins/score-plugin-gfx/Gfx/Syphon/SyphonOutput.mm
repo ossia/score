@@ -1,6 +1,7 @@
 #include "SyphonOutput.hpp"
 
 #include <Gfx/Graph/RenderList.hpp>
+#include <Gfx/Graph/RenderState.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
 #include <Gfx/Settings/Model.hpp>
@@ -177,33 +178,21 @@ struct SyphonNode final : score::gfx::OutputNode
 
   void createOutput(score::gfx::OutputConfiguration conf) override
   {
-    m_renderState = std::make_shared<score::gfx::RenderState>();
-    m_renderState->renderSize = QSize(m_settings.width, m_settings.height);
-    m_renderState->outputSize = m_renderState->renderSize;
+    // Syphon supports GL or Metal; the upstream graphics API picks which one.
+    const auto api = (conf.graphicsApi == score::gfx::GraphicsApi::Metal)
+                         ? score::gfx::GraphicsApi::Metal
+                         : score::gfx::GraphicsApi::OpenGL;
+    m_usingMetal = (api == score::gfx::GraphicsApi::Metal);
 
-    if (conf.graphicsApi == score::gfx::GraphicsApi::Metal)
+    m_renderState = score::gfx::createRenderState(
+        api, QSize(m_settings.width, m_settings.height), nullptr);
+    if(!m_renderState || !m_renderState->rhi)
     {
-      // Metal backend
-      QRhiMetalInitParams params;
-      m_renderState->rhi = QRhi::create(QRhi::Metal, &params, {});
-      m_renderState->api = score::gfx::GraphicsApi::Metal;
-      m_renderState->version = Gfx::Settings::shaderVersionForAPI(score::gfx::GraphicsApi::Metal);
-      m_usingMetal = true;
+      qWarning() << "SyphonOutput: failed to create QRhi";
+      m_renderState.reset();
+      return;
     }
-    else
-    {
-      // OpenGL backend
-      m_renderState->surface = QRhiGles2InitParams::newFallbackSurface();
-      QRhiGles2InitParams params;
-      params.format.setMajorVersion(3);
-      params.format.setMinorVersion(2);
-      params.format.setProfile(QSurfaceFormat::CompatibilityProfile);
-      params.fallbackSurface = m_renderState->surface;
-      m_renderState->rhi = QRhi::create(QRhi::OpenGLES2, &params, {});
-      m_renderState->api = score::gfx::GraphicsApi::OpenGL;
-      m_renderState->version = QShaderVersion(120);
-      m_usingMetal = false;
-    }
+    m_renderState->outputSize = m_renderState->renderSize;
 
     auto rhi = m_renderState->rhi;
     m_texture = rhi->newTexture(
@@ -240,6 +229,28 @@ struct SyphonNode final : score::gfx::OutputNode
     }
 
     m_created = false;
+
+    // Release Syphon servers above first; they hold native GL/Metal handles
+    // into the rhi's device. Now tear down the rhi-owned resources.
+    if(!m_renderState)
+      return;
+
+    // Persist-across-rebuild contract: registry survives RL teardown,
+    // so we tear down its QRhi resources here BEFORE
+    // RenderState::destroy() (called below) frees the device.
+    releaseRegistry();
+
+    delete m_renderTarget;
+    m_renderTarget = nullptr;
+
+    delete m_renderState->renderPassDescriptor;
+    m_renderState->renderPassDescriptor = nullptr;
+
+    delete m_texture;
+    m_texture = nullptr;
+
+    m_renderState->destroy();
+    m_renderState.reset();
   }
 
   std::shared_ptr<score::gfx::RenderState> renderState() const override
