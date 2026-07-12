@@ -111,9 +111,18 @@ public:
   ~MinimalGUIApplication() override
   {
     this->setParent(nullptr);
+
+    // Drain queued slots (e.g. the deferred widget-init lambdas posted during
+    // plugin load, such as Scenario::SearchWidget's, which resolve interfaces
+    // off the application context) while the presenter — and the context they
+    // captured — is still alive. Dispatching them after `delete m_presenter`
+    // reads the freed context (heap-use-after-free; also the shutdown segfault
+    // seen without sanitizers). Remaining deferred deletes are flushed by
+    // ~QApplication below.
+    QApplication::processEvents();
+
     delete m_presenter;
 
-    QApplication::processEvents();
     // See ~MinimalApplication: QObject settings models must not outlive the
     // QApplication.
     m_settings.teardownModels();
