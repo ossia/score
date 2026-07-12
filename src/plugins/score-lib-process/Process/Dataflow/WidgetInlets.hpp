@@ -442,12 +442,17 @@ struct SCORE_LIB_PROCESS_EXPORT ProgramEdit : public Process::ControlInlet
 
 struct SCORE_LIB_PROCESS_EXPORT ComboBox : public Process::ControlInlet
 {
+  W_OBJECT(ComboBox)
+public:
   MODEL_METADATA_IMPL(ComboBox)
   std::vector<std::pair<QString, ossia::value>> alternatives;
   ComboBox(
       std::vector<std::pair<QString, ossia::value>> values, ossia::value init,
       const QString& name, Id<Process::Port> id, QObject* parent);
   ~ComboBox();
+
+  void setAlternatives(std::vector<std::pair<QString, ossia::value>> values);
+  void alternativesChanged() W_SIGNAL(alternativesChanged);
 
   const auto& getValues() const noexcept { return alternatives; }
   auto count() const noexcept { return alternatives.size(); }

@@ -11,6 +11,7 @@
 
 #include <wobjectimpl.h>
 
+W_OBJECT_IMPL(Process::ComboBox)
 W_OBJECT_IMPL(Process::FileChooserBase)
 W_OBJECT_IMPL(Process::FileChooser)
 W_OBJECT_IMPL(Process::FolderChooser)
@@ -104,6 +105,30 @@ void ComboBox::setupExecution(ossia::inlet& inl, QObject* exec_context) const no
 {
   auto& port = **safe_cast<ossia::value_inlet*>(&inl);
   port.domain = domain().get();
+}
+
+void ComboBox::setAlternatives(std::vector<std::pair<QString, ossia::value>> values)
+{
+  if(values == alternatives)
+    return;
+  alternatives = std::move(values);
+
+  std::vector<ossia::value> vals;
+  for(auto& v : alternatives)
+    vals.push_back(v.second);
+  setDomain(State::Domain{ossia::make_domain(vals)});
+
+  // re-clamp the current value if the list shrank past it
+  if(!alternatives.empty())
+  {
+    const auto& cur = value();
+    auto it = ossia::find_if(
+        alternatives, [&](const auto& pair) { return pair.second == cur; });
+    if(it == alternatives.end())
+      setValue(alternatives.back().second);
+  }
+
+  alternativesChanged();
 }
 
 ComboBox::~ComboBox() { }
