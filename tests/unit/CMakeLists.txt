@@ -595,3 +595,12 @@ score_add_test(test_unit_dshow_subtype
   SOURCES DirectShowSubtypeResolveTest.cpp
   PLUGINS score_plugin_gfx
   LIBS avutil avcodec)
+# AssetTable is pure CPU logic; TextureLoader upload paths run on QRhi's Null
+# backend (score_plugin_gfx links Qt::GuiPrivate PUBLIC, providing qrhi_p.h).
+# Lives with the scene rework rather than with the AssetTable code itself: the
+# trim and decode-cache behaviour it pins is what this commit introduces, so
+# committed any earlier the suite is red for every commit in between.
+score_add_test(test_unit_gfx_assettable
+  SOURCES AssetTableTest.cpp
+  PLUGINS score_plugin_gfx
+  LIBS ${QT_PREFIX}::Gui)

@@ -135,6 +135,15 @@ public:
   /// with the frame data (e.g. wrong plane count, unsupported CVPixelBuffer format).
   /// The renderer should check this and rebuild with a fallback decoder.
   bool failed{};
+
+  /// Set by exec() when the decoder detects a mid-stream change of the actual
+  /// pixel format (e.g. HWTransferDecoder's software transfer format changing).
+  /// The decoder MUST NOT free/rebuild its own textures & samplers in that case:
+  /// the owning renderer's pipeline SRBs are still baked with the current
+  /// pointers and may be sampled this frame. Instead it records the new format
+  /// and raises this flag so the renderer rebuilds the decoder and its pipelines
+  /// together (via setupGpuDecoder()) — recreating textures and SRBs in lockstep.
+  bool formatChanged{};
 };
 
 /**
