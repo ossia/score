@@ -17,7 +17,6 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/config.hpp>
 
-#include <memory>
 #include <string>
 #include <thread>
 
@@ -25,25 +24,18 @@
 #define SHUT_RDWR 2
 #endif
 
-#include <QDir>
-#include <QHostAddress>
-#include <QNetworkInterface>
-#include <QtDebug>
-#include <QApplication>
-#include <QFile>
-
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace http = beast::http;           // from <boost/beast/http.hpp>
 namespace net = boost::asio;            // from <boost/asio.hpp>
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
-namespace RemoteControl
+namespace RemoteControl::HttpServer
 {
-class Http_server
+class HttpServer
 {
 public:
-  Http_server();
-  ~Http_server();
+  HttpServer();
+  ~HttpServer();
 
   void start_thread();
   void stop_thread();
@@ -66,43 +58,10 @@ private:
   template<class Body, class Allocator, class Send>
   void handle_request(
       http::request<Body, http::basic_fields<Allocator>>&& req
-      , Send&& send);
+      , const Send& send);
 
   // Report a failure
   void fail(beast::error_code ec, char const* what);
-
-  // This is the C++11 equivalent of a generic lambda.
-  // The function object is used to send an HTTP message.
-  template<class Stream>
-  struct send_lambda
-  {
-    Stream& stream_;
-    bool& close_;
-    beast::error_code& ec_;
-
-    explicit send_lambda(
-        Stream& stream,
-        bool& close,
-        beast::error_code& ec)
-        : stream_(stream)
-        , close_(close)
-        , ec_(ec)
-    { }
-
-    template<bool isRequest, class Body, class Fields>
-    void operator()
-        (http::message<isRequest, Body, Fields>&& msg) const
-    {
-      // Determine if we should close the connection after
-      close_ = msg.need_eof();
-
-      // We need the serializer here because the serializer requires
-      // a non-const file_body, and the message oriented version of
-      // http::write only works with const messages.
-      http::serializer<isRequest, Body, Fields> sr{msg};
-      http::write(stream_, sr, ec_);
-    }
-  };
 
   // Handles an HTTP server connection
   void do_session(tcp::socket& socket);
