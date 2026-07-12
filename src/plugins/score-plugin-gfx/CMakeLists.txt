@@ -174,7 +174,6 @@ set(HDRS
     Gfx/Graph/BackgroundNode.hpp
     Gfx/Graph/CommonUBOs.hpp
     Gfx/Graph/CustomMesh.hpp
-    Gfx/Graph/DepthNode.hpp
     Gfx/Graph/GeometryFilterNode.hpp
     Gfx/Graph/GeometryFilterNodeRenderer.hpp
     Gfx/Graph/RhiComputeBarrier.hpp
@@ -188,7 +187,6 @@ set(HDRS
     Gfx/Graph/Node.hpp
     Gfx/Graph/NodeRenderer.hpp
     Gfx/Graph/OutputNode.hpp
-    Gfx/Graph/PhongNode.hpp
     Gfx/Graph/PreviewNode.hpp
     Gfx/Graph/RenderList.hpp
     Gfx/Graph/RenderState.hpp
@@ -366,7 +364,6 @@ set(SRCS
     Gfx/Graph/Node.cpp
     Gfx/Graph/NodeRenderer.cpp
     Gfx/Graph/OutputNode.cpp
-    Gfx/Graph/PhongNode.cpp
     Gfx/Graph/PreviewNode.cpp
     Gfx/Graph/RenderList.cpp
     Gfx/Graph/RenderedISFNode.cpp
@@ -429,13 +426,17 @@ set_source_files_properties(
     "${3RDPARTY_FOLDER}/glsl-parser/glsl.parser.c"
     "${3RDPARTY_FOLDER}/glsl-parser/glsl.lexer.c"
     "${3RDPARTY_FOLDER}/dxv/dxv.c"
+    "${3RDPARTY_FOLDER}/OffsetAllocator/offsetAllocator.cpp"
     PROPERTIES
       SKIP_PRECOMPILE_HEADERS ON
       SKIP_UNITY_BUILD_INCLUSION ON
 )
 
 # Creation of the library
-add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
+add_library(${PROJECT_NAME} ${SRCS} ${HDRS}
+  "${3RDPARTY_FOLDER}/OffsetAllocator/offsetAllocator.cpp"
+  "${3RDPARTY_FOLDER}/OffsetAllocator/offsetAllocator.hpp"
+)
 
 # Code generation
 score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
@@ -443,6 +444,7 @@ score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 target_include_directories(${PROJECT_NAME}
   PUBLIC
     3rdparty/libisf/src
+    "${3RDPARTY_FOLDER}/OffsetAllocator"
   PRIVATE
     "${3RDPARTY_FOLDER}/dxv"
 )
