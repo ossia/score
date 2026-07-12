@@ -15,6 +15,8 @@ score_common_setup()
 
 find_package(${QT_VERSION} REQUIRED Gui)
 
+add_subdirectory(3rdparty/nv-dvp-bridge)
+
 if(NOT TARGET avformat AND NOT EMSCRIPTEN)
   find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVUTIL AVDEVICE)
 endif()
@@ -226,7 +228,6 @@ set(HDRS
     Gfx/Graph/Window.hpp
     
     Gfx/Graph/decoders/DXV.hpp
-    Gfx/Graph/decoders/DMABufImport.hpp
     Gfx/Graph/encoders/ColorSpaceOut.hpp
     Gfx/Graph/encoders/GPUVideoEncoder.hpp
     Gfx/Graph/encoders/UYVY.hpp
@@ -496,6 +497,9 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
    ${QT_PREFIX}::ShaderTools ${QT_PREFIX}::ShaderToolsPrivate  ${QT_PREFIX}::GuiPrivate
    "$<BUILD_INTERFACE:r8brain>"
 )
+# nv-dvp-bridge: HostPinnedRing's DVP backend uses the bridge C API
+# directly; needs the include path and the static lib.
+target_link_libraries(${PROJECT_NAME} PRIVATE score_nv_dvp_bridge)
 if(TARGET ${QT_PREFIX}::Svg)
   target_link_libraries(${PROJECT_NAME} PUBLIC "${QT_PREFIX}::Svg")
 endif()
