@@ -53,15 +53,18 @@ public:
   ~MinimalApplication() override
   {
     this->setParent(nullptr);
-    // Drain the event queue before deleting the presenter: deferred slots
+    // Drain the event queue BEFORE deleting the presenter: deferred slots
     // queued during plugin load (e.g. Scenario::SearchWidget's deferred init
-    // -> findDeviceExplorerWidgetInstance) read the presenter-owned application
+    // → findDeviceExplorerWidgetInstance) read the presenter-owned application
     // context, so dispatching them after delete m_presenter is a use-after-free.
     QApplication::processEvents();
     delete m_presenter;
-    // m_app (the QApplication) is destroyed last, after the score::Settings /
-    // ProjectSettings members below: their models are parented to the
-    // QApplication, so destroying it first would double-free them.
+
+    // The settings models are QObjects owned by value members of this class;
+    // members destruct after this body, i.e. after the QApplication is gone,
+    // which Qt >= 6.11 does not survive. Take them down while the app lives.
+    m_settings.teardownModels();
+    m_app.reset();
   }
 
   const score::GUIApplicationContext& context() const override
@@ -120,12 +123,16 @@ public:
   ~MinimalGUIApplication() override
   {
     this->setParent(nullptr);
-    // See ~MinimalApplication: drain queued slots while the presenter is still
-    // alive, since deferred plugin-load slots read the presenter-owned context.
+    // Drain queued slots while m_presenter is still alive (see
+    // ~MinimalApplication): deferred plugin-load slots read the presenter-owned
+    // context — dispatching them after delete m_presenter is a use-after-free.
     QApplication::processEvents();
     delete m_presenter;
-    // m_app (the QApplication) is destroyed last (declared first), after the
-    // score::Settings members whose models are parented to it.
+
+    // See ~MinimalApplication: QObject settings models must not outlive the
+    // QApplication.
+    m_settings.teardownModels();
+    m_app.reset();
   }
 
   const score::GUIApplicationContext& context() const override
