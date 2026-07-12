@@ -104,6 +104,12 @@ int EditJsContext::outlets(QObject* obj)
 
 QObject* EditJsContext::createCable(QObject* outlet, QObject* inlet)
 {
+  return createCable(outlet, inlet, Process::CableType::ImmediateGlutton);
+}
+
+QObject*
+EditJsContext::createCable(QObject* outlet, QObject* inlet, Process::CableType tp)
+{
   auto doc = ctx();
   if(!doc)
     return nullptr;
@@ -118,7 +124,7 @@ QObject* EditJsContext::createCable(QObject* outlet, QObject* inlet)
 
   auto& root = score::IDocument::get<Scenario::ScenarioDocumentModel>(doc->document);
   auto [m, _] = macro(*doc);
-  auto& c = m->createCable(root, *src, *sink, Process::CableType::ImmediateGlutton);
+  auto& c = m->createCable(root, *src, *sink, tp);
   return &c;
 }
 
