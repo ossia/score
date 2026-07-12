@@ -435,7 +435,13 @@ public:
     if(windowIndex < 0 || windowIndex >= (int)m_perWindow.size())
       return;
 
-    auto* res = renderer.state.rhi->nextResourceUpdateBatch();
+    // Don't pre-allocate a batch here: renderSubRegion has early-return
+    // paths before any consumer (beginPass), and pre-allocating leaks
+    // one pool slot per discarded window on every render. The three
+    // UBO blocks inside renderSubRegion lazily allocate via
+    // `if(!res) res = ...->nextResourceUpdateBatch()`, and beginPass
+    // accepts a null batch — so passing nullptr here is safe.
+    QRhiResourceUpdateBatch* res = nullptr;
     renderSubRegion(windowIndex, renderer, cb, res);
   }
 
@@ -503,7 +509,7 @@ private:
       res->updateDynamicBuffer(pw.warpUBO, 0, sizeof(warpData), warpData);
     }
 
-    cb.beginPass(rt, Qt::black, {1.0f, 0}, res);
+    cb.beginPass(rt, Qt::black, {0.0f, 0}, res);
     res = nullptr;
     {
       auto sz = wo.swapChain->currentPixelSize();
@@ -557,11 +563,16 @@ void MultiWindowNode::setRenderSize(QSize sz)
 
   m_renderState->renderSize = sz;
 
-  // The offscreen target must be recreated BEFORE the render-list
-  // rebuild so that the new upstream pipelines are built against the
-  // new RPD and sample from the new offscreen texture. The old
-  // pipelines briefly reference the deleted RPD, but their destruction
-  // (inside the upcoming m_onResize) doesn't dereference it.
+  // Recreate the offscreen target BEFORE poking the render list: when
+  // m_onResize takes the synchronous rebuild path (recreateOutputRenderList,
+  // used when the surgical resize fast-path can't apply), the new render
+  // list copies the offscreen RT/RPD pointers and compiles pipelines against
+  // them — so they must already be the new ones, or the fresh render list
+  // holds dangling pointers as soon as we release the old target here.
+  // The old target's objects go through QRhi's deferred-release queue
+  // (deleteLater), so pipelines from the fast path that still reference
+  // them are rebuilt by the rt_changed pass before anything dereferences
+  // a destroyed handle.
   recreateOffscreenTarget();
 
   if(m_onResize)
@@ -612,12 +623,24 @@ void MultiWindowNode::setTransform(int windowIndex, int rotation, bool mirrorX, 
 
 void MultiWindowNode::setSwapchainFlag(Gfx::SwapchainFlag flag)
 {
+  if(m_swapchainFlag == flag)
+    return;
   m_swapchainFlag = flag;
+  // Live flag change requires per-window swapchain recreation. Mirrors
+  // ScreenNode::setSwapchainFlag — destroyOutput tears down all windows;
+  // the Graph reconciler rebuilds them on next cycle picking up the new
+  // flag at the swapchain create site.
+  destroyOutput();
 }
 
 void MultiWindowNode::setSwapchainFormat(Gfx::SwapchainFormat format)
 {
+  if(m_swapchainFormat == format)
+    return;
   m_swapchainFormat = format;
+  // Same rebuild rationale — without it the field updated but the live
+  // swapchains kept their prior format (HDR↔SDR toggle silently inert).
+  destroyOutput();
 }
 
 void MultiWindowNode::startRendering()
@@ -657,7 +680,7 @@ void MultiWindowNode::renderBlack()
 
     auto cb = wo.swapChain->currentFrameCommandBuffer();
     auto batch = rhi->nextResourceUpdateBatch();
-    cb->beginPass(wo.swapChain->currentFrameRenderTarget(), Qt::black, {1.0f, 0}, batch);
+    cb->beginPass(wo.swapChain->currentFrameRenderTarget(), Qt::black, {0.0f, 0}, batch);
     cb->endPass();
 
     rhi->endFrame(wo.swapChain);
@@ -689,7 +712,7 @@ void MultiWindowNode::render()
     return;
   }
 
-  // Phase 1: render the upstream graph into the offscreen target, in a
+  // Step 1: render the upstream graph into the offscreen target, in a
   // frame that is not attached to any swap chain. This is what decouples
   // upstream rendering from any specific window's lifetime.
   {
@@ -703,7 +726,7 @@ void MultiWindowNode::render()
     rhi->endOffscreenFrame();
   }
 
-  // Phase 2: for each live window, blit its sub-region in its own frame.
+  // Step 2: for each live window, blit its sub-region in its own frame.
   // Any window whose swap chain is gone or out-of-date is skipped without
   // affecting the others.
   if(this->renderedNodes.empty())
@@ -868,10 +891,6 @@ void MultiWindowNode::releaseWindowSwapChain(int index)
   if(!wo.swapChain && !wo.depthStencil && !wo.renderPassDescriptor)
     return;
 
-  // Wait for any in-flight frames touching this swap chain before tearing
-  // its resources down.
-  m_renderState->rhi->finish();
-
   // Release the renderer's per-window GPU state first, so its pipeline
   // (built against wo.renderPassDescriptor) is gone before we delete the
   // RPD itself.
@@ -887,16 +906,29 @@ void MultiWindowNode::releaseWindowSwapChain(int index)
     }
   }
 
-  delete wo.swapChain;
+  // Order matters: clear hasSwapChain BEFORE releasing wo.swapChain so a
+  // queued expose / resize event landing in the middle of teardown can
+  // never observe (hasSwapChain == true && swapChain dangling).
+  wo.hasSwapChain = false;
+
+  // Use deleteLater() instead of a synchronous rhi->finish() + delete.
+  // rhi->finish() issues vkQueueWaitIdle which drains ALL in-flight work on
+  // the graphics queue — stalling every other window. deleteLater() defers
+  // native-object destruction to the next endFrame() when the relevant frame
+  // slot is known safe, with no cross-window stall.
+  auto* sc = wo.swapChain;
   wo.swapChain = nullptr;
-
-  delete wo.depthStencil;
+  auto* ds = wo.depthStencil;
   wo.depthStencil = nullptr;
-
-  delete wo.renderPassDescriptor;
+  auto* rpd = wo.renderPassDescriptor;
   wo.renderPassDescriptor = nullptr;
 
-  wo.hasSwapChain = false;
+  if(sc)
+    sc->deleteLater();
+  if(ds)
+    ds->deleteLater();
+  if(rpd)
+    rpd->deleteLater();
 }
 
 void MultiWindowNode::createOutput(score::gfx::OutputConfiguration conf)
@@ -1034,6 +1066,11 @@ void MultiWindowNode::destroyOutput()
   // there are still frames in flight when resources are destroyed.
   m_renderState->rhi->finish();
 
+  // Persist-across-rebuild contract: registry survives RL teardown,
+  // so its QRhi resources have to be torn down here (BEFORE
+  // RenderState::destroy below) while the device is still alive.
+  releaseRegistry();
+
   // Detach Window callbacks so a close that races with destruction can't
   // reach back into us while we're tearing things down.
   for(auto& wo : m_windowOutputs)
@@ -1051,6 +1088,11 @@ void MultiWindowNode::destroyOutput()
   //    outlive the rhi's teardown of per-window state.
   for(auto& wo : m_windowOutputs)
   {
+    // Order matters: clear hasSwapChain BEFORE deleting wo.swapChain so a
+    // queued event cannot observe (hasSwapChain == true && swapChain
+    // dangling).
+    wo.hasSwapChain = false;
+
     delete wo.swapChain;
     wo.swapChain = nullptr;
 
@@ -1059,8 +1101,6 @@ void MultiWindowNode::destroyOutput()
 
     delete wo.renderPassDescriptor;
     wo.renderPassDescriptor = nullptr;
-
-    wo.hasSwapChain = false;
   }
 
   // 2. Release the offscreen target (texture + depth + RT + RPD). This
@@ -1090,6 +1130,43 @@ void MultiWindowNode::updateGraphicsAPI(GraphicsApi api)
     return;
 
   if(m_renderState->api != api)
+  {
+    destroyOutput();
+    return;
+  }
+
+  // Same API, but the requested sample count may have changed via the
+  // settings panel. Mirror ScreenNode's clamp-and-compare path: rebuild
+  // if the resolved sample count no longer matches what the rhi was
+  // created with.
+  auto* rhi = m_renderState->rhi;
+  if(!rhi)
+    return;
+
+  int samples_request
+      = score::AppContext().settings<Gfx::Settings::Model>().resolveSamples(api);
+  const auto supported = rhi->supportedSampleCounts();
+  if(supported.isEmpty())
+  {
+    samples_request = 1;
+  }
+  else
+  {
+    int chosen = supported.first();
+    for(int v : supported)
+    {
+      if(v == samples_request)
+      {
+        chosen = v;
+        break;
+      }
+      if(v < samples_request)
+        chosen = v;
+    }
+    samples_request = chosen;
+  }
+
+  if(m_renderState->samples != samples_request)
     destroyOutput();
 }
 

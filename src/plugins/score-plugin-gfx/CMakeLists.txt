@@ -136,6 +136,8 @@ set(HDRS
     Gfx/Filter/Library.hpp
     Gfx/Filter/PreviewWidget.hpp
 
+    Gfx/Widgets/RhiPreviewWidget.hpp
+
     Gfx/GeometryFilter/Executor.hpp
     Gfx/GeometryFilter/Metadata.hpp
     Gfx/GeometryFilter/Process.hpp
@@ -173,10 +175,12 @@ set(HDRS
     
     Gfx/Graph/BackgroundNode.hpp
     Gfx/Graph/CommonUBOs.hpp
+    Gfx/Graph/PhongNode.hpp
     Gfx/Graph/CustomMesh.hpp
     Gfx/Graph/GeometryFilterNode.hpp
     Gfx/Graph/GeometryFilterNodeRenderer.hpp
     Gfx/Graph/RhiComputeBarrier.hpp
+    Gfx/Graph/RhiClearBuffer.hpp
     Gfx/Graph/GPUBufferScatter.hpp
     Gfx/Graph/RenderedCSFNode.hpp
     Gfx/Graph/Graph.hpp
@@ -188,6 +192,13 @@ set(HDRS
     Gfx/Graph/NodeRenderer.hpp
     Gfx/Graph/OutputNode.hpp
     Gfx/Graph/PreviewNode.hpp
+    Gfx/Graph/SceneGPUState.hpp
+    Gfx/Graph/GpuResourceRegistry.hpp
+    Gfx/Graph/VertexFallbackDefaults.hpp
+    Gfx/Graph/VertexFallbackPlan.hpp
+    Gfx/Graph/VertexFallbackPool.hpp
+    Gfx/Graph/GpuTiming.hpp
+    Gfx/Graph/CameraMath.hpp
     Gfx/Graph/RenderList.hpp
     Gfx/Graph/RenderState.hpp
     Gfx/Graph/RenderedISFNode.hpp
@@ -201,6 +212,7 @@ set(HDRS
     Gfx/Graph/SimpleRenderedISFNode.hpp
     Gfx/Graph/TexgenNode.hpp
     Gfx/Graph/TextNode.hpp
+    Gfx/Graph/TextureLoader.hpp
     Gfx/Graph/Uniforms.hpp
     Gfx/Graph/Utils.hpp
     Gfx/Graph/VideoNode.hpp
@@ -266,10 +278,14 @@ set(HDRS
     Gfx/Settings/View.hpp
     Gfx/Settings/Factory.hpp
     
+    Gfx/AssetTable.hpp
+    Gfx/FormatRegistry.hpp
+    Gfx/Hashes.hpp
     Gfx/Window/BackgroundDevice.hpp
     Gfx/Window/CollapsibleSection.hpp
     Gfx/Window/DesktopLayout.hpp
     Gfx/Window/MultiWindowDevice.hpp
+    Gfx/Window/OffscreenDevice.hpp
     Gfx/Window/OutputMapping.hpp
     Gfx/Window/OutputPreview.hpp
     Gfx/Window/TestCard.hpp
@@ -319,6 +335,8 @@ set(SRCS
     Gfx/Filter/Process.cpp
     Gfx/Filter/PreviewWidget.cpp
 
+    Gfx/Widgets/RhiPreviewWidget.cpp
+
     Gfx/GeometryFilter/Executor.cpp
     Gfx/GeometryFilter/Process.cpp
     Gfx/GeometryFilter/Library.cpp
@@ -351,9 +369,11 @@ set(SRCS
     Gfx/Graph/decoders/HAP.cpp
     Gfx/Graph/BackgroundNode.cpp
     Gfx/Graph/CustomMesh.cpp
+    Gfx/Graph/PhongNode.cpp
     Gfx/Graph/GeometryFilterNode.cpp
     Gfx/Graph/GeometryFilterNodeRenderer.cpp
     Gfx/Graph/RhiComputeBarrier.cpp
+    Gfx/Graph/RhiClearBuffer.cpp
     Gfx/Graph/GPUBufferScatter.cpp
     Gfx/Graph/RenderedCSFNode.cpp
     Gfx/Graph/Graph.cpp
@@ -365,14 +385,25 @@ set(SRCS
     Gfx/Graph/NodeRenderer.cpp
     Gfx/Graph/OutputNode.cpp
     Gfx/Graph/PreviewNode.cpp
+    Gfx/Graph/SceneGPUState.cpp
+    Gfx/Graph/GpuResourceRegistry.cpp
+    Gfx/Graph/VertexFallbackDefaults.cpp
+    Gfx/Graph/VertexFallbackPool.cpp
+    Gfx/Graph/GpuTiming.cpp
+    Gfx/Graph/CameraMath.cpp
     Gfx/Graph/RenderList.cpp
     Gfx/Graph/RenderedISFNode.cpp
     Gfx/Graph/RenderedRawRasterPipelineNode.cpp
     Gfx/Graph/RenderedVSANode.cpp
+    Gfx/Graph/PipelineStateHelpers.hpp
+    Gfx/Graph/PipelineStateHelpers.cpp
+    Gfx/Graph/IsfBindingsBuilder.hpp
+    Gfx/Graph/IsfBindingsBuilder.cpp
     Gfx/Graph/ScreenNode.cpp
     Gfx/Graph/ShaderCache.cpp
     Gfx/Graph/SimpleRenderedISFNode.cpp
     Gfx/Graph/TextNode.cpp
+    Gfx/Graph/TextureLoader.cpp
     Gfx/Graph/Utils.cpp
     Gfx/Graph/VideoNode.cpp
     Gfx/Graph/VideoNodeRenderer.cpp
@@ -380,6 +411,8 @@ set(SRCS
     Gfx/Graph/DirectVideoNodeRenderer.cpp
     Gfx/Graph/Window.cpp
 
+    Gfx/AssetTable.cpp
+    Gfx/FormatRegistry.cpp
     Gfx/GfxApplicationPlugin.cpp
     Gfx/GfxExecNode.cpp
     Gfx/GfxExecutionAction.cpp
@@ -591,11 +624,13 @@ elseif(APPLE)
   target_sources(${PROJECT_NAME} PRIVATE
     Gfx/CameraDevice.avf.mm
     Gfx/Graph/RhiBufferCopyMetal.mm
+    Gfx/Graph/RhiClearBufferMetal.mm
   )
 
   set_source_files_properties(
     Gfx/CameraDevice.avf.mm
     Gfx/Graph/RhiBufferCopyMetal.mm
+    Gfx/Graph/RhiClearBufferMetal.mm
     PROPERTIES
       SKIP_UNITY_BUILD_INCLUSION 1
   )

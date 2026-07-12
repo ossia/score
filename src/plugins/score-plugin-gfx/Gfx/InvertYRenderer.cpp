@@ -17,6 +17,29 @@ InvertYRenderer::InvertYRenderer(
 void InvertYRenderer::init(
     score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
+  // Re-adopt the owning output node's CURRENT render target + render-pass
+  // descriptor. The sink may have recreated them since this renderer was
+  // constructed: a BackgroundNode viewport resize destroys the old
+  // QRhiTextureRenderTarget / QRhiRenderPassDescriptor (deleteLater) and
+  // installs fresh ones. When the resize takes the in-place fast path
+  // (RenderList::resizeSwapchainSizedTargets -> maybeRebuild's
+  // release()+init()) this renderer is NOT reconstructed, so the cached
+  // m_inputTarget would still reference the freed target/renderpass — and
+  // the upstream node's final pass (RenderedISFNode::addOutputPass ->
+  // renderTargetForOutput -> renderTargetForInput) would build its pipeline
+  // against a stale VkRenderPass. That is a Vulkan use-after-free: the
+  // driver dereferences the destroyed VkRenderPass in vkCreateGraphicsPipelines
+  // (validation reports VK_ERROR_VALIDATION_FAILED_EXT / -1000011001, and the
+  // NVIDIA driver may SIGSEGV outright). Refreshing here — before the upstream
+  // renderers are re-init'd in the same maybeRebuild pass (the output renderer
+  // is first in RenderList::renderers) — rebinds the live handles.
+  if(auto* out = dynamic_cast<const score::gfx::OutputNode*>(&this->node))
+  {
+    auto cur = out->currentRenderTarget();
+    if(cur.renderTarget && cur.renderPass)
+      m_inputTarget = cur;
+  }
+
   m_renderTarget = score::gfx::createRenderTarget(
       renderer.state, renderer.state.renderFormat, m_inputTarget.texture->pixelSize(),
       renderer.samples(), renderer.requiresDepth(*this->node.input[0]));
@@ -83,7 +106,7 @@ void InvertYRenderer::finishFrame(
     score::gfx::RenderList& renderer, QRhiCommandBuffer& cb,
     QRhiResourceUpdateBatch*& res)
 {
-  cb.beginPass(m_renderTarget.renderTarget, Qt::black, {1.0f, 0}, res);
+  cb.beginPass(m_renderTarget.renderTarget, Qt::black, {0.0f, 0}, res);
   res = nullptr;
   {
     const auto sz = renderer.state.renderSize;
@@ -170,7 +193,7 @@ void ScaledRenderer::runRenderPass(score::gfx::RenderList &, QRhiCommandBuffer &
 
 void ScaledRenderer::finishFrame(score::gfx::RenderList &renderer, QRhiCommandBuffer &cb, QRhiResourceUpdateBatch *&res)
 {
-  cb.beginPass(m_renderTarget.renderTarget, Qt::black, {1.0f, 0}, res);
+  cb.beginPass(m_renderTarget.renderTarget, Qt::black, {0.0f, 0}, res);
   res = nullptr;
   {
     const auto sz = renderer.state.outputSize;

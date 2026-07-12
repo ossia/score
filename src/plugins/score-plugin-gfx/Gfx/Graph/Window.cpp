@@ -216,7 +216,7 @@ void Window::render()
 
     auto buf = m_swapChain->currentFrameCommandBuffer();
     auto batch = state->rhi->nextResourceUpdateBatch();
-    buf->beginPass(m_swapChain->currentFrameRenderTarget(), Qt::black, {1.0f, 0}, batch);
+    buf->beginPass(m_swapChain->currentFrameRenderTarget(), Qt::black, {0.0f, 0}, batch);
     buf->endPass();
 
     state->rhi->endFrame(m_swapChain, {});
@@ -248,12 +248,16 @@ void Window::exposeEvent(QExposeEvent* ev)
     resizeSwapChain();
   }
 
+  // The teardown sites (ScreenNode / MultiWindowNode destroyOutput) clear
+  // the flag before nulling the alias, but they run on the render thread
+  // while this runs on the GUI thread with no synchronization — the two
+  // plain writes are not ordered for us, so the inconsistent pair IS
+  // observable mid-teardown. Self-heal instead of dereferencing null.
   if(m_hasSwapChain && !m_swapChain)
   {
     qDebug("exposeEvent: m_hasSwapChain && !m_swapChain");
     m_hasSwapChain = false;
   }
-
   const QSize surfaceSize = m_hasSwapChain ? m_swapChain->surfacePixelSize() : QSize();
 
   if((!isExposed() || (m_hasSwapChain && surfaceSize.isEmpty())) && m_running)
