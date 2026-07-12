@@ -9,32 +9,6 @@
 namespace score::gfx::interop
 {
 
-namespace
-{
-
-bool hasExt(const QByteArray& extList, const char* name) noexcept
-{
-  if(!name || !*name)
-    return false;
-  // Extension list is space-separated; do a tokenised contains.
-  const int nlen = int(std::strlen(name));
-  const char* p = extList.constData();
-  const char* end = p + extList.size();
-  while(p < end)
-  {
-    while(p < end && *p == ' ')
-      ++p;
-    const char* tok = p;
-    while(p < end && *p != ' ')
-      ++p;
-    if((p - tok) == nlen && std::memcmp(tok, name, nlen) == 0)
-      return true;
-  }
-  return false;
-}
-
-} // namespace
-
 bool AmdPinnedBuffers::tryInit(QOpenGLContext* ctx) noexcept
 {
   if(!ctx)
@@ -58,20 +32,20 @@ bool AmdPinnedBuffers::tryInit(QOpenGLContext* ctx) noexcept
   if(!funcs)
     return false;
 
-  const auto* extStr = reinterpret_cast<const char*>(
-      funcs->glGetString(/*GL_EXTENSIONS=*/0x1F03));
-  if(!extStr)
-    return false;
-  const QByteArray ext(extStr);
-
-  hasPinnedMemory = hasExt(ext, "GL_AMD_pinned_memory");
-  hasBusAddressable = hasExt(ext, "GL_AMD_bus_addressable_memory");
+  // QOpenGLContext::hasExtension, not glGetString(GL_EXTENSIONS): the latter
+  // returns NULL on a core-profile context, where the list is only reachable
+  // through glGetStringi. score runs a core 4.6 context, so the string parse
+  // reported "no AMD extensions" on every card that has them.
+  hasPinnedMemory = ctx->hasExtension(QByteArrayLiteral("GL_AMD_pinned_memory"));
+  hasBusAddressable
+      = ctx->hasExtension(QByteArrayLiteral("GL_AMD_bus_addressable_memory"));
   // Older AMD GL drivers reported the older token names; we surface
   // both flags so HostPinnedRing can probe them in priority order
   // (bus-addressable > pinned-memory > external-virtual > external-
   // physical).
-  hasExternalVirtualMemory = hasExt(ext, "GL_AMD_external_memory_object")
-                             || hasPinnedMemory;
+  hasExternalVirtualMemory
+      = ctx->hasExtension(QByteArrayLiteral("GL_AMD_external_memory_object"))
+        || hasPinnedMemory;
   hasExternalPhysicalMemory = hasBusAddressable;
 
   // Bus-addressable needs the two non-core entry points. Resolve via
@@ -116,10 +90,25 @@ unsigned int AmdPinnedBuffers::createPinnedBuffer(
   if(buf == 0)
     return 0;
 
+  // Drain any error the caller left pending so the check below only sees ours.
+  while(funcs->glGetError() != /*GL_NO_ERROR*/ 0)
+    ;
+
   funcs->glBindBuffer(amdTarget, buf);
   funcs->glBufferData(amdTarget, static_cast<std::ptrdiff_t>(size_bytes),
                       host_ptr, usage);
+  const unsigned int err = funcs->glGetError();
   funcs->glBindBuffer(amdTarget, 0);
+
+  // A driver that does not accept the AMD pinning token still hands back a
+  // valid buffer name, so without this the caller cannot tell that the pointer
+  // was never pinned and would keep a rung that silently does not work.
+  // GL_AMD_pinned_memory also requires host_ptr to be page-aligned.
+  if(err != 0)
+  {
+    funcs->glDeleteBuffers(1, &buf);
+    return 0;
+  }
 
   // Caller binds the buffer to `target` (GL_PIXEL_{UN,}PACK_BUFFER) at
   // transfer time; we pre-bind it here only to validate the storage

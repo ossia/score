@@ -4,11 +4,17 @@
 
 #include <Gfx/Graph/RenderState.hpp>
 
+#include <QDebug>
 #include <QFile>
+#include <QOpenGLContext>
 #include <QString>
 #include <QStringList>
 
 #include <private/qrhi_p.h>
+
+#if QT_CONFIG(opengl)
+#include <private/qrhigles2_p.h>
+#endif
 
 #include <cstring>
 
@@ -115,6 +121,27 @@ GpuVendor vendorFromPciId(uint32_t vendorId, const char* renderer) noexcept
   }
 }
 
+/** Vendor from the renderer/device string. Fallback for backends that leave
+ *  QRhiDriverInfo::vendorId at zero — Mesa's GL driver among them. */
+GpuVendor vendorFromRendererString(const char* renderer) noexcept
+{
+  if(!renderer || !*renderer)
+    return GpuVendor::Unknown;
+  const QString r = QString::fromUtf8(renderer);
+  if(r.contains("NVIDIA", Qt::CaseInsensitive)
+     || r.contains("GeForce", Qt::CaseInsensitive))
+    return vendorFromPciId(PCI_VENDOR_NVIDIA, renderer);
+  if(r.contains("AMD", Qt::CaseInsensitive) || r.contains("Radeon", Qt::CaseInsensitive)
+     || r.contains("ATI ", Qt::CaseInsensitive)
+     || r.contains("radeonsi", Qt::CaseInsensitive))
+    return GpuVendor::Amd;
+  if(r.contains("Intel", Qt::CaseInsensitive))
+    return GpuVendor::Intel;
+  if(r.contains("Apple", Qt::CaseInsensitive))
+    return GpuVendor::Apple;
+  return GpuVendor::Unknown;
+}
+
 QRhiBackendKind backendFromRhi(QRhi* rhi) noexcept
 {
   if(!rhi)
@@ -184,6 +211,14 @@ void probeFromQRhi(GpuCapabilities& caps, QRhi* rhi) noexcept
   copyString(caps.rendererName, sizeof(caps.rendererName),
              info.deviceName.constData());
   caps.vendor = vendorFromPciId(info.vendorId, info.deviceName.constData());
+  // Qt's GL backend does not always fill vendorId (Mesa reports none), which
+  // leaves every vendor-gated rung disabled on hardware that has them. Only
+  // consulted when the PCI id yielded nothing, so a populated id always wins.
+  if(caps.vendor == GpuVendor::Unknown)
+    caps.vendor = vendorFromRendererString(info.deviceName.constData());
+  qDebug() << "probeFromQRhi: vendorId=" << Qt::hex << info.vendorId << Qt::dec
+           << "device=" << info.deviceName << "-> vendor="
+           << gpuVendorName(caps.vendor);
 
   // Vulkan external-memory readiness: QRhi reports the feature, and
   // VkExternalMemoryHelpers gates the actual usage. We expose the QRhi
@@ -202,21 +237,46 @@ void probeFromQRhi(GpuCapabilities& caps, QRhi* rhi) noexcept
 
 void probeGlExtensions(GpuCapabilities& caps) noexcept
 {
-  // The actual glGetString call must happen on the GL thread with the
-  // GL context bound. We avoid pulling in <QOpenGLContext> at this
-  // layer — instead consumers that genuinely have GL active call us
-  // from a closure that has already grabbed the extension list.
+  // Needs a current GL context: this is the only place the AMD extension
+  // strings are visible. Callers on non-GL backends, or before the context
+  // exists, get caps.amd left alone -- which is what every consumer treats as
+  // "no AMD fast path".
   //
-  // The function intentionally takes no GL handle; we re-invoke
-  // glGetString through Qt's QOpenGLContext::currentContext() if any
-  // is current. If no GL context is current we leave caps.amd
-  // untouched.
-  (void)caps;
-  // Implementation deferred to a GL-backend-only TU; see
-  // GpuCapabilitiesGl.cpp (compiled only when the GL backend is
-  // selected). Without that TU, AMD pinned-memory probing returns
-  // "unknown" — the worst-case correctness consequence is one
-  // fallback path being unavailable; nothing breaks.
+  // Only the two real extension STRINGS are probed. The externalVirtual /
+  // externalPhysical flags gate AJA's legacy GL_EXTERNAL_VIRTUAL_MEMORY_AMD
+  // token, which is not an advertised extension and cannot be detected; a card
+  // that has GL_AMD_pinned_memory takes the standard
+  // GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD path instead.
+  probeGlExtensions(caps, nullptr);
+}
+
+void probeGlExtensions(GpuCapabilities& caps, QRhi* rhi) noexcept
+{
+  auto* ctx = QOpenGLContext::currentContext();
+#if QT_CONFIG(opengl)
+  // QRhi only makes its context current inside beginFrame/endFrame, so a
+  // caller probing at setup time has none. Take it from the native handles
+  // instead, as every other GL interop site here does.
+  if(!ctx && rhi && rhi->backend() == QRhi::OpenGLES2)
+  {
+    if(const auto* native
+       = static_cast<const QRhiGles2NativeHandles*>(rhi->nativeHandles()))
+      ctx = native->context;
+  }
+#else
+  (void)rhi;
+#endif
+  if(!ctx)
+  {
+    qDebug() << "probeGlExtensions: no GL context; AMD rungs stay disabled";
+    return;
+  }
+
+  caps.amd.pinnedMemory = ctx->hasExtension(QByteArrayLiteral("GL_AMD_pinned_memory"));
+  caps.amd.busAddressable
+      = ctx->hasExtension(QByteArrayLiteral("GL_AMD_bus_addressable_memory"));
+  qDebug() << "probeGlExtensions: GL_AMD_pinned_memory=" << caps.amd.pinnedMemory
+           << "GL_AMD_bus_addressable_memory=" << caps.amd.busAddressable;
 }
 
 const char* gpuVendorName(GpuVendor v) noexcept

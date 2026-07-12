@@ -202,6 +202,12 @@ void probeFromQRhi(GpuCapabilities& caps, QRhi* rhi) noexcept;
 SCORE_PLUGIN_GFX_EXPORT
 void probeGlExtensions(GpuCapabilities& caps) noexcept;
 
+/** As above, but able to recover the GL context from @p rhi's native handles
+ *  when none is current on the calling thread — which is the normal state at
+ *  setup time, since QRhi only makes its context current inside a frame. */
+SCORE_PLUGIN_GFX_EXPORT
+void probeGlExtensions(GpuCapabilities& caps, QRhi* rhi) noexcept;
+
 /** Render the capability struct to a human-readable multi-line
  *  string. Useful for plugin init logs + the diagnostic UI. */
 SCORE_PLUGIN_GFX_EXPORT

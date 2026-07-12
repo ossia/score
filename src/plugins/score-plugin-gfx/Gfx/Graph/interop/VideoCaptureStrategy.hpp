@@ -146,6 +146,65 @@ struct VideoCaptureSlotRing
 {
   std::atomic<std::uint64_t> latestFrameId{0};
   std::atomic<std::size_t> latestSlot{0};
+
+  // Live input-format channel. The capture thread publishes a newly detected
+  // wire geometry and bumps formatGeneration; the render thread polls it beside
+  // latestFrameId and reallocates its size-dependent GPU resources. Read via a
+  // seqlock: capture writes the fields then bumps the generation (even = stable,
+  // odd = mid-write); the render side reads the generation, the fields, then
+  // re-reads the generation and retries on mismatch.
+  std::atomic<std::uint64_t> formatGeneration{0};
+  std::atomic<std::int32_t> detectedWidth{0};
+  std::atomic<std::int32_t> detectedHeight{0};
+  std::atomic<std::int32_t> detectedPixelFormat{-1}; // AVPixelFormat; -1 = unset
+  std::atomic<double> detectedRate{0.0};
+
+  // Capture-thread side: publish a detected format change. No-op if the
+  // geometry is unchanged, so a per-frame poll can call it unconditionally.
+  bool publishFormat(int w, int h, int pixfmt, double rate) noexcept
+  {
+    if(w == detectedWidth.load(std::memory_order_relaxed)
+       && h == detectedHeight.load(std::memory_order_relaxed)
+       && pixfmt == detectedPixelFormat.load(std::memory_order_relaxed))
+      return false;
+    const auto g = formatGeneration.load(std::memory_order_relaxed);
+    formatGeneration.store(g + 1, std::memory_order_release); // odd: mid-write
+    detectedWidth.store(w, std::memory_order_relaxed);
+    detectedHeight.store(h, std::memory_order_relaxed);
+    detectedPixelFormat.store(pixfmt, std::memory_order_relaxed);
+    detectedRate.store(rate, std::memory_order_relaxed);
+    formatGeneration.store(g + 2, std::memory_order_release); // even: stable
+    return true;
+  }
+
+  struct DetectedFormat
+  {
+    std::uint64_t generation{0};
+    int width{0}, height{0}, pixfmt{-1};
+    double rate{0.0};
+  };
+
+  // Render-thread side: consistent snapshot of the latest published format.
+  DetectedFormat loadFormat() const noexcept
+  {
+    DetectedFormat f;
+    for(;;)
+    {
+      const auto g0 = formatGeneration.load(std::memory_order_acquire);
+      if(g0 & 1u)
+        continue; // writer mid-update
+      f.width = detectedWidth.load(std::memory_order_relaxed);
+      f.height = detectedHeight.load(std::memory_order_relaxed);
+      f.pixfmt = detectedPixelFormat.load(std::memory_order_relaxed);
+      f.rate = detectedRate.load(std::memory_order_relaxed);
+      std::atomic_thread_fence(std::memory_order_acquire);
+      if(formatGeneration.load(std::memory_order_relaxed) == g0)
+      {
+        f.generation = g0;
+        return f;
+      }
+    }
+  }
 };
 
 } // namespace score::gfx::interop
