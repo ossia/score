@@ -57,6 +57,10 @@ public:
   void errorMessage(int line, const QString& arg_2) const
       W_SIGNAL(errorMessage, line, arg_2);
 
+  // Absolute path of the shader file this model was loaded from. Used as
+  // the base for quoted #include resolution. Empty for in-memory source.
+  QString rootPath() const noexcept { return m_scriptPath; }
+
 private:
   [[nodiscard]] Process::ScriptChangeResult setProgram(ShaderSource f);
   void loadPreset(const Process::Preset& preset) override;
@@ -66,6 +70,7 @@ private:
 
   ShaderSource m_program;
   ProcessedProgram m_processedProgram;
+  QString m_scriptPath;
 };
 
 struct ProcessFactory final : Process::ProcessFactory_T<Gfx::VSA::Model>

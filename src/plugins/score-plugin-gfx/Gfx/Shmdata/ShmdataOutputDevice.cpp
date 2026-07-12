@@ -6,6 +6,7 @@
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
 #include <Gfx/Graph/RenderList.hpp>
+#include <Gfx/Graph/RenderState.hpp>
 #include <Gfx/InvertYRenderer.hpp>
 
 #include <score/gfx/OpenGL.hpp>
@@ -180,18 +181,15 @@ void ShmdataOutputNode::createOutput(score::gfx::OutputConfiguration conf)
           m_settings.height, int(m_settings.rate)),
       &m_logger);
   // clang-format on
-  m_renderState = std::make_shared<score::gfx::RenderState>();
-
-  m_renderState->surface = QRhiGles2InitParams::newFallbackSurface();
-  QRhiGles2InitParams params;
-  params.fallbackSurface = m_renderState->surface;
-  score::GLCapabilities caps;
-  caps.setupFormat(params.format);
-  m_renderState->rhi = QRhi::create(QRhi::OpenGLES2, &params, {});
-  m_renderState->renderSize = QSize(m_settings.width, m_settings.height);
+  m_renderState = score::gfx::createRenderState(
+      conf.graphicsApi, QSize(m_settings.width, m_settings.height), nullptr);
+  if(!m_renderState || !m_renderState->rhi)
+  {
+    qWarning() << "ShmdataOutputNode: failed to create QRhi";
+    m_renderState.reset();
+    return;
+  }
   m_renderState->outputSize = m_renderState->renderSize;
-  m_renderState->api = score::gfx::GraphicsApi::OpenGL;
-  m_renderState->version = caps.qShaderVersion;
 
   auto rhi = m_renderState->rhi;
   m_texture = rhi->newTexture(
@@ -210,6 +208,26 @@ void ShmdataOutputNode::createOutput(score::gfx::OutputConfiguration conf)
 void ShmdataOutputNode::destroyOutput()
 {
   m_writer.reset();
+
+  if(!m_renderState)
+    return;
+
+  // Persist-across-rebuild contract: registry survives RL teardown,
+  // so we tear down its QRhi resources here BEFORE
+  // RenderState::destroy() (called below) frees the device.
+  releaseRegistry();
+
+  delete m_renderTarget;
+  m_renderTarget = nullptr;
+
+  delete m_renderState->renderPassDescriptor;
+  m_renderState->renderPassDescriptor = nullptr;
+
+  delete m_texture;
+  m_texture = nullptr;
+
+  m_renderState->destroy();
+  m_renderState.reset();
 }
 
 std::shared_ptr<score::gfx::RenderState> ShmdataOutputNode::renderState() const

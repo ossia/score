@@ -805,6 +805,7 @@ void GaussianSplatRenderer::runInitialPasses(
   if(m_preprocessResourcesCreated && m_preprocessPipeline)
   {
     cb.beginComputePass(res, QRhiCommandBuffer::BeginPassFlag::ExternalContent);
+    res = nullptr;
 
     cb.setComputePipeline(m_preprocessPipeline);
     cb.setShaderResources(m_preprocessSrb);
@@ -848,6 +849,7 @@ void GaussianSplatRenderer::runInitialPasses(
 
   // Generate depth keys from compact buffer
   cb.beginComputePass(res, QRhiCommandBuffer::BeginPassFlag::ExternalContent);
+  res = nullptr;
 
   cb.setComputePipeline(m_depthKeyPipeline);
   cb.setShaderResources(m_depthKeySrb);

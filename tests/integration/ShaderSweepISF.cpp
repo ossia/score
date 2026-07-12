@@ -33,7 +33,10 @@ std::optional<Gfx::ProcessedProgram>
 loadISF(const QString& path, QByteArray data, QString& error)
 {
   const auto source = Gfx::programFromISFFragmentShaderPath(path, std::move(data));
-  auto [program, err] = Gfx::ProgramCache::instance().get(source);
+  // The path is what makes a quoted #include resolvable: ProgramCache uses it
+  // as the first search root. Dropping it turned every shader that includes a
+  // sibling .glsl into a bogus parse failure.
+  auto [program, err] = Gfx::ProgramCache::instance().get(source, path);
   error = err;
   return program;
 }

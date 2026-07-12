@@ -63,6 +63,13 @@ public:
   void update(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge) override;
   void release(RenderList& r) override;
 
+  void initState(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
+  void releaseState(RenderList& renderer) override;
+  void addOutputPass(
+      RenderList& renderer, Edge& edge, QRhiResourceUpdateBatch& res) override;
+  void removeOutputPass(RenderList& renderer, Edge& edge) override;
+  bool hasOutputPassForEdge(Edge& edge) const override;
+
 private:
   const VideoNodeBase& node() const noexcept
   {
@@ -131,6 +138,8 @@ private:
   };
 
   std::unique_ptr<GPUVideoDecoder> m_gpu;
+  QShader m_cachedVertexShader;
+  QShader m_cachedFragmentShader;
   score::gfx::ScaleMode m_currentScaleMode{};
 
   int64_t m_lastRequestedFlicks{-1};

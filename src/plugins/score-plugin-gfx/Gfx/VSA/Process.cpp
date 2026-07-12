@@ -10,8 +10,10 @@
 #include <Gfx/TexturePort.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
+#include <score/document/DocumentInterface.hpp>
 #include <score/tools/DeleteAll.hpp>
 #include <score/tools/File.hpp>
+#include <score/tools/FilePath.hpp>
 
 #include <QFileInfo>
 
@@ -150,6 +152,7 @@ Model::Model(
   metadata().setInstanceName(*this);
   m_outlets.push_back(new TextureOutlet{"Texture Out", Id<Process::Port>(1), this});
 
+  m_scriptPath = init;
   (void)setProgram(programFromVSAVertexShaderPath(init, {}));
 }
 
@@ -184,7 +187,9 @@ Process::ScriptChangeResult Model::setProgram(ShaderSource f)
   m_program.vertex = f.vertex;
   m_program.fragment.clear();
   m_processedProgram.fragment.clear();
-  if(const auto& [processed, error] = ProgramCache::instance().get(f); bool(processed))
+  if(const auto& [processed, error]
+     = ProgramCache::instance().get(f, m_scriptPath);
+     bool(processed))
   {
     ossia::flat_map<QString, ossia::value> previous_values;
     for(auto inl : m_inlets)
@@ -255,7 +260,16 @@ Process::Descriptor ProcessFactory::descriptor(QString path) const noexcept
 template <>
 void DataStreamReader::read(const Gfx::VSA::Model& proc)
 {
-  m_stream << proc.m_program;
+  // documentContext() SCORE_ASSERTs when the model isn't in a document
+  // (saving a template / copy); only relativize when there's a path,
+  // mirroring the Filter/ISF siblings.
+  QString relativeScriptPath;
+  if(!proc.m_scriptPath.isEmpty())
+  {
+    auto& ctx = score::IDocument::documentContext(proc);
+    relativeScriptPath = score::relativizeFilePath(proc.m_scriptPath, ctx);
+  }
+  m_stream << proc.m_program << relativeScriptPath;
 
   readPorts(*this, proc.m_inlets, proc.m_outlets);
 
@@ -266,7 +280,12 @@ template <>
 void DataStreamWriter::write(Gfx::VSA::Model& proc)
 {
   Gfx::ShaderSource s;
-  m_stream >> s;
+  m_stream >> s >> proc.m_scriptPath;
+  if(!proc.m_scriptPath.isEmpty())
+  {
+    auto& ctx = score::IDocument::documentContext(proc);
+    proc.m_scriptPath = score::locateFilePath(proc.m_scriptPath, ctx);
+  }
   s.type = isf::parser::ShaderType::VertexShaderArt;
   (void)proc.setVertex(s.vertex);
 
@@ -281,6 +300,11 @@ template <>
 void JSONReader::read(const Gfx::VSA::Model& proc)
 {
   obj["Vertex"] = proc.vertex();
+  if(!proc.m_scriptPath.isEmpty())
+  {
+    auto& ctx = score::IDocument::documentContext(proc);
+    obj["Root"] = score::relativizeFilePath(proc.m_scriptPath, ctx);
+  }
 
   readPorts(*this, proc.m_inlets, proc.m_outlets);
 }
@@ -291,6 +315,15 @@ void JSONWriter::write(Gfx::VSA::Model& proc)
   Gfx::ShaderSource s;
   s.vertex = obj["Vertex"].toString();
   s.type = isf::parser::ShaderType::VertexShaderArt;
+  if(auto r = obj.tryGet("Root"))
+  {
+    proc.m_scriptPath <<= *r;
+    if(!proc.m_scriptPath.isEmpty())
+    {
+      auto& ctx = score::IDocument::documentContext(proc);
+      proc.m_scriptPath = score::locateFilePath(proc.m_scriptPath, ctx);
+    }
+  }
   (void)proc.setVertex(s.vertex);
 
   writePorts(
