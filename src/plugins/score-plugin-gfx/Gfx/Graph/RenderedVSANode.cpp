@@ -33,7 +33,7 @@ SimpleRenderedVSANode::SimpleRenderedVSANode(const ISFNode& node) noexcept
 {
 }
 
-void SimpleRenderedVSANode::updateInputTexture(const Port& input, QRhiTexture* tex)
+void SimpleRenderedVSANode::updateInputTexture(const Port& input, QRhiTexture* tex, QRhiTexture* depthTex)
 {
   int sampler_idx = 0;
   for(auto* p : node.input)
@@ -41,7 +41,11 @@ void SimpleRenderedVSANode::updateInputTexture(const Port& input, QRhiTexture* t
     if(p == &input)
       break;
     if(p->type == Types::Image)
+    {
       sampler_idx++;
+      if((p->flags & Flag::SamplableDepth) == Flag::SamplableDepth)
+        sampler_idx++;
+    }
   }
 
   if(sampler_idx < (int)m_inputSamplers.size())
@@ -53,6 +57,20 @@ void SimpleRenderedVSANode::updateInputTexture(const Port& input, QRhiTexture* t
       for(auto& pd : m_passes)
         if(pd.main_pass.p.srb)
           score::gfx::replaceTexture(*pd.main_pass.p.srb, sampl.sampler, tex);
+    }
+
+    if(depthTex
+       && (input.flags & Flag::SamplableDepth) == Flag::SamplableDepth
+       && sampler_idx + 1 < (int)m_inputSamplers.size())
+    {
+      auto& depthSampl = m_inputSamplers[sampler_idx + 1];
+      if(depthSampl.texture != depthTex)
+      {
+        depthSampl.texture = depthTex;
+        for(auto& pd : m_passes)
+          if(pd.main_pass.p.srb)
+            score::gfx::replaceTexture(*pd.main_pass.p.srb, depthSampl.sampler, depthTex);
+      }
     }
   }
 }
@@ -118,42 +136,131 @@ void SimpleRenderedVSANode::initPass(
   pubo->setName("SimpleRenderedVSANode::initPass::pubo");
   pubo->create();
 
-  // Create the main pass
+  // The background-pass objects (bg_pip/bg_srb/bg_ubo) were already created
+  // above and are only ever adopted into m_passes on the success path below.
+  // Every failure exit from the main-pass build (ps->create() failing, or any
+  // exception out of makeShaders / SCORE_ASSERT) must release them, otherwise
+  // they leak on each addOutputPass — e.g. a TriangleFan primitive on D3D11,
+  // re-triggered on every render-target-spec change. bg_tri is NOT released:
+  // its buffers are cached/owned by RenderList::m_vertexBuffers (shared).
+  auto releaseBackground = [&] {
+    delete bg_pip;
+    delete bg_srb;
+    delete bg_ubo;
+  };
+
+  // Create the main pass.
+  // Apply cull-mode, front-face, and blend state BEFORE the first create()
+  // call so we only compile the PSO once instead of the previous two-compile
+  // pattern (buildPipeline::create + destroy + mutate + create).
+  QRhiGraphicsPipeline* ps = nullptr;
+  QRhiShaderResourceBindings* srb = nullptr;
   try
   {
     auto [v, s] = score::gfx::makeShaders(renderer.state, n.m_vertexS, n.m_fragmentS);
-    auto pip = score::gfx::buildPipeline(
-        renderer, *m_mesh, v, s, renderTarget, pubo, m_materialUBO, allSamplers());
-    if(pip.pipeline)
+    srb = score::gfx::createDefaultBindings(
+        renderer, renderTarget, pubo, m_materialUBO, allSamplers());
+
+    // Inline the essential steps of buildPipeline(srb) so we can insert the
+    // VSA-specific cull/front-face/blend state before create().
+    ps = rhi.newGraphicsPipeline();
+    SCORE_ASSERT(ps);
+    ps->setName("SimpleRenderedVSANode::initPass::ps");
+
+    // VSA blend: simple alpha blend (no premul factors needed here).
+    QRhiGraphicsPipeline::TargetBlend t{};
+    t.enable = true;
+    ps->setTargetBlends({t});
+
+    const int rtS = renderTarget.sampleCount();
+    ps->setSampleCount(rtS > 0 ? rtS : renderer.samples());
+
+    m_mesh->preparePipeline(*ps);
+
+    // INVARIANT: VSA (Vertex Shader Art) draws are NEVER face-culled — they
+    // MUST use CullMode::None on every backend.
+    //
+    // This MUST run AFTER m_mesh->preparePipeline() above, because
+    // BasicMesh::preparePipeline() unconditionally calls setCullMode()/
+    // setFrontFace() (Mesh.cpp:47-49); we override its result here.
+    //
+    // Why None (and why a per-backend cull can NEVER be consistent here):
+    // face-culling is decided from the triangle's *window-space* winding
+    // sign, which QRhi does NOT normalise across backends. It stays
+    // consistent ONLY for shaders that follow the QRhi convention, i.e. that
+    // multiply gl_Position by QRhi::clipSpaceCorrMatrix() and do NOT flip Y
+    // on SPIRV/Vulkan — that is what the consistent paths do (ISF blit_vs in
+    // libisf isf.cpp:44, RenderedRawRasterPipelineNode, the RGBA decoder),
+    // all of which then cull with a single CullMode::Back.
+    //
+    // VSA does the OPPOSITE (libisf isf.cpp:5620): it skips
+    // clipSpaceCorrMatrix and instead manually does `gl_Position.y = -y` on
+    // SPIRV/HLSL/MSL. That keeps the rendered image ORIENTATION consistent
+    // across backends, but it INVERTS the window-space winding sign on
+    // Vulkan relative to OpenGL (GL: identity corr + Y-up framebuffer;
+    // Vulkan: manual Y-flip + Y-down, positive-height viewport). The upshot,
+    // verified against the L3 matrix: for ANY single triangle winding,
+    // exactly one of GL/Vulkan keeps the face and the other culls it — so no
+    // per-backend CullMode + FrontFace combination can make one
+    // front-facing VSA triangle visible on both. (Front on GL / Back on
+    // Vulkan, as tried before, still diverged.)
+    //
+    // VSA art is 2-D procedural geometry driven purely by gl_VertexIndex;
+    // "front vs back face" is not a meaningful notion for it. Drawing both
+    // faces (None) is the only choice that is visible AND identical on every
+    // backend. Points/line VSA modes are unaffected either way (only
+    // triangles/polygons are ever culled).
+    ps->setCullMode(QRhiGraphicsPipeline::CullMode::None);
+
+    if(!renderer.anyNodeRequiresDepth())
     {
-      QRhiGraphicsPipeline::TargetBlend t{};
-      t.enable = true;
-      pip.pipeline->destroy();
-      switch(renderer.state.api)
-      {
-        default:
-        case GraphicsApi::Vulkan:
-          pip.pipeline->setCullMode(QRhiGraphicsPipeline::CullMode::Back);
-          break;
-        case GraphicsApi::OpenGL:
-          pip.pipeline->setCullMode(QRhiGraphicsPipeline::CullMode::Front);
-          break;
-      }
-      pip.pipeline->setFrontFace(QRhiGraphicsPipeline::FrontFace::CW);
-      pip.pipeline->setTargetBlends({t});
-      pip.pipeline->create();
+      ps->setDepthTest(false);
+      ps->setDepthWrite(false);
+    }
+
+    ps->setShaderStages(
+        {{QRhiShaderStage::Vertex, v}, {QRhiShaderStage::Fragment, s}});
+    ps->setShaderResourceBindings(srb);
+    SCORE_ASSERT(renderTarget.renderPass);
+    ps->setRenderPassDescriptor(renderTarget.renderPass);
+
+    Pipeline pip{};
+    if(ps->create())
+    {
+      pip = {ps, srb};
       m_passes.emplace_back(
           &edge, Pass{renderTarget, pip, pubo}, bg_pip, bg_srb, bg_ubo, bg_tri);
     }
     else
+    {
+      qDebug() << "Warning! VSA pipeline not created";
+      delete ps;
+      delete srb;
       delete pubo;
+      releaseBackground();
+    }
   }
   catch(...)
   {
+    // makeShaders / SCORE_ASSERT(renderTarget.renderPass) etc. can throw after
+    // some of the objects were created: release everything that is not owned by
+    // an m_passes entry (the success path is the only one that adopts them).
+    delete ps;
+    delete srb;
+    delete pubo;
+    releaseBackground();
   }
 }
 
 void SimpleRenderedVSANode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
+{
+  initState(renderer, res);
+
+  for(Edge* edge : n.output[0]->edges)
+    addOutputPass(renderer, *edge, res);
+}
+
+void SimpleRenderedVSANode::initState(RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
   QRhi& rhi = *renderer.state.rhi;
 
@@ -195,6 +302,8 @@ void SimpleRenderedVSANode::init(RenderList& renderer, QRhiResourceUpdateBatch& 
         = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, m_materialSize);
     m_materialUBO->setName("SimpleRenderedVSANode::init::m_materialUBO");
     SCORE_ASSERT(m_materialUBO->create());
+    if(n.m_material_data)
+      res.updateDynamicBuffer(m_materialUBO, 0, m_materialSize, n.m_material_data.get());
   }
 
   // Create the samplers
@@ -202,20 +311,51 @@ void SimpleRenderedVSANode::init(RenderList& renderer, QRhiResourceUpdateBatch& 
   SCORE_ASSERT(m_inputSamplers.empty());
   SCORE_ASSERT(m_audioSamplers.empty());
 
-  m_inputSamplers = initInputSamplers(this->n, renderer, n.input);
+  m_inputSamplers = initInputSamplers(this->n, renderer, n.input, &n.descriptor());
 
   m_audioSamplers = initAudioTextures(renderer, n.m_audio_textures);
 
-  // Create the passes
+  m_initialized = true;
+}
 
-  for(Edge* edge : n.output[0]->edges)
+void SimpleRenderedVSANode::addOutputPass(
+    RenderList& renderer, Edge& edge, QRhiResourceUpdateBatch& res)
+{
+  auto rt = renderer.renderTargetForOutput(edge);
+  if(rt.renderTarget)
   {
-    auto rt = renderer.renderTargetForOutput(*edge);
-    if(rt.renderTarget)
-    {
-      initPass(rt, renderer, *edge, res);
-    }
+    initPass(rt, renderer, edge, res);
   }
+}
+
+void SimpleRenderedVSANode::removeOutputPass(RenderList& renderer, Edge& edge)
+{
+  auto it
+      = ossia::find_if(m_passes, [&](const auto& p) { return p.edge == &edge; });
+  if(it != m_passes.end())
+  {
+    it->main_pass.p.release();
+
+    if(it->main_pass.processUBO)
+      it->main_pass.processUBO->deleteLater();
+
+    it->background_pipeline->destroy();
+    it->background_pipeline->deleteLater();
+
+    it->background_srb->destroy();
+    it->background_srb->deleteLater();
+
+    it->background_ubo->destroy();
+    it->background_ubo->deleteLater();
+
+    m_passes.erase(it);
+  }
+}
+
+bool SimpleRenderedVSANode::hasOutputPassForEdge(Edge& edge) const
+{
+  return ossia::find_if(m_passes, [&](const auto& p) { return p.edge == &edge; })
+         != m_passes.end();
 }
 
 void SimpleRenderedVSANode::update(
@@ -247,6 +387,7 @@ void SimpleRenderedVSANode::update(
   }
 
   bool audioChanged = false;
+  std::size_t audio_idx = 0;
   for(auto& audio : n.m_audio_textures)
   {
     if(std::optional<Sampler> sampl
@@ -255,13 +396,30 @@ void SimpleRenderedVSANode::update(
       // Texture changed -> material changed
       audioChanged = true;
 
-      auto& [rhiSampler, tex] = *sampl;
+      auto& [rhiSampler, tex, fb_] = *sampl;
+      QRhiTexture* boundTex = tex ? tex : &renderer.emptyTexture();
+
+      // Keep m_audioSamplers[i].texture in sync with the live GPU texture.
+      // If a pass is later torn down and rebuilt (e.g. rt_changed path in
+      // RenderList::render calling removeOutputPass + addOutputPass),
+      // allSamplers() must hand buildPipeline the current texture so the
+      // fresh SRB is bound correctly. Without this sync the rebuilt SRB
+      // would bind &renderer.emptyTexture() (because m_audioSamplers had
+      // texture=nullptr from initAudioTextures) and no subsequent
+      // updateAudioTexture would ever re-trigger replaceTexture — the
+      // post-no-change path returns {} — so the shader would read zero
+      // for the rest of the session. Observed as 1×1 empty texture in
+      // RenderDoc after a viewport resize.
+      if(audio_idx < m_audioSamplers.size())
+        m_audioSamplers[audio_idx].texture = tex;
+
       for(auto& pass : m_passes)
       {
         score::gfx::replaceTexture(
-            *pass.main_pass.p.srb, rhiSampler, tex ? tex : &renderer.emptyTexture());
+            *pass.main_pass.p.srb, rhiSampler, boundTex);
       }
     }
+    ++audio_idx;
   }
 
   // Update material
@@ -270,6 +428,7 @@ void SimpleRenderedVSANode::update(
     char* data = n.m_material_data.get();
     res.updateDynamicBuffer(m_materialUBO, 0, m_materialSize, data);
   }
+  materialChanged = false;
 
   // Update all the process UBOs
   for(auto& pass : m_passes)
@@ -288,7 +447,15 @@ void SimpleRenderedVSANode::update(
 
 void SimpleRenderedVSANode::release(RenderList& r)
 {
-  // customRelease
+  releaseState(r);
+}
+
+void SimpleRenderedVSANode::releaseState(RenderList& r)
+{
+  if(!m_initialized)
+    return;
+
+  // Release all remaining passes
   {
     for(auto& texture : n.m_audio_textures)
     {
@@ -300,6 +467,8 @@ void SimpleRenderedVSANode::release(RenderList& r)
           if(tex != &r.emptyTexture())
             tex->deleteLater();
         }
+        it->second.texture = nullptr;
+        it->second = {};
       }
     }
 
@@ -326,13 +495,11 @@ void SimpleRenderedVSANode::release(RenderList& r)
   for(auto sampler : m_inputSamplers)
   {
     delete sampler.sampler;
-    // texture isdeleted elsewxheree
   }
   m_inputSamplers.clear();
   for(auto sampler : m_audioSamplers)
   {
     delete sampler.sampler;
-    // texture isdeleted elsewxheree
   }
   m_audioSamplers.clear();
 
@@ -341,6 +508,8 @@ void SimpleRenderedVSANode::release(RenderList& r)
 
   delete m_mesh;
   m_mesh = nullptr;
+
+  m_initialized = false;
 }
 
 void SimpleRenderedVSANode::runInitialPasses(

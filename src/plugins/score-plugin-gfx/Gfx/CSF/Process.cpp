@@ -6,10 +6,13 @@
 
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Graph/ShaderCache.hpp>
+#include <Gfx/ShaderProgram.hpp>
 #include <Gfx/TexturePort.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
+#include <score/document/DocumentInterface.hpp>
 #include <score/tools/DeleteAll.hpp>
+#include <score/tools/FilePath.hpp>
 
 #include <QFileInfo>
 
@@ -78,7 +81,10 @@ Model::Model(
 
   QFile f{init};
   if(f.open(QIODevice::ReadOnly))
+  {
+    m_scriptPath = init;
     (void)setCompute(f.readAll());
+  }
 }
 
 Model::~Model() { }
@@ -87,8 +93,18 @@ bool Model::validate(const QString& txt) const noexcept
 {
   try
   {
+    // Expand #include directives against the model's origin dir + the
+    // global search paths before handing the source to the ISF parser.
+    auto [resolved, err]
+        = Gfx::preprocessShaderIncludes(txt.toUtf8(), m_scriptPath);
+    if(!err.isEmpty())
+    {
+      this->errorMessage(0, err);
+      return false;
+    }
+
     // Parse the CSF shader to extract metadata
-    std::string str = txt.toStdString();
+    std::string str(resolved.constData(), resolved.size());
     isf::parser p{str, isf::parser::ShaderType::CSF};
 
     // Check if it's a valid CSF shader
@@ -144,15 +160,25 @@ Process::ScriptChangeResult Model::setScript(const QString& f)
 {
   m_compute = f;
 
-  QString processed = m_compute;
-
   auto inls = score::clearAndDeleteLater(m_inlets);
   auto outls = score::clearAndDeleteLater(m_outlets);
 
   try
   {
+    // Expand #include directives against the model's origin dir before
+    // feeding the source to the ISF parser.
+    auto [resolved, err]
+        = Gfx::preprocessShaderIncludes(m_compute.toUtf8(), m_scriptPath);
+    if(!err.isEmpty())
+    {
+      this->errorMessage(0, err);
+      return {.valid = false, .inlets = std::move(inls), .outlets = std::move(outls)};
+    }
+
     // Parse CSF shader
-    isf::parser p{processed.toStdString(), isf::parser::ShaderType::CSF};
+    isf::parser p{
+        std::string(resolved.constData(), resolved.size()),
+        isf::parser::ShaderType::CSF};
     m_processedProgram.descriptor = p.data();
     m_processedProgram.fragment = QString::fromStdString(p.compute_shader());
     m_processedProgram.type = isf::parser::ShaderType::CSF;
@@ -310,8 +336,19 @@ void Model::setupCSF(const isf::descriptor& desc)
         alternatives.emplace_back("2", 2);
       }
 
+      // ComboBox::init is a VALUE that should match one of the alternatives'
+      // values — NOT an index. libisf stores `v.def` as the INDEX into
+      // values (see isf.hpp comment on long_input::def). Passing the raw
+      // index made the ComboBox fail to match any alternative and silently
+      // default to alternatives[0], which is why DEFAULT: 32 in
+      // VALUES: [16, 32, 64] showed up as 16 in the UI. Look up the
+      // alternative at v.def and pass its second (the value).
+      const std::size_t def_idx
+          = std::min<std::size_t>(v.def, alternatives.size() - 1);
+      const ossia::value& init_value = alternatives[def_idx].second;
+
       auto port = new Process::ComboBox(
-          std::move(alternatives), (int)v.def, QString::fromStdString(input.name),
+          std::move(alternatives), init_value, QString::fromStdString(input.name),
           Id<Process::Port>(input_i++), &self);
 
       self.m_inlets.push_back(port);
@@ -448,16 +485,32 @@ void Model::setupCSF(const isf::descriptor& desc)
             QString::fromStdString(input.name), Id<Process::Port>(output_i++), &self);
         self.m_outlets.push_back(port);
 
-        auto size_inl = new Process::IntSpinBox{
-            1,
-            536870911,
-            1024,
-            QString::fromStdString(input.name) + " size",
-            Id<Process::Port>(input_i++),
-            &self};
-        self.m_inlets.push_back(size_inl);
-        self.controlAdded(size_inl->id());
+        // Only writable buffers whose layout ends in a flexible-array member
+        // get a synthesized "size" inlet — this MUST match the renderer
+        // (isf_input_port_count_vis / isf_input_port_vis) and the generated
+        // GLSL, or every later control routes to the wrong port.
+        if(!v.layout.empty()
+           && v.layout.back().type.find("[]") != std::string::npos)
+        {
+          auto size_inl = new Process::IntSpinBox{
+              1,
+              536870911,
+              1024,
+              QString::fromStdString(input.name) + " size",
+              Id<Process::Port>(input_i++),
+              &self};
+          self.m_inlets.push_back(size_inl);
+          self.controlAdded(size_inl->id());
+        }
       }
+    }
+
+    void operator()(const uniform_input& v)
+    {
+      // UBO inputs sourced from upstream Buffer ports (read-only).
+      auto port = new Gfx::TextureInlet(
+          QString::fromStdString(input.name), Id<Process::Port>(input_i++), &self);
+      self.m_inlets.push_back(port);
     }
 
     void operator()(const texture_input& v)
@@ -606,7 +659,17 @@ Process::Descriptor ProcessFactory::descriptor(QString) const noexcept
 template <>
 void DataStreamReader::read(const Gfx::CSF::Model& proc)
 {
-  m_stream << proc.m_compute;
+  // documentContext() SCORE_ASSERTs when the model isn't in a document
+  // (e.g. saving a template / copy). Only relativize against the document
+  // when there's an actual script path to relativize — mirrors the
+  // JSON/load guards. The empty case writes an empty path verbatim.
+  QString relativeScriptPath;
+  if(!proc.m_scriptPath.isEmpty())
+  {
+    auto& ctx = score::IDocument::documentContext(proc);
+    relativeScriptPath = score::relativizeFilePath(proc.m_scriptPath, ctx);
+  }
+  m_stream << proc.m_compute << relativeScriptPath;
   readPorts(*this, proc.m_inlets, proc.m_outlets);
 
   insertDelimiter();
@@ -616,7 +679,12 @@ template <>
 void DataStreamWriter::write(Gfx::CSF::Model& proc)
 {
   QString s;
-  m_stream >> s;
+  m_stream >> s >> proc.m_scriptPath;
+  if(!proc.m_scriptPath.isEmpty())
+  {
+    auto& ctx = score::IDocument::documentContext(proc);
+    proc.m_scriptPath = score::locateFilePath(proc.m_scriptPath, ctx);
+  }
   (void)proc.setScript(s);
   writePorts(
       *this, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,
@@ -629,6 +697,11 @@ template <>
 void JSONReader::read(const Gfx::CSF::Model& proc)
 {
   obj["Compute"] = proc.script();
+  if(!proc.m_scriptPath.isEmpty())
+  {
+    auto& ctx = score::IDocument::documentContext(proc);
+    obj["Root"] = score::relativizeFilePath(proc.m_scriptPath, ctx);
+  }
   readPorts(*this, proc.m_inlets, proc.m_outlets);
 }
 
@@ -636,6 +709,15 @@ template <>
 void JSONWriter::write(Gfx::CSF::Model& proc)
 {
   QString s = obj["Compute"].toString();
+  if(auto r = obj.tryGet("Root"))
+  {
+    proc.m_scriptPath <<= *r;
+    if(!proc.m_scriptPath.isEmpty())
+    {
+      auto& ctx = score::IDocument::documentContext(proc);
+      proc.m_scriptPath = score::locateFilePath(proc.m_scriptPath, ctx);
+    }
+  }
   (void)proc.setScript(s);
   writePorts(
       *this, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,

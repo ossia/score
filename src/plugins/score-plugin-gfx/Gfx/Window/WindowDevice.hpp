@@ -37,7 +37,7 @@ static score::gfx::ScreenNode* createScreenNode(
   };
 
   auto node = new score::gfx::ScreenNode{
-      make_configuration(), false, (settings.autoplay || !settings.gui)};
+      make_configuration(), false, (settings.autoplay && !settings.gui)};
   node->setSwapchainFlag(swapFlag);
   node->setSwapchainFormat(swapFormat);
 
@@ -105,6 +105,7 @@ class window_device : public ossia::net::device_base
   }
 
 public:
+  score::gfx::ScreenNode* screen() const noexcept { return m_screen; }
   ~window_device()
   {
     if(auto w = m_screen->window())

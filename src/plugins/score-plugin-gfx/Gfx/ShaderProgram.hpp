@@ -1,8 +1,10 @@
 #pragma once
 #include <Gfx/Graph/RenderState.hpp>
+#include <Gfx/Hashes.hpp>
 
 #include <score/tools/Debug.hpp>
 
+#include <ossia/detail/hash.hpp>
 #include <ossia/detail/hash_map.hpp>
 
 #include <QDebug>
@@ -93,7 +95,12 @@ struct SCORE_PLUGIN_GFX_EXPORT ShaderSource
   }
   friend bool operator==(const ShaderSource& lhs, const ShaderSource& rhs) noexcept
   {
-    return lhs.vertex == rhs.vertex && lhs.fragment == rhs.fragment;
+    // `type` MUST be part of equality: std::hash<ShaderSource> seeds with
+    // `type`, so two sources differing only by type hash differently. If ==
+    // ignored type they'd be "equal but unequal-hash", breaking the
+    // unordered-container invariant for ProgramCache / ProgramCacheKey.
+    return lhs.type == rhs.type && lhs.vertex == rhs.vertex
+           && lhs.fragment == rhs.fragment;
   }
   friend bool operator!=(const ShaderSource& lhs, const ShaderSource& rhs) noexcept
   {
@@ -117,6 +124,16 @@ struct SCORE_PLUGIN_GFX_EXPORT ShaderSource
 ShaderSource programFromISFFragmentShaderPath(const QString& fsFilename, QByteArray fsData);
 ShaderSource
 programFromVSAVertexShaderPath(const QString& vertexFilename, QByteArray vertexData);
+
+// Textual `#include` resolution for a single GLSL buffer. Used by
+// callers that want include support without going through the full
+// ProgramCache ISF pipeline — compute shaders are the current use case.
+// Returns the expanded source and a non-empty error string on failure
+// (missing header, include cycle, depth limit, …). The returned
+// QByteArray is empty iff the error is non-empty.
+SCORE_PLUGIN_GFX_EXPORT
+std::pair<QByteArray, QString>
+preprocessShaderIncludes(QByteArray source, const QString& originPath = {}) noexcept;
 }
 
 namespace std
@@ -126,14 +143,11 @@ struct hash<Gfx::ShaderSource>
 {
   std::size_t operator()(const Gfx::ShaderSource& program) const noexcept
   {
-    constexpr const QtPrivate::QHashCombine combine{
-#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
-        0
-#endif
-    };
-    std::size_t seed{};
-    seed = combine(seed, program.vertex);
-    seed = combine(seed, program.fragment);
+    // rapidhash via the gfx Qt-aware adapters; same primitive that
+    // produces content_hash values throughout the gfx pipeline.
+    std::size_t seed{(std::size_t)program.type};
+    ossia::hash_combine(seed, score::gfx::hash_qstring(program.vertex));
+    ossia::hash_combine(seed, score::gfx::hash_qstring(program.fragment));
     return seed;
   }
 };
@@ -146,13 +160,52 @@ struct ProcessedProgram : ShaderSource
   isf::descriptor descriptor;
 };
 
+// Cache key. `originDir` is the *canonical directory* the shader was
+// loaded from (derived by the cache from the caller-supplied origin
+// path). Keying on both means two models loading the same source text
+// from different directories don't collide — include resolution against
+// each shader's own sibling dir stays correct.
+struct ProgramCacheKey
+{
+  ShaderSource source;
+  QString originDir;
+
+  friend bool
+  operator==(const ProgramCacheKey& a, const ProgramCacheKey& b) noexcept
+  {
+    return a.source == b.source && a.originDir == b.originDir;
+  }
+};
+}
+
+namespace std
+{
+template <>
+struct hash<Gfx::ProgramCacheKey>
+{
+  std::size_t operator()(const Gfx::ProgramCacheKey& k) const noexcept
+  {
+    std::size_t seed = std::hash<Gfx::ShaderSource>{}(k.source);
+    ossia::hash_combine(seed, score::gfx::hash_qstring(k.originDir));
+    return seed;
+  }
+};
+}
+
+namespace Gfx
+{
 struct SCORE_PLUGIN_GFX_EXPORT ProgramCache
 {
   static ProgramCache& instance() noexcept;
-  std::pair<std::optional<ProcessedProgram>, QString>
-  get(const ShaderSource& program) noexcept;
 
-  ossia::hash_map<ShaderSource, ProcessedProgram> programs;
+  // `originPath` is the absolute path of the shader file the source was
+  // loaded from, used as the base for quoted `#include "..."` resolution
+  // and as part of the cache key. Empty when the source is in-memory
+  // with no associated file.
+  std::pair<std::optional<ProcessedProgram>, QString>
+  get(const ShaderSource& program, const QString& originPath = {}) noexcept;
+
+  ossia::hash_map<ProgramCacheKey, ProcessedProgram> programs;
 };
 
 }

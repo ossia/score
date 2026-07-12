@@ -19,7 +19,10 @@ extern "C" {
 
 #if defined(SCORE_HAS_D3D12_HWCONTEXT)
 
+// clang-format off
+#include <windows.h>
 #include <d3d12.h>
+// clang-format on
 
 namespace score::gfx
 {

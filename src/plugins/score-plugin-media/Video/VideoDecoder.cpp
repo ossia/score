@@ -706,8 +706,16 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
 
   if(r.frame)
   {
-    m_frames.set_discard_frame(r.frame);
+    // Enqueue BEFORE publishing the discard marker. Otherwise the GFX thread's
+    // discard_and_dequeue* can observe the marker for a frame not yet in
+    // `available`, drain the queue and return r.frame as current while the
+    // decoder still owns it and is about to enqueue it → double ownership /
+    // UAF of the pixels a live zero-copy GPU upload references. With this
+    // order the marker is only ever visible once its frame is already in the
+    // queue, and the consumer falls through to a normal dequeue when the
+    // marker frame isn't found.
     m_frames.enqueue(r.frame);
+    m_frames.set_discard_frame(r.frame);
   }
   else
   {

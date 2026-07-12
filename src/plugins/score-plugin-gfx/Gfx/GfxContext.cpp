@@ -10,6 +10,8 @@
 #include <score/tools/Timers.hpp>
 
 #include <ossia/detail/flicks.hpp>
+
+#include <algorithm>
 #include <ossia/detail/logger.hpp>
 #include <ossia/detail/thread.hpp>
 
@@ -36,6 +38,10 @@ GfxContext::GfxContext(const score::DocumentContext& ctx)
       &GfxContext::recompute_graph);
 
   m_graph = new score::gfx::Graph;
+  // Hand the session-wide AssetTable down to the Graph so every
+  // RenderList it creates can participate in content-hash decode
+  // dedup: one decode per asset per session, N uploads.
+  m_graph->setAssetTable(&m_assets);
 
   double rate = m_context.app.settings<Gfx::Settings::Model>().getRate();
   rate = qBound(1.0, rate, 1000.);
@@ -60,6 +66,14 @@ GfxContext::~GfxContext()
     m_thread.exit(0);
   m_thread.wait();
 #endif
+
+  // Stop all timers before destroying the graph and nodes,
+  // to prevent timer callbacks from accessing stale pointers.
+  m_manualTimers.clear();
+  m_no_vsync_timer = nullptr;
+  m_watchdog_timer = nullptr;
+  std::destroy_at(&m_timers);
+  std::construct_at(&m_timers);
 
   delete m_graph;
 }
@@ -166,63 +180,79 @@ void GfxContext::disconnect_preview_node(EdgeSpec e)
 void GfxContext::add_edge(EdgeSpec edge)
 {
   auto source_node_it = this->nodes.find(edge.first.node);
-  if(source_node_it != this->nodes.end())
-  {
-    auto sink_node_it = this->nodes.find(edge.second.node);
-    if(sink_node_it != this->nodes.end())
-    {
-      assert(source_node_it->second);
-      assert(sink_node_it->second);
+  if(source_node_it == this->nodes.end())
+    return;
+  auto sink_node_it = this->nodes.find(edge.second.node);
+  if(sink_node_it == this->nodes.end())
+    return;
+  if(!source_node_it->second || !sink_node_it->second)
+    return;
 
-      auto& source_ports = source_node_it->second->output;
-      auto& sink_ports = sink_node_it->second->input;
+  auto& source_ports = source_node_it->second->output;
+  auto& sink_ports = sink_node_it->second->input;
 
-      SCORE_ASSERT(source_ports.size() > 0);
-      SCORE_ASSERT(sink_ports.size() > 0);
-      SCORE_ASSERT(source_ports.size() > edge.first.port);
-      SCORE_ASSERT(sink_ports.size() > edge.second.port);
-      auto source_port = source_ports[edge.first.port];
-      auto sink_port = sink_ports[edge.second.port];
+  // Silently drop malformed edges. A live-coded or half-wired patch can
+  // produce an edge whose declared port index doesn't exist on either side
+  // (e.g. a shader that parses to zero input ports but the script still
+  // issued a `connect(..., 0, consumer, 0)`). Aborting the whole renderer
+  // on a script-level wiring mistake is not an option — drop the edge and
+  // keep rendering.
+  if(edge.first.port >= source_ports.size()
+     || edge.second.port >= sink_ports.size())
+    return;
 
-      m_graph->addEdge(source_port, sink_port, edge.type);
-    }
-  }
+  m_graph->addEdge(source_ports[edge.first.port], sink_ports[edge.second.port],
+                   edge.type);
 }
 
 void GfxContext::remove_edge(EdgeSpec edge)
 {
   auto source_node_it = this->nodes.find(edge.first.node);
-  if(source_node_it != this->nodes.end())
-  {
-    auto sink_node_it = this->nodes.find(edge.second.node);
-    if(sink_node_it != this->nodes.end())
-    {
-      assert(source_node_it->second);
-      assert(sink_node_it->second);
+  if(source_node_it == this->nodes.end())
+    return;
+  auto sink_node_it = this->nodes.find(edge.second.node);
+  if(sink_node_it == this->nodes.end())
+    return;
+  if(!source_node_it->second || !sink_node_it->second)
+    return;
 
-      auto source_port = source_node_it->second->output[edge.first.port];
-      auto sink_port = sink_node_it->second->input[edge.second.port];
+  auto& source_ports = source_node_it->second->output;
+  auto& sink_ports = sink_node_it->second->input;
+  if(edge.first.port >= source_ports.size()
+     || edge.second.port >= sink_ports.size())
+    return;
 
-      m_graph->removeEdge(source_port, sink_port);
-    }
-  }
+  m_graph->removeEdge(source_ports[edge.first.port],
+                      sink_ports[edge.second.port]);
 }
 
 void GfxContext::recompute_edges()
 {
   m_graph->clearEdges();
 
-  for(auto edge : edges)
+  // Snapshot under lock: writer in updateGraph reassigns `edges` under
+  // edges_lock on the render-driving thread, while this can be invoked from
+  // settings-change signals on the UI thread. Iterating the live container
+  // would race with that reassignment.
+  ossia::flat_set<EdgeSpec> edges_snapshot;
+  ossia::flat_set<EdgeSpec> preview_snapshot;
+  {
+    std::lock_guard l{edges_lock};
+    edges_snapshot = edges;
+    preview_snapshot = preview_edges;
+  }
+
+  for(auto edge : edges_snapshot)
   {
     add_edge(edge);
   }
-  for(auto edge : preview_edges)
+  for(auto edge : preview_snapshot)
   {
     add_edge(edge);
   }
 }
 
-void GfxContext::recompute_graph()
+void GfxContext::recomputeTimers()
 {
   // Tear the render clocks down BEFORE the timer pool is nuked: their dtors
   // release the shared timers back to a still-live m_timers.
@@ -243,14 +273,9 @@ void GfxContext::recompute_graph()
     output->setVSyncCallback({});
   }
 
-  // Recreate the graph
-  recompute_edges();
-
   auto& settings = m_context.app.settings<Gfx::Settings::Model>();
-  const double settings_rate = m_context.app.settings<Gfx::Settings::Model>().getRate();
+  const double settings_rate = settings.getRate();
   const auto api = settings.graphicsApiEnum();
-
-  m_graph->createAllRenderLists(api);
 
   // Recreate new timers
   // The vsync render loop drives itself through QWindow::requestUpdate(). On
@@ -349,6 +374,24 @@ void GfxContext::recompute_graph()
   }
 }
 
+void GfxContext::recomputeGraphTopology()
+{
+  recompute_edges();
+
+  auto& settings = m_context.app.settings<Gfx::Settings::Model>();
+  const auto api = settings.graphicsApiEnum();
+
+  m_graph->createAllRenderLists(api);
+}
+
+void GfxContext::recompute_graph()
+{
+  // Topology first: refreshes m_graph->outputs() which recomputeTimers reads.
+  // Must run before timers because recomputeTimers iterates outputs().
+  recomputeGraphTopology();
+  recomputeTimers();
+}
+
 void GfxContext::add_preview_output(score::gfx::OutputNode& node)
 {
   auto& settings = m_context.app.settings<Gfx::Settings::Model>();
@@ -371,12 +414,158 @@ void GfxContext::add_preview_output(score::gfx::OutputNode& node)
 void GfxContext::recompute_connections()
 {
   recompute_graph();
-  // FIXME for more performance
-  /*
-  recompute_edges();
-  // m_graph->setupOutputs(m_api);
-  m_graph->relinkGraph();
-  */
+}
+
+void GfxContext::incrementalEdgeUpdate(
+    const ossia::flat_set<EdgeSpec>& old_edges,
+    const ossia::flat_set<EdgeSpec>& cur_edges)
+{
+  // Compute diff
+  std::vector<EdgeSpec> removed;
+  std::vector<EdgeSpec> added;
+
+  std::set_difference(
+      old_edges.begin(), old_edges.end(),
+      cur_edges.begin(), cur_edges.end(),
+      std::back_inserter(removed));
+
+  std::set_difference(
+      cur_edges.begin(), cur_edges.end(),
+      old_edges.begin(), old_edges.end(),
+      std::back_inserter(added));
+
+  // Pre-compute the set of sink ports that will be fed by an incoming edge
+  // in this same batch. Handing that set to onEdgeRemoved prevents the
+  // "remove A→B, add F→B" sequence from destroying B's input RT in the
+  // gap between the two, which was pure churn when the old and new feeds
+  // share a sink port (classic filter insertion). Reconcile reallocates
+  // RTs only when the slot is empty, so preserving the existing RT lets
+  // the new pass slot straight into place. Source: Graph.cpp
+  // createPassForEdgeIfMissing already treats a present RT as valid
+  // regardless of the edge that produced it.
+  ossia::hash_set<const score::gfx::Port*> preserveSinks;
+  preserveSinks.reserve(added.size());
+  for(auto& spec : added)
+  {
+    auto sink_it = nodes.find(spec.second.node);
+    if(sink_it == nodes.end())
+      continue;
+    // EdgeSpecs are script-supplied: guard against null nodes and
+    // out-of-range port indices before indexing, exactly as
+    // add_edge/remove_edge do. An OOB std::vector access is UB, not a
+    // catchable exception, so the try/catch around the caller cannot
+    // save us here.
+    if(!sink_it->second)
+      continue;
+    auto& sink_ports = sink_it->second->input;
+    if(spec.second.port >= sink_ports.size())
+      continue;
+    preserveSinks.insert(sink_ports[spec.second.port]);
+  }
+
+  // Process removals first (while edge objects still exist).
+  for(auto& spec : removed)
+  {
+    auto source_it = nodes.find(spec.first.node);
+    auto sink_it = nodes.find(spec.second.node);
+    if(source_it == nodes.end() || sink_it == nodes.end())
+      continue;
+    if(!source_it->second || !sink_it->second)
+      continue;
+
+    auto& source_ports = source_it->second->output;
+    auto& sink_ports = sink_it->second->input;
+    if(spec.first.port >= source_ports.size()
+       || spec.second.port >= sink_ports.size())
+      continue;
+
+    auto* source_port = source_ports[spec.first.port];
+    auto* sink_port = sink_ports[spec.second.port];
+
+    // Find the actual Edge object
+    score::gfx::Edge* edge = nullptr;
+    for(auto* e : source_port->edges)
+    {
+      if(e->sink == sink_port)
+      {
+        edge = e;
+        break;
+      }
+    }
+
+    if(edge)
+    {
+      // Notify graph BEFORE destroying the edge
+      m_graph->onEdgeRemoved(*edge, &preserveSinks);
+      m_graph->removeEdge(source_port, sink_port);
+    }
+  }
+
+  // Process additions: first create all edge objects in the graph,
+  // then reconcile render lists in one pass. Processing edges one
+  // at a time doesn't work because edge ordering creates dependencies
+  // (e.g. edge A->B is skipped because B isn't in the RL yet, then
+  // edge B->C brings B into the RL, but A never gets a renderer).
+  // Edges whose endpoint node is not present YET (its ADD_NODE command has
+  // not been dequeued when this edge diff runs — the two channels are
+  // independent). These must NOT be treated as applied: updateGraph already
+  // committed cur_edges to the authoritative `edges` baseline, so unless we
+  // roll them back the next diff sees old_edges == cur_edges for them and
+  // never re-emits them — the connection is lost forever until an unrelated
+  // full rebuild. We drop them from the baseline and re-raise edges_changed
+  // so the next tick (by which the node has been added) re-emits and wires
+  // them.
+  std::vector<EdgeSpec> deferred;
+  for(auto& spec : added)
+  {
+    auto source_it = nodes.find(spec.first.node);
+    auto sink_it = nodes.find(spec.second.node);
+    if(source_it == nodes.end() || sink_it == nodes.end())
+    {
+      deferred.push_back(spec);
+      continue;
+    }
+    if(!source_it->second || !sink_it->second)
+    {
+      deferred.push_back(spec);
+      continue;
+    }
+
+    auto& source_ports = source_it->second->output;
+    auto& sink_ports = sink_it->second->input;
+    if(spec.first.port >= source_ports.size()
+       || spec.second.port >= sink_ports.size())
+      continue;
+
+    auto* source_port = source_ports[spec.first.port];
+    auto* sink_port = sink_ports[spec.second.port];
+
+    m_graph->addEdge(source_port, sink_port, spec.type);
+  }
+
+  if(!deferred.empty())
+  {
+    std::lock_guard l{edges_lock};
+    for(const auto& spec : deferred)
+      edges.erase(spec);
+    // Force updateGraph to re-enter the edge-diff path next tick even if the
+    // producer does not republish new_edges; old_edges will then lack the
+    // deferred edges so set_difference re-emits them once their node exists.
+    edges_changed.store(true);
+  }
+
+  // Reconcile: ensure all reachable nodes have renderers and passes.
+  // This handles NEW nodes (creates renderers + passes for all their edges).
+  if(!added.empty() || !removed.empty())
+    m_graph->reconcileAllRenderLists();
+
+  // Create missing passes and update samplers for ALL edges in the graph,
+  // not just the newly-added ones. When a node becomes reachable through a
+  // new edge (e.g. filter→Grid makes filter reachable), pre-existing edges
+  // TO that node (e.g. A→filter) also need passes created. Checking only
+  // the diff misses these.
+  m_graph->createAllMissingPasses();
+  m_graph->updateAllSinkSamplers();
 }
 
 void GfxContext::update_inputs()
@@ -403,13 +592,17 @@ void GfxContext::update_inputs()
 void GfxContext::remove_node(
     std::vector<std::unique_ptr<score::gfx::Node>>& nursery, int32_t index)
 {
-  // Remove all edges involving that node
-  for(auto it = this->edges.begin(); it != this->edges.end();)
+  // Remove all edges involving that node. recompute_edges snapshots
+  // `edges` under edges_lock, so take it here too while mutating.
   {
-    if(it->first.node == index || it->second.node == index)
-      it = this->edges.erase(it);
-    else
-      ++it;
+    std::lock_guard l{edges_lock};
+    for(auto it = this->edges.begin(); it != this->edges.end();)
+    {
+      if(it->first.node == index || it->second.node == index)
+        it = this->edges.erase(it);
+      else
+        ++it;
+    }
   }
 
   if(auto node_it = nodes.find(index); node_it != nodes.end())
@@ -463,7 +656,11 @@ void GfxContext::run_commands()
         case NodeCommand::ADD_NODE: {
           m_graph->addNode(cmd.node.get());
           nodes[cmd.index] = {std::move(cmd.node)};
-          recompute = true;
+          // Only output nodes require a full rebuild (new window/timer).
+          // Non-output nodes just wait for edges — the incremental
+          // reconciliation path creates their renderers when connected.
+          if(dynamic_cast<score::gfx::OutputNode*>(nodes[cmd.index].get()))
+            recompute = true;
           break;
         }
         case NodeCommand::REMOVE_PREVIEW_NODE: {
@@ -471,13 +668,27 @@ void GfxContext::run_commands()
           auto n = dynamic_cast<score::gfx::OutputNode*>(node.get());
           SCORE_ASSERT(n);
           {
-            auto it = ossia::find_if(this->preview_edges, [idx = cmd.index](EdgeSpec e) {
-              return e.second.node == idx;
-            });
-            if(it != this->preview_edges.end())
+            // recompute_edges snapshots preview_edges under edges_lock,
+            // so guard reads/mutations of it here too. remove_edge only
+            // touches m_graph, so keep it outside the lock.
+            EdgeSpec to_remove;
+            bool found = false;
             {
-              this->remove_edge(*it);
-              this->preview_edges.erase(*it);
+              std::lock_guard l{edges_lock};
+              auto it = ossia::find_if(this->preview_edges, [idx = cmd.index](EdgeSpec e) {
+                return e.second.node == idx;
+              });
+              if(it != this->preview_edges.end())
+              {
+                to_remove = *it;
+                found = true;
+              }
+            }
+            if(found)
+            {
+              this->remove_edge(to_remove);
+              std::lock_guard l{edges_lock};
+              this->preview_edges.erase(to_remove);
             }
           }
           m_graph->destroyOutputRenderList(*n);
@@ -485,8 +696,27 @@ void GfxContext::run_commands()
           break;
         }
         case NodeCommand::REMOVE_NODE: {
-          remove_node(nursery, cmd.index);
-          recompute = true;
+          if(auto node_it = nodes.find(cmd.index); node_it != nodes.end())
+          {
+            bool is_output = dynamic_cast<score::gfx::OutputNode*>(node_it->second.get());
+            if(!is_output)
+            {
+              // Incremental removal: clean up edges, renderers, retopo sort.
+              // Must happen BEFORE remove_node deletes the node.
+              m_graph->removeNodeAndEdges(node_it->second.get());
+            }
+            remove_node(nursery, cmd.index);
+            if(is_output)
+            {
+              // Recompute immediately so subsequent commands in this tick
+              // see a consistent graph state. Deferring until the end of
+              // the loop leaves the graph half-broken (node gone from
+              // m_nodes but renderer/output still wired) for any further
+              // commands or render frames that fire in this window.
+              recompute_graph();
+              m_fullRebuildThisFrame = true;
+            }
+          }
           break;
         }
         case NodeCommand::RELINK: {
@@ -501,12 +731,18 @@ void GfxContext::run_commands()
       switch(cmd.cmd)
       {
         case EdgeCommand::CONNECT_PREVIEW_NODE: {
-          this->preview_edges.emplace(cmd.edge);
+          {
+            std::lock_guard l{edges_lock};
+            this->preview_edges.emplace(cmd.edge);
+          }
           add_edge(cmd.edge);
           break;
         }
         case EdgeCommand::DISCONNECT_PREVIEW_NODE: {
-          this->preview_edges.erase(cmd.edge);
+          {
+            std::lock_guard l{edges_lock};
+            this->preview_edges.erase(cmd.edge);
+          }
           remove_edge(cmd.edge);
           break;
         }
@@ -523,6 +759,11 @@ void GfxContext::run_commands()
   if(recompute)
   {
     recompute_graph();
+    // Signal to updateGraph() that a full rebuild happened this frame.
+    // The incremental edge path should NOT run after a full rebuild,
+    // because the graph was just rebuilt with the old edge set and
+    // applying an incremental diff would result in a half-built state.
+    m_fullRebuildThisFrame = true;
   }
 
   // This will force the nodes to be deleted in the main thread a bit later
@@ -541,14 +782,49 @@ void GfxContext::updateGraph()
 
   update_inputs();
 
-  if(edges_changed)
+  // Clear the flag BEFORE copying new_edges so a producer that publishes a
+  // fresh edge set after our copy (and re-sets the flag) cannot have its
+  // signal lost: the worst case is one redundant reprocess next tick, never
+  // a dropped update. Clearing it after the copy (the previous behaviour)
+  // could clobber a set-after-copy and, with prev_edges dedup on the
+  // producer side, that update would never be re-sent.
+  if(edges_changed.exchange(false))
   {
+    ossia::flat_set<EdgeSpec> old_edges;
+    ossia::flat_set<EdgeSpec> cur_edges;
     {
       std::lock_guard l{edges_lock};
-      std::swap(edges, new_edges);
+      old_edges = edges;
+      edges = new_edges;
+      cur_edges = edges;
     }
-    recompute_connections();
-    edges_changed = false;
+
+    // If a full rebuild happened this frame (nodes added/removed),
+    // use the nuclear path for edges too. The incremental path
+    // doesn't work correctly after a full rebuild because the graph
+    // was rebuilt with the old edge set.
+    if(m_fullRebuildThisFrame)
+    {
+      m_fullRebuildThisFrame = false;
+      recompute_connections();
+      return;
+    }
+    // Incremental edge update: apply the diff between old and new edges.
+    try
+    {
+      incrementalEdgeUpdate(old_edges, cur_edges);
+    }
+    catch(const std::exception& e)
+    {
+      qWarning("Incremental edge update failed (%s), falling back to full rebuild",
+               e.what());
+      recompute_connections();
+    }
+    catch(...)
+    {
+      qWarning("Incremental edge update failed, falling back to full rebuild");
+      recompute_connections();
+    }
   }
 }
 

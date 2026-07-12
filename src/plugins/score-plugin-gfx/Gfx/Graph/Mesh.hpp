@@ -27,16 +27,44 @@ struct BufferView
   Usage usage{Usage::Direct};
 #endif
 
+  // False for borrowed buffers — e.g., gpu_buffer handles the caller
+  // owns (scene preprocessor's MDI arena buffers, registry arena
+  // buffers). RenderList::release only `delete`s when owned=true; owners
+  // outside the RenderList's m_vertexBuffers destroy their own handles.
+  bool owned{true};
+
   inline operator bool() const noexcept { return handle; }
 };
 struct MeshBuffers
 {
   ossia::small_vector<BufferView, 2> buffers;
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
+  // --- Multi-draw indirect state ---
+  // Always tracked regardless of Qt version. At draw time the path is:
+  //   gpuIndirectSupported && indirectDrawBuffer → drawIndirect (GPU, Qt 6.12+)
+  //   !gpuIndirectSupported && cpuDrawCommands   → per-command drawIndexed loop
+  //   neither                                    → single drawIndexed
   QRhiBuffer* indirectDrawBuffer{};
   bool useIndirectDraw{false};
   bool indirectDrawIndexed{false};
+  bool gpuIndirectSupported{false};  // set from RenderState::caps at init
+  quint32 indirectDrawOffset{0};
+  quint32 indirectDrawCount{1};
+  quint32 indirectDrawStride{0};
+
+  // CPU-side draw commands. Populated either:
+  //   a) directly by the producer (ScenePreprocessor has CPU data), or
+  //   b) via GPU readback when the indirect buffer is GPU-generated (CSF)
+  //      and gpuIndirectSupported is false.
+  ossia::small_vector<ossia::geometry::draw_command, 0> cpuDrawCommands;
+
+  // Readback result storage for the synchronous GPU→CPU fallback in
+  // RenderedRawRasterPipelineNode::runInitialPasses.
+  // Qt < 6.6 has a separate type for buffer readbacks.
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+  QRhiReadbackResult readbackResult;
+#else
+  QRhiBufferReadbackResult readbackResult;
 #endif
 };
 /**
@@ -221,5 +249,20 @@ struct SCORE_PLUGIN_GFX_EXPORT TexturedQuad final : TexturedMesh
   void
   setupBindings(const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexcept override;
 };
+
+/**
+ * @brief Draw a mesh, using indirect multi-draw when available in MeshBuffers.
+ *
+ * When `bufs.useIndirectDraw` is true (and Qt >= 6.12), dispatches to
+ * `cb.drawIndexedIndirect` / `cb.drawIndirect` with the offset/count/stride
+ * stored in `bufs`. Otherwise falls back to the mesh's standard `draw()`.
+ *
+ * This is the main draw entry point for ISF / RawRaster / Scene renderers so
+ * that they can transparently support multi-draw indirect just by wiring an
+ * indirect buffer into MeshBuffers.
+ */
+SCORE_PLUGIN_GFX_EXPORT
+void drawMeshWithOptionalIndirect(
+    const Mesh& mesh, const MeshBuffers& bufs, QRhiCommandBuffer& cb) noexcept;
 
 }

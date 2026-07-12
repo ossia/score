@@ -3,11 +3,10 @@
 #include <Gfx/Graph/ImageNode.hpp>
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Graph/ShaderCache.hpp>
-#include <Gfx/Graph/Window.hpp>
 #include <Gfx/ShaderProgram.hpp>
 
-#include <QWidget>
 #include <QHBoxLayout>
+#include <QWidget>
 namespace score::gfx
 {
 class ISFNode;
@@ -18,6 +17,7 @@ struct Preset;
 }
 namespace Gfx
 {
+class RhiPreviewWidget;
 class ShaderPreviewManager;
 class ShaderPreviewWidget : public QWidget
 {
@@ -30,7 +30,7 @@ private:
   void setup();
   void timerEvent(QTimerEvent* event) override;
 
-  std::shared_ptr<QWindow> m_window;
+  RhiPreviewWidget* m_rhi{};
 };
 
 }

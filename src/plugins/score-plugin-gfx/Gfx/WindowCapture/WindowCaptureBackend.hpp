@@ -35,8 +35,10 @@ struct CapturedFrame
   // GPU path: D3D11 ID3D11Texture2D*, or IOSurfaceRef
   void* nativeHandle{};
 
-  // PipeWire DMA-BUF path
+  // PipeWire DMA-BUF path. When ownsDmabufFd is set, dmabufFd is a dup
+  // handed to the consumer, which must close it after import.
   int dmabufFd{-1};
+  bool ownsDmabufFd{false};
   uint32_t drmFormat{};
   uint64_t drmModifier{};
   int dmabufStride{};
