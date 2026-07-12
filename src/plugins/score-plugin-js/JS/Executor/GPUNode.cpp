@@ -32,8 +32,10 @@
 #include <private/qquickrendercontrol_p.h>
 #include <private/qquickwindow_p.h>
 #include <private/qsgcontext_p.h>
+#include <private/qsgdefaultrendercontext_p.h>
 
 #include <compare>
+#include <set>
 namespace JS
 {
 struct engine_key
@@ -86,6 +88,14 @@ public:
     JS::Script* m_object{};
     QPointer<QQuickItem> m_item{};
 
+    // Qt Quick runtime. Created in GpuRenderer::initState(), destroyed
+    // when the Engine itself is destroyed (GpuRenderer::release() drops
+    // the map entry and the renderer's own shared_ptr, bringing refcount
+    // to zero). Destruction runs while the owning QRhi is still alive —
+    // see the note in GpuRenderer::release() for why this matters.
+    QQuickRenderControl* m_quickRenderControl{};
+    QQuickWindow* m_quickWindow{};
+
     std::vector<Inlet*> m_jsInlets;
     std::vector<std::pair<ControlInlet*, int>> m_ctrlInlets;
     std::vector<std::pair<Impulse*, int>> m_impulseInlets;
@@ -94,13 +104,17 @@ public:
 
     ossia::spsc_queue<js_message_type> ui_messages;
 
-    void init(GpuRenderer& renderer, GpuNode& node, QQuickWindow* window);
+    void init(
+        GpuRenderer& renderer, GpuNode& node, QQuickWindow* window,
+        score::gfx::RenderList& rl);
 
-    void createItem(GpuRenderer& renderer, GpuNode& node);
+    void createItem(
+        GpuRenderer& renderer, GpuNode& node, score::gfx::RenderList& rl);
 
     void updateItemTextureOut(QQuickWindow* window);
 
-    void setupComponent(GpuRenderer& renderer, GpuNode& node);
+    void setupComponent(
+        GpuRenderer& renderer, GpuNode& node, score::gfx::RenderList& rl);
 
     void releaseItem();
 
@@ -146,20 +160,21 @@ public:
   std::pair<const engine_key, std::shared_ptr<Engine>> acquireEngine(QRhi* rhi)
   {
     const auto key = engine_key{std::this_thread::get_id(), rhi};
-    // FIXME find if there's a more atomic way to implement this with insert_or_visit,
-    // without calling init() inside the map's lock.
     std::shared_ptr<Engine> res;
-    m_engines.visit(key, [&](const auto& engine) { res = engine.second; });
-
-    if(!res)
-    {
-      res = std::make_shared<Engine>();
-      m_engines.insert({key, res});
-    }
+    m_engines.try_emplace_and_visit(
+        key,
+        std::make_shared<Engine>(),
+        [&](auto& slot) { res = slot.second; },   // newly-inserted visitor
+        [&](auto& slot) { res = slot.second; });  // existing-key visitor
     return {key, res};
   }
 
-  void releaseEngine(QRhi* rhi) { m_engines.erase({std::this_thread::get_id(), rhi}); }
+  // Release by the key stored at acquire time, NOT by the current thread id.
+  // If releaseState() ever runs on a different thread than initState()'s
+  // insert (e.g. under SCORE_THREADED_GFX), erasing by the current-thread
+  // key would leave the stale Engine (with m_quickWindow set) mapped, and
+  // the next acquire would return it and trip the SCORE_ASSERT in initState().
+  void releaseEngine(const engine_key& key) { m_engines.erase(key); }
 
   boost::concurrent_flat_map<engine_key, std::shared_ptr<Engine>, engine_key_hash>
       m_engines;
@@ -243,19 +258,38 @@ void main ()
 
   std::vector<score::gfx::Sampler> m_inputSamplers;
 
-  void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  // All setup lives in initState() rather than init(): the incremental
+  // graph-edit path calls initState() directly on newly spawned renderers.
+  // Mirrors RenderedISFNode's split, with the inherited
+  // GenericNodeRenderer::init() calling initState() then addOutputPass() per
+  // output edge.
+  //
+  // updateInputTexture is deliberately a no-op. GpuRenderer's m_samplers is a
+  // private single-entry vector holding the internal "y_tex" sampler pointing at
+  // m_internalTex, the texture Qt Quick renders into. The eight visible texture
+  // inlets are routed through m_engine->m_texInlets and the per-frame
+  // res.copyTexture in update(), and must not drive m_samplers: the base
+  // implementation indexes m_samplers by image-input position, so a sink-sampler
+  // update for input[0] would rebind y_tex away from m_internalTex.
+  void updateInputTexture(
+      const score::gfx::Port& input, QRhiTexture* tex,
+      QRhiTexture* depthTex = nullptr) override
+  {
+  }
+
+  void initState(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
     auto& rhi = *renderer.state.rhi;
-
     // Init the texture on which we are going to render
     // FIXME RGBA32F
     m_internalTex = score::gfx::createRenderTarget(
         renderer.state, QRhiTexture::RGBA8, renderer.state.renderSize,
         renderer.state.samples, true);
 
-    // Init basic rendering ubos
-    const auto& mesh = renderer.defaultQuad();
-    defaultMeshInit(renderer, mesh, res);
+    // Use the quad mesh (GenericNodeRenderer::initState would default to
+    // triangle). The inherited addOutputPass uses m_mesh to build pipelines.
+    m_mesh = &renderer.defaultQuad();
+    defaultMeshInit(renderer, *m_mesh, res);
     processUBOInit(renderer);
     std::tie(m_vertexS, m_fragmentS)
         = score::gfx::makeShaders(renderer.state, vertex_shader, fragment_shader);
@@ -275,82 +309,93 @@ void main ()
       m_samplers.push_back({sampler, m_internalTex.texture});
     }
 
-    defaultPassesInit(renderer, mesh);
+    // Acquire the Engine. release() drops the map entry and our own
+    // ref, so we always get a fresh Engine here — tying the Qt Quick
+    // runtime lifetime strictly to (initState, release) lets us free
+    // all QRhi-owned buffers before the RHI itself is destroyed in
+    // Graph::~Graph.
+    auto [key, engine] = node.acquireEngine(&rhi);
+    m_engineKey = key;
+    m_engine = engine;
+    if(!m_engine)
+    {
+      m_initialized = true;
+      return;
+    }
 
-    // Init the QQuick render stuff
-    m_renderControl = new QQuickRenderControl{};
-    m_window = new QQuickWindow{m_renderControl};
+    SCORE_ASSERT(!m_engine->m_quickWindow);
+    m_engine->m_quickRenderControl = new QQuickRenderControl{};
+    m_engine->m_quickWindow = new QQuickWindow{m_engine->m_quickRenderControl};
 
 #if QT_HAS_VULKAN
     if(renderer.state.api == score::gfx::GraphicsApi::Vulkan)
-    {
-      m_window->setVulkanInstance(score::gfx::staticVulkanInstance());
-    }
+      m_engine->m_quickWindow->setVulkanInstance(
+          score::gfx::staticVulkanInstance());
 #endif
 
     if(auto win = renderer.state.window.lock())
     {
       QObject::connect(
-          win.get(), &score::gfx::Window::interactiveEvent, m_window,
-          [qqw = QPointer{m_window}](QEvent* e) {
+          win.get(), &score::gfx::Window::interactiveEvent,
+          m_engine->m_quickWindow,
+          [qqw = QPointer{m_engine->m_quickWindow}](QEvent* e) {
         if(auto q = qqw.get())
           QCoreApplication::sendEvent(q, e);
       }, Qt::DirectConnection);
     }
-    m_window->setGraphicsDevice(QQuickGraphicsDevice::fromRhi(&rhi));
+    m_engine->m_quickWindow->setGraphicsDevice(
+        QQuickGraphicsDevice::fromRhi(&rhi));
+    m_engine->m_quickWindow->setColor(Qt::transparent);
+    m_engine->m_quickRenderControl->initialize();
+    // Mark the window as "visible" so QQuickItem::grabToImage() works.
+    // The window is driven by QQuickRenderControl (no native OS
+    // window) — this only sets the internal flag.
+    QQuickWindowPrivate::get(m_engine->m_quickWindow)->visible = true;
 
+    m_window = m_engine->m_quickWindow;
+    m_renderControl = m_engine->m_quickRenderControl;
+
+    // Size and render target are per-RenderList and must be refreshed
+    // on every initState() (resize changes the RT dimensions).
     const auto sz = renderer.state.renderSize;
     m_window->setWidth(sz.width());
     m_window->setHeight(sz.height());
     m_window->contentItem()->setWidth(sz.width());
-    m_window->contentItem()->setWidth(sz.height());
-    m_window->setColor(Qt::transparent);
-
-    m_renderControl->initialize();
+    m_window->contentItem()->setHeight(sz.height());
     m_window->setRenderTarget(
         QQuickRenderTarget::fromRhiRenderTarget(m_internalTex.renderTarget));
 
-    // Mark the window as "visible" so that QQuickItem::grabToImage() works.
-    // The window is managed by QQuickRenderControl (no native OS window),
-    // so this only sets the internal flag without creating a real window.
-    QQuickWindowPrivate::get(m_window)->visible = true;
+    m_engine->init(*this, node, m_window, renderer);
+    // Tolerant of script/port mismatches (live-edited QML may not line up
+    // with the node's declared ports): skip bad inlets instead of aborting.
+    // Mirrors Engine::setupComponent's guards.
+    for(auto& [texture_in, i] : this->m_engine->m_texInlets)
+    {
+      if(i >= (int)this->node.input.size())
+        continue;
+      score::gfx::Port* port = this->node.input[i];
+      if(!port || port->type != score::gfx::Types::Image)
+        continue;
+      auto rt = renderer.renderTargetForInputPort(*port);
+      auto item = qobject_cast<JS::TextureInletItem*>(texture_in->item());
+      if(item && rt.texture)
+        item->setSize(rt.texture->pixelSize());
+    }
+    sourceIndex.store(node.sourceIndex.load());
+    m_initialized = true;
   }
 
   void reloadEngine(score::gfx::RenderList& renderer)
   {
-    auto* rhi = renderer.state.rhi;
-    auto oldSourceIndex = this->sourceIndex.exchange(this->node.sourceIndex);
-    //= std::exchange(this->sourceIndex, this->node.sourceIndex.load());
-    // yes technically there is the overflow case but it's 2^64 editions away...
-    if(oldSourceIndex < this->node.sourceIndex)
-    {
-      if(m_engine)
-      {
-        m_engine->releaseItem();
-      }
+    // Guard: initState() bails out early if Engine acquisition failed,
+    // leaving m_window/m_renderControl/m_engine null. update() can still
+    // be invoked in that degraded state — short-circuit here.
+    if(!m_window || !m_renderControl || !m_engine)
+      return;
 
-      node.releaseEngine(rhi);
-      m_engine.reset();
-      auto [key, engine] = node.acquireEngine(rhi);
-      m_tid = key.id;
-      m_engine = engine;
-      if(m_engine)
-      {
-        m_engine->init(*this, node, m_window);
-
-        for(auto& [texture_in, i] : this->m_engine->m_texInlets)
-        {
-          SCORE_ASSERT(this->node.input.size() > i);
-          score::gfx::Port* port = this->node.input[i];
-          SCORE_ASSERT(port->type == score::gfx::Types::Image);
-          auto rt = renderer.renderTargetForInputPort(*port);
-          auto item = qobject_cast<JS::TextureInletItem*>(texture_in->item());
-          SCORE_ASSERT(item);
-          if(rt.texture)
-            item->setSize(rt.texture->pixelSize());
-        }
-      }
-    }
+    // GpuNode::sourceIndex is fixed at 1 and never incremented, so the
+    // GpuRenderer::sourceIndex seeded in initState() always equals it. A live
+    // script change goes through a full releaseState()/initState() cycle.
   }
 
   void update(
@@ -360,30 +405,60 @@ void main ()
     reloadEngine(renderer);
     defaultUBOUpdate(renderer, res);
 
-    // Schedule a copy of the input textures into the actual textures
+    if(!m_engine)
+      return;
+
+    // Schedule a copy of the input textures into the actual textures.
+    // Tolerant of script/port mismatches (live-edited QML): skip bad inlets
+    // instead of asserting. Mirrors Engine::setupComponent's guards.
     {
       for(auto& [texture_in, i] : this->m_engine->m_texInlets)
       {
-        SCORE_ASSERT(this->node.input.size() > i);
+        if(i >= (int)this->node.input.size())
+          continue;
         score::gfx::Port* port = this->node.input[i];
-        SCORE_ASSERT(port->type == score::gfx::Types::Image);
+        if(!port || port->type != score::gfx::Types::Image)
+          continue;
         auto rt = renderer.renderTargetForInputPort(*port);
         auto item = qobject_cast<JS::TextureInletItem*>(texture_in->item());
-        SCORE_ASSERT(item);
+        if(!item)
+          continue;
         auto itemRenderer = item->renderer;
         auto texture = item->texture;
         if(itemRenderer && texture && rt.texture)
         {
-          if(rt.texture->pixelSize() == texture->pixelSize()
-             && rt.texture->sampleCount() == texture->sampleCount())
+          const bool sameSize = rt.texture->pixelSize() == texture->pixelSize();
+          const bool sameSamples
+              = rt.texture->sampleCount() == texture->sampleCount();
+          if(sameSize && sameSamples)
           {
             QRhiTextureCopyDescription desc;
             res.copyTexture(texture, rt.texture, desc);
           }
+          else if(!sameSize)
+          {
+            // The upstream RT changed dimensions since the last initState().
+            // Resize the inlet item so Qt Quick rebuilds its QSGRhiLayer at
+            // the new size; this frame's copy is intentionally skipped
+            // (src/dst pair is mismatched) and the next update() will copy
+            // correctly once the layer texture is recreated.
+            item->setSize(rt.texture->pixelSize());
+          }
           else
           {
-            qDebug() << "Mismatch!!!" << rt.texture->pixelSize() << texture->pixelSize()
-                     << rt.texture->sampleCount() << texture->sampleCount();
+            // Size matches but sample count differs, e.g. the inlet item's QSGRhiLayer is
+            // single-sampled while the upstream RT is MSAA. QRhi::copyTexture requires
+            // matching sample counts and setSize() is a no-op here, and the layer cannot be
+            // recreated at a different sample count from outside Qt Quick, so skip the copy
+            // -- the inlet keeps its last content -- and warn once per item.
+            if(m_warnedSampleMismatch.insert(item).second)
+            {
+              qWarning() << "JS::GPUNode: texture inlet" << i
+                         << "sample-count mismatch (upstream"
+                         << rt.texture->sampleCount() << "vs inlet"
+                         << texture->sampleCount()
+                         << ") - copy skipped, inlet may appear stale/black";
+            }
           }
         }
       }
@@ -406,6 +481,8 @@ void main ()
       score::gfx::RenderList& renderer, QRhiCommandBuffer& cb,
       QRhiResourceUpdateBatch*& res, score::gfx::Edge& e) override
   {
+    if(!m_window || !m_renderControl || !m_engine)
+      return;
     // Here we run the Qt Quick render loop which handles its own pass
     if(auto sz = m_window->size(); sz != m_window->contentItem()->size())
     {
@@ -429,7 +506,6 @@ void main ()
           item->update();
       }
     }
-
     // 2. Render
     m_window->beforeRendering();
 
@@ -439,7 +515,6 @@ void main ()
 
     cd->deliveryAgentPrivate()->flushFrameSynchronousEvents(m_window);
     cd->polishItems();
-
     m_window->afterRendering();
     m_window->afterAnimating();
 
@@ -454,20 +529,44 @@ void main ()
 
     cd->syncSceneGraph();
     rc->rc->endSync();
-
     // render:
     cd->renderSceneGraph();
-
     // endFrame:
     m_window->afterFrameEnd();
 
+    // Disassociate our transient cb — Qt's own qsgrhisupport pairs
+    // setCustomCommandBuffer(cb) with setCustomCommandBuffer(nullptr)
+    // to avoid leaving a dangling pointer past the frame.
+    cd->setCustomCommandBuffer(nullptr);
+    // Symmetric reset of QQuickRenderControlPrivate::cb, which was bound above to
+    // a stack reference parameter that goes out of scope when the frame returns.
+    rc->cb = nullptr;
+
+    // Force-drain Qt Quick's glyph-cache resource-update batch. The batch is
+    // lazily allocated in preprocess() and normally released when a glyph node
+    // renders and commits it; a QML scene with no glyph node populates the cache
+    // but never commits, pinning one slot of the 64-slot QRhi pool per render
+    // context. Each window resize spawns a fresh QQuickRenderControl and context.
+    // Merge any pending uploads into the outer batch so they still land, then reset
+    // the context's pointer to return the slot.
+    if(auto* rcp = QQuickRenderControlPrivate::get(m_renderControl))
+    {
+      if(auto* defRc = qobject_cast<QSGDefaultRenderContext*>(rcp->rc))
+      {
+        if(auto* pending = defRc->maybeGlyphCacheResourceUpdates())
+        {
+          if(res)
+            res->merge(pending);
+          defRc->resetGlyphCacheResources();
+        }
+      }
+    }
     if(m_engine && m_engine->m_engine)
     {
       m_engine->m_engine->collectGarbage();
     }
-
-    QEvent* updateRequest = new QEvent(QEvent::UpdateRequest);
-    QCoreApplication::postEvent(m_window, updateRequest);
+    // No UpdateRequest post needed: runInitialPasses drives sync/render
+    // directly via polishItems/syncSceneGraph/renderSceneGraph each frame.
   }
 
   void runRenderPass(
@@ -476,16 +575,12 @@ void main ()
   {
     const auto& mesh = renderer.defaultQuad();
     defaultRenderPass(renderer, mesh, cb, edge);
-    m_window->frameSwapped();
+    if(m_window)
+      m_window->frameSwapped();
   }
 
-  void release(score::gfx::RenderList& r) override
+  void releaseState(score::gfx::RenderList& r) override
   {
-    if(m_engine)
-    {
-      m_engine->releaseItem();
-    }
-
     for(auto sampler : m_inputSamplers)
     {
       delete sampler.sampler;
@@ -493,16 +588,27 @@ void main ()
     }
     m_inputSamplers.clear();
 
-    if(m_window)
+    // Tear the Engine down here: this is the last hook while the QRhi is still
+    // alive. Graph::~Graph calls RenderList::release() before out->destroyOutput()
+    // kills the RHI, and the GpuRenderer destructor runs after that, so any
+    // QRhi-owned buffers still held by the QQuickRenderControl / QQuickWindow would
+    // leak.
+    //
+    // In releaseState() rather than release(), because
+    // Graph::reconcileAllRenderLists calls releaseState() on renderers orphaned by
+    // a live graph edit and never release(); otherwise the next reconnection's
+    // acquireEngine would return a stale entry with m_quickWindow already set.
+    //
+    // Known tradeoff: this discards the whole QML runtime -- the QQmlEngine, the
+    // Script object and all script-side state. releaseState()/initState() run on
+    // every output resize, so a mid-performance resize restarts the user's script.
+    // Only the declared model state, replayed via Script.loadState(), survives.
+    m_window = nullptr;
+    m_renderControl = nullptr;
+    if(m_engine)
     {
-      m_window->deleteLater();
-      m_window = nullptr;
-    }
-
-    if(m_renderControl)
-    {
-      m_renderControl->deleteLater();
-      m_renderControl = nullptr;
+      m_engine.reset();
+      node.releaseEngine(m_engineKey);
     }
 
     m_internalTex.release();
@@ -510,14 +616,22 @@ void main ()
     defaultRelease(r);
   }
 
+  void release(score::gfx::RenderList& r) override { releaseState(r); }
+
   score::gfx::TextureRenderTarget m_internalTex;
 
   QQuickRenderControl* m_renderControl{};
   QQuickWindow* m_window{};
 
   ossia::spsc_queue<score::gfx::Message> m_messages;
-  std::thread::id m_tid;
+  // Key under which our Engine was inserted in node.m_engines at acquire
+  // time. We release by this stored key (see GpuNode::releaseEngine).
+  JS::engine_key m_engineKey{};
   std::shared_ptr<GpuNode::Engine> m_engine;
+
+  // Texture inlet items for which a sample-count mismatch has already been
+  // reported, to rate-limit the warning to once per item (see update()).
+  std::set<const void*> m_warnedSampleMismatch;
 
   friend struct GpuNode;
 };
@@ -576,8 +690,9 @@ GpuNode::GpuNode(
     }
   }
 }
-GpuNode::~GpuNode() { }
-
+GpuNode::~GpuNode()
+{
+}
 
 void GpuNode::Engine::tick()
 {
@@ -653,21 +768,49 @@ GpuNode::Engine::~Engine()
   m_context = nullptr;
 
   m_engine = nullptr; // Not owned here!
+
+  // Destroy the persistent Qt Quick runtime synchronously. Order matches
+  // Qt's own QQuickWidget: QQuickRenderControl first (its destructor
+  // calls invalidate() and deletes the QSGRenderContext), then the
+  // QQuickWindow.
+  delete m_quickRenderControl;
+  m_quickRenderControl = nullptr;
+  delete m_quickWindow;
+  m_quickWindow = nullptr;
 }
 
 void GpuNode::Engine::releaseItem()
 {
-  qDebug(Q_FUNC_INFO);
   if(m_item)
   {
+    // LOAD-BEARING: both detach calls must precede deleteLater(). The caller
+    // follows this with init(), whose QML bindings and child-walkers must not
+    // observe the dying item. setParentItem(nullptr) removes it from
+    // contentItem->childItems() synchronously and setParent(nullptr) severs the
+    // QObject ownership chain; deleteLater() alone would briefly expose two items
+    // under contentItem to the new createItem().
     m_item->setParent(nullptr);
     m_item->setParentItem(nullptr);
     m_item->deleteLater();
     m_item = nullptr;
   }
+  // A script reload destroys the whole QML tree. Clear the script-
+  // associated state here so Engine::init()'s `if(!m_item)` rebuild
+  // path can recreate everything cleanly without leaking the old
+  // component/object or appending to the inlet vectors.
+  delete m_object;
+  m_object = nullptr;
+  delete m_component;
+  m_component = nullptr;
+  m_jsInlets.clear();
+  m_ctrlInlets.clear();
+  m_impulseInlets.clear();
+  m_valInlets.clear();
+  m_texInlets.clear();
 }
 
-void GpuNode::Engine::setupComponent(GpuRenderer& renderer, GpuNode& node)
+void GpuNode::Engine::setupComponent(
+    GpuRenderer& renderer, GpuNode& node, score::gfx::RenderList& rl)
 {
   // FIXME refactor with CPUNode
   // FIXME only works because same thread right now.
@@ -685,18 +828,13 @@ void GpuNode::Engine::setupComponent(GpuRenderer& renderer, GpuNode& node)
     }, Qt::QueuedConnection);
   }, Qt::DirectConnection);
 
-  if(const auto& on_load = m_object->loadState(); on_load.isCallable())
-  {
-    QVariantMap vm;
-    for(auto& [k, v]: node.m_modelState) {
-      if(auto res = v.apply(ossia::qt::ossia_to_qvariant{}); res.isValid())
-        vm[k] = std::move(res);
-    }
-    on_load.call({m_engine->toScriptValue(vm)});
-  }
-
+  // (1) Enumerate QML children into the typed inlet vectors FIRST. loadState()
+  //     below fires reactive bindings like `ShaderEffectSource.sourceItem =
+  //     root.inletItems[src]`; those need each inlet item to already be at its
+  //     final pixel size so QQuickShaderEffectSource::updatePaintNode
+  //     (qquickshadereffectsource.cpp:657-664) does not take the "source item
+  //     is 0x0, delete paint node, return nullptr" branch on the first sync.
   int input_i = 0;
-
   for(auto n : m_object->children())
   {
     if(auto imp_in = qobject_cast<Impulse*>(n))
@@ -725,6 +863,41 @@ void GpuNode::Engine::setupComponent(GpuRenderer& renderer, GpuNode& node)
       input_i++;
     }
   }
+
+  // (2) Size each texture-inlet item to its upstream RT's pixel size before
+  //     loadState runs. QML's Component.onCompleted has already bound each
+  //     inlet item's width/height to inletContainer's, which is 0x0 at this
+  //     point because outputRoot has not been reparented to contentItem yet.
+  //     Setting the size explicitly breaks that binding and pins the item to
+  //     the RT pixel size, which is what the copyTexture in GpuRenderer::update
+  //     requires: it skips on any pixelSize mismatch.
+  for(auto& [texture_in, i] : m_texInlets)
+  {
+    if(i >= (int)node.input.size())
+      continue;
+    score::gfx::Port* port = node.input[i];
+    if(!port || port->type != score::gfx::Types::Image)
+      continue;
+    auto rt = rl.renderTargetForInputPort(*port);
+    auto* item = qobject_cast<JS::TextureInletItem*>(texture_in->item());
+    if(item && rt.texture)
+      item->setSize(rt.texture->pixelSize());
+  }
+
+  // (3) Now run loadState. Every ShaderEffectSource that resolves its
+  //     sourceItem to an inletItem during the stateVersion++ re-binding pass
+  //     will see a non-zero-sized source item and the first scene-graph sync
+  //     will create its QSGRhiLayer (qsgrhilayer.cpp:248-254 "!m_item ||
+  //     m_pixelSize.isEmpty()" branch is avoided).
+  if(const auto& on_load = m_object->loadState(); on_load.isCallable())
+  {
+    QVariantMap vm;
+    for(auto& [k, v]: node.m_modelState) {
+      if(auto res = v.apply(ossia::qt::ossia_to_qvariant{}); res.isValid())
+        vm[k] = std::move(res);
+    }
+    on_load.call({m_engine->toScriptValue(vm)});
+  }
 }
 
 void GpuNode::Engine::updateItemTextureOut(QQuickWindow* window)
@@ -744,14 +917,15 @@ void GpuNode::Engine::updateItemTextureOut(QQuickWindow* window)
   }
 }
 
-void GpuNode::Engine::createItem(GpuRenderer& renderer, GpuNode& node)
+void GpuNode::Engine::createItem(
+    GpuRenderer& renderer, GpuNode& node, score::gfx::RenderList& rl)
 {
   m_component = new QQmlComponent{this->m_engine.get()};
 
   m_component->setData(node.source.toUtf8(), QUrl::fromLocalFile(node.m_root));
   if(m_component->isError())
   {
-    qDebug() << m_component->errorString();
+    qWarning() << m_component->errorString();
     return;
   }
 
@@ -763,10 +937,12 @@ void GpuNode::Engine::createItem(GpuRenderer& renderer, GpuNode& node)
     return;
   }
 
-  setupComponent(renderer, node);
+  setupComponent(renderer, node, rl);
 }
 
-void GpuNode::Engine::init(GpuRenderer& renderer, GpuNode& node, QQuickWindow* window)
+void GpuNode::Engine::init(
+    GpuRenderer& renderer, GpuNode& node, QQuickWindow* window,
+    score::gfx::RenderList& rl)
 {
   if(!m_item)
   {
@@ -784,13 +960,13 @@ void GpuNode::Engine::init(GpuRenderer& renderer, GpuNode& node, QQuickWindow* w
     if(!m_context)
     {
       m_context = new QQmlContext{m_engine.get()};
-      m_execFuncs = new DeviceContext{*m_engine};
+      m_execFuncs = new DeviceContext{*m_engine, m_context};
       m_execFuncs->init();
 
       m_context->setContextProperty("Device", m_execFuncs);
       setupExecFuncs(this, &node, m_execFuncs->m_impl);
     }
-    createItem(renderer, node);
+    createItem(renderer, node, rl);
   }
 
   updateItemTextureOut(window);
@@ -854,62 +1030,45 @@ void gpu_exec_node::setScript(
   exec_context->ui->unregister_node(id);
   id = score::gfx::invalid_node_index;
 
-  //if(id < 0)
+  auto n = std::make_unique<JS::GpuNode>(
+      m_context, std::move(new_state), root, str, this->root_inputs(),
+      this->root_outputs());
+
   {
-    auto n = std::make_unique<JS::GpuNode>(
-        m_context, std::move(new_state), root, str, this->root_inputs(),
-        this->root_outputs());
+    auto& element = *m_context;
 
+    n->moveToThread(m_context->thread());
+    n->m_uiContext = m_context;
+    n->m_messageToUi = [ctx=m_context] (const QVariant& v){
+      OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
+      if(!ctx)
+        return;
+      ctx->executionToUi(v);
+    };
+
+    QObject::connect(
+        &element, &JS::ProcessModel::uiToExecution, n.get(), &JS::GpuNode::uiMessage);
+    QObject::connect(
+        &element, &JS::ProcessModel::stateElementChanged, n.get(),
+        &JS::GpuNode::stateElementChanged);
     {
-      auto& element = *m_context;
 
-      n->moveToThread(m_context->thread());
-      n->m_uiContext = m_context;
-      n->m_messageToUi = [ctx=m_context] (const QVariant& v){
-        OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
-        if(!ctx)
-          return;
-        ctx->executionToUi(v);
-      };
-
-      QObject::connect(
-          &element, &JS::ProcessModel::uiToExecution, n.get(), &JS::GpuNode::uiMessage);
-      QObject::connect(
-          &element, &JS::ProcessModel::stateElementChanged, n.get(),
-          &JS::GpuNode::stateElementChanged);
+      int i = 0;
+      for(auto& ctl : element.inlets())
       {
-
-        int i = 0;
-        for(auto& ctl : element.inlets())
+        if(auto ctrl = qobject_cast<Gfx::TextureInlet*>(ctl))
         {
-          if(auto ctrl = qobject_cast<Gfx::TextureInlet*>(ctl))
-          {
-            ossia::texture_inlet& inl
-                = static_cast<ossia::texture_inlet&>(*root_inputs()[i]);
-            n->process(i, inl.data); // Setup render_target_spec
-            // FIXME this should be done at a more general level, right now it's only done here
-            // and in avendish nodes
-          }
-          i++;
+          ossia::texture_inlet& inl
+              = static_cast<ossia::texture_inlet&>(*root_inputs()[i]);
+          n->process(i, inl.data); // Setup render_target_spec
+          // FIXME this should be done at a more general level, right now it's only done here
+          // and in avendish nodes
         }
+        i++;
       }
     }
-    id = exec_context->ui->register_node(std::move(n));
   }
-  /*
-  else
-  {
-    // FIXME need to update the ports if they changed on the host side!
-    auto msg = exec_context->allocateMessage(1);
-    msg.node_id = id;
-    msg.input.emplace_back(score::gfx::FunctionMessage{[str](score::gfx::Node& nn) {
-      auto& n = static_cast<GpuNode&>(nn);
-      n.source = str; // FIXME mutex
-      n.sourceIndex++;
-    }});
-    exec_context->ui->send_message(std::move(msg));
-  }
-*/
+  id = exec_context->ui->register_node(std::move(n));
 }
 }
 #endif
