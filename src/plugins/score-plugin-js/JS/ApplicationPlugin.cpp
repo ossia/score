@@ -20,6 +20,7 @@
 #include <QCommandLineParser>
 #include <QFile>
 #include <QFileInfo>
+#include <QString>
 
 #if __has_include(<QQuickWindow>)
 #include <QGuiApplication>
@@ -35,8 +36,11 @@
 
 namespace JS
 {
-// Whether --script was given a program or the path of one. An existing file is
-// always a path; anything with JS punctuation in it is a program.
+// Check whether the input is a script, or a file path.
+// An existing file always wins: a real path may legitimately contain
+// characters (parentheses, braces, ...) that also occur in inline source,
+// so the file-existence check must come FIRST. Only when the input is not
+// an existing file do we fall back to the inline-source heuristic.
 static bool stringIsScript(const QString& input)
 {
   if(input.isEmpty())
