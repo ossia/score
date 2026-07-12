@@ -10,8 +10,8 @@
  * and composes the already-generic pieces around it:
  *
  *   encoders  : makeWireEncoder(backend->wireFormat())
- *   GPU-direct: selectGpuDirectStrategy(cfg, backend->gpuDirectCandidates(...))
- *   host path : HostStagedOutput(backend->planes/registrar/customStage)
+ *   GPU-direct: selectVideoOutputStrategy(cfg, backend->gpuDirectCandidates(...))
+ *   host path : CpuStagedVideoOutput(backend->planes/registrar/customStage)
  *   pacing    : PacedFramePump(backend->pacingHooks())
  *
  * So a vendor playout addon shrinks to: open the device + set the video
@@ -23,8 +23,8 @@
  */
 
 #include <Gfx/Graph/RenderState.hpp> // GraphicsApi
-#include <Gfx/Graph/interop/GpuDirectStrategy.hpp>
-#include <Gfx/Graph/interop/HostStagedOutput.hpp> // HostStagedPlane
+#include <Gfx/Graph/interop/VideoOutputStrategy.hpp>
+#include <Gfx/Graph/interop/CpuStagedVideoOutput.hpp> // HostStagedPlane
 #include <Gfx/Graph/interop/PacedFramePump.hpp>
 #include <Gfx/Graph/interop/VendorDmaRegistrar.hpp>
 #include <Gfx/Graph/interop/VideoPixelFormat.hpp>
@@ -54,7 +54,7 @@ namespace score::gfx
 struct SCORE_PLUGIN_GFX_EXPORT DirectVideoOutputBackend
 {
   /// CPU-pack hook signature (v210 non-mod-6, 2SI->SQD, byte-swap), matching
-  /// HostStagedOutputConfig::customStage.
+  /// CpuStagedVideoOutputConfig::customStage.
   using CustomStage = std::function<bool(
       const std::uint8_t* src, int srcRowBytes, std::uint8_t* dst,
       int dstRowBytes, int rows)>;
@@ -98,7 +98,7 @@ struct SCORE_PLUGIN_GFX_EXPORT DirectVideoOutputBackend
   virtual QString colorConversion() const = 0;
 
   /// Total framestore byte size (accounts for stride padding) and the number of
-  /// visible rows to copy; plus the per-plane geometry for HostStagedOutput.
+  /// visible rows to copy; plus the per-plane geometry for CpuStagedVideoOutput.
   virtual std::uint32_t frameByteSize() const noexcept = 0;
   virtual int visibleRows() const noexcept = 0;
   virtual std::vector<interop::HostStagedPlane> planes() const = 0;
@@ -112,7 +112,7 @@ struct SCORE_PLUGIN_GFX_EXPORT DirectVideoOutputBackend
   virtual CustomStage customStage() { return {}; }
 
   /// Prefer a GPU-direct (DVP) download in the host-staged path: the node lets
-  /// HostStagedOutput DMA the encoder texture straight to a vendor-registered
+  /// CpuStagedVideoOutput DMA the encoder texture straight to a vendor-registered
   /// sysmem ring (skipping the QRhi readback) when a GPU-direct backend exists,
   /// falling back to CPU readback otherwise. Default false (AJA uses its own
   /// gpuDirectCandidates strategy instead). DeckLink opts in.
@@ -120,8 +120,8 @@ struct SCORE_PLUGIN_GFX_EXPORT DirectVideoOutputBackend
 
   /// GPU-direct output strategy candidates for the active graphics API, in
   /// priority order (DVP before tier-3 RDMA, etc). Empty => host-staged only.
-  /// The node feeds these to selectGpuDirectStrategy().
-  virtual std::vector<std::function<std::unique_ptr<interop::GpuDirectStrategy>()>>
+  /// The node feeds these to selectVideoOutputStrategy().
+  virtual std::vector<std::function<std::unique_ptr<interop::VideoOutputStrategy>()>>
   gpuDirectCandidates(QRhi* rhi, GraphicsApi api) = 0;
 
   /// Clock-paced submit hooks (wait on the output VBI / schedule-callback,

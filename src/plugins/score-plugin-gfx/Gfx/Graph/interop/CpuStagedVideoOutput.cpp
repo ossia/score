@@ -1,4 +1,4 @@
-#include <Gfx/Graph/interop/HostStagedOutput.hpp>
+#include <Gfx/Graph/interop/CpuStagedVideoOutput.hpp>
 
 #include <Gfx/Graph/encoders/GPUVideoEncoder.hpp>
 #include <Gfx/Graph/interop/GpuCapabilities.hpp>
@@ -33,9 +33,9 @@ static void copyWithStride(
   }
 }
 
-struct HostStagedOutput::Slot
+struct CpuStagedVideoOutput::Slot
 {
-  HostStagedOutputConfig cfg;
+  CpuStagedVideoOutputConfig cfg;
   std::unique_ptr<score::gfx::GPUVideoEncoder> enc[2];
   int encIdx{0};
 
@@ -53,14 +53,14 @@ struct HostStagedOutput::Slot
   int dvpRingIdx{0};
 };
 
-HostStagedOutput::HostStagedOutput() = default;
-HostStagedOutput::~HostStagedOutput()
+CpuStagedVideoOutput::CpuStagedVideoOutput() = default;
+CpuStagedVideoOutput::~CpuStagedVideoOutput()
 {
   release();
 }
 
-bool HostStagedOutput::init(
-    HostStagedOutputConfig cfg,
+bool CpuStagedVideoOutput::init(
+    CpuStagedVideoOutputConfig cfg,
     std::unique_ptr<score::gfx::GPUVideoEncoder> enc0,
     std::unique_ptr<score::gfx::GPUVideoEncoder> enc1)
 {
@@ -153,19 +153,19 @@ bool HostStagedOutput::init(
   return true;
 }
 
-bool HostStagedOutput::valid() const noexcept
+bool CpuStagedVideoOutput::valid() const noexcept
 {
   return m_state && m_state->enc[0] && m_state->enc[1];
 }
 
-void HostStagedOutput::encodeFrame(QRhiCommandBuffer& cb)
+void CpuStagedVideoOutput::encodeFrame(QRhiCommandBuffer& cb)
 {
   if(!m_state)
     return;
   m_state->enc[m_state->encIdx]->exec(*m_state->cfg.rhi, cb);
 }
 
-void* HostStagedOutput::prepareNextFrame()
+void* CpuStagedVideoOutput::prepareNextFrame()
 {
   if(!m_state)
     return nullptr;
@@ -257,7 +257,7 @@ void* HostStagedOutput::prepareNextFrame()
   return dst;
 }
 
-void HostStagedOutput::release()
+void CpuStagedVideoOutput::release()
 {
   if(!m_state)
     return;

@@ -3,9 +3,9 @@
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/RenderState.hpp>
 #include <Gfx/Graph/encoders/WireEncoderFactory.hpp>
-#include <Gfx/Graph/interop/GpuDirectStrategy.hpp>
-#include <Gfx/Graph/interop/GpuDirectStrategySelect.hpp>
-#include <Gfx/Graph/interop/HostStagedOutput.hpp>
+#include <Gfx/Graph/interop/VideoOutputStrategy.hpp>
+#include <Gfx/Graph/interop/VideoOutputStrategySelect.hpp>
+#include <Gfx/Graph/interop/CpuStagedVideoOutput.hpp>
 #include <Gfx/Graph/interop/PacedFramePump.hpp>
 #include <Gfx/InvertYRenderer.hpp>
 
@@ -138,7 +138,7 @@ void DirectVideoOutputNode::createOutput(OutputConfiguration conf)
 
   m_rhi = m_renderState->rhi;
 
-  // Probe GPU interop once (borrowed by HostStagedOutput's DVP ring below).
+  // Probe GPU interop once (borrowed by CpuStagedVideoOutput's DVP ring below).
   m_caps = interop::probeContextFree();
   interop::probeFromQRhi(m_caps, m_rhi);
 
@@ -173,14 +173,14 @@ void DirectVideoOutputNode::createOutput(OutputConfiguration conf)
   auto candidates = m_backend->gpuDirectCandidates(m_rhi, conf.graphicsApi);
   if(!candidates.empty())
   {
-    interop::GpuDirectStrategyConfig rcfg{
+    interop::VideoOutputStrategyConfig rcfg{
         .rhi = m_rhi,
         .state = m_renderState.get(),
         .sourceTexture = m_texture,
         .width = m_backend->width(),
         .height = m_backend->height(),
         .frameByteSize = m_backend->frameByteSize()};
-    m_rdma = interop::selectGpuDirectStrategy(
+    m_rdma = interop::selectVideoOutputStrategy(
         rcfg, std::move(candidates),
         [](const char* n) {
           qDebug().noquote() << QStringLiteral(
@@ -221,7 +221,7 @@ void DirectVideoOutputNode::createOutput(OutputConfiguration conf)
       *m_rhi, *m_renderState, m_texture, m_backend->width(), m_backend->height(),
       colorShader);
 
-  interop::HostStagedOutputConfig hcfg;
+  interop::CpuStagedVideoOutputConfig hcfg;
   hcfg.rhi = m_rhi;
   hcfg.state = m_renderState.get();
   hcfg.width = m_backend->width();
@@ -236,7 +236,7 @@ void DirectVideoOutputNode::createOutput(OutputConfiguration conf)
   hcfg.preferGpuDownload = m_backend->prefersGpuDownload();
   hcfg.caps = &m_caps;
 
-  m_hostStaged = std::make_unique<interop::HostStagedOutput>();
+  m_hostStaged = std::make_unique<interop::CpuStagedVideoOutput>();
   if(!m_hostStaged->init(std::move(hcfg), std::move(enc0), std::move(enc1)))
   {
     qWarning() << "DirectVideoOutput: host-staged output init failed";

@@ -1,5 +1,5 @@
 #pragma once
-#include <Gfx/Graph/interop/GpuDirectCaptureStrategy.hpp>
+#include <Gfx/Graph/interop/VideoCaptureStrategy.hpp>
 #include <nv_dvp_bridge.h>
 
 #include <QtGui/private/qrhid3d11_p.h>
@@ -22,7 +22,7 @@ namespace score::gfx::interop
  * page-lock policy + the @p dvpFormat. See DvpCaptureGl for the full model.
  */
 template <class Lock>
-struct DvpCaptureD3D11 : score::gfx::interop::GpuDirectCaptureStrategy
+struct DvpCaptureD3D11 : score::gfx::interop::VideoCaptureStrategy
 {
   DvpCaptureD3D11(Lock lock, NvDvpFormat dvpFormat, const char* name) noexcept
       : m_lock{lock}, m_dvpFormat{dvpFormat}, m_name{name} {}
@@ -31,7 +31,7 @@ struct DvpCaptureD3D11 : score::gfx::interop::GpuDirectCaptureStrategy
   NvDvpFormat m_dvpFormat{};
   const char* m_name{"DVP-D3D11"};
 
-  score::gfx::interop::GpuDirectCaptureStrategyConfig cfg{};
+  score::gfx::interop::VideoCaptureStrategyConfig cfg{};
 
   ID3D11Device* m_dev{};
 
@@ -55,7 +55,7 @@ struct DvpCaptureD3D11 : score::gfx::interop::GpuDirectCaptureStrategy
 
   const char* name() const noexcept override { return m_name; }
 
-  bool init(const score::gfx::interop::GpuDirectCaptureStrategyConfig& c) override
+  bool init(const score::gfx::interop::VideoCaptureStrategyConfig& c) override
   {
     cfg = c;
     if(!cfg.rhi || !m_lock.valid() || !cfg.outputTexture)

@@ -4,7 +4,7 @@
  * @file HostPinnedRing.hpp
  * @brief Vendor-neutral N-slot sysmem ring for tier-1/2/4 transfers.
  *
- * Counterpart to `GpuRingBuffer` (which holds tier-0 GPU-side buffers
+ * Counterpart to `ImportedGpuBufferRing` (which holds tier-0 GPU-side buffers
  * for true P2P). `HostPinnedRing` holds host-side page-locked buffers
  * that a video card's DMA engine writes into, and a per-backend
  * transfer primitive that moves slot contents to/from a QRhi texture.

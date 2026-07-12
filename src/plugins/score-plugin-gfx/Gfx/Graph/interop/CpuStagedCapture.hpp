@@ -25,7 +25,7 @@
  */
 
 #include <Gfx/Graph/interop/CaptureStrategyCommon.hpp>
-#include <Gfx/Graph/interop/GpuDirectCaptureStrategy.hpp>
+#include <Gfx/Graph/interop/VideoCaptureStrategy.hpp>
 
 #include <QtGui/private/qrhi_p.h>
 
@@ -59,7 +59,7 @@ struct CpuStagedNoLockPolicy
 };
 
 template <typename Policy>
-struct CpuStagedCapture final : GpuDirectCaptureStrategy
+struct CpuStagedCapture final : VideoCaptureStrategy
 {
   CpuStagedCapture() = default;
   /// Forward constructor args to the policy (e.g. AJA's card + pixel format).
@@ -70,7 +70,7 @@ struct CpuStagedCapture final : GpuDirectCaptureStrategy
   }
 
   Policy m_policy{};
-  GpuDirectCaptureStrategyConfig cfg{};
+  VideoCaptureStrategyConfig cfg{};
 
   static constexpr std::size_t kSlotCount = 3;
   std::array<std::vector<std::uint8_t>, kSlotCount> m_slots;
@@ -99,7 +99,7 @@ struct CpuStagedCapture final : GpuDirectCaptureStrategy
     }
   }
 
-  bool init(const GpuDirectCaptureStrategyConfig& c) override
+  bool init(const VideoCaptureStrategyConfig& c) override
   {
     cfg = c;
     if(!cfg.rhi || !cfg.outputTexture)

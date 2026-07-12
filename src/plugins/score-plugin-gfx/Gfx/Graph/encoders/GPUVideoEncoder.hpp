@@ -54,7 +54,7 @@ struct GPUVideoEncoder
   virtual const QRhiReadbackResult& readback(int plane) const = 0;
 
   /// The single output texture (RGBA8, format-dependent dimensions) for
-  /// single-plane encoders, so vendor-neutral code (HostStagedOutput's DVP
+  /// single-plane encoders, so vendor-neutral code (CpuStagedVideoOutput's DVP
   /// download) can copy it straight to sysmem instead of using readback().
   /// Default nullptr (multi-plane encoders) => callers must use readback().
   virtual QRhiTexture* outputTexture() const noexcept { return nullptr; }

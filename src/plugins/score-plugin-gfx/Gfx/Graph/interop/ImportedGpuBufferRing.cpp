@@ -1,4 +1,4 @@
-#include <Gfx/Graph/interop/GpuRingBuffer.hpp>
+#include <Gfx/Graph/interop/ImportedGpuBufferRing.hpp>
 
 #include <QDebug>
 
@@ -12,12 +12,12 @@
 namespace score::gfx::interop
 {
 
-GpuRingBuffer::~GpuRingBuffer()
+ImportedGpuBufferRing::~ImportedGpuBufferRing()
 {
   destroy();
 }
 
-bool GpuRingBuffer::create(const GpuRingBufferConfig& cfg)
+bool ImportedGpuBufferRing::create(const ImportedGpuBufferRingConfig& cfg)
 {
   if(!cfg.rhi || cfg.bufferSize == 0 || cfg.slotCount <= 0)
     return false;
@@ -49,7 +49,7 @@ bool GpuRingBuffer::create(const GpuRingBufferConfig& cfg)
       ok = createVulkanStub();
       break;
     default:
-      qWarning() << "GpuRingBuffer: unsupported QRhi backend"
+      qWarning() << "ImportedGpuBufferRing: unsupported QRhi backend"
                  << cfg.rhi->backend();
       break;
   }
@@ -59,7 +59,7 @@ bool GpuRingBuffer::create(const GpuRingBufferConfig& cfg)
   return ok;
 }
 
-void GpuRingBuffer::destroy()
+void ImportedGpuBufferRing::destroy()
 {
   // Release CUDA mappings BEFORE destroying the underlying QRhi buffers
   // so the bridge can deregister the native resource cleanly.
@@ -79,7 +79,7 @@ void GpuRingBuffer::destroy()
   m_writeIndex = 0;
 }
 
-std::size_t GpuRingBuffer::advance() noexcept
+std::size_t ImportedGpuBufferRing::advance() noexcept
 {
   if(m_slots.empty())
     return 0;
@@ -91,7 +91,7 @@ std::size_t GpuRingBuffer::advance() noexcept
 // D3D11 backend
 // =============================================================================
 
-bool GpuRingBuffer::createD3D11()
+bool ImportedGpuBufferRing::createD3D11()
 {
 #if defined(_WIN32)
   auto* native = static_cast<const QRhiD3D11NativeHandles*>(
@@ -128,7 +128,7 @@ bool GpuRingBuffer::createD3D11()
            != CUDA_P2P_SUCCESS
        || !slot.gpuDevicePtr)
     {
-      qWarning() << "GpuRingBuffer(D3D11): bridge import failed:"
+      qWarning() << "ImportedGpuBufferRing(D3D11): bridge import failed:"
                  << cuda_p2p_get_error_string(m_cfg.cudaCtx);
       return false;
     }
@@ -143,7 +143,7 @@ bool GpuRingBuffer::createD3D11()
 // OpenGL backend
 // =============================================================================
 
-bool GpuRingBuffer::createOpenGL()
+bool ImportedGpuBufferRing::createOpenGL()
 {
   auto* native = static_cast<const QRhiGles2NativeHandles*>(
       m_cfg.rhi->nativeHandles());
@@ -178,7 +178,7 @@ bool GpuRingBuffer::createOpenGL()
              != CUDA_P2P_SUCCESS
          || !slot.cudaHandle)
       {
-        qWarning() << "GpuRingBuffer(GL): bridge register failed:"
+        qWarning() << "ImportedGpuBufferRing(GL): bridge register failed:"
                    << cuda_p2p_get_error_string(m_cfg.cudaCtx);
         return false;
       }
@@ -190,7 +190,7 @@ bool GpuRingBuffer::createOpenGL()
             != CUDA_P2P_SUCCESS
         || !slot.gpuDevicePtr)
     {
-      qWarning() << "GpuRingBuffer(GL): bridge import failed:"
+      qWarning() << "ImportedGpuBufferRing(GL): bridge import failed:"
                  << cuda_p2p_get_error_string(m_cfg.cudaCtx);
       return false;
     }
@@ -202,7 +202,7 @@ bool GpuRingBuffer::createOpenGL()
 // Vulkan backend — blocked stub
 // =============================================================================
 
-bool GpuRingBuffer::createVulkanStub()
+bool ImportedGpuBufferRing::createVulkanStub()
 {
   // Vulkan "plain" mode: QRhi-owned storage buffers only, with the native
   // VkBuffer captured per slot. There is deliberately NO CUDA import here —
@@ -218,13 +218,13 @@ bool GpuRingBuffer::createVulkanStub()
         quint32(m_cfg.bufferSize));
     if(!slot.qrhiBuffer || !slot.qrhiBuffer->create())
     {
-      qWarning() << "GpuRingBuffer(Vulkan): storage buffer create failed";
+      qWarning() << "ImportedGpuBufferRing(Vulkan): storage buffer create failed";
       return false;
     }
     auto native = slot.qrhiBuffer->nativeBuffer();
     if(!native.objects[0])
     {
-      qWarning() << "GpuRingBuffer(Vulkan): nativeBuffer() unavailable";
+      qWarning() << "ImportedGpuBufferRing(Vulkan): nativeBuffer() unavailable";
       return false;
     }
     // QRhi NativeBuffer convention (Vulkan): objects[0] is a pointer TO the
@@ -233,7 +233,7 @@ bool GpuRingBuffer::createVulkanStub()
         = *static_cast<void* const*>(native.objects[0]);
     if(!slot.nativeVkBuffer)
     {
-      qWarning() << "GpuRingBuffer(Vulkan): null VkBuffer";
+      qWarning() << "ImportedGpuBufferRing(Vulkan): null VkBuffer";
       return false;
     }
   }
@@ -244,9 +244,9 @@ bool GpuRingBuffer::createVulkanStub()
 // D3D12 backend — blocked stub
 // =============================================================================
 
-bool GpuRingBuffer::createD3D12Stub()
+bool ImportedGpuBufferRing::createD3D12Stub()
 {
-  qDebug() << "GpuRingBuffer(D3D12): unsupported — QRhi D3D12 backend "
+  qDebug() << "ImportedGpuBufferRing(D3D12): unsupported — QRhi D3D12 backend "
               "lacks SHARED heap support and createFrom(NativeBuffer). "
               "Dead-on-arrival as long as AJA's Windows driver "
               "doesn't expose inRDMA either (so D3D12 tier-3 is moot "

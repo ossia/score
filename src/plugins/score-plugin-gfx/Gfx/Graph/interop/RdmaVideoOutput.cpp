@@ -1,4 +1,4 @@
-#include <Gfx/Graph/interop/GpuDirectOutput.hpp>
+#include <Gfx/Graph/interop/RdmaVideoOutput.hpp>
 
 #include <Gfx/Graph/interop/StageProfiler.hpp>
 
@@ -7,18 +7,18 @@
 namespace score::gfx::interop
 {
 
-GpuDirectOutput::~GpuDirectOutput()
+RdmaVideoOutput::~RdmaVideoOutput()
 {
   release();
 }
 
-bool GpuDirectOutput::init(const GpuDirectOutputConfig& cfg)
+bool RdmaVideoOutput::init(const RdmaVideoOutputConfig& cfg)
 {
   if(!cfg.rhi || !cfg.state || !cfg.sourceTexture || !cfg.encoderFactory
      || !cfg.registrar.registerSlot || !cfg.registrar.releaseSlot
      || cfg.frameByteSize == 0 || cfg.slotCount <= 0)
   {
-    qWarning() << "GpuDirectOutput: invalid config";
+    qWarning() << "RdmaVideoOutput: invalid config";
     return false;
   }
   release();
@@ -26,20 +26,20 @@ bool GpuDirectOutput::init(const GpuDirectOutputConfig& cfg)
 
   if(!cuda_p2p_available())
   {
-    qDebug() << "GpuDirectOutput: GPUDirect RDMA not available";
+    qDebug() << "RdmaVideoOutput: GPUDirect RDMA not available";
     return false;
   }
   if(cuda_p2p_init(&m_cudaCtx) != CUDA_P2P_SUCCESS || !m_cudaCtx)
   {
-    qWarning() << "GpuDirectOutput: cuda_p2p_init failed";
+    qWarning() << "RdmaVideoOutput: cuda_p2p_init failed";
     return false;
   }
 
-  GpuRingBufferConfig rcfg{
+  ImportedGpuBufferRingConfig rcfg{
       cfg.rhi, m_cudaCtx, cfg.frameByteSize, cfg.slotCount, cfg.debugName};
   if(!m_ring.create(rcfg))
   {
-    qWarning() << "GpuDirectOutput: GpuRingBuffer::create failed";
+    qWarning() << "RdmaVideoOutput: ImportedGpuBufferRing::create failed";
     release();
     return false;
   }
@@ -50,7 +50,7 @@ bool GpuDirectOutput::init(const GpuDirectOutputConfig& cfg)
     // Note: backends that don't need a real fence (D3D11, GL) return a
     // valid no-op fence; only Vulkan/D3D12 stubs fail here. If init
     // fails on those, the strategy isn't viable at all.
-    qWarning() << "GpuDirectOutput: InteropFence init failed";
+    qWarning() << "RdmaVideoOutput: InteropFence init failed";
     release();
     return false;
   }
@@ -61,7 +61,7 @@ bool GpuDirectOutput::init(const GpuDirectOutputConfig& cfg)
       cfg.encoderFactory, cfg.colorConversion, m_fence.get()};
   if(!m_dispatcher.init(dcfg))
   {
-    qWarning() << "GpuDirectOutput: ComputeRingDispatcher::init failed";
+    qWarning() << "RdmaVideoOutput: ComputeRingDispatcher::init failed";
     release();
     return false;
   }
@@ -80,14 +80,14 @@ bool GpuDirectOutput::init(const GpuDirectOutputConfig& cfg)
            != CUDA_P2P_SUCCESS
        || !m_bounce[i])
     {
-      qWarning() << "GpuDirectOutput: bounce alloc failed at slot" << i << ":"
+      qWarning() << "RdmaVideoOutput: bounce alloc failed at slot" << i << ":"
                  << cuda_p2p_get_error_string(m_cudaCtx);
       release();
       return false;
     }
     if(!m_cfg.registrar.registerSlot(m_bounce[i], m_cfg.frameByteSize))
     {
-      qWarning() << "GpuDirectOutput: vendor registerSlot failed at slot" << i;
+      qWarning() << "RdmaVideoOutput: vendor registerSlot failed at slot" << i;
       release();
       return false;
     }
@@ -100,7 +100,7 @@ bool GpuDirectOutput::init(const GpuDirectOutputConfig& cfg)
     if(i == 0 && m_cfg.registrar.verifyTransfer
        && !m_cfg.registrar.verifyTransfer(m_bounce[0], m_cfg.frameByteSize))
     {
-      qWarning() << "GpuDirectOutput: vendor transfer probe failed — the "
+      qWarning() << "RdmaVideoOutput: vendor transfer probe failed — the "
                     "card↔GPU PCIe path does not permit P2P playout "
                     "(pin succeeded but DMA does not). Falling back.";
       release();
@@ -110,7 +110,7 @@ bool GpuDirectOutput::init(const GpuDirectOutputConfig& cfg)
   return true;
 }
 
-void GpuDirectOutput::release()
+void RdmaVideoOutput::release()
 {
   // Vendor release: unpin the slots we successfully pinned, in reverse
   // order so the vendor sees a clean LIFO if it cares. Then free the
@@ -147,14 +147,14 @@ void GpuDirectOutput::release()
   m_cfg = {};
 }
 
-void GpuDirectOutput::encodeFrame(QRhiCommandBuffer& cb)
+void RdmaVideoOutput::encodeFrame(QRhiCommandBuffer& cb)
 {
   if(!valid())
     return;
   m_dispatcher.encode(cb, ++m_fenceValue);
 }
 
-void* GpuDirectOutput::prepareNextFrame()
+void* RdmaVideoOutput::prepareNextFrame()
 {
   if(!valid())
     return nullptr;
@@ -175,14 +175,14 @@ void* GpuDirectOutput::prepareNextFrame()
          m_cfg.frameByteSize)
      != CUDA_P2P_SUCCESS)
   {
-    qWarning() << "GpuDirectOutput: bounce copy failed:"
+    qWarning() << "RdmaVideoOutput: bounce copy failed:"
                << cuda_p2p_get_error_string(m_cudaCtx);
     return nullptr;
   }
   return m_bounce[idx];
 }
 
-void GpuDirectOutput::advance()
+void RdmaVideoOutput::advance()
 {
   m_dispatcher.advance();
 }

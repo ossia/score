@@ -6,8 +6,8 @@
  *
  * Capture cards (AJA, Blackmagic DeckLink, Bluefish444, Deltacast, and
  * Magewell on its host-staged path) all deliver frames the same way: a vendor
- * capture thread DMAs each frame into a `GpuDirectCaptureStrategy`'s slot, then
- * publishes the slot via a lock-free `GpuDirectCaptureSlotRing`; the render
+ * capture thread DMAs each frame into a `VideoCaptureStrategy`'s slot, then
+ * publishes the slot via a lock-free `VideoCaptureSlotRing`; the render
  * thread samples the strategy's texture through a `GPUVideoDecoder`. This is
  * fundamentally different from the camera/NDI path (CPU `AVFrame` upload, served
  * by `VideoNodeRenderer`) and the Spout/Syphon path (a shared GPU texture
@@ -22,7 +22,7 @@
  * the slot ring.
  *
  * This is the input-side counterpart to the output-side seams
- * (`HostStagedOutput` / `GpuDirectStrategy` / `PacedFramePump`). A vendor input
+ * (`CpuStagedVideoOutput` / `VideoOutputStrategy` / `PacedFramePump`). A vendor input
  * addon shrinks to: implement `DMACaptureBackend`, subclass
  * `DMACaptureInputNode`, return the backend from `makeCaptureBackend`.
  */
@@ -41,15 +41,20 @@ class GPUVideoDecoder;
 
 namespace interop
 {
-struct GpuDirectCaptureStrategy;
-struct GpuDirectCaptureSlotRing;
+struct VideoCaptureStrategy;
+struct VideoCaptureSlotRing;
+// Transitional aliases (introduced Phase 2, removed Phase 5): the out-of-tree
+// addon still names these types by their old "GpuDirect" spelling through this
+// forward-declaring header, so alias the incomplete types here too.
+using GpuDirectCaptureStrategy = VideoCaptureStrategy;
+using GpuDirectCaptureSlotRing = VideoCaptureSlotRing;
 }
 
 /**
  * @brief Vendor seam for a DMA capture card's input path.
  *
  * Constructed by the node (via `DMACaptureInputNode::makeCaptureBackend`) bound
- * to the renderer's `GpuDirectCaptureSlotRing`. The backend owns the device
+ * to the renderer's `VideoCaptureSlotRing`. The backend owns the device
  * handle and the capture thread; the renderer owns the chosen strategy (passed
  * back to the backend by raw pointer via `setStrategy`).
  */
@@ -81,17 +86,17 @@ struct SCORE_PLUGIN_GFX_EXPORT DMACaptureBackend
   /// Pick the GPU-direct capture strategy for the active QRhi backend. May
   /// return nullptr (no GPU-direct path for this backend) — the renderer then
   /// uses `makeCpuStrategy`.
-  virtual std::unique_ptr<interop::GpuDirectCaptureStrategy>
+  virtual std::unique_ptr<interop::VideoCaptureStrategy>
   pickStrategy(QRhi::Implementation backend) = 0;
 
   /// The universal host-staged / CPU-staging fallback strategy. Must be
   /// non-null; works on every backend.
-  virtual std::unique_ptr<interop::GpuDirectCaptureStrategy>
+  virtual std::unique_ptr<interop::VideoCaptureStrategy>
   makeCpuStrategy() = 0;
 
   /// Bind the strategy the renderer settled on (the capture thread DMAs into
   /// its slots). Ownership stays with the renderer.
-  virtual void setStrategy(interop::GpuDirectCaptureStrategy*) noexcept = 0;
+  virtual void setStrategy(interop::VideoCaptureStrategy*) noexcept = 0;
 
   /// Start / stop the capture thread that feeds the slot ring.
   virtual void start() = 0;
@@ -115,7 +120,7 @@ struct SCORE_PLUGIN_GFX_EXPORT DMACaptureInputNode : ProcessNode
   /// Build the vendor capture backend, bound to `ring` (the renderer owns the
   /// ring; the backend's capture thread publishes into it).
   virtual std::unique_ptr<DMACaptureBackend>
-  makeCaptureBackend(interop::GpuDirectCaptureSlotRing& ring) const = 0;
+  makeCaptureBackend(interop::VideoCaptureSlotRing& ring) const = 0;
 
   class Renderer;
 };

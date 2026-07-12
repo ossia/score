@@ -3,7 +3,7 @@
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
-#include <Gfx/Graph/interop/GpuDirectCaptureStrategy.hpp>
+#include <Gfx/Graph/interop/VideoCaptureStrategy.hpp>
 
 #include <ossia/detail/algorithms.hpp>
 
@@ -99,7 +99,7 @@ public:
     // Strategy init must precede defaultPassesInit: a zero-copy strategy may
     // provide its own renderer-facing texture (see the swap below), which the
     // pass's shader-resource bindings must reference.
-    score::gfx::interop::GpuDirectCaptureStrategyConfig icfg{
+    score::gfx::interop::VideoCaptureStrategyConfig icfg{
         .rhi = &rhi,
         .state = &renderer.state,
         .frameByteSize = m_backend->frameByteSize(),
@@ -333,8 +333,8 @@ private:
   QRhi::Implementation m_backendKind{QRhi::Null};
 
   std::unique_ptr<DMACaptureBackend> m_backend;
-  std::unique_ptr<score::gfx::interop::GpuDirectCaptureStrategy> m_strategy;
-  score::gfx::interop::GpuDirectCaptureSlotRing m_ring;
+  std::unique_ptr<score::gfx::interop::VideoCaptureStrategy> m_strategy;
+  score::gfx::interop::VideoCaptureSlotRing m_ring;
   uint64_t m_lastIngestedFrameId{0};
   bool m_renderHoldsTexture{false};
   /// True when the strategy swapped its own texture into the decoder sampler

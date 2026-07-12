@@ -2,7 +2,7 @@
 
 /**
  * @file ComputeRingDispatcher.hpp
- * @brief Bundles a GpuRingBuffer + per-slot ComputeEncoder + InteropFence
+ * @brief Bundles a ImportedGpuBufferRing + per-slot ComputeEncoder + InteropFence
  *        into the per-frame "encode + signal" loop every vendor GPU-direct
  *        path runs.
  *
@@ -30,7 +30,7 @@
  */
 
 #include <Gfx/Graph/encoders/ComputeEncoder.hpp>
-#include <Gfx/Graph/interop/GpuRingBuffer.hpp>
+#include <Gfx/Graph/interop/ImportedGpuBufferRing.hpp>
 #include <Gfx/Graph/interop/InteropFence.hpp>
 
 #include <functional>
@@ -51,7 +51,7 @@ struct ComputeRingDispatcherConfig
 {
   QRhi* rhi{};
   const score::gfx::RenderState* state{};
-  GpuRingBuffer* ring{};
+  ImportedGpuBufferRing* ring{};
   QRhiTexture* sourceTexture{};
   int width{};
   int height{};

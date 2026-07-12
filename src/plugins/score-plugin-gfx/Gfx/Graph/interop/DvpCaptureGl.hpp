@@ -1,6 +1,6 @@
 #pragma once
 #include <Gfx/Graph/interop/CaptureStrategyCommon.hpp>
-#include <Gfx/Graph/interop/GpuDirectCaptureStrategy.hpp>
+#include <Gfx/Graph/interop/VideoCaptureStrategy.hpp>
 #include <nv_dvp_bridge.h>
 
 #include <QtGui/private/qrhigles2_p.h>
@@ -28,7 +28,7 @@ namespace score::gfx::interop
  * and when the renderer-side acquire/release runs.
  */
 template <class Lock>
-struct DvpCaptureGl : score::gfx::interop::GpuDirectCaptureStrategy
+struct DvpCaptureGl : score::gfx::interop::VideoCaptureStrategy
 {
   DvpCaptureGl(Lock lock, NvDvpFormat dvpFormat, const char* name) noexcept
       : m_lock{lock}, m_dvpFormat{dvpFormat}, m_name{name} {}
@@ -37,7 +37,7 @@ struct DvpCaptureGl : score::gfx::interop::GpuDirectCaptureStrategy
   NvDvpFormat m_dvpFormat{};
   const char* m_name{"DVP-GL"};
 
-  score::gfx::interop::GpuDirectCaptureStrategyConfig cfg{};
+  score::gfx::interop::VideoCaptureStrategyConfig cfg{};
 
   QOpenGLContext* m_glCtx{};
 
@@ -62,7 +62,7 @@ struct DvpCaptureGl : score::gfx::interop::GpuDirectCaptureStrategy
 
   const char* name() const noexcept override { return m_name; }
 
-  bool init(const score::gfx::interop::GpuDirectCaptureStrategyConfig& c) override
+  bool init(const score::gfx::interop::VideoCaptureStrategyConfig& c) override
   {
     cfg = c;
     if(!cfg.rhi || !m_lock.valid() || !cfg.outputTexture)

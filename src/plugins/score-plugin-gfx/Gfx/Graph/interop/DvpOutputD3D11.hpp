@@ -1,5 +1,5 @@
 #pragma once
-#include <Gfx/Graph/interop/GpuDirectStrategy.hpp>
+#include <Gfx/Graph/interop/VideoOutputStrategy.hpp>
 #include <Gfx/Graph/encoders/GPUVideoEncoder.hpp>
 #include <nv_dvp_bridge.h>
 
@@ -25,7 +25,7 @@ namespace score::gfx::interop
  * See DvpOutputGl for the full per-frame model.
  */
 template <class Lock>
-struct DvpOutputD3D11 : score::gfx::interop::GpuDirectStrategy
+struct DvpOutputD3D11 : score::gfx::interop::VideoOutputStrategy
 {
   using MakeEncoder = std::function<std::unique_ptr<score::gfx::GPUVideoEncoder>()>;
   using GetOutputTexture
@@ -46,7 +46,7 @@ struct DvpOutputD3D11 : score::gfx::interop::GpuDirectStrategy
   GetOutputTexture m_getOutputTexture;
   const char* m_name{"DVP-D3D11"};
 
-  score::gfx::interop::GpuDirectStrategyConfig cfg{};
+  score::gfx::interop::VideoOutputStrategyConfig cfg{};
 
   ID3D11Device* m_dev{};
 
@@ -68,7 +68,7 @@ struct DvpOutputD3D11 : score::gfx::interop::GpuDirectStrategy
 
   static bool isSupported(QRhi* rhi) { return rhi != nullptr; }
 
-  bool init(const score::gfx::interop::GpuDirectStrategyConfig& c) override
+  bool init(const score::gfx::interop::VideoOutputStrategyConfig& c) override
   {
     cfg = c;
     if(!isSupported(cfg.rhi) || !cfg.state || !m_lock.valid())

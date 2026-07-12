@@ -30,7 +30,7 @@ namespace score::gfx::interop
  * The vendor capture thread publishes the index of the slot it just filled;
  * the render thread consumes it with an acquire-exchange. -1 means "nothing
  * pending". This is the single-atomic form used by the capture strategies
- * (simpler than GpuDirectCaptureSlotRing's frame-id + slot pair, which the
+ * (simpler than VideoCaptureSlotRing's frame-id + slot pair, which the
  * polling input-node renderer doesn't need here).
  */
 struct CaptureSlotPublisher

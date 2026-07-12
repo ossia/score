@@ -266,14 +266,20 @@ set(HDRS
     Gfx/Graph/interop/TextureShare.hpp
     Gfx/Graph/interop/TextureShare.cpp
     Gfx/Graph/interop/AVHWFrameToQRhi.hpp
-    Gfx/Graph/interop/GpuRingBuffer.hpp
-    Gfx/Graph/interop/GpuRingBuffer.cpp
+    Gfx/Graph/interop/ImportedGpuBufferRing.hpp
+    Gfx/Graph/interop/ImportedGpuBufferRing.cpp
     Gfx/Graph/interop/InteropFence.hpp
     Gfx/Graph/interop/InteropFence.cpp
     Gfx/Graph/interop/ComputeRingDispatcher.hpp
+    Gfx/Graph/interop/VideoOutputStrategy.hpp
+    Gfx/Graph/interop/VideoCaptureStrategy.hpp
+    Gfx/Graph/interop/CaptureStrategyCommon.hpp
     Gfx/Graph/interop/GpuDirectStrategy.hpp
     Gfx/Graph/interop/GpuDirectCaptureStrategy.hpp
-    Gfx/Graph/interop/CaptureStrategyCommon.hpp
+    Gfx/Graph/interop/GpuDirectStrategySelect.hpp
+    Gfx/Graph/interop/GpuDirectOutput.hpp
+    Gfx/Graph/interop/HostStagedOutput.hpp
+    Gfx/Graph/interop/GpuRingBuffer.hpp
     Gfx/Graph/interop/CpuStagedCapture.hpp
     Gfx/Graph/interop/RdmaRingDepth.hpp
     Gfx/Graph/interop/VulkanRhiContext.hpp
@@ -285,14 +291,14 @@ set(HDRS
     Gfx/Graph/interop/DvpOutputGl.hpp
     Gfx/Graph/interop/DvpOutputD3D11.hpp
     Gfx/Graph/interop/GLCaptureUpload.hpp
-    Gfx/Graph/interop/GpuDirectOutput.hpp
-    Gfx/Graph/interop/GpuDirectOutput.cpp
-    Gfx/Graph/interop/HostStagedOutput.hpp
-    Gfx/Graph/interop/HostStagedOutput.cpp
+    Gfx/Graph/interop/RdmaVideoOutput.hpp
+    Gfx/Graph/interop/RdmaVideoOutput.cpp
+    Gfx/Graph/interop/CpuStagedVideoOutput.hpp
+    Gfx/Graph/interop/CpuStagedVideoOutput.cpp
     Gfx/Graph/interop/VendorDmaRegistrar.hpp
     Gfx/Graph/interop/PacedFramePump.hpp
     Gfx/Graph/interop/PacedFramePump.cpp
-    Gfx/Graph/interop/GpuDirectStrategySelect.hpp
+    Gfx/Graph/interop/VideoOutputStrategySelect.hpp
     Gfx/Graph/interop/VideoPixelFormatAV.hpp
     Gfx/Graph/interop/VideoPixelFormatAV.cpp
     Gfx/Graph/interop/GpuCapabilities.hpp

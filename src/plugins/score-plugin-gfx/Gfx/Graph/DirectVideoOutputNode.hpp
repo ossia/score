@@ -7,8 +7,8 @@
  * Owns the QRhi + render loop + the createOutput orchestration; all device
  * specifics come from a DirectVideoOutputBackend (AJA today; DeckLink/Bluefish/
  * Deltacast next). The node composes the already-generic pieces around the
- * backend: makeWireEncoder(encoderFormat), selectGpuDirectStrategy(gpuDirect
- * Candidates), HostStagedOutput(planes/registrar/customStage), PacedFramePump(
+ * backend: makeWireEncoder(encoderFormat), selectVideoOutputStrategy(gpuDirect
+ * Candidates), CpuStagedVideoOutput(planes/registrar/customStage), PacedFramePump(
  * pacingHooks).
  *
  * A vendor output node becomes a thin subclass that constructs the node with
@@ -31,7 +31,7 @@ class RenderList;
 struct RenderState;
 namespace interop
 {
-class HostStagedOutput;
+class CpuStagedVideoOutput;
 class PacedFramePump;
 }
 
@@ -74,11 +74,11 @@ protected:
   QRhiTexture* m_texture{};
   QRhiTextureRenderTarget* m_renderTarget{};
 
-  std::unique_ptr<interop::HostStagedOutput> m_hostStaged;
-  std::unique_ptr<interop::GpuDirectStrategy> m_rdma;
+  std::unique_ptr<interop::CpuStagedVideoOutput> m_hostStaged;
+  std::unique_ptr<interop::VideoOutputStrategy> m_rdma;
   std::unique_ptr<interop::PacedFramePump> m_pump;
 
-  /// GPU interop probe, borrowed by HostStagedOutput's DVP HostPinnedRing; must
+  /// GPU interop probe, borrowed by CpuStagedVideoOutput's DVP HostPinnedRing; must
   /// outlive m_hostStaged, hence a node member.
   interop::GpuCapabilities m_caps{};
 
