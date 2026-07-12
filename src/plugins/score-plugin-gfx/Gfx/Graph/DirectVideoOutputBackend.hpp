@@ -129,6 +129,15 @@ struct SCORE_PLUGIN_GFX_EXPORT DirectVideoOutputBackend
   /// card). The node owns the PacedFramePump built from these.
   virtual interop::PacedFramePump::Hooks pacingHooks() = 0;
 
+  /// Optional external-genlock tick source (Phase 2, opt-in): a blocking wait
+  /// that returns true on the next hardware output tick (card VBI), false on
+  /// timeout. Empty (default) => no hardware genlock available; the node keeps
+  /// its timer clock. Consumed by ExternalGenlockClock to phase-lock render to
+  /// the card. NOTE: this is generally a SECOND waiter on the same output VBI
+  /// as pacingHooks().waitForTick — safe where the VBI is a broadcast
+  /// wait-queue (Linux AJA); validate for auto-reset-event platforms.
+  virtual std::function<bool()> genlockTickSource() { return {}; }
+
   /// Stop the card from reading ANY application buffer, synchronously.
   ///
   /// Called by DirectVideoOutputNode::destroyOutput() after the pump thread

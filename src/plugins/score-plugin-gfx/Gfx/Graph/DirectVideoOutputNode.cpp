@@ -95,6 +95,11 @@ const char* DirectVideoOutputNode::activeStrategyName() const noexcept
   return m_rdma ? m_rdma->name() : "cpu-staging";
 }
 
+std::function<bool()> DirectVideoOutputNode::genlockTickSource() const
+{
+  return m_backend ? m_backend->genlockTickSource() : std::function<bool()>{};
+}
+
 std::uint64_t DirectVideoOutputNode::pacingGoodXfers() const noexcept
 {
   return m_pump ? m_pump->goodXfers() : 0;

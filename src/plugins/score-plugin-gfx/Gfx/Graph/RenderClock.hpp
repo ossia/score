@@ -3,7 +3,9 @@
 
 #include <QMetaObject>
 
+#include <atomic>
 #include <functional>
+#include <thread>
 #include <vector>
 
 namespace score
@@ -125,5 +127,60 @@ public:
 
 private:
   OutputNode& m_output;
+};
+
+/**
+ * @brief Hardware-genlock render clock (Phase 2, opt-in): a card's output VBI.
+ *
+ * The *pull* facet of the model. A dedicated tick thread blocks on an injected
+ * @p waitForNextTick (the card's WaitForOutputVerticalInterrupt for AJA,
+ * VHD_WaitSlotSent for Deltacast, ...) and, on each hardware tick, marshals the
+ * render callback onto @p owner's thread — score's render thread — via a
+ * *blocking* queued invoke (Qt::BlockingQueuedConnection). Blocking is
+ * deliberate: the next VBI wait only begins once the current frame has finished
+ * rendering, so render stays phase-locked to the card genlock and never bursts
+ * ahead of it. This is exactly how PacedFramePump marshals the *submit* side.
+ *
+ * The pull facet is injected (a std::function) so this class carries no vendor
+ * SDK dependency — the AJA backend supplies its VBI wait, gfx stays SDK-free.
+ *
+ * Contention note: the injected wait is generally a SECOND waiter on the same
+ * output VBI the submit pump already waits on. On the Linux AJA driver the VBI
+ * is a broadcast wait-queue (every waiter wakes per interrupt), so two waiters
+ * is safe; validate on any platform where the tick is an auto-reset event.
+ *
+ * Thread-affinity contract for stop(): call it on @p owner's thread (or with
+ * that thread's event loop running). The tick thread may be parked in the
+ * blocking invoke waiting for the owner to run the functor; stop() pumps the
+ * owner's event queue so that in-flight invoke drains instead of dead-locking
+ * the join.
+ */
+class SCORE_PLUGIN_GFX_EXPORT ExternalGenlockClock final : public RenderClock
+{
+public:
+  /**
+   * @param owner            QObject whose thread the render tick must run on
+   *                         (score's render thread).
+   * @param waitForNextTick  blocking pull facet: returns true when a hardware
+   *                         tick (VBI) arrived, false on timeout (the loop
+   *                         re-checks running so stop() stays responsive).
+   */
+  ExternalGenlockClock(QObject* owner, std::function<bool()> waitForNextTick);
+  ~ExternalGenlockClock() override;
+
+  Kind kind() const noexcept override { return Kind::ExternalGenlock; }
+
+  void start(std::function<void()> tick) override;
+  void stop() override;
+
+private:
+  void run();
+
+  QObject* m_owner{};
+  std::function<bool()> m_waitForNextTick;
+  std::function<void()> m_tick;
+  std::thread m_thread;
+  std::atomic<bool> m_running{false};
+  std::atomic<bool> m_exited{false};
 };
 }

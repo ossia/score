@@ -60,6 +60,11 @@ public:
   /// Name of the engaged GPU-direct strategy, or "cpu-staging".
   const char* activeStrategyName() const noexcept;
 
+  /// External-genlock tick source from the backend, or empty if the device
+  /// exposes none (Phase 2, opt-in). Valid only after createOutput() has opened
+  /// the device. Feed to an ExternalGenlockClock to phase-lock render to the card.
+  std::function<bool()> genlockTickSource() const;
+
   /// Pacing diagnostics (0 if the pump isn't running). Useful for harnesses.
   std::uint64_t pacingGoodXfers() const noexcept;
   std::uint64_t pacingDrops() const noexcept;
