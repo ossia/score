@@ -4,8 +4,13 @@
 #include <Gfx/Graph/RenderState.hpp>
 #include <Gfx/Graph/encoders/I420.hpp>
 #include <Gfx/Graph/encoders/NV12.hpp>
+#include <Gfx/Graph/encoders/P010.hpp>
 #include <Gfx/Graph/encoders/UYVY.hpp>
+#include <Gfx/Graph/encoders/YUV422P10.hpp>
 #include <Gfx/InvertYRenderer.hpp>
+
+#include <cmath>
+#include <cstdint>
 #include <Gfx/Libav/LibavEncoder.hpp>
 
 #include <score/gfx/OpenGL.hpp>
@@ -30,7 +35,39 @@ makeEncoderForPixfmt(const QString& pixfmt)
     return std::make_unique<score::gfx::NV12Encoder>();
   if(pixfmt == "uyvy422")
     return std::make_unique<score::gfx::UYVYEncoder>();
+  if(pixfmt == "yuv422p10le" || pixfmt == "yuv422p10")
+    return std::make_unique<score::gfx::YUV422P10Encoder>();
+  if(pixfmt == "p010le" || pixfmt == "p010")
+    return std::make_unique<score::gfx::P010Encoder>();
   return nullptr;
+}
+
+// Bit depth of an ffmpeg pixel-format name (8 if unknown).
+static int pixfmtDepth(const QString& name)
+{
+  const AVPixelFormat f = av_get_pix_fmt(name.toUtf8().constData());
+  if(f == AV_PIX_FMT_NONE)
+    return 8;
+  const AVPixFmtDescriptor* d = av_pix_fmt_desc_get(f);
+  return (d && d->nb_components > 0) ? d->comp[0].depth : 8;
+}
+
+// IEEE-754 binary16 -> normalized uint16 (clamped to [0,1]).
+static inline uint16_t halfToU16(uint16_t h)
+{
+  const uint32_t exp = (h >> 10) & 0x1Fu, mant = h & 0x3FFu;
+  if(h & 0x8000u)
+    return 0; // negative -> 0
+  float v;
+  if(exp == 0u)
+    v = std::ldexp(float(mant), -24);
+  else if(exp == 31u)
+    v = 1.f; // inf/nan -> white
+  else
+    v = std::ldexp(float(mant | 0x400u), int(exp) - 25);
+  if(v >= 1.f)
+    return 65535;
+  return uint16_t(v * 65535.f + 0.5f);
 }
 
 LibavEncoderNode::LibavEncoderNode(
@@ -113,13 +150,29 @@ void LibavEncoderNode::render()
       rhi->endOffscreenFrame();
 
       auto& readback = *m_currentReadback;
-      int sz = readback.pixelSize.width() * readback.pixelSize.height() * 4;
-      int bytes = readback.data.size();
+      const int w = readback.pixelSize.width(), h = readback.pixelSize.height();
+      const int bpp = m_tenBit ? 8 : 4; // RGBA16F (4x half) vs RGBA8
+      const int sz = w * h * bpp;
+      const int bytes = readback.data.size();
       if(bytes > 0 && bytes >= sz)
       {
-        encoder.add_frame(
-            (const unsigned char*)readback.data.constData(), AV_PIX_FMT_RGBA,
-            readback.pixelSize.width(), readback.pixelSize.height());
+        if(m_tenBit)
+        {
+          // RGBA16F (half) -> RGBA64 (uint16) so swscale gets real 10-bit.
+          const auto* src = (const uint16_t*)readback.data.constData();
+          const size_t n = size_t(w) * h * 4;
+          m_rgba64.resize(n);
+          for(size_t i = 0; i < n; ++i)
+            m_rgba64[i] = halfToU16(src[i]);
+          encoder.add_frame(
+              (const unsigned char*)m_rgba64.data(), AV_PIX_FMT_RGBA64, w, h);
+        }
+        else
+        {
+          encoder.add_frame(
+              (const unsigned char*)readback.data.constData(), AV_PIX_FMT_RGBA,
+              w, h);
+        }
       }
 
       // Swap readback buffer for next frame
@@ -164,8 +217,21 @@ void LibavEncoderNode::createOutput(score::gfx::OutputConfiguration conf)
   m_renderState->outputSize = m_renderState->renderSize;
 
   auto rhi = m_renderState->rhi;
+  // A 10-bit target codec gets a >8-bit (RGBA16F) scene render target so the
+  // encoder reads real >8-bit precision. If a 10-bit GPU encoder exists
+  // (yuv422p10le) it consumes that directly; otherwise we fall back to an
+  // RGBA64 readback + swscale (m_tenBit).
+  const bool tenBitOut = pixfmtDepth(m_settings.video_converted_pixfmt) > 8;
+  m_tenBit = tenBitOut
+             && !makeEncoderForPixfmt(m_settings.video_converted_pixfmt);
+  // renderFormat drives the readback/flip stage's output texture (and the
+  // upstream RLs). Without setting it, the flip pass stays RGBA8 and the
+  // readback is w*h*4 while the 10-bit branch requires w*h*8 → the
+  // condition never holds and NO video is emitted. Mirror GStreamer.
+  m_renderState->renderFormat
+      = tenBitOut ? QRhiTexture::RGBA16F : QRhiTexture::RGBA8;
   m_texture = rhi->newTexture(
-      QRhiTexture::RGBA8, m_renderState->renderSize, 1,
+      m_renderState->renderFormat, m_renderState->renderSize, 1,
       QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource);
   m_texture->create();
 
