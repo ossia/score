@@ -56,9 +56,26 @@ public:
 
   static constexpr int LocalSize = 256;
 
+  /// Dispatch grid dimensions, in workgroups. When the required workgroup
+  /// count exceeds the backend's per-dimension limit the count is spread
+  /// across the Y (and Z) axes, mirroring RenderedCSFNode's 1D_BUFFER clamp.
+  struct DispatchDims
+  {
+    int x{};
+    int y{};
+    int z{};
+  };
+
 private:
+  /// Compute the (clamped) dispatch grid for @p element_count elements at
+  /// LocalSize threads per workgroup, spreading across Y/Z so no axis exceeds
+  /// m_maxWorkgroupsPerDim. Used by both updateParams() (to populate the UBO)
+  /// and dispatch() (to issue the dispatch) so the two always agree.
+  DispatchDims computeDispatchDims(uint32_t element_count) const;
+
   QRhiComputePipeline* m_pipeline{};
   QShader m_shader;
+  int m_maxWorkgroupsPerDim{65535};
 };
 
 } // namespace score::gfx

@@ -2,22 +2,14 @@
 #include <Gfx/GfxDevice.hpp>
 #include <Gfx/Window/WindowSettings.hpp>
 
-#include <QGraphicsRectItem>
-#include <QGraphicsScene>
-#include <QGraphicsView>
-#include <QRectF>
+#include <QImage>
 
 class QComboBox;
 class QCheckBox;
 class QDoubleSpinBox;
-class QGraphicsEllipseItem;
-class QGraphicsLineItem;
-class QGraphicsPolygonItem;
 class QLabel;
 class QStackedWidget;
 class QSpinBox;
-class QGraphicsView;
-
 namespace score::gfx
 {
 class Window;
@@ -74,6 +66,8 @@ public:
   void disconnect() override;
   bool reconnect() override;
 
+  void grabTo(const QString& path) const;
+  W_SLOT(grabTo)
 private:
   gfx_protocol_base* m_protocol{};
   mutable std::unique_ptr<ossia::net::device_base> m_dev;
