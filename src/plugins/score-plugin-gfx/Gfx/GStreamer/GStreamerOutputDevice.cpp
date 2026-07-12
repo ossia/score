@@ -84,7 +84,13 @@ struct GStreamerOutputNode : score::gfx::OutputNode
   GstElement* m_video_src{};
   GstElement* m_audio_src{};
   GStreamerSettings m_settings;
+  // m_started: the pipeline is live and still needs finalization (EOS + NULL).
+  // m_feeding: it is safe to push frames. Decoupled so a fatal bus ERROR stops
+  // feeding without neutralizing stop_pipeline()'s EOS finalization (which is
+  // what writes the muxer's moov atom / cluster index). See poll_bus_errors().
   bool m_started{};
+  bool m_feeding{};
+  uint64_t m_video_max_bytes{}; // appsrc queue cap; 0 = disabled
   std::unique_ptr<score::gfx::GPUVideoEncoder> m_encoder[2];
   int m_encoderIdx{}; // ping-pong index for double-buffered encoder
   QString m_detectedFormat;      // UYVY, NV12, I420, or empty for RGBA
@@ -125,6 +131,14 @@ struct GStreamerOutputNode : score::gfx::OutputNode
       qDebug() << "GStreamer output parse error:" << err->message;
       if(gst.g_error_free)
         gst.g_error_free(err);
+      // gst_parse_launch (non-_full) can return a non-NULL *partial* pipeline
+      // with *error set. Such a pipeline is broken (e.g. missing appsrcs) —
+      // unref it so we don't leak/retain it and never set it PLAYING.
+      if(m_pipeline)
+      {
+        gst.object_unref(m_pipeline);
+        m_pipeline = nullptr;
+      }
       return false;
     }
     if(!m_pipeline)
@@ -177,10 +191,29 @@ struct GStreamerOutputNode : score::gfx::OutputNode
           gst.object_set_property(elem, prop, &gv);
           gst.value_unset(&gv);
         };
+        auto setUInt64 = [&](GstElement* elem, const char* prop, uint64_t val) {
+          if(!gst.value_set_uint64)
+            return;
+          GValue gv{};
+          gst.value_init(&gv, G_TYPE_UINT64);
+          gst.value_set_uint64(&gv, val);
+          gst.object_set_property(elem, prop, &gv);
+          gst.value_unset(&gv);
+        };
 
         setBool(m_video_src, "is-live", true);
         setBool(m_video_src, "do-timestamp", true);
         setInt(m_video_src, "format", 3); // GST_FORMAT_TIME
+
+        // Backpressure: the appsrc default max-bytes is 200000, far below a
+        // single 1080p RGBA frame (~8 MB). Bound the queue to a few frames so
+        // RSS can't grow without limit when downstream stalls. We additionally
+        // drop frames ourselves (see push_video_frame_*) by polling
+        // current-level-bytes, which gives downstream-leaky behaviour without
+        // depending on the leaky-type enum GType (not introspectable here) and
+        // without blocking the render thread.
+        m_video_max_bytes = (uint64_t)16 * 1024 * 1024; // ~2 frames @1080p RGBA
+        setUInt64(m_video_src, "max-bytes", m_video_max_bytes);
       }
     }
 
@@ -277,6 +310,48 @@ struct GStreamerOutputNode : score::gfx::OutputNode
     auto& gst = libgstreamer::instance();
     gst.element_set_state(m_pipeline, GST_STATE_PLAYING);
     m_started = true;
+    m_feeding = true;
+  }
+
+  // Non-blocking bus poll: surfaces otherwise-silent encoder/filesink/muxer
+  // errors. Called once per rendered frame.
+  //
+  // Only a genuine GST_MESSAGE_ERROR is fatal. GStreamer routinely posts
+  // GST_MESSAGE_WARNING during healthy encoding (late/dropped buffers, missing
+  // PTS, encoder rate warnings); treating those as fatal would truncate an
+  // otherwise-fine recording. We therefore filter on GST_MESSAGE_ERROR alone —
+  // bus_timed_pop_filtered discards the non-matching (warning) messages it
+  // encounters, so warnings are drained (no unbounded bus growth) but ignored.
+  //
+  // On a real error we clear m_feeding (stop pushing frames) but deliberately
+  // leave m_started set: stop_pipeline() must still run, emit EOS and drive the
+  // pipeline to GST_STATE_NULL so the muxer finalizes the file rather than
+  // leaving it truncated/unplayable (or leaking a PLAYING pipeline).
+  void poll_bus_errors()
+  {
+    if(!m_pipeline || !m_started)
+      return;
+
+    auto& gst = libgstreamer::instance();
+    if(!gst.element_get_bus || !gst.bus_timed_pop_filtered)
+      return;
+
+    GstBus* bus = gst.element_get_bus(m_pipeline);
+    if(!bus)
+      return;
+
+    // timeout==0 => return immediately if no matching message is queued.
+    while(GstMessage* msg = gst.bus_timed_pop_filtered(
+              bus, 0, (GstMessageType)GST_MESSAGE_ERROR))
+    {
+      qWarning() << "GStreamer output: fatal error on the bus; stopping frame "
+                    "feed (pipeline will still be finalized)";
+      if(gst.message_unref)
+        gst.message_unref(msg);
+      m_feeding = false;
+      break;
+    }
+    gst.object_unref(bus);
   }
 
   void stop_pipeline()
@@ -292,8 +367,36 @@ struct GStreamerOutputNode : score::gfx::OutputNode
     if(m_audio_src && gst.app_src_end_of_stream)
       gst.app_src_end_of_stream(m_audio_src);
 
+    // appsrc EOS is ASYNC: it travels through the pipeline as a buffer would,
+    // and muxers (mp4mux/matroskamux/...) only finalize the file once EOS
+    // reaches them. Setting the pipeline to NULL immediately would truncate
+    // the moov atom / cluster index, producing unplayable files. Wait for the
+    // EOS (or ERROR) message on the bus, with a bounded timeout so we never
+    // hang the UI thread on a stuck pipeline.
+    if(gst.element_get_bus && gst.bus_timed_pop_filtered)
+    {
+      if(GstBus* bus = gst.element_get_bus(m_pipeline))
+      {
+        GstMessage* msg = gst.bus_timed_pop_filtered(
+            bus, 5 * GST_SECOND,
+            (GstMessageType)(GST_MESSAGE_EOS | GST_MESSAGE_ERROR));
+        if(msg)
+        {
+          if(gst.message_unref)
+            gst.message_unref(msg);
+        }
+        else
+        {
+          qWarning() << "GStreamer output: timed out waiting for EOS; "
+                        "output file may be truncated";
+        }
+        gst.object_unref(bus);
+      }
+    }
+
     gst.element_set_state(m_pipeline, GST_STATE_NULL);
     m_started = false;
+    m_feeding = false;
   }
 
   void cleanup_pipeline()
@@ -309,12 +412,35 @@ struct GStreamerOutputNode : score::gfx::OutputNode
     }
   }
 
+  // Downstream-leaky backpressure: if appsrc's queued bytes already exceed the
+  // configured budget, drop this frame instead of growing RSS without bound.
+  // Reading current-level-bytes (guint64) is cheap and lock-free in appsrc.
+  bool video_queue_full() const
+  {
+    if(m_video_max_bytes == 0 || !m_video_src)
+      return false;
+
+    auto& gst = libgstreamer::instance();
+    if(!gst.object_get_property || !gst.value_init || !gst.value_unset
+       || !gst.value_get_uint64)
+      return false;
+
+    GValue gv{};
+    gst.value_init(&gv, G_TYPE_UINT64);
+    gst.object_get_property(m_video_src, "current-level-bytes", &gv);
+    uint64_t level = gst.value_get_uint64(&gv);
+    gst.value_unset(&gv);
+    return level >= m_video_max_bytes;
+  }
+
   // Zero-copy push: takes a shallow copy of the QByteArray.
   // The QByteArray's refcount keeps the data alive until GStreamer is done.
   void push_video_frame_zerocopy(QByteArray data)
   {
-    if(!m_video_src || !m_started)
+    if(!m_video_src || !m_feeding)
       return;
+    if(video_queue_full())
+      return; // drop: downstream can't keep up
 
     auto& gst = libgstreamer::instance();
     if(!gst.buffer_new_wrapped_full)
@@ -343,7 +469,7 @@ struct GStreamerOutputNode : score::gfx::OutputNode
   // Copy push: allocates a GstBuffer and memcpys into it.
   void push_video_frame_copy(const unsigned char* data, int size)
   {
-    if(!m_video_src || !m_started)
+    if(!m_video_src || !m_feeding)
       return;
 
     auto& gst = libgstreamer::instance();
@@ -364,7 +490,7 @@ struct GStreamerOutputNode : score::gfx::OutputNode
 
   void push_audio_frame(const float* interleaved, int num_samples, int channels)
   {
-    if(!m_audio_src || !m_started)
+    if(!m_audio_src || !m_feeding)
       return;
 
     auto& gst = libgstreamer::instance();
@@ -404,6 +530,9 @@ struct GStreamerOutputNode : score::gfx::OutputNode
     auto renderer = m_renderer.lock();
     if(!renderer || !m_renderState)
       return;
+
+    // Surface any silent pipeline errors (encoder/filesink/muxer failures).
+    poll_bus_errors();
 
     auto rhi = m_renderState->rhi;
     QRhiCommandBuffer* cb{};
@@ -492,18 +621,15 @@ struct GStreamerOutputNode : score::gfx::OutputNode
 
   void createOutput(score::gfx::OutputConfiguration conf) override
   {
-    m_renderState = std::make_shared<score::gfx::RenderState>();
-
-    m_renderState->surface = QRhiGles2InitParams::newFallbackSurface();
-    QRhiGles2InitParams params;
-    params.fallbackSurface = m_renderState->surface;
-    score::GLCapabilities caps;
-    caps.setupFormat(params.format);
-    m_renderState->rhi = QRhi::create(QRhi::OpenGLES2, &params, {});
-    m_renderState->renderSize = QSize(m_settings.width, m_settings.height);
+    m_renderState = score::gfx::createRenderState(
+        conf.graphicsApi, QSize(m_settings.width, m_settings.height), nullptr);
+    if(!m_renderState || !m_renderState->rhi)
+    {
+      qWarning() << "GStreamerOutputNode: failed to create QRhi";
+      m_renderState.reset();
+      return;
+    }
     m_renderState->outputSize = m_renderState->renderSize;
-    m_renderState->api = score::gfx::GraphicsApi::OpenGL;
-    m_renderState->version = caps.qShaderVersion;
 
     auto rhi = m_renderState->rhi;
     m_texture = rhi->newTexture(
@@ -517,10 +643,12 @@ struct GStreamerOutputNode : score::gfx::OutputNode
         m_renderState->renderPassDescriptor);
     m_renderTarget->create();
 
-    init_pipeline();
+    const bool pipeline_ok = init_pipeline();
+    if(!pipeline_ok)
+      qWarning() << "GStreamerOutputNode: pipeline init failed; output disabled";
 
     // Create GPU encoder if a YUV target format was detected
-    if(!m_detectedFormat.isEmpty() && rhi)
+    if(pipeline_ok && !m_detectedFormat.isEmpty() && rhi)
     {
       auto makeEncoder = [&]() -> std::unique_ptr<score::gfx::GPUVideoEncoder> {
         if(m_detectedFormat == "UYVY" || m_detectedFormat == "YUY2")
@@ -538,6 +666,24 @@ struct GStreamerOutputNode : score::gfx::OutputNode
 
       if(m_encoder[0] && m_encoder[1])
       {
+        // Stride alignment: QRhi reads textures back with TIGHTLY packed rows,
+        // but GStreamer's default GstVideoInfo strides are GST_ROUND_UP_4. For
+        // the planar/semi-planar YUV formats the two only agree when each plane
+        // row is already a multiple of 4:
+        //   I420: Y stride = width, chroma stride = width/2  -> need width%8==0
+        //   NV12: Y stride = width, UV   stride = width      -> need width%4==0
+        //   UYVY: stride   = width*2 (4:2:2 macropixels)     -> need width%2==0
+        // height must be even for 4:2:0 vertical subsampling. We round DOWN so
+        // we never sample past the rendered texture, and feed the SAME aligned
+        // dimensions to both the encoder and the negotiated caps so the tight
+        // readback matches GStreamer's expected (now no-op ROUND_UP_4) strides.
+        const int enc_w = std::max(8, m_settings.width & ~7);  // mult of 8 (covers 4 & 2)
+        const int enc_h = std::max(2, m_settings.height & ~1); // mult of 2
+        if(enc_w != m_settings.width || enc_h != m_settings.height)
+          qDebug() << "GStreamer output: aligning" << m_detectedFormat
+                   << "from" << m_settings.width << "x" << m_settings.height
+                   << "to" << enc_w << "x" << enc_h << "for packed strides";
+
         auto input_trc = static_cast<AVColorTransferCharacteristic>(m_settings.input_transfer);
         auto colorShader = colorShaderFromColorimetry(m_detectedColorimetry, input_trc);
         qDebug() << "GStreamer output: GPU encoder"
@@ -546,9 +692,9 @@ struct GStreamerOutputNode : score::gfx::OutputNode
                  << "inputTrc=" << m_settings.input_transfer
                  << "shaderLen=" << colorShader.size();
         m_encoder[0]->init(*rhi, *m_renderState, m_texture,
-                           m_settings.width, m_settings.height, colorShader);
+                           enc_w, enc_h, colorShader);
         m_encoder[1]->init(*rhi, *m_renderState, m_texture,
-                           m_settings.width, m_settings.height, colorShader);
+                           enc_w, enc_h, colorShader);
 
         // Update appsrc caps to match the encoder's output format
         if(auto& gst = libgstreamer::instance();
@@ -556,8 +702,8 @@ struct GStreamerOutputNode : score::gfx::OutputNode
         {
           auto capsStr = QString("video/x-raw,format=%1,width=%2,height=%3,framerate=%4/1")
                              .arg(m_detectedFormat)
-                             .arg(m_settings.width)
-                             .arg(m_settings.height)
+                             .arg(enc_w)
+                             .arg(enc_h)
                              .arg(m_settings.rate);
           if(auto* caps = gst.caps_from_string(capsStr.toStdString().c_str()))
           {
@@ -582,6 +728,38 @@ struct GStreamerOutputNode : score::gfx::OutputNode
       }
     }
     cleanup_pipeline();
+
+    // Reset per-instance frame/encoder state so a subsequent createOutput()
+    // (re-create on settings change) starts clean instead of reusing a stale
+    // readback, ping-pong index, detected format or dangling renderer pointer.
+    m_currentReadback = &m_readback[0];
+    m_readback[0] = {};
+    m_readback[1] = {};
+    m_encoderIdx = 0;
+    m_detectedFormat.clear();
+    m_detectedColorimetry.clear();
+    m_inv_y_renderer = nullptr;
+    m_video_max_bytes = 0;
+
+    if(!m_renderState)
+      return;
+
+    // Persist-across-rebuild contract: registry survives RL teardown,
+    // so we tear down its QRhi resources here BEFORE
+    // RenderState::destroy() (called below) frees the device.
+    releaseRegistry();
+
+    delete m_renderTarget;
+    m_renderTarget = nullptr;
+
+    delete m_renderState->renderPassDescriptor;
+    m_renderState->renderPassDescriptor = nullptr;
+
+    delete m_texture;
+    m_texture = nullptr;
+
+    m_renderState->destroy();
+    m_renderState.reset();
   }
 
   std::shared_ptr<score::gfx::RenderState> renderState() const override

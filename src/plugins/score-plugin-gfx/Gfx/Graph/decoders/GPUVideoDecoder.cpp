@@ -9,8 +9,8 @@ GPUVideoDecoder::~GPUVideoDecoder() { }
 
 void GPUVideoDecoder::release(RenderList&)
 {
-  for(auto [sampler, tex] : samplers)
-    tex->deleteLater();
+  for(auto& s : samplers)
+    if(s.texture) s.texture->deleteLater();
 
   for(auto sampler : samplers)
   {

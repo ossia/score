@@ -13,7 +13,7 @@ namespace Gfx::CSF
 
 QSet<QString> LibraryHandler::acceptedFiles() const noexcept
 {
-  return {"cs", "comp"};
+  return {"cs", "comp", "csf"};
 }
 
 void LibraryHandler::setup(
@@ -62,7 +62,7 @@ QWidget* LibraryHandler::previewWidget(
 
 QSet<QString> DropHandler::fileExtensions() const noexcept
 {
-  return {"cs", "comp"};
+  return {"cs", "comp", "csf"};
 }
 
 void DropHandler::dropPath(
