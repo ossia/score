@@ -40,4 +40,4 @@ DocumentPlugin::DocumentPlugin(const score::DocumentContext& doc, QObject* paren
 
 DocumentPlugin::~DocumentPlugin() { }
 
-} // namespace RemoteControl::HttpServer
+}
