@@ -56,4 +56,13 @@ score::gfx::OutputNode* makePipewireOutput(const Gfx::SharedOutputSettings& s);
 SCORE_PLUGIN_GFX_EXPORT
 bool pipewireOutputDmabufEngaged(const score::gfx::OutputNode& node);
 
+/** Testability: buffers this producer handed to pipewire, over every publish
+ *  path. Lets a round-trip whose consumer received nothing distinguish "the
+ *  producer never published" from "the producer published and the frames were
+ *  lost between here and the consumer" -- only the second is a defect, and
+ *  reporting both as a skip is how the score->score direction stayed green
+ *  through a run in which nothing arrived. */
+SCORE_PLUGIN_GFX_EXPORT
+int pipewireOutputFramesQueued(const score::gfx::OutputNode& node);
+
 } // namespace Gfx::PipeWire

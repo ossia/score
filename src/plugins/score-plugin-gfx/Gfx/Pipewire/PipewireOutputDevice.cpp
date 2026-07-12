@@ -321,6 +321,7 @@ public:
         chunk->size = uint32_t(it->second.slot.size);
         chunk->stride = int32_t(it->second.slot.stride);
         pw.stream_queue_buffer(m_stream, b);
+        m_framesQueued.fetch_add(1, std::memory_order_relaxed);
       }
     }
     pw.thread_loop_unlock(lp);
@@ -410,6 +411,7 @@ public:
                             : int32_t(m_width * m_bpp);
       }
       pw.stream_queue_buffer(m_stream, b);
+      m_framesQueued.fetch_add(1, std::memory_order_relaxed);
     }
     pw.thread_loop_unlock(lp);
   }
@@ -653,6 +655,7 @@ public:
     chunk->stride = int32_t(m_width * m_bpp);
 
     pw.stream_queue_buffer(m_stream, b);
+    m_framesQueued.fetch_add(1, std::memory_order_relaxed);
     pw.thread_loop_unlock(lp);
     return true;
   }
@@ -869,6 +872,12 @@ private:
   pw_stream* m_stream{};
   std::atomic_bool m_streaming{false};
   spa_hook m_listener{};
+
+public:
+  /** Buffers actually handed to pipewire, over every publish path. */
+  std::atomic_int m_framesQueued{0};
+
+private:
 
 #if defined(SCORE_PIPEWIRE_OUT_DMABUF)
   score::gfx::vkinterop::VulkanCtx m_vk{};
@@ -1826,6 +1835,13 @@ Device::ProtocolSettingsWidget* OutputFactory::makeSettingsWidget()
 score::gfx::OutputNode* makePipewireOutput(const Gfx::SharedOutputSettings& s)
 {
   return new PipewireOutputNode{s};
+}
+
+int pipewireOutputFramesQueued(const score::gfx::OutputNode& node)
+{
+  if(auto* n = dynamic_cast<const PipewireOutputNode*>(&node); n && n->m_producer)
+    return n->m_producer->m_framesQueued.load(std::memory_order_relaxed);
+  return 0;
 }
 
 bool pipewireOutputDmabufEngaged(const score::gfx::OutputNode& node)
