@@ -39,18 +39,22 @@ vec4 processTexture(vec4 tex) {
 void main()
 {
   float y = texture(y_tex, v_texcoord).r;
-  float u = texture(uv_tex, v_texcoord).r;
-  float v = texture(uv_tex, v_texcoord).g;
+  float u = texture(uv_tex, v_texcoord).%3;
+  float v = texture(uv_tex, v_texcoord).%4;
 
   fragColor = processTexture(vec4(y, u, v, 1.));
 })_";
 
   Video::ImageFormat& decoder;
 
-  explicit NV16Decoder(Video::ImageFormat& d)
+  /// NV61 interleaves the chroma pair the other way round (V then U).
+  explicit NV16Decoder(Video::ImageFormat& d, bool swapChroma = false)
       : decoder{d}
+      , nv61{swapChroma}
   {
   }
+
+  bool nv61{};
 
   std::pair<QShader, QShader> init(RenderList& r) override
   {
@@ -82,7 +86,12 @@ void main()
     }
 
     return score::gfx::makeShaders(
-        r.state, vertexShader(), QString(frag).arg("").arg(colorMatrix(decoder)));
+        r.state, vertexShader(),
+        QString(frag)
+            .arg("")
+            .arg(colorMatrix(decoder))
+            .arg(nv61 ? "g" : "r")
+            .arg(nv61 ? "r" : "g"));
   }
 
   void exec(RenderList&, QRhiResourceUpdateBatch& res, AVFrame& frame) override
