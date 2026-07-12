@@ -751,6 +751,30 @@ if(NOT EMSCRIPTEN)
   endif()
 endif()
 
+if(NOT EMSCRIPTEN AND NOT APPLE AND NOT WIN32 AND TARGET pipewire::pipewire)
+  target_sources(${PROJECT_NAME} PRIVATE
+    Gfx/Pipewire/PipewireFormats.hpp
+    Gfx/Pipewire/PipewireInputDevice.hpp
+    Gfx/Pipewire/PipewireInputDevice.cpp
+    Gfx/Pipewire/PipewireOutputDevice.hpp
+    Gfx/Pipewire/PipewireOutputDevice.cpp
+  )
+  set_source_files_properties(
+    Gfx/Pipewire/PipewireInputDevice.cpp
+    Gfx/Pipewire/PipewireOutputDevice.cpp
+    PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON
+  )
+  # Include-only: pull pipewire's INTERFACE_INCLUDE_DIRECTORIES without
+  # linking libpipewire-0.3 (DT_NEEDED would defeat dlopen). The shared
+  # layer in libremidi resolves every pw_* symbol at runtime.
+  get_target_property(_pw_includes pipewire::pipewire INTERFACE_INCLUDE_DIRECTORIES)
+  if(_pw_includes)
+    target_include_directories(${PROJECT_NAME} PRIVATE ${_pw_includes})
+  endif()
+  target_compile_definitions(${PROJECT_NAME} PRIVATE SCORE_HAS_PIPEWIRE_VIDEO_IO)
+  list(APPEND SCORE_FEATURES_LIST pipewire_video)
+endif()
+
 if(freenect2_FOUND)
   target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_FREENECT2)
   target_include_directories(${PROJECT_NAME} PRIVATE ${freenect2_INCLUDE_DIR})
