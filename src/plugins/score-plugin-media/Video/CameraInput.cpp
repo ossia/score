@@ -22,6 +22,18 @@ namespace Video
 
 ExternalInput::~ExternalInput() = default;
 
+bool ExternalInput::notifyFormatChange(
+    int new_w, int new_h, AVPixelFormat new_pixfmt) noexcept
+{
+  if(new_w == this->width && new_h == this->height
+     && new_pixfmt == this->pixel_format)
+    return false;
+  this->width = new_w;
+  this->height = new_h;
+  this->pixel_format = new_pixfmt;
+  return true;
+}
+
 CameraInput::CameraInput() noexcept
 {
   realTime = true;
@@ -150,6 +162,16 @@ void CameraInput::release_frame(AVFrame* frame) noexcept
   m_frames.release(frame);
 }
 
+bool CameraInput::notifyFormatChange(
+    int new_w, int new_h, AVPixelFormat new_pixfmt) noexcept
+{
+  if(new_w == width && new_h == height && new_pixfmt == pixel_format)
+    return false;
+  // Drain stale-geometry frames before the renderer can dequeue them.
+  m_frames.drain();
+  return ExternalInput::notifyFormatChange(new_w, new_h, new_pixfmt);
+}
+
 void CameraInput::buffer_thread() noexcept
 {
   while(m_running.load(std::memory_order_acquire))
@@ -158,6 +180,12 @@ void CameraInput::buffer_thread() noexcept
     {
       if(auto f = read_frame_impl())
       {
+        if(f->format != (int)pixel_format || f->width != width
+           || f->height != height)
+        {
+          notifyFormatChange(
+              f->width, f->height, static_cast<AVPixelFormat>(f->format));
+        }
         m_frames.enqueue(f);
       }
     }
