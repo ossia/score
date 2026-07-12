@@ -104,13 +104,9 @@ endif()
 if(LINUX OR BSD OR APPLE OR EMSCRIPTEN)
   target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE "${OSSIA_3RDPARTY_FOLDER}/miniaudio")
   if(APPLE)
-    target_link_libraries(${PROJECT_NAME} PRIVATE "-framework AudioUnit" "$<BUILD_INTERFACE:kfr>")
+    target_link_libraries(${PROJECT_NAME} PRIVATE "-framework AudioUnit")
   endif()
   if(EMSCRIPTEN)
-    # miniaudio_protocol.hpp (kfr::interleave/deinterleave) is pulled in via
-    # WASMMiniAudioInterface, so this target needs kfr's include dir like the
-    # Linux/Apple miniaudio paths above.
-    target_link_libraries(${PROJECT_NAME} PRIVATE "$<BUILD_INTERFACE:kfr>")
     target_compile_definitions(${PROJECT_NAME} PRIVATE MA_ENABLE_AUDIO_WORKLETS MA_ENABLE_WEBAUDIO)
     target_link_options(${PROJECT_NAME} PUBLIC -sAUDIO_WORKLET=1 -sWASM_WORKERS=1)
   endif()
