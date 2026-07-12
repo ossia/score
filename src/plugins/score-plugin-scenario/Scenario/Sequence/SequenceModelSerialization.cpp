@@ -23,7 +23,7 @@
 // because new keys are forward-compatible (missing keys read as default).
 namespace
 {
-constexpr int32_t kSequenceModelSerializationVersion = 1;
+constexpr int32_t kSequenceModelSerializationVersion = 2;
 }
 
 template <>
@@ -38,6 +38,11 @@ void DataStreamReader::read(const Sequence::SequenceModel& seq)
   m_stream << (int32_t)seq.m_namespace.size();
   for(const auto& addr : seq.m_namespace)
     read(addr);
+
+  // v2: parameter outlet ids (ports themselves are rebuilt from the namespace)
+  m_stream << (int32_t)seq.m_paramOutlets.size();
+  for(const auto& p : seq.m_paramOutlets)
+    m_stream << (int32_t)p->id().val();
 
   // FrozenParams (QMap<Id<TimeSyncModel>, QSet<State::AddressAccessor>>)
   m_stream << (int32_t)seq.m_frozenParams.size();
@@ -91,6 +96,24 @@ void DataStreamWriter::write(Sequence::SequenceModel& seq)
       write(addr);
       seq.m_namespace.append(addr);
     }
+  }
+
+  // v2: parameter outlet ids
+  {
+    std::vector<int32_t> portIds;
+    if(version >= 2)
+    {
+      int32_t count;
+      m_stream >> count;
+      portIds.reserve(count);
+      for(; count-- > 0;)
+      {
+        int32_t v;
+        m_stream >> v;
+        portIds.push_back(v);
+      }
+    }
+    seq.rebuildParamPorts(portIds);
   }
 
   // FrozenParams
@@ -180,6 +203,15 @@ void JSONReader::read(const Sequence::SequenceModel& seq)
   // Namespace: array of address strings
   obj["Namespace"] = seq.m_namespace;
 
+  // Parameter outlet ids (ports themselves are rebuilt from the namespace)
+  {
+    stream.Key("ParamPortIds");
+    stream.StartArray();
+    for(const auto& p : seq.m_paramOutlets)
+      stream.Int(p->id().val());
+    stream.EndArray();
+  }
+
   // FrozenParams: array of {id, addrs[]}
   {
     stream.Key("FrozenParams");
@@ -217,6 +249,17 @@ void JSONWriter::write(Sequence::SequenceModel& seq)
   {
     JSONWriter ns_sub{obj["Namespace"]};
     ns_sub.writeTo(seq.m_namespace);
+  }
+
+  // Parameter outlet ids
+  {
+    std::vector<int32_t> portIds;
+    if(auto val = obj.tryGet("ParamPortIds"))
+    {
+      for(const auto& v : val->toArray())
+        portIds.push_back(v.GetInt());
+    }
+    seq.rebuildParamPorts(portIds);
   }
 
   // FrozenParams: array of {id, addrs[]}

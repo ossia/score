@@ -2,7 +2,15 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "SequencePresenter.hpp"
 
+#include <Automation/AutomationModel.hpp>
+
+#include <Color/GradientModel.hpp>
+
+#include <Process/Dataflow/PortFactory.hpp>
+#include <Process/Dataflow/PortItem.hpp>
+
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/SlotHeader.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
 #include <Scenario/Sequence/Commands/MoveSequenceIS.hpp>
@@ -83,6 +91,7 @@ SequencePresenter::SequencePresenter(
 
 SequencePresenter::~SequencePresenter()
 {
+  qDeleteAll(m_rowPorts);
   qDeleteAll(m_sectionPresenters);
 }
 
@@ -132,6 +141,37 @@ void SequencePresenter::rebuildSections()
   qDeleteAll(m_sectionPresenters);
   m_sectionPresenters.clear();
 
+  // Track the reference section's rack layout so the row ports follow
+  // slot resizes / front-process switches / reorganizations.
+  for(auto& conn : m_rackConns)
+    disconnect(conn);
+  m_rackConns.clear();
+  if(auto ord = m_model.orderedIntervals(); !ord.empty())
+  {
+    auto& first = m_model.intervals.at(ord.front());
+    const auto upd = [this] { updateRowPorts(); };
+    m_rackConns.push_back(connect(
+        &first, &Scenario::IntervalModel::rackChanged, this, [upd](auto) { upd(); }));
+    m_rackConns.push_back(connect(
+        &first, &Scenario::IntervalModel::slotResized, this, [upd](auto) { upd(); }));
+    m_rackConns.push_back(connect(
+        &first, &Scenario::IntervalModel::slotAdded, this, [upd](auto) { upd(); }));
+    m_rackConns.push_back(connect(
+        &first, &Scenario::IntervalModel::slotRemoved, this, [upd](auto) { upd(); }));
+    m_rackConns.push_back(connect(
+        &first, &Scenario::IntervalModel::slotsSwapped, this,
+        [upd](auto, auto, auto) { upd(); }));
+    m_rackConns.push_back(connect(
+        &first, &Scenario::IntervalModel::frontLayerChanged, this,
+        [upd](auto, auto) { upd(); }));
+    m_rackConns.push_back(connect(
+        &first, &Scenario::IntervalModel::layerAdded, this,
+        [upd](auto, auto) { upd(); }));
+    m_rackConns.push_back(connect(
+        &first, &Scenario::IntervalModel::layerRemoved, this,
+        [upd](auto, auto) { upd(); }));
+  }
+
   const auto& startTsId = m_model.startTimeSyncId();
   const auto& endTsId = m_model.endTimeSyncId();
 
@@ -145,13 +185,73 @@ void SequencePresenter::rebuildSections()
     // All are non-boundary by construction (boundary ISes are the
     // start/end timeSyncs — section intervals connect intermediate ISes
     // or the boundaries themselves, but never skip them).
+    // handles = true: slot footers are draggable (vertical resize) and slot
+    // headers allow switching / moving processes.
     auto* pres = new Scenario::TemporalIntervalPresenter{
-        m_zoom, itv, m_context.context, false, &m_view, this};
+        m_zoom, itv, m_context.context, true, &m_view, this};
     pres->on_zoomRatioChanged(m_zoom);
     m_sectionPresenters.append(pres);
   }
 
   updateSectionLayout();
+  updateRowPorts();
+}
+
+void SequencePresenter::updateRowPorts()
+{
+  qDeleteAll(m_rowPorts);
+  m_rowPorts.clear();
+
+  const auto ord = m_model.orderedIntervals();
+  if(ord.empty())
+    return;
+  const auto& first = m_model.intervals.at(ord.front());
+
+  auto& portFactory = m_context.context.app.interfaces<Process::PortFactoryList>();
+
+  // Row layout mirrors TemporalIntervalPresenter::updatePositions:
+  // each slot is [header][content][footer], stacked from y = 1.
+  qreal y = SequenceView::RailHeight + 1.;
+  for(const auto& slot : first.smallView())
+  {
+    const qreal headerY = y;
+    y += Scenario::SlotHeader::headerHeight() + slot.height
+         + Scenario::SlotFooter::footerHeight();
+
+    if(!slot.frontProcess)
+      continue;
+    auto pit = first.processes.find(*slot.frontProcess);
+    if(pit == first.processes.end())
+      continue;
+
+    State::AddressAccessor addr;
+    if(auto* a = qobject_cast<const Automation::ProcessModel*>(&*pit))
+      addr = a->address();
+    else if(auto* g = qobject_cast<const Gradient::ProcessModel*>(&*pit))
+      addr = g->address();
+    else
+      continue;
+
+    // The sequence-level outlet for this row's parameter
+    const QString label = addr.toString();
+    for(const auto& outlet : m_model.paramOutlets())
+    {
+      if(outlet->name() == label)
+      {
+        if(auto fact = portFactory.get(outlet->concreteKey()))
+        {
+          auto& port = const_cast<Process::ValueOutlet&>(*outlet);
+          if(auto* item = fact->makePortItem(port, m_context.context, &m_view, this))
+          {
+            item->setPos(2., headerY + 2.);
+            item->setZValue(11.);
+            m_rowPorts.push_back(item);
+          }
+        }
+        break;
+      }
+    }
+  }
 }
 
 void SequencePresenter::updateSectionLayout()

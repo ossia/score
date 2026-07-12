@@ -16,6 +16,10 @@ namespace Scenario
 {
 class TemporalIntervalPresenter;
 }
+namespace Dataflow
+{
+class PortItem;
+}
 
 namespace Sequence
 {
@@ -46,6 +50,10 @@ private:
   void rebuildSections();
   // Reposition existing section presenters based on current zoom + interval dates.
   void updateSectionLayout();
+  // One port item per slot row, bound to the sequence-level outlet of the
+  // row's front process parameter: a single port for all the instances of
+  // that process across sections.
+  void updateRowPorts();
 
   const SequenceModel& m_model;
   SequenceView& m_view;
@@ -53,6 +61,8 @@ private:
 
   // One TemporalIntervalPresenter per section interval, owned by this presenter.
   QVector<Scenario::TemporalIntervalPresenter*> m_sectionPresenters;
+  QVector<Dataflow::PortItem*> m_rowPorts;
+  QVector<QMetaObject::Connection> m_rackConns;
 };
 
 } // namespace Sequence

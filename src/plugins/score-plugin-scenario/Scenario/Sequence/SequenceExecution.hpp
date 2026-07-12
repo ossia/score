@@ -54,6 +54,11 @@ public:
 
   void stop() override;
 
+  // Connects every section automation/gradient output to the sequence-level
+  // per-parameter value outlets, so the whole sequence exposes one port per
+  // parameter. Called once all interval components exist.
+  void setupParamForwarding();
+
   template <typename Component_T, typename Element>
   Component_T* make(Element& elt);
 

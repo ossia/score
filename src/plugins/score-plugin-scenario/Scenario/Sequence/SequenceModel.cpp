@@ -52,9 +52,45 @@ W_OBJECT_IMPL(Sequence::SequenceModel)
 namespace Sequence
 {
 
-// Height of the small-view slot created for each automation inside a section
-// interval. Kept small so several parameters fit inside the sequence layer.
-static constexpr qreal kSectionSlotHeight = 60.;
+// Default height of the small-view slot holding a section's automations.
+static constexpr qreal kSectionSlotHeight = 100.;
+
+// RAII guard for m_rackSync: restores the previous value so nested structural
+// operations behave.
+struct RackSyncGuard
+{
+  bool& flag;
+  bool prev;
+  explicit RackSyncGuard(bool& f)
+      : flag{f}
+      , prev{f}
+  {
+    flag = true;
+  }
+  ~RackSyncGuard() { flag = prev; }
+};
+
+// The per-section instances' own ports are not shown: the sequence exposes
+// one port per parameter for the whole sequence, drawn per slot row.
+static void hideInstancePorts(Process::ProcessModel& proc)
+{
+  for(auto* in : proc.inlets())
+    in->displayHandledExplicitly = true;
+  for(auto* out : proc.outlets())
+    out->displayHandledExplicitly = true;
+}
+
+// All of a section's automations pile up in one slot by default; the user
+// reorganizes them (and the layout mirrors across sections) from there.
+static void addProcessToSectionRack(
+    Scenario::IntervalModel& itv, const Id<Process::ProcessModel>& procId)
+{
+  if(itv.smallView().empty())
+    itv.addSlot(Scenario::Slot{{procId}, procId, kSectionSlotHeight});
+  else
+    itv.addLayer(0, procId);
+  itv.setSmallViewVisible(true);
+}
 
 // ---- Color parameter helpers ----
 // A parameter whose address carries a color unit is automated with a
@@ -270,12 +306,22 @@ resolveDomain(const score::DocumentContext& ctx, const State::AddressAccessor& a
     return std::nullopt;
 
   const auto& settings = node->get<Device::AddressSettings>();
-  Curve::CurveDomain dom{settings.domain.get(), settings.value};
+
+  // Member of a vector parameter: extract the addressed component.
+  ossia::value val = settings.value;
+  const auto& accs = addr.qualifiers.get().accessors;
+  if(!accs.empty())
+  {
+    if(auto sub = ossia::get_value_at_index(val, accs); sub.valid())
+      val = sub;
+  }
+
+  Curve::CurveDomain dom{settings.domain.get(), val};
   // Guarantee a non-degenerate domain so the normalization below is finite.
   if(dom.max - dom.min < 1e-9)
     dom.max = dom.min + 1.0;
 
-  const double value = State::convert::value<double>(settings.value);
+  const double value = State::convert::value<double>(val);
 
   double normY = (value - dom.min) / (dom.max - dom.min);
   if(normY < 0.0)
@@ -283,6 +329,35 @@ resolveDomain(const score::DocumentContext& ctx, const State::AddressAccessor& a
   if(normY > 1.0)
     normY = 1.0;
   return ResolvedDomain{dom.min, dom.max, value, normY};
+}
+
+// Fixed-size vector member count (vec2f/3f/4f); nullopt for anything else.
+static std::optional<int> vecSize(const ossia::value& v)
+{
+  switch(v.get_type())
+  {
+    case ossia::val_type::VEC2F:
+      return 2;
+    case ossia::val_type::VEC3F:
+      return 3;
+    case ossia::val_type::VEC4F:
+      return 4;
+    default:
+      return std::nullopt;
+  }
+}
+
+// Raw current device value of an address, if the node exists.
+static std::optional<ossia::value> deviceRawValue(
+    const score::DocumentContext& ctx, const State::AddressAccessor& addr)
+{
+  auto* devPlugin = ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
+  if(!devPlugin)
+    return std::nullopt;
+  auto* node = Device::try_getNodeFromAddress(devPlugin->rootNode(), addr.address);
+  if(!node || !node->is<Device::AddressSettings>())
+    return std::nullopt;
+  return node->get<Device::AddressSettings>().value;
 }
 
 // Current device value of a color parameter, both as QColor and as the raw
@@ -374,6 +449,10 @@ SequenceModel::SequenceModel(
         duration, id, Metadata<ObjectKey_k, SequenceModel>::get(), parent}
     , m_context{ctx}
 {
+  // Mirror user slot-layout actions across sections. Connected before any
+  // section exists so deserialized sections are watched too.
+  intervals.mutable_added.connect<&SequenceModel::watchSection>(this);
+
   // Create start boundary node at time 0.
   // Boundary IDs follow the Scenario convention (start = 0, end = 1) so that
   // ScenarioInterface helpers and execution components agree on which TS / Event /
@@ -420,6 +499,8 @@ SequenceModel::SequenceModel(
     m_parentStartStateId = itv->startState();
     m_parentEndStateId = itv->endState();
   }
+
+  rebuildParamPorts();
 
   metadata().setInstanceName(*this);
 }
@@ -502,13 +583,101 @@ std::optional<Id<Scenario::IntervalModel>> SequenceModel::intervalAfter(
   return std::nullopt;
 }
 
+// ---- Sequence-level ports ----
+
+void SequenceModel::rebuildParamPorts(const std::vector<int32_t>& savedIds)
+{
+  m_outlets.clear();
+  if(!m_audioOutlet)
+    m_audioOutlet = std::make_unique<Process::AudioOutlet>(
+        QStringLiteral("out"), Id<Process::Port>(0), this);
+  m_outlets.push_back(m_audioOutlet.get());
+
+  std::vector<std::unique_ptr<Process::ValueOutlet>> newPorts;
+  newPorts.reserve(m_namespace.size());
+  for(int i = 0; i < m_namespace.size(); i++)
+  {
+    const auto& addr = m_namespace[i];
+    const QString label = addr.toString();
+
+    // Keep the existing port for this parameter if there is one, so cables
+    // stay attached when the namespace changes.
+    auto it = ossia::find_if(
+        m_paramOutlets, [&](auto& p) { return p && p->name() == label; });
+    if(it != m_paramOutlets.end())
+    {
+      newPorts.push_back(std::move(*it));
+    }
+    else
+    {
+      Id<Process::Port> id;
+      if(i < (int)savedIds.size())
+      {
+        id = Id<Process::Port>(savedIds[i]);
+      }
+      else
+      {
+        // Fresh unique id (0 is the audio outlet)
+        int32_t next = 1;
+        auto used = [&](int32_t v) {
+          for(auto& p : newPorts)
+            if(p->id().val() == v)
+              return true;
+          for(auto& p : m_paramOutlets)
+            if(p && p->id().val() == v)
+              return true;
+          return false;
+        };
+        while(used(next))
+          ++next;
+        id = Id<Process::Port>(next);
+      }
+      auto port = std::make_unique<Process::ValueOutlet>(label, id, this);
+      // Shown per slot row by the sequence presenter, not in the header
+      port->displayHandledExplicitly = true;
+      newPorts.push_back(std::move(port));
+    }
+  }
+  m_paramOutlets = std::move(newPorts);
+  for(auto& p : m_paramOutlets)
+    m_outlets.push_back(p.get());
+
+  outletsChanged();
+}
+
 // ---- Namespace management ----
 
 void SequenceModel::addParameter(
     const State::AddressAccessor& addr, const ossia::value& /*currentVal*/)
 {
+  RackSyncGuard rackGuard{m_rackSync};
   if(m_namespace.contains(addr))
     return;
+
+  // Fixed-size vector parameters expand into one automation per member,
+  // addressed with an index accessor. Arbitrary (variable-length) arrays are
+  // not handled.
+  if(!colorUnit(addr) && addr.qualifiers.get().accessors.empty())
+  {
+    if(auto raw = deviceRawValue(m_context, addr))
+    {
+      if(raw->get_type() == ossia::val_type::LIST)
+        return;
+      if(auto n = vecSize(*raw))
+      {
+        for(int i = 0; i < *n; ++i)
+        {
+          auto sub = addr;
+          auto& acc = sub.qualifiers.get().accessors;
+          acc.clear();
+          acc.push_back(i);
+          addParameter(sub, {});
+        }
+        return;
+      }
+    }
+  }
+
   m_namespace.append(addr);
 
   // Color parameters are automated with a Gradient process per section,
@@ -530,11 +699,12 @@ void SequenceModel::addParameter(
       g[1.] = c;
       grad->setGradient(g);
       Scenario::AddProcess(itv, grad);
-      itv.addSlot(Scenario::Slot{{procId}, procId, kSectionSlotHeight});
-      itv.setSmallViewVisible(true);
+      hideInstancePorts(*grad);
+      addProcessToSectionRack(itv, procId);
     }
 
     namespaceChanged();
+    rebuildParamPorts();
     return;
   }
 
@@ -558,17 +728,33 @@ void SequenceModel::addParameter(
     automation->setMax(maxVal);
     initFlatCurve(automation->curve(), normY);
     Scenario::AddProcess(itv, automation);
-    // Add to small-view rack so it renders in the section presenter
-    Scenario::Slot slot{{autoId}, autoId, kSectionSlotHeight};
-    itv.addSlot(std::move(slot));
-    itv.setSmallViewVisible(true);
+    hideInstancePorts(*automation);
+    // Add to the section's rack so it renders in the section presenter
+    addProcessToSectionRack(itv, autoId);
   }
 
   namespaceChanged();
+  rebuildParamPorts();
 }
 
 void SequenceModel::removeParameter(const State::AddressAccessor& addr)
 {
+  RackSyncGuard rackGuard{m_rackSync};
+  // Removing a vector parameter by its base address removes every expanded
+  // member entry (added with index accessors by addParameter).
+  if(!m_namespace.contains(addr) && addr.qualifiers.get().accessors.empty())
+  {
+    QList<State::AddressAccessor> members;
+    for(const auto& entry : m_namespace)
+    {
+      if(entry.address == addr.address)
+        members.push_back(entry);
+    }
+    for(const auto& m : members)
+      removeParameter(m);
+    return;
+  }
+
   m_namespace.removeAll(addr);
 
   // Remove automations / gradients for this address from all section intervals
@@ -596,6 +782,7 @@ void SequenceModel::removeParameter(const State::AddressAccessor& addr)
   }
 
   namespaceChanged();
+  rebuildParamPorts();
 }
 
 void SequenceModel::mergeNamespace(const QList<State::AddressAccessor>& addrs)
@@ -658,6 +845,7 @@ SequenceModel::AppendedSection SequenceModel::appendSection(const TimeVal& durat
 void SequenceModel::appendSectionWithIds(
     const AppendedSection& info, const TimeVal& duration)
 {
+  RackSyncGuard rackGuard{m_rackSync};
   // The current end IS stays at its date, becoming an intermediate IS.
   // A new end IS is created at current_end_date + duration.
   const auto& endTs = timeSyncs.at(m_endTimeSyncId);
@@ -720,8 +908,8 @@ void SequenceModel::appendSectionWithIds(
       g[1.] = devColor;
       grad->setGradient(g);
       Scenario::AddProcess(newItv, grad);
-      newItv.addSlot(Scenario::Slot{{procId}, procId, kSectionSlotHeight});
-      newItv.setSmallViewVisible(true);
+      hideInstancePorts(*grad);
+      addProcessToSectionRack(newItv, procId);
 
       if(resolved)
       {
@@ -774,11 +962,10 @@ void SequenceModel::appendSectionWithIds(
     else
       initFlatCurve(automation->curve(), 0.5);
     Scenario::AddProcess(newItv, automation);
+    hideInstancePorts(*automation);
 
-    // Add to small-view rack so it renders in the section presenter
-    Scenario::Slot slot{{autoId}, autoId, kSectionSlotHeight};
-    newItv.addSlot(std::move(slot));
-    newItv.setSmallViewVisible(true);
+    // Add to the section's rack so it renders in the section presenter
+    addProcessToSectionRack(newItv, autoId);
 
     // Record the current device value on the new end state
     if(resolved)
@@ -795,11 +982,19 @@ void SequenceModel::appendSectionWithIds(
   // Update process duration
   setDuration(newEndDate);
 
+  // The new section adopts the slot layout of the previous last section
+  {
+    const auto ord = orderedIntervals();
+    if(ord.size() > 1)
+      mirrorRackLayout(intervals.at(ord[ord.size() - 2]));
+  }
+
   structureChanged();
 }
 
 void SequenceModel::undoAppendSection(const AppendedSection& info)
 {
+  RackSyncGuard rackGuard{m_rackSync};
   // Disconnect the prev-end state's next-interval link before removal
   auto& prevEndSt = states.at(stateForTimeSync(info.prevEndTimeSyncId));
   prevEndSt.setNextInterval(std::nullopt);
@@ -931,6 +1126,7 @@ SequenceModel::sectionAt(const TimeVal& date) const
 
 void SequenceModel::insertISWithIds(const InsertedIS& info, const TimeVal& date)
 {
+  RackSyncGuard rackGuard{m_rackSync};
   auto& leftItv = intervals.at(info.leftItvId);
   const TimeVal leftStart = leftItv.date();
   const TimeVal oldDur = leftItv.duration.defaultDuration();
@@ -994,8 +1190,8 @@ void SequenceModel::insertISWithIds(const InsertedIS& info, const TimeVal& date)
       rightGrad->outlet->setAddress(addr);
       rightGrad->setGradient(rightStops);
       Scenario::AddProcess(rightItv, rightGrad);
-      rightItv.addSlot(Scenario::Slot{{procId}, procId, kSectionSlotHeight});
-      rightItv.setSmallViewVisible(true);
+      hideInstancePorts(*rightGrad);
+      addProcessToSectionRack(rightItv, procId);
 
       leftGrad->setGradient(leftStops);
 
@@ -1022,6 +1218,7 @@ void SequenceModel::insertISWithIds(const InsertedIS& info, const TimeVal& date)
     rightAuto->setMax(leftAuto->max());
     polylineToCurve(rightAuto->curve(), polylineSlice(pts, t, 1.));
     Scenario::AddProcess(rightItv, rightAuto);
+    hideInstancePorts(*rightAuto);
     Scenario::Slot slot{{autoId}, autoId, kSectionSlotHeight};
     rightItv.addSlot(std::move(slot));
     rightItv.setSmallViewVisible(true);
@@ -1042,11 +1239,15 @@ void SequenceModel::insertISWithIds(const InsertedIS& info, const TimeVal& date)
   for(auto& proc : leftItv.processes)
     proc.setParentDuration(ExpandMode::Scale, newLeftDur);
 
+  // The new right section adopts the split section's slot layout
+  mirrorRackLayout(leftItv);
+
   structureChanged();
 }
 
 void SequenceModel::undoInsertIS(const InsertedIS& info)
 {
+  RackSyncGuard rackGuard{m_rackSync};
   auto& leftItv = intervals.at(info.leftItvId);
   auto& rightItv = intervals.at(info.rightItvId);
   const auto endStId = rightItv.endState();
@@ -1135,6 +1336,123 @@ void SequenceModel::undoInsertIS(const InsertedIS& info)
 }
 
 // ---- IS value management ----
+
+void SequenceModel::watchSection(Scenario::IntervalModel& itv)
+{
+  const auto sync = [this, &itv] {
+    if(!m_rackSync)
+      mirrorRackLayout(itv);
+  };
+  connect(
+      &itv, &Scenario::IntervalModel::slotResized, this,
+      [sync](Scenario::SlotId s) {
+    if(s.smallView())
+      sync();
+      });
+  connect(
+      &itv, &Scenario::IntervalModel::slotAdded, this,
+      [sync](Scenario::SlotId s) {
+    if(s.smallView())
+      sync();
+      });
+  connect(
+      &itv, &Scenario::IntervalModel::slotRemoved, this,
+      [sync](Scenario::SlotId s) {
+    if(s.smallView())
+      sync();
+      });
+  connect(
+      &itv, &Scenario::IntervalModel::slotsSwapped, this,
+      [sync](int, int, Scenario::Slot::RackView v) {
+    if(v == Scenario::Slot::SmallView)
+      sync();
+      });
+  connect(
+      &itv, &Scenario::IntervalModel::layerAdded, this,
+      [sync](Scenario::SlotId s, const Id<Process::ProcessModel>&) {
+    if(s.smallView())
+      sync();
+      });
+  connect(
+      &itv, &Scenario::IntervalModel::layerRemoved, this,
+      [sync](Scenario::SlotId s, const Id<Process::ProcessModel>&) {
+    if(s.smallView())
+      sync();
+      });
+  connect(
+      &itv, &Scenario::IntervalModel::frontLayerChanged, this,
+      [sync](int, const OptionalId<Process::ProcessModel>&) { sync(); });
+}
+
+std::optional<Id<Process::ProcessModel>> SequenceModel::correspondingProcess(
+    const Scenario::IntervalModel& source, const Id<Process::ProcessModel>& pid,
+    Scenario::IntervalModel& target) const
+{
+  auto it = source.processes.find(pid);
+  if(it == source.processes.end())
+    return std::nullopt;
+
+  if(auto* a = qobject_cast<const Automation::ProcessModel*>(&*it))
+  {
+    if(auto* t = automationForAddr(target, a->address()))
+      return t->id();
+  }
+  else if(auto* g = qobject_cast<const Gradient::ProcessModel*>(&*it))
+  {
+    if(auto* t = gradientForAddr(target, g->address()))
+      return t->id();
+  }
+  return std::nullopt;
+}
+
+void SequenceModel::mirrorRackLayout(const Scenario::IntervalModel& source)
+{
+  RackSyncGuard guard{m_rackSync};
+
+  for(auto& other_c : intervals)
+  {
+    auto& other = const_cast<Scenario::IntervalModel&>(other_c);
+    if(&other == &source)
+      continue;
+
+    Scenario::Rack rack;
+    std::vector<Id<Process::ProcessModel>> used;
+    for(const auto& slot : source.smallView())
+    {
+      Scenario::Slot s;
+      s.height = slot.height;
+      s.nodal = slot.nodal;
+      for(const auto& pid : slot.processes)
+      {
+        if(auto mapped = correspondingProcess(source, pid, other))
+        {
+          s.processes.push_back(*mapped);
+          used.push_back(*mapped);
+        }
+      }
+      if(s.processes.empty())
+        continue;
+      if(slot.frontProcess)
+      {
+        if(auto mapped = correspondingProcess(source, *slot.frontProcess, other))
+          s.frontProcess = *mapped;
+      }
+      if(!s.frontProcess || !ossia::contains(s.processes, *s.frontProcess))
+        s.frontProcess = s.processes.front();
+      rack.push_back(std::move(s));
+    }
+
+    // Processes with no counterpart in the source keep their own slot so they
+    // never silently disappear from view.
+    for(auto& proc : other.processes)
+    {
+      if(!ossia::contains(used, proc.id()))
+        rack.push_back(Scenario::Slot{{proc.id()}, proc.id(), kSectionSlotHeight});
+    }
+
+    other.replaceSmallView(rack);
+  }
+}
 
 Automation::ProcessModel* SequenceModel::automationForAddr(
     Scenario::IntervalModel& itv, const State::AddressAccessor& addr) const
@@ -1341,6 +1659,7 @@ bool SequenceModel::isParamFrozen(
 
 void SequenceModel::rebuildAutomations(const State::AddressAccessor& addr)
 {
+  RackSyncGuard rackGuard{m_rackSync};
   if(auto* cu = colorUnit(addr))
   {
     auto resolved = resolveDeviceColor(m_context, addr, *cu);
@@ -1359,8 +1678,8 @@ void SequenceModel::rebuildAutomations(const State::AddressAccessor& addr)
       g[1.] = c;
       grad->setGradient(g);
       Scenario::AddProcess(itv, grad);
-      itv.addSlot(Scenario::Slot{{procId}, procId, kSectionSlotHeight});
-      itv.setSmallViewVisible(true);
+      hideInstancePorts(*grad);
+      addProcessToSectionRack(itv, procId);
     }
     return;
   }
@@ -1403,15 +1722,15 @@ void SequenceModel::rebuildAutomations(const State::AddressAccessor& addr)
       automation->setMax(maxVal);
       initFlatCurve(automation->curve(), normY);
       Scenario::AddProcess(itv, automation);
-      Scenario::Slot slot{{autoId}, autoId, kSectionSlotHeight};
-      itv.addSlot(std::move(slot));
-      itv.setSmallViewVisible(true);
+    hideInstancePorts(*automation);
+      addProcessToSectionRack(itv, autoId);
     }
   }
 }
 
 void SequenceModel::repairSectionRacks()
 {
+  RackSyncGuard rackGuard{m_rackSync};
   // Files saved before slots were added to section intervals have automations
   // that are in no small-view slot, so nothing renders in the section
   // presenters. Give every slot-less process its own slot.
@@ -1419,6 +1738,7 @@ void SequenceModel::repairSectionRacks()
   {
     for(const auto& proc : itv.processes)
     {
+      hideInstancePorts(const_cast<Process::ProcessModel&>(proc));
       bool inSlot = false;
       for(const auto& slot : itv.smallView())
       {
@@ -1429,7 +1749,7 @@ void SequenceModel::repairSectionRacks()
         }
       }
       if(!inSlot)
-        itv.addSlot(Scenario::Slot{{proc.id()}, proc.id(), kSectionSlotHeight});
+        addProcessToSectionRack(itv, proc.id());
     }
     if(!itv.smallView().empty())
       itv.setSmallViewVisible(true);

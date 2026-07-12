@@ -337,7 +337,10 @@ CreateSequence* CreateSequence::make(
   {
     const bool isColor
         = bool(msg.address.qualifiers.get().unit.v.target<ossia::color_u>());
-    if(!ossia::is_numeric(msg.value) && !isColor)
+    const bool isVec = msg.value.get_type() == ossia::val_type::VEC2F
+                       || msg.value.get_type() == ossia::val_type::VEC3F
+                       || msg.value.get_type() == ossia::val_type::VEC4F;
+    if(!ossia::is_numeric(msg.value) && !isColor && !isVec)
       continue;
 
     auto node = Device::try_getNodeFromAddress(devPlugin.rootNode(), msg.address.address);
@@ -346,6 +349,38 @@ CreateSequence* CreateSequence::make(
 
     devPlugin.updateProxy.refreshRemoteValue(msg.address.address);
     const auto& endVal = node->get<Device::AddressSettings>().value;
+
+    if(isVec && !isColor)
+    {
+      // One boundary-value pair per vector member, matching the per-member
+      // automations created by addParameter.
+      const int n = msg.value.get_type() == ossia::val_type::VEC2F ? 2
+                    : msg.value.get_type() == ossia::val_type::VEC3F ? 3
+                                                                     : 4;
+      for(int i = 0; i < n; ++i)
+      {
+        auto sub = msg.address;
+        auto& acc = sub.qualifiers.get().accessors;
+        acc.clear();
+        acc.push_back(i);
+
+        const auto startSub = ossia::get_value_at_index(msg.value, {i});
+        const auto endSub = ossia::get_value_at_index(endVal, {i});
+        if(!startSub.valid() || !endSub.valid())
+          continue;
+
+        auto set_start = new Sequence::Command::SetSequenceISValue{
+            *seqModel, seqModel->startTimeSyncId(), sub, startSub};
+        set_start->redo(ctx);
+        cmd->addCommand(set_start);
+
+        auto set_end = new Sequence::Command::SetSequenceISValue{
+            *seqModel, seqModel->endTimeSyncId(), sub, endSub};
+        set_end->redo(ctx);
+        cmd->addCommand(set_end);
+      }
+      continue;
+    }
 
     auto set_start = new Sequence::Command::SetSequenceISValue{
         *seqModel, seqModel->startTimeSyncId(), msg.address, msg.value};

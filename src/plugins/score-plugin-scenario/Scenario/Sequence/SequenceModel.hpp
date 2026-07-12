@@ -1,4 +1,5 @@
 #pragma once
+#include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
 
@@ -64,6 +65,10 @@ public:
       , m_context{ctx}
   {
     vis.writeTo(*this);
+    // Watch sections loaded by writeTo above, and any added later.
+    intervals.mutable_added.connect<&SequenceModel::watchSection>(this);
+    for(auto& itv : intervals)
+      watchSection(const_cast<Scenario::IntervalModel&>(itv));
     if(auto* itv = qobject_cast<Scenario::IntervalModel*>(parent))
     {
       m_parentStartStateId = itv->startState();
@@ -182,6 +187,15 @@ public:
 
   // Namespace management
   const QList<State::AddressAccessor>& parameterNamespace() const noexcept { return m_namespace; }
+  // Rebuilds the outlet list: the audio outlet plus one value outlet per
+  // namespace parameter — the sequence exposes a single port per parameter
+  // for the whole sequence. savedIds keeps port identities stable across
+  // save/load so cables stay valid.
+  void rebuildParamPorts(const std::vector<int32_t>& savedIds = {});
+  const std::vector<std::unique_ptr<Process::ValueOutlet>>& paramOutlets() const noexcept
+  {
+    return m_paramOutlets;
+  }
   void addParameter(const State::AddressAccessor& addr, const ossia::value& currentVal);
   void removeParameter(const State::AddressAccessor& addr);
   void mergeNamespace(const QList<State::AddressAccessor>& addrs);
@@ -282,6 +296,16 @@ private:
   // curves keep denoting the same actual values.
   void ensureParamRange(const State::AddressAccessor& addr, double v);
 
+  // Rack mirroring: slot layout actions on one section (resize, front process
+  // change, moving processes across slots...) propagate to every section, so
+  // the sequence reads as parallel lanes.
+  void watchSection(Scenario::IntervalModel& itv);
+  void mirrorRackLayout(const Scenario::IntervalModel& source);
+  // The process in `target` denoting the same parameter as `pid` in `source`.
+  std::optional<Id<Process::ProcessModel>> correspondingProcess(
+      const Scenario::IntervalModel& source, const Id<Process::ProcessModel>& pid,
+      Scenario::IntervalModel& target) const;
+
   const score::DocumentContext& m_context;
 
   // Ordered list of tracked parameters (defines slot layout order)
@@ -289,6 +313,14 @@ private:
 
   // Freeze map: timeSyncId → set of frozen parameter addresses
   QMap<Id<Scenario::TimeSyncModel>, QSet<State::AddressAccessor>> m_frozenParams;
+
+  // True while the model itself mutates section racks (structural operations,
+  // mirroring): blocks the mirror-on-signal feedback loop.
+  bool m_rackSync{};
+
+  // Sequence-level ports: audio passthrough + one value outlet per parameter
+  std::unique_ptr<Process::AudioOutlet> m_audioOutlet;
+  std::vector<std::unique_ptr<Process::ValueOutlet>> m_paramOutlets;
 
   // IDs of the boundary timeSyncs (structural, not user-visible IS)
   Id<Scenario::TimeSyncModel> m_startTimeSyncId{};
