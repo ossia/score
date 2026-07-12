@@ -20,7 +20,7 @@
 #include <vulkan/vulkan.h>
 #if defined(VK_EXT_image_drm_format_modifier) && defined(VK_KHR_external_memory_fd) \
     && QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
-#include <Gfx/Graph/decoders/DMABufImport.hpp>
+#include <Gfx/Graph/interop/DMABufImport.hpp>
 #define HAS_DMABUF_IMPORT 1
 #endif
 #endif

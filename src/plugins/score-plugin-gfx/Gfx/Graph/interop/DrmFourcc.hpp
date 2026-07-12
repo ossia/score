@@ -6,13 +6,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 //
 // DRM fourcc <-> AVPixelFormat <-> SPA video format mapping: the one
-// authoritative table, shared by Gfx/Pipewire, Gfx/WindowCapture and
-// tests/PipewireRoundtrip.cpp.
+// authoritative table, shared by Gfx/Pipewire, Gfx/WindowCapture and the
+// PipewireRoundtrip test in score-plugin-gfx/tests.
 //
-// Conventions (little-endian, per <drm/drm_fourcc.h> — hardware-verified by
+// Conventions (little-endian, per <drm/drm_fourcc.h>, hardware-verified by
 // the PipewireRoundtrip DMA-BUF cells):
 //   - DRM fourccs name components from MSB to LSB of the packed word, so
-//     memory order is REVERSED: DRM_FORMAT_ABGR8888 ('AB24') is
+//     memory order is reversed: DRM_FORMAT_ABGR8888 ('AB24') is
 //     [R,G,B,A] bytes in memory == AV_PIX_FMT_RGBA == SPA_VIDEO_FORMAT_RGBA.
 //   - 10-bit: DRM_FORMAT_ARGB2101010 ('AR30') has R in bits 29-20 ==
 //     AV_PIX_FMT_X2RGB10LE == SPA_VIDEO_FORMAT_xRGB_210LE. 'AB30' is the
@@ -43,6 +43,19 @@ constexpr uint32_t drmFourcc(char a, char b, char c, char d) noexcept
 }
 
 // clang-format off
+// Single- and dual-channel planes, used to import a planar frame one plane at a
+// time. DRM_FORMAT_GR1616 is fourcc_code('G','R','3','2') -- not 'GR16', which
+// is not a fourcc any kernel knows.
+inline constexpr uint32_t DRM_R8            = drmFourcc('R','8',' ',' ');
+inline constexpr uint32_t DRM_GR88          = drmFourcc('G','R','8','8');
+inline constexpr uint32_t DRM_R16           = drmFourcc('R','1','6',' ');
+inline constexpr uint32_t DRM_GR1616        = drmFourcc('G','R','3','2');
+
+static_assert(DRM_R8 == 0x20203852u, "DRM_FORMAT_R8");
+static_assert(DRM_GR88 == 0x38385247u, "DRM_FORMAT_GR88");
+static_assert(DRM_R16 == 0x20363152u, "DRM_FORMAT_R16");
+static_assert(DRM_GR1616 == 0x32335247u, "DRM_FORMAT_GR1616");
+
 inline constexpr uint32_t DRM_ABGR8888      = drmFourcc('A','B','2','4'); // [R,G,B,A] memory
 inline constexpr uint32_t DRM_ARGB8888      = drmFourcc('A','R','2','4'); // [B,G,R,A] memory
 inline constexpr uint32_t DRM_XBGR8888      = drmFourcc('X','B','2','4');
@@ -62,10 +75,9 @@ inline constexpr uint32_t DRM_UYVY          = drmFourcc('U','Y','V','Y');
 
 /** DRM fourcc -> AVPixelFormat. Delegates to the vocabulary: the fourcc names a
  *  layout, and the layout knows its AVPixelFormat, so there is no second opinion
- *  about either here. Verified to answer exactly as the previous table did for
- *  every fourcc it handled, including AV_PIX_FMT_NONE for DRM_YVU420, whose
- *  plane-swapped layout FFmpeg cannot name -- callers must swap U and V, and
- *  interop::fromDrmFourcc() now tells them so explicitly by answering YVU420P. */
+ *  about either here. DRM_YVU420 answers AV_PIX_FMT_NONE, its plane-swapped
+ *  layout being one FFmpeg cannot name -- callers must swap U and V, and
+ *  interop::fromDrmFourcc() says so explicitly by answering YVU420P. */
 inline AVPixelFormat drmFourccToAv(uint32_t fourcc) noexcept
 {
   return score::gfx::interop::toAVPixelFormat(
@@ -89,13 +101,12 @@ drmFourccToVideoPixelFormat(uint32_t fourcc) noexcept
 }
 
 #if defined(SCORE_GFX_HAS_SPA_RAW)
-/** SPA video format -> DRM fourcc. 0 if unmapped. Superset of the former
- *  PipewireFormats::toDrmFourcc and WindowCapture_pipewire tables. */
 /** SPA video format -> the buffer layout. SPA formats are defined in DRM terms,
  *  so this goes through the fourcc rather than maintaining a third table. */
 inline score::gfx::interop::VideoPixelFormat
 spaToVideoPixelFormat(uint32_t spaFmt) noexcept;
 
+/** SPA video format -> DRM fourcc. 0 if unmapped. */
 inline uint32_t spaToDrmFourcc(uint32_t spaFmt) noexcept
 {
   switch(spaFmt)

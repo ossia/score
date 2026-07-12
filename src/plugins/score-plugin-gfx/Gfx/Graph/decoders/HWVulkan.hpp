@@ -2,7 +2,7 @@
 
 #if defined(__linux__)
 #include <Gfx/Graph/decoders/ColorSpace.hpp>
-#include <Gfx/Graph/decoders/DMABufImport.hpp>
+#include <Gfx/Graph/interop/DMABufImport.hpp>
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
 #include <Gfx/Graph/decoders/NV12.hpp>
 #include <Gfx/Graph/decoders/P010.hpp>

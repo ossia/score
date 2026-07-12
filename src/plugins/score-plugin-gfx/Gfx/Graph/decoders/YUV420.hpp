@@ -39,18 +39,22 @@ vec4 processTexture(vec4 tex) {
 void main ()
 {
   float y = texture(y_tex, v_texcoord).r;
-  float u = texture(u_tex, v_texcoord).r;
-  float v = texture(v_tex, v_texcoord).r;
+  float u = texture(%3_tex, v_texcoord).r;
+  float v = texture(%4_tex, v_texcoord).r;
 
   fragColor = processTexture(vec4(y,u,v, 1.));
 })_";
 
-  explicit YUV420Decoder(Video::ImageFormat& d)
+  /// YV12 is YUV420P with the U and V planes exchanged in memory; sampling
+  /// them the other way round is the whole difference.
+  explicit YUV420Decoder(Video::ImageFormat& d, bool swapPlanes = false)
       : decoder{d}
+      , yv12{swapPlanes}
   {
   }
 
   Video::ImageFormat& decoder;
+  bool yv12{};
 
   std::pair<QShader, QShader> init(RenderList& r) override
   {
@@ -95,7 +99,12 @@ void main ()
     }
 
     return score::gfx::makeShaders(
-        r.state, vertexShader(), QString(frag).arg("").arg(colorMatrix(decoder)));
+        r.state, vertexShader(),
+        QString(frag)
+            .arg("")
+            .arg(colorMatrix(decoder))
+            .arg(yv12 ? "v" : "u")
+            .arg(yv12 ? "u" : "v"));
   }
 
   void exec(RenderList&, QRhiResourceUpdateBatch& res, AVFrame& frame) override

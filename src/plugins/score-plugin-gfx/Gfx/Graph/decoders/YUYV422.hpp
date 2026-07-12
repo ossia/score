@@ -44,18 +44,21 @@ void main() {
   float evenY = texture(u_tex, v_texcoord + dxInput).x;
   float y = mix(evenY, oddY, oddCol);
 
-  vec2 uv = texture(u_tex, v_texcoord).yw;
+  vec2 uv = texture(u_tex, v_texcoord).%3;
 
   fragColor = processTexture(vec4(y, uv.x, uv.y, 1.));
 }
 )_";
 
-  explicit YUYV422Decoder(Video::ImageFormat& d)
+  /// YVYU is YUYV with the two chroma taps exchanged; nothing else differs.
+  explicit YUYV422Decoder(Video::ImageFormat& d, bool swapChroma = false)
       : decoder{d}
+      , yvyu{swapChroma}
   {
   }
 
   Video::ImageFormat& decoder;
+  bool yvyu{};
   std::pair<QShader, QShader> init(RenderList& r) override
   {
     auto& rhi = *r.state.rhi;
@@ -74,7 +77,8 @@ void main() {
     }
 
     return score::gfx::makeShaders(
-        r.state, vertexShader(), QString(frag).arg("").arg(colorMatrix(decoder)));
+        r.state, vertexShader(),
+        QString(frag).arg("").arg(colorMatrix(decoder)).arg(yvyu ? "wy" : "yw"));
   }
 
   void exec(RenderList&, QRhiResourceUpdateBatch& res, AVFrame& frame) override
@@ -133,18 +137,21 @@ void main() {
    float evenY = texture(u_tex, v_texcoord + dxInput).y;
    float y = mix(evenY, oddY, oddCol);
 
-   vec2 uv = texture(u_tex, v_texcoord).xz;
+   vec2 uv = texture(u_tex, v_texcoord).%3;
 
   fragColor = processTexture(vec4(y, uv.x, uv.y, 1.));
 }
 )_";
 
-  UYVY422Decoder(Video::ImageFormat& d)
+  /// VYUY is UYVY with the two chroma taps exchanged.
+  UYVY422Decoder(Video::ImageFormat& d, bool swapChroma = false)
       : decoder{d}
+      , vyuy{swapChroma}
   {
   }
 
   Video::ImageFormat& decoder;
+  bool vyuy{};
   std::pair<QShader, QShader> init(RenderList& r) override
   {
     auto& rhi = *r.state.rhi;
@@ -163,7 +170,8 @@ void main() {
     }
 
     return score::gfx::makeShaders(
-        r.state, vertexShader(), QString(frag).arg("").arg(colorMatrix(decoder)));
+        r.state, vertexShader(),
+        QString(frag).arg("").arg(colorMatrix(decoder)).arg(vyuy ? "zx" : "xz"));
   }
 
   void exec(RenderList&, QRhiResourceUpdateBatch& res, AVFrame& frame) override
