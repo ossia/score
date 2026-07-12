@@ -159,15 +159,15 @@ public:
    *  expected to:
    *    1. Allocate the destination QRhiTexture as an exportable Vulkan
    *       image via `vkinterop::createExportableImage`.
-   *    2. Import it into CUDA via `cuda_p2p_import_vulkan_image`
+   *    2. Import it into CUDA via `cuda_interop_import_vulkan_image`
    *       (returns a CUarray for the level-0 face).
-   *    3. Call `bindCudaDestination(dst, cuda_p2p_ctx, cuda_array)` once.
+   *    3. Call `bindCudaDestination(dst, cuda_interop_ctx, cuda_array)` once.
    *    4. Use the same QRhiTexture pointer in each
    *       `uploadSlotToTexture(i, dst, ...)` call.
    *
    *  `cuda_array` is a `CUarray` cast to `void*` to avoid pulling
    *  CudaFunctions.hpp into score's gfx public headers. `cuda_ctx`
-   *  is the `CudaP2PContextHandle` (also `void*`).
+   *  is the `CudaInteropContextHandle` (also `void*`).
    *
    *  Calling with `cuda_array = nullptr` clears the binding for that
    *  texture (upload falls back to the CPU staging path).

@@ -66,7 +66,7 @@ void ImportedGpuBufferRing::destroy()
   for(auto& slot : m_slots)
   {
     if(slot.cudaHandle && m_cfg.cudaCtx)
-      cuda_p2p_release_buffer(m_cfg.cudaCtx, slot.cudaHandle);
+      cuda_interop_release_buffer(m_cfg.cudaCtx, slot.cudaHandle);
     slot.cudaHandle = nullptr;
     slot.gpuDevicePtr = nullptr;
   }
@@ -122,14 +122,14 @@ bool ImportedGpuBufferRing::createD3D11()
     if(!d3d11Buf)
       return false;
 
-    if(cuda_p2p_import_d3d11_buffer(
+    if(cuda_interop_import_d3d11_buffer(
            m_cfg.cudaCtx, d3d11Buf, d3d11Device, m_cfg.bufferSize,
            &slot.gpuDevicePtr, &slot.cudaHandle)
-           != CUDA_P2P_SUCCESS
+           != CUDA_INTEROP_SUCCESS
        || !slot.gpuDevicePtr)
     {
       qWarning() << "ImportedGpuBufferRing(D3D11): bridge import failed:"
-                 << cuda_p2p_get_error_string(m_cfg.cudaCtx);
+                 << cuda_interop_get_error_string(m_cfg.cudaCtx);
       return false;
     }
   }
@@ -171,27 +171,27 @@ bool ImportedGpuBufferRing::createOpenGL()
     if(m_cfg.glRegisterOnly)
     {
       // CAPTURE: register only; gpuDevicePtr stays null. The consumer writes
-      // each frame via cuda_p2p_gl_write_buffer (map→copy→unmap) so GL sees
+      // each frame via cuda_interop_gl_write_buffer (map→copy→unmap) so GL sees
       // the data. Keeping it mapped here would make GL read stale memory.
-      if(cuda_p2p_register_gl_buffer(
+      if(cuda_interop_register_gl_buffer(
              m_cfg.cudaCtx, glBufferId, m_cfg.bufferSize, &slot.cudaHandle)
-             != CUDA_P2P_SUCCESS
+             != CUDA_INTEROP_SUCCESS
          || !slot.cudaHandle)
       {
         qWarning() << "ImportedGpuBufferRing(GL): bridge register failed:"
-                   << cuda_p2p_get_error_string(m_cfg.cudaCtx);
+                   << cuda_interop_get_error_string(m_cfg.cudaCtx);
         return false;
       }
     }
     else if(
-        cuda_p2p_import_gl_buffer(
+        cuda_interop_import_gl_buffer(
             m_cfg.cudaCtx, glBufferId, m_cfg.bufferSize, &slot.gpuDevicePtr,
             &slot.cudaHandle)
-            != CUDA_P2P_SUCCESS
+            != CUDA_INTEROP_SUCCESS
         || !slot.gpuDevicePtr)
     {
       qWarning() << "ImportedGpuBufferRing(GL): bridge import failed:"
-                 << cuda_p2p_get_error_string(m_cfg.cudaCtx);
+                 << cuda_interop_get_error_string(m_cfg.cudaCtx);
       return false;
     }
   }

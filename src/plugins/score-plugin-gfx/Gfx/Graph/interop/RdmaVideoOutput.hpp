@@ -10,7 +10,7 @@
  * reuse the same buffer-ring + encoder + fence plumbing.
  *
  * What the helper owns:
- *   - A `CudaP2PContextHandle` (init at create, destroy at release).
+ *   - A `CudaInteropContextHandle` (init at create, destroy at release).
  *   - A `ImportedGpuBufferRing` of N CUDA-imported QRhi storage buffers.
  *   - A per-backend `InteropFence` for cross-API ordering.
  *   - A `ComputeRingDispatcher` that runs the per-slot encoder.
@@ -34,7 +34,7 @@
 
 #include <Gfx/Graph/encoders/ComputeEncoder.hpp>
 #include <Gfx/Graph/interop/ComputeRingDispatcher.hpp>
-#include <Gfx/Graph/interop/CudaP2PBridge.h>
+#include <Gfx/Graph/interop/CudaInterop.h>
 #include <Gfx/Graph/interop/ImportedGpuBufferRing.hpp>
 #include <Gfx/Graph/interop/InteropFence.hpp>
 #include <Gfx/Graph/interop/VendorDmaRegistrar.hpp>
@@ -139,7 +139,7 @@ public:
 
 private:
   RdmaVideoOutputConfig m_cfg{};
-  CudaP2PContextHandle m_cudaCtx{};
+  CudaInteropContextHandle m_cudaCtx{};
   ImportedGpuBufferRing m_ring;
   std::unique_ptr<InteropFence> m_fence;
   ComputeRingDispatcher m_dispatcher;

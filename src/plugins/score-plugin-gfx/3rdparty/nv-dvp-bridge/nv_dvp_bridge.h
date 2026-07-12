@@ -180,7 +180,7 @@ NV_DVP_API NvDvpError nv_dvp_register_cuda_device_ptr(
     NvDvpResourceHandle* out_handle);
 
 /** Register a CUDA array (typically the level-0 array of a CUDA-imported
- *  mipmapped array — see `cuda_p2p_import_vulkan_image`) with DVP. */
+ *  mipmapped array — see `cuda_interop_import_vulkan_image`) with DVP. */
 NV_DVP_API NvDvpError nv_dvp_register_cuda_array(
     NvDvpContextHandle ctx,
     void* cuda_array,       /* CUarray opaque pointer */

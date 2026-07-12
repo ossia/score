@@ -10,7 +10,7 @@
  *   1. Allocate N QRhi StorageBuffers.
  *   2. Extract each underlying native buffer (ID3D11Buffer*, GLuint, ...)
  *      via `QRhiBuffer::nativeBuffer()`.
- *   3. Import each into CUDA via the `CudaP2PBridge` C API.
+ *   3. Import each into CUDA via the `CudaInterop` C API.
  *   4. Hand the resulting flat GPU device pointer to the peer device's
  *      DMA-pin API (AJA `DMABufferLock(inRDMA=true)`, Magewell
  *      `MWPinVideoBuffer`, Rivermax `rmx_register_memory`, ...).
@@ -25,8 +25,8 @@
  * each vendor's addon.
  *
  * Backend support matrix:
- *   - D3D11   : real (ID3D11Buffer + cuda_p2p_import_d3d11_buffer)
- *   - OpenGL  : real (GLuint + cuda_p2p_import_gl_buffer)
+ *   - D3D11   : real (ID3D11Buffer + cuda_interop_import_d3d11_buffer)
+ *   - OpenGL  : real (GLuint + cuda_interop_import_gl_buffer)
  *   - Vulkan  : stub (QRhi VMA-allocates without VkExportMemoryAllocateInfo;
  *               needs either a QRhi private-API patch or a parallel
  *               externally-managed buffer ring with beginExternal compute
@@ -34,7 +34,7 @@
  *   - D3D12   : stub (QRhi D3D12 backend lacks SHARED heap support)
  */
 
-#include <Gfx/Graph/interop/CudaP2PBridge.h>
+#include <Gfx/Graph/interop/CudaInterop.h>
 #include <score_plugin_gfx_export.h>
 
 #include <QtGui/private/qrhi_p.h>
@@ -51,7 +51,7 @@ namespace score::gfx::interop
 struct GpuRingBufferSlot
 {
   QRhiBuffer* qrhiBuffer{};            ///< QRhi-owned UAV / Storage buffer.
-  CudaP2PResourceHandle cudaHandle{};  ///< Bridge handle for cleanup.
+  CudaInteropResourceHandle cudaHandle{};  ///< Bridge handle for cleanup.
   void* gpuDevicePtr{};                ///< Flat GPU device pointer the peer DMA's.
   /// Vulkan plain mode only: the buffer's VkBuffer (dereferenced from
   /// QRhiBuffer::nativeBuffer()). No CUDA import — the Vulkan tier-3
@@ -62,7 +62,7 @@ struct GpuRingBufferSlot
 struct ImportedGpuBufferRingConfig
 {
   QRhi* rhi{};
-  CudaP2PContextHandle cudaCtx{};      ///< Caller-owned, must be inited.
+  CudaInteropContextHandle cudaCtx{};      ///< Caller-owned, must be inited.
   std::uint32_t bufferSize{};
   int slotCount{2};
   const char* debugName{"score-gpu-ring"};
@@ -71,7 +71,7 @@ struct ImportedGpuBufferRingConfig
   /// CUDA-registered *and* kept mapped, so `gpuDevicePtr` is a stable pointer
   /// CUDA reads every frame. When true (CAPTURE path): the GL buffer is
   /// registered but NOT kept mapped — `gpuDevicePtr` stays null and the
-  /// consumer must do a per-frame `cuda_p2p_gl_write_buffer` (map→copy→unmap)
+  /// consumer must do a per-frame `cuda_interop_gl_write_buffer` (map→copy→unmap)
   /// so CUDA's writes are flushed and visible to the subsequent GL read. A
   /// permanently-mapped buffer written by CUDA is never seen by GL (the copy
   /// lands but GL samples stale memory), which is why the two directions
@@ -84,8 +84,8 @@ struct ImportedGpuBufferRingConfig
  *
  * Usage (per-vendor adapter):
  * @code
- *   CudaP2PContextHandle cuda{};
- *   cuda_p2p_init(&cuda);
+ *   CudaInteropContextHandle cuda{};
+ *   cuda_interop_init(&cuda);
  *
  *   ImportedGpuBufferRing ring;
  *   if(!ring.create({rhi, cuda, frameByteSize, 2, "MyVendor-RDMA"}))

@@ -66,9 +66,9 @@ struct ExternalHandle
 #endif
   }
 
-  // OS handle encoded as a void* for the CUDA P2P bridge / DVP, which expect
+  // OS handle encoded as a void* for the CUDA interop layer / DVP, which expect
   // the Win32 HANDLE directly or the fd cast to pointer width (see
-  // CudaP2PBridge.cpp's CUDA_EXTERNAL_MEMORY_HANDLE_DESC fill-in).
+  // CudaInterop.cpp's CUDA_EXTERNAL_MEMORY_HANDLE_DESC fill-in).
   void* osHandle() const noexcept
   {
 #if defined(_WIN32)

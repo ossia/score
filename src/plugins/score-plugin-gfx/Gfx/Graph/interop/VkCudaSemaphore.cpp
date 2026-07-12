@@ -67,7 +67,7 @@ VkCudaTimelineSemaphore::operator=(VkCudaTimelineSemaphore&& other) noexcept
 }
 
 bool VkCudaTimelineSemaphore::create(
-    const VulkanCtx& vk, CudaP2PContextHandle cudaCtx, uint64_t initialValue,
+    const VulkanCtx& vk, CudaInteropContextHandle cudaCtx, uint64_t initialValue,
     bool binary)
 {
   destroy();
@@ -166,13 +166,13 @@ bool VkCudaTimelineSemaphore::create(
   osHandle = reinterpret_cast<void*>(static_cast<intptr_t>(fd));
 #endif
 
-  // 3. CUDA-side import via the existing CudaP2PBridge entry points (binary vs
+  // 3. CUDA-side import via the existing CudaInterop entry points (binary vs
   //    timeline handle type).
   const auto importRes
       = binary
-            ? ::cuda_p2p_import_vulkan_semaphore_binary(cudaCtx, osHandle, &m_cudaSem)
-            : ::cuda_p2p_import_vulkan_semaphore(cudaCtx, osHandle, &m_cudaSem);
-  if(importRes != CUDA_P2P_SUCCESS)
+            ? ::cuda_interop_import_vulkan_semaphore_binary(cudaCtx, osHandle, &m_cudaSem)
+            : ::cuda_interop_import_vulkan_semaphore(cudaCtx, osHandle, &m_cudaSem);
+  if(importRes != CUDA_INTEROP_SUCCESS)
   {
     qWarning() << "VkCudaTimelineSemaphore: CUDA semaphore import failed";
     destroy();
@@ -192,7 +192,7 @@ void VkCudaTimelineSemaphore::destroy() noexcept
 {
   if(m_cudaCtx && m_cudaSem)
   {
-    ::cuda_p2p_release_semaphore(m_cudaCtx, m_cudaSem);
+    ::cuda_interop_release_semaphore(m_cudaCtx, m_cudaSem);
     m_cudaSem = nullptr;
   }
   if(m_vk.dev != VK_NULL_HANDLE && m_vkSem != VK_NULL_HANDLE && m_vk.qInst)

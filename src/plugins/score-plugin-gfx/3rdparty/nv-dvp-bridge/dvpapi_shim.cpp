@@ -22,7 +22,7 @@
  * The CUDA path (`dvpInit/Close/Bind/UnbindFromCUDACtx`, `dvpMemcpyCuda`,
  * `dvpMapBuffer{Wait,End}CUDAStream`) is **cross-platform** on both
  * Windows and Linux — score's existing GPU-direct pipeline uses
- * `CudaP2PBridge` (which is independent of DVP), but the DVP CUDA
+ * `CudaInterop` (which is independent of DVP), but the DVP CUDA
  * surface is a viable second path.
  *
  * To dump symbols for cross-checking after an SDK ABI change:

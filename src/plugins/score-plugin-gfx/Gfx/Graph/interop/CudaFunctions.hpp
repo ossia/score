@@ -11,7 +11,7 @@
  *
  * Two consumers in-tree:
  *   - Gfx/Graph/decoders/HWCUDA.hpp — zero-copy NVDEC → Vulkan path
- *   - Gfx/Graph/interop/CudaP2PBridge.{h,cpp} — vendor-neutral CUDA P2P
+ *   - Gfx/Graph/interop/CudaInterop.{h,cpp} — vendor-neutral CUDA interop
  *     (AJA tier-3 RDMA, planned Magewell + Rivermax)
  *
  * Both embed a `CudaFunctions` and call `load()` once. The function

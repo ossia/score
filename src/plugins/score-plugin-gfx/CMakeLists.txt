@@ -257,8 +257,8 @@ set(HDRS
     Gfx/Graph/encoders/WireEncoderFactory.hpp
 
     Gfx/Graph/interop/CudaFunctions.hpp
-    Gfx/Graph/interop/CudaP2PBridge.h
-    Gfx/Graph/interop/CudaP2PBridge.cpp
+    Gfx/Graph/interop/CudaInterop.h
+    Gfx/Graph/interop/CudaInterop.cpp
     Gfx/Graph/interop/VkExternalMemoryHelpers.hpp
     Gfx/Graph/interop/VulkanCudaBounce.hpp
     Gfx/Graph/interop/VulkanCudaBounce.cpp

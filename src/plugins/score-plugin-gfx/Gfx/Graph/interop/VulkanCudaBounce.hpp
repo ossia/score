@@ -30,7 +30,7 @@
 #if QT_CONFIG(vulkan) && __has_include(<vulkan/vulkan.h>)
 #define SCORE_HAS_VULKAN_CUDA_BOUNCE 1
 
-#include <Gfx/Graph/interop/CudaP2PBridge.h>
+#include <Gfx/Graph/interop/CudaInterop.h>
 #include <Gfx/Graph/interop/VkCudaSemaphore.hpp>
 #include <Gfx/Graph/interop/VkExternalMemoryHelpers.hpp>
 
@@ -126,11 +126,11 @@ private:
   {
     vkinterop::ExternalBuffer vk{};      ///< Vulkan-owned exportable buffer.
     void* vkCudaPtr{};                   ///< CUDA view of vk (imported).
-    CudaP2PResourceHandle vkCudaHandle{}; ///< Bridge handle for cleanup.
+    CudaInteropResourceHandle vkCudaHandle{}; ///< Bridge handle for cleanup.
     void* bouncePtr{};                   ///< Pinned CUDA bounce (cuMemAlloc).
   };
 
-  CudaP2PContextHandle m_p2p{};
+  CudaInteropContextHandle m_p2p{};
   vkinterop::VulkanCtx m_vk{};
   std::vector<Slot> m_slots;
   std::size_t m_frameBytes{};

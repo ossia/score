@@ -24,14 +24,14 @@ bool RdmaVideoOutput::init(const RdmaVideoOutputConfig& cfg)
   release();
   m_cfg = cfg;
 
-  if(!cuda_p2p_available())
+  if(!cuda_interop_available())
   {
     qDebug() << "RdmaVideoOutput: GPUDirect RDMA not available";
     return false;
   }
-  if(cuda_p2p_init(&m_cudaCtx) != CUDA_P2P_SUCCESS || !m_cudaCtx)
+  if(cuda_interop_init(&m_cudaCtx) != CUDA_INTEROP_SUCCESS || !m_cudaCtx)
   {
-    qWarning() << "RdmaVideoOutput: cuda_p2p_init failed";
+    qWarning() << "RdmaVideoOutput: cuda_interop_init failed";
     return false;
   }
 
@@ -76,12 +76,12 @@ bool RdmaVideoOutput::init(const RdmaVideoOutputConfig& cfg)
   m_pinned.assign(m_ring.slotCount(), false);
   for(std::size_t i = 0; i < m_ring.slotCount(); ++i)
   {
-    if(cuda_p2p_alloc_buffer(m_cudaCtx, m_cfg.frameByteSize, &m_bounce[i])
-           != CUDA_P2P_SUCCESS
+    if(cuda_interop_alloc_buffer(m_cudaCtx, m_cfg.frameByteSize, &m_bounce[i])
+           != CUDA_INTEROP_SUCCESS
        || !m_bounce[i])
     {
       qWarning() << "RdmaVideoOutput: bounce alloc failed at slot" << i << ":"
-                 << cuda_p2p_get_error_string(m_cudaCtx);
+                 << cuda_interop_get_error_string(m_cudaCtx);
       release();
       return false;
     }
@@ -126,7 +126,7 @@ void RdmaVideoOutput::release()
   for(void* b : m_bounce)
   {
     if(b)
-      cuda_p2p_free_buffer(m_cudaCtx, b);
+      cuda_interop_free_buffer(m_cudaCtx, b);
   }
   m_bounce.clear();
 
@@ -140,7 +140,7 @@ void RdmaVideoOutput::release()
   m_ring.destroy();
   if(m_cudaCtx)
   {
-    cuda_p2p_shutdown(m_cudaCtx);
+    cuda_interop_shutdown(m_cudaCtx);
     m_cudaCtx = nullptr;
   }
   m_fenceValue = 0;
@@ -170,13 +170,13 @@ void* RdmaVideoOutput::prepareNextFrame()
   if(idx >= m_bounce.size() || !m_bounce[idx])
     return nullptr;
   SCORE_STAGE_PROFILE(profDtoD, "gdo-dtod-bounce");
-  if(cuda_p2p_copy_dtod(
+  if(cuda_interop_copy_dtod(
          m_cudaCtx, m_bounce[idx], m_dispatcher.finishedSlot().gpuDevicePtr,
          m_cfg.frameByteSize)
-     != CUDA_P2P_SUCCESS)
+     != CUDA_INTEROP_SUCCESS)
   {
     qWarning() << "RdmaVideoOutput: bounce copy failed:"
-               << cuda_p2p_get_error_string(m_cudaCtx);
+               << cuda_interop_get_error_string(m_cudaCtx);
     return nullptr;
   }
   return m_bounce[idx];

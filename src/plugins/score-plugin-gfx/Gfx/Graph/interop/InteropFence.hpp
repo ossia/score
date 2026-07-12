@@ -14,11 +14,11 @@
  *   - OpenGL  : `glFinish()`. CPU-stalls but cheap when called once per
  *               frame at 25-60 Hz, and required because GL+CUDA buffer
  *               interop has no native fence path on every driver.
- *   - D3D12   : ID3D12Fence shared with CUDA via `cuda_p2p_import_d3d12_fence`
- *               + `cuda_p2p_wait_semaphore` — stub today.
+ *   - D3D12   : ID3D12Fence shared with CUDA via `cuda_interop_import_d3d12_fence`
+ *               + `cuda_interop_wait_semaphore` — stub today.
  *   - Vulkan  : `VK_KHR_timeline_semaphore` (exported via
  *               OPAQUE_FD / OPAQUE_WIN32) imported into CUDA via
- *               `cuda_p2p_import_vulkan_semaphore` + `cuda_p2p_wait_semaphore`
+ *               `cuda_interop_import_vulkan_semaphore` + `cuda_interop_wait_semaphore`
  *               — stub today.
  *
  * Per-frame lifecycle on D3D12/Vulkan (once those are real):
@@ -33,7 +33,7 @@
  * and gives a stable hook for the Vulkan/D3D12 paths when they land.
  */
 
-#include <Gfx/Graph/interop/CudaP2PBridge.h>
+#include <Gfx/Graph/interop/CudaInterop.h>
 #include <score_plugin_gfx_export.h>
 
 #include <cstdint>
@@ -61,7 +61,7 @@ struct SCORE_PLUGIN_GFX_EXPORT InteropFence
   /// One-time setup. Allocates the underlying fence/semaphore and
   /// imports it into the provided CUDA context. Returns false on any
   /// failure (no init partial state).
-  virtual bool init(QRhi& rhi, CudaP2PContextHandle cudaCtx) = 0;
+  virtual bool init(QRhi& rhi, CudaInteropContextHandle cudaCtx) = 0;
 
   /// One-time teardown. Releases the CUDA semaphore + the underlying
   /// fence/semaphore. Safe to call multiple times.

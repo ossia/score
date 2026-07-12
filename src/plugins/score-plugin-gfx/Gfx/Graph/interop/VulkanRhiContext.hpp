@@ -12,10 +12,10 @@
  *
  * NOTE (M3/M4 scope): this is the *genuine* common denominator of the AJA and
  * Deltacast Vulkan RDMA paths. Their transfer machinery does NOT converge — AJA
- * uses per-slot LINEAR images imported as flat CUDA buffers (cuda_p2p copy
+ * uses per-slot LINEAR images imported as flat CUDA buffers (cuda_interop copy
  * dtod-2d) with an exportable-VkBuffer bounce pinned via DMABufferLock, while
  * Deltacast uses a single OPTIMAL image imported as a CUDA array
- * (cuda_p2p copy buffer<->array) backed by RdmaGpuBuffer. These are deliberate,
+ * (cuda_interop copy buffer<->array) backed by RdmaGpuBuffer. These are deliberate,
  * correctness-driven choices (AJA notes an OPTIMAL-image-as-array "scrambles
  * per-tile on this driver"), so a shared *transfer* base is a redesign, not a
  * mechanical move, and is deferred until the Vulkan RDMA paths can be

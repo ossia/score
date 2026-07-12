@@ -3,7 +3,7 @@
 #include <score/gfx/Vulkan.hpp>
 
 // CUDA driver-API types + dlopen'd function table (shared with the
-// CudaP2PBridge consumer — see Gfx/Graph/interop/CudaFunctions.hpp).
+// CudaInterop consumer — see Gfx/Graph/interop/CudaFunctions.hpp).
 #include <Gfx/Graph/interop/CudaFunctions.hpp>
 #include <Gfx/Graph/interop/VkExternalMemoryHelpers.hpp>
 
@@ -396,7 +396,7 @@ private:
     }
 
     // --- Import into CUDA using FFmpeg's CUcontext (not score's own — we
-    //     deliberately do NOT use cuda_p2p_import_vulkan_image here because
+    //     deliberately do NOT use cuda_interop_import_vulkan_image here because
     //     the CUarray must live in the same context as NVDEC's decoder
     //     output for cuMemcpy2DAsync in exec()).
     m_cu.ctxPush(m_cuCtx);

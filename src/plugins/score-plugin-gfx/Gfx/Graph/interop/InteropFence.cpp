@@ -40,7 +40,7 @@ struct InteropFenceD3D11 final : InteropFence
   bool m_inited{};
   bool valid() const noexcept override { return m_inited; }
 
-  bool init(QRhi&, CudaP2PContextHandle) override
+  bool init(QRhi&, CudaInteropContextHandle) override
   {
     m_inited = true;
     return true;
@@ -60,7 +60,7 @@ struct InteropFenceGL final : InteropFence
 
   bool valid() const noexcept override { return m_ctx != nullptr; }
 
-  bool init(QRhi& rhi, CudaP2PContextHandle) override
+  bool init(QRhi& rhi, CudaInteropContextHandle) override
   {
     auto* nh
         = static_cast<const QRhiGles2NativeHandles*>(rhi.nativeHandles());
@@ -89,7 +89,7 @@ struct InteropFenceVulkanStub final : InteropFence
 {
   bool valid() const noexcept override { return false; }
 
-  bool init(QRhi&, CudaP2PContextHandle) override
+  bool init(QRhi&, CudaInteropContextHandle) override
   {
     qDebug() << "InteropFence(Vulkan): stub — Qt built without Vulkan support.";
     return false;
@@ -124,7 +124,7 @@ struct InteropFenceVulkan final : InteropFence
   static constexpr int kRing = 3;
 
   QRhi* m_rhi{};
-  CudaP2PContextHandle m_cudaCtx{};
+  CudaInteropContextHandle m_cudaCtx{};
 
   // Reuse the exportable-semaphore + CUDA-import helper (in binary mode)
   // instead of re-rolling vkCreateSemaphore / export / import here.
@@ -134,7 +134,7 @@ struct InteropFenceVulkan final : InteropFence
 
   bool valid() const noexcept override { return m_ok; }
 
-  bool init(QRhi& rhi, CudaP2PContextHandle cudaCtx) override
+  bool init(QRhi& rhi, CudaInteropContextHandle cudaCtx) override
   {
     release();
     if(rhi.backend() != QRhi::Vulkan || !cudaCtx)
@@ -185,8 +185,8 @@ struct InteropFenceVulkan final : InteropFence
       return false;
     const int i = int(value % kRing);
     // Binary semaphore: CUDA ignores the value for OPAQUE types → pass 0.
-    return cuda_p2p_wait_semaphore(m_cudaCtx, m_sem[i].cuda(), 0)
-           == CUDA_P2P_SUCCESS;
+    return cuda_interop_wait_semaphore(m_cudaCtx, m_sem[i].cuda(), 0)
+           == CUDA_INTEROP_SUCCESS;
   }
 
   void release() override
@@ -211,7 +211,7 @@ struct InteropFenceD3D12Stub final : InteropFence
 {
   bool valid() const noexcept override { return false; }
 
-  bool init(QRhi&, CudaP2PContextHandle) override
+  bool init(QRhi&, CudaInteropContextHandle) override
   {
     qDebug() << "InteropFence(D3D12): stub — needs ID3D12Fence shared "
                 "with CUDA, blocked by the same QRhi D3D12 SHARED-heap "

@@ -137,12 +137,12 @@ struct HostPinnedRing::Impl
   // — points into the same registered host memory. Used as the source
   // for cuMemcpy2DAsync when uploading to a CUDA-bound destination.
   std::vector<CUdeviceptr> slotDevicePtrs;
-  // Per-destination texture: { CUDA P2P context, target CUarray }.
+  // Per-destination texture: { CUDA interop context, target CUarray }.
   // Populated by bindCudaDestination(); when uploadSlotToTexture's
   // dst is in this map, we route via cuMemcpy2DAsync.
   struct CudaBinding
   {
-    void* p2p_ctx{};       // CudaP2PContextHandle
+    void* p2p_ctx{};       // CudaInteropContextHandle
     void* cuda_array{};    // CUarray
   };
   std::unordered_map<QRhiTexture*, CudaBinding> cudaDestinations;
@@ -587,7 +587,7 @@ struct HostPinnedRing::Impl
   //
   // Page-locks each slot via cuMemHostRegister. The QRhi-side transfer
   // is still per-backend: for a CUDA-imported destination (Vulkan QRhi
-  // with cuda_p2p_import_vulkan_image), the caller-supplied import
+  // with cuda_interop_import_vulkan_image), the caller-supplied import
   // gives us a CUarray to cuMemcpy2D into. For other QRhi backends the
   // page-locking is "preparation" only — the actual upload routes
   // through CPU staging since there's no cheap path from registered
@@ -690,7 +690,7 @@ struct HostPinnedRing::Impl
        && i < slotDevicePtrs.size() && slotDevicePtrs[i] != 0
        && cu.loaded() && cu.memcpy2DAsync)
     {
-      // Zero-copy CUDA path. The CudaP2P bridge manages its own
+      // Zero-copy CUDA path. The CudaInterop bridge manages its own
       // CUstream + semaphore handshake; we just hand it a CUDA_MEMCPY2D
       // describing source (registered host → device-mapped CUdeviceptr)
       // and destination (CUarray).
@@ -702,7 +702,7 @@ struct HostPinnedRing::Impl
       op.dstArray = static_cast<CUarray>(it->second.cuda_array);
       op.WidthInBytes = slots[i].stride;
       op.Height = height;
-      // Stream=null (default stream). CudaP2PBridge consumers can
+      // Stream=null (default stream). CudaInterop consumers can
       // wrap the call with their own stream + sync if they need
       // pipelining; for the typical use case (single render thread)
       // null-stream serial is correct.

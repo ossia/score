@@ -24,15 +24,15 @@
  *   2. Export an FD / HANDLE via vkGetSemaphoreFdKHR /
  *      vkGetSemaphoreWin32HandleKHR.
  *   3. cuImportExternalSemaphore on the CUDA side — reuses the
- *      existing `CudaP2PBridge::cuda_p2p_import_vulkan_semaphore`
+ *      existing `CudaInterop::cuda_interop_import_vulkan_semaphore`
  *      shim, so no new CUDA-side code is needed.
  *
  * This file owns the Vulkan-side creation; the CUDA-side handle stays
- * with `CudaP2PBridge` so consumers can call `cuda_p2p_wait_semaphore`
- * / `cuda_p2p_signal_semaphore` against it.
+ * with `CudaInterop` so consumers can call `cuda_interop_wait_semaphore`
+ * / `cuda_interop_signal_semaphore` against it.
  */
 
-#include <Gfx/Graph/interop/CudaP2PBridge.h>
+#include <Gfx/Graph/interop/CudaInterop.h>
 #include <Gfx/Graph/interop/VkExternalMemoryHelpers.hpp>
 
 #include <score_plugin_gfx_export.h>
@@ -60,7 +60,7 @@ public:
   /** Create both the Vulkan semaphore and its CUDA import.
    *
    *  @param vk         Vulkan device handles.
-   *  @param cudaCtx    Pre-initialised CudaP2PContextHandle (the CUDA
+   *  @param cudaCtx    Pre-initialised CudaInteropContextHandle (the CUDA
    *                    context that will wait/signal on this).
    *  @param initialValue  Initial counter value for the timeline
    *                       semaphore (typically 0). Ignored when @p binary.
@@ -68,7 +68,7 @@ public:
    *                    and import it into CUDA as an opaque binary semaphore.
    *                    Default false (timeline).
    *  @return true on success. On failure both sides are torn down. */
-  bool create(const VulkanCtx& vk, CudaP2PContextHandle cudaCtx,
+  bool create(const VulkanCtx& vk, CudaInteropContextHandle cudaCtx,
               uint64_t initialValue = 0, bool binary = false);
 
   /** Tear down both sides. Idempotent. */
@@ -80,9 +80,9 @@ public:
    *  vector via VkTimelineSemaphoreSubmitInfo. */
   VkSemaphore vk() const noexcept { return m_vkSem; }
 
-  /** The CUDA-side handle. Pass to `cuda_p2p_wait_semaphore` /
-   *  `cuda_p2p_signal_semaphore`. */
-  CudaP2PSemaphoreHandle cuda() const noexcept { return m_cudaSem; }
+  /** The CUDA-side handle. Pass to `cuda_interop_wait_semaphore` /
+   *  `cuda_interop_signal_semaphore`. */
+  CudaInteropSemaphoreHandle cuda() const noexcept { return m_cudaSem; }
 
   /** Signal the timeline counter from the CPU side to `value`.
    *  Useful for tearing down a hung waiter at shutdown.
@@ -91,9 +91,9 @@ public:
 
 private:
   VulkanCtx m_vk{};
-  CudaP2PContextHandle m_cudaCtx{};
+  CudaInteropContextHandle m_cudaCtx{};
   VkSemaphore m_vkSem{VK_NULL_HANDLE};
-  CudaP2PSemaphoreHandle m_cudaSem{};
+  CudaInteropSemaphoreHandle m_cudaSem{};
 };
 
 } // namespace score::gfx::vkinterop

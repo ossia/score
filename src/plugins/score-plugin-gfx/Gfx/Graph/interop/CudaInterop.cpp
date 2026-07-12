@@ -1,13 +1,13 @@
 /**
- * @file CudaP2PBridge.cpp
- * @brief Driver-API-only impl of the CudaP2PBridge C API.
+ * @file CudaInterop.cpp
+ * @brief Driver-API-only impl of the CudaInterop C API.
  *
  * Uses Gfx/Graph/interop/CudaFunctions.hpp for dlopen'd entry points;
  * no link-time CUDAToolkit dependency. All cu* calls go through the
  * shared CudaFunctions table.
  */
 
-#include <Gfx/Graph/interop/CudaP2PBridge.h>
+#include <Gfx/Graph/interop/CudaInterop.h>
 #include <Gfx/Graph/interop/CudaFunctions.hpp>
 
 #if defined(_WIN32)
@@ -23,7 +23,7 @@ using score::gfx::CudaFunctions;
 // Internal types
 // =============================================================================
 
-struct CudaP2PContext_t
+struct CudaInteropContext_t
 {
   CudaFunctions cu;
   CUcontext cuContext{};
@@ -36,21 +36,21 @@ struct CudaP2PContext_t
 // One of (graphicsResource, externalMemory) is non-null at a time:
 //   - graphicsResource : D3D11 / OpenGL graphics-resource interop
 //   - externalMemory   : D3D12 / Vulkan external-memory interop
-struct CudaP2PResource_t
+struct CudaInteropResource_t
 {
   CUgraphicsResource graphicsResource{};
   CUexternalMemory externalMemory{};
   uint64_t byteSize{};
 };
 
-struct CudaP2PSemaphore_t
+struct CudaInteropSemaphore_t
 {
   CUexternalSemaphore handle{};
 };
 
 // Image import: backed by external memory + mipmapped array. The bridge
 // owns both; the caller gets the level-0 CUarray for memcpy destinations.
-struct CudaP2PImage_t
+struct CudaInteropImage_t
 {
   CUexternalMemory externalMemory{};
   CUmipmappedArray mipArray{};
@@ -58,8 +58,8 @@ struct CudaP2PImage_t
 };
 
 // Capture the last error string into ctx and return the mapped error code.
-static CudaP2PError reportCuError(
-    CudaP2PContextHandle ctx, CUresult r, CudaP2PError mapped,
+static CudaInteropError reportCuError(
+    CudaInteropContextHandle ctx, CUresult r, CudaInteropError mapped,
     const char* what)
 {
   if(!ctx)
@@ -85,52 +85,52 @@ static CudaP2PError reportCuError(
 // Context management
 // =============================================================================
 
-CudaP2PError cuda_p2p_init(CudaP2PContextHandle* outCtx)
+CudaInteropError cuda_interop_init(CudaInteropContextHandle* outCtx)
 {
   if(!outCtx)
-    return CUDA_P2P_ERROR_INVALID_PARAMETER;
+    return CUDA_INTEROP_ERROR_INVALID_PARAMETER;
 
   *outCtx = nullptr;
 
-  auto* ctx = new CudaP2PContext_t();
+  auto* ctx = new CudaInteropContext_t();
   if(!ctx->cu.load())
   {
     ctx->lastError = "Failed to load CUDA driver (libcuda.so.1 / nvcuda.dll)";
     delete ctx;
-    return CUDA_P2P_ERROR_NOT_INITIALIZED;
+    return CUDA_INTEROP_ERROR_NOT_INITIALIZED;
   }
 
-  CU_CHECK(ctx->cu.init(0), ctx, CUDA_P2P_ERROR_INIT_FAILED, "cuInit");
+  CU_CHECK(ctx->cu.init(0), ctx, CUDA_INTEROP_ERROR_INIT_FAILED, "cuInit");
 
   int deviceCount = 0;
   CU_CHECK(
-      ctx->cu.deviceGetCount(&deviceCount), ctx, CUDA_P2P_ERROR_NO_DEVICE,
+      ctx->cu.deviceGetCount(&deviceCount), ctx, CUDA_INTEROP_ERROR_NO_DEVICE,
       "cuDeviceGetCount");
   if(deviceCount <= 0)
   {
     ctx->lastError = "No CUDA-capable devices found";
     delete ctx;
-    return CUDA_P2P_ERROR_NO_DEVICE;
+    return CUDA_INTEROP_ERROR_NO_DEVICE;
   }
 
   CU_CHECK(
-      ctx->cu.deviceGet(&ctx->device, 0), ctx, CUDA_P2P_ERROR_INIT_FAILED,
+      ctx->cu.deviceGet(&ctx->device, 0), ctx, CUDA_INTEROP_ERROR_INIT_FAILED,
       "cuDeviceGet");
   CU_CHECK(
       ctx->cu.primaryCtxRetain(&ctx->cuContext, ctx->device), ctx,
-      CUDA_P2P_ERROR_INIT_FAILED, "cuDevicePrimaryCtxRetain");
+      CUDA_INTEROP_ERROR_INIT_FAILED, "cuDevicePrimaryCtxRetain");
   CU_CHECK(
-      ctx->cu.ctxSetCurrent(ctx->cuContext), ctx, CUDA_P2P_ERROR_INIT_FAILED,
+      ctx->cu.ctxSetCurrent(ctx->cuContext), ctx, CUDA_INTEROP_ERROR_INIT_FAILED,
       "cuCtxSetCurrent");
   CU_CHECK(
-      ctx->cu.streamCreate(&ctx->stream, 0), ctx, CUDA_P2P_ERROR_INIT_FAILED,
+      ctx->cu.streamCreate(&ctx->stream, 0), ctx, CUDA_INTEROP_ERROR_INIT_FAILED,
       "cuStreamCreate");
 
   *outCtx = ctx;
-  return CUDA_P2P_SUCCESS;
+  return CUDA_INTEROP_SUCCESS;
 }
 
-void cuda_p2p_shutdown(CudaP2PContextHandle ctx)
+void cuda_interop_shutdown(CudaInteropContextHandle ctx)
 {
   if(!ctx)
     return;
@@ -150,7 +150,7 @@ void cuda_p2p_shutdown(CudaP2PContextHandle ctx)
   delete ctx;
 }
 
-bool cuda_p2p_available(void)
+bool cuda_interop_available(void)
 {
   CudaFunctions cu;
   if(!cu.load())
@@ -176,7 +176,7 @@ bool cuda_p2p_available(void)
   return major >= 3 && unified != 0;
 }
 
-const char* cuda_p2p_get_error_string(CudaP2PContextHandle ctx)
+const char* cuda_interop_get_error_string(CudaInteropContextHandle ctx)
 {
   if(!ctx)
     return "Invalid context";
@@ -187,13 +187,13 @@ const char* cuda_p2p_get_error_string(CudaP2PContextHandle ctx)
 // Shared-buffer importers (one per backend)
 // =============================================================================
 
-CudaP2PError cuda_p2p_import_d3d11_buffer(
-    CudaP2PContextHandle ctx,
+CudaInteropError cuda_interop_import_d3d11_buffer(
+    CudaInteropContextHandle ctx,
     void* d3d11_buffer,
     void* d3d11_device,
     uint32_t buffer_size,
     void** out_device_ptr,
-    CudaP2PResourceHandle* out_handle)
+    CudaInteropResourceHandle* out_handle)
 {
 #if !defined(_WIN32)
   (void)d3d11_buffer;
@@ -203,15 +203,15 @@ CudaP2PError cuda_p2p_import_d3d11_buffer(
   (void)out_handle;
   if(ctx)
     ctx->lastError = "D3D11 interop not available on non-Windows platforms";
-  return CUDA_P2P_ERROR_FORMAT_NOT_SUPPORTED;
+  return CUDA_INTEROP_ERROR_FORMAT_NOT_SUPPORTED;
 #else
   (void)d3d11_device; // not needed by driver-API path
   if(!ctx || !d3d11_buffer || !out_device_ptr || !out_handle)
-    return CUDA_P2P_ERROR_INVALID_PARAMETER;
+    return CUDA_INTEROP_ERROR_INVALID_PARAMETER;
   if(!ctx->cu.graphicsD3D11Register)
   {
     ctx->lastError = "cuGraphicsD3D11RegisterResource symbol not available";
-    return CUDA_P2P_ERROR_INTEROP_FAILED;
+    return CUDA_INTEROP_ERROR_INTEROP_FAILED;
   }
 
   *out_device_ptr = nullptr;
@@ -219,7 +219,7 @@ CudaP2PError cuda_p2p_import_d3d11_buffer(
   std::lock_guard<std::mutex> lock(ctx->mutex);
   CU_CHECK(
       ctx->cu.ctxSetCurrent(ctx->cuContext), ctx,
-      CUDA_P2P_ERROR_INTEROP_FAILED, "cuCtxSetCurrent");
+      CUDA_INTEROP_ERROR_INTEROP_FAILED, "cuCtxSetCurrent");
 
   // Register the SHARED D3D11 buffer with CUDA. Buffers (vs textures)
   // give us a flat device pointer via cuGraphicsResourceGetMappedPointer,
@@ -229,7 +229,7 @@ CudaP2PError cuda_p2p_import_d3d11_buffer(
       ctx->cu.graphicsD3D11Register(
           &resource, static_cast<ID3D11Resource*>(d3d11_buffer),
           CU_GRAPHICS_REGISTER_FLAGS_NONE),
-      ctx, CUDA_P2P_ERROR_INTEROP_FAILED,
+      ctx, CUDA_INTEROP_ERROR_INTEROP_FAILED,
       "cuGraphicsD3D11RegisterResource");
 
   // Map once and keep mapped for the resource's lifetime; the peer
@@ -238,7 +238,7 @@ CudaP2PError cuda_p2p_import_d3d11_buffer(
   {
     ctx->cu.graphicsUnregister(resource);
     ctx->lastError = "cuGraphicsMapResources(buffer) failed";
-    return CUDA_P2P_ERROR_INTEROP_FAILED;
+    return CUDA_INTEROP_ERROR_INTEROP_FAILED;
   }
 
   CUdeviceptr devicePtr{};
@@ -250,37 +250,37 @@ CudaP2PError cuda_p2p_import_d3d11_buffer(
     ctx->cu.graphicsUnmap(1, &resource, ctx->stream);
     ctx->cu.graphicsUnregister(resource);
     ctx->lastError = "cuGraphicsResourceGetMappedPointer failed";
-    return CUDA_P2P_ERROR_INTEROP_FAILED;
+    return CUDA_INTEROP_ERROR_INTEROP_FAILED;
   }
   if(mappedSize < buffer_size)
   {
     ctx->cu.graphicsUnmap(1, &resource, ctx->stream);
     ctx->cu.graphicsUnregister(resource);
     ctx->lastError = "mapped buffer smaller than requested";
-    return CUDA_P2P_ERROR_ALLOC_FAILED;
+    return CUDA_INTEROP_ERROR_ALLOC_FAILED;
   }
 
-  auto* h = new CudaP2PResource_t();
+  auto* h = new CudaInteropResource_t();
   h->graphicsResource = resource;
   h->byteSize = buffer_size;
 
   *out_device_ptr = reinterpret_cast<void*>(static_cast<uintptr_t>(devicePtr));
   *out_handle = h;
-  return CUDA_P2P_SUCCESS;
+  return CUDA_INTEROP_SUCCESS;
 #endif
 }
 
 // External-memory path shared by D3D12 + Vulkan tier-3 buffer importers.
-static CudaP2PError importExternalMemoryAsBuffer(
-    CudaP2PContextHandle ctx,
+static CudaInteropError importExternalMemoryAsBuffer(
+    CudaInteropContextHandle ctx,
     CUexternalMemoryHandleType type,
     void* handle,
     uint64_t bufferSize,
     void** outDevicePtr,
-    CudaP2PResourceHandle* outHandle)
+    CudaInteropResourceHandle* outHandle)
 {
   if(!ctx || !handle || !outDevicePtr || !outHandle || bufferSize == 0)
-    return CUDA_P2P_ERROR_INVALID_PARAMETER;
+    return CUDA_INTEROP_ERROR_INVALID_PARAMETER;
 
   *outDevicePtr = nullptr;
   *outHandle = nullptr;
@@ -288,7 +288,7 @@ static CudaP2PError importExternalMemoryAsBuffer(
 
   CU_CHECK(
       ctx->cu.ctxSetCurrent(ctx->cuContext), ctx,
-      CUDA_P2P_ERROR_INTEROP_FAILED, "cuCtxSetCurrent");
+      CUDA_INTEROP_ERROR_INTEROP_FAILED, "cuCtxSetCurrent");
 
   CUDA_EXTERNAL_MEMORY_HANDLE_DESC memDesc{};
   memDesc.type = type;
@@ -306,7 +306,7 @@ static CudaP2PError importExternalMemoryAsBuffer(
   CUexternalMemory extMem{};
   CU_CHECK(
       ctx->cu.importExtMem(&extMem, &memDesc), ctx,
-      CUDA_P2P_ERROR_INTEROP_FAILED, "cuImportExternalMemory");
+      CUDA_INTEROP_ERROR_INTEROP_FAILED, "cuImportExternalMemory");
 
   CUDA_EXTERNAL_MEMORY_BUFFER_DESC bufDesc{};
   bufDesc.offset = 0;
@@ -319,24 +319,24 @@ static CudaP2PError importExternalMemoryAsBuffer(
   {
     ctx->cu.destroyExtMem(extMem);
     ctx->lastError = "cuExternalMemoryGetMappedBuffer failed";
-    return CUDA_P2P_ERROR_INTEROP_FAILED;
+    return CUDA_INTEROP_ERROR_INTEROP_FAILED;
   }
 
-  auto* h = new CudaP2PResource_t();
+  auto* h = new CudaInteropResource_t();
   h->externalMemory = extMem;
   h->byteSize = bufferSize;
 
   *outDevicePtr = reinterpret_cast<void*>(static_cast<uintptr_t>(devicePtr));
   *outHandle = h;
-  return CUDA_P2P_SUCCESS;
+  return CUDA_INTEROP_SUCCESS;
 }
 
-CudaP2PError cuda_p2p_import_d3d12_buffer(
-    CudaP2PContextHandle ctx,
+CudaInteropError cuda_interop_import_d3d12_buffer(
+    CudaInteropContextHandle ctx,
     void* shared_resource_handle,
     uint64_t buffer_size,
     void** out_device_ptr,
-    CudaP2PResourceHandle* out_handle)
+    CudaInteropResourceHandle* out_handle)
 {
 #if !defined(_WIN32)
   (void)shared_resource_handle;
@@ -345,7 +345,7 @@ CudaP2PError cuda_p2p_import_d3d12_buffer(
   (void)out_handle;
   if(ctx)
     ctx->lastError = "D3D12 interop not available on non-Windows platforms";
-  return CUDA_P2P_ERROR_FORMAT_NOT_SUPPORTED;
+  return CUDA_INTEROP_ERROR_FORMAT_NOT_SUPPORTED;
 #else
   return importExternalMemoryAsBuffer(
       ctx, CU_EXTERNAL_MEMORY_HANDLE_TYPE_D3D12_RESOURCE,
@@ -353,12 +353,12 @@ CudaP2PError cuda_p2p_import_d3d12_buffer(
 #endif
 }
 
-CudaP2PError cuda_p2p_import_vulkan_buffer(
-    CudaP2PContextHandle ctx,
+CudaInteropError cuda_interop_import_vulkan_buffer(
+    CudaInteropContextHandle ctx,
     void* external_memory_handle,
     uint64_t buffer_size,
     void** out_device_ptr,
-    CudaP2PResourceHandle* out_handle)
+    CudaInteropResourceHandle* out_handle)
 {
 #if defined(_WIN32)
   const auto t = CU_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32;
@@ -369,19 +369,19 @@ CudaP2PError cuda_p2p_import_vulkan_buffer(
       ctx, t, external_memory_handle, buffer_size, out_device_ptr, out_handle);
 }
 
-CudaP2PError cuda_p2p_import_gl_buffer(
-    CudaP2PContextHandle ctx,
+CudaInteropError cuda_interop_import_gl_buffer(
+    CudaInteropContextHandle ctx,
     uint32_t gl_buffer_id,
     uint32_t buffer_size,
     void** out_device_ptr,
-    CudaP2PResourceHandle* out_handle)
+    CudaInteropResourceHandle* out_handle)
 {
   if(!ctx || !out_device_ptr || !out_handle || buffer_size == 0)
-    return CUDA_P2P_ERROR_INVALID_PARAMETER;
+    return CUDA_INTEROP_ERROR_INVALID_PARAMETER;
   if(!ctx->cu.graphicsGLRegisterBuffer)
   {
     ctx->lastError = "cuGraphicsGLRegisterBuffer symbol not available";
-    return CUDA_P2P_ERROR_INTEROP_FAILED;
+    return CUDA_INTEROP_ERROR_INTEROP_FAILED;
   }
 
   *out_device_ptr = nullptr;
@@ -390,20 +390,20 @@ CudaP2PError cuda_p2p_import_gl_buffer(
 
   CU_CHECK(
       ctx->cu.ctxSetCurrent(ctx->cuContext), ctx,
-      CUDA_P2P_ERROR_INTEROP_FAILED, "cuCtxSetCurrent");
+      CUDA_INTEROP_ERROR_INTEROP_FAILED, "cuCtxSetCurrent");
 
   CUgraphicsResource resource{};
   CU_CHECK(
       ctx->cu.graphicsGLRegisterBuffer(
           &resource, gl_buffer_id, CU_GRAPHICS_REGISTER_FLAGS_NONE),
-      ctx, CUDA_P2P_ERROR_INTEROP_FAILED,
+      ctx, CUDA_INTEROP_ERROR_INTEROP_FAILED,
       "cuGraphicsGLRegisterBuffer");
 
   if(ctx->cu.graphicsMap(1, &resource, ctx->stream) != CUDA_SUCCESS)
   {
     ctx->cu.graphicsUnregister(resource);
     ctx->lastError = "cuGraphicsMapResources(GL buffer) failed";
-    return CUDA_P2P_ERROR_INTEROP_FAILED;
+    return CUDA_INTEROP_ERROR_INTEROP_FAILED;
   }
 
   CUdeviceptr devicePtr{};
@@ -415,26 +415,26 @@ CudaP2PError cuda_p2p_import_gl_buffer(
     ctx->cu.graphicsUnmap(1, &resource, ctx->stream);
     ctx->cu.graphicsUnregister(resource);
     ctx->lastError = "cuGraphicsResourceGetMappedPointer(GL) failed";
-    return CUDA_P2P_ERROR_INTEROP_FAILED;
+    return CUDA_INTEROP_ERROR_INTEROP_FAILED;
   }
   if(mappedSize < buffer_size)
   {
     ctx->cu.graphicsUnmap(1, &resource, ctx->stream);
     ctx->cu.graphicsUnregister(resource);
     ctx->lastError = "GL buffer mapping smaller than requested";
-    return CUDA_P2P_ERROR_ALLOC_FAILED;
+    return CUDA_INTEROP_ERROR_ALLOC_FAILED;
   }
 
-  auto* h = new CudaP2PResource_t();
+  auto* h = new CudaInteropResource_t();
   h->graphicsResource = resource;
   h->byteSize = buffer_size;
 
   *out_device_ptr = reinterpret_cast<void*>(static_cast<uintptr_t>(devicePtr));
   *out_handle = h;
-  return CUDA_P2P_SUCCESS;
+  return CUDA_INTEROP_SUCCESS;
 }
 
-void cuda_p2p_release_buffer(CudaP2PContextHandle ctx, CudaP2PResourceHandle h)
+void cuda_interop_release_buffer(CudaInteropContextHandle ctx, CudaInteropResourceHandle h)
 {
   if(!ctx || !h)
     return;
@@ -452,53 +452,53 @@ void cuda_p2p_release_buffer(CudaP2PContextHandle ctx, CudaP2PResourceHandle h)
   delete h;
 }
 
-CudaP2PError cuda_p2p_register_gl_buffer(
-    CudaP2PContextHandle ctx, uint32_t gl_buffer_id, uint32_t buffer_size,
-    CudaP2PResourceHandle* out_handle)
+CudaInteropError cuda_interop_register_gl_buffer(
+    CudaInteropContextHandle ctx, uint32_t gl_buffer_id, uint32_t buffer_size,
+    CudaInteropResourceHandle* out_handle)
 {
   if(!ctx || !out_handle || buffer_size == 0)
-    return CUDA_P2P_ERROR_INVALID_PARAMETER;
+    return CUDA_INTEROP_ERROR_INVALID_PARAMETER;
   if(!ctx->cu.graphicsGLRegisterBuffer)
   {
     ctx->lastError = "cuGraphicsGLRegisterBuffer symbol not available";
-    return CUDA_P2P_ERROR_INTEROP_FAILED;
+    return CUDA_INTEROP_ERROR_INTEROP_FAILED;
   }
   *out_handle = nullptr;
   std::lock_guard<std::mutex> lock(ctx->mutex);
   CU_CHECK(
       ctx->cu.ctxSetCurrent(ctx->cuContext), ctx,
-      CUDA_P2P_ERROR_INTEROP_FAILED, "cuCtxSetCurrent");
+      CUDA_INTEROP_ERROR_INTEROP_FAILED, "cuCtxSetCurrent");
 
   CUgraphicsResource resource{};
   CU_CHECK(
       ctx->cu.graphicsGLRegisterBuffer(
           &resource, gl_buffer_id, CU_GRAPHICS_REGISTER_FLAGS_NONE),
-      ctx, CUDA_P2P_ERROR_INTEROP_FAILED, "cuGraphicsGLRegisterBuffer");
+      ctx, CUDA_INTEROP_ERROR_INTEROP_FAILED, "cuGraphicsGLRegisterBuffer");
 
-  // Register-only: do NOT keep it mapped. cuda_p2p_gl_write_buffer maps and
+  // Register-only: do NOT keep it mapped. cuda_interop_gl_write_buffer maps and
   // unmaps per frame so the buffer is GL-owned (and CUDA writes are visible)
   // whenever GL reads it.
-  auto* h = new CudaP2PResource_t();
+  auto* h = new CudaInteropResource_t();
   h->graphicsResource = resource;
   h->byteSize = buffer_size;
   *out_handle = h;
-  return CUDA_P2P_SUCCESS;
+  return CUDA_INTEROP_SUCCESS;
 }
 
-CudaP2PError cuda_p2p_gl_write_buffer(
-    CudaP2PContextHandle ctx, CudaP2PResourceHandle h, void* src_device_ptr,
+CudaInteropError cuda_interop_gl_write_buffer(
+    CudaInteropContextHandle ctx, CudaInteropResourceHandle h, void* src_device_ptr,
     uint32_t size)
 {
   if(!ctx || !h || !h->graphicsResource || !src_device_ptr || size == 0)
-    return CUDA_P2P_ERROR_INVALID_PARAMETER;
+    return CUDA_INTEROP_ERROR_INVALID_PARAMETER;
   std::lock_guard<std::mutex> lock(ctx->mutex);
   CU_CHECK(
-      ctx->cu.ctxSetCurrent(ctx->cuContext), ctx, CUDA_P2P_ERROR_COPY_FAILED,
+      ctx->cu.ctxSetCurrent(ctx->cuContext), ctx, CUDA_INTEROP_ERROR_COPY_FAILED,
       "cuCtxSetCurrent");
 
   CU_CHECK(
       ctx->cu.graphicsMap(1, &h->graphicsResource, ctx->stream), ctx,
-      CUDA_P2P_ERROR_INTEROP_FAILED, "cuGraphicsMapResources(GL write)");
+      CUDA_INTEROP_ERROR_INTEROP_FAILED, "cuGraphicsMapResources(GL write)");
 
   CUdeviceptr dstPtr{};
   size_t mappedSize = 0;
@@ -508,7 +508,7 @@ CudaP2PError cuda_p2p_gl_write_buffer(
   {
     ctx->cu.graphicsUnmap(1, &h->graphicsResource, ctx->stream);
     ctx->lastError = "cuGraphicsResourceGetMappedPointer(GL write) failed";
-    return CUDA_P2P_ERROR_INTEROP_FAILED;
+    return CUDA_INTEROP_ERROR_INTEROP_FAILED;
   }
 
   CUresult cr = ctx->cu.memcpyDtoDAsync(
@@ -520,29 +520,29 @@ CudaP2PError cuda_p2p_gl_write_buffer(
   // the subsequent glTexSubImage2D reads coherent data.
   ctx->cu.graphicsUnmap(1, &h->graphicsResource, ctx->stream);
   if(cr != CUDA_SUCCESS)
-    return reportCuError(ctx, cr, CUDA_P2P_ERROR_COPY_FAILED,
+    return reportCuError(ctx, cr, CUDA_INTEROP_ERROR_COPY_FAILED,
                          "cuMemcpyDtoDAsync(GL write)");
-  return CUDA_P2P_SUCCESS;
+  return CUDA_INTEROP_SUCCESS;
 }
 
-CudaP2PError cuda_p2p_register_gl_image(
-    CudaP2PContextHandle ctx, uint32_t gl_texture_id, uint32_t gl_target,
-    CudaP2PResourceHandle* out_handle)
+CudaInteropError cuda_interop_register_gl_image(
+    CudaInteropContextHandle ctx, uint32_t gl_texture_id, uint32_t gl_target,
+    CudaInteropResourceHandle* out_handle)
 {
   if(!ctx || !out_handle || gl_texture_id == 0)
-    return CUDA_P2P_ERROR_INVALID_PARAMETER;
+    return CUDA_INTEROP_ERROR_INVALID_PARAMETER;
   if(!ctx->cu.graphicsGLRegisterImage
      || !ctx->cu.graphicsSubResourceGetMappedArray)
   {
     ctx->lastError
         = "cuGraphicsGLRegisterImage/SubResourceGetMappedArray not available";
-    return CUDA_P2P_ERROR_INTEROP_FAILED;
+    return CUDA_INTEROP_ERROR_INTEROP_FAILED;
   }
   *out_handle = nullptr;
   std::lock_guard<std::mutex> lock(ctx->mutex);
   CU_CHECK(
       ctx->cu.ctxSetCurrent(ctx->cuContext), ctx,
-      CUDA_P2P_ERROR_INTEROP_FAILED, "cuCtxSetCurrent");
+      CUDA_INTEROP_ERROR_INTEROP_FAILED, "cuCtxSetCurrent");
 
   // FLAGS_NONE: the texture is only ever a cuMemcpy2D destination (never a
   // surface load/store in a kernel), so SURFACE_LDST is not required.
@@ -551,32 +551,32 @@ CudaP2PError cuda_p2p_register_gl_image(
       ctx->cu.graphicsGLRegisterImage(
           &resource, gl_texture_id, gl_target,
           CU_GRAPHICS_REGISTER_FLAGS_NONE),
-      ctx, CUDA_P2P_ERROR_INTEROP_FAILED, "cuGraphicsGLRegisterImage");
+      ctx, CUDA_INTEROP_ERROR_INTEROP_FAILED, "cuGraphicsGLRegisterImage");
 
-  // Register-only: do NOT keep it mapped. cuda_p2p_gl_write_image maps and
+  // Register-only: do NOT keep it mapped. cuda_interop_gl_write_image maps and
   // unmaps per frame so the texture is GL-owned (and CUDA writes are visible)
   // whenever GL samples it — same coherency discipline as the buffer path.
-  auto* h = new CudaP2PResource_t();
+  auto* h = new CudaInteropResource_t();
   h->graphicsResource = resource;
   *out_handle = h;
-  return CUDA_P2P_SUCCESS;
+  return CUDA_INTEROP_SUCCESS;
 }
 
-CudaP2PError cuda_p2p_gl_write_image(
-    CudaP2PContextHandle ctx, CudaP2PResourceHandle h, void* src_device_ptr,
+CudaInteropError cuda_interop_gl_write_image(
+    CudaInteropContextHandle ctx, CudaInteropResourceHandle h, void* src_device_ptr,
     uint32_t width_bytes, uint32_t height, uint32_t src_pitch_bytes)
 {
   if(!ctx || !h || !h->graphicsResource || !src_device_ptr || width_bytes == 0
      || height == 0)
-    return CUDA_P2P_ERROR_INVALID_PARAMETER;
+    return CUDA_INTEROP_ERROR_INVALID_PARAMETER;
   std::lock_guard<std::mutex> lock(ctx->mutex);
   CU_CHECK(
-      ctx->cu.ctxSetCurrent(ctx->cuContext), ctx, CUDA_P2P_ERROR_COPY_FAILED,
+      ctx->cu.ctxSetCurrent(ctx->cuContext), ctx, CUDA_INTEROP_ERROR_COPY_FAILED,
       "cuCtxSetCurrent");
 
   CU_CHECK(
       ctx->cu.graphicsMap(1, &h->graphicsResource, ctx->stream), ctx,
-      CUDA_P2P_ERROR_INTEROP_FAILED, "cuGraphicsMapResources(GL image)");
+      CUDA_INTEROP_ERROR_INTEROP_FAILED, "cuGraphicsMapResources(GL image)");
 
   CUarray dstArray{};
   if(ctx->cu.graphicsSubResourceGetMappedArray(
@@ -586,7 +586,7 @@ CudaP2PError cuda_p2p_gl_write_image(
   {
     ctx->cu.graphicsUnmap(1, &h->graphicsResource, ctx->stream);
     ctx->lastError = "cuGraphicsSubResourceGetMappedArray failed";
-    return CUDA_P2P_ERROR_INTEROP_FAILED;
+    return CUDA_INTEROP_ERROR_INTEROP_FAILED;
   }
 
   CUDA_MEMCPY2D m{};
@@ -607,27 +607,27 @@ CudaP2PError cuda_p2p_gl_write_image(
   ctx->cu.graphicsUnmap(1, &h->graphicsResource, ctx->stream);
   if(cr != CUDA_SUCCESS)
     return reportCuError(
-        ctx, cr, CUDA_P2P_ERROR_COPY_FAILED, "cuMemcpy2DAsync(GL image write)");
-  return CUDA_P2P_SUCCESS;
+        ctx, cr, CUDA_INTEROP_ERROR_COPY_FAILED, "cuMemcpy2DAsync(GL image write)");
+  return CUDA_INTEROP_SUCCESS;
 }
 
 // =============================================================================
 // Shared-image importer (Vulkan external-memory → CUmipmappedArray)
 // =============================================================================
 
-CudaP2PError cuda_p2p_import_vulkan_image(
-    CudaP2PContextHandle ctx,
+CudaInteropError cuda_interop_import_vulkan_image(
+    CudaInteropContextHandle ctx,
     void* external_memory_handle,
     uint64_t memory_size,
-    const CudaP2PImageDesc* desc,
+    const CudaInteropImageDesc* desc,
     uint64_t offset_in_memory,
     void** out_cuda_array,
-    CudaP2PImageHandle* out_handle)
+    CudaInteropImageHandle* out_handle)
 {
   if(!ctx || !external_memory_handle || !desc || !out_cuda_array
      || !out_handle || memory_size == 0 || desc->width == 0
      || desc->height == 0 || desc->numChannels == 0)
-    return CUDA_P2P_ERROR_INVALID_PARAMETER;
+    return CUDA_INTEROP_ERROR_INVALID_PARAMETER;
 
   *out_cuda_array = nullptr;
   *out_handle = nullptr;
@@ -635,10 +635,10 @@ CudaP2PError cuda_p2p_import_vulkan_image(
 
   CU_CHECK(
       ctx->cu.ctxSetCurrent(ctx->cuContext), ctx,
-      CUDA_P2P_ERROR_INTEROP_FAILED, "cuCtxSetCurrent");
+      CUDA_INTEROP_ERROR_INTEROP_FAILED, "cuCtxSetCurrent");
 
   // Import the memory as external — same handle-type selection as
-  // cuda_p2p_import_vulkan_buffer.
+  // cuda_interop_import_vulkan_buffer.
   CUDA_EXTERNAL_MEMORY_HANDLE_DESC memDesc{};
 #if defined(_WIN32)
   memDesc.type = CU_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32;
@@ -653,7 +653,7 @@ CudaP2PError cuda_p2p_import_vulkan_image(
   CUexternalMemory extMem{};
   CU_CHECK(
       ctx->cu.importExtMem(&extMem, &memDesc), ctx,
-      CUDA_P2P_ERROR_INTEROP_FAILED, "cuImportExternalMemory(image)");
+      CUDA_INTEROP_ERROR_INTEROP_FAILED, "cuImportExternalMemory(image)");
 
   // Materialize as a single-level mipmapped array.
   CUDA_EXTERNAL_MEMORY_MIPMAPPED_ARRAY_DESC mipDesc{};
@@ -671,7 +671,7 @@ CudaP2PError cuda_p2p_import_vulkan_image(
   {
     ctx->cu.destroyExtMem(extMem);
     ctx->lastError = "cuExternalMemoryGetMappedMipmappedArray failed";
-    return CUDA_P2P_ERROR_INTEROP_FAILED;
+    return CUDA_INTEROP_ERROR_INTEROP_FAILED;
   }
 
   CUarray levelZero{};
@@ -680,20 +680,20 @@ CudaP2PError cuda_p2p_import_vulkan_image(
     ctx->cu.destroyMipArray(mipArray);
     ctx->cu.destroyExtMem(extMem);
     ctx->lastError = "cuMipmappedArrayGetLevel(0) failed";
-    return CUDA_P2P_ERROR_INTEROP_FAILED;
+    return CUDA_INTEROP_ERROR_INTEROP_FAILED;
   }
 
-  auto* h = new CudaP2PImage_t();
+  auto* h = new CudaInteropImage_t();
   h->externalMemory = extMem;
   h->mipArray = mipArray;
   h->levelZeroArray = levelZero;
 
   *out_cuda_array = levelZero;
   *out_handle = h;
-  return CUDA_P2P_SUCCESS;
+  return CUDA_INTEROP_SUCCESS;
 }
 
-void cuda_p2p_release_image(CudaP2PContextHandle ctx, CudaP2PImageHandle h)
+void cuda_interop_release_image(CudaInteropContextHandle ctx, CudaInteropImageHandle h)
 {
   if(!ctx || !h)
     return;
@@ -710,14 +710,14 @@ void cuda_p2p_release_image(CudaP2PContextHandle ctx, CudaP2PImageHandle h)
 // External semaphores (D3D12 fence + Vulkan timeline)
 // =============================================================================
 
-static CudaP2PError importSemaphore(
-    CudaP2PContextHandle ctx,
+static CudaInteropError importSemaphore(
+    CudaInteropContextHandle ctx,
     CUexternalSemaphoreHandleType type,
     void* handle,
-    CudaP2PSemaphoreHandle* out)
+    CudaInteropSemaphoreHandle* out)
 {
   if(!ctx || !handle || !out)
-    return CUDA_P2P_ERROR_INVALID_PARAMETER;
+    return CUDA_INTEROP_ERROR_INVALID_PARAMETER;
 
   *out = nullptr;
   std::lock_guard<std::mutex> lock(ctx->mutex);
@@ -733,26 +733,26 @@ static CudaP2PError importSemaphore(
 
   CUexternalSemaphore sem{};
   CU_CHECK(
-      ctx->cu.importExtSem(&sem, &desc), ctx, CUDA_P2P_ERROR_INTEROP_FAILED,
+      ctx->cu.importExtSem(&sem, &desc), ctx, CUDA_INTEROP_ERROR_INTEROP_FAILED,
       "cuImportExternalSemaphore");
 
-  auto* s = new CudaP2PSemaphore_t();
+  auto* s = new CudaInteropSemaphore_t();
   s->handle = sem;
   *out = s;
-  return CUDA_P2P_SUCCESS;
+  return CUDA_INTEROP_SUCCESS;
 }
 
-CudaP2PError cuda_p2p_import_d3d12_fence(
-    CudaP2PContextHandle ctx,
+CudaInteropError cuda_interop_import_d3d12_fence(
+    CudaInteropContextHandle ctx,
     void* shared_fence_handle,
-    CudaP2PSemaphoreHandle* sem)
+    CudaInteropSemaphoreHandle* sem)
 {
 #if !defined(_WIN32)
   (void)shared_fence_handle;
   (void)sem;
   if(ctx)
     ctx->lastError = "D3D12 fence interop not available on non-Windows platforms";
-  return CUDA_P2P_ERROR_FORMAT_NOT_SUPPORTED;
+  return CUDA_INTEROP_ERROR_FORMAT_NOT_SUPPORTED;
 #else
   return importSemaphore(
       ctx, CU_EXTERNAL_SEMAPHORE_HANDLE_TYPE_D3D12_FENCE, shared_fence_handle,
@@ -760,10 +760,10 @@ CudaP2PError cuda_p2p_import_d3d12_fence(
 #endif
 }
 
-CudaP2PError cuda_p2p_import_vulkan_semaphore(
-    CudaP2PContextHandle ctx,
+CudaInteropError cuda_interop_import_vulkan_semaphore(
+    CudaInteropContextHandle ctx,
     void* external_semaphore_handle,
-    CudaP2PSemaphoreHandle* sem)
+    CudaInteropSemaphoreHandle* sem)
 {
 #if defined(_WIN32)
   const auto t = CU_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TIMELINE_SEMAPHORE_WIN32;
@@ -773,10 +773,10 @@ CudaP2PError cuda_p2p_import_vulkan_semaphore(
   return importSemaphore(ctx, t, external_semaphore_handle, sem);
 }
 
-CudaP2PError cuda_p2p_import_vulkan_semaphore_binary(
-    CudaP2PContextHandle ctx,
+CudaInteropError cuda_interop_import_vulkan_semaphore_binary(
+    CudaInteropContextHandle ctx,
     void* external_semaphore_handle,
-    CudaP2PSemaphoreHandle* sem)
+    CudaInteropSemaphoreHandle* sem)
 {
 #if defined(_WIN32)
   const auto t = CU_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_WIN32;
@@ -786,26 +786,26 @@ CudaP2PError cuda_p2p_import_vulkan_semaphore_binary(
   return importSemaphore(ctx, t, external_semaphore_handle, sem);
 }
 
-CudaP2PError cuda_p2p_wait_semaphore(
-    CudaP2PContextHandle ctx,
-    CudaP2PSemaphoreHandle sem,
+CudaInteropError cuda_interop_wait_semaphore(
+    CudaInteropContextHandle ctx,
+    CudaInteropSemaphoreHandle sem,
     uint64_t value)
 {
   if(!ctx || !sem)
-    return CUDA_P2P_ERROR_INVALID_PARAMETER;
+    return CUDA_INTEROP_ERROR_INVALID_PARAMETER;
   std::lock_guard<std::mutex> lock(ctx->mutex);
 
   CUDA_EXTERNAL_SEMAPHORE_WAIT_PARAMS params{};
   params.params.fence.value = value;
   CU_CHECK(
       ctx->cu.waitExtSems(&sem->handle, &params, 1, ctx->stream), ctx,
-      CUDA_P2P_ERROR_SYNC_FAILED, "cuWaitExternalSemaphoresAsync");
-  return CUDA_P2P_SUCCESS;
+      CUDA_INTEROP_ERROR_SYNC_FAILED, "cuWaitExternalSemaphoresAsync");
+  return CUDA_INTEROP_SUCCESS;
 }
 
-void cuda_p2p_release_semaphore(
-    CudaP2PContextHandle ctx,
-    CudaP2PSemaphoreHandle sem)
+void cuda_interop_release_semaphore(
+    CudaInteropContextHandle ctx,
+    CudaInteropSemaphoreHandle sem)
 {
   if(!ctx || !sem)
     return;
@@ -819,27 +819,27 @@ void cuda_p2p_release_semaphore(
 // Synchronization
 // =============================================================================
 
-CudaP2PError cuda_p2p_sync(CudaP2PContextHandle ctx)
+CudaInteropError cuda_interop_sync(CudaInteropContextHandle ctx)
 {
   if(!ctx)
-    return CUDA_P2P_ERROR_INVALID_PARAMETER;
+    return CUDA_INTEROP_ERROR_INVALID_PARAMETER;
   std::lock_guard<std::mutex> lock(ctx->mutex);
   CU_CHECK(
-      ctx->cu.streamSync(ctx->stream), ctx, CUDA_P2P_ERROR_SYNC_FAILED,
+      ctx->cu.streamSync(ctx->stream), ctx, CUDA_INTEROP_ERROR_SYNC_FAILED,
       "cuStreamSynchronize");
-  return CUDA_P2P_SUCCESS;
+  return CUDA_INTEROP_SUCCESS;
 }
 
-CudaP2PError cuda_p2p_copy_buffer_to_array(
-    CudaP2PContextHandle ctx, void* src_device_ptr, void* dst_cuda_array,
+CudaInteropError cuda_interop_copy_buffer_to_array(
+    CudaInteropContextHandle ctx, void* src_device_ptr, void* dst_cuda_array,
     uint32_t width_bytes, uint32_t height, uint32_t src_pitch_bytes)
 {
   if(!ctx || !src_device_ptr || !dst_cuda_array || width_bytes == 0
      || height == 0)
-    return CUDA_P2P_ERROR_INVALID_PARAMETER;
+    return CUDA_INTEROP_ERROR_INVALID_PARAMETER;
   std::lock_guard<std::mutex> lock(ctx->mutex);
   CU_CHECK(
-      ctx->cu.ctxSetCurrent(ctx->cuContext), ctx, CUDA_P2P_ERROR_COPY_FAILED,
+      ctx->cu.ctxSetCurrent(ctx->cuContext), ctx, CUDA_INTEROP_ERROR_COPY_FAILED,
       "cuCtxSetCurrent");
 
   CUDA_MEMCPY2D m{};
@@ -851,24 +851,24 @@ CudaP2PError cuda_p2p_copy_buffer_to_array(
   m.WidthInBytes = width_bytes;
   m.Height = height;
   CU_CHECK(
-      ctx->cu.memcpy2DAsync(&m, ctx->stream), ctx, CUDA_P2P_ERROR_COPY_FAILED,
+      ctx->cu.memcpy2DAsync(&m, ctx->stream), ctx, CUDA_INTEROP_ERROR_COPY_FAILED,
       "cuMemcpy2DAsync");
   CU_CHECK(
-      ctx->cu.streamSync(ctx->stream), ctx, CUDA_P2P_ERROR_SYNC_FAILED,
+      ctx->cu.streamSync(ctx->stream), ctx, CUDA_INTEROP_ERROR_SYNC_FAILED,
       "cuStreamSynchronize");
-  return CUDA_P2P_SUCCESS;
+  return CUDA_INTEROP_SUCCESS;
 }
 
-CudaP2PError cuda_p2p_copy_array_to_buffer(
-    CudaP2PContextHandle ctx, void* src_cuda_array, void* dst_device_ptr,
+CudaInteropError cuda_interop_copy_array_to_buffer(
+    CudaInteropContextHandle ctx, void* src_cuda_array, void* dst_device_ptr,
     uint32_t width_bytes, uint32_t height, uint32_t dst_pitch_bytes)
 {
   if(!ctx || !src_cuda_array || !dst_device_ptr || width_bytes == 0
      || height == 0)
-    return CUDA_P2P_ERROR_INVALID_PARAMETER;
+    return CUDA_INTEROP_ERROR_INVALID_PARAMETER;
   std::lock_guard<std::mutex> lock(ctx->mutex);
   CU_CHECK(
-      ctx->cu.ctxSetCurrent(ctx->cuContext), ctx, CUDA_P2P_ERROR_COPY_FAILED,
+      ctx->cu.ctxSetCurrent(ctx->cuContext), ctx, CUDA_INTEROP_ERROR_COPY_FAILED,
       "cuCtxSetCurrent");
 
   CUDA_MEMCPY2D m{};
@@ -880,46 +880,46 @@ CudaP2PError cuda_p2p_copy_array_to_buffer(
   m.WidthInBytes = width_bytes;
   m.Height = height;
   CU_CHECK(
-      ctx->cu.memcpy2DAsync(&m, ctx->stream), ctx, CUDA_P2P_ERROR_COPY_FAILED,
+      ctx->cu.memcpy2DAsync(&m, ctx->stream), ctx, CUDA_INTEROP_ERROR_COPY_FAILED,
       "cuMemcpy2DAsync");
   CU_CHECK(
-      ctx->cu.streamSync(ctx->stream), ctx, CUDA_P2P_ERROR_SYNC_FAILED,
+      ctx->cu.streamSync(ctx->stream), ctx, CUDA_INTEROP_ERROR_SYNC_FAILED,
       "cuStreamSynchronize");
-  return CUDA_P2P_SUCCESS;
+  return CUDA_INTEROP_SUCCESS;
 }
 
-CudaP2PError cuda_p2p_upload_buffer(
-    CudaP2PContextHandle ctx, void* dst_device_ptr, const void* host_data,
+CudaInteropError cuda_interop_upload_buffer(
+    CudaInteropContextHandle ctx, void* dst_device_ptr, const void* host_data,
     uint64_t size)
 {
   if(!ctx || !dst_device_ptr || !host_data || size == 0)
-    return CUDA_P2P_ERROR_INVALID_PARAMETER;
+    return CUDA_INTEROP_ERROR_INVALID_PARAMETER;
   std::lock_guard<std::mutex> lock(ctx->mutex);
   CU_CHECK(
-      ctx->cu.ctxSetCurrent(ctx->cuContext), ctx, CUDA_P2P_ERROR_COPY_FAILED,
+      ctx->cu.ctxSetCurrent(ctx->cuContext), ctx, CUDA_INTEROP_ERROR_COPY_FAILED,
       "cuCtxSetCurrent");
   CU_CHECK(
       ctx->cu.memcpyHtoD(
           reinterpret_cast<CUdeviceptr>(dst_device_ptr), host_data, size),
-      ctx, CUDA_P2P_ERROR_COPY_FAILED, "cuMemcpyHtoD");
-  return CUDA_P2P_SUCCESS;
+      ctx, CUDA_INTEROP_ERROR_COPY_FAILED, "cuMemcpyHtoD");
+  return CUDA_INTEROP_SUCCESS;
 }
 
-CudaP2PError cuda_p2p_download_buffer(
-    CudaP2PContextHandle ctx, void* host_data, void* src_device_ptr,
+CudaInteropError cuda_interop_download_buffer(
+    CudaInteropContextHandle ctx, void* host_data, void* src_device_ptr,
     uint64_t size)
 {
   if(!ctx || !host_data || !src_device_ptr || size == 0)
-    return CUDA_P2P_ERROR_INVALID_PARAMETER;
+    return CUDA_INTEROP_ERROR_INVALID_PARAMETER;
   std::lock_guard<std::mutex> lock(ctx->mutex);
   CU_CHECK(
-      ctx->cu.ctxSetCurrent(ctx->cuContext), ctx, CUDA_P2P_ERROR_COPY_FAILED,
+      ctx->cu.ctxSetCurrent(ctx->cuContext), ctx, CUDA_INTEROP_ERROR_COPY_FAILED,
       "cuCtxSetCurrent");
   CU_CHECK(
       ctx->cu.memcpyDtoH(
           host_data, reinterpret_cast<CUdeviceptr>(src_device_ptr), size),
-      ctx, CUDA_P2P_ERROR_COPY_FAILED, "cuMemcpyDtoH");
-  return CUDA_P2P_SUCCESS;
+      ctx, CUDA_INTEROP_ERROR_COPY_FAILED, "cuMemcpyDtoH");
+  return CUDA_INTEROP_SUCCESS;
 }
 
 // =============================================================================
@@ -929,34 +929,34 @@ CudaP2PError cuda_p2p_download_buffer(
 // CUpointer_attribute::CU_POINTER_ATTRIBUTE_SYNC_MEMOPS (driver ABI value).
 static constexpr int kCuPointerAttributeSyncMemops = 6;
 
-CudaP2PError cuda_p2p_alloc_buffer(
-    CudaP2PContextHandle ctx, uint64_t size, void** out_device_ptr)
+CudaInteropError cuda_interop_alloc_buffer(
+    CudaInteropContextHandle ctx, uint64_t size, void** out_device_ptr)
 {
   if(!ctx || !out_device_ptr || size == 0)
-    return CUDA_P2P_ERROR_INVALID_PARAMETER;
+    return CUDA_INTEROP_ERROR_INVALID_PARAMETER;
   *out_device_ptr = nullptr;
   std::lock_guard<std::mutex> lock(ctx->mutex);
   CU_CHECK(
-      ctx->cu.ctxSetCurrent(ctx->cuContext), ctx, CUDA_P2P_ERROR_ALLOC_FAILED,
+      ctx->cu.ctxSetCurrent(ctx->cuContext), ctx, CUDA_INTEROP_ERROR_ALLOC_FAILED,
       "cuCtxSetCurrent");
   CUdeviceptr dptr{};
   CU_CHECK(
-      ctx->cu.memAlloc(&dptr, size), ctx, CUDA_P2P_ERROR_ALLOC_FAILED,
+      ctx->cu.memAlloc(&dptr, size), ctx, CUDA_INTEROP_ERROR_ALLOC_FAILED,
       "cuMemAlloc");
   // Mark for synchronous memops so the vendor's DMA engine and in-stream
   // compute stay coherent. Best-effort: absent on very old drivers, and
   // some drivers refuse it on specific ranges — the explicit stream sync
-  // in cuda_p2p_copy_dtod keeps us correct either way.
+  // in cuda_interop_copy_dtod keeps us correct either way.
   if(ctx->cu.pointerSetAttribute)
   {
     const int one = 1;
     ctx->cu.pointerSetAttribute(&one, kCuPointerAttributeSyncMemops, dptr);
   }
   *out_device_ptr = reinterpret_cast<void*>(static_cast<uintptr_t>(dptr));
-  return CUDA_P2P_SUCCESS;
+  return CUDA_INTEROP_SUCCESS;
 }
 
-void cuda_p2p_free_buffer(CudaP2PContextHandle ctx, void* device_ptr)
+void cuda_interop_free_buffer(CudaInteropContextHandle ctx, void* device_ptr)
 {
   if(!ctx || !device_ptr)
     return;
@@ -966,8 +966,8 @@ void cuda_p2p_free_buffer(CudaP2PContextHandle ctx, void* device_ptr)
   ctx->cu.memFree(reinterpret_cast<CUdeviceptr>(device_ptr));
 }
 
-CudaP2PError cuda_p2p_copy_dtod_2d(
-    CudaP2PContextHandle ctx,
+CudaInteropError cuda_interop_copy_dtod_2d(
+    CudaInteropContextHandle ctx,
     void* dst_device_ptr,
     uint64_t dst_pitch_bytes,
     void* src_device_ptr,
@@ -978,10 +978,10 @@ CudaP2PError cuda_p2p_copy_dtod_2d(
   if(!ctx || !dst_device_ptr || !src_device_ptr || width_bytes == 0
      || height == 0 || dst_pitch_bytes < width_bytes
      || src_pitch_bytes < width_bytes)
-    return CUDA_P2P_ERROR_INVALID_PARAMETER;
+    return CUDA_INTEROP_ERROR_INVALID_PARAMETER;
   std::lock_guard<std::mutex> lock(ctx->mutex);
   CU_CHECK(
-      ctx->cu.ctxSetCurrent(ctx->cuContext), ctx, CUDA_P2P_ERROR_COPY_FAILED,
+      ctx->cu.ctxSetCurrent(ctx->cuContext), ctx, CUDA_INTEROP_ERROR_COPY_FAILED,
       "cuCtxSetCurrent");
   CUDA_MEMCPY2D m{};
   m.srcMemoryType = CU_MEMORYTYPE_DEVICE;
@@ -993,31 +993,31 @@ CudaP2PError cuda_p2p_copy_dtod_2d(
   m.WidthInBytes = width_bytes;
   m.Height = height;
   CU_CHECK(
-      ctx->cu.memcpy2DAsync(&m, ctx->stream), ctx, CUDA_P2P_ERROR_COPY_FAILED,
+      ctx->cu.memcpy2DAsync(&m, ctx->stream), ctx, CUDA_INTEROP_ERROR_COPY_FAILED,
       "cuMemcpy2DAsync(dtod2d)");
   CU_CHECK(
-      ctx->cu.streamSync(ctx->stream), ctx, CUDA_P2P_ERROR_COPY_FAILED,
+      ctx->cu.streamSync(ctx->stream), ctx, CUDA_INTEROP_ERROR_COPY_FAILED,
       "cuStreamSynchronize");
-  return CUDA_P2P_SUCCESS;
+  return CUDA_INTEROP_SUCCESS;
 }
 
-CudaP2PError cuda_p2p_copy_dtod(
-    CudaP2PContextHandle ctx, void* dst_device_ptr, void* src_device_ptr,
+CudaInteropError cuda_interop_copy_dtod(
+    CudaInteropContextHandle ctx, void* dst_device_ptr, void* src_device_ptr,
     uint64_t size)
 {
   if(!ctx || !dst_device_ptr || !src_device_ptr || size == 0)
-    return CUDA_P2P_ERROR_INVALID_PARAMETER;
+    return CUDA_INTEROP_ERROR_INVALID_PARAMETER;
   std::lock_guard<std::mutex> lock(ctx->mutex);
   CU_CHECK(
-      ctx->cu.ctxSetCurrent(ctx->cuContext), ctx, CUDA_P2P_ERROR_COPY_FAILED,
+      ctx->cu.ctxSetCurrent(ctx->cuContext), ctx, CUDA_INTEROP_ERROR_COPY_FAILED,
       "cuCtxSetCurrent");
   CU_CHECK(
       ctx->cu.memcpyDtoDAsync(
           reinterpret_cast<CUdeviceptr>(dst_device_ptr),
           reinterpret_cast<CUdeviceptr>(src_device_ptr), size, ctx->stream),
-      ctx, CUDA_P2P_ERROR_COPY_FAILED, "cuMemcpyDtoDAsync");
+      ctx, CUDA_INTEROP_ERROR_COPY_FAILED, "cuMemcpyDtoDAsync");
   CU_CHECK(
-      ctx->cu.streamSync(ctx->stream), ctx, CUDA_P2P_ERROR_SYNC_FAILED,
+      ctx->cu.streamSync(ctx->stream), ctx, CUDA_INTEROP_ERROR_SYNC_FAILED,
       "cuStreamSynchronize");
-  return CUDA_P2P_SUCCESS;
+  return CUDA_INTEROP_SUCCESS;
 }

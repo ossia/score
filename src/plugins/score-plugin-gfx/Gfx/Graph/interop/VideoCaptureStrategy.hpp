@@ -7,7 +7,7 @@
  * Symmetric inverse of `VideoOutputStrategy` for the input direction.
  * Concrete impls live in each vendor's addon (AJA today; Magewell /
  * Ximea / Datapath planned). The plumbing helpers (`ImportedGpuBufferRing`,
- * the slot ring atomic, `CudaP2PBridge`) are in score-plugin-gfx so
+ * the slot ring atomic, `CudaInterop`) are in score-plugin-gfx so
  * the per-vendor file stays ~150 lines.
  *
  * Threading contract:

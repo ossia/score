@@ -31,7 +31,7 @@ bool VulkanCudaBounce::init(const VulkanCudaBounceConfig& cfg)
     return false;
   }
 
-  if(cuda_p2p_init(&m_p2p) != CUDA_P2P_SUCCESS || !m_p2p)
+  if(cuda_interop_init(&m_p2p) != CUDA_INTEROP_SUCCESS || !m_p2p)
   {
     qWarning() << cfg.debugName << ": CUDA bridge init failed";
     return false;
@@ -118,9 +118,9 @@ bool VulkanCudaBounce::init(const VulkanCudaBounceConfig& cfg)
     }
 
     // 2. CUDA view of the exportable buffer (consumes the fd on success).
-    if(cuda_p2p_import_vulkan_buffer(
+    if(cuda_interop_import_vulkan_buffer(
            m_p2p, handle->osHandle(), s.vk.size, &s.vkCudaPtr, &s.vkCudaHandle)
-           != CUDA_P2P_SUCCESS
+           != CUDA_INTEROP_SUCCESS
        || !s.vkCudaPtr)
     {
       qWarning() << cfg.debugName
@@ -134,12 +134,12 @@ bool VulkanCudaBounce::init(const VulkanCudaBounceConfig& cfg)
     }
 
     // 3. Pinned CUDA bounce the vendor DMAs (cuMemAlloc + SYNC_MEMOPS).
-    if(cuda_p2p_alloc_buffer(m_p2p, cfg.frameBytes, &s.bouncePtr)
-           != CUDA_P2P_SUCCESS
+    if(cuda_interop_alloc_buffer(m_p2p, cfg.frameBytes, &s.bouncePtr)
+           != CUDA_INTEROP_SUCCESS
        || !s.bouncePtr)
     {
       qWarning() << cfg.debugName << ": bounce alloc failed at" << i;
-      cuda_p2p_release_buffer(m_p2p, s.vkCudaHandle);
+      cuda_interop_release_buffer(m_p2p, s.vkCudaHandle);
       vkinterop::destroyExternal(m_vk, s.vk);
       release();
       return false;
@@ -168,16 +168,16 @@ void VulkanCudaBounce::release()
   for(auto& s : m_slots)
   {
     if(s.bouncePtr && m_p2p)
-      cuda_p2p_free_buffer(m_p2p, s.bouncePtr);
+      cuda_interop_free_buffer(m_p2p, s.bouncePtr);
     if(s.vkCudaHandle && m_p2p)
-      cuda_p2p_release_buffer(m_p2p, s.vkCudaHandle);
+      cuda_interop_release_buffer(m_p2p, s.vkCudaHandle);
     if(s.vk.buffer || s.vk.memory)
       vkinterop::destroyExternal(m_vk, s.vk);
   }
   m_slots.clear();
   if(m_p2p)
   {
-    cuda_p2p_shutdown(m_p2p);
+    cuda_interop_shutdown(m_p2p);
     m_p2p = nullptr;
   }
   m_vk = {};
@@ -216,26 +216,26 @@ bool VulkanCudaBounce::waitCopyDoneOnStream()
 {
   if(!timelineSupported() || m_semValue == 0)
     return false;
-  return cuda_p2p_wait_semaphore(m_p2p, m_sem.cuda(), m_semValue)
-         == CUDA_P2P_SUCCESS;
+  return cuda_interop_wait_semaphore(m_p2p, m_sem.cuda(), m_semValue)
+         == CUDA_INTEROP_SUCCESS;
 }
 
 bool VulkanCudaBounce::flushToBounce(std::size_t i, std::size_t bytes)
 {
   if(i >= m_slots.size() || bytes > m_frameBytes)
     return false;
-  return cuda_p2p_copy_dtod(
+  return cuda_interop_copy_dtod(
              m_p2p, m_slots[i].bouncePtr, m_slots[i].vkCudaPtr, bytes)
-         == CUDA_P2P_SUCCESS;
+         == CUDA_INTEROP_SUCCESS;
 }
 
 bool VulkanCudaBounce::flushFromBounce(std::size_t i, std::size_t bytes)
 {
   if(i >= m_slots.size() || bytes > m_frameBytes)
     return false;
-  return cuda_p2p_copy_dtod(
+  return cuda_interop_copy_dtod(
              m_p2p, m_slots[i].vkCudaPtr, m_slots[i].bouncePtr, bytes)
-         == CUDA_P2P_SUCCESS;
+         == CUDA_INTEROP_SUCCESS;
 }
 
 void VulkanCudaBounce::debugPeek(std::size_t i, const char* tag)
@@ -243,8 +243,8 @@ void VulkanCudaBounce::debugPeek(std::size_t i, const char* tag)
   if(i >= m_slots.size() || !m_p2p)
     return;
   unsigned char b[16]{};
-  if(cuda_p2p_download_buffer(m_p2p, b, m_slots[i].bouncePtr, sizeof(b))
-     == CUDA_P2P_SUCCESS)
+  if(cuda_interop_download_buffer(m_p2p, b, m_slots[i].bouncePtr, sizeof(b))
+     == CUDA_INTEROP_SUCCESS)
     qDebug() << tag << "slot" << int(i) << "bytes:" << b[0] << b[1] << b[2]
              << b[3] << b[4] << b[5] << b[6] << b[7];
   else
