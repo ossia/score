@@ -240,6 +240,10 @@ set(HDRS
     Gfx/Graph/encoders/UYVYCompute.hpp
     Gfx/Graph/encoders/BGRACompute.hpp
     Gfx/Graph/encoders/ComputeEncoder.hpp
+    Gfx/Graph/interop/VideoPixelFormatAV.hpp
+    Gfx/Graph/interop/VideoPixelFormatAV.cpp
+    Gfx/Graph/interop/VideoPixelFormat.hpp
+    Gfx/Graph/interop/VideoPixelFormat.cpp
 
     Gfx/Graph/decoders/GPUVideoDecoder.hpp
     Gfx/Graph/decoders/GPUVideoDecoderFactory.hpp
