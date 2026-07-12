@@ -12,11 +12,18 @@ struct SimpleRenderedVSANode : score::gfx::NodeRenderer
 
   virtual ~SimpleRenderedVSANode();
 
-  void updateInputTexture(const Port& input, QRhiTexture* tex) override;
+  void updateInputTexture(const Port& input, QRhiTexture* tex, QRhiTexture* depthTex = nullptr) override;
 
   void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
   void update(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge) override;
   void release(RenderList& r) override;
+
+  void initState(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
+  void releaseState(RenderList& renderer) override;
+  void addOutputPass(
+      RenderList& renderer, Edge& edge, QRhiResourceUpdateBatch& res) override;
+  void removeOutputPass(RenderList& renderer, Edge& edge) override;
+  bool hasOutputPassForEdge(Edge& edge) const override;
 
   void runInitialPasses(
       RenderList&, QRhiCommandBuffer& commands, QRhiResourceUpdateBatch*& res,

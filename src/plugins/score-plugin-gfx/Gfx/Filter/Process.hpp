@@ -64,6 +64,12 @@ public:
     return m_processedProgram;
   }
 
+  // Absolute path of the shader file this model was loaded from. Used as
+  // the base for quoted #include resolution in ProgramCache::get. Empty
+  // when the shader source is in-memory (default preset, pasted text).
+  // Mirrors JS::ProcessModel::m_root.
+  QString rootPath() const noexcept { return m_scriptPath; }
+
   void errorMessage(const QString& arg_2) const W_SIGNAL(errorMessage, arg_2);
 
 private:
@@ -73,6 +79,7 @@ private:
 
   ShaderSource m_program;
   ProcessedProgram m_processedProgram;
+  QString m_scriptPath;
 };
 
 struct ProcessFactory final : Process::ProcessFactory_T<Gfx::Filter::Model>

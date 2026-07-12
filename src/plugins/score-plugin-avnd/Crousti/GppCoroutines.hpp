@@ -266,6 +266,7 @@ struct handle_update
           requires { C::vertex; } || requires { C::index; })
       {
         auto buf = rhi.newBuffer(buffer_type<C>(), usage<C>(), command.size);
+        buf->setName("GppCoroutines::vbuf_or_ibuf");
         buf->create();
         return reinterpret_cast<typename C::return_type>(buf);
       }
@@ -279,6 +280,7 @@ struct handle_update
           requires { C::ubo; } || requires { C::storage; })
       {
         auto buf = rhi.newBuffer(buffer_type<C>(), usage<C>(), command.size);
+        buf->setName("GppCoroutines::ubo_or_ssbo");
         buf->create();
 
         // Replace it in our bindings

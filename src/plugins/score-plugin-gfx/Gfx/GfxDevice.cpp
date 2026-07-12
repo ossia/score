@@ -2,6 +2,7 @@
 
 #include "GfxParameter.hpp"
 
+#include <State/Message.hpp>
 #include <State/MessageListSerialization.hpp>
 
 #include <ossia/network/base/device.hpp>

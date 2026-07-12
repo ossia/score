@@ -324,8 +324,17 @@ void Model::setupIsf(const isf::descriptor& desc)
         alternatives.emplace_back("2", 2);
       }
 
+      // ComboBox::init expects the VALUE that should be initially selected,
+      // not an index. libisf stores `v.def` as the INDEX into values.
+      // Pass the alternative's value at v.def so the widget initialises
+      // to the author-intended entry instead of falling back to
+      // alternatives[0]. Same fix as CSF/Process.cpp.
+      const std::size_t def_idx
+          = std::min<std::size_t>(v.def, alternatives.size() - 1);
+      const ossia::value& init_value = alternatives[def_idx].second;
+
       auto port = new Process::ComboBox(
-          std::move(alternatives), (int)v.def, QString::fromStdString(input.name),
+          std::move(alternatives), init_value, QString::fromStdString(input.name),
           Id<Process::Port>(i), &self);
 
       self.m_inlets.push_back(port);
@@ -456,7 +465,9 @@ void Model::setupIsf(const isf::descriptor& desc)
       // They're managed by the system, so we don't create a UI control
       return nullptr;
     }
-    
+
+    Process::Inlet* operator()(const uniform_input& v) { return nullptr; }
+
     Process::Inlet* operator()(const texture_input& v)
     {
       auto port = new Gfx::TextureInlet(
