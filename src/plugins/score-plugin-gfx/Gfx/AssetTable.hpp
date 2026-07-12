@@ -22,8 +22,9 @@ namespace Gfx
  *
  * Lives on GfxContext, shared across all RenderLists in the session.
  * Keyed by `content_hash` (64-bit stable hash of the source bytes —
- * XXH3 / XXH64 / SHA-256 truncated all work; parsers and the
- * preprocessor use FNV-1a-64 below by default).
+ * the canonical primitive is `ossia::hash_bytes` from
+ * `ossia/detail/hash.hpp`, which dispatches to rapidhash; parsers and
+ * the preprocessor produce content_hash values through that helper).
  *
  * Purpose: one decode per asset across the whole session. When two
  * glTF files reference the same `baseColor.jpg`, we decode it once

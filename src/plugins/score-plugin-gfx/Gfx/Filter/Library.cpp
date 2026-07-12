@@ -13,6 +13,7 @@
 #include <ossia/gfx/texture_parameter.hpp>
 #include <ossia/network/base/device.hpp>
 
+#include <QDebug>
 #include <QDir>
 #include <QGuiApplication>
 #include <QJsonArray>
@@ -163,7 +164,7 @@ void DropHandler::dropPath(
 
 void DropHandler::dropCustom(
     std::vector<ProcessDrop>& vec, const QMimeData& mime,
-    const score::DocumentContext& ctx) const noexcept
+    const score::DocumentContext& ctx) const
 {
   // FIXME handle multipass / multibuffer
   for(const auto& uri : mime.urls())
@@ -186,28 +187,40 @@ void DropHandler::dropCustom(
           {
             continue;
           }
-          isf::parser parser("", shader_json, 450, isf::parser::ShaderType::ShaderToy);
-          auto isf = parser.write_isf();
-          auto spec = parser.data();
-          if(isf.empty())
+          // The ISF parser throws invalid_file on malformed Shadertoy
+          // JSON (empty body, non-JSON response, missing fields, parse-
+          // time validation failures like non-numeric LOCATION). Catch
+          // per URL so one bad URL doesn't abort the whole drop batch.
+          try
           {
+            isf::parser parser("", shader_json, 450, isf::parser::ShaderType::ShaderToy);
+            auto isf = parser.write_isf();
+            auto spec = parser.data();
+            if(isf.empty())
+            {
+              continue;
+            }
+            // For immediate feedback, add a placeholder
+            Process::ProcessDropHandler::ProcessDrop p;
+            p.creation.key = Metadata<ConcreteKey_k, Gfx::Filter::Model>::get();
+            p.creation.prettyName = "Shadertoy " + shaderId;
+            p.setup = [isf](Process::ProcessModel& p, score::Dispatcher& d) {
+              auto& filter = (Gfx::Filter::Model&)p;
+              Gfx::ShaderSource source;
+              source.vertex = "";
+              source.fragment = QString::fromStdString(isf);
+              auto cmd = new Gfx::ChangeShader{
+                  filter, source, score::IDocument::documentContext(p)};
+              d.submit(cmd);
+            };
+
+            vec.push_back(std::move(p));
+          }
+          catch(const std::exception& e)
+          {
+            qWarning() << "Shadertoy drop failed for" << shaderId << ":" << e.what();
             continue;
           }
-          // For immediate feedback, add a placeholder
-          Process::ProcessDropHandler::ProcessDrop p;
-          p.creation.key = Metadata<ConcreteKey_k, Gfx::Filter::Model>::get();
-          p.creation.prettyName = "Shadertoy " + shaderId;
-          p.setup = [isf](Process::ProcessModel& p, score::Dispatcher& d) {
-            auto& filter = (Gfx::Filter::Model&)p;
-            Gfx::ShaderSource source;
-            source.vertex = "";
-            source.fragment = QString::fromStdString(isf);
-            auto cmd = new Gfx::ChangeShader{
-                filter, source, score::IDocument::documentContext(p)};
-            d.submit(cmd);
-          };
-
-          vec.push_back(std::move(p));
         }
       }
     }

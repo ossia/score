@@ -112,11 +112,11 @@ private:
     m_uploaded = false;
   }
 
-  void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  void initState(RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
     rerender();
-    const auto& mesh = renderer.defaultQuad();
-    defaultMeshInit(renderer, mesh, res);
+    m_mesh = &renderer.defaultQuad();
+    defaultMeshInit(renderer, *m_mesh, res);
     processUBOInit(renderer);
     m_material.init(renderer, node.input, m_samplers);
     std::tie(m_vertexS, m_fragmentS) = score::gfx::makeShaders(
@@ -145,7 +145,7 @@ private:
       m_samplers.push_back({sampler, tex});
     }
 
-    defaultPassesInit(renderer, mesh);
+    m_initialized = true;
   }
 
   void update(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge) override
@@ -179,7 +179,7 @@ private:
     defaultRenderPass(renderer, mesh, cb, edge);
   }
 
-  void release(RenderList& r) override
+  void releaseState(RenderList& r) override
   {
     for(auto tex : m_textures)
     {
@@ -187,7 +187,7 @@ private:
     }
     m_textures.clear();
 
-    defaultRelease(r);
+    GenericNodeRenderer::releaseState(r);
   }
 
   QImage m_img;

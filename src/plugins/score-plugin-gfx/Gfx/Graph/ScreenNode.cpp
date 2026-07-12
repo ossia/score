@@ -7,6 +7,7 @@
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/gfx/OpenGL.hpp>
+#include <score/tools/Debug.hpp>
 
 #include <QtGui/private/qrhinull_p.h>
 
@@ -42,12 +43,95 @@
 #include <QtGui/private/qrhimetal_p.h>
 #endif
 
+#include <QCryptographicHash>
+#include <QDir>
+#include <QFile>
 #include <QOffscreenSurface>
 #include <QScreen>
+#include <QStandardPaths>
+#include <QThreadPool>
 #include <QWindow>
+
+#include <utility>
 
 namespace score::gfx
 {
+namespace
+{
+// Persistent pipeline cache. Saved on QRhi destruction, loaded right after
+// QRhi creation. Keyed per backend so different APIs don't overwrite each
+// other's cache. Gated on QRhi::Feature::PipelineCacheDataLoadSave.
+static QString pipelineCacheFilePath(GraphicsApi api)
+{
+  QString root = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
+  if(root.isEmpty())
+    root = QDir::tempPath();
+  QDir().mkpath(root + QStringLiteral("/ossia-score/pipeline-cache"));
+  const char* apiName = "unknown";
+  switch(api)
+  {
+    case Null:   apiName = "null"; break;
+    case OpenGL: apiName = "gl"; break;
+    case Vulkan: apiName = "vk"; break;
+    case D3D11:  apiName = "d3d11"; break;
+    case D3D12:  apiName = "d3d12"; break;
+    case Metal:  apiName = "metal"; break;
+  }
+  return QStringLiteral("%1/ossia-score/pipeline-cache/%2.bin")
+      .arg(root)
+      .arg(QString::fromLatin1(apiName));
+}
+
+static void tryLoadPipelineCache(QRhi* rhi, GraphicsApi api)
+{
+  if(!rhi || !rhi->isFeatureSupported(QRhi::PipelineCacheDataLoadSave))
+    return;
+  QFile f(pipelineCacheFilePath(api));
+  if(!f.open(QIODevice::ReadOnly))
+    return;
+  rhi->setPipelineCacheData(f.readAll());
+}
+
+// Pure disk I/O — no QRhi access, so it is safe to run off the render thread.
+static void writePipelineCacheToDisk(QByteArray data, GraphicsApi api)
+{
+  if(data.isEmpty())
+    return;
+  QFile f(pipelineCacheFilePath(api));
+  if(!f.open(QIODevice::WriteOnly | QIODevice::Truncate))
+    return;
+  f.write(data);
+}
+
+// Synchronous store: grabs the cache bytes from the QRhi (must be on the
+// render thread) and writes them inline. Used on shutdown (preRhiDestroy)
+// where the QRhi is about to be destroyed and we must finish before it goes.
+static void tryStorePipelineCache(QRhi* rhi, GraphicsApi api)
+{
+  if(!rhi || !rhi->isFeatureSupported(QRhi::PipelineCacheDataLoadSave))
+    return;
+  writePipelineCacheToDisk(rhi->pipelineCacheData(), api);
+}
+
+// Mid-session store: grabs the cache bytes on the render thread (QRhi access),
+// then offloads the blocking file write to a worker thread so the render
+// thread doesn't stall on disk I/O right after a PSO-compile burst. The
+// QByteArray is copied into the task (implicitly shared, cheap) and outlives
+// the QRhi-independent write.
+static void tryStorePipelineCacheAsync(QRhi* rhi, GraphicsApi api)
+{
+  if(!rhi || !rhi->isFeatureSupported(QRhi::PipelineCacheDataLoadSave))
+    return;
+  QByteArray data = rhi->pipelineCacheData();
+  if(data.isEmpty())
+    return;
+  QThreadPool::globalInstance()->start(
+      [data = std::move(data), api]() mutable {
+    writePipelineCacheToDisk(std::move(data), api);
+  });
+}
+}
+
 std::shared_ptr<RenderState>
 createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
 {
@@ -58,14 +142,29 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
   const auto& settings = score::AppContext().settings<Gfx::Settings::Model>();
   state.samples = settings.resolveSamples(graphicsApi);
 
-  auto populateCaps = [](RenderState& s) {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
+  auto populateCaps = [graphicsApi](RenderState& s) {
+    // Load persisted pipeline cache (if any) and set up a save-on-destroy
+    // hook that writes it back before QRhi is deleted.
     if(s.rhi)
     {
-      s.caps.drawIndirect = s.rhi->isFeatureSupported(QRhi::DrawIndirect);
-      s.caps.drawIndirectMulti = s.rhi->isFeatureSupported(QRhi::DrawIndirectMulti);
+      tryLoadPipelineCache(s.rhi, graphicsApi);
+      QRhi* rhiPtr = s.rhi;
+      s.preRhiDestroy = [rhiPtr, graphicsApi]() {
+        tryStorePipelineCache(rhiPtr, graphicsApi);
+      };
+      // Mid-session flush for crash-resilient cache
+      // persistence. RenderList::render throttles this after PSO
+      // stalls; the QRhi read happens here on the render thread but the
+      // blocking file write is offloaded to a worker so the render
+      // thread isn't stalled on disk right after a PSO-compile burst.
+      s.savePipelineCache = [rhiPtr, graphicsApi]() {
+        tryStorePipelineCacheAsync(rhiPtr, graphicsApi);
+      };
     }
-#endif
+    if(s.rhi)
+    {
+      s.caps.populate(*s.rhi);
+    }
     // Clamp the requested sample count against what the hardware actually
     // supports. Without this, asking for e.g. 16x MSAA on a card that only
     // does 8x silently mismatches between the value stored in
@@ -108,6 +207,17 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
   QRhi::Flags flags{};
 #ifndef NDEBUG
   flags |= QRhi::EnableDebugMarkers;
+#endif
+  // Let the RHI save per-backend pipeline binary cache so subsequent runs
+  // skip the initial pipeline compilation cost (big win for Vulkan/D3D12).
+  flags |= QRhi::EnablePipelineCacheDataSave;
+
+  // Enable per-command-buffer GPU timestamps. Required for the per-pass
+  // GPU timing panel — without this flag,
+  // QRhiCommandBuffer::lastCompletedGpuTime() returns 0 on Vulkan/D3D12/Metal.
+  // Negligible overhead when no timer instance is active.
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+  flags |= QRhi::EnableTimestamps;
 #endif
 
 #ifndef QT_NO_OPENGL
@@ -304,13 +414,18 @@ ScreenNode::~ScreenNode()
 {
   if(m_swapChain)
   {
-    m_swapChain->deleteLater();
-
+    // Order matters: clear the alias + flag on the Window BEFORE releasing
+    // the QRhiSwapChain. A queued QExposeEvent landing between the deferred
+    // delete and the nullings would otherwise observe the inconsistent
+    // state (m_hasSwapChain == true && m_swapChain still aliasing freed
+    // memory).
     if(m_window)
     {
-      m_window->m_swapChain = nullptr;
       m_window->m_hasSwapChain = false;
+      m_window->m_swapChain = nullptr;
     }
+
+    m_swapChain->deleteLater();
   }
 
   if(m_window && m_window->state)
@@ -375,8 +490,8 @@ void ScreenNode::onRendererChange()
         return;
       }
     }
+    m_window->m_canRender = false;
   }
-  m_window->m_canRender = false;
 }
 
 void ScreenNode::stopRendering()
@@ -395,7 +510,13 @@ void ScreenNode::stopRendering()
 
 void ScreenNode::setRenderer(std::shared_ptr<RenderList> r)
 {
-  m_window->state->renderer = r;
+  // m_window can be null after destroyOutput() (which calls m_window.reset()).
+  // Reachable from Graph::createOutputRenderList paths after a graphics-API
+  // switch / sample-count change / output-disable cycle. Sibling guards
+  // already exist in stopRendering and onRendererChange below; this one
+  // was missed when those were patched.
+  if(m_window && m_window->state)
+    m_window->state->renderer = r;
 }
 
 RenderList* ScreenNode::renderer() const
@@ -440,12 +561,28 @@ void ScreenNode::setConfiguration(Configuration conf)
 
 void ScreenNode::setSwapchainFlag(Gfx::SwapchainFlag flag)
 {
+  if(m_swapchainFlag == flag)
+    return;
   m_swapchainFlag = flag;
+  // Live flag change (sRGB toggle) requires the swapchain to be recreated
+  // with the new flag bits — setFlags happens in createOutput at line ~667.
+  // destroyOutput tears down; Graph::createOutputRenderList rebuilds on
+  // next reconcile (same pattern updateGraphicsAPI uses for sample-count).
+  if(m_window)
+    destroyOutput();
 }
 
 void ScreenNode::setSwapchainFormat(Gfx::SwapchainFormat format)
 {
+  if(m_swapchainFormat == format)
+    return;
   m_swapchainFormat = format;
+  // Same rebuild rationale as setSwapchainFlag above. setFormat happens at
+  // line ~650 inside createOutput; without the rebuild the field stayed
+  // updated but the live swapchain kept its prior format (HDR↔SDR toggle
+  // was silently inert).
+  if(m_window)
+    destroyOutput();
 }
 
 void ScreenNode::setSize(QSize sz)
@@ -643,6 +780,35 @@ void ScreenNode::destroyOutput()
   if(!m_window)
     return;
 
+  // Drain the GPU before tearing anything down. Without this, queued frames
+  // can still reference the swapchain / RPD / depth-stencil while we're
+  // freeing them — and worse, when setSwapchainFormat / setSwapchainFlag
+  // call destroyOutput synchronously (commit e2afe7874), the host window's
+  // last beginFrame may still hold an unfinished cbWrapper referenced by
+  // ScenePreprocessor's per-frame copyBuffer (commit fe146c8de). The next
+  // runInitialPasses then records vkCmdCopyBuffer / vkCmdPipelineBarrier
+  // into a CB whose underlying VkCommandBuffer was already vkEndCommandBuffer'd
+  // (VUID-vkCmdCopyBuffer-commandBuffer-recording / VUID-vkCmdPipelineBarrier-
+  // commandBuffer-recording), often followed by a device loss.
+  //
+  // MultiWindowNode::destroyOutput already does this at line ~1068; mirror it.
+  if(m_window->state && m_window->state->rhi)
+  {
+    // Pre-condition: destroyOutput must not be called inside a frame
+    // (between beginFrame and endFrame). If this fires, some upstream
+    // path triggered a teardown mid-render — the cascade would be
+    // worse than just deferring to next frame.
+    SCORE_ASSERT(!m_window->state->rhi->isRecordingFrame());
+    m_window->state->rhi->finish();
+  }
+
+  // Persist-across-rebuild contract: the registry survives RL teardown
+  // so we must explicitly release its QRhi resources here, BEFORE
+  // RenderState::destroy() (called below via m_window->state->destroy())
+  // frees the device. destroyOwned() `delete`s the buffer / texture /
+  // sampler wrappers directly while the QRhi is still alive.
+  releaseRegistry();
+
   delete m_depthStencil;
   m_depthStencil = nullptr;
 
@@ -658,13 +824,18 @@ void ScreenNode::destroyOutput()
   //delete s.renderBuffer;
   //s.renderBuffer = nullptr;
 
-  delete m_swapChain;
-  m_swapChain = nullptr;
-
+  // Order matters: clear the alias + flag on the Window BEFORE deleting
+  // the QRhiSwapChain. A queued event reaching
+  // Window::exposeEvent between the delete and the nulling would
+  // otherwise observe (m_hasSwapChain == true && m_swapChain dangling).
   if(m_window)
   {
+    m_window->m_hasSwapChain = false;
     m_window->m_swapChain = nullptr;
   }
+
+  delete m_swapChain;
+  m_swapChain = nullptr;
 
   if(m_window)
   {
@@ -757,6 +928,13 @@ score::gfx::OutputNodeRenderer* ScreenNode::createRenderer(RenderList& r) const 
   score::gfx::TextureRenderTarget rt;
   rt.renderTarget = m_swapChain->currentFrameRenderTarget();
   rt.renderPass = r.state.renderPassDescriptor;
+  // No depth attachment exposed here on purpose: ScaledRenderer is a
+  // fullscreen-quad blit that samples the upstream color texture and does
+  // not run depth test. All precision-critical 3D rendering happens
+  // upstream into an intermediate D32F offscreen render target allocated
+  // by createRenderTarget(...) in Utils.cpp. The swap chain's D24S8
+  // DepthStencil buffer is only attached at the QRhi level for the final
+  // blit pass — irrelevant to 3D depth precision.
   // FIXME why doesn't it work?
   // return new BasicRenderer{rt, r.state, *this};
   return new Gfx::ScaledRenderer{rt, r.state, *this};
