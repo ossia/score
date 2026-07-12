@@ -20,11 +20,17 @@ Settings::Settings() { }
 
 Settings::~Settings()
 {
+  teardownModels();
+}
+
+void Settings::teardownModels() noexcept
+{
   for(auto& ptr : m_settings)
   {
     auto p = ptr.release();
     delete p; //p->deleteLater();
   }
+  m_settings.clear();
 }
 
 void Settings::teardownView()
