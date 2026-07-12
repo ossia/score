@@ -4,6 +4,9 @@
 #include <Gfx/InvertYRenderer.hpp>
 #include <Gfx/Libav/LibavOutputSettings.hpp>
 
+#include <cstdint>
+#include <vector>
+
 namespace Gfx
 {
 struct LibavEncoder;
@@ -30,6 +33,11 @@ struct LibavEncoderNode : score::gfx::OutputNode
   QRhiReadbackResult m_readback[2];
   QRhiReadbackResult* m_currentReadback{&m_readback[0]};
   Gfx::InvertYRenderer* m_inv_y_renderer{};
+
+  // 10-bit target codec with no 8-bit GPU encoder: render RGBA16F and feed
+  // libav RGBA64 (real >8-bit precision) instead of the RGBA8 fast path.
+  bool m_tenBit{};
+  std::vector<uint16_t> m_rgba64;
 
   void startRendering() override;
   void onRendererChange() override;
