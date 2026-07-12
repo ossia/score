@@ -160,7 +160,19 @@ public:
 
   int32_t nodeId = score::gfx::invalid_node_index;
   bool requiresDepth{};
-  bool addedToGraph{};
+
+  /**
+   * @brief Whether a given port has a user-specified render target size.
+   *
+   * Returns true only if the user explicitly set a size via render_target_spec.
+   * Used by backward size propagation to decide whether to inherit
+   * the downstream render target size.
+   */
+  bool hasExplicitRenderTargetSize(int32_t port) const noexcept
+  {
+    auto it = renderTargetSpecs.find(port);
+    return it != renderTargetSpecs.end() && it->second.size.has_value();
+  }
 
   QSize resolveRenderTargetSize(int32_t port, RenderList& renderer) const noexcept;
   RenderTargetSpecs

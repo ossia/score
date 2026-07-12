@@ -25,21 +25,23 @@ public:
    *
    * @return If there is an error message, it will be in the QString part of the pair.
    */
-  static const std::pair<QShader, QString>&
-  get(const RenderState& v, const QByteArray& shader, QShader::Stage stage);
-  static const std::pair<QShader, QString>&
-  get(GraphicsApi api, const QShaderVersion& v, const QByteArray& shader,
-      QShader::Stage stage);
+  static const std::pair<QShader, QString>& get(
+      const RenderState& v, const QByteArray& shader, QShader::Stage stage,
+      int multiViewCount = 0);
+  static const std::pair<QShader, QString>& get(
+      GraphicsApi api, const QShaderVersion& v, const QByteArray& shader,
+      QShader::Stage stage, int multiViewCount = 0);
 
 private:
   ShaderCache();
 
   struct Baker
   {
-    explicit Baker(GraphicsApi api, const QShaderVersion& v);
+    explicit Baker(GraphicsApi api, const QShaderVersion& v, int multiViewCount);
 
     GraphicsApi api;
     QShaderVersion version;
+    int multiViewCount{};
     QShaderBaker baker;
     ossia::hash_map<QByteArray, std::pair<QShader, QString>> shaders;
   };

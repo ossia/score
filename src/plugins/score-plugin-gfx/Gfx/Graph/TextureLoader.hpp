@@ -36,9 +36,10 @@ struct DecodedImage
 // =============================================================================
 // Decode helpers — synchronous, called on the render thread.
 //
-// Path-based decode goes through Gfx::ImageCache (Gfx/Images/Process.hpp) for
-// cross-process CPU sharing. Memory-based decode bypasses the cache (the
-// caller already owns the bytes).
+// Both variants decode directly with QImage; cross-output dedup is handled at
+// the TextureCache (per-renderer GPU side) and AssetTable (content-hash
+// keyed) layers. We don't share a CPU-side cache here — the previous reuse
+// of Gfx::ImageCache leaked every decoded path for the program lifetime.
 // =============================================================================
 
 SCORE_PLUGIN_GFX_EXPORT

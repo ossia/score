@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/Utils.hpp>
 
 #include <ossia/audio/fft.hpp>
@@ -9,13 +10,6 @@
 
 namespace score::gfx
 {
-struct Pass
-{
-  TextureRenderTarget renderTarget;
-  Pipeline p;
-  QRhiBuffer* processUBO{};
-};
-
 struct PersistSampler
 {
   QRhiSampler* sampler{};

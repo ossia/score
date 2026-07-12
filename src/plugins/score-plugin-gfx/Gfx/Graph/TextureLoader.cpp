@@ -1,6 +1,7 @@
 #include <Gfx/Graph/TextureLoader.hpp>
+#include <Gfx/Hashes.hpp>
 
-#include <Gfx/Images/Process.hpp>
+#include <ossia/detail/hash.hpp>
 
 #include <QByteArray>
 #include <QFile>
@@ -40,35 +41,30 @@ static QImage tryFooterlessTga(const QByteArray& bytes)
   return img;
 }
 
-
 // -----------------------------------------------------------------------------
 // CPU decode
 // -----------------------------------------------------------------------------
 
 std::optional<DecodedImage> decodeImageFromPath(const QString& path)
 {
-  // Reuse the existing global CPU cache (Gfx/Images/Process.hpp). It's
-  // refcounted; we deliberately never call release() — material textures
-  // typically stay live for the program lifetime.
-  auto cached = Gfx::ImageCache::instance().acquire(path);
-  if(!cached || cached->frames.empty())
+  // Decode straight off disk rather than through Gfx::ImageCache: that cache is
+  // refcounted and this loader has no release point, so every unique path would
+  // hold a QImage for the program lifetime. The TextureCache below already
+  // de-duplicates per-renderer GPU uploads and AssetTable handles cross-output
+  // dedup keyed on content hash.
+  QImage img(path);
+  if(img.isNull())
   {
-    // The cache decodes via QImage, which rejects footer-less TGAs; retry
-    // through the memory path and its TGA fallback.
     QFile f(path);
     if(f.open(QIODevice::ReadOnly))
-      if(auto out = decodeImageFromMemory(f.readAll(), {}))
-      {
-        out->debug_name = path;
-        return out;
-      }
-    return std::nullopt;
+      img = tryFooterlessTga(f.readAll());
+    if(img.isNull())
+      return std::nullopt;
   }
 
   DecodedImage out;
-  out.image = cached->frames.front();
-  // Cache stores Format_ARGB32 (BGRA-swizzled by Qt). Convert to a
-  // canonical RGBA8888 layout so QRhi's RGBA8 textures sample correctly.
+  out.image = std::move(img);
+  // Canonical RGBA8888 layout so QRhi's RGBA8 textures sample correctly.
   if(out.image.format() != QImage::Format_RGBA8888)
     out.image.convertTo(QImage::Format_RGBA8888);
   out.debug_name = path;
@@ -177,10 +173,9 @@ QRhiTexture* loadAndUploadTexture(
 
 std::size_t TextureCache::KeyHash::operator()(const Key& k) const noexcept
 {
-  std::size_t h = qHash(k.origin);
-  // Mix the sRGB bit. Use a constant of decent dispersion.
-  h ^= (k.srgb ? 0x9E3779B97F4A7C15ull : 0xBF58476D1CE4E5B9ull);
-  return h;
+  std::size_t seed = hash_qstring(k.origin);
+  ossia::hash_combine(seed, (uint8_t)(k.srgb ? 1 : 0));
+  return seed;
 }
 
 TextureCache::~TextureCache()
@@ -206,9 +201,10 @@ QRhiTexture* TextureCache::acquireFromPath(
     return it->second;
 
   auto* tex = loadAndUploadTexture(rhi, batch, path, srgb);
-  // Insert even if nullptr — avoids retrying decode every frame for a missing
-  // file. Caller can detect failure via the nullptr return.
-  m_textures.emplace(std::move(k), tex);
+  if(tex)
+    m_textures.emplace(std::move(k), tex);
+  // Decode failures are not cached — let the next call retry. Caller
+  // handles the nullptr return as the "missing texture" fallback.
   return tex;
 }
 
@@ -223,7 +219,8 @@ QRhiTexture* TextureCache::acquireFromMemory(
     return it->second;
 
   auto* tex = loadAndUploadTexture(rhi, batch, bytes, mime_hint, srgb);
-  m_textures.emplace(std::move(k), tex);
+  if(tex)
+    m_textures.emplace(std::move(k), tex);
   return tex;
 }
 

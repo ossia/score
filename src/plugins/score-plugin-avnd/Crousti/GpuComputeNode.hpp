@@ -65,6 +65,7 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
   QRhiComputePipeline* m_pipeline{};
 
   bool m_createdPipeline{};
+  bool m_initialized{};
 
   int sampler_k = 0;
   int ubo_k = 0;
@@ -230,8 +231,28 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
     createdUbos[ubo_type::binding()] = ubo;
   }
 
-  void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  // Compute renderers own a single shared compute pipeline + SRB; they
+  // don't allocate any per-output-edge state. Edge add/remove is a no-op
+  // for them. These overrides are required because NodeRenderer
+  // ::removeOutputPass is now pure-virtual, and Graph.cpp's incremental
+  // path drives renderers through addOutputPass (the per-edge passes a
+  // compute node simply doesn't have).
+  void removeOutputPass(score::gfx::RenderList&, score::gfx::Edge&) override { }
+  void addOutputPass(
+      score::gfx::RenderList&, score::gfx::Edge&, QRhiResourceUpdateBatch&) override
   {
+  }
+
+  // All edge-independent setup lives in initState(), mirroring
+  // CustomGpuRenderer in GpuNode.hpp. The incremental edge-rewire path
+  // (Graph.cpp) only calls initState()/releaseState()/addOutputPass() on
+  // newly-spawned renderers; a compute node inserted live would otherwise
+  // never allocate its pipeline/SRB and run against uninitialised state.
+  void initState(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  {
+    if(m_initialized)
+      return;
+
     auto& parent = node();
     if constexpr(requires { state->prepare(); })
     {
@@ -255,6 +276,13 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
       SCORE_ASSERT(m_pipeline->create());
       m_createdPipeline = true;
     }
+
+    m_initialized = true;
+  }
+
+  void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  {
+    initState(renderer, res);
   }
 
   std::vector<QRhiShaderResourceBinding> tmp;
@@ -301,6 +329,8 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
         if(m_createdPipeline)
           m_srb->destroy();
         m_srb->setBindings(tmp.begin(), tmp.end());
+        if(m_createdPipeline && !m_srb->create())
+          qWarning("GpuComputeNode: SRB recreation failed");
       }
 
       /*
@@ -337,8 +367,11 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
     }
   }
 
-  void release(score::gfx::RenderList& r) override
+  void releaseState(score::gfx::RenderList& r) override
   {
+    if(!m_initialized)
+      return;
+
     m_createdPipeline = false;
 
     // Release the object's internal states
@@ -382,6 +415,13 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
 
     sampler_k = 0;
     ubo_k = 0;
+
+    m_initialized = false;
+  }
+
+  void release(score::gfx::RenderList& r) override
+  {
+    releaseState(r);
   }
 
   void runCompute(

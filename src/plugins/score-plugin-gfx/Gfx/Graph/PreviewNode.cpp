@@ -36,9 +36,15 @@ std::shared_ptr<RenderState> importRenderState(QSize sz, QRhi* rhi)
   }
   state.version = Gfx::Settings::shaderVersionForAPI(state.api);
   state.rhi = rhi;
-  state.samples = 1; // FIXME
+  // The host widget owns this rhi, so we can't follow the global samples
+  // setting here — but we should at least query what the rhi actually
+  // supports rather than assuming 1. Final RT sample count is set by the
+  // host via setSampleCount on its own swap chain.
+  state.samples = rhi->supportedSampleCounts().value(0, 1);
   state.renderSize = sz;
   state.outputSize = sz;
+
+  state.caps.populate(*rhi);
   return st;
 }
 
@@ -106,7 +112,24 @@ void PreviewNode::createOutput(score::gfx::OutputConfiguration conf)
   conf.onReady();
 }
 
-void PreviewNode::destroyOutput() { }
+void PreviewNode::destroyOutput()
+{
+  // Persist-across-rebuild contract: registry survives RL teardown,
+  // so its QRhi resources must be released here (BEFORE we drop our
+  // RenderState reference) while the host-owned QRhi is still alive.
+  // The host (Qt widget) is responsible for outliving us, but we tear
+  // down our own resources first to keep the contract symmetric with
+  // ScreenNode / BackgroundNode / MultiWindowNode.
+  releaseRegistry();
+
+  // Host owns the underlying QRhi and the m_renderTarget / m_texture aliases
+  // — we don't free those. The shared_ptr<RenderState> is the only piece
+  // PreviewNode actually owns; reset it so a createOutput → destroyOutput →
+  // createOutput cycle drops the prior state instead of relying on
+  // make_shared assignment to release the previous holder. Matches the
+  // unified sink contract every other OutputNode subclass observes.
+  m_renderState.reset();
+}
 
 std::shared_ptr<score::gfx::RenderState> PreviewNode::renderState() const
 {
@@ -233,7 +256,7 @@ public:
       score::gfx::RenderList& renderer, QRhiCommandBuffer& cb,
       QRhiResourceUpdateBatch*& res) override
   {
-    cb.beginPass(m_renderTarget.renderTarget, Qt::black, {1.0f, 0}, res);
+    cb.beginPass(m_renderTarget.renderTarget, Qt::black, {0.0f, 0}, res);
     res = nullptr;
     {
       const auto sz = renderer.state.renderSize;
