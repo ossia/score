@@ -195,6 +195,9 @@ set(HDRS
     Gfx/Graph/Node.hpp
     Gfx/Graph/NodeRenderer.hpp
     Gfx/Graph/OutputNode.hpp
+    Gfx/Graph/DMACaptureInputNode.hpp
+    Gfx/Graph/DirectVideoOutputBackend.hpp
+    Gfx/Graph/DirectVideoOutputNode.hpp
     Gfx/Graph/PreviewNode.hpp
     Gfx/Graph/SceneGPUState.hpp
     Gfx/Graph/GpuResourceRegistry.hpp
@@ -458,6 +461,9 @@ set(SRCS
     Gfx/Graph/Node.cpp
     Gfx/Graph/NodeRenderer.cpp
     Gfx/Graph/OutputNode.cpp
+    Gfx/Graph/DMACaptureInputNode.cpp
+    Gfx/Graph/DirectVideoOutputBackend.cpp
+    Gfx/Graph/DirectVideoOutputNode.cpp
     Gfx/Graph/PreviewNode.cpp
     Gfx/Graph/SceneGPUState.cpp
     Gfx/Graph/GpuResourceRegistry.cpp
@@ -566,6 +572,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
    ${QT_PREFIX}::ShaderTools ${QT_PREFIX}::ShaderToolsPrivate  ${QT_PREFIX}::GuiPrivate
    "$<BUILD_INTERFACE:r8brain>"
 )
+
 # nv-dvp-bridge: HostPinnedRing's DVP backend uses the bridge C API
 # directly; needs the include path and the static lib.
 target_link_libraries(${PROJECT_NAME} PRIVATE score_nv_dvp_bridge)
