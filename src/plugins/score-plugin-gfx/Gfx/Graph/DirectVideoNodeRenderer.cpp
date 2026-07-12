@@ -310,6 +310,9 @@ bool DirectVideoNodeRenderer::setupHardwareDecoder(
         funcs->vkGetPhysicalDeviceQueueFamilyProperties(
             nh->physDev, &qfCount, qfProps.get());
 
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(59, 39, 100)
+        // FFmpeg >= 7.1: AVVulkanDeviceContext exposes an arbitrary list of
+        // queue families via qf[] / nb_qf (AVVulkanDeviceQueueFamily).
         int nb_qf = 0;
         for(uint32_t i = 0; i < qfCount && nb_qf < 64; i++)
         {
@@ -320,6 +323,41 @@ bool DirectVideoNodeRenderer::setupHardwareDecoder(
           nb_qf++;
         }
         vkCtx->nb_qf = nb_qf;
+#else
+        // FFmpeg < 7.1: per-capability queue-family indices. Pick the first
+        // family advertising each capability; -1 / 0 queues where absent.
+        // Transfer is implied by graphics/compute even when the TRANSFER bit
+        // is unset, so fall back to the graphics family for tx/comp.
+        const auto firstFamilyWith = [&](VkQueueFlags bits) -> int {
+          for(uint32_t i = 0; i < qfCount; i++)
+            if((qfProps[i].queueFlags & bits) == bits)
+              return static_cast<int>(i);
+          return -1;
+        };
+        const int gfxFam = firstFamilyWith(VK_QUEUE_GRAPHICS_BIT);
+        const int txFam = firstFamilyWith(VK_QUEUE_TRANSFER_BIT);
+        const int compFam = firstFamilyWith(VK_QUEUE_COMPUTE_BIT);
+        vkCtx->queue_family_index = gfxFam;
+        vkCtx->nb_graphics_queues = gfxFam >= 0 ? 1 : 0;
+        vkCtx->queue_family_tx_index = txFam >= 0 ? txFam : gfxFam;
+        vkCtx->nb_tx_queues = 1;
+        vkCtx->queue_family_comp_index = compFam >= 0 ? compFam : gfxFam;
+        vkCtx->nb_comp_queues = 1;
+#ifdef VK_QUEUE_VIDEO_DECODE_BIT_KHR
+        const int decFam = firstFamilyWith(VK_QUEUE_VIDEO_DECODE_BIT_KHR);
+#else
+        const int decFam = -1;
+#endif
+        vkCtx->queue_family_decode_index = decFam;
+        vkCtx->nb_decode_queues = decFam >= 0 ? 1 : 0;
+#ifdef VK_QUEUE_VIDEO_ENCODE_BIT_KHR
+        const int encFam = firstFamilyWith(VK_QUEUE_VIDEO_ENCODE_BIT_KHR);
+#else
+        const int encFam = -1;
+#endif
+        vkCtx->queue_family_encode_index = encFam;
+        vkCtx->nb_encode_queues = encFam >= 0 ? 1 : 0;
+#endif
 
         int ret = av_hwdevice_ctx_init(hw_device_ctx);
 
