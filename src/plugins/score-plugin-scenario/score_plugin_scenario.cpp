@@ -91,6 +91,7 @@
 
 // #include <Interpolation/InterpolationFactory.hpp>
 #include <LocalTree/ScenarioComponent.hpp>
+#include <Scenario/Sequence/SequenceLocalTree.hpp>
 
 #include <score_plugin_scenario.hpp>
 #include <score_plugin_scenario_commands_files.hpp>
@@ -290,7 +291,8 @@ std::vector<score::InterfaceBase*> score_plugin_scenario::factories(
          >,
       FW<score::ValidityChecker, ScenarioValidityChecker>,
 
-      FW<LocalTree::ProcessComponentFactory, LocalTree::ScenarioComponentFactory>,
+      FW<LocalTree::ProcessComponentFactory, LocalTree::ScenarioComponentFactory,
+         LocalTree::SequenceComponentFactory>,
       FW<Execution::ProcessComponentFactory, Execution::ScenarioComponentFactory,
          Execution::SequenceComponentFactory>,
       FW<Library::LibraryInterface, Scenario::SlotLibraryHandler,
