@@ -1,4 +1,5 @@
 #pragma once
+#include <Process/Dataflow/CableData.hpp>
 #include <Process/TimeValue.hpp>
 
 #include <score/document/DocumentContext.hpp>
@@ -190,7 +191,9 @@ public:
   W_SLOT(outlets)
 
   QObject* createCable(QObject* outlet, QObject* inlet);
-  W_SLOT(createCable)
+  W_SLOT(createCable, (QObject*, QObject*))
+  QObject* createCable(QObject* outlet, QObject* inlet, Process::CableType type);
+  W_SLOT(createCable, (QObject*, QObject*, Process::CableType))
 
   //! The index-th cable attached to a port. Works for inlets and outlets alike.
   QObject* cable(QObject* port, int index);
