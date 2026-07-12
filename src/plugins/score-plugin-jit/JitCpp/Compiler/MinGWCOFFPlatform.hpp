@@ -235,7 +235,15 @@ private:
   // add-ons), so we never run them twice.
   std::set<llvm::orc::JITDylib*> InitializedJDs;
 
+  // .pdata function tables registered with the OS x64 unwinder
+  // (RtlAddFunctionTable), so exceptions thrown in JIT'd code unwind. Deleted at
+  // teardown.
+  std::vector<void*> RegisteredEHTables;
+
   std::mutex PlatformMutex;
+
+public:
+  ~MinGWCOFFPlatform();
 };
 
 /// LLJIT PlatformSupport that runs add-on static initializers via the platform's

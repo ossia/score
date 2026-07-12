@@ -143,6 +143,11 @@ private:
 
 static std::unique_ptr<llvm::orc::LLJIT> jitBuilder(JitCompiler& self)
 {
+  // Make the host process's symbols searchable before building the JIT: the
+  // MinGWCOFFPlatform bootstrap resolves host RTTI/vtable symbols through a
+  // process-symbols generator during create(), below.
+  llvm::sys::DynamicLibrary::LoadLibraryPermanently(nullptr);
+
   auto JTMB = llvm::orc::JITTargetMachineBuilder::detectHost();
   SCORE_ASSERT(JTMB);
 
