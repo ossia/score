@@ -454,6 +454,13 @@ public:
   void setAlternatives(std::vector<std::pair<QString, ossia::value>> values);
   void alternativesChanged() W_SIGNAL(alternativesChanged);
 
+  // Folder-backed combobox (halp::folder_combobox): items are the files of the
+  // sibling port named folderPortName, filtered by fileExtensions ("*.wav"…).
+  // Empty folderPortName = plain combobox. Populated at edit/load time.
+  QString folderPortName;
+  QStringList fileExtensions;
+  void repopulateFromFolder(const QString& folderPath);
+
   const auto& getValues() const noexcept { return alternatives; }
   auto count() const noexcept { return alternatives.size(); }
 

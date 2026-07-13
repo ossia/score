@@ -21,6 +21,7 @@
 #include <avnd/concepts/audio_port.hpp>
 #include <avnd/concepts/channels.hpp>
 #include <avnd/concepts/curve.hpp>
+#include <avnd/concepts/folder_items.hpp>
 #include <avnd/concepts/gfx.hpp>
 #include <avnd/concepts/midi_port.hpp>
 #include <avnd/concepts/parameter.hpp>
@@ -328,8 +329,27 @@ make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
       init = static_cast<int>(c.init);
     else
       init = c.init;
-    return new Process::ComboBox{
+    auto combo = new Process::ComboBox{
         to_combobox_range(c.values), std::move(init), qname, id, parent};
+    if constexpr(avnd::folder_items_parameter<T>)
+    {
+      combo->folderPortName
+          = QString::fromUtf8(T::folder_port().data(), T::folder_port().size());
+      // extensions(): space-separated suffixes ("wav aif json") -> "*.wav" ...
+      const std::string_view ex = T::extensions();
+      std::size_t pos = 0;
+      while(pos < ex.size())
+      {
+        auto sp = ex.find(' ', pos);
+        if(sp == std::string_view::npos)
+          sp = ex.size();
+        if(sp > pos)
+          combo->fileExtensions.push_back(
+              "*." + QString::fromUtf8(ex.data() + pos, int(sp - pos)));
+        pos = sp + 1;
+      }
+    }
+    return combo;
   }
   else if constexpr(widg.widget == avnd::widget_type::choices)
   {
