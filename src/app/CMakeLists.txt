@@ -165,6 +165,7 @@ if(APPLE)
 endif()
 
 if(WIN32)
+  target_enable_utf8(${APPNAME})
   target_link_libraries(${APPNAME} PRIVATE ntdll RuntimeObject)
 endif()
 
