@@ -1,576 +1,311 @@
-// Copyright (C) 2018 The Qt Company Ltd.
+// Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-// QtLoader provides javascript API for managing Qt application modules.
-//
-// QtLoader provides API on top of Emscripten which supports common lifecycle
-// tasks such as displaying placeholder content while the module downloads,
-// handing application exits, and checking for browser wasm support.
-//
-// There are two usage modes:
-//  * Managed:  QtLoader owns and manages the HTML display elements like
-//              the loader and canvas.
-//  * External: The embedding HTML page owns the display elements. QtLoader
-//              provides event callbacks which the page reacts to.
-//
-// Managed mode usage:
-//
-//     var config = {
-//         containerElements : [$("container-id")];
-//     }
-//     var qtLoader = QtLoader(config);
-//     qtLoader.loadEmscriptenModule("applicationName");
-//
-// External mode.usage:
-//
-//    var config = {
-//        canvasElements : [$("canvas-id")],
-//        showLoader: function() {
-//            loader.style.display = 'block'
-//            canvas.style.display = 'hidden'
-//        },
-//        showCanvas: function() {
-//            loader.style.display = 'hidden'
-//            canvas.style.display = 'block'
-//            return canvas;
-//        }
-//     }
-//     var qtLoader = QtLoader(config);
-//     qtLoader.loadEmscriptenModule("applicationName");
-//
-// Config keys
-//
-//  containerElements : [container-element, ...]
-//      One or more HTML elements. QtLoader will display loader elements
-//      on these while loading the application, and replace the loader with a
-//      canvas on load complete.
-//  canvasElements : [canvas-element, ...]
-//      One or more canvas elements.
-//  showLoader : function(status, containerElement)
-//      Optional loading element constructor function. Implement to create
-//      a custom loading screen. This function may be called multiple times,
-//      while preparing the application binary. "status" is a string
-//      containing the loading sub-status, and may be either "Downloading",
-//      or "Compiling". The browser may be using streaming compilation, in
-//      which case the wasm module is compiled during downloading and the
-//      there is no separate compile step.
-//  showCanvas : function(containerElement)
-//      Optional canvas constructor function. Implement to create custom
-//      canvas elements.
-//  showExit : function(crashed, exitCode, containerElement)
-//      Optional exited element constructor function.
-//  showError : function(crashed, exitCode, containerElement)
-//      Optional error element constructor function.
-//
-//  path : <string>
-//      Prefix path for wasm file, realative to the loading HMTL file.
-//  restartMode : "DoNotRestart", "RestartOnExit", "RestartOnCrash"
-//      Controls whether the application should be reloaded on exits. The default is "DoNotRestart"
-//  restartType : "RestartModule", "ReloadPage"
-//  restartLimit : <int>
-//     Restart attempts limit. The default is 10.
-//  stdoutEnabled : <bool>
-//  stderrEnabled : <bool>
-//  environment : <object>
-//     key-value environment variable pairs.
-//
-// QtLoader object API
-//
-// webAssemblySupported : bool
-// webGLSupported : bool
-// canLoadQt : bool
-//      Reports if WebAssembly and WebGL are supported. These are requirements for
-//      running Qt applications.
-// loadEmscriptenModule(applicationName)
-//      Loads the application from the given emscripten javascript module file and wasm file
-// status
-//      One of "Created", "Loading", "Running", "Exited".
-// crashed
-//      Set to true if there was an unclean exit.
-// exitCode
-//      main()/emscripten_force_exit() return code. Valid on status change to
-//      "Exited", iff crashed is false.
-// exitText
-//      Abort/exit message.
-// addCanvasElement
-//      Add canvas at run-time. Adds a corresponding QScreen,
-// removeCanvasElement
-//      Remove canvas at run-time. Removes the corresponding QScreen.
-// resizeCanvasElement
-//      Signals to the application that a canvas has been resized.
-// setFontDpi
-//      Sets the logical font dpi for the application.
-// module
-//      Returns the Emscripten module object, or undefined if the module
-//      has not been created yet. Note that the module object becomes available
-//      at the very end of the loading sequence, _after_ the transition from
-//      Loading to Running occurs.
-
-
-function QtLoader(config)
+/**
+ * Loads the instance of a WASM module.
+ *
+ * @param config May contain any key normally accepted by emscripten and the 'qt' extra key, with
+ *               the following sub-keys:
+ * - environment: { [name:string] : string }
+ *      environment variables set on the instance
+ * - onExit: (exitStatus: { text: string, code?: number, crashed: bool }) => void
+ *      called when the application has exited for any reason. There are two cases:
+ *      aborted: crashed is true, text contains an error message.
+ *      exited: crashed is false, code contians the exit code.
+ *
+ *      Note that by default Emscripten does not exit when main() returns. This behavior
+ *      is controlled by the EXIT_RUNTIME linker flag; set "-s EXIT_RUNTIME=1" to make
+ *      Emscripten tear down the runtime and exit when main() returns.
+ *
+ * - containerElements: HTMLDivElement[]
+ *      Array of host elements for Qt screens. Each of these elements is mapped to a QScreen on
+ *      launch.
+ * - fontDpi: number
+ *      Specifies font DPI for the instance
+ * - onLoaded: () => void
+ *      Called when the module has loaded, at the point in time where any loading placeholder
+ *      should be hidden and the application window should be shown.
+ * - entryFunction: (emscriptenConfig: object) => Promise<EmscriptenModule>
+ *      Qt always uses emscripten's MODULARIZE option. This is the MODULARIZE entry function.
+ * - module: Promise<WebAssembly.Module>
+ *      The module to create the instance from (optional). Specifying the module allows optimizing
+ *      use cases where several instances are created from a single WebAssembly source.
+ * - qtdir: string
+ *      Path to Qt installation. This path will be used for loading Qt shared libraries and plugins.
+ *      The path is set to 'qt' by default, and is relative to the path of the web page's html file.
+ *      This property is not in use when static linking is used, since this build mode includes all
+ *      libraries and plugins in the wasm file.
+ * - preload: [string]: Array of file paths to json-encoded files which specifying which files to preload.
+ *      The preloaded files will be downloaded at application startup and copied to the in-memory file
+ *      system provided by Emscripten.
+ *
+ *      Each json file must contain an array of source, destination objects:
+ *      [
+ *           {
+ *               "source": "path/to/source",
+ *               "destination": "/path/to/destination"
+ *           },
+ *           ...
+ *      ]
+ *      The source path is relative to the html file path. The destination path must be
+ *      an absolute path.
+ *
+ *      $QTDIR may be used as a placeholder for the "qtdir" configuration property (see @qtdir), for instance:
+ *          "source": "$QTDIR/plugins/imageformats/libqjpeg.so"
+ *  - localFonts.requestPermission: bool
+ *       Whether Qt should request for local fonts access permission on startup (default false).
+ *  - localFonts.familiesCollection string
+ *       Specifies a collection of local fonts to load. Possible values are:
+ *          "NoFontFamilies"      : Don't load any font families
+ *          "DefaultFontFamilies" : A subset of available font families; currently the "web-safe" fonts (default).
+ *          "AllFontFamilies"     : All local font families (not reccomended)
+ *  - localFonts.extraFamilies: [string]
+ *       Adds additional font families to be loaded at startup.
+ *
+ * @return Promise<instance: EmscriptenModule>
+ *      The promise is resolved when the module has been instantiated and its main function has been
+ *      called.
+ *
+ * @see https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/emscripten for
+ *      EmscriptenModule
+ */
+async function qtLoad(config)
 {
-    // The Emscripten module and module configuration object. The module
-    // object is created in completeLoadEmscriptenModule().
-    self.module = undefined;
-    self.moduleConfig = {};
-
-    // Qt properties. These are propagated to the Emscripten module after
-    // it has been created.
-    self.qtContainerElements = undefined;
-    self.qtFontDpi = 96;
-
-    function webAssemblySupported() {
-        return typeof WebAssembly !== "undefined"
-    }
-
-    function webGLSupported() {
-        // We expect that WebGL is supported if WebAssembly is; however
-        // the GPU may be blacklisted.
-        try {
-            var canvas = document.createElement("canvas");
-            return !!(window.WebGLRenderingContext && (canvas.getContext("webgl") || canvas.getContext("experimental-webgl")));
-        } catch (e) {
-            return false;
+    const throwIfEnvUsedButNotExported = (instance, config) =>
+    {
+        const environment = config.qt.environment;
+        if (!environment || Object.keys(environment).length === 0)
+            return;
+        const descriptor = Object.getOwnPropertyDescriptor(instance, 'ENV');
+        const isEnvExported = typeof descriptor.value === 'object';
+        if (!isEnvExported) {
+            throw new Error('ENV must be exported if environment variables are passed, ' +
+                            'add it to the QT_WASM_EXTRA_EXPORTED_METHODS CMake target property');
         }
-    }
+    };
 
-    function canLoadQt() {
-        // The current Qt implementation requires WebAssembly (asm.js is not in use),
-        // and also WebGL (there is no raster fallback).
-        return webAssemblySupported() && webGLSupported();
-    }
+    if (typeof config !== 'object')
+        throw new Error('config is required, expected an object');
+    if (typeof config.qt !== 'object')
+        throw new Error('config.qt is required, expected an object');
+    if (typeof config.qt.entryFunction !== 'function')
+        throw new Error('config.qt.entryFunction is required, expected a function');
 
-    function removeChildren(element) {
-        while (element.firstChild) element.removeChild(element.firstChild);
-    }
+    config.qt.qtdir ??= 'qt';
+    config.qt.preload ??= [];
 
-    function createCanvas() {
-        var canvas = document.createElement("canvas");
-        canvas.className = "QtCanvas";
-        canvas.style.height = "100%";
-        canvas.style.width = "100%";
+    config.qtContainerElements = config.qt.containerElements;
+    delete config.qt.containerElements;
+    config.qtFontDpi = config.qt.fontDpi;
+    delete config.qt.fontDpi;
 
-        // Set contentEditable in order to enable clipboard events; hide the resulting focus frame.
-        canvas.contentEditable = true;
-        canvas.style.outline = "0px solid transparent";
-        canvas.style.caretColor = "transparent";
-        canvas.style.cursor = "default";
+    // Make Emscripten not call main(); this gives us more control over
+    // the startup sequence.
+    const originalNoInitialRun = config.noInitialRun;
+    const originalArguments = config.arguments;
+    config.noInitialRun = true;
 
-        return canvas;
-    }
+    // Used for rejecting a failed load's promise where emscripten itself does not allow it,
+    // like in instantiateWasm below. This allows us to throw in case of a load error instead of
+    // hanging on a promise to entry function, which emscripten unfortunately does.
+    let circuitBreakerReject;
+    const circuitBreaker = new Promise((_, reject) => { circuitBreakerReject = reject; });
 
-    // Set default state handler functions and create canvases if needed
-    if (config.containerElements !== undefined) {
-
-        config.canvasElements = config.containerElements.map(createCanvas);
-
-        config.showError = config.showError || function(errorText, container) {
-            removeChildren(container);
-            var errorTextElement = document.createElement("text");
-            errorTextElement.className = "QtError"
-            errorTextElement.innerHTML = errorText;
-            return errorTextElement;
-        }
-
-        config.showLoader = config.showLoader || function(loadingState, container) {
-            removeChildren(container);
-            var loadingText = document.createElement("text");
-            loadingText.className = "QtLoading"
-            loadingText.innerHTML = '<p><center> ${loadingState}...</center><p>';
-            return loadingText;
-        };
-
-        config.showCanvas = config.showCanvas || function(canvas, container) {
-            removeChildren(container);
-        }
-
-        config.showExit = config.showExit || function(crashed, exitCode, container) {
-            if (!crashed)
-                return undefined;
-
-            removeChildren(container);
-            var fontSize = 54;
-            var crashSymbols = ["\u{1F615}", "\u{1F614}", "\u{1F644}", "\u{1F928}", "\u{1F62C}",
-                                "\u{1F915}", "\u{2639}", "\u{1F62E}", "\u{1F61E}", "\u{1F633}"];
-            var symbolIndex = Math.floor(Math.random() * crashSymbols.length);
-            var errorHtml = `<font size='${fontSize}'> ${crashSymbols[symbolIndex]} </font>`
-            var errorElement = document.createElement("text");
-            errorElement.className = "QtExit"
-            errorElement.innerHTML = errorHtml;
-            return errorElement;
-        }
-    }
-
-    config.restartMode = config.restartMode || "DoNotRestart";
-    config.restartLimit = config.restartLimit || 10;
-
-    if (config.stdoutEnabled === undefined) config.stdoutEnabled = true;
-    if (config.stderrEnabled === undefined) config.stderrEnabled = true;
-
-    // Make sure config.path is defined and ends with "/" if needed
-    if (config.path === undefined)
-        config.path = "";
-    if (config.path.length > 0 && !config.path.endsWith("/"))
-        config.path = config.path.concat("/");
-
-    if (config.environment === undefined)
-        config.environment = {};
-
-    var publicAPI = {};
-    publicAPI.webAssemblySupported = webAssemblySupported();
-    publicAPI.webGLSupported = webGLSupported();
-    publicAPI.canLoadQt = canLoadQt();
-    publicAPI.canLoadApplication = canLoadQt();
-    publicAPI.status = undefined;
-    publicAPI.loadEmscriptenModule = loadEmscriptenModule;
-    publicAPI.addCanvasElement = addCanvasElement;
-    publicAPI.removeCanvasElement = removeCanvasElement;
-    publicAPI.resizeCanvasElement = resizeCanvasElement;
-    publicAPI.setFontDpi = setFontDpi;
-    publicAPI.fontDpi = fontDpi;
-    publicAPI.module = module;
-
-    self.restartCount = 0;
-
-    function fetchResource(filePath) {
-        var fullPath = config.path + filePath;
-        return fetch(fullPath).then(function(response) {
-            if (!response.ok) {
-                self.error = response.status + " " + response.statusText + " " + response.url;
-                setStatus("Error");
-                return Promise.reject(self.error)
-            } else {
-                return response;
+    // If module async getter is present, use it so that module reuse is possible.
+    if (config.qt.module) {
+        config.instantiateWasm = async (imports, successCallback) =>
+        {
+            try {
+                const module = await config.qt.module;
+                successCallback(
+                    await WebAssembly.instantiate(module, imports), module);
+            } catch (e) {
+                circuitBreakerReject(e);
             }
-        });
+        }
     }
-
-    function fetchText(filePath) {
-        return fetchResource(filePath).then(function(response) {
-            return response.text();
-        });
+    const preloadFetchHelper = async (path) => {
+        const response = await fetch(path);
+        if (!response.ok)
+            throw new Error("Could not fetch preload file: " + path);
+        return response.json();
     }
+    const filesToPreload = (await Promise.all(config.qt.preload.map(preloadFetchHelper))).flat();
+    const qtPreRun = (instance) => {
+        // Copy qt.environment to instance.ENV
+        throwIfEnvUsedButNotExported(instance, config);
+        for (const [name, value] of Object.entries(config.qt.environment ?? {}))
+            instance.ENV[name] = value;
 
-    function fetchThenCompileWasm(response) {
-        return response.arrayBuffer().then(function(data) {
-            self.loaderSubState = "Compiling";
-            setStatus("Loading") // trigger loaderSubState update
-            return WebAssembly.compile(data);
-        });
-    }
-
-    function fetchCompileWasm(filePath) {
-        return fetchResource(filePath).then(function(response) {
-            if (typeof WebAssembly.compileStreaming !== "undefined") {
-                self.loaderSubState = "Downloading/Compiling";
-                setStatus("Loading");
-                return WebAssembly.compileStreaming(response).catch(function(error) {
-                    // compileStreaming may/will fail if the server does not set the correct
-                    // mime type (application/wasm) for the wasm file. Fall back to fetch,
-                    // then compile in this case.
-                    return fetchThenCompileWasm(response);
-                });
-            } else {
-                // Fall back to fetch, then compile if compileStreaming is not supported
-                return fetchThenCompileWasm(response);
+        // Preload files from qt.preload
+        const makeDirs = (FS, filePath) => {
+            const parts = filePath.split("/");
+            let path = "/";
+            for (let i = 0; i < parts.length - 1; ++i) {
+                const part = parts[i];
+                if (part == "")
+                    continue;
+                path += part + "/";
+                try {
+                    FS.mkdir(path);
+                } catch (error) {
+                    const EEXIST = 20;
+                    if (error.errno != EEXIST)
+                        throw error;
+                }
             }
-        });
-    }
-
-    function loadEmscriptenModule(applicationName) {
-
-        // Loading in qtloader.js goes through four steps:
-        // 1) Check prerequisites
-        // 2) Download resources
-        // 3) Configure the emscripten Module object
-        // 4) Start the emcripten runtime, after which emscripten takes over
-
-        // Check for Wasm & WebGL support; set error and return before downloading resources if missing
-        if (!webAssemblySupported()) {
-            self.error = "Error: WebAssembly is not supported"
-            setStatus("Error");
-            return;
-        }
-        if (!webGLSupported()) {
-            self.error = "Error: WebGL is not supported"
-            setStatus("Error");
-            return;
         }
 
-        // Continue waiting if loadEmscriptenModule() is called again
-        if (publicAPI.status == "Loading")
-            return;
-        self.loaderSubState = "Downloading";
-        setStatus("Loading");
-
-        // Fetch emscripten generated javascript runtime
-        var emscriptenModuleSource = undefined
-        var emscriptenModuleSourcePromise = fetchText(applicationName + ".js").then(function(source) {
-            emscriptenModuleSource = source
-        });
-
-        // Fetch and compile wasm module
-        var wasmModule = undefined;
-        var wasmModulePromise = fetchCompileWasm(applicationName + ".wasm").then(function (module) {
-            wasmModule = module;
-        });
-
-        // Wait for all resources ready
-        Promise.all([emscriptenModuleSourcePromise, wasmModulePromise]).then(function(){
-            completeLoadEmscriptenModule(applicationName, emscriptenModuleSource, wasmModule);
-        }).catch(function(error) {
-            self.error = error;
-            setStatus("Error");
-        });
+        const extractFilenameAndDir = (path) => {
+            const parts = path.split('/');
+            const filename = parts.pop();
+            const dir = parts.join('/');
+            return {
+                filename: filename,
+                dir: dir
+            };
+        }
+        const preloadFile = (file) => {
+            makeDirs(instance.FS, file.destination);
+            const source = file.source.replace('$QTDIR', config.qt.qtdir);
+            const filenameAndDir = extractFilenameAndDir(file.destination);
+            instance.FS.createPreloadedFile(filenameAndDir.dir, filenameAndDir.filename, source, true, true);
+        }
+        const isFsExported = typeof instance.FS === 'object';
+        if (!isFsExported)
+            throw new Error('FS must be exported if preload is used');
+        filesToPreload.forEach(preloadFile);
     }
 
-    function completeLoadEmscriptenModule(applicationName, emscriptenModuleSource, wasmModule) {
+    if (!config.preRun)
+        config.preRun = [];
+    config.preRun.push(qtPreRun);
 
-        // The wasm binary has been compiled into a module during resource download,
-        // and is ready to be instantiated. Define the instantiateWasm callback which
-        // emscripten will call to create the instance.
-        self.moduleConfig.instantiateWasm = function(imports, successCallback) {
-            WebAssembly.instantiate(wasmModule, imports).then(function(instance) {
-                successCallback(instance, wasmModule);
-            }, function(error) {
-                self.error = error;
-                setStatus("Error");
+    const originalOnRuntimeInitialized = config.onRuntimeInitialized;
+    config.onRuntimeInitialized = () => {
+        originalOnRuntimeInitialized?.();
+        config.qt.onLoaded?.();
+    }
+
+    config.locateFile ??= (filename, prefix) => {
+        // dynamic linking: locate Qt libraries at qtdir location
+        // wasmdeployqt relies on this behavior, update both in case of change
+        if (filename.startsWith('libQt6'))
+            return `${config.qt.qtdir}/lib/${filename}`;
+
+        // Mirror Emscripten's default locateFile and prepend the prefix
+        return (prefix ?? '') + filename;
+    }
+
+    let onExitCalled = false;
+    const originalOnExit = config.onExit;
+    config.onExit = code => {
+        originalOnExit?.();
+
+        if (!onExitCalled) {
+            onExitCalled = true;
+            config.qt.onExit?.({
+                code,
+                crashed: false
             });
-            return {};
-        };
-
-        self.moduleConfig.locateFile = self.moduleConfig.locateFile || function(filename) {
-            return config.path + filename;
-        };
-
-        // Attach status callbacks
-        self.moduleConfig.setStatus = self.moduleConfig.setStatus || function(text) {
-            // Currently the only usable status update from this function
-            // is "Running..."
-            if (text.startsWith("Running"))
-                setStatus("Running");
-        };
-        self.moduleConfig.monitorRunDependencies = self.moduleConfig.monitorRunDependencies || function(left) {
-          //  console.log("monitorRunDependencies " + left)
-        };
-
-        // Attach standard out/err callbacks.
-        self.moduleConfig.print = self.moduleConfig.print || function(text) {
-            if (config.stdoutEnabled)
-                console.log(text)
-        };
-        self.moduleConfig.printErr = self.moduleConfig.printErr || function(text) {
-            if (config.stderrEnabled)
-                console.warn(text)
-        };
-
-        // Error handling: set status to "Exited", update crashed and
-        // exitCode according to exit type.
-        // Emscripten will typically call printErr with the error text
-        // as well. Note that emscripten may also throw exceptions from
-        // async callbacks. These should be handled in window.onerror by user code.
-        self.moduleConfig.onAbort = self.moduleConfig.onAbort || function(text) {
-            publicAPI.crashed = true;
-            publicAPI.exitText = text;
-            setStatus("Exited");
-        };
-        self.moduleConfig.quit = self.moduleConfig.quit || function(code, exception) {
-
-            // Emscripten (and Qt) supports exiting from main() while keeping the app
-            // running. Don't transition into the "Exited" state for clean exits.
-            if (code == 0)
-                return;
-
-            if (exception.name == "ExitStatus") {
-                // Clean exit with code
-                publicAPI.exitText = undefined
-                publicAPI.exitCode = code;
-            } else {
-                publicAPI.exitText = exception.toString();
-                publicAPI.crashed = true;
-            }
-            setStatus("Exited");
-        };
-
-        self.moduleConfig.preRun = self.moduleConfig.preRun || []
-        self.moduleConfig.preRun.push(function(module) {
-            // Set environment variables
-            for (var [key, value] of Object.entries(config.environment)) {
-                module.ENV[key.toUpperCase()] = value;
-            }
-            // Propagate Qt module properties
-            module.qtContainerElements = self.qtContainerElements;
-            module.qtFontDpi = self.qtFontDpi;
-        });
-
-        self.moduleConfig.mainScriptUrlOrBlob = new Blob([emscriptenModuleSource], {type: 'text/javascript'});
-
-        self.qtContainerElements = config.canvasElements;
-
-        config.restart = function() {
-
-            // Restart by reloading the page. This will wipe all state which means
-            // reload loops can't be prevented.
-            if (config.restartType == "ReloadPage") {
-                location.reload();
-            }
-
-            // Restart by readling the emscripten app module.
-            ++self.restartCount;
-            if (self.restartCount > config.restartLimit) {
-                self.error = "Error: This application has crashed too many times and has been disabled. Reload the page to try again."
-                setStatus("Error");
-                return;
-            }
-            loadEmscriptenModule(applicationName);
-        };
-
-        publicAPI.exitCode = undefined;
-        publicAPI.exitText = undefined;
-        publicAPI.crashed = false;
-
-        // Load the Emscripten application module. This is done by eval()'ing the
-        // javascript runtime generated by Emscripten, and then calling
-        // createQtAppInstance(), which was added to the global scope.
-        eval(emscriptenModuleSource);
-        createQtAppInstance(self.moduleConfig).then(function(module) {
-            self.module = module;
-        });
-    }
-
-    function setErrorContent() {
-        if (config.containerElements === undefined) {
-            if (config.showError !== undefined)
-                config.showError(self.error);
-            return;
-        }
-
-        for (container of config.containerElements) {
-            var errorElement = config.showError(self.error, container);
-            container.appendChild(errorElement);
         }
     }
 
-    function setLoaderContent() {
-        if (config.containerElements === undefined) {
-            if (config.showLoader !== undefined)
-                config.showLoader(self.loaderSubState);
-            return;
+    const originalOnAbort = config.onAbort;
+    config.onAbort = text =>
+    {
+        originalOnAbort?.();
+        
+        if (!onExitCalled) {
+            onExitCalled = true;
+            config.qt.onExit?.({
+                text,
+                crashed: true
+            });
         }
+    };
 
-        for (container of config.containerElements) {
-            var loaderElement = config.showLoader(self.loaderSubState, container);
-            container.appendChild(loaderElement);
-        }
-    }
+    // Call app/emscripten module entry function. It may either come from the emscripten
+    // runtime script or be customized as needed.
+    let instance;
+    try {
+        instance = await Promise.race(
+            [circuitBreaker, config.qt.entryFunction(config)]);
 
-    function setCanvasContent() {
-        if (config.containerElements === undefined) {
-            if (config.showCanvas !== undefined)
-                config.showCanvas();
-            return;
-        }
-
-        for (var i = 0; i < config.containerElements.length; ++i) {
-            var container = config.containerElements[i];
-            var canvas = config.canvasElements[i];
-            config.showCanvas(canvas, container);
-            container.appendChild(canvas);
-        }
-    }
-
-    function setExitContent() {
-
-        // publicAPI.crashed = true;
-
-        if (publicAPI.status != "Exited")
+        // Call main after creating the instance. We've opted into manually
+        // calling main() by setting noInitialRun in the config. Thie Works around
+        // issue where Emscripten suppresses all exceptions thrown during main.
+        if (!originalNoInitialRun)
+            instance.callMain(originalArguments);
+    } catch (e) {
+        // If this is the exception thrown by app.exec() then that is a normal
+        // case and we suppress it.
+        if (e == "unwind") // not much to go on
             return;
 
-        if (config.containerElements === undefined) {
-            if (config.showExit !== undefined)
-                config.showExit(publicAPI.crashed, publicAPI.exitCode);
-            return;
+        if (!onExitCalled) {
+            onExitCalled = true;
+            config.qt.onExit?.({
+                text: e.message,
+                crashed: true
+            });
         }
-
-        if (!publicAPI.crashed)
-            return;
-
-        for (container of config.containerElements) {
-            var loaderElement = config.showExit(publicAPI.crashed, publicAPI.exitCode, container);
-            if (loaderElement !== undefined)
-                container.appendChild(loaderElement);
-        }
+        throw e;
     }
 
-    var committedStatus = undefined;
-    function handleStatusChange() {
-        if (publicAPI.status != "Loading" && committedStatus == publicAPI.status)
-            return;
-        committedStatus = publicAPI.status;
-
-        if (publicAPI.status == "Error") {
-            setErrorContent();
-        } else if (publicAPI.status == "Loading") {
-            setLoaderContent();
-        } else if (publicAPI.status == "Running") {
-            setCanvasContent();
-        } else if (publicAPI.status == "Exited") {
-            if (config.restartMode == "RestartOnExit" ||
-                config.restartMode == "RestartOnCrash" && publicAPI.crashed) {
-                    committedStatus = undefined;
-                    config.restart();
-            } else {
-                setExitContent();
-            }
-        }
-
-        // Send status change notification
-        if (config.statusChanged)
-            config.statusChanged(publicAPI.status);
-    }
-
-    function setStatus(status) {
-        if (status != "Loading" && publicAPI.status == status)
-            return;
-        publicAPI.status = status;
-
-        window.setTimeout(function() { handleStatusChange(); }, 0);
-    }
-
-    function addCanvasElement(element) {
-        if (publicAPI.status == "Running")
-            self.module.qtAddCanvasElement(element);
-        else
-            console.log("Error: addCanvasElement can only be called in the Running state");
-    }
-
-    function removeCanvasElement(element) {
-        if (publicAPI.status == "Running")
-            self.module.qtRemoveCanvasElement(element);
-        else
-            console.log("Error: removeCanvasElement can only be called in the Running state");
-    }
-
-    function resizeCanvasElement(element) {
-        if (publicAPI.status == "Running")
-            self.module.qtResizeCanvasElement(element);
-    }
-
-    function setFontDpi(dpi) {
-        self.qtFontDpi = dpi;
-        if (publicAPI.status == "Running")
-            self.qtSetFontDpi(dpi);
-    }
-
-    function fontDpi() {
-        return self.qtFontDpi;
-    }
-
-    function module() {
-        return self.module;
-    }
-
-    setStatus("Created");
-
-    return publicAPI;
+    return instance;
 }
+
+// Compatibility API. This API is deprecated,
+// and will be removed in a future version of Qt.
+function QtLoader(qtConfig) {
+
+    const warning = 'Warning: The QtLoader API is deprecated and will be removed in ' +
+                    'a future version of Qt. Please port to the new qtLoad() API.';
+    console.warn(warning);
+
+    let emscriptenConfig = qtConfig.moduleConfig || {}
+    qtConfig.moduleConfig = undefined;
+    const showLoader = qtConfig.showLoader;
+    qtConfig.showLoader = undefined;
+    const showError = qtConfig.showError;
+    qtConfig.showError = undefined;
+    const showExit = qtConfig.showExit;
+    qtConfig.showExit = undefined;
+    const showCanvas = qtConfig.showCanvas;
+    qtConfig.showCanvas = undefined;
+    if (qtConfig.canvasElements) {
+        qtConfig.containerElements = qtConfig.canvasElements
+        qtConfig.canvasElements = undefined;
+    } else {
+        qtConfig.containerElements = qtConfig.containerElements;
+        qtConfig.containerElements = undefined;
+    }
+    emscriptenConfig.qt = qtConfig;
+
+    let qtloader = {
+        exitCode: undefined,
+        exitText: "",
+        loadEmscriptenModule: _name => {
+            try {
+                qtLoad(emscriptenConfig);
+            } catch (e) {
+                showError?.(e.message);
+            }
+        }
+    }
+
+    qtConfig.onLoaded = () => {
+        showCanvas?.();
+    }
+
+    qtConfig.onExit = exit => {
+        qtloader.exitCode = exit.code
+        qtloader.exitText = exit.text;
+        showExit?.();
+    }
+
+    showLoader?.("Loading");
+
+    return qtloader;
+};
