@@ -7,11 +7,14 @@
 #include <Crousti/Painter.hpp>
 #include <Crousti/ProcessModel.hpp>
 
+#include <Process/Dataflow/WidgetInlets.hpp>
+
 #include <score/graphics/layouts/GraphicsBoxLayout.hpp>
 #include <score/graphics/layouts/GraphicsGridLayout.hpp>
 #include <score/graphics/layouts/GraphicsSplitLayout.hpp>
 #include <score/graphics/layouts/GraphicsTabLayout.hpp>
 #include <score/graphics/widgets/QGraphicsLineEdit.hpp>
+#include <score/tools/File.hpp>
 
 #include <avnd/common/aggregates.hpp>
 #include <avnd/concepts/layout.hpp>
@@ -140,6 +143,22 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
       const Process::ControlLayout& lay, Item& item)
       = delete; // TODO
 
+  // File paths are stored in the document as templates (<PROJECT>:...,
+  // <LIBRARY>:..., or document-relative); resolve them so the ui items
+  // always receive a usable absolute path, like the score-side file
+  // widgets do.
+  static ossia::value resolveFilePath(
+      const ossia::value& v, Process::ControlInlet* inl,
+      const score::DocumentContext& ctx) noexcept
+  {
+    if(qobject_cast<Process::FileChooserBase*>(inl)
+       || qobject_cast<Process::FolderChooser*>(inl))
+      if(auto str = v.target<std::string>(); str && !str->empty())
+        return score::locateFilePath(QString::fromStdString(*str), ctx)
+            .toStdString();
+    return v;
+  }
+
   template <typename Item>
   void setupControl(
       QGraphicsItem* parent, Process::ControlInlet* inl,
@@ -149,14 +168,16 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
     {
       using avnd_port_type = pmf_member_type_t<decltype(item.model)>;
       avnd_port_type p;
-      oscr::from_ossia_value(p, inl->value(), item.value);
+      oscr::from_ossia_value(p, resolveFilePath(inl->value(), inl, doc), item.value);
       if constexpr(requires { rootUi->on_control_update(); })
       {
         QObject::connect(
             inl, &Process::ControlInlet::valueChanged, &context,
-            [rui = rootUi, layout = this->layout, &item](const ossia::value& v) {
+            [rui = rootUi, layout = this->layout, &item, inl,
+             &ctx = static_cast<const score::DocumentContext&>(this->doc)](
+                const ossia::value& v) {
           avnd_port_type p;
-          oscr::from_ossia_value(p, v, item.value);
+          oscr::from_ossia_value(p, resolveFilePath(v, inl, ctx), item.value);
 
           rui->on_control_update();
           layout->update();
@@ -166,9 +187,11 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
       {
         QObject::connect(
             inl, &Process::ControlInlet::valueChanged, &context,
-            [layout = this->layout, &item](const ossia::value& v) {
+            [layout = this->layout, &item, inl,
+             &ctx = static_cast<const score::DocumentContext&>(this->doc)](
+                const ossia::value& v) {
           avnd_port_type p;
-          oscr::from_ossia_value(p, v, item.value);
+          oscr::from_ossia_value(p, resolveFilePath(v, inl, ctx), item.value);
           layout->update();
         });
       }
