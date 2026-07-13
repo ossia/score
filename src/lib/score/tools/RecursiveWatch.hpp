@@ -69,12 +69,7 @@ public:
   /// on the GUI thread via \a context's event loop.
   void scanAsync(QObject* context);
 
-  void reset()
-  {
-    m_root.clear();
-    m_watched.clear();
-    m_asyncWatched.clear();
-  }
+  void reset();
 
 private:
   std::string m_root;
