@@ -81,6 +81,9 @@ private:
   QString m_jsfx_path;
   QString m_text;
 
+  // If we reload something, to preserve state when the object doesn't create
+  QByteArray m_saved_state;
+
   std::bitset<ysfx_max_sliders> m_sliderBeingChanged{};
 };
 
