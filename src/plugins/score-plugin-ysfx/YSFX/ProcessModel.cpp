@@ -94,7 +94,7 @@ void ProcessModel::setInitialScript(const QString& script)
   fx.reset(ysfx_new(config.get()), ysfx_u_deleter{});
   if(!ysfx_load_file(fx.get(), path_to_jsfx.c_str(), 0))
   {
-    qDebug() << "ysfx: could not load " << script;
+    qDebug() << "ysfx: setInitialScript: could not load " << script;
     return;
   }
 
@@ -108,7 +108,11 @@ void ProcessModel::setInitialScript(const QString& script)
 
   uint32_t compile_opts = 0;
   if(!ysfx_compile(fx.get(), compile_opts))
+  {
+    qDebug() << "ysfx: setInitialScript: could not compile " << script;
     return;
+  }
+
 
   ysfx_init(fx.get());
   ysfx_process_double(fx.get(), 0, 0, 0, 0, 0);
@@ -123,6 +127,7 @@ void ProcessModel::setInitialScript(const QString& script)
   }
 
   programChanged();
+  flagsChanged(); // For UI
 }
 
 void ProcessModel::recreatePorts()
@@ -313,7 +318,7 @@ Process::ScriptChangeResult ProcessModel::reload()
     QFile tempFile{tempFilePath};
     if(!tempFile.open(QIODevice::WriteOnly | QIODevice::Truncate))
     {
-      qDebug() << "ysfx: could not write temp file" << tempFilePath;
+      qDebug() << "ysfx: reload: could not write temp file" << tempFilePath;
       return res;
     }
     tempFile.write(m_text.toUtf8());
@@ -324,7 +329,10 @@ Process::ScriptChangeResult ProcessModel::reload()
   ysfx_register_builtin_audio_formats(config.get());
 
   // Set import and data roots from the original file
-  ysfx_guess_file_roots(config.get(), m_jsfx_path.toStdString().c_str());
+  const auto& c = config.get();
+  ysfx_guess_file_roots(c, m_jsfx_path.toStdString().c_str());
+  if(auto import = ysfx_get_import_root(c); !import || strlen(import) == 0)
+    ysfx_set_import_root(c, QFileInfo{m_jsfx_path}.dir().canonicalPath().toStdString().c_str());
 
   // Create a new fx instance
   auto new_fx = std::shared_ptr<ysfx_t>(ysfx_new(config.get()), ysfx_u_deleter{});
@@ -332,14 +340,14 @@ Process::ScriptChangeResult ProcessModel::reload()
   auto tempPath = tempFilePath.toStdString();
   if(!ysfx_load_file(new_fx.get(), tempPath.c_str(), 0))
   {
-    qDebug() << "ysfx: could not load temp file" << tempFilePath;
+    qDebug() << "ysfx: reload: could not load temp file" << tempFilePath;
     return res;
   }
 
   uint32_t compile_opts = 0;
   if(!ysfx_compile(new_fx.get(), compile_opts))
   {
-    qDebug() << "ysfx: compilation failed";
+    qDebug() << "ysfx: reload: compilation failed";
     return res;
   }
 
@@ -363,7 +371,13 @@ Process::ScriptChangeResult ProcessModel::reload()
 
   recreatePorts();
 
+  if(auto bank = ysfx_get_bank_path(this->fx.get()))
+  {
+    m_bank = ysfx_load_bank(bank);
+  }
+
   programChanged();
+  flagsChanged(); // For UI
 
   return res;
 }

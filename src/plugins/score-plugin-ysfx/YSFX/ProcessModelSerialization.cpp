@@ -74,7 +74,11 @@ static void loadYSFXState(ysfx_t& fx, const QByteArray& state)
 template <>
 void DataStreamReader::read(const YSFX::ProcessModel& proc)
 {
-  m_stream << proc.m_jsfx_path << proc.m_text << readYSFXState(*proc.fx.get());
+  m_stream << proc.m_jsfx_path << proc.m_text;
+  if(proc.fx)
+    m_stream << readYSFXState(*proc.fx.get());
+  else
+    m_stream << proc.m_saved_state;
 
   readPorts(*this, proc.m_inlets, proc.m_outlets);
 
@@ -94,18 +98,20 @@ void DataStreamWriter::write(YSFX::ProcessModel& proc)
   {
     proc.m_jsfx_path = script;
     proc.m_text = text;
+    proc.reload();
 
     // If we also have a file path, we may need to reload from it
     // But for now, we prefer the stored text (live-coded version)
-    if(proc.fx)
-      loadYSFXState(*proc.fx.get(), dat);
   }
   else
   {
     proc.setInitialScript(script);
-    if(proc.fx)
-      loadYSFXState(*proc.fx.get(), dat);
   }
+
+  if(proc.fx)
+    loadYSFXState(*proc.fx.get(), dat);
+  else
+    proc.m_saved_state = dat;
 
   writePorts(
       *this, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,
@@ -147,6 +153,8 @@ void JSONWriter::write(YSFX::ProcessModel& proc)
   auto dat = QByteArray::fromBase64(obj["Chunk"].toByteArray());
   if(proc.fx)
     loadYSFXState(*proc.fx.get(), dat);
+  else
+    proc.m_saved_state = dat;
 
   writePorts(
       *this, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,
