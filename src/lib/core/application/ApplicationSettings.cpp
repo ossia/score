@@ -86,6 +86,24 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
       "file", "");
   parser.addOption(uiOptDebug);
 
+  QCommandLineOption localOscPortOpt(
+      "local-osc-port",
+      QCoreApplication::translate(
+          "main",
+          "Port for score's local OSC control tree (default 6666). Lets several "
+          "instances run at once. Also settable via $SCORE_LOCAL_OSC_PORT."),
+      "port");
+  parser.addOption(localOscPortOpt);
+
+  QCommandLineOption localWsPortOpt(
+      "local-ws-port",
+      QCoreApplication::translate(
+          "main",
+          "Port for score's local WebSocket control tree (default 9999). Also "
+          "settable via $SCORE_LOCAL_WS_PORT."),
+      "port");
+  parser.addOption(localWsPortOpt);
+
 #if defined(__APPLE__)
   // Bogus macOS gatekeeper BS:
   // https://stackoverflow.com/questions/55562155/qt-application-for-mac-not-being-launched
@@ -165,6 +183,17 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
 
   if(parser.isSet(waitLoadOpt))
     waitAfterLoad = parser.value(waitLoadOpt).toInt();
+
+  // Local device tree ports: CLI flag wins, else $SCORE_LOCAL_*_PORT, else default.
+  if(parser.isSet(localOscPortOpt))
+    localTreeOscPort = parser.value(localOscPortOpt).toInt();
+  else if(qEnvironmentVariableIsSet("SCORE_LOCAL_OSC_PORT"))
+    localTreeOscPort = qEnvironmentVariableIntValue("SCORE_LOCAL_OSC_PORT");
+
+  if(parser.isSet(localWsPortOpt))
+    localTreeWebsocketPort = parser.value(localWsPortOpt).toInt();
+  else if(qEnvironmentVariableIsSet("SCORE_LOCAL_WS_PORT"))
+    localTreeWebsocketPort = qEnvironmentVariableIntValue("SCORE_LOCAL_WS_PORT");
 
   if(!args.empty() && QFile::exists(args[0]))
   {

@@ -12,6 +12,8 @@
 #include <LocalTree/IntervalComponent.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
+
+#include <core/application/ApplicationSettings.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
@@ -29,8 +31,8 @@ Device::DeviceSettings defaultSettings(const score::DocumentContext& ctx)
   s.protocol = Protocols::LocalProtocolFactory::static_concreteKey();
   s.name = QString("score (%1)").arg(ctx.document.metadata().documentName());
   Protocols::LocalSpecificSettings specif;
-  specif.oscPort = 6666;
-  specif.wsPort = 9999;
+  specif.oscPort = ctx.app.applicationSettings.localTreeOscPort;
+  specif.wsPort = ctx.app.applicationSettings.localTreeWebsocketPort;
   s.deviceSpecificSettings = QVariant::fromValue(specif);
   return s;
 }
