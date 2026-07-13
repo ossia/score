@@ -130,7 +130,11 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent)
   m_scaleAction = makeToolbarAction(tr("Scale"), this, ExpandMode::Scale, {});
   m_scaleAction->setCheckable(true);
   m_scaleAction->setChecked(false);
-  score::setHelp(m_scaleAction, tr("Scale mode (Alt)"));
+#if defined(Q_OS_MACOS)
+  score::setHelp(m_scaleAction, tr("Scale mode (Cmd)"));
+#else
+  score::setHelp(m_scaleAction, tr("Scale mode (Ctrl)"));
+#endif
 
   connect(m_scaleAction, &QAction::toggled, this, [this](bool b) {
     if(b)
