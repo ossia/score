@@ -74,5 +74,6 @@ private:
   std::thread m_serverThread;
   std::string m_buildWasmPath;
   int m_listenSocket{};
+  std::mutex mtx{};
 };
 }
