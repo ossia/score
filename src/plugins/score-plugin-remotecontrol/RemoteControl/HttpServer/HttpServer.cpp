@@ -84,6 +84,7 @@ beast::string_view HttpServer::mime_type(beast::string_view path)
 // The returned path is normalized for the platform.
 std::string HttpServer::path_cat(beast::string_view path)
 {
+  std::lock_guard<std::mutex> lock{mtx};
   if(m_buildWasmPath.empty())
     return std::string(path);
   std::string result(m_buildWasmPath);
@@ -280,7 +281,7 @@ void HttpServer::stop_thread()
 
 void HttpServer::set_path(const std::string& str)
 {
-  // FIXME : Not thread safe, but is it that bad ?
+  std::lock_guard<std::mutex> lock{mtx};
   m_buildWasmPath = str;
 }
 
