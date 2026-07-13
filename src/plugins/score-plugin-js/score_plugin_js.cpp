@@ -139,7 +139,9 @@ score_plugin_js::score_plugin_js()
   qmlRegisterType<JS::GlobalDeviceEnumerator>("Score.UI", 1, 0, "DeviceEnumerator");
   qmlRegisterType<JS::DeviceListener>("Score.UI", 1, 0, "DeviceListener");
 
+#if !defined(__EMSCRIPTEN__)
   qmlRegisterType<JS::QmlProcess>("Score.UI", 1, 0, "Process");
+#endif
 
   qRegisterMetaType<QVector<JS::MidiMessage>>();
 

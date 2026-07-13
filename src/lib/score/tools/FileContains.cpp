@@ -8,7 +8,9 @@
 
 namespace score
 {
-#if !defined(_MSC_VER)
+// target("default") is function multiversioning, only valid where the avx2
+// variant below is compiled (x86_64). On wasm/arm it is unsupported, so gate it.
+#if defined(__x86_64__) && !defined(_MSC_VER)
 __attribute__((target("default")))
 #endif
 bool fast_contains(std::string_view data, std::string_view pattern)

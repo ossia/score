@@ -5,6 +5,10 @@
 
 #include <score/graphics/RectItem.hpp>
 
+#include <QRectF>
+
+class QGraphicsRectItem;
+
 #include <nano_observer.hpp>
 
 namespace Scenario
@@ -63,8 +67,13 @@ private:
   ItemsToShow m_itemsToShow{};
   std::vector<Process::NodeItem*> m_nodeItems;
   QGraphicsItem* m_container{};
+  QGraphicsRectItem* m_selectionRect{};
   QPointF m_pressedPos{};
   double m_zoomLevel = 0;
+
+  QPointF m_rubberBandOrigin{};
+  QRectF m_rubberBandRect{};
+  bool m_rubberBanding{false};
 };
 
 }

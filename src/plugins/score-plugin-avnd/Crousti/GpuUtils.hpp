@@ -286,7 +286,7 @@ struct SCORE_PLUGIN_AVND_EXPORT CustomGfxOutputNodeBase : score::gfx::OutputNode
   score::gfx::Message last_message;
   void process(score::gfx::Message&& msg) override;
 };
-struct CustomGpuNodeBase
+struct SCORE_PLUGIN_AVND_EXPORT CustomGpuNodeBase
     : score::gfx::Node
     , GpuWorker
     , GpuControlIns

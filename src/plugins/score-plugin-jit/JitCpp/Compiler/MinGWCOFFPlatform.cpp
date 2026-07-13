@@ -5,6 +5,7 @@
 #include <llvm/ExecutionEngine/JITLink/x86_64.h>
 #include <llvm/ExecutionEngine/Orc/AbsoluteSymbols.h>
 #include <llvm/ExecutionEngine/Orc/COFF.h>
+#include <llvm/ExecutionEngine/Orc/ExecutionUtils.h>
 #include <llvm/ExecutionEngine/Orc/LookupAndRecordAddrs.h>
 #include <llvm/ExecutionEngine/Orc/ObjectFileInterface.h>
 #include <llvm/ExecutionEngine/Orc/Shared/ObjectFormats.h>
@@ -14,6 +15,22 @@
 using namespace llvm;
 using namespace llvm::orc;
 using namespace llvm::orc::shared;
+
+// x64 SEH function-table registration (from ntdll/kernel32; score links them).
+// Declared locally to avoid pulling <windows.h> into an LLVM translation unit.
+extern "C"
+{
+struct JIT_RUNTIME_FUNCTION
+{
+  uint32_t BeginAddress;
+  uint32_t EndAddress;
+  uint32_t UnwindData;
+};
+__declspec(dllimport) unsigned char __stdcall RtlAddFunctionTable(
+    JIT_RUNTIME_FUNCTION* FunctionTable, uint32_t EntryCount, uint64_t BaseAddress);
+__declspec(dllimport) unsigned char __stdcall RtlDeleteFunctionTable(
+    JIT_RUNTIME_FUNCTION* FunctionTable);
+}
 
 namespace llvm
 {
@@ -275,6 +292,31 @@ Error MinGWCOFFPlatform::setupJITDylib(JITDylib& JD)
   // No VC-runtime load here: on MinGW the CRT/C++/EH symbols are resolved from
   // the host process (score.exe) via the process-symbols generator.
 
+  // Resolve Itanium C++ ABI RTTI/vtable DATA symbols (typeinfo _ZTI*, typeinfo
+  // name _ZTS*, vtable _ZTV*, VTT _ZTT*, construction vtable _ZTC*) directly to
+  // the host process's real addresses, BEFORE the DLLImport generator below.
+  //
+  // DLLImportDefinitionGenerator synthesizes a jmp thunk ($__DLLIMPORT_STUBS) for
+  // every external symbol it serves. That is correct for imported *functions* (a
+  // near REL32 call/branch needs a nearby stub to reach a host DLL >4GB away), but
+  // fatal for imported *data*: taking the address of a type_info (e.g. _ZTIi)
+  // would then yield the thunk address instead of the object, so __cxa_throw and
+  // the EH personality dereference stub instruction bytes as a type_info and
+  // crash. type_infos and vtables are always data and always referenced by 64-bit
+  // relocations (CodeModel::Large), so resolving them to the true host address is
+  // both correct and reachable. Functions still fall through to DLLImport.
+  if(auto G = DynamicLibrarySearchGenerator::GetForCurrentProcess(
+         /*GlobalPrefix (none on x86_64 COFF)*/ '\0',
+         [](const SymbolStringPtr& S) {
+    StringRef N(*S);
+    return N.starts_with("_ZTV") || N.starts_with("_ZTI")
+           || N.starts_with("_ZTS") || N.starts_with("_ZTT")
+           || N.starts_with("_ZTC");
+  }))
+    JD.addGenerator(std::move(*G));
+  else
+    consumeError(G.takeError());
+
   JD.addGenerator(DLLImportDefinitionGenerator::Create(ES, ObjLinkingLayer));
   return Error::success();
 }
@@ -518,7 +560,6 @@ void MinGWCOFFPlatform::rt_pushInitializers(
     SendResult(JDDepMap.takeError());
     return;
   }
-
   pushInitializersLoop(std::move(SendResult), JD, *JDDepMap);
 }
 
@@ -615,6 +656,59 @@ Error MinGWCOFFPlatform::runBootstrapSubsectionInitializers(
   return Error::success();
 }
 
+Error MinGWCOFFPlatform::runJDInitializers(JITDylib& JD)
+{
+  SmallVector<std::pair<std::string, ExecutorAddr>, 16> Inits;
+  {
+    std::lock_guard<std::mutex> Lock(PlatformMutex);
+    auto It = JDInitializers.find(&JD);
+    if(It != JDInitializers.end())
+      Inits.assign(It->second.begin(), It->second.end());
+  }
+  llvm::sort(Inits);
+
+  auto runIf = [&](auto pred) -> Error {
+    for(auto& I : Inits)
+      if(I.second && pred(StringRef(I.first)))
+      {
+        auto Res = ES.getExecutorProcessControl().runAsVoidFunction(I.second);
+        if(!Res)
+          return Res.takeError();
+      }
+    return Error::success();
+  };
+  // C init (.CRT$XI*), C++ ctors (.CRT$XC*), then GNU-style .init_array / .ctors
+  // (windows-gnu may emit those instead of the MSVC .CRT$XC* section).
+  if(auto E = runIf([](StringRef n) { return n >= ".CRT$XIA" && n <= ".CRT$XIZ"; }))
+    return E;
+  if(auto E = runIf([](StringRef n) { return n >= ".CRT$XCA" && n <= ".CRT$XCZ"; }))
+    return E;
+  if(auto E = runIf([](StringRef n) { return n.starts_with(".init_array"); }))
+    return E;
+  // Scraped init functions ($.<module>.ll.__inits.N, stored under ".jit$init")
+  // and GNU-style .ctors come last.
+  if(auto E = runIf([](StringRef n) { return n == ".jit$init"; }))
+    return E;
+  return runIf([](StringRef n) { return n.starts_with(".ctors"); });
+}
+
+Error MinGWCOFFPlatform::initializeJITDylib(JITDylib& JD)
+{
+  {
+    std::lock_guard<std::mutex> Lock(PlatformMutex);
+    if(!InitializedJDs.insert(&JD).second)
+      return Error::success(); // already initialized
+  }
+  return runJDInitializers(JD);
+}
+
+MinGWCOFFPlatform::~MinGWCOFFPlatform()
+{
+  std::lock_guard<std::mutex> Lock(PlatformMutex);
+  for(void* Table : RegisteredEHTables)
+    RtlDeleteFunctionTable(static_cast<JIT_RUNTIME_FUNCTION*>(Table));
+}
+
 Error MinGWCOFFPlatform::bootstrapCOFFRuntime(JITDylib& PlatformJD)
 {
   if(auto Err = lookupAndRecordAddrs(
@@ -703,6 +797,7 @@ void MinGWCOFFPlatform::MinGWCOFFPlatformPlugin::modifyPassConfig(
     Config.PrePrunePasses.push_back([this, &MR](jitlink::LinkGraph& G) {
       return preserveInitializerSections(G, MR);
     });
+
   }
 
   if(!IsBootstrapping)
@@ -760,11 +855,31 @@ Error MinGWCOFFPlatform::MinGWCOFFPlatformPlugin::registerObjectPlatformSections
   COFFObjectSectionsMap ObjSecs;
   auto HeaderAddr = CP.JITDylibToHeaderAddr[&JD];
   assert(HeaderAddr && "Must be registered jitdylib");
+  jitlink::Section* PData = nullptr;
   for(auto& S : G.sections())
   {
     jitlink::SectionRange Range(S);
     if(Range.getSize())
       ObjSecs.push_back(std::make_pair(S.getName().str(), Range.getRange()));
+    if(S.getName() == ".pdata" && Range.getSize())
+      PData = &S;
+  }
+
+  // Register the object's .pdata with the OS x64 unwinder so exceptions thrown in
+  // JIT'd code unwind. The .pdata holds RUNTIME_FUNCTION entries with RVAs from
+  // __ImageBase (== HeaderAddr, the slab base). In-process JIT, so call directly
+  // here (post-fixup: addresses and RVAs are final). The matching
+  // RtlDeleteFunctionTable happens in ~MinGWCOFFPlatform.
+  if(PData)
+  {
+    jitlink::SectionRange Range(*PData);
+    auto* Table = Range.getRange().Start.toPtr<JIT_RUNTIME_FUNCTION*>();
+    auto Count = static_cast<uint32_t>(Range.getSize() / sizeof(JIT_RUNTIME_FUNCTION));
+    if(Count && RtlAddFunctionTable(Table, Count, HeaderAddr.getValue()))
+    {
+      std::lock_guard<std::mutex> Lock(CP.PlatformMutex);
+      CP.RegisteredEHTables.push_back(Table);
+    }
   }
 
   G.allocActions().push_back(
@@ -772,6 +887,52 @@ Error MinGWCOFFPlatform::MinGWCOFFPlatformPlugin::registerObjectPlatformSections
            CP.orc_rt_coff_register_object_sections, HeaderAddr, ObjSecs, true)),
        cantFail(WrapperFunctionCall::Create<SPSCOFFDeregisterObjectSectionsArgs>(
            CP.orc_rt_coff_deregister_object_sections, HeaderAddr, ObjSecs))});
+
+  // Collect this object's MSVC-style (.CRT$X*) and GNU-style (.ctors/.init_array)
+  // static initializer section edges, so MinGWCOFFPlatformSupport can run them
+  // directly (orc_rt's COFF dlopen init is MSVC-coupled and faults on MinGW).
+  // Most IR add-ons have none of these (the ctors live in __cxx_global_var_init,
+  // collected from the link graph by the init-extract post-fixup pass instead).
+  {
+    std::lock_guard<std::mutex> Lock(CP.PlatformMutex);
+    auto& Inits = CP.JDInitializers[&JD];
+    size_t before = Inits.size();
+    for(auto& S : G.sections())
+    {
+      StringRef N = S.getName();
+      if(isCOFFInitializerSection(N) || N.starts_with(".ctors")
+         || N.starts_with(".init_array"))
+        for(auto* B : S.blocks())
+          for(auto& E : B->edges())
+            Inits.push_back(std::make_pair(
+                N.str(), E.getTarget().getAddress() + E.getAddend()));
+    }
+
+    // Fallback for pre-scraped IR modules (e.g. addIRModule of a .ll): LLJIT's
+    // IR scraper consumed llvm.global_ctors into a body-less side-effect symbol
+    // and left .ctors empty, so the loop above found nothing. The runnable init
+    // code is then clang's entry point -- _GLOBAL__sub_I_<tu> (chains every
+    // __cxx_global_var_init in order) if present, else the lone
+    // __cxx_global_var_init. Only used when no init-section edges exist, so we
+    // never double-run the constructors collected from .ctors/.CRT$XC* above.
+    if(Inits.size() == before)
+    {
+      SmallVector<ExecutorAddr, 4> SubI, CxxInit;
+      for(auto* Sym : G.defined_symbols())
+      {
+        if(!Sym->hasName())
+          continue;
+        StringRef N = *Sym->getName();
+        if(N.starts_with("_GLOBAL__sub_I_"))
+          SubI.push_back(Sym->getAddress());
+        else if(N == "__cxx_global_var_init"
+                || N.starts_with("__cxx_global_var_init."))
+          CxxInit.push_back(Sym->getAddress());
+      }
+      for(auto A : (!SubI.empty() ? SubI : CxxInit))
+        Inits.push_back(std::make_pair(std::string(".jit$init"), A));
+    }
+  }
 
   return Error::success();
 }

@@ -20,6 +20,7 @@
 #include <Audio/SDLInterface.hpp>
 #include <Audio/Settings/Factory.hpp>
 #include <Audio/WASAPIPortAudioInterface.hpp>
+#include <Audio/WASMMiniAudioInterface.hpp>
 #include <Audio/WDMKSPortAudioInterface.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
@@ -220,6 +221,10 @@ std::vector<score::InterfaceBase*> score_plugin_audio::factories(
 #if defined(__APPLE__) && defined(OSSIA_AUDIO_MINIAUDIO)
          ,
          Audio::CoreAudioFactory
+#endif
+#if defined(__EMSCRIPTEN__) && defined(OSSIA_AUDIO_MINIAUDIO)
+         ,
+         Audio::WASMMiniAudioFactory
 #endif
          >>(vec, ctx, key);
 

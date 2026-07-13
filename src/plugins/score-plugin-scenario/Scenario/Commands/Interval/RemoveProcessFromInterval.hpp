@@ -51,5 +51,11 @@ class RemoveProcessAndKeepLinked final : public score::AggregateCommand
   SCORE_COMMAND_DECL(
       CommandFactoryName(), RemoveProcessAndKeepLinked, "Remove process from chain")
 };
+
+class RemoveMultipleProcessesFromInterval final : public score::AggregateCommand
+{
+  SCORE_COMMAND_DECL(
+      CommandFactoryName(), RemoveMultipleProcessesFromInterval, "Remove processes")
+};
 }
 }

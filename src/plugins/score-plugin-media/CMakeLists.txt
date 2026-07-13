@@ -170,7 +170,6 @@ if(EMSCRIPTEN)
     /opt/ossia-sdk-wasm/ffmpeg/lib/libavutil.a
     /opt/ossia-sdk-wasm/ffmpeg/lib/libswscale.a
     /opt/ossia-sdk-wasm/ffmpeg/lib/libswresample.a
-    /opt/ossia-sdk-wasm/ffmpeg/lib/libpostproc.a
     -Wl,--end-group
   )
 elseif(TARGET avcodec)

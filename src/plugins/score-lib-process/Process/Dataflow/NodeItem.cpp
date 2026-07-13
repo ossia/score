@@ -21,6 +21,7 @@
 #include <score/graphics/GraphicsLayout.hpp>
 #include <score/graphics/TextItem.hpp>
 #include <score/model/Skin.hpp>
+#include <score/selection/Selection.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/selection/SelectionStack.hpp>
 #include <score/tools/Bind.hpp>
@@ -941,6 +942,8 @@ enum Interaction
 } nodeItemInteraction{};
 QSizeF origNodeSize{};
 bool nodeDidMove{};
+bool nodeSelectOnRelease{};
+bool nodeSelectCumulation{};
 }
 
 void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
@@ -963,7 +966,21 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
     {
       m_context.focusDispatcher.focus(m_presenter);
     }
-    score::SelectionDispatcher{m_context.selectionStack}.select(m_model);
+    {
+      const bool cumulation = event->modifiers() & Qt::ControlModifier;
+      if(m_model.selection.get())
+      {
+        nodeSelectOnRelease = true;
+        nodeSelectCumulation = cumulation;
+      }
+      else
+      {
+        nodeSelectOnRelease = false;
+        Selection sel = filterSelections(
+            &m_model, m_context.selectionStack.currentSelection(), cumulation);
+        score::SelectionDispatcher{m_context.selectionStack}.select(sel);
+      }
+    }
     event->accept();
   }
   else
@@ -1028,7 +1045,16 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   mouseMoveEvent(event);
 
   if(nodeDidMove)
+  {
     m_dispatcher.commit<Process::MoveNodesMacro>();
+  }
+  else if(nodeSelectOnRelease)
+  {
+    Selection sel = filterSelections(
+        &m_model, m_context.selectionStack.currentSelection(), nodeSelectCumulation);
+    score::SelectionDispatcher{m_context.selectionStack}.select(sel);
+  }
+  nodeSelectOnRelease = false;
   nodeDidMove = false;
   event->accept();
 }

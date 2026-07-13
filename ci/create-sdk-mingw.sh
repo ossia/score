@@ -31,5 +31,19 @@ cp -rf "$OSSIA_SDK/llvm-libs/lib/clang/$LLVM_VER/include" "$LIB/clang/$LLVM_VER/
 # Ship the ORC runtime (orc_rt) so the JIT can use ExecutorNativePlatform.
 ship_orc_runtime "$OSSIA_SDK/llvm-libs/lib/clang" "$LIB"
 
+# Ship compiler-rt's builtins archive too. The JIT compiles add-ons with bare -cc1
+# (no driver), so the runtime helpers the driver would pull via -rtlib=compiler-rt
+# (e.g. __udivti3, used by fmt's 128-bit formatting) must be resolvable at JIT load
+# time. locateBuiltinsRuntime() finds it next to orc_rt (same clang/<ver>/lib/<t>/).
+for CLANGROOT in "$OSSIA_SDK/llvm-libs/lib/clang" "$OSSIA_SDK/llvm/lib/clang"; do
+  [[ -d "$CLANGROOT" ]] || continue
+  while IFS= read -r f; do
+    rel="${f#"$CLANGROOT"/}"
+    mkdir -p "$LIB/clang/$(dirname "$rel")"
+    cp -f "$f" "$LIB/clang/$rel"
+    echo "shipped builtins: clang/$rel"
+  done < <(find "$CLANGROOT" -name 'libclang_rt.builtins*.a')
+done
+
 source $SCRIPTDIR/cleanup-sdk-common.sh
 

@@ -59,6 +59,9 @@ namespace
 {
 static int defaultEditorRefreshRate()
 {
+#if defined(__EMSCRIPTEN__)
+  return 50; // ~20fps — WASM single-thread can't handle higher rates
+#else
   const auto tcount = QThread::idealThreadCount();
   if(tcount <= 4)
     return 30;
@@ -66,6 +69,7 @@ static int defaultEditorRefreshRate()
     return 16;
   else
     return 8;
+#endif
 }
 }
 ProcessGraphicsView::ProcessGraphicsView(
@@ -704,6 +708,10 @@ void ScenarioDocumentView::updateBackgroundMode()
     if(rate > 0)
       refreshRate = 1000. / rate;
   }
+#if defined(__EMSCRIPTEN__)
+  // Cap the refresh rate on WASM to avoid starving the single-threaded event loop
+  refreshRate = std::max(refreshRate, (double)defaultEditorRefreshRate());
+#endif
 
   if(!wantsFullUpdates)
   {
@@ -733,8 +741,15 @@ void ScenarioDocumentView::updateBackgroundMode()
   }
   else
   {
+#if defined(__EMSCRIPTEN__)
+    // On WASM, FullViewportUpdate at high rates starves the single-threaded event loop.
+    // Use MinimalViewportUpdate and let the background renderer request updates explicitly.
+    m_view.setViewportUpdateMode(QGraphicsView::MinimalViewportUpdate);
+    m_timer = startTimer(refreshRate, Qt::CoarseTimer);
+#else
     m_view.setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
     m_timer = startTimer(refreshRate, Qt::PreciseTimer);
+#endif
   }
   m_view.update();
 }

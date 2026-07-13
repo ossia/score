@@ -21,10 +21,10 @@ if(CMAKE_SYSTEM_NAME MATCHES Emscripten)
   add_link_options("SHELL:-sSTACK_OVERFLOW_CHECK=0")
   #add_link_options("SHELL:--source-map-base http://127.0.0.1:8000/")
   add_link_options("SHELL:-sFETCH=1")
-  add_link_options("SHELL:-sWASM=1")
-  add_link_options("SHELL:-sFULL_ES2=1")
-  add_link_options("SHELL:-sFULL_ES3=1")
-  add_link_options("SHELL:-sUSE_WEBGL2=1")
+# OLD  add_link_options("SHELL:-sWASM=1")
+# OLD add_link_options("SHELL:-sFULL_ES2=1")
+# OLd add_link_options("SHELL:-sFULL_ES3=1")
+# OLD  add_link_options("SHELL:-sUSE_WEBGL2=1")
   #add_link_options("SHELL:-s EXIT_RUNTIME=1")
   add_link_options("SHELL:-sERROR_ON_UNDEFINED_SYMBOLS=1")
   #add_link_options("SHELL:-s PTHREAD_POOL_SIZE=16")
@@ -37,14 +37,19 @@ if(CMAKE_SYSTEM_NAME MATCHES Emscripten)
   #  add_link_options("SHELL:-s EXTRA_EXPORTED_RUNTIME_METHODS=[\"UTF16ToString\",\"stringToUTF16\"]")
 
   ## Qt 6
-  add_link_options("SHELL:-sUSE_PTHREADS=1")
+  add_link_options("-pthread")
+  add_compile_options("-fwasm-exceptions")
+  add_link_options("-fwasm-exceptions")
+  add_link_options("SHELL:-sJSPI")
+
+# OLD  add_link_options("SHELL:-sUSE_PTHREADS=1")
   # add_link_options("SHELL:-s FETCH=1")
   add_link_options("SHELL:-sWASM_BIGINT=1")
   add_link_options("SHELL:-sMODULARIZE=1")
-  add_link_options("SHELL:-sMAX_WEBGL_VERSION=2")
-  add_link_options("SHELL:-sWEBGL2_BACKWARDS_COMPATIBILITY_EMULATION=1")
+#  add_link_options("SHELL:-sMAX_WEBGL_VERSION=2")
+#  add_link_options("SHELL:-sWEBGL2_BACKWARDS_COMPATIBILITY_EMULATION=1")
   # add_link_options("SHELL:-pthread")
-  add_link_options("SHELL:-sASYNCIFY" "-s" "ASYNCIFY_IMPORTS=[qt_asyncify_suspend_js, qt_asyncify_resume_js]")
+#  add_link_options("SHELL:-sASYNCIFY" "-s" "ASYNCIFY_IMPORTS=[qt_asyncify_suspend_js, qt_asyncify_resume_js]")
 
   add_link_options("SHELL:-sABORTING_MALLOC=1")
   # add_link_options("SHELL:-sJS_MATH=1")
@@ -81,6 +86,7 @@ target_link_libraries(${APPNAME}
   PUBLIC
     score_lib_base
     ${QT_PREFIX}::CorePrivate
+    ${QT_PREFIX}::Gui
 )
 
 if(SCORE_STATIC_PLUGINS)
@@ -253,7 +259,12 @@ endif()
 include(ScoreDeployment)
 
 if(EMSCRIPTEN)
+  qt_import_plugins(${APPNAME}
+      INCLUDE Qt6::QWasmIntegrationPlugin
+      EXCLUDE Qt6::QMinimalIntegrationPlugin
+  )
   qt_finalize_executable(${APPNAME})
+  enable_minimal_qt_plugins(${APPNAME} 1)
 else()  
   disable_qt_plugins(${APPNAME})
   enable_minimal_qt_plugins(${APPNAME} 1)

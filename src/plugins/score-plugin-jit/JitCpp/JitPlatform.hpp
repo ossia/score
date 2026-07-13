@@ -15,6 +15,7 @@
 
 #if LLVM_VERSION_MAJOR >= 17
 #include <llvm/TargetParser/Host.h>
+#include <llvm/TargetParser/Triple.h>
 #else
 #include <llvm/Support/Host.h>
 #endif
@@ -219,11 +220,91 @@ static inline std::string locateOrcRuntime()
   return {};
 }
 
+// Locate compiler-rt's builtins archive (libclang_rt.builtins-*.a). clang's driver
+// links it via -rtlib=compiler-rt; the JIT compiles with bare -cc1 (no driver), so
+// builtins such as __udivti3 (128-bit integer division, pulled by fmt and others)
+// are otherwise unresolved. We hand it to ORC as a definition generator. Same
+// search roots as locateOrcRuntime (it lives in the same clang resource dir);
+// prefer the COFF/windows variant. Returns "" when absent.
+static inline std::string locateBuiltinsRuntime()
+{
+  if(QString p = qgetenv("SCORE_JIT_BUILTINS"); !p.isEmpty())
+    return p.toStdString();
+
+  auto sdk = locateSDKWithFallback();
+  if(sdk.path.empty())
+    return {};
+
+  const QString base = QString::fromStdString(sdk.path);
+  const QString parent = QFileInfo(base).absolutePath();
+  const QStringList roots{base,           parent,
+                          parent + "/llvm", parent + "/llvm-libs",
+                          base + "/llvm",   base + "/llvm-libs"};
+  QString fallback;
+  for(const QString& root : roots)
+  {
+    const QString clangLibs = root + "/lib/clang";
+    if(!QDir(clangLibs).exists())
+      continue;
+    QDirIterator it(
+        clangLibs, {"libclang_rt.builtins*.a"}, QDir::Files,
+        QDirIterator::Subdirectories);
+    while(it.hasNext())
+    {
+      const QString f = it.next();
+      if(f.contains("/windows/") || f.contains("\\windows\\"))
+        return f.toStdString(); // prefer the COFF/windows variant
+      if(fallback.isEmpty())
+        fallback = f;
+    }
+  }
+  return fallback.toStdString();
+}
+
 static inline void
 populateCompileOptions(std::vector<std::string>& args, CompilerOptions opts)
 {
   args.push_back("-triple");
-  args.push_back(llvm::sys::getProcessTriple());
+  const std::string processTriple = llvm::sys::getProcessTriple();
+  args.push_back(processTriple);
+
+  // On Windows/COFF the JIT maps the add-on at a high address (the reserved slab)
+  // and must reference far host symbols -- libc++abi RTTI vtables and the EH
+  // personality among them. The small (default) code model emits 32-bit
+  // relocations that truncate at that address, corrupting vtables / type_info and
+  // crashing __dynamic_cast (notably multiple-inheritance / cross-casts during
+  // plugin registration). The large code model uses 64-bit references throughout.
+  // (The JIT TargetMachine also requests Large, but this cc1 module flag is the
+  // authoritative one that actually reaches code generation.)
+  if(llvm::Triple(processTriple).isOSBinFormatCOFF())
+  {
+    args.push_back("-mcmodel=large");
+
+    // Mirror the target flags clang's *driver* injects for x86_64-w64-windows-gnu
+    // that this bare -cc1 invocation would otherwise miss. Without them the add-on
+    // is compiled differently from how score itself was built (score goes through
+    // the driver + bin/*.cfg), which is what makes host symbols fail to resolve:
+    //   -D_UCRT           select the Universal CRT, so printf/fprintf bind to the
+    //                     UCRT (__stdio_common_vfprintf -- which score imports)
+    //                     instead of legacy-msvcrt mingw ANSI stdio
+    //                     (__mingw_printf / __mingw_fprintf, absent from score).
+    //   -fno-use-init-array  COFF static ctors emit into .ctors (which
+    //                     MinGWCOFFPlatform collects), not .init_array.
+    //   -funwind-tables=2 / -fno-sized-deallocation  match the driver's SEH
+    //                     unwind-table emission and operator-delete ABI.
+    args.push_back("-D_UCRT");
+    // The JIT unconditionally passes -D_GNU_SOURCE=1 (below) for POSIX features on
+    // Linux add-ons; score itself does not define it. On mingw, _GNU_SOURCE flips
+    // __USE_MINGW_ANSI_STDIO to 1 (an independent term of that decision, so _UCRT
+    // alone doesn't undo it), which routes printf/fprintf to legacy-msvcrt
+    // __mingw_printf / __mingw_fprintf -- symbols score (UCRT) doesn't contain.
+    // Force the UCRT stdio path so the add-on binds the same printf family score
+    // does (__stdio_common_vfprintf), resolvable from the host process.
+    args.push_back("-D__USE_MINGW_ANSI_STDIO=0");
+    args.push_back("-fno-use-init-array");
+    args.push_back("-funwind-tables=2");
+    args.push_back("-fno-sized-deallocation");
+  }
 
   args.push_back("-target-cpu");
   args.push_back(llvm::sys::getHostCPUName().lower());
@@ -246,7 +327,13 @@ populateCompileOptions(std::vector<std::string>& args, CompilerOptions opts)
     }
   }
 
-  args.push_back("-std=c++23");
+  // Match the dialect score itself is built with (gnu++23, not strict c++23):
+  // avnd/halp/ossia rely on GNU extensions (anonymous structs/unions, etc.) that
+  // strict -std=c++23 (__STRICT_ANSI__) rejects or types differently, which makes
+  // some nodes that build fine in score fail to compile in the JIT (e.g. curve
+  // controls: the curve_segment concept then isn't satisfied and make_segment has
+  // no viable overload).
+  args.push_back("-std=gnu++23");
   args.push_back("-disable-free");
   args.push_back("-fdeprecated-macro");
   args.push_back("-fmath-errno");
@@ -335,7 +422,11 @@ populateCompileOptions(std::vector<std::string>& args, CompilerOptions opts)
 #else
   const bool useNativePlatform = false;
 #endif
-  if(!useNativePlatform)
+  // COFF has no JIT-usable native TLS (no _tls_index / .tls directory), so force
+  // emulated TLS there even with the platform on -- matching TargetOptions in
+  // Compiler.cpp. __emutls_get_address resolves from the compiler-rt builtins
+  // archive in the add-on link order.
+  if(!useNativePlatform || llvm::Triple(processTriple).isOSBinFormatCOFF())
   {
     args.push_back("-ftls-model=local-exec");
     args.push_back("-femulated-tls");
@@ -424,6 +515,15 @@ static inline void populateDefinitions(std::vector<std::string>& args)
 #endif
 #if defined(FMT_SHARED)
   args.push_back("-DFMT_SHARED=" XSTR(FMT_SHARED));
+#endif
+  // score/libossia link fmt as header-only in deployment builds (see
+  // libossia/cmake/deps/fmt.cmake), so fmt's functions are inlined into score and
+  // no fmt archive/symbols are exported. An add-on compiled WITHOUT
+  // FMT_HEADER_ONLY emits external references (e.g. fmt::vprint) that the host
+  // cannot resolve -- JIT load then fails with "Symbols not found: fmt::...".
+  // Propagate the same mode score itself was built with so the add-on inlines fmt.
+#if defined(FMT_HEADER_ONLY)
+  args.push_back("-DFMT_HEADER_ONLY=" XSTR(FMT_HEADER_ONLY));
 #endif
 #if defined(FMT_STATIC_THOUSANDS_SEPARATOR)
   args.push_back(

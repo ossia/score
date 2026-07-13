@@ -12,6 +12,8 @@
 #include <JitCpp/Compiler/MinGWCOFFPlatform.hpp>
 
 #include <llvm/ExecutionEngine/Orc/ExecutionUtils.h>
+#include <llvm/ExecutionEngine/Orc/MapperJITLinkMemoryManager.h>
+#include <llvm/ExecutionEngine/Orc/MemoryMapper.h>
 #endif
 
 #if LLVM_VERSION_MAJOR >= 22
@@ -33,14 +35,19 @@ static void jitAtExit(void (*f)())
   globalAtExit.functions[globalAtExit.currentCompiler].push_back(f);
 }
 
-void setTargetOptions(llvm::TargetOptions& opts, bool useNativePlatform = false)
+void setTargetOptions(
+    llvm::TargetOptions& opts, bool useNativePlatform = false, bool isCOFF = false)
 {
-  // With an Orc Platform (orc_rt) in use we get native thread-locals on every
-  // target (ELF/MachO/COFF-MSVC/COFF-MinGW); without it the JIT has no TLS
-  // runtime, so fall back to emulated TLS as before. When native TLS is on, the
-  // -femulated-tls / -ftls-model cc1 flags in JitPlatform.hpp must be dropped too
-  // (otherwise codegen emits __emutls_* the platform does not provide).
-  opts.EmulatedTLS = !useNativePlatform;
+  // With an Orc Platform (orc_rt) in use we get native thread-locals on ELF/MachO;
+  // without it the JIT has no TLS runtime, so fall back to emulated TLS.
+  //
+  // COFF is the exception: native Windows TLS needs a per-module _tls_index and a
+  // registered .tls directory that only the CRT startup / loader provide -- the
+  // JIT has neither, so a thread_local add-on fails to link ("Symbols not found:
+  // _tls_index"). Force emulated TLS on COFF regardless of the platform;
+  // __emutls_get_address then comes from the compiler-rt builtins archive we add
+  // to the add-on's link order (see the platform setup below).
+  opts.EmulatedTLS = !useNativePlatform || isCOFF;
 
   //opts.ExplicitEmulatedTLS = false;
 
@@ -136,12 +143,27 @@ private:
 
 static std::unique_ptr<llvm::orc::LLJIT> jitBuilder(JitCompiler& self)
 {
+  // Make the host process's symbols searchable before building the JIT: the
+  // MinGWCOFFPlatform bootstrap resolves host RTTI/vtable symbols through a
+  // process-symbols generator during create(), below.
+  llvm::sys::DynamicLibrary::LoadLibraryPermanently(nullptr);
+
   auto JTMB = llvm::orc::JITTargetMachineBuilder::detectHost();
   SCORE_ASSERT(JTMB);
 
   llvm::orc::LLJITBuilder builder;
 
   JTMB->setCodeGenOptLevel(llvm::CodeGenOptLevel::Aggressive);
+
+  // On Windows/COFF the add-on is JIT-mapped at a high address (the reserved
+  // slab) and must reference host symbols far away -- libc++abi RTTI vtables and
+  // the EH personality among them. The small (default) code model emits 32-bit
+  // absolute relocations for those data pointers, which truncate at the high load
+  // address and corrupt vtables / type_info, crashing __dynamic_cast during
+  // plugin registration (and exception typeinfo lookups). The large code model
+  // uses 64-bit references throughout, so cross-module RTTI and EH resolve.
+  if(JTMB->getTargetTriple().isOSBinFormatCOFF())
+    JTMB->setCodeModel(llvm::CodeModel::Large);
 
   // When the SDK ships LLVM's ORC runtime, drive the executor through an Orc
   // Platform (native TLS, real static-init/atexit and -- on COFF -- exception
@@ -178,7 +200,7 @@ static std::unique_ptr<llvm::orc::LLJIT> jitBuilder(JitCompiler& self)
 
   self.m_useNativePlatform = useNativePlatform;
 
-  setTargetOptions(JTMB->getOptions(), useNativePlatform);
+  setTargetOptions(JTMB->getOptions(), useNativePlatform, isCOFF);
 
   builder.setJITTargetMachineBuilder(std::move(*JTMB));
   builder.setNumCompileThreads(4);
@@ -256,7 +278,19 @@ static std::unique_ptr<llvm::orc::LLJIT> jitBuilder(JitCompiler& self)
       auto& PlatformJD = ES.createBareJITDylib("<Platform>");
       PlatformJD.addToLinkOrder(*ProcessSymbolsJD);
 
-      J.setPlatformSupport(std::make_unique<llvm::orc::ORCPlatformSupport>(J));
+      // Provide compiler-rt's builtins in the add-on's link order (the driver
+      // links these via -rtlib=compiler-rt; the bare -cc1 JIT compile does not, so
+      // helpers it emits -- e.g. __udivti3, 128-bit division used by fmt -- are
+      // otherwise unresolved). Attach on PlatformJD, next to orc_rt, so it is
+      // materialized through the same platform path add-on link dependencies use.
+      if(std::string builtins = Jit::locateBuiltinsRuntime(); !builtins.empty())
+      {
+        if(auto G = llvm::orc::StaticLibraryDefinitionGenerator::Load(
+               *OLL, builtins.c_str()))
+          PlatformJD.addGenerator(std::move(*G));
+        else
+          llvm::consumeError(G.takeError());
+      }
 
       auto P = Jit::MinGWCOFFPlatform::Create(
           *OLL, PlatformJD, orcRuntime.c_str(),
@@ -267,7 +301,12 @@ static std::unique_ptr<llvm::orc::LLJIT> jitBuilder(JitCompiler& self)
       });
       if(!P)
         return P.takeError();
+      auto* PPtr = (*P).get();
       ES.setPlatform(std::move(*P));
+      // orc_rt's COFF dlopen init is MSVC-coupled (_initterm) and segfaults on
+      // MinGW; run the add-on's static initializers directly instead.
+      J.setPlatformSupport(
+          std::make_unique<Jit::MinGWCOFFPlatformSupport>(*PPtr));
       return &PlatformJD;
     });
 #else
@@ -284,14 +323,31 @@ static std::unique_ptr<llvm::orc::LLJIT> jitBuilder(JitCompiler& self)
   return std::move(p.get());
 }
 
-static std::unique_ptr<llvm::jitlink::InProcessMemoryManager> makeMemoryManager()
+static std::unique_ptr<llvm::jitlink::JITLinkMemoryManager> makeMemoryManager()
 {
+#if defined(_WIN32) && !defined(_MSC_VER) && LLVM_VERSION_MAJOR >= 22
+  // Windows x64 SEH unwind tables (.pdata/.xdata) reference code and unwind data
+  // with 32-bit image-relative RVAs (target - __ImageBase). The default
+  // InProcessMemoryManager hands out scattered mmap regions, so for a real add-on
+  // the header and the code segments land >2GB apart and those RVAs overflow
+  // ("relocation target out of range of Pointer32 fixup"). Reserve one large
+  // contiguous slab instead, so __ImageBase + every segment stay within RVA range.
+  constexpr size_t SlabSize = size_t{1} << 30; // 1 GiB reservation granularity
+  auto m = llvm::orc::MapperJITLinkMemoryManager::CreateWithMapper<
+      llvm::orc::InProcessMemoryMapper>(SlabSize);
+  if(!m)
+    throw std::runtime_error(
+        "JIT: failed to create MapperJITLinkMemoryManager: "
+        + toString(m.takeError()));
+  return std::move(*m);
+#else
   auto m = llvm::jitlink::InProcessMemoryManager::Create();
   if(!m)
     throw std::runtime_error(
         "JIT: failed to create InProcessMemoryManager: "
         + toString(m.takeError()));
   return std::move(*m);
+#endif
 }
 
 JitCompiler::JitCompiler()
@@ -308,11 +364,56 @@ JitCompiler::JitCompiler()
   LLJIT& JIT = *m_jit;
   m_jit->getExecutionSession().setErrorReporter([&](llvm::Error Err) {
     llvm::handleAllErrors(std::move(Err), [&](const llvm::ErrorInfoBase& EI) {
-      const auto& mess = EI.message();
-      this->m_errors += mess.c_str();
+      this->m_errors += EI.message().c_str();
     });
   });
   auto& JD = JIT.getMainJITDylib();
+
+#if defined(_WIN32) && !defined(_MSC_VER) && LLVM_VERSION_MAJOR >= 22
+  // Pin the cxxabi RTTI type_info vtables to the host libc++'s complete copies.
+  //
+  // On MinGW COFF the orc_rt archive (in the platform JD's link order) carries its
+  // own statically-embedded slice of libc++abi, and during add-on symbol
+  // resolution its copy of the type_info vtables wins over the host process's.
+  // That copy is an incomplete placeholder (null method slots) for the
+  // multiple-inheritance navigation, so a JIT'd class's __vmi_class_type_info ends
+  // up with a bogus vtable pointer and __dynamic_cast segfaults on the first
+  // cross-cast -- which is exactly what plugin registration does
+  // (dynamic_cast<score::FactoryList_QtInterface*> etc. in registerPlugin()).
+  //
+  // Defining these symbols directly in the add-on's JITDylib makes them take
+  // priority over the platform link order, so every JIT'd type_info points at the
+  // host's real, complete cxxabi vtables. Only the vtables are pinned;
+  // __dynamic_cast / __cxa_* still resolve from the process / orc_rt as usual.
+  {
+    auto& ES = JIT.getExecutionSession();
+    SymbolMap host;
+    for(const char* sym :
+        {"_ZTVN10__cxxabiv117__class_type_infoE",
+         "_ZTVN10__cxxabiv120__si_class_type_infoE",
+         "_ZTVN10__cxxabiv121__vmi_class_type_infoE",
+         "_ZTVN10__cxxabiv117__pbase_type_infoE",
+         "_ZTVN10__cxxabiv119__pointer_type_infoE",
+         "_ZTVN10__cxxabiv129__pointer_to_member_type_infoE",
+         "_ZTVN10__cxxabiv123__fundamental_type_infoE"})
+    {
+      if(void* a = sys::DynamicLibrary::SearchForAddressOfSymbol(sym))
+        host[ES.intern(sym)] = {ExecutorAddr::fromPtr(a), JITSymbolFlags::Exported};
+    }
+    if(!host.empty())
+    {
+      if(auto Err = JD.define(absoluteSymbols(std::move(host))))
+        llvm::consumeError(std::move(Err));
+    }
+  }
+
+  // Provide compiler-rt's builtins to the add-on. The driver links these via
+  // -rtlib=compiler-rt, but the JIT compiles with bare -cc1, so runtime helpers it
+  // emits -- e.g. __udivti3 (128-bit division used by fmt's formatting) -- are
+  // unresolved and JIT load fails with "Symbols not found: __udivti3, ...". Hand
+  // the builtins archive to ORC as a definition generator (same mechanism orc_rt
+  // uses). Members are pulled on demand, so host-provided symbols still win.
+#endif
 
   // When a platform is in use (LinkProcessSymbolsByDefault), LLJIT already builds
   // a <Process Symbols> JITDylib that is in the default link order, so adding a
@@ -380,7 +481,8 @@ void JitCompiler::compile(
       if(!F.isDeclaration() && F.hasName() && !F.hasLocalLinkage())
         definedSymbols.push_back(F.getName().str());
     for(const llvm::GlobalVariable& G : (*module)->globals())
-      if(!G.isDeclaration() && G.hasName() && !G.hasLocalLinkage())
+      if(!G.isDeclaration() && G.hasName() && !G.hasLocalLinkage()
+         && !G.getName().starts_with("llvm."))
         definedSymbols.push_back(G.getName().str());
 
     if(auto Err = m_jit->addIRModule(ThreadSafeModule(std::move(*module), context));
@@ -409,13 +511,11 @@ void JitCompiler::compile(
   // ever read an already-resolved address.
   for(const auto& name : definedSymbols)
   {
+    // Don't fail the whole add-on for one un-resolvable helper symbol; record it
+    // in m_errors and continue forcing the rest. The real entry-point lookup in
+    // getFunction() still surfaces a hard error if it matters.
     if(auto sym = m_jit->lookup(name); !sym)
-    {
-      // Don't fail the whole add-on for one un-resolvable helper symbol; record
-      // it and continue forcing the rest. The real entry-point lookup in
-      // getFunction() will still surface a hard error if it matters.
       consumeError(sym.takeError());
-    }
   }
 
   (void)m_jit->initialize(m_jit->getMainJITDylib());

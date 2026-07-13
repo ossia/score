@@ -26,6 +26,8 @@
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/graphics/GraphicsItem.hpp>
+#include <score/model/path/ObjectIdentifier.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
 
 #include <QApplication>
 #include <QClipboard>
@@ -117,35 +119,46 @@ static bool pasteInScenario(
     auto& interval
         = m.createBox(sm, origin.date, TimeVal(origin.date.impl + t.impl), origin.y);
 
+    // Load each process into a slot, collecting old→new ID mapping for cable remapping.
+    // loadProcessInSlot always creates a view slot so processes are visible in the timeline.
+    std::vector<std::pair<int32_t, int32_t>> proc_id_map;
     for(auto& proc : processes)
     {
-      if(proc.IsObject())
-      {
-        if(proc.HasMember(score::StringConstant().uuid))
-        {
-          m.loadProcessInSlot(interval, proc);
-        }
-      }
+      if(!proc.IsObject() || !proc.HasMember(score::StringConstant().uuid))
+        continue;
+      auto id_it = proc.FindMember("id");
+      if(id_it == proc.MemberEnd())
+        continue;
+      int32_t old_id = id_it->value.GetInt();
+      if(auto* new_proc = m.loadProcessInSlot(interval, proc))
+        proc_id_map.emplace_back(old_id, new_proc->id().val());
     }
 
+    // Remap cable endpoints from old process IDs to new ones, then load.
     {
-      auto new_path = score::IDocument::path(interval).unsafePath();
-
-      // !!! FIXME this looks like it's not valid, use
-      // serializedCablesFromCableJson instead, no ?
       auto cables = JsonValue{cables_it->value}.to<Dataflow::SerializedCables>();
-
-      for(auto& cable : cables)
-      {
-        qDebug() << cable.second.source.unsafePath().toString();
-        qDebug() << cable.second.sink.unsafePath().toString();
-      }
+      auto new_path = score::IDocument::path(interval).unsafePath();
       auto& document
           = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
 
-      for(auto& c : cables)
+      for(auto& [cable_id, cable_data] : cables)
       {
-        c.first = getStrongId(document.cables);
+        auto remap = [&](ObjectPath& path) {
+          auto& vec = path.vec();
+          if(vec.empty())
+            return;
+          for(auto& [old_id, new_id] : proc_id_map)
+          {
+            if(vec.front().id() == old_id)
+            {
+              vec.front() = ObjectIdentifier{vec.front().objectName(), new_id};
+              break;
+            }
+          }
+        };
+        remap(cable_data.source.unsafePath());
+        remap(cable_data.sink.unsafePath());
+        cable_id = getStrongId(document.cables);
       }
       m.loadCables(new_path, cables);
     }
@@ -314,6 +327,39 @@ bool ScenarioEditor::paste(
 
 bool ScenarioEditor::remove(const Selection& s, const score::DocumentContext& ctx)
 {
+  if(s.size() > 1)
+  {
+    std::vector<std::pair<IntervalModel*, const Process::ProcessModel*>> procs;
+    procs.reserve(s.size());
+    bool only_interval_processes = true;
+    for(auto& elt : s)
+    {
+      auto proc = qobject_cast<const Process::ProcessModel*>(elt.data());
+      if(!proc)
+      {
+        only_interval_processes = false;
+        break;
+      }
+      auto itv = qobject_cast<IntervalModel*>(proc->parent());
+      if(!itv)
+      {
+        only_interval_processes = false;
+        break;
+      }
+      procs.push_back({itv, proc});
+    }
+
+    if(only_interval_processes && !procs.empty())
+    {
+      Scenario::Command::Macro m{
+          new Scenario::Command::RemoveMultipleProcessesFromInterval, ctx};
+      for(auto& [itv, proc] : procs)
+        m.removeProcess(*itv, proc->id());
+      m.commit();
+      return true;
+    }
+  }
+
   if(s.size() == 1)
   {
     auto first = s.begin()->data();
