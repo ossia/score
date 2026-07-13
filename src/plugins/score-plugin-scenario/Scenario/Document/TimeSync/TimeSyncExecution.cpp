@@ -35,8 +35,13 @@ TimeSyncComponent::TimeSyncComponent(
 
   con(element, &Scenario::TimeSyncModel::activeChanged, this,
       &TimeSyncComponent::updateTrigger);
-  con(element, &Scenario::TimeSyncModel::autotriggerChanged, this,
-      [this](bool b) { in_exec([ts = m_ossia_node, b] { ts->set_autotrigger(b); }); });
+  con(element, &Scenario::TimeSyncModel::autotriggerChanged, this, [this](bool b) {
+    // cleanup() resets m_ossia_node while destruction is deferred through the
+    // exec queue, so model edits can still arrive afterwards: ignore them.
+    if(!m_ossia_node)
+      return;
+    in_exec([ts = m_ossia_node, b] { ts->set_autotrigger(b); });
+  });
   con(element, &Scenario::TimeSyncModel::triggerChanged, this,
       &TimeSyncComponent::updateTrigger);
 
@@ -173,7 +178,8 @@ void TimeSyncComponent::updateTrigger()
     start = m_score_node->isStartPoint();
   }
 
-  SCORE_ASSERT(m_ossia_node);
+  if(!m_ossia_node)
+    return;
   in_exec([e = m_ossia_node, exp_ptr, autotrigger, start] {
     bool was_observing = e->is_observing_expression();
     if(was_observing)
@@ -191,6 +197,8 @@ void TimeSyncComponent::updateTrigger()
 void TimeSyncComponent::updateTriggerTime()
 {
   OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
+  if(!m_ossia_node)
+    return;
   ossia::musical_sync quantRate = m_score_node->musicalSync();
   if(quantRate < 0)
   {
@@ -222,6 +230,8 @@ void TimeSyncComponent::updateTriggerTime()
 void TimeSyncComponent::on_GUITrigger()
 {
   OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
+  if(!m_ossia_node)
+    return;
   in_exec([e = m_ossia_node] {
     OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
     e->start_trigger_request();
