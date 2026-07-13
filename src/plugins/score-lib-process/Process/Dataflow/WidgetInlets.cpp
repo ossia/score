@@ -8,6 +8,7 @@
 #include <ossia-qt/invoke.hpp>
 
 #include <QCoreApplication>
+#include <QDir>
 
 #include <wobjectimpl.h>
 
@@ -105,6 +106,24 @@ void ComboBox::setupExecution(ossia::inlet& inl, QObject* exec_context) const no
 {
   auto& port = **safe_cast<ossia::value_inlet*>(&inl);
   port.domain = domain().get();
+}
+
+void ComboBox::repopulateFromFolder(const QString& folderPath)
+{
+  std::vector<std::pair<QString, ossia::value>> alts;
+  if(!folderPath.isEmpty())
+  {
+    QDir dir(folderPath);
+    const auto files = fileExtensions.isEmpty()
+                           ? dir.entryList(QDir::Files, QDir::Name)
+                           : dir.entryList(fileExtensions, QDir::Files, QDir::Name);
+    int i = 0;
+    for(const auto& f : files)
+      alts.emplace_back(f, i++);
+  }
+  if(alts.empty())
+    alts.emplace_back(QStringLiteral("-"), 0);
+  setAlternatives(std::move(alts));
 }
 
 void ComboBox::setAlternatives(std::vector<std::pair<QString, ossia::value>> values)
