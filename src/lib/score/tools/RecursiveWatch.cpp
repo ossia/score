@@ -71,8 +71,11 @@ void for_all_files(std::string_view root, std::function<void(std::string_view)> 
   {
     if(auto res = algorithm::contents(pp.value()))
     {
+      try
+      {
       for(auto& p : res.value())
       {
+        try {
         switch(p.second.st_type)
         {
 #if !defined(_WIN32)
@@ -87,15 +90,46 @@ void for_all_files(std::string_view root, std::function<void(std::string_view)> 
 #if !defined(_WIN32)
             f(r.native());
 #else
-            f(r.generic_string());
+            try {
+              f(r.generic_string());
+            }
+            catch(...)
+            {
+              // Very inefficient but r.generic_string() sometimes throws
+              // filesystem error: in __wide_to_char: Illegal byte sequence
+              // on windows
+              auto s = QString::fromStdWString(r.native()).toStdString();
+              std::replace(s.begin(), s.end(), '\\', '/');
+              f(s);
+            }
 #endif
             break;
           }
           default:
             break;
         }
+        }
+        catch(const std::exception& e)
+        {
+        }
+        catch(...)
+        {
+        }
+      }
+      }
+      catch(const std::exception& e)
+      {
+      }
+      catch(...)
+      {
       }
     }
+    else
+    {
+    }
+  }
+  catch(const std::exception& e)
+  {
   }
   catch(...)
   {
@@ -317,5 +351,12 @@ void RecursiveWatch::scanAsync(QObject* context)
 
     send_to_main_thread();
   });
+}
+
+void RecursiveWatch::reset()
+{
+  m_root.clear();
+  m_watched.clear();
+  m_asyncWatched.clear();
 }
 }
