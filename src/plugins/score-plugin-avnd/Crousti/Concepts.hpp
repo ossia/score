@@ -320,6 +320,34 @@ make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
         return new Process::LineEdit{"", qname, id, parent};
     }
   }
+  else if constexpr(avnd::folder_items_parameter<T>)
+  {
+    // Folder-backed, string-valued combobox: the value IS the selected file
+    // name, so an object uses it directly like a file-name string. Items are
+    // filled from the sibling folder port at edit time by the model.
+    static constexpr auto c = avnd::get_range<T>();
+    const std::string initv{c.init};
+    std::vector<std::pair<QString, ossia::value>> initAlts;
+    initAlts.emplace_back(QString::fromStdString(initv), initv);
+    auto combo = new Process::ComboBox{
+        std::move(initAlts), ossia::value{initv}, qname, id, parent};
+    combo->folderPortName
+        = QString::fromUtf8(T::folder_port().data(), T::folder_port().size());
+    // extensions(): space-separated suffixes ("wav aif json") -> "*.wav" ...
+    const std::string_view ex = T::extensions();
+    std::size_t pos = 0;
+    while(pos < ex.size())
+    {
+      auto sp = ex.find(' ', pos);
+      if(sp == std::string_view::npos)
+        sp = ex.size();
+      if(sp > pos)
+        combo->fileExtensions.push_back(
+            "*." + QString::fromUtf8(ex.data() + pos, int(sp - pos)));
+      pos = sp + 1;
+    }
+    return combo;
+  }
   else if constexpr(widg.widget == avnd::widget_type::combobox)
   {
     static constexpr auto c = avnd::get_range<T>();
@@ -329,27 +357,8 @@ make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
       init = static_cast<int>(c.init);
     else
       init = c.init;
-    auto combo = new Process::ComboBox{
+    return new Process::ComboBox{
         to_combobox_range(c.values), std::move(init), qname, id, parent};
-    if constexpr(avnd::folder_items_parameter<T>)
-    {
-      combo->folderPortName
-          = QString::fromUtf8(T::folder_port().data(), T::folder_port().size());
-      // extensions(): space-separated suffixes ("wav aif json") -> "*.wav" ...
-      const std::string_view ex = T::extensions();
-      std::size_t pos = 0;
-      while(pos < ex.size())
-      {
-        auto sp = ex.find(' ', pos);
-        if(sp == std::string_view::npos)
-          sp = ex.size();
-        if(sp > pos)
-          combo->fileExtensions.push_back(
-              "*." + QString::fromUtf8(ex.data() + pos, int(sp - pos)));
-        pos = sp + 1;
-      }
-    }
-    return combo;
   }
   else if constexpr(widg.widget == avnd::widget_type::choices)
   {

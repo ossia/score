@@ -117,12 +117,11 @@ void ComboBox::repopulateFromFolder(const QString& folderPath)
     const auto files = fileExtensions.isEmpty()
                            ? dir.entryList(QDir::Files, QDir::Name)
                            : dir.entryList(fileExtensions, QDir::Files, QDir::Name);
-    int i = 0;
     for(const auto& f : files)
-      alts.emplace_back(f, i++);
+      alts.emplace_back(f, f.toStdString()); // value = the file name itself
   }
   if(alts.empty())
-    alts.emplace_back(QStringLiteral("-"), 0);
+    alts.emplace_back(QStringLiteral("-"), std::string("-"));
   setAlternatives(std::move(alts));
 }
 
