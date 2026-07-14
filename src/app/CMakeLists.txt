@@ -264,12 +264,17 @@ if(EMSCRIPTEN)
       EXCLUDE Qt6::QMinimalIntegrationPlugin
   )
   qt_finalize_executable(${APPNAME})
-  # Qt's finalize is supposed to export these runtime methods (its canvas setup
-  # writes to Module.specialHTMLTargets; the loader needs FS/callMain/ENV), but
-  # they were being dropped from the final link. Re-add them here, after finalize,
-  # so this is the last -sEXPORTED_RUNTIME_METHODS on the link line (last wins).
-  target_link_options(${APPNAME} PRIVATE
-    "SHELL:-sEXPORTED_RUNTIME_METHODS=UTF16ToString,stringToUTF16,JSEvents,specialHTMLTargets,FS,callMain,ENV")
+  # emscripten's EXPORTED_RUNTIME_METHODS is replace-not-merge: the LAST -s flag
+  # on the link line wins outright. libremidi's Emscripten backend sets its own
+  # list as a PUBLIC link option, which is linked after Qt's and dropped the
+  # methods Qt's canvas needs (specialHTMLTargets/FS/callMain), so QScreen setup
+  # threw "Cannot set properties of undefined (!outerscreen...)". Append the full
+  # union (Qt + libremidi + HEAP views) onto libremidi's INTERFACE so the winning
+  # list has everything every consumer needs.
+  if(TARGET libremidi)
+    target_link_options(libremidi INTERFACE
+      "SHELL:-sEXPORTED_RUNTIME_METHODS=UTF16ToString,stringToUTF16,UTF8ToString,stringToUTF8,lengthBytesUTF8,JSEvents,specialHTMLTargets,FS,callMain,ENV,HEAPU8,HEAPF32,HEAP32,HEAPU32,HEAPF64")
+  endif()
   enable_minimal_qt_plugins(${APPNAME} 1)
 else()  
   disable_qt_plugins(${APPNAME})
