@@ -153,7 +153,10 @@ void Document::init()
       {
         panel.setNewSelection(filtered);
       }
-      m_presenter->setNewSelection(oldfiltered, filtered);
+      // m_presenter only exists when the document has a view (a windowed GUI).
+      // An offscreen / headless GUI app has no view, so guard the deref.
+      if(m_presenter)
+        m_presenter->setNewSelection(oldfiltered, filtered);
     });
   }
 
