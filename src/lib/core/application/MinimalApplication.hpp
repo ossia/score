@@ -53,9 +53,12 @@ public:
   ~MinimalApplication() override
   {
     this->setParent(nullptr);
-    delete m_presenter;
-
+    // Drain the event queue before deleting the presenter: deferred slots
+    // queued during plugin load (e.g. Scenario::SearchWidget's deferred init
+    // -> findDeviceExplorerWidgetInstance) read the presenter-owned application
+    // context, so dispatching them after delete m_presenter is a use-after-free.
     QApplication::processEvents();
+    delete m_presenter;
     // m_app (the QApplication) is destroyed last, after the score::Settings /
     // ProjectSettings members below: their models are parented to the
     // QApplication, so destroying it first would double-free them.
@@ -117,9 +120,10 @@ public:
   ~MinimalGUIApplication() override
   {
     this->setParent(nullptr);
-    delete m_presenter;
-
+    // See ~MinimalApplication: drain queued slots while the presenter is still
+    // alive, since deferred plugin-load slots read the presenter-owned context.
     QApplication::processEvents();
+    delete m_presenter;
     // m_app (the QApplication) is destroyed last (declared first), after the
     // score::Settings members whose models are parented to it.
   }
