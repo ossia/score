@@ -1371,13 +1371,13 @@ SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read(const Process::ComboBox& p)
 {
   read((const Process::ControlInlet&)p);
-  m_stream << p.alternatives;
+  m_stream << p.alternatives << p.folderPortName << p.fileExtensions;
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
 DataStreamWriter::write(Process::ComboBox& p)
 {
-  m_stream >> p.alternatives;
+  m_stream >> p.alternatives >> p.folderPortName >> p.fileExtensions;
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
@@ -1385,11 +1385,27 @@ JSONReader::read(const Process::ComboBox& p)
 {
   read((const Process::ControlInlet&)p);
   obj["Values"] = p.alternatives;
+  // Folder-backed combobox metadata (empty for a plain combobox). Persisted so
+  // a loaded document can re-scan the folder and re-establish live refresh;
+  // see ProcessModel::init_folder_comboboxes. Extensions are stored as one
+  // space-joined string ("*.json *.wav"), like FileChooser's filters.
+  obj["FolderPort"] = p.folderPortName;
+  obj["FileExtensions"] = p.fileExtensions.join(QChar(' '));
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::ComboBox& p)
 {
   p.alternatives <<= obj["Values"];
+  // Guarded for documents saved before these fields existed.
+  if(obj.tryGet("FolderPort"))
+    p.folderPortName <<= obj["FolderPort"];
+  if(obj.tryGet("FileExtensions"))
+  {
+    QString exts;
+    exts <<= obj["FileExtensions"];
+    p.fileExtensions
+        = exts.isEmpty() ? QStringList{} : exts.split(QChar(' '), Qt::SkipEmptyParts);
+  }
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
