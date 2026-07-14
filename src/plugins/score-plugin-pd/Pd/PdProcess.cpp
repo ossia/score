@@ -920,19 +920,24 @@ Process::ScriptChangeResult ProcessModel::setScript(const QString& script)
   libpd_add_float(1.0f);
   libpd_finish_message("pd", "dsp");
 
-  // Open
+  // Open. With no script (empty path) there is nothing to open: libpd would
+  // dereference an empty filename out of bounds, so leave the instance patchless.
   QFileInfo fileinfo{f};
-  auto folder = fileinfo.canonicalPath();
-  add_pd_search_paths(folder);
+  const auto pdFileName = fileinfo.fileName();
+  if(!pdFileName.isEmpty())
+  {
+    auto folder = fileinfo.canonicalPath();
+    add_pd_search_paths(folder);
 
-  m_instance->file_handle
-      = libpd_openfile(fileinfo.fileName().toUtf8().data(), folder.toUtf8().data());
-  m_instance->dollarzero = libpd_getdollarzero(m_instance->file_handle);
+    m_instance->file_handle
+        = libpd_openfile(pdFileName.toUtf8().data(), folder.toUtf8().data());
+    m_instance->dollarzero = libpd_getdollarzero(m_instance->file_handle);
 
-  std::vector<float> temp_buff;
-  temp_buff.resize(libpd_blocksize() * (std::max(m_audioInputs, m_audioOutputs)));
+    std::vector<float> temp_buff;
+    temp_buff.resize(libpd_blocksize() * (std::max(m_audioInputs, m_audioOutputs)));
 
-  libpd_process_raw(temp_buff.data(), temp_buff.data());
+    libpd_process_raw(temp_buff.data(), temp_buff.data());
+  }
 
   scriptChanged(script);
   return res;
