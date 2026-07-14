@@ -1,5 +1,6 @@
 #pragma once
 #include "BufferToGeometryCommon.hpp"
+#include "TransformHelper.hpp"
 
 #include <Threedim/TinyObj.hpp>
 #include <halp/buffer.hpp>
@@ -109,6 +110,7 @@ public:
   PrimitiveTopology m_prevTopology{};
   CullMode m_prevCullMode{};
   FrontFace m_prevFrontFace{};
+  CachedTRS m_cachedTRS{};
 
   struct ui
   {

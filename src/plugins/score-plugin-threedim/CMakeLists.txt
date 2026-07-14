@@ -14,6 +14,21 @@ endif()
 
 find_package(${QT_VERSION} REQUIRED COMPONENTS Xml)
 
+# fastgltf — vendored glTF 2.0 parser. Its configure step downloads the
+# simdjson single-header when deps/simdjson is absent, which network-isolated
+# builds (Flatpak, Nix) forbid — pre-seed it from the vendored copy in
+# 3rdparty/simdjson instead (deps/ is gitignored in the fastgltf submodule;
+# a separate simdjson library target would leak into fastgltf's installed
+# export set, so the sources go through fastgltf's own vendoring path).
+file(COPY
+     "${3RDPARTY_FOLDER}/simdjson/simdjson.h"
+     "${3RDPARTY_FOLDER}/simdjson/simdjson.cpp"
+     DESTINATION "${3RDPARTY_FOLDER}/fastgltf/deps/simdjson")
+if(NOT TARGET fastgltf)
+  set(FASTGLTF_COMPILE_AS_CPP20 ON CACHE BOOL "" FORCE)
+  add_subdirectory("${3RDPARTY_FOLDER}/fastgltf" "${CMAKE_CURRENT_BINARY_DIR}/fastgltf" EXCLUDE_FROM_ALL)
+endif()
+
 # libssynth
 add_library(
   ssynth STATIC
@@ -77,8 +92,109 @@ add_library(
   Threedim/GeometryToBufferStrategies.cpp
   Threedim/Noise.hpp
   Threedim/Noise.cpp
-  Threedim/ObjLoader.hpp
-  Threedim/ObjLoader.cpp
+  Threedim/GeometryLoader.hpp
+  Threedim/GeometryLoader.cpp
+  Threedim/AssetLoader.hpp
+  Threedim/AssetLoader.cpp
+  Threedim/FbxParser.hpp
+  Threedim/FbxParser.cpp
+  Threedim/GltfParser.hpp
+  Threedim/GltfParser.cpp
+  Threedim/VcgImporters.hpp
+  Threedim/VcgImporters.cpp
+  Threedim/Camera.hpp
+  Threedim/Camera.cpp
+  Threedim/CameraArray.hpp
+  Threedim/CameraArray.cpp
+  Threedim/CameraSwitch.hpp
+  Threedim/Light.hpp
+  Threedim/Light.cpp
+  Threedim/Transform3D.hpp
+  Threedim/Transform3D.cpp
+  Threedim/TransformHelper.hpp
+
+  Threedim/ScenePreprocessor/Executor.hpp
+  Threedim/ScenePreprocessor/Executor.cpp
+  Threedim/ScenePreprocessor/Metadata.hpp
+  Threedim/ScenePreprocessor/Process.hpp
+  Threedim/ScenePreprocessor/Process.cpp
+
+  Threedim/SceneFilter/Executor.hpp
+  Threedim/SceneFilter/Executor.cpp
+  Threedim/SceneFilter/Metadata.hpp
+  Threedim/SceneFilter/Process.hpp
+  Threedim/SceneFilter/Process.cpp
+
+  Threedim/FlattenedSceneFilter/Executor.hpp
+  Threedim/FlattenedSceneFilter/Executor.cpp
+  Threedim/FlattenedSceneFilter/Metadata.hpp
+  Threedim/FlattenedSceneFilter/Process.hpp
+  Threedim/FlattenedSceneFilter/Process.cpp
+
+  Threedim/MergeGeometries/Executor.hpp
+  Threedim/MergeGeometries/Executor.cpp
+  Threedim/MergeGeometries/Metadata.hpp
+  Threedim/MergeGeometries/Process.hpp
+  Threedim/MergeGeometries/Process.cpp
+
+  Threedim/SceneGraphFilter.hpp
+  Threedim/SceneGraphFilter.cpp
+  Threedim/SceneSwitch.hpp
+  Threedim/SceneSelector.hpp
+  Threedim/SceneSelector.cpp
+  Threedim/SceneGroup.hpp
+  Threedim/SceneGroup.cpp
+  Threedim/SceneDuplicator.hpp
+  Threedim/SceneDuplicator.cpp
+  Threedim/SceneFromMeshes.hpp
+  Threedim/SceneFromMeshes.cpp
+  Threedim/SceneInspector.hpp
+  Threedim/SceneInspector.cpp
+  Threedim/CreateCollection.hpp
+  Threedim/CreateCollection.cpp
+  Threedim/SceneResourceRoute.hpp
+  Threedim/SceneResourceRoute.cpp
+  Threedim/InjectBuffer.hpp
+  Threedim/InjectBuffer.cpp
+  Threedim/InjectTexture.hpp
+  Threedim/InjectTexture.cpp
+  Threedim/PBRMesh.hpp
+  Threedim/PBRMesh.cpp
+  Threedim/MaterialOverride.hpp
+  Threedim/MaterialOverride.cpp
+  Threedim/ConfigurePrimitive.hpp
+  Threedim/ConfigurePrimitive.cpp
+  Threedim/Instancer.hpp
+  Threedim/Instancer.cpp
+  Threedim/ShadowCascadeSetup.hpp
+  Threedim/ShadowCascadeSetup.cpp
+  Threedim/EnvironmentLoader.hpp
+  Threedim/EnvironmentLoader.cpp
+  Threedim/AnimationPlayer.hpp
+  Threedim/AnimationPlayer.cpp
+  Threedim/HumanoidPose.hpp
+  Threedim/HumanoidPresets.hpp
+  Threedim/HumanoidRetarget.hpp
+  Threedim/HumanoidSourceAdapters.hpp
+  Threedim/HumanoidSourceMaps.hpp
+  Threedim/InverseKinematics.hpp
+  Threedim/TextToMesh.hpp
+  Threedim/TextToMesh.cpp
+  Threedim/TextToTexture.hpp
+  Threedim/ExtractBuffer2.hpp
+  Threedim/ExtractBuffer2.cpp
+  Threedim/ExtractSceneBuffer.hpp
+  Threedim/ExtractSceneBuffer.cpp
+  Threedim/ExtractTexture.hpp
+  Threedim/ExtractTexture.cpp
+  Threedim/BufferInfo.hpp
+  Threedim/TextureInfo.hpp
+  Threedim/ImageLoader.hpp
+  Threedim/ImageLoader.cpp
+  Threedim/TangentUtils.hpp
+  Threedim/BufferToGeometryCommon.hpp
+  Threedim/Debug.hpp
+  Threedim/MeshHelpers.hpp
   Threedim/PCLToGeometry.hpp
   Threedim/PCLToGeometry.cpp
   Threedim/Ply.hpp
@@ -117,6 +233,7 @@ add_library(
 
   "${3RDPARTY_FOLDER}/miniply/miniply.cpp"
   "${3RDPARTY_FOLDER}/mikktspace/mikktspace.c"
+  "${3RDPARTY_FOLDER}/ufbx/ufbx.c"
   score_plugin_threedim.hpp
   score_plugin_threedim.cpp)
 
@@ -132,8 +249,10 @@ target_include_directories(
     "${3RDPARTY_FOLDER}/vcglib"
     "${3RDPARTY_FOLDER}/miniply"
     "${3RDPARTY_FOLDER}/mikktspace"
-    "${3RDPARTY_FOLDER}/opengametools/src")
+    "${3RDPARTY_FOLDER}/opengametools/src"
+    "${3RDPARTY_FOLDER}/ufbx")
 
 target_link_libraries(
   score_plugin_threedim PRIVATE score_plugin_engine score_plugin_avnd
-                                score_plugin_gfx fmt::fmt ssynth Eigen3::Eigen)
+                                score_plugin_gfx fmt::fmt ssynth Eigen3::Eigen
+                                fastgltf::fastgltf)

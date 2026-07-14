@@ -1,4 +1,6 @@
 #pragma once
+#include "TransformHelper.hpp"
+
 #include <Threedim/TinyObj.hpp>
 #include <Threedim/Vox.hpp>
 #include <halp/controls.hpp>
@@ -60,6 +62,7 @@ public:
 
   void reload();
   void rebuild_geometry();
+  void operator()();
 
   std::vector<mesh> meshinfo{};
   float_vec complete;
@@ -67,6 +70,9 @@ public:
 
   // Cache the file data so mode changes can re-process
   std::string cached_filename;
+
+  // Per-frame TRS matrix cache (see TransformHelper.hpp).
+  CachedTRS m_cachedTRS{};
 };
 
 }
