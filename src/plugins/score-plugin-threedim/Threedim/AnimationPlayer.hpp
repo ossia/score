@@ -1,0 +1,89 @@
+#pragma once
+#include <halp/controls.hpp>
+#include <halp/meta.hpp>
+
+#include <ossia/dataflow/geometry_port.hpp>
+
+#include <cstdint>
+#include <memory>
+#include <unordered_map>
+
+namespace Threedim
+{
+
+// Samples an incoming scene's animation channels at a user-provided time and
+// emits a scene_spec whose animated scene_nodes carry updated scene_transform
+// payloads, or whose skeletons carry updated bone poses. Passthrough when the
+// input scene has no animations.
+//
+// animation_channel.target_node_id refers to a scene_node::id; target_path is one
+// of translation, rotation, scale, weights, custom; `times` and `values` hold the
+// keyframes and `interpolation` is step, linear or cubic_spline.
+//
+// For TRS channels the first scene_transform payload among the matching node's
+// children is overridden -- the convention GltfParser and FbxParser follow, since
+// they prepend one per node. Subtrees touching no animated node are shared as-is
+// by shared_ptr, so downstream identity caches stay hot outside the animated
+// branch, and materials, skeletons, cameras and environment pass through by
+// identity.
+//
+// Passthrough for now: morph-target weights, custom paths, and skeletal joint
+// tracks targeting joints inside a skeleton_component rather than scene_node ids.
+class AnimationPlayer
+{
+public:
+  halp_meta(name, "Animation Player")
+  halp_meta(category, "Visuals/3D/Scene")
+  halp_meta(c_name, "animation_player")
+  halp_meta(authors, "ossia team")
+  halp_meta(
+      manual_url,
+      "https://ossia.io/score-docs/processes/animation-player.html")
+  halp_meta(uuid, "2b4d7e8c-3a5f-4b9d-91c6-8d2e0f3a7b5e")
+
+  struct ins
+  {
+    struct
+    {
+      halp_meta(name, "Scene In");
+      ossia::scene_spec scene;
+      uint8_t dirty{0};
+    } scene_in;
+
+    halp::hslider_f32<"Time", halp::range{0., 3600., 0.}> time;
+    halp::hslider_f32<"Speed", halp::range{-4., 4., 1.}> speed;
+    halp::toggle<"Loop"> loop;
+    // When unset, 0 = first animation_component, 1 = second, …. -1 =
+    // blend all (sum of all channels — useful when animations target
+    // disjoint node sets, which is common for glTF scenes). Clamped to
+    // the number of components at sample time.
+    halp::spinbox_i32<"Clip index", halp::irange{-1, 32, -1}> clip_index;
+  } inputs;
+
+  struct outs
+  {
+    struct
+    {
+      halp_meta(name, "Scene Out");
+      ossia::scene_spec scene;
+      uint8_t dirty{0};
+    } scene_out;
+  } outputs;
+
+  void operator()();
+
+  std::shared_ptr<const ossia::scene_state> m_cached_state;
+  int64_t m_version_counter{0};
+
+  // Last value seen on the Time inlet. Used solely to detect whether the
+  // user is actively driving Time (value changed) vs. leaving it constant
+  // so the Speed control should auto-advance. NEVER holds the advanced
+  // playback position (that lives in m_playback_time).
+  float m_prev_time{0.f};
+  // Auto-advance accumulator for the Speed control. Integrated by
+  // speed*dt every call while Time is held constant; resynced to the Time
+  // inlet whenever the user actually moves it.
+  float m_playback_time{0.f};
+};
+
+}
