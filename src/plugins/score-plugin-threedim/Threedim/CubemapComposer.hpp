@@ -6,7 +6,12 @@
 
 #include <Gfx/Graph/RenderList.hpp>
 
+#include <ossia/dataflow/geometry_port.hpp>
+
 #include <QtGui/private/qrhi_p.h>
+
+#include <cstdint>
+#include <memory>
 
 namespace Threedim
 {
@@ -34,12 +39,37 @@ public:
 
   struct
   {
-    halp::gpu_texture_output<"Cubemap"> cubemap;
+    halp::gpu_cubemap_output<"Cubemap"> cubemap;
+    // Scene-graph route: emits a scene_spec whose environment.skybox_texture
+    // points at our cube handle. See CubemapLoader for the same pattern.
+    struct
+    {
+      halp_meta(name, "Scene");
+      ossia::scene_spec scene;
+      uint8_t dirty{0};
+    } scene_out;
   } outputs;
 
   QRhiTexture* m_cubemapTex{};
   int m_faceSize{0};
   bool m_dirty{true};
+  std::shared_ptr<ossia::scene_state> m_sceneState;
+  int64_t m_sceneVersion{0};
+  void* m_lastPublishedHandle{};
+
+  // Dtor safety net — same rationale as CubemapLoader: guarantees the
+  // VkImage is deleteLater'd even if release(RenderList&) was skipped,
+  // so QRhi's destructor drains the pending-delete list before
+  // vkDestroyDevice. Without this, Vulkan validation reports a leaked
+  // VkImage on exit.
+  ~CubemapComposer()
+  {
+    if(m_cubemapTex)
+    {
+      m_cubemapTex->deleteLater();
+      m_cubemapTex = nullptr;
+    }
+  }
 
   void operator()() { }
 
@@ -94,6 +124,22 @@ public:
       outputs.cubemap.texture.handle = m_cubemapTex;
       m_dirty = true;
     }
+
+    // Publish the cube on the Scene outlet (skybox_texture only — other
+    // environment fields are left for EnvironmentLoader / elsewhere to
+    // populate, merge_scenes overlays field-by-field).
+    if(!m_sceneState)
+      m_sceneState = std::make_shared<ossia::scene_state>();
+    if(m_lastPublishedHandle != m_cubemapTex)
+    {
+      m_sceneState->environment = {};
+      m_sceneState->environment.skybox_texture.native_handle = m_cubemapTex;
+      m_lastPublishedHandle = m_cubemapTex;
+      m_sceneVersion++;
+      m_sceneState->version = m_sceneVersion;
+      outputs.scene_out.scene.state = m_sceneState;
+      outputs.scene_out.dirty = ossia::scene_port::dirty_environment;
+    }
   }
 
   void release(score::gfx::RenderList& r)
@@ -105,6 +151,14 @@ public:
     }
     m_faceSize = 0;
     outputs.cubemap.texture.handle = nullptr;
+    if(m_sceneState)
+    {
+      m_sceneState->environment = {};
+      m_lastPublishedHandle = nullptr;
+      m_sceneVersion++;
+      m_sceneState->version = m_sceneVersion;
+      outputs.scene_out.dirty = ossia::scene_port::dirty_environment;
+    }
   }
 
   void runInitialPasses(
