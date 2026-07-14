@@ -6,9 +6,14 @@
 
 #include <Gfx/Graph/RenderList.hpp>
 
+#include <ossia/dataflow/geometry_port.hpp>
+
 #include <QtGui/private/qrhi_p.h>
 
 #include <QImage>
+
+#include <cstdint>
+#include <memory>
 
 namespace Threedim
 {
@@ -53,8 +58,31 @@ public:
 
   struct
   {
-    halp::gpu_texture_output<"Cubemap"> cubemap;
+    // Raw cube texture — kept for consumers that want the handle
+    // directly (e.g. a bare-skybox rendering shader). Tagged via the
+    // new halp::gpu_cubemap_output so sinks know to grab-from-source
+    // rather than allocate a 2D render target.
+    halp::gpu_cubemap_output<"Cubemap"> cubemap;
+
+    // Scene-graph output: a scene_spec whose scene_environment has only
+    // skybox_texture.native_handle populated (no ambient / fog / etc.,
+    // no roots). Lets users wire the cubemap into a scene without a
+    // side-channel cable — merge_scenes's per-field env overlay folds
+    // it together with an EnvironmentLoader's params independent of
+    // wiring order.
+    struct
+    {
+      halp_meta(name, "Scene");
+      ossia::scene_spec scene;
+      uint8_t dirty{0};
+    } scene_out;
   } outputs;
+
+  // Stable scene_state identity so downstream scene-identity caches
+  // (ScenePreprocessor, merge_scenes passthrough) stay hot across frames.
+  std::shared_ptr<ossia::scene_state> m_sceneState;
+  int64_t m_sceneVersion{0};
+  void* m_lastPublishedHandle{};
 
   // GPU resources
   QRhiTexture* m_cubemapTex{};
@@ -79,6 +107,16 @@ public:
 
   void operator()() { }
 
+  // Dtor safety net: if the renderer framework's release(RenderList&)
+  // path was skipped (e.g. a reconcile path that deletes the renderer
+  // without first calling release — or any future code that drops the
+  // GfxRenderer's shared_ptr<CubemapLoader> without going through
+  // CpuFilterNode::releaseState), any still-live textures and GPU
+  // resources go to deleteLater here so QRhi's destructor can collect
+  // them before vkDestroyDevice. Without this the Vulkan validation
+  // layer flags "VkImage has not been destroyed" on app exit.
+  ~CubemapLoader();
+
   void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res);
   void update(
       score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res,
@@ -92,7 +130,14 @@ private:
   void loadImage();
   void createCubemapTexture(QRhi& rhi, int faceSize);
   void releaseCubemapTexture();
-  void releaseEquirectResources();
+  // `renderer` is optional: when non-null QRhiBuffers go through
+  // RenderList::releaseBuffer (the project-wide lifetime invariant);
+  // when null (dtor fallback, after the RenderList itself may have
+  // already been destroyed) we fall back to direct deleteLater.
+  // Textures always deleteLater directly — they're not tracked in
+  // RenderList::m_vertexBuffers, so the double-free risk only applies
+  // to buffers.
+  void releaseEquirectResources(score::gfx::RenderList* renderer = nullptr);
 
   void uploadCrossOrStrip(QRhiResourceUpdateBatch* res);
   void renderEquirectangular(

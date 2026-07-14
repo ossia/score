@@ -1,15 +1,16 @@
-#include "ObjLoader.hpp"
+#include "GeometryLoader.hpp"
 
 #include <QMatrix4x4>
 #include <QString>
 
 #include <Threedim/Debug.hpp>
 #include <Threedim/Ply.hpp>
+#include <Threedim/VcgImporters.hpp>
 
 namespace Threedim
 {
 
-void ObjLoader::rebuild_geometry()
+void GeometryLoader::rebuild_geometry()
 {
   std::vector<mesh>& new_meshes = this->meshinfo;
 
@@ -211,14 +212,21 @@ static bool check_file_extension(std::string_view filename, std::string_view exp
   return true;
 }
 
-std::function<void(ObjLoader&)> ObjLoader::ins::obj_t::process(file_type tv)
+std::function<void(GeometryLoader&)> GeometryLoader::ins::geom_t::process(file_type tv)
 {
+  // Dispatch by extension. Each branch returns a pair of
+  // (vector<Threedim::mesh>, float_vec). Empty pair = unsupported / failed
+  // parse → we return {} so the halp runtime leaves the current geometry
+  // intact rather than wiping it.
+  //
+  // The returned lambda (captured mesh list + flat float buffer) runs on
+  // the execution thread and swaps into the loader instance's members,
+  // then triggers rebuild_geometry to populate the dynamic_geometry
+  // output.
   auto upload = [](auto&& mesh, auto&& buf) {
-    return [mesh = std::move(mesh), buf = std::move(buf)](ObjLoader& o) mutable {
-      // This part happens in the execution thread
+    return [mesh = std::move(mesh), buf = std::move(buf)](GeometryLoader& o) mutable {
       std::swap(o.meshinfo, mesh);
       std::swap(o.complete, buf);
-
       o.rebuild_geometry();
     };
   };
@@ -226,20 +234,35 @@ std::function<void(ObjLoader&)> ObjLoader::ins::obj_t::process(file_type tv)
   Threedim::float_vec buf;
   if(check_file_extension(tv.filename, "obj"))
   {
-    // This part happens in a separate thread
     if(auto mesh = Threedim::ObjFromString(tv.bytes, buf); !mesh.empty())
-    {
       return upload(std::move(mesh), std::move(buf));
-    }
   }
   else if(check_file_extension(tv.filename, "ply"))
   {
-    // This part happens in a separate thread
     if(auto mesh = Threedim::PlyFromFile(tv.filename, buf); !mesh.empty())
-    {
       return upload(std::move(mesh), std::move(buf));
-    }
+  }
+  else if(check_file_extension(tv.filename, "stl"))
+  {
+    if(auto mesh = Threedim::StlFromFile(tv.filename, buf); !mesh.empty())
+      return upload(std::move(mesh), std::move(buf));
+  }
+  else if(check_file_extension(tv.filename, "off"))
+  {
+    if(auto mesh = Threedim::OffFromFile(tv.filename, buf); !mesh.empty())
+      return upload(std::move(mesh), std::move(buf));
   }
   return {};
 }
+
+void GeometryLoader::operator()()
+{
+  // Compute TRS matrix from position/rotation/scale into
+  // halp::mesh::transform[16]. dirty_transform fires only on actual
+  // change so downstream's transform binding rebuild is skipped on
+  // idle frames.
+  outputs.geometry.dirty_transform
+      = computeTRSMatrix(inputs, outputs.geometry.transform, m_cachedTRS);
+}
+
 }
