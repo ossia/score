@@ -24,6 +24,22 @@
 #define SHUT_RDWR 2
 #endif
 
+#include <QApplication>
+
+namespace score
+{
+static std::string ossia_score_verison_agent()
+{
+  static QString agent{QCoreApplication::organizationDomain()
+      + '.'
+      + QCoreApplication::applicationName()
+      + '/'
+      + QCoreApplication::applicationVersion()};
+
+  return agent.toStdString();
+};
+}
+
 namespace beast = boost::beast;   // from <boost/beast.hpp>
 namespace http = beast::http;     // from <boost/beast/http.hpp>
 namespace net = boost::asio;      // from <boost/asio.hpp>
