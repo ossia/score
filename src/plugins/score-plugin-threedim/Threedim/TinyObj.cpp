@@ -110,6 +110,17 @@ ObjFromString(std::string_view obj_data, std::string_view mtl_data, float_vec& b
   const bool normals = !attrib.normals.empty();
   const bool gen_tangents = texcoords && normals;
 
+  // tinyobjloader does NOT bounds-check face indices: fixIndex() returns
+  // idx-1 for any positive value with no upper bound, and a vertex triple
+  // that omits a component leaves that component's index at its -1 default.
+  // A malformed .obj can therefore produce vertex/texcoord/normal indices
+  // that are out of range (or -1) and index far past the attrib arrays
+  // below. Capture the valid element counts so every corner dereference
+  // can be range-checked (mirrors the glTF guard in TangentUtils.hpp).
+  const int64_t attrib_positions = int64_t(attrib.vertices.size()) / 3;
+  const int64_t attrib_texcoords = int64_t(attrib.texcoords.size()) / 2;
+  const int64_t attrib_normals = int64_t(attrib.normals.size()) / 3;
+
   std::size_t float_count = total_vertices * 3 + (normals ? total_vertices * 3 : 0)
                             + (texcoords ? total_vertices * 2 : 0)
                             + (gen_tangents ? total_vertices * 4 : 0);
@@ -166,16 +177,38 @@ ObjFromString(std::string_view obj_data, std::string_view mtl_data, float_vec& b
         for (auto v = 0; v < 3; v++)
         {
           const auto idx = shape.mesh.indices[index_offset + v];
-          *pos++ = attrib.vertices[3 * size_t(idx.vertex_index) + 0];
-          *pos++ = attrib.vertices[3 * size_t(idx.vertex_index) + 1];
-          *pos++ = attrib.vertices[3 * size_t(idx.vertex_index) + 2];
+          const int vi = idx.vertex_index;
+          if(vi < 0 || vi >= attrib_positions)
+            return {};
+          *pos++ = attrib.vertices[3 * size_t(vi) + 0];
+          *pos++ = attrib.vertices[3 * size_t(vi) + 1];
+          *pos++ = attrib.vertices[3 * size_t(vi) + 2];
 
-          *tc++ = attrib.texcoords[2 * size_t(idx.texcoord_index) + 0];
-          *tc++ = attrib.texcoords[2 * size_t(idx.texcoord_index) + 1];
+          const int ti = idx.texcoord_index;
+          if(ti >= 0 && ti < attrib_texcoords)
+          {
+            *tc++ = attrib.texcoords[2 * size_t(ti) + 0];
+            *tc++ = attrib.texcoords[2 * size_t(ti) + 1];
+          }
+          else
+          {
+            *tc++ = 0.f;
+            *tc++ = 0.f;
+          }
 
-          *norm++ = attrib.normals[3 * size_t(idx.normal_index) + 0];
-          *norm++ = attrib.normals[3 * size_t(idx.normal_index) + 1];
-          *norm++ = attrib.normals[3 * size_t(idx.normal_index) + 2];
+          const int ni = idx.normal_index;
+          if(ni >= 0 && ni < attrib_normals)
+          {
+            *norm++ = attrib.normals[3 * size_t(ni) + 0];
+            *norm++ = attrib.normals[3 * size_t(ni) + 1];
+            *norm++ = attrib.normals[3 * size_t(ni) + 2];
+          }
+          else
+          {
+            *norm++ = 0.f;
+            *norm++ = 0.f;
+            *norm++ = 0.f;
+          }
         }
         index_offset += 3;
       }
@@ -194,13 +227,26 @@ ObjFromString(std::string_view obj_data, std::string_view mtl_data, float_vec& b
         for (size_t v = 0; v < 3; v++)
         {
           const auto idx = shape.mesh.indices[index_offset + v];
-          *pos++ = attrib.vertices[3 * size_t(idx.vertex_index) + 0];
-          *pos++ = attrib.vertices[3 * size_t(idx.vertex_index) + 1];
-          *pos++ = attrib.vertices[3 * size_t(idx.vertex_index) + 2];
+          const int vi = idx.vertex_index;
+          if(vi < 0 || vi >= attrib_positions)
+            return {};
+          *pos++ = attrib.vertices[3 * size_t(vi) + 0];
+          *pos++ = attrib.vertices[3 * size_t(vi) + 1];
+          *pos++ = attrib.vertices[3 * size_t(vi) + 2];
 
-          *norm++ = attrib.normals[3 * size_t(idx.normal_index) + 0];
-          *norm++ = attrib.normals[3 * size_t(idx.normal_index) + 1];
-          *norm++ = attrib.normals[3 * size_t(idx.normal_index) + 2];
+          const int ni = idx.normal_index;
+          if(ni >= 0 && ni < attrib_normals)
+          {
+            *norm++ = attrib.normals[3 * size_t(ni) + 0];
+            *norm++ = attrib.normals[3 * size_t(ni) + 1];
+            *norm++ = attrib.normals[3 * size_t(ni) + 2];
+          }
+          else
+          {
+            *norm++ = 0.f;
+            *norm++ = 0.f;
+            *norm++ = 0.f;
+          }
         }
         index_offset += 3;
       }
@@ -216,12 +262,24 @@ ObjFromString(std::string_view obj_data, std::string_view mtl_data, float_vec& b
         for (size_t v = 0; v < 3; v++)
         {
           const auto idx = shape.mesh.indices[index_offset + v];
-          *pos++ = attrib.vertices[3 * size_t(idx.vertex_index) + 0];
-          *pos++ = attrib.vertices[3 * size_t(idx.vertex_index) + 1];
-          *pos++ = attrib.vertices[3 * size_t(idx.vertex_index) + 2];
+          const int vi = idx.vertex_index;
+          if(vi < 0 || vi >= attrib_positions)
+            return {};
+          *pos++ = attrib.vertices[3 * size_t(vi) + 0];
+          *pos++ = attrib.vertices[3 * size_t(vi) + 1];
+          *pos++ = attrib.vertices[3 * size_t(vi) + 2];
 
-          *tc++ = attrib.texcoords[2 * size_t(idx.texcoord_index) + 0];
-          *tc++ = attrib.texcoords[2 * size_t(idx.texcoord_index) + 1];
+          const int ti = idx.texcoord_index;
+          if(ti >= 0 && ti < attrib_texcoords)
+          {
+            *tc++ = attrib.texcoords[2 * size_t(ti) + 0];
+            *tc++ = attrib.texcoords[2 * size_t(ti) + 1];
+          }
+          else
+          {
+            *tc++ = 0.f;
+            *tc++ = 0.f;
+          }
         }
         index_offset += 3;
       }
@@ -237,9 +295,12 @@ ObjFromString(std::string_view obj_data, std::string_view mtl_data, float_vec& b
         for (size_t v = 0; v < 3; v++)
         {
           const auto idx = shape.mesh.indices[index_offset + v];
-          *pos++ = attrib.vertices[3 * size_t(idx.vertex_index) + 0];
-          *pos++ = attrib.vertices[3 * size_t(idx.vertex_index) + 1];
-          *pos++ = attrib.vertices[3 * size_t(idx.vertex_index) + 2];
+          const int vi = idx.vertex_index;
+          if(vi < 0 || vi >= attrib_positions)
+            return {};
+          *pos++ = attrib.vertices[3 * size_t(vi) + 0];
+          *pos++ = attrib.vertices[3 * size_t(vi) + 1];
+          *pos++ = attrib.vertices[3 * size_t(vi) + 2];
         }
         index_offset += 3;
       }
