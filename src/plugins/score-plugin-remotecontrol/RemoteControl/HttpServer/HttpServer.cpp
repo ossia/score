@@ -113,10 +113,12 @@ template <class Body, class Allocator, class Send>
 void HttpServer::handle_request(
     http::request<Body, http::basic_fields<Allocator>>&& req, const Send& send)
 {
+  using namespace score;
+
   // Returns a bad request response
   auto const bad_request = [&req](beast::string_view why) {
     http::response<http::string_body> res{http::status::bad_request, req.version()};
-    res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
+    res.set(http::field::server, ossia_score_verison_agent());
     res.set(http::field::content_type, "text/html");
     res.keep_alive(req.keep_alive());
     res.body() = std::string(why);
@@ -127,7 +129,7 @@ void HttpServer::handle_request(
   // Returns a not found response
   auto const not_found = [&req](beast::string_view target) {
     http::response<http::string_body> res{http::status::not_found, req.version()};
-    res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
+    res.set(http::field::server, ossia_score_verison_agent());
     res.set(http::field::content_type, "text/html");
     res.keep_alive(req.keep_alive());
     res.body() = "The resource '" + std::string(target) + "' was not found.<br> Go to the following address : http://ip_address:port/ossia_remote.html.";
@@ -139,7 +141,7 @@ void HttpServer::handle_request(
   auto const server_error = [&req](beast::string_view what) {
     http::response<http::string_body> res{
         http::status::internal_server_error, req.version()};
-    res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
+    res.set(http::field::server, ossia_score_verison_agent());
     res.set(http::field::content_type, "text/html");
     res.keep_alive(req.keep_alive());
     res.body() = "An error occurred: '" + std::string(what) + "'";
@@ -182,7 +184,7 @@ void HttpServer::handle_request(
   if(req.method() == http::verb::head)
   {
     http::response<http::empty_body> res{http::status::ok, req.version()};
-    res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
+    res.set(http::field::server, ossia_score_verison_agent());
     res.set(http::field::content_type, mime_type(path));
     res.content_length(size);
     res.keep_alive(false);
@@ -199,7 +201,7 @@ void HttpServer::handle_request(
   res.set(http::field::access_control_allow_origin, "*");
   res.set(http::field::access_control_allow_methods, "GET");
 
-  res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
+  res.set(http::field::server, ossia_score_verison_agent());
   res.set(http::field::content_type, mime_type(path));
   res.content_length(size);
   res.keep_alive(false);
