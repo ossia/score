@@ -19,6 +19,7 @@
 #include <ossia/detail/type_if.hpp>
 #include <ossia/detail/typelist.hpp>
 
+#include <QFileInfo>
 #include <QTimer>
 
 #include <avnd/binding/ossia/data_node.hpp>
@@ -203,7 +204,14 @@ private:
         if(!p)
           return {};
         if(auto s = p->value().target<std::string>())
-          return QString::fromStdString(*s);
+        {
+          // The sibling port may name a folder, or a file (e.g. a sound-file
+          // port): in the latter case list the file's containing folder.
+          auto path = QString::fromStdString(*s);
+          if(QFileInfo fi{path}; fi.isFile())
+            return fi.absolutePath();
+          return path;
+        }
         return {};
       };
 
