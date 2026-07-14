@@ -10,6 +10,8 @@ git config --local user.name "github-actions[bot]"
 
 mv /build/*.js .
 mv /build/ossia-score.wasm .
+# Qt bundles preloaded plugins/resources into a .data file when present.
+[ -f /build/ossia-score.data ] && mv /build/ossia-score.data .
 mv $SCORE_DIR/cmake/Deployment/WASM/* .
 
 git add .

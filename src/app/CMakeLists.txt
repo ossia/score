@@ -264,6 +264,12 @@ if(EMSCRIPTEN)
       EXCLUDE Qt6::QMinimalIntegrationPlugin
   )
   qt_finalize_executable(${APPNAME})
+  # Qt's finalize is supposed to export these runtime methods (its canvas setup
+  # writes to Module.specialHTMLTargets; the loader needs FS/callMain/ENV), but
+  # they were being dropped from the final link. Re-add them here, after finalize,
+  # so this is the last -sEXPORTED_RUNTIME_METHODS on the link line (last wins).
+  target_link_options(${APPNAME} PRIVATE
+    "SHELL:-sEXPORTED_RUNTIME_METHODS=UTF16ToString,stringToUTF16,JSEvents,specialHTMLTargets,FS,callMain,ENV")
   enable_minimal_qt_plugins(${APPNAME} 1)
 else()  
   disable_qt_plugins(${APPNAME})
