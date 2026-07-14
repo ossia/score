@@ -9,6 +9,7 @@
 
 #include <QCoreApplication>
 #include <QDir>
+#include <QFileSystemWatcher>
 
 #include <wobjectimpl.h>
 
@@ -123,6 +124,25 @@ void ComboBox::repopulateFromFolder(const QString& folderPath)
   if(alts.empty())
     alts.emplace_back(QStringLiteral("-"), std::string("-"));
   setAlternatives(std::move(alts));
+
+  // Watch the folder so files created while the document is open (e.g. by an
+  // upstream process writing its analysis) appear in the list right away.
+  if(folderPath != m_watchedFolder)
+  {
+    if(m_folderWatcher)
+    {
+      delete m_folderWatcher;
+      m_folderWatcher = nullptr;
+    }
+    m_watchedFolder = folderPath;
+    if(!folderPath.isEmpty() && QDir{folderPath}.exists())
+    {
+      m_folderWatcher = new QFileSystemWatcher{{folderPath}, this};
+      connect(
+          m_folderWatcher, &QFileSystemWatcher::directoryChanged, this,
+          [this](const QString& path) { repopulateFromFolder(path); });
+    }
+  }
 }
 
 void ComboBox::setAlternatives(std::vector<std::pair<QString, ossia::value>> values)
@@ -136,14 +156,20 @@ void ComboBox::setAlternatives(std::vector<std::pair<QString, ossia::value>> val
     vals.push_back(v.second);
   setDomain(State::Domain{ossia::make_domain(vals)});
 
-  // re-clamp the current value if the list shrank past it
+  // Keep the current value if it is still in the list; otherwise fall back to
+  // the init value when available. A value absent from the list is left
+  // untouched: for folder-backed comboboxes it may name a file that simply
+  // does not exist *yet* — it becomes selectable (and shows up as selected)
+  // once the file appears.
   if(!alternatives.empty())
   {
-    const auto& cur = value();
-    auto it = ossia::find_if(
-        alternatives, [&](const auto& pair) { return pair.second == cur; });
-    if(it == alternatives.end())
-      setValue(alternatives.back().second);
+    auto in_list = [this](const ossia::value& v) {
+      return ossia::find_if(
+                 alternatives, [&](const auto& pair) { return pair.second == v; })
+             != alternatives.end();
+    };
+    if(!in_list(value()) && in_list(init()))
+      setValue(init());
   }
 
   alternativesChanged();
