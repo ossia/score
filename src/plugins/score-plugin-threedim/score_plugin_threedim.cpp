@@ -9,6 +9,7 @@
 #include <score/plugins/FactorySetup.hpp>
 
 #include <Avnd/Factories.hpp>
+#include <Threedim/AnimationPlayer.hpp>
 #include <Threedim/ArrayToGeometry.hpp>
 #include <Threedim/ArrayToTexture.hpp>
 #include <Threedim/CubemapComposer.hpp>
@@ -21,8 +22,48 @@
 #include <Threedim/GeometryToBuffer.hpp>
 #include <Threedim/ModelDisplay/Executor.hpp>
 #include <Threedim/ModelDisplay/Process.hpp>
+#include <Threedim/ConfigurePrimitive.hpp>
+#include <Threedim/EnvironmentLoader.hpp>
+#include <Threedim/ExtractBuffer2.hpp>
+#include <Threedim/ExtractSceneBuffer.hpp>
+#include <Threedim/ExtractTexture.hpp>
+#include <Threedim/Instancer.hpp>
+#include <Threedim/MaterialOverride.hpp>
+#include <Threedim/PBRMesh.hpp>
+#include <Threedim/ShadowCascadeSetup.hpp>
+#include <Threedim/FlattenedSceneFilter/Executor.hpp>
+#include <Threedim/FlattenedSceneFilter/Process.hpp>
+#include <Threedim/HumanoidRetarget.hpp>
+#include <Threedim/InverseKinematics.hpp>
+#include <Gfx/FormatRegistry.hpp>
+#include <Threedim/InjectBuffer.hpp>
+#include <Threedim/InjectTexture.hpp>
+#include <Threedim/TagAs.hpp>
+#include <Threedim/MergeGeometries/Executor.hpp>
+#include <Threedim/MergeGeometries/Process.hpp>
+#include <Threedim/CreateCollection.hpp>
+#include <Threedim/SceneDuplicator.hpp>
+#include <Threedim/SceneFilter/Executor.hpp>
+#include <Threedim/SceneFilter/Process.hpp>
+#include <Threedim/SceneGraphFilter.hpp>
+#include <Threedim/SceneGroup.hpp>
+#include <Threedim/SceneInspector.hpp>
+#include <Threedim/SceneResourceRoute.hpp>
+#include <Threedim/SceneSelector.hpp>
+#include <Threedim/SceneSwitch.hpp>
+#include <Threedim/ScenePreprocessor/Executor.hpp>
+#include <Threedim/ScenePreprocessor/Process.hpp>
 #include <Threedim/Noise.hpp>
-#include <Threedim/ObjLoader.hpp>
+#include <Threedim/AssetLoader.hpp>
+#include <Threedim/BufferInfo.hpp>
+#include <Threedim/Camera.hpp>
+#include <Threedim/CameraArray.hpp>
+#include <Threedim/CameraSwitch.hpp>
+#include <Threedim/GeometryLoader.hpp>
+#include <Threedim/ImageLoader.hpp>
+#include <Threedim/Light.hpp>
+#include <Threedim/TextureInfo.hpp>
+#include <Threedim/Transform3D.hpp>
 #include <Threedim/PCLToGeometry.hpp>
 #include <Threedim/VoxelLoader.hpp>
 #include <Threedim/Primitive.hpp>
@@ -32,6 +73,8 @@
 #include <Threedim/Splat/Executor.hpp>
 #include <Threedim/Splat/Process.hpp>
 #include <Threedim/StructureSynth.hpp>
+#include <Threedim/TextToMesh.hpp>
+#include <Threedim/TextToTexture.hpp>
 #include <Threedim/TextureToBuffer.hpp>
 #include <avendish/examples/Gpu/ArrayToBuffer.hpp>
 #include <avendish/examples/Gpu/BufferToArray.hpp>
@@ -163,21 +206,31 @@ class SSynthDropHandler final : public Process::ProcessDropHandler
   }
 };
 
-class OBJLibraryHandler final
+class AssetLibraryHandler final
     : public QObject
     , public Library::LibraryInterface
 {
   SCORE_CONCRETE("da4af155-3cb6-41df-8c10-5a002b9d97ca")
 
-  QSet<QString> acceptedFiles() const noexcept override { return {"obj", "ply"}; }
+  QSet<QString> acceptedFiles() const noexcept override
+  {
+    // Extension list must stay aligned with AssetDropHandler::fileExtensions
+    // below — the Library panel surfaces files by acceptedFiles, the canvas
+    // drag-drop accepts them via fileExtensions, and AssetLoader::process
+    // routes the underlying parser by extension. .splat and .spz arrive
+    // through the splat_binary / spz parsers (see PrimitiveCloud/SplatBinary
+    // and SpzCodec).
+    return {"fbx", "gltf", "glb", "obj", "ply", "stl", "off",
+            "usd", "usda", "usdc", "usdz", "splat", "spz"};
+  }
 
   Library::CategoryPaths categories;
 
-  using proc = oscr::ProcessModel<ObjLoader>;
+  using proc = oscr::ProcessModel<AssetLoader>;
   void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
       override
   {
-    categories.init("Object Loader", ctx);
+    categories.init("Asset Loader", ctx);
   }
 
   std::optional<Library::ProcessEntry> scanPath(std::string_view path) override
@@ -195,13 +248,18 @@ class OBJLibraryHandler final
   }
 };
 
-class OBJDropHandler final : public Process::ProcessDropHandler
+class AssetDropHandler final : public Process::ProcessDropHandler
 {
   SCORE_CONCRETE("1d6cac56-2059-4fb8-9cef-19301a1fba3d")
 
-  QSet<QString> fileExtensions() const noexcept override { return {"obj", "ply"}; }
+  QSet<QString> fileExtensions() const noexcept override
+  {
+    return {"fbx", "gltf", "glb", "obj", "ply", "stl", "off",
+            "splat", "spz",
+            "usd", "usda", "usdc", "usdz"};
+  }
 
-  using proc = oscr::ProcessModel<ObjLoader>;
+  using proc = oscr::ProcessModel<AssetLoader>;
   void dropData(
       std::vector<ProcessDrop>& vec,
       const DroppedFile& data,
@@ -288,7 +346,9 @@ class VoxDropHandler final : public Process::ProcessDropHandler
 /**
  * This file instantiates the classes that are provided by this plug-in.
  */
-score_plugin_threedim::score_plugin_threedim() = default;
+score_plugin_threedim::score_plugin_threedim()
+{
+}
 score_plugin_threedim::~score_plugin_threedim() = default;
 
 std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
@@ -301,7 +361,38 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
   oscr::instantiate_fx<Threedim::ArrayToTexture>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Noise>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::StrucSynth>(fx, ctx, key);
-  oscr::instantiate_fx<Threedim::ObjLoader>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::GeometryLoader>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::AssetLoader>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::BufferInfo>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::TextureInfo>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::ImageLoader>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::Camera>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::CameraArray>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::CameraSwitch>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::Light>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::Transform3D>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::SceneGraphFilter>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::SceneSwitch>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::SceneGroup>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::SceneSelector>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::SceneInspector>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::SceneDuplicator>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::CreateCollection>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::SceneResourceRoute>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::InjectBuffer>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::InjectTexture>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::TagAs>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::PBRMesh>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::MaterialOverride>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::ConfigurePrimitive>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::Instancer>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::ShadowCascadeSetup>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::EnvironmentLoader>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::AnimationPlayer>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::HumanoidRetarget>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::InverseKinematics>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::TextToMesh>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::TextToTexture>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::VoxelLoader>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Plane>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Cube>(fx, ctx, key);
@@ -313,6 +404,9 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
   oscr::instantiate_fx<Threedim::Torus>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::PCLToMesh2>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::ExtractBuffer>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::ExtractBuffer2>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::ExtractSceneBuffer>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::ExtractTexture>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::GeometryPacker>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::BuffersToGeometry>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::BuffersToGeometry2>(fx, ctx, key);
@@ -320,20 +414,35 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
   oscr::instantiate_fx<Threedim::SplatLoader>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::CubemapLoader>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::CubemapComposer>(fx, ctx, key);
+  // Splat (legacy GaussianSplatNode) factories removed: AssetLoader now
+  // routes .splat / .spz / 3DGS .ply files through primitive_cloud_component
+  // and the new ScenePreprocessor / 3dgs.tile rendering pipeline. The legacy
+  // Splat process kept its own GaussianSplatNode renderer; superseded.
+  // Existing projects that referenced the legacy Splat UUID
+  // ("cdc15a16-e856-4e02-9339-7d9e48da10ce") get a UUID-rewrite alias to
+  // AssetLoader at load time (see C-22d).
   auto add = instantiate_factories<
       score::ApplicationContext,
       FW<Process::ProcessModelFactory, Gfx::ModelDisplay::ProcessFactory,
-         Gfx::RenderPipeline::ProcessFactory, Gfx::Splat::ProcessFactory>,
+         Gfx::RenderPipeline::ProcessFactory, Gfx::Splat::ProcessFactory,
+         Gfx::ScenePreprocessor::ProcessFactory,
+         Gfx::SceneFilter::ProcessFactory,
+         Gfx::FlattenedSceneFilter::ProcessFactory,
+         Gfx::MergeGeometries::ProcessFactory>,
       FW<Process::LayerFactory, Gfx::RenderPipeline::LayerFactory>,
       FW<Library::LibraryInterface, Threedim::SSynthLibraryHandler,
-         Threedim::OBJLibraryHandler, Gfx::RawRasterLibraryHandler,
+         Threedim::AssetLibraryHandler, Gfx::RawRasterLibraryHandler,
          Threedim::VoxLibraryHandler>,
       FW<Process::ProcessDropHandler, Threedim::SSynthDropHandler,
-         Threedim::OBJDropHandler, Threedim::VoxDropHandler>,
+         Threedim::AssetDropHandler, Threedim::VoxDropHandler>,
       FW<Execution::ProcessComponentFactory,
          Gfx::ModelDisplay::ProcessExecutorComponentFactory,
          Gfx::RenderPipeline::ProcessExecutorComponentFactory,
-         Gfx::Splat::ProcessExecutorComponentFactory>>(ctx, key);
+         Gfx::Splat::ProcessExecutorComponentFactory,
+         Gfx::ScenePreprocessor::ProcessExecutorComponentFactory,
+         Gfx::SceneFilter::ProcessExecutorComponentFactory,
+         Gfx::FlattenedSceneFilter::ProcessExecutorComponentFactory,
+         Gfx::MergeGeometries::ProcessExecutorComponentFactory>>(ctx, key);
   fx.insert(
       fx.end(),
       std::make_move_iterator(add.begin()),

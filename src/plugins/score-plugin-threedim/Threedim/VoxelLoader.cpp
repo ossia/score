@@ -162,4 +162,14 @@ std::function<void(VoxelLoader&)> VoxelLoader::ins::vox_t::process(file_type tv)
   };
 }
 
+void VoxelLoader::operator()()
+{
+  // Compute TRS matrix from position/rotation/scale controls and write
+  // into halp::mesh::transform[16]. dirty_transform is set iff the
+  // matrix actually changed vs last frame, so downstream doesn't
+  // rebuild its transform binding every frame when the knobs are idle.
+  outputs.geometry.dirty_transform
+      = computeTRSMatrix(inputs, outputs.geometry.transform, m_cachedTRS);
+}
+
 }

@@ -124,3 +124,9 @@
 [submodule "3rdparty/OffsetAllocator"]
 	path = 3rdparty/OffsetAllocator
 	url = https://github.com/sebbbi/OffsetAllocator
+[submodule "3rdparty/spz"]
+	path = 3rdparty/spz
+	url = https://github.com/nianticlabs/spz
+[submodule "3rdparty/zstd"]
+	path = 3rdparty/zstd
+	url = https://github.com/facebook/zstd
