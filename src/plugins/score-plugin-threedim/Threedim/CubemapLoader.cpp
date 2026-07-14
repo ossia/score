@@ -2,6 +2,7 @@
 
 #include <Gfx/Graph/ShaderCache.hpp>
 
+#include <QDebug>
 #include <QFile>
 #include <QFileInfo>
 
@@ -10,8 +11,16 @@
 namespace Threedim
 {
 
-// Fullscreen triangle vertex shader
+// Fullscreen triangle vertex shader. Applies clipSpaceCorrMatrix + the
+// non-GL conditional Y-flip — matches the engine-wide ossia convention
+// (see isf.cpp's vertexInitFunc). Guarantees v_texcoord.y=1 is the top
+// of the rendered face across GL / Vulkan / Metal / D3D.
 static const constexpr auto equirect_vs = R"_(#version 450
+
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 RENDERSIZE;
+} renderer;
 
 layout(location = 0) out vec2 v_texcoord;
 
@@ -22,25 +31,39 @@ void main()
   // Fullscreen triangle
   vec2 pos = vec2((gl_VertexIndex << 1) & 2, gl_VertexIndex & 2);
   v_texcoord = pos;
-  gl_Position = vec4(pos * 2.0 - 1.0, 0.0, 1.0);
+  gl_Position = renderer.clipSpaceCorrMatrix * vec4(pos * 2.0 - 1.0, 0.0, 1.0);
+#if defined(QSHADER_SPIRV) || defined(QSHADER_HLSL) || defined(QSHADER_MSL)
+  gl_Position.y = -gl_Position.y;
+#endif
 }
 )_";
 
-// Fragment shader: sample equirectangular map for a specific cubemap face
-// The face index is passed via UBO
+// Fragment shader: sample equirectangular map for a specific cubemap face.
+// renderer_t (binding 0) matches the engine convention; FaceInfo moves to
+// binding 2 so it doesn't collide.
 static const constexpr auto equirect_fs = R"_(#version 450
+
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 RENDERSIZE;
+} renderer;
 
 layout(location = 0) in vec2 v_texcoord;
 layout(location = 0) out vec4 fragColor;
 
-layout(std140, binding = 0) uniform FaceInfo {
+layout(std140, binding = 2) uniform FaceInfo {
   int faceIndex;
 } face;
 
-layout(binding = 1) uniform sampler2D equirectMap;
+layout(binding = 3) uniform sampler2D equirectMap;
 
 const float PI = 3.14159265358979323846;
 
+// Face direction — v_texcoord.y=1 is the TOP of the rendered face
+// (after the vertex stage's clipSpaceCorrMatrix + non-GL flip). This
+// maps to sampled UV.y=0 in QRhi's top-left-origin UV, which per cube
+// spec corresponds to cube-spec t=-1 → direction biased toward +Y.
+// Hence the signs on `v` (flipped vs. the legacy raw-NDC form).
 vec3 faceDirection(int faceIdx, vec2 uv)
 {
   // Map UV from [0,1] to [-1,1]
@@ -50,12 +73,12 @@ vec3 faceDirection(int faceIdx, vec2 uv)
   // QRhi cubemap face order: +X, -X, +Y, -Y, +Z, -Z
   switch(faceIdx)
   {
-    case 0: return vec3( 1.0,   -v,   -u); // +X
-    case 1: return vec3(-1.0,   -v,    u); // -X
-    case 2: return vec3(   u,  1.0,    v); // +Y
-    case 3: return vec3(   u, -1.0,   -v); // -Y
-    case 4: return vec3(   u,   -v,  1.0); // +Z
-    case 5: return vec3(  -u,   -v, -1.0); // -Z
+    case 0: return vec3( 1.0,    v,   -u); // +X
+    case 1: return vec3(-1.0,    v,    u); // -X
+    case 2: return vec3(   u,  1.0,   -v); // +Y
+    case 3: return vec3(   u, -1.0,    v); // -Y
+    case 4: return vec3(   u,    v,  1.0); // +Z
+    case 5: return vec3(  -u,    v, -1.0); // -Z
     default: return vec3(0.0);
   }
 }
@@ -64,13 +87,38 @@ void main()
 {
   vec3 dir = normalize(faceDirection(face.faceIndex, v_texcoord));
 
-  // Convert direction to equirectangular UV
-  float theta = atan(dir.z, dir.x);       // [-PI, PI]
-  float phi   = asin(clamp(dir.y, -1.0, 1.0)); // [-PI/2, PI/2]
+  // Convert direction to equirectangular UV.
+  // Longitude: atan2(z, x) ∈ [-π, π] → u ∈ [0, 1].
+  // Latitude:  asin(y)    ∈ [-π/2, π/2].
+  //
+  // Y flip: QRhi normalizes texture sampling to top-left-origin UV
+  // (UV.y = 0 at the top of the stored image — uniform across
+  // backends, see qrhi.cpp + QRhi::isYUpInFramebuffer). QImage
+  // uploads via uploadTexture(QImage) land scanline 0 at the
+  // texture's UV.y = 0, so sky (image top) is at UV.y = 0 and
+  // ground (image bottom) at UV.y = 1. The raw formula
+  // `v = phi/π + 0.5` would put sky at UV.y = 1 — wrong. Flip.
+  //
+  // LearnOpenGL uses the unflipped formula and works because GL's
+  // bottom-left-origin UV cancels the inversion — QRhi's top-left
+  // convention doesn't cancel it, so we flip explicitly.
+  //
+  // (Cube-face rendering side: this shader, like the rest of the
+  // IBL / test-cube shader family, writes raw NDC without
+  // clipSpaceCorrMatrix. That choice is backend-specific — the
+  // face-direction convention in `faceDirection()` above matches
+  // what Vulkan / Metal / D3D store after rasterization. Under
+  // OpenGL the whole cube content ends up vertically flipped —
+  // normalising that would require either applying
+  // clipSpaceCorrMatrix across every shader in the family OR
+  // conditionally flipping v_texcoord by isYUpInFramebuffer.
+  // Out of scope for this edit.)
+  float theta = atan(dir.z, dir.x);
+  float phi   = asin(clamp(dir.y, -1.0, 1.0));
 
   vec2 equirectUV;
   equirectUV.x = theta / (2.0 * PI) + 0.5;
-  equirectUV.y = phi / PI + 0.5;
+  equirectUV.y = 0.5 - phi / PI;
 
   fragColor = texture(equirectMap, equirectUV);
 }
@@ -179,6 +227,23 @@ void CubemapLoader::createCubemapTexture(QRhi& rhi, int faceSize)
   m_cubemapTex->create();
 
   outputs.cubemap.texture.handle = m_cubemapTex;
+
+  // Publish the cube on the Scene outlet too: one shared_ptr-stable
+  // scene_state whose environment.skybox_texture.native_handle points at
+  // our QRhiTexture. Version bumps only when the handle actually changes
+  // so merge_scenes / ScenePreprocessor short-circuit unchanged frames.
+  if(!m_sceneState)
+    m_sceneState = std::make_shared<ossia::scene_state>();
+  if(m_lastPublishedHandle != m_cubemapTex)
+  {
+    m_sceneState->environment = {};  // only skybox_texture is ours to touch
+    m_sceneState->environment.skybox_texture.native_handle = m_cubemapTex;
+    m_lastPublishedHandle = m_cubemapTex;
+    m_sceneVersion++;
+    m_sceneState->version = m_sceneVersion;
+    outputs.scene_out.scene.state = m_sceneState;
+    outputs.scene_out.dirty = ossia::scene_port::dirty_environment;
+  }
 }
 
 void CubemapLoader::releaseCubemapTexture()
@@ -204,9 +269,20 @@ void CubemapLoader::releaseCubemapTexture()
   }
   m_faceSize = 0;
   outputs.cubemap.texture.handle = nullptr;
+
+  // Clear the scene outlet too: downstream merge_scenes will stop
+  // contributing a skybox_texture from us once the handle goes null.
+  if(m_sceneState)
+  {
+    m_sceneState->environment = {};
+    m_lastPublishedHandle = nullptr;
+    m_sceneVersion++;
+    m_sceneState->version = m_sceneVersion;
+    outputs.scene_out.dirty = ossia::scene_port::dirty_environment;
+  }
 }
 
-void CubemapLoader::releaseEquirectResources()
+void CubemapLoader::releaseEquirectResources(score::gfx::RenderList* renderer)
 {
   if(m_equirectPipeline)
   {
@@ -220,7 +296,10 @@ void CubemapLoader::releaseEquirectResources()
   }
   if(m_equirectUbo)
   {
-    m_equirectUbo->deleteLater();
+    if(renderer)
+      renderer->releaseBuffer(m_equirectUbo);
+    else
+      m_equirectUbo->deleteLater();
     m_equirectUbo = nullptr;
   }
   if(m_equirectSampler)
@@ -235,7 +314,10 @@ void CubemapLoader::releaseEquirectResources()
   }
   if(m_quadVbuf)
   {
-    m_quadVbuf->deleteLater();
+    if(renderer)
+      renderer->releaseBuffer(m_quadVbuf);
+    else
+      m_quadVbuf->deleteLater();
     m_quadVbuf = nullptr;
   }
 }
@@ -247,6 +329,7 @@ void CubemapLoader::setupEquirectPipeline(score::gfx::RenderList& renderer)
   // UBO for face index
   m_equirectUbo = rhi.newBuffer(
       QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(int32_t) * 4);
+  m_equirectUbo->setName("CubemapLoader::equirect_ubo");
   m_equirectUbo->create();
 
   // Sampler for equirectangular source
@@ -255,15 +338,25 @@ void CubemapLoader::setupEquirectPipeline(score::gfx::RenderList& renderer)
       QRhiSampler::Repeat, QRhiSampler::ClampToEdge);
   m_equirectSampler->create();
 
-  // SRB
+  // SRB — matches the new shader layout:
+  //   binding 0: renderer_t (shared engine UBO with clipSpaceCorrMatrix)
+  //   binding 2: FaceInfo (our per-face index)
+  //   binding 3: equirectangular source sampler
+  // Binding 1 is reserved for the engine's process_t UBO convention
+  // (not used here, but skipped to avoid future collisions).
   m_equirectSrb = rhi.newShaderResourceBindings();
   m_equirectSrb->setBindings(
       {QRhiShaderResourceBinding::uniformBuffer(
            0,
+           QRhiShaderResourceBinding::VertexStage
+               | QRhiShaderResourceBinding::FragmentStage,
+           &renderer.outputUBO()),
+       QRhiShaderResourceBinding::uniformBuffer(
+           2,
            QRhiShaderResourceBinding::FragmentStage,
            m_equirectUbo),
        QRhiShaderResourceBinding::sampledTexture(
-           1,
+           3,
            QRhiShaderResourceBinding::FragmentStage,
            m_equirectTex,
            m_equirectSampler)});
@@ -320,6 +413,23 @@ void CubemapLoader::update(
 
 void CubemapLoader::release(score::gfx::RenderList& r)
 {
+  releaseEquirectResources(&r);
+  releaseCubemapTexture();
+}
+
+CubemapLoader::~CubemapLoader()
+{
+  // Safety net — idempotent. releaseEquirectResources() and
+  // releaseCubemapTexture() null each pointer after deleteLater(), so
+  // calling them again is a no-op if the framework already ran
+  // release(RenderList&).
+  if(m_cubemapTex || m_equirectTex)
+  {
+    qDebug() << "[BUFTRACE] ~CubemapLoader FALLBACK this=" << (void*)this
+             << " m_cubemapTex=" << (void*)m_cubemapTex
+             << " m_equirectTex=" << (void*)m_equirectTex
+             << " (release(RenderList&) was never called — leaked textures)";
+  }
   releaseEquirectResources();
   releaseCubemapTexture();
 }
@@ -390,14 +500,21 @@ void CubemapLoader::renderEquirectangular(
   }
   else
   {
-    // Update SRB if equirect texture changed
+    // Update SRB if equirect texture changed. Mirror the slot layout
+    // from setupEquirectPipeline: binding 0 = engine renderer_t,
+    // binding 2 = FaceInfo, binding 3 = equirect sampler.
     m_equirectSrb->setBindings(
         {QRhiShaderResourceBinding::uniformBuffer(
              0,
+             QRhiShaderResourceBinding::VertexStage
+                 | QRhiShaderResourceBinding::FragmentStage,
+             &renderer.outputUBO()),
+         QRhiShaderResourceBinding::uniformBuffer(
+             2,
              QRhiShaderResourceBinding::FragmentStage,
              m_equirectUbo),
          QRhiShaderResourceBinding::sampledTexture(
-             1,
+             3,
              QRhiShaderResourceBinding::FragmentStage,
              m_equirectTex,
              m_equirectSampler)});
