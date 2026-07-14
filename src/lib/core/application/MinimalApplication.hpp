@@ -22,8 +22,11 @@ class MinimalApplication final
     , public score::GUIApplicationInterface
 {
 public:
-  int default_argc = 1;
-  const char* default_argv[2] = {"score", nullptr};
+  // Static so they are alive before construction (the delegating constructor
+  // below reads them) and outlive the QApplication, which keeps a reference to
+  // argc for its whole lifetime.
+  static inline int default_argc = 1;
+  static inline const char* default_argv[2] = {"score", nullptr};
 
   MinimalApplication()
       : MinimalApplication{default_argc, (char**)default_argv}
