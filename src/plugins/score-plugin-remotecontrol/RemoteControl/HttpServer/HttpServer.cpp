@@ -211,7 +211,11 @@ void HttpServer::handle_request(
 // Report a failure
 void HttpServer::fail(beast::error_code ec, char const* what)
 {
-  std::cerr << what << ": " << ec.message() << "\n";
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+  qDebug() << what << ": " << ec.message();
+#else
+  qDebug() << what << ": " << ec.message().c_str();
+#endif
 }
 
 // Handles an HTTP server connection
@@ -244,13 +248,13 @@ void HttpServer::do_session(tcp::socket& socket)
     if(ec == http::error::end_of_stream)
       break;
     if(ec)
-      return HttpServer::fail(ec, "read");
+      HttpServer::fail(ec, "read");
 
     // Send the response
     HttpServer::handle_request(std::move(req), lambda);
 
     if(ec)
-      return HttpServer::fail(ec, "write");
+      HttpServer::fail(ec, "write");
     if(close)
     {
       // This means we should close the connection, usually because
@@ -329,7 +333,7 @@ int HttpServer::open_server()
   }
   catch(const std::exception& e)
   {
-    std::cerr << "Error: " << e.what() << '\n';
+    qDebug() << "Error: " << e.what();
     return EXIT_FAILURE;
   }
 }
