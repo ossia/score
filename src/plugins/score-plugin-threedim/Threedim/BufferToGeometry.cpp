@@ -108,13 +108,11 @@ void BuffersToGeometry::operator()()
   // Check if anything changed
   bool meshChanged = false;
   bool buffersChanged = false;
-  bool transformChanged = false;
-
-  // Check transform changes
-  // (Assuming PositionControl, RotationControl, ScaleControl have .value members)
-  // You'll need to compute the transform matrix and compare
-  // For now, mark as changed if any transform input changed
-  transformChanged = true; // Simplified - compute properly based on your controls
+  // Compute the TRS matrix from the position/rotation/scale controls. Returns
+  // true only when the matrix actually changed, so an untouched knob does not
+  // fire a downstream transform rebuild every frame.
+  const bool transformChanged
+      = computeTRSMatrix(inputs, outputs.geometry.transform, m_cachedTRS);
 
   // Check mesh configuration changes
   if(inputs.vertices.value != m_prevVertices || inputs.topology.value != m_prevTopology
