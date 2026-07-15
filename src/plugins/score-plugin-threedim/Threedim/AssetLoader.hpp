@@ -96,6 +96,7 @@ public:
       halp_meta(
           extensions,
           "3D assets (*.fbx *.gltf *.glb *.obj *.ply *.stl *.off "
+          "*.splat *.spz "
           "*.usd *.usda *.usdc *.usdz)");
       static std::function<void(AssetLoader&)> process(file_type data);
     } asset;
@@ -103,6 +104,16 @@ public:
     PositionControl position;
     RotationControl rotation;
     ScaleControl    scale;
+
+    // Stamps every primitive_cloud_component emitted by this asset
+    // with `format_id = value` when non-empty. Empty falls back to the
+    // parser's autodetection (PLY column sniffing, .splat / .spz
+    // hardcoded). Used to route unrecognised PLY columns or addon-
+    // produced files through a FlattenedSceneFilterNode in mode 12.
+    struct format_override_t : halp::lineedit<"Format override (auto if empty)", "">
+    {
+      void update(AssetLoader& n) { n.rebuild_format_state(); }
+    } format_override;
   } inputs;
 
   struct outs
@@ -126,12 +137,24 @@ public:
       score::gfx::Edge* e);
   void release(score::gfx::RenderList& r);
 
-  // Raw scene as parsed from the file — stable as long as the file doesn't
-  // change. Wrapped into m_wrapped_state by applying TRS controls.
-  std::shared_ptr<const ossia::scene_state> m_raw_state;
+  // Raw scene as parsed from the file — stable as long as the file
+  // doesn't change. The pipeline is:
+  //   m_parsed_state         (parser output, never mutated)
+  //   ↓ applyFormatOverride(format_override.value)
+  //   m_overridden_state     (format_id rewrites applied, or = parsed)
+  //   ↓ wrapSceneWithTransform(position/rotation/scale)
+  //   m_wrapped_state        (final, published downstream)
+  std::shared_ptr<const ossia::scene_state> m_parsed_state;
+  std::shared_ptr<const ossia::scene_state> m_overridden_state;
   std::shared_ptr<const ossia::scene_state> m_wrapped_state;
+  std::string m_cached_format_override;
   CachedTRS m_cached_xform;
   int64_t m_version_counter{0};
+
+  // Re-runs applyFormatOverride from the parsed state. Triggered by the
+  // lineedit's update() callback when the user edits the override
+  // field; also called once after parsing.
+  void rebuild_format_state();
 
   score::gfx::GpuResourceRegistry::Slot raw_transform_slot;
   ossia::gpu_slot_ref m_xform_ref{};
