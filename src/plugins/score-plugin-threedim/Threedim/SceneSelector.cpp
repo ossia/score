@@ -187,10 +187,6 @@ void SceneSelector::rebuild()
   m_cached_out = std::move(new_state);
   m_cached_in_state = s;
   m_cached_in_version = v;
-  m_cached_mode = inputs.mode.value;
-  m_cached_rebase = inputs.rebase.value;
-  m_cached_index = inputs.index.value;
-  m_cached_path = inputs.path.value;
   m_pending_dirty = 0xFF;
 }
 
