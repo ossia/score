@@ -437,3 +437,16 @@ if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
   set_tests_properties(test_integration_frame_determinism PROPERTIES
     TIMEOUT 1800 RUN_SERIAL TRUE LABELS "gui")
 endif()
+# Manual tool (not a ctest): enumerate and live-preview every registered
+# object.  Run:  <build>/tests/integration/ObjectGallery --list
+#          or:  cd <build> && ./tests/integration/ObjectGallery --filter camera
+add_executable(ObjectGallery "${CMAKE_CURRENT_SOURCE_DIR}/ObjectGallery.cpp")
+target_link_libraries(ObjectGallery PRIVATE
+  score_lib_base
+  score_plugin_scenario score_plugin_engine score_plugin_gfx
+  score_plugin_deviceexplorer score_lib_process score_lib_device
+  ${QT_PREFIX}::Core ${QT_PREFIX}::Gui ${QT_PREFIX}::Widgets
+  ${QT_PREFIX}::Network ${QT_PREFIX}::Xml)
+setup_score_common_exe_features(ObjectGallery)
+set_target_properties(ObjectGallery PROPERTIES FOLDER "Tests")
+
