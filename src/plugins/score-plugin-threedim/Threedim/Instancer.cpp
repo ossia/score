@@ -8,6 +8,7 @@
 #include <QQuaternion>
 #include <QVector3D>
 
+#include <algorithm>
 #include <cstring>
 
 namespace Threedim
@@ -184,6 +185,28 @@ PointCloudRouting extractPointCloud(
   return out;
 }
 
+// Fold every Points buffer handle into a single fingerprint. rebuild()
+// routes instance_transforms / instance_colors from arbitrary attribute
+// buffers (buffers[1], buffers[2], ...) and stores those raw QRhiBuffer*
+// inside the persistent m_wrapped_state. operator()() only cached the
+// PRIMARY buffer (buffers[0]) handle, so a producer that reallocated a
+// SECONDARY buffer (new QRhiBuffer for the transform_matrix / color0
+// attribute) while keeping buffers[0] and the vertex count identical, and
+// without raising dirty_mesh, would leave a dangling handle in the
+// republished state -> GPU use-after-free. Fingerprinting all handles
+// forces a rebuild whenever any consumed buffer is replaced.
+uintptr_t pointsBufferFingerprint(
+    const halp::dynamic_gpu_geometry& mesh) noexcept
+{
+  uintptr_t fp = 1469598103934665603ull; // FNV-1a offset basis
+  for(const auto& b : mesh.buffers)
+  {
+    fp ^= reinterpret_cast<uintptr_t>(b.handle);
+    fp *= 1099511628211ull;
+  }
+  return fp;
+}
+
 } // namespace
 
 void Instancer::rebuild()
@@ -234,9 +257,84 @@ void Instancer::rebuild()
       = has_points_input && !inputs.points.mesh.buffers.empty()
           ? inputs.points.mesh.buffers[0].handle
           : nullptr;
-  const int effective_count
+  int effective_count
       = routing.instance_count > 0 ? routing.instance_count
                                    : inputs.count.value;
+
+  // Clamp instance_count to the capacity of the wired buffers. The user's
+  // Count spinbox ranges up to 1000000 and is otherwise decoupled from the
+  // Transforms buffer size; downstream ScenePreprocessor issues a strided
+  // GPU copy of `instance_count` regions out of the source QRhiBuffer with
+  // NO capacity guard, so an unclamped count reads far past the source
+  // buffer -> Vulkan/RHI out-of-bounds copy / device-lost. We compute the
+  // maximum instance count each source buffer can back, using the same
+  // per-format stride as the preprocessor (translation=16, trs=40,
+  // mat4=64 bytes), and clamp to the tightest constraint.
+  {
+    // Transform stride mirrors ScenePreprocessorNode::srcTranslationStride.
+    uint32_t transform_stride = 64; // mat4
+    if(routing.has_matrix)
+      transform_stride = 64;
+    else if(routing.transforms)
+      transform_stride = 16; // translation
+    else
+    {
+      switch(inputs.format.value)
+      {
+        case TRS:         transform_stride = 40; break;
+        case Translation: transform_stride = 16; break;
+        default:          transform_stride = 64; break;
+      }
+    }
+
+    // Capacity (in instances) of a source buffer given a per-instance
+    // stride. Returns -1 when there is no buffer to bound against.
+    auto capacityFor
+        = [](const ossia::buffer_resource_ptr& routed,
+             const halp::gpu_buffer& raw, uint32_t stride) -> int64_t
+    {
+      if(stride == 0)
+        return -1;
+      int64_t byte_size = 0, byte_offset = 0;
+      bool have = false;
+      if(routed)
+      {
+        if(auto* gpu = ossia::get_if<ossia::gpu_buffer_handle>(&routed->resource))
+        {
+          if(gpu->native_handle)
+          {
+            byte_size = (int64_t)gpu->byte_size;
+            byte_offset = (int64_t)gpu->byte_offset;
+            have = true;
+          }
+        }
+      }
+      else if(raw.handle)
+      {
+        byte_size = raw.byte_size;
+        byte_offset = raw.byte_offset;
+        have = true;
+      }
+      if(!have)
+        return -1;
+      const int64_t avail = byte_size - byte_offset;
+      return avail > 0 ? avail / (int64_t)stride : 0;
+    };
+
+    int64_t max_count = -1;
+    const int64_t tcap
+        = capacityFor(routing.transforms, inputs.transforms.buffer, transform_stride);
+    if(tcap >= 0)
+      max_count = tcap;
+    // Colors are copied tightly at 16 bytes/instance (vec4).
+    const int64_t ccap
+        = capacityFor(routing.colors, inputs.colors.buffer, 16u);
+    if(ccap >= 0)
+      max_count = (max_count < 0) ? ccap : std::min(max_count, ccap);
+
+    if(max_count >= 0 && (int64_t)effective_count > max_count)
+      effective_count = (int)max_count;
+  }
 
   // TRS recomputed; we reuse computeTRSMatrix from TransformHelper
   // even though we're not targeting a halp::mesh — the cache keeps the
@@ -253,6 +351,7 @@ void Instancer::rebuild()
   m_cached_format = inputs.format.value;
   m_cached_points_buf = points_primary;
   m_cached_points_vertices = inputs.points.mesh.vertices;
+  m_cached_points_fingerprint = pointsBufferFingerprint(inputs.points.mesh);
 
   if(!proto)
   {
@@ -432,13 +531,34 @@ void Instancer::operator()()
   // Upstream scene_state / buffer-handle / point-cloud dirty flags can
   // change without a port-update event — detect here and call
   // rebuild(). Controls themselves trigger rebuild via update().
+  //
+  // The Points-input cache also has to compare the current vertex count
+  // and the primary buffer handle against the cached values written in
+  // rebuild() (m_cached_points_vertices / m_cached_points_buf). When an
+  // upstream CSF compute regenerates its point cloud with a different
+  // count (3500 → 4000) but reuses the same persistent QRhiBuffer, the
+  // dirty_mesh flag is NOT set (the buffer handle didn't change), and
+  // without these comparisons Instancer kept publishing the stale
+  // instance_count. Downstream ScenePreprocessor's update() then took
+  // its meshesUnchanged early-return; the persistent m_pendingGpuCopies
+  // queue kept firing the OLD count for the GPU translation/color copy,
+  // appearing as "instances frozen at the previous count, then snapping
+  // back at random intervals" whenever some unrelated rebuild kicked in.
   const auto& in = inputs.scene_in.scene;
   const ossia::scene_state* in_state = in.state.get();
+  void* points_primary
+      = !inputs.points.mesh.buffers.empty()
+            ? inputs.points.mesh.buffers[0].handle
+            : nullptr;
   const bool upstream_changed
       = m_cached_in_state != in_state
         || m_cached_transforms != inputs.transforms.buffer.handle
         || m_cached_colors != inputs.colors.buffer.handle
         || m_cached_custom != inputs.custom.buffer.handle
+        || m_cached_points_buf != points_primary
+        || m_cached_points_vertices != inputs.points.mesh.vertices
+        || m_cached_points_fingerprint
+               != pointsBufferFingerprint(inputs.points.mesh)
         || inputs.points.dirty_mesh;
   if(!m_wrapped_state || upstream_changed)
     rebuild();
@@ -492,6 +612,8 @@ void Instancer::release(score::gfx::RenderList& r)
   if(raw_transform_slot.valid())
     r.registry().free(raw_transform_slot);
   m_xform_ref = {};
+  // Producer-state-drift Option A — see Light::release.
+  m_wrapped_state.reset();
 }
 
 } // namespace Threedim

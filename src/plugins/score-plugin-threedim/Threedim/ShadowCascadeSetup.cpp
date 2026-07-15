@@ -71,17 +71,29 @@ QMatrix4x4 cascadeLightVP(
     maxLS.setY(std::max(maxLS.y(), ls.y()));
     maxLS.setZ(std::max(maxLS.z(), ls.z()));
   }
-  // Expand the depth range a bit so occluders just outside the camera
-  // frustum can still cast shadows into it.
+  // Expand the depth range toward the light so occluders between the
+  // light and the slice (e.g. a tall object above the view frustum) are
+  // kept by the near plane and still cast into the slice. In light-view
+  // space the eye looks along the light direction, so "toward the
+  // light" is +Z (maxLS); padding minLS would only include geometry
+  // beyond the slice, which cannot cast shadows into it.
   const float zPad = (maxLS.z() - minLS.z()) * 0.25f + 1.f;
-  minLS.setZ(minLS.z() - zPad);
+  maxLS.setZ(maxLS.z() + zPad);
 
   QMatrix4x4 lightProj;
   lightProj.ortho(
       minLS.x(), maxLS.x(), minLS.y(), maxLS.y(),
       -maxLS.z(), -minLS.z());
 
-  return lightProj * lightView;
+  // The shadow depth passes run with the project's reverse-Z convention
+  // (depth op Greater, clear 0); a standard-Z ortho would keep the
+  // farthest surface instead of the nearest occluder. Flip NDC z so
+  // near→+1 / far→-1, the same bake ModelDisplay applies to its
+  // perspective projection.
+  QMatrix4x4 zFlip;
+  zFlip(2, 2) = -1.0f;
+
+  return zFlip * lightProj * lightView;
 }
 
 // Resolve the first directional light's world direction from the scene
@@ -132,6 +144,64 @@ bool findDirectionalLight(
       }
       if(auto* sub = ossia::get_if<ossia::scene_node_ptr>(&p))
         if(*sub && findDirectionalLight(**sub, world, outDir))
+          return true;
+    }
+  }
+  return false;
+}
+
+// Resolve the active camera's view + projection matrices from the scene
+// tree. Walks the same way as findDirectionalLight: per-node TRS
+// accumulation into a world matrix, then on hitting a camera_component
+// we invert the world matrix to obtain the view. Matching policy:
+//   - if `state.active_camera_id` is non-zero, only the scene_node whose
+//     id equals it is accepted;
+//   - otherwise the first camera encountered wins (matches the "single
+//     Camera node is auto-picked" convention from Camera.hpp).
+bool findActiveCamera(
+    const ossia::scene_node& n, const QMatrix4x4& parentWorld,
+    const ossia::scene_state& state, float aspect,
+    QMatrix4x4& outView, QMatrix4x4& outProj) noexcept
+{
+  QMatrix4x4 local;
+  if(n.children)
+  {
+    for(const auto& p : *n.children)
+    {
+      if(auto* xf = ossia::get_if<ossia::scene_transform>(&p))
+      {
+        local.translate(xf->translation[0], xf->translation[1], xf->translation[2]);
+        local.rotate(QQuaternion(
+            xf->rotation[3], xf->rotation[0], xf->rotation[1], xf->rotation[2]));
+        local.scale(xf->scale[0], xf->scale[1], xf->scale[2]);
+        break;
+      }
+    }
+  }
+  const QMatrix4x4 world = parentWorld * local;
+  const bool id_filter = state.active_camera_id.value != 0;
+  const bool id_matches = !id_filter || n.id == state.active_camera_id;
+  if(n.children)
+  {
+    for(const auto& p : *n.children)
+    {
+      if(id_matches)
+      {
+        if(auto* cc = ossia::get_if<ossia::camera_component_ptr>(&p))
+        {
+          if(*cc)
+          {
+            const auto& cam = **cc;
+            outView = world.inverted();
+            outProj = QMatrix4x4{};
+            outProj.perspective(
+                cam.yfov * 180.f / float(M_PI), aspect, cam.znear, cam.zfar);
+            return true;
+          }
+        }
+      }
+      if(auto* sub = ossia::get_if<ossia::scene_node_ptr>(&p))
+        if(*sub && findActiveCamera(**sub, world, state, aspect, outView, outProj))
           return true;
     }
   }
@@ -192,27 +262,30 @@ void ShadowCascadeSetup::rebuild()
   }
   lightDir.normalize();
 
-  // Find the active camera's view_projection. Fall back to identity when
-  // the scene has none (the cascades will be garbage but the node stays
-  // safe to wire in early).
+  // Find the active camera's view_projection by walking the scene tree
+  // the same way findDirectionalLight does. The camera's placement lives
+  // on its owning scene_node's scene_transform, so view = inverse(world).
+  // Fall back to identity when the scene has no camera (the cascades
+  // will be approximate but the node stays safe to wire in early).
+  //
+  // Aspect is unknown at this stage (ScenePreprocessor is the canonical
+  // source of the render-target aspect); 16:9 is a reasonable default
+  // and the cascade fit is approximate anyway.
   QMatrix4x4 cameraVP;
-  if(in_state->cameras && !in_state->cameras->empty() && in_state->cameras->front())
+  QMatrix4x4 cameraProj;
+  const float aspect = 16.f / 9.f;
+  if(in_state->roots)
   {
-    // The scene_state's cameras list stores camera_component only (no
-    // placement). Placement lives on the owning scene_node's
-    // scene_transform. For a first pass we build a view from the
-    // identity-placed camera — good enough while ScenePreprocessor is the
-    // canonical source for camera matrices. A later refinement can walk
-    // the tree like findDirectionalLight does.
-    const auto& cam = *in_state->cameras->front();
-    QMatrix4x4 proj;
-    // Aspect unknown at this point — use 16:9 default. ScenePreprocessor
-    // applies the render target aspect to its own camera UBO; our
-    // cascade fit is approximate anyway.
-    const float aspect = 16.f / 9.f;
-    proj.perspective(
-        cam.yfov * 180.f / float(M_PI), aspect, cam.znear, cam.zfar);
-    cameraVP = proj; // view = identity placeholder
+    QMatrix4x4 view, proj;
+    for(const auto& r : *in_state->roots)
+    {
+      if(r && findActiveCamera(*r, QMatrix4x4{}, *in_state, aspect, view, proj))
+      {
+        cameraVP = proj * view;
+        cameraProj = proj;
+        break;
+      }
+    }
   }
 
   const QMatrix4x4 cameraVPInv = cameraVP.inverted();
@@ -240,12 +313,12 @@ void ShadowCascadeSetup::rebuild()
   // pre-correction, so [-1, 1] is correct.
   for(int i = 0; i < count; ++i)
   {
-    // Convert view-space Z to NDC Z via the projection we computed above.
-    // Re-derive via the projection: ndcZ = (proj.z * view.z + proj.w.z) /
-    // (-view.z). Easier: just probe two world-space points at known view
-    // depths through cameraVP and read their .z.
-    QVector4D p0 = cameraVP * QVector4D(0, 0, -info.split_view_depths[i], 1);
-    QVector4D p1 = cameraVP * QVector4D(0, 0, -info.split_view_depths[i + 1], 1);
+    // Convert view-space Z to NDC Z. (0, 0, -d) is a VIEW-space point,
+    // so it goes through the projection alone — pushing it through the
+    // full view-projection would treat it as world-space and fit the
+    // cascade to the wrong depth range for any non-identity camera.
+    QVector4D p0 = cameraProj * QVector4D(0, 0, -info.split_view_depths[i], 1);
+    QVector4D p1 = cameraProj * QVector4D(0, 0, -info.split_view_depths[i + 1], 1);
     const float ndc0 = p0.w() != 0.f ? p0.z() / p0.w() : -1.f;
     const float ndc1 = p1.w() != 0.f ? p1.z() / p1.w() : 1.f;
     QMatrix4x4 m = cascadeLightVP(cameraVPInv, ndc0, ndc1, lightDir);

@@ -6,6 +6,17 @@ namespace Threedim
 void ImageLoader::init(
     score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
+  // RenderList rebuild (e.g. viewport resize) calls release() which
+  // drops m_tex, then init() against the new RenderList. Without this
+  // re-stage the user would have to re-trigger the file-port to get
+  // their texture back. Stage the kept CPU image into m_pendingImage
+  // so the next update() pass uploads it to the freshly-allocated
+  // QRhiTexture against the new rhi.
+  if(!m_keptImage.isNull())
+  {
+    m_pendingImage = m_keptImage;
+    m_changed = true;
+  }
 }
 
 void ImageLoader::update(
@@ -45,7 +56,11 @@ void ImageLoader::update(
   // Format defaults to RGBA8 on construction; explicit for clarity.
   outputs.texture.texture.format = halp::gpu_texture::RGBA8;
 
-  m_pendingImage = QImage{};   // drop CPU copy once uploaded
+  // Persist the CPU copy across RenderList rebuilds so init() can
+  // re-stage on the next resize. Move-from m_pendingImage to keep
+  // the upload's already-detached QImage data without copying.
+  m_keptImage = std::move(m_pendingImage);
+  m_pendingImage = QImage{};
   m_changed = false;
 }
 

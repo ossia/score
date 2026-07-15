@@ -185,8 +185,7 @@ void TextToMesh::rebuild()
         || m_cached_bold != inputs.bold.value
         || m_cached_italic != inputs.italic.value
         || m_cached_height != inputs.height.value
-        || m_cached_center != inputs.center_x.value
-        || m_cached_tol != inputs.curve_tolerance.value;
+        || m_cached_center != inputs.center_x.value;
 
   float scratch[16];
   CachedTRS xformCache = m_cachedTRS;
@@ -205,7 +204,6 @@ void TextToMesh::rebuild()
     m_cached_italic = inputs.italic.value;
     m_cached_height = inputs.height.value;
     m_cached_center = inputs.center_x.value;
-    m_cached_tol = inputs.curve_tolerance.value;
 
     // Build a QRawFont from the requested family. QRawFont::fromFont
     // resolves aliases (e.g. "Sans" → the system default).
@@ -297,11 +295,13 @@ void TextToMesh::rebuild()
     };
 
     ossia::mesh_primitive mp;
-    // Stable id keyed on the position-buffer pointer (changes when the
-    // text or font changes, stable while neither does). Required by
-    // the registry's mesh-slab allocator: a 0 id makes the slab
-    // uncacheable and the mesh disappears from rendering.
-    mp.stable_id = (uint64_t)((uintptr_t)pos_buf.get());
+    // Stable id: unique per rebuilt mesh, stable across TRS-only edits
+    // (this block only runs when text/font inputs changed). Must be
+    // nonzero for the registry's mesh-slab allocator, and must never
+    // repeat ACROSS PRODUCERS — the registry keys slabs on the bare id
+    // process-wide, so it has to come from the global mint (like
+    // PBRMesh/Light/the loaders do), not a per-instance counter.
+    mp.stable_id = ossia::mint_stable_id();
     mp.topology = ossia::primitive_topology::triangles;
     mp.vertex_count = uint32_t(vcount);
     mp.index_count = uint32_t(idx_buf->size());
@@ -449,6 +449,8 @@ void TextToMesh::release(score::gfx::RenderList& r)
   if(raw_transform_slot.valid())
     r.registry().free(raw_transform_slot);
   m_xform_ref = {};
+  // Producer-state-drift Option A — see Light::release.
+  m_wrapped_state.reset();
 }
 
 } // namespace Threedim

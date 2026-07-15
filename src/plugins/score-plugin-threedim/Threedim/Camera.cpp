@@ -6,6 +6,11 @@
 namespace Threedim
 {
 
+// Order invariant: called by GfxRenderer::initState BEFORE the first
+// operator()() and BEFORE processControlIn fires any rebuild() callback.
+// m_camera_ref / m_xform_ref populated here are therefore safe to read
+// in rebuild() without a guard. Adding prepare() to this node breaks the
+// invariant — see CpuFilterNode.hpp for details.
 void Camera::init(score::gfx::RenderList& r, QRhiResourceUpdateBatch& res)
 {
   if(!raw_camera_slot.valid())
@@ -94,6 +99,17 @@ void Camera::release(score::gfx::RenderList& r)
     r.registry().free(raw_transform_slot);
   m_camera_ref = {};
   m_xform_ref = {};
+  // Clear the cached scene_state so the next operator()() re-runs
+  // rebuild() against the freshly-allocated arena slots. Without this,
+  // an in-place release+init cycle (viewport resize / relinkGraph)
+  // republishes the old m_state whose scene_transform.raw_slot still
+  // embeds the OLD (now-freed) RawTransform index. The preprocessor's
+  // flatten gates worldTransforms emission on raw_slot.size != 0 (not
+  // isLive()), so it accepts the stale index and writes the camera's
+  // world matrix into a slot that init() may have re-allocated to
+  // another producer → aliased world-transforms that drift each cycle.
+  // Matches Light::release / Transform3D::release / CameraArray::release.
+  m_state.reset();
 }
 
 }

@@ -3,8 +3,6 @@
 #include <Gfx/Graph/ShaderCache.hpp>
 
 #include <QDebug>
-#include <QFile>
-#include <QFileInfo>
 
 #include <cmath>
 
@@ -124,32 +122,6 @@ void main()
 }
 )_";
 
-void CubemapLoader::loadImage()
-{
-  const auto& path = inputs.image.value;
-  if(path.empty())
-  {
-    m_loadedImage = QImage{};
-    return;
-  }
-
-  QString qpath = QString::fromStdString(path);
-  if(!QFileInfo::exists(qpath))
-  {
-    m_loadedImage = QImage{};
-    return;
-  }
-
-  QImage img(qpath);
-  if(img.isNull())
-  {
-    m_loadedImage = QImage{};
-    return;
-  }
-
-  m_loadedImage = img.convertToFormat(QImage::Format_RGBA8888);
-}
-
 QImage CubemapLoader::extractFace(int faceIndex) const
 {
   if(m_loadedImage.isNull())
@@ -212,19 +184,38 @@ QImage CubemapLoader::extractFace(int faceIndex) const
       return {};
   }
 
+  // A zero face size (image narrower than the grid) would make copy()
+  // receive a null QRect, which copies the whole image instead of a face.
+  if(faceW <= 0 || faceH <= 0)
+    return {};
+
   return m_loadedImage.copy(fx, fy, faceW, faceH);
 }
 
-void CubemapLoader::createCubemapTexture(QRhi& rhi, int faceSize)
+bool CubemapLoader::createCubemapTexture(QRhi& rhi, int faceSize)
 {
   releaseCubemapTexture();
+
+  // Resolution is a user spinbox up to 8192. A CubeMap|RenderTarget|MipMapped
+  // 8192^2 RGBA8 texture is ~1.5 GB (6 faces + mips) and can exceed the
+  // device TextureSizeMax or exhaust VRAM on lower-tier GPUs. Clamp to the
+  // hard device limit; VRAM exhaustion is caught by the create() check below.
+  const int maxSz = rhi.resourceLimit(QRhi::TextureSizeMax);
+  if(maxSz > 0 && faceSize > maxSz)
+    faceSize = maxSz;
 
   m_faceSize = faceSize;
   m_cubemapTex = rhi.newTexture(
       QRhiTexture::RGBA8, QSize{faceSize, faceSize}, 1,
       QRhiTexture::CubeMap | QRhiTexture::RenderTarget | QRhiTexture::MipMapped
           | QRhiTexture::UsedWithGenerateMips);
-  m_cubemapTex->create();
+  if(!m_cubemapTex->create())
+  {
+    qWarning() << "CubemapLoader: cubemap texture creation failed at faceSize"
+               << faceSize << "- skipping render";
+    releaseCubemapTexture();
+    return false;
+  }
 
   outputs.cubemap.texture.handle = m_cubemapTex;
 
@@ -244,6 +235,7 @@ void CubemapLoader::createCubemapTexture(QRhi& rhi, int faceSize)
     outputs.scene_out.scene.state = m_sceneState;
     outputs.scene_out.dirty = ossia::scene_port::dirty_environment;
   }
+  return true;
 }
 
 void CubemapLoader::releaseCubemapTexture()
@@ -322,13 +314,21 @@ void CubemapLoader::releaseEquirectResources(score::gfx::RenderList* renderer)
   }
 }
 
-void CubemapLoader::setupEquirectPipeline(score::gfx::RenderList& renderer)
+bool CubemapLoader::setupEquirectPipeline(score::gfx::RenderList& renderer)
 {
   auto& rhi = *renderer.state.rhi;
 
-  // UBO for face index
+  // UBO for face index. Each of the 6 face passes must sample with its own
+  // faceIndex, but all 6 passes are recorded into one command buffer and
+  // executed together at endFrame. Writing one Dynamic UBO region at
+  // offset 0 per face (the old behaviour) leaves offset 0 holding the LAST
+  // face's value by the time any draw runs on Vulkan/Metal/D3D, so all 6
+  // faces sample the -Z direction. Instead give each face its own slot,
+  // spaced by the device's uniform-buffer offset alignment, and bind
+  // per-pass with a QRhiCommandBuffer::DynamicOffset.
+  m_equirectUboStride = rhi.ubufAligned(sizeof(int32_t) * 4);
   m_equirectUbo = rhi.newBuffer(
-      QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(int32_t) * 4);
+      QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 6 * m_equirectUboStride);
   m_equirectUbo->setName("CubemapLoader::equirect_ubo");
   m_equirectUbo->create();
 
@@ -351,10 +351,11 @@ void CubemapLoader::setupEquirectPipeline(score::gfx::RenderList& renderer)
            QRhiShaderResourceBinding::VertexStage
                | QRhiShaderResourceBinding::FragmentStage,
            &renderer.outputUBO()),
-       QRhiShaderResourceBinding::uniformBuffer(
+       QRhiShaderResourceBinding::uniformBufferWithDynamicOffset(
            2,
            QRhiShaderResourceBinding::FragmentStage,
-           m_equirectUbo),
+           m_equirectUbo,
+           sizeof(int32_t) * 4),
        QRhiShaderResourceBinding::sampledTexture(
            3,
            QRhiShaderResourceBinding::FragmentStage,
@@ -374,7 +375,11 @@ void CubemapLoader::setupEquirectPipeline(score::gfx::RenderList& renderer)
         = m_faceRTs[face].renderTarget->newCompatibleRenderPassDescriptor();
     m_faceRTs[face].renderTarget->setRenderPassDescriptor(
         m_faceRTs[face].renderPass);
-    m_faceRTs[face].renderTarget->create();
+    if(!m_faceRTs[face].renderTarget->create())
+    {
+      qWarning() << "CubemapLoader: face render target creation failed" << face;
+      return false;
+    }
   }
 
   // Compile shaders
@@ -392,7 +397,12 @@ void CubemapLoader::setupEquirectPipeline(score::gfx::RenderList& renderer)
   m_equirectPipeline->setVertexInputLayout({});
   m_equirectPipeline->setShaderResourceBindings(m_equirectSrb);
   m_equirectPipeline->setRenderPassDescriptor(m_faceRTs[0].renderPass);
-  m_equirectPipeline->create();
+  if(!m_equirectPipeline->create())
+  {
+    qWarning() << "CubemapLoader: equirect pipeline creation failed";
+    return false;
+  }
+  return true;
 }
 
 void CubemapLoader::init(
@@ -405,10 +415,10 @@ void CubemapLoader::update(
     score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res,
     score::gfx::Edge* e)
 {
-  if(!m_imageChanged)
-    return;
-
-  loadImage();
+  // No-op on the render thread. The decode runs on the halp file-port
+  // worker (see image_t::process in CubemapLoader.hpp) which delivers
+  // the decoded QImage to m_loadedImage and sets m_imageChanged.
+  // runInitialPasses() picks that up and uploads + transcodes the cube.
 }
 
 void CubemapLoader::release(score::gfx::RenderList& r)
@@ -470,25 +480,36 @@ void CubemapLoader::renderEquirectangular(
 {
   auto& rhi = *renderer.state.rhi;
 
-  // Upload equirectangular source texture
-  if(!m_equirectTex)
+  // The source size is file-controlled: clamp to the device limit, or
+  // newTexture below fails create() and the SRB would bind a dead
+  // texture (black output / validation aborts).
   {
-    m_equirectTex = rhi.newTexture(
-        QRhiTexture::RGBA8,
-        QSize{m_loadedImage.width(), m_loadedImage.height()}, 1,
-        QRhiTexture::Flag{});
-    m_equirectTex->create();
+    const int maxSz = rhi.resourceLimit(QRhi::TextureSizeMax);
+    if(m_loadedImage.width() > maxSz || m_loadedImage.height() > maxSz)
+      m_loadedImage = m_loadedImage.scaled(
+          std::min(m_loadedImage.width(), maxSz),
+          std::min(m_loadedImage.height(), maxSz), Qt::KeepAspectRatio,
+          Qt::SmoothTransformation);
   }
-  else if(
-      m_equirectTex->pixelSize()
-      != QSize{m_loadedImage.width(), m_loadedImage.height()})
+
+  // Upload equirectangular source texture
+  const QSize srcSize{m_loadedImage.width(), m_loadedImage.height()};
+  if(m_equirectTex && m_equirectTex->pixelSize() != srcSize)
   {
     m_equirectTex->deleteLater();
-    m_equirectTex = rhi.newTexture(
-        QRhiTexture::RGBA8,
-        QSize{m_loadedImage.width(), m_loadedImage.height()}, 1,
-        QRhiTexture::Flag{});
-    m_equirectTex->create();
+    m_equirectTex = nullptr;
+  }
+  if(!m_equirectTex)
+  {
+    m_equirectTex
+        = rhi.newTexture(QRhiTexture::RGBA8, srcSize, 1, QRhiTexture::Flag{});
+    if(!m_equirectTex->create())
+    {
+      qWarning() << "CubemapLoader: equirect texture creation failed" << srcSize;
+      m_equirectTex->deleteLater();
+      m_equirectTex = nullptr;
+      return;
+    }
   }
 
   res->uploadTexture(m_equirectTex, m_loadedImage);
@@ -496,7 +517,13 @@ void CubemapLoader::renderEquirectangular(
   // Setup pipeline if needed
   if(!m_equirectPipeline)
   {
-    setupEquirectPipeline(renderer);
+    if(!setupEquirectPipeline(renderer))
+    {
+      // A face render target or the pipeline failed to create — bail out
+      // cleanly instead of recording passes into a dead render target.
+      releaseEquirectResources(&renderer);
+      return;
+    }
   }
   else
   {
@@ -509,10 +536,11 @@ void CubemapLoader::renderEquirectangular(
              QRhiShaderResourceBinding::VertexStage
                  | QRhiShaderResourceBinding::FragmentStage,
              &renderer.outputUBO()),
-         QRhiShaderResourceBinding::uniformBuffer(
+         QRhiShaderResourceBinding::uniformBufferWithDynamicOffset(
              2,
              QRhiShaderResourceBinding::FragmentStage,
-             m_equirectUbo),
+             m_equirectUbo,
+             sizeof(int32_t) * 4),
          QRhiShaderResourceBinding::sampledTexture(
              3,
              QRhiShaderResourceBinding::FragmentStage,
@@ -521,23 +549,31 @@ void CubemapLoader::renderEquirectangular(
     m_equirectSrb->create();
   }
 
-  // Commit the source texture upload before rendering
+  // Write all 6 face indices once, each into its own aligned slot. These
+  // land before any draw runs, and each pass binds its own slot via a
+  // dynamic offset, so every face samples with its own direction.
+  for(int face = 0; face < 6; face++)
+  {
+    int32_t faceIdx = face;
+    res->updateDynamicBuffer(
+        m_equirectUbo, face * m_equirectUboStride, sizeof(int32_t), &faceIdx);
+  }
+
+  // Commit the source texture upload + face UBO writes before rendering
   commands.resourceUpdate(res);
   res = rhi.nextResourceUpdateBatch();
 
   // Render each face
   for(int face = 0; face < 6; face++)
   {
-    // Update face index UBO
-    int32_t faceIdx = face;
-    auto* faceRes = rhi.nextResourceUpdateBatch();
-    faceRes->updateDynamicBuffer(m_equirectUbo, 0, sizeof(int32_t), &faceIdx);
-
     commands.beginPass(
-        m_faceRTs[face].renderTarget, Qt::black, {1.0f, 0}, faceRes);
+        m_faceRTs[face].renderTarget, Qt::black, {1.0f, 0}, nullptr);
     commands.setGraphicsPipeline(m_equirectPipeline);
     commands.setViewport(QRhiViewport(0, 0, m_faceSize, m_faceSize));
-    commands.setShaderResources();
+    // Bind FaceInfo (binding 2) at this face's slot via a dynamic offset.
+    const QRhiCommandBuffer::DynamicOffset faceOffset{
+        2, quint32(face * m_equirectUboStride)};
+    commands.setShaderResources(m_equirectSrb, 1, &faceOffset);
     commands.draw(3); // Fullscreen triangle
     commands.endPass();
   }
@@ -559,11 +595,20 @@ void CubemapLoader::runInitialPasses(
 
   auto& rhi = *renderer.state.rhi;
 
-  const int faceSize = inputs.resolution.value;
+  int faceSize = inputs.resolution.value;
+  // Clamp before the re-create guard so the comparison against m_faceSize
+  // (which createCubemapTexture stores post-clamp) stays stable frame to
+  // frame instead of forcing a rebuild every frame when resolution > max.
+  {
+    const int maxSz = rhi.resourceLimit(QRhi::TextureSizeMax);
+    if(maxSz > 0 && faceSize > maxSz)
+      faceSize = maxSz;
+  }
   if(faceSize != m_faceSize || !m_cubemapTex)
   {
     releaseEquirectResources();
-    createCubemapTexture(rhi, faceSize);
+    if(!createCubemapTexture(rhi, faceSize))
+      return;
   }
 
   const CubemapLayout layout = inputs.layout.value;

@@ -32,14 +32,28 @@ void Model::init()
 
     m_inlets.push_back(new Process::ComboBox{
         std::vector<std::pair<QString, ossia::value>>{
-            {QStringLiteral("tag == match"),          0},
-            {QStringLiteral("tag != match"),          1},
-            {QStringLiteral("material_index == match"),   2},
-            {QStringLiteral("material_index != match"),   3}},
+            {QStringLiteral("tag == match"),                 0},
+            {QStringLiteral("tag != match"),                 1},
+            {QStringLiteral("material_index == match"),      2},
+            {QStringLiteral("material_index != match"),      3},
+            {QStringLiteral("blend == match"),               4},
+            {QStringLiteral("blend != match"),               5},
+            {QStringLiteral("depth_write == match"),         6},
+            {QStringLiteral("depth_write != match"),         7},
+            {QStringLiteral("cull_mode == match"),           8},
+            {QStringLiteral("cull_mode != match"),           9},
+            {QStringLiteral("topology == match"),            10},
+            {QStringLiteral("topology != match"),            11},
+            {QStringLiteral("format_id == match_str"),       12},
+            {QStringLiteral("format_id != match_str"),       13}},
         0, "Mode", Id<Process::Port>(1), this});
 
     m_inlets.push_back(new Process::IntSpinBox{
         -1, 2147483647, 0, "Match", Id<Process::Port>(2), this});
+
+    // Modes 12/13 read this string; other modes ignore it.
+    m_inlets.push_back(new Process::LineEdit{
+        QString{}, "Format ID", Id<Process::Port>(3), this});
 
     m_outlets.push_back(new GeometryOutlet{"Geometry Out", Id<Process::Port>(0), this});
   }
