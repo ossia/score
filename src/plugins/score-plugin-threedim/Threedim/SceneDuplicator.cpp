@@ -105,11 +105,6 @@ void SceneDuplicator::rebuild()
 
   m_cached_in_state = in_state;
   m_cached_in_version = in_version;
-  m_cached_pattern = inputs.pattern.value;
-  m_cached_count = count;
-  m_cached_grid_cols = inputs.grid_cols.value;
-  m_cached_spacing = inputs.spacing.value;
-  m_cached_radius = inputs.radius.value;
 
   if(!in_state || !in_state->roots || in_state->roots->empty())
   {
