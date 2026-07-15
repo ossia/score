@@ -439,14 +439,18 @@ public:
       }
     }
 
-    // Rebind if source buffer changed
+    // Rebind if source buffer changed. Must match createPipeline()'s layout
+    // exactly (uniform@0, src@1, out@2) or the SRB becomes layout-incompatible
+    // with the pipeline and the shader reads Params from the wrong binding.
     if(m_srb)
     {
       m_srb->setBindings({
+          QRhiShaderResourceBinding::uniformBuffer(
+              0, QRhiShaderResourceBinding::ComputeStage, m_uniformBuffer),
           QRhiShaderResourceBinding::bufferLoad(
-              0, QRhiShaderResourceBinding::ComputeStage, m_srcBuffer),
+              1, QRhiShaderResourceBinding::ComputeStage, m_srcBuffer),
           QRhiShaderResourceBinding::bufferStore(
-              1, QRhiShaderResourceBinding::ComputeStage, m_outputBuffer),
+              2, QRhiShaderResourceBinding::ComputeStage, m_outputBuffer),
       });
       m_srb->create();
     }
@@ -725,15 +729,21 @@ public:
       }
     }
 
+    // Rebind if source buffer changed. Must match createPipeline()'s layout
+    // exactly (uniform@0, src@1, index@2, out@3) or the SRB becomes
+    // layout-incompatible with the pipeline and the shader reads Params from
+    // the wrong binding.
     if(m_srb)
     {
       m_srb->setBindings({
+          QRhiShaderResourceBinding::uniformBuffer(
+              0, QRhiShaderResourceBinding::ComputeStage, m_uniformBuffer),
           QRhiShaderResourceBinding::bufferLoad(
-              0, QRhiShaderResourceBinding::ComputeStage, m_srcBuffer),
+              1, QRhiShaderResourceBinding::ComputeStage, m_srcBuffer),
           QRhiShaderResourceBinding::bufferLoad(
-              1, QRhiShaderResourceBinding::ComputeStage, m_indexBuffer),
+              2, QRhiShaderResourceBinding::ComputeStage, m_indexBuffer),
           QRhiShaderResourceBinding::bufferStore(
-              2, QRhiShaderResourceBinding::ComputeStage, m_outputBuffer),
+              3, QRhiShaderResourceBinding::ComputeStage, m_outputBuffer),
       });
       m_srb->create();
     }

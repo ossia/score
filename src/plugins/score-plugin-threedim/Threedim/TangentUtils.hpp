@@ -46,6 +46,15 @@ inline std::shared_ptr<std::vector<float>> generate_tangents_mikktspace(
   if(num_faces == 0)
     return {};
 
+  // Index values come straight from the asset file. Reject any that
+  // exceed the vertex streams: the accessor callbacks below read them
+  // unchecked and m_setTSpaceBasic writes through them into the
+  // vertex_count*4 tangent buffer.
+  if(indices)
+    for(const uint32_t v : *indices)
+      if(v >= vertex_count)
+        return {};
+
   auto tangents = std::make_shared<std::vector<float>>(vertex_count * 4, 0.f);
 
   struct UserData
