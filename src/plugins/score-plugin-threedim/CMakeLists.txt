@@ -40,6 +40,24 @@ if(NOT TARGET fastgltf)
   add_subdirectory("${3RDPARTY_FOLDER}/fastgltf" "${CMAKE_CURRENT_BINARY_DIR}/fastgltf" EXCLUDE_FROM_ALL)
 endif()
 
+# spz — Niantic / Adobe reference SPZ decoder for compressed 3DGS files.
+# v1-3 only (v4/ZSTD stubbed; see 3rdparty/spz/CMakeLists.txt). Pulls
+# in zlib via ZLIB::ZLIB.
+if(NOT TARGET spz)
+  set(SPZ_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
+  set(SPZ_BUILD_PYTHON_BINDINGS OFF CACHE BOOL "" FORCE)
+  set(SPZ_BUILD_EXTENSIONS OFF CACHE BOOL "" FORCE)
+  add_subdirectory("${3RDPARTY_FOLDER}/spz" "${CMAKE_CURRENT_BINARY_DIR}/spz" EXCLUDE_FROM_ALL)
+
+  if(MSVC)
+    # The prebuilt sysroot's zconf.h includes <unistd.h> unconditionally;
+    # provide a stub so spz's zlib usage compiles with MSVC / clang-cl.
+    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/spz-msvc-compat/unistd.h"
+         "#include <io.h>\n#include <process.h>\n")
+    target_include_directories(spz PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/spz-msvc-compat")
+  endif()
+endif()
+
 # threedim addon
 add_library(
   score_plugin_threedim
@@ -138,6 +156,8 @@ add_library(
   Threedim/InjectBuffer.cpp
   Threedim/InjectTexture.hpp
   Threedim/InjectTexture.cpp
+  Threedim/TagAs.hpp
+  Threedim/TagAs.cpp
   Threedim/PBRMesh.hpp
   Threedim/PBRMesh.cpp
   Threedim/MaterialOverride.hpp
@@ -179,6 +199,16 @@ add_library(
   Threedim/PCLToGeometry.cpp
   Threedim/Ply.hpp
   Threedim/Ply.cpp
+  Threedim/PrimitiveCloud/PlyParser.hpp
+  Threedim/PrimitiveCloud/PlyParser.cpp
+  Threedim/PrimitiveCloud/SplatBinary.hpp
+  Threedim/PrimitiveCloud/SplatBinary.cpp
+  Threedim/PrimitiveCloud/SpzCodec.hpp
+  Threedim/PrimitiveCloud/SpzCodec.cpp
+  Threedim/PrimitiveCloud/SceneFromCloud.hpp
+  Threedim/PrimitiveCloud/SceneFromCloud.cpp
+  Threedim/PrimitiveCloud/FormatOverride.hpp
+  Threedim/PrimitiveCloud/FormatOverride.cpp
   Threedim/Primitive.hpp
   Threedim/Primitive.cpp
   Threedim/StructureSynth.hpp
@@ -232,4 +262,4 @@ target_link_libraries(
   score_plugin_threedim PRIVATE score_plugin_engine score_plugin_avnd
                                 score_plugin_gfx fmt::fmt ssynth Eigen3::Eigen
                                 miniply mikktspace vcglib opengametools
-                                fastgltf::fastgltf)
+                                fastgltf::fastgltf spz)
