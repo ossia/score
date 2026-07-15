@@ -50,9 +50,22 @@ public:
     } scene_out;
   } outputs;
 
+  // Per-face shape cache. Drives texture-recreation when face size changes.
+  // Content-change detection uses the producer's `changed` flag instead of
+  // a bytes-pointer compare — pointer identity missed in-place buffer
+  // updates (video readback into a ring buffer reuses the same pointer
+  // address, so the old fingerprint check stayed equal across content
+  // changes and the cube never re-uploaded).
+  struct FaceFingerprint
+  {
+    int width{0};
+    int height{0};
+  };
+
   QRhiTexture* m_cubemapTex{};
   int m_faceSize{0};
   bool m_dirty{true};
+  FaceFingerprint m_lastFaces[6]{};
   std::shared_ptr<ossia::scene_state> m_sceneState;
   int64_t m_sceneVersion{0};
   void* m_lastPublishedHandle{};
@@ -82,9 +95,28 @@ public:
       score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res,
       score::gfx::Edge* e)
   {
-    // Determine face size from the largest input
+    // Determine face size from the largest input; detect content changes
+    // by reading the producer's `changed` flag (set by halp::texture's
+    // update() — see avendish texture_formats.hpp). Resetting `changed`
+    // to false after consumption keeps the next frame's check fresh.
+    // Size changes are tracked separately so a producer that resizes the
+    // face still triggers a texture recreation even when it forgot to
+    // toggle `changed`.
     int maxSize = 0;
-    auto checkFace = [&](const auto& tex) {
+    int faceIdx = 0;
+    auto checkFace = [&](auto& tex) {
+      FaceFingerprint cur{tex.texture.width, tex.texture.height};
+      const bool sizeChanged
+          = (cur.width != m_lastFaces[faceIdx].width
+             || cur.height != m_lastFaces[faceIdx].height);
+      const bool contentChanged = tex.texture.changed;
+      if(sizeChanged || contentChanged)
+      {
+        m_lastFaces[faceIdx] = cur;
+        m_dirty = true;
+      }
+      tex.texture.changed = false; // consumed; producer will set it on next update()
+      ++faceIdx;
       if(tex.texture.bytes && tex.texture.width > 0 && tex.texture.height > 0)
       {
         int s = std::max(tex.texture.width, tex.texture.height);

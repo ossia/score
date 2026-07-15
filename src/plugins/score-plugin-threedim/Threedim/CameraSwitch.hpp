@@ -204,8 +204,14 @@ public:
       {
         m_state->roots.reset();
         m_state->active_camera_id = {};
+        m_version++;
+        m_state->version = m_version;
       }
-      m_pending_dirty = 0;
+      // Bump dirty so consumers (preprocessor cache, downstream
+      // SceneSelector) detect the empty-state transition. Without
+      // this they'd see the same shared_ptr identity + stale
+      // version + dirty=0 and keep rendering last frame's blend.
+      m_pending_dirty = 0xFF;
       return;
     }
     for(float& x : effWeights) x /= wsum;

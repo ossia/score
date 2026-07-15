@@ -73,9 +73,6 @@ public:
   uint8_t m_pending_dirty{0xFF};
   const ossia::scene_state* m_cached_in_state{};
   int64_t m_cached_in_version{-1};
-  std::string m_cached_name;
-  std::vector<std::string> m_cached_paths;
-  std::vector<std::string> m_cached_tags;
   int64_t m_version_counter{0};
 };
 
