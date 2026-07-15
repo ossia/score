@@ -1,4 +1,6 @@
 #pragma once
+#include "TransformHelper.hpp"
+
 #include <halp/controls.hpp>
 #include <halp/meta.hpp>
 
@@ -82,6 +84,17 @@ public:
   // copied onto the emitted scene_transform's raw_slot every
   // operator()() tick.
   ossia::gpu_slot_ref m_xform_ref{};
+
+  // Cache: republish the same emitted scene_state when neither upstream
+  // (input scene_state pointer / version) nor controls (TRS) changed.
+  // Prevents downstream SceneSelector / SceneGraphFilter / SceneDuplicator /
+  // CreateCollection from rebuilding every frame, which they did when we
+  // emitted a fresh shared_ptr each tick — diagnostic 027.
+  std::shared_ptr<const ossia::scene_state> m_state;
+  const ossia::scene_state* m_cached_in_state{};
+  int64_t m_cached_in_version{-1};
+  CachedTRS m_cachedTRS{};
+  int64_t m_version_counter{0};
 };
 
 }

@@ -86,9 +86,15 @@ public:
   std::shared_ptr<const ossia::scene_state> m_cached_state;
   int64_t m_version_counter{0};
 
-  // Previous time — used only for the "speed" control's time advance;
-  // if the user is wiring a direct time inlet, this is ignored.
+  // Last value seen on the Time inlet. Used solely to detect whether the
+  // user is actively driving Time (value changed) vs. leaving it constant
+  // so the Speed control should auto-advance. NEVER holds the advanced
+  // playback position (that lives in m_playback_time).
   float m_prev_time{0.f};
+  // Auto-advance accumulator for the Speed control. Integrated by
+  // speed*dt every call while Time is held constant; resynced to the Time
+  // inlet whenever the user actually moves it.
+  float m_playback_time{0.f};
 };
 
 }

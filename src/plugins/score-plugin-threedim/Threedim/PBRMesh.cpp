@@ -97,6 +97,10 @@ wrapGpuBuffer(void* handle, int64_t byte_size) noexcept
 
 void PBRMesh::operator()()
 {
+  if(m_material_stable_id == 0) m_material_stable_id = ossia::mint_stable_id();
+  if(m_primitive_stable_id == 0) m_primitive_stable_id = ossia::mint_stable_id();
+  if(m_xform_stable_id == 0) m_xform_stable_id = ossia::mint_stable_id();
+
   const auto& m = inputs.geometry_in.mesh;
   void* buf0_handle
       = m.buffers.empty() ? nullptr : m.buffers[0].handle;
@@ -233,10 +237,6 @@ void PBRMesh::operator()()
   // populate the dynamic-handle pathway when the corresponding inlet
   // carries a non-null handle. The primitive's `material` is bound to
   // this shared_ptr directly — no index lookup.
-  if(m_material_stable_id == 0) m_material_stable_id = ossia::mint_stable_id();
-  if(m_primitive_stable_id == 0) m_primitive_stable_id = ossia::mint_stable_id();
-  if(m_xform_stable_id == 0) m_xform_stable_id = ossia::mint_stable_id();
-
   auto mat = std::make_shared<ossia::material_component>();
   mat->stable_id = m_material_stable_id;
   mat->base_color_factor[0] = cur_factors[0];
@@ -429,6 +429,8 @@ void PBRMesh::release(score::gfx::RenderList& r)
     r.registry().free(raw_transform_slot);
   m_material_ref = {};
   m_xform_ref = {};
+  // Producer-state-drift Option A — see Light::release.
+  m_wrapped_state.reset();
 }
 
 } // namespace Threedim
