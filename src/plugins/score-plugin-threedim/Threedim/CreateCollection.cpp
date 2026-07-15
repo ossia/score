@@ -15,9 +15,6 @@ void CreateCollection::rebuild()
 
   m_cached_in_state = in_state;
   m_cached_in_version = in_version;
-  m_cached_name = cur_name;
-  m_cached_paths = cur_paths;
-  m_cached_tags = cur_tags;
 
   // An empty name is a no-op — pass the input through so the node is
   // safe to wire in even before the user fills in the Name field.

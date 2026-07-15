@@ -106,14 +106,20 @@ ExtractBuffer2::BufferRef ExtractBuffer2::resolveBuffer(
   {
     if(mesh.index.buffer < 0 || mesh.index.buffer >= (int)mesh.buffers.size())
       return {};
+    // The index buffer length is mesh.indices (the index-element count), which
+    // is a distinct field from mesh.vertices. A zero count means a
+    // non-indexed / unpopulated mesh: clear the outlet rather than publishing a
+    // garbage-sized range.
+    if(mesh.indices <= 0)
+      return {};
     int64_t bytes = 0;
     switch(mesh.index.format)
     {
       case halp::index_format::uint16:
-        bytes = (int64_t)mesh.vertices * 2;
+        bytes = (int64_t)mesh.indices * 2;
         break;
       case halp::index_format::uint32:
-        bytes = (int64_t)mesh.vertices * 4;
+        bytes = (int64_t)mesh.indices * 4;
         break;
     }
     return {
@@ -188,14 +194,14 @@ void ExtractBuffer2::initStrategy(score::gfx::RenderList& renderer)
     const auto lookup = resolveAttribute(mesh, m_currentName);
     if(!lookup)
     {
-      qDebug() << this << "ExtractBuffer2: attribute not found:"
+      qWarning() << this << "ExtractBuffer2: attribute not found:"
                << QString::fromStdString(m_currentName);
       m_strategy = std::monostate{};
       return;
     }
     if(!lookup->buffer || !lookup->buffer->handle)
     {
-      qDebug() << this << "ExtractBuffer2: source buffer is null";
+      qWarning() << this << "ExtractBuffer2: source buffer is null";
       m_strategy = std::monostate{};
       return;
     }
@@ -221,8 +227,11 @@ void ExtractBuffer2::initStrategy(score::gfx::RenderList& renderer)
     }
     if(!ok)
     {
-      qDebug() << this << "ExtractBuffer2: strategy init failed";
-      m_strategy = std::monostate{};
+      qWarning() << this << "ExtractBuffer2: strategy init failed";
+      // init() may have created QRhi resources before failing; the strategy
+      // classes have no destructor and only free them in release(), so release
+      // before discarding to avoid leaking them.
+      release(renderer);
     }
   }
   else // Buffer
@@ -230,7 +239,7 @@ void ExtractBuffer2::initStrategy(score::gfx::RenderList& renderer)
     const auto ref = resolveBuffer(mesh, m_currentName);
     if(ref.buffer_index < 0 || ref.byte_size <= 0)
     {
-      qDebug() << this << "ExtractBuffer2: buffer not found:"
+      qWarning() << this << "ExtractBuffer2: buffer not found:"
                << QString::fromStdString(m_currentName);
       m_strategy = std::monostate{};
       return;
@@ -238,8 +247,9 @@ void ExtractBuffer2::initStrategy(score::gfx::RenderList& renderer)
     auto& s = m_strategy.emplace<DirectBufferReferenceStrategy>();
     if(!s.init(renderer.state, rhi, mesh, ref.buffer_index, ref.byte_offset, ref.byte_size))
     {
-      qDebug() << this << "ExtractBuffer2: DirectBufferReferenceStrategy failed";
-      m_strategy = std::monostate{};
+      qWarning() << this << "ExtractBuffer2: DirectBufferReferenceStrategy failed";
+      // Release any QRhi resources init() allocated before failing (no dtor).
+      release(renderer);
     }
   }
 }
@@ -345,7 +355,7 @@ void ExtractBuffer2::update(
            renderer.state, rhi, mesh, ref.buffer_index, ref.byte_offset,
            ref.byte_size))
     {
-      qDebug() << this << "ExtractBuffer2: re-init failed in update";
+      qWarning() << this << "ExtractBuffer2: re-init failed in update";
       release(renderer);
       return;
     }

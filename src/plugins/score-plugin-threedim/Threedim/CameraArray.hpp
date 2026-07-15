@@ -48,24 +48,14 @@ public:
   halp_meta(authors, "ossia team")
   halp_meta(uuid, "7a3e8d2f-1b94-4c6a-b7f5-8e2d0c1a4b93")
 
-  // Pre-configured use cases. The defaults (origin=0, 6 GL-ordered
-  // faces at 90° FoV, 1:1 aspect) already match ReflectionProbe — the
-  // preset is mostly a naming/discoverability knob. PointShadowCube
-  // flips the sense: same 6 directions, but downstream shaders know
-  // to render depth only.
-  enum class Preset
-  {
-    ReflectionProbe,
-    PointShadowCube,
-    Custom,
-  };
-
+  // Six GL-ordered cubemap faces at 90° FoV, aspect 1:1. Suitable as
+  // both a reflection probe array and a point-shadow cube array — the
+  // distinction is downstream (which render target / depth-only flag),
+  // not in the camera math here.
   struct ins
   {
     // Port-driven rebuild: each control's update() callback fires
     // CameraArray::rebuild() on change. operator()() republishes.
-    struct : halp::enum_t<Preset, "Preset">
-    { void update(CameraArray& n) { n.rebuild(); } } preset;
     struct : halp::xyz_spinboxes_f32<"Origin", halp::range{-10000., 10000., 0.}>
     { void update(CameraArray& n) { n.rebuild(); } } origin;
     struct : halp::hslider_f32<"Near", halp::range{0.001, 10., 0.1}>
@@ -139,14 +129,10 @@ public:
       cam->aspect_ratio = 1.f;
       cam->znear = near_f;
       cam->zfar = far_f;
-      // Each face owns one RawCameraData inside our single 6-wide slot.
-      // Stamp a derived ref with the face's offset — same arena /
-      // internal_index / generation, offset bumped by i entries.
-      if(m_array_ref.valid())
+      // Each face owns its own RawCamera slot; stamp its ref directly.
+      if(m_array_ref[std::size_t(i)].valid())
       {
-        cam->raw_slot = m_array_ref;
-        cam->raw_slot.offset = m_array_ref.offset
-            + uint32_t(i * sizeof(score::gfx::RawCameraData));
+        cam->raw_slot = m_array_ref[std::size_t(i)];
         cam->raw_slot.size = uint32_t(sizeof(score::gfx::RawCameraData));
       }
 
@@ -175,11 +161,9 @@ public:
       xform.scale[2] = 1.f;
       // Per-face RawTransform slot ref — same shape as the camera
       // array ref, offset bumped to the i-th RawLocalTransform slot.
-      if(m_xform_array_ref.valid())
+      if(m_xform_array_ref[std::size_t(i)].valid())
       {
-        xform.raw_slot = m_xform_array_ref;
-        xform.raw_slot.offset = m_xform_array_ref.offset
-            + uint32_t(i * sizeof(score::gfx::RawLocalTransform));
+        xform.raw_slot = m_xform_array_ref[std::size_t(i)];
         xform.raw_slot.size
             = uint32_t(sizeof(score::gfx::RawLocalTransform));
       }
@@ -225,14 +209,12 @@ public:
       score::gfx::Edge* e);
   void release(score::gfx::RenderList& r);
 
-  score::gfx::GpuResourceRegistry::Slot raw_camera_slot;
-  score::gfx::GpuResourceRegistry::Slot raw_transform_slot;
-
-  // Ossia-facing base refs for our 6-wide RawCamera + 6-wide
-  // RawTransform slots. Each emitted camera_component / scene_transform
-  // gets these refs with its per-face offset bumped.
-  ossia::gpu_slot_ref m_array_ref{};
-  ossia::gpu_slot_ref m_xform_array_ref{};
+  // One slot + ref per face: the fixed-stride arenas cannot hand out a
+  // contiguous 6-wide block, so each face owns an independent slot.
+  score::gfx::GpuResourceRegistry::Slot raw_camera_slot[6];
+  score::gfx::GpuResourceRegistry::Slot raw_transform_slot[6];
+  ossia::gpu_slot_ref m_array_ref[6]{};
+  ossia::gpu_slot_ref m_xform_array_ref[6]{};
 };
 
 }
