@@ -64,10 +64,34 @@ ComponentFlags detectComponents(const ossia::scene_node& node) noexcept
         for(const auto& prim : (*m)->primitives)
         {
           f.vertex_count += int(prim.vertex_count);
-          // index_count == 0 for non-indexed meshes → fall back to
-          // vertex_count / 3 (primitive assumption: triangles).
+          // Source primitive count for this topology. index_count == 0
+          // means non-indexed; fall back to vertex_count.
           const int ic = int(prim.index_count);
-          f.triangle_count += (ic > 0 ? ic : int(prim.vertex_count)) / 3;
+          const int n = (ic > 0 ? ic : int(prim.vertex_count));
+          switch(prim.topology)
+          {
+            using T = ossia::primitive_topology;
+            case T::points:
+              f.triangle_count += n;
+              break;
+            case T::lines:
+              f.triangle_count += n / 2;
+              break;
+            case T::line_strip:
+              f.triangle_count += std::max(0, n - 1);
+              break;
+            case T::triangles:
+              f.triangle_count += n / 3;
+              break;
+            case T::triangle_strip:
+            case T::triangle_fan:
+              f.triangle_count += std::max(0, n - 2);
+              break;
+            case T::patches:
+            case T::meshlets:
+              // Not a "primitive count" in the user sense; skip.
+              break;
+          }
           if(f.material_tag.empty() && prim.material)
             f.material_tag = prim.material->tag;
         }

@@ -221,22 +221,6 @@ public:
   uint8_t m_pending_dirty{0xFF};
   const ossia::scene_state* m_cached_in_state{};
   int64_t m_cached_in_version{-1};
-  int m_cached_mode{-1};
-  bool m_cached_invert{false};
-  int m_cached_component{-1};
-  std::vector<std::string> m_cached_paths;
-  std::vector<std::string> m_cached_names;
-  std::vector<std::string> m_cached_material_tags;
-
-  // Tier-1 extensions. Cached scalar inputs so rebuild() can check
-  // change-state cheaply against the current run's snapshot.
-  int m_cached_alpha_mode{-1};
-  int m_cached_purpose{-1};
-  bool m_cached_caster_flag{false};
-  std::string m_cached_prop_key;
-  int m_cached_prop_op{-1};
-  std::string m_cached_prop_value;
-
   int64_t m_version_counter{0};
 };
 
