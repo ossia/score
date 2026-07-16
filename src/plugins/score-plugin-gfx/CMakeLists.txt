@@ -884,6 +884,14 @@ if(SCORE_TESTING)
   target_link_libraries(CaptureAdjustShaderTest PRIVATE
     score_plugin_gfx ${QT_PREFIX}::Gui)
 
+  # Needs a GL-capable display; prints "no RHI available, skipping" and exits 0
+  # without one. Labelled "gui" like EncoderTester / ReadbackTester below.
+  add_test(NAME CaptureAdjustShaderTest COMMAND CaptureAdjustShaderTest)
+  set_tests_properties(CaptureAdjustShaderTest PROPERTIES
+    WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}"
+    ENVIRONMENT "SCORE_AUDIO_BACKEND=dummy;ASAN_OPTIONS=detect_leaks=0:halt_on_error=0"
+    LABELS "gui")
+
   # The maths, the struct layout and the cross-thread slot: no GPU, no camera,
   # no display.
   score_add_test(CaptureAdjustTest
