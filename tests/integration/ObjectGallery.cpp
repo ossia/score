@@ -48,6 +48,7 @@
 #include <Gfx/TexturePort.hpp>
 #include <Gfx/WindowDevice.hpp>
 
+#include <QFileInfo>
 #include <QImage>
 
 #include <algorithm>
@@ -255,6 +256,106 @@ void run_render_check(const QString& filter, int seconds)
     std::_Exit(rc);
   });
 }
+
+// Load a shader tester file (.fs/.frag/.glsl -> ISF Shader, .cs/.comp/.csf ->
+// Compute Shader) into a process, route its texture output to an offscreen
+// window and render it. Exit 0 = compiled and rendered without crashing (a
+// shader compile failure or render crash is caught), 3 = no texture output,
+// 5 = unsupported extension. Same offscreen/hard-exit handling as --render.
+void run_shader_check(const QString& path, int seconds)
+{
+  const QFileInfo fi{path};
+  const QString ext = fi.suffix().toLower();
+  QString wantName;
+  if(ext == "fs" || ext == "frag" || ext == "glsl")
+    wantName = "ISF Shader";
+  else if(ext == "cs" || ext == "comp" || ext == "csf")
+    wantName = "Compute Shader";
+  else
+  {
+    std::printf("SHADER  UNSUPPORTED  %s\n", path.toUtf8().constData());
+    qApp->exit(5);
+    return;
+  }
+
+  const auto& ctx = score::GUIAppContext();
+  auto doc = ctx.docManager.newDocument(
+      ctx, Id<score::DocumentModel>(0),
+      *ctx.interfaces<score::DocumentDelegateList>().begin());
+  qApp->processEvents();
+
+  auto& device_plug = doc->context().plugin<Explorer::DeviceDocumentPlugin>();
+  {
+    CommandDispatcher<> disp{doc->context().commandStack};
+    Device::DeviceSettings settings;
+    settings.name = "window";
+    settings.protocol = Gfx::WindowProtocolFactory::static_concreteKey();
+    disp.submit<Explorer::Command::LoadDevice>(device_plug, settings);
+  }
+
+  auto& scenario_dm
+      = static_cast<Scenario::ScenarioDocumentModel&>(doc->model().modelDelegate());
+  auto& itv = scenario_dm.baseInterval();
+
+  // The shader process is created with the file path as its construction data.
+  bool created = false;
+  auto& pl = ctx.interfaces<Process::ProcessFactoryList>();
+  for(auto& factory : pl)
+  {
+    if(factory.prettyName() != wantName)
+      continue;
+    CommandDispatcher<> disp{doc->context().commandStack};
+    disp.submit<Scenario::Command::AddOnlyProcessToInterval>(
+        itv, factory.concreteKey(), fi.absoluteFilePath(), QPointF{});
+    created = true;
+    break;
+  }
+  if(!created)
+  {
+    std::printf("SHADER  no '%s' process\n", wantName.toUtf8().constData());
+    qApp->exit(1);
+    return;
+  }
+
+  int textured = 0;
+  for(auto outlet : itv.findChildren<Gfx::TextureOutlet*>())
+  {
+    outlet->setAddress(State::AddressAccessor{{{"window"}, {}}});
+    ++textured;
+  }
+  if(textured == 0)
+  {
+    std::printf(
+        "SHADER  SKIP  %-46s (no texture output)\n", fi.fileName().toUtf8().constData());
+    qApp->exit(3);
+    return;
+  }
+
+  auto& eng = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+  QTimer::singleShot(100, [&eng, &itv] { eng.execution().play_interval(itv); });
+  QTimer::singleShot(seconds * 1000, [&ctx, doc, fi] {
+    int rc = 0;
+    if(auto* d = doc->context()
+                     .plugin<Explorer::DeviceDocumentPlugin>()
+                     .list()
+                     .findDevice("window"))
+    {
+      if(auto* wd = qobject_cast<Gfx::WindowDevice*>(d))
+      {
+        const QString out = "/tmp/objectgallery_render.png";
+        wd->grabTo(out);
+        QApplication::processEvents();
+        const QImage img{out};
+        std::printf(
+            "SHADER  OK  %-46s %dx%d  content=%s\n",
+            fi.fileName().toUtf8().constData(), img.width(), img.height(),
+            non_blank(img) ? "yes" : "blank");
+      }
+    }
+    std::fflush(stdout);
+    std::_Exit(rc);
+  });
+}
 }
 
 int main(int argc, char** argv)
@@ -273,7 +374,7 @@ int main(int argc, char** argv)
   for(int i = 1; i < argc; ++i)
   {
     const std::string a = argv[i];
-    if(a == "--list" || a == "--render")
+    if(a == "--list" || a == "--render" || a == "--shader")
       headless = true;
   }
 
@@ -321,6 +422,20 @@ int main(int argc, char** argv)
                          : 2;
     QMetaObject::invokeMethod(
         &app, [&, renderTarget, secs] { run_render_check(renderTarget, secs); },
+        Qt::QueuedConnection);
+    return app.exec();
+  }
+
+  // --shader <file>: load a shader tester file and render it.
+  const QString shaderFile = arg_value(args, "--shader");
+  if(!shaderFile.isEmpty())
+  {
+    qputenv("SCORE_FORCE_OFFSCREEN_WINDOW", "window");
+    const int secs = arg_value(args, "--seconds").toInt() > 0
+                         ? arg_value(args, "--seconds").toInt()
+                         : 2;
+    QMetaObject::invokeMethod(
+        &app, [&, shaderFile, secs] { run_shader_check(shaderFile, secs); },
         Qt::QueuedConnection);
     return app.exec();
   }
