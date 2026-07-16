@@ -463,6 +463,26 @@ score_add_test(test_regression_splat_reload
   SOURCES RegressionSplatReloadTest.cpp
   GUI
   PLUGINS score_plugin_scenario score_lib_process)
+# ...and the two render-regression sweeps built on it. Both need a real X
+# display (llvmpipe over GLX) and skip with 77 without one; csf-sweep also
+# needs the out-of-repo shader corpus, keyed off SCORE_SHADER_LIBRARY_DIR
+# like the other shader sweeps. Labelled "gui" so display-less CI can gate
+# them out, RUN_SERIAL because each spawns a full GL app per case.
+foreach(sweep object_render_sweep:render-sweep.sh object_csf_sweep:csf-sweep.sh)
+  string(REPLACE ":" ";" _s "${sweep}")
+  list(GET _s 0 _sweep_name)
+  list(GET _s 1 _sweep_script)
+  add_test(NAME test_integration_${_sweep_name}
+    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/${_sweep_script}"
+    WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+  set_tests_properties(test_integration_${_sweep_name} PROPERTIES
+    SKIP_RETURN_CODE 77
+    TIMEOUT 7200
+    RUN_SERIAL TRUE
+    LABELS "gui;sweep"
+    ENVIRONMENT "OBJECT_GALLERY=$<TARGET_FILE:ObjectGallery>;SCORE_AUDIO_BACKEND=dummy;ASAN_OPTIONS=detect_leaks=0:halt_on_error=0")
+endforeach()
+
 
 # The scene testers need the producers their `Wire:` clauses name — Primitive
 # cube, Camera, DirectionalLight — which are halp processes in
