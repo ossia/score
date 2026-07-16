@@ -8,25 +8,36 @@
 # backend, isolated in its own process so a render-path crash is attributed to
 # that object/backend. Exit codes: 0 = rendered ok, 3 = no texture output
 # (skipped), anything else / signal / timeout = render failure.
+#
+# Exit 77 (ctest SKIP) when the gallery binary or a display is unavailable;
+# exit 1 when any object crashed on either backend.
 set -u
-GALLERY="tests/integration/ObjectGallery"
+GALLERY="${OBJECT_GALLERY:-tests/integration/ObjectGallery}"
 FILTER="${1:-}"
 SECS=1
 DISP="${DISPLAY:-:0}"
+
+[ -x "$GALLERY" ] || { echo "SKIP: no ObjectGallery at $GALLERY"; exit 77; }
+command -v xdpyinfo >/dev/null 2>&1 && ! xdpyinfo -display "$DISP" >/dev/null 2>&1 \
+  && { echo "SKIP: no X display at $DISP"; exit 77; }
 
 # GL backends: software (llvmpipe) and the machine's real GPU via X11.
 run_one() { # name backend_env...
   local name="$1"; shift
   local out
-  out=$(DISPLAY="$DISP" SCORE_AUDIO_BACKEND=dummy "$@" \
+  # `env` is required: bash decides assignment-prefix status at parse time, so
+  # the per-backend VAR=VALUE words coming from "$@" would be taken as the
+  # command name (exit 127) rather than as environment.
+  out=$(env DISPLAY="$DISP" SCORE_AUDIO_BACKEND=dummy "$@" \
     timeout 40 "$GALLERY" --render "$name" --seconds "$SECS" 2>/dev/null)
   local rc=$?
   printf '%s\n' "$out" | grep '^RENDER'
   return $rc
 }
 
-mapfile -t NAMES < <(DISPLAY="$DISP" "$GALLERY" --list "$FILTER" 2>/dev/null \
+mapfile -t NAMES < <(DISPLAY="$DISP" SCORE_AUDIO_BACKEND=dummy "$GALLERY" --list "$FILTER" 2>/dev/null \
                        | sed -n 's/  *[0-9a-f-]\{36\}$//p' | sed 's/ *$//' | sort -u)
+[ "${#NAMES[@]}" -gt 0 ] || { echo "SKIP: --list enumerated no objects (plug-ins not discovered?)"; exit 77; }
 echo "Sweeping ${#NAMES[@]} objects on llvmpipe + $( [ -n "${NV:-}" ] && echo hw ) NVIDIA(X11)..."
 crash_sw=0; crash_hw=0; ok=0; skip=0
 for name in "${NAMES[@]}"; do
