@@ -145,14 +145,13 @@ std::unique_ptr<GPUVideoDecoder> createGPUVideoDecoder(
           QRhiTexture::RGBA8, 4, format,
           "processed.rgba = tex.abgr; " + f);
 
-    // RGBA 16-bit
+    // RGBA 16-bit (uint16 UNORM data -> R16 packed texture + texelFetch, NOT the
+    // half-float RGBA16F path which reinterpreted the bytes as halfs -> black).
     case AV_PIX_FMT_RGBA64LE:
-      return std::make_unique<PackedDecoder>(
-          QRhiTexture::RGBA16F, 8, format, f);
+      return std::make_unique<RGBA64Decoder>(format, f);
     case AV_PIX_FMT_BGRA64LE:
-      return std::make_unique<PackedDecoder>(
-          QRhiTexture::RGBA16F, 8, format,
-          "processed.rgba = vec4(tex.b, tex.g, tex.r, tex.a); " + f);
+      return std::make_unique<RGBA64Decoder>(
+          format, "processed.rgb = tex.bgr; " + f);
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
     case AV_PIX_FMT_X2RGB10LE:
