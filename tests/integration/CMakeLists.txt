@@ -188,3 +188,24 @@ set_tests_properties(test_regression_offscreen_teardown PROPERTIES
   SKIP_RETURN_CODE 77
   TIMEOUT 600
   ENVIRONMENT "SCORE_BIN=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+
+# Video decode-correctness matrix: every SOFTWARE-
+# decodable pixel format in Gfx/Graph/decoders is encoded as a known pattern
+# (ffprobe-verified pix_fmt), played through VideoDecoderTester with
+# --expect/--psnr, and the rendered RGBA is asserted against ffmpeg's own
+# decode of the same clip (per-format PSNR bound), plus truncated/garbage
+# fuzz clips asserting graceful rejection. Needs an X display (llvmpipe over
+# GLX — the Qt 6.4 offscreen QPA has no headless GL/Vulkan): labeled gui,
+# skips (77) without ffmpeg/tester/display. Each tester run self-serializes
+# on /tmp/score-harness.lock.
+if(SCORE_VIDEO_TESTER)
+  add_test(NAME test_video_decode_correctness
+    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/video-decode-correctness.sh"
+    WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+  set_tests_properties(test_video_decode_correctness PROPERTIES
+    SKIP_RETURN_CODE 77
+    TIMEOUT 3600
+    RUN_SERIAL TRUE
+    LABELS "gui"
+    ENVIRONMENT "VIDEO_TESTER=${SCORE_ROOT_BINARY_DIR}/VideoDecoderTester;SCORE_AUDIO_BACKEND=dummy;ASAN_OPTIONS=detect_leaks=0:halt_on_error=0:handle_segv=1:detect_odr_violation=0:protect_shadow_gap=0")
+endif()
