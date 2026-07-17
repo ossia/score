@@ -52,10 +52,46 @@
 #include <QImage>
 
 #include <algorithm>
+#include <csignal>
 #include <cstdio>
+
+// Coverage support: this harness intentionally exits via std::_Exit (to bypass a
+// gfx teardown crash) and often SEGVs on shutdown, both of which skip the normal
+// atexit profile writer. When built with -fprofile-instr-generate we flush
+// counters explicitly before _Exit and from a SEGV/ABRT handler so instrumented
+// runs still yield a .profraw. Mach-O has no ELF-style weak undefined externals
+// (the static link still requires the symbol), so resolve dynamically there.
+#if defined(__APPLE__)
+#include <dlfcn.h>
+#else
+extern "C" __attribute__((weak)) int __llvm_profile_write_file(void);
+#endif
 
 namespace
 {
+void flush_coverage()
+{
+#if defined(__APPLE__)
+  if(auto f = reinterpret_cast<int (*)(void)>(
+         dlsym(RTLD_DEFAULT, "__llvm_profile_write_file")))
+    f();
+#else
+  if(&__llvm_profile_write_file != nullptr)
+    __llvm_profile_write_file();
+#endif
+}
+void coverage_signal_handler(int sig)
+{
+  flush_coverage();
+  std::signal(sig, SIG_DFL);
+  std::raise(sig);
+}
+void install_coverage_flush()
+{
+  std::signal(SIGSEGV, coverage_signal_handler);
+  std::signal(SIGABRT, coverage_signal_handler);
+}
+
 bool matches(const QString& name, const QString& filter)
 {
   return filter.isEmpty() || name.contains(filter, Qt::CaseInsensitive);
@@ -253,6 +289,7 @@ void run_render_check(const QString& filter, int seconds)
     // crashes in the offscreen readback release path) via a hard exit. If the
     // object had crashed *during* rendering, we would never reach here — that
     // is exactly the render-path failure this check is meant to catch.
+    flush_coverage();
     std::_Exit(rc);
   });
 }
@@ -353,6 +390,7 @@ void run_shader_check(const QString& path, int seconds)
       }
     }
     std::fflush(stdout);
+    flush_coverage();
     std::_Exit(rc);
   });
 }
@@ -360,6 +398,7 @@ void run_shader_check(const QString& path, int seconds)
 
 int main(int argc, char** argv)
 {
+  install_coverage_flush();
   QLocale::setDefault(QLocale::C);
   std::setlocale(LC_ALL, "C");
 
