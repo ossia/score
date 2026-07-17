@@ -221,3 +221,10 @@ target_link_libraries(ObjectGallery PRIVATE
   ${QT_PREFIX}::Network ${QT_PREFIX}::Xml)
 setup_score_common_exe_features(ObjectGallery)
 set_target_properties(ObjectGallery PROPERTIES FOLDER "Tests")
+
+# Splat ports stay stable across save/reload
+# (score_plugin_threedim is discovered dynamically at runtime).
+score_add_test(test_regression_splat_reload
+  SOURCES RegressionSplatReloadTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process)
