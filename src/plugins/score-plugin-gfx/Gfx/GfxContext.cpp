@@ -100,6 +100,34 @@ void GfxContext::unregister_node(int32_t idx)
     tick_commands.enqueue(NodeCommand{NodeCommand::REMOVE_NODE, idx, {}});
 }
 
+void GfxContext::destroyOutput(score::gfx::OutputNode* node)
+{
+  // Synchronous counterpart to the async REMOVE_NODE path: releases the
+  // output's RenderList (while its QRhi is still alive), calls destroyOutput()
+  // and drops the node from Graph::m_outputs. Safe to call at shutdown, when
+  // rendering is stopped and the tick queue will never be drained again.
+  if(m_graph && node)
+  {
+    m_graph->destroyOutputRenderList(*node);
+    // Also drop it from m_nodes: ~Graph's belt-and-braces loop does
+    // dynamic_cast<OutputNode*>(n) over m_nodes, which would deref this freed
+    // node's vtable once the device destroys it. removeNode is a pure pointer
+    // erase, so it is safe with the (still-alive) node here.
+    m_graph->removeNode(node);
+
+    // A device-owned output (offscreen BackgroundNode) is double-owned: the
+    // device keeps it in a unique_ptr AND register_node() stored another
+    // unique_ptr in `nodes`. The device is about to free it, so RELEASE (do
+    // not delete) our copy of the ownership and drop the map entry — otherwise
+    // ~GfxContext's `nodes` map frees it a second time (double-free).
+    if(auto it = nodes.find(node->nodeId); it != nodes.end())
+    {
+      (void)it->second.release();
+      nodes.erase(it);
+    }
+  }
+}
+
 void GfxContext::unregister_preview_node(int32_t idx)
 {
   OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
