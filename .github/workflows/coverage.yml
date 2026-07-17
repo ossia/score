@@ -1,0 +1,65 @@
+name: Coverage
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  coverage:
+    name: Coverage (Coveralls)
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:noble
+
+    steps:
+      - name: Install git
+        run: |
+          apt-get update -qq
+          apt-get install -qq --no-install-recommends --force-yes git ca-certificates curl
+
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          submodules: 'recursive'
+
+      # The container runs as root while the checkout is owned by a different
+      # uid; without this git refuses operations and gcovr --coveralls (which
+      # embeds git metadata) fails.
+      - name: Trust workspace
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Dependencies
+        run: |
+          ./ci/ubuntu.noble.deps.sh
+          # Coverage report generator + a clang/llvm toolchain (llvm-cov gcov)
+          # + software OpenGL (llvmpipe) + a virtual X display (xvfb) so the
+          # SCORE_TESTING ctest suite (incl. GUI-labelled tests) can run.
+          apt-get install -y --no-install-recommends \
+            gcovr clang lld llvm \
+            libgl1-mesa-dri libglx-mesa0 mesa-utils xvfb
+
+      - name: Build, run tests, generate Coveralls report
+        env:
+          # clang-19 comes from ubuntu.noble.deps.sh; the distro's default
+          # clang-18 miscompiles the target("default")/target("avx2") function
+          # multiversioning in FileContains.cpp as a redefinition.
+          CC: clang-19
+          CXX: clang++-19
+          GCOV: "llvm-cov-19 gcov"
+        run: ./ci/coverage.build.sh
+
+      # Uploads via the Coveralls GitHub App (github.token) — no secret needed
+      # for public repos once the App is enabled on ossia/score. Runs even if a
+      # test failed so partial coverage is still reported.
+      - name: Upload to Coveralls
+        if: always()
+        uses: coverallsapp/github-action@v2
+        with:
+          file: coverage.json
+          format: coveralls
