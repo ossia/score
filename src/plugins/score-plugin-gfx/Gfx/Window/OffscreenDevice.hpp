@@ -73,6 +73,16 @@ public:
 
   ~offscreen_device()
   {
+    // Remove our output from the render graph synchronously, while both the
+    // BackgroundNode and its QRhi are still alive. This output is owned by the
+    // device (not the graph), so on shutdown it is torn down here before
+    // Graph::~Graph runs — and the graph's async REMOVE_NODE queue is never
+    // drained again. Without this, the graph is left with a dangling output
+    // pointer + a RenderList over a freed QRhi (SIGSEGV in ~Graph teardown).
+    if(auto* proto = static_cast<gfx_protocol_base*>(m_protocol.get());
+       proto && proto->context && proto->context->ui)
+      proto->context->ui->destroyOutput(m_node.get());
+
     m_protocol->stop();
     m_root.clear_children();
     m_protocol.reset();

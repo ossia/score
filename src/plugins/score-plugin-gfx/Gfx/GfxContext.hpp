@@ -72,6 +72,13 @@ public:
   void unregister_node(int32_t idx);
   void unregister_preview_node(int32_t idx);
 
+  // Synchronously tear down an output node's render list and drop it from the
+  // graph. Used by device-owned outputs (e.g. the offscreen BackgroundNode)
+  // whose destructor runs during shutdown before the async node-command queue
+  // is drained — without this the graph is left with a dangling output pointer
+  // and a RenderList referencing an already-freed QRhi.
+  void destroyOutput(score::gfx::OutputNode* node);
+
   void recompute_edges();
   void recompute_graph();
   void recompute_connections();
