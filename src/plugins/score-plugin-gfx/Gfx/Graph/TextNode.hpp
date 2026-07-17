@@ -26,7 +26,11 @@ public:
   {
     float opacity{1.};
     float padding_std140_0{};
-    float position[2]{0.5, 0.5};
+    // Clip-space offset (added to the text quad in the vertex shader). {0,0} is
+    // screen centre; the previous {0.5,0.5} default shifted an unconfigured Text
+    // process ~half a screen up+right — off the top edge — so default text was
+    // invisible until Position was touched. (video/text render validation)
+    float position[2]{0.0, 0.0};
     float scale[2]{1., 1.};
   } ubo;
 #pragma pack(pop)
