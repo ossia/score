@@ -141,3 +141,23 @@ set_tests_properties(test_timeline_scenario_ramp PROPERTIES
   TIMEOUT 600
   RUN_SERIAL TRUE
   ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+
+# TEXT node render validation (depends on the scene render path). One
+# headless llvmpipe app run: grabs the
+# Gfx::Text process with DEFAULT controls (off-screen-default visibility
+# regression), then live-edits text/font/size/position/scale/color over OSC
+# /script and asserts pixel VALUES per case (analyze.py: coverage, bbox
+# ordering across sizes, centroid movement, channel dominance, blank empty
+# string, unicode/CJK/tofu/2000-char edge cases) + golden refs for the
+# stable subset (text-render/refs/llvmpipe, compare.py strict; regenerate
+# with text-render.sh --update-refs — double-render self-consistency).
+# Self-serializes on /tmp/score-harness.lock; SKIPs (77) without deps.
+add_test(NAME test_text_render
+  COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/text-render/text-render.sh"
+  WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+set_tests_properties(test_text_render PROPERTIES
+  SKIP_RETURN_CODE 77
+  TIMEOUT 900
+  RUN_SERIAL TRUE
+  ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+
