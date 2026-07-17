@@ -137,3 +137,10 @@ score_add_test(test_unit_gfx_assettable
   SOURCES AssetTableTest.cpp
   PLUGINS score_plugin_gfx
   LIBS ${QT_PREFIX}::Gui)
+
+# libisf importer branches (shadertoy / shadertoy-json / glsl-sandbox /
+# write_isf / float-input min-max inference). isf::parser is exported from
+# score_plugin_gfx, whose PUBLIC include dirs provide <isf.hpp>.
+score_add_test(test_unit_isf_importers
+  SOURCES IsfImportersTest.cpp
+  PLUGINS score_plugin_gfx)

@@ -230,7 +230,7 @@ parser::parser(std::string vert, std::string frag, int glslVersion, ShaderType t
     , m_sourceFragment{std::move(frag)}
     , m_version{glslVersion}
 {
-  this->m_desc.default_vertex_shader = vert.empty();
+  this->m_desc.default_vertex_shader = m_sourceVertex.empty();
 
   static const auto is_isf = [](const std::string& str) {
     bool has_isf
@@ -4433,18 +4433,60 @@ void main(void)
   }
 }
 
+// Whole-identifier textual replacement: rewrites `from` into `to` only when
+// the match is not part of a larger identifier, so e.g. replacing "time" does
+// not mangle "lifetime" or "timestep".
+static void replace_identifier(
+    std::string& text, std::string_view from, std::string_view to)
+{
+  static constexpr auto is_ident_char = [](char c) {
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')
+           || c == '_';
+  };
+
+  std::string out;
+  out.reserve(text.size());
+  std::size_t pos = 0;
+  for(;;)
+  {
+    const auto hit = text.find(from, pos);
+    if(hit == std::string::npos)
+    {
+      out.append(text, pos, std::string::npos);
+      break;
+    }
+
+    out.append(text, pos, hit - pos);
+    const bool starts_word = hit == 0 || !is_ident_char(text[hit - 1]);
+    const bool ends_word = hit + from.size() == text.size()
+                           || !is_ident_char(text[hit + from.size()]);
+    out.append(starts_word && ends_word ? to : from);
+    pos = hit + from.size();
+  }
+  text = std::move(out);
+}
+
 void parser::parse_glsl_sandbox()
 {
-  m_fragment += "uniform float TIME;\n";
-  m_fragment += "uniform vec2 MOUSE;\n";
-  m_fragment += "uniform vec2 RENDERSIZE;\n";
+  // Rewrite the glslsandbox uniform names to their ISF equivalents first,
+  // so we can tell which compatibility declarations the source already
+  // provides (glslsandbox shaders declare their own uniforms).
+  std::string src = m_sourceFragment;
+  replace_identifier(src, "time", "TIME");
+  replace_identifier(src, "resolution", "RENDERSIZE");
+  replace_identifier(src, "mouse", "MOUSE");
+
+  // Only add the compatibility declarations the source does not declare
+  // itself, to avoid GLSL redeclaration errors.
+  if(src.find("uniform float TIME;") == std::string::npos)
+    m_fragment += "uniform float TIME;\n";
+  if(src.find("uniform vec2 MOUSE;") == std::string::npos)
+    m_fragment += "uniform vec2 MOUSE;\n";
+  if(src.find("uniform vec2 RENDERSIZE;") == std::string::npos)
+    m_fragment += "uniform vec2 RENDERSIZE;\n";
   m_fragment += "out vec2 isf_FragNormCoord;\n";
 
-  m_fragment += m_sourceFragment;
-
-  boost::replace_all(m_fragment, "time", "TIME");
-  boost::replace_all(m_fragment, "resolution", "RENDERSIZE");
-  boost::replace_all(m_fragment, "mouse", "MOUSE");
+  m_fragment += src;
 
   m_vertex =
       R"_(
@@ -4760,6 +4802,14 @@ void parser::parse_shadertoy_json(const std::string& json)
   {
     // Generate fragment shader with ISF compatibility
     {
+      // Same preludes as parse_shadertoy(): the compat block below references
+      // TIME / RENDERSIZE / isf_process_uniforms / isf_FragCoord /
+      // isf_FragColor, which these declare.
+      m_fragment = GLSL45.versionPrelude;
+      m_fragment += GLSL45.fragmentPrelude;
+      m_fragment += GLSL45.defaultUniforms;
+      m_fragment += GLSL45.defaultFunctions;
+
       // Add Shadertoy compatibility layer
       m_fragment += R"_(
 // Shadertoy compatibility uniforms
@@ -4767,7 +4817,7 @@ vec3 iResolution  = vec3(RENDERSIZE, 1.0);
 float iTime = TIME;
 float iTimeDelta = TIMEDELTA;
 int iFrame = FRAMEINDEX;
-vec4 iMouse = vec2(0.0, 0.0); // FIXME
+vec4 iMouse = vec4(0.0, 0.0, 0.0, 0.0); // FIXME MOUSE
 vec4 iDate = DATE;
 float iSampleRate = isf_process_uniforms.SAMPLERATE_;
 
@@ -5413,6 +5463,10 @@ std::string parser::write_isf() const
       if(str.size() > 2 && str[str.size() - 2] == ',')
       {
         oss.str(str.substr(0, str.size() - 2) + "\n");
+        // str() resets the put position to the beginning of the new buffer;
+        // move it back to the end so subsequent writes append instead of
+        // overwriting the start of the document.
+        oss.seekp(0, std::ios_base::end);
       }
 
       oss << "    }";

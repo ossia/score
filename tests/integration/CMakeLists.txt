@@ -92,3 +92,52 @@ score_add_test(test_regression_throwing_drop_handler
   SOURCES RegressionThrowingDropHandlerTest.cpp
   APP
   PLUGINS score_lib_process)
+
+# Golden-image render regression.
+# Renders a pinned subset of the tests-scene JS corpus headless on llvmpipe and
+# compares each frame to refs/llvmpipe/*.png with compare.py (SSIM/PSNR).
+# Deterministic-headless -> CI-able. References are committed under
+# refs/llvmpipe/; regenerate with:  golden-render.sh --backend llvmpipe --update-refs
+# Self-serializes on /tmp/score-harness.lock; skips (77) if refs/oscsend/corpus absent.
+add_test(NAME test_golden_render_llvmpipe
+  COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/golden-render/golden-render.sh" --backend llvmpipe
+  WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+set_tests_properties(test_golden_render_llvmpipe PROPERTIES
+  SKIP_RETURN_CODE 77
+  TIMEOUT 1800
+  RUN_SERIAL TRUE
+  ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+
+# Resource/leak/lifetime soak.
+# Creates+destroys 4 gfx processes/cycle during playback via the JS harness and
+# asserts exit 0, ASAN-clean, and stable RSS/fd/process counts.
+# DISABLED: this reproducer currently FAILS on a REAL, unfixed heap-use-after-
+# free in the render-clock teardown path — GfxContext.cpp:341 (the TimerClock
+# tick lambda dereferences an offscreen BackgroundNode already freed by
+# ~offscreen_device, OffscreenDevice.hpp:97) fired from forceCloseDocument's
+# event pump on /exit. This is NEW render-clock code (RenderClock.cpp/TimerClock),
+# distinct from the 3 previously-fixed teardown UAFs. Flip DISABLED->FALSE once
+# that UAF is fixed; it then becomes the leak/teardown regression gate.
+# Deterministic-headless -> CI-able. Self-serializes on /tmp/score-harness.lock.
+add_test(NAME test_gfx_soak
+  COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/gfx-soak/soak-leak.sh" 150
+  WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+set_tests_properties(test_gfx_soak PROPERTIES
+  DISABLED TRUE
+  SKIP_RETURN_CODE 77
+  TIMEOUT 1200
+  RUN_SERIAL TRUE
+  ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+
+# Timeline-driven scenario.
+# Seeks an automation ramp with OSC /transport, pausing + grabbing at fixed
+# positions, and asserts the rendered frame mean == position/duration.
+# Deterministic-headless -> CI-able. Self-serializes on /tmp/score-harness.lock.
+add_test(NAME test_timeline_scenario_ramp
+  COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/timeline-scenarios/timeline-scenario.sh"
+  WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+set_tests_properties(test_timeline_scenario_ramp PROPERTIES
+  SKIP_RETURN_CODE 77
+  TIMEOUT 600
+  RUN_SERIAL TRUE
+  ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
