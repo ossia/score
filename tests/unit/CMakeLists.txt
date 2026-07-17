@@ -144,3 +144,8 @@ score_add_test(test_unit_gfx_assettable
 score_add_test(test_unit_isf_importers
   SOURCES IsfImportersTest.cpp
   PLUGINS score_plugin_gfx)
+
+score_add_test(test_unit_video_pixel_format
+  SOURCES VideoPixelFormatTest.cpp
+  PLUGINS score_plugin_gfx score_plugin_media
+  LIBS avutil)

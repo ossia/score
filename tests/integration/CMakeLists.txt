@@ -161,3 +161,30 @@ set_tests_properties(test_text_render PROPERTIES
   RUN_SERIAL TRUE
   ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
 
+# GPU video encoder matrix: instantiates every encoder in
+# src/plugins/score-plugin-gfx/Gfx/Graph/encoders on a real QRhi backend
+# (SCORE_TEST_API=opengl|vulkan) and byte-checks the outputs. Registered GUI
+# (-> LABELS gui) because GL/Vulkan context creation needs a windowing system;
+# exclude with `ctest -LE gui` on displayless machines. Static-plugin builds
+# can't link score_plugin_gfx directly (same constraint as EncoderTester).
+if(TARGET score_plugin_gfx AND NOT SCORE_STATIC_PLUGINS)
+  score_add_test(test_integration_encoder_matrix
+    SOURCES EncoderMatrixTest.cpp
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_media)
+  # GL drivers (llvmpipe in particular) leak internally; don't let LSAN turn
+  # that into a test failure.
+  set_tests_properties(test_integration_encoder_matrix PROPERTIES
+    ENVIRONMENT "SCORE_AUDIO_BACKEND=dummy;ASAN_OPTIONS=detect_leaks=0:halt_on_error=0")
+endif()
+
+# Offscreen-teardown regression: a full-app offscreen
+# render followed by /stop + /exit must exit 0 (was SIGSEGV/UAF at teardown).
+# The script serializes itself on /tmp/score-harness.lock (global OSC port).
+add_test(NAME test_regression_offscreen_teardown
+  COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/offscreen-teardown-regression.sh"
+  WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+set_tests_properties(test_regression_offscreen_teardown PROPERTIES
+  SKIP_RETURN_CODE 77
+  TIMEOUT 600
+  ENVIRONMENT "SCORE_BIN=${SCORE_ROOT_BINARY_DIR}/ossia-score")

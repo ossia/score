@@ -796,6 +796,10 @@ endif()
 if(SCORE_VIDEO_TESTER)
 add_executable(VideoTester tests/VideoTester.cpp)
 target_link_libraries(VideoTester PRIVATE score_plugin_gfx)
+
+# Headless-friendly variant used by tests/integration/video-decoder-sweep.sh
+add_executable(VideoDecoderTester tests/VideoDecoderTester.cpp)
+target_link_libraries(VideoDecoderTester PRIVATE score_plugin_gfx)
 endif()
 
 # Offscreen unit test for the GPU video encoders (no AJA/libav/gst needed).
@@ -806,6 +810,17 @@ if(SCORE_ENCODER_TESTER AND NOT SCORE_STATIC_PLUGINS)
 add_executable(EncoderTester tests/EncoderTester.cpp)
 target_link_libraries(EncoderTester PRIVATE
   score_plugin_gfx score_plugin_media ${QT_PREFIX}::Gui)
+
+# Register the self-test as a ctest when the test suite is enabled. It needs
+# a GL-capable display (llvmpipe is fine): label it "gui" like the other
+# display-dependent tests so it can be excluded with `ctest -LE gui`.
+if(SCORE_TESTING)
+  add_test(NAME EncoderTester COMMAND EncoderTester)
+  set_tests_properties(EncoderTester PROPERTIES
+    WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}"
+    ENVIRONMENT "SCORE_AUDIO_BACKEND=dummy;ASAN_OPTIONS=detect_leaks=0:halt_on_error=0"
+    LABELS "gui")
+endif()
 endif()
 
 # PipeWire video round-trip harness: drives the real Gfx/Pipewire producer +
