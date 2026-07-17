@@ -48,11 +48,14 @@ void TimerClock::start(std::function<void()> tick)
   if(!m_timer)
     m_timer = m_timers.acquireTimer(m_owner, m_frequency);
 
-  // Queued connection with the owner (GfxContext) as receiver context: the
-  // tick is delivered on the owner's thread — score's render thread — exactly
-  // as the old connect(id, &timeout, this, &on_manual_timer, Qt::QueuedConnection).
+  // Queued connection delivered on the render thread (m_receiver lives there,
+  // same as m_owner). m_receiver — not m_owner — is the receiver context so
+  // that destroying this TimerClock purges any pending timeout events: with
+  // m_owner (which outlives us) as context, a queued tick already posted before
+  // stop()'s disconnect() would still fire the lambda on our freed `this`
+  // (heap-use-after-free at shutdown).
   m_conn = QObject::connect(
-      m_timer, &score::HighResolutionTimer::timeout, m_owner,
+      m_timer, &score::HighResolutionTimer::timeout, &m_receiver,
       [this](score::HighResolutionTimer*) {
         if(m_tick)
           m_tick();
