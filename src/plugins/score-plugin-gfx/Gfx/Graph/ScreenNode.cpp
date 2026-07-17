@@ -667,6 +667,19 @@ void ScreenNode::createOutput(score::gfx::OutputConfiguration conf)
 {
   if(m_ownsWindow)
   {
+    // Idempotency guard for mid-play graph rebuilds. initializeOutput()
+    // re-enters here whenever renderState() is null — which is exactly the
+    // transient state of a freshly-created window that is still waiting for
+    // its first expose to build the swapchain. Re-creating the window here
+    // would free the in-flight Window (and the RenderState it co-owns) while
+    // queued expose/deferred-delete events and the surviving RenderLists still
+    // reference them -> the deterministic mid-play use-after-free/invalid-free.
+    // The onWindowReady set by the first createOutput() is still pending and
+    // completes the setup. A *deliberate* recreation (graphics-API or
+    // sample-count change) routes through destroyOutput() first, which resets
+    // m_window, so this guard never blocks it.
+    if(m_window)
+      return;
     m_window = std::make_shared<Window>(conf.graphicsApi);
     if(m_embedded)
       m_window->unsetCursor();
@@ -936,9 +949,27 @@ void ScreenNode::setVSyncCallback(std::function<void ()> f)
   // TODO thread safety if vulkan uses a thread ?
   // If we have more than one output, then instead we sync them with
   // a simple timer, as they may have drastically different vsync rates.
-  m_vsyncCallback = f;
+  const bool wasArmed = bool(m_vsyncCallback);
+  m_vsyncCallback = std::move(f);
   if(m_window)
+  {
     m_window->onUpdate = m_vsyncCallback;
+
+    // The window's vsync render loop is a self-perpetuating requestUpdate()
+    // chain: Window::render() re-arms it at its tail only while onUpdate is
+    // set. When a graph rebuild switches manual mode -> vsync mode it merely
+    // sets the callback here; nothing kicks a first frame, so the chain stays
+    // dead until a platform expose (window move/resize) happens to call
+    // render() again -> "the render freezes until I move the window". Kick a
+    // frame on the null->non-null transition to restart the loop. Queued +
+    // window-scoped so it is a no-op if the window dies first and never runs
+    // re-entrantly inside the rebuild.
+    if(!wasArmed && m_vsyncCallback)
+    {
+      auto* w = m_window.get();
+      QMetaObject::invokeMethod(w, [w] { w->requestUpdate(); }, Qt::QueuedConnection);
+    }
+  }
 }
 
 std::shared_ptr<score::gfx::RenderState> ScreenNode::renderState() const
