@@ -518,3 +518,15 @@ if(TARGET score_plugin_gfx)
     endif()
   endif()
 endif()
+
+# --- image loaders (gfx TextureLoader decode + threedim LDR ImageLoader /
+# ArrayToTexture) ----------------------------------------------------------
+# All entry points are either SCORE_PLUGIN_GFX_EXPORTed (decodeImageFrom*)
+# or header-inline (Threedim::ImageLoader::ins::image_t::process,
+# ArrayToTexture::recreate), so no plugin .cpp needs to be recompiled here.
+if(TARGET score_plugin_threedim)
+  score_add_test(test_unit_image_loader
+    SOURCES ImageLoaderTest.cpp
+    PLUGINS score_plugin_threedim score_plugin_gfx score_plugin_avnd
+    LIBS ${QT_PREFIX}::Gui)
+endif()
