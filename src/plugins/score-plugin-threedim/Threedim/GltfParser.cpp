@@ -14,6 +14,7 @@
 #include <QString>
 #include <QVector3D>
 
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <variant>
@@ -480,13 +481,147 @@ static std::shared_ptr<ossia::camera_component> to_camera(const fastgltf::Camera
   return cc;
 }
 
+// ---------------------------------------------------------------------------
+// Accessor bounds validation.
+//
+// fastgltf::validate() checks an accessor's bufferView *index*, component
+// alignment and count >= 1, but it never verifies that
+//   accessor.byteOffset + (count - 1) * stride + elementSize
+//     <= bufferView.byteLength
+// nor that the bufferView itself fits inside its buffer's actual bytes.
+// A hostile file declaring e.g. "count": 30000 against a 102-byte
+// bufferView would therefore drive fastgltf::iterateAccessor into an
+// out-of-bounds heap read. Every accessor must pass these checks before
+// being iterated.
+
+// Actual number of bytes backing a buffer, from the loaded data source —
+// the declared buffer.byteLength is file-controlled and may lie.
+static std::size_t buffer_source_byte_size(const fastgltf::Buffer& buffer)
+{
+  return std::visit(
+      fastgltf::visitor{
+          [](const auto&) -> std::size_t {
+            // URI / CustomBuffer / Fallback / BufferView sources are not
+            // produced for buffers parsed with LoadExternalBuffers; treat
+            // them as unreadable so dependent accessors get rejected
+            // rather than trusting a declared byteLength.
+            return 0;
+          },
+          [](const fastgltf::sources::Array& a) -> std::size_t
+          { return a.bytes.size_bytes(); },
+          [](const fastgltf::sources::Vector& v) -> std::size_t
+          { return v.bytes.size(); },
+          [](const fastgltf::sources::ByteView& b) -> std::size_t
+          { return b.bytes.size_bytes(); },
+      },
+      buffer.data);
+}
+
+// True iff reading `count` elements of `elem_read_size` bytes each, spaced
+// `stride` bytes apart, starting `byte_offset` bytes into bufferView
+// `view_idx`, stays within both the view and its backing buffer bytes.
+// All arithmetic is overflow-safe (guarded subtractions + division; no
+// unchecked file-controlled multiplication).
+static bool range_within_view(
+    const fastgltf::Asset& asset, std::size_t view_idx, std::size_t byte_offset,
+    std::size_t count, std::size_t stride, std::size_t elem_read_size)
+{
+  if(count == 0)
+    return true;
+  if(stride == 0 || elem_read_size == 0)
+    return false;
+  if(view_idx >= asset.bufferViews.size())
+    return false;
+  const auto& view = asset.bufferViews[view_idx];
+  if(view.bufferIndex >= asset.buffers.size())
+    return false;
+
+  // The view must fit in the buffer's actually-loaded bytes.
+  const std::size_t buf_size
+      = buffer_source_byte_size(asset.buffers[view.bufferIndex]);
+  if(view.byteLength > buf_size || view.byteOffset > buf_size - view.byteLength)
+    return false;
+
+  // First element: [byte_offset, byte_offset + elem_read_size) must fit.
+  if(byte_offset > view.byteLength
+     || elem_read_size > view.byteLength - byte_offset)
+    return false;
+  // Remaining count - 1 strides must fit in what's left.
+  const std::size_t remaining = view.byteLength - byte_offset - elem_read_size;
+  return count - 1 <= remaining / stride;
+}
+
+// `iter_components` is the number of components the caller will actually
+// decode per element; fastgltf's accessor iterators read that many
+// regardless of the accessor's own declared type, so a type-mismatched
+// accessor must be bounded by the *wider* of the two.
+static bool accessor_within_bounds(
+    const fastgltf::Asset& asset, const fastgltf::Accessor& acc,
+    std::size_t iter_components)
+{
+  const std::size_t comp_size = fastgltf::getComponentByteSize(acc.componentType);
+  const std::size_t packed_size
+      = fastgltf::getElementByteSize(acc.type, acc.componentType);
+  if(comp_size == 0 || packed_size == 0)
+    return false;
+  const std::size_t read_size = std::max(packed_size, iter_components * comp_size);
+
+  if(acc.bufferViewIndex.has_value())
+  {
+    const std::size_t view_idx = *acc.bufferViewIndex;
+    if(view_idx >= asset.bufferViews.size())
+      return false;
+    const std::size_t stride
+        = asset.bufferViews[view_idx].byteStride.value_or(packed_size);
+    if(!range_within_view(asset, view_idx, acc.byteOffset, acc.count, stride, read_size))
+      return false;
+  }
+  if(acc.sparse.has_value())
+  {
+    const auto& sp = *acc.sparse;
+    // The sparse substitution streams hold at most `count` entries each,
+    // consumed while iterating the base accessor — they may not exceed it.
+    if(sp.count > acc.count)
+      return false;
+    const std::size_t idx_size = fastgltf::getElementByteSize(
+        fastgltf::AccessorType::Scalar, sp.indexComponentType);
+    if(idx_size == 0)
+      return false;
+    // Sparse bufferViews cannot declare a byteStride (glTF spec); both
+    // streams are tightly packed.
+    if(!range_within_view(
+           asset, sp.indicesBufferView, sp.indicesByteOffset, sp.count,
+           idx_size, idx_size))
+      return false;
+    if(!range_within_view(
+           asset, sp.valuesBufferView, sp.valuesByteOffset, sp.count,
+           packed_size, read_size))
+      return false;
+  }
+  return true;
+}
+
+// Sweep every accessor in the asset once at load time, with its declared
+// element width. Covers all downstream consumers in one pass; read sites
+// additionally re-check with the width they actually iterate.
+static bool all_accessors_within_bounds(const fastgltf::Asset& asset)
+{
+  for(const auto& acc : asset.accessors)
+    if(!accessor_within_bounds(asset, acc, fastgltf::getNumComponents(acc.type)))
+      return false;
+  return true;
+}
+
 // Pull one accessor into a float vector. `components` is the number of
 // floats per element (1/2/3/4). fastgltf's iterator handles all component
 // types (byte/short/int/float) with automatic widening to float.
+// Returns nullptr when the accessor's data range escapes its bufferView.
 template <int Components>
 static std::shared_ptr<std::vector<float>> read_float_accessor(
     const fastgltf::Asset& asset, const fastgltf::Accessor& acc)
 {
+  if(!accessor_within_bounds(asset, acc, Components))
+    return {};
   auto out = std::make_shared<std::vector<float>>(acc.count * Components);
   float* dst = out->data();
   if constexpr(Components == 2)
@@ -514,9 +649,12 @@ static std::shared_ptr<std::vector<float>> read_float_accessor(
 }
 
 // Pull indices (whatever the glTF component type) into a flat uint32 buffer.
+// Returns nullptr when the accessor's data range escapes its bufferView.
 static std::shared_ptr<std::vector<uint32_t>> read_indices(
     const fastgltf::Asset& asset, const fastgltf::Accessor& acc)
 {
+  if(!accessor_within_bounds(asset, acc, 1))
+    return {};
   auto out = std::make_shared<std::vector<uint32_t>>(acc.count);
   uint32_t* dst = out->data();
   fastgltf::iterateAccessor<std::uint32_t>(
@@ -535,21 +673,27 @@ static GltfParser::ScenePart extract_primitive(
   auto get_accessor
       = [&](std::string_view name) -> const fastgltf::Accessor* {
     for(const auto& a : prim.attributes)
-      if(a.name == name)
+      if(a.name == name && a.accessorIndex < asset.accessors.size())
         return &asset.accessors[a.accessorIndex];
     return nullptr;
   };
 
   if(auto* a = get_accessor("POSITION"))
   {
-    sp.vertex_count = uint32_t(a->count);
     sp.positions = read_float_accessor<3>(asset, *a);
+    if(!sp.positions)
+    {
+      qDebug() << "GltfParser: POSITION accessor out of bounds, "
+                  "skipping primitive";
+      return {};
+    }
+    sp.vertex_count = uint32_t(a->count);
     // Local-space AABB. glTF requires min/max on the POSITION accessor,
     // but rather than chase fastgltf's accessor-specific variant API we
     // just walk the decoded float stream — same cost as one extra pass
     // on load (negligible compared to asset I/O), and trivially uniform
     // with the FBX / procedural code paths.
-    if(sp.positions && !sp.positions->empty())
+    if(!sp.positions->empty())
       sp.bounds = ossia::compute_aabb_from_positions(
           sp.positions->data(), sp.vertex_count);
   }
@@ -567,16 +711,18 @@ static GltfParser::ScenePart extract_primitive(
     else if(a->type == fastgltf::AccessorType::Vec3)
     {
       // Pad to RGBA.
-      auto rgb = read_float_accessor<3>(asset, *a);
-      auto rgba = std::make_shared<std::vector<float>>(a->count * 4);
-      for(std::size_t i = 0; i < a->count; ++i)
+      if(auto rgb = read_float_accessor<3>(asset, *a))
       {
-        (*rgba)[i * 4 + 0] = (*rgb)[i * 3 + 0];
-        (*rgba)[i * 4 + 1] = (*rgb)[i * 3 + 1];
-        (*rgba)[i * 4 + 2] = (*rgb)[i * 3 + 2];
-        (*rgba)[i * 4 + 3] = 1.f;
+        auto rgba = std::make_shared<std::vector<float>>(a->count * 4);
+        for(std::size_t i = 0; i < a->count; ++i)
+        {
+          (*rgba)[i * 4 + 0] = (*rgb)[i * 3 + 0];
+          (*rgba)[i * 4 + 1] = (*rgb)[i * 3 + 1];
+          (*rgba)[i * 4 + 2] = (*rgb)[i * 3 + 2];
+          (*rgba)[i * 4 + 3] = 1.f;
+        }
+        sp.colors = std::move(rgba);
       }
-      sp.colors = std::move(rgba);
     }
   }
   if(auto* a = get_accessor("TANGENT"))
@@ -586,7 +732,8 @@ static GltfParser::ScenePart extract_primitive(
   // UNSIGNED_SHORT vec4 — widen to uint32 here so the vertex shader can
   // bind a uniform uvec4 format regardless of source file. WEIGHTS_0 is
   // always float vec4 per glTF normative spec.
-  if(auto* a = get_accessor("JOINTS_0"))
+  if(auto* a = get_accessor("JOINTS_0");
+     a && accessor_within_bounds(asset, *a, 4))
   {
     auto joints = std::make_shared<std::vector<uint32_t>>(a->count * 4);
     uint32_t* dst = joints->data();
@@ -604,8 +751,20 @@ static GltfParser::ScenePart extract_primitive(
 
   if(prim.indicesAccessor.has_value())
   {
+    if(*prim.indicesAccessor >= asset.accessors.size())
+    {
+      qDebug() << "GltfParser: index accessor index out of range, "
+                  "skipping primitive";
+      return {};
+    }
     const auto& ia = asset.accessors[*prim.indicesAccessor];
     sp.indices = read_indices(asset, ia);
+    if(!sp.indices)
+    {
+      qDebug() << "GltfParser: index accessor out of bounds, "
+                  "skipping primitive";
+      return {};
+    }
     sp.index_count = uint32_t(ia.count);
   }
 
@@ -965,8 +1124,19 @@ std::function<void(GltfParser&)> GltfParser::ins::gltf_t::process(file_type tv)
   fastgltf::Asset asset = std::move(assetE.get());
 
   // The extraction below indexes accessors / meshes / skins straight from
-  // file-provided indices; validate() bounds-checks all of them so a
-  // malformed or hostile file can't drive out-of-bounds reads.
+  // file-provided indices. fastgltf::validate() bounds-checks most of the
+  // *indices* but NOT the accessors' data ranges — it never verifies
+  // accessor.byteOffset + count * elementSize <= bufferView.byteLength —
+  // so a hostile accessor "count" would drive iterateAccessor into an
+  // out-of-bounds heap read. Sweep every accessor's range first; running
+  // before validate() also keeps validate() itself away from hostile
+  // sparse-accessor bufferView indices, which it dereferences unchecked.
+  if(!all_accessors_within_bounds(asset))
+  {
+    qDebug() << "GltfParser: accessor data range out of bounds, rejecting:"
+             << path.string().c_str();
+    return {};
+  }
   if(fastgltf::validate(asset) != fastgltf::Error::None)
   {
     qDebug() << "GltfParser: asset failed validation:" << path.string().c_str();
@@ -1015,17 +1185,26 @@ std::function<void(GltfParser&)> GltfParser::ins::gltf_t::process(file_type tv)
     auto skel = std::make_shared<ossia::skeleton_component>();
     // Inverse-bind matrices are optional in glTF; default is identity.
     std::vector<float> ibms;
-    if(sk.inverseBindMatrices.has_value())
+    if(sk.inverseBindMatrices.has_value()
+       && *sk.inverseBindMatrices < asset.accessors.size())
     {
       const auto& ibmAcc = asset.accessors[*sk.inverseBindMatrices];
-      ibms.resize(ibmAcc.count * 16);
-      std::size_t i = 0;
-      fastgltf::iterateAccessor<fastgltf::math::fmat4x4>(
-          asset, ibmAcc, [&](fastgltf::math::fmat4x4 m) {
-            for(int c = 0; c < 4; ++c)
-              for(int r = 0; r < 4; ++r)
-                ibms[i++] = m[c][r];
-          });
+      if(accessor_within_bounds(asset, ibmAcc, 16))
+      {
+        ibms.resize(ibmAcc.count * 16);
+        std::size_t i = 0;
+        fastgltf::iterateAccessor<fastgltf::math::fmat4x4>(
+            asset, ibmAcc, [&](fastgltf::math::fmat4x4 m) {
+              for(int c = 0; c < 4; ++c)
+                for(int r = 0; r < 4; ++r)
+                  ibms[i++] = m[c][r];
+            });
+      }
+      else
+      {
+        qDebug() << "GltfParser: inverse-bind-matrix accessor out of "
+                    "bounds, using identity";
+      }
     }
     skel->joints.reserve(sk.joints.size());
     skel->joint_node_ids.reserve(sk.joints.size());
