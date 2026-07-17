@@ -66,10 +66,17 @@ else()
 endif()
 
 if(SCORE_COVERAGE)
-  include("${CMAKE_CURRENT_LIST_DIR}/modules/CodeCoverage.cmake")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_COVERAGE}")
-  set(CMAKE_EXE_LINKER_FLAGS_COVERAGE "${CMAKE_EXE_LINKER_FLAGS} ${CMAKE_EXE_LINKER_FLAGS_COVERAGE}")
-  set(CMAKE_SHARED_LINKER_FLAGS_COVERAGE "${CMAKE_SHARED_LINKER_FLAGS} ${CMAKE_SHARED_LINKER_FLAGS_COVERAGE}")
+  # gcov/gcovr instrumentation for coveralls.io (see .github/workflows/coverage.yml).
+  # Historically this included the Lars Bilke CodeCoverage.cmake module and
+  # defined report targets via setup_target_for_coverage(); that module was
+  # dropped when the project left Travis (it lived under the old CMake/modules/
+  # path and was never carried over), leaving CMAKE_CXX_FLAGS_COVERAGE empty and
+  # setup_target_for_coverage() undefined — i.e. the option was a silent no-op
+  # that would error at configure time. We now inject the gcov flags directly;
+  # gcovr generates the report (works with gcc's gcov and, for clang builds,
+  # with `gcovr --gcov-executable "llvm-cov gcov"`).
+  add_compile_options(-O0 -g --coverage -fprofile-arcs -ftest-coverage)
+  add_link_options(--coverage)
 endif()
 
 # Note : if building with a Qt installed in e.g. /home/myuser/Qt/ or /Users/Qt or c:\Qt\
