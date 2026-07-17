@@ -131,3 +131,9 @@ score_add_test(test_unit_avnd_audio_roundtrip
   SOURCES AvndAudioRoundtripTest.cpp
   PLUGINS score_lib_process
   APP)
+# AssetTable is pure CPU logic; TextureLoader upload paths run on QRhi's Null
+# backend (score_plugin_gfx links Qt::GuiPrivate PUBLIC, providing qrhi_p.h).
+score_add_test(test_unit_gfx_assettable
+  SOURCES AssetTableTest.cpp
+  PLUGINS score_plugin_gfx
+  LIBS ${QT_PREFIX}::Gui)
