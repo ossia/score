@@ -321,23 +321,20 @@ TEST_CASE("ControlInlet saveData/loadData round-trip", "[process][port]")
   // loadData must not clobber identity
   CHECK(b.id() == Id<Process::Port>{2});
 
-  // The default (NoFlag) deliberately does NOT restore the value; passing
-  // DontReloadValue is what restores it. The flag is misnamed relative to its
-  // effect, but this is by design, NOT a data-loss bug (full analysis in the
-  // P3R2 report): the only caller that wants the value back —
-  // LoadPresetCommand::redo — passes the flag; every default-flag caller
-  // (script/avnd port rebuild, LV2 EffectModel) intentionally re-derives the
-  // value from its own source of truth (script defaults / lilv state /
-  // loadPreset). Document save/load does NOT use loadData at all — it goes
-  // through the value visitor which preserves m_value unconditionally. So a
-  // naive loadData(saveData()) "dropping" the value is expected and harmless.
-  // The right cleanup is a RENAME (DontReloadValue -> ReloadValue), not a
-  // polarity flip (a flip would break every call site).
+  // By design, loadData restores the value ONLY when passed ReloadValue; the
+  // default (NoFlag) drops it (full analysis in the P3R2 report). The only
+  // caller that wants the value back — LoadPresetCommand::redo — passes
+  // ReloadValue; every default-flag caller (script/avnd port rebuild, LV2
+  // EffectModel) intentionally re-derives the value from its own source of
+  // truth (script defaults / lilv state / loadPreset). Document save/load does
+  // NOT use loadData at all — it goes through the value visitor, which
+  // preserves m_value unconditionally. So a default-flag loadData(saveData())
+  // "dropping" the value is expected and harmless, not data loss.
   CHECK(b.value() != a.value()); // default flags: value NOT restored (by design)
 
   Process::ControlInlet c{"c", Id<Process::Port>{3}, &owner};
-  c.loadData(a.saveData(), Process::PortLoadDataFlags::DontReloadValue);
-  CHECK(c.value() == a.value()); // "DontReloadValue" DOES restore it
+  c.loadData(a.saveData(), Process::PortLoadDataFlags::ReloadValue);
+  CHECK(c.value() == a.value()); // "ReloadValue" DOES restore it
 
   // Note: the domain is not part of saveData() at all (only cables, address,
   // value) - by design, so no expectation on it here.

@@ -310,20 +310,18 @@ TEST_CASE("ControlInlet value model", "[dataflow][port]")
     src.setAddress(State::AddressAccessor{*State::Address::fromString("dev:/a")});
     const QByteArray data = src.saveData();
 
-    // The flag is misnamed vs its effect (default NoFlag does NOT restore the
-    // value; DontReloadValue DOES), but this is by design, not a bug (P3R2
-    // report): default-flag callers re-derive the value from their own source
-    // and LoadPresetCommand::redo passes the flag to keep it. Document save/
-    // load bypasses loadData entirely. These assertions document the (correct)
-    // behavior; a future clarity-rename DontReloadValue->ReloadValue would keep
-    // the same semantics.
+    // By design (P3R2 report): the default (NoFlag) does NOT restore the value,
+    // ReloadValue DOES. Default-flag callers re-derive the value from their own
+    // source; LoadPresetCommand::redo passes ReloadValue to keep it. Document
+    // save/load bypasses loadData entirely. These assertions document that
+    // behavior.
     Process::ControlInlet defaults{"ctl", Id<Process::Port>{1}, nullptr};
     defaults.loadData(data);
     CHECK(defaults.value() == ossia::value{}); // value not restored
     CHECK(defaults.address().address.toString() == "dev:/a");
 
     Process::ControlInlet flagged{"ctl", Id<Process::Port>{2}, nullptr};
-    flagged.loadData(data, Process::PortLoadDataFlags::DontReloadValue);
+    flagged.loadData(data, Process::PortLoadDataFlags::ReloadValue);
     CHECK(flagged.value() == ossia::value{1.25f}); // value restored
   }
 }
