@@ -135,7 +135,7 @@ void ReplaceAllNodes::redo(const score::DocumentContext& ctx) const
   // Add new nodes
   auto doc = readJson(m_new_block);
 
-  static auto& pl = ctx.app.interfaces<Process::ProcessFactoryList>();
+  auto& pl = ctx.app.interfaces<Process::ProcessFactoryList>();
   JSONWriter wr{doc};
   for(const auto& json_vref : wr.obj["Nodes"].toArray())
   {

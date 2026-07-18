@@ -1037,28 +1037,28 @@ PortFactoryList::~PortFactoryList() { }
 
 std::unique_ptr<Inlet> load_inlet(DataStreamWriter& wr, QObject* parent)
 {
-  static auto& il = score::AppComponents().interfaces<Process::PortFactoryList>();
+  auto& il = wr.components.interfaces<Process::PortFactoryList>();
   return std::unique_ptr<Process::Inlet>(
       (Process::Inlet*)deserialize_interface(il, wr, parent));
 }
 
 std::unique_ptr<Inlet> load_inlet(JSONWriter& wr, QObject* parent)
 {
-  static auto& il = score::AppComponents().interfaces<Process::PortFactoryList>();
+  auto& il = wr.components.interfaces<Process::PortFactoryList>();
   return std::unique_ptr<Process::Inlet>(
       (Process::Inlet*)deserialize_interface(il, wr, parent));
 }
 
 std::unique_ptr<Outlet> load_outlet(DataStreamWriter& wr, QObject* parent)
 {
-  static auto& il = score::AppComponents().interfaces<Process::PortFactoryList>();
+  auto& il = wr.components.interfaces<Process::PortFactoryList>();
   return std::unique_ptr<Process::Outlet>(
       (Process::Outlet*)deserialize_interface(il, wr, parent));
 }
 
 std::unique_ptr<Outlet> load_outlet(JSONWriter& wr, QObject* parent)
 {
-  static auto& il = score::AppComponents().interfaces<Process::PortFactoryList>();
+  auto& il = wr.components.interfaces<Process::PortFactoryList>();
   return std::unique_ptr<Process::Outlet>(
       (Process::Outlet*)deserialize_interface(il, wr, parent));
 }

@@ -78,7 +78,7 @@ public:
   {
     auto& proc = m_model.find(ctx);
 
-    static auto& cl = ctx.app.components.interfaces<Process::PortFactoryList>();
+    auto& cl = ctx.app.components.interfaces<Process::PortFactoryList>();
     Process::Port* ctl = deserialize_interface(cl, DataStreamWriter{m_data}, &proc);
 
     proc.setupControl(safe_cast<Process::ControlInlet*>(ctl), m_addr);

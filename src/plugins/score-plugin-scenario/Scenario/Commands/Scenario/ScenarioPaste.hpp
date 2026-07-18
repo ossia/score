@@ -176,7 +176,7 @@ struct ProcessesBeingCopied
     // have a parent because it tries to access the event in the scenario if it
     // has one) We deserialize everything
     {
-      static auto& pl = ctx.app.interfaces<Process::ProcessFactoryList>();
+      auto& pl = ctx.app.interfaces<Process::ProcessFactoryList>();
       const auto& json_arr = sourceProcesses;
       processes.reserve(json_arr.Size());
       for(const auto& element : json_arr)

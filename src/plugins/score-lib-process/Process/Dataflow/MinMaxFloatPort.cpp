@@ -95,7 +95,7 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 DataStreamWriter::write(Process::MinMaxFloatOutlet& p)
 {
-  static auto& il = components.interfaces<Process::PortFactoryList>();
+  auto& il = components.interfaces<Process::PortFactoryList>();
 
   p.minInlet.reset((Process::FloatSlider*)deserialize_interface(il, *this, &p));
   p.maxInlet.reset((Process::FloatSlider*)deserialize_interface(il, *this, &p));
@@ -114,7 +114,7 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 JSONWriter::write(Process::MinMaxFloatOutlet& p)
 {
-  static auto& il = components.interfaces<Process::PortFactoryList>();
+  auto& il = components.interfaces<Process::PortFactoryList>();
 
   {
     JSONWriter writer{obj["MinInlet"]};
