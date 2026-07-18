@@ -45,5 +45,17 @@ for CLANGROOT in "$OSSIA_SDK/llvm-libs/lib/clang" "$OSSIA_SDK/llvm/lib/clang"; d
   done < <(find "$CLANGROOT" -name 'libclang_rt.builtins*.a')
 done
 
+# Ship mingw-w64's CRT-support archives too (the driver's implicit -lmingwex /
+# -lucrt): libmingwex has the C99-name math functions (hypotf, ...) that the UCRT
+# only exports under their underscore names; libucrt's alias objects have the
+# POSIX old names (fileno) and renamed imports (__msvcrt_assert).
+# locateMingwRuntimeLib() finds them at <sdk>/lib/.
+for CRTLIB in libmingwex.a libucrt.a; do
+  SRC="$OSSIA_SDK/llvm/x86_64-w64-mingw32/lib/$CRTLIB"
+  [[ -f "$SRC" ]] || continue
+  cp -f "$SRC" "$LIB/$CRTLIB"
+  echo "shipped crt-support: lib/$CRTLIB"
+done
+
 source $SCRIPTDIR/cleanup-sdk-common.sh
 

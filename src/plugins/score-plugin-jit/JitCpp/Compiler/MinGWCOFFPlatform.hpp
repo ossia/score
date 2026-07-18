@@ -30,6 +30,7 @@
 #if LLVM_VERSION_MAJOR >= 22
 
 #include <llvm/ADT/DenseMap.h>
+#include <llvm/ADT/StringMap.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/ExecutionEngine/Orc/Core.h>
 #include <llvm/ExecutionEngine/Orc/ExecutionUtils.h>
@@ -39,6 +40,7 @@
 #include <llvm/ExecutionEngine/Orc/Shared/ExecutorAddress.h>
 
 #include <atomic>
+#include <deque>
 #include <list>
 #include <map>
 #include <memory>
@@ -235,15 +237,39 @@ private:
   // add-ons), so we never run them twice.
   std::set<llvm::orc::JITDylib*> InitializedJDs;
 
-  // .pdata function tables registered with the OS x64 unwinder
-  // (RtlAddFunctionTable), so exceptions thrown in JIT'd code unwind. Deleted at
-  // teardown.
-  std::vector<void*> RegisteredEHTables;
-
   std::mutex PlatformMutex;
+};
 
+/// Serves the *weak-external aliases* of a mingw-w64 import library (the POSIX
+/// old names: fileno -> _fileno, and dllimport variants: __imp_fileno ->
+/// __imp__fileno) as ORC symbol aliases of their alternative name.
+///
+/// A driver link gets these from small alias objects inside libucrt.a, but
+/// JITLink's COFF backend rejects them ("Weak external symbol with external
+/// symbol as alternative not supported"), so a StaticLibraryDefinitionGenerator
+/// over the import lib cannot load them. This generator parses the weak-external
+/// records out of those objects itself -- data-driven from the toolchain's own
+/// import lib, so the alias set always matches what the driver would produce --
+/// and the aliased name then resolves through the JD's normal machinery (near
+/// DLLImport stub to the UCRT export), same as an AOT link's alias thunk.
+class COFFImportLibWeakAliasGenerator : public llvm::orc::DefinitionGenerator
+{
 public:
-  ~MinGWCOFFPlatform();
+  static llvm::Expected<std::unique_ptr<COFFImportLibWeakAliasGenerator>>
+  Load(const char* ImportLibPath);
+
+  llvm::Error tryToGenerate(
+      llvm::orc::LookupState& LS, llvm::orc::LookupKind K, llvm::orc::JITDylib& JD,
+      llvm::orc::JITDylibLookupFlags JDLookupFlags,
+      const llvm::orc::SymbolLookupSet& Symbols) override;
+
+private:
+  explicit COFFImportLibWeakAliasGenerator(llvm::StringMap<std::string> WeakToAlt)
+      : WeakToAlt(std::move(WeakToAlt))
+  {
+  }
+
+  llvm::StringMap<std::string> WeakToAlt; // weak name -> alternative name
 };
 
 /// LLJIT PlatformSupport that runs add-on static initializers via the platform's

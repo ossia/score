@@ -9,28 +9,14 @@
 #include <llvm/ExecutionEngine/Orc/LookupAndRecordAddrs.h>
 #include <llvm/ExecutionEngine/Orc/ObjectFileInterface.h>
 #include <llvm/ExecutionEngine/Orc/Shared/ObjectFormats.h>
+#include <llvm/Object/Archive.h>
 #include <llvm/Object/COFF.h>
+#include <llvm/Support/DynamicLibrary.h>
 #include <llvm/Support/FormatVariadic.h>
 
 using namespace llvm;
 using namespace llvm::orc;
 using namespace llvm::orc::shared;
-
-// x64 SEH function-table registration (from ntdll/kernel32; score links them).
-// Declared locally to avoid pulling <windows.h> into an LLVM translation unit.
-extern "C"
-{
-struct JIT_RUNTIME_FUNCTION
-{
-  uint32_t BeginAddress;
-  uint32_t EndAddress;
-  uint32_t UnwindData;
-};
-__declspec(dllimport) unsigned char __stdcall RtlAddFunctionTable(
-    JIT_RUNTIME_FUNCTION* FunctionTable, uint32_t EntryCount, uint64_t BaseAddress);
-__declspec(dllimport) unsigned char __stdcall RtlDeleteFunctionTable(
-    JIT_RUNTIME_FUNCTION* FunctionTable);
-}
 
 namespace llvm
 {
@@ -702,11 +688,105 @@ Error MinGWCOFFPlatform::initializeJITDylib(JITDylib& JD)
   return runJDInitializers(JD);
 }
 
-MinGWCOFFPlatform::~MinGWCOFFPlatform()
+Expected<std::unique_ptr<COFFImportLibWeakAliasGenerator>>
+COFFImportLibWeakAliasGenerator::Load(const char* ImportLibPath)
 {
-  std::lock_guard<std::mutex> Lock(PlatformMutex);
-  for(void* Table : RegisteredEHTables)
-    RtlDeleteFunctionTable(static_cast<JIT_RUNTIME_FUNCTION*>(Table));
+  auto Buf = MemoryBuffer::getFile(ImportLibPath);
+  if(!Buf)
+    return createFileError(ImportLibPath, Buf.getError());
+
+  auto A = object::Archive::create((*Buf)->getMemBufferRef());
+  if(!A)
+    return A.takeError();
+
+  StringMap<std::string> WeakToAlt;
+  Error Err = Error::success();
+  for(auto& Child : (*A)->children(Err))
+  {
+    auto Bin = Child.getAsBinary();
+    if(!Bin)
+    {
+      // Short import members and non-objects are irrelevant here.
+      consumeError(Bin.takeError());
+      continue;
+    }
+    auto* Obj = dyn_cast<object::COFFObjectFile>(Bin->get());
+    if(!Obj)
+      continue;
+
+    for(uint32_t I = 0, E = Obj->getNumberOfSymbols(); I < E; ++I)
+    {
+      auto Sym = Obj->getSymbol(I);
+      if(!Sym)
+      {
+        consumeError(Sym.takeError());
+        continue;
+      }
+      uint32_t NumAux = Sym->getNumberOfAuxSymbols();
+      if(Sym->getStorageClass() == COFF::IMAGE_SYM_CLASS_WEAK_EXTERNAL
+         && NumAux >= 1)
+      {
+        ArrayRef<uint8_t> Aux = Obj->getSymbolAuxData(*Sym);
+        if(Aux.size() >= sizeof(object::coff_aux_weak_external))
+        {
+          const auto* WE
+              = reinterpret_cast<const object::coff_aux_weak_external*>(Aux.data());
+          auto Alt = Obj->getSymbol(WE->TagIndex);
+          auto WeakName = Obj->getSymbolName(*Sym);
+          if(Alt && WeakName)
+          {
+            if(auto AltName = Obj->getSymbolName(*Alt))
+              WeakToAlt[*WeakName] = AltName->str();
+            else
+              consumeError(AltName.takeError());
+          }
+          else
+          {
+            if(!Alt)
+              consumeError(Alt.takeError());
+            if(!WeakName)
+              consumeError(WeakName.takeError());
+          }
+        }
+      }
+      I += NumAux;
+    }
+  }
+  if(Err)
+    return std::move(Err);
+
+  return std::unique_ptr<COFFImportLibWeakAliasGenerator>(
+      new COFFImportLibWeakAliasGenerator(std::move(WeakToAlt)));
+}
+
+Error COFFImportLibWeakAliasGenerator::tryToGenerate(
+    LookupState& LS, LookupKind K, JITDylib& JD, JITDylibLookupFlags JDLookupFlags,
+    const SymbolLookupSet& Symbols)
+{
+  // Define matches as ORC aliases of their alternative name (fileno -> _fileno),
+  // NOT as absolute addresses: the alternative then resolves through the JD's
+  // usual machinery -- in practice the DLLImport generator, which builds a
+  // near jump stub to the far UCRT export. mingw archive members are compiled
+  // small-code-model and call these with REL32, so they need that near stub
+  // (an absolute far address would fail the PCRel32 fixup), and it is exactly
+  // the thunk an AOT link's alias would land on.
+  auto& ES = JD.getExecutionSession();
+  SymbolAliasMap Aliases;
+  for(auto& KV : Symbols)
+  {
+    StringRef Name = *KV.first;
+    auto It = WeakToAlt.find(Name);
+    if(It == WeakToAlt.end())
+      continue;
+    Aliases[KV.first]
+        = {ES.intern(It->second),
+           JITSymbolFlags::Exported | JITSymbolFlags::Callable};
+  }
+
+  if(Aliases.empty())
+    return Error::success();
+
+  return JD.define(symbolAliases(std::move(Aliases)));
 }
 
 Error MinGWCOFFPlatform::bootstrapCOFFRuntime(JITDylib& PlatformJD)
@@ -855,32 +935,19 @@ Error MinGWCOFFPlatform::MinGWCOFFPlatformPlugin::registerObjectPlatformSections
   COFFObjectSectionsMap ObjSecs;
   auto HeaderAddr = CP.JITDylibToHeaderAddr[&JD];
   assert(HeaderAddr && "Must be registered jitdylib");
-  jitlink::Section* PData = nullptr;
   for(auto& S : G.sections())
   {
     jitlink::SectionRange Range(S);
     if(Range.getSize())
       ObjSecs.push_back(std::make_pair(S.getName().str(), Range.getRange()));
-    if(S.getName() == ".pdata" && Range.getSize())
-      PData = &S;
   }
 
-  // Register the object's .pdata with the OS x64 unwinder so exceptions thrown in
-  // JIT'd code unwind. The .pdata holds RUNTIME_FUNCTION entries with RVAs from
-  // __ImageBase (== HeaderAddr, the slab base). In-process JIT, so call directly
-  // here (post-fixup: addresses and RVAs are final). The matching
-  // RtlDeleteFunctionTable happens in ~MinGWCOFFPlatform.
-  if(PData)
-  {
-    jitlink::SectionRange Range(*PData);
-    auto* Table = Range.getRange().Start.toPtr<JIT_RUNTIME_FUNCTION*>();
-    auto Count = static_cast<uint32_t>(Range.getSize() / sizeof(JIT_RUNTIME_FUNCTION));
-    if(Count && RtlAddFunctionTable(Table, Count, HeaderAddr.getValue()))
-    {
-      std::lock_guard<std::mutex> Lock(CP.PlatformMutex);
-      CP.RegisteredEHTables.push_back(Table);
-    }
-  }
+  // NB: the object's SEH unwind tables (.pdata) are registered with the OS x64
+  // unwinder by orc_rt itself -- the register_object_sections alloc action below
+  // calls RtlAddFunctionTable in the executor, and the dealloc action
+  // RtlDeleteFunctionTable. Do NOT also register them here: the double
+  // RtlDeleteFunctionTable at teardown corrupts ntdll's dynamic-function-table
+  // bookkeeping on the process heap (flaky 0xC0000374 at exit).
 
   G.allocActions().push_back(
       {cantFail(WrapperFunctionCall::Create<SPSCOFFRegisterObjectSectionsArgs>(
