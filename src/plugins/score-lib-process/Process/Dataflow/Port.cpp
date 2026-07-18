@@ -337,7 +337,7 @@ void ControlInlet::loadData(const QByteArray& arr, PortLoadDataFlags flags) noex
   bool has_value{};
 
   op >> m_cables >> m_address >> has_value;
-  if(!((uint32_t)flags & (uint32_t)PortLoadDataFlags::DontReloadValue))
+  if(!((uint32_t)flags & (uint32_t)PortLoadDataFlags::ReloadValue))
     has_value = false;
 
   if(has_value)
