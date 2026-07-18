@@ -261,6 +261,49 @@ static inline std::string locateBuiltinsRuntime()
   return fallback.toStdString();
 }
 
+// Locates a mingw-w64 CRT-support archive (libmingwex.a, libucrt.a, ...) that
+// the driver links implicitly into every mingw executable but the JIT's bare
+// -cc1 compile does not. libmingwex supplies the C99-name math functions the
+// UCRT only exports under their underscore names (e.g. hypotf wraps _hypot)
+// plus routines the CRT lacks entirely; libucrt's alias objects supply the
+// POSIX old names (fileno -> _fileno) and renamed imports (__msvcrt_assert).
+static inline std::string locateMingwRuntimeLib(const char* env, const char* name)
+{
+  if(QString p = qgetenv(env); !p.isEmpty())
+    return p.toStdString();
+
+  auto sdk = locateSDKWithFallback();
+  if(sdk.path.empty())
+    return {};
+
+  const QString base = QString::fromStdString(sdk.path);
+  const QString parent = QFileInfo(base).absolutePath();
+  const QStringList roots{base,           parent,
+                          parent + "/llvm", parent + "/llvm-libs",
+                          base + "/llvm",   base + "/llvm-libs"};
+  const QString lib = QString::fromUtf8(name);
+  for(const QString& root : roots)
+  {
+    // Shipped runtime SDK layout (create-sdk-mingw.sh) and toolchain layout.
+    for(const QString& p :
+        {QString(root + "/lib/" + lib),
+         QString(root + "/x86_64-w64-mingw32/lib/" + lib)})
+      if(QFile::exists(p))
+        return p.toStdString();
+  }
+  return {};
+}
+
+static inline std::string locateMingwexRuntime()
+{
+  return locateMingwRuntimeLib("SCORE_JIT_MINGWEX", "libmingwex.a");
+}
+
+static inline std::string locateUcrtImportLib()
+{
+  return locateMingwRuntimeLib("SCORE_JIT_UCRT", "libucrt.a");
+}
+
 static inline void
 populateCompileOptions(std::vector<std::string>& args, CompilerOptions opts)
 {

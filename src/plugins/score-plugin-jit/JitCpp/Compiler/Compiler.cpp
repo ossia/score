@@ -11,9 +11,14 @@
 #if defined(_WIN32) && !defined(_MSC_VER) && LLVM_VERSION_MAJOR >= 22
 #include <JitCpp/Compiler/MinGWCOFFPlatform.hpp>
 
+#include <llvm/ExecutionEngine/Orc/COFF.h>
 #include <llvm/ExecutionEngine/Orc/ExecutionUtils.h>
 #include <llvm/ExecutionEngine/Orc/MapperJITLinkMemoryManager.h>
 #include <llvm/ExecutionEngine/Orc/MemoryMapper.h>
+
+#include <cstdlib>
+#include <cstring>
+#include <malloc.h>
 #endif
 
 #if LLVM_VERSION_MAJOR >= 22
@@ -278,6 +283,38 @@ static std::unique_ptr<llvm::orc::LLJIT> jitBuilder(JitCompiler& self)
       auto& PlatformJD = ES.createBareJITDylib("<Platform>");
       PlatformJD.addToLinkOrder(*ProcessSymbolsJD);
 
+      // Pin the C allocator family to the exact functions score itself uses.
+      // Third-party DLLs (e.g. JACK) pull the legacy msvcrt.dll into the
+      // process, and it exports malloc/free too -- operating on a *different*
+      // CRT heap. The process-symbols search is module-order dependent, so
+      // JIT'd code could bind malloc to one CRT while the host frees with the
+      // other; buffers do cross the JIT boundary (e.g. orc_rt's
+      // WrapperFunctionResult error payloads, freed by the host in
+      // runDeallocActions at teardown) and a mismatch corrupts the heap
+      // (flaky 0xC0000374 at exit). Definitions beat the JD's process
+      // generator, so every JIT resolution sees exactly these addresses.
+      {
+        llvm::orc::SymbolMap m;
+        auto pin = [&](const char* n, auto* f) {
+          m[ES.intern(n)]
+              = {llvm::orc::ExecutorAddr::fromPtr(reinterpret_cast<void*>(f)),
+                 llvm::JITSymbolFlags::Exported | llvm::JITSymbolFlags::Callable};
+        };
+        pin("malloc", &std::malloc);
+        pin("free", &std::free);
+        pin("calloc", &std::calloc);
+        pin("realloc", &std::realloc);
+        pin("_msize", &_msize);
+        pin("_strdup", &_strdup);
+        pin("_wcsdup", &_wcsdup);
+        pin("_aligned_malloc", &_aligned_malloc);
+        pin("_aligned_realloc", &_aligned_realloc);
+        pin("_aligned_free", &_aligned_free);
+        if(auto Err
+           = ProcessSymbolsJD->define(llvm::orc::absoluteSymbols(std::move(m))))
+          llvm::consumeError(std::move(Err));
+      }
+
       // Provide compiler-rt's builtins in the add-on's link order (the driver
       // links these via -rtlib=compiler-rt; the bare -cc1 JIT compile does not, so
       // helpers it emits -- e.g. __udivti3, 128-bit division used by fmt -- are
@@ -290,6 +327,72 @@ static std::unique_ptr<llvm::orc::LLJIT> jitBuilder(JitCompiler& self)
           PlatformJD.addGenerator(std::move(*G));
         else
           llvm::consumeError(G.takeError());
+      }
+
+      // Same for mingw-w64's libmingwex (the driver's implicit -lmingwex): the
+      // C99-name math functions (hypotf, ...) the UCRT only exports under their
+      // underscore names live there; its members call back into the host's
+      // ucrtbase/kernel32 which resolve from the process as usual.
+      if(std::string mingwex = Jit::locateMingwexRuntime(); !mingwex.empty())
+      {
+        if(auto G = llvm::orc::StaticLibraryDefinitionGenerator::Load(
+               *OLL, mingwex.c_str()))
+          PlatformJD.addGenerator(std::move(*G));
+        else
+          llvm::consumeError(G.takeError());
+      }
+
+      // And the UCRT import library (the driver's implicit -lucrt), in two
+      // slices:
+      //  - Its weak-external aliases (the POSIX old names: fileno -> _fileno)
+      //    via COFFImportLibWeakAliasGenerator, which binds them to the same
+      //    UCRT exports an AOT link would. (JITLink's COFF backend cannot load
+      //    the alias objects themselves.) Added first so alias names never
+      //    reach the static generator below.
+      //  - Its real object members (e.g. __ms_fwprintf) via a
+      //    StaticLibraryDefinitionGenerator; COFFImportFileScanner excludes the
+      //    short import members, so __imp_* still resolves through the
+      //    DLLImport generator against the already-loaded ucrtbase.
+      if(std::string ucrt = Jit::locateUcrtImportLib(); !ucrt.empty())
+      {
+        if(auto G = Jit::COFFImportLibWeakAliasGenerator::Load(ucrt.c_str()))
+          PlatformJD.addGenerator(std::move(*G));
+        else
+          llvm::consumeError(G.takeError());
+
+        std::set<std::string> dylibs; // api-set DLLs; already loaded in-process
+        if(auto G = llvm::orc::StaticLibraryDefinitionGenerator::Load(
+               *OLL, ucrt.c_str(), llvm::orc::COFFImportFileScanner(dylibs)))
+          PlatformJD.addGenerator(std::move(*G));
+        else
+          llvm::consumeError(G.takeError());
+      }
+
+      // libmingwex's _assert / iswctype wrappers call the CRT through *renamed*
+      // imports (__imp___msvcrt_assert -> ucrt's _assert) that exist only inside
+      // the import lib, so neither the process generator nor the DLLImport
+      // generator can resolve them. Provide the import GOT slots directly:
+      // host-allocated pointers filled with the ucrt export addresses -- exactly
+      // the indirection an AOT link produces, so JIT'd code goes through the
+      // same mingwex wrapper -> ucrt path as code linked by the driver.
+      {
+        auto& ES = J.getExecutionSession();
+        // (import slot storage, __imp_ name, ucrt export it renames)
+        static void* Slots[2];
+        static constexpr std::pair<const char*, const char*> Renames[] = {
+            {"__imp___msvcrt_assert", "_assert"},
+            {"__imp___msvcrt_iswctype", "iswctype"},
+        };
+        llvm::orc::SymbolMap m;
+        for(int i = 0; i < 2; i++)
+          if((Slots[i] = llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(
+                  Renames[i].second)))
+            m[ES.intern(Renames[i].first)]
+                = {llvm::orc::ExecutorAddr::fromPtr(&Slots[i]),
+                   llvm::JITSymbolFlags::Exported};
+        if(!m.empty())
+          if(auto Err = PlatformJD.define(llvm::orc::absoluteSymbols(std::move(m))))
+            llvm::consumeError(std::move(Err));
       }
 
       auto P = Jit::MinGWCOFFPlatform::Create(
