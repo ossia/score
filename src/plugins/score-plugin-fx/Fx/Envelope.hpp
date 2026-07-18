@@ -44,8 +44,9 @@ struct Node
         max = std::max(max, std::abs(sample));
         rms += sample * sample;
       }
-      rms = std::sqrt(rms);
-      rms /= chan.size();
+      // RMS = sqrt(mean(x^2)) = sqrt(sum / N). The previous sqrt(sum)/N was a
+      // factor of sqrt(N) too small.
+      rms = std::sqrt(rms / chan.size());
 
       return std::make_pair(rms, max);
     }
