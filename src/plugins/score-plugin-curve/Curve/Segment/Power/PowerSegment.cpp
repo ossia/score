@@ -115,9 +115,14 @@ double PowerSegment::valueAt(double x) const
   }
   else
   {
-    return start().y()
-           + (end().y() - start().y()) * (std::pow(x, gamma) - start().x())
-                 / (end().x() - start().x());
+    // Normalise x to the segment-local [0,1] ratio BEFORE applying the power,
+    // so the model sampling matches updateData() and the ossia execution engine
+    // (curve_segment_power evaluates pow(local_ratio, gamma)). The previous
+    // pow(x, gamma) on the global x was only correct for a segment spanning
+    // [0,1]; for any later segment of a multi-segment curve it disagreed with
+    // playback (visible via Automation/Tempo state-value queries).
+    const double ratio = (x - start().x()) / (end().x() - start().x());
+    return start().y() + (end().y() - start().y()) * std::pow(ratio, gamma);
   }
 }
 
