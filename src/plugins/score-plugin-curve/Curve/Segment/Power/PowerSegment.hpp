@@ -81,6 +81,6 @@ SCORE_PLUGIN_CURVE_EXPORT
 Curve::SegmentData flatCurveSegment(double val, double min, double max);
 }
 
-SCORE_SERIALIZE_DATASTREAM_DECLARE(, Curve::PowerSegmentData)
+SCORE_SERIALIZE_DATASTREAM_DECLARE(SCORE_PLUGIN_CURVE_EXPORT, Curve::PowerSegmentData)
 Q_DECLARE_METATYPE(Curve::PowerSegmentData)
 W_REGISTER_ARGTYPE(Curve::PowerSegmentData)

@@ -74,9 +74,11 @@ public:
 
   double valueAt(double x) const override
   {
-    return start().y()
-           + (end().y() - start().y()) * (Easing_T{}(x)-start().x())
-                 / (end().x() - start().x());
+    // Evaluate the easing on the segment-local [0,1] ratio (matches updateData()
+    // + the ossia execution engine); applying Easing_T to the global x was only
+    // correct for a segment spanning [0,1].
+    const double ratio = (x - start().x()) / (end().x() - start().x());
+    return start().y() + (end().y() - start().y()) * Easing_T{}(ratio);
   }
 
   std::optional<double> verticalParameter() const override { return {}; }
@@ -160,7 +162,7 @@ inline void JSONWriter::write(Curve::EasingData& segmt)
 {
 }
 
-SCORE_SERIALIZE_DATASTREAM_DECLARE(, Curve::EasingData)
+SCORE_SERIALIZE_DATASTREAM_DECLARE(SCORE_PLUGIN_CURVE_EXPORT, Curve::EasingData)
 Q_DECLARE_METATYPE(Curve::EasingData)
 W_REGISTER_ARGTYPE(Curve::EasingData)
 

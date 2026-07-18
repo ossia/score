@@ -49,6 +49,13 @@ CableData Cable::toCableData() const
   return c;
 }
 
+// Declared SCORE_LIB_PROCESS_EXPORT in CableData.hpp but was never defined —
+// any caller (e.g. equality checks on saved-cable blobs) failed to link.
+bool operator==(const CableData& lhs, const CableData& rhs)
+{
+  return lhs.type == rhs.type && lhs.source == rhs.source && lhs.sink == rhs.sink;
+}
+
 CableType Cable::type() const
 {
   return m_type;
