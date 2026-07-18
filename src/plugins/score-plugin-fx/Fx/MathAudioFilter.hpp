@@ -154,7 +154,12 @@ struct Node
         {
           channels[j][i] = self.cur_out[j];
         }
-        std::swap(self.cur_in, self.prev_in);
+        // Copy (don't swap) so the exprtk "x"/"px" vector_views, bound once to
+        // cur_in/prev_in's heap buffers, keep pointing at the right buffers.
+        // std::swap exchanged the buffers underneath the views, so on every odd
+        // sample "x" read the previous input and "px" the current one. Matches
+        // the sibling MathMapping_generic (px = x). Sizes are equal -> no alloc.
+        self.prev_in = self.cur_in;
       }
       self.pa = self.a;
       self.pb = self.b;
