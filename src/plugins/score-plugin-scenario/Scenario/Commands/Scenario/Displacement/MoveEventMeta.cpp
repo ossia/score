@@ -92,8 +92,8 @@ void MoveEventMeta::update(
   }
   else
   {
-    static const auto& appctx = score::AppContext();
-    static const auto& mevlist = appctx.interfaces<MoveEventList>();
+    const auto& appctx = score::AppContext();
+    const auto& mevlist = appctx.interfaces<MoveEventList>();
     m_moveEventImplementation
         = mevlist.get(appctx, MoveEventFactoryInterface::Strategy::MOVE)
               .make(scenar, eventId, newDate, mode, lock);
@@ -113,8 +113,8 @@ void MoveEventMeta::update(
   }
   else
   {
-    static const auto& appctx = score::AppContext();
-    static const auto& mevlist = appctx.interfaces<MoveEventList>();
+    const auto& appctx = score::AppContext();
+    const auto& mevlist = appctx.interfaces<MoveEventList>();
     m_moveEventImplementation
         = mevlist.get(appctx, MoveEventFactoryInterface::Strategy::MOVE)
               .make(scenar, eventId, newDate, mode, lock);

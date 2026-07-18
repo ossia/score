@@ -186,7 +186,7 @@ DataStreamWriter::write(Scenario::IntervalModel& interval)
   int32_t process_count;
   m_stream >> process_count;
 
-  static auto& pl = components.interfaces<Process::ProcessFactoryList>();
+  auto& pl = components.interfaces<Process::ProcessFactoryList>();
   for(; process_count-- > 0;)
   {
     auto proc = deserialize_interface(pl, *this, interval.context(), &interval);
@@ -315,7 +315,7 @@ SCORE_PLUGIN_SCENARIO_EXPORT void JSONWriter::write(Scenario::IntervalModel& int
         "Audio Out", Id<Process::Port>(0), &interval);
   }
 
-  static auto& pl = components.interfaces<Process::ProcessFactoryList>();
+  auto& pl = components.interfaces<Process::ProcessFactoryList>();
 
   const auto& process_array = obj[strings.Processes].toArray();
   for(const auto& json_vref : process_array)

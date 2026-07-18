@@ -166,7 +166,7 @@ void DataStreamWriter::write(Nodal::Model& process)
   process.outlet = Process::load_audio_outlet(*this, &process);
 
   // Nodes
-  static auto& pl = components.interfaces<Process::ProcessFactoryList>();
+  auto& pl = components.interfaces<Process::ProcessFactoryList>();
   int32_t process_count = 0;
   m_stream >> process_count;
   for(; process_count-- > 0;)
@@ -204,7 +204,7 @@ void JSONWriter::write(Nodal::Model& proc)
     proc.outlet = Process::load_audio_outlet(writer, &proc);
   }
 
-  static auto& pl = components.interfaces<Process::ProcessFactoryList>();
+  auto& pl = components.interfaces<Process::ProcessFactoryList>();
   const auto& nodes = obj["Nodes"].toArray();
   for(const auto& json_vref : nodes)
   {
