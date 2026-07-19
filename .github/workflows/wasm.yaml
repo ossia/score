@@ -48,3 +48,48 @@ jobs:
           force: true
           directory: './site'
           repository: 'ossia/score-web'
+
+      # Publish the wasm build as a downloadable release asset, mirroring the
+      # other platforms. This is what tools/create-app-wasm.sh downloads for
+      # `--platform wasm --release <tag>` (custom web apps).
+      - name: Package release bundle
+        run: |
+          export GITTAGNOV=$(echo "$GITHUB_REF" | sed "s/.*\///;s/^v//")
+          mkdir -p staging
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            NAME="ossia.score-${GITTAGNOV}-wasm.zip"
+          else
+            NAME="ossia.score-master-wasm.zip"
+          fi
+          # site/ was assembled by wasm.deploy.sh (js/wasm[/data] + loader files).
+          ( cd site && zip -r -q "../staging/$NAME" . -x '.git/*' )
+          ls -lah staging
+
+      - name: Upload build
+        uses: actions/upload-artifact@v7
+        with:
+          name: wasm-bundle
+          path: |
+            staging/*.zip
+
+      - name: Continuous
+        uses: softprops/action-gh-release@v3
+        if: github.ref == 'refs/heads/master'
+        with:
+          name: "Continuous"
+          tag_name: "continuous"
+          body: "Continuous (development) build of ossia score, automatically rebuilt from the latest commit on master. For stable versions, see the tagged releases."
+          append_body: false
+          generate_release_notes: false
+          files: |
+            staging/*.zip
+
+      - name: Release
+        uses: softprops/action-gh-release@v3
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          body: ""
+          append_body: true
+          generate_release_notes: false
+          files: |
+            staging/*.zip
