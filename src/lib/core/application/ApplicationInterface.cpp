@@ -247,8 +247,10 @@ void GUIApplicationInterface::registerPlugin(Plugin_QtInterface& p)
 
 void GUIApplicationInterface::requestExit()
 {
-  auto pres = qApp->findChild<score::Presenter*>();
-  pres->exit();
+  // The presenter is gone in headless setups and during late teardown;
+  // exit requests arriving then have nothing left to close.
+  if(auto pres = qApp->findChild<score::Presenter*>())
+    pres->exit();
 }
 
 void GUIApplicationInterface::forceExit()
