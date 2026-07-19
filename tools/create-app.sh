@@ -55,9 +55,10 @@ Optional:
     --release TAG       Release tag to use (default: continuous)
                         Ignored if --local-installer is specified.
     --platform PLAT     Platform to build for: linux-x86_64, linux-aarch64,
-                        macos-intel, macos-arm, windows
+                        macos-intel, macos-arm, windows, wasm
                         Can be specified multiple times. If not specified,
-                        builds for current platform.
+                        builds for current platform. 'wasm' produces a static
+                        web bundle (served in a browser).
     --app-appdata-xml   Set the app appdata.xml file (Linux)
     --app-copyright     Set the app copyright (e.g. ossia.io)
     --app-description   Set the app description (one line max)
@@ -354,6 +355,9 @@ for platform in "${PLATFORMS[@]}"; do
             ;;
         windows)
             "$SCRIPT_DIR/create-app-windows.sh" "$platform" "${QML_FILES[@]+"${QML_FILES[@]}"}" "${QML_DIRS[@]+"${QML_DIRS[@]}"}"
+            ;;
+        wasm)
+            "$SCRIPT_DIR/create-app-wasm.sh" "$platform" "${QML_FILES[@]+"${QML_FILES[@]}"}" "${QML_DIRS[@]+"${QML_DIRS[@]}"}"
             ;;
         *)
             echo "Error: Unknown platform: $platform"
