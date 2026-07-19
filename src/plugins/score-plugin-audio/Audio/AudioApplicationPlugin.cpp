@@ -23,6 +23,7 @@
 #include <ossia/audio/audio_engine.hpp>
 #include <ossia/audio/audio_protocol.hpp>
 
+#include <QTimer>
 #include <QToolBar>
 
 SCORE_DECLARE_ACTION(RestartAudio, "Restart Audio", Common, QKeySequence::UnknownKey)
@@ -160,7 +161,12 @@ try
   if(!init)
   {
     init = true;
-    start_engine();
+    // The miniaudio WebAudio backend blocks (emscripten_sleep / ASYNCIFY) while
+    // waiting for the AudioWorklet to come up. Running that synchronously while
+    // nested deep inside document loading (loadFile -> on_documentChanged)
+    // deadlocks the async worklet init. Defer the first engine start to the
+    // event loop so it runs at a clean stack depth.
+    QTimer::singleShot(0, this, [this] { start_engine(); });
   }
 #else
   stop_engine();
