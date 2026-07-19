@@ -65,6 +65,7 @@ public:
   void optimize();
 
 private:
+  bool m_exiting{};
   void setupMenus();
   View* m_view{};
   Settings& m_settings;

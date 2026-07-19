@@ -80,6 +80,12 @@ score_add_test(test_regression_presenter_drain
   SOURCES RegressionPresenterDrainTest.cpp
   APP)
 
+# A second exit request during or after shutdown is a no-op
+# (re-entering closeAllDocuments aborted the process).
+score_add_test(test_regression_double_exit
+  SOURCES RegressionDoubleExitTest.cpp
+  APP)
+
 # A throwing dropCustom handler is contained by the
 # noexcept getCustomDrops API.
 score_add_test(test_regression_throwing_drop_handler

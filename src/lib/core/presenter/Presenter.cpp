@@ -71,7 +71,17 @@ Presenter::~Presenter() { }
 
 bool Presenter::exit()
 {
-  return m_docManager.closeAllDocuments(m_context);
+  // Closing documents pumps the event loop (execution stop, deferred
+  // deletions); a second exit request arriving meanwhile — e.g. the OSC
+  // /exit callback firing again, or a queued quit timer — would re-enter
+  // closeAllDocuments and tear down half-destroyed documents.
+  if(m_exiting)
+    return false;
+  m_exiting = true;
+  const bool closed = m_docManager.closeAllDocuments(m_context);
+  if(!closed)
+    m_exiting = false; // the user cancelled a save prompt; the session continues
+  return closed;
 }
 
 View* Presenter::view() const
