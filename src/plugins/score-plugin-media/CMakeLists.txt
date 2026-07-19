@@ -163,13 +163,13 @@ if(EMSCRIPTEN)
   target_include_directories(${PROJECT_NAME} PUBLIC ${OSSIA_SDK}/ffmpeg/include)
   target_link_libraries(${PROJECT_NAME} PUBLIC
     -Wl,--start-group
-    /opt/ossia-sdk-wasm/ffmpeg/lib/libavcodec.a
-    /opt/ossia-sdk-wasm/ffmpeg/lib/libavdevice.a
-    /opt/ossia-sdk-wasm/ffmpeg/lib/libavfilter.a
-    /opt/ossia-sdk-wasm/ffmpeg/lib/libavformat.a
-    /opt/ossia-sdk-wasm/ffmpeg/lib/libavutil.a
-    /opt/ossia-sdk-wasm/ffmpeg/lib/libswscale.a
-    /opt/ossia-sdk-wasm/ffmpeg/lib/libswresample.a
+    ${OSSIA_SDK}/ffmpeg/lib/libavcodec.a
+    ${OSSIA_SDK}/ffmpeg/lib/libavdevice.a
+    ${OSSIA_SDK}/ffmpeg/lib/libavfilter.a
+    ${OSSIA_SDK}/ffmpeg/lib/libavformat.a
+    ${OSSIA_SDK}/ffmpeg/lib/libavutil.a
+    ${OSSIA_SDK}/ffmpeg/lib/libswscale.a
+    ${OSSIA_SDK}/ffmpeg/lib/libswresample.a
     -Wl,--end-group
   )
 elseif(TARGET avcodec)
