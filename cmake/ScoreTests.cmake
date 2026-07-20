@@ -72,9 +72,37 @@ function(score_add_test NAME)
       ${QT_PREFIX}::Widgets
       ${QT_PREFIX}::Network
       ${QT_PREFIX}::Xml)
+
+    # Static-plugin builds (macOS SDK, deployment) have no runtime plugin
+    # discovery from <build>/plugins: MinimalApplication registers score
+    # plugins through score_init_static_plugins(), whose __has_include checks
+    # only see the plugins linked into the executable. Link the full plugin
+    # set, exactly like the main app does (src/app/CMakeLists.txt), so that
+    # APP/GUI tests observe the same factory lists as with dynamic plugins.
+    # No-op for dynamic-plugin (Linux dev) builds.
+    #
+    # score_plugin_jit is excluded: it embeds a prebuilt (uninstrumented) LLVM
+    # whose static initializers trip ASan container-overflow false positives at
+    # process start (llvm::DebugCounter growing an annotated std::vector), and
+    # it makes every test link enormous.
+    if(SCORE_STATIC_PLUGINS)
+      set(_test_plugins "${SCORE_PLUGINS_LIST}")
+      list(REMOVE_ITEM _test_plugins score_plugin_jit)
+      target_link_libraries(${NAME} PRIVATE ${_test_plugins})
+    endif()
   endif()
 
   setup_score_common_exe_features(${NAME})
+
+  # Static-Qt builds (SDK/deployment) have no runtime QPA plugin discovery:
+  # every executable must link the platform integration plugins itself, like
+  # the main app does. No-op with a dynamic Qt (link_if_exists).
+  if(ARG_GUI)
+    enable_minimal_qt_plugins(${NAME} 1)
+  else()
+    enable_minimal_qt_plugins(${NAME} 0)
+  endif()
+
   set_target_properties(${NAME} PROPERTIES FOLDER "Tests")
 
   add_test(NAME ${NAME} COMMAND ${NAME})
@@ -86,15 +114,19 @@ function(score_add_test NAME)
       WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
   endif()
 
+  # SCORE_DISABLE_AUDIOPLUGINS: without it the app scans the developer machine's
+  # real VST/CLAP/AU library, spawning a puppet process per plug-in. That is
+  # invisible on CI (no plug-ins installed) but makes every app test take
+  # minutes — or time out — on a workstation.
   if(ARG_APP)
     # Headless: force the offscreen platform.
     set_tests_properties(${NAME} PROPERTIES
-      ENVIRONMENT "QT_QPA_PLATFORM=offscreen;SCORE_AUDIO_BACKEND=dummy")
+      ENVIRONMENT "QT_QPA_PLATFORM=offscreen;SCORE_AUDIO_BACKEND=dummy;SCORE_DISABLE_AUDIOPLUGINS=1")
   elseif(ARG_GUI)
     # GUI tests need a real display (X11 locally, Xvfb in CI): do NOT force
     # offscreen. Labelled "gui" so CI can gate them behind a display.
     set_tests_properties(${NAME} PROPERTIES
-      ENVIRONMENT "SCORE_AUDIO_BACKEND=dummy"
+      ENVIRONMENT "SCORE_AUDIO_BACKEND=dummy;SCORE_DISABLE_AUDIOPLUGINS=1"
       LABELS "gui")
   endif()
 endfunction()
