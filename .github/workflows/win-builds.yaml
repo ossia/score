@@ -60,6 +60,7 @@ jobs:
         with:
           name: "Continuous"
           tag_name: "continuous"
+          target_commitish: ${{ github.sha }}
           body: "Continuous (development) build of ossia score, automatically rebuilt from the latest commit on master. For stable versions, see the tagged releases."
           append_body: false
           generate_release_notes: false
@@ -124,6 +125,7 @@ jobs:
         with:
           name: "Continuous"
           tag_name: "continuous"
+          target_commitish: ${{ github.sha }}
           body: "Continuous (development) build of ossia score, automatically rebuilt from the latest commit on master. For stable versions, see the tagged releases."
           append_body: false
           generate_release_notes: false
@@ -206,6 +208,7 @@ jobs:
         with:
           name: "Continuous"
           tag_name: "continuous"
+          target_commitish: ${{ github.sha }}
           body: "Continuous (development) build of ossia score, automatically rebuilt from the latest commit on master. For stable versions, see the tagged releases."
           append_body: false
           generate_release_notes: false
