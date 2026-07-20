@@ -14,7 +14,7 @@
 // printed, and the last frame is dumped next to --grab / the ref for triage).
 // --grab alone (no --expect) saves the first non-blank frame and exits 0 —
 // used to inspect the harness output / bootstrap references.
-#include "../../../../tests/Integration/score_integration.hpp"
+#include "score_integration.hpp"
 
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
