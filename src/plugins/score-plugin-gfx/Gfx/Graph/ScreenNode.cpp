@@ -290,6 +290,10 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
     {
       params.inst = score::gfx::staticVulkanInstance();
     }
+    // No instance (headless platform plugins cannot create one): bail to the
+    // null-rhi state instead of letting QRhi::create dereference it.
+    if(!params.inst)
+      return st;
     state.version = Gfx::Settings::shaderVersionForAPI(Vulkan);
 
     // Create shared VkDevice with video decode queues BEFORE QRhi.
