@@ -8,3 +8,10 @@ add_subdirectory(integration)
 add_subdirectory(library)
 add_subdirectory(nodes)
 add_subdirectory(hardware)
+
+# L3 GPU render+readback suites (ISF/CSF/raw-raster/VSA/incremental).
+# They compile the few non-exported engine TUs they need directly, so they
+# work with both dynamic and static plug-in builds.
+if(TARGET score_plugin_gfx)
+  add_subdirectory(gfx)
+endif()
