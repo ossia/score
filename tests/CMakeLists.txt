@@ -15,3 +15,8 @@ add_subdirectory(hardware)
 if(TARGET score_plugin_gfx)
   add_subdirectory(gfx)
 endif()
+
+# L3 regression guards for the 3D object subsystem.
+if(TARGET score_plugin_threedim)
+  add_subdirectory(threedim)
+endif()
