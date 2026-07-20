@@ -1,4 +1,4 @@
-#include "../../../../tests/Integration/score_integration.hpp"
+#include "score_integration.hpp"
 
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
