@@ -183,12 +183,19 @@ score_add_test(test_regression_throwing_drop_handler
 # One harness per shader kind in the library: they are authored differently,
 # fail differently, and each keeps its own baseline. All need a GPU-capable
 # display, and all skip when no library is installed.
-foreach(kind ISF VSA CSF)
+foreach(kind ISF VSA CSF Raster)
   string(TOLOWER "${kind}" lc)
+  string(TOUPPER "${kind}" uc)
   score_add_test(test_integration_shader_sweep_${lc}
     SOURCES ShaderSweep${kind}.cpp
     GUI
     PLUGINS score_plugin_gfx score_lib_process)
+  # The raster sweep drives render_raster() from the gfx fixture: a raster shader
+  # needs a geometry producer wired to it, which the ISF Sweeper does not provide.
+  if(kind STREQUAL "Raster")
+    target_include_directories(test_integration_shader_sweep_${lc}
+      PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../fixtures")
+  endif()
   set(_baseline "${CMAKE_CURRENT_SOURCE_DIR}/../testdata/shader_sweep_baseline_${lc}.txt")
 
   # On wasm there is no filesystem to read the library or the baseline from:
@@ -207,7 +214,7 @@ foreach(kind ISF VSA CSF)
   endif()
 
   target_compile_definitions(test_integration_shader_sweep_${lc} PRIVATE
-    "SCORE_SHADER_SWEEP_BASELINE_${kind}=\"${_baseline}\"")
+    "SCORE_SHADER_SWEEP_BASELINE_${uc}=\"${_baseline}\"")
 endforeach()
 
 # Drags that never get their mouse release: QGraphicsScene drops the implicit
