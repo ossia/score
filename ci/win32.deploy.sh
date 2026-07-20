@@ -12,7 +12,7 @@ fi
 (
   cd build
   ls
-  mv ossia\ score-*-win64.exe "$BUILD_ARTIFACTSTAGINGDIRECTORY/ossia score-$GITTAGNOV-win64.exe"
+  mv ossia\ score-*-win64.exe "$BUILD_ARTIFACTSTAGINGDIRECTORY/ossia score-$GITTAGNOV-$SDK_ARCH.exe"
 )
 
 # Create SDK files
