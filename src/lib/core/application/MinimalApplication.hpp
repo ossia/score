@@ -22,14 +22,26 @@ class MinimalApplication final
     , public score::GUIApplicationInterface
 {
 public:
-  // Static so they are alive before construction (the delegating constructor
-  // below reads them) and outlive the QApplication, which keeps a reference to
-  // argc for its whole lifetime.
-  static inline int default_argc = 1;
-  static inline const char* default_argv[2] = {"score", nullptr};
+  // QApplication takes argc by reference and edits argc/argv in place (it
+  // strips the arguments it recognizes), so the default arguments cannot be
+  // shared: a second MinimalApplication in the same process would be handed
+  // the leftovers of the first — argc == 0 in practice, which breaks
+  // QCommandLineParser and anything else reading the command line.
+  // Hand out a fresh, intentionally leaked set per instance instead: it must
+  // outlive its QApplication, which keeps the reference for its whole life.
+  struct DefaultArgs
+  {
+    int argc = 1;
+    const char* argv[2] = {"score", nullptr};
+  };
 
   MinimalApplication()
-      : MinimalApplication{default_argc, (char**)default_argv}
+      : MinimalApplication{*new DefaultArgs{}}
+  {
+  }
+
+  explicit MinimalApplication(DefaultArgs& args)
+      : MinimalApplication{args.argc, (char**)args.argv}
   {
   }
 

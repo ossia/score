@@ -32,14 +32,16 @@ TEST_CASE(
   {
     INFO("iteration " << i);
     {
-      // The default constructor is the fixed code path: it reads the
-      // (now static) default argc/argv.
+      // The default constructor is the fixed code path: each instance gets
+      // its own argc/argv, so the previous QApplication cannot have eaten
+      // them (it edits argc/argv in place).
       score::MinimalApplication app;
 
       REQUIRE(qApp != nullptr);
-      // QApplication keeps a reference to argc: it must still read 1.
-      CHECK(score::MinimalApplication::default_argc == 1);
+      // The second application must see a full command line, not the
+      // leftovers of the first one.
       CHECK(QCoreApplication::arguments().size() == 1);
+      CHECK(!QCoreApplication::arguments().front().isEmpty());
 
       QApplication::processEvents();
       QApplication::processEvents();
@@ -47,10 +49,8 @@ TEST_CASE(
       score::test::close_all_documents(app.context());
       QApplication::processEvents();
     }
-    // After destruction the static storage must be intact for the next round.
+    // The application must be fully torn down before the next round.
     REQUIRE(qApp == nullptr);
-    CHECK(score::MinimalApplication::default_argc == 1);
-    CHECK(score::MinimalApplication::default_argv[0] != nullptr);
   }
 
   SUCCEED("two full MinimalApplication lifecycles completed");

@@ -37,6 +37,19 @@
 
 #include <csetjmp>
 #include <csignal>
+
+// Windows has no sigsetjmp/siglongjmp, no SIGBUS/SIGTRAP/SIGALRM and no
+// alarm(): fall back to plain setjmp/longjmp, drop the missing signals from
+// the guarded set and make the watchdog a no-op. The guard still catches
+// SIGSEGV/SIGABRT/SIGFPE/SIGILL, which is what these sweeps rely on.
+#if defined(_WIN32)
+#include <csetjmp>
+using sigjmp_buf = std::jmp_buf;
+#define sigsetjmp(buf, save) setjmp(buf)
+#define siglongjmp(buf, val) longjmp(buf, val)
+static inline unsigned int alarm(unsigned int) noexcept { return 0; }
+#endif
+
 #include <cstdio>
 #include <string>
 #include <vector>
@@ -70,7 +83,11 @@ extern "C" void dev_crash_handler(int sig)
   std::raise(sig);
 }
 
-constexpr int g_guarded_signals[] = {SIGSEGV, SIGABRT, SIGFPE, SIGBUS, SIGILL, SIGTRAP};
+constexpr int g_guarded_signals[] = {SIGSEGV, SIGABRT, SIGFPE, SIGILL
+#if !defined(_WIN32)
+                                     , SIGBUS, SIGTRAP
+#endif
+};
 void install_crash_handlers()
 {
   for(int s : g_guarded_signals)

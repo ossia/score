@@ -95,6 +95,12 @@ function(score_write_static_plugins_header)
 
   string(APPEND SCORE_PLUGINS_FILE_DATA "#include <score/plugins/PluginInstances.hpp>\n")
   string(APPEND SCORE_PLUGINS_FILE_DATA "void score_init_static_plugins() {\n")
+  # Idempotent: the static plug-in set is process-global, but the function is
+  # called from every application instance (score::MinimalApplication is
+  # constructed more than once in the test suite). Without this guard each call
+  # push_back()s the same plug-ins again, so every factory / action condition
+  # gets registered twice and the second application aborts.
+  string(APPEND SCORE_PLUGINS_FILE_DATA "  if(!score::staticPlugins().empty()) return\;\n")
 
   foreach(plugin ${SCORE_PLUGINS_LIST})
     string(APPEND SCORE_PLUGINS_FILE_DATA "#if __has_include(<${plugin}.hpp>)\n{ static ${plugin} p\; score::staticPlugins().push_back(&p)\; }\n#endif\n")
