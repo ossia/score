@@ -213,3 +213,107 @@ function(setup_score_plugin PluginName)
     )
   endif()
 endfunction()
+
+# The helpers below live in ScoreFunctions.cmake / ScoreTargetSetup.cmake for
+# in-tree builds. Those cannot simply be included here: ScoreFunctions includes
+# ScoreTargetSetup, which in turn includes six modules (Sanitize, UseGold,
+# LinkerWarnings, DebugMode, ScoreStaticQt, GenerateStaticExport) that are not
+# shipped in the SDK. Addons call them unconditionally, so mirror the
+# self-contained ones here, as is already done for score_common_setup above.
+
+function(score_write_file FileName Content)
+  if(EXISTS "${FileName}")
+    file(READ "${FileName}" EXISTING_CONTENT)
+    string(REGEX REPLACE ";" "\\\\;" EXISTING_CONTENT "${EXISTING_CONTENT}")
+    if(NOT "${Content}" STREQUAL "${EXISTING_CONTENT}")
+      file(WRITE "${FileName}" ${Content})
+    endif()
+  else()
+    file(WRITE "${FileName}" ${Content})
+  endif()
+endfunction()
+
+function(score_generate_command_list_file TheTarget Headers)
+    # Initialize our lists
+    set(commandNameList)
+    set(commandFileList)
+
+    # First look for the SCORE_COMMAND_DECL(...) ones
+    foreach(sourceFile ${Headers})
+        file(READ "${sourceFile}" fileContent)
+        string(REGEX MATCHALL "SCORE_COMMAND_DECL\\([A-Za-z_0-9\,\:<>\r\n\t ]*\\(\\)[A-Za-z_0-9\,\"'\:<>\+\r\n\t ]*\\)"
+               defaultCommands "${fileContent}")
+
+        foreach(fileLine ${defaultCommands})
+            string(REPLACE "\n" "" fileLine "${fileLine}")
+            string(REPLACE "\r" "" fileLine "${fileLine}")
+            string(STRIP ${fileLine} strippedLine)
+
+            string(REPLACE "," ";" lineAsList ${strippedLine})
+            list(GET lineAsList 1 commandName)
+            string(STRIP ${commandName} strippedCommandName)
+            list(APPEND commandNameList "${strippedCommandName}")
+        endforeach()
+
+        # If there are matching strings, we add the file to our include list
+        list(LENGTH defaultCommands matchingLines)
+        if(${matchingLines} GREATER 0)
+            list(APPEND commandFileList "${sourceFile}")
+        endif()
+
+        # Then look for the SCORE_COMMAND_DECL_T(...) ones
+        string(REGEX MATCHALL "SCORE_COMMAND_DECL_T\\([A-Za-z_0-9\,\:<>\+\r\n\t ]*\\)"
+               templateCommands "${fileContent}")
+        foreach(fileLine ${templateCommands})
+            string(REPLACE "\n" "" fileLine "${fileLine}")
+            string(REPLACE "\r" "" fileLine "${fileLine}")
+            string(STRIP ${fileLine} strippedLine)
+
+            string(REPLACE "SCORE_COMMAND_DECL_T(" "" filtered1 ${strippedLine})
+            string(REPLACE ")" "" commandName ${filtered1})
+            string(STRIP ${commandName} strippedCommandName)
+
+            list(APPEND commandNameList "${strippedCommandName}")
+        endforeach()
+
+        list(LENGTH templateCommands matchingLines)
+        if(${matchingLines} GREATER 0)
+            list(APPEND commandFileList "${sourceFile}")
+        endif()
+
+    endforeach()
+
+    # Generate a file with the list of includes
+    set(finalCommandFileList)
+    foreach(sourceFile ${commandFileList})
+        string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/" "" strippedSourceFile ${sourceFile})
+        set(finalCommandFileList "${finalCommandFileList}#include <${strippedSourceFile}>\n")
+    endforeach()
+
+    score_write_file(
+        "${CMAKE_CURRENT_BINARY_DIR}/${TheTarget}_commands_files.hpp"
+        "${finalCommandFileList}"
+        )
+
+    # Generate a file with the list of types
+    string(REPLACE ";" ", \n" commaSeparatedCommandList "${commandNameList}")
+    score_write_file(
+         "${CMAKE_CURRENT_BINARY_DIR}/${TheTarget}_commands.hpp"
+         "${commaSeparatedCommandList}"
+        )
+
+endfunction()
+
+function(score_optimize_in_debug_mode Target)
+  if(NOT MSVC)
+    if(NOT CMAKE_CROSSCOMPILING)
+      if(CMAKE_BUILD_TYPE MATCHES ".*Debug.*")
+        get_target_property(_has_custom_pch ${Target} SCORE_CUSTOM_PCH)
+        if(NOT ${_has_custom_pch})
+          set_target_properties(${Target} PROPERTIES SCORE_CUSTOM_PCH 1)
+          target_compile_options(${Target} PRIVATE -Ofast -march=native)
+        endif()
+      endif()
+    endif()
+  endif()
+endfunction()

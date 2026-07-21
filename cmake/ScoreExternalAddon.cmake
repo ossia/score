@@ -34,6 +34,12 @@ set(SCORE_VERSION_MINOR 0)
 set(SCORE_VERSION_PATCH 0)
 set(SCORE_VERSION "${SCORE_VERSION_MAJOR}.${SCORE_VERSION_MINOR}.${SCORE_VERSION_PATCH}")
 
+# Addons written against the in-tree build use ${QT_VERSION} in their
+# find_package calls; it is set by score's top-level CMakeLists, which an
+# external addon never sees. Without it those calls degenerate into a bare
+# find_package(REQUIRED ...) and fail. Keep in sync with CMakeLists.txt.
+set(QT_VERSION Qt6 6.2)
+
 set(SCORE_DYNAMIC_PLUGINS 1)
 
 # Official Mac / Win / Linux releases are built against KFR
