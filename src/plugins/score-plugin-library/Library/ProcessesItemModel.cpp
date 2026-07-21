@@ -255,18 +255,38 @@ void ProcessesItemModel::on_newPlugin(const score::InterfaceBase& base)
   if(it != m_root.end())
   {
     auto& cat = *it;
+    const int row = cat.childCount();
+    beginInsertRows(nodeToIndex(cat), row, row);
     cat.emplace_back(
         ProcessData{{fact.concreteKey(), fact.prettyName(), {}}, QIcon{}}, &cat);
+    endInsertRows();
   }
   else
   {
+    const int catRow = m_root.childCount();
+    beginInsertRows(QModelIndex{}, catRow, catRow);
     auto& cat = m_root.emplace_back(
         ProcessData{
             {{}, fact.category(), {}}, Process::getCategoryIcon(fact.category())},
         &m_root);
+    endInsertRows();
+
+    beginInsertRows(nodeToIndex(cat), 0, 0);
     cat.emplace_back(
         ProcessData{{fact.concreteKey(), fact.prettyName(), {}}, QIcon{}}, &cat);
+    endInsertRows();
   }
+}
+
+QModelIndex ProcessesItemModel::nodeToIndex(const ProcessNode& n) const
+{
+  auto* parent = n.parent();
+  if(!parent)
+    return {}; // root
+  const int row = parent->indexOfChild(&n);
+  if(row < 0)
+    return {};
+  return createIndex(row, 0, const_cast<ProcessNode*>(&n));
 }
 
 QModelIndex ProcessesItemModel::find(const Process::ProcessModelFactory::ConcreteKey& k)

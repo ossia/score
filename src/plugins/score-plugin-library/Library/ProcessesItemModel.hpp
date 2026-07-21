@@ -89,6 +89,10 @@ public:
 private:
   ProcessNode& addCategory(const QString& cat);
 
+  //! QModelIndex pointing at \a n (invalid for the root), so that scanners can
+  //! wrap their tree mutations in begin/endInsertRows instead of resetting.
+  QModelIndex nodeToIndex(const ProcessNode& n) const;
+
   // Second-level async scan: computes ProcessData::searchString (tags,
   // description...) on a worker thread, off the fast name-only scan and off
   // the search path. Results come back to the GUI thread in packets.
