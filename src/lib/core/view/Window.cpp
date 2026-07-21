@@ -452,6 +452,13 @@ void View::resizeEvent(QResizeEvent* e)
 bool score::View::event(QEvent* event)
 {
   auto display = [this](QString tip) {
+    // m_status is only created once the first panel delegate is registered
+    // (see View::setupPanel). Headless / minimal application setups - e.g. the
+    // test harnesses - never register any panel, so it stays null while status
+    // tips can still be emitted by menus and actions.
+    if(!m_status)
+      return;
+
     auto idx = tip.indexOf(QChar('\n'));
     if(idx != -1)
     {
