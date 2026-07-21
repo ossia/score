@@ -34,7 +34,23 @@ public:
       , node{n}
   {
   }
-  ~Renderer() override = default;
+  ~Renderer() override
+  {
+    // Defensive teardown. release() is the only place that stops the capture,
+    // and not every deletion path reaches it, so repeat the ordering it
+    // documents: stop the vendor capture thread first (no more DMA in flight),
+    // then release the strategy -- which unpins its DMA buffers *through the
+    // card* -- and only then drop the backend that owns the card handle.
+    // No-op when release() already ran: it nulls everything it frees.
+    if(m_backend)
+      m_backend->stop();
+    if(m_strategy)
+    {
+      m_strategy->release();
+      m_strategy.reset();
+    }
+    m_backend.reset();
+  }
 
   score::gfx::TextureRenderTarget
   renderTargetForInput(const score::gfx::Port&) override
@@ -317,6 +333,7 @@ public:
     for(auto& p : m_p)
       p.second.release();
     m_p.clear();
+    m_meshBuffer = {}; // Freed in RenderList
     delete m_processUBO;
     m_processUBO = nullptr;
     delete m_materialUBO;
