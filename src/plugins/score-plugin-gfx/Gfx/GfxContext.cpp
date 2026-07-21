@@ -124,6 +124,16 @@ void GfxContext::destroyOutput(score::gfx::OutputNode* node)
     }
 
     m_graph->destroyOutputRenderList(*node);
+
+    // Drop the edges too. Graph::removeNode is, by its own comment, "a pure
+    // pointer erase": it leaves m_edges holding Edges that point at this
+    // output's Ports. The device is about to free the node and its Ports, so
+    // ~Graph -> clearEdges() would then delete those Edges and, in ~Edge,
+    // unlink them from the freed Ports. This is the same call the async
+    // REMOVE_NODE path makes; it leaves m_nodes alone, which removeNode below
+    // handles.
+    m_graph->removeNodeAndEdges(node);
+
     // Also drop it from m_nodes: ~Graph's belt-and-braces loop does
     // dynamic_cast<OutputNode*>(n) over m_nodes, which would deref this freed
     // node's vtable once the device destroys it. removeNode is a pure pointer
