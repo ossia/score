@@ -108,6 +108,21 @@ void GfxContext::destroyOutput(score::gfx::OutputNode* node)
   // rendering is stopped and the tick queue will never be drained again.
   if(m_graph && node)
   {
+    // Unregister from the render clocks FIRST. A clock keeps raw OutputNode*
+    // and its timer tick iterates them calling render(); leaving a node that
+    // is about to be freed in that list is a use-after-free as soon as the
+    // next queued tick fires — which it does, because tearing an output down
+    // (closing a preview, removing a device) pumps the event loop. The async
+    // REMOVE_NODE path already does this; this synchronous one must too.
+    for(auto it = m_renderClocks.begin(); it != m_renderClocks.end();)
+    {
+      (*it)->removeOutput(node);
+      if((*it)->empty())
+        it = m_renderClocks.erase(it);
+      else
+        ++it;
+    }
+
     m_graph->destroyOutputRenderList(*node);
     // Also drop it from m_nodes: ~Graph's belt-and-braces loop does
     // dynamic_cast<OutputNode*>(n) over m_nodes, which would deref this freed
