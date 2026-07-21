@@ -51,16 +51,20 @@ test_rc=$?
 
 # gcov data (.gcno/.gcda) live under build/; report source paths relative to the
 # repo root so Coveralls can match them against tracked files.
-# --gcov-filter: only run gcov on our own objects. Vendored trees (Catch2 in
-# particular) record source paths that resolve from no directory we have, and
-# gcovr treats those gcov errors as fatal (exit 8) — which would leave us with
-# no report at all. --gcov-ignore-errors keeps any remaining stragglers
-# non-fatal; --filter still restricts the report itself to src/.
+# Only run gcov on our own objects. Vendored trees (Catch2 in particular) record
+# source paths that resolve from no directory we have, and gcovr treats those
+# gcov errors as fatal (exit 8) — which leaves us with an empty report and a
+# "Nothing to report" from the Coveralls uploader.
+# --gcov-filter alone is NOT enough: Catch2 builds into
+# build/3rdparty/Catch2/src/CMakeFiles/..., which matches '.*/src/.*' too. So
+# exclude the vendored trees explicitly. --gcov-ignore-errors keeps any
+# remaining stragglers non-fatal; --filter restricts the report itself to src/.
 gcovr \
   --root . \
   build \
   --filter 'src/' \
   --gcov-filter '.*/src/.*' \
+  --gcov-exclude '.*/3rdparty/.*' \
   --gcov-ignore-errors=no_working_dir_found \
   --gcov-executable "$GCOV" \
   --exclude-throw-branches \
