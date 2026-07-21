@@ -123,9 +123,39 @@ void GfxContext::destroyOutput(score::gfx::OutputNode* node)
   // output's RenderList (while its QRhi is still alive), calls destroyOutput()
   // and drops the node from Graph::m_outputs. Safe to call at shutdown, when
   // rendering is stopped and the tick queue will never be drained again.
-  if(m_graph && node)
+  if(!node)
+    return;
+
+  // Drop the output from every render clock BEFORE the owning device frees it.
+  // TimerClock keeps raw OutputNode* in m_outputs and its tick lambda
+  // dereferences them (`out->canRender()` below in recomputeTimers), so an
+  // entry left behind here dangles the moment ~offscreen_device runs -- the
+  // clock then ticks on freed memory during teardown's event pump. This
+  // mirrors what remove_node() already does for the async REMOVE_NODE path;
+  // an emptied clock is dropped so its dtor releases the shared timer.
+  for(auto it = m_renderClocks.begin(); it != m_renderClocks.end();)
+  {
+    (*it)->removeOutput(node);
+    if((*it)->empty())
+      it = m_renderClocks.erase(it);
+    else
+      ++it;
+  }
+
+  if(m_graph)
   {
     m_graph->destroyOutputRenderList(*node);
+
+    // Delete every edge touching this node BEFORE the owning device frees it.
+    // Edge::~Edge unlinks itself from source->edges / sink->edges, and Ports
+    // are owned by their Node -- so an edge left behind here is a dangling-Port
+    // dereference the moment ~Graph::clearEdges() finally deletes it
+    // (heap-buffer-overflow in Edge::~Edge, Graph/Utils.hpp:115). removeNode()
+    // below is only a pointer erase and never touched m_edges. This is the same
+    // call the async REMOVE_NODE path makes for non-output nodes; it leaves
+    // m_nodes alone, which is what the removeNode() below is for.
+    m_graph->removeNodeAndEdges(node);
+
     // Also drop it from m_nodes: ~Graph's belt-and-braces loop does
     // dynamic_cast<OutputNode*>(n) over m_nodes, which would deref this freed
     // node's vtable once the device destroys it. removeNode is a pure pointer

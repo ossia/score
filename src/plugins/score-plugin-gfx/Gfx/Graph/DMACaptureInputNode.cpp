@@ -34,7 +34,23 @@ public:
       , node{n}
   {
   }
-  ~Renderer() override = default;
+  ~Renderer() override
+  {
+    // Defensive teardown. release() is the only place that stops the capture,
+    // and not every deletion path reaches it, so repeat the ordering it
+    // documents: stop the vendor capture thread first (no more DMA in flight),
+    // then release the strategy -- which unpins its DMA buffers *through the
+    // card* -- and only then drop the backend that owns the card handle.
+    // No-op when release() already ran: it nulls everything it frees.
+    if(m_backend)
+      m_backend->stop();
+    if(m_strategy)
+    {
+      m_strategy->release();
+      m_strategy.reset();
+    }
+    m_backend.reset();
+  }
 
   score::gfx::TextureRenderTarget
   renderTargetForInput(const score::gfx::Port&) override
@@ -277,6 +293,13 @@ public:
            != m_p.end();
   }
 
+  /// The renderer is leaving its RenderList: this class keeps *all* of its
+  /// teardown in release(), so forward. Without this, the node-removal path
+  /// (Graph::removeNodeFromRenderLists) deletes us via the base-class no-op and
+  /// the DeckLink card keeps streaming into freed slot buffers. release() is
+  /// idempotent, so a later release() call is harmless.
+  void releaseState(score::gfx::RenderList& r) override { release(r); }
+
   void release(score::gfx::RenderList& r) override
   {
     if(m_timeUpload && m_uploadCount > 0) [[unlikely]]
@@ -317,6 +340,7 @@ public:
     for(auto& p : m_p)
       p.second.release();
     m_p.clear();
+    m_meshBuffer = {}; // Freed in RenderList
     delete m_processUBO;
     m_processUBO = nullptr;
     delete m_materialUBO;
