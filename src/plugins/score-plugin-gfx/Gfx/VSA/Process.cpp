@@ -48,7 +48,16 @@ Model::Model(
     0.05,
     1
   ],
-  "INPUTS": [],
+  "INPUTS": [
+    {
+      "LABEL": "Mouse",
+      "NAME": "mouse",
+      "TYPE": "point2D",
+      "DEFAULT": [ 0.0, 0.0 ],
+      "MIN": [ -1.0, -1.0 ],
+      "MAX": [ 1.0, 1.0 ]
+    }
+  ],
   "METADATA": {
     "DESCRIPTION": "A beautiful flowing grid that demonstrates dynamic mesh deformation"
   }

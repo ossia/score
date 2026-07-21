@@ -42,7 +42,8 @@ jobs:
           # SCORE_TESTING ctest suite (incl. GUI-labelled tests) can run.
           apt-get install -y --no-install-recommends \
             gcovr clang lld llvm \
-            libgl1-mesa-dri libglx-mesa0 mesa-utils xvfb
+            libgl1-mesa-dri libglx-mesa0 mesa-utils xvfb \
+            qml6-module-qtqml-workerscript
 
       - name: Build, run tests, generate Coveralls report
         env:
