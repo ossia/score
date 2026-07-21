@@ -1,4 +1,5 @@
 #pragma once
+#include <QPointer>
 #include <QWidget>
 
 #include <score_plugin_gfx_export.h>
@@ -80,7 +81,10 @@ private:
   std::function<void(score::gfx::BackgroundNode&)> m_onAboutToDetach;
 
   // Context backend
-  GfxContext* m_ctx{};
+  // QPointer, not a raw pointer: an inspector widget can be destroyed after
+  // the GfxContext (a queued DeferredDelete outliving ~DocumentPlugin), and
+  // detach() then calls into it. QPointer makes the existing null check hold.
+  QPointer<GfxContext> m_ctx;
   int32_t m_producerNodeId{-1};
   int32_t m_screenNodeId{-1};
   bool m_edgeConnected{false};
