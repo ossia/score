@@ -32,6 +32,20 @@ namespace Media
 // expensive?
 static DecodingMethod needsDecoding(const QString& path, int rate)
 {
+#if defined(__EMSCRIPTEN__)
+  // wasm/MEMFS policy:
+  //  - mmap (drwav) is unavailable/unsafe over MEMFS -> never choose it,
+  //  - large media must stream instead of fully decoding into the (2GB-capped)
+  //    heap: route >48MB and all video to LibavStream (lazy, on-demand decode),
+  //  - small files decode fully to RAM (Libav) for fast random access / waveform.
+  {
+    const auto sz = QFileInfo{path}.size();
+    constexpr qint64 large_threshold = 48ll * 1024 * 1024;
+    if(sz > large_threshold || AudioFile::isSupportedVideo(QFile{path}))
+      return DecodingMethod::LibavStream;
+    return DecodingMethod::Libav;
+  }
+#else
   if(path.endsWith("wav", Qt::CaseInsensitive)
      || path.endsWith("w64", Qt::CaseInsensitive))
   {
@@ -61,6 +75,7 @@ static DecodingMethod needsDecoding(const QString& path, int rate)
     else
       return DecodingMethod::Libav;
   }
+#endif
 }
 
 static std::optional<DecodingMethod> forcedDecodingMethod()

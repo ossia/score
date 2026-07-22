@@ -95,11 +95,68 @@ void ProcessDropHandler::dropData(
 ProcessDropHandlerList::~ProcessDropHandlerList() { }
 
 std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandlerList::getDrop(
-    const QMimeData& mime, const score::DocumentContext& ctx) const noexcept
+    const QMimeData& originalMime, const score::DocumentContext& ctx) const noexcept
 {
   std::vector<ProcessDropHandler::ProcessDrop> res;
 
   initCaches();
+
+#if defined(__EMSCRIPTEN__)
+  // On wasm, Qt writes dropped files to a transient /qt/tmp/ dir and deletes
+  // them immediately after this callback returns. Move each dropped file into
+  // score's persistent import area up front and rewrite the URLs, so BOTH the
+  // custom-drop path (which re-reads mime.urls() itself, e.g. Sound) and the
+  // file-extension path see a path that survives the drop and can be re-opened
+  // later (undo/redo, reload of the process).
+  QMimeData stagedMime;
+  bool didStage = false;
+  {
+    QList<QUrl> newUrls;
+    for(const QUrl& url : originalMime.urls())
+    {
+      // On the JSPI build (which we use), Qt hands dropped files a
+      // "weblocalfile:/N/name" URL backed by the JS File object; QUrl::toLocalFile()
+      // is empty but QFile can read it through QWasmFileEngine. On non-asyncify
+      // builds files land at /qt/tmp instead. In both cases read the bytes here
+      // (while the source is alive) and copy them into a real, persistent MEMFS
+      // path so the fopen-based decoders (ffmpeg / sndfile) can open them later.
+      QString src;
+      if(const QString local = url.toLocalFile();
+         !local.isEmpty() && QFileInfo::exists(local))
+        src = local;
+      else if(url.scheme() == QLatin1String("weblocalfile"))
+        src = url.toString();
+
+      if(!src.isEmpty())
+      {
+        if(QFile f{src}; f.open(QIODevice::ReadOnly))
+        {
+          const QByteArray bytes = f.readAll();
+          f.close();
+          QString name = url.fileName();
+          if(name.isEmpty())
+            name = QFileInfo{src}.fileName();
+          if(QString staged = score::stageImportedFile(name, bytes); !staged.isEmpty())
+          {
+            newUrls.push_back(QUrl::fromLocalFile(staged));
+            didStage = true;
+            continue;
+          }
+        }
+      }
+      newUrls.push_back(url);
+    }
+    if(didStage)
+    {
+      for(const QString& fmt : originalMime.formats())
+        stagedMime.setData(fmt, originalMime.data(fmt));
+      stagedMime.setUrls(newUrls);
+    }
+  }
+  const QMimeData& mime = didStage ? stagedMime : originalMime;
+#else
+  const QMimeData& mime = originalMime;
+#endif
 
   auto handleCustomDrop = [&](Process::ProcessDropHandler& handler) {
     auto before = res.size();
