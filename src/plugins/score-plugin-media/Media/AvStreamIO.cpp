@@ -6,12 +6,57 @@
 #include <QFile>
 #include <QString>
 
+#if defined(__EMSCRIPTEN__)
+#include <emscripten/proxying.h>
+#include <emscripten/threading.h>
+#endif
+
+#include <memory>
+#include <type_traits>
+
 namespace Media
 {
 static constexpr int av_io_buffer_size = 1 << 18;
 
+#if defined(__EMSCRIPTEN__)
+// A weblocalfile: QFile is backed by a JS File/Blob whose emscripten::val is
+// bound to the thread that created it; using it from another thread is
+// undefined behaviour (it dereferences an invalid handle, crashing on
+// Blob.size). Marshal the non-suspending QFile operations (open, seek, size,
+// close) to the main runtime thread so the val is only ever touched by its
+// owner. Reads are handled separately in av_io_read (they suspend via JSPI,
+// which a proxied job cannot do).
+template <typename F>
+static void run_on_main(F&& f) noexcept
+{
+  if(emscripten_is_main_runtime_thread())
+  {
+    f();
+    return;
+  }
+  emscripten_proxy_sync(
+      emscripten_proxy_get_system_queue(), emscripten_main_runtime_thread_id(),
+      [](void* p) { (*static_cast<std::remove_reference_t<F>*>(p))(); }, &f);
+}
+#else
+template <typename F>
+static void run_on_main(F&& f) noexcept
+{
+  f();
+}
+#endif
+
 static int av_io_read(void* opaque, uint8_t* out, int size)
 {
+#if defined(__EMSCRIPTEN__)
+  // Reading the backing Blob suspends via JSPI, which is only possible on the
+  // main thread's promising call stack (a proxied job is not one). A worker
+  // therefore cannot stream this source; fail cleanly so the off-thread decode
+  // aborts instead of hitting an uncatchable SuspendError. Worker-thread
+  // streaming needs the async-proxy reader documented in WASM-B2-ANALYSIS.md.
+  if(!emscripten_is_main_runtime_thread())
+    return AVERROR(EIO);
+#endif
   auto* dev = static_cast<QFile*>(opaque);
   const qint64 r = dev->read(reinterpret_cast<char*>(out), size);
   if(r > 0)
@@ -24,25 +69,31 @@ static int av_io_read(void* opaque, uint8_t* out, int size)
 static int64_t av_io_seek(void* opaque, int64_t offset, int whence)
 {
   auto* dev = static_cast<QFile*>(opaque);
-  switch(whence & ~AVSEEK_FORCE)
-  {
-    case AVSEEK_SIZE:
-      return dev->size();
-    case SEEK_SET:
-      return dev->seek(offset) ? offset : -1;
-    case SEEK_CUR:
+  int64_t result = -1;
+  run_on_main([&] {
+    switch(whence & ~AVSEEK_FORCE)
     {
-      const qint64 abs = dev->pos() + offset;
-      return dev->seek(abs) ? abs : -1;
+      case AVSEEK_SIZE:
+        result = dev->size();
+        break;
+      case SEEK_SET:
+        result = dev->seek(offset) ? offset : -1;
+        break;
+      case SEEK_CUR:
+      {
+        const qint64 abs = dev->pos() + offset;
+        result = dev->seek(abs) ? abs : -1;
+        break;
+      }
+      case SEEK_END:
+      {
+        const qint64 abs = dev->size() + offset;
+        result = dev->seek(abs) ? abs : -1;
+        break;
+      }
     }
-    case SEEK_END:
-    {
-      const qint64 abs = dev->size() + offset;
-      return dev->seek(abs) ? abs : -1;
-    }
-    default:
-      return -1;
-  }
+  });
+  return result;
 }
 
 bool isStreamedMediaPath(const QString& path) noexcept
@@ -57,22 +108,34 @@ bool isStreamedMediaPath(const std::string& path) noexcept
 
 AvIoDevice::AvIoDevice(const QString& path)
 {
-  auto f = std::make_unique<QFile>(path);
-  if(!f->open(QIODevice::ReadOnly))
+  QFile* f = nullptr;
+  run_on_main([&] {
+    f = new QFile(path);
+    if(!f->open(QIODevice::ReadOnly))
+    {
+      delete f;
+      f = nullptr;
+    }
+  });
+  if(!f)
     return;
 
   auto* buffer = static_cast<unsigned char*>(av_malloc(av_io_buffer_size));
   if(!buffer)
+  {
+    run_on_main([&] { delete f; });
     return;
+  }
 
   avio = avio_alloc_context(
-      buffer, av_io_buffer_size, 0, f.get(), &av_io_read, nullptr, &av_io_seek);
+      buffer, av_io_buffer_size, 0, f, &av_io_read, nullptr, &av_io_seek);
   if(!avio)
   {
     av_free(buffer);
+    run_on_main([&] { delete f; });
     return;
   }
-  file = std::move(f);
+  file = f;
 }
 
 AvIoDevice::~AvIoDevice()
@@ -82,13 +145,20 @@ AvIoDevice::~AvIoDevice()
     av_freep(&avio->buffer);
     avio_context_free(&avio);
   }
+  if(file)
+  {
+    QFile* f = file;
+    run_on_main([&] { delete f; });
+    file = nullptr;
+  }
 }
 
 AvIoDevice::AvIoDevice(AvIoDevice&& other) noexcept
     : avio{other.avio}
-    , file{std::move(other.file)}
+    , file{other.file}
 {
   other.avio = nullptr;
+  other.file = nullptr;
 }
 
 AvIoDevice& AvIoDevice::operator=(AvIoDevice&& other) noexcept
@@ -100,9 +170,15 @@ AvIoDevice& AvIoDevice::operator=(AvIoDevice&& other) noexcept
       av_freep(&avio->buffer);
       avio_context_free(&avio);
     }
+    if(file)
+    {
+      QFile* f = file;
+      run_on_main([&] { delete f; });
+    }
     avio = other.avio;
-    file = std::move(other.file);
+    file = other.file;
     other.avio = nullptr;
+    other.file = nullptr;
   }
   return *this;
 }

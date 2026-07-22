@@ -8,7 +8,6 @@ extern "C" {
 
 #include <score_plugin_media_export.h>
 
-#include <memory>
 #include <string>
 
 class QFile;
@@ -42,7 +41,7 @@ struct SCORE_PLUGIN_MEDIA_EXPORT AvIoDevice
   explicit operator bool() const noexcept { return avio != nullptr; }
 
   AVIOContext* avio{};
-  std::unique_ptr<QFile> file;
+  QFile* file{};
 };
 
 // Allocates `format` and opens `path` through a custom AVIOContext backed by a
