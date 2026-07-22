@@ -129,6 +129,19 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandlerList::getDrop(
 
       if(!src.isEmpty())
       {
+        // Large browser files are streamed on demand (custom AVIOContext over a
+        // QFile on the weblocalfile: Blob) instead of being copied into MEMFS,
+        // which is capped by the 2GB heap. Keep the weblocalfile: URL as-is so
+        // the decoders open it directly. /qt/tmp files can't be streamed (Qt
+        // deletes them after this callback) so they always get staged.
+        constexpr qint64 stream_threshold = 48ll * 1024 * 1024;
+        if(url.scheme() == QLatin1String("weblocalfile")
+           && QFileInfo{src}.size() > stream_threshold)
+        {
+          newUrls.push_back(url);
+          continue;
+        }
+
         if(QFile f{src}; f.open(QIODevice::ReadOnly))
         {
           const QByteArray bytes = f.readAll();
@@ -191,6 +204,12 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandlerList::getDrop(
   for(const auto& url : mime.urls())
   {
     auto path = url.toLocalFile();
+#if defined(__EMSCRIPTEN__)
+    // Un-staged large browser files keep their weblocalfile: URL (empty
+    // toLocalFile()); QWasmFileEngine still resolves them for QFileInfo.
+    if(path.isEmpty() && url.scheme() == QLatin1String("weblocalfile"))
+      path = url.toString();
+#endif
 
     QFileInfo f{path};
     if(f.exists())

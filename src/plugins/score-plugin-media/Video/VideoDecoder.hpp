@@ -1,6 +1,7 @@
 #pragma once
 #include <Media/Libav.hpp>
 #if SCORE_HAS_LIBAV
+#include <Media/AvStreamIO.hpp>
 #include <Video/FrameQueue.hpp>
 #include <Video/Rescale.hpp>
 #include <Video/VideoInterface.hpp>
@@ -53,6 +54,7 @@ private:
   static const constexpr int frames_to_buffer = 16;
 
   std::string m_inputFile;
+  Media::AvIoDevice m_io;
 
   std::thread m_thread;
   std::mutex m_condMut;

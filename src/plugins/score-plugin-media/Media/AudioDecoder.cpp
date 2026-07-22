@@ -1,5 +1,6 @@
 #include "AudioDecoder.hpp"
 
+#include <Media/AvStreamIO.hpp>
 #include <Media/Libav.hpp>
 #include <Media/Sound/SoundModel.hpp>
 
@@ -416,19 +417,28 @@ using AVFormatContext_ptr = std::unique_ptr<AVFormatContext, AVFormatContext_Fre
 using AVCodecContext_ptr = std::unique_ptr<AVCodecContext, AVCodecContext_Free>;
 using AVFrame_ptr = std::unique_ptr<AVFrame, AVFrame_Free>;
 
-AVFormatContext_ptr open_audio(const QString& path)
+AVFormatContext_ptr open_audio(const QString& path, AvIoDevice& io)
 {
 #if SCORE_HAS_LIBAV
   AVFormatContext* fmt_ctx_ptr{};
-  auto l1 = path.toUtf8();
-  auto ret = avformat_open_input(&fmt_ctx_ptr, l1.constData(), nullptr, nullptr);
-  if(ret != 0)
+  if(isStreamedMediaPath(path))
   {
-    char err[100]{0};
-    av_make_error_string(err, 100, ret);
-    throw std::runtime_error(
-        "Couldn't open file: " + std::string(l1.constData()) + " => "
-        + std::string(err));
+    if(!open_input_custom_io(fmt_ctx_ptr, io, path))
+      throw std::runtime_error(
+          "Couldn't open file: " + path.toStdString() + " (custom IO)");
+  }
+  else
+  {
+    auto l1 = path.toUtf8();
+    auto ret = avformat_open_input(&fmt_ctx_ptr, l1.constData(), nullptr, nullptr);
+    if(ret != 0)
+    {
+      char err[100]{0};
+      av_make_error_string(err, 100, ret);
+      throw std::runtime_error(
+          "Couldn't open file: " + std::string(l1.constData()) + " => "
+          + std::string(err));
+    }
   }
 
   AVDictionaryEntry* tag = NULL;
@@ -449,7 +459,8 @@ std::optional<AudioInfo> AudioDecoder::do_probe(const QString& path)
 try
 {
 #if SCORE_HAS_LIBAV
-  auto fmt_ctx = open_audio(path);
+  AvIoDevice io;
+  auto fmt_ctx = open_audio(path, io);
 
   if(avformat_find_stream_info(fmt_ctx.get(), nullptr) < 0)
     return {};
@@ -707,7 +718,8 @@ void AudioDecoder::on_startDecode(QString path, audio_handle hdl)
   {
     const std::size_t channels = data.size();
 
-    auto fmt_ctx = open_audio(path);
+    AvIoDevice io;
+    auto fmt_ctx = open_audio(path, io);
 
     auto ret = avformat_find_stream_info(fmt_ctx.get(), nullptr);
     if(ret != 0)

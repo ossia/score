@@ -32,15 +32,22 @@ VideoThumbnailer::VideoThumbnailer(QString path)
       Qt::QueuedConnection);
 
   auto inputFile = path.toUtf8();
-  if(int err = avformat_open_input(&m_formatContext, inputFile.data(), nullptr, nullptr);
-     err != 0)
-  {
-    char str[1500];
-    qDebug() << "VideoThumbnailer: avformat_open_input failed"
-             << av_make_error_string(str, 1499, err);
+  if(auto hook = ossia::libav_custom_open())
+    m_formatContext = hook(inputFile.data(), m_ioOwner, m_ioFree);
 
-    SCORE_ASSERT(m_formatContext == nullptr);
-    return;
+  if(!m_formatContext)
+  {
+    if(int err
+       = avformat_open_input(&m_formatContext, inputFile.data(), nullptr, nullptr);
+       err != 0)
+    {
+      char str[1500];
+      qDebug() << "VideoThumbnailer: avformat_open_input failed"
+               << av_make_error_string(str, 1499, err);
+
+      SCORE_ASSERT(m_formatContext == nullptr);
+      return;
+    }
   }
 
   if(int err = avformat_find_stream_info(m_formatContext, nullptr); err < 0)
@@ -51,6 +58,12 @@ VideoThumbnailer::VideoThumbnailer(QString path)
 
     avformat_close_input(&m_formatContext);
     m_formatContext = nullptr;
+    if(m_ioOwner)
+    {
+      m_ioFree(m_ioOwner);
+      m_ioOwner = nullptr;
+      m_ioFree = nullptr;
+    }
     return;
   }
 
@@ -176,6 +189,12 @@ VideoThumbnailer::~VideoThumbnailer()
     avformat_flush(m_formatContext);
     avformat_close_input(&m_formatContext);
     m_formatContext = nullptr;
+  }
+  if(m_ioOwner)
+  {
+    m_ioFree(m_ioOwner);
+    m_ioOwner = nullptr;
+    m_ioFree = nullptr;
   }
 }
 

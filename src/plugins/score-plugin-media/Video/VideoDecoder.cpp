@@ -362,7 +362,16 @@ bool VideoDecoder::open(const std::string& inputFile) noexcept
   m_inputFile = inputFile;
   this->filePath = inputFile;
 
-  if(avformat_open_input(&m_formatContext, inputFile.c_str(), nullptr, nullptr) != 0)
+  if(Media::isStreamedMediaPath(inputFile))
+  {
+    if(!Media::open_input_custom_io(
+           m_formatContext, m_io, QString::fromStdString(inputFile)))
+    {
+      close_file();
+      return false;
+    }
+  }
+  else if(avformat_open_input(&m_formatContext, inputFile.c_str(), nullptr, nullptr) != 0)
   {
     close_file();
     return false;
@@ -491,6 +500,7 @@ void VideoDecoder::close_file() noexcept
     avformat_close_input(&m_formatContext);
     m_formatContext = nullptr;
   }
+  m_io = Media::AvIoDevice{};
 }
 
 ReadFrame LibAVDecoder::read_one_frame_raw(AVPacket& packet)
