@@ -32,14 +32,9 @@ TEST_CASE(
   {
     INFO("iteration " << i);
     {
-      // The default constructor is the fixed code path: each instance gets
-      // its own argc/argv, so the previous QApplication cannot have eaten
-      // them (it edits argc/argv in place).
       score::MinimalApplication app;
 
       REQUIRE(qApp != nullptr);
-      // The second application must see a full command line, not the
-      // leftovers of the first one.
       CHECK(QCoreApplication::arguments().size() == 1);
       CHECK(!QCoreApplication::arguments().front().isEmpty());
 
@@ -49,7 +44,6 @@ TEST_CASE(
       score::test::close_all_documents(app.context());
       QApplication::processEvents();
     }
-    // The application must be fully torn down before the next round.
     REQUIRE(qApp == nullptr);
   }
 
