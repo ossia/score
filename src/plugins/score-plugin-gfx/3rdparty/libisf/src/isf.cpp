@@ -1132,6 +1132,10 @@ static const ossia::string_map<root_fun>& root_parse{[] {
     if(v.get_type() == sajson::TYPE_STRING)
       d.credits = v.as_string();
   }});
+  p.insert({"DOCUMENTATION", [](descriptor& d, const sajson::value& v) {
+    if(v.get_type() == sajson::TYPE_STRING)
+      d.documentation = v.as_string();
+  }});
   p.insert({"CATEGORIES", [](descriptor& d, const sajson::value& v) {
     if(v.get_type() == sajson::TYPE_ARRAY)
     {
@@ -2912,6 +2916,12 @@ std::string parser::write_isf() const
   if(!m_desc.credits.empty())
   {
     oss << "  \"CREDIT\": \"" << escape_json(m_desc.credits) << "\",\n";
+  }
+
+  // Add documentation URL if present
+  if(!m_desc.documentation.empty())
+  {
+    oss << "  \"DOCUMENTATION\": \"" << escape_json(m_desc.documentation) << "\",\n";
   }
 
   // Add categories if present
