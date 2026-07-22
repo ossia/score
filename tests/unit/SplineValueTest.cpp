@@ -1,22 +1,3 @@
-// P3R2 value-processor unit tests — spline evaluation math.
-//
-// Spline::ProcessModel (score-plugin-spline) stores an ossia::spline_data and
-// hands it verbatim to ossia::nodes::spline, which evaluates it through
-// ts::spline<2> (tinyspline, clamped cubic B-spline) exactly as
-// ossia::nodes::spline::set_spline/run do:
-//     m_spline.set_points(reinterpret_cast<const tsReal*>(points.data()), n);
-//     [x, y] = m_spline.evaluate(clamp(t, 0, 1));
-// (3rdparty/libossia/src/ossia/dataflow/nodes/spline.hpp). These tests drive
-// that exact code path and assert values:
-//  * 4 control points + degree 3 + clamped knots == a single cubic Bezier,
-//    checked against the analytic Bernstein formula;
-//  * clamped endpoint interpolation (t=0 / t=1 hit the first / last point);
-//  * collinear control points stay on the line;
-//  * ts::spline<3> (spline3d) satisfies the same Bezier identity in 3D.
-//
-// tsReal is double in this build (spline_data's {double x, y} is
-// reinterpret_cast to tsReal*), so tolerances are tight (1e-9).
-
 #include <ossia/dataflow/nodes/spline/spline2d.hpp>
 #include <ossia/editor/automation/tinyspline_util.hpp>
 
@@ -123,10 +104,6 @@ TEST_CASE("2D spline is symmetric for a symmetric control polygon", "[spline][va
 {
   ossia::spline_data data;
   data.points = {{0., 0.}, {0.25, 1.}, {0.5, -1.}, {0.75, 1.}, {1., 0.}};
-  // Mirror symmetry around x = 0.5: P(i).x = 1 - P(n-i).x, P(i).y = P(n-i).y
-  // for the y-mirrored polygon... use the direct point-symmetry variant:
-  // evaluate(t) and evaluate(1-t) must mirror in x and match the y of the
-  // reversed polygon (which for this polygon equals mirrored y sign pattern).
   ts::spline<2> fwd;
   fwd.set_points(
       reinterpret_cast<const tsReal*>(data.points.data()), data.points.size());

@@ -1,26 +1,3 @@
-// P3R3 — serialization round-trip for avnd audio-effect process models:
-// controls set on a DSP process must survive save / load, through both the
-// DataStream and the JSON format, using the real factory path
-// (Process::ProcessFactoryList -> make / deserialize_interface) exactly as
-// IntervalModelSerialization does it.
-//
-// Processes covered:
-//  * ao::Gain (score-plugin-avnd, avnd_make_score of
-//    3rdparty/avendish/examples/Advanced/Audio/Gain.hpp) — gain knob value
-//  * Nodes::MathAudioFilter (score-plugin-fx) — expression string + param a
-//
-// Needs the headless app (APP mode): the avnd process models resolve their
-// port factories through the application components on load.
-//
-// NOTE — single TEST_CASE / single run_in_app on purpose. Process::load_inlet
-// / load_outlet (score-lib-process/Process/Dataflow/Port.cpp:1038 sqq) cache
-// the PortFactoryList in a function-local `static auto&` bound to
-// score::AppComponents() of the FIRST application instance ever booted in the
-// process. Booting a second app (as Catch2 SECTIONs would, re-running
-// run_in_app per section) leaves that reference dangling and port
-// deserialization crashes with a heap-use-after-free. Latent in the real app
-// (which boots once), but fatal for multi-boot test binaries.
-
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
 

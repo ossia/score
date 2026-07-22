@@ -1,13 +1,3 @@
-// Value-asserting unit tests for score-lib-state:
-// - State::Address / State::AddressAccessor parsing incl. accessors + units
-// - ossia::value <-> string conversion (State::parseValue / toPrettyString)
-// - DataStream (binary) and JSON serialization round-trips of Address,
-//   AddressAccessor, Message, MessageList and Domain, asserting value equality
-// - graceful handling of truncated / corrupt DataStream buffers (ASAN-clean)
-//
-// Serialization visitors fetch score::AppComponents() in their constructors,
-// so a MockApplication has to exist before any (de)serializer is built.
-
 #include <State/Address.hpp>
 #include <State/Domain.hpp>
 #include <State/Expression.hpp>
@@ -36,10 +26,6 @@ namespace
 // Must outlive every test: serializers dereference AppComponents().
 static const score::testing::MockApplication g_mock_app;
 
-// In SCORE_DEBUG builds, checkDelimiter() raises SIGTRAP (SCORE_BREAKPOINT)
-// before throwing "Corrupt save file". Outside a debugger that trap would
-// kill the process, so neuter it: the throw right after is the actual,
-// testable error path.
 static const int g_ignore_sigtrap = [] {
   std::signal(SIGTRAP, SIG_IGN);
   return 0;
@@ -61,8 +47,6 @@ T jsonRoundTrip(const T& t)
   return fromJson<T>(bytes);
 }
 
-// Attempts to deserialize; success or clean std::exception both count as
-// graceful. Anything else (crash, ASAN report) fails the test run itself.
 template <typename T>
 bool gracefulUnmarshall(const QByteArray& bytes)
 {
@@ -362,8 +346,6 @@ TEST_CASE("Truncated DataStream buffers are handled gracefully", "[state][serial
   const QByteArray full = score::marshall<DataStream>(msg);
   REQUIRE(full.size() > 8);
 
-  // Every strict prefix must fail cleanly (or produce a default object),
-  // never crash. ASAN watches the whole loop.
   for(int len = 0; len < full.size(); ++len)
   {
     CHECK(gracefulUnmarshall<State::Message>(full.left(len)));
@@ -382,8 +364,6 @@ TEST_CASE("Truncated DataStream buffers are handled gracefully", "[state][serial
 
 TEST_CASE("Random garbage buffers do not crash Address deserialization", "[state][serialization][fuzz]")
 {
-  // State::Address is QString + QStringList: Qt's QDataStream layer must
-  // reject bogus length prefixes without huge allocations or crashes.
   std::mt19937 rng{20260717};
   std::uniform_int_distribution<int> byteDist{0, 255};
   std::uniform_int_distribution<int> sizeDist{1, 64};

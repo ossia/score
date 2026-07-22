@@ -1,17 +1,3 @@
-// P3R2 value-processor unit tests — Automation process values.
-//
-// An Automation::ProcessModel wraps a [0,1]x[0,1] curve and scales its output
-// into the [min, max] domain at execution time:
-//     out(t) = curve(t) * (max - min) + min
-// (AutomationExecution.cpp, Component::on_curveChanged_impl). These tests
-// replicate that exact conversion (same Engine::score_to_ossia::curve call,
-// same scale functions) and assert the produced ossia::curve SAMPLES at known
-// t, including domain scaling, clamping outside [0,1], and a serialization
-// round-trip through the real process factory path.
-//
-// Runs in the headless app fixture: process/port deserialization resolves
-// factories through the application components.
-
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
 

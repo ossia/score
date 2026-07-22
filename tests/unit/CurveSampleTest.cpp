@@ -1,20 +1,3 @@
-// P3R2 value-processor unit tests — curve segment & curve model sampling.
-//
-// Pure math, no application context: constructs Curve::LinearSegment,
-// Curve::PowerSegment, Curve::EasingSegment<...> and Curve::Model directly
-// (all SCORE_PLUGIN_CURVE_EXPORTed / header-inline) and asserts SAMPLED
-// VALUES against the closed-form formulas the segments implement:
-//   linear : y = y0 + (y1-y0) * (x-x0)/(x1-x0)                (exact)
-//   power  : y = y0 + (y1-y0) * (x^gamma - x0)/(x1-x0)        (1e-12)
-//   easing : y = y0 + (y1-y0) * (ease(x) - x0)/(x1-x0)        (1e-12)
-//
-// NOTE the power/easing formulas evaluate the shape function at the ABSOLUTE
-// abscissa x, not at the ratio (x-x0)/(x1-x0). For segments spanning [0,1]
-// both conventions coincide; for sub-range segments they do not, and the
-// execution engine (ossia::curve_segment functors, which are ratio-based)
-// disagrees with Model::valueAt. One test below pins the current absolute-x
-// behavior and the discrepancy is documented in the P3R2 report.
-
 #include <Curve/CurveModel.hpp>
 #include <Curve/Segment/EasingSegment.hpp>
 #include <Curve/Segment/Linear/LinearSegment.hpp>
@@ -29,12 +12,6 @@
 
 using Catch::Approx;
 
-// The Curve::EasingData QDataStream operators are declared in
-// EasingSegment.hpp but defined inside the hidden-visibility curve plugin
-// (score_plugin_curve.cpp); the Qt metatype registration triggered by the
-// header-inline EasingSegment code references them at link time. Provide
-// local no-op definitions — EasingData is an empty struct and these are never
-// invoked by this app-free test.
 QDataStream& operator<<(QDataStream& s, const Curve::EasingData&)
 {
   return s;
@@ -46,8 +23,6 @@ QDataStream& operator>>(QDataStream& s, Curve::EasingData&)
 
 namespace
 {
-// valueAt / updateData / makeDoubleFunction are private in some concrete
-// segments; they are public on the base interface.
 const Curve::SegmentModel& base(const Curve::SegmentModel& s)
 {
   return s;
@@ -303,11 +278,6 @@ TEST_CASE("Curve::Model samples across multiple segments", "[curve][model]")
 
   SECTION("power segment on a sub-range: model sampling matches the engine")
   {
-    // Fixed (#3): PowerSegment::valueAt normalises x to the segment-local ratio
-    // before applying pow(), so the model now agrees with the execution-side
-    // functor for a segment that does not start at 0. For this [0.5,1] gamma=2
-    // segment, x=0.75 -> local ratio 0.5 -> 1 + 0.5^2*(3-1) = 1.5. (Was 1.25
-    // with the old absolute-x sampling — see the P3R2 report.)
     auto seg = new Curve::PowerSegment{Id<Curve::SegmentModel>{1}, &model};
     seg->setStart({0.5, 1.});
     seg->setEnd({1., 3.});

@@ -1,16 +1,3 @@
-// P3R2 value-processor unit tests — Mapping process transfer function.
-//
-// A Mapping::ProcessModel maps an input value through a [0,1]x[0,1] curve,
-// with the source domain scaled onto the curve's X axis and the target domain
-// onto its Y axis (MappingExecution.cpp, Component::on_curveChanged_impl2):
-//     x_curve(v) = v * (srcMax - srcMin) + srcMin        (abscissas of points)
-//     y_out(v)   = v * (tgtMax - tgtMin) + tgtMin
-// The resulting ossia::curve<float,float> is the transfer function: feeding an
-// input value through value_at() yields the mapped output. These tests build
-// that curve exactly as the execution component does and assert outputs for
-// known inputs, including domain scaling, clamping outside the source domain,
-// inverted target domains, and a serialization round-trip.
-
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
 
@@ -142,8 +129,6 @@ TEST_CASE("Mapping applies non-linear curve shapes to the input", "[mapping][val
     CHECK(tf->value_at(25.f) == Approx(0.0625f).margin(1e-6));
     CHECK(tf->value_at(100.f) == Approx(1.f).margin(1e-6));
 
-    // Piecewise curve: triangle 0->1 on the first half of the source domain,
-    // 1->0 on the second half.
     cm.clear();
     auto up = new Curve::LinearSegment{Id<Curve::SegmentModel>{2}, &cm};
     up->setStart({0., 0.});

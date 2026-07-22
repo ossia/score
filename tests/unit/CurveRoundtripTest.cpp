@@ -1,11 +1,3 @@
-// P3R2 value-processor unit tests — Curve::Model serialization round-trip.
-//
-// Curve deserialization resolves segment factories through the application
-// components (Curve::SegmentList), so these cases run inside the headless app
-// fixture (run_in_app / APP mode). Round-trips are asserted on VALUES: the
-// reloaded curve must sample identically on a dense grid, and segment-specific
-// data (power gamma) must survive both the JSON and DataStream paths.
-
 #include <score_test/App.hpp>
 
 #include <Curve/CurveModel.hpp>
@@ -24,13 +16,6 @@
 
 using Catch::Approx;
 
-// The QDataStream operators for the segment-specific data types are declared
-// in the plugin headers but defined inside the hidden-visibility curve plugin;
-// the Qt metatype instantiations triggered in this TU (QVariant::value<...>()
-// in gamma_of, header-inline EasingSegment code) reference them at link time.
-// Provide semantically-equivalent local definitions; score's own segment
-// serialization goes through the factory path inside the plugin and never
-// calls these.
 QDataStream& operator<<(QDataStream& s, const Curve::PowerSegmentData& d)
 {
   return s << d.gamma;
@@ -50,10 +35,6 @@ QDataStream& operator>>(QDataStream& s, Curve::EasingData&)
 
 namespace
 {
-// A curve exercising three different segment kinds:
-//   [0,   0.4] linear    0   -> 1
-//   [0.4, 0.7] power^3   1   -> 0.2
-//   [0.7, 1  ] quadIn    0.2 -> 0.9
 void build_reference_curve(Curve::Model& model)
 {
   auto lin = new Curve::LinearSegment{Id<Curve::SegmentModel>{1}, &model};

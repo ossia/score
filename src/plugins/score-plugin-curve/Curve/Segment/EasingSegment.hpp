@@ -74,9 +74,6 @@ public:
 
   double valueAt(double x) const override
   {
-    // Evaluate the easing on the segment-local [0,1] ratio (matches updateData()
-    // + the ossia execution engine); applying Easing_T to the global x was only
-    // correct for a segment spanning [0,1].
     const double ratio = (x - start().x()) / (end().x() - start().x());
     return start().y() + (end().y() - start().y()) * Easing_T{}(ratio);
   }

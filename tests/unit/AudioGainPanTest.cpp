@@ -1,14 +1,3 @@
-// P3R3 — DSP-correctness unit tests for the gain / pan / mix stage that every
-// score audio process goes through: ossia::audio_outlet::post_process()
-// (3rdparty/libossia/src/ossia/dataflow/port.cpp) applies the outlet's gain
-// and per-channel pan weights in-place, and ossia::mix() is the cable
-// summing operation of the audio graph (score-plugin-audio /
-// score-plugin-engine execution path).
-//
-// Pure CPU, app-free: ports are constructed directly, filled with known
-// samples, processed, and the output samples asserted exactly (all the
-// operations are plain multiplies/additions, so tolerances are == exact).
-
 #include <ossia/dataflow/audio_port.hpp>
 #include <ossia/dataflow/port.hpp>
 
