@@ -6,6 +6,11 @@
 
 #include <wobjectimpl.h>
 
+#if defined(__EMSCRIPTEN__)
+#include <QGuiApplication>
+#include <QInputMethod>
+#endif
+
 W_OBJECT_IMPL(score::QGraphicsLineEdit)
 namespace score
 {
@@ -23,6 +28,18 @@ QGraphicsLineEdit::QGraphicsLineEdit(QGraphicsItem* parent)
   QObject::connect(
       this->document(), &QTextDocument::contentsChanged, this,
       &QGraphicsLineEdit::checkSize);
+}
+
+void QGraphicsLineEdit::focusInEvent(QFocusEvent* e)
+{
+  QGraphicsTextItem::focusInEvent(e);
+#if defined(__EMSCRIPTEN__)
+  if(auto* im = QGuiApplication::inputMethod())
+  {
+    im->update(Qt::ImEnabled);
+    im->show();
+  }
+#endif
 }
 
 void QGraphicsLineEdit::dropEvent(QGraphicsSceneDragDropEvent* drop)

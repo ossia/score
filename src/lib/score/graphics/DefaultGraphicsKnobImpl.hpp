@@ -152,7 +152,7 @@ struct DefaultGraphicsKnobImpl
     requires std::is_integral_v<std::decay_t<decltype(std::declval<T>().value())>>
   static void contextMenuEvent(T& self, QPointF pos)
   {
-    QTimer::singleShot(0, &self, [&, self_p = &self, pos] {
+    auto build = [&, self_p = &self, pos] {
       auto w = new SpinboxWithEnter;
       w->setRange(self.min, self.max);
 
@@ -161,7 +161,11 @@ struct DefaultGraphicsKnobImpl
           w, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
       obj->setPos(pos);
 
+#if defined(__EMSCRIPTEN__)
+      w->setFocus();
+#else
       QTimer::singleShot(0, w, [w] { w->setFocus(); });
+#endif
 
       auto con = QObject::connect(
           w, SignalUtils::QSpinBox_valueChanged_int(), &self,
@@ -182,14 +186,19 @@ struct DefaultGraphicsKnobImpl
         }
         obj = nullptr;
       });
-    });
+    };
+#if defined(__EMSCRIPTEN__)
+    build();
+#else
+    QTimer::singleShot(0, &self, build);
+#endif
   }
 
   template <typename T>
     requires std::is_floating_point_v<std::decay_t<decltype(std::declval<T>().value())>>
   static void contextMenuEvent(T& self, QPointF pos)
   {
-    QTimer::singleShot(0, &self, [&, self_p = &self, pos] {
+    auto build = [&, self_p = &self, pos] {
       auto w = new DoubleSpinboxWithEnter;
       w->setRange(self.min, self.max);
 
@@ -199,7 +208,11 @@ struct DefaultGraphicsKnobImpl
           w, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
       obj->setPos(pos);
 
+#if defined(__EMSCRIPTEN__)
+      w->setFocus();
+#else
       QTimer::singleShot(0, w, [w] { w->setFocus(); });
+#endif
 
       auto con = QObject::connect(
           w, SignalUtils::QDoubleSpinBox_valueChanged_double(), &self,
@@ -221,7 +234,12 @@ struct DefaultGraphicsKnobImpl
         }
         obj = nullptr;
       });
-    });
+    };
+#if defined(__EMSCRIPTEN__)
+    build();
+#else
+    QTimer::singleShot(0, &self, build);
+#endif
   }
 
   template <typename T>
