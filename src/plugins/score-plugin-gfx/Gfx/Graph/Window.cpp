@@ -27,6 +27,13 @@ Window::Window(GraphicsApi graphicsApi)
     : m_api{graphicsApi}
 {
   setCursor(Qt::BlankCursor);
+
+#if defined(__EMSCRIPTEN__)
+  // No OS window manager on wasm: without this the output window drops behind
+  // the main window when it's activated and can't be brought back.
+  setFlag(Qt::WindowStaysOnTopHint, true);
+#endif
+
   QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
 
   // Tell the platform plugin what we want.
@@ -141,8 +148,20 @@ void Window::render()
 
   if(!m_hasSwapChain || m_notExposed)
   {
-    requestUpdate();
-    return;
+    // wasm delivers a one-shot expose (QWasmWindow::setVisible), so if the
+    // surface had no size when exposeEvent latched m_notExposed, nothing ever
+    // clears it again and the window stays black. Recover once it has a size.
+    if(isExposed() && m_swapChain && !m_swapChain->surfacePixelSize().isEmpty())
+    {
+      m_notExposed = false;
+      m_newlyExposed = true;
+      // fall through: the resize block below will (re)create the swapchain
+    }
+    else
+    {
+      requestUpdate();
+      return;
+    }
   }
 
   if(m_swapChain->currentPixelSize() != m_swapChain->surfacePixelSize()
