@@ -1,18 +1,3 @@
-// P3R3 — DSP-correctness unit tests for the score-plugin-fx audio-path nodes.
-//
-// The Fx nodes are avnd/halp structs (header-only in score-plugin-fx/Fx/*.hpp)
-// so they are constructed and driven directly: control values are written into
-// the inputs struct, audio buffers are wired to raw arrays, the process
-// operator is invoked with a hand-built tick, and output samples are asserted
-// against the closed-form math.
-//
-// Nodes covered:
-//  * Nodes::MathAudioFilter::Node — exprtk per-sample expression over an audio
-//    bus (gain / FIR difference equation / t & fs symbols / multichannel)
-//  * Nodes::Envelope::Node        — block peak & RMS
-//  * Nodes::LFO::v2::Node         — deterministic waveform values + phase
-//    accumulation (jitter = 0)
-
 #include <Fx/Envelope.hpp>
 #include <Fx/LFO_v2.hpp>
 #include <Fx/MathAudioFilter.hpp>
@@ -58,16 +43,6 @@ struct filter_harness
 };
 }
 
-// FIXED DSP BUG --------------------------------------------------------------
-// MathAudioFilter binds the exprtk symbols "x" and "px" to the heap buffers of
-// State::cur_in / State::prev_in at construction time
-// (ossia::math_expression::add_vector captures the vector's data pointer in an
-// exprtk::vector_view). The per-sample update used to `std::swap` those heap
-// buffers under the views, exchanging "x" and "px" on every odd sample index.
-// The update is now a copy (`self.prev_in = self.cur_in;`,
-// src/plugins/score-plugin-fx/Fx/MathAudioFilter.hpp), so the views are
-// correct on EVERY sample: for a 1-in-1-out expression f, out[i] == f(in[i])
-// for all i, and "px" holds the previous sample's input.
 
 TEST_CASE("MathAudioFilter: gain expression should scale every sample", "[fx][audio][exprtk]")
 {
@@ -123,8 +98,6 @@ TEST_CASE("MathAudioFilter: 2-tap FIR y[n] = (x[n] + x[n-1])/2 impulse response"
   h.node.inputs.expr.value = "out[0] := 0.5 * x[0] + 0.5 * px[0];";
   h.run(N);
 
-  // Impulse response of the averaging FIR: {0.5, 0.5, 0, 0, ...} — the true
-  // mathematical difference-equation response ("px" holds x[n-1]).
   CHECK(out[0] == 0.5);
   CHECK(out[1] == 0.5);
   for(int i = 2; i < N; i++)
@@ -219,8 +192,6 @@ TEST_CASE("MathAudioFilter: edge cases stay safe", "[fx][audio][exprtk][fuzz]")
     h.node.inputs.expr.value = "out[0] := x[0] * 0.5;";
     h.run(4);
     CHECK(std::isnan(out[0]));
-    // Each sample now sees its own input: inf * 0.5 = inf. No crash,
-    // ASAN-clean.
     CHECK(std::isinf(out[1]));
     CHECK(out[1] > 0.);
     CHECK(out[2] == std::numeric_limits<double>::denorm_min() * 0.5);
@@ -245,8 +216,6 @@ TEST_CASE("MathAudioFilter: edge cases stay safe", "[fx][audio][exprtk][fuzz]")
 
 namespace
 {
-// Capture helper for the Envelope callbacks (multichannel_output_type is
-// ossia::variant<float, small_pod_vector<float, 8>>).
 struct env_capture
 {
   std::vector<float> values;
@@ -284,16 +253,11 @@ TEST_CASE("Envelope: block peak and RMS values", "[fx][audio][envelope]")
 
     REQUIRE(peak.calls == 1);
     REQUIRE(peak.values.size() == 1);
-    // NOTE: peak is max(in[0], max |in[i]| for i>0) — the first sample enters
-    // the max un-abs'ed, which is fine here since in[0] > 0.
     CHECK(peak.values[0] == 0.75f);
   }
 
   SECTION("mono: RMS of a constant block is the textbook value")
   {
-    // FIXED: Fx/Envelope.hpp now computes the textbook
-    // rms = sqrt(sum(x^2) / N) (it used to be sqrt(sum(x^2)) / N, a factor
-    // sqrt(N) too small). For a constant signal of amplitude A the RMS is A.
     static constexpr int N = 16;
     std::array<double, N> in;
     in.fill(0.5);
@@ -446,8 +410,6 @@ TEST_CASE("LFO v2: deterministic waveform math (jitter = 0)", "[fx][lfo]")
   {
     auto lfo = make_lfo(1.f, 1.f, 0.f, W::Triangle);
     lfo(make_flicks_tick(dt, 2 * dt, 64)); // first tick: ph = 0... but phase
-    // starts at 0 regardless of tick start: the node integrates from its own
-    // phase accumulator. ph = 0 -> 0.
     CHECK(*lfo.outputs.out.value == Approx(0.).margin(1e-6));
     lfo(make_flicks_tick(2 * dt, 3 * dt, 64)); // ph = 0.2*pi < pi/2 -> 0.4
     CHECK(*lfo.outputs.out.value == Approx(0.4).margin(1e-5));

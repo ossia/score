@@ -1,22 +1,3 @@
-// P3R3 — DSP-correctness unit tests for the bundled avnd (avendish/halp) audio
-// effects that ship with score through score-plugin-avnd (avnd_make_score in
-// src/plugins/score-plugin-avnd/CMakeLists.txt).
-//
-// The avnd nodes are plain C++ structs: inputs/outputs port structs + a
-// process operator(). They are constructed and run here directly, without the
-// score wrapper, engine or any Qt application — buffers in, buffers out,
-// asserting output samples against the closed-form math of each effect.
-//
-// Nodes covered (all in 3rdparty/avendish/examples/Advanced/Audio):
-//  * ao::Gain         — per-sample out = in * gain            (exact)
-//  * ao::AudioSum     — out[i] = sum over channels of in[c][i] (exact)
-//  * ao::MonoMix      — out[i] = sum over ports/channels in*g  (exact)
-//  * ao::StereoMixer  — linear pan law lp = g*(1-p), rp = g*p  (exact)
-//  * ao::Silence      — channel count request plumbing
-//
-// Linear operations get exact (==) or 1-ulp-ish assertions; nothing here is
-// allowed a loose tolerance since the math is pure multiply-accumulate.
-
 #include <Advanced/Audio/AudioSum.hpp>
 #include <Advanced/Audio/Gain.hpp>
 #include <Advanced/Audio/MonoMix.hpp>

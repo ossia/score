@@ -1,14 +1,3 @@
-// Unit tests for score-plugin-midi: MIDI message byte encoding / decoding,
-// the Midi note model + process serialization round-trips, the ossia midi
-// sequencing node (note-on / note-off emission), Patternist pattern parsing,
-// and SMF (standard midi file) parsing edge cases (running status,
-// note-off-as-note-on-velocity-0).
-//
-// The plugin is built with -fvisibility=hidden; Midi::Note and the
-// serialization template specializations are not exported, so MidiNote.cpp,
-// MidiProcess.cpp and PatternParsing.cpp are compiled directly into this test
-// (see tests/unit/CMakeLists.txt).
-
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/TimeValue.hpp>
@@ -45,9 +34,6 @@
 
 namespace
 {
-// In SCORE_DEBUG builds, checkDelimiter() executes SCORE_BREAKPOINT (raises
-// SIGTRAP) before throwing "Corrupt save file.". Ignore the signal while
-// deliberately feeding corrupt data.
 struct ScopedIgnoreSigtrap
 {
   void (*prev)(int);
@@ -58,14 +44,8 @@ struct ScopedIgnoreSigtrap
   ~ScopedIgnoreSigtrap() { std::signal(SIGTRAP, prev); }
 };
 
-// Minimal application fixture: score's DataStream / JSON deserializers
-// reference score::AppComponents() (a global set through
-// score::ApplicationInterface) at construction, and Process::load_midi_outlet
-// resolves the port factory through it.
 struct TestApplication final : public score::ApplicationInterface
 {
-  // score::Entity's metadata (ColorRef -> Skin) requires a QGuiApplication;
-  // run it on the offscreen platform so the test stays headless.
   struct GuiApp
   {
     int argc = 1;
@@ -326,10 +306,6 @@ TEST_CASE("Midi::ProcessModel serialization round-trip", "[midi][serialization]"
     CHECK(n1.velocity() == 127);
   };
 
-  // Processes are serialized polymorphically (through the static type
-  // Process::ProcessModel): the visitor bundles [concrete key + entity header
-  // + base data + concrete data]. Mirror what deserialize_interface does in
-  // the process factories.
   SECTION("DataStream")
   {
     const QByteArray outer
@@ -509,9 +485,6 @@ TEST_CASE("Patternist pattern parsing", "[midi][pattern]")
 
   SECTION("mismatched lane lengths: lane dropped, but pattern length is updated")
   {
-    // NOTE: current behavior quirk. The second lane is rejected because its
-    // step count differs from the first lane, but p.length has already been
-    // overwritten with the rejected lane's length (PatternParsing.cpp:125).
     const auto pats = parsePatterns(QByteArray("36 x---\n38 xx\n"));
     REQUIRE(pats.size() == 1);
     REQUIRE(pats[0].lanes.size() == 1);
@@ -522,8 +495,6 @@ TEST_CASE("Patternist pattern parsing", "[midi][pattern]")
 
   SECTION("hc means clap (39), not hi conga: second mapping is unreachable")
   {
-    // PatternParsing.cpp:76 maps "cp"/"hc" to 39; the later "hc" -> 66 branch
-    // at line 96 can never be reached. Documents current behavior.
     const auto pats = parsePatterns(QByteArray("HC x---\n"));
     REQUIRE(pats.size() == 1);
     REQUIRE(pats[0].lanes.size() == 1);
@@ -657,11 +628,6 @@ TEST_CASE("fuzz: malformed inputs are handled gracefully", "[midi][fuzz]")
 
   SECTION("truncated DataStream note buffers throw instead of crashing")
   {
-    // NB: this deliberately covers Midi::Note (IdentifiedObject) and
-    // Midi::NoteData (plain struct). Entity-based objects such as
-    // Midi::ProcessModel cannot be covered here: their deserializing
-    // constructor is noexcept, and ModelMetadata's checkDelimiter() throw on
-    // corrupt data then goes straight to std::terminate (crash-fast design).
     Midi::Note src{Id<Midi::Note>{3}, Midi::NoteData{0.1, 0.5, 60, 100}, nullptr};
     const QByteArray arr = score::marshall<DataStream>(src);
 
@@ -672,16 +638,12 @@ TEST_CASE("fuzz: malformed inputs are handled gracefully", "[midi][fuzz]")
       try
       {
         Midi::Note dst{DataStream::Deserializer{cut}, nullptr};
-        // Partial reads may succeed with default values; that is fine:
-        // velocity/pitch stay in the uint8 domain by construction.
       }
       catch(const std::exception&)
       {
         // "Corrupt save file." from checkDelimiter is the expected failure mode
       }
 
-      // NoteData is delimiter-free: truncation must never throw and always
-      // yields defined values.
       const Midi::NoteData d = score::unmarshall<Midi::NoteData>(cut);
       CHECK(d.duration() >= 0.);
     }

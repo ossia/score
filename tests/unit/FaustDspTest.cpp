@@ -1,23 +1,3 @@
-// Value-asserting DSP-correctness tests for score-plugin-faust.
-//
-// The plugin compiles Faust programs at runtime with libfaust's LLVM JIT
-// (createDSPFactoryFromString, see Faust/EffectModel.cpp:296-337) using the
-// options {"-double", "-vec"} (FAUSTFLOAT=double is set PUBLIC on the plugin
-// target), then maps the dsp's UI onto score control ports through
-// Faust::UI / Faust::UpdateUI (Faust/Utils.hpp).
-//
-// These tests exercise:
-//  - the JIT compile+run path with the plugin's exact compiler options,
-//    asserting sample-exact output for identity / gain / recursive filters
-//  - control (slider) wiring: the zone value scales the output as expected
-//  - Faust::UI and Faust::UpdateUI building/updating Process:: inlets/outlets
-//  - stdfaust.lib import (oscillator frequency, lowpass transfer function)
-//  - graceful failure on malformed programs, NaN/denormal robustness
-//
-// FaustEffectModel serialization round-trip needs a full application context
-// (reload() reads library paths from score::AppContext()) — deferred to
-// engine-level tests.
-
 #include <Process/Dataflow/WidgetInlets.hpp>
 
 #include <score/tools/IdentifierGeneration.hpp>
@@ -43,8 +23,6 @@ using Catch::Approx;
 
 namespace
 {
-// Compile + instantiate a Faust program the way the plugin does
-// (EffectModel.cpp: "-double", "-vec", default target triple on x86_64).
 struct Jit
 {
   llvm_dsp_factory* fac{};
@@ -141,8 +119,6 @@ struct ZoneUI final : ::UI
   }
 };
 
-// Minimal stand-in for FaustEffectModel: just enough surface for
-// Faust::UI / Faust::UpdateUI to build score control ports onto.
 class FakeProc : public QObject
 {
 public:
@@ -277,8 +253,6 @@ TEST_CASE(
   Faust::UI<FakeProc, false> ui{proc};
   fx.dsp->buildUserInterface(&ui);
 
-  // UI callbacks arrive in program order: bang (button), on (checkbox),
-  // level (slider) depend on faust's internal ordering; look them up by name.
   REQUIRE(proc.m_inlets.size() == 3);
 
   Process::FloatSlider* slider{};
@@ -318,8 +292,6 @@ TEST_CASE(
     "[faust][plugin][controls]")
 {
   FakeProc proc;
-  // Slot 0 stands in for the main audio inlet of the real FaustEffectModel
-  // (UpdateUI starts scanning at i == 1).
   proc.m_inlets.push_back(new Process::FloatSlider{
       0.f, 1.f, 0.f, "audio-placeholder", getStrongId(proc.m_inlets), &proc});
 
@@ -353,8 +325,6 @@ TEST_CASE(
     CHECK(ossia::convert<float>(updated->value()) == Approx(0.75f));
   }
 
-  // 3) control type changes (slider -> button): the inlet is replaced and the
-  // old one is queued for removal
   Jit fx3{"process = _ * button(\"mute\");"};
   REQUIRE(fx3.ok());
   {

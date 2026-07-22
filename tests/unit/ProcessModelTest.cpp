@@ -1,18 +1,3 @@
-// Value-asserting unit tests for the score-lib-process data model:
-// - Port hierarchy: construction, ids, types, addresses, values, domains
-// - DataStream + JSON serialization round-trips of ports through the
-//   polymorphic PortFactory path (the same path documents load through)
-// - AudioOutlet gain/pan/propagate persistence, ComboBox alternatives
-// - Cable / CableData round-trips and endpoint path stability
-// - A minimal concrete ProcessModel: object-graph invariants (port lookup by
-//   id, parenting) and full DataStream + JSON round-trip of the process
-//   metadata (duration, position, size, loops) plus its ports
-// - Corrupt / truncated port buffers load to nullptr without crashing
-//
-// Everything here is pure data model: no document, no execution engine.
-// Value propagation through cables (outlet -> inlet at runtime) lives in the
-// ossia execution graph and needs the engine: left for an integration round.
-
 #include <State/Address.hpp>
 #include <State/Domain.hpp>
 
@@ -50,19 +35,10 @@
 
 namespace
 {
-// In SCORE_DEBUG builds, checkDelimiter() raises SIGTRAP (SCORE_BREAKPOINT)
-// before throwing "Corrupt save file". Outside a debugger that trap would
-// kill the process; the throw right after is the actual testable error path.
 static const int g_ignore_sigtrap = [] {
   std::signal(SIGTRAP, SIG_IGN);
   return 0;
 }();
-// The serialization visitors resolve score::AppComponents() in their
-// constructors, and score::Entity construction (ProcessModel is an Entity)
-// reaches score::AppContext() through Skin::instance(). The stock
-// MockApplication throws on context(), so provide a minimal application
-// interface with a real, GUI-less ApplicationContext, plus the
-// PortFactoryList registered exactly like real applications do.
 struct TestApplication final : public score::ApplicationInterface
 {
   score::ApplicationSettings appSettings;
@@ -98,9 +74,6 @@ struct TestApplication final : public score::ApplicationInterface
   const score::ApplicationComponents& components() const override { return comps; }
 };
 
-// Constructed at static-init time: every serializer constructor dereferences
-// score::AppComponents(), so the mock application must exist before the
-// first marshall call of the first test.
 static TestApplication g_app;
 
 Process::PortFactoryList& portFactories()
@@ -118,8 +91,6 @@ T* dsPortRoundTrip(T& port, QObject* parent)
   return dynamic_cast<T*>(loaded);
 }
 
-// Round-trips a port through the polymorphic JSON save/load path, going all
-// the way down to UTF-8 bytes and back.
 template <typename Base, typename T>
 T* jsonPortRoundTrip(T& port, QObject* parent)
 {
@@ -321,23 +292,12 @@ TEST_CASE("ControlInlet saveData/loadData round-trip", "[process][port]")
   // loadData must not clobber identity
   CHECK(b.id() == Id<Process::Port>{2});
 
-  // By design, loadData restores the value ONLY when passed ReloadValue; the
-  // default (NoFlag) drops it (full analysis in the P3R2 report). The only
-  // caller that wants the value back — LoadPresetCommand::redo — passes
-  // ReloadValue; every default-flag caller (script/avnd port rebuild, LV2
-  // EffectModel) intentionally re-derives the value from its own source of
-  // truth (script defaults / lilv state / loadPreset). Document save/load does
-  // NOT use loadData at all — it goes through the value visitor, which
-  // preserves m_value unconditionally. So a default-flag loadData(saveData())
-  // "dropping" the value is expected and harmless, not data loss.
   CHECK(b.value() != a.value()); // default flags: value NOT restored (by design)
 
   Process::ControlInlet c{"c", Id<Process::Port>{3}, &owner};
   c.loadData(a.saveData(), Process::PortLoadDataFlags::ReloadValue);
   CHECK(c.value() == a.value()); // "ReloadValue" DOES restore it
 
-  // Note: the domain is not part of saveData() at all (only cables, address,
-  // value) - by design, so no expectation on it here.
 }
 
 TEST_CASE("Corrupt port buffers load to nullptr without crashing", "[process][port][fuzz]")
@@ -351,9 +311,6 @@ TEST_CASE("Corrupt port buffers load to nullptr without crashing", "[process][po
   // Truncations: the interface loader must catch framing errors.
   for(int len = 0; len < full.size(); len += 3)
   {
-    // A prefix long enough to contain the whole nested object may load;
-    // anything shorter must come back null. Loaded ports are owned by
-    // `owner` through QObject parenting.
     (void)deserialize_interface(
         portFactories(), DataStream::Deserializer{full.left(len)}, &owner);
   }
@@ -373,10 +330,6 @@ TEST_CASE("Corrupt port buffers load to nullptr without crashing", "[process][po
 
 namespace
 {
-// NOTE: Process::CableData declares a friend operator== (CableData.hpp:23)
-// but no definition exists anywhere in the codebase, so using it fails to
-// link (undefined symbol). Field-wise comparison instead; see the P3R2
-// report for the bug entry.
 bool sameCableData(const Process::CableData& lhs, const Process::CableData& rhs)
 {
   return lhs.type == rhs.type && lhs.source == rhs.source && lhs.sink == rhs.sink;
@@ -625,8 +578,6 @@ TEST_CASE("Concrete process: DataStream round-trip", "[process][model][serializa
   const QByteArray bytes
       = score::marshall<DataStream>(static_cast<const Process::ProcessModel&>(proc));
 
-  // Mimic deserialize_interface: unwrap the nested buffer, check the concrete
-  // key, then run the concrete deserializing constructor.
   DataStream::Deserializer des{bytes};
   QByteArray nested;
   des.stream() >> nested;

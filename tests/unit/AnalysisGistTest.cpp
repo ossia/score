@@ -1,28 +1,3 @@
-// Value-asserting DSP-correctness tests for score-plugin-analysis.
-//
-// The analysis nodes (RMS, Peak, Zero-crossings, Centroid, Flatness, Crest,
-// Pitch, onset detectors...) are thin avnd wrappers around Analysis::GistState
-// (src/plugins/score-plugin-analysis/Analysis/GistState.hpp), which dispatches
-// per-channel audio into the vendored Gist DSP library (3rdparty/Gist,
-// compiled with USE_OSSIA_FFT).
-//
-// The node classes themselves cannot be default-constructed without a full
-// score::ApplicationContext (GistState's default ctor reads the audio
-// settings), so these tests drive the exact same code path through
-// GistState{bufferSize, rate}::process<&Gist<double>::...>() with the same
-// halp port types the nodes use (Analysis::audio_in / Analysis::value_out).
-//
-// All assertions are against closed-form signal math:
-//  - RMS of A*sin = A/sqrt(2) (integer number of periods)
-//  - peak of |A*sin| sampled off the zero crossings
-//  - zero-crossing count of k cycles with a half-sample phase offset = 2k - 1
-//  - FFT magnitudes vs a direct O(N^2) reference DFT of the Hann-windowed frame
-//  - spectral centroid of a bin-centered tone = its bin index
-//  - spectral flatness/crest of a delta (flat spectrum) = 1
-//  - Yin pitch of a 440 Hz sine = 440 Hz
-//  - envelope follower half-life: attack coeff exp(log(.5)/(rate*ms)) gives
-//    y = 0.5 after exactly `ms` of unit step.
-
 #include <Analysis/Envelope.hpp>
 #include <Analysis/GistState.hpp>
 #include <Analysis/Helpers.hpp>
@@ -44,8 +19,6 @@ namespace
 {
 constexpr double INV_SQRT2 = 0.70710678118654752440;
 
-// Owns channel storage and lends it out as the halp dynamic audio bus the
-// analysis nodes use.
 struct MultiBuf
 {
   std::vector<std::vector<double>> ch;
@@ -63,8 +36,6 @@ struct MultiBuf
   }
 };
 
-// amp * sin(2*pi*cycles*(i + shift)/n): with shift=0.5 no sample lands exactly
-// on a zero, which makes the zero-crossing count deterministic.
 std::vector<double> make_sine(int n, double amp, double cycles, double shift = 0.5)
 {
   std::vector<double> v(n);
@@ -73,8 +44,6 @@ std::vector<double> make_sine(int n, double amp, double cycles, double shift = 0
   return v;
 }
 
-// The exact window Gist uses (WindowFunctions::createHanningWindow):
-// symmetric Hann with N-1 denominator.
 std::vector<double> gist_hann(int n)
 {
   std::vector<double> w(n);
@@ -142,8 +111,6 @@ TEST_CASE(
   st.process<&Gist<double>::peakEnergy>(bus, 1.f, 0.f, out, N);
   CHECK(mono(out) == Approx(expected_peak).margin(1e-6));
 
-  // 8 cycles with a half-sample phase offset -> sign changes at phase
-  // pi, 2pi, ..., 15pi inside the frame: exactly 15 crossings.
   st.process<&Gist<double>::zeroCrossingRate>(bus, 1.f, 0.f, out, N);
   CHECK(mono(out) == Approx(15.0).margin(1e-9));
 }
@@ -270,8 +237,6 @@ TEST_CASE(
   Analysis::GistState st{N, FS};
   Analysis::value_out out;
 
-  // A delta in the middle of the frame has a perfectly flat magnitude
-  // spectrum (|X[b]| = w[N/2] for every b): flatness = 1, crest = 1.
   MultiBuf delta;
   delta.ch.push_back(std::vector<double>(N, 0.0));
   delta.ch[0][N / 2] = 1.0;
@@ -330,11 +295,6 @@ TEST_CASE(
   CHECK(v[1] == Approx(0.8 * INV_SQRT2).margin(1e-6));
 }
 
-// FIXED BUG: the *no-gain* stereo overload in GistState.hpp used to feed
-// channel 0's samples into the second Gist instance
-// (g1.processAudioFrame(data(c0), ...)); it now correctly passes c1, so the
-// Pitch node's (stereo input) right-channel result is really the right
-// channel's. This test asserts the correct behaviour.
 TEST_CASE(
     "GistState: stereo no-gain analysis analyzes the right channel",
     "[analysis][gist][stereo]")
@@ -355,9 +315,6 @@ TEST_CASE(
   CHECK(v[1] == Approx(0.8 * INV_SQRT2).margin(1e-6));
 }
 
-// FIXED BUG: the gain/gate/pulse stereo overload (used by the onset detection
-// nodes' stereo path) had the same c0-instead-of-c1 mistake in GistState.hpp;
-// it now correctly analyzes c1 in the second Gist instance.
 TEST_CASE(
     "GistState: stereo pulse analysis analyzes the right channel",
     "[analysis][gist][stereo]")
@@ -441,8 +398,6 @@ TEST_CASE(
   REQUIRE(ins.a.value == Approx(50.0));
   REQUIRE(ins.b.value == Approx(15.0));
 
-  // Unit step: the attack coefficient a = exp(log(.5)/(rate*0.05)) is
-  // defined so that y reaches exactly 0.5 after 50 ms (2400 samples).
   double y = 0;
   for(int i = 0; i < 2400; i++)
     y = env(1.0, ins, {});

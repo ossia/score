@@ -1,9 +1,3 @@
-// Unit tests for score-plugin-dataflow / the score-lib-process dataflow model:
-// cable + port serialization round-trips through the real dataflow port
-// factories, ControlInlet value semantics, and value propagation along graph
-// edges for the cable connection kinds score exposes (immediate/delayed,
-// glutton/strict).
-
 #include <State/Address.hpp>
 #include <State/Domain.hpp>
 
@@ -51,9 +45,6 @@
 
 namespace
 {
-// In SCORE_DEBUG builds, checkDelimiter() executes SCORE_BREAKPOINT (raises
-// SIGTRAP) before throwing "Corrupt save file.". Ignore the signal while
-// deliberately feeding corrupt data.
 struct ScopedIgnoreSigtrap
 {
   void (*prev)(int);
@@ -64,12 +55,6 @@ struct ScopedIgnoreSigtrap
   ~ScopedIgnoreSigtrap() { std::signal(SIGTRAP, prev); }
 };
 
-// Minimal application fixture: score's serialization visitors reference
-// score::AppComponents() at construction, and Process::load_inlet /
-// load_outlet resolve concrete port types through the registered
-// Process::PortFactoryList. We register the actual factories exported by
-// score-plugin-dataflow, so this tests the real deserialization path used
-// when loading documents.
 struct TestApplication final : public score::ApplicationInterface
 {
   score::ApplicationComponentsData m_compData;
@@ -108,9 +93,6 @@ TestApplication& testApp()
   return app;
 }
 
-// NOTE: Process::CableData declares an exported friend operator== in
-// CableData.hpp:23 but no translation unit defines it: using it is a
-// guaranteed link error (found while writing this test). Compare manually.
 bool sameCableData(const Process::CableData& lhs, const Process::CableData& rhs)
 {
   return lhs.type == rhs.type && lhs.source == rhs.source && lhs.sink == rhs.sink;
@@ -310,11 +292,6 @@ TEST_CASE("ControlInlet value model", "[dataflow][port]")
     src.setAddress(State::AddressAccessor{*State::Address::fromString("dev:/a")});
     const QByteArray data = src.saveData();
 
-    // By design (P3R2 report): the default (NoFlag) does NOT restore the value,
-    // ReloadValue DOES. Default-flag callers re-derive the value from their own
-    // source; LoadPresetCommand::redo passes ReloadValue to keep it. Document
-    // save/load bypasses loadData entirely. These assertions document that
-    // behavior.
     Process::ControlInlet defaults{"ctl", Id<Process::Port>{1}, nullptr};
     defaults.loadData(data);
     CHECK(defaults.value() == ossia::value{}); // value not restored
@@ -350,8 +327,6 @@ public:
 
 struct value_graph_fixture
 {
-  // Heap-allocated: ossia::tc_graph / execution_state have very large inline
-  // storage which overflows the stack under ASAN.
   std::unique_ptr<ossia::tc_graph> g_ptr = std::make_unique<ossia::tc_graph>();
   std::unique_ptr<ossia::execution_state> e_ptr
       = std::make_unique<ossia::execution_state>();
@@ -437,9 +412,6 @@ TEST_CASE("value propagation along graph edges", "[dataflow][graph]")
 
   SECTION("delayed glutton cable: value goes through the edge's delay line")
   {
-    // With zero-length ticks the delay line is consumed in the same tick;
-    // the point here is that the value transits unmodified through the
-    // delayed-connection storage.
     value_graph_fixture f{ossia::delayed_glutton_connection{}};
     f.to_send = 7;
     f.tick();
@@ -497,11 +469,6 @@ TEST_CASE("fuzz: corrupt port and cable buffers are handled gracefully",
 {
   testApp();
 
-  // NOTE: Port::loadData / ControlInlet::loadData on a *truncated* buffer is
-  // deliberately not fuzzed here: loadData is noexcept, and the
-  // State::AddressAccessor deserialization inside it checkDelimiter()-throws
-  // on corrupt data, which goes straight to std::terminate (crash-fast
-  // design). See the report for details.
 
   SECTION("truncated serialized cable throws instead of crashing")
   {
