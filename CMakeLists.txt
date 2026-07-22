@@ -257,6 +257,9 @@ find_package(${QT_VERSION} REQUIRED
   OPTIONAL_COMPONENTS
     WebSockets
     WebView
+    WebChannel
+    WebEngineCore
+    WebEngineQuick
     Svg
     CorePrivate
     GuiPrivate

@@ -26,7 +26,7 @@ void SafeQApplication::DebugOutput(
   auto basename_arr = QFileInfo(context.file).baseName().toUtf8();
   auto basename = basename_arr.constData();
   FILE* out_file = stderr;
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && 0
   static LogFile logger;
   out_file = logger.desc();
 #endif
