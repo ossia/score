@@ -11,7 +11,9 @@
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/TextLabel.hpp>
 
+#include <QColor>
 #include <QScrollArea>
+#include <QWidget>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Inspector::InspectorWidgetBase)
@@ -29,12 +31,55 @@ InspectorWidgetBase::InspectorWidgetBase(
 
   setLayout(m_layout);
 
-  m_label = new TextLabel{name, this};
-  auto f = m_label->font();
-  f.setBold(true);
-  f.setPixelSize(12);
-  m_label->setFont(f);
-  m_sections.push_back(m_label);
+  const int typeLabelSize = 14;
+  const int nameLabelSize = 16;
+
+  if(name.contains('\n'))
+  {
+    const auto parts = name.split('\n');
+    const QString typePart = parts.value(0).trimmed();
+    const QString namePart = parts.value(1).trimmed();
+
+    auto titleContainer = new QWidget(this);
+    auto titleLay = new VBoxLayout{titleContainer};
+    titleLay->setContentsMargins(0, 0, 0, 0);
+    titleLay->setSpacing(2);
+
+    auto typeLabel = new TextLabel{typePart, titleContainer};
+    auto typeFont = typeLabel->font();
+    typeFont.setBold(true);
+    typeFont.setPixelSize(typeLabelSize);
+    typeLabel->setFont(typeFont);
+    // Type: default palette (no color override)
+    titleLay->addWidget(typeLabel);
+
+    auto nameLabel = new TextLabel{namePart, titleContainer};
+    auto nameFont = nameLabel->font();
+    nameFont.setBold(true);
+    nameFont.setPixelSize(nameLabelSize);
+    nameLabel->setFont(nameFont);
+    auto namePal = nameLabel->palette();
+    namePal.setColor(QPalette::WindowText, Qt::white);
+    nameLabel->setPalette(namePal);
+    titleLay->addWidget(nameLabel);
+
+    m_label = typeLabel;
+    m_sections.push_back(titleContainer);
+  }
+  else
+  {
+    m_label = new TextLabel{name, this};
+    auto f = m_label->font();
+    f.setBold(true);
+    f.setPixelSize(nameLabelSize);
+    m_label->setFont(f);
+    m_sections.push_back(m_label);
+  }
+
+  auto titleSpacer = new QWidget(this);
+  titleSpacer->setFixedHeight(8);
+  titleSpacer->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+  m_sections.push_back(titleSpacer);
 
   // scroll Area
   auto scrollArea = new QScrollArea;
