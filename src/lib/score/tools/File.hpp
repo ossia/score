@@ -93,4 +93,24 @@ inline QString readFileAsQString(QFile& f) noexcept
 
 SCORE_LIB_BASE_EXPORT
 bool fileContains(QFile& file, std::string_view pattern);
+
+#if defined(__EMSCRIPTEN__)
+// Persist an imported file into a stable, session-lifetime MEMFS location
+// (/score/imports) so that the existing path-based media decoders can open and
+// re-open it. This is required on wasm because the two import routes both lose
+// their data otherwise: Qt deletes dropped files from /qt/tmp immediately after
+// the drop callback returns, and file-picker bytes are never written to the FS
+// at all. Returns the absolute staged path (or an empty string on failure).
+
+// Writes `data` into /score/imports/<name> (used by file pickers, which already
+// hold the bytes in RAM).
+SCORE_LIB_BASE_EXPORT
+QString stageImportedFile(const QString& suggestedName, const QByteArray& data) noexcept;
+
+// Moves an existing MEMFS file (e.g. Qt's /qt/tmp/<name> drop file) into
+// /score/imports. This is an O(1) rename within MEMFS -- no byte copy -- so it
+// stays cheap for large media. Returns the new staged path.
+SCORE_LIB_BASE_EXPORT
+QString stageImportedFileFromPath(const QString& sourcePath) noexcept;
+#endif
 }

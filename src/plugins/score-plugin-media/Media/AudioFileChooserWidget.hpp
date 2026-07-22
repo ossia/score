@@ -67,14 +67,14 @@ struct AudioFileChooser : WidgetFactory::FileChooser
   {
     auto bt = new score::QGraphicsWaveformButton{parent};
     auto on_open = [&inlet, &ctx] {
-      auto filename
-          = QFileDialog::getOpenFileName(nullptr, "Open File", {}, inlet.filters());
-      if(filename.isEmpty())
-        return;
-
-      CommandDispatcher<>{ctx.commandStack}
-          .submit<WidgetFactory::SetControlValue<Control_T>>(
-              inlet, filename.toStdString());
+      WidgetFactory::openFileToImport(inlet.filters(), [&inlet, &ctx](const QString& filename) {
+        // On wasm `filename` is the staged MEMFS path; relativize so it is
+        // stored consistently with drops.
+        auto path = score::relativizeFilePath(filename, ctx);
+        CommandDispatcher<>{ctx.commandStack}
+            .submit<WidgetFactory::SetControlValue<Control_T>>(
+                inlet, path.toStdString());
+      });
     };
     auto on_set = [&inlet, &ctx](const QString& filename) {
       if(filename.isEmpty())

@@ -13,6 +13,7 @@
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/graphics/RectItem.hpp>
 #include <score/graphics/TextItem.hpp>
+#include <score/tools/File.hpp>
 #include <score/tools/FilePath.hpp>
 #include <score/tools/Unused.hpp>
 #include <score/widgets/ComboBox.hpp>
@@ -1009,6 +1010,31 @@ struct ProgramEdit
   }
 };
 
+// Open a file for import. On wasm this uses the async getOpenFileContent API and
+// stages the picked bytes into MEMFS (there is no local filesystem / synchronous
+// dialog); `onPicked` then receives a real, readable path. On desktop it is the
+// usual synchronous getOpenFileName. `onPicked(const QString& path)`.
+template <typename F>
+inline void openFileToImport(const QString& filters, F onPicked)
+{
+#if defined(__EMSCRIPTEN__)
+  QFileDialog::getOpenFileContent(
+      filters,
+      [onPicked = std::move(onPicked)](
+          const QString& name, const QByteArray& data) mutable {
+    if(name.isEmpty() || data.isEmpty())
+      return;
+    if(QString staged = score::stageImportedFile(name, data); !staged.isEmpty())
+      onPicked(staged);
+  });
+#else
+  const QString fn
+      = QFileDialog::getOpenFileName(nullptr, QObject::tr("Open File"), {}, filters);
+  if(!fn.isEmpty())
+    onPicked(fn);
+#endif
+}
+
 struct FileChooser
 {
   static Process::PortItemLayout layout() noexcept
@@ -1026,12 +1052,10 @@ struct FileChooser
     act->setIcon(QIcon(":/icons/search.png"));
     sl->setPlaceholderText(QObject::tr("Open File"));
     auto on_open = [=, &ctx, &inlet] {
-      auto filename
-          = QFileDialog::getOpenFileName(nullptr, "Open File", {}, inlet.filters());
-      if(filename.isEmpty())
-        return;
-      auto path = score::relativizeFilePath(filename, ctx);
-      sl->setText(path);
+      openFileToImport(inlet.filters(), [=, &ctx](const QString& filename) {
+        auto path = score::relativizeFilePath(filename, ctx);
+        sl->setText(path);
+      });
     };
 
     QObject::connect(sl, &QLineEdit::returnPressed, on_open);
@@ -1061,14 +1085,11 @@ struct FileChooser
     auto bt = new score::QGraphicsTextButton{"Choose a file...", parent};
     initWidgetProperties(inlet, *bt);
     auto on_open = [&inlet, &ctx] {
-      auto filename
-          = QFileDialog::getOpenFileName(nullptr, "Open File", {}, inlet.filters());
-      if(filename.isEmpty())
-        return;
-
-      auto path = score::relativizeFilePath(filename, ctx);
-      CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
-          inlet, path.toStdString());
+      openFileToImport(inlet.filters(), [&inlet, &ctx](const QString& filename) {
+        auto path = score::relativizeFilePath(filename, ctx);
+        CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
+            inlet, path.toStdString());
+      });
     };
     auto on_set = [&inlet, &ctx](const QString& filename) {
       if(filename.isEmpty())

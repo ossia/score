@@ -3,6 +3,7 @@
 #include <core/document/Document.hpp>
 
 #include <QDir>
+#include <QRegularExpression>
 #include <QSettings>
 
 #include <cstring>
@@ -215,4 +216,92 @@ bool fileContains(QFile& f, std::string_view pattern)
 
   return fast_contains(std::string_view(g_file_search_buffer, sz), pattern);
 }
+
+#if defined(__EMSCRIPTEN__)
+static constexpr auto imports_dir = "/score/imports";
+
+static QString ensureImportsDir() noexcept
+{
+  QDir{}.mkpath(imports_dir);
+  return imports_dir;
+}
+
+static QString sanitizeImportName(const QString& suggestedName) noexcept
+{
+  QString name = QFileInfo{suggestedName}.fileName();
+  name.replace(QRegularExpression{"[^A-Za-z0-9._-]"}, "_");
+  if(name.isEmpty())
+    name = "import.bin";
+  return name;
+}
+
+QString stageImportedFile(const QString& suggestedName, const QByteArray& data) noexcept
+{
+  const QString dir = ensureImportsDir();
+  const QString name = sanitizeImportName(suggestedName);
+  QString dest = dir + "/" + name;
+
+  // If a different file already occupies this name, disambiguate rather than
+  // clobber (two "sample.wav" from different folders).
+  if(QFileInfo info{dest}; info.exists() && info.size() != data.size())
+  {
+    const QString base = QFileInfo{name}.completeBaseName();
+    const QString suffix = QFileInfo{name}.suffix();
+    for(int i = 1;; ++i)
+    {
+      dest = dir + "/" + base + "_" + QString::number(i)
+             + (suffix.isEmpty() ? QString{} : "." + suffix);
+      QFileInfo cand{dest};
+      if(!cand.exists() || cand.size() == data.size())
+        break;
+    }
+  }
+
+  QFile f{dest};
+  if(!f.open(QIODevice::WriteOnly))
+    return {};
+  if(f.write(data) != data.size())
+    return {};
+  f.close();
+  return dest;
+}
+
+QString stageImportedFileFromPath(const QString& sourcePath) noexcept
+{
+  QFileInfo src{sourcePath};
+  if(!src.exists())
+    return {};
+
+  const QString dir = ensureImportsDir();
+  const QString name = sanitizeImportName(src.fileName());
+  QString dest = dir + "/" + name;
+
+  // Disambiguate on a name clash with a differently-sized file.
+  if(QFileInfo info{dest}; info.exists() && info.size() != src.size())
+  {
+    const QString base = src.completeBaseName();
+    const QString suffix = src.suffix();
+    for(int i = 1;; ++i)
+    {
+      dest = dir + "/" + base + "_" + QString::number(i)
+             + (suffix.isEmpty() ? QString{} : "." + suffix);
+      QFileInfo cand{dest};
+      if(!cand.exists() || cand.size() == src.size())
+        break;
+    }
+  }
+
+  // If it's already staged, keep it. Otherwise move (O(1) within MEMFS).
+  if(dest == QFileInfo{sourcePath}.absoluteFilePath())
+    return dest;
+  QFile::remove(dest);
+  if(QFile::rename(sourcePath, dest))
+    return dest;
+
+  // Fallback: copy if rename across mounts failed.
+  if(QFile::copy(sourcePath, dest))
+    return dest;
+  return {};
+}
+#endif
 }
