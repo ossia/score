@@ -31,8 +31,21 @@ public:
     ma_context_init(nullptr, 0, &cfg, &context->context);
 
     ma_device_id in_id{}, out_id{};
+
+    // Request microphone input so the miniaudio WebAudio backend opens a
+    // duplex device (ma_device_type_duplex) and calls getUserMedia(). With 0
+    // inputs it would be playback-only and capture would never be requested.
+    // The browser prompts for mic permission on the first duplex device; the
+    // first buffers are silent until the user grants it.
+    int inputs = set.getDefaultIn();
+    if(inputs <= 0)
+      inputs = 2;
+    int outputs = set.getDefaultOut();
+    if(outputs <= 0)
+      outputs = 2;
+
     return std::make_shared<ossia::miniaudio_engine>(
-        std::move(context), "ossia score", in_id, out_id, 0, 2, 48000, 1024);
+        std::move(context), "ossia score", in_id, out_id, inputs, outputs, 48000, 1024);
   }
 
   QWidget* make_settings(
