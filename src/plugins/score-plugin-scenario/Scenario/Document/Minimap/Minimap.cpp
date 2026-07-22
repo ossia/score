@@ -207,6 +207,12 @@ void Minimap::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
 void Minimap::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
 {
   score::showCursor();
+#if defined(__EMSCRIPTEN__)
+  // score::showCursor() is a no-op on wasm, so a hover-pushed override cursor
+  // would outlive m_setCursor being cleared here and never get restored.
+  if(m_setCursor && QApplication::overrideCursor())
+    QApplication::restoreOverrideCursor();
+#endif
   m_setCursor = false;
 
   if(m_gripLeft || m_gripRight || m_gripMid)
