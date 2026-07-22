@@ -317,6 +317,7 @@ public:
     for(auto& p : m_p)
       p.second.release();
     m_p.clear();
+    m_meshBuffer = {}; // Freed in RenderList
     delete m_processUBO;
     m_processUBO = nullptr;
     delete m_materialUBO;
