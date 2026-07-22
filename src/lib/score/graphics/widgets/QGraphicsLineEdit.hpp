@@ -21,6 +21,7 @@ public:
   explicit QGraphicsLineEdit(QGraphicsItem* parent);
 
   void dropEvent(QGraphicsSceneDragDropEvent* drop) override;
+  void focusInEvent(QFocusEvent* e) override;
   void focusOutEvent(QFocusEvent* e) override;
   QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
 

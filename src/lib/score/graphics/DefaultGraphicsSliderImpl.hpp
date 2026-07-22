@@ -156,7 +156,7 @@ struct DefaultGraphicsSliderImpl
   template <typename T>
   static void contextMenuEvent(T& self, QPointF pos)
   {
-    QTimer::singleShot(0, &self, [&, self_p = &self, pos] {
+    auto build = [&, self_p = &self, pos] {
       auto w = new DoubleSpinboxWithEnter;
       self.impl->spinbox = w;
       w->setRange(self.min, self.max);
@@ -168,7 +168,11 @@ struct DefaultGraphicsSliderImpl
       obj->setPos(pos);
       self.impl->spinboxProxy = obj;
 
+#if defined(__EMSCRIPTEN__)
+      w->setFocus();
+#else
       QTimer::singleShot(0, w, [w] { w->setFocus(); });
+#endif
 
       auto con = QObject::connect(
           w, SignalUtils::QDoubleSpinBox_valueChanged_double(), &self,
@@ -192,7 +196,12 @@ struct DefaultGraphicsSliderImpl
           self_p->impl->spinboxProxy = nullptr;
         }
       });
-    });
+    };
+#if defined(__EMSCRIPTEN__)
+    build();
+#else
+    QTimer::singleShot(0, &self, build);
+#endif
   }
 
   template <typename T>
