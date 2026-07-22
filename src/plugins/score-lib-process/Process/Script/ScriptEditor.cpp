@@ -3,10 +3,12 @@
 #include "MultiScriptEditor.hpp"
 #include "ScriptWidget.hpp"
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/tools/FileWatch.hpp>
 #include <score/widgets/SetIcons.hpp>
 
 #include <QCodeEditor>
+#include <QMainWindow>
 #include <QCoreApplication>
 #include <QDialogButtonBox>
 #include <QDir>
@@ -83,6 +85,21 @@ ScriptDialog::ScriptDialog(
 ScriptDialog::~ScriptDialog()
 {
   stopWatchingFile();
+}
+
+void ScriptDialog::hideEvent(QHideEvent* event)
+{
+#if defined(__EMSCRIPTEN__)
+  // Return keyboard/text focus to the main window: on wasm each window owns its
+  // own hidden text-input element and focus follows the active window, so
+  // without this the main window's text fields stay dead after closing here.
+  if(auto mw = score::GUIAppContext().mainWindow)
+  {
+    mw->activateWindow();
+    mw->raise();
+  }
+#endif
+  QDialog::hideEvent(event);
 }
 
 QString ScriptDialog::text() const noexcept
@@ -240,6 +257,18 @@ void MultiScriptDialog::addTab(
 
   m_tabs->addTab(textedit, name);
   m_editors.push_back({textedit});
+}
+
+void MultiScriptDialog::hideEvent(QHideEvent* event)
+{
+#if defined(__EMSCRIPTEN__)
+  if(auto mw = score::GUIAppContext().mainWindow)
+  {
+    mw->activateWindow();
+    mw->raise();
+  }
+#endif
+  QDialog::hideEvent(event);
 }
 
 std::vector<QString> MultiScriptDialog::text() const noexcept

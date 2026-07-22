@@ -35,6 +35,8 @@ public:
 protected:
   virtual void on_accepted() = 0;
 
+  void hideEvent(QHideEvent* event) override;
+
   const score::DocumentContext& m_context;
   QTextEdit* m_textedit{};
   QPlainTextEdit* m_error{};
