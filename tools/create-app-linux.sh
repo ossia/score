@@ -151,6 +151,20 @@ if [[ -n "$APP_ENVIRONMENT" ]]; then
     cat "$APP_ENVIRONMENT" >> AppRun
 fi
 
+cat >> AppRun << 'APPRUN_EOF'
+
+# --debug opens the score editor window alongside the custom UI
+UI_FLAG="--ui"
+SCORE_ARGS=()
+for arg in "$@"; do
+    if [[ "$arg" == "--debug" ]]; then
+        UI_FLAG="--ui-debug"
+    else
+        SCORE_ARGS+=("$arg")
+    fi
+done
+APPRUN_EOF
+
 if [[ -n "$SCORE_BASENAME" ]]; then
     # With score
     cat >> AppRun << APPRUN_EOF
@@ -158,9 +172,9 @@ if [[ -n "$SCORE_BASENAME" ]]; then
 # Launch with custom UI and score
 exec "\${APPDIR}/usr/bin/app-bin" \
     ${AUTOPLAY} \
-    --ui "\${APPDIR}/usr/bin/qml/${MAIN_QML}" \
+    "\${UI_FLAG}" "\${APPDIR}/usr/bin/qml/${MAIN_QML}" \
     "\${APPDIR}/usr/bin/${SCORE_BASENAME}" \
-    "\$@"
+    "\${SCORE_ARGS[@]}"
 APPRUN_EOF
 else
     # Without custom score
@@ -169,8 +183,8 @@ else
 # Launch with custom UI
 exec "\${APPDIR}/usr/bin/app-bin" \
     ${AUTOPLAY} \
-    --ui "\${APPDIR}/usr/bin/qml/${MAIN_QML}" \
-    "$@"
+    "\${UI_FLAG}" "\${APPDIR}/usr/bin/qml/${MAIN_QML}" \
+    "\${SCORE_ARGS[@]}"
 APPRUN_EOF
 fi
 

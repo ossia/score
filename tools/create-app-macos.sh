@@ -209,15 +209,29 @@ if [[ -n "$APP_ENVIRONMENT" ]]; then
     cat "$APP_ENVIRONMENT" >> "$BUNDLE_MACOS/$APP_NAME" 
 fi
 
+cat >> "$BUNDLE_MACOS/$APP_NAME" << 'LAUNCHER_EOF'
+
+# --debug opens the score editor window alongside the custom UI
+UI_FLAG="--ui"
+SCORE_ARGS=()
+for arg in "$@"; do
+    if [[ "$arg" == "--debug" ]]; then
+        UI_FLAG="--ui-debug"
+    else
+        SCORE_ARGS+=("$arg")
+    fi
+done
+LAUNCHER_EOF
+
 if [[ -n "$SCORE_BASENAME" ]]; then
     # With score
     cat >> "$BUNDLE_MACOS/$APP_NAME" << LAUNCHER_EOF
 
 exec "\$SCRIPT_DIR/app-bin" \
     ${AUTOPLAY} \
-    --ui "\${RESOURCES_DIR}/qml/${MAIN_QML}" \
+    "\${UI_FLAG}" "\${RESOURCES_DIR}/qml/${MAIN_QML}" \
     "\${RESOURCES_DIR}/${SCORE_BASENAME}" \
-    "\$@"
+    "\${SCORE_ARGS[@]}"
 LAUNCHER_EOF
 else
     # Without autoplay
@@ -225,8 +239,8 @@ else
 
 exec "\$SCRIPT_DIR/app-bin" \
     ${AUTOPLAY} \
-    --ui "\${RESOURCES_DIR}/qml/${MAIN_QML}" \
-    "\$@"
+    "\${UI_FLAG}" "\${RESOURCES_DIR}/qml/${MAIN_QML}" \
+    "\${SCORE_ARGS[@]}"
 LAUNCHER_EOF
 fi
 
