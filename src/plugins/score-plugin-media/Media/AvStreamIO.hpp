@@ -10,23 +10,25 @@ extern "C" {
 
 #include <string>
 
-class QFile;
 class QString;
 
 namespace Media
 {
-// A path that must be streamed through QFile byte-range reads rather than
-// opened with fopen/avio's default file protocol. On the wasm build these are
-// the "weblocalfile:/N/name" URLs Qt assigns to browser File objects: fopen
-// cannot open them, but QWasmFileEngine reads them as on-demand Blob ranges,
-// so a multi-GB file never has to be copied into MEMFS/RAM.
+struct AvStreamState;
+
+// A path that must be streamed on demand rather than opened with fopen/avio's
+// default file protocol. On the wasm build these are the "weblocalfile:/N/name"
+// URLs Qt assigns to browser File objects: fopen cannot open them, but the
+// backing Blob can be read in byte-ranges, so a multi-GB file never has to be
+// copied into MEMFS/RAM.
 SCORE_PLUGIN_MEDIA_EXPORT
 bool isStreamedMediaPath(const QString& path) noexcept;
 SCORE_PLUGIN_MEDIA_EXPORT
 bool isStreamedMediaPath(const std::string& path) noexcept;
 
-// Owns a QFile and the AVIOContext that reads through it. Must outlive the
-// AVFormatContext it is attached to (see open_input_custom_io).
+// Owns the AVIOContext that streams a browser Blob and the position bookkeeping
+// it reads through. Must outlive the AVFormatContext it is attached to (see
+// open_input_custom_io).
 struct SCORE_PLUGIN_MEDIA_EXPORT AvIoDevice
 {
   AvIoDevice() = default;
@@ -41,7 +43,7 @@ struct SCORE_PLUGIN_MEDIA_EXPORT AvIoDevice
   explicit operator bool() const noexcept { return avio != nullptr; }
 
   AVIOContext* avio{};
-  QFile* file{};
+  AvStreamState* state{};
 };
 
 // Allocates `format` and opens `path` through a custom AVIOContext backed by a

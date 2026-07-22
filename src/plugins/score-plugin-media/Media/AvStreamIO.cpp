@@ -3,98 +3,36 @@
 #if SCORE_HAS_LIBAV
 #include <ossia/detail/libav.hpp>
 
-#include <QFile>
 #include <QString>
 
+#include <algorithm>
+#include <memory>
+#include <string>
+
 #if defined(__EMSCRIPTEN__)
+#include <QtCore/private/qstdweb_p.h>
+#include <QtCore/private/qwasmlocalfileengine_p.h>
+
+#include <emscripten.h>
+#include <emscripten/atomic.h>
 #include <emscripten/proxying.h>
 #include <emscripten/threading.h>
-#endif
+#include <emscripten/threading_primitives.h>
+#include <emscripten/val.h>
 
-#include <memory>
-#include <type_traits>
+#include <cmath>
+#endif
 
 namespace Media
 {
 static constexpr int av_io_buffer_size = 1 << 18;
 
-#if defined(__EMSCRIPTEN__)
-// A weblocalfile: QFile is backed by a JS File/Blob whose emscripten::val is
-// bound to the thread that created it; using it from another thread is
-// undefined behaviour (it dereferences an invalid handle, crashing on
-// Blob.size). Marshal the non-suspending QFile operations (open, seek, size,
-// close) to the main runtime thread so the val is only ever touched by its
-// owner. Reads are handled separately in av_io_read (they suspend via JSPI,
-// which a proxied job cannot do).
-template <typename F>
-static void run_on_main(F&& f) noexcept
+struct AvStreamState
 {
-  if(emscripten_is_main_runtime_thread())
-  {
-    f();
-    return;
-  }
-  emscripten_proxy_sync(
-      emscripten_proxy_get_system_queue(), emscripten_main_runtime_thread_id(),
-      [](void* p) { (*static_cast<std::remove_reference_t<F>*>(p))(); }, &f);
-}
-#else
-template <typename F>
-static void run_on_main(F&& f) noexcept
-{
-  f();
-}
-#endif
-
-static int av_io_read(void* opaque, uint8_t* out, int size)
-{
-#if defined(__EMSCRIPTEN__)
-  // Reading the backing Blob suspends via JSPI, which is only possible on the
-  // main thread's promising call stack (a proxied job is not one). A worker
-  // therefore cannot stream this source; fail cleanly so the off-thread decode
-  // aborts instead of hitting an uncatchable SuspendError. Worker-thread
-  // streaming needs the async-proxy reader documented in WASM-B2-ANALYSIS.md.
-  if(!emscripten_is_main_runtime_thread())
-    return AVERROR(EIO);
-#endif
-  auto* dev = static_cast<QFile*>(opaque);
-  const qint64 r = dev->read(reinterpret_cast<char*>(out), size);
-  if(r > 0)
-    return static_cast<int>(r);
-  if(r == 0)
-    return AVERROR_EOF;
-  return AVERROR(EIO);
-}
-
-static int64_t av_io_seek(void* opaque, int64_t offset, int whence)
-{
-  auto* dev = static_cast<QFile*>(opaque);
-  int64_t result = -1;
-  run_on_main([&] {
-    switch(whence & ~AVSEEK_FORCE)
-    {
-      case AVSEEK_SIZE:
-        result = dev->size();
-        break;
-      case SEEK_SET:
-        result = dev->seek(offset) ? offset : -1;
-        break;
-      case SEEK_CUR:
-      {
-        const qint64 abs = dev->pos() + offset;
-        result = dev->seek(abs) ? abs : -1;
-        break;
-      }
-      case SEEK_END:
-      {
-        const qint64 abs = dev->size() + offset;
-        result = dev->seek(abs) ? abs : -1;
-        break;
-      }
-    }
-  });
-  return result;
-}
+  std::string url;
+  int64_t pos{};
+  int64_t size{};
+};
 
 bool isStreamedMediaPath(const QString& path) noexcept
 {
@@ -106,36 +44,188 @@ bool isStreamedMediaPath(const std::string& path) noexcept
   return path.rfind("weblocalfile:", 0) == 0;
 }
 
+#if defined(__EMSCRIPTEN__)
+
+// getFile() resolves against a process-wide singleton internally, so any handler
+// instance returns the File registered at drop time.
+static qstdweb::File getWebFile(const std::string& url)
+{
+  static QWasmFileEngineHandler handler;
+  return handler.getFile(QString::fromStdString(url));
+}
+
+// Blocking read on the main thread: the Blob read suspends via JSPI, which is
+// legal here because the main event loop is a promising call stack.
+static int read_blob_main(const std::string& url, int64_t off, int32_t want, uint8_t* out)
+{
+  qstdweb::File f = getWebFile(url);
+  if(f.file().isUndefined() || f.file().isNull())
+    return -1;
+
+  qstdweb::ArrayBuffer ab
+      = f.slice((uint64_t)off, (uint64_t)(off + want)).arrayBuffer_sync();
+  const int got = (int)ab.byteLength();
+  if(got > 0)
+    qstdweb::Uint8Array(ab).copyTo((char*)out);
+  return got;
+}
+
+// A worker cannot touch the main-thread Blob val, and cannot suspend via JSPI.
+// So it proxies an *async* read to the main thread and blocks on a futex: the
+// main job kicks off Blob.arrayBuffer() (no suspend) and its .then copies the
+// bytes into shared memory and wakes the worker. `state` must stay first so its
+// address is the futex word.
+struct AsyncRead
+{
+  int32_t state{}; // 0 = pending, 1 = complete
+  int32_t result{}; // bytes read, or -1 on error
+  const std::string* url{};
+  int64_t off{};
+  int32_t want{};
+  uint8_t* dst{};
+};
+
+static void async_read_job(void* p)
+{
+  auto* a = static_cast<AsyncRead*>(p);
+  qstdweb::File f = getWebFile(*a->url);
+  if(f.file().isUndefined() || f.file().isNull())
+  {
+    a->result = -1;
+    emscripten_atomic_store_u32(&a->state, 1);
+    emscripten_futex_wake(&a->state, 1);
+    return;
+  }
+
+  qstdweb::Blob blob = f.slice((uint64_t)a->off, (uint64_t)(a->off + a->want));
+  EM_ASM(
+      {
+        var blob = Emval.toValue($0);
+        var dst = $1;
+        var statePtr = $2;
+        var resultPtr = $3;
+        blob.arrayBuffer()
+            .then(function(ab) {
+              var u8 = new Uint8Array(ab);
+              HEAPU8.set(u8, dst);
+              HEAP32[resultPtr >> 2] = u8.length;
+              Atomics.store(HEAP32, statePtr >> 2, 1);
+              Atomics.notify(HEAP32, statePtr >> 2);
+            })
+            .catch(function(e) {
+              HEAP32[resultPtr >> 2] = -1;
+              Atomics.store(HEAP32, statePtr >> 2, 1);
+              Atomics.notify(HEAP32, statePtr >> 2);
+            });
+      },
+      blob.val().as_handle(), a->dst, &a->state, &a->result);
+}
+
+static int read_blob_worker(const std::string& url, int64_t off, int32_t want, uint8_t* out)
+{
+  AsyncRead a;
+  a.url = &url;
+  a.off = off;
+  a.want = want;
+  a.dst = out;
+
+  if(!emscripten_proxy_async(
+         emscripten_proxy_get_system_queue(), emscripten_main_runtime_thread_id(),
+         &async_read_job, &a))
+    return -1;
+
+  while(emscripten_atomic_load_u32(&a.state) == 0)
+    emscripten_futex_wait(&a.state, 0, INFINITY);
+
+  return a.result;
+}
+
+static int av_io_read(void* opaque, uint8_t* out, int size)
+{
+  auto* st = static_cast<AvStreamState*>(opaque);
+  const int64_t avail = st->size - st->pos;
+  if(avail <= 0)
+    return AVERROR_EOF;
+
+  const int32_t want = (int32_t)std::min<int64_t>(size, avail);
+  const int r = emscripten_is_main_runtime_thread()
+                    ? read_blob_main(st->url, st->pos, want, out)
+                    : read_blob_worker(st->url, st->pos, want, out);
+  if(r > 0)
+  {
+    st->pos += r;
+    return r;
+  }
+  return r == 0 ? AVERROR_EOF : AVERROR(EIO);
+}
+
+static int64_t av_io_seek(void* opaque, int64_t offset, int whence)
+{
+  auto* st = static_cast<AvStreamState*>(opaque);
+  switch(whence & ~AVSEEK_FORCE)
+  {
+    case AVSEEK_SIZE:
+      return st->size;
+    case SEEK_SET:
+      st->pos = offset;
+      break;
+    case SEEK_CUR:
+      st->pos += offset;
+      break;
+    case SEEK_END:
+      st->pos = st->size + offset;
+      break;
+    default:
+      return -1;
+  }
+  if(st->pos < 0)
+    st->pos = 0;
+  return st->pos;
+}
+
+#endif
+
 AvIoDevice::AvIoDevice(const QString& path)
 {
-  QFile* f = nullptr;
-  run_on_main([&] {
-    f = new QFile(path);
-    if(!f->open(QIODevice::ReadOnly))
-    {
-      delete f;
-      f = nullptr;
-    }
-  });
-  if(!f)
+  auto st = std::make_unique<AvStreamState>();
+  st->url = path.toStdString();
+
+#if defined(__EMSCRIPTEN__)
+  bool ok = false;
+  const auto fetch_size = [&] {
+    qstdweb::File f = getWebFile(st->url);
+    if(f.file().isUndefined() || f.file().isNull())
+      return;
+    st->size = (int64_t)f.size();
+    ok = st->size > 0;
+  };
+  if(emscripten_is_main_runtime_thread())
+  {
+    fetch_size();
+  }
+  else
+  {
+    emscripten_proxy_sync(
+        emscripten_proxy_get_system_queue(), emscripten_main_runtime_thread_id(),
+        [](void* p) { (*static_cast<const decltype(fetch_size)*>(p))(); },
+        const_cast<void*>(static_cast<const void*>(&fetch_size)));
+  }
+  if(!ok)
     return;
 
   auto* buffer = static_cast<unsigned char*>(av_malloc(av_io_buffer_size));
   if(!buffer)
-  {
-    run_on_main([&] { delete f; });
     return;
-  }
 
   avio = avio_alloc_context(
-      buffer, av_io_buffer_size, 0, f, &av_io_read, nullptr, &av_io_seek);
+      buffer, av_io_buffer_size, 0, st.get(), &av_io_read, nullptr, &av_io_seek);
   if(!avio)
   {
     av_free(buffer);
-    run_on_main([&] { delete f; });
     return;
   }
-  file = f;
+  state = st.release();
+#endif
 }
 
 AvIoDevice::~AvIoDevice()
@@ -145,20 +235,16 @@ AvIoDevice::~AvIoDevice()
     av_freep(&avio->buffer);
     avio_context_free(&avio);
   }
-  if(file)
-  {
-    QFile* f = file;
-    run_on_main([&] { delete f; });
-    file = nullptr;
-  }
+  delete state;
+  state = nullptr;
 }
 
 AvIoDevice::AvIoDevice(AvIoDevice&& other) noexcept
     : avio{other.avio}
-    , file{other.file}
+    , state{other.state}
 {
   other.avio = nullptr;
-  other.file = nullptr;
+  other.state = nullptr;
 }
 
 AvIoDevice& AvIoDevice::operator=(AvIoDevice&& other) noexcept
@@ -170,15 +256,11 @@ AvIoDevice& AvIoDevice::operator=(AvIoDevice&& other) noexcept
       av_freep(&avio->buffer);
       avio_context_free(&avio);
     }
-    if(file)
-    {
-      QFile* f = file;
-      run_on_main([&] { delete f; });
-    }
+    delete state;
     avio = other.avio;
-    file = other.file;
+    state = other.state;
     other.avio = nullptr;
-    other.file = nullptr;
+    other.state = nullptr;
   }
   return *this;
 }

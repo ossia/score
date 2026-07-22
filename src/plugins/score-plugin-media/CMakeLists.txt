@@ -163,6 +163,8 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 ### FFMPEG ###
 if(EMSCRIPTEN)
   target_include_directories(${PROJECT_NAME} PUBLIC ${OSSIA_SDK}/ffmpeg/include)
+  # AvStreamIO streams browser Blobs through Qt's private wasm file engine.
+  target_link_libraries(${PROJECT_NAME} PRIVATE ${QT_PREFIX}::CorePrivate)
   target_link_libraries(${PROJECT_NAME} PUBLIC
     -Wl,--start-group
     ${OSSIA_SDK}/ffmpeg/lib/libavcodec.a
