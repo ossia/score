@@ -56,7 +56,17 @@ ApplicationPlugin::~ApplicationPlugin() { }
 
 void ApplicationPlugin::on_closeDocument(score::Document& old)
 {
+#if defined(__EMSCRIPTEN__)
+  // The WebAudio worklet is a page-lifetime singleton that cannot be torn down
+  // and recreated, so destroying the engine on close would leave playback dead
+  // until a full page reload (e.g. after File > New). Keep the engine alive and
+  // just park it on the document-independent pause tick; the next document
+  // rebinds to it via restart_engine().
+  if(audio)
+    audio->set_tick(Audio::makePauseTick(this->context));
+#else
   stop_engine();
+#endif
 }
 
 void ApplicationPlugin::on_documentChanged(
@@ -157,16 +167,31 @@ try
     return;
 
 #if defined(__EMSCRIPTEN__)
-  static bool init = 0;
-  if(!init)
+  if(!audio)
   {
-    init = true;
-    // The miniaudio WebAudio backend blocks (emscripten_sleep / ASYNCIFY) while
-    // waiting for the AudioWorklet to come up. Running that synchronously while
-    // nested deep inside document loading (loadFile -> on_documentChanged)
-    // deadlocks the async worklet init. Defer the first engine start to the
-    // event loop so it runs at a clean stack depth.
+    // Defer the first start to a clean stack depth: the WebAudio backend blocks
+    // (emscripten_sleep / ASYNCIFY) waiting for the AudioWorklet, which deadlocks
+    // if run synchronously while nested inside document loading.
     QTimer::singleShot(0, this, [this] { start_engine(); });
+  }
+  else
+  {
+    // The worklet is a page-lifetime singleton and cannot be recreated, so a
+    // new/changed document rebinds its audio device to the running engine rather
+    // than tearing it down.
+    QTimer::singleShot(0, this, [this] {
+      if(auto doc = this->currentDocument())
+      {
+        auto dev = (Dataflow::AudioDevice*)doc->context()
+                       .plugin<Explorer::DeviceDocumentPlugin>()
+                       .list()
+                       .audioDevice();
+        if(dev)
+          dev->reconnect();
+        if(audio)
+          audio->set_tick(Audio::makePauseTick(this->context));
+      }
+    });
   }
 #else
   stop_engine();
