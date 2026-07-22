@@ -203,10 +203,23 @@ struct AtomBuffer
   }
 
   AtomBuffer() = delete;
-  AtomBuffer(const AtomBuffer&) = default;
-  AtomBuffer(AtomBuffer&&) = default;
-  AtomBuffer& operator=(const AtomBuffer&) = default;
-  AtomBuffer& operator=(AtomBuffer&&) = default;
+  AtomBuffer(const AtomBuffer&) = delete;
+  AtomBuffer& operator=(const AtomBuffer&) = delete;
+  AtomBuffer(AtomBuffer&& other) noexcept
+      : buf{other.buf}
+  {
+    other.buf = nullptr;
+  }
+  AtomBuffer& operator=(AtomBuffer&& other) noexcept
+  {
+    if(this != &other)
+    {
+      ::operator delete(buf);
+      buf = other.buf;
+      other.buf = nullptr;
+    }
+    return *this;
+  }
   ~AtomBuffer() { ::operator delete(buf); }
 };
 
