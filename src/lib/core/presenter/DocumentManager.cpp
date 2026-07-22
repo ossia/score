@@ -15,6 +15,8 @@
 #include <score/widgets/MessageBox.hpp>
 #include <score/widgets/Pixmap.hpp>
 
+#include <score/serialization/JSONVisitor.hpp>
+
 #include <core/application/ApplicationSettings.hpp>
 #include <core/application/OpenDocumentsFile.hpp>
 #include <core/command/CommandStackSerialization.hpp>
@@ -379,6 +381,22 @@ bool DocumentManager::saveDocumentAs(Document& doc)
 {
   if(!m_view)
     return false;
+
+#if defined(__EMSCRIPTEN__)
+  // wasm cannot write to a local path: hand the serialized document to the
+  // browser as a download via the async saveFileContent API. Default to the
+  // JSON .score format (the binary format is desktop-oriented).
+  JSONReader w;
+  w.buffer.Reserve(1024 * 1024 * 16);
+  doc.saveAsJson(w);
+  const QByteArray data{w.buffer.GetString(), (int)w.buffer.GetSize()};
+
+  QString hint = doc.metadata().fileName();
+  if(hint.isEmpty() || hint == tr("Untitled"))
+    hint = "untitled.score";
+  QFileDialog::saveFileContent(data, hint, m_view);
+  return true;
+#else
   QFileDialog d{m_view, tr("Save Document As")};
   QString binFilter{tr("Binary (*.scorebin)")};
   QString jsonFilter{tr("Score (*.score)")};
@@ -416,6 +434,7 @@ bool DocumentManager::saveDocumentAs(Document& doc)
     return true;
   }
   return false;
+#endif
 }
 
 bool DocumentManager::saveDocumentAs(Document& doc, const QString& savename)
@@ -543,16 +562,32 @@ Document* DocumentManager::loadFile(const score::GUIApplicationContext& ctx)
   if(!m_view)
     return nullptr;
 
-  QString loadname = QFileDialog::getOpenFileName(
-      m_view, tr("Open"), getDialogDirectory(nullptr).absolutePath(),
-      "Scores (*.scorebin *.score *.scorejson)");
+  static const QString filter{"Scores (*.scorebin *.score *.scorejson)"};
 
-#if !defined(__EMSCRIPTEN__)
+#if defined(__EMSCRIPTEN__)
+  // wasm has neither a synchronous file dialog nor a local filesystem: use the
+  // async callback API, which delivers the picked file's bytes to the lambda.
+  // ctx is the application context (app-lifetime) so capturing it is safe.
+  QFileDialog::getOpenFileContent(
+      filter,
+      [this, &ctx](const QString& name, const QByteArray& data) {
+    if(name.isEmpty() || data.isEmpty())
+      return;
+    const auto format = name.endsWith(".scorebin") ? DataStream::type() : JSONObject::type();
+    auto& doctype = *ctx.interfaces<DocumentDelegateList>().begin();
+    loadDocument(ctx, name, data, format, doctype);
+  },
+      m_view);
+  return nullptr;
+#else
+  QString loadname = QFileDialog::getOpenFileName(
+      m_view, tr("Open"), getDialogDirectory(nullptr).absolutePath(), filter);
+
   QSettings s;
   s.setValue("score/last_open_doc", QFileInfo(loadname).absoluteDir().path());
-#endif
 
   return loadFile(ctx, loadname);
+#endif
 }
 
 Document* DocumentManager::loadFile(
