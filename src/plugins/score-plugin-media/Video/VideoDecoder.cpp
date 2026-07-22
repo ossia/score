@@ -99,9 +99,19 @@ int LibAVDecoder::init_codec_context(
   else
 #endif
   {
+#if defined(__EMSCRIPTEN__)
+    // Force single-threaded video decoding on wasm. With the default (threads=0,
+    // i.e. ffmpeg auto = CPU-count frame threads), avcodec_open2 sets up a
+    // multithreaded decoder whose teardown (avcodec_flush_buffers /
+    // avcodec_free_context) crashes on the emscripten pthread runtime -- even
+    // when no frame was ever decoded.
+    m_codecContext->thread_count = 1;
+    m_codecContext->thread_type = 0;
+#else
     m_codecContext->thread_count = m_conf.threads;
     if(m_conf.threads > 0)
       m_codecContext->thread_type = FF_THREAD_SLICE;
+#endif
   }
 
   SCORE_ASSERT(setup);
@@ -476,8 +486,9 @@ void VideoDecoder::close_file() noexcept
   {
     avio_flush(m_formatContext->pb);
     avformat_flush(m_formatContext);
+    // avformat_close_input() already frees the context and sets it to nullptr;
+    // do NOT also call avformat_free_context() on it (double free).
     avformat_close_input(&m_formatContext);
-    avformat_free_context(m_formatContext);
     m_formatContext = nullptr;
   }
 }
