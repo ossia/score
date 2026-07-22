@@ -111,10 +111,18 @@ int main(int argc, char* argv[])
   snprintf(qml_path, MAX_PATH, "%s\\qml\\%s", exe_dir, MAIN_QML);
   snprintf(qml_import_path, MAX_PATH, "%s\\qml", exe_dir);
 
+  // --debug opens the score editor window alongside the custom UI
+  const char* ui_flag = "--ui";
+  for(int i = 1; i < argc; i++)
+  {
+    if(strcmp(argv[i], "--debug") == 0)
+      ui_flag = "--ui-debug";
+  }
+
   // Build command line
   snprintf(
-      command_line, sizeof(command_line), "\"%s\\app-bin.exe\" --ui \"%s\"", exe_dir,
-      qml_path);
+      command_line, sizeof(command_line), "\"%s\\app-bin.exe\" %s \"%s\"", exe_dir,
+      ui_flag, qml_path);
 
   if(HAS_AUTOPLAY)
   {
@@ -133,6 +141,8 @@ int main(int argc, char* argv[])
   // Add any additional command line arguments
   for(int i = 1; i < argc; i++)
   {
+    if(strcmp(argv[i], "--debug") == 0)
+      continue;
     strncat(command_line, " \"", sizeof(command_line) - strlen(command_line) - 1);
     strncat(command_line, argv[i], sizeof(command_line) - strlen(command_line) - 1);
     strncat(command_line, "\"", sizeof(command_line) - strlen(command_line) - 1);

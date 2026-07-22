@@ -87,6 +87,10 @@ Example:
 This will create platform-specific packages that launch score with:
     --ui App.qml [App.score] [--autoplay]
 
+The generated applications accept --debug, which starts them with --ui-debug
+instead of --ui: the custom UI is shown along with the score editor window.
+For the wasm bundle, use the ?debug URL parameter instead.
+
 EOF
     exit 0
 }

@@ -164,7 +164,9 @@ PRELOAD_JSON="$SITE_DIR/preload.json"
 } > "$PRELOAD_JSON"
 
 # Compose the argv passed to score's main().
-ARGS_JS="'--ui', '/app/qml/${MAIN_QML}'"
+# The UI flag itself is chosen at load time: ?debug in the URL opens the score
+# editor window alongside the custom UI.
+ARGS_JS="'/app/qml/${MAIN_QML}'"
 if [[ -n "$SCORE_BASENAME" ]]; then
     ARGS_JS="${ARGS_JS}, '/app/${SCORE_BASENAME}'"
 fi
@@ -210,12 +212,16 @@ cat > "$SITE_DIR/index.html" << HTML_EOF
             ui.style.display = 'block';
           };
 
+          const debugParam = new URLSearchParams(window.location.search).get('debug');
+          const uiFlag = (debugParam !== null && !['0', 'false', 'no', 'off'].includes(debugParam.toLowerCase()))
+            ? '--ui-debug' : '--ui';
+
           try {
             showUi(spinner);
             status.innerHTML = 'Loading...';
 
             await qtLoad({
-              arguments: [${ARGS_JS}],
+              arguments: [uiFlag, ${ARGS_JS}],
               qt: {
                 preload: ['preload.json'],
                 environment: { QML2_IMPORT_PATH: '/app/qml' },
