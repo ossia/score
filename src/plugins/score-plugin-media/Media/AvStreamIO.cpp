@@ -6,8 +6,10 @@
 #include <QString>
 
 #include <algorithm>
+#include <cstring>
 #include <memory>
 #include <string>
+#include <vector>
 
 #if defined(__EMSCRIPTEN__)
 #include <QtCore/private/qstdweb_p.h>
@@ -25,13 +27,19 @@
 
 namespace Media
 {
-static constexpr int av_io_buffer_size = 1 << 18;
+// ffmpeg pulls 4 MB per read, served from a 16 MB read-ahead window so
+// sequential demuxing round-trips to the main thread once per 16 MB.
+static constexpr int av_io_buffer_size = 1 << 22;
+static constexpr int64_t prefetch_size = 16ll << 20;
 
 struct AvStreamState
 {
   std::string url;
   int64_t pos{};
   int64_t size{};
+  std::vector<uint8_t> cache;
+  int64_t cache_off{-1};
+  int64_t cache_len{};
 };
 
 bool isStreamedMediaPath(const QString& path) noexcept
@@ -140,6 +148,13 @@ static int read_blob_worker(const std::string& url, int64_t off, int32_t want, u
   return a.result;
 }
 
+static int fetch_bytes(const std::string& url, int64_t off, int32_t want, uint8_t* dst)
+{
+  return emscripten_is_main_runtime_thread()
+             ? read_blob_main(url, off, want, dst)
+             : read_blob_worker(url, off, want, dst);
+}
+
 static int av_io_read(void* opaque, uint8_t* out, int size)
 {
   auto* st = static_cast<AvStreamState*>(opaque);
@@ -148,15 +163,26 @@ static int av_io_read(void* opaque, uint8_t* out, int size)
     return AVERROR_EOF;
 
   const int32_t want = (int32_t)std::min<int64_t>(size, avail);
-  const int r = emscripten_is_main_runtime_thread()
-                    ? read_blob_main(st->url, st->pos, want, out)
-                    : read_blob_worker(st->url, st->pos, want, out);
-  if(r > 0)
+
+  if(st->cache_off >= 0 && st->pos >= st->cache_off
+     && st->pos + want <= st->cache_off + st->cache_len)
   {
-    st->pos += r;
-    return r;
+    std::memcpy(out, st->cache.data() + (st->pos - st->cache_off), want);
+    st->pos += want;
+    return want;
   }
-  return r == 0 ? AVERROR_EOF : AVERROR(EIO);
+
+  const int32_t win = (int32_t)std::min<int64_t>(prefetch_size, st->size - st->pos);
+  const int got = fetch_bytes(st->url, st->pos, win, st->cache.data());
+  if(got <= 0)
+    return got == 0 ? AVERROR_EOF : AVERROR(EIO);
+  st->cache_off = st->pos;
+  st->cache_len = got;
+
+  const int n = std::min(want, got);
+  std::memcpy(out, st->cache.data(), n);
+  st->pos += n;
+  return n;
 }
 
 static int64_t av_io_seek(void* opaque, int64_t offset, int whence)
@@ -212,6 +238,8 @@ AvIoDevice::AvIoDevice(const QString& path)
   }
   if(!ok)
     return;
+
+  st->cache.resize((size_t)std::min<int64_t>(prefetch_size, st->size));
 
   auto* buffer = static_cast<unsigned char*>(av_malloc(av_io_buffer_size));
   if(!buffer)
