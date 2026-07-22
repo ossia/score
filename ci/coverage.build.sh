@@ -51,20 +51,28 @@ test_rc=$?
 
 # gcov data (.gcno/.gcda) live under build/; report source paths relative to the
 # repo root so Coveralls can match them against tracked files.
-# Only run gcov on our own objects. Vendored trees (Catch2 in particular) record
-# source paths that resolve from no directory we have, and gcovr treats those
-# gcov errors as fatal (exit 8) — which leaves us with an empty report and a
-# "Nothing to report" from the Coveralls uploader.
-# --gcov-filter alone is NOT enough: Catch2 builds into
-# build/3rdparty/Catch2/src/CMakeFiles/..., which matches '.*/src/.*' too. So
-# exclude the vendored trees explicitly. --gcov-ignore-errors keeps any
-# remaining stragglers non-fatal; --filter restricts the report itself to src/.
+# Filter to our own code and survive the vendored trees' gcov quirks.
+#
+# Do NOT use --gcov-filter here. It selects which .gcda gcov runs on by matching
+# a regex against the data-file path, but the match anchoring drops our own
+# objects (build/src/.../*.gcda): '.*/src/.*' filtered out EVERYTHING and gcovr
+# reported "All coverage data is filtered out" -> empty coverage.json -> the
+# Coveralls uploader says "Nothing to report". Verified against a faithful
+# clang/llvm-cov reproduction.
+#
+# Instead: let gcov run on all objects and filter at the REPORT level.
+#   --filter 'src/'        : keep only our source tree in the report.
+#   --exclude 3rdparty/catch2: Catch2's amalgamated build records its sources as
+#       'src/catch2/...' (note: NO 3rdparty in the recorded source path, so it
+#       slips past --filter 'src/'); drop it explicitly. Its .gcda also record a
+#       working dir that resolves from nowhere here, so
+#   --gcov-ignore-errors=no_working_dir_found keeps those non-fatal.
 gcovr \
   --root . \
   build \
   --filter 'src/' \
-  --gcov-filter '.*/src/.*' \
-  --gcov-exclude '.*/3rdparty/.*' \
+  --exclude '.*/3rdparty/.*' \
+  --exclude '.*catch2.*' \
   --gcov-ignore-errors=no_working_dir_found \
   --gcov-executable "$GCOV" \
   --exclude-throw-branches \
