@@ -72,11 +72,18 @@ public:
   QWidget* centralDocumentWidget{};
   QSplitter* rightSplitter{};
   QWidget* topleftToolbar{};
+  QWidget* topRightToolbar{};
   FixedTabWidget* leftTabs{};
+  FixedTabWidget* rightTabs{};
   // QTabWidget* rightTabs{};
   FixedTabWidget* bottomTabs{};
   QTabWidget* centralTabs{};
   QWidget* transportBar{};
+
+  PanelDelegate* objectPanel{};
+  PanelDelegate* inspectorPanel{};
+  PanelDelegate* infoPanel{};
+  PanelDelegate* scriptPanel{};
 
 private:
   bool event(QEvent* event) override;
