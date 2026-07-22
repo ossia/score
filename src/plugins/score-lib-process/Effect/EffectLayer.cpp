@@ -124,7 +124,17 @@ void setupScriptUI(
     if(auto win = fact.makeScriptUI(proc, ctx, nullptr))
     {
       const_cast<QWidget*&>(proc.scriptUI) = win;
+#if defined(__EMSCRIPTEN__)
+      // No OS window manager on wasm: otherwise the editor opens behind/unfocused
+      // and the first click on "Compile" only activates it instead of pressing the
+      // button. Force it on top and active on show.
+      win->setWindowFlag(Qt::WindowStaysOnTopHint, true);
       win->show();
+      win->raise();
+      win->activateWindow();
+#else
+      win->show();
+#endif
     }
   }
   else
