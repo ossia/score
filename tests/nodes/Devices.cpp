@@ -38,10 +38,7 @@
 #include <csetjmp>
 #include <csignal>
 
-// Windows has no sigsetjmp/siglongjmp, no SIGBUS/SIGTRAP/SIGALRM and no
-// alarm(): fall back to plain setjmp/longjmp, drop the missing signals from
-// the guarded set and make the watchdog a no-op. The guard still catches
-// SIGSEGV/SIGABRT/SIGFPE/SIGILL, which is what these sweeps rely on.
+// Windows shim: no sigsetjmp/siglongjmp, SIGBUS/SIGTRAP/SIGALRM or alarm().
 #if defined(_WIN32)
 #include <csetjmp>
 using sigjmp_buf = std::jmp_buf;
