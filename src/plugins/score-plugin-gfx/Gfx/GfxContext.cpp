@@ -258,7 +258,20 @@ void GfxContext::recompute_graph()
   m_graph->createAllRenderLists(api);
 
   // Recreate new timers
-  const bool vsync = settings.getVSync() && m_graph->canDoVSync();
+  // The vsync render loop drives itself through QWindow::requestUpdate(). On
+  // Wayland requestUpdate() is frame-callback gated and does not self-heal: a
+  // render() cycle that early-returns without committing a buffer breaks the
+  // frame-callback chain and the loop stalls for good, leaving the window frozen
+  // on its startup black clear. The render itself is fine there -- an offscreen
+  // readback of the same frame returns correct pixels -- so the symptom is a
+  // black on-screen window despite correct rendering. The timer-driven path
+  // below re-drives render() unconditionally (commit-independent) and presents
+  // correctly; the compositor supplies pacing on Wayland regardless. xcb, eglfs
+  // and the embedded backends keep the swap-chain vsync loop unchanged.
+  const bool waylandThrottled
+      = QGuiApplication::platformName().contains(QLatin1String("wayland"));
+  const bool vsync
+      = settings.getVSync() && m_graph->canDoVSync() && !waylandThrottled;
 
   // Update and render
   // This starts the timer for updating the graph, that is, reading the new parameters.
