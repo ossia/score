@@ -1354,15 +1354,15 @@ struct ComboBox
   static auto make_widget(
       T& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
   {
-    const auto& values = inlet.getValues();
     auto sl = new score::ComboBox{parent};
-    for(auto& e : values)
+    for(auto& e : inlet.getValues())
     {
       sl->addItem(e.first);
     }
     sl->setContentsMargins(0, 0, 0, 0);
 
-    auto set_index = [values, sl](const ossia::value& val) {
+    auto set_index = [&inlet, sl](const ossia::value& val) {
+      const auto& values = inlet.getValues();
       auto it
           = ossia::find_if(values, [&](const auto& pair) { return pair.second == val; });
       if(it != values.end())
@@ -1374,13 +1374,27 @@ struct ComboBox
 
     QObject::connect(
         sl, SignalUtils::QComboBox_currentIndexChanged_int(), context,
-        [values, &inlet, &ctx](int idx) {
-      CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<T>>(
-          inlet, values[idx].second);
+        [&inlet, &ctx](int idx) {
+      const auto& values = inlet.getValues();
+      if(idx >= 0 && idx < std::ssize(values))
+        CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<T>>(
+            inlet, values[idx].second);
     });
 
     QObject::connect(
         &inlet, &T::valueChanged, sl, [=](const ossia::value& val) { set_index(val); });
+
+    if constexpr(requires { &T::alternativesChanged; })
+    {
+      QObject::connect(
+          &inlet, &T::alternativesChanged, sl, [&inlet, sl, set_index] {
+        QSignalBlocker b{sl};
+        sl->clear();
+        for(auto& e : inlet.getValues())
+          sl->addItem(e.first);
+        set_index(inlet.value());
+      });
+    }
 
     return sl;
   }
@@ -1401,7 +1415,8 @@ struct ComboBox
     auto sl = new score::QGraphicsCombo{arr, nullptr};
     initWidgetProperties(inlet, *sl);
 
-    auto set_index = [values, sl](const ossia::value& val) {
+    auto set_index = [&slider, sl](const ossia::value& val) {
+      const auto& values = slider.getValues();
       auto it
           = ossia::find_if(values, [&](const auto& pair) { return pair.second == val; });
       if(it != values.end())
@@ -1412,10 +1427,12 @@ struct ComboBox
     set_index(inlet.value());
 
     QObject::connect(
-        sl, &score::QGraphicsCombo::sliderMoved, context, [values, sl, &inlet, &ctx] {
+        sl, &score::QGraphicsCombo::sliderMoved, context, [&slider, sl, &inlet, &ctx] {
           sl->moving = true;
-          ctx.dispatcher.submit<SetControlValue<Control_T>>(
-              inlet, values[sl->value()].second);
+          const auto& values = slider.getValues();
+          if(sl->value() >= 0 && sl->value() < std::ssize(values))
+            ctx.dispatcher.submit<SetControlValue<Control_T>>(
+                inlet, values[sl->value()].second);
         });
     QObject::connect(sl, &score::QGraphicsCombo::sliderReleased, context, [sl, &ctx] {
       ctx.dispatcher.commit();
@@ -1428,6 +1445,18 @@ struct ComboBox
 
       set_index(val);
     });
+
+    if constexpr(requires { &Control_T::alternativesChanged; })
+    {
+      QObject::connect(
+          &inlet, &Control_T::alternativesChanged, sl, [&slider, sl, set_index, &inlet] {
+        sl->array.clear();
+        for(auto& e : slider.getValues())
+          sl->array.push_back(e.first);
+        set_index(inlet.value());
+        sl->update();
+      });
+    }
 
     return sl;
   }

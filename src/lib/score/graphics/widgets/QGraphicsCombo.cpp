@@ -7,6 +7,7 @@
 
 #include <QApplication>
 #include <QGraphicsSceneMouseEvent>
+#include <QMenu>
 #include <QPainter>
 #include <QScreen>
 
@@ -92,30 +93,42 @@ private:
 
 struct DefaultComboImpl
 {
+  // Native combobox behavior: the popup menu opens on press; QMenu handles
+  // both click-then-click and press-drag-release-on-item selection.
+  static void popupMenu(QGraphicsCombo& self, QGraphicsSceneMouseEvent* event)
+  {
+    QMenu menu;
+    for(int i = 0; i < self.array.size(); i++)
+    {
+      auto* act = menu.addAction(self.array[i]);
+      act->setCheckable(true);
+      act->setChecked(i == self.m_value);
+      act->setData(i);
+    }
+    if(auto* chosen = menu.exec(event->screenPos()))
+    {
+      const int idx = chosen->data().toInt();
+      if(idx != self.m_value)
+      {
+        self.m_value = idx;
+        self.update();
+        self.sliderMoved();
+        self.sliderReleased();
+      }
+    }
+  }
+
   static void mousePressEvent(QGraphicsCombo& self, QGraphicsSceneMouseEvent* event)
   {
-    if(event->button() == Qt::LeftButton)
+    if(event->button() == Qt::LeftButton && !self.array.empty())
     {
-      self.m_grab = true;
-      InfiniteScroller::start(self, double(self.m_value) / (self.array.size() - 1));
+      popupMenu(self, event);
     }
-
     event->accept();
   }
 
   static void mouseMoveEvent(QGraphicsCombo& self, QGraphicsSceneMouseEvent* event)
   {
-    if((event->buttons() & Qt::LeftButton) && self.m_grab)
-    {
-      double v = InfiniteScroller::move(event);
-      int curPos = std::round(v * (self.array.size() - 1));
-      if(curPos != self.m_value)
-      {
-        self.m_value = std::clamp(curPos, 0, int(self.array.size() - 1));
-        self.sliderMoved();
-        self.update();
-      }
-    }
     event->accept();
   }
 
@@ -123,20 +136,7 @@ struct DefaultComboImpl
   {
     if(event->button() == Qt::LeftButton)
     {
-      InfiniteScroller::stop(self, event);
-
-      if(self.m_grab)
-      {
-        double v = InfiniteScroller::move(event);
-        int curPos = std::round(v * (self.array.size() - 1));
-        if(curPos != self.m_value)
-        {
-          self.m_value = std::clamp(curPos, 0, int(self.array.size() - 1));
-          self.update();
-        }
-        self.m_grab = false;
-      }
-      self.sliderReleased();
+      // Selection is handled by the popup opened on press.
     }
     else if(event->button() == Qt::RightButton)
     { /*

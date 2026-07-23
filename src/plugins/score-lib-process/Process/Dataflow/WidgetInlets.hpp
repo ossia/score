@@ -5,6 +5,8 @@
 
 #include <ossia/network/domain/domain.hpp>
 
+class QFileSystemWatcher;
+
 namespace Process
 {
 struct FloatSlider;
@@ -442,12 +444,33 @@ struct SCORE_LIB_PROCESS_EXPORT ProgramEdit : public Process::ControlInlet
 
 struct SCORE_LIB_PROCESS_EXPORT ComboBox : public Process::ControlInlet
 {
+  W_OBJECT(ComboBox)
+public:
   MODEL_METADATA_IMPL(ComboBox)
   std::vector<std::pair<QString, ossia::value>> alternatives;
   ComboBox(
       std::vector<std::pair<QString, ossia::value>> values, ossia::value init,
       const QString& name, Id<Process::Port> id, QObject* parent);
   ~ComboBox();
+
+  void setAlternatives(std::vector<std::pair<QString, ossia::value>> values);
+  void alternativesChanged() W_SIGNAL(alternativesChanged);
+
+  // Folder-backed combobox (halp::folder_combobox): items are the files of the
+  // sibling port named folderPortName, filtered by fileExtensions ("*.wav"…).
+  // Empty folderPortName = plain combobox. Populated at edit/load time, and
+  // refreshed by a filesystem watcher while the document is open so that files
+  // written by other processes (an upstream analysis, a recorder…) show up
+  // without reloading.
+  QString folderPortName;
+  QStringList fileExtensions;
+  void repopulateFromFolder(const QString& folderPath);
+
+private:
+  QFileSystemWatcher* m_folderWatcher{};
+  QString m_watchedFolder;
+
+public:
 
   const auto& getValues() const noexcept { return alternatives; }
   auto count() const noexcept { return alternatives.size(); }
