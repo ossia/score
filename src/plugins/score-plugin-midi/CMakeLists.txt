@@ -69,6 +69,13 @@ set(SOURCE_FILES
 
 add_library(${PROJECT_NAME} ${HEADER_FILES} ${SOURCE_FILES})
 score_generate_command_list_file(${PROJECT_NAME} "${HEADER_FILES}")
-target_link_libraries(${PROJECT_NAME} PUBLIC score_plugin_engine libremidi)
+target_link_libraries(${PROJECT_NAME}
+  PUBLIC
+    score_plugin_engine
+    score_plugin_automation
+    score_plugin_curve
+    score_plugin_scenario
+    libremidi
+)
 
 setup_score_plugin(${PROJECT_NAME})
