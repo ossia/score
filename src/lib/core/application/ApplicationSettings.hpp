@@ -51,6 +51,12 @@ struct SCORE_LIB_BASE_EXPORT ApplicationSettings
   //! UI event processing rate in ms (used for plug-in gui updates, etc)
   int uiEventRate = 64;
 
+  //! OSC port for score's local device tree. Lets multiple instances coexist.
+  int localTreeOscPort = 6666;
+
+  //! WebSocket port for score's local device tree.
+  int localTreeWebsocketPort = 9999;
+
   //! Parse the arguments.
   void parse(QStringList args, int& argc, char** argv);
 };

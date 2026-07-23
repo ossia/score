@@ -10,6 +10,10 @@
 #include <LocalTree/Device/LocalSpecificSettings.hpp>
 #include <LocalTree/LocalTreeDocumentPlugin.hpp>
 
+#include <score/application/ApplicationContext.hpp>
+
+#include <core/application/ApplicationSettings.hpp>
+
 #include <QDebug>
 #include <QObject>
 #include <QUrl>
@@ -59,8 +63,8 @@ const Device::DeviceSettings& LocalProtocolFactory::static_defaultSettings()
     s.protocol = static_concreteKey(); // Todo check for un-set protocol.
     s.name = "score";
     LocalSpecificSettings specif;
-    specif.oscPort = 6666;
-    specif.wsPort = 9999;
+    specif.oscPort = score::AppContext().applicationSettings.localTreeOscPort;
+    specif.wsPort = score::AppContext().applicationSettings.localTreeWebsocketPort;
     s.deviceSpecificSettings = QVariant::fromValue(specif);
     return s;
   }();
