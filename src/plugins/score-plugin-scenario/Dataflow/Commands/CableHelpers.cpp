@@ -361,7 +361,13 @@ void reloadPortsInNewProcess(
 
     if(new_p->type() == old_p.type && new_p->name() == old_p.name)
     {
-      new_p->loadData(old_p.data);
+      // Preserve values across a port-set change (e.g. an updated add-on that
+      // gained a port): without DontReloadValue, loadData drops the value and
+      // an existing scenario reloads the process with all defaults. Same fix as
+      // 6fed47b19 ("presets: fix that values sometimes did not reload"), applied
+      // to the scenario-load migration path. Guarded by the type()/name() match
+      // above, so a value is only ever restored into an identical port.
+      new_p->loadData(old_p.data, Process::PortLoadDataFlags::DontReloadValue);
     }
   }
 
@@ -372,7 +378,7 @@ void reloadPortsInNewProcess(
 
     if(new_p->type() == old_p.type && new_p->name() == old_p.name)
     {
-      new_p->loadData(old_p.data);
+      new_p->loadData(old_p.data, Process::PortLoadDataFlags::DontReloadValue);
     }
   }
 }
