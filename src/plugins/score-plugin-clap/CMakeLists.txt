@@ -52,10 +52,16 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   score_plugin_media
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}
-  ${CMAKE_SOURCE_DIR}/3rdparty/clap/include
-)
+score_use_system(use_sys clap)
+if(use_sys)
+  find_package(clap GLOBAL QUIET)
+endif()
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+if(TARGET clap::clap)
+  target_link_libraries(${PROJECT_NAME} PRIVATE clap::clap)
+else()
+  target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/3rdparty/clap/include)
+endif()
 
 # Platform-specific libraries for dynamic loading
 if(WIN32)

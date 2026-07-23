@@ -31,26 +31,11 @@ add_library(
 
   score_plugin_analysis.hpp
   score_plugin_analysis.cpp
-
-  "${3RDPARTY_FOLDER}/Gist/src/CoreFrequencyDomainFeatures.cpp"
-  "${3RDPARTY_FOLDER}/Gist/src/CoreFrequencyDomainFeatures.h"
-  "${3RDPARTY_FOLDER}/Gist/src/CoreTimeDomainFeatures.cpp"
-  "${3RDPARTY_FOLDER}/Gist/src/CoreTimeDomainFeatures.h"
-  "${3RDPARTY_FOLDER}/Gist/src/Gist.cpp"
-  "${3RDPARTY_FOLDER}/Gist/src/Gist.h"
-  "${3RDPARTY_FOLDER}/Gist/src/MFCC.cpp"
-  "${3RDPARTY_FOLDER}/Gist/src/MFCC.h"
-  "${3RDPARTY_FOLDER}/Gist/src/OnsetDetectionFunction.cpp"
-  "${3RDPARTY_FOLDER}/Gist/src/OnsetDetectionFunction.h"
-  "${3RDPARTY_FOLDER}/Gist/src/WindowFunctions.cpp"
-  "${3RDPARTY_FOLDER}/Gist/src/WindowFunctions.h"
-  "${3RDPARTY_FOLDER}/Gist/src/Yin.cpp"
-  "${3RDPARTY_FOLDER}/Gist/src/Yin.h"
 )
 
-target_compile_definitions(score_plugin_analysis PRIVATE USE_OSSIA_FFT=1)
-target_include_directories(score_plugin_analysis PRIVATE "${3RDPARTY_FOLDER}/Gist/src")
-target_link_libraries(score_plugin_analysis PUBLIC score_plugin_engine score_plugin_avnd)
+include("${3RDPARTY_FOLDER}/gist.cmake")
+
+target_link_libraries(score_plugin_analysis PUBLIC score_plugin_engine score_plugin_avnd Gist)
 if(OSSIA_ENABLE_KFR AND TARGET kfr)
   link_whole_archive(score_plugin_analysis PRIVATE kfr)
   link_whole_archive(score_plugin_analysis PRIVATE kfr_dsp)

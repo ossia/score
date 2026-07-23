@@ -1,0 +1,13 @@
+score_use_system(use_sys opengametools)
+set(OPENGAMETOOLS_INC "${CMAKE_CURRENT_LIST_DIR}/opengametools/src")
+if(use_sys)
+  find_path(OPENGAMETOOLS_INCLUDE_DIR ogt_vox.h)
+  if(OPENGAMETOOLS_INCLUDE_DIR)
+    set(OPENGAMETOOLS_INC "${OPENGAMETOOLS_INCLUDE_DIR}")
+  endif()
+endif()
+
+if(NOT TARGET opengametools)
+  add_library(opengametools INTERFACE IMPORTED GLOBAL)
+  target_include_directories(opengametools SYSTEM INTERFACE "${OPENGAMETOOLS_INC}")
+endif()
