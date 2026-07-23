@@ -23,8 +23,8 @@ void LibraryHandler::setup(
 
   auto& plug = ctx.guiApplicationPlugin<Clap::ApplicationPlugin>();
 
-  auto reset_plugs = [this, &plug, &parent] {
-    // Group plugins by category
+  // Build the plugin subtree into a detached node, grouping by category.
+  auto build = [this, &plug](Library::ProcessNode& target) {
     QMap<QString, Library::ProcessNode*> categories;
 
     for(const auto& plugin : plug.plugins())
@@ -36,8 +36,8 @@ void LibraryHandler::setup(
       // Create category if it doesn't exist
       if(!categories.contains(category))
       {
-        auto& cat_node = parent.emplace_back(
-            Library::ProcessData{{{}, category, {}}, {}}, &parent);
+        auto& cat_node = target.emplace_back(
+            Library::ProcessData{{{}, category, {}}, {}}, &target);
         categories[category] = &cat_node;
       }
 
@@ -48,16 +48,32 @@ void LibraryHandler::setup(
     }
   };
 
-  reset_plugs();
+  // Rebuild the whole subtree using proper row insertion/removal instead of a
+  // model reset: this keeps the view's selection/expansion state and does not
+  // invalidate every unrelated QModelIndex. The subtree is built off to the
+  // side and moved in under a single begin/endInsertRows.
+  auto rebuild = [&model, node, &parent, build] {
+    if(parent.childCount() > 0)
+    {
+      model.beginRemoveRows(node, 0, parent.childCount() - 1);
+      parent.resize(0);
+      model.endRemoveRows();
+    }
 
-  // Async rescan: addToLibrary doesn't emit per-row signals, so reset whole subtree.
-  con(plug, &Clap::ApplicationPlugin::pluginsChanged, this,
-      [&model, &parent, reset_plugs] {
-    model.beginResetModel();
-    parent.resize(0);
-    reset_plugs();
-    model.endResetModel();
-  });
+    Library::ProcessNode built;
+    build(built);
+
+    if(const int n = built.childCount(); n > 0)
+    {
+      model.beginInsertRows(node, 0, n - 1);
+      built.moveChildren(parent);
+      model.endInsertRows();
+    }
+  };
+
+  rebuild();
+
+  con(plug, &Clap::ApplicationPlugin::pluginsChanged, this, rebuild);
 }
 
 QString LibraryHandler::getClapCategory(const QList<QString>& features) const
