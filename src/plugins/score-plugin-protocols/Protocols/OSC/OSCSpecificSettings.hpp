@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/detail/optional.hpp>
+#include <ossia/network/rate_limiter_configuration.hpp>
 #include <ossia/protocols/osc/osc_factory.hpp>
 
 #include <QString>
@@ -11,7 +12,7 @@ namespace Protocols
 struct OSCSpecificSettings
 {
   ossia::net::osc_protocol_configuration configuration;
-  std::optional<int> rate{};
+  std::optional<ossia::net::rate_limiter_configuration> rate{};
   bool bonjour{};
   std::optional<int> oscquery{};
 
