@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 export BUILD_FOLDER=/tmp/build
 export SOURCE_FOLDER="$PWD"
 export OSSIA_SDK="/opt/ossia-sdk-${CPU_ARCH}"

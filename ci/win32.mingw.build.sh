@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 export SCORE_DIR=$PWD
 
@@ -7,7 +7,6 @@ if c++ --version | grep clang; then
   CXX_ADDITIONAL_FLAGS=-fexperimental-library
 fi
 
-# FIXME vst3 error in sdk hosting...
 cmake -S "$SCORE_DIR" -B build \
   -GNinja \
   -DCMAKE_BUILD_TYPE=Release \

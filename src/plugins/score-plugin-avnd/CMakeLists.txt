@@ -1018,7 +1018,7 @@ avnd_make_score(
 )
 
 avnd_make_score(
-  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Flipflop.hpp"
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/FlipFlop.hpp"
   TARGET flipflop
   MAIN_CLASS FlipFlop
   NAMESPACE ao

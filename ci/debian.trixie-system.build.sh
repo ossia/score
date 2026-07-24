@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 export SCORE_DIR=$PWD
 
