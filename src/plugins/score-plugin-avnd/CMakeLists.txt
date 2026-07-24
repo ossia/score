@@ -997,6 +997,34 @@ avnd_make_score(
 )
 
 avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Repeat.hpp"
+  TARGET repeat
+  MAIN_CLASS Repeat
+  NAMESPACE ao
+)
+
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Mux.hpp"
+  TARGET mux
+  MAIN_CLASS Mux
+  NAMESPACE ao
+)
+
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Demux.hpp"
+  TARGET demux
+  MAIN_CLASS Demux
+  NAMESPACE ao
+)
+
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Flipflop.hpp"
+  TARGET flipflop
+  MAIN_CLASS FlipFlop
+  NAMESPACE ao
+)
+
+avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Midi/MidiSyncInput.hpp"
   TARGET midi_sync_input
   MAIN_CLASS MIDISyncIn
@@ -1049,6 +1077,20 @@ avnd_make_score(
     "${AVND_FOLDER}/examples/Advanced/UI/Widgets.hpp"
   TARGET ui_impulse
   MAIN_CLASS Impulse
+  NAMESPACE uo
+)
+avnd_make_score(
+  SOURCES
+    "${AVND_FOLDER}/examples/Advanced/UI/Widgets.hpp"
+  TARGET ui_bang
+  MAIN_CLASS Bang
+  NAMESPACE uo
+)
+avnd_make_score(
+  SOURCES
+    "${AVND_FOLDER}/examples/Advanced/UI/Widgets.hpp"
+  TARGET ui_heldbutton
+  MAIN_CLASS HeldButton
   NAMESPACE uo
 )
 avnd_make_score(
