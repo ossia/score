@@ -101,10 +101,12 @@ public:
     // set.changed();
 
     // Backends that can follow the OS default (WASAPI) default to that mode when
-    // nothing has been configured yet, so playback tracks the Windows mixer
-    // default output out of the box.
+    // nothing has been configured yet, so playback/capture track the Windows
+    // mixer default output/input out of the box.
     if(followsDefaultDevice() && set.getCardOut().isEmpty())
       set.setCardOut("Default");
+    if(followsDefaultDevice() && set.getCardIn().isEmpty())
+      set.setCardIn("Default");
 
     const MiniAudioCard* user_in{};
     const MiniAudioCard* user_out{};
