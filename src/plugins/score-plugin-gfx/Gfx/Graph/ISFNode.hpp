@@ -45,5 +45,32 @@ public:
   std::vector<int*> m_event_ports;
 
   int m_materialSize{};
+
+  // Reset all `event` input ports to 0 so they pulse true for exactly one
+  // frame after the upstream producer writes 1. Called at the end of each
+  // frame's update() — AFTER the material UBO has been staged via
+  // updateDynamicBuffer (which captures the value at call time), so
+  // resetting the CPU memory here doesn't affect what the shader reads
+  // this frame, only what would leak into the next frame if we didn't
+  // reset.
+  //
+  // Returns true if any port was actually firing. Callers should then set
+  // their NodeRenderer::materialChanged flag so the next frame re-uploads
+  // the now-zero event value — otherwise the gate-on-materialChanged
+  // upload path would skip the re-upload and leave the stale 1 in the GPU
+  // UBO indefinitely.
+  [[nodiscard]] bool resetEventPortsAfterFrame() noexcept
+  {
+    bool any_fired = false;
+    for(int* p : m_event_ports)
+    {
+      if(p && *p != 0)
+      {
+        *p = 0;
+        any_fired = true;
+      }
+    }
+    return any_fired;
+  }
 };
 }

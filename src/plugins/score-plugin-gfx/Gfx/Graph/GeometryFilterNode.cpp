@@ -28,7 +28,23 @@ struct geometry_input_port_vis
 
   void operator()(const isf::long_input& in) noexcept
   {
-    *reinterpret_cast<int*>(data) = in.def;
+    // Enum mode: in.def is the *index* into VALUES, but the shader and the
+    // downstream ComboBox-driven port both consume the numeric VALUE at that
+    // index. Resolve here so the initial UBO matches post-interaction state.
+    // String-valued VALUES fall back to the index (GLSL can't receive strings).
+    int initial = (int)in.def;
+    if(!in.values.empty())
+    {
+      auto idx = std::min<std::size_t>(in.def, in.values.size() - 1);
+      const auto& v = in.values[idx];
+      if(auto i = ossia::get_if<int64_t>(&v))
+        initial = (int)*i;
+      else if(auto d = ossia::get_if<double>(&v))
+        initial = (int)*d;
+      else
+        initial = (int)idx;
+    }
+    *reinterpret_cast<int*>(data) = initial;
     self.input.push_back(new Port{&self, data, Types::Int, {}});
     data += 4;
     sz += 4;
@@ -135,6 +151,12 @@ struct geometry_input_port_vis
   {
     // Storage buffers are typically managed by the system
     // No UI controls or uniform buffer data needed
+  }
+
+  void operator()(const isf::uniform_input& in) noexcept
+  {
+    // UBO inputs are sourced from upstream Buffer ports; no material-UBO
+    // storage needed here.
   }
   
   void operator()(const isf::texture_input& in) noexcept

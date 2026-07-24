@@ -403,13 +403,19 @@ vec3 agx(vec3 color) {
 }
 
 vec3 agxEotf(vec3 color) {
-  // AgX -> sRGB/BT.709 linear
+  // AgX outset (inverse of inset). The output of agxDefaultContrastApprox
+  // is in AgX's pseudo-sRGB-2.2-gamma space; we apply outset then the
+  // 2.2 EOTF to land in linear sRGB. Reference: iolite minimal AgX,
+  // https://iolite-engine.com/blog_posts/minimal_agx_implementation
   const mat3 agxInvTransform = mat3(
      1.19687900512017,  -0.0528968517574562, -0.0529716355144438,
     -0.0980208811401368,  1.15190312990417,  -0.0980434501171241,
     -0.0990297440797205, -0.0989611768448433,  1.15107367264116
   );
-  return agxInvTransform * color;
+  vec3 v = agxInvTransform * color;
+  // Without this gamma the output is display-non-linear but the caller
+  // treats it as linear -> shadows crushed, contrast over-steep.
+  return pow(max(v, vec3(0.0)), vec3(2.2));
 }
 
 vec3 tonemap(vec3 color) {

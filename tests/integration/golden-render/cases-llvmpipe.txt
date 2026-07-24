@@ -1,0 +1,23 @@
+# Golden-render pinned case list — llvmpipe backend class.
+# One tests-scene script basename per line (no .js). Chosen from the subset
+# proven to render on llvmpipe (2026-07 sweep), spread across pipeline
+# families: ISF basic/multi-input/multipass/MRT, raw-raster texture upload +
+# strides, sampler state, storage images, float formats, CSF compute.
+# Time-animated cases are rejected automatically by --update-refs
+# self-consistency; permanently unstable ones land in refs/<backend>/UNSTABLE.txt.
+build-isf-solid-color
+build-isf-image-passthrough
+build-isf-two-images
+build-2d-no-stride
+build-2d-stride-xy
+build-isf-nearest-filter
+build-isf-three-pass
+build-isf-multipass-size
+build-isf-mrt-four-outputs
+build-mrt-gbuffer
+build-pass-override-state
+build-binding-storage-image-fragment
+build-isf-pass-format-rgba16f
+build-output-format-rgba16f
+build-csf-texture-sampling
+build-isf-point3d-as-color

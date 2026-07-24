@@ -1,3 +1,4 @@
+#include <score/model/path/ObjectPath.hpp>
 #include <JS/Qml/EditContext.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
@@ -9,6 +10,7 @@
 
 #include <core/command/CommandStack.hpp>
 #include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
 #include <core/presenter/DocumentManager.hpp>
 
 #include <QFile>
@@ -79,6 +81,31 @@ QObject* EditJsContext::findByLabel(QString p)
     }
   }
   return nullptr;
+}
+
+QString EditJsContext::path(QObject* obj)
+{
+  auto doc = ctx();
+  if(!doc || !obj)
+    return {};
+  try
+  {
+    auto full = ObjectPath::pathBetweenObjects(&doc->document.model(), obj);
+    auto& v = full.vec();
+    return ObjectPath{{v.begin() + 1, v.end()}}.toString();
+  }
+  catch(...)
+  {
+    return {};
+  }
+}
+
+QObject* EditJsContext::findByPath(QString path)
+{
+  auto doc = ctx();
+  if(!doc)
+    return nullptr;
+  return ObjectPath::fromString(path).findObject(*doc);
 }
 
 void EditJsContext::load(QString doc)

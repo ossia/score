@@ -115,3 +115,6 @@
 [submodule "3rdparty/opengametools"]
 	path = 3rdparty/opengametools
 	url = https://github.com/jpaver/opengametools
+[submodule "3rdparty/OffsetAllocator"]
+	path = 3rdparty/OffsetAllocator
+	url = https://github.com/sebbbi/OffsetAllocator

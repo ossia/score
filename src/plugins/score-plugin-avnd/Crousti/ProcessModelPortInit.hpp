@@ -4,6 +4,7 @@
 #include <Process/Process.hpp>
 
 #include <Crousti/Concepts.hpp>
+#include <Crousti/SceneConcepts.hpp>
 #include <Media/Sound/Drop/SoundDrop.hpp>
 
 #include <avnd/binding/ossia/port_base.hpp>
@@ -276,6 +277,22 @@ struct InletInitFunc
 #endif
   }
 
+  // Scene inputs reuse Gfx::GeometryInlet — a scene is a richer form of
+  // geometry and travels through the same Process-layer port. Mirror of the
+  // outlet overload below. Needed so scene-modifying halp nodes (Transform,
+  // SceneFilter, ...) can declare `struct { ossia::scene_spec scene; } scene_in;`
+  // in their inputs{} struct and get wired up by the framework.
+  template <scene_port T>
+    requires(!avnd::geometry_port<T>)
+  void operator()(const T& in, auto idx)
+  {
+#if SCORE_PLUGIN_GFX
+    auto p = new Gfx::GeometryInlet(portName<T>(), Id<Process::Port>(inlet++), &self);
+    setupNewPort(in, p);
+    ins.push_back(p);
+#endif
+  }
+
   template <std::size_t Idx, avnd::message T>
   void operator()(const avnd::field_reflection<Idx, T>& in, auto dummy)
   {
@@ -407,7 +424,31 @@ struct OutletInitFunc
 #endif
   }
 
+  template <avnd::gpu_render_target_output_port T>
+  void operator()(const T& out, auto idx)
+  {
+#if SCORE_PLUGIN_GFX
+    auto p = new Gfx::TextureOutlet(portName<T>(), Id<Process::Port>(outlet++), &self);
+    setupNewPort(out, p);
+    outs.push_back(p);
+#endif
+  }
+
   template <avnd::geometry_port T>
+  void operator()(const T& out, auto idx)
+  {
+#if SCORE_PLUGIN_GFX
+    auto p = new Gfx::GeometryOutlet(portName<T>(), Id<Process::Port>(outlet++), &self);
+    setupNewPort(out, p);
+    outs.push_back(p);
+#endif
+  }
+
+  // Scene outputs reuse Gfx::GeometryOutlet — a scene is a richer form of
+  // geometry that travels through the same Process-layer port. The Crousti
+  // upload path publishes scene_spec via NodeRenderer::process(scene_spec).
+  template <scene_port T>
+    requires(!avnd::geometry_port<T>)
   void operator()(const T& out, auto idx)
   {
 #if SCORE_PLUGIN_GFX

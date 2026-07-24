@@ -159,7 +159,7 @@ struct NV12Encoder : GPUVideoEncoder
   void exec(QRhi& rhi, QRhiCommandBuffer& cb) override
   {
     // Pass 1: Y plane (full resolution)
-    cb.beginPass(m_yRT, Qt::black, {1.0f, 0});
+    cb.beginPass(m_yRT, Qt::black, {0.0f, 0});
     cb.setGraphicsPipeline(m_yPipeline);
     cb.setShaderResources(m_ySRB);
     cb.setViewport(QRhiViewport(0, 0, m_width, m_height));
@@ -170,7 +170,7 @@ struct NV12Encoder : GPUVideoEncoder
     cb.endPass(yReadbackBatch);
 
     // Pass 2: UV plane (half resolution)
-    cb.beginPass(m_uvRT, Qt::black, {1.0f, 0});
+    cb.beginPass(m_uvRT, Qt::black, {0.0f, 0});
     cb.setGraphicsPipeline(m_uvPipeline);
     cb.setShaderResources(m_uvSRB);
     cb.setViewport(QRhiViewport(0, 0, m_width / 2, m_height / 2));

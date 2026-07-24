@@ -41,10 +41,14 @@ layout(location = 0) out vec2 isf_FragNormCoord;
   static constexpr auto vertexInitFunc = R"_(
 void isf_vertShaderInit()
 {
-  gl_Position = clipSpaceCorrMatrix * vec4( position, 0.0, 1.0 );
+  gl_Position = clipSpaceCorrMatrix * vec4(position, 0.0, 1.0);
   isf_FragNormCoord = vec2((gl_Position.x+1.0)/2.0, (gl_Position.y+1.0)/2.0);
+}
+
+void isf_vertShaderFinish()
+{
 #if defined(QSHADER_SPIRV) || defined(QSHADER_HLSL) || defined(QSHADER_MSL)
-  gl_Position.y = - gl_Position.y;
+  gl_Position.y = -gl_Position.y;
 #endif
 }
 )_";
@@ -53,6 +57,7 @@ void isf_vertShaderInit()
 void main()
 {
   isf_vertShaderInit();
+  isf_vertShaderFinish();
 }
 )_";
 
@@ -67,12 +72,18 @@ layout(std140, binding = 0) uniform renderer_t {
   mat4 clipSpaceCorrMatrix_;
 
   vec2 RENDERSIZE_;
+  // MSAA sample count of the active output target (1 when MSAA is off).
+  // Mirrors RenderList::samples(); needed because glslang strips
+  // gl_NumSamples under SPIR-V. _pad0 keeps the struct vec4-aligned.
+  int MSAA_SAMPLES_;
+  int _renderer_pad0_;
 } isf_renderer_uniforms;
 
 // This dance is needed because otherwise
 // spirv-cross may generate different struct names in the vertex & fragment, causing crashes..
 // but we have to keep compat with ISF
 #define clipSpaceCorrMatrix isf_renderer_uniforms.clipSpaceCorrMatrix_
+#define MSAA_SAMPLES isf_renderer_uniforms.MSAA_SAMPLES_
 
 // Time-dependent uniforms, only relevant during execution
 layout(std140, binding = 1) uniform process_t {
@@ -86,6 +97,15 @@ layout(std140, binding = 1) uniform process_t {
 
   vec2 RENDERSIZE_;
   vec4 DATE_;
+  // Mirrors gl_NumWorkGroups for compute shaders. SPIRV-Cross's HLSL
+  // backend refuses to emit code for the NumWorkgroups built-in unless
+  // remap_num_workgroups_builtin() is set up on both the cross-compiler
+  // and the QRhi side; QShaderBaker exposes neither, so any compute
+  // shader using gl_NumWorkGroups silently fails to bake to HLSL on
+  // D3D11/D3D12. We sidestep that by routing references through this
+  // uniform — populated host-side just before each dispatch — and
+  // textually shadowing the built-in via the #define below.
+  uvec3 NUMWORKGROUPS_;
 } isf_process_uniforms;
 
 #define TIME isf_process_uniforms.TIME_
@@ -95,12 +115,29 @@ layout(std140, binding = 1) uniform process_t {
 #define FRAMEINDEX isf_process_uniforms.FRAMEINDEX_
 #define RENDERSIZE isf_process_uniforms.RENDERSIZE_
 #define DATE isf_process_uniforms.DATE_
+#define SAMPLERATE isf_process_uniforms.SAMPLERATE_
+#define gl_NumWorkGroups isf_process_uniforms.NUMWORKGROUPS_
+#define isf_NumWorkGroups isf_process_uniforms.NUMWORKGROUPS_
 )_";
 
   static constexpr auto defaultFunctions =
       R"_(
+// GLSL's textureSize is overloaded by sampler dimensionality — sampler2D
+// returns ivec2, sampler3D returns ivec3. Authors typically reach for
+// TEX_DIMENSIONS regardless of 2D/3D; the *_2D / *_3D aliases below make
+// the intended dimensionality explicit in shader source.
 #define TEX_DIMENSIONS(tex) textureSize(tex, 0)
+#define TEX_DIMENSIONS_2D(tex) textureSize(tex, 0)
+#define TEX_DIMENSIONS_3D(tex) textureSize(tex, 0)
 #define IMG_SIZE(tex) textureSize(tex, 0)
+#define IMG_SIZE_3D(tex) textureSize(tex, 0)
+
+// IMG_CUBE(tex, dir) — canonical colour-cube read; same in both coord systems
+// since a direction vector has no Y-flip. IMG_CUBE_DEPTH(tex, dir) —
+// canonical depth-cube read for inputs declared DEPTH: true on a cubemap,
+// hides the internal `_depth` companion binding.
+#define IMG_CUBE(tex, dir) texture(tex, dir)
+#define IMG_CUBE_DEPTH(tex, dir) texture(tex##_depth, dir).r
 
 #if defined(QSHADER_SPIRV)
 #define isf_FragCoord vec4(gl_FragCoord.x, RENDERSIZE.y - gl_FragCoord.y, gl_FragCoord.z, gl_FragCoord.w)
@@ -193,7 +230,7 @@ parser::parser(std::string vert, std::string frag, int glslVersion, ShaderType t
     , m_sourceFragment{std::move(frag)}
     , m_version{glslVersion}
 {
-  this->m_desc.default_vertex_shader = vert.empty();
+  this->m_desc.default_vertex_shader = m_sourceVertex.empty();
 
   static const auto is_isf = [](const std::string& str) {
     bool has_isf
@@ -384,6 +421,86 @@ static bool parse_input_impl(sajson::value& v, bool)
   return v.get_type() == sajson::TYPE_TRUE;
 }
 
+// Parse sampler-config fields from a JSON input object directly (flat fields,
+// no nested "SAMPLER" object). All fields optional; missing = keep default.
+static void parse_sampler_config(sampler_config& s, const sajson::value& v)
+{
+  auto str_field = [&](const char* key, std::string& out) {
+    if(auto k = v.find_object_key_insensitive(sajson::literal(key));
+       k != v.get_length())
+    {
+      auto val = v.get_object_value(k);
+      if(val.get_type() == sajson::TYPE_STRING)
+        out = val.as_string();
+    }
+  };
+  auto float_field = [&](const char* key, std::optional<float>& out) {
+    if(auto k = v.find_object_key_insensitive(sajson::literal(key));
+       k != v.get_length())
+    {
+      auto val = v.get_object_value(k);
+      if(is_number(val))
+        out = (float)val.get_number_value();
+    }
+  };
+
+  str_field("WRAP",          s.wrap);
+  str_field("WRAP_S",        s.wrap_s);
+  str_field("WRAP_T",        s.wrap_t);
+  str_field("WRAP_R",        s.wrap_r);
+  str_field("FILTER",        s.filter);
+  str_field("MIN_FILTER",    s.min_filter);
+  str_field("MAG_FILTER",    s.mag_filter);
+  str_field("MIPMAP_MODE",   s.mipmap_mode);
+  str_field("BORDER_COLOR",  s.border_color);
+  str_field("COMPARE",       s.compare);
+  float_field("ANISOTROPY",  s.anisotropy);
+  float_field("LOD_BIAS",    s.lod_bias);
+  float_field("MIN_LOD",     s.min_lod);
+  float_field("MAX_LOD",     s.max_lod);
+}
+
+// Audio inputs expose only FILTER and WRAP — audio textures are 1-mip
+// 2D samplers so the rest of sampler_config (COMPARE / BORDER_COLOR / LOD
+// / anisotropy) has no meaningful effect.
+static void parse_audio_sampler_config(audio_sampler_config& s, const sajson::value& v)
+{
+  auto str_field = [&](const char* key, std::string& out) {
+    if(auto k = v.find_object_key_insensitive(sajson::literal(key));
+       k != v.get_length())
+    {
+      auto val = v.get_object_value(k);
+      if(val.get_type() == sajson::TYPE_STRING)
+        out = val.as_string();
+    }
+  };
+  str_field("FILTER", s.filter);
+  str_field("WRAP",   s.wrap);
+}
+
+// Drop COMPARE from a sampler config whose texture shape has no corresponding
+// *Shadow GLSL sampler type. A non-"never" COMPARE makes the runtime call
+// QRhiSampler::setTextureCompareOp, which on Vulkan requires the shader-side
+// binding to be a shadow sampler (compareEnable=VK_TRUE is a validation
+// error otherwise) and on the other backends produces undefined reads. The
+// only core-GLSL shape without a shadow variant is 3D — sampler3DShadow is
+// not a core type. 2D / 2D-array / cube / cube-array all have shadow
+// counterparts and are handled by the emitter.
+static void drop_unsupported_compare_3d(sampler_config& s, const char* where)
+{
+  if(s.compare.empty()) return;
+  std::string c = s.compare;
+  for(auto& ch : c) ch = (char)tolower(ch);
+  if(c == "never") return;
+  fmt::print(
+      stderr,
+      "[isf] {}: COMPARE is set but sampler3DShadow is not a core GLSL "
+      "sampler type — ignoring. Use a 2D, 2D-array, cubemap or cubemap-array "
+      "shadow sampler instead.\n",
+      where);
+  s.compare.clear();
+}
+
 static void parse_input(image_input& inp, const sajson::value& v)
 {
   if(auto k = v.find_object_key_insensitive(sajson::literal("DIMENSIONS"));
@@ -391,15 +508,64 @@ static void parse_input(image_input& inp, const sajson::value& v)
   {
     auto val = v.get_object_value(k);
     if(val.get_type() == sajson::TYPE_INTEGER)
-      inp.dimensions = val.get_integer_value();
+    {
+      auto d = val.get_integer_value();
+      if(d != 2 && d != 3)
+        throw invalid_file{
+            "image_input DIMENSIONS must be 2 or 3 (got " + std::to_string(d)
+            + "). 1D and 4D textures are not supported."};
+      inp.dimensions = d;
+    }
   }
   if(auto k = v.find_object_key_insensitive(sajson::literal("DEPTH"));
      k != v.get_length())
   {
     inp.depth = v.get_object_value(k).get_type() == sajson::TYPE_TRUE;
   }
+  if(auto k = v.find_object_key_insensitive(sajson::literal("IS_ARRAY"));
+     k != v.get_length())
+  {
+    inp.is_array = v.get_object_value(k).get_type() == sajson::TYPE_TRUE;
+  }
+  else if(auto k2 = v.find_object_key_insensitive(sajson::literal("ARRAY"));
+          k2 != v.get_length())
+  {
+    inp.is_array = v.get_object_value(k2).get_type() == sajson::TYPE_TRUE;
+  }
+  // STATIC: shader author opts into "upstream publishes a long-lived
+  // QRhiTexture, bind it directly". Engine path = same Flag::GrabsFromSource
+  // already used for cube / 3D / array inputs (those grab implicitly
+  // because they can't be 2D color attachments). For plain 2D texture
+  // inputs both modes are valid — RT-render (compositor pattern) is the
+  // safe default; STATIC: true opts into direct binding for static-LUT /
+  // IBL-bake / asset-cache producers (avnd gpu_texture_output, etc.).
+  if(auto k = v.find_object_key_insensitive(sajson::literal("STATIC"));
+     k != v.get_length())
+  {
+    inp.is_static = v.get_object_value(k).get_type() == sajson::TYPE_TRUE;
+  }
+  parse_sampler_config(inp.sampler, v);
+  if(inp.dimensions == 3)
+  {
+    drop_unsupported_compare_3d(inp.sampler, "image input (DIMENSIONS: 3)");
+    if(inp.is_array)
+    {
+      throw invalid_file{
+          "image input: DIMENSIONS: 3 with ARRAY: true is not supported — "
+          "sampler3DArray is not a core GLSL type. Use a 3D texture and drop "
+          "ARRAY, or a 2D-array texture and drop DIMENSIONS: 3."};
+    }
+  }
 }
-static void parse_input(cubemap_input& inp, const sajson::value& v) { }
+static void parse_input(cubemap_input& inp, const sajson::value& v)
+{
+  if(auto k = v.find_object_key_insensitive(sajson::literal("DEPTH"));
+     k != v.get_length())
+  {
+    inp.depth = v.get_object_value(k).get_type() == sajson::TYPE_TRUE;
+  }
+  parse_sampler_config(inp.sampler, v);
+}
 
 static void parse_input(event_input& inp, const sajson::value& v) { }
 
@@ -419,6 +585,7 @@ static void parse_input(audio_input& inp, const sajson::value& v)
       }
     }
   }
+  parse_audio_sampler_config(inp.sampler, v);
 }
 
 static void parse_input(audioHist_input& inp, const sajson::value& v)
@@ -437,6 +604,7 @@ static void parse_input(audioHist_input& inp, const sajson::value& v)
       }
     }
   }
+  parse_audio_sampler_config(inp.sampler, v);
 }
 
 // CSF-specific parsing functions
@@ -497,6 +665,106 @@ static void parse_input(storage_input& inp, const sajson::value& v)
       if(val.get_type() == sajson::TYPE_STRING)
         inp.buffer_usage = val.as_string();
     }
+    else if(k == "PERSISTENT")
+    {
+      inp.persistent = v.get_object_value(i).get_type() == sajson::TYPE_TRUE;
+    }
+    else if(k == "VISIBILITY")
+    {
+      auto val = v.get_object_value(i);
+      if(val.get_type() == sajson::TYPE_STRING)
+        inp.visibility = val.as_string();
+    }
+  }
+
+  // Warn on semantically-impossible combinations. PERSISTENT allocates a
+  // ping-pong pair and always emits `_prev` as a readonly buffer — if the
+  // primary is write_only, nothing ever writes the data that _prev is
+  // supposed to read back, so it's silently always zero.
+  if(inp.persistent && inp.access == "write_only")
+  {
+    throw invalid_file{
+        "storage input declared as PERSISTENT + ACCESS: write_only is "
+        "invalid — _prev would always read zero (no read path exists to "
+        "populate it). Use ACCESS: read_write or read_only with PERSISTENT, "
+        "or drop PERSISTENT if you don't need frame history."};
+  }
+
+  // Reject empty LAYOUT for non-indirect storage_inputs. The graphics
+  // emit at isf_emit_graphics_storage / isf_emit_ssbo_decl produces an
+  // empty `readonly buffer NAME_buf { };` block which is invalid GLSL
+  // (`buffer { };` requires at least one member declarator). shaderc
+  // then fails with a cryptic message pointing at the auto-emitted
+  // block. uniform_input has the symmetric check at parse_input(uniform).
+  // Indirect-draw SSBOs LEGITIMATELY have empty LAYOUT — they are
+  // skipped from graphics emit (isf.cpp:3361-3363) when buffer_usage is
+  // non-empty. Match that gate here so legitimate indirect-draw paths
+  // pass through unchallenged.
+  if(inp.layout.empty() && inp.buffer_usage.empty())
+  {
+    throw invalid_file{
+        "storage_input declares an empty LAYOUT and no BUFFER_USAGE — "
+        "the SSBO graphics emit would produce `readonly buffer NAME_buf "
+        "{ };` which is invalid GLSL (a buffer block must have at least "
+        "one member declarator). Empty LAYOUT only makes sense for "
+        "indirect-draw SSBOs which set BUFFER_USAGE: \"indirect_draw\" "
+        "or \"indirect_draw_indexed\". Either declare members in LAYOUT "
+        "or set BUFFER_USAGE."};
+  }
+}
+
+static void parse_input(uniform_input& inp, const sajson::value& v)
+{
+  std::size_t N = v.get_length();
+  for(std::size_t i = 0; i < N; i++)
+  {
+    auto k = v.get_object_key(i).as_string();
+    if(k == "LAYOUT")
+    {
+      auto val = v.get_object_value(i);
+      if(val.get_type() == sajson::TYPE_ARRAY)
+      {
+        std::size_t layout_size = val.get_length();
+        inp.layout.reserve(layout_size);
+        for(std::size_t j = 0; j < layout_size; j++)
+        {
+          auto field = val.get_array_element(j);
+          if(field.get_type() != sajson::TYPE_OBJECT)
+            continue;
+          uniform_input::layout_field lf;
+          for(std::size_t f = 0; f < field.get_length(); f++)
+          {
+            auto fk = field.get_object_key(f).as_string();
+            if(fk == "NAME")
+            {
+              auto nv = field.get_object_value(f);
+              if(nv.get_type() == sajson::TYPE_STRING)
+                lf.name = nv.as_string();
+            }
+            else if(fk == "TYPE")
+            {
+              auto tv = field.get_object_value(f);
+              if(tv.get_type() == sajson::TYPE_STRING)
+                lf.type = tv.as_string();
+            }
+          }
+          inp.layout.push_back(lf);
+        }
+      }
+    }
+    else if(k == "VISIBILITY")
+    {
+      auto val = v.get_object_value(i);
+      if(val.get_type() == sajson::TYPE_STRING)
+        inp.visibility = val.as_string();
+    }
+  }
+  if(inp.layout.empty())
+  {
+    throw invalid_file{
+        "uniform_input declares an empty LAYOUT — std140 interface blocks "
+        "must contain at least one field. Either declare its members in "
+        "LAYOUT: [{ NAME, TYPE }, ...] or remove the input."};
   }
 }
 
@@ -507,8 +775,18 @@ static void parse_input(texture_input& inp, const sajson::value& v)
   {
     auto val = v.get_object_value(k);
     if(val.get_type() == sajson::TYPE_INTEGER)
-      inp.dimensions = val.get_integer_value();
+    {
+      auto d = val.get_integer_value();
+      if(d != 2 && d != 3)
+        throw invalid_file{
+            "texture_input DIMENSIONS must be 2 or 3 (got " + std::to_string(d)
+            + "). 1D and 4D textures are not supported."};
+      inp.dimensions = d;
+    }
   }
+  parse_sampler_config(inp.sampler, v);
+  if(inp.dimensions == 3)
+    drop_unsupported_compare_3d(inp.sampler, "texture input (DIMENSIONS: 3)");
 }
 
 // Parse a COPY_FROM JSON object.
@@ -540,17 +818,213 @@ parse_copy_from(const sajson::value& obj)
   return cf;
 }
 
-// Parse an AUXILIARY JSON array into a vector of auxiliary_request.
+// Detect whether an AUXILIARY entry declares a texture (TYPE: "image" /
+// "cubemap" / "texture") rather than a buffer. Buffers are the default
+// (TYPE absent, or "storage" / "buffer").
+// Three-way classification of an AUXILIARY JSON entry:
+//   Ssbo    — default; declared either without TYPE or with TYPE:
+//             "storage" / "buffer" / "ssbo". Layout maps to an std430
+//             `buffer` block bound as bufferLoad / bufferStore / bufferLoadStore.
+//   Ubo     — TYPE: "uniform" / "ubo". Layout maps to an std140 `uniform`
+//             block bound as uniformBuffer.
+//   Texture — TYPE: "image" / "texture" / "cubemap" / "image_cube" /
+//             "storage_*". Goes through the auxiliary_texture_request pool.
+enum class aux_kind { Ssbo, Ubo, Texture };
+
+static aux_kind aux_entry_kind(const sajson::value& aux_obj)
+{
+  auto k = aux_obj.find_object_key_insensitive(sajson::literal("TYPE"));
+  if(k == aux_obj.get_length())
+    return aux_kind::Ssbo;
+  auto v = aux_obj.get_object_value(k);
+  if(v.get_type() != sajson::TYPE_STRING)
+    return aux_kind::Ssbo;
+  std::string t = v.as_string();
+  for(auto& c : t) c = (char)tolower(c);
+  if(t == "image" || t == "texture" || t == "cubemap" || t == "image_cube"
+     || t == "storage_image" || t == "storage_cube"
+     || t == "storage_image_array" || t == "storage_3d")
+    return aux_kind::Texture;
+  if(t == "uniform" || t == "ubo")
+    return aux_kind::Ubo;
+  return aux_kind::Ssbo;
+}
+
+// Parse a single texture auxiliary entry.
+static void parse_auxiliary_texture(
+    const sajson::value& aux_obj,
+    geometry_input::auxiliary_texture_request& out)
+{
+  for(std::size_t f = 0; f < aux_obj.get_length(); f++)
+  {
+    auto fkey = aux_obj.get_object_key(f).as_string();
+    auto fval = aux_obj.get_object_value(f);
+
+    if(fkey == "NAME" && fval.get_type() == sajson::TYPE_STRING)
+      out.name = fval.as_string();
+    else if(fkey == "TYPE" && fval.get_type() == sajson::TYPE_STRING)
+    {
+      std::string t = fval.as_string();
+      for(auto& c : t) c = (char)tolower(c);
+      if(t == "cubemap" || t == "image_cube")
+        out.is_cubemap = true;
+      else if(t == "storage_image")
+        out.is_storage = true;
+      else if(t == "storage_cube")
+      { out.is_storage = true; out.is_cubemap = true; }
+      else if(t == "storage_image_array")
+      { out.is_storage = true; out.is_array = true; }
+      else if(t == "storage_3d")
+      { out.is_storage = true; out.dimensions = 3; }
+    }
+    else if(fkey == "DIMENSIONS")
+    {
+      if(fval.get_type() == sajson::TYPE_INTEGER)
+        out.dimensions = fval.get_integer_value();
+    }
+    else if(fkey == "IS_ARRAY" || fkey == "ARRAY")
+      out.is_array = (fval.get_type() == sajson::TYPE_TRUE);
+    else if(fkey == "DEPTH")
+    {
+      // DEPTH overload — context-dependent:
+      //   "DEPTH": true   → legacy sampleable-depth flag (paired with
+      //                     COMPARE for shadow-comparison samplers)
+      //   "DEPTH": <int>  → 3D-texture depth dimension literal
+      //   "DEPTH": "<expr>" → 3D-texture depth dimension expression
+      // Distinguishable by sajson type so authors can use either form
+      // without the parser silently dropping one.
+      const auto t = fval.get_type();
+      if(t == sajson::TYPE_TRUE)
+        out.is_depth = true;
+      else if(t == sajson::TYPE_FALSE)
+        out.is_depth = false;
+      else if(t == sajson::TYPE_INTEGER)
+        out.depth_expression = std::to_string(fval.get_integer_value());
+      else if(t == sajson::TYPE_DOUBLE)
+        out.depth_expression = std::to_string(fval.get_double_value());
+      else if(t == sajson::TYPE_STRING)
+        out.depth_expression = fval.as_string();
+    }
+    else if(fkey == "STORAGE")
+      out.is_storage = (fval.get_type() == sajson::TYPE_TRUE);
+    else if(fkey == "FORMAT" && fval.get_type() == sajson::TYPE_STRING)
+      out.format = fval.as_string();
+    else if(fkey == "ACCESS" && fval.get_type() == sajson::TYPE_STRING)
+      out.access = fval.as_string();
+    // WIDTH / HEIGHT / LAYERS — same expression-or-literal convention as
+    // csf_image_input. Strings allow `$var` substitution against the
+    // shader's long/float inputs at allocation time.
+    else if(fkey == "WIDTH")
+    {
+      const auto t = fval.get_type();
+      if(t == sajson::TYPE_INTEGER)
+        out.width_expression = std::to_string(fval.get_integer_value());
+      else if(t == sajson::TYPE_DOUBLE)
+        out.width_expression = std::to_string(fval.get_double_value());
+      else if(t == sajson::TYPE_STRING)
+        out.width_expression = fval.as_string();
+    }
+    else if(fkey == "HEIGHT")
+    {
+      const auto t = fval.get_type();
+      if(t == sajson::TYPE_INTEGER)
+        out.height_expression = std::to_string(fval.get_integer_value());
+      else if(t == sajson::TYPE_DOUBLE)
+        out.height_expression = std::to_string(fval.get_double_value());
+      else if(t == sajson::TYPE_STRING)
+        out.height_expression = fval.as_string();
+    }
+    else if(fkey == "LAYERS")
+    {
+      const auto t = fval.get_type();
+      if(t == sajson::TYPE_INTEGER)
+        out.layers_expression = std::to_string(fval.get_integer_value());
+      else if(t == sajson::TYPE_DOUBLE)
+        out.layers_expression = std::to_string(fval.get_double_value());
+      else if(t == sajson::TYPE_STRING)
+        out.layers_expression = fval.as_string();
+    }
+  }
+
+  // depth_expression non-empty implies a 3D texture even if DIMENSIONS
+  // wasn't set explicitly. Mirrors csf_image_input::is3D() semantics —
+  // saves the author from writing both fields.
+  if(!out.depth_expression.empty() && out.dimensions == 2)
+    out.dimensions = 3;
+
+  // Auto-infer storage-image semantics when FORMAT is explicitly set to
+  // anything other than the sampled-texture default (rgba8). Allows
+  // author-friendly declarations like:
+  //
+  //   { "NAME": "voxel_grid", "TYPE": "image", "ACCESS": "read_write",
+  //     "FORMAT": "r32ui", "DIMENSIONS": 3, ... }
+  //
+  // to be parsed as a storage image without forcing the author to
+  // additionally write `"STORAGE": true` or use the more-cryptic
+  // `"TYPE": "storage_3d"`.
+  //
+  // ONLY uses FORMAT — NOT ACCESS — because `access` defaults to
+  // "read_write" in the struct (it's only meaningful when is_storage is
+  // already true), so an ACCESS-based heuristic would mis-fire on every
+  // sampled-aux entry that doesn't explicitly override it. FORMAT
+  // defaults to "rgba8" which is also the sampled-image default, so the
+  // discriminator is "did the author explicitly write a non-rgba8
+  // FORMAT?" — unambiguous either way. If you want a storage rgba8
+  // image, write `"STORAGE": true` explicitly.
+  if(!out.is_storage)
+  {
+    const bool format_implies_storage
+        = !out.format.empty() && out.format != "rgba8";
+    if(format_implies_storage)
+      out.is_storage = true;
+  }
+  // Inherit the flat sampler_config fields (WRAP/FILTER/COMPARE/…).
+  parse_sampler_config(out.sampler, aux_obj);
+  // Storage images don't use the sampler; regular samplers on a 3D texture
+  // have no shadow variant. Cubemap and 2D-array shapes have shadow variants
+  // and are fine.
+  if(!out.is_storage && !out.is_cubemap && out.dimensions == 3)
+    drop_unsupported_compare_3d(
+        out.sampler,
+        fmt::format("auxiliary texture '{}' (DIMENSIONS: 3)", out.name).c_str());
+  // Cube-arrays (samplerCubeArray / imageCubeArray) are unsupported: every
+  // QRhi backend silently collapses `CubeMap | TextureArray` to one flag or
+  // the other at view-creation time (Vulkan qrhivulkan.cpp:7736+,
+  // D3D12:1160+, Metal:4025+, GL:6124+), so the shader-side type and the
+  // bound resource disagree. Reject at parse time rather than ship broken
+  // bindings. Same story for 3D cubemaps (nonsensical).
+  if(out.is_cubemap && out.is_array)
+  {
+    throw invalid_file{
+        "auxiliary texture '" + out.name
+        + "': cubemap + ARRAY is not supported on any QRhi backend "
+          "(cube-array views are not constructible). Use a plain cubemap, "
+          "or decompose to a 2D array and do face math in the shader."};
+  }
+  if(out.is_cubemap && out.dimensions == 3)
+  {
+    fmt::print(
+        stderr,
+        "[isf] auxiliary texture '{}': cubemap with DIMENSIONS: 3 is "
+        "meaningless (cube faces are 2D). Ignoring DIMENSIONS.\n",
+        out.name);
+    out.dimensions = 2;
+  }
+}
+
+// Parse an AUXILIARY JSON array, dispatching each entry by TYPE into
+// either the buffer list or the texture list.
 // Shared by geometry_input parsing and top-level AUXILIARY key.
 static void parse_auxiliary_array(
     const sajson::value& val,
-    std::vector<geometry_input::auxiliary_request>& out)
+    std::vector<geometry_input::auxiliary_request>& out_buffers,
+    std::vector<geometry_input::auxiliary_texture_request>& out_textures)
 {
   if(val.get_type() != sajson::TYPE_ARRAY)
     return;
 
   std::size_t aux_count = val.get_length();
-  out.reserve(aux_count);
+  out_buffers.reserve(out_buffers.size() + aux_count);
 
   for(std::size_t j = 0; j < aux_count; j++)
   {
@@ -558,7 +1032,21 @@ static void parse_auxiliary_array(
     if(aux_obj.get_type() != sajson::TYPE_OBJECT)
       continue;
 
+    const aux_kind kind = aux_entry_kind(aux_obj);
+    if(kind == aux_kind::Texture)
+    {
+      geometry_input::auxiliary_texture_request tr;
+      parse_auxiliary_texture(aux_obj, tr);
+      if(!tr.name.empty())
+        out_textures.push_back(std::move(tr));
+      continue;
+    }
+
     geometry_input::auxiliary_request ar;
+    // UBO kind: flag set on the request so both parser-side GLSL emission
+    // and runtime-side binding know to treat it as a std140 uniform block.
+    // Buffer-kind SSBO is the default (is_uniform stays false).
+    ar.is_uniform = (kind == aux_kind::Ubo);
 
     for(std::size_t f = 0; f < aux_obj.get_length(); f++)
     {
@@ -611,12 +1099,61 @@ static void parse_auxiliary_array(
       {
         ar.forward = parse_copy_from(fval);
       }
+      else if(fkey == "PERSISTENT")
+      {
+        if(fval.get_type() == sajson::TYPE_TRUE)
+          ar.persistent = true;
+        else if(fval.get_type() == sajson::TYPE_FALSE)
+          ar.persistent = false;
+      }
     }
 
     if(ar.access.empty())
       ar.access = "read_only";
 
-    out.push_back(std::move(ar));
+    out_buffers.push_back(std::move(ar));
+  }
+}
+
+// Validate that every geometry_input ATTRIBUTE.TYPE either names a
+// built-in GLSL scalar/vector/matrix type or matches a user-defined
+// struct declared in descriptor::types. Run AFTER both RESOURCES and
+// TYPES are parsed (TYPES may appear in any order in the JSON) — i.e.
+// once at the end of parse_csf / parse_raw_raster_pipeline. Catches
+// typos in TYPE strings at parse time instead of as a confusing
+// "undefined identifier" GLSL compile error 30 lines deep into the
+// generated shader.
+static void validate_attribute_types(const descriptor& d)
+{
+  static constexpr std::string_view builtins[] = {
+    "float", "int",   "uint",  "bool",
+    "vec2",  "vec3",  "vec4",
+    "ivec2", "ivec3", "ivec4",
+    "uvec2", "uvec3", "uvec4",
+    "mat2",  "mat3",  "mat4"
+  };
+  auto is_builtin = [](std::string_view t) noexcept {
+    for(auto b : builtins) if(t == b) return true;
+    return false;
+  };
+  auto is_user_type = [&](std::string_view t) noexcept {
+    for(const auto& td : d.types) if(td.name == t) return true;
+    return false;
+  };
+  for(const auto& inp : d.inputs)
+  {
+    auto* gi = ossia::get_if<geometry_input>(&inp.data);
+    if(!gi) continue;
+    for(const auto& ar : gi->attributes)
+    {
+      if(ar.type.empty()) continue;
+      if(is_builtin(ar.type) || is_user_type(ar.type)) continue;
+      throw invalid_file{
+          "ATTRIBUTES \"" + ar.name + "\" on geometry resource \"" + inp.name
+          + "\" declares TYPE \"" + ar.type
+          + "\", which is neither a built-in GLSL scalar/vector/matrix type "
+            "nor a user-defined type from the TYPES section."};
+    }
   }
 }
 
@@ -703,25 +1240,77 @@ static void parse_input(geometry_input& inp, const sajson::value& v)
       else if(val.get_type() == sajson::TYPE_DOUBLE)
         inp.instance_count = std::to_string((int)val.get_double_value());
     }
+    else if(k == "FORMAT_ID")
+    {
+      // String tag stamped on the consumer geometry's filter_tag
+      // (rapidhash truncated to 32 bits). Lets a CSF that produces
+      // primitive-cloud-shaped output declare its format identity in
+      // the JSON header without engine-side knowledge of the format.
+      auto val = v.get_object_value(i);
+      if(val.get_type() == sajson::TYPE_STRING)
+        inp.format_id = val.as_string();
+    }
     else if(k == "AUXILIARY")
     {
-      parse_auxiliary_array(v.get_object_value(i), inp.auxiliary);
+      parse_auxiliary_array(v.get_object_value(i), inp.auxiliary, inp.auxiliary_textures);
+    }
+    else if(k == "INDIRECT")
+    {
+      auto val = v.get_object_value(i);
+      if(val.get_type() == sajson::TYPE_OBJECT)
+      {
+        geometry_input::indirect_request req;
+        for(std::size_t j = 0; j < val.get_length(); j++)
+        {
+          auto ik = val.get_object_key(j).as_string();
+          boost::algorithm::to_upper(ik);
+          if(ik == "COUNT")
+          {
+            auto iv = val.get_object_value(j);
+            if(iv.get_type() == sajson::TYPE_STRING)
+              req.count = iv.as_string();
+            else if(iv.get_type() == sajson::TYPE_INTEGER)
+              req.count = std::to_string(iv.get_integer_value());
+            else if(iv.get_type() == sajson::TYPE_DOUBLE)
+              req.count = std::to_string((int)iv.get_double_value());
+          }
+        }
+        if(req.count.empty())
+          req.count = "1";
+        inp.indirect = req;
+      }
     }
     else if(k == "INDIRECT_DRAW")
     {
       auto val = v.get_object_value(i);
       if(val.get_type() == sajson::TYPE_TRUE)
-        inp.indirect_draw = true;
-      else if(val.get_type() == sajson::TYPE_FALSE)
-        inp.indirect_draw = false;
-    }
-    else if(k == "INDIRECT_DRAW_TYPE")
-    {
-      auto val = v.get_object_value(i);
-      if(val.get_type() == sajson::TYPE_STRING)
-        inp.indirect_draw_type = val.as_string();
+        inp.indirect = geometry_input::indirect_request{.count = "1"};
     }
   }
+}
+
+// Known GLSL image format qualifiers. Used for a parse-time sanity check —
+// lets the shader author see a typo ("rgba16" vs "rgba16f") before the
+// runtime silently falls back to rgba8. Strict GLSL image-format typing
+// validation (matching imageStore argument types to declared formats) would
+// need a full GLSL AST which this parser does not build; the most useful
+// check we can do cheaply is reject unknown format strings.
+static bool isf_is_known_image_format(std::string fmt)
+{
+  boost::algorithm::to_lower(fmt);
+  static const ossia::hash_set<std::string> known{
+      "rgba8",  "rgba8_snorm",  "rgba8ui", "rgba8i",
+      "rgba16", "rgba16_snorm", "rgba16f", "rgba16ui", "rgba16i",
+      "rgba32f","rgba32ui",     "rgba32i",
+      "rg8",    "rg8_snorm",    "rg8ui",   "rg8i",
+      "rg16",   "rg16_snorm",   "rg16f",   "rg16ui", "rg16i",
+      "rg32f",  "rg32ui",       "rg32i",
+      "r8",     "r8_snorm",     "r8ui",    "r8i",
+      "r16",    "r16_snorm",    "r16f",    "r16ui",  "r16i",
+      "r32f",   "r32ui",        "r32i",
+      "rgb10_a2", "rgb10_a2ui", "r11f_g11f_b10f",
+      "bgra8"};
+  return known.count(fmt) > 0;
 }
 
 static void parse_input(csf_image_input& inp, const sajson::value& v)
@@ -741,7 +1330,18 @@ static void parse_input(csf_image_input& inp, const sajson::value& v)
     {
       auto val = v.get_object_value(i);
       if(val.get_type() == sajson::TYPE_STRING)
+      {
         inp.format = val.as_string();
+        if(!inp.format.empty() && !isf_is_known_image_format(inp.format))
+        {
+          fmt::print(
+              stderr,
+              "[isf] csf_image_input FORMAT \"{}\" is not a recognised GLSL "
+              "image qualifier — will fall back to rgba8 at runtime. Check "
+              "for typos (e.g. \"rgba16\" vs \"rgba16f\").\n",
+              inp.format);
+        }
+      }
     }
     else if(k == "WIDTH")
     {
@@ -798,10 +1398,90 @@ static void parse_input(csf_image_input& inp, const sajson::value& v)
     {
       auto val = v.get_object_value(i);
       if(val.get_type() == sajson::TYPE_INTEGER)
-        inp.dimensions = val.get_integer_value();
+      {
+        auto d = val.get_integer_value();
+        if(d != 2 && d != 3)
+          throw invalid_file{
+              "csf_image_input DIMENSIONS must be 2 or 3 (got " + std::to_string(d)
+              + "). 1D and 4D textures are not supported."};
+        inp.dimensions = d;
+      }
       else if(val.get_type() == sajson::TYPE_DOUBLE)
-        inp.dimensions = (int)val.get_double_value();
+      {
+        auto d = (int)val.get_double_value();
+        if(d != 2 && d != 3)
+          throw invalid_file{
+              "csf_image_input DIMENSIONS must be 2 or 3 (got " + std::to_string(d)
+              + "). 1D and 4D textures are not supported."};
+        inp.dimensions = d;
+      }
     }
+    else if(k == "VISIBILITY")
+    {
+      auto val = v.get_object_value(i);
+      if(val.get_type() == sajson::TYPE_STRING)
+        inp.visibility = val.as_string();
+    }
+    else if(k == "PERSISTENT")
+    {
+      inp.persistent = v.get_object_value(i).get_type() == sajson::TYPE_TRUE;
+    }
+    else if(k == "GENERATE_MIPS")
+    {
+      inp.generate_mips = v.get_object_value(i).get_type() == sajson::TYPE_TRUE;
+    }
+    else if(k == "IS_ARRAY" || k == "ARRAY")
+    {
+      inp.is_array = v.get_object_value(i).get_type() == sajson::TYPE_TRUE;
+    }
+    else if(k == "LAYERS")
+    {
+      auto val = v.get_object_value(i);
+      auto t = val.get_type();
+      if(t == sajson::TYPE_STRING)
+        inp.layers_expression = val.as_string();
+      else if(t == sajson::TYPE_INTEGER)
+        inp.layers_expression = std::to_string(val.get_integer_value());
+      else if(t == sajson::TYPE_DOUBLE)
+        inp.layers_expression = std::to_string(val.get_double_value());
+    }
+    else if(k == "CUBEMAP" || k == "IS_CUBE")
+    {
+      inp.cubemap = v.get_object_value(i).get_type() == sajson::TYPE_TRUE;
+    }
+  }
+
+  // See the matching note on storage_input — persistent + write_only has no
+  // useful semantics because _prev is readonly and nothing writes it.
+  if(inp.persistent && inp.access == "write_only")
+  {
+    throw invalid_file{
+        "csf_image_input declared as PERSISTENT + ACCESS: write_only is "
+        "invalid — _prev would always read zero (no read path exists to "
+        "populate it). Use ACCESS: read_write or read_only with PERSISTENT, "
+        "or drop PERSISTENT."};
+  }
+
+  // Cube-array writable images are unsupported (see sampler-side analysis in
+  // parse_auxiliary_texture / isf.hpp). Reject here so downstream allocators
+  // and the GLSL emitter can assume the combo never shows up.
+  if(inp.is_array && inp.cubemap)
+  {
+    throw invalid_file{
+        "csf_image_input: IS_ARRAY + image_cube is not supported — "
+        "imageCubeArray views are broken on every QRhi backend. Bind N "
+        "separate cubemaps or use image2DArray and do face math in the "
+        "shader."};
+  }
+  // 3D arrays do not exist as a core GLSL image type either.
+  if(inp.is_array && inp.is3D())
+  {
+    fmt::print(
+        stderr,
+        "[isf] csf_image_input: IS_ARRAY + 3D image (DIMENSIONS: 3 or DEPTH "
+        "expression) is not a valid GLSL type (image3DArray is not core). "
+        "Dropping IS_ARRAY.\n");
+    inp.is_array = false;
   }
 }
 
@@ -821,6 +1501,7 @@ static void parse_input(audioFFT_input& inp, const sajson::value& v)
       }
     }
   }
+  parse_audio_sampler_config(inp.sampler, v);
 }
 
 static void parse_input(long_input& inp, const sajson::value& v)
@@ -1010,6 +1691,13 @@ static void parse_input(Input_T& inp, const sajson::value& v)
       auto val = v.get_object_value(i);
       inp.def = parse_input_impl(val, value_type{});
     }
+    else if(k == "AS_COLOR")
+    {
+      if constexpr(requires { inp.as_color; })
+      {
+        inp.as_color = v.get_object_value(i).get_type() == sajson::TYPE_TRUE;
+      }
+    }
   }
 
   // Handle shaders without min / max
@@ -1120,6 +1808,170 @@ input parse(const sajson::value& v)
   return i;
 }
 
+// --- PIPELINE_STATE / MULTIVIEW parsing helpers ---------------------------
+
+static bool get_bool(const sajson::value& v, bool& out)
+{
+  if(v.get_type() == sajson::TYPE_TRUE) { out = true;  return true; }
+  if(v.get_type() == sajson::TYPE_FALSE){ out = false; return true; }
+  return false;
+}
+static bool get_float(const sajson::value& v, float& out)
+{
+  if(v.get_type() == sajson::TYPE_DOUBLE)  { out = (float)v.get_double_value();  return true; }
+  if(v.get_type() == sajson::TYPE_INTEGER) { out = (float)v.get_integer_value(); return true; }
+  return false;
+}
+static bool get_int(const sajson::value& v, int& out)
+{
+  if(v.get_type() == sajson::TYPE_INTEGER) { out = v.get_integer_value(); return true; }
+  if(v.get_type() == sajson::TYPE_DOUBLE)  { out = (int)v.get_double_value(); return true; }
+  return false;
+}
+static bool get_uint(const sajson::value& v, uint32_t& out)
+{
+  int x{};
+  if(get_int(v, x)) { out = (uint32_t)x; return true; }
+  return false;
+}
+static bool get_str(const sajson::value& v, std::string& out)
+{
+  if(v.get_type() == sajson::TYPE_STRING) { out = v.as_string(); return true; }
+  return false;
+}
+
+static void parse_blend_attachment(const sajson::value& v, blend_attachment& out)
+{
+  if(v.get_type() != sajson::TYPE_OBJECT)
+    return;
+  std::size_t n = v.get_length();
+  for(std::size_t i = 0; i < n; i++)
+  {
+    auto k = v.get_object_key(i).as_string();
+    auto val = v.get_object_value(i);
+    bool b{};
+    if     (k == "ENABLE"     ) { get_bool(val, b); out.enable = b; }
+    else if(k == "SRC_COLOR"  ) get_str(val, out.src_color);
+    else if(k == "DST_COLOR"  ) get_str(val, out.dst_color);
+    else if(k == "OP_COLOR"   ) get_str(val, out.op_color);
+    else if(k == "SRC_ALPHA"  ) get_str(val, out.src_alpha);
+    else if(k == "DST_ALPHA"  ) get_str(val, out.dst_alpha);
+    else if(k == "OP_ALPHA"   ) get_str(val, out.op_alpha);
+    else if(k == "COLOR_WRITE") get_str(val, out.color_write);
+    // Legacy shorter names
+    else if(k == "SRC"        ) { get_str(val, out.src_color); out.src_alpha = out.src_color; }
+    else if(k == "DST"        ) { get_str(val, out.dst_color); out.dst_alpha = out.dst_color; }
+    else if(k == "OP"         ) { get_str(val, out.op_color);  out.op_alpha  = out.op_color;  }
+  }
+}
+
+static void parse_stencil_op_state(const sajson::value& v, stencil_op_state& out)
+{
+  if(v.get_type() != sajson::TYPE_OBJECT)
+    return;
+  std::size_t n = v.get_length();
+  for(std::size_t i = 0; i < n; i++)
+  {
+    auto k = v.get_object_key(i).as_string();
+    auto val = v.get_object_value(i);
+    if     (k == "FAIL_OP"      ) get_str(val, out.fail_op);
+    else if(k == "DEPTH_FAIL_OP") get_str(val, out.depth_fail_op);
+    else if(k == "PASS_OP"      ) get_str(val, out.pass_op);
+    else if(k == "COMPARE_OP"   ) get_str(val, out.compare_op);
+    else if(k == "COMPARE"      ) get_str(val, out.compare_op);
+  }
+}
+
+static void parse_pipeline_state(const sajson::value& v, pipeline_state& out)
+{
+  if(v.get_type() != sajson::TYPE_OBJECT)
+    return;
+  std::size_t n = v.get_length();
+  for(std::size_t i = 0; i < n; i++)
+  {
+    auto k = v.get_object_key(i).as_string();
+    auto val = v.get_object_value(i);
+    bool b{};
+    float f{};
+    uint32_t u{};
+    std::string s;
+
+    if     (k == "DEPTH_TEST" )             { if(get_bool(val, b)) out.depth_test  = b; }
+    else if(k == "DEPTH_WRITE")             { if(get_bool(val, b)) out.depth_write = b; }
+    else if(k == "DEPTH_COMPARE")           { if(get_str(val, s))  out.depth_compare = s; }
+    else if(k == "DEPTH_BIAS")              { if(get_float(val, f)) out.depth_bias = f; }
+    else if(k == "SLOPE_SCALED_DEPTH_BIAS") { if(get_float(val, f)) out.slope_scaled_depth_bias = f; }
+    else if(k == "CULL_MODE")               { if(get_str(val, s))  out.cull_mode = s; }
+    else if(k == "FRONT_FACE")              { if(get_str(val, s))  out.front_face = s; }
+    else if(k == "POLYGON_MODE")            { if(get_str(val, s))  out.polygon_mode = s; }
+    else if(k == "LINE_WIDTH")              { if(get_float(val, f)) out.line_width = f; }
+    else if(k == "VERTEX_COUNT")            { if(get_uint(val, u)) out.vertex_count = u; }
+    else if(k == "INSTANCE_COUNT")          { if(get_uint(val, u)) out.instance_count = u; }
+    else if(k == "TOPOLOGY")                { if(get_str(val, s))  out.topology = s; }
+    else if(k == "BLEND")
+    {
+      // Shortcut: "BLEND": true/false turns on the default alpha-blend.
+      if(val.get_type() == sajson::TYPE_TRUE || val.get_type() == sajson::TYPE_FALSE)
+      {
+        blend_attachment a{};
+        a.enable = val.get_type() == sajson::TYPE_TRUE;
+        out.blend_all = a;
+      }
+      else if(val.get_type() == sajson::TYPE_OBJECT)
+      {
+        blend_attachment a{};
+        a.enable = true;
+        parse_blend_attachment(val, a);
+        out.blend_all = a;
+      }
+    }
+    else if(k == "BLEND_PER_ATTACHMENT")
+    {
+      if(val.get_type() == sajson::TYPE_ARRAY)
+      {
+        std::size_t m = val.get_length();
+        out.blend_per_attachment.clear();
+        out.blend_per_attachment.reserve(m);
+        for(std::size_t j = 0; j < m; j++)
+        {
+          blend_attachment a{};
+          a.enable = true;
+          parse_blend_attachment(val.get_array_element(j), a);
+          out.blend_per_attachment.push_back(a);
+        }
+      }
+    }
+    else if(k == "STENCIL_TEST")       { if(get_bool(val, b)) out.stencil_test = b; }
+    else if(k == "STENCIL_READ_MASK")  { if(get_uint(val, u)) out.stencil_read_mask = u; }
+    else if(k == "STENCIL_WRITE_MASK") { if(get_uint(val, u)) out.stencil_write_mask = u; }
+    else if(k == "STENCIL_FRONT")
+    {
+      stencil_op_state st{};
+      parse_stencil_op_state(val, st);
+      out.stencil_front = st;
+    }
+    else if(k == "STENCIL_BACK")
+    {
+      stencil_op_state st{};
+      parse_stencil_op_state(val, st);
+      out.stencil_back = st;
+    }
+    else if(k == "SHADING_RATE")
+    {
+      if(val.get_type() == sajson::TYPE_ARRAY && val.get_length() >= 2)
+      {
+        int w{}, h{};
+        if(get_int(val.get_array_element(0), w)
+           && get_int(val.get_array_element(1), h)
+           && w >= 1 && h >= 1)
+        {
+          out.shading_rate = std::array<int, 2>{w, h};
+        }
+      }
+    }
+  }
+}
+
 using root_fun = void (*)(descriptor&, const sajson::value&);
 using input_fun = input (*)(const sajson::value&);
 static const ossia::string_map<root_fun>& root_parse{[] {
@@ -1166,6 +2018,7 @@ static const ossia::string_map<root_fun>& root_parse{[] {
 
     // CSF-specific types - note: 'image' in CSF context is csf_image_input, not image_input
     i.insert({"storage", [](const auto& s) { return parse<storage_input>(s); }});
+    i.insert({"uniform", [](const auto& s) { return parse<uniform_input>(s); }});
     i.insert({"texture", [](const auto& s) { return parse<texture_input>(s); }});
     i.insert({"geometry", [](const auto& s) { return parse<geometry_input>(s); }});
 
@@ -1185,19 +2038,86 @@ static const ossia::string_map<root_fun>& root_parse{[] {
           auto k = obj.find_object_key_insensitive(sajson::literal("TYPE"));
           if(k != obj.get_length())
           {
-            std::string type_str = obj.get_object_value(k).as_string();
+            std::string type_str;
+            if(!get_str(obj.get_object_value(k), type_str))
+              continue;
             boost::algorithm::to_lower(type_str);
-            auto inp = input_parse.find(type_str);
-            if(inp != input_parse.end())
-              d.inputs.push_back((inp->second)(obj));
+
+            // "image" with ACCESS or FORMAT → storage image (csf_image_input),
+            // same as the RESOURCES section. This lets users declare storage
+            // images in INPUTS without having to move them to RESOURCES.
+            if(type_str == "image"
+               && (obj.find_object_key_insensitive(sajson::literal("ACCESS")) != obj.get_length()
+                || obj.find_object_key_insensitive(sajson::literal("FORMAT")) != obj.get_length()))
+            {
+              input inp;
+              parse_input_base(inp, obj);
+              csf_image_input ci;
+              parse_input(ci, obj);
+              inp.data = ci;
+              d.inputs.push_back(inp);
+            }
+            else
+            {
+              auto inp = input_parse.find(type_str);
+              if(inp != input_parse.end())
+                d.inputs.push_back((inp->second)(obj));
+            }
           }
           else
           {
+            // No TYPE specified — default to storage (SSBO). Matches the
+            // nested-AUXILIARY default (`aux_entry_kind`, ~L820) so the
+            // top-level INPUTS dispatcher behaves the same as nested
+            // declarations. This is the right default because:
+            //   - The dual-bind UBO/SSBO design (scene_counts etc.) is
+            //     SSBO-only after the cross-backend cleanup; readers
+            //     declare `TYPE: "storage", ACCESS: "read_only"`.
+            //   - Authors who omit TYPE on a buffer-shaped declaration
+            //     almost always mean storage, not uniform — uniforms
+            //     have a much smaller addressable subset (no runtime
+            //     arrays, std140 padding) and writers always need
+            //     storage anyway.
+            //   - The previous behaviour silently dropped the entry
+            //     without an error, so a typo'd `TYPE: "uniform"` →
+            //     missing TYPE flipped scene_counts off entirely with
+            //     no warning. Defaulting to storage means the next
+            //     stage (binding emission) will catch the misuse via
+            //     a layout/std430 check rather than a silent skip.
+            d.inputs.push_back(parse<storage_input>(obj));
           }
         }
       }
     }
   }});
+
+  // How many GLSL interface-block input/output locations a given type
+  // consumes, per GLSL 4.50 spec §4.4.1 "A matrix of sizes matM or matMxN
+  // takes M locations (one per column)". Non-matrix types consume one
+  // location. Doubles of >dvec2 width technically consume two locations
+  // each on desktop GL, but those are vanishingly rare in shader-toy-
+  // style pipelines — if anyone hits the edge they can pin LOCATION
+  // explicitly. The mat{M,MxN} cases matter because every existing
+  // preset that wants mat4 per-instance or per-vertex would otherwise
+  // have its subsequent attribute collide with column 2/3/4 of the
+  // matrix.
+  static constexpr auto locations_consumed = [](attribute_type t) noexcept -> int {
+    using A = attribute_type;
+    switch(t)
+    {
+      case A::Mat2:    case A::Mat2x3:  case A::Mat2x4:
+      case A::DMat2:   case A::DMat2x3: case A::DMat2x4:
+        return 2;
+      case A::Mat3:    case A::Mat3x2:  case A::Mat3x4:
+      case A::DMat3:   case A::DMat3x2: case A::DMat3x4:
+        return 3;
+      case A::Mat4:    case A::Mat4x2:  case A::Mat4x3:
+      case A::DMat4:   case A::DMat4x2: case A::DMat4x3:
+        return 4;
+      default:
+        return 1;
+    }
+  };
 
   static constexpr auto parse_attributes
       = []<typename T, auto member>(descriptor& d, const sajson::value& v) {
@@ -1223,33 +2143,140 @@ static const ossia::string_map<root_fun>& root_parse{[] {
             }
             else if(loc_obj.get_type() == sajson::TYPE_STRING)
             {
-              // Parse as integer, e.g. "LOCATION": "3"
-              ip.location = std::stoi(loc_obj.as_string());
+              // Parse as integer, e.g. "LOCATION": "3". std::stoi throws
+              // std::invalid_argument (a logic_error, not runtime_error)
+              // on non-numeric input — catch it locally and surface a
+              // useful invalid_file message instead. The previous
+              // unguarded call escaped through the parser's outer
+              // catch(const std::runtime_error&) and either terminated
+              // (when the parser was invoked from a noexcept context;
+              // see ProcessDropHandler.cpp) or surfaced as the generic
+              // "Unknown error" via the catch(...) fallback at
+              // ShaderProgram.cpp.
               // FIXME parse standard locations from ossia::geometry_port
+              try
+              {
+                ip.location = std::stoi(loc_obj.as_string());
+              }
+              catch(const std::exception&)
+              {
+                throw invalid_file{
+                  std::string("LOCATION must be integer or numeric "
+                              "string, got: \"")
+                  + std::string(loc_obj.as_string()) + "\""};
+              }
             }
           }
 
           if(auto k = obj.find_object_key_insensitive(sajson::literal("TYPE"));
              k != obj.get_length())
           {
-            std::string type_str = obj.get_object_value(k).as_string();
-            boost::algorithm::to_lower(type_str);
-            auto inp = attribute_type_parse.find(type_str);
-            if(inp != attribute_type_parse.end())
-              ip.type = inp->second;
+            std::string type_str;
+            if(get_str(obj.get_object_value(k), type_str))
+            {
+              boost::algorithm::to_lower(type_str);
+              auto inp = attribute_type_parse.find(type_str);
+              if(inp != attribute_type_parse.end())
+                ip.type = inp->second;
+            }
           }
 
           if(auto k = obj.find_object_key_insensitive(sajson::literal("NAME"));
              k != obj.get_length())
           {
-            ip.name = obj.get_object_value(k).as_string();
+            get_str(obj.get_object_value(k), ip.name);
           }
 
-          // If LOCATION was not specified, assign sequentially
-          // FIXME maybe try to match it from the name ?
+          // SEMANTIC (only meaningful on vertex_input): explicit ossia
+          // attribute semantic name to use for upstream-buffer matching.
+          // When omitted, name is used as the semantic key. When set to
+          // "custom" the runtime falls back to NAME-based matching.
+          if(auto k = obj.find_object_key_insensitive(sajson::literal("SEMANTIC"));
+             k != obj.get_length())
+          {
+            auto val = obj.get_object_value(k);
+            if(val.get_type() == sajson::TYPE_STRING)
+              ip.semantic = val.as_string();
+          }
+
+          // Interpolation qualifier: "smooth" (default, not emitted), "flat",
+          // "noperspective", "centroid", "sample". Applies to vertex outputs
+          // and fragment inputs (no effect on vertex inputs / fragment outputs).
+          if(auto k = obj.find_object_key_insensitive(sajson::literal("INTERPOLATION"));
+             k != obj.get_length())
+          {
+            auto val = obj.get_object_value(k);
+            if(val.get_type() == sajson::TYPE_STRING)
+              ip.interpolation = val.as_string();
+          }
+
+          // REQUIRED / DEFAULT: only meaningful on vertex_input (raw raster
+          // pipeline's strictness-vs-fallback control). Silently ignored on
+          // vertex_output / fragment_input / fragment_output — their matching
+          // rules are author-owned, not upstream-dependent.
+          if constexpr (std::is_same_v<T, vertex_input>)
+          {
+            if(auto k = obj.find_object_key_insensitive(sajson::literal("REQUIRED"));
+               k != obj.get_length())
+            {
+              const auto& rv = obj.get_object_value(k);
+              if(rv.get_type() == sajson::TYPE_FALSE)
+                ip.required = false;
+              else if(rv.get_type() == sajson::TYPE_TRUE)
+                ip.required = true;
+              // Other JSON types left at default (true). No error here —
+              // strict JSON typing is already enforced upstream by sajson.
+            }
+
+            if(auto k = obj.find_object_key_insensitive(sajson::literal("DEFAULT"));
+               k != obj.get_length())
+            {
+              const auto& dv = obj.get_object_value(k);
+              if(dv.get_type() == sajson::TYPE_ARRAY)
+              {
+                const std::size_t len = dv.get_length();
+                ip.default_val.reserve(len);
+                for(std::size_t j = 0; j < len; ++j)
+                {
+                  const auto& e = dv.get_array_element(j);
+                  if(e.get_type() == sajson::TYPE_INTEGER)
+                    ip.default_val.push_back((double)e.get_integer_value());
+                  else if(e.get_type() == sajson::TYPE_DOUBLE)
+                    ip.default_val.push_back(e.get_double_value());
+                  // Non-numeric entries silently skipped — the runtime's
+                  // component-pad rule will fill missing slots with zero.
+                }
+              }
+              else if(dv.get_type() == sajson::TYPE_INTEGER)
+              {
+                // Allow a bare scalar for 1-wide types: "DEFAULT": 1
+                ip.default_val.push_back((double)dv.get_integer_value());
+              }
+              else if(dv.get_type() == sajson::TYPE_DOUBLE)
+              {
+                ip.default_val.push_back(dv.get_double_value());
+              }
+            }
+          }
+
+          // If LOCATION was not specified, assign sequentially with
+          // per-type location counts so mat3/mat4 and their rectangular
+          // cousins claim the right number of slots (matMxN consumes M
+          // consecutive locations under GLSL 4.50 §4.4.1). Previously
+          // this was `(int)(d.*member).size()` — off-by-3 the moment a
+          // shader declared any mat4 input, and the next attribute
+          // would land inside the matrix, which the driver rejects.
+          //
+          // For mixed explicit / auto layouts the cumulative-sum above
+          // can collide with a user-pinned LOCATION; that's a pre-existing
+          // policy tradeoff left untouched here — the simpler "always
+          // auto" pattern is what 99% of shipped shaders use.
           if(ip.location < 0 && !ip.name.empty())
           {
-            ip.location = (int)(d.*member).size();
+            int next_loc = 0;
+            for(const auto& prev : d.*member)
+              next_loc += locations_consumed(prev.type);
+            ip.location = next_loc;
           }
 
           if(ip.type != attribute_type::Unknown && ip.location >= 0 && !ip.name.empty())
@@ -1277,9 +2304,12 @@ static const ossia::string_map<root_fun>& root_parse{[] {
     parse_attributes.operator()<fragment_output, &descriptor::fragment_outputs>(d, v);
   }});
 
-  // Top-level AUXILIARY for RAW_RASTER_PIPELINE: SSBOs expected from upstream geometry
+  // Top-level AUXILIARY for RAW_RASTER_PIPELINE: SSBOs AND textures travelling
+  // bundled with the upstream geometry. Buffer entries (default / TYPE:
+  // "storage") land in d.auxiliary; texture entries (TYPE: "image" /
+  // "texture" / "cubemap" / "image_cube") land in d.auxiliary_textures.
   p.insert({"AUXILIARY", [](descriptor& d, const sajson::value& v) {
-    parse_auxiliary_array(v, d.auxiliary);
+    parse_auxiliary_array(v, d.auxiliary, d.auxiliary_textures);
   }});
 
   // Add RESOURCES parsing for CSF (which can contain both inputs and resources)
@@ -1296,16 +2326,22 @@ static const ossia::string_map<root_fun>& root_parse{[] {
           auto k = obj.find_object_key_insensitive(sajson::literal("TYPE"));
           if(k != obj.get_length())
           {
-            std::string type_str = obj.get_object_value(k).as_string();
+            std::string type_str;
+            if(!get_str(obj.get_object_value(k), type_str))
+              continue;
 
             boost::algorithm::to_lower(type_str);
-            // Handle special case for CSF image type
-            if(type_str == "image")
+            // Handle special cases for CSF image types
+            //   "image"      → 2D / 3D storage image (image2D / image3D)
+            //   "image_cube" → writable cubemap storage image (imageCube)
+            if(type_str == "image" || type_str == "image_cube")
             {
               input inp;
               parse_input_base(inp, obj);
               csf_image_input ci;
               parse_input(ci, obj);
+              if(type_str == "image_cube")
+                ci.cubemap = true;
               inp.data = ci;
               d.inputs.push_back(inp);
             }
@@ -1548,8 +2584,8 @@ static const ossia::string_map<root_fun>& root_parse{[] {
                = obj.find_object_key_insensitive(sajson::literal("TARGET"));
                target_k != obj.get_length())
             {
-              p.target = obj.get_object_value(target_k).as_string();
-              if(!p.target.empty())
+              if(get_str(obj.get_object_value(target_k), p.target)
+                 && !p.target.empty())
               {
                 d.pass_targets.push_back(p.target);
               }
@@ -1619,6 +2655,54 @@ static const ossia::string_map<root_fun>& root_parse{[] {
               }
             }
 
+            // LAYER: render to a specific layer of a texture-array output.
+            if(auto layer_k
+               = obj.find_object_key_insensitive(sajson::literal("LAYER"));
+               layer_k != obj.get_length())
+            {
+              int lyr{};
+              if(get_int(obj.get_object_value(layer_k), lyr))
+                p.layer = lyr;
+            }
+
+            // Z: render to a specific Z-slice of a 3D target. Stored as an
+            // expression so it can reference $USER or input sizes; resolved
+            // at render time.
+            if(auto z_k = obj.find_object_key_insensitive(sajson::literal("Z"));
+               z_k != obj.get_length())
+            {
+              auto t = obj.get_object_value(z_k).get_type();
+              if(t == sajson::TYPE_STRING)
+                p.z_expression = obj.get_object_value(z_k).as_string();
+              else if(t == sajson::TYPE_INTEGER)
+                p.z_expression
+                    = std::to_string(obj.get_object_value(z_k).get_integer_value());
+              else if(t == sajson::TYPE_DOUBLE)
+                p.z_expression
+                    = std::to_string((int)obj.get_object_value(z_k).get_double_value());
+            }
+
+            // FORMAT: override the intermediate-render-target format for
+            // this pass only. Useful for separable-filter chains where one
+            // intermediate wants extra precision (rgba16f) but the final
+            // output is RGBA8.
+            if(auto fmt_k
+               = obj.find_object_key_insensitive(sajson::literal("FORMAT"));
+               fmt_k != obj.get_length())
+            {
+              auto v2 = obj.get_object_value(fmt_k);
+              if(v2.get_type() == sajson::TYPE_STRING)
+                p.format = v2.as_string();
+            }
+
+            // PIPELINE_STATE: per-pass pipeline state overrides.
+            if(auto ps_k
+               = obj.find_object_key_insensitive(sajson::literal("PIPELINE_STATE"));
+               ps_k != obj.get_length())
+            {
+              parse_pipeline_state(obj.get_object_value(ps_k), p.override_state);
+            }
+
             d.passes.push_back(std::move(p));
           }
         }
@@ -1640,22 +2724,200 @@ static const ossia::string_map<root_fun>& root_parse{[] {
           if(auto name_k = obj.find_object_key_insensitive(sajson::literal("NAME"));
              name_k != obj.get_length())
           {
-            out.name = obj.get_object_value(name_k).as_string();
+            get_str(obj.get_object_value(name_k), out.name);
           }
 
           if(auto type_k = obj.find_object_key_insensitive(sajson::literal("TYPE"));
              type_k != obj.get_length())
           {
-            out.type = obj.get_object_value(type_k).as_string();
+            get_str(obj.get_object_value(type_k), out.type);
           }
 
           // Default type to "color" if not specified
           if(out.type.empty())
             out.type = "color";
 
+          // LAYERS: >1 allocates a texture array with this many layers.
+          if(auto layers_k = obj.find_object_key_insensitive(sajson::literal("LAYERS"));
+             layers_k != obj.get_length())
+          {
+            int l{};
+            if(get_int(obj.get_object_value(layers_k), l) && l > 0)
+              out.layers = l;
+          }
+
+          // DEPTH: >1 allocates a 3D texture with this depth. Passes targeting
+          // this output can specify Z to write into a specific slice.
+          if(auto depth_k = obj.find_object_key_insensitive(sajson::literal("DEPTH"));
+             depth_k != obj.get_length())
+          {
+            int d_val{};
+            if(get_int(obj.get_object_value(depth_k), d_val) && d_val > 0)
+              out.depth = d_val;
+          }
+
+          // FORMAT: optional explicit texture format (e.g. "rgba16f", "r32f", "d32f").
+          if(auto fmt_k = obj.find_object_key_insensitive(sajson::literal("FORMAT"));
+             fmt_k != obj.get_length())
+          {
+            auto v2 = obj.get_object_value(fmt_k);
+            if(v2.get_type() == sajson::TYPE_STRING)
+              out.format = v2.as_string();
+          }
+
+          // SAMPLES: MSAA sample count (1, 2, 4, 8, 16, ...).
+          if(auto s_k = obj.find_object_key_insensitive(sajson::literal("SAMPLES"));
+             s_k != obj.get_length())
+          {
+            int s{};
+            if(get_int(obj.get_object_value(s_k), s) && s >= 1)
+              out.samples = s;
+          }
+
+          // CUBEMAP: when true the layered output is allocated as a cubemap
+          // (six faces sampled via samplerCube downstream) rather than a
+          // plain 2D array. Combines with `LAYERS: 6` + `MULTIVIEW: 6` for
+          // the IBL precompute case (one draw writes all six faces of the
+          // target cube). Consumer shaders declare a matching
+          // `TYPE: "cubemap"` INPUT to read it.
+          if(auto cube_k = obj.find_object_key_insensitive(sajson::literal("CUBEMAP"));
+             cube_k != obj.get_length())
+          {
+            auto v2 = obj.get_object_value(cube_k);
+            if(v2.get_type() == sajson::TYPE_TRUE)
+              out.is_cubemap = true;
+            else if(v2.get_type() == sajson::TYPE_INTEGER)
+              out.is_cubemap = (v2.get_integer_value() != 0);
+          }
+
+          // GENERATE_MIPS: post-pass mip-chain auto-fill. Implies the
+          // MipMapped + UsedWithGenerateMips allocator flags. Runtime
+          // issues a QRhiResourceUpdateBatch::generateMips after the
+          // render loop (and after any CUBEMAP+MULTIVIEW cube-copy).
+          if(auto gm_k = obj.find_object_key_insensitive(sajson::literal("GENERATE_MIPS"));
+             gm_k != obj.get_length())
+          {
+            auto v2 = obj.get_object_value(gm_k);
+            if(v2.get_type() == sajson::TYPE_TRUE)
+              out.generate_mips = true;
+            else if(v2.get_type() == sajson::TYPE_INTEGER)
+              out.generate_mips = (v2.get_integer_value() != 0);
+          }
+
+          // WIDTH / HEIGHT: explicit offscreen target size. Integer
+          // literal (fast path) or string expression (evaluated at
+          // init time against input-image sizes / scalar ports,
+          // mirroring CSF dispatch-expression semantics). Zero /
+          // unset → fall back to renderer.state.renderSize.
+          if(auto w_k = obj.find_object_key_insensitive(sajson::literal("WIDTH"));
+             w_k != obj.get_length())
+          {
+            auto v2 = obj.get_object_value(w_k);
+            if(v2.get_type() == sajson::TYPE_INTEGER)
+              out.width = v2.get_integer_value();
+            else if(v2.get_type() == sajson::TYPE_DOUBLE)
+              out.width = (int)v2.get_double_value();
+            else if(v2.get_type() == sajson::TYPE_STRING)
+              out.width_expression = v2.as_string();
+          }
+          if(auto h_k = obj.find_object_key_insensitive(sajson::literal("HEIGHT"));
+             h_k != obj.get_length())
+          {
+            auto v2 = obj.get_object_value(h_k);
+            if(v2.get_type() == sajson::TYPE_INTEGER)
+              out.height = v2.get_integer_value();
+            else if(v2.get_type() == sajson::TYPE_DOUBLE)
+              out.height = (int)v2.get_double_value();
+            else if(v2.get_type() == sajson::TYPE_STRING)
+              out.height_expression = v2.as_string();
+          }
+
           d.outputs.push_back(std::move(out));
         }
       }
+    }
+  }});
+
+  p.insert({"PIPELINE_STATE", [](descriptor& d, const sajson::value& v) {
+    parse_pipeline_state(v, d.default_state);
+  }});
+
+  p.insert({"MULTIVIEW", [](descriptor& d, const sajson::value& v) {
+    if(v.get_type() == sajson::TYPE_INTEGER)
+      d.multiview_count = v.get_integer_value();
+    else if(v.get_type() == sajson::TYPE_DOUBLE)
+      d.multiview_count = (int)v.get_double_value();
+    else if(v.get_type() == sajson::TYPE_TRUE)
+      d.multiview_count = 2; // "MULTIVIEW": true => 2 views by default
+  }});
+
+  // EXECUTION_MODEL (top-level, RAW_RASTER_PIPELINE). Shape:
+  //   "EXECUTION_MODEL": {
+  //     "TYPE":   "SINGLE" | "PER_MIP" | "PER_CUBE_FACE" | "PER_LAYER" | "MANUAL",
+  //     "TARGET": "<output name>",    // PER_MIP / PER_CUBE_FACE / PER_LAYER
+  //     "COUNT":  "<expression>"      // MANUAL (int literal accepted too)
+  //   }
+  // Distinct from the per-pass EXECUTION_MODEL inside DISPATCH / PASSES
+  // (CSF compute), which lives in `dispatch_info::execution_type`.
+  p.insert({"EXECUTION_MODEL", [](descriptor& d, const sajson::value& v) {
+    if(v.get_type() != sajson::TYPE_OBJECT)
+      return;
+    if(auto type_k
+       = v.find_object_key_insensitive(sajson::literal("TYPE"));
+       type_k != v.get_length())
+    {
+      auto tv = v.get_object_value(type_k);
+      if(tv.get_type() == sajson::TYPE_STRING)
+        d.execution_model.type = tv.as_string();
+    }
+    if(auto target_k
+       = v.find_object_key_insensitive(sajson::literal("TARGET"));
+       target_k != v.get_length())
+    {
+      auto tv = v.get_object_value(target_k);
+      if(tv.get_type() == sajson::TYPE_STRING)
+        d.execution_model.target = tv.as_string();
+    }
+    if(auto count_k
+       = v.find_object_key_insensitive(sajson::literal("COUNT"));
+       count_k != v.get_length())
+    {
+      auto tv = v.get_object_value(count_k);
+      if(tv.get_type() == sajson::TYPE_STRING)
+        d.execution_model.count_expression = tv.as_string();
+      else if(tv.get_type() == sajson::TYPE_INTEGER)
+        d.execution_model.count_expression
+            = std::to_string(tv.get_integer_value());
+    }
+  }});
+
+  p.insert({"CLIP_DISTANCES", [](descriptor& d, const sajson::value& v) {
+    int n{};
+    if(get_int(v, n) && n > 0 && n <= 8)
+      d.clip_distances = n;
+  }});
+
+  p.insert({"CULL_DISTANCES", [](descriptor& d, const sajson::value& v) {
+    int n{};
+    if(get_int(v, n) && n > 0 && n <= 8)
+      d.cull_distances = n;
+  }});
+
+  p.insert({"DEPTH_LAYOUT", [](descriptor& d, const sajson::value& v) {
+    if(v.get_type() == sajson::TYPE_STRING)
+      d.depth_layout = v.as_string();
+  }});
+
+  p.insert({"EXTENSIONS", [](descriptor& d, const sajson::value& v) {
+    if(v.get_type() != sajson::TYPE_ARRAY)
+      return;
+    std::size_t n = v.get_length();
+    d.extensions.reserve(d.extensions.size() + n);
+    for(std::size_t i = 0; i < n; i++)
+    {
+      auto e = v.get_array_element(i);
+      if(e.get_type() == sajson::TYPE_STRING)
+        d.extensions.emplace_back(e.as_string());
     }
   }});
 
@@ -1708,7 +2970,7 @@ static const ossia::string_map<root_fun>& root_parse{[] {
           auto name_key = obj.find_object_key_insensitive(sajson::literal("NAME"));
           if(name_key != obj.get_length())
           {
-            type_def.name = obj.get_object_value(name_key).as_string();
+            get_str(obj.get_object_value(name_key), type_def.name);
           }
 
           // Parse LAYOUT field
@@ -1731,7 +2993,7 @@ static const ossia::string_map<root_fun>& root_parse{[] {
                       = field_obj.find_object_key_insensitive(sajson::literal("NAME"));
                   if(field_name_key != field_obj.get_length())
                   {
-                    field.name = field_obj.get_object_value(field_name_key).as_string();
+                    get_str(field_obj.get_object_value(field_name_key), field.name);
                   }
 
                   // Parse field TYPE
@@ -1739,7 +3001,7 @@ static const ossia::string_map<root_fun>& root_parse{[] {
                       = field_obj.find_object_key_insensitive(sajson::literal("TYPE"));
                   if(field_type_key != field_obj.get_length())
                   {
-                    field.type = field_obj.get_object_value(field_type_key).as_string();
+                    get_str(field_obj.get_object_value(field_type_key), field.type);
                   }
 
                   type_def.layout.push_back(field);
@@ -1757,6 +3019,18 @@ static const ossia::string_map<root_fun>& root_parse{[] {
   return p;
 }()};
 
+// A non-empty compare op different from "never" turns the sampler into a
+// shadow/comparison sampler. Mirrors QRhiSampler::CompareOp interpretation.
+static bool isf_is_comparison_sampler(const sampler_config& s)
+{
+  if(s.compare.empty())
+    return false;
+  std::string c = s.compare;
+  for(auto& ch : c) ch = (char)tolower(ch);
+  return c != "never";
+}
+
+
 struct create_val_visitor_450
 {
   struct return_type
@@ -1771,14 +3045,43 @@ struct create_val_visitor_450
   return_type operator()(const point2d_input&) { return {"vec2", false}; }
   return_type operator()(const point3d_input&) { return {"vec3", false}; }
   return_type operator()(const color_input&) { return {"vec4", false}; }
-  return_type operator()(const image_input& i) { return {i.dimensions == 3 ? "uniform sampler3D" : "uniform sampler2D", true}; }
-  return_type operator()(const cubemap_input&) { return {"uniform samplerCube", true}; }
+  return_type operator()(const image_input& i)
+  {
+    const bool cmp = isf_is_comparison_sampler(i.sampler);
+    if(i.dimensions == 3)
+      return {"uniform sampler3D", true}; // 3D shadow samplers not commonly used
+    if(i.is_array)
+      return {cmp ? "uniform sampler2DArrayShadow" : "uniform sampler2DArray", true};
+    return {cmp ? "uniform sampler2DShadow" : "uniform sampler2D", true};
+  }
+  return_type operator()(const cubemap_input& c)
+  {
+    return {isf_is_comparison_sampler(c.sampler) ? "uniform samplerCubeShadow"
+                                                 : "uniform samplerCube",
+            true};
+  }
   return_type operator()(const audio_input&) { return {"uniform sampler2D", true}; }
   return_type operator()(const audioFFT_input&) { return {"uniform sampler2D", true}; }
   return_type operator()(const audioHist_input&) { return {"uniform sampler2D", true}; }
   return_type operator()(const storage_input&) { return {"buffer", true}; }
-  return_type operator()(const texture_input& i) { return {i.dimensions == 3 ? "uniform sampler3D" : "uniform sampler2D", true}; }
-  return_type operator()(const csf_image_input& i) { return {i.is3D() ? "uniform image3D" : "uniform image2D", true}; }
+  return_type operator()(const uniform_input&) { return {"uniform", true}; }
+  return_type operator()(const texture_input& i)
+  {
+    const bool cmp = isf_is_comparison_sampler(i.sampler);
+    if(i.dimensions == 3)
+      return {"uniform sampler3D", true};
+    return {cmp ? "uniform sampler2DShadow" : "uniform sampler2D", true};
+  }
+  return_type operator()(const csf_image_input& i)
+  {
+    if(i.isCube())
+      return {"uniform imageCube", true};
+    if(i.is3D())
+      return {"uniform image3D", true};
+    if(i.is_array)
+      return {"uniform image2DArray", true};
+    return {"uniform image2D", true};
+  }
   return_type operator()(const geometry_input&) { return {"buffer", true}; }
 };
 
@@ -1942,6 +3245,251 @@ void parser::parse_geometry_filter()
   m_geometry_filter = filter_ubo + geomWithoutISF + "\n";
 }
 
+// --- GLSL helpers for graphics-visible storage resources ----------------
+//
+// Derive GLSL image/sampler prefix from a format string.
+// Unsigned integer formats (R32UI, RGBA16UI, ...) → "u"
+// Signed integer formats (R32I, RGBA16I, ...) → "i"
+// Float/unorm formats (R32F, RGBA8, ...) → ""
+static std::string isf_glsl_type_prefix(const std::string& format)
+{
+  if(format.empty())
+    return "";
+  std::string fmt = format;
+  for(auto& c : fmt) c = (char)toupper(c);
+  if(fmt.find("UI") != std::string::npos)
+    return "u";
+  if(fmt.size() >= 2 && fmt.back() == 'I' && fmt[fmt.size() - 2] != 'U')
+    return "i";
+  return "";
+}
+
+// Returns true when the visibility string indicates this resource should be
+// declared in a graphics pipeline (vertex or fragment stage).
+static bool is_graphics_visibility(std::string_view vis)
+{
+  return vis == "fragment" || vis == "vertex" || vis == "vertex+fragment"
+         || vis == "both" || vis == "graphics";
+}
+
+// Emit GLSL `struct <name> { <fields...> };` declarations from the TYPES
+// section. Must be injected BEFORE any SSBO/UBO body that references the
+// struct, in BOTH vertex and fragment stages — otherwise scene shaders that
+// declare e.g. `Light` and use `readonly buffer { Light entries[]; }` fail
+// VS compilation when the SSBO leaks into a vertex pipeline that never
+// included the struct (the fragment-only TYPES emission was the long-standing
+// bug here). The compute path has its own copy of this logic at
+// parse_compute_shader; this helper is shared by parse_isf and
+// parse_raw_raster_pipeline.
+static std::string isf_emit_types_struct(const std::vector<descriptor::type_definition>& types)
+{
+  if(types.empty())
+    return {};
+
+  std::string out;
+  out += "// Struct definitions from TYPES section\n";
+  for(const auto& type_def : types)
+  {
+    out += "struct " + type_def.name + " {\n";
+    for(const auto& field : type_def.layout)
+    {
+      auto bracket = field.type.find('[');
+      if(bracket != std::string::npos)
+        out += "    " + field.type.substr(0, bracket) + " " + field.name
+               + field.type.substr(bracket) + ";\n";
+      else
+        out += "    " + field.type + " " + field.name + ";\n";
+    }
+    out += "};\n\n";
+  }
+  return out;
+}
+
+static std::string isf_emit_ssbo_decl(
+    int binding, std::string_view name, const storage_input& s, bool alias_prev)
+{
+  std::string out;
+  out += "layout(binding = ";
+  out += std::to_string(binding);
+  out += ", std430) ";
+  if(alias_prev || s.access == "read_only")
+    out += "readonly ";
+  else if(s.access == "write_only")
+    out += "writeonly ";
+  else
+    out += "restrict ";
+  out += "buffer ";
+  out += name;
+  out += "_buf {\n";
+  for(const auto& field : s.layout)
+  {
+    auto bracket = field.type.find('[');
+    if(bracket != std::string::npos)
+      out += "    " + field.type.substr(0, bracket) + " " + field.name
+             + field.type.substr(bracket) + ";\n";
+    else
+      out += "    " + field.type + " " + field.name + ";\n";
+  }
+  out += "} ";
+  out += name;
+  out += ";\n\n";
+  return out;
+}
+
+static std::string isf_emit_ubo_decl(
+    int binding, std::string_view name, const uniform_input& u)
+{
+  std::string out;
+  out += "layout(binding = ";
+  out += std::to_string(binding);
+  out += ", std140) uniform ";
+  out += name;
+  out += "_t {\n";
+  for(const auto& field : u.layout)
+  {
+    auto bracket = field.type.find('[');
+    if(bracket != std::string::npos)
+      out += "    " + field.type.substr(0, bracket) + " " + field.name
+             + field.type.substr(bracket) + ";\n";
+    else
+      out += "    " + field.type + " " + field.name + ";\n";
+  }
+  out += "} ";
+  out += name;
+  out += ";\n\n";
+  return out;
+}
+
+static std::string isf_emit_image_decl(
+    int binding, std::string_view name, const csf_image_input& img,
+    bool alias_prev = false)
+{
+  std::string out;
+  out += "layout(binding = ";
+  out += std::to_string(binding);
+  std::string fmt = img.format.empty() ? "rgba8" : img.format;
+  boost::algorithm::to_lower(fmt);
+  out += ", ";
+  out += fmt;
+  out += ") ";
+  if(alias_prev || img.access == "read_only")
+    out += "readonly ";
+  else if(img.access == "write_only")
+    out += "writeonly ";
+  else
+    out += "restrict ";
+  auto prefix = isf_glsl_type_prefix(img.format);
+  out += "uniform ";
+  out += prefix;
+  // Shape dispatch must mirror the compute-stage emit at isf_emit_compute_-
+  // image_decl below: parser admits CUBEMAP / IS_ARRAY / 3D shapes; the
+  // bound texture's QRhi flags must agree with the GLSL declaration.
+  // Cube and array variants on graphics-stage csf_image_input were
+  // previously emitted as flat image2D, mismatching the cube/array texture
+  // bound by IsfBindingsBuilder's allocator and triggering Vulkan
+  // VUID-VkGraphicsPipelineCreateInfo-layout-07990.
+  // Priority: cubemap > 3D > array > 2D (matches the parser's own reject
+  // table at isf.cpp:1446-1463 which forbids cube+array and array+3D).
+  const char* shape = "image2D ";
+  if(img.isCube())      shape = "imageCube ";
+  else if(img.is3D())   shape = "image3D ";
+  else if(img.is_array) shape = "image2DArray ";
+  out += shape;
+  out += name;
+  out += ";\n";
+  return out;
+}
+
+// Emit declarations for storage_input / csf_image_input inputs for a graphics
+// shader (ISF or RawRaster). Starts at `binding`, returns the next free binding.
+// Also emits `name_prev` readonly declarations for persistent SSBOs.
+static int isf_emit_graphics_storage(
+    std::string& out, int binding, const std::vector<input>& inputs)
+{
+  for(const auto& inp : inputs)
+  {
+    if(auto* s = ossia::get_if<storage_input>(&inp.data))
+    {
+      if(!is_graphics_visibility(s->visibility))
+        continue;
+      // Indirect-draw buffers don't need shader visibility.
+      if(!s->buffer_usage.empty())
+        continue;
+      out += isf_emit_ssbo_decl(binding, inp.name, *s, /*alias_prev=*/false);
+      binding++;
+      if(s->persistent)
+      {
+        out += isf_emit_ssbo_decl(
+            binding, inp.name + "_prev", *s, /*alias_prev=*/true);
+        binding++;
+      }
+    }
+    else if(auto* img = ossia::get_if<csf_image_input>(&inp.data))
+    {
+      if(!is_graphics_visibility(img->visibility))
+        continue;
+      out += isf_emit_image_decl(binding, inp.name, *img, /*alias_prev=*/false);
+      binding++;
+      if(img->persistent)
+      {
+        out += isf_emit_image_decl(
+            binding, inp.name + "_prev", *img, /*alias_prev=*/true);
+        binding++;
+      }
+    }
+    else if(auto* u = ossia::get_if<uniform_input>(&inp.data))
+    {
+      if(!is_graphics_visibility(u->visibility))
+        continue;
+      out += isf_emit_ubo_decl(binding, inp.name, *u);
+      binding++;
+    }
+  }
+  return binding;
+}
+
+// The #extension pragma must come BEFORE any declarations — emit it separately
+// so it can be prepended right after #version.
+static std::string isf_emit_multiview_extension(int view_count)
+{
+  std::string out;
+  out += "#extension GL_EXT_multiview : require\n";
+  out += "#define VIEW_INDEX gl_ViewIndex\n";
+  out += "#define NUM_VIEWS ";
+  out += std::to_string(view_count);
+  out += "\n";
+  return out;
+}
+
+// User-declared EXTENSIONS from the descriptor. Emitted alongside the
+// multiview extension, each as `#extension <name> : require`. Advanced
+// effects (subgroup ops, atomic floats, ray queries, …) go through here.
+static std::string isf_emit_user_extensions(const std::vector<std::string>& exts)
+{
+  std::string out;
+  for(const auto& e : exts)
+  {
+    if(e.empty())
+      continue;
+    out += "#extension ";
+    out += e;
+    out += " : require\n";
+  }
+  return out;
+}
+
+// Emit the multiview view-projection UBO.
+static std::string isf_emit_multiview_ubo(int binding, int view_count)
+{
+  std::string out;
+  out += "layout(std140, binding = ";
+  out += std::to_string(binding);
+  out += ") uniform multiview_t { mat4 viewProjection[";
+  out += std::to_string(view_count);
+  out += "]; } isf_mv;\n";
+  return out;
+}
+
 void parser::parse_isf()
 {
   using namespace std::literals;
@@ -1960,6 +3508,35 @@ void parser::parse_isf()
     m_desc.passes.push_back(isf::pass{});
   }
 
+  // Fragment-mode ISF cannot drive PASSES that target a 3D / Z-sliced
+  // OUTPUT: that requires per-Z-slice color attachments / 3D image
+  // storage plumbing through the pass-target allocator and the
+  // beginPass site, which the RenderedISFNode renderer does not yet
+  // wire end-to-end. Authors should use a CSF compute shader
+  // (EXECUTION_MODEL: 3D_IMAGE) for true volumetric writes; refusing
+  // to load here is loud and prevents a silent 2D downgrade that
+  // would make every imageStore / fragment write target the wrong
+  // memory.
+  for(const auto& pass : m_desc.passes)
+  {
+    bool target_is_3d = false;
+    for(const auto& out : m_desc.outputs)
+    {
+      if(out.name == pass.target && out.depth > 1)
+      {
+        target_is_3d = true;
+        break;
+      }
+    }
+    if(!pass.z_expression.empty() || target_is_3d)
+    {
+      throw invalid_file{
+          "fragment-mode ISF with PASSES targeting Z / 3D OUTPUTS is not "
+          "yet supported in this engine — use CSF compute "
+          "(EXECUTION_MODEL: 3D_IMAGE) for volumetric writes."};
+    }
+  }
+
   auto& d = m_desc;
 
   // We start from empty strings.
@@ -1972,9 +3549,17 @@ void parser::parse_isf()
   switch(m_version)
   {
     case 450: {
+      // Extensions pragma block — must come right after #version, before
+      // any layout/uniform/in/out declarations.
+      std::string extensions_prelude;
+      if(d.multiview_count >= 2)
+        extensions_prelude += isf_emit_multiview_extension(d.multiview_count);
+      extensions_prelude += isf_emit_user_extensions(d.extensions);
+
       // Setup vertex shader
       {
         m_vertex = GLSL45.versionPrelude;
+        m_vertex += extensions_prelude;
 
         if(m_sourceVertex.empty())
         {
@@ -1990,6 +3575,18 @@ void parser::parse_isf()
       {
         // Setup fragment shader
         m_fragment = GLSL45.versionPrelude;
+        m_fragment += extensions_prelude;
+
+        // LAYER_INDEX for layered / multi-layer outputs: the vertex shader writes
+        // to gl_Layer and the fragment shader receives it via a flat varying.
+        bool has_layered_output = (d.multiview_count >= 2);
+        for(const auto& out : d.outputs)
+          if(out.layers > 1)
+            has_layered_output = true;
+        if(has_layered_output)
+        {
+          m_fragment += "#define LAYER_INDEX gl_Layer\n";
+        }
 
         if(d.outputs.empty())
         {
@@ -2027,10 +3624,33 @@ void parser::parse_isf()
             }
           }
         }
+
+        // Conservative-depth qualifier on gl_FragDepth (ISF path).
+        if(!d.depth_layout.empty())
+        {
+          std::string dl = d.depth_layout;
+          for(auto& c : dl) c = (char)tolower(c);
+          const char* q = nullptr;
+          if(dl == "greater")        q = "depth_greater";
+          else if(dl == "less")      q = "depth_less";
+          else if(dl == "unchanged") q = "depth_unchanged";
+          else if(dl == "any")       q = "depth_any";
+          if(q)
+          {
+            m_fragment += "layout(";
+            m_fragment += q;
+            m_fragment += ") out float gl_FragDepth;\n";
+          }
+        }
       }
 
       // Setup the parameters UBOs
       std::string material_ubos = GLSL45.defaultUniforms;
+
+      // TYPES section structs must be visible in BOTH stages because SSBO
+      // declarations referencing them (e.g. `Light entries[]`) are appended
+      // to material_ubos, which is in turn injected into both VS and FS.
+      material_ubos += isf_emit_types_struct(d.types);
 
       int sampler_binding = 3;
 
@@ -2043,6 +3663,14 @@ void parser::parse_isf()
         uniforms += "layout(std140, binding = 2) uniform material_t {\n";
         for(const isf::input& val : d.inputs)
         {
+          // Storage buffers / storage images are declared separately after
+          // samplers — skip them here to avoid emitting invalid GLSL.
+          if(ossia::get_if<isf::storage_input>(&val.data)
+             || ossia::get_if<isf::csf_image_input>(&val.data)
+             || ossia::get_if<isf::geometry_input>(&val.data)
+             || ossia::get_if<isf::uniform_input>(&val.data))
+            continue;
+
           auto [type, isSampler] = ossia::visit(create_val_visitor_450{}, val.data);
 
           if(isSampler)
@@ -2069,6 +3697,18 @@ void parser::parse_isf()
                 sampler_binding++;
               }
             }
+            else if(auto* cube = ossia::get_if<isf::cubemap_input>(&val.data))
+            {
+              if(cube->depth)
+              {
+                samplers += "layout(binding = ";
+                samplers += std::to_string(sampler_binding);
+                samplers += ") uniform samplerCube ";
+                samplers += val.name;
+                samplers += "_depth;\n";
+                sampler_binding++;
+              }
+            }
           }
           else
           {
@@ -2088,8 +3728,25 @@ void parser::parse_isf()
           }
         }
 
+        // Pass targets are bound as sampler2D for cross-pass reads. Two
+        // independent dedup checks:
+        //   1) the same TARGET can appear in multiple PASSES entries (e.g.
+        //      LAYERS where each layer is a pass writing to the same target)
+        //      — we must only emit one sampler per distinct name.
+        //   2) a TARGET may also appear as a FRAGMENT_OUTPUT for the current
+        //      pass (typical for OUTPUTS with LAYERS) — those collide with
+        //      the `out vec4 <name>;` declaration emitted above and would
+        //      cause "redefinition" at GLSL compile time.
+        std::set<std::string> output_names;
+        for(const auto& out : d.outputs)
+          output_names.insert(out.name);
+        std::set<std::string> emitted_targets;
         for(const std::string& target : d.pass_targets)
         {
+          if(output_names.count(target))
+            continue;
+          if(!emitted_targets.insert(target).second)
+            continue;
           samplers += "layout(binding = ";
           samplers += std::to_string(sampler_binding);
           samplers += ") uniform sampler2D ";
@@ -2110,6 +3767,21 @@ void parser::parse_isf()
         }
 
         material_ubos += samplers;
+
+        // Storage buffers (SSBOs) and storage images visible to the graphics
+        // pipeline. Bindings continue after samplers.
+        sampler_binding = isf_emit_graphics_storage(
+            material_ubos, sampler_binding, d.inputs);
+
+        // Multiview UBO: injected when MULTIVIEW >= 2 in the descriptor.
+        // Only the UBO here — the #extension pragma must come right after
+        // #version, so it's emitted separately below.
+        if(d.multiview_count >= 2)
+        {
+          material_ubos += isf_emit_multiview_ubo(
+              sampler_binding, d.multiview_count);
+          sampler_binding++;
+        }
       }
 
       m_vertex += material_ubos;
@@ -2158,6 +3830,17 @@ void parser::parse_raw_raster_pipeline()
   m_desc.passes.push_back(isf::pass{});
 
   m_desc.mode = isf::descriptor::RawRaster;
+
+  // If FRAGMENT_OUTPUTS declares multiple outputs but OUTPUTS was not
+  // explicitly provided, auto-populate desc.outputs so the node graph
+  // creates the right number of output ports (one per attachment).
+  if(m_desc.outputs.empty() && m_desc.fragment_outputs.size() > 1)
+  {
+    for(const auto& fo : m_desc.fragment_outputs)
+    {
+      m_desc.outputs.push_back(output_declaration{.name = fo.name, .type = "color"});
+    }
+  }
 
   // Add the raw raster uniforms
   {
@@ -2240,8 +3923,56 @@ void parser::parse_raw_raster_pipeline()
   m_vertex = GLSL45.versionPrelude;
   m_fragment = GLSL45.versionPrelude;
 
+  // Extensions pragma block — must come right after #version.
+  // GL_ARB_shader_draw_parameters exposes gl_BaseInstance / gl_BaseVertex /
+  // gl_DrawIDARB in the vertex shader. Required by MDI shaders that index
+  // per-draw data (per_draws[gl_BaseInstance], etc.). Harmless when unused.
+  m_vertex += "#extension GL_ARB_shader_draw_parameters : require\n";
+
+  if(m_desc.multiview_count >= 2)
+  {
+    std::string ext = isf_emit_multiview_extension(m_desc.multiview_count);
+    m_vertex += ext;
+    m_fragment += ext;
+  }
+
+  {
+    std::string user_ext = isf_emit_user_extensions(m_desc.extensions);
+    m_vertex += user_ext;
+    m_fragment += user_ext;
+  }
+
+  // LAYER_INDEX for layered outputs.
+  {
+    bool has_layered_output = (m_desc.multiview_count >= 2);
+    for(const auto& out : m_desc.outputs)
+      if(out.layers > 1)
+        has_layered_output = true;
+    if(has_layered_output)
+      m_fragment += "#define LAYER_INDEX gl_Layer\n";
+  }
+
   // Write down the inputs / outputs
   {
+    // Integer / boolean types require the `flat` interpolation qualifier on
+    // varyings (VERTEX_OUTPUTS → FRAGMENT_INPUTS). Without it, Vulkan GLSL
+    // compilation fails: "'uint' : must be qualified as flat in".
+    auto needs_flat = [](attribute_type t) {
+      return (t >= attribute_type::Int && t <= attribute_type::Uint4)
+          || (t >= attribute_type::Bool && t <= attribute_type::Bool4);
+    };
+
+    // Interpolation qualifier for a varying: user-specified (if valid) wins
+    // over the auto "flat" promotion for integer/bool types.
+    auto interp_qualifier = [&](const vertex_attribute& a) -> const char* {
+      if(a.interpolation == "flat") return "flat";
+      if(a.interpolation == "noperspective") return "noperspective";
+      if(a.interpolation == "centroid") return "centroid";
+      if(a.interpolation == "sample") return "sample";
+      if(a.interpolation == "smooth") return ""; // default, no keyword needed
+      return needs_flat(a.type) ? "flat" : "";
+    };
+
     // Vertex
     for(auto& attr : m_desc.vertex_inputs)
       m_vertex += fmt::format(
@@ -2249,21 +3980,55 @@ void parser::parse_raw_raster_pipeline()
           attribute_type_map.at((int)attr.type), attr.name);
     for(auto& attr : m_desc.vertex_outputs)
       m_vertex += fmt::format(
-          "layout(location = {}) out {} {};\n", attr.location,
+          "layout(location = {}) {} out {} {};\n", attr.location,
+          interp_qualifier(attr),
           attribute_type_map.at((int)attr.type), attr.name);
 
     for(auto& attr : m_desc.fragment_inputs)
       m_fragment += fmt::format(
-          "layout(location = {}) in {} {};\n", attr.location,
+          "layout(location = {}) {} in {} {};\n", attr.location,
+          interp_qualifier(attr),
           attribute_type_map.at((int)attr.type), attr.name);
     for(auto& attr : m_desc.fragment_outputs)
       m_fragment += fmt::format(
           "layout(location = {}) out {} {};\n", attr.location,
           attribute_type_map.at((int)attr.type), attr.name);
+
+    // Clip / cull distances: user-declared count controls the size of the
+    // gl_ClipDistance / gl_CullDistance arrays. Required on some GLSL
+    // profiles; always explicit on Vulkan GLSL.
+    if(m_desc.clip_distances > 0)
+      m_vertex += fmt::format(
+          "out float gl_ClipDistance[{}];\n", m_desc.clip_distances);
+    if(m_desc.cull_distances > 0)
+      m_vertex += fmt::format(
+          "out float gl_CullDistance[{}];\n", m_desc.cull_distances);
+
+    // Conservative-depth qualifier on gl_FragDepth. Allowed values map to
+    // GLSL layout qualifiers: greater/less/unchanged/any.
+    if(!m_desc.depth_layout.empty())
+    {
+      std::string dl = m_desc.depth_layout;
+      for(auto& c : dl) c = (char)tolower(c);
+      const char* q = nullptr;
+      if(dl == "greater")        q = "depth_greater";
+      else if(dl == "less")      q = "depth_less";
+      else if(dl == "unchanged") q = "depth_unchanged";
+      else if(dl == "any")       q = "depth_any";
+      if(q)
+        m_fragment += fmt::format(
+            "layout({}) out float gl_FragDepth;\n", q);
+    }
   }
   {
     // Setup the parameters UBOs
     std::string material_ubos = GLSL45.defaultUniforms;
+
+    // TYPES section structs visible in BOTH stages — see the matching emit
+    // in parse_isf for the rationale (SSBO bodies referencing user structs
+    // leak into VS via material_ubos and previously failed to compile when
+    // VISIBILITY was fragment-only).
+    material_ubos += isf_emit_types_struct(d.types);
 
     int sampler_binding = 3;
 
@@ -2276,6 +4041,44 @@ void parser::parse_raw_raster_pipeline()
       uniforms += "layout(std140, binding = 2) uniform material_t {\n";
       for(const isf::input& val : d.inputs)
       {
+        // Storage buffers / storage images / geometry inputs / UBOs are declared
+        // separately after samplers. BUT their synthesized host-side size ints
+        // (storage flex-array size, geometry $USER counts) ARE packed into this
+        // material blob, so they must be declared here too — otherwise every
+        // uniform after them reads shifted. Mirrors the CSF Params block.
+        if(auto* storage = ossia::get_if<isf::storage_input>(&val.data))
+        {
+          if(storage->access.find("write") != std::string::npos
+             && !storage->layout.empty()
+             && storage->layout.back().type.find("[]") != std::string::npos)
+          {
+            num_uniform++;
+            uniforms += "int " + val.name + "_size;\n";
+            globalvars += "int " + val.name + "_size = isf_material_uniforms."
+                          + val.name + "_size;\n";
+          }
+          continue;
+        }
+        if(auto* geo = ossia::get_if<isf::geometry_input>(&val.data))
+        {
+          auto emit_synth_int = [&](const std::string& nm) {
+            num_uniform++;
+            uniforms += "int " + nm + ";\n";
+            globalvars += "int " + nm + " = isf_material_uniforms." + nm + ";\n";
+          };
+          if(geo->vertex_count.find("$USER") != std::string::npos)
+            emit_synth_int(val.name + "_vertex_count");
+          if(geo->instance_count.find("$USER") != std::string::npos)
+            emit_synth_int(val.name + "_instance_count");
+          for(const auto& aux : geo->auxiliary)
+            if(aux.size.find("$USER") != std::string::npos)
+              emit_synth_int(val.name + "_" + aux.name + "_size");
+          continue;
+        }
+        if(ossia::get_if<isf::csf_image_input>(&val.data)
+           || ossia::get_if<isf::uniform_input>(&val.data))
+          continue;
+
         auto [type, isSampler] = ossia::visit(create_val_visitor_450{}, val.data);
 
         if(isSampler)
@@ -2297,6 +4100,18 @@ void parser::parse_raw_raster_pipeline()
               samplers += "layout(binding = ";
               samplers += std::to_string(sampler_binding);
               samplers += ") uniform sampler2D ";
+              samplers += val.name;
+              samplers += "_depth;\n";
+              sampler_binding++;
+            }
+          }
+          else if(auto* cube = ossia::get_if<isf::cubemap_input>(&val.data))
+          {
+            if(cube->depth)
+            {
+              samplers += "layout(binding = ";
+              samplers += std::to_string(sampler_binding);
+              samplers += ") uniform samplerCube ";
               samplers += val.name;
               samplers += "_depth;\n";
               sampler_binding++;
@@ -2337,39 +4152,153 @@ void parser::parse_raw_raster_pipeline()
       material_ubos += samplers;
     }
 
+    // Storage buffers (SSBOs) and storage images declared via INPUTS with
+    // TYPE=storage or TYPE=image (visible to graphics stages).
+    sampler_binding = isf_emit_graphics_storage(
+        material_ubos, sampler_binding, d.inputs);
+
     // Auxiliary SSBOs (from top-level AUXILIARY key)
     std::string ssbo_decls;
-    for(const auto& aux : d.auxiliary)
-    {
-      ssbo_decls += "layout(binding = " + std::to_string(sampler_binding) + ", std430) ";
 
-      if(aux.access == "read_only")
-        ssbo_decls += "readonly ";
-      else if(aux.access == "write_only")
-        ssbo_decls += "writeonly ";
+    // Emit a single buffer block for an auxiliary. `qualifier` is the std430
+    // access qualifier ("readonly" / "writeonly" / "restrict") and `var` is
+    // the variable name (differs from `aux.name` for the _prev ping-pong
+    // slot).
+    auto emit_aux_block
+        = [&](const geometry_input::auxiliary_request& aux, int binding,
+              const char* qualifier, const std::string& var) {
+      if(aux.is_uniform)
+      {
+        // std140 UBO: no access qualifier (UBOs are inherently read-only
+        // from GLSL), `uniform` instead of `buffer`.
+        ssbo_decls += "layout(std140, binding = " + std::to_string(binding) + ") uniform ";
+      }
       else
-        ssbo_decls += "restrict ";
-
-      ssbo_decls += "buffer " + aux.name + "_buf {\n";
+      {
+        ssbo_decls += "layout(binding = " + std::to_string(binding) + ", std430) ";
+        ssbo_decls += qualifier;
+        ssbo_decls += " buffer ";
+      }
+      ssbo_decls += var;
+      ssbo_decls += "_buf {\n";
       for(const auto& field : aux.layout)
       {
-        // Handle array types: "vec4[512]" → "vec4 entries[512];"
         auto bracket = field.type.find('[');
         if(bracket != std::string::npos)
-        {
           ssbo_decls += "    " + field.type.substr(0, bracket) + " " + field.name
                         + field.type.substr(bracket) + ";\n";
-        }
         else
-        {
           ssbo_decls += "    " + field.type + " " + field.name + ";\n";
-        }
       }
-      ssbo_decls += "} " + aux.name + ";\n\n";
+      ssbo_decls += "} ";
+      ssbo_decls += var;
+      ssbo_decls += ";\n\n";
+    };
 
-      sampler_binding++;
+    for(const auto& aux : d.auxiliary)
+    {
+      const char* access_qualifier
+          = (aux.access == "read_only")  ? "readonly"
+          : (aux.access == "write_only") ? "writeonly"
+                                         : "restrict";
+
+      // Persistent ping-pong only makes sense for writable SSBOs. UBOs
+      // declared persistent silently fall back to a single-block decl
+      // (the flag is ignored by the runtime allocator on the UBO path).
+      if(aux.persistent && !aux.is_uniform)
+      {
+        // Ping-pong pair: _prev is the previous frame's read-only snapshot,
+        // <name> is the current frame's writable buffer. Runtime swaps
+        // the two buffer pointers each frame.
+        emit_aux_block(aux, sampler_binding, "readonly", aux.name + "_prev");
+        sampler_binding++;
+        emit_aux_block(aux, sampler_binding, access_qualifier, aux.name);
+        sampler_binding++;
+      }
+      else
+      {
+        emit_aux_block(aux, sampler_binding, access_qualifier, aux.name);
+        sampler_binding++;
+      }
     }
     material_ubos += ssbo_decls;
+
+    // Auxiliary textures (from top-level AUXILIARY with TYPE: image /
+    // texture / cubemap / image_cube / storage_*). No input port; the
+    // renderer resolves them from ossia::geometry::auxiliary_textures
+    // by name. Sampled textures emit `sampler*` decls with texture()
+    // semantics; storage images emit `image*` decls with imageLoad /
+    // imageStore semantics.
+    std::string aux_tex_decls;
+    for(const auto& atx : d.auxiliary_textures)
+    {
+      if(atx.is_storage)
+      {
+        // Storage image: imageLoad/Store target. FORMAT layout qualifier
+        // is mandatory on writable images; defaults to rgba8.
+        // Cube-arrays are parser-rejected so no imageCubeArray branch.
+        const char* image_type = "image2D";
+        if(atx.is_cubemap)                 image_type = "imageCube";
+        else if(atx.dimensions == 3)       image_type = "image3D";
+        else if(atx.is_array)              image_type = "image2DArray";
+
+        const char* access_q =
+            (atx.access == "read_only") ? "readonly " :
+            (atx.access == "write_only") ? "writeonly " : "";
+
+        // Integer formats (r32ui, r32i, rgba32ui, …) require the
+        // `uimage*` / `iimage*` GLSL variants — the bare `image*` type
+        // paired with an integer layout qualifier is a compile error.
+        // Reuses the same prefix helper csf_image_input declarations
+        // already use, so float / int / uint emission stays consistent
+        // across the rasterizer-aux and csf-input code paths.
+        std::string scalar_prefix = isf_glsl_type_prefix(atx.format);
+
+        aux_tex_decls += "layout(binding = " + std::to_string(sampler_binding)
+                         + ", " + atx.format + ") uniform " + access_q
+                         + scalar_prefix + image_type + " "
+                         + atx.name + ";\n";
+        sampler_binding++;
+      }
+      else
+      {
+        const bool cmp = isf_is_comparison_sampler(atx.sampler);
+        const char* sampler_type = "sampler2D";
+        // Precedence: cubemap > 3D > array > 2D. sampler3D does not nest
+        // with array in core GLSL, so is_array is ignored when dimensions==3.
+        // Cube-arrays (samplerCubeArray) are parser-rejected — no backend
+        // plumbs CubeMap|TextureArray views correctly.
+        if(atx.is_cubemap)
+          sampler_type = cmp ? "samplerCubeShadow" : "samplerCube";
+        else if(atx.dimensions == 3)
+          sampler_type = "sampler3D";
+        else if(atx.is_array)
+          sampler_type = cmp ? "sampler2DArrayShadow" : "sampler2DArray";
+        else
+          sampler_type = cmp ? "sampler2DShadow" : "sampler2D";
+
+        aux_tex_decls += "layout(binding = " + std::to_string(sampler_binding)
+                         + ") uniform " + sampler_type + " " + atx.name + ";\n";
+        sampler_binding++;
+
+        // Paired depth sampler when DEPTH:true on a plain 2D tex.
+        if(atx.is_depth && !atx.is_cubemap && atx.dimensions != 3 && !atx.is_array)
+        {
+          aux_tex_decls += "layout(binding = " + std::to_string(sampler_binding)
+                           + ") uniform sampler2D " + atx.name + "_depth;\n";
+          sampler_binding++;
+        }
+      }
+    }
+    material_ubos += aux_tex_decls;
+
+    // Multiview UBO: injected when MULTIVIEW >= 2.
+    if(m_desc.multiview_count >= 2)
+    {
+      material_ubos += isf_emit_multiview_ubo(
+          sampler_binding, m_desc.multiview_count);
+      sampler_binding++;
+    }
 
     int model_ubo_binding = sampler_binding;
     material_ubos += fmt::format(
@@ -2385,6 +4314,18 @@ void parser::parse_raw_raster_pipeline()
     m_fragment += material_ubos;
   }
 
+  // The raw-raster path replaces gl_FragCoord → isf_FragCoord for the
+  // same Y-flip behaviour as fullscreen ISF, but unlike ISF the raw-raster
+  // FS prelude didn't define the macro — causing "isf_FragCoord :
+  // undeclared identifier" for any shader using gl_FragCoord.
+  m_fragment += R"_(
+#if defined(QSHADER_SPIRV) || defined(QSHADER_HLSL) || defined(QSHADER_MSL)
+#define isf_FragCoord vec4(gl_FragCoord.x, RENDERSIZE.y - gl_FragCoord.y, gl_FragCoord.z, gl_FragCoord.w)
+#else
+#define isf_FragCoord gl_FragCoord
+#endif
+)_";
+
   // Add the actual vert / frag code
   m_vertex += m_sourceVertex;
   m_fragment += fragWithoutISF;
@@ -2392,6 +4333,9 @@ void parser::parse_raw_raster_pipeline()
   // Replace the special ISF stuff
   boost::replace_all(m_fragment, "gl_FragColor", "isf_FragColor");
   boost::replace_all(m_fragment, "vv_Frag", "isf_Frag");
+
+  // Sanity-check ATTRIBUTES.TYPE references — see helper above.
+  validate_attribute_types(m_desc);
 }
 
 void parser::parse_shadertoy()
@@ -2489,18 +4433,60 @@ void main(void)
   }
 }
 
+// Whole-identifier textual replacement: rewrites `from` into `to` only when
+// the match is not part of a larger identifier, so e.g. replacing "time" does
+// not mangle "lifetime" or "timestep".
+static void replace_identifier(
+    std::string& text, std::string_view from, std::string_view to)
+{
+  static constexpr auto is_ident_char = [](char c) {
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')
+           || c == '_';
+  };
+
+  std::string out;
+  out.reserve(text.size());
+  std::size_t pos = 0;
+  for(;;)
+  {
+    const auto hit = text.find(from, pos);
+    if(hit == std::string::npos)
+    {
+      out.append(text, pos, std::string::npos);
+      break;
+    }
+
+    out.append(text, pos, hit - pos);
+    const bool starts_word = hit == 0 || !is_ident_char(text[hit - 1]);
+    const bool ends_word = hit + from.size() == text.size()
+                           || !is_ident_char(text[hit + from.size()]);
+    out.append(starts_word && ends_word ? to : from);
+    pos = hit + from.size();
+  }
+  text = std::move(out);
+}
+
 void parser::parse_glsl_sandbox()
 {
-  m_fragment += "uniform float TIME;\n";
-  m_fragment += "uniform vec2 MOUSE;\n";
-  m_fragment += "uniform vec2 RENDERSIZE;\n";
+  // Rewrite the glslsandbox uniform names to their ISF equivalents first,
+  // so we can tell which compatibility declarations the source already
+  // provides (glslsandbox shaders declare their own uniforms).
+  std::string src = m_sourceFragment;
+  replace_identifier(src, "time", "TIME");
+  replace_identifier(src, "resolution", "RENDERSIZE");
+  replace_identifier(src, "mouse", "MOUSE");
+
+  // Only add the compatibility declarations the source does not declare
+  // itself, to avoid GLSL redeclaration errors.
+  if(src.find("uniform float TIME;") == std::string::npos)
+    m_fragment += "uniform float TIME;\n";
+  if(src.find("uniform vec2 MOUSE;") == std::string::npos)
+    m_fragment += "uniform vec2 MOUSE;\n";
+  if(src.find("uniform vec2 RENDERSIZE;") == std::string::npos)
+    m_fragment += "uniform vec2 RENDERSIZE;\n";
   m_fragment += "out vec2 isf_FragNormCoord;\n";
 
-  m_fragment += m_sourceFragment;
-
-  boost::replace_all(m_fragment, "time", "TIME");
-  boost::replace_all(m_fragment, "resolution", "RENDERSIZE");
-  boost::replace_all(m_fragment, "mouse", "MOUSE");
+  m_fragment += src;
 
   m_vertex =
       R"_(
@@ -2816,6 +4802,14 @@ void parser::parse_shadertoy_json(const std::string& json)
   {
     // Generate fragment shader with ISF compatibility
     {
+      // Same preludes as parse_shadertoy(): the compat block below references
+      // TIME / RENDERSIZE / isf_process_uniforms / isf_FragCoord /
+      // isf_FragColor, which these declare.
+      m_fragment = GLSL45.versionPrelude;
+      m_fragment += GLSL45.fragmentPrelude;
+      m_fragment += GLSL45.defaultUniforms;
+      m_fragment += GLSL45.defaultFunctions;
+
       // Add Shadertoy compatibility layer
       m_fragment += R"_(
 // Shadertoy compatibility uniforms
@@ -2823,7 +4817,7 @@ vec3 iResolution  = vec3(RENDERSIZE, 1.0);
 float iTime = TIME;
 float iTimeDelta = TIMEDELTA;
 int iFrame = FRAMEINDEX;
-vec4 iMouse = vec2(0.0, 0.0); // FIXME
+vec4 iMouse = vec4(0.0, 0.0, 0.0, 0.0); // FIXME MOUSE
 vec4 iDate = DATE;
 float iSampleRate = isf_process_uniforms.SAMPLERATE_;
 
@@ -2866,6 +4860,46 @@ void main(void)
 }
 
 // Helper function to escape JSON strings
+// Serialize a sampler_config's non-empty fields as JSON key/value pairs
+// onto `oss`, each prefixed with `", "`. Mirrors parse_sampler_config
+// exactly so the JSON round-trip is lossless. Writes nothing when every
+// field is at its default (empty strings, unset optionals).
+static void emit_sampler_config(std::ostream& oss, const isf::sampler_config& s)
+{
+  auto esc = [](const std::string& x) {
+    std::string out;
+    out.reserve(x.size());
+    for(char c : x)
+    {
+      if(c == '"' || c == '\\') { out += '\\'; out += c; }
+      else out += c;
+    }
+    return out;
+  };
+  auto str_field = [&](const char* key, const std::string& val) {
+    if(!val.empty())
+      oss << ", \"" << key << "\": \"" << esc(val) << "\"";
+  };
+  auto float_field = [&](const char* key, const std::optional<float>& val) {
+    if(val) oss << ", \"" << key << "\": " << *val;
+  };
+
+  str_field("WRAP",         s.wrap);
+  str_field("WRAP_S",       s.wrap_s);
+  str_field("WRAP_T",       s.wrap_t);
+  str_field("WRAP_R",       s.wrap_r);
+  str_field("FILTER",       s.filter);
+  str_field("MIN_FILTER",   s.min_filter);
+  str_field("MAG_FILTER",   s.mag_filter);
+  str_field("MIPMAP_MODE",  s.mipmap_mode);
+  str_field("BORDER_COLOR", s.border_color);
+  str_field("COMPARE",      s.compare);
+  float_field("ANISOTROPY", s.anisotropy);
+  float_field("LOD_BIAS",   s.lod_bias);
+  float_field("MIN_LOD",    s.min_lod);
+  float_field("MAX_LOD",    s.max_lod);
+}
+
 static auto escape_json(const std::string& str) -> std::string
 {
   std::string result;
@@ -2922,6 +4956,24 @@ std::string parser::write_isf() const
     {
       oss << "    \"" << escape_json(m_desc.categories[i]) << "\"";
       if(i < m_desc.categories.size() - 1)
+        oss << ",";
+      oss << "\n";
+    }
+    oss << "  ]";
+    if(!m_desc.inputs.empty() || !m_desc.passes.empty()
+       || !m_desc.extensions.empty())
+      oss << ",";
+    oss << "\n";
+  }
+
+  // Add extensions if present
+  if(!m_desc.extensions.empty())
+  {
+    oss << "  \"EXTENSIONS\": [\n";
+    for(size_t i = 0; i < m_desc.extensions.size(); ++i)
+    {
+      oss << "    \"" << escape_json(m_desc.extensions[i]) << "\"";
+      if(i + 1 < m_desc.extensions.size())
         oss << ",";
       oss << "\n";
     }
@@ -3037,6 +5089,8 @@ std::string parser::write_isf() const
             oss << ",\n      \"DEFAULT\": [" << (*p.def)[0] << ", " << (*p.def)[1]
                 << ", " << (*p.def)[2] << "]";
           }
+          if(p.as_color)
+            oss << ",\n      \"AS_COLOR\": true";
           oss << "\n";
         }
 
@@ -3065,17 +5119,29 @@ std::string parser::write_isf() const
           oss << "      \"TYPE\": \"image\"";
           if(img.depth)
             oss << ",\n      \"DEPTH\": true";
+          if(img.is_array)
+            oss << ",\n      \"IS_ARRAY\": true";
+          if(img.dimensions != 2)
+            oss << ",\n      \"DIMENSIONS\": " << img.dimensions;
           oss << "\n";
         }
-        void operator()(const cubemap_input&) { oss << "      \"TYPE\": \"cubemap\"\n"; }
+        void operator()(const cubemap_input& c)
+        {
+          oss << "      \"TYPE\": \"cubemap\"";
+          if(c.depth)
+            oss << ",\n      \"DEPTH\": true";
+          oss << "\n";
+        }
 
         void operator()(const audio_input& a)
         {
           oss << "      \"TYPE\": \"audio\"";
           if(a.max > 0)
-          {
             oss << ",\n      \"MAX\": " << a.max;
-          }
+          if(!a.sampler.filter.empty())
+            oss << ",\n      \"FILTER\": \"" << escape_json(a.sampler.filter) << "\"";
+          if(!a.sampler.wrap.empty())
+            oss << ",\n      \"WRAP\": \"" << escape_json(a.sampler.wrap) << "\"";
           oss << "\n";
         }
 
@@ -3083,9 +5149,11 @@ std::string parser::write_isf() const
         {
           oss << "      \"TYPE\": \"audioFFT\"";
           if(a.max > 0)
-          {
             oss << ",\n      \"MAX\": " << a.max;
-          }
+          if(!a.sampler.filter.empty())
+            oss << ",\n      \"FILTER\": \"" << escape_json(a.sampler.filter) << "\"";
+          if(!a.sampler.wrap.empty())
+            oss << ",\n      \"WRAP\": \"" << escape_json(a.sampler.wrap) << "\"";
           oss << "\n";
         }
 
@@ -3093,9 +5161,11 @@ std::string parser::write_isf() const
         {
           oss << "      \"TYPE\": \"audioHistogram\"";
           if(a.max > 0)
-          {
             oss << ",\n      \"MAX\": " << a.max;
-          }
+          if(!a.sampler.filter.empty())
+            oss << ",\n      \"FILTER\": \"" << escape_json(a.sampler.filter) << "\"";
+          if(!a.sampler.wrap.empty())
+            oss << ",\n      \"WRAP\": \"" << escape_json(a.sampler.wrap) << "\"";
           oss << "\n";
         }
 
@@ -3104,6 +5174,12 @@ std::string parser::write_isf() const
         {
           oss << "      \"TYPE\": \"storage\",\n";
           oss << "      \"ACCESS\": \"" << s.access << "\"";
+          if(!s.buffer_usage.empty())
+            oss << ",\n      \"BUFFER_USAGE\": \"" << escape_json(s.buffer_usage) << "\"";
+          if(s.persistent)
+            oss << ",\n      \"PERSISTENT\": true";
+          if(!s.visibility.empty() && s.visibility != "fragment")
+            oss << ",\n      \"VISIBILITY\": \"" << escape_json(s.visibility) << "\"";
           if(!s.layout.empty())
           {
             oss << ",\n      \"LAYOUT\": [\n";
@@ -3121,13 +5197,41 @@ std::string parser::write_isf() const
           oss << "\n";
         }
 
+        void operator()(const uniform_input& u)
+        {
+          oss << "      \"TYPE\": \"uniform\",\n";
+          oss << "      \"LAYOUT\": [\n";
+          for(std::size_t k = 0; k < u.layout.size(); ++k)
+          {
+            const auto& f = u.layout[k];
+            oss << "        { \"NAME\": \"" << escape_json(f.name)
+                << "\", \"TYPE\": \"" << escape_json(f.type) << "\" }";
+            if(k + 1 < u.layout.size())
+              oss << ",";
+            oss << "\n";
+          }
+          oss << "      ]";
+          if(!u.visibility.empty() && u.visibility != "vertex+fragment")
+            oss << ",\n      \"VISIBILITY\": \"" << escape_json(u.visibility) << "\"";
+          oss << "\n";
+        }
+
         void operator()(const texture_input&) { oss << "      \"TYPE\": \"texture\"\n"; }
 
         void operator()(const csf_image_input& img)
         {
           oss << "      \"TYPE\": \"image\",\n";
           oss << "      \"ACCESS\": \"" << img.access << "\",\n";
-          oss << "      \"FORMAT\": \"" << img.format << "\"\n";
+          oss << "      \"FORMAT\": \"" << img.format << "\"";
+          if(!img.visibility.empty() && img.visibility != "compute")
+            oss << ",\n      \"VISIBILITY\": \"" << escape_json(img.visibility) << "\"";
+          if(img.persistent)
+            oss << ",\n      \"PERSISTENT\": true";
+          if(img.is_array)
+            oss << ",\n      \"IS_ARRAY\": true";
+          if(!img.layers_expression.empty())
+            oss << ",\n      \"LAYERS\": \"" << escape_json(img.layers_expression) << "\"";
+          oss << "\n";
         }
 
         void operator()(const geometry_input& geo)
@@ -3144,6 +5248,8 @@ std::string parser::write_isf() const
             try { std::stoi(geo.instance_count); oss << ",\n      \"INSTANCE_COUNT\": " << geo.instance_count; }
             catch(...) { oss << ",\n      \"INSTANCE_COUNT\": \"" << escape_json(geo.instance_count) << "\""; }
           }
+          if(!geo.format_id.empty())
+            oss << ",\n      \"FORMAT_ID\": \"" << escape_json(geo.format_id) << "\"";
           if(!geo.attributes.empty())
           {
             oss << ",\n      \"ATTRIBUTES\": [\n";
@@ -3168,14 +5274,20 @@ std::string parser::write_isf() const
             }
             oss << "      ]";
           }
-          if(!geo.auxiliary.empty())
+          if(!geo.auxiliary.empty() || !geo.auxiliary_textures.empty())
           {
             oss << ",\n      \"AUXILIARY\": [\n";
-            for(size_t i = 0; i < geo.auxiliary.size(); ++i)
+            const size_t nb = geo.auxiliary.size();
+            const size_t nt = geo.auxiliary_textures.size();
+            for(size_t i = 0; i < nb; ++i)
             {
               const auto& aux = geo.auxiliary[i];
               oss << "        {\"NAME\": \"" << escape_json(aux.name) << "\"";
-              if(!aux.access.empty())
+              // TYPE: "uniform" for UBO-kind aux. SSBO kind omits TYPE —
+              // default parse dispatch lands there.
+              if(aux.is_uniform)
+                oss << ", \"TYPE\": \"uniform\"";
+              if(!aux.access.empty() && !aux.is_uniform)
                 oss << ", \"ACCESS\": \"" << escape_json(aux.access) << "\"";
               if(!aux.size.empty())
               {
@@ -3196,7 +5308,53 @@ std::string parser::write_isf() const
                 oss << "]";
               }
               oss << "}";
-              if(i < geo.auxiliary.size() - 1)
+              if(i < nb - 1 || nt > 0)
+                oss << ",";
+              oss << "\n";
+            }
+            // Texture auxiliaries — identifying TYPE field so parse round-
+            // trips via aux_entry_is_texture. Full sampler_config fields
+            // are emitted via emit_sampler_config so WRAP/FILTER/COMPARE
+            // etc. round-trip losslessly.
+            for(size_t i = 0; i < nt; ++i)
+            {
+              const auto& atx = geo.auxiliary_textures[i];
+              oss << "        {\"NAME\": \"" << escape_json(atx.name) << "\"";
+              // TYPE field — reuse the specific storage_* variants so
+              // parse dispatch and re-emit stay symmetric.
+              if(atx.is_storage)
+              {
+                if(atx.is_cubemap && atx.is_array)
+                  oss << ", \"TYPE\": \"storage_cube\""; // Note: no array-cube storage variant in current vocabulary
+                else if(atx.is_cubemap)
+                  oss << ", \"TYPE\": \"storage_cube\"";
+                else if(atx.dimensions == 3)
+                  oss << ", \"TYPE\": \"storage_3d\"";
+                else if(atx.is_array)
+                  oss << ", \"TYPE\": \"storage_image_array\"";
+                else
+                  oss << ", \"TYPE\": \"storage_image\"";
+              }
+              else if(atx.is_cubemap)
+                oss << ", \"TYPE\": \"cubemap\"";
+              else
+                oss << ", \"TYPE\": \"image\"";
+              if(atx.is_array && !atx.is_storage)
+                oss << ", \"IS_ARRAY\": true";
+              if(atx.dimensions != 2 && !atx.is_storage)
+                oss << ", \"DIMENSIONS\": " << atx.dimensions;
+              if(atx.is_depth)
+                oss << ", \"DEPTH\": true";
+              if(atx.is_storage)
+              {
+                if(!atx.format.empty() && atx.format != "rgba8")
+                  oss << ", \"FORMAT\": \"" << escape_json(atx.format) << "\"";
+                if(!atx.access.empty() && atx.access != "read_write")
+                  oss << ", \"ACCESS\": \"" << escape_json(atx.access) << "\"";
+              }
+              emit_sampler_config(oss, atx.sampler);
+              oss << "}";
+              if(i < nt - 1)
                 oss << ",";
               oss << "\n";
             }
@@ -3274,12 +5432,30 @@ std::string parser::write_isf() const
         try
         {
           std::stod(pass.height_expression);
-          oss << "      \"HEIGHT\": " << pass.height_expression;
+          oss << "      \"HEIGHT\": " << pass.height_expression << ",\n";
         }
         catch(...)
         {
-          oss << "      \"HEIGHT\": \"" << escape_json(pass.height_expression) << "\"";
+          oss << "      \"HEIGHT\": \"" << escape_json(pass.height_expression) << "\",\n";
         }
+      }
+
+      if(!pass.z_expression.empty())
+      {
+        try
+        {
+          std::stod(pass.z_expression);
+          oss << "      \"Z\": " << pass.z_expression << ",\n";
+        }
+        catch(...)
+        {
+          oss << "      \"Z\": \"" << escape_json(pass.z_expression) << "\",\n";
+        }
+      }
+
+      if(!pass.format.empty())
+      {
+        oss << "      \"FORMAT\": \"" << escape_json(pass.format) << "\",\n";
       }
 
       // Remove trailing comma if last property
@@ -3287,6 +5463,10 @@ std::string parser::write_isf() const
       if(str.size() > 2 && str[str.size() - 2] == ',')
       {
         oss.str(str.substr(0, str.size() - 2) + "\n");
+        // str() resets the put position to the beginning of the new buffer;
+        // move it back to the end so subsequent writes append instead of
+        // overwriting the start of the document.
+        oss.seekp(0, std::ios_base::end);
       }
 
       oss << "    }";
@@ -3435,6 +5615,18 @@ void parser::parse_vsa()
             sampler_binding++;
           }
         }
+        else if(auto* cube = ossia::get_if<isf::cubemap_input>(&val.data))
+        {
+          if(cube->depth)
+          {
+            samplers += "layout(binding = ";
+            samplers += std::to_string(sampler_binding);
+            samplers += ") uniform samplerCube ";
+            samplers += val.name;
+            samplers += "_depth;\n";
+            sampler_binding++;
+          }
+        }
       }
       else
       {
@@ -3517,6 +5709,9 @@ void parser::parse_csf()
   // Add version
   m_fragment += "#version 450\n\n";
 
+  // User-declared GLSL EXTENSIONS must come right after #version.
+  m_fragment += isf_emit_user_extensions(m_desc.extensions);
+
   // Add standard ProcessUBO uniforms (same as ISF/VSA)
   m_fragment += GLSL45.defaultUniforms;
   m_fragment += "\n";
@@ -3527,34 +5722,37 @@ void parser::parse_csf()
                 ", local_size_y = ISF_LOCAL_SIZE_Y"
                 ", local_size_z = ISF_LOCAL_SIZE_Z) in;\n\n";
 
-  // Generate struct definitions from TYPES section
+  // Generate struct definitions from TYPES section.
+  //
+  // No auto-padding: GLSL+std430 handles alignment based on actual member
+  // types (vec4 16B-aligned, float/uint 4B-aligned, struct rounds to its
+  // largest member). The previous "(4 - field_count % 4) % 4 trailing
+  // floats" heuristic was based on the field count modulo 4, completely
+  // unrelated to real alignment, and silently grew the struct stride
+  // when field_count wasn't a multiple of 4. RawLight (7 fields) became
+  // 68B → 80B std430-stride here while every rasterizer (graphics-path
+  // TYPES emitter has no such heuristic) and ScenePreprocessor's
+  // RawLight arena both use 64B stride — pack_lights_from_points writes
+  // landed at 80B intervals while the consumer rasterizer read at 64B
+  // intervals, garbling every slot past index 0 (the user's symptom:
+  // procedural light positions acting like colours, all lights piled up
+  // at the constant light_color value). Mirror the graphics-path
+  // emitter (isf_emit_types_struct) verbatim instead.
   if(!m_desc.types.empty())
   {
     m_fragment += "// Struct definitions from TYPES section\n";
     for(const auto& type_def : m_desc.types)
     {
-      m_fragment += "struct " + type_def.name + " \n{\n";
-
+      m_fragment += "struct " + type_def.name + " {\n";
       for(const auto& field : type_def.layout)
       {
         auto bracket = field.type.find('[');
         if(bracket != std::string::npos)
-          m_fragment += "  " + field.type.substr(0, bracket) + " " + field.name
+          m_fragment += "    " + field.type.substr(0, bracket) + " " + field.name
                         + field.type.substr(bracket) + ";\n";
         else
-          m_fragment += "  " + field.type + " " + field.name + ";\n";
+          m_fragment += "    " + field.type + " " + field.name + ";\n";
       }
-
-      // Add padding calculation for struct alignment
-      // This is a simplified approach - proper padding would require more complex size calculations
-      int field_count = type_def.layout.size();
-      int padding_needed
-          = (4 - (field_count % 4)) % 4; // Simple 16-byte alignment padding
-      for(int i = 0; i < padding_needed; i++)
-      {
-        m_fragment += "  float pad" + std::to_string(i) + ";\n";
-      }
-
       m_fragment += "};\n\n";
     }
   }
@@ -3678,13 +5876,37 @@ void parser::parse_csf()
           }
         }
       }
+      else if(auto* storage = ossia::get_if<storage_input>(&inp.data))
+      {
+        // A writable storage buffer whose LAYOUT ends in a flexible-array
+        // member gets a synthesized host-side size int (see ISFVisitors /
+        // RenderedCSFNode). Declare it here so this std140 block matches the
+        // packed material blob; otherwise every uniform after it reads shifted.
+        if(storage->access.find("write") != std::string::npos
+           && !storage->layout.empty()
+           && storage->layout.back().type.find("[]") != std::string::npos)
+        {
+          k++;
+          material_block += "    int " + inp.name + "_size;\n";
+        }
+      }
     }
 
     material_block += "};\n\n";
 
+    // Only advance `binding` when the Params UBO is actually emitted. k==0
+    // means has_uniforms was set by a write storage/image (or similar) but no
+    // scalar / $USER / flex-array-size member was declared, so the block is
+    // dropped. The runtime SRB (RenderedCSFNode) gates the binding-2 material
+    // UBO on m_materialSize>0, which is also 0 in that case — so it binds the
+    // first real resource at slot 2. Advancing `binding` unconditionally here
+    // made the shader declare that resource at slot 3 -> pipeline-layout
+    // mismatch / create failure for no-parameter write generators.
     if(k > 0)
+    {
       m_fragment += material_block;
-    binding++;
+      binding++;
+    }
   }
 
   // Helper: derive GLSL image/sampler prefix from format string.
@@ -3736,6 +5958,7 @@ void parser::parse_csf()
 
   // Generate resource bindings
   m_fragment += "// From RESOURCES - bindings assigned automatically\n";
+  bool emitted_indirect_struct = false;
   for(const auto& inp : m_desc.inputs)
   {
     if(auto* storage_ptr = ossia::get_if<storage_input>(&inp.data))
@@ -3772,34 +5995,50 @@ void parser::parse_csf()
     {
       const auto& img = *img_ptr;
 
-      m_fragment += "layout(binding = " + std::to_string(binding);
+      // Emit the primary image binding, then — if persistent — emit a
+      // readonly `<name>_prev` alias at the following slot. The runtime
+      // ping-pongs between two textures and swaps pointers each frame so
+      // the shader sees current-frame writes on `<name>` and the previous
+      // frame's state on `<name>_prev`.
+      auto emit_image = [&](int b, const std::string& decl_name, bool alias_prev) {
+        m_fragment += "layout(binding = " + std::to_string(b);
 
-      // Add format qualifier
-      if(!img.format.empty())
-      {
-        std::string format = img.format;
-        boost::algorithm::to_lower(format);
-        m_fragment += ", " + format;
-      }
-      else
-      {
-        m_fragment += ", rgba8"; // Default format
-      }
+        if(!img.format.empty())
+        {
+          std::string format = img.format;
+          boost::algorithm::to_lower(format);
+          m_fragment += ", " + format;
+        }
+        else
+        {
+          m_fragment += ", rgba8"; // Default format
+        }
 
-      m_fragment += ") ";
+        m_fragment += ") ";
 
-      // Add access qualifiers
-      if(img.access == "read_only")
-        m_fragment += "readonly ";
-      else if(img.access == "write_only")
-        m_fragment += "writeonly ";
-      else
-        m_fragment += "restrict ";
+        if(alias_prev || img.access == "read_only")
+          m_fragment += "readonly ";
+        else if(img.access == "write_only")
+          m_fragment += "writeonly ";
+        else
+          m_fragment += "restrict ";
 
-      auto prefix = glsl_type_prefix(img.format);
-      m_fragment += "uniform " + prefix + (img.is3D() ? "image3D " : "image2D ");
-      m_fragment += inp.name + ";\n";
+        auto prefix = glsl_type_prefix(img.format);
+        const char* shape = "image2D";
+        if(img.isCube())      shape = "imageCube";
+        else if(img.is3D())   shape = "image3D";
+        else if(img.is_array) shape = "image2DArray";
+        m_fragment += "uniform " + prefix + shape + " ";
+        m_fragment += decl_name + ";\n";
+      };
+
+      emit_image(binding, inp.name, /*alias_prev=*/false);
       binding++;
+      if(img.persistent)
+      {
+        emit_image(binding, inp.name + "_prev", /*alias_prev=*/true);
+        binding++;
+      }
     }
     else if(auto* tex_ptr = ossia::get_if<texture_input>(&inp.data))
     {
@@ -3809,6 +6048,11 @@ void parser::parse_csf()
       m_fragment += inp.name + ";\n";
       binding++;
     }
+    else if(auto* uni_ptr = ossia::get_if<uniform_input>(&inp.data))
+    {
+      m_fragment += isf_emit_ubo_decl(binding, inp.name, *uni_ptr);
+      binding++;
+    }
     else if(auto* geo_ptr = ossia::get_if<geometry_input>(&inp.data))
     {
       const auto& geo = *geo_ptr;
@@ -3816,6 +6060,26 @@ void parser::parse_csf()
       m_fragment += "// Geometry input \"" + inp.name + "\" — SoA: one SSBO per attribute\n";
       m_fragment += "#define ISF_READ(geo, attr) geo ## _ ## attr ## _in\n";
       m_fragment += "#define ISF_WRITE(geo, attr) geo ## _ ## attr ## _out\n";
+      // Nested-aux structured-SSBO/UBO instance access. Resolves to the
+      // instance name emitted by the SSBO/UBO block below — bare aux name
+      // when there's no cross-geometry collision, prefixed otherwise.
+      // Use this instead of writing `scene_cluster_aabbs.data[...]` by
+      // hand: the macro keeps shaders working if the same aux name later
+      // appears in another geometry input and forces a name collision
+      // (the SSBO emitter switches to the prefixed instance name then).
+      m_fragment += "#define ISF_AUX(geo, name) geo ## _ ## name\n";
+      // Nested-aux image access (storage images: read_only / write_only /
+      // read_write). For images there's no _in / _out distinction at the
+      // GLSL level — the same identifier carries the full access mode
+      // determined by the layout qualifier. Same one-name-per-image
+      // contract applies via the alias #define emitted in the texture
+      // block below.
+      m_fragment += "#define ISF_IMG(geo, name) geo ## _ ## name\n";
+      // Nested-aux sampler access (read-only sampled textures with
+      // texture()/textureLod()/etc.). Symmetric to ISF_IMG — separate
+      // macro because the GLSL type differs (samplerXY vs imageXY) and
+      // future shaders may want to grep for usage independently.
+      m_fragment += "#define ISF_TEX(geo, name) geo ## _ ## name\n";
 
       for(const auto& attr : geo.attributes)
       {
@@ -3873,16 +6137,24 @@ void parser::parse_csf()
         const bool collides = colliding_aux_names.count(aux.name) > 0;
         const std::string instance_name = collides ? aux_prefix : aux.name;
 
-        m_fragment += "layout(binding = " + std::to_string(binding) + ", std430) ";
-
-        if(aux.access == "read_only")
-          m_fragment += "readonly ";
-        else if(aux.access == "write_only")
-          m_fragment += "writeonly ";
+        if(aux.is_uniform)
+        {
+          // std140 UBO: no access qualifier, `uniform` not `buffer`.
+          m_fragment += "layout(std140, binding = " + std::to_string(binding) + ") uniform ";
+        }
         else
-          m_fragment += "restrict ";
+        {
+          m_fragment += "layout(binding = " + std::to_string(binding) + ", std430) ";
+          if(aux.access == "read_only")
+            m_fragment += "readonly ";
+          else if(aux.access == "write_only")
+            m_fragment += "writeonly ";
+          else
+            m_fragment += "restrict ";
+          m_fragment += "buffer ";
+        }
 
-        m_fragment += "buffer " + aux_prefix + "_buf {\n";
+        m_fragment += aux_prefix + "_buf {\n";
         for(const auto& field : aux.layout)
         {
           // Handle array types: "vec4[512]" → "vec4 entries[512];"
@@ -3899,14 +6171,17 @@ void parser::parse_csf()
         }
         m_fragment += "} " + instance_name + ";\n";
 
-        // Generate ISF_READ/ISF_WRITE-compatible aliases
-        if(aux.access == "read_only")
+        // Generate ISF_READ/ISF_WRITE-compatible aliases. UBOs are always
+        // read-only from GLSL's perspective (the `access` field is ignored
+        // for UBO kind), so only the `_in` / unqualified aliases exist.
+        const std::string eff_access = aux.is_uniform ? "read_only" : aux.access;
+        if(eff_access == "read_only")
         {
           m_fragment += "#define " + aux_prefix + "_in " + instance_name + "\n";
           if(!collides)
             m_fragment += "#define " + aux_prefix + " " + instance_name + "\n";
         }
-        else if(aux.access == "write_only")
+        else if(eff_access == "write_only")
         {
           m_fragment += "#define " + aux_prefix + "_out " + instance_name + "\n";
           if(!collides)
@@ -3916,9 +6191,107 @@ void parser::parse_csf()
         {
           m_fragment += "#define " + aux_prefix + "_in " + instance_name + "\n";
           m_fragment += "#define " + aux_prefix + "_out " + instance_name + "\n";
+          if(!collides)
+            m_fragment += "#define " + aux_prefix + " " + instance_name + "\n";
         }
         m_fragment += "\n";
 
+        binding++;
+      }
+
+      // Auxiliary textures (travel with the geometry; resolved by the
+      // renderer from ossia::geometry::auxiliary_textures by name).
+      // RenderedCSFNode binds them right after aux SSBOs in the compute
+      // SRB build loop — order here must match that order.
+      //
+      // Each texture is emitted under its bare aux name (e.g.
+      // `voxel_grid`) — same convention as the structured-SSBO/UBO block
+      // above when there's no name collision. A `#define
+      // <geo>_<aux> <aux>` alias is also emitted so author shaders can
+      // use either the prefixed form directly OR the ISF_IMG /
+      // ISF_TEX macros (which expand to `geo ## _ ## aux`). Keeps
+      // image-aux access symmetric with SSBO/UBO-aux access.
+      for(const auto& atx : geo.auxiliary_textures)
+      {
+        const std::string aux_prefix = inp.name + "_" + atx.name;
+        const bool aliased = (aux_prefix != atx.name);
+
+        if(atx.is_storage)
+        {
+          // Cube-arrays are parser-rejected so no imageCubeArray branch.
+          const char* image_type = "image2D";
+          if(atx.is_cubemap)                 image_type = "imageCube";
+          else if(atx.dimensions == 3)       image_type = "image3D";
+          else if(atx.is_array)              image_type = "image2DArray";
+
+          const char* access_q =
+              (atx.access == "read_only") ? "readonly " :
+              (atx.access == "write_only") ? "writeonly " : "";
+
+          // Integer formats (r32ui, r32i, …) require uimage*/iimage*.
+          std::string scalar_prefix = isf_glsl_type_prefix(atx.format);
+
+          m_fragment += "layout(binding = " + std::to_string(binding)
+                        + ", " + atx.format + ") uniform " + access_q
+                        + scalar_prefix + image_type + " "
+                        + atx.name + ";\n";
+          if(aliased)
+            m_fragment += "#define " + aux_prefix + " " + atx.name + "\n";
+          binding++;
+        }
+        else
+        {
+          const bool cmp = isf_is_comparison_sampler(atx.sampler);
+          const char* sampler_type = "sampler2D";
+          // Cube-arrays (samplerCubeArray) are parser-rejected — no QRhi
+          // backend plumbs CubeMap|TextureArray views correctly.
+          if(atx.is_cubemap)
+            sampler_type = cmp ? "samplerCubeShadow" : "samplerCube";
+          else if(atx.dimensions == 3)
+            sampler_type = "sampler3D";
+          else if(atx.is_array)
+            sampler_type = cmp ? "sampler2DArrayShadow" : "sampler2DArray";
+          else
+            sampler_type = cmp ? "sampler2DShadow" : "sampler2D";
+
+          m_fragment += "layout(binding = " + std::to_string(binding)
+                        + ") uniform " + sampler_type + " " + atx.name + ";\n";
+          if(aliased)
+            m_fragment += "#define " + aux_prefix + " " + atx.name + "\n";
+          binding++;
+
+          if(atx.is_depth && !atx.is_cubemap && atx.dimensions != 3 && !atx.is_array)
+          {
+            m_fragment += "layout(binding = " + std::to_string(binding)
+                          + ") uniform sampler2D " + atx.name + "_depth;\n";
+            if(aliased)
+              m_fragment += "#define " + aux_prefix + "_depth "
+                            + atx.name + "_depth\n";
+            binding++;
+          }
+        }
+      }
+
+      // Indirect draw command buffer (user-writable SSBO)
+      if(geo.indirect)
+      {
+        if(!emitted_indirect_struct)
+        {
+          m_fragment += "struct DrawIndirectCommand {\n"
+                        "    uint vertexCount;\n"
+                        "    uint instanceCount;\n"
+                        "    uint firstVertex;\n"
+                        "    int  baseVertex;\n"
+                        "    uint firstInstance;\n"
+                        "};\n\n";
+          emitted_indirect_struct = true;
+        }
+        const std::string buf_name = inp.name + "_indirect";
+        m_fragment += "layout(binding = " + std::to_string(binding) + ", std430) "
+                      "restrict buffer " + buf_name + "_buf {\n"
+                      "    DrawIndirectCommand " + buf_name + "[];\n"
+                      "};\n";
+        m_fragment += "#define ISF_INDIRECT(" + inp.name + ") " + buf_name + "\n\n";
         binding++;
       }
 
@@ -3944,6 +6317,11 @@ void parser::parse_csf()
   // Add the user's compute shader code (without the JSON header)
   boost::algorithm::trim(compWithoutCSF);
   m_fragment += compWithoutCSF;
+
+  // Sanity-check: every ATTRIBUTES.TYPE references a real GLSL built-in
+  // or a TYPES entry. Throws invalid_file with the offending name on
+  // miss — surfaces typos at parse time.
+  validate_attribute_types(m_desc);
 }
 
 descriptor::Mode parser::mode() const

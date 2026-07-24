@@ -75,6 +75,8 @@ void VideoNodeRenderer::setupGpuDecoder(RenderList& r)
     m_p.clear();
   }
 
+  m_shaders = {};
+
   createGpuDecoder();
 
   createPipelines(r);
@@ -84,11 +86,11 @@ void VideoNodeRenderer::createPipelines(RenderList& r)
 {
   if(m_gpu)
   {
-    auto shaders = m_gpu->init(r);
+    m_shaders = m_gpu->init(r);
     SCORE_ASSERT(m_p.empty());
     score::gfx::defaultPassesInit(
-        m_p, this->node().output[0]->edges, r, r.defaultQuad(), shaders.first,
-        shaders.second, m_processUBO, m_materialUBO, m_gpu->samplers);
+        m_p, this->node().output[0]->edges, r, r.defaultQuad(), m_shaders.first,
+        m_shaders.second, m_processUBO, m_materialUBO, m_gpu->samplers);
   }
 }
 
@@ -113,7 +115,7 @@ void VideoNodeRenderer::checkFormat(RenderList& r, AVPixelFormat fmt, int w, int
   }
 }
 
-void VideoNodeRenderer::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
+void VideoNodeRenderer::initState(RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
   auto& rhi = *renderer.state.rhi;
 
@@ -136,8 +138,88 @@ void VideoNodeRenderer::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
   if(!m_gpu)
     createGpuDecoder();
 
-  createPipelines(renderer);
+  // Cache the shaders from the GPU decoder (also creates its samplers/textures)
+  if(m_gpu)
+    m_shaders = m_gpu->init(renderer);
+
   m_recomputeScale = true;
+  m_initialized = true;
+}
+
+void VideoNodeRenderer::addOutputPass(
+    RenderList& renderer, Edge& edge, QRhiResourceUpdateBatch& res)
+{
+  if(!m_gpu)
+    return;
+  if(!m_shaders.first.isValid() || !m_shaders.second.isValid())
+    return;
+
+  auto rt = renderer.renderTargetForOutput(edge);
+  if(rt.renderTarget)
+  {
+    auto pip = score::gfx::buildPipeline(
+        renderer, renderer.defaultQuad(), m_shaders.first, m_shaders.second, rt,
+        m_processUBO, m_materialUBO, m_gpu->samplers);
+    if(pip.pipeline)
+      m_p.emplace_back(&edge, Pass{rt, pip, nullptr});
+  }
+}
+
+void VideoNodeRenderer::removeOutputPass(RenderList& renderer, Edge& edge)
+{
+  auto it
+      = ossia::find_if(m_p, [&](const auto& p) { return p.first == &edge; });
+  if(it != m_p.end())
+  {
+    it->second.release();
+    m_p.erase(it);
+  }
+}
+
+bool VideoNodeRenderer::hasOutputPassForEdge(Edge& edge) const
+{
+  return ossia::find_if(m_p, [&](const auto& p) { return p.first == &edge; })
+         != m_p.end();
+}
+
+void VideoNodeRenderer::releaseState(RenderList& r)
+{
+  if(!m_initialized)
+    return;
+
+  if(m_gpu)
+    m_gpu->release(r);
+
+  delete m_processUBO;
+  m_processUBO = nullptr;
+
+  delete m_materialUBO;
+  m_materialUBO = nullptr;
+
+  for(auto& p : m_p)
+    p.second.release();
+  m_p.clear();
+
+  m_meshBuffer = {};
+  m_shaders = {};
+
+  if(m_currentFrame)
+  {
+    m_currentFrame->use_count--;
+    m_currentFrame.reset();
+  }
+
+  m_initialized = false;
+}
+
+void VideoNodeRenderer::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
+{
+  initState(renderer, res);
+
+  for(Edge* edge : this->node().output[0]->edges)
+  {
+    addOutputPass(renderer, *edge, res);
+  }
 }
 
 void VideoNodeRenderer::runRenderPass(
@@ -230,30 +312,18 @@ void VideoNodeRenderer::displayFrame(
   {
     m_gpu->exec(renderer, res, frame);
     m_gpu->hasFrame = true;
+
+    // A decoder that defers a mid-stream format change (e.g. HWTransferDecoder)
+    // leaves its plane textures/samplers stale but still bound in our SRBs.
+    // Rebuild decoder + pipelines together so textures and SRBs are recreated
+    // in lockstep instead of freeing textures still referenced by the SRBs.
+    if(m_gpu->formatChanged)
+      setupGpuDecoder(renderer);
   }
 }
 
 void VideoNodeRenderer::release(RenderList& r)
 {
-  if(m_gpu)
-    m_gpu->release(r);
-
-  delete m_processUBO;
-  m_processUBO = nullptr;
-
-  delete m_materialUBO;
-  m_materialUBO = nullptr;
-
-  for(auto& p : m_p)
-    p.second.release();
-  m_p.clear();
-
-  m_meshBuffer = {};
-
-  if(m_currentFrame)
-  {
-    m_currentFrame->use_count--;
-    m_currentFrame.reset();
-  }
+  releaseState(r);
 }
 }

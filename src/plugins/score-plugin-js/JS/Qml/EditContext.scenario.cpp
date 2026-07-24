@@ -1,5 +1,8 @@
+#include <Process/Commands/Properties.hpp>
+#include <Process/Dataflow/Cable.hpp>
 #include <Process/Preset.hpp>
 #include <Process/ProcessList.hpp>
+#include <Scenario/Commands/TimeSync/SetAutoTrigger.hpp>
 
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
@@ -485,6 +488,15 @@ void EditJsContext::remove(QObject* obj)
     if(auto itv = qobject_cast<Scenario::IntervalModel*>(proc->parent()))
       m->removeProcess(*itv, proc->id());
   }
+  else if(auto cable = qobject_cast<Process::Cable*>(obj))
+  {
+    // Cables live in the document-level cable map, not in a scenario process,
+    // so the generic parent-based removal below never matches them.
+    auto& root
+        = score::IDocument::get<Scenario::ScenarioDocumentModel>(doc->document);
+    auto [m, _] = macro(*doc);
+    m->removeCable(root, *cable);
+  }
   else if(auto p = obj->parent())
   {
     if(auto scenar = qobject_cast<Scenario::ProcessModel*>(p))
@@ -634,5 +646,33 @@ void EditJsContext::setIntervalSpeed(QObject* object, double s)
     return;
 
   i->duration.setSpeed(s);
+}
+
+void EditJsContext::setAutoTrigger(QObject* object, bool b)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+
+  auto ts = qobject_cast<Scenario::TimeSyncModel*>(object);
+  if(!ts)
+    return;
+
+  auto [m, _] = macro(*doc);
+  m->setProperty<Scenario::TimeSyncModel::p_autotrigger>(*ts, b);
+}
+
+void EditJsContext::setProcessLoop(QObject* object, bool b)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+
+  auto proc = qobject_cast<Process::ProcessModel*>(object);
+  if(!proc)
+    return;
+
+  auto [m, _] = macro(*doc);
+  m->setProperty<Process::ProcessModel::p_loops>(*proc, b);
 }
 }
