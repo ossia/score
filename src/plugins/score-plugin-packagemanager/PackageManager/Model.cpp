@@ -37,6 +37,24 @@
 W_OBJECT_IMPL(PM::PluginSettingsModel)
 namespace PM
 {
+static int64_t sizeToInt(QString s) noexcept
+{
+  int64_t mult = 1;
+  if(s.endsWith('K', Qt::CaseInsensitive)) {
+    mult = 1024;
+    s.resize(s.size() - 1);
+  }
+  else if(s.endsWith('M', Qt::CaseInsensitive)) {
+    mult = 1024 * 1024;
+    s.resize(s.size() - 1);
+  }
+  else if(s.endsWith('G', Qt::CaseInsensitive)) {
+    mult = 1024 * 1024 * 1024;
+    s.resize(s.size() - 1);
+  }
+  return mult * s.trimmed().toDouble();
+}
+
 PluginSettingsModel::PluginSettingsModel(
     const UuidKey<score::SettingsDelegateFactory>& k, QSettings& set,
     const score::ApplicationContext& ctx)
@@ -240,6 +258,7 @@ void PluginSettingsModel::installAddon(const Package& addon)
   const auto& lib = score::AppContext().settings<Library::Settings::Model>();
   const QString& installPath
       = addon.kind == "support" ? lib.getSupportPath() : lib.getPackagesPath();
+  auto sz_bytes = sizeToInt(addon.size);
 
   for(auto f : addon.files)
     zdl::download_and_extract(
@@ -273,7 +292,10 @@ void PluginSettingsModel::installAddon(const Package& addon)
              "console for errors if nothing happens.")
               .arg(addon.name)
               .arg(QFileInfo(installPath).absoluteFilePath()));
-    }, [this](qint64 received, qint64 total) { progress_from_bytes(received, total); },
+    }, [this, sz_bytes](qint64 received, qint64 total) {
+      if(total < received)
+        total = sz_bytes;
+      progress_from_bytes(received, total); },
         [this, addon] {
       reset_progress();
       warning(
@@ -326,12 +348,17 @@ void PluginSettingsModel::installLibrary(const Package& addon)
 
   QDir{}.mkpath(destination);
 
+  auto sz_bytes = sizeToInt(addon.size);
   for(auto f : addon.files)
     zdl::download_and_extract(
         f, QFileInfo{destination}.absoluteFilePath(),
         [this, addon, destination](const std::vector<QString>& res) {
       on_packageInstallSuccess(addon, destination, res);
-    }, [this](qint64 received, qint64 total) { progress_from_bytes(received, total); },
+    }, [this, sz_bytes](qint64 received, qint64 total) {
+      if(total < received)
+        total = sz_bytes;
+      progress_from_bytes(received, total);
+    },
         [this, addon] { on_packageInstallFailure(addon); });
 }
 

@@ -124,6 +124,7 @@ void GlobalDeviceEnumerator::reprocess()
         continue;
 
     auto enums = protocol.getEnumerators(doc);
+    m_current_enums[&protocol] = enums;
     for(auto& [category, enumerator] : enums)
     {
       auto on_deviceAdded
