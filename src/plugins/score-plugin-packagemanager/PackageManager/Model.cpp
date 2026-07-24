@@ -52,7 +52,7 @@ static int64_t sizeToInt(QString s) noexcept
     mult = 1024 * 1024 * 1024;
     s.removeLast();
   }
-  return mult * s.trim().toDouble();
+  return mult * s.trimmed().toDouble();
 }
 
 PluginSettingsModel::PluginSettingsModel(
