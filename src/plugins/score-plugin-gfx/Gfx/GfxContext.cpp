@@ -112,6 +112,7 @@ void GfxContext::destroyOutput(score::gfx::OutputNode* node)
   if(m_graph && node)
   {
     m_graph->destroyOutputRenderList(*node);
+
     // Also drop it from m_nodes: ~Graph's belt-and-braces loop does
     // dynamic_cast<OutputNode*>(n) over m_nodes, which would deref this freed
     // node's vtable once the device destroys it. removeNode is a pure pointer
@@ -211,6 +212,11 @@ void GfxContext::recompute_edges()
 
 void GfxContext::recompute_graph()
 {
+  // Tear the render clocks down BEFORE the timer pool is nuked: their dtors
+  // release the shared timers back to a still-live m_timers.
+  m_renderClocks.clear();
+  m_vsyncClock.reset();
+
   // Clear previous timers
   std::destroy_at(&m_timers);
   std::construct_at(&m_timers);
@@ -219,7 +225,6 @@ void GfxContext::recompute_graph()
     connect(m_watchdog_timer, &score::HighResolutionTimer::timeout, this, &GfxContext::on_watchdog_timer, Qt::UniqueConnection);
   }
   m_no_vsync_timer = nullptr;
-  m_manualTimers.clear();
 
   for(auto& output : m_graph->outputs())
   {
@@ -253,7 +258,11 @@ void GfxContext::recompute_graph()
 #endif
     SCORE_ASSERT(m_graph->outputs().size() == 1);
     SCORE_ASSERT(m_graph->outputs()[0]);
-    m_graph->outputs().front()->setVSyncCallback([this] { updateGraph(); });
+    // Clock #1: the display swap-chain vsync callback (push). Wrapping it in a
+    // DisplayVSyncClock is behaviour-identical to calling setVSyncCallback here.
+    m_vsyncClock
+        = std::make_unique<score::gfx::DisplayVSyncClock>(*m_graph->outputs().front());
+    m_vsyncClock->start([this] { updateGraph(); });
   }
   else
   {
@@ -277,29 +286,39 @@ void GfxContext::recompute_graph()
     connect(m_no_vsync_timer, &score::HighResolutionTimer::timeout, this, &GfxContext::on_no_vsync_timer, Qt::ConnectionType(Qt::UniqueConnection|Qt::QueuedConnection));
 
 
-    // This starts the timers which control the actual render rate of various things
+    // Clock #2 (the default): the shared wall-timer at manualRenderingRate.
+    // Outputs at the same rate coalesce onto one TimerClock / one shared timer,
+    // exactly as the old timer->set<OutputNode*> map did.
     for(auto& output : m_graph->outputs())
     {
       auto conf = output->configuration();
       if(conf.manualRenderingRate)
       {
-        bool existing_timer{};
-        for(auto& tm : m_manualTimers)
+        const double freq = 1000. / *conf.manualRenderingRate;
+
+        score::gfx::TimerClock* clock{};
+        for(auto& c : m_renderClocks)
         {
-          if(tm.first->frequency() == 1000. / *conf.manualRenderingRate)
+          if(c->frequency() == freq)
           {
-            tm.second.insert(output);
-            existing_timer = true;
+            clock = c.get();
             break;
           }
         }
 
-        if(!existing_timer)
+        if(!clock)
         {
-          auto id = m_timers.acquireTimer(this, 1000. / *conf.manualRenderingRate);
-          m_manualTimers[id].insert(output);
-          connect(id, &score::HighResolutionTimer::timeout, this, &GfxContext::on_manual_timer, Qt::QueuedConnection);
+          auto owned = std::make_unique<score::gfx::TimerClock>(m_timers, this, freq);
+          clock = owned.get();
+          m_renderClocks.push_back(std::move(owned));
+          clock->start([clock] {
+            for(auto* out : clock->outputs())
+              if(out && out->canRender())
+                out->render();
+          });
         }
+
+        clock->addOutput(output);
       }
     }
   }
@@ -372,21 +391,17 @@ void GfxContext::remove_node(
   {
     auto node = node_it->second.get();
 
-    // Remove the node from the timers if it's in there
-    for(auto timer_it = m_manualTimers.begin(); timer_it != m_manualTimers.end();)
+    // Remove the node from the render clocks if it's in there. An emptied
+    // TimerClock is dropped; its dtor releases the shared timer back to the
+    // pool (same as the old releaseTimer path).
+    for(auto it = m_renderClocks.begin(); it != m_renderClocks.end();)
     {
-      auto& nodes = timer_it->second;
-      nodes.erase((score::gfx::OutputNode*)node);
+      (*it)->removeOutput((score::gfx::OutputNode*)node);
 
-      if(nodes.empty())
-      {
-        m_timers.releaseTimer(this, timer_it->first);
-        timer_it = m_manualTimers.erase(timer_it);
-      }
+      if((*it)->empty())
+        it = m_renderClocks.erase(it);
       else
-      {
-        ++timer_it;
-      }
+        ++it;
     }
 
     m_graph->removeNode(node);
@@ -519,10 +534,9 @@ void GfxContext::on_no_vsync_timer(score::HighResolutionTimer* self)
 
 void GfxContext::on_watchdog_timer(score::HighResolutionTimer* self)
 {
-  if(m_manualTimers.empty() && !m_no_vsync_timer)
+  if(m_renderClocks.empty() && !m_no_vsync_timer)
     updateGraph();
 }
-
 void GfxContext::renderFrames(int frames)
 {
   if(frames <= 0 || !m_graph)
@@ -537,7 +551,7 @@ void GfxContext::renderFrames(int frames)
 
   for(int i = 0; i < frames; i++)
   {
-    // Same order as the timer-driven path: parameters first, then draw, so a
+    // Same order as the clock-driven path: parameters first, then draw, so a
     // value written by the script is visible in the frame that follows it.
     updateGraph();
 
@@ -560,16 +574,6 @@ void GfxContext::renderFrames(int frames)
     {
       if(output && output->canRender())
         output->render();
-    }
-  }
-}
-
-void GfxContext::on_manual_timer(score::HighResolutionTimer* self)
-{
-  if(auto ptr = m_manualTimers.find(self); ptr != m_manualTimers.end())
-  {
-    for(auto output : ptr->second) {
-      output->render();
     }
   }
 }
