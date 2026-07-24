@@ -6,6 +6,8 @@
 #include <Gfx/InvertYRenderer.hpp>
 #include <Gfx/Settings/Model.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
+
 namespace score::gfx
 {
 struct BackgroundNode : OutputNode
