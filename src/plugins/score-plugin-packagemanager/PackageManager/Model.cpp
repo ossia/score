@@ -42,15 +42,15 @@ static int64_t sizeToInt(QString s) noexcept
   int64_t mult = 1;
   if(s.endsWith('K', Qt::CaseInsensitive)) {
     mult = 1024;
-    s.removeLast();
+    s.resize(s.size() - 1);
   }
   else if(s.endsWith('M', Qt::CaseInsensitive)) {
     mult = 1024 * 1024;
-    s.removeLast();
+    s.resize(s.size() - 1);
   }
   else if(s.endsWith('G', Qt::CaseInsensitive)) {
     mult = 1024 * 1024 * 1024;
-    s.removeLast();
+    s.resize(s.size() - 1);
   }
   return mult * s.trimmed().toDouble();
 }
