@@ -20,26 +20,38 @@ public:
       libremidi::kbd_input_configuration::scancode_callback release)
       : press{std::move(press)}
       , release{std::move(release)}
-      , target{score::GUIAppContext().mainWindow}
   {
+    keys.reserve(20);
   }
 
   bool eventFilter(QObject* object, QEvent* event)
   {
-    if(object == target)
+    if(event->type() == QEvent::KeyPress)
     {
-      if(event->type() == QEvent::KeyPress)
-      {
-        QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
-        if(!keyEvent->isAutoRepeat())
-          press(key(*keyEvent));
+      QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
+      if(keyEvent->isAutoRepeat())
+        return false;
+      int k = key(*keyEvent);
+      if(!keys.contains(k)) {
+        keys.insert(k);
+        press(k);
       }
-      else if(event->type() == QEvent::KeyRelease)
-      {
-        QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
-        if(!keyEvent->isAutoRepeat())
-          release(key(*keyEvent));
+    }
+    else if(event->type() == QEvent::KeyRelease)
+    {
+      QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
+      if(keyEvent->isAutoRepeat())
+        return false;
+      int k = key(*keyEvent);
+      if (auto it = keys.find(k); it != keys.end()) {
+        keys.erase(it);
+        release(k);
       }
+    }
+    else if (event->type() == QEvent::ApplicationDeactivate) {
+      for(auto k : keys)
+        release(k);
+      keys.clear();
     }
     return false;
   }
@@ -55,11 +67,13 @@ public:
     return e.nativeScanCode();
 #endif
   }
-  QObject* target{};
+
+  ossia::flat_set<int> keys;
 
 #if defined(__linux__)
   const int scanCodeOffset = (qApp->platformName() == "xcb") ? -8 : 0;
 #endif
+
 };
 }
 #endif
