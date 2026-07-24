@@ -192,6 +192,7 @@ set(HDRS
     Gfx/Graph/OutputNode.hpp
     Gfx/Graph/PhongNode.hpp
     Gfx/Graph/PreviewNode.hpp
+    Gfx/Graph/RenderClock.hpp
     Gfx/Graph/RenderList.hpp
     Gfx/Graph/RenderState.hpp
     Gfx/Graph/RenderedISFNode.hpp
@@ -375,6 +376,7 @@ set(SRCS
     Gfx/Graph/OutputNode.cpp
     Gfx/Graph/PhongNode.cpp
     Gfx/Graph/PreviewNode.cpp
+    Gfx/Graph/RenderClock.cpp
     Gfx/Graph/RenderList.cpp
     Gfx/Graph/RenderedISFNode.cpp
     Gfx/Graph/RenderedRawRasterPipelineNode.cpp
