@@ -108,4 +108,8 @@ struct GUIApplicationContext : public score::ApplicationContext
 };
 
 SCORE_LIB_BASE_EXPORT const GUIApplicationContext& GUIAppContext();
+
+#if defined(__EMSCRIPTEN__)
+SCORE_LIB_BASE_EXPORT void reclaimMainWindowFocus();
+#endif
 }
