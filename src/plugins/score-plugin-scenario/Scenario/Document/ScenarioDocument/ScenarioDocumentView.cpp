@@ -13,6 +13,7 @@
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 
 #include <score/application/ApplicationContext.hpp>
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/graphics/BackgroundRenderer.hpp>
 #include <score/graphics/GraphicsProxyObject.hpp>
 #include <score/model/Skin.hpp>
@@ -381,6 +382,9 @@ void ProcessGraphicsView::checkAndRemoveCurrentDialog(QPoint pos)
 
 void ProcessGraphicsView::mousePressEvent(QMouseEvent* event)
 {
+#if defined(__EMSCRIPTEN__)
+  score::reclaimMainWindowFocus();
+#endif
   mousePress(event);
   // workaround for some items not getting release event sometimes.
   if(m_press_release_chain.contains(event->button()))

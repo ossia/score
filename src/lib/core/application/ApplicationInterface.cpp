@@ -25,6 +25,12 @@
 
 #include <QGuiApplication>
 #include <QModelIndex>
+
+#if defined(__EMSCRIPTEN__)
+#include <QMainWindow>
+
+#include <qpa/qwindowsysteminterface.h>
+#endif
 namespace score
 {
 ApplicationInterface* ApplicationInterface::m_instance;
@@ -290,4 +296,17 @@ SCORE_LIB_BASE_EXPORT const ApplicationComponents& AppComponents()
 {
   return ApplicationInterface::instance().components();
 }
+
+#if defined(__EMSCRIPTEN__)
+SCORE_LIB_BASE_EXPORT void reclaimMainWindowFocus()
+{
+  QMainWindow* mw = GUIAppContext().mainWindow;
+  if(!mw || mw->isActiveWindow())
+    return;
+
+  mw->activateWindow();
+  mw->raise();
+  QWindowSystemInterface::flushWindowSystemEvents();
+}
+#endif
 }

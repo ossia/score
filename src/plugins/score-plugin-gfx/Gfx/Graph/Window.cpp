@@ -2,6 +2,7 @@
 #include <Gfx/Settings/Model.hpp>
 
 #include <score/application/ApplicationContext.hpp>
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/gfx/Vulkan.hpp>
 
 #include <core/application/ApplicationInterface.hpp>
@@ -367,8 +368,17 @@ bool Window::event(QEvent* e)
         m_closed = true;
         if(onClose)
           onClose();
+#if defined(__EMSCRIPTEN__)
+        score::reclaimMainWindowFocus();
+#endif
       }
       break;
+
+#if defined(__EMSCRIPTEN__)
+    case QEvent::Hide:
+      score::reclaimMainWindowFocus();
+      break;
+#endif
 
       default:
         break;
