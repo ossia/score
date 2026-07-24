@@ -1,3 +1,5 @@
+#include <cstring>
+
 #include <ossia/dataflow/nodes/spline/spline2d.hpp>
 #include <ossia/editor/automation/tinyspline_util.hpp>
 
