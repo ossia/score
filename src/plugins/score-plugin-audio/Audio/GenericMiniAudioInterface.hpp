@@ -72,6 +72,24 @@ public:
   virtual void setDeviceId(ma_device_id& id, const QString& str) const noexcept = 0;
   virtual QString deviceIdToString(const ma_device_id& id) const noexcept = 0;
 
+  // When true, the factory exposes an extra "Default device" entry mapped to
+  // the OS default device. The selection is stored as the "Default" sentinel
+  // and make_engine passes a NULL miniaudio device id, so the backend follows
+  // the OS default (with automatic rerouting on WASAPI) while running.
+  virtual bool followsDefaultDevice() const noexcept { return false; }
+
+  static constexpr int DefaultDeviceItemData = -1;
+
+  int defaultDeviceChannels(ma_device_type tp) const noexcept
+  {
+    for(const auto& d : devices)
+    {
+      if(d.type == tp && d.info.isDefault && d.info.nativeDataFormatCount > 0)
+        return d.info.nativeDataFormats[0].channels;
+    }
+    return 2;
+  }
+
   void
   initialize(Audio::Settings::Model& set, const score::ApplicationContext& ctx) override
   {
@@ -81,6 +99,12 @@ public:
     // set.setRate(48000);
     // set.setBufferSize(256);
     // set.changed();
+
+    // Backends that can follow the OS default (WASAPI) default to that mode when
+    // nothing has been configured yet, so playback tracks the Windows mixer
+    // default output out of the box.
+    if(followsDefaultDevice() && set.getCardOut().isEmpty())
+      set.setCardOut("Default");
 
     const MiniAudioCard* user_in{};
     const MiniAudioCard* user_out{};
@@ -147,22 +171,50 @@ public:
     if(set.getCardOut().startsWith("No device"))
       card_out = nullptr;
 
-    if(card_in)
+    if(followsDefaultDevice() && set.getCardIn() == "Default")
     {
-      // qDebug() << Q_FUNC_INFO << card_in->id.coreaudio;
+      const MiniAudioCard* ref = default_in ? default_in : first_viable_in;
+      set.setDefaultIn(ref ? ref->info.nativeDataFormats[0].channels : 2);
+    }
+    else if(card_in)
+    {
       set.setCardIn(deviceIdToString(card_in->id));
       set.setDefaultIn(card_in->info.nativeDataFormats[0].channels);
     }
     else
     {
-      // qDebug() << Q_FUNC_INFO << "no input";
       set.setCardIn(devices.front().name);
       set.setDefaultIn(0);
     }
 
-    if(card_out)
+    if(followsDefaultDevice() && set.getCardOut() == "Default")
     {
-      // qDebug() << Q_FUNC_INFO << card_out->id.coreaudio;
+      // Keep the "Default device" sentinel so make_engine passes a NULL device
+      // id and miniaudio follows the OS default output. Derive channels/rate
+      // from the current OS default device.
+      const MiniAudioCard* ref = default_out ? default_out : first_viable_out;
+      if(ref)
+      {
+        set.setDefaultOut(ref->info.nativeDataFormats[0].channels);
+        int current_rate = set.getRate();
+        if(int fmt_count = ref->info.nativeDataFormatCount; fmt_count > 0)
+        {
+          auto* fmts = ref->info.nativeDataFormats;
+          if(std::none_of(fmts, fmts + fmt_count, [current_rate](auto fmt) {
+            return fmt.sampleRate == current_rate;
+          }))
+          {
+            set.setRate(ref->info.nativeDataFormats[0].sampleRate);
+          }
+        }
+      }
+      else
+      {
+        set.setDefaultOut(2);
+      }
+    }
+    else if(card_out)
+    {
       set.setCardOut(deviceIdToString(card_out->id));
       set.setDefaultOut(card_out->info.nativeDataFormats[0].channels);
 
@@ -180,7 +232,6 @@ public:
     }
     else
     {
-      // qDebug() << Q_FUNC_INFO << "no output";
       set.setCardOut(devices.front().name);
       set.setDefaultOut(0);
     }
@@ -245,18 +296,27 @@ public:
 
   void setCard(QComboBox* combo, ma_device_type tp, QString val)
   {
-    //qDebug() << Q_FUNC_INFO << "looking for: " << val << "in " << combo->count();
-    auto dev_it
-        = ossia::find_if(devices, [&, id = val.toStdString()](const MiniAudioCard& d) {
-      // qDebug() << d.id.coreaudio << " == " << id << bool(d.id.coreaudio == id) << " ???";
-      return d.id.coreaudio == id && d.type == tp;
+    // "Default device" sentinel: select the dedicated combo entry.
+    if(followsDefaultDevice() && val == "Default")
+    {
+      for(int i = 0; i < combo->count(); i++)
+      {
+        if(combo->itemData(i).toInt() == DefaultDeviceItemData)
+        {
+          combo->setCurrentIndex(i);
+          return;
+        }
+      }
+    }
+
+    auto dev_it = ossia::find_if(devices, [&](const MiniAudioCard& d) {
+      return compareDeviceId(d.id, val) && d.type == tp;
     });
     if(dev_it != devices.end())
     {
       int device_index = std::distance(devices.begin(), dev_it);
       for(int i = 0; i < combo->count(); i++)
       {
-        // qDebug() << device_index << i << combo->itemText(i) << combo->itemData(i);
         if(combo->itemData(i).toInt() == device_index)
         {
           combo->setCurrentIndex(i);
@@ -303,6 +363,15 @@ public:
     card_list_in->addItem(devices.front().name + " (capture)", 0);
     card_list_out->addItem(devices.front().name + " (playback)", 0);
 
+    // Optional "follow the OS default device" entry (e.g. WASAPI).
+    if(followsDefaultDevice())
+    {
+      card_list_in->addItem(
+          QObject::tr("Default device (follow system)"), DefaultDeviceItemData);
+      card_list_out->addItem(
+          QObject::tr("Default device (follow system)"), DefaultDeviceItemData);
+    }
+
     // qDebug() << Q_FUNC_INFO << "Devices: ";
     for(std::size_t i = 1; i < devices.size(); i++)
     {
@@ -347,11 +416,24 @@ public:
         }
       };
 
+      auto update_default_in = [this, &m, &m_disp]() {
+        if(m.getCardIn() != "Default")
+        {
+          m_disp.submitDeferredCommand<Audio::Settings::SetModelCardIn>(
+              m, QStringLiteral("Default"));
+          m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultIn>(
+              m, defaultDeviceChannels(ma_device_type_capture));
+        }
+      };
+
       QObject::connect(
           card_list_in, SignalUtils::QComboBox_currentIndexChanged_int(), &v,
-          [this, card_list_in, update_dev_in](int i) {
-        auto& device = devices[card_list_in->itemData(i).toInt()];
-        update_dev_in(device);
+          [this, card_list_in, update_dev_in, update_default_in](int i) {
+        int data = card_list_in->itemData(i).toInt();
+        if(data == DefaultDeviceItemData)
+          update_default_in();
+        else
+          update_dev_in(devices[data]);
       });
 
       if(m.getCardIn().isEmpty())
@@ -380,11 +462,24 @@ public:
         }
       };
 
+      auto update_default_out = [this, &m, &m_disp]() {
+        if(m.getCardOut() != "Default")
+        {
+          m_disp.submitDeferredCommand<Audio::Settings::SetModelCardOut>(
+              m, QStringLiteral("Default"));
+          m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultOut>(
+              m, defaultDeviceChannels(ma_device_type_playback));
+        }
+      };
+
       QObject::connect(
           card_list_out, SignalUtils::QComboBox_currentIndexChanged_int(), &v,
-          [this, card_list_out, update_dev_out](int i) {
-        auto& device = devices[card_list_out->itemData(i).toInt()];
-        update_dev_out(device);
+          [this, card_list_out, update_dev_out, update_default_out](int i) {
+        int data = card_list_out->itemData(i).toInt();
+        if(data == DefaultDeviceItemData)
+          update_default_out();
+        else
+          update_dev_out(devices[data]);
       });
 
       if(m.getCardOut().isEmpty())
