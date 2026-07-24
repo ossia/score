@@ -8,9 +8,7 @@
 
 #if defined(__EMSCRIPTEN__)
 #include <score/application/GUIApplicationContext.hpp>
-
-#include <QGuiApplication>
-#include <QInputMethod>
+#include <score/graphics/GraphicsItem.hpp>
 #endif
 
 W_OBJECT_IMPL(score::QGraphicsLineEdit)
@@ -37,11 +35,7 @@ void QGraphicsLineEdit::focusInEvent(QFocusEvent* e)
   QGraphicsTextItem::focusInEvent(e);
 #if defined(__EMSCRIPTEN__)
   score::reclaimMainWindowFocus();
-  if(auto* im = QGuiApplication::inputMethod())
-  {
-    im->update(Qt::ImEnabled);
-    im->show();
-  }
+  score::retargetInputMethod();
 #endif
 }
 

@@ -9,8 +9,10 @@
 
 #include <QUrl>
 #include <QGraphicsItem>
+#include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QGuiApplication>
+#include <QInputMethod>
 
 using item_help = ossia::hash_map<int, std::pair<QString, QUrl>>;
 #if __has_include(<QApplicationStatic>)
@@ -30,6 +32,42 @@ QUrl getItemHelpUrl(int itemType) noexcept
 {
   auto& val = *g_itemHelpRegistry;
   return val[itemType].second;
+}
+
+namespace score
+{
+void retargetInputMethod() noexcept
+{
+#if defined(__EMSCRIPTEN__)
+  auto* focus = QGuiApplication::focusObject();
+  auto* im = QGuiApplication::inputMethod();
+  if(!focus || !im)
+    return;
+
+  QInputMethodQueryEvent query{Qt::ImEnabled};
+  QCoreApplication::sendEvent(focus, &query);
+  if(!query.value(Qt::ImEnabled).toBool())
+    return;
+
+  im->update(Qt::ImEnabled | Qt::ImQueryInput);
+  im->show();
+#endif
+}
+
+void watchSceneInputMethod(QGraphicsScene& scene)
+{
+#if defined(__EMSCRIPTEN__)
+  QObject::connect(
+      &scene, &QGraphicsScene::focusItemChanged, &scene,
+      [](QGraphicsItem* newItem, QGraphicsItem*, Qt::FocusReason) {
+    if(!newItem || !(newItem->flags() & QGraphicsItem::ItemAcceptsInputMethod))
+      return;
+    retargetInputMethod();
+  });
+#else
+  (void)scene;
+#endif
+}
 }
 
 void deleteGraphicsObject(QGraphicsObject* item)
