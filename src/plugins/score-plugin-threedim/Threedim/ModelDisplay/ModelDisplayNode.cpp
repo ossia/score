@@ -319,7 +319,7 @@ void main ()
   vec4 xaxis = texture(y_tex, v_coords.yz * scale);
   vec4 yaxis = texture(y_tex, v_coords.xz * scale);
   vec4 zaxis = texture(y_tex, v_coords.xy * scale);
-  vec4 tex = xaxis * blending.x + xaxis * blending.y + zaxis * blending.z;
+  vec4 tex = xaxis * blending.x + yaxis * blending.y + zaxis * blending.z;
 
   fragColor = tex;
 }
@@ -375,7 +375,7 @@ layout(location = 0) out vec4 fragColor;
 void main ()
 {
   vec2 uv = vec2(atan(v_n.z, v_n.x), asin(v_n.y));
-  uv = uv * vec2(1. / 2. * 3.14159265358979323846264338327, 1. / 3.14159265358979323846264338327) + 0.5;
+  uv = uv * vec2(1. / (2. * 3.14159265358979323846264338327), 1. / 3.14159265358979323846264338327) + 0.5;
   fragColor = texture(y_tex, uv);
 }
 )_";

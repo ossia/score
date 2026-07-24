@@ -1,5 +1,7 @@
 #pragma once
 
+#include "TransformHelper.hpp"
+
 #include <Threedim/TinyObj.hpp>
 #include <halp/audio.hpp>
 #include <halp/geometry.hpp>
@@ -13,9 +15,20 @@ struct Primitive
   halp_meta(author, "Jean-Michaël Celerier, vcglib")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/meshes.html#primitive")
 
+  // Derived classes' operator() calls this with their own inputs +
+  // geometry output to propagate the position/rotation/scale controls
+  // into the transform[16] slot + dirty_transform flag. Only sets
+  // dirty_transform when the matrix actually changes vs last frame.
+  template <typename In, typename Out>
+  void apply_transform(const In& in, Out& out)
+  {
+    out.dirty_transform = computeTRSMatrix(in, out.transform, m_cachedTRS);
+  }
+
   void operator()() { }
   PrimitiveOutputs outputs;
   std::vector<float> complete;
+  CachedTRS m_cachedTRS{};
 };
 
 // Plane is a special case due to needing a different geometry type
@@ -53,9 +66,14 @@ public:
 
   void prepare(halp::setup) { update(); }
   void update();
-  void operator()() { }
+  void operator()()
+  {
+    outputs.geometry.dirty_transform
+        = computeTRSMatrix(inputs, outputs.geometry.transform, m_cachedTRS);
+  }
 
   std::vector<float> complete;
+  CachedTRS m_cachedTRS{};
 };
 
 struct Cube : Primitive
@@ -74,6 +92,7 @@ public:
 
   void prepare(halp::setup) { update(); }
   void update();
+  void operator()() { apply_transform(inputs, outputs.geometry); }
 };
 
 struct Sphere : Primitive
@@ -97,6 +116,7 @@ public:
 
   void prepare(halp::setup) { update(); }
   void update();
+  void operator()() { apply_transform(inputs, outputs.geometry); }
 };
 
 struct Icosahedron : Primitive
@@ -114,6 +134,7 @@ struct Icosahedron : Primitive
 
   void prepare(halp::setup) { update(); }
   void update();
+  void operator()() { apply_transform(inputs, outputs.geometry); }
 };
 
 struct Cone : Primitive
@@ -151,6 +172,7 @@ struct Cone : Primitive
 
   void prepare(halp::setup) { update(); }
   void update();
+  void operator()() { apply_transform(inputs, outputs.geometry); }
 };
 
 struct Cylinder : Primitive
@@ -178,6 +200,7 @@ struct Cylinder : Primitive
 
   void prepare(halp::setup) { update(); }
   void update();
+  void operator()() { apply_transform(inputs, outputs.geometry); }
 };
 
 struct Torus : Primitive
@@ -215,6 +238,7 @@ struct Torus : Primitive
 
   void prepare(halp::setup) { update(); }
   void update();
+  void operator()() { apply_transform(inputs, outputs.geometry); }
 };
 
 }
