@@ -80,7 +80,7 @@ View::View()
     { if (!str.isEmpty()) serverAddressChanged(str); });
 
     m_server_port = new QSpinBox{};
-    m_server_port->setRange(0, 9999);
+    m_server_port->setRange(0, 99999);
     m_server_port->setMaximumWidth(100);
 
     connect(m_server_port

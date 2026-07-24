@@ -16,7 +16,7 @@ namespace Parameters
 SETTINGS_PARAMETER_IMPL(Enabled){QStringLiteral("RemoteControl/Enabled"), false};
 SETTINGS_PARAMETER_IMPL(WebUiPath){QStringLiteral("RemoteControl/WebUiPath"), ""};
 SETTINGS_PARAMETER_IMPL(ServerAddress){QStringLiteral("RemoteControl/ServerAddress"), "0.0.0.0"};
-SETTINGS_PARAMETER_IMPL(ServerPort){QStringLiteral("RemoteControl/ServerPort"), 8080};
+SETTINGS_PARAMETER_IMPL(ServerPort){QStringLiteral("RemoteControl/ServerPort"), 10111};
 SETTINGS_PARAMETER_IMPL(ServerEnabled){QStringLiteral("RemoteControl/ServerEnabled"), false};
 static auto list()
 {
