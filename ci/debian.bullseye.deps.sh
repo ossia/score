@@ -12,6 +12,7 @@ echo 'deb http://deb.debian.org/debian bullseye-backports main' | $SUDO tee -a /
 $SUDO apt-get update -qq
 $SUDO apt-get install -qq --force-yes -t bullseye-backports \
      binutils gcc g++ clang-13 cmake dpkg-dev lsb-release \
+     file \
      libasound-dev \
      ninja-build \
      libfftw3-dev \
