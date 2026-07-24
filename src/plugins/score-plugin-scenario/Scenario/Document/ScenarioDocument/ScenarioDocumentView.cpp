@@ -15,6 +15,7 @@
 #include <score/application/ApplicationContext.hpp>
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/graphics/BackgroundRenderer.hpp>
+#include <score/graphics/GraphicsItem.hpp>
 #include <score/graphics/GraphicsProxyObject.hpp>
 #include <score/model/Skin.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
@@ -596,6 +597,9 @@ ScenarioDocumentView::ScenarioDocumentView(
   m_view.setSizePolicy(QSizePolicy{QSizePolicy::Expanding, QSizePolicy::Expanding});
 
   m_widget->addAction(new SnapshotAction{m_scene, m_widget});
+
+  score::watchSceneInputMethod(m_scene);
+  score::watchSceneInputMethod(m_timeRulerScene);
 
   // Transport
   /// Zoom

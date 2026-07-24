@@ -10,6 +10,7 @@
 #include <verdigris>
 class QGraphicsObject;
 class QGraphicsItem;
+class QGraphicsScene;
 class QGraphicsView;
 
 namespace score
@@ -41,6 +42,26 @@ SCORE_LIB_BASE_EXPORT
 void registerItemHelp(int itemType, QString tooltip, QUrl url) noexcept;
 SCORE_LIB_BASE_EXPORT
 QUrl getItemHelpUrl(int itemType) noexcept;
+
+namespace score
+{
+/**
+ * @brief Point the platform input method at the currently focused object.
+ *
+ * No-op outside of WebAssembly. Must be called synchronously from the code
+ * handling the user gesture.
+ */
+SCORE_LIB_BASE_EXPORT
+void retargetInputMethod() noexcept;
+
+/**
+ * @brief Keep the platform input method in sync with the scene's focus item.
+ *
+ * No-op outside of WebAssembly.
+ */
+SCORE_LIB_BASE_EXPORT
+void watchSceneInputMethod(QGraphicsScene& scene);
+}
 
 template <typename T>
 struct graphics_item_ptr
