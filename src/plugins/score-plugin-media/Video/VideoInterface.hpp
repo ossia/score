@@ -29,6 +29,11 @@ struct SCORE_PLUGIN_MEDIA_EXPORT ImageFormat
   int height{};
   AVPixelFormat pixel_format = AVPixelFormat(-1);
 
+  // For hardware-accelerated formats (AV_PIX_FMT_DRM_PRIME, VAAPI,
+  // CUDA, etc.) where `pixel_format` is an opaque HW tag, this carries
+  // the underlying SW pixel format that the descriptor / surface wraps
+  AVPixelFormat hwaccel_sw_format = AVPixelFormat(-1);
+
   AVColorRange color_range = AVColorRange(-1);
   AVColorPrimaries color_primaries = AVColorPrimaries(-1);
   AVColorTransferCharacteristic color_trc = AVColorTransferCharacteristic(-1);

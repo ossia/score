@@ -332,8 +332,13 @@ struct RGB24Decoder : GPUVideoDecoder
     const auto w = decoder.width, h = decoder.height;
 
     {
-      // Create a texture
-      auto tex = rhi.newTexture(QRhiTexture::R8, QSize{w * 3, h}, 1, QRhiTexture::sRGB);
+      // Create a texture. NOTE: no QRhiTexture::sRGB — this is a *data* texture
+      // (packed R8 bytes read individually with texelFetch), not a colour
+      // texture. The sRGB flag makes the sampler apply the sRGB->linear EOTF to
+      // every raw byte on fetch, so RGB24/BGR24 video decoded ~15 dB darker than
+      // the identical frame in any other RGB pixel format (which set no flag and
+      // are bit-exact). Found by tests/integration/video-decode-correctness.sh.
+      auto tex = rhi.newTexture(QRhiTexture::R8, QSize{w * 3, h}, 1);
       tex->create();
 
       // Create a sampler
@@ -436,6 +441,86 @@ struct RGB48Decoder : GPUVideoDecoder
     // 3 R16 samples per pixel = 6 bytes per pixel
     QRhiTextureUploadEntry entry{
         0, 0, createTextureUpload(frame.data[0], w * 3, h, 2, frame.linesize[0])};
+
+    QRhiTextureUploadDescription desc{entry};
+    res.uploadTexture(y_tex, desc);
+  }
+};
+
+// RGBA / BGRA 16-bit-per-channel (rgba64le / bgra64le). The data is 16-bit
+// UNORM *integer*; QRhi has no 4-channel 16-bit UNORM format (only R16/RG16), so
+// — like RGB48 — we upload the packed samples into an R16 data texture of width
+// w*4 and reassemble the four components with texelFetch. (The previous routing
+// to a half-float RGBA16F texture reinterpreted the uint16 bytes as halfs ->
+// NaN/denormals -> the frame decoded pure black. Found by
+// tests/integration/video-decode-correctness.sh.)
+struct RGBA64Decoder : GPUVideoDecoder
+{
+  static const constexpr auto rgb_filter = R"_(#version 450
+
+)_" SCORE_GFX_VIDEO_UNIFORMS R"_(
+
+    layout(binding=3) uniform sampler2D y_tex;
+
+    layout(location = 0) in vec2 v_texcoord;
+    layout(location = 0) out vec4 fragColor;
+
+    vec4 processTexture(vec4 tex) {
+      vec4 processed = tex;
+      { %1 }
+      return processed;
+    }
+
+    void main ()
+    {
+      float w = mat.texSz.x;
+      float h = mat.texSz.y;
+      int x = int(floor(v_texcoord.x * w) * 4.);
+      int y = int(v_texcoord.y * h);
+      float r = texelFetch(y_tex, ivec2(x + 0, y), 0).r;
+      float g = texelFetch(y_tex, ivec2(x + 1, y), 0).r;
+      float b = texelFetch(y_tex, ivec2(x + 2, y), 0).r;
+      float a = texelFetch(y_tex, ivec2(x + 3, y), 0).r;
+      fragColor = processTexture(vec4(r, g, b, a));
+    })_";
+
+  RGBA64Decoder(Video::ImageFormat& d, QString f = "")
+      : decoder{d}
+      , filter{std::move(f)}
+  {
+  }
+  Video::ImageFormat& decoder;
+  QString filter;
+
+  std::pair<QShader, QShader> init(RenderList& r) override
+  {
+    auto& rhi = *r.state.rhi;
+    const auto w = decoder.width, h = decoder.height;
+
+    {
+      auto tex = rhi.newTexture(QRhiTexture::R16, QSize{w * 4, h}, 1, QRhiTexture::Flag{});
+      tex->create();
+
+      auto sampler = rhi.newSampler(
+          QRhiSampler::Nearest, QRhiSampler::Nearest, QRhiSampler::None,
+          QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
+      sampler->create();
+
+      samplers.push_back({sampler, tex});
+    }
+
+    return score::gfx::makeShaders(
+        r.state, vertexShader(), QString(rgb_filter).arg(filter));
+  }
+
+  void exec(RenderList&, QRhiResourceUpdateBatch& res, AVFrame& frame) override
+  {
+    const auto w = decoder.width, h = decoder.height;
+    auto y_tex = samplers[0].texture;
+
+    // 4 R16 samples per pixel = 8 bytes per pixel
+    QRhiTextureUploadEntry entry{
+        0, 0, createTextureUpload(frame.data[0], w * 4, h, 2, frame.linesize[0])};
 
     QRhiTextureUploadDescription desc{entry};
     res.uploadTexture(y_tex, desc);

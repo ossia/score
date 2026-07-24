@@ -138,9 +138,13 @@ void Window::render()
   if(m_closed)
     return;
 
-  if(onUpdate)
+  // Hold a copy across the call: onUpdate() runs updateGraph(), and a graph
+  // rebuild triggered from within it can re-arm or clear the vsync callback
+  // (clock teardown in recomputeTimers) — destroying the std::function we are
+  // currently executing. Copying keeps the callable alive for the duration.
+  if(auto f = onUpdate)
   {
-    onUpdate();
+    f();
   }
 
   if(!m_swapChain)
@@ -310,6 +314,18 @@ bool Window::event(QEvent* e)
 {
   switch(e->type())
   {
+    case QEvent::DeferredDelete:
+      // This Window is owned by a std::shared_ptr (ScreenNode::m_window /
+      // Window::state), never by the QObject tree. Honouring a DeferredDelete
+      // here runs `delete this` on the interior pointer of a make_shared block
+      // (invalid free) and, by destroying Window::state, drops the shared
+      // RenderState to RenderList-only ownership so the next
+      // Graph::createAllRenderLists frees it out from under the in-flight
+      // rebuild (the mid-play use-after-free). A stray deleteLater() on a
+      // shared_ptr-managed window is always a bug — swallow it; the shared_ptr
+      // deleter will destroy the window at the right time.
+      return true;
+
     case QEvent::UpdateRequest:
       render();
       break;

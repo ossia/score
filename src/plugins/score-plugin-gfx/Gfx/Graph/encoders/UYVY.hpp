@@ -63,6 +63,7 @@ struct UYVYEncoder : GPUVideoEncoder
   QRhiReadbackResult m_readback{};
   int m_width{};
   int m_height{};
+  bool m_readbackEnabled{true};
 
   void init(
       QRhi& rhi, const RenderState& state, QRhiTexture* inputRGBA, int width,
@@ -122,15 +123,24 @@ struct UYVYEncoder : GPUVideoEncoder
     cb.setViewport(QRhiViewport(0, 0, m_width / 2, m_height));
     cb.draw(3);
 
-    auto* readbackBatch = rhi.nextResourceUpdateBatch();
-    QRhiReadbackDescription rb(m_outTexture);
-    readbackBatch->readBackTexture(rb, &m_readback);
-    cb.endPass(readbackBatch);
+    if(m_readbackEnabled)
+    {
+      auto* readbackBatch = rhi.nextResourceUpdateBatch();
+      QRhiReadbackDescription rb(m_outTexture);
+      readbackBatch->readBackTexture(rb, &m_readback);
+      cb.endPass(readbackBatch);
+    }
+    else
+    {
+      cb.endPass();
+    }
   }
 
   int planeCount() const override { return 1; }
 
   const QRhiReadbackResult& readback(int) const override { return m_readback; }
+  QRhiTexture* outputTexture() const noexcept override { return m_outTexture; }
+  void setReadbackEnabled(bool e) noexcept override { m_readbackEnabled = e; }
 
   void release() override
   {

@@ -266,7 +266,7 @@ void GfxContext::recompute_edges()
 
 void GfxContext::recomputeTimers()
 {
-  // Tear the render clocks down BEFORE the timer pool is nuked: their dtors
+  // Tear down the render clocks BEFORE nuking the timer pool, so their dtors
   // release the shared timers back to a still-live m_timers.
   m_renderClocks.clear();
   m_vsyncClock.reset();
@@ -350,7 +350,8 @@ void GfxContext::recomputeTimers()
 
     // Clock #2 (the default): the shared wall-timer at manualRenderingRate.
     // Outputs at the same rate coalesce onto one TimerClock / one shared timer,
-    // exactly as the old timer->set<OutputNode*> map did.
+    // exactly as the old timer->set<OutputNode*> map did. The per-output
+    // fan-out closure is the old on_manual_timer body.
     for(auto& output : m_graph->outputs())
     {
       auto conf = output->configuration();

@@ -35,8 +35,10 @@ extern "C" {
 #include <Gfx/GStreamer/GStreamerLoader.hpp>
 #include <Video/GStreamerCompatibility.hpp>
 
+#include <ossia/detail/parse_strict.hpp>
+
 #include <climits>
-#include <regex>
+#include <ctre.hpp>
 #include <thread>
 
 namespace Gfx::GStreamer
@@ -53,6 +55,7 @@ struct gstreamer_pipeline
     AVPixelFormat pixfmt{AV_PIX_FMT_NONE};
     int channels{};
     int rate{};
+    std::function<void(int, int, AVPixelFormat)> on_format_change;
   };
 
   std::vector<AppsinkInfo> appsinks;
@@ -71,6 +74,11 @@ struct gstreamer_pipeline
 
     // Ring buffer per channel, written by GStreamer thread, read by audio engine
     static constexpr std::size_t ring_size = 65536;
+
+    // Max block the audio thread may resize the output storage to; the
+    // parameter reserves this up front so the per-tick resize never reallocates
+    // (a realloc would free a buffer the audio thread is reading through).
+    static constexpr std::size_t max_block = 1 << 15;
     std::vector<std::vector<float>> ring; // [channel][ring_size]
     std::atomic<std::size_t> write_pos{0};
     std::atomic<std::size_t> read_pos{0};
@@ -99,11 +107,38 @@ struct gstreamer_pipeline
       write_pos.store(wp + num_samples, std::memory_order_release);
     }
 
+    // Points at the parameter's audio spans so read_into_output can re-point
+    // them after a resize. A raw pointer (not a std::function) so that clearing
+    // or using it during teardown can never throw on the audio thread.
+    ossia::small_vector<std::span<float>, 8>* output_spans{};
+
     // Called by audio engine (indirectly): copy from ring into output spans
     void read_into_output(int block_size)
     {
       if(!output_data)
         return;
+
+      // The engine tick size can differ from the configured buffer size
+      // (e.g. PipeWire dynamic quantum); the storage follows it, but never
+      // beyond the capacity reserved at construction (so no reallocation).
+      if(block_size > (int)max_block)
+        block_size = max_block;
+      bool resized = false;
+      for(auto& v : *output_data)
+      {
+        if(std::ssize(v) != block_size)
+        {
+          v.resize(block_size);
+          resized = true;
+        }
+      }
+      if(resized && output_spans && output_data)
+      {
+        const std::size_t n = std::min(output_spans->size(), output_data->size());
+        for(std::size_t i = 0; i < n; i++)
+          (*output_spans)[i] = (*output_data)[i];
+      }
+
       auto rp = read_pos.load(std::memory_order_relaxed);
       auto wp = write_pos.load(std::memory_order_acquire);
 
@@ -236,12 +271,15 @@ struct gstreamer_pipeline
           }
           else
           {
-            // Caps not yet negotiated; default to video
-            info.is_video = true;
-            info.width = 640;
-            info.height = 480;
-            info.pixfmt = AV_PIX_FMT_RGBA;
-            video_count++;
+            // Caps not yet negotiated (e.g. live sources: v4l2src, webrtcsrc,
+            // audiotestsrc is-live=true don't preroll in PAUSED).
+            // Fall back to classifying from the pipeline description: the
+            // nearest audio/video token before this appsink wins.
+            classify_from_pipeline_string(pipeline_string, sink_name, info);
+            if(info.is_video)
+              video_count++;
+            else
+              audio_count++;
           }
           gst.object_unref(pad);
         }
@@ -346,17 +384,16 @@ struct gstreamer_pipeline
   }
 
 private:
+  static constexpr auto appsink_name_rexp
+      = ctll::fixed_string{R"(appsink\b[^!]*?\bname\s*=\s*([A-Za-z0-9_]+))"};
+  static constexpr auto elem_name_rexp
+      = ctll::fixed_string{R"(\bname\s*=\s*([A-Za-z0-9_]+))"};
+
   static std::vector<std::string> find_appsink_names(const std::string& pipeline)
   {
     std::vector<std::string> names;
-    // Match "appsink" optionally followed by properties including name=<identifier>
-    std::regex re(R"(appsink\b[^!]*?\bname\s*=\s*(\w+))");
-    auto begin = std::sregex_iterator(pipeline.begin(), pipeline.end(), re);
-    auto end = std::sregex_iterator();
-    for(auto it = begin; it != end; ++it)
-    {
-      names.push_back((*it)[1].str());
-    }
+    for(auto m : ctre::search_all<appsink_name_rexp>(pipeline))
+      names.push_back(m.get<1>().to_string());
     return names;
   }
 
@@ -365,14 +402,87 @@ private:
   static std::vector<std::string> find_all_named_elements(const std::string& pipeline)
   {
     std::vector<std::string> names;
-    std::regex re(R"(\bname\s*=\s*(\w+))");
-    auto begin = std::sregex_iterator(pipeline.begin(), pipeline.end(), re);
-    auto end = std::sregex_iterator();
-    for(auto it = begin; it != end; ++it)
-    {
-      names.push_back((*it)[1].str());
-    }
+    for(auto m : ctre::search_all<elem_name_rexp>(pipeline))
+      names.push_back(m.get<1>().to_string());
     return names;
+  }
+
+  static constexpr auto channels_rexp
+      = ctll::fixed_string{R"(channels=(?:\(int\))?\s*([0-9]+))"};
+  static constexpr auto rate_rexp
+      = ctll::fixed_string{R"(rate=(?:\(int\))?\s*([0-9]+))"};
+  static constexpr auto width_rexp
+      = ctll::fixed_string{R"(width=(?:\(int\))?\s*([0-9]+))"};
+  static constexpr auto height_rexp
+      = ctll::fixed_string{R"(height=(?:\(int\))?\s*([0-9]+))"};
+  static constexpr auto format_rexp
+      = ctll::fixed_string{R"(format=(?:\(string\))?\s*([A-Za-z0-9]+))"};
+
+  template <ctll::fixed_string Rexp>
+  static int last_int_of(std::string_view str, int fallback)
+  {
+    int ret = fallback;
+    for(auto m : ctre::search_all<Rexp>(str))
+      if(auto v = ossia::parse_strict<int>(m.template get<1>().to_view()))
+        ret = *v;
+    return ret;
+  }
+
+  // Guess an appsink's media type from the pipeline string when caps are
+  // not negotiated yet: look for the last audio/video-ish token occurring
+  // before "appsink ... name=<sink_name>".
+  static void classify_from_pipeline_string(
+      const std::string& pipeline, const std::string& sink_name, AppsinkInfo& info)
+  {
+    std::size_t sink_pos = std::string::npos;
+    for(auto m : ctre::search_all<appsink_name_rexp>(pipeline))
+    {
+      if(m.get<1>().to_view() == sink_name)
+      {
+        sink_pos = std::distance(pipeline.begin(), m.get<0>().begin());
+        break;
+      }
+    }
+    const std::string_view before
+        = std::string_view{pipeline}.substr(0, sink_pos);
+
+    static constexpr std::string_view audio_tokens[]
+        = {"audio/x-raw", "audioconvert", "audioresample", "audiotestsrc"};
+    static constexpr std::string_view video_tokens[]
+        = {"video/x-raw", "videoconvert", "videoscale", "videotestsrc", "videorate"};
+
+    std::size_t last_audio = std::string::npos, last_video = std::string::npos;
+    for(auto tok : audio_tokens)
+      if(auto p = before.rfind(tok); p != std::string::npos)
+        last_audio = (last_audio == std::string::npos) ? p : std::max(last_audio, p);
+    for(auto tok : video_tokens)
+      if(auto p = before.rfind(tok); p != std::string::npos)
+        last_video = (last_video == std::string::npos) ? p : std::max(last_video, p);
+
+    const bool is_audio = last_audio != std::string::npos
+                          && (last_video == std::string::npos || last_audio > last_video);
+    if(is_audio)
+    {
+      info.is_video = false;
+      info.channels = last_int_of<channels_rexp>(before, 2);
+      info.rate = last_int_of<rate_rexp>(before, 48000);
+    }
+    else
+    {
+      info.is_video = true;
+      info.width = last_int_of<width_rexp>(before, 640);
+      info.height = last_int_of<height_rexp>(before, 480);
+      info.pixfmt = AV_PIX_FMT_RGBA;
+      std::string format;
+      for(auto m : ctre::search_all<format_rexp>(before))
+        format = m.get<1>().to_string();
+      if(!format.empty())
+      {
+        auto& map = ::Video::gstreamerToLibav();
+        if(auto it = map.find(format); it != map.end())
+          info.pixfmt = it->second;
+      }
+    }
   }
 
   static void parse_video_caps(
@@ -448,6 +558,33 @@ private:
           if(info.is_video) video_idx++;
           else audio_idx++;
           continue;
+        }
+
+        if(info.is_video)
+        {
+          if(GstCaps* caps = gst.sample_get_caps(sample))
+          {
+            int new_w = info.width;
+            int new_h = info.height;
+            AVPixelFormat new_pf = info.pixfmt;
+            if(GstStructure* s = gst.caps_get_structure(caps, 0))
+            {
+              AppsinkInfo probed = info;
+              parse_video_caps(gst, s, probed);
+              new_w = probed.width;
+              new_h = probed.height;
+              new_pf = probed.pixfmt;
+            }
+            if(new_w != info.width || new_h != info.height
+               || new_pf != info.pixfmt)
+            {
+              info.width = new_w;
+              info.height = new_h;
+              info.pixfmt = new_pf;
+              if(info.on_format_change)
+                info.on_format_change(new_w, new_h, new_pf);
+            }
+          }
         }
 
         GstMapInfo map_info{};
@@ -549,6 +686,17 @@ public:
 
   AVFrame* dequeue_frame() noexcept override { return queue->dequeue(); }
   void release_frame(AVFrame* frame) noexcept override { queue->release(frame); }
+
+  // Mid-stream caps change: drain stale frames before the renderer
+  // dequeues, then commit the metadata update.
+  bool notifyFormatChange(
+      int new_w, int new_h, AVPixelFormat new_pixfmt) noexcept override
+  {
+    if(new_w == width && new_h == height && new_pixfmt == pixel_format)
+      return false;
+    queue->drain();
+    return ::Video::ExternalInput::notifyFormatChange(new_w, new_h, new_pixfmt);
+  }
 };
 
 class gstreamer_audio_parameter final : public ossia::audio_parameter
@@ -562,18 +710,29 @@ public:
       , m_audio_data(num_channels)
       , m_block_size{bs}
   {
-    // Set up owned buffers and point audio spans to them permanently
+    // Set up owned buffers and point audio spans to them permanently.
+    // Reserve a generous capacity up front so the per-tick resize() in
+    // read_into_output (block size follows the engine quantum) never
+    // reallocates — a realloc here would free a buffer the audio thread may
+    // still be reading through the spans, causing a double free.
     audio.resize(num_channels);
     for(int i = 0; i < num_channels; i++)
     {
+      m_audio_data[i].reserve(gstreamer_pipeline::AudioBuffer::max_block);
       m_audio_data[i].resize(bs, 0.f);
       audio[i] = m_audio_data[i];
     }
-    // Give the AudioBuffer a pointer so read_into_output can fill our buffers
+    // Give the AudioBuffer pointers so read_into_output can fill our buffers
+    // and re-point our spans after a resize.
     m_buffer.output_data = &m_audio_data;
+    m_buffer.output_spans = &audio;
   }
 
-  virtual ~gstreamer_audio_parameter() { m_buffer.output_data = nullptr; }
+  virtual ~gstreamer_audio_parameter()
+  {
+    m_buffer.output_data = nullptr;
+    m_buffer.output_spans = nullptr;
+  }
 
   // clone_value() (not virtual) reads from audio spans.
   // We use push_value(audio_port) as a hook — it's called by the audio engine
@@ -594,8 +753,10 @@ public:
 
   void refresh_from_ring()
   {
-    m_buffer.read_into_output(m_block_size);
-    // Re-point spans (in case vectors reallocated, though they shouldn't)
+    // Follow whatever block size the engine last requested in pre_tick
+    const int bs
+        = m_audio_data.empty() ? m_block_size : (int)m_audio_data[0].size();
+    m_buffer.read_into_output(bs);
     for(std::size_t i = 0; i < m_audio_data.size(); i++)
       audio[i] = m_audio_data[i];
   }
@@ -671,6 +832,13 @@ public:
         decoder->width = sink.width;
         decoder->height = sink.height;
         decoder->fps = 30;
+
+        std::weak_ptr<gstreamer_video_decoder> dec_weak{decoder};
+        sink.on_format_change
+            = [dec_weak](int w, int h, AVPixelFormat f) {
+                if(auto d = dec_weak.lock())
+                  d->notifyFormatChange(w, h, f);
+              };
 
         root.add_child(std::make_unique<Gfx::simple_texture_input_node>(
             new score::gfx::CameraNode(decoder), &ctx, *this, sink.name));

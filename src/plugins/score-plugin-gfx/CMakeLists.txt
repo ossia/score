@@ -15,6 +15,8 @@ score_common_setup()
 
 find_package(${QT_VERSION} REQUIRED Gui)
 
+add_subdirectory(3rdparty/nv-dvp-bridge)
+
 if(NOT TARGET avformat AND NOT EMSCRIPTEN)
   find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVUTIL AVDEVICE)
 endif()
@@ -53,9 +55,11 @@ set(SYPHON_SRCS
 set(VTB_SRCS
     Gfx/Graph/decoders/HWVideoToolbox_metal.hpp
     Gfx/Graph/decoders/HWVideoToolbox_metal.mm
+    Gfx/Graph/interop/TextureShareMetal.mm
 )
 set_source_files_properties(
     Gfx/Graph/decoders/HWVideoToolbox_metal.mm
+    Gfx/Graph/interop/TextureShareMetal.mm
     PROPERTIES
       SKIP_UNITY_BUILD_INCLUSION ON
 )
@@ -191,8 +195,11 @@ set(HDRS
     Gfx/Graph/Node.hpp
     Gfx/Graph/NodeRenderer.hpp
     Gfx/Graph/OutputNode.hpp
-    Gfx/Graph/PreviewNode.hpp
     Gfx/Graph/RenderClock.hpp
+    Gfx/Graph/DMACaptureInputNode.hpp
+    Gfx/Graph/DirectVideoOutputBackend.hpp
+    Gfx/Graph/DirectVideoOutputNode.hpp
+    Gfx/Graph/PreviewNode.hpp
     Gfx/Graph/SceneGPUState.hpp
     Gfx/Graph/GpuResourceRegistry.hpp
     Gfx/Graph/VertexFallbackDefaults.hpp
@@ -227,7 +234,11 @@ set(HDRS
     Gfx/Graph/Window.hpp
     
     Gfx/Graph/decoders/DXV.hpp
-    Gfx/Graph/decoders/DMABufImport.hpp
+    Gfx/Graph/interop/DMABufImport.hpp
+    Gfx/Graph/interop/DrmFourcc.hpp
+    Gfx/Graph/interop/DrmPrimeWrap.hpp
+    Gfx/Graph/interop/EglDmaBufImport.hpp
+    Gfx/Graph/interop/EglDmaBufExport.hpp
     Gfx/Graph/encoders/ColorSpaceOut.hpp
     Gfx/Graph/encoders/GPUVideoEncoder.hpp
     Gfx/Graph/encoders/UYVY.hpp
@@ -235,14 +246,76 @@ set(HDRS
     Gfx/Graph/encoders/I420.hpp
     Gfx/Graph/encoders/BGRA.hpp
     Gfx/Graph/encoders/V210.hpp
+    Gfx/Graph/encoders/YUV422P10.hpp
+    Gfx/Graph/encoders/P010.hpp
     Gfx/Graph/encoders/V210Compute.hpp
     Gfx/Graph/encoders/UYVYCompute.hpp
     Gfx/Graph/encoders/BGRACompute.hpp
     Gfx/Graph/encoders/ComputeEncoder.hpp
+    Gfx/Graph/encoders/PackedRGB.hpp
+    Gfx/Graph/encoders/YUY2.hpp
+    Gfx/Graph/encoders/YUVPlanar.hpp
+    Gfx/Graph/encoders/WireEncoderFactory.hpp
+
+    Gfx/Graph/interop/CudaFunctions.hpp
+    Gfx/Graph/interop/CudaInterop.h
+    Gfx/Graph/interop/CudaInterop.cpp
+    Gfx/Graph/interop/VkExternalMemoryHelpers.hpp
+    Gfx/Graph/interop/VulkanCudaBounce.hpp
+    Gfx/Graph/interop/VulkanCudaBounce.cpp
+    Gfx/Graph/interop/VkExternalMemoryHelpers.cpp
+    Gfx/Graph/interop/TextureShare.hpp
+    Gfx/Graph/interop/TextureShare.cpp
+    Gfx/Graph/interop/AVHWFrameToQRhi.hpp
+    Gfx/Graph/interop/ImportedGpuBufferRing.hpp
+    Gfx/Graph/interop/ImportedGpuBufferRing.cpp
+    Gfx/Graph/interop/InteropFence.hpp
+    Gfx/Graph/interop/InteropFence.cpp
+    Gfx/Graph/interop/ComputeRingDispatcher.hpp
+    Gfx/Graph/interop/VideoOutputStrategy.hpp
+    Gfx/Graph/interop/VideoCaptureStrategy.hpp
+    Gfx/Graph/interop/CaptureStrategyCommon.hpp
+    Gfx/Graph/interop/CpuStagedCapture.hpp
+    Gfx/Graph/interop/RdmaRingDepth.hpp
+    Gfx/Graph/interop/VulkanRhiContext.hpp
+    # Shared, vendor-neutral NVIDIA-DVP shim templates (parameterized by a
+    # per-vendor DMA-lock policy). Header-only; consumed by capture-card addons.
+    Gfx/Graph/interop/DmaLockPolicy.hpp
+    Gfx/Graph/interop/DvpCaptureGl.hpp
+    Gfx/Graph/interop/DvpCaptureD3D11.hpp
+    Gfx/Graph/interop/DvpOutputGl.hpp
+    Gfx/Graph/interop/DvpOutputD3D11.hpp
+    Gfx/Graph/interop/GLCaptureUpload.hpp
+    Gfx/Graph/interop/RdmaVideoOutput.hpp
+    Gfx/Graph/interop/RdmaVideoOutput.cpp
+    Gfx/Graph/interop/CpuStagedVideoOutput.hpp
+    Gfx/Graph/interop/CpuStagedVideoOutput.cpp
+    Gfx/Graph/interop/VendorDmaRegistrar.hpp
+    Gfx/Graph/interop/PacedFramePump.hpp
+    Gfx/Graph/interop/PacedFramePump.cpp
+    Gfx/Graph/interop/VideoOutputStrategySelect.hpp
+    Gfx/Graph/interop/VideoPixelFormatAV.hpp
+    Gfx/Graph/interop/VideoPixelFormatAV.cpp
+    Gfx/Graph/interop/GpuCapabilities.hpp
+    Gfx/Graph/interop/GpuCapabilities.cpp
+    Gfx/Graph/interop/CudaVmmAllocator.hpp
+    Gfx/Graph/interop/CudaVmmAllocator.cpp
+    Gfx/Graph/interop/StageProfiler.hpp
+    Gfx/Graph/interop/RdmaGpuBuffer.hpp
+    Gfx/Graph/interop/RdmaGpuBuffer.cpp
+    Gfx/Graph/interop/AmdPinnedBuffers.hpp
+    Gfx/Graph/interop/AmdPinnedBuffers.cpp
+    Gfx/Graph/interop/HostPinnedRing.hpp
+    Gfx/Graph/interop/HostPinnedRing.cpp
+    Gfx/Graph/interop/VkCudaSemaphore.hpp
+    Gfx/Graph/interop/VkCudaSemaphore.cpp
+    Gfx/Graph/interop/VideoPixelFormat.hpp
+    Gfx/Graph/interop/VideoPixelFormat.cpp
 
     Gfx/Graph/decoders/GPUVideoDecoder.hpp
     Gfx/Graph/decoders/GPUVideoDecoderFactory.hpp
     Gfx/Graph/decoders/HAP.hpp
+    Gfx/Graph/decoders/WireDecoderFactory.hpp
     Gfx/Graph/decoders/HWTransfer.hpp
     Gfx/Graph/decoders/HWVAAPI.hpp
     Gfx/Graph/decoders/HWCUDA.hpp
@@ -389,8 +462,11 @@ set(SRCS
     Gfx/Graph/Node.cpp
     Gfx/Graph/NodeRenderer.cpp
     Gfx/Graph/OutputNode.cpp
-    Gfx/Graph/PreviewNode.cpp
     Gfx/Graph/RenderClock.cpp
+    Gfx/Graph/DMACaptureInputNode.cpp
+    Gfx/Graph/DirectVideoOutputBackend.cpp
+    Gfx/Graph/DirectVideoOutputNode.cpp
+    Gfx/Graph/PreviewNode.cpp
     Gfx/Graph/SceneGPUState.cpp
     Gfx/Graph/GpuResourceRegistry.cpp
     Gfx/Graph/VertexFallbackDefaults.cpp
@@ -498,6 +574,10 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
    ${QT_PREFIX}::ShaderTools ${QT_PREFIX}::ShaderToolsPrivate  ${QT_PREFIX}::GuiPrivate
    "$<BUILD_INTERFACE:r8brain>"
 )
+
+# nv-dvp-bridge: HostPinnedRing's DVP backend uses the bridge C API
+# directly; needs the include path and the static lib.
+target_link_libraries(${PROJECT_NAME} PRIVATE score_nv_dvp_bridge)
 if(TARGET ${QT_PREFIX}::Svg)
   target_link_libraries(${PROJECT_NAME} PUBLIC "${QT_PREFIX}::Svg")
 endif()
@@ -671,6 +751,30 @@ if(NOT EMSCRIPTEN)
   endif()
 endif()
 
+if(NOT EMSCRIPTEN AND NOT APPLE AND NOT WIN32 AND TARGET pipewire::pipewire)
+  target_sources(${PROJECT_NAME} PRIVATE
+    Gfx/Pipewire/PipewireFormats.hpp
+    Gfx/Pipewire/PipewireInputDevice.hpp
+    Gfx/Pipewire/PipewireInputDevice.cpp
+    Gfx/Pipewire/PipewireOutputDevice.hpp
+    Gfx/Pipewire/PipewireOutputDevice.cpp
+  )
+  set_source_files_properties(
+    Gfx/Pipewire/PipewireInputDevice.cpp
+    Gfx/Pipewire/PipewireOutputDevice.cpp
+    PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON
+  )
+  # Include-only: pull pipewire's INTERFACE_INCLUDE_DIRECTORIES without
+  # linking libpipewire-0.3 (DT_NEEDED would defeat dlopen). The shared
+  # layer in libremidi resolves every pw_* symbol at runtime.
+  get_target_property(_pw_includes pipewire::pipewire INTERFACE_INCLUDE_DIRECTORIES)
+  if(_pw_includes)
+    target_include_directories(${PROJECT_NAME} PRIVATE ${_pw_includes})
+  endif()
+  target_compile_definitions(${PROJECT_NAME} PRIVATE SCORE_HAS_PIPEWIRE_VIDEO_IO)
+  list(APPEND SCORE_FEATURES_LIST pipewire_video)
+endif()
+
 if(freenect2_FOUND)
   target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_FREENECT2)
   target_include_directories(${PROJECT_NAME} PRIVATE ${freenect2_INCLUDE_DIR})
@@ -692,5 +796,45 @@ endif()
 if(SCORE_VIDEO_TESTER)
 add_executable(VideoTester tests/VideoTester.cpp)
 target_link_libraries(VideoTester PRIVATE score_plugin_gfx)
+
+# Headless-friendly variant used by tests/integration/video-decoder-sweep.sh
+add_executable(VideoDecoderTester tests/VideoDecoderTester.cpp)
+target_link_libraries(VideoDecoderTester PRIVATE score_plugin_gfx)
+endif()
+
+# Offscreen unit test for the GPU video encoders (no AJA/libav/gst needed).
+# Static-plugin builds can't link it: score_init_static_plugins() references
+# every configured addon and the tester only links score_plugin_gfx/media.
+option(SCORE_ENCODER_TESTER "Build the GPU encoder offscreen self-test" ON)
+if(SCORE_ENCODER_TESTER AND NOT SCORE_STATIC_PLUGINS)
+add_executable(EncoderTester tests/EncoderTester.cpp)
+target_link_libraries(EncoderTester PRIVATE
+  score_plugin_gfx score_plugin_media ${QT_PREFIX}::Gui)
+
+# Register the self-test as a ctest when the test suite is enabled. It needs
+# a GL-capable display (llvmpipe is fine): label it "gui" like the other
+# display-dependent tests so it can be excluded with `ctest -LE gui`.
+if(SCORE_TESTING)
+  add_test(NAME EncoderTester COMMAND EncoderTester)
+  set_tests_properties(EncoderTester PROPERTIES
+    WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}"
+    ENVIRONMENT "SCORE_AUDIO_BACKEND=dummy;ASAN_OPTIONS=detect_leaks=0:halt_on_error=0"
+    LABELS "gui")
+endif()
+endif()
+
+# PipeWire video round-trip harness: drives the real Gfx/Pipewire producer +
+# consumer against the live daemon across all pixel formats and transports.
+option(SCORE_PIPEWIRE_TESTER "Build the PipeWire video round-trip harness" ON)
+if(SCORE_PIPEWIRE_TESTER
+   AND NOT EMSCRIPTEN AND NOT APPLE AND NOT WIN32 AND NOT SCORE_STATIC_PLUGINS
+   AND TARGET pipewire::pipewire)
+add_executable(PipewireRoundtrip tests/PipewireRoundtrip.cpp)
+# pipewire::pipewire is include-only (score dlopens libpipewire); the
+# harness's raw reference producer calls libpipewire directly, so link it.
+find_library(PIPEWIRE_LIBRARY NAMES pipewire-0.3)
+target_link_libraries(PipewireRoundtrip PRIVATE
+  score_plugin_gfx score_plugin_media ${QT_PREFIX}::Gui ${QT_PREFIX}::Widgets
+  pipewire::pipewire ${PIPEWIRE_LIBRARY} swscale)
 endif()
 

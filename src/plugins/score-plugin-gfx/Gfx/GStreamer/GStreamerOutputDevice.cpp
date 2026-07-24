@@ -13,6 +13,9 @@
 #include <Gfx/Graph/encoders/I420.hpp>
 #include <Gfx/Graph/encoders/NV12.hpp>
 #include <Gfx/Graph/encoders/UYVY.hpp>
+#include <Gfx/Graph/encoders/P010.hpp>
+#include <Gfx/Graph/encoders/V210.hpp>
+#include <Gfx/Graph/encoders/YUV422P10.hpp>
 #include <Gfx/InvertYRenderer.hpp>
 
 #include <score/gfx/OpenGL.hpp>
@@ -340,57 +343,72 @@ struct GStreamerOutputNode : score::gfx::OutputNode
     if(!bus)
       return;
 
-    // timeout==0 => return immediately if no matching message is queued.
-    while(GstMessage* msg = gst.bus_timed_pop_filtered(
-              bus, 0, (GstMessageType)GST_MESSAGE_ERROR))
+    // Drain WARNINGs first (non-fatal: QoS, v4l2/muxer notices) — log and
+    // discard, they must NOT stop the pipeline (would truncate the recording).
+    while(GstMessage* msg
+          = gst.bus_timed_pop_filtered(bus, 0, GST_MESSAGE_WARNING))
+    {
+      qWarning() << "GStreamer output: pipeline warning on the bus";
+      if(gst.message_unref)
+        gst.message_unref(msg);
+    }
+    // Only an ERROR is fatal: stop feeding frames, but deliberately leave
+    // m_started set so stop_pipeline() still runs EOS + drives to NULL.
+    if(GstMessage* msg = gst.bus_timed_pop_filtered(bus, 0, GST_MESSAGE_ERROR))
     {
       qWarning() << "GStreamer output: fatal error on the bus; stopping frame "
                     "feed (pipeline will still be finalized)";
       if(gst.message_unref)
         gst.message_unref(msg);
       m_feeding = false;
-      break;
     }
     gst.object_unref(bus);
   }
 
   void stop_pipeline()
   {
-    if(!m_pipeline || !m_started)
+    if(!m_pipeline)
       return;
 
     auto& gst = libgstreamer::instance();
 
-    // Send EOS to appsrc elements so downstream can finalize
-    if(m_video_src && gst.app_src_end_of_stream)
-      gst.app_src_end_of_stream(m_video_src);
-    if(m_audio_src && gst.app_src_end_of_stream)
-      gst.app_src_end_of_stream(m_audio_src);
-
-    // appsrc EOS is ASYNC: it travels through the pipeline as a buffer would,
-    // and muxers (mp4mux/matroskamux/...) only finalize the file once EOS
-    // reaches them. Setting the pipeline to NULL immediately would truncate
-    // the moov atom / cluster index, producing unplayable files. Wait for the
-    // EOS (or ERROR) message on the bus, with a bounded timeout so we never
-    // hang the UI thread on a stuck pipeline.
-    if(gst.element_get_bus && gst.bus_timed_pop_filtered)
+    // Only the EOS handshake is gated on m_started: if we were never
+    // pushing (or an ERROR already stopped us) there's nothing to
+    // flush, but we must still bring the pipeline to NULL below — an
+    // early return here would leak a still-PLAYING pipeline.
+    if(m_started)
     {
-      if(GstBus* bus = gst.element_get_bus(m_pipeline))
+      // Send EOS to appsrc elements so downstream can finalize
+      if(m_video_src && gst.app_src_end_of_stream)
+        gst.app_src_end_of_stream(m_video_src);
+      if(m_audio_src && gst.app_src_end_of_stream)
+        gst.app_src_end_of_stream(m_audio_src);
+
+      // appsrc EOS is ASYNC: it travels through the pipeline as a buffer would,
+      // and muxers (mp4mux/matroskamux/...) only finalize the file once EOS
+      // reaches them. Setting the pipeline to NULL immediately would truncate
+      // the moov atom / cluster index, producing unplayable files. Wait for the
+      // EOS (or ERROR) message on the bus, with a bounded timeout so we never
+      // hang the UI thread on a stuck pipeline.
+      if(gst.element_get_bus && gst.bus_timed_pop_filtered)
       {
-        GstMessage* msg = gst.bus_timed_pop_filtered(
-            bus, 5 * GST_SECOND,
-            (GstMessageType)(GST_MESSAGE_EOS | GST_MESSAGE_ERROR));
-        if(msg)
+        if(GstBus* bus = gst.element_get_bus(m_pipeline))
         {
-          if(gst.message_unref)
-            gst.message_unref(msg);
+          GstMessage* msg = gst.bus_timed_pop_filtered(
+              bus, 5 * GST_SECOND,
+              (GstMessageType)(GST_MESSAGE_EOS | GST_MESSAGE_ERROR));
+          if(msg)
+          {
+            if(gst.message_unref)
+              gst.message_unref(msg);
+          }
+          else
+          {
+            qWarning() << "GStreamer output: timed out waiting for EOS; "
+                          "output file may be truncated";
+          }
+          gst.object_unref(bus);
         }
-        else
-        {
-          qWarning() << "GStreamer output: timed out waiting for EOS; "
-                        "output file may be truncated";
-        }
-        gst.object_unref(bus);
       }
     }
 
@@ -632,8 +650,23 @@ struct GStreamerOutputNode : score::gfx::OutputNode
     m_renderState->outputSize = m_renderState->renderSize;
 
     auto rhi = m_renderState->rhi;
+
+    // init_pipeline() negotiates with GStreamer and fills m_detectedFormat, so
+    // the scene render-target format (which depends on whether the output is
+    // 10-bit) must be chosen AFTER it.
+    const bool pipeline_ok = init_pipeline();
+    if(!pipeline_ok)
+      qWarning() << "GStreamerOutputNode: pipeline init failed; output disabled";
+
+    // 10-bit output (packed v210, planar I422_10LE, or semi-planar P010_10LE)
+    // needs a >8-bit scene render target for real precision; else RGBA8.
+    const bool is_v210 = (m_detectedFormat == "v210");
+    const bool tenBit = is_v210 || (m_detectedFormat == "I422_10LE")
+                        || (m_detectedFormat == "P010_10LE");
+    m_renderState->renderFormat
+        = tenBit ? QRhiTexture::RGBA16F : QRhiTexture::RGBA8;
     m_texture = rhi->newTexture(
-        QRhiTexture::RGBA8, m_renderState->renderSize, 1,
+        m_renderState->renderFormat, m_renderState->renderSize, 1,
         QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource);
     m_texture->create();
     m_renderTarget = rhi->newTextureRenderTarget({m_texture});
@@ -642,10 +675,6 @@ struct GStreamerOutputNode : score::gfx::OutputNode
     m_renderTarget->setRenderPassDescriptor(
         m_renderState->renderPassDescriptor);
     m_renderTarget->create();
-
-    const bool pipeline_ok = init_pipeline();
-    if(!pipeline_ok)
-      qWarning() << "GStreamerOutputNode: pipeline init failed; output disabled";
 
     // Create GPU encoder if a YUV target format was detected
     if(pipeline_ok && !m_detectedFormat.isEmpty() && rhi)
@@ -657,6 +686,12 @@ struct GStreamerOutputNode : score::gfx::OutputNode
           return std::make_unique<score::gfx::NV12Encoder>();
         else if(m_detectedFormat == "I420" || m_detectedFormat == "YV12")
           return std::make_unique<score::gfx::I420Encoder>();
+        else if(m_detectedFormat == "v210")
+          return std::make_unique<score::gfx::V210Encoder>();
+        else if(m_detectedFormat == "I422_10LE")
+          return std::make_unique<score::gfx::YUV422P10Encoder>();
+        else if(m_detectedFormat == "P010_10LE")
+          return std::make_unique<score::gfx::P010Encoder>();
         return nullptr;
       };
 
@@ -677,8 +712,16 @@ struct GStreamerOutputNode : score::gfx::OutputNode
         // we never sample past the rendered texture, and feed the SAME aligned
         // dimensions to both the encoder and the negotiated caps so the tight
         // readback matches GStreamer's expected (now no-op ROUND_UP_4) strides.
-        const int enc_w = std::max(8, m_settings.width & ~7);  // mult of 8 (covers 4 & 2)
-        const int enc_h = std::max(2, m_settings.height & ~1); // mult of 2
+        // v210 packs 6-px groups into a 128-byte-aligned row, so width must be
+        // a multiple of 48 for the tight readback to match GStreamer's v210
+        // stride (((w+47)/48)*128); it has no vertical subsampling. Other
+        // formats: mult-of-8 width (covers 4:2:2 / 4:2:0) and even height.
+        // v210 packs 6-px groups into 128-byte rows (width % 48). Other
+        // formats need mult-of-8 width. Even height covers 4:2:0 vertical
+        // subsampling (P010 / NV12 / I420) and is harmless for 4:2:2.
+        const int enc_w = is_v210 ? std::max(48, (m_settings.width / 48) * 48)
+                                  : std::max(8, m_settings.width & ~7);
+        const int enc_h = std::max(2, m_settings.height & ~1);
         if(enc_w != m_settings.width || enc_h != m_settings.height)
           qDebug() << "GStreamer output: aligning" << m_detectedFormat
                    << "from" << m_settings.width << "x" << m_settings.height
