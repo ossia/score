@@ -25,6 +25,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/SDLInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/WASMMiniAudioInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/WASAPIPortAudioInterface.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Audio/WASAPIMiniAudioInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/WDMKSPortAudioInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioApplicationPlugin.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioPreviewExecutor.hpp"
@@ -101,7 +102,7 @@ if(OSSIA_ENABLE_SDL)
   list(APPEND SCORE_FEATURES_LIST sdl)
 endif()
 
-if(LINUX OR BSD OR APPLE OR EMSCRIPTEN)
+if(LINUX OR BSD OR APPLE OR EMSCRIPTEN OR WIN32)
   target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE "${OSSIA_3RDPARTY_FOLDER}/miniaudio")
   if(APPLE)
     target_link_libraries(${PROJECT_NAME} PRIVATE "-framework AudioUnit")

@@ -20,6 +20,7 @@
 #include <Audio/SDLInterface.hpp>
 #include <Audio/Settings/Factory.hpp>
 #include <Audio/WASAPIPortAudioInterface.hpp>
+#include <Audio/WASAPIMiniAudioInterface.hpp>
 #include <Audio/WASMMiniAudioInterface.hpp>
 #include <Audio/WDMKSPortAudioInterface.hpp>
 
@@ -154,6 +155,14 @@ std::vector<score::InterfaceBase*> score_plugin_audio::factories(
       return vec;
 #endif
     }
+    else if(forced_backend == "wasapi_miniaudio")
+    {
+#if defined(_WIN32) && defined(OSSIA_AUDIO_MINIAUDIO)
+      add_factories<FW<Audio::AudioFactory, Audio::WASAPIMiniAudioFactory>>(
+          vec, ctx, key);
+      return vec;
+#endif
+    }
     else if(forced_backend == "dummy")
     {
       add_factories<FW<Audio::AudioFactory, Audio::DummyFactory>>(vec, ctx, key);
@@ -221,6 +230,10 @@ std::vector<score::InterfaceBase*> score_plugin_audio::factories(
 #if defined(__APPLE__) && defined(OSSIA_AUDIO_MINIAUDIO)
          ,
          Audio::CoreAudioFactory
+#endif
+#if defined(_WIN32) && defined(OSSIA_AUDIO_MINIAUDIO)
+         ,
+         Audio::WASAPIMiniAudioFactory
 #endif
 #if defined(__EMSCRIPTEN__) && defined(OSSIA_AUDIO_MINIAUDIO)
          ,
