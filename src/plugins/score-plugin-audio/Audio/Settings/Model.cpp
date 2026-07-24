@@ -79,6 +79,8 @@ static std::optional<Audio::AudioFactory::ConcreteKey> driverFromEnv()
     uid = "3533ee88-9a8d-486c-b20b-6c966cf4eaa0";
   else if(env == "alsa_miniaudio")
     uid = "e0c533da-a1f4-4795-90b5-a805cdfcb79f";
+  else if(env == "wasapi_miniaudio")
+    uid = "2838b52b-9c0c-466e-a2b0-8c6d8cb8fc6d";
 
   if(uid.isEmpty())
     return std::nullopt;

@@ -83,7 +83,7 @@ public:
     }
   }
 
-  QString prettyName() const override { return QObject::tr("WASAPI"); }
+  QString prettyName() const override { return QObject::tr("WASAPI (PortAudio)"); }
   std::shared_ptr<ossia::audio_engine> make_engine(
       const Audio::Settings::Model& set, const score::ApplicationContext& ctx) override
   {
