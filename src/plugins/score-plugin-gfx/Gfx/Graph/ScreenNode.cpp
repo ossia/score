@@ -172,9 +172,8 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
       // context creation fails, and until now that failure was silent: no
       // swapchain was created, Window::render() returned immediately and the
       // output window stayed black for the rest of its life.
-      qCritical() << "createRenderState: QRhi::create(OpenGLES2) FAILED. The output "
-                     "will never render. Live GL contexts:"
-                  << liveGraphicsContextCount();
+      qCritical() << "createRenderState: QRhi::create(OpenGLES2) FAILED. "
+                     "This output will never render.";
     }
     state.renderSize = sz;
     populateCaps(state);
@@ -416,17 +415,11 @@ void ScreenNode::onRendererChange()
       {
         const bool canRender = r->renderers.size() > 1;
         // Called once per frame: only report transitions.
-        if(outputLogEnabled() && canRender != m_window->m_canRender)
-          qDebug() << "[gfxout] onRendererChange:" << (void*)this
-                   << "renderers=" << r->renderers.size() << "canRender=" << canRender;
         m_window->m_canRender = canRender;
         return;
       }
     }
   }
-  if(outputLogEnabled() && m_window->m_canRender)
-    qDebug() << "[gfxout] onRendererChange:" << (void*)this
-             << "no render list, canRender=false";
   m_window->m_canRender = false;
 }
 
@@ -809,15 +802,6 @@ score::gfx::OutputNodeRenderer* ScreenNode::createRenderer(RenderList& r) const 
   rt.renderTarget = m_swapChain->currentFrameRenderTarget();
   rt.renderPass = r.state.renderPassDescriptor;
 
-  if(outputLogEnabled())
-    qDebug() << "[gfxout] ScreenNode::createRenderer: node=" << (void*)this
-             << "rt=" << (void*)rt.renderTarget
-             << "rtSize=" << (rt.renderTarget ? rt.renderTarget->pixelSize() : QSize{})
-             << "rtSamples=" << (rt.renderTarget ? rt.renderTarget->sampleCount() : -1)
-             << "swapchain current=" << m_swapChain->currentPixelSize()
-             << "surface=" << m_swapChain->surfacePixelSize()
-             << "state.renderSize=" << r.state.renderSize
-             << "state.outputSize=" << r.state.outputSize;
 
   // FIXME why doesn't it work?
   // return new BasicRenderer{rt, r.state, *this};

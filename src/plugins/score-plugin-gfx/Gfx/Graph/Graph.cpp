@@ -232,10 +232,6 @@ void Graph::recreateOutputRenderList(OutputNode& output)
         return r.get() == rend;
       });
 
-  if(outputLogEnabled())
-    qDebug() << "[gfxout] recreateOutputRenderList: existing renderer="
-             << (void*)output.renderer() << "found=" << (it != m_renderers.end())
-             << "canRender=" << output.canRender();
 
   if(it == m_renderers.end())
   {

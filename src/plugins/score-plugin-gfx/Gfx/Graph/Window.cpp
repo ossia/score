@@ -36,219 +36,10 @@
 W_OBJECT_IMPL(score::gfx::Window)
 namespace score::gfx
 {
-namespace
-{
-std::vector<Window*> g_windows;
-
-QString frameOpName(int r)
-{
-  switch(r)
-  {
-    case QRhi::FrameOpSuccess:
-      return QStringLiteral("Success");
-    case QRhi::FrameOpError:
-      return QStringLiteral("Error");
-    case QRhi::FrameOpSwapChainOutOfDate:
-      return QStringLiteral("SwapChainOutOfDate");
-    case QRhi::FrameOpDeviceLost:
-      return QStringLiteral("DeviceLost");
-    default:
-      return QStringLiteral("<never called>");
-  }
-}
-
-QString sizeStr(QSize s)
-{
-  return QStringLiteral("%1x%2").arg(s.width()).arg(s.height());
-}
-
-}
-
-void installGfxDiagnostics()
-{
-#if defined(__EMSCRIPTEN__)
-  static bool installed = false;
-  if(installed)
-    return;
-  installed = true;
-
-  // clang-format off
-  EM_ASM({
-    globalThis.__scoreGlEvents = [];
-    var seen = new WeakSet();
-    var describe = function(e) {
-      if (!e) return "<null>";
-      var s = e.tagName ? e.tagName.toLowerCase() : "?";
-      if (e.id) s += "#" + e.id;
-      var c = (typeof e.className === "string") ? e.className.trim() : "";
-      if (c) s += "." + c.split(" ").filter(function(x) { return x.length; }).join(".");
-      return s;
-    };
-    var attach = function(c) {
-      if (!c || seen.has(c)) return;
-      seen.add(c);
-      var rec = function(type) {
-        return function() {
-          globalThis.__scoreGlEvents.push(
-            new Date().toISOString() + "  " + type + "  on " + describe(c));
-        };
-      };
-      c.addEventListener("webglcontextlost", rec("webglcontextlost"));
-      c.addEventListener("webglcontextrestored", rec("webglcontextrestored"));
-      c.addEventListener("webglcontextcreationerror", rec("webglcontextcreationerror"));
-    };
-    var roots = function() {
-      var host = document.querySelector("#qt-shadow-container");
-      var out = [document];
-      if (host && host.shadowRoot) out.push(host.shadowRoot);
-      return out;
-    };
-    var scan = function() {
-      roots().forEach(function(r) {
-        r.querySelectorAll("canvas").forEach(attach);
-      });
-    };
-    scan();
-    // Canvases appear when a window is shown, and the shadow root itself may
-    // not exist yet: keep looking rather than sampling once.
-    var tries = 0;
-    var poll = function() {
-      scan();
-      if (++tries < 2000) setTimeout(poll, 500);
-    };
-    setTimeout(poll, 300);
-
-    globalThis.__scoreGlState = function() {
-      var lines = [];
-      try {
-        if (typeof GL !== "undefined" && GL.contexts) {
-          // GL.contexts is an object keyed by handle, not an array: indexing it
-          // by 0..length is how the first version of this counter managed to
-          // report 0 live contexts while a GL window was rendering.
-          var keys = Object.keys(GL.contexts);
-          lines.push("  gl.tableEntries      : " + keys.length);
-          var live = 0;
-          keys.forEach(function(k) {
-            var c = GL.contexts[k];
-            if (!c) return;
-            live++;
-            var ctx = c.GLctx;
-            lines.push("    ctx[" + k + "] canvas=" + describe(ctx ? ctx.canvas : null)
-                       + " isContextLost="
-                       + (ctx && ctx.isContextLost ? ctx.isContextLost() : "?"));
-          });
-          lines.push("  gl.liveContexts      : " + live
-                     + "   currentContext=" + (GL.currentContext ? "yes" : "no"));
-        } else {
-          lines.push("  gl.contexts          : <emscripten GL table unavailable>");
-        }
-      } catch (e) {
-        lines.push("  gl.contexts          : <error " + e + ">");
-      }
-      roots().forEach(function(r, ri) {
-        var cv = r.querySelectorAll("canvas");
-        lines.push("  canvases in " + (ri === 0 ? "document" : "shadowRoot") + " : " + cv.length);
-        for (var i = 0; i < cv.length; i++) {
-          var e = cv[i];
-          var box = e.getBoundingClientRect();
-          lines.push("    " + describe(e) + " attr=" + e.width + "x" + e.height
-                     + " css=" + Math.round(box.width) + "x" + Math.round(box.height)
-                     + " watched=" + seen.has(e));
-        }
-      });
-      lines.push("  gl.contextEvents     : " + globalThis.__scoreGlEvents.length);
-      globalThis.__scoreGlEvents.forEach(function(e) { lines.push("    " + e); });
-      return lines.join("\n");
-    };
-
-    globalThis.scoreGfxDump = function() {
-      var f = (typeof _score_gfx_dump_text !== "undefined")
-                ? _score_gfx_dump_text
-                : Module["_score_gfx_dump_text"];
-      var s = UTF8ToString(f());
-      console.log(s);
-      return s;
-    };
-  });
-  // clang-format on
-#endif
-}
-
-const std::vector<Window*>& Window::allWindows() noexcept
-{
-  return g_windows;
-}
-
-QString Window::diagnosticState() const
-{
-  QStringList out;
-  out << QStringLiteral("    window=%1 title=\"%2\" visible=%3 exposed=%4 geom=%5,%6 %7")
-             .arg(QString::number(reinterpret_cast<quintptr>(this), 16), title())
-             .arg(isVisible() ? "y" : "n")
-             .arg(isExposed() ? "y" : "n")
-             .arg(x())
-             .arg(y())
-             .arg(sizeStr(size()));
-
-  out << QStringLiteral("      flags: running=%1 closed=%2 notExposed=%3 newlyExposed=%4 "
-                        "hasSwapChain=%5 deviceLost=%6 canRender=%7")
-             .arg(m_running ? "y" : "n", m_closed ? "y" : "n", m_notExposed ? "y" : "n",
-                  m_newlyExposed ? "y" : "n", m_hasSwapChain ? "y" : "n",
-                  m_deviceLost ? "y" : "n", m_canRender ? "y" : "n");
-
-  out << QStringLiteral("      lastBeginFrame: %1   fps=%2")
-             .arg(frameOpName(m_lastFrameOp))
-             .arg(m_fps, 0, 'f', 1);
-
-  if(state)
-  {
-    // A non-null fallback surface next to a window means this QRhi has two
-    // surfaces to choose between, which on wasm is what gets an output
-    // permanently flagged context-lost as soon as a second GL output exists.
-    out << QStringLiteral("      surfaces: window=%1 offscreenFallback=%2")
-               .arg(
-                   QStringLiteral("yes"),
-                   state->surface ? QStringLiteral("YES <- can be mistaken for context loss")
-                                  : QStringLiteral("none (window is its own fallback)"));
-
-    out << QStringLiteral("      state: rhi=%1 rhiDeviceLost=%2 samples=%3 renderSize=%4 "
-                          "outputSize=%5 renderPassDescriptor=%6 renderList=%7")
-               .arg(state->rhi ? QStringLiteral("yes") : QStringLiteral("NULL"),
-                    state->rhi ? (state->rhi->isDeviceLost() ? "YES" : "no") : "?")
-               .arg(state->samples)
-               .arg(sizeStr(state->renderSize), sizeStr(state->outputSize),
-                    state->renderPassDescriptor ? "yes" : "NULL",
-                    state->renderer.expired() ? "NONE" : "yes");
-  }
-  else
-  {
-    out << QStringLiteral("      state: NULL  <- createRenderState() never ran");
-  }
-
-  if(m_swapChain)
-  {
-    out << QStringLiteral("      swapchain: current=%1 surface=%2 rt=%3")
-               .arg(
-                   sizeStr(m_swapChain->currentPixelSize()),
-                   sizeStr(m_swapChain->surfacePixelSize()),
-                   m_swapChain->currentFrameRenderTarget()
-                       ? QStringLiteral("yes")
-                       : QStringLiteral("NULL"));
-  }
-  else
-  {
-    out << QStringLiteral("      swapchain: NULL  <- nothing will ever be presented");
-  }
-
-  return out.join('\n');
-}
-
 
 Window::Window(GraphicsApi graphicsApi)
     : m_api{graphicsApi}
 {
-  g_windows.push_back(this);
-  installGfxDiagnostics();
   setCursor(Qt::BlankCursor);
 
 #if defined(__EMSCRIPTEN__)
@@ -265,7 +56,6 @@ Window::Window(GraphicsApi graphicsApi)
   // WindowStaysOnTopHint above, the output would otherwise sit on top and
   // active, which is exactly the reported "typing breaks when a window device
   // is open". The cost is that Window::key/keyRelease no longer fire on wasm.
-  setFlag(Qt::WindowDoesNotAcceptFocus, true);
 #endif
 
   QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
@@ -334,7 +124,6 @@ Window::Window(GraphicsApi graphicsApi)
 Window::~Window()
 {
   m_closed = true;
-  std::erase(g_windows, this);
 }
 
 void Window::init()
@@ -356,9 +145,6 @@ void Window::resizeSwapChain()
     // nothing rebuilds the render list unless the surface size changes again.
     if(surface.isEmpty())
     {
-      if(outputLogEnabled())
-        qDebug() << "[gfxout] resizeSwapChain: win=" << (void*)this << "refused, empty surface"
-                 << "current=" << m_swapChain->currentPixelSize();
       m_hasSwapChain = false;
       m_newlyExposed = true;
       scheduleRetry();
@@ -369,11 +155,6 @@ void Window::resizeSwapChain()
     if(state)
       state->outputSize = m_swapChain->currentPixelSize();
 
-    if(outputLogEnabled())
-      qDebug() << "[gfxout] resizeSwapChain: win=" << (void*)this << "ok=" << m_hasSwapChain
-               << "surface=" << surface << "current=" << m_swapChain->currentPixelSize()
-               << "outputSize=" << (state ? state->outputSize : QSize{})
-               << "rt=" << (void*)m_swapChain->currentFrameRenderTarget();
 
     if(onResize)
       onResize();
@@ -388,8 +169,6 @@ void Window::releaseSwapChain()
 {
   if(m_swapChain && m_hasSwapChain)
   {
-    if(outputLogEnabled())
-      qDebug() << "[gfxout] releaseSwapChain: win=" << (void*)this;
     m_hasSwapChain = false;
     m_swapChain->destroy();
 
@@ -461,7 +240,6 @@ void Window::handleDeviceLost()
 
 bool Window::checkDeviceLost(int frameOpResult)
 {
-  m_lastFrameOp = frameOpResult;
   if(frameOpResult != QRhi::FrameOpDeviceLost
      && !(state && state->rhi && state->rhi->isDeviceLost()))
     return false;
@@ -497,10 +275,6 @@ void Window::render()
     // clears it again and the window stays black. Recover once it has a size.
     if(isExposed() && m_swapChain && !m_swapChain->surfacePixelSize().isEmpty())
     {
-      if(outputLogEnabled())
-        qDebug() << "[gfxout] render: win=" << (void*)this << "recovering, hasSwapChain=" << m_hasSwapChain
-                 << "notExposed=" << m_notExposed
-                 << "surface=" << m_swapChain->surfacePixelSize();
       m_notExposed = false;
       m_newlyExposed = true;
       // fall through: the resize block below will (re)create the swapchain
@@ -616,11 +390,6 @@ void Window::exposeEvent(QExposeEvent* ev)
   {
     return;
   }
-  if(outputLogEnabled())
-    qDebug() << "[gfxout] exposeEvent: win=" << (void*)this << " exposed=" << isExposed() << "running=" << m_running
-             << "notExposed=" << m_notExposed << "hasSwapChain=" << m_hasSwapChain
-             << "size=" << size()
-             << "surface=" << (m_swapChain ? m_swapChain->surfacePixelSize() : QSize{});
 
   if(isExposed() && !m_running)
   {
@@ -750,32 +519,3 @@ bool Window::event(QEvent* e)
 
 }
 
-#if defined(__EMSCRIPTEN__)
-extern "C" EMSCRIPTEN_KEEPALIVE const char* score_gfx_dump_text()
-{
-  static std::string buf;
-
-  QStringList out;
-  const auto& windows = score::gfx::Window::allWindows();
-  out << QStringLiteral("=== score gfx output dump ===");
-  out << QStringLiteral("  outputs: %1   shaderPreviewsDisabled: %2")
-             .arg(QString::number(windows.size()),
-                  qEnvironmentVariableIsSet("SCORE_DISABLE_SHADER_PREVIEW")
-                      ? QStringLiteral("yes")
-                      : QStringLiteral("no <- previews add a second GL output"));
-  for(auto* w : windows)
-    out << w->diagnosticState();
-
-  emscripten::val fun = emscripten::val::global("__scoreGlState");
-  if(!fun.isNull() && !fun.isUndefined())
-  {
-    emscripten::val res = fun();
-    if(res.isString())
-      out << QString::fromStdString(res.as<std::string>());
-  }
-
-  const QString text = out.join('\n');
-  buf = text.toStdString();
-  return buf.c_str();
-}
-#endif

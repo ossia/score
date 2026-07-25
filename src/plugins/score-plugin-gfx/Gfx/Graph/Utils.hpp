@@ -21,33 +21,8 @@ struct Port;
 struct Edge;
 class RenderList;
 
-/**
- * @brief Whether to trace the output window / swapchain / render list lifetime.
- *
- * Enabled by the SCORE_GFX_LOG environment variable, or by putting "gfxlog" in
- * the page URL on WebAssembly, where there is no way to set an environment
- * variable before startup.
- */
-SCORE_PLUGIN_GFX_EXPORT bool outputLogEnabled() noexcept;
 
-/**
- * @brief Number of live graphics contexts, or -1 if unknown.
- *
- * On WebAssembly this is the number of live WebGL contexts, which browsers cap
- * (Chrome: 16) and silently drop the oldest of once exceeded. Always -1
- * elsewhere.
- */
-SCORE_PLUGIN_GFX_EXPORT int liveGraphicsContextCount() noexcept;
 
-/**
- * @brief Install the on-demand graphics diagnostics.
- *
- * No-op outside of WebAssembly. Publishes window.scoreGfxDump() and starts
- * watching every canvas for webglcontextlost / webglcontextrestored, so a
- * context that dies is recorded whether or not anything noticed at the time.
- * Idempotent; must run early to catch the events.
- */
-SCORE_PLUGIN_GFX_EXPORT void installGfxDiagnostics();
 /**
  * @brief Stores a sampler and the texture currently associated with it.
  */

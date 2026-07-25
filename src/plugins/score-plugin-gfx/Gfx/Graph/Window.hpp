@@ -42,11 +42,7 @@ public:
   void handleDeviceLost();
   bool checkDeviceLost(int frameOpResult);
 
-  /** Every live output window, in creation order. */
-  static const std::vector<Window*>& allWindows() noexcept;
 
-  /** One-line-per-field state of this output, for the on-demand gfx dump. */
-  QString diagnosticState() const;
 
   void exposeEvent(QExposeEvent*) override;
   void mouseDoubleClickEvent(QMouseEvent* ev) override;
@@ -102,7 +98,6 @@ private:
   bool m_retryScheduled = false;
 
   static constexpr int retry_interval_ms = 100;
-  int m_lastFrameOp = -1;
   bool m_embeddedFullscreen = false;
 };
 }

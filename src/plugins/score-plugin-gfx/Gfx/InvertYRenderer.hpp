@@ -63,8 +63,6 @@ public:
   // be cached and reused between frames"). Null for offscreen outputs.
   QRhiSwapChain* m_swapChain{};
 
-  QSize m_loggedSize{};
-  QRhiRenderTarget* m_loggedTarget{};
 
   ScaledRenderer(
       score::gfx::TextureRenderTarget outputTarget, const score::gfx::RenderState& state,
