@@ -16,9 +16,73 @@
 #include <QThread>
 
 #include <wobjectimpl.h>
+
+#if defined(__EMSCRIPTEN__)
+#include <mutex>
+#endif
+
 W_OBJECT_IMPL(SafeQApplication)
 
 SafeQApplication::~SafeQApplication() { }
+
+#if defined(__EMSCRIPTEN__)
+namespace
+{
+// Repeated-message throttle, wasm only.
+//
+// On wasm every log line is an fprintf that goes through _fd_write into
+// console.*, and the browser captures a stack for each one. A runaway warning
+// -- Qt's own "QRhiGles2: Context is lost." once per frame, say, which we
+// cannot patch out -- therefore does not merely fill the console: it makes
+// DevTools unresponsive, which is exactly when the user needs it to run the
+// diagnostics. Collapse consecutive identical messages, syslog style.
+//
+// Deliberately not enabled on desktop: there a flood is survivable, stderr is
+// cheap, and dropping lines would change what developers see in a build they
+// rely on for debugging. Flipping that is a matter of widening this #if.
+constexpr qint64 log_throttle_threshold = 5;
+constexpr qint64 log_throttle_heartbeat = 10000;
+
+std::mutex g_throttleMutex;
+QString g_lastMessage;
+qint64 g_repeatCount = 0;
+thread_local bool t_lastSuppressed = false;
+
+// Returns how many suppressed repeats the caller should report now (0 for
+// none), and sets @p suppress when this message must be dropped.
+qint64 throttleStep(const QString& msg, bool& suppress)
+{
+  const std::lock_guard lock{g_throttleMutex};
+
+  if(msg == g_lastMessage)
+  {
+    ++g_repeatCount;
+    suppress = g_repeatCount > log_throttle_threshold;
+    // Still say something once in a while: a permanently repeating message
+    // must not look like silence.
+    if(suppress && (g_repeatCount % log_throttle_heartbeat) == 0)
+      return g_repeatCount;
+    return 0;
+  }
+
+  const qint64 pending = g_repeatCount > log_throttle_threshold ? g_repeatCount : 0;
+  g_lastMessage = msg;
+  g_repeatCount = 1;
+  suppress = false;
+  return pending;
+}
+}
+
+bool SafeQApplication::lastMessageWasSuppressed() noexcept
+{
+  return t_lastSuppressed;
+}
+#else
+bool SafeQApplication::lastMessageWasSuppressed() noexcept
+{
+  return false;
+}
+#endif
 
 void SafeQApplication::DebugOutput(
     QtMsgType type, const QMessageLogContext& context, const QString& msg)
@@ -30,6 +94,34 @@ void SafeQApplication::DebugOutput(
   static LogFile logger;
   out_file = logger.desc();
 #endif
+
+#if defined(__EMSCRIPTEN__)
+  // Never throttle a fatal: it is the last thing that will ever be printed.
+  if(type != QtFatalMsg)
+  {
+    bool suppress = false;
+    const qint64 repeats = throttleStep(msg, suppress);
+
+    // Written with fprintf rather than qWarning: this runs inside the message
+    // handler and must not re-enter it.
+    if(repeats > 0)
+      fprintf(
+          out_file, "Info: [previous message repeated %lld times]\n",
+          static_cast<long long>(repeats));
+
+    t_lastSuppressed = suppress;
+    if(suppress)
+    {
+      fflush(out_file);
+      return;
+    }
+  }
+  else
+  {
+    t_lastSuppressed = false;
+  }
+#endif
+
   QByteArray localMsg = msg.toLocal8Bit();
   switch(type)
   {

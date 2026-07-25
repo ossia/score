@@ -56,6 +56,15 @@ public:
   static void
   DebugOutput(QtMsgType type, const QMessageLogContext& context, const QString& msg);
 
+  /**
+   * @brief Whether the message DebugOutput last handled on this thread was
+   * dropped by the repeated-message throttle.
+   *
+   * Lets the other sinks (the Messages panel) drop it too, without counting
+   * the message twice. Always false outside of WebAssembly.
+   */
+  static bool lastMessageWasSuppressed() noexcept;
+
 #if !defined(SCORE_DEBUG)
   void inform(const QString& str)
   {

@@ -108,6 +108,12 @@ static void
 LogToMessagePanel(QtMsgType type, const QMessageLogContext& context, const QString& msg)
 {
   SafeQApplication::DebugOutput(type, context, msg);
+
+  // Same throttle decision, so a runaway message does not fill the panel
+  // either. DebugOutput has already counted this message.
+  if(SafeQApplication::lastMessageWasSuppressed())
+    return;
+
   if(!g_messagesPanel)
     return;
 
