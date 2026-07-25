@@ -16,8 +16,11 @@
 
 #if defined(__EMSCRIPTEN__)
 #include <QApplication>
+#include <QPlatformSurfaceEvent>
 #include <QStringList>
 #include <QWindow>
+
+#include <qpa/qwindowsysteminterface.h>
 
 #include <emscripten/em_asm.h>
 #include <emscripten/emscripten.h>
@@ -52,6 +55,9 @@ QUrl getItemHelpUrl(int itemType) noexcept
 #if defined(__EMSCRIPTEN__)
 namespace
 {
+void imeConsoleLog(const QString& msg);
+QString windowTypeName(Qt::WindowType t);
+
 QString imeDescribe(const QObject* obj)
 {
   if(!obj)
@@ -135,6 +141,28 @@ void imeInstallJs()
                      + " contentEditable=" + a.contentEditable);
         }
         lines.push("  dom.documentHasFocus : " + document.hasFocus());
+        // Browsers cap the number of simultaneous WebGL contexts (Chrome: 16)
+        // and silently lose the oldest one past the cap. GL.contexts is
+        // emscripten's live context table.
+        try {
+          if (typeof GL !== "undefined" && GL.contexts) {
+            var live = 0;
+            var lost = 0;
+            for (var g = 0; g < GL.contexts.length; g++) {
+              var c = GL.contexts[g];
+              if (!c) continue;
+              live++;
+              if (c.GLctx && c.GLctx.isContextLost && c.GLctx.isContextLost()) lost++;
+            }
+            lines.push("  gl.liveContexts      : " + live + " (lost: " + lost + ")");
+          } else {
+            lines.push("  gl.liveContexts      : <GL table unavailable>");
+          }
+        } catch (e2) {
+          lines.push("  gl.liveContexts      : <error " + e2 + ">");
+        }
+        lines.push("  dom.canvases         : " + document.querySelectorAll("canvas").length
+                   + " (in shadow root: " + root.querySelectorAll("canvas").length + ")");
         var wins = root.querySelectorAll(".qt-window");
         lines.push("  dom.qtWindows        : " + wins.length);
         for (var w = 0; w < wins.length; w++) {
@@ -179,6 +207,15 @@ void imeInstallJs()
       return s;
     };
 
+    globalThis.scoreWindowDump = function() {
+      var f = (typeof _score_window_dump_text !== "undefined")
+                ? _score_window_dump_text
+                : Module["_score_window_dump_text"];
+      var s = UTF8ToString(f());
+      console.log(s);
+      return s;
+    };
+
     globalThis.scoreImeLog = function(on) {
       var f = (typeof _score_ime_set_logging !== "undefined")
                 ? _score_ime_set_logging
@@ -189,6 +226,35 @@ void imeInstallJs()
   });
   // clang-format on
 }
+
+// Logs each platform window (i.e. each canvas + hidden <input> on wasm) as it
+// is realized, so an accidental top-level can be traced back to whatever
+// created it.
+struct TopLevelWindowWatcher final : QObject
+{
+  using QObject::QObject;
+  bool eventFilter(QObject* obj, QEvent* ev) override
+  {
+    if(ev->type() == QEvent::PlatformSurface)
+    {
+      if(auto* w = qobject_cast<QWindow*>(obj))
+      {
+        const auto type = static_cast<QPlatformSurfaceEvent*>(ev)->surfaceEventType();
+        QString wrapped;
+        if(auto* widget = qobject_cast<QWidget*>(w->parent()))
+          wrapped = QStringLiteral(" widget=") + imeDescribe(widget);
+        imeConsoleLog(
+            QStringLiteral("[win] %1 %2%3 type=%4 surface=%5 topLevels=%6")
+                .arg(
+                    type == QPlatformSurfaceEvent::SurfaceCreated ? "created" : "destroyed",
+                    imeDescribe(w), wrapped, windowTypeName(w->type()),
+                    w->surfaceType() == QSurface::OpenGLSurface ? "GL" : "raster")
+                .arg(QGuiApplication::topLevelWindows().size()));
+      }
+    }
+    return QObject::eventFilter(obj, ev);
+  }
+};
 
 bool imeLoggingRequested()
 {
@@ -214,7 +280,10 @@ bool& imeLoggingFlag()
 {
   static bool enabled = [] {
     imeInstallJs();
-    return imeLoggingRequested();
+    const bool on = imeLoggingRequested();
+    if(on && qApp)
+      qApp->installEventFilter(new TopLevelWindowWatcher{qApp});
+    return on;
   }();
   return enabled;
 }
@@ -236,6 +305,99 @@ QString imeDomSnapshot()
 void imeConsoleLog(const QString& msg)
 {
   emscripten::val::global("console").call<void>("log", msg.toStdString());
+}
+
+QString windowTypeName(Qt::WindowType t)
+{
+  switch(t & Qt::WindowType_Mask)
+  {
+    case Qt::Widget:
+      return QStringLiteral("Widget");
+    case Qt::Window:
+      return QStringLiteral("Window");
+    case Qt::Dialog:
+      return QStringLiteral("Dialog");
+    case Qt::Sheet:
+      return QStringLiteral("Sheet");
+    case Qt::Popup:
+      return QStringLiteral("Popup");
+    case Qt::Tool:
+      return QStringLiteral("Tool");
+    case Qt::ToolTip:
+      return QStringLiteral("ToolTip");
+    case Qt::SplashScreen:
+      return QStringLiteral("SplashScreen");
+    case Qt::SubWindow:
+      return QStringLiteral("SubWindow");
+    case Qt::ForeignWindow:
+      return QStringLiteral("ForeignWindow");
+    case Qt::CoverWindow:
+      return QStringLiteral("CoverWindow");
+    default:
+      return QStringLiteral("0x%1").arg(int(t), 0, 16);
+  }
+}
+
+// Every top-level QWidget becomes its own canvas and its own hidden <input> on
+// wasm, and an OpenGL one also takes a WebGL context out of the browser's
+// budget. The population of top-levels is therefore the first thing to look at
+// for both stolen keyboard focus and lost graphics contexts.
+QString windowDumpText()
+{
+  QStringList out;
+  const auto windows = QGuiApplication::topLevelWindows();
+  auto* focusWin = QGuiApplication::focusWindow();
+
+  ossia::hash_map<QString, int> byClass;
+  int glWindows{}, visibleWindows{};
+
+  out << QStringLiteral("  qt.topLevelWindows   : %1").arg(windows.size());
+  for(auto* w : windows)
+  {
+    QString wrapped;
+    // QWidgetWindow names itself "<widget objectName>Window"; the widget
+    // itself is the QWindow's parent QObject.
+    if(auto* widget = qobject_cast<QWidget*>(w->parent() ? w->parent() : nullptr))
+      wrapped = QStringLiteral(" widget=") + imeDescribe(widget);
+
+    const bool gl = w->surfaceType() == QSurface::OpenGLSurface;
+    glWindows += gl;
+    visibleWindows += w->isVisible();
+    byClass[QString::fromUtf8(w->metaObject()->className()) + "/"
+            + windowTypeName(w->type())]++;
+
+    out << QStringLiteral(
+               "    %1%2%3 type=%4 visible=%5 active=%6 handle=%7 surface=%8 "
+               "geom=%9,%10 %11x%12 transientParent=%13")
+               .arg(
+                   focusWin == w ? "*" : " ", imeDescribe(w), wrapped,
+                   windowTypeName(w->type()), w->isVisible() ? "y" : "n",
+                   w->isActive() ? "y" : "n", w->handle() ? "y" : "n",
+                   gl ? "GL" : "raster")
+               .arg(w->x())
+               .arg(w->y())
+               .arg(w->width())
+               .arg(w->height())
+               .arg(imeDescribe(w->transientParent()));
+  }
+  out << QStringLiteral("  qt.windowsVisible    : %1  (OpenGL surfaces: %2)")
+             .arg(visibleWindows)
+             .arg(glWindows);
+
+  out << QStringLiteral("  qt.windowsByClass    :");
+  for(const auto& [k, v] : byClass)
+    out << QStringLiteral("    %1 x%2").arg(k).arg(v);
+
+  const auto widgets = QApplication::topLevelWidgets();
+  out << QStringLiteral("  qt.topLevelWidgets   : %1").arg(widgets.size());
+  for(auto* w : widgets)
+    out << QStringLiteral("    %1 type=%2 visible=%3 realized=%4 parentWidget=%5")
+               .arg(
+                   imeDescribe(w), windowTypeName(w->windowType()),
+                   w->isVisible() ? "y" : "n", w->windowHandle() ? "y" : "n",
+                   imeDescribe(w->parentWidget()));
+
+  return out.join('\n');
 }
 
 QString imeSnapshot()
@@ -283,6 +445,7 @@ QString imeSnapshot()
     }
   }
 
+  out << windowDumpText();
   out << imeDomSnapshot();
   return out.join('\n');
 }
@@ -299,38 +462,88 @@ extern "C" EMSCRIPTEN_KEEPALIVE void score_ime_set_logging(int on)
 {
   imeLoggingFlag() = (on != 0);
 }
+
+extern "C" EMSCRIPTEN_KEEPALIVE const char* score_window_dump_text()
+{
+  static std::string buf;
+  const QString text = QStringLiteral("=== score top-level window dump ===\n")
+                       + windowDumpText() + QStringLiteral("\n") + imeDomSnapshot();
+  buf = text.toStdString();
+  return buf.c_str();
+}
 #endif
 
 namespace score
 {
-void retargetInputMethod(const char* context) noexcept
+void retargetInputMethod(QObject* target, const char* context) noexcept
 {
 #if defined(__EMSCRIPTEN__)
   const bool log = imeLoggingFlag();
-  auto* focus = QGuiApplication::focusObject();
   auto* im = QGuiApplication::inputMethod();
-  if(!focus || !im)
+  if(!im)
+    return;
+
+  // QGuiApplication::focusObject() is the focus object of the focus *window*.
+  // On wasm every top-level is its own canvas with its own hidden <input>, and
+  // a panel that took the platform focus -- the Inspector in particular --
+  // makes focusObject() point into that unrelated window, which then answers
+  // Qt::ImEnabled = false. Querying it would veto the retarget exactly when it
+  // is needed, so ask the object we actually intend to type into.
+  QObject* obj = target ? target : QGuiApplication::focusObject();
+  if(!obj)
   {
     if(log)
-      imeConsoleLog(
-          QStringLiteral("[ime] retarget(%1) -> bail: no focus object / input method\n%2")
-              .arg(QString::fromUtf8(context), imeDomSnapshot()));
+      imeConsoleLog(QStringLiteral("[ime] retarget(%1) -> bail: no target\n%2")
+                        .arg(QString::fromUtf8(context), imeDomSnapshot()));
     return;
   }
 
   QInputMethodQueryEvent query{Qt::ImEnabled};
-  QCoreApplication::sendEvent(focus, &query);
+  QCoreApplication::sendEvent(obj, &query);
   const bool enabled = query.value(Qt::ImEnabled).toBool();
 
   if(log)
-    imeConsoleLog(QStringLiteral("[ime] retarget(%1) focusObject=%2 ImEnabled=%3 -> %4\n%5")
-                      .arg(
-                          QString::fromUtf8(context), imeDescribe(focus),
-                          enabled ? "true" : "false", enabled ? "show()" : "bail",
-                          imeDomSnapshot()));
+    imeConsoleLog(
+        QStringLiteral("[ime] retarget(%1) target=%2 ImEnabled=%3 focusObject=%4 "
+                       "focusWindow=%5 -> %6\n%7")
+            .arg(
+                QString::fromUtf8(context), imeDescribe(obj), enabled ? "true" : "false",
+                imeDescribe(QGuiApplication::focusObject()),
+                imeDescribe(QGuiApplication::focusWindow()),
+                enabled ? "show()" : "bail", imeDomSnapshot()));
 
   if(!enabled)
     return;
+
+  // Make the window that owns the target the focus window, otherwise
+  // QWasmInputContext::updateInputElement() keeps pointing at another canvas'
+  // <input> and every keystroke is delivered to that window instead.
+  if(auto* w = qobject_cast<QWidget*>(obj))
+  {
+    if(!w->hasFocus())
+      w->setFocus(Qt::OtherFocusReason);
+
+    QWindow* handle = w->windowHandle();
+    if(!handle)
+      if(auto* native = w->nativeParentWidget())
+        handle = native->windowHandle();
+    if(!handle)
+      if(auto* top = w->window())
+        handle = top->windowHandle();
+
+    if(handle && QGuiApplication::focusWindow() != handle)
+    {
+      handle->requestActivate();
+      QWindowSystemInterface::flushWindowSystemEvents();
+      if(log)
+        imeConsoleLog(QStringLiteral("[ime] retarget(%1) activated %2, focusWindow now %3, "
+                                     "focusObject now %4")
+                          .arg(
+                              QString::fromUtf8(context), imeDescribe(handle),
+                              imeDescribe(QGuiApplication::focusWindow()),
+                              imeDescribe(QGuiApplication::focusObject())));
+    }
+  }
 
   im->update(Qt::ImEnabled | Qt::ImQueryInput);
   im->show();
@@ -339,6 +552,7 @@ void retargetInputMethod(const char* context) noexcept
     imeConsoleLog(QStringLiteral("[ime] retarget(%1) after show()\n%2")
                       .arg(QString::fromUtf8(context), imeDomSnapshot()));
 #else
+  (void)target;
   (void)context;
 #endif
 }
@@ -349,7 +563,7 @@ void watchSceneInputMethod(QGraphicsScene& scene)
   imeInstallJs();
   QObject::connect(
       &scene, &QGraphicsScene::focusItemChanged, &scene,
-      [](QGraphicsItem* newItem, QGraphicsItem* oldItem, Qt::FocusReason reason) {
+      [sc = &scene](QGraphicsItem* newItem, QGraphicsItem* oldItem, Qt::FocusReason reason) {
     const bool accepts
         = newItem && (newItem->flags() & QGraphicsItem::ItemAcceptsInputMethod);
     if(imeLoggingFlag())
@@ -358,7 +572,10 @@ void watchSceneInputMethod(QGraphicsScene& scene)
                         .arg(imeDescribe(newItem), imeDescribe(oldItem)));
     if(!accepts)
       return;
-    retargetInputMethod("focusItemChanged");
+
+    // The view is what answers the input method queries for the scene.
+    const auto views = sc->views();
+    retargetInputMethod(views.empty() ? nullptr : views.first(), "focusItemChanged");
   });
 #else
   (void)scene;

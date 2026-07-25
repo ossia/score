@@ -35,7 +35,7 @@ void QGraphicsLineEdit::focusInEvent(QFocusEvent* e)
   QGraphicsTextItem::focusInEvent(e);
 #if defined(__EMSCRIPTEN__)
   score::reclaimMainWindowFocus();
-  score::retargetInputMethod("QGraphicsLineEdit::focusInEvent");
+  score::retargetInputMethod(getView(*this), "QGraphicsLineEdit::focusInEvent");
 #endif
 }
 

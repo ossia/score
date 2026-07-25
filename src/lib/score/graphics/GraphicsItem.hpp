@@ -46,13 +46,18 @@ QUrl getItemHelpUrl(int itemType) noexcept;
 namespace score
 {
 /**
- * @brief Point the platform input method at the currently focused object.
+ * @brief Point the platform input method at @p target.
+ *
+ * @p target is the object that should receive keyboard input -- for a graphics
+ * scene, the QGraphicsView. Passing nullptr falls back to
+ * QGuiApplication::focusObject(), which is only correct when the target's
+ * window is already the focus window.
  *
  * No-op outside of WebAssembly. Must be called synchronously from the code
  * handling the user gesture.
  */
 SCORE_LIB_BASE_EXPORT
-void retargetInputMethod(const char* context = "") noexcept;
+void retargetInputMethod(QObject* target, const char* context = "") noexcept;
 
 /**
  * @brief Keep the platform input method in sync with the scene's focus item.
