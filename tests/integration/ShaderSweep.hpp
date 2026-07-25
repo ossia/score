@@ -1,28 +1,15 @@
-// Renders every ISF shader in the user library through the real graphics
-// pipeline: ProgramCache -> ISFNode -> Graph -> RenderList -> offscreen output,
-// exactly as a Gfx filter process does at runtime, then reads the frame back.
+#pragma once
+
+// Shared machinery for the shader-library sweeps.
 //
-// This deliberately goes further than parsing. A shader can translate cleanly
-// and still fail when a pipeline is built for it, when a texture is uploaded in
-// a format the backend does not accept, or by drawing nothing at all — none of
-// which is visible before a frame is drawn.
+// Each shader kind in the library gets its own harness -- ISF fragment shaders,
+// VertexShaderArt vertex shaders, CSF compute shaders -- because they are
+// authored differently, fail differently, and want separate baselines. What
+// they share is the pipeline: score::gfx::ISFNode dispatches on the parsed
+// descriptor's mode to the matching renderer, so one Sweeper drives them all.
 //
-// Each shader is additionally baked for GLSL ES 3.00, the profile the
-// WebAssembly build gets, so a shader that only fails there shows up as a
-// wasm-only breakage. SCORE_SHADER_SWEEP_GLES=1 goes further and runs the whole
-// sweep on an OpenGL ES context instead of desktop GL.
-//
-// Failures are reported per shader as one of: parse (not valid ISF), bake (the
-// shader does not compile), gles300 (compiles for desktop but not for the wasm
-// profile), render (the pipeline threw), warning (the backend complained),
-// devicelost, blank (the frame came back one flat colour).
-//
-// The library is not part of the repository, so the test skips when it is
-// absent. Point it somewhere explicitly with SCORE_SHADER_LIBRARY_DIR.
-// Known-bad shaders are tolerated through a baseline file: the test fails on
-// *new* failures only. Refresh it with SCORE_SHADER_SWEEP_WRITE_BASELINE=1.
-// SCORE_SHADER_SWEEP_LOG=<path> traces each shader before it is rendered, so a
-// shader that takes the process down with it can still be identified.
+// See ShaderSweepISF.cpp for the full description of the categories reported
+// and the environment variables understood.
 
 #include <score_test/App.hpp>
 
@@ -49,6 +36,18 @@
 
 #include <map>
 #include <set>
+
+#if defined(__EMSCRIPTEN__)
+// score_lib_base is a static archive on wasm, so the resource initialiser that
+// qt_add_resources generates is dropped unless something references it, and
+// :/gfx/* then does not exist in the test binary.
+inline void initScoreResources()
+{
+  Q_INIT_RESOURCE(score);
+}
+#else
+inline void initScoreResources() { }
+#endif
 
 namespace
 {
@@ -85,12 +84,25 @@ QString libraryRoot(const score::ApplicationContext& ctx)
 {
   if(auto env = qEnvironmentVariable("SCORE_SHADER_LIBRARY_DIR"); !env.isEmpty())
     return env;
+#if defined(SCORE_SHADER_SWEEP_WASM_LIBRARY)
+  return QStringLiteral(SCORE_SHADER_SWEEP_WASM_LIBRARY);
+#else
   return ctx.settings<Library::Settings::Model>().getDefaultLibraryPath();
+#endif
 }
 
 QImage testcard()
 {
+  initScoreResources();
   QImage img{":/gfx/testcard-1.png"};
+  // A flat fallback would make every passthrough filter look like it rendered
+  // nothing, so say plainly which one the run used.
+  qInfo().noquote() << "[sweep] testcard:"
+                    << (img.isNull()
+                            ? QStringLiteral("MISSING -> flat magenta fallback")
+                            : QStringLiteral("loaded %1x%2")
+                                  .arg(img.width())
+                                  .arg(img.height()));
   if(img.isNull())
   {
     img = QImage{render_size, QImage::Format_RGBA8888};
@@ -232,10 +244,6 @@ struct Sweeper
   }
 };
 
-QString baselinePath()
-{
-  return QStringLiteral(SCORE_SHADER_SWEEP_BASELINE);
-}
 
 //! ProgramCache reports both ISF parsing and shader baking through one string.
 const char* programErrorKind(const QString& error)
@@ -262,102 +270,94 @@ void requestGlesContext()
 }
 }
 
-TEST_CASE("Every ISF shader in the library renders", "[integration][gfx][shaders]")
+
+namespace
 {
-  requestGlesContext();
+//! Loads one shader file into a program, or reports why it could not be.
+using ProgramLoader
+    = std::optional<Gfx::ProcessedProgram> (*)(const QString& path, QByteArray data,
+                                               QString& error);
 
-  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
-    const QString root = libraryRoot(ctx);
-    if(root.isEmpty() || !QFileInfo::exists(root))
-      SKIP("no shader library available (set SCORE_SHADER_LIBRARY_DIR)");
+//! Runs one shader kind over the library and diffs against its baseline.
+inline void sweepLibrary(
+    const score::GUIApplicationContext& ctx, const QStringList& patterns,
+    ProgramLoader load, const QString& baseline)
+{
+  const QString root = libraryRoot(ctx);
+  if(root.isEmpty() || !QFileInfo::exists(root))
+    SKIP("no shader library available (set SCORE_SHADER_LIBRARY_DIR)");
 
-    QStringList shaders;
-    QDirIterator it{
-        root, {"*.fs", "*.frag"}, QDir::Files,
-        QDirIterator::Subdirectories | QDirIterator::FollowSymlinks};
-    while(it.hasNext())
-      shaders.push_back(it.next());
-    shaders.sort();
+  QStringList shaders;
+  QDirIterator it{
+      root, patterns, QDir::Files,
+      QDirIterator::Subdirectories | QDirIterator::FollowSymlinks};
+  while(it.hasNext())
+    shaders.push_back(it.next());
+  shaders.sort();
 
-    REQUIRE(!shaders.isEmpty());
+  if(shaders.isEmpty())
+    SKIP("no shaders of this kind in the library");
 
-    QFile trace{qEnvironmentVariable("SCORE_SHADER_SWEEP_LOG")};
-    const bool tracing = !trace.fileName().isEmpty()
-                         && trace.open(QIODevice::WriteOnly | QIODevice::Text);
+  g_previous = qInstallMessageHandler(capture);
+  Sweeper sweeper{ctx.settings<Gfx::Settings::Model>().graphicsApiEnum()};
 
-    g_previous = qInstallMessageHandler(capture);
+  std::map<QString, std::map<std::string, std::string>> failures;
 
-    Sweeper sweeper{
-        ctx.settings<Gfx::Settings::Model>().graphicsApiEnum()};
+  for(const QString& path : shaders)
+  {
+    const QString rel = QDir{root}.relativeFilePath(path);
+    // Announce before rendering: on a backend that can hang or take the
+    // process down, the last line printed names the shader responsible.
+    qInfo().noquote() << "[sweep]" << rel;
 
-    // file -> failure kind -> message
-    std::map<QString, std::map<std::string, std::string>> failures;
+    QFile f{path};
+    if(!f.open(QIODevice::ReadOnly | QIODevice::Text))
+      continue;
 
-    for(const QString& path : shaders)
+    QString error;
+    const auto program = load(path, f.readAll(), error);
+    if(!program)
     {
-      const QString rel = QDir{root}.relativeFilePath(path);
-      if(tracing)
-      {
-        QTextStream{&trace} << rel << '\n';
-        trace.flush();
-      }
-
-      QFile f{path};
-      if(!f.open(QIODevice::ReadOnly | QIODevice::Text))
-        continue;
-
-      const auto source
-          = Gfx::programFromISFFragmentShaderPath(path, f.readAll());
-      const auto& [program, error] = Gfx::ProgramCache::instance().get(source);
-      if(!program)
-      {
-        failures[rel][programErrorKind(error)]
-            = error.isEmpty() ? "no program" : error.toStdString();
-        continue;
-      }
-
-      if(auto res = sweeper.run(*program); !res.empty())
-        failures[rel] = std::move(res);
+      failures[rel][programErrorKind(error)]
+          = error.isEmpty() ? "no program" : error.toStdString();
+      continue;
     }
 
-    qInstallMessageHandler(g_previous);
+    if(auto res = sweeper.run(*program); !res.empty())
+      failures[rel] = std::move(res);
+  }
 
-    std::set<QString> wasm_only;
-    for(const auto& [file, kinds] : failures)
-      if(kinds.size() == 1 && kinds.count("gles300"))
-        wasm_only.insert(file);
+  qInstallMessageHandler(g_previous);
 
-    INFO(
-        "swept " << shaders.size() << " shaders, " << failures.size()
-                 << " failing, " << wasm_only.size() << " only on gles300");
+  INFO("swept " << shaders.size() << " shaders, " << failures.size() << " failing");
 
-    QStringList current;
-    for(const auto& [file, kinds] : failures)
-      for(const auto& [kind, _] : kinds)
-        current.push_back(file + '\t' + QString::fromStdString(kind));
-    current.sort();
+  QStringList current;
+  for(const auto& [file, kinds] : failures)
+    for(const auto& [kind, _] : kinds)
+      current.push_back(file + '\t' + QString::fromStdString(kind));
+  current.sort();
 
-    if(qEnvironmentVariableIsSet("SCORE_SHADER_SWEEP_WRITE_BASELINE"))
-    {
-      QFile out{baselinePath()};
-      REQUIRE(out.open(QIODevice::WriteOnly | QIODevice::Text));
-      QTextStream{&out} << current.join('\n') << '\n';
-      return;
-    }
+  if(qEnvironmentVariableIsSet("SCORE_SHADER_SWEEP_WRITE_BASELINE"))
+  {
+    QFile out{baseline};
+    REQUIRE(out.open(QIODevice::WriteOnly | QIODevice::Text));
+    QTextStream{&out} << current.join('\n') << '\n';
+    return;
+  }
 
-    QStringList baseline;
-    if(QFile in{baselinePath()}; in.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-      baseline = QString::fromUtf8(in.readAll()).split('\n', Qt::SkipEmptyParts);
-      baseline.sort();
-    }
+  QStringList known;
+  if(QFile in{baseline}; in.open(QIODevice::ReadOnly | QIODevice::Text))
+  {
+    known = QString::fromUtf8(in.readAll()).split('\n', Qt::SkipEmptyParts);
+    known.sort();
+  }
 
-    QStringList regressions;
-    for(const auto& entry : current)
-      if(!baseline.contains(entry))
-        regressions.push_back(entry);
+  QStringList regressions;
+  for(const auto& entry : current)
+    if(!known.contains(entry))
+      regressions.push_back(entry);
 
-    INFO("new failures:\n" << regressions.join('\n').toStdString());
-    CHECK(regressions.isEmpty());
-  });
+  INFO("new failures:\n" << regressions.join('\n').toStdString());
+  CHECK(regressions.isEmpty());
+}
 }

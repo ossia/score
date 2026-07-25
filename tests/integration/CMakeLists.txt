@@ -93,12 +93,24 @@ score_add_test(test_regression_throwing_drop_handler
   APP
   PLUGINS score_lib_process)
 
-# Renders the user library's ISF shaders through the graphics pipeline, and
-# bakes each one for the WebAssembly GLSL profile. Needs a GPU-capable display;
-# skips when no library is installed.
-score_add_test(test_integration_shader_sweep
-  SOURCES ShaderLibrarySweepTest.cpp
-  GUI
-  PLUGINS score_plugin_gfx score_lib_process)
-target_compile_definitions(test_integration_shader_sweep PRIVATE
-  "SCORE_SHADER_SWEEP_BASELINE=\"${CMAKE_CURRENT_SOURCE_DIR}/../testdata/shader_sweep_baseline.txt\"")
+# One harness per shader kind in the library: they are authored differently,
+# fail differently, and each keeps its own baseline. All need a GPU-capable
+# display, and all skip when no library is installed.
+foreach(kind ISF VSA CSF)
+  string(TOLOWER "${kind}" lc)
+  score_add_test(test_integration_shader_sweep_${lc}
+    SOURCES ShaderSweep${kind}.cpp
+    GUI
+    PLUGINS score_plugin_gfx score_lib_process)
+  target_compile_definitions(test_integration_shader_sweep_${lc} PRIVATE
+    "SCORE_SHADER_SWEEP_BASELINE_${kind}=\"${CMAKE_CURRENT_SOURCE_DIR}/../testdata/shader_sweep_baseline_${lc}.txt\"")
+
+  # On wasm there is no filesystem to read the library from: bake it into the
+  # test's own MEMFS image, the same way the application does.
+  if(EMSCRIPTEN AND SCORE_WASM_PRELOAD_LIBRARY)
+    target_link_options(test_integration_shader_sweep_${lc} PRIVATE
+      "SHELL:--preload-file ${SCORE_WASM_PRELOAD_LIBRARY}@/score-library")
+    target_compile_definitions(test_integration_shader_sweep_${lc} PRIVATE
+      "SCORE_SHADER_SWEEP_WASM_LIBRARY=\"/score-library\"")
+  endif()
+endforeach()
