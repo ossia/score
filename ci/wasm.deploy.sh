@@ -10,8 +10,12 @@ git config --local user.name "github-actions[bot]"
 
 mv /build/*.js .
 mv /build/ossia-score.wasm .
-# Qt bundles preloaded plugins/resources into a .data file when present.
-[ -f /build/ossia-score.data ] && mv /build/ossia-score.data .
+# Preloaded MEMFS image: Qt's bundled plugins/resources, plus the user library
+# when it was baked in. Not an `&&` one-liner: under `set -e` a missing file
+# would abort the deploy.
+if [ -f /build/ossia-score.data ]; then
+  mv /build/ossia-score.data .
+fi
 mv $SCORE_DIR/cmake/Deployment/WASM/* .
 
 git add .
