@@ -5,8 +5,37 @@
 
 #include <score/tools/Debug.hpp>
 
+#if defined(__EMSCRIPTEN__)
+#include <emscripten/val.h>
+#endif
+
 namespace score::gfx
 {
+bool outputLogEnabled() noexcept
+{
+  static const bool enabled = [] {
+    if(qEnvironmentVariableIsSet("SCORE_GFX_LOG"))
+      return true;
+#if defined(__EMSCRIPTEN__)
+    using emscripten::val;
+    val loc = val::global("location");
+    if(loc.isNull() || loc.isUndefined())
+      return false;
+    std::string url;
+    for(const char* prop : {"search", "hash"})
+    {
+      val v = loc[prop];
+      if(v.isString())
+        url += v.as<std::string>();
+    }
+    return url.find("gfxlog") != std::string::npos;
+#else
+    return false;
+#endif
+  }();
+  return enabled;
+}
+
 TextureRenderTarget
 createRenderTarget(const RenderState& state, QRhiTexture* tex, int samples, bool depth, bool samplableDepth)
 {

@@ -58,7 +58,17 @@ public:
   score::gfx::Pipeline m_p;
   score::gfx::MeshBuffers m_mesh{};
 
-  ScaledRenderer(score::gfx::TextureRenderTarget outputTarget, const score::gfx::RenderState& state, const score::gfx::Node& parent);
+  // When the output is a swap chain, the render target must be re-queried for
+  // every frame (QRhiSwapChain::currentFrameRenderTarget: "the value must not
+  // be cached and reused between frames"). Null for offscreen outputs.
+  QRhiSwapChain* m_swapChain{};
+
+  QSize m_loggedSize{};
+  QRhiRenderTarget* m_loggedTarget{};
+
+  ScaledRenderer(
+      score::gfx::TextureRenderTarget outputTarget, const score::gfx::RenderState& state,
+      const score::gfx::Node& parent, QRhiSwapChain* swapChain = nullptr);
   ~ScaledRenderer();
 
   score::gfx::TextureRenderTarget renderTargetForInput(const score::gfx::Port& p) override;
