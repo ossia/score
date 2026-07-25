@@ -29,18 +29,11 @@ bool validate(const State::Expression& expr)
 #include "Utils.hpp"
 
 #include <State/Expression.hpp>
+#include <State/ExpressionParser.hpp>
 
 #include <ossia/network/common/destination_qualifiers.hpp>
 
 #include <ossia-qt/js_utilities.hpp>
-
-#include <boost/proto/operators.hpp>
-#include <boost/spirit/home/qi/detail/parse_auto.hpp>
-#include <boost/spirit/home/qi/operator/expect.hpp>
-#include <boost/spirit/home/qi/parse.hpp>
-#include <boost/spirit/home/qi/parse_attr.hpp>
-#include <boost/spirit/home/support/common_terminals.hpp>
-#include <boost/variant/detail/apply_visitor_unary.hpp>
 
 #include <QDebug>
 #include <QObject>
@@ -54,8 +47,6 @@ using namespace score;
 #include <list>
 #include <string>
 #include <vector>
-
-#include <State/ExpressionParser.cpp>
 
 /*
 TEST_CASE("test_parse_expr", "test_parse_expr")

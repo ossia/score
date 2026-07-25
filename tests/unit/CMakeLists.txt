@@ -40,10 +40,12 @@ score_add_test(test_unit_automation_values
   APP
   PLUGINS score_plugin_automation score_plugin_curve score_lib_process)
 
-score_add_test(test_unit_mapping_values
-  SOURCES MappingTest.cpp
-  APP
-  PLUGINS score_plugin_mapping score_plugin_curve score_lib_process)
+if(TARGET score_plugin_mapping)
+  score_add_test(test_unit_mapping_values
+    SOURCES MappingTest.cpp
+    APP
+    PLUGINS score_plugin_mapping score_plugin_curve score_lib_process)
+endif()
 
 score_add_test(test_unit_spline_values
   SOURCES SplineValueTest.cpp

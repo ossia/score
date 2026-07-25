@@ -16,23 +16,6 @@
 
 using Catch::Approx;
 
-QDataStream& operator<<(QDataStream& s, const Curve::PowerSegmentData& d)
-{
-  return s << d.gamma;
-}
-QDataStream& operator>>(QDataStream& s, Curve::PowerSegmentData& d)
-{
-  return s >> d.gamma;
-}
-QDataStream& operator<<(QDataStream& s, const Curve::EasingData&)
-{
-  return s;
-}
-QDataStream& operator>>(QDataStream& s, Curve::EasingData&)
-{
-  return s;
-}
-
 namespace
 {
 void build_reference_curve(Curve::Model& model)

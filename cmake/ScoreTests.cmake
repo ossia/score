@@ -52,12 +52,6 @@ function(score_add_test NAME)
 
   add_executable(${NAME} ${ARG_SOURCES})
 
-  if(EMSCRIPTEN)
-    # Qt6Core calls into embind; without this every _emval_* symbol is undefined
-    # at link. src/app sets this directory-wide, which does not reach here.
-    target_link_options(${NAME} PRIVATE "--bind")
-  endif()
-
   target_link_libraries(${NAME} PRIVATE
     score_lib_base
     Catch2::Catch2WithMain
