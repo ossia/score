@@ -10,8 +10,15 @@ cd /build
 
 source /opt/ossia-sdk-wasm/emsdk/emsdk_env.sh
 
+SCORE_LIBRARY_DIR="${SCORE_LIBRARY_DIR:-$HOME/score-user-library}"
+LIBRARY_ARGS=()
+if [ -d "$SCORE_LIBRARY_DIR" ]; then
+  LIBRARY_ARGS+=("-DSCORE_WASM_PRELOAD_LIBRARY=$SCORE_LIBRARY_DIR")
+fi
+
 /opt/ossia-sdk-wasm/qt-wasm/bin/qt-cmake  $SCORE_DIR \
    -GNinja \
+   "${LIBRARY_ARGS[@]}" \
    -DCMAKE_CXX_STANDARD=23 \
    -DCMAKE_BUILD_TYPE=Release \
    -DCMAKE_UNITY_BUILD=1 \

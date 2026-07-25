@@ -276,8 +276,25 @@ if(EMSCRIPTEN)
     target_link_options(libremidi INTERFACE
       "SHELL:-sEXPORTED_RUNTIME_METHODS=UTF16ToString,stringToUTF16,UTF8ToString,stringToUTF8,lengthBytesUTF8,JSEvents,specialHTMLTargets,FS,callMain,ENV,HEAPU8,HEAPF32,HEAP32,HEAPU32,HEAPF64")
   endif()
+
+  if(SCORE_WASM_PRELOAD_LIBRARY)
+    if(NOT IS_DIRECTORY "${SCORE_WASM_PRELOAD_LIBRARY}")
+      message(FATAL_ERROR "SCORE_WASM_PRELOAD_LIBRARY: not a directory: ${SCORE_WASM_PRELOAD_LIBRARY}")
+    endif()
+
+    # There is nowhere to download the library from at runtime: the browser
+    # cannot fetch github's codeload, which sends no CORS headers. Bake it into
+    # the MEMFS image instead, at the path Library::Settings::Model computes for
+    # the default package -- <DocumentsLocation>/<org>/<app>/packages/default.
+    # --use-preload-cache keeps the package in IndexedDB, so only the first
+    # visit pays for the download.
+    target_link_options(${APPNAME} PRIVATE
+      "SHELL:--preload-file ${SCORE_WASM_PRELOAD_LIBRARY}@/home/web_user/Documents/ossia/score/packages/default"
+      "SHELL:--use-preload-cache")
+  endif()
+
   enable_minimal_qt_plugins(${APPNAME} 1)
-else()  
+else()
   disable_qt_plugins(${APPNAME})
   enable_minimal_qt_plugins(${APPNAME} 1)
 endif()

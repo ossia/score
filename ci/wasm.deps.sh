@@ -21,4 +21,11 @@ tar xaf $SDK_ARCHIVE --strip-components=2 --directory /opt/ossia-sdk-wasm/
 
 rm *.tar.*
 
+# Preloaded into the wasm filesystem at link time; see SCORE_WASM_PRELOAD_LIBRARY
+# in src/app/CMakeLists.txt.
+export SCORE_LIBRARY_DIR="${SCORE_LIBRARY_DIR:-$HOME/score-user-library}"
+rm -rf "$SCORE_LIBRARY_DIR"
+git clone --depth=1 https://github.com/ossia/score-user-library "$SCORE_LIBRARY_DIR"
+rm -rf "$SCORE_LIBRARY_DIR/.git"
+
 source ci/common.deps.sh WASM
