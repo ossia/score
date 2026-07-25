@@ -9,6 +9,7 @@
 #include <core/application/ApplicationInterface.hpp>
 
 #include <QGuiApplication>
+#include <QPointer>
 #include <QPlatformSurfaceEvent>
 #include <QTimer>
 #include <QtGui/private/qrhigles2_p.h>
@@ -34,6 +35,17 @@ Window::Window(GraphicsApi graphicsApi)
   // No OS window manager on wasm: without this the output window drops behind
   // the main window when it's activated and can't be brought back.
   setFlag(Qt::WindowStaysOnTopHint, true);
+
+  // The output window is a display surface, not somewhere to type. QWasmWindow
+  // calls window()->requestActivate() on every pointer press on a top level
+  // unless this flag is set (qwasmwindow.cpp, EventType::PointerDown), which
+  // makes the output the focus window: from then on QWasmInputContext points
+  // the IME at *its* canvas' hidden <input> and every keystroke meant for an
+  // editor in the main window is delivered there instead. Combined with
+  // WindowStaysOnTopHint above, the output would otherwise sit on top and
+  // active, which is exactly the reported "typing breaks when a window device
+  // is open". The cost is that Window::key/keyRelease no longer fire on wasm.
+  setFlag(Qt::WindowDoesNotAcceptFocus, true);
 #endif
 
   QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
@@ -166,10 +178,54 @@ void Window::releaseSwapChain()
   }
 }
 
+void Window::handleDeviceLost()
+{
+  if(m_deviceLost)
+    return;
+
+  m_deviceLost = true;
+  m_hasSwapChain = false;
+  m_canRender = false;
+
+  qCritical() << "score::gfx::Window: the graphics context was lost. This output has "
+                 "stopped rendering. Live graphics contexts:"
+              << liveGraphicsContextCount();
+
+  if(onDeviceLost)
+  {
+    // Deferred, and not through this window: the handler is expected to
+    // destroy and rebuild the output, i.e. to delete this.
+    QPointer<Window> self{this};
+    QMetaObject::invokeMethod(
+        qApp,
+        [self, cb = onDeviceLost] {
+      if(self)
+        cb();
+    },
+        Qt::QueuedConnection);
+  }
+}
+
+bool Window::checkDeviceLost(int frameOpResult)
+{
+  if(frameOpResult != QRhi::FrameOpDeviceLost
+     && !(state && state->rhi && state->rhi->isDeviceLost()))
+    return false;
+
+  handleDeviceLost();
+  return true;
+}
+
 void Window::render()
 {
   static constexpr double fps_smoothing = .8;
   if(m_closed)
+    return;
+
+  // A lost context never comes back on its own: without this the window would
+  // call beginFrame() on a dead QRhi on every update request and log
+  // "QRhiGles2: Context is lost." forever.
+  if(m_deviceLost)
     return;
 
   if(onUpdate)
@@ -217,6 +273,8 @@ void Window::render()
   if(m_canRender && state)
   {
     QRhi::FrameOpResult r = state->rhi->beginFrame(m_swapChain, {});
+    if(checkDeviceLost(r))
+      return;
     if(r == QRhi::FrameOpSwapChainOutOfDate)
     {
       resizeSwapChain();
@@ -226,6 +284,8 @@ void Window::render()
         return;
       }
       r = state->rhi->beginFrame(m_swapChain);
+      if(checkDeviceLost(r))
+        return;
     }
     if(r != QRhi::FrameOpSuccess)
     {
@@ -255,6 +315,8 @@ void Window::render()
   else
   {
     QRhi::FrameOpResult r = state->rhi->beginFrame(m_swapChain, {});
+    if(checkDeviceLost(r))
+      return;
     if(r == QRhi::FrameOpSwapChainOutOfDate)
     {
       resizeSwapChain();
@@ -264,6 +326,8 @@ void Window::render()
         return;
       }
       r = state->rhi->beginFrame(m_swapChain);
+      if(checkDeviceLost(r))
+        return;
     }
     if(r != QRhi::FrameOpSuccess)
     {
