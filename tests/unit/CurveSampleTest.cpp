@@ -12,15 +12,6 @@
 
 using Catch::Approx;
 
-QDataStream& operator<<(QDataStream& s, const Curve::EasingData&)
-{
-  return s;
-}
-QDataStream& operator>>(QDataStream& s, Curve::EasingData&)
-{
-  return s;
-}
-
 namespace
 {
 const Curve::SegmentModel& base(const Curve::SegmentModel& s)

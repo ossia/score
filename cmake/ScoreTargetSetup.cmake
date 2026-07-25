@@ -94,6 +94,15 @@ function(setup_score_common_features TheTarget)
   endif()
 
   target_include_directories(${TheTarget} INTERFACE "${CMAKE_CURRENT_BINARY_DIR}")
+
+  if(EMSCRIPTEN)
+    get_target_property(_score_target_type ${TheTarget} TYPE)
+    if(_score_target_type STREQUAL "EXECUTABLE")
+      # Qt6Core calls into embind; without this every _emval_* symbol is
+      # undefined at link.
+      target_link_options(${TheTarget} PRIVATE "--bind")
+    endif()
+  endif()
 endfunction()
 
 
