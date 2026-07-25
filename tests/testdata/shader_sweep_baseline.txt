@@ -1,0 +1,418 @@
+Presets/GLSL_shaders/basic/blend/Butterfly Wave Scrawler.fs	blank
+Presets/GLSL_shaders/basic/blend/Circle Crop.fs	blank
+Presets/GLSL_shaders/basic/blend/Circle.fs	blank
+Presets/GLSL_shaders/basic/blend/Dreamy Zoom.fs	blank
+Presets/GLSL_shaders/basic/blend/Stereo Viewer.fs	blank
+Presets/GLSL_shaders/basic/filter/Bright.fs	blank
+Presets/GLSL_shaders/basic/filter/Color Controls.fs	blank
+Presets/GLSL_shaders/basic/filter/Doodler Overlay.fs	blank
+Presets/GLSL_shaders/basic/filter/Multi Gradient.fs	blank
+Presets/GLSL_shaders/basic/filter/Show Alpha.fs	blank
+Presets/GLSL_shaders/basic/generator/BitStreamer.fs	blank
+Presets/GLSL_shaders/basic/generator/Color Organ Polyphonic.fs	blank
+Presets/GLSL_shaders/basic/generator/Doodler.fs	blank
+Presets/GLSL_shaders/basic/generator/Fractal Dots.fs	blank
+Presets/GLSL_shaders/basic/generator/Random Checkerboard.fs	blank
+Presets/GLSL_shaders/basic/generator/Random Shape.fs	blank
+Presets/GLSL_shaders/basic/generator/Random Stripes.fs	blank
+Presets/GLSL_shaders/basic/generator/Solid Color.fs	blank
+Presets/GLSL_shaders/basic/multipass/Circle Trails.fs	blank
+Presets/GLSL_shaders/basic/multipass/Digital Clock.fs	blank
+Presets/GLSL_shaders/basic/multipass/Duotone From Histogram.fs	blank
+Presets/GLSL_shaders/basic/multipass/FFT Spectrogram.fs	blank
+Presets/GLSL_shaders/basic/multipass/Micro Buffer.fs	blank
+Presets/GLSL_shaders/basic/multipass/Optical Flow Generator.fs	blank
+Presets/GLSL_shaders/basic/multipass/RE RGB Gradient Generator.fs	blank
+Presets/GLSL_shaders/basic/multipass/Radial Spectrogram.fs	blank
+Presets/GLSL_shaders/basic/multipass/Trail Mask.fs	blank
+Presets/GLSL_shaders/computer-vision/Filters/ChromaKey.fs	bake
+Presets/GLSL_shaders/computer-vision/Filters/DenseFlow.fs	bake
+Presets/GLSL_shaders/computer-vision/Filters/FrameDiff.fs	blank
+Presets/GLSL_shaders/gitizenme/52.23-001.fs	bake
+Presets/GLSL_shaders/gitizenme/52.23.fs	blank
+Presets/GLSL_shaders/gitizenme/52.28-light-garden.fs	bake
+Presets/GLSL_shaders/gitizenme/52.29.fs	blank
+Presets/GLSL_shaders/gitizenme/52.30.fs	bake
+Presets/GLSL_shaders/gitizenme/52.31.fs	bake
+Presets/GLSL_shaders/gitizenme/52.34.fs	bake
+Presets/GLSL_shaders/gitizenme/52.35.fs	bake
+Presets/GLSL_shaders/gitizenme/52.36.fs	bake
+Presets/GLSL_shaders/gitizenme/52.41.fs	bake
+Presets/GLSL_shaders/gitizenme/52.42.fs	bake
+Presets/GLSL_shaders/gitizenme/52.44.fs	bake
+Presets/GLSL_shaders/gitizenme/52.rain.fs	bake
+Presets/GLSL_shaders/gitizenme/Audio Bars.fs	blank
+Presets/GLSL_shaders/gitizenme/Audio_Reactive_Ray_Marching_ltscz4.fs	bake
+Presets/GLSL_shaders/gitizenme/Color_Primitive_Shapes.fs	bake
+Presets/GLSL_shaders/gitizenme/Color_Ray_Marching_NlfGR7.fs	bake
+Presets/GLSL_shaders/gitizenme/Plasma Sparkle.fs	bake
+Presets/GLSL_shaders/gitizenme/PrimeWaves.fs	bake
+Presets/GLSL_shaders/gitizenme/Ray_March_Starter.fs	bake
+Presets/GLSL_shaders/gitizenme/SDF_Base.fs	bake
+Presets/GLSL_shaders/gitizenme/TorusPlane.fs	bake
+Presets/GLSL_shaders/gitizenme/WaveShapes.fs	bake
+Presets/GLSL_shaders/gitizenme/gum.fs	bake
+Presets/GLSL_shaders/grigm/01_Strobosphere.fs	blank
+Presets/GLSL_shaders/grigm/04_SmoothStep.fs	blank
+Presets/GLSL_shaders/grigm/07_4tSXWt.fs	bake
+Presets/GLSL_shaders/grigm/20_FractalDots.fs	blank
+Presets/GLSL_shaders/grigm/23_DiscSpin.fs	blank
+Presets/GLSL_shaders/grigm/2D_Fast_Clouds_XsjSRt.fs	bake
+Presets/GLSL_shaders/grigm/Abstract_Plane_4sGSRV.fs	bake
+Presets/GLSL_shaders/grigm/AuroraBorealis_MdBfzR.fs	bake
+Presets/GLSL_shaders/grigm/Bar Transition.fs	bake
+Presets/GLSL_shaders/grigm/BitStreamer.fs	blank
+Presets/GLSL_shaders/grigm/Black_Hole_Kills_Galaxy_MdBSDc.fs	bake
+Presets/GLSL_shaders/grigm/Black_and_Gradient_MltXzf.fs	bake
+Presets/GLSL_shaders/grigm/Blobs_riding_waves_3sd3W8.fs	parse
+Presets/GLSL_shaders/grigm/Branching_things_WdySDm.fs	parse
+Presets/GLSL_shaders/grigm/Bumped_Sinusoidal_Warp_4l2XWK.fs	bake
+Presets/GLSL_shaders/grigm/Camera_Blur_butno_its_abberation_wddGDS.fs	bake
+Presets/GLSL_shaders/grigm/Cheap_Clouds_MsG3Rc.fs	bake
+Presets/GLSL_shaders/grigm/Chimera's_Breath_4tGfDW.fs	bake
+Presets/GLSL_shaders/grigm/Chromatic_Delay_2_4tySWh.fs	bake
+Presets/GLSL_shaders/grigm/Circle_bullshit2_4lfBzX.fs	blank
+Presets/GLSL_shaders/grigm/Cloud_Flight_XtlfDn.fs	bake
+Presets/GLSL_shaders/grigm/Clouds_XslGRr.fs	bake
+Presets/GLSL_shaders/grigm/Coil.fs	bake
+Presets/GLSL_shaders/grigm/ColorDiffusionFlow.fs	parse
+Presets/GLSL_shaders/grigm/Color_star_field_MtG3DR.fs	parse
+Presets/GLSL_shaders/grigm/Colorful_tris_4dV3Dh.fs	bake
+Presets/GLSL_shaders/grigm/Combustible_Clouds_MscXRH.fs	bake
+Presets/GLSL_shaders/grigm/Cosmic_Marble_(CubeMap)_lljSDW.fs	bake
+Presets/GLSL_shaders/grigm/Creepy_Mountains_Xlf3Rj.fs	bake
+Presets/GLSL_shaders/grigm/Crystal_Form_4tKGDD.fs	blank
+Presets/GLSL_shaders/grigm/Diamonds_4tjXWD.fs	parse
+Presets/GLSL_shaders/grigm/Digital Clock.fs	blank
+Presets/GLSL_shaders/grigm/Disco_tunnel_XstfzB.fs	parse
+Presets/GLSL_shaders/grigm/Discspin.fs	blank
+Presets/GLSL_shaders/grigm/Dither floyd-steinberg-ish.fs	bake
+Presets/GLSL_shaders/grigm/Dot_Line_llt3zj.fs	parse
+Presets/GLSL_shaders/grigm/Drag_Me!_Im_almost_a_Fluid!_XttyR4.fs	parse
+Presets/GLSL_shaders/grigm/Edge_Detection_(RGB)_4t3XDM.fs	blank
+Presets/GLSL_shaders/grigm/Endesga_shader_4lKSDz.fs	bake
+Presets/GLSL_shaders/grigm/Exploding_Star._ltcXRf.fs	bake
+Presets/GLSL_shaders/grigm/Extend.fs	bake
+Presets/GLSL_shaders/grigm/Falling_water_drop-experiment_3sS3Wc.fs	parse
+Presets/GLSL_shaders/grigm/Fast_voronoi_interpolation_ts3XWf.fs	bake
+Presets/GLSL_shaders/grigm/Feedback GLSL.fs	bake
+Presets/GLSL_shaders/grigm/Feedback Mosh.fs	bake
+Presets/GLSL_shaders/grigm/Filling_Tiles_Xd3SW8.fs	parse
+Presets/GLSL_shaders/grigm/Fire-y_pixel_art_filter_MlGSW1.fs	blank
+Presets/GLSL_shaders/grigm/Fractal Dots.fs	bake
+Presets/GLSL_shaders/grigm/Free_Spinors_3tjGzw.fs	parse
+Presets/GLSL_shaders/grigm/Full__llj3Dm.fs	parse
+Presets/GLSL_shaders/grigm/Galaxy_2D_Spiral_Thing_Md3SWH.fs	bake
+Presets/GLSL_shaders/grigm/Glass_Distortion_Ball_wssXDM.fs	parse
+Presets/GLSL_shaders/grigm/GlitchTransition.fs	bake
+Presets/GLSL_shaders/grigm/Gold_Study_XljXWD.fs	bake
+Presets/GLSL_shaders/grigm/Haunted_Forest_4dl3z7.fs	bake
+Presets/GLSL_shaders/grigm/Heightfield_Slice_Renderer_3tXXzM.fs	bake
+Presets/GLSL_shaders/grigm/Hilbert_scrambler_XdSGRR.fs	bake
+Presets/GLSL_shaders/grigm/Holiday_moon_Xds3zB.fs	bake
+Presets/GLSL_shaders/grigm/HyperbolicSpace.fs	bake
+Presets/GLSL_shaders/grigm/Hyperbolic_Truchet_tiles_3llXR4.fs	bake
+Presets/GLSL_shaders/grigm/Hyperellipse_visual_XtG3Ry.fs	parse
+Presets/GLSL_shaders/grigm/IQ_PolygonDeformation.fs	bake
+Presets/GLSL_shaders/grigm/Ice_lake_MtlSz8.fs	bake
+Presets/GLSL_shaders/grigm/Interstellar_Xdl3D2.fs	bake
+Presets/GLSL_shaders/grigm/Iridescent_crystals_llcXWM.fs	bake
+Presets/GLSL_shaders/grigm/Isometric_Mdscz8.fs	bake
+Presets/GLSL_shaders/grigm/Kiaris_WtXXDf.fs	bake
+Presets/GLSL_shaders/grigm/Kis-Snowflakes_Trippy2_247c_wllSDs.fs	bake
+Presets/GLSL_shaders/grigm/LOD_bokeh_blur_4tjfWd.fs	bake
+Presets/GLSL_shaders/grigm/Laser_Tunnel_XdfSz7.fs	bake
+Presets/GLSL_shaders/grigm/LightningFlash.fs	blank
+Presets/GLSL_shaders/grigm/Lightning_spark_MdSGW1.fs	bake
+Presets/GLSL_shaders/grigm/Lindenmayer_Systems_XtyGzh.fs	parse
+Presets/GLSL_shaders/grigm/Linify.fs	parse
+Presets/GLSL_shaders/grigm/Linocut_MttXRB.fs	blank
+Presets/GLSL_shaders/grigm/Liquid_Crystal_Glitch_4ljczt.fs	bake
+Presets/GLSL_shaders/grigm/Loading_hash..._4lVXDR.fs	bake
+Presets/GLSL_shaders/grigm/Luma Key.fs	parse
+Presets/GLSL_shaders/grigm/Main_Sequence_Star_4dXGR4.fs	bake
+Presets/GLSL_shaders/grigm/Matrix/Matrix.fs	bake
+Presets/GLSL_shaders/grigm/Mitti/Amatorka.fs	bake
+Presets/GLSL_shaders/grigm/Mitti/Bump Distortion.fs	bake
+Presets/GLSL_shaders/grigm/Mitti/Circle Splash Distortion.fs	bake
+Presets/GLSL_shaders/grigm/Mitti/MissEtikate.fs	bake
+Presets/GLSL_shaders/grigm/Mitti/Pixellate.fs	bake
+Presets/GLSL_shaders/grigm/Mitti/Rotate.fs	bake
+Presets/GLSL_shaders/grigm/Mitti/v002-CRT-Mask.fs	bake
+Presets/GLSL_shaders/grigm/Motion_Dilation_Test_2_tdS3DR.fs	blank
+Presets/GLSL_shaders/grigm/Motion_Dilation_Test_3sB3Wz.fs	blank
+Presets/GLSL_shaders/grigm/Multi Gradient.fs	blank
+Presets/GLSL_shaders/grigm/Multiscale_MIP_Fluid_tsKXR3.fs	bake
+Presets/GLSL_shaders/grigm/Mystery_Mountains_llsGW7.fs	bake
+Presets/GLSL_shaders/grigm/NEON_TUNNEL_WdV3DW.fs	parse
+Presets/GLSL_shaders/grigm/Nightfall_MlfXWH.fs	bake
+Presets/GLSL_shaders/grigm/Noise_Holes_XdyXz3.fs	bake
+Presets/GLSL_shaders/grigm/OMGclouds_llXSW2.fs	bake
+Presets/GLSL_shaders/grigm/Perspex_Web_Lattice_Mld3Rn.fs	bake
+Presets/GLSL_shaders/grigm/Photon's_journey_4tK3Wd.fs	bake
+Presets/GLSL_shaders/grigm/Pixelate.fs	bake
+Presets/GLSL_shaders/grigm/Pixellate Smooth.fs	bake
+Presets/GLSL_shaders/grigm/Polygonal_Terrain_Md23RK.fs	parse
+Presets/GLSL_shaders/grigm/Rasterizer-Object_4slGzn.fs	bake
+Presets/GLSL_shaders/grigm/Rave_Sickness-Oropendola_VIZU_3lXXWX.fs	bake
+Presets/GLSL_shaders/grigm/Re_Cypher_MlGSzW.fs	blank
+Presets/GLSL_shaders/grigm/Reconstitution image.fs	bake
+Presets/GLSL_shaders/grigm/Reflect_Learning_MsdyW2.fs	bake
+Presets/GLSL_shaders/grigm/Reflect_inputLearing.fs	bake
+Presets/GLSL_shaders/grigm/SDF_2D_demo_WdfSRM.fs	blank
+Presets/GLSL_shaders/grigm/Sample_Pinning_XdfXzn.fs	bake
+Presets/GLSL_shaders/grigm/Sculpture_III_XtjSDK.fs	bake
+Presets/GLSL_shaders/grigm/Sea_of_fog_tsdSzn.fs	bake
+Presets/GLSL_shaders/grigm/Shaderdough_4tc3WB.fs	bake
+Presets/GLSL_shaders/grigm/Shatter_MsfGz7.fs	parse
+Presets/GLSL_shaders/grigm/Simple_Cube_Rotation_+_Twist_MlGGDh.fs	parse
+Presets/GLSL_shaders/grigm/Simple_RippleRadialDistortion_llGXzR.fs	parse
+Presets/GLSL_shaders/grigm/SmoothXORi.fs	bake
+Presets/GLSL_shaders/grigm/Snek_2_ls2cWz.fs	blank
+Presets/GLSL_shaders/grigm/Soft Borders.fs	bake
+Presets/GLSL_shaders/grigm/Soulstone_pt1_llSBRD.fs	bake
+Presets/GLSL_shaders/grigm/Space_Curvature_Planet_+_MoonÂ²_XddXWf.fs	bake
+Presets/GLSL_shaders/grigm/Space_fungus_lslcWj.fs	blank
+Presets/GLSL_shaders/grigm/SphereBubble.fs	bake
+Presets/GLSL_shaders/grigm/SphericalCubeMapper1.fs	bake
+Presets/GLSL_shaders/grigm/Split_Shift_MlcXRB.fs	bake
+Presets/GLSL_shaders/grigm/Squares_layer_4dBXzW.fs	bake
+Presets/GLSL_shaders/grigm/Study_7-Tunnel_Effect_lsj3Wy.fs	bake
+Presets/GLSL_shaders/grigm/Sun_surface_XlSSzK.fs	bake
+Presets/GLSL_shaders/grigm/Test-Functionality.fs	blank
+Presets/GLSL_shaders/grigm/Test-ImportedImage.fs	bake
+Presets/GLSL_shaders/grigm/TextileMutationLattice.fs	blank
+Presets/GLSL_shaders/grigm/Tiley_Distortion_XlcXWs.fs	bake
+Presets/GLSL_shaders/grigm/Tilings_4sf3zX.fs	bake
+Presets/GLSL_shaders/grigm/Tiny_Clouds-Unpacked_&_No_Tex_4tlBz8.fs	bake
+Presets/GLSL_shaders/grigm/ToyDivision_MlG3zm.fs	bake
+Presets/GLSL_shaders/grigm/Trails_MsKGWR.fs	bake
+Presets/GLSL_shaders/grigm/Triangular_Voronoi_Lighted_ltK3WD.fs	bake
+Presets/GLSL_shaders/grigm/Type_2_Supernova_lsyXDK.fs	bake
+Presets/GLSL_shaders/grigm/UltimateSpiral.fs	bake
+Presets/GLSL_shaders/grigm/Unwraveling_Inward_llGSDd.fs	bake
+Presets/GLSL_shaders/grigm/Vertex Noise.fs	parse
+Presets/GLSL_shaders/grigm/Video Heightfield.fs	bake
+Presets/GLSL_shaders/grigm/Viscous_Fingering_Xst3Dj.fs	parse
+Presets/GLSL_shaders/grigm/Voro_Tri_Tunnel_XtGGWy.fs	bake
+Presets/GLSL_shaders/grigm/WaperVave_3sGSDm.fs	parse
+Presets/GLSL_shaders/grigm/Water_blobs_ldySDh.fs	parse
+Presets/GLSL_shaders/grigm/XY_oscilloscope_stochastic_XttSzf.fs	bake
+Presets/GLSL_shaders/grigm/bp_Turbulence_Ml3SRf.fs	parse
+Presets/GLSL_shaders/grigm/cellular_mass_tdd3DS.fs	bake
+Presets/GLSL_shaders/grigm/circle/Default.fs	parse
+Presets/GLSL_shaders/grigm/circle/Dither.fs	parse
+Presets/GLSL_shaders/grigm/circle/Linify.fs	parse
+Presets/GLSL_shaders/grigm/circle/Luma Key.fs	parse
+Presets/GLSL_shaders/grigm/circle/Soft Borders.fs	bake
+Presets/GLSL_shaders/grigm/computer_grid_wtB3zw.fs	blank
+Presets/GLSL_shaders/grigm/crystaline_growth_4lXyRM.fs	blank
+Presets/GLSL_shaders/grigm/font_morph_ltcXzs.fs	bake
+Presets/GLSL_shaders/grigm/fx_Contiguous_Image_Warping.fs	parse
+Presets/GLSL_shaders/grigm/fx_Curl_noise_Image_transition_tdj3W3.fs	bake
+Presets/GLSL_shaders/grigm/fx_Fisheye___antifisheye_4s2GRR.fs	parse
+Presets/GLSL_shaders/grigm/fx_Fluid_Warp_ltKfR1.fs	parse
+Presets/GLSL_shaders/grigm/fx_Image_Diffusion_Warp_Msd3W2.fs	parse
+Presets/GLSL_shaders/grigm/fx_Indented_glass_WltSWM.fs	parse
+Presets/GLSL_shaders/grigm/fx_POV4_MsfXRn.fs	parse
+Presets/GLSL_shaders/grigm/fx_Wave_sampling_wt2XWW.fs	parse
+Presets/GLSL_shaders/grigm/fx_color_shiftv_WsySzc.fs	parse
+Presets/GLSL_shaders/grigm/fx_glass_voronov_noise_3dyXRG.fs	parse
+Presets/GLSL_shaders/grigm/fx_rand_shift_lines_beat.fs	parse
+Presets/GLSL_shaders/grigm/fx_simple_dissolve_effect_3tlXDS.fs	parse
+Presets/GLSL_shaders/grigm/fx_vector_field_XsSGDc.fs	parse
+Presets/GLSL_shaders/grigm/grid_bulb_distortion.fs	bake
+Presets/GLSL_shaders/grigm/gs_13001.0.fs	parse
+Presets/GLSL_shaders/grigm/gs_1495.0.fs	parse
+Presets/GLSL_shaders/grigm/gs_16082.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_16542.0.fs	parse
+Presets/GLSL_shaders/grigm/gs_2101.0.fs	parse
+Presets/GLSL_shaders/grigm/gs_24524.0.fs	blank
+Presets/GLSL_shaders/grigm/gs_25363.1.fs	bake
+Presets/GLSL_shaders/grigm/gs_25778.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_2644.0.fs	parse
+Presets/GLSL_shaders/grigm/gs_2647.1.fs	parse
+Presets/GLSL_shaders/grigm/gs_2653.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_2654.1.fs	parse
+Presets/GLSL_shaders/grigm/gs_2711.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_27226.2.fs	bake
+Presets/GLSL_shaders/grigm/gs_2867.0.fs	parse
+Presets/GLSL_shaders/grigm/gs_2874.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_2875.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_2876.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_2917.0.fs	parse
+Presets/GLSL_shaders/grigm/gs_3038.1.fs	bake
+Presets/GLSL_shaders/grigm/gs_30736.1.fs	parse
+Presets/GLSL_shaders/grigm/gs_30758.2.fs	parse
+Presets/GLSL_shaders/grigm/gs_30782.5.fs	parse
+Presets/GLSL_shaders/grigm/gs_30890.0.fs	parse
+Presets/GLSL_shaders/grigm/gs_30960.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_30962.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_31149.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_3116.0.fs	parse
+Presets/GLSL_shaders/grigm/gs_31424.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_34092.0.fs	parse
+Presets/GLSL_shaders/grigm/gs_34134.0.fs	blank
+Presets/GLSL_shaders/grigm/gs_34206.0.fs	parse
+Presets/GLSL_shaders/grigm/gs_3425.3.fs	bake
+Presets/GLSL_shaders/grigm/gs_34290.5.fs	bake
+Presets/GLSL_shaders/grigm/gs_34489.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_34631.0.fs	blank
+Presets/GLSL_shaders/grigm/gs_3465.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_34774.0.fs	parse
+Presets/GLSL_shaders/grigm/gs_34973.5.fs	blank
+Presets/GLSL_shaders/grigm/gs_35376.3.fs	parse
+Presets/GLSL_shaders/grigm/gs_36074.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_36473.0.fs	blank
+Presets/GLSL_shaders/grigm/gs_36477.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_36955.1.fs	parse
+Presets/GLSL_shaders/grigm/gs_37459.3.fs	bake
+Presets/GLSL_shaders/grigm/gs_38016.0.fs	parse
+Presets/GLSL_shaders/grigm/gs_3877.3.fs	bake
+Presets/GLSL_shaders/grigm/gs_39393.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_39446.1.fs	blank
+Presets/GLSL_shaders/grigm/gs_39620.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_39651.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_39890.0.fs	parse
+Presets/GLSL_shaders/grigm/gs_39893.2.fs	blank
+Presets/GLSL_shaders/grigm/gs_4024.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_41868.9.fs	bake
+Presets/GLSL_shaders/grigm/gs_42854.0.fs	parse
+Presets/GLSL_shaders/grigm/gs_43009.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_43392.9.fs	bake
+Presets/GLSL_shaders/grigm/gs_43504.0.fs	blank
+Presets/GLSL_shaders/grigm/gs_43985.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_4401.1.fs	parse
+Presets/GLSL_shaders/grigm/gs_44174.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_4436.0.fs	parse
+Presets/GLSL_shaders/grigm/gs_44400.0.fs	parse
+Presets/GLSL_shaders/grigm/gs_45328.1.fs	bake
+Presets/GLSL_shaders/grigm/gs_45330.1.fs	parse
+Presets/GLSL_shaders/grigm/gs_45385.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_4551.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_4555.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_45651.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_45657.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_45834.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_45858.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_46297.0.fs	blank
+Presets/GLSL_shaders/grigm/gs_46656.5.fs	bake
+Presets/GLSL_shaders/grigm/gs_46660.2.fs	bake
+Presets/GLSL_shaders/grigm/gs_47219.0.fs	parse
+Presets/GLSL_shaders/grigm/gs_47499.1.fs	bake
+Presets/GLSL_shaders/grigm/gs_47687.2.fs	bake
+Presets/GLSL_shaders/grigm/gs_47762.0.fs	parse
+Presets/GLSL_shaders/grigm/gs_47788.2.fs	parse
+Presets/GLSL_shaders/grigm/gs_48041.1.fs	bake
+Presets/GLSL_shaders/grigm/gs_48284.1.fs	bake
+Presets/GLSL_shaders/grigm/gs_48285.0.fs	blank
+Presets/GLSL_shaders/grigm/gs_48285.0.fs	warning
+Presets/GLSL_shaders/grigm/gs_48302.1.fs	bake
+Presets/GLSL_shaders/grigm/gs_48329.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_48496.0.fs	blank
+Presets/GLSL_shaders/grigm/gs_48892.1.fs	blank
+Presets/GLSL_shaders/grigm/gs_49151.0.fs	parse
+Presets/GLSL_shaders/grigm/gs_49290.0.fs	parse
+Presets/GLSL_shaders/grigm/gs_49438.0.fs	parse
+Presets/GLSL_shaders/grigm/gs_49636.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_49867.1.fs	bake
+Presets/GLSL_shaders/grigm/gs_50607.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_50913.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_51190.0.fs	parse
+Presets/GLSL_shaders/grigm/gs_51277.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_51640.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_51700.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_52027.2.fs	bake
+Presets/GLSL_shaders/grigm/gs_52111.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_52152.1.fs	bake
+Presets/GLSL_shaders/grigm/gs_52203.0.fs	blank
+Presets/GLSL_shaders/grigm/gs_52203.0.fs	warning
+Presets/GLSL_shaders/grigm/gs_52218.0.fs	blank
+Presets/GLSL_shaders/grigm/gs_52218.0.fs	warning
+Presets/GLSL_shaders/grigm/gs_52534.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_52901.1.fs	bake
+Presets/GLSL_shaders/grigm/gs_53367.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_53505.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_53580.2.fs	parse
+Presets/GLSL_shaders/grigm/gs_5359.8.fs	parse
+Presets/GLSL_shaders/grigm/gs_5361.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_53619.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_5362.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_53690.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_53711.1.fs	bake
+Presets/GLSL_shaders/grigm/gs_54077.0.fs	blank
+Presets/GLSL_shaders/grigm/gs_54137.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_54161.2.fs	bake
+Presets/GLSL_shaders/grigm/gs_54208.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_54343.0.fs	parse
+Presets/GLSL_shaders/grigm/gs_54364.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_54370.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_55484.1.fs	parse
+Presets/GLSL_shaders/grigm/gs_5550.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_55915.1.fs	bake
+Presets/GLSL_shaders/grigm/gs_56788.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_57029.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_57030.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_57031.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_57248.0.fs	parse
+Presets/GLSL_shaders/grigm/gs_57366.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_57905.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_57937.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_58545.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_58960.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_59045.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_59153.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_59198.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_59755.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_59765.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_60083.0.fs	parse
+Presets/GLSL_shaders/grigm/gs_60242.1.fs	bake
+Presets/GLSL_shaders/grigm/gs_60317.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_60546.0.fs	parse
+Presets/GLSL_shaders/grigm/gs_60646.4.fs	parse
+Presets/GLSL_shaders/grigm/gs_60651.0.fs	parse
+Presets/GLSL_shaders/grigm/gs_60652.0.fs	parse
+Presets/GLSL_shaders/grigm/gs_61584.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_7026.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_7458.0.fs	bake
+Presets/GLSL_shaders/grigm/hexagons.fs	bake
+Presets/GLSL_shaders/grigm/inertia rotation distortion effect.fs	parse
+Presets/GLSL_shaders/grigm/logo extrude.fs	bake
+Presets/GLSL_shaders/grigm/maze_worms___graffitis_1_XsjyRW.fs	bake
+Presets/GLSL_shaders/grigm/nebula_flow_wdVXz3.fs	bake
+Presets/GLSL_shaders/grigm/necessary-disorder_tuto_#4_lsGcWK.fs	bake
+Presets/GLSL_shaders/grigm/pixel-spirit_00-Void.fs	blank
+Presets/GLSL_shaders/grigm/pixel-spirit_48-Enlightenment.fs	blank
+Presets/GLSL_shaders/grigm/pixilate_zoom_anim.fs	parse
+Presets/GLSL_shaders/grigm/sgdfgsdfgsdfg_3sdXRH.fs	bake
+Presets/GLSL_shaders/grigm/shaders/lines/Default.fs	parse
+Presets/GLSL_shaders/grigm/shaders/mask/Default.fs	bake
+Presets/GLSL_shaders/grigm/shaders/surface3D/Default.fs	parse
+Presets/GLSL_shaders/grigm/shaders/surface3D/Vertex Noise.fs	parse
+Presets/GLSL_shaders/grigm/shaders/triangle/Default.fs	parse
+Presets/GLSL_shaders/grigm/shaders/triangle/Dither.fs	parse
+Presets/GLSL_shaders/grigm/shaders/triangle/Linify.fs	parse
+Presets/GLSL_shaders/grigm/shaders/triangle/Luma Key.fs	parse
+Presets/GLSL_shaders/grigm/shaders/triangle/Soft Borders.fs	bake
+Presets/GLSL_shaders/grigm/shards_XtVGDW.fs	bake
+Presets/GLSL_shaders/grigm/simple_snow_MdjSD3.fs	bake
+Presets/GLSL_shaders/grigm/siri_like_animation_WsKXRc.fs	bake
+Presets/GLSL_shaders/grigm/smart_perlin_blend_percep.-rot2_3d3GRB.fs	bake
+Presets/GLSL_shaders/grigm/solar_flare_in_starfield_ltj3DK.fs	blank
+Presets/GLSL_shaders/grigm/sunflower3_(278_chars)_4sjSRt.fs	parse
+Presets/GLSL_shaders/grigm/throughColor_tdd3W8.fs	blank
+Presets/GLSL_shaders/grigm/trilinear_filtering_sketch_3stGDl.fs	bake
+Presets/GLSL_shaders/grigm/voronoi_kaleidescope_XsXyzl.fs	parse
+Presets/GLSL_shaders/grigm/willstall_002_test.fs	parse
+Presets/GLSL_shaders/grigm/willstall_005.fs	bake
+Presets/GLSL_shaders/grigm/willstall_015_test.fs	bake
+Presets/GLSL_shaders/grigm/willstall_023.fs	parse
+Presets/GLSL_shaders/icalvin102/GradientDisplace.fs	bake
+Presets/GLSL_shaders/icalvin102/RadialSpectrogram.fs	blank
+Presets/GLSL_shaders/sophia-digital-art/NovaFractal.fs	blank
+Presets/GLSL_shaders/sophia-digital-art/PlasmaGlobe.fs	blank
+Presets/GLSL_shaders/sophia-digital-art/Template.fs	blank
+Presets/GLSL_shaders/sophia-digital-art/edges.fs	bake
+Presets/GLSL_shaders/utility/Crop Edges.fs	blank
+Presets/GLSL_shaders/utility/Crop.fs	bake
+Presets/Javascript/rect-mapper/edgeblend.frag	parse
