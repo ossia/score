@@ -92,3 +92,13 @@ score_add_test(test_regression_throwing_drop_handler
   SOURCES RegressionThrowingDropHandlerTest.cpp
   APP
   PLUGINS score_lib_process)
+
+# Renders the user library's ISF shaders through the graphics pipeline, and
+# bakes each one for the WebAssembly GLSL profile. Needs a GPU-capable display;
+# skips when no library is installed.
+score_add_test(test_integration_shader_sweep
+  SOURCES ShaderLibrarySweepTest.cpp
+  GUI
+  PLUGINS score_plugin_gfx score_lib_process)
+target_compile_definitions(test_integration_shader_sweep PRIVATE
+  "SCORE_SHADER_SWEEP_BASELINE=\"${CMAKE_CURRENT_SOURCE_DIR}/../testdata/shader_sweep_baseline.txt\"")

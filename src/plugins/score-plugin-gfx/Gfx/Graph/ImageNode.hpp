@@ -54,7 +54,7 @@ private:
   std::vector<score::gfx::Image> images;
   std::vector<image_type> linearImages;
 };
-struct FullScreenImageNode : NodeModel
+struct SCORE_PLUGIN_GFX_EXPORT FullScreenImageNode : NodeModel
 {
 public:
   explicit FullScreenImageNode(QImage dec);
