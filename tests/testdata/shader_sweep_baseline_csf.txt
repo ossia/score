@@ -1,14 +1,16 @@
-Presets/Compute Shader/Blur.cs	parse
-Presets/Compute Shader/Brightness.cs	parse
-Presets/Compute Shader/Clifford.cs	parse
-Presets/Compute Shader/Game of Life.cs	parse
-Presets/Compute Shader/Noise.cs	parse
-Presets/Compute Shader/Particles 1.cs	parse
-Presets/GLSL_shaders/computer-vision/Analysis/Centroid.cs	parse
-Presets/GLSL_shaders/computer-vision/Analysis/Corners.cs	parse
-Presets/GLSL_shaders/computer-vision/Analysis/Covariance.cs	parse
-Presets/GLSL_shaders/computer-vision/Analysis/Histogram.cs	parse
-Presets/GLSL_shaders/computer-vision/Analysis/Hough.cs	parse
-Presets/GLSL_shaders/computer-vision/Analysis/MinMaxMean.cs	parse
-Presets/GLSL_shaders/computer-vision/Analysis/Moments.cs	parse
-Presets/GLSL_shaders/computer-vision/Analysis/Sum.cs	parse
+Presets/Compute Shader/Blur.cs	gles300
+Presets/Compute Shader/Brightness.cs	gles300
+Presets/Compute Shader/Clifford.cs	gles300
+Presets/Compute Shader/Game of Life.cs	gles300
+Presets/Compute Shader/Noise.cs	gles300
+Presets/Compute Shader/Particles 1.cs	blank
+Presets/Compute Shader/Particles 1.cs	gles300
+Presets/Compute Shader/Particles 1.cs	warning
+Presets/GLSL_shaders/computer-vision/Analysis/Centroid.cs	gles300
+Presets/GLSL_shaders/computer-vision/Analysis/Corners.cs	gles300
+Presets/GLSL_shaders/computer-vision/Analysis/Covariance.cs	gles300
+Presets/GLSL_shaders/computer-vision/Analysis/Histogram.cs	gles300
+Presets/GLSL_shaders/computer-vision/Analysis/Hough.cs	gles300
+Presets/GLSL_shaders/computer-vision/Analysis/MinMaxMean.cs	gles300
+Presets/GLSL_shaders/computer-vision/Analysis/Moments.cs	gles300
+Presets/GLSL_shaders/computer-vision/Analysis/Sum.cs	gles300

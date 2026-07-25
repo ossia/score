@@ -142,8 +142,13 @@ struct Sweeper
   {
     std::map<std::string, std::string> failures;
 
-    auto isf = std::make_unique<score::gfx::ISFNode>(
-        program.descriptor, program.vertex, program.fragment);
+    // CSF carries its compute source in ProcessedProgram::fragment and has no
+    // vertex/fragment pair: score::gfx::ISFNode has a separate constructor.
+    auto isf = program.descriptor.mode == isf::descriptor::CSF
+                   ? std::make_unique<score::gfx::ISFNode>(
+                         program.descriptor, program.fragment)
+                   : std::make_unique<score::gfx::ISFNode>(
+                         program.descriptor, program.vertex, program.fragment);
 
     if(auto err = bakeForWasm(*isf); !err.isEmpty())
       failures["gles300"] = err.toStdString();
@@ -204,6 +209,21 @@ struct Sweeper
     return failures;
   }
 
+  //! The compute source is a template: RenderedCSFNode fills the work-group
+  //! size in per pass, so the baker needs the first pass's values here.
+  static QString withLocalSize(const score::gfx::ISFNode& isf)
+  {
+    QString src = isf.m_computeS;
+    if(src.isEmpty() || isf.m_descriptor.csf_passes.empty())
+      return src;
+
+    const auto& ls = isf.m_descriptor.csf_passes[0].local_size;
+    src.replace("ISF_LOCAL_SIZE_X", QString::number(ls[0]));
+    src.replace("ISF_LOCAL_SIZE_Y", QString::number(ls[1]));
+    src.replace("ISF_LOCAL_SIZE_Z", QString::number(ls[2]));
+    return src;
+  }
+
   //! Bakes the node's shaders for the WebAssembly GLSL profile.
   QString bakeForWasm(const score::gfx::ISFNode& isf) const
   {
@@ -225,7 +245,7 @@ struct Sweeper
 
     check(isf.m_vertexS, QShader::VertexStage, "vertex");
     check(isf.m_fragmentS, QShader::FragmentStage, "fragment");
-    check(isf.m_computeS, QShader::ComputeStage, "compute");
+    check(withLocalSize(isf), QShader::ComputeStage, "compute");
     return errors;
   }
 
@@ -278,6 +298,16 @@ using ProgramLoader
     = std::optional<Gfx::ProcessedProgram> (*)(const QString& path, QByteArray data,
                                                QString& error);
 
+//! The baseline records only the failure kinds; the message that produced each
+//! one is only ever seen live, so print it as the run goes.
+inline void
+report(const QString& shader, const std::map<std::string, std::string>& kinds)
+{
+  for(const auto& [kind, message] : kinds)
+    qInfo().noquote() << "[sweep!]" << shader << QString::fromStdString(kind)
+                      << QString::fromStdString(message);
+}
+
 //! Runs one shader kind over the library and diffs against its baseline.
 inline void sweepLibrary(
     const score::GUIApplicationContext& ctx, const QStringList& patterns,
@@ -320,11 +350,15 @@ inline void sweepLibrary(
     {
       failures[rel][programErrorKind(error)]
           = error.isEmpty() ? "no program" : error.toStdString();
+      report(rel, failures[rel]);
       continue;
     }
 
     if(auto res = sweeper.run(*program); !res.empty())
+    {
+      report(rel, res);
       failures[rel] = std::move(res);
+    }
   }
 
   qInstallMessageHandler(g_previous);

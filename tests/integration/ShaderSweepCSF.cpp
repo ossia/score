@@ -1,9 +1,9 @@
 // The same sweep, for CSF compute shaders (.cs).
 //
 // These reach score::gfx::RenderedCSFNode. Unlike ISF and VSA they are parsed
-// straight through isf::parser with the CSF shader type rather than through a
-// programFrom* helper, because a compute shader has no vertex/fragment pair to
-// synthesize.
+// straight through isf::parser with the CSF shader type rather than through
+// ProgramCache, which only knows how to synthesize a vertex/fragment pair;
+// Gfx::CSF::Model::setScript does the same thing and is the reference here.
 //
 // Some of the corpus is known to produce geometry for a downstream raster stage
 // and so renders nothing on its own; those land in the "blank" category and are
@@ -16,11 +16,37 @@ namespace
 std::optional<Gfx::ProcessedProgram>
 loadCSF(const QString& path, QByteArray data, QString& error)
 {
-  Gfx::ShaderSource source{
-      isf::parser::ShaderType::CSF, QString{}, QString::fromUtf8(data)};
-  auto [program, err] = Gfx::ProgramCache::instance().get(source);
-  error = err;
-  return program;
+  try
+  {
+    isf::parser p{data.toStdString(), isf::parser::ShaderType::CSF};
+    if(p.mode() != isf::descriptor::CSF)
+    {
+      error = "Not a valid CSF shader";
+      return std::nullopt;
+    }
+
+    Gfx::ProcessedProgram program;
+    program.type = isf::parser::ShaderType::CSF;
+    program.descriptor = p.data();
+    // Gfx::CSF::Model keeps the compute source in ProcessedProgram::fragment;
+    // RenderedCSFNode substitutes the ISF_LOCAL_SIZE_* placeholders per pass.
+    program.fragment = QString::fromStdString(p.compute_shader());
+    if(program.fragment.isEmpty())
+    {
+      error = "Empty compute shader";
+      return std::nullopt;
+    }
+    return program;
+  }
+  catch(const std::exception& e)
+  {
+    error = QString("CSF error: %1").arg(e.what());
+  }
+  catch(...)
+  {
+    error = "Unknown error";
+  }
+  return std::nullopt;
 }
 }
 
