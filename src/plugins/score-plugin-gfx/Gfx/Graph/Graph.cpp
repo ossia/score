@@ -237,8 +237,10 @@ void Graph::recreateOutputRenderList(OutputNode& output)
   {
     // No render list yet for this output -- either it has never been built, or
     // a previous attempt failed. Build it now instead of leaving the output
-    // permanently without a renderer.
-    createOutputRenderList(output);
+    // permanently without a renderer, but only against a usable swapchain:
+    // setRenderSize() reaches here with no such guarantee.
+    if(output.canRender())
+      createOutputRenderList(output);
     return;
   }
 
@@ -274,7 +276,12 @@ void Graph::recreateOutputRenderList(OutputNode& output)
 void Graph::initializeOutput(OutputNode* output, GraphicsApi graphicsApi)
 {
   output->updateGraphicsAPI(graphicsApi);
-  if(!output->canRender() || !output->renderState())
+  // Only when there is no output yet: createOutput() replaces ScreenNode's
+  // Window outright, so calling it on a live output that merely is not ready
+  // to render would leak its QRhi and orphan an embedded window from its
+  // container. An output that exists but cannot render yet waits for the
+  // onResize below instead.
+  if(!output->renderState())
   {
     auto onReady = [this, output] {
       if(output->canRender())
@@ -289,7 +296,7 @@ void Graph::initializeOutput(OutputNode* output, GraphicsApi graphicsApi)
     // TODO only works for one output !!
     output->createOutput({.graphicsApi = graphicsApi, .onReady = onReady, .onResize = onResize});
   }
-  else
+  else if(output->canRender())
   {
     createOutputRenderList(*output);
     // output->window->state.hasSwapChain = true;
