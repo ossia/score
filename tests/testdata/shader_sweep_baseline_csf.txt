@@ -1,0 +1,14 @@
+Presets/Compute Shader/Blur.cs	parse
+Presets/Compute Shader/Brightness.cs	parse
+Presets/Compute Shader/Clifford.cs	parse
+Presets/Compute Shader/Game of Life.cs	parse
+Presets/Compute Shader/Noise.cs	parse
+Presets/Compute Shader/Particles 1.cs	parse
+Presets/GLSL_shaders/computer-vision/Analysis/Centroid.cs	parse
+Presets/GLSL_shaders/computer-vision/Analysis/Corners.cs	parse
+Presets/GLSL_shaders/computer-vision/Analysis/Covariance.cs	parse
+Presets/GLSL_shaders/computer-vision/Analysis/Histogram.cs	parse
+Presets/GLSL_shaders/computer-vision/Analysis/Hough.cs	parse
+Presets/GLSL_shaders/computer-vision/Analysis/MinMaxMean.cs	parse
+Presets/GLSL_shaders/computer-vision/Analysis/Moments.cs	parse
+Presets/GLSL_shaders/computer-vision/Analysis/Sum.cs	parse
