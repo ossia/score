@@ -197,4 +197,23 @@ private:
   bool m_ready{};
   bool m_built{};
 };
+
+/**
+ * @brief Texture format to use for images uploaded from the CPU
+ *
+ * BGRA8 where the backend has it, RGBA8 otherwise. QRhiGles2 asks for
+ * GL_BGRA whenever a texture is BGRA8, and WebGL has no such format at all,
+ * so uploading one there is an INVALID_ENUM and the image never appears.
+ */
+SCORE_PLUGIN_GFX_EXPORT
+QRhiTexture::Format imageTextureFormat(const QRhi& rhi) noexcept;
+
+/**
+ * @brief Put an image in the byte order imageTextureFormat() asks for
+ *
+ * QRhi uploads a QImage's bits as-is, so the two have to agree.
+ * Premultiplication is preserved: only the channel order changes.
+ */
+SCORE_PLUGIN_GFX_EXPORT
+QImage adaptImageFormat(QImage img, QRhiTexture::Format fmt);
 }

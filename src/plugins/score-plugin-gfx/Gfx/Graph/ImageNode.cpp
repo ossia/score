@@ -365,7 +365,7 @@ private:
       if(m_textures.size() <= i)
       {
         QRhiTexture* tex = tex
-            = rhi.newTexture(QRhiTexture::BGRA8, tex_size, 1, QRhiTexture::Flag{});
+            = rhi.newTexture(imageTextureFormat(rhi), tex_size, 1, QRhiTexture::Flag{});
         tex->setName("ImagesNode::tex");
         tex->create();
         m_textures.push_back(tex);
@@ -702,7 +702,7 @@ private:
       maxSize.setHeight(std::max(maxSize.height(), sz.height()));
     }
 
-    auto tex = rhi.newTexture(QRhiTexture::BGRA8, maxSize, 1, QRhiTexture::Flag{});
+    auto tex = rhi.newTexture(imageTextureFormat(rhi), maxSize, 1, QRhiTexture::Flag{});
 
     tex->setName("OnTheFlyRenderer::tex");
     tex->create();
@@ -945,7 +945,7 @@ private:
     // Create GPU textures for the image
     const QSize sz = n.m_image.size();
     auto tex = rhi.newTexture(
-        QRhiTexture::BGRA8, QSize{sz.width(), sz.height()}, 1, QRhiTexture::Flag{});
+        imageTextureFormat(rhi), QSize{sz.width(), sz.height()}, 1, QRhiTexture::Flag{});
 
     tex->setName("FullScreenImageNode::tex");
     tex->create();
