@@ -37,6 +37,9 @@ public:
   void releaseSwapChain();
   void render();
 
+  void handleDeviceLost();
+  bool checkDeviceLost(int frameOpResult);
+
   void exposeEvent(QExposeEvent*) override;
   void mouseDoubleClickEvent(QMouseEvent* ev) override;
 
@@ -52,6 +55,14 @@ public:
   // descriptors). Used by MultiWindowNode where the swap chain is not stored
   // in Window::m_swapChain but in an external owner.
   std::function<void()> onClose;
+
+  // Invoked, deferred and at most once, when the graphics context backing this
+  // window has been lost. The window stops rendering entirely until the owner
+  // rebuilds it: continuing to call beginFrame() on a dead context only
+  // produces one "QRhiGles2: Context is lost." per frame, forever.
+  std::function<void()> onDeviceLost;
+
+  bool deviceLost() const noexcept { return m_deviceLost; }
 
   void tabletMove(QTabletEvent* ev) W_SIGNAL(tabletMove, ev);
 
@@ -79,6 +90,7 @@ private:
   bool m_notExposed = false;
   bool m_newlyExposed = false;
   bool m_hasSwapChain = false;
+  bool m_deviceLost = false;
   bool m_embeddedFullscreen = false;
 };
 }
