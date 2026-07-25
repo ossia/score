@@ -7,6 +7,11 @@
 
 #include <score/model/Skin.hpp>
 #include <score/widgets/Pixmap.hpp>
+#if defined(__EMSCRIPTEN__)
+#include <score/widgets/ItemViewDrag.hpp>
+
+#include <QStyleOptionViewItem>
+#endif
 
 #include <ossia/detail/ssize.hpp>
 
@@ -103,6 +108,11 @@ void DeviceExplorerView::startDrag(Qt::DropActions)
         drag->setDragCursor(p, Qt::IgnoreAction);
         drag->setDragCursor(p, Qt::TargetMoveAction);
         */
+#if defined(__EMSCRIPTEN__)
+    QStyleOptionViewItem opt;
+    initViewItemOption(&opt);
+    score::setItemViewDragPixmap(*drag, *this, opt, indexes);
+#endif
     drag->exec();
   }
 }

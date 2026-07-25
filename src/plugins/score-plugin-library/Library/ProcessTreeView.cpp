@@ -3,6 +3,11 @@
 #include <Library/PresetListView.hpp>
 
 #include <score/widgets/Pixmap.hpp>
+#if defined(__EMSCRIPTEN__)
+#include <score/widgets/ItemViewDrag.hpp>
+
+#include <QStyleOptionViewItem>
+#endif
 
 #include <QDrag>
 #include <QGuiApplication>
@@ -75,6 +80,11 @@ void ProcessTreeView::startDrag(Qt::DropActions)
     drag->setDragCursor(p, Qt::CopyAction);
     drag->setDragCursor(p, Qt::MoveAction);
     */
+#if defined(__EMSCRIPTEN__)
+    QStyleOptionViewItem opt;
+    initViewItemOption(&opt);
+    score::setItemViewDragPixmap(*drag, *this, opt, indexes);
+#endif
     drag->exec();
   }
 }
