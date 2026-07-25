@@ -1,4 +1,5 @@
 #include <Gfx/Graph/Window.hpp>
+#include <Gfx/Graph/Utils.hpp>
 #include <Gfx/Settings/Model.hpp>
 
 #include <score/application/ApplicationContext.hpp>
@@ -112,9 +113,35 @@ void Window::resizeSwapChain()
 {
   if(m_swapChain)
   {
+    const QSize surface = m_swapChain->surfacePixelSize();
+
+    // QGles2SwapChain::createOrResize() returns true unconditionally, even for
+    // an empty surface: it is not a usable "the swapchain is ready" signal.
+    // Building the render list against an empty swapchain gives every node a
+    // 1x1 render target (QRhi clamps empty texture sizes up) and a 0x0
+    // viewport in the final blit, i.e. a permanently black window, since
+    // nothing rebuilds the render list unless the surface size changes again.
+    if(surface.isEmpty())
+    {
+      if(outputLogEnabled())
+        qDebug() << "[gfxout] resizeSwapChain: refused, empty surface"
+                 << "current=" << m_swapChain->currentPixelSize();
+      m_hasSwapChain = false;
+      m_newlyExposed = true;
+      requestUpdate();
+      return;
+    }
+
     m_hasSwapChain = m_swapChain->createOrResize();
     if(state)
       state->outputSize = m_swapChain->currentPixelSize();
+
+    if(outputLogEnabled())
+      qDebug() << "[gfxout] resizeSwapChain: ok=" << m_hasSwapChain
+               << "surface=" << surface << "current=" << m_swapChain->currentPixelSize()
+               << "outputSize=" << (state ? state->outputSize : QSize{})
+               << "rt=" << (void*)m_swapChain->currentFrameRenderTarget();
+
     if(onResize)
       onResize();
   }
@@ -128,8 +155,14 @@ void Window::releaseSwapChain()
 {
   if(m_swapChain && m_hasSwapChain)
   {
+    if(outputLogEnabled())
+      qDebug() << "[gfxout] releaseSwapChain";
     m_hasSwapChain = false;
     m_swapChain->destroy();
+
+    // The render list is built against this swapchain: force a full rebuild
+    // when the window comes back rather than reusing it as-is.
+    m_newlyExposed = true;
   }
 }
 
@@ -154,6 +187,10 @@ void Window::render()
     // clears it again and the window stays black. Recover once it has a size.
     if(isExposed() && m_swapChain && !m_swapChain->surfacePixelSize().isEmpty())
     {
+      if(outputLogEnabled())
+        qDebug() << "[gfxout] render: recovering, hasSwapChain=" << m_hasSwapChain
+                 << "notExposed=" << m_notExposed
+                 << "surface=" << m_swapChain->surfacePixelSize();
       m_notExposed = false;
       m_newlyExposed = true;
       // fall through: the resize block below will (re)create the swapchain
@@ -261,6 +298,12 @@ void Window::exposeEvent(QExposeEvent* ev)
   {
     return;
   }
+  if(outputLogEnabled())
+    qDebug() << "[gfxout] exposeEvent: exposed=" << isExposed() << "running=" << m_running
+             << "notExposed=" << m_notExposed << "hasSwapChain=" << m_hasSwapChain
+             << "size=" << size()
+             << "surface=" << (m_swapChain ? m_swapChain->surfacePixelSize() : QSize{});
+
   if(isExposed() && !m_running)
   {
     m_running = true;

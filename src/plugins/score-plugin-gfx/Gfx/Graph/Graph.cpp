@@ -4,6 +4,7 @@
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
 #include <Gfx/Graph/RenderList.hpp>
+#include <Gfx/Graph/Utils.hpp>
 #include <Gfx/Graph/Window.hpp>
 
 #include <score/gfx/Vulkan.hpp>
@@ -231,16 +232,33 @@ void Graph::recreateOutputRenderList(OutputNode& output)
         return r.get() == rend;
       });
 
-  if(it != m_renderers.end())
+  if(outputLogEnabled())
+    qDebug() << "[gfxout] recreateOutputRenderList: existing renderer="
+             << (void*)output.renderer() << "found=" << (it != m_renderers.end())
+             << "canRender=" << output.canRender();
+
+  if(it == m_renderers.end())
+  {
+    // No render list yet for this output -- either it has never been built, or
+    // a previous attempt failed. Build it now instead of leaving the output
+    // permanently without a renderer.
+    createOutputRenderList(output);
+    return;
+  }
+
   {
     std::shared_ptr<RenderList>& renderer = *it;
     if(renderer.get() == output.renderer())
     {
+      auto state = output.renderState();
+      if(!state)
+        return;
+
       auto old_renderer = renderer;
       old_renderer->release();
       old_renderer.reset();
 
-      auto new_renderer = createRenderList(&output, output.renderState());
+      auto new_renderer = createRenderList(&output, state);
 
       renderer = new_renderer;
 

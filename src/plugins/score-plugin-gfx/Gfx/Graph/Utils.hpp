@@ -20,6 +20,15 @@ class NodeModel;
 struct Port;
 struct Edge;
 class RenderList;
+
+/**
+ * @brief Whether to trace the output window / swapchain / render list lifetime.
+ *
+ * Enabled by the SCORE_GFX_LOG environment variable, or by putting "gfxlog" in
+ * the page URL on WebAssembly, where there is no way to set an environment
+ * variable before startup.
+ */
+SCORE_PLUGIN_GFX_EXPORT bool outputLogEnabled() noexcept;
 /**
  * @brief Stores a sampler and the texture currently associated with it.
  */

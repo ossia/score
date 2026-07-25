@@ -1,6 +1,7 @@
 #include "InvertYRenderer.hpp"
 
 #include <Gfx/Graph/RenderList.hpp>
+#include <Gfx/Graph/Utils.hpp>
 
 namespace Gfx
 {
@@ -106,9 +107,10 @@ void InvertYRenderer::finishFrame(
 
 
 
-ScaledRenderer::ScaledRenderer(score::gfx::TextureRenderTarget outputTarget, const score::gfx::RenderState &state, const score::gfx::Node &parent)
+ScaledRenderer::ScaledRenderer(score::gfx::TextureRenderTarget outputTarget, const score::gfx::RenderState &state, const score::gfx::Node &parent, QRhiSwapChain* swapChain)
     : score::gfx::OutputNodeRenderer{parent}
     , m_renderTarget{outputTarget}
+    , m_swapChain{swapChain}
 {
 }
 
@@ -154,9 +156,20 @@ void ScaledRenderer::init(score::gfx::RenderList &renderer, QRhiResourceUpdateBa
     m_samplers[0] = {sampler, this->m_inputTarget.texture};
   }
 
+  if(m_swapChain)
+    m_renderTarget.renderTarget = m_swapChain->currentFrameRenderTarget();
+
   m_p = score::gfx::buildPipeline(
       renderer, mesh, m_vertexS, m_fragmentS, m_renderTarget, nullptr, nullptr,
       m_samplers);
+
+  if(score::gfx::outputLogEnabled())
+    qDebug() << "[gfxout] ScaledRenderer::init: renderSize=" << renderer.state.renderSize
+             << "outputSize=" << renderer.state.outputSize
+             << "inputTexture=" << (void*)m_inputTarget.texture
+             << "rt=" << (void*)m_renderTarget.renderTarget << "rtSize="
+             << (m_renderTarget.renderTarget ? m_renderTarget.renderTarget->pixelSize()
+                                             : QSize{});
 }
 
 void ScaledRenderer::update(score::gfx::RenderList &renderer, QRhiResourceUpdateBatch &res, score::gfx::Edge *edge) {
@@ -164,16 +177,35 @@ void ScaledRenderer::update(score::gfx::RenderList &renderer, QRhiResourceUpdate
 
 void ScaledRenderer::runRenderPass(score::gfx::RenderList &, QRhiCommandBuffer &commands, score::gfx::Edge &e)
 {
-  // m_rt.renderTarget = parent.m_swapChain->currentFrameRenderTarget();
-  // m_rt.renderPass = state->renderPassDescriptor;
 }
 
 void ScaledRenderer::finishFrame(score::gfx::RenderList &renderer, QRhiCommandBuffer &cb, QRhiResourceUpdateBatch *&res)
 {
-  cb.beginPass(m_renderTarget.renderTarget, Qt::black, {1.0f, 0}, res);
+  if(m_swapChain)
+    m_renderTarget.renderTarget = m_swapChain->currentFrameRenderTarget();
+
+  auto* rt = m_renderTarget.renderTarget;
+  if(!rt)
+    return;
+
+  cb.beginPass(rt, Qt::black, {1.0f, 0}, res);
   res = nullptr;
   {
-    const auto sz = renderer.state.outputSize;
+    // For a swapchain the render target is authoritative: state.outputSize is
+    // only refreshed when the swapchain is resized, and a zero-sized viewport
+    // renders nothing.
+    auto sz = renderer.state.outputSize;
+    if(m_swapChain && !rt->pixelSize().isEmpty())
+      sz = rt->pixelSize();
+
+    if(score::gfx::outputLogEnabled() && (sz != m_loggedSize || rt != m_loggedTarget))
+    {
+      m_loggedSize = sz;
+      m_loggedTarget = rt;
+      qDebug() << "[gfxout] ScaledRenderer::finishFrame: rt=" << (void*)rt
+               << "viewport=" << sz << "state.outputSize=" << renderer.state.outputSize
+               << "inputTexture=" << (void*)m_inputTarget.texture;
+    }
 
     cb.setGraphicsPipeline(m_p.pipeline);
     cb.setShaderResources(m_p.srb);

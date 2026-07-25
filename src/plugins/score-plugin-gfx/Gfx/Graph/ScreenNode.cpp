@@ -316,10 +316,11 @@ ScreenNode::~ScreenNode()
 
 bool ScreenNode::canRender() const
 {
-  // FIXME - Graph::onReady / Graph::onResize :
-  // swapchain is recreated even when size does not change at the
-  // beginning
-  return bool(m_window) /* && m_window->m_hasSwapChain */;
+  // The swapchain must have been through a successful createOrResize() before
+  // the render list is built against it: otherwise every render target is
+  // sized from an empty swapchain and the window stays black until something
+  // else happens to rebuild the graph.
+  return bool(m_window) && m_window->m_hasSwapChain;
 }
 
 void ScreenNode::startRendering()
@@ -357,10 +358,15 @@ void ScreenNode::onRendererChange()
       if(auto r = m_window->state->renderer.lock())
       {
         m_window->m_canRender = r->renderers.size() > 1;
+        if(outputLogEnabled())
+          qDebug() << "[gfxout] onRendererChange: renderers=" << r->renderers.size()
+                   << "canRender=" << m_window->m_canRender;
         return;
       }
     }
   }
+  if(outputLogEnabled())
+    qDebug() << "[gfxout] onRendererChange: no render list, canRender=false";
   m_window->m_canRender = false;
 }
 
@@ -742,9 +748,19 @@ score::gfx::OutputNodeRenderer* ScreenNode::createRenderer(RenderList& r) const 
   score::gfx::TextureRenderTarget rt;
   rt.renderTarget = m_swapChain->currentFrameRenderTarget();
   rt.renderPass = r.state.renderPassDescriptor;
+
+  if(outputLogEnabled())
+    qDebug() << "[gfxout] ScreenNode::createRenderer: rt=" << (void*)rt.renderTarget
+             << "rtSize=" << (rt.renderTarget ? rt.renderTarget->pixelSize() : QSize{})
+             << "rtSamples=" << (rt.renderTarget ? rt.renderTarget->sampleCount() : -1)
+             << "swapchain current=" << m_swapChain->currentPixelSize()
+             << "surface=" << m_swapChain->surfacePixelSize()
+             << "state.renderSize=" << r.state.renderSize
+             << "state.outputSize=" << r.state.outputSize;
+
   // FIXME why doesn't it work?
   // return new BasicRenderer{rt, r.state, *this};
-  return new Gfx::ScaledRenderer{rt, r.state, *this};
+  return new Gfx::ScaledRenderer{rt, r.state, *this, m_swapChain};
 }
 
 OutputNode::Configuration ScreenNode::configuration() const noexcept
