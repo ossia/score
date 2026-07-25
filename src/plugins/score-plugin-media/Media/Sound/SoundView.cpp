@@ -98,6 +98,14 @@ void LayerView::recompute() const
          || m_model.file()->sampleRate() < 1.))
     return;
 
+#if defined(__EMSCRIPTEN__)
+  // The waveform is computed on a worker thread. A weblocalfile: source is a
+  // browser Blob bound to the main thread, so decoding it off-thread is
+  // undefined behaviour; skip the waveform for such (streamed) sources.
+  if(m_model.file()->absoluteFileName().startsWith(QLatin1String("weblocalfile:")))
+    return;
+#endif
+
   if(auto view = getView(*this))
   {
     // By default we try to force a render of everything, but it's too slow with very large files

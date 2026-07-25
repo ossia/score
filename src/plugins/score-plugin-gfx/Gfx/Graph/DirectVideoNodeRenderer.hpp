@@ -101,6 +101,8 @@ private:
 
   // Own LibAV context
   AVFormatContext* m_formatContext{};
+  void* m_ioOwner{};
+  void (*m_ioFree)(void*){};
   AVCodecContext* m_codecContext{};
   const void* m_codec{}; // AVCodec*
   AVStream* m_avstream{};

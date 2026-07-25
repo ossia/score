@@ -75,6 +75,16 @@ void View::onPathChanged(const QString& str)
   }
 
   m_images.clear();
+  m_thumb = nullptr;
+
+#if defined(__EMSCRIPTEN__)
+  // A weblocalfile: source is a browser Blob whose JS handle is bound to the
+  // main thread; the thumbnailer decodes on a worker thread, where reading it
+  // is undefined behaviour. Skip thumbnails for such (typically very large,
+  // streamed) sources rather than re-scanning them off-thread.
+  if(str.startsWith(QLatin1String("weblocalfile:")))
+    return;
+#endif
 
   m_thumb = new ::Video::VideoThumbnailer{str};
   if(oldThread)

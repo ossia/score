@@ -110,6 +110,11 @@ locateFilePath(const QString& filename, const score::DocumentContext& ctx) noexc
 QString
 relativizeFilePath(const QString& filename, const score::DocumentContext& ctx) noexcept
 {
+  // Streamed browser files are addressed by an opaque weblocalfile: URL, not a
+  // filesystem path: keep it verbatim so the decoders can reopen it.
+  if(filename.startsWith(QLatin1String("weblocalfile:")))
+    return filename;
+
   const QFileInfo info{filename};
 
   if(!info.isAbsolute())

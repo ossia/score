@@ -502,7 +502,11 @@ bool DirectVideoNodeRenderer::openFile(score::gfx::GraphicsApi api, QRhi* rhi)
   if(m_filePath.empty())
     return false;
 
-  if(avformat_open_input(&m_formatContext, m_filePath.c_str(), nullptr, nullptr) != 0)
+  if(auto hook = ossia::libav_custom_open())
+    m_formatContext = hook(m_filePath.c_str(), m_ioOwner, m_ioFree);
+
+  if(!m_formatContext
+     && avformat_open_input(&m_formatContext, m_filePath.c_str(), nullptr, nullptr) != 0)
     return false;
 
   if(avformat_find_stream_info(m_formatContext, nullptr) < 0)
@@ -767,6 +771,12 @@ void DirectVideoNodeRenderer::closeFile()
     avformat_flush(m_formatContext);
     avformat_close_input(&m_formatContext);
     m_formatContext = nullptr;
+  }
+  if(m_ioOwner)
+  {
+    m_ioFree(m_ioOwner);
+    m_ioOwner = nullptr;
+    m_ioFree = nullptr;
   }
 
   m_avstream = nullptr;

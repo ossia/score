@@ -22,7 +22,11 @@ DroppedAudioFiles::DroppedAudioFiles(
   for(const auto& url : urls)
   {
     QString filename = url.toLocalFile();
-    if(!(AudioFile::isSupported(QFile{filename}) 
+#if defined(__EMSCRIPTEN__)
+    if(filename.isEmpty() && url.scheme() == QLatin1String("weblocalfile"))
+      filename = url.toString();
+#endif
+    if(!(AudioFile::isSupported(QFile{filename})
       || AudioFile::isSupportedVideo(QFile{filename})))
       continue;
 

@@ -7,6 +7,7 @@
 
 #include <QString>
 
+#include <memory>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -42,6 +43,10 @@ struct SCORE_PLUGIN_MEDIA_EXPORT MediaInfo
   };
   using FormatContextPtr = std::unique_ptr<AVFormatContext, FormatContextDeleter>;
 
+  // Streaming backing (e.g. an AvIoDevice for weblocalfile: sources). Declared
+  // before format_context so it is destroyed *after* it: avformat_close_input
+  // must run while the custom AVIOContext is still alive.
+  std::shared_ptr<void> io_backing;
   FormatContextPtr format_context;
   std::vector<AVMediaType> streams;
   std::optional<int64_t> duration_av; // in AV_TIME_BASE units; empty == unknown

@@ -2,6 +2,8 @@
 
 #if SCORE_HAS_LIBAV
 
+#include <Media/AvStreamIO.hpp>
+
 #include <QByteArray>
 
 #include <limits>
@@ -17,21 +19,47 @@ bool has_valid_duration(const AVFormatContext* ctx) noexcept
          && ctx->duration != std::numeric_limits<int64_t>::min() && ctx->duration > 0;
 }
 
-MediaInfo::FormatContextPtr try_open(const char* path, AVDictionary** opts)
+struct OpenedInput
 {
-  AVFormatContext* raw = avformat_alloc_context();
-  if(!raw)
-    return {};
+  MediaInfo::FormatContextPtr ctx;
+  std::shared_ptr<void> io;
+  explicit operator bool() const noexcept { return static_cast<bool>(ctx); }
+};
 
-  if(avformat_open_input(&raw, path, nullptr, opts) != 0)
-    return {};
+OpenedInput try_open(const QString& path, AVDictionary** opts)
+{
+  std::shared_ptr<void> io;
+  AVFormatContext* raw{};
+
+  if(Media::isStreamedMediaPath(path))
+  {
+    auto dev = std::make_shared<Media::AvIoDevice>(path);
+    if(!*dev)
+      return {};
+    raw = avformat_alloc_context();
+    if(!raw)
+      return {};
+    raw->pb = dev->avio;
+    raw->flags |= AVFMT_FLAG_CUSTOM_IO;
+    if(avformat_open_input(&raw, nullptr, nullptr, opts) != 0)
+      return {};
+    io = std::move(dev);
+  }
+  else
+  {
+    raw = avformat_alloc_context();
+    if(!raw)
+      return {};
+    if(avformat_open_input(&raw, path.toUtf8().constData(), nullptr, opts) != 0)
+      return {};
+  }
 
   MediaInfo::FormatContextPtr ctx{raw};
 
   if(avformat_find_stream_info(ctx.get(), nullptr) < 0 || ctx->nb_streams == 0)
     return {};
 
-  return ctx;
+  return {std::move(ctx), std::move(io)};
 }
 
 // Walk every packet to compute duration manually. Works on any file whose
@@ -102,14 +130,15 @@ int64_t scan_duration_from_packets(AVFormatContext* ctx) noexcept
   return AV_NOPTS_VALUE;
 }
 
-MediaInfo build_info(MediaInfo::FormatContextPtr ctx, std::optional<int64_t> duration_av)
+MediaInfo build_info(OpenedInput opened, std::optional<int64_t> duration_av)
 {
   MediaInfo info;
   info.duration_av = duration_av;
-  info.streams.reserve(ctx->nb_streams);
-  for(unsigned i = 0; i < ctx->nb_streams; i++)
-    info.streams.push_back(ctx->streams[i]->codecpar->codec_type);
-  info.format_context = std::move(ctx);
+  info.streams.reserve(opened.ctx->nb_streams);
+  for(unsigned i = 0; i < opened.ctx->nb_streams; i++)
+    info.streams.push_back(opened.ctx->streams[i]->codecpar->codec_type);
+  info.io_backing = std::move(opened.io);
+  info.format_context = std::move(opened.ctx);
   return info;
 }
 
@@ -117,16 +146,13 @@ MediaInfo build_info(MediaInfo::FormatContextPtr ctx, std::optional<int64_t> dur
 
 std::optional<MediaInfo> probe(const QString& path)
 {
-  const QByteArray utf8 = path.toUtf8();
-  const char* cpath = utf8.constData();
-
   // ---- Attempt 1: defaults (fast path) ----
-  if(auto ctx = try_open(cpath, nullptr))
+  if(auto opened = try_open(path, nullptr))
   {
-    if(has_valid_duration(ctx.get()))
+    if(has_valid_duration(opened.ctx.get()))
     {
-      const int64_t dur = ctx->duration;
-      return build_info(std::move(ctx), dur);
+      const int64_t dur = opened.ctx->duration;
+      return build_info(std::move(opened), dur);
     }
     // else: fall through, but drop this context first
   }
@@ -137,13 +163,13 @@ std::optional<MediaInfo> probe(const QString& path)
     av_dict_set(&opts, "probesize", "100000000", 0);
     av_dict_set(&opts, "analyzeduration", "100000000", 0);
 
-    auto ctx = try_open(cpath, &opts);
+    auto opened = try_open(path, &opts);
     av_dict_free(&opts);
 
-    if(ctx && has_valid_duration(ctx.get()))
+    if(opened && has_valid_duration(opened.ctx.get()))
     {
-      const int64_t dur = ctx->duration;
-      return build_info(std::move(ctx), dur);
+      const int64_t dur = opened.ctx->duration;
+      return build_info(std::move(opened), dur);
     }
   }
 
@@ -154,24 +180,24 @@ std::optional<MediaInfo> probe(const QString& path)
     av_dict_set(&opts, "analyzeduration", "100000000", 0);
     av_dict_set(&opts, "fflags", "+ignidx+genpts", 0);
 
-    auto ctx = try_open(cpath, &opts);
+    auto opened = try_open(path, &opts);
     av_dict_free(&opts);
 
-    if(ctx)
+    if(opened)
     {
-      if(has_valid_duration(ctx.get()))
+      if(has_valid_duration(opened.ctx.get()))
       {
-        const int64_t dur = ctx->duration;
-        return build_info(std::move(ctx), dur);
+        const int64_t dur = opened.ctx->duration;
+        return build_info(std::move(opened), dur);
       }
 
       // ---- Attempt 4: full packet scan on the same context ----
-      int64_t scanned = scan_duration_from_packets(ctx.get());
+      int64_t scanned = scan_duration_from_packets(opened.ctx.get());
       if(scanned != AV_NOPTS_VALUE && scanned > 0)
-        return build_info(std::move(ctx), scanned);
+        return build_info(std::move(opened), scanned);
 
       // File is structurally readable but no duration could be determined.
-      return build_info(std::move(ctx), std::nullopt);
+      return build_info(std::move(opened), std::nullopt);
     }
   }
 

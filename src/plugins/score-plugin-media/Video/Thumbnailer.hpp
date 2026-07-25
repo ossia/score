@@ -48,6 +48,8 @@ private:
   int m_currentIndex{};
 
   AVFormatContext* m_formatContext{};
+  void* m_ioOwner{};
+  void (*m_ioFree)(void*){};
   AVCodecContext* m_codecContext{};
   SwsContext* m_rescale{};
   const AVCodec* m_codec{};

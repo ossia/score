@@ -65,6 +65,7 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Metro/MetroView.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioDecoder.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/AvStreamIO.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/MediaFileHandle.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/LibavMediaInfo.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/RMSData.hpp"
@@ -128,6 +129,7 @@ set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/SndfileDecoder.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Tempo.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioDecoder.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/AvStreamIO.cpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Mixer/MixerPanel.cpp"
 
@@ -161,6 +163,8 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 ### FFMPEG ###
 if(EMSCRIPTEN)
   target_include_directories(${PROJECT_NAME} PUBLIC ${OSSIA_SDK}/ffmpeg/include)
+  # AvStreamIO streams browser Blobs through Qt's private wasm file engine.
+  target_link_libraries(${PROJECT_NAME} PRIVATE ${QT_PREFIX}::CorePrivate)
   target_link_libraries(${PROJECT_NAME} PUBLIC
     -Wl,--start-group
     ${OSSIA_SDK}/ffmpeg/lib/libavcodec.a
