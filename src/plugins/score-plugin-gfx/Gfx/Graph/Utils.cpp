@@ -12,48 +12,6 @@
 
 namespace score::gfx
 {
-bool outputLogEnabled() noexcept
-{
-  static const bool enabled = [] {
-    if(qEnvironmentVariableIsSet("SCORE_GFX_LOG"))
-      return true;
-#if defined(__EMSCRIPTEN__)
-    using emscripten::val;
-    val loc = val::global("location");
-    if(loc.isNull() || loc.isUndefined())
-      return false;
-    std::string url;
-    for(const char* prop : {"search", "hash"})
-    {
-      val v = loc[prop];
-      if(v.isString())
-        url += v.as<std::string>();
-    }
-    return url.find("gfxlog") != std::string::npos;
-#else
-    return false;
-#endif
-  }();
-  return enabled;
-}
-
-int liveGraphicsContextCount() noexcept
-{
-#if defined(__EMSCRIPTEN__)
-  return EM_ASM_INT({
-    try {
-      if (typeof GL === "undefined" || !GL.contexts) return -1;
-      // Keyed by handle, not a dense array.
-      var n = 0;
-      Object.keys(GL.contexts).forEach(function(k) { if (GL.contexts[k]) n++; });
-      return n;
-    } catch (e) { return -1; }
-  });
-#else
-  return -1;
-#endif
-}
-
 TextureRenderTarget
 createRenderTarget(const RenderState& state, QRhiTexture* tex, int samples, bool depth, bool samplableDepth)
 {

@@ -163,13 +163,6 @@ void ScaledRenderer::init(score::gfx::RenderList &renderer, QRhiResourceUpdateBa
       renderer, mesh, m_vertexS, m_fragmentS, m_renderTarget, nullptr, nullptr,
       m_samplers);
 
-  if(score::gfx::outputLogEnabled())
-    qDebug() << "[gfxout] ScaledRenderer::init: renderSize=" << renderer.state.renderSize
-             << "outputSize=" << renderer.state.outputSize
-             << "inputTexture=" << (void*)m_inputTarget.texture
-             << "rt=" << (void*)m_renderTarget.renderTarget << "rtSize="
-             << (m_renderTarget.renderTarget ? m_renderTarget.renderTarget->pixelSize()
-                                             : QSize{});
 }
 
 void ScaledRenderer::update(score::gfx::RenderList &renderer, QRhiResourceUpdateBatch &res, score::gfx::Edge *edge) {
@@ -198,14 +191,6 @@ void ScaledRenderer::finishFrame(score::gfx::RenderList &renderer, QRhiCommandBu
     if(m_swapChain && !rt->pixelSize().isEmpty())
       sz = rt->pixelSize();
 
-    if(score::gfx::outputLogEnabled() && (sz != m_loggedSize || rt != m_loggedTarget))
-    {
-      m_loggedSize = sz;
-      m_loggedTarget = rt;
-      qDebug() << "[gfxout] ScaledRenderer::finishFrame: rt=" << (void*)rt
-               << "viewport=" << sz << "state.outputSize=" << renderer.state.outputSize
-               << "inputTexture=" << (void*)m_inputTarget.texture;
-    }
 
     cb.setGraphicsPipeline(m_p.pipeline);
     cb.setShaderResources(m_p.srb);
