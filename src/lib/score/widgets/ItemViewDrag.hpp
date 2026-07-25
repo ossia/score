@@ -21,4 +21,13 @@ SCORE_LIB_BASE_EXPORT
 void setItemViewDragPixmap(
     QDrag& drag, QAbstractItemView& view, const QStyleOptionViewItem& option,
     const QModelIndexList& indexes);
+
+/**
+ * @brief Keep Qt's temporary drag-image element out of sight.
+ *
+ * No-op outside of WebAssembly. Idempotent, and safe to call before the
+ * platform plugin has built its shadow root.
+ */
+SCORE_LIB_BASE_EXPORT
+void installDragImageWorkaround();
 }
