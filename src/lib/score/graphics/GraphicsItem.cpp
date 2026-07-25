@@ -523,13 +523,22 @@ void retargetInputMethod(QObject* target, const char* context) noexcept
     if(!w->hasFocus())
       w->setFocus(Qt::OtherFocusReason);
 
-    QWindow* handle = w->windowHandle();
+    // Always normalise to the *top level*. Qt for wasm gives every native
+    // widget its own container element, nested in its ancestors' containers,
+    // and installs a "keydown"/"input" listener pair on each. The keydown
+    // handler calls stopImmediatePropagation(), but QWasmWindow::handleInputEvent
+    // does not, so an "input" event on a nested window's hidden <input> bubbles
+    // up and is handled once per ancestor QWasmWindow -- i.e. every typed
+    // character is committed once per level. Activating a mid-hierarchy native
+    // window (the QSplitter, the Inspector) instead of the top level is what
+    // put us in that situation and made scene editors insert everything twice.
+    QWidget* top = w->window();
+    QWindow* handle = top ? top->windowHandle() : nullptr;
     if(!handle)
       if(auto* native = w->nativeParentWidget())
         handle = native->windowHandle();
     if(!handle)
-      if(auto* top = w->window())
-        handle = top->windowHandle();
+      handle = w->windowHandle();
 
     if(handle && QGuiApplication::focusWindow() != handle)
     {
