@@ -38,6 +38,7 @@ public:
   void releaseSwapChain();
   void render();
 
+  void scheduleRetry();
   void handleDeviceLost();
   bool checkDeviceLost(int frameOpResult);
 
@@ -98,6 +99,9 @@ private:
   bool m_newlyExposed = false;
   bool m_hasSwapChain = false;
   bool m_deviceLost = false;
+  bool m_retryScheduled = false;
+
+  static constexpr int retry_interval_ms = 100;
   int m_lastFrameOp = -1;
   bool m_embeddedFullscreen = false;
 };

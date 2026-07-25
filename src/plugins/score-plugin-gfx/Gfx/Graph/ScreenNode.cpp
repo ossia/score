@@ -113,14 +113,51 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
 #ifndef QT_NO_OPENGL
   if(graphicsApi == OpenGL)
   {
-    state.surface = QRhiGles2InitParams::newFallbackSurface();
     QRhiGles2InitParams params;
     if(window)
     {
       params.format = window->format();
       params.window = window;
     }
+
+#if defined(__EMSCRIPTEN__)
+    // Qt for wasm binds a QOpenGLContext to the *first* surface it is ever made
+    // current with (QWasmOpenGLContext::m_contextOwningSurface) and then refuses
+    // any other: makeCurrent() returns false and, crucially, isValid() also
+    // returns false. QRhiGles2::ensureContext() reads that pair as a lost
+    // context and latches contextLost = true forever.
+    //
+    // QRhiGles2 switches to its fallback surface exactly when its own context is
+    // not the currently current one:
+    //
+    //   if (!surface) {
+    //     if (currentSurfaceForCurrentContext(ctx)) return true;
+    //     surface = evaluateFallbackSurface();   // the QOffscreenSurface
+    //
+    // With a single GL output that never happens -- the context stays current
+    // after beginFrame, so every off-frame resource creation takes the early
+    // return. With two GL outputs (a window device plus the Inspector's texture
+    // preview, say) they take "current" from each other, so as soon as one of
+    // them creates a resource outside a frame it is sent to its offscreen
+    // fallback, makeCurrent fails, and that output is dead for good: black from
+    // creation, never recovering, until the device is deleted and recreated.
+    //
+    // Give it a single surface to live on and the mismatch cannot arise. Note
+    // this is not the browser losing a context: the real WebGL contexts stay
+    // healthy and no webglcontextlost event is ever delivered.
+    if(window)
+    {
+      params.fallbackSurface = window;
+    }
+    else
+    {
+      state.surface = QRhiGles2InitParams::newFallbackSurface();
+      params.fallbackSurface = state.surface;
+    }
+#else
+    state.surface = QRhiGles2InitParams::newFallbackSurface();
     params.fallbackSurface = state.surface;
+#endif
 
     score::GLCapabilities caps;
     caps.setupFormat(params.format);
@@ -356,6 +393,14 @@ void ScreenNode::render()
   // Used when we don't have vsync: request an update on the Window
   if(m_window)
   {
+    // Window::render() bails on a lost context by itself, so this is only about
+    // not doing the per-tick work either: this is the second, independent
+    // driver of the render loop (GfxContext::on_manual_timer /
+    // on_no_vsync_timer -> ScreenNode::render), next to the window's own update
+    // requests.
+    if(m_window->deviceLost())
+      return;
+
     onRendererChange();
     m_window->render();
   }

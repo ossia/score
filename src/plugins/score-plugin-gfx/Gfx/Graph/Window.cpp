@@ -202,6 +202,15 @@ QString Window::diagnosticState() const
 
   if(state)
   {
+    // A non-null fallback surface next to a window means this QRhi has two
+    // surfaces to choose between, which on wasm is what gets an output
+    // permanently flagged context-lost as soon as a second GL output exists.
+    out << QStringLiteral("      surfaces: window=%1 offscreenFallback=%2")
+               .arg(
+                   QStringLiteral("yes"),
+                   state->surface ? QStringLiteral("YES <- can be mistaken for context loss")
+                                  : QStringLiteral("none (window is its own fallback)"));
+
     out << QStringLiteral("      state: rhi=%1 rhiDeviceLost=%2 samples=%3 renderSize=%4 "
                           "outputSize=%5 renderPassDescriptor=%6 renderList=%7")
                .arg(state->rhi ? QStringLiteral("yes") : QStringLiteral("NULL"),
@@ -352,7 +361,7 @@ void Window::resizeSwapChain()
                  << "current=" << m_swapChain->currentPixelSize();
       m_hasSwapChain = false;
       m_newlyExposed = true;
-      requestUpdate();
+      scheduleRetry();
       return;
     }
 
@@ -388,6 +397,29 @@ void Window::releaseSwapChain()
     // when the window comes back rather than reusing it as-is.
     m_newlyExposed = true;
   }
+}
+
+
+void Window::scheduleRetry()
+{
+  // Retry, but not through requestUpdate(). These paths are the ones taken when
+  // the window is not ready or the frame failed, and their condition can be
+  // permanent (never exposed, zero-sized surface, a swapchain that will not
+  // resize): re-arming a frame callback from inside a frame callback then burns
+  // a 60Hz rAF forever and, because each rAF callback's stack is chained to the
+  // one that scheduled it, builds an unbounded async stack. Any warning logged
+  // from such a loop then carries the whole chain, which is what made DevTools
+  // unusable while diagnosing exactly these paths. A timer starts a fresh stack
+  // and retries ten times a second, which is plenty for "wait until the canvas
+  // has a size".
+  if(m_retryScheduled)
+    return;
+
+  m_retryScheduled = true;
+  QTimer::singleShot(retry_interval_ms, this, [this] {
+    m_retryScheduled = false;
+    render();
+  });
 }
 
 void Window::handleDeviceLost()
@@ -475,7 +507,7 @@ void Window::render()
     }
     else
     {
-      requestUpdate();
+      scheduleRetry();
       return;
     }
   }
@@ -486,7 +518,7 @@ void Window::render()
     resizeSwapChain();
     if(!m_hasSwapChain)
     {
-      requestUpdate();
+      scheduleRetry();
       return;
     }
     m_newlyExposed = false;
@@ -502,7 +534,7 @@ void Window::render()
       resizeSwapChain();
       if(!m_hasSwapChain)
       {
-        requestUpdate();
+        scheduleRetry();
         return;
       }
       r = state->rhi->beginFrame(m_swapChain);
@@ -511,7 +543,7 @@ void Window::render()
     }
     if(r != QRhi::FrameOpSuccess)
     {
-      requestUpdate();
+      scheduleRetry();
       return;
     }
 
@@ -544,7 +576,7 @@ void Window::render()
       resizeSwapChain();
       if(!m_hasSwapChain)
       {
-        requestUpdate();
+        scheduleRetry();
         return;
       }
       r = state->rhi->beginFrame(m_swapChain);
@@ -553,7 +585,7 @@ void Window::render()
     }
     if(r != QRhi::FrameOpSuccess)
     {
-      requestUpdate();
+      scheduleRetry();
       return;
     }
 
@@ -726,7 +758,11 @@ extern "C" EMSCRIPTEN_KEEPALIVE const char* score_gfx_dump_text()
   QStringList out;
   const auto& windows = score::gfx::Window::allWindows();
   out << QStringLiteral("=== score gfx output dump ===");
-  out << QStringLiteral("  outputs: %1").arg(windows.size());
+  out << QStringLiteral("  outputs: %1   shaderPreviewsDisabled: %2")
+             .arg(QString::number(windows.size()),
+                  qEnvironmentVariableIsSet("SCORE_DISABLE_SHADER_PREVIEW")
+                      ? QStringLiteral("yes")
+                      : QStringLiteral("no <- previews add a second GL output"));
   for(auto* w : windows)
     out << w->diagnosticState();
 
