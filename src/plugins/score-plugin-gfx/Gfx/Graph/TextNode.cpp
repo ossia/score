@@ -125,7 +125,7 @@ private:
     QRhi& rhi = *renderer.state.rhi;
 
     {
-      auto tex = rhi.newTexture(QRhiTexture::BGRA8, sz, 1, QRhiTexture::Flag{});
+      auto tex = rhi.newTexture(imageTextureFormat(rhi), sz, 1, QRhiTexture::Flag{});
 
       tex->setName("TextNode::tex");
       tex->create();
@@ -167,7 +167,9 @@ private:
 
     if(!m_uploaded)
     {
-      res.uploadTexture(m_textures[0].second, m_img);
+      res.uploadTexture(
+          m_textures[0].second,
+          adaptImageFormat(m_img, imageTextureFormat(*renderer.state.rhi)));
 
       m_uploaded = true;
     }

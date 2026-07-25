@@ -288,10 +288,33 @@ BufferView RenderList::bufferForOutput(const Edge& edge) const noexcept
   return {};
 }
 
+QRhiTexture::Format imageTextureFormat(const QRhi& rhi) noexcept
+{
+  return rhi.isTextureFormatSupported(QRhiTexture::BGRA8) ? QRhiTexture::BGRA8
+                                                          : QRhiTexture::RGBA8;
+}
+
+QImage adaptImageFormat(QImage img, QRhiTexture::Format fmt)
+{
+  const bool premultiplied = img.format() == QImage::Format_ARGB32_Premultiplied
+                             || img.format() == QImage::Format_RGBA8888_Premultiplied;
+
+  QImage::Format wanted{};
+  if(fmt == QRhiTexture::BGRA8)
+    wanted = premultiplied ? QImage::Format_ARGB32_Premultiplied : QImage::Format_ARGB32;
+  else
+    wanted = premultiplied ? QImage::Format_RGBA8888_Premultiplied
+                           : QImage::Format_RGBA8888;
+
+  if(img.format() != wanted)
+    img.convertTo(wanted);
+  return img;
+}
+
 QImage RenderList::adaptImage(const QImage& frame)
 {
   auto res = resizeTexture(frame, m_minTexSize, m_maxTexSize);
-  return res;
+  return adaptImageFormat(std::move(res), imageTextureFormat(*state.rhi));
   //if(m_flip)
   //  res = std::move(res).mirrored();
   //return res;
