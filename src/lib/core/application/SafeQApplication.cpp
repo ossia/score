@@ -18,6 +18,8 @@
 #include <wobjectimpl.h>
 
 #if defined(__EMSCRIPTEN__)
+#include <emscripten/console.h>
+
 #include <mutex>
 #endif
 
@@ -47,6 +49,32 @@ std::mutex g_throttleMutex;
 QString g_lastMessage;
 qint64 g_repeatCount = 0;
 thread_local bool t_lastSuppressed = false;
+
+// Emit one already-formatted line in a single call.
+//
+// stdio is pathologically expensive here: fprintf goes fiprintf -> vfiprintf ->
+// __stdio_write -> _fd_write -> doWritev -> write -> put_char, i.e. it crosses
+// into JS one character at a time, and the whole line is then re-parsed out of
+// the fd. emscripten_console_* hands the string straight to console.* instead.
+// Like fprintf, these never re-enter Qt's logging, so they are also safe to use
+// from inside the message handler.
+void emitLine(QtMsgType type, const char* line)
+{
+  switch(type)
+  {
+    case QtDebugMsg:
+    case QtInfoMsg:
+      emscripten_console_log(line);
+      break;
+    case QtWarningMsg:
+      emscripten_console_warn(line);
+      break;
+    case QtCriticalMsg:
+    case QtFatalMsg:
+      emscripten_console_error(line);
+      break;
+  }
+}
 
 // Returns how many suppressed repeats the caller should report now (0 for
 // none), and sets @p suppress when this message must be dropped.
@@ -102,23 +130,43 @@ void SafeQApplication::DebugOutput(
     bool suppress = false;
     const qint64 repeats = throttleStep(msg, suppress);
 
-    // Written with fprintf rather than qWarning: this runs inside the message
-    // handler and must not re-enter it.
     if(repeats > 0)
-      fprintf(
-          out_file, "Info: [previous message repeated %lld times]\n",
-          static_cast<long long>(repeats));
+    {
+      const auto summary
+          = QStringLiteral("Info: [previous message repeated %1 times]").arg(repeats);
+      emitLine(QtInfoMsg, summary.toUtf8().constData());
+    }
 
     t_lastSuppressed = suppress;
     if(suppress)
-    {
-      fflush(out_file);
       return;
-    }
   }
   else
   {
     t_lastSuppressed = false;
+  }
+
+  {
+    static const char* const prefixes[]
+        = {"Debug", "Warning", "Critical", "Fatal", "Info"};
+    // QtDebugMsg=0, QtWarningMsg=1, QtCriticalMsg=2, QtFatalMsg=3, QtInfoMsg=4
+    const int idx = int(type);
+    const char* prefix
+        = (idx >= 0 && idx <= int(QtInfoMsg)) ? prefixes[idx] : "Log";
+    const QByteArray line = QStringLiteral("%1: %2 (%3:%4)")
+                                .arg(
+                                    QString::fromUtf8(prefix), msg,
+                                    QString::fromUtf8(basename))
+                                .arg(context.line)
+                                .toUtf8();
+    emitLine(type, line.constData());
+
+    if(type == QtFatalMsg)
+    {
+      SCORE_BREAKPOINT;
+      std::terminate();
+    }
+    return;
   }
 #endif
 
