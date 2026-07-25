@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 
 #include <Gfx/Graph/RenderState.hpp>
 
@@ -39,6 +40,12 @@ public:
 
   void handleDeviceLost();
   bool checkDeviceLost(int frameOpResult);
+
+  /** Every live output window, in creation order. */
+  static const std::vector<Window*>& allWindows() noexcept;
+
+  /** One-line-per-field state of this output, for the on-demand gfx dump. */
+  QString diagnosticState() const;
 
   void exposeEvent(QExposeEvent*) override;
   void mouseDoubleClickEvent(QMouseEvent* ev) override;
@@ -91,6 +98,7 @@ private:
   bool m_newlyExposed = false;
   bool m_hasSwapChain = false;
   bool m_deviceLost = false;
+  int m_lastFrameOp = -1;
   bool m_embeddedFullscreen = false;
 };
 }

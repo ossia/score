@@ -1,6 +1,7 @@
 #include "GfxApplicationPlugin.hpp"
 
 #include <Execution/DocumentPlugin.hpp>
+#include <Gfx/Graph/Utils.hpp>
 
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
@@ -21,6 +22,8 @@ DocumentPlugin::~DocumentPlugin() { }
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& app)
     : GUIApplicationPlugin{app}
 {
+  // Early: the canvas watchers have to be in place before a context can be lost.
+  score::gfx::installGfxDiagnostics();
 }
 
 void ApplicationPlugin::on_createdDocument(score::Document& doc)
