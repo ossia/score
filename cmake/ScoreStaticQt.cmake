@@ -48,6 +48,8 @@ function(enable_minimal_qt_plugins theTarget gui)
   else()
   link_if_exists(Qt6::QOffscreenIntegrationPlugin)
   link_if_exists(Qt6::QMinimalIntegrationPlugin)
+  # The only platform WebAssembly has, whether the target is a GUI one or not.
+  link_if_exists(Qt6::QWasmIntegrationPlugin)
   link_if_exists(Qt6::QWindowsIntegrationPlugin)
   # link_if_exists(Qt6::QWindowsDirect2DIntegrationPlugin) # very slow and ugly!!
   link_if_exists(Qt6::QCocoaIntegrationPlugin)
