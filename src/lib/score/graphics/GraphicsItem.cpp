@@ -3,6 +3,7 @@
 #include "GraphicsItem.hpp"
 
 #include <score/graphics/ItemBounder.hpp>
+#include <score/widgets/ItemViewDrag.hpp>
 #include <score/plugins/UuidKey.hpp>
 #include <score/tools/Debug.hpp>
 #include <ossia/detail/hash_map.hpp>
@@ -570,6 +571,9 @@ void watchSceneInputMethod(QGraphicsScene& scene)
 {
 #if defined(__EMSCRIPTEN__)
   imeInstallJs();
+  // Any drag started from anywhere in score would otherwise paint Qt's
+  // temporary drag-image element in the corner of the page.
+  installDragImageWorkaround();
   QObject::connect(
       &scene, &QGraphicsScene::focusItemChanged, &scene,
       [sc = &scene](QGraphicsItem* newItem, QGraphicsItem* oldItem, Qt::FocusReason reason) {
