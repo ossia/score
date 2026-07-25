@@ -40,8 +40,12 @@ namespace score::test
 /// no platform is set, forces the offscreen QPA platform.
 inline void prepare_test_environment(bool headless)
 {
+  // WebAssembly only ever has the "wasm" platform: asking for another one
+  // is a fatal error, and the page is headless anyway.
+#if !defined(__EMSCRIPTEN__)
   if(headless && !qEnvironmentVariableIsSet("QT_QPA_PLATFORM"))
     qputenv("QT_QPA_PLATFORM", "offscreen");
+#endif
 
   // No real audio device: force the dummy backend (honored at startup by
   // Audio::Settings::Model). Avoids connecting to a live PipeWire/JACK server.

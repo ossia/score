@@ -25,8 +25,10 @@ struct ScoreTestApplicationStarter final : Catch::EventListenerBase
   using Catch::EventListenerBase::EventListenerBase;
   void testRunStarting(const Catch::TestRunInfo&) override
   {
+#if !defined(__EMSCRIPTEN__)
     if(!qEnvironmentVariableIsSet("QT_QPA_PLATFORM"))
       qputenv("QT_QPA_PLATFORM", "offscreen");
+#endif
     static score::MinimalApplication app;
   }
 };
