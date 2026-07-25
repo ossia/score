@@ -4,6 +4,7 @@
 #include <ossia/detail/pod_vector.hpp>
 #include <ossia/detail/small_vector.hpp>
 #include <ossia/detail/variant.hpp>
+#include <ossia/network/value/value.hpp>
 
 #include <halp/audio.hpp>
 #include <halp/callback.hpp>
