@@ -127,6 +127,18 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
     params.format.setSamples(state.samples);
     state.version = caps.qShaderVersion;
     state.rhi = QRhi::create(QRhi::OpenGLES2, &params, flags);
+    if(!state.rhi)
+    {
+      // Browsers cap the number of simultaneous WebGL contexts (Chrome: 16)
+      // and score creates one QRhi -- hence one context -- per output window,
+      // on top of the one every OpenGL QWindow already needs. Past the cap
+      // context creation fails, and until now that failure was silent: no
+      // swapchain was created, Window::render() returned immediately and the
+      // output window stayed black for the rest of its life.
+      qCritical() << "createRenderState: QRhi::create(OpenGLES2) FAILED. The output "
+                     "will never render. Live GL contexts:"
+                  << liveGraphicsContextCount();
+    }
     state.renderSize = sz;
     populateCaps(state);
     return st;
@@ -357,16 +369,19 @@ void ScreenNode::onRendererChange()
     {
       if(auto r = m_window->state->renderer.lock())
       {
-        m_window->m_canRender = r->renderers.size() > 1;
-        if(outputLogEnabled())
-          qDebug() << "[gfxout] onRendererChange: renderers=" << r->renderers.size()
-                   << "canRender=" << m_window->m_canRender;
+        const bool canRender = r->renderers.size() > 1;
+        // Called once per frame: only report transitions.
+        if(outputLogEnabled() && canRender != m_window->m_canRender)
+          qDebug() << "[gfxout] onRendererChange:" << (void*)this
+                   << "renderers=" << r->renderers.size() << "canRender=" << canRender;
+        m_window->m_canRender = canRender;
         return;
       }
     }
   }
-  if(outputLogEnabled())
-    qDebug() << "[gfxout] onRendererChange: no render list, canRender=false";
+  if(outputLogEnabled() && m_window->m_canRender)
+    qDebug() << "[gfxout] onRendererChange:" << (void*)this
+             << "no render list, canRender=false";
   m_window->m_canRender = false;
 }
 
@@ -750,7 +765,8 @@ score::gfx::OutputNodeRenderer* ScreenNode::createRenderer(RenderList& r) const 
   rt.renderPass = r.state.renderPassDescriptor;
 
   if(outputLogEnabled())
-    qDebug() << "[gfxout] ScreenNode::createRenderer: rt=" << (void*)rt.renderTarget
+    qDebug() << "[gfxout] ScreenNode::createRenderer: node=" << (void*)this
+             << "rt=" << (void*)rt.renderTarget
              << "rtSize=" << (rt.renderTarget ? rt.renderTarget->pixelSize() : QSize{})
              << "rtSamples=" << (rt.renderTarget ? rt.renderTarget->sampleCount() : -1)
              << "swapchain current=" << m_swapChain->currentPixelSize()

@@ -6,6 +6,7 @@
 #include <score/tools/Debug.hpp>
 
 #if defined(__EMSCRIPTEN__)
+#include <emscripten/em_asm.h>
 #include <emscripten/val.h>
 #endif
 
@@ -34,6 +35,23 @@ bool outputLogEnabled() noexcept
 #endif
   }();
   return enabled;
+}
+
+int liveGraphicsContextCount() noexcept
+{
+#if defined(__EMSCRIPTEN__)
+  return EM_ASM_INT({
+    try {
+      if (typeof GL === "undefined" || !GL.contexts) return -1;
+      var n = 0;
+      for (var i = 0; i < GL.contexts.length; i++)
+        if (GL.contexts[i]) n++;
+      return n;
+    } catch (e) { return -1; }
+  });
+#else
+  return -1;
+#endif
 }
 
 TextureRenderTarget

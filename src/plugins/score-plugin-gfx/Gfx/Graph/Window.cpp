@@ -124,7 +124,7 @@ void Window::resizeSwapChain()
     if(surface.isEmpty())
     {
       if(outputLogEnabled())
-        qDebug() << "[gfxout] resizeSwapChain: refused, empty surface"
+        qDebug() << "[gfxout] resizeSwapChain: win=" << (void*)this << "refused, empty surface"
                  << "current=" << m_swapChain->currentPixelSize();
       m_hasSwapChain = false;
       m_newlyExposed = true;
@@ -137,7 +137,7 @@ void Window::resizeSwapChain()
       state->outputSize = m_swapChain->currentPixelSize();
 
     if(outputLogEnabled())
-      qDebug() << "[gfxout] resizeSwapChain: ok=" << m_hasSwapChain
+      qDebug() << "[gfxout] resizeSwapChain: win=" << (void*)this << "ok=" << m_hasSwapChain
                << "surface=" << surface << "current=" << m_swapChain->currentPixelSize()
                << "outputSize=" << (state ? state->outputSize : QSize{})
                << "rt=" << (void*)m_swapChain->currentFrameRenderTarget();
@@ -156,7 +156,7 @@ void Window::releaseSwapChain()
   if(m_swapChain && m_hasSwapChain)
   {
     if(outputLogEnabled())
-      qDebug() << "[gfxout] releaseSwapChain";
+      qDebug() << "[gfxout] releaseSwapChain: win=" << (void*)this;
     m_hasSwapChain = false;
     m_swapChain->destroy();
 
@@ -188,7 +188,7 @@ void Window::render()
     if(isExposed() && m_swapChain && !m_swapChain->surfacePixelSize().isEmpty())
     {
       if(outputLogEnabled())
-        qDebug() << "[gfxout] render: recovering, hasSwapChain=" << m_hasSwapChain
+        qDebug() << "[gfxout] render: win=" << (void*)this << "recovering, hasSwapChain=" << m_hasSwapChain
                  << "notExposed=" << m_notExposed
                  << "surface=" << m_swapChain->surfacePixelSize();
       m_notExposed = false;
@@ -299,7 +299,7 @@ void Window::exposeEvent(QExposeEvent* ev)
     return;
   }
   if(outputLogEnabled())
-    qDebug() << "[gfxout] exposeEvent: exposed=" << isExposed() << "running=" << m_running
+    qDebug() << "[gfxout] exposeEvent: win=" << (void*)this << " exposed=" << isExposed() << "running=" << m_running
              << "notExposed=" << m_notExposed << "hasSwapChain=" << m_hasSwapChain
              << "size=" << size()
              << "surface=" << (m_swapChain ? m_swapChain->surfacePixelSize() : QSize{});
