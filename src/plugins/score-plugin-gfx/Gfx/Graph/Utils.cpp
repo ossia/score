@@ -43,9 +43,9 @@ int liveGraphicsContextCount() noexcept
   return EM_ASM_INT({
     try {
       if (typeof GL === "undefined" || !GL.contexts) return -1;
+      // Keyed by handle, not a dense array.
       var n = 0;
-      for (var i = 0; i < GL.contexts.length; i++)
-        if (GL.contexts[i]) n++;
+      Object.keys(GL.contexts).forEach(function(k) { if (GL.contexts[k]) n++; });
       return n;
     } catch (e) { return -1; }
   });

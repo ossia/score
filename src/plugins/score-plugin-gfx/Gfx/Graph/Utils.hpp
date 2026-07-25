@@ -38,6 +38,16 @@ SCORE_PLUGIN_GFX_EXPORT bool outputLogEnabled() noexcept;
  * elsewhere.
  */
 SCORE_PLUGIN_GFX_EXPORT int liveGraphicsContextCount() noexcept;
+
+/**
+ * @brief Install the on-demand graphics diagnostics.
+ *
+ * No-op outside of WebAssembly. Publishes window.scoreGfxDump() and starts
+ * watching every canvas for webglcontextlost / webglcontextrestored, so a
+ * context that dies is recorded whether or not anything noticed at the time.
+ * Idempotent; must run early to catch the events.
+ */
+SCORE_PLUGIN_GFX_EXPORT void installGfxDiagnostics();
 /**
  * @brief Stores a sampler and the texture currently associated with it.
  */
