@@ -165,6 +165,9 @@ Presets/Vertex Shader Art/audioreactive/Exercise_-_Vertexshaderart_Circles_from_
 Presets/Vertex Shader Art/audioreactive/FiboSound2D.vs	blank
 Presets/Vertex Shader Art/audioreactive/Galaxy_dance-1.vs	blank
 Presets/Vertex Shader Art/audioreactive/Galaxy_dance.vs	blank
+Presets/Vertex Shader Art/audioreactive/HexGrid-1.vs	blank
+Presets/Vertex Shader Art/audioreactive/HexGrid-3.vs	blank
+Presets/Vertex Shader Art/audioreactive/HexGrid-8.vs	blank
 Presets/Vertex Shader Art/audioreactive/HexGrid_4_Km.vs	blank
 Presets/Vertex Shader Art/audioreactive/Hippie_Spiral-1.vs	blank
 Presets/Vertex Shader Art/audioreactive/Hippie_Spiral.vs	blank
