@@ -57,7 +57,7 @@ namespace score
  * handling the user gesture.
  */
 SCORE_LIB_BASE_EXPORT
-void retargetInputMethod(QObject* target, const char* context = "") noexcept;
+void retargetInputMethod(QObject* target) noexcept;
 
 /**
  * @brief Keep the platform input method in sync with the scene's focus item.

@@ -60,6 +60,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/core/application/MockApplication.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/application/OpenDocumentsFile.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/application/SafeQApplication.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/core/application/WasmLogging.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/application/MinimalApplication.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/command/CommandStack.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/command/CommandStackSerialization.hpp"
@@ -468,6 +469,7 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/ArrowDialog.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/GraphicsItem.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/WasmInputMethod.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/GraphicsLayout.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/GraphicWidgets.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/RectItem.cpp"
@@ -530,6 +532,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Timers.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/SafeQApplication.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/core/application/WasmLogging.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationRegistrar.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationSettings.cpp"
