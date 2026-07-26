@@ -35,6 +35,19 @@ void PacedFramePump::stop()
   m_framesAvail.release();
   if(m_thread.joinable())
     m_thread.join();
+
+  // Frames still queued will never be submitted; hand them back to the vendor.
+  const uint32_t w = m_writeIdx.load(std::memory_order_acquire);
+  uint32_t r = m_readIdx.load(std::memory_order_relaxed);
+  while(r != w)
+  {
+    void* p = m_slots[r % m_depth].load(std::memory_order_relaxed);
+    m_slots[r % m_depth].store(nullptr, std::memory_order_relaxed);
+    if(p && m_hooks.discard)
+      m_hooks.discard(p);
+    ++r;
+  }
+  m_readIdx.store(r, std::memory_order_release);
 }
 
 bool PacedFramePump::push(void* framePtr)
@@ -50,6 +63,8 @@ bool PacedFramePump::push(void* framePtr)
   if(w - r >= static_cast<uint32_t>(m_depth))
   {
     m_drops.fetch_add(1, std::memory_order_relaxed);
+    if(m_hooks.discard)
+      m_hooks.discard(framePtr);
     return false;
   }
 
@@ -135,7 +150,11 @@ void PacedFramePump::run()
       void* p = m_slots[consume % m_depth].load(std::memory_order_relaxed);
       m_slots[consume % m_depth].store(nullptr, std::memory_order_relaxed);
       if(p)
+      {
+        if(framePtr && m_hooks.discard)
+          m_hooks.discard(framePtr); // superseded by a newer frame
         framePtr = p; // keep the last-published one
+      }
       ++consume;
     }
     m_readIdx.store(consume, std::memory_order_release);
