@@ -12,6 +12,7 @@
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 
 #include <Execution/DocumentPlugin.hpp>
+#include <LocalTree/Device/LocalProtocolFactory.hpp>
 #include <LocalTree/LocalTreeDocumentPlugin.hpp>
 
 #include <score/actions/ActionManager.hpp>
@@ -29,6 +30,7 @@
 
 #include <ossia-qt/invoke.hpp>
 
+#include <QCommandLineParser>
 #include <QLabel>
 #include <QMainWindow>
 #include <QTabWidget>
@@ -49,6 +51,37 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
     auto& ctrl = ctx
             .applicationPlugin<Process::ApplicationPlugin>();
     m_playActions.setupContextMenu(ctrl.layerContextMenuRegistrar());
+  }
+
+  {
+    // Command-line options for the local device tree default ports.
+    // CLI flag wins, then $SCORE_LOCAL_{OSC,WS}_PORT, then 6666 / 9999.
+    QCommandLineParser parser;
+
+    QCommandLineOption osc_port_opt(
+        "local-osc-port",
+        QCoreApplication::translate("engine", "Local device tree OSC port"), "port");
+    parser.addOption(osc_port_opt);
+    QCommandLineOption ws_port_opt(
+        "local-ws-port",
+        QCoreApplication::translate("engine", "Local device tree WebSocket port"),
+        "port");
+    parser.addOption(ws_port_opt);
+
+    parser.parse(ctx.applicationSettings.arguments);
+
+    using Protocols::LocalProtocolFactory;
+    if(parser.isSet(osc_port_opt))
+      LocalProtocolFactory::defaultOscPort = parser.value(osc_port_opt).toInt();
+    else if(qEnvironmentVariableIsSet("SCORE_LOCAL_OSC_PORT"))
+      LocalProtocolFactory::defaultOscPort
+          = qEnvironmentVariableIntValue("SCORE_LOCAL_OSC_PORT");
+
+    if(parser.isSet(ws_port_opt))
+      LocalProtocolFactory::defaultWsPort = parser.value(ws_port_opt).toInt();
+    else if(qEnvironmentVariableIsSet("SCORE_LOCAL_WS_PORT"))
+      LocalProtocolFactory::defaultWsPort
+          = qEnvironmentVariableIntValue("SCORE_LOCAL_WS_PORT");
   }
 }
 
