@@ -330,6 +330,10 @@ endif()
 
 add_subdirectory(src)
 
+if(SCORE_STATIC_PLUGINS AND TARGET EncoderTester)
+  target_link_libraries(EncoderTester PRIVATE ${SCORE_PLUGINS_LIST})
+endif()
+
 include(cmake/ScoreFeatureCheck.cmake)
 
 if(EXISTS Documentation/Models/score.qmodel)
