@@ -91,9 +91,10 @@ function scoreOpenUrlStage(module, doc) {
 function scoreOpenUrlShowError(message) {
   const bar = document.createElement('div');
   bar.id = 'score-open-error';
-  bar.style.cssText = 'position:fixed; z-index:10000; top:0; left:0; right:0;'
+  // Anchored at the bottom: the application's menu bar is at the top.
+  bar.style.cssText = 'position:fixed; z-index:10000; bottom:0; left:0; right:0;'
     + ' padding:0.7em 1em; font:14px sans-serif; color:#fff; background:#8b1a1a;'
-    + ' box-shadow:0 2px 6px rgba(0,0,0,0.4); display:flex; gap:1em;'
+    + ' box-shadow:0 -2px 6px rgba(0,0,0,0.4); display:flex; gap:1em;'
     + ' align-items:baseline;';
 
   const text = document.createElement('span');
