@@ -29,6 +29,7 @@
 class QRhi;
 class QRhiTexture;
 class QRhiResourceUpdateBatch;
+class QRhiCommandBuffer;
 
 namespace score::gfx
 {
@@ -125,6 +126,15 @@ struct VideoCaptureStrategy
   /// (the only path that works on Vulkan/Metal/D3D where there is no raw upload
   /// API at hand).
   virtual void acquireForRender(QRhiResourceUpdateBatch&) { acquireForRender(); }
+
+  /// As above, plus the command buffer render() is recording into (may be null).
+  /// Strategies that record raw-API commands for the upload — the Vulkan
+  /// host-import path, which has no QRhi equivalent — need it; everything else
+  /// ignores it and falls through to the batch overload.
+  virtual void acquireForRender(QRhiResourceUpdateBatch& res, QRhiCommandBuffer*)
+  {
+    acquireForRender(res);
+  }
 };
 
 /**
