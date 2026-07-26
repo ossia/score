@@ -66,6 +66,63 @@ struct HostStagedPlane
   std::uint32_t rasterBytes{};  ///< total bytes for this plane in the framestore
 };
 
+/**
+ * @brief One vendor destination frame for the direct-readback mode.
+ *
+ * `bytes` is the frame pointer the card DMA-reads from and the pointer that
+ * later goes through PacedFramePump submit()/discard(). Device SDKs hand out
+ * interior pointers (e.g. DeckLink's GetBytes sits at an offset inside the
+ * allocator's buffer), and the GPU APIs can only wrap whole allocations — so
+ * the vendor also reports the containing allocation: `regionBase` /
+ * `regionBytes` are registered with the GPU once, and the copy lands at
+ * offset `bytes - regionBase`.
+ */
+struct VendorFrameMemory
+{
+  void* bytes{};
+  void* regionBase{};
+  std::size_t regionBytes{};
+
+  explicit operator bool() const noexcept
+  {
+    return bytes && regionBase && regionBytes
+           && bytes >= regionBase
+           && static_cast<const char*>(bytes)
+                  < static_cast<const char*>(regionBase) + regionBytes;
+  }
+};
+
+/**
+ * @brief Vendor destination-frame memory for the direct-readback mode.
+ *
+ * When set (and RhiTextureReadback supports the backend + geometry), the GPU
+ * copies the encoded frame straight into the frame acquire() returns —
+ * typically the card's own pooled output frame — and prepareNextFrame() hands
+ * that frame's `bytes` back, so the vendor's PacedFramePump submit()
+ * recognizes its own frame and schedules it without any staging copy.
+ *
+ * Contract for acquire():
+ *  - Returns the next free destination frame, or a default-constructed value
+ *    when none is free (that render tick's frame is dropped — card-side
+ *    back-pressure).
+ *  - Frames come from a small stable pool: each distinct regionBase is
+ *    wrapped as a GPU readback target once for the session.
+ *  - regionBase is aligned to readbackHostMemoryAlignment(rhi) and
+ *    regionBytes is a multiple of it; `bytes + frameByteSize` fits inside
+ *    the region and `bytes - regionBase` satisfies
+ *    readbackDstOffsetAlignment.
+ *  - The vendor must not write or recycle the frame until `bytes` comes
+ *    back through submit() or cancel()/PacedFramePump discard().
+ */
+struct FrameMemoryProvider
+{
+  std::function<VendorFrameMemory()> acquire;
+  /// Give back an acquired frame (by its `bytes`) that will not be submitted.
+  std::function<void(void*)> cancel;
+
+  explicit operator bool() const noexcept { return bool(acquire); }
+};
+
 struct CpuStagedVideoOutputConfig
 {
   QRhi* rhi{};
@@ -94,6 +151,14 @@ struct CpuStagedVideoOutputConfig
       const std::uint8_t* src, int srcRowBytes, std::uint8_t* dst,
       int dstRowBytes, int rows)>
       customStage;
+
+  /// Opt-in direct readback into vendor frame memory (RhiTextureReadback):
+  /// when set AND the backend supports it AND the encoder output is
+  /// byte-identical to the framestore (single plane, tight pitch == card
+  /// pitch), the encoder's QRhi readback is disabled and the GPU writes each
+  /// frame into the memory acquire() returns. Incompatible with customStage.
+  /// Falls back to the paths above when any condition is unmet.
+  FrameMemoryProvider frameMemory;
 };
 
 /**
@@ -123,6 +188,20 @@ public:
       std::unique_ptr<score::gfx::GPUVideoEncoder> enc1);
 
   bool valid() const noexcept;
+
+  /// The engaged staging mode, for logs/harness rows: "direct-readback"
+  /// (GPU writes vendor frame memory), "cpu-staging-dvp" (DVP download to the
+  /// pinned ring), or "cpu-staging" (QRhi readback). "-" before init.
+  const char* stagingMode() const noexcept;
+
+  /// SCORE_GFX_DIRECT_READBACK=always was set, the rung exists here, and it
+  /// still did not engage. Rows measured in this state describe another rung.
+  bool readbackPinUnmet() const noexcept;
+
+  /// SCORE_GFX_DIRECT_READBACK=always was set but the rung cannot exist for
+  /// this geometry/backend (multi-plane, custom stage, pitch mismatch, no
+  /// vendor frame memory, backend without host readback).
+  bool readbackPinUnavailable() const noexcept;
 
   /// Inside the offscreen frame, after the scene rendered into the source
   /// texture: run the current encoder (conversion pass + schedule readback).
