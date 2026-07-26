@@ -843,10 +843,23 @@ target_link_libraries(VideoDecoderTester PRIVATE score_plugin_gfx)
 endif()
 
 # Offscreen unit test for the GPU video encoders (no AJA/libav/gst needed).
-# Static-plugin builds can't link it: score_init_static_plugins() references
-# every configured addon and the tester only links score_plugin_gfx/media.
+# In static-plugin builds score_init_static_plugins() references every
+# configured plugin, so the top-level CMakeLists completes the link with
+# SCORE_PLUGINS_LIST once all plugins have been declared.
+# App-free unit tests: no display, no GPU, runnable everywhere. Deliberately
+# outside the encoder-tester option: turning that off must not take the unit
+# tests with it.
+if(SCORE_TESTING)
+  add_subdirectory(Tests)
+endif()
+
+# EncoderTester needs a GPU and an RHI, so it can never run in the wasm job,
+# and it is a bare add_executable that never goes through
+# setup_score_common_features() -- which is where emscripten's --bind is added.
+# Linking it under a static-plugin wasm build therefore fails on the _emval_*
+# symbols Qt6Core/WebSockets/Gui pull in through embind.
 option(SCORE_ENCODER_TESTER "Build the GPU encoder offscreen self-test" ON)
-if(SCORE_ENCODER_TESTER AND NOT SCORE_STATIC_PLUGINS)
+if(SCORE_ENCODER_TESTER AND NOT EMSCRIPTEN)
 add_executable(EncoderTester tests/EncoderTester.cpp)
 target_link_libraries(EncoderTester PRIVATE
   score_plugin_gfx score_plugin_media ${QT_PREFIX}::Gui)
