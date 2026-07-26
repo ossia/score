@@ -982,6 +982,15 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
   if(renderers.size() <= 1 && !force)
     return;
 
+  // Cleared on every exit path so currentCommandBuffer() can never hand a
+  // stale pointer to a strategy recording outside a frame.
+  struct CommandScope
+  {
+    QRhiCommandBuffer*& slot;
+    ~CommandScope() { slot = nullptr; }
+  } commandScope{m_currentCommands};
+  m_currentCommands = &commands;
+
   // Frame counter + wall-clock timer for diagnostics. Emits the frame
   // header with the time since the previous render() entry so the pasted
   // log shows per-frame cost. Values include CPU record + any synchronous

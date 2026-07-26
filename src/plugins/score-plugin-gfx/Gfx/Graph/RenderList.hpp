@@ -30,6 +30,7 @@ class SCORE_PLUGIN_GFX_EXPORT RenderList
 {
   friend struct Graph;
 private:
+  QRhiCommandBuffer* m_currentCommands{};
   std::shared_ptr<RenderState> m_state;
 
 public:
@@ -73,6 +74,14 @@ public:
    * @brief Render every node in order.
    */
   void render(QRhiCommandBuffer& commands, bool force = false);
+
+  /// The command buffer render() is currently recording into, or null outside a
+  /// frame. Strategies that must record raw-API commands (the Vulkan host-import
+  /// upload) need it at update() time, where only the resource batch is passed.
+  QRhiCommandBuffer* currentCommandBuffer() const noexcept
+  {
+    return m_currentCommands;
+  }
 
   /**
    * @brief Release GPU resources owned by this render list
