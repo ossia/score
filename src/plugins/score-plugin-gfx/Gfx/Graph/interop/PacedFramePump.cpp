@@ -35,6 +35,19 @@ void PacedFramePump::stop()
   m_framesAvail.release();
   if(m_thread.joinable())
     m_thread.join();
+
+  // Frames still queued will never be submitted; hand them back to the vendor.
+  const uint32_t w = m_writeIdx.load(std::memory_order_acquire);
+  uint32_t r = m_readIdx.load(std::memory_order_relaxed);
+  while(r != w)
+  {
+    void* p = m_slots[r % m_depth].load(std::memory_order_relaxed);
+    m_slots[r % m_depth].store(nullptr, std::memory_order_relaxed);
+    if(p && m_hooks.discard)
+      m_hooks.discard(p);
+    ++r;
+  }
+  m_readIdx.store(r, std::memory_order_release);
 }
 
 bool PacedFramePump::push(void* framePtr)
@@ -50,6 +63,8 @@ bool PacedFramePump::push(void* framePtr)
   if(w - r >= static_cast<uint32_t>(m_depth))
   {
     m_drops.fetch_add(1, std::memory_order_relaxed);
+    if(m_hooks.discard)
+      m_hooks.discard(framePtr);
     return false;
   }
 
@@ -88,7 +103,7 @@ void PacedFramePump::run()
     //      from its own frame ring — stuff that ring back-to-back whenever
     //      it can accept, and block on the vendor tick ONLY when it can't.
     //      Ticking before every submit would serialise tick-period + DMA and
-    //      cap throughput at 1/(VBI + transfer): ~46 fps at UHD60, ~24 at 8K.
+    //      cap throughput at 1/(VBI + transfer).
     //    - canAccept null (DeckLink free-pool semaphore, Bluefish output
     //      sync, Deltacast blocking submit): waitForTick IS the
     //      back-pressure — keep the one-tick-per-submit contract.
@@ -135,7 +150,11 @@ void PacedFramePump::run()
       void* p = m_slots[consume % m_depth].load(std::memory_order_relaxed);
       m_slots[consume % m_depth].store(nullptr, std::memory_order_relaxed);
       if(p)
+      {
+        if(framePtr && m_hooks.discard)
+          m_hooks.discard(framePtr); // superseded by a newer frame
         framePtr = p; // keep the last-published one
+      }
       ++consume;
     }
     m_readIdx.store(consume, std::memory_order_release);
@@ -150,7 +169,7 @@ void PacedFramePump::run()
 
     // Re-check back-pressure right before submit (the gate above ran before
     // the drain; a canAccept flip in between is unlikely but cheap to guard).
-    // Unlike before, do NOT discard the frame — wait the tick out.
+    // Do not discard the frame here — wait the tick out.
     while(m_running.load(std::memory_order_relaxed) && m_hooks.canAccept
           && !m_hooks.canAccept())
     {

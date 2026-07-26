@@ -18,8 +18,6 @@
  * standard/link/routing/VPID/HDR, report geometry + the neutral wire format,
  * supply a pin adapter (VendorDmaRegistrar), the GPU-direct strategy candidates
  * for the active graphics API, and the pacing hooks (wait-for-tick + submit).
- *
- * This is the generalisation of what AJANode::createOutput does inline today.
  */
 
 #include <Gfx/Graph/RenderState.hpp> // GraphicsApi
@@ -111,6 +109,15 @@ struct SCORE_PLUGIN_GFX_EXPORT DirectVideoOutputBackend
   /// swap). Empty = plain row-stride copy.
   virtual CustomStage customStage() { return {}; }
 
+  /// Vendor frame memory the GPU can write encoded frames into directly
+  /// (CpuStagedVideoOutput's direct-readback mode via RhiTextureReadback):
+  /// acquire() returns the card's next free pooled output frame's bytes.
+  /// A pointer handed out here comes back either through pacingHooks().submit
+  /// (schedule that very frame, no copy) or through pacingHooks().discard /
+  /// cancel (frame dropped — return it to the pool). Empty (default) keeps
+  /// the host-staged ring + submit-side copy.
+  virtual interop::FrameMemoryProvider frameMemoryProvider() { return {}; }
+
   /// Prefer a GPU-direct (DVP) download in the host-staged path: the node lets
   /// CpuStagedVideoOutput DMA the encoder texture straight to a vendor-registered
   /// sysmem ring (skipping the QRhi readback) when a GPU-direct backend exists,
@@ -133,7 +140,7 @@ struct SCORE_PLUGIN_GFX_EXPORT DirectVideoOutputBackend
   /// that returns true on the next hardware output tick (card VBI), false on
   /// timeout. Empty (default) => no hardware genlock available; the node keeps
   /// its timer clock. Consumed by ExternalGenlockClock to phase-lock render to
-  /// the card. NOTE: this is generally a SECOND waiter on the same output VBI
+  /// the card. This is usually a SECOND waiter on the same output VBI
   /// as pacingHooks().waitForTick — safe where the VBI is a broadcast
   /// wait-queue (Linux AJA); validate for auto-reset-event platforms.
   virtual std::function<bool()> genlockTickSource() { return {}; }
