@@ -217,6 +217,17 @@ void runTests()
 }
 } // namespace
 
+#if defined(__has_feature)
+#if __has_feature(address_sanitizer)
+#define SCORE_TEST_HAS_LSAN 1
+#endif
+#elif defined(__SANITIZE_ADDRESS__)
+#define SCORE_TEST_HAS_LSAN 1
+#endif
+#if defined(SCORE_TEST_HAS_LSAN)
+#include <sanitizer/lsan_interface.h>
+#endif
+
 int main(int argc, char** argv)
 {
   std::setvbuf(stdout, nullptr, _IONBF, 0);
@@ -239,6 +250,11 @@ int main(int argc, char** argv)
       [] {
         runTests();
         std::fflush(stdout);
+        #if defined(SCORE_TEST_HAS_LSAN)
+        // _Exit skips LSan's atexit hook; run the leak check explicitly so
+        // sanitizer builds still report leaks (dies non-zero on findings).
+        __lsan_do_leak_check();
+#endif
         std::_Exit(g_fail ? 1 : 0);
       },
       Qt::QueuedConnection);
