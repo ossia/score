@@ -35,13 +35,8 @@ TimeSyncComponent::TimeSyncComponent(
 
   con(element, &Scenario::TimeSyncModel::activeChanged, this,
       &TimeSyncComponent::updateTrigger);
-  con(element, &Scenario::TimeSyncModel::autotriggerChanged, this, [this](bool b) {
-    // cleanup() resets m_ossia_node while destruction is deferred through the
-    // exec queue, so model edits can still arrive afterwards: ignore them.
-    if(!m_ossia_node)
-      return;
-    in_exec([ts = m_ossia_node, b] { ts->set_autotrigger(b); });
-  });
+  con(element, &Scenario::TimeSyncModel::autotriggerChanged, this,
+      [this](bool b) { in_exec([ts = m_ossia_node, b] { ts->set_autotrigger(b); }); });
   con(element, &Scenario::TimeSyncModel::triggerChanged, this,
       &TimeSyncComponent::updateTrigger);
 
@@ -53,6 +48,11 @@ TimeSyncComponent::TimeSyncComponent(
 void TimeSyncComponent::cleanup(const std::shared_ptr<TimeSyncComponent>& self)
 {
   OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
+  // Destruction is deferred through the exec then gc queues while the model
+  // may stay alive and editable: sever the model connections so no edit can
+  // reach this component once m_ossia_node is reset.
+  if(m_score_node)
+    QObject::disconnect(m_score_node, nullptr, this, nullptr);
   in_exec([self, ts = m_ossia_node, gcq_ptr = weak_gc] {
     OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
     ts->cleanup();
@@ -178,8 +178,7 @@ void TimeSyncComponent::updateTrigger()
     start = m_score_node->isStartPoint();
   }
 
-  if(!m_ossia_node)
-    return;
+  SCORE_ASSERT(m_ossia_node);
   in_exec([e = m_ossia_node, exp_ptr, autotrigger, start] {
     bool was_observing = e->is_observing_expression();
     if(was_observing)
@@ -197,8 +196,6 @@ void TimeSyncComponent::updateTrigger()
 void TimeSyncComponent::updateTriggerTime()
 {
   OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
-  if(!m_ossia_node)
-    return;
   ossia::musical_sync quantRate = m_score_node->musicalSync();
   if(quantRate < 0)
   {
@@ -230,8 +227,6 @@ void TimeSyncComponent::updateTriggerTime()
 void TimeSyncComponent::on_GUITrigger()
 {
   OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
-  if(!m_ossia_node)
-    return;
   in_exec([e = m_ossia_node] {
     OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
     e->start_trigger_request();
