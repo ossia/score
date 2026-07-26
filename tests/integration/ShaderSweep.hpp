@@ -385,6 +385,12 @@ inline void sweepLibrary(
     known = QString::fromUtf8(in.readAll()).split('\n', Qt::SkipEmptyParts);
     known.sort();
   }
+  else
+  {
+    FAIL(
+        "no baseline at " << baseline.toStdString()
+                          << ": run with SCORE_SHADER_SWEEP_WRITE_BASELINE to create it");
+  }
 
   QStringList regressions;
   for(const auto& entry : current)
