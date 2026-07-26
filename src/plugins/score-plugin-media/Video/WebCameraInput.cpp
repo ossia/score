@@ -20,6 +20,7 @@ EM_JS(void, score_camera_install, (), {
     generation: 0,
     scanning: false,
     streams: new Map(),
+    permissionAsked: false,
     next: 1,
   };
   Module.scoreCamera = S;
@@ -39,7 +40,25 @@ EM_JS(void, score_camera_install, (), {
       S.scanning = false;
       S.generation++;
     };
-    navigator.mediaDevices.enumerateDevices().then(done).catch(function() { done([]); });
+    // enumerateDevices() reports neither ids nor labels until camera permission
+    // has been granted, so ask for it here rather than leaving the device list
+    // anonymous until playback. The probe stream is released immediately; once
+    // permission is remembered this resolves without prompting again.
+    const enumerate = function() {
+      navigator.mediaDevices.enumerateDevices().then(done).catch(function() { done([]); });
+    };
+    if(S.permissionAsked || !navigator.mediaDevices.getUserMedia)
+    {
+      enumerate();
+      return;
+    }
+    S.permissionAsked = true;
+    navigator.mediaDevices.getUserMedia({video: true})
+      .then(function(stream) {
+        stream.getTracks().forEach(function(t) { t.stop(); });
+        enumerate();
+      })
+      .catch(enumerate);
   };
 
   if(navigator.mediaDevices && navigator.mediaDevices.addEventListener)
