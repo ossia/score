@@ -40,6 +40,7 @@ clone_addon https://github.com/ossia/iscore-addon-network
 clone_addon https://github.com/ossia/score-addon-synthimi
 clone_addon https://github.com/ossia/score-addon-jk
 clone_addon https://github.com/ossia/GBAP
+clone_addon https://github.com/ossia/score-addon-ltc
 
 CI_PLATFORM="${1:-DEFAULT}"
 
@@ -57,7 +58,6 @@ then
   clone_addon        https://github.com/ossia/score-addon-hdf5
   clone_addon         https://github.com/ossia/score-addon-led
   clone_addon         https://github.com/ossia/score-addon-lsl
-  clone_addon         https://github.com/ossia/score-addon-ltc
   clone_addon         https://github.com/ossia/score-addon-ndi
   clone_addon        https://github.com/ossia/score-addon-onnx
   clone_addon    https://github.com/ossia/score-addon-spatgris
