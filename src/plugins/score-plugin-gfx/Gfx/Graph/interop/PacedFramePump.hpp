@@ -65,8 +65,16 @@ public:
     /// Optional card-side back-pressure. nullptr => always accept. Returning
     /// false drops the current frame (counted as a drop).
     std::function<bool()> canAccept;
-    /// Submit/DMA the frame at `framePtr`. Return false on failure.
+    /// Submit/DMA the frame at `framePtr`. Return false on failure. The frame
+    /// is owned by submit whether it succeeds or fails — discard() is never
+    /// called for a submitted frame.
     std::function<bool(void* framePtr)> submit;
+    /// Optional: called for every frame the pump drops without submitting
+    /// (ring overflow on push, drained-past frames, frames left queued at
+    /// stop). Required when frame pointers carry a resource the vendor must
+    /// reclaim (e.g. a card frame acquired through a FrameMemoryProvider);
+    /// nullptr when they are reusable ring slots.
+    std::function<void(void* framePtr)> discard;
   };
 
   /// `ringDepth` is the producer/consumer decoupling depth (AJA used 3).
