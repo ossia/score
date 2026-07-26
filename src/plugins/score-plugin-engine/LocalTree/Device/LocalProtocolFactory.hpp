@@ -24,6 +24,10 @@ class LocalProtocolFactory final : public DefaultProtocolFactory
 public:
   static const Device::DeviceSettings& static_defaultSettings();
 
+  //! Default ports for new local devices; set at startup from CLI / environment.
+  static int defaultOscPort;
+  static int defaultWsPort;
+
 private:
   // Implement with OSSIA::Device
   QString prettyName() const noexcept override;
