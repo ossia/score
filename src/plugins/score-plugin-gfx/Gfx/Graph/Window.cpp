@@ -46,6 +46,9 @@ Window::Window(GraphicsApi graphicsApi)
   // No OS window manager on wasm: without this the output window drops behind
   // the main window when it's activated and can't be brought back.
   setFlag(Qt::WindowStaysOnTopHint, true);
+  // See the note in the JS plugin: without this the output opens full-screen at
+  // the viewport size, with no frame to close or move it by.
+  setFlag(Qt::Dialog, true);
 
   // The output window is a display surface, not somewhere to type. QWasmWindow
   // calls window()->requestActivate() on every pointer press on a top level

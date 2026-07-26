@@ -129,11 +129,25 @@ void setupScriptUI(
       // and the first click on "Compile" only activates it instead of pressing the
       // button. Force it on top and active on show.
       win->setWindowFlag(Qt::WindowStaysOnTopHint, true);
+      #if defined(__EMSCRIPTEN__)
+      // Qt for wasm reports ShowIsFullScreen unconditionally, and QWidget::show()
+      // acts on it exactly as QWindow::show() does: the window covers the page and
+      // loses the frame Qt draws for it, leaving no way to close or move it.
+      win->showNormal();
+#else
       win->show();
+#endif
       win->raise();
       win->activateWindow();
 #else
+      #if defined(__EMSCRIPTEN__)
+      // Qt for wasm reports ShowIsFullScreen unconditionally, and QWidget::show()
+      // acts on it exactly as QWindow::show() does: the window covers the page and
+      // loses the frame Qt draws for it, leaving no way to close or move it.
+      win->showNormal();
+#else
       win->show();
+#endif
 #endif
     }
   }
@@ -160,7 +174,14 @@ void setupExternalUI(
     if(auto win = fact.makeExternalUI(proc, ctx, nullptr))
     {
       const_cast<QWidget*&>(proc.externalUI) = win;
+      #if defined(__EMSCRIPTEN__)
+      // Qt for wasm reports ShowIsFullScreen unconditionally, and QWidget::show()
+      // acts on it exactly as QWindow::show() does: the window covers the page and
+      // loses the frame Qt draws for it, leaving no way to close or move it.
+      win->showNormal();
+#else
       win->show();
+#endif
     }
   }
   else
