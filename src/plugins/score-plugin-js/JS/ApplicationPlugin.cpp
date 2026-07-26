@@ -152,10 +152,28 @@ void ApplicationPlugin::afterStartup()
       if(auto item = qobject_cast<QQuickItem*>(obj))
       {
         m_window = new QQuickWindow{};
+  // QWidget gets these from QWidgetPrivate::adjustFlags; a bare QQuickWindow
+  // does not, and on platforms where Qt draws the chrome itself (wasm) that
+  // leaves the window with no title bar, close or minimise button.
+  m_window->setFlags(
+      m_window->flags() | Qt::Window | Qt::WindowTitleHint | Qt::WindowSystemMenuHint
+      | Qt::WindowCloseButtonHint | Qt::WindowMinimizeButtonHint
+      | Qt::WindowMaximizeButtonHint);
+#if defined(__EMSCRIPTEN__)
+  // Qt for wasm reports ShowIsFullScreen unconditionally, so QWindow::show()
+  // turns into showFullScreen() for every top level: the requested size is
+  // discarded and the full-screen state suppresses the frame. Only Qt::Dialog
+  // and Qt::Popup opt out (QWasmIntegration::defaultWindowState).
+  m_window->setFlags(m_window->flags() | Qt::Dialog);
+#endif
         m_window->setWidth(640);
         m_window->setHeight(480);
         item->setParentItem(m_window->contentItem());
+#if defined(__EMSCRIPTEN__)
+        m_window->showNormal();
+#else
         m_window->show();
+#endif
         return;
       }
     }

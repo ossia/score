@@ -677,7 +677,14 @@ void ScreenNode::createOutput(score::gfx::OutputConfiguration conf)
       {
         m_window->setGeometry({m_window->position(), *m_sz});
       }
+#if defined(__EMSCRIPTEN__)
+  // Qt for wasm reports ShowIsFullScreen unconditionally, so QWindow::show()
+  // resolves to showFullScreen(): the requested size is dropped and the
+  // full-screen state suppresses the frame. showNormal() sets the state itself.
+  m_window->showNormal();
+#else
       m_window->show();
+#endif
     }
   }
 }
