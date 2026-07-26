@@ -7,9 +7,11 @@
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/protocols/joystick/joystick_protocol.hpp>
 
 #include <QObject>
+#include <QTimer>
 #include <QUrl>
 namespace Protocols
 {
@@ -35,10 +37,28 @@ public:
 class JoystickEnumerator : public Device::DeviceEnumerator
 {
 public:
+  JoystickEnumerator()
+  {
+    m_timer.setInterval(1000);
+    QObject::connect(&m_timer, &QTimer::timeout, this, [this] { rescan(); });
+    m_timer.start();
+  }
+
   void enumerate(std::function<void(const QString&, const Device::DeviceSettings&)> f)
       const override
   {
+    m_current = scan();
+    for(auto& [name, set] : m_current)
+      f(name, set);
+  }
+
+private:
+  using device_list = std::vector<std::pair<QString, Device::DeviceSettings>>;
+
+  static device_list scan()
+  {
     using info = ossia::net::joystick_info;
+    device_list res;
     const unsigned int joystick_count = info::get_joystick_count();
 
     for(unsigned int i = 0; i < joystick_count; ++i)
@@ -55,10 +75,40 @@ public:
         specif.gamepad = info::get_joystick_is_gamepad(i);
 
         set.deviceSpecificSettings = QVariant::fromValue(specif);
-        f(set.name, set);
+        res.emplace_back(set.name, set);
       }
     }
+    return res;
   }
+
+  void rescan()
+  {
+    auto next = scan();
+    auto has = [](const device_list& l, const QString& n) {
+      return ossia::any_of(l, [&n](const auto& p) { return p.first == n; });
+    };
+
+    for(auto& [name, set] : m_current)
+      if(!has(next, name))
+        deviceRemoved(name);
+
+    bool added = false;
+    for(auto& [name, set] : next)
+    {
+      if(!has(m_current, name))
+      {
+        deviceAdded(name, set);
+        added = true;
+      }
+    }
+
+    m_current = std::move(next);
+    if(added)
+      sort();
+  }
+
+  QTimer m_timer;
+  mutable device_list m_current;
 };
 
 QString JoystickProtocolFactory::prettyName() const noexcept

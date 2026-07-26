@@ -13,6 +13,7 @@
 
 #include <QCheckBox>
 #include <QFormLayout>
+#include <QLabel>
 #include <QPushButton>
 #include <QVariant>
 
@@ -39,6 +40,16 @@ JoystickProtocolSettingsWidget::JoystickProtocolSettingsWidget(QWidget* parent)
   auto layout = new QFormLayout;
   layout->addRow(tr("Name"), m_deviceNameEdit);
   layout->addRow(tr("Gamepad API"), m_gamepad);
+
+#if defined(__EMSCRIPTEN__)
+  auto hint = new QLabel{
+      tr("Web browsers only reveal a joystick once a button has been pressed or "
+         "an axis moved on it. If the list of devices is empty, use the joystick "
+         "once and it will show up."),
+      this};
+  hint->setWordWrap(true);
+  layout->addRow(hint);
+#endif
 
   setLayout(layout);
 }
