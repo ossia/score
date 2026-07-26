@@ -2,6 +2,7 @@
 
 #include <Gfx/Graph/VideoNode.hpp>
 #include <Video/CameraInput.hpp>
+#include <Video/WebCameraInput.hpp>
 
 #include <State/MessageListSerialization.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
@@ -146,6 +147,15 @@ bool CameraDevice::reconnect()
     auto plug = m_ctx.findPlugin<DocumentPlugin>();
     if(plug)
     {
+#if defined(__EMSCRIPTEN__)
+      // "default" means: let the browser pick, which is also the only thing that
+      // works before the user has granted camera permission (until then
+      // enumerateDevices() hands out neither ids nor labels).
+      auto cam = std::make_shared<::Video::WebCameraInput>();
+      const auto device
+          = (set.device == "default") ? std::string{} : set.device.toStdString();
+      cam->load(device, set.size.width(), set.size.height(), set.fps);
+#else
       auto cam = std::make_shared<::Video::CameraInput>();
 
       if(set.input == "default" && set.device == "default")
@@ -159,6 +169,7 @@ bool CameraDevice::reconnect()
       cam->load(
           set.input.toStdString(), set.device.toStdString(), set.size.width(),
           set.size.height(), set.fps, set.codec, set.pixelformat);
+#endif
 
       m_protocol = new video_texture_input_protocol{std::move(cam), plug->exec};
       m_dev = std::make_unique<video_texture_input_device>(
@@ -261,13 +272,16 @@ CameraProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
 {
   Device::DeviceEnumerators enums;
   enums.push_back({"Default", new DefaultCameraEnumerator});
-#if !defined(__linux__) && !defined(__APPLE__) && !defined(_WIN32)
-  enums.push_back({"Cameras", new CameraEnumerator});
-#else
+#if defined(__EMSCRIPTEN__) || defined(__linux__) || defined(__APPLE__) \
+    || defined(_WIN32)
   auto devices = Gfx::make_camera_enumerator();
   devices->registerAllEnumerators(enums);
+#else
+  enums.push_back({"Cameras", new CameraEnumerator});
 #endif
+#if !defined(__EMSCRIPTEN__)
   enums.push_back({"Custom", new CustomCameraEnumerator});
+#endif
   return enums;
 }
 
