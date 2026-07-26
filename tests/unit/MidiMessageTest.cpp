@@ -52,8 +52,16 @@ struct TestApplication final : public score::ApplicationInterface
     char arg0[5] = "test";
     char* argv[2] = {arg0, nullptr};
     QGuiApplication app;
+    // WebAssembly only ever has the "wasm" platform: asking for another one
+    // aborts before main().
+    static void selectPlatform()
+    {
+#if !defined(__EMSCRIPTEN__)
+      qputenv("QT_QPA_PLATFORM", "offscreen");
+#endif
+    }
     GuiApp()
-        : app{(qputenv("QT_QPA_PLATFORM", "offscreen"), argc), argv}
+        : app{(selectPlatform(), argc), argv}
     {
     }
   } m_gui;
