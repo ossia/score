@@ -111,19 +111,26 @@ function(setup_score_common_exe_features TheTarget)
   setup_score_common_features(${TheTarget})
 endfunction()
 
-# Batch executables (tests) terminate the emscripten runtime when main() returns;
-# the application must not.
-function(score_wasm_batch_exit TheTarget)
+# A batch program runs start to finish without ever handing control back to the
+# browser event loop, which the application does and emscripten's defaults assume.
+# It therefore has to pre-spawn its worker pool, since pthread_create can only be
+# serviced from the event loop, and to terminate the runtime when main() returns.
+set(SCORE_WASM_TEST_PTHREAD_POOL_SIZE 16 CACHE STRING
+    "Workers pre-spawned for WebAssembly test executables")
+
+function(score_wasm_batch_program TheTarget)
   if(EMSCRIPTEN)
     target_sources(${TheTarget} PRIVATE
       "${SCORE_ROOT_SOURCE_DIR}/tests/fixtures/score_test/WasmBatchExit.c")
-    target_link_options(${TheTarget} PRIVATE "-sEXIT_RUNTIME=1")
+    target_link_options(${TheTarget} PRIVATE
+      "-sEXIT_RUNTIME=1"
+      "-sPTHREAD_POOL_SIZE=${SCORE_WASM_TEST_PTHREAD_POOL_SIZE}")
   endif()
 endfunction()
 
 function(setup_score_common_test_features TheTarget)
   setup_score_common_features(${TheTarget})
-  score_wasm_batch_exit(${TheTarget})
+  score_wasm_batch_program(${TheTarget})
   ossia_set_visibility(${TheTarget})
 endfunction()
 
