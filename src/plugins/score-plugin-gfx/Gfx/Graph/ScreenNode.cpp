@@ -325,6 +325,13 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
                             << VK_KHR_EXTERNAL_SEMAPHORE_EXTENSION_NAME
                             << VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME
                             << VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME
+#ifdef VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME
+        // Lets a capture slot's own pages be imported as VkDeviceMemory so the
+        // frame the vendor SDK already wrote needs no further CPU copy; Qt's
+        // uploadTexture otherwise re-stages it through the small host-visible
+        // BAR heap (see interop/VkHostImportUpload.hpp).
+                            << VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME
+#endif
         ;
 #else
     params.deviceExtensions << VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME
@@ -336,6 +343,9 @@ createRenderState(GraphicsApi graphicsApi, QSize sz, QWindow* window)
 #endif
 #ifdef VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME
                             << VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME
+#endif
+#ifdef VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME
+                            << VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME
 #endif
         ;
 #endif

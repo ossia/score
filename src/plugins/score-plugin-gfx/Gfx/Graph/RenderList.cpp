@@ -947,19 +947,22 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force)
   if(renderers.size() <= 1 && !force)
     return;
 
-  // Frame counter + wall-clock timer for diagnostics. Emits the frame
-  // header with the time since the previous render() entry so the pasted
-  // log shows per-frame cost. Values include CPU record + any synchronous
-  // GPU waits inside setShaderResources / beginPass etc., i.e. roughly
-  // the wall-time equivalent of "how fast is this pipeline".
-  // Per-frame GPU-time + PSO-stall observability. Read the CB-wide GPU
-  // time for the most recently COMPLETED frame and attribute it to the
-  // "frame" label; the per-pass breakdown is a QRhi follow-up (current
-  // API only exposes CB-scoped timings).
+  // Cleared on every exit path so currentCommandBuffer() can never hand a
+  // stale pointer to a strategy recording outside a frame.
+  struct CommandScope
+  {
+    QRhiCommandBuffer*& slot;
+    ~CommandScope() { slot = nullptr; }
+  } commandScope{m_currentCommands};
+  m_currentCommands = &commands;
+
+  // Frame counter and wall-clock timer: the frame header carries the time since
+  // the previous render() entry, covering CPU record plus any synchronous GPU
+  // waits inside setShaderResources / beginPass.
   //
-  // One-frame staleness is a QRhi contract: `lastCompletedGpuTime()`
-  // returns the PREVIOUS frame's elapsed GPU time, not the in-progress
-  // one. The panel reports it as such.
+  // The GPU time is read CB-wide and attributed to the "frame" label; QRhi only
+  // exposes CB-scoped timings, and lastCompletedGpuTime() returns the PREVIOUS
+  // frame's elapsed time, which the panel reports as such.
 #if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
   // Use the per-instance `frame` member (incremented at the end of render())
   // as the diagnostic frame number rather than a process-/thread-global
