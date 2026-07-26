@@ -102,15 +102,23 @@ foreach(kind ISF VSA CSF)
     SOURCES ShaderSweep${kind}.cpp
     GUI
     PLUGINS score_plugin_gfx score_lib_process)
-  target_compile_definitions(test_integration_shader_sweep_${lc} PRIVATE
-    "SCORE_SHADER_SWEEP_BASELINE_${kind}=\"${CMAKE_CURRENT_SOURCE_DIR}/../testdata/shader_sweep_baseline_${lc}.txt\"")
+  set(_baseline "${CMAKE_CURRENT_SOURCE_DIR}/../testdata/shader_sweep_baseline_${lc}.txt")
 
-  # On wasm there is no filesystem to read the library from: bake it into the
-  # test's own MEMFS image, the same way the application does.
-  if(EMSCRIPTEN AND SCORE_WASM_PRELOAD_LIBRARY)
+  # On wasm there is no filesystem to read the library or the baseline from:
+  # bake both into the test's own MEMFS image, the way the application does.
+  if(EMSCRIPTEN)
     target_link_options(test_integration_shader_sweep_${lc} PRIVATE
-      "SHELL:--preload-file ${SCORE_WASM_PRELOAD_LIBRARY}@/score-library")
-    target_compile_definitions(test_integration_shader_sweep_${lc} PRIVATE
-      "SCORE_SHADER_SWEEP_WASM_LIBRARY=\"/score-library\"")
+      "SHELL:--preload-file ${_baseline}@/shader_sweep_baseline_${lc}.txt")
+    set(_baseline "/shader_sweep_baseline_${lc}.txt")
+
+    if(SCORE_WASM_PRELOAD_LIBRARY)
+      target_link_options(test_integration_shader_sweep_${lc} PRIVATE
+        "SHELL:--preload-file ${SCORE_WASM_PRELOAD_LIBRARY}@/score-library")
+      target_compile_definitions(test_integration_shader_sweep_${lc} PRIVATE
+        "SCORE_SHADER_SWEEP_WASM_LIBRARY=\"/score-library\"")
+    endif()
   endif()
+
+  target_compile_definitions(test_integration_shader_sweep_${lc} PRIVATE
+    "SCORE_SHADER_SWEEP_BASELINE_${kind}=\"${_baseline}\"")
 endforeach()
