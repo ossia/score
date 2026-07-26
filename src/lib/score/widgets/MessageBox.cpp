@@ -10,6 +10,31 @@
 
 namespace score
 {
+#if defined(__EMSCRIPTEN__)
+namespace
+{
+// QMessageBox::exec() needs a nested event loop, which the browser main thread
+// cannot provide: the call must return before the user answers. Notifications
+// (which nothing waits on) are therefore shown modeless, so that errors are at
+// least visible; question(), whose answer is a return value, stays text-only.
+int notify(
+    QWidget* parent, const QString& title, const QString& text, const QString& icon)
+{
+  qDebug() << title << "\n" << text;
+
+  if(!score::AppContext().applicationSettings.gui)
+    return 0;
+
+  auto msg = new QMessageBox{{}, title, text, QMessageBox::Ok, parent};
+  msg->setIconPixmap(score::get_pixmap(icon));
+  msg->setAttribute(Qt::WA_DeleteOnClose);
+  msg->setWindowModality(Qt::NonModal);
+  msg->show();
+  msg->raise();
+  return 0;
+}
+}
+#endif
 
 int question(QWidget* parent, const QString& title, const QString& text)
 {
@@ -35,7 +60,10 @@ int question(QWidget* parent, const QString& title, const QString& text)
 
 int information(QWidget* parent, const QString& title, const QString& text)
 {
-#if !defined(__EMSCRIPTEN__)
+#if defined(__EMSCRIPTEN__)
+  return notify(
+      parent, title, text, QStringLiteral(":/icons/message_information.png"));
+#else
   if(score::AppContext().applicationSettings.gui)
   {
     auto msg = new QMessageBox{{}, title, text, QMessageBox::Ok, parent};
@@ -47,16 +75,18 @@ int information(QWidget* parent, const QString& title, const QString& text)
     return idx;
   }
   else
-#endif
   {
     qDebug() << title << "\n" << text;
     return 0;
   }
+#endif
 }
 
 int warning(QWidget* parent, const QString& title, const QString& text)
 {
-#if !defined(__EMSCRIPTEN__)
+#if defined(__EMSCRIPTEN__)
+  return notify(parent, title, text, QStringLiteral(":/icons/message_warning.png"));
+#else
   if(score::AppContext().applicationSettings.gui)
   {
     auto msg = new QMessageBox{{}, title, text, QMessageBox::Ok, parent};
@@ -67,10 +97,10 @@ int warning(QWidget* parent, const QString& title, const QString& text)
     return idx;
   }
   else
-#endif
   {
     qDebug() << title << "\n" << text;
     return 0;
   }
+#endif
 }
 }
