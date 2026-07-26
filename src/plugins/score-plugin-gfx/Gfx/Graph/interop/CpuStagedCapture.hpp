@@ -26,6 +26,7 @@
 
 #include <Gfx/Graph/interop/CaptureStrategyCommon.hpp>
 #include <Gfx/Graph/interop/VideoCaptureStrategy.hpp>
+#include <Gfx/Graph/interop/VkHostImportUpload.hpp>
 
 #include <QtGui/private/qrhi_p.h>
 
@@ -40,6 +41,7 @@
 
 #include <array>
 #include <cstdint>
+#include <cstring>
 #include <utility>
 #include <vector>
 
@@ -73,9 +75,16 @@ struct CpuStagedCapture final : VideoCaptureStrategy
   VideoCaptureStrategyConfig cfg{};
 
   static constexpr std::size_t kSlotCount = 3;
-  std::array<std::vector<std::uint8_t>, kSlotCount> m_slots;
+  /// Raw rather than std::vector because the Vulkan host-import path needs the
+  /// pages page-aligned; the allocation is freed in release().
+  std::array<std::uint8_t*, kSlotCount> m_slots{};
   std::array<bool, kSlotCount> m_dmaLocked{};
   CaptureSlotPublisher m_publisher;
+
+  /// Non-null only on Vulkan with VK_EXT_external_memory_host: the slots are
+  /// imported as VkDeviceMemory and the GPU DMAs straight out of them, so the
+  /// per-frame staging copy disappears entirely.
+  VkHostImportUpload m_hostImport;
 
 #if QT_CONFIG(opengl)
   // Non-null when the raw-GL fast path is engaged (GL backend, not forced
@@ -135,28 +144,59 @@ struct CpuStagedCapture final : VideoCaptureStrategy
     }
 #endif
 
+    // Align to the import requirement when it is available so the same slots
+    // can serve both paths; otherwise plain max_align is enough.
+    // SCORE_GFX_NO_VK_HOST_IMPORT forces the portable uploadTexture path so one
+    // binary can measure both sides of the comparison.
+    const std::size_t importAlign
+        = qEnvironmentVariableIsSet("SCORE_GFX_NO_VK_HOST_IMPORT")
+              ? 0u
+              : VkHostImportUpload::requiredAlignment(*cfg.rhi);
+    const std::size_t slotAlign = importAlign ? importAlign : alignof(std::max_align_t);
+
     for(std::size_t i = 0; i < kSlotCount; ++i)
     {
-      m_slots[i].assign(cfg.frameByteSize, 0);
+      m_slots[i] = static_cast<std::uint8_t*>(
+          alignedSlotAlloc(cfg.frameByteSize, slotAlign));
+      if(!m_slots[i])
+      {
+        release();
+        return false;
+      }
+      std::memset(m_slots[i], 0, cfg.frameByteSize);
       if constexpr(Policy::has_dma_lock)
       {
         // Page-lock (paged, not RDMA) so the card's DMA into the host buffer
         // doesn't re-pin pages every frame.
-        if(m_policy.dmaLock(m_slots[i].data(), cfg.frameByteSize))
+        if(m_policy.dmaLock(m_slots[i], cfg.frameByteSize))
           m_dmaLocked[i] = true;
       }
+    }
+
+    if(importAlign)
+    {
+      std::vector<void*> ptrs;
+      ptrs.reserve(kSlotCount);
+      for(auto* p : m_slots)
+        ptrs.push_back(p);
+      if(m_hostImport.init(*cfg.rhi, ptrs, cfg.frameByteSize))
+        qDebug() << "DMA capture: Vulkan host-import upload engaged (zero-copy)";
+      else
+        m_hostImport.release();
     }
     return true;
   }
 
   void release() override
   {
+    m_hostImport.release();
     for(std::size_t i = 0; i < kSlotCount; ++i)
     {
       // NB: no DMA unlock here — the vendor capture session's close() does the
       // unlock-all, and by teardown the card object may already be gone.
       m_dmaLocked[i] = false;
-      m_slots[i].clear();
+      alignedSlotFree(m_slots[i]);
+      m_slots[i] = nullptr;
     }
 #if QT_CONFIG(opengl)
     if constexpr(Policy::has_gl_fast_path)
@@ -169,8 +209,7 @@ struct CpuStagedCapture final : VideoCaptureStrategy
 
   void* slotBuffer(std::size_t i) const noexcept override
   {
-    return (i < kSlotCount) ? const_cast<std::uint8_t*>(m_slots[i].data())
-                            : nullptr;
+    return (i < kSlotCount) ? m_slots[i] : nullptr;
   }
 
   bool ingestFrame(std::size_t i) override
@@ -188,10 +227,62 @@ struct CpuStagedCapture final : VideoCaptureStrategy
 
   void acquireForRender(QRhiResourceUpdateBatch& res) override
   {
+    acquireForRender(res, nullptr);
+  }
+
+  void acquireForRender(QRhiResourceUpdateBatch& res, QRhiCommandBuffer* cb) override
+  {
     const int slotIdx = m_publisher.consume();
     if(slotIdx < 0 || static_cast<std::size_t>(slotIdx) >= kSlotCount)
       return;
-    const void* src = m_slots[static_cast<std::size_t>(slotIdx)].data();
+    const void* src = m_slots[static_cast<std::size_t>(slotIdx)];
+
+    // Vulkan zero-copy: the slot pages are already imported, so all that is
+    // left is the device-side DMA. Needs the command buffer, hence the overload.
+    if(cb && m_hostImport.valid())
+    {
+      // Planar frames are one contiguous slot holding N planes, so the
+      // zero-copy path has to walk them exactly as the portable path below
+      // does -- uploading only plane 0 here left chroma uninitialised while
+      // still reporting the rung engaged.
+      if(cfg.planes.size() > 1)
+      {
+        std::size_t offset = 0;
+        bool all = true;
+        for(auto* tex : cfg.planes)
+        {
+          if(!tex)
+          {
+            all = false;
+            break;
+          }
+          const auto psz = tex->pixelSize();
+          const std::size_t bytes
+              = std::size_t(psz.width()) * texelBytes(tex->format()) * psz.height();
+          if(offset + bytes > cfg.frameByteSize
+             || !m_hostImport.copyToTexture(
+                 *cb, *tex, static_cast<std::size_t>(slotIdx), psz.width(),
+                 psz.height(), offset))
+          {
+            all = false;
+            break;
+          }
+          offset += bytes;
+        }
+        if(all)
+          return;
+        // Fall through to the portable path rather than ship a half-uploaded
+        // frame.
+      }
+      else
+      {
+        const auto pxsz = cfg.outputTexture->pixelSize();
+        if(m_hostImport.copyToTexture(
+               *cb, *cfg.outputTexture, static_cast<std::size_t>(slotIdx),
+               pxsz.width(), pxsz.height()))
+          return;
+      }
+    }
 
 #if QT_CONFIG(opengl)
     if constexpr(Policy::has_gl_fast_path)
@@ -225,9 +316,64 @@ struct CpuStagedCapture final : VideoCaptureStrategy
           cfg.height > 0 ? cfg.frameByteSize / static_cast<quint32>(cfg.height)
                          : 0);
     }
+    // Planar formats arrive as one contiguous buffer holding N planes back to
+    // back. The decoder's own texture list defines the layout: each plane's
+    // byte size is its texture geometry times its texel size, and offsets
+    // accumulate in order. Deriving it this way keeps the strategy free of
+    // per-format tables -- adding a planar decoder needs no change here.
+    if(cfg.planes.size() > 1)
+    {
+      std::size_t offset = 0;
+      for(std::size_t i = 0; i < cfg.planes.size(); ++i)
+      {
+        auto* tex = cfg.planes[i];
+        if(!tex)
+          continue;
+        const auto psz = tex->pixelSize();
+        const auto texel = texelBytes(tex->format());
+        const auto stride = static_cast<quint32>(psz.width()) * texel;
+        const std::size_t bytes = std::size_t(stride) * psz.height();
+        if(offset + bytes > cfg.frameByteSize)
+        {
+          qWarning() << "CpuStagedCapture: plane" << i << "overruns the frame ("
+                     << offset << "+" << bytes << ">" << cfg.frameByteSize
+                     << ") - skipping the rest";
+          break;
+        }
+        QRhiTextureSubresourceUploadDescription psub(
+            static_cast<const char*>(src) + offset, bytes);
+        psub.setDataStride(stride);
+        res.uploadTexture(
+            tex, QRhiTextureUploadDescription{QRhiTextureUploadEntry{0, 0, psub}});
+        offset += bytes;
+      }
+      return;
+    }
+
     res.uploadTexture(
         cfg.outputTexture,
         QRhiTextureUploadDescription{QRhiTextureUploadEntry{0, 0, sub}});
+  }
+
+  /// Bytes per texel for the formats the planar decoders actually allocate.
+  static quint32 texelBytes(QRhiTexture::Format f) noexcept
+  {
+    switch(f)
+    {
+      case QRhiTexture::R8:
+      case QRhiTexture::RED_OR_ALPHA8:
+        return 1;
+      case QRhiTexture::RG8:
+      case QRhiTexture::R16:
+        return 2;
+      case QRhiTexture::RG16:
+        return 4;
+      case QRhiTexture::RGBA8:
+      case QRhiTexture::BGRA8:
+        return 4;
+      default:
+        return 4;
+    }
   }
 
   void releaseAfterRender() override { }

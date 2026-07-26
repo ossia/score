@@ -121,7 +121,14 @@ public:
         .frameByteSize = m_backend->frameByteSize(),
         .width = m_backend->width(),
         .height = m_backend->height(),
-        .outputTexture = m_gpu->samplers[0].texture};
+        .outputTexture = m_gpu->samplers[0].texture,
+        .planes = [&] {
+      std::vector<QRhiTexture*> p;
+      p.reserve(m_gpu->samplers.size());
+      for(auto& smp : m_gpu->samplers)
+        p.push_back(smp.texture);
+      return p;
+    }()};
     if(m_strategy)
       m_backend->setStrategy(m_strategy.get());
     if(!m_strategy || !m_strategy->init(icfg))
@@ -219,6 +226,9 @@ public:
     // update() the QRhi command buffer for the previous frame has been
     // submitted, so the EndAPI signal sequences correctly with the WaitDVP in
     // the capture thread's next ingestFrame.
+    // Null outside a frame; only the Vulkan host-import upload needs it, every
+    // other strategy ignores it.
+    QRhiCommandBuffer* const cb = renderer.currentCommandBuffer();
     const uint64_t latest = m_ring.latestFrameId.load(std::memory_order_acquire);
     if(latest != m_lastIngestedFrameId)
     {
@@ -233,7 +243,7 @@ public:
       if(m_timeUpload) [[unlikely]]
       {
         const auto t0 = std::chrono::steady_clock::now();
-        m_strategy->acquireForRender(res);
+        m_strategy->acquireForRender(res, cb);
         m_uploadTotalNs += std::chrono::duration_cast<std::chrono::nanoseconds>(
                                std::chrono::steady_clock::now() - t0)
                                .count();
@@ -241,7 +251,7 @@ public:
       }
       else
       {
-        m_strategy->acquireForRender(res);
+        m_strategy->acquireForRender(res, cb);
       }
       m_lastIngestedFrameId = latest;
       m_renderHoldsTexture = true;
