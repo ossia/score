@@ -75,6 +75,19 @@ inline void close_all_documents(const score::GUIApplicationContext& ctx)
   QApplication::processEvents();
 }
 
+/// Closes the documents on the way out however fn left the stack: a failed
+/// REQUIRE unwinds, and a document still open when the application is destroyed
+/// tears its presenter down after the factory families are gone.
+struct document_closer
+{
+  const score::GUIApplicationContext& ctx;
+  ~document_closer()
+  {
+    close_all_documents(ctx);
+    QApplication::processEvents();
+  }
+};
+
 /// Boot a headless score app and invoke fn(const GUIApplicationContext&).
 template <typename F>
 void run_in_app(F&& fn)
@@ -93,10 +106,8 @@ void run_in_app(F&& fn)
   QApplication::processEvents();
   QApplication::processEvents();
 
+  document_closer closer{app.context()};
   std::forward<F>(fn)(app.context());
-
-  close_all_documents(app.context());
-  QApplication::processEvents();
 }
 
 /// Boot the GUI stack (window hidden) and invoke fn(const GUIApplicationContext&).
@@ -118,10 +129,8 @@ void run_in_gui_app(F&& fn)
   QApplication::processEvents();
   QApplication::processEvents();
 
+  document_closer closer{app.context()};
   std::forward<F>(fn)(app.context());
-
-  close_all_documents(app.context());
-  QApplication::processEvents();
 }
 
 }
