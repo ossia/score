@@ -43,6 +43,7 @@ clone_addon https://github.com/ossia/GBAP
 clone_addon https://github.com/ossia/score-addon-ltc
 clone_addon https://github.com/bltzr/score-avnd-granola
 clone_addon https://github.com/jcelerier/bendage
+clone_addon https://github.com/ossia/score-addon-airwindows
 
 CI_PLATFORM="${1:-DEFAULT}"
 
@@ -50,7 +51,6 @@ if [[ "$CI_PLATFORM" != "WASM" ]];
 then
   # puara does a standalone find_package(Avendish) that fails in the wasm build
   clone_addon https://github.com/ossia/score-addon-puara
-  clone_addon  https://github.com/ossia/score-addon-airwindows
   clone_addon         https://github.com/ossia/score-addon-ble
   clone_addon https://github.com/ossia/score-addon-contextfree
   clone_addon          https://github.com/ossia/score-addon-cv
