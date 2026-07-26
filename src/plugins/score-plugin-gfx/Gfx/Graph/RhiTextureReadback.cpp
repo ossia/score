@@ -165,6 +165,9 @@ struct ReadbackTarget
   /// finishReadbackToHost — a recorded-but-never-finished readback is a caller
   /// bug on GL/D3D11 (stale dst) and is asserted on all backends.
   bool pendingFinish{};
+  /// dstOffset of the last recorded readback, for the paths whose completion
+  /// copy happens in finishReadbackToHost (GL non-pinned, D3D11).
+  std::size_t pendingOffset{};
 
 #if SCORE_HAS_VULKAN
   VkDevice vkDev{};
@@ -197,6 +200,23 @@ struct ReadbackTarget
   std::size_t d11Rows{};
 #endif
 };
+
+ReadbackPath readbackPath(QRhi& rhi) noexcept
+{
+  if(!canReadbackToHostMemory(rhi))
+    return ReadbackPath::Unsupported;
+  switch(rhi.backend())
+  {
+    case QRhi::Vulkan: // VK_EXT_external_memory_host
+      return ReadbackPath::Import;
+#if SCORE_HAS_D3D && QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+    case QRhi::D3D12: // ID3D12Device3::OpenExistingHeapFromAddress
+      return ReadbackPath::Import;
+#endif
+    default:
+      return ReadbackPath::HostCopy;
+  }
+}
 
 bool canReadbackToHostMemory(QRhi& rhi) noexcept
 {
@@ -480,10 +500,14 @@ ReadbackTarget* createReadbackTarget(QRhi& rhi, void* dst, std::size_t bytes)
       // Only VirtualAlloc / file-mapping regions can be opened as a heap;
       // malloc'd memory fails here and the caller falls back.
       ID3D12Heap* heap{};
-      if(FAILED(dev3->OpenExistingHeapFromAddress(
-             dst, __uuidof(ID3D12Heap), reinterpret_cast<void**>(&heap)))
-         || !heap)
+      const HRESULT openHr = dev3->OpenExistingHeapFromAddress(
+          dst, __uuidof(ID3D12Heap), reinterpret_cast<void**>(&heap));
+      if(FAILED(openHr) || !heap)
       {
+        qWarning(
+            "RhiTextureReadback: OpenExistingHeapFromAddress(%p) failed "
+            "(0x%08lx) - not a VirtualAlloc region?",
+            dst, static_cast<unsigned long>(openHr));
         dev3->Release();
         break;
       }
@@ -497,12 +521,20 @@ ReadbackTarget* createReadbackTarget(QRhi& rhi, void* dst, std::size_t bytes)
       bd.Format = DXGI_FORMAT_UNKNOWN;
       bd.SampleDesc = {1, 0};
       bd.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+      // Heaps opened from existing sysmem are shared heaps; buffers placed in
+      // them must carry ALLOW_CROSS_ADAPTER or CreatePlacedResource rejects
+      // the desc with E_INVALIDARG.
+      bd.Flags = D3D12_RESOURCE_FLAG_ALLOW_CROSS_ADAPTER;
       ID3D12Resource* buf{};
-      if(FAILED(dev3->CreatePlacedResource(
-             heap, 0, &bd, D3D12_RESOURCE_STATE_COPY_DEST, nullptr,
-             __uuidof(ID3D12Resource), reinterpret_cast<void**>(&buf)))
-         || !buf)
+      const HRESULT placeHr = dev3->CreatePlacedResource(
+          heap, 0, &bd, D3D12_RESOURCE_STATE_COPY_DEST, nullptr,
+          __uuidof(ID3D12Resource), reinterpret_cast<void**>(&buf));
+      if(FAILED(placeHr) || !buf)
       {
+        qWarning(
+            "RhiTextureReadback: CreatePlacedResource(%zu bytes) in existing "
+            "heap failed (0x%08lx)",
+            bytes, static_cast<unsigned long>(placeHr));
         heap->Release();
         dev3->Release();
         break;
@@ -614,8 +646,32 @@ void destroyReadbackTarget(ReadbackTarget* t)
   delete t;
 }
 
+std::size_t readbackDstOffsetAlignment(QRhi& rhi, QRhiTexture& src) noexcept
+{
+  const std::size_t bpp = textureBytesPerPixel(src.format());
+  if(bpp == 0)
+    return 0;
+  switch(rhi.backend())
+  {
+    case QRhi::Vulkan:
+      // VkBufferImageCopy::bufferOffset: multiple of 4 and of the texel size.
+      return bpp < 4 ? 4 : bpp;
+    case QRhi::OpenGLES2:
+      return 4;
+#if SCORE_HAS_D3D12_EXISTING_HEAPS
+    case QRhi::D3D12:
+      return D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT;
+#endif
+    case QRhi::D3D11:
+      return 1;
+    default:
+      return 0;
+  }
+}
+
 bool readbackTextureToHost(
-    QRhi& rhi, QRhiCommandBuffer& cb, QRhiTexture& src, ReadbackTarget& t)
+    QRhi& rhi, QRhiCommandBuffer& cb, QRhiTexture& src, ReadbackTarget& t,
+    std::size_t dstOffset)
 {
   const QSize sz = src.pixelSize();
   const std::size_t bpp = textureBytesPerPixel(src.format());
@@ -623,8 +679,13 @@ bool readbackTextureToHost(
     return false;
   const std::size_t rowBytes = std::size_t(sz.width()) * bpp;
   const std::size_t required = rowBytes * std::size_t(sz.height());
-  if(required > t.bytes)
+  if(dstOffset > t.bytes || required > t.bytes - dstOffset)
     return false;
+  {
+    const std::size_t offAlign = readbackDstOffsetAlignment(rhi, src);
+    if(offAlign == 0 || dstOffset % offAlign != 0)
+      return false;
+  }
 
   if(t.pendingFinish)
   {
@@ -675,6 +736,7 @@ bool readbackTextureToHost(
       transition(VkImageLayout(nt.layout), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
       VkBufferImageCopy region{};
+      region.bufferOffset = dstOffset;
       region.imageSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1};
       region.imageExtent = {uint32_t(sz.width()), uint32_t(sz.height()), 1};
       t.vkDf->vkCmdCopyImageToBuffer(
@@ -750,7 +812,12 @@ bool readbackTextureToHost(
 
       f->glBindBuffer(GL_PIXEL_PACK_BUFFER, t.glBuffer);
       f->glPixelStorei(GL_PACK_ALIGNMENT, 1);
-      f->glReadPixels(0, 0, sz.width(), sz.height(), GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+      // Pinned buffer IS the destination region: pack at dstOffset. The plain
+      // PBO packs at 0 and finishReadbackToHost applies the offset in its copy.
+      f->glReadPixels(
+          0, 0, sz.width(), sz.height(), GL_RGBA, GL_UNSIGNED_BYTE,
+          t.glPinned ? reinterpret_cast<void*>(std::uintptr_t(dstOffset))
+                     : nullptr);
       f->glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
       f->glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 
@@ -758,6 +825,7 @@ bool readbackTextureToHost(
         f->glDeleteSync(static_cast<GLsync>(t.glSync));
       t.glSync = f->glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
       t.glPending = required;
+      t.pendingOffset = dstOffset;
       cb.endExternal();
       t.pendingFinish = true;
       return true;
@@ -812,7 +880,7 @@ bool readbackTextureToHost(
       D3D12_TEXTURE_COPY_LOCATION dstLoc{};
       dstLoc.pResource = t.d3dBuffer;
       dstLoc.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-      dstLoc.PlacedFootprint.Offset = 0;
+      dstLoc.PlacedFootprint.Offset = UINT64(dstOffset);
       dstLoc.PlacedFootprint.Footprint
           = {fmt, UINT(sz.width()), UINT(sz.height()), 1, UINT(rowBytes)};
       D3D12_TEXTURE_COPY_LOCATION srcLoc{};
@@ -871,6 +939,7 @@ bool readbackTextureToHost(
 
       t.d11RowBytes = rowBytes;
       t.d11Rows = std::size_t(sz.height());
+      t.pendingOffset = dstOffset;
       t.pendingFinish = true;
       return true;
     }
@@ -913,12 +982,15 @@ bool finishReadbackToHost(QRhi& rhi, ReadbackTarget& t)
       if(t.glPinned)
         return true;
 
-      const std::size_t n = pending < t.bytes ? pending : t.bytes;
+      const std::size_t off = t.pendingOffset <= t.bytes ? t.pendingOffset : t.bytes;
+      auto* dst = static_cast<std::uint8_t*>(t.dst) + off;
+      const std::size_t room = t.bytes - off;
+      const std::size_t n = pending < room ? pending : room;
       if(n == 0)
         return true;
       if(t.glMapped)
       {
-        std::memcpy(t.dst, t.glMapped, n);
+        std::memcpy(dst, t.glMapped, n);
         return true;
       }
       f->glBindBuffer(GL_PIXEL_PACK_BUFFER, t.glBuffer);
@@ -926,7 +998,7 @@ bool finishReadbackToHost(QRhi& rhi, ReadbackTarget& t)
       bool ok = false;
       if(p)
       {
-        std::memcpy(t.dst, p, n);
+        std::memcpy(dst, p, n);
         f->glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
         ok = true;
       }
@@ -947,7 +1019,7 @@ bool finishReadbackToHost(QRhi& rhi, ReadbackTarget& t)
         return false;
       const std::size_t rows = t.d11Rows;
       const std::size_t rowBytes = t.d11RowBytes;
-      auto* dst = static_cast<std::uint8_t*>(t.dst);
+      auto* dst = static_cast<std::uint8_t*>(t.dst) + t.pendingOffset;
       const auto* srcp = static_cast<const std::uint8_t*>(map.pData);
       if(map.RowPitch == rowBytes)
         std::memcpy(dst, srcp, rowBytes * rows);
