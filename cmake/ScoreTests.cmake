@@ -81,6 +81,7 @@ function(score_add_test NAME)
   endif()
 
   setup_score_common_exe_features(${NAME})
+  score_wasm_batch_exit(${NAME})
 
   if(ARG_GUI)
     enable_minimal_qt_plugins(${NAME} 1)
