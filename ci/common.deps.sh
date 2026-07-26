@@ -44,6 +44,8 @@ clone_addon https://github.com/ossia/score-addon-ltc
 clone_addon https://github.com/bltzr/score-avnd-granola
 clone_addon https://github.com/jcelerier/bendage
 clone_addon https://github.com/ossia/score-addon-airwindows
+clone_addon https://github.com/ossia/score-addon-cv
+clone_addon https://github.com/ossia/score-addon-onnx
 
 CI_PLATFORM="${1:-DEFAULT}"
 
@@ -53,13 +55,11 @@ then
   clone_addon https://github.com/ossia/score-addon-puara
   clone_addon         https://github.com/ossia/score-addon-ble
   clone_addon https://github.com/ossia/score-addon-contextfree
-  clone_addon          https://github.com/ossia/score-addon-cv
   clone_addon   https://github.com/ossia/score-addon-deuterium
   clone_addon        https://github.com/ossia/score-addon-hdf5
   clone_addon         https://github.com/ossia/score-addon-led
   clone_addon         https://github.com/ossia/score-addon-lsl
   clone_addon         https://github.com/ossia/score-addon-ndi
-  clone_addon        https://github.com/ossia/score-addon-onnx
   clone_addon    https://github.com/ossia/score-addon-spatgris
   clone_addon   https://github.com/ossia/score-addon-ultraleap
 fi
