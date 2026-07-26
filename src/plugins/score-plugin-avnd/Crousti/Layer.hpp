@@ -9,8 +9,6 @@
 #include <Crousti/Painter.hpp>
 #include <Crousti/ProcessModel.hpp>
 
-#include <Process/Dataflow/WidgetInlets.hpp>
-
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/graphics/layouts/GraphicsBoxLayout.hpp>
 #include <score/graphics/layouts/GraphicsGridLayout.hpp>
@@ -20,7 +18,10 @@
 #include <score/tools/File.hpp>
 
 #include <avnd/common/aggregates.hpp>
+#include <avnd/concepts/file_port.hpp>
 #include <avnd/concepts/layout.hpp>
+#include <avnd/concepts/midifile.hpp>
+#include <avnd/concepts/soundfile.hpp>
 
 namespace oscr
 {
@@ -130,6 +131,41 @@ struct pmf_member_type<V T::*>
 template <typename T>
 using pmf_member_type_t = typename pmf_member_type<T>::type;
 
+template <typename T>
+struct SetGUIValue
+{
+  const score::DocumentContext& ctx;
+  void operator()(const ossia::value& v, auto& dst) const
+  {
+    T p;
+    oscr::from_ossia_value(p, v, dst);
+  }
+};
+
+// File & folder ports: paths are stored in the document as templates
+// (<PROJECT>:..., <LIBRARY>:..., or document-relative); resolve them so the
+// ui items always receive a usable absolute path.
+template <typename T>
+  requires(
+      avnd::soundfile_port<T> || avnd::midifile_port<T> || avnd::file_port<T>
+      || requires { T::widget::folder; })
+struct SetGUIValue<T>
+{
+  const score::DocumentContext& ctx;
+  void operator()(const ossia::value& v, auto& dst) const
+  {
+    T p;
+    if(auto str = v.target<std::string>(); str && !str->empty())
+      oscr::from_ossia_value(
+          p,
+          ossia::value{
+              score::locateFilePath(QString::fromStdString(*str), ctx).toStdString()},
+          dst);
+    else
+      oscr::from_ossia_value(p, v, dst);
+  }
+};
+
 template <typename Info>
 struct LayoutBuilder final : Process::LayoutBuilderBase
 {
@@ -146,22 +182,6 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
       const Process::ControlLayout& lay, Item& item)
       = delete; // TODO
 
-  // File paths are stored in the document as templates (<PROJECT>:...,
-  // <LIBRARY>:..., or document-relative); resolve them so the ui items
-  // always receive a usable absolute path, like the score-side file
-  // widgets do.
-  static ossia::value resolveFilePath(
-      const ossia::value& v, Process::ControlInlet* inl,
-      const score::DocumentContext& ctx) noexcept
-  {
-    if(qobject_cast<Process::FileChooserBase*>(inl)
-       || qobject_cast<Process::FolderChooser*>(inl))
-      if(auto str = v.target<std::string>(); str && !str->empty())
-        return score::locateFilePath(QString::fromStdString(*str), ctx)
-            .toStdString();
-    return v;
-  }
-
   template <typename Item>
   void setupControl(
       QGraphicsItem* parent, Process::ControlInlet* inl,
@@ -170,17 +190,15 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
     if constexpr(requires { sizeof(Item::value); })
     {
       using avnd_port_type = pmf_member_type_t<decltype(item.model)>;
-      avnd_port_type p;
-      oscr::from_ossia_value(p, resolveFilePath(inl->value(), inl, doc), item.value);
+      SetGUIValue<avnd_port_type>{doc}(inl->value(), item.value);
       if constexpr(requires { rootUi->on_control_update(); })
       {
         QObject::connect(
             inl, &Process::ControlInlet::valueChanged, &context,
-            [rui = rootUi, layout = this->layout, &item, inl,
+            [rui = rootUi, layout = this->layout, &item,
              &ctx = static_cast<const score::DocumentContext&>(this->doc)](
                 const ossia::value& v) {
-          avnd_port_type p;
-          oscr::from_ossia_value(p, resolveFilePath(v, inl, ctx), item.value);
+          SetGUIValue<avnd_port_type>{ctx}(v, item.value);
 
           rui->on_control_update();
           layout->update();
@@ -190,11 +208,10 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
       {
         QObject::connect(
             inl, &Process::ControlInlet::valueChanged, &context,
-            [layout = this->layout, &item, inl,
+            [layout = this->layout, &item,
              &ctx = static_cast<const score::DocumentContext&>(this->doc)](
                 const ossia::value& v) {
-          avnd_port_type p;
-          oscr::from_ossia_value(p, resolveFilePath(v, inl, ctx), item.value);
+          SetGUIValue<avnd_port_type>{ctx}(v, item.value);
           layout->update();
         });
       }
