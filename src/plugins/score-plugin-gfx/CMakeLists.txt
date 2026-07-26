@@ -308,6 +308,8 @@ set(HDRS
     Gfx/Graph/interop/RdmaVideoOutput.cpp
     Gfx/Graph/interop/CpuStagedVideoOutput.hpp
     Gfx/Graph/interop/CpuStagedVideoOutput.cpp
+    Gfx/Graph/interop/HostFramePool.hpp
+    Gfx/Graph/interop/HostFramePool.cpp
     Gfx/Graph/interop/VendorDmaRegistrar.hpp
     Gfx/Graph/interop/PacedFramePump.hpp
     Gfx/Graph/interop/PacedFramePump.cpp
