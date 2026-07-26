@@ -1259,6 +1259,12 @@ static void uploadOutputTexture(auto& self,
   {
     if(auto texture = updateTexture(self, renderer, k, cpu_tex))
     {
+      if(!cpu_tex.bytes || cpu_tex.bytesize() <= 0)
+      {
+        cpu_tex.changed = false;
+        return;
+      }
+
       QByteArray buf
           = QByteArray::fromRawData((const char*)cpu_tex.bytes, cpu_tex.bytesize());
       if constexpr(requires { Tex::RGB; })
