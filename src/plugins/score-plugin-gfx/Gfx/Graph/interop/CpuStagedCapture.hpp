@@ -41,6 +41,7 @@
 
 #include <array>
 #include <cstdint>
+#include <cstdio>
 #include <cstring>
 #include <utility>
 #include <vector>
@@ -94,6 +95,10 @@ struct CpuStagedCapture final : VideoCaptureStrategy
 
   const char* name() const noexcept override
   {
+    // The engaged rung, not the configured one: matrix results are only
+    // meaningful if the row says which path actually ran.
+    if(m_hostImport.valid())
+      return "CPU-hostimport";
     if constexpr(Policy::has_gl_fast_path)
     {
 #if QT_CONFIG(opengl)
@@ -146,12 +151,23 @@ struct CpuStagedCapture final : VideoCaptureStrategy
 
     // Align to the import requirement when it is available so the same slots
     // can serve both paths; otherwise plain max_align is enough.
-    // SCORE_GFX_NO_VK_HOST_IMPORT forces the portable uploadTexture path so one
-    // binary can measure both sides of the comparison.
+    // Bottom two rungs of the capture ladder (RDMA -> DVP -> host-import ->
+    // uploadTexture). SCORE_GFX_CAPTURE_STRATEGY pins one:
+    //   "uploadtexture" skips the import; "hostimport" requires it and fails
+    //   init when unavailable, so the ladder reports honestly instead of
+    //   silently landing a rung lower than asked for.
+    const auto wantRung = qEnvironmentVariable("SCORE_GFX_CAPTURE_STRATEGY").toLower();
+    const bool forceUpload = wantRung == "uploadtexture"
+                             || qEnvironmentVariableIsSet("SCORE_GFX_NO_VK_HOST_IMPORT");
+    const bool requireImport = wantRung == "hostimport";
     const std::size_t importAlign
-        = qEnvironmentVariableIsSet("SCORE_GFX_NO_VK_HOST_IMPORT")
-              ? 0u
-              : VkHostImportUpload::requiredAlignment(*cfg.rhi);
+        = forceUpload ? 0u : VkHostImportUpload::requiredAlignment(*cfg.rhi);
+    if(requireImport && importAlign == 0)
+    {
+      qWarning() << "CpuStagedCapture: SCORE_GFX_CAPTURE_STRATEGY=hostimport but "
+                    "VK_EXT_external_memory_host is unavailable";
+      return false;
+    }
     const std::size_t slotAlign = importAlign ? importAlign : alignof(std::max_align_t);
 
     for(std::size_t i = 0; i < kSlotCount; ++i)
@@ -180,9 +196,19 @@ struct CpuStagedCapture final : VideoCaptureStrategy
       for(auto* p : m_slots)
         ptrs.push_back(p);
       if(m_hostImport.init(*cfg.rhi, ptrs, cfg.frameByteSize))
+      {
         qDebug() << "DMA capture: Vulkan host-import upload engaged (zero-copy)";
+      }
       else
+      {
         m_hostImport.release();
+        if(requireImport)
+        {
+          qWarning() << "CpuStagedCapture: host-import rung was pinned but the "
+                        "import failed";
+          return false;
+        }
+      }
     }
     return true;
   }

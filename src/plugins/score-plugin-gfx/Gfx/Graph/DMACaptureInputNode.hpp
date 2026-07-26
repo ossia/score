@@ -1,5 +1,7 @@
 #pragma once
 
+#include <atomic>
+
 /**
  * @file DMACaptureInputNode.hpp
  * @brief Shared base for professional capture-card INPUT nodes.
@@ -117,7 +119,34 @@ struct SCORE_PLUGIN_GFX_EXPORT DMACaptureInputNode : ProcessNode
   virtual std::unique_ptr<DMACaptureBackend>
   makeCaptureBackend(interop::VideoCaptureSlotRing& ring) const = 0;
 
+  /// Which rung of the capture ladder actually engaged, or nullptr before the
+  /// renderer has resolved it.
+  const char* engagedCaptureStrategy() const noexcept
+  {
+    return m_engagedStrategy.load(std::memory_order_acquire);
+  }
+
+  /// True when SCORE_GFX_CAPTURE_STRATEGY asked for a rung that did not engage.
+  /// A harness seeing this must fail the cell rather than report its numbers.
+  bool captureStrategyPinUnmet() const noexcept
+  {
+    return m_pinUnmet.load(std::memory_order_acquire);
+  }
+
+  /// Set by the renderer once the ladder resolves (render thread).
+  void setEngagedCaptureStrategy(const char* name, bool pinUnmet) const noexcept
+  {
+    m_engagedStrategy.store(name, std::memory_order_release);
+    m_pinUnmet.store(pinUnmet, std::memory_order_release);
+  }
+
   class Renderer;
+
+private:
+  mutable std::atomic<const char*> m_engagedStrategy{nullptr};
+  mutable std::atomic<bool> m_pinUnmet{false};
+
+public:
 };
 
 } // namespace score::gfx
