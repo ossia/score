@@ -843,10 +843,11 @@ target_link_libraries(VideoDecoderTester PRIVATE score_plugin_gfx)
 endif()
 
 # Offscreen unit test for the GPU video encoders (no AJA/libav/gst needed).
-# Static-plugin builds can't link it: score_init_static_plugins() references
-# every configured addon and the tester only links score_plugin_gfx/media.
+# In static-plugin builds score_init_static_plugins() references every
+# configured plugin, so the top-level CMakeLists completes the link with
+# SCORE_PLUGINS_LIST once all plugins have been declared.
 option(SCORE_ENCODER_TESTER "Build the GPU encoder offscreen self-test" ON)
-if(SCORE_ENCODER_TESTER AND NOT SCORE_STATIC_PLUGINS)
+if(SCORE_ENCODER_TESTER)
 add_executable(EncoderTester tests/EncoderTester.cpp)
 target_link_libraries(EncoderTester PRIVATE
   score_plugin_gfx score_plugin_media ${QT_PREFIX}::Gui)
