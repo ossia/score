@@ -41,6 +41,7 @@ clone_addon https://github.com/ossia/score-addon-synthimi
 clone_addon https://github.com/ossia/score-addon-jk
 clone_addon https://github.com/ossia/GBAP
 clone_addon https://github.com/ossia/score-addon-ltc
+clone_addon https://github.com/bltzr/score-avnd-granola
 
 CI_PLATFORM="${1:-DEFAULT}"
 
@@ -54,7 +55,6 @@ then
   clone_addon https://github.com/ossia/score-addon-contextfree
   clone_addon          https://github.com/ossia/score-addon-cv
   clone_addon   https://github.com/ossia/score-addon-deuterium
-  clone_addon      https://github.com/bltzr/score-avnd-granola
   clone_addon        https://github.com/ossia/score-addon-hdf5
   clone_addon         https://github.com/ossia/score-addon-led
   clone_addon         https://github.com/ossia/score-addon-lsl
