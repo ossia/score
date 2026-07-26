@@ -29,6 +29,7 @@
 class QRhi;
 class QRhiTexture;
 class QRhiResourceUpdateBatch;
+class QRhiCommandBuffer;
 
 namespace score::gfx
 {
@@ -59,6 +60,15 @@ struct VideoCaptureStrategyConfig
   /// the vendor's native frame format, sampled as RGBA8 / BGRA8 by a
   /// vendor-aware unpacker shader.
   QRhiTexture* outputTexture{};
+
+  /// Every plane texture the decoder allocated, plane 0 first (so
+  /// planes[0] == outputTexture). Planar formats (NV12, YUV420P, ...) need
+  /// each plane uploaded from its own offset inside the one contiguous
+  /// capture buffer; single-plane formats leave this with a single entry.
+  /// Strategies that cannot express multiple planes may ignore it, but must
+  /// then refuse a config where planes.size() > 1 rather than silently
+  /// uploading only the luma.
+  std::vector<QRhiTexture*> planes{};
 };
 
 /**
@@ -125,6 +135,15 @@ struct VideoCaptureStrategy
   /// (the only path that works on Vulkan/Metal/D3D where there is no raw upload
   /// API at hand).
   virtual void acquireForRender(QRhiResourceUpdateBatch&) { acquireForRender(); }
+
+  /// As above, plus the command buffer render() is recording into (may be null).
+  /// Strategies that record raw-API commands for the upload — the Vulkan
+  /// host-import path, which has no QRhi equivalent — need it; everything else
+  /// ignores it and falls through to the batch overload.
+  virtual void acquireForRender(QRhiResourceUpdateBatch& res, QRhiCommandBuffer*)
+  {
+    acquireForRender(res);
+  }
 };
 
 /**
