@@ -26,6 +26,7 @@
 
 #include <Gfx/Graph/interop/CaptureStrategyCommon.hpp>
 #include <Gfx/Graph/interop/VideoCaptureStrategy.hpp>
+#include <Gfx/Graph/interop/VkHostImportUpload.hpp>
 
 #include <QtGui/private/qrhi_p.h>
 
@@ -40,6 +41,7 @@
 
 #include <array>
 #include <cstdint>
+#include <cstring>
 #include <utility>
 #include <vector>
 
@@ -73,9 +75,16 @@ struct CpuStagedCapture final : VideoCaptureStrategy
   VideoCaptureStrategyConfig cfg{};
 
   static constexpr std::size_t kSlotCount = 3;
-  std::array<std::vector<std::uint8_t>, kSlotCount> m_slots;
+  /// Raw rather than std::vector because the Vulkan host-import path needs the
+  /// pages page-aligned; the allocation is freed in release().
+  std::array<std::uint8_t*, kSlotCount> m_slots{};
   std::array<bool, kSlotCount> m_dmaLocked{};
   CaptureSlotPublisher m_publisher;
+
+  /// Non-null only on Vulkan with VK_EXT_external_memory_host: the slots are
+  /// imported as VkDeviceMemory and the GPU DMAs straight out of them, so the
+  /// per-frame staging copy disappears entirely.
+  VkHostImportUpload m_hostImport;
 
 #if QT_CONFIG(opengl)
   // Non-null when the raw-GL fast path is engaged (GL backend, not forced
@@ -135,28 +144,59 @@ struct CpuStagedCapture final : VideoCaptureStrategy
     }
 #endif
 
+    // Align to the import requirement when it is available so the same slots
+    // can serve both paths; otherwise plain max_align is enough.
+    // SCORE_GFX_NO_VK_HOST_IMPORT forces the portable uploadTexture path so one
+    // binary can measure both sides of the comparison.
+    const std::size_t importAlign
+        = qEnvironmentVariableIsSet("SCORE_GFX_NO_VK_HOST_IMPORT")
+              ? 0u
+              : VkHostImportUpload::requiredAlignment(*cfg.rhi);
+    const std::size_t slotAlign = importAlign ? importAlign : alignof(std::max_align_t);
+
     for(std::size_t i = 0; i < kSlotCount; ++i)
     {
-      m_slots[i].assign(cfg.frameByteSize, 0);
+      m_slots[i] = static_cast<std::uint8_t*>(
+          alignedSlotAlloc(cfg.frameByteSize, slotAlign));
+      if(!m_slots[i])
+      {
+        release();
+        return false;
+      }
+      std::memset(m_slots[i], 0, cfg.frameByteSize);
       if constexpr(Policy::has_dma_lock)
       {
         // Page-lock (paged, not RDMA) so the card's DMA into the host buffer
         // doesn't re-pin pages every frame.
-        if(m_policy.dmaLock(m_slots[i].data(), cfg.frameByteSize))
+        if(m_policy.dmaLock(m_slots[i], cfg.frameByteSize))
           m_dmaLocked[i] = true;
       }
+    }
+
+    if(importAlign)
+    {
+      std::vector<void*> ptrs;
+      ptrs.reserve(kSlotCount);
+      for(auto* p : m_slots)
+        ptrs.push_back(p);
+      if(m_hostImport.init(*cfg.rhi, ptrs, cfg.frameByteSize))
+        qDebug() << "DMA capture: Vulkan host-import upload engaged (zero-copy)";
+      else
+        m_hostImport.release();
     }
     return true;
   }
 
   void release() override
   {
+    m_hostImport.release();
     for(std::size_t i = 0; i < kSlotCount; ++i)
     {
       // NB: no DMA unlock here — the vendor capture session's close() does the
       // unlock-all, and by teardown the card object may already be gone.
       m_dmaLocked[i] = false;
-      m_slots[i].clear();
+      alignedSlotFree(m_slots[i]);
+      m_slots[i] = nullptr;
     }
 #if QT_CONFIG(opengl)
     if constexpr(Policy::has_gl_fast_path)
@@ -169,8 +209,7 @@ struct CpuStagedCapture final : VideoCaptureStrategy
 
   void* slotBuffer(std::size_t i) const noexcept override
   {
-    return (i < kSlotCount) ? const_cast<std::uint8_t*>(m_slots[i].data())
-                            : nullptr;
+    return (i < kSlotCount) ? m_slots[i] : nullptr;
   }
 
   bool ingestFrame(std::size_t i) override
@@ -188,10 +227,26 @@ struct CpuStagedCapture final : VideoCaptureStrategy
 
   void acquireForRender(QRhiResourceUpdateBatch& res) override
   {
+    acquireForRender(res, nullptr);
+  }
+
+  void acquireForRender(QRhiResourceUpdateBatch& res, QRhiCommandBuffer* cb) override
+  {
     const int slotIdx = m_publisher.consume();
     if(slotIdx < 0 || static_cast<std::size_t>(slotIdx) >= kSlotCount)
       return;
-    const void* src = m_slots[static_cast<std::size_t>(slotIdx)].data();
+    const void* src = m_slots[static_cast<std::size_t>(slotIdx)];
+
+    // Vulkan zero-copy: the slot pages are already imported, so all that is
+    // left is the device-side DMA. Needs the command buffer, hence the overload.
+    if(cb && m_hostImport.valid())
+    {
+      const auto pxsz = cfg.outputTexture->pixelSize();
+      if(m_hostImport.copyToTexture(
+             *cb, *cfg.outputTexture, static_cast<std::size_t>(slotIdx),
+             pxsz.width(), pxsz.height()))
+        return;
+    }
 
 #if QT_CONFIG(opengl)
     if constexpr(Policy::has_gl_fast_path)

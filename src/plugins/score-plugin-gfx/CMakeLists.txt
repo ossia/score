@@ -264,6 +264,8 @@ set(HDRS
     Gfx/Graph/interop/VulkanCudaBounce.hpp
     Gfx/Graph/interop/VulkanCudaBounce.cpp
     Gfx/Graph/interop/VkExternalMemoryHelpers.cpp
+    Gfx/Graph/interop/VkHostImportUpload.hpp
+    Gfx/Graph/interop/VkHostImportUpload.cpp
     Gfx/Graph/interop/TextureShare.hpp
     Gfx/Graph/interop/TextureShare.cpp
     Gfx/Graph/interop/AVHWFrameToQRhi.hpp
