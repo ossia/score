@@ -111,6 +111,15 @@ struct SCORE_PLUGIN_GFX_EXPORT DirectVideoOutputBackend
   /// swap). Empty = plain row-stride copy.
   virtual CustomStage customStage() { return {}; }
 
+  /// Vendor frame memory the GPU can write encoded frames into directly
+  /// (CpuStagedVideoOutput's direct-readback mode via RhiTextureReadback):
+  /// acquire() returns the card's next free pooled output frame's bytes.
+  /// A pointer handed out here comes back either through pacingHooks().submit
+  /// (schedule that very frame, no copy) or through pacingHooks().discard /
+  /// cancel (frame dropped — return it to the pool). Empty (default) keeps
+  /// the host-staged ring + submit-side copy.
+  virtual interop::FrameMemoryProvider frameMemoryProvider() { return {}; }
+
   /// Prefer a GPU-direct (DVP) download in the host-staged path: the node lets
   /// CpuStagedVideoOutput DMA the encoder texture straight to a vendor-registered
   /// sysmem ring (skipping the QRhi readback) when a GPU-direct backend exists,

@@ -60,6 +60,16 @@ public:
   /// Name of the engaged GPU-direct strategy, or "cpu-staging".
   const char* activeStrategyName() const noexcept;
 
+  /// True when SCORE_GFX_DIRECT_READBACK pinned an output rung that should
+  /// have engaged but did not; rows measured in this state describe another
+  /// rung than the one requested.
+  bool outputStrategyPinUnmet() const noexcept;
+
+  /// True when SCORE_GFX_DIRECT_READBACK pinned an output rung that cannot
+  /// exist for this backend/format, or when a GPU-direct strategy bypassed
+  /// the host-staged ladder entirely.
+  bool outputStrategyPinUnavailable() const noexcept;
+
   /// External-genlock tick source from the backend, or empty if the device
   /// exposes none (opt-in). Valid only after createOutput() has opened
   /// the device. Feed to an ExternalGenlockClock to phase-lock render to the card.
