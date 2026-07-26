@@ -199,6 +199,7 @@ set(HDRS
     Gfx/Graph/GeometryFilterNode.hpp
     Gfx/Graph/GeometryFilterNodeRenderer.hpp
     Gfx/Graph/RhiComputeBarrier.hpp
+    Gfx/Graph/RhiTextureReadback.hpp
     Gfx/Graph/RhiClearBuffer.hpp
     Gfx/Graph/GPUBufferScatter.hpp
     Gfx/Graph/RenderedCSFNode.hpp
@@ -478,6 +479,7 @@ set(SRCS
     Gfx/Graph/GeometryFilterNode.cpp
     Gfx/Graph/GeometryFilterNodeRenderer.cpp
     Gfx/Graph/RhiComputeBarrier.cpp
+    Gfx/Graph/RhiTextureReadback.cpp
     Gfx/Graph/RhiClearBuffer.cpp
     Gfx/Graph/GPUBufferScatter.cpp
     Gfx/Graph/RenderedCSFNode.cpp
@@ -853,6 +855,22 @@ target_link_libraries(EncoderTester PRIVATE
 if(SCORE_TESTING)
   add_test(NAME EncoderTester COMMAND EncoderTester)
   set_tests_properties(EncoderTester PROPERTIES
+    WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}"
+    ENVIRONMENT "SCORE_AUDIO_BACKEND=dummy;ASAN_OPTIONS=detect_leaks=0:halt_on_error=0"
+    LABELS "gui")
+endif()
+endif()
+
+# Offscreen self-test + micro-benchmark for the host-memory texture readback.
+option(SCORE_READBACK_TESTER "Build the host-memory readback self-test" ON)
+if(SCORE_READBACK_TESTER AND NOT SCORE_STATIC_PLUGINS)
+add_executable(ReadbackTester tests/ReadbackTester.cpp)
+target_link_libraries(ReadbackTester PRIVATE
+  score_plugin_gfx score_plugin_media ${QT_PREFIX}::Gui)
+
+if(SCORE_TESTING)
+  add_test(NAME ReadbackTester COMMAND ReadbackTester)
+  set_tests_properties(ReadbackTester PROPERTIES
     WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}"
     ENVIRONMENT "SCORE_AUDIO_BACKEND=dummy;ASAN_OPTIONS=detect_leaks=0:halt_on_error=0"
     LABELS "gui")
