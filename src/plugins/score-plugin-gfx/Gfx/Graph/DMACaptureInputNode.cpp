@@ -1,5 +1,7 @@
 #include "DMACaptureInputNode.hpp"
 
+#include <cstdio>
+
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
@@ -95,6 +97,34 @@ public:
     // strategy for this backend) — the CPU-staging fallback below still applies.
     m_strategy = m_backend->pickStrategy(m_backendKind);
 
+    // SCORE_GFX_CAPTURE_STRATEGY pins a rung of the ladder for matrix testing:
+    // a case-insensitive substring matched against the strategy's name()
+    // ("rdma", "dvp", ...), or "cpu" to force the CPU-staging rung. Without it
+    // selection is unchanged: fastest first, degrading on init failure. This is
+    // how a Quadro box can be made to behave like a machine without one, which
+    // is the only way to test the CPU rung on hardware that would skip it.
+    if(const auto want = qEnvironmentVariable("SCORE_GFX_CAPTURE_STRATEGY").toLower();
+       !want.isEmpty())
+    {
+      const bool forceCpu = (want == "cpu" || want == "cpu-staging");
+      const bool matches = m_strategy
+                           && QString::fromUtf8(m_strategy->name())
+                                  .toLower()
+                                  .contains(want);
+      if(forceCpu || !matches)
+      {
+        if(m_strategy)
+          qWarning() << "DMA capture: SCORE_GFX_CAPTURE_STRATEGY=" << want
+                     << "rejects" << m_strategy->name();
+        m_strategy.reset();
+      }
+      else
+      {
+        qWarning() << "DMA capture: SCORE_GFX_CAPTURE_STRATEGY=" << want
+                   << "pinned" << m_strategy->name();
+      }
+    }
+
     // Decoder + texture. The decoder allocates an input texture sized to the
     // card's wire byte layout; the strategy DMAs raw bytes into it and the
     // decoder's shader unpacks + converts to RGB at sample time. The backend's
@@ -131,7 +161,8 @@ public:
     }()};
     if(m_strategy)
       m_backend->setStrategy(m_strategy.get());
-    if(!m_strategy || !m_strategy->init(icfg))
+    const bool firstInitOk = m_strategy && m_strategy->init(icfg);
+    if(!firstInitOk)
     {
       if(m_strategy)
         qDebug() << "DMA capture: strategy" << m_strategy->name()
@@ -182,6 +213,35 @@ public:
     res.updateDynamicBuffer(
         m_materialUBO, 0, sizeof(score::gfx::VideoMaterialUBO), &m_material);
 
+    {
+      const auto pin
+          = qEnvironmentVariable("SCORE_GFX_CAPTURE_STRATEGY").toLower();
+      const auto engaged = QString::fromUtf8(m_strategy->name()).toLower();
+      // The pin uses ladder-rung names; engaged names are the strategies'
+      // own. "uploadtexture" IS the CPU-QRhi rung, so a literal substring test
+      // reports a false mismatch.
+      // Vendor CPU strategies spell it "<Vendor>-CPU", not "CPU-...".
+      const auto rung = [&](const QString& e) -> QString {
+        if(e.contains("hostimport"))
+          return "hostimport";
+        if(e.startsWith("cpu") || e.endsWith("-cpu"))
+          return "uploadtexture";
+        if(e.contains("rdma"))
+          return "rdma";
+        if(e.contains("dvp"))
+          return "dvp";
+        return e;
+      }(engaged);
+      const bool unmet
+          = !pin.isEmpty() && pin != rung
+            && !(pin == "cpu" && (rung == "uploadtexture" || rung == "hostimport"))
+            && !engaged.contains(pin);
+      this->node.setEngagedCaptureStrategy(m_strategy->name(), unmet);
+      if(unmet)
+        qWarning() << "DMA capture: SCORE_GFX_CAPTURE_STRATEGY=" << pin
+                   << "was NOT honoured - engaged" << m_strategy->name()
+                   << "instead; treat any measurement from this run as invalid";
+    }
     qDebug() << "DMA capture: GPU-direct" << m_strategy->name() << "engaged"
              << m_backend->width() << "x" << m_backend->height();
 
