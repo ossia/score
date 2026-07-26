@@ -111,8 +111,19 @@ function(setup_score_common_exe_features TheTarget)
   setup_score_common_features(${TheTarget})
 endfunction()
 
+# Batch executables (tests) terminate the emscripten runtime when main() returns;
+# the application must not.
+function(score_wasm_batch_exit TheTarget)
+  if(EMSCRIPTEN)
+    target_sources(${TheTarget} PRIVATE
+      "${SCORE_ROOT_SOURCE_DIR}/tests/fixtures/score_test/WasmBatchExit.c")
+    target_link_options(${TheTarget} PRIVATE "-sEXIT_RUNTIME=1")
+  endif()
+endfunction()
+
 function(setup_score_common_test_features TheTarget)
   setup_score_common_features(${TheTarget})
+  score_wasm_batch_exit(${TheTarget})
   ossia_set_visibility(${TheTarget})
 endfunction()
 
