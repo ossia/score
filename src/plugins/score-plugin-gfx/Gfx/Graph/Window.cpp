@@ -50,15 +50,9 @@ Window::Window(GraphicsApi graphicsApi)
   // the viewport size, with no frame to close or move it by.
   setFlag(Qt::Dialog, true);
 
-  // The output window is a display surface, not somewhere to type. QWasmWindow
-  // calls window()->requestActivate() on every pointer press on a top level
-  // unless this flag is set (qwasmwindow.cpp, EventType::PointerDown), which
-  // makes the output the focus window: from then on QWasmInputContext points
-  // the IME at *its* canvas' hidden <input> and every keystroke meant for an
-  // editor in the main window is delivered there instead. Combined with
-  // WindowStaysOnTopHint above, the output would otherwise sit on top and
-  // active, which is exactly the reported "typing breaks when a window device
-  // is open". The cost is that Window::key/keyRelease no longer fire on wasm.
+  // QWasmWindowTreeNode::onSubtreeChanged() activates every window inserted in
+  // the tree unless it is a tooltip, a popup, or carries this property.
+  setProperty("_q_showWithoutActivating", true);
 #endif
 
   QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
