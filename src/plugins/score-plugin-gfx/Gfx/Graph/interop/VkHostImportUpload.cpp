@@ -132,6 +132,126 @@ std::size_t VkHostImportUpload::requiredAlignment(QRhi& rhi) noexcept
   return std::size_t(hp.minImportedHostPointerAlignment);
 }
 
+bool importHostPointerBuffer(
+    QRhi& rhi, void* host, std::size_t bytes, unsigned bufferUsage,
+    bool requireHostCoherent, VkHostImportedBuffer& out)
+{
+  out = {};
+  const std::size_t align = VkHostImportUpload::requiredAlignment(rhi);
+  if(align == 0 || !host || bytes == 0)
+    return false;
+  if((reinterpret_cast<std::uintptr_t>(host) % align) != 0)
+  {
+    qWarning() << "importHostPointerBuffer: pointer is not" << align << "aligned";
+    return false;
+  }
+
+  const auto b = vulkanBits(rhi);
+  if(!b.ok)
+    return false;
+  auto* df = b.inst->deviceFunctions(b.dev);
+  auto getHostPtrProps = (PFN_vkGetMemoryHostPointerPropertiesEXT)
+      b.inst->getInstanceProcAddr("vkGetMemoryHostPointerPropertiesEXT");
+  if(!df || !getHostPtrProps)
+    return false;
+
+  const std::size_t importedBytes = ((bytes + align - 1) / align) * align;
+
+  VkMemoryHostPointerPropertiesEXT hpp{};
+  hpp.sType = VK_STRUCTURE_TYPE_MEMORY_HOST_POINTER_PROPERTIES_EXT;
+  if(getHostPtrProps(
+         b.dev, VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT, host, &hpp)
+         != VK_SUCCESS
+     || hpp.memoryTypeBits == 0)
+    return false;
+
+  VkExternalMemoryBufferCreateInfo ebi{};
+  ebi.sType = VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_BUFFER_CREATE_INFO;
+  ebi.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT;
+  VkBufferCreateInfo bi{};
+  bi.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+  bi.pNext = &ebi;
+  bi.size = importedBytes;
+  bi.usage = VkBufferUsageFlags(bufferUsage);
+  VkBuffer buf{};
+  if(df->vkCreateBuffer(b.dev, &bi, nullptr, &buf) != VK_SUCCESS)
+    return false;
+
+  VkPhysicalDeviceMemoryProperties mp{};
+  b.inst->functions()->vkGetPhysicalDeviceMemoryProperties(b.phys, &mp);
+  VkMemoryRequirements mr{};
+  df->vkGetBufferMemoryRequirements(b.dev, buf, &mr);
+
+  const VkMemoryPropertyFlags coherent = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+                                         | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+  const VkMemoryPropertyFlags passes[] = {
+      requireHostCoherent ? (coherent | VK_MEMORY_PROPERTY_HOST_CACHED_BIT)
+                          : VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+      requireHostCoherent ? coherent : VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+  };
+  int typeIdx = -1;
+  for(VkMemoryPropertyFlags wanted : passes)
+  {
+    for(uint32_t i = 0; typeIdx < 0 && i < mp.memoryTypeCount; ++i)
+    {
+      if(!((mr.memoryTypeBits & hpp.memoryTypeBits) & (1u << i)))
+        continue;
+      if((mp.memoryTypes[i].propertyFlags & wanted) == wanted)
+        typeIdx = int(i);
+    }
+    if(typeIdx >= 0)
+      break;
+  }
+  if(typeIdx < 0)
+  {
+    df->vkDestroyBuffer(b.dev, buf, nullptr);
+    return false;
+  }
+
+  VkImportMemoryHostPointerInfoEXT imp{};
+  imp.sType = VK_STRUCTURE_TYPE_IMPORT_MEMORY_HOST_POINTER_INFO_EXT;
+  imp.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT;
+  imp.pHostPointer = host;
+  VkMemoryAllocateInfo ai{};
+  ai.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+  ai.pNext = &imp;
+  ai.allocationSize = importedBytes;
+  ai.memoryTypeIndex = uint32_t(typeIdx);
+  VkDeviceMemory mem{};
+  if(df->vkAllocateMemory(b.dev, &ai, nullptr, &mem) != VK_SUCCESS)
+  {
+    df->vkDestroyBuffer(b.dev, buf, nullptr);
+    return false;
+  }
+  if(df->vkBindBufferMemory(b.dev, buf, mem, 0) != VK_SUCCESS)
+  {
+    df->vkFreeMemory(b.dev, mem, nullptr);
+    df->vkDestroyBuffer(b.dev, buf, nullptr);
+    return false;
+  }
+
+  out.buffer = reinterpret_cast<void*>(buf);
+  out.memory = reinterpret_cast<void*>(mem);
+  out.importedBytes = importedBytes;
+  return true;
+}
+
+void releaseHostImportedBuffer(QRhi& rhi, VkHostImportedBuffer& buf)
+{
+  const auto b = vulkanBits(rhi);
+  if(b.ok)
+  {
+    if(auto* df = b.inst->deviceFunctions(b.dev))
+    {
+      if(buf.buffer)
+        df->vkDestroyBuffer(b.dev, reinterpret_cast<VkBuffer>(buf.buffer), nullptr);
+      if(buf.memory)
+        df->vkFreeMemory(b.dev, reinterpret_cast<VkDeviceMemory>(buf.memory), nullptr);
+    }
+  }
+  buf = {};
+}
+
 VkHostImportUpload::~VkHostImportUpload()
 {
   release();
@@ -164,86 +284,16 @@ bool VkHostImportUpload::init(
     return false;
   }
 
-  VkPhysicalDeviceMemoryProperties mp{};
-  b.inst->functions()->vkGetPhysicalDeviceMemoryProperties(b.phys, &mp);
-
-  auto importOne = [&](void* host) -> bool {
-    if(!host || (reinterpret_cast<std::uintptr_t>(host) % align) != 0)
-    {
-      qWarning() << "VkHostImportUpload: slot is not" << align << "aligned";
-      return false;
-    }
-
-    VkMemoryHostPointerPropertiesEXT hpp{};
-    hpp.sType = VK_STRUCTURE_TYPE_MEMORY_HOST_POINTER_PROPERTIES_EXT;
-    if(d->getHostPtrProps(
-           d->dev, VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT, host, &hpp)
-           != VK_SUCCESS
-       || hpp.memoryTypeBits == 0)
-      return false;
-
-    VkExternalMemoryBufferCreateInfo ebi{};
-    ebi.sType = VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_BUFFER_CREATE_INFO;
-    ebi.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT;
-    VkBufferCreateInfo bi{};
-    bi.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bi.pNext = &ebi;
-    bi.size = d->importedBytes;
-    bi.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-    VkBuffer buf{};
-    if(d->df->vkCreateBuffer(d->dev, &bi, nullptr, &buf) != VK_SUCCESS)
-      return false;
-
-    VkMemoryRequirements mr{};
-    d->df->vkGetBufferMemoryRequirements(d->dev, buf, &mr);
-    int typeIdx = -1;
-    for(uint32_t i = 0; i < mp.memoryTypeCount; ++i)
-    {
-      if(!((mr.memoryTypeBits & hpp.memoryTypeBits) & (1u << i)))
-        continue;
-      if(mp.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
-      {
-        typeIdx = int(i);
-        break;
-      }
-    }
-    if(typeIdx < 0)
-    {
-      d->df->vkDestroyBuffer(d->dev, buf, nullptr);
-      return false;
-    }
-
-    VkImportMemoryHostPointerInfoEXT imp{};
-    imp.sType = VK_STRUCTURE_TYPE_IMPORT_MEMORY_HOST_POINTER_INFO_EXT;
-    imp.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT;
-    imp.pHostPointer = host;
-    VkMemoryAllocateInfo ai{};
-    ai.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    ai.pNext = &imp;
-    ai.allocationSize = d->importedBytes;
-    ai.memoryTypeIndex = uint32_t(typeIdx);
-    VkDeviceMemory mem{};
-    if(d->df->vkAllocateMemory(d->dev, &ai, nullptr, &mem) != VK_SUCCESS)
-    {
-      d->df->vkDestroyBuffer(d->dev, buf, nullptr);
-      return false;
-    }
-    if(d->df->vkBindBufferMemory(d->dev, buf, mem, 0) != VK_SUCCESS)
-    {
-      d->df->vkFreeMemory(d->dev, mem, nullptr);
-      d->df->vkDestroyBuffer(d->dev, buf, nullptr);
-      return false;
-    }
-
-    d->mems.push_back(mem);
-    m_buffers.push_back(reinterpret_cast<void*>(buf));
-    return true;
-  };
-
   for(void* host : slots)
   {
-    if(importOne(host))
+    VkHostImportedBuffer ib;
+    if(importHostPointerBuffer(
+           rhi, host, bytes, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, false, ib))
+    {
+      d->mems.push_back(reinterpret_cast<VkDeviceMemory>(ib.memory));
+      m_buffers.push_back(ib.buffer);
       continue;
+    }
     for(auto* raw : m_buffers)
       d->df->vkDestroyBuffer(d->dev, reinterpret_cast<VkBuffer>(raw), nullptr);
     for(auto mem : d->mems)
@@ -336,6 +386,16 @@ bool VkHostImportUpload::copyToTexture(
 struct VkHostImportUpload::Impl
 {
 };
+bool importHostPointerBuffer(
+    QRhi&, void*, std::size_t, unsigned, bool, VkHostImportedBuffer& out)
+{
+  out = {};
+  return false;
+}
+void releaseHostImportedBuffer(QRhi&, VkHostImportedBuffer& buf)
+{
+  buf = {};
+}
 std::size_t VkHostImportUpload::requiredAlignment(QRhi&) noexcept
 {
   return 0;

@@ -45,6 +45,30 @@ namespace score::gfx::interop
 SCORE_PLUGIN_GFX_EXPORT void* alignedSlotAlloc(std::size_t bytes, std::size_t alignment);
 SCORE_PLUGIN_GFX_EXPORT void alignedSlotFree(void* p);
 
+/// A host pointer imported as a Vulkan buffer. Handles are type-erased so
+/// this header needs no Vulkan headers: buffer is a VkBuffer, memory a
+/// VkDeviceMemory.
+struct VkHostImportedBuffer
+{
+  void* buffer{};
+  void* memory{};
+  std::size_t importedBytes{};
+};
+
+/// Imports `host` as the storage of a new VkBuffer with the given
+/// VkBufferUsageFlags. `host` must be VkHostImportUpload::requiredAlignment
+/// aligned; the imported length is `bytes` rounded up to that alignment, so
+/// the caller must own that much. With `requireHostCoherent`, only
+/// HOST_COHERENT memory types are accepted (CPU reads then need no
+/// vkInvalidateMappedMemoryRanges), preferring HOST_CACHED ones.
+SCORE_PLUGIN_GFX_EXPORT bool importHostPointerBuffer(
+    QRhi& rhi, void* host, std::size_t bytes, unsigned bufferUsage,
+    bool requireHostCoherent, VkHostImportedBuffer& out);
+
+/// GPU must be done with the buffer (e.g. after QRhi::finish()).
+SCORE_PLUGIN_GFX_EXPORT void
+releaseHostImportedBuffer(QRhi& rhi, VkHostImportedBuffer& buf);
+
 class SCORE_PLUGIN_GFX_EXPORT VkHostImportUpload
 {
 public:
