@@ -150,24 +150,7 @@ void DeviceDocumentPlugin::timerEvent(QTimerEvent* event)
 {
 #if defined(__EMSCRIPTEN__)
   if(m_processMessages)
-  {
-    using work_guard
-        = boost::asio::executor_work_guard<boost::asio::io_context::executor_type>;
-
-    work_guard wg{m_asioContext->context.get_executor()};
-    try
-    {
-      m_asioContext->context.poll();
-    }
-    catch(std::exception& e)
-    {
-      ossia::logger().error("Error while processing network events: {}", e.what());
-    }
-    catch(...)
-    {
-      ossia::logger().error("Error while processing network events.");
-    }
-  }
+    m_asioContext->poll();
 #endif
 }
 /** The following code handles device creation / loading.
