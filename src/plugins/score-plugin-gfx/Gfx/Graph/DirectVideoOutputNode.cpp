@@ -92,7 +92,22 @@ std::shared_ptr<RenderState> DirectVideoOutputNode::renderState() const
 
 const char* DirectVideoOutputNode::activeStrategyName() const noexcept
 {
-  return m_rdma ? m_rdma->name() : "cpu-staging";
+  if(m_rdma)
+    return m_rdma->name();
+  return m_hostStaged ? m_hostStaged->stagingMode() : "cpu-staging";
+}
+
+bool DirectVideoOutputNode::outputStrategyPinUnmet() const noexcept
+{
+  return !m_rdma && m_hostStaged && m_hostStaged->readbackPinUnmet();
+}
+
+bool DirectVideoOutputNode::outputStrategyPinUnavailable() const noexcept
+{
+  if(m_rdma)
+    return qEnvironmentVariable("SCORE_GFX_DIRECT_READBACK").toLower()
+           == QStringLiteral("always");
+  return m_hostStaged && m_hostStaged->readbackPinUnavailable();
 }
 
 std::function<bool()> DirectVideoOutputNode::genlockTickSource() const
@@ -245,6 +260,8 @@ void DirectVideoOutputNode::createOutput(OutputConfiguration conf)
   hcfg.customStage = m_backend->customStage();
   hcfg.preferGpuDownload = m_backend->prefersGpuDownload();
   hcfg.caps = &m_caps;
+  if(!qEnvironmentVariableIsSet("SCORE_GFX_NO_DIRECT_READBACK"))
+    hcfg.frameMemory = m_backend->frameMemoryProvider();
 
   m_hostStaged = std::make_unique<interop::CpuStagedVideoOutput>();
   if(!m_hostStaged->init(std::move(hcfg), std::move(enc0), std::move(enc1)))
