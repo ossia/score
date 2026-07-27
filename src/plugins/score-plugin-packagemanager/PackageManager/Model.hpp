@@ -1,6 +1,7 @@
 #pragma once
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 
+#include <QDir>
 #include <QItemSelectionModel>
 #include <QNetworkAccessManager>
 
