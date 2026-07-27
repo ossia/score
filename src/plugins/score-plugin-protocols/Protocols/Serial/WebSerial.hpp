@@ -25,6 +25,15 @@ enum class Activation
   Active = 1
 };
 
+enum class RequestState
+{
+  Idle = 0,
+  //! No transient activation was left: waiting for the next click to ask
+  Armed = 1,
+  //! The browser's port chooser is open
+  Choosing = 2
+};
+
 bool available() noexcept;
 
 Activation userActivation() noexcept;
@@ -45,8 +54,10 @@ std::vector<PortInfo> cachedPorts() noexcept;
 //! is none left when this runs, the request is armed and fires on the next click.
 void requestPort() noexcept;
 
-//! True between requestPort() and the browser chooser actually opening.
-bool requestPending() noexcept;
+RequestState requestState() noexcept;
+
+//! Why the last requestPort() did not yield a port.
+std::string lastRequestError() noexcept;
 
 //! Returns a handle > 0, or 0. The port is not usable until status() is 1.
 int open(const std::string& id, int baudRate) noexcept;

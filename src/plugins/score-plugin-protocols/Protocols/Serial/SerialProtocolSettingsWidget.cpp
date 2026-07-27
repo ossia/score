@@ -151,9 +151,22 @@ void SerialProtocolSettingsWidget::pollBrowserPorts()
     reloadPorts();
   }
 
-  if(WebSerial::requestPending())
+  switch(WebSerial::requestState())
+  {
+    case WebSerial::RequestState::Armed:
+      m_permissionHint->setText(
+          tr("Click anywhere in the page to open the browser port chooser."));
+      return;
+    case WebSerial::RequestState::Choosing:
+      m_permissionHint->setText(tr("Pick a port in the browser chooser."));
+      return;
+    case WebSerial::RequestState::Idle:
+      break;
+  }
+
+  if(const auto err = WebSerial::lastRequestError(); !err.empty() && m_port->count() == 0)
     m_permissionHint->setText(
-        tr("Waiting for the browser port chooser: click anywhere in the page."));
+        tr("No port was granted (%1).").arg(QString::fromStdString(err)));
   else if(m_port->count() == 0)
     m_permissionHint->setText(
         tr("The browser only exposes ports you have granted access to. Use "

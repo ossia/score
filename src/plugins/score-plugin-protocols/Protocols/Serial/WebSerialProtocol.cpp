@@ -199,11 +199,13 @@ void WebSerialProtocol::makeDefaultTree()
 
   data_t in{std::string("in")};
   in.type = ossia::val_type::STRING;
+  in.value = std::string{};
   in.access = ossia::access_mode::GET;
   root.children.push_back({std::move(in), {}});
 
   data_t out{std::string("out")};
   out.type = ossia::val_type::STRING;
+  out.value = std::string{};
   out.access = ossia::access_mode::SET;
   root.children.push_back({std::move(out), {}});
 

@@ -19,6 +19,7 @@ EM_JS(void, score_serial_install, (), {
     scanning: false,
     pending: false,
     armed: false,
+    lastError: "",
     handles: new Map(),
     next: 1,
   };
@@ -68,36 +69,37 @@ EM_JS(void, score_serial_install, (), {
   };
 
   S.doRequest = function() {
+    S.armed = false;
+    S.pending = true;
+    S.lastError = "";
     navigator.serial.requestPort({}).then(function() {
       S.pending = false;
       S.scan();
     }).catch(function(e) {
       S.pending = false;
+      S.lastError = (e && e.name ? e.name : 'Error') + ': '
+                  + (e && e.message ? e.message : String(e));
       S.generation++;
     });
   };
 
-  // requestPort() needs transient user activation. When the call already runs
-  // inside one it goes out immediately; otherwise it is armed and the next
-  // pointer event fires it from the DOM listener, which is activated by
-  // construction.
+  // requestPort() needs transient user activation. Qt for WebAssembly does
+  // preserve it across its event delivery, so the call normally goes out
+  // straight from the widget handler ; the armed path is the fallback for
+  // whatever else may consume the activation.
   S.request = function() {
-    if(!S.supported() || S.pending)
+    if(!S.supported() || S.pending || S.armed)
       return;
-    S.pending = true;
     if(S.activation() !== 0)
     {
       S.doRequest();
       return;
     }
-    if(S.armed)
-      return;
     S.armed = true;
     const fire = function() {
-      S.armed = false;
       window.removeEventListener('pointerdown', fire, true);
       window.removeEventListener('keydown', fire, true);
-      if(S.pending)
+      if(S.armed)
         S.doRequest();
     };
     window.addEventListener('pointerdown', fire, true);
@@ -151,8 +153,15 @@ EM_JS(void, score_serial_request, (), {
   Module.scoreSerial.request();
 });
 
-EM_JS(int, score_serial_request_pending, (), {
-  return Module.scoreSerial.pending ? 1 : 0;
+EM_JS(int, score_serial_request_state, (), {
+  const S = Module.scoreSerial;
+  if(S.armed)
+    return 1;
+  return S.pending ? 2 : 0;
+});
+
+EM_JS(void, score_serial_last_error, (char* buf, int cap), {
+  stringToUTF8(Module.scoreSerial.lastError, buf, cap);
 });
 
 EM_JS(int, score_serial_open, (const char* portId, int baudRate), {
@@ -393,12 +402,22 @@ void requestPort() noexcept
   score_serial_request();
 }
 
-bool requestPending() noexcept
+RequestState requestState() noexcept
 {
   if(!onMainThread())
-    return false;
+    return RequestState::Idle;
   install();
-  return score_serial_request_pending() != 0;
+  return static_cast<RequestState>(score_serial_request_state());
+}
+
+std::string lastRequestError() noexcept
+{
+  if(!onMainThread())
+    return {};
+  install();
+  char buf[256] = {};
+  score_serial_last_error(buf, sizeof(buf));
+  return buf;
 }
 
 int open(const std::string& id, int baudRate) noexcept
