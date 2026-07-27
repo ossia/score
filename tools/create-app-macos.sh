@@ -366,7 +366,7 @@ fi
 
 # Create a DMG
 echo "Creating DMG..."
-OUTPUT_DMG="${APP_NAME}-${PLATFORM}.dmg"
+OUTPUT_DMG="${APP_NAME_SAFE}-${PLATFORM}.dmg"
 
 # Simple method using hdiutil
 rm -f "$OUTPUT_DMG"

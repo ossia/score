@@ -208,7 +208,7 @@ cd "$WORK_DIR"
 
 # Create a ZIP package
 echo "Creating ZIP package..."
-OUTPUT_ZIP="${APP_NAME}-windows.zip"
+OUTPUT_ZIP="${APP_NAME_SAFE}-windows.zip"
 
 if command -v zip &> /dev/null; then
     (cd "$INSTALL_DIR" && zip -r -q "$WORK_DIR/$OUTPUT_ZIP" .)
