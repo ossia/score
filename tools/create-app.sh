@@ -55,7 +55,7 @@ Optional:
     --release TAG       Release tag to use (default: continuous)
                         Ignored if --local-installer is specified.
     --platform PLAT     Platform to build for: linux-x86_64, linux-aarch64,
-                        macos-intel, macos-arm, windows, wasm
+                        macos-intel, macos-arm, windows, windows-arm64, wasm
                         Can be specified multiple times. If not specified,
                         builds for current platform. 'wasm' produces a static
                         web bundle (served in a browser).
@@ -280,7 +280,10 @@ if [[ ${#PLATFORMS[@]} -eq 0 ]]; then
             esac
             ;;
         MINGW*|MSYS*|CYGWIN*)
-            PLATFORMS+=("windows")
+            case "$(uname -m)" in
+                aarch64|arm64) PLATFORMS+=("windows-arm64") ;;
+                *) PLATFORMS+=("windows") ;;
+            esac
             ;;
         *)
             echo "Error: Unsupported platform: $(uname -s)"
@@ -357,7 +360,7 @@ for platform in "${PLATFORMS[@]}"; do
         macos-intel|macos-arm)
             "$SCRIPT_DIR/create-app-macos.sh" "$platform" "${QML_FILES[@]+"${QML_FILES[@]}"}" "${QML_DIRS[@]+"${QML_DIRS[@]}"}"
             ;;
-        windows)
+        windows|windows-arm64)
             "$SCRIPT_DIR/create-app-windows.sh" "$platform" "${QML_FILES[@]+"${QML_FILES[@]}"}" "${QML_DIRS[@]+"${QML_DIRS[@]}"}"
             ;;
         wasm)

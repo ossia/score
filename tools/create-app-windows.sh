@@ -7,7 +7,14 @@ PLATFORM="$1"
 shift
 QML_ITEMS=("$@")
 
-echo "Creating Windows package..."
+# Matches the installer names ci/win32.deploy.sh publishes
+case "$PLATFORM" in
+    windows) ARCH="x86_64" ;;
+    windows-arm64) ARCH="aarch64" ;;
+    *) echo "Error: Invalid Windows platform: $PLATFORM"; exit 1 ;;
+esac
+
+echo "Creating Windows package for $ARCH..."
 
 cd "$WORK_DIR"
 
@@ -32,10 +39,10 @@ if [[ -n "$LOCAL_INSTALLER" ]]; then
 else
     # Download the official Windows installer
     if [[ "$RELEASE_TAG" == "continuous" ]]; then
-        INSTALLER_NAME="ossia.score-master-win64.exe"
+        INSTALLER_NAME="ossia.score-master-${ARCH}.exe"
     else
         VERSION="${RELEASE_TAG#v}"
-        INSTALLER_NAME="ossia.score-${VERSION}-win64.exe"
+        INSTALLER_NAME="ossia.score-${VERSION}-${ARCH}.exe"
     fi
     INSTALLER_URL="https://github.com/ossia/score/releases/download/${RELEASE_TAG}/${INSTALLER_NAME}"
 
@@ -208,7 +215,7 @@ cd "$WORK_DIR"
 
 # Create a ZIP package
 echo "Creating ZIP package..."
-OUTPUT_ZIP="${APP_NAME_SAFE}-windows.zip"
+OUTPUT_ZIP="${APP_NAME_SAFE}-${PLATFORM}.zip"
 
 if command -v zip &> /dev/null; then
     (cd "$INSTALL_DIR" && zip -r -q "$WORK_DIR/$OUTPUT_ZIP" .)
