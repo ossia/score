@@ -1,6 +1,12 @@
 get_filename_component(_avnd_root "${CMAKE_CURRENT_LIST_DIR}/../3rdparty/avendish" ABSOLUTE)
 if(EXISTS "${_avnd_root}/AvendishConfig.cmake")
   list(APPEND CMAKE_PREFIX_PATH "${_avnd_root}")
+  if(CMAKE_FIND_PACKAGE_REDIRECTS_DIR)
+    file(WRITE "${CMAKE_FIND_PACKAGE_REDIRECTS_DIR}/avendish-config.cmake"
+         "include(\"${_avnd_root}/AvendishConfig.cmake\")\n")
+    file(WRITE "${CMAKE_FIND_PACKAGE_REDIRECTS_DIR}/avendish-config-version.cmake"
+         "set(PACKAGE_VERSION \"\${PACKAGE_FIND_VERSION}\")\nset(PACKAGE_VERSION_COMPATIBLE TRUE)\nset(PACKAGE_VERSION_EXACT TRUE)\n")
+  endif()
 endif()
 
 function(avnd_score_plugin_init)
