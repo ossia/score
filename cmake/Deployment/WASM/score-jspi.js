@@ -1,13 +1,11 @@
 // Refuse to start, with an explanation, on a browser without JavaScript Promise
 // Integration.
 //
-// Qt for WebAssembly is built with -sJSPI (asyncify 2), which it needs to run
-// its event loop; the link flags in ci/wasm.build.sh say -sASYNCIFY but Qt6
-// ::Platform appends -s JSPI after them, and the emitted JS reports
-// _emscripten_has_asyncify() == 2. Emscripten then wraps every asynchronous
-// import in WebAssembly.Suspending while building the import object, so without
-// JSPI the module dies with "WebAssembly.Suspending is not a constructor"
-// before any of score runs -- and the page shows nothing at all.
+// score links with -sJSPI, which Qt for WebAssembly needs to run its event
+// loop. Emscripten wraps every asynchronous import in WebAssembly.Suspending
+// while it builds the import object, so on a browser without JSPI the module
+// dies with "WebAssembly.Suspending is not a constructor" before any of score
+// runs -- and the page shows nothing at all.
 //
 // Chrome and Edge have had JSPI on by default since 137, Firefox since 153,
 // Safari since 27. Firefox 139 to 152 implement it behind a pref.
