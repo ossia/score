@@ -19,6 +19,7 @@
   <body onload="init()">
     <script src="coi-serviceworker.min.js"></script>
     <script src="score-open-url.js"></script>
+    <script src="score-wasm-gz.js"></script>
     <figure style="overflow:visible;" id="qtspinner">
       <center style="margin-top:1.5em; line-height:150%">
         <strong>ossia score</strong>
@@ -43,7 +44,7 @@
             showUi(spinner);
             status.innerHTML = 'Loading...';
 
-            await qtLoad(await scoreOpenUrlConfigure({
+            await qtLoad(await scoreWasmGzConfigure(await scoreOpenUrlConfigure({
               qt: {
                 onLoaded: () => showUi(screen),
                 onExit: exitData => {
@@ -57,7 +58,7 @@
                 entryFunction: window.score_entry,
                 containerElements: [screen],
               }
-            }));
+            })));
           } catch (e) {
             status.innerHTML = e.message;
             showUi(spinner);
