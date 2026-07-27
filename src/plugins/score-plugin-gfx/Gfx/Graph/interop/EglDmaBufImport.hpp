@@ -254,6 +254,43 @@ struct EglDmaBufImporter
     p.image = nullptr;
   }
 
+  /** Re-target `glTexture`'s storage at an already-imported plane.
+   *
+   *  The EGLImage/texture association is not required to make later
+   *  producer writes visible on every driver, so a consumer that samples
+   *  a ring of persistently-imported buffers must re-issue this for the
+   *  slot it is about to sample. Requires a current GL context. */
+  bool bindPlane(unsigned int glTexture, const PlaneImport& p) noexcept
+  {
+    if(!p.image || !m_eglImageTargetTexture || glTexture == 0)
+      return false;
+    auto* ctx = QOpenGLContext::currentContext();
+    if(!ctx)
+      return false;
+    auto* funcs = ctx->extraFunctions();
+    if(!funcs)
+      return false;
+    constexpr unsigned int GL_TEXTURE_2D_v = 0x0DE1;
+    funcs->glBindTexture(GL_TEXTURE_2D_v, glTexture);
+    while(funcs->glGetError() != 0u)
+      ; // drain, so the check below reports only this call
+    m_eglImageTargetTexture(GL_TEXTURE_2D_v, p.image);
+    // A LINEAR buffer that the driver only exposes as an external image fails
+    // here with GL_INVALID_OPERATION and then samples pure black -- measured
+    // on NVIDIA 595.84, where AR24/LINEAR is advertised external_only=1.
+    // Without this check the rung reports itself engaged and renders nothing.
+    if(const unsigned int err = funcs->glGetError(); err != 0u)
+    {
+      qWarning() << "EglDmaBufImporter: glEGLImageTargetTexture2DOES(GL_TEXTURE_2D)"
+                    "failed with GL error"
+                 << Qt::hex << err
+                 << "- the buffer is likely samplable only as "
+                    "GL_TEXTURE_EXTERNAL_OES";
+      return false;
+    }
+    return true;
+  }
+
   /** Import a single-plane DMA-BUF (packed RGB) as an EGLImage and
    *  bind it to `glTexture` via glEGLImageTargetTexture2DOES.
    *
@@ -320,18 +357,8 @@ struct EglDmaBufImporter
     // texture via glGenTextures + glBindTexture; we just re-target
     // its storage via the new EGLImage. The same texture id can be
     // used across all frames.
-    constexpr unsigned int GL_TEXTURE_2D_v = 0x0DE1;
-    if(auto* ctx = QOpenGLContext::currentContext())
-    {
-      auto* funcs = ctx->extraFunctions();
-      if(funcs)
-      {
-        funcs->glBindTexture(GL_TEXTURE_2D_v, glTexture);
-        m_eglImageTargetTexture(GL_TEXTURE_2D_v, img);
-      }
-    }
-
     out.image = img;
+    bindPlane(glTexture, out);
     return true;
   }
 
@@ -410,16 +437,51 @@ struct EglDmaBufImporter
     return result;
   }
 
-  /** Quick yes/no on whether a specific (drm_fourcc, modifier) is
-   *  importable. Convenience wrapper around supportedModifiers. */
+  /** Quick yes/no on whether a specific (drm_fourcc, modifier) can be
+   *  imported and sampled as a GL_TEXTURE_2D.
+   *
+   *  Unlike supportedModifiers(), LINEAR is NOT assumed importable: NVIDIA
+   *  advertises DRM_FORMAT_MOD_LINEAR for packed RGB with external_only=1,
+   *  i.e. samplable only through GL_TEXTURE_EXTERNAL_OES. eglCreateImage
+   *  still succeeds for such a buffer and the GL_TEXTURE_2D binding then
+   *  samples black with no error raised anywhere -- so a caller that skips
+   *  this check has no way left to notice.
+   *
+   *  Returns true when the driver exposes no modifier query at all: nothing
+   *  can be asserted then, and refusing would disable the rung on drivers
+   *  that predate the extension. */
   bool canImportModifier(
       std::uint32_t drm_fourcc, std::uint64_t modifier) noexcept
   {
-    auto mods = supportedModifiers(drm_fourcc);
-    for(auto m : mods)
-      if(m == modifier)
+    auto* ctx = QOpenGLContext::currentContext();
+    if(!m_display || !ctx)
+      return false;
+
+    using FN_eglQueryDmaBufModifiersEXT = unsigned int (*)(
+        void* dpy, int format, int max_modifiers, std::uint64_t* modifiers,
+        unsigned int* external_only, int* num_modifiers);
+    auto query = reinterpret_cast<FN_eglQueryDmaBufModifiersEXT>(
+        ctx->getProcAddress("eglQueryDmaBufModifiersEXT"));
+    if(!query)
+      return true;
+
+    int count = 0;
+    if(!query(m_display, int(drm_fourcc), 0, nullptr, nullptr, &count)
+       || count <= 0)
+      return false;
+
+    const auto n = static_cast<std::size_t>(count);
+    std::vector<std::uint64_t> mods(n);
+    std::vector<unsigned int> external_only(n);
+    if(!query(
+           m_display, int(drm_fourcc), count, mods.data(), external_only.data(),
+           &count))
+      return false;
+
+    for(int i = 0; i < count; ++i)
+      if(mods[std::size_t(i)] == modifier && external_only[std::size_t(i)] == 0)
         return true;
-    return modifier == 0; // LINEAR is always safe to claim
+    return false;
   }
 };
 
