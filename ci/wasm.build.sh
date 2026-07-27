@@ -16,8 +16,19 @@ if [ -d "$SCORE_LIBRARY_DIR" ]; then
   LIBRARY_ARGS+=("-DSCORE_WASM_PRELOAD_LIBRARY=$SCORE_LIBRARY_DIR")
 fi
 
+if [[ -z "${SCORE_EXTRA_CMAKE_ARGS-}" ]]; then
+  export SCORE_EXTRA_CMAKE_ARGS=
+fi
+
+if [[ -z "${SCORE_CMAKE_CACHE-}" ]]; then
+  SCORE_CMAKE_CACHE_CMD=( )
+else
+  SCORE_CMAKE_CACHE_CMD=(-C "$SCORE_CMAKE_CACHE")
+fi
+
 /opt/ossia-sdk-wasm/qt-wasm/bin/qt-cmake  $SCORE_DIR \
    -GNinja \
+   "${SCORE_CMAKE_CACHE_CMD[@]}" \
    "${LIBRARY_ARGS[@]}" \
    -DCMAKE_CXX_STANDARD=23 \
    -DCMAKE_BUILD_TYPE=Release \
@@ -31,7 +42,8 @@ fi
    -DCMAKE_C_FLAGS='-pthread -O3 -ffast-math -fno-finite-math-only -msimd128 -msse -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 -flto -g0 ' \
    -DCMAKE_CXX_FLAGS='-fexperimental-library -DBOOST_ASIO_DISABLE_EPOLL=1 -pthread -O3 -ffast-math -fno-finite-math-only -msimd128 -msse -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 -flto -g0 '  \
    -DCMAKE_EXE_LINKER_FLAGS='-sJSPI -sALLOW_MEMORY_GROWTH=1 -sINITIAL_MEMORY=268435456 -sMAXIMUM_MEMORY=2147483648 -pthread -Oz -ffast-math -fno-finite-math-only -msimd128 -msse -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 -flto -g0 ' \
-   -DCMAKE_SHARED_LINKER_FLAGS='-sJSPI -sALLOW_MEMORY_GROWTH=1 -pthread -Oz -ffast-math -fno-finite-math-only -msimd128 -msse -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 -flto -g0 '
+   -DCMAKE_SHARED_LINKER_FLAGS='-sJSPI -sALLOW_MEMORY_GROWTH=1 -pthread -Oz -ffast-math -fno-finite-math-only -msimd128 -msse -msse2 -msse3 -mssse3 -msse4 -msse4.1 -msse4.2 -flto -g0 ' \
+   $SCORE_EXTRA_CMAKE_ARGS
 
 cmake --build .
 
