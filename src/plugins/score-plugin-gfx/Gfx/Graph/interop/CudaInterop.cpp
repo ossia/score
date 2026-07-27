@@ -60,6 +60,19 @@ struct CudaInteropImage_t
   CUarray levelZeroArray{};
 };
 
+// Release whatever cuda_interop_init managed to build before it failed, in
+// reverse order, then free the object.
+static void destroyPartialContext(CudaInteropContextHandle ctx)
+{
+  if(!ctx)
+    return;
+  if(ctx->stream && ctx->cu.streamDestroy)
+    ctx->cu.streamDestroy(ctx->stream);
+  if(ctx->cuContext && ctx->cu.primaryCtxRelease)
+    ctx->cu.primaryCtxRelease(ctx->device);
+  delete ctx;
+}
+
 // Capture the last error string into ctx and return the mapped error code.
 static CudaInteropError reportCuError(
     CudaInteropContextHandle ctx, CUresult r, CudaInteropError mapped,
@@ -84,6 +97,24 @@ static CudaInteropError reportCuError(
       return reportCuError((ctx), _r, (mapped), (what));        \
   } while(0)
 
+/// As CU_CHECK, but for the half-built context inside cuda_interop_init: there
+/// is no handle for the caller to shut down yet, so a failure has to undo what
+/// has been built so far itself. Without this every failure after
+/// cuDevicePrimaryCtxRetain leaked both the object and a permanent reference on
+/// the device's primary context -- which keeps the whole CUDA context alive for
+/// the life of the process.
+#define CU_CHECK_INIT(call, ctx, mapped, what)                  \
+  do                                                            \
+  {                                                             \
+    CUresult _r = (call);                                       \
+    if(_r != CUDA_SUCCESS)                                      \
+    {                                                           \
+      const auto _e = reportCuError((ctx), _r, (mapped), (what)); \
+      destroyPartialContext((ctx));                             \
+      return _e;                                                \
+    }                                                           \
+  } while(0)
+
 // =============================================================================
 // Context management
 // =============================================================================
@@ -103,10 +134,10 @@ CudaInteropError cuda_interop_init(CudaInteropContextHandle* outCtx)
     return CUDA_INTEROP_ERROR_NOT_INITIALIZED;
   }
 
-  CU_CHECK(ctx->cu.init(0), ctx, CUDA_INTEROP_ERROR_INIT_FAILED, "cuInit");
+  CU_CHECK_INIT(ctx->cu.init(0), ctx, CUDA_INTEROP_ERROR_INIT_FAILED, "cuInit");
 
   int deviceCount = 0;
-  CU_CHECK(
+  CU_CHECK_INIT(
       ctx->cu.deviceGetCount(&deviceCount), ctx, CUDA_INTEROP_ERROR_NO_DEVICE,
       "cuDeviceGetCount");
   if(deviceCount <= 0)
@@ -116,16 +147,16 @@ CudaInteropError cuda_interop_init(CudaInteropContextHandle* outCtx)
     return CUDA_INTEROP_ERROR_NO_DEVICE;
   }
 
-  CU_CHECK(
+  CU_CHECK_INIT(
       ctx->cu.deviceGet(&ctx->device, 0), ctx, CUDA_INTEROP_ERROR_INIT_FAILED,
       "cuDeviceGet");
-  CU_CHECK(
+  CU_CHECK_INIT(
       ctx->cu.primaryCtxRetain(&ctx->cuContext, ctx->device), ctx,
       CUDA_INTEROP_ERROR_INIT_FAILED, "cuDevicePrimaryCtxRetain");
-  CU_CHECK(
+  CU_CHECK_INIT(
       ctx->cu.ctxSetCurrent(ctx->cuContext), ctx, CUDA_INTEROP_ERROR_INIT_FAILED,
       "cuCtxSetCurrent");
-  CU_CHECK(
+  CU_CHECK_INIT(
       ctx->cu.streamCreate(&ctx->stream, 0), ctx, CUDA_INTEROP_ERROR_INIT_FAILED,
       "cuStreamCreate");
 
