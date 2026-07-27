@@ -44,6 +44,7 @@ if(CMAKE_SYSTEM_NAME MATCHES Emscripten)
   score-plugin-fx
   score-plugin-ui
   score-plugin-analysis
+  score-plugin-threedim
 )
 else()
   set(SCORE_PLUGINS_TO_BUILD
