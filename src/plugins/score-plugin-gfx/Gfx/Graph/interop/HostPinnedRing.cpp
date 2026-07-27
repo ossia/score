@@ -631,6 +631,12 @@ struct HostPinnedRing::Impl
       qWarning() << "HostPinnedRing: cuMemHostRegister unresolved";
       return false;
     }
+    // Set before the loop, not after it: a failure partway through leaves the
+    // earlier slots registered, and with the flag still false destroyCudaHostReg
+    // would return early and leak that page-locked memory for the process's
+    // lifetime. The flag means "some slot may be registered", which is exactly
+    // what the teardown needs to know.
+    cudaSlotsRegistered = true;
     for(auto& s : slots)
     {
       // PORTABLE | DEVICEMAP — readable from CUDA streams on any
@@ -642,8 +648,8 @@ struct HostPinnedRing::Impl
         qWarning() << "HostPinnedRing: cuMemHostRegister failed";
         return false;
       }
+      s.cudaRegistered = true;
     }
-    cudaSlotsRegistered = true;
 
     // Resolve the device-pointer accessor. Each slot's page-locked
     // host pointer is mapped into the CUDA address space; we use the
@@ -793,8 +799,11 @@ struct HostPinnedRing::Impl
     {
       for(auto& s : slots)
       {
-        if(s.host)
+        if(s.host && s.cudaRegistered)
+        {
           pfn(s.host);
+          s.cudaRegistered = false;
+        }
       }
     }
     cudaSlotsRegistered = false;

@@ -143,6 +143,12 @@ struct DvpCaptureGl : score::gfx::interop::VideoCaptureStrategy
     {
       qWarning() << "DVP-IN(GL): init failed:"
                  << nv_dvp_get_error_string(m_dvpCtx);
+      // This is the commonest failure of all -- every box without libdvp, and
+      // every GL context that is not GLX, lands here -- and it ran before
+      // m_threadStarted, so release() was not yet safe to call and the
+      // render-target texture created just above was simply abandoned.
+      delete m_ownTexture;
+      m_ownTexture = nullptr;
       return false;
     }
     if(nv_dvp_thread_begin(m_dvpCtx) != NV_DVP_SUCCESS)
