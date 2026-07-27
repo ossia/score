@@ -86,6 +86,38 @@ struct DMABufPlaneImporter
     return hasDmaBuf && hasDrmModifier;
   }
 
+  /// VkDriverId of the device QRhi runs on; 0 when it cannot be determined.
+  /// Callers use it to skip drivers whose DMA-BUF import is known not to hold
+  /// still -- a property no capability bit reports.
+  static std::uint32_t driverId(QRhi& rhi) noexcept
+  {
+#if defined(VK_KHR_driver_properties) || defined(VK_VERSION_1_2)
+    if(rhi.backend() != QRhi::Vulkan)
+      return 0;
+    auto* nh = static_cast<const QRhiVulkanNativeHandles*>(rhi.nativeHandles());
+    if(!nh || !nh->physDev || !nh->inst)
+      return 0;
+    auto getProps2 = reinterpret_cast<PFN_vkGetPhysicalDeviceProperties2>(
+        nh->inst->getInstanceProcAddr("vkGetPhysicalDeviceProperties2"));
+    if(!getProps2)
+      getProps2 = reinterpret_cast<PFN_vkGetPhysicalDeviceProperties2>(
+          nh->inst->getInstanceProcAddr("vkGetPhysicalDeviceProperties2KHR"));
+    if(!getProps2)
+      return 0;
+
+    VkPhysicalDeviceDriverProperties drv{};
+    drv.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES;
+    VkPhysicalDeviceProperties2 props{};
+    props.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+    props.pNext = &drv;
+    getProps2(nh->physDev, &props);
+    return static_cast<std::uint32_t>(drv.driverID);
+#else
+    (void)rhi;
+    return 0;
+#endif
+  }
+
   void cleanupPlane(PlaneImport& p)
   {
     if(p.image != VK_NULL_HANDLE)
