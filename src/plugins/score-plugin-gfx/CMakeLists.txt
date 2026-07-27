@@ -806,6 +806,31 @@ endif()
 # Target-specific options
 setup_score_plugin(${PROJECT_NAME})
 
+# --- Direct DRM/KMS output (Linux only; libdrm + gbm) -------------------------
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  find_package(PkgConfig QUIET)
+  if(PkgConfig_FOUND)
+    pkg_check_modules(SCORE_LIBDRM QUIET libdrm)
+    pkg_check_modules(SCORE_GBM QUIET gbm)
+  endif()
+  if(SCORE_LIBDRM_FOUND)
+    target_sources(score_plugin_gfx PRIVATE
+      "${CMAKE_CURRENT_SOURCE_DIR}/Gfx/Graph/interop/DrmKmsDevice.cpp"
+      "${CMAKE_CURRENT_SOURCE_DIR}/Gfx/Graph/interop/DrmKmsDevice.hpp")
+    # Headers only: libdrm is dlopen'd at runtime (DrmFunctions.hpp), so a
+    # machine without it still builds and simply reports the rung unavailable.
+    target_include_directories(score_plugin_gfx PUBLIC ${SCORE_LIBDRM_INCLUDE_DIRS})
+    target_compile_definitions(score_plugin_gfx PRIVATE SCORE_HAS_DRM_KMS=1)
+
+    add_executable(DrmOutputTest tests/DrmOutputTest.cpp)
+    target_link_libraries(DrmOutputTest PRIVATE score_plugin_gfx)
+    target_include_directories(DrmOutputTest PRIVATE ${SCORE_LIBDRM_INCLUDE_DIRS})
+    message(STATUS "score-plugin-gfx: direct DRM/KMS output enabled")
+  else()
+    message(STATUS "score-plugin-gfx: DRM/KMS output disabled (libdrm headers missing)")
+  endif()
+endif()
+
 if(SCORE_ISF_TESTER)
 add_executable(ISFTester tests/ISFTester.cpp)
 target_link_libraries(ISFTester PRIVATE score_plugin_gfx)
