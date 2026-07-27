@@ -179,12 +179,33 @@ public:
              << m_backend->width() << "x" << m_backend->height();
 
     m_backend->start();
+    // Baseline the live-format channel to what we just opened at, so the first
+    // update() doesn't mistake the initial publish for a change.
+    m_lastFormatGen = m_ring.loadFormat().generation;
   }
 
   void update(
-      score::gfx::RenderList&, QRhiResourceUpdateBatch& res,
+      score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res,
       score::gfx::Edge*) override
   {
+    // Live input-resolution change (Spout-style consumer side): the capture
+    // thread published a new wire geometry into the ring. Rebuild our
+    // size-dependent GPU resources at the new size with the same teardown+reinit
+    // the RenderList runs on a window resize. release() stops the backend first,
+    // so the capture thread cannot write a new-size frame into an old-size slot.
+    // Done at the top of update(), before this frame draws with m_p, so the
+    // rebuilt passes are the ones used. init() re-opens the backend, which for
+    // an auto-detecting input re-reads the current wire format.
+    if(const auto fmt = m_ring.loadFormat();
+       fmt.generation != m_lastFormatGen && fmt.width > 0 && fmt.height > 0)
+    {
+      qDebug() << "DMA capture: input format changed to" << fmt.width << "x"
+               << fmt.height << "- reallocating";
+      release(renderer);
+      init(renderer, res);
+      return;
+    }
+
     if(!m_strategy)
       return;
     res.updateDynamicBuffer(
@@ -353,6 +374,7 @@ private:
   std::unique_ptr<score::gfx::interop::VideoCaptureStrategy> m_strategy;
   score::gfx::interop::VideoCaptureSlotRing m_ring;
   uint64_t m_lastIngestedFrameId{0};
+  uint64_t m_lastFormatGen{0};
   bool m_renderHoldsTexture{false};
   /// True when the strategy swapped its own texture into the decoder sampler
   /// (the Vulkan zero-copy path); gates the detach in release() so decoder-owned textures
