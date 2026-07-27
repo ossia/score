@@ -21,7 +21,7 @@
 
 // when you enter the least obvious syntax competition and your opponent is clang builtins
 #if defined(__is_identifier) && !defined(_MSC_VER)
-#if (!__is_identifier(_Float16))
+#if (!__is_identifier(_Float16)) && defined(__FLT16_MANT_DIG__)
 #define SCORE_COMPILER_HAS_FLOAT16 1
 #endif
 #endif
