@@ -83,6 +83,9 @@ struct SCORE_PLUGIN_GFX_EXPORT HostPinnedSlot
   std::size_t size{};   /**< Slot byte size; stride * height. */
   std::size_t stride{}; /**< Bytes per scanline. */
   void* backendOpaque{}; /**< Owned by the backend; nullptr for CPU. */
+  /** Set once cuMemHostRegister succeeded for this slot, so a registration
+   *  that fails partway still unregisters exactly the slots it pinned. */
+  bool cudaRegistered{};
 };
 
 struct HostPinnedRingConfig
