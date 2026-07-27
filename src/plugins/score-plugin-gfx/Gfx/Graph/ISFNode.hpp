@@ -5,6 +5,8 @@
 
 #include <isf.hpp>
 
+#include <score_plugin_gfx_export.h>
+
 #include <list>
 namespace score::gfx
 {
