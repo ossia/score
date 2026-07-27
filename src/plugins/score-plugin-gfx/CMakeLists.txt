@@ -251,6 +251,7 @@ set(HDRS
     
     Gfx/Graph/decoders/DXV.hpp
     Gfx/Graph/interop/DMABufImport.hpp
+    Gfx/Graph/interop/DmaBufImportCapture.hpp
     Gfx/Graph/interop/DrmFourcc.hpp
     Gfx/Graph/interop/DrmPrimeWrap.hpp
     Gfx/Graph/interop/EglDmaBufImport.hpp
