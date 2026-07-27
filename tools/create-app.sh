@@ -100,9 +100,9 @@ while [[ $# -gt 0 ]]; do
     case $1 in
         --qml)
             if [[ -f "$2" ]]; then
-                QML_FILES+=("$2")
+                QML_FILES+=("$(cd "$(dirname "$2")" && pwd)/$(basename "$2")")
             elif [[ -d "$2" ]]; then
-                QML_DIRS+=("$2")
+                QML_DIRS+=("$(cd "$2" && pwd)")
             else
                 echo "Error: QML path does not exist: $2"
                 exit 1

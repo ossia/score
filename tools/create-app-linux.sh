@@ -231,7 +231,7 @@ fi
 
 # Repackage the AppImage
 echo "Repackaging AppImage..."
-OUTPUT_APPIMAGE="${APP_NAME}-${PLATFORM}.AppImage"
+OUTPUT_APPIMAGE="${APP_NAME_SAFE}-${PLATFORM}.AppImage"
 
 ./appimagetool-${ARCH}.AppImage -n squashfs-root "$OUTPUT_APPIMAGE" \
     --runtime-file "runtime-${ARCH}"
@@ -249,13 +249,13 @@ mv "$OUTPUT_APPIMAGE" "$OUTPUT_DIR/"
 echo "✓ Created: $OUTPUT_DIR/$OUTPUT_APPIMAGE"
 
 # Create a simple run script
-cat > "$OUTPUT_DIR/${APP_NAME}-${PLATFORM}.sh" << EOF
+cat > "$OUTPUT_DIR/${APP_NAME_SAFE}-${PLATFORM}.sh" << EOF
 #!/bin/bash
 # Launcher script for ${APP_NAME}
 SCRIPT_DIR="\$(cd "\$(dirname "\${BASH_SOURCE[0]}")" && pwd)"
 exec "\$SCRIPT_DIR/$OUTPUT_APPIMAGE" "\$@"
 EOF
 
-chmod +x "$OUTPUT_DIR/${APP_NAME}-${PLATFORM}.sh"
+chmod +x "$OUTPUT_DIR/${APP_NAME_SAFE}-${PLATFORM}.sh"
 
 echo "✓ Linux package created successfully"
