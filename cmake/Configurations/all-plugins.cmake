@@ -14,6 +14,7 @@ if(CMAKE_SYSTEM_NAME MATCHES Emscripten)
   score-plugin-inspector
 
   score-plugin-curve
+  score-plugin-mapping
   score-plugin-automation
   score-plugin-scenario
 
@@ -35,6 +36,7 @@ if(CMAKE_SYSTEM_NAME MATCHES Emscripten)
   score-plugin-controlsurface
   score-plugin-remotecontrol
   score-plugin-spline
+  score-plugin-spline3d
 
 
   score-plugin-avnd
