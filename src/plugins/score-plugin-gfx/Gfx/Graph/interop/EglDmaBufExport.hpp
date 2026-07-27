@@ -76,6 +76,8 @@ struct GbmDmaBufExport
   struct gbm_device;
   struct gbm_bo;
 
+  // GBM_BO_USE_SCANOUT — required for a buffer the display engine reads
+  static constexpr uint32_t GBM_BO_USE_SCANOUT_v = 1u << 0;
   // GBM_BO_USE_RENDERING | GBM_BO_USE_LINEAR — see /usr/include/gbm.h
   static constexpr uint32_t GBM_BO_USE_RENDERING_v = (1u << 2);
   static constexpr uint32_t GBM_BO_USE_LINEAR_v = (1u << 4);
@@ -233,7 +235,8 @@ struct GbmDmaBufExport
    *  must happen on a different thread than the pipewire callback that
    *  asked us to allocate. */
   bool allocSlotGbmOnly(
-      Slot& out, uint32_t w, uint32_t h, uint32_t drm_fourcc) noexcept
+      Slot& out, uint32_t w, uint32_t h, uint32_t drm_fourcc,
+      uint32_t extraFlags = 0) noexcept
   {
     out = {};
     out.width = w;
@@ -244,7 +247,8 @@ struct GbmDmaBufExport
     // (LINEAR) so GBM has no choice but to give us LINEAR — symmetric
     // with what the SPA pod advertises in PipewireOutputDevice.cpp.
     const uint64_t mods[] = {DRM_FORMAT_MOD_LINEAR_v};
-    const uint32_t flags = GBM_BO_USE_RENDERING_v | GBM_BO_USE_LINEAR_v;
+    const uint32_t flags
+        = GBM_BO_USE_RENDERING_v | GBM_BO_USE_LINEAR_v | extraFlags;
     if(m_bo_create_with_modifiers2)
     {
       out.bo = m_bo_create_with_modifiers2(
@@ -264,7 +268,8 @@ struct GbmDmaBufExport
       // USE_LINEAR alone (verified: driver 595, all 8888 fourccs). The
       // BO is only ever written through an EGLImage-bound GL texture
       // copy, so the RENDERING usage bit is not load-bearing for us.
-      out.bo = m_bo_create(m_device, w, h, drm_fourcc, GBM_BO_USE_LINEAR_v);
+      out.bo = m_bo_create(
+          m_device, w, h, drm_fourcc, GBM_BO_USE_LINEAR_v | extraFlags);
     }
     if(!out.bo)
     {
