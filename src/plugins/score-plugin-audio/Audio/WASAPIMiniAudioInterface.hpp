@@ -19,7 +19,7 @@ public:
   QString prettyName() const override { return QObject::tr("WASAPI (miniaudio)"); }
   bool available() const noexcept override { return true; }
 
-  // Expose the "Default device (follow system)" entry: when selected, the
+  // Expose the "Default device" entry: when selected, the
   // engine opens the OS default device with a NULL miniaudio device id, so
   // WASAPI reroutes automatically when the Windows mixer default changes.
   bool followsDefaultDevice() const noexcept override { return true; }

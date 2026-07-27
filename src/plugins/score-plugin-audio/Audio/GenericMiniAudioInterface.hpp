@@ -369,9 +369,9 @@ public:
     if(followsDefaultDevice())
     {
       card_list_in->addItem(
-          QObject::tr("Default device (follow system)"), DefaultDeviceItemData);
+          QObject::tr("Default device"), DefaultDeviceItemData);
       card_list_out->addItem(
-          QObject::tr("Default device (follow system)"), DefaultDeviceItemData);
+          QObject::tr("Default device"), DefaultDeviceItemData);
     }
 
     // qDebug() << Q_FUNC_INFO << "Devices: ";
