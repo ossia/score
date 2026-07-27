@@ -16,6 +16,10 @@
 
 #include <ossia-qt/serial/serial_protocol.hpp>
 
+#if defined(__EMSCRIPTEN__)
+#include <Protocols/Serial/WebSerialProtocol.hpp>
+#endif
+
 #include <memory>
 
 namespace Protocols
@@ -58,6 +62,12 @@ bool SerialDevice::reconnect()
   {
     const auto& stgs = settings().deviceSpecificSettings.value<SerialSpecificSettings>();
 
+#if defined(__EMSCRIPTEN__)
+    m_dev = std::make_unique<WebSerialDevice>(
+        std::make_unique<WebSerialProtocol>(
+            stgs.text.toUtf8(), stgs.port.system_location, stgs.rate),
+        settings().name.toStdString());
+#else
     ossia::net::serial_configuration conf;
     conf.baud_rate = stgs.rate;
     conf.port = stgs.port.system_location;
@@ -65,6 +75,7 @@ bool SerialDevice::reconnect()
     m_dev = std::make_unique<ossia::net::serial_device>(
         std::make_unique<ossia::net::serial_protocol>(m_ctx, stgs.text.toUtf8(), conf),
         settings().name.toStdString());
+#endif
 
     deviceChanged(nullptr, m_dev.get());
 

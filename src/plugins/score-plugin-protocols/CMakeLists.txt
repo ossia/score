@@ -340,8 +340,18 @@ endif()
 
 if(OSSIA_PROTOCOL_SERIAL)
     target_sources(${PROJECT_NAME} PRIVATE ${SERIAL_HDRS} ${SERIAL_SRCS})
-    find_package(${QT_VERSION} REQUIRED COMPONENTS SerialPort)
-    target_link_libraries(${PROJECT_NAME} PRIVATE ${QT_PREFIX}::SerialPort)
+    if(EMSCRIPTEN)
+      target_sources(${PROJECT_NAME} PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Serial/WebSerial.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Serial/WebSerial.wasm.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Serial/WebSerialProtocol.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Serial/WebSerialProtocol.cpp"
+      )
+    endif()
+    if(NOT EMSCRIPTEN)
+      find_package(${QT_VERSION} REQUIRED COMPONENTS SerialPort)
+      target_link_libraries(${PROJECT_NAME} PRIVATE ${QT_PREFIX}::SerialPort)
+    endif()
     list(APPEND SCORE_FEATURES_LIST protocol_serial)
 endif()
 

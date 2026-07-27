@@ -5,10 +5,12 @@
 
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
+class QLabel;
 class QLineEdit;
 class QPlainTextEdit;
 class QSplitter;
 class QTextEdit;
+class QTimer;
 class QWidget;
 namespace score
 {
@@ -29,6 +31,7 @@ public:
 protected:
   void setDefaults();
   void validate();
+  void reloadPorts();
 
 protected:
   QLineEdit* m_name{};
@@ -37,6 +40,14 @@ protected:
   QSplitter* m_splitter{};
   QTextEdit* m_codeEdit{};
   QPlainTextEdit* m_errorPane{};
+
+#if defined(__EMSCRIPTEN__)
+  void pollBrowserPorts();
+
+  QLabel* m_permissionHint{};
+  QTimer* m_pollTimer{};
+  int m_generation{-1};
+#endif
 };
 }
 

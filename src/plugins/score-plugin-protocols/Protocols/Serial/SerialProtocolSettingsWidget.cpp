@@ -25,7 +25,13 @@
 #include <QQmlComponent>
 #include <QQmlEngine>
 #include <QSplitter>
+#include <QTimer>
 #include <QVariant>
+
+#if defined(__EMSCRIPTEN__)
+#include <Protocols/Serial/WebSerial.hpp>
+#endif
+
 namespace Protocols
 {
 SerialProtocolSettingsWidget::SerialProtocolSettingsWidget(QWidget* parent)
@@ -58,8 +64,7 @@ SerialProtocolSettingsWidget::SerialProtocolSettingsWidget(QWidget* parent)
   auto validateBtn = new QPushButton{tr("Validate"), this};
   connect(validateBtn, &QPushButton::clicked, this, &SerialProtocolSettingsWidget::validate);
 
-  for(const auto& port : serial::available_ports())
-    m_port->addItem(QString::fromStdString(port.port_name));
+  reloadPorts();
 
   for(auto rate : serial::standard_baud_rates())
     m_rate->addItem(QString::number(rate));
@@ -75,13 +80,88 @@ SerialProtocolSettingsWidget::SerialProtocolSettingsWidget(QWidget* parent)
   gLayout->addWidget(rateLabel, 2, 0, 1, 1);
   gLayout->addWidget(m_rate, 2, 1, 1, 1);
 
-  gLayout->addWidget(m_splitter, 3, 0, 1, 2);
-  gLayout->addWidget(validateBtn, 4, 0, 1, 2);
+  int row = 3;
+#if defined(__EMSCRIPTEN__)
+  m_port->setEditable(false);
+  m_permissionHint = new TextLabel{{}, this};
+  m_permissionHint->setWordWrap(true);
+
+  auto chooseBtn = new QPushButton{tr("Choose a port…"), this};
+  chooseBtn->setEnabled(WebSerial::available());
+  connect(chooseBtn, &QPushButton::clicked, this, [this] {
+    const auto act = WebSerial::userActivation();
+    qDebug() << "[WebSerial] requestPort from Qt handler, navigator.userActivation ="
+             << int(act);
+    WebSerial::requestPort();
+    pollBrowserPorts();
+  });
+
+  gLayout->addWidget(chooseBtn, row, 0, 1, 2);
+  gLayout->addWidget(m_permissionHint, row + 1, 0, 1, 2);
+  row += 2;
+
+  m_pollTimer = new QTimer{this};
+  m_pollTimer->setInterval(250);
+  connect(m_pollTimer, &QTimer::timeout, this, [this] { pollBrowserPorts(); });
+  m_pollTimer->start();
+  WebSerial::scan();
+  pollBrowserPorts();
+#endif
+
+  gLayout->addWidget(m_splitter, row, 0, 1, 2);
+  gLayout->addWidget(validateBtn, row + 1, 0, 1, 2);
 
   setLayout(gLayout);
 
   setDefaults();
 }
+
+void SerialProtocolSettingsWidget::reloadPorts()
+{
+  const auto previous = m_port->currentText();
+  m_port->clear();
+  for(const auto& port : serial::available_ports())
+    m_port->addItem(QString::fromStdString(port.port_name));
+
+  if(!previous.isEmpty())
+  {
+    const int idx = m_port->findText(previous);
+    if(idx >= 0)
+      m_port->setCurrentIndex(idx);
+  }
+}
+
+#if defined(__EMSCRIPTEN__)
+void SerialProtocolSettingsWidget::pollBrowserPorts()
+{
+  if(!WebSerial::available())
+  {
+    m_permissionHint->setText(
+        tr("This browser has no Web Serial support: serial devices are only "
+           "available in Chromium-based browsers."));
+    m_pollTimer->stop();
+    return;
+  }
+
+  const int gen = WebSerial::generation();
+  if(gen != m_generation)
+  {
+    m_generation = gen;
+    WebSerial::refresh();
+    reloadPorts();
+  }
+
+  if(WebSerial::requestPending())
+    m_permissionHint->setText(
+        tr("Waiting for the browser port chooser: click anywhere in the page."));
+  else if(m_port->count() == 0)
+    m_permissionHint->setText(
+        tr("The browser only exposes ports you have granted access to. Use "
+           "\"Choose a port…\" to pick one."));
+  else
+    m_permissionHint->setText({});
+}
+#endif
 
 void SerialProtocolSettingsWidget::setDefaults()
 {

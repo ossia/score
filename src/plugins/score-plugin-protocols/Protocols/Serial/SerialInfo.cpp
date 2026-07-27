@@ -8,6 +8,13 @@
 
 #include "SerialInfo.hpp"
 
+#if defined(__EMSCRIPTEN__)
+#include <Protocols/Serial/WebSerial.hpp>
+
+#include <cstdio>
+#include <map>
+#endif
+
 #include <algorithm>
 #include <charconv>
 #include <cstring>
@@ -827,8 +834,44 @@ std::vector<port_info> available_ports()
 {
     std::vector<port_info> result;
 
+    // ---- WebAssembly ----
+#if defined(__EMSCRIPTEN__)
+    namespace WS = Protocols::WebSerial;
+    WS::scan();
+    WS::refresh();
+
+    std::map<uint32_t, int> seen;
+    for(const auto& p : WS::cachedPorts())
+    {
+        port_info info;
+        info.system_location = p.id;
+        info.serial_number = p.id;
+
+        char name[64] = {};
+        if(p.vendor_id && p.product_id)
+        {
+            const uint32_t key = (uint32_t(*p.vendor_id) << 16) | *p.product_id;
+            const int n = seen[key]++;
+            if(n == 0)
+                std::snprintf(name, sizeof(name), "USB %04x:%04x", *p.vendor_id, *p.product_id);
+            else
+                std::snprintf(name, sizeof(name), "USB %04x:%04x #%d", *p.vendor_id, *p.product_id, n + 1);
+        }
+        else
+        {
+            const int n = seen[0xFFFFFFFFu]++;
+            std::snprintf(name, sizeof(name), "Serial port #%d", n + 1);
+        }
+        info.port_name = name;
+        info.description = name;
+        info.vendor_id = p.vendor_id;
+        info.product_id = p.product_id;
+
+        result.push_back(std::move(info));
+    }
+
     // ---- Linux ----
-#if defined(__linux__)
+#elif defined(__linux__)
     if (!available_ports_udev(result)) {
         if (!available_ports_sysfs(result)) {
             available_ports_dev_filter(result);
