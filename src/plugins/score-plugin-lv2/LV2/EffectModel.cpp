@@ -22,6 +22,7 @@
 #include <ossia/detail/pod_vector.hpp>
 #include <ossia/network/domain/domain.hpp>
 
+#include <QCoreApplication>
 #include <QDialogButtonBox>
 #include <QFile>
 #include <QHBoxLayout>
@@ -36,6 +37,51 @@
 W_OBJECT_IMPL(LV2::Model)
 namespace LV2
 {
+// state:port-restore callback; canonical type dispatch in Ardour lv2_plugin.cc:313
+static void lv2_set_port_value(
+    const char* port_symbol, void* user_data, const void* value,
+    uint32_t /*size*/, uint32_t type)
+{
+  auto* self = static_cast<LV2::Model*>(user_data);
+  if(!self || !self->plugin || !self->hostContext || !port_symbol || !value)
+    return;
+
+  LilvWorld* world = self->hostContext->world.me;
+  LilvNode* sym_node = lilv_new_uri(world, port_symbol);
+  if(!sym_node)
+    return;
+
+  const LilvPort* port
+      = lilv_plugin_get_port_by_symbol(self->plugin, sym_node);
+  lilv_node_free(sym_node);
+  if(!port)
+    return;
+
+  const uint32_t idx = lilv_port_get_index(self->plugin, port);
+  auto it = self->control_map.find(idx);
+  if(it == self->control_map.end() || !it->second.first)
+    return;
+
+  const auto& h = *self->hostContext;
+  float fvalue = 0.f;
+  if(type == h.atom_Float_id)
+    fvalue = *static_cast<const float*>(value);
+  else if(type == h.atom_Double_id)
+    fvalue = static_cast<float>(*static_cast<const double*>(value));
+  else if(type == h.atom_Int_id)
+    fvalue = static_cast<float>(*static_cast<const int32_t*>(value));
+  else if(type == h.atom_Long_id)
+    fvalue = static_cast<float>(*static_cast<const int64_t*>(value));
+  else
+  {
+    return;
+  }
+
+  // suil port-event guard: on_uiMessage drops UI writes when we're writing
+  it->second.second = true;
+  it->second.first->setValue(ossia::value{fvalue});
+  it->second.second = false;
+}
 QString get_lv2_plugin_name(const Lilv::Plugin& node)
 {
   QString ret;
@@ -47,9 +93,24 @@ QString get_lv2_plugin_name(const Lilv::Plugin& node)
   }
   return ret;
 };
+namespace
+{
+// Cleared on descriptorsChanged: rescan invalidates the LilvPlugin* values
+ossia::hash_map<QString, const LilvPlugin*>& plug_map_instance()
+{
+  static ossia::hash_map<QString, const LilvPlugin*> m;
+  return m;
+}
+}
+
+void clearPluginCache()
+{
+  plug_map_instance().clear();
+}
+
 std::optional<Lilv::Plugin> find_lv2_plugin(Lilv::World& world, QString path)
 {
-  static ossia::hash_map<QString, const LilvPlugin*> plug_map;
+  auto& plug_map = plug_map_instance();
   if(auto it = plug_map.find(path); it != plug_map.end())
   {
     if(it->second)
@@ -59,6 +120,15 @@ std::optional<Lilv::Plugin> find_lv2_plugin(Lilv::World& world, QString path)
   }
 
   auto old_str = path;
+
+  auto& app_plug = score::AppComponents().applicationPlugin<LV2::ApplicationPlugin>();
+  const LV2::PluginInfo* info = app_plug.findDescriptor(path);
+
+  if(info)
+    app_plug.ensureBundleLoaded(info->bundle);
+  else
+    app_plug.ensureBundleLoaded(path); // path might be a bundle URI / path
+
   const bool isFile = QFile(QUrl(path).toString(QUrl::PreferLocalFile)).exists();
   if(isFile)
   {
@@ -72,13 +142,14 @@ std::optional<Lilv::Plugin> find_lv2_plugin(Lilv::World& world, QString path)
   {
     auto plug = plugs.get(it);
     const auto plugin_name = get_lv2_plugin_name(plug);
-    if((isFile && QString(plug.get_bundle_uri().as_string()) == path)
-       || (!isFile && plugin_name == path))
+    const QString plugin_uri = QString::fromUtf8(plug.get_uri().as_string());
+    if(info && plugin_uri == info->uri)
     {
       plug_map[old_str] = plug;
       return plug;
     }
-    else if(!isFile && plugin_name == path)
+    if((isFile && QString(plug.get_bundle_uri().as_string()) == path)
+       || (!isFile && plugin_name == path) || (!isFile && plugin_uri == old_str))
     {
       plug_map[old_str] = plug;
       return plug;
@@ -95,7 +166,7 @@ std::optional<Lilv::Plugin> find_lv2_plugin(Lilv::World& world, QString path)
 
 struct LV2PluginChooserDialog : public QDialog
 {
-  LV2PluginChooserDialog(Lilv::World& world, QWidget* parent)
+  LV2PluginChooserDialog(LV2::ApplicationPlugin& app, QWidget* parent)
       : QDialog{parent}
   {
     this->setLayout(&m_lay);
@@ -108,40 +179,28 @@ struct LV2PluginChooserDialog : public QDialog
     m_lay.addWidget(&m_categories);
     m_lay.addWidget(&m_plugins);
     m_lay.addWidget(&m_buttons);
-    auto plugs = world.get_all_plugins();
 
-    QStringList items;
-
-    auto it = plugs.begin();
-    while(!plugs.is_end(it))
+    for(const auto& info : app.cachedDescriptors())
     {
-      auto plug = plugs.get(it);
-      const auto class_name = plug.get_class().get_label().as_string();
-      const auto plug_name = get_lv2_plugin_name(plug);
-      auto sub_it = m_categories_map.find(class_name);
-      if(sub_it == m_categories_map.end())
-      {
-        m_categories_map.insert({class_name, {plug_name}});
-      }
-      else
-      {
-        sub_it->second.append(plug_name);
-      }
-      it = plugs.next(it);
+      if(!info.valid)
+        continue;
+      QString category
+          = info.class_label.isEmpty() ? QStringLiteral("Other") : info.class_label;
+      m_categories_map[category].push_back({info.name, info.uri});
     }
 
     for(auto& category : m_categories_map)
-    {
       m_categories.addItem(category.first);
-    }
 
     con(m_categories, &QListWidget::currentTextChanged, this,
         &LV2PluginChooserDialog::updateProcesses);
 
-    auto accept_item = [&](auto item) {
+    auto accept_item = [&](QListWidgetItem* item) {
       if(item)
       {
-        m_accepted = item->text();
+        m_accepted = item->data(Qt::UserRole).toString();
+        if(m_accepted.isEmpty())
+          m_accepted = item->text();
         QDialog::close();
       }
     };
@@ -154,9 +213,11 @@ struct LV2PluginChooserDialog : public QDialog
   void updateProcesses(const QString& str)
   {
     m_plugins.clear();
-    for(const auto& plug : m_categories_map[str])
+    for(const auto& [name, uri] : m_categories_map[str])
     {
-      m_plugins.addItem(plug);
+      auto* item = new QListWidgetItem(name);
+      item->setData(Qt::UserRole, uri);
+      m_plugins.addItem(item);
     }
   }
 
@@ -166,7 +227,7 @@ struct LV2PluginChooserDialog : public QDialog
   QListWidget m_plugins;
   QDialogButtonBox m_buttons;
 
-  ossia::flat_map<QString, QVector<QString>> m_categories_map;
+  ossia::flat_map<QString, QVector<std::pair<QString, QString>>> m_categories_map;
 };
 }
 namespace Process
@@ -175,9 +236,9 @@ namespace Process
 template <>
 QString EffectProcessFactory_T<LV2::Model>::customConstructionData() const noexcept
 {
-  auto& world = score::AppComponents().applicationPlugin<LV2::ApplicationPlugin>().lilv;
+  auto& app_plug = score::AppComponents().applicationPlugin<LV2::ApplicationPlugin>();
 
-  LV2::LV2PluginChooserDialog dial{world, nullptr};
+  LV2::LV2PluginChooserDialog dial{app_plug, nullptr};
   dial.exec();
   return dial.m_accepted;
 }
@@ -270,15 +331,12 @@ Process::Descriptor EffectProcessFactory_T<LV2::Model>::descriptor(
     const Process::ProcessModel& d) const noexcept
 {
   auto& p = safe_cast<const LV2::Model&>(d);
+  auto& app_plug = score::AppComponents().applicationPlugin<LV2::ApplicationPlugin>();
   Process::Descriptor desc;
   if(auto plug = p.plugin)
     desc = make_descriptor(Lilv::Plugin{plug});
-  else
-  {
-    auto& app_plug = score::AppComponents().applicationPlugin<LV2::ApplicationPlugin>();
-    if(auto plug = LV2::find_lv2_plugin(app_plug.lilv, d.effect()))
-      desc = make_descriptor(*plug);
-  }
+  else if(auto plug = LV2::find_lv2_plugin(app_plug.lilv, d.effect()))
+    desc = make_descriptor(*plug);
 
   return desc;
 }
@@ -313,10 +371,148 @@ Model::~Model()
     auto w = reinterpret_cast<LV2::Window*>(externalUI);
     delete w;
   }
+  // Voices may still hold refs; SharedInstance ensures last drop runs ~InstanceHandle
+  effectContext.instance = nullptr;
+  effectContext.instance_holder.reset();
 }
 QString Model::prettyName() const noexcept
 {
   return metadata().getLabel();
+}
+
+std::vector<Process::Preset> Model::builtinPresets() const noexcept
+{
+  std::vector<Process::Preset> result;
+  if(!plugin)
+    return result;
+
+  auto& app_plug
+      = score::AppComponents().applicationPlugin<LV2::ApplicationPlugin>();
+  auto& host_ctx = app_plug.lv2_host_context;
+  LilvWorld* world = host_ctx.world.me;
+
+  // Pre-load preset bundles so lilv_plugin_get_related sees them
+  if(auto* info = app_plug.findDescriptor(m_effectPath))
+  {
+    for(const auto& bundle : info->preset_bundles)
+    {
+      if(!bundle.isEmpty())
+        app_plug.ensureBundleLoaded(bundle);
+    }
+    // Fall back to old "strip last URI component" heuristic for pre-preset_bundles caches
+    if(info->preset_bundles.isEmpty())
+    {
+      for(const auto& preset_uri : info->preset_uris)
+      {
+        QString u = preset_uri;
+        int slash = u.lastIndexOf('/');
+        if(slash > 0)
+          app_plug.ensureBundleLoaded(u.left(slash + 1));
+      }
+    }
+  }
+
+  LilvNode* pset_node = lilv_new_uri(world, LV2_PRESETS__Preset);
+  LilvNode* rdfs_label_node
+      = lilv_new_uri(world, "http://www.w3.org/2000/01/rdf-schema#label");
+
+  if(LilvNodes* presets = lilv_plugin_get_related(plugin, pset_node))
+  {
+    result.reserve(lilv_nodes_size(presets));
+    LILV_FOREACH(nodes, it, presets)
+    {
+      const LilvNode* preset_node = lilv_nodes_get(presets, it);
+      // rdfs:seeAlso file (with the rdfs:label) is loaded via lilv_world_load_resource
+      lilv_world_load_resource(world, preset_node);
+
+      QString label;
+      if(LilvNodes* labels = lilv_world_find_nodes(
+             world, preset_node, rdfs_label_node, nullptr))
+      {
+        if(lilv_nodes_size(labels) > 0)
+        {
+          const LilvNode* l = lilv_nodes_get_first(labels);
+          if(l)
+            label = QString::fromUtf8(lilv_node_as_string(l));
+        }
+        lilv_nodes_free(labels);
+      }
+
+      Process::Preset p;
+      p.name = label.isEmpty() ? QString::fromUtf8(lilv_node_as_uri(preset_node))
+                               : label;
+      p.key.key = this->concreteKey();
+      p.key.effect = m_effectPath;
+      // Store the URI; loadPreset resolves via lilv_state_new_from_world
+      p.data = QByteArray(lilv_node_as_uri(preset_node));
+      result.push_back(std::move(p));
+    }
+    lilv_nodes_free(presets);
+  }
+
+  lilv_node_free(rdfs_label_node);
+  lilv_node_free(pset_node);
+  return result;
+}
+
+void Model::loadPreset(const Process::Preset& preset)
+{
+  if(!plugin || !effectContext.instance || preset.data.isEmpty())
+    return;
+  if(!hostContext || !hostContext->global)
+    return;
+
+  auto& app_plug
+      = score::AppComponents().applicationPlugin<LV2::ApplicationPlugin>();
+  LilvWorld* world = hostContext->world.me;
+  auto& map = hostContext->global->map;
+
+  // Built-in path: data is a URI; saved projects may reference unenumerated presets
+  LilvState* state = nullptr;
+  if(LilvNode* uri = lilv_new_uri(world, preset.data.constData()))
+  {
+    lilv_world_load_resource(world, uri);
+    state = lilv_state_new_from_world(world, &map, uri);
+    lilv_node_free(uri);
+  }
+  if(!state)
+    state = lilv_state_new_from_string(world, &map, preset.data.constData());
+
+  if(state)
+  {
+    lilv_state_restore(
+        state, effectContext.instance, lv2_set_port_value, this,
+        LV2_STATE_IS_PORTABLE, hostContext->features);
+    lilv_state_free(state);
+  }
+}
+
+Process::Preset Model::savePreset() const noexcept
+{
+  Process::Preset p;
+  p.name = this->metadata().getName();
+  p.key.key = this->concreteKey();
+  p.key.effect = m_effectPath;
+  if(!plugin || !effectContext.instance || !hostContext || !hostContext->global)
+    return p;
+
+  auto& global = *hostContext->global;
+  LilvState* state = lilv_state_new_from_instance(
+      plugin, effectContext.instance, &global.map, nullptr, nullptr, nullptr,
+      nullptr, nullptr, nullptr, LV2_STATE_IS_PORTABLE, nullptr);
+  if(!state)
+    return p;
+
+  char* str = lilv_state_to_string(
+      hostContext->world.me, &global.map, &global.unmap, state,
+      "urn:io.ossia:lv2preset", nullptr);
+  if(str)
+  {
+    p.data = QByteArray(str);
+    free(str);
+  }
+  lilv_state_free(state);
+  return p;
 }
 
 bool Model::hasExternalUI() const noexcept
@@ -440,39 +636,89 @@ void Model::readPlugin()
 
   m_controlInStart = in_id;
   // CONTROL
-  // FIXME if(data.control_in_ports.size() < 10)
+  for(int port_id : data.control_in_ports)
   {
-    for(int port_id : data.control_in_ports)
+    SCORE_ASSERT(port_id >= 0);
+    Lilv::Port p = data.effect.plugin.get_port_by_index(port_id);
+    Lilv::Node n = p.get_name();
+    QString port_name = QString::fromUtf8(n.as_string());
+    Id<Process::Port> id{in_id++};
+    const float pmin = fParamMin[port_id];
+    const float pmax = fParamMax[port_id];
+    const float pinit
+        = std::isnan(fParamInit[port_id]) ? pmin : fParamInit[port_id];
+
+    // Widget by portProperty: toggled, enumeration+scalePoint, integer, logarithmic, default
+    Process::ControlInlet* port = nullptr;
+    LilvNodes* props = lilv_port_get_properties(data.effect.plugin.me, p.me);
+    const bool is_toggled = props && lilv_nodes_contains(props, h.toggled_property.me);
+    const bool is_enum
+        = props && lilv_nodes_contains(props, h.enumeration_property.me);
+    const bool is_integer
+        = props && lilv_nodes_contains(props, h.integer_property.me);
+    const bool is_log
+        = props && lilv_nodes_contains(props, h.logarithmic_property.me);
+    if(props)
+      lilv_nodes_free(props);
+
+    if(is_toggled)
     {
-      SCORE_ASSERT(port_id >= 0);
-      Lilv::Port p = data.effect.plugin.get_port_by_index(port_id);
-      Lilv::Node n = p.get_name();
-
-      SCORE_SOFT_ASSERT(!std::isnan(fParamInit[port_id]));
-      auto port = new Process::FloatSlider{
-          fParamMin[port_id],         fParamMax[port_id],
-          fParamInit[port_id],        QString::fromUtf8(n.as_string()),
-          Id<Process::Port>{in_id++}, this};
-
-      control_map.insert({(uint32_t)port_id, {port, false}});
-      connect(
-          port, &Process::ControlInlet::valueChanged, this,
-          [this, port_id](const ossia::value& v) {
-        if(effectContext.ui_instance)
-        {
-          auto& writing = control_map[port_id].second;
-          writing = true;
-          float f = ossia::convert<float>(v);
-
-          static auto& suil = libsuil::instance();
-          suil.instance_port_event(
-              effectContext.ui_instance, port_id, sizeof(float), 0, &f);
-          writing = false;
-        }
-          });
-
-      m_inlets.push_back(port);
+      port = new Process::Toggle{pinit >= 0.5f, port_name, id, this};
     }
+    else if(is_enum)
+    {
+      std::vector<std::pair<QString, ossia::value>> values;
+      if(LilvScalePoints* sps
+         = lilv_port_get_scale_points(data.effect.plugin.me, p.me))
+      {
+        LILV_FOREACH(scale_points, it, sps)
+        {
+          const LilvScalePoint* sp = lilv_scale_points_get(sps, it);
+          const LilvNode* lbl = lilv_scale_point_get_label(sp);
+          const LilvNode* val = lilv_scale_point_get_value(sp);
+          if(lbl && val)
+            values.emplace_back(
+                QString::fromUtf8(lilv_node_as_string(lbl)),
+                ossia::value{lilv_node_as_float(val)});
+        }
+        lilv_scale_points_free(sps);
+      }
+      if(!values.empty())
+        port = new Process::ComboBox{
+            std::move(values), ossia::value{pinit}, port_name, id, this};
+    }
+    if(!port && is_integer)
+    {
+      port = new Process::IntSlider{
+          int(pmin), int(pmax), int(pinit), port_name, id, this};
+    }
+    if(!port && is_log && pmin > 0.f)
+    {
+      port = new Process::LogFloatSlider{pmin, pmax, pinit, port_name, id, this};
+    }
+    if(!port)
+    {
+      port = new Process::FloatSlider{pmin, pmax, pinit, port_name, id, this};
+    }
+
+    control_map.insert({(uint32_t)port_id, {port, false}});
+    connect(
+        port, &Process::ControlInlet::valueChanged, this,
+        [this, port_id](const ossia::value& v) {
+      if(effectContext.ui_instance)
+      {
+        auto& writing = control_map[port_id].second;
+        writing = true;
+        float f = ossia::convert<float>(v);
+
+        static auto& suil = libsuil::instance();
+        suil.instance_port_event(
+            effectContext.ui_instance, port_id, sizeof(float), 0, &f);
+        writing = false;
+      }
+        });
+
+    m_inlets.push_back(port);
   }
 
   m_controlOutStart = in_id;
@@ -498,13 +744,35 @@ void Model::readPlugin()
   }
 
   auto sr = app_plug.context.settings<Audio::Settings::Model>().getRate();
-  effectContext.instance = lilv_plugin_instantiate(
-      effectContext.plugin.me, sr, app_plug.lv2_host_context.features);
-
-  if(!effectContext.instance)
+  if(auto* inst = lilv_plugin_instantiate(
+         effectContext.plugin.me, sr, app_plug.lv2_host_context.features))
+  {
+    effectContext.instance_holder = std::make_shared<InstanceHandle>(inst);
+    effectContext.instance = inst;
+  }
+  else
   {
     qDebug() << "Could not load LV2 plug-in";
     return;
+  }
+
+  // state:loadDefaultState (LV2 spec): apply ttl state:state triple between instantiate and run
+  if(auto* required = lilv_plugin_get_required_features(effectContext.plugin.me))
+  {
+    if(lilv_nodes_contains(required, h.state_loadDefaultState_node.me))
+    {
+      LilvState* default_state = lilv_state_new_from_world(
+          h.world.me, &app_plug.lv2_host_context.global->map,
+          lilv_plugin_get_uri(effectContext.plugin.me));
+      if(default_state)
+      {
+        lilv_state_restore(
+            default_state, effectContext.instance, lv2_set_port_value, this,
+            LV2_STATE_IS_PORTABLE, app_plug.lv2_host_context.features);
+        lilv_state_free(default_state);
+      }
+    }
+    lilv_nodes_free(required);
   }
 
   effectContext.data.data_access
@@ -527,6 +795,10 @@ void Model::readPlugin()
 
 void Model::reload()
 {
+  // MAIN THREAD ONLY: mutates the shared LilvWorld via ensureBundleLoaded
+  effectContext.instance = nullptr;
+  effectContext.instance_holder.reset();
+
   plugin = nullptr;
 
   auto path = m_effectPath;
@@ -562,33 +834,45 @@ static LilvState* state_from_instance(const LV2::Model& ctx)
 
 static QByteArray readLV2State(const LV2::Model& eff)
 {
-  if(!eff.plugin)
+  if(!eff.plugin || !eff.effectContext.instance || !eff.hostContext
+     || !eff.hostContext->global)
     return {};
 
   auto& global = *eff.hostContext->global;
   const auto state = state_from_instance(eff);
+  if(!state)
+    return {};
+
   auto str = lilv_state_to_string(
       eff.hostContext->world.me, &global.map, &global.unmap, state,
       "urn:io.ossia:lv2state", nullptr);
 
-  QByteArray b(str);
+  QByteArray b;
+  if(str)
+  {
+    b = QByteArray(str);
+    free(str);
+  }
   lilv_state_free(state);
-  free(str);
   return b;
 }
 
 static void restoreLV2State(LV2::Model& eff, const QByteArray& str)
 {
-  if(!eff.plugin)
+  if(!eff.plugin || str.isEmpty())
     return;
 
   auto& global = *eff.hostContext->global;
   const auto state = lilv_state_new_from_string(
       eff.hostContext->world.me, &global.map, str.constData());
 
+  // lilv_state_restore is not NULL-safe
+  if(!state)
+    return;
+
   lilv_state_restore(
-      state, eff.effectContext.instance, nullptr, nullptr, LV2_STATE_IS_PORTABLE,
-      nullptr);
+      state, eff.effectContext.instance, LV2::lv2_set_port_value, &eff,
+      LV2_STATE_IS_PORTABLE, nullptr);
 
   lilv_state_free(state);
 }
@@ -710,11 +994,13 @@ void on_start::operator()()
   LV2::Message msg;
   while(proc.try_dequeue(msg))
   {
-    for(std::size_t k = 0; k < node.m_midi_atom_ins.size(); ++k)
+    // Broadcast to every voice: per_channel needs the same MIDI on all instances
+    for(std::size_t k = 0; k < node.data.midi_in_ports.size(); ++k)
     {
       if(node.data.midi_in_ports[k] == int32_t(msg.index))
       {
-        node.m_message_for_midi_atom_ins[k].push_back(std::move(msg));
+        for(auto& v : node.voices)
+          v->message_for_midi_atom_ins[k].push_back(msg);
         break;
       }
     }
@@ -738,11 +1024,14 @@ void on_finish::operator()()
     if(!nn)
       return;
     auto& node = *static_cast<lv2_node_t*>(nn.get());
+    if(node.voices.empty())
+      return;
+    auto& v0 = *node.voices[0];
 
     for(std::size_t k = 0; k < node.data.control_out_ports.size(); k++)
     {
       auto port = (uint32_t)node.data.control_out_ports[k];
-      float val = node.fOutControls[k];
+      float val = v0.fOutControls[k];
 
       auto cport = static_cast<Model&>(p->process()).control_out_map[port];
       SCORE_ASSERT(cport);
@@ -754,11 +1043,14 @@ void on_finish::operator()()
   if(!nn)
     return;
   auto& node = *static_cast<lv2_node_t*>(nn.get());
+  if(node.voices.empty())
+    return;
+  auto& v0 = *node.voices[0];
 
   for(std::size_t k = 0; k < node.data.midi_out_ports.size(); ++k)
   {
     int port_index = node.data.midi_out_ports[k];
-    auto& buf = node.m_midi_atom_outs[k];
+    auto& buf = v0.midi_atom_outs[k];
 
     LV2_ATOM_SEQUENCE_FOREACH(&buf.buf->atoms, ev)
     {
@@ -788,16 +1080,23 @@ void LV2EffectComponent::lazy_init()
   of.self = os.self;
   of.q = ctx.weakEditionQueue();
 
+  LV2::LV2Data lv2data{host.lv2_host_context, proc.effectContext};
+  auto strategy = LV2::choose_voice_strategy(lv2data);
+
   auto node = ossia::make_node<LV2::lv2_node_t>(
-      *ctx.execState, LV2::LV2Data{host.lv2_host_context, proc.effectContext},
-      ctx.execState->sampleRate, os, of);
+      *ctx.execState, lv2data, ctx.execState->sampleRate, strategy, os, of);
 
   for(std::size_t i = proc.m_controlInStart; i < proc.inlets().size(); i++)
   {
-    auto inlet = static_cast<Process::ControlInlet*>(proc.inlets()[i]);
-    node->fInControls[i - proc.m_controlInStart] = ossia::convert<float>(inlet->value());
-    auto inl = node->root_inputs()[i];
+    auto* inlet = static_cast<Process::ControlInlet*>(proc.inlets()[i]);
+    const auto ctrl_idx = i - proc.m_controlInStart;
+    const float init_val = ossia::convert<float>(inlet->value());
 
+    for(auto& v : node->voices)
+      if(ctrl_idx < v->fInControls.size())
+        v->fInControls[ctrl_idx] = init_val;
+
+    auto inl = node->root_inputs()[i];
     auto& vp = *inl->target<ossia::value_port>();
     vp.type = inlet->value().get_type();
     vp.domain = inlet->domain().get();
@@ -813,6 +1112,72 @@ void LV2EffectComponent::lazy_init()
 
   this->node = node;
   m_ossia_process = std::make_shared<ossia::node_process>(node);
+
+  // Grow voice pool on main thread (lilv_plugin_instantiate can dlopen / preload samples)
+  if(strategy.routing == LV2::voice_routing::per_channel)
+  {
+    m_pool_sample_rate = ctx.execState->sampleRate;
+    m_pool_pushed = node->voices.size();
+    m_pool_max_requested = m_pool_pushed;
+
+    m_grow_timer = new QTimer(this);
+    m_grow_timer->setInterval(50);
+    connect(m_grow_timer, &QTimer::timeout, this, [this] { growVoicePoolTick(); });
+    m_grow_timer->start();
+  }
+}
+
+void LV2EffectComponent::growVoicePoolTick()
+{
+  auto node_base = this->node;
+  if(!node_base)
+    return;
+  auto* node = static_cast<lv2_node_t*>(node_base.get());
+
+  // High-water mark catches transients the audio thread smoothed (2 -> 64 -> 2)
+  const auto requested
+      = node->requested_voices.load(std::memory_order_acquire);
+  if(requested > m_pool_max_requested)
+    m_pool_max_requested = requested;
+
+  if(m_pool_pushed >= m_pool_max_requested)
+    return;
+
+  // Snapshot voice 0 so new instances inherit loaded samples / ongoing edits
+  LilvState* state = node->snapshot_state_raw();
+
+  // 50 ms x 4 = ~80 voices/s; samplers may preload banks per instantiation
+  constexpr std::size_t kBatch = 4;
+  const std::size_t to_add
+      = std::min(kBatch, m_pool_max_requested - m_pool_pushed);
+
+  auto weak_node = std::weak_ptr{this->node};
+  for(std::size_t i = 0; i < to_add; ++i)
+  {
+    auto v = node->make_voice_for_pool(m_pool_sample_rate, state);
+    if(!v)
+    {
+      qWarning() << "LV2: failed to grow voice pool";
+      break;
+    }
+    // Voice cleanup is main-thread-only; bounce back if the node died
+    in_exec([weak_node, v = std::move(v)]() mutable {
+      if(auto n = weak_node.lock())
+      {
+        static_cast<lv2_node_t*>(n.get())->append_voice(std::move(v));
+      }
+      else
+      {
+        QMetaObject::invokeMethod(
+            QCoreApplication::instance(),
+            [v = std::move(v)]() mutable { v.reset(); });
+      }
+    });
+    ++m_pool_pushed;
+  }
+
+  if(state)
+    lilv_state_free(state);
 }
 
 void LV2EffectComponent::writeAtomToUi(

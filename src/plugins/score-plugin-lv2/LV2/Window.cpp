@@ -95,9 +95,11 @@ Window::Window(const Model& fx, const score::DocumentContext& ctx, QWidget* pare
 
   lay->addWidget(widget);
   m_widget = widget;
-  auto name = lilv_plugin_get_name(fx.plugin);
-  setWindowTitle(lilv_node_as_string(name));
-  lilv_node_free(name);
+  {
+    auto name = lilv_plugin_get_name(fx.plugin);
+    setWindowTitle(lilv_node_as_string(name));
+    lilv_node_free(name);
+  }
 
   // Set up regular updates
   QPointer<const Model> fx_ptr{&fx};
