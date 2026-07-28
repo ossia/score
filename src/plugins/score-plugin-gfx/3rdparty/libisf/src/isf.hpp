@@ -332,6 +332,7 @@ struct descriptor
   } mode{ISF};
   std::string description;
   std::string credits;
+  std::string documentation;
   std::vector<std::string> categories;
   std::vector<input> inputs;
   std::vector<output_declaration> outputs; // Parsed from OUTPUTS array; empty = single color output
