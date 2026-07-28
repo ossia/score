@@ -88,9 +88,12 @@ public:
 
   /// Records the slot -> texture DMA on `cb`. Must be called outside a render
   /// pass; leaves the texture in SHADER_READ_ONLY_OPTIMAL and tells QRhi so.
+  /// @p srcOffset is the plane's byte offset inside the slot: a planar frame
+  /// arrives as one contiguous buffer, so each plane is the same import at a
+  /// different offset. Zero for single-plane formats.
   bool copyToTexture(
       QRhiCommandBuffer& cb, QRhiTexture& tex, std::size_t slot, int width,
-      int height) noexcept;
+      int height, std::size_t srcOffset = 0) noexcept;
 
 private:
   struct Impl;
