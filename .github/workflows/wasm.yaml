@@ -62,7 +62,13 @@ jobs:
             NAME="ossia.score-master-wasm.zip"
           fi
           # site/ was assembled by wasm.deploy.sh (js/wasm[/data] + loader files).
-          ( cd site && zip -r -q "../staging/$NAME" . -x '.git/*' )
+          # The binary is gzipped there for the score-web push; ship it plain here.
+          ( cd site && zip -r -q "../staging/$NAME" . -x '.git/*' -x 'ossia-score.wasm.gz' )
+          if [[ -f site/ossia-score.wasm.gz ]]; then
+            gunzip -c site/ossia-score.wasm.gz > ossia-score.wasm
+            zip -q -j "staging/$NAME" ossia-score.wasm
+            rm -f ossia-score.wasm
+          fi
           ls -lah staging
 
       - name: Upload build
