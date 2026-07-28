@@ -325,7 +325,7 @@ void VkHostImportUpload::release()
 
 bool VkHostImportUpload::copyToTexture(
     QRhiCommandBuffer& cb, QRhiTexture& tex, std::size_t slot, int width,
-    int height) noexcept
+    int height, std::size_t srcOffset) noexcept
 {
   if(!m_d || slot >= m_buffers.size() || width <= 0 || height <= 0)
     return false;
@@ -365,6 +365,7 @@ bool VkHostImportUpload::copyToTexture(
       VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
   VkBufferImageCopy region{};
+  region.bufferOffset = VkDeviceSize(srcOffset);
   region.imageSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1};
   region.imageExtent = {uint32_t(width), uint32_t(height), 1};
   m_d->df->vkCmdCopyBufferToImage(

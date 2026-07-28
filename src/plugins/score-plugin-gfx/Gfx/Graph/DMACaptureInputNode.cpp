@@ -151,7 +151,14 @@ public:
         .frameByteSize = m_backend->frameByteSize(),
         .width = m_backend->width(),
         .height = m_backend->height(),
-        .outputTexture = m_gpu->samplers[0].texture};
+        .outputTexture = m_gpu->samplers[0].texture,
+        .planes = [&] {
+      std::vector<QRhiTexture*> p;
+      p.reserve(m_gpu->samplers.size());
+      for(auto& smp : m_gpu->samplers)
+        p.push_back(smp.texture);
+      return p;
+    }()};
     if(m_strategy)
       m_backend->setStrategy(m_strategy.get());
     const bool firstInitOk = m_strategy && m_strategy->init(icfg);

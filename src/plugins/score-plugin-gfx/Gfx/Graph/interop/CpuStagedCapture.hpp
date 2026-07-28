@@ -267,11 +267,47 @@ struct CpuStagedCapture final : VideoCaptureStrategy
     // left is the device-side DMA. Needs the command buffer, hence the overload.
     if(cb && m_hostImport.valid())
     {
-      const auto pxsz = cfg.outputTexture->pixelSize();
-      if(m_hostImport.copyToTexture(
-             *cb, *cfg.outputTexture, static_cast<std::size_t>(slotIdx),
-             pxsz.width(), pxsz.height()))
-        return;
+      // Planar frames are one contiguous slot holding N planes, so the
+      // zero-copy path has to walk them exactly as the portable path below
+      // does -- uploading only plane 0 here left chroma uninitialised while
+      // still reporting the rung engaged.
+      if(cfg.planes.size() > 1)
+      {
+        std::size_t offset = 0;
+        bool all = true;
+        for(auto* tex : cfg.planes)
+        {
+          if(!tex)
+          {
+            all = false;
+            break;
+          }
+          const auto psz = tex->pixelSize();
+          const std::size_t bytes
+              = std::size_t(psz.width()) * texelBytes(tex->format()) * psz.height();
+          if(offset + bytes > cfg.frameByteSize
+             || !m_hostImport.copyToTexture(
+                 *cb, *tex, static_cast<std::size_t>(slotIdx), psz.width(),
+                 psz.height(), offset))
+          {
+            all = false;
+            break;
+          }
+          offset += bytes;
+        }
+        if(all)
+          return;
+        // Fall through to the portable path rather than ship a half-uploaded
+        // frame.
+      }
+      else
+      {
+        const auto pxsz = cfg.outputTexture->pixelSize();
+        if(m_hostImport.copyToTexture(
+               *cb, *cfg.outputTexture, static_cast<std::size_t>(slotIdx),
+               pxsz.width(), pxsz.height()))
+          return;
+      }
     }
 
 #if QT_CONFIG(opengl)
@@ -306,9 +342,64 @@ struct CpuStagedCapture final : VideoCaptureStrategy
           cfg.height > 0 ? cfg.frameByteSize / static_cast<quint32>(cfg.height)
                          : 0);
     }
+    // Planar formats arrive as one contiguous buffer holding N planes back to
+    // back. The decoder's own texture list defines the layout: each plane's
+    // byte size is its texture geometry times its texel size, and offsets
+    // accumulate in order. Deriving it this way keeps the strategy free of
+    // per-format tables -- adding a planar decoder needs no change here.
+    if(cfg.planes.size() > 1)
+    {
+      std::size_t offset = 0;
+      for(std::size_t i = 0; i < cfg.planes.size(); ++i)
+      {
+        auto* tex = cfg.planes[i];
+        if(!tex)
+          continue;
+        const auto psz = tex->pixelSize();
+        const auto texel = texelBytes(tex->format());
+        const auto stride = static_cast<quint32>(psz.width()) * texel;
+        const std::size_t bytes = std::size_t(stride) * psz.height();
+        if(offset + bytes > cfg.frameByteSize)
+        {
+          qWarning() << "CpuStagedCapture: plane" << i << "overruns the frame ("
+                     << offset << "+" << bytes << ">" << cfg.frameByteSize
+                     << ") - skipping the rest";
+          break;
+        }
+        QRhiTextureSubresourceUploadDescription psub(
+            static_cast<const char*>(src) + offset, bytes);
+        psub.setDataStride(stride);
+        res.uploadTexture(
+            tex, QRhiTextureUploadDescription{QRhiTextureUploadEntry{0, 0, psub}});
+        offset += bytes;
+      }
+      return;
+    }
+
     res.uploadTexture(
         cfg.outputTexture,
         QRhiTextureUploadDescription{QRhiTextureUploadEntry{0, 0, sub}});
+  }
+
+  /// Bytes per texel for the formats the planar decoders actually allocate.
+  static quint32 texelBytes(QRhiTexture::Format f) noexcept
+  {
+    switch(f)
+    {
+      case QRhiTexture::R8:
+      case QRhiTexture::RED_OR_ALPHA8:
+        return 1;
+      case QRhiTexture::RG8:
+      case QRhiTexture::R16:
+        return 2;
+      case QRhiTexture::RG16:
+        return 4;
+      case QRhiTexture::RGBA8:
+      case QRhiTexture::BGRA8:
+        return 4;
+      default:
+        return 4;
+    }
   }
 
   void releaseAfterRender() override { }
