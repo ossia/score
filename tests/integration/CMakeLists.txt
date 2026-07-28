@@ -259,12 +259,19 @@ score_add_test(test_regression_throwing_drop_handler
 # One harness per shader kind in the library: they are authored differently,
 # fail differently, and each keeps its own baseline. All need a GPU-capable
 # display, and all skip when no library is installed.
-foreach(kind ISF VSA CSF)
+foreach(kind ISF VSA CSF Raster)
   string(TOLOWER "${kind}" lc)
+  string(TOUPPER "${kind}" uc)
   score_add_test(test_integration_shader_sweep_${lc}
     SOURCES ShaderSweep${kind}.cpp
     GUI
     PLUGINS score_plugin_gfx score_lib_process)
+  # The raster sweep drives render_raster() from the gfx fixture: a raster shader
+  # needs a geometry producer wired to it, which the ISF Sweeper does not provide.
+  if(kind STREQUAL "Raster")
+    target_include_directories(test_integration_shader_sweep_${lc}
+      PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../fixtures")
+  endif()
   set(_baseline "${CMAKE_CURRENT_SOURCE_DIR}/../testdata/shader_sweep_baseline_${lc}.txt")
 
   # On wasm there is no filesystem to read the library or the baseline from:
@@ -283,7 +290,7 @@ foreach(kind ISF VSA CSF)
   endif()
 
   target_compile_definitions(test_integration_shader_sweep_${lc} PRIVATE
-    "SCORE_SHADER_SWEEP_BASELINE_${kind}=\"${_baseline}\"")
+    "SCORE_SHADER_SWEEP_BASELINE_${uc}=\"${_baseline}\"")
 endforeach()
 
 # Drags that never get their mouse release: QGraphicsScene drops the implicit
@@ -405,3 +412,52 @@ set_tests_properties(test_text_render PROPERTIES
   RUN_SERIAL TRUE
   ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
 
+# GPU video encoder matrix: instantiates every encoder in
+# src/plugins/score-plugin-gfx/Gfx/Graph/encoders on a real QRhi backend
+# (SCORE_TEST_API=opengl|vulkan) and byte-checks the outputs. Registered GUI
+# (-> LABELS gui) because GL/Vulkan context creation needs a windowing system;
+# exclude with `ctest -LE gui` on displayless machines. Static-plugin builds
+# can't link score_plugin_gfx directly (same constraint as EncoderTester).
+if(TARGET score_plugin_gfx AND NOT SCORE_STATIC_PLUGINS)
+  score_add_test(test_integration_encoder_matrix
+    SOURCES EncoderMatrixTest.cpp
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_media)
+  # GL drivers (llvmpipe in particular) leak internally; don't let LSAN turn
+  # that into a test failure.
+  set_tests_properties(test_integration_encoder_matrix PROPERTIES
+    ENVIRONMENT "SCORE_AUDIO_BACKEND=dummy;ASAN_OPTIONS=detect_leaks=0:halt_on_error=0")
+endif()
+
+# Offscreen-teardown regression: a full-app offscreen
+# render followed by /stop + /exit must exit 0 (was SIGSEGV/UAF at teardown).
+# The script serializes itself on /tmp/score-harness.lock (global OSC port).
+add_test(NAME test_regression_offscreen_teardown
+  COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/offscreen-teardown-regression.sh"
+  WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+set_tests_properties(test_regression_offscreen_teardown PROPERTIES
+  SKIP_RETURN_CODE 77
+  TIMEOUT 600
+  RUN_SERIAL TRUE
+  ENVIRONMENT "SCORE_BIN=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+
+# Video decode-correctness matrix: every SOFTWARE-
+# decodable pixel format in Gfx/Graph/decoders is encoded as a known pattern
+# (ffprobe-verified pix_fmt), played through VideoDecoderTester with
+# --expect/--psnr, and the rendered RGBA is asserted against ffmpeg's own
+# decode of the same clip (per-format PSNR bound), plus truncated/garbage
+# fuzz clips asserting graceful rejection. Needs an X display (llvmpipe over
+# GLX — the Qt 6.4 offscreen QPA has no headless GL/Vulkan): labeled gui,
+# skips (77) without ffmpeg/tester/display. Each tester run self-serializes
+# on /tmp/score-harness.lock.
+if(SCORE_VIDEO_TESTER)
+  add_test(NAME test_video_decode_correctness
+    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/video-decode-correctness.sh"
+    WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
+  set_tests_properties(test_video_decode_correctness PROPERTIES
+    SKIP_RETURN_CODE 77
+    TIMEOUT 3600
+    RUN_SERIAL TRUE
+    LABELS "gui"
+    ENVIRONMENT "VIDEO_TESTER=${SCORE_ROOT_BINARY_DIR}/VideoDecoderTester;SCORE_AUDIO_BACKEND=dummy;ASAN_OPTIONS=detect_leaks=0:halt_on_error=0:handle_segv=1:detect_odr_violation=0:protect_shadow_gap=0")
+endif()
