@@ -60,6 +60,15 @@ struct VideoCaptureStrategyConfig
   /// the vendor's native frame format, sampled as RGBA8 / BGRA8 by a
   /// vendor-aware unpacker shader.
   QRhiTexture* outputTexture{};
+
+  /// Every plane texture the decoder allocated, plane 0 first (so
+  /// planes[0] == outputTexture). Planar formats (NV12, YUV420P, ...) need
+  /// each plane uploaded from its own offset inside the one contiguous
+  /// capture buffer; single-plane formats leave this with a single entry.
+  /// Strategies that cannot express multiple planes may ignore it, but must
+  /// then refuse a config where planes.size() > 1 rather than silently
+  /// uploading only the luma.
+  std::vector<QRhiTexture*> planes{};
 };
 
 /**
