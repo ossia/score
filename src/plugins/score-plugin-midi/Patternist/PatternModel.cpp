@@ -46,7 +46,7 @@ ProcessModel::ProcessModel(
     , slide{std::make_unique<Process::ValueOutlet>("Slide", Id<Process::Port>(2), this)}
 {
   Pattern pattern;
-  pattern.length = 4;
+  pattern.length = 16;
   pattern.lanes.push_back(
       Lane{fromInts({0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0}), 38});
   pattern.lanes.push_back(
