@@ -29,6 +29,12 @@
 #include <Gfx/Graph/decoders/YUV422.hpp>
 #include <Gfx/Graph/decoders/V210.hpp>
 #include <Gfx/Graph/decoders/YUV422P10.hpp>
+#include <Gfx/Graph/decoders/YUV444.hpp>
+#include <Gfx/Graph/decoders/YUV444P12.hpp>
+#include <Gfx/Graph/decoders/YUV444P10.hpp>
+#include <Gfx/Graph/decoders/YUV422P12.hpp>
+#include <Gfx/Graph/decoders/YUV420P10.hpp>
+#include <Gfx/Graph/decoders/P210.hpp>
 #include <Gfx/Graph/decoders/YUYV422.hpp>
 #include <Gfx/Graph/interop/VideoPixelFormat.hpp>
 
@@ -233,6 +239,21 @@ makeWireDecoder(score::gfx::interop::VideoPixelFormat fmt, Video::ImageFormat& d
       return std::make_unique<P010Decoder>(d);
     case F::YUV422P10:
       return std::make_unique<YUV422P10Decoder>(d);
+    // The remaining planar decoders. Each already existed and was already
+    // exercised through the ffmpeg path; only the wire mapping was missing, so
+    // a card announcing one of these fourccs was refused at open().
+    case F::YUV422P12:
+      return std::make_unique<YUV422P12Decoder>(d);
+    case F::YUV420P10:
+      return std::make_unique<YUV420P10Decoder>(d);
+    case F::YUV444P:
+      return std::make_unique<YUV444Decoder>(d);
+    case F::YUV444P10:
+      return std::make_unique<YUV444P10Decoder>(d);
+    case F::YUV444P12:
+      return std::make_unique<YUV444P12Decoder>(d);
+    case F::P210:
+      return std::make_unique<P210Decoder>(d);
 
     default:
       return nullptr;
