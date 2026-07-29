@@ -337,3 +337,57 @@ TEST_CASE("patternist: notes above the MIDI range are ignored", "[midi][pattern]
   REQUIRE(s0.size() == 1);
   CHECK(s0[0].note == 36);
 }
+
+TEST_CASE("patternist: a tick covering several steps plays them all", "[midi][pattern]")
+{
+  // With the single-date version only the first step of the tick was played:
+  // a small division, a large buffer or a high tempo were enough to drop the
+  // rest, silently.
+  fixture f;
+  f.set(
+      {lane(36, {Note::Note, Note::Rest, Note::Note, Note::Rest}),
+       lane(38, {Note::Rest, Note::Note, Note::Rest, Note::Note})},
+      4);
+
+  f.port.messages.clear();
+
+  ossia::exec_state_facade fac{&f.st};
+  ossia::token_request tk{
+      ossia::time_value{0},      ossia::time_value{1000},
+      ossia::time_value{100000}, ossia::time_value{0},
+      1.,                        ossia::time_signature{4, 4},
+      120.};
+  // One quarter note of music: four sixteenths, so four steps.
+  tk.musical_start_position = 0.;
+  tk.musical_end_position = 1.;
+  static_cast<ossia::graph_node&>(f.node).run(tk, fac);
+
+  std::vector<decoded> msgs;
+  for(const auto& m : f.port.messages)
+    msgs.push_back(decode(m));
+
+  // step 0: on 36 | step 1: off 36, on 38 | step 2: off 38, on 36 | step 3: off 36, on 38
+  REQUIRE(msgs.size() == 7);
+  CHECK(msgs[0].status == note_on);
+  CHECK(msgs[0].note == 36);
+  CHECK(msgs[0].timestamp == 0);
+
+  CHECK(msgs[1].status == note_off);
+  CHECK(msgs[1].note == 36);
+  CHECK(msgs[2].status == note_on);
+  CHECK(msgs[2].note == 38);
+  CHECK(msgs[1].timestamp == 250);
+  CHECK(msgs[2].timestamp == 250);
+
+  CHECK(msgs[3].status == note_off);
+  CHECK(msgs[3].note == 38);
+  CHECK(msgs[4].status == note_on);
+  CHECK(msgs[4].note == 36);
+  CHECK(msgs[4].timestamp == 500);
+
+  CHECK(msgs[5].status == note_off);
+  CHECK(msgs[5].note == 36);
+  CHECK(msgs[6].status == note_on);
+  CHECK(msgs[6].note == 38);
+  CHECK(msgs[6].timestamp == 750);
+}

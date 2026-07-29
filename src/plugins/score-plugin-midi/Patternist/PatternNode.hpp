@@ -115,86 +115,93 @@ public:
       return;
 
     // TODO on bar change, reset to start of pattern?
-    if(auto d = tk.get_quantification_date(pattern.division))
+    // All of them, not just the first: a tick covers more than one step as soon
+    // as the division is small, the buffer large or the tempo high, and the
+    // single-date version would silently drop every step but one.
+    for(const auto& q : tk.get_quantification_dates(pattern.division))
     {
       const int64_t date
-          = std::floor((*d - tk.prev_date + tk.offset).impl * samplesratio / speed);
+          = std::floor((q.date - tk.prev_date + tk.offset).impl * samplesratio / speed);
+      play_step(date);
+    }
+  }
 
-      last = current;
-      auto& mess = out.target<ossia::midi_port>()->messages;
+  void play_step(int64_t date) noexcept
+  {
+    last = current;
+    auto& mess = out.target<ossia::midi_port>()->messages;
 
-      for(auto it = in_flight.begin(); it != in_flight.end();)
+    for(auto it = in_flight.begin(); it != in_flight.end();)
+    {
+      uint8_t note = *it;
+      if(!legato(note))
       {
-        uint8_t note = *it;
-        if(!legato(note))
-        {
-          mess.push_back(libremidi::from_midi1::note_off(in_flight_channel, note, 0));
-          mess.back().timestamp = date;
-          it = in_flight.erase(it);
-        }
-        else
-        {
-          ++it;
-        }
+        mess.push_back(libremidi::from_midi1::note_off(in_flight_channel, note, 0));
+        mess.back().timestamp = date;
+        it = in_flight.erase(it);
       }
-
-      in_flight_channel = channel;
-
-      for(Lane& lane : pattern.lanes)
+      else
       {
-        if(lane.note <= 127 && ossia::valid_index(current, lane.pattern))
+        ++it;
+      }
+    }
+
+    in_flight_channel = channel;
+
+    for(Lane& lane : pattern.lanes)
+    {
+      if(lane.note <= 127 && ossia::valid_index(current, lane.pattern))
+      {
+        switch(lane.pattern[current])
         {
-          switch(lane.pattern[current])
-          {
-            case Note::Note:
+          case Note::Note:
+            mess.push_back(libremidi::from_midi1::note_on(channel, lane.note, 100));
+            mess.back().timestamp = date;
+            in_flight.insert(lane.note);
+            break;
+          case Note::Legato:
+            if(!in_flight.contains(lane.note))
+            {
               mess.push_back(libremidi::from_midi1::note_on(channel, lane.note, 100));
               mess.back().timestamp = date;
               in_flight.insert(lane.note);
-              break;
-            case Note::Legato:
-              if(!in_flight.contains(lane.note))
-              {
-                mess.push_back(libremidi::from_midi1::note_on(channel, lane.note, 100));
-                mess.back().timestamp = date;
-                in_flight.insert(lane.note);
-              }
-              break;
-            case Note::Rest:
-              if(in_flight.contains(lane.note))
-              {
-                mess.push_back(
-                    libremidi::from_midi1::note_off(in_flight_channel, lane.note, 0));
-                mess.back().timestamp = date;
-                in_flight.erase(lane.note);
-              }
-              break;
-          }
+            }
+            break;
+          case Note::Rest:
+            if(in_flight.contains(lane.note))
+            {
+              mess.push_back(
+                  libremidi::from_midi1::note_off(in_flight_channel, lane.note, 0));
+              mess.back().timestamp = date;
+              in_flight.erase(lane.note);
+            }
+            break;
         }
       }
-
-      for(Lane& lane : pattern.lanes)
-      {
-        if(ossia::valid_index(current, lane.pattern))
-        {
-          if(lane.note == 255)
-          {
-            if(lane.pattern[current] != Note::Rest)
-              accent_out->write_value(1., date);
-            else
-              accent_out->write_value(0., date);
-          }
-          else if(lane.note == 254)
-          {
-            if(lane.pattern[current] != Note::Rest)
-              slide_out->write_value(1., date);
-            else
-              slide_out->write_value(0., date);
-          }
-        }
-      }
-
-      current = (current + 1) % pattern.length;
     }
+
+    for(Lane& lane : pattern.lanes)
+    {
+      if(ossia::valid_index(current, lane.pattern))
+      {
+        if(lane.note == 255)
+        {
+          if(lane.pattern[current] != Note::Rest)
+            accent_out->write_value(1., date);
+          else
+            accent_out->write_value(0., date);
+        }
+        else if(lane.note == 254)
+        {
+          if(lane.pattern[current] != Note::Rest)
+            slide_out->write_value(1., date);
+          else
+            slide_out->write_value(0., date);
+        }
+      }
+    }
+
+    current = (current + 1) % pattern.length;
   }
 
   // Writing to the outlet from here would be pointless: this runs outside of a
