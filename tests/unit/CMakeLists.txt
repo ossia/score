@@ -62,6 +62,12 @@ if(TARGET score_plugin_midi)
       "${_midi_src}/Patternist/PatternParsing.cpp"
     PLUGINS score_plugin_midi score_lib_process
     LIBS ${QT_PREFIX}::Gui)
+
+  # Patternist's step engine, driven directly through pattern_node.
+  score_add_test(test_unit_patternist_node
+    SOURCES PatternistNodeTest.cpp
+    PLUGINS score_plugin_midi score_lib_process
+    LIBS ${QT_PREFIX}::Gui)
 endif()
 
 if(TARGET score_plugin_dataflow)
