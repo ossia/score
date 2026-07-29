@@ -30,6 +30,7 @@
  */
 
 #include <Gfx/Graph/Node.hpp>
+#include <Gfx/Graph/interop/GpuCapabilities.hpp>
 
 #include <Video/VideoInterface.hpp>
 
@@ -83,8 +84,14 @@ struct SCORE_PLUGIN_GFX_EXPORT DMACaptureBackend
   /// Pick the GPU-direct capture strategy for the active QRhi backend. May
   /// return nullptr (no GPU-direct path for this backend) — the renderer then
   /// uses `makeCpuStrategy`.
+  ///
+  /// @p caps carries the probed GPU identity so a picker can decline a
+  /// vendor-specific rung the live GPU cannot run — offering it anyway costs a
+  /// failed init and, worse, makes the strategy advise the user to reconfigure
+  /// for a path that is unreachable on their hardware.
   virtual std::unique_ptr<interop::VideoCaptureStrategy>
-  pickStrategy(QRhi::Implementation backend) = 0;
+  pickStrategy(QRhi::Implementation backend, const interop::GpuCapabilities& caps)
+      = 0;
 
   /// The universal host-staged / CPU-staging fallback strategy. Must be
   /// non-null; works on every backend.
