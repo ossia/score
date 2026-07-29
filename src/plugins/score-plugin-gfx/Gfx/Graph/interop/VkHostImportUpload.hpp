@@ -45,6 +45,23 @@ namespace score::gfx::interop
 SCORE_PLUGIN_GFX_EXPORT void* alignedSlotAlloc(std::size_t bytes, std::size_t alignment);
 SCORE_PLUGIN_GFX_EXPORT void alignedSlotFree(void* p);
 
+/// Storage a *graphics API* can import directly, as opposed to merely being
+/// page-aligned.
+///
+/// On Windows the two are not the same thing:
+/// ID3D12Device3::OpenExistingHeapFromAddress rejects `_aligned_malloc` memory
+/// with E_INVALIDARG because it needs the base address of a virtual-memory
+/// reservation at the 64 KB system allocation granularity, and a 4 KB-aligned
+/// heap pointer lands mid-block (measured: 28672 % 65536). VirtualAlloc gives
+/// that; Vulkan's VK_EXT_external_memory_host accepts it too, so one allocator
+/// serves both rungs. Elsewhere this is just the page-aligned allocation.
+///
+/// Use for buffers a capture rung may hand to the GPU. Ordinary staging slots
+/// should keep alignedSlotAlloc -- reserving 64 KB blocks for them would waste
+/// address space for no benefit.
+SCORE_PLUGIN_GFX_EXPORT void* importableAlloc(std::size_t bytes);
+SCORE_PLUGIN_GFX_EXPORT void importableFree(void* p);
+
 /// A host pointer imported as a Vulkan buffer. Handles are type-erased so
 /// this header needs no Vulkan headers: buffer is a VkBuffer, memory a
 /// VkDeviceMemory.
