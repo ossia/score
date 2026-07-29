@@ -24,7 +24,7 @@ Executor::Executor(
   node->current = 0;
 
   this->node = node;
-  m_ossia_process = std::make_shared<ossia::node_process>(node);
+  m_ossia_process = std::make_shared<pattern_node_process>(node);
 
   con(element, &Patternist::ProcessModel::channelChanged, this, [this, node](int c) {
     in_exec([node, c = to_midi_channel(c)] { node->set_channel(c); });
