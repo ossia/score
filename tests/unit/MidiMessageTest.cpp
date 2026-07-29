@@ -29,20 +29,63 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#if defined(_WIN32)
+#include <windows.h>
+#endif
+
 #include <csignal>
 #include <stdexcept>
 
 namespace
 {
-struct ScopedIgnoreSigtrap
+// Fed deliberately malformed data, score's serialization hits DEBUG_BREAK,
+// which is a SIGTRAP on POSIX and a DebugBreak() on Windows (see Debug.hpp).
+// Either has to be survivable for the fuzz sections to mean anything.
+#if defined(_WIN32)
+struct ScopedIgnoreDebugBreak
+{
+  static LONG CALLBACK swallow(EXCEPTION_POINTERS* ex) noexcept
+  {
+    if(ex->ExceptionRecord->ExceptionCode != EXCEPTION_BREAKPOINT)
+      return EXCEPTION_CONTINUE_SEARCH;
+
+    // The context is reported *at* the trapping instruction, so resuming as-is
+    // runs the same int3 again, forever. Step over it explicitly.
+    const auto at = reinterpret_cast<uintptr_t>(ex->ExceptionRecord->ExceptionAddress);
+#if defined(_M_X64) || defined(__x86_64__)
+    ex->ContextRecord->Rip = at + 1; // int3
+#elif defined(_M_IX86) || defined(__i386__)
+    ex->ContextRecord->Eip = at + 1; // int3
+#elif defined(_M_ARM64) || defined(__aarch64__)
+    ex->ContextRecord->Pc = at + 4; // brk
+#else
+    return EXCEPTION_CONTINUE_SEARCH;
+#endif
+    return EXCEPTION_CONTINUE_EXECUTION;
+  }
+
+  void* handler{};
+  ScopedIgnoreDebugBreak()
+      : handler{::AddVectoredExceptionHandler(1, &swallow)}
+  {
+  }
+  ~ScopedIgnoreDebugBreak()
+  {
+    if(handler)
+      ::RemoveVectoredExceptionHandler(handler);
+  }
+};
+#else
+struct ScopedIgnoreDebugBreak
 {
   void (*prev)(int);
-  ScopedIgnoreSigtrap()
+  ScopedIgnoreDebugBreak()
       : prev{std::signal(SIGTRAP, SIG_IGN)}
   {
   }
-  ~ScopedIgnoreSigtrap() { std::signal(SIGTRAP, prev); }
+  ~ScopedIgnoreDebugBreak() { std::signal(SIGTRAP, prev); }
 };
+#endif
 
 struct TestApplication final : public score::ApplicationInterface
 {
@@ -633,7 +676,7 @@ TEST_CASE("fuzz: malformed inputs are handled gracefully", "[midi][fuzz]")
     Midi::Note src{Id<Midi::Note>{3}, Midi::NoteData{0.1, 0.5, 60, 100}, nullptr};
     const QByteArray arr = score::marshall<DataStream>(src);
 
-    ScopedIgnoreSigtrap guard;
+    ScopedIgnoreDebugBreak guard;
     for(int len = 0; len < arr.size(); len += 2)
     {
       const QByteArray cut = arr.left(len);
