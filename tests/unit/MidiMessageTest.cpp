@@ -375,20 +375,22 @@ TEST_CASE("ossia midi node emits note-on / note-off from note data", "[midi][exe
                                 ossia::time_value{1000}, ossia::time_value{0}, 1., sig,
                                 120.},
            fac);
+  // Chronological: B starts at 250 before A ends at 300. The node used to emit
+  // every note-off first, which is not an order a consumer can rely on.
   REQUIRE(mp.messages.size() == 2);
   {
-    const auto off = decode(mp.messages[0]);
-    CHECK(off.status == CMIDI2_STATUS_NOTE_OFF);
-    CHECK(off.channel == 4);
-    CHECK(off.note == 60);
-    CHECK(mp.messages[0].timestamp == 100); // 300 - 200
-
-    const auto on = decode(mp.messages[1]);
+    const auto on = decode(mp.messages[0]);
     CHECK(on.status == CMIDI2_STATUS_NOTE_ON);
     CHECK(on.channel == 4);
     CHECK(on.note == 72);
     CHECK(on.velocity16 / 0x200 == 90);
-    CHECK(mp.messages[1].timestamp == 50); // 250 - 200
+    CHECK(mp.messages[0].timestamp == 50); // 250 - 200
+
+    const auto off = decode(mp.messages[1]);
+    CHECK(off.status == CMIDI2_STATUS_NOTE_OFF);
+    CHECK(off.channel == 4);
+    CHECK(off.note == 60);
+    CHECK(mp.messages[1].timestamp == 100); // 300 - 200
   }
   mp.messages.clear();
 
