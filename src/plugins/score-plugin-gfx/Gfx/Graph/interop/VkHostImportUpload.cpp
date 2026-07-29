@@ -16,6 +16,7 @@
 
 #if defined(_WIN32)
 #include <malloc.h>
+#include <windows.h>
 #endif
 
 namespace score::gfx::interop
@@ -39,6 +40,29 @@ void alignedSlotFree(void* p)
   _aligned_free(p);
 #else
   std::free(p);
+#endif
+}
+
+void* importableAlloc(std::size_t bytes)
+{
+#if defined(_WIN32)
+  // MEM_RESERVE|MEM_COMMIT hands back the base of a 64 KB-granularity block,
+  // which is what OpenExistingHeapFromAddress requires. The size need not be
+  // rounded: the opened heap reports exactly the requested byte count.
+  return ::VirtualAlloc(nullptr, bytes, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+#else
+  return alignedSlotAlloc(bytes, 4096);
+#endif
+}
+
+void importableFree(void* p)
+{
+  if(!p)
+    return;
+#if defined(_WIN32)
+  ::VirtualFree(p, 0, MEM_RELEASE);
+#else
+  alignedSlotFree(p);
 #endif
 }
 

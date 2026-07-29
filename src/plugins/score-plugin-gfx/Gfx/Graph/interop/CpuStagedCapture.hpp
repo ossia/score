@@ -26,6 +26,7 @@
 
 #include <Gfx/Graph/interop/CaptureStrategyCommon.hpp>
 #include <Gfx/Graph/interop/VideoCaptureStrategy.hpp>
+#include <Gfx/Graph/interop/D3D12HostImportUpload.hpp>
 #include <Gfx/Graph/interop/VkHostImportUpload.hpp>
 
 #include <QtGui/private/qrhi_p.h>
@@ -81,11 +82,15 @@ struct CpuStagedCapture final : VideoCaptureStrategy
   std::array<std::uint8_t*, kSlotCount> m_slots{};
   std::array<bool, kSlotCount> m_dmaLocked{};
   CaptureSlotPublisher m_publisher;
+  /// Which allocator the slots came from, so release() frees them the same way.
+  bool m_slotsImportable{};
 
   /// Non-null only on Vulkan with VK_EXT_external_memory_host: the slots are
   /// imported as VkDeviceMemory and the GPU DMAs straight out of them, so the
   /// per-frame staging copy disappears entirely.
   VkHostImportUpload m_hostImport;
+  /// The same trick on D3D12, through OpenExistingHeapFromAddress.
+  D3D12HostImportUpload m_d3dImport;
 
 #if QT_CONFIG(opengl)
   // Non-null when the raw-GL fast path is engaged (GL backend, not forced
@@ -97,7 +102,7 @@ struct CpuStagedCapture final : VideoCaptureStrategy
   {
     // The engaged rung, not the configured one: matrix results are only
     // meaningful if the row says which path actually ran.
-    if(m_hostImport.valid())
+    if(m_hostImport.valid() || m_d3dImport.valid())
       return "CPU-hostimport";
     if constexpr(Policy::has_gl_fast_path)
     {
@@ -160,20 +165,32 @@ struct CpuStagedCapture final : VideoCaptureStrategy
     const bool forceUpload = wantRung == "uploadtexture"
                              || qEnvironmentVariableIsSet("SCORE_GFX_NO_VK_HOST_IMPORT");
     const bool requireImport = wantRung == "hostimport";
-    const std::size_t importAlign
+    const std::size_t vkAlign
         = forceUpload ? 0u : VkHostImportUpload::requiredAlignment(*cfg.rhi);
+    const std::size_t d3dAlign
+        = forceUpload ? 0u : D3D12HostImportUpload::requiredAlignment(*cfg.rhi);
+    const std::size_t importAlign = vkAlign ? vkAlign : d3dAlign;
+    const std::size_t rowPitch
+        = cfg.height > 0 ? cfg.frameByteSize / std::size_t(cfg.height) : 0;
+    // D3D12 additionally constrains the row pitch; refusing here keeps the
+    // ladder honest rather than importing and then failing every copy.
+    const bool d3dUsable = d3dAlign != 0 && D3D12HostImportUpload::pitchUsable(rowPitch);
     if(requireImport && importAlign == 0)
     {
       qWarning() << "CpuStagedCapture: SCORE_GFX_CAPTURE_STRATEGY=hostimport but "
-                    "VK_EXT_external_memory_host is unavailable";
+                    "no host-import path is available on this backend";
       return false;
     }
     const std::size_t slotAlign = importAlign ? importAlign : alignof(std::max_align_t);
+    m_slotsImportable = importAlign != 0;
 
     for(std::size_t i = 0; i < kSlotCount; ++i)
     {
+      // importableAlloc when a GPU is going to import these pages: D3D12 needs
+      // a 64 KB-granularity VirtualAlloc address and refuses _aligned_malloc.
       m_slots[i] = static_cast<std::uint8_t*>(
-          alignedSlotAlloc(cfg.frameByteSize, slotAlign));
+          importAlign ? importableAlloc(cfg.frameByteSize)
+                      : alignedSlotAlloc(cfg.frameByteSize, slotAlign));
       if(!m_slots[i])
       {
         release();
@@ -195,13 +212,20 @@ struct CpuStagedCapture final : VideoCaptureStrategy
       ptrs.reserve(kSlotCount);
       for(auto* p : m_slots)
         ptrs.push_back(p);
-      if(m_hostImport.init(*cfg.rhi, ptrs, cfg.frameByteSize))
+      const bool ok
+          = vkAlign ? m_hostImport.init(*cfg.rhi, ptrs, cfg.frameByteSize)
+                    : (d3dUsable
+                       && m_d3dImport.init(
+                           *cfg.rhi, ptrs, cfg.frameByteSize, rowPitch));
+      if(ok)
       {
-        qDebug() << "DMA capture: Vulkan host-import upload engaged (zero-copy)";
+        qDebug() << "DMA capture:" << (vkAlign ? "Vulkan" : "D3D12")
+                 << "host-import upload engaged (zero-copy)";
       }
       else
       {
         m_hostImport.release();
+        m_d3dImport.release();
         if(requireImport)
         {
           qWarning() << "CpuStagedCapture: host-import rung was pinned but the "
@@ -216,12 +240,16 @@ struct CpuStagedCapture final : VideoCaptureStrategy
   void release() override
   {
     m_hostImport.release();
+    m_d3dImport.release();
     for(std::size_t i = 0; i < kSlotCount; ++i)
     {
       // NB: no DMA unlock here — the vendor capture session's close() does the
       // unlock-all, and by teardown the card object may already be gone.
       m_dmaLocked[i] = false;
-      alignedSlotFree(m_slots[i]);
+      if(m_slotsImportable)
+        importableFree(m_slots[i]);
+      else
+        alignedSlotFree(m_slots[i]);
       m_slots[i] = nullptr;
     }
 #if QT_CONFIG(opengl)
@@ -265,8 +293,14 @@ struct CpuStagedCapture final : VideoCaptureStrategy
 
     // Vulkan zero-copy: the slot pages are already imported, so all that is
     // left is the device-side DMA. Needs the command buffer, hence the overload.
-    if(cb && m_hostImport.valid())
+    if(cb && (m_hostImport.valid() || m_d3dImport.valid()))
     {
+      const auto doCopy = [&](QRhiTexture& t, std::size_t s, int w, int h,
+                              std::size_t off) {
+        return m_hostImport.valid()
+                   ? m_hostImport.copyToTexture(*cb, t, s, w, h, off)
+                   : m_d3dImport.copyToTexture(*cb, t, s, w, h, off);
+      };
       // Planar frames are one contiguous slot holding N planes, so the
       // zero-copy path has to walk them exactly as the portable path below
       // does -- uploading only plane 0 here left chroma uninitialised while
@@ -286,8 +320,8 @@ struct CpuStagedCapture final : VideoCaptureStrategy
           const std::size_t bytes
               = std::size_t(psz.width()) * texelBytes(tex->format()) * psz.height();
           if(offset + bytes > cfg.frameByteSize
-             || !m_hostImport.copyToTexture(
-                 *cb, *tex, static_cast<std::size_t>(slotIdx), psz.width(),
+             || !doCopy(
+                 *tex, static_cast<std::size_t>(slotIdx), psz.width(),
                  psz.height(), offset))
           {
             all = false;
@@ -303,9 +337,9 @@ struct CpuStagedCapture final : VideoCaptureStrategy
       else
       {
         const auto pxsz = cfg.outputTexture->pixelSize();
-        if(m_hostImport.copyToTexture(
-               *cb, *cfg.outputTexture, static_cast<std::size_t>(slotIdx),
-               pxsz.width(), pxsz.height()))
+        if(doCopy(
+               *cfg.outputTexture, static_cast<std::size_t>(slotIdx),
+               pxsz.width(), pxsz.height(), 0))
           return;
       }
     }
