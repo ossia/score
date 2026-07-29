@@ -7,6 +7,7 @@
 #include <score/plugins/FactorySetup.hpp>
 
 #include <Avnd/Factories.hpp>
+#include <Ui/MidiDisplay.hpp>
 #include <Ui/SignalDisplay.hpp>
 #include <Ui/TextBox.hpp>
 #include <Ui/ValueDisplay.hpp>
@@ -21,6 +22,7 @@ std::vector<score::InterfaceBase*> score_plugin_ui::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   std::vector<score::InterfaceBase*> fx;
+  oscr::instantiate_fx<Ui::MidiDisplay::Node>(fx, ctx, key);
   oscr::instantiate_fx<Ui::SignalDisplay::Node>(fx, ctx, key);
   oscr::instantiate_fx<Ui::TextBox::Node>(fx, ctx, key);
   oscr::instantiate_fx<Ui::ValueDisplay::Node>(fx, ctx, key);

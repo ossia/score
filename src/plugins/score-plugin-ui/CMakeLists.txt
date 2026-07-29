@@ -7,6 +7,7 @@ endif()
 
 add_library(
   score_plugin_ui
+  "${CMAKE_CURRENT_SOURCE_DIR}/Ui/MidiDisplay.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/SignalDisplay.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/TextBox.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/ValueDisplay.hpp"
