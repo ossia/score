@@ -9,6 +9,15 @@
 namespace oscr
 {
 
+// A halp::folder_port: a std::string control whose widget is a directory picker
+// (`enum widget { folder };`). Like the file ports, its value is a path and must
+// go through score::locateFilePath so that <LIBRARY>:, <PROJECT>: and
+// document-relative paths are resolved before the object reads it.
+template <typename T>
+concept folder_control_port = requires { T::folder; } && requires(T t) {
+  { t.value } -> std::convertible_to<std::string_view>;
+};
+
 template <typename Node, typename Field, std::size_t NPred, std::size_t NField>
 struct con_unvalidated
 {
@@ -335,6 +344,42 @@ struct setup_control_for_exec<Node, Field, N, NField>
             });
           }
         }
+    });
+  }
+};
+
+// folder_port: a path-valued string control. Resolve <LIBRARY>: / <PROJECT>: /
+// document-relative paths through score::locateFilePath before the object reads
+// them -- exactly like the file ports above -- otherwise the object receives the
+// raw library-relative string and cannot find the directory.
+template <typename Node, folder_control_port Field, std::size_t N, std::size_t NField>
+struct setup_control_for_exec<Node, Field, N, NField>
+    : setup_control_for_exec_base<Node, Field>
+{
+  using ExecNode = safe_node<Node>;
+  using Model = ProcessModel<Node>;
+
+  void initialize_control(Field& param, Process::ControlInlet* inlet, int k)
+  {
+    if constexpr(!requires { param.value.reset(); })
+    {
+      this->node_ptr->from_ossia_value(
+          param, resolvePathValue(inlet->value(), this->ctx.doc), param.value,
+          avnd::field_index<NField>{});
+    }
+  }
+
+  void connect_control_to_ui(Field& param, Process::ControlInlet* inlet, int k)
+  {
+    std::weak_ptr<ExecNode> weak_node = this->node_ptr;
+    QObject::connect(
+        inlet, &Process::ControlInlet::valueChanged, this->parent,
+        [&ctx = this->ctx, weak_node = std::move(weak_node),
+         field = &param](const ossia::value& val) {
+      // Resolve the path on every change, then run the normal control-update
+      // path (from_ossia_value + control_updated_from_ui) via con_unvalidated.
+      con_unvalidated<Node, Field, N, NField>{ctx, weak_node, *field}(
+          resolvePathValue(val, ctx.doc));
     });
   }
 };

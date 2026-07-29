@@ -27,6 +27,24 @@ filenameFromPort(const ossia::value& value, const score::DocumentContext& ctx)
   return {};
 }
 
+// Resolve <PROJECT>: / <LIBRARY>: / document-relative paths for a path-valued
+// string control (e.g. a folder_port) exactly like the file ports above do, so
+// the object sees an absolute path instead of the raw library-relative string.
+// A non-string or empty value is returned unchanged (an unset control stays
+// empty rather than resolving to the document folder).
+[[nodiscard]] static ossia::value
+resolvePathValue(const ossia::value& value, const score::DocumentContext& ctx)
+{
+  if(auto str = value.target<std::string>(); str && !str->empty())
+  {
+    const QString resolved
+        = score::locateFilePath(QString::fromStdString(*str).trimmed(), ctx);
+    if(!resolved.isEmpty())
+      return ossia::value{resolved.toStdString()};
+  }
+  return value;
+}
+
 // TODO refactor this into a generic explicit soundfile loaded mechanism
 [[nodiscard]] static auto
 loadSoundfile(const ossia::value& value, const score::DocumentContext& ctx, double rate)
