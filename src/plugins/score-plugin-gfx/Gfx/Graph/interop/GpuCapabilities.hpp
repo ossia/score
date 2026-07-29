@@ -84,8 +84,8 @@ enum class QRhiBackendKind : uint8_t
 };
 
 /** Per-AMD-extension presence. AJA's `demos/AMD/SDICommon/
- *  GLTransferBuffers.cpp` probes for all three and selects the
- *  best-available; we expose the same three flags. */
+ *  GLTransferBuffers.cpp` probes for these and selects the
+ *  best available. */
 struct AmdGlExtensions
 {
   bool busAddressable{};         /**< GL_AMD_bus_addressable_memory — direct P2P. */
@@ -171,6 +171,19 @@ struct SCORE_PLUGIN_GFX_EXPORT GpuCapabilities
     return dvpLoaded && (dvpHaveGl || dvpHaveD3D11 || dvpHaveCuda);
   }
 
+  /** True when the GPU is positively identified as one that cannot run the
+   *  NVIDIA-only interop paths (DVP, CUDA RDMA), whatever the loaders report:
+   *  `dvpLoaded` only says libdvp is installed, and it can be installed on a
+   *  machine whose GPU is a Radeon.
+   *
+   *  `Unknown` deliberately returns false, so an unidentified GPU still tries
+   *  and degrades on init failure. */
+  constexpr bool rulesOutNvidiaPaths() const noexcept
+  {
+    return vendor == GpuVendor::Amd || vendor == GpuVendor::Intel
+           || vendor == GpuVendor::Apple;
+  }
+
   /** True when this system can do AMD pinned-host transfer. */
   constexpr bool hasTier2AmdPinned() const noexcept
   {
@@ -208,8 +221,8 @@ void probeGlExtensions(GpuCapabilities& caps) noexcept;
 SCORE_PLUGIN_GFX_EXPORT
 void probeGlExtensions(GpuCapabilities& caps, QRhi* rhi) noexcept;
 
-/** Render the capability struct to a human-readable multi-line
- *  string. Useful for plugin init logs + the diagnostic UI. */
+/** Human-readable names for the enums above, for init logs and the
+ *  diagnostic UI. */
 SCORE_PLUGIN_GFX_EXPORT
 const char* gpuVendorName(GpuVendor v) noexcept;
 SCORE_PLUGIN_GFX_EXPORT
