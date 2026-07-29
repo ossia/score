@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/dataflow/graph_node.hpp>
+#include <ossia/dataflow/node_process.hpp>
 #include <ossia/dataflow/port.hpp>
 #include <ossia/detail/flat_set.hpp>
 #include <ossia/detail/math.hpp>
@@ -34,6 +35,7 @@ public:
   // must not leave them stranded on the previous one.
   uint8_t in_flight_channel{1};
   bool release_pending{};
+  bool mustStop{};
 
   pattern_node()
   {
@@ -76,12 +78,21 @@ public:
   void run(const ossia::token_request& tk, ossia::exec_state_facade st) noexcept override
   {
     using namespace ossia;
-    if(tk.model_read_duration() == 0_tv)
-      return;
 
     const double samplesratio = st.modelToSamples();
     const double speed = tk.speed != 0. ? tk.speed : 1.;
     const int64_t tick_start = std::floor(tk.offset.impl * samplesratio / speed);
+
+    // Before the empty-tick check: the token requested by stop() is empty.
+    if(mustStop)
+    {
+      release_all(tick_start);
+      mustStop = false;
+      return;
+    }
+
+    if(tk.model_read_duration() == 0_tv)
+      return;
 
     if(tk.end_discontinuous)
     {
@@ -186,6 +197,24 @@ public:
     }
   }
 
-  void all_notes_off() noexcept override { release_all(0); }
+  // Writing to the outlet from here would be pointless: this runs outside of a
+  // tick, and init_outlet() clears every outlet before the node runs again.
+  void all_notes_off() noexcept override { mustStop = true; }
+};
+
+//! node_process::stop() only calls all_notes_off(), whose messages nothing
+//! would ever read. Request a tick so the node can flush them itself, the way
+//! ossia::nodes::midi_node_process does.
+class pattern_node_process final : public ossia::node_process
+{
+public:
+  using ossia::node_process::node_process;
+
+  void stop() override
+  {
+    auto& n = *static_cast<pattern_node*>(node.get());
+    n.request(ossia::token_request{});
+    n.mustStop = true;
+  }
 };
 }

@@ -214,8 +214,12 @@ TEST_CASE("patternist: end_discontinuous releases inside the tick", "[midi][patt
   CHECK(f.step().empty());
 }
 
-TEST_CASE("patternist: all_notes_off clears the in-flight set", "[midi][pattern]")
+TEST_CASE("patternist: stopping releases what is held", "[midi][pattern]")
 {
+  // all_notes_off() runs outside of a tick, and init_outlet() clears every
+  // outlet before the node runs again - so writing the note-offs there sends
+  // them nowhere. The flag is consumed on the next tick instead, and the
+  // process requests one so that tick actually happens.
   fixture f;
   f.set({lane(36, {Note::Note, Note::Rest})}, 2);
 
@@ -223,11 +227,35 @@ TEST_CASE("patternist: all_notes_off clears the in-flight set", "[midi][pattern]
 
   f.port.messages.clear();
   f.node.all_notes_off();
+  CHECK(f.port.messages.empty()); // nothing written outside the tick
+
+  auto msgs = f.step();
+  REQUIRE(msgs.size() == 1);
+  CHECK(msgs[0].status == note_off);
+  CHECK(msgs[0].note == 36);
+
+  // and it is not released a second time
+  CHECK(f.step().empty());
+}
+
+TEST_CASE("patternist: the stop flag is honoured on an empty tick", "[midi][pattern]")
+{
+  // What node_process::stop() requests is a default token: prev_date == date,
+  // which the step engine otherwise skips.
+  fixture f;
+  f.set({lane(36, {Note::Note, Note::Rest})}, 2);
+
+  REQUIRE(f.step().size() == 1);
+
+  f.node.mustStop = true;
+
+  f.port.messages.clear();
+  ossia::exec_state_facade fac{&f.st};
+  static_cast<ossia::graph_node&>(f.node).run(ossia::token_request{}, fac);
+
   REQUIRE(f.port.messages.size() == 1);
   CHECK(decode(f.port.messages[0]).status == note_off);
-
-  // the next step must not release it again
-  CHECK(f.step().empty());
+  CHECK(decode(f.port.messages[0]).note == 36);
 }
 
 TEST_CASE("patternist: channels are converted to the wire range", "[midi][pattern]")
