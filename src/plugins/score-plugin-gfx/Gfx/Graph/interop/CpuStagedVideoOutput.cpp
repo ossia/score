@@ -484,9 +484,22 @@ const char* CpuStagedVideoOutput::stagingMode() const noexcept
     return "-";
   if(m_state->directReadback)
     return "direct-readback";
-  if(m_state->dvpMode)
-    return "cpu-staging-dvp";
-  return "cpu-staging";
+  // Name the rung the ring actually engaged, not the one that was asked for.
+  // These differ routinely -- DVP gets picked and demoted, AMD-pinned gets
+  // selected instead -- and reporting the intent made two genuinely different
+  // paths both read as "cpu-staging", which is exactly the kind of row that
+  // cannot be used as evidence.
+  switch(m_state->pinnedRing.backend())
+  {
+    case HostPinnedRingBackend::Dvp:
+      return "cpu-staging-dvp";
+    case HostPinnedRingBackend::AmdPinned:
+      return "cpu-staging-amdpinned";
+    case HostPinnedRingBackend::CudaHostReg:
+      return "cpu-staging-cudareg";
+    default:
+      return "cpu-staging";
+  }
 }
 
 bool CpuStagedVideoOutput::readbackPinUnmet() const noexcept
