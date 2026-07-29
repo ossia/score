@@ -95,7 +95,10 @@ public:
     // Strategy construction must come AFTER open: vendor strategies capture the
     // device handle at construction. pickStrategy may return null (no GPU-direct
     // strategy for this backend) — the CPU-staging fallback below still applies.
-    m_strategy = m_backend->pickStrategy(m_backendKind);
+    m_caps = interop::probeContextFree();
+    interop::probeFromQRhi(m_caps, &rhi);
+    interop::probeGlExtensions(m_caps, &rhi);
+    m_strategy = m_backend->pickStrategy(m_backendKind, m_caps);
 
     // SCORE_GFX_CAPTURE_STRATEGY pins a rung of the ladder for matrix testing:
     // a case-insensitive substring matched against the strategy's name()
@@ -439,6 +442,7 @@ public:
 private:
   const DMACaptureInputNode& node;
   QRhi::Implementation m_backendKind{QRhi::Null};
+  score::gfx::interop::GpuCapabilities m_caps{};
 
   std::unique_ptr<DMACaptureBackend> m_backend;
   std::unique_ptr<score::gfx::interop::VideoCaptureStrategy> m_strategy;
