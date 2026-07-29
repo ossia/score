@@ -36,7 +36,9 @@
 
 #include <score_plugin_gfx_export.h>
 
+#include <functional>
 #include <memory>
+#include <vector>
 
 namespace score::gfx
 {
@@ -92,6 +94,24 @@ struct SCORE_PLUGIN_GFX_EXPORT DMACaptureBackend
   virtual std::unique_ptr<interop::VideoCaptureStrategy>
   pickStrategy(QRhi::Implementation backend, const interop::GpuCapabilities& caps)
       = 0;
+
+  /// Every GPU-direct rung this backend can offer, best first, as factories.
+  ///
+  /// Whether a rung works is often only knowable by initialising it — NVIDIA
+  /// accepts a V4L2 EXPBUF fd and then refuses to import it; a driver's mmap
+  /// may or may not be pinnable host memory. Returning the single best guess
+  /// means one failure drops all the way to CPU staging past rungs that would
+  /// have worked, so the node walks this list instead.
+  ///
+  /// Factories rather than built strategies because constructing one can be
+  /// exclusive: a V4L2 session can only stream in one buffer mode, so the
+  /// second candidate cannot exist until the first has released it.
+  ///
+  /// The default offers just `pickStrategy`, which is the whole ladder for
+  /// backends that have one GPU path.
+  virtual std::vector<std::function<std::unique_ptr<interop::VideoCaptureStrategy>()>>
+  pickStrategies(
+      QRhi::Implementation backend, const interop::GpuCapabilities& caps);
 
   /// The universal host-staged / CPU-staging fallback strategy. Must be
   /// non-null; works on every backend.

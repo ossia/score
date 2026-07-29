@@ -19,6 +19,15 @@ namespace score::gfx
 
 DMACaptureBackend::~DMACaptureBackend() = default;
 
+std::vector<std::function<std::unique_ptr<interop::VideoCaptureStrategy>()>>
+DMACaptureBackend::pickStrategies(
+    QRhi::Implementation backend, const interop::GpuCapabilities& caps)
+{
+  std::vector<std::function<std::unique_ptr<interop::VideoCaptureStrategy>()>> v;
+  v.emplace_back([this, backend, &caps] { return pickStrategy(backend, caps); });
+  return v;
+}
+
 /**
  * @brief Generic renderer for DMA capture-card inputs.
  *
@@ -98,7 +107,7 @@ public:
     m_caps = interop::probeContextFree();
     interop::probeFromQRhi(m_caps, &rhi);
     interop::probeGlExtensions(m_caps, &rhi);
-    m_strategy = m_backend->pickStrategy(m_backendKind, m_caps);
+    auto candidates = m_backend->pickStrategies(m_backendKind, m_caps);
 
     // SCORE_GFX_CAPTURE_STRATEGY pins a rung of the ladder for matrix testing:
     // a case-insensitive substring matched against the strategy's name()
@@ -106,27 +115,11 @@ public:
     // selection is unchanged: fastest first, degrading on init failure. This is
     // how a Quadro box can be made to behave like a machine without one, which
     // is the only way to test the CPU rung on hardware that would skip it.
-    if(const auto want = qEnvironmentVariable("SCORE_GFX_CAPTURE_STRATEGY").toLower();
-       !want.isEmpty())
-    {
-      const bool forceCpu = (want == "cpu" || want == "cpu-staging");
-      const bool matches = m_strategy
-                           && QString::fromUtf8(m_strategy->name())
-                                  .toLower()
-                                  .contains(want);
-      if(forceCpu || !matches)
-      {
-        if(m_strategy)
-          qWarning() << "DMA capture: SCORE_GFX_CAPTURE_STRATEGY=" << want
-                     << "rejects" << m_strategy->name();
-        m_strategy.reset();
-      }
-      else
-      {
-        qWarning() << "DMA capture: SCORE_GFX_CAPTURE_STRATEGY=" << want
-                   << "pinned" << m_strategy->name();
-      }
-    }
+    const auto pinWant
+        = qEnvironmentVariable("SCORE_GFX_CAPTURE_STRATEGY").toLower();
+    const bool pinForceCpu = (pinWant == "cpu" || pinWant == "cpu-staging");
+    if(pinForceCpu)
+      candidates.clear();
 
     // Decoder + texture. The decoder allocates an input texture sized to the
     // card's wire byte layout; the strategy DMAs raw bytes into it and the
@@ -162,14 +155,42 @@ public:
         p.push_back(smp.texture);
       return p;
     }()};
-    if(m_strategy)
-      m_backend->setStrategy(m_strategy.get());
-    const bool firstInitOk = m_strategy && m_strategy->init(icfg);
-    if(!firstInitOk)
+    // Walk the ladder: each rung is only known to work once it initialises, so
+    // a failure moves to the next one rather than all the way to CPU staging.
+    m_strategy.reset();
+    for(auto& make : candidates)
     {
-      if(m_strategy)
-        qDebug() << "DMA capture: strategy" << m_strategy->name()
-                 << "init failed; using CPU-staging";
+      if(!make)
+        continue;
+      auto cand = make();
+      if(!cand)
+        continue;
+      if(!pinWant.isEmpty()
+         && !QString::fromUtf8(cand->name()).toLower().contains(pinWant))
+      {
+        qWarning() << "DMA capture: SCORE_GFX_CAPTURE_STRATEGY=" << pinWant
+                   << "rejects" << cand->name();
+        continue;
+      }
+      m_backend->setStrategy(cand.get());
+      if(cand->init(icfg))
+      {
+        if(!pinWant.isEmpty())
+          qWarning() << "DMA capture: SCORE_GFX_CAPTURE_STRATEGY=" << pinWant
+                     << "pinned" << cand->name();
+        m_strategy = std::move(cand);
+        break;
+      }
+      qDebug() << "DMA capture: strategy" << cand->name()
+               << "init failed; trying the next rung";
+      // Detach before destroying it: the backend keeps raw pointers to the
+      // strategy it was told about, and its capture thread must not be left
+      // holding one that is about to go away.
+      m_backend->setStrategy(nullptr);
+    }
+
+    if(!m_strategy)
+    {
       // Universal CPU-staging fallback (works on every backend).
       m_strategy = m_backend->makeCpuStrategy();
       if(m_strategy)
