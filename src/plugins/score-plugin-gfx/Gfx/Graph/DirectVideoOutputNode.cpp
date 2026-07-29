@@ -161,6 +161,11 @@ void DirectVideoOutputNode::createOutput(OutputConfiguration conf)
   // Probe GPU interop once (borrowed by CpuStagedVideoOutput's DVP ring below).
   m_caps = interop::probeContextFree();
   interop::probeFromQRhi(m_caps, m_rhi);
+  // GL-only: the AMD pinned-memory extensions are visible solely through a
+  // current GL context. Without this caps.amd stayed empty forever, so
+  // hasTier2AmdPinned() was permanently false and HostPinnedRing could never
+  // select its AmdPinned backend on any hardware.
+  interop::probeGlExtensions(m_caps, m_rhi);
 
   // VBI-paced submit pump (backend hooks wait on the output tick and submit the
   // frame off the render thread).
