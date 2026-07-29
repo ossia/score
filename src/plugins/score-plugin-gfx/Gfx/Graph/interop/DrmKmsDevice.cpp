@@ -8,6 +8,7 @@
 
 #include <dirent.h>
 #include <errno.h>
+#include <sys/ioctl.h>
 #include <fcntl.h>
 #include <poll.h>
 #include <string.h>
@@ -496,6 +497,31 @@ std::uint32_t KmsDevice::addFramebuffer(const FramebufferDesc& desc)
 
   std::uint32_t handles[4]{}, strides[4]{}, offsets[4]{};
   std::uint64_t modifiers[4]{};
+  // drmPrimeFDToHandle creates a GEM handle that belongs to this fd's handle
+  // table and is NOT released when the dma-buf fd is closed -- only
+  // DRM_IOCTL_GEM_CLOSE frees it. Importing the same buffer repeatedly (every
+  // format change, every restart) therefore grew the table until the driver
+  // refused new handles. drmModeAddFB2 takes its own reference on the
+  // underlying buffer, so the handles can be closed as soon as it returns,
+  // whether it succeeded or not.
+  const auto closeHandles = [&] {
+    for(std::uint32_t i = 0; i < 4; ++i)
+    {
+      if(!handles[i])
+        continue;
+      // Duplicate planes of a single-buffer layout share one handle; closing
+      // it twice would EINVAL, so skip any repeat.
+      bool dup = false;
+      for(std::uint32_t j = 0; j < i; ++j)
+        if(handles[j] == handles[i])
+          dup = true;
+      if(dup)
+        continue;
+      drm_gem_close gc{};
+      gc.handle = handles[i];
+      ::ioctl(d->fd, DRM_IOCTL_GEM_CLOSE, &gc);
+    }
+  };
   for(std::uint32_t i = 0; i < desc.planeCount && i < 4; ++i)
   {
     if(desc.fd[i] < 0)
@@ -504,6 +530,7 @@ std::uint32_t KmsDevice::addFramebuffer(const FramebufferDesc& desc)
     if(d->drm.primeFDToHandle(d->fd, desc.fd[i], &h) != 0)
     {
       d->fail("drmPrimeFDToHandle");
+      closeHandles();
       return 0;
     }
     handles[i] = h;
@@ -519,6 +546,7 @@ std::uint32_t KmsDevice::addFramebuffer(const FramebufferDesc& desc)
       d->fd, desc.width, desc.height, desc.fourcc, handles, strides, offsets,
       withMods ? modifiers : nullptr, &fbId,
       withMods ? DRM_MODE_FB_MODIFIERS : 0);
+  closeHandles();
   if(r != 0)
   {
     d->fail("drmModeAddFB2WithModifiers");
@@ -636,7 +664,14 @@ FlipEvent KmsDevice::waitFlip(int timeoutMs)
   pollfd pfd{};
   pfd.fd = d->fd;
   pfd.events = POLLIN;
-  const int pr = ::poll(&pfd, 1, timeoutMs);
+  // EINTR is not an error: any signal delivered to this thread (a profiler, a
+  // debugger attaching, SIGWINCH) would otherwise be reported as a failed flip
+  // wait and drop the frame.
+  int pr = 0;
+  do
+  {
+    pr = ::poll(&pfd, 1, timeoutMs);
+  } while(pr < 0 && errno == EINTR);
   if(pr <= 0)
   {
     if(pr < 0)
