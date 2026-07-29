@@ -171,6 +171,19 @@ struct SCORE_PLUGIN_GFX_EXPORT GpuCapabilities
     return dvpLoaded && (dvpHaveGl || dvpHaveD3D11 || dvpHaveCuda);
   }
 
+  /** True when the GPU is positively identified as one that cannot run the
+   *  NVIDIA-only interop paths (DVP, CUDA RDMA), whatever the loaders report:
+   *  `dvpLoaded` only says libdvp is installed, and it can be installed on a
+   *  machine whose GPU is a Radeon.
+   *
+   *  `Unknown` deliberately returns false, so an unidentified GPU still tries
+   *  and degrades on init failure exactly as before. */
+  constexpr bool rulesOutNvidiaPaths() const noexcept
+  {
+    return vendor == GpuVendor::Amd || vendor == GpuVendor::Intel
+           || vendor == GpuVendor::Apple;
+  }
+
   /** True when this system can do AMD pinned-host transfer. */
   constexpr bool hasTier2AmdPinned() const noexcept
   {
