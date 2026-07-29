@@ -55,7 +55,34 @@ HostPinnedRingBackend pickBackend(const HostPinnedRingConfig& cfg) noexcept
   if(!cfg.caps || !cfg.rhi)
     return HostPinnedRingBackend::CpuStaging;
 
-  if(cfg.caps->dvpLoaded)
+  // Checked before DVP: DVP is NVIDIA-only, but `dvpLoaded` merely says libdvp
+  // is installed, which it can be on a box whose GPU is a Radeon. Picking DVP
+  // there inits, fails, and demotes straight to CPU staging without ever
+  // reaching this rung.
+  //
+  // Allowed everywhere except Mesa. radeonsi accepts the pinned buffer at
+  // glBufferData and then rejects it at command submission ("amdgpu: The CS has
+  // been rejected ... (-14)"), aborting the process from its own CS thread --
+  // no in-process check can demote out of that. AMD's own Windows driver runs
+  // the same rung correctly; measured engaging and passing on a W6800 there.
+  // The driver string is the only thing that separates them: Mesa puts "Mesa"
+  // in it, the Windows driver reports a bare version.
+  // SCORE_GFX_ENABLE_AMD_PINNED=1/0 forces it on or off.
+  if(cfg.caps->vendor == GpuVendor::Amd
+     && cfg.rhi->backend() == QRhi::OpenGLES2
+     && cfg.caps->hasTier2AmdPinned())
+  {
+    bool allowed = std::strstr(cfg.caps->rendererName, "Mesa") == nullptr;
+    if(const auto forced = qEnvironmentVariable("SCORE_GFX_ENABLE_AMD_PINNED");
+       !forced.isEmpty())
+      allowed = (forced != "0");
+    if(allowed)
+      return HostPinnedRingBackend::AmdPinned;
+  }
+
+  // DVP is NVIDIA's; on a Radeon the init can only fail, after warning the user
+  // to set QT_XCB_GL_INTEGRATION=xcb_glx for a path that will never work there.
+  if(cfg.caps->dvpLoaded && cfg.caps->vendor != GpuVendor::Amd)
   {
     switch(cfg.rhi->backend())
     {
@@ -71,11 +98,6 @@ HostPinnedRingBackend pickBackend(const HostPinnedRingConfig& cfg) noexcept
         break;
     }
   }
-
-  if(cfg.caps->vendor == GpuVendor::Amd
-     && cfg.rhi->backend() == QRhi::OpenGLES2
-     && cfg.caps->hasTier2AmdPinned())
-    return HostPinnedRingBackend::AmdPinned;
 
   if(cfg.caps->cudaLoaded
      && (cfg.caps->vendor == GpuVendor::NvidiaConsumer
