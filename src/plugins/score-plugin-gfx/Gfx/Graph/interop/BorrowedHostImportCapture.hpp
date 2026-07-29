@@ -23,13 +23,20 @@
  * tells the producer which buffers it may reuse, and a producer that ignores
  * the latter will starve its own queue.
  *
- * Vulkan only: VK_EXT_external_memory_host is the only portable way to point
- * the GPU at existing host pages. init() returns false on every other backend
- * (and when the extension is missing, or a pointer is not aligned to
- * minImportedHostPointerAlignment), so the renderer degrades to the CPU rung.
+ * Two backends can point the GPU at existing host pages:
+ * Vulkan through VK_EXT_external_memory_host, and D3D12 through
+ * ID3D12Device3::OpenExistingHeapFromAddress. init() picks whichever the live
+ * QRhi offers and returns false on the rest -- OpenGL has no equivalent, and
+ * D3D11 has no public API to wrap application memory at all -- so the renderer
+ * degrades to the CPU rung there.
+ *
+ * The two disagree on what they will accept, and the stricter of the pair wins:
+ * D3D12 needs a 64 KB-granularity VirtualAlloc address (hence importableAlloc,
+ * which Vulkan also accepts) and a 256-byte-aligned row pitch.
  */
 
 #include <Gfx/Graph/interop/CaptureStrategyCommon.hpp>
+#include <Gfx/Graph/interop/D3D12HostImportUpload.hpp>
 #include <Gfx/Graph/interop/VideoCaptureStrategy.hpp>
 #include <Gfx/Graph/interop/VkHostImportUpload.hpp>
 
@@ -85,11 +92,14 @@ struct BorrowedHostImportCapture final : VideoCaptureStrategy
     if(m_buffers.size() > BorrowedSlotTracker::kMaxSlots)
       m_buffers.resize(BorrowedSlotTracker::kMaxSlots);
 
-    const std::size_t align = VkHostImportUpload::requiredAlignment(*cfg.rhi);
+    const std::size_t vkAlign = VkHostImportUpload::requiredAlignment(*cfg.rhi);
+    const std::size_t d3dAlign = D3D12HostImportUpload::requiredAlignment(*cfg.rhi);
+    const std::size_t align = vkAlign ? vkAlign : d3dAlign;
     if(align == 0)
     {
       qDebug() << m_name.c_str()
-               << ": not Vulkan, or no VK_EXT_external_memory_host";
+               << ": backend has no host-import path (needs Vulkan with "
+                  "VK_EXT_external_memory_host, or D3D12)";
       return false;
     }
 
@@ -123,15 +133,23 @@ struct BorrowedHostImportCapture final : VideoCaptureStrategy
       return false;
     }
 
-    if(!m_hostImport.init(*cfg.rhi, ptrs, cfg.frameByteSize))
+    // The producer's stride; D3D12 builds its copy footprint from it.
+    const std::size_t rowPitch
+        = cfg.height > 0 ? cfg.frameByteSize / std::size_t(cfg.height) : 0;
+
+    const bool ok = vkAlign ? m_hostImport.init(*cfg.rhi, ptrs, cfg.frameByteSize)
+                            : m_d3dImport.init(
+                                  *cfg.rhi, ptrs, cfg.frameByteSize, rowPitch);
+    if(!ok)
     {
       // Expected on drivers whose mmap does not hand back ordinary pinnable
       // host pages: VK_EXT_external_memory_host can only import memory
       // vkGetMemoryHostPointerPropertiesEXT accepts, and a mapping of the
       // device's own DMA buffers frequently is not that.
-      qDebug() << m_name.c_str() << ": the driver's mappings cannot be imported "
+      qDebug() << m_name.c_str() << ": the producer's buffers cannot be imported "
                                     "as host memory; staying on the CPU rung";
       m_hostImport.release();
+      m_d3dImport.release();
       return false;
     }
     m_tracker.reset();
@@ -143,6 +161,7 @@ struct BorrowedHostImportCapture final : VideoCaptureStrategy
   void release() override
   {
     m_hostImport.release();
+    m_d3dImport.release();
     m_tracker.reset();
   }
 
@@ -182,9 +201,14 @@ struct BorrowedHostImportCapture final : VideoCaptureStrategy
     if(slot < 0)
       return;
     const auto sz = cfg.outputTexture->pixelSize();
-    m_hostImport.copyToTexture(
-        *cb, *cfg.outputTexture, static_cast<std::size_t>(slot), sz.width(),
-        sz.height());
+    if(m_hostImport.valid())
+      m_hostImport.copyToTexture(
+          *cb, *cfg.outputTexture, static_cast<std::size_t>(slot), sz.width(),
+          sz.height());
+    else
+      m_d3dImport.copyToTexture(
+          *cb, *cfg.outputTexture, static_cast<std::size_t>(slot), sz.width(),
+          sz.height());
   }
 
   void releaseAfterRender() override { }
@@ -194,6 +218,7 @@ private:
   std::vector<BorrowedHostBuffer> m_buffers;
   VideoCaptureStrategyConfig cfg{};
   VkHostImportUpload m_hostImport;
+  D3D12HostImportUpload m_d3dImport;
   BorrowedSlotTracker m_tracker;
 };
 
