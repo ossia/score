@@ -23,6 +23,7 @@
 //     alpha and RGB-ness. A mismatch there is a real bug, not a test artifact.
 
 #include <Gfx/Graph/interop/VideoPixelFormat.hpp>
+#include <Gfx/Graph/interop/DirectShowPixelFormat.hpp>
 #include <Gfx/Graph/interop/VideoPixelFormatAV.hpp>
 #if defined(__linux__)
 #include <Gfx/Graph/interop/V4L2PixelFormat.hpp>
@@ -1008,4 +1009,58 @@ TEST_CASE("byte order is declared exactly when FFmpeg spells one",
     else
       CHECK(i->byteOrder == vpf::ByteOrder::NA);
   }
+}
+
+// The DirectShow fourcc table, pinned by literal fourcc. This is Windows-only
+// data, but keeping it in fourcc terms makes it testable on any host, which is
+// the point: the mapping it replaces lived in Windows-only code and had gone
+// unexercised long enough to accumulate a chroma swap and a "not sure".
+TEST_CASE("DirectShow fourccs resolve to the right layout", "[gfx][pixfmt][dshow]")
+{
+  using vpf::directShowFourcc;
+  const auto f = [](const char* s) {
+    return directShowFourcc(s[0], s[1], s[2], s[3]);
+  };
+  struct Pin { const char* fourcc; V expect; };
+  static const Pin kPins[] = {
+      // packed 4:2:2
+      {"YUY2", V::YUYV422}, {"YUYV", V::YUYV422}, {"UYVY", V::UYVY422},
+      {"Y422", V::UYVY422}, {"YVYU", V::YVYU422},
+      {"Y210", V::Y210},    {"Y216", V::Y216},    {"V216", V::V216},
+      // planar; the V-before-U spellings must not collapse onto the U-first ones
+      {"I420", V::YUV420P}, {"IYUV", V::YUV420P}, {"YV12", V::YVU420P},
+      {"YV16", V::YVU422P}, {"YVU9", V::YVU410P},
+      // semi-planar
+      {"NV12", V::NV12}, {"NV21", V::NV21}, {"NV16", V::NV16},
+      {"P208", V::NV16}, {"NV24", V::NV24}, {"P408", V::NV24},
+      {"NV42", V::NV42}, {"P010", V::P010}, {"P210", V::P210},
+      {"P216", V::P216},
+      // packed 4:4:4 and 4:1:1
+      {"AYUV", V::VUYA}, {"Y410", V::XV30}, {"Y416", V::AYUV64},
+      {"Y41P", V::UYYVYY411},
+      // single channel
+      {"GREY", V::Mono8}, {"Y800", V::Mono8}, {"Y160", V::Mono16},
+  };
+  for(const auto& p : kPins)
+  {
+    INFO("fourcc " << p.fourcc);
+    CHECK(vpf::fromDirectShowFourcc(f(p.fourcc)) == p.expect);
+  }
+  // YV12 and I420 are the same geometry and differ only in plane order, so the
+  // swap must be visible in the vocabulary rather than lost.
+  CHECK(vpf::chromaSwappedTwin(vpf::fromDirectShowFourcc(f("YV12")))
+        == vpf::fromDirectShowFourcc(f("I420")));
+  CHECK(vpf::chromaSwappedTwin(vpf::fromDirectShowFourcc(f("YV16")))
+        == V::YUV422P);
+  CHECK(vpf::chromaSwappedTwin(vpf::fromDirectShowFourcc(f("YVU9")))
+        == V::YUV410P);
+  // Compressed subtypes are on the codec axis.
+  for(const char* c : {"MJPG", "TVMJ", "WAKE", "Plum", "H264"})
+  {
+    INFO("compressed " << c);
+    CHECK(vpf::isDirectShowCompressedFourcc(f(c)));
+    CHECK(vpf::fromDirectShowFourcc(f(c)) == V::Unknown);
+  }
+  CHECK_FALSE(vpf::isDirectShowCompressedFourcc(f("NV12")));
+  CHECK(vpf::fromDirectShowFourcc(0) == V::Unknown);
 }
