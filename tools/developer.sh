@@ -47,6 +47,10 @@ detect_deps_script() {
       plucky)
         DEPS=ubuntu.plucky
         return 0;;
+      resolute)
+	DEPS=ubuntu.2604
+        export PKGS="${PKGS:-clang-22 lld-22 libclang-22-dev llvm-22-dev}"
+	return 0;;
       leap)
         DEPS=suse-leap
         return 0;;
