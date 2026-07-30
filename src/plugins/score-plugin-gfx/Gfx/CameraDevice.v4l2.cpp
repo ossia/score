@@ -30,99 +30,63 @@ void *v4l2_mmap(void *start, size_t length, int prot, int flags,
 int v4l2_munmap(void *_start, size_t length);
 }
 
+#include <Gfx/Graph/interop/V4L2PixelFormat.hpp>
+#include <Gfx/Graph/interop/VideoPixelFormatAV.hpp>
+
 namespace Gfx
 {
 namespace
 {
-// Imported from ffmpeg source code
-struct fmt_map
+// V4L2 exposes two kinds of fourcc: raw buffer layouts, and compressed
+// streams. The layouts are described once, in interop/V4L2PixelFormat, shared
+// with the DMA capture path -- this file used to carry a second, independently
+// maintained copy of that mapping. Only the codec side stays here, because a
+// codec is not a pixel format.
+struct compressed_fmt
 {
-  enum AVPixelFormat ff_fmt;
-  enum AVCodecID codec_id;
   uint32_t v4l2_fmt;
+  AVCodecID codec_id;
 };
 
-const struct fmt_map ff_fmt_conversion_table[] = {
-    //ff_fmt              codec_id              v4l2_fmt
-    {AV_PIX_FMT_YUV420P, AV_CODEC_ID_RAWVIDEO, V4L2_PIX_FMT_YUV420},
-    {AV_PIX_FMT_YUV420P, AV_CODEC_ID_RAWVIDEO, V4L2_PIX_FMT_YVU420},
-    {AV_PIX_FMT_YUV422P, AV_CODEC_ID_RAWVIDEO, V4L2_PIX_FMT_YUV422P},
-    {AV_PIX_FMT_YUYV422, AV_CODEC_ID_RAWVIDEO, V4L2_PIX_FMT_YUYV},
-    {AV_PIX_FMT_UYVY422, AV_CODEC_ID_RAWVIDEO, V4L2_PIX_FMT_UYVY},
-    {AV_PIX_FMT_YUV411P, AV_CODEC_ID_RAWVIDEO, V4L2_PIX_FMT_YUV411P},
-    {AV_PIX_FMT_YUV410P, AV_CODEC_ID_RAWVIDEO, V4L2_PIX_FMT_YUV410},
-    {AV_PIX_FMT_YUV410P, AV_CODEC_ID_RAWVIDEO, V4L2_PIX_FMT_YVU410},
-    {AV_PIX_FMT_RGB555LE, AV_CODEC_ID_RAWVIDEO, V4L2_PIX_FMT_RGB555},
-    {AV_PIX_FMT_RGB555BE, AV_CODEC_ID_RAWVIDEO, V4L2_PIX_FMT_RGB555X},
-    {AV_PIX_FMT_RGB565LE, AV_CODEC_ID_RAWVIDEO, V4L2_PIX_FMT_RGB565},
-    {AV_PIX_FMT_RGB565BE, AV_CODEC_ID_RAWVIDEO, V4L2_PIX_FMT_RGB565X},
-    {AV_PIX_FMT_BGR24, AV_CODEC_ID_RAWVIDEO, V4L2_PIX_FMT_BGR24},
-    {AV_PIX_FMT_RGB24, AV_CODEC_ID_RAWVIDEO, V4L2_PIX_FMT_RGB24},
-#ifdef V4L2_PIX_FMT_XBGR32
-    {AV_PIX_FMT_BGR0, AV_CODEC_ID_RAWVIDEO, V4L2_PIX_FMT_XBGR32},
-    {AV_PIX_FMT_0RGB, AV_CODEC_ID_RAWVIDEO, V4L2_PIX_FMT_XRGB32},
-    {AV_PIX_FMT_BGRA, AV_CODEC_ID_RAWVIDEO, V4L2_PIX_FMT_ABGR32},
-    {AV_PIX_FMT_ARGB, AV_CODEC_ID_RAWVIDEO, V4L2_PIX_FMT_ARGB32},
-#endif
-    {AV_PIX_FMT_BGR0, AV_CODEC_ID_RAWVIDEO, V4L2_PIX_FMT_BGR32},
-    {AV_PIX_FMT_0RGB, AV_CODEC_ID_RAWVIDEO, V4L2_PIX_FMT_RGB32},
-    {AV_PIX_FMT_GRAY8, AV_CODEC_ID_RAWVIDEO, V4L2_PIX_FMT_GREY},
-#ifdef V4L2_PIX_FMT_Y16
-    {AV_PIX_FMT_GRAY16LE, AV_CODEC_ID_RAWVIDEO, V4L2_PIX_FMT_Y16},
-#endif
-#ifdef V4L2_PIX_FMT_Z16
-    {AV_PIX_FMT_GRAY16LE, AV_CODEC_ID_RAWVIDEO, V4L2_PIX_FMT_Z16},
-#endif
-    {AV_PIX_FMT_NV12, AV_CODEC_ID_RAWVIDEO, V4L2_PIX_FMT_NV12},
-    {AV_PIX_FMT_NONE, AV_CODEC_ID_MJPEG, V4L2_PIX_FMT_MJPEG},
-    {AV_PIX_FMT_NONE, AV_CODEC_ID_MJPEG, V4L2_PIX_FMT_JPEG},
+const compressed_fmt compressed_formats[] = {
+    {V4L2_PIX_FMT_MJPEG, AV_CODEC_ID_MJPEG},
+    {V4L2_PIX_FMT_JPEG, AV_CODEC_ID_MJPEG},
 #ifdef V4L2_PIX_FMT_H264
-    {AV_PIX_FMT_NONE, AV_CODEC_ID_H264, V4L2_PIX_FMT_H264},
+    {V4L2_PIX_FMT_H264, AV_CODEC_ID_H264},
 #endif
 #ifdef V4L2_PIX_FMT_MPEG4
-    {AV_PIX_FMT_NONE, AV_CODEC_ID_MPEG4, V4L2_PIX_FMT_MPEG4},
+    {V4L2_PIX_FMT_MPEG4, AV_CODEC_ID_MPEG4},
 #endif
 #ifdef V4L2_PIX_FMT_CPIA1
-    {AV_PIX_FMT_NONE, AV_CODEC_ID_CPIA, V4L2_PIX_FMT_CPIA1},
+    {V4L2_PIX_FMT_CPIA1, AV_CODEC_ID_CPIA},
 #endif
-#ifdef V4L2_PIX_FMT_SRGGB8
-    {AV_PIX_FMT_BAYER_BGGR8, AV_CODEC_ID_RAWVIDEO, V4L2_PIX_FMT_SBGGR8},
-    {AV_PIX_FMT_BAYER_GBRG8, AV_CODEC_ID_RAWVIDEO, V4L2_PIX_FMT_SGBRG8},
-    {AV_PIX_FMT_BAYER_GRBG8, AV_CODEC_ID_RAWVIDEO, V4L2_PIX_FMT_SGRBG8},
-    {AV_PIX_FMT_BAYER_RGGB8, AV_CODEC_ID_RAWVIDEO, V4L2_PIX_FMT_SRGGB8},
-#endif
-    {AV_PIX_FMT_NONE, AV_CODEC_ID_NONE, 0},
 };
 
-enum AVPixelFormat ff_fmt_v4l2ff(uint32_t v4l2_fmt, enum AVCodecID codec_id)
+AVCodecID ff_fmt_v4l2codec(uint32_t v4l2_fmt)
 {
-  int i;
-
-  for(i = 0; ff_fmt_conversion_table[i].codec_id != AV_CODEC_ID_NONE; i++)
-  {
-    if(ff_fmt_conversion_table[i].v4l2_fmt == v4l2_fmt
-       && ff_fmt_conversion_table[i].codec_id == codec_id)
-    {
-      return ff_fmt_conversion_table[i].ff_fmt;
-    }
-  }
-
-  return AV_PIX_FMT_NONE;
+  for(const auto& c : compressed_formats)
+    if(c.v4l2_fmt == v4l2_fmt)
+      return c.codec_id;
+  return score::gfx::interop::fromV4L2PixelFormat(v4l2_fmt)
+                 != score::gfx::interop::VideoPixelFormat::Unknown
+             ? AV_CODEC_ID_RAWVIDEO
+             : AV_CODEC_ID_NONE;
 }
 
-enum AVCodecID ff_fmt_v4l2codec(uint32_t v4l2_fmt)
+AVPixelFormat ff_fmt_v4l2ff(uint32_t v4l2_fmt, AVCodecID codec_id)
 {
-  int i;
+  if(codec_id != AV_CODEC_ID_RAWVIDEO)
+    return AV_PIX_FMT_NONE;
 
-  for(i = 0; ff_fmt_conversion_table[i].codec_id != AV_CODEC_ID_NONE; i++)
-  {
-    if(ff_fmt_conversion_table[i].v4l2_fmt == v4l2_fmt)
-    {
-      return ff_fmt_conversion_table[i].codec_id;
-    }
-  }
-
-  return AV_CODEC_ID_NONE;
+  using namespace score::gfx::interop;
+  const auto layout = fromV4L2PixelFormat(v4l2_fmt);
+  if(const auto av = toAVPixelFormat(layout); av != AV_PIX_FMT_NONE)
+    return av;
+  // The V-before-U layouts have no AVPixelFormat of their own. Name the twin so
+  // the format stays offered, as it was before this mapping was shared; a
+  // consumer wanting correct chroma must exchange the U and V planes, which
+  // chromaSwappedTwin() is what records.
+  return toAVPixelFormat(chromaSwappedTwin(layout));
 }
 
 class libv4l2
