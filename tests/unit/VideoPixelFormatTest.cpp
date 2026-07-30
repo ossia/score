@@ -442,7 +442,12 @@ TEST_CASE("descriptors agree with FFmpeg for every mapped format",
     CHECK(i->verticalSubsampling == (1 << d->log2_chroma_h));
     CHECK(i->isPlanar() == ((d->flags & AV_PIX_FMT_FLAG_PLANAR) != 0));
     CHECK(i->hasAlpha == ((d->flags & AV_PIX_FMT_FLAG_ALPHA) != 0));
-    CHECK(i->isRgb() == ((d->flags & AV_PIX_FMT_FLAG_RGB) != 0));
+    // FFmpeg's RGB flag means "components are R/G/B rather than luma+chroma",
+    // which is true of a Bayer mosaic too. We keep Bayer as its own colour model
+    // because a demosaic has to run before the samples are RGB in any usable
+    // sense, so the two agree on everything except that naming.
+    CHECK((i->isRgb() || i->colorModel == ColorModel::Bayer)
+          == ((d->flags & AV_PIX_FMT_FLAG_RGB) != 0));
     // FFmpeg marks big-endian layouts explicitly; little-endian and
     // order-agnostic ones must not carry the flag.
     const bool avBigEndian = (d->flags & AV_PIX_FMT_FLAG_BE) != 0;
