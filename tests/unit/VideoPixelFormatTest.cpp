@@ -24,6 +24,7 @@
 
 #include <Gfx/Graph/interop/VideoPixelFormat.hpp>
 #include <Gfx/Graph/interop/DirectShowPixelFormat.hpp>
+#include <Gfx/Graph/interop/DrmPixelFormat.hpp>
 #include <Gfx/Graph/interop/VideoPixelFormatAV.hpp>
 #if defined(__linux__)
 #include <Gfx/Graph/interop/V4L2PixelFormat.hpp>
@@ -92,6 +93,8 @@ static_assert(uint16_t(V::DPX10LE) == 15);
 static_assert(uint16_t(V::RGB12P) == 16);
 static_assert(uint16_t(V::RGB48) == 17);
 static_assert(uint16_t(V::RGB10) == 18);
+static_assert(uint16_t(V::X2RGB10) == 120);
+static_assert(uint16_t(V::X2BGR10) == 121);
 static_assert(uint16_t(V::RGB332) == 90);
 static_assert(uint16_t(V::RGB565) == 91);
 static_assert(uint16_t(V::RGB565BE) == 92);
@@ -167,7 +170,7 @@ TEST_CASE("the vocabulary is non-trivial and self-consistent", "[gfx][pixfmt]")
   const auto all = described();
   REQUIRE(all.size() == vpf::formatCount());
   // Guards against the table being accidentally emptied or halved.
-  CHECK(all.size() == 88);
+  CHECK(all.size() == 90);
 
   for(const auto* i : all)
   {
@@ -486,7 +489,7 @@ TEST_CASE("AV bridge: score -> AV -> score round-trip", "[gfx][pixfmt][av]")
     CHECK(vpf::fromAVPixelFormat(av) == i->format);
   }
   // Exact, not a floor: a floor lets a batch of mappings be deleted silently.
-  CHECK(twins == 58);
+  CHECK(twins == 60);
 }
 
 TEST_CASE("AV bridge: AV -> score -> AV round-trip", "[gfx][pixfmt][av]")
@@ -672,6 +675,8 @@ TEST_CASE("every AV mapping is pinned to a named FFmpeg format", "[gfx][pixfmt][
     {V::XRGB8, "0rgb"},
     {V::XBGR8, "0bgr"},
     {V::RGB48, "rgb48le"},
+    {V::X2RGB10, "x2rgb10le"},
+    {V::X2BGR10, "x2bgr10le"},
     {V::RGB565, "rgb565le"},
     {V::RGB565BE, "rgb565be"},
     {V::RGB555, "rgb555le"},
@@ -740,7 +745,7 @@ TEST_CASE("every AV mapping is pinned to a named FFmpeg format", "[gfx][pixfmt][
       CHECK(pinned.count(i->format) == 1);
     }
   }
-  CHECK(pinned.size() == 58);
+  CHECK(pinned.size() == 60);
 }
 
 #if defined(__linux__)
@@ -979,7 +984,7 @@ TEST_CASE("wire-only descriptors are frozen", "[gfx][pixfmt]")
   }
   CHECK(frozen.size() == 30);
   // and together the two sets are the whole vocabulary
-  CHECK(frozen.size() + 58u == vpf::formatCount());
+  CHECK(frozen.size() + 60u == vpf::formatCount());
 }
 
 // The byteOrder rule stated in the header has two halves; only the first was
@@ -1063,4 +1068,59 @@ TEST_CASE("DirectShow fourccs resolve to the right layout", "[gfx][pixfmt][dshow
   }
   CHECK_FALSE(vpf::isDirectShowCompressedFourcc(f("NV12")));
   CHECK(vpf::fromDirectShowFourcc(0) == V::Unknown);
+}
+
+// DRM fourccs, pinned by literal characters. A DRM name reads in machine-word
+// order, so the memory byte order is its reverse -- DRM_ARGB8888 is B,G,R,A in
+// memory. Getting that inversion wrong is the most common red/blue swap on the
+// dma-buf path, so the direction is asserted explicitly rather than left to a
+// round-trip that would accept either reading.
+TEST_CASE("DRM fourccs resolve with the word-order inversion", "[gfx][pixfmt][drm]")
+{
+  using vpf::drmPixelFourcc;
+  const auto f = [](const char* s) { return drmPixelFourcc(s[0], s[1], s[2], s[3]); };
+  struct Pin { const char* fourcc; V expect; };
+  static const Pin kPins[] = {
+      // the inversion: the name says ARGB, memory holds B,G,R,A
+      {"AR24", V::BGRA8},   {"AB24", V::RGBA8},
+      {"XR24", V::BGRX8},   {"XB24", V::RGBX8},
+      {"RA24", V::ABGR8},   {"BA24", V::ARGB8},
+      {"RG24", V::BGR24},   {"BG24", V::RGB24},
+      {"RG16", V::RGB565},
+      {"AR30", V::X2RGB10}, {"AB30", V::X2BGR10},
+      {"AB4H", V::RGBA16F},
+      // semi-planar and planar
+      {"NV12", V::NV12}, {"NV21", V::NV21}, {"NV16", V::NV16},
+      {"NV61", V::NV61}, {"NV24", V::NV24}, {"NV42", V::NV42},
+      {"P010", V::P010}, {"P210", V::P210}, {"P410", V::P416},
+      {"YU12", V::YUV420P}, {"YV12", V::YVU420P},
+      {"YU16", V::YUV422P}, {"YV16", V::YVU422P},
+      {"YU24", V::YUV444P},
+      // packed 4:2:2
+      {"YUYV", V::YUYV422}, {"YVYU", V::YVYU422},
+      {"UYVY", V::UYVY422}, {"VYUY", V::VYUY422},
+      // single channel
+      {"R8  ", V::Mono8}, {"R16 ", V::Mono16},
+  };
+  std::set<V> pinned;
+  for(const auto& p : kPins)
+  {
+    INFO("DRM fourcc " << p.fourcc);
+    CHECK(vpf::fromDrmFourcc(f(p.fourcc)) == p.expect);
+    CHECK(vpf::toDrmFourcc(p.expect) == f(p.fourcc));
+    pinned.insert(p.expect);
+  }
+  for(const auto* i : described())
+  {
+    if(vpf::toDrmFourcc(i->format) != 0)
+    {
+      INFO(i->name << " has a DRM fourcc but is not pinned");
+      CHECK(pinned.count(i->format) == 1);
+    }
+  }
+  // The V-first DRM layouts must keep their swap visible, exactly as elsewhere.
+  CHECK(vpf::chromaSwappedTwin(vpf::fromDrmFourcc(f("YV12"))) == V::YUV420P);
+  CHECK(vpf::chromaSwappedTwin(vpf::fromDrmFourcc(f("YV16"))) == V::YUV422P);
+  CHECK(vpf::fromDrmFourcc(0) == V::Unknown);
+  CHECK(vpf::toDrmFourcc(V::Unknown) == 0);
 }
