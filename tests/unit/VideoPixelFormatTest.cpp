@@ -30,6 +30,8 @@
 #endif
 
 extern "C" {
+#include <libavutil/imgutils.h>
+#include <libavutil/imgutils.h>
 #include <libavutil/pixdesc.h>
 }
 
@@ -37,6 +39,8 @@ extern "C" {
 
 #include <set>
 #include <string>
+#include <string_view>
+#include <string_view>
 #include <vector>
 
 namespace vpf = score::gfx::interop;
@@ -85,7 +89,7 @@ TEST_CASE("the vocabulary is non-trivial and self-consistent", "[gfx][pixfmt]")
   const auto all = described();
   REQUIRE(all.size() == vpf::formatCount());
   // Guards against the table being accidentally emptied or halved.
-  CHECK(all.size() >= 69);
+  CHECK(all.size() == 88);
 
   for(const auto* i : all)
   {
@@ -403,9 +407,8 @@ TEST_CASE("AV bridge: score -> AV -> score round-trip", "[gfx][pixfmt][av]")
     INFO("format " << i->name << " -> " << av_get_pix_fmt_name(av));
     CHECK(vpf::fromAVPixelFormat(av) == i->format);
   }
-  // The bridge is meant to cover most of the vocabulary; a collapse to a
-  // handful would mean the switch lost its cases.
-  CHECK(twins >= 40);
+  // Exact, not a floor: a floor lets a batch of mappings be deleted silently.
+  CHECK(twins == 58);
 }
 
 TEST_CASE("AV bridge: AV -> score -> AV round-trip", "[gfx][pixfmt][av]")
@@ -518,9 +521,8 @@ TEST_CASE("V4L2 fourccs round-trip through the vocabulary", "[gfx][pixfmt][v4l2]
     INFO("format " << i->name);
     CHECK(vpf::fromV4L2PixelFormat(fourcc) == i->format);
   }
-  // The V4L2 camera formats are a large slice of the vocabulary; a collapse
-  // here would mean the table lost its cases.
-  CHECK(mapped >= 40);
+  // Exact, for the same reason as the AV count.
+  CHECK(mapped == 54);
   CHECK(vpf::fromV4L2PixelFormat(0) == V::Unknown);
   CHECK(vpf::fromV4L2PixelFormat(0xDEADBEEF) == V::Unknown);
   // Compressed fourccs are on the codec axis and must not resolve to a layout.
@@ -661,4 +663,159 @@ TEST_CASE("every AV mapping is pinned to a named FFmpeg format", "[gfx][pixfmt][
     }
   }
   CHECK(pinned.size() == 58);
+}
+
+#if defined(__linux__)
+// Every V4L2 fourcc pinned to the kernel constant. The round-trip sweep only
+// composes to/from, so swapping two same-geometry formats in BOTH directions --
+// NV12 with NV21 -- satisfies it while every camera silently delivers exchanged
+// chroma.
+TEST_CASE("every V4L2 mapping is pinned to a kernel constant", "[gfx][pixfmt][v4l2]")
+{
+  struct Pin { V f; uint32_t fourcc; };
+  static const Pin kFourcc[] = {
+      {V::UYVY422, V4L2_PIX_FMT_UYVY},
+      {V::YUYV422, V4L2_PIX_FMT_YUYV},
+      {V::YVYU422, V4L2_PIX_FMT_YVYU},
+      {V::VYUY422, V4L2_PIX_FMT_VYUY},
+      {V::NV12, V4L2_PIX_FMT_NV12},
+      {V::NV21, V4L2_PIX_FMT_NV21},
+      {V::NV16, V4L2_PIX_FMT_NV16},
+      {V::NV61, V4L2_PIX_FMT_NV61},
+      {V::NV24, V4L2_PIX_FMT_NV24},
+      {V::NV42, V4L2_PIX_FMT_NV42},
+      {V::YUV420P, V4L2_PIX_FMT_YUV420},
+      {V::YVU420P, V4L2_PIX_FMT_YVU420},
+      {V::YUV422P, V4L2_PIX_FMT_YUV422P},
+      {V::YUV411P, V4L2_PIX_FMT_YUV411P},
+      {V::YUV410P, V4L2_PIX_FMT_YUV410},
+      {V::YVU410P, V4L2_PIX_FMT_YVU410},
+      {V::VUYA, V4L2_PIX_FMT_VUYA32},
+      {V::VUYX, V4L2_PIX_FMT_VUYX32},
+      {V::AYUV, V4L2_PIX_FMT_AYUV32},
+      {V::XYUV, V4L2_PIX_FMT_XYUV32},
+      {V::YUVA, V4L2_PIX_FMT_YUVA32},
+      {V::YUVX, V4L2_PIX_FMT_YUVX32},
+      {V::AYUV4444, V4L2_PIX_FMT_YUV444},
+      {V::AYUV1555, V4L2_PIX_FMT_YUV555},
+      {V::YUV565, V4L2_PIX_FMT_YUV565},
+      {V::ARGB8, V4L2_PIX_FMT_ARGB32},
+      {V::XRGB8, V4L2_PIX_FMT_XRGB32},
+      {V::BGRA8, V4L2_PIX_FMT_ABGR32},
+      {V::BGRX8, V4L2_PIX_FMT_XBGR32},
+#ifdef V4L2_PIX_FMT_RGBA32
+      {V::RGBA8, V4L2_PIX_FMT_RGBA32},
+#endif
+#ifdef V4L2_PIX_FMT_RGBA32
+      {V::RGBX8, V4L2_PIX_FMT_RGBX32},
+#endif
+#ifdef V4L2_PIX_FMT_RGBA32
+      {V::ABGR8, V4L2_PIX_FMT_BGRA32},
+#endif
+#ifdef V4L2_PIX_FMT_RGBA32
+      {V::XBGR8, V4L2_PIX_FMT_BGRX32},
+#endif
+      {V::RGB24, V4L2_PIX_FMT_RGB24},
+      {V::BGR24, V4L2_PIX_FMT_BGR24},
+      {V::RGB332, V4L2_PIX_FMT_RGB332},
+      {V::RGB565, V4L2_PIX_FMT_RGB565},
+      {V::RGB565BE, V4L2_PIX_FMT_RGB565X},
+      {V::RGB555, V4L2_PIX_FMT_RGB555},
+      {V::RGB555BE, V4L2_PIX_FMT_RGB555X},
+      {V::ARGB1555, V4L2_PIX_FMT_ARGB555},
+      {V::ARGB4444, V4L2_PIX_FMT_ARGB444},
+      {V::RGB444, V4L2_PIX_FMT_RGB444},
+      {V::Mono8, V4L2_PIX_FMT_GREY},
+      {V::Mono10, V4L2_PIX_FMT_Y10},
+      {V::Mono12, V4L2_PIX_FMT_Y12},
+      {V::Mono16, V4L2_PIX_FMT_Y16},
+      {V::Mono16BE, V4L2_PIX_FMT_Y16_BE},
+      {V::BayerBGGR8, V4L2_PIX_FMT_SBGGR8},
+      {V::BayerGBRG8, V4L2_PIX_FMT_SGBRG8},
+      {V::BayerGRBG8, V4L2_PIX_FMT_SGRBG8},
+      {V::BayerRGGB8, V4L2_PIX_FMT_SRGGB8},
+#ifdef V4L2_PIX_FMT_SBGGR16
+      {V::BayerBGGR16, V4L2_PIX_FMT_SBGGR16},
+#endif
+#ifdef V4L2_PIX_FMT_SRGGB16
+      {V::BayerRGGB16, V4L2_PIX_FMT_SRGGB16},
+#endif
+  };
+  std::set<V> pinned;
+  for(auto [f, fourcc] : kFourcc)
+  {
+    INFO(vpf::formatName(f));
+    CHECK(vpf::toV4L2PixelFormat(f) == fourcc);
+    CHECK(vpf::fromV4L2PixelFormat(fourcc) == f);
+    pinned.insert(f);
+  }
+  for(const auto* i : described())
+  {
+    if(vpf::toV4L2PixelFormat(i->format) != 0)
+    {
+      INFO(i->name << " has a fourcc but is not pinned");
+      CHECK(pinned.count(i->format) == 1);
+    }
+  }
+  // The one-way aliases can never be reached by a score->fourcc->score sweep, so
+  // they need naming. The deprecated RGB32/BGR32 pair is where the two old
+  // tables disagreed.
+  CHECK(vpf::fromV4L2PixelFormat(V4L2_PIX_FMT_RGB32) == V::XRGB8);
+  CHECK(vpf::fromV4L2PixelFormat(V4L2_PIX_FMT_BGR32) == V::BGRX8);
+#ifdef V4L2_PIX_FMT_Z16
+  CHECK(vpf::fromV4L2PixelFormat(V4L2_PIX_FMT_Z16) == V::Mono16);
+#endif
+}
+#endif
+
+// chromaSwappedTwin needs positive coverage: the sweep over described formats
+// skips anything returning Unknown, so deleting every case would pass vacuously.
+TEST_CASE("the chroma-swapped layouts each declare their twin", "[gfx][pixfmt]")
+{
+  struct T { V swapped; V twin; };
+  static constexpr T kTwins[] = {
+      {V::YVU420P, V::YUV420P}, {V::YVU422P, V::YUV422P},
+      {V::YVU410P, V::YUV410P}, {V::NV21, V::NV12},
+      {V::NV61, V::NV16},       {V::NV42, V::NV24}};
+  for(auto [a, b] : kTwins)
+  {
+    INFO(vpf::formatName(a));
+    CHECK(vpf::chromaSwappedTwin(a) == b);
+  }
+  int found = 0;
+  for(const auto* i : described())
+    if(vpf::chromaSwappedTwin(i->format) != V::Unknown)
+      ++found;
+  CHECK(found == int(std::size(kTwins)));
+  // Structural, so a newly added V-first layout fails until it declares a twin.
+  for(const auto* i : described())
+  {
+    const std::string_view n{i->name};
+    if(n.substr(0, 3) == "YVU" || n == "NV21" || n == "NV61" || n == "NV42")
+    {
+      INFO(i->name << " is a V-first layout with no twin declared");
+      CHECK(vpf::chromaSwappedTwin(i->format) != V::Unknown);
+    }
+  }
+}
+
+// Cross-check rowBytes against FFmpeg's own linesize. This catches a wrong
+// blockBytes mechanically and with no second list: the rowBytes sweep derives its
+// expectation from blockBytes, so it agrees with whatever value is put there.
+TEST_CASE("rowBytes agrees with the FFmpeg linesize", "[gfx][pixfmt][av]")
+{
+  for(const auto* i : described())
+  {
+    const auto av = vpf::toAVPixelFormat(i->format);
+    if(av == AV_PIX_FMT_NONE)
+      continue;
+    for(uint32_t w : {16u, 48u, 64u, 720u, 1920u, 3840u})
+    {
+      const int ls = av_image_get_linesize(av, int(w), 0);
+      if(ls <= 0)
+        continue;
+      INFO(i->name << " at width " << w);
+      CHECK(vpf::rowBytes(i->format, w) == std::size_t(ls));
+    }
+  }
 }
