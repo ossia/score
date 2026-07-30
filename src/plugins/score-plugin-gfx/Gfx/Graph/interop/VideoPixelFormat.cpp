@@ -114,8 +114,15 @@ bytesPerFrame(VideoPixelFormat f, uint32_t width, uint32_t height) noexcept
   // preferred stride as luma. Semi-planar formats gather both chroma components
   // into one plane of double width; fully planar ones use two separate planes,
   // which comes to the same number of samples.
-  const auto cWidth = uint32_t(width / info.horizontalSubsampling);
-  const auto cHeight = std::size_t(height / info.verticalSubsampling);
+  //
+  // Round the chroma dimensions UP: a 4:2:0 frame of 1081 rows has 541 chroma
+  // rows, not 540. Truncating under-reports the frame by a whole chroma row, so
+  // a caller sizing a buffer from this and then letting a card or decoder write
+  // the ceiling row count overflows the allocation.
+  const auto cWidth
+      = uint32_t((width + info.horizontalSubsampling - 1) / info.horizontalSubsampling);
+  const auto cHeight
+      = std::size_t((height + info.verticalSubsampling - 1) / info.verticalSubsampling);
   switch(info.planeCount)
   {
     case 2:
