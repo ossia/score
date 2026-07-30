@@ -25,6 +25,7 @@
 #include <Gfx/Graph/interop/VideoPixelFormat.hpp>
 #include <Gfx/Graph/interop/DirectShowPixelFormat.hpp>
 #include <Gfx/Graph/interop/DrmPixelFormat.hpp>
+#include <Gfx/Graph/interop/VideoPixelFormatQRhi.hpp>
 #include <Gfx/Graph/interop/VideoPixelFormatAV.hpp>
 #if defined(__linux__)
 #include <Gfx/Graph/interop/V4L2PixelFormat.hpp>
@@ -1123,4 +1124,95 @@ TEST_CASE("DRM fourccs resolve with the word-order inversion", "[gfx][pixfmt][dr
   CHECK(vpf::chromaSwappedTwin(vpf::fromDrmFourcc(f("YV16"))) == V::YUV422P);
   CHECK(vpf::fromDrmFourcc(0) == V::Unknown);
   CHECK(vpf::toDrmFourcc(V::Unknown) == 0);
+}
+
+// The GPU-texture axis. Not a bijection with the buffer axis, and the test says
+// so rather than pretending: planar layouts answer per plane, packed YUV samples
+// as RGBA8 because QRhi has no YUV format, and the wire-only layouts have no
+// texture at all.
+TEST_CASE("plane texture formats and sizes", "[gfx][pixfmt][qrhi]")
+{
+  // Packed RGB keeps its own format and full width.
+  CHECK(vpf::planeTextureFormat(V::BGRA8, 0) == QRhiTexture::BGRA8);
+  CHECK(vpf::planeTextureWidth(V::BGRA8, 0, 1920) == 1920);
+  CHECK(vpf::planeTextureHeight(V::BGRA8, 0, 1080) == 1080);
+
+  // Packed 4:2:2 samples as RGBA8 at half the texel width: two pixels per texel.
+  CHECK(vpf::planeTextureFormat(V::UYVY422, 0) == QRhiTexture::RGBA8);
+  CHECK(vpf::planeTextureWidth(V::UYVY422, 0, 1920) == 960);
+  CHECK(vpf::planeTextureHeight(V::UYVY422, 0, 1080) == 1080);
+
+  // Semi-planar: R8 luma plus an RG8 chroma plane at half size.
+  CHECK(vpf::planeTextureFormat(V::NV12, 0) == QRhiTexture::R8);
+  CHECK(vpf::planeTextureFormat(V::NV12, 1) == QRhiTexture::RG8);
+  CHECK(vpf::planeTextureWidth(V::NV12, 1, 1920) == 960);
+  CHECK(vpf::planeTextureHeight(V::NV12, 1, 1080) == 540);
+  CHECK(vpf::planeTextureFormat(V::NV12, 2) == QRhiTexture::UnknownFormat);
+
+  // 10-bit semi-planar uses 16-bit lanes.
+  CHECK(vpf::planeTextureFormat(V::P010, 0) == QRhiTexture::R16);
+  CHECK(vpf::planeTextureFormat(V::P010, 1) == QRhiTexture::RG16);
+
+  // Fully planar: three single-component planes.
+  CHECK(vpf::planeTextureFormat(V::YUV420P, 0) == QRhiTexture::R8);
+  CHECK(vpf::planeTextureFormat(V::YUV420P, 1) == QRhiTexture::R8);
+  CHECK(vpf::planeTextureFormat(V::YUV420P, 2) == QRhiTexture::R8);
+  CHECK(vpf::planeTextureFormat(V::YUV422P10, 1) == QRhiTexture::R16);
+
+  // Odd sizes round the chroma plane up, as the buffer arithmetic does.
+  CHECK(vpf::planeTextureWidth(V::YUV420P, 1, 1921) == 961);
+  CHECK(vpf::planeTextureHeight(V::YUV420P, 1, 1081) == 541);
+
+  // The wire-only layouts must be decoded before they are a texture.
+  for(auto f : {V::V210, V::R210, V::R12B, V::RGB12P, V::DPX10})
+  {
+    INFO("wire-only " << vpf::formatName(f));
+    CHECK(vpf::planeTextureFormat(f, 0) == QRhiTexture::UnknownFormat);
+  }
+
+  // Degenerate inputs
+  CHECK(vpf::planeTextureFormat(V::Unknown, 0) == QRhiTexture::UnknownFormat);
+  CHECK(vpf::planeTextureWidth(V::BGRA8, 0, 0) == 0);
+  CHECK(vpf::planeTextureWidth(V::BGRA8, -1, 1920) == 0);
+
+  // Every format either offers a plane-0 texture or is a decode-first layout;
+  // none may answer a format for a plane it does not have.
+  for(const auto* i : described())
+  {
+    INFO("format " << i->name);
+    CHECK(vpf::planeTextureFormat(i->format, i->planeCount)
+          == QRhiTexture::UnknownFormat);
+    for(int p = 0; p < i->planeCount; ++p)
+    {
+      if(vpf::planeTextureFormat(i->format, p) != QRhiTexture::UnknownFormat)
+      {
+        CHECK(vpf::planeTextureWidth(i->format, p, 1920) > 0);
+        CHECK(vpf::planeTextureHeight(i->format, p, 1080) > 0);
+      }
+    }
+  }
+}
+
+// The texture-to-buffer direction is for transports that hand over a texture:
+// Spout a D3D11 texture, Syphon an IOSurface, dma-buf an EGLImage.
+TEST_CASE("texture formats map back only where unambiguous", "[gfx][pixfmt][qrhi]")
+{
+  CHECK(vpf::fromTextureFormat(QRhiTexture::BGRA8) == V::BGRA8);
+  CHECK(vpf::fromTextureFormat(QRhiTexture::RGBA8) == V::RGBA8);
+  CHECK(vpf::fromTextureFormat(QRhiTexture::RGBA16F) == V::RGBA16F);
+  CHECK(vpf::fromTextureFormat(QRhiTexture::RGBA32F) == V::RGBA32F);
+  CHECK(vpf::fromTextureFormat(QRhiTexture::R8) == V::Mono8);
+  CHECK(vpf::fromTextureFormat(QRhiTexture::R16) == V::Mono16);
+  // Depth and compressed textures are not video buffers.
+  for(auto t : {QRhiTexture::D16, QRhiTexture::D32F, QRhiTexture::BC1,
+                QRhiTexture::UnknownFormat})
+  {
+    CHECK(vpf::fromTextureFormat(t) == V::Unknown);
+  }
+  // And the round-trip holds for the ones that do map back.
+  for(auto f : {V::BGRA8, V::RGBA8, V::RGBA16F, V::RGBA32F, V::Mono8, V::Mono16})
+  {
+    INFO(vpf::formatName(f));
+    CHECK(vpf::fromTextureFormat(vpf::planeTextureFormat(f, 0)) == f);
+  }
 }
