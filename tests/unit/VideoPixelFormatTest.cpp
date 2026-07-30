@@ -25,6 +25,7 @@
 #include <Gfx/Graph/interop/VideoPixelFormat.hpp>
 #include <Gfx/Graph/interop/DirectShowPixelFormat.hpp>
 #include <Gfx/Graph/interop/DrmPixelFormat.hpp>
+#include <Gfx/Graph/interop/GStreamerPixelFormat.hpp>
 #include <Gfx/Graph/interop/VideoPixelFormatQRhi.hpp>
 #include <Gfx/Graph/interop/VideoPixelFormatAV.hpp>
 #if defined(__linux__)
@@ -1212,5 +1213,57 @@ TEST_CASE("texture formats map back only where unambiguous", "[gfx][pixfmt][qrhi
   {
     INFO(vpf::formatName(f));
     CHECK(vpf::fromTextureFormat(vpf::planeTextureFormat(f, 0)) == f);
+  }
+}
+
+// GStreamer names, for the transports that hand over a buffer rather than a
+// stream. Composing the existing gst->AV map with the libav bridge would lose the
+// V-before-U layouts, so this asserts the direct table gets them right -- that is
+// the whole reason it exists.
+TEST_CASE("GStreamer names resolve to the right layout", "[gfx][pixfmt][gst]")
+{
+  struct Pin { const char* name; V expect; };
+  static const Pin kPins[] = {
+      {"RGBA", V::RGBA8}, {"BGRA", V::BGRA8}, {"ARGB", V::ARGB8}, {"ABGR", V::ABGR8},
+      {"RGBx", V::RGBX8}, {"BGRx", V::BGRX8}, {"xRGB", V::XRGB8}, {"xBGR", V::XBGR8},
+      {"RGB", V::RGB24},  {"BGR", V::BGR24},
+      {"YUY2", V::YUYV422}, {"UYVY", V::UYVY422}, {"YVYU", V::YVYU422},
+      {"v210", V::V210},  {"v216", V::V216},  {"r210", V::R210},
+      {"I420", V::YUV420P}, {"Y42B", V::YUV422P}, {"Y444", V::YUV444P},
+      {"Y41B", V::YUV411P}, {"YUV9", V::YUV410P},
+      {"NV12", V::NV12},  {"NV21", V::NV21},  {"NV16", V::NV16},
+      {"NV61", V::NV61},  {"NV24", V::NV24},
+      {"I420_10LE", V::YUV420P10}, {"I422_10LE", V::YUV422P10},
+      {"P010_10LE", V::P010}, {"A444", V::YUVA444P},
+      {"GRAY8", V::Mono8}, {"GRAY16_LE", V::Mono16}, {"GRAY16_BE", V::Mono16BE},
+  };
+  for(const auto& p : kPins)
+  {
+    INFO("gst format " << p.name);
+    CHECK(vpf::fromGStreamerFormat(p.name) == p.expect);
+    CHECK(vpf::toGStreamerFormat(p.expect) == std::string_view{p.name});
+  }
+  // The point of a direct table: these must NOT collapse onto their U-first
+  // twins, which is what routing through AVPixelFormat would have done.
+  CHECK(vpf::fromGStreamerFormat("YV12") == V::YVU420P);
+  CHECK(vpf::fromGStreamerFormat("YVU9") == V::YVU410P);
+  CHECK(vpf::fromGStreamerFormat("YV12") != vpf::fromGStreamerFormat("I420"));
+  CHECK(vpf::chromaSwappedTwin(vpf::fromGStreamerFormat("YV12"))
+        == vpf::fromGStreamerFormat("I420"));
+  CHECK(vpf::chromaSwappedTwin(vpf::fromGStreamerFormat("NV21"))
+        == vpf::fromGStreamerFormat("NV12"));
+  // Case matters in caps, and unknown names must not guess.
+  CHECK(vpf::fromGStreamerFormat("nv12") == V::Unknown);
+  CHECK(vpf::fromGStreamerFormat("") == V::Unknown);
+  CHECK(vpf::fromGStreamerFormat("ENCODED") == V::Unknown);
+  CHECK(vpf::toGStreamerFormat(V::Unknown).empty());
+  // A name maps to one layout and back, for every row.
+  for(const auto* i : described())
+  {
+    const auto name = vpf::toGStreamerFormat(i->format);
+    if(name.empty())
+      continue;
+    INFO(i->name << " <-> " << name);
+    CHECK(vpf::fromGStreamerFormat(name) == i->format);
   }
 }
