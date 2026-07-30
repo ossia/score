@@ -17,6 +17,10 @@ extern "C" {
 #include <wmcodecdsp.h>
 #include <oleauto.h>
 
+#include <Gfx/Graph/interop/DirectShowPixelFormat.hpp>
+#include <Gfx/Graph/interop/DirectShowSubtype.hpp>
+#include <Gfx/Graph/interop/VideoPixelFormatAV.hpp>
+
 namespace Gfx
 {
 static constexpr const GUID MEDIASUBTYPE_Y800             = { 0x30303859, 0x0000, 0x0010, { 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}};
@@ -38,8 +42,34 @@ static constexpr const GUID MEDIASUBTYPE_Y210             = { '012Y', 0x0000, 0x
 static constexpr const GUID MEDIASUBTYPE_Y216             = { '612Y', 0x0000, 0x0010, { 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71 }};
 static constexpr const GUID MEDIASUBTYPE_P408             = { '804P', 0x0000, 0x0010, { 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71 }};
 
+// GUID and score::gfx::interop::DirectShowGuid have the same layout; the
+// decisions themselves live in DirectShowSubtype.hpp so they can be tested on
+// hosts where this file cannot be compiled.
+static const score::gfx::interop::DirectShowGuid& asPortableGuid(
+    const GUID& subtype) noexcept
+{
+  static_assert(sizeof(GUID) == sizeof(score::gfx::interop::DirectShowGuid));
+  return reinterpret_cast<const score::gfx::interop::DirectShowGuid&>(subtype);
+}
+
+// True when the subtype names a compressed stream. Answered from the subtype
+// itself, not inferred from guidToPixelFormat returning AV_PIX_FMT_YUVJ420P,
+// which a camera genuinely offering that layout also produces.
+static bool isCompressedSubtype(const GUID& subtype) noexcept
+{
+  return score::gfx::interop::directShowSubtypeIsCompressed(
+      asPortableGuid(subtype));
+}
+
 static int guidToPixelFormat(const GUID& subtype)
 {
+  // The YUV layouts come from the shared, host-testable fourcc table, so they
+  // cannot drift from the DMA capture path's.
+  if(const auto av = score::gfx::interop::directShowSubtypePixelFormat(
+         asPortableGuid(subtype));
+     av != AV_PIX_FMT_NONE)
+    return av;
+
   if(subtype == MEDIASUBTYPE_RGB24)
     return AV_PIX_FMT_BGR24;
   else if(subtype == MEDIASUBTYPE_RGB32)
@@ -51,6 +81,8 @@ static int guidToPixelFormat(const GUID& subtype)
   else if(subtype == MEDIASUBTYPE_RGB555)
     return AV_PIX_FMT_BGR555LE;
   else if(subtype == MEDIASUBTYPE_ARGB1555)
+    // FFmpeg has no 5:5:5 format carrying alpha, so the single alpha bit is
+    // dropped. The layout is otherwise identical to RGB555.
     return AV_PIX_FMT_BGR555LE;
   else if(subtype == MEDIASUBTYPE_RGB8)
     return AV_PIX_FMT_PAL8;
@@ -86,8 +118,6 @@ static int guidToPixelFormat(const GUID& subtype)
     return AV_PIX_FMT_YUV420P;
   else if(subtype == MEDIASUBTYPE_I420)
     return AV_PIX_FMT_YUV420P;
-  else if(subtype == MEDIASUBTYPE_YV12)
-    return AV_PIX_FMT_YUV420P;
   else if(subtype == MEDIASUBTYPE_NV12)
     return AV_PIX_FMT_NV12;
 //  else if(subtype == MEDIASUBTYPE_NV21)
@@ -114,8 +144,6 @@ static int guidToPixelFormat(const GUID& subtype)
     return AV_PIX_FMT_Y210LE;
   else if(subtype == MEDIASUBTYPE_Y216)
     return AV_PIX_FMT_Y216LE;
-  else if(subtype == MEDIASUBTYPE_V216) // not sure
-    return AV_PIX_FMT_Y216LE;
 
 /////   Not supported in dshow as of ffmpeg 8, causes hangs in avformat_find_stream_info
   else if(subtype == MEDIASUBTYPE_Y8) {
@@ -130,7 +158,7 @@ static int guidToPixelFormat(const GUID& subtype)
   else if(subtype == MEDIASUBTYPE_MICROSOFT_IR8) {
     return AV_PIX_FMT_GRAY8;
   }
-  else if (subtype == MEDIASUBTYPE_YVU9 || subtype == MEDIASUBTYPE_IF09)
+  else if(subtype == MEDIASUBTYPE_IF09)
     return AV_PIX_FMT_YUV410P;
 
   else if (subtype == MEDIASUBTYPE_Y411 || subtype == MEDIASUBTYPE_Y41P)
@@ -144,8 +172,6 @@ static int guidToPixelFormat(const GUID& subtype)
     return AV_PIX_FMT_YUVJ420P;
   else if(subtype == MEDIASUBTYPE_Plum)
     return AV_PIX_FMT_YUVJ420P;
-  else if(subtype == MEDIASUBTYPE_YVU9)
-    return AV_PIX_FMT_YUV410P;
   else
     return AV_PIX_FMT_NONE;
 }
@@ -163,7 +189,8 @@ static void enumerateCameraFormat(
   source.pixelformat = guidToPixelFormat(subtype);
 
   // Basic validation
-  if(width <= 0 || height <= 0 || source.pixelformat == AV_PIX_FMT_NONE)
+  if(width <= 0 || height <= 0
+     || (source.pixelformat == AV_PIX_FMT_NONE && !isCompressedSubtype(subtype)))
   {
     // OLECHAR* guidString;
     // StringFromCLSID(subtype, &guidString);
@@ -172,10 +199,10 @@ static void enumerateCameraFormat(
     return;
   }
 
-  // MJPEG special case
-  if(source.pixelformat == AV_PIX_FMT_YUVJ420P)
+  if(isCompressedSubtype(subtype))
   {
-    source.codec = AV_CODEC_ID_MJPEG;
+    source.codec
+        = score::gfx::interop::directShowSubtypeCodec(asPortableGuid(subtype));
     source.pixelformat = AV_PIX_FMT_NONE;
   }
 
