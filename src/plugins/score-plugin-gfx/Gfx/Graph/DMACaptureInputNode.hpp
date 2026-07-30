@@ -169,11 +169,27 @@ struct SCORE_PLUGIN_GFX_EXPORT DMACaptureInputNode : ProcessNode
     m_pinUnmet.store(pinUnmet, std::memory_order_release);
   }
 
+  /// Frames the capture thread has published into the slot ring, which is the
+  /// device's own cadence — independent of how fast the render side consumes
+  /// them. A harness that reports only its consumption rate cannot tell a card
+  /// that failed to capture from one whose frames it was too slow to collect.
+  std::uint64_t capturedFrameCount() const noexcept
+  {
+    return m_capturedFrames.load(std::memory_order_acquire);
+  }
+
+  /// Set by the renderer each frame from the ring's latest id (render thread).
+  void setCapturedFrameCount(std::uint64_t n) const noexcept
+  {
+    m_capturedFrames.store(n, std::memory_order_release);
+  }
+
   class Renderer;
 
 private:
   mutable std::atomic<const char*> m_engagedStrategy{nullptr};
   mutable std::atomic<bool> m_pinUnmet{false};
+  mutable std::atomic<std::uint64_t> m_capturedFrames{0};
 
 public:
 };

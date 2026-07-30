@@ -314,6 +314,7 @@ public:
     // other strategy ignores it.
     QRhiCommandBuffer* const cb = renderer.currentCommandBuffer();
     const uint64_t latest = m_ring.latestFrameId.load(std::memory_order_acquire);
+    this->node.setCapturedFrameCount(latest);
     if(latest != m_lastIngestedFrameId)
     {
       if(m_renderHoldsTexture)
