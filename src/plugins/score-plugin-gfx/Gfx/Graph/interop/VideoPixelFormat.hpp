@@ -140,6 +140,10 @@ enum class ByteOrder : uint8_t
   /* rule, so it needs no special case here.                                 */ \
   X(V210, 30, YUV, 1, 2, 1, 48, 128, false, Little, 128)                       \
   X(V216, 31, YUV, 1, 2, 1, 2, 8, false, Little, 256)                          \
+  /* Y210/Y216 carry YUYV component order in 16-bit lanes (Y210 uses the high  */ \
+  /* 10 bits); V216 differs from Y216 only in that order.                      */ \
+  X(Y210, 106, YUV, 1, 2, 1, 2, 8, false, Little, 256)                         \
+  X(Y216, 107, YUV, 1, 2, 1, 2, 8, false, Little, 256)                         \
   /* -- Planar / semi-planar 4:2:0 ----------------------------------------- */ \
   X(NV12, 40, YUV, 2, 2, 2, 1, 1, false, NA, 256)                              \
   X(P010, 41, YUV, 2, 2, 2, 1, 2, false, Little, 256)                          \
@@ -154,6 +158,14 @@ enum class ByteOrder : uint8_t
   X(NV16, 53, YUV, 2, 2, 1, 1, 1, false, NA, 256)                              \
   X(NV61, 54, YUV, 2, 2, 1, 1, 1, false, NA, 256)                              \
   X(YUV422P12, 55, YUV, 3, 2, 1, 1, 2, false, Little, 256)                     \
+  X(YUV422P16, 110, YUV, 3, 2, 1, 1, 2, false, Little, 256)                    \
+  X(YVU422P, 104, YUV, 3, 2, 1, 1, 1, false, NA, 256)                          \
+  X(P216, 108, YUV, 2, 2, 1, 1, 2, false, Little, 256)                         \
+  /* -- Planar 4:1:1 and 4:1:0 (webcams, legacy capture) ------------------- */ \
+  X(YUV411P, 101, YUV, 3, 4, 1, 1, 1, false, NA, 256)                          \
+  X(YUV410P, 102, YUV, 3, 4, 4, 1, 1, false, NA, 256)                          \
+  X(YVU410P, 103, YUV, 3, 4, 4, 1, 1, false, NA, 256)                          \
+  X(UYYVYY411, 105, YUV, 1, 4, 1, 4, 6, false, NA, 256)                        \
   /* -- Planar / semi-planar / packed 4:4:4 -------------------------------- */ \
   X(YUV444P, 60, YUV, 3, 1, 1, 1, 1, false, NA, 256)                           \
   X(YUV444P10, 61, YUV, 3, 1, 1, 1, 2, false, Little, 256)                     \
@@ -166,6 +178,12 @@ enum class ByteOrder : uint8_t
   X(XYUV, 68, YUV, 1, 1, 1, 1, 4, false, NA, 256)                              \
   X(YUVA, 69, YUV, 1, 1, 1, 1, 4, true, NA, 256)                               \
   X(YUVX, 73, YUV, 1, 1, 1, 1, 4, false, NA, 256)                              \
+  X(YUVA444P, 111, YUV, 4, 1, 1, 1, 1, true, NA, 256)                          \
+  X(P416, 109, YUV, 2, 1, 1, 1, 2, false, Little, 256)                         \
+  /* XV30 packs 2 padding bits + three 10-bit components into 32 bits; the pad */ \
+  /* is not alpha. AYUV64 is the same geometry at 16 bits with real alpha.     */ \
+  X(XV30, 112, YUV, 1, 1, 1, 1, 4, false, Little, 256)                         \
+  X(AYUV64, 113, YUV, 1, 1, 1, 1, 8, true, Little, 256)                        \
   /* -- High-precision RGB ------------------------------------------------- */ \
   X(RGBA16, 70, RGB, 1, 1, 1, 1, 8, true, Little, 256)                         \
   X(RGBA16F, 71, RGB, 1, 1, 1, 1, 8, true, Little, 256)                        \

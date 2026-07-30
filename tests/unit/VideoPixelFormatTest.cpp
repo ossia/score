@@ -100,7 +100,8 @@ TEST_CASE("the vocabulary is non-trivial and self-consistent", "[gfx][pixfmt]")
     // Subsampling is only meaningful in the two documented axes.
     CHECK((i->horizontalSubsampling == 1 || i->horizontalSubsampling == 2
            || i->horizontalSubsampling == 4));
-    CHECK((i->verticalSubsampling == 1 || i->verticalSubsampling == 2));
+    CHECK((i->verticalSubsampling == 1 || i->verticalSubsampling == 2
+           || i->verticalSubsampling == 4));
     // formatInfo() must resolve the value back to this very row.
     CHECK(&vpf::formatInfo(i->format) == i);
     CHECK(std::string(vpf::formatName(i->format)) == i->name);
@@ -160,7 +161,7 @@ TEST_CASE("multi-byte samples declare a byte order", "[gfx][pixfmt]")
 
 TEST_CASE("unknown / out-of-range formats return the sentinel", "[gfx][pixfmt]")
 {
-  for(auto f : {V::Unknown, V(1234), V(65535), V(101)})
+  for(auto f : {V::Unknown, V(1234), V(65535), V(200)})
   {
     const auto& u = vpf::formatInfo(f);
     CHECK(std::string(u.name) == "unknown");
