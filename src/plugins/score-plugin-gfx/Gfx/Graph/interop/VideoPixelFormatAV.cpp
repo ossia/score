@@ -84,6 +84,14 @@ AVPixelFormat toAVPixelFormat(VideoPixelFormat f) noexcept
     case V::Mono16:    return AV_PIX_FMT_GRAY16LE;
     case V::Mono16BE:  return AV_PIX_FMT_GRAY16BE;
 
+    // -- Bayer: the CFA order is part of the format identity --
+    case V::BayerBGGR8:  return AV_PIX_FMT_BAYER_BGGR8;
+    case V::BayerGBRG8:  return AV_PIX_FMT_BAYER_GBRG8;
+    case V::BayerGRBG8:  return AV_PIX_FMT_BAYER_GRBG8;
+    case V::BayerRGGB8:  return AV_PIX_FMT_BAYER_RGGB8;
+    case V::BayerBGGR16: return AV_PIX_FMT_BAYER_BGGR16LE;
+    case V::BayerRGGB16: return AV_PIX_FMT_BAYER_RGGB16LE;
+
     // -- wire-only: no AVPixelFormat (FFmpeg models these as codecs) --
     case V::V210:      // AV_CODEC_ID_V210
     case V::V216:      // AV_CODEC_ID_V210X
@@ -188,6 +196,12 @@ VideoPixelFormat fromAVPixelFormat(AVPixelFormat f) noexcept
     case AV_PIX_FMT_GRAY12LE:    return V::Mono12;
     case AV_PIX_FMT_GRAY16LE:    return V::Mono16;
     case AV_PIX_FMT_GRAY16BE:    return V::Mono16BE;
+    case AV_PIX_FMT_BAYER_BGGR8:    return V::BayerBGGR8;
+    case AV_PIX_FMT_BAYER_GBRG8:    return V::BayerGBRG8;
+    case AV_PIX_FMT_BAYER_GRBG8:    return V::BayerGRBG8;
+    case AV_PIX_FMT_BAYER_RGGB8:    return V::BayerRGGB8;
+    case AV_PIX_FMT_BAYER_BGGR16LE: return V::BayerBGGR16;
+    case AV_PIX_FMT_BAYER_RGGB16LE: return V::BayerRGGB16;
     default:                     return V::Unknown;
   }
 }
