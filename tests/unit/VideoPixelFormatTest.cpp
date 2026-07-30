@@ -22,6 +22,10 @@
 
 #include <Gfx/Graph/interop/VideoPixelFormat.hpp>
 #include <Gfx/Graph/interop/VideoPixelFormatAV.hpp>
+#if defined(__linux__)
+#include <Gfx/Graph/interop/V4L2PixelFormat.hpp>
+#include <linux/videodev2.h>
+#endif
 
 extern "C" {
 #include <libavutil/pixdesc.h>
@@ -452,3 +456,57 @@ TEST_CASE("descriptors agree with FFmpeg for every mapped format",
     CHECK((i->byteOrder == vpf::ByteOrder::Big) == avBigEndian);
   }
 }
+
+TEST_CASE("chroma-swapped twins are declared consistently", "[gfx][pixfmt]")
+{
+  for(const auto* i : described())
+  {
+    const auto twin = vpf::chromaSwappedTwin(i->format);
+    if(twin == V::Unknown)
+      continue;
+    INFO("format " << i->name << " twin " << vpf::formatName(twin));
+    const auto& t = vpf::formatInfo(twin);
+    // A swap changes which plane holds which component, nothing else: the two
+    // must agree on geometry, or one of the descriptors is wrong.
+    CHECK(t.planeCount == i->planeCount);
+    CHECK(t.horizontalSubsampling == i->horizontalSubsampling);
+    CHECK(t.verticalSubsampling == i->verticalSubsampling);
+    CHECK(t.blockPixels == i->blockPixels);
+    CHECK(t.blockBytes == i->blockBytes);
+    CHECK(t.colorModel == i->colorModel);
+    CHECK(vpf::bytesPerFrame(twin, 1920, 1080)
+          == vpf::bytesPerFrame(i->format, 1920, 1080));
+    // The twin is the U-before-V layout, so it is not itself swapped.
+    CHECK(vpf::chromaSwappedTwin(twin) == V::Unknown);
+    // FFmpeg names the semi-planar swaps (NV21, NV42) as formats of their own,
+    // but has none for the fully planar ones -- there it exchanges the U and V
+    // pointers instead. Either way a fallback must exist, which is what lets
+    // the camera enumeration keep offering these layouts.
+    if(vpf::toAVPixelFormat(i->format) == AV_PIX_FMT_NONE)
+      CHECK(vpf::toAVPixelFormat(twin) != AV_PIX_FMT_NONE);
+  }
+}
+
+#if defined(__linux__)
+TEST_CASE("V4L2 fourccs round-trip through the vocabulary", "[gfx][pixfmt][v4l2]")
+{
+  std::size_t mapped = 0;
+  for(const auto* i : described())
+  {
+    const auto fourcc = vpf::toV4L2PixelFormat(i->format);
+    if(fourcc == 0)
+      continue;
+    ++mapped;
+    INFO("format " << i->name);
+    CHECK(vpf::fromV4L2PixelFormat(fourcc) == i->format);
+  }
+  // The V4L2 camera formats are a large slice of the vocabulary; a collapse
+  // here would mean the table lost its cases.
+  CHECK(mapped >= 40);
+  CHECK(vpf::fromV4L2PixelFormat(0) == V::Unknown);
+  CHECK(vpf::fromV4L2PixelFormat(0xDEADBEEF) == V::Unknown);
+  // Compressed fourccs are on the codec axis and must not resolve to a layout.
+  CHECK(vpf::fromV4L2PixelFormat(V4L2_PIX_FMT_MJPEG) == V::Unknown);
+  CHECK(vpf::fromV4L2PixelFormat(V4L2_PIX_FMT_JPEG) == V::Unknown);
+}
+#endif
