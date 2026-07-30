@@ -131,3 +131,11 @@ score_add_test(test_unit_avnd_audio_roundtrip
   SOURCES AvndAudioRoundtripTest.cpp
   PLUGINS score_lib_process
   APP)
+
+# The video pixel-format vocabulary and its libav bridge. Lives with the
+# vocabulary rather than with its consumers, so the PR that introduces a format
+# is the one whose CI proves it is described and sized correctly.
+score_add_test(test_unit_video_pixel_format
+  SOURCES VideoPixelFormatTest.cpp
+  PLUGINS score_plugin_gfx
+  LIBS avutil)
