@@ -512,3 +512,44 @@ TEST_CASE("V4L2 fourccs round-trip through the vocabulary", "[gfx][pixfmt][v4l2]
   CHECK(vpf::fromV4L2PixelFormat(V4L2_PIX_FMT_JPEG) == V::Unknown);
 }
 #endif
+
+TEST_CASE("bytesPerFrame rounds chroma up at odd sizes", "[gfx][pixfmt]")
+{
+  // Truncating the chroma dimensions loses a whole row or column, and the
+  // shortfall is invisible at 1920x1080 because both dimensions divide evenly.
+  for(const auto* i : described())
+  {
+    INFO("format " << i->name);
+    for(uint32_t w : {1u, 3u, 7u, 719u, 1921u})
+    {
+      for(uint32_t h : {1u, 3u, 1081u})
+      {
+        const auto cw
+            = (w + i->horizontalSubsampling - 1) / i->horizontalSubsampling;
+        const auto ch = std::size_t((h + i->verticalSubsampling - 1)
+                                    / i->verticalSubsampling);
+        const auto y = vpf::defaultStride(i->format, w) * std::size_t(h);
+        std::size_t expect = y;
+        if(i->planeCount == 2)
+          expect += vpf::defaultStride(i->format, cw * 2) * ch;
+        else if(i->planeCount == 3)
+          expect += 2 * (vpf::defaultStride(i->format, cw) * ch);
+        else if(i->planeCount == 4)
+          expect += 2 * (vpf::defaultStride(i->format, cw) * ch) + y;
+        CHECK(vpf::bytesPerFrame(i->format, w, h) == expect);
+      }
+    }
+  }
+  // Going from an odd to the next even row count grows luma by one row and
+  // leaves chroma alone, since the odd count already paid for its chroma row.
+  // Under the old truncating arithmetic the difference was two rows.
+  for(auto f : {V::NV12, V::YUV420P, V::P010})
+  {
+    INFO("format " << vpf::formatName(f));
+    CHECK(vpf::bytesPerFrame(f, 1920, 1082) - vpf::bytesPerFrame(f, 1920, 1081)
+          == vpf::defaultStride(f, 1920));
+  }
+  // and strictly more than the truncating answer did
+  CHECK(vpf::bytesPerFrame(V::NV12, 1920, 1081)
+        > vpf::bytesPerFrame(V::NV12, 1920, 1080));
+}
