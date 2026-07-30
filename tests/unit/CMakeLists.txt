@@ -567,3 +567,11 @@ score_add_test(test_unit_device_disconnect_callbacks
 # project, the library, the user's documents, the working directory.
 score_add_test(test_unit_picker_start_folder
   SOURCES PickerStartFolderTest.cpp)
+
+# The video pixel-format vocabulary and its libav bridge. Lives with the
+# vocabulary rather than with its consumers, so the PR that introduces a format
+# is the one whose CI proves it is described and sized correctly.
+score_add_test(test_unit_video_pixel_format
+  SOURCES VideoPixelFormatTest.cpp
+  PLUGINS score_plugin_gfx
+  LIBS avutil)
