@@ -254,12 +254,28 @@ TEST_CASE("hand-computed strides: packed formats", "[gfx][pixfmt]")
   CHECK(vpf::rowBytes(V::UYVY422, 2) == 4);
   // An odd width still occupies the whole trailing block.
   CHECK(vpf::rowBytes(V::UYVY422, 3) == 8);
-  // 12-bit RGB: 8 pixels per 36 bytes.
-  CHECK(vpf::rowBytes(V::R12B, 8) == 36);
-  CHECK(vpf::rowBytes(V::R12B, 9) == 72);
-  CHECK(vpf::rowBytes(V::R12B, 1920) == 8640);
-  // 12-bit packed RGB: 2 pixels per 9 bytes.
-  CHECK(vpf::rowBytes(V::RGB12P, 1920) == 8640);
+  // 36 bits per pixel is exactly 2 pixels per 9 bytes, and all three 12-bit
+  // layouts share that granularity. (width * 36) / 8, the vendor row formula,
+  // agrees at every even width.
+  for(auto f : {V::R12B, V::R12L, V::RGB12P})
+  {
+    INFO("format " << vpf::formatName(f));
+    CHECK(vpf::rowBytes(f, 2) == 9);
+    CHECK(vpf::rowBytes(f, 8) == 36);
+    CHECK(vpf::rowBytes(f, 9) == 45);
+    CHECK(vpf::rowBytes(f, 1920) == 8640);
+    CHECK(vpf::rowBytes(f, 1922) == (1922u * 36u) / 8u);
+  }
+  // r210 pads to a 64-pixel/256-byte row, and that is mandatory rather than a
+  // preference: a tight row is not a legal r210 frame.
+  CHECK(vpf::rowBytes(V::R210, 64) == 256);
+  CHECK(vpf::rowBytes(V::R210, 65) == 512);
+  CHECK(vpf::rowBytes(V::R210, 1920) == 7680);
+  CHECK(vpf::rowBytes(V::R210, 1921) == 7936);
+  CHECK(vpf::rowBytes(V::R210, 1921) == ((1921u + 63u) / 64u) * 256u);
+  // so the preferred alignment adds nothing on top
+  for(auto w : {64u, 65u, 1920u, 1921u})
+    CHECK(vpf::defaultStride(V::R210, w) == vpf::rowBytes(V::R210, w));
   // 16-bit and float RGB.
   CHECK(vpf::rowBytes(V::RGB48, 1920) == 11520);
   CHECK(vpf::rowBytes(V::RGBA16, 1920) == 15360);
@@ -552,4 +568,97 @@ TEST_CASE("bytesPerFrame rounds chroma up at odd sizes", "[gfx][pixfmt]")
   // and strictly more than the truncating answer did
   CHECK(vpf::bytesPerFrame(V::NV12, 1920, 1081)
         > vpf::bytesPerFrame(V::NV12, 1920, 1080));
+}
+
+// Every AVPixelFormat mapping, pinned to the FFmpeg format NAME rather than to
+// the enumerator. The round-trip tests only compose toAV and fromAV, so any
+// self-consistent permutation between two formats of identical geometry -- BGRA8
+// with RGBA8, NV12 with NV21 -- satisfies them, and satisfies the descriptor
+// cross-check too, since those pairs agree on plane count, subsampling, alpha
+// and endianness. Component-order confusion is the bug class this vocabulary
+// exists to prevent, so it has to be nailed down by name.
+TEST_CASE("every AV mapping is pinned to a named FFmpeg format", "[gfx][pixfmt][av]")
+{
+  struct Pin { V f; const char* av; };
+  static constexpr Pin kPinned[] = {
+    {V::BGRA8, "bgra"},
+    {V::RGBA8, "rgba"},
+    {V::ARGB8, "argb"},
+    {V::ABGR8, "abgr"},
+    {V::RGB24, "rgb24"},
+    {V::BGR24, "bgr24"},
+    {V::BGRX8, "bgr0"},
+    {V::RGBX8, "rgb0"},
+    {V::XRGB8, "0rgb"},
+    {V::XBGR8, "0bgr"},
+    {V::RGB48, "rgb48le"},
+    {V::RGB565, "rgb565le"},
+    {V::RGB565BE, "rgb565be"},
+    {V::RGB555, "rgb555le"},
+    {V::RGB555BE, "rgb555be"},
+    {V::RGB444, "rgb444le"},
+    {V::UYVY422, "uyvy422"},
+    {V::YUYV422, "yuyv422"},
+    {V::YVYU422, "yvyu422"},
+    {V::Y210, "y210le"},
+    {V::NV12, "nv12"},
+    {V::P010, "p010le"},
+    {V::YUV420P, "yuv420p"},
+    {V::YUV420P10, "yuv420p10le"},
+    {V::NV21, "nv21"},
+    {V::P210, "p210le"},
+    {V::YUV422P, "yuv422p"},
+    {V::YUV422P10, "yuv422p10le"},
+    {V::NV16, "nv16"},
+    {V::YUV422P12, "yuv422p12le"},
+    {V::YUV422P16, "yuv422p16le"},
+    {V::P216, "p216le"},
+    {V::YUV411P, "yuv411p"},
+    {V::YUV410P, "yuv410p"},
+    {V::UYYVYY411, "uyyvyy411"},
+    {V::YUV444P, "yuv444p"},
+    {V::YUV444P10, "yuv444p10le"},
+    {V::YUV444P12, "yuv444p12le"},
+    {V::NV24, "nv24"},
+    {V::NV42, "nv42"},
+    {V::VUYA, "vuya"},
+    {V::VUYX, "vuyx"},
+    {V::YUVA444P, "yuva444p"},
+    {V::P416, "p416le"},
+    {V::XV30, "xv30le"},
+    {V::AYUV64, "ayuv64le"},
+    {V::RGBA16, "rgba64le"},
+    {V::Mono8, "gray"},
+    {V::Mono10, "gray10le"},
+    {V::Mono12, "gray12le"},
+    {V::Mono16, "gray16le"},
+    {V::BayerBGGR8, "bayer_bggr8"},
+    {V::BayerGBRG8, "bayer_gbrg8"},
+    {V::BayerGRBG8, "bayer_grbg8"},
+    {V::BayerRGGB8, "bayer_rggb8"},
+    {V::BayerBGGR16, "bayer_bggr16le"},
+    {V::BayerRGGB16, "bayer_rggb16le"},
+    {V::Mono16BE, "gray16be"},
+  };
+  std::set<V> pinned;
+  for(auto [f, name] : kPinned)
+  {
+    INFO(vpf::formatName(f) << " must map to " << name);
+    const auto want = av_get_pix_fmt(name);
+    REQUIRE(want != AV_PIX_FMT_NONE);
+    CHECK(vpf::toAVPixelFormat(f) == want);
+    CHECK(vpf::fromAVPixelFormat(want) == f);
+    pinned.insert(f);
+  }
+  // No mapping may exist that this list does not pin, so adding one without
+  // pinning it fails here rather than going unverified.
+  for(const auto* i : described())
+  {
+    if(vpf::toAVPixelFormat(i->format) != AV_PIX_FMT_NONE)
+    {
+      INFO(i->name << " has an AV mapping but is not pinned");
+      CHECK(pinned.count(i->format) == 1);
+    }
+  }
+  CHECK(pinned.size() == 58);
 }
