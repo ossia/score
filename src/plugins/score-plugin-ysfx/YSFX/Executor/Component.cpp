@@ -32,6 +32,7 @@
 
 #include <libremidi/detail/conversion.hpp>
 
+#include <algorithm>
 #include <vector>
 
 namespace YSFX
@@ -262,6 +263,8 @@ void ysfx_node::run(
   auto y = this->fx.get();
 
   const auto [tick_start, d] = estate.timings(tk);
+  if(d <= 0)
+    return;
 
   // Setup audio input
   double** ins{};
@@ -278,8 +281,8 @@ void ysfx_node::run(
     for(int i = 0; i < in_count; i++)
     {
       {
-        this->audio_in->data.get()[i].resize(d);
-        ins[i] = this->audio_in->data.channel(i).data();
+        this->audio_in->data.get()[i].resize(estate.bufferSize());
+        ins[i] = this->audio_in->data.channel(i).data() + tick_start;
       }
     }
   }
@@ -294,9 +297,17 @@ void ysfx_node::run(
     outs = (double**)alloca(sizeof(double*) * out_count);
     for(int i = 0; i < out_count; i++)
     {
-      this->audio_out->data.get()[i].resize(
-          estate.bufferSize(), boost::container::default_init);
-      outs[i] = this->audio_out->data.channel(i).data();
+      auto& chan = this->audio_out->data.get()[i];
+      if(tick_start == 0 && d == estate.bufferSize())
+      {
+        chan.resize(estate.bufferSize(), boost::container::default_init);
+      }
+      else
+      {
+        chan.resize(estate.bufferSize());
+        std::fill_n(chan.data(), estate.bufferSize(), 0.);
+      }
+      outs[i] = chan.data() + tick_start;
     }
   }
 
@@ -342,7 +353,7 @@ void ysfx_node::run(
         ysfx_midi_event_impl& ev = msg_space[i];
 
         ev.bus = 0; // FIXME
-        ev.offset = mess.timestamp;
+        ev.offset = std::clamp<int64_t>(mess.timestamp - tick_start, 0, d - 1);
         ev.data = ev.bytes;
         ev.size = cmidi2_convert_single_ump_to_midi1(
             (uint8_t*)ev.data, sizeof(ysfx_midi_event_impl::bytes), mess.data);
@@ -372,7 +383,7 @@ void ysfx_node::run(
     while(ysfx_receive_midi(y, &ev))
     {
       libremidi::ump msg;
-      msg.timestamp = ev.offset;
+      msg.timestamp = tick_start + ev.offset;
 
       if(cmidi2_midi1_channel_voice_to_midi2(ev.data, ev.size, msg.data))
       {
