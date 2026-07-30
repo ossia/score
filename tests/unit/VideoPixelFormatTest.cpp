@@ -750,6 +750,7 @@ TEST_CASE("every AV mapping is pinned to a named FFmpeg format", "[gfx][pixfmt][
   CHECK(pinned.size() == 60);
 }
 
+#if defined(__linux__)
 // Every V4L2 fourcc pinned to the kernel constant. The round-trip sweep only
 // composes to/from, so swapping two same-geometry formats in BOTH directions --
 // NV12 with NV21 -- satisfies it while every camera silently delivers exchanged
@@ -850,6 +851,7 @@ TEST_CASE("every V4L2 mapping is pinned to a kernel constant", "[gfx][pixfmt][v4
   CHECK(vpf::fromV4L2PixelFormat(V4L2_PIX_FMT_Z16) == V::Mono16);
 #endif
 }
+#endif
 
 // chromaSwappedTwin needs positive coverage: the sweep over described formats
 // skips anything returning Unknown, so deleting every case would pass vacuously.
