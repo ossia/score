@@ -1,5 +1,8 @@
 #pragma once
 
+#include <Gfx/Graph/interop/DrmPixelFormat.hpp>
+#include <Gfx/Graph/interop/VideoPixelFormatAV.hpp>
+
 // SPDX-License-Identifier: GPL-3.0-or-later
 //
 // DRM fourcc <-> AVPixelFormat <-> SPA video format mapping — the ONE
@@ -59,56 +62,42 @@ inline constexpr uint32_t DRM_YUYV          = drmFourcc('Y','U','Y','V');
 inline constexpr uint32_t DRM_UYVY          = drmFourcc('U','Y','V','Y');
 // clang-format on
 
-/** DRM fourcc -> AVPixelFormat (memory-layout-equivalent). X-variants map to
- *  the alpha-ignored AV formats (RGB0/BGR0). AV_PIX_FMT_NONE if unmapped
- *  (e.g. half-float: no portable packed-half AVFrame format exists). */
+/** DRM fourcc -> AVPixelFormat. Delegates to the vocabulary: the fourcc names a
+ *  layout, and the layout knows its AVPixelFormat, so there is no second opinion
+ *  about either here. Verified to answer exactly as the previous table did for
+ *  every fourcc it handled, including AV_PIX_FMT_NONE for DRM_YVU420, whose
+ *  plane-swapped layout FFmpeg cannot name -- callers must swap U and V, and
+ *  interop::fromDrmFourcc() now tells them so explicitly by answering YVU420P. */
 inline AVPixelFormat drmFourccToAv(uint32_t fourcc) noexcept
 {
-  switch(fourcc)
-  {
-    case DRM_ABGR8888:    return AV_PIX_FMT_RGBA;
-    case DRM_ARGB8888:    return AV_PIX_FMT_BGRA;
-    case DRM_XBGR8888:    return AV_PIX_FMT_RGB0;
-    case DRM_XRGB8888:    return AV_PIX_FMT_BGR0;
-    case DRM_ARGB2101010: return AV_PIX_FMT_X2RGB10LE;
-    case DRM_ABGR2101010: return AV_PIX_FMT_X2BGR10LE;
-    case DRM_BGR888:      return AV_PIX_FMT_RGB24;
-    case DRM_NV12:        return AV_PIX_FMT_NV12;
-    case DRM_P010:        return AV_PIX_FMT_P010LE;
-    case DRM_P210:        return AV_PIX_FMT_P210LE;
-    case DRM_YUV420:      return AV_PIX_FMT_YUV420P;
-    case DRM_YUYV:        return AV_PIX_FMT_YUYV422;
-    case DRM_UYVY:        return AV_PIX_FMT_UYVY422;
-    // DRM_YVU420: plane-swapped I420; callers must swap U/V explicitly.
-    default:              return AV_PIX_FMT_NONE;
-  }
+  return score::gfx::interop::toAVPixelFormat(
+      score::gfx::interop::fromDrmFourcc(fourcc));
 }
 
 /** AVPixelFormat -> DRM fourcc. 0 if unmapped. */
 inline uint32_t avToDrmFourcc(AVPixelFormat fmt) noexcept
 {
-  switch(fmt)
-  {
-    case AV_PIX_FMT_RGBA:       return DRM_ABGR8888;
-    case AV_PIX_FMT_BGRA:       return DRM_ARGB8888;
-    case AV_PIX_FMT_RGB0:       return DRM_XBGR8888;
-    case AV_PIX_FMT_BGR0:       return DRM_XRGB8888;
-    case AV_PIX_FMT_X2RGB10LE:  return DRM_ARGB2101010;
-    case AV_PIX_FMT_X2BGR10LE:  return DRM_ABGR2101010;
-    case AV_PIX_FMT_RGB24:      return DRM_BGR888;
-    case AV_PIX_FMT_NV12:       return DRM_NV12;
-    case AV_PIX_FMT_P010LE:     return DRM_P010;
-    case AV_PIX_FMT_P210LE:     return DRM_P210;
-    case AV_PIX_FMT_YUV420P:    return DRM_YUV420;
-    case AV_PIX_FMT_YUYV422:    return DRM_YUYV;
-    case AV_PIX_FMT_UYVY422:    return DRM_UYVY;
-    default:                    return 0;
-  }
+  return score::gfx::interop::toDrmFourcc(
+      score::gfx::interop::fromAVPixelFormat(fmt));
+}
+
+/** DRM fourcc -> the buffer layout, for callers that want the layout rather than
+ *  an AVPixelFormat -- notably the ones that can import a dma-buf directly and
+ *  need the plane geometry rather than a decode target. */
+inline score::gfx::interop::VideoPixelFormat
+drmFourccToVideoPixelFormat(uint32_t fourcc) noexcept
+{
+  return score::gfx::interop::fromDrmFourcc(fourcc);
 }
 
 #if defined(SCORE_GFX_HAS_SPA_RAW)
 /** SPA video format -> DRM fourcc. 0 if unmapped. Superset of the former
  *  PipewireFormats::toDrmFourcc and WindowCapture_pipewire tables. */
+/** SPA video format -> the buffer layout. SPA formats are defined in DRM terms,
+ *  so this goes through the fourcc rather than maintaining a third table. */
+inline score::gfx::interop::VideoPixelFormat
+spaToVideoPixelFormat(uint32_t spaFmt) noexcept;
+
 inline uint32_t spaToDrmFourcc(uint32_t spaFmt) noexcept
 {
   switch(spaFmt)
@@ -129,6 +118,12 @@ inline uint32_t spaToDrmFourcc(uint32_t spaFmt) noexcept
     case SPA_VIDEO_FORMAT_UYVY:        return DRM_UYVY;
     default:                           return 0;
   }
+}
+
+inline score::gfx::interop::VideoPixelFormat
+spaToVideoPixelFormat(uint32_t spaFmt) noexcept
+{
+  return score::gfx::interop::fromDrmFourcc(spaToDrmFourcc(spaFmt));
 }
 #endif
 
