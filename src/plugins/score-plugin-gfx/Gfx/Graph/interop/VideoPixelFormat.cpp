@@ -61,6 +61,20 @@ const VideoPixelFormatInfo* allFormats(std::size_t& count) noexcept
   return kFormats;
 }
 
+VideoPixelFormat chromaSwappedTwin(VideoPixelFormat f) noexcept
+{
+  switch(f)
+  {
+    case VideoPixelFormat::YVU420P: return VideoPixelFormat::YUV420P;
+    case VideoPixelFormat::YVU422P: return VideoPixelFormat::YUV422P;
+    case VideoPixelFormat::YVU410P: return VideoPixelFormat::YUV410P;
+    case VideoPixelFormat::NV21:    return VideoPixelFormat::NV12;
+    case VideoPixelFormat::NV61:    return VideoPixelFormat::NV16;
+    case VideoPixelFormat::NV42:    return VideoPixelFormat::NV24;
+    default:                        return VideoPixelFormat::Unknown;
+  }
+}
+
 std::size_t rowBytes(VideoPixelFormat f, uint32_t width) noexcept
 {
   const auto& info = formatInfo(f);
