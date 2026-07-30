@@ -229,9 +229,11 @@ set(HDRS
     Gfx/Graph/interop/VideoPixelFormat.hpp
     Gfx/Graph/interop/V4L2PixelFormat.hpp
     Gfx/Graph/interop/DirectShowPixelFormat.hpp
+    Gfx/Graph/interop/DrmPixelFormat.hpp
     Gfx/Graph/interop/VideoPixelFormat.cpp
     Gfx/Graph/interop/V4L2PixelFormat.cpp
     Gfx/Graph/interop/DirectShowPixelFormat.cpp
+    Gfx/Graph/interop/DrmPixelFormat.cpp
 
     Gfx/Graph/decoders/GPUVideoDecoder.hpp
     Gfx/Graph/decoders/GPUVideoDecoderFactory.hpp

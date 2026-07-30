@@ -23,6 +23,9 @@ AVPixelFormat toAVPixelFormat(VideoPixelFormat f) noexcept
     case V::XRGB8:     return AV_PIX_FMT_0RGB;
     case V::XBGR8:     return AV_PIX_FMT_0BGR;
 
+    case V::X2RGB10:   return AV_PIX_FMT_X2RGB10LE;
+    case V::X2BGR10:   return AV_PIX_FMT_X2BGR10LE;
+
     // -- packed sub-byte RGB --
     case V::RGB565:    return AV_PIX_FMT_RGB565LE;
     case V::RGB565BE:  return AV_PIX_FMT_RGB565BE;
@@ -154,6 +157,8 @@ VideoPixelFormat fromAVPixelFormat(AVPixelFormat f) noexcept
     case AV_PIX_FMT_RGB0:        return V::RGBX8;
     case AV_PIX_FMT_0RGB:        return V::XRGB8;
     case AV_PIX_FMT_0BGR:        return V::XBGR8;
+    case AV_PIX_FMT_X2RGB10LE:   return V::X2RGB10;
+    case AV_PIX_FMT_X2BGR10LE:   return V::X2BGR10;
     case AV_PIX_FMT_RGB565LE:    return V::RGB565;
     case AV_PIX_FMT_RGB565BE:    return V::RGB565BE;
     case AV_PIX_FMT_RGB555LE:    return V::RGB555;
