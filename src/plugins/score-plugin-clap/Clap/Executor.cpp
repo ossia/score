@@ -416,11 +416,11 @@ public:
             ossia::convert<double>(tv.value), param_info.min_value,
             param_info.max_value);
 
-        // Map ossia's signed frame offset onto CLAP's unsigned uint32
-        // time field. Negative timestamps (carry-over from the previous
-        // block) clamp to 0; out-of-block timestamps clamp to samples-1
-        // so the plug-in still sees the change within the current block.
-        const int64_t t = tv.timestamp;
+        // Map ossia's signed frame offset onto CLAP's unsigned uint32 time
+        // field. Port timestamps are relative to the audio buffer while the
+        // plug-in only sees [m_tick_start; m_tick_start + samples[ of it, so
+        // rebase first; anything outside still clamps into the block.
+        const int64_t t = tv.timestamp - m_tick_start;
         const uint32_t time
             = t <= 0 ? 0u
                      : static_cast<uint32_t>(
@@ -450,6 +450,10 @@ public:
 
   void process_midi()
   {
+    const auto stamp = [this](int64_t ts) -> uint32_t {
+      return uint32_t(std::clamp<int64_t>(
+          ts - m_tick_start, 0, m_tick_frames > 0 ? m_tick_frames - 1 : 0));
+    };
     uint16_t midi_port_index = 0;
     for(ossia::midi_inlet* midi_in : midi_ins)
     {
@@ -462,7 +466,7 @@ public:
         {
           clap_event_midi2_t ev{};
           ev.header.size = sizeof(clap_event_midi2_t);
-          ev.header.time = m.timestamp;
+          ev.header.time = stamp(m.timestamp);
           ev.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
           ev.header.type = CLAP_EVENT_MIDI2;
           ev.header.flags = 0;
@@ -486,7 +490,7 @@ public:
             continue;
           clap_event_note_t ev{};
           ev.header.size = sizeof(clap_event_note_t);
-          ev.header.time = m.timestamp;
+          ev.header.time = stamp(m.timestamp);
           ev.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
           ev.header.flags = 0;
           ev.port_index = midi_port_index;
@@ -545,7 +549,7 @@ public:
           {
             clap_event_midi_t ev{};
             ev.header.size = sizeof(clap_event_midi_t);
-            ev.header.time = m.timestamp;
+            ev.header.time = stamp(m.timestamp);
             ev.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
             ev.header.type = CLAP_EVENT_MIDI;
             ev.header.flags = 0;
@@ -564,8 +568,10 @@ public:
     }
   }
 
-  void prepare_input_events(int samples)
+  void prepare_input_events(int64_t offset, int samples)
   {
+    m_tick_start = offset;
+    m_tick_frames = samples;
     m_input_events.clear();
     m_output_events.clear();
 
@@ -672,6 +678,10 @@ public:
   std::vector<ossia::value_inlet*> parameter_ins;
   std::vector<ossia::value_outlet*> parameter_outs;
   clap_event_transport_t m_current_transport{};
+
+  // Buffer span this tick was given, as reported by exec_state_facade::timings().
+  int64_t m_tick_start{};
+  int64_t m_tick_frames{};
 
   event_storage m_input_events;
   event_storage m_output_events;
@@ -849,7 +859,7 @@ public:
           libremidi::ump msg;
           if(cmidi2_midi1_channel_voice_to_midi2(midi_event.data, 3, msg.data))
           {
-            msg.timestamp = midi_event.header.time;
+            msg.timestamp = m_tick_start + midi_event.header.time;
             port_messages.push_back(msg);
           }
         }
@@ -895,7 +905,7 @@ public:
           libremidi::ump msg;
           if(cmidi2_midi1_channel_voice_to_midi2(bytes, 3, msg.data))
           {
-            msg.timestamp = ne.header.time;
+            msg.timestamp = m_tick_start + ne.header.time;
             port_messages.push_back(msg);
           }
         }
@@ -907,7 +917,7 @@ public:
             continue;
           libremidi::ump msg;
           std::memcpy(msg.data, m2.data, sizeof(m2.data));
-          msg.timestamp = m2.header.time;
+          msg.timestamp = m_tick_start + m2.header.time;
           port_messages.push_back(msg);
         }
 
@@ -992,7 +1002,7 @@ public:
     input_channel_ptrs.clear();
     output_channel_ptrs.clear();
 
-    prepare_input_events(samples);
+    prepare_input_events(offset, samples);
 
     // Honour CLAP_PROCESS_SLEEP: the plug-in told us it needs no further
     // work until an event arrives or audio input varies. We trust the
@@ -1210,7 +1220,7 @@ public:
     m_output_events.clear();
 
     // Process parameter changes
-    prepare_input_events(samples);
+    prepare_input_events(offset, samples);
 
     // Honour CLAP_PROCESS_SLEEP — see clap_node_32::run for rationale.
     if(m_last_status == CLAP_PROCESS_SLEEP && audio_ins.empty()
@@ -1719,7 +1729,7 @@ public:
     input_channel_storage.resize(samples);
     output_channel_storage.resize(samples);
 
-    prepare_input_events(samples);
+    prepare_input_events(offset, samples);
     prepare_voice_overrides(samples);
 
     float* ins_pointer[1]{input_channel_storage.data()};
@@ -1825,7 +1835,7 @@ public:
 
     m_current_transport = make_transport(t, e);
 
-    prepare_input_events(samples);
+    prepare_input_events(offset, samples);
     prepare_voice_overrides(samples);
 
     double* ins_pointer[1]{};
