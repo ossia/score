@@ -99,7 +99,7 @@ AVPixelFormat toAVPixelFormat(VideoPixelFormat f) noexcept
     case V::RGB10:     // AJA NTV2_FBF_10BIT_RGB (little-endian, B high)
     case V::R12B:      // AV_CODEC_ID_DPX
     case V::R12L:
-    case V::ARGB10:    // A2R10G10B10 packed
+    case V::ARGB10:    // 4x10 bits packed into 5 bytes, alpha included
     case V::DPX10:
     case V::DPX10LE:
     case V::RGB12P:
@@ -107,7 +107,9 @@ AVPixelFormat toAVPixelFormat(VideoPixelFormat f) noexcept
     // -- no clean/unambiguous AVPixelFormat twin --
     case V::RGBA16F:   // no packed half-float RGBA pixfmt
     case V::RGBA32F:   // no packed float RGBA pixfmt (GBRPF32 is planar)
-    case V::BayerRG8:  // Bayer order differs per sensor; keep explicit
+    // PFNC aliases of the RGGB order; see the table. Unbridged so that no two
+    // enumerators claim the same AVPixelFormat.
+    case V::BayerRG8:
     case V::BayerRG12:
     // FFmpeg has no plane-swapped planar twin: YV12 is expressed as yuv420p
     // with the U and V pointers exchanged, so returning yuv420p here would

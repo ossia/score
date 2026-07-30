@@ -13,7 +13,7 @@
  *
  * `AVPixelFormat` cannot serve as that vocabulary on its own: FFmpeg models
  * several formats the SDI cards put on the wire as *codecs* rather than pixel
- * formats (v210, v216, r210, DPX 10/12-bit, 12-bit packed RGB, A2-ARGB10), so
+ * formats (v210, v216, r210, DPX 10/12-bit, 12-bit packed RGB, 10-bit ARGB), so
  * they have no `AV_PIX_FMT_*` at all. `VideoPixelFormatAV.hpp` bridges the
  * representable subset in both directions.
  *
@@ -106,16 +106,19 @@ enum class ByteOrder : uint8_t
   X(XRGB8, 9, RGB, 1, 1, 1, 1, 4, false, NA, 256)                              \
   X(XBGR8, 19, RGB, 1, 1, 1, 1, 4, false, NA, 256)                             \
   /* -- Packed 10/12-bit RGB ----------------------------------------------- */ \
-  /* R210 is DeckLink r210 / AV_CODEC_ID_R210: (R<<20)|(G<<10)|B, big-endian. */ \
-  /* RGB10 is AJA NTV2_FBF_10BIT_RGB: (B<<20)|(G<<10)|R, little-endian.       */ \
-  /* R12B/R12L pack 8 pixels into 36 bytes (12 bits per component).           */ \
-  X(R210, 10, RGB, 1, 1, 1, 1, 4, false, Big, 256)                             \
-  X(R12B, 11, RGB, 1, 1, 1, 8, 36, false, Big, 256)                            \
-  X(R12L, 12, RGB, 1, 1, 1, 8, 36, false, Little, 256)                         \
+  /* R210 is DeckLink r210 / AV_CODEC_ID_R210: (R<<20)|(G<<10)|B, big-endian.  */ \
+  /* Its 64-pixel/256-byte row is mandatory, not padding, so it belongs in the  */ \
+  /* block like v210 s: a tight row would not be a legal r210 frame.            */ \
+  /* RGB10 is AJA NTV2_FBF_10BIT_RGB: (B<<20)|(G<<10)|R, little-endian.         */ \
+  /* R12B/R12L/RGB12P all carry 36 bits per pixel, which is exactly 2 pixels    */ \
+  /* per 9 bytes; they differ only in component and byte order.                 */ \
+  X(R210, 10, RGB, 1, 1, 1, 64, 256, false, Big, 256)                          \
+  X(R12B, 11, RGB, 1, 1, 1, 2, 9, false, Big, 256)                             \
+  X(R12L, 12, RGB, 1, 1, 1, 2, 9, false, Little, 256)                          \
   X(ARGB10, 13, RGB, 1, 1, 1, 1, 5, true, Little, 256)                         \
   X(DPX10, 14, RGB, 1, 1, 1, 1, 4, false, Big, 256)                            \
   X(DPX10LE, 15, RGB, 1, 1, 1, 1, 4, false, Little, 256)                       \
-  X(RGB12P, 16, RGB, 1, 1, 1, 2, 9, false, NA, 256)                            \
+  X(RGB12P, 16, RGB, 1, 1, 1, 2, 9, false, Little, 256)                        \
   X(RGB48, 17, RGB, 1, 1, 1, 1, 6, false, Little, 256)                         \
   X(RGB10, 18, RGB, 1, 1, 1, 1, 4, false, Little, 256)                         \
   /* -- Packed sub-byte RGB / YUV (legacy, embedded, V4L2 cameras) --------- */ \
@@ -193,6 +196,11 @@ enum class ByteOrder : uint8_t
   X(Mono10, 81, Grey, 1, 1, 1, 1, 2, false, Little, 64)                        \
   X(Mono12, 82, Grey, 1, 1, 1, 1, 2, false, Little, 64)                        \
   X(Mono16, 83, Grey, 1, 1, 1, 1, 2, false, Little, 64)                        \
+  /* BayerRG8/BayerRG12 are the GenICam PFNC spellings of the RGGB order, so   */ \
+  /* they name the same bytes as BayerRGGB8/BayerRGGB16. They are kept because  */ \
+  /* their values are serialized, and deliberately left unbridged: mapping two  */ \
+  /* enumerators onto one AVPixelFormat would make the round-trip ambiguous.    */ \
+  /* Prefer the explicit orders.                                               */ \
   X(BayerRG8, 84, Bayer, 1, 1, 1, 1, 1, false, NA, 64)                         \
   X(BayerRG12, 85, Bayer, 1, 1, 1, 1, 2, false, Little, 64)                    \
   /* The CFA order decides how a demosaic reads the mosaic, so the four 8-bit  */ \
@@ -229,8 +237,7 @@ constexpr std::size_t formatCount() noexcept
  *   - 1: packed (BGRA8, UYVY, v210, R210, Mono*)
  *   - 2: semi-planar, chroma interleaved into one plane (NV12, P010, P210)
  *   - 3: fully planar (YUV420P, YUV422P, ...)
- *   - 4: fully planar plus an alpha plane (none declared yet; sized correctly
- *        by `bytesPerFrame` if one is added)
+ *   - 4: fully planar plus a full-resolution alpha plane (YUVA444P)
  */
 struct VideoPixelFormatInfo
 {
@@ -238,8 +245,8 @@ struct VideoPixelFormatInfo
   VideoPixelFormat format{VideoPixelFormat::Unknown};
   ColorModel colorModel{ColorModel::Unknown};
   uint8_t planeCount{1};
-  uint8_t horizontalSubsampling{1}; /**< 1 for 4:4:4, 2 for 4:2:2 and 4:2:0. */
-  uint8_t verticalSubsampling{1};   /**< 1 for 4:2:2, 2 for 4:2:0. */
+  uint8_t horizontalSubsampling{1}; /**< 1 for 4:4:4, 2 for 4:2:2 and 4:2:0, 4 for 4:1:1 and 4:1:0. */
+  uint8_t verticalSubsampling{1};   /**< 1 for 4:2:2 and 4:1:1, 2 for 4:2:0, 4 for 4:1:0. */
   /** Primary-plane block geometry: `blockPixels` pixels occupy `blockBytes`
    *  bytes. See the table header for why this replaces bits-per-pixel. */
   uint16_t blockPixels{1};
