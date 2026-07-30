@@ -331,7 +331,11 @@ QCursor get_cursor(QString str, double hotspot_x, double hotspot_y)
   {
     img.load(str);
   }
-  cur = QCursor{img, (int)hotspot_x, (int)hotspot_y};
+  double hotspot_scale = 1.;
+  if(QGuiApplication::platformName() == QLatin1String("xcb"))
+    hotspot_scale = img.devicePixelRatio();
+
+  cur = QCursor{img, (int)(hotspot_x * hotspot_scale), (int)(hotspot_y * hotspot_scale)};
   return cur;
 }
 
