@@ -2,32 +2,37 @@
 
 /**
  * @file VideoPixelFormat.hpp
- * @brief Vendor-neutral pixel format enum + descriptive metadata.
+ * @brief Vendor-neutral pixel format vocabulary + descriptive metadata.
  *
  * Capture/output cards each have their own pixel-format enums:
  * AJA `NTV2FrameBufferFormat`, DeckLink `BMDPixelFormat`, Magewell
- * `MWFOURCC`, Rivermax SDP-derived sample types, Ximea `XI_IMG_FORMAT`.
- * Strategies translate between vendor enums and score's internal
- * representation; without a central enum every strategy reinvents the
- * mapping table.
+ * `MWFOURCC`, V4L2 fourccs, DRM fourccs, PipeWire SPA formats, GStreamer
+ * format strings, Ximea `XI_IMG_FORMAT`. Strategies translate between those
+ * and score's internal representation; without a central vocabulary every
+ * strategy reinvents the mapping table, and they drift apart.
  *
- * This file provides:
+ * `AVPixelFormat` cannot serve as that vocabulary on its own: FFmpeg models
+ * several formats the SDI cards put on the wire as *codecs* rather than pixel
+ * formats (v210, v216, r210, DPX 10/12-bit, 12-bit packed RGB, A2-ARGB10), so
+ * they have no `AV_PIX_FMT_*` at all. `VideoPixelFormatAV.hpp` bridges the
+ * representable subset in both directions.
  *
- *   - `VideoPixelFormat` — exhaustive enum of formats score handles
- *     (packed RGB, packed YUV, planar YUV, 10/12-bit variants, etc).
- *   - `VideoPixelFormatInfo` — descriptive struct with bytes-per-pixel
- *     equivalent, plane count, subsampling, default stride alignment,
- *     and a human-readable name.
- *   - Helpers: `formatInfo()`, `defaultStride()`, `formatName()`,
- *     `bytesPerFrame()`.
+ * This vocabulary describes **sample layout only**. Colorimetry -- range,
+ * primaries, transfer characteristic, chroma siting, HDR metadata -- is a
+ * separate orthogonal axis, owned by `Video::ImageFormat`. Do not add colour
+ * fields here: a format says how bytes are arranged, not how to interpret the
+ * values in them.
+ *
+ * Everything is generated from one declarative table,
+ * `SCORE_VIDEO_PIXEL_FORMATS`: the enum, the descriptor array, the name
+ * lookup, and the list the unit test sweeps. A format therefore cannot be
+ * declared without being described -- which is how 28 formats previously ended
+ * up declared with a zero-byte descriptor, so that `bytesPerFrame` silently
+ * returned 0 for them.
  *
  * Vendor-specific translation tables (e.g. `bmdFormatTo(...)`,
- * `ntv2FormatTo(...)`) live in each vendor's addon to avoid pulling
- * vendor headers into score-plugin-gfx.
- *
- * Eventually this header may move to a `score-lib-video` library when
- * one exists; for now it lives under `score::gfx::interop` since
- * score-plugin-gfx is the universal dependency.
+ * `ntv2FormatTo(...)`) live in each vendor's addon to avoid pulling vendor
+ * headers into score-plugin-gfx.
  */
 
 #include <score_plugin_gfx_export.h>
@@ -38,105 +43,179 @@
 namespace score::gfx::interop
 {
 
-/** Comprehensive pixel format enum covering every flavour score's
- *  vendor strategies need. Values are stable; reorder only with
- *  serialization migration. */
+/** Which colour model the samples carry. A boolean "is YUV" cannot express
+ *  greyscale or Bayer, both of which the industrial-camera paths produce. */
+enum class ColorModel : uint8_t
+{
+  Unknown = 0,
+  RGB,
+  YUV,
+  Grey,  /**< Single achromatic channel (Mono*). */
+  Bayer, /**< Undemosaiced colour-filter-array data (BayerRG*). */
+};
+
+/** Byte order of multi-byte samples. `NA` means the format has no multi-byte
+ *  sample whose order could differ -- 8-bit packed layouts, and byte-addressed
+ *  ones like RGB24 where component order is part of the format identity. */
+enum class ByteOrder : uint8_t
+{
+  NA = 0,
+  Little,
+  Big,
+};
+
+// ---------------------------------------------------------------------------
+// The single declarative table. One row per format; nothing else in this
+// vocabulary is maintained by hand.
+//
+//   X(Name, Value, Model, Planes, Hsub, Vsub, BlockPixels, BlockBytes,
+//     Alpha, Order, Align)
+//
+// `Value` is the serialized wire value and is FROZEN: rows may be reordered
+// freely, but a value must never change without a serialization migration.
+//
+// BlockPixels/BlockBytes describe the **primary plane**: a horizontal run of
+// BlockPixels pixels occupies exactly BlockBytes bytes. Packed formats put a
+// whole pixel group there (BGRA8 = 1px/4B, UYVY = 2px/4B, v210 = 48px/128B per
+// SMPTE ST 2110-20); planar formats put one luma sample there (NV12 = 1px/1B,
+// P010 = 1px/2B).
+//
+// That one mechanism replaces an averaged bits-per-pixel, which could not
+// express v210 at all (128 bytes / 48 pixels = 21.33 bits, truncated into an
+// integer field and then special-cased in the stride function) and which
+// over-computed planar strides (NV12 by 1.5x, P010 by 3x). A new packed layout
+// now needs a table row, not another branch.
+//
+// `Align` is a *preferred* stride alignment, used only by callers that have no
+// constraint of their own. It is not a property of the pixel format: a device
+// or allocator with a real requirement (D3D12's 256-byte row pitch, a DeckLink
+// rowBytes, a V4L2 `bytesperline`) must pass its own to `alignedRowBytes`.
+// ---------------------------------------------------------------------------
+#define SCORE_VIDEO_PIXEL_FORMATS(X)                                           \
+  /* -- Packed 8-bit RGB -------------------------------------------------- */ \
+  /* BGRA8 matches QRhi BGRA8 + DeckLink bmdFormat8BitBGRA. */ \
+  X(BGRA8, 1, RGB, 1, 1, 1, 1, 4, true, NA, 256)                               \
+  X(RGBA8, 2, RGB, 1, 1, 1, 1, 4, true, NA, 256)                               \
+  X(ARGB8, 3, RGB, 1, 1, 1, 1, 4, true, NA, 256)                               \
+  X(ABGR8, 4, RGB, 1, 1, 1, 1, 4, true, NA, 256)                               \
+  X(RGB24, 5, RGB, 1, 1, 1, 1, 3, false, NA, 64)                               \
+  X(BGR24, 6, RGB, 1, 1, 1, 1, 3, false, NA, 64)                               \
+  /* -- Packed 10/12-bit RGB ----------------------------------------------- */ \
+  /* R210 is DeckLink r210 / AV_CODEC_ID_R210: (R<<20)|(G<<10)|B, big-endian. */ \
+  /* RGB10 is AJA NTV2_FBF_10BIT_RGB: (B<<20)|(G<<10)|R, little-endian.       */ \
+  /* R12B/R12L pack 8 pixels into 36 bytes (12 bits per component).           */ \
+  X(R210, 10, RGB, 1, 1, 1, 1, 4, false, Big, 256)                             \
+  X(R12B, 11, RGB, 1, 1, 1, 8, 36, false, Big, 256)                            \
+  X(R12L, 12, RGB, 1, 1, 1, 8, 36, false, Little, 256)                         \
+  X(ARGB10, 13, RGB, 1, 1, 1, 1, 5, true, Little, 256)                         \
+  X(DPX10, 14, RGB, 1, 1, 1, 1, 4, false, Big, 256)                            \
+  X(DPX10LE, 15, RGB, 1, 1, 1, 1, 4, false, Little, 256)                       \
+  X(RGB12P, 16, RGB, 1, 1, 1, 2, 9, false, NA, 256)                            \
+  X(RGB48, 17, RGB, 1, 1, 1, 1, 6, false, Little, 256)                         \
+  X(RGB10, 18, RGB, 1, 1, 1, 1, 4, false, Little, 256)                         \
+  /* -- Packed 8-bit YUV 4:2:2 (two pixels share one chroma pair) ---------- */ \
+  X(UYVY422, 20, YUV, 1, 2, 1, 2, 4, false, NA, 256)                           \
+  X(YUYV422, 21, YUV, 1, 2, 1, 2, 4, false, NA, 256)                           \
+  X(YVYU422, 22, YUV, 1, 2, 1, 2, 4, false, NA, 256)                           \
+  X(VYUY422, 23, YUV, 1, 2, 1, 2, 4, false, NA, 256)                           \
+  /* -- Packed 10/16-bit YUV 4:2:2 ----------------------------------------- */ \
+  /* v210 packs 48 pixels into 128 bytes; that block IS the SMPTE stride     */ \
+  /* rule, so it needs no special case here.                                 */ \
+  X(V210, 30, YUV, 1, 2, 1, 48, 128, false, Little, 128)                       \
+  X(V216, 31, YUV, 1, 2, 1, 2, 8, false, Little, 256)                          \
+  /* -- Planar / semi-planar 4:2:0 ----------------------------------------- */ \
+  X(NV12, 40, YUV, 2, 2, 2, 1, 1, false, NA, 256)                              \
+  X(P010, 41, YUV, 2, 2, 2, 1, 2, false, Little, 256)                          \
+  X(YUV420P, 42, YUV, 3, 2, 2, 1, 1, false, NA, 256)                           \
+  X(YUV420P10, 43, YUV, 3, 2, 2, 1, 2, false, Little, 256)                     \
+  /* -- Planar / semi-planar 4:2:2 ----------------------------------------- */ \
+  X(P210, 50, YUV, 2, 2, 1, 1, 2, false, Little, 256)                          \
+  X(YUV422P, 51, YUV, 3, 2, 1, 1, 1, false, NA, 256)                           \
+  X(YUV422P10, 52, YUV, 3, 2, 1, 1, 2, false, Little, 256)                     \
+  /* -- Planar / semi-planar / packed 4:4:4 -------------------------------- */ \
+  X(YUV444P, 60, YUV, 3, 1, 1, 1, 1, false, NA, 256)                           \
+  X(YUV444P10, 61, YUV, 3, 1, 1, 1, 2, false, Little, 256)                     \
+  X(YUV444P12, 62, YUV, 3, 1, 1, 1, 2, false, Little, 256)                     \
+  /* -- High-precision RGB ------------------------------------------------- */ \
+  X(RGBA16, 70, RGB, 1, 1, 1, 1, 8, true, Little, 256)                         \
+  X(RGBA16F, 71, RGB, 1, 1, 1, 1, 8, true, Little, 256)                        \
+  X(RGBA32F, 72, RGB, 1, 1, 1, 1, 16, true, Little, 256)                       \
+  /* -- Greyscale / Bayer (industrial cameras) ----------------------------- */ \
+  X(Mono8, 80, Grey, 1, 1, 1, 1, 1, false, NA, 64)                             \
+  X(Mono10, 81, Grey, 1, 1, 1, 1, 2, false, Little, 64)                        \
+  X(Mono12, 82, Grey, 1, 1, 1, 1, 2, false, Little, 64)                        \
+  X(Mono16, 83, Grey, 1, 1, 1, 1, 2, false, Little, 64)                        \
+  X(BayerRG8, 84, Bayer, 1, 1, 1, 1, 1, false, NA, 64)                         \
+  X(BayerRG12, 85, Bayer, 1, 1, 1, 1, 2, false, Little, 64)
+
+/** Comprehensive pixel format enum, generated from the table above.
+ *  Values are stable; reorder only with serialization migration. */
 enum class VideoPixelFormat : uint16_t
 {
   Unknown = 0,
-
-  // -- Packed 8-bit RGB ------------------------------------------------
-  BGRA8 = 1,      /**< Most common; matches QRhi BGRA8 + DeckLink bmdFormat8BitBGRA. */
-  RGBA8 = 2,
-  ARGB8 = 3,
-  ABGR8 = 4,
-  RGB24 = 5,      /**< Packed 24-bit, byte order R,G,B (3 bpp). */
-  BGR24 = 6,      /**< Packed 24-bit, byte order B,G,R (3 bpp). */
-
-  // -- Packed 10/12-bit RGB --------------------------------------------
-  R210 = 10,      /**< DeckLink r210 / AV_CODEC_ID_R210: word
-                       (R<<20)|(G<<10)|B, 4 bytes/pixel, big-endian. */
-  R12B = 11,      /**< 12-bit RGB big-endian, AJA + DeckLink. */
-  R12L = 12,      /**< 12-bit RGB little-endian. */
-  ARGB10 = 13,    /**< A2R10G10B10 packed (AJA NTV2_FBF_10BIT_ARGB). */
-  DPX10 = 14,     /**< 10-bit RGB DPX/Cineon, big-endian (AJA NTV2_FBF_10BIT_DPX). */
-  DPX10LE = 15,   /**< 10-bit RGB DPX/Cineon, little-endian. */
-  RGB12P = 16,    /**< 12-bit RGB packed, 2px/9 bytes (AJA NTV2_FBF_12BIT_RGB_PACKED). */
-  RGB48 = 17,     /**< 16-bit-per-channel RGB, no alpha (AJA NTV2_FBF_48BIT_RGB). */
-  RGB10 = 18,     /**< AJA NTV2_FBF_10BIT_RGB: word (B<<20)|(G<<10)|R, LE.
-                       Distinct from R210 (DeckLink r210: R high, BE). */
-
-  // -- Packed 8-bit YUV 4:2:2 -----------------------------------------
-  UYVY422 = 20,   /**< Most common SDI; 16-bpp packed UYVY. */
-  YUYV422 = 21,
-  YVYU422 = 22,
-  VYUY422 = 23,
-
-  // -- Packed 10-bit YUV 4:2:2 ----------------------------------------
-  V210 = 30,      /**< SMPTE 296M; 6 pixels packed into 16 bytes. */
-  V216 = 31,      /**< 16-bit per channel; 4:2:2. */
-
-  // -- Planar 4:2:0 ----------------------------------------------------
-  NV12 = 40,      /**< Y plane + interleaved UV plane; HEVC standard. */
-  P010 = 41,      /**< NV12 with 10-bit upshifted to 16-bit lanes. */
-  YUV420P = 42,   /**< Three-plane 4:2:0; FFmpeg standard. */
-  YUV420P10 = 43, /**< Three-plane 4:2:0, 10-bit (AJA NTV2_FBF_10BIT_YCBCR_420PL3_LE). */
-
-  // -- Planar 4:2:2 ----------------------------------------------------
-  P210 = 50,      /**< NV12-shape with 4:2:2 sub-sampling at 10-bit. */
-  YUV422P = 51,
-  YUV422P10 = 52,
-
-  // -- Planar 4:4:4 ----------------------------------------------------
-  YUV444P = 60,
-  YUV444P10 = 61,
-  YUV444P12 = 62,
-
-  // -- High-precision RGB ----------------------------------------------
-  RGBA16 = 70,    /**< 16-bit per channel integer RGBA. */
-  RGBA16F = 71,   /**< 16-bit half-float per channel. */
-  RGBA32F = 72,   /**< 32-bit float per channel. */
-
-  // -- Raw / Bayer (industrial cameras) -------------------------------
-  Mono8 = 80,
-  Mono10 = 81,
-  Mono12 = 82,
-  Mono16 = 83,
-  BayerRG8 = 84,
-  BayerRG12 = 85,
+#define SCORE_VPF_ENUM_ROW(Name, Value, ...) Name = Value,
+  SCORE_VIDEO_PIXEL_FORMATS(SCORE_VPF_ENUM_ROW)
+#undef SCORE_VPF_ENUM_ROW
 };
 
-/** Sample arrangement description. Three plane counts cover everything
- *  the matrix vendors emit:
- *   - 1: packed (BGRA8, UYVY, V210, R210, Mono*)
- *   - 2: semi-planar (NV12, P010, P210)
- *   - 3: fully planar (YUV420P, YUV422P, etc) */
+/** Number of described formats, excluding `Unknown`. */
+constexpr std::size_t formatCount() noexcept
+{
+#define SCORE_VPF_COUNT_ROW(...) +1
+  return std::size_t(0 SCORE_VIDEO_PIXEL_FORMATS(SCORE_VPF_COUNT_ROW));
+#undef SCORE_VPF_COUNT_ROW
+}
+
+/** Sample arrangement description.
+ *
+ * Plane counts cover everything the matrix vendors emit:
+ *   - 1: packed (BGRA8, UYVY, v210, R210, Mono*)
+ *   - 2: semi-planar, chroma interleaved into one plane (NV12, P010, P210)
+ *   - 3: fully planar (YUV420P, YUV422P, ...)
+ *   - 4: fully planar plus an alpha plane (none declared yet; sized correctly
+ *        by `bytesPerFrame` if one is added)
+ */
 struct VideoPixelFormatInfo
 {
   const char* name{"unknown"};
-  uint8_t bitsPerPixel{};       /**< Average; 12 for NV12, 16 for UYVY, 20 for V210 effective. */
+  VideoPixelFormat format{VideoPixelFormat::Unknown};
+  ColorModel colorModel{ColorModel::Unknown};
   uint8_t planeCount{1};
-  uint8_t horizontalSubsampling{1}; /**< Chroma subsampling: 1 for 4:4:4, 2 for 4:2:2, 2 for 4:2:0. */
+  uint8_t horizontalSubsampling{1}; /**< 1 for 4:4:4, 2 for 4:2:2 and 4:2:0. */
   uint8_t verticalSubsampling{1};   /**< 1 for 4:2:2, 2 for 4:2:0. */
-  bool isYuv{};
-  bool isPlanar{};
-  uint16_t defaultStrideAlignment{256}; /**< Bytes; vendors typically need 128 or 256. */
-  /**< Bytes of ONE primary-plane (luma) sample: 1 for 8-bit planar
-   *   (NV12, YUV420P), 2 for 10/16-bit planar (P010, P210, YUV420P10).
-   *   0 for packed formats, where the primary-plane stride is
-   *   width*bitsPerPixel/8. Using the average bitsPerPixel for a planar
-   *   primary plane over-computes its stride (NV12 1.5×, P010 3×). */
-  uint8_t bytesPerPrimarySample{0};
+  /** Primary-plane block geometry: `blockPixels` pixels occupy `blockBytes`
+   *  bytes. See the table header for why this replaces bits-per-pixel. */
+  uint16_t blockPixels{1};
+  uint16_t blockBytes{};
+  bool hasAlpha{};
+  ByteOrder byteOrder{ByteOrder::NA};
+  /** Preferred stride alignment for callers with no constraint of their own.
+   *  Devices with a real requirement must pass theirs to `alignedRowBytes`. */
+  uint16_t preferredStrideAlignment{256};
+
+  /** True when chroma lives in its own plane(s) rather than interleaved with
+   *  luma inside one packed buffer. */
+  constexpr bool isPlanar() const noexcept { return planeCount > 1; }
+  constexpr bool isYuv() const noexcept { return colorModel == ColorModel::YUV; }
+  constexpr bool isRgb() const noexcept { return colorModel == ColorModel::RGB; }
+  /** True when the format carries no chroma at all. */
+  constexpr bool isAchromatic() const noexcept
+  {
+    return colorModel == ColorModel::Grey || colorModel == ColorModel::Bayer;
+  }
+  /** False only for the `Unknown` sentinel. */
+  constexpr bool valid() const noexcept { return blockBytes != 0; }
 };
 
-/** Round `v` up to the next multiple of `a` (`a` must be a power of two). */
+/** Round `v` up to a multiple of `a`. `a <= 1` means no alignment; `a` need not
+ *  be a power of two (V210's 128 happens to be, a V4L2 `bytesperline` may not). */
 constexpr std::size_t alignUp(std::size_t v, std::size_t a) noexcept
 {
-  return (v + a - 1) & ~(a - 1);
+  return a <= 1 ? v : ((v + a - 1) / a) * a;
 }
 
-/** Get the descriptive info for `f`. Returns a static reference; the
- *  pointer is stable for the duration of the program. */
+/** Descriptive info for `f`. Returns a reference to storage with static
+ *  lifetime; the `Unknown` sentinel is returned for unrecognised values. */
 SCORE_PLUGIN_GFX_EXPORT
 const VideoPixelFormatInfo& formatInfo(VideoPixelFormat f) noexcept;
 
@@ -144,17 +223,30 @@ const VideoPixelFormatInfo& formatInfo(VideoPixelFormat f) noexcept;
 SCORE_PLUGIN_GFX_EXPORT
 const char* formatName(VideoPixelFormat f) noexcept;
 
-/** Compute the default row stride in bytes for `f` at the given
- *  `width`. The result is rounded up to `formatInfo(f).defaultStrideAlignment`.
- *  Vendor-specific stride rules (V210's `(width+47)/48*128`) are baked
- *  into this function for the cases that need it. */
+/** Every described format, in table order. Lets callers -- and the unit test --
+ *  enumerate the vocabulary without maintaining a second copy of the list. */
+SCORE_PLUGIN_GFX_EXPORT
+const VideoPixelFormatInfo* allFormats(std::size_t& count) noexcept;
+
+/** Tight primary-plane row size in bytes, with no padding at all. */
+SCORE_PLUGIN_GFX_EXPORT
+std::size_t rowBytes(VideoPixelFormat f, uint32_t width) noexcept;
+
+/** `rowBytes` rounded up to `alignment`. This is the form device paths should
+ *  use, passing the alignment their allocator actually requires. */
+SCORE_PLUGIN_GFX_EXPORT
+std::size_t
+alignedRowBytes(VideoPixelFormat f, uint32_t width, std::size_t alignment) noexcept;
+
+/** `alignedRowBytes` using the format's `preferredStrideAlignment`, for callers
+ *  that have no constraint of their own. */
 SCORE_PLUGIN_GFX_EXPORT
 std::size_t defaultStride(VideoPixelFormat f, uint32_t width) noexcept;
 
-/** Total byte size of one frame at `width × height` in format `f`.
- *  Accounts for plane count + subsampling. */
+/** Total byte size of one frame at `width × height`, summing every plane at the
+ *  format's preferred stride. */
 SCORE_PLUGIN_GFX_EXPORT
-std::size_t bytesPerFrame(
-    VideoPixelFormat f, uint32_t width, uint32_t height) noexcept;
+std::size_t
+bytesPerFrame(VideoPixelFormat f, uint32_t width, uint32_t height) noexcept;
 
 } // namespace score::gfx::interop
