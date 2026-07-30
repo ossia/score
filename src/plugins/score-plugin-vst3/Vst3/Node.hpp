@@ -17,6 +17,8 @@
 
 #include <public.sdk/source/vst/hosting/eventlist.h>
 #include <public.sdk/source/vst/hosting/parameterchanges.h>
+
+#include <algorithm>
 namespace vst3
 {
 
@@ -261,7 +263,7 @@ public:
     }
   }
 
-  void dispatchMidi()
+  void dispatchMidi(int64_t tick_start, int64_t samples)
   {
     m_inputEvents.clear();
     m_outputEvents.clear();
@@ -270,14 +272,15 @@ public:
     int audioBusCount = std::ssize(m_audioInputChannels);
     for(int i = audioBusCount; i < audioBusCount + m_totalEventIns; i++)
     {
-      dispatchMidi(*m_inlets[i]->template target<ossia::midi_port>(), k++);
+      dispatchMidi(
+          *m_inlets[i]->template target<ossia::midi_port>(), k++, tick_start, samples);
     }
     m_vstData.inputEvents
         = (m_inputEvents.getEventCount() > 0) ? &m_inputEvents : nullptr;
     m_vstData.outputEvents = &m_outputEvents;
   }
 
-  void dispatchMidi(ossia::midi_port& port, int index)
+  void dispatchMidi(ossia::midi_port& port, int index, int64_t tick_start, int64_t samples)
   {
     // copy midi data
     auto& ip = port.messages;
@@ -293,7 +296,11 @@ public:
     {
       if(mess.get_type() != libremidi::midi2::message_type::MIDI_2_CHANNEL)
         continue;
-      e.sampleOffset = mess.timestamp;
+
+      // Port timestamps are relative to the buffer; the plug-in only sees
+      // [tick_start; tick_start + samples[ of it and indexes from 0.
+      e.sampleOffset
+          = std::clamp<int64_t>(mess.timestamp - tick_start, 0, samples - 1);
       switch(libremidi::message_type(mess.get_status_code()))
       {
         case libremidi::message_type::NOTE_ON: {
@@ -380,7 +387,7 @@ public:
     }
   }
 
-  void readbackMidi()
+  void readbackMidi(int64_t tick_start)
   {
     using VstEvent = Steinberg::Vst::Event;
 
@@ -423,7 +430,7 @@ public:
           break;
       }
 
-      mess.timestamp = e.sampleOffset;
+      mess.timestamp = tick_start + e.sampleOffset;
       port.messages.push_back(std::move(mess));
     }
   }
@@ -619,28 +626,31 @@ public:
 
   void run(const ossia::token_request& tk, ossia::exec_state_facade st) noexcept override
   {
-    if(!muted() && tk.date > tk.prev_date)
+    if(!muted() && !tk.paused())
     {
       const auto [tick_start, samples] = st.timings(tk);
+      if(samples <= 0)
+        return;
+
       this->setControls();
       this->setupTimeInfo(tk, st);
 
-      this->dispatchMidi();
+      this->dispatchMidi(tick_start, samples);
 
       if constexpr(UseDouble)
       {
-        processDouble(samples);
+        processDouble(tick_start, samples, st.bufferSize());
       }
       else
       {
-        processFloat(samples);
+        processFloat(tick_start, samples, st.bufferSize());
       }
 
-      this->readbackMidi();
+      this->readbackMidi(tick_start);
     }
   }
 
-  void processFloat(std::size_t samples)
+  void processFloat(int64_t tick_start, std::size_t samples, int bufferSize)
   {
     // In the float case we have temporary buffers for conversion
     if constexpr(!UseDouble)
@@ -666,7 +676,7 @@ public:
           {
             const int numChannels = m_audioInputChannels[i];
             auto& port = *m_inlets[i]->template target<ossia::audio_port>();
-            auto& ip = preparePort(port, numChannels, samples);
+            auto& ip = preparePort(port, numChannels, bufferSize);
 
             Steinberg::Vst::AudioBusBuffers& vst_in = m_vstInput[i];
             vst_in.channelBuffers32 = input + channel_k;
@@ -674,8 +684,11 @@ public:
 
             for(int k = 0; k < numChannels; k++)
             {
+              const std::size_t avail = ip[k].size() > std::size_t(tick_start)
+                                            ? ip[k].size() - std::size_t(tick_start)
+                                            : 0u;
               std::copy_n(
-                  ip[k].data(), std::min(samples, ip[k].size()),
+                  ip[k].data() + tick_start, std::min(samples, avail),
                   float_v[float_k].data());
               input[channel_k] = float_v[float_k].data();
               channel_k++;
@@ -696,7 +709,7 @@ public:
           {
             const int numChannels = m_audioOutputChannels[i];
             auto& port = *m_outlets[i]->template target<ossia::audio_port>();
-            preparePort(port, numChannels, samples);
+            preparePort(port, numChannels, bufferSize);
 
             Steinberg::Vst::AudioBusBuffers& vst_out = m_vstOutput[i];
             vst_out.channelBuffers32 = output + channel_k;
@@ -729,14 +742,16 @@ public:
           for(int k = 0; k < numChannels; k++)
           {
             auto& audio_out = port.channel(k);
-            std::copy_n(float_v[float_k].data(), samples, audio_out.data());
+            std::copy_n(
+                float_v[float_k].data(), samples, audio_out.data() + tick_start);
+            float_k++;
           }
         }
       }
     }
   }
 
-  void processDouble(std::size_t samples)
+  void processDouble(int64_t tick_start, std::size_t samples, int bufferSize)
   {
     // In the double case we use directly the buffers that are part of the
     // input & output ports
@@ -755,14 +770,14 @@ public:
         {
           const int numChannels = m_audioInputChannels[i];
           auto& port = *m_inlets[i]->template target<ossia::audio_port>();
-          auto& ip = preparePort(port, numChannels, samples);
+          auto& ip = preparePort(port, numChannels, bufferSize);
 
           Steinberg::Vst::AudioBusBuffers& vst_in = m_vstInput[i];
           vst_in.channelBuffers64 = input + channel_k;
           vst_in.silenceFlags = 0;
           for(int k = 0; k < numChannels; k++)
           {
-            input[channel_k++] = ip[k].data();
+            input[channel_k++] = ip[k].data() + tick_start;
           }
         }
       }
@@ -776,14 +791,14 @@ public:
         {
           const int numChannels = m_audioOutputChannels[i];
           auto& port = *m_outlets[i]->template target<ossia::audio_port>();
-          auto& op = preparePort(port, numChannels, samples);
+          auto& op = preparePort(port, numChannels, bufferSize);
 
           Steinberg::Vst::AudioBusBuffers& vst_out = m_vstOutput[i];
           vst_out.channelBuffers64 = output + channel_k;
           vst_out.silenceFlags = 0;
           for(int k = 0; k < numChannels; k++)
           {
-            output[channel_k++] = op[k].data();
+            output[channel_k++] = op[k].data() + tick_start;
           }
         }
       }

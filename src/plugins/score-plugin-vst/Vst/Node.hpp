@@ -10,6 +10,8 @@
 #include <ossia/editor/scenario/time_signature.hpp>
 
 #include <libremidi/detail/conversion.hpp>
+
+#include <algorithm>
 namespace vst
 {
 
@@ -270,7 +272,7 @@ public:
   // since some plug-ins only store pointers to VstEvents struct,
   // which would go out of scope if this function was just called like this.
   template <typename Fun>
-  void dispatchMidi(int64_t offset, Fun&& f)
+  void dispatchMidi(int64_t offset, int64_t samples, Fun&& f)
   {
     // copy midi data
     auto& ip = static_cast<ossia::midi_inlet*>(m_inlets[1])->data.messages;
@@ -301,7 +303,7 @@ public:
       std::memset(&e, 0, sizeof(VstMidiEvent));
       e.type = kVstMidiType;
       e.byteSize = sizeof(VstMidiEvent);
-      e.deltaFrames = mess.timestamp - offset;
+      e.deltaFrames = std::clamp<int64_t>(mess.timestamp - offset, 0, samples - 1);
       e.flags = kVstMidiEventIsRealtime;
 
       if(auto n = cmidi2_convert_single_ump_to_midi1((uint8_t*)e.midiData, 4, mess.data);
@@ -321,9 +323,12 @@ public:
 
   void run(const ossia::token_request& tk, ossia::exec_state_facade st) noexcept override
   {
-    if(!muted() && tk.date > tk.prev_date)
+    if(!muted() && !tk.paused())
     {
       const auto timings = st.timings(tk);
+      if(timings.length <= 0)
+        return;
+
       this->setControls();
       this->setupTimeInfo(tk, st);
 
@@ -331,7 +336,7 @@ public:
       {
         if constexpr(IsSynth)
         {
-          dispatchMidi(timings.start_sample, [this, timings] {
+          dispatchMidi(timings.start_sample, timings.length, [this, timings] {
             processDouble(timings.start_sample, timings.length);
           });
         }
@@ -344,7 +349,7 @@ public:
       {
         if constexpr(IsSynth)
         {
-          dispatchMidi(timings.start_sample, [this, timings] {
+          dispatchMidi(timings.start_sample, timings.length, [this, timings] {
             processFloat(timings.start_sample, timings.length);
           });
         }

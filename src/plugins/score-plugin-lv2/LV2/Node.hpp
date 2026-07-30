@@ -513,7 +513,7 @@ struct lv2_node final : public ossia::graph_node
 
   void run(const ossia::token_request& tk, ossia::exec_state_facade st) noexcept override
   {
-    if(tk.date > tk.prev_date)
+    if(!tk.paused())
     {
       data.host.current = &data.effect;
       if(!data.time_Position_ports.empty())
