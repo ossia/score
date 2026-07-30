@@ -37,6 +37,7 @@ extern "C" {
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <algorithm>
 #include <set>
 #include <string>
 #include <string_view>
@@ -66,23 +67,99 @@ std::vector<const vpf::VideoPixelFormatInfo*> described()
 constexpr uint32_t kWidths[] = {1, 2, 6, 63, 64, 65, 720, 1919, 1920, 1921, 3840, 7680, 8192};
 } // namespace
 
-// The values are serialized, so freezing a representative spread here makes an
-// accidental renumbering break the build rather than silently invalidate saved
-// documents.
+// The values are serialized into saved documents, so every one is frozen here as
+// a literal. Generating these from SCORE_VIDEO_PIXEL_FORMATS would be a
+// tautology and catch nothing; written out, a renumbering breaks the build,
+// which is what the table header promises.
 static_assert(uint16_t(V::Unknown) == 0);
 static_assert(uint16_t(V::BGRA8) == 1);
+static_assert(uint16_t(V::RGBA8) == 2);
+static_assert(uint16_t(V::ARGB8) == 3);
+static_assert(uint16_t(V::ABGR8) == 4);
+static_assert(uint16_t(V::RGB24) == 5);
+static_assert(uint16_t(V::BGR24) == 6);
 static_assert(uint16_t(V::BGRX8) == 7);
+static_assert(uint16_t(V::RGBX8) == 8);
+static_assert(uint16_t(V::XRGB8) == 9);
 static_assert(uint16_t(V::XBGR8) == 19);
-static_assert(uint16_t(V::UYVY422) == 20);
-static_assert(uint16_t(V::V210) == 30);
-static_assert(uint16_t(V::NV12) == 40);
-static_assert(uint16_t(V::YVU420P) == 45);
-static_assert(uint16_t(V::YUV422P12) == 55);
-static_assert(uint16_t(V::YUV444P) == 60);
-static_assert(uint16_t(V::YUVX) == 73);
-static_assert(uint16_t(V::Mono8) == 80);
-static_assert(uint16_t(V::Mono16BE) == 86);
+static_assert(uint16_t(V::R210) == 10);
+static_assert(uint16_t(V::R12B) == 11);
+static_assert(uint16_t(V::R12L) == 12);
+static_assert(uint16_t(V::ARGB10) == 13);
+static_assert(uint16_t(V::DPX10) == 14);
+static_assert(uint16_t(V::DPX10LE) == 15);
+static_assert(uint16_t(V::RGB12P) == 16);
+static_assert(uint16_t(V::RGB48) == 17);
+static_assert(uint16_t(V::RGB10) == 18);
+static_assert(uint16_t(V::RGB332) == 90);
+static_assert(uint16_t(V::RGB565) == 91);
+static_assert(uint16_t(V::RGB565BE) == 92);
+static_assert(uint16_t(V::RGB555) == 93);
+static_assert(uint16_t(V::RGB555BE) == 94);
+static_assert(uint16_t(V::ARGB1555) == 95);
+static_assert(uint16_t(V::RGB444) == 96);
+static_assert(uint16_t(V::ARGB4444) == 97);
+static_assert(uint16_t(V::AYUV4444) == 98);
+static_assert(uint16_t(V::AYUV1555) == 99);
 static_assert(uint16_t(V::YUV565) == 100);
+static_assert(uint16_t(V::UYVY422) == 20);
+static_assert(uint16_t(V::YUYV422) == 21);
+static_assert(uint16_t(V::YVYU422) == 22);
+static_assert(uint16_t(V::VYUY422) == 23);
+static_assert(uint16_t(V::V210) == 30);
+static_assert(uint16_t(V::V216) == 31);
+static_assert(uint16_t(V::Y210) == 106);
+static_assert(uint16_t(V::Y216) == 107);
+static_assert(uint16_t(V::NV12) == 40);
+static_assert(uint16_t(V::P010) == 41);
+static_assert(uint16_t(V::YUV420P) == 42);
+static_assert(uint16_t(V::YUV420P10) == 43);
+static_assert(uint16_t(V::NV21) == 44);
+static_assert(uint16_t(V::YVU420P) == 45);
+static_assert(uint16_t(V::P210) == 50);
+static_assert(uint16_t(V::YUV422P) == 51);
+static_assert(uint16_t(V::YUV422P10) == 52);
+static_assert(uint16_t(V::NV16) == 53);
+static_assert(uint16_t(V::NV61) == 54);
+static_assert(uint16_t(V::YUV422P12) == 55);
+static_assert(uint16_t(V::YUV422P16) == 110);
+static_assert(uint16_t(V::YVU422P) == 104);
+static_assert(uint16_t(V::P216) == 108);
+static_assert(uint16_t(V::YUV411P) == 101);
+static_assert(uint16_t(V::YUV410P) == 102);
+static_assert(uint16_t(V::YVU410P) == 103);
+static_assert(uint16_t(V::UYYVYY411) == 105);
+static_assert(uint16_t(V::YUV444P) == 60);
+static_assert(uint16_t(V::YUV444P10) == 61);
+static_assert(uint16_t(V::YUV444P12) == 62);
+static_assert(uint16_t(V::NV24) == 63);
+static_assert(uint16_t(V::NV42) == 64);
+static_assert(uint16_t(V::VUYA) == 65);
+static_assert(uint16_t(V::VUYX) == 66);
+static_assert(uint16_t(V::AYUV) == 67);
+static_assert(uint16_t(V::XYUV) == 68);
+static_assert(uint16_t(V::YUVA) == 69);
+static_assert(uint16_t(V::YUVX) == 73);
+static_assert(uint16_t(V::YUVA444P) == 111);
+static_assert(uint16_t(V::P416) == 109);
+static_assert(uint16_t(V::XV30) == 112);
+static_assert(uint16_t(V::AYUV64) == 113);
+static_assert(uint16_t(V::RGBA16) == 70);
+static_assert(uint16_t(V::RGBA16F) == 71);
+static_assert(uint16_t(V::RGBA32F) == 72);
+static_assert(uint16_t(V::Mono8) == 80);
+static_assert(uint16_t(V::Mono10) == 81);
+static_assert(uint16_t(V::Mono12) == 82);
+static_assert(uint16_t(V::Mono16) == 83);
+static_assert(uint16_t(V::BayerRG8) == 84);
+static_assert(uint16_t(V::BayerRG12) == 85);
+static_assert(uint16_t(V::BayerBGGR8) == 114);
+static_assert(uint16_t(V::BayerGBRG8) == 115);
+static_assert(uint16_t(V::BayerGRBG8) == 116);
+static_assert(uint16_t(V::BayerRGGB8) == 117);
+static_assert(uint16_t(V::BayerBGGR16) == 118);
+static_assert(uint16_t(V::BayerRGGB16) == 119);
+static_assert(uint16_t(V::Mono16BE) == 86);
 
 TEST_CASE("the vocabulary is non-trivial and self-consistent", "[gfx][pixfmt]")
 {
@@ -817,5 +894,118 @@ TEST_CASE("rowBytes agrees with the FFmpeg linesize", "[gfx][pixfmt][av]")
       INFO(i->name << " at width " << w);
       CHECK(vpf::rowBytes(i->format, w) == std::size_t(ls));
     }
+  }
+}
+
+// The 30 formats FFmpeg cannot vouch for, frozen field by field.
+//
+// The design goal elsewhere is that no second list of formats exists, which is
+// what makes the AV-mapped 58 verifiable against FFmpeg with no maintenance. It
+// is also exactly what leaves these 30 unverifiable: a mutation to any field of
+// a wire-only format changes both the code and every expectation derived from
+// it. So these get a golden row each. The values below were audited against the
+// vendor specifications -- DeckLink and AJA SDK row-size formulas, Apple TN2162
+// for v210/v216, GenICam PFNC for the Bayer naming -- not merely copied out of
+// the table.
+TEST_CASE("wire-only descriptors are frozen", "[gfx][pixfmt]")
+{
+  struct Golden
+  {
+    V f;
+    ColorModel model;
+    int planes, hsub, vsub, blockPixels, blockBytes;
+    bool alpha;
+    vpf::ByteOrder order;
+    int align;
+  };
+  static constexpr Golden kGolden[] = {
+      {V::R210, ColorModel::RGB, 1, 1, 1, 64, 256, false, vpf::ByteOrder::Big, 256},
+      {V::R12B, ColorModel::RGB, 1, 1, 1, 2, 9, false, vpf::ByteOrder::Big, 256},
+      {V::R12L, ColorModel::RGB, 1, 1, 1, 2, 9, false, vpf::ByteOrder::Little, 256},
+      {V::ARGB10, ColorModel::RGB, 1, 1, 1, 1, 5, true, vpf::ByteOrder::Little, 256},
+      {V::DPX10, ColorModel::RGB, 1, 1, 1, 1, 4, false, vpf::ByteOrder::Big, 256},
+      {V::DPX10LE, ColorModel::RGB, 1, 1, 1, 1, 4, false, vpf::ByteOrder::Little, 256},
+      {V::RGB12P, ColorModel::RGB, 1, 1, 1, 2, 9, false, vpf::ByteOrder::Little, 256},
+      {V::RGB10, ColorModel::RGB, 1, 1, 1, 1, 4, false, vpf::ByteOrder::Little, 256},
+      {V::RGB332, ColorModel::RGB, 1, 1, 1, 1, 1, false, vpf::ByteOrder::NA, 64},
+      {V::ARGB1555, ColorModel::RGB, 1, 1, 1, 1, 2, true, vpf::ByteOrder::Little, 64},
+      {V::ARGB4444, ColorModel::RGB, 1, 1, 1, 1, 2, true, vpf::ByteOrder::Little, 64},
+      {V::AYUV4444, ColorModel::YUV, 1, 1, 1, 1, 2, true, vpf::ByteOrder::Little, 64},
+      {V::AYUV1555, ColorModel::YUV, 1, 1, 1, 1, 2, true, vpf::ByteOrder::Little, 64},
+      {V::YUV565, ColorModel::YUV, 1, 1, 1, 1, 2, false, vpf::ByteOrder::Little, 64},
+      {V::VYUY422, ColorModel::YUV, 1, 2, 1, 2, 4, false, vpf::ByteOrder::NA, 256},
+      {V::V210, ColorModel::YUV, 1, 2, 1, 48, 128, false, vpf::ByteOrder::Little, 128},
+      {V::V216, ColorModel::YUV, 1, 2, 1, 2, 8, false, vpf::ByteOrder::Little, 256},
+      {V::Y216, ColorModel::YUV, 1, 2, 1, 2, 8, false, vpf::ByteOrder::Little, 256},
+      {V::YVU420P, ColorModel::YUV, 3, 2, 2, 1, 1, false, vpf::ByteOrder::NA, 256},
+      {V::NV61, ColorModel::YUV, 2, 2, 1, 1, 1, false, vpf::ByteOrder::NA, 256},
+      {V::YVU422P, ColorModel::YUV, 3, 2, 1, 1, 1, false, vpf::ByteOrder::NA, 256},
+      {V::YVU410P, ColorModel::YUV, 3, 4, 4, 1, 1, false, vpf::ByteOrder::NA, 256},
+      {V::AYUV, ColorModel::YUV, 1, 1, 1, 1, 4, true, vpf::ByteOrder::NA, 256},
+      {V::XYUV, ColorModel::YUV, 1, 1, 1, 1, 4, false, vpf::ByteOrder::NA, 256},
+      {V::YUVA, ColorModel::YUV, 1, 1, 1, 1, 4, true, vpf::ByteOrder::NA, 256},
+      {V::YUVX, ColorModel::YUV, 1, 1, 1, 1, 4, false, vpf::ByteOrder::NA, 256},
+      {V::RGBA16F, ColorModel::RGB, 1, 1, 1, 1, 8, true, vpf::ByteOrder::Little, 256},
+      {V::RGBA32F, ColorModel::RGB, 1, 1, 1, 1, 16, true, vpf::ByteOrder::Little, 256},
+      {V::BayerRG8, ColorModel::Bayer, 1, 1, 1, 1, 1, false, vpf::ByteOrder::NA, 64},
+      {V::BayerRG12, ColorModel::Bayer, 1, 1, 1, 1, 2, false, vpf::ByteOrder::Little, 64},
+  };
+  std::set<V> frozen;
+  for(const auto& g : kGolden)
+  {
+    const auto& i = vpf::formatInfo(g.f);
+    INFO("format " << i.name);
+    CHECK(i.colorModel == g.model);
+    CHECK(i.planeCount == g.planes);
+    CHECK(i.horizontalSubsampling == g.hsub);
+    CHECK(i.verticalSubsampling == g.vsub);
+    CHECK(i.blockPixels == g.blockPixels);
+    CHECK(i.blockBytes == g.blockBytes);
+    CHECK(i.hasAlpha == g.alpha);
+    CHECK(i.byteOrder == g.order);
+    CHECK(i.preferredStrideAlignment == g.align);
+    frozen.insert(g.f);
+  }
+  // Every format without an AV twin must be frozen here, so adding a wire-only
+  // format without a golden row fails rather than going unverified.
+  for(const auto* i : described())
+  {
+    if(vpf::toAVPixelFormat(i->format) == AV_PIX_FMT_NONE)
+    {
+      INFO(i->name << " has no AV twin and no golden row");
+      CHECK(frozen.count(i->format) == 1);
+    }
+  }
+  CHECK(frozen.size() == 30);
+  // and together the two sets are the whole vocabulary
+  CHECK(frozen.size() + 58u == vpf::formatCount());
+}
+
+// The byteOrder rule stated in the header has two halves; only the first was
+// asserted, so a multi-byte format could silently declare NA.
+//
+// Whether an order is required is not derivable from this descriptor, and not
+// from component depth either: RGB565 has 5- and 6-bit components yet is packed
+// into a 16-bit word, so its order matters, while UYVY422 has four whole-byte
+// components and no order to state. FFmpeg's naming convention encodes exactly
+// that distinction -- it spells an le/be pair only for formats where the order
+// is part of the identity -- so take it as the authority for the mapped formats.
+// The wire-only ones have their byteOrder frozen by the golden table above.
+TEST_CASE("byte order is declared exactly when FFmpeg spells one",
+          "[gfx][pixfmt][av]")
+{
+  for(const auto* i : described())
+  {
+    const auto av = vpf::toAVPixelFormat(i->format);
+    if(av == AV_PIX_FMT_NONE)
+      continue;
+    const std::string_view name{av_get_pix_fmt_name(av)};
+    INFO("format " << i->name << " vs " << name);
+    if(name.size() > 2 && name.substr(name.size() - 2) == "le")
+      CHECK(i->byteOrder == vpf::ByteOrder::Little);
+    else if(name.size() > 2 && name.substr(name.size() - 2) == "be")
+      CHECK(i->byteOrder == vpf::ByteOrder::Big);
+    else
+      CHECK(i->byteOrder == vpf::ByteOrder::NA);
   }
 }
