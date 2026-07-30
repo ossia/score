@@ -402,3 +402,10 @@ if(TARGET score_plugin_vst3 AND TARGET score_plugin_clap)
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst3"
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-clap")
 endif()
+# The video pixel-format vocabulary and its libav bridge. Lives with the
+# vocabulary rather than with its consumers, so the PR that introduces a format
+# is the one whose CI proves it is described and sized correctly.
+score_add_test(test_unit_video_pixel_format
+  SOURCES VideoPixelFormatTest.cpp
+  PLUGINS score_plugin_gfx
+  LIBS avutil)
