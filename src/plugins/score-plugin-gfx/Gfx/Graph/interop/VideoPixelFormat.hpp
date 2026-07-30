@@ -195,6 +195,14 @@ enum class ByteOrder : uint8_t
   X(Mono16, 83, Grey, 1, 1, 1, 1, 2, false, Little, 64)                        \
   X(BayerRG8, 84, Bayer, 1, 1, 1, 1, 1, false, NA, 64)                         \
   X(BayerRG12, 85, Bayer, 1, 1, 1, 1, 2, false, Little, 64)                    \
+  /* The CFA order decides how a demosaic reads the mosaic, so the four 8-bit  */ \
+  /* orders are distinct formats rather than one generic Bayer.                */ \
+  X(BayerBGGR8, 114, Bayer, 1, 1, 1, 1, 1, false, NA, 64)                      \
+  X(BayerGBRG8, 115, Bayer, 1, 1, 1, 1, 1, false, NA, 64)                      \
+  X(BayerGRBG8, 116, Bayer, 1, 1, 1, 1, 1, false, NA, 64)                      \
+  X(BayerRGGB8, 117, Bayer, 1, 1, 1, 1, 1, false, NA, 64)                      \
+  X(BayerBGGR16, 118, Bayer, 1, 1, 1, 1, 2, false, Little, 64)                 \
+  X(BayerRGGB16, 119, Bayer, 1, 1, 1, 1, 2, false, Little, 64)                 \
   X(Mono16BE, 86, Grey, 1, 1, 1, 1, 2, false, Big, 64)
 
 /** Comprehensive pixel format enum, generated from the table above.
