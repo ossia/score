@@ -93,13 +93,18 @@ enum class ByteOrder : uint8_t
 // ---------------------------------------------------------------------------
 #define SCORE_VIDEO_PIXEL_FORMATS(X)                                           \
   /* -- Packed 8-bit RGB -------------------------------------------------- */ \
-  /* BGRA8 matches QRhi BGRA8 + DeckLink bmdFormat8BitBGRA. */ \
+  /* BGRA8 matches QRhi BGRA8 + DeckLink bmdFormat8BitBGRA. The X-variants  */ \
+  /* are the same bytes with the 4th/1st channel undefined: forced opaque.  */ \
   X(BGRA8, 1, RGB, 1, 1, 1, 1, 4, true, NA, 256)                               \
   X(RGBA8, 2, RGB, 1, 1, 1, 1, 4, true, NA, 256)                               \
   X(ARGB8, 3, RGB, 1, 1, 1, 1, 4, true, NA, 256)                               \
   X(ABGR8, 4, RGB, 1, 1, 1, 1, 4, true, NA, 256)                               \
   X(RGB24, 5, RGB, 1, 1, 1, 1, 3, false, NA, 64)                               \
   X(BGR24, 6, RGB, 1, 1, 1, 1, 3, false, NA, 64)                               \
+  X(BGRX8, 7, RGB, 1, 1, 1, 1, 4, false, NA, 256)                              \
+  X(RGBX8, 8, RGB, 1, 1, 1, 1, 4, false, NA, 256)                              \
+  X(XRGB8, 9, RGB, 1, 1, 1, 1, 4, false, NA, 256)                              \
+  X(XBGR8, 19, RGB, 1, 1, 1, 1, 4, false, NA, 256)                             \
   /* -- Packed 10/12-bit RGB ----------------------------------------------- */ \
   /* R210 is DeckLink r210 / AV_CODEC_ID_R210: (R<<20)|(G<<10)|B, big-endian. */ \
   /* RGB10 is AJA NTV2_FBF_10BIT_RGB: (B<<20)|(G<<10)|R, little-endian.       */ \
@@ -113,6 +118,18 @@ enum class ByteOrder : uint8_t
   X(RGB12P, 16, RGB, 1, 1, 1, 2, 9, false, NA, 256)                            \
   X(RGB48, 17, RGB, 1, 1, 1, 1, 6, false, Little, 256)                         \
   X(RGB10, 18, RGB, 1, 1, 1, 1, 4, false, Little, 256)                         \
+  /* -- Packed sub-byte RGB / YUV (legacy, embedded, V4L2 cameras) --------- */ \
+  X(RGB332, 90, RGB, 1, 1, 1, 1, 1, false, NA, 64)                             \
+  X(RGB565, 91, RGB, 1, 1, 1, 1, 2, false, Little, 64)                         \
+  X(RGB565BE, 92, RGB, 1, 1, 1, 1, 2, false, Big, 64)                          \
+  X(RGB555, 93, RGB, 1, 1, 1, 1, 2, false, Little, 64)                         \
+  X(RGB555BE, 94, RGB, 1, 1, 1, 1, 2, false, Big, 64)                          \
+  X(ARGB1555, 95, RGB, 1, 1, 1, 1, 2, true, Little, 64)                        \
+  X(RGB444, 96, RGB, 1, 1, 1, 1, 2, false, Little, 64)                         \
+  X(ARGB4444, 97, RGB, 1, 1, 1, 1, 2, true, Little, 64)                        \
+  X(AYUV4444, 98, YUV, 1, 1, 1, 1, 2, true, Little, 64)                        \
+  X(AYUV1555, 99, YUV, 1, 1, 1, 1, 2, true, Little, 64)                        \
+  X(YUV565, 100, YUV, 1, 1, 1, 1, 2, false, Little, 64)                        \
   /* -- Packed 8-bit YUV 4:2:2 (two pixels share one chroma pair) ---------- */ \
   X(UYVY422, 20, YUV, 1, 2, 1, 2, 4, false, NA, 256)                           \
   X(YUYV422, 21, YUV, 1, 2, 1, 2, 4, false, NA, 256)                           \
@@ -128,14 +145,27 @@ enum class ByteOrder : uint8_t
   X(P010, 41, YUV, 2, 2, 2, 1, 2, false, Little, 256)                          \
   X(YUV420P, 42, YUV, 3, 2, 2, 1, 1, false, NA, 256)                           \
   X(YUV420P10, 43, YUV, 3, 2, 2, 1, 2, false, Little, 256)                     \
+  X(NV21, 44, YUV, 2, 2, 2, 1, 1, false, NA, 256)                              \
+  X(YVU420P, 45, YUV, 3, 2, 2, 1, 1, false, NA, 256)                           \
   /* -- Planar / semi-planar 4:2:2 ----------------------------------------- */ \
   X(P210, 50, YUV, 2, 2, 1, 1, 2, false, Little, 256)                          \
   X(YUV422P, 51, YUV, 3, 2, 1, 1, 1, false, NA, 256)                           \
   X(YUV422P10, 52, YUV, 3, 2, 1, 1, 2, false, Little, 256)                     \
+  X(NV16, 53, YUV, 2, 2, 1, 1, 1, false, NA, 256)                              \
+  X(NV61, 54, YUV, 2, 2, 1, 1, 1, false, NA, 256)                              \
+  X(YUV422P12, 55, YUV, 3, 2, 1, 1, 2, false, Little, 256)                     \
   /* -- Planar / semi-planar / packed 4:4:4 -------------------------------- */ \
   X(YUV444P, 60, YUV, 3, 1, 1, 1, 1, false, NA, 256)                           \
   X(YUV444P10, 61, YUV, 3, 1, 1, 1, 2, false, Little, 256)                     \
   X(YUV444P12, 62, YUV, 3, 1, 1, 1, 2, false, Little, 256)                     \
+  X(NV24, 63, YUV, 2, 1, 1, 1, 1, false, NA, 256)                              \
+  X(NV42, 64, YUV, 2, 1, 1, 1, 1, false, NA, 256)                              \
+  X(VUYA, 65, YUV, 1, 1, 1, 1, 4, true, NA, 256)                               \
+  X(VUYX, 66, YUV, 1, 1, 1, 1, 4, false, NA, 256)                              \
+  X(AYUV, 67, YUV, 1, 1, 1, 1, 4, true, NA, 256)                               \
+  X(XYUV, 68, YUV, 1, 1, 1, 1, 4, false, NA, 256)                              \
+  X(YUVA, 69, YUV, 1, 1, 1, 1, 4, true, NA, 256)                               \
+  X(YUVX, 73, YUV, 1, 1, 1, 1, 4, false, NA, 256)                              \
   /* -- High-precision RGB ------------------------------------------------- */ \
   X(RGBA16, 70, RGB, 1, 1, 1, 1, 8, true, Little, 256)                         \
   X(RGBA16F, 71, RGB, 1, 1, 1, 1, 8, true, Little, 256)                        \
@@ -146,7 +176,8 @@ enum class ByteOrder : uint8_t
   X(Mono12, 82, Grey, 1, 1, 1, 1, 2, false, Little, 64)                        \
   X(Mono16, 83, Grey, 1, 1, 1, 1, 2, false, Little, 64)                        \
   X(BayerRG8, 84, Bayer, 1, 1, 1, 1, 1, false, NA, 64)                         \
-  X(BayerRG12, 85, Bayer, 1, 1, 1, 1, 2, false, Little, 64)
+  X(BayerRG12, 85, Bayer, 1, 1, 1, 1, 2, false, Little, 64)                    \
+  X(Mono16BE, 86, Grey, 1, 1, 1, 1, 2, false, Big, 64)
 
 /** Comprehensive pixel format enum, generated from the table above.
  *  Values are stable; reorder only with serialization migration. */
