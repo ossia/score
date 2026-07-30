@@ -280,6 +280,17 @@ const VideoPixelFormatInfo& formatInfo(VideoPixelFormat f) noexcept;
 SCORE_PLUGIN_GFX_EXPORT
 const char* formatName(VideoPixelFormat f) noexcept;
 
+/** For a layout that stores its chroma planes V-before-U (YV12, NV21, YV16,
+ *  ...), the otherwise identical U-before-V layout; Unknown for anything else.
+ *
+ *  FFmpeg has no pixel format for the swapped orders -- it expresses them by
+ *  exchanging the U and V pointers -- so a consumer that can only name an
+ *  AVPixelFormat needs both this twin and the knowledge that it must swap. That
+ *  is strictly more information than mapping the swapped layout onto its twin
+ *  and forgetting, which silently exchanges red and blue. */
+SCORE_PLUGIN_GFX_EXPORT
+VideoPixelFormat chromaSwappedTwin(VideoPixelFormat f) noexcept;
+
 /** Every described format, in table order. Lets callers -- and the unit test --
  *  enumerate the vocabulary without maintaining a second copy of the list. */
 SCORE_PLUGIN_GFX_EXPORT
