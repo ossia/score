@@ -52,6 +52,14 @@ AVPixelFormat toAVPixelFormat(VideoPixelFormat f) noexcept
     case V::YUV422P:   return AV_PIX_FMT_YUV422P;
     case V::YUV422P10: return AV_PIX_FMT_YUV422P10LE;
     case V::YUV422P12: return AV_PIX_FMT_YUV422P12LE;
+    case V::YUV422P16: return AV_PIX_FMT_YUV422P16LE;
+    case V::YUV411P:   return AV_PIX_FMT_YUV411P;
+    case V::YUV410P:   return AV_PIX_FMT_YUV410P;
+    case V::UYYVYY411: return AV_PIX_FMT_UYYVYY411;
+    case V::P216:      return AV_PIX_FMT_P216LE;
+    case V::P416:      return AV_PIX_FMT_P416LE;
+    case V::Y210:      return AV_PIX_FMT_Y210LE;
+    case V::YUVA444P:  return AV_PIX_FMT_YUVA444P;
     case V::YUV444P:   return AV_PIX_FMT_YUV444P;
     case V::YUV444P10: return AV_PIX_FMT_YUV444P10LE;
     case V::YUV444P12: return AV_PIX_FMT_YUV444P12LE;
@@ -60,11 +68,14 @@ AVPixelFormat toAVPixelFormat(VideoPixelFormat f) noexcept
 #if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 36, 100)
     case V::VUYA:      return AV_PIX_FMT_VUYA;
     case V::VUYX:      return AV_PIX_FMT_VUYX;
+    case V::XV30:      return AV_PIX_FMT_XV30LE;
 #else
     case V::VUYA:
     case V::VUYX:
+    case V::XV30:
       return AV_PIX_FMT_NONE;
 #endif
+    case V::AYUV64:    return AV_PIX_FMT_AYUV64LE;
 
     // -- grey --
     case V::Mono8:     return AV_PIX_FMT_GRAY8;
@@ -94,7 +105,10 @@ AVPixelFormat toAVPixelFormat(VideoPixelFormat f) noexcept
     // with the U and V pointers exchanged, so returning yuv420p here would
     // silently swap chroma -- the exact bug this bridge exists to avoid.
     case V::YVU420P:
+    case V::YVU410P:
+    case V::YVU422P:
     case V::NV61:      // no AV_PIX_FMT_NV61 (NV16 with the pair exchanged)
+    case V::Y216:      // no AV_PIX_FMT_Y216 in any supported libav
     // Packed 4:4:4 orders FFmpeg does not spell: it has VUYA/VUYX/UYVA only.
     case V::AYUV:
     case V::XYUV:
@@ -152,13 +166,23 @@ VideoPixelFormat fromAVPixelFormat(AVPixelFormat f) noexcept
     case AV_PIX_FMT_YUV422P:     return V::YUV422P;
     case AV_PIX_FMT_YUV422P10LE: return V::YUV422P10;
     case AV_PIX_FMT_YUV422P12LE: return V::YUV422P12;
+    case AV_PIX_FMT_YUV422P16LE: return V::YUV422P16;
+    case AV_PIX_FMT_YUV411P:     return V::YUV411P;
+    case AV_PIX_FMT_YUV410P:     return V::YUV410P;
+    case AV_PIX_FMT_UYYVYY411:   return V::UYYVYY411;
+    case AV_PIX_FMT_P216LE:      return V::P216;
+    case AV_PIX_FMT_P416LE:      return V::P416;
+    case AV_PIX_FMT_Y210LE:      return V::Y210;
+    case AV_PIX_FMT_YUVA444P:    return V::YUVA444P;
     case AV_PIX_FMT_YUV444P:     return V::YUV444P;
     case AV_PIX_FMT_YUV444P10LE: return V::YUV444P10;
     case AV_PIX_FMT_YUV444P12LE: return V::YUV444P12;
 #if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 36, 100)
     case AV_PIX_FMT_VUYA:        return V::VUYA;
     case AV_PIX_FMT_VUYX:        return V::VUYX;
+    case AV_PIX_FMT_XV30LE:      return V::XV30;
 #endif
+    case AV_PIX_FMT_AYUV64LE:    return V::AYUV64;
     case AV_PIX_FMT_GRAY8:       return V::Mono8;
     case AV_PIX_FMT_GRAY10LE:    return V::Mono10;
     case AV_PIX_FMT_GRAY12LE:    return V::Mono12;
