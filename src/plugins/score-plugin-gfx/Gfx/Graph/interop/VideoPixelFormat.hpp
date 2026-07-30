@@ -117,6 +117,11 @@ enum class ByteOrder : uint8_t
   X(RGB12P, 16, RGB, 1, 1, 1, 2, 9, false, Little, 256)                        \
   X(RGB48, 17, RGB, 1, 1, 1, 1, 6, false, Little, 256)                         \
   X(RGB10, 18, RGB, 1, 1, 1, 1, 4, false, Little, 256)                         \
+  /* X2RGB10/X2BGR10 hold two padding bits plus three 10-bit components in a    */ \
+  /* 32-bit little-endian word; the pad is not alpha. These are the DRM         */ \
+  /* ARGB2101010/ABGR2101010 layouts.                                          */ \
+  X(X2RGB10, 120, RGB, 1, 1, 1, 1, 4, false, Little, 256)                      \
+  X(X2BGR10, 121, RGB, 1, 1, 1, 1, 4, false, Little, 256)                      \
   /* -- Packed sub-byte RGB / YUV (legacy, embedded, V4L2 cameras) --------- */ \
   X(RGB332, 90, RGB, 1, 1, 1, 1, 1, false, NA, 64)                             \
   X(RGB565, 91, RGB, 1, 1, 1, 1, 2, false, Little, 64)                         \
