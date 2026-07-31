@@ -100,6 +100,50 @@ void GfxContext::unregister_node(int32_t idx)
     tick_commands.enqueue(NodeCommand{NodeCommand::REMOVE_NODE, idx, {}});
 }
 
+void GfxContext::destroyOutput(score::gfx::OutputNode* node)
+{
+  // Synchronous counterpart to the async REMOVE_NODE path: releases the
+  // output's RenderList (while its QRhi is still alive), calls destroyOutput()
+  // and drops the node from Graph::m_outputs. Safe to call at shutdown, when
+  // rendering is stopped and the tick queue will never be drained again.
+  if(m_graph && node)
+  {
+    // Unregister from the render clocks FIRST. A clock keeps raw OutputNode*
+    // and its timer tick iterates them calling render(); leaving a node that
+    // is about to be freed in that list is a use-after-free as soon as the
+    // next queued tick fires — which it does, because tearing an output down
+    // (closing a preview, removing a device) pumps the event loop. The async
+    // REMOVE_NODE path already does this; this synchronous one must too.
+    for(auto it = m_renderClocks.begin(); it != m_renderClocks.end();)
+    {
+      (*it)->removeOutput(node);
+      if((*it)->empty())
+        it = m_renderClocks.erase(it);
+      else
+        ++it;
+    }
+
+    m_graph->destroyOutputRenderList(*node);
+
+    // Also drop it from m_nodes: ~Graph's belt-and-braces loop does
+    // dynamic_cast<OutputNode*>(n) over m_nodes, which would deref this freed
+    // node's vtable once the device destroys it. removeNode is a pure pointer
+    // erase, so it is safe with the (still-alive) node here.
+    m_graph->removeNode(node);
+
+    // A device-owned output (offscreen BackgroundNode) is double-owned: the
+    // device keeps it in a unique_ptr AND register_node() stored another
+    // unique_ptr in `nodes`. The device is about to free it, so RELEASE (do
+    // not delete) our copy of the ownership and drop the map entry — otherwise
+    // ~GfxContext's `nodes` map frees it a second time (double-free).
+    if(auto it = nodes.find(node->nodeId); it != nodes.end())
+    {
+      (void)it->second.release();
+      nodes.erase(it);
+    }
+  }
+}
+
 void GfxContext::unregister_preview_node(int32_t idx)
 {
   OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
@@ -180,6 +224,11 @@ void GfxContext::recompute_edges()
 
 void GfxContext::recompute_graph()
 {
+  // Tear the render clocks down BEFORE the timer pool is nuked: their dtors
+  // release the shared timers back to a still-live m_timers.
+  m_renderClocks.clear();
+  m_vsyncClock.reset();
+
   // Clear previous timers
   std::destroy_at(&m_timers);
   std::construct_at(&m_timers);
@@ -188,7 +237,6 @@ void GfxContext::recompute_graph()
     connect(m_watchdog_timer, &score::HighResolutionTimer::timeout, this, &GfxContext::on_watchdog_timer, Qt::UniqueConnection);
   }
   m_no_vsync_timer = nullptr;
-  m_manualTimers.clear();
 
   for(auto& output : m_graph->outputs())
   {
@@ -205,7 +253,20 @@ void GfxContext::recompute_graph()
   m_graph->createAllRenderLists(api);
 
   // Recreate new timers
-  const bool vsync = settings.getVSync() && m_graph->canDoVSync();
+  // The vsync render loop drives itself through QWindow::requestUpdate(). On
+  // Wayland requestUpdate() is frame-callback gated and does not self-heal: a
+  // render() cycle that early-returns without committing a buffer breaks the
+  // frame-callback chain and the loop stalls for good, leaving the window frozen
+  // on its startup black clear. The render itself is fine there -- an offscreen
+  // readback of the same frame returns correct pixels -- so the symptom is a
+  // black on-screen window despite correct rendering. The timer-driven path
+  // below re-drives render() unconditionally (commit-independent) and presents
+  // correctly; the compositor supplies pacing on Wayland regardless. xcb, eglfs
+  // and the embedded backends keep the swap-chain vsync loop unchanged.
+  const bool waylandThrottled
+      = QGuiApplication::platformName().contains(QLatin1String("wayland"));
+  const bool vsync
+      = settings.getVSync() && m_graph->canDoVSync() && !waylandThrottled;
 
   // Update and render
   // This starts the timer for updating the graph, that is, reading the new parameters.
@@ -222,7 +283,11 @@ void GfxContext::recompute_graph()
 #endif
     SCORE_ASSERT(m_graph->outputs().size() == 1);
     SCORE_ASSERT(m_graph->outputs()[0]);
-    m_graph->outputs().front()->setVSyncCallback([this] { updateGraph(); });
+    // Clock #1: the display swap-chain vsync callback (push). Wrapping it in a
+    // DisplayVSyncClock is behaviour-identical to calling setVSyncCallback here.
+    m_vsyncClock
+        = std::make_unique<score::gfx::DisplayVSyncClock>(*m_graph->outputs().front());
+    m_vsyncClock->start([this] { updateGraph(); });
   }
   else
   {
@@ -246,29 +311,39 @@ void GfxContext::recompute_graph()
     connect(m_no_vsync_timer, &score::HighResolutionTimer::timeout, this, &GfxContext::on_no_vsync_timer, Qt::ConnectionType(Qt::UniqueConnection|Qt::QueuedConnection));
 
 
-    // This starts the timers which control the actual render rate of various things
+    // Clock #2 (the default): the shared wall-timer at manualRenderingRate.
+    // Outputs at the same rate coalesce onto one TimerClock / one shared timer,
+    // exactly as the old timer->set<OutputNode*> map did.
     for(auto& output : m_graph->outputs())
     {
       auto conf = output->configuration();
       if(conf.manualRenderingRate)
       {
-        bool existing_timer{};
-        for(auto& tm : m_manualTimers)
+        const double freq = 1000. / *conf.manualRenderingRate;
+
+        score::gfx::TimerClock* clock{};
+        for(auto& c : m_renderClocks)
         {
-          if(tm.first->frequency() == 1000. / *conf.manualRenderingRate)
+          if(c->frequency() == freq)
           {
-            tm.second.insert(output);
-            existing_timer = true;
+            clock = c.get();
             break;
           }
         }
 
-        if(!existing_timer)
+        if(!clock)
         {
-          auto id = m_timers.acquireTimer(this, 1000. / *conf.manualRenderingRate);
-          m_manualTimers[id].insert(output);
-          connect(id, &score::HighResolutionTimer::timeout, this, &GfxContext::on_manual_timer, Qt::QueuedConnection);
+          auto owned = std::make_unique<score::gfx::TimerClock>(m_timers, this, freq);
+          clock = owned.get();
+          m_renderClocks.push_back(std::move(owned));
+          clock->start([clock] {
+            for(auto* out : clock->outputs())
+              if(out && out->canRender())
+                out->render();
+          });
         }
+
+        clock->addOutput(output);
       }
     }
   }
@@ -341,21 +416,17 @@ void GfxContext::remove_node(
   {
     auto node = node_it->second.get();
 
-    // Remove the node from the timers if it's in there
-    for(auto timer_it = m_manualTimers.begin(); timer_it != m_manualTimers.end();)
+    // Remove the node from the render clocks if it's in there. An emptied
+    // TimerClock is dropped; its dtor releases the shared timer back to the
+    // pool (same as the old releaseTimer path).
+    for(auto it = m_renderClocks.begin(); it != m_renderClocks.end();)
     {
-      auto& nodes = timer_it->second;
-      nodes.erase((score::gfx::OutputNode*)node);
+      (*it)->removeOutput((score::gfx::OutputNode*)node);
 
-      if(nodes.empty())
-      {
-        m_timers.releaseTimer(this, timer_it->first);
-        timer_it = m_manualTimers.erase(timer_it);
-      }
+      if((*it)->empty())
+        it = m_renderClocks.erase(it);
       else
-      {
-        ++timer_it;
-      }
+        ++it;
     }
 
     m_graph->removeNode(node);
@@ -488,17 +559,7 @@ void GfxContext::on_no_vsync_timer(score::HighResolutionTimer* self)
 
 void GfxContext::on_watchdog_timer(score::HighResolutionTimer* self)
 {
-  if(m_manualTimers.empty() && !m_no_vsync_timer)
+  if(m_renderClocks.empty() && !m_no_vsync_timer)
     updateGraph();
-}
-
-void GfxContext::on_manual_timer(score::HighResolutionTimer* self)
-{
-  if(auto ptr = m_manualTimers.find(self); ptr != m_manualTimers.end())
-  {
-    for(auto output : ptr->second) {
-      output->render();
-    }
-  }
 }
 }

@@ -2,6 +2,7 @@
 #include <Process/Dataflow/CableData.hpp>
 
 #include <Gfx/Graph/Node.hpp>
+#include <Gfx/Graph/RenderClock.hpp>
 
 #include <score/tools/Timers.hpp>
 
@@ -72,6 +73,13 @@ public:
   void unregister_node(int32_t idx);
   void unregister_preview_node(int32_t idx);
 
+  // Synchronously tear down an output node's render list and drop it from the
+  // graph. Used by device-owned outputs (e.g. the offscreen BackgroundNode)
+  // whose destructor runs during shutdown before the async node-command queue
+  // is drained — without this the graph is left with a dangling output pointer
+  // and a RenderList referencing an already-freed QRhi.
+  void destroyOutput(score::gfx::OutputNode* node);
+
   void recompute_edges();
   void recompute_graph();
   void recompute_connections();
@@ -94,7 +102,6 @@ private:
 
   void on_no_vsync_timer(score::HighResolutionTimer* self);
   void on_watchdog_timer(score::HighResolutionTimer* self);
-  void on_manual_timer(score::HighResolutionTimer* self);
   const score::DocumentContext& m_context;
   std::atomic_int32_t index{1};
   ossia::hash_map<int32_t, NodePtr> nodes;
@@ -139,7 +146,12 @@ private:
   score::HighResolutionTimer* m_no_vsync_timer{};
   score::HighResolutionTimer* m_watchdog_timer{};
 
-  ossia::small_flat_map<score::HighResolutionTimer*, ossia::flat_set<score::gfx::OutputNode*>, 8> m_manualTimers;
+  // Per-output render clocks. Each TimerClock owns one shared
+  // HighResolutionTimer at a given manualRenderingRate and the coalesced set of
+  // outputs driven by it; the single DisplayVSyncClock wraps the swap-chain
+  // vsync callback.
+  std::vector<std::unique_ptr<score::gfx::TimerClock>> m_renderClocks;
+  std::unique_ptr<score::gfx::DisplayVSyncClock> m_vsyncClock;
 
   ossia::object_pool<std::vector<score::gfx::gfx_input>> m_buffers;
 
