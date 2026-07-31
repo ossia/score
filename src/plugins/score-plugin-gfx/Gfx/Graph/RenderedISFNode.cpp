@@ -1,3 +1,5 @@
+#include <Gfx/Graph/PipelineStateHelpers.hpp>
+#include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/RenderedISFNode.hpp>
 #include <Gfx/Graph/RenderedISFSamplerUtils.hpp>
 #include <Gfx/Graph/ShaderCache.hpp>
@@ -14,22 +16,67 @@ PassOutput RenderedISFNode::initPassSampler(
     QRhiResourceUpdateBatch& res)
 {
   QRhi& rhi = *renderer.state.rhi;
+
+  // Volumetric fragment passes: a pass targeting a 3D output (OUTPUTS entry
+  // with DEPTH > 1) or carrying a Z expression requires per-slice color
+  // attachments / 3D image storage that this node does not wire end-to-end.
+  // The ISF parser rejects such shaders up-front (see isf.cpp parse_isf:
+  // "fragment-mode ISF with PASSES targeting Z / 3D OUTPUTS"); reaching this
+  // point with such a pass means the rejection drifted out of sync.
+  if(!pass.z_expression.empty() || [&]{
+       for(const auto& out : n.descriptor().outputs)
+         if(out.name == pass.target && out.depth > 1) return true;
+       return false;
+     }())
+  {
+    qFatal(
+        "RenderedISFNode: fragment PASSES with Z / 3D OUTPUTS reached the "
+        "renderer; parse-time rejection in isf::parser::parse_isf() should "
+        "have prevented this. Target: %s",
+        pass.target.c_str());
+  }
+
+  // Per-pass FORMAT override takes precedence over the legacy FLOAT flag.
+  // Covers the handful of formats useful as intermediate render targets:
+  // rgba8 (default), rgba16f (common precision bump), rgba32f, r16f, r32f.
+  auto pass_format = [&]() -> QRhiTexture::Format {
+    if(pass.format.empty())
+      return pass.float_storage ? QRhiTexture::RGBA32F : QRhiTexture::RGBA8;
+    std::string f = pass.format;
+    for(auto& c : f)
+      c = (char)std::tolower((unsigned char)c);
+    if(f == "rgba8")    return QRhiTexture::RGBA8;
+    if(f == "rgba16f")  return QRhiTexture::RGBA16F;
+    if(f == "rgba32f")  return QRhiTexture::RGBA32F;
+    if(f == "r8")       return QRhiTexture::R8;
+    if(f == "r16f")     return QRhiTexture::R16F;
+    if(f == "r32f")     return QRhiTexture::R32F;
+    qWarning() << "ISF pass FORMAT" << pass.format.c_str()
+               << "not recognised — falling back to RGBA8";
+    return QRhiTexture::RGBA8;
+  };
   // In all the other cases we create a custom render target
-  const auto fmt = (pass.float_storage) ? QRhiTexture::RGBA32F : QRhiTexture::RGBA8;
+  const auto fmt = pass_format();
   const auto filter = (pass.nearest_filter) ? QRhiSampler::Nearest : QRhiSampler::Linear;
   auto sampler = rhi.newSampler(
       filter, filter, QRhiSampler::None, QRhiSampler::Mirror, QRhiSampler::Mirror);
-  sampler->setName("ISFNode::initPassSamplers::sampler");
+  sampler->setName("RenderedISFNode::initPassSamplers::sampler");
   sampler->create();
 
   const QSize texSize = (pass.width_expression.empty() && pass.height_expression.empty())
                             ? mainTexSize
                             : n.computeTextureSize(pass, mainTexSize);
 
-  QImage clear_texture(texSize, pass.float_storage ? QImage::Format_RGBA32FPx4 : QImage::Format_ARGB32);
+  // Upload a zero clear matching the texture format. Qt can convert, so we
+  // pick a plausible source: float32 for floating-point formats, uint8 otherwise.
+  const bool is_float_fmt
+      = fmt == QRhiTexture::RGBA16F || fmt == QRhiTexture::RGBA32F
+        || fmt == QRhiTexture::R16F || fmt == QRhiTexture::R32F;
+  QImage clear_texture(
+      texSize, is_float_fmt ? QImage::Format_RGBA32FPx4 : QImage::Format_ARGB32);
   clear_texture.fill(0);
   auto tex = rhi.newTexture(fmt, texSize, 1, QRhiTexture::RenderTarget);
-  tex->setName("ISFNode::initPassSamplers::tex");
+  tex->setName("RenderedISFNode::initPassSamplers::tex");
   SCORE_ASSERT(tex->create());
   res.uploadTexture(tex, clear_texture);
 
@@ -39,7 +86,7 @@ PassOutput RenderedISFNode::initPassSampler(
   if(pass.persistent)
   {
     auto tex2 = rhi.newTexture(fmt, texSize, 1, QRhiTexture::RenderTarget);
-    tex2->setName("ISFNode::initPassSamplers::tex2");
+    tex2->setName("RenderedISFNode::initPassSamplers::tex2");
     SCORE_ASSERT(tex2->create());
     res.uploadTexture(tex2, clear_texture);
 
@@ -83,7 +130,7 @@ RenderedISFNode::RenderedISFNode(const ISFNode& node) noexcept
 {
 }
 
-void RenderedISFNode::updateInputTexture(const Port& input, QRhiTexture* tex)
+void RenderedISFNode::updateInputTexture(const Port& input, QRhiTexture* tex, QRhiTexture* depthTex)
 {
   int sampler_idx = 0;
   for(auto* p : node.input)
@@ -91,7 +138,11 @@ void RenderedISFNode::updateInputTexture(const Port& input, QRhiTexture* tex)
     if(p == &input)
       break;
     if(p->type == Types::Image)
+    {
       sampler_idx++;
+      if((p->flags & Flag::SamplableDepth) == Flag::SamplableDepth)
+        sampler_idx++;
+    }
   }
 
   if(sampler_idx < (int)m_inputSamplers.size())
@@ -110,6 +161,73 @@ void RenderedISFNode::updateInputTexture(const Port& input, QRhiTexture* tex)
             score::gfx::replaceTexture(*pass.p.srb, sampl.sampler, tex);
       }
     }
+
+    if(depthTex
+       && (input.flags & Flag::SamplableDepth) == Flag::SamplableDepth
+       && sampler_idx + 1 < (int)m_inputSamplers.size())
+    {
+      auto& depthSampl = m_inputSamplers[sampler_idx + 1];
+      if(depthSampl.texture != depthTex)
+      {
+        depthSampl.texture = depthTex;
+        for(auto& [e, passes] : m_passes)
+        {
+          for(auto& pass : passes.passes)
+            if(pass.p.srb)
+              score::gfx::replaceTexture(*pass.p.srb, depthSampl.sampler, depthTex);
+          for(auto& pass : passes.altPasses)
+            if(pass.p.srb)
+              score::gfx::replaceTexture(*pass.p.srb, depthSampl.sampler, depthTex);
+        }
+      }
+    }
+  }
+}
+
+void RenderedISFNode::updateInputSamplerFilter(
+    const Port& input, const RenderTargetSpecs& spec)
+{
+  int sampler_idx = 0;
+  for(auto* p : node.input)
+  {
+    if(p == &input)
+      break;
+    if(p->type == Types::Image)
+    {
+      sampler_idx++;
+      // A SamplableDepth port pushes TWO samplers (color + depth companion)
+      // in initInputSamplers (Utils.cpp:1420-1432); advance past both so this
+      // matches updateInputTexture's counting. Without it every port after a
+      // SamplableDepth image edited the wrong sampler.
+      if((p->flags & Flag::SamplableDepth) == Flag::SamplableDepth)
+        sampler_idx++;
+    }
+  }
+
+  if(sampler_idx < (int)m_inputSamplers.size())
+  {
+    auto* sampler = m_inputSamplers[sampler_idx].sampler;
+    if(sampler->magFilter() == spec.mag_filter
+       && sampler->minFilter() == spec.min_filter
+       && sampler->mipmapMode() == spec.mipmap_mode
+       && sampler->addressU() == spec.address_u
+       && sampler->addressV() == spec.address_v
+       && sampler->addressW() == spec.address_w)
+    {
+      // Nothing to update. The surgical rt_changed path calls this
+      // whenever renderTargetSpecsChanged fires, but filter/address
+      // state is often unchanged (the bump was for size or format).
+      // Skip the sampler->create() — it would destroy and re-allocate
+      // the backend QRhiSampler for no observable reason.
+      return;
+    }
+    sampler->setMagFilter(spec.mag_filter);
+    sampler->setMinFilter(spec.min_filter);
+    sampler->setMipmapMode(spec.mipmap_mode);
+    sampler->setAddressU(spec.address_u);
+    sampler->setAddressV(spec.address_v);
+    sampler->setAddressW(spec.address_w);
+    sampler->create();
   }
 }
 
@@ -194,7 +312,8 @@ void main ()
 
 std::pair<Pass, Pass> RenderedISFNode::createPass(
     RenderList& renderer, ossia::small_vector<PassOutput, 1>& passSamplers,
-    PassOutput target, bool previousPassIsPersistent)
+    PassOutput target, const isf::pass& modelPass,
+    bool previousPassIsPersistent)
 {
   std::pair<Pass, Pass> ret;
   QRhi& rhi = *renderer.state.rhi;
@@ -204,6 +323,33 @@ std::pair<Pass, Pass> RenderedISFNode::createPass(
       QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(ProcessUBO));
   pubo->setName("RenderedISFNode::createPass::pubo");
   pubo->create();
+
+  // Compute effective pipeline state: global default + per-pass override.
+  const auto eff_state
+      = mergeState(n.descriptor().default_state, modelPass.override_state);
+
+  // Build the extra-binding list (storage + optional multiview UBO).
+  auto extraRhiBindings = buildExtraBindings(m_storage);
+  if(m_multiViewUBO)
+  {
+    // Multiview UBO binds right after ALL storage resources — SSBOs, images
+    // AND uniform_input UBOs. collectGraphicsStorageResources records exactly
+    // that slot in m_storage.nextBinding (== isf_emit_graphics_storage's
+    // return value, where the codegen places the multiview UBO at
+    // isf.cpp:3773-3783). The previous max over ssbos/images alone omitted the
+    // UBOs, so a graphics uniform_input holding the top binding collided the
+    // multiview UBO with the camera UBO and left the shader's real multiview
+    // binding without an SRB descriptor → Vulkan/D3D12 crash / GL aliasing.
+    const int mvBinding
+        = m_storage.nextBinding >= 0 ? m_storage.nextBinding : m_firstStorageBinding;
+
+    extraRhiBindings.append(QRhiShaderResourceBinding::uniformBuffer(
+        mvBinding,
+        QRhiShaderResourceBinding::VertexStage | QRhiShaderResourceBinding::FragmentStage,
+        m_multiViewUBO));
+  }
+  const std::span<QRhiShaderResourceBinding> extras{
+      extraRhiBindings.data(), (std::size_t)extraRhiBindings.size()};
 
   // Create the main pass
   {
@@ -230,9 +376,13 @@ std::pair<Pass, Pass> RenderedISFNode::createPass(
     try
     {
       auto [v, s] = score::gfx::makeShaders(renderer.state, n.m_vertexS, n.m_fragmentS);
-      auto pip = score::gfx::buildPipeline(
+      const auto mainSamplers = allSamplers(passSamplers, 1);
+      auto pip = score::gfx::buildPipelineWithState(
           renderer, renderer.defaultTriangle(), v, s, renderTarget, pubo, m_materialUBO,
-          allSamplers(passSamplers, 1));
+          mainSamplers,
+          extras,
+          eff_state,
+          n.descriptor().multiview_count);
 
       ret.first = Pass{renderTarget, pip, pubo};
     }
@@ -262,7 +412,7 @@ std::pair<Pass, Pass> RenderedISFNode::createPass(
         // Then we have to use the textures the "main" passes are rendering to
         ret.second.p.srb = score::gfx::createDefaultBindings(
             renderer, ret.second.renderTarget, pubo, m_materialUBO,
-            allSamplers(passSamplers, 0));
+            allSamplers(passSamplers, 0), extras);
       }
     }
     else if(auto psampler = ossia::get_if<PersistSampler>(&target))
@@ -284,7 +434,7 @@ std::pair<Pass, Pass> RenderedISFNode::createPass(
         // We necessarily use the main pass rendered-to samplers
         ret.second.p.srb = score::gfx::createDefaultBindings(
             renderer, ret.second.renderTarget, pubo, m_materialUBO,
-            allSamplers(passSamplers, 0));
+            allSamplers(passSamplers, 0), extras);
       }
       else
       {
@@ -294,7 +444,7 @@ std::pair<Pass, Pass> RenderedISFNode::createPass(
           // Then we have to use the textures the "main" passes are rendering to
           ret.second.p.srb = score::gfx::createDefaultBindings(
               renderer, ret.second.renderTarget, pubo, m_materialUBO,
-              allSamplers(passSamplers, 0));
+              allSamplers(passSamplers, 0), extras);
         }
       }
     }
@@ -327,12 +477,65 @@ void RenderedISFNode::initPasses(
     }
   }
 
+  // Lazily compute the storage-binding offset now that pass-samplers are
+  // known. Each PersistSampler entry in passes.samplers consumes one sampler
+  // binding in the shader reflection (input_samplers + audio_samplers +
+  // pass_samplers). Only do this once per node lifetime — m_firstStorageBinding
+  // stays >= 0 on subsequent edges, but ensureStorageResources is idempotent
+  // and must run so that any resize reallocates the buffers.
+  if(m_firstStorageBinding < 0)
+  {
+    int passSamplerCount = 0;
+    for(auto& s : passes.samplers)
+      if(ossia::get_if<PersistSampler>(&s))
+        passSamplerCount++;
+
+    const int firstStorageBinding
+        = 3 + (int)m_inputSamplers.size() + (int)m_audioSamplers.size()
+          + passSamplerCount;
+    m_firstStorageBinding = firstStorageBinding;
+    collectGraphicsStorageResources(n.descriptor(), firstStorageBinding, m_storage);
+
+    // Allocate the multiview UBO when MULTIVIEW >= 2 is declared.
+    if(n.descriptor().multiview_count >= 2)
+    {
+      QRhi& rhi = *renderer.state.rhi;
+      const int mvCount = n.descriptor().multiview_count;
+      m_multiViewUBO = rhi.newBuffer(
+          QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer,
+          sizeof(float[16]) * mvCount);
+      m_multiViewUBO->setName("RenderedISFNode::multiview_ubo");
+      SCORE_ASSERT(m_multiViewUBO->create());
+
+      // No producer fills the per-view matrices yet; seed identities so
+      // MULTIVIEW shaders get a pass-through viewProjection[] instead of
+      // all-zero matrices collapsing every vertex to the origin.
+      {
+        std::vector<float> ident(16 * mvCount, 0.f);
+        for(int v = 0; v < mvCount; v++)
+          for(int i = 0; i < 4; i++)
+            ident[v * 16 + i * 5] = 1.f;
+        res.updateDynamicBuffer(
+            m_multiViewUBO, 0, sizeof(float[16]) * mvCount, ident.data());
+      }
+    }
+  }
+
+  // Ensure storage buffers/images exist. Safe to call per edge: it's idempotent
+  // and resizes to match renderSize. Then borrow any upstream-provided UBOs /
+  // read-only SSBOs (no SRB patch here — SRBs don't exist yet).
+  ensureStorageResources(
+      *renderer.state.rhi, res, renderer, n.descriptor(), m_storage,
+      renderer.state.renderSize);
+  bindUpstreamBuffers(renderer, n.input, m_storage);
+
   bool previousPassIsPersistent = false;
   for(std::size_t i = 0; i < passes.samplers.size(); i++)
   {
     auto& pass = passes.samplers[i];
     const auto [p1, p2]
-        = createPass(renderer, passes.samplers, pass, previousPassIsPersistent);
+        = createPass(renderer, passes.samplers, pass, model_passes[i],
+                     previousPassIsPersistent);
     if(p1.p.pipeline)
     {
       passes.passes.push_back(p1);
@@ -387,6 +590,31 @@ void RenderedISFNode::initPasses(
 
 void RenderedISFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
+  initState(renderer, res);
+
+  // Create the render passes for the COLOR (Types::Image) output port's edges.
+  // Invariant: the color output is NOT necessarily n.output[0]. A write /
+  // read_write storage_input declares a Types::Buffer OUTPUT port, and ISFNode
+  // walks desc.inputs (appending those buffer output ports) BEFORE it appends
+  // the implicit color output (ISFNode.cpp: input walk at ~line 344, color
+  // output pushed at ~line 349). So for a multipass shader that also uses a
+  // storage buffer, output[0] is the (usually edge-less) buffer port and the
+  // color output lands at output[1]. Hardcoding output[0] here created passes
+  // for the buffer port and none for the color output → runRenderPass found no
+  // pass for the sink's edge → the final pass never reached the sink (all-black
+  // output). Mirror SimpleRenderedISFNode::init: iterate every output port and
+  // restrict to Types::Image so buffer/geometry outputs are ignored.
+  for(auto* out_port : n.output)
+  {
+    if(out_port->type != Types::Image)
+      continue;
+    for(Edge* edge : out_port->edges)
+      addOutputPass(renderer, *edge, res);
+  }
+}
+
+void RenderedISFNode::initState(RenderList& renderer, QRhiResourceUpdateBatch& res)
+{
   QRhi& rhi = *renderer.state.rhi;
 
   // Create the mesh
@@ -407,6 +635,8 @@ void RenderedISFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
         = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, m_materialSize);
     m_materialUBO->setName("RenderedISFNode::init::m_materialUBO");
     SCORE_ASSERT(m_materialUBO->create());
+    if(n.m_material_data)
+      res.updateDynamicBuffer(m_materialUBO, 0, m_materialSize, n.m_material_data.get());
   }
 
   // Create the samplers
@@ -414,40 +644,114 @@ void RenderedISFNode::init(RenderList& renderer, QRhiResourceUpdateBatch& res)
   SCORE_ASSERT(m_inputSamplers.empty());
   SCORE_ASSERT(m_audioSamplers.empty());
 
-  m_inputSamplers = initInputSamplers(this->n, renderer, n.input);
+  m_inputSamplers = initInputSamplers(this->n, renderer, n.input, &n.descriptor());
 
   m_audioSamplers = initAudioTextures(renderer, n.m_audio_textures);
 
-  // Create the passes
+  m_initialized = true;
+}
 
-  for(Edge* edge : n.output[0]->edges)
+void RenderedISFNode::addOutputPass(
+    RenderList& renderer, Edge& edge, QRhiResourceUpdateBatch& res)
+{
+  auto rt = renderer.renderTargetForOutput(edge);
+  if(rt.renderTarget)
   {
-    auto rt = renderer.renderTargetForOutput(*edge);
-    if(rt.renderTarget)
+    initPasses(rt, renderer, edge, renderer.renderSize(&edge), res);
+  }
+}
+
+void RenderedISFNode::addInputEdge(
+    RenderList& renderer, Edge& edge, QRhiResourceUpdateBatch& res)
+{
+  if(edge.sink->type == Types::Image)
+  {
+    // Find upstream texture through the upstream renderer's textureForOutput().
+    if(auto it = edge.source->node->renderedNodes.find(&renderer);
+       it != edge.source->node->renderedNodes.end())
     {
-      initPasses(rt, renderer, *edge, renderer.renderSize(edge), res);
+      if(auto* tex = it->second->textureForOutput(*edge.source))
+      {
+        auto rt = renderer.renderTargetForInputPort(*edge.sink);
+        updateInputTexture(*edge.sink, tex, rt.depthTexture);
+      }
     }
   }
+}
+
+void RenderedISFNode::removeInputEdge(RenderList& renderer, Edge& edge)
+{
+  if(edge.sink && edge.sink->type == Types::Image)
+  {
+    // Swap image-sampler bindings to empty-texture placeholders so the SRB
+    // never holds pointers to the just-released upstream renderer's
+    // textures. Mirrors SimpleRenderedISFNode::removeInputEdge — same
+    // dangling VkImageView / end-of-frame barrier crash applies to the
+    // multi-pass ISF renderer whenever a cable is cut at runtime. Include
+    // the depth companion when the port declared DEPTH: true.
+    const bool hasDepthCompanion
+        = (edge.sink->flags & Flag::SamplableDepth) == Flag::SamplableDepth;
+    QRhiTexture* depthFallback
+        = hasDepthCompanion ? &renderer.emptyTexture() : nullptr;
+    updateInputTexture(*edge.sink, &renderer.emptyTexture(), depthFallback);
+  }
+}
+
+void RenderedISFNode::removeOutputPass(RenderList& renderer, Edge& edge)
+{
+  auto it = ossia::find_if(m_passes, [&](auto& p) { return p.first == &edge; });
+  if(it != m_passes.end())
+  {
+    auto& [passes, altPasses, passSamplers] = it->second;
+
+    std::size_t num = passes.size();
+    for(std::size_t i = 0; i < num; i++)
+    {
+      auto& pass = passes[i];
+      auto& altpass = altPasses[i];
+      auto& sampler = passSamplers[i];
+
+      if(pass.p.srb != altpass.p.srb)
+      {
+        altpass.p.srb->deleteLater();
+      }
+
+      pass.p.release();
+
+      if(pass.processUBO)
+        pass.processUBO->deleteLater();
+
+      if(auto p = ossia::get_if<PersistSampler>(&sampler))
+      {
+        delete p->sampler;
+      }
+    }
+
+    m_passes.erase(it);
+  }
+}
+
+bool RenderedISFNode::hasOutputPassForEdge(Edge& edge) const
+{
+  return ossia::find_if(m_passes, [&](const auto& p) { return p.first == &edge; })
+         != m_passes.end();
 }
 
 void RenderedISFNode::update(
     RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge)
 {
-  SCORE_ASSERT(m_passes.size() > 0);
+  // Pipeline creation may have legitimately failed and cleaned up.
+  if(m_passes.empty())
+    return;
 
-  // PASSINDEX must be set to the last index
-  // FIXME
-
-  // FIXME should be -2 if last pass is persistent
-  if(n.m_descriptor.passes.back().persistent)
-    n.standardUBO.passIndex = m_passes.size() - 2;
-  else
-    n.standardUBO.passIndex = m_passes.size() - 1;
-
+  // passIndex gets set per-pass in the processUBO update loop below; no
+  // need to seed a value here (previous code used m_passes.size() — which
+  // is the edge count, not the pass count — and was then overwritten).
   n.standardUBO.frameIndex++;
 
   // Update audio textures
   bool audioChanged = false;
+  std::size_t audio_idx = 0;
   for(auto& audio : n.m_audio_textures)
   {
     if(std::optional<Sampler> sampl
@@ -456,7 +760,14 @@ void RenderedISFNode::update(
       // Audio texture changed, this means the material needs update
       audioChanged = true;
 
-      auto& [rhiSampler, tex] = *sampl;
+      auto& [rhiSampler, tex, fb_] = *sampl;
+      // Keep m_audioSamplers[i].texture in sync with the live GPU texture so
+      // any later pipeline rebuild (rt_changed path in RenderList::render
+      // calling removeOutputPass + addOutputPass) uses the live binding
+      // instead of the placeholder empty texture.
+      if(audio_idx < m_audioSamplers.size())
+        m_audioSamplers[audio_idx].texture = tex;
+
       for(auto& [e, p] : m_passes)
       {
         for(auto& pass : p.passes)
@@ -467,6 +778,7 @@ void RenderedISFNode::update(
               *pass.p.srb, rhiSampler, tex ? tex : &renderer.emptyTexture());
       }
     }
+    ++audio_idx;
   }
 
   // Update material
@@ -474,6 +786,28 @@ void RenderedISFNode::update(
   {
     char* data = n.m_material_data.get();
     res.updateDynamicBuffer(m_materialUBO, 0, m_materialSize, data);
+  }
+  materialChanged = false;
+
+  // Reset event ports now that the UBO has captured their pulse value.
+  // If anything fired, force next frame's upload so the reset-to-zero
+  // propagates out through the normally-gated upload path.
+  if(n.resetEventPortsAfterFrame())
+    materialChanged = true;
+
+  // Re-bind upstream UBOs / read-only SSBOs on every pass's SRB. Cables can
+  // be added or replaced after init, so this runs every frame. Both the main
+  // and alt chains hold independent descriptor sets referencing the same
+  // storage resources; both must be patched. bindUpstreamBuffers is
+  // idempotent when the pointer already matches.
+  for(auto& [e, p] : m_passes)
+  {
+    for(auto& pass : p.passes)
+      if(pass.p.srb)
+        bindUpstreamBuffers(renderer, n.input, m_storage, pass.p.srb);
+    for(auto& pass : p.altPasses)
+      if(pass.p.srb)
+        bindUpstreamBuffers(renderer, n.input, m_storage, pass.p.srb);
   }
 
   // Update all the process UBOs
@@ -518,7 +852,15 @@ void RenderedISFNode::update(
 
 void RenderedISFNode::release(RenderList& r)
 {
-  // customRelease
+  releaseState(r);
+}
+
+void RenderedISFNode::releaseState(RenderList& r)
+{
+  if(!m_initialized)
+    return;
+
+  // Release all remaining passes
   {
     for(auto& texture : n.m_audio_textures)
     {
@@ -530,7 +872,6 @@ void RenderedISFNode::release(RenderList& r)
           if(tex != &r.emptyTexture())
             tex->deleteLater();
         }
-        // FIXME remove it from n.m_audio_textures?
       }
     }
 
@@ -538,8 +879,8 @@ void RenderedISFNode::release(RenderList& r)
     {
       auto& [passes, altPasses, passSamplers] = allPasses;
 
-      std::size_t n = passes.size();
-      for(std::size_t i = 0; i < n; i++)
+      std::size_t num = passes.size();
+      for(std::size_t i = 0; i < num; i++)
       {
         auto& pass = passes[i];
         auto& altpass = altPasses[i];
@@ -558,12 +899,6 @@ void RenderedISFNode::release(RenderList& r)
         if(auto p = ossia::get_if<PersistSampler>(&sampler))
         {
           delete p->sampler;
-          // TODO check texture deletion ???
-          // texture isdeleted elsewxheree
-        }
-        else
-        {
-          // It's the render target of another node, do not touch it
         }
       }
     }
@@ -578,13 +913,11 @@ void RenderedISFNode::release(RenderList& r)
   for(auto sampler : m_inputSamplers)
   {
     delete sampler.sampler;
-    // texture isdeleted elsewxheree
   }
   m_inputSamplers.clear();
   for(auto sampler : m_audioSamplers)
   {
     delete sampler.sampler;
-    // texture isdeleted elsewxheree
   }
   m_audioSamplers.clear();
 
@@ -592,6 +925,19 @@ void RenderedISFNode::release(RenderList& r)
   m_materialUBO = nullptr;
 
   m_meshBuffer = {};
+
+  // Release storage resources (owned SSBOs + storage images).
+  m_storage.release();
+  m_firstStorageBinding = -1;
+  m_lastStorageSwapFrame = -1;
+
+  if(m_multiViewUBO)
+  {
+    m_multiViewUBO->deleteLater();
+    m_multiViewUBO = nullptr;
+  }
+
+  m_initialized = false;
 }
 
 void RenderedISFNode::runInitialPasses(
@@ -604,6 +950,11 @@ void RenderedISFNode::runInitialPasses(
   // will make the particles move (or we are duplicating all the particle data)
 
   // Even with a single output if a node renders to two "edges"..
+
+  // Pipeline creation may have failed and left m_passes empty (same case
+  // update() guards against) — don't index [0].
+  if(this->m_passes.empty())
+    return;
 
   // Check if we just have one pass (thus nothing to render here).
   if(this->m_passes[0].second.passes.size() == 1)
@@ -630,8 +981,10 @@ void RenderedISFNode::runInitialPasses(
     auto srb = pass.p.srb;
     auto texture = pass.renderTarget.texture;
 
-    // TODO need to free stuff
-    cb.beginPass(rt, Qt::black, {1.0f, 0}, updateBatch);
+    // Note: updateBatch ownership transfers to QRhi on beginPass; per-pass
+    // state (pipeline/srb/processUBO/renderTarget) is owned by m_passes and
+    // released in releaseState() / removeOutputPass(). Nothing to free here.
+    cb.beginPass(rt, Qt::black, {0.0f, 0}, updateBatch);
     updateBatch = nullptr;
     {
       cb.setGraphicsPipeline(pipeline);
@@ -681,7 +1034,10 @@ void RenderedISFNode::runRenderPass(
     auto srb = pass.p.srb;
     auto texture = pass.renderTarget.texture;
 
-    // TODO need to free stuff
+    // No allocations in this scope: this function records draw calls into a
+    // command buffer already opened by RenderList::render(). updateBatch is
+    // managed by the caller; per-pass state lives in m_passes and is released
+    // in releaseState() / removeOutputPass().
     {
       cb.setGraphicsPipeline(pipeline);
       cb.setShaderResources(srb);
@@ -703,6 +1059,32 @@ void RenderedISFNode::runRenderPass(
 
   using namespace std;
   swap(passes, altPasses);
+
+  // Persistent-storage ping-pong. Mutate the shared state exactly once per
+  // frame, then re-apply bindings to every SRB across every edge/chain so
+  // each draw next frame sees the swapped pointers. Patching only one SRB
+  // would leave others referencing stale buffers and read wrong data.
+  if(m_lastStorageSwapFrame != renderer.frame)
+  {
+    m_lastStorageSwapFrame = renderer.frame;
+    swapPersistentSSBOsState(m_storage);
+    for(auto& [e, p] : m_passes)
+    {
+      const std::size_t num = p.passes.size();
+      for(std::size_t i = 0; i < num; i++)
+      {
+        auto* mainSrb = p.passes[i].p.srb;
+        if(mainSrb)
+          reapplyStorageBindings(m_storage, *mainSrb);
+        // altPass's SRB aliases the main one for non-persistent passes; skip
+        // the second reapply in that case — replaceBuffer is idempotent but
+        // srb->create() is not free.
+        auto* altSrb = p.altPasses[i].p.srb;
+        if(altSrb && altSrb != mainSrb)
+          reapplyStorageBindings(m_storage, *altSrb);
+      }
+    }
+  }
 }
 
 AudioTextureUpload::AudioTextureUpload()
@@ -737,9 +1119,14 @@ void AudioTextureUpload::processTemporal(
     m_scratchpad[i] = 0.5f + audio.data[i] / 2.f;
   }
 
-  // Copy it
+  // Copy it. Texture layout is samples × channels (width × height).
   QRhiTextureSubresourceUploadDescription subdesc(
       m_scratchpad.data(), audio.data.size() * sizeof(float));
+  if(audio.channels > 0)
+  {
+    const int samples_per_channel = int(audio.data.size()) / audio.channels;
+    subdesc.setSourceSize(QSize(samples_per_channel, audio.channels));
+  }
   QRhiTextureUploadEntry entry{0, 0, subdesc};
   QRhiTextureUploadDescription desc{entry};
   res.uploadTexture(rhiTexture, desc);
@@ -751,7 +1138,8 @@ void AudioTextureUpload::processHistogram(
   // Size of the audio input buffer
   std::size_t audioInputBufferSize = audio.data.size() / audio.channels;
 
-  // Effective size of the FFT data we want to use (e.g. without DC offset and nyquist coefficient at the end)
+  // Effective size of the FFT data we want to use (skips DC and nyquist bins;
+  // this also matches the texture width picked in updateAudioTexture).
   if(audioInputBufferSize < 4)
     return;
   std::size_t fftSize = audioInputBufferSize / 2 - 2;
@@ -769,48 +1157,60 @@ void AudioTextureUpload::processHistogram(
     const float byte_norm = 255.f / (dbmax - dbmin);
     const float norm = 2.f / (fftSize);
 
-    for(int i = 0; i < 1; i++)
+    // Histogram treats channel 0 as the source — it's a scrolling
+    // spectrogram display and summing / interleaving channels would blur
+    // the visualisation. Explicitly use i=0 rather than the old
+    // `for(int i = 0; i < 1; i++)` single-iteration loop.
+    const int i = 0;
     {
       float* inputData = audio.data.data() + i * audioInputBufferSize;
       double current_window_value = 0.;
 
-      // Basic window function on the audio buffer
+      // Basic triangular window function on the audio buffer
       double window_increment = 1. / (audioInputBufferSize / 2);
-      for(int s = 0; s < audioInputBufferSize / 2; s++)
+      for(int s = 0; s < (int)(audioInputBufferSize / 2); s++)
       {
         inputData[s] *= current_window_value;
         current_window_value += window_increment;
       }
-      for(int s = audioInputBufferSize / 2; s < audioInputBufferSize; s++)
+      for(int s = (int)(audioInputBufferSize / 2); s < (int)audioInputBufferSize; s++)
       {
         current_window_value -= window_increment;
         inputData[s] *= current_window_value;
       }
 
-      // Compute fft. Spectrum is in CCs format.
+      // Compute fft. Spectrum is in CCs format — index 0 is DC, the last
+      // coefficient is nyquist. Skip both.
       auto spectrum = m_fft.execute(inputData, audioInputBufferSize);
 
       float* outputSpectrum = m_scratchpad.data();
 
-      // Compute the actual data to show
-      for(std::size_t k = 1; k < fftSize - 1; k++)
+      // Fill all fftSize slots of the new row. Previously the loop bounds
+      // (k=1..fftSize-1) left the last two pixels of each row untouched,
+      // leaking stale data from a 240-frame-old row into every output.
+      for(std::size_t k = 0; k < fftSize; k++)
       {
+        const std::size_t bin = k + 1; // bins 1..fftSize (skip DC at 0)
         const float float_magnitude
             = std::sqrt(
-                  spectrum[k][0] * spectrum[k][0] + spectrum[k][1] * spectrum[k][1])
+                  spectrum[bin][0] * spectrum[bin][0]
+                  + spectrum[bin][1] * spectrum[bin][1])
               * norm;
-        const float float_db = 20.f * std::log10(std ::max(float_magnitude, 1e-10f));
+        const float float_db = 20.f * std::log10(std::max(float_magnitude, 1e-10f));
 
         const float magnitude_byte = (float_db - dbmin) * byte_norm;
 
-        // We are going to put the data in a R32F texture thus we scale to [0; 1]
-        outputSpectrum[k - 1] = std::clamp(magnitude_byte, 0.f, 255.f) / 255.f;
+        // R32F texture with values scaled to [0; 1]
+        outputSpectrum[k] = std::clamp(magnitude_byte, 0.f, 255.f) / 255.f;
       }
     }
   }
-  // Copy it
+  // Copy it. setSourceSize makes the upload strides explicit so Qt RHI
+  // never second-guesses the row pitch — processSpectral sets it, keeping
+  // the histogram path aligned avoids a subtle inconsistency in validation.
   QRhiTextureSubresourceUploadDescription subdesc(
       m_scratchpad.data(), m_scratchpad.size() * sizeof(float));
+  subdesc.setSourceSize(QSize((int)fftSize, 240));
   QRhiTextureUploadEntry entry{0, 0, subdesc};
   QRhiTextureUploadDescription desc{entry};
   res.uploadTexture(rhiTexture, desc);
@@ -865,46 +1265,62 @@ std::optional<Sampler> AudioTextureUpload::updateAudioTexture(
     return {};
   }
 
-  auto& [rhiSampler, rhiTexture] = it->second;
-  const auto curSz = (rhiTexture) ? rhiTexture->pixelSize() : QSize{};
-  int numSamples = curSz.width() * curSz.height();
-  if(numSamples != std::max(1, int(audio.data.size())) || !rhiTexture)
-  {
-    if(audio.channels > 0)
-    {
-      int samples = audio.data.size() / audio.channels;
-      if(samples % 2 != 0)
-        samples++;
-      int pixelWidth = 0;
-      int pixelHeight = 0;
-      switch(audio.mode)
-      {
-        case AudioTexture::Mode::Waveform:
-          pixelWidth = samples;
-          pixelHeight = audio.channels;
-          break;
-        case AudioTexture::Mode::FFT:
-          pixelWidth = samples / 2;
-          pixelHeight = audio.channels;
-          break;
-        case AudioTexture::Mode::Histogram:
-          pixelWidth = samples / 2 - 2;
-          pixelHeight = 240;
-          break;
-      }
+  auto& [rhiSampler, rhiTexture, fb_] = it->second;
 
+  // The texture the shader wants for the current (mode, samples, channels)
+  // triple. Previously the detection compared `curSz.w * curSz.h` against
+  // `audio.data.size()` — correct for Waveform (a W=samples × H=channels
+  // layout has pixel_count == raw_sample_count), but completely wrong for
+  // FFT (half the pixels) and Histogram (H is hard-coded 240 so pixel count
+  // bears no relation to the raw audio buffer). The mismatch meant every
+  // frame saw "size changed → destroy+recreate the texture", which also
+  // forced a full SRB rebuild via replaceTexture in the caller and
+  // thrashed the FFT planner's reset() cache.
+  const bool has_data = audio.channels > 0 && !audio.data.empty();
+  int samples = 0;
+  QSize desired{1, 1};
+  if(has_data)
+  {
+    samples = int(audio.data.size()) / audio.channels;
+    if(samples % 2 != 0)
+      samples++;
+    switch(audio.mode)
+    {
+      case AudioTexture::Mode::Waveform:
+        desired = {samples, audio.channels};
+        break;
+      case AudioTexture::Mode::FFT:
+        desired = {std::max(1, samples / 2), audio.channels};
+        break;
+      case AudioTexture::Mode::Histogram:
+        // Histogram is a scrolling spectrogram: rows = frames of FFT history.
+        desired = {std::max(1, samples / 2 - 2), 240};
+        break;
+    }
+  }
+
+  const QSize curSz = rhiTexture ? rhiTexture->pixelSize() : QSize{};
+  if(curSz != desired || !rhiTexture)
+  {
+    if(has_data)
+    {
       m_fft.reset(samples);
 
       if(rhiTexture)
       {
+        // destroy()+create() on the same QRhiTexture wrapper swaps the
+        // native handle (VkImage / ID3D12Resource / MTLTexture). Flag
+        // the change so the caller re-runs replaceTexture to refresh
+        // the SRB's descriptor set binding.
         rhiTexture->destroy();
-        rhiTexture->setPixelSize({pixelWidth, pixelHeight});
+        rhiTexture->setPixelSize(desired);
         rhiTexture->create();
+        textureChanged = true;
       }
       else
       {
         rhiTexture = rhi.newTexture(
-            QRhiTexture::R32F, {pixelWidth, pixelHeight}, 1, QRhiTexture::Flag{});
+            QRhiTexture::R32F, desired, 1, QRhiTexture::Flag{});
         rhiTexture->setName("AudioTextureUpload::rhiTexture");
         auto created = rhiTexture->create();
         SCORE_ASSERT(created);
@@ -915,34 +1331,33 @@ std::optional<Sampler> AudioTextureUpload::updateAudioTexture(
     {
       if(rhiTexture)
       {
+        // Audio went quiet: drop our texture and fall back to the
+        // RenderList's shared emptyTexture via the caller. Never resize
+        // the stored rhiTexture in-place — when that pointer aliased
+        // `&renderer.emptyTexture()` (old no-data init path) a resize
+        // would have destroyed the shared empty texture used by every
+        // unbound sampler in every node on this RenderList.
         rhiTexture->destroy();
-        rhiTexture->setPixelSize({1, 1});
-        rhiTexture->create();
-      }
-      else
-      {
-        rhiTexture = &renderer.emptyTexture();
+        rhiTexture->deleteLater();
+        rhiTexture = nullptr;
         textureChanged = true;
       }
+      // else: stays nullptr; caller already bound emptyTexture on a
+      // previous pass. No need to re-fire replaceTexture.
     }
   }
 
   if(rhiTexture)
   {
-    // Process the audio data
     auto sz = rhiTexture->pixelSize();
     if(sz.width() * sz.height() > 1)
       this->process(audio, res, rhiTexture);
   }
 
   if(textureChanged)
-  {
     return it->second;
-  }
   else
-  {
     return {};
-  }
 }
 
 }

@@ -157,29 +157,26 @@ struct HWTransferDecoder : GPUVideoDecoder
 
     auto sw_fmt = static_cast<AVPixelFormat>(m_swFrame->format);
 
-    // If the software format changed (first frame, or dynamic change), rebuild delegate
+    // If the software format changed (first frame, or dynamic change), the
+    // delegate's plane textures/samplers no longer match the incoming data and
+    // must be rebuilt. We must NOT free-and-rebuild here, however: the owning
+    // renderer's pipeline SRBs were baked with the current sampler.texture
+    // pointers and may still be sampled this frame — freeing now converts into
+    // a use-after-free on the next render pass. Instead record the new format
+    // and raise formatChanged; the renderer checks it right after exec() and
+    // calls setupGpuDecoder(), which tears down the decoder and its pipelines
+    // together and recreates textures + SRBs in lockstep. See
+    // GPUVideoDecoder::formatChanged. We deliberately do not upload this frame
+    // into the stale delegate — the old textures stay valid & bound until the
+    // renderer rebuilds (which resets hasFrame, so no stale content is shown).
     if(sw_fmt != m_swFormat)
     {
       m_swFormat = sw_fmt;
       decoder.pixel_format = sw_fmt;
       decoder.width = m_swFrame->width;
       decoder.height = m_swFrame->height;
-
-      // Format changed — rebuild delegate with correct textures/shaders.
-      // This should rarely happen since we pre-set sw_format at construction.
-      if(m_delegate)
-      {
-        m_delegate->samplers.clear();
-        m_delegate.reset();
-      }
-      samplers.clear();
-
-      m_delegate = createDelegateForFormat(sw_fmt);
-      if(m_delegate)
-      {
-        m_delegate->init(r);
-        samplers = m_delegate->samplers;
-      }
+      formatChanged = true;
+      return;
     }
 
     if(m_delegate)

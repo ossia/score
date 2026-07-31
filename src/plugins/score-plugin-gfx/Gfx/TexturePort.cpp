@@ -9,8 +9,7 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 #include <Gfx/GfxApplicationPlugin.hpp>
-#include <Gfx/Graph/ScreenNode.hpp>
-#include <Gfx/Graph/Window.hpp>
+#include <Gfx/Widgets/RhiPreviewWidget.hpp>
 #include <Inspector/InspectorLayout.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
@@ -41,108 +40,34 @@ class GraphPreviewWidget : public QWidget
 public:
   GraphPreviewWidget(const TextureOutlet& outlet, Gfx::DocumentPlugin& plug)
       : outlet_p{&outlet}
-      , plug{&plug}
   {
     setLayout(new Inspector::VBoxLayout{this});
 
-    score::gfx::OutputNode::Configuration conf{};
-    auto window = std::make_unique<score::gfx::ScreenNode>(conf, true);
-    node = window.get();
-    screenId = plug.context.register_preview_node(std::move(window));
-    if(screenId != -1)
-    {
-      if(outlet.nodeId != -1)
-      {
-        nodeId = outlet.nodeId;
-        e = {{nodeId, 0}, {screenId, 0}};
-        plug.context.connect_preview_node(*e);
-      }
-      timerId = startTimer(16);
-    }
+    m_rhiWidget = new RhiPreviewWidget(this);
+    m_rhiWidget->setMinimumWidth(100);
+    m_rhiWidget->setMaximumWidth(300);
+    m_rhiWidget->setMinimumHeight(200);
+    m_rhiWidget->setMaximumHeight(200);
+    m_rhiWidget->useContext(&plug.context, outlet.nodeId);
+    layout()->addWidget(m_rhiWidget);
+
+    // TextureOutlet::nodeId has no notifier — poll for changes so a
+    // process re-instantiation rewires the preview to the new producer.
+    startTimer(16);
   }
 
-  void timerEvent(QTimerEvent*)
+  void timerEvent(QTimerEvent*) override
   {
-    const auto& w = node->window();
-    if(!w)
+    if(!outlet_p || !m_rhiWidget)
       return;
-
-    if(!outlet_p)
-      return;
-
-    auto& outlet = *outlet_p;
-
-    if(outlet.nodeId != nodeId)
-    {
-      if(e)
-      {
-        if(plug)
-          plug->context.disconnect_preview_node(*e);
-        e = std::nullopt;
-      }
-
-      if(outlet.nodeId != -1)
-      {
-        nodeId = outlet.nodeId;
-        e = {{nodeId, 0}, {screenId, 0}};
-
-        if(plug)
-          plug->context.connect_preview_node(*e);
-      }
-    }
-
-    if(!container)
-    {
-      qwindow = w.get();
-      this->window = w;
-
-      container = QWidget::createWindowContainer(qwindow, this);
-      container->setMinimumWidth(100);
-      container->setMaximumWidth(300);
-      container->setMinimumHeight(200);
-      container->setMaximumHeight(200);
-      this->layout()->addWidget(container);
-    }
-    node->render();
+    m_rhiWidget->setProducerNodeId(outlet_p->nodeId);
   }
 
-  ~GraphPreviewWidget()
-  {
-    if(qwindow)
-    {
-      // Take back ownership of the window
-      qwindow->setParent(nullptr);
-      qwindow->close();
-      QChildEvent ev(QEvent::ChildRemoved, qwindow);
-      ((QObject*)container)->event(&ev);
-    }
-
-    // We "garbage collect" the window
-    QTimer::singleShot(1, [w = this->window] { });
-    if(plug)
-    {
-      if(e)
-      {
-        plug->context.disconnect_preview_node(*e);
-      }
-      plug->context.unregister_preview_node(screenId);
-    }
-  }
+  ~GraphPreviewWidget() override = default;
 
 private:
   QPointer<const TextureOutlet> outlet_p;
-  QPointer<Gfx::DocumentPlugin> plug;
-  score::gfx::ScreenNode* node{};
-  std::optional<Gfx::EdgeSpec> e;
-
-  std::shared_ptr<score::gfx::Window> window;
-
-  QPointer<QWindow> qwindow{};
-  QWidget* container{};
-
-  int screenId = score::gfx::invalid_node_index;
-  int nodeId = score::gfx::invalid_node_index;
-  int timerId{};
+  RhiPreviewWidget* m_rhiWidget{};
 };
 
 TextureInlet::~TextureInlet() { }
