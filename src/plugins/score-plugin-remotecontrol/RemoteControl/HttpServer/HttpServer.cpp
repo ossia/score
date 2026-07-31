@@ -132,7 +132,9 @@ void HttpServer::handle_request(
     res.set(http::field::server, ossia_score_verison_agent());
     res.set(http::field::content_type, "text/html");
     res.keep_alive(req.keep_alive());
-    res.body() = "The resource '" + std::string(target) + "' was not found.<br> Go to the following address : http://ip_address:port/ossia_remote.html.";
+    res.body() = fmt::format("The resource {} {}",
+                             std::string(target),
+                             "' was not found.<br> Go to the following address : http://ip_address:port/ossia_remote.html.");
     res.prepare_payload();
     return res;
   };
@@ -160,8 +162,6 @@ void HttpServer::handle_request(
 
   // Build the path to the requested file
   std::string path = path_cat(req.target());
-  if(req.target().back() == '/')
-    path.append("index.html");
 
   // Attempt to open the file
   beast::error_code ec;
@@ -170,7 +170,8 @@ void HttpServer::handle_request(
   body.open(path.c_str(), beast::file_mode::scan, ec);
 
   // Handle the case where the file doesn't exist
-  if(ec == beast::errc::no_such_file_or_directory)
+  if(req.target().back() == '/' ||
+     ec == beast::errc::no_such_file_or_directory)
     return send(not_found(req.target()));
 
   // Handle an unknown error
