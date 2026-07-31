@@ -24,10 +24,24 @@ namespace Audio
 {
 struct ASIOCard
 {
+  //! Driver name as the ASIO SDK reports it. This is the identity: it is what
+  //! gets stored in the settings and handed to asio_engine, so it must stay
+  //! verbatim. Anything user-facing goes through displayName().
   QString name;
   int driver_index{-1};
   int inputChan{};
   int outputChan{};
+
+  //! Empty while the driver initializes fine; otherwise a short reason, shown
+  //! in parentheses after the name in the device list.
+  QString unavailable;
+
+  QString displayName() const
+  {
+    if(unavailable.isEmpty())
+      return name;
+    return QStringLiteral("%1 (%2)").arg(name, unavailable);
+  }
 };
 
 class NativeASIOFactory final
@@ -69,6 +83,28 @@ public:
     }
   }
 
+  //! Short, user-facing reason why a driver would not initialize. Shown after
+  //! the device name in the list.
+  static QString reasonFor(ASIOError err)
+  {
+    switch(err)
+    {
+      case ASE_NotPresent:
+        // By far the common case: the interface is simply not plugged in.
+        return QObject::tr("device not connected");
+      case ASE_HWMalfunction:
+        return QObject::tr("hardware malfunction");
+      case ASE_NoMemory:
+        return QObject::tr("out of memory");
+      case ASE_NoClock:
+        return QObject::tr("no clock");
+      case ASE_InvalidMode:
+        return QObject::tr("device busy or in a bad mode");
+      default:
+        return QObject::tr("unavailable");
+    }
+  }
+
   void rescan()
   {
     // Probing channel counts means loading each driver in turn, and
@@ -90,6 +126,7 @@ public:
       {
         const QString name = QString::fromStdString(card.name);
         int ins = 0, outs = 0;
+        QString unavailable;
 
         if(!active.empty())
         {
@@ -100,7 +137,12 @@ public:
           {
             ins = it->inputChan;
             outs = it->outputChan;
+            unavailable = it->unavailable;
           }
+          // The driver we are streaming through is by definition usable, even
+          // if a previous scan (before it was plugged in) said otherwise.
+          if(card.name == active)
+            unavailable.clear();
           if(ossia::asio_diagnostics::verbose())
           {
             ossia::asio_diagnostics::log()
@@ -139,26 +181,30 @@ public:
           }
           else
           {
-            // Hardware absent or claimed by another process: the driver is
-            // installed and loadable but cannot initialize right now. Keep it in
-            // the list so the user can see it and read the reason.
+            // The driver is installed and loadable but cannot initialize right
+            // now. Keep it listed, tagged with the reason, so the user can see
+            // it is known but currently unusable rather than wondering why it
+            // vanished.
+            unavailable = reasonFor(init);
             ossia::asio_diagnostics::log()
                 << "ASIOInit failed for \"" << card.name << "\", rc=" << init << " ("
-                << (info.errorMessage[0] ? info.errorMessage : "no message")
-                << ") -- device present but unusable\n";
+                << (info.errorMessage[0] ? info.errorMessage : "no message") << ") -- "
+                << unavailable.toStdString() << '\n';
           }
           if(asioDrivers)
             asioDrivers->removeCurrentDriver();
         }
         else
         {
+          unavailable = QObject::tr("driver failed to load");
           ossia::asio_diagnostics::log()
               << "loadAsioDriver(\"" << card.name
               << "\") failed -- CoCreateInstance refused the driver DLL "
                  "(bitness mismatch or broken installation)\n";
         }
 
-        devices.push_back(ASIOCard{name, card.driver_index, ins, outs});
+        devices.push_back(
+            ASIOCard{name, card.driver_index, ins, outs, std::move(unavailable)});
       }
 
       ossia::asio_diagnostics::log() << "enumeration finished: " << (devices.size() - 1)
@@ -210,7 +256,10 @@ public:
     for(std::size_t i = 0; i < devices.size(); i++)
     {
       auto& card = devices[i];
-      card_list->addItem(card.name, card.name);
+      // Label is decorated ("Audio 8 DJ (device not connected)"); the item data
+      // stays the bare driver name, since that is what gets saved in the
+      // settings and matched by setCard().
+      card_list->addItem(card.displayName(), card.name);
     }
 
     using Model = Audio::Settings::Model;
