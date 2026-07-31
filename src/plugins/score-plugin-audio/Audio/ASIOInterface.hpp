@@ -6,6 +6,7 @@
 
 #include <score/command/Dispatchers/SettingsCommandDispatcher.hpp>
 #include <score/tools/Bind.hpp>
+#include <score/widgets/MessageBox.hpp>
 #include <score/widgets/SignalUtils.hpp>
 
 #include <QComboBox>
@@ -70,6 +71,15 @@ public:
 
   void rescan()
   {
+    // Probing channel counts means loading each driver in turn, and
+    // AsioDrivers::loadDriver() releases whatever driver is already loaded --
+    // which would pull the rug out from under a streaming engine. rescan() runs
+    // on every setDriver()/initDriver(), so that has to be avoided: when an
+    // engine is active, reuse the counts from the previous scan instead. They
+    // only change when the hardware does.
+    const std::string active = ossia::asio_engine::active_driver();
+    const std::vector<ASIOCard> previous = std::move(devices);
+
     devices.clear();
     devices.push_back(ASIOCard{QObject::tr("No device"), -1, 0, 0});
 
@@ -78,9 +88,27 @@ public:
       auto cards = ossia::asio_engine::enumerate_drivers();
       for(auto& card : cards)
       {
-        // To get channel counts, we must briefly load each driver
+        const QString name = QString::fromStdString(card.name);
         int ins = 0, outs = 0;
-        if(loadAsioDriver(const_cast<char*>(card.name.c_str())))
+
+        if(!active.empty())
+        {
+          auto it = std::find_if(
+              previous.begin(), previous.end(),
+              [&](const ASIOCard& d) { return d.name == name; });
+          if(it != previous.end())
+          {
+            ins = it->inputChan;
+            outs = it->outputChan;
+          }
+          if(ossia::asio_diagnostics::verbose())
+          {
+            ossia::asio_diagnostics::log()
+                << "\"" << card.name << "\": not probing channels while \"" << active
+                << "\" is streaming, reusing " << ins << " in / " << outs << " out\n";
+          }
+        }
+        else if(loadAsioDriver(const_cast<char*>(card.name.c_str())))
         {
           ASIODriverInfo info{};
           info.asioVersion = 2;
@@ -130,8 +158,7 @@ public:
                  "(bitness mismatch or broken installation)\n";
         }
 
-        devices.push_back(
-            ASIOCard{QString::fromStdString(card.name), card.driver_index, ins, outs});
+        devices.push_back(ASIOCard{name, card.driver_index, ins, outs});
       }
 
       ossia::asio_diagnostics::log() << "enumeration finished: " << (devices.size() - 1)
@@ -227,10 +254,38 @@ public:
     {
       lay->addWidget(show_ui);
       connect(show_ui, &QPushButton::clicked, this, [=] {
-        int idx = card_list->currentIndex();
-        if(idx > 0 && idx < (int)devices.size())
+        const int idx = card_list->currentIndex();
+        if(idx <= 0 || idx >= (int)devices.size())
+          return;
+
+        const auto& dev = devices[idx];
+        using res = ossia::asio_engine::control_panel_result;
+        switch(ossia::asio_engine::open_control_panel(dev.name.toStdString()))
         {
-          ossia::asio_engine::open_control_panel(devices[idx].name.toStdString());
+          case res::ok:
+            break;
+          case res::other_driver_active:
+            // ASIO permits one loaded driver per process, so we cannot reach
+            // this driver's panel until the engine actually switches to it.
+            score::warning(
+                w, tr("ASIO"),
+                tr("Cannot open the control panel of \"%1\" while \"%2\" is in use.\n"
+                   "Apply this device first (OK), then reopen the settings.")
+                    .arg(dev.name)
+                    .arg(QString::fromStdString(ossia::asio_engine::active_driver())));
+            break;
+          case res::load_failed:
+            score::warning(
+                w, tr("ASIO"),
+                tr("Could not load the driver \"%1\".").arg(dev.name));
+            break;
+          case res::init_failed:
+            score::warning(
+                w, tr("ASIO"),
+                tr("The driver \"%1\" could not be initialized. Its hardware may be "
+                   "disconnected or in use by another application.")
+                    .arg(dev.name));
+            break;
         }
       });
     }
