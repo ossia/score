@@ -16,6 +16,8 @@
 #if defined(OSSIA_ENABLE_ASIO)
 #include <ossia/audio/asio_protocol.hpp>
 
+#include <exception>
+
 extern AsioDrivers* asioDrivers;
 namespace Audio
 {
@@ -82,24 +84,66 @@ public:
         {
           ASIODriverInfo info{};
           info.asioVersion = 2;
-          if(ASIOInit(&info) == ASE_OK)
+          const ASIOError init = ASIOInit(&info);
+          if(init == ASE_OK)
           {
             long numIn = 0, numOut = 0;
-            ASIOGetChannels(&numIn, &numOut);
-            ins = (int)numIn;
-            outs = (int)numOut;
+            const ASIOError chans = ASIOGetChannels(&numIn, &numOut);
+            if(chans == ASE_OK)
+            {
+              ins = (int)numIn;
+              outs = (int)numOut;
+            }
+            else
+            {
+              ossia::asio_diagnostics::log()
+                  << "ASIOGetChannels failed for \"" << card.name << "\", rc=" << chans
+                  << " -- listing it with 0 channels\n";
+            }
+            if(ossia::asio_diagnostics::verbose())
+            {
+              ossia::asio_diagnostics::log()
+                  << "\"" << card.name << "\": driver \"" << info.name << "\" asio v"
+                  << info.asioVersion << " driver v" << info.driverVersion << ", " << ins
+                  << " in / " << outs << " out\n";
+            }
             ASIOExit();
+          }
+          else
+          {
+            // Hardware absent or claimed by another process: the driver is
+            // installed and loadable but cannot initialize right now. Keep it in
+            // the list so the user can see it and read the reason.
+            ossia::asio_diagnostics::log()
+                << "ASIOInit failed for \"" << card.name << "\", rc=" << init << " ("
+                << (info.errorMessage[0] ? info.errorMessage : "no message")
+                << ") -- device present but unusable\n";
           }
           if(asioDrivers)
             asioDrivers->removeCurrentDriver();
+        }
+        else
+        {
+          ossia::asio_diagnostics::log()
+              << "loadAsioDriver(\"" << card.name
+              << "\") failed -- CoCreateInstance refused the driver DLL "
+                 "(bitness mismatch or broken installation)\n";
         }
 
         devices.push_back(
             ASIOCard{QString::fromStdString(card.name), card.driver_index, ins, outs});
       }
+
+      ossia::asio_diagnostics::log() << "enumeration finished: " << (devices.size() - 1)
+                                     << " driver(s) available\n";
+    }
+    catch(const std::exception& e)
+    {
+      ossia::asio_diagnostics::log() << "enumeration aborted: " << e.what() << '\n';
     }
     catch(...)
     {
+      ossia::asio_diagnostics::log() << "enumeration aborted: unknown exception\n";
     }
   }
 
