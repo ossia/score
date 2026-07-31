@@ -59,16 +59,38 @@ static void toGL(auto& from, float (&to)[N])
 inline void rebuild_transform(auto& inputs, auto& outputs)
 {
   QMatrix4x4 model{};
-  auto& pos = inputs.position;
-  auto& rot = inputs.rotation;
-  auto& sc = inputs.scale;
 
-  model.translate(pos.value.x, pos.value.y, pos.value.z);
-  model.rotate(QQuaternion::fromEulerAngles(rot.value.x, rot.value.y, rot.value.z));
-  model.scale(sc.value.x, sc.value.y, sc.value.z);
+  if constexpr(requires { inputs.position; })
+  {
+    auto& pos = inputs.position;
+    model.translate(pos.value.x, pos.value.y, pos.value.z);
+  }
 
-  toGL(model, outputs.geometry.transform);
-  outputs.geometry.dirty_transform = true;
+  if constexpr(requires { inputs.rotation; })
+  {
+    auto& rot = inputs.rotation;
+    model.rotate(QQuaternion::fromEulerAngles(rot.value.x, rot.value.y, rot.value.z));
+  }
+
+  if constexpr(requires { inputs.scale; })
+  {
+    auto& sc = inputs.scale;
+    model.scale(sc.value.x, sc.value.y, sc.value.z);
+  }
+
+  // Legacy path: writes into the halp::mesh-style `geometry` output.
+  // Scene-only loaders (GltfParser/FbxParser after the legacy outlet was
+  // removed) don't have `outputs.geometry`; we leave the Position/Rotation/
+  // Scale controls as a no-op for now. They'll be re-wired to a scene-level
+  // root transform when we add that feature to scene_spec.
+  if constexpr(requires {
+                 outputs.geometry.transform;
+                 outputs.geometry.dirty_transform;
+               })
+  {
+    toGL(model, outputs.geometry.transform);
+    outputs.geometry.dirty_transform = true;
+  }
 }
 struct PositionControl : halp::xyz_spinboxes_f32<"Position", halp::free_range_min<>>
 {

@@ -209,3 +209,22 @@ if(SCORE_VIDEO_TESTER)
     LABELS "gui"
     ENVIRONMENT "VIDEO_TESTER=${SCORE_ROOT_BINARY_DIR}/VideoDecoderTester;SCORE_AUDIO_BACKEND=dummy;ASAN_OPTIONS=detect_leaks=0:halt_on_error=0:handle_segv=1:detect_odr_violation=0:protect_shadow_gap=0")
 endif()
+# Manual tool (not a ctest): enumerate and live-preview every registered
+# object.  Run:  <build>/tests/integration/ObjectGallery --list
+#          or:  cd <build> && ./tests/integration/ObjectGallery --filter camera
+add_executable(ObjectGallery "${CMAKE_CURRENT_SOURCE_DIR}/ObjectGallery.cpp")
+target_link_libraries(ObjectGallery PRIVATE
+  score_lib_base
+  score_plugin_scenario score_plugin_engine score_plugin_gfx
+  score_plugin_deviceexplorer score_lib_process score_lib_device
+  ${QT_PREFIX}::Core ${QT_PREFIX}::Gui ${QT_PREFIX}::Widgets
+  ${QT_PREFIX}::Network ${QT_PREFIX}::Xml)
+setup_score_common_exe_features(ObjectGallery)
+set_target_properties(ObjectGallery PROPERTIES FOLDER "Tests")
+
+# Splat ports stay stable across save/reload
+# (score_plugin_threedim is discovered dynamically at runtime).
+score_add_test(test_regression_splat_reload
+  SOURCES RegressionSplatReloadTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process)
