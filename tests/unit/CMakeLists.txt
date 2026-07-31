@@ -152,3 +152,4 @@ score_add_test(test_unit_gfx_assettable
 score_add_test(test_unit_isf_importers
   SOURCES IsfImportersTest.cpp
   PLUGINS score_plugin_gfx)
+

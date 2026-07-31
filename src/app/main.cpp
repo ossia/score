@@ -255,8 +255,12 @@ static void setup_x11(int argc, char** argv)
         helper_dylibs.run_under_x11 = true;
         helper_dylibs.xwayland = wayland;
 
-        // EGL is the only way to get zero-copy with dma-buf import
-        qputenv("QT_XCB_GL_INTEGRATION", "xcb_egl");
+        // EGL is the only way to get zero-copy with dma-buf import, so it is
+        // the default -- but NVIDIA's GPUDirect-for-Video (libdvp) interops
+        // only with GLX, so a user who needs DVP must be able to ask for
+        // xcb_glx and have it stick.
+        if(qEnvironmentVariableIsEmpty("QT_XCB_GL_INTEGRATION"))
+          qputenv("QT_XCB_GL_INTEGRATION", "xcb_egl");
       }
     }
   };

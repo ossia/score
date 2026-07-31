@@ -165,10 +165,13 @@ private:
   score::HighResolutionTimer* m_no_vsync_timer{};
   score::HighResolutionTimer* m_watchdog_timer{};
 
-  // Per-output render clocks. Each TimerClock owns one shared
-  // HighResolutionTimer at a given manualRenderingRate and the coalesced set of
-  // outputs driven by it; the single DisplayVSyncClock wraps the swap-chain
-  // vsync callback.
+  // Per-output render clocks (the render-clock / genlock abstraction).
+  //
+  // These replace the old timer->set<OutputNode*> map: each TimerClock owns
+  // one shared HighResolutionTimer at a given manualRenderingRate and the
+  // coalesced set of outputs driven by it (clock #2, the default), while the
+  // single DisplayVSyncClock wraps the swap-chain vsync callback (clock #1).
+  // Behaviour is byte-identical to the previous inline timer bookkeeping.
   std::vector<std::unique_ptr<score::gfx::TimerClock>> m_renderClocks;
   std::unique_ptr<score::gfx::DisplayVSyncClock> m_vsyncClock;
 

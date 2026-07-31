@@ -43,14 +43,6 @@ struct V210Encoder : GPUVideoEncoder
     #endif
     }
 
-    int flip_y_int(int y, int h) {
-    #if defined(QSHADER_MSL) || defined(QSHADER_HLSL)
-      return y;
-    #else
-      return h - 1 - y;
-    #endif
-    }
-
     // 10-bit unsigned (0..1023) for one source pixel.
     uvec3 to_yuv10(vec3 rgb) {
       vec3 yuv = clamp(convert_from_rgb(rgb), 0.0, 1.0);
@@ -68,13 +60,21 @@ struct V210Encoder : GPUVideoEncoder
 
     void main() {
       ivec2 srcSize = textureSize(src_tex, 0);
-      ivec2 outPos  = ivec2(gl_FragCoord.xy);
+
+      // Output word index (X): gl_FragCoord.x is exact and never flipped.
+      int outX = int(gl_FragCoord.x);
+
+      // Source row (Y): derive from the interpolated texcoord, exactly like
+      // UYVYEncoder. gl_FragCoord.y's origin differs after HLSL/MSL cross-
+      // compilation (it flipped the v210 output vertically on D3D11), whereas
+      // flip_y_uv(v_texcoord) is correct on GL, Vulkan and D3D alike.
+      int srcY = clamp(
+          int(flip_y_uv(v_texcoord).y * float(srcSize.y)), 0, srcSize.y - 1);
 
       // Each output row is N v210 words (RGBA8 texels), N == srcWidth/6 * 4.
-      int wordInGroup = outPos.x & 3;     // 0..3
-      int groupIdx    = outPos.x >> 2;    // 6-pixel group index
-      int srcX0       = groupIdx * 6;     // first source pixel in group
-      int srcY        = flip_y_int(outPos.y, srcSize.y);
+      int wordInGroup = outX & 3;     // 0..3
+      int groupIdx    = outX >> 2;    // 6-pixel group index
+      int srcX0       = groupIdx * 6; // first source pixel in group
 
       // texelFetch is clamped via sampler/edge handling; for safety on the
       // last partial group (shouldn't happen since width % 6 == 0) we clamp.
@@ -126,6 +126,7 @@ struct V210Encoder : GPUVideoEncoder
   int m_width{};
   int m_height{};
   int m_outW{};
+  bool m_readbackEnabled{true};
 
   void init(
       QRhi& rhi, const RenderState& state, QRhiTexture* inputRGBA, int width,
@@ -133,8 +134,12 @@ struct V210Encoder : GPUVideoEncoder
   {
     m_width = width;
     m_height = height;
-    // Output: one RGBA8 texel per v210 ULWord. 4 words per 6 source pixels.
-    m_outW = (width / 6) * 4;
+    // Output: one RGBA8 texel per v210 ULWord, on the PADDED wire row
+    // (((width+47)/48)*128 bytes — SMPTE/DeckLink/AJA row stride). (width/6)*4
+    // truncated the tail group at widths not divisible by 6 (1280, 2048-DCI)
+    // and made the readback row differ from the framestore row, forcing a
+    // re-stride copy; padded, they are byte-identical.
+    m_outW = ((width + 47) / 48) * 32;
 
     m_outTexture = rhi.newTexture(
         QRhiTexture::RGBA8, QSize{m_outW, height}, 1,
@@ -177,19 +182,28 @@ struct V210Encoder : GPUVideoEncoder
 
   void exec(QRhi& rhi, QRhiCommandBuffer& cb) override
   {
-    cb.beginPass(m_renderTarget, Qt::black, {1.0f, 0});
+    cb.beginPass(m_renderTarget, Qt::black, {0.0f, 0});
     cb.setGraphicsPipeline(m_pipeline);
     cb.setShaderResources(m_srb);
     cb.setViewport(QRhiViewport(0, 0, m_outW, m_height));
     cb.draw(3);
 
-    auto* readbackBatch = rhi.nextResourceUpdateBatch();
-    readbackBatch->readBackTexture(QRhiReadbackDescription{m_outTexture}, &m_readback);
-    cb.endPass(readbackBatch);
+    if(m_readbackEnabled)
+    {
+      auto* readbackBatch = rhi.nextResourceUpdateBatch();
+      readbackBatch->readBackTexture(QRhiReadbackDescription{m_outTexture}, &m_readback);
+      cb.endPass(readbackBatch);
+    }
+    else
+    {
+      cb.endPass();
+    }
   }
 
   int planeCount() const override { return 1; }
   const QRhiReadbackResult& readback(int) const override { return m_readback; }
+  QRhiTexture* outputTexture() const noexcept override { return m_outTexture; }
+  void setReadbackEnabled(bool e) noexcept override { m_readbackEnabled = e; }
 
   void release() override
   {
