@@ -314,7 +314,9 @@ namespace Gfx::WindowCapture
 {
 
 // Forward declaration from the X11 backend
+#if defined(HAS_X11_WINDOW_CAPTURE)
 std::unique_ptr<WindowCaptureBackend> createX11Backend();
+#endif
 
 // Function pointer types for the PipeWire C API (no headers needed)
 extern "C"
@@ -1559,8 +1561,10 @@ private:
 std::unique_ptr<WindowCaptureBackend> createWindowCaptureBackend()
 {
   // Try X11 first (works on X11 sessions and XWayland)
+#if defined(HAS_X11_WINDOW_CAPTURE)
   if(auto x11 = createX11Backend())
     return x11;
+#endif
 
   // Try PipeWire (native Wayland via xdg-desktop-portal)
   auto pw = std::make_unique<PipeWireWindowCaptureBackend>();
