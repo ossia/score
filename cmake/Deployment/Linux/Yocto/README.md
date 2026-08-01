@@ -58,8 +58,17 @@ stall.
 ### Running it
 
 ```bash
-kas shell kas/whinlatter-qemux86-64.yml -c "runqemu nographic ossia-score-image"
+kas shell kas/whinlatter-qemux86-64.yml -c \
+  "runqemu kvm nographic slirp snapshot ossia-score-image qemuparams='-m 2048'"
 ```
+
+Two arguments there are not optional in practice:
+
+* **`kvm`** — runqemu does *not* enable KVM unless you ask. Without it every guest
+  instruction is interpreted and the whole system is roughly 3x slower, which
+  distorts any measurement you take (it inflated our first power-to-GUI figure
+  from 6.1s to 18.4s, most of it in software rasterisation).
+* **`-m 2048`** — the 256 MB default is not enough; see the sizing note below.
 
 then on the target:
 
@@ -71,6 +80,56 @@ ossia-score-launch vulkan                           # vkkhrdisplay, fastest
 
 `ossia-score.service` is installed but not enabled; `systemctl enable
 ossia-score` turns the image into a kiosk.
+
+## Sizing and boot time
+
+score's resident set is **~312 MB** once the UI is up, before any document is
+loaded. Below roughly 512 MB it does not degrade, it dies: at 256 MB it
+segfaults during startup on an allocation failure and the restarted instance is
+OOM-killed. **Budget 1 GB or more.**
+
+Measured power-to-GUI on qemux86-64 with 2 GB, from power-on to the start screen
+being painted:
+
+| | KVM + virgl | KVM, software GL | TCG, software GL |
+|---|---|---|---|
+| kernel | 1.05s | 0.66s | 1.93s |
+| score forked | 2.36s | 1.76s | 6.48s |
+| score's own startup | **0.64s** | 4.3s | 11.9s |
+| **start screen painted** | **≈3.0s** | 6.1s | 18.4s |
+| `Startup finished` (systemd) | 2.64s | 1.84s | 7.26s |
+| RSS | 206 MB | 312 MB | 312 MB |
+
+The third column is what you get by accident, so it is worth being explicit: the
+`kvm` argument and a GPU account for a 6x difference in power-to-GUI, and most
+of what looks like "score is slow to start" is neither score nor this layer.
+
+For the middle and left columns, qemu needs a virtio GPU. runqemu's
+`egl-headless` option gives one:
+
+```bash
+runqemu kvm slirp snapshot egl-headless ossia-score-image qemuparams='-m 2048'
+```
+
+Nothing has to be rebuilt for this -- mesa enables the `virgl` Gallium driver
+whenever `opengl` is in `DISTRO_FEATURES`, and qemu-system-native picks up
+`virglrenderer` on the same condition. To confirm it actually engaged, check
+that score logs no "Running on a software rasterizer" warning and that
+`/sys/class/drm/` has a `renderD*` node (plain stdvga has none). Note that
+`screendump` cannot capture under `egl-headless` -- there is no host surface --
+so verify through `/sys/kernel/debug/dri/0/state` instead, where the scanout
+framebuffer should show `allocated by = ossia-score`.
+
+The service starts at `sysinit.target` with `DefaultDependencies=no`, ordered
+only after `local-fs.target` and udev, so score forks 8 ms after the root
+filesystem is up -- ahead of `basic.target` and `multi-user.target`. Networking,
+avahi, bluetooth and sshd all come up during the several seconds score spends in
+its own startup, which is time that would otherwise be spent waiting.
+
+What is left is almost entirely score's own initialisation, and most of that is
+software rasterisation: qemu has no GPU, so Qt falls back to LLVMpipe. On real
+hardware with a working DRM driver that portion largely disappears. Enabling
+virtio-gpu with virgl would remove it here too.
 
 ## What score itself needs
 

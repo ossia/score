@@ -21,7 +21,13 @@ IMAGE_INSTALL += " \
     kernel-modules \
     e2fsprogs-mke2fs \
     tzdata \
+    ca-certificates \
 "
+
+# Note on sizing: score's measured RSS is ~312 MB once the UI is up, before any
+# document is loaded. Below roughly 512 MB it does not merely run slowly, it
+# dies -- at runqemu's 256 MB default it segfaults during startup and the
+# restarted instance is OOM-killed. Budget 1 GB or more on real hardware.
 
 # Not stripped down: the point of this image is the full score feature set. It
 # lands somewhere north of 500 MB, dominated by Qt and the score binary itself.
