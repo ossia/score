@@ -1,0 +1,58 @@
+#!/bin/sh
+# Launch ossia score with a display backend suited to a bare-bones image.
+#
+# Usage: ossia-score-launch [vulkan|eglfs|wayland|x11|cli] [score args...]
+#
+# With no mode, picks the first backend that looks usable. On an image with no
+# display server the interesting ones are vulkan (vkkhrdisplay) and eglfs, which
+# both render straight to DRM/KMS with the whole GPU dedicated to score -- see
+# the equivalent scripts in cmake/Deployment/Linux/Raspberry/, which this
+# mirrors without the AppImage library-shimming.
+set -eu
+
+MODE="${1:-auto}"
+if [ "$#" -gt 0 ]; then
+    shift
+fi
+
+if [ "$MODE" = auto ]; then
+    if [ -n "${WAYLAND_DISPLAY:-}" ]; then
+        MODE=wayland
+    elif [ -n "${DISPLAY:-}" ]; then
+        MODE=x11
+    elif [ -e /dev/dri/card0 ]; then
+        MODE=eglfs
+    else
+        MODE=cli
+    fi
+fi
+
+case "$MODE" in
+    vulkan)
+        export QT_QPA_PLATFORM=vkkhrdisplay
+        export QSG_RHI_BACKEND=vulkan
+        set -- --no-opengl "$@"
+        ;;
+    eglfs)
+        export QT_QPA_PLATFORM=eglfs
+        export QSG_RHI_BACKEND=opengl
+        set -- --no-opengl "$@"
+        ;;
+    wayland)
+        export QT_QPA_PLATFORM=wayland
+        ;;
+    x11)
+        export QT_QPA_PLATFORM=xcb
+        ;;
+    cli)
+        export QT_QPA_PLATFORM=minimal
+        set -- --no-opengl --no-gui --no-restore "$@"
+        ;;
+    *)
+        echo "ossia-score-launch: unknown mode '$MODE'" >&2
+        echo "usage: ossia-score-launch [vulkan|eglfs|wayland|x11|cli] [args...]" >&2
+        exit 2
+        ;;
+esac
+
+exec /usr/bin/ossia-score "$@"

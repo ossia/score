@@ -1,0 +1,65 @@
+header:
+  version: 14
+
+distro: ossia
+machine: qemux86-64
+target: ossia-score-image
+
+# Yocto 5.3 (whinlatter). Note there is no poky/whinlatter branch -- poky stops
+# at walnascar -- so the stack is openembedded-core plus bitbake directly.
+repos:
+  meta-ossia:
+    # This layer, i.e. the checkout kas was pointed at.
+    layers:
+      cmake/Deployment/Linux/Yocto/meta-ossia:
+
+  openembedded-core:
+    url: https://git.openembedded.org/openembedded-core
+    refspec: yocto-5.3.4
+    layers:
+      meta:
+
+  bitbake:
+    url: https://git.openembedded.org/bitbake
+    refspec: yocto-5.3.4
+    # bitbake is not a layer; it is only checked out so that oe-init-build-env
+    # finds it. Without this kas adds every repo root to BBLAYERS.
+    layers:
+      .: excluded
+
+  meta-openembedded:
+    url: https://git.openembedded.org/meta-openembedded
+    refspec: whinlatter
+    layers:
+      meta-oe:
+      meta-multimedia:
+      meta-networking:
+      meta-python:
+
+  meta-qt6:
+    url: https://code.qt.io/yocto/meta-qt6.git
+    refspec: "6.12"
+
+bblayers_conf_header:
+  standard: |
+    POKY_BBLAYERS_CONF_VERSION = "2"
+    BBPATH = "${TOPDIR}"
+    BBFILES ?= ""
+
+local_conf_header:
+  standard: |
+    CONF_VERSION = "2"
+    PACKAGE_CLASSES = "package_ipk"
+    USER_CLASSES = "buildstats"
+
+  disk: |
+    # A score build is large; without rm_work the work directories alone run to
+    # tens of GB. Point DL_DIR/SSTATE_DIR somewhere persistent outside the build
+    # tree so a wipe does not cost you the whole rebuild.
+    INHERIT += "rm_work"
+    BB_DISKMON_DIRS = "STOPTASKS,${TMPDIR},1G,100K HALT,${TMPDIR},100M,1K"
+
+  performance: |
+    # -O3 for score itself is set in the recipe (FULL_OPTIMIZATION). Set this to
+    # "1" to additionally enable LTO -- expect a very large link step.
+    OSSIA_SCORE_LTO = "0"

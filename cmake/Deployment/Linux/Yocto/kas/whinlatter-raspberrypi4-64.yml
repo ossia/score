@@ -1,0 +1,23 @@
+header:
+  version: 14
+  includes:
+    - whinlatter-qemux86-64.yml
+
+# Same Yocto 5.3 stack, targeting a Pi 4 / Pi 400 / CM4. Produces a
+# .wic.bz2 that bmaptool or dd writes straight to an SD card.
+machine: raspberrypi4-64
+
+repos:
+  meta-raspberrypi:
+    url: https://github.com/agherzan/meta-raspberrypi
+    refspec: whinlatter
+
+local_conf_header:
+  raspberrypi: |
+    # The Pi's VideoCore needs the vc4 KMS driver for score to get a GPU;
+    # without this eglfs falls back to software rendering.
+    RASPBERRYPI_CAMERA_V2 = "0"
+    ENABLE_UART = "1"
+    DISABLE_OVERSCAN = "1"
+    GPU_MEM = "256"
+    IMAGE_FSTYPES:forcevariable = "wic.bz2 wic.bmap"

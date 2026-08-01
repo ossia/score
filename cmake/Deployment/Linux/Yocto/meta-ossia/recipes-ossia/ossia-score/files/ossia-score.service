@@ -1,0 +1,26 @@
+[Unit]
+Description=ossia score
+Documentation=https://ossia.io
+After=sound.target
+Wants=sound.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/ossia-score-launch
+Restart=on-failure
+RestartSec=2
+
+# Realtime audio. The limits.d drop-in grants these to the audio group for
+# interactive logins; a systemd unit does not go through PAM, so they are
+# repeated here.
+LimitRTPRIO=95
+LimitMEMLOCK=infinity
+User=root
+Group=audio
+SupplementaryGroups=audio video render input
+
+Environment=XDG_RUNTIME_DIR=/run/ossia-score
+RuntimeDirectory=ossia-score
+
+[Install]
+WantedBy=multi-user.target
