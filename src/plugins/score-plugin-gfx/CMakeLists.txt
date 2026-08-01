@@ -114,14 +114,23 @@ if(NOT EMSCRIPTEN)
     )
   else()
     list(APPEND WINDOW_CAPTURE_SRCS
-      Gfx/WindowCapture/WindowCapture_x11.cpp
       Gfx/WindowCapture/WindowCapture_pipewire.cpp
     )
     set_source_files_properties(
-      Gfx/WindowCapture/WindowCapture_x11.cpp
       Gfx/WindowCapture/WindowCapture_pipewire.cpp
       PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON
     )
+
+    if(X11_FOUND)
+      list(APPEND WINDOW_CAPTURE_SRCS
+        Gfx/WindowCapture/WindowCapture_x11.cpp
+      )
+      set_source_files_properties(
+        Gfx/WindowCapture/WindowCapture_x11.cpp
+        PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON
+      )
+      set(SCORE_GFX_HAS_X11_CAPTURE 1)
+    endif()
   endif()
 endif()
 
@@ -623,6 +632,10 @@ if(NOT EMSCRIPTEN)
   list(APPEND SCORE_FEATURES_LIST window_capture)
   if(APPLE)
     target_link_options(${PROJECT_NAME} PUBLIC -weak_framework ScreenCaptureKit)
+  endif()
+  if(SCORE_GFX_HAS_X11_CAPTURE)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_X11_WINDOW_CAPTURE)
+    list(APPEND SCORE_FEATURES_LIST window_capture_x11)
   endif()
 endif()
 
