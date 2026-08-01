@@ -1,3 +1,7 @@
+if(NOT X11_FOUND)
+  return()
+endif()
+
 add_executable(linuxcheck
   x11.cpp
   wayland.cpp
