@@ -271,12 +271,27 @@ public:
   // Note: the function that does the actual tick is passed as an argument
   // since some plug-ins only store pointers to VstEvents struct,
   // which would go out of scope if this function was just called like this.
+  //! Keep this tick's events for the next block rather than dropping them: the
+  //! span covers no whole sample, so every date in the tick maps to the sample
+  //! the span starts on, which is offset 0 of the next block that covers one.
+  void stashMidi()
+  {
+    for(const libremidi::ump& mess :
+        static_cast<ossia::midi_inlet*>(m_inlets[1])->data.messages)
+    {
+      if(m_deferred.size() >= 1024)
+        return;
+      m_deferred.push_back(mess);
+    }
+  }
+
   template <typename Fun>
   void dispatchMidi(int64_t offset, int64_t samples, Fun&& f)
   {
-    // copy midi data
+    // copy midi data. Anything held back from a tick that covered no whole
+    // sample goes first, at offset 0.
     auto& ip = static_cast<ossia::midi_inlet*>(m_inlets[1])->data.messages;
-    const auto n_mess = ip.size();
+    const auto n_mess = ip.size() + m_deferred.size();
     if(n_mess == 0)
     {
       f();
@@ -289,25 +304,37 @@ public:
     std::memset(events, 0, sz);
     events->numEvents = n_mess;
 
+    ossia::small_vector<std::pair<const libremidi::ump*, int64_t>, 16> to_send;
+    for(const libremidi::ump& mess : m_deferred)
+      to_send.push_back({&mess, 0});
+    for(const libremidi::ump& mess : ip)
+      to_send.push_back(
+          {&mess, std::clamp<int64_t>(
+               mess.timestamp - offset, 0, samples > 0 ? samples - 1 : 0)});
+
     ossia::small_vector<VstMidiEvent, 16> vec;
     vec.resize(n_mess);
     std::size_t i = 0;
-    for(libremidi::ump& mess : ip)
+    for(const auto& [mess_ptr, delta] : to_send)
     {
+      const libremidi::ump& mess = *mess_ptr;
       if(auto type = mess.get_type();
          (type == libremidi::midi2::message_type::SYSEX7)
          || (type == libremidi::midi2::message_type::SYSEX8_MDS))
+      {
+        events->numEvents--;
         continue;
+      }
 
       VstMidiEvent& e = vec[i];
       std::memset(&e, 0, sizeof(VstMidiEvent));
       e.type = kVstMidiType;
       e.byteSize = sizeof(VstMidiEvent);
-      e.deltaFrames = std::clamp<int64_t>(
-          mess.timestamp - offset, 0, samples > 0 ? samples - 1 : 0);
+      e.deltaFrames = delta;
       e.flags = kVstMidiEventIsRealtime;
 
-      if(auto n = cmidi2_convert_single_ump_to_midi1((uint8_t*)e.midiData, 4, mess.data);
+      if(auto n = cmidi2_convert_single_ump_to_midi1(
+             (uint8_t*)e.midiData, 4, (cmidi2_ump*)mess.data);
          n > 0)
       {
         events->events[i] = reinterpret_cast<VstEvent*>(&e);
@@ -318,6 +345,7 @@ public:
         events->numEvents--;
       }
     }
+    m_deferred.clear();
     dispatch(effProcessEvents, 0, 0, events, 0.f);
     f();
   }
@@ -328,7 +356,13 @@ public:
     {
       const auto timings = st.timings(tk);
       if(timings.length <= 0)
+      {
+        // Never call a plug-in with an empty block, but do not lose what the
+        // tick carried: it goes out at the top of the next real one.
+        if constexpr(IsSynth)
+          this->stashMidi();
         return;
+      }
 
       this->setControls();
       this->setupTimeInfo(tk, st);
@@ -473,6 +507,10 @@ public:
   {
   };
   std::conditional_t<!UseDouble, std::array<ossia::float_vector, 2>, dummy_t> float_v;
+
+  //! Events from ticks that covered no whole sample, waiting for the next block
+  //! that does cover one.
+  ossia::small_vector<libremidi::ump, 8> m_deferred;
 };
 
 template <bool b1, bool b2, typename... Args>
