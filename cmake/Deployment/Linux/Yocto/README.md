@@ -43,13 +43,13 @@ Yocto host packages.
 ```bash
 cd cmake/Deployment/Linux/Yocto
 ./build.sh                              # qemux86-64
-./build.sh whinlatter-raspberrypi4-64   # Pi 4 / CM4, writes a .wic.bz2
+./build.sh whinlatter-raspberrypi5      # Pi 5 / CM5, writes a .wic.bz2
+OSSIA_YOCTO_TARGET=ossia-score-image-appliance ./build.sh
 ```
 
-Budget several hours and 90–120 GB for the first build. Set `DL_DIR` and
-`SSTATE_DIR` (or `OSSIA_YOCTO_WORK_DIR`) somewhere persistent before you start —
-otherwise every rebuild starts from zero. `rm_work` is on by default, which keeps
-the work directories from running to tens of GB.
+Budget several hours and 90–120 GB for the first build. `DL_DIR` and
+`SSTATE_DIR` default to alongside the build directory so every machine shares
+them; override them in `local.conf` to put them elsewhere. `rm_work` is on.
 
 Bring `core-image-minimal` up on your target *before* adding score. Debugging a
 fresh BitBake setup and a Qt cross-build at the same time is how these ports
@@ -58,17 +58,13 @@ stall.
 ### Running it
 
 ```bash
-kas shell kas/whinlatter-qemux86-64.yml -c \
-  "runqemu kvm nographic slirp snapshot ossia-score-image qemuparams='-m 2048'"
+./run.sh                       # qemux86-64, boots and opens a viewer
+OSSIA_QEMU_MEM=4096 ./run.sh   # more RAM
 ```
 
-Two arguments there are not optional in practice:
-
-* **`kvm`** — runqemu does *not* enable KVM unless you ask. Without it every guest
-  instruction is interpreted and the whole system is roughly 3x slower, which
-  distorts any measurement you take (it inflated our first power-to-GUI figure
-  from 6.1s to 18.4s, most of it in software rasterisation).
-* **`-m 2048`** — the 256 MB default is not enough; see the sizing note below.
+`run.sh` uses KVM and virgl, which together are worth about 6x on power-to-GUI,
+and displays over VNC. Without `kvm` every guest instruction is interpreted and
+the whole system is roughly 3x slower, which distorts any measurement.
 
 then on the target:
 
@@ -81,12 +77,77 @@ ossia-score-launch vulkan                           # vkkhrdisplay, fastest
 `ossia-score.service` is installed but not enabled; `systemctl enable
 ossia-score` turns the image into a kiosk.
 
+### No init system at all
+
+For a fixed-function appliance that will never touch the network, score can be
+PID 1:
+
+```
+init=/usr/bin/ossia-score-init
+```
+
+**Not `init=/usr/bin/ossia-score` directly** — that panics the kernel roughly
+50 ms after handoff:
+
+```
+Kernel panic - not syncing: Attempted to kill init! exitcode=0x0000000b
+```
+
+Two separate reasons, both fatal on their own. score dies immediately in an
+environment with no `/proc` and no `/sys` (Mesa enumerates DRM devices through
+`/sys/class/drm`), and because it is PID 1 the SIGSEGV becomes a panic instead
+of an exit. `ossia-score-init` is a ~30-line shell script that mounts what is
+missing, sets `XDG_RUNTIME_DIR`/`XDG_CACHE_HOME`, and then runs score **as a
+child in a restart loop rather than `exec`ing it** — so a crash restarts rather
+than panicking, and PID 1's zombie reaping covers the VST/VST3/CLAP puppets and
+Faust processes score forks. `CONFIG_DEVTMPFS_MOUNT=y` means `/dev`, including
+`/dev/dri`, is already populated without udev, which is the one piece that would
+otherwise be genuinely awkward.
+
+Verified on qemux86-64: the full UI comes up, with no systemd, no udev, no
+getty, no journal. Measured from qemu start, software rasteriser, KVM, 8 vCPU:
+
+| | |
+|---|---|
+| kernel init done | 1.07s |
+| score's first output | 1.20s |
+| engine listening | 1.33s |
+| GL context created | 1.37s |
+| startup chatter ends | 1.53s |
+
+Against the systemd path measured the same way — the two runs agree on kernel
+init to within 11 ms, which is what makes the rest comparable:
+
+| | `init=` | systemd |
+|---|---|---|
+| kernel init done | 1.066s | 1.077s |
+| score's first output | **1.203s** | 2.371s |
+| engine listening | **1.326s** | 2.508s |
+
+So dropping init saves about **1.2s** of pre-score userspace. Treat that as an
+upper bound: getting score's output onto the serial console under systemd needs
+`systemd.journald.forward_to_console=1`, and echoing the journal to a UART is
+itself not free, so some of the gap is the measurement. Note also that score's
+own startup dominates either way — this is ~1.2s off a figure where score itself
+accounts for several seconds.
+
+What you give up is worth stating plainly: no hotplug (a USB MIDI interface or a
+display connected after boot will not appear), no networking, no ssh, no logs.
+That is a different set of trade-offs from the systemd image, not a strictly
+better one — the systemd path reaches the same UI and keeps all of it.
+
+One thing to fix before shipping this mode: score's startup update check stalls
+for **~2.8s** on DNS when there is no network (`Host ossia.io not found`, then
+the `addons.json` fetch). It does not block first paint, but it is pure waste on
+an offline appliance. See the `StartScreen.hpp` note in the upstream list.
+
 ## Sizing and boot time
 
-score's resident set is **~312 MB** once the UI is up, before any document is
-loaded. Below roughly 512 MB it does not degrade, it dies: at 256 MB it
-segfaults during startup on an allocation failure and the restarted instance is
-OOM-killed. **Budget 1 GB or more.**
+score's resident set is **~250 MB** once the UI is up, of which ~110 MB is
+dirty; the rest is file-backed and evictable. Measured floors on qemux86-64:
+**192 MB** for `ossia-score-image-appliance`, and more for `ossia-score-image`,
+which also carries systemd. Below that score is OOM-killed during startup, where
+it transiently allocates well above its steady state. **Budget 512 MB or more.**
 
 Measured power-to-GUI on qemux86-64 with 2 GB, from power-on to the start screen
 being painted:
@@ -155,19 +216,16 @@ in the recipe:
   configure. Needs the network, and the binaries do not cross-compile.
 - **`score-addon-ultraleap`** — pulls a proprietary SDK at configure time.
 
-Three plugins will self-disable because no OE recipe exists for their
-dependency. They use `find_package(...)` + `if(NOT TARGET ...) return()`, so the
-build succeeds and simply lacks them:
+`score-plugin-lv2`, `score-plugin-faust` and `score-plugin-ysfx` are built
+against recipes in `meta-ossia/recipes-support` (lv2kit, faust, faustlibraries,
+ysfx). They use `find_package(...)` + `if(NOT TARGET ...) return()`, so dropping
+a PACKAGECONFIG silently drops the plugin rather than failing the build.
 
-| plugin | needs | upstream |
-|---|---|---|
-| `score-plugin-lv2` | lilv, suil, lv2 | https://gitlab.com/lv2 (meson) |
-| `score-plugin-faust` | libfaust + faustlibraries | https://github.com/grame-cncm/faust — pin `730eff6d` for the libs, as `score-plugin-faust/CMakeLists.txt` does |
-| `score-plugin-ysfx` | ysfx | https://github.com/jpcima/ysfx |
-
-Writing those four recipes is the remaining work for genuinely complete feature
-parity. Everything else — gfx, JS, media, VST3, CLAP, Pd, protocols, the whole
-avnd plugin set, and the remaining 18 addons — builds from the vendored tree.
+`score-plugin-jit` needs LLVM and Clang for the target, which is an hour of
+build time and ~58 MB of packages; `PACKAGECONFIG:remove:pn-ossia-score = "jit"`
+turns it off. Everything else — gfx, JS, media, VST3, CLAP, Pd, protocols, the
+whole avnd plugin set and the remaining 18 addons — builds from the vendored
+tree.
 
 `SCORE_USE_SYSTEM_LIBRARIES=1` is set, but it is a *preference*: libossia's
 `cmake/deps/*.cmake` fall back to the vendored copy when a package is missing, so
