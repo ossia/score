@@ -14,8 +14,10 @@ repos:
 
 local_conf_header:
   raspberrypi: |
-    # The Pi's VideoCore needs the vc4 KMS driver for score to get a GPU;
-    # without this eglfs falls back to software rendering.
+    # Required or the image will not parse; see
+    # meta-raspberrypi/docs/ipcompliance.md before shipping.
+    LICENSE_FLAGS_ACCEPTED += "synaptics-killswitch"
+
     RASPBERRYPI_CAMERA_V2 = "0"
     ENABLE_UART = "1"
     DISABLE_OVERSCAN = "1"

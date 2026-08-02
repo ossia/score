@@ -1,0 +1,30 @@
+header:
+  version: 14
+  includes:
+    - whinlatter-qemux86-64.yml
+
+# Same Yocto 5.3 stack, targeting a Pi 5 / CM5. Produces a .wic.bz2 that
+# bmaptool or dd writes straight to an SD card or NVMe.
+machine: raspberrypi5
+
+repos:
+  meta-raspberrypi:
+    url: https://github.com/agherzan/meta-raspberrypi
+    refspec: whinlatter
+
+local_conf_header:
+  raspberrypi5: |
+    # v3d/vc4 gallium come from meta-raspberrypi's mesa bbappend, and vulkan in
+    # DISTRO_FEATURES pulls v3dv with them. vc4graphics is on by default.
+    # Required or the image will not parse: the WiFi firmware in the machine's
+    # MACHINE_EXTRA_RRECOMMENDS is licence-gated. See
+    # meta-raspberrypi/docs/ipcompliance.md before shipping.
+    LICENSE_FLAGS_ACCEPTED += "synaptics-killswitch"
+
+    RASPBERRYPI_CAMERA_V2 = "0"
+    ENABLE_UART = "1"
+    DISABLE_OVERSCAN = "1"
+
+    # No GPU_MEM: it is a VideoCore IV/VI split, inert on the Pi 5 (CMA).
+
+    IMAGE_FSTYPES:forcevariable = "wic.bz2 wic.bmap"

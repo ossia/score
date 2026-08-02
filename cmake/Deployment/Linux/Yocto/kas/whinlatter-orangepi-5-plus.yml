@@ -1,0 +1,39 @@
+header:
+  version: 14
+  includes:
+    - whinlatter-qemux86-64.yml
+
+# Orange Pi 5 Plus (Rockchip RK3588, Mali-G610). Produces a .wic that goes to
+# eMMC, NVMe or an SD card.
+machine: orangepi-5-plus
+
+repos:
+  meta-arm:
+    url: https://git.yoctoproject.org/meta-arm
+    refspec: whinlatter
+    layers:
+      meta-arm:
+      meta-arm-toolchain:
+
+  meta-rockchip:
+    url: https://git.yoctoproject.org/meta-rockchip
+    refspec: whinlatter
+
+local_conf_header:
+  rk3588: |
+    # meta-rockchip's mesa bbappend skips rk3588, so the GPU is off by default
+    # and the board silently runs on llvmpipe. Mali-G610 = panthor + panfrost.
+    # libclc is required with it: GALLIUMDRIVERS and VULKAN_DRIVERS are gated on
+    # 'panfrost libclc' together, and oe-core only adds libclc on x86.
+    PACKAGECONFIG:append:pn-mesa = " kmsro panfrost libclc"
+
+    # panthor will not probe without ARM's CSF firmware; G610 is arch 10.8.
+    IMAGE_INSTALL:append = " linux-firmware-mali-csffw-arch108"
+
+    # No hardware video decode for score: mainline rkvdec2 is a stateless V4L2
+    # device needing the request API, which upstream ffmpeg does not support.
+    # (meta-rockchip's ENABLE_STATELESS_VPU_GST covers GStreamer only.)
+    # Verify after first boot:
+    #   ls /sys/class/drm/                 -> card0 + renderD128 present
+    #   dmesg | grep -i panthor            -> firmware loaded, no probe error
+    #   score's log must NOT say "Running on a software rasterizer"
