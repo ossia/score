@@ -54,10 +54,15 @@ local_conf_header:
 
   disk: |
     # A score build is large; without rm_work the work directories alone run to
-    # tens of GB. Point DL_DIR/SSTATE_DIR somewhere persistent outside the build
-    # tree so a wipe does not cost you the whole rebuild.
+    # tens of GB.
     INHERIT += "rm_work"
     BB_DISKMON_DIRS = "STOPTASKS,${TMPDIR},1G,100K HALT,${TMPDIR},100M,1K"
+
+    # Shared across every build-<machine>/ dir: sources are machine-independent
+    # and *-native sstate is reused wholesale (54% hit rate on a new machine).
+    DL_DIR ?= "${TOPDIR}/../downloads"
+    SSTATE_DIR ?= "${TOPDIR}/../sstate-cache"
+
 
   performance: |
     # -O3 for score itself is set in the recipe (FULL_OPTIMIZATION). Set this to

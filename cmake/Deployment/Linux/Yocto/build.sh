@@ -27,7 +27,7 @@ if [[ ! -f "$KAS_FILE" ]]; then
 fi
 
 export KAS_WORK_DIR="${OSSIA_YOCTO_WORK_DIR:-$SCORE_DIR/../score-yocto}"
-export KAS_BUILD_DIR="${OSSIA_YOCTO_BUILD_DIR:-$KAS_WORK_DIR/build}"
+export KAS_BUILD_DIR="${OSSIA_YOCTO_BUILD_DIR:-$KAS_WORK_DIR/build-$CONFIG}"
 mkdir -p "$KAS_WORK_DIR" "$KAS_BUILD_DIR"
 
 # kas resolves the meta-ossia repo entry relative to the checkout it is run
