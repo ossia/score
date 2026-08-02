@@ -275,16 +275,50 @@ public:
       dispatchMidi(
           *m_inlets[i]->template target<ossia::midi_port>(), k++, tick_start, samples);
     }
+    m_deferred.clear();
     m_vstData.inputEvents
         = (m_inputEvents.getEventCount() > 0) ? &m_inputEvents : nullptr;
     m_vstData.outputEvents = &m_outputEvents;
+  }
+
+  //! Keep this tick's events for the next block instead of dropping them. The
+  //! span covers no whole sample, so every date in the tick maps to the sample
+  //! the span starts on, which is offset 0 of the next block that does cover
+  //! one: deferring is exact here, not an approximation.
+  void stashMidi()
+  {
+    const int audioBusCount = std::ssize(m_audioInputChannels);
+    int k = 0;
+    for(int i = audioBusCount; i < audioBusCount + m_totalEventIns; i++, k++)
+    {
+      for(const libremidi::ump& mess :
+          m_inlets[i]->template target<ossia::midi_port>()->messages)
+      {
+        if(m_deferred.size() >= 1024)
+          return;
+        m_deferred.push_back({k, mess});
+      }
+    }
   }
 
   void dispatchMidi(ossia::midi_port& port, int index, int64_t tick_start, int64_t samples)
   {
     // copy midi data
     auto& ip = port.messages;
-    if(ip.empty())
+
+    // Port timestamps are relative to the buffer; the plug-in only sees
+    // [tick_start; tick_start + samples[ of it and indexes from 0. Anything
+    // held back from an empty tick goes first, at offset 0.
+    ossia::small_vector<std::pair<const libremidi::ump*, int64_t>, 16> to_send;
+    for(const auto& [bus, mess] : m_deferred)
+      if(bus == index)
+        to_send.push_back({&mess, 0});
+    for(const libremidi::ump& mess : ip)
+      to_send.push_back(
+          {&mess, std::clamp<int64_t>(
+               mess.timestamp - tick_start, 0, samples > 0 ? samples - 1 : 0)});
+
+    if(to_send.empty())
       return;
 
     using VstEvent = Steinberg::Vst::Event;
@@ -292,15 +326,13 @@ public:
     e.busIndex = index;
     e.sampleOffset = 0;
     e.ppqPosition = 0; // FIXME
-    for(const libremidi::ump& mess : ip)
+    for(const auto& [mess_ptr, sample_offset] : to_send)
     {
+      const libremidi::ump& mess = *mess_ptr;
       if(mess.get_type() != libremidi::midi2::message_type::MIDI_2_CHANNEL)
         continue;
 
-      // Port timestamps are relative to the buffer; the plug-in only sees
-      // [tick_start; tick_start + samples[ of it and indexes from 0.
-      e.sampleOffset = std::clamp<int64_t>(
-          mess.timestamp - tick_start, 0, samples > 0 ? samples - 1 : 0);
+      e.sampleOffset = sample_offset;
       switch(libremidi::message_type(mess.get_status_code()))
       {
         case libremidi::message_type::NOTE_ON: {
@@ -484,6 +516,10 @@ public:
   param_changes m_outputChanges;
   Steinberg::Vst::EventList m_inputEvents;
   Steinberg::Vst::EventList m_outputEvents;
+
+  //! Events from ticks that covered no whole sample, with the bus they came in
+  //! on, waiting for the next block that does cover one.
+  ossia::small_vector<std::pair<int, libremidi::ump>, 8> m_deferred;
 };
 
 template <bool UseDouble>
@@ -630,7 +666,12 @@ public:
     {
       const auto [tick_start, samples] = st.timings(tk);
       if(samples <= 0)
+      {
+        // Never call a plug-in with an empty block, but do not lose what the
+        // tick carried: it is delivered at the top of the next real one.
+        this->stashMidi();
         return;
+      }
 
       this->setControls();
       this->setupTimeInfo(tk, st);

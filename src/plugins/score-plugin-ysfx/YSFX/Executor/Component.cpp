@@ -64,6 +64,10 @@ public:
 
   ossia::audio_inlet* audio_in{};
   ossia::midi_inlet* midi_in{};
+
+  //! Events from ticks that covered no whole sample, waiting for the next block
+  //! that does cover one.
+  ossia::small_vector<libremidi::ump, 8> m_deferred_midi;
   ossia::midi_outlet* midi_out{};
   ossia::audio_outlet* audio_out{};
   std::vector<ossia::value_port*> sliders;
@@ -264,7 +268,20 @@ void ysfx_node::run(
 
   const auto [tick_start, d] = estate.timings(tk);
   if(d <= 0)
+  {
+    // Nothing to render, but the tick's events still belong to the sample the
+    // span starts on, which is offset 0 of the next block that covers one.
+    if(this->midi_in)
+    {
+      for(const auto& mess : this->midi_in->data.messages)
+      {
+        if(m_deferred_midi.size() >= 1024)
+          break;
+        m_deferred_midi.push_back(mess);
+      }
+    }
     return;
+  }
 
   // Setup audio input
   double** ins{};
@@ -339,31 +356,42 @@ void ysfx_node::run(
     }
   }
 
-  // Setup midi
+  // Setup midi. Anything held back from a tick that covered no whole sample
+  // goes first, at offset 0.
   if(midi_in)
   {
-    if(!this->midi_in->data.messages.empty())
+    const auto& msgs = this->midi_in->data.messages;
+    if(!m_deferred_midi.empty() || !msgs.empty())
     {
+      ossia::small_vector<std::pair<const libremidi::ump*, int64_t>, 16> to_send;
+      for(const auto& mess : m_deferred_midi)
+        to_send.push_back({&mess, 0});
+      for(const auto& mess : msgs)
+        to_send.push_back(
+            {&mess,
+             std::clamp<int64_t>(mess.timestamp - tick_start, 0, d > 0 ? d - 1 : 0)});
+
       // alloca is function-scoped
-      auto msg_space = (ysfx_midi_event_impl*)alloca(
-          sizeof(ysfx_midi_event_impl) * (1 + this->midi_in->data.messages.size()));
+      auto msg_space
+          = (ysfx_midi_event_impl*)alloca(sizeof(ysfx_midi_event_impl) * (1 + to_send.size()));
       int i = 0;
-      for(auto& mess : this->midi_in->data.messages)
+      for(const auto& [mess_ptr, sample_offset] : to_send)
       {
         ysfx_midi_event_impl& ev = msg_space[i];
 
         ev.bus = 0; // FIXME
-        ev.offset
-            = std::clamp<int64_t>(mess.timestamp - tick_start, 0, d > 0 ? d - 1 : 0);
+        ev.offset = sample_offset;
         ev.data = ev.bytes;
         ev.size = cmidi2_convert_single_ump_to_midi1(
-            (uint8_t*)ev.data, sizeof(ysfx_midi_event_impl::bytes), mess.data);
+            (uint8_t*)ev.data, sizeof(ysfx_midi_event_impl::bytes),
+            (cmidi2_ump*)mess_ptr->data);
         if(ev.size > 0)
         {
           ysfx_send_midi(y, &ev);
           i++;
         }
       }
+      m_deferred_midi.clear();
     }
   }
 
