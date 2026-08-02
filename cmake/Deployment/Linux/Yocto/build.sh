@@ -22,7 +22,7 @@ KAS_FILE="$SCRIPT_DIR/kas/$CONFIG.yml"
 if [[ ! -f "$KAS_FILE" ]]; then
   echo "No such kas config: $KAS_FILE" >&2
   echo "Available:" >&2
-  ls -1 "$SCRIPT_DIR/kas/" | sed 's/\.yml$//;s/^/  /' >&2
+  find "$SCRIPT_DIR/kas" -maxdepth 1 -name '*.yml' -exec basename {} .yml \; | sed 's/^/  /' >&2
   exit 1
 fi
 
@@ -39,4 +39,5 @@ echo "config: $CONFIG"
 echo "work:   $KAS_WORK_DIR"
 echo "build:  $KAS_BUILD_DIR"
 
-exec kas "$COMMAND" "$KAS_FILE"
+# --target so ossia-score-image-appliance is reachable without editing YAML.
+exec kas "$COMMAND" ${OSSIA_YOCTO_TARGET:+--target "$OSSIA_YOCTO_TARGET"} "$KAS_FILE"

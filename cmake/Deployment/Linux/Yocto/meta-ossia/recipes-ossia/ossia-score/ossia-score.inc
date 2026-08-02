@@ -20,6 +20,7 @@ LIC_FILES_CHKSUM = "file://LICENSE.txt;md5=c8bf0f99367f566cced5973a2aa89d68"
 # do_unpack, so these land in UNPACKDIR either way.
 SRC_URI = " \
     file://ossia-score-launch \
+    file://ossia-score-init \
     file://ossia-score.service \
     file://95-ossia-score-rt.conf \
 "
@@ -166,6 +167,7 @@ do_install:append() {
 
     install -d ${D}${bindir}
     install -m 0755 ${UNPACKDIR}/ossia-score-launch ${D}${bindir}/ossia-score-launch
+    install -m 0755 ${UNPACKDIR}/ossia-score-init ${D}${bindir}/ossia-score-init
 
     install -d ${D}${sysconfdir}/security/limits.d
     install -m 0644 ${UNPACKDIR}/95-ossia-score-rt.conf \

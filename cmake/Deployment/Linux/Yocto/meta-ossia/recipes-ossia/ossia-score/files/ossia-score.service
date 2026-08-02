@@ -35,6 +35,7 @@ SupplementaryGroups=audio video render input
 Environment=XDG_RUNTIME_DIR=/run/ossia-score
 Environment=XDG_CACHE_HOME=/var/cache/ossia-score
 RuntimeDirectory=ossia-score
+RuntimeDirectoryMode=0700
 CacheDirectory=ossia-score
 
 [Install]

@@ -1,0 +1,35 @@
+#!/bin/sh
+# Minimal PID 1 for appliances that need nothing but score: no systemd, no
+# udev, no networking. Boot with init=/usr/bin/ossia-score-init.
+#
+# This stays PID 1 itself and runs score as a child, rather than exec'ing it.
+# Two reasons: the kernel panics if PID 1 exits, so an exec'd score turns any
+# crash into a panic; and PID 1 inherits zombie reaping, which score needs
+# because it forks VST/VST3/CLAP puppets and Faust processes.
+#
+# CONFIG_DEVTMPFS_MOUNT gives us /dev already; everything else is on us.
+set -u
+
+mount -o remount,rw / 2>/dev/null
+mount -t proc     proc     /proc    2>/dev/null
+mount -t sysfs    sysfs    /sys     2>/dev/null
+mount -t tmpfs    tmpfs    /run     2>/dev/null
+mount -t tmpfs    tmpfs    /tmp     2>/dev/null
+mkdir -p /dev/pts /dev/shm /run/ossia-score 2>/dev/null
+mount -t devpts   devpts   /dev/pts 2>/dev/null
+mount -t tmpfs    tmpfs    /dev/shm 2>/dev/null
+mount -t tmpfs    tmpfs    /var/volatile 2>/dev/null
+
+export HOME=/root
+export XDG_RUNTIME_DIR=/run/ossia-score
+export XDG_CACHE_HOME=/tmp/cache
+mkdir -p "$XDG_CACHE_HOME" 2>/dev/null
+# Qt refuses a runtime dir that is not 0700 and owned by the user, warns, and
+# falls back to /tmp.
+chmod 0700 "$XDG_RUNTIME_DIR" 2>/dev/null
+
+while true; do
+  /usr/bin/ossia-score-launch "$@"
+  echo "ossia-score exited ($?), restarting in 2s" > /dev/console 2>/dev/null
+  sleep 2
+done
