@@ -11,18 +11,23 @@ inherit core-image
 # a passwordless root console while bringing a board up.
 IMAGE_FEATURES += "ssh-server-openssh"
 
+# No PipeWire: score talks to ALSA directly and nothing here needs a sound
+# server. Re-add with IMAGE_INSTALL:append and PACKAGECONFIG:append:pn-ossia-score.
 IMAGE_INSTALL += " \
     ossia-score \
     alsa-utils \
     alsa-plugins \
-    pipewire \
-    pipewire-alsa \
-    wireplumber \
     kernel-modules \
     e2fsprogs-mke2fs \
     tzdata \
     ca-certificates \
 "
+
+# systemd-resolved and systemd-timesyncd use PrivateTmp= but order themselves
+# after nothing that guarantees /var/volatile/tmp exists; on this image
+# systemd-tmpfiles-setup finishes at ~2.4s while they start at ~1.4s, so on a
+# read-only rootfs they fail 226/NAMESPACE and the system comes up degraded.
+# systemd-ossia-ordering ships the drop-ins that close that race.
 
 # Note on sizing: score's measured RSS is ~312 MB once the UI is up, before any
 # document is loaded. Below roughly 512 MB it does not merely run slowly, it

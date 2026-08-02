@@ -60,7 +60,7 @@ DEPENDS = " \
     udev \
 "
 
-PACKAGECONFIG ??= "pipewire jack bluez websockets serialport quick3d gpsd hdf5 sdl coap \
+PACKAGECONFIG ??= "jack bluez websockets serialport quick3d gpsd hdf5 sdl coap \
                    lv2 faust ysfx \
                    ${@bb.utils.contains_any('TARGET_ARCH', 'aarch64 x86_64', 'jit', '', d)} \
                    ${@bb.utils.filter('DISTRO_FEATURES', 'wayland x11', d)}"
