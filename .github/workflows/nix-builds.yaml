@@ -14,7 +14,7 @@ concurrency:
 jobs:
   nix:
     name: Nix
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, sat-builder]
     steps:
 
     - name: Checkout code
@@ -23,6 +23,7 @@ jobs:
         submodules: 'recursive'
 
     - name: Install nix
+      if: runner.environment != 'self-hosted'   # the fleet has multi-user nix pre-installed
       uses: cachix/install-nix-action@v31
 
     - name: Build
