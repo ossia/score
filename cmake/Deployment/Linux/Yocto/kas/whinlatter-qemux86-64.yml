@@ -63,6 +63,11 @@ local_conf_header:
     DL_DIR ?= "${TOPDIR}/../downloads"
     SSTATE_DIR ?= "${TOPDIR}/../sstate-cache"
 
+    # No debug info except in score itself. With -g, target clang and
+    # qtdeclarative are 28-29 GB of build tree each, which does not fit.
+    # Part of every task hash: changing it forces a full rebuild.
+    DEBUG_LEVELFLAG = "-g0"
+    DEBUG_LEVELFLAG:pn-ossia-score = "-g"
 
   performance: |
     # -O3 for score itself is set in the recipe (FULL_OPTIMIZATION). Set this to
