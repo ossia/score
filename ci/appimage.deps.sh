@@ -1,7 +1,13 @@
 #!/bin/bash -eux
 
-sudo apt-get update -qq
-sudo apt-get install wget libfuse2 desktop-file-utils
+source ci/common.setup.sh
+
+# On the self-hosted host job these are pre-installed and we are not root; only
+# apt-install when something is missing (the hosted-runner path).
+if ! command -v wget >/dev/null 2>&1 || ! dpkg -s libfuse2 >/dev/null 2>&1 || ! dpkg -s desktop-file-utils >/dev/null 2>&1; then
+  $SUDO apt-get update -qq
+  $SUDO apt-get install -y wget libfuse2 desktop-file-utils
+fi
 
 if [[ "${CPU_ARCH}" == "aarch64" ]]; then
   export CPU_ARCH_SUFFIX="-aarch64"
