@@ -299,8 +299,8 @@ public:
 
       // Port timestamps are relative to the buffer; the plug-in only sees
       // [tick_start; tick_start + samples[ of it and indexes from 0.
-      e.sampleOffset
-          = std::clamp<int64_t>(mess.timestamp - tick_start, 0, samples - 1);
+      e.sampleOffset = std::clamp<int64_t>(
+          mess.timestamp - tick_start, 0, samples > 0 ? samples - 1 : 0);
       switch(libremidi::message_type(mess.get_status_code()))
       {
         case libremidi::message_type::NOTE_ON: {

@@ -353,7 +353,8 @@ void ysfx_node::run(
         ysfx_midi_event_impl& ev = msg_space[i];
 
         ev.bus = 0; // FIXME
-        ev.offset = std::clamp<int64_t>(mess.timestamp - tick_start, 0, d - 1);
+        ev.offset
+            = std::clamp<int64_t>(mess.timestamp - tick_start, 0, d > 0 ? d - 1 : 0);
         ev.data = ev.bytes;
         ev.size = cmidi2_convert_single_ump_to_midi1(
             (uint8_t*)ev.data, sizeof(ysfx_midi_event_impl::bytes), mess.data);
