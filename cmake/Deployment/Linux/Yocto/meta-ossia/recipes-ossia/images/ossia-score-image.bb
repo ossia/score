@@ -21,6 +21,7 @@ IMAGE_INSTALL += " \
     e2fsprogs-mke2fs \
     tzdata \
     ca-certificates \
+    systemd-ossia-ordering \
 "
 
 # systemd-resolved and systemd-timesyncd use PrivateTmp= but order themselves
