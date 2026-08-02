@@ -460,13 +460,23 @@ public:
       const auto& spec = m_midi_ins[midi_port_index];
       const auto& msgs = midi_in->data.messages;
 
+      // Anything held back from a tick that covered no whole sample belongs to
+      // the first sample of this block.
+      ossia::small_vector<std::pair<const libremidi::ump*, uint32_t>, 16> to_send;
+      for(const auto& [port, held] : m_deferred_midi)
+        if(port == midi_port_index)
+          to_send.push_back({&held, 0u});
+      for(const auto& m : msgs)
+        to_send.push_back({&m, stamp(m.timestamp)});
+
       if(spec.supported_dialects & clap_note_dialect::CLAP_NOTE_DIALECT_MIDI2)
       {
-        for(const auto& m : msgs)
+        for(const auto& [m_ptr, m_time] : to_send)
         {
+          const auto& m = *m_ptr;
           clap_event_midi2_t ev{};
           ev.header.size = sizeof(clap_event_midi2_t);
-          ev.header.time = stamp(m.timestamp);
+          ev.header.time = m_time;
           ev.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
           ev.header.type = CLAP_EVENT_MIDI2;
           ev.header.flags = 0;
@@ -484,13 +494,14 @@ public:
       }
       else if(spec.supported_dialects & clap_note_dialect::CLAP_NOTE_DIALECT_CLAP)
       {
-        for(const auto& m : msgs)
+        for(const auto& [m_ptr, m_time] : to_send)
         {
+          const auto& m = *m_ptr;
           if(m.get_type() != libremidi::midi2::message_type::MIDI_2_CHANNEL)
             continue;
           clap_event_note_t ev{};
           ev.header.size = sizeof(clap_event_note_t);
-          ev.header.time = stamp(m.timestamp);
+          ev.header.time = m_time;
           ev.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
           ev.header.flags = 0;
           ev.port_index = midi_port_index;
@@ -538,8 +549,9 @@ public:
       }
       else if(spec.supported_dialects & clap_note_dialect::CLAP_NOTE_DIALECT_MIDI)
       {
-        for(const auto& m : msgs)
+        for(const auto& [m_ptr, m_time] : to_send)
         {
+          const auto& m = *m_ptr;
           // Convert UMP to MIDI 1.0
           uint8_t midi_bytes[16];
           auto bytes_written = cmidi2_convert_single_ump_to_midi1(
@@ -549,7 +561,7 @@ public:
           {
             clap_event_midi_t ev{};
             ev.header.size = sizeof(clap_event_midi_t);
-            ev.header.time = stamp(m.timestamp);
+            ev.header.time = m_time;
             ev.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
             ev.header.type = CLAP_EVENT_MIDI;
             ev.header.flags = 0;
@@ -566,6 +578,27 @@ public:
       // FIXME sysex
       midi_port_index++;
     }
+    // Not cleared here: converting an event is not delivering it. run() can
+    // still return before process(), and anything held back has to survive
+    // that and go out with the block that actually reaches the plug-in.
+  }
+
+  //! Keep this tick's events for the next block rather than dropping them: the
+  //! span covers no whole sample, so every date in the tick maps to the sample
+  //! the span starts on, which is offset 0 of the next block that covers one.
+  void stash_midi()
+  {
+    uint16_t midi_port_index = 0;
+    for(ossia::midi_inlet* midi_in : midi_ins)
+    {
+      for(const auto& m : midi_in->data.messages)
+      {
+        if(m_deferred_midi.size() >= 1024)
+          return;
+        m_deferred_midi.push_back({midi_port_index, m});
+      }
+      midi_port_index++;
+    }
   }
 
   void prepare_input_events(int64_t offset, int samples)
@@ -576,7 +609,10 @@ public:
     m_output_events.clear();
 
     int param_event_count = 0;
-    int midi_event_count = 0;
+    // all_events holds pointers into the per-kind vectors, so these
+    // reservations have to cover what is held back as well: a reallocation
+    // would leave every pointer already pushed dangling.
+    int midi_event_count = int(m_deferred_midi.size());
     for(auto port : this->parameter_ins)
       param_event_count += port->data.get_data().size();
     for(auto port : this->midi_ins)
@@ -598,8 +634,11 @@ public:
     process_controls(samples);
     process_midi();
 
-    // Events need to be sorted
-    std::sort(
+    // Events need to be sorted. Stably: events sharing a time must keep the
+    // order they were queued in, or a note-off can end up after the note-on
+    // that follows it. Deferral makes that routine rather than rare, since it
+    // puts everything it held back at time 0 alongside the block's own.
+    std::stable_sort(
         m_input_events.all_events.begin(), m_input_events.all_events.end(),
         [](const clap_event_header_t* a, const clap_event_header_t* b) {
       return a->time < b->time;
@@ -682,6 +721,10 @@ public:
   // Buffer span this tick was given, as reported by exec_state_facade::timings().
   int64_t m_tick_start{};
   int64_t m_tick_frames{};
+
+  //! Events from ticks that covered no whole sample, with the port they came in
+  //! on, waiting for the next block that does cover one.
+  ossia::small_vector<std::pair<uint16_t, libremidi::ump>, 8> m_deferred_midi;
 
   event_storage m_input_events;
   event_storage m_output_events;
@@ -831,6 +874,9 @@ public:
     process.out_events = &o_evs;
 
     m_last_status = m_instance.plugin->process(m_instance.plugin, &process);
+    // Delivered: anything held back from an empty tick has now reached the
+    // plug-in and must not be sent again.
+    m_deferred_midi.clear();
 
     dispatch_param_outputs();
 
@@ -990,7 +1036,13 @@ public:
 
     auto [offset, samples] = e.timings(t);
     if(samples == 0)
+    {
+      // Never call a plug-in with an empty block; CLAP bounds the frame count
+      // at [1, INT32_MAX]. What the tick carried goes out at the top of the
+      // next real one.
+      stash_midi();
       return;
+    }
 
     m_current_transport = make_transport(t, e);
 
@@ -1209,7 +1261,13 @@ public:
 
     auto [offset, samples] = e.timings(t);
     if(samples == 0)
+    {
+      // Never call a plug-in with an empty block; CLAP bounds the frame count
+      // at [1, INT32_MAX]. What the tick carried goes out at the top of the
+      // next real one.
+      stash_midi();
       return;
+    }
 
     m_current_transport = make_transport(t, e);
 
@@ -1547,6 +1605,7 @@ public:
     // skip would require per-channel status tracking + audio-input
     // variation detection per channel — more bookkeeping than it's worth.
     m_last_status = plug->process(plug, &process);
+    m_deferred_midi.clear();
     (void)current_channel;
   }
 
@@ -1719,7 +1778,13 @@ public:
 
     auto [offset, samples] = e.timings(t);
     if(samples == 0)
+    {
+      // Never call a plug-in with an empty block; CLAP bounds the frame count
+      // at [1, INT32_MAX]. What the tick carried goes out at the top of the
+      // next real one.
+      stash_midi();
       return;
+    }
 
     m_current_transport = make_transport(t, e);
 
@@ -1831,7 +1896,13 @@ public:
 
     auto [offset, samples] = e.timings(t);
     if(samples == 0)
+    {
+      // Never call a plug-in with an empty block; CLAP bounds the frame count
+      // at [1, INT32_MAX]. What the tick carried goes out at the top of the
+      // next real one.
+      stash_midi();
       return;
+    }
 
     m_current_transport = make_transport(t, e);
 
