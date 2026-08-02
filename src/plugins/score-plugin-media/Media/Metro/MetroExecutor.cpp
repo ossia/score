@@ -58,7 +58,7 @@ public:
 
   void run(const token_request& tk, exec_state_facade st) noexcept override
   {
-    if(tk.forward())
+    if(!tk.paused())
     {
       tk.metronome(
           st.modelToSamples(),
