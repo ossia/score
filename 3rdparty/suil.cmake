@@ -1,7 +1,3 @@
-if(OSSIA_USE_SYSTEM_LIBRARIES)
-  return()
-endif()
-
 if(NOT LV2_PATH)
   return()
 endif()

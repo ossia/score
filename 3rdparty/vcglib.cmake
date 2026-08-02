@@ -1,0 +1,13 @@
+score_use_system(use_sys vcglib)
+set(VCGLIB_INC "${CMAKE_CURRENT_LIST_DIR}/vcglib")
+if(use_sys)
+  find_path(VCGLIB_INCLUDE_DIR vcg/complex/complex.h)
+  if(VCGLIB_INCLUDE_DIR)
+    set(VCGLIB_INC "${VCGLIB_INCLUDE_DIR}")
+  endif()
+endif()
+
+if(NOT TARGET vcglib)
+  add_library(vcglib INTERFACE IMPORTED GLOBAL)
+  target_include_directories(vcglib SYSTEM INTERFACE "${VCGLIB_INC}")
+endif()

@@ -1,5 +1,16 @@
+score_use_system(use_sys simpleio)
+if(use_sys)
+  find_library(SIMPLEIO_LIBRARY NAMES simpleio)
+  find_path(SIMPLEIO_INCLUDE_DIR libsimpleio/libgpio.h)
+  if(SIMPLEIO_LIBRARY AND SIMPLEIO_INCLUDE_DIR)
+    add_library(simpleio INTERFACE IMPORTED GLOBAL)
+    target_include_directories(simpleio SYSTEM INTERFACE "${SIMPLEIO_INCLUDE_DIR}")
+    target_link_libraries(simpleio INTERFACE "${SIMPLEIO_LIBRARY}")
+  endif()
+endif()
+
 find_path(LINUX_HEADERS_INCLUDE_DIR linux/gpio.h)
-if(LINUX_HEADERS_INCLUDE_DIR AND UNIX AND NOT APPLE AND NOT EMSCRIPTEN)
+if(NOT TARGET simpleio AND LINUX_HEADERS_INCLUDE_DIR AND UNIX AND NOT APPLE AND NOT EMSCRIPTEN)
 add_library(simpleio STATIC
   "${CMAKE_CURRENT_LIST_DIR}/libsimpleio/libsimpleio/cplusplus.h"
   "${CMAKE_CURRENT_LIST_DIR}/libsimpleio/libsimpleio/errmsg.c"
