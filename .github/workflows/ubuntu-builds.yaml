@@ -14,7 +14,7 @@ concurrency:
 jobs:
   ubuntu:
     name: Ubuntu
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, sat-builder]
 
     strategy:
       fail-fast: false
@@ -36,7 +36,7 @@ jobs:
       - name: Install git
         run: |
           apt-get update -qq
-          apt-get install -qq --force-yes git
+          apt-get install -qq -y git
 
       - name: Checkout code
         uses: actions/checkout@v6

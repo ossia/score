@@ -14,7 +14,7 @@ concurrency:
 jobs:
   fedora:
     name: Fedora (latest)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, sat-builder]
     container:
       image: fedora:latest
 
@@ -62,7 +62,7 @@ jobs:
 
   susetumbleweed:
     name: OpenSUSE Tumbleweed
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, sat-builder]
     container:
       image: opensuse/tumbleweed:latest
       options: --privileged
@@ -87,7 +87,7 @@ jobs:
 
   archqt6:
     name: ArchLinux
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, sat-builder]
     container:
       image: archlinux:latest
 
@@ -114,7 +114,7 @@ jobs:
 
   archqt6system:
     name: ArchLinux (System)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, sat-builder]
     container:
       image: archlinux:latest
 

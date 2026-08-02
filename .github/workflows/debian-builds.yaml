@@ -14,7 +14,7 @@ concurrency:
 jobs:
   debian:
     name: Debian
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, sat-builder]
     container:
       image: debian:${{ matrix.image }}
 
