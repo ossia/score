@@ -16,6 +16,12 @@ SCORE_SRC_ROOT ?= "${@os.path.normpath(os.path.join(d.getVar('THISDIR'), '../../
 
 inherit externalsrc
 
+# Otherwise do_configure drops oe-workdir/oe-logs symlinks into the checkout.
+EXTERNALSRC_SYMLINKS = ""
+
+# Otherwise do_configure drops oe-workdir/oe-logs symlinks in the checkout.
+EXTERNALSRC_SYMLINKS = ""
+
 EXTERNALSRC = "${SCORE_SRC_ROOT}"
 EXTERNALSRC_BUILD = "${WORKDIR}/build"
 
@@ -29,3 +35,8 @@ do_configure:prepend() {
         bbwarn "No addons in ${S}/src/addons -- run ci/common.deps.sh LINUX to clone them."
     fi
 }
+
+# B is under TMPDIR and ends up in the binary. The release recipe is
+# unaffected and stays subject to the check.
+INSANE_SKIP:${PN} += "buildpaths"
+INSANE_SKIP:${PN}-dbg += "buildpaths"

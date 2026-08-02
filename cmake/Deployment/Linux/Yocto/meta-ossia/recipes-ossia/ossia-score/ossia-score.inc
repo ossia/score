@@ -26,6 +26,10 @@ SRC_URI = " \
 
 inherit qt6-cmake pkgconfig systemd features_check
 
+# KFR refuses to build on non-x86 without Clang, and score's own CI/AppImage
+# use it too. toolchain/clang.bbclass is in oe-core; no meta-clang needed.
+TOOLCHAIN = "clang"
+
 # score hard-requires Qt Gui/Widgets/OpenGL at find_package() time (see
 # CMakeLists.txt "find_package(${QT_VERSION} REQUIRED COMPONENTS ...)"), even
 # for headless use -- --no-gui is a runtime flag, not a build configuration.
@@ -58,6 +62,7 @@ DEPENDS = " \
 
 PACKAGECONFIG ??= "pipewire jack bluez websockets serialport quick3d gpsd hdf5 sdl coap \
                    lv2 faust ysfx \
+                   ${@bb.utils.contains_any('TARGET_ARCH', 'aarch64 x86_64', 'jit', '', d)} \
                    ${@bb.utils.filter('DISTRO_FEATURES', 'wayland x11', d)}"
 
 PACKAGECONFIG[pipewire]   = ",,pipewire"
@@ -73,7 +78,15 @@ PACKAGECONFIG[coap]       = ",,libcoap"
 PACKAGECONFIG[x11]        = ",,libx11 libxext libxcomposite libxrandr"
 # 4th field: the QPA plugin is dlopen'ed, so it needs to be a runtime dependency
 # too or `ossia-score-launch wayland` finds no platform plugin at startup.
-PACKAGECONFIG[wayland]    = ",,qtwayland wayland,qtwayland"
+PACKAGECONFIG[wayland]    = ",,qtwayland wayland,qtwayland-plugins"
+
+# Explicit LLVM_DIR: without it find_package(LLVM) resolves the *native* LLVM
+# from recipe-sysroot-native and the target link fails on -lclang.
+# Runtime needs clang's resource headers and a C++ header set to compile against.
+PACKAGECONFIG[jit] = "-DLLVM_DIR=${STAGING_LIBDIR}/cmake/llvm,,clang,libclang clang libstdc++-dev"
+
+# The JIT genuinely needs headers at runtime, which dev-deps flags.
+INSANE_SKIP:${PN} += "${@bb.utils.contains('PACKAGECONFIG', 'jit', 'dev-deps', '', d)}"
 
 # Without these the plugins self-disable silently.
 PACKAGECONFIG[lv2]        = ",,lv2kit,lv2kit"
@@ -87,6 +100,8 @@ PACKAGECONFIG[ysfx]       = ",,ysfx"
 # which skips any subdir named in SCORE_DISABLED_PLUGINS). Everything else --
 # every plugin and every remaining addon -- is built.
 SCORE_DISABLED_PLUGINS ?= "score-addon-onnx,score-addon-ultraleap"
+
+SCORE_DISABLED_PLUGINS .= "${@bb.utils.contains('PACKAGECONFIG', 'jit', '', ',score-plugin-jit', d)}"
 
 # The distro-packaging configuration, the same one used by
 # ci/debian.trixie-system.build.sh, ci/nix.build.nix and the Flatpak manifest:
@@ -125,7 +140,7 @@ EXTRA_OECMAKE = " \
 # Performance: score is a soft-realtime audio/video engine, so it is built -O3
 # rather than the -O2 default. Debug flags are left to OE so that the -dbg
 # package still works; they do not affect the generated code.
-FULL_OPTIMIZATION = "-O3 -pipe -fno-semantic-interposition"
+FULL_OPTIMIZATION = "-O3 ${DEBUG_LEVELFLAG} -fno-semantic-interposition"
 
 # Link-time optimisation. Off by default: score links a single ~70 MB static
 # binary from a unity build, and an LTO link of that size needs a great deal of
