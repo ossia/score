@@ -303,7 +303,8 @@ public:
       std::memset(&e, 0, sizeof(VstMidiEvent));
       e.type = kVstMidiType;
       e.byteSize = sizeof(VstMidiEvent);
-      e.deltaFrames = std::clamp<int64_t>(mess.timestamp - offset, 0, samples - 1);
+      e.deltaFrames = std::clamp<int64_t>(
+          mess.timestamp - offset, 0, samples > 0 ? samples - 1 : 0);
       e.flags = kVstMidiEventIsRealtime;
 
       if(auto n = cmidi2_convert_single_ump_to_midi1((uint8_t*)e.midiData, 4, mess.data);
