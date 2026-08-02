@@ -1,0 +1,30 @@
+From: ossia <contact@ossia.io>
+Subject: [PATCH] cmake: do not hardcode /usr/local/include
+
+FAUST_INC ends with a literal /usr/local/include, which is added to every
+translation unit's include path. When cross-compiling this is host
+contamination: OpenEmbedded turns it into a hard error
+  cc1plus: error: include location "/usr/local/include" is unsafe for
+  cross-compilation [-Werror=poison-system-directories]
+and on a build host that has anything installed under /usr/local it would
+silently pull host headers into a target build.
+
+Nothing in the tree relies on it -- it appears to be there so a locally built
+dependency is found on a developer machine, which a distro build supplies
+through the sysroot instead.
+
+Upstream-Status: Pending
+
+diff --git a/build/CMakeLists.txt b/build/CMakeLists.txt
+index 4981097..ee0e1b3 100644
+--- a/build/CMakeLists.txt
++++ b/build/CMakeLists.txt
+@@ -85,7 +85,7 @@ set (FAUST_INC ${SRCDIR}
+     ${SRCDIR}/patternmatcher ${SRCDIR}/propagate ${SRCDIR}/signals
+     ${SRCDIR}/tlib ${SRCDIR}/transform ${SRCDIR}/utils
+     ${SRCDIR}/draw/device ${SRCDIR}/draw/schema
+-    ${SRCDIR}/../architecture /usr/local/include)
++    ${SRCDIR}/../architecture)
+ 
+ ####################################
+ # LLVM

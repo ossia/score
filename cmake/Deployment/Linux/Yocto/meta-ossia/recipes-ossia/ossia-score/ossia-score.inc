@@ -57,6 +57,7 @@ DEPENDS = " \
 "
 
 PACKAGECONFIG ??= "pipewire jack bluez websockets serialport quick3d gpsd hdf5 sdl coap \
+                   lv2 faust ysfx \
                    ${@bb.utils.filter('DISTRO_FEATURES', 'wayland x11', d)}"
 
 PACKAGECONFIG[pipewire]   = ",,pipewire"
@@ -73,6 +74,11 @@ PACKAGECONFIG[x11]        = ",,libx11 libxext libxcomposite libxrandr"
 # 4th field: the QPA plugin is dlopen'ed, so it needs to be a runtime dependency
 # too or `ossia-score-launch wayland` finds no platform plugin at startup.
 PACKAGECONFIG[wayland]    = ",,qtwayland wayland,qtwayland"
+
+# Without these the plugins self-disable silently.
+PACKAGECONFIG[lv2]        = ",,lv2kit,lv2kit"
+PACKAGECONFIG[faust]      = ",,faust,faust faustlibraries"
+PACKAGECONFIG[ysfx]       = ",,ysfx"
 
 # score-addon-onnx FetchContent's a PREBUILT x86_64 onnxruntime tarball and
 # score-addon-ultraleap pulls a proprietary SDK; both fetch during configure,
