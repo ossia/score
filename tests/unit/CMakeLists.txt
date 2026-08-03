@@ -119,6 +119,15 @@ else()
   endif()
 endif()
 
+# --- cross-implementation quantification grid parity ------------------------
+# ossia::token_request vs halp::tick_musical: a native node and an avendish
+# plug-in on the same score must snap to the same samples.
+score_add_test(test_unit_quantification_parity
+  SOURCES QuantificationParityTest.cpp
+  PLUGINS score_lib_process)
+target_include_directories(test_unit_quantification_parity SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include")
+
 # --- P3R3: audio DSP value-asserting tests ---------------------------------
 score_add_test(test_unit_avnd_audio_effects
   SOURCES AvndAudioEffectsTest.cpp)
