@@ -7,13 +7,14 @@
 //  - exactly-once delivery: over consecutive ticks, each implementation must
 //    report every musical grid point exactly once ([start; end[ ownership);
 //  - the metronome grids, which agree exactly;
-//  - the quantification points, which agree on count and index everywhere,
-//    and on the frame within one sample. Exact frame equality does not hold:
-//    ossia truncates the musical position to a whole-flick date and the
-//    consumer floors that into frames, halp floors the musical position into
-//    frames directly, and on ~2e-5 of ticks the two land one frame apart.
-//    That residual divergence is pinned by the [!mayfail] case at the end so
-//    a change in either direction is visible.
+//  - the quantification points, which agree exactly on count, index and frame.
+//
+// Exact frame agreement holds only through ossia::token_request's one map from
+// a musical position to a sample, physical_position(), which is what halp does
+// too. Deriving the frame from the point's date instead rounds twice - the
+// date is truncated to a whole flick first - and lands a sample early wherever
+// that truncation crosses a sample boundary; the last case here holds that
+// distinction in place.
 
 #include <ossia/dataflow/token_request.hpp>
 
@@ -165,59 +166,59 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "quantification: ossia and halp points agree within one frame",
+    "quantification: ossia and halp points agree exactly",
     "[quantification][parity]")
 {
   const double ratio = 1.0 / FPS48;
+  int compared = 0;
   for(auto [sn, sd] : sigs)
     for(double rate : rates)
       for(double speed : speeds)
-        for_each_production_tick(sn, sd, speed, 512, [&](const both_ticks& bt) {
-          const auto op = bt.tok.get_quantification_dates(rate);
-          const auto hp = bt.hm.get_quantification_date(rate);
-          INFO(
-              "sig " << sn << "/" << sd << " rate " << rate << " speed " << speed
-                     << " prev " << bt.tok.prev_date.impl << " date "
-                     << bt.tok.date.impl);
-          REQUIRE(op.size() == hp.size());
-          for(std::size_t i = 0; i < op.size(); i++)
-          {
-            REQUIRE(op[i].index == hp[i].second);
-            const auto of = bt.tok.to_physical_time_in_tick(op[i].date, ratio);
-            REQUIRE(std::abs(double(of - hp[i].first)) <= 1.);
-          }
-        });
+        for(int L : {448, 512})
+          for_each_production_tick(sn, sd, speed, L, [&](const both_ticks& bt) {
+            const auto op = bt.tok.get_quantification_dates(rate);
+            const auto hp = bt.hm.get_quantification_date(rate);
+            INFO(
+                "sig " << sn << "/" << sd << " rate " << rate << " speed " << speed
+                       << " L " << L << " prev " << bt.tok.prev_date.impl
+                       << " date " << bt.tok.date.impl);
+            REQUIRE(op.size() == hp.size());
+            for(std::size_t i = 0; i < op.size(); i++)
+            {
+              REQUIRE(op[i].index == hp[i].second);
+              REQUIRE(bt.tok.physical_position(op[i].position, ratio) == hp[i].first);
+              compared++;
+            }
+          });
+  CHECK(compared > 0);
 }
 
-// The residual divergence, pinned: with 512-sample ticks over these
-// signatures, rates and speeds, ossia and halp currently disagree by one
-// frame on a small number of points (the flick-truncation double rounding).
-// This case states the ideal - exact agreement - and is expected to fail
-// until the two implementations round the same way; if it starts passing,
-// promote it to a strict test.
+// Why the point carries its musical position rather than only its date: the
+// date is truncated to a whole flick, so flooring it into a sample rounds a
+// second time and lands a sample early wherever that truncation crosses a
+// sample boundary. This measures the gap the date-derived path still has, so
+// that a consumer switched back to it fails here rather than silently drifting
+// off the metronome by a sample.
 TEST_CASE(
-    "quantification: ossia and halp points agree exactly",
-    "[quantification][parity][!mayfail]")
+    "quantification: the date-derived frame is the one that rounds twice",
+    "[quantification][parity]")
 {
   const double ratio = 1.0 / FPS48;
-  int mismatches = 0;
+  int from_date_differs = 0, total = 0;
   for(auto [sn, sd] : sigs)
     for(double rate : rates)
       for(double speed : speeds)
         for_each_production_tick(sn, sd, speed, 448, [&](const both_ticks& bt) {
-          const auto op = bt.tok.get_quantification_dates(rate);
-          const auto hp = bt.hm.get_quantification_date(rate);
-          if(op.size() != hp.size())
+          for(const auto& p : bt.tok.get_quantification_dates(rate))
           {
-            mismatches++;
-            return;
-          }
-          for(std::size_t i = 0; i < op.size(); i++)
-          {
-            const auto of = bt.tok.to_physical_time_in_tick(op[i].date, ratio);
-            if(of != hp[i].first || op[i].index != hp[i].second)
-              mismatches++;
+            const auto from_position = bt.tok.physical_position(p.position, ratio);
+            const auto from_date = bt.tok.to_physical_time_in_tick(p.date, ratio);
+            if(from_date != from_position)
+              from_date_differs++;
+            total++;
           }
         });
-  CHECK(mismatches == 0);
+  CHECK(total > 0);
+  // Small, but never zero: the two paths are not interchangeable.
+  CHECK(from_date_differs > 0);
 }

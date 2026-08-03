@@ -85,7 +85,14 @@ public:
     // that windows on [tick_start; tick_start + frames[ drops - and a dropped
     // note-off is a note stuck forever.
     const double speed = tk.speed != 0. ? std::abs(tk.speed) : 1.;
-    const int64_t tick_start = std::floor(tk.offset.impl * samplesratio / speed);
+    // The span the producer handed us wins over reconstructing it from the
+    // offset, which the flick rounding can miss by a sample. Reconstruction
+    // stays for the tokens that carry no span - and for a null speed, where
+    // the model -> sample map is undefined and token_request asserts.
+    const int64_t tick_start
+        = tk.start_sample >= 0
+              ? int64_t(tk.start_sample)
+              : int64_t(std::floor(tk.offset.impl * samplesratio / speed));
 
     // Before the empty-tick check: the token requested by stop() is empty.
     if(mustStop)
@@ -129,9 +136,11 @@ public:
     const bool rewinding = tk.backward();
     for(const auto& q : tk.get_quantification_dates(pattern.division))
     {
-      const int64_t date = std::floor(
-          std::abs((q.date - tk.prev_date).impl) * samplesratio / std::abs(speed)
-          + tk.offset.impl * samplesratio / std::abs(speed));
+      // Through the tick's one musical-position -> sample map, not through the
+      // point's date: the date is truncated to a whole flick, so flooring it
+      // into a sample rounds twice and puts the step a sample before the
+      // metronome click on the same bar line.
+      const int64_t date = tick_start + tk.physical_position(q.position, samplesratio);
       play_step(date, rewinding);
     }
   }
