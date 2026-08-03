@@ -36,7 +36,11 @@
 namespace
 {
 static const int g_ignore_sigtrap = [] {
+#if defined(SIGTRAP)
+  // Windows has no SIGTRAP: DEBUG_BREAK is DebugBreak() there (see Debug.hpp
+  // and the vectored handler in MidiMessageTest.cpp for the full treatment).
   std::signal(SIGTRAP, SIG_IGN);
+#endif
   return 0;
 }();
 struct TestApplication final : public score::ApplicationInterface
