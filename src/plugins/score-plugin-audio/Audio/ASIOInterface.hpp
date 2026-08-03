@@ -1,9 +1,11 @@
 #pragma once
 #include <ossia/detail/config.hpp>
+#include <Audio/AudioApplicationPlugin.hpp>
 #include <Audio/AudioInterface.hpp>
 #include <Audio/Settings/Model.hpp>
 #include <Audio/Settings/View.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/SettingsCommandDispatcher.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/widgets/MessageBox.hpp>
@@ -328,6 +330,14 @@ public:
     auto lay = new QFormLayout{w};
 
     auto card_list = new QComboBox{w};
+    auto rescan_btn = new QPushButton{tr("Rescan"), w};
+    rescan_btn->setToolTip(
+        tr("Look again for ASIO devices, picking up hardware connected since the "
+           "list was last refreshed.\n\n"
+           "Careful during playback: ASIO allows a single loaded driver per "
+           "process, so if an ASIO device is currently in use the audio engine "
+           "has to be stopped and restarted to free it, briefly interrupting "
+           "playback."));
     auto show_ui = new QPushButton{tr("Show Control Panel"), w};
 
     // Label is decorated ("Audio 8 DJ (device not connected)"); the item data
@@ -344,21 +354,51 @@ public:
     };
     populate();
 
-    // Now that the page exists, refresh it whenever it is actually shown: that
-    // is when the user is looking, and it is the only chance to notice hardware
-    // plugged in since startup. Probing loads drivers, so it is skipped while an
-    // ASIO engine streams -- the cached results from startup stand in that case.
-    w->on_show = [this, populate] {
+    // Re-probe and rebuild the list. Probing loads drivers, and
+    // AsioDrivers::loadDriver() releases whatever is currently loaded, so this is
+    // only possible with no ASIO engine streaming; callers that need it to happen
+    // regardless must take the engine down first.
+    auto refresh = [this, populate] {
       if(!ossia::asio_engine::active_driver().empty())
         return;
       rescan(/* force = */ true);
       populate();
     };
 
+    // Refresh whenever the page becomes visible: that is when the user is
+    // looking, and it is the chance to notice hardware plugged in since startup.
+    // Merely opening the settings is not a request to interrupt playback, so if
+    // an engine is streaming this quietly leaves the cached list alone.
+    w->on_show = refresh;
+
+    // The button is an explicit request, so honour it either way.
+    connect(rescan_btn, &QPushButton::clicked, this, [refresh] {
+      if(ossia::asio_engine::active_driver().empty())
+      {
+        // Nothing holds an ASIO driver -- no engine, or one of another backend.
+        // Probe straight away rather than interrupting audio for no reason.
+        refresh();
+        return;
+      }
+
+      // An ASIO driver is streaming, and it has to be given up before the others
+      // can be queried. Take the engine down for the duration and bring it back.
+      score::GUIAppContext()
+          .guiApplicationPlugin<Audio::ApplicationPlugin>()
+          .with_engine_stopped(refresh);
+    });
+
     using Model = Audio::Settings::Model;
 
     {
-      lay->addRow(QObject::tr("Device"), card_list);
+      // Device row: the list, with Rescan beside it. The combo takes the spare
+      // width, the button keeps its natural size.
+      auto device_row = new QWidget{w};
+      auto device_lay = new QHBoxLayout{device_row};
+      device_lay->setContentsMargins(0, 0, 0, 0);
+      device_lay->addWidget(card_list, 1);
+      device_lay->addWidget(rescan_btn, 0);
+      lay->addRow(QObject::tr("Device"), device_row);
 
       auto update_dev = [=, &m, &m_disp](const ASIOCard& dev) {
         if(dev.name != m.getCardOut())
