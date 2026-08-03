@@ -213,6 +213,27 @@ catch(...)
          "Check the audio settings."));
 }
 
+void ApplicationPlugin::with_engine_stopped(std::function<void()> f)
+{
+  const bool was_running = bool(audio);
+  if(was_running)
+    stop_engine();
+
+  try
+  {
+    if(f)
+      f();
+  }
+  catch(...)
+  {
+    // Deliberately swallowed: leaving audio down because the callback misbehaved
+    // would be worse than whatever it failed at, so fall through and restart.
+  }
+
+  if(was_running)
+    start_engine();
+}
+
 void ApplicationPlugin::stop_engine()
 {
   if(audio)
