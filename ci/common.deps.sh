@@ -8,9 +8,15 @@ clone_addon() {
   local ref=${2:-}
   local folder=$(echo "${url}" | awk -F'/' '{print $NF}')
 
+  # Shallow in CI (throwaway checkouts); full history locally so git blame works.
+  local shallow=()
+  if [[ -n "${GITHUB_ACTIONS:-}${CI:-}" && -z "${ref}" ]]; then
+    shallow=(--depth 1 --shallow-submodules)
+  fi
+
   (
   if [[ ! -d "$folder" ]]; then
-    git clone --recursive -j16 "$url"
+    git clone --recursive -j16 "${shallow[@]}" "$url"
     if [[ "x${ref}" != "x" ]]; then
     (
       cd "$folder"
