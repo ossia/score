@@ -10,6 +10,7 @@
 #include <score/widgets/SignalUtils.hpp>
 
 #include <QComboBox>
+#include <QEvent>
 #include <QFormLayout>
 #include <QPushButton>
 #include <QLabel>
@@ -18,10 +19,32 @@
 #include <ossia/audio/asio_protocol.hpp>
 
 #include <exception>
+#include <functional>
 
 extern AsioDrivers* asioDrivers;
 namespace Audio
 {
+//! Settings page that refreshes the device list when it actually becomes
+//! visible.
+//!
+//! score builds every settings widget during startup, long before the user
+//! opens the dialog, so refreshing from make_settings() itself would put the
+//! driver-loading probe straight back onto the startup path -- which is the very
+//! cost we are trying to avoid.
+struct ASIOSettingsWidget final : QWidget
+{
+  using QWidget::QWidget;
+
+  std::function<void()> on_show;
+
+  void showEvent(QShowEvent* ev) override
+  {
+    QWidget::showEvent(ev);
+    if(on_show)
+      on_show();
+  }
+};
+
 struct ASIOCard
 {
   //! Driver name as the ASIO SDK reports it. This is the identity: it is what
@@ -35,6 +58,10 @@ struct ASIOCard
   //! Empty while the driver initializes fine; otherwise a short reason, shown
   //! in parentheses after the name in the device list.
   QString unavailable;
+
+  //! Whether the driver has been loaded once to read the two fields above.
+  //! Until then the channel counts are unknown and no reason is displayed.
+  bool probed{};
 
   QString displayName() const
   {
@@ -105,15 +132,31 @@ public:
     }
   }
 
-  void rescan()
+  //! Lists the installed drivers and probes each one once.
+  //!
+  //! rescan() is reached three times while score starts up (this factory's
+  //! constructor, Model::initDriver and ApplicationPlugin::initialize). Listing
+  //! the drivers is a cheap registry walk, but probing them is not: each probe
+  //! loads the driver's DLL through COM, which measured ~30 ms per driver here
+  //! and costs more once real hardware answers. Doing all of that three times
+  //! added roughly a third of a second to startup before the GUI appeared, so
+  //! the result is now computed once and reused.
+  //!
+  //! \param force re-list and re-probe even if we already have results. Used
+  //! when the user is looking at the device list, so hardware plugged in since
+  //! startup shows up.
+  void rescan(bool force = false)
   {
-    // Probing channel counts means loading each driver in turn, and
-    // AsioDrivers::loadDriver() releases whatever driver is already loaded --
-    // which would pull the rug out from under a streaming engine. rescan() runs
-    // on every setDriver()/initDriver(), so that has to be avoided: when an
-    // engine is active, reuse the counts from the previous scan instead. They
-    // only change when the hardware does.
-    const std::string active = ossia::asio_engine::active_driver();
+    if(m_scanned && !force)
+    {
+      // The list is known, but a driver can still be unprobed: probing is
+      // skipped while an engine streams, so a scan that happened then left gaps.
+      // Filling them now is free once everything has been probed.
+      for(auto& dev : devices)
+        probe(dev);
+      return;
+    }
+
     const std::vector<ASIOCard> previous = std::move(devices);
 
     devices.clear();
@@ -121,91 +164,34 @@ public:
 
     try
     {
-      auto cards = ossia::asio_engine::enumerate_drivers();
-      for(auto& card : cards)
+      for(auto& card : ossia::asio_engine::enumerate_drivers())
       {
-        const QString name = QString::fromStdString(card.name);
-        int ins = 0, outs = 0;
-        QString unavailable;
+        ASIOCard dev{QString::fromStdString(card.name), card.driver_index};
 
-        if(!active.empty())
+        // Always carry over what an earlier scan learned. On a forced rescan we
+        // clear `probed` so the driver gets queried again, but keep the old
+        // values as a fallback: if an engine turns out to be streaming, probe()
+        // declines and we would otherwise be left with a blank list.
+        auto it = std::find_if(
+            previous.begin(), previous.end(),
+            [&](const ASIOCard& d) { return d.name == dev.name; });
+        if(it != previous.end())
         {
-          auto it = std::find_if(
-              previous.begin(), previous.end(),
-              [&](const ASIOCard& d) { return d.name == name; });
-          if(it != previous.end())
-          {
-            ins = it->inputChan;
-            outs = it->outputChan;
-            unavailable = it->unavailable;
-          }
-          // The driver we are streaming through is by definition usable, even
-          // if a previous scan (before it was plugged in) said otherwise.
-          if(card.name == active)
-            unavailable.clear();
-          if(ossia::asio_diagnostics::verbose())
-          {
-            ossia::asio_diagnostics::log()
-                << "\"" << card.name << "\": not probing channels while \"" << active
-                << "\" is streaming, reusing " << ins << " in / " << outs << " out\n";
-          }
-        }
-        else if(loadAsioDriver(const_cast<char*>(card.name.c_str())))
-        {
-          ASIODriverInfo info{};
-          info.asioVersion = 2;
-          const ASIOError init = ASIOInit(&info);
-          if(init == ASE_OK)
-          {
-            long numIn = 0, numOut = 0;
-            const ASIOError chans = ASIOGetChannels(&numIn, &numOut);
-            if(chans == ASE_OK)
-            {
-              ins = (int)numIn;
-              outs = (int)numOut;
-            }
-            else
-            {
-              ossia::asio_diagnostics::log()
-                  << "ASIOGetChannels failed for \"" << card.name << "\", rc=" << chans
-                  << " -- listing it with 0 channels\n";
-            }
-            if(ossia::asio_diagnostics::verbose())
-            {
-              ossia::asio_diagnostics::log()
-                  << "\"" << card.name << "\": driver \"" << info.name << "\" asio v"
-                  << info.asioVersion << " driver v" << info.driverVersion << ", " << ins
-                  << " in / " << outs << " out\n";
-            }
-            ASIOExit();
-          }
-          else
-          {
-            // The driver is installed and loadable but cannot initialize right
-            // now. Keep it listed, tagged with the reason, so the user can see
-            // it is known but currently unusable rather than wondering why it
-            // vanished.
-            unavailable = reasonFor(init);
-            ossia::asio_diagnostics::log()
-                << "ASIOInit failed for \"" << card.name << "\", rc=" << init << " ("
-                << (info.errorMessage[0] ? info.errorMessage : "no message") << ") -- "
-                << unavailable.toStdString() << '\n';
-          }
-          if(asioDrivers)
-            asioDrivers->removeCurrentDriver();
-        }
-        else
-        {
-          unavailable = QObject::tr("driver failed to load");
-          ossia::asio_diagnostics::log()
-              << "loadAsioDriver(\"" << card.name
-              << "\") failed -- CoCreateInstance refused the driver DLL "
-                 "(bitness mismatch or broken installation)\n";
+          dev.inputChan = it->inputChan;
+          dev.outputChan = it->outputChan;
+          dev.unavailable = it->unavailable;
+          dev.probed = it->probed && !force;
         }
 
-        devices.push_back(
-            ASIOCard{name, card.driver_index, ins, outs, std::move(unavailable)});
+        devices.push_back(std::move(dev));
       }
+
+      // Only mark the list as known once enumeration actually succeeded,
+      // otherwise a transient failure would be cached forever.
+      m_scanned = true;
+
+      for(auto& dev : devices)
+        probe(dev);
 
       ossia::asio_diagnostics::log() << "enumeration finished: " << (devices.size() - 1)
                                      << " driver(s) available\n";
@@ -218,6 +204,98 @@ public:
     {
       ossia::asio_diagnostics::log() << "enumeration aborted: unknown exception\n";
     }
+  }
+
+  //! Loads a driver to read its channel counts and find out whether its
+  //! hardware answers. This is the expensive half of a scan, so it happens at
+  //! most once per driver.
+  //!
+  //! Never probe while an engine streams: AsioDrivers::loadDriver() releases
+  //! whatever driver is currently loaded, which would cut the running engine
+  //! off from its hardware.
+  void probe(ASIOCard& card)
+  {
+    if(card.probed || card.driver_index < 0)
+      return;
+
+    const std::string active = ossia::asio_engine::active_driver();
+    if(!active.empty())
+    {
+      if(card.name.toStdString() == active)
+      {
+        // We are streaming through it, so it is plainly usable. Record that
+        // much without touching the driver.
+        card.unavailable.clear();
+        card.probed = true;
+      }
+      else if(ossia::asio_diagnostics::verbose())
+      {
+        ossia::asio_diagnostics::log()
+            << "\"" << card.name.toStdString() << "\": not probing while \"" << active
+            << "\" is streaming\n";
+      }
+      return;
+    }
+
+    const std::string name = card.name.toStdString();
+    if(loadAsioDriver(const_cast<char*>(name.c_str())))
+    {
+      ASIODriverInfo info{};
+      info.asioVersion = 2;
+      const ASIOError init = ASIOInit(&info);
+      if(init == ASE_OK)
+      {
+        long numIn = 0, numOut = 0;
+        const ASIOError chans = ASIOGetChannels(&numIn, &numOut);
+        if(chans == ASE_OK)
+        {
+          card.inputChan = (int)numIn;
+          card.outputChan = (int)numOut;
+        }
+        else
+        {
+          ossia::asio_diagnostics::log()
+              << "ASIOGetChannels failed for \"" << name << "\", rc=" << chans
+              << " -- listing it with 0 channels\n";
+        }
+        card.unavailable.clear();
+        if(ossia::asio_diagnostics::verbose())
+        {
+          ossia::asio_diagnostics::log()
+              << "\"" << name << "\": driver \"" << info.name << "\" asio v"
+              << info.asioVersion << " driver v" << info.driverVersion << ", "
+              << card.inputChan << " in / " << card.outputChan << " out\n";
+        }
+        ASIOExit();
+      }
+      else
+      {
+        // The driver is installed and loadable but cannot initialize right now.
+        // Keep it listed, tagged with the reason, so the user can see it is
+        // known but currently unusable rather than wondering why it vanished.
+        card.inputChan = 0;
+        card.outputChan = 0;
+        card.unavailable = reasonFor(init);
+        ossia::asio_diagnostics::log()
+            << "ASIOInit failed for \"" << name << "\", rc=" << init << " ("
+            << (info.errorMessage[0] ? info.errorMessage : "no message") << ") -- "
+            << card.unavailable.toStdString() << '\n';
+      }
+      if(asioDrivers)
+        asioDrivers->removeCurrentDriver();
+    }
+    else
+    {
+      card.inputChan = 0;
+      card.outputChan = 0;
+      card.unavailable = QObject::tr("driver failed to load");
+      ossia::asio_diagnostics::log()
+          << "loadAsioDriver(\"" << name
+          << "\") failed -- CoCreateInstance refused the driver DLL "
+             "(bitness mismatch or broken installation)\n";
+    }
+
+    card.probed = true;
   }
 
   QString prettyName() const override { return QObject::tr("ASIOSDK"); }
@@ -246,21 +324,36 @@ public:
       Audio::Settings::Model& m, Audio::Settings::View& v,
       score::SettingsCommandDispatcher& m_disp, QWidget* parent) override
   {
-    auto w = new QWidget{parent};
+    auto w = new ASIOSettingsWidget{parent};
     auto lay = new QFormLayout{w};
 
     auto card_list = new QComboBox{w};
     auto show_ui = new QPushButton{tr("Show Control Panel"), w};
 
-    // Populate device list
-    for(std::size_t i = 0; i < devices.size(); i++)
-    {
-      auto& card = devices[i];
-      // Label is decorated ("Audio 8 DJ (device not connected)"); the item data
-      // stays the bare driver name, since that is what gets saved in the
-      // settings and matched by setCard().
-      card_list->addItem(card.displayName(), card.name);
-    }
+    // Label is decorated ("Audio 8 DJ (device not connected)"); the item data
+    // stays the bare driver name, since that is what gets saved in the settings
+    // and matched by setCard().
+    auto populate = [this, card_list, &m] {
+      const QString selected = m.getCardOut();
+      // Rebuilding the list must not look like the user picking a device.
+      const QSignalBlocker block{card_list};
+      card_list->clear();
+      for(const ASIOCard& card : devices)
+        card_list->addItem(card.displayName(), card.name);
+      setCard(card_list, selected);
+    };
+    populate();
+
+    // Now that the page exists, refresh it whenever it is actually shown: that
+    // is when the user is looking, and it is the only chance to notice hardware
+    // plugged in since startup. Probing loads drivers, so it is skipped while an
+    // ASIO engine streams -- the cached results from startup stand in that case.
+    w->on_show = [this, populate] {
+      if(!ossia::asio_engine::active_driver().empty())
+        return;
+      rescan(/* force = */ true);
+      populate();
+    };
 
     using Model = Audio::Settings::Model;
 
@@ -287,17 +380,10 @@ public:
             }
           });
 
-      if(m.getCardOut().isEmpty())
-      {
-        if(devices.size() > 1)
-        {
-          update_dev(devices[1]);
-        }
-      }
-      else
-      {
-        setCard(card_list, m.getCardOut());
-      }
+      // populate() already restored the saved selection; this only covers the
+      // first run, where nothing has been chosen yet.
+      if(m.getCardOut().isEmpty() && devices.size() > 1)
+        update_dev(devices[1]);
     }
 
     {
@@ -345,6 +431,10 @@ public:
     con(m, &Model::changed, w, [=, &m] { setCard(card_list, m.getCardOut()); });
     return w;
   }
+
+private:
+  //! Whether the driver list has been enumerated successfully at least once.
+  bool m_scanned{};
 };
 
 }
