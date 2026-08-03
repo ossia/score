@@ -483,7 +483,7 @@ public:
     Steinberg::Vst::ProcessContext& time_info = this->m_context;
     time_info.sampleRate = st.sampleRate();
 
-    time_info.projectTimeSamples = this->m_processed_frames;
+    time_info.projectTimeSamples = this->m_transport_frames;
 
     time_info.systemTime = st.currentDate() - st.startDate();
     time_info.continousTimeSamples = this->m_processed_frames; // TODO

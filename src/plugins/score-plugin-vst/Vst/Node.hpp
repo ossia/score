@@ -102,7 +102,7 @@ public:
   void setupTimeInfo(const ossia::token_request& tk, ossia::exec_state_facade st)
   {
     auto& time_info = fx->info;
-    time_info.samplePos = this->m_processed_frames;
+    time_info.samplePos = this->m_transport_frames;
     time_info.sampleRate = st.sampleRate();
     time_info.nanoSeconds = st.currentDate() - st.startDate();
     time_info.ppqPos = tk.musical_start_position; // * ppq_reference;
