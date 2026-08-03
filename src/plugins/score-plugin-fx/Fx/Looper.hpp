@@ -207,12 +207,17 @@ struct Node
     if(quantif != 0 && tk.prev_date != 0_tv)
     {
       state.quantif = quantif;
-      if(auto time = tk.get_quantification_date(1. / quantif);
-         time && time > tk.prev_date)
+      if(auto pt = tk.get_quantification_point(1. / quantif);
+         pt && pt->date > tk.prev_date)
       {
-        state.this_buffer_quantif_time = *time;
+        const double ratio = ossia_state.modelToSamples();
+        state.this_buffer_quantif_time = pt->date;
+        // Through the point's musical position, not its date: the date is
+        // truncated to a whole flick, and flooring that into a sample rounds
+        // twice, so the loop point would land a sample before the metronome
+        // click on the very bar line it is quantized to.
         state.this_buffer_quantif_sample
-            = tk.to_physical_time_in_tick(*time, ossia_state.modelToSamples());
+            = tk.physical_start(ratio) + tk.physical_position(pt->position, ratio);
       }
     }
     else
