@@ -80,7 +80,11 @@ public:
     using namespace ossia;
 
     const double samplesratio = st.modelToSamples();
-    const double speed = tk.speed != 0. ? tk.speed : 1.;
+    // The magnitude of the speed: dividing by a negative speed while rewinding
+    // turns the tick offset into a negative timestamp, which every consumer
+    // that windows on [tick_start; tick_start + frames[ drops - and a dropped
+    // note-off is a note stuck forever.
+    const double speed = tk.speed != 0. ? std::abs(tk.speed) : 1.;
     const int64_t tick_start = std::floor(tk.offset.impl * samplesratio / speed);
 
     // Before the empty-tick check: the token requested by stop() is empty.
@@ -118,16 +122,27 @@ public:
     // All of them, not just the first: a tick covers more than one step as soon
     // as the division is small, the buffer large or the tempo high, and the
     // single-date version would silently drop every step but one.
+    // get_quantification_dates walks the grid in tick order, so rewinding it
+    // hands back the steps the tick crosses in decreasing musical order. Walk
+    // the pattern the same way, or the sequence marches on while the timeline
+    // runs the other way.
+    const bool rewinding = tk.backward();
     for(const auto& q : tk.get_quantification_dates(pattern.division))
     {
-      const int64_t date
-          = std::floor((q.date - tk.prev_date + tk.offset).impl * samplesratio / speed);
-      play_step(date);
+      const int64_t date = std::floor(
+          std::abs((q.date - tk.prev_date).impl) * samplesratio / std::abs(speed)
+          + tk.offset.impl * samplesratio / std::abs(speed));
+      play_step(date, rewinding);
     }
   }
 
-  void play_step(int64_t date) noexcept
+  void play_step(int64_t date, bool rewinding = false) noexcept
   {
+    // Forward, the step about to play is the current one and the next tick
+    // plays the one after. Rewinding mirrors that: step back first, so going
+    // out and back over the same ground crosses the same steps.
+    if(rewinding)
+      current = (current + pattern.length - 1) % pattern.length;
     last = current;
     auto& mess = out.target<ossia::midi_port>()->messages;
 
@@ -201,7 +216,8 @@ public:
       }
     }
 
-    current = (current + 1) % pattern.length;
+    if(!rewinding)
+      current = (current + 1) % pattern.length;
   }
 
   // Writing to the outlet from here would be pointless: this runs outside of a

@@ -83,6 +83,26 @@ struct fixture
       out.push_back(decode(m));
     return out;
   }
+
+  //! Runs one rewinding tick, which steps back through exactly one step.
+  std::vector<decoded> step_backward()
+  {
+    port.messages.clear();
+
+    ossia::exec_state_facade fac{&st};
+    ossia::token_request tk{
+        ossia::time_value{100},    ossia::time_value{0},
+        ossia::time_value{100000}, ossia::time_value{0},
+        -1.,                       ossia::time_signature{4, 4},
+        120.};
+    static_cast<ossia::graph_node&>(node).run(tk, fac);
+
+    std::vector<decoded> out;
+    out.reserve(port.messages.size());
+    for(const auto& m : port.messages)
+      out.push_back(decode(m));
+    return out;
+  }
 };
 }
 
@@ -390,4 +410,143 @@ TEST_CASE("patternist: a tick covering several steps plays them all", "[midi][pa
   CHECK(msgs[6].status == note_on);
   CHECK(msgs[6].note == 38);
   CHECK(msgs[6].timestamp == 750);
+}
+
+TEST_CASE("patternist: rewinding walks the pattern backwards", "[midi][pattern]")
+{
+  // The step used to come from a counter that only ever incremented, so a
+  // rewinding timeline still marched the sequence forwards.
+  fixture f;
+  f.set(
+      {lane(36, {Note::Note, Note::Rest, Note::Rest, Note::Rest}),
+       lane(37, {Note::Rest, Note::Note, Note::Rest, Note::Rest}),
+       lane(38, {Note::Rest, Note::Rest, Note::Note, Note::Rest}),
+       lane(39, {Note::Rest, Note::Rest, Note::Rest, Note::Note})},
+      4);
+
+  const auto struck = [](const std::vector<decoded>& v) {
+    int n = -1;
+    for(const auto& m : v)
+      if(m.status == note_on)
+        n = m.note;
+    return n;
+  };
+
+  CHECK(struck(f.step()) == 36);
+  CHECK(struck(f.step()) == 37);
+  CHECK(struck(f.step()) == 38);
+  CHECK(struck(f.step()) == 39);
+
+  // Rewinding retraces the steps it just played, in reverse.
+  CHECK(struck(f.step_backward()) == 39);
+  CHECK(struck(f.step_backward()) == 38);
+  CHECK(struck(f.step_backward()) == 37);
+  CHECK(struck(f.step_backward()) == 36);
+
+  // And going forward again resumes where the rewind left off.
+  CHECK(struck(f.step()) == 36);
+  CHECK(struck(f.step()) == 37);
+}
+
+namespace
+{
+//! Drives a node over real musical ticks: [prev; date] in model units with the
+//! matching musical positions, the way time_interval::tick_impl fills them.
+//! 1000 model units per quarter, 4/4.
+void musical_tick(fixture& f, int64_t prev_units, int64_t date_units)
+{
+  f.port.messages.clear();
+  ossia::exec_state_facade fac{&f.st};
+  ossia::token_request tk{
+      ossia::time_value{prev_units},
+      ossia::time_value{date_units},
+      ossia::time_value{100000},
+      ossia::time_value{0},
+      date_units >= prev_units ? 1. : -1.,
+      ossia::time_signature{4, 4},
+      120.};
+  tk.musical_start_position = prev_units / 1000.;
+  tk.musical_end_position = date_units / 1000.;
+  tk.musical_start_last_bar = std::floor(tk.musical_start_position / 4.) * 4.;
+  tk.musical_end_last_bar = std::floor(tk.musical_end_position / 4.) * 4.;
+  static_cast<ossia::graph_node&>(f.node).run(tk, fac);
+}
+}
+
+TEST_CASE(
+    "patternist: out and back over a real grid returns to the same step",
+    "[midi][pattern]")
+{
+  // Pattern length 3 does not divide the 16 sixteenths of a 4/4 bar, so any
+  // bookkeeping that counts per-bar rather than per-crossing drifts.
+  fixture f;
+  f.set(
+      {lane(36, {Note::Note, Note::Rest, Note::Rest}),
+       lane(37, {Note::Rest, Note::Note, Note::Rest}),
+       lane(38, {Note::Rest, Note::Rest, Note::Note})},
+      3);
+  f.node.pattern.division = 16;
+
+  SECTION("turnaround exactly on a grid point")
+  {
+    // Forward 0 -> 6 quarters in ticks of 0.6, back the same way. 6.0 sits on
+    // the sixteenth grid: the forward pass leaves it to the next tick, the
+    // backward pass owns it, and the crossing counts still agree.
+    for(int i = 0; i < 10; i++)
+      musical_tick(f, i * 600, (i + 1) * 600);
+    const int after_forward = f.node.current;
+    // 24 crossings from 0 included to 6.0 excluded
+    CHECK(after_forward == 24 % 3);
+
+    for(int i = 10; i > 0; i--)
+      musical_tick(f, i * 600, (i - 1) * 600);
+    CHECK(f.node.current == 0);
+  }
+
+  SECTION("turnaround off the grid")
+  {
+    // Forward 0 -> 6.1 quarters: 25 crossings (0 through 6.0). Back down to 0:
+    // 24 crossings (6.0 through 0.25; 0 was crossed on the way out and is
+    // never uncrossed). Net one step forward, which is where a playhead
+    // standing at 0 belongs: step 0 already played, step 1 next.
+    for(int i = 0; i < 10; i++)
+      musical_tick(f, i * 610, (i + 1) * 610);
+    CHECK(f.node.current == 25 % 3);
+
+    for(int i = 10; i > 0; i--)
+      musical_tick(f, i * 610, (i - 1) * 610);
+    CHECK(f.node.current == 1);
+  }
+}
+
+TEST_CASE(
+    "patternist: a rewinding stop stamps its releases inside the tick",
+    "[midi][pattern]")
+{
+  // A note is playing; the interval stops while the timeline rewinds, with a
+  // tick offset. The note-off must carry a timestamp inside the tick's window:
+  // a negative one is dropped by every consumer that windows on
+  // [tick_start; tick_start + frames[, and the note hangs forever.
+  fixture f;
+  f.set({lane(36, {Note::Note, Note::Rest})}, 2);
+
+  auto s0 = f.step();
+  REQUIRE(s0.size() == 1);
+  REQUIRE(s0[0].status == note_on);
+
+  f.port.messages.clear();
+  ossia::exec_state_facade fac{&f.st};
+  ossia::token_request tk{
+      ossia::time_value{100},   ossia::time_value{0},
+      ossia::time_value{100000}, ossia::time_value{50},
+      -1.,                       ossia::time_signature{4, 4},
+      120.};
+  tk.end_discontinuous = true;
+  static_cast<ossia::graph_node&>(f.node).run(tk, fac);
+
+  REQUIRE(f.port.messages.size() == 1);
+  auto off = decode(f.port.messages[0]);
+  CHECK(off.status == note_off);
+  CHECK(off.note == 36);
+  CHECK(off.timestamp >= 0);
 }
