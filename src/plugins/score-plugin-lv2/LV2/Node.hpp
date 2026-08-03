@@ -376,7 +376,7 @@ struct lv2_node final : public ossia::graph_node
     lv2_atom_forge_object(&forge, &frame, 0, host.time_Position_id);
 
     lv2_atom_forge_key(&forge, host.time_frame_id);
-    lv2_atom_forge_long(&forge, this->m_processed_frames);
+    lv2_atom_forge_long(&forge, this->m_transport_frames);
 
     lv2_atom_forge_key(&forge, host.time_framesPerSecond_id);
     lv2_atom_forge_long(&forge, st.sampleRate());
