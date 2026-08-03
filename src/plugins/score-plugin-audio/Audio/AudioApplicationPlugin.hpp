@@ -3,6 +3,7 @@
 
 #include <score_plugin_audio_export.h>
 
+#include <functional>
 #include <memory>
 
 namespace ossia
@@ -24,6 +25,20 @@ public:
   score::GUIElements makeGUIElements() override;
 
   std::shared_ptr<ossia::audio_engine> audio;
+
+  /**
+   * @brief Runs \p f with no audio engine holding the device, then brings the
+   * engine back if one was running.
+   *
+   * Some backends need exclusive access to the hardware just to enumerate it --
+   * ASIO in particular allows a single loaded driver per process, so probing the
+   * installed drivers is impossible while one of them is streaming. Rescanning
+   * from the settings therefore has to briefly take the engine down.
+   *
+   * Does not start an engine that was not running: a user who stopped audio
+   * should not have it started behind their back.
+   */
+  void with_engine_stopped(std::function<void()> f);
 
 private:
   void restart_engine();
