@@ -16,7 +16,20 @@ clone_addon() {
 
   (
   if [[ ! -d "$folder" ]]; then
-    git clone --recursive -j16 "${shallow[@]}" "$url"
+    if [[ -n "${SKIP_SUBMODULE:-}" ]]; then
+      # Skip a heavy nested submodule score never compiles (SKIP_SUBMODULE is
+      # "<super-path> <submodule-name>"): clone, init that super, mark it none, recurse.
+      local sdepth=(); [[ ${#shallow[@]} -gt 0 ]] && sdepth=(--depth 1)
+      git clone "${sdepth[@]}" "$url" "$folder"
+      (
+        cd "$folder"
+        git submodule update --init "${sdepth[@]}" "${SKIP_SUBMODULE%% *}"
+        git -C "${SKIP_SUBMODULE%% *}" config "submodule.${SKIP_SUBMODULE#* }.update" none
+        git submodule update --init --recursive "${sdepth[@]}"
+      )
+    else
+      git clone --recursive -j16 "${shallow[@]}" "$url"
+    fi
     if [[ "x${ref}" != "x" ]]; then
     (
       cd "$folder"
@@ -49,7 +62,10 @@ clone_addon https://github.com/ossia/GBAP
 clone_addon https://github.com/ossia/score-addon-ltc
 clone_addon https://github.com/bltzr/score-avnd-granola
 clone_addon https://github.com/jcelerier/bendage
-clone_addon https://github.com/ossia/score-addon-airwindows
+# libs/airwindows is ~600MB of regeneration-only sources; score compiles the
+# committed src/autogen_airwin, so skip it.
+SKIP_SUBMODULE="3rdparty/airwin2rack libs/autoexport_airwin/airwindows" \
+  clone_addon https://github.com/ossia/score-addon-airwindows
 clone_addon https://github.com/ossia/score-addon-cv
 clone_addon https://github.com/ossia/score-addon-onnx
 clone_addon https://github.com/ossia/score-addon-puara
