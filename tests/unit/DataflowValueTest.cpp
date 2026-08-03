@@ -41,10 +41,53 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#if defined(_WIN32)
+#include <windows.h>
+#endif
+
 #include <csignal>
 
 namespace
 {
+// Fed deliberately malformed data, score's serialization hits DEBUG_BREAK,
+// which is a SIGTRAP on POSIX and a DebugBreak() on Windows (see Debug.hpp
+// and the identical handler in MidiMessageTest.cpp). Either has to be
+// survivable for the sections using this guard to mean anything.
+#if defined(_WIN32)
+struct ScopedIgnoreSigtrap
+{
+  static LONG CALLBACK swallow(EXCEPTION_POINTERS* ex) noexcept
+  {
+    if(ex->ExceptionRecord->ExceptionCode != EXCEPTION_BREAKPOINT)
+      return EXCEPTION_CONTINUE_SEARCH;
+
+    // The context is reported *at* the trapping instruction, so resuming
+    // as-is runs the same int3 again, forever. Step over it explicitly.
+    const auto at = reinterpret_cast<uintptr_t>(ex->ExceptionRecord->ExceptionAddress);
+#if defined(_M_X64) || defined(__x86_64__)
+    ex->ContextRecord->Rip = at + 1; // int3
+#elif defined(_M_IX86) || defined(__i386__)
+    ex->ContextRecord->Eip = at + 1; // int3
+#elif defined(_M_ARM64) || defined(__aarch64__)
+    ex->ContextRecord->Pc = at + 4; // brk
+#else
+    return EXCEPTION_CONTINUE_SEARCH;
+#endif
+    return EXCEPTION_CONTINUE_EXECUTION;
+  }
+
+  void* handler{};
+  ScopedIgnoreSigtrap()
+      : handler{::AddVectoredExceptionHandler(1, &swallow)}
+  {
+  }
+  ~ScopedIgnoreSigtrap()
+  {
+    if(handler)
+      ::RemoveVectoredExceptionHandler(handler);
+  }
+};
+#else
 struct ScopedIgnoreSigtrap
 {
   void (*prev)(int);
@@ -54,6 +97,7 @@ struct ScopedIgnoreSigtrap
   }
   ~ScopedIgnoreSigtrap() { std::signal(SIGTRAP, prev); }
 };
+#endif
 
 struct TestApplication final : public score::ApplicationInterface
 {
@@ -457,11 +501,19 @@ TEST_CASE("midi messages propagate along a graph edge", "[dataflow][graph][midi]
   g.state(e);
   e.commit();
 
-  REQUIRE(received.size() == 1);
+  // The note starts at 10 and ends at 60, both inside the [0; 100[ tick: the
+  // node emits the note-on and, in the same tick, the matching note-off
+  // (midi::run's second stop_finished_notes pass). Expecting only the note-on
+  // was written against an older libossia that leaked such a note into the
+  // next tick.
+  REQUIRE(received.size() == 2);
   CHECK(cmidi2_ump_get_status_code(received[0].data) == CMIDI2_STATUS_NOTE_ON);
   CHECK(cmidi2_ump_get_channel(received[0].data) == 2); // channel 3, 0-based
   CHECK(cmidi2_ump_get_midi2_note_note(received[0].data) == 61);
   CHECK(cmidi2_ump_get_midi2_note_velocity(received[0].data) / 0x200 == 99);
+  CHECK(cmidi2_ump_get_status_code(received[1].data) == CMIDI2_STATUS_NOTE_OFF);
+  CHECK(cmidi2_ump_get_midi2_note_note(received[1].data) == 61);
+  CHECK(received[0].timestamp <= received[1].timestamp);
 }
 
 TEST_CASE("fuzz: corrupt port and cable buffers are handled gracefully",
