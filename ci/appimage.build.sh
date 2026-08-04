@@ -11,8 +11,12 @@ if [[ -z "${SCORE_CMAKE_CACHE-}" ]]; then
    export SCORE_CMAKE_CACHE=
 fi
 
+# /tmp/build persists across ephemeral runs on a self-hosted host; a stale
+# CMakeCache (e.g. BOOST_ROOT pointing at a since-wiped download) breaks the
+# reconfigure. Start clean -- sccache still caches the actual compilation.
+rm -rf "$BUILD_FOLDER"
 mkdir -p $BUILD_FOLDER
-ln -s $BUILD_FOLDER build
+ln -sfn $BUILD_FOLDER build
 (
   cd cmake/Deployment/Linux/AppImage/
   docker build \
