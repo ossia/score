@@ -45,7 +45,10 @@ if [[ ! -f "$BUILD_FOLDER/score.AppDir/usr/bin/ossia-score" ]]; then
   exit 1
 fi
 
-sudo chown -R $(whoami) "$BUILD_FOLDER"
+# Under rootless docker the container's root maps to us, so $BUILD_FOLDER is
+# already ours -- no sudo (which the self-hosted runner user isn't granted).
+# Under rootful docker (GitHub-hosted) the files are root-owned and sudo works.
+sudo chown -R "$(whoami)" "$BUILD_FOLDER" 2>/dev/null || chown -R "$(whoami)" "$BUILD_FOLDER" 2>/dev/null || true
 
 
 wget -nv "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-${CPU_ARCH}.AppImage"
