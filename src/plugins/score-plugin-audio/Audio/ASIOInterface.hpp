@@ -19,6 +19,8 @@
 
 #if defined(OSSIA_ENABLE_ASIO)
 #include <ossia/audio/asio_protocol.hpp>
+#include <ossia/detail/fmt.hpp>
+#include <ossia/detail/logger.hpp>
 
 #include <exception>
 #include <functional>
@@ -195,16 +197,16 @@ public:
       for(auto& dev : devices)
         probe(dev);
 
-      ossia::asio_diagnostics::log() << "enumeration finished: " << (devices.size() - 1)
-                                     << " driver(s) available\n";
+      ossia::logger().info(
+          fmt::format("ASIO: {} driver(s) available", devices.size() - 1));
     }
     catch(const std::exception& e)
     {
-      ossia::asio_diagnostics::log() << "enumeration aborted: " << e.what() << '\n';
+      ossia::logger().error(fmt::format("ASIO: enumeration aborted: {}", e.what()));
     }
     catch(...)
     {
-      ossia::asio_diagnostics::log() << "enumeration aborted: unknown exception\n";
+      ossia::logger().error("ASIO: enumeration aborted: unknown exception");
     }
   }
 
@@ -230,11 +232,11 @@ public:
         card.unavailable.clear();
         card.probed = true;
       }
-      else if(ossia::asio_diagnostics::verbose())
+      else
       {
-        ossia::asio_diagnostics::log()
-            << "\"" << card.name.toStdString() << "\": not probing while \"" << active
-            << "\" is streaming\n";
+        ossia::logger().info(fmt::format(
+            "ASIO: '{}': not probing while '{}' is streaming", card.name.toStdString(),
+            active));
       }
       return;
     }
@@ -256,18 +258,15 @@ public:
         }
         else
         {
-          ossia::asio_diagnostics::log()
-              << "ASIOGetChannels failed for \"" << name << "\", rc=" << chans
-              << " -- listing it with 0 channels\n";
+          ossia::logger().warn(fmt::format(
+              "ASIO: ASIOGetChannels failed for '{}', rc={}, listing it with 0 channels",
+              name, chans));
         }
         card.unavailable.clear();
-        if(ossia::asio_diagnostics::verbose())
-        {
-          ossia::asio_diagnostics::log()
-              << "\"" << name << "\": driver \"" << info.name << "\" asio v"
-              << info.asioVersion << " driver v" << info.driverVersion << ", "
-              << card.inputChan << " in / " << card.outputChan << " out\n";
-        }
+        ossia::logger().info(fmt::format(
+            "ASIO: '{}': driver '{}' asio v{} driver v{}, {} in / {} out", name,
+            info.name, info.asioVersion, info.driverVersion, card.inputChan,
+            card.outputChan));
         ASIOExit();
       }
       else
@@ -278,10 +277,10 @@ public:
         card.inputChan = 0;
         card.outputChan = 0;
         card.unavailable = reasonFor(init);
-        ossia::asio_diagnostics::log()
-            << "ASIOInit failed for \"" << name << "\", rc=" << init << " ("
-            << (info.errorMessage[0] ? info.errorMessage : "no message") << ") -- "
-            << card.unavailable.toStdString() << '\n';
+        ossia::logger().warn(fmt::format(
+            "ASIO: ASIOInit failed for '{}', rc={} ({}), {}", name, init,
+            info.errorMessage[0] ? info.errorMessage : "no message",
+            card.unavailable.toStdString()));
       }
       if(asioDrivers)
         asioDrivers->removeCurrentDriver();
@@ -291,10 +290,10 @@ public:
       card.inputChan = 0;
       card.outputChan = 0;
       card.unavailable = QObject::tr("driver failed to load");
-      ossia::asio_diagnostics::log()
-          << "loadAsioDriver(\"" << name
-          << "\") failed -- CoCreateInstance refused the driver DLL "
-             "(bitness mismatch or broken installation)\n";
+      ossia::logger().warn(fmt::format(
+          "ASIO: loadAsioDriver('{}') failed, CoCreateInstance refused the driver "
+          "DLL (bitness mismatch or broken installation)",
+          name));
     }
 
     card.probed = true;
