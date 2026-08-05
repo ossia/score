@@ -13,13 +13,20 @@ $SUDO apt-get install -y --no-install-recommends \
   libpcre2-16-0 libpcre2-8-0 zlib1g libfontconfig1 libgl1 libegl1
 
 # The wasm SDK built by ossia/sdk CI (Qt 6.12, emsdk 5.0.5, ffmpeg 8.1).
+export SDK_TAG=sdk38
 export SDK_ARCHIVE=sdk-wasm.tar.xz
-wget -nv https://github.com/ossia/sdk/releases/download/sdk37/$SDK_ARCHIVE -O $SDK_ARCHIVE
+wget -nv https://github.com/ossia/sdk/releases/download/$SDK_TAG/$SDK_ARCHIVE -O $SDK_ARCHIVE
 
 $SUDO mkdir -p /opt/ossia-sdk-wasm
 $SUDO chown -R "$(whoami)" /opt/ossia-sdk-wasm
 chmod -R a+rwx /opt/ossia-sdk-wasm
 tar xaf $SDK_ARCHIVE --strip-components=2 --directory /opt/ossia-sdk-wasm/
+
+# Extension prebuilts are separate assets of the same release, built by the same
+# emscripten. Their archives are rooted at lib/ and include/, so no strip here.
+wget -nv https://github.com/ossia/sdk/releases/download/$SDK_TAG/onnxruntime-wasm.tar.xz -O onnxruntime-wasm.tar.xz
+mkdir -p /opt/ossia-sdk-wasm/onnxruntime
+tar xaf onnxruntime-wasm.tar.xz --directory /opt/ossia-sdk-wasm/onnxruntime/
 
 rm *.tar.*
 
