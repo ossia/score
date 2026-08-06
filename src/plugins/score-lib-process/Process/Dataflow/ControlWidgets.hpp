@@ -11,6 +11,7 @@
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/widgets/FileDialog.hpp>
 #include <score/graphics/GraphicWidgets.hpp>
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/graphics/RectItem.hpp>
@@ -1037,29 +1038,14 @@ struct ProgramEdit
   }
 };
 
-// Open a file for import. On wasm this uses the async getOpenFileContent API and
-// stages the picked bytes into MEMFS (there is no local filesystem / synchronous
-// dialog); `onPicked` then receives a real, readable path. On desktop it is the
-// usual synchronous getOpenFileName. `onPicked(const QString& path)`.
-template <typename F>
-inline void openFileToImport(const QString& filters, F onPicked)
+namespace
 {
-#if defined(__EMSCRIPTEN__)
-  QFileDialog::getOpenFileContent(
-      filters,
-      [onPicked = std::move(onPicked)](
-          const QString& name, const QByteArray& data) mutable {
-    if(name.isEmpty() || data.isEmpty())
-      return;
-    if(QString staged = score::stageImportedFile(name, data); !staged.isEmpty())
-      onPicked(staged);
-  });
-#else
-  const QString fn
-      = QFileDialog::getOpenFileName(nullptr, QObject::tr("Open File"), {}, filters);
-  if(!fn.isEmpty())
-    onPicked(fn);
-#endif
+inline QString selectedDirectory(QWidget* parent)
+{
+  QString dir;
+  score::selectExistingDirectory(parent, QObject::tr("Open Folder"), dir);
+  return dir;
+}
 }
 
 struct FileChooser
@@ -1079,7 +1065,7 @@ struct FileChooser
     act->setIcon(QIcon(":/icons/search.png"));
     sl->setPlaceholderText(QObject::tr("Open File"));
     auto on_open = [=, &ctx, &inlet] {
-      openFileToImport(inlet.filters(), [=, &ctx](const QString& filename) {
+      score::openFileToImport(inlet.filters(), [=, &ctx](const QString& filename) {
         auto path = score::relativizeFilePath(filename, ctx);
         sl->setText(path);
       });
@@ -1112,7 +1098,7 @@ struct FileChooser
     auto bt = new score::QGraphicsTextButton{"Choose a file...", parent};
     initWidgetProperties(inlet, *bt);
     auto on_open = [&inlet, &ctx] {
-      openFileToImport(inlet.filters(), [&inlet, &ctx](const QString& filename) {
+      score::openFileToImport(inlet.filters(), [&inlet, &ctx](const QString& filename) {
         auto path = score::relativizeFilePath(filename, ctx);
         CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
             inlet, path.toStdString());
@@ -1184,7 +1170,7 @@ struct FolderChooser
     sl->setPlaceholderText(QObject::tr("Open Folder"));
     auto on_open = [=, &ctx, &inlet] {
       auto filename
-          = QFileDialog::getExistingDirectory(nullptr, "Open Folder", {});
+          = selectedDirectory(nullptr);
       if(filename.isEmpty())
         return;
       auto path = score::relativizeFilePath(filename, ctx);
@@ -1219,7 +1205,7 @@ struct FolderChooser
     initWidgetProperties(inlet, *bt);
     auto on_open = [&inlet, &ctx] {
       auto filename
-          = QFileDialog::getExistingDirectory(nullptr, "Open Folder", {});
+          = selectedDirectory(nullptr);
       if(filename.isEmpty())
         return;
 
