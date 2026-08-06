@@ -188,6 +188,12 @@ public:
     throw;
   }
 
+  //! Every command this build can instantiate, as {group, key}.
+  //!
+  //! Peers mirror each other by exchanging commands, so which ones exist is
+  //! part of what makes two builds able to work together.
+  std::vector<std::pair<CommandGroupKey, CommandKey>> availableCommands() const;
+
   score::Command* instantiateUndoCommand(const CommandData& cmd) const;
 
   //! Same, but returns nullptr instead of aborting or throwing when the command

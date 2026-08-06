@@ -65,6 +65,16 @@ InterfaceListBase* ApplicationComponentsData::findInterfaceList(
   return nullptr;
 }
 
+std::vector<std::pair<CommandGroupKey, CommandKey>>
+ApplicationComponents::availableCommands() const
+{
+  std::vector<std::pair<CommandGroupKey, CommandKey>> res;
+  res.reserve(m_data.commands.size());
+  for(const auto& [key, factory] : m_data.commands)
+    res.push_back(key);
+  return res;
+}
+
 Command* ApplicationComponents::instantiateUndoCommand(const CommandData& cmd) const
 {
   auto it = m_data.commands.find({cmd.parentKey, cmd.commandKey});
