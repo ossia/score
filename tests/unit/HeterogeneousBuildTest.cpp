@@ -330,6 +330,21 @@ TEST_CASE("A process with no factory keeps its identity and data", "[heterogeneo
     REQUIRE(reserialized.HasMember("Nested"));
     CHECK(reserialized["Nested"]["depth"].GetInt() == 3);
     CHECK(reserialized["Nested"]["ratio"].GetDouble() == 0.25);
+
+    // Telling our members from the plug-in's is by name, so one that score
+    // gains but the list does not know about would be captured *and* written
+    // by the base: a duplicate key, copied again on every load. Counting
+    // catches that; comparing values does not, since the first of a duplicate
+    // pair reads back correctly.
+    CHECK(reserialized.MemberCount() == authored.MemberCount());
+
+    auto* again = deserialize_interface(
+        procs, JSONObject::Deserializer{reserialized}, dctx, doc);
+    REQUIRE(again);
+    JSONReader third;
+    third.readFrom(*again);
+    auto thrice = readJson(third.toByteArray());
+    CHECK(thrice.MemberCount() == authored.MemberCount());
   });
 }
 
