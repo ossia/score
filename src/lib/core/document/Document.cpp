@@ -161,6 +161,13 @@ Document::Document(
   //            this, &Document::fileNameChanged);
 }
 
+score::Environment& Document::environment() const noexcept
+{
+  if(!m_environment)
+    m_environment = std::make_unique<score::LocalEnvironment>(m_context);
+  return *m_environment;
+}
+
 void Document::setEnvironment(std::unique_ptr<score::Environment> env)
 {
   SCORE_ASSERT(env);
@@ -169,9 +176,6 @@ void Document::setEnvironment(std::unique_ptr<score::Environment> env)
 
 void Document::init()
 {
-  if(!m_environment)
-    m_environment = std::make_unique<score::LocalEnvironment>(m_context);
-
   if(this->m_context.app.applicationSettings.gui)
   {
     con(m_selectionStack, &SelectionStack::currentSelectionChanged, this,
