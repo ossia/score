@@ -208,10 +208,9 @@ and clang optimizes more than MSVC.
 ")
   endif()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /MP /std:c++latest /Zc:__cplusplus /Zc:preprocessor /permissive- /volatile:iso")
-  add_definitions(/D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS=1
-                  /DNOMINMAX
-                  /DWIN32_LEAN_AND_MEAN
-                  )
+  # NOMINMAX and WIN32_LEAN_AND_MEAN are set for every Windows compiler in
+  # ScoreConfiguration, not only for this one.
+  add_definitions(/D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS=1)
 elseif(APPLE AND SCORE_PCH)
     set(CMAKE_OBJC_FLAGS "${CMAKE_OBJC_FLAGS} -faligned-allocation ")
     set(CMAKE_OBJCXX_FLAGS "${CMAKE_OBJCXX_FLAGS} -faligned-allocation ")
