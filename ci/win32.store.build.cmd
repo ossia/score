@@ -8,8 +8,8 @@ set PATH=%PATH%;c:\ossia-sdk-x86_64\llvm\bin
 cmake -GNinja %SCORE_DIR% ^
   -DCMAKE_C_COMPILER=c:/ossia-sdk-x86_64/llvm/bin/clang.exe ^
   -DCMAKE_CXX_COMPILER=c:/ossia-sdk-x86_64/llvm/bin/clang++.exe ^
-  -DCMAKE_C_FLAGS=" -g0 -flto=full -fno-stack-protector -Ofast -fno-finite-math-only -D_WIN32_WINNT_=0x0A00 -DWINVER=0x0A00 " ^
-  -DCMAKE_CXX_FLAGS=" -g0 -flto=full -fno-stack-protector -Ofast -fno-finite-math-only -D_WIN32_WINNT_=0x0A00 -DWINVER=0x0A00 " ^
+  -DCMAKE_C_FLAGS=" -g0 -flto=full -fno-stack-protector -Ofast -fno-finite-math-only " ^
+  -DCMAKE_CXX_FLAGS=" -g0 -flto=full -fno-stack-protector -Ofast -fno-finite-math-only " ^
   -DCMAKE_EXE_LINKER_FLAGS=" -Wl,-s -flto=full " ^
   -DOSSIA_SDK=c:\ossia-sdk-x86_64 ^
   -DCMAKE_INSTALL_PREFIX=install ^
