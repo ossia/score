@@ -136,7 +136,8 @@ SerializableComponentFactory::~SerializableComponentFactory() { }
 SerializableComponentFactoryList::~SerializableComponentFactoryList() { }
 
 score::SerializableComponent* SerializableComponentFactoryList::loadMissing(
-    const VisitorVariant& vis, const DocumentContext& ctx, QObject* parent) const
+    const UuidKey<score::SerializableComponent>& key, const VisitorVariant& vis,
+    const DocumentContext& ctx, QObject* parent) const
 {
   SCORE_TODO;
   return nullptr;
