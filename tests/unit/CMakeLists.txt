@@ -966,3 +966,10 @@ if(TARGET score_plugin_media)
     LIBS avutil avcodec avformat swscale ${QT_PREFIX}::Gui ${QT_PREFIX}::Network
     NO_CTEST)
 endif()
+# --- heterogeneous builds: what happens when a factory is absent -----------
+# Pins the behaviour of documents referencing processes / protocols this build
+# does not have. See docs/remote-control-plan.md sections 5bis-5quater.
+score_add_test(test_unit_heterogeneous_build
+  SOURCES HeterogeneousBuildTest.cpp
+  APP
+  PLUGINS score_lib_device score_lib_process)
