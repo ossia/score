@@ -135,6 +135,17 @@ void DeviceDocumentPlugin::asyncConnect(Device::DeviceInterface& newdev)
 
     connect(
         &newdev, &Device::DeviceInterface::connectionChanged, &b, [&b] { b.accept(); });
+
+    // A device that never answers would otherwise hold the dialog, and the
+    // whole window with it, for as long as the application runs. Nothing
+    // downstream distinguishes "gave up" from "cancelled": both leave the
+    // device unconnected, which is a state score already handles.
+    constexpr int connectionTimeout = 30000;
+    QTimer::singleShot(connectionTimeout, &b, [&b, &newdev] {
+      qWarning() << "Gave up waiting for device" << newdev.settings().name;
+      b.reject();
+    });
+
     QTimer::singleShot(1, [&] { newdev.reconnect(); });
     b.exec();
 
