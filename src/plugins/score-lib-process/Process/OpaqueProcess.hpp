@@ -1,4 +1,5 @@
 #pragma once
+#include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessFactory.hpp>
 
@@ -75,6 +76,62 @@ private:
   QByteArray m_payload;
   bool m_portsInPayload{true};
 };
+
+/**
+ * @brief Stands in for a port whose factory this build does not have.
+ *
+ * A process can be understood while its ports are not: VST and LV2 bring their
+ * own control port types along with the process itself. Without this,
+ * reconstructing such a process aborted -- writePorts had SCORE_ABORT as its
+ * failure path -- and the process could not be kept at all.
+ *
+ * Like OpaqueProcessModel it reports the key of the port it replaces and holds
+ * the plug-in's data verbatim, so the port survives a save from here. It also
+ * keeps the port's id, which is what cables resolve against: a stand-in with a
+ * different id would silently break every cable pointing at it.
+ */
+class SCORE_LIB_PROCESS_EXPORT OpaqueInlet final : public Inlet
+{
+  W_OBJECT(OpaqueInlet)
+  SCORE_SERIALIZE_FRIENDS
+public:
+  OpaqueInlet(
+      const UuidKey<Port>& key, DataStream::Deserializer& vis, QObject* parent);
+  OpaqueInlet(
+      const UuidKey<Port>& key, JSONObject::Deserializer& vis, QObject* parent);
+  ~OpaqueInlet() override;
+
+  UuidKey<Port> concreteKey() const noexcept override { return m_key; }
+  void serialize_impl(const VisitorVariant& vis) const noexcept override;
+  PortType type() const noexcept override { return PortType::Message; }
+
+private:
+  UuidKey<Port> m_key;
+  QByteArray m_payload;
+};
+
+class SCORE_LIB_PROCESS_EXPORT OpaqueOutlet final : public Outlet
+{
+  W_OBJECT(OpaqueOutlet)
+  SCORE_SERIALIZE_FRIENDS
+public:
+  OpaqueOutlet(
+      const UuidKey<Port>& key, DataStream::Deserializer& vis, QObject* parent);
+  OpaqueOutlet(
+      const UuidKey<Port>& key, JSONObject::Deserializer& vis, QObject* parent);
+  ~OpaqueOutlet() override;
+
+  UuidKey<Port> concreteKey() const noexcept override { return m_key; }
+  void serialize_impl(const VisitorVariant& vis) const noexcept override;
+  PortType type() const noexcept override { return PortType::Message; }
+
+private:
+  UuidKey<Port> m_key;
+  QByteArray m_payload;
+};
+
+//! The names of the JSON members written by Port and its bases.
+SCORE_LIB_PROCESS_EXPORT const QStringList& portBaseMemberNames() noexcept;
 
 /**
  * @brief The layer used for a process no factory claims.

@@ -307,6 +307,60 @@ TEST_CASE("A process with no factory keeps its identity and data", "[heterogeneo
   });
 }
 
+TEST_CASE("A port with no factory keeps its id and data", "[heterogeneous]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    // VST and LV2 bring their own control port types along with the process, so
+    // a build without them meets unknown ports as well as unknown processes.
+    // This used to abort: writePorts had SCORE_ABORT as its failure path.
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& dctx = doc->context();
+
+    auto& procs = ctx.interfaces<Process::ProcessFactoryList>();
+    Process::ProcessModel* original{};
+    for(auto& fac : procs)
+    {
+      auto* p = fac.make(TimeVal::fromMsecs(1000), {}, Id<Process::ProcessModel>{21},
+                         dctx, doc);
+      if(p && !p->inlets().empty())
+      {
+        original = p;
+        break;
+      }
+    }
+    REQUIRE(original);
+    const auto portId = original->inlets().front()->id();
+
+    JSONReader r;
+    r.readFrom(*original);
+    auto authored = readJson(r.toByteArray());
+    REQUIRE(authored.HasMember("Inlets"));
+    REQUIRE(authored["Inlets"].IsArray());
+    REQUIRE(authored["Inlets"].Size() > 0);
+    authored["Inlets"][0]["uuid"].SetString(absent_uuid, authored.GetAllocator());
+
+    auto* loaded = deserialize_interface(
+        procs, JSONObject::Deserializer{authored}, dctx, doc);
+    REQUIRE(loaded);
+    REQUIRE_FALSE(loaded->inlets().empty());
+
+    auto* opaque = dynamic_cast<Process::OpaqueInlet*>(loaded->inlets().front());
+    REQUIRE(opaque);
+
+    // The id is what cables resolve against, so a stand-in that renumbered the
+    // port would silently break every cable pointing at it.
+    CHECK(opaque->id() == portId);
+    CHECK(opaque->concreteKey()
+          == UuidKey<Process::Port>::fromString(QString{absent_uuid}));
+
+    JSONReader out;
+    out.readFrom(*loaded);
+    auto reserialized = readJson(out.toByteArray());
+    CHECK(reserialized == authored);
+  });
+}
+
 TEST_CASE("An unclaimed process still gets a layer", "[heterogeneous]")
 {
   score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
