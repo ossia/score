@@ -171,7 +171,7 @@ void LayerData::updateLoops(
     qreal parent_default_width, qreal slot_height, QGraphicsItem* parentItem,
     QObject* parent)
 {
-  auto f = ctx.processList.findDefaultFactory(m_model->concreteKey());
+  auto f = ctx.processList.findDefaultFactory(*m_model);
   SCORE_ASSERT(f);
   if(m_model->loops() && !(m_model->flags() & Process::ProcessFlags::HandlesLooping))
   {

@@ -185,28 +185,38 @@ ProcessFactoryList::object_type* ProcessFactoryList::loadMissing(
 
 LayerFactory* LayerFactoryList::findDefaultFactory(const ProcessModel& proc) const
 {
-  return findDefaultFactory(proc.concreteKey());
+  if(auto* fac = findDefaultFactory(proc.concreteKey()))
+    return fac;
+
+  // Only a process standing in for an absent plug-in gets the fallback. Plenty
+  // of ordinary processes have no layer either, and are deliberately not drawn
+  // in a slot: handing them one would start rendering them.
+  if(dynamic_cast<const OpaqueProcessModel*>(&proc))
+    return fallbackFactory();
+  return nullptr;
 }
 
 LayerFactory*
 LayerFactoryList::findDefaultFactory(const UuidKey<ProcessModel>& proc) const
 {
-  LayerFactory* fallback{};
   for(auto& fac : *this)
   {
     if(fac.isFallback())
-    {
-      fallback = &fac;
       continue;
-    }
     if(fac.matches(proc))
       return &fac;
   }
+  return nullptr;
+}
 
-  // Callers dereference this without checking -- the interval presenters build
-  // header and footer delegates from it unconditionally -- so a process with no
-  // factory of its own must still get one.
-  return fallback;
+LayerFactory* LayerFactoryList::fallbackFactory() const
+{
+  for(auto& fac : *this)
+  {
+    if(fac.isFallback())
+      return &fac;
+  }
+  return nullptr;
 }
 
 QString ProcessModelFactory::customConstructionData() const noexcept
