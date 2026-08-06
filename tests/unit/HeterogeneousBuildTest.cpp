@@ -31,6 +31,11 @@
 #include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
 
 #include <score/model/EntitySerialization.hpp>
+#include <score/model/path/Path.hpp>
+
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
 #include <cstring>
 #include <score/plugins/SerializableHelpers.hpp>
@@ -668,5 +673,38 @@ TEST_CASE("A document from a newer score is still refused", "[heterogeneous]")
     auto doc = readJson(json);
     REQUIRE(!doc.HasParseError());
     CHECK_FALSE(score::DocumentManager::checkAndUpdateJson(doc, ctx).loadable);
+  });
+}
+
+TEST_CASE("A path does not resolve to an object of another type", "[heterogeneous]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    // A path names an object by position and name, and a stand-in keeps the id
+    // and name of what it replaces -- so a path written for the real type
+    // resolves to it. Commands then write through that pointer:
+    // Process::SetControlValue holds a Path<ControlInlet> and lives in a
+    // library every build has, so a peer without the plug-in that provided the
+    // port receives one and nothing else stands in the way.
+    //
+    // Provoked here with two ordinary types, since what is being checked is the
+    // resolution and not the stand-in.
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& dctx = doc->context();
+
+    auto& model = doc->model().modelDelegate();
+    auto& interval
+        = safe_cast<Scenario::ScenarioDocumentModel&>(model).baseScenario().interval();
+
+    const Path<Scenario::IntervalModel> right{interval};
+    REQUIRE(right.try_find(dctx) == &interval);
+    REQUIRE_NOTHROW(right.find(dctx));
+
+    // The same position, asked for as something it is not.
+    const Path<Process::ProcessModel> wrong{
+        right.unsafePath(), Path<Process::ProcessModel>::UnsafeDynamicCreation{}};
+
+    CHECK(wrong.try_find(dctx) == nullptr);
+    CHECK_THROWS(wrong.find(dctx));
   });
 }
