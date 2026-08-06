@@ -348,7 +348,35 @@ if(WIN32)
     -D_WIN32_WINNT=0x0A00
     -DBOOST_ASIO_ENABLE_VERSION_NAMESPACE=1
   )
+
+  # NOMINMAX and WIN32_LEAN_AND_MEAN belong here too, rather than in the MSVC
+  # branch of the top-level CMakeLists where they used to sit: what they change
+  # is what <windows.h> declares, which is a property of the platform and not of
+  # the compiler. Left to individual targets they reached about three quarters
+  # of the build, so whether min and max were macros depended on which target a
+  # header happened to be compiled into. No value, which is the spelling
+  # libossia uses and the one every consistent translation unit here already
+  # had.
+  #
+  # C++ only. Neither changes a type layout - they change which declarations are
+  # visible - so the consistency that matters is between the translation units
+  # that share C++ types, and the vendored C we build has been written against
+  # the unabridged <windows.h>. libpd's pd~.c reaches malloc and errno through
+  # it, and stops compiling on the toolchains that reject undeclared library
+  # functions once the lean header is imposed on it.
+  add_compile_definitions(
+    $<$<COMPILE_LANGUAGE:CXX>:NOMINMAX>
+    $<$<COMPILE_LANGUAGE:CXX>:WIN32_LEAN_AND_MEAN>
+  )
 endif()
+
+# Boost changes what it declares depending on this - typeid use, and with it the
+# layout of the types that carry a std::type_info around - so it has to be the
+# same everywhere or two translation units disagree about a Boost class while
+# spelling its name identically. libossia sets it PUBLIC on the ossia target,
+# which covered what links ossia and left the rest of the build without it. Not
+# guarded by WIN32: nothing about it is Windows-specific.
+add_definitions(-DBOOST_NO_RTTI=1)
 
 # Win32 codepage stuff
 if(WIN32)
