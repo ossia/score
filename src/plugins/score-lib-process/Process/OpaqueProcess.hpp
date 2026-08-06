@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/Process.hpp>
+#include <Process/ProcessFactory.hpp>
 
 #include <score_lib_process_export.h>
 
@@ -73,5 +74,21 @@ private:
   // could be rebuilt. DataStream: the raw tail of this object's blob.
   QByteArray m_payload;
   bool m_portsInPayload{true};
+};
+
+/**
+ * @brief The layer used for a process no factory claims.
+ *
+ * The interval presenters build header and footer delegates from the result of
+ * findDefaultFactory without checking it, so an OpaqueProcessModel needs some
+ * factory or displaying it crashes. LayerFactory's defaults already produce a
+ * usable plain layer, so this only has to exist and declare itself a fallback.
+ */
+class SCORE_LIB_PROCESS_EXPORT OpaqueLayerFactory final : public LayerFactory
+{
+  SCORE_CONCRETE("64a5b1ba-9d1e-4ba6-b6f5-e6f0aa0d0f7a")
+
+  bool matches(const UuidKey<Process::ProcessModel>&) const override { return false; }
+  bool isFallback() const noexcept override { return true; }
 };
 }

@@ -1,6 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
+#include <Process/OpaqueProcess.hpp>
 #include <Process/TimeValue.hpp>
 #include <Process/TimeValueSerialization.hpp>
 
@@ -251,7 +252,7 @@ std::vector<score::InterfaceBase*> score_plugin_scenario::factories(
          >,
       FW<Process::LayerFactory,
          //         Interpolation::InterpolationLayerFactory,
-         Scenario::TempoLayerFactory>,
+         Scenario::TempoLayerFactory, Process::OpaqueLayerFactory>,
       FW<MoveEventFactoryInterface, MoveEventClassicFactory>,
       FW<DisplayedElementsToolPaletteFactory,
          BaseScenarioDisplayedElementsToolPaletteFactory,
