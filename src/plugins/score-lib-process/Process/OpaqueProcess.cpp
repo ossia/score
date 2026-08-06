@@ -10,6 +10,8 @@
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Process::OpaqueProcessModel)
+W_OBJECT_IMPL(Process::OpaqueInlet)
+W_OBJECT_IMPL(Process::OpaqueOutlet)
 
 namespace Process
 {
@@ -162,5 +164,90 @@ ProcessFlags OpaqueProcessModel::flags() const noexcept
   // make the rest of score treat it as usable: it has no executor and its
   // structure must not be edited, since we cannot re-derive the plug-in data.
   return {};
+}
+}
+
+namespace Process
+{
+const QStringList& portBaseMemberNames() noexcept
+{
+  // Written by readFromAbstract, IdentifiedObject and Port. The last four are
+  // only emitted when set, which is fine: we copy what is there.
+  static const QStringList names{
+      QStringLiteral("uuid"),     QStringLiteral("ObjectName"),
+      QStringLiteral("id"),       QStringLiteral("Hidden"),
+      QStringLiteral("Custom"),   QStringLiteral("Exposed"),
+      QStringLiteral("Description"), QStringLiteral("Address")};
+  return names;
+}
+
+namespace
+{
+QByteArray capturePortTail(DataStream::Deserializer& vis)
+{
+  if(auto* dev = vis.m_stream.stream.device())
+    return dev->readAll();
+  return {};
+}
+
+void emitPortPayload(const VisitorVariant& vis, const QByteArray& payload)
+{
+  if(vis.identifier == DataStream::type())
+  {
+    auto& s = static_cast<DataStream::Serializer&>(vis.visitor);
+    s.m_stream.stream.writeRawData(payload.constData(), payload.size());
+  }
+  else if(vis.identifier == JSONObject::type())
+  {
+    auto& s = static_cast<JSONObject::Serializer&>(vis.visitor);
+    emitMembers(s.stream, payload);
+  }
+}
+}
+
+OpaqueInlet::OpaqueInlet(
+    const UuidKey<Port>& key, DataStream::Deserializer& vis, QObject* parent)
+    : Inlet{vis, parent}
+    , m_key{key}
+    , m_payload{capturePortTail(vis)}
+{
+}
+
+OpaqueInlet::OpaqueInlet(
+    const UuidKey<Port>& key, JSONObject::Deserializer& vis, QObject* parent)
+    : Inlet{vis, parent}
+    , m_key{key}
+    , m_payload{captureMembers(vis.base, portBaseMemberNames())}
+{
+}
+
+OpaqueInlet::~OpaqueInlet() = default;
+
+void OpaqueInlet::serialize_impl(const VisitorVariant& vis) const noexcept
+{
+  emitPortPayload(vis, m_payload);
+}
+
+OpaqueOutlet::OpaqueOutlet(
+    const UuidKey<Port>& key, DataStream::Deserializer& vis, QObject* parent)
+    : Outlet{vis, parent}
+    , m_key{key}
+    , m_payload{capturePortTail(vis)}
+{
+}
+
+OpaqueOutlet::OpaqueOutlet(
+    const UuidKey<Port>& key, JSONObject::Deserializer& vis, QObject* parent)
+    : Outlet{vis, parent}
+    , m_key{key}
+    , m_payload{captureMembers(vis.base, portBaseMemberNames())}
+{
+}
+
+OpaqueOutlet::~OpaqueOutlet() = default;
+
+void OpaqueOutlet::serialize_impl(const VisitorVariant& vis) const noexcept
+{
+  emitPortPayload(vis, m_payload);
 }
 }
