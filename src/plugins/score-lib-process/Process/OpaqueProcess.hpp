@@ -1,5 +1,7 @@
 #pragma once
 #include <Process/Dataflow/Port.hpp>
+
+#include <score/serialization/OpaquePayload.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessFactory.hpp>
 
@@ -71,9 +73,9 @@ public:
 private:
   UuidKey<ProcessModel> m_key;
 
-  // JSON: an object holding the plug-in's members, minus the ports when those
-  // could be rebuilt. DataStream: the raw tail of this object's blob.
-  QByteArray m_payload;
+  // The plug-in's own data, and which format it was read in. Minus the ports
+  // when those could be rebuilt.
+  score::OpaquePayload m_payload;
   bool m_portsInPayload{true};
 };
 
@@ -107,7 +109,7 @@ public:
 
 private:
   UuidKey<Port> m_key;
-  QByteArray m_payload;
+  score::OpaquePayload m_payload;
 };
 
 class SCORE_LIB_PROCESS_EXPORT OpaqueOutlet final : public Outlet
@@ -127,7 +129,7 @@ public:
 
 private:
   UuidKey<Port> m_key;
-  QByteArray m_payload;
+  score::OpaquePayload m_payload;
 };
 
 //! The names of the JSON members written by Port and its bases.
