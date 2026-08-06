@@ -51,7 +51,7 @@ OpaqueProcessModel::OpaqueProcessModel(
   // object's blob is the plug-in's. deserialize_interface gave each polymorphic
   // object its own length-delimited buffer, which is what makes this safe: the
   // tail is exactly one process and stops where it should.
-  m_payload = score::capturedTail(vis);
+  m_payload = score::OpaquePayload::fromDataStream(vis);
 
   // No way to find the ports inside an opaque binary blob.
   m_portsInPayload = true;
@@ -76,24 +76,20 @@ OpaqueProcessModel::OpaqueProcessModel(
     skip += portMemberNames();
   }
 
-  m_payload = score::capturedMembers(vis.base, skip);
+  m_payload = score::OpaquePayload::fromJson(vis.base, skip);
 }
 
 OpaqueProcessModel::~OpaqueProcessModel() = default;
 
 void OpaqueProcessModel::serialize_impl(const VisitorVariant& vis) const noexcept
 {
-  if(vis.identifier == DataStream::type())
+  if(vis.identifier == JSONObject::type() && !m_portsInPayload)
   {
-    score::writeCapturedTail(static_cast<DataStream::Serializer&>(vis.visitor), m_payload);
+    // Live ports rather than the ones in the payload: they may have been
+    // edited, and the payload no longer describes them.
+    readPorts(static_cast<JSONObject::Serializer&>(vis.visitor), m_inlets, m_outlets);
   }
-  else if(vis.identifier == JSONObject::type())
-  {
-    auto& s = static_cast<JSONObject::Serializer&>(vis.visitor);
-    if(!m_portsInPayload)
-      readPorts(s, m_inlets, m_outlets);
-    score::writeCapturedMembers(s.stream, m_payload);
-  }
+  m_payload.write(vis);
 }
 
 QString OpaqueProcessModel::missingFactory() const noexcept
@@ -142,21 +138,13 @@ const QStringList& portBaseMemberNames() noexcept
 
 namespace
 {
-void emitPortPayload(const VisitorVariant& vis, const QByteArray& payload)
-{
-  if(vis.identifier == DataStream::type())
-    score::writeCapturedTail(static_cast<DataStream::Serializer&>(vis.visitor), payload);
-  else if(vis.identifier == JSONObject::type())
-    score::writeCapturedMembers(
-        static_cast<JSONObject::Serializer&>(vis.visitor).stream, payload);
-}
 }
 
 OpaqueInlet::OpaqueInlet(
     const UuidKey<Port>& key, DataStream::Deserializer& vis, QObject* parent)
     : Inlet{vis, parent}
     , m_key{key}
-    , m_payload{score::capturedTail(vis)}
+    , m_payload{score::OpaquePayload::fromDataStream(vis)}
 {
 }
 
@@ -164,7 +152,7 @@ OpaqueInlet::OpaqueInlet(
     const UuidKey<Port>& key, JSONObject::Deserializer& vis, QObject* parent)
     : Inlet{vis, parent}
     , m_key{key}
-    , m_payload{score::capturedMembers(vis.base, portBaseMemberNames())}
+    , m_payload{score::OpaquePayload::fromJson(vis.base, portBaseMemberNames())}
 {
 }
 
@@ -172,14 +160,14 @@ OpaqueInlet::~OpaqueInlet() = default;
 
 void OpaqueInlet::serialize_impl(const VisitorVariant& vis) const noexcept
 {
-  emitPortPayload(vis, m_payload);
+  m_payload.write(vis);
 }
 
 OpaqueOutlet::OpaqueOutlet(
     const UuidKey<Port>& key, DataStream::Deserializer& vis, QObject* parent)
     : Outlet{vis, parent}
     , m_key{key}
-    , m_payload{score::capturedTail(vis)}
+    , m_payload{score::OpaquePayload::fromDataStream(vis)}
 {
 }
 
@@ -187,7 +175,7 @@ OpaqueOutlet::OpaqueOutlet(
     const UuidKey<Port>& key, JSONObject::Deserializer& vis, QObject* parent)
     : Outlet{vis, parent}
     , m_key{key}
-    , m_payload{score::capturedMembers(vis.base, portBaseMemberNames())}
+    , m_payload{score::OpaquePayload::fromJson(vis.base, portBaseMemberNames())}
 {
 }
 
@@ -195,6 +183,6 @@ OpaqueOutlet::~OpaqueOutlet() = default;
 
 void OpaqueOutlet::serialize_impl(const VisitorVariant& vis) const noexcept
 {
-  emitPortPayload(vis, m_payload);
+  m_payload.write(vis);
 }
 }

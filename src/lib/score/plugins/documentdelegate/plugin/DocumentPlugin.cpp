@@ -50,7 +50,7 @@ OpaqueDocumentPlugin::OpaqueDocumentPlugin(
     DataStream::Deserializer& vis, QObject* parent)
     : SerializableDocumentPlugin{ctx, vis, parent}
     , m_key{key}
-    , m_payload{score::capturedTail(vis)}
+    , m_payload{score::OpaquePayload::fromDataStream(vis)}
 {
 }
 
@@ -61,7 +61,7 @@ OpaqueDocumentPlugin::OpaqueDocumentPlugin(
     , m_key{key}
     // A document plug-in's base writes nothing but the key, so everything else
     // in the object belongs to the plug-in.
-    , m_payload{score::capturedMembers(vis.base, {QStringLiteral("uuid")})}
+    , m_payload{score::OpaquePayload::fromJson(vis.base, {QStringLiteral("uuid")})}
 {
 }
 
@@ -69,12 +69,7 @@ OpaqueDocumentPlugin::~OpaqueDocumentPlugin() = default;
 
 void OpaqueDocumentPlugin::serialize_impl(const VisitorVariant& vis) const noexcept
 {
-  if(vis.identifier == DataStream::type())
-    score::writeCapturedTail(
-        static_cast<DataStream::Serializer&>(vis.visitor), m_payload);
-  else if(vis.identifier == JSONObject::type())
-    score::writeCapturedMembers(
-        static_cast<JSONObject::Serializer&>(vis.visitor).stream, m_payload);
+  m_payload.write(vis);
 }
 }
 

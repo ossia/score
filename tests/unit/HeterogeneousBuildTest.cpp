@@ -283,6 +283,15 @@ TEST_CASE("A process with no factory keeps its identity and data", "[heterogeneo
     REQUIRE(authored.HasMember("uuid"));
     authored["uuid"].SetString(absent_uuid, authored.GetAllocator());
 
+    // What a plug-in of its own would have written. Without this the test
+    // asserts that no data survives no data.
+    auto& alloc = authored.GetAllocator();
+    authored.AddMember("PluginState", "opaque-and-preserved", alloc);
+    rapidjson::Value nested{rapidjson::kObjectType};
+    nested.AddMember("depth", 3, alloc);
+    nested.AddMember("ratio", 0.25, alloc);
+    authored.AddMember("Nested", nested, alloc);
+
     auto* loaded = deserialize_interface(
         procs, JSONObject::Deserializer{authored}, dctx, doc);
     REQUIRE(loaded);
@@ -308,6 +317,70 @@ TEST_CASE("A process with no factory keeps its identity and data", "[heterogeneo
     auto reserialized = readJson(out.toByteArray());
     REQUIRE(reserialized.IsObject());
     CHECK(reserialized == authored);
+
+    // rapidjson's operator== ignores member order, so it cannot see a payload
+    // that came back rearranged. Name the members that matter directly.
+    REQUIRE(reserialized.HasMember("PluginState"));
+    CHECK(reserialized["PluginState"] == "opaque-and-preserved");
+    REQUIRE(reserialized.HasMember("Nested"));
+    CHECK(reserialized["Nested"]["depth"].GetInt() == 3);
+    CHECK(reserialized["Nested"]["ratio"].GetDouble() == 0.25);
+  });
+}
+
+TEST_CASE("A stand-in survives being written in the other format", "[heterogeneous]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    // A document read from .score is written to the binary format on every
+    // autosave, and moving an interval serialises its processes to the binary
+    // format and rebuilds them from those bytes. A payload that could only be
+    // written in the format it arrived in would be lost by dragging a box.
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& dctx = doc->context();
+    auto& procs = ctx.interfaces<Process::ProcessFactoryList>();
+
+    Process::ProcessModel* original{};
+    for(auto& fac : procs)
+    {
+      original = fac.make(TimeVal::fromMsecs(1000), {}, Id<Process::ProcessModel>{31},
+                          dctx, doc);
+      if(original)
+        break;
+    }
+    REQUIRE(original);
+
+    JSONReader r;
+    r.readFrom(*original);
+    auto authored = readJson(r.toByteArray());
+    authored["uuid"].SetString(absent_uuid, authored.GetAllocator());
+    authored.AddMember("PluginState", "must survive both", authored.GetAllocator());
+
+    auto* fromJson = deserialize_interface(
+        procs, JSONObject::Deserializer{authored}, dctx, doc);
+    REQUIRE(dynamic_cast<Process::OpaqueProcessModel*>(fromJson));
+
+    // JSON in, binary out, binary in, JSON out.
+    QByteArray binary;
+    {
+      DataStreamReader w{&binary};
+      w.readFrom(static_cast<const Process::ProcessModel&>(*fromJson));
+    }
+
+    DataStreamWriter dw{binary};
+    auto* fromBinary = deserialize_interface(procs, dw, dctx, doc);
+    REQUIRE(fromBinary);
+    auto* opaque = dynamic_cast<Process::OpaqueProcessModel*>(fromBinary);
+    REQUIRE(opaque);
+    CHECK(opaque->concreteKey()
+          == UuidKey<Process::ProcessModel>::fromString(QString{absent_uuid}));
+
+    JSONReader back;
+    back.readFrom(*fromBinary);
+    auto out = readJson(back.toByteArray());
+    REQUIRE(out.IsObject());
+    REQUIRE(out.HasMember("PluginState"));
+    CHECK(out["PluginState"] == "must survive both");
   });
 }
 
