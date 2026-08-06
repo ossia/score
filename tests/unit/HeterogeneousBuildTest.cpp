@@ -454,7 +454,51 @@ TEST_CASE("checkAndUpdateJson cannot see factories missing inside a present plug
     auto doc = readJson(json);
     REQUIRE(!doc.HasParseError());
 
-    // Reports the document as fully loadable.
-    CHECK(score::DocumentManager::checkAndUpdateJson(doc, ctx));
+    // Nothing here can tell that Syphon is missing, and nothing could: the
+    // check works on plug-in keys, and score_plugin_gfx is present. Which is
+    // why the device itself has to preserve what it cannot parse.
+    const auto check = score::DocumentManager::checkAndUpdateJson(doc, ctx);
+    CHECK(check.loadable);
+    CHECK(check.missingPlugins.empty());
+  });
+}
+
+TEST_CASE("A document naming a plug-in we lack still opens", "[heterogeneous]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    // Refusing outright made a document unopenable on any machine that did not
+    // have every plug-in it mentions, which is every machine once builds differ
+    // by platform. It opens now, and reports what is missing so the caller can
+    // say so.
+    const QByteArray json
+        = QStringLiteral(R"({"Version":%1,"Plugins":[{"Key":"%2","Version":1}]})")
+              .arg(ctx.applicationSettings.saveFormatVersion.value())
+              .arg(absent_uuid)
+              .toUtf8();
+
+    auto doc = readJson(json);
+    REQUIRE(!doc.HasParseError());
+
+    const auto check = score::DocumentManager::checkAndUpdateJson(doc, ctx);
+    CHECK(check.loadable);
+    REQUIRE(check.missingPlugins.size() == 1);
+    CHECK(check.missingPlugins.front()
+          == UuidKey<score::Plugin>::fromString(QString{absent_uuid}));
+  });
+}
+
+TEST_CASE("A document from a newer score is still refused", "[heterogeneous]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    // The opposite case must keep failing: here the factory *is* found, and
+    // would read data written in a format it does not know.
+    const QByteArray json
+        = QStringLiteral(R"({"Version":%1,"Plugins":[]})")
+              .arg(ctx.applicationSettings.saveFormatVersion.value() + 1)
+              .toUtf8();
+
+    auto doc = readJson(json);
+    REQUIRE(!doc.HasParseError());
+    CHECK_FALSE(score::DocumentManager::checkAndUpdateJson(doc, ctx).loadable);
   });
 }
