@@ -28,6 +28,10 @@ namespace Scenario
 class IntervalModel;
 class TimeSyncModel;
 }
+namespace RemoteControl::Settings
+{
+class Model;
+}
 namespace RemoteControl::WS
 {
 class Interval;
@@ -79,14 +83,41 @@ struct Handler
   }
 };
 
+//! What the server needs from the settings, resolved when it is opened.
+struct ReceiverSettings
+{
+  int port{10212};
+
+  //! Which interface to serve. score assumes a trusted network, so every
+  //! interface by default; a stricter deployment narrows it here.
+  QString address{"0.0.0.0"};
+
+  //! Presented by the client as ?token=... on the connection URL.
+  QString token;
+
+  //! Whether a client may evaluate JavaScript here. That is control of the
+  //! machine score runs on, not of the score.
+  bool allowScripting{false};
+};
+
 struct SCORE_PLUGIN_REMOTECONTROL_EXPORT Receiver
     : public QObject
     , public Nano::Observer
 {
 public:
-  explicit Receiver(const score::DocumentContext& doc, quint16 port);
+  explicit Receiver(const score::DocumentContext& doc);
 
   ~Receiver();
+
+  //! Start listening. Closes first if already open, so this doubles as
+  //! "apply the settings again".
+  void open(const ReceiverSettings& settings);
+  void close();
+  bool isOpen() const noexcept;
+
+  //! The port actually bound, which differs from the requested one when 0 was
+  //! asked for.
+  quint16 port() const noexcept;
 
   void addHandler(QObject* context, Handler&& handler);
   void removeHandler(QObject* context);
@@ -108,7 +139,11 @@ public:
 private:
   void on_valueUpdated(const ::State::Address& addr, const ossia::value& v);
 
+  //! Whether this socket presented the right token when it connected.
+  bool authorize(const QWebSocket& socket) const noexcept;
+
   QWebSocketServer m_server;
+  ReceiverSettings m_settings;
   std::vector<WSClient> m_clients;
 
   Explorer::DeviceDocumentPlugin& m_dev;
@@ -137,6 +172,7 @@ public:
   Receiver receiver;
 
 private:
+  void apply(const Settings::Model& set);
   void create();
   void cleanup();
 
