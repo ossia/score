@@ -569,6 +569,11 @@ if(SCORE_VIDEO_TESTER)
     LABELS "gui"
     ENVIRONMENT "VIDEO_TESTER=${SCORE_ROOT_BINARY_DIR}/VideoDecoderTester;SCORE_AUDIO_BACKEND=dummy;ASAN_OPTIONS=detect_leaks=0:halt_on_error=0:handle_segv=1:detect_odr_violation=0:protect_shadow_gap=0")
 endif()
+# --- devices whose protocol this build does not have ------------------------
+score_add_test(test_integration_device_unimplemented
+  SOURCES DeviceWithoutImplementationTest.cpp
+  APP
+  PLUGINS score_plugin_scenario score_plugin_deviceexplorer)
 
 # --- remote control: who is allowed to drive this instance ------------------
 # The WebSocket API sets device parameters, drives transport and can evaluate

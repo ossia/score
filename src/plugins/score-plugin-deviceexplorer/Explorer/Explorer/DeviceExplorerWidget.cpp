@@ -980,8 +980,12 @@ void DeviceExplorerWidget::refresh()
   {
     // Create a thread, ask the device, when it is done put a command on the
     // chain.
-    auto& dev
-        = m->deviceModel().list().device(select.get<Device::DeviceSettings>().name);
+    auto* dev_p
+        = m->deviceModel().list().findDevice(select.get<Device::DeviceSettings>().name);
+    if(!dev_p)
+      return;
+
+    auto& dev = *dev_p;
     if(!dev.capabilities().canRefreshTree)
       return;
 
@@ -1024,7 +1028,11 @@ void DeviceExplorerWidget::refreshValue()
 
     // Device checks
     auto addr = Device::address(*node);
-    auto& dev = model()->deviceModel().list().device(addr.address.device);
+    auto* dev_p = model()->deviceModel().list().findDevice(addr.address.device);
+    if(!dev_p)
+      return;
+
+    auto& dev = *dev_p;
     if(!dev.capabilities().canRefreshValue)
       return;
     if(!dev.connected())
@@ -1055,9 +1063,9 @@ void DeviceExplorerWidget::disconnect()
 
     if(select.is<Device::DeviceSettings>())
     {
-      auto& dev
-          = m->deviceModel().list().device(select.get<Device::DeviceSettings>().name);
-      dev.disconnect();
+      if(auto* dev = m->deviceModel().list().findDevice(
+             select.get<Device::DeviceSettings>().name))
+        dev->disconnect();
     }
   }
 }
@@ -1078,8 +1086,12 @@ void DeviceExplorerWidget::reconnect()
         proxyModel()->mapToSource(m_ntView->selectedIndexes().at(i)));
     if(select.is<Device::DeviceSettings>())
     {
-      auto& dev
-          = m->deviceModel().list().device(select.get<Device::DeviceSettings>().name);
+      auto* dev_p
+          = m->deviceModel().list().findDevice(select.get<Device::DeviceSettings>().name);
+      if(!dev_p)
+        continue;
+
+      auto& dev = *dev_p;
       auto con_handle = std::make_shared<QMetaObject::Connection>();
       *con_handle = con(
           dev, &Device::DeviceInterface::deviceChanged, this,
