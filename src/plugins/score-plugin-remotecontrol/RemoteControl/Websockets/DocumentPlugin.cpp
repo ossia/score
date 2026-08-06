@@ -312,10 +312,22 @@ void Receiver::open(const ReceiverSettings& settings)
 void Receiver::close()
 {
   m_server.close();
-  for(auto c : m_clients)
-    delete c.socket;
-  m_clients.clear();
+
+  // Taken first: ~QWebSocket emits disconnected() synchronously, which lands
+  // in socketDisconnected and erases from m_clients -- mutating the container
+  // being walked, and handing a socket being destroyed to handlers that will
+  // try to write to it. This is the ordinary path now that the setting can be
+  // switched off with clients connected, not only teardown.
+  auto clients = std::exchange(m_clients, {});
   m_listenedAddresses.clear();
+
+  for(auto& c : clients)
+  {
+    if(!c.socket)
+      continue;
+    disconnect(c.socket, nullptr, this, nullptr);
+    delete c.socket;
+  }
 }
 
 bool Receiver::isOpen() const noexcept
