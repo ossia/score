@@ -29,6 +29,8 @@
 #include <core/presenter/DocumentManager.hpp>
 
 #include <score/model/EntitySerialization.hpp>
+
+#include <cstring>
 #include <score/plugins/SerializableHelpers.hpp>
 
 #include <score_test/App.hpp>
@@ -358,6 +360,60 @@ TEST_CASE("A port with no factory keeps its id and data", "[heterogeneous]")
     out.readFrom(*loaded);
     auto reserialized = readJson(out.toByteArray());
     CHECK(reserialized == authored);
+  });
+}
+
+TEST_CASE("A port with no factory survives the binary format too", "[heterogeneous]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    // Unlike a whole process, a port *can* be recovered from a binary payload:
+    // deserialize_interface gives each one its own length-delimited blob, so
+    // the tail after the key is exactly this port's data.
+    Process::ControlInlet inlet{QStringLiteral("ctl"), Id<Process::Port>{42}, nullptr};
+
+    QByteArray one;
+    {
+      DataStreamReader r{&one};
+      r.readFrom(static_cast<const Process::Inlet&>(inlet));
+    }
+
+    // The blob is written as [quint32 length][16-byte key][data], so renaming
+    // the factory is a patch in place -- this is what a build that *has* the
+    // plug-in would have produced.
+    REQUIRE(one.size() > 20);
+    const auto absent = UuidKey<Process::Port>::fromString(QString{absent_uuid});
+    std::memcpy(one.data() + 4, &absent.impl(), 16);
+
+    QByteArray ports;
+    {
+      QDataStream s{&ports, QIODevice::WriteOnly};
+      s << (int32_t)1;
+      s.writeRawData(one.constData(), one.size());
+      s << (int32_t)0;
+    }
+
+    Process::Inlets ins;
+    Process::Outlets outs;
+    DataStreamWriter w{ports};
+    Process::writePorts(
+        w, ctx.interfaces<Process::PortFactoryList>(), ins, outs, nullptr);
+
+    REQUIRE(ins.size() == 1);
+    auto* opaque = dynamic_cast<Process::OpaqueInlet*>(ins.front());
+    REQUIRE(opaque);
+    CHECK(opaque->id() == Id<Process::Port>{42});
+    CHECK(opaque->concreteKey() == absent);
+
+    // And it writes back exactly what it was given.
+    QByteArray again;
+    {
+      DataStreamReader r{&again};
+      r.readFrom(static_cast<const Process::Inlet&>(*opaque));
+    }
+    CHECK(again == one);
+
+    qDeleteAll(ins);
+    qDeleteAll(outs);
   });
 }
 
