@@ -5,6 +5,10 @@
 // This validates the whole vertical slice: SCORE_TESTING build wiring,
 // score_test_fixtures, runtime plugin discovery, and document creation.
 
+#include <score/tools/FilePath.hpp>
+
+#include <QFile>
+
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
 
@@ -28,5 +32,28 @@ TEST_CASE("A headless document can be created and serialized", "[integration][do
     // It serializes to a non-empty binary blob.
     const QByteArray bytes = doc->saveAsByteArray();
     CHECK(bytes.size() > 0);
+  });
+}
+
+
+TEST_CASE("A document that resolves paths while loading can be opened", "[document]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    // Deserialization resolves paths -- a sound process turns the stored
+    // <PROJECT>: reference into something it can open -- and that happens from
+    // the constructors, before any post-construction setup has run. Anything
+    // locateFilePath depends on has to exist by then.
+    const QString path
+        = QStringLiteral("%1/docs/main-page.score").arg(SCORE_ROOT_SOURCE_DIR);
+    REQUIRE(QFile::exists(path));
+
+    auto* doc = ctx.docManager.loadFile(ctx, path);
+    REQUIRE(doc);
+
+    // And the document can say where its files are, which is what the load
+    // path was asking it before it had an answer.
+    CHECK(doc->environment().isLocal());
+    CHECK_FALSE(
+        score::locateFilePath("<PROJECT>:anything", doc->context()).isEmpty());
   });
 }
