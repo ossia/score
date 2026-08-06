@@ -307,6 +307,45 @@ TEST_CASE("A process with no factory keeps its identity and data", "[heterogeneo
   });
 }
 
+TEST_CASE("An unclaimed process still gets a layer", "[heterogeneous]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    // The interval presenters build header and footer delegates from this
+    // without checking it, and LayerData asserts on it, so a process no factory
+    // claims must still resolve to something displayable.
+    auto& layers = ctx.interfaces<Process::LayerFactoryList>();
+    const auto unknown
+        = UuidKey<Process::ProcessModel>::fromString(QString{absent_uuid});
+
+    // The fallback is registered and never wins a normal lookup: findDefaultFactory
+    // iterates an unordered map, so one that took part in matching would shadow
+    // real factories at random.
+    auto* fallback = layers.fallbackFactory();
+    REQUIRE(fallback);
+    CHECK(fallback->isFallback());
+    CHECK(layers.findDefaultFactory(unknown) == nullptr);
+
+    // It is reached only through the process, and only for a stand-in. Ordinary
+    // processes without a layer keep resolving to nothing, so that they are not
+    // suddenly drawn in a slot.
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+
+    auto& procs = ctx.interfaces<Process::ProcessFactoryList>();
+    Process::ProcessModel* plain{};
+    for(auto& fac : procs)
+    {
+      plain = fac.make(TimeVal::fromMsecs(1000), {}, Id<Process::ProcessModel>{11},
+                       doc->context(), doc);
+      if(plain)
+        break;
+    }
+    REQUIRE(plain);
+    if(auto* f = layers.findDefaultFactory(*plain))
+      CHECK_FALSE(f->isFallback());
+  });
+}
+
 TEST_CASE("The list of members owned by ProcessModel has not drifted",
           "[heterogeneous]")
 {

@@ -23,7 +23,12 @@ class SCORE_LIB_PROCESS_EXPORT LayerFactoryList final
 public:
   ~LayerFactoryList();
 
+  //! Resolves the layer for a process. A process standing in for a plug-in we
+  //! do not have falls back to a plain layer, so that it can still be shown.
   LayerFactory* findDefaultFactory(const Process::ProcessModel& proc) const;
+
+  //! The factory used for processes no other one claims, if any is registered.
+  LayerFactory* fallbackFactory() const;
   LayerFactory* findDefaultFactory(const UuidKey<Process::ProcessModel>& proc) const;
   LayerFactory* get(const UuidKey<Process::ProcessModel>& proc) const
   {
