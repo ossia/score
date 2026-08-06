@@ -3,6 +3,7 @@
 #include <Process/Dataflow/PortFactory.hpp>
 
 #include <score/application/ApplicationContext.hpp>
+#include <score/serialization/OpaquePayload.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
@@ -23,46 +24,6 @@ const QStringList& portMemberNames() noexcept
   return names;
 }
 
-//! Copy every member of `base` except those in `skip`, as a JSON object.
-QByteArray captureMembers(const rapidjson::Value& base, const QStringList& skip)
-{
-  if(!base.IsObject())
-    return {};
-
-  rapidjson::StringBuffer buf;
-  JsonWriter w{buf};
-  w.StartObject();
-  for(const auto& m : base.GetObject())
-  {
-    const auto name = QString::fromUtf8(m.name.GetString(), m.name.GetStringLength());
-    if(skip.contains(name))
-      continue;
-    w.Key(m.name.GetString(), m.name.GetStringLength());
-    m.value.Accept(w);
-  }
-  w.EndObject();
-
-  if(buf.GetLength() <= 2)
-    return {};
-  return QByteArray{buf.GetString(), (int)buf.GetLength()};
-}
-
-void emitMembers(JsonWriter& stream, const QByteArray& blob)
-{
-  if(blob.isEmpty())
-    return;
-
-  rapidjson::Document d;
-  d.Parse(blob.data(), blob.size());
-  if(d.HasParseError() || !d.IsObject())
-    return;
-
-  for(const auto& m : d.GetObject())
-  {
-    stream.Key(m.name.GetString(), m.name.GetStringLength());
-    m.value.Accept(stream);
-  }
-}
 }
 
 const QStringList& OpaqueProcessModel::baseMemberNames() noexcept
@@ -90,8 +51,7 @@ OpaqueProcessModel::OpaqueProcessModel(
   // object's blob is the plug-in's. deserialize_interface gave each polymorphic
   // object its own length-delimited buffer, which is what makes this safe: the
   // tail is exactly one process and stops where it should.
-  if(auto* dev = vis.m_stream.stream.device())
-    m_payload = dev->readAll();
+  m_payload = score::capturedTail(vis);
 
   // No way to find the ports inside an opaque binary blob.
   m_portsInPayload = true;
@@ -116,7 +76,7 @@ OpaqueProcessModel::OpaqueProcessModel(
     skip += portMemberNames();
   }
 
-  m_payload = captureMembers(vis.base, skip);
+  m_payload = score::capturedMembers(vis.base, skip);
 }
 
 OpaqueProcessModel::~OpaqueProcessModel() = default;
@@ -125,15 +85,14 @@ void OpaqueProcessModel::serialize_impl(const VisitorVariant& vis) const noexcep
 {
   if(vis.identifier == DataStream::type())
   {
-    auto& s = static_cast<DataStream::Serializer&>(vis.visitor);
-    s.m_stream.stream.writeRawData(m_payload.constData(), m_payload.size());
+    score::writeCapturedTail(static_cast<DataStream::Serializer&>(vis.visitor), m_payload);
   }
   else if(vis.identifier == JSONObject::type())
   {
     auto& s = static_cast<JSONObject::Serializer&>(vis.visitor);
     if(!m_portsInPayload)
       readPorts(s, m_inlets, m_outlets);
-    emitMembers(s.stream, m_payload);
+    score::writeCapturedMembers(s.stream, m_payload);
   }
 }
 
@@ -183,25 +142,13 @@ const QStringList& portBaseMemberNames() noexcept
 
 namespace
 {
-QByteArray capturePortTail(DataStream::Deserializer& vis)
-{
-  if(auto* dev = vis.m_stream.stream.device())
-    return dev->readAll();
-  return {};
-}
-
 void emitPortPayload(const VisitorVariant& vis, const QByteArray& payload)
 {
   if(vis.identifier == DataStream::type())
-  {
-    auto& s = static_cast<DataStream::Serializer&>(vis.visitor);
-    s.m_stream.stream.writeRawData(payload.constData(), payload.size());
-  }
+    score::writeCapturedTail(static_cast<DataStream::Serializer&>(vis.visitor), payload);
   else if(vis.identifier == JSONObject::type())
-  {
-    auto& s = static_cast<JSONObject::Serializer&>(vis.visitor);
-    emitMembers(s.stream, payload);
-  }
+    score::writeCapturedMembers(
+        static_cast<JSONObject::Serializer&>(vis.visitor).stream, payload);
 }
 }
 
@@ -209,7 +156,7 @@ OpaqueInlet::OpaqueInlet(
     const UuidKey<Port>& key, DataStream::Deserializer& vis, QObject* parent)
     : Inlet{vis, parent}
     , m_key{key}
-    , m_payload{capturePortTail(vis)}
+    , m_payload{score::capturedTail(vis)}
 {
 }
 
@@ -217,7 +164,7 @@ OpaqueInlet::OpaqueInlet(
     const UuidKey<Port>& key, JSONObject::Deserializer& vis, QObject* parent)
     : Inlet{vis, parent}
     , m_key{key}
-    , m_payload{captureMembers(vis.base, portBaseMemberNames())}
+    , m_payload{score::capturedMembers(vis.base, portBaseMemberNames())}
 {
 }
 
@@ -232,7 +179,7 @@ OpaqueOutlet::OpaqueOutlet(
     const UuidKey<Port>& key, DataStream::Deserializer& vis, QObject* parent)
     : Outlet{vis, parent}
     , m_key{key}
-    , m_payload{capturePortTail(vis)}
+    , m_payload{score::capturedTail(vis)}
 {
 }
 
@@ -240,7 +187,7 @@ OpaqueOutlet::OpaqueOutlet(
     const UuidKey<Port>& key, JSONObject::Deserializer& vis, QObject* parent)
     : Outlet{vis, parent}
     , m_key{key}
-    , m_payload{captureMembers(vis.base, portBaseMemberNames())}
+    , m_payload{score::capturedMembers(vis.base, portBaseMemberNames())}
 {
 }
 

@@ -212,6 +212,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/serialization/JSONValueVisitor.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/serialization/JSONParse.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/serialization/JSONVisitor.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/serialization/OpaquePayload.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/serialization/MapSerialization.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/serialization/MimeVisitor.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/serialization/StdVariantSerialization.hpp"
@@ -450,6 +451,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score/selection/SelectionStack.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/serialization/DataStreamVisitor.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/serialization/JSONObjectVisitor.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/serialization/OpaquePayload.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/serialization/QtTypesJsonVisitors.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score/model/path/ObjectIdentifierSerialization.cpp"
