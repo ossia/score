@@ -293,6 +293,12 @@ set_tests_properties(test_frame_determinism PROPERTIES
   RUN_SERIAL TRUE
   LABELS "gui"
   ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+# --- devices whose protocol this build does not have ------------------------
+score_add_test(test_integration_device_unimplemented
+  SOURCES DeviceWithoutImplementationTest.cpp
+  APP
+  PLUGINS score_plugin_scenario score_plugin_deviceexplorer)
+
 # --- remote control: who is allowed to drive this instance ------------------
 # The WebSocket API sets device parameters, drives transport and can evaluate
 # JavaScript, so the access controls are worth asserting rather than assuming.

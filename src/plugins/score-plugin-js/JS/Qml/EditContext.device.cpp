@@ -96,8 +96,8 @@ void EditJsContext::setDeviceLearn(const QString& name, bool fun)
     {
       if(node.displayName() == name)
       {
-        Device::DeviceInterface& dev = plug.list().device(node.displayName());
-        dev.setLearning(fun);
+        if(auto* dev = plug.list().findDevice(node.displayName()))
+          dev->setLearning(fun);
         //cmd->addCommand(new Explorer::Command::Remove{plug, node});
       }
     }

@@ -421,8 +421,8 @@ QVariant DeviceExplorerModel::data(const QModelIndex& index, int role) const
         else if(n.is<Device::DeviceSettings>())
         {
           auto& dev_set = n.get<Device::DeviceSettings>();
-          return Device::deviceNameColumnData(
-              n, deviceModel().list().device(dev_set.name).connected(), role);
+          auto* impl = deviceModel().list().findDevice(dev_set.name);
+          return Device::deviceNameColumnData(n, impl && impl->connected(), role);
         }
         return {};
       }
@@ -729,9 +729,10 @@ QMimeData* DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
     auto node = uniqueNodes.parents[0];
     if(node->is<Device::DeviceSettings>())
     {
-      auto& dev = deviceModel().list().device(node->get<Device::DeviceSettings>().name);
-      if(auto d = dev.mimeData())
-        return d;
+      if(auto* dev
+         = deviceModel().list().findDevice(node->get<Device::DeviceSettings>().name))
+        if(auto d = dev->mimeData())
+          return d;
     }
   }
 
