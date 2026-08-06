@@ -19,6 +19,7 @@
 #include <core/document/DocumentModel.hpp>
 
 #include <QBuffer>
+#include <QUrlQuery>
 #include <QJSEngine>
 
 #include <RemoteControl/Settings/Model.hpp>
@@ -30,23 +31,21 @@ namespace RemoteControl::WS
 using namespace std::literals;
 DocumentPlugin::DocumentPlugin(const score::DocumentContext& doc, QObject* parent)
     : score::DocumentPlugin{doc, "RemoteControl::WS::DocumentPlugin", parent}
-    , receiver{doc, 10212}
+    , receiver{doc}
 {
   auto& set = m_context.app.settings<Settings::Model>();
-  if(set.getEnabled())
-  {
-    create();
-  }
+  apply(set);
 
-  con(
-      set, &Settings::Model::EnabledChanged, this,
-      [this](bool b) {
-    if(b)
-      create();
-    else
-      cleanup();
-      },
-      Qt::QueuedConnection);
+  // Every one of these decides whether or how the port is open, so they all
+  // have to take effect without reopening the document.
+  auto reapply = [this] {
+    apply(m_context.app.settings<Settings::Model>());
+  };
+  con(set, &Settings::Model::EnabledChanged, this, reapply, Qt::QueuedConnection);
+  con(set, &Settings::Model::ServerPortChanged, this, reapply, Qt::QueuedConnection);
+  con(set, &Settings::Model::ServerAddressChanged, this, reapply, Qt::QueuedConnection);
+  con(set, &Settings::Model::TokenChanged, this, reapply, Qt::QueuedConnection);
+  con(set, &Settings::Model::AllowScriptingChanged, this, reapply, Qt::QueuedConnection);
 
   // TODO put this as a setting instead
   startTimer(100);
@@ -100,8 +99,26 @@ void DocumentPlugin::unregisterInterval(Scenario::IntervalModel& m)
   m_intervals.erase(m.id().val());
 }
 
+void DocumentPlugin::apply(const Settings::Model& set)
+{
+  if(!set.getEnabled())
+  {
+    // The socket used to be opened by the constructor and never closed, so the
+    // port was served whether or not remote control was switched on.
+    receiver.close();
+    cleanup();
+    return;
+  }
+
+  receiver.open(ReceiverSettings{
+      set.getServerPort(), set.getServerAddress(), set.getToken(),
+      set.getAllowScripting()});
+  create();
+}
+
 void DocumentPlugin::on_documentClosing()
 {
+  receiver.close();
   cleanup();
 }
 
@@ -154,15 +171,12 @@ static Path<T> readPathFromValue(const rapidjson::Value& val)
   }
 }
 
-Receiver::Receiver(const score::DocumentContext& doc, quint16 port)
+Receiver::Receiver(const score::DocumentContext& doc)
     : m_server{"i-score-ctrl", QWebSocketServer::NonSecureMode}
     , m_dev{doc.plugin<Explorer::DeviceDocumentPlugin>()}
 {
-  if(m_server.listen(QHostAddress::Any, port))
-  {
-    connect(
-        &m_server, &QWebSocketServer::newConnection, this, &Receiver::onNewConnection);
-  }
+  connect(
+      &m_server, &QWebSocketServer::newConnection, this, &Receiver::onNewConnection);
 
   m_answers.insert(
       std::make_pair("Trigger", [&](const rapidjson::Value& obj, const WSClient&) {
@@ -221,6 +235,13 @@ Receiver::Receiver(const score::DocumentContext& doc, quint16 port)
 
   m_answers.insert(
       std::make_pair("Console", [&](const rapidjson::Value& obj, const WSClient&) {
+        if(!m_settings.allowScripting)
+        {
+          qWarning() << "Remote control: refused a script. Enable scripting in the "
+                        "remote control settings if this is wanted -- it gives the "
+                        "client control of this machine, not just of the score.";
+          return;
+        }
         auto it = obj.FindMember("Code");
         if(it == obj.MemberEnd())
           return;
@@ -265,9 +286,56 @@ Receiver::Receiver(const score::DocumentContext& doc, quint16 port)
 
 Receiver::~Receiver()
 {
+  close();
+}
+
+void Receiver::open(const ReceiverSettings& settings)
+{
+  close();
+  m_settings = settings;
+
+  QHostAddress address;
+  if(settings.address.isEmpty() || !address.setAddress(settings.address))
+    address = QHostAddress::Any;
+
+  if(!m_server.listen(address, settings.port))
+  {
+    qWarning() << "Remote control: could not listen on port" << settings.port << ":"
+               << m_server.errorString();
+    return;
+  }
+
+  qDebug() << "Remote control: listening on" << m_server.serverAddress().toString()
+           << m_server.serverPort();
+}
+
+void Receiver::close()
+{
   m_server.close();
   for(auto c : m_clients)
     delete c.socket;
+  m_clients.clear();
+  m_listenedAddresses.clear();
+}
+
+bool Receiver::isOpen() const noexcept
+{
+  return m_server.isListening();
+}
+
+quint16 Receiver::port() const noexcept
+{
+  return m_server.serverPort();
+}
+
+bool Receiver::authorize(const QWebSocket& socket) const noexcept
+{
+  // The token rides on the connection URL rather than in a handshake message:
+  // a browser cannot set headers on a WebSocket, and this way a client only
+  // needs the right address to be written down, not new code.
+  const auto given
+      = QUrlQuery{socket.requestUrl().query()}.queryItemValue(QStringLiteral("token"));
+  return !m_settings.token.isEmpty() && given == m_settings.token;
 }
 
 void Receiver::addHandler(QObject* context, Handler&& handler)
@@ -334,7 +402,20 @@ void Receiver::unregisterSync(Path<Scenario::TimeSyncModel> tn)
 
 void Receiver::onNewConnection()
 {
-  WSClient client{m_server.nextPendingConnection()};
+  auto* socket = m_server.nextPendingConnection();
+  if(!socket)
+    return;
+
+  if(!authorize(*socket))
+  {
+    qWarning() << "Remote control: refused a connection from"
+               << socket->peerAddress().toString() << "- wrong or missing token";
+    socket->close(QWebSocketProtocol::CloseCodePolicyViolated, "Unauthorized");
+    socket->deleteLater();
+    return;
+  }
+
+  WSClient client{socket};
 
   connect(
       client.socket, &QWebSocket::textMessageReceived, this,

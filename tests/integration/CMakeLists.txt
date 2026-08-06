@@ -566,3 +566,16 @@ if(SCORE_VIDEO_TESTER)
     LABELS "gui"
     ENVIRONMENT "VIDEO_TESTER=${SCORE_ROOT_BINARY_DIR}/VideoDecoderTester;SCORE_AUDIO_BACKEND=dummy;ASAN_OPTIONS=detect_leaks=0:halt_on_error=0:handle_segv=1:detect_odr_violation=0:protect_shadow_gap=0")
 endif()
+
+# --- remote control: who is allowed to drive this instance ------------------
+# The WebSocket API sets device parameters, drives transport and can evaluate
+# JavaScript, so the access controls are worth asserting rather than assuming.
+if(TARGET score_plugin_remotecontrol)
+  score_add_test(test_integration_remote_control_auth
+    SOURCES RemoteControlAuthTest.cpp
+    APP
+    PLUGINS score_plugin_remotecontrol score_plugin_deviceexplorer
+    LIBS ${QT_PREFIX}::WebSockets)
+  target_include_directories(test_integration_remote_control_auth PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-remotecontrol")
+endif()
