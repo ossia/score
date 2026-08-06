@@ -1,4 +1,5 @@
 #pragma once
+#include <stdexcept>
 #include <score/model/path/ObjectIdentifier.hpp>
 #include <score/tools/SafeCast.hpp>
 
@@ -111,23 +112,30 @@ public:
   template <class T>
   T& find(const score::DocumentContext& ctx) const
   {
-    // First see if the pointer is still loaded in the cache.
-    if(!m_cache.isNull())
-    {
-      return *safe_cast<T*>(m_cache.data());
-    }
-    else // Load it by hand
-    {
-      auto ptr = safe_cast<typename std::remove_const<T>::type*>(find_impl(ctx));
-      m_cache = ptr;
-      return *ptr;
-    }
+    // Checked rather than assumed, for the reason given on try_find: an object
+    // of another type can be standing where this path points. safe_cast would
+    // abort in debug and cast blind in release; throwing lets the caller --
+    // a command being replayed from another peer, typically -- report it.
+    auto raw = m_cache.isNull() ? find_impl(ctx) : m_cache.data();
+    auto ptr = dynamic_cast<typename std::remove_const<T>::type*>(raw);
+    if(!ptr)
+      throw std::runtime_error{"the object this path names is of another type"};
+
+    m_cache = ptr;
+    return *ptr;
   }
 
   /**
    * @brief Tries to find an object
    *
-   * @return null if the object does not exist.
+   * @return null if the object does not exist, or is not of this type.
+   *
+   * The type has to be checked, not assumed. A path names an object by
+   * position and name, and the object standing at that position is not
+   * necessarily the type the path was written for: a build without a plug-in
+   * loads its processes and ports as stand-ins, which occupy the same place
+   * under the same ids. Casting blind returns a pointer to an object of the
+   * wrong type, which is then written through.
    */
   template <class T>
   T* try_find(const score::DocumentContext& ctx) const noexcept
@@ -136,13 +144,14 @@ public:
     {
       if(!m_cache.isNull())
       {
-        return safe_cast<T*>(m_cache.data());
+        return dynamic_cast<T*>(m_cache.data());
       }
       else // Load it by hand
       {
-        auto ptr
-            = static_cast<typename std::remove_const<T>::type*>(find_impl_unsafe(ctx));
-        m_cache = ptr;
+        auto ptr = dynamic_cast<typename std::remove_const<T>::type*>(
+            find_impl_unsafe(ctx));
+        if(ptr)
+          m_cache = ptr;
         return ptr;
       }
     }
