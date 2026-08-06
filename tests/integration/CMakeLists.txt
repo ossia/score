@@ -9,6 +9,8 @@
 score_add_test(test_integration_document
   SOURCES DocumentLifecycleTest.cpp
   APP)
+target_compile_definitions(test_integration_document PRIVATE
+  "SCORE_ROOT_SOURCE_DIR=\"${SCORE_ROOT_SOURCE_DIR}\"")
 
 score_add_test(test_integration_roundtrip
   SOURCES DocumentRoundtripTest.cpp

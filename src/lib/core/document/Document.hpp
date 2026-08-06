@@ -76,7 +76,10 @@ public:
   const DocumentContext& context() const noexcept { return m_context; }
 
   //! Where this document's files are. Local unless something says otherwise.
-  score::Environment& environment() const noexcept { return *m_environment; }
+  //!
+  //! Created on demand rather than in init(): deserialization resolves paths,
+  //! and it runs from the constructors before init() would have had a chance.
+  score::Environment& environment() const noexcept;
 
   //! Take the files of this document to be somewhere else -- another machine,
   //! typically, once it is being edited through a session.
@@ -159,7 +162,7 @@ private:
   DocumentBackupManager* m_backupMgr{};
 
   DocumentContext m_context;
-  std::unique_ptr<score::Environment> m_environment;
+  mutable std::unique_ptr<score::Environment> m_environment;
 
   std::optional<score::RestorableDocument> m_initialData{};
   bool m_virgin{false}; // Used to check if we can safely close it
