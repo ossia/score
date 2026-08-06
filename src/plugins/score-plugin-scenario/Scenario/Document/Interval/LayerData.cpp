@@ -46,9 +46,19 @@ void LayerData::addView(
   auto view = factory.makeLayerView(*m_model, context, container);
   if(view->toolTip().isEmpty())
   {
+    // No factory when the process is standing in for a plug-in this build does
+    // not have: there is no descriptor to read, and its own name is all we can
+    // say about it.
     auto& p = context.app.interfaces<Process::ProcessFactoryList>();
-    const auto& desc = p.get(m_model->concreteKey())->descriptor({});
-    view->setToolTip(QString("%1\n%2").arg(desc.prettyName, desc.description));
+    if(auto* fac = p.get(m_model->concreteKey()))
+    {
+      const auto& desc = fac->descriptor({});
+      view->setToolTip(QString("%1\n%2").arg(desc.prettyName, desc.description));
+    }
+    else
+    {
+      view->setToolTip(m_model->prettyName());
+    }
   }
 
   double startX = m_model->flags() & Process::ProcessFlags::HandlesLooping
