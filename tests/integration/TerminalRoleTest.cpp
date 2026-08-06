@@ -30,92 +30,18 @@
 #include <Execution/ExecutionController.hpp>
 
 #include <score_test/App.hpp>
+#include <score_test/ProbeProtocol.hpp>
 #include <score_test/Document.hpp>
 
 #include <catch2/catch_test_macros.hpp>
 
 namespace
 {
-constexpr auto probe_uuid = "9f1c0f4a-1b2c-4d3e-8f70-0badc0ffee00";
-
-//! Counts the requests to build a device rather than building one. Returning
-//! null is a case the explorer already handles (it is what a protocol whose
-//! hardware is absent does), so the count is the only thing under test: a
-//! terminal must not get this far at all.
-struct ProbeProtocolFactory final : public Device::ProtocolFactory
-{
-  SCORE_CONCRETE("9f1c0f4a-1b2c-4d3e-8f70-0badc0ffee00")
-public:
-  static inline int requests = 0;
-
-  QString prettyName() const noexcept override { return QStringLiteral("Probe"); }
-  QString category() const noexcept override { return StandardCategories::util; }
-
-  Device::DeviceInterface* makeDevice(
-      const Device::DeviceSettings&, const Explorer::DeviceDocumentPlugin&,
-      const score::DocumentContext&) override
-  {
-    ++requests;
-    return nullptr;
-  }
-
-  const Device::DeviceSettings& defaultSettings() const noexcept override
-  {
-    static const Device::DeviceSettings s = [] {
-      Device::DeviceSettings d;
-      d.protocol = static_concreteKey();
-      d.name = QStringLiteral("Probe");
-      return d;
-    }();
-    return s;
-  }
-
-  Device::AddressDialog* makeAddAddressDialog(
-      const Device::DeviceInterface&, const score::DocumentContext&, QWidget*) override
-  {
-    return nullptr;
-  }
-  Device::AddressDialog* makeEditAddressDialog(
-      const Device::AddressSettings&, const Device::DeviceInterface&,
-      const score::DocumentContext&, QWidget*) override
-  {
-    return nullptr;
-  }
-  Device::ProtocolSettingsWidget* makeSettingsWidget() override { return nullptr; }
-
-  QVariant makeProtocolSpecificSettings(const VisitorVariant&) const override
-  {
-    return {};
-  }
-  void serializeProtocolSpecificSettings(const QVariant&, const VisitorVariant&)
-      const override
-  {
-  }
-  bool checkCompatibility(
-      const Device::DeviceSettings&, const Device::DeviceSettings&) const noexcept override
-  {
-    return true;
-  }
-};
-
-//! Registered into the running application: the point is a protocol this build
-//! genuinely has, so that not building a device is a decision rather than an
-//! absence.
-void registerProbe(const score::GUIApplicationContext& ctx)
-{
-  auto& list = ctx.interfaces<Device::ProtocolFactoryList>();
-  if(list.get(ProbeProtocolFactory::static_concreteKey()))
-    return;
-  const_cast<Device::ProtocolFactoryList&>(list).insert(
-      std::make_unique<ProbeProtocolFactory>());
-}
+using score::test::ProbeProtocolFactory;
 
 Device::Node probeNode(const QString& name = QStringLiteral("probe"))
 {
-  Device::DeviceSettings s;
-  s.protocol = ProbeProtocolFactory::static_concreteKey();
-  s.name = name;
-  return Device::Node{s, nullptr};
+  return score::test::probe_device_node(name);
 }
 
 //! JSON, as a session sends it: RemoteClientBuilder writes saveAsJson and
@@ -165,7 +91,7 @@ score::Document* reload(
 TEST_CASE("A local document builds the devices it names", "[terminal]")
 {
   score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
-    registerProbe(ctx);
+    score::test::register_probe_protocol(ctx);
     const auto bytes = documentWithProbeDevice(ctx);
     REQUIRE(bytes.size() > 0);
 
@@ -182,7 +108,7 @@ TEST_CASE("A local document builds the devices it names", "[terminal]")
 TEST_CASE("A terminal document builds no devices at all", "[terminal]")
 {
   score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
-    registerProbe(ctx);
+    score::test::register_probe_protocol(ctx);
     const auto bytes = documentWithProbeDevice(ctx);
     REQUIRE(bytes.size() > 0);
 
@@ -201,7 +127,7 @@ TEST_CASE("A terminal document builds no devices at all", "[terminal]")
 TEST_CASE("A terminal still shows and keeps the score's devices", "[terminal]")
 {
   score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
-    registerProbe(ctx);
+    score::test::register_probe_protocol(ctx);
     const auto bytes = documentWithProbeDevice(ctx);
 
     auto* doc = reload(ctx, bytes, score::DocumentRole::Terminal);
@@ -237,7 +163,7 @@ TEST_CASE("A terminal still shows and keeps the score's devices", "[terminal]")
 TEST_CASE("A terminal document does not execute", "[terminal]")
 {
   score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
-    registerProbe(ctx);
+    score::test::register_probe_protocol(ctx);
     const auto bytes = documentWithProbeDevice(ctx);
 
     auto* doc = reload(ctx, bytes, score::DocumentRole::Terminal);
