@@ -292,7 +292,8 @@ if(TARGET pipewire::pipewire)
 endif()
 # --- heterogeneous builds: what happens when a factory is absent -----------
 # Pins the behaviour of documents referencing processes / protocols this build
-# does not have. See docs/remote-control-plan.md sections 5bis-5quater.
+# does not have: Syphon and Spout are compiled into score-plugin-gfx under #if,
+# so a present plug-in is no guarantee that its factories are registered.
 score_add_test(test_unit_heterogeneous_build
   SOURCES HeterogeneousBuildTest.cpp
   APP
