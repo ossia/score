@@ -3,6 +3,7 @@
 .clangd
 ./*.cache
 *.zip
+build-* 
 AppRun*
 *.AppImage
 *.txz

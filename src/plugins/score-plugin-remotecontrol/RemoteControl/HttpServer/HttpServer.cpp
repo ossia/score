@@ -12,7 +12,7 @@
 #include <Library/LibrarySettings.hpp>
 
 #include <cstdlib>
-#include <iostream>
+#include <ossia/detail/fmt.hpp>
 
 namespace RemoteControl::HttpServer
 {
