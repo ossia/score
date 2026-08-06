@@ -3,6 +3,8 @@
 
 #include <QByteArray>
 
+#include <score/serialization/OpaquePayload.hpp>
+
 #include <verdigris>
 
 namespace score
@@ -65,7 +67,7 @@ public:
 
 private:
   UuidKey<DocumentPluginFactory> m_key;
-  QByteArray m_payload;
+  score::OpaquePayload m_payload;
 };
 
 }

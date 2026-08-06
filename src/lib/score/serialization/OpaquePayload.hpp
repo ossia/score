@@ -27,20 +27,39 @@
 
 namespace score
 {
-//! Every member of `base` except those named, as a JSON object.
-//! Empty when nothing is left, so that an absent payload stays absent.
-SCORE_LIB_BASE_EXPORT QByteArray
-capturedMembers(const rapidjson::Value& base, const QStringList& owned) noexcept;
+/**
+ * @brief A plug-in's own data, kept without being understood.
+ *
+ * It remembers which format it was read in, because it is not always written
+ * back out in the same one. A document read from .score is written to the
+ * binary format on every autosave, and moving an interval serialises its
+ * processes to the binary format and rebuilds them from those bytes -- so a
+ * payload that could only be written in the format it came from would be lost
+ * by dragging a box.
+ *
+ * Written into the other format it is wrapped, so that reading it back
+ * recognises what it is holding. That keeps score's own round-trips exact in
+ * every direction. What it cannot do is make the *plug-in* able to read it:
+ * a .scorebin saved from a document that came from .score holds the plug-in's
+ * JSON inside a binary blob, and only score knows that. Moving a document
+ * between machines that differ should use .score, which never needs wrapping.
+ */
+struct SCORE_LIB_BASE_EXPORT OpaquePayload
+{
+  //! DataStream::type() or JSONObject::type(); 0 when there is nothing.
+  SerializationIdentifier format{};
+  QByteArray bytes;
 
-//! Write a captured object's members back out, in place.
-SCORE_LIB_BASE_EXPORT void
-writeCapturedMembers(JsonWriter& stream, const QByteArray& captured) noexcept;
+  bool empty() const noexcept { return bytes.isEmpty(); }
 
-//! Whatever is left of this object's blob after the base has read its part.
-SCORE_LIB_BASE_EXPORT QByteArray
-capturedTail(DataStream::Deserializer& vis) noexcept;
+  //! Everything in `base` except the members named, which score owns.
+  static OpaquePayload
+  fromJson(const rapidjson::Value& base, const QStringList& owned) noexcept;
 
-//! Write a captured tail back out, unchanged.
-SCORE_LIB_BASE_EXPORT void
-writeCapturedTail(DataStream::Serializer& s, const QByteArray& captured) noexcept;
+  //! Whatever is left of this object's blob after the base has read its part.
+  static OpaquePayload fromDataStream(DataStream::Deserializer& vis) noexcept;
+
+  //! Write it back into whichever format is being written now.
+  void write(const VisitorVariant& vis) const noexcept;
+};
 }
