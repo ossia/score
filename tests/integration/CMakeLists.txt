@@ -575,6 +575,12 @@ score_add_test(test_integration_device_unimplemented
   APP
   PLUGINS score_plugin_scenario score_plugin_deviceexplorer)
 
+# --- terminal role: a document that must not touch this machine -------------
+score_add_test(test_integration_terminal_role
+  SOURCES TerminalRoleTest.cpp
+  APP
+  PLUGINS score_plugin_scenario score_plugin_deviceexplorer score_plugin_engine)
+
 # --- remote control: who is allowed to drive this instance ------------------
 # The WebSocket API sets device parameters, drives transport and can evaluate
 # JavaScript, so the access controls are worth asserting rather than assuming.

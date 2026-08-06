@@ -2,6 +2,7 @@
 #include <score/command/CommandStackFacade.hpp>
 #include <score/command/Dispatchers/OngoingCommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
+#include <score/document/DocumentRole.hpp>
 #include <score/selection/FocusManager.hpp>
 class IdentifiedObjectAbstract;
 class QTimer;
@@ -35,6 +36,9 @@ struct SCORE_LIB_BASE_EXPORT DocumentContext
   //! Where this document's files are: on this machine, or on the one running
   //! the score. Ask rather than assuming a path can be opened.
   score::Environment& environment() const noexcept;
+
+  //! Whether this document may claim the hardware of the machine it is open on.
+  score::DocumentRole role() const noexcept;
 
   template <typename T>
   T& model() const

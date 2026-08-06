@@ -38,8 +38,13 @@ void JSONReader::read(const Explorer::DeviceDocumentPlugin& plug)
     SCORE_ASSERT(node.is<Device::DeviceSettings>());
     const Device::DeviceSettings& dev = node.get<Device::DeviceSettings>();
     auto actual = plug.list().findDevice(dev.name);
-    SCORE_ASSERT(actual);
-    if(actual->capabilities().canSerialize)
+
+    // No implementation: the protocol is one this build does not have, or the
+    // document belongs to another machine. Its addresses exist only here, so
+    // they are written out -- dropping them would quietly empty the device for
+    // every machine that does have the protocol. canSerialize is a statement
+    // about a live device that can be asked again on load, and there is none.
+    if(!actual || actual->capabilities().canSerialize)
     {
       this->readFrom(node);
     }

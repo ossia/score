@@ -316,7 +316,8 @@ void ExecutionController::on_play_local(bool b)
 
 void ExecutionController::on_pause()
 {
-  ensure_audio_engine();
+  if(!has_audio_engine())
+    return;
 
   if(m_clock)
   {
@@ -478,30 +479,25 @@ void ExecutionController::request_end_scrub(TimeVal t)
   }
 }
 
-void ExecutionController::ensure_audio_engine()
+bool ExecutionController::has_audio_engine()
 {
   auto& audio_engine = this->context.guiApplicationPlugin<Audio::ApplicationPlugin>();
-  if(!audio_engine.audio)
-  {
-    if(this->context.mainWindow)
-    {
-      score::warning(
-          this->context.mainWindow, tr("Cannot play"),
-          tr("Cannot start playback. It looks like the audio engine is not "
-             "running.\n"
-             "Check the audio settings in the software settings to ensure "
-             "that a sound card "
-             "is correctly configured.\n\n"
-             "Check Settings > Audio > Device in particular. "
-             "The power-on icon at the bottom of the transport toolbar will "
-             "light up when the engine is running."));
-      return;
-    }
-    else
-    {
-      qFatal("Cannot playback without an audio engine set up");
-    }
-  }
+  if(audio_engine.audio)
+    return true;
+
+  // Not fatal without a window: an unattended host -- which is the point of
+  // --no-gui -- would be killed by a play request it could simply decline.
+  score::warning(
+      this->context.mainWindow, tr("Cannot play"),
+      tr("Cannot start playback. It looks like the audio engine is not "
+         "running.\n"
+         "Check the audio settings in the software settings to ensure "
+         "that a sound card "
+         "is correctly configured.\n\n"
+         "Check Settings > Audio > Device in particular. "
+         "The power-on icon at the bottom of the transport toolbar will "
+         "light up when the engine is running."));
+  return false;
 }
 
 void ExecutionController::play_interval(
@@ -513,11 +509,17 @@ void ExecutionController::play_interval(
 
   auto& ctx = doc->context();
 
+  // The score runs elsewhere; this copy has no devices to play through and no
+  // business claiming this machine's audio. Transport comes from the host.
+  if(doc->role() == score::DocumentRole::Terminal)
+    return;
+
   auto exec_plug = ctx.findPlugin<Execution::DocumentPlugin>();
   if(!exec_plug)
     return;
 
-  ensure_audio_engine();
+  if(!has_audio_engine())
+    return;
 
   if(m_playing)
   {
@@ -605,7 +607,8 @@ void ExecutionController::stop_interval(Scenario::IntervalModel& cst)
   if(!exec_plug)
     return;
 
-  ensure_audio_engine();
+  if(!has_audio_engine())
+    return;
 
   if(m_playing)
   {

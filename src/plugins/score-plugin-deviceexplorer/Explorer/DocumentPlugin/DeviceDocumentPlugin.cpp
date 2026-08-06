@@ -181,6 +181,9 @@ void DeviceDocumentPlugin::timerEvent(QTimerEvent* event)
 
 Device::Node DeviceDocumentPlugin::createDeviceFromNode(const Device::Node& node)
 {
+  if(m_context.role() == score::DocumentRole::Terminal)
+    return node;
+
   try
   {
     auto& fact = m_context.app.interfaces<Device::ProtocolFactoryList>();
@@ -315,6 +318,13 @@ void DeviceDocumentPlugin::refreshDeviceTreeOnReconnect(Device::DeviceInterface&
 std::optional<Device::Node>
 DeviceDocumentPlugin::loadDeviceFromNode(const Device::Node& node)
 {
+  // The score runs on another machine and its devices belong to it: making
+  // them here would open that machine's ports, claim its MIDI and cameras, and
+  // put its render windows on this screen. The node stays in the tree with
+  // nothing behind it, which is the same shape as a protocol we do not have.
+  if(m_context.role() == score::DocumentRole::Terminal)
+    return {};
+
   try
   {
     // Instantiate a real device.
