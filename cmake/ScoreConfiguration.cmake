@@ -312,6 +312,44 @@ install(
   COMPONENT Devel
   OPTIONAL)
 
+if(WIN32)
+  # Pin the Windows target for every translation unit, whatever the compiler.
+  #
+  # <windows.h> defines _WIN32_WINNT itself, through <sdkddkver.h>, whenever it
+  # is not already set, so leaving it alone does not mean "no minimum" - it
+  # means each translation unit gets one depending on whether it reached
+  # <windows.h> at all. Headers that branch on it, Boost.Asio among them, then
+  # configure themselves differently from one file to the next, which is an ODR
+  # violation that nothing reports, because both spellings mangle the same.
+  #
+  # The defaults also disagree between toolchains: the Windows Kits header
+  # picks 0x0A00 while mingw-w64 picks _WIN32_WINNT_WS03, so a mingw build has
+  # been configuring itself for Server 2003 wherever this was left alone.
+  #
+  # WINVER and NTDDI_VERSION are deliberately not set: sdkddkver.h derives
+  # WINVER from _WIN32_WINNT and NTDDI_VERSION from the SDK, in both
+  # toolchains, so setting them by hand only creates a way for them to
+  # disagree.
+  #
+  # Global rather than PUBLIC on a target because the dependencies that compile
+  # Asio are siblings of the libraries consuming it rather than consumers
+  # themselves: libremidi builds its own translation units on MSVC, and a
+  # PUBLIC definition on ossia never reaches them. libossia repeats this in its
+  # own top-level CMakeLists so it is correct when built standalone.
+  # And Asio's version namespace, which libossia enables and which is part of
+  # its ABI: the namespace is an inline namespace, so it is baked into the
+  # mangled name of every Asio type its headers expose. libossia explicitly
+  # instantiates resolve_sync_v4 for boost::asio::ip::udp and ::tcp, so a
+  # translation unit here that does not agree about the namespace names a
+  # different specialisation and fails to link. It comes with the ossia target
+  # too; it is repeated here for the targets that reach Asio without linking
+  # ossia.
+  add_definitions(
+    -D_WIN32_WINNT=0x0A00
+    -DBOOST_ASIO_ENABLE_VERSION_NAMESPACE=1
+  )
+endif()
+
 # Win32 codepage stuff
 if(WIN32)
   file(CONFIGURE
