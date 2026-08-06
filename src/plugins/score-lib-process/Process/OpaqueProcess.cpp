@@ -115,10 +115,16 @@ QStringList OpaqueProcessModel::tags() const noexcept
 
 ProcessFlags OpaqueProcessModel::flags() const noexcept
 {
-  // Deliberately not TimeIndependent / ControlSurface / anything that would
-  // make the rest of score treat it as usable: it has no executor and its
-  // structure must not be edited, since we cannot re-derive the plug-in data.
-  return {};
+  // TimeIndependent is not a guess about what we are replacing so much as a
+  // statement about ourselves: nothing here knows how to rescale a plug-in's
+  // data, so the parent duration changing must not be taken to change it. Left
+  // out, the interval rewrote a stand-in's duration on every resize while its
+  // contents stayed as they were -- and the processes most often standing in
+  // like this, VST and LV2, declare it themselves.
+  //
+  // SupportsTemporal so it can still be shown where it was. Not ControlSurface
+  // or RequiresCustomData: those promise things we cannot do.
+  return ProcessFlags::SupportsTemporal | ProcessFlags::TimeIndependent;
 }
 }
 
