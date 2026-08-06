@@ -28,6 +28,8 @@
 
 #include <core/presenter/DocumentManager.hpp>
 
+#include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
+
 #include <score/model/EntitySerialization.hpp>
 
 #include <cstring>
@@ -414,6 +416,43 @@ TEST_CASE("A port with no factory survives the binary format too", "[heterogeneo
 
     qDeleteAll(ins);
     qDeleteAll(outs);
+  });
+}
+
+TEST_CASE("A document plug-in with no factory keeps its data", "[heterogeneous]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    // Document plug-ins carry whole subsystems' state -- the network add-on
+    // keeps its groups in one -- and were dropped outright when absent, so
+    // saving wrote the document back without them.
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+
+    const QByteArray authored
+        = QStringLiteral(R"({"uuid":"%1","Groups":["all","band"],"Tempo":120})")
+              .arg(absent_uuid)
+              .toUtf8();
+
+    auto json = readJson(authored);
+    REQUIRE(!json.HasParseError());
+
+    auto& facs = ctx.interfaces<score::DocumentPluginFactoryList>();
+    auto& dctx = const_cast<score::DocumentContext&>(doc->context());
+    auto* loaded
+        = deserialize_interface(facs, JSONObject::Deserializer{json}, dctx, doc);
+    REQUIRE(loaded);
+
+    auto* opaque = dynamic_cast<score::OpaqueDocumentPlugin*>(loaded);
+    REQUIRE(opaque);
+    CHECK(opaque->concreteKey()
+          == UuidKey<score::DocumentPluginFactory>::fromString(QString{absent_uuid}));
+
+    JSONReader out;
+    out.readFrom(static_cast<const score::SerializableDocumentPlugin&>(*opaque));
+    auto reserialized = readJson(out.toByteArray());
+    CHECK(reserialized == json);
+
+    delete loaded;
   });
 }
 
