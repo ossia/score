@@ -84,7 +84,8 @@ private:
       ::TimeVal t = ::TimeVal::zero());
 
   void stop_interval(Scenario::IntervalModel&);
-  void ensure_audio_engine();
+  //! False -- and says why -- when nothing can be played through.
+  bool has_audio_engine();
 
   void on_play_local(bool, ::TimeVal t);
   void on_pause();

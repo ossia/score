@@ -1,5 +1,6 @@
 #pragma once
 #include <score/document/DocumentContext.hpp>
+#include <score/document/DocumentRole.hpp>
 #include <score/tools/Environment.hpp>
 #include <score/locking/ObjectLocker.hpp>
 #include <score/selection/FocusManager.hpp>
@@ -85,6 +86,12 @@ public:
   //! typically, once it is being edited through a session.
   void setEnvironment(std::unique_ptr<score::Environment> env);
 
+  //! Whether this document may drive the hardware of the machine it is open on.
+  //!
+  //! Fixed at construction: devices connect while their plug-in deserializes,
+  //! so a document that must not claim them has to say so before it is read.
+  DocumentRole role() const noexcept { return m_role; }
+
   DocumentModel& model() const noexcept { return *m_model; }
 
   DocumentPresenter* presenter() const noexcept { return m_presenter; }
@@ -130,7 +137,8 @@ private:
 
   Document(
       const QString& name, const QByteArray& data, SerializationIdentifier format,
-      DocumentDelegateFactory& type, QWidget* parentview, QObject* parent);
+      DocumentDelegateFactory& type, QWidget* parentview, QObject* parent,
+      DocumentRole role = DocumentRole::Local);
 
   // Restore
   Document(
@@ -163,6 +171,7 @@ private:
 
   DocumentContext m_context;
   mutable std::unique_ptr<score::Environment> m_environment;
+  DocumentRole m_role{DocumentRole::Local};
 
   std::optional<score::RestorableDocument> m_initialData{};
   bool m_virgin{false}; // Used to check if we can safely close it

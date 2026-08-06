@@ -1,4 +1,5 @@
 #pragma once
+#include <score/document/DocumentRole.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/serialization/VisitorInterface.hpp>
 
@@ -36,7 +37,8 @@ public:
       score::DocumentDelegateFactory& doctype);
   Document* loadDocument(
       const score::GUIApplicationContext& ctx, QString filename, QByteArray data,
-      SerializationIdentifier format, score::DocumentDelegateFactory& doctype);
+      SerializationIdentifier format, score::DocumentDelegateFactory& doctype,
+      DocumentRole role = DocumentRole::Local);
   Document* restoreDocument(
       const score::GUIApplicationContext& ctx, const score::RestorableDocument& doc,
       score::DocumentDelegateFactory& doctype);
