@@ -128,6 +128,11 @@ score::Environment& DocumentContext::environment() const noexcept
   return document.environment();
 }
 
+score::DocumentRole DocumentContext::role() const noexcept
+{
+  return document.role();
+}
+
 Document::Document(
     const QString& name, const Id<DocumentModel>& id, DocumentDelegateFactory& factory,
     QWidget* parentview, QObject* parent)

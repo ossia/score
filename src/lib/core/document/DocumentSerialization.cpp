@@ -166,13 +166,17 @@ Document::Document(
 
 Document::Document(
     const QString& fileName, const QByteArray& data, SerializationIdentifier format,
-    DocumentDelegateFactory& factory, QWidget* parentview, QObject* parent)
+    DocumentDelegateFactory& factory, QWidget* parentview, QObject* parent,
+    DocumentRole role)
     : QObject{parent}
     , m_metadata{fileName}
     , m_commandStack{*this}
     , m_objectLocker{this}
     , m_context{*this}
+    , m_role{role}
 {
+  // Before loadModel: devices are instantiated as the device plug-in is read,
+  // and a terminal must not claim any of them.
   loadModel(fileName, data, format, factory);
 
   if(parentview)

@@ -123,13 +123,14 @@ Document* DocumentBuilder::loadDocument(
 SCORE_LIB_BASE_EXPORT
 Document* DocumentBuilder::loadDocument(
     const score::GUIApplicationContext& ctx, QString filename, QByteArray data,
-    SerializationIdentifier format, DocumentDelegateFactory& doctype)
+    SerializationIdentifier format, DocumentDelegateFactory& doctype, DocumentRole role)
 {
   Document* doc = nullptr;
   auto& doclist = ctx.documents.documents();
   try
   {
-    doc = new Document{filename, data, format, doctype, m_parentView, m_parentPresenter};
+    doc = new Document{
+        filename, data, format, doctype, m_parentView, m_parentPresenter, role};
     for(auto& appPlug : ctx.guiApplicationPlugins())
     {
       appPlug->on_loadedDocument(*doc);
