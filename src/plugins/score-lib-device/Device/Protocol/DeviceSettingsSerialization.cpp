@@ -133,6 +133,12 @@ SCORE_LIB_DEVICE_EXPORT void DataStreamWriter::write(Device::DeviceSettings& n)
   // keep working. Otherwise the payload was written by a build that did have
   // the protocol, and since it carries no length prefix there is no way to skip
   // it: the read cannot continue.
+  //
+  // Telling the two apart by whether the next four bytes are the delimiter is
+  // a guess, and a protocol whose payload happens to begin with them would be
+  // read as having none. Nothing better is available without changing the
+  // format, which .scorebin has no version field to migrate on; JSON, which is
+  // what documents move between machines as, does not need any of this.
   int32_t next{};
   m_stream.stream >> next;
   if(next != int32_t(0xDEADBEEF))
