@@ -54,38 +54,71 @@ QByteArray settingsFromRicherBuild(const QString& name)
 }
 }
 
-TEST_CASE("DeviceSettings DataStream desyncs when the protocol is absent", "[heterogeneous]")
+TEST_CASE("DeviceSettings DataStream reports the missing protocol", "[heterogeneous]")
 {
   score::test::run_in_app([](const score::GUIApplicationContext&) {
+    // The binary format writes protocol settings inline with no length prefix,
+    // so a reader without the factory genuinely cannot skip them: the payload
+    // is unrecoverable and the only honest outcome is a clear diagnostic. What
+    // must NOT happen is the old behaviour, where the delimiter check landed
+    // mid-payload and blamed the whole file for being corrupt.
     const QByteArray bytes = settingsFromRicherBuild("syphon-in");
 
-    // Replay exactly what DataStreamWriter::write(DeviceSettings&) does when
-    // ProtocolFactoryList::get() returns null: read name and protocol, skip the
-    // payload entirely, then expect the delimiter.
+    Device::DeviceSettings s;
     DataStreamWriter w{bytes};
-    QString name;
-    UuidKey<Device::ProtocolFactory> protocol;
-    w.m_stream >> name >> protocol;
+    REQUIRE_THROWS_AS(w.writeTo(s), std::runtime_error);
 
-    REQUIRE(name == "syphon-in");
-    REQUIRE(protocol == absentProtocol());
-
-    int32_t delimiter{};
-    w.m_stream.stream >> delimiter;
-
-    // The payload is not length-delimited, so it cannot be skipped: what the
-    // reader lands on is the payload, not the delimiter. checkDelimiter() then
-    // SIGTRAPs (debug) or throws "Corrupt save file." (release).
-    CHECK(delimiter != int32_t(0xDEADBEEF));
+    // The device and protocol are named, so the message can tell the user which
+    // machine to open the document on.
+    try
+    {
+      Device::DeviceSettings s2;
+      DataStreamWriter w2{bytes};
+      w2.writeTo(s2);
+    }
+    catch(const std::runtime_error& e)
+    {
+      const QString what = QString::fromStdString(e.what());
+      CHECK(what.contains("syphon-in"));
+      CHECK(what.contains(absent_uuid));
+      CHECK(what.contains(".score"));
+    }
   });
 }
 
-TEST_CASE("DeviceSettings JSON silently drops the payload", "[heterogeneous]")
+TEST_CASE("DeviceSettings DataStream round-trips when nobody has the protocol",
+          "[heterogeneous]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    // Symmetric case: the writer had no factory either, so it wrote no payload
+    // and the delimiter follows the protocol key directly. Nothing is lost and
+    // this must keep working -- it is how a device whose plug-in is absent on
+    // *both* ends survives a local save/load.
+    Device::DeviceSettings in;
+    in.name = "syphon-in";
+    in.protocol = absentProtocol();
+
+    QByteArray bytes;
+    {
+      DataStreamReader r{&bytes};
+      r.readFrom(in);
+    }
+
+    Device::DeviceSettings out;
+    DataStreamWriter w{bytes};
+    REQUIRE_NOTHROW(w.writeTo(out));
+    CHECK(out.name == in.name);
+    CHECK(out.protocol == in.protocol);
+  });
+}
+
+TEST_CASE("DeviceSettings JSON preserves the settings of an absent protocol",
+          "[heterogeneous]")
 {
   score::test::run_in_app([](const score::GUIApplicationContext&) {
     const QByteArray json
         = QStringLiteral(R"({"Name":"syphon-in","Protocol":"%1",)"
-                         R"("ServerName":"Resolume","AppName":"Arena"})")
+                         R"("ServerName":"Resolume","AppName":"Arena","Rate":60})")
               .arg(absent_uuid)
               .toUtf8();
 
@@ -98,16 +131,57 @@ TEST_CASE("DeviceSettings JSON silently drops the payload", "[heterogeneous]")
 
     CHECK(s.name == "syphon-in");
     CHECK(s.protocol == absentProtocol());
-    // Gone, with no error surfaced to the caller.
+    // No factory, so nothing could be parsed into a typed settings object...
     CHECK(s.deviceSpecificSettings.isNull());
+    // ...but the raw members are kept.
+    CHECK_FALSE(s.opaqueSettings.isEmpty());
 
-    // So re-serializing writes a husk: the settings the host authored are
-    // destroyed by a round-trip through a build lacking the protocol.
+    // Saving from this build must reproduce what the authoring machine wrote,
+    // so the device still works when the document goes back to a build that
+    // has the protocol.
     JSONReader rd;
     rd.readFrom(s);
-    const QString out = rd.toString();
-    CHECK(out.contains("syphon-in"));
-    CHECK_FALSE(out.contains("Resolume"));
+
+    auto out = readJson(rd.toByteArray());
+    REQUIRE(!out.HasParseError());
+    REQUIRE(out.IsObject());
+    CHECK(out["Name"] == "syphon-in");
+    CHECK(out["ServerName"] == "Resolume");
+    CHECK(out["AppName"] == "Arena");
+    CHECK(out["Rate"].GetInt() == 60);
+    CHECK(out.MemberCount() == doc.MemberCount());
+  });
+}
+
+TEST_CASE("Preserved settings survive repeated round-trips", "[heterogeneous]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    // Machine B opening, re-saving and re-opening must not erode the payload:
+    // nested objects and arrays have to come back byte-identical too.
+    const QByteArray original
+        = QStringLiteral(R"({"Name":"cam","Protocol":"%1","Nested":{"a":[1,2,3],)"
+                         R"("b":null},"Flag":true,"Ratio":0.5})")
+              .arg(absent_uuid)
+              .toUtf8();
+
+    QByteArray current = original;
+    for(int i = 0; i < 3; i++)
+    {
+      auto doc = readJson(current);
+      REQUIRE(!doc.HasParseError());
+
+      Device::DeviceSettings s;
+      JSONWriter{doc}.writeTo(s);
+
+      JSONReader rd;
+      rd.readFrom(s);
+      current = rd.toByteArray();
+    }
+
+    auto first = readJson(original);
+    auto last = readJson(current);
+    REQUIRE(!last.HasParseError());
+    CHECK(first == last);
   });
 }
 
