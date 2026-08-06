@@ -1,6 +1,8 @@
 #include <score/tools/File.hpp>
 #include <score/tools/ProjectFiles.hpp>
 
+#include <score/tools/Uri.hpp>
+
 #include <core/document/Document.hpp>
 
 #include <QDir>
