@@ -206,6 +206,12 @@ score_add_test(test_integration_process_fold_mode
   APP
   PLUGINS score_plugin_scenario score_lib_process score_plugin_fx)
 
+# --- devices whose protocol this build does not have ------------------------
+score_add_test(test_integration_device_unimplemented
+  SOURCES DeviceWithoutImplementationTest.cpp
+  APP
+  PLUGINS score_plugin_scenario score_plugin_deviceexplorer)
+
 # --- remote control: who is allowed to drive this instance ------------------
 # The WebSocket API sets device parameters, drives transport and can evaluate
 # JavaScript, so the access controls are worth asserting rather than assuming.

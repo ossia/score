@@ -1,15 +1,31 @@
 #include "MessageBox.hpp"
 
 #include <score/application/ApplicationContext.hpp>
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/widgets/Pixmap.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
 
 #include <QDebug>
+#include <QMainWindow>
 #include <QMessageBox>
 
 namespace score
 {
+namespace
+{
+//! A modal box needs someone to dismiss it, and exec() does not return until
+//! one does. `gui` alone does not promise that: an embedder that builds the
+//! application without a window -- the test fixtures, anything using
+//! MinimalApplication -- leaves it set, and every report of a problem then
+//! hangs the process instead of printing. A main window is what actually says
+//! there is a person here.
+[[maybe_unused]] bool canShowModal() noexcept
+{
+  return score::AppContext().applicationSettings.gui
+         && score::GUIAppContext().mainWindow;
+}
+}
 #if defined(__EMSCRIPTEN__)
 namespace
 {
@@ -39,7 +55,7 @@ int notify(
 int question(QWidget* parent, const QString& title, const QString& text)
 {
 #if !defined(__EMSCRIPTEN__)
-  if(score::AppContext().applicationSettings.gui)
+  if(canShowModal())
   {
     auto msg
         = new QMessageBox{{}, title, text, QMessageBox::Yes | QMessageBox::No, parent};
@@ -64,7 +80,7 @@ int information(QWidget* parent, const QString& title, const QString& text)
   return notify(
       parent, title, text, QStringLiteral(":/icons/message_information.png"));
 #else
-  if(score::AppContext().applicationSettings.gui)
+  if(canShowModal())
   {
     auto msg = new QMessageBox{{}, title, text, QMessageBox::Ok, parent};
     msg->setIconPixmap(
@@ -87,7 +103,7 @@ int warning(QWidget* parent, const QString& title, const QString& text)
 #if defined(__EMSCRIPTEN__)
   return notify(parent, title, text, QStringLiteral(":/icons/message_warning.png"));
 #else
-  if(score::AppContext().applicationSettings.gui)
+  if(canShowModal())
   {
     auto msg = new QMessageBox{{}, title, text, QMessageBox::Ok, parent};
     msg->setIconPixmap(score::get_pixmap(QStringLiteral(":/icons/message_warning.png")));
