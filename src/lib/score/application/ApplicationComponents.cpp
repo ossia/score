@@ -82,4 +82,31 @@ Command* ApplicationComponents::instantiateUndoCommand(const CommandData& cmd) c
 #endif
   return nullptr;
 }
+
+Command*
+ApplicationComponents::instantiateUndoCommandIfAvailable(const CommandData& cmd) const noexcept
+{
+  auto it = m_data.commands.find({cmd.parentKey, cmd.commandKey});
+  if(it == m_data.commands.end())
+    return nullptr;
+
+  try
+  {
+    return (*it->second)(cmd.data);
+  }
+  catch(const std::exception& e)
+  {
+    // The command exists but its payload does not deserialize here: it can name
+    // a factory this build lacks, e.g. a protocol compiled in under #if.
+    qDebug() << "Command" << cmd.parentKey.toString() << "::"
+             << cmd.commandKey.toString() << "could not be read:" << e.what();
+    return nullptr;
+  }
+  catch(...)
+  {
+    qDebug() << "Command" << cmd.parentKey.toString()
+             << "::" << cmd.commandKey.toString() << "could not be read.";
+    return nullptr;
+  }
+}
 }
