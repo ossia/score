@@ -190,6 +190,14 @@ public:
 
   score::Command* instantiateUndoCommand(const CommandData& cmd) const;
 
+  //! Same, but returns nullptr instead of aborting or throwing when the command
+  //! is not registered in this build.
+  //!
+  //! For commands that did not originate locally: a peer in a networked session
+  //! may run a build with plug-ins we do not have, so an unknown command is a
+  //! situation to report, not a programming error to abort on.
+  score::Command* instantiateUndoCommandIfAvailable(const CommandData& cmd) const noexcept;
+
 private:
   const score::ApplicationComponentsData& m_data;
 };
