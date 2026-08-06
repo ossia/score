@@ -297,7 +297,7 @@ endif()
 score_add_test(test_unit_heterogeneous_build
   SOURCES HeterogeneousBuildTest.cpp
   APP
-  PLUGINS score_lib_device score_lib_process)
+  PLUGINS score_lib_device score_lib_process score_plugin_scenario)
 
 # --- how a path is stored in a document ------------------------------------
 score_add_test(test_unit_uri
