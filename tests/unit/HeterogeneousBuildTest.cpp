@@ -1,12 +1,13 @@
 // What happens when a document references a process or protocol that this build
-// does not have. See docs/remote-control-plan.md sections 5bis-5quater.
+// does not have.
 //
 // Protocols and processes are registered conditionally inside plug-ins that ship
-// everywhere, so this is routine rather than exotic: a macOS document naming
-// Syphon opened on Windows, or anything at all opened in the wasm build.
+// everywhere -- Syphon and Spout are both compiled into score-plugin-gfx under
+// #if -- so this is routine rather than exotic: a macOS document opened on
+// Windows, or anything at all opened in the wasm build.
 //
 // Cases still marked as pinning current behaviour are ones no fix has landed for
-// yet; they document what is lost, not what is wanted.
+// yet; they record what is lost, not what is wanted.
 
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
