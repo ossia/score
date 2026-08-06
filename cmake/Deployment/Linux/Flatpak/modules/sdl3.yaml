@@ -1,0 +1,32 @@
+# Joystick / gamepad input, and the SDL audio backend
+name: sdl3
+buildsystem: cmake-ninja
+config-opts:
+  - -Wno-dev
+  - -DCMAKE_BUILD_TYPE=Release
+  - -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+  - -DBUILD_SHARED_LIBS=ON
+  - -DSDL_JOYSTICK=ON
+  - -DSDL_HAPTIC=ON
+  - -DSDL_HIDAPI=ON
+  - -DSDL_HIDAPI_JOYSTICK=ON
+  - -DSDL_POWER=ON
+  - -DSDL_SENSOR=ON
+  - -DSDL_AUDIO=ON
+  - -DSDL_VIDEO=OFF
+  - -DSDL_RENDER=OFF
+  - -DSDL_CAMERA=OFF
+  - -DSDL_GPU=OFF
+  - -DSDL_DIALOG=OFF
+  - -DSDL_TRAY=OFF
+  - -DSDL_X11=OFF
+  - -DSDL_WAYLAND=OFF
+  - -DSDL_UNIX_CONSOLE_BUILD=ON
+  - -DSDL_TESTS=OFF
+  - -DSDL_TEST_LIBRARY=OFF
+  - -DSDL_EXAMPLES=OFF
+  - -DSDL_INSTALL_CPACK=OFF
+sources:
+  - type: archive
+    url: https://github.com/libsdl-org/SDL/releases/download/release-3.4.14/SDL3-3.4.14.tar.gz
+    sha256: 30d4aa2b3037718142b32dffd4e72f917ebb6cc5227150e7bb9c45efb2153aeb
