@@ -2,6 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ProcessFactory.hpp"
 
+#include <Process/OpaqueProcess.hpp>
+
 #include <Process/HeaderDelegate.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/LayerView.hpp>
@@ -150,15 +152,34 @@ bool LayerFactory::matches(const ProcessModel& p) const
   return matches(p.concreteKey());
 }
 
+bool LayerFactory::isFallback() const noexcept
+{
+  return false;
+}
+
 bool LayerFactory::matches(const UuidKey<Process::ProcessModel>& p) const
 {
   return false;
 }
 
 ProcessFactoryList::object_type* ProcessFactoryList::loadMissing(
-    const VisitorVariant& vis, const score::DocumentContext& ctx, QObject* parent) const
+    const UuidKey<Process::ProcessModel>& key, const VisitorVariant& vis,
+    const score::DocumentContext& ctx, QObject* parent) const
 {
-  SCORE_TODO;
+  // No factory for this process: keep it as an opaque stand-in rather than
+  // dropping it, so that saving from here does not delete it from the document
+  // for everyone who does have the plug-in.
+  switch(vis.identifier)
+  {
+    case DataStream::type(): {
+      auto& des = static_cast<DataStream::Deserializer&>(vis.visitor);
+      return new OpaqueProcessModel{key, des, parent};
+    }
+    case JSONObject::type(): {
+      auto& des = static_cast<JSONObject::Deserializer&>(vis.visitor);
+      return new OpaqueProcessModel{key, des, parent};
+    }
+  }
   return nullptr;
 }
 
@@ -170,12 +191,22 @@ LayerFactory* LayerFactoryList::findDefaultFactory(const ProcessModel& proc) con
 LayerFactory*
 LayerFactoryList::findDefaultFactory(const UuidKey<ProcessModel>& proc) const
 {
+  LayerFactory* fallback{};
   for(auto& fac : *this)
   {
+    if(fac.isFallback())
+    {
+      fallback = &fac;
+      continue;
+    }
     if(fac.matches(proc))
       return &fac;
   }
-  return nullptr;
+
+  // Callers dereference this without checking -- the interval presenters build
+  // header and footer delegates from it unconditionally -- so a process with no
+  // factory of its own must still get one.
+  return fallback;
 }
 
 QString ProcessModelFactory::customConstructionData() const noexcept

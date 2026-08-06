@@ -15,6 +15,7 @@
 
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
+#include <Process/OpaqueProcess.hpp>
 #include <Process/ProcessList.hpp>
 
 #include <score/application/ApplicationComponents.hpp>
@@ -27,7 +28,11 @@
 
 #include <core/presenter/DocumentManager.hpp>
 
+#include <score/model/EntitySerialization.hpp>
+#include <score/plugins/SerializableHelpers.hpp>
+
 #include <score_test/App.hpp>
+#include <score_test/Document.hpp>
 
 #include <catch2/catch_all.hpp>
 
@@ -241,27 +246,100 @@ TEST_CASE("Polymorphic DataStream payloads are length-delimited", "[heterogeneou
   });
 }
 
-TEST_CASE("Missing factories have no fallback", "[heterogeneous]")
+TEST_CASE("A process with no factory keeps its identity and data", "[heterogeneous]")
 {
   score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
-    const auto unknown
-        = UuidKey<Process::ProcessModel>::fromString(QString{absent_uuid});
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& dctx = doc->context();
 
-    // No layer factory. FullViewIntervalPresenter::setupSlot and
-    // TemporalIntervalPresenter dereference this unchecked; LayerData asserts.
-    auto& layers = ctx.interfaces<Process::LayerFactoryList>();
-    CHECK(layers.findDefaultFactory(unknown) == nullptr);
-
-    // No process fallback.
     auto& procs = ctx.interfaces<Process::ProcessFactoryList>();
-    CHECK(procs.get(unknown) == nullptr);
+    REQUIRE_FALSE(procs.empty());
 
-    // No port fallback either: writePorts passes SCORE_ABORT as its failure
-    // callback, so a document using a plugin-provided port type aborts on load.
-    auto& ports = ctx.interfaces<Process::PortFactoryList>();
-    QByteArray empty;
-    DataStreamWriter w{empty};
-    CHECK(ports.loadMissing(w.toVariant(), nullptr) == nullptr);
+    // Serialize a real process, then pretend we are a build that does not have
+    // its plug-in by renaming the factory it points at. That is exactly the
+    // Syphon / VST situation: the bytes were written by a richer build.
+    Process::ProcessModel* original{};
+    for(auto& fac : procs)
+    {
+      original = fac.make(TimeVal::fromMsecs(1000), {}, Id<Process::ProcessModel>{7},
+                          dctx, doc);
+      if(original)
+        break;
+    }
+    REQUIRE(original);
+    const auto realKey = original->concreteKey();
+    const auto inlets = original->inlets().size();
+    const auto outlets = original->outlets().size();
+
+    JSONReader r;
+    r.readFrom(*original);
+    auto authored = readJson(r.toByteArray());
+    REQUIRE(authored.IsObject());
+    REQUIRE(authored.HasMember("uuid"));
+    authored["uuid"].SetString(absent_uuid, authored.GetAllocator());
+
+    auto* loaded = deserialize_interface(
+        procs, JSONObject::Deserializer{authored}, dctx, doc);
+    REQUIRE(loaded);
+
+    auto* opaque = dynamic_cast<Process::OpaqueProcessModel*>(loaded);
+    REQUIRE(opaque);
+
+    // It reports the key of what it replaces, not one of its own: saving must
+    // write the original UUID or the process is lost for everybody.
+    CHECK(opaque->concreteKey() != realKey);
+    CHECK(opaque->concreteKey()
+          == UuidKey<Process::ProcessModel>::fromString(QString{absent_uuid}));
+
+    // Ports were rebuilt rather than swallowed, so cables to this process still
+    // resolve and its controls still hold values.
+    CHECK_FALSE(opaque->portsAreOpaque());
+    CHECK(opaque->inlets().size() == inlets);
+    CHECK(opaque->outlets().size() == outlets);
+
+    // And saving reproduces what the authoring machine wrote.
+    JSONReader out;
+    out.readFrom(*loaded);
+    auto reserialized = readJson(out.toByteArray());
+    REQUIRE(reserialized.IsObject());
+    CHECK(reserialized == authored);
+  });
+}
+
+TEST_CASE("The list of members owned by ProcessModel has not drifted",
+          "[heterogeneous]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    // OpaqueProcessModel tells its own members from the plug-in's by name. If
+    // score gains or renames one and this list is not updated, the member is
+    // written twice on save, or captured and then lost. Serialize a real
+    // process and check the two agree.
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+
+    auto& procs = ctx.interfaces<Process::ProcessFactoryList>();
+    Process::ProcessModel* p{};
+    for(auto& fac : procs)
+    {
+      p = fac.make(TimeVal::fromMsecs(1000), {}, Id<Process::ProcessModel>{9},
+                   doc->context(), doc);
+      if(p)
+        break;
+    }
+    REQUIRE(p);
+
+    JSONReader r;
+    r.readFrom(*p);
+    auto obj = readJson(r.toByteArray());
+    REQUIRE(obj.IsObject());
+
+    const auto& base = Process::OpaqueProcessModel::baseMemberNames();
+    for(const auto& name : base)
+    {
+      INFO("ProcessModel is expected to write " << name.toStdString());
+      CHECK(obj.HasMember(name.toUtf8().constData()));
+    }
   });
 }
 

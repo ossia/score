@@ -13,8 +13,8 @@ public:
   ~ProcessFactoryList();
 
   object_type* loadMissing(
-      const VisitorVariant& vis, const score::DocumentContext& ctx,
-      QObject* parent) const;
+      const UuidKey<Process::ProcessModel>& key, const VisitorVariant& vis,
+      const score::DocumentContext& ctx, QObject* parent) const;
 };
 
 class SCORE_LIB_PROCESS_EXPORT LayerFactoryList final
