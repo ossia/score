@@ -1,13 +1,12 @@
 // What happens when a document references a process or protocol that this build
 // does not have. See docs/remote-control-plan.md sections 5bis-5quater.
 //
-// These pin the *current* behaviour, which is wrong in several places: they are
-// the baseline the opaque-preservation work is written against, and they will be
-// inverted as each fix lands.
+// Protocols and processes are registered conditionally inside plug-ins that ship
+// everywhere, so this is routine rather than exotic: a macOS document naming
+// Syphon opened on Windows, or anything at all opened in the wasm build.
 //
-// Note: several of these failures are SIGTRAP in a debug build (SCORE_BREAKPOINT
-// fires before the throw / inside SCORE_ASSERT), so the assertions below prove
-// the underlying stream misalignment rather than invoking the crash.
+// Cases still marked as pinning current behaviour are ones no fix has landed for
+// yet; they document what is lost, not what is wanted.
 
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
@@ -182,6 +181,22 @@ TEST_CASE("Preserved settings survive repeated round-trips", "[heterogeneous]")
     auto last = readJson(current);
     REQUIRE(!last.HasParseError());
     CHECK(first == last);
+  });
+}
+
+TEST_CASE("An unavailable command can be reported instead of aborting",
+          "[heterogeneous]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    // instantiateUndoCommand() aborts (debug) or throws (release) on an unknown
+    // command, which is right for a local programming error but fatal when the
+    // command arrived from a peer running a different build. The network
+    // handlers use the checked form instead.
+    score::CommandData cmd;
+    cmd.parentKey = CommandGroupKey{"NoSuchCommandGroup"};
+    cmd.commandKey = CommandKey{"NoSuchCommand"};
+
+    CHECK(ctx.instantiateUndoCommandIfAvailable(cmd) == nullptr);
   });
 }
 
