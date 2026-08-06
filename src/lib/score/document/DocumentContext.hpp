@@ -14,6 +14,7 @@ class CommandStack;
 class SelectionStack;
 class ObjectLocker;
 class DocumentPlugin;
+class Environment;
 struct SCORE_LIB_BASE_EXPORT DocumentContext
 {
   friend class score::Document;
@@ -30,6 +31,10 @@ struct SCORE_LIB_BASE_EXPORT DocumentContext
   OngoingCommandDispatcher& dispatcher;
 
   const std::vector<DocumentPlugin*>& pluginModels() const;
+
+  //! Where this document's files are: on this machine, or on the one running
+  //! the score. Ask rather than assuming a path can be opened.
+  score::Environment& environment() const noexcept;
 
   template <typename T>
   T& model() const
