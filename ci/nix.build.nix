@@ -34,7 +34,7 @@
 , re2
 , rubberband
 , snappy
-, SDL2
+, SDL3
 , spdlog
 , suil
 , udev
@@ -89,7 +89,7 @@ clangStdenv.mkDerivation (finalAttrs: {
     re2
     rubberband
     snappy
-    SDL2
+    SDL3
     spdlog
     suil
     udev
