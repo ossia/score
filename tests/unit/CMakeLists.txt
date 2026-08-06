@@ -290,3 +290,10 @@ if(TARGET pipewire::pipewire)
     target_include_directories(test_unit_pipewire_protocol_quantum SYSTEM PRIVATE ${_pw_includes})
   endif()
 endif()
+# --- heterogeneous builds: what happens when a factory is absent -----------
+# Pins the behaviour of documents referencing processes / protocols this build
+# does not have. See docs/remote-control-plan.md sections 5bis-5quater.
+score_add_test(test_unit_heterogeneous_build
+  SOURCES HeterogeneousBuildTest.cpp
+  APP
+  PLUGINS score_lib_device score_lib_process)
