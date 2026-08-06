@@ -56,32 +56,30 @@ LocalTree::DocumentPlugin::~DocumentPlugin()
 
 void LocalTree::DocumentPlugin::init()
 {
+  // A terminal exposes nothing. The tree is a control surface for a score that
+  // executes here, and this one does not; LocalDevice::init would also open an
+  // OSCQuery server on the same default ports as the machine actually running
+  // the score, which collide outright when that is the same machine.
+  if(m_context.role() != score::DocumentRole::Local)
+    return;
+
   m_localDeviceWrapper.init();
 
   auto& set = m_context.app.settings<Explorer::Settings::Model>();
-
-  // A terminal exposes nothing: the tree is a control surface for a score that
-  // executes here, and this one does not. It would also bind the same default
-  // ports as the machine actually running it, which collide outright when that
-  // is the same machine.
-  const bool local = m_context.role() == score::DocumentRole::Local;
-  if(local && set.getLocalTree())
+  if(set.getLocalTree())
   {
     create();
   }
 
-  if(local)
-  {
-    con(
-        set, &Explorer::Settings::Model::LocalTreeChanged, this,
-        [this](bool b) {
-      if(b)
-        create();
-      else
-        cleanup();
-        },
-        Qt::QueuedConnection);
-  }
+  con(
+      set, &Explorer::Settings::Model::LocalTreeChanged, this,
+      [this](bool b) {
+    if(b)
+      create();
+    else
+      cleanup();
+      },
+      Qt::QueuedConnection);
 
   auto docplug = context().findPlugin<Explorer::DeviceDocumentPlugin>();
   if(docplug)

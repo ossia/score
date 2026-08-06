@@ -186,3 +186,26 @@ TEST_CASE("A terminal document does not execute", "[terminal]")
       CHECK_FALSE(exec->isPlaying());
   });
 }
+
+TEST_CASE("A terminal exposes no control surface of its own", "[terminal]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    score::test::register_probe_protocol(ctx);
+    const auto bytes = documentWithProbeDevice(ctx);
+
+    // The local tree is score's own OSC/OSCQuery view of the document. On a
+    // terminal it would be a second control surface for a score executing
+    // somewhere else, bound to the same default ports as the machine actually
+    // running it -- which collide outright when that is this machine.
+    auto* terminal = reload(ctx, bytes, score::DocumentRole::Terminal);
+    REQUIRE(terminal);
+    auto& termDevices = terminal->context().plugin<Explorer::DeviceDocumentPlugin>();
+    CHECK(termDevices.list().localDevice() == nullptr);
+
+    // The precondition: an ordinary document does have one.
+    auto* local = reload(ctx, bytes, score::DocumentRole::Local);
+    REQUIRE(local);
+    auto& localDevices = local->context().plugin<Explorer::DeviceDocumentPlugin>();
+    CHECK(localDevices.list().localDevice() != nullptr);
+  });
+}
