@@ -106,11 +106,14 @@ function(score_add_test NAME)
     ${ARG_LIBS}
     ${QT_PREFIX}::Core)
 
-  # The app/document fixtures library is defined late (tests/fixtures, after
-  # src/). Per-plugin unit tests built during src/ are app-free and don't need
-  # it, so only link it when it already exists.
+  # The fixtures target is defined late (tests/fixtures, after src/), so tests
+  # declared from inside src/ -- plug-ins and add-ons -- cannot link it yet. It
+  # is header-only, so hand those the include path instead, which is what the
+  # else branch below is for.
   if(TARGET score_test_fixtures AND NOT ARG_STANDALONE)
     target_link_libraries(${NAME} PRIVATE score_test_fixtures)
+  else()
+    target_include_directories(${NAME} PRIVATE "${SCORE_ROOT_SOURCE_DIR}/tests/fixtures")
   endif()
 
   if(ARG_GUI OR ARG_APP)
