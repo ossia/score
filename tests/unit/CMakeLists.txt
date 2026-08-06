@@ -624,3 +624,7 @@ score_add_test(test_unit_heterogeneous_build
   SOURCES HeterogeneousBuildTest.cpp
   APP
   PLUGINS score_lib_device score_lib_process)
+
+# --- how a path is stored in a document ------------------------------------
+score_add_test(test_unit_uri
+  SOURCES UriTest.cpp)
