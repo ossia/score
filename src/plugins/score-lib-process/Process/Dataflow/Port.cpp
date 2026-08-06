@@ -1028,7 +1028,9 @@ Process::ControlLayout PortFactory::makeLabelItem(
   return ret;
 }
 
-Port* PortFactoryList::loadMissing(const VisitorVariant& vis, QObject* parent) const
+Port* PortFactoryList::loadMissing(
+    const UuidKey<Process::Port>& key, const VisitorVariant& vis,
+    QObject* parent) const
 {
   return nullptr;
 }

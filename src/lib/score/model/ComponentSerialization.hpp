@@ -86,8 +86,8 @@ struct SCORE_LIB_BASE_EXPORT SerializableComponentFactoryList
   using object_type = score::SerializableComponent;
   ~SerializableComponentFactoryList();
   score::SerializableComponent* loadMissing(
-      const VisitorVariant& vis, const score::DocumentContext& ctx,
-      QObject* parent) const;
+      const UuidKey<score::SerializableComponent>& key, const VisitorVariant& vis,
+      const score::DocumentContext& ctx, QObject* parent) const;
 };
 
 template <typename System_T>

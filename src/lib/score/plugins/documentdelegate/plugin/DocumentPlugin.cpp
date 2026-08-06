@@ -28,7 +28,8 @@ DocumentPluginFactory::~DocumentPluginFactory() = default;
 DocumentPluginFactoryList::~DocumentPluginFactoryList() { }
 
 DocumentPluginFactoryList::object_type* DocumentPluginFactoryList::loadMissing(
-    const VisitorVariant& vis, DocumentContext& doc, QObject* parent) const
+    const UuidKey<score::DocumentPluginFactory>& key, const VisitorVariant& vis,
+    DocumentContext& doc, QObject* parent) const
 {
   SCORE_TODO;
   return nullptr;

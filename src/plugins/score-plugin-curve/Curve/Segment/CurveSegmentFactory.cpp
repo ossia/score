@@ -9,8 +9,9 @@ SegmentFactory::~SegmentFactory() { }
 
 SegmentList::~SegmentList() { }
 
-SegmentList::object_type*
-SegmentList::loadMissing(const VisitorVariant& vis, QObject* parent) const
+SegmentList::object_type* SegmentList::loadMissing(
+    const UuidKey<Curve::SegmentFactory>& key, const VisitorVariant& vis,
+    QObject* parent) const
 {
   SCORE_TODO;
   return nullptr;
