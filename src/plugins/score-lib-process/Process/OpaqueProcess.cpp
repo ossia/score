@@ -69,12 +69,38 @@ OpaqueProcessModel::OpaqueProcessModel(
   // one as the other would hand a machine that has the plug-in a blob it would
   // misread. Empty and flagged is honest; filling it in is a separate step.
   m_portsInPayload = false;
+  awaitingState().push_back(this);
 }
 
-void OpaqueProcessModel::setPayload(score::OpaquePayload payload, bool portsInPayload)
+std::vector<QPointer<OpaqueProcessModel>>&
+OpaqueProcessModel::awaitingState() noexcept
 {
-  m_payload = std::move(payload);
-  m_portsInPayload = portsInPayload;
+  static std::vector<QPointer<OpaqueProcessModel>> pending;
+  return pending;
+}
+
+void OpaqueProcessModel::setState(const rapidjson::Value& serialized)
+{
+  if(!serialized.IsObject())
+    return;
+
+  // Ports first, and only if they are not already there: applying a state twice
+  // would duplicate them, and a stand-in can be filled in more than once if the
+  // object it stands for is edited.
+  if(m_inlets.empty() && m_outlets.empty() && serialized.HasMember("Inlets")
+     && serialized.HasMember("Outlets"))
+  {
+    JSONObject::Deserializer des{serialized};
+    auto& pl = score::AppContext().interfaces<Process::PortFactoryList>();
+    writePorts(des, pl, m_inlets, m_outlets, this);
+    m_portsInPayload = false;
+  }
+
+  auto skip = baseMemberNames();
+  if(!m_portsInPayload)
+    skip += portMemberNames();
+
+  m_payload = score::OpaquePayload::fromJson(serialized, skip);
   m_incomplete = false;
 }
 

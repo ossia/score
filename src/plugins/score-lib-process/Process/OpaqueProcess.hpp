@@ -7,6 +7,10 @@
 
 #include <score_lib_process_export.h>
 
+#include <QPointer>
+
+#include <vector>
+
 namespace Process
 {
 /**
@@ -84,7 +88,18 @@ public:
   //! that *has* the plug-in that the process is empty, when it is only unknown
   //! here. Whoever creates one of these is responsible for filling it in.
   bool incomplete() const noexcept { return m_incomplete; }
-  void setPayload(score::OpaquePayload payload, bool portsInPayload);
+
+  //! Give it the state it never had, as its author serialized it. Rebuilds the
+  //! ports when the format allows, exactly as loading one from a document does.
+  void setState(const rapidjson::Value& serialized);
+
+  //! Stand-ins created without state, in creation order.
+  //!
+  //! Only whoever issued the command can supply what they are missing, and that
+  //! code is not here -- it is in whatever replicated the command. This is how
+  //! it finds them without walking the whole document after every edit, which
+  //! at a control's update rate is not affordable.
+  static std::vector<QPointer<OpaqueProcessModel>>& awaitingState() noexcept;
 
   //! The names of the JSON members written by ProcessModel and its bases.
   //! Anything else in a serialized process belongs to its plug-in.
