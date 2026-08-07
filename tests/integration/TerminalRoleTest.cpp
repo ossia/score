@@ -267,3 +267,46 @@ TEST_CASE("A terminal asks for the state of what it creates", "[terminal]")
     Process::awaitingRemoteState().clear();
   });
 }
+
+TEST_CASE("A score keeps playing until asked, whatever document is in front",
+          "[terminal]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    score::test::register_probe_protocol(ctx);
+    const auto bytes = documentWithProbeDevice(ctx);
+
+    // Both up front: loading a document stops execution (prepareNewDocument),
+    // so creating the terminal later would stop the score for the wrong reason
+    // and the test would pass without the fix.
+    auto* local = reload(ctx, bytes, score::DocumentRole::Local);
+    REQUIRE(local);
+    auto* terminal = reload(ctx, bytes, score::DocumentRole::Terminal);
+    REQUIRE(terminal);
+
+    ctx.docManager.setCurrentDocument(ctx, local);
+    QApplication::processEvents();
+
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    engine.execution().request_play_global(true);
+    QApplication::processEvents();
+    QApplication::processEvents();
+
+    auto* exec = local->context().findPlugin<Execution::DocumentPlugin>();
+    REQUIRE(exec);
+    REQUIRE(exec->isPlaying());
+
+    // Selecting a terminal does not stop what is running -- it belongs to the
+    // document that started it, and there is only one execution controller.
+    ctx.docManager.setCurrentDocument(ctx, terminal);
+    QApplication::processEvents();
+    CHECK(exec->isPlaying());
+
+    // And Stop must still reach it. Refusing because the document in front is
+    // a terminal leaves a score playing with no way to stop it.
+    engine.execution().request_stop();
+    QApplication::processEvents();
+    QApplication::processEvents();
+
+    CHECK_FALSE(exec->isPlaying());
+  });
+}
