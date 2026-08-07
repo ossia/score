@@ -48,6 +48,11 @@ TimeSyncComponent::TimeSyncComponent(
 void TimeSyncComponent::cleanup(const std::shared_ptr<TimeSyncComponent>& self)
 {
   OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
+  // Destruction is deferred through the exec then gc queues while the model
+  // may stay alive and editable: sever the model connections so no edit can
+  // reach this component once m_ossia_node is reset.
+  if(m_score_node)
+    QObject::disconnect(m_score_node, nullptr, this, nullptr);
   in_exec([self, ts = m_ossia_node, gcq_ptr = weak_gc] {
     OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
     ts->cleanup();
