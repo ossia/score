@@ -24,7 +24,10 @@
 #include <QVector3D>
 #include <QVector4D>
 
+#include <algorithm>
 #include <array>
+#include <cmath>
+#include <limits>
 
 namespace State
 {
@@ -558,6 +561,39 @@ char value(const ossia::value& val)
   return value<QChar>(val).toLatin1();
 }
 
+QString toPrettyString(float f)
+{
+  // A float carries this many decimal digits; asking for more only prints the
+  // binary expansion (108.89f as a double is 108.88999938964844).
+  static constexpr int significant = std::numeric_limits<float>::digits10 + 1;
+
+  // Below this, decimal notation can no longer hold every digit the float has,
+  // and above it, it starts spelling out digits the float never had.
+  static constexpr int max_decimals = 20;
+  static constexpr double max_value = 1e15;
+
+  const double d = f;
+  if(!std::isfinite(d))
+    return QString::number(d);
+
+  const double a = std::abs(d);
+  const int magnitude = (a == 0.) ? 0 : int(std::floor(std::log10(a)));
+  const int decimals = significant - magnitude - 1;
+
+  if(a != 0. && (decimals > max_decimals || a >= max_value))
+    return QString::number(d, 'g', significant);
+
+  QString str = QString::number(d, 'f', std::max(decimals, 0));
+  if(str.contains('.'))
+  {
+    while(str.endsWith('0'))
+      str.chop(1);
+    if(str.endsWith('.'))
+      str.chop(1);
+  }
+  return str;
+}
+
 QString toPrettyString(const ossia::value& val)
 {
   struct vis
@@ -571,13 +607,7 @@ QString toPrettyString(const ossia::value& val)
       str.remove(loc.groupSeparator());
       return str;
     }
-    QString operator()(float f) const
-    {
-      const auto& loc = QLocale::c();
-      auto str = loc.toString(f);
-      str.remove(loc.groupSeparator());
-      return str;
-    }
+    QString operator()(float f) const { return toPrettyString(f); }
     QString operator()(bool b) const
     {
       return QString::fromStdString(

@@ -52,6 +52,11 @@ SCORE_LIB_STATE_EXPORT bool convert(const ossia::value& orig, ossia::value& toCo
 // 'a', ['a', 12], or "str" for a string.
 SCORE_LIB_STATE_EXPORT QString toPrettyString(const ossia::value& val);
 
+// Decimal notation, so that e.g. a byte count reads 137438953472 instead of
+// 1.37439e+11. Falls back to the exponent form for magnitudes where decimal
+// notation would be unreadable.
+SCORE_LIB_STATE_EXPORT QString toPrettyString(float f);
+
 // We require the type to crrectly read back (e.g. int / float / char)
 // and as an optimization, since we may need it multiple times,
 // we chose to leave the caller save it however he wants. Hence the specific
