@@ -6,6 +6,9 @@
 
 #include <Library/LibrarySettings.hpp>
 #include <Library/ProcessWidget.hpp>
+#include <Library/ProcessesItemModel.hpp>
+
+#include <score/document/DocumentContext.hpp>
 #include <Library/ProjectLibraryWidget.hpp>
 #include <Library/SystemLibraryWidget.hpp>
 
@@ -100,6 +103,14 @@ ProcessPanel::ProcessPanel(const score::GUIApplicationContext& ctx)
 ProcessWidget& ProcessPanel::processWidget() const noexcept
 {
   return *(ProcessWidget*)m_widget;
+}
+
+void ProcessPanel::on_modelChanged(score::MaybeDocument, score::MaybeDocument newm)
+{
+  if(newm && newm->role() != score::DocumentRole::Local)
+    return;
+
+  processWidget().processModel().rescan();
 }
 
 QWidget* ProcessPanel::widget()
