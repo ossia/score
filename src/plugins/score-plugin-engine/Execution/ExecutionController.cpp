@@ -217,7 +217,7 @@ void ExecutionController::request_play_interval(
 
 void ExecutionController::request_stop_interval(Scenario::IntervalModel& itv)
 {
-  if(!executesHere())
+  if(!isPlaying())
     return;
 
   stop_interval(itv);
@@ -225,7 +225,10 @@ void ExecutionController::request_stop_interval(Scenario::IntervalModel& itv)
 
 void ExecutionController::request_stop()
 {
-  if(!executesHere())
+  // What is executing belongs to whichever document started it, not to the one
+  // in front. Asking the focused document's role instead left a playing score
+  // with no way to stop it as soon as a terminal was selected.
+  if(!isPlaying())
     return;
 
   m_transport->requestStop();

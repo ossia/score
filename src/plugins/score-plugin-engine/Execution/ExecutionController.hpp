@@ -64,6 +64,10 @@ public:
   void request_stop_interval(Scenario::IntervalModel&);
   void request_stop();
 
+  //! Whether this application is executing a score right now, whichever
+  //! document it belongs to.
+  bool isPlaying() const noexcept { return m_playing || bool(m_clock); }
+
   void request_begin_scrub(TimeVal t);
   void request_scrub(TimeVal t);
   void request_end_scrub(TimeVal t);
