@@ -105,5 +105,9 @@ private:
 
   QString m_originalName{};
   int m_index{};
+
+  //! Which protocol the device list is currently showing, so that answers
+  //! arriving for a previous one are dropped.
+  UuidKey<Device::ProtocolFactory> m_currentProtocol{};
 };
 }
