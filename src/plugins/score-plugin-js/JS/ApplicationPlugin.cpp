@@ -128,7 +128,16 @@ void ApplicationPlugin::on_createdDocument(score::Document& doc)
 
   if(!m_start_script.isEmpty())
   {
-    QTimer::singleShot(100, this, [this] { m_consoleEngine.evaluate(m_start_script); });
+    QTimer::singleShot(100, this, [this] {
+      // --script takes either JavaScript source or the path to a file
+      QString source = m_start_script;
+      if(QFile f{m_start_script}; f.exists() && f.open(QIODevice::ReadOnly))
+        source = QString::fromUtf8(f.readAll());
+
+      auto res = m_consoleEngine.evaluate(source);
+      if(res.isError())
+        qWarning() << "--script:" << res.toString();
+    });
   }
 }
 void ApplicationPlugin::afterStartup()
