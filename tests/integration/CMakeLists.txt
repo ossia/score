@@ -330,3 +330,10 @@ if(TARGET score_plugin_remotecontrol)
   target_include_directories(test_integration_remote_control_auth PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-remotecontrol")
 endif()
+
+# Whether the editing surface shows the same thing on both machines.
+score_add_test(test_integration_terminal_slots
+  SOURCES TerminalSlotTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_plugin_deviceexplorer score_plugin_automation
+          score_plugin_curve)
