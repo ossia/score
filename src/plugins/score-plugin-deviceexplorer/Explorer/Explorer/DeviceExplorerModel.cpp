@@ -421,6 +421,13 @@ QVariant DeviceExplorerModel::data(const QModelIndex& index, int role) const
         else if(n.is<Device::DeviceSettings>())
         {
           auto& dev_set = n.get<Device::DeviceSettings>();
+
+          // What the machine running the score says, when that is not this one.
+          // Otherwise every device reads as disconnected, which is not what
+          // "we have no implementation for it here" means.
+          if(auto remote = deviceModel().remoteConnected(dev_set.name))
+            return Device::deviceNameColumnData(n, *remote, role);
+
           auto* impl = deviceModel().list().findDevice(dev_set.name);
           return Device::deviceNameColumnData(n, impl && impl->connected(), role);
         }

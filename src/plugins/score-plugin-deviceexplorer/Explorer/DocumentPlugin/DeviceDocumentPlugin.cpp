@@ -367,6 +367,36 @@ DeviceDocumentPlugin::loadDeviceFromNode(const Device::Node& node)
   return {};
 }
 
+std::optional<bool>
+DeviceDocumentPlugin::remoteConnected(const QString& device) const noexcept
+{
+  if(auto it = m_remoteConnected.find(device); it != m_remoteConnected.end())
+    return it->second;
+  return {};
+}
+
+void DeviceDocumentPlugin::setRemoteConnected(const QString& device, bool connected)
+{
+  m_remoteConnected[device] = connected;
+
+  // The explorer draws the state, so it has to be told the row changed.
+  if(m_explorer)
+  {
+    auto& root = m_rootNode;
+    for(int i = 0; i < root.childCount(); i++)
+    {
+      const auto& n = root.childAt(i);
+      if(n.is<Device::DeviceSettings>()
+         && n.get<Device::DeviceSettings>().name == device)
+      {
+        const auto idx = m_explorer->index(i, 0, QModelIndex{});
+        m_explorer->dataChanged(idx, idx);
+        break;
+      }
+    }
+  }
+}
+
 void DeviceDocumentPlugin::setConnection(bool b)
 {
   if(b)
