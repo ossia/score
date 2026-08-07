@@ -38,9 +38,12 @@ private:
   void enableListening_rec(
       const QModelIndex& index, Device::DeviceInterface&, ListeningHandler& lm);
 
-  Device::DeviceInterface& deviceFromNode(const Device::Node&);
-  Device::DeviceInterface& deviceFromProxyModelIndex(const QModelIndex&);
-  Device::DeviceInterface& deviceFromModelIndex(const QModelIndex& idx);
+  //! Null when the node names a device with no implementation behind it: a
+  //! protocol this build does not have, or a score that runs on another
+  //! machine. There is nothing to listen to in either case.
+  Device::DeviceInterface* deviceFromNode(const Device::Node&);
+  Device::DeviceInterface* deviceFromProxyModelIndex(const QModelIndex&);
+  Device::DeviceInterface* deviceFromModelIndex(const QModelIndex& idx);
 
   Device::Node& nodeFromProxyModelIndex(const QModelIndex&);
   Device::Node& nodeFromModelIndex(const QModelIndex&);

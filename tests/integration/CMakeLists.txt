@@ -581,6 +581,13 @@ score_add_test(test_integration_terminal_role
   APP
   PLUGINS score_plugin_scenario score_plugin_deviceexplorer score_plugin_engine)
 
+# The panel only exists with the GUI stack, and one binary cannot mix the two
+# application fixtures.
+score_add_test(test_integration_terminal_library
+  SOURCES TerminalLibraryTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_plugin_deviceexplorer score_plugin_library)
+
 # --- remote control: who is allowed to drive this instance ------------------
 # The WebSocket API sets device parameters, drives transport and can evaluate
 # JavaScript, so the access controls are worth asserting rather than assuming.
