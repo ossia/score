@@ -744,11 +744,8 @@ DocumentManager::Loadability DocumentManager::checkAndUpdateJson(
     auto it = local_plugins.find(plug.plugin);
     if(it == local_plugins.end())
     {
-      // Not fatal. Refusing here used to make a document unopenable on any
-      // machine that did not have every plug-in it mentions -- which is every
-      // machine, once builds differ by platform -- and it could not see a
-      // factory missing inside a plug-in that *is* present anyway, so it never
-      // gave the guarantee it appeared to.
+      // Not fatal: it never gave the guarantee it looked like, since a
+      // factory missing inside a present plug-in is invisible to it.
       res.missingPlugins.push_back(plug.plugin);
     }
     else

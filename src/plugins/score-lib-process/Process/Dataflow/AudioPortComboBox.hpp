@@ -44,11 +44,9 @@ private:
   std::vector<QString> m_child;
 };
 
-//! The device a drop of these nodes names, for a port addressed by device.
-//!
-//! Audio, MIDI and texture ports hold a device and no path -- what their combo
-//! box writes -- so dropping the device itself is the gesture that fits them.
-//! A message port needs a parameter, and a device is not one.
+//! The device a drop of these nodes names. Audio, MIDI and texture ports hold
+//! a device and no path; a message port needs a parameter, which a device
+//! is not.
 SCORE_LIB_PROCESS_EXPORT
 std::optional<State::Address> droppedDeviceAddress(
     const Device::FreeNodeList& nodes, Process::PortType type) noexcept;
@@ -58,12 +56,8 @@ QComboBox* makeAddressCombo(
     State::Address root, const Device::Node& out_node, const Process::Port& port,
     const score::DocumentContext& ctx, QWidget* parent);
 
-//! Devices that can stand at the other end of `port`.
-//!
-//! A kind rather than a predicate on the device object: a document whose score
-//! runs elsewhere has no device objects at all, so a predicate could only ever
-//! answer "none" there. A kind is a fact the machine that has the device can
-//! report, and Explorer::DeviceDocumentPlugin holds what it reported.
+//! Devices that can stand at the other end of `port`. A kind rather than a
+//! predicate on the object, since a terminal holds no device objects to ask.
 SCORE_LIB_PROCESS_EXPORT
 QComboBox* makeDeviceCombo(
     Device::DeviceKind kind, Device::DeviceList& devices, const Process::Port& port,

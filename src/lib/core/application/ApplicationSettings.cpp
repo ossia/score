@@ -24,15 +24,11 @@ namespace score
 #if defined(__EMSCRIPTEN__)
 namespace
 {
-//! A page has no command line, so its query string is the only way to tell it
-//! anything: ?network-join=host:port&network-terminal reaches score as
-//! --network-join=host:port --network-terminal.
+//! A page has no command line: ?network-join=host:port&network-terminal
+//! reaches score as --network-join=host:port --network-terminal.
 //!
-//! Everything is passed through rather than an allow-list. It is the same
-//! surface the desktop build gives anyone who can start it, and narrowing it
-//! here would only mean the option someone needs is the one missing -- but it
-//! does mean a link can ask a page to do whatever a command line could, so a
-//! deployment that is not yours is not one to open.
+//! Passed through without an allow-list, so a link can ask a page to do
+//! whatever a command line could.
 QStringList argumentsFromUrl()
 {
   QStringList out;

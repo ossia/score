@@ -30,12 +30,8 @@ const QStringList& scoreOwnedMembers()
   return members;
 }
 
-//! Read a payload the protocol wrote, whichever format it was written in.
-//!
-//! Both arise in practice: a document authored as .score and later saved as
-//! .scorebin carries the protocol's JSON inside the binary blob, and a build
-//! that has the protocol should still understand it rather than treat a
-//! document that has been through another machine as unreadable.
+//! Read a payload the protocol wrote, in whichever format it was written:
+//! a .score saved as .scorebin carries the protocol's JSON inside the blob.
 QVariant makeSettings(
     const Device::ProtocolFactory& prot, const score::OpaquePayload& payload)
 {
@@ -65,10 +61,8 @@ SCORE_LIB_DEVICE_EXPORT void DataStreamReader::read(const Device::DeviceSettings
 {
   m_stream << n.name << n.protocol;
 
-  // In its own blob, exactly as readFromAbstract does for every other
-  // polymorphic kind: a reader without the factory can then skip the payload by
-  // length and keep it verbatim, rather than landing mid-payload and reporting
-  // the whole file as corrupt.
+  // In its own blob, as readFromAbstract does for every other polymorphic
+  // kind: a reader without the factory can skip it by length.
   score::OpaquePayload payload;
   auto& pl = components.interfaces<Device::ProtocolFactoryList>();
   if(auto prot = pl.get(n.protocol))
