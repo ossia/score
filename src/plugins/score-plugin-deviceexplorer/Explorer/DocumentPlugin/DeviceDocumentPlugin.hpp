@@ -86,41 +86,28 @@ public:
     return m_asioContext;
   }
 
-  //! What may be added to this document, and whose hardware is offered.
-  //!
-  //! Null for an ordinary document: this machine's protocols and this
-  //! machine's devices, which is what the dialogs have always shown. Set when
-  //! the score runs elsewhere, so that what is offered is reachable by it.
+  //! What may be added, and whose hardware is offered. Null for an ordinary
+  //! document, where it is this machine's.
   Device::DeviceCatalog* catalog() const noexcept { return m_catalog; }
   void setCatalog(Device::DeviceCatalog* c) noexcept { m_catalog = c; }
 
   //! Whether a device is connected, as reported by the machine that has it.
-  //!
-  //! A document whose score runs elsewhere has no DeviceInterface to ask, so
-  //! every device would read as disconnected -- which is not unknown, it is
-  //! wrong. Empty for an ordinary document, where the device itself is the
-  //! answer.
+  //! Empty for an ordinary document, where the device itself is the answer.
   std::optional<bool> remoteConnected(const QString& device) const noexcept;
   void setRemoteConnected(const QString& device, bool connected);
 
   //! Devices the machine running the score reported as being of this kind.
-  //!
-  //! Empty for an ordinary document, where the device objects are here and can
-  //! be asked directly.
+  //! Empty for an ordinary document, where the objects can be asked directly.
   std::vector<QString> remoteDevicesOfKind(Device::DeviceKind kind) const;
   void setRemoteKinds(const QString& device, Device::DeviceKinds kinds);
 
   //! Where a value edited here goes when the device is on another machine.
-  //!
-  //! Editing the tree has always meant "send this to the device", and a
-  //! terminal holds no device to send to. The machine that does is the one
-  //! that has to perform it, so the edit is handed to whoever installed this.
+  //! Unset for an ordinary document, which has the device to send to.
   using ValueSink = std::function<void(const State::Address&, const ossia::value&)>;
   void setValueSink(ValueSink s) { m_valueSink = std::move(s); }
   const ValueSink& valueSink() const noexcept { return m_valueSink; }
 
-  //! The peer reported what a device is. Arrives after the join, so anything
-  //! already showing a device list has to be told.
+  //! The peer reported what a device is; arrives after the join.
   void remoteKindsChanged(const QString& device)
       E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, remoteKindsChanged, device)
 

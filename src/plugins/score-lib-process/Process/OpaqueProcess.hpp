@@ -53,12 +53,8 @@ public:
   OpaqueProcessModel(
       const UuidKey<ProcessModel>& key, JSONObject::Deserializer& vis, QObject* parent);
 
-  //! For a command that asks to create a process whose factory we do not have.
-  //!
-  //! Unlike the loading constructors there is nothing to keep: the object was
-  //! never serialized here, so this stand-in has no state and knows it. What
-  //! the process should contain exists on the peer that could make it, and
-  //! until that arrives this is a named placeholder -- see incomplete().
+  //! For a command naming a process whose factory we do not have. Has no
+  //! state, and says so: see incomplete().
   OpaqueProcessModel(
       const UuidKey<ProcessModel>& key, const TimeVal& duration,
       const Id<ProcessModel>& id, QObject* parent);
@@ -81,12 +77,8 @@ public:
   //! this process has none of its own.
   bool portsAreOpaque() const noexcept { return m_portsInPayload; }
 
-  //! True when this stands in for an object whose state was never received:
-  //! it was created by a command rather than read from a document.
-  //!
-  //! Its emptiness is not authoritative, so writing it out would tell a machine
-  //! that *has* the plug-in that the process is empty, when it is only unknown
-  //! here. Whoever creates one of these is responsible for filling it in.
+  //! True when the state was never received: created by a command rather than
+  //! read from a document, so its emptiness is not authoritative.
   bool incomplete() const noexcept { return m_incomplete; }
 
   //! Give it the state it never had, as its author serialized it. Rebuilds the
