@@ -245,9 +245,16 @@ Receiver::Receiver(const score::DocumentContext& doc)
         auto it = obj.FindMember("Code");
         if(it == obj.MemberEnd())
           return;
+        if(!it->value.IsString())
+          return;
         const auto& str = JsonValue{it->value}.toString();
-        auto& console = doc.app.panel<JS::PanelDelegate>();
-        console.engine().evaluate(str);
+
+        // findPanel: there is no console without a GUI, and panel<T> aborts
+        // rather than returning nothing.
+        auto* console = doc.app.findPanel<JS::PanelDelegate>();
+        if(!console)
+          return;
+        console->engine().evaluate(str);
       }));
 
   m_answers.insert(std::make_pair(

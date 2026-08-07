@@ -618,6 +618,19 @@ TEST_CASE("An unclaimed process still gets a layer", "[heterogeneous]")
     REQUIRE(plain);
     if(auto* f = layers.findDefaultFactory(*plain))
       CHECK_FALSE(f->isFallback());
+
+    // And the case the whole thing exists for: a stand-in resolves to the
+    // fallback. Asserting only the two above passes with the routing deleted --
+    // the lookup by key never reaches it, and a plain process must not.
+    auto* standIn = procs.makeMissing(
+        unknown, TimeVal::fromMsecs(1000), Id<Process::ProcessModel>{12}, doc);
+    REQUIRE(standIn);
+    REQUIRE(dynamic_cast<Process::OpaqueProcessModel*>(standIn));
+
+    auto* resolved = layers.findDefaultFactory(*standIn);
+    REQUIRE(resolved);
+    CHECK(resolved->isFallback());
+    CHECK(resolved == fallback);
   });
 }
 

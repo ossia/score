@@ -598,10 +598,12 @@ score_add_test(test_integration_terminal_library
 # The WebSocket API sets device parameters, drives transport and can evaluate
 # JavaScript, so the access controls are worth asserting rather than assuming.
 if(TARGET score_plugin_remotecontrol)
+  # GUI: enforcing the scripting gate means seeing whether the console ran the
+  # code, and there is no console without the panel.
   score_add_test(test_integration_remote_control_auth
     SOURCES RemoteControlAuthTest.cpp
-    APP
-    PLUGINS score_plugin_remotecontrol score_plugin_deviceexplorer
+    GUI
+    PLUGINS score_plugin_remotecontrol score_plugin_deviceexplorer score_plugin_js
     LIBS ${QT_PREFIX}::WebSockets)
   target_include_directories(test_integration_remote_control_auth PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-remotecontrol")
