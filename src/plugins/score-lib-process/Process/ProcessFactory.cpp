@@ -183,6 +183,13 @@ ProcessFactoryList::object_type* ProcessFactoryList::loadMissing(
   return nullptr;
 }
 
+ProcessFactoryList::object_type* ProcessFactoryList::makeMissing(
+    const UuidKey<Process::ProcessModel>& key, const TimeVal& duration,
+    const Id<Process::ProcessModel>& id, QObject* parent) const
+{
+  return new OpaqueProcessModel{key, duration, id, parent};
+}
+
 LayerFactory* LayerFactoryList::findDefaultFactory(const ProcessModel& proc) const
 {
   if(auto* fac = findDefaultFactory(proc.concreteKey()))

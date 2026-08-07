@@ -75,11 +75,22 @@ Process::ProcessModel& AddOnlyProcessToInterval::redo(
     IntervalModel& interval, const score::DocumentContext& ctx) const
 {
   // Create process model
-  auto fac = ctx.app.interfaces<Process::ProcessFactoryList>().get(m_processName);
-  SCORE_ASSERT(fac);
-  auto proc = fac->make(
-      interval.duration.defaultDuration(), // TODO should maybe be max ?
-      m_data, m_createdProcessId, ctx, &interval);
+  auto& facs = ctx.app.interfaces<Process::ProcessFactoryList>();
+  auto fac = facs.get(m_processName);
+
+  // A peer in a session runs its own build, so a command can name a process
+  // this one cannot make. Asserting aborted in debug and threw out of a socket
+  // callback in release, which stopped that peer applying anything ever again.
+  // A stand-in keeps the document in step; it reports itself incomplete,
+  // because what the process should contain is only known where it was made.
+  Process::ProcessModel* proc
+      = fac ? fac->make(
+                  interval.duration.defaultDuration(), // TODO should maybe be max ?
+                  m_data, m_createdProcessId, ctx, &interval)
+            : facs.makeMissing(
+                  m_processName, interval.duration.defaultDuration(),
+                  m_createdProcessId, &interval);
+  SCORE_ASSERT(proc);
 
   proc->setPosition(m_graphpos);
   AddProcess(interval, proc);
@@ -127,11 +138,18 @@ Process::ProcessModel& LoadOnlyLayerInInterval::redo(
   const JsonValue obj{m_data.GetObject()};
   auto key = obj[score::StringConstant().uuid].to<UuidKey<Process::ProcessModel>>();
 
-  auto fac = ctx.app.interfaces<Process::ProcessFactoryList>().get(key);
-  SCORE_ASSERT(fac);
-  // TODO handle missing process
+  auto& facs = ctx.app.interfaces<Process::ProcessFactoryList>();
+  auto fac = facs.get(key);
+
+  // This command carries the process serialized, so a build without the factory
+  // loses nothing: loadMissing keeps the data verbatim and rebuilds the ports,
+  // which is what makes the process still show its controls and its cables
+  // still resolve.
   JSONObject::Deserializer des{obj};
-  auto proc = fac->load(des.toVariant(), ctx, &interval);
+  Process::ProcessModel* proc
+      = fac ? fac->load(des.toVariant(), ctx, &interval)
+            : facs.loadMissing(key, des.toVariant(), ctx, &interval);
+  SCORE_ASSERT(proc);
   const auto ports = proc->findChildren<Process::Port*>();
   for(Process::Port* port : ports)
   {
