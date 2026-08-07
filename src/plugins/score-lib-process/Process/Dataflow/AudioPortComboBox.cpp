@@ -114,6 +114,19 @@ QComboBox* makeAddressCombo(
   return edit;
 }
 
+std::optional<State::Address> droppedDeviceAddress(
+    const Device::FreeNodeList& nodes, Process::PortType type) noexcept
+{
+  if(nodes.empty() || type == Process::PortType::Message)
+    return std::nullopt;
+
+  const auto& [address, node] = nodes.front();
+  if(!node.template is<Device::DeviceSettings>() || address.device.isEmpty())
+    return std::nullopt;
+
+  return State::Address{address.device, {}};
+}
+
 QComboBox* makeDeviceCombo(
     Device::DeviceKind kind, Device::DeviceList& list, const Process::Port& port,
     const score::DocumentContext& ctx, QWidget* parent)

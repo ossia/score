@@ -5,6 +5,10 @@
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Device/Node/DeviceNode.hpp>
 
+#include <Process/Dataflow/PortType.hpp>
+
+#include <optional>
+
 #include <score/document/DocumentContext.hpp>
 
 #include <QComboBox>
@@ -39,6 +43,15 @@ private:
   Device::FullAddressSettings m_address;
   std::vector<QString> m_child;
 };
+
+//! The device a drop of these nodes names, for a port addressed by device.
+//!
+//! Audio, MIDI and texture ports hold a device and no path -- what their combo
+//! box writes -- so dropping the device itself is the gesture that fits them.
+//! A message port needs a parameter, and a device is not one.
+SCORE_LIB_PROCESS_EXPORT
+std::optional<State::Address> droppedDeviceAddress(
+    const Device::FreeNodeList& nodes, Process::PortType type) noexcept;
 
 SCORE_LIB_PROCESS_EXPORT
 QComboBox* makeAddressCombo(

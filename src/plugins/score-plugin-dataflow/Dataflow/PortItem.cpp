@@ -5,6 +5,7 @@
 #include <Device/Node/NodeListMimeSerialization.hpp>
 
 #include <Process/Commands/EditPort.hpp>
+#include <Process/Dataflow/AudioPortComboBox.hpp>
 #include <Process/ProcessContext.hpp>
 
 #include <Curve/Commands/UpdateCurve.hpp>
@@ -209,7 +210,12 @@ void AutomatablePortItem::dropEvent(QGraphicsSceneDragDropEvent* event)
 
     auto addr = nl[0].second.target<Device::AddressSettings>();
     if(!addr)
+    {
+      if(auto dev = Process::droppedDeviceAddress(nl, m_port.type()))
+        disp.submit(new Process::ChangePortAddress{
+            m_port, State::AddressAccessor{*dev, {}}});
       return;
+    }
     disp.submit(new Process::ChangePortSettings{
         m_port, {State::AddressAccessor{nl[0].first}, std::move(*addr)}});
   }

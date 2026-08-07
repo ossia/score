@@ -310,3 +310,8 @@ if(TARGET score_plugin_library)
     APP
     PLUGINS score_plugin_library)
 endif()
+
+# Dropping a device from the explorer onto a port.
+score_add_test(test_unit_port_drop
+  SOURCES PortDropTest.cpp
+  PLUGINS score_lib_process score_lib_state score_lib_device)

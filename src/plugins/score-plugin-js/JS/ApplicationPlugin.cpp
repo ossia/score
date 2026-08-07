@@ -128,16 +128,24 @@ void ApplicationPlugin::on_createdDocument(score::Document& doc)
 
   if(!m_start_script.isEmpty())
   {
-    QTimer::singleShot(100, this, [this] {
-      // --script takes either JavaScript source or the path to a file
-      QString source = m_start_script;
-      if(QFile f{m_start_script}; f.exists() && f.open(QIODevice::ReadOnly))
-        source = QString::fromUtf8(f.readAll());
+    // restarted per document: the last one created is the one to script
+    if(!m_start_script_timer)
+    {
+      m_start_script_timer = new QTimer{this};
+      m_start_script_timer->setSingleShot(true);
+      connect(m_start_script_timer, &QTimer::timeout, this, [this] {
+        // --script takes either JavaScript source or the path to a file
+        QString source = m_start_script;
+        if(QFile f{m_start_script}; f.exists() && f.open(QIODevice::ReadOnly))
+          source = QString::fromUtf8(f.readAll());
 
-      auto res = m_consoleEngine.evaluate(source);
-      if(res.isError())
-        qWarning() << "--script:" << res.toString();
-    });
+        m_start_script.clear();
+        auto res = m_consoleEngine.evaluate(source);
+        if(res.isError())
+          qWarning() << "--script:" << res.toString();
+      });
+    }
+    m_start_script_timer->start(100);
   }
 }
 void ApplicationPlugin::afterStartup()
