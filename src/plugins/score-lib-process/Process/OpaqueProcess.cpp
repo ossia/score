@@ -58,6 +58,27 @@ OpaqueProcessModel::OpaqueProcessModel(
 }
 
 OpaqueProcessModel::OpaqueProcessModel(
+    const UuidKey<ProcessModel>& key, const TimeVal& duration,
+    const Id<ProcessModel>& id, QObject* parent)
+    : ProcessModel{duration, id, QStringLiteral("OpaqueProcess"), parent}
+    , m_key{key}
+    , m_incomplete{true}
+{
+  // No payload: the creation data a command carries is what a factory would
+  // have been *given*, not what the process would have *written*, and storing
+  // one as the other would hand a machine that has the plug-in a blob it would
+  // misread. Empty and flagged is honest; filling it in is a separate step.
+  m_portsInPayload = false;
+}
+
+void OpaqueProcessModel::setPayload(score::OpaquePayload payload, bool portsInPayload)
+{
+  m_payload = std::move(payload);
+  m_portsInPayload = portsInPayload;
+  m_incomplete = false;
+}
+
+OpaqueProcessModel::OpaqueProcessModel(
     const UuidKey<ProcessModel>& key, JSONObject::Deserializer& vis, QObject* parent)
     : ProcessModel{vis, parent}
     , m_key{key}
