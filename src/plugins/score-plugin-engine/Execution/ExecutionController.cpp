@@ -657,6 +657,22 @@ TimeVal ExecutionController::execution_time() const
     auto& itv = m_clock->scenario->baseInterval().scoreInterval().duration;
     return TimeVal(itv.defaultDuration() * itv.playPercentage());
   }
+
+  // A terminal never has a clock -- the score runs on another machine -- but it
+  // does have where that machine says it has got to. Without this the cursor
+  // moves and the time stays at zero, which reads as nothing happening.
+  if(auto doc = currentDocument(); doc && doc->role() != score::DocumentRole::Local)
+  {
+    // closing() rather than merely non-null: the timing widget's timer keeps
+    // firing while a document is torn down, and the base scenario goes first.
+    auto* sm = score::IDocument::try_get<Scenario::ScenarioDocumentModel>(*doc);
+    if(sm && !sm->closing())
+    {
+      auto& itv = sm->baseInterval().duration;
+      return TimeVal(itv.defaultDuration() * itv.playPercentage());
+    }
+  }
+
   return TimeVal::zero();
 }
 

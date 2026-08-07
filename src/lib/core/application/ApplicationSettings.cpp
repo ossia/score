@@ -10,14 +10,60 @@
 #include <QFileInfo>
 #include <QObject>
 #include <QString>
+#include <QUrlQuery>
+
+#if defined(__EMSCRIPTEN__)
+#include <emscripten.h>
+#endif
 
 #include <score_git_info.hpp>
 
 #include <thread>
 namespace score
 {
+#if defined(__EMSCRIPTEN__)
+namespace
+{
+//! A page has no command line, so its query string is the only way to tell it
+//! anything: ?network-join=host:port&network-terminal reaches score as
+//! --network-join=host:port --network-terminal.
+//!
+//! Everything is passed through rather than an allow-list. It is the same
+//! surface the desktop build gives anyone who can start it, and narrowing it
+//! here would only mean the option someone needs is the one missing -- but it
+//! does mean a link can ask a page to do whatever a command line could, so a
+//! deployment that is not yours is not one to open.
+QStringList argumentsFromUrl()
+{
+  QStringList out;
+  const char* raw = emscripten_run_script_string("location.search");
+  if(!raw || !*raw)
+    return out;
+
+  QString search = QString::fromUtf8(raw);
+  if(search.startsWith('?'))
+    search.remove(0, 1);
+
+  const QUrlQuery query{search};
+  for(const auto& [key, value] : query.queryItems(QUrl::FullyDecoded))
+  {
+    if(key.isEmpty())
+      continue;
+
+    out += value.isEmpty() ? QStringLiteral("--%1").arg(key)
+                           : QStringLiteral("--%1=%2").arg(key, value);
+  }
+  return out;
+}
+}
+#endif
+
 void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
 {
+#if defined(__EMSCRIPTEN__)
+  cargs += argumentsFromUrl();
+#endif
+
   arguments = cargs;
 
   opengl = false;
