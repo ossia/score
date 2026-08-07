@@ -82,6 +82,35 @@ OpaquePayload OpaquePayload::fromDataStream(DataStream::Deserializer& vis) noexc
   return OpaquePayload{DataStream::type(), std::move(tail)};
 }
 
+QByteArray OpaquePayload::toBlob() const noexcept
+{
+  if(empty())
+    return {};
+
+  QByteArray out;
+  QDataStream s{&out, QIODevice::WriteOnly};
+  s << (int32_t)format << bytes;
+  return out;
+}
+
+OpaquePayload OpaquePayload::fromBlob(const QByteArray& blob) noexcept
+{
+  if(blob.isEmpty())
+    return {};
+
+  QDataStream s{blob};
+  int32_t fmt{};
+  QByteArray b;
+  s >> fmt >> b;
+
+  if(s.status() != QDataStream::Ok)
+    return {};
+  if(fmt != DataStream::type() && fmt != JSONObject::type())
+    return {};
+
+  return OpaquePayload{fmt, std::move(b)};
+}
+
 void OpaquePayload::write(const VisitorVariant& vis) const noexcept
 {
   if(empty())
