@@ -135,8 +135,7 @@ bool RemoteFileSystemModel::hasChildren(const QModelIndex& parent) const
   if(!p)
     return false;
 
-  // A folder we have not opened is assumed to have something in it, or the view
-  // shows no arrow and there is no way to ask.
+  // Assumed non-empty until opened, or the view shows no arrow to open it.
   return p->directory && (!p->listed || !p->children.empty());
 }
 
@@ -154,8 +153,7 @@ void RemoteFileSystemModel::fetchMore(const QModelIndex& parent)
 
   p->requested = true;
 
-  // The answer comes back later and this model may be gone by then -- the
-  // document it belongs to can be closed while a listing is in flight.
+  // The answer comes back later; the document may be closed by then.
   QPointer<RemoteFileSystemModel> self = this;
   Entry* target = p;
 
@@ -178,8 +176,7 @@ void RemoteFileSystemModel::fetchMore(const QModelIndex& parent)
       return a.name.compare(b.name, Qt::CaseInsensitive) < 0;
         });
 
-    // An empty folder still counts as listed, but inserting nothing is not a
-    // range: (0, -1) is last < first, which the model contract forbids.
+    // Still listed, but (0, -1) is last < first, which the contract forbids.
     if(entries.empty())
     {
       target->listed = true;
@@ -205,8 +202,7 @@ void RemoteFileSystemModel::fetchMore(const QModelIndex& parent)
     if(!self)
       return;
 
-    // Marked listed with nothing in it: an unreadable folder is empty as far as
-    // anyone here can tell, and asking again on every repaint helps nobody.
+    // Listed and empty: asking again on every repaint helps nobody.
     target->listed = true;
     qDebug() << "Could not list a folder on the other machine:" << err;
       });
@@ -219,11 +215,8 @@ QStringList RemoteFileSystemModel::mimeTypes() const
 
 QMimeData* RemoteFileSystemModel::mimeData(const QModelIndexList& indexes) const
 {
-  // Not text/uri-list with file:// URLs, which is what a local file browser
-  // hands over. These files are not on this machine: a local path would name
-  // something that is not there, and every existing drop handler would try to
-  // open it. A type of its own is ignored by handlers that do not know it,
-  // which is the correct outcome until one does.
+  // Not text/uri-list: these files are not on this machine, and every drop
+  // handler treats that type as one it can open.
   QStringList uris;
   for(const auto& idx : indexes)
   {
@@ -260,8 +253,7 @@ RemoteLibraryWidget::~RemoteLibraryWidget() = default;
 void RemoteLibraryWidget::browse(
     RemoteFileSystemModel::EnvironmentSource env, const score::Uri& root)
 {
-  // A fresh model per document: the old one's entries name folders on a
-  // machine we may no longer be talking to.
+  // A fresh model per document: entries name another machine's folders.
   auto* old = m_model;
   m_model = new RemoteFileSystemModel{std::move(env), this};
   setModel(m_model);
