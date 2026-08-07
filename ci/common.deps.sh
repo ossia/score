@@ -83,6 +83,7 @@ then
   clone_addon         https://github.com/ossia/score-addon-ndi
   clone_addon    https://github.com/ossia/score-addon-spatgris
   clone_addon   https://github.com/ossia/score-addon-ultraleap
+  clone_addon     https://github.com/ossia/score-addon-sysinfo
 fi
 
 if [[ "$CI_PLATFORM" == "LINUX" || "$CI_PLATFORM" == "WIN32" ]]; then
