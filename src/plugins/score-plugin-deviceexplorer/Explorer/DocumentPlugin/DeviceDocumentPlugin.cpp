@@ -397,6 +397,22 @@ void DeviceDocumentPlugin::setRemoteConnected(const QString& device, bool connec
   }
 }
 
+std::vector<QString>
+DeviceDocumentPlugin::remoteDevicesOfKind(Device::DeviceKind kind) const
+{
+  std::vector<QString> out;
+  for(const auto& [name, kinds] : m_remoteKinds)
+    if(kinds.testFlag(kind))
+      out.push_back(name);
+  return out;
+}
+
+void DeviceDocumentPlugin::setRemoteKinds(
+    const QString& device, Device::DeviceKinds kinds)
+{
+  m_remoteKinds[device] = kinds;
+}
+
 void DeviceDocumentPlugin::setConnection(bool b)
 {
   if(b)
