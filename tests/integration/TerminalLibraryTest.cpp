@@ -62,6 +62,14 @@ score::Document* reload(
 
 TEST_CASE("The library follows the document that is visible", "[terminal]")
 {
+  // No asynchronous file scan. rescan() posts one to the task pool, and that
+  // thread outlives the application: on the way out it calls back into library
+  // interfaces whose plug-ins have been unloaded. A real crash, reachable from
+  // Settings > rescan library and from quitting during the startup scan, but
+  // not this test's subject -- which is whether rescan is called at all, and
+  // the factory-derived entries it adds are there before the scan starts.
+  qputenv("SCORE_DISABLE_LIBRARY", "1");
+
   score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
     // Panels exist only with the GUI stack, so this case needs run_in_gui_app;
     // finding none would make every assertion below vacuous.
