@@ -31,13 +31,8 @@ class SCORE_PLUGIN_LIBRARY_EXPORT RemoteFileSystemModel final
     : public QAbstractItemModel
 {
 public:
-  //! How to reach the environment, not the environment itself.
-  //!
-  //! Document::environment() is created lazily and *replaced* once a session
-  //! knows where the files really are -- which happens after the panel has
-  //! been told the document exists. A reference captured once would be to the
-  //! local environment that replacement destroys, and calling through it is a
-  //! dead vtable.
+  //! How to reach the environment, not the environment itself: a session
+  //! replaces it after the panel has been told the document exists.
   using EnvironmentSource = std::function<score::Environment*()>;
 
   RemoteFileSystemModel(EnvironmentSource env, QObject* parent);

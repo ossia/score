@@ -22,17 +22,9 @@ struct DeviceSettings
   QString name;
   QVariant deviceSpecificSettings;
 
-  //! The protocol-specific settings kept verbatim, when this build has no
-  //! factory for `protocol`. A score::OpaquePayload blob: the format tag, then
-  //! the bytes. Empty whenever the factory was found, i.e. in the common case.
-  //!
-  //! Protocols are registered conditionally inside plug-ins that exist
-  //! everywhere -- Syphon and Spout are both compiled into score-plugin-gfx --
-  //! so a document authored on macOS routinely names protocols a Windows build
-  //! cannot instantiate. Without this, saving from such a build writes back a
-  //! device with the right name and UUID and no settings at all, silently
-  //! destroying the configuration for every machine that *does* have the
-  //! protocol.
+  //! The protocol's own settings, kept verbatim when this build has no factory
+  //! for `protocol` -- a score::OpaquePayload blob. Empty in the common case,
+  //! where the factory was found.
   QByteArray opaqueSettings;
 };
 

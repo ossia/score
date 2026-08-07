@@ -320,11 +320,8 @@ void Receiver::close()
 {
   m_server.close();
 
-  // Taken first: ~QWebSocket emits disconnected() synchronously, which lands
-  // in socketDisconnected and erases from m_clients -- mutating the container
-  // being walked, and handing a socket being destroyed to handlers that will
-  // try to write to it. This is the ordinary path now that the setting can be
-  // switched off with clients connected, not only teardown.
+  // Taken first: ~QWebSocket emits disconnected() synchronously, which erases
+  // from the container being walked.
   auto clients = std::exchange(m_clients, {});
   m_listenedAddresses.clear();
 
@@ -349,9 +346,7 @@ quint16 Receiver::port() const noexcept
 
 bool Receiver::authorize(const QWebSocket& socket) const noexcept
 {
-  // The token rides on the connection URL rather than in a handshake message:
-  // a browser cannot set headers on a WebSocket, and this way a client only
-  // needs the right address to be written down, not new code.
+  // On the URL, not in a handshake: a browser cannot set WebSocket headers.
   const auto given
       = QUrlQuery{socket.requestUrl().query()}.queryItemValue(QStringLiteral("token"));
   return !m_settings.token.isEmpty() && given == m_settings.token;

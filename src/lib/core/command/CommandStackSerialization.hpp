@@ -24,13 +24,9 @@ void loadCommandStack(
   stack.updateStack([&]() {
     stack.setSavedIndex(-1);
 
-    // A command we cannot read stops the history there rather than the load.
-    // The stack can name plug-ins this build does not have -- a document
-    // travels, and in a session it comes from another machine entirely -- and
-    // losing the ability to undo past that point is a far smaller thing than
-    // failing to open the document at all. Everything before it is still
-    // consistent, so it is kept; everything after it would be undone against a
-    // state we could not reach, so it is dropped.
+    // A command we cannot read stops the history there rather than the load:
+    // what precedes it is consistent, what follows would undo against a state
+    // we never reached.
     bool ok = true;
     for(const auto& elt : undoStack)
     {
