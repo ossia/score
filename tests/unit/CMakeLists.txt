@@ -628,3 +628,11 @@ score_add_test(test_unit_heterogeneous_build
 # --- how a path is stored in a document ------------------------------------
 score_add_test(test_unit_uri
   SOURCES UriTest.cpp)
+
+# Browsing the files of a machine that is not this one.
+if(TARGET score_plugin_library)
+  score_add_test(test_unit_remote_filesystem
+    SOURCES RemoteFileSystemTest.cpp
+    APP
+    PLUGINS score_plugin_library)
+endif()

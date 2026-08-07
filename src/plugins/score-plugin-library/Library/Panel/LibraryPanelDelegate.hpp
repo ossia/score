@@ -3,12 +3,14 @@
 
 #include <score_plugin_library_export.h>
 class QTabWidget;
+class QStackedWidget;
 namespace Library
 {
 class ProjectLibraryWidget;
 class SystemLibraryWidget;
 class ProcessWidget;
 class FileSystemModel;
+class RemoteLibraryWidget;
 class UserPanel final : public score::PanelDelegate
 {
 public:
@@ -18,7 +20,13 @@ private:
   QWidget* widget() override;
   const score::PanelStatus& defaultPanelStatus() const override;
 
-  QWidget* m_widget{};
+  //! The library is a place on a machine, and which machine depends on the
+  //! document: a score that runs elsewhere has its media there, not here.
+  void on_modelChanged(score::MaybeDocument oldm, score::MaybeDocument newm) override;
+
+  QStackedWidget* m_widget{};
+  SystemLibraryWidget* m_local{};
+  RemoteLibraryWidget* m_remote{};
 };
 
 class ProjectPanel final : public score::PanelDelegate
