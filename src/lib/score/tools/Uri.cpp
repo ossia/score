@@ -9,6 +9,12 @@
 
 namespace score
 {
+const QString& remoteUriMimeType() noexcept
+{
+  static const QString t = QStringLiteral("application/x-score-remote-uri");
+  return t;
+}
+
 namespace
 {
 constexpr auto project_token = "<PROJECT>:";

@@ -1000,3 +1000,11 @@ score_add_test(test_unit_display_config
 # mistake in one shows up as a machine that does not come up.
 score_add_test(test_unit_autostart
   SOURCES AutostartTest.cpp)
+
+# Browsing the files of a machine that is not this one.
+if(TARGET score_plugin_library)
+  score_add_test(test_unit_remote_filesystem
+    SOURCES RemoteFileSystemTest.cpp
+    APP
+    PLUGINS score_plugin_library)
+endif()
