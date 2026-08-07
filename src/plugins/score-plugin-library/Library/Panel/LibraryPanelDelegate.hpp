@@ -55,8 +55,8 @@ private:
   //! The panel is one, documents are many, and what is available is a property
   //! of the document: a score that runs on another machine can only use that
   //! machine's processes. So the list is rebuilt from this build's factories
-  //! whenever a document that runs here becomes visible -- and left alone for
-  //! one that does not, since whatever mirrored the other machine owns it then.
+  //! when a document that runs here replaces one that did not -- and only
+  //! then, since a rescan restarts an asynchronous scan and racing it is fatal.
   void on_modelChanged(score::MaybeDocument oldm, score::MaybeDocument newm) override;
 
   QWidget* m_widget{};
