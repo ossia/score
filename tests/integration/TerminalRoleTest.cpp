@@ -30,6 +30,9 @@
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Application/Menus/TransportActions.hpp>
 #include <score/actions/ActionManager.hpp>
+#include <Library/Panel/LibraryPanelDelegate.hpp>
+#include <Library/ProcessWidget.hpp>
+#include <Library/ProcessesItemModel.hpp>
 #include <Execution/DocumentPlugin.hpp>
 #include <Execution/ExecutionController.hpp>
 
