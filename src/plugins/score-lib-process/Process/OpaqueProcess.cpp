@@ -1,5 +1,7 @@
 #include "OpaqueProcess.hpp"
 
+#include <Process/RemoteState.hpp>
+
 #include <Process/Dataflow/PortFactory.hpp>
 
 #include <score/application/ApplicationContext.hpp>
@@ -69,14 +71,7 @@ OpaqueProcessModel::OpaqueProcessModel(
   // one as the other would hand a machine that has the plug-in a blob it would
   // misread. Empty and flagged is honest; filling it in is a separate step.
   m_portsInPayload = false;
-  awaitingState().push_back(this);
-}
-
-std::vector<QPointer<OpaqueProcessModel>>&
-OpaqueProcessModel::awaitingState() noexcept
-{
-  static std::vector<QPointer<OpaqueProcessModel>> pending;
-  return pending;
+  awaitingRemoteState().push_back(this);
 }
 
 void OpaqueProcessModel::setState(const rapidjson::Value& serialized)

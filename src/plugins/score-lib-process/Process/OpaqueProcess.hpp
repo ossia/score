@@ -93,13 +93,6 @@ public:
   //! ports when the format allows, exactly as loading one from a document does.
   void setState(const rapidjson::Value& serialized);
 
-  //! Stand-ins created without state, in creation order.
-  //!
-  //! Only whoever issued the command can supply what they are missing, and that
-  //! code is not here -- it is in whatever replicated the command. This is how
-  //! it finds them without walking the whole document after every edit, which
-  //! at a control's update rate is not affordable.
-  static std::vector<QPointer<OpaqueProcessModel>>& awaitingState() noexcept;
 
   //! The names of the JSON members written by ProcessModel and its bases.
   //! Anything else in a serialized process belongs to its plug-in.

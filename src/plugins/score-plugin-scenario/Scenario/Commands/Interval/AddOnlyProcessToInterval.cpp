@@ -5,6 +5,8 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <Process/ProcessList.hpp>
+#include <Process/RemoteState.hpp>
+#include <score/document/DocumentContext.hpp>
 
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
@@ -91,6 +93,13 @@ Process::ProcessModel& AddOnlyProcessToInterval::redo(
                   m_processName, interval.duration.defaultDuration(),
                   m_createdProcessId, &interval);
   SCORE_ASSERT(proc);
+
+  // The creation data can name a file on the machine that sent the command --
+  // a library entry for a shader carries the path it was scanned from -- so a
+  // factory that exists here still produces an empty process. What it should
+  // contain is only known there.
+  if(fac && ctx.role() != score::DocumentRole::Local)
+    Process::awaitingRemoteState().push_back(proc);
 
   proc->setPosition(m_graphpos);
   AddProcess(interval, proc);
