@@ -53,10 +53,18 @@ OpaqueProcessModel::OpaqueProcessModel(
   // object's blob is the plug-in's. deserialize_interface gave each polymorphic
   // object its own length-delimited buffer, which is what makes this safe: the
   // tail is exactly one process and stops where it should.
-  m_payload = score::OpaquePayload::fromDataStream(vis);
+  // Written by serialize_impl when the ports are ours rather than the
+  // payload's; the payload is read last because it takes the rest of the blob.
+  bool portsWritten{};
+  vis.m_stream >> portsWritten;
+  if(portsWritten)
+  {
+    auto& pl = score::AppContext().interfaces<Process::PortFactoryList>();
+    writePorts(vis, pl, m_inlets, m_outlets, this);
+  }
+  m_portsInPayload = !portsWritten;
 
-  // No way to find the ports inside an opaque binary blob.
-  m_portsInPayload = true;
+  m_payload = score::OpaquePayload::fromDataStream(vis);
 }
 
 OpaqueProcessModel::OpaqueProcessModel(
@@ -125,12 +133,21 @@ OpaqueProcessModel::~OpaqueProcessModel() = default;
 
 void OpaqueProcessModel::serialize_impl(const VisitorVariant& vis) const noexcept
 {
-  if(vis.identifier == JSONObject::type() && !m_portsInPayload)
+  // Live ports rather than the ones in the payload: they may have been edited,
+  // and the payload no longer describes them.
+  if(vis.identifier == JSONObject::type())
   {
-    // Live ports rather than the ones in the payload: they may have been
-    // edited, and the payload no longer describes them.
-    readPorts(static_cast<JSONObject::Serializer&>(vis.visitor), m_inlets, m_outlets);
+    if(!m_portsInPayload)
+      readPorts(static_cast<JSONObject::Serializer&>(vis.visitor), m_inlets, m_outlets);
   }
+  else if(vis.identifier == DataStream::type())
+  {
+    auto& s = static_cast<DataStream::Serializer&>(vis.visitor);
+    s.m_stream << !m_portsInPayload;
+    if(!m_portsInPayload)
+      readPorts(s, m_inlets, m_outlets);
+  }
+
   m_payload.write(vis);
 }
 
