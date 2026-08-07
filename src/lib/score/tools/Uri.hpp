@@ -5,12 +5,8 @@
 
 namespace score
 {
-//! Drag-and-drop payload: newline-separated score::Uri, for things that are not
-//! on this machine.
-//!
-//! Deliberately not text/uri-list: that means files this process can open, and
-//! every drop handler treats it that way. Something that cannot be opened here
-//! must not look like something that can.
+//! Drag-and-drop payload: newline-separated score::Uri. Not text/uri-list,
+//! which every drop handler takes to mean a file it can open.
 SCORE_LIB_BASE_EXPORT const QString& remoteUriMimeType() noexcept;
 
 struct DocumentContext;
@@ -32,10 +28,7 @@ enum class UriScheme
   //! Under the user's library: "<LIBRARY>:".
   Library,
 
-  //! Content-addressed media: "<CACHE>:". Not authored by hand -- these name a
-  //! file by its hash, so the same media is the same entry on every machine
-  //! that has it, and a machine that does not can be told exactly what to
-  //! fetch.
+  //! Content-addressed media: "<CACHE>:", naming a file by its hash.
   Cache
 };
 
@@ -73,9 +66,7 @@ struct SCORE_LIB_BASE_EXPORT Uri
 //! Where "<CACHE>:" resolves to.
 SCORE_LIB_BASE_EXPORT QString mediaCacheRoot() noexcept;
 
-//! Whether `path` is `dir` itself or something under it.
-//!
-//! Distinct from a prefix test, which answers yes for "/a/proj2" under
-//! "/a/proj" and would then relativize it to a path meaning a different file.
+//! Whether `path` is `dir` itself or something under it. Not a prefix test,
+//! which says yes for "/a/proj2" under "/a/proj".
 SCORE_LIB_BASE_EXPORT bool isUnder(const QString& path, const QString& dir) noexcept;
 }

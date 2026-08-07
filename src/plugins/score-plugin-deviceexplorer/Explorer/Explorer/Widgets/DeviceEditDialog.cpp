@@ -268,9 +268,7 @@ void DeviceEditDialog::initAvailableProtocols()
   // initialize previous settings
   m_previousSettings.clear();
 
-  // What may be added at all. A document whose score runs on another machine
-  // says so through its catalog, and then it is that machine's protocols that
-  // are worth offering -- ours are unreachable from there.
+  // The catalog's protocols when the score runs elsewhere; ours otherwise.
   struct Listed
   {
     UuidKey<Device::ProtocolFactory> key;
@@ -440,9 +438,7 @@ void DeviceEditDialog::selectedPresetChanged()
     m_splitter->widget(0)->hide();
 
   // Create the correct settings widget for this protocol
-  // No factory, no form: the widget is C++ in a plug-in this build does not
-  // have. Such a protocol can still be used through what the other machine
-  // enumerates, since those come with the settings it wrote itself.
+  // No factory, no form: the settings widget lives in the absent plug-in.
   m_protocolNameLabel->setText(
       protocol ? tr("Settings (%1)").arg(protocol->prettyName())
                : tr("Configured on the other machine"));
@@ -552,15 +548,11 @@ void DeviceEditDialog::selectedProtocolChanged()
 
   auto protocol = m_protocolList.get(key);
 
-  // The hardware to offer. Through the catalog when the document has one --
-  // then it is the other machine's, listed as its answers arrive -- and
-  // otherwise through the protocol's own enumerators, which look at this one.
+  // The other machine's hardware through the catalog, or this one's.
   auto* remoteCatalog = catalog();
   if(remoteCatalog)
   {
-    // The answer may arrive after the dialog is gone, and after the person has
-    // picked a different protocol: both would otherwise write into a list that
-    // is no longer theirs.
+    // The answer may outlive the dialog, or the choice of protocol.
     auto addRemote = [self = QPointer{this}, key](
                          const QString& category, const QString& name,
                          const Device::DeviceSettings& settings) {
@@ -572,8 +564,7 @@ void DeviceEditDialog::selectedProtocolChanged()
       item->setText(0, name);
       item->setData(0, Qt::UserRole, QVariant::fromValue(settings));
 
-      // Grouped the way this machine's own hardware is, under a heading per
-      // enumerator: the peer sends which one each device came from.
+      // A heading per enumerator, as for local hardware.
       if(category.isEmpty())
       {
         me->m_devices->addTopLevelItem(item);
@@ -599,9 +590,7 @@ void DeviceEditDialog::selectedProtocolChanged()
       cat->setExpanded(true);
     };
 
-    // Shown before the answer arrives, and left shown if none does. The list is
-    // filled from a socket: hiding it now because it is empty now would hide it
-    // for good, since what re-shows it is exactly the answer we are waiting for.
+    // Shown before the answer arrives: nothing else would re-show it.
     m_devices->setVisible(true);
     m_devicesLabel->setVisible(true);
     m_devices->setRootIsDecorated(false);
@@ -622,8 +611,7 @@ void DeviceEditDialog::selectedProtocolChanged()
 
   std::sort(m_enumerators.begin(), m_enumerators.end(),
       [](const auto& a, const auto& b) { return a.first < b.first; });
-  // The block below is this machine's hardware; the catalog path above has
-  // already shown what it will show.
+  // This machine's hardware; the catalog path above has shown its own.
   if(!remoteCatalog && !m_enumerators.empty())
   {
     m_devices->setVisible(true);

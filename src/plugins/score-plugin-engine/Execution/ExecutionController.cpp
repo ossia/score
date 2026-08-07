@@ -172,10 +172,7 @@ bool ExecutionController::executesHere() const
 
 void ExecutionController::request_play_global(bool b)
 {
-  // Refused before the transport rather than inside play_interval: the state
-  // machine sets the buttons to "playing" on its way there, so declining later
-  // left the transport showing a playback that never started and a Stop that
-  // had nothing to stop.
+  // Before the transport: declining later leaves the buttons showing play.
   if(!executesHere())
     return;
 
@@ -226,9 +223,7 @@ void ExecutionController::request_stop_interval(Scenario::IntervalModel& itv)
 
 void ExecutionController::request_stop()
 {
-  // What is executing belongs to whichever document started it, not to the one
-  // in front. Asking the focused document's role instead left a playing score
-  // with no way to stop it as soon as a terminal was selected.
+  // What executes belongs to the document that started it, not the one in front.
   if(!isPlaying())
     return;
 
@@ -513,8 +508,7 @@ bool ExecutionController::has_audio_engine()
   if(audio_engine.audio)
     return true;
 
-  // Not fatal without a window: an unattended host -- which is the point of
-  // --no-gui -- would be killed by a play request it could simply decline.
+  // Not fatal without a window: an unattended host declines instead.
   score::warning(
       this->context.mainWindow, tr("Cannot play"),
       tr("Cannot start playback. It looks like the audio engine is not "
@@ -537,8 +531,7 @@ void ExecutionController::play_interval(
 
   auto& ctx = doc->context();
 
-  // The score runs elsewhere; this copy has no devices to play through and no
-  // business claiming this machine's audio. Transport comes from the host.
+  // The score runs elsewhere: no devices here, and no claim on this audio.
   if(doc->role() == score::DocumentRole::Terminal)
     return;
 
@@ -662,13 +655,10 @@ TimeVal ExecutionController::execution_time() const
     return TimeVal(itv.defaultDuration() * itv.playPercentage());
   }
 
-  // A terminal never has a clock -- the score runs on another machine -- but it
-  // does have where that machine says it has got to. Without this the cursor
-  // moves and the time stays at zero, which reads as nothing happening.
+  // No clock on a terminal, but the host says where it has got to.
   if(auto doc = currentDocument(); doc && doc->role() != score::DocumentRole::Local)
   {
-    // closing() rather than merely non-null: the timing widget's timer keeps
-    // firing while a document is torn down, and the base scenario goes first.
+    // closing() too: the timing widget keeps firing during teardown.
     auto* sm = score::IDocument::try_get<Scenario::ScenarioDocumentModel>(*doc);
     if(sm && !sm->closing())
     {
