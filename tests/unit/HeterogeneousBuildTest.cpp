@@ -419,6 +419,21 @@ TEST_CASE("A stand-in survives being written in the other format", "[heterogeneo
     REQUIRE(out.IsObject());
     REQUIRE(out.HasMember("PluginState"));
     CHECK(out["PluginState"] == "must survive both");
+
+    // The ports too. Reading from JSON rebuilds them as real objects and
+    // removes them from the payload, so anything that writes only the payload
+    // drops them -- and the machine that does have the plug-in then receives a
+    // process with no ports and no cables, which is worse than not opening it.
+    const auto ports = [](Process::ProcessModel& p) {
+      return std::pair{p.inlets().size(), p.outlets().size()};
+    };
+    REQUIRE(ports(*fromJson) == ports(*original));
+    CHECK(ports(*opaque) == ports(*original));
+
+    REQUIRE(out.HasMember("Inlets"));
+    REQUIRE(out.HasMember("Outlets"));
+    CHECK(out["Inlets"].Size() == original->inlets().size());
+    CHECK(out["Outlets"].Size() == original->outlets().size());
   });
 }
 
