@@ -4,13 +4,7 @@
 // visible. Needs the GUI stack, since panels do not exist without it, and a
 // binary cannot mix the two application fixtures.
 
-#include <Device/Address/AddressSettings.hpp>
-#include <Device/Node/DeviceNode.hpp>
-#include <Device/Protocol/DeviceSettings.hpp>
 
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 
 #include <Library/Panel/LibraryPanelDelegate.hpp>
 #include <Library/ProcessWidget.hpp>
@@ -23,7 +17,6 @@
 
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
-#include <score_test/ProbeProtocol.hpp>
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -36,13 +29,13 @@ QByteArray asJson(score::Document& doc)
   return wr.toByteArray();
 }
 
-QByteArray documentWithProbeDevice(const score::GUIApplicationContext& ctx)
+//! No devices in it. A device that fails to instantiate calls score::warning,
+//! and this fixture has a main window, so that is a modal nobody will dismiss.
+//! What is under test here is the library panel, not devices.
+QByteArray emptyDocument(const score::GUIApplicationContext& ctx)
 {
   auto* doc = score::test::new_document(ctx);
   SCORE_ASSERT(doc);
-
-  auto& plug = doc->context().plugin<Explorer::DeviceDocumentPlugin>();
-  plug.explorer().addDevice(score::test::probe_device_node(QStringLiteral("probe")));
   return asJson(*doc);
 }
 
@@ -77,8 +70,7 @@ TEST_CASE("The library follows the document that is visible", "[terminal]")
     REQUIRE(panel);
 
     auto& model = panel->processWidget().processModel();
-    score::test::register_probe_protocol(ctx);
-    const auto bytes = documentWithProbeDevice(ctx);
+    const auto bytes = emptyDocument(ctx);
 
     auto* local = reload(ctx, bytes, score::DocumentRole::Local);
     REQUIRE(local);
