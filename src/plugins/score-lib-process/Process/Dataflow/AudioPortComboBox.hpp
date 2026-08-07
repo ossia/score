@@ -2,6 +2,7 @@
 #include <State/Address.hpp>
 
 #include <Device/Address/AddressSettings.hpp>
+#include <Device/Protocol/DeviceInterface.hpp>
 #include <Device/Node/DeviceNode.hpp>
 
 #include <score/document/DocumentContext.hpp>
@@ -44,10 +45,16 @@ QComboBox* makeAddressCombo(
     State::Address root, const Device::Node& out_node, const Process::Port& port,
     const score::DocumentContext& ctx, QWidget* parent);
 
+//! Devices that can stand at the other end of `port`.
+//!
+//! A kind rather than a predicate on the device object: a document whose score
+//! runs elsewhere has no device objects at all, so a predicate could only ever
+//! answer "none" there. A kind is a fact the machine that has the device can
+//! report, and Explorer::DeviceDocumentPlugin holds what it reported.
 SCORE_LIB_PROCESS_EXPORT
 QComboBox* makeDeviceCombo(
-    std::function<bool(Device::DeviceInterface&)> condition, Device::DeviceList& devices,
-    const Process::Port& port, const score::DocumentContext& ctx, QWidget* parent);
+    Device::DeviceKind kind, Device::DeviceList& devices, const Process::Port& port,
+    const score::DocumentContext& ctx, QWidget* parent);
 /*
 class SCORE_LIB_PROCESS_EXPORT MidiPortComboBox final : public QComboBox
 {

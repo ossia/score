@@ -385,10 +385,8 @@ void TextureInletFactory::setupInletInspector(
 {
   auto& device = *ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
 
-  auto cond
-      = [](Device::DeviceInterface& dev) { return qobject_cast<GfxInputDevice*>(&dev); };
-
-  lay.addRow(Process::makeDeviceCombo(cond, device.list(), port, ctx, parent));
+  lay.addRow(Process::makeDeviceCombo(
+      Device::DeviceKind::TextureIn, device.list(), port, ctx, parent));
 
   auto& inlet = safe_cast<const TextureInlet&>(port);
   // Size
@@ -485,10 +483,8 @@ void TextureOutletFactory::setupOutletInspector(
     Inspector::Layout& lay, QObject* context)
 {
   auto& device = *ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
-  auto cond = [](Device::DeviceInterface& dev) {
-    return qobject_cast<GfxOutputDevice*>(&dev);
-  };
-  lay.addRow(Process::makeDeviceCombo(cond, device.list(), port, ctx, parent));
+  lay.addRow(Process::makeDeviceCombo(
+      Device::DeviceKind::TextureOut, device.list(), port, ctx, parent));
 
   auto& outlet = safe_cast<const TextureOutlet&>(port);
   if(!qEnvironmentVariableIsSet("SCORE_DISABLE_SHADER_PREVIEW"))

@@ -196,6 +196,21 @@ makeOutputConfiguration(MIDIDevice& self, MIDISpecificSettings& set)
   return std::make_pair(conf, api_conf);
 }
 
+Device::DeviceKinds MIDIDevice::kinds() const noexcept
+{
+  const auto& set
+      = settings().deviceSpecificSettings.value<Protocols::MIDISpecificSettings>();
+  switch(set.io)
+  {
+    case MIDISpecificSettings::IO::In:
+      return Device::DeviceKind::MidiIn;
+    case MIDISpecificSettings::IO::Out:
+      return Device::DeviceKind::MidiOut;
+    default:
+      return {};
+  }
+}
+
 bool MIDIDevice::reconnect()
 {
   disconnect();

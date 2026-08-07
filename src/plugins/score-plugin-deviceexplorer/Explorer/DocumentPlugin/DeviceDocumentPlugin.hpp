@@ -1,6 +1,7 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
 #include <Device/Protocol/DeviceCatalog.hpp>
+#include <Device/Protocol/DeviceInterface.hpp>
 
 #include <Explorer/DeviceList.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
@@ -101,6 +102,13 @@ public:
   std::optional<bool> remoteConnected(const QString& device) const noexcept;
   void setRemoteConnected(const QString& device, bool connected);
 
+  //! Devices the machine running the score reported as being of this kind.
+  //!
+  //! Empty for an ordinary document, where the device objects are here and can
+  //! be asked directly.
+  std::vector<QString> remoteDevicesOfKind(Device::DeviceKind kind) const;
+  void setRemoteKinds(const QString& device, Device::DeviceKinds kinds);
+
 private:
   void initDevice(Device::DeviceInterface&);
   void on_valueUpdated(const State::Address& addr, const ossia::value& v);
@@ -108,6 +116,7 @@ private:
   Device::Node m_rootNode;
   Device::DeviceCatalog* m_catalog{};
   ossia::hash_map<QString, bool> m_remoteConnected;
+  ossia::hash_map<QString, Device::DeviceKinds> m_remoteKinds;
   Device::DeviceList m_list;
   std::atomic_bool m_processMessages{};
   std::thread m_asioThread;

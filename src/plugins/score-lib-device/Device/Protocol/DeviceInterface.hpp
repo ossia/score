@@ -60,6 +60,27 @@ enum DeviceLogging : int8_t
   LogEverything
 };
 
+/**
+ * @brief What a device can stand at the end of.
+ *
+ * The inspector's port combo boxes each ask one of these questions -- which
+ * devices can be a texture source, which are MIDI inputs -- and each used to
+ * ask it with a lambda that casts to a plug-in's own C++ type. That answer only
+ * exists where the device object does, so a peer editing a score that runs
+ * elsewhere had nothing to offer: no device objects, empty combo box.
+ *
+ * Asked of the device instead, it is a fact that can be reported over a wire
+ * by the machine that has it.
+ */
+enum class DeviceKind
+{
+  MidiIn = (1 << 0),
+  MidiOut = (1 << 1),
+  TextureIn = (1 << 2),
+  TextureOut = (1 << 3)
+};
+Q_DECLARE_FLAGS(DeviceKinds, DeviceKind)
+
 class SCORE_LIB_DEVICE_EXPORT DeviceInterface
     : public QObject
     , public Nano::Observer
@@ -80,6 +101,9 @@ public:
 
   virtual void disconnect();
   virtual bool reconnect() = 0;
+
+  //! What this device can be plugged into. Empty unless it says otherwise.
+  virtual DeviceKinds kinds() const noexcept;
   virtual void recreate(const Device::Node&); // Argument is the node of the
                                               // device, used for recreation
   virtual bool connected() const;
