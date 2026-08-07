@@ -26,6 +26,10 @@
 #include <core/presenter/DocumentManager.hpp>
 
 #include <Engine/ApplicationPlugin.hpp>
+#include <Scenario/Application/ScenarioActions.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Application/Menus/TransportActions.hpp>
+#include <score/actions/ActionManager.hpp>
 #include <Execution/DocumentPlugin.hpp>
 #include <Execution/ExecutionController.hpp>
 
@@ -184,6 +188,11 @@ TEST_CASE("A terminal document does not execute", "[terminal]")
     auto* exec = doc->context().findPlugin<Execution::DocumentPlugin>();
     if(exec)
       CHECK_FALSE(exec->isPlaying());
+
+    // Not asserted here: that the transport buttons stay honest. They are set
+    // by TransportActions, which early-returns without the widgets a real
+    // window creates, so headless it does nothing either way and the check
+    // would pass with the guard removed. Verified in the GUI instead.
   });
 }
 

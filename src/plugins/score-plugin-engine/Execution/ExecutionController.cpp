@@ -164,8 +164,21 @@ TransportInterface& ExecutionController::transport() const noexcept
   return *m_transport;
 }
 
+bool ExecutionController::executesHere() const
+{
+  auto doc = currentDocument();
+  return !doc || doc->role() == score::DocumentRole::Local;
+}
+
 void ExecutionController::request_play_global(bool b)
 {
+  // Refused before the transport rather than inside play_interval: the state
+  // machine sets the buttons to "playing" on its way there, so declining later
+  // left the transport showing a playback that never started and a Stop that
+  // had nothing to stop.
+  if(!executesHere())
+    return;
+
   if(b)
   {
     this->m_requestLocalPlay = false;
@@ -179,6 +192,9 @@ void ExecutionController::request_play_global(bool b)
 
 void ExecutionController::request_play_local(bool b)
 {
+  if(!executesHere())
+    return;
+
   if(b)
   {
     this->m_requestLocalPlay = true;
@@ -193,17 +209,26 @@ void ExecutionController::request_play_local(bool b)
 void ExecutionController::request_play_interval(
     Scenario::IntervalModel& itv, exec_setup_fun setup, TimeVal t)
 {
+  if(!executesHere())
+    return;
+
   m_intervalsToPlay.push_back({itv, std::move(setup), t});
   m_transport->requestPlay();
 }
 
 void ExecutionController::request_stop_interval(Scenario::IntervalModel& itv)
 {
+  if(!executesHere())
+    return;
+
   stop_interval(itv);
 }
 
 void ExecutionController::request_stop()
 {
+  if(!executesHere())
+    return;
+
   m_transport->requestStop();
 }
 
