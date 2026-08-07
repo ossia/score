@@ -71,7 +71,7 @@ TEST_CASE("A remote folder is listed when it is opened", "[library][remote]")
   env.contents[root.toString()]
       = {entry("sounds", true), entry("a.wav", false), entry("b.wav", false)};
 
-  Library::RemoteFileSystemModel model{env, nullptr};
+  Library::RemoteFileSystemModel model{[&env] { return &env; }, nullptr};
   model.setRoot(root);
 
   // Nothing is fetched until something asks: a library can be large and it is
@@ -104,7 +104,7 @@ TEST_CASE("A remote folder is asked about once", "[library][remote]")
   const auto root = score::Uri{score::UriScheme::Library, QString{}};
   env.contents[root.toString()] = {entry("a.wav", false)};
 
-  Library::RemoteFileSystemModel model{env, nullptr};
+  Library::RemoteFileSystemModel model{[&env] { return &env; }, nullptr};
   model.setRoot(root);
 
   model.fetchMore(QModelIndex{});
@@ -123,7 +123,7 @@ TEST_CASE("An unanswered listing leaves the model usable", "[library][remote]")
   ScriptedEnvironment env;
   const auto root = score::Uri{score::UriScheme::Library, QString{}};
 
-  Library::RemoteFileSystemModel model{env, nullptr};
+  Library::RemoteFileSystemModel model{[&env] { return &env; }, nullptr};
   model.setRoot(root);
   model.fetchMore(QModelIndex{});
 
@@ -142,7 +142,7 @@ TEST_CASE("A listing that arrives after the model is gone is dropped",
   env.contents[root.toString()] = {entry("a.wav", false)};
 
   {
-    Library::RemoteFileSystemModel model{env, nullptr};
+    Library::RemoteFileSystemModel model{[&env] { return &env; }, nullptr};
     model.setRoot(root);
     model.fetchMore(QModelIndex{});
   }
@@ -158,7 +158,7 @@ TEST_CASE("A remote file can be dragged, a folder cannot", "[library][remote]")
   const auto root = score::Uri{score::UriScheme::Library, QString{}};
   env.contents[root.toString()] = {entry("sounds", true), entry("a.wav", false)};
 
-  Library::RemoteFileSystemModel model{env, nullptr};
+  Library::RemoteFileSystemModel model{[&env] { return &env; }, nullptr};
   model.setRoot(root);
   model.fetchMore(QModelIndex{});
   env.answer();
@@ -183,4 +183,41 @@ TEST_CASE("A remote file can be dragged, a folder cannot", "[library][remote]")
 
   // A folder alone yields nothing rather than an empty drop.
   CHECK(model.mimeData({folder}) == nullptr);
+}
+
+TEST_CASE("The environment is asked for again each time", "[library][remote]")
+{
+  // Document::environment() is created lazily and replaced once a session says
+  // where the files are, and the panel is told the document exists before that
+  // happens. A model that captured the first one would be calling through an
+  // object the replacement destroyed -- which in the wasm build shows up as
+  // "function signature mismatch" from a dead vtable.
+  ScriptedEnvironment first, second;
+  const auto root = score::Uri{score::UriScheme::Library, QString{}};
+  second.contents[root.toString()] = {entry("from-the-other-machine", false)};
+
+  score::Environment* current = &first;
+  Library::RemoteFileSystemModel model{[&current] { return current; }, nullptr};
+  model.setRoot(root);
+
+  // Replaced before anything is listed, as a session does.
+  current = &second;
+
+  model.fetchMore(QModelIndex{});
+  CHECK(first.listCalls == 0);
+  REQUIRE(second.listCalls == 1);
+
+  second.answer();
+  REQUIRE(model.rowCount(QModelIndex{}) == 1);
+  CHECK(model.data(model.index(0, 0, QModelIndex{}), Qt::DisplayRole).toString()
+        == QStringLiteral("from-the-other-machine"));
+}
+
+TEST_CASE("No environment at all is not a crash", "[library][remote]")
+{
+  Library::RemoteFileSystemModel model{[] { return nullptr; }, nullptr};
+  model.setRoot(score::Uri{score::UriScheme::Library, QString{}});
+
+  REQUIRE_NOTHROW(model.fetchMore(QModelIndex{}));
+  CHECK(model.rowCount(QModelIndex{}) == 0);
 }

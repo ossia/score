@@ -54,7 +54,7 @@ void UserPanel::on_modelChanged(score::MaybeDocument, score::MaybeDocument newm)
   // The user library of the machine the score runs on. Listed through the
   // document's environment, which is what knows where that is.
   m_remote->browse(
-      newm->document.environment(),
+      [doc = &newm->document] { return &doc->environment(); },
       score::Uri{score::UriScheme::Library, QString{}});
   m_widget->setCurrentWidget(m_remote);
 }
