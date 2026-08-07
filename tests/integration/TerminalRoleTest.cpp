@@ -33,6 +33,13 @@
 #include <Library/Panel/LibraryPanelDelegate.hpp>
 #include <Library/ProcessWidget.hpp>
 #include <Library/ProcessesItemModel.hpp>
+#include <Process/ProcessList.hpp>
+#include <Process/RemoteState.hpp>
+#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <core/command/CommandStack.hpp>
 #include <Execution/DocumentPlugin.hpp>
 #include <Execution/ExecutionController.hpp>
 
@@ -219,5 +226,44 @@ TEST_CASE("A terminal exposes no control surface of its own", "[terminal]")
     REQUIRE(local);
     auto& localDevices = local->context().plugin<Explorer::DeviceDocumentPlugin>();
     CHECK(localDevices.list().localDevice() != nullptr);
+  });
+}
+
+TEST_CASE("A terminal asks for the state of what it creates", "[terminal]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    score::test::register_probe_protocol(ctx);
+    const auto bytes = documentWithProbeDevice(ctx);
+
+    auto& facs = ctx.interfaces<Process::ProcessFactoryList>();
+    REQUIRE_FALSE(facs.empty());
+    const auto key = facs.begin()->concreteKey();
+
+    auto makeProcess = [&](score::Document& doc) {
+      auto& itv = safe_cast<Scenario::ScenarioDocumentModel&>(doc.model().modelDelegate())
+                      .baseScenario()
+                      .interval();
+      Process::awaitingRemoteState().clear();
+      doc.context().document.commandStack().redoAndPush(
+          new Scenario::Command::AddOnlyProcessToInterval{
+              itv, key, QStringLiteral("/on/the/other/machine.isf"), QPointF{}});
+      return Process::awaitingRemoteState().size();
+    };
+
+    // A document that runs here builds the process from the same data the
+    // command carries and has no reason to ask anyone.
+    auto* local = reload(ctx, bytes, score::DocumentRole::Local);
+    REQUIRE(local);
+    CHECK(makeProcess(*local) == 0);
+
+    // A terminal cannot: the data describes the other machine -- a library
+    // entry carries the path of the file it was scanned from -- so the factory
+    // succeeds here and produces something empty. What it should contain is
+    // only known where the command came from.
+    auto* terminal = reload(ctx, bytes, score::DocumentRole::Terminal);
+    REQUIRE(terminal);
+    CHECK(makeProcess(*terminal) == 1);
+
+    Process::awaitingRemoteState().clear();
   });
 }
