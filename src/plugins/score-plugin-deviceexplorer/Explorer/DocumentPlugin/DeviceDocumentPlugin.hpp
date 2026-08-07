@@ -14,6 +14,7 @@
 
 #include <score_plugin_deviceexplorer_export.h>
 
+#include <functional>
 #include <thread>
 #include <verdigris>
 
@@ -131,6 +132,15 @@ public:
   std::vector<QString> remoteDevicesOfKind(Device::DeviceKind kind) const;
   void setRemoteKinds(const QString& device, Device::DeviceKinds kinds);
 
+  //! Where a value edited here goes when the device is on another machine.
+  //!
+  //! Editing the tree has always meant "send this to the device", and a
+  //! terminal holds no device to send to. The machine that does is the one
+  //! that has to perform it, so the edit is handed to whoever installed this.
+  using ValueSink = std::function<void(const State::Address&, const ossia::value&)>;
+  void setValueSink(ValueSink s) { m_valueSink = std::move(s); }
+  const ValueSink& valueSink() const noexcept { return m_valueSink; }
+
   //! The peer reported what a device is. Arrives after the join, so anything
   //! already showing a device list has to be told.
   void remoteKindsChanged(const QString& device)
@@ -142,6 +152,7 @@ private:
 
   Device::Node m_rootNode;
   Device::DeviceCatalog* m_catalog{};
+  ValueSink m_valueSink;
   ossia::hash_map<QString, bool> m_remoteConnected;
   ossia::hash_map<QString, Device::DeviceKinds> m_remoteKinds;
   Device::DeviceList m_list;

@@ -356,6 +356,10 @@ void NodeUpdateProxy::updateRemoteValue(
     // Update in the device implementation
     dev->sendMessage(addr, val);
   }
+  else if(const auto& sink = devModel.valueSink())
+  {
+    sink(addr, val);
+  }
 }
 
 ossia::value NodeUpdateProxy::refreshRemoteValue(const State::Address& addr) const
