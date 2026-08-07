@@ -48,6 +48,17 @@ public:
       const UuidKey<ProcessModel>& key, DataStream::Deserializer& vis, QObject* parent);
   OpaqueProcessModel(
       const UuidKey<ProcessModel>& key, JSONObject::Deserializer& vis, QObject* parent);
+
+  //! For a command that asks to create a process whose factory we do not have.
+  //!
+  //! Unlike the loading constructors there is nothing to keep: the object was
+  //! never serialized here, so this stand-in has no state and knows it. What
+  //! the process should contain exists on the peer that could make it, and
+  //! until that arrives this is a named placeholder -- see incomplete().
+  OpaqueProcessModel(
+      const UuidKey<ProcessModel>& key, const TimeVal& duration,
+      const Id<ProcessModel>& id, QObject* parent);
+
   ~OpaqueProcessModel() override;
 
   //! The key of the process we replace, not one of our own.
@@ -66,6 +77,15 @@ public:
   //! this process has none of its own.
   bool portsAreOpaque() const noexcept { return m_portsInPayload; }
 
+  //! True when this stands in for an object whose state was never received:
+  //! it was created by a command rather than read from a document.
+  //!
+  //! Its emptiness is not authoritative, so writing it out would tell a machine
+  //! that *has* the plug-in that the process is empty, when it is only unknown
+  //! here. Whoever creates one of these is responsible for filling it in.
+  bool incomplete() const noexcept { return m_incomplete; }
+  void setPayload(score::OpaquePayload payload, bool portsInPayload);
+
   //! The names of the JSON members written by ProcessModel and its bases.
   //! Anything else in a serialized process belongs to its plug-in.
   static const QStringList& baseMemberNames() noexcept;
@@ -77,6 +97,7 @@ private:
   // when those could be rebuilt.
   score::OpaquePayload m_payload;
   bool m_portsInPayload{true};
+  bool m_incomplete{false};
 };
 
 /**
