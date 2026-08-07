@@ -25,8 +25,11 @@ public:
     if(!f.open(QIODevice::ReadOnly))
       return false;
 
+    // there is no panel without a GUI
     if(!panel)
-      panel = &score::GUIAppContext().panel<JS::PanelDelegate>();
+      panel = score::GUIAppContext().findPanel<JS::PanelDelegate>();
+    if(!panel)
+      return false;
 
     panel->importModule(path);
     return true;
