@@ -25,6 +25,7 @@
 #include <score/plugins/UuidKeySerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+#include <score/serialization/OpaquePayload.hpp>
 
 #include <core/presenter/DocumentManager.hpp>
 
@@ -55,48 +56,65 @@ UuidKey<Device::ProtocolFactory> absentProtocol()
   return UuidKey<Device::ProtocolFactory>::fromString(QString{absent_uuid});
 }
 
-// Bytes as a build that *has* the protocol emits them: name, protocol key, a
-// protocol-specific payload, then the trailing delimiter.
+constexpr auto host_payload = "host-only protocol payload";
+
+// Bytes as a build that *has* the protocol emits them: name, protocol key, the
+// protocol's own settings in a blob of their own, then the trailing delimiter.
 QByteArray settingsFromRicherBuild(const QString& name)
 {
+  QByteArray inner;
+  {
+    DataStreamReader sub{&inner};
+    sub.m_stream << QString{host_payload};
+  }
+
   QByteArray b;
   DataStreamReader r{&b};
   r.m_stream << name << absentProtocol();
-  r.m_stream << QStringLiteral("host-only protocol payload");
+  r.m_stream << score::OpaquePayload{DataStream::type(), inner}.toBlob();
   r.insertDelimiter();
   return b;
 }
 }
 
-TEST_CASE("DeviceSettings DataStream reports the missing protocol", "[heterogeneous]")
+TEST_CASE("DeviceSettings DataStream keeps the settings of an absent protocol",
+          "[heterogeneous]")
 {
   score::test::run_in_app([](const score::GUIApplicationContext&) {
-    // The binary format writes protocol settings inline with no length prefix,
-    // so a reader without the factory genuinely cannot skip them: the payload
-    // is unrecoverable and the only honest outcome is a clear diagnostic. What
-    // must NOT happen is the old behaviour, where the delimiter check landed
-    // mid-payload and blamed the whole file for being corrupt.
+    // The protocol's settings are written in a blob of their own, as every
+    // other polymorphic kind already was, so a reader without the factory skips
+    // them by length and keeps them verbatim. Before, there was no length to
+    // skip by: the read landed mid-payload, and the only honest outcome was to
+    // refuse the document.
     const QByteArray bytes = settingsFromRicherBuild("syphon-in");
 
     Device::DeviceSettings s;
     DataStreamWriter w{bytes};
-    REQUIRE_THROWS_AS(w.writeTo(s), std::runtime_error);
+    REQUIRE_NOTHROW(w.writeTo(s));
 
-    // The device and protocol are named, so the message can tell the user which
-    // machine to open the document on.
-    try
+    CHECK(s.name == QStringLiteral("syphon-in"));
+    CHECK(s.protocol == absentProtocol());
+    REQUIRE_FALSE(s.opaqueSettings.isEmpty());
+
+    // And writing it back out gives the richer build its settings again --
+    // byte for byte, since nothing here understood them well enough to change
+    // them.
+    QByteArray again;
     {
-      Device::DeviceSettings s2;
-      DataStreamWriter w2{bytes};
-      w2.writeTo(s2);
+      DataStreamReader r{&again};
+      r.readFrom(s);
     }
-    catch(const std::runtime_error& e)
+    CHECK(again == bytes);
+
+    // What was kept really is the protocol's payload, not an empty husk.
+    const auto payload = score::OpaquePayload::fromBlob(s.opaqueSettings);
+    REQUIRE(payload.format == DataStream::type());
+    QString roundtripped;
     {
-      const QString what = QString::fromStdString(e.what());
-      CHECK(what.contains("syphon-in"));
-      CHECK(what.contains(absent_uuid));
-      CHECK(what.contains(".score"));
+      DataStreamWriter sub{payload.bytes};
+      sub.m_stream >> roundtripped;
     }
+    CHECK(roundtripped == QString{host_payload});
   });
 }
 
@@ -721,5 +739,63 @@ TEST_CASE("A path does not resolve to an object of another type", "[heterogeneou
 
     CHECK(wrong.try_find(dctx) == nullptr);
     CHECK_THROWS(wrong.find(dctx));
+  });
+}
+
+TEST_CASE("An absent protocol's settings survive changing format", "[heterogeneous]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    // A document does not stay in the format it was authored in: one read from
+    // .score is written to the binary format on every autosave, and a device
+    // travels inside commands, which are binary too. A payload that could only
+    // be written back in the format it arrived in would be lost by saving.
+    const QByteArray json
+        = QStringLiteral(R"({"Name":"syphon-in","Protocol":"%1",)"
+                         R"("ServerName":"Resolume","AppName":"Arena","Rate":60})")
+              .arg(absent_uuid)
+              .toUtf8();
+
+    Device::DeviceSettings fromJson;
+    {
+      rapidjson::Document doc;
+      doc.Parse(json.data(), json.size());
+      REQUIRE_FALSE(doc.HasParseError());
+      JSONObject::Deserializer w{doc};
+      w.writeTo(fromJson);
+    }
+    REQUIRE_FALSE(fromJson.opaqueSettings.isEmpty());
+
+    // Out to binary and back, as an autosave does.
+    QByteArray binary;
+    {
+      DataStreamReader r{&binary};
+      r.readFrom(fromJson);
+    }
+
+    Device::DeviceSettings viaBinary;
+    {
+      DataStreamWriter w{binary};
+      REQUIRE_NOTHROW(w.writeTo(viaBinary));
+    }
+    CHECK(viaBinary.name == fromJson.name);
+    CHECK(viaBinary.protocol == fromJson.protocol);
+    CHECK(viaBinary.opaqueSettings == fromJson.opaqueSettings);
+
+    // And back out to JSON, where the protocol's members must be at the top
+    // level again -- a build that *has* the protocol has to find them where it
+    // expects, not wrapped in whatever score used to carry them.
+    JSONReader r;
+    r.readFrom(viaBinary);
+    rapidjson::Document out;
+    out.Parse(r.toByteArray().data(), r.toByteArray().size());
+    REQUIRE_FALSE(out.HasParseError());
+    REQUIRE(out.IsObject());
+
+    REQUIRE(out.HasMember("ServerName"));
+    CHECK(std::string_view{out["ServerName"].GetString()} == "Resolume");
+    REQUIRE(out.HasMember("AppName"));
+    CHECK(std::string_view{out["AppName"].GetString()} == "Arena");
+    REQUIRE(out.HasMember("Rate"));
+    CHECK(out["Rate"].GetInt() == 60);
   });
 }
