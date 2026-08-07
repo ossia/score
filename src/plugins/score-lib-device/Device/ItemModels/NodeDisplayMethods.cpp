@@ -157,6 +157,11 @@ QVariant valueColumnData(const Device::Node& node, int role)
       // TODO a nice editor for lists.
       return State::convert::toPrettyString(val);
     }
+    else if(role == Qt::DisplayRole && val.get_type() == ossia::val_type::FLOAT)
+    {
+      // Done here explicitely to avoid Qt's default scientific notation QLocale conversion
+      return State::convert::toPrettyString(*val.target<float>());
+    }
     else
     {
       return State::convert::value<QVariant>(val);
