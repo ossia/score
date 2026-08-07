@@ -9,9 +9,9 @@
 
 namespace Library
 {
-RemoteFileSystemModel::RemoteFileSystemModel(score::Environment& env, QObject* parent)
+RemoteFileSystemModel::RemoteFileSystemModel(EnvironmentSource env, QObject* parent)
     : QAbstractItemModel{parent}
-    , m_env{env}
+    , m_env{std::move(env)}
     , m_root{std::make_unique<Entry>()}
 {
   m_root->directory = true;
@@ -159,7 +159,11 @@ void RemoteFileSystemModel::fetchMore(const QModelIndex& parent)
   QPointer<RemoteFileSystemModel> self = this;
   Entry* target = p;
 
-  m_env.list(
+  auto* env = m_env ? m_env() : nullptr;
+  if(!env)
+    return;
+
+  env->list(
       p->uri,
       [self, target](std::vector<score::DirEntry> entries) {
     if(!self)
@@ -245,12 +249,13 @@ RemoteLibraryWidget::RemoteLibraryWidget(QWidget* parent)
 
 RemoteLibraryWidget::~RemoteLibraryWidget() = default;
 
-void RemoteLibraryWidget::browse(score::Environment& env, const score::Uri& root)
+void RemoteLibraryWidget::browse(
+    RemoteFileSystemModel::EnvironmentSource env, const score::Uri& root)
 {
-  // A fresh model per environment: the old one's entries name folders on a
+  // A fresh model per document: the old one's entries name folders on a
   // machine we may no longer be talking to.
   auto* old = m_model;
-  m_model = new RemoteFileSystemModel{env, this};
+  m_model = new RemoteFileSystemModel{std::move(env), this};
   setModel(m_model);
   delete old;
 

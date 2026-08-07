@@ -1,4 +1,5 @@
 #pragma once
+#include <score/document/DocumentContext.hpp>
 #include <score/tools/Environment.hpp>
 #include <score/tools/Uri.hpp>
 
@@ -7,6 +8,7 @@
 
 #include <score_plugin_library_export.h>
 
+#include <functional>
 #include <memory>
 #include <vector>
 
@@ -29,7 +31,16 @@ class SCORE_PLUGIN_LIBRARY_EXPORT RemoteFileSystemModel final
     : public QAbstractItemModel
 {
 public:
-  RemoteFileSystemModel(score::Environment& env, QObject* parent);
+  //! How to reach the environment, not the environment itself.
+  //!
+  //! Document::environment() is created lazily and *replaced* once a session
+  //! knows where the files really are -- which happens after the panel has
+  //! been told the document exists. A reference captured once would be to the
+  //! local environment that replacement destroys, and calling through it is a
+  //! dead vtable.
+  using EnvironmentSource = std::function<score::Environment*()>;
+
+  RemoteFileSystemModel(EnvironmentSource env, QObject* parent);
   ~RemoteFileSystemModel() override;
 
   //! Show this folder, and forget anything shown before.
@@ -76,7 +87,7 @@ private:
   Entry* entryOf(const QModelIndex& index) const;
   QModelIndex indexOf(Entry& e) const;
 
-  score::Environment& m_env;
+  EnvironmentSource m_env;
   std::unique_ptr<Entry> m_root;
 };
 }
@@ -98,7 +109,7 @@ public:
   ~RemoteLibraryWidget() override;
 
   //! Show `root` as seen through `env`. Replaces whatever was shown.
-  void browse(score::Environment& env, const score::Uri& root);
+  void browse(RemoteFileSystemModel::EnvironmentSource env, const score::Uri& root);
 
   //! Nothing to show -- no document, or one whose files are on this machine.
   void clear();
