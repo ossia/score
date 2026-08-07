@@ -47,9 +47,12 @@
 #include <avnd/binding/ossia/ossia_audio_node.hpp>
 #include <avnd/binding/ossia/ossia_dynamic_audio_node.hpp>
 #include <avnd/binding/ossia/poly_audio_node.hpp>
+#include <avnd/concepts/dynamic_items.hpp>
 #include <avnd/concepts/temporality.hpp>
 #include <avnd/concepts/ui.hpp>
 #include <avnd/concepts/worker.hpp>
+
+#include <QPointer>
 
 namespace oscr
 {
@@ -176,7 +179,10 @@ public:
 
     if constexpr(requires { ptr->impl.effect; })
       if constexpr(std::is_same_v<std::decay_t<decltype(ptr->impl.effect)>, Node>)
+      {
         connect_message_bus(element, ctx, ptr->impl.effect);
+        connect_dynamic_items(element, ptr->impl.effect);
+      }
     connect_worker(ctx, ptr->impl);
 
     node->dynamic_ports = element.dynamic_ports;
@@ -458,6 +464,44 @@ public:
         }
       });
     };
+  }
+
+  void connect_dynamic_items(ProcessModel<Node>& element, Node& eff)
+  {
+    // type-only inputs: get_inputs would hard-error
+    if constexpr(
+        avnd::inputs_is_type<Node>
+        || avnd::control_input_introspection<Node>::size == 0)
+      return;
+    else
+    avnd::control_input_introspection<Node>::for_all_n2(
+        avnd::get_inputs<Node>(eff),
+        [&element]<std::size_t Idx, typename F>(
+            F& field, auto pred_index, avnd::field_index<Idx>) {
+      if constexpr(avnd::dynamic_items_parameter<F>)
+      {
+        auto ports = element.avnd_input_idx_to_model_ports(Idx);
+        if(ports.size() != 1)
+          return;
+        if(auto combo = qobject_cast<Process::ComboBox*>(ports[0]))
+        {
+          field.update_items = [p = QPointer<Process::ComboBox>{combo}](
+                                   std::vector<std::string> items) {
+            std::vector<std::pair<QString, ossia::value>> alts;
+            alts.reserve(items.size());
+            for(std::size_t i = 0; i < items.size(); i++)
+              alts.emplace_back(QString::fromStdString(items[i]), (int)i);
+            QMetaObject::invokeMethod(
+                qApp,
+                [p, alts = std::move(alts)]() mutable {
+              if(p)
+                p->setAlternatives(std::move(alts));
+            },
+                Qt::QueuedConnection);
+          };
+        }
+      }
+    });
   }
 
   void connect_message_bus(

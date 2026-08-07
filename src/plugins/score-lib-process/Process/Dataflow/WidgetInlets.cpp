@@ -8,9 +8,12 @@
 #include <ossia-qt/invoke.hpp>
 
 #include <QCoreApplication>
+#include <QDir>
+#include <QFileSystemWatcher>
 
 #include <wobjectimpl.h>
 
+W_OBJECT_IMPL(Process::ComboBox)
 W_OBJECT_IMPL(Process::FileChooserBase)
 W_OBJECT_IMPL(Process::FileChooser)
 W_OBJECT_IMPL(Process::FolderChooser)
@@ -104,6 +107,72 @@ void ComboBox::setupExecution(ossia::inlet& inl, QObject* exec_context) const no
 {
   auto& port = **safe_cast<ossia::value_inlet*>(&inl);
   port.domain = domain().get();
+}
+
+void ComboBox::repopulateFromFolder(const QString& folderPath)
+{
+  std::vector<std::pair<QString, ossia::value>> alts;
+  if(!folderPath.isEmpty())
+  {
+    QDir dir(folderPath);
+    const auto files = fileExtensions.isEmpty()
+                           ? dir.entryList(QDir::Files, QDir::Name)
+                           : dir.entryList(fileExtensions, QDir::Files, QDir::Name);
+    for(const auto& f : files)
+      alts.emplace_back(f, f.toStdString()); // value = the file name itself
+  }
+  if(alts.empty())
+    alts.emplace_back(QStringLiteral("-"), std::string("-"));
+  setAlternatives(std::move(alts));
+
+  // Watch the folder so files created while the document is open (e.g. by an
+  // upstream process writing its analysis) appear in the list right away.
+  if(folderPath != m_watchedFolder)
+  {
+    if(m_folderWatcher)
+    {
+      delete m_folderWatcher;
+      m_folderWatcher = nullptr;
+    }
+    m_watchedFolder = folderPath;
+    if(!folderPath.isEmpty() && QDir{folderPath}.exists())
+    {
+      m_folderWatcher = new QFileSystemWatcher{{folderPath}, this};
+      connect(
+          m_folderWatcher, &QFileSystemWatcher::directoryChanged, this,
+          [this](const QString& path) { repopulateFromFolder(path); });
+    }
+  }
+}
+
+void ComboBox::setAlternatives(std::vector<std::pair<QString, ossia::value>> values)
+{
+  if(values == alternatives)
+    return;
+  alternatives = std::move(values);
+
+  std::vector<ossia::value> vals;
+  for(auto& v : alternatives)
+    vals.push_back(v.second);
+  setDomain(State::Domain{ossia::make_domain(vals)});
+
+  // Keep the current value if it is still in the list; otherwise fall back to
+  // the init value when available. A value absent from the list is left
+  // untouched: for folder-backed comboboxes it may name a file that simply
+  // does not exist *yet* — it becomes selectable (and shows up as selected)
+  // once the file appears.
+  if(!alternatives.empty())
+  {
+    auto in_list = [this](const ossia::value& v) {
+      return ossia::find_if(
+                 alternatives, [&](const auto& pair) { return pair.second == v; })
+             != alternatives.end();
+    };
+    if(!in_list(value()) && in_list(init()))
+      setValue(init());
+  }
+
+  alternativesChanged();
 }
 
 ComboBox::~ComboBox() { }
@@ -1328,13 +1397,13 @@ SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read(const Process::ComboBox& p)
 {
   read((const Process::ControlInlet&)p);
-  m_stream << p.alternatives;
+  m_stream << p.alternatives << p.folderPortName << p.fileExtensions;
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
 DataStreamWriter::write(Process::ComboBox& p)
 {
-  m_stream >> p.alternatives;
+  m_stream >> p.alternatives >> p.folderPortName >> p.fileExtensions;
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
@@ -1342,11 +1411,27 @@ JSONReader::read(const Process::ComboBox& p)
 {
   read((const Process::ControlInlet&)p);
   obj["Values"] = p.alternatives;
+  // Folder-backed combobox metadata (empty for a plain combobox). Persisted so
+  // a loaded document can re-scan the folder and re-establish live refresh;
+  // see ProcessModel::init_folder_comboboxes. Extensions are stored as one
+  // space-joined string ("*.json *.wav"), like FileChooser's filters.
+  obj["FolderPort"] = p.folderPortName;
+  obj["FileExtensions"] = p.fileExtensions.join(QChar(' '));
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::ComboBox& p)
 {
   p.alternatives <<= obj["Values"];
+  // Guarded for documents saved before these fields existed.
+  if(obj.tryGet("FolderPort"))
+    p.folderPortName <<= obj["FolderPort"];
+  if(obj.tryGet("FileExtensions"))
+  {
+    QString exts;
+    exts <<= obj["FileExtensions"];
+    p.fileExtensions
+        = exts.isEmpty() ? QStringList{} : exts.split(QChar(' '), Qt::SkipEmptyParts);
+  }
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void

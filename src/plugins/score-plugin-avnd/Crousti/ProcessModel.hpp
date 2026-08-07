@@ -19,6 +19,7 @@
 #include <ossia/detail/type_if.hpp>
 #include <ossia/detail/typelist.hpp>
 
+#include <QFileInfo>
 #include <QTimer>
 
 #include <avnd/binding/ossia/data_node.hpp>
@@ -170,7 +171,59 @@ private:
   }
 
   void init_before_port_creation() { init_dynamic_ports(); }
-  void init_after_port_creation() { init_controller_ports(); }
+  void init_after_port_creation()
+  {
+    init_controller_ports();
+    init_folder_comboboxes();
+  }
+
+  // Folder-backed comboboxes (halp::folder_combobox): each carries the name of
+  // a sibling folder port; list that folder's files as the combobox items, at
+  // edit/load time, and refresh whenever the folder value changes. Runs after
+  // deserialization, so a loaded document's folder value is already in place.
+  void init_folder_comboboxes()
+  {
+    for(auto* inl : m_inlets)
+    {
+      auto combo = qobject_cast<Process::ComboBox*>(inl);
+      if(!combo || combo->folderPortName.isEmpty())
+        continue;
+
+      Process::ControlInlet* folderPort = nullptr;
+      for(auto* other : m_inlets)
+      {
+        auto ci = qobject_cast<Process::ControlInlet*>(other);
+        if(ci && ci != combo && ci->name() == combo->folderPortName)
+        {
+          folderPort = ci;
+          break;
+        }
+      }
+
+      auto pathOf = [](Process::ControlInlet* p) -> QString {
+        if(!p)
+          return {};
+        if(auto s = p->value().target<std::string>())
+        {
+          // The sibling port may name a folder, or a file (e.g. a sound-file
+          // port): in the latter case list the file's containing folder.
+          auto path = QString::fromStdString(*s);
+          if(QFileInfo fi{path}; fi.isFile())
+            return fi.absolutePath();
+          return path;
+        }
+        return {};
+      };
+
+      combo->repopulateFromFolder(pathOf(folderPort));
+      if(folderPort)
+        QObject::connect(
+            folderPort, &Process::ControlInlet::valueChanged, combo,
+            [combo, folderPort, pathOf](const ossia::value&) {
+          combo->repopulateFromFolder(pathOf(folderPort));
+        });
+    }
+  }
   void check_all_ports()
   {
     if(std::ssize(m_inlets) != expected_input_ports()
