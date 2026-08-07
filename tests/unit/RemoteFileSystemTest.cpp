@@ -221,3 +221,34 @@ TEST_CASE("No environment at all is not a crash", "[library][remote]")
   REQUIRE_NOTHROW(model.fetchMore(QModelIndex{}));
   CHECK(model.rowCount(QModelIndex{}) == 0);
 }
+
+TEST_CASE("An empty remote folder is listed, not inserted", "[library][remote]")
+{
+  ScriptedEnvironment env;
+  const auto root = score::Uri{score::UriScheme::Library, QString{}};
+  env.contents[root.toString()] = {};
+
+  Library::RemoteFileSystemModel model{[&env] { return &env; }, nullptr};
+  model.setRoot(root);
+
+  // A model contract violation rather than a wrong answer: inserting an empty
+  // range is beginInsertRows(0, -1), i.e. last < first, which asserts on a
+  // debug Qt and emits a nonsensical range otherwise.
+  bool badRange{};
+  QObject::connect(
+      &model, &QAbstractItemModel::rowsAboutToBeInserted, &model,
+      [&](const QModelIndex&, int first, int last) {
+    if(last < first)
+      badRange = true;
+  });
+
+  model.fetchMore(QModelIndex{});
+  env.answer();
+
+  CHECK_FALSE(badRange);
+  CHECK(model.rowCount(QModelIndex{}) == 0);
+
+  // And it counts as answered: asking again would be a request per repaint.
+  CHECK_FALSE(model.canFetchMore(QModelIndex{}));
+  CHECK(env.listCalls == 1);
+}

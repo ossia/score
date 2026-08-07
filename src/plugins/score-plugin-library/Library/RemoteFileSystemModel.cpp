@@ -178,6 +178,14 @@ void RemoteFileSystemModel::fetchMore(const QModelIndex& parent)
       return a.name.compare(b.name, Qt::CaseInsensitive) < 0;
         });
 
+    // An empty folder still counts as listed, but inserting nothing is not a
+    // range: (0, -1) is last < first, which the model contract forbids.
+    if(entries.empty())
+    {
+      target->listed = true;
+      return;
+    }
+
     const auto idx = self->indexOf(*target);
     self->beginInsertRows(idx, 0, (int)entries.size() - 1);
     for(auto& de : entries)

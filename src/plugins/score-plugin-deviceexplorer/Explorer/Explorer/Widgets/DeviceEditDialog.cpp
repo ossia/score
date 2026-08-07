@@ -529,6 +529,8 @@ void DeviceEditDialog::selectedProtocolChanged()
   if(key == UuidKey<Device::ProtocolFactory>{})
     return;
 
+  m_currentProtocol = key;
+
   // Clear preset state
   m_presetNode = Device::Node{};
 
@@ -556,8 +558,15 @@ void DeviceEditDialog::selectedProtocolChanged()
   auto* remoteCatalog = catalog();
   if(remoteCatalog)
   {
-    auto addRemote = [this](const QString& category, const QString& name,
-                            const Device::DeviceSettings& settings) {
+    // The answer may arrive after the dialog is gone, and after the person has
+    // picked a different protocol: both would otherwise write into a list that
+    // is no longer theirs.
+    auto addRemote = [self = QPointer{this}, key](
+                         const QString& category, const QString& name,
+                         const Device::DeviceSettings& settings) {
+      if(!self || self->m_currentProtocol != key)
+        return;
+      auto* const me = self.data();
       auto item = new QTreeWidgetItem;
       item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
       item->setText(0, name);
@@ -567,14 +576,14 @@ void DeviceEditDialog::selectedProtocolChanged()
       // enumerator: the peer sends which one each device came from.
       if(category.isEmpty())
       {
-        m_devices->addTopLevelItem(item);
+        me->m_devices->addTopLevelItem(item);
         return;
       }
 
       QTreeWidgetItem* cat{};
-      for(int i = 0; i < m_devices->topLevelItemCount() && !cat; i++)
+      for(int i = 0; i < me->m_devices->topLevelItemCount() && !cat; i++)
       {
-        auto* candidate = m_devices->topLevelItem(i);
+        auto* candidate = me->m_devices->topLevelItem(i);
         if(candidate->text(0) == category)
           cat = candidate;
       }
@@ -584,7 +593,7 @@ void DeviceEditDialog::selectedProtocolChanged()
         setCategoryStyle(cat);
         cat->setText(0, category);
         cat->setFlags(Qt::ItemIsEnabled);
-        m_devices->addTopLevelItem(cat);
+        me->m_devices->addTopLevelItem(cat);
       }
       cat->addChild(item);
       cat->setExpanded(true);
