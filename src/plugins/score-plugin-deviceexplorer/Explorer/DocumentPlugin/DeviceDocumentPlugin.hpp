@@ -131,6 +131,11 @@ public:
   std::vector<QString> remoteDevicesOfKind(Device::DeviceKind kind) const;
   void setRemoteKinds(const QString& device, Device::DeviceKinds kinds);
 
+  //! The peer reported what a device is. Arrives after the join, so anything
+  //! already showing a device list has to be told.
+  void remoteKindsChanged(const QString& device)
+      E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, remoteKindsChanged, device)
+
 private:
   void initDevice(Device::DeviceInterface&);
   void on_valueUpdated(const State::Address& addr, const ossia::value& v);

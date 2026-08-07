@@ -411,6 +411,7 @@ void DeviceDocumentPlugin::setRemoteKinds(
     const QString& device, Device::DeviceKinds kinds)
 {
   m_remoteKinds[device] = kinds;
+  remoteKindsChanged(device);
 }
 
 void DeviceDocumentPlugin::setConnection(bool b)
