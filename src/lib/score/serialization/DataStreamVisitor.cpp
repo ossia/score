@@ -44,6 +44,15 @@ DataStreamWriter::DataStreamWriter(QIODevice* dev)
 {
 }
 
+namespace score
+{
+bool& readingUntrustedData() noexcept
+{
+  static thread_local bool b = false;
+  return b;
+}
+}
+
 void DataStreamWriter::checkDelimiter()
 {
   int val{};
@@ -51,7 +60,8 @@ void DataStreamWriter::checkDelimiter()
 
   if(val != int32_t(0xDEADBEEF))
   {
-    SCORE_BREAKPOINT;
+    if(!score::readingUntrustedData())
+      SCORE_BREAKPOINT;
     throw std::runtime_error("Corrupt save file.");
   }
 }
