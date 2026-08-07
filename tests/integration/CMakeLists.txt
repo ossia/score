@@ -218,6 +218,12 @@ score_add_test(test_integration_terminal_role
   APP
   PLUGINS score_plugin_scenario score_plugin_deviceexplorer score_plugin_engine)
 
+# What a port may be connected to, on a machine holding none of the devices.
+score_add_test(test_integration_terminal_port_combo
+  SOURCES TerminalPortComboTest.cpp
+  APP
+  PLUGINS score_plugin_scenario score_plugin_deviceexplorer)
+
 # The panel only exists with the GUI stack, and one binary cannot mix the two
 # application fixtures.
 score_add_test(test_integration_terminal_library

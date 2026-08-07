@@ -139,9 +139,16 @@ QComboBox* makeDeviceCombo(
   // Nothing here is a device object when the score runs on another machine, so
   // the names come from what that machine reported instead.
   if(auto* plug = ctx.findPlugin<Explorer::DeviceDocumentPlugin>())
-    for(const auto& name : plug->remoteDevicesOfKind(kind))
-      if(edit->findText(name) < 0)
-        edit->addItem(name);
+  {
+    auto on_remote = [kind, edit, plug] {
+      for(const auto& name : plug->remoteDevicesOfKind(kind))
+        if(edit->findText(name) < 0)
+          edit->addItem(name);
+    };
+    on_remote();
+    QObject::connect(
+        plug, &Explorer::DeviceDocumentPlugin::remoteKindsChanged, edit, on_remote);
+  }
 
   edit->setCurrentText(port.address().address.device);
 
