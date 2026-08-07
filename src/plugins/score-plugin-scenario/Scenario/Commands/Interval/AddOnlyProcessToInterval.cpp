@@ -80,11 +80,8 @@ Process::ProcessModel& AddOnlyProcessToInterval::redo(
   auto& facs = ctx.app.interfaces<Process::ProcessFactoryList>();
   auto fac = facs.get(m_processName);
 
-  // A peer in a session runs its own build, so a command can name a process
-  // this one cannot make. Asserting aborted in debug and threw out of a socket
-  // callback in release, which stopped that peer applying anything ever again.
-  // A stand-in keeps the document in step; it reports itself incomplete,
-  // because what the process should contain is only known where it was made.
+  // A peer runs its own build, so a command can name a process this one
+  // cannot make. A stand-in keeps the document in step, and says it is one.
   Process::ProcessModel* proc
       = fac ? fac->make(
                   interval.duration.defaultDuration(), // TODO should maybe be max ?
@@ -94,10 +91,8 @@ Process::ProcessModel& AddOnlyProcessToInterval::redo(
                   m_createdProcessId, &interval);
   SCORE_ASSERT(proc);
 
-  // The creation data can name a file on the machine that sent the command --
-  // a library entry for a shader carries the path it was scanned from -- so a
-  // factory that exists here still produces an empty process. What it should
-  // contain is only known there.
+  // Creation data can name a file on the machine that sent the command, so
+  // even a factory we have produces an empty process.
   if(fac && ctx.role() != score::DocumentRole::Local)
     Process::awaitingRemoteState().push_back(proc);
 
@@ -150,10 +145,8 @@ Process::ProcessModel& LoadOnlyLayerInInterval::redo(
   auto& facs = ctx.app.interfaces<Process::ProcessFactoryList>();
   auto fac = facs.get(key);
 
-  // This command carries the process serialized, so a build without the factory
-  // loses nothing: loadMissing keeps the data verbatim and rebuilds the ports,
-  // which is what makes the process still show its controls and its cables
-  // still resolve.
+  // Carries the process serialized, so loadMissing keeps it verbatim and
+  // rebuilds the ports.
   JSONObject::Deserializer des{obj};
   Process::ProcessModel* proc
       = fac ? fac->load(des.toVariant(), ctx, &interval)

@@ -14,12 +14,8 @@ namespace score
 {
 namespace
 {
-//! A modal box needs someone to dismiss it, and exec() does not return until
-//! one does. `gui` alone does not promise that: an embedder that builds the
-//! application without a window -- the test fixtures, anything using
-//! MinimalApplication -- leaves it set, and every report of a problem then
-//! hangs the process instead of printing. A main window is what actually says
-//! there is a person here.
+//! A modal box needs someone to dismiss it. `gui` does not promise one --
+//! MinimalApplication leaves it set with no window -- a main window does.
 [[maybe_unused]] bool canShowModal() noexcept
 {
   return score::AppContext().applicationSettings.gui
