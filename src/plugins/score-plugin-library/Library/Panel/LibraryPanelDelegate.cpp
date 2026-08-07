@@ -131,9 +131,15 @@ ProcessWidget& ProcessPanel::processWidget() const noexcept
   return *(ProcessWidget*)m_widget;
 }
 
-void ProcessPanel::on_modelChanged(score::MaybeDocument, score::MaybeDocument newm)
+void ProcessPanel::on_modelChanged(score::MaybeDocument oldm, score::MaybeDocument newm)
 {
-  if(newm && newm->role() != score::DocumentRole::Local)
+  // Only when the list currently describes another machine. rescan() resets a
+  // watch that is shared by every model and restarts an asynchronous scan, so
+  // doing it on every change raced the scan the constructor had just started --
+  // which crashed the process, on a worker thread, some of the time.
+  const bool wasRemote = oldm && oldm->role() != score::DocumentRole::Local;
+  const bool isLocal = !newm || newm->role() == score::DocumentRole::Local;
+  if(!wasRemote || !isLocal)
     return;
 
   processWidget().processModel().rescan();
