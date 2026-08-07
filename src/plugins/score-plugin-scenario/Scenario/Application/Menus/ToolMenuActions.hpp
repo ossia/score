@@ -38,6 +38,7 @@ private:
   QAction* m_selecttool{};
   QAction* m_createtool{};
   QAction* m_playtool{};
+  QAction* m_viewtool{};
 
   QAction* m_scaleAction{};
   QAction* m_lockAction{};
