@@ -12,6 +12,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/Panel/LibraryPanelFactory.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/FileSystemModel.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Library/RemoteFileSystemModel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/ItemModelFilterLineEdit.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/LibraryInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/LibrarySettings.hpp"
@@ -35,6 +36,7 @@ set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/LibraryInterface.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/LibrarySettings.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/LibraryWidget.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Library/RemoteFileSystemModel.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/PresetItemModel.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/ProcessesItemModel.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/ProcessTreeView.cpp"
