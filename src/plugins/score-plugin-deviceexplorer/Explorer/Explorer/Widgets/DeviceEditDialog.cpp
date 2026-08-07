@@ -523,13 +523,38 @@ void DeviceEditDialog::selectedProtocolChanged()
   auto* remoteCatalog = catalog();
   if(remoteCatalog)
   {
-    auto addRemote
-        = [this](const QString& name, const Device::DeviceSettings& settings) {
+    auto addRemote = [this](const QString& category, const QString& name,
+                            const Device::DeviceSettings& settings) {
       auto item = new QTreeWidgetItem;
       item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
       item->setText(0, name);
       item->setData(0, Qt::UserRole, QVariant::fromValue(settings));
-      m_devices->addTopLevelItem(item);
+
+      // Grouped the way this machine's own hardware is, under a heading per
+      // enumerator: the peer sends which one each device came from.
+      if(category.isEmpty())
+      {
+        m_devices->addTopLevelItem(item);
+        return;
+      }
+
+      QTreeWidgetItem* cat{};
+      for(int i = 0; i < m_devices->topLevelItemCount() && !cat; i++)
+      {
+        auto* candidate = m_devices->topLevelItem(i);
+        if(candidate->text(0) == category)
+          cat = candidate;
+      }
+      if(!cat)
+      {
+        cat = new QTreeWidgetItem;
+        setCategoryStyle(cat);
+        cat->setText(0, category);
+        cat->setFlags(Qt::ItemIsEnabled);
+        m_devices->addTopLevelItem(cat);
+      }
+      cat->addChild(item);
+      cat->setExpanded(true);
     };
 
     // Shown before the answer arrives, and left shown if none does. The list is
