@@ -10,6 +10,7 @@
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <score/model/Skin.hpp>
 #include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
@@ -250,26 +251,55 @@ void DeviceEditDialog::initAvailableProtocols()
   // initialize previous settings
   m_previousSettings.clear();
 
-  std::vector<Device::ProtocolFactory*> sorted;
-  for(auto& elt : m_protocolList)
+  // What may be added at all. A document whose score runs on another machine
+  // says so through its catalog, and then it is that machine's protocols that
+  // are worth offering -- ours are unreachable from there.
+  struct Listed
   {
-    sorted.push_back(&elt);
+    UuidKey<Device::ProtocolFactory> key;
+    QString name;
+    QString category;
+    Device::DeviceSettings defaults;
+    int priority{};
+  };
+  std::vector<Listed> listed;
+
+  if(auto* cat = catalog())
+  {
+    for(const auto& p : cat->protocols())
+    {
+      Device::DeviceSettings def;
+      if(auto* fac = m_protocolList.get(p.key))
+        def = fac->defaultSettings();
+      else
+      {
+        def.protocol = p.key;
+        def.name = p.name;
+      }
+      listed.push_back(Listed{p.key, p.name, p.category, def, 0});
+    }
+  }
+  else
+  {
+    for(auto& prot : m_protocolList)
+      listed.push_back(Listed{
+          prot.concreteKey(), prot.prettyName(), prot.category(),
+          prot.defaultSettings(), prot.visualPriority()});
   }
 
-  ossia::sort(sorted, [](Device::ProtocolFactory* lhs, Device::ProtocolFactory* rhs) {
-    return lhs->visualPriority() > rhs->visualPriority()
-           || (lhs->visualPriority() == rhs->visualPriority()
-               && lhs->prettyName() < rhs->prettyName());
+  ossia::sort(listed, [](const Listed& lhs, const Listed& rhs) {
+    return lhs.priority > rhs.priority
+           || (lhs.priority == rhs.priority && lhs.name < rhs.name);
   });
-  for(const auto& prot_pair : sorted)
+
+  for(const auto& prot : listed)
   {
-    auto& prot = *prot_pair;
-    auto cat_list = m_protocols->findItems(prot.category(), Qt::MatchFixedString);
+    auto cat_list = m_protocols->findItems(prot.category, Qt::MatchFixedString);
     QTreeWidgetItem* categoryItem{};
     if(cat_list.size() == 0)
     {
       categoryItem = new QTreeWidgetItem;
-      categoryItem->setText(0, prot.category());
+      categoryItem->setText(0, prot.category);
       categoryItem->setFlags(Qt::ItemIsEnabled);
       m_protocols->addTopLevelItem(categoryItem);
     }
@@ -279,10 +309,10 @@ void DeviceEditDialog::initAvailableProtocols()
     }
 
     auto item = new QTreeWidgetItem{categoryItem};
-    item->setText(0, prot.prettyName());
-    item->setData(0, Qt::UserRole, QVariant::fromValue(prot.concreteKey()));
+    item->setText(0, prot.name);
+    item->setData(0, Qt::UserRole, QVariant::fromValue(prot.key));
     item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-    m_previousSettings.append(prot.defaultSettings());
+    m_previousSettings.append(prot.defaults);
   }
 
   m_protocols->sortItems(0, Qt::AscendingOrder);
@@ -393,8 +423,13 @@ void DeviceEditDialog::selectedPresetChanged()
     m_splitter->widget(0)->hide();
 
   // Create the correct settings widget for this protocol
-  m_protocolNameLabel->setText(tr("Settings (%1)").arg(protocol->prettyName()));
-  m_protocolWidget = protocol->makeSettingsWidget();
+  // No factory, no form: the widget is C++ in a plug-in this build does not
+  // have. Such a protocol can still be used through what the other machine
+  // enumerates, since those come with the settings it wrote itself.
+  m_protocolNameLabel->setText(
+      protocol ? tr("Settings (%1)").arg(protocol->prettyName())
+               : tr("Configured on the other machine"));
+  m_protocolWidget = protocol ? protocol->makeSettingsWidget() : nullptr;
 
   if(m_protocolWidget)
   {
@@ -439,6 +474,11 @@ void DeviceEditDialog::selectedDeviceChanged()
   updateValidity();
 }
 
+Device::DeviceCatalog* DeviceEditDialog::catalog() const noexcept
+{
+  return m_model.deviceModel().catalog();
+}
+
 void DeviceEditDialog::selectedProtocolChanged()
 {
   auto doc = score::GUIAppContext().currentDocument();
@@ -476,8 +516,33 @@ void DeviceEditDialog::selectedProtocolChanged()
   }
 
   auto protocol = m_protocolList.get(key);
-  for(auto [name, e] : protocol->getEnumerators(*doc))
-    m_enumerators.emplace_back(name, e);
+
+  // The hardware to offer. Through the catalog when the document has one --
+  // then it is the other machine's, listed as its answers arrive -- and
+  // otherwise through the protocol's own enumerators, which look at this one.
+  if(auto* cat = catalog())
+  {
+    auto addRemote
+        = [this](const QString& name, const Device::DeviceSettings& settings) {
+      auto item = new QTreeWidgetItem;
+      item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+      item->setText(0, name);
+      item->setData(0, Qt::UserRole, QVariant::fromValue(settings));
+      m_devices->addTopLevelItem(item);
+      m_devices->setVisible(true);
+      m_devicesLabel->setVisible(true);
+    };
+
+    m_devices->setRootIsDecorated(false);
+    m_devices->setExpandsOnDoubleClick(false);
+    cat->enumerate(key, addRemote);
+  }
+  else if(protocol)
+  {
+    for(auto [name, e] : protocol->getEnumerators(*doc))
+      m_enumerators.emplace_back(name, e);
+  }
+
   std::sort(m_enumerators.begin(), m_enumerators.end(),
       [](const auto& a, const auto& b) { return a.first < b.first; });
   if(!m_enumerators.empty())
@@ -539,8 +604,10 @@ void DeviceEditDialog::selectedProtocolChanged()
     m_devicesLabel->setVisible(false);
     m_splitter->widget(0)->hide();
   }
-  m_protocolNameLabel->setText(tr("Settings (%1)").arg(protocol->prettyName()));
-  m_protocolWidget = protocol->makeSettingsWidget();
+  m_protocolNameLabel->setText(
+      protocol ? tr("Settings (%1)").arg(protocol->prettyName())
+               : tr("Configured on the other machine"));
+  m_protocolWidget = protocol ? protocol->makeSettingsWidget() : nullptr;
 
   if(m_protocolWidget)
   {

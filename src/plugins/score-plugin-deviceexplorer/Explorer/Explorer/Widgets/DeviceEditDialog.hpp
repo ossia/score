@@ -24,6 +24,7 @@ class QPushButton;
 
 namespace Device
 {
+class DeviceCatalog;
 class ProtocolFactoryList;
 class ProtocolSettingsWidget;
 class DeviceEnumerator;
@@ -61,6 +62,10 @@ public:
   void updateValidity();
 
 private:
+  //! Null for a document whose score runs here: the dialogs then show this
+  //! machine's protocols and hardware, as they always have.
+  Device::DeviceCatalog* catalog() const noexcept;
+
   void selectedProtocolChanged();
   void selectedDeviceChanged();
   void selectedPresetChanged();

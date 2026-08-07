@@ -1,5 +1,6 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
+#include <Device/Protocol/DeviceCatalog.hpp>
 
 #include <Explorer/DeviceList.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
@@ -83,11 +84,20 @@ public:
     return m_asioContext;
   }
 
+  //! What may be added to this document, and whose hardware is offered.
+  //!
+  //! Null for an ordinary document: this machine's protocols and this
+  //! machine's devices, which is what the dialogs have always shown. Set when
+  //! the score runs elsewhere, so that what is offered is reachable by it.
+  Device::DeviceCatalog* catalog() const noexcept { return m_catalog; }
+  void setCatalog(Device::DeviceCatalog* c) noexcept { m_catalog = c; }
+
 private:
   void initDevice(Device::DeviceInterface&);
   void on_valueUpdated(const State::Address& addr, const ossia::value& v);
 
   Device::Node m_rootNode;
+  Device::DeviceCatalog* m_catalog{};
   Device::DeviceList m_list;
   std::atomic_bool m_processMessages{};
   std::thread m_asioThread;
