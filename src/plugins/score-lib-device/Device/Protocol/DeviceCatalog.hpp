@@ -44,7 +44,11 @@ public:
     bool constructible{};
   };
 
-  using OnDevice = std::function<void(const QString&, const Device::DeviceSettings&)>;
+  //! (category, name, settings). The category is the enumerator's -- "Cameras",
+  //! "Screens" -- and is what the list groups by, so it stays a field rather
+  //! than being folded into the name.
+  using OnDevice = std::function<void(
+      const QString& category, const QString& name, const Device::DeviceSettings&)>;
 
   virtual std::vector<Protocol> protocols() const = 0;
 
