@@ -114,12 +114,22 @@ public:
   Device::DeviceCatalog* catalog() const noexcept { return m_catalog; }
   void setCatalog(Device::DeviceCatalog* c) noexcept { m_catalog = c; }
 
+  //! Whether a device is connected, as reported by the machine that has it.
+  //!
+  //! A document whose score runs elsewhere has no DeviceInterface to ask, so
+  //! every device would read as disconnected -- which is not unknown, it is
+  //! wrong. Empty for an ordinary document, where the device itself is the
+  //! answer.
+  std::optional<bool> remoteConnected(const QString& device) const noexcept;
+  void setRemoteConnected(const QString& device, bool connected);
+
 private:
   void initDevice(Device::DeviceInterface&);
   void on_valueUpdated(const State::Address& addr, const ossia::value& v);
 
   Device::Node m_rootNode;
   Device::DeviceCatalog* m_catalog{};
+  ossia::hash_map<QString, bool> m_remoteConnected;
   Device::DeviceList m_list;
   std::atomic_bool m_processMessages{};
   std::thread m_asioThread;
