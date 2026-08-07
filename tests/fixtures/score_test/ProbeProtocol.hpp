@@ -19,6 +19,22 @@
 namespace score::test
 {
 
+//! Two devices under one heading, so that a test can tell a category from a
+//! name without depending on what is plugged into the machine.
+struct ProbeEnumerator final : public Device::DeviceEnumerator
+{
+  void enumerate(std::function<void(const QString&, const Device::DeviceSettings&)> f)
+      const override
+  {
+    for(const auto& name : {QStringLiteral("probe-one"), QStringLiteral("probe-two")})
+    {
+      Device::DeviceSettings s;
+      s.name = name;
+      f(name, s);
+    }
+  }
+};
+
 struct ProbeProtocolFactory final : public Device::ProtocolFactory
 {
   SCORE_CONCRETE("9f1c0f4a-1b2c-4d3e-8f70-0badc0ffee00")
@@ -59,6 +75,13 @@ public:
     return nullptr;
   }
   Device::ProtocolSettingsWidget* makeSettingsWidget() override { return nullptr; }
+
+  static inline const QString enumeratorCategory{QStringLiteral("Probes")};
+  Device::DeviceEnumerators
+  getEnumerators(const score::DocumentContext&) const override
+  {
+    return {{enumeratorCategory, new ProbeEnumerator}};
+  }
 
   QVariant makeProtocolSpecificSettings(const VisitorVariant&) const override
   {
