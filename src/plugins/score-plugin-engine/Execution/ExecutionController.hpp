@@ -87,6 +87,10 @@ private:
   //! False -- and says why -- when nothing can be played through.
   bool has_audio_engine();
 
+  //! False when the current score runs on another machine, so the transport
+  //! belongs to that machine and nothing here may enter the state machine.
+  bool executesHere() const;
+
   void on_play_local(bool, ::TimeVal t);
   void on_pause();
   void on_stop();
