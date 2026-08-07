@@ -100,8 +100,10 @@ void DocumentPlugin::recreateBase()
   connect(
       m_base.get(), &Execution::BaseScenarioElement::finished, this,
       [this] {
-    auto& stop_action = context().doc.app.actions.action<Actions::Stop>();
-    stop_action.action()->trigger();
+    // not the Stop action: it is registered by the GUI only
+    context().doc.app.guiApplicationPlugin<Engine::ApplicationPlugin>()
+        .execution()
+        .request_stop();
       },
       Qt::QueuedConnection);
 }
