@@ -2,6 +2,9 @@
 
 #include <JS/ApplicationPlugin.hpp>
 
+#include <core/document/Document.hpp>
+#include <core/presenter/DocumentManager.hpp>
+#include <QPointer>
 #include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/PromptLineEdit.hpp>
 
@@ -82,6 +85,22 @@ QJSEngine& PanelDelegate::engine() noexcept
 void PanelDelegate::evaluate(const QString& txt)
 {
   m_edit->appendPlainText("> " + txt);
+
+  // A document that is a view of a score running elsewhere answers for that
+  // machine. Evaluating here would run against a document with no devices, no
+  // execution and no hardware -- Score.device() is null and stays null.
+  if(auto* doc = context().documents.currentDocument())
+  {
+    if(const auto& sink = doc->scriptSink())
+    {
+      sink(txt, [this, alive = QPointer<PanelDelegate>{this}](const QString& reply) {
+        if(alive && !reply.isEmpty())
+          m_edit->appendPlainText(reply + "\n");
+      });
+      return;
+    }
+  }
+
   auto res = m_engine.evaluate(txt);
   if(res.isError())
   {
