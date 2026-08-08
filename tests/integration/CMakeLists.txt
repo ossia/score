@@ -616,6 +616,12 @@ score_add_test(test_integration_terminal_slots
   PLUGINS score_plugin_scenario score_plugin_deviceexplorer score_plugin_automation
           score_plugin_curve)
 
+# Dropping a file when the score runs on another machine.
+score_add_test(test_integration_terminal_file_drop
+  SOURCES TerminalFileDropTest.cpp
+  APP
+  PLUGINS score_lib_process score_plugin_scenario score_plugin_media)
+
 # Presets listed through the document's environment, not the local library.
 score_add_test(test_integration_device_preset_source
   SOURCES DevicePresetSourceTest.cpp

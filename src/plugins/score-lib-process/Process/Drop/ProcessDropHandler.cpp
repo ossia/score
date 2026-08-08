@@ -1,5 +1,6 @@
 #include <Process/Drop/ProcessDropHandler.hpp>
 
+#include <score/tools/Environment.hpp>
 #include <score/tools/File.hpp>
 
 #include <ossia/detail/algorithms.hpp>
@@ -101,25 +102,34 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandlerList::getDrop(
 
   initCaches();
 
+  // Two reasons a dropped file cannot be used where it lies, and both end the
+  // same way -- take the bytes now, and hand everything downstream a path that
+  // will still mean something later.
+  //
+  //  - In a browser, Qt deletes the file as soon as this callback returns.
+  //  - When the score runs on another machine, a path here names nothing there:
+  //    the process would be created on the host pointing at a file only this
+  //    machine has. score::importFile sends the bytes along in that case.
+  //
+  // Rewriting the URLs covers BOTH the custom-drop path (which re-reads
+  // mime.urls() itself, e.g. Sound) and the file-extension path.
 #if defined(__EMSCRIPTEN__)
-  // On wasm, Qt writes dropped files to a transient /qt/tmp/ dir and deletes
-  // them immediately after this callback returns. Move each dropped file into
-  // score's persistent import area up front and rewrite the URLs, so BOTH the
-  // custom-drop path (which re-reads mime.urls() itself, e.g. Sound) and the
-  // file-extension path see a path that survives the drop and can be re-opened
-  // later (undo/redo, reload of the process).
+  const bool takeCopy = true;
+#else
+  const bool takeCopy = !ctx.environment().isLocal();
+#endif
+
   QMimeData stagedMime;
   bool didStage = false;
+  if(takeCopy)
   {
     QList<QUrl> newUrls;
     for(const QUrl& url : originalMime.urls())
     {
       // On the JSPI build (which we use), Qt hands dropped files a
-      // "weblocalfile:/N/name" URL backed by the JS File object; QUrl::toLocalFile()
-      // is empty but QFile can read it through QWasmFileEngine. On non-asyncify
-      // builds files land at /qt/tmp instead. In both cases read the bytes here
-      // (while the source is alive) and copy them into a real, persistent MEMFS
-      // path so the fopen-based decoders (ffmpeg / sndfile) can open them later.
+      // "weblocalfile:/N/name" URL backed by the JS File object;
+      // QUrl::toLocalFile() is empty but QFile can read it through
+      // QWasmFileEngine. On non-asyncify builds files land at /qt/tmp instead.
       QString src;
       if(const QString local = url.toLocalFile();
          !local.isEmpty() && QFileInfo::exists(local))
@@ -136,7 +146,8 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandlerList::getDrop(
           QString name = url.fileName();
           if(name.isEmpty())
             name = QFileInfo{src}.fileName();
-          if(QString staged = score::stageImportedFile(name, bytes); !staged.isEmpty())
+          if(QString staged = score::importFile(name, bytes, ctx.environment());
+             !staged.isEmpty())
           {
             newUrls.push_back(QUrl::fromLocalFile(staged));
             didStage = true;
@@ -154,9 +165,6 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandlerList::getDrop(
     }
   }
   const QMimeData& mime = didStage ? stagedMime : originalMime;
-#else
-  const QMimeData& mime = originalMime;
-#endif
 
   auto handleCustomDrop = [&](Process::ProcessDropHandler& handler) {
     auto before = res.size();

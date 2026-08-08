@@ -71,7 +71,7 @@ struct AudioFileChooser : WidgetFactory::FileChooser
       const auto current
           = QString::fromStdString(ossia::convert<std::string>(inlet.value()));
       score::openFileToImport(
-          inlet.filters(), score::pickerStartFolder(current, ctx),
+          ctx, inlet.filters(), score::pickerStartFolder(current, ctx),
           [&inlet, &ctx](const QString& filename) {
         // On wasm `filename` is the staged MEMFS path; relativize so it is
         // stored consistently with drops.
