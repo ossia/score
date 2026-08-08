@@ -160,6 +160,13 @@ score_add_test(test_unit_infinite_scroller
 target_compile_definitions(test_unit_infinite_scroller
   PRIVATE SCORE_LIB_BASE_STATIC_DEFINE)
 
+# Drives the note chooser through its own mouse handlers with the real
+# InfiniteScroller: on the offscreen platform no pointer lock is granted, so the
+# drag goes through the pointer positions.
+score_add_test(test_unit_note_chooser
+  SOURCES NoteChooserTest.cpp
+  APP)
+
 score_add_test(test_unit_avnd_audio_roundtrip
   SOURCES AvndAudioRoundtripTest.cpp
   PLUGINS score_lib_process

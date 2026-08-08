@@ -22,7 +22,6 @@ class SCORE_LIB_BASE_EXPORT QGraphicsNoteChooser final
   static constexpr int m_max = 127;
   static constexpr double m_width = 30;
   static constexpr double m_height = 28;
-  QPointF m_startPos{};
   double m_curValue{};
   int m_value{};
   bool m_grab{};
