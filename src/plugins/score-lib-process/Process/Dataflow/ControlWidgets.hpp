@@ -1068,7 +1068,7 @@ struct FileChooser
       const auto current
           = QString::fromStdString(ossia::convert<std::string>(inlet.value()));
       score::openFileToImport(
-          inlet.filters(), score::pickerStartFolder(current, ctx),
+          ctx, inlet.filters(), score::pickerStartFolder(current, ctx),
           [=, &ctx](const QString& filename) {
         auto path = score::relativizeFilePath(filename, ctx);
         sl->setText(path);
@@ -1105,7 +1105,7 @@ struct FileChooser
       const auto current
           = QString::fromStdString(ossia::convert<std::string>(inlet.value()));
       score::openFileToImport(
-          inlet.filters(), score::pickerStartFolder(current, ctx),
+          ctx, inlet.filters(), score::pickerStartFolder(current, ctx),
           [&inlet, &ctx](const QString& filename) {
         auto path = score::relativizeFilePath(filename, ctx);
         CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
