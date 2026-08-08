@@ -1013,3 +1013,7 @@ endif()
 score_add_test(test_unit_port_drop
   SOURCES PortDropTest.cpp
   PLUGINS score_lib_process score_lib_state score_lib_device)
+
+# Thread creation is lazy: one acquired thread must not start the whole pool.
+score_add_test(test_unit_thread_pool
+  SOURCES ThreadPoolTest.cpp)
