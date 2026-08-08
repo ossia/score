@@ -8,7 +8,13 @@
 #     PLUGINS   score_lib_state          # extra score libs/plugins to link
 #     APP                                # needs the full headless app (run from build root)
 #     GUI                                # needs a GUI QApplication (links Qt Widgets/Gui)
+#     STANDALONE                         # do not link score_lib_base, only use its headers
 #     LIBS      some_other_lib)          # arbitrary extra link libraries
+#
+# STANDALONE is for tests that recompile a score_lib_base source into the test
+# and substitute one of its dependencies: linking the library as well would
+# define the same symbols twice, which only some linkers resolve in favour of
+# the executable.
 #
 # A plain test links score_lib_base + score_test_fixtures + Catch2 and runs as a
 # single ctest entry. An APP/GUI test additionally runs from the build root so
@@ -44,7 +50,7 @@ function(score_setup_catch2)
 endfunction()
 
 function(score_add_test NAME)
-  cmake_parse_arguments(ARG "GUI;APP" "" "SOURCES;PLUGINS;LIBS" ${ARGN})
+  cmake_parse_arguments(ARG "GUI;APP;STANDALONE" "" "SOURCES;PLUGINS;LIBS" ${ARGN})
 
   if(NOT ARG_SOURCES)
     message(FATAL_ERROR "score_add_test(${NAME}): no SOURCES given")
@@ -52,8 +58,16 @@ function(score_add_test NAME)
 
   add_executable(${NAME} ${ARG_SOURCES})
 
+  if(ARG_STANDALONE)
+    target_include_directories(${NAME} PRIVATE
+      $<TARGET_PROPERTY:score_lib_base,INTERFACE_INCLUDE_DIRECTORIES>)
+    target_compile_definitions(${NAME} PRIVATE
+      $<TARGET_PROPERTY:score_lib_base,INTERFACE_COMPILE_DEFINITIONS>)
+  else()
+    target_link_libraries(${NAME} PRIVATE score_lib_base)
+  endif()
+
   target_link_libraries(${NAME} PRIVATE
-    score_lib_base
     Catch2::Catch2WithMain
     ${ARG_PLUGINS}
     ${ARG_LIBS}
@@ -62,7 +76,7 @@ function(score_add_test NAME)
   # The app/document fixtures library is defined late (tests/fixtures, after
   # src/). Per-plugin unit tests built during src/ are app-free and don't need
   # it, so only link it when it already exists.
-  if(TARGET score_test_fixtures)
+  if(TARGET score_test_fixtures AND NOT ARG_STANDALONE)
     target_link_libraries(${NAME} PRIVATE score_test_fixtures)
   endif()
 

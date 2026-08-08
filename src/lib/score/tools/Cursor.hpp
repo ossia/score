@@ -27,7 +27,7 @@ inline void setCursorPos(QPointF pos) noexcept
       = CGEventCreateMouseEvent(nullptr, kCGEventMouseMoved, ppos, kCGMouseButtonLeft);
   CGEventPost(kCGHIDEventTap, e);
   CFRelease(e);
-#else
+#elif !defined(__EMSCRIPTEN__)
   QCursor::setPos(pos.toPoint());
 #endif
 }
@@ -50,7 +50,7 @@ inline void moveCursorPos(QPointF pos) noexcept
       = CGEventCreateMouseEvent(nullptr, kCGEventMouseMoved, ppos, kCGMouseButtonLeft);
   CGEventPost(kCGHIDEventTap, e);
   CFRelease(e);
-#else
+#elif !defined(__EMSCRIPTEN__)
   QCursor::setPos(pos.toPoint());
 #endif
 }

@@ -144,6 +144,22 @@ endif()
 score_add_test(test_unit_audio_gain_pan
   SOURCES AudioGainPanTest.cpp)
 
+# --- graphics control dragging (pointer lock / infinite scroller) -----------
+# Drives InfiniteScroller against a fake score::PointerLock. InfiniteScroller.cpp
+# is compiled into the test so that its calls bind to the fake rather than to the
+# platform backend in score_lib_base.
+score_add_test(test_unit_infinite_scroller
+  STANDALONE
+  SOURCES
+    InfiniteScrollerTest.cpp
+    "${SCORE_ROOT_SOURCE_DIR}/src/lib/score/graphics/InfiniteScroller.cpp"
+  LIBS
+    ${QT_PREFIX}::Gui
+    ${QT_PREFIX}::GuiPrivate
+    ${QT_PREFIX}::Widgets)
+target_compile_definitions(test_unit_infinite_scroller
+  PRIVATE SCORE_LIB_BASE_STATIC_DEFINE)
+
 score_add_test(test_unit_avnd_audio_roundtrip
   SOURCES AvndAudioRoundtripTest.cpp
   PLUGINS score_lib_process

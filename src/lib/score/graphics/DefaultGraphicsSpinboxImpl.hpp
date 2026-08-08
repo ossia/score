@@ -90,7 +90,6 @@ struct DefaultGraphicsSpinboxImpl
   template <typename T>
   static void mouseReleaseEvent(T& self, QGraphicsSceneMouseEvent* event)
   {
-    InfiniteScroller::stop(self, event);
     if(self.m_grab)
     {
       if(const auto v = mapValue(self, event); v != self.m_value)
@@ -98,6 +97,7 @@ struct DefaultGraphicsSpinboxImpl
         self.m_value = v;
         self.update();
       }
+      InfiniteScroller::stop(self, event);
     }
 
     if(self.m_noValueChangeOnMove)
