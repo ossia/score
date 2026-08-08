@@ -107,6 +107,11 @@ public:
   void setValueSink(ValueSink s) { m_valueSink = std::move(s); }
   const ValueSink& valueSink() const noexcept { return m_valueSink; }
 
+  //! Told what one of this machine's devices reported, as opposed to what
+  //! somebody asked for. A peer that does not run the score has no device to
+  //! hear it from, so this is the only way it learns a value moved.
+  void setValueObserver(ValueSink s) { m_valueObserver = std::move(s); }
+
   //! The peer reported what a device is; arrives after the join.
   void remoteKindsChanged(const QString& device)
       E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, remoteKindsChanged, device)
@@ -116,13 +121,17 @@ public:
   void deviceTreeChanged(const QString& device)
       E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, deviceTreeChanged, device)
 
+  //! One of this machine's devices reported a value. Called by the device
+  //! itself, through the callback installed when it is opened.
+  void on_valueUpdated(const State::Address& addr, const ossia::value& v);
+
 private:
   void initDevice(Device::DeviceInterface&);
-  void on_valueUpdated(const State::Address& addr, const ossia::value& v);
 
   Device::Node m_rootNode;
   Device::DeviceCatalog* m_catalog{};
   ValueSink m_valueSink;
+  ValueSink m_valueObserver;
   ossia::hash_map<QString, bool> m_remoteConnected;
   ossia::hash_map<QString, Device::DeviceKinds> m_remoteKinds;
   Device::DeviceList m_list;
