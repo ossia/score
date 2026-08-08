@@ -289,4 +289,12 @@ if(TARGET pipewire::pipewire)
   if(_pw_includes)
     target_include_directories(test_unit_pipewire_protocol_quantum SYSTEM PRIVATE ${_pw_includes})
   endif()
+# --- output windows on a board with no window manager ----------------------
+# Under eglfs a screen backs one window and the second one qFatals, so which
+# screen an output gets has to be decided before it is shown.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_screen_placement
+    SOURCES ScreenPlacementTest.cpp
+    APP
+    PLUGINS score_plugin_gfx)
 endif()

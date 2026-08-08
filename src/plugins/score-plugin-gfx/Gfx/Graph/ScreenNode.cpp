@@ -2,11 +2,15 @@
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
 #include <Gfx/Graph/ScreenNode.hpp>
+#include <Gfx/Graph/ScreenPlacement.hpp>
 #include <Gfx/Graph/Window.hpp>
 #include <Gfx/Settings/Model.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/gfx/OpenGL.hpp>
+
+#include <QGuiApplication>
+#include <QScreen>
 
 #include <QtGui/private/qrhinull_p.h>
 
@@ -439,7 +443,10 @@ void ScreenNode::stopRendering()
 
 void ScreenNode::setRenderer(std::shared_ptr<RenderList> r)
 {
-  m_window->state->renderer = r;
+  // No state until the window has been exposed at least once, and a window
+  // that could not be given a screen never will be.
+  if(m_window && m_window->state)
+    m_window->state->renderer = r;
 }
 
 RenderList* ScreenNode::renderer() const
@@ -652,6 +659,26 @@ void ScreenNode::createOutput(score::gfx::OutputConfiguration conf)
 
     if(!m_title.isEmpty())
       m_window->setTitle(m_title);
+
+    if(oneWindowPerScreen())
+    {
+      auto* scr = freeScreen(m_screen, QGuiApplication::screens(), occupiedScreens());
+      if(!scr)
+      {
+        qWarning() << "Gfx: no free screen for output" << m_title << "on platform"
+                   << QGuiApplication::platformName()
+                   << "- one window per screen. Not rendering to it.";
+        return;
+      }
+
+      // The geometry is what decides the screen here, not setScreen(): with no
+      // window manager the platform makes every window fullscreen and rederives
+      // the screen from where it lands, undoing setScreen() on its own.
+      m_window->setScreen(scr);
+      m_window->setGeometry(scr->geometry());
+      m_window->show();
+      return;
+    }
 
     if(m_screen)
     {
