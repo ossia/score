@@ -103,6 +103,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/application/ApplicationComponents.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/application/ApplicationContext.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/application/ApplicationServices.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/application/ScriptEvaluator.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/application/GUIApplicationContext.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/command/AggregateCommand.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/command/Command.hpp"
@@ -417,6 +418,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score/application/ApplicationContext.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/application/ApplicationComponents.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/application/ApplicationServices.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/application/ScriptEvaluator.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score/actions/Action.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/actions/ActionManager.cpp"

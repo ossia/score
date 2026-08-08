@@ -123,6 +123,16 @@ const std::vector<DocumentPlugin*>& DocumentContext::pluginModels() const
   return document.model().pluginModels();
 }
 
+void Document::setScriptSink(ScriptSink s)
+{
+  m_scriptSink = std::move(s);
+}
+
+const Document::ScriptSink& Document::scriptSink() const noexcept
+{
+  return m_scriptSink;
+}
+
 score::Environment& DocumentContext::environment() const noexcept
 {
   return document.environment();
