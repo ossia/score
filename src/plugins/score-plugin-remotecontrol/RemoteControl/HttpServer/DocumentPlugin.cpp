@@ -1,8 +1,9 @@
 #include "DocumentPlugin.hpp"
 
-#include <score/tools/Bind.hpp>
-
 #include <RemoteControl/Settings/Model.hpp>
+
+#include <score/application/GUIApplicationContext.hpp>
+#include <score/tools/Bind.hpp>
 
 namespace RemoteControl::HttpServer
 {
