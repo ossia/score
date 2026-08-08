@@ -1,6 +1,6 @@
+#include <score/graphics/InfiniteScroller.hpp>
 #include <score/graphics/widgets/QGraphicsNoteChooser.hpp>
 #include <score/model/Skin.hpp>
-#include <score/tools/Cursor.hpp>
 
 #include <ossia/detail/math.hpp>
 
@@ -10,6 +10,28 @@
 #include <wobjectimpl.h>
 namespace score
 {
+namespace
+{
+constexpr double pixelsPerNote = 10.;
+
+double dragValue(QGraphicsSceneMouseEvent* event, int min, int max) noexcept
+{
+  InfiniteScroller::move_free(event);
+
+  double v = InfiniteScroller::origValue - InfiniteScroller::currentDelta / pixelsPerNote;
+  if(v <= min)
+  {
+    InfiniteScroller::currentDelta = (InfiniteScroller::origValue - min) * pixelsPerNote;
+    v = min;
+  }
+  else if(v >= max)
+  {
+    InfiniteScroller::currentDelta = (InfiniteScroller::origValue - max) * pixelsPerNote;
+    v = max;
+  }
+  return v;
+}
+}
 
 QRectF QGraphicsNoteChooser::boundingRect() const
 {
@@ -53,11 +75,9 @@ void QGraphicsNoteChooser::mousePressEvent(QGraphicsSceneMouseEvent* event)
   if(srect.contains(event->pos()))
   {
     m_grab = true;
+    m_curValue = m_value;
+    InfiniteScroller::start(*this, m_value);
   }
-
-  m_startPos = event->screenPos();
-  m_curValue = m_value;
-  score::hideCursor(true);
 
   event->accept();
 }
@@ -66,37 +86,37 @@ void QGraphicsNoteChooser::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   if(m_grab)
   {
-    auto pos = event->screenPos();
-    auto dy = ossia::clamp((m_startPos.y() - pos.y()) / 10., -1., 1.);
-    if(dy != 0)
+    m_curValue = dragValue(event, m_min, m_max);
+
+    if(int res = std::round(m_curValue); res != m_value)
     {
-      m_curValue = ossia::clamp(m_curValue + dy, (double)m_min, (double)m_max);
-
-      if(int res = std::round(m_curValue); res != m_value)
-      {
-        m_value = res;
-        m_curValue = m_value;
-        sliderMoved();
-        update();
-      }
+      m_value = res;
+      sliderMoved();
+      update();
     }
-
-    score::moveCursorPos(m_startPos);
-    score::hideCursor(true);
   }
   event->accept();
 }
 
 void QGraphicsNoteChooser::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  mouseMoveEvent(event);
-
   if(m_grab)
   {
+    m_curValue = dragValue(event, m_min, m_max);
+    if(int res = std::round(m_curValue); res != m_value)
+    {
+      m_value = res;
+      update();
+    }
+
+    InfiniteScroller::stop(*this, event);
+
     m_grab = false;
     sliderReleased();
+
+    setCursor(score::Skin::instance().CursorScaleV);
   }
-  score::showCursor();
+  event->accept();
 }
 
 static QString noteText(int n)
