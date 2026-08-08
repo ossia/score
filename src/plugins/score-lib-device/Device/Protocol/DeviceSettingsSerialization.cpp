@@ -32,8 +32,16 @@ const QStringList& scoreOwnedMembers()
 
 //! Read a payload the protocol wrote, in whichever format it was written:
 //! a .score saved as .scorebin carries the protocol's JSON inside the blob.
+//!
+//! `n` is the device the payload belongs to. It is needed because the protocol
+//! wrote its settings into the *same* object as the device's own Name and
+//! Protocol, and some protocols -- evdev, for one -- call a setting of their
+//! own "Name" too. Building the payload strips the members score owns, so that
+//! writing it back cannot duplicate them; that also takes the protocol's Name
+//! with it. Putting them back here hands the protocol the object it wrote.
 QVariant makeSettings(
-    const Device::ProtocolFactory& prot, const score::OpaquePayload& payload)
+    const Device::ProtocolFactory& prot, const score::OpaquePayload& payload,
+    const Device::DeviceSettings& n)
 {
   if(payload.format == DataStream::type())
   {
@@ -47,6 +55,19 @@ QVariant makeSettings(
     doc.Parse(payload.bytes.data(), payload.bytes.size());
     if(doc.HasParseError() || !doc.IsObject())
       return {};
+
+    auto& alloc = doc.GetAllocator();
+    const auto restore = [&](const std::string& key, const QString& value) {
+      if(doc.HasMember(key))
+        return;
+      const auto utf8 = value.toUtf8();
+      doc.AddMember(
+          rapidjson::Value{key.data(), (rapidjson::SizeType)key.size(), alloc}.Move(),
+          rapidjson::Value{utf8.constData(), (rapidjson::SizeType)utf8.size(), alloc}
+              .Move(),
+          alloc);
+    };
+    restore(score::StringConstant().Name, n.name);
 
     JSONObject::Deserializer sub{doc};
     return prot.makeProtocolSpecificSettings(sub.toVariant());
@@ -95,7 +116,8 @@ SCORE_LIB_DEVICE_EXPORT void DataStreamWriter::write(Device::DeviceSettings& n)
 
   auto& pl = components.interfaces<Device::ProtocolFactoryList>();
   if(auto prot = pl.get(n.protocol))
-    n.deviceSpecificSettings = makeSettings(*prot, score::OpaquePayload::fromBlob(blob));
+    n.deviceSpecificSettings
+        = makeSettings(*prot, score::OpaquePayload::fromBlob(blob), n);
   else
     n.opaqueSettings = std::move(blob);
 
