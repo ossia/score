@@ -5,6 +5,9 @@
 #include <QFileInfo>
 #include <QObject>
 
+#include <QMetaObject>
+#include <QPointer>
+
 #include <memory>
 
 namespace score
@@ -38,6 +41,7 @@ struct RecursiveWalk
   Environment::Callback<std::vector<DirEntry>> onListed;
   std::vector<DirEntry> found;
   int pending{};
+  QPointer<QObject> context;
 };
 
 void walkDone(const std::shared_ptr<RecursiveWalk>& st)
@@ -49,9 +53,27 @@ void walkDone(const std::shared_ptr<RecursiveWalk>& st)
     st->onListed(std::move(st->found));
 }
 
+void listDir(const std::shared_ptr<RecursiveWalk>& st, const Uri& dir, int depth);
+
+//! Counted before it is scheduled, so a walk that yields cannot look finished
+//! in between.
 void walkDir(const std::shared_ptr<RecursiveWalk>& st, const Uri& dir, int depth)
 {
   st->pending++;
+
+  if(st->context)
+  {
+    QMetaObject::invokeMethod(
+        st->context, [st, dir, depth] { listDir(st, dir, depth); },
+        Qt::QueuedConnection);
+    return;
+  }
+
+  listDir(st, dir, depth);
+}
+
+void listDir(const std::shared_ptr<RecursiveWalk>& st, const Uri& dir, int depth)
+{
   st->env.list(
       dir,
       [st, depth](std::vector<DirEntry> entries) {
@@ -75,9 +97,11 @@ void walkDir(const std::shared_ptr<RecursiveWalk>& st, const Uri& dir, int depth
 
 void listRecursive(
     Environment& env, const Uri& root, const QString& suffix,
-    Environment::Callback<std::vector<DirEntry>> onListed, int maxDepth)
+    Environment::Callback<std::vector<DirEntry>> onListed, int maxDepth,
+    QObject* context)
 {
-  auto st = std::make_shared<RecursiveWalk>(env, suffix, std::move(onListed));
+  auto st = std::make_shared<RecursiveWalk>(
+      env, suffix, std::move(onListed), std::vector<DirEntry>{}, 0, context);
   walkDir(st, root, maxDepth);
 }
 
