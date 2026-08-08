@@ -164,6 +164,28 @@ score_add_test(test_regression_throwing_drop_handler
 # One harness per shader kind in the library: they are authored differently,
 # fail differently, and each keeps its own baseline. All need a GPU-capable
 # display, and all skip when no library is installed.
+# The sweeps read a real shader library and diff against a checked-in baseline,
+# so they need to be told where one is: the test fixture gives every test its own
+# XDG_CONFIG_HOME and application name, on purpose, so the library root a user
+# configured is deliberately not visible. Probed here, overridable, and skipped
+# cleanly when there is none.
+if(NOT DEFINED SCORE_SHADER_LIBRARY_DIR)
+  foreach(_candidate
+      "$ENV{HOME}/Documents/ossia/score/packages/default"
+      "$ENV{HOME}/Documents/ossia/score-test/packages/default")
+    if(EXISTS "${_candidate}")
+      set(SCORE_SHADER_LIBRARY_DIR "${_candidate}" CACHE PATH
+          "Shader library the sweeps run over; empty means skip them")
+      break()
+    endif()
+  endforeach()
+endif()
+
+if(NOT SCORE_SHADER_LIBRARY_DIR)
+  message(STATUS "No shader library found: the shader sweeps will skip. "
+                 "Set SCORE_SHADER_LIBRARY_DIR to run them.")
+endif()
+
 foreach(kind ISF VSA CSF)
   string(TOLOWER "${kind}" lc)
   score_add_test(test_integration_shader_sweep_${lc}
@@ -189,6 +211,15 @@ foreach(kind ISF VSA CSF)
 
   target_compile_definitions(test_integration_shader_sweep_${lc} PRIVATE
     "SCORE_SHADER_SWEEP_BASELINE_${kind}=\"${_baseline}\"")
+
+  # Catch2 exits 4 when every test skipped. Without this a skip is reported as a
+  # failure, which is how three sweeps sat "failing" while never running.
+  set_tests_properties(test_integration_shader_sweep_${lc} PROPERTIES
+    SKIP_RETURN_CODE 4)
+  if(SCORE_SHADER_LIBRARY_DIR)
+    set_tests_properties(test_integration_shader_sweep_${lc} PROPERTIES
+      ENVIRONMENT "SCORE_SHADER_LIBRARY_DIR=${SCORE_SHADER_LIBRARY_DIR}")
+  endif()
 endforeach()
 
 # Drags that never get their mouse release: QGraphicsScene drops the implicit
