@@ -17,6 +17,9 @@ class LibraryHandler final : public Library::LibraryInterface
 
   std::optional<Library::ProcessEntry> scanPath(std::string_view path) override;
   QWidget* previewWidget(const QString& path, QWidget* parent) const noexcept override;
+  QWidget* previewWidget(
+      const QString& path, const QByteArray& contents,
+      QWidget* parent) const noexcept override;
   QWidget*
   previewWidget(const Process::Preset& path, QWidget* parent) const noexcept override;
 
