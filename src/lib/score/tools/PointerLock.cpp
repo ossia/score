@@ -442,20 +442,30 @@ void PointerLock::endRelative() noexcept
 }
 }
 
-#elif defined(SCORE_HAS_WAYLAND_POINTER_LOCK)
+#elif defined(SCORE_HAS_WAYLAND_POINTER_LOCK) || defined(SCORE_HAS_X11_POINTER_LOCK)
 #include <QGuiApplication>
+#include <QWindow>
 #include <qpa/qplatformnativeinterface.h>
 
 #include <cstring>
 #include <vector>
 
+#if defined(SCORE_HAS_WAYLAND_POINTER_LOCK)
 #include <pointer-constraints-unstable-v1-client-protocol.h>
 #include <relative-pointer-unstable-v1-client-protocol.h>
 #include <wayland-client.h>
+#endif
+
+#if defined(SCORE_HAS_X11_POINTER_LOCK)
+#include <score/tools/PointerLockX11.hpp>
+#endif
 
 namespace score
 {
 namespace
+{
+#if defined(SCORE_HAS_WAYLAND_POINTER_LOCK)
+namespace wayland
 {
 struct WaylandGlobals
 {
@@ -591,10 +601,10 @@ wl_pointer* currentPointer(const WaylandGlobals& g) noexcept
   return static_cast<wl_pointer*>(
       qGuiApp->platformNativeInterface()->nativeResourceForIntegration("wl_pointer"));
 }
-}
 
-bool PointerLock::beginRelative(
-    QWindow* window, MotionCallback onMotion, ReleaseCallback onRelease) noexcept
+bool begin(
+    QWindow* window, PointerLock::MotionCallback onMotion,
+    PointerLock::ReleaseCallback onRelease) noexcept
 {
   if(g_relative)
     return true;
@@ -615,8 +625,9 @@ bool PointerLock::beginRelative(
     return false;
 
   static const bool quitHandler = [] {
-    QObject::connect(
-        qGuiApp, &QCoreApplication::aboutToQuit, qGuiApp, [] { endRelative(); });
+    QObject::connect(qGuiApp, &QCoreApplication::aboutToQuit, qGuiApp, [] {
+      PointerLock::endRelative();
+    });
     return true;
   }();
   Q_UNUSED(quitHandler);
@@ -643,12 +654,12 @@ bool PointerLock::beginRelative(
   return true;
 }
 
-bool PointerLock::active() noexcept
+bool active() noexcept
 {
   return g_relative && g_locked && g_lockActive;
 }
 
-QPointF PointerLock::takeDelta() noexcept
+QPointF takeDelta() noexcept
 {
   const QPointF d{g_dx, g_dy};
   g_dx = 0.;
@@ -656,7 +667,7 @@ QPointF PointerLock::takeDelta() noexcept
   return d;
 }
 
-void PointerLock::endRelative() noexcept
+void end() noexcept
 {
   if(g_locked)
   {
@@ -676,6 +687,99 @@ void PointerLock::endRelative() noexcept
   g_release = nullptr;
   g_dx = 0.;
   g_dy = 0.;
+}
+}
+#endif
+
+
+enum class Backend
+{
+  Unsupported,
+  Wayland,
+  X11
+};
+
+Backend currentBackend() noexcept
+{
+  // SCORE_NO_POINTER_LOCK=1 refuses every lock, so the controls go back to
+  // reading pointer positions the way they did before there was a backend.
+  static const bool disabled = qEnvironmentVariableIsSet("SCORE_NO_POINTER_LOCK");
+  if(disabled)
+    return Backend::Unsupported;
+
+  const auto platform = qGuiApp->platformName();
+#if defined(SCORE_HAS_WAYLAND_POINTER_LOCK)
+  if(platform.startsWith(QStringLiteral("wayland")))
+    return Backend::Wayland;
+#endif
+#if defined(SCORE_HAS_X11_POINTER_LOCK)
+  if(platform == QStringLiteral("xcb"))
+    return Backend::X11;
+#endif
+  return Backend::Unsupported;
+}
+}
+
+bool PointerLock::beginRelative(
+    QWindow* window, MotionCallback onMotion, ReleaseCallback onRelease) noexcept
+{
+  switch(currentBackend())
+  {
+#if defined(SCORE_HAS_WAYLAND_POINTER_LOCK)
+    case Backend::Wayland:
+      return wayland::begin(window, onMotion, onRelease);
+#endif
+#if defined(SCORE_HAS_X11_POINTER_LOCK)
+    case Backend::X11:
+      return x11::begin(window, onMotion, onRelease);
+#endif
+    default:
+      return false;
+  }
+}
+
+bool PointerLock::active() noexcept
+{
+  switch(currentBackend())
+  {
+#if defined(SCORE_HAS_WAYLAND_POINTER_LOCK)
+    case Backend::Wayland:
+      return wayland::active();
+#endif
+#if defined(SCORE_HAS_X11_POINTER_LOCK)
+    case Backend::X11:
+      return x11::active();
+#endif
+    default:
+      return false;
+  }
+}
+
+QPointF PointerLock::takeDelta() noexcept
+{
+  switch(currentBackend())
+  {
+#if defined(SCORE_HAS_WAYLAND_POINTER_LOCK)
+    case Backend::Wayland:
+      return wayland::takeDelta();
+#endif
+#if defined(SCORE_HAS_X11_POINTER_LOCK)
+    case Backend::X11:
+      return x11::takeDelta();
+#endif
+    default:
+      return {};
+  }
+}
+
+void PointerLock::endRelative() noexcept
+{
+#if defined(SCORE_HAS_WAYLAND_POINTER_LOCK)
+  wayland::end();
+#endif
+#if defined(SCORE_HAS_X11_POINTER_LOCK)
+  x11::end();
+#endif
 }
 }
 
