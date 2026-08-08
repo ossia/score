@@ -259,6 +259,12 @@ score_add_test(test_integration_terminal_file_drop
   APP
   PLUGINS score_lib_process score_plugin_scenario score_plugin_media)
 
+# Settings a machine carried without understanding them, read by one that does.
+score_add_test(test_integration_opaque_device_settings
+  SOURCES OpaqueDeviceSettingsTest.cpp
+  APP
+  PLUGINS score_plugin_deviceexplorer score_plugin_protocols score_plugin_scenario)
+
 # Adding a device whose protocol only the other machine has.
 score_add_test(test_integration_terminal_device_add
   SOURCES TerminalDeviceAddTest.cpp
