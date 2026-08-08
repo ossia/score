@@ -102,6 +102,9 @@ public:
    */
   bool replaceDevice(Device::Node&& deviceNode);
 
+  //! The device an index belongs to, empty if it is not under one.
+  QString deviceNameOf(const QModelIndex& index) const;
+
   Device::Node* addAddress(
       Device::Node* parentNode, const Device::AddressSettings& addressSettings, int row);
   void updateAddress(Device::Node* node, const Device::AddressSettings& addressSettings);

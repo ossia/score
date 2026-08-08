@@ -72,8 +72,30 @@ DeviceExplorerModel::DeviceExplorerModel(DeviceDocumentPlugin& plug, QObject* pa
 {
   this->setObjectName("DeviceExplorerModel");
 
+  // Structural changes only: a value arriving is not the tree changing, and
+  // re-sending a whole device on every value would be most of the socket.
+  auto changed = [this](const QModelIndex& parent, int, int) {
+    if(const auto name = deviceNameOf(parent); !name.isEmpty())
+      m_devicePlugin.deviceTreeChanged(name);
+  };
+  connect(this, &QAbstractItemModel::rowsInserted, this, changed);
+  connect(this, &QAbstractItemModel::rowsRemoved, this, changed);
+
   beginResetModel();
   endResetModel();
+}
+
+QString DeviceExplorerModel::deviceNameOf(const QModelIndex& index) const
+{
+  // The device is the ancestor directly under the invisible root. An insertion
+  // at the root is a device appearing, which its own command already carries.
+  const Device::Node* n = index.isValid() ? &nodeFromModelIndex(index) : nullptr;
+  while(n && n->parent() && n->parent() != &m_rootNode)
+    n = n->parent();
+
+  if(!n || !n->is<Device::DeviceSettings>())
+    return {};
+  return n->get<Device::DeviceSettings>().name;
 }
 
 DeviceExplorerModel::~DeviceExplorerModel() { }
