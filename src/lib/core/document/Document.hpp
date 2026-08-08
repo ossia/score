@@ -14,6 +14,8 @@
 
 #include <QByteArray>
 #include <QString>
+
+#include <functional>
 #include <QTimer>
 #include <QVariant>
 
@@ -85,6 +87,15 @@ public:
   //! Take the files of this document to be somewhere else -- another machine,
   //! typically, once it is being edited through a session.
   void setEnvironment(std::unique_ptr<score::Environment> env);
+
+  //! Where a script typed here should run. Set when this document is a view of
+  //! a score running elsewhere: the console then asks that machine instead of
+  //! answering from a document with no devices and no execution behind it.
+  //! `onResult` is called with what the other machine printed.
+  using ScriptSink
+      = std::function<void(const QString& code, std::function<void(QString)> onResult)>;
+  void setScriptSink(ScriptSink s);
+  const ScriptSink& scriptSink() const noexcept;
 
   //! Whether this document may drive the hardware of the machine it is open on.
   //!
@@ -171,6 +182,7 @@ private:
 
   DocumentContext m_context;
   mutable std::unique_ptr<score::Environment> m_environment;
+  ScriptSink m_scriptSink;
   DocumentRole m_role{DocumentRole::Local};
 
   std::optional<score::RestorableDocument> m_initialData{};

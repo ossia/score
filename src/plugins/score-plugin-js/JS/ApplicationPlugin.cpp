@@ -1,5 +1,7 @@
 #include "ApplicationPlugin.hpp"
 
+#include <score/application/ScriptEvaluator.hpp>
+
 #include <JS/DocumentPlugin.hpp>
 #include <JS/Qml/DeviceContext.hpp>
 #include <JS/Qml/EditContext.hpp>
@@ -33,6 +35,29 @@
 
 namespace JS
 {
+namespace
+{
+//! The JS plug-in's answer to "run this here". Registered for the whole
+//! process: the session layer needs to run a peer's script without knowing
+//! what a QJSEngine is.
+struct ConsoleEvaluator final : score::ScriptEvaluator
+{
+  QJSEngine& engine;
+  explicit ConsoleEvaluator(QJSEngine& e)
+      : engine{e}
+  {
+  }
+
+  QString evaluate(const score::DocumentContext&, const QString& code) override
+  {
+    auto res = engine.evaluate(code);
+    if(res.isError())
+      return QStringLiteral("ERROR: ") + res.toString();
+    return res.isUndefined() ? QString{} : res.toString();
+  }
+};
+}
+
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
     : score::GUIApplicationPlugin{ctx}
 {
@@ -45,6 +70,11 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
       "Library", m_consoleEngine.newQObject(new JsLibrary));
   m_consoleEngine.globalObject().setProperty("Device", m_consoleEngine.newQObject(new DeviceContext{m_consoleEngine}));
   m_consoleEngine.globalObject().setProperty("View", m_consoleEngine.newQObject(new JsViewContext));
+
+  // What a peer's script runs through when this machine is the one with the
+  // devices. Owned here, for as long as the engine it uses.
+  static ConsoleEvaluator evaluator{m_consoleEngine};
+  score::scriptEvaluator() = &evaluator;
   connect(&m_consoleEngine, &QQmlEngine::exit, this, [&] {
     for(auto& doc : score::GUIAppContext().docManager.documents())
       doc->commandStack().markCurrentIndexAsSaved();
