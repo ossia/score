@@ -108,9 +108,9 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
   m_consoleEngine.globalObject().setProperty("View", m_consoleEngine.newQObject(new JsViewContext));
 
   // What a peer's script runs through when this machine is the one with the
-  // devices. Owned here, for as long as the engine it uses.
-  static ConsoleEvaluator evaluator{m_consoleEngine};
-  score::scriptEvaluator() = &evaluator;
+  // devices. Owned here, so it lasts exactly as long as the engine it wraps.
+  m_evaluator = std::make_unique<ConsoleEvaluator>(m_consoleEngine);
+  score::scriptEvaluator() = m_evaluator.get();
   connect(&m_consoleEngine, &QQmlEngine::exit, this, [&](int retCode) {
     for(auto& doc : score::GUIAppContext().docManager.documents())
       doc->commandStack().markCurrentIndexAsSaved();
@@ -180,6 +180,10 @@ void ApplicationPlugin::on_newDocument(score::Document& doc)
 
 ApplicationPlugin::~ApplicationPlugin()
 {
+  // Or the next peer's script runs against an engine that no longer exists.
+  if(score::scriptEvaluator() == m_evaluator.get())
+    score::scriptEvaluator() = nullptr;
+
   m_processMessages = false;
   m_asioContext->context.stop();
   m_asioThread.join();

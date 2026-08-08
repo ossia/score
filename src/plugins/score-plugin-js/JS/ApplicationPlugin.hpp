@@ -6,7 +6,11 @@
 #include <QFileInfo>
 #include <QQmlComponent>
 #include <QQmlContext>
+#include <score/application/ScriptEvaluator.hpp>
+
 #include <QQmlEngine>
+
+#include <memory>
 
 #include <thread>
 
@@ -33,6 +37,12 @@ public:
 
   // Used for processing whatever comes from the console
   QQmlEngine m_consoleEngine;
+
+  //! Registered as this process's evaluator for as long as this plug-in is
+  //! alive -- which a function-local static could not promise: it outlives the
+  //! engine it wraps, and a second application instance republishes the first
+  //! one's, pointing at an engine that is gone.
+  std::unique_ptr<score::ScriptEvaluator> m_evaluator;
 
   // Used for instantiating JS::Script* to verify that the script is valid
   // before updating, as well as for running JS UI scripts.
