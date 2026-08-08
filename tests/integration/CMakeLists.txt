@@ -346,6 +346,12 @@ score_add_test(test_integration_terminal_file_drop
   APP
   PLUGINS score_lib_process score_plugin_scenario score_plugin_media)
 
+# Adding a device whose protocol only the other machine has.
+score_add_test(test_integration_terminal_device_add
+  SOURCES TerminalDeviceAddTest.cpp
+  GUI
+  PLUGINS score_plugin_deviceexplorer score_plugin_scenario)
+
 # Presets listed through the document's environment, not the local library.
 score_add_test(test_integration_device_preset_source
   SOURCES DevicePresetSourceTest.cpp
