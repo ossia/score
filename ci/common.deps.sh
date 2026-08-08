@@ -63,7 +63,9 @@ clone_addon() {
   )
 }
 
-clone_addon https://github.com/ossia/iscore-addon-network
+# Paired with the session work on the add-on: the two repositories change
+# together, so CI has to build the branch that matches rather than master.
+clone_addon https://github.com/ossia/iscore-addon-network remote-control
 clone_addon https://github.com/ossia/score-addon-synthimi
 clone_addon https://github.com/ossia/score-addon-jk
 clone_addon https://github.com/ossia/GBAP

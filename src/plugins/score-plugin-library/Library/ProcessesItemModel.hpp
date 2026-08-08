@@ -70,6 +70,12 @@ public:
   //! anchor's key so only their per-plugin children are user-creatable.
   void clearAnchorKey(const Process::ProcessModelFactory::ConcreteKey& key);
 
+  //! Empty the tree inside a proper reset envelope: rescan()'s reset half
+  //! without the repopulate. A terminal document lists no local processes,
+  //! and QAbstractItemModel::begin/endResetModel are protected, so callers
+  //! outside the class cannot bracket the clear themselves.
+  void clear();
+
   //! Immediately publish everything still buffered. Mostly for tests.
   void flushPending();
 
