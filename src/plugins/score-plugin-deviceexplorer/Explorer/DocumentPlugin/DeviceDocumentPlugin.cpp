@@ -189,6 +189,17 @@ Device::Node DeviceDocumentPlugin::createDeviceFromNode(const Device::Node& node
 
     // Instantiate a real device.
     auto proto = fact.get(node.get<Device::DeviceSettings>().protocol);
+    if(!proto)
+    {
+      // Nothing here can make it. Ordinary rather than exceptional: a session
+      // adds devices from whichever machine the user is typing at, and a
+      // document routinely names protocols a given build has no factory for.
+      // The node is kept, as loading one does -- what is not acceptable is
+      // calling through the null.
+      qWarning() << "No protocol for device" << node.get<Device::DeviceSettings>().name;
+      return node;
+    }
+
     auto newdev
         = proto->makeDevice(node.get<Device::DeviceSettings>(), *this, context());
 

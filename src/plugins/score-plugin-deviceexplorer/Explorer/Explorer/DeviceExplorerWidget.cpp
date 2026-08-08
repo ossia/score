@@ -1039,7 +1039,17 @@ void DeviceExplorerWidget::addDevice()
 
     SCORE_ASSERT(model());
     auto node = m_deviceDialog->getDevice();
-    auto& deviceSettings = *node.target<Device::DeviceSettings>();
+    auto* settings = node.target<Device::DeviceSettings>();
+    if(!settings)
+    {
+      // An empty node carries no settings, and reading them anyway is a null
+      // dereference on the way to doing nothing.
+      m_deviceDialog->deleteLater();
+      m_deviceDialog = nullptr;
+      return;
+    }
+
+    auto& deviceSettings = *settings;
     if(!model()->checkDeviceInstantiatable(deviceSettings))
     {
       m_deviceDialog->deleteLater();

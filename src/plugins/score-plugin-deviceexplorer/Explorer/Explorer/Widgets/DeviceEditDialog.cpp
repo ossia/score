@@ -681,7 +681,23 @@ Device::DeviceSettings DeviceEditDialog::getSettings() const
 Device::Node DeviceEditDialog::getDevice() const
 {
   if(!m_protocolWidget)
-    return {};
+  {
+    // No form for this protocol in this build, so there is nothing to read the
+    // device out of but what was chosen -- the other machine's hardware, or a
+    // preset. Returning nothing here is what made Add do nothing at all.
+    if(m_chosenSettings.protocol == UuidKey<Device::ProtocolFactory>{})
+      return {};
+
+    if(m_presetNode.is<Device::DeviceSettings>())
+    {
+      Device::Node n = m_presetNode;
+      if(auto* dev = n.target<Device::DeviceSettings>())
+        *dev = m_chosenSettings;
+      return n;
+    }
+
+    return Device::Node{m_chosenSettings, nullptr};
+  }
 
   // If a preset was loaded, return the full node (with address tree)
   // but re-apply the current widget settings (user may have edited name, ports, etc.)
