@@ -167,6 +167,12 @@ score_add_test(test_unit_note_chooser
   SOURCES NoteChooserTest.cpp
   APP)
 
+# The spinbox maps the drag itself instead of going through
+# InfiniteScroller::move(); APP because its header pulls in the skin.
+score_add_test(test_unit_spinbox_drag
+  SOURCES SpinboxDragTest.cpp
+  APP)
+
 score_add_test(test_unit_avnd_audio_roundtrip
   SOURCES AvndAudioRoundtripTest.cpp
   PLUGINS score_lib_process

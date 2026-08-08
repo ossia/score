@@ -57,6 +57,16 @@ struct DefaultGraphicsSpinboxImpl
     event->accept();
   }
 
+  // Inverse of the mapping below: the accumulated drag that lands exactly on
+  // `bound`. speed is 1 + |delta|, so the value is orig - (1 + |d|) * d / h and
+  // d follows from the quadratic.
+  static double deltaFor(double orig, double bound, double height) noexcept
+  {
+    const double k = (orig - bound) * height;
+    return k >= 0. ? (-1. + std::sqrt(1. + 4. * k)) / 2.
+                   : (1. - std::sqrt(1. - 4. * k)) / 2.;
+  }
+
   template <typename T>
   static double mapValue(T& self, QGraphicsSceneMouseEvent* event) noexcept
   {
@@ -64,9 +74,20 @@ struct DefaultGraphicsSpinboxImpl
     const auto speed
         = std::pow(10., std::log10(1. + std::abs(InfiniteScroller::currentDelta)));
 
-    auto v = InfiniteScroller::origValue
-             - speed * InfiniteScroller::currentDelta
-                   / double(InfiniteScroller::currentGeometry.height());
+    const double height = double(InfiniteScroller::currentGeometry.height());
+    auto v = InfiniteScroller::origValue - speed * InfiniteScroller::currentDelta / height;
+
+    // Hold the accumulator at the end rather than letting it run past: a drag
+    // that overshoots would otherwise have to be walked all the way back before
+    // the value moved again.
+    const double bounded = std::clamp(v, double(self.min), double(self.max));
+    if(bounded != v)
+    {
+      InfiniteScroller::currentDelta
+          = deltaFor(InfiniteScroller::origValue, bounded, height);
+      v = bounded;
+    }
+
     v = (v - self.min) / (self.max - self.min);
     return std::clamp(v, 0., 1.);
   }
