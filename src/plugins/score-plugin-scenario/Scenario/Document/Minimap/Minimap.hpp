@@ -7,7 +7,6 @@
 #include <score_plugin_scenario_export.h>
 
 #include <verdigris>
-class QGraphicsView;
 namespace Scenario
 {
 class SCORE_PLUGIN_SCENARIO_EXPORT Minimap final
@@ -17,7 +16,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT Minimap final
   W_OBJECT(Minimap)
   Q_INTERFACES(QGraphicsItem)
 public:
-  Minimap(QGraphicsView* vp);
+  Minimap();
   void setWidth(double);
   double width() const { return m_width; }
   double leftHandle() const { return m_leftHandle; }
@@ -58,17 +57,16 @@ private:
   void hoverMoveEvent(QGraphicsSceneHoverEvent*) override;
   void hoverLeaveEvent(QGraphicsSceneHoverEvent*) override;
 
+  QCursor cursorFor(double pos_x) const;
+
   static const constexpr double m_height{20.};
 
-  QGraphicsView* m_viewport{};
   double m_leftHandle{};
   double m_rightHandle{};
   double m_width{100.};
   double m_minDist{10.};
-  QPointF m_startPos{};
-  double m_startY{};
-  double m_relativeStartX{};
 
+  bool m_hidCursor{false};
   bool m_gripLeft{false};
   bool m_gripRight{false};
   bool m_gripMid{false};

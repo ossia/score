@@ -578,7 +578,6 @@ ScenarioDocumentView::ScenarioDocumentView(
     , m_timeRuler{new MusicalRuler{&m_timeRulerView}}
     , m_minimapScene{m_widget}
     , m_minimapView{&m_minimapScene}
-    , m_minimap{&m_minimapView}
 {
   auto& scenario_settings = ctx.app.settings<Scenario::Settings::Model>();
 
