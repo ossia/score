@@ -233,6 +233,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/IdentifierGeneration.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/MapCopy.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Metadata.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/PointerLock.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/QMapHelper.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/RandomNameProvider.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/SubtypeVariant.hpp"
@@ -463,6 +464,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/FileContains.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/FileWatch.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/MDMEnrollmentDetection.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/tools/PointerLock.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/RandomNameProvider.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/RecursiveWatch.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/ThreadPool.cpp"
@@ -595,20 +597,79 @@ set_source_files_properties( "${CMAKE_CURRENT_SOURCE_DIR}/core/plugin/PluginMana
       "CMAKE_GENERATOR_IS_MULTI_CONFIG=$<BOOL:${CMAKE_GENERATOR_IS_MULTI_CONFIG}>;CMAKE_GENERATOR_CONFIGURATION=\"$<CONFIG>\""
 )
 
+set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/score/tools/PointerLock.cpp"
+    PROPERTIES
+      SKIP_UNITY_BUILD_INCLUSION 1
+)
+
 if(APPLE)
     find_library(AppKit_FK AppKit)
     find_library(AppServices_FK ApplicationServices)
     target_sources(score_lib_base PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Cursor.mm"
+        "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/PointerLock.mm"
     )
     target_link_libraries(${PROJECT_NAME} PRIVATE
         ${AppKit_FK}
         ${AppServices_FK}
     )
-    set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Cursor.mm"
+    set_source_files_properties(
+        "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Cursor.mm"
+        "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/PointerLock.mm"
         PROPERTIES
           SKIP_UNITY_BUILD_INCLUSION 1
     )
+endif()
+
+# Relative pointer motion on Wayland: Qt exposes neither zwp_pointer_constraints_v1
+# nor zwp_relative_pointer_manager_v1, and QCursor::setPos does nothing there.
+if(UNIX AND NOT APPLE AND NOT WIN32 AND NOT EMSCRIPTEN)
+  find_package(PkgConfig QUIET)
+  find_program(WAYLAND_SCANNER_EXECUTABLE NAMES wayland-scanner)
+  if(PkgConfig_FOUND AND WAYLAND_SCANNER_EXECUTABLE)
+    pkg_check_modules(WAYLAND_CLIENT QUIET IMPORTED_TARGET wayland-client)
+    pkg_check_modules(WAYLAND_PROTOCOLS QUIET wayland-protocols)
+  endif()
+
+  if(WAYLAND_CLIENT_FOUND AND WAYLAND_PROTOCOLS_FOUND)
+    pkg_get_variable(WAYLAND_PROTOCOLS_DIR wayland-protocols pkgdatadir)
+
+    set(SCORE_WAYLAND_GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/wayland-protocols")
+    file(MAKE_DIRECTORY "${SCORE_WAYLAND_GENERATED_DIR}")
+
+    foreach(proto
+        "relative-pointer/relative-pointer-unstable-v1"
+        "pointer-constraints/pointer-constraints-unstable-v1")
+      get_filename_component(proto_name "${proto}" NAME)
+      set(proto_xml "${WAYLAND_PROTOCOLS_DIR}/unstable/${proto}.xml")
+      set(proto_header "${SCORE_WAYLAND_GENERATED_DIR}/${proto_name}-client-protocol.h")
+      set(proto_source "${SCORE_WAYLAND_GENERATED_DIR}/${proto_name}-protocol.c")
+
+      add_custom_command(
+        OUTPUT "${proto_header}"
+        COMMAND "${WAYLAND_SCANNER_EXECUTABLE}" client-header "${proto_xml}" "${proto_header}"
+        DEPENDS "${proto_xml}"
+        VERBATIM)
+      add_custom_command(
+        OUTPUT "${proto_source}"
+        COMMAND "${WAYLAND_SCANNER_EXECUTABLE}" private-code "${proto_xml}" "${proto_source}"
+        DEPENDS "${proto_xml}"
+        VERBATIM)
+
+      set_source_files_properties("${proto_source}"
+        PROPERTIES
+          SKIP_UNITY_BUILD_INCLUSION 1
+          SKIP_PRECOMPILE_HEADERS 1)
+
+      target_sources(score_lib_base PRIVATE "${proto_header}" "${proto_source}")
+    endforeach()
+
+    target_include_directories(score_lib_base PRIVATE "${SCORE_WAYLAND_GENERATED_DIR}")
+    target_link_libraries(score_lib_base PRIVATE PkgConfig::WAYLAND_CLIENT)
+    set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/score/tools/PointerLock.cpp"
+      PROPERTIES
+        COMPILE_DEFINITIONS SCORE_HAS_WAYLAND_POINTER_LOCK=1)
+  endif()
 endif()
 
 target_include_directories(score_lib_base SYSTEM PUBLIC "${3RDPARTY_FOLDER}")
