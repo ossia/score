@@ -12,6 +12,7 @@
 #include <Device/Node/NodeListMimeSerialization.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
+#include <Device/Protocol/DeviceCatalog.hpp>
 #include <Device/Protocol/ProtocolList.hpp>
 
 #include <Explorer/Commands/Add/LoadDevice.hpp>
@@ -301,7 +302,28 @@ bool DeviceExplorerModel::checkDeviceInstantiatable(
   auto& context = m_devicePlugin.context().app;
   auto prot = context.interfaces<Device::ProtocolFactoryList>().get(n.protocol);
   if(!prot)
-    return false;
+  {
+    // This build has no such protocol. On a terminal that is ordinary: the
+    // device is made on the machine that does have it, and the settings came
+    // from there. Refusing here means a whole class of devices -- everything
+    // the other machine enumerates -- can never be added.
+    auto* catalog = m_devicePlugin.catalog();
+    if(!catalog)
+      return false;
+
+    const auto known = catalog->protocols();
+    if(ossia::none_of(
+           known, [&](const auto& p) { return p.key == n.protocol; }))
+      return false;
+
+    // Only the name can be judged here. Whether two devices of a protocol can
+    // coexist is that protocol's own rule, and it lives on the other machine.
+    return std::none_of(
+        rootNode().begin(), rootNode().end(), [&](const Device::Node& child) {
+      SCORE_ASSERT(child.is<Device::DeviceSettings>());
+      return child.get<Device::DeviceSettings>().name == n.name;
+    });
+  }
 
   // Look for other childs in the same protocol.
   bool none_incompatible = std::none_of(
