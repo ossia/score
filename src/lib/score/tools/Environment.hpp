@@ -78,6 +78,28 @@ public:
       = 0;
 };
 
+//! What a read or a write may carry in one piece. The channel that answers
+//! these also carries the edits, so a whole video would stall them; anything
+//! larger is refused rather than truncated, and needs a channel of its own.
+SCORE_LIB_BASE_EXPORT qint64 maxInlineTransferBytes() noexcept;
+
+/**
+ * @brief Every file under `root` whose name ends with `suffix`.
+ *
+ * `list` answers for one directory, which is the right primitive and never what
+ * a caller looking for presets or library files wants. Walking it is a round
+ * trip per directory on another machine, so the result arrives once, at the
+ * end, rather than a listing at a time.
+ *
+ * Directories that cannot be listed are skipped rather than failing the walk: a
+ * library with one unreadable folder should still offer the rest. `maxDepth`
+ * bounds both the round trips and a symlink that points at its own parent.
+ * `onListed` is called exactly once.
+ */
+SCORE_LIB_BASE_EXPORT void listRecursive(
+    Environment& env, const Uri& root, const QString& suffix,
+    Environment::Callback<std::vector<DirEntry>> onListed, int maxDepth = 8);
+
 /**
  * @brief The files are here, on this machine.
  *
