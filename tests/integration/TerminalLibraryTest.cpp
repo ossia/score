@@ -81,9 +81,7 @@ TEST_CASE("The library follows the document that is visible", "[terminal]")
     REQUIRE(model.rootNode().childCount() > 0);
 
     // Emptied as whatever mirrors another machine would leave it.
-    model.beginResetModel();
-    model.rootNode().erase(model.rootNode().begin(), model.rootNode().end());
-    model.endResetModel();
+    model.clear();
     REQUIRE(model.rootNode().childCount() == 0);
 
     // Showing a terminal must not put this build's processes back: the score

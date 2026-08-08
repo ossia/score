@@ -105,6 +105,19 @@ ProcessNode& ProcessesItemModel::addCategory(const QString& c)
   return *node;
 }
 
+void ProcessesItemModel::clear()
+{
+  m_generation++;
+  m_pending.clear();
+  m_anchors.clear();
+
+  beginResetModel();
+  m_inReset = true;
+  m_root = ProcessNode{};
+  m_inReset = false;
+  endResetModel();
+}
+
 void ProcessesItemModel::rescan()
 {
   auto& procs = context.interfaces<Process::ProcessFactoryList>();
