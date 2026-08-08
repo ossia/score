@@ -63,6 +63,13 @@ LibraryInterface::previewWidget(const QString& path, QWidget* parent) const noex
 }
 
 QWidget* LibraryInterface::previewWidget(
+    const QString& path, const QByteArray&, QWidget* parent) const noexcept
+{
+  // Whatever it can do with a path it has; nothing, for one it has not.
+  return previewWidget(path, parent);
+}
+
+QWidget* LibraryInterface::previewWidget(
     const Process::Preset& path, QWidget* parent) const noexcept
 {
   return nullptr;
