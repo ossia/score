@@ -259,6 +259,49 @@ void InfiniteScroller::move_free(QGraphicsSceneMouseEvent* event)
   }
 }
 
+bool InfiniteScroller::holdsPointer()
+{
+  return relativeSession && PointerLock::active();
+}
+
+QPointF InfiniteScroller::relativeMotion(QGraphicsSceneMouseEvent* event)
+{
+  if(holdsPointer())
+  {
+    const QPointF delta = PointerLock::takeDelta();
+    const QPointF drift
+        = event->screenPos() - event->buttonDownScreenPos(Qt::LeftButton);
+    const bool escaped
+        = std::abs(drift.x()) + std::abs(drift.y()) > escapedPointerDistance;
+
+    if(!(delta.isNull() && escaped
+         && ++silentLockedMoves >= silentLockedMovesBeforeFallback))
+    {
+      if(!delta.isNull())
+        silentLockedMoves = 0;
+      discardNextPointerDelta = true;
+      return delta;
+    }
+
+    endRelativeSession();
+    discardNextPointerDelta = false;
+  }
+
+  // The pointer did not move while it was locked, but the synthesized moves
+  // did: the first delta measured after a relative session is the whole drag.
+  if(discardNextPointerDelta)
+  {
+    discardNextPointerDelta = false;
+    return {};
+  }
+
+  // No wrapping at the screen edges here: with nothing holding the pointer the
+  // drag is as long as the screen, and warping an axis the caller is not
+  // dragging along would throw the cursor across the display for nothing.
+  usedPointerPositions = true;
+  return event->screenPos() - event->lastScreenPos();
+}
+
 double InfiniteScroller::move(QGraphicsSceneMouseEvent* event)
 {
   move_free(event);

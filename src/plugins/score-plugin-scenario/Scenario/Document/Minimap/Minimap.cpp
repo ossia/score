@@ -5,7 +5,7 @@
 #include <Scenario/Document/Minimap/Minimap.hpp>
 
 #include <score/graphics/GraphicsItem.hpp>
-#include <score/tools/Cursor.hpp>
+#include <score/graphics/InfiniteScroller.hpp>
 
 #include <ossia/detail/math.hpp>
 
@@ -20,8 +20,7 @@
 W_OBJECT_IMPL(Scenario::Minimap)
 namespace Scenario
 {
-Minimap::Minimap(QGraphicsView* vp)
-    : m_viewport{vp}
+Minimap::Minimap()
 {
   this->setAcceptHoverEvents(true);
 }
@@ -147,40 +146,39 @@ void Minimap::mousePressEvent(QGraphicsSceneMouseEvent* ev)
     return;
   }
 
-  m_startPos = score::globalPos(m_viewport, ev);
-  m_relativeStartX = (ev->pos().x() - m_leftHandle) / (m_rightHandle - m_leftHandle);
-  m_startY = ev->pos().y();
-
-  if(m_setCursor)
-  {
-    score::hideCursor(true);
-    // QApplication::changeOverrideCursor(QCursor(Qt::BlankCursor));
-  }
-  else
-  {
-    score::hideCursor(true);
-    m_setCursor = true;
-  }
+  score::InfiniteScroller::start(*this, 0.);
   ev->accept();
 }
 void Minimap::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
 {
-  // TODO why is it not globalPos
-  const auto pos = ev->screenPos();
   if(m_gripLeft || m_gripRight || m_gripMid)
   {
-    auto dx = 0.7 * (pos.x() - m_startPos.x());
+    // Relative, so that the handles keep travelling once the pointer would
+    // have run out of screen -- which is the whole point of holding it still.
+    const auto delta = score::InfiniteScroller::relativeMotion(ev);
+
+    // Not at the press: the cursor is only worth blanking once something is
+    // actually keeping it on the handle. Changing the override the hover
+    // pushed, rather than pushing another, keeps the stack depth where
+    // m_setCursor says it is.
+    if(!m_hidCursor && m_setCursor && score::InfiniteScroller::holdsPointer())
+    {
+      QApplication::changeOverrideCursor(QCursor(Qt::BlankCursor));
+      m_hidCursor = true;
+    }
+
     if(m_gripLeft)
     {
-      setLeftHandle(m_leftHandle + dx);
+      setLeftHandle(m_leftHandle + delta.x());
     }
     else if(m_gripRight)
     {
-      setRightHandle(m_rightHandle + dx);
+      setRightHandle(m_rightHandle + delta.x());
     }
     else if(m_gripMid)
     {
-      auto dy = 0.7 * (pos.y() - m_startPos.y());
+      const auto dx = delta.x();
+      const auto dy = delta.y();
 
       auto newLeftHandle = std::max(m_leftHandle + dx - dy, 0.);
       auto newRightHandle = std::min(m_rightHandle + dx + dy, m_width);
@@ -195,10 +193,6 @@ void Minimap::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
       }
     }
 
-    score::moveCursorPos(m_startPos);
-    score::hideCursor(true);
-    m_setCursor = true;
-
     visibleRectChanged(m_leftHandle, m_rightHandle);
   }
   ev->accept();
@@ -206,29 +200,22 @@ void Minimap::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
 
 void Minimap::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
 {
-  score::showCursor();
-#if defined(__EMSCRIPTEN__)
-  // score::showCursor() is a no-op on wasm, so a hover-pushed override cursor
-  // would outlive m_setCursor being cleared here and never get restored.
-  if(m_setCursor && QApplication::overrideCursor())
-    QApplication::restoreOverrideCursor();
-#endif
-  m_setCursor = false;
-
   if(m_gripLeft || m_gripRight || m_gripMid)
   {
-    m_gripLeft = false;
-    m_gripRight = false;
-    m_gripMid = false;
+    score::InfiniteScroller::stop(*this, ev);
 
-    QPointF pos;
-    pos.setX(ossia::clamp(
-        m_leftHandle + m_relativeStartX * (m_rightHandle - m_leftHandle), m_leftHandle,
-        m_rightHandle));
-    pos.setY(m_startY);
-
-    score::setCursorPos(QPointF{m_viewport->mapToGlobal(QPoint{0, 0})} + pos);
+    // Put back the shape the hover had chosen, again without touching depth.
+    if(m_hidCursor)
+    {
+      QApplication::changeOverrideCursor(cursorFor(ev->pos().x()));
+      m_hidCursor = false;
+    }
   }
+
+  m_gripLeft = false;
+  m_gripRight = false;
+  m_gripMid = false;
+
   ev->accept();
 }
 
@@ -236,6 +223,16 @@ void Minimap::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* ev)
 {
   rescale();
   ev->accept();
+}
+
+QCursor Minimap::cursorFor(double pos_x) const
+{
+  auto& skin = score::Skin::instance();
+  if(std::abs(pos_x - m_leftHandle) < 3. || std::abs(pos_x - m_rightHandle) < 3.)
+    return skin.CursorScaleH;
+  if(pos_x > m_leftHandle && pos_x < m_rightHandle)
+    return skin.CursorMagnifier;
+  return QCursor{};
 }
 
 void Minimap::hoverEnterEvent(QGraphicsSceneHoverEvent* ev)

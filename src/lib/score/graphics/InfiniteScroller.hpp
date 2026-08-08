@@ -1,4 +1,5 @@
 #pragma once
+#include <QPointF>
 #include <QRectF>
 
 #include <score_lib_base_export.h>
@@ -20,6 +21,15 @@ struct SCORE_LIB_BASE_EXPORT InfiniteScroller
   static void move_free(QGraphicsSceneMouseEvent* event);
   static double move(QGraphicsSceneMouseEvent* event);
   static void stop(QGraphicsItem& self, QGraphicsSceneMouseEvent* event);
+
+  //! Motion for a drag that is not a vertical value scroll: the platform's
+  //! relative delta while it holds the pointer, the change in pointer position
+  //! otherwise. Both axes, since the caller decides what they mean.
+  static QPointF relativeMotion(QGraphicsSceneMouseEvent* event);
+
+  //! Whether the platform is holding the pointer on the press point, so that a
+  //! caller keeping its own cursor knows whether hiding it is safe.
+  static bool holdsPointer();
 
   //! Ends any relative-motion session in progress, without touching the cursor.
   static void cancel();
