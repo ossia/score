@@ -1,4 +1,5 @@
 #pragma once
+#include <score_plugin_media_export.h>
 #include <Process/LayerView.hpp>
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
@@ -17,7 +18,7 @@ namespace Media
 namespace Sound
 {
 class ProcessModel;
-class LayerView final
+class SCORE_PLUGIN_MEDIA_EXPORT LayerView final
     : public Process::LayerView
     , public Nano::Observer
 {
@@ -30,6 +31,10 @@ public:
   void setTempoRatio(double);
   void recompute(ZoomRatio ratio);
   void recompute() const;
+
+  //! How many times a waveform was asked for. Painting asks, so a view that
+  //! cannot compute one must not let this grow without bound.
+  int recomputeCount() const noexcept { return m_recomputeCount; }
 
   void on_finishedDecoding();
 
@@ -63,6 +68,8 @@ private:
 
   bool m_frontColors{true};
   mutable bool m_recomputed{false};
+  mutable bool m_askedWhilePainting{false};
+  mutable int m_recomputeCount{};
   mutable bool m_renderAll{true};
 };
 }
