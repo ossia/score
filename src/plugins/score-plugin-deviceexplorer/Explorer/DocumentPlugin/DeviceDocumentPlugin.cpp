@@ -606,6 +606,8 @@ void DeviceDocumentPlugin::on_valueUpdated(
 {
   ossia::qt::run_async(this, [this, aa = State::AddressAccessor{addr}, v] {
     updateProxy.updateLocalValue(aa, v);
+    if(m_valueObserver)
+      m_valueObserver(aa.address, v);
   });
 }
 
