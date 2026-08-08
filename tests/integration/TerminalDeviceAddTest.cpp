@@ -7,11 +7,13 @@
 // in a plug-in we do not have -- so the settings that came across are the whole
 // of what we know, and dropping them means such a device can never be added.
 
+#include <Device/Address/AddressSettings.hpp>
 #include <Device/Protocol/DeviceCatalog.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolList.hpp>
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Explorer/Explorer/Widgets/DeviceEditDialog.hpp>
 
@@ -288,5 +290,41 @@ TEST_CASE("Nothing chosen yields no device rather than a broken one", "[devices]
     CHECK(node.target<Device::DeviceSettings>() == nullptr);
 
     plug.setCatalog(nullptr);
+  });
+}
+
+TEST_CASE("A device arriving with a tree announces it", "[devices]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+
+    auto& plug = doc->context().plugin<Explorer::DeviceDocumentPlugin>();
+    auto& explorer = Explorer::deviceExplorerFromContext(doc->context());
+    (void)explorer;
+
+    QStringList announced;
+    QObject::connect(
+        &plug, &Explorer::DeviceDocumentPlugin::deviceTreeChanged, &plug,
+        [&](const QString& name) { announced.push_back(name); });
+
+    // What the machine running the score ends up with after opening a device:
+    // the node it was asked for, plus whatever the thing turned out to contain.
+    // The peer that asked sent none of this -- it cannot even make the device.
+    Device::DeviceSettings s;
+    s.protocol = absentProtocol();
+    s.name = "Mouse";
+
+    Device::Node node{s, nullptr};
+    Device::AddressSettings axis;
+    axis.name = "x";
+    node.emplace_back(axis, &node);
+
+    plug.updateProxy.addDevice(node);
+
+    // Announced, because the command that created it carried a device with
+    // nothing inside: what is under it was discovered here, and a peer that
+    // never hears about it shows an empty device forever.
+    CHECK(announced.contains("Mouse"));
   });
 }
