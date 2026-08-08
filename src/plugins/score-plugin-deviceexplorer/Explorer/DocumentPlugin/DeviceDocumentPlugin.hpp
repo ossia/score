@@ -111,6 +111,11 @@ public:
   void remoteKindsChanged(const QString& device)
       E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, remoteKindsChanged, device)
 
+  //! A device's own tree changed here: refreshed, or discovered something.
+  //! What is inside a device is known only where the device is.
+  void deviceTreeChanged(const QString& device)
+      E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, deviceTreeChanged, device)
+
 private:
   void initDevice(Device::DeviceInterface&);
   void on_valueUpdated(const State::Address& addr, const ossia::value& v);
