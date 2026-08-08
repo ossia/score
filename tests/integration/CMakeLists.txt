@@ -616,6 +616,12 @@ score_add_test(test_integration_terminal_slots
   PLUGINS score_plugin_scenario score_plugin_deviceexplorer score_plugin_automation
           score_plugin_curve)
 
+# Presets listed through the document's environment, not the local library.
+score_add_test(test_integration_device_preset_source
+  SOURCES DevicePresetSourceTest.cpp
+  GUI
+  PLUGINS score_plugin_deviceexplorer score_plugin_scenario)
+
 # A waveform that cannot be computed must not be re-requested by painting.
 score_add_test(test_integration_sound_view_spin
   SOURCES SoundViewSpinTest.cpp

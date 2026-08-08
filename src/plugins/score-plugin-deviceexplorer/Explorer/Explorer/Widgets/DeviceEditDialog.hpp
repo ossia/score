@@ -78,6 +78,7 @@ private:
   void initAvailableProtocols();
   void initPresets();
   void clearEnumerators();
+  void applyPreset(Device::Node n);
 
   const DeviceExplorerModel& m_model;
   const Device::ProtocolFactoryList& m_protocolList;
