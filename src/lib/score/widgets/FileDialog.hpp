@@ -1,7 +1,11 @@
 #pragma once
+#include <score/document/DocumentContext.hpp>
+#include <score/tools/Environment.hpp>
 #include <score/tools/File.hpp>
 
+#include <QFile>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QString>
 #include <QStringList>
 
@@ -26,23 +30,29 @@ namespace score
  * that can be opened. It is not called if the user cancels.
  */
 template <typename F>
-void openFileToImport(const QString& filters, F onPicked, QWidget* parent = nullptr)
+void openFileToImport(
+    const score::DocumentContext& ctx, const QString& filters, F onPicked,
+    QWidget* parent = nullptr)
 {
 #if defined(__EMSCRIPTEN__)
   QFileDialog::getOpenFileContent(
       filters,
-      [onPicked = std::move(onPicked)](
+      [&ctx, onPicked = std::move(onPicked)](
           const QString& name, const QByteArray& data) mutable {
     if(name.isEmpty() || data.isEmpty())
       return;
-    if(QString staged = score::stageImportedFile(name, data); !staged.isEmpty())
-      onPicked(staged);
+    if(QString imported = score::importFile(name, data, ctx.environment());
+       !imported.isEmpty())
+      onPicked(imported);
   });
 #else
   const QString fn
       = QFileDialog::getOpenFileName(parent, QObject::tr("Open File"), {}, filters);
-  if(!fn.isEmpty())
-    onPicked(fn);
+  // A path chosen here names nothing on the machine running the score, so when
+  // that is not this one the bytes go with it.
+  if(QString imported = score::importPickedFile(fn, ctx.environment());
+     !imported.isEmpty())
+    onPicked(imported);
 #endif
 }
 
@@ -54,15 +64,20 @@ void openFileToImport(const QString& filters, F onPicked, QWidget* parent = null
  */
 template <typename F>
 void openFilesToImport(
-    const QString& title, const QString& filters, F onPicked, QWidget* parent = nullptr)
+    const score::DocumentContext& ctx, const QString& title, const QString& filters,
+    F onPicked, QWidget* parent = nullptr)
 {
 #if defined(__EMSCRIPTEN__)
-  openFileToImport(filters, std::move(onPicked), parent);
+  openFileToImport(ctx, filters, std::move(onPicked), parent);
 #else
   const QStringList files
       = QFileDialog::getOpenFileNames(parent, title, QString{}, filters);
-  for(const auto& f : files)
-    onPicked(f);
+  for(const auto& fn : files)
+  {
+    if(QString imported = score::importPickedFile(fn, ctx.environment());
+       !imported.isEmpty())
+      onPicked(imported);
+  }
 #endif
 }
 

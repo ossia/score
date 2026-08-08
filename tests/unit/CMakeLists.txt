@@ -66,6 +66,11 @@ score_add_test(test_unit_device_explorer_node
   PLUGINS score_lib_device)
 
 # --- core data model (score-lib-state / score-lib-process, P3R2) -----------
+# Taking in a dropped file: into the cache here, and over to the machine that
+# will actually open it.
+score_add_test(test_unit_import_file
+  SOURCES ImportFileTest.cpp)
+
 # Walking a directory tree through the Environment interface: the remote one
 # answers out of order and some directories cannot be listed at all.
 score_add_test(test_unit_environment_walk

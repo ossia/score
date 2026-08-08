@@ -2,10 +2,12 @@
 #include <score/tools/ProjectFiles.hpp>
 
 #include <score/tools/Environment.hpp>
+#include <score/tools/File.hpp>
 #include <score/tools/Uri.hpp>
 
 #include <core/document/Document.hpp>
 
+#include <QCryptographicHash>
 #include <QDir>
 #include <QRegularExpression>
 #include <QSettings>
@@ -159,6 +161,83 @@ bool fileContains(QFile& f, std::string_view pattern)
   return fast_contains(std::string_view(g_file_search_buffer, sz), pattern);
 }
 
+static QString sanitizeImportName(const QString& suggestedName) noexcept
+{
+  QString name = QFileInfo{suggestedName}.fileName();
+  name.replace(QRegularExpression{"[^A-Za-z0-9._-]"}, "_");
+  if(name.isEmpty())
+    name = "import.bin";
+  return name;
+}
+
+QString importFile(
+    const QString& suggestedName, const QByteArray& data, Environment& env) noexcept
+{
+  const QString root = mediaCacheRoot();
+  if(root.isEmpty())
+    return {};
+
+  // Named by content: two machines that import the same file agree on the
+  // entry, so a second import is a hit rather than a duplicate, and the name
+  // keeps the original so a process is not called after a hash.
+  const auto digest
+      = QCryptographicHash::hash(data, QCryptographicHash::Sha1).toHex().left(16);
+  const QString entry = QString::fromUtf8(digest) + "-" + sanitizeImportName(suggestedName);
+
+  if(!env.isLocal() && data.size() > maxInlineTransferBytes())
+  {
+    // Better to refuse than to make a process that names a file the machine
+    // running it will never have.
+    qWarning() << "importFile: too large to send to the other machine:" << suggestedName
+               << data.size();
+    return {};
+  }
+
+  QDir{}.mkpath(root);
+  const QString dest = root + "/" + entry;
+
+  // Same content, same name: already here, and rewriting it would only race
+  // with something reading it.
+  if(!QFileInfo::exists(dest))
+  {
+    QFile f{dest};
+    if(!f.open(QIODevice::WriteOnly))
+      return {};
+    if(f.write(data) != data.size())
+      return {};
+    f.close();
+  }
+
+  if(!env.isLocal())
+  {
+    env.write(
+        Uri{UriScheme::Cache, entry}, data, {}, [suggestedName](const QString& why) {
+      qWarning() << "importFile: the other machine did not take" << suggestedName << ':'
+                 << why;
+        });
+  }
+
+  return dest;
+}
+
+QString importPickedFile(const QString& chosenPath, Environment& env) noexcept
+{
+  if(chosenPath.isEmpty())
+    return {};
+
+  // The machine that will open it is this one: it is already where it needs to
+  // be, and copying every file a user ever picks would be a copy for nothing.
+  if(env.isLocal())
+    return chosenPath;
+
+  QFile f{chosenPath};
+  if(!f.open(QIODevice::ReadOnly))
+    return {};
+
+  return importFile(QFileInfo{chosenPath}.fileName(), f.readAll(), env);
+}
+
+
 #if defined(__EMSCRIPTEN__)
 static constexpr auto imports_dir = "/score/imports";
 
@@ -168,14 +247,6 @@ static QString ensureImportsDir() noexcept
   return imports_dir;
 }
 
-static QString sanitizeImportName(const QString& suggestedName) noexcept
-{
-  QString name = QFileInfo{suggestedName}.fileName();
-  name.replace(QRegularExpression{"[^A-Za-z0-9._-]"}, "_");
-  if(name.isEmpty())
-    name = "import.bin";
-  return name;
-}
 
 QString stageImportedFile(const QString& suggestedName, const QByteArray& data) noexcept
 {

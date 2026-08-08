@@ -67,7 +67,7 @@ struct AudioFileChooser : WidgetFactory::FileChooser
   {
     auto bt = new score::QGraphicsWaveformButton{parent};
     auto on_open = [&inlet, &ctx] {
-      score::openFileToImport(inlet.filters(), [&inlet, &ctx](const QString& filename) {
+      score::openFileToImport(ctx, inlet.filters(), [&inlet, &ctx](const QString& filename) {
         // On wasm `filename` is the staged MEMFS path; relativize so it is
         // stored consistently with drops.
         auto path = score::relativizeFilePath(filename, ctx);
