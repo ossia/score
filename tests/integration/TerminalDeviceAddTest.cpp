@@ -232,3 +232,61 @@ TEST_CASE("Picking the other machine's hardware carries its settings", "[devices
     plug.setCatalog(nullptr);
   });
 }
+
+TEST_CASE("The device handed to the add command is not empty", "[devices]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+
+    OtherMachine catalog;
+    auto& plug = doc->context().plugin<Explorer::DeviceDocumentPlugin>();
+    plug.setCatalog(&catalog);
+
+    auto& explorer = Explorer::deviceExplorerFromContext(doc->context());
+    Explorer::DeviceEditDialog dial{
+        explorer, ctx.interfaces<Device::ProtocolFactoryList>(),
+        Explorer::DeviceEditDialog::Creating, nullptr};
+
+    dial.setSettings(enumeratedSettings());
+
+    // What the add path actually reads -- not getSettings(). An empty node here
+    // is a null target, which the caller dereferenced on its way to adding
+    // nothing: Add was clickable and did nothing at all.
+    auto node = dial.getDevice();
+    auto* settings = node.target<Device::DeviceSettings>();
+    REQUIRE(settings);
+    CHECK(settings->protocol == absentProtocol());
+    CHECK(settings->name == "Keyboard");
+
+    // And it must be something the model will accept, or it is dropped one
+    // step later.
+    CHECK(explorer.checkDeviceInstantiatable(*settings));
+
+    plug.setCatalog(nullptr);
+  });
+}
+
+TEST_CASE("Nothing chosen yields no device rather than a broken one", "[devices]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+
+    OtherMachine catalog;
+    auto& plug = doc->context().plugin<Explorer::DeviceDocumentPlugin>();
+    plug.setCatalog(&catalog);
+
+    auto& explorer = Explorer::deviceExplorerFromContext(doc->context());
+    Explorer::DeviceEditDialog dial{
+        explorer, ctx.interfaces<Device::ProtocolFactoryList>(),
+        Explorer::DeviceEditDialog::Creating, nullptr};
+
+    // Nothing selected: an empty node is right, and the caller has to cope
+    // with it rather than read through it.
+    auto node = dial.getDevice();
+    CHECK(node.target<Device::DeviceSettings>() == nullptr);
+
+    plug.setCatalog(nullptr);
+  });
+}
