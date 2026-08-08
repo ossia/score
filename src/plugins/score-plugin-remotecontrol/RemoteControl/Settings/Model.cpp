@@ -4,6 +4,7 @@
 
 #include <QSettings>
 #include <QDir>
+#include <score/application/ApplicationContext.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(RemoteControl::Settings::Model)
