@@ -252,3 +252,9 @@ score_add_test(test_integration_terminal_slots
   GUI
   PLUGINS score_plugin_scenario score_plugin_deviceexplorer score_plugin_automation
           score_plugin_curve)
+
+# A waveform that cannot be computed must not be re-requested by painting.
+score_add_test(test_integration_sound_view_spin
+  SOURCES SoundViewSpinTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_plugin_media)
