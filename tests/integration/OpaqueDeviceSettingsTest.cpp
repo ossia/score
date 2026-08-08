@@ -24,6 +24,7 @@
 
 #include <core/document/Document.hpp>
 
+#include <score_test/AbsentFactory.hpp>
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
 
@@ -59,7 +60,9 @@ enumeratedDevices(const score::GUIApplicationContext& ctx, score::Document& doc)
 }
 
 //! What a machine without the factory ends up holding: the object minus the
-//! members score owns.
+//! members score owns. Written by the real path, through a JSON deserializer
+//! running while the factory is hidden -- exactly what a browser does with a
+//! protocol it does not have.
 QByteArray strippedPayload(const Device::DeviceSettings& s)
 {
   JSONReader r;
@@ -110,16 +113,18 @@ TEST_CASE("Settings carried without being understood survive the trip", "[device
     // Sent to the machine that will make the device, which does have the
     // protocol. This aborted: the protocol asked for a "Name" that stripping
     // had removed.
-      // Written by hand, because this process *has* the protocol: readFrom
-      // would re-encode from deviceSpecificSettings and the carried bytes would
-      // never travel, which is exactly the case that cannot fail. This is the
-      // wire a machine without the factory puts out -- name, protocol, and the
-      // blob it never opened.
+      // Written the way the machine without the factory writes it: with the
+      // factory hidden, so readFrom takes the branch that forwards the carried
+      // bytes instead of re-encoding from settings it never decoded. Hand-
+      // writing these bytes was the only way to reproduce this before.
       QByteArray wire;
       {
+        score::test::absent_factory<Device::ProtocolFactoryList> hidden{
+            ctx, device.protocol};
+        REQUIRE(hidden.was_present());
+
         DataStream::Serializer s{&wire};
-        s.stream() << carried.name << carried.protocol << carried.opaqueSettings;
-        s.insertDelimiter();
+        s.readFrom(carried);
       }
 
       Device::DeviceSettings received;
