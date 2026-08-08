@@ -11,12 +11,14 @@
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <score/document/DocumentContext.hpp>
+#include <score/document/DocumentInterface.hpp>
 #include <score/model/Skin.hpp>
+#include <score/serialization/JSONVisitor.hpp>
+#include <score/tools/Environment.hpp>
 #include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
 #include <score/tools/File.hpp>
-#include <score/tools/FilePath.hpp>
-#include <score/tools/RecursiveWatch.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/TextLabel.hpp>
@@ -29,16 +31,15 @@
 #include <QCoreApplication>
 #include <QDesktopServices>
 #include <QDialogButtonBox>
-#include <QDirIterator>
 #include <QFormLayout>
 #include <QHeaderView>
 #include <QLabel>
 #include <QListWidget>
 #include <QPushButton>
-#include <QSettings>
 #include <QSplitter>
+#include <QFileInfo>
+#include <QPointer>
 #include <QStackedWidget>
-#include <QStandardPaths>
 #include <QTreeWidget>
 #include <QVariant>
 #include <QWidget>
@@ -112,6 +113,7 @@ DeviceEditDialog::DeviceEditDialog(
   m_column1Stack->addWidget(m_protocols);
 
   m_presets = new QTreeWidget{this};
+  m_presets->setObjectName("PresetList");
   m_presets->header()->hide();
   m_presets->setSelectionMode(QAbstractItemView::SingleSelection);
   m_column1Stack->addWidget(m_presets);
@@ -346,49 +348,26 @@ void DeviceEditDialog::initPresets()
 {
   m_presets->clear();
 
-  // Read the library root path directly from QSettings
-  // to avoid a dependency on score-plugin-library
-  QSettings s;
-  QString rootPath = s.value("Library/RootPath").toString();
-  if(rootPath.isEmpty())
-  {
-    auto paths = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation);
-    if(!paths.isEmpty())
+  // Through the environment rather than the local library folder: on a terminal
+  // the packages are on the other machine, and scanning here found nothing.
+  auto& ctx = score::IDocument::documentContext(m_model);
+  score::listRecursive(
+      ctx.environment(), score::Uri{score::UriScheme::Library, "packages"}, ".device",
+      [this, alive = QPointer<DeviceEditDialog>{this}](
+          std::vector<score::DirEntry> presets) {
+    if(!alive)
+      return;
+
+    for(const score::DirEntry& preset : presets)
     {
-      rootPath = QString("%1/%2/%3")
-                     .arg(
-                         paths[0], QCoreApplication::organizationName(),
-                         QCoreApplication::applicationName());
-    }
-  }
-
-  if(rootPath.isEmpty())
-    return;
-
-  static score::RecursiveWatch r;
-  r.reset();
-  r.registerWatch(
-      "device", score::RecursiveWatch::AsyncCallbacks{
-                    .filter = [&](std::string_view path) -> std::function<void()> {
-    const auto path_info = score::PathInfo{path};
-    auto basename = QString::fromUtf8(
-        path_info.completeBaseName.data(), path_info.completeBaseName.size());
-    auto absolutePath = QString::fromUtf8(
-        path_info.absoluteFilePath.data(), path_info.absoluteFilePath.size());
-
-    return
-        [this, basename = std::move(basename), absolutePath = std::move(absolutePath)] {
       auto item = new QTreeWidgetItem;
-      item->setText(0, basename);
-      item->setData(0, Qt::UserRole, absolutePath);
+      item->setText(0, QFileInfo{preset.name}.completeBaseName());
+      item->setData(0, Qt::UserRole, preset.uri.toString());
       item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
       m_presets->addTopLevelItem(item);
-    };
-  }});
-  r.setWatchedFolder(rootPath.toStdString() + "/packages");
-  r.scanAsync(this);
-
-  m_presets->sortItems(0, Qt::AscendingOrder);
+    }
+    m_presets->sortItems(0, Qt::AscendingOrder);
+      });
 }
 
 void DeviceEditDialog::selectedPresetChanged()
@@ -400,15 +379,26 @@ void DeviceEditDialog::selectedPresetChanged()
   if(!item)
     return;
 
-  auto filePath = item->data(0, Qt::UserRole).toString();
-  if(filePath.isEmpty())
+  const auto stored = item->data(0, Qt::UserRole).toString();
+  if(stored.isEmpty())
     return;
 
-  // Load the full device node from the .device file
-  Device::Node n;
-  if(!Device::loadDeviceFromScoreJSON(filePath, n))
-    return;
+  // The preset is a file, and the files are not necessarily here.
+  auto& ctx = score::IDocument::documentContext(m_model);
+  ctx.environment().read(
+      score::Uri::parse(stored),
+      [this, alive = QPointer<DeviceEditDialog>{this}](const QByteArray& contents) {
+    if(!alive)
+      return;
 
+    Device::Node n;
+    if(Device::loadDeviceFromScoreJSON(readJson(contents), n))
+      applyPreset(std::move(n));
+      });
+}
+
+void DeviceEditDialog::applyPreset(Device::Node n)
+{
   if(!n.is<Device::DeviceSettings>())
     return;
 
