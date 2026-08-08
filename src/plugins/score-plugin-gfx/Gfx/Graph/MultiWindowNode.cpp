@@ -5,6 +5,7 @@
 
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
+#include <Gfx/Graph/ScreenPlacement.hpp>
 #include <Gfx/Graph/Window.hpp>
 #include <Gfx/InvertYRenderer.hpp>
 #include <Gfx/Settings/Model.hpp>
@@ -1021,6 +1022,27 @@ void MultiWindowNode::createOutput(score::gfx::OutputConfiguration conf)
       const auto& screens = qApp->screens();
       if(mapping.screenIndex < screens.size())
         targetScreen = screens[mapping.screenIndex];
+    }
+
+    if(oneWindowPerScreen())
+    {
+      // Every window here is fullscreen on a screen of its own, whatever the
+      // mapping asked for: a second one on a screen already taken aborts the
+      // process from inside Qt. occupiedScreens() sees the windows shown by
+      // the previous turns of this loop, so they spread out one per screen.
+      auto* scr = freeScreen(targetScreen, qApp->screens(), occupiedScreens());
+      if(!scr)
+      {
+        qWarning() << "Gfx: no free screen for window" << i << "on platform"
+                   << QGuiApplication::platformName()
+                   << "- one window per screen. Not rendering to it.";
+        continue;
+      }
+
+      wo.window->setScreen(scr);
+      wo.window->setGeometry(scr->geometry());
+      wo.window->show();
+      continue;
     }
 
     if(mapping.fullscreen)

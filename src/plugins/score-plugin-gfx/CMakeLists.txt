@@ -525,6 +525,7 @@ set(SRCS
     Gfx/Graph/IsfBindingsBuilder.hpp
     Gfx/Graph/IsfBindingsBuilder.cpp
     Gfx/Graph/ScreenNode.cpp
+    Gfx/Graph/ScreenPlacement.cpp
     Gfx/Graph/ShaderCache.cpp
     Gfx/Graph/SimpleRenderedISFNode.cpp
     Gfx/Graph/TextNode.cpp
