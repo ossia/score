@@ -66,6 +66,11 @@ score_add_test(test_unit_device_explorer_node
   PLUGINS score_lib_device)
 
 # --- core data model (score-lib-state / score-lib-process, P3R2) -----------
+# Walking a directory tree through the Environment interface: the remote one
+# answers out of order and some directories cannot be listed at all.
+score_add_test(test_unit_environment_walk
+  SOURCES EnvironmentWalkTest.cpp)
+
 score_add_test(test_unit_state_serialization
   SOURCES StateSerializationTest.cpp
   PLUGINS score_lib_state)
