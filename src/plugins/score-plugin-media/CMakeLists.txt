@@ -252,6 +252,79 @@ elseif(TARGET avcodec)
           )
       endif()
     endif()
+
+    # ossia SDK 37 (ffmpeg 9) builds libavcodec / libavformat against a set of
+    # codec and protocol libraries that earlier SDKs did not have: dav1d, x264,
+    # x265, opus, vpx, webp, SVT-JPEG-XS, mp3lame, libxml2, SRT (which itself
+    # links the SDK's openssl) and freetype+harfbuzz for the drawtext filter.
+    #
+    # FindFFmpeg.cmake imports only the av* archives: it asks pkg-config for the
+    # include and library DIRECTORIES but never for Libs.private, so none of the
+    # above reaches the link line on its own and a static score dies in a wall of
+    # undefined references.
+    #
+    # Every entry is looked up rather than required. SDK 36 has none of them, and
+    # even in 37 some are target-dependent -- Windows-on-ARM has no OpenSSL mingw
+    # target, so libsrt is built there without encryption. Found => linked,
+    # missing => nothing changes; that is what keeps this file building against
+    # both SDKs, and it is inert for a distro/homebrew ffmpeg since the whole
+    # block is under if(OSSIA_SDK).
+    set(SCORE_SDK_LIBDIRS
+      "${OSSIA_SDK}/sysroot/lib"     # Linux + Windows: shared dep prefix
+      "${OSSIA_SDK}/sysroot/lib64"   # Linux, RedHat layout
+      "${OSSIA_SDK}/lib"             # macOS: media-deps installs into the prefix
+      "${OSSIA_SDK}/openssl/lib"
+      "${OSSIA_SDK}/openssl/lib64"
+      "${OSSIA_SDK}/freetype/lib"    # macOS keeps these in their own prefixes
+      "${OSSIA_SDK}/harfbuzz/lib"
+    )
+    # Ordered for a static link: dependants before their dependencies.
+    # libwebp needs sharpyuv, libsrt needs ssl+crypto, freetype needs harfbuzz.
+    foreach(_sdk_lib
+        dav1d x264 x265 opus vpx webpmux webp sharpyuv SvtJpegxs mp3lame xml2
+        srt ssl crypto freetype harfbuzz)
+      # NO_DEFAULT_PATH is deliberate: these have to be the SDK's own copies.
+      # Silently linking a system libssl or libfreetype here is exactly the kind
+      # of leak the SDK exists to prevent, and it would only show up as a crash
+      # on someone else's machine.
+      find_library(SCORE_SDK_LIB_${_sdk_lib}
+        NAMES ${_sdk_lib}
+        PATHS ${SCORE_SDK_LIBDIRS}
+        NO_DEFAULT_PATH
+      )
+      mark_as_advanced(SCORE_SDK_LIB_${_sdk_lib})
+      if(SCORE_SDK_LIB_${_sdk_lib})
+        # PUBLIC: score-plugin-gfx links avcodec/avformat directly and picks
+        # these up through this target's interface, after them, which is the
+        # order a static link needs.
+        target_link_libraries(${PROJECT_NAME} PUBLIC "${SCORE_SDK_LIB_${_sdk_lib}}")
+      endif()
+    endforeach()
+
+    # libvpx, libwebp, libsrt and x265 all use pthreads. Being raw archive paths
+    # they carry no dependency information for CMake to order around, so name
+    # this last rather than relying on whatever libossia's find_package(Threads)
+    # happens to place earlier in the line. No-op where the compiler implies it.
+    find_package(Threads)
+    if(TARGET Threads::Threads)
+      target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads)
+    endif()
+
+    if(WIN32)
+      # System import libraries the SDK's ffmpeg now pulls in, taken from the
+      # Libs: lines of the .pc files it installs:
+      #   libavcodec   mediafoundation -> mfuuid, ole32, strmiids
+      #   libavformat  schannel        -> secur32, ncrypt, crypt32
+      #                srt             -> ws2_32, wsock32, advapi32, shell32
+      #   libavutil                    -> bcrypt
+      #   libavdevice                  -> psapi, uuid, oleaut32, shlwapi, gdi32
+      # All are OS import libraries present in both mingw and MSVC, so listing
+      # them costs nothing where they were already coming in via Qt.
+      target_link_libraries(${PROJECT_NAME} PRIVATE
+        mfuuid ole32 oleaut32 uuid shlwapi psapi gdi32 advapi32 shell32
+        secur32 ncrypt crypt32 bcrypt ws2_32 wsock32
+      )
+    endif()
   endif()
   target_link_libraries(${PROJECT_NAME} PRIVATE ${CMAKE_DL_LIBS})
 endif()
