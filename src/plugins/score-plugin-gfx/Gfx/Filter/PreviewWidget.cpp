@@ -303,13 +303,16 @@ public:
     g_shaderPreviewScheduledForDeletion = false;
   }
 
-  void load(const QString& path)
+  //! `contents` empty means "read it from `path`", which is what the two
+  //! program builders already do -- they only open the file when given no bytes.
+  //! A shader from the other machine arrives as bytes and no readable path.
+  void load(const QString& path, const QByteArray& contents)
   {
     ShaderSource program;
     if(path.contains(".fs") || path.contains(".frag"))
-      program = programFromISFFragmentShaderPath(path, {});
+      program = programFromISFFragmentShaderPath(path, contents);
     if(path.contains(".vs") || path.contains(".vert"))
-      program = programFromVSAVertexShaderPath(path, {});
+      program = programFromVSAVertexShaderPath(path, contents);
 
     if(const auto& [processed, error]
        = ProgramCache::instance().get(program, path);
@@ -541,6 +544,12 @@ private:
 };
 
 ShaderPreviewWidget::ShaderPreviewWidget(const QString& path, QWidget* parent)
+    : ShaderPreviewWidget{path, QByteArray{}, parent}
+{
+}
+
+ShaderPreviewWidget::ShaderPreviewWidget(
+    const QString& path, const QByteArray& contents, QWidget* parent)
     : QWidget{parent}
 {
   g_shaderPreviewScheduledForDeletion = false;
@@ -548,7 +557,7 @@ ShaderPreviewWidget::ShaderPreviewWidget(const QString& path, QWidget* parent)
   {
     g_shaderPreview = new ShaderPreviewManager;
   }
-  g_shaderPreview->load(path);
+  g_shaderPreview->load(path, contents);
   setup();
 }
 
