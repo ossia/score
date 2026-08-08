@@ -20,6 +20,9 @@
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
 
+#include <QApplication>
+#include <QElapsedTimer>
+#include <QThread>
 #include <QTreeWidget>
 
 #include <catch2/catch_test_macros.hpp>
@@ -73,13 +76,25 @@ TEST_CASE("Device presets come from the document's environment", "[devices]")
         explorer, ctx.interfaces<Device::ProtocolFactoryList>(),
         Explorer::DeviceEditDialog::Creating, nullptr};
 
-    // The library it asked, not a folder on this machine.
-    CHECK(envPtr->listed >= 1);
-    CHECK(envPtr->listedPath == "packages");
-
+    // The walk yields to the event loop between directories, so that a library
+    // on a slow disk does not hold the dialog shut. Nothing here is allowed to
+    // depend on it having finished by accident.
     auto* presets = dial.findChild<QTreeWidget*>("PresetList");
     REQUIRE(presets);
+
+    QElapsedTimer t;
+    t.start();
+    while(presets->topLevelItemCount() == 0 && t.elapsed() < 5000)
+    {
+      QApplication::processEvents();
+      QThread::msleep(1);
+    }
     REQUIRE(presets->topLevelItemCount() == 1);
+
+    // The library it asked, not a folder on this machine. Checked after the
+    // wait: the walk is queued, so asking before it has run says nothing.
+    CHECK(envPtr->listed >= 1);
+    CHECK(envPtr->listedPath == "packages");
 
     auto* item = presets->topLevelItem(0);
     CHECK(item->text(0) == "remote-osc");
