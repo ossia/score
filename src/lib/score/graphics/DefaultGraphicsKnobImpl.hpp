@@ -126,7 +126,10 @@ struct DefaultGraphicsKnobImpl
   template <typename T>
   static void mouseReleaseEvent(T& self, QGraphicsSceneMouseEvent* event)
   {
-    InfiniteScroller::stop(self, event);
+    // Read the value before ending the session: once the relative-motion
+    // session is over, move() falls back to pointer positions, and under a
+    // pointer lock those never left the press point -- applying that as a delta
+    // unwinds the whole drag.
     if(self.m_grab)
     {
       double v = InfiniteScroller::move(event);
@@ -135,6 +138,7 @@ struct DefaultGraphicsKnobImpl
         self.m_value = v;
         self.update();
       }
+      InfiniteScroller::stop(self, event);
     }
 
     self.m_grab = false;

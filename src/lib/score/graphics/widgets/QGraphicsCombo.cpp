@@ -123,8 +123,6 @@ struct DefaultComboImpl
   {
     if(event->button() == Qt::LeftButton)
     {
-      InfiniteScroller::stop(self, event);
-
       if(self.m_grab)
       {
         double v = InfiniteScroller::move(event);
@@ -136,6 +134,7 @@ struct DefaultComboImpl
         }
         self.m_grab = false;
       }
+      InfiniteScroller::stop(self, event);
       self.sliderReleased();
     }
     else if(event->button() == Qt::RightButton)
