@@ -73,6 +73,11 @@ private:
   void initPresets();
   void applyPreset(Device::Node n);
 
+  //! The column listing what is plugged in. Shown when there is something in
+  //! it: most protocols enumerate nothing.
+  void showDevicesColumn();
+  void hideDevicesColumn();
+
   const DeviceExplorerModel& m_model;
   const Device::ProtocolFactoryList& m_protocolList;
   Mode m_mode{};
@@ -103,6 +108,10 @@ private:
 
   // For presets: the loaded node with full address tree
   Device::Node m_presetNode{};
+
+  //! What was chosen from a preset or from the other machine's hardware. It is
+  //! what getSettings() answers when this build has no widget for the protocol.
+  Device::DeviceSettings m_chosenSettings{};
 
   QString m_originalName{};
   int m_index{};

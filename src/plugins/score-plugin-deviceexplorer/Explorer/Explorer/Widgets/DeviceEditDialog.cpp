@@ -152,6 +152,7 @@ DeviceEditDialog::DeviceEditDialog(
   m_devicesLabel->setAlignment(Qt::AlignTop);
   m_devicesLabel->setAlignment(Qt::AlignHCenter);
   m_devices = new QTreeWidget{this};
+  m_devices->setObjectName("DeviceList");
   m_devices->header()->hide();
   m_devices->setSelectionMode(QAbstractItemView::SingleSelection);
   column2_layout->addWidget(m_devices);
@@ -386,6 +387,7 @@ void DeviceEditDialog::applyPreset(Device::Node n)
     return;
 
   auto& deviceSettings = n.get<Device::DeviceSettings>();
+  m_chosenSettings = deviceSettings;
 
   // Find the protocol factory for this device
   auto protocol = m_protocolList.get(deviceSettings.protocol);
@@ -440,6 +442,30 @@ void DeviceEditDialog::applyPreset(Device::Node n)
   updateValidity();
 }
 
+void DeviceEditDialog::hideDevicesColumn()
+{
+  m_devices->setVisible(false);
+  m_devicesLabel->setVisible(false);
+  if(m_splitter->count() > 0)
+    m_splitter->widget(0)->hide();
+}
+
+void DeviceEditDialog::showDevicesColumn()
+{
+  if(m_devices->isVisible())
+    return;
+
+  m_devices->setVisible(true);
+  m_devicesLabel->setVisible(true);
+  m_devices->setRootIsDecorated(false);
+  m_devices->setExpandsOnDoubleClick(false);
+  if(m_splitter->count() > 0)
+  {
+    m_splitter->widget(0)->show();
+    m_splitter->widget(0)->setMinimumWidth(200);
+  }
+}
+
 void DeviceEditDialog::selectedDeviceChanged()
 {
   if(!m_devices->isVisible())
@@ -454,6 +480,7 @@ void DeviceEditDialog::selectedDeviceChanged()
   auto name = item->text(0);
   auto data = item->data(0, Qt::UserRole).value<Device::DeviceSettings>();
 
+  m_chosenSettings = data;
   if(m_protocolWidget)
     m_protocolWidget->setSettings(data);
 
@@ -486,12 +513,15 @@ void DeviceEditDialog::selectedProtocolChanged()
 
   // Clear preset state
   m_presetNode = Device::Node{};
+  m_chosenSettings = Device::DeviceSettings{};
 
   // Clear listener
   m_enumerators.clear();
 
-  // Clear devices
+  // Clear devices. Hidden until something is in it: nothing else hides it, so
+  // a protocol with no hardware kept whatever the previous one had shown.
   m_devices->clear();
+  hideDevicesColumn();
 
   // Clear protocol widget
   if(m_protocolWidget)
@@ -516,6 +546,10 @@ void DeviceEditDialog::selectedProtocolChanged()
       if(!self || self->m_currentProtocol != key)
         return;
       auto* const me = self.data();
+      // On the first one: plenty of protocols enumerate nothing, and an empty
+      // column claiming a device list is worse than no column.
+      me->showDevicesColumn();
+
       auto item = new QTreeWidgetItem;
       item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
       item->setText(0, name);
@@ -547,17 +581,6 @@ void DeviceEditDialog::selectedProtocolChanged()
       cat->setExpanded(true);
     };
 
-    // Shown before the answer arrives: nothing else would re-show it.
-    m_devices->setVisible(true);
-    m_devicesLabel->setVisible(true);
-    m_devices->setRootIsDecorated(false);
-    m_devices->setExpandsOnDoubleClick(false);
-    if(m_splitter->count() > 0)
-    {
-      m_splitter->widget(0)->show();
-      m_splitter->widget(0)->setMinimumWidth(200);
-    }
-
     remoteCatalog->enumerate(key, addRemote);
   }
   else if(protocol)
@@ -571,15 +594,7 @@ void DeviceEditDialog::selectedProtocolChanged()
   // This machine's hardware; the catalog path above has shown its own.
   if(!remoteCatalog && !m_enumerators.empty())
   {
-    m_devices->setVisible(true);
-    m_devicesLabel->setVisible(true);
-    m_devices->setRootIsDecorated(false);
-    m_devices->setExpandsOnDoubleClick(false);
-    if(m_splitter->count() > 0)
-    {
-      m_splitter->widget(0)->show();
-      m_splitter->widget(0)->setMinimumWidth(200);
-    }
+    showDevicesColumn();
 
     for(auto& [name, e] : m_enumerators)
     {
@@ -657,7 +672,10 @@ Device::DeviceSettings DeviceEditDialog::getSettings() const
   if(m_protocolWidget)
     return m_protocolWidget->getSettings();
 
-  return {};
+  // No widget means this build has no such protocol -- the form is C++ in a
+  // plug-in we do not have. Such a device can still be added, through what the
+  // other machine enumerated or a preset, so what it sent is what we return.
+  return m_chosenSettings;
 }
 
 Device::Node DeviceEditDialog::getDevice() const
@@ -693,6 +711,11 @@ void DeviceEditDialog::setSettings(const Device::DeviceSettings& settings)
       {
         m_protocols->setCurrentItem(item);
         selectedProtocolChanged();
+
+        // Kept whether or not a widget can show them: editing a device of a
+        // protocol this build lacks must give back what it was handed, not an
+        // empty settings.
+        m_chosenSettings = settings;
         if(m_protocolWidget)
         {
           m_protocolWidget->setSettings(settings);
