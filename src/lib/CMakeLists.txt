@@ -621,14 +621,32 @@ if(APPLE)
     )
 endif()
 
-# Relative pointer motion on Wayland: Qt exposes neither zwp_pointer_constraints_v1
-# nor zwp_relative_pointer_manager_v1, and QCursor::setPos does nothing there.
+# Relative pointer motion. On Wayland Qt exposes neither zwp_pointer_constraints_v1
+# nor zwp_relative_pointer_manager_v1, and QCursor::setPos does nothing there; on X11
+# plain MotionNotify stops at the screen edges, so XInput2 raw events are needed.
 if(UNIX AND NOT APPLE AND NOT WIN32 AND NOT EMSCRIPTEN)
   find_package(PkgConfig QUIET)
   find_program(WAYLAND_SCANNER_EXECUTABLE NAMES wayland-scanner)
   if(PkgConfig_FOUND AND WAYLAND_SCANNER_EXECUTABLE)
     pkg_check_modules(WAYLAND_CLIENT QUIET IMPORTED_TARGET wayland-client)
     pkg_check_modules(WAYLAND_PROTOCOLS QUIET wayland-protocols)
+  endif()
+
+  if(PkgConfig_FOUND)
+    pkg_check_modules(SCORE_XINPUT2 QUIET IMPORTED_TARGET xcb xcb-xinput)
+  endif()
+
+  if(SCORE_XINPUT2_FOUND)
+    target_sources(score_lib_base PRIVATE
+      "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/PointerLockX11.hpp"
+      "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/PointerLockX11.cpp")
+    set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/score/tools/PointerLockX11.cpp"
+      PROPERTIES
+        SKIP_UNITY_BUILD_INCLUSION 1)
+    target_link_libraries(score_lib_base PRIVATE PkgConfig::SCORE_XINPUT2)
+    set_property(SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/PointerLock.cpp"
+      APPEND PROPERTY
+        COMPILE_DEFINITIONS SCORE_HAS_X11_POINTER_LOCK=1)
   endif()
 
   if(WAYLAND_CLIENT_FOUND AND WAYLAND_PROTOCOLS_FOUND)
@@ -666,8 +684,8 @@ if(UNIX AND NOT APPLE AND NOT WIN32 AND NOT EMSCRIPTEN)
 
     target_include_directories(score_lib_base PRIVATE "${SCORE_WAYLAND_GENERATED_DIR}")
     target_link_libraries(score_lib_base PRIVATE PkgConfig::WAYLAND_CLIENT)
-    set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/score/tools/PointerLock.cpp"
-      PROPERTIES
+    set_property(SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/PointerLock.cpp"
+      APPEND PROPERTY
         COMPILE_DEFINITIONS SCORE_HAS_WAYLAND_POINTER_LOCK=1)
   endif()
 endif()
