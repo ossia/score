@@ -82,6 +82,25 @@ DeviceExplorerModel::DeviceExplorerModel(DeviceDocumentPlugin& plug, QObject* pa
   connect(this, &QAbstractItemModel::rowsInserted, this, changed);
   connect(this, &QAbstractItemModel::rowsRemoved, this, changed);
 
+  // A device appearing at the root. Its command carries the node as the
+  // machine that asked for it knew it, and a machine that cannot make the
+  // device knows nothing of its tree: what a mouse or a MIDI port turns out to
+  // contain is discovered here, when it is opened. So the tree still has to be
+  // announced, or the peer that asked sees a device with nothing under it.
+  connect(
+      this, &QAbstractItemModel::rowsInserted, this,
+      [this](const QModelIndex& parent, int first, int last) {
+    if(parent.isValid())
+      return;
+
+    for(int row = first; row <= last && row < rootNode().childCount(); row++)
+    {
+      const auto& n = rootNode().childAt(row);
+      if(n.is<Device::DeviceSettings>())
+        m_devicePlugin.deviceTreeChanged(n.get<Device::DeviceSettings>().name);
+    }
+      });
+
   beginResetModel();
   endResetModel();
 }
