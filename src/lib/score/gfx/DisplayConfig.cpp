@@ -3,9 +3,11 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QGuiApplication>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QScreen>
 #include <QStandardPaths>
 
 namespace score::gfx
@@ -21,10 +23,28 @@ bool DisplaySettings::isEmpty() const noexcept
 DisplayCapabilities displayCapabilities(const QString& platform)
 {
   DisplayCapabilities c;
+
   // startsWith: the eglfs plug-in is selected as "eglfs", but a device
   // integration may be appended.
-  c.perOutputConfiguration = platform.startsWith("eglfs");
-  c.indexedDisplaySelection = (platform == "vkkhrdisplay");
+  if(platform.startsWith("eglfs"))
+  {
+    c.perOutputConfiguration = true;
+    c.requiresRestart = true;
+  }
+  else if(platform == "vkkhrdisplay")
+  {
+    c.indexedDisplaySelection = true;
+    c.requiresRestart = true;
+  }
+  else if(platform == "windows" || platform == "cocoa")
+  {
+    // The system owns the displays and can be asked to change them while
+    // running -- ChangeDisplaySettingsEx, CGCompleteDisplayConfiguration.
+    // Not implemented yet, which is why perOutputConfiguration stays false:
+    // the dialog must not offer what nothing behind it will do.
+    c.appliesToSystemDisplays = true;
+  }
+
   return c;
 }
 
@@ -32,12 +52,11 @@ QVector<DisplayOutput> enumerateOutputs(const QString& drmRoot)
 {
   QVector<DisplayOutput> res;
 
-  QDir root{drmRoot};
-  if(!root.exists())
-    return res;
-
   // cardN-HDMI-A-1 -> HDMI-A-1. The card number is the graphics device and
   // changes with probe order, so it is not part of how an output is named.
+  // Absent on Windows, macOS, and a Linux without DRM: entryList is empty
+  // there and the walk simply yields nothing, falling through to Qt below.
+  QDir root{drmRoot};
   for(const auto& entry : root.entryList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name))
   {
     if(!entry.startsWith("card"))
@@ -67,6 +86,28 @@ QVector<DisplayOutput> enumerateOutputs(const QString& drmRoot)
     }
 
     res.push_back(std::move(out));
+  }
+
+  // No DRM: Windows, macOS, or a Linux without it. Qt knows the screens, which
+  // is less than the kernel would say -- one mode, the current one -- but a
+  // real list beats an empty dialog. Only useful once there is a
+  // QGuiApplication, which the settings UI has and startup does not.
+  if(res.isEmpty() && qGuiApp)
+  {
+    for(auto* s : QGuiApplication::screens())
+    {
+      if(!s)
+        continue;
+
+      DisplayOutput out;
+      out.name = s->name();
+      out.connected = true;
+      const auto sz = s->geometry().size();
+      if(!sz.isEmpty())
+        out.modes.push_back(
+            QStringLiteral("%1x%2").arg(sz.width()).arg(sz.height()));
+      res.push_back(std::move(out));
+    }
   }
 
   return res;
