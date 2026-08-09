@@ -994,3 +994,9 @@ score_add_test(test_unit_uri
 # producing exactly what each understands is the whole feature.
 score_add_test(test_unit_display_config
   SOURCES DisplayConfigTest.cpp)
+
+# --- starting score when the machine starts ---------------------------------
+# What a unit, task or entry says is read by something else entirely, and a
+# mistake in one shows up as a machine that does not come up.
+score_add_test(test_unit_autostart
+  SOURCES AutostartTest.cpp)
