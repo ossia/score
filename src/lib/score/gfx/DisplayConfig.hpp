@@ -77,10 +77,29 @@ struct SCORE_LIB_BASE_EXPORT DisplaySettings
 //! this rather than hiding things behind a platform-name comparison of its own.
 struct DisplayCapabilities
 {
-  //! eglfs: connector names, modes, layout, cloning, all through its JSON.
+  //! Connector names, modes, layout, cloning. eglfs through its JSON; Windows
+  //! through ChangeDisplaySettingsEx; macOS through CGDisplayConfiguration.
   bool perOutputConfiguration{};
-  //! vkkhrdisplay: a display index, a mode index, a device index.
+
+  //! vkkhrdisplay, which addresses a display by index and offers nothing else.
   bool indexedDisplaySelection{};
+
+  /**
+   * Whether the configuration only takes hold when the process starts again.
+   *
+   * True on the embedded platforms, where these are read once by the platform
+   * plug-in and there is no way to revisit them. False where the system owns
+   * the displays and can be asked to change them while running -- which also
+   * means the change can be undone, so those platforms want a "keep this
+   * setting?" confirmation that the embedded ones cannot offer.
+   */
+  bool requiresRestart{};
+
+  //! Whether score may change the machine's display setup at all. On a desktop
+  //! the answer is "only if asked": rearranging somebody's monitors because a
+  //! score was opened would be hostile.
+  bool appliesToSystemDisplays{};
+
   //! Whether anything here applies at all.
   bool anyConfiguration() const noexcept
   {

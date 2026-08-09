@@ -74,6 +74,10 @@ TEST_CASE("Outputs are read from the kernel, by connector name", "[gfx]")
 
 TEST_CASE("A machine with no DRM at all", "[gfx]")
 {
+  // Windows, macOS, a Linux without DRM. With no QGuiApplication to ask
+  // either -- which is the case here, and is also the case at startup, before
+  // one exists -- there is nothing to report, and reporting nothing is right.
+  // The settings UI does have one, and falls back to Qt's screen list there.
   CHECK(enumerateOutputs("/nonexistent/class/drm").isEmpty());
 }
 
@@ -205,7 +209,24 @@ TEST_CASE("What each platform can actually be told", "[gfx]")
   CHECK(displayCapabilities("vkkhrdisplay").indexedDisplaySelection);
   CHECK(!displayCapabilities("vkkhrdisplay").perOutputConfiguration);
 
-  // Where a window manager owns the display, none of this applies.
+  // Both embedded platforms are read once, at startup: nothing can be applied
+  // to a running process, so the UI cannot offer to undo a bad setting.
+  CHECK(displayCapabilities("eglfs").requiresRestart);
+  CHECK(displayCapabilities("vkkhrdisplay").requiresRestart);
+
+  // Where a window manager owns the display, none of this applies -- yet. The
+  // desktop platforms can be told to change displays while running, so when
+  // that is implemented they will gain perOutputConfiguration *without*
+  // requiresRestart, and will want a confirmation the embedded ones cannot.
   for(const auto* p : {"xcb", "wayland", "cocoa", "windows", "offscreen"})
+  {
     CHECK(!displayCapabilities(p).anyConfiguration());
+    CHECK(!displayCapabilities(p).requiresRestart);
+  }
+
+  // Windows and macOS own their displays and can be asked to rearrange them;
+  // a bare X11 or Wayland session cannot be, through this route.
+  CHECK(displayCapabilities("windows").appliesToSystemDisplays);
+  CHECK(displayCapabilities("cocoa").appliesToSystemDisplays);
+  CHECK(!displayCapabilities("xcb").appliesToSystemDisplays);
 }
