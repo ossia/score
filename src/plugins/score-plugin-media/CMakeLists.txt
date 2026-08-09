@@ -280,9 +280,13 @@ elseif(TARGET avcodec)
     )
     # Ordered for a static link: dependants before their dependencies.
     # libwebp needs sharpyuv, libsrt needs ssl+crypto, freetype needs harfbuzz.
+    #
+    # jpeg: the SDK builds libjpeg-turbo (Qt is configured -system-libjpeg), and
+    # on aarch64 Linux libavdevice reaches it too -- ffmpeg's --enable-libv4l2
+    # resolves libv4l2.pc statically, whose Libs.private ends in "-ljpeg".
     foreach(_sdk_lib
         dav1d x264 x265 opus vpx webpmux webp sharpyuv SvtJpegxs mp3lame xml2
-        srt ssl crypto freetype harfbuzz)
+        srt ssl crypto freetype harfbuzz jpeg)
       # NO_DEFAULT_PATH is deliberate: these have to be the SDK's own copies.
       # Silently linking a system libssl or libfreetype here is exactly the kind
       # of leak the SDK exists to prevent, and it would only show up as a crash
@@ -348,7 +352,20 @@ if(OSSIA_SDK)
   endif()
 
   if(LINUX)
-    target_link_libraries(${PROJECT_NAME} PUBLIC v4l2)
+    # v4lconvert alongside v4l2: on aarch64 the SDK's ffmpeg is built
+    # --enable-libv4l2 and, because it resolves libv4l2.pc with --static,
+    # libavdevice's EXTRALIBS carry the whole private chain
+    # "-lv4l2 -lpthread -lv4lconvert -lrt -lm -ljpeg". v4l2 and v4lconvert are
+    # the distro's (they are what libv4l is); jpeg comes from the SDK, above.
+    # find_library rather than a bare name so an x86_64 machine without
+    # libv4lconvert.so keeps building -- that leg is --disable-libv4l2 anyway.
+    find_library(SCORE_V4LCONVERT_LIBRARY v4lconvert)
+    mark_as_advanced(SCORE_V4LCONVERT_LIBRARY)
+    if(SCORE_V4LCONVERT_LIBRARY)
+      target_link_libraries(${PROJECT_NAME} PUBLIC v4l2 "${SCORE_V4LCONVERT_LIBRARY}")
+    else()
+      target_link_libraries(${PROJECT_NAME} PUBLIC v4l2)
+    endif()
   endif()
 endif()
 
