@@ -1,3 +1,7 @@
+#include <Process/Process.hpp>
+#include <Process/ProcessList.hpp>
+
+#include <Effect/EffectLayer.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 
 #include <JS/Qml/EditContext.hpp>
@@ -42,6 +46,32 @@ void EditJsContext::scroll(double dx, double dy)
     return;
 
   main_view->scroll(dx, dy);
+}
+
+bool EditJsContext::hasProcessUI(QObject* process)
+{
+  auto doc = ctx();
+  if(!doc)
+    return false;
+  auto* proc = qobject_cast<Process::ProcessModel*>(process);
+  if(!proc)
+    return false;
+
+  auto& facts = doc->app.interfaces<Process::LayerFactoryList>();
+  auto fact = facts.findDefaultFactory(*proc);
+  return fact && fact->hasExternalUI(*proc, *doc);
+}
+
+void EditJsContext::showProcessUI(QObject* process, bool show)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+  auto* proc = qobject_cast<Process::ProcessModel*>(process);
+  if(!proc)
+    return;
+
+  Process::setupExternalUI(*proc, *doc, show);
 }
 
 QVariant EditJsContext::prompt(QVariant v)
