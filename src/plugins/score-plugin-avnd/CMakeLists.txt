@@ -158,6 +158,7 @@ add_library(
   score_plugin_avnd
 
   "${AVND_FOLDER}/examples/Advanced/Utilities/ADSR.hpp"
+  "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiEnvelope.hpp"
   "${AVND_FOLDER}/examples/Advanced/Audio/AudioFilters.hpp"
   "${AVND_FOLDER}/examples/Advanced/Audio/Bitcrush.hpp"
   "${AVND_FOLDER}/examples/Advanced/Audio/Convolver.hpp"
@@ -563,6 +564,13 @@ avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiScaler.hpp"
   TARGET midiscaler
   MAIN_CLASS MidiScaler
+  NAMESPACE mtk
+)
+
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiEnvelope.hpp"
+  TARGET midienvelope
+  MAIN_CLASS MidiEnvelope
   NAMESPACE mtk
 )
 
