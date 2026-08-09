@@ -298,3 +298,9 @@ if(TARGET score_plugin_gfx)
     APP
     PLUGINS score_plugin_gfx)
 endif()
+
+# --- configuring the displays of a machine with no window manager ----------
+# The KMS JSON and the vkkhrdisplay indices are read once at platform startup;
+# producing exactly what each understands is the whole feature.
+score_add_test(test_unit_display_config
+  SOURCES DisplayConfigTest.cpp)
