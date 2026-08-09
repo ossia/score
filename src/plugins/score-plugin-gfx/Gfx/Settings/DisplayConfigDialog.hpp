@@ -39,6 +39,7 @@ private:
   QVector<score::gfx::DisplayOutput> m_outputs;
 
   QTableWidget* m_table{};
+  QCheckBox* m_editorUi{};
   QCheckBox* m_hwCursor{};
   QCheckBox* m_hideCursor{};
   QCheckBox* m_vertical{};
