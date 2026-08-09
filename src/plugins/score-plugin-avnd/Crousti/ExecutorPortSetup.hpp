@@ -25,6 +25,16 @@ struct con_unvalidated
   const Execution::Context& ctx;
   std::weak_ptr<ExecNode> weak_node;
   Field& field;
+
+  // NPred is the index of the port in whichever list it was dispatched from in
+  // Executor::connect_controls -- the controls, but also e.g. the curve ports.
+  // control_updated_from_ui indexes the control list, so the two only coincide
+  // when the port happens to be at the same position in both. Recompute it from
+  // the field index, which is unambiguous.
+  static constexpr std::size_t control_index
+      = avnd::control_input_introspection<Node>::field_index_to_index(
+          avnd::field_index<NField>{});
+
   void operator()(const ossia::value& val)
   {
     using control_value_type = std::decay_t<decltype(Field::value)>;
@@ -36,7 +46,8 @@ struct con_unvalidated
       ctx.executionQueue.enqueue([weak_node = weak_node, v = std::move(v)]() mutable {
         if(auto n = weak_node.lock())
         {
-          n->template control_updated_from_ui<control_value_type, NPred>(std::move(v));
+          n->template control_updated_from_ui<control_value_type, control_index>(
+              std::move(v));
         }
       });
     }
