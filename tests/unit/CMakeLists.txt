@@ -225,12 +225,13 @@ if(TARGET score_plugin_faust)
     PLUGINS score_plugin_faust)
   target_include_directories(test_unit_faust_dsp PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-faust")
-  # score_plugin_faust keeps FAUST_INCLUDE_DIR PRIVATE, so linking it does not
-  # bring the faust headers along; FaustDspTest.cpp reaches libossia headers
-  # that include <faust/gui/UI.h> directly. The find_package branch below
-  # already does this.
-  target_include_directories(test_unit_faust_dsp SYSTEM PRIVATE
-    ${FAUST_INCLUDE_DIR})
+  # The plug-in keeps faust's own include directory private, so linking it does
+  # not hand the headers over. Distributions put them somewhere the compiler
+  # looks anyway; an SDK build does not.
+  if(FAUST_INCLUDE_DIR)
+    target_include_directories(test_unit_faust_dsp SYSTEM PRIVATE
+      ${FAUST_INCLUDE_DIR})
+  endif()
 else()
   find_package(Faust QUIET)
   if(FAUST_FOUND AND TARGET score_lib_process)
