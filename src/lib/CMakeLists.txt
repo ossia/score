@@ -125,6 +125,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/document/ChangeId.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/document/DocumentContext.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/document/DocumentInterface.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/gfx/DisplayConfig.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/gfx/OpenGL.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/gfx/Vulkan.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/locking/ObjectLocker.hpp"
@@ -389,6 +390,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/IdentifierGeneration.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/command/CommandDataSerialization.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/score/gfx/DisplayConfig.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/gfx/OpenGL.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/gfx/Vulkan.cpp"
 

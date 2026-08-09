@@ -1,6 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
+#include <Gfx/Settings/DisplayConfigDialog.hpp>
 #include <Gfx/Settings/Model.hpp>
 #include <Gfx/Settings/Presenter.hpp>
 #include <Gfx/Settings/View.hpp>
@@ -10,6 +11,7 @@
 #include <score/widgets/SignalUtils.hpp>
 
 #include <QCheckBox>
+#include <QPushButton>
 #include <QComboBox>
 #include <QFormLayout>
 #include <QSpinBox>
@@ -38,6 +40,16 @@ View::View()
 
   static constexpr int buffers_values[]{1, 2, 3};
   SETTINGS_UI_NUM_COMBOBOX_SETUP("Buffer count", Buffers, buffers_values);
+
+  // Not a setting like the others: it is read by the platform at startup, not
+  // by score, so it lives in a file and needs a restart. A button rather than
+  // a row of widgets, so that it does not look like it applies immediately.
+  auto* displays = new QPushButton{tr("Configure displays...")};
+  QObject::connect(displays, &QPushButton::clicked, displays, [displays] {
+    DisplayConfigDialog dial{displays->window()};
+    dial.exec();
+  });
+  lay->addRow(tr("Displays"), displays);
 }
 
 QWidget* View::getWidget()

@@ -412,6 +412,7 @@ set(SRCS
     Gfx/Graph/RenderedVSANode.cpp
     Gfx/Graph/ScreenNode.cpp
     Gfx/Graph/ScreenPlacement.cpp
+    Gfx/Settings/DisplayConfigDialog.cpp
     Gfx/Graph/ShaderCache.cpp
     Gfx/Graph/SimpleRenderedISFNode.cpp
     Gfx/Graph/TextNode.cpp
