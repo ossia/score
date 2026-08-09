@@ -348,6 +348,12 @@ public:
   QVariant prompt(QVariant v);
   W_SLOT(prompt)
 
+  bool hasProcessUI(QObject* process);
+  W_SLOT(hasProcessUI)
+
+  void showProcessUI(QObject* process, bool show);
+  W_SLOT(showProcessUI)
+
   /////////////////////
   /// Introspection ///
   /////////////////////
@@ -355,6 +361,8 @@ public:
   W_SLOT(availableProcesses)
   QVariant availableProcessesAndPresets() const noexcept;
   W_SLOT(availableProcessesAndPresets)
+  QVariantList libraryEntries(QString filter) const noexcept;
+  W_SLOT(libraryEntries)
   QVariant availableProtocols() const noexcept;
   W_SLOT(availableProtocols)
 

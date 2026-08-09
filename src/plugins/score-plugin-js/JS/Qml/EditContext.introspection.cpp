@@ -47,14 +47,61 @@ QVariant EditJsContext::availableProcessesAndPresets() const noexcept
       return;
     }
     auto uid = score::uuids::toByteArray(n.key.impl());
-    auto& proc = *procs.get(n.key);
-    // auto desc = proc.descriptor("");
+    auto proc = procs.get(n.key);
+    if(!proc)
+      return;
+    // auto desc = proc->descriptor("");
     v.push_back(
         QVariantMap{
-            {"ProcessName", proc.prettyName()},
+            {"ProcessName", proc->prettyName()},
             {"Name", n.prettyName},
             {"Key", QString::fromLatin1(uid)},
             {"CustomData", n.customData}});
+  });
+
+  return v;
+}
+
+static QString libraryNodePath(const Library::ProcessNode& n)
+{
+  QString path = n.prettyName;
+  for(auto* p = n.parent(); p && p->parent(); p = p->parent())
+    path.prepend(p->prettyName + '/');
+  return path;
+}
+
+QVariantList EditJsContext::libraryEntries(QString filter) const noexcept
+{
+  QVariantList v;
+  auto& ctx = score::GUIAppContext();
+  auto& procs = ctx.interfaces<Process::ProcessFactoryList>();
+  auto& lib = ctx.panel<Library::ProcessPanel>().processWidget().processModel();
+
+  lib.rootNode().visit([&](const Library::ProcessNode& n) {
+    if(n.key.impl().is_nil())
+      return;
+    auto proc = procs.get(n.key);
+    if(!proc)
+      return;
+
+    const auto path = libraryNodePath(n);
+    if(!filter.isEmpty() && !path.contains(filter, Qt::CaseInsensitive)
+       && !proc->prettyName().contains(filter, Qt::CaseInsensitive))
+      return;
+
+    const auto desc = proc->descriptor(n.customData);
+    v.push_back(
+        QVariantMap{
+            {"Key", QString::fromLatin1(score::uuids::toByteArray(n.key.impl()))},
+            {"ProcessName", proc->prettyName()},
+            {"Name", n.prettyName},
+            {"Path", path},
+            {"CustomData", n.customData},
+            {"Category", proc->category()},
+            {"Author", desc.author},
+            {"Description", desc.description},
+            {"Tags", desc.tags},
+            {"Documentation", desc.documentationLink}});
   });
 
   return v;
