@@ -60,6 +60,27 @@ struct SCORE_LIB_BASE_EXPORT DisplaySettings
   QVector<DisplayOutputSettings> outputs;
 
   /**
+   * Whether the editor is shown on a platform where a screen holds one window.
+   *
+   * False is the appliance: the render output takes the screen, because that
+   * is what the machine is for. There is no switching between them while
+   * running -- the platform hands a screen to whichever window asks first and
+   * never takes it back -- so changing this writes the file and starts score
+   * again, which is the only thing that can reorder them.
+   */
+  bool editorUi{true};
+
+  /**
+   * Which QPA to start with, when score is choosing one for itself.
+   *
+   * The way back from a display that cannot show a user interface:
+   * vkkhrdisplay draws no widgets at all, so returning to the editor there
+   * means coming up under eglfs instead. Ignored where a window manager
+   * already decided.
+   */
+  QString platformOverride;
+
+  /**
    * vkkhrdisplay addresses displays by index, not by name, and offers nothing
    * else: no JSON, no per-output layout, no cloning, and one screen at a time.
    * There is no honest way to derive these from the connector names above --
@@ -111,6 +132,41 @@ struct DisplayCapabilities
 //! platform other than the running one -- an appliance is configured from a
 //! desktop, where QGuiApplication::platformName() says "xcb".
 SCORE_LIB_BASE_EXPORT DisplayCapabilities displayCapabilities(const QString& platform);
+
+/**
+ * @brief The platform to actually start with.
+ *
+ * `current` is what has been chosen so far -- empty when a window manager is
+ * present and score is not choosing. An override only applies when score was
+ * going to pick an embedded platform anyway: a saved appliance setting must
+ * never hijack a desktop session that happens to read the same file.
+ */
+SCORE_LIB_BASE_EXPORT QString
+resolvePlatform(const QString& current, const DisplaySettings& settings);
+
+/**
+ * @brief Come back up with the editor visible, and with a platform that can
+ * draw it.
+ *
+ * Writes the settings and relaunches. Nothing quieter is possible: the window
+ * that holds a screen holds it for the life of the process.
+ */
+SCORE_LIB_BASE_EXPORT void restartIntoEditor();
+
+//! Whether the saved configuration asks for an editor. Answered from the file
+//! rather than from settings: this is read before there is a QApplication.
+SCORE_LIB_BASE_EXPORT bool editorUiRequested();
+
+/**
+ * @brief Whether a screen here backs exactly one window.
+ *
+ * With no windowing system -- eglfs, vkkhrdisplay, linuxfb -- a screen is the
+ * scanout buffer and Qt gives it to whichever window asks first. The second
+ * one does not fail politely: QEglFSWindow::create() calls qFatal and the
+ * process is gone. So this is asked before opening a window, never recovered
+ * from after.
+ */
+SCORE_LIB_BASE_EXPORT bool oneWindowPerScreen() noexcept;
 
 /**
  * @brief The outputs this machine has.

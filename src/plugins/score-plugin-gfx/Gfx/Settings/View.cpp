@@ -11,10 +11,10 @@
 #include <score/widgets/SignalUtils.hpp>
 
 #include <QCheckBox>
-#include <QPushButton>
 #include <QComboBox>
 #include <QFormLayout>
 #include <QSpinBox>
+#include <QTabWidget>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Gfx::Settings::View)
@@ -41,20 +41,14 @@ View::View()
   static constexpr int buffers_values[]{1, 2, 3};
   SETTINGS_UI_NUM_COMBOBOX_SETUP("Buffer count", Buffers, buffers_values);
 
-  // Not a setting like the others: it is read by the platform at startup, not
-  // by score, so it lives in a file and needs a restart. A button rather than
-  // a row of widgets, so that it does not look like it applies immediately.
-  auto* displays = new QPushButton{tr("Configure displays...")};
-  QObject::connect(displays, &QPushButton::clicked, displays, [displays] {
-    DisplayConfigDialog dial{displays->window()};
-    dial.exec();
-  });
-  lay->addRow(tr("Displays"), displays);
+  m_tabs = new QTabWidget;
+  m_tabs->addTab(m_widg, tr("Rendering"));
+  m_tabs->addTab(new DisplayConfigWidget, tr("Displays"));
 }
 
 QWidget* View::getWidget()
 {
-  return m_widg;
+  return m_tabs;
 }
 
 SETTINGS_UI_COMBOBOX_IMPL(GraphicsApi)

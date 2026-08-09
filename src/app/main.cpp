@@ -904,6 +904,13 @@ int main(int argc, char** argv)
   if(failsafe)
     app.appSettings.opengl = false;
 
+  // An appliance shows its render output, not an editor. The platform gives a
+  // screen to whichever window asks first and never takes it back, so the
+  // editor cannot simply be hidden: it must not be created. Ctrl+Alt+Shift+E
+  // writes the setting back and starts score again.
+  if(score::gfx::oneWindowPerScreen() && !score::gfx::editorUiRequested())
+    app.appSettings.gui = false;
+
 #if defined(__linux__) && !(defined(__arm__) || defined(__aarch64__))
   // On linux under offscreen, etc it crashes inside
   // QOffscreenSurface::create
