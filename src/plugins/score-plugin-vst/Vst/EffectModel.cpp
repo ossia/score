@@ -638,7 +638,7 @@ void releasePluginInstance(int uid)
       it->second->use_count--;
       if(it->second->use_count == 0)
       {
-        delete it->second;
+//        delete it->second;
         it->second = nullptr;
       }
     }
