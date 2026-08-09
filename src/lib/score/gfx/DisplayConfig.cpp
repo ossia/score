@@ -9,6 +9,7 @@
 #include <QJsonObject>
 #include <QCoreApplication>
 #include <QProcess>
+#include <QtGlobal>
 #include <QScreen>
 #include <QStandardPaths>
 
@@ -328,9 +329,16 @@ void restartIntoEditor()
 
   saveDisplaySettings(settings, path);
 
+#if QT_CONFIG(process)
   QProcess::startDetached(
       QCoreApplication::applicationFilePath(), QCoreApplication::arguments().mid(1));
   QCoreApplication::quit();
+#else
+  // Nowhere that can start a process is anywhere this is reachable from: the
+  // platforms that hand a screen to one window are all desktop-class. The
+  // setting is still written, so the next launch honours it.
+  qWarning() << "Display settings saved; restart score for them to take effect.";
+#endif
 }
 
 void applyDisplayConfig()
