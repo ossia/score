@@ -1,6 +1,8 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
+#include <ctre.hpp>
+
 #include "ProcessModel.hpp"
 
 #include "YSFX/ApplicationPlugin.hpp"
@@ -236,25 +238,73 @@ QString ProcessModel::script() const noexcept
 {
   return m_jsfx_path;
 }
+// "[Author] Preset name" -> ("Author", "Preset name")
+// applied repeatedly so that "[A][B] name" nests as A/B
+static constexpr ctll::fixed_string preset_category_pattern
+    = R"(\s*\[\s*([^\[\]]+?)\s*\]\s*([\s\S]*))";
 
+struct CategorizedPreset
+{
+  QString category;
+  QString name;
+};
+
+CategorizedPreset
+splitPresetName(std::string_view raw, QHash<QString, QString>& knownCategories)
+{
+  QStringList components;
+  std::string_view rest = raw;
+
+  while(auto m = ctre::match<preset_category_pattern>(rest))
+  {
+    auto part = m.get<1>().to_view();
+    QString category = QString::fromUtf8(part.data(), part.size()).trimmed();
+
+    // '/' is the nesting separator, so it can't survive inside one component
+    category.replace(QLatin1Char('/'), QLatin1Char('-'));
+
+    if(!category.isEmpty())
+    {
+      // "[saike] foo" and "[Saike] bar" must land in the same submenu:
+      // reuse whichever spelling was seen first
+      const auto folded = category.toCaseFolded();
+      auto it = knownCategories.constFind(folded);
+      if(it == knownCategories.cend())
+        it = knownCategories.insert(folded, category);
+      components.push_back(*it);
+    }
+    rest = m.get<2>().to_view();
+  }
+
+  QString leaf = QString::fromUtf8(rest.data(), rest.size()).trimmed();
+  if(leaf.isEmpty() && !components.isEmpty())
+    leaf = components.takeLast(); // "[Foo]" alone: the category *is* the name
+
+  return {components.join(QLatin1Char('/')), leaf};
+}
 std::vector<Process::Preset> ProcessModel::builtinPresets() const noexcept
 {
   std::vector<Process::Preset> presets;
-  if(m_bank)
+  if(!m_bank)
+    return presets;
+
+  presets.reserve(m_bank->preset_count);
+
+  QHash<QString, QString> knownCategories;
+  for(std::size_t i = 0; i < m_bank->preset_count; i++)
   {
-    for(std::size_t i = 0; i < m_bank->preset_count; i++)
-    {
-      Process::Preset p;
-      p.key.key = this->static_concreteKey();
-      p.key.effect = m_jsfx_path;
-      p.name = m_bank->presets[i].name;
-      p.data = QStringLiteral(R"({ "ProgramIndex": %1 } )").arg(i).toLatin1();
-      presets.push_back(p);
-    }
+    auto [category, name] = splitPresetName(m_bank->presets[i].name, knownCategories);
+
+    Process::Preset p;
+    p.key.key = this->static_concreteKey();
+    p.key.effect = m_jsfx_path;
+    p.category = std::move(category);
+    p.name = name.isEmpty() ? QStringLiteral("Preset %1").arg(i) : std::move(name);
+    p.data = QStringLiteral(R"({ "ProgramIndex": %1 })").arg(i).toLatin1();
+    presets.push_back(std::move(p));
   }
   return presets;
 }
-
 void ProcessModel::loadPreset(const Process::Preset& preset)
 {
   if(!m_bank)
