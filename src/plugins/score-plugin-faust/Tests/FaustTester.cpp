@@ -31,9 +31,13 @@ int main(int argc, char** argv)
   llvm_dsp_factory* fac{};
 
   {
-    int argc = 0;
-    const char* argv[1] = {nullptr};
-    fac = createDSPFactoryFromString("score", str.c_str(), argc, argv, triple, err, -1);
+    fac = createDSPFactoryFromString("score", str.c_str(), argc-2, (const char**)(argv+2), triple, err, -1);
+
+    if(err[0] != 0)
+    {
+      qDebug() << "Faust error: " << err;
+    }
+
     assert(fac);
 
     auto obj = fac->createDSPInstance();
