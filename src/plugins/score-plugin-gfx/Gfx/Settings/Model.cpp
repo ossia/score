@@ -4,6 +4,7 @@
 #include <score/gfx/Vulkan.hpp>
 
 #include <QGuiApplication>
+#include <QQuickWindow>
 
 #include <wobjectimpl.h>
 #include <score/tools/Bind.hpp>
@@ -126,25 +127,25 @@ Gfx::Settings::HardwareVideoDecoder::operator QStringList() const noexcept
   return lst;
 }
 
-static void update_QSG_RHI_BACKEND(const score::gfx::GraphicsApi& api)
+static void update_qtquick_graphics_api(const score::gfx::GraphicsApi& api)
 {
   using enum score::gfx::GraphicsApi;
   switch(api)
   {
     case OpenGL:
-      qputenv("QSG_RHI_BACKEND", "opengl");
+      QQuickWindow::setGraphicsApi(QSGRendererInterface::OpenGL);
       break;
     case Vulkan:
-      qputenv("QSG_RHI_BACKEND", "vulkan");
+      QQuickWindow::setGraphicsApi(QSGRendererInterface::Vulkan);
       break;
     case Metal:
-      qputenv("QSG_RHI_BACKEND", "metal");
+      QQuickWindow::setGraphicsApi(QSGRendererInterface::Metal);
       break;
     case D3D11:
-      qputenv("QSG_RHI_BACKEND", "d3d11");
+      QQuickWindow::setGraphicsApi(QSGRendererInterface::Direct3D11);
       break;
     case D3D12:
-      qputenv("QSG_RHI_BACKEND", "d3d12");
+      QQuickWindow::setGraphicsApi(QSGRendererInterface::Direct3D12);
       break;
     default:
       break;
@@ -186,22 +187,18 @@ Model::Model(
     } else if(rhi == "d3d12") {
       m_GraphicsApi = apis.D3D12;
     }
+  }
 
-    connect(this, &Gfx::Settings::Model::GraphicsApiChanged, this, [this] (const QString& api)
-    {
-      update_QSG_RHI_BACKEND(this->graphicsApiEnum());
-    });
-  }
-  else
+  // The backend is applied through QQuickWindow instead of the environment:
+  // plug-ins that embed their own Qt build inherit our environment and would
+  // pick up a backend their build may not support. e.g. Kontakt 8 statically
+  // links a Qt without Vulkan and fails to create its RHI on QSG_RHI_BACKEND=vulkan.
+  qunsetenv("QSG_RHI_BACKEND");
+
+  ::bind(*this, Gfx::Settings::Model::p_GraphicsApi{}, this, [this] (const QString& api)
   {
-    // User does not set QSG_RHI_BACKEND: we update it whenever settings
-    // change
-    using enum score::gfx::GraphicsApi;
-    ::bind(*this, Gfx::Settings::Model::p_GraphicsApi{}, this, [this] (const QString& api)
-    {
-      update_QSG_RHI_BACKEND(this->graphicsApiEnum());
-    });
-  }
+    update_qtquick_graphics_api(this->graphicsApiEnum());
+  });
 }
 
 int Model::resolveSamples(score::gfx::GraphicsApi api) const noexcept
