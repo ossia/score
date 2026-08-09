@@ -3,6 +3,7 @@
 
 #include <verdigris>
 
+class QTabWidget;
 namespace score
 {
 class FormWidget;
@@ -25,6 +26,7 @@ public:
 
 private:
   QWidget* getWidget() override;
+  QTabWidget* m_tabs{};
   score::FormWidget* m_widg{};
 };
 

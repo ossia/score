@@ -6,15 +6,6 @@
 
 namespace score::gfx
 {
-bool oneWindowPerScreen() noexcept
-{
-  static const bool res = [] {
-    const auto p = QGuiApplication::platformName();
-    return p == "eglfs" || p == "vkkhrdisplay" || p == "linuxfb" || p == "minimalegl";
-  }();
-  return res;
-}
-
 QSet<QScreen*> occupiedScreens()
 {
   QSet<QScreen*> taken;

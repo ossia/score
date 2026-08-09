@@ -7,6 +7,8 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QCoreApplication>
+#include <QProcess>
 #include <QScreen>
 #include <QStandardPaths>
 
@@ -17,7 +19,7 @@ bool DisplaySettings::isEmpty() const noexcept
   return outputs.isEmpty() && device.isEmpty() && headless.isEmpty() && rotation == 0
          && !hideCursor && hardwareCursor && !verticalLayout
          && vulkanPhysicalDeviceIndex < 0 && vulkanDisplayIndex < 0
-         && vulkanModeIndex < 0;
+         && vulkanModeIndex < 0 && editorUi && platformOverride.isEmpty();
 }
 
 DisplayCapabilities displayCapabilities(const QString& platform)
@@ -46,6 +48,17 @@ DisplayCapabilities displayCapabilities(const QString& platform)
   }
 
   return c;
+}
+
+QString resolvePlatform(const QString& current, const DisplaySettings& settings)
+{
+  if(settings.platformOverride.isEmpty())
+    return current;
+
+  if(!displayCapabilities(current).anyConfiguration())
+    return current;
+
+  return settings.platformOverride;
 }
 
 QVector<DisplayOutput> enumerateOutputs(const QString& drmRoot)
@@ -184,6 +197,8 @@ DisplaySettings loadDisplaySettings(const QString& path)
   s.headless = root["headless"].toString();
   s.rotation = root["rotation"].toInt();
   s.hideCursor = root["hideCursor"].toBool();
+  s.editorUi = root["editorUi"].toBool(true);
+  s.platformOverride = root["platformOverride"].toString();
   s.vulkanPhysicalDeviceIndex = root["vulkanPhysicalDeviceIndex"].toInt(-1);
   s.vulkanDisplayIndex = root["vulkanDisplayIndex"].toInt(-1);
   s.vulkanModeIndex = root["vulkanModeIndex"].toInt(-1);
@@ -240,6 +255,10 @@ bool saveDisplaySettings(const DisplaySettings& settings, const QString& path)
     root["rotation"] = settings.rotation;
   if(settings.hideCursor)
     root["hideCursor"] = true;
+  if(!settings.editorUi)
+    root["editorUi"] = false;
+  if(!settings.platformOverride.isEmpty())
+    root["platformOverride"] = settings.platformOverride;
   if(settings.vulkanPhysicalDeviceIndex >= 0)
     root["vulkanPhysicalDeviceIndex"] = settings.vulkanPhysicalDeviceIndex;
   if(settings.vulkanDisplayIndex >= 0)
@@ -280,6 +299,40 @@ bool saveDisplaySettings(const DisplaySettings& settings, const QString& path)
   return f.write(data) == data.size();
 }
 
+bool editorUiRequested()
+{
+  return loadDisplaySettings(displayConfigPath()).editorUi;
+}
+
+bool oneWindowPerScreen() noexcept
+{
+  // main() asks before there is a QGuiApplication, so the environment is the
+  // only answer available then; afterwards the platform itself is the truth,
+  // since a -platform argument never reaches the environment.
+  const auto p = qGuiApp ? QGuiApplication::platformName()
+                         : QString::fromUtf8(qgetenv("QT_QPA_PLATFORM"));
+  return p.startsWith("eglfs") || p == "vkkhrdisplay" || p == "linuxfb"
+         || p == "minimalegl";
+}
+
+void restartIntoEditor()
+{
+  const auto path = displayConfigPath();
+  auto settings = loadDisplaySettings(path);
+
+  settings.editorUi = true;
+  // vkkhrdisplay creates a window for a widget and then draws nothing into it,
+  // so coming back to the editor there means coming back under eglfs.
+  if(displayCapabilities(QGuiApplication::platformName()).indexedDisplaySelection)
+    settings.platformOverride = QStringLiteral("eglfs");
+
+  saveDisplaySettings(settings, path);
+
+  QProcess::startDetached(
+      QCoreApplication::applicationFilePath(), QCoreApplication::arguments().mid(1));
+  QCoreApplication::quit();
+}
+
 void applyDisplayConfig()
 {
 #if defined(__linux__)
@@ -290,6 +343,11 @@ void applyDisplayConfig()
   const auto settings = loadDisplaySettings(path);
   if(settings.isEmpty())
     return;
+
+  if(const auto chosen = resolvePlatform(
+         QString::fromUtf8(qgetenv("QT_QPA_PLATFORM")), settings);
+     !chosen.isEmpty())
+    qputenv("QT_QPA_PLATFORM", chosen.toUtf8());
 
   // Only meaningful for a platform that reads it: where a window manager owns
   // the display, none of this applies and setting it would be a lie.
