@@ -11,6 +11,8 @@
 
 #include <Gfx/Graph/ScreenPlacement.hpp>
 
+#include <score/gfx/DisplayConfig.hpp>
+
 #include <QGuiApplication>
 #include <QScreen>
 #include <QWindow>

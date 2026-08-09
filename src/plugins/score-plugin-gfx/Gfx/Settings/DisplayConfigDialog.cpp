@@ -2,7 +2,7 @@
 
 #include <QCheckBox>
 #include <QComboBox>
-#include <QDialogButtonBox>
+#include <QPushButton>
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QGuiApplication>
@@ -11,6 +11,7 @@
 #include <QLineEdit>
 #include <QSpinBox>
 #include <QTableWidget>
+#include <QHBoxLayout>
 #include <QVBoxLayout>
 
 namespace Gfx::Settings
@@ -51,11 +52,9 @@ const QStringList& formatChoices()
 }
 }
 
-DisplayConfigDialog::DisplayConfigDialog(QWidget* parent)
-    : QDialog{parent}
+DisplayConfigWidget::DisplayConfigWidget(QWidget* parent)
+    : QWidget{parent}
 {
-  setWindowTitle(tr("Displays"));
-  resize(760, 520);
 
   auto* lay = new QVBoxLayout{this};
 
@@ -166,19 +165,20 @@ DisplayConfigDialog::DisplayConfigDialog(QWidget* parent)
   mkIndex(m_vkMode, vl, tr("Mode index"));
   lay->addWidget(vk);
 
-  auto* box = new QDialogButtonBox{
-      QDialogButtonBox::Save | QDialogButtonBox::Cancel, this};
-  connect(box, &QDialogButtonBox::accepted, this, [this] {
-    save();
-    accept();
-  });
-  connect(box, &QDialogButtonBox::rejected, this, &QDialog::reject);
-  lay->addWidget(box);
+  auto* save = new QPushButton{tr("Save")};
+  connect(save, &QPushButton::clicked, this, &DisplayConfigWidget::save);
+  auto* revert = new QPushButton{tr("Revert")};
+  connect(revert, &QPushButton::clicked, this, &DisplayConfigWidget::load);
+  auto* buttons = new QHBoxLayout;
+  buttons->addStretch(1);
+  buttons->addWidget(revert);
+  buttons->addWidget(save);
+  lay->addLayout(buttons);
 
   load();
 }
 
-void DisplayConfigDialog::load()
+void DisplayConfigWidget::load()
 {
   const auto s = score::gfx::loadDisplaySettings(score::gfx::displayConfigPath());
 
@@ -222,7 +222,7 @@ void DisplayConfigDialog::load()
   }
 }
 
-score::gfx::DisplaySettings DisplayConfigDialog::collect() const
+score::gfx::DisplaySettings DisplayConfigWidget::collect() const
 {
   score::gfx::DisplaySettings s;
   s.hardwareCursor = m_hwCursor->isChecked();
@@ -265,7 +265,7 @@ score::gfx::DisplaySettings DisplayConfigDialog::collect() const
   return s;
 }
 
-void DisplayConfigDialog::save()
+void DisplayConfigWidget::save()
 {
   score::gfx::saveDisplaySettings(collect(), score::gfx::displayConfigPath());
 }

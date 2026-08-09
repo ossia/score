@@ -230,3 +230,53 @@ TEST_CASE("What each platform can actually be told", "[gfx]")
   CHECK(displayCapabilities("cocoa").appliesToSystemDisplays);
   CHECK(!displayCapabilities("xcb").appliesToSystemDisplays);
 }
+
+TEST_CASE("The way back to an editor", "[gfx]")
+{
+  DisplaySettings s;
+
+  // Nothing saved: whatever was chosen stands.
+  CHECK(resolvePlatform("eglfs", s) == "eglfs");
+  CHECK(resolvePlatform("", s) == "");
+
+  s.platformOverride = "eglfs";
+
+  // vkkhrdisplay draws no widgets, so the way back to an editor is eglfs.
+  CHECK(resolvePlatform("vkkhrdisplay", s) == "eglfs");
+  CHECK(resolvePlatform("eglfs", s) == "eglfs");
+
+  // A desktop session must not be hijacked by a file written for an appliance:
+  // the override only applies where score was choosing an embedded platform.
+  CHECK(resolvePlatform("xcb", s) == "xcb");
+  CHECK(resolvePlatform("wayland", s) == "wayland");
+  CHECK(resolvePlatform("windows", s) == "windows");
+  CHECK(resolvePlatform("cocoa", s) == "cocoa");
+  CHECK(resolvePlatform("", s) == "");
+}
+
+TEST_CASE("Editor visibility and platform override round-trip", "[gfx]")
+{
+  QTemporaryDir tmp;
+  REQUIRE(tmp.isValid());
+  const auto path = tmp.path() + "/display.json";
+
+  DisplaySettings s;
+  s.editorUi = false;
+  s.platformOverride = "vkkhrdisplay";
+  REQUIRE(saveDisplaySettings(s, path));
+
+  const auto back = loadDisplaySettings(path);
+  CHECK(!back.editorUi);
+  CHECK(back.platformOverride == "vkkhrdisplay");
+
+  // The default has to be "show the editor": a file that says nothing must
+  // never leave somebody with a machine they cannot drive.
+  DisplaySettings fresh;
+  CHECK(fresh.editorUi);
+  CHECK(fresh.isEmpty());
+
+  // ... and asking for the appliance is a real setting, not an empty one.
+  DisplaySettings appliance;
+  appliance.editorUi = false;
+  CHECK(!appliance.isEmpty());
+}
