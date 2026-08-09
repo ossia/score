@@ -133,6 +133,12 @@ DisplayConfigWidget::DisplayConfigWidget(QWidget* parent)
 
   auto* globals = new QGroupBox{tr("This machine"), this};
   auto* gl = new QFormLayout{globals};
+  m_editorUi = new QCheckBox;
+  m_editorUi->setChecked(true);
+  m_editorUi->setToolTip(
+      tr("Off makes this an appliance: the render output takes the screen and "
+         "there is no editor. Ctrl+Alt+Shift+E brings the editor back."));
+  gl->addRow(tr("Show the editor"), m_editorUi);
   m_hwCursor = new QCheckBox;
   m_hwCursor->setChecked(true);
   gl->addRow(tr("Hardware cursor"), m_hwCursor);
@@ -182,6 +188,7 @@ void DisplayConfigWidget::load()
 {
   const auto s = score::gfx::loadDisplaySettings(score::gfx::displayConfigPath());
 
+  m_editorUi->setChecked(s.editorUi);
   m_hwCursor->setChecked(s.hardwareCursor);
   m_hideCursor->setChecked(s.hideCursor);
   m_vertical->setChecked(s.verticalLayout);
@@ -225,6 +232,7 @@ void DisplayConfigWidget::load()
 score::gfx::DisplaySettings DisplayConfigWidget::collect() const
 {
   score::gfx::DisplaySettings s;
+  s.editorUi = m_editorUi->isChecked();
   s.hardwareCursor = m_hwCursor->isChecked();
   s.hideCursor = m_hideCursor->isChecked();
   s.verticalLayout = m_vertical->isChecked();
