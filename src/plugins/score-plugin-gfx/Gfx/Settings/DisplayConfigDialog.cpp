@@ -71,6 +71,12 @@ DisplayConfigDialog::DisplayConfigDialog(QWidget* parent)
         "This platform selects a display by index and cannot be told about "
         "connectors, layout or cloning. Only the Vulkan section below applies. "
         "Changes take effect when score restarts."));
+  else if(caps.appliesToSystemDisplays)
+    note->setText(
+        tr("This system owns its displays and can rearrange them while running, "
+           "so score does not do it behind your back: nothing here is applied "
+           "here yet. The settings are saved, and take effect on a machine that "
+           "boots without a window manager — which is what they are for."));
   else
     note->setText(
         tr("This machine has a window manager, which owns the displays: nothing "
