@@ -141,9 +141,11 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   endif()
 endif()
 
-if (NOT EMSCRIPTEN)
+if (NOT EMSCRIPTEN AND OSSIA_ENABLE_KFR)
   if(NOT ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8"))
-    message(FATAL_ERROR "score depends on kfrlib which only supports 64-bit systems.")
+    message(FATAL_ERROR
+      "kfrlib only supports 64-bit systems. Configure with -DOSSIA_ENABLE_KFR=0 "
+      "to build score for a 32-bit target without it.")
   endif()
 endif()
 
