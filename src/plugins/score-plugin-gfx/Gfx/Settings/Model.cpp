@@ -159,6 +159,22 @@ Model::Model(
 {
   score::setupDefaultSettings(set, Parameters::list(), *this);
 
+  // Custom applications can select a decoder without depending on a
+  // pre-existing user preference. Keep the regular setting as the fallback.
+  if(const auto requested = qEnvironmentVariable("SCORE_VIDEO_DECODING_METHOD");
+     !requested.isEmpty())
+  {
+    const QStringList decoders = HardwareVideoDecoder{};
+    for(const auto& decoder : decoders)
+    {
+      if(decoder.compare(requested, Qt::CaseInsensitive) == 0)
+      {
+        m_HardwareDecode = decoder;
+        break;
+      }
+    }
+  }
+
   const auto apis = GraphicsApis{};
 
   const auto platform = QGuiApplication::platformName();
