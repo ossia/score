@@ -64,7 +64,16 @@ namespace score
 void for_all_files(std::string_view root, std::function<void(std::string_view)> f)
 {
   using namespace LLFIO_V2_NAMESPACE;
+  {
+    std::error_code ec;
+    const std::filesystem::path rootp{root};
+    if(!std::filesystem::is_directory(rootp, ec) || ec)
+      return;
+  }
+
   auto pp = path_handle::path(path_view(root, path_view::zero_terminated));
+  if(!pp)
+    return;
   algorithm::contents_visitor vis;
   vis.contents_include_symlinks = true;
   try
