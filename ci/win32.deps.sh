@@ -15,7 +15,7 @@ fi
 set -x
 mkdir /c/ossia-sdk-$SDK_ARCH
 cd /c/ossia-sdk-$SDK_ARCH
-curl -L https://github.com/ossia/sdk/releases/download/sdk37/sdk-mingw-$SDK_ARCH.7z --output sdk-mingw-$SDK_ARCH.7z
+curl -L https://github.com/ossia/sdk/releases/download/sdk38/sdk-mingw-$SDK_ARCH.7z --output sdk-mingw-$SDK_ARCH.7z
 7z x sdk-mingw-$SDK_ARCH.7z
 rm sdk-mingw-$SDK_ARCH.7z
 ls
