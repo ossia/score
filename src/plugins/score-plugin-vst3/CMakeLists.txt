@@ -105,6 +105,8 @@ if(APPLE)
     ${Foundation_FK}
     ${AppKit_FK}
     )
+elseif(WIN32)
+  target_link_libraries(${PROJECT_NAME} PRIVATE uuid)
 endif()
 
 # Target-specific options
