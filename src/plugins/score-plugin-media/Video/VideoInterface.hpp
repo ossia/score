@@ -74,7 +74,7 @@ struct SCORE_PLUGIN_MEDIA_EXPORT FreeAVFrame
 
 using AVFramePointer = std::unique_ptr<AVFrame, FreeAVFrame>;
 
-ReadFrame readVideoFrame(
-    AVCodecContext* codecContext, const AVPacket* pkt, AVFrame* frame, bool ignorePts);
+ReadFrame receiveVideoFrame(
+    AVCodecContext* codecContext, AVFrame* frame, bool ignorePts);
 }
 #endif

@@ -226,31 +226,79 @@ LibAVDecoder::open_hwdec(const AVCodec& detected_codec) noexcept
 
 ReadFrame LibAVDecoder::enqueue_frame(const AVPacket* pkt) noexcept
 {
-  auto frame = m_frames.newFrame();
+  auto receive = [this]() -> ReadFrame
+  {
+    auto frame = m_frames.newFrame();
+    auto read
+        = receiveVideoFrame(m_codecContext, frame.get(), this->m_conf.ignorePTS);
+    if(read.error == AVERROR_EOF)
+      m_finished = true;
 
-  ReadFrame read
-      = readVideoFrame(m_codecContext, pkt, frame.get(), this->m_conf.ignorePTS);
-  if(read.error == AVERROR_EOF)
-  {
-    m_finished = true;
-  }
+    if(!read.frame)
+    {
+      m_frames.enqueue_decoding_error(frame.release());
+      return read;
+    }
 
-  if(!read.frame)
-  {
-    this->m_frames.enqueue_decoding_error(frame.release());
-    return read;
-  }
-
-  if(m_rescale)
-  {
-    m_rescale.rescale(m_frames, frame, read);
-  }
-  else
-  {
-    if(read.frame == frame.get())
+    if(m_rescale)
+    {
+      m_rescale.rescale(m_frames, frame, read);
+    }
+    else if(read.frame == frame.get())
+    {
       frame.release();
+    }
+
+    return read;
+  };
+
+  ReadFrame last{nullptr, AVERROR(EAGAIN)};
+  auto keepInOrder = [this, &last](ReadFrame read) {
+    if(last.frame)
+      m_frames.enqueue(last.frame);
+    last = read;
+  };
+
+  // A decoder may refuse a new packet until every pending frame has been
+  // received. Drain those frames and retry the exact same packet.
+  for(;;)
+  {
+    const int ret = avcodec_send_packet(m_codecContext, pkt);
+    if(ret == 0)
+      break;
+    if(ret != AVERROR(EAGAIN))
+    {
+      if(ret == AVERROR_EOF)
+        m_finished = true;
+      else
+        qDebug() << "avcodec_send_packet: " << av_to_string(ret) << ret;
+      return last.frame ? last : ReadFrame{nullptr, ret};
+    }
+
+    auto read = receive();
+    if(!read.frame)
+      return last.frame ? last : read;
+    keepInOrder(read);
   }
-  return read;
+
+  // One packet can make more than one frame available. Receive all of them
+  // before reading the next packet so inter-frame reference chains stay intact.
+  for(;;)
+  {
+    auto read = receive();
+    if(read.frame)
+    {
+      keepInOrder(read);
+      continue;
+    }
+    if(read.error != AVERROR(EAGAIN) && read.error != AVERROR_EOF)
+      return last.frame ? last : read;
+    break;
+  }
+
+  if(last.frame)
+    last.error = 0;
+  return last;
 }
 
 #if 0
@@ -296,22 +344,12 @@ void LibAVDecoder::load_packet_in_frame(const AVPacket& packet, AVFrame& frame)
 #endif
 }
 
-ReadFrame readVideoFrame(
-    AVCodecContext* codecContext, const AVPacket* pkt, AVFrame* frame, bool ignorePts)
+ReadFrame receiveVideoFrame(
+    AVCodecContext* codecContext, AVFrame* frame, bool ignorePts)
 {
-  if(codecContext && pkt && frame)
+  if(codecContext && frame)
   {
-    int ret = avcodec_send_packet(codecContext, pkt);
-    // avcodec_send_packet: if it's EAGAIN then we *have* to read through avcodec_receive_frame
-    if(ret < 0 && ret != AVERROR(EAGAIN))
-    {
-      if(ret != AVERROR_EOF)
-        qDebug() << "avcodec_send_packet: " << av_to_string(ret) << ret;
-
-      return {nullptr, ret};
-    }
-
-    ret = avcodec_receive_frame(codecContext, frame);
+    int ret = avcodec_receive_frame(codecContext, frame);
 
     if(ret < 0)
     {
@@ -580,28 +618,13 @@ do_read_frame:
     // Flush codec to get remaining frames from the reorder buffer (B-frames)
     if(m_codecContext)
     {
-      avcodec_send_packet(m_codecContext, nullptr);
-      auto frame = m_frames.newFrame();
-      while(avcodec_receive_frame(m_codecContext, frame.get()) == 0)
-      {
-        // Through the rescaler, like every other decode path: these are the
-        // last frames of the clip, and a decoder whose pixel_format was
-        // relabelled RGBA by init_scaler must not suddenly emit its native
-        // format for them.
-        ReadFrame read{frame.get(), 0};
-        if(m_rescale)
-        {
-          m_rescale.rescale(m_frames, frame, read);
-        }
-        else if(read.frame == frame.get())
-        {
-          frame.release();
-        }
-        if(read.frame)
-          m_frames.enqueue(read.frame);
-        frame = m_frames.newFrame();
-      }
-      m_frames.enqueue_decoding_error(frame.release());
+      // enqueue_frame routes every drained frame through the rescaler, like
+      // every other decode path: these are the last frames of the clip, and a
+      // decoder whose pixel_format was relabelled RGBA by init_scaler must
+      // not suddenly emit its native format for them.
+      auto flushed = enqueue_frame(nullptr);
+      if(flushed.frame)
+        m_frames.enqueue(flushed.frame);
     }
     m_finished = true;
   }
