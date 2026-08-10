@@ -49,10 +49,21 @@ void QGraphicsRangeSlider::setEnd(double end)
   }
 }
 
+double QGraphicsRangeSlider::to01(double v) const noexcept
+{
+  const double range = m_max - m_min;
+  return range > 0. ? (v - m_min) / range : 0.;
+}
+
+double QGraphicsRangeSlider::from01(double v) const noexcept
+{
+  return m_min + v * (m_max - m_min);
+}
+
 void QGraphicsRangeSlider::setValue(ossia::vec2f value)
 {
-  setStart(value[0]);
-  setEnd(value[1]);
+  setStart(to01(value[0]));
+  setEnd(to01(value[1]));
 }
 
 void QGraphicsRangeSlider::setExecutionValue(ossia::vec2f v)
@@ -71,15 +82,23 @@ void QGraphicsRangeSlider::resetExecution()
 
 ossia::vec2f QGraphicsRangeSlider::value() const noexcept
 {
-  return {float(m_start), float(m_end)};
+  return {float(from01(m_start)), float(from01(m_end))};
 }
 
 void QGraphicsRangeSlider::setRange(double min, double max, ossia::vec2f init)
 {
+  if(max <= min)
+    max = min + 1.;
+
+  // Keep pointing at the same absolute value across a domain change
+  const auto previous = value();
+
   m_min = min;
   m_max = max;
   m_init_start = init[0];
   m_init_end = init[1];
+
+  setValue(previous);
   update();
 }
 
@@ -102,7 +121,14 @@ void QGraphicsRangeSlider::mousePressEvent(QGraphicsSceneMouseEvent* event)
       ypos = event->pos().y();
     }
     else
-      handle = NONE;
+    {
+      // No strict winner. This notably happens when the range is empty, where
+      // the three handles sit on top of each other: leaving it at NONE made the
+      // slider impossible to move at all. Grab whichever bound the click landed
+      // on the side of.
+      const double center = (m_start + (m_end - m_start) / 2) * m_rect.width();
+      handle = (event->pos().x() < center) ? START : END;
+    }
   }
   event->accept();
 }
@@ -111,14 +137,20 @@ void QGraphicsRangeSlider::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   switch(handle)
   {
-    case START:
+    case START: {
+      // std::clamp is UB when lo > hi, which happens as soon as the range
+      // collapses onto 0 (resp. 1 for the end handle).
+      const double hi = std::max(0., m_end - 0.001);
       d2s = event->pos().x() - m_start * m_rect.width();
-      m_start = std::clamp(m_start + d2s / m_rect.width(), 0., m_end - 0.001);
+      m_start = std::clamp(m_start + d2s / m_rect.width(), 0., hi);
       break;
-    case END:
+    }
+    case END: {
+      const double lo = std::min(1., m_start + 0.001);
       d2e = event->pos().x() - m_end * m_rect.width();
-      m_end = std::clamp(m_end + d2e / m_rect.width(), m_start + 0.001, 1.);
+      m_end = std::clamp(m_end + d2e / m_rect.width(), lo, 1.);
       break;
+    }
     case CENTER:
       d2c = event->pos().x() - (m_start + (m_end - m_start) / 2) * m_rect.width();
       ydiff = ypos - event->pos().y();

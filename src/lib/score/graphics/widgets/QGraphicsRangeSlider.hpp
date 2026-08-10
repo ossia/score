@@ -33,10 +33,13 @@ public:
   explicit QGraphicsRangeSlider(QGraphicsItem* parent);
   ~QGraphicsRangeSlider();
 
+  //! Normalized positions, in [0; 1]
   void setStart(double start);
   void setEnd(double end);
   void setRange(double min, double max, ossia::vec2f init);
 
+  //! Absolute values, in [min; max] -- the handles are stored normalized but
+  //! the outside world speaks in the units of the control's domain.
   void setValue(ossia::vec2f value);
   ossia::vec2f value() const noexcept;
   ossia::vec2f m_execValue{};
@@ -49,6 +52,9 @@ public:
   void sliderMoved() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved)
   void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
 private:
+  [[nodiscard]] double to01(double v) const noexcept;
+  [[nodiscard]] double from01(double v) const noexcept;
+
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
