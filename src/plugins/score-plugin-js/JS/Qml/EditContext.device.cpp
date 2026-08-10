@@ -231,6 +231,11 @@ void EditJsContext::connectOSCQueryDevice(QString name, QString ip)
 
 void EditJsContext::createDevice(QString name, QString uuid, QJSValue obj)
 {
+  createDevice(std::move(name), std::move(uuid), obj.toVariant());
+}
+
+void EditJsContext::createDevice(QString name, QString uuid, QVariant var)
+{
   auto doc = ctx();
   if(!doc)
     return;
@@ -243,7 +248,6 @@ void EditJsContext::createDevice(QString name, QString uuid, QJSValue obj)
   Device::DeviceSettings set;
   set.name = name;
   set.protocol = UuidKey<Device::ProtocolFactory>::fromString(uuid);
-  const QVariant& var = obj.toVariant();
   if(var.canConvert<Device::DeviceSettings>())
   {
     set.deviceSpecificSettings
