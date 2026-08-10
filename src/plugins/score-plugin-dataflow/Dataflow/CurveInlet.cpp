@@ -7,12 +7,14 @@
 #include <Curve/CurveStyle.hpp>
 #include <Curve/CurveView.hpp>
 #include <Curve/Palette/CurvePalette.hpp>
+#include <Curve/Segment/CurveSegmentData.hpp>
 #include <Curve/Segment/CurveSegmentList.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/document/DocumentInterface.hpp>
 #include <score/graphics/RectItem.hpp>
 #include <score/graphics/TextItem.hpp>
 
@@ -232,10 +234,125 @@ CurveInlet::CurveInlet(Id<Port> id, QObject* parent)
 void CurveInlet::init()
 {
   connect(m_curve, &Curve::Model::changed, this, &CurveInlet::on_curveChange);
+  connect(
+      this, &Process::ControlInlet::valueChanged, this, &CurveInlet::on_valueChange);
+}
+
+static std::optional<Curve::Point> curveInletPoint(const ossia::value& v)
+{
+  if(auto vec = v.target<ossia::vec2f>())
+    return Curve::Point{(*vec)[0], (*vec)[1]};
+
+  if(auto arr = v.target<std::vector<ossia::value>>())
+    if(arr->size() == 2)
+      return Curve::Point{
+          ossia::convert<float>((*arr)[0]), ossia::convert<float>((*arr)[1])};
+
+  return std::nullopt;
+}
+
+void CurveInlet::on_valueChange(const ossia::value& v)
+{
+  // Our own serialization coming back around
+  if(m_syncing)
+    return;
+
+  const auto* segments = v.target<std::vector<ossia::value>>();
+  if(!segments || segments->empty())
+    return;
+
+  // Curve::Model::fromCurveData resolves the document context from its parent
+  // chain, so it cannot run before the port has been inserted in a document --
+  // which happens when a preset is applied as the process is being created.
+  if(!score::IDocument::documentFromObject(*this))
+    return;
+
+  auto& csl = score::GUIAppContext().interfaces<Curve::SegmentList>();
+
+  std::vector<Curve::SegmentData> data;
+  data.reserve(segments->size());
+
+  for(const auto& seg : *segments)
+  {
+    // Same shapes as oscr::convert_to_curve accepts: [start, end] or
+    // [start, end, map], with map a gamma or the name of a segment type.
+    const auto* arr = seg.target<std::vector<ossia::value>>();
+    if(!arr || arr->size() < 2)
+      return;
+
+    const auto start = curveInletPoint((*arr)[0]);
+    const auto end = curveInletPoint((*arr)[1]);
+    if(!start || !end)
+      return;
+
+    auto type = Curve::PowerSegment::static_concreteKey();
+    QVariant specific = QVariant::fromValue(
+        Curve::PowerSegmentData{Curve::PowerSegmentData::linearGamma});
+
+    if(arr->size() >= 3)
+    {
+      const auto& map = (*arr)[2];
+      if(auto gamma = map.target<float>())
+      {
+        specific = QVariant::fromValue(Curve::PowerSegmentData{(double)*gamma});
+      }
+      else if(auto name = map.target<std::string>())
+      {
+        // on_curveChange writes the factory's pretty name for anything that is
+        // not a power segment; look it back up so those round-trip too.
+        const auto wanted = QString::fromStdString(*name);
+        for(auto& factory : csl)
+        {
+          if(factory.prettyName() == wanted)
+          {
+            type = factory.concreteKey();
+            specific = {};
+            break;
+          }
+        }
+      }
+    }
+
+    data.push_back(Curve::SegmentData{
+        Id<Curve::SegmentModel>{(int32_t)data.size()}, *start, *end, {}, {}, type,
+        std::move(specific)});
+  }
+
+  // Drop anything degenerate: Curve::Model cannot represent a segment that does
+  // not advance in x, and would assert on it.
+  std::erase_if(data, [](const Curve::SegmentData& s) {
+    return s.end.x() - s.start.x() < 0.0001;
+  });
+  if(data.empty())
+    return;
+
+  std::sort(
+      data.begin(), data.end(),
+      [](const Curve::SegmentData& a, const Curve::SegmentData& b) {
+    return a.x() < b.x();
+  });
+
+  // fromCurveData asserts that the chain is closed at both ends
+  const int N = std::ssize(data);
+  for(int i = 0; i < N; i++)
+  {
+    data[i].previous
+        = (i > 0) ? OptionalId<Curve::SegmentModel>{data[i - 1].id} : std::nullopt;
+    data[i].following
+        = (i < N - 1) ? OptionalId<Curve::SegmentModel>{data[i + 1].id} : std::nullopt;
+  }
+
+  m_syncing = true;
+  m_curve->fromCurveData(data);
+  m_syncing = false;
 }
 
 void CurveInlet::on_curveChange()
 {
+  // Rebuilding the model from the value must not write it straight back
+  if(m_syncing)
+    return;
+
   const auto& sorted = m_curve->sortedSegments();
 
   std::vector<ossia::value> segments;
