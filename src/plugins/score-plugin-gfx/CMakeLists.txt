@@ -105,7 +105,13 @@ if(NOT EMSCRIPTEN)
     Gfx/WindowCapture/WindowCaptureDevice.cpp
   )
   if(WIN32)
-    list(APPEND WINDOW_CAPTURE_SRCS Gfx/WindowCapture/WindowCapture_win.cpp)
+    include(CheckIncludeFileCXX)
+    check_include_file_cxx("winrt/Windows.Graphics.Capture.h" SCORE_GFX_HAS_WINRT_CAPTURE)
+    if(SCORE_GFX_HAS_WINRT_CAPTURE)
+      list(APPEND WINDOW_CAPTURE_SRCS Gfx/WindowCapture/WindowCapture_win.cpp)
+    else()
+      list(APPEND WINDOW_CAPTURE_SRCS Gfx/WindowCapture/WindowCapture_null.cpp)
+    endif()
   elseif(APPLE)
     list(APPEND WINDOW_CAPTURE_SRCS Gfx/WindowCapture/WindowCapture_mac.mm)
     set_source_files_properties(
@@ -593,7 +599,10 @@ if(WIN32)
       PROPERTIES
         SKIP_UNITY_BUILD_INCLUSION ON
   )
-  target_link_libraries(${PROJECT_NAME} PRIVATE dxguid avrt winmm d3d12 d3d11 dxgi dwmapi windowsapp)
+  target_link_libraries(${PROJECT_NAME} PRIVATE dxguid winmm d3d12 d3d11 dxgi dwmapi)
+  if(SCORE_GFX_HAS_WINRT_CAPTURE)
+    target_link_libraries(${PROJECT_NAME} PRIVATE windowsapp)
+  endif()
 elseif(APPLE)
   target_sources(${PROJECT_NAME} PRIVATE
     Gfx/CameraDevice.avf.mm

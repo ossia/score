@@ -30,7 +30,22 @@ extern "C" void sincos(double x, double* sin, double* cos)
 #endif
 
 #include <exception>
+#if defined(SCORE_HAS_CPP_WINRT)
 #include <winrt/Windows.Foundation.h>
+#else
+#include <objbase.h>
+namespace score::compat
+{
+inline void uninit_apartment() noexcept
+{
+  CoUninitialize();
+}
+inline void init_apartment_sta() noexcept
+{
+  CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+}
+}
+#endif
 #endif
 // clang-format on
 
@@ -798,8 +813,13 @@ struct failsafe
 int main(int argc, char** argv)
 {
 #if defined(_WIN32)
+#if defined(SCORE_HAS_CPP_WINRT)
   winrt::uninit_apartment();
   winrt::init_apartment(winrt::apartment_type::single_threaded);
+#else
+  score::compat::uninit_apartment();
+  score::compat::init_apartment_sta();
+#endif
 #endif
 
   struct failsafe failsafe;
@@ -834,8 +854,13 @@ int main(int argc, char** argv)
   Application app(argc, argv);
 
 #if defined(_WIN32)
+#if defined(SCORE_HAS_CPP_WINRT)
   winrt::uninit_apartment();
   winrt::init_apartment(winrt::apartment_type::single_threaded);
+#else
+  score::compat::uninit_apartment();
+  score::compat::init_apartment_sta();
+#endif
 #endif
 
 #if defined(KDSKBMODE)
