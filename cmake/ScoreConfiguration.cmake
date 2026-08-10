@@ -84,6 +84,14 @@ endif()
 # $ cmake -DCMAKE_MODULE_PATH={path/to/qt/5.3}/{gcc64,clang,msvc2013...}/lib/cmake/Qt5
 
 # Settings
+if(CMAKE_CROSSCOMPILING)
+  set(SCORE_NATIVE_ARCH_FLAG "")
+  set(SCORE_AVND_OPT_FLAGS "-O3;-g0")
+else()
+  set(SCORE_NATIVE_ARCH_FLAG "-march=native")
+  set(SCORE_AVND_OPT_FLAGS "-O3;-march=native;-g0")
+endif()
+
 include(ProcessorCount)
 include(GenerateStaticExport)
 

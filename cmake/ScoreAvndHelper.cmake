@@ -184,7 +184,7 @@ function(avnd_score_plugin_add)
           ${AVND_SOURCES}
           "${CMAKE_BINARY_DIR}/${AVND_TARGET}_avnd.cpp"
         PROPERTIES
-          COMPILE_OPTIONS "-O3;-march=native;-g0"
+          COMPILE_OPTIONS "${SCORE_AVND_OPT_FLAGS}"
           SKIP_PRECOMPILE_HEADERS ON
           SKIP_UNITY_BUILD_INCLUSION ON
       )
