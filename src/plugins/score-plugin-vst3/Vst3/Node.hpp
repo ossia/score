@@ -35,16 +35,16 @@ public:
   ossia::small_vector<std::pair<int32_t, Steinberg::Vst::ParamValue>, 1> data;
   Steinberg::Vst::ParamValue lastValue{};
 
-  Steinberg::tresult queryInterface(const Steinberg::TUID _iid, void** obj) override
+  Steinberg::tresult PLUGIN_API queryInterface(const Steinberg::TUID _iid, void** obj) override
   {
     return Steinberg::kResultOk;
   }
-  Steinberg::uint32 addRef() override { return 1; }
-  Steinberg::uint32 release() override { return 1; }
+  Steinberg::uint32 PLUGIN_API addRef() override { return 1; }
+  Steinberg::uint32 PLUGIN_API release() override { return 1; }
 
-  Steinberg::Vst::ParamID getParameterId() override { return id; }
-  Steinberg::int32 getPointCount() override { return data.size(); }
-  Steinberg::tresult getPoint(
+  Steinberg::Vst::ParamID PLUGIN_API getParameterId() override { return id; }
+  Steinberg::int32 PLUGIN_API getPointCount() override { return data.size(); }
+  Steinberg::tresult PLUGIN_API getPoint(
       Steinberg::int32 index, Steinberg::int32& sampleOffset,
       Steinberg::Vst::ParamValue& value) override
   {
@@ -59,7 +59,7 @@ public:
     return Steinberg::kResultOk;
   }
 
-  Steinberg::tresult addPoint(
+  Steinberg::tresult PLUGIN_API addPoint(
       Steinberg::int32 sampleOffset, Steinberg::Vst::ParamValue value,
       Steinberg::int32& index) override
   {
@@ -73,21 +73,21 @@ class param_changes final : public Steinberg::Vst::IParameterChanges
 {
 public:
   std::vector<param_queue> queues;
-  Steinberg::tresult queryInterface(const Steinberg::TUID _iid, void** obj) override
+  Steinberg::tresult PLUGIN_API queryInterface(const Steinberg::TUID _iid, void** obj) override
   {
     return Steinberg::kResultOk;
   }
-  Steinberg::uint32 addRef() override { return 1; }
-  Steinberg::uint32 release() override { return 1; }
+  Steinberg::uint32 PLUGIN_API addRef() override { return 1; }
+  Steinberg::uint32 PLUGIN_API release() override { return 1; }
 
-  Steinberg::int32 getParameterCount() override { return queues.size(); }
+  Steinberg::int32 PLUGIN_API getParameterCount() override { return queues.size(); }
 
-  param_queue* getParameterData(Steinberg::int32 index) override
+  param_queue* PLUGIN_API getParameterData(Steinberg::int32 index) override
   {
     return &queues[index];
   }
 
-  param_queue* addParameterData(
+  param_queue* PLUGIN_API addParameterData(
       const Steinberg::Vst::ParamID& id, Steinberg::int32& index /*out*/) override
   {
     index = queues.size();

@@ -33,7 +33,7 @@ struct HostApp final : public Steinberg::Vst::IHostApplication
   Steinberg::Vst::PlugInterfaceSupport m_support;
   HostApp() { }
   virtual ~HostApp() { }
-  Steinberg::tresult getName(Steinberg::Vst::String128 name) override
+  Steinberg::tresult PLUGIN_API getName(Steinberg::Vst::String128 name) override
   {
     Steinberg::String str("ossia score");
     str.copyTo16(name, 0, 127);
@@ -41,7 +41,7 @@ struct HostApp final : public Steinberg::Vst::IHostApplication
   }
 
   Steinberg::tresult
-  createInstance(Steinberg::TUID cid, Steinberg::TUID _iid, void** obj) override
+  PLUGIN_API createInstance(Steinberg::TUID cid, Steinberg::TUID _iid, void** obj) override
   {
     using namespace Steinberg;
     using namespace Steinberg::Vst;
@@ -62,7 +62,7 @@ struct HostApp final : public Steinberg::Vst::IHostApplication
     return kResultFalse;
   }
 
-  Steinberg::tresult queryInterface(const char* _iid, void** obj) override
+  Steinberg::tresult PLUGIN_API queryInterface(const char* _iid, void** obj) override
   {
     using namespace Steinberg;
     using namespace Steinberg::Vst;
@@ -76,9 +76,9 @@ struct HostApp final : public Steinberg::Vst::IHostApplication
     return kResultFalse;
   }
 
-  Steinberg::uint32 addRef() override { return 1; }
+  Steinberg::uint32 PLUGIN_API addRef() override { return 1; }
 
-  Steinberg::uint32 release() override { return 1; }
+  Steinberg::uint32 PLUGIN_API release() override { return 1; }
 };
 
 class ApplicationPlugin

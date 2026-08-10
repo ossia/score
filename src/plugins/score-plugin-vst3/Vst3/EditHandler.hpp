@@ -25,7 +25,7 @@ public:
 
   ~ComponentHandler() { }
 
-  Steinberg::tresult queryInterface(const Steinberg::TUID _iid, void** obj) override
+  Steinberg::tresult PLUGIN_API queryInterface(const Steinberg::TUID _iid, void** obj) override
   {
     using namespace Steinberg;
     if(FUID::fromTUID(_iid) == Steinberg::Vst::IComponentHandler2::iid)
@@ -36,10 +36,10 @@ public:
     *obj = nullptr;
     return kResultFalse;
   }
-  Steinberg::uint32 addRef() override { return 1; }
-  Steinberg::uint32 release() override { return 1; }
+  Steinberg::uint32 PLUGIN_API addRef() override { return 1; }
+  Steinberg::uint32 PLUGIN_API release() override { return 1; }
 
-  Steinberg::tresult beginEdit(Steinberg::Vst::ParamID id) override
+  Steinberg::tresult PLUGIN_API beginEdit(Steinberg::Vst::ParamID id) override
   {
     // TODO implement ongoingdispatcher
     if(auto ctrl = m_model.controls.find(id); ctrl == m_model.controls.end())
@@ -55,7 +55,7 @@ public:
     return Steinberg::kResultOk;
   }
 
-  Steinberg::tresult performEdit(
+  Steinberg::tresult PLUGIN_API performEdit(
       Steinberg::Vst::ParamID id, Steinberg::Vst::ParamValue valueNormalized) override
   {
     if(auto ctrl = m_model.controls.find(id); ctrl != m_model.controls.end())
@@ -65,29 +65,29 @@ public:
     return Steinberg::kResultOk;
   }
 
-  Steinberg::tresult endEdit(Steinberg::Vst::ParamID id) override
+  Steinberg::tresult PLUGIN_API endEdit(Steinberg::Vst::ParamID id) override
   {
     return Steinberg::kResultOk;
   }
 
-  Steinberg::tresult restartComponent(Steinberg::int32 flags) override
+  Steinberg::tresult PLUGIN_API restartComponent(Steinberg::int32 flags) override
   {
     return m_model.restartComponent(flags);
   }
 
-  Steinberg::tresult setDirty(Steinberg::TBool state) override
+  Steinberg::tresult PLUGIN_API setDirty(Steinberg::TBool state) override
   {
     return Steinberg::kResultOk;
   }
 
-  Steinberg::tresult requestOpenEditor(Steinberg::FIDString name) override
+  Steinberg::tresult PLUGIN_API requestOpenEditor(Steinberg::FIDString name) override
   {
     Process::setupExternalUI(m_model, score::IDocument::documentContext(m_model), true);
     return Steinberg::kResultOk;
   }
 
-  Steinberg::tresult startGroupEdit() override { return Steinberg::kResultOk; }
+  Steinberg::tresult PLUGIN_API startGroupEdit() override { return Steinberg::kResultOk; }
 
-  Steinberg::tresult finishGroupEdit() override { return Steinberg::kResultOk; }
+  Steinberg::tresult PLUGIN_API finishGroupEdit() override { return Steinberg::kResultOk; }
 };
 }
