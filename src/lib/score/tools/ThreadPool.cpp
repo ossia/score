@@ -1,6 +1,8 @@
 #include <score/application/ApplicationServices.hpp>
 #include <score/tools/ThreadPool.hpp>
 
+#include <QDebug>
+
 #include <thread>
 #if __has_include(<sys/resource.h>)
 #include <sys/resource.h>
@@ -109,7 +111,18 @@ TaskPool::TaskPool()
       {
         if(m_queue.wait_dequeue_timed(t, 100000))
         {
-          t();
+          try
+          {
+            t();
+          }
+          catch(const std::exception& e)
+          {
+            qDebug() << "TaskPool: task threw:" << e.what();
+          }
+          catch(...)
+          {
+            qDebug() << "TaskPool: task threw an unknown exception";
+          }
         }
       }
     }};
