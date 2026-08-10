@@ -122,20 +122,25 @@ struct invisible_window
     WNDCLASSEXA wc = {0};
     wc.cbSize = sizeof(WNDCLASSEX);
     wc.style = CS_VREDRAW | CS_HREDRAW;
-    wc.lpfnWndProc = [](HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) -> LRESULT {
-      switch(msg)
+    struct WndProc
+    {
+      static LRESULT CALLBACK run(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       {
-        case WM_CLOSE:
-          DestroyWindow(hwnd);
-          break;
-        case WM_DESTROY:
-          PostQuitMessage(0);
-          break;
-        default:
-          return DefWindowProc(hwnd, msg, wParam, lParam);
+        switch(msg)
+        {
+          case WM_CLOSE:
+            DestroyWindow(hwnd);
+            break;
+          case WM_DESTROY:
+            PostQuitMessage(0);
+            break;
+          default:
+            return DefWindowProc(hwnd, msg, wParam, lParam);
+        }
+        return 0;
       }
-      return 0;
     };
+    wc.lpfnWndProc = &WndProc::run;
     wc.hInstance = hInstance;
     wc.lpszClassName = "window";
     RegisterClassExA(&wc);
