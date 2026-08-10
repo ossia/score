@@ -269,6 +269,36 @@ struct IntSlider
   }
 };
 
+//! Shared inspector editor for the (start, end) controls. The graphics view has
+//! score::QGraphicsRangeSlider; this is its QWidget counterpart.
+template <typename T>
+static auto make_range_widget(
+    T& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context,
+    bool integral)
+{
+  auto sl = new score::RangeWidget{integral, parent};
+  if(integral)
+    bindIntDomain(inlet, inlet, *sl);
+  else
+    bindFloatDomain(inlet, inlet, *sl);
+  sl->setValue(ossia::convert<ossia::vec2f>(inlet.value()));
+  sl->setContentsMargins(0, 0, 0, 0);
+
+  QObject::connect(sl, &score::RangeWidget::sliderMoved, context, [sl, &inlet, &ctx] {
+    ctx.dispatcher.submit<SetControlValue<T>>(inlet, sl->value());
+  });
+  QObject::connect(sl, &score::RangeWidget::sliderReleased, context, [&ctx] {
+    ctx.dispatcher.commit();
+  });
+
+  QObject::connect(&inlet, &T::valueChanged, sl, [sl](const ossia::value& val) {
+    if(!sl->moving)
+      sl->setValue(ossia::convert<ossia::vec2f>(val));
+  });
+
+  return sl;
+}
+
 struct IntRangeSlider
 {
   static Process::PortItemLayout layout() noexcept
@@ -280,8 +310,7 @@ struct IntRangeSlider
   static auto make_widget(
       T& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
   {
-    // TODO
-    return nullptr;
+    return make_range_widget(inlet, ctx, parent, context, /* integral */ true);
   }
 
   template <typename T, typename Control_T>
@@ -332,8 +361,7 @@ struct FloatRangeSlider
   static auto make_widget(
       T& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
   {
-    // TODO
-    return nullptr;
+    return make_range_widget(inlet, ctx, parent, context, /* integral */ false);
   }
 
   template <typename T, typename Control_T>
@@ -384,8 +412,7 @@ struct FloatRangeSpinBox
   static auto make_widget(
       T& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
   {
-    SCORE_TODO;
-    return nullptr; // TODO
+    return make_range_widget(inlet, ctx, parent, context, /* integral */ false);
   }
 
   template <typename T, typename Control_T>

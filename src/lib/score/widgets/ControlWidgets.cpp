@@ -7,7 +7,9 @@
 #include <ossia/network/dataspace/gain.hpp>
 
 #include <QAction>
+#include <QDoubleSpinBox>
 #include <QGuiApplication>
+#include <QHBoxLayout>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QStyle>
@@ -17,8 +19,108 @@
 #include <cmath>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::SearchLineEdit)
+W_OBJECT_IMPL(score::RangeWidget)
 namespace score
 {
+RangeWidget::RangeWidget(bool integral, QWidget* parent)
+    : QWidget{parent}
+    , m_start{new QDoubleSpinBox{this}}
+    , m_end{new QDoubleSpinBox{this}}
+{
+  auto lay = new QHBoxLayout{this};
+  lay->setContentsMargins(0, 0, 0, 0);
+  lay->setSpacing(2);
+  lay->addWidget(m_start);
+  lay->addWidget(m_end);
+
+  for(auto* sb : {m_start, m_end})
+  {
+    sb->setDecimals(integral ? 0 : 3);
+    sb->setSingleStep(integral ? 1. : 0.01);
+    sb->setKeyboardTracking(false);
+    sb->setContentsMargins(0, 0, 0, 0);
+  }
+  m_start->setPrefix(tr("min "));
+  m_end->setPrefix(tr("max "));
+
+  connect(
+      m_start, qOverload<double>(&QDoubleSpinBox::valueChanged), this,
+      &RangeWidget::onStartEdited);
+  connect(
+      m_end, qOverload<double>(&QDoubleSpinBox::valueChanged), this,
+      &RangeWidget::onEndEdited);
+}
+
+RangeWidget::~RangeWidget() = default;
+
+void RangeWidget::setRange(double min, double max, ossia::vec2f init)
+{
+  if(max <= min)
+    max = min + 1.;
+
+  m_init = init;
+
+  // Only the bounds change here: the current value must survive a domain
+  // change, it is set separately through setValue.
+  m_updating = true;
+  m_start->setRange(min, max);
+  m_end->setRange(min, max);
+  m_updating = false;
+}
+
+void RangeWidget::setValue(ossia::vec2f value)
+{
+  const double lo = std::min(value[0], value[1]);
+  const double hi = std::max(value[0], value[1]);
+
+  m_updating = true;
+  m_start->setValue(lo);
+  m_end->setValue(hi);
+  m_updating = false;
+}
+
+ossia::vec2f RangeWidget::value() const noexcept
+{
+  return ossia::vec2f{(float)m_start->value(), (float)m_end->value()};
+}
+
+void RangeWidget::onStartEdited()
+{
+  if(m_updating)
+    return;
+
+  // Keep the pair ordered by pushing the other bound out of the way
+  if(m_start->value() > m_end->value())
+  {
+    m_updating = true;
+    m_end->setValue(m_start->value());
+    m_updating = false;
+  }
+
+  moving = true;
+  sliderMoved();
+  moving = false;
+  sliderReleased();
+}
+
+void RangeWidget::onEndEdited()
+{
+  if(m_updating)
+    return;
+
+  if(m_end->value() < m_start->value())
+  {
+    m_updating = true;
+    m_start->setValue(m_end->value());
+    m_updating = false;
+  }
+
+  moving = true;
+  sliderMoved();
+  moving = false;
+  sliderReleased();
+}
+
 SearchLineEdit::SearchLineEdit(QWidget* parent)
     : QLineEdit{parent}
 {
