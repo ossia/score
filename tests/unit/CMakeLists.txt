@@ -141,6 +141,12 @@ target_include_directories(test_unit_avnd_midi_envelope SYSTEM PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
 
+score_add_test(test_unit_avnd_midi_humanizer
+  SOURCES AvndMidiHumanizerTest.cpp)
+target_include_directories(test_unit_avnd_midi_humanizer SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
 if(TARGET score_plugin_fx)
   score_add_test(test_unit_fx_audio_dsp
     SOURCES FxAudioDspTest.cpp
