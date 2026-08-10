@@ -14,7 +14,7 @@ $SUDO apt-get install -y --no-install-recommends \
 
 # The wasm SDK built by ossia/sdk CI (Qt 6.12, emsdk 5.0.5, ffmpeg 8.1).
 export SDK_ARCHIVE=sdk-wasm.tar.xz
-wget -nv https://github.com/ossia/sdk/releases/download/sdk37/$SDK_ARCHIVE -O $SDK_ARCHIVE
+wget -nv https://github.com/ossia/sdk/releases/download/sdk38/$SDK_ARCHIVE -O $SDK_ARCHIVE
 
 $SUDO mkdir -p /opt/ossia-sdk-wasm
 $SUDO chown -R "$(whoami)" /opt/ossia-sdk-wasm
