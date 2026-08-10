@@ -54,8 +54,17 @@ struct SCORE_PLUGIN_DATAFLOW_EXPORT CurveInlet : public Process::ControlInlet
   CurveInlet(JSONObject::Deserializer&& vis, QObject* parent);
 
   void init();
+
+  //! Curve editor -> port value
   void on_curveChange();
+  //! Port value -> curve editor, so that presets and any other external write
+  //! to the control actually show up in the editor.
+  void on_valueChange(const ossia::value& v);
 
   Curve::Model* m_curve{};
+
+  //! Guards the two directions against each other: rebuilding the model emits
+  //! changed(), which would otherwise immediately serialize it back.
+  bool m_syncing{};
 };
 }
