@@ -6,6 +6,7 @@
 
 #include <JS/Qml/EditContext.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/tools/std/StringHash.hpp>
 #include <score/widgets/DoubleSlider.hpp>
 
