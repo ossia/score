@@ -882,6 +882,11 @@ add_executable(EncoderTester tests/EncoderTester.cpp)
 target_link_libraries(EncoderTester PRIVATE
   score_plugin_gfx score_plugin_media ${QT_PREFIX}::Gui)
 
+# App-free unit tests: no display, no GPU, runnable everywhere.
+if(SCORE_TESTING)
+  add_subdirectory(Tests)
+endif()
+
 # Register the self-test as a ctest when the test suite is enabled. It needs
 # a GL-capable display (llvmpipe is fine): label it "gui" like the other
 # display-dependent tests so it can be excluded with `ctest -LE gui`.
