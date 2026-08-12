@@ -843,7 +843,9 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   if(SCORE_LIBDRM_FOUND)
     target_sources(score_plugin_gfx PRIVATE
       "${CMAKE_CURRENT_SOURCE_DIR}/Gfx/Graph/interop/DrmKmsDevice.cpp"
-      "${CMAKE_CURRENT_SOURCE_DIR}/Gfx/Graph/interop/DrmKmsDevice.hpp")
+      "${CMAKE_CURRENT_SOURCE_DIR}/Gfx/Graph/interop/DrmKmsDevice.hpp"
+      "${CMAKE_CURRENT_SOURCE_DIR}/Gfx/Graph/KmsOutputNode.cpp"
+      "${CMAKE_CURRENT_SOURCE_DIR}/Gfx/Graph/KmsOutputNode.hpp")
     # Headers only: libdrm is dlopen'd at runtime (DrmFunctions.hpp), so a
     # machine without it still builds and simply reports the rung unavailable.
     target_include_directories(score_plugin_gfx PUBLIC ${SCORE_LIBDRM_INCLUDE_DIRS})
