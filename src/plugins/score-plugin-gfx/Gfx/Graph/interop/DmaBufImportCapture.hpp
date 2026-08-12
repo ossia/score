@@ -646,6 +646,17 @@ struct DmaBufImportCapture final : VideoCaptureStrategy
       m_returns.fetch_or(freed, std::memory_order_release);
   }
 
+  bool supportsSlotSelection() const noexcept override { return true; }
+
+  bool acquireSlotForRender(
+      std::size_t slot, QRhiResourceUpdateBatch&, QRhiCommandBuffer*) override
+  {
+    if(slot >= m_slots.size())
+      return false;
+    m_held = int(slot);
+    return bindSlot(slot);
+  }
+
   void releaseAfterRender() override { }
 
 private:
