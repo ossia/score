@@ -121,6 +121,28 @@ struct VideoCaptureStrategy
   /// render thread, after acquireForRender().
   virtual QRhiTexture* currentTexture() const noexcept { return outputTexture(); }
 
+  /// How many plane textures this strategy hands the renderer.
+  ///
+  /// Strategies that upload into the decoder's own textures leave this at 1:
+  /// they do not replace anything, so the count is irrelevant to them. It is
+  /// the strategies that supply their *own* renderer-facing textures which
+  /// need it, because a planar layout then means one imported texture per
+  /// plane (NV12: R8 luma + RG8 chroma at half height) rather than one.
+  virtual std::size_t outputPlaneCount() const noexcept { return 1; }
+
+  /// Plane `i` of the renderer-facing output, plane 0 first. Plane 0 is
+  /// always outputTexture(); a single-texture strategy has nothing beyond it.
+  virtual QRhiTexture* outputPlane(std::size_t i) const noexcept
+  {
+    return i == 0 ? outputTexture() : nullptr;
+  }
+
+  /// Freshest completed plane `i`, the per-plane twin of currentTexture().
+  virtual QRhiTexture* currentPlane(std::size_t i) const noexcept
+  {
+    return i == 0 ? currentTexture() : outputPlane(i);
+  }
+
   /// Render-thread bracket around sampling outputTexture(). DVP impls
   /// use this to handshake with the vendor's API/DVP semaphore; RDMA
   /// impls use it to copy buffer → texture on the render thread.
