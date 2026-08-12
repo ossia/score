@@ -48,6 +48,7 @@ namespace interop
 {
 struct VideoCaptureStrategy;
 struct VideoCaptureSlotRing;
+class CaptureSyncGroup;
 }
 
 /**
@@ -125,6 +126,19 @@ struct SCORE_PLUGIN_GFX_EXPORT DMACaptureBackend
   /// Start / stop the capture thread that feeds the slot ring.
   virtual void start() = 0;
   virtual void stop() = 0;
+
+  /// A backend whose device drives several sensors from one capture returns the
+  /// group they all share, plus this stream's index in it. The renderer then
+  /// binds the slot the group chooses rather than whatever this stream published
+  /// last, which is what keeps the sensors on the same frame.
+  ///
+  /// Returning no group leaves the single-stream path exactly as it was.
+  struct SyncMembership
+  {
+    interop::CaptureSyncGroup* group{};
+    std::size_t member{0};
+  };
+  virtual SyncMembership syncGroup() noexcept { return {}; }
 };
 
 /**
