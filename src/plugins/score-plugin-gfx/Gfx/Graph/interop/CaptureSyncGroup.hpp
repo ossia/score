@@ -87,6 +87,16 @@ struct CaptureFrameSet
   }
 };
 
+/// A ring entry: the payload plus the version that guards it. `seq` is 0 while
+/// the producer is rewriting the entry and equals the generation once the
+/// payload is whole, so a reader can tell a complete set from one it caught
+/// mid-write.
+struct CaptureRingEntry
+{
+  std::atomic<std::uint64_t> seq{0};
+  CaptureFrameSet set{};
+};
+
 class CaptureSyncGroup
 {
 public:
@@ -110,29 +120,45 @@ public:
   void publish(const int* slots, const std::uint64_t* stampNs) noexcept
   {
     const auto gen = m_generation.load(std::memory_order_relaxed) + 1;
-    auto& set = m_ring[gen % kDepth];
+    auto& e = m_ring[gen % kDepth];
 
-    set.generation = gen;
-    set.memberCount = m_members;
+    // Retire the version before touching the payload: a reader that catches the
+    // entry mid-write then sees a version it cannot match and retries, instead
+    // of assembling one member from this capture and another from the last.
+    e.seq.store(0, std::memory_order_relaxed);
+    std::atomic_thread_fence(std::memory_order_release);
+
+    e.set.generation = gen;
+    e.set.memberCount = m_members;
     for(std::size_t i = 0; i < m_members; ++i)
     {
-      set.slot[i] = slots[i];
-      set.stampNs[i] = stampNs ? stampNs[i] : 0;
+      // takeReturned() hands slots back in a 32-bit mask, so a slot it cannot
+      // name is a slot the producer would never get back. Drop the capture
+      // rather than lend a buffer that can only leak.
+      e.set.slot[i] = slots[i] < int(kMaxReturnableSlot) ? slots[i] : -1;
+      e.set.stampNs[i] = stampNs ? stampNs[i] : 0;
     }
 
-    if(set.complete())
+    e.seq.store(gen, std::memory_order_release);
+
+    const bool complete = e.set.complete();
+    if(complete)
     {
-      const auto sk = set.skewNs();
+      const auto sk = e.set.skewNs();
       if(sk > m_maxSkewNs.load(std::memory_order_relaxed))
         m_maxSkewNs.store(sk, std::memory_order_relaxed);
-      m_newestComplete.store(gen, std::memory_order_release);
     }
     else
     {
       m_incomplete.fetch_add(1, std::memory_order_relaxed);
     }
 
+    // m_generation first: take() derives the lap distance as
+    // m_generation - m_newestComplete, so publishing the complete marker ahead
+    // of the generation lets that subtraction wrap and condemn a fresh set.
     m_generation.store(gen, std::memory_order_release);
+    if(complete)
+      m_newestComplete.store(gen, std::memory_order_release);
   }
 
   struct Latched
@@ -172,30 +198,38 @@ public:
       {
         m_pinnedGen = gen;
       }
+      // Copy the whole capture out of the ring here, once. Re-reading it per
+      // member would let a lap between two members answer one from the new
+      // capture and the other from the old -- the split this class exists to
+      // make unrepresentable.
+      if(m_pinnedGen != 0 && !snapshotPinned())
+      {
+        m_lapped.fetch_add(1, std::memory_order_relaxed);
+        m_pinnedGen = 0;
+      }
+
       m_pinnedIsNew = m_pinnedGen != 0 && m_pinnedGen != m_lastHandedOut;
       if(m_pinnedIsNew)
       {
-        retirePinned();
+        queueRetire();
         m_lastHandedOut = m_pinnedGen;
+        for(std::size_t i = 0; i < m_members; ++i)
+          m_handedOutSlots[i] = m_pinnedSet.slot[i];
       }
+      // Age the queue on every pass. Tying this to a fresh capture deadlocks:
+      // ageing needs a new capture, a new capture needs a free slot, and slots
+      // only come free by ageing. A producer whose ring is no deeper than the
+      // retire depth never escapes that loop.
+      ageRetired();
     }
 
     if(m_pinnedGen == 0)
       return {};
 
-    const auto& set = m_ring[m_pinnedGen % kDepth];
-    // The producer may have lapped us between the pin and this read.
-    if(set.generation != m_pinnedGen)
-    {
-      m_lapped.fetch_add(1, std::memory_order_relaxed);
-      m_pinnedGen = 0;
-      return {};
-    }
-
     Latched out;
-    out.slot = set.slot[member];
-    out.generation = set.generation;
-    out.stampNs = set.stampNs[member];
+    out.slot = m_pinnedSet.slot[member];
+    out.generation = m_pinnedSet.generation;
+    out.stampNs = m_pinnedSet.stampNs[member];
     out.fresh = m_pinnedIsNew;
     return out;
   }
@@ -238,16 +272,58 @@ public:
   }
 
 private:
+  /// takeReturned()'s mask width. A slot index at or above this cannot be
+  /// handed back, so publish() refuses it.
+  static constexpr std::size_t kMaxReturnableSlot = 32;
+
+  static constexpr std::size_t kRetireMax = 8;
+  struct Retired
+  {
+    std::uint64_t gen{};
+    std::uint64_t at{};
+    int slot[CaptureFrameSet::kMaxMembers]{};
+  };
+
+  /// Render thread. Take a coherent copy of the pinned ring entry, or fail if
+  /// the producer overwrote it while we were reading.
+  bool snapshotPinned() noexcept
+  {
+    const auto& e = m_ring[m_pinnedGen % kDepth];
+    if(e.seq.load(std::memory_order_acquire) != m_pinnedGen)
+      return false;
+    m_pinnedSet = e.set;
+    std::atomic_thread_fence(std::memory_order_acquire);
+    return e.seq.load(std::memory_order_acquire) == m_pinnedGen;
+  }
+
   /// Render thread. The capture we were holding is no longer bound, but the GPU
   /// may still be reading it: queue it, and release whatever has aged past
   /// retireDepth acquisitions. Acquisitions are counted rather than QRhi frames,
   /// and there is at most one per frame, so the count is conservative.
-  void retirePinned() noexcept
+  void queueRetire() noexcept
+  {
+    if(m_lastHandedOut == 0)
+      return;
+    if(m_retireN == kRetireMax)
+    {
+      // Full: release the oldest rather than drop it. Dropping strands its
+      // slots with the renderer forever; the oldest is also the one most
+      // likely to be past the GPU already.
+      releaseSlotsOf(m_retire[0]);
+      for(std::size_t i = 1; i < m_retireN; ++i)
+        m_retire[i - 1] = m_retire[i];
+      --m_retireN;
+    }
+    auto& r = m_retire[m_retireN++];
+    r.gen = m_lastHandedOut;
+    r.at = m_acquisitions + 1;
+    for(std::size_t m = 0; m < m_members; ++m)
+      r.slot[m] = m_handedOutSlots[m];
+  }
+
+  void ageRetired() noexcept
   {
     ++m_acquisitions;
-    if(m_lastHandedOut != 0 && m_retireN < kRetireMax)
-      m_retire[m_retireN++] = Retired{m_lastHandedOut, m_acquisitions};
-
     std::size_t keep = 0;
     for(std::size_t i = 0; i < m_retireN; ++i)
     {
@@ -256,29 +332,25 @@ private:
         m_retire[keep++] = m_retire[i];
         continue;
       }
-      const auto& old = m_ring[m_retire[i].gen % kDepth];
-      // Only if that ring entry is still the capture we retired -- otherwise the
-      // producer has lapped us and those slots were already recycled.
-      if(old.generation != m_retire[i].gen)
-        continue;
-      for(std::size_t m = 0; m < m_members; ++m)
-        if(old.slot[m] >= 0 && old.slot[m] < 32)
-          m_returns[m].fetch_or(
-              1u << unsigned(old.slot[m]), std::memory_order_release);
+      releaseSlotsOf(m_retire[i]);
     }
     m_retireN = keep;
   }
 
-  static constexpr std::size_t kRetireMax = 8;
-  struct Retired
+  void releaseSlotsOf(const Retired& r) noexcept
   {
-    std::uint64_t gen{};
-    std::uint64_t at{};
-  };
+    // The slots come from the record, not from the ring: a lapped entry no
+    // longer describes the capture we handed out, and its slots are still on
+    // loan to the renderer until we return them here.
+    for(std::size_t m = 0; m < m_members; ++m)
+      if(r.slot[m] >= 0 && r.slot[m] < int(kMaxReturnableSlot))
+        m_returns[m].fetch_or(1u << unsigned(r.slot[m]), std::memory_order_release);
+  }
+
 
   const std::size_t m_members;
 
-  CaptureFrameSet m_ring[kDepth]{};
+  CaptureRingEntry m_ring[kDepth]{};
   std::atomic<std::uint64_t> m_generation{0};
   std::atomic<std::uint64_t> m_newestComplete{0};
 
@@ -297,6 +369,8 @@ private:
   std::uint64_t m_pinnedGen{0};
   std::uint64_t m_lastHandedOut{0};
   bool m_pinnedIsNew{false};
+  CaptureFrameSet m_pinnedSet{};
+  int m_handedOutSlots[CaptureFrameSet::kMaxMembers]{};
 };
 
 }
