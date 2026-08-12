@@ -210,12 +210,20 @@ public:
     // swap it into the decoder's sampler so the pass samples it. The strategy
     // owns that texture (frees it in release()); release() below detaches it
     // from the decoder to avoid a double-free.
-    if(auto* st = m_strategy->outputTexture();
-       st && st != m_gpu->samplers[0].texture)
+    // A planar zero-copy import supplies one texture per plane, so walk them:
+    // swapping only plane 0 would leave the decoder's chroma sampler pointing
+    // at an empty texture while the rung still reported itself engaged.
+    const auto planes
+        = std::min(m_strategy->outputPlaneCount(), m_gpu->samplers.size());
+    for(std::size_t pi = 0; pi < planes; ++pi)
     {
-      delete m_gpu->samplers[0].texture; // decoder's original input texture
-      m_gpu->samplers[0].texture = st;
-      m_strategyOwnsTexture = true;
+      if(auto* st = m_strategy->outputPlane(pi);
+         st && st != m_gpu->samplers[pi].texture)
+      {
+        delete m_gpu->samplers[pi].texture; // decoder's original input texture
+        m_gpu->samplers[pi].texture = st;
+        m_strategyOwnsTexture = true;
+      }
     }
     // Baseline for the per-frame rebind below: the texture the passes are about
     // to be built against. A double-buffering strategy will swap to a different
@@ -349,14 +357,20 @@ public:
       // is constant, so cur == m_currentTex every frame.
       if(m_gpu && !m_gpu->samplers.empty())
       {
-        if(auto* cur = m_strategy->currentTexture(); cur && cur != m_currentTex)
+        const auto planes
+            = std::min(m_strategy->outputPlaneCount(), m_gpu->samplers.size());
+        for(std::size_t pi = 0; pi < planes; ++pi)
         {
-          QRhiSampler* s = m_gpu->samplers[0].sampler;
+          auto* cur = m_strategy->currentPlane(pi);
+          if(!cur || cur == m_gpu->samplers[pi].texture)
+            continue;
+          QRhiSampler* s = m_gpu->samplers[pi].sampler;
           for(auto& pass : m_p)
             if(pass.second.p.srb)
               score::gfx::replaceTexture(*pass.second.p.srb, s, cur);
-          m_gpu->samplers[0].texture = cur;
-          m_currentTex = cur;
+          m_gpu->samplers[pi].texture = cur;
+          if(pi == 0)
+            m_currentTex = cur;
         }
       }
     }
@@ -423,8 +437,18 @@ public:
     // doesn't free a texture the strategy also frees. For every other strategy
     // outputTexture() IS the decoder's own texture — detaching would leak it,
     // since GPUVideoDecoder::release() is what deletes it.
+    // Detach every plane the strategy swapped in, not just plane 0: a planar
+    // import owns one texture per plane and would otherwise be double-freed.
     if(m_strategyOwnsTexture && m_gpu && !m_gpu->samplers.empty())
-      m_gpu->samplers[0].texture = nullptr;
+    {
+      const auto planes = m_strategy
+                              ? std::min(
+                                    m_strategy->outputPlaneCount(),
+                                    m_gpu->samplers.size())
+                              : std::size_t(1);
+      for(std::size_t pi = 0; pi < planes; ++pi)
+        m_gpu->samplers[pi].texture = nullptr;
+    }
     m_strategyOwnsTexture = false;
     if(m_strategy && m_renderHoldsTexture)
     {
