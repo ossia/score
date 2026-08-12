@@ -1,5 +1,7 @@
 #include "DMACaptureInputNode.hpp"
 
+#include <Gfx/Graph/interop/CaptureSyncGroup.hpp>
+
 #include <cstdio>
 
 #include <Gfx/Graph/NodeRenderer.hpp>
@@ -189,6 +191,28 @@ public:
       m_backend->setStrategy(nullptr);
     }
 
+    // A multi-sensor backend can only be grouped if the engaged rung can bind a
+    // caller-chosen slot. If it cannot, stay on the unsynchronised path rather
+    // than mis-bind: a wrong frame is worse than an unsynchronised one, because
+    // it looks correct.
+    if(m_strategy)
+    {
+      if(const auto mem = m_backend->syncGroup();
+         mem.group && m_strategy->supportsSlotSelection())
+      {
+        m_syncGroup = mem.group;
+        m_syncMember = mem.member;
+        m_syncGroup->setRetireDepth(
+            static_cast<std::size_t>(rhi.resourceLimit(QRhi::FramesInFlight)) + 1u);
+      }
+      else if(mem.group)
+      {
+        qWarning() << "DMA capture: rung" << m_strategy->name()
+                   << "cannot bind a chosen slot; this stream will run "
+                      "unsynchronised with the rest of the rig";
+      }
+    }
+
     if(!m_strategy)
     {
       // Universal CPU-staging fallback (works on every backend).
@@ -321,6 +345,31 @@ public:
     // Null outside a frame; only the Vulkan host-import upload needs it, every
     // other strategy ignores it.
     QRhiCommandBuffer* const cb = renderer.currentCommandBuffer();
+
+    // Multi-sensor capture: the group decides which slot this stream binds, so
+    // that every stream in the rig binds frames from the same capture. Pinned per
+    // render pass by RenderList::frame -- members are updated sequentially, and
+    // without a pin a capture published between two of them would split them.
+    if(m_syncGroup)
+    {
+      const auto l = m_syncGroup->take(m_syncMember, renderer.frame);
+      this->node.setCapturedFrameCount(l.generation);
+      if(l.fresh && l.slot >= 0)
+      {
+        if(m_renderHoldsTexture)
+        {
+          m_strategy->releaseAfterRender();
+          m_renderHoldsTexture = false;
+        }
+        if(m_strategy->acquireSlotForRender(std::size_t(l.slot), res, cb))
+        {
+          m_renderHoldsTexture = true;
+          rebindPlanes();
+        }
+      }
+      return;
+    }
+
     const uint64_t latest = m_ring.latestFrameId.load(std::memory_order_acquire);
     this->node.setCapturedFrameCount(latest);
     if(latest != m_lastIngestedFrameId)
@@ -349,30 +398,34 @@ public:
       m_lastIngestedFrameId = latest;
       m_renderHoldsTexture = true;
 
-      // Double-buffered strategies (the Vulkan zero-copy path) publish a fresh sampled
-      // texture per frame so the capture-thread write and the render-thread
-      // sample never touch the same VkImage. When the current texture changes,
-      // rebind every pass's SRB to it (updateResources only — no pipeline
-      // rebuild). No-op for single-texture strategies: their currentTexture()
-      // is constant, so cur == m_currentTex every frame.
-      if(m_gpu && !m_gpu->samplers.empty())
-      {
-        const auto planes
-            = std::min(m_strategy->outputPlaneCount(), m_gpu->samplers.size());
-        for(std::size_t pi = 0; pi < planes; ++pi)
-        {
-          auto* cur = m_strategy->currentPlane(pi);
-          if(!cur || cur == m_gpu->samplers[pi].texture)
-            continue;
-          QRhiSampler* s = m_gpu->samplers[pi].sampler;
-          for(auto& pass : m_p)
-            if(pass.second.p.srb)
-              score::gfx::replaceTexture(*pass.second.p.srb, s, cur);
-          m_gpu->samplers[pi].texture = cur;
-          if(pi == 0)
-            m_currentTex = cur;
-        }
-      }
+      rebindPlanes();
+    }
+  }
+
+  /// Double-buffered strategies (the Vulkan zero-copy path) publish a fresh
+  /// sampled texture per frame so the capture-thread write and the render-thread
+  /// sample never touch the same VkImage. When the current texture changes,
+  /// rebind every pass's SRB to it (updateResources only — no pipeline rebuild).
+  /// No-op for single-texture strategies: their currentTexture() is constant, so
+  /// cur == m_currentTex every frame.
+  void rebindPlanes()
+  {
+    if(!m_gpu || m_gpu->samplers.empty())
+      return;
+    const auto planes
+        = std::min(m_strategy->outputPlaneCount(), m_gpu->samplers.size());
+    for(std::size_t pi = 0; pi < planes; ++pi)
+    {
+      auto* cur = m_strategy->currentPlane(pi);
+      if(!cur || cur == m_gpu->samplers[pi].texture)
+        continue;
+      QRhiSampler* s = m_gpu->samplers[pi].sampler;
+      for(auto& pass : m_p)
+        if(pass.second.p.srb)
+          score::gfx::replaceTexture(*pass.second.p.srb, s, cur);
+      m_gpu->samplers[pi].texture = cur;
+      if(pi == 0)
+        m_currentTex = cur;
     }
   }
 
@@ -489,6 +542,12 @@ private:
   const DMACaptureInputNode& node;
   QRhi::Implementation m_backendKind{QRhi::Null};
   score::gfx::interop::GpuCapabilities m_caps{};
+
+  /// Set when this stream belongs to a multi-sensor capture; then the group,
+  /// not m_ring, decides which slot to bind. Null for a single-stream device,
+  /// which keeps the unsynchronised path byte-for-byte unchanged.
+  score::gfx::interop::CaptureSyncGroup* m_syncGroup{};
+  std::size_t m_syncMember{0};
 
   std::unique_ptr<DMACaptureBackend> m_backend;
   std::unique_ptr<score::gfx::interop::VideoCaptureStrategy> m_strategy;
