@@ -1061,8 +1061,12 @@ avnd_make_score(
   NAMESPACE ao
 )
 
-# Too much binary size
-if(NOT EMSCRIPTEN AND NOT CXX_IS_GCC)
+# Too much binary size for wasm. On GCC these land on the boost.pfr fallback,
+# whose instantiation exhausts the compiler's memory; GCC only leaves that
+# fallback with P1061 packs, which need g++ >= 16 in C++26 mode.
+if(NOT EMSCRIPTEN AND NOT (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
+                           AND (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 16
+                                OR NOT CXX_VERSION_FLAG STREQUAL "cxx_std_26")))
 avnd_make_score(
   SOURCES
     "${AVND_FOLDER}/examples/Advanced/Kabang/Kabang.hpp"
