@@ -125,6 +125,17 @@ struct SCORE_PLUGIN_GFX_EXPORT DMACaptureBackend
   /// Start / stop the capture thread that feeds the slot ring.
   virtual void start() = 0;
   virtual void stop() = 0;
+
+  /// True when makeDecoder() returned a decoder only the whole-frame external
+  /// image can feed. The decoder has to be chosen before the ladder runs, so
+  /// this is how the node learns that the choice it already made depends on a
+  /// rung that may yet decline -- in which case the decoder is remade rather
+  /// than left sampling a texture nothing uploads to.
+  virtual bool decoderNeedsExternalImage() const noexcept { return false; }
+
+  /// Stop asking for the external form: the next makeDecoder() must return one
+  /// the staged rungs can feed. Called only when that rung actually declined.
+  virtual void dropExternalImageRequest() noexcept { }
 };
 
 /**

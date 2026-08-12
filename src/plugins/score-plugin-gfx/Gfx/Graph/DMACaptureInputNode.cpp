@@ -133,9 +133,7 @@ public:
       m_backend.reset();
       return;
     }
-    auto shaders = m_gpu->init(renderer);
-    m_vertexS = shaders.first;
-    m_fragmentS = shaders.second;
+    std::tie(m_vertexS, m_fragmentS) = m_gpu->init(renderer);
     SCORE_ASSERT(!m_gpu->samplers.empty());
 
     // Strategy init must precede defaultPassesInit: a zero-copy strategy may
@@ -191,6 +189,39 @@ public:
 
     if(!m_strategy)
     {
+      // The decoder is chosen before the ladder runs, so a backend that asked
+      // for the whole-frame external image already has a decoder only that
+      // rung can feed. If the rung declined, that decoder would sample a
+      // texture nothing ever uploads to -- a black frame from a path
+      // reporting itself engaged. Remake it for the staged rungs instead.
+      if(m_backend->decoderNeedsExternalImage())
+      {
+        qWarning() << "DMA capture: the external-image rung declined; rebuilding"
+                      " the decoder for host-staged upload";
+        m_backend->dropExternalImageRequest();
+
+        m_gpu.reset();
+        static_cast<Video::ImageFormat&>(m_metadata) = m_backend->imageFormat();
+        m_gpu = m_backend->makeDecoder(m_metadata);
+        if(!m_gpu)
+        {
+          qWarning() << "DMA capture: no host-staged decoder either; falling back";
+          m_backend.reset();
+          return;
+        }
+        auto reshaders = m_gpu->init(renderer);
+        m_vertexS = reshaders.first;
+        m_fragmentS = reshaders.second;
+        SCORE_ASSERT(!m_gpu->samplers.empty());
+
+        // The config points at the decoder's textures, so it has to be rebuilt
+        // around the new ones.
+        icfg.outputTexture = m_gpu->samplers[0].texture;
+        icfg.planes.clear();
+        for(auto& smp : m_gpu->samplers)
+          icfg.planes.push_back(smp.texture);
+      }
+
       // Universal CPU-staging fallback (works on every backend).
       m_strategy = m_backend->makeCpuStrategy();
       if(m_strategy)
@@ -233,7 +264,7 @@ public:
 
     score::gfx::defaultPassesInit(
         m_p, this->node.output[0]->edges, renderer, renderer.defaultQuad(),
-        shaders.first, shaders.second, m_processUBO, m_materialUBO,
+        m_vertexS, m_fragmentS, m_processUBO, m_materialUBO,
         m_gpu->samplers);
 
     // Material UBO holds the OUTPUT (consumer-visible) texture size, always the
