@@ -111,6 +111,10 @@ KmsOutputNode::KmsOutputNode(KmsOutputSettings settings)
     : d{std::make_unique<Impl>()}
 {
   d->set = std::move(settings);
+  // The image input the graph renders into. A sink without it is a node nothing
+  // can be connected to, and the first thing that touches input[0] walks off the
+  // end of an empty vector.
+  input.push_back(new Port{this, {}, Types::Image, {}});
 }
 
 KmsOutputNode::~KmsOutputNode()
