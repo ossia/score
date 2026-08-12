@@ -48,6 +48,7 @@ namespace interop
 {
 struct VideoCaptureStrategy;
 struct VideoCaptureSlotRing;
+class CaptureSyncGroup;
 }
 
 /**
@@ -136,6 +137,31 @@ struct SCORE_PLUGIN_GFX_EXPORT DMACaptureBackend
   /// Stop asking for the external form: the next makeDecoder() must return one
   /// the staged rungs can feed. Called only when that rung actually declined.
   virtual void dropExternalImageRequest() noexcept { }
+
+  /// A backend whose device drives several sensors from one capture returns the
+  /// group they all share, plus this stream's index in it. The renderer then
+  /// binds the slot the group chooses rather than whatever this stream published
+  /// last, which is what keeps the sensors on the same frame.
+  ///
+  /// Returning no group leaves the single-stream path exactly as it was.
+  struct SyncMembership
+  {
+    interop::CaptureSyncGroup* group{};
+    std::size_t member{0};
+  };
+  virtual SyncMembership syncGroup() noexcept { return {}; }
+
+
+  /// The renderer's answer to syncGroup(): whether it is actually taking this
+  /// stream's slots from the group.
+  ///
+  /// It may decline -- a rung that cannot bind a caller-chosen slot leaves the
+  /// stream on the unsynchronised path -- and the backend cannot see that from
+  /// its side. It has to know, because the two paths disagree about who owns a
+  /// slot: ungrouped, the strategy's publisher decides when a slot may go back
+  /// to the device; grouped, the group does, and a backend still asking the
+  /// publisher hands back the very frame the group has just bound.
+  virtual void setSyncGroupEngaged(bool) noexcept { }
 };
 
 /**
