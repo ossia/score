@@ -876,6 +876,13 @@ endif()
 # In static-plugin builds score_init_static_plugins() references every
 # configured plugin, so the top-level CMakeLists completes the link with
 # SCORE_PLUGINS_LIST once all plugins have been declared.
+# App-free unit tests: no display, no GPU, runnable everywhere. Deliberately
+# outside the encoder-tester option: turning that off must not take the unit
+# tests with it.
+if(SCORE_TESTING)
+  add_subdirectory(Tests)
+endif()
+
 # EncoderTester needs a GPU and an RHI, so it can never run in the wasm job,
 # and it is a bare add_executable that never goes through
 # setup_score_common_features() -- which is where emscripten's --bind is added.
