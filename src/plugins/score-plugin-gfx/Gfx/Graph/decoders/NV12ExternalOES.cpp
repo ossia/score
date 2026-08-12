@@ -11,15 +11,37 @@ namespace score::gfx
 bool nv12ExternalOesUsable(QRhi::Implementation backend) noexcept
 {
   if(backend != QRhi::OpenGLES2)
+  {
+    qDebug() << "NV12-OES: not a GL backend (" << int(backend) << ")";
     return false;
+  }
   auto* ctx = QOpenGLContext::currentContext();
   if(!ctx)
+  {
+    qDebug() << "NV12-OES: no current GL context at probe time";
     return false;
+  }
   // essl3 is the variant that works with #version 300 es shaders; the older
   // extension only covers ESSL1. Accept either name, since drivers differ in
   // which they advertise even when both work.
-  return ctx->hasExtension("GL_OES_EGL_image_external_essl3")
-         || ctx->hasExtension("GL_OES_EGL_image_external");
+  const bool essl3 = ctx->hasExtension("GL_OES_EGL_image_external_essl3");
+  const bool base = ctx->hasExtension("GL_OES_EGL_image_external");
+  if(!essl3 && !base)
+  {
+    // Say what IS advertised. A silent "unsupported" on a driver that plainly
+    // implements this is the kind of answer that gets believed and wastes a
+    // day; the list settles it in one run.
+    QByteArrayList found;
+    for(const auto& e : ctx->extensions())
+      if(e.contains("image_external") || e.contains("EGL_image"))
+        found.push_back(e);
+    qDebug() << "NV12-OES: neither external-image extension advertised;"
+             << "related extensions present:" << found;
+    return false;
+  }
+  qDebug() << "NV12-OES: external image available (essl3=" << essl3
+           << "base=" << base << ")";
+  return true;
 }
 
 namespace
