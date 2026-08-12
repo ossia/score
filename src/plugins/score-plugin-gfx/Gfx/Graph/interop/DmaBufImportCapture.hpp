@@ -27,13 +27,21 @@
  * RGBA8 texture of half the width), so importing at exactly that size and
  * format reinterprets the same bytes the CPU rung would have uploaded.
  *
- * Planar layouts (NV12 and friends) import one texture per plane. The split
- * comes from the decoder's own plane textures, exactly as CpuStagedCapture
- * derives it -- each plane's byte size is its texture geometry times its texel
- * size, offsets accumulating in order -- so the two rungs cannot disagree about
- * where chroma begins, and a new planar decoder needs no change here. The
- * derivation assumes tightly-packed rows; a producer with a padded pitch is
- * refused rather than rendered wrong.
+ * Planar layouts (NV12 and friends) import one texture per plane. Where each
+ * plane starts comes from one of two places:
+ *
+ *   - the producer, when it states a layout in DmaBufSlotDesc::planes. Used
+ *     verbatim. Real allocators do things a derivation cannot express --
+ *     NvBufSurface aligns every plane offset to 64 KB even with row padding
+ *     disabled -- so a producer that knows should say.
+ *   - otherwise derived from the decoder's own plane textures, exactly as
+ *     CpuStagedCapture derives it: each plane's byte size is its texture
+ *     geometry times its texel size, offsets accumulating in order. That keeps
+ *     the two rungs agreeing about where chroma begins for a V4L2-style
+ *     producer, and a new planar decoder needs no change here.
+ *
+ * The derivation assumes tightly-packed rows, so a producer that neither states
+ * its layout nor packs tightly is refused rather than rendered wrong.
  *
  * BORROWED-BUFFER LIFETIME (the contract the producer must honour)
  * ---------------------------------------------------------------
@@ -98,6 +106,13 @@
 namespace score::gfx::interop
 {
 
+/// Where one plane starts inside a producer buffer.
+struct DmaBufPlaneLayout
+{
+  std::uint32_t offset{};
+  std::uint32_t pitch{};
+};
+
 /// One producer buffer, fixed for the lifetime of the stream.
 struct DmaBufSlotDesc
 {
@@ -105,6 +120,18 @@ struct DmaBufSlotDesc
   std::uint64_t modifier{}; ///< DRM_FORMAT_MOD_*; 0 == LINEAR
   std::uint32_t offset{};
   std::uint32_t pitch{}; ///< bytes per row, as the producer lays them out
+
+  /// Explicit plane layout, for producers that know it.
+  ///
+  /// `planeCount == 0` means "derive it", which is right for a V4L2-style
+  /// producer that hands out one tightly-packed buffer and nothing else. But a
+  /// derivation cannot express what a real allocator does: NvBufSurface aligns
+  /// each plane's *offset* to 64 KB even when row padding is disabled, so a
+  /// derived chroma offset points at the wrong address and the rung has to
+  /// decline. Producers that can state the layout should, and then it is used
+  /// verbatim.
+  std::uint32_t planeCount{0};
+  DmaBufPlaneLayout planes[3]{};
 };
 
 /// QRhiTexture format -> the native format tokens the two importers need.
@@ -233,11 +260,16 @@ struct DmaBufImportCapture final : VideoCaptureStrategy
     // uses, so the two rungs cannot disagree about where chroma starts, and
     // adding a planar decoder needs no change here.
     m_planeInfo.clear();
+    // A producer that states its plane layout is believed; only one that does
+    // not gets the derivation.
+    const bool explicitLayout
+        = !m_slots.empty() && m_slots[0].planeCount >= cfg.planes.size();
     if(cfg.planes.size() > 1)
     {
       std::uint32_t off = 0;
-      for(auto* tex : cfg.planes)
+      for(std::size_t i = 0; i < cfg.planes.size(); ++i)
       {
+        auto* tex = cfg.planes[i];
         if(!tex)
         {
           qDebug() << "DmaBufImportCapture: decoder plane texture is null";
@@ -251,10 +283,21 @@ struct DmaBufImportCapture final : VideoCaptureStrategy
                    << int(tex->format());
           return false;
         }
-        const auto pitch = std::uint32_t(psz.width()) * pf.bytesPerPixel;
+        const auto derivedPitch = std::uint32_t(psz.width()) * pf.bytesPerPixel;
+        const auto pitch
+            = explicitLayout ? m_slots[0].planes[i].pitch : derivedPitch;
+        const auto planeOff = explicitLayout ? m_slots[0].planes[i].offset : off;
+        if(pitch < derivedPitch)
+        {
+          qDebug() << "DmaBufImportCapture: plane" << i << "pitch" << pitch
+                   << "cannot hold" << psz.width() << "px of"
+                   << pf.bytesPerPixel << "bytes";
+          return false;
+        }
         m_planeInfo.push_back(
-            PlaneInfo{tex->format(), pf, off, pitch, psz.width(), psz.height()});
-        off += pitch * std::uint32_t(psz.height());
+            PlaneInfo{tex->format(), pf, planeOff, pitch, psz.width(),
+                      psz.height()});
+        off = planeOff + pitch * std::uint32_t(psz.height());
       }
       m_planeBytes = off;
     }
@@ -282,10 +325,9 @@ struct DmaBufImportCapture final : VideoCaptureStrategy
     const auto qfmt = m_planeInfo[0].qfmt;
     const auto fmt = m_planeInfo[0].fmt;
 
-    // The offset derivation above assumes each plane is tightly packed. If the
-    // producer padded its rows, chroma does not start where we computed and the
-    // frame would render as garbage rather than fail -- refuse instead.
-    if(m_planeInfo.size() > 1)
+    // The DERIVATION assumes tightly-packed rows; a producer that stated its
+    // layout has already told us where each plane is and is exempt.
+    if(m_planeInfo.size() > 1 && !explicitLayout)
     {
       const auto tight = std::uint32_t(sz.width()) * fmt.bytesPerPixel;
       for(const auto& s : m_slots)
