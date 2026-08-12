@@ -224,3 +224,114 @@ TEST_CASE("holding a capture does not retire it")
     REQUIRE(g.take(0, p).slot == 7);
   REQUIRE(g.takeReturned(0) == 0u);
 }
+
+// The class exists to be correct across threads, so the contract has to be
+// exercised across threads. Everything above this line is single-threaded and
+// passes whatever the memory ordering happens to be.
+
+#include <atomic>
+#include <thread>
+
+TEST_CASE("a fresh set is never reported lapped", "[syncgroup][threads]")
+{
+  // The producer is throttled to stay within the ring depth of what the
+  // consumer has already taken, so the ring can never legitimately be
+  // overwritten under a pinned set. Under that constraint lappedCount() must
+  // stay zero; any count is the consumer having observed publish() half-done.
+  constexpr int kIters = 200000;
+  CaptureSyncGroup group{2};
+
+  std::atomic<std::uint64_t> taken{0};
+  std::atomic<bool> stop{false};
+
+  std::thread producer{[&] {
+    for(int i = 1; i <= kIters && !stop.load(std::memory_order_relaxed); ++i)
+    {
+      while(std::uint64_t(i) - taken.load(std::memory_order_acquire)
+                >= CaptureSyncGroup::kDepth - 1
+            && !stop.load(std::memory_order_relaxed))
+        std::this_thread::yield();
+
+      const int slots[2] = {i % 8, (i + 1) % 8};
+      const std::uint64_t stamps[2]
+          = {std::uint64_t(i) * 1000u, std::uint64_t(i) * 1000u + 5u};
+      group.publish(slots, stamps);
+    }
+    stop.store(true, std::memory_order_relaxed);
+  }};
+
+  std::thread consumer{[&] {
+    std::int64_t pass = 0;
+    while(!stop.load(std::memory_order_relaxed))
+    {
+      const auto a = group.take(0, pass);
+      const auto b = group.take(1, pass);
+      ++pass;
+      if(a.slot >= 0 && b.slot >= 0)
+      {
+        // Both members must answer from the same pinned set, always.
+        REQUIRE(a.generation == b.generation);
+        taken.store(a.generation, std::memory_order_release);
+      }
+    }
+  }};
+
+  producer.join();
+  consumer.join();
+
+  INFO("lapped=" << group.lappedCount() << " over " << kIters << " publishes");
+  REQUIRE(group.lappedCount() == 0);
+}
+
+TEST_CASE("a slot the return mask cannot represent is never handed out",
+          "[syncgroup][slots]")
+{
+  // The return mask is 32 bits, so a slot >= 32 can never be handed back. A
+  // capture carrying one must not be published as usable, or the renderer
+  // borrows a buffer the producer never gets back.
+  CaptureSyncGroup group{1};
+  const int slots[1] = {40};
+  group.publish(slots, nullptr);
+
+  const auto l = group.take(0, 1);
+  REQUIRE(l.slot < 0);
+  REQUIRE(group.incompleteCount() == 1);
+}
+
+TEST_CASE("the producer keeps making progress with a shallow ring",
+          "[syncgroup][slots]")
+{
+  // A slot can only be published again once it has come back through
+  // takeReturned. Ageing the retire queue must not require a fresh pin, since
+  // a fresh pin requires a free slot: a producer no deeper than the retire
+  // depth would publish its whole ring once and then stall forever.
+  // Backpressure is fine; never recovering is not.
+  constexpr int kSlots = 4;
+  CaptureSyncGroup group{1};
+  group.setRetireDepth(3); // a realistic FramesInFlight + 1
+
+  std::vector<int> free;
+  for(int i = 0; i < kSlots; ++i)
+    free.push_back(i);
+
+  int published = 0;
+  for(int i = 1; i <= 2000; ++i)
+  {
+    if(!free.empty())
+    {
+      const int s[1] = {free.back()};
+      free.pop_back();
+      group.publish(s, nullptr);
+      ++published;
+    }
+    group.take(0, i);
+    const auto mask = group.takeReturned(0);
+    for(int b = 0; b < 32; ++b)
+      if(mask & (1u << unsigned(b)))
+        free.push_back(b);
+  }
+
+  // Stalling shows up as exactly one pass through the ring and nothing after.
+  INFO("published " << published << " of 2000 with a " << kSlots << "-slot ring");
+  REQUIRE(published > kSlots * 10);
+}

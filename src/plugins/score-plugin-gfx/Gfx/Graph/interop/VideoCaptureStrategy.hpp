@@ -166,6 +166,29 @@ struct VideoCaptureStrategy
   {
     acquireForRender(res);
   }
+
+  /// Bind a slot chosen by a CaptureSyncGroup instead of by this strategy's own
+  /// publisher, for multi-sensor captures where the renderer must bind frames
+  /// belonging to the same capture across several streams.
+  ///
+  /// Binds only: with a group, slot lifetime belongs to the group, and a
+  /// strategy that also retired would be a second owner able to hand back a slot
+  /// the group had just pinned. Producers driving a group publish the set to it
+  /// and must not call ingestFrame().
+  ///
+  /// Returns false when the strategy has no way to bind a caller-chosen slot, in
+  /// which case it cannot take part in a sync group and the caller must fall
+  /// back to the unsynchronised path rather than mis-bind.
+  virtual bool
+  acquireSlotForRender(std::size_t, QRhiResourceUpdateBatch&, QRhiCommandBuffer*)
+  {
+    return false;
+  }
+
+  /// Whether acquireSlotForRender() is implemented. Asked before a sync group is
+  /// attached, so a rung that cannot take part is detected at setup rather than
+  /// by silently binding nothing every frame.
+  virtual bool supportsSlotSelection() const noexcept { return false; }
 };
 
 /**
