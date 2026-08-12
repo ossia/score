@@ -362,6 +362,156 @@ struct EglDmaBufImporter
     return true;
   }
 
+  /** Import a whole multi-plane frame as ONE EGLImage bound to a
+   *  GL_TEXTURE_EXTERNAL_OES texture.
+   *
+   *  This is what EGL drivers actually implement for NV12. Importing each
+   *  plane separately as a single-channel 2D image is refused by both
+   *  Mesa/llvmpipe and Tegra (fourcc 'R8  ' rejected as a 2D texture), so a
+   *  planar frame has to arrive as one image carrying every plane, sampled
+   *  through an external sampler which performs the YUV to RGB conversion
+   *  itself.
+   *
+   *  @param glTexture must have been created as GL_TEXTURE_EXTERNAL_OES. */
+  bool importExternal(
+      PlaneImport& out, unsigned int glTexture, int fd, uint64_t modifier,
+      const std::uint32_t* offsets, const std::uint32_t* pitches,
+      std::uint32_t planeCount, uint32_t drm_fourcc, int w, int h)
+  {
+    out.image = nullptr;
+    if(!m_display || !m_eglImageTargetTexture || fd < 0 || planeCount == 0
+       || planeCount > 3)
+      return false;
+
+    const uint32_t mod_lo = uint32_t(modifier & 0xFFFFFFFFu);
+    const uint32_t mod_hi = uint32_t((modifier >> 32) & 0xFFFFFFFFu);
+
+    static constexpr uint32_t planeFd[3]
+        = {EGL_DMA_BUF_PLANE0_FD_EXT_, EGL_DMA_BUF_PLANE1_FD_EXT_,
+           EGL_DMA_BUF_PLANE2_FD_EXT_};
+    static constexpr uint32_t planeOff[3]
+        = {EGL_DMA_BUF_PLANE0_OFFSET_EXT_, EGL_DMA_BUF_PLANE1_OFFSET_EXT_,
+           EGL_DMA_BUF_PLANE2_OFFSET_EXT_};
+    static constexpr uint32_t planePitch[3]
+        = {EGL_DMA_BUF_PLANE0_PITCH_EXT_, EGL_DMA_BUF_PLANE1_PITCH_EXT_,
+           EGL_DMA_BUF_PLANE2_PITCH_EXT_};
+    static constexpr uint32_t planeModLo[3]
+        = {EGL_DMA_BUF_PLANE0_MODIFIER_LO_EXT_,
+           EGL_DMA_BUF_PLANE1_MODIFIER_LO_EXT_,
+           EGL_DMA_BUF_PLANE2_MODIFIER_LO_EXT_};
+    static constexpr uint32_t planeModHi[3]
+        = {EGL_DMA_BUF_PLANE0_MODIFIER_HI_EXT_,
+           EGL_DMA_BUF_PLANE1_MODIFIER_HI_EXT_,
+           EGL_DMA_BUF_PLANE2_MODIFIER_HI_EXT_};
+
+    intptr_t attribs[6 + 3 * 10 + 1];
+    std::size_t n = 0;
+    attribs[n++] = (intptr_t)EGL_WIDTH_;
+    attribs[n++] = w;
+    attribs[n++] = (intptr_t)EGL_HEIGHT_;
+    attribs[n++] = h;
+    attribs[n++] = (intptr_t)EGL_LINUX_DRM_FOURCC_EXT_;
+    attribs[n++] = intptr_t(drm_fourcc);
+    for(std::uint32_t i = 0; i < planeCount; ++i)
+    {
+      attribs[n++] = (intptr_t)planeFd[i];
+      attribs[n++] = intptr_t(fd);
+      attribs[n++] = (intptr_t)planeOff[i];
+      attribs[n++] = intptr_t(offsets[i]);
+      attribs[n++] = (intptr_t)planePitch[i];
+      attribs[n++] = intptr_t(pitches[i]);
+      attribs[n++] = (intptr_t)planeModLo[i];
+      attribs[n++] = intptr_t(mod_lo);
+      attribs[n++] = (intptr_t)planeModHi[i];
+      attribs[n++] = intptr_t(mod_hi);
+    }
+    attribs[n++] = (intptr_t)EGL_NONE_;
+
+    void* img = nullptr;
+    if(m_useKhrEntry)
+    {
+      int khrAttribs[sizeof(attribs) / sizeof(attribs[0])];
+      for(std::size_t i = 0; i < n; ++i)
+        khrAttribs[i] = int(attribs[i]);
+      img = m_createImageKHR(
+          m_display, nullptr, EGL_LINUX_DMA_BUF_EXT_, nullptr, khrAttribs);
+    }
+    else
+    {
+      img = m_createImage(
+          m_display, nullptr, EGL_LINUX_DMA_BUF_EXT_, nullptr, attribs);
+    }
+    if(!img)
+      return false;
+
+    out.image = img;
+    return bindExternal(glTexture, out);
+  }
+
+  /// Re-target an external-OES texture at an already-imported image.
+  bool bindExternal(unsigned int glTexture, const PlaneImport& p) noexcept
+  {
+    if(!p.image || !m_eglImageTargetTexture || glTexture == 0)
+      return false;
+    auto* ctx = QOpenGLContext::currentContext();
+    if(!ctx)
+      return false;
+    auto* funcs = ctx->extraFunctions();
+    if(!funcs)
+      return false;
+    funcs->glBindTexture(GL_TEXTURE_EXTERNAL_OES_, glTexture);
+    while(funcs->glGetError() != 0u)
+      ;
+    m_eglImageTargetTexture(GL_TEXTURE_EXTERNAL_OES_, p.image);
+    if(const unsigned int err = funcs->glGetError(); err != 0u)
+    {
+      qDebug() << "EglDmaBufImporter: external image target failed, GL error"
+               << Qt::hex << err;
+      return false;
+    }
+    return true;
+  }
+
+  static constexpr unsigned int GL_TEXTURE_EXTERNAL_OES_ = 0x8D65;
+
+  /// Create a GL_TEXTURE_EXTERNAL_OES texture with linear/clamp sampling.
+  /// External textures do not support mipmaps or repeat wrapping.
+  static unsigned int createExternalTexture() noexcept
+  {
+    auto* ctx = QOpenGLContext::currentContext();
+    if(!ctx)
+      return 0;
+    auto* f = ctx->extraFunctions();
+    if(!f)
+      return 0;
+    constexpr unsigned int GL_TEXTURE_MIN_FILTER_v = 0x2801;
+    constexpr unsigned int GL_TEXTURE_MAG_FILTER_v = 0x2800;
+    constexpr unsigned int GL_TEXTURE_WRAP_S_v = 0x2802;
+    constexpr unsigned int GL_TEXTURE_WRAP_T_v = 0x2803;
+    constexpr int GL_LINEAR_v = 0x2601;
+    constexpr int GL_CLAMP_TO_EDGE_v = 0x812F;
+    unsigned int tex = 0;
+    f->glGenTextures(1, &tex);
+    if(tex == 0)
+      return 0;
+    f->glBindTexture(GL_TEXTURE_EXTERNAL_OES_, tex);
+    f->glTexParameteri(GL_TEXTURE_EXTERNAL_OES_, GL_TEXTURE_MIN_FILTER_v, GL_LINEAR_v);
+    f->glTexParameteri(GL_TEXTURE_EXTERNAL_OES_, GL_TEXTURE_MAG_FILTER_v, GL_LINEAR_v);
+    f->glTexParameteri(GL_TEXTURE_EXTERNAL_OES_, GL_TEXTURE_WRAP_S_v, GL_CLAMP_TO_EDGE_v);
+    f->glTexParameteri(GL_TEXTURE_EXTERNAL_OES_, GL_TEXTURE_WRAP_T_v, GL_CLAMP_TO_EDGE_v);
+    return tex;
+  }
+
+  /// True when the driver advertises the external-image extension at all.
+  bool hasExternalImage() const noexcept
+  {
+    auto* ctx = QOpenGLContext::currentContext();
+    if(!ctx)
+      return false;
+    return ctx->hasExtension("GL_OES_EGL_image_external")
+           || ctx->hasExtension("GL_OES_EGL_image_external_essl3");
+  }
+
   // -- Modifier-aware capability queries -------------------
 
   /** Enumerate the DMA-BUF modifiers the EGL driver can import for
