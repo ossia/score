@@ -76,12 +76,33 @@ struct BorrowedHostImportCapture final : VideoCaptureStrategy
     if(!cfg.rhi || !cfg.outputTexture || cfg.frameByteSize == 0)
       return false;
 
-    // One sampled texture, so a multi-plane wire layout cannot be expressed.
+    // Planar layouts upload one plane per texture out of the one contiguous
+    // producer buffer. The split comes from the decoder's own plane textures,
+    // the same derivation CpuStagedCapture uses, so the rungs cannot disagree
+    // about where chroma begins.
+    m_planeUploads.clear();
     if(cfg.planes.size() > 1)
     {
-      qDebug() << m_name.c_str() << ": refusing a" << cfg.planes.size()
-               << "plane format";
-      return false;
+      std::size_t off = 0;
+      for(auto* tex : cfg.planes)
+      {
+        if(!tex)
+        {
+          qDebug() << m_name.c_str() << ": decoder plane texture is null";
+          return false;
+        }
+        const auto psz = tex->pixelSize();
+        const auto bytes = std::size_t(psz.width()) * texelBytes(tex->format())
+                           * std::size_t(psz.height());
+        if(off + bytes > cfg.frameByteSize)
+        {
+          qDebug() << m_name.c_str() << ": plane overruns the frame (" << off
+                   << "+" << bytes << ">" << cfg.frameByteSize << ")";
+          return false;
+        }
+        m_planeUploads.push_back(PlaneUpload{tex, off, psz.width(), psz.height()});
+        off += bytes;
+      }
     }
 
     if(m_buffers.size() < 2)
@@ -200,20 +221,60 @@ struct BorrowedHostImportCapture final : VideoCaptureStrategy
     const int slot = m_tracker.acquire();
     if(slot < 0)
       return;
+    const auto s = static_cast<std::size_t>(slot);
+    auto upload = [&](QRhiTexture& t, int w, int h, std::size_t off) {
+      return m_hostImport.valid() ? m_hostImport.copyToTexture(*cb, t, s, w, h, off)
+                                  : m_d3dImport.copyToTexture(*cb, t, s, w, h, off);
+    };
+
+    if(!m_planeUploads.empty())
+    {
+      for(const auto& p : m_planeUploads)
+        upload(*p.tex, p.width, p.height, p.offset);
+      return;
+    }
+
     const auto sz = cfg.outputTexture->pixelSize();
-    if(m_hostImport.valid())
-      m_hostImport.copyToTexture(
-          *cb, *cfg.outputTexture, static_cast<std::size_t>(slot), sz.width(),
-          sz.height());
-    else
-      m_d3dImport.copyToTexture(
-          *cb, *cfg.outputTexture, static_cast<std::size_t>(slot), sz.width(),
-          sz.height());
+    upload(*cfg.outputTexture, sz.width(), sz.height(), 0);
   }
 
   void releaseAfterRender() override { }
 
 private:
+  /// Per-plane destination for a planar layout; empty for single-plane, which
+  /// keeps the common path a single copy with no indirection.
+  struct PlaneUpload
+  {
+    QRhiTexture* tex{};
+    std::size_t offset{}; ///< from the start of the producer buffer
+    int width{};
+    int height{};
+  };
+
+  /// Texel size of the formats a planar decoder allocates. Matches
+  /// CpuStagedCapture::texelBytes -- the two must agree or the rungs would
+  /// place chroma at different offsets.
+  static std::uint32_t texelBytes(QRhiTexture::Format f) noexcept
+  {
+    switch(f)
+    {
+      case QRhiTexture::R8:
+      case QRhiTexture::RED_OR_ALPHA8:
+        return 1;
+      case QRhiTexture::RG8:
+      case QRhiTexture::R16:
+        return 2;
+      case QRhiTexture::RG16:
+        return 4;
+      case QRhiTexture::RGBA8:
+      case QRhiTexture::BGRA8:
+        return 4;
+      default:
+        return 4;
+    }
+  }
+
+  std::vector<PlaneUpload> m_planeUploads;
   std::string m_name;
   std::vector<BorrowedHostBuffer> m_buffers;
   VideoCaptureStrategyConfig cfg{};
