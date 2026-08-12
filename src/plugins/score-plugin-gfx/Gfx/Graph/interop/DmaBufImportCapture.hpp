@@ -532,11 +532,16 @@ struct DmaBufImportCapture final : VideoCaptureStrategy
     if(m_backend == Backend::None)
       return false;
 
+    // QGles2Texture::prepareCreate() derives the GL bind target from the flags
+    // alone, and createFrom() goes through it too -- so an external image whose
+    // QRhiTexture lacks ExternalOES binds as GL_TEXTURE_2D and samples nothing.
+    const auto texFlags
+        = m_external ? QRhiTexture::ExternalOES : QRhiTexture::Flag{};
     for(std::size_t p = 0; p < m_planeInfo.size(); ++p)
     {
       const auto& pi = m_planeInfo[p];
-      m_planeTex[p] = cfg.rhi->newTexture(
-          pi.qfmt, QSize{pi.width, pi.height}, 1, QRhiTexture::Flag{});
+      m_planeTex[p]
+          = cfg.rhi->newTexture(pi.qfmt, QSize{pi.width, pi.height}, 1, texFlags);
       if(!m_planeTex[p])
       {
         release();
