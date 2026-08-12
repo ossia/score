@@ -361,8 +361,14 @@ struct DmaBufImportCapture final : VideoCaptureStrategy
     if(sz.width() <= 0 || sz.height() <= 0)
       return false;
 
+    // For the external form the decoder's texture format is nominal -- the
+    // external image carries its own -- so validating the producer's pitch
+    // against it compares an RGBA8 row against an NV12 luma row and rejects a
+    // perfectly good buffer. There, plane 0's stated pitch is the truth.
+    const bool wantsExternal = m_wholeFrameFourcc != 0;
     const auto minPitch
-        = static_cast<std::uint32_t>(sz.width()) * fmt.bytesPerPixel;
+        = wantsExternal ? std::uint32_t(sz.width())
+                        : static_cast<std::uint32_t>(sz.width()) * fmt.bytesPerPixel;
     for(const auto& s : m_slots)
     {
       if(s.fd < 0 || s.pitch < minPitch)
