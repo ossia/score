@@ -360,6 +360,7 @@ set(HDRS
     Gfx/Graph/decoders/HWVulkanShared.hpp
     Gfx/Graph/VulkanVideoDevice.hpp
     Gfx/Graph/decoders/NV12.hpp
+    Gfx/Graph/decoders/NV12ExternalOES.hpp
     Gfx/Graph/decoders/NV16.hpp
     Gfx/Graph/decoders/NV24.hpp
     Gfx/Graph/decoders/P010.hpp
@@ -476,6 +477,7 @@ set(SRCS
 
     Gfx/Graph/decoders/DXV.cpp
     Gfx/Graph/decoders/GPUVideoDecoder.cpp
+    Gfx/Graph/decoders/NV12ExternalOES.cpp
     Gfx/Graph/decoders/GPUVideoDecoderFactory.cpp
     Gfx/Graph/decoders/HAP.cpp
     Gfx/Graph/BackgroundNode.cpp
