@@ -225,6 +225,23 @@ struct DmaBufImportCapture final : VideoCaptureStrategy
 
   ~DmaBufImportCapture() override { release(); }
 
+  /// Ask for the whole frame to be imported as one external image rather than
+  /// per-plane 2D images. @p fourcc is the frame's DRM fourcc (DRM_FORMAT_NV12
+  /// and friends) and @p height its full height.
+  ///
+  /// The caller must pair this with a decoder that samples an external texture
+  /// and does no colour conversion of its own -- the driver's sampler already
+  /// did it. Set it before init().
+  void requestExternalImage(std::uint32_t fourcc, int height) noexcept
+  {
+    m_wholeFrameFourcc = fourcc;
+    m_wholeFrameHeight = height;
+  }
+
+  /// True once init() settled on the external form, so the caller can report
+  /// which shape actually engaged rather than which one it asked for.
+  bool usesExternalImage() const noexcept { return m_external; }
+
   const char* name() const noexcept override { return m_name.c_str(); }
 
   std::size_t slotCount() const noexcept override { return m_slots.size(); }
@@ -423,24 +440,37 @@ struct DmaBufImportCapture final : VideoCaptureStrategy
       // Refusing here is the whole point of the check: eglCreateImage accepts a
       // modifier the driver only exposes through GL_TEXTURE_EXTERNAL_OES, and
       // the resulting GL_TEXTURE_2D samples black without raising an error.
-      // Per plane: NV12's chroma is a different fourcc from its luma, and a
-      // driver may expose one as a 2D texture and not the other.
-      for(const auto& pi : m_planeInfo)
+      // A planar frame goes in as ONE external image when the caller asked for
+      // it: drivers refuse the per-plane 2D form (fourcc 'R8  ' is rejected on
+      // both Mesa and Tegra), and an external sampler converts YUV itself.
+      m_external = cfg.planes.size() == 1 && m_wholeFrameFourcc != 0
+                   && m_egl.hasExternalImage();
+
+      if(!m_external)
       {
-        if(!m_egl.canImportModifier(pi.fmt.drmFourcc, m_slots[0].modifier))
+        // Per plane: NV12's chroma is a different fourcc from its luma, and a
+        // driver may expose one as a 2D texture and not the other.
+        for(const auto& pi : m_planeInfo)
         {
-          qDebug() << "DmaBufImportCapture: driver cannot sample fourcc"
-                   << Qt::hex << pi.fmt.drmFourcc << "modifier"
-                   << m_slots[0].modifier << "as a 2D texture; no EGL rung";
-          release();
-          return false;
+          if(!m_egl.canImportModifier(pi.fmt.drmFourcc, m_slots[0].modifier))
+          {
+            qDebug() << "DmaBufImportCapture: driver cannot sample fourcc"
+                     << Qt::hex << pi.fmt.drmFourcc << "modifier"
+                     << m_slots[0].modifier << "as a 2D texture; no EGL rung";
+            release();
+            return false;
+          }
         }
       }
       // One GL texture per plane: the EGLImage behind each is re-targeted per
-      // frame, but the texture ids themselves are created once here.
-      for(std::size_t p = 0; p < m_planeInfo.size(); ++p)
+      // frame, but the texture ids themselves are created once here. The
+      // external form needs exactly one, of a different target.
+      const std::size_t texCount = m_external ? 1u : m_planeInfo.size();
+      for(std::size_t p = 0; p < texCount; ++p)
       {
-        m_glTexPlane[p] = score::gfx::createLinearClampGlTexture2D();
+        m_glTexPlane[p] = m_external
+                              ? EglDmaBufImporter::createExternalTexture()
+                              : score::gfx::createLinearClampGlTexture2D();
         if(m_glTexPlane[p] == 0)
         {
           release();
@@ -451,6 +481,27 @@ struct DmaBufImportCapture final : VideoCaptureStrategy
       for(std::size_t i = 0; i < m_slots.size(); ++i)
       {
         const auto& s = m_slots[i];
+        if(m_external)
+        {
+          std::uint32_t offs[3]{}, pitches[3]{};
+          const auto n = std::min<std::uint32_t>(s.planeCount, 3);
+          for(std::uint32_t p = 0; p < n; ++p)
+          {
+            offs[p] = s.offset + s.planes[p].offset;
+            pitches[p] = s.planes[p].pitch;
+          }
+          if(!m_egl.importExternal(
+                 m_eglSlots[i][0], m_glTexPlane[0], s.fd, s.modifier, offs,
+                 pitches, n, m_wholeFrameFourcc, m_planeInfo[0].width,
+                 m_wholeFrameHeight))
+          {
+            qDebug() << "DmaBufImportCapture: external EGL import refused slot"
+                     << i << "fourcc" << Qt::hex << m_wholeFrameFourcc;
+            release();
+            return false;
+          }
+          continue;
+        }
         for(std::size_t p = 0; p < m_planeInfo.size(); ++p)
         {
           const auto& pi = m_planeInfo[p];
@@ -467,6 +518,8 @@ struct DmaBufImportCapture final : VideoCaptureStrategy
           }
         }
       }
+      if(m_external)
+        m_name += "/NV12-OES";
       m_name += "/EGL";
     }
 
@@ -619,6 +672,16 @@ private:
 #endif
     if(m_backend == Backend::OpenGL)
     {
+      if(m_external)
+      {
+        if(!m_egl.bindExternal(m_glTexPlane[0], m_eglSlots[i][0]))
+          return false;
+        if(m_glTexBound)
+          return true;
+        m_glTexBound = m_planeTex[0]->createFrom(
+            QRhiTexture::NativeTexture{quint64(m_glTexPlane[0]), 0});
+        return m_glTexBound;
+      }
       for(std::size_t p = 0; p < m_planeInfo.size(); ++p)
         if(!m_egl.bindPlane(m_glTexPlane[p], m_eglSlots[i][p]))
           return false;
@@ -660,6 +723,12 @@ private:
 
   std::vector<DmaBufSlotDesc> m_slots;
   std::vector<PlaneInfo> m_planeInfo;
+  /// Set by the caller when the whole frame should go in as one external
+  /// image: the DRM fourcc of the frame (NV12 etc.) and its full height, which
+  /// plane 0's geometry does not give for a subsampled layout.
+  std::uint32_t m_wholeFrameFourcc{};
+  int m_wholeFrameHeight{};
+  bool m_external{false};
   std::uint32_t m_planeBytes{};
   std::array<QRhiTexture*, kMaxPlanes> m_planeTex{};
   std::array<std::uint32_t, kMaxPlanes> m_glTexPlane{};
