@@ -46,36 +46,40 @@ bool nv12ExternalOesUsable(QRhi::Implementation backend) noexcept
 
 namespace
 {
-/// Hand-written ESSL for the external sampler, substituted for the baked GLSL.
+/// Turn the baked GLSL into the external-sampler variant.
 ///
-/// It must match what the baked shader's reflection describes -- same binding,
-/// same in/out locations, same uniform block -- because QRhiGles2 wires the
-/// program from that reflection. Only the sampler's *type* differs, and that is
-/// the whole point: the type cannot survive a SPIR-V round trip.
-QByteArray externalEssl(const QByteArray& bakedGlsl, const QString& filter)
+/// Two surgical edits on the baked text rather than a reconstruction: the
+/// baked shader already carries exactly the uniform blocks, locations and
+/// precision qualifiers that QRhiGles2 will wire from the reflection, and
+/// rebuilding that by hand gets it wrong. (It did: the blocks end `} renderer;`
+/// rather than `};`, so slicing to the first `};` produced malformed source and
+/// a compile error at token "renderer".)
+QByteArray externalEssl(QByteArray glsl)
 {
-  QByteArray out;
-  out += "#version 300 es\n";
-  out += "#extension GL_OES_EGL_image_external_essl3 : require\n";
-  out += "precision mediump float;\n";
-  // The baked GLSL carries the uniform block the reflection expects; reusing
-  // its declaration verbatim keeps the two in step if the shared uniform
-  // header ever changes.
-  const int ubStart = bakedGlsl.indexOf("uniform");
-  const int ubEnd = bakedGlsl.indexOf("};", ubStart);
-  if(ubStart >= 0 && ubEnd > ubStart)
-  {
-    out += bakedGlsl.mid(ubStart, ubEnd - ubStart + 2);
-    out += "\n";
-  }
-  out += "uniform samplerExternalOES tex;\n";
-  out += "in vec2 v_texcoord;\n";
-  out += "out vec4 fragColor;\n";
-  out += "vec4 processTexture(vec4 t) {\n  vec4 processed = t;\n  {";
-  out += filter.toUtf8();
-  out += "}\n  return processed;\n}\n";
-  out += "void main() {\n  fragColor = processTexture(texture(tex, v_texcoord));\n}\n";
-  return out;
+  // 1. the extension pragma, immediately after #version.
+  const int verPos = glsl.indexOf("#version");
+  if(verPos < 0)
+    return {};
+  const int verEnd = glsl.indexOf('\n', verPos);
+  if(verEnd < 0)
+    return {};
+  glsl.insert(
+      verEnd + 1, "#extension GL_OES_EGL_image_external_essl3 : require\n");
+
+  // 2. the sampler declaration. Whatever qualifiers the baker emitted
+  //    (`uniform highp sampler2D tex;` and friends), the whole line becomes the
+  //    external form -- an external sampler takes no precision qualifier from
+  //    the reflection's point of view and needs none here.
+  const int sPos = glsl.indexOf("sampler2D");
+  if(sPos < 0)
+    return {};
+  const int lineStart = glsl.lastIndexOf('\n', sPos) + 1;
+  int lineEnd = glsl.indexOf('\n', sPos);
+  if(lineEnd < 0)
+    lineEnd = glsl.size();
+  glsl.replace(
+      lineStart, lineEnd - lineStart, "uniform samplerExternalOES tex;");
+  return glsl;
 }
 }
 
@@ -112,8 +116,14 @@ std::pair<QShader, QShader> NV12ExternalOESDecoder::init(RenderList& r)
     if(key.source() != QShader::GlslShader)
       continue;
     const QByteArray baked = frag.shader(key).shader();
-    frag.setShader(
-        key, QShaderCode{externalEssl(baked, filter), QByteArrayLiteral("main")});
+    const QByteArray src = externalEssl(baked);
+    if(src.isEmpty())
+    {
+      qWarning() << "NV12-OES: could not rewrite the baked GLSL; leaving it "
+                    "alone (the rung will render nothing and should decline)";
+      continue;
+    }
+    frag.setShader(key, QShaderCode{src, QByteArrayLiteral("main")});
   }
   return shaders;
 }
