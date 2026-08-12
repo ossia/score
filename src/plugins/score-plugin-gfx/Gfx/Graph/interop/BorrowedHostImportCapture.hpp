@@ -57,6 +57,17 @@ struct BorrowedHostBuffer
 {
   void* host{};
   std::size_t bytes{};
+
+  /// Explicit plane layout, when the producer knows it. `planeCount == 0`
+  /// derives it assuming tight packing, which is what a V4L2-style producer
+  /// wants; an allocator that aligns plane offsets (NvBufSurface rounds each
+  /// to 64 KB) must state them or chroma is read from the wrong address.
+  std::uint32_t planeCount{0};
+  struct Plane
+  {
+    std::uint32_t offset{};
+    std::uint32_t pitch{};
+  } planes[3]{};
 };
 
 struct BorrowedHostImportCapture final : VideoCaptureStrategy
@@ -81,11 +92,14 @@ struct BorrowedHostImportCapture final : VideoCaptureStrategy
     // the same derivation CpuStagedCapture uses, so the rungs cannot disagree
     // about where chroma begins.
     m_planeUploads.clear();
+    const bool explicitLayout
+        = !m_buffers.empty() && m_buffers[0].planeCount >= cfg.planes.size();
     if(cfg.planes.size() > 1)
     {
       std::size_t off = 0;
-      for(auto* tex : cfg.planes)
+      for(std::size_t i = 0; i < cfg.planes.size(); ++i)
       {
+        auto* tex = cfg.planes[i];
         if(!tex)
         {
           qDebug() << m_name.c_str() << ": decoder plane texture is null";
@@ -94,14 +108,17 @@ struct BorrowedHostImportCapture final : VideoCaptureStrategy
         const auto psz = tex->pixelSize();
         const auto bytes = std::size_t(psz.width()) * texelBytes(tex->format())
                            * std::size_t(psz.height());
-        if(off + bytes > cfg.frameByteSize)
+        const std::size_t planeOff
+            = explicitLayout ? m_buffers[0].planes[i].offset : off;
+        if(planeOff + bytes > cfg.frameByteSize)
         {
-          qDebug() << m_name.c_str() << ": plane overruns the frame (" << off
+          qDebug() << m_name.c_str() << ": plane overruns the frame (" << planeOff
                    << "+" << bytes << ">" << cfg.frameByteSize << ")";
           return false;
         }
-        m_planeUploads.push_back(PlaneUpload{tex, off, psz.width(), psz.height()});
-        off += bytes;
+        m_planeUploads.push_back(
+            PlaneUpload{tex, planeOff, psz.width(), psz.height()});
+        off = planeOff + bytes;
       }
     }
 
