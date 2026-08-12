@@ -352,6 +352,22 @@ int runFlip(const Args& a, const DeviceInfo& di)
     std::printf("FAIL(no-intervals)\n");
     return 1;
   }
+
+  // Drop the first interval: it spans the modeset, not a flip. Measured on
+  // nvidia-drm at 2560x1440@59.95 it is ~117 ms -- seven frames of mode
+  // settling -- and it was the ONLY late frame in runs of 119, 299 and 599
+  // flips, on both the atomic and legacy paths. Counting it made an otherwise
+  // vblank-exact result (median 16.681 ms against an expected 16.681) report
+  // FAIL(pacing), which is the harness being wrong about the driver.
+  std::size_t warmup = 0;
+  if(intervals.size() > 1)
+  {
+    warmup = 1;
+    std::printf("  (excluding warmup interval %.3f ms: modeset, not a flip)\n",
+                intervals.front());
+    intervals.erase(intervals.begin());
+  }
+
   auto sorted = intervals;
   std::sort(sorted.begin(), sorted.end());
   double sum = 0;
@@ -367,8 +383,9 @@ int runFlip(const Args& a, const DeviceInfo& di)
   std::printf(
       "flips=%zu  mean=%.3f ms  min=%.3f  median=%.3f  max=%.3f  expected=%.3f"
       "  late=%d%s\n",
-      intervals.size(), mean, sorted.front(), sorted[sorted.size() / 2],
-      sorted.back(), expected, late, a.async ? "  (async/tearing)" : "");
+      intervals.size() + warmup, mean, sorted.front(),
+      sorted[sorted.size() / 2], sorted.back(), expected, late,
+      a.async ? "  (async/tearing)" : "");
 
   // Async flips are not vblank-bound by definition, so pacing is only judged
   // for the synchronous case.
