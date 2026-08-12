@@ -278,9 +278,9 @@ struct GbmDmaBufExport
    *  returning false. Requires a current GL context. */
   bool allocSlot(
       Slot& out, uint32_t w, uint32_t h, uint32_t drm_fourcc,
-      EglDmaBufImporter& importer) noexcept
+      EglDmaBufImporter& importer, uint32_t extraFlags = 0) noexcept
   {
-    if(!allocSlotGbmOnly(out, w, h, drm_fourcc))
+    if(!allocSlotGbmOnly(out, w, h, drm_fourcc, extraFlags))
       return false;
 
     // Create a fresh GL texture to receive the import. Persistent: the
