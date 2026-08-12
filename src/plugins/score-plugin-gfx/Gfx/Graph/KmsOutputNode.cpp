@@ -250,9 +250,16 @@ void KmsOutputNode::createOutput(OutputConfiguration conf)
   {
     // Expected on a desktop: a compositor holds master. Degrade rather than
     // abort, and say why -- "no output" with no explanation is the worst case.
-    qWarning() << "KMS output: cannot take DRM master (a compositor most likely "
-                  "holds it). A DRM lease would be needed to share the device; "
-                  "KmsDevice does not implement leases yet.";
+    // KmsDevice distinguishes the two causes and they need different fixes;
+    // collapsing them into one message sends people looking for a compositor
+    // that is not there.
+    qWarning().noquote()
+        << "KMS output: cannot take DRM master --"
+        << QString::fromStdString(d->kms.lastError())
+        << "\n  EACCES/EPERM: not on the active VT/seat -- run privileged or "
+           "from the active VT."
+        << "\n  EBUSY: another client holds master; sharing the device would "
+           "need a DRM lease, which KmsDevice does not implement yet.";
     d->kms.close();
     return;
   }
