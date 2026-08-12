@@ -1090,6 +1090,16 @@ avnd_make_score(
   NAMESPACE kbng
   OPTIMIZED
 )
+
+# Kabang's port count puts it in the range where clang's inliner turns the
+# generated walkers into functions the backend takes hours to lower. 40 is the
+# highest threshold that still compiles quickly. Only the generated TU is
+# touched, and -fno-lto keeps the inliner here instead of at link time.
+# Minibang is the reduced variant -- 4 ports against 45 -- and does not need it.
+if("${CMAKE_CXX_COMPILER_ID}" MATCHES ".*Clang")
+  set_property(SOURCE "${CMAKE_BINARY_DIR}/kabang_avnd.cpp" APPEND PROPERTY
+    COMPILE_OPTIONS -fno-lto -mllvm -inline-threshold=40)
+endif()
 endif()
 
 avnd_make_score(
