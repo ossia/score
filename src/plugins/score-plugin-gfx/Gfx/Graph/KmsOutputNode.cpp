@@ -4,6 +4,7 @@
 
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
+#include <score/gfx/OpenGL.hpp>
 #include <score/gfx/QRhiGles2.hpp>
 #include <Gfx/Graph/interop/DrmKmsDevice.hpp>
 #include <Gfx/Graph/interop/EglDmaBufExport.hpp>
@@ -111,6 +112,10 @@ KmsOutputNode::KmsOutputNode(KmsOutputSettings settings)
     : d{std::make_unique<Impl>()}
 {
   d->set = std::move(settings);
+  // The image input the graph renders into. A sink without it is a node nothing
+  // can be connected to, and the first thing that touches input[0] walks off the
+  // end of an empty vector.
+  input.push_back(new Port{this, {}, Types::Image, {}});
 }
 
 KmsOutputNode::~KmsOutputNode()
@@ -307,17 +312,33 @@ void KmsOutputNode::createOutput(OutputConfiguration conf)
     destroyOutput();
     return;
   }
+  // Built here rather than through createRenderState(), for two reasons: that
+  // helper reads score's GUI settings for the MSAA sample count, which a
+  // headless scanout output has no business depending on -- and multisampling is
+  // wrong here anyway, because resolving a multisampled colour buffer into the
+  // scanout buffer is exactly the full-frame copy this output exists to remove.
   const QSize size{int(d->mode.width), int(d->mode.height)};
-  d->state = score::gfx::createRenderState(conf.graphicsApi, size, nullptr);
-  if(!d->state || !d->state->rhi)
+  d->state = std::make_shared<RenderState>();
+  d->state->api = conf.graphicsApi;
+  d->state->samples = 1;
+
+  QRhiGles2InitParams params;
+  d->state->surface = QRhiGles2InitParams::newFallbackSurface();
+  params.fallbackSurface = d->state->surface;
+  score::GLCapabilities caps;
+  caps.setupFormat(params.format);
+  params.format.setSamples(1);
+  d->state->version = caps.qShaderVersion;
+  d->state->rhi = QRhi::create(QRhi::OpenGLES2, &params);
+  if(!d->state->rhi)
   {
-    qWarning() << "KMS output: failed to create the render state";
+    qWarning() << "KMS output: QRhi::create(OpenGLES2) failed";
     destroyOutput();
     return;
   }
+  d->state->caps.populate(*d->state->rhi);
   d->state->renderSize = size;
   d->state->outputSize = size;
-  d->state->api = conf.graphicsApi;
   d->state->renderFormat = QRhiTexture::RGBA8;
   d->rhi = d->state->rhi;
   if(!d->egl.init(*d->rhi))
