@@ -30,6 +30,14 @@
 
 #include <cstdint>
 
+// GL_BGRA is desktop-GL only. On an OpenGL ES build -- which is what Tegra and
+// most embedded targets use -- the same token is GL_BGRA_EXT, from
+// GL_EXT_texture_format_BGRA8888. Without this the whole gfx plugin fails to
+// compile for GLES rather than merely lacking the BGRA fast path.
+#if !defined(GL_BGRA) && defined(GL_BGRA_EXT)
+#define GL_BGRA GL_BGRA_EXT
+#endif
+
 namespace score::gfx::interop
 {
 
