@@ -25,9 +25,15 @@
  * Geometry and format come from the caller's `outputTexture`: the wire decoder
  * already sized it to the producer's byte layout (a UYVY 4:2:2 frame is an
  * RGBA8 texture of half the width), so importing at exactly that size and
- * format reinterprets the same bytes the CPU rung would have uploaded. Only
- * single-plane wire layouts are supported -- the strategy interface exposes one
- * texture, so NV12-style multi-plane sources must stay on the CPU rung.
+ * format reinterprets the same bytes the CPU rung would have uploaded.
+ *
+ * Planar layouts (NV12 and friends) import one texture per plane. The split
+ * comes from the decoder's own plane textures, exactly as CpuStagedCapture
+ * derives it -- each plane's byte size is its texture geometry times its texel
+ * size, offsets accumulating in order -- so the two rungs cannot disagree about
+ * where chroma begins, and a new planar decoder needs no change here. The
+ * derivation assumes tightly-packed rows; a producer with a padded pitch is
+ * refused rather than rendered wrong.
  *
  * BORROWED-BUFFER LIFETIME (the contract the producer must honour)
  * ---------------------------------------------------------------
@@ -202,34 +208,96 @@ struct DmaBufImportCapture final : VideoCaptureStrategy
 
   QRhiTexture* outputTexture() const noexcept override { return m_tex; }
 
+  std::size_t outputPlaneCount() const noexcept override
+  {
+    return m_planeInfo.empty() ? 1 : m_planeInfo.size();
+  }
+
+  QRhiTexture* outputPlane(std::size_t i) const noexcept override
+  {
+    return i < m_planeInfo.size() ? m_planeTex[i] : nullptr;
+  }
+
   bool init(const VideoCaptureStrategyConfig& c) override
   {
     cfg = c;
     if(!cfg.rhi || !cfg.outputTexture)
       return false;
-    // This rung imports exactly one dma-buf into one texture, so a planar
-    // source would silently get luma only. The caller's planeCount check is
-    // not enough: it tests the V4L2 *buffer* plane count, which is 1 for the
-    // whole single-planar API even when the pixel format carries several
-    // planes in that one buffer. Measured on Intel/Mesa with vivid NV12, the
-    // rung engaged and rendered at 14.96 dB against the CPU rung's 99.00.
-    if(cfg.planes.size() > 1)
-    {
-      qDebug() << "DmaBufImportCapture: refusing a" << cfg.planes.size()
-               << "plane format; this rung can only import a single plane";
-      return false;
-    }
     if(m_slots.empty() || m_slots.size() > kMaxSlots)
       return false;
 
-    const auto sz = cfg.outputTexture->pixelSize();
-    const auto qfmt = cfg.outputTexture->format();
-    const auto fmt = dmaBufFormatFor(qfmt);
-    if(!fmt.ok)
+    // Plane geometry. A planar frame is one contiguous dma-buf holding N planes
+    // back to back, and the decoder's own texture list defines the split: each
+    // plane's byte size is its texture geometry times its texel size, and
+    // offsets accumulate in order. That is the same derivation CpuStagedCapture
+    // uses, so the two rungs cannot disagree about where chroma starts, and
+    // adding a planar decoder needs no change here.
+    m_planeInfo.clear();
+    if(cfg.planes.size() > 1)
     {
-      qDebug() << "DmaBufImportCapture: no DMA-BUF mapping for QRhi format"
-               << int(qfmt);
-      return false;
+      std::uint32_t off = 0;
+      for(auto* tex : cfg.planes)
+      {
+        if(!tex)
+        {
+          qDebug() << "DmaBufImportCapture: decoder plane texture is null";
+          return false;
+        }
+        const auto psz = tex->pixelSize();
+        const auto pf = dmaBufFormatFor(tex->format());
+        if(!pf.ok)
+        {
+          qDebug() << "DmaBufImportCapture: no DMA-BUF mapping for plane format"
+                   << int(tex->format());
+          return false;
+        }
+        const auto pitch = std::uint32_t(psz.width()) * pf.bytesPerPixel;
+        m_planeInfo.push_back(
+            PlaneInfo{tex->format(), pf, off, pitch, psz.width(), psz.height()});
+        off += pitch * std::uint32_t(psz.height());
+      }
+      m_planeBytes = off;
+    }
+    else
+    {
+      const auto pf = dmaBufFormatFor(cfg.outputTexture->format());
+      if(!pf.ok)
+      {
+        qDebug() << "DmaBufImportCapture: no DMA-BUF mapping for QRhi format"
+                 << int(cfg.outputTexture->format());
+        return false;
+      }
+      const auto sz0 = cfg.outputTexture->pixelSize();
+      m_planeInfo.push_back(
+          PlaneInfo{
+              cfg.outputTexture->format(), pf, 0,
+              std::uint32_t(sz0.width()) * pf.bytesPerPixel, sz0.width(),
+              sz0.height()});
+      m_planeBytes = 0;
+    }
+
+    // Plane 0's geometry still drives the slot-pitch validation below, and for
+    // the single-plane case it is the whole picture.
+    const auto sz = QSize{m_planeInfo[0].width, m_planeInfo[0].height};
+    const auto qfmt = m_planeInfo[0].qfmt;
+    const auto fmt = m_planeInfo[0].fmt;
+
+    // The offset derivation above assumes each plane is tightly packed. If the
+    // producer padded its rows, chroma does not start where we computed and the
+    // frame would render as garbage rather than fail -- refuse instead.
+    if(m_planeInfo.size() > 1)
+    {
+      const auto tight = std::uint32_t(sz.width()) * fmt.bytesPerPixel;
+      for(const auto& s : m_slots)
+      {
+        if(s.pitch != tight)
+        {
+          qDebug() << "DmaBufImportCapture: planar source has a padded pitch"
+                   << s.pitch << "(tight" << tight
+                   << "); plane offsets cannot be derived, no dma-buf rung";
+          return false;
+        }
+      }
     }
     if(sz.width() <= 0 || sz.height() <= 0)
       return false;
@@ -288,14 +356,19 @@ struct DmaBufImportCapture final : VideoCaptureStrategy
       for(std::size_t i = 0; i < m_slots.size(); ++i)
       {
         const auto& s = m_slots[i];
-        if(!m_vk.importPlane(
-               m_vkSlots[i], s.fd, s.modifier, s.offset, s.pitch, fmt.vk,
-               sz.width(), sz.height()))
+        for(std::size_t p = 0; p < m_planeInfo.size(); ++p)
         {
-          qDebug() << "DmaBufImportCapture: Vulkan import refused slot" << i
-                   << "fd" << s.fd << "modifier" << Qt::hex << s.modifier;
-          release();
-          return false;
+          const auto& pi = m_planeInfo[p];
+          if(!m_vk.importPlane(
+                 m_vkSlots[i][p], s.fd, s.modifier, s.offset + pi.offset,
+                 pi.pitch, pi.fmt.vk, pi.width, pi.height))
+          {
+            qDebug() << "DmaBufImportCapture: Vulkan import refused slot" << i
+                     << "plane" << p << "fd" << s.fd << "modifier" << Qt::hex
+                     << s.modifier;
+            release();
+            return false;
+          }
         }
       }
       m_name += "/Vulkan";
@@ -308,32 +381,48 @@ struct DmaBufImportCapture final : VideoCaptureStrategy
       // Refusing here is the whole point of the check: eglCreateImage accepts a
       // modifier the driver only exposes through GL_TEXTURE_EXTERNAL_OES, and
       // the resulting GL_TEXTURE_2D samples black without raising an error.
-      if(!m_egl.canImportModifier(fmt.drmFourcc, m_slots[0].modifier))
+      // Per plane: NV12's chroma is a different fourcc from its luma, and a
+      // driver may expose one as a 2D texture and not the other.
+      for(const auto& pi : m_planeInfo)
       {
-        qDebug() << "DmaBufImportCapture: driver cannot sample fourcc"
-                 << Qt::hex << fmt.drmFourcc << "modifier" << m_slots[0].modifier
-                 << "as a 2D texture; no EGL rung";
-        release();
-        return false;
+        if(!m_egl.canImportModifier(pi.fmt.drmFourcc, m_slots[0].modifier))
+        {
+          qDebug() << "DmaBufImportCapture: driver cannot sample fourcc"
+                   << Qt::hex << pi.fmt.drmFourcc << "modifier"
+                   << m_slots[0].modifier << "as a 2D texture; no EGL rung";
+          release();
+          return false;
+        }
       }
-      m_glTex = score::gfx::createLinearClampGlTexture2D();
-      if(m_glTex == 0)
+      // One GL texture per plane: the EGLImage behind each is re-targeted per
+      // frame, but the texture ids themselves are created once here.
+      for(std::size_t p = 0; p < m_planeInfo.size(); ++p)
       {
-        release();
-        return false;
+        m_glTexPlane[p] = score::gfx::createLinearClampGlTexture2D();
+        if(m_glTexPlane[p] == 0)
+        {
+          release();
+          return false;
+        }
       }
+      m_glTex = m_glTexPlane[0];
       for(std::size_t i = 0; i < m_slots.size(); ++i)
       {
         const auto& s = m_slots[i];
-        if(!m_egl.importPlane(
-               m_eglSlots[i], m_glTex, s.fd, s.modifier, s.offset, s.pitch,
-               fmt.drmFourcc, sz.width(), sz.height()))
+        for(std::size_t p = 0; p < m_planeInfo.size(); ++p)
         {
-          qDebug() << "DmaBufImportCapture: EGL import refused slot" << i
-                   << "fd" << s.fd << "fourcc" << Qt::hex << fmt.drmFourcc
-                   << "modifier" << s.modifier;
-          release();
-          return false;
+          const auto& pi = m_planeInfo[p];
+          if(!m_egl.importPlane(
+                 m_eglSlots[i][p], m_glTexPlane[p], s.fd, s.modifier,
+                 s.offset + pi.offset, pi.pitch, pi.fmt.drmFourcc, pi.width,
+                 pi.height))
+          {
+            qDebug() << "DmaBufImportCapture: EGL import refused slot" << i
+                     << "plane" << p << "fd" << s.fd << "fourcc" << Qt::hex
+                     << pi.fmt.drmFourcc << "modifier" << s.modifier;
+            release();
+            return false;
+          }
         }
       }
       m_name += "/EGL";
@@ -342,13 +431,19 @@ struct DmaBufImportCapture final : VideoCaptureStrategy
     if(m_backend == Backend::None)
       return false;
 
-    m_tex = cfg.rhi->newTexture(qfmt, sz, 1, QRhiTexture::Flag{});
-    if(!m_tex)
+    for(std::size_t p = 0; p < m_planeInfo.size(); ++p)
     {
-      release();
-      return false;
+      const auto& pi = m_planeInfo[p];
+      m_planeTex[p] = cfg.rhi->newTexture(
+          pi.qfmt, QSize{pi.width, pi.height}, 1, QRhiTexture::Flag{});
+      if(!m_planeTex[p])
+      {
+        release();
+        return false;
+      }
     }
-    // Bind slot 0 so the texture is complete before the passes are built.
+    m_tex = m_planeTex[0];
+    // Bind slot 0 so the textures are complete before the passes are built.
     if(!bindSlot(0))
     {
       release();
@@ -361,23 +456,34 @@ struct DmaBufImportCapture final : VideoCaptureStrategy
   {
 #if defined(SCORE_GFX_HAS_VK_DMABUF_IMPORT)
     if(m_backend == Backend::Vulkan)
-      for(auto& p : m_vkSlots)
-        m_vk.cleanupPlane(p);
+      for(auto& slot : m_vkSlots)
+        for(auto& p : slot)
+          m_vk.cleanupPlane(p);
 #endif
     if(m_backend == Backend::OpenGL)
     {
-      for(auto& p : m_eglSlots)
-        m_egl.cleanupPlane(p);
-      if(m_glTex != 0)
+      for(auto& slot : m_eglSlots)
+        for(auto& p : slot)
+          m_egl.cleanupPlane(p);
+      for(auto& t : m_glTexPlane)
       {
-        if(auto* ctx = QOpenGLContext::currentContext())
-          if(auto* funcs = ctx->extraFunctions())
-            funcs->glDeleteTextures(1, &m_glTex);
-        m_glTex = 0;
+        if(t != 0)
+        {
+          if(auto* ctx = QOpenGLContext::currentContext())
+            if(auto* funcs = ctx->extraFunctions())
+              funcs->glDeleteTextures(1, &t);
+          t = 0;
+        }
       }
+      m_glTex = 0;
     }
-    delete m_tex;
+    for(auto& t : m_planeTex)
+    {
+      delete t;
+      t = nullptr;
+    }
     m_tex = nullptr;
+    m_planeInfo.clear();
     m_backend = Backend::None;
     m_glTexBound = false;
     m_name = m_tag + "-dmabuf";
@@ -455,21 +561,30 @@ private:
       // Re-issuing createFrom bumps the texture generation, which is what makes
       // QRhi rewrite the descriptor and emit the layout transition whose cache
       // invalidation exposes the producer's new bytes.
-      return m_tex->createFrom(QRhiTexture::NativeTexture{
-          quint64(m_vkSlots[i].image), VK_IMAGE_LAYOUT_UNDEFINED});
+      for(std::size_t p = 0; p < m_planeInfo.size(); ++p)
+      {
+        if(!m_planeTex[p]->createFrom(QRhiTexture::NativeTexture{
+               quint64(m_vkSlots[i][p].image), VK_IMAGE_LAYOUT_UNDEFINED}))
+          return false;
+      }
+      return true;
     }
 #endif
     if(m_backend == Backend::OpenGL)
     {
-      if(!m_egl.bindPlane(m_glTex, m_eglSlots[i]))
-        return false;
-      // The GL texture id never changes -- only the EGLImage behind it -- and
-      // QRhiGles2 resolves the id at draw time, so the wrap is set up once.
+      for(std::size_t p = 0; p < m_planeInfo.size(); ++p)
+        if(!m_egl.bindPlane(m_glTexPlane[p], m_eglSlots[i][p]))
+          return false;
+      // The GL texture ids never change -- only the EGLImages behind them --
+      // and QRhiGles2 resolves the id at draw time, so the wrap is set up once.
       if(m_glTexBound)
         return true;
-      m_glTexBound
-          = m_tex->createFrom(QRhiTexture::NativeTexture{quint64(m_glTex), 0});
-      return m_glTexBound;
+      for(std::size_t p = 0; p < m_planeInfo.size(); ++p)
+        if(!m_planeTex[p]->createFrom(
+               QRhiTexture::NativeTexture{quint64(m_glTexPlane[p]), 0}))
+          return false;
+      m_glTexBound = true;
+      return true;
     }
     return false;
   }
@@ -481,7 +596,26 @@ private:
   };
 
   VideoCaptureStrategyConfig cfg{};
+  /// A planar frame is one dma-buf holding N planes back to back; this is the
+  /// per-plane split derived from the decoder's texture list at init().
+  struct PlaneInfo
+  {
+    QRhiTexture::Format qfmt{};
+    DmaBufImportFormat fmt{};
+    std::uint32_t offset{}; ///< from the start of the slot
+    std::uint32_t pitch{};
+    int width{};
+    int height{};
+  };
+
+  /// NV12/P010 have 2, planar YUV has 3; nothing we import has more.
+  static constexpr std::size_t kMaxPlanes = 3;
+
   std::vector<DmaBufSlotDesc> m_slots;
+  std::vector<PlaneInfo> m_planeInfo;
+  std::uint32_t m_planeBytes{};
+  std::array<QRhiTexture*, kMaxPlanes> m_planeTex{};
+  std::array<std::uint32_t, kMaxPlanes> m_glTexPlane{};
   std::string m_tag;
   std::string m_name;
   Backend m_backend{Backend::None};
@@ -490,10 +624,10 @@ private:
 
 #if defined(SCORE_GFX_HAS_VK_DMABUF_IMPORT)
   DMABufPlaneImporter m_vk;
-  std::array<DMABufPlaneImporter::PlaneImport, kMaxSlots> m_vkSlots{};
+  std::array<std::array<DMABufPlaneImporter::PlaneImport, kMaxPlanes>, kMaxSlots> m_vkSlots{};
 #endif
   EglDmaBufImporter m_egl;
-  std::array<EglDmaBufImporter::PlaneImport, kMaxSlots> m_eglSlots{};
+  std::array<std::array<EglDmaBufImporter::PlaneImport, kMaxPlanes>, kMaxSlots> m_eglSlots{};
   unsigned int m_glTex{0};
   bool m_glTexBound{false};
 
