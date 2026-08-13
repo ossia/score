@@ -95,7 +95,7 @@ function(avnd_score_plugin_finalize)
 endfunction()
 
 function(avnd_score_plugin_add)
-  cmake_parse_arguments(AVND "DEVICE;MODULE" "TARGET;MAIN_CLASS;NAMESPACE;BASE_TARGET" "SOURCES" ${ARGN})
+  cmake_parse_arguments(AVND "DEVICE;MODULE;OPTIMIZED" "TARGET;MAIN_CLASS;NAMESPACE;BASE_TARGET" "SOURCES" ${ARGN})
 
   if(AVND_NAMESPACE)
     set(AVND_QUALIFIED "${AVND_NAMESPACE}::${AVND_MAIN_CLASS}")
