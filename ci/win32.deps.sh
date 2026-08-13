@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -eu
 
 choco install -y ninja
 choco install -y rsync
@@ -13,7 +13,7 @@ fi
 
 (
 set -x
-mkdir /c/ossia-sdk-$SDK_ARCH
+mkdir -p /c/ossia-sdk-$SDK_ARCH
 cd /c/ossia-sdk-$SDK_ARCH
 curl -L https://github.com/ossia/sdk/releases/download/sdk38/sdk-mingw-$SDK_ARCH.7z --output sdk-mingw-$SDK_ARCH.7z
 7z x sdk-mingw-$SDK_ARCH.7z

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -eux
 
 source ci/common.setup.sh
 

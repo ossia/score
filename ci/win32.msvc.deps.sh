@@ -1,11 +1,11 @@
-#!/bin/bash
+#!/bin/bash -eu
 
 choco install -y ninja
 choco install -y rsync
 
 (
 set -x
-mkdir /c/ossia-sdk-msvc
+mkdir -p /c/ossia-sdk-msvc
 cd /c/ossia-sdk-msvc
 curl -L https://github.com/ossia/sdk/releases/download/sdk35/sdk-msvc-x86_64.7z --output sdk-msvc.7z
 7z x sdk-msvc.7z
