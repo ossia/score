@@ -1,10 +1,13 @@
 #pragma once
+#include <ossia/network/value/value.hpp>
+
 #include <boost/circular_buffer.hpp>
 
 #include <halp/controls.hpp>
 #include <halp/meta.hpp>
-#include <ossia/network/value/value.hpp>
+#include <halp/value_types.hpp>
 
+#include <optional>
 
 namespace avnd_tools
 {
@@ -22,7 +25,9 @@ struct Queue
   enum OutputMode
   {
     Always,
-    WhenFull
+    WhenFull,
+    ManualBang,
+    ManualPop,
   };
   enum OutputData
   {
@@ -45,6 +50,7 @@ struct Queue
     halp::maintained_button<"Lock"> lock;
     halp::enum_t<OutputMode, "Mode"> mode;
     halp::enum_t<OutputData, "Data"> data;
+    halp::val_port<"Bang", std::optional<halp::impulse>> bang;
   } inputs;
 
   struct
@@ -56,26 +62,42 @@ struct Queue
 
   void operator()()
   {
-    if(!inputs.input.value.valid())
-      return;
-
-    if(!inputs.lock && !inputs.clear)
-      buffer.push_back(std::move(inputs.input.value));
+    if(inputs.input.value.valid())
+    {
+      if(!inputs.lock && !inputs.clear)
+        buffer.push_back(std::move(inputs.input.value));
+    }
 
     if(inputs.clear)
       buffer.clear();
 
     if(inputs.mode == OutputMode::WhenFull)
+    {
       if(buffer.size() < buffer.capacity())
         return;
+    }
+    else if(inputs.mode == OutputMode::ManualBang)
+    {
+      if(!inputs.bang.value)
+        return;
+    }
+    else if(inputs.mode == OutputMode::ManualPop)
+    {
+      if(!inputs.bang.value)
+        return;
+    }
 
     if(buffer.empty())
     {
       if(inputs.data == OutputData::WholeBuffer)
       {
         outputs.output.value = std::vector<ossia::value>{};
-        return;
       }
+      else
+      {
+        outputs.output.value = ossia::value{};
+      }
+      return;
     }
 
     switch(inputs.data)
@@ -87,6 +109,11 @@ struct Queue
         outputs.output.value = std::vector<ossia::value>(buffer.begin(), buffer.end());
         break;
       }
+    }
+
+    if(inputs.mode == OutputMode::ManualPop)
+    {
+      buffer.pop_front();
     }
   }
 };
