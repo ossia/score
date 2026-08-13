@@ -34,6 +34,8 @@
 #ifndef LV2_ATOM_HELPERS_H
 #define LV2_ATOM_HELPERS_H
 
+#include <score_plugin_lv2_export.h>
+
 #include <lv2/lv2plug.in/ns/ext/atom/atom.h>
 #include <lv2/lv2plug.in/ns/ext/atom/forge.h>
 #include <lv2/lv2plug.in/ns/ext/atom/util.h>
@@ -50,8 +52,8 @@
 //
 struct LV2_Atom_Buffer
 {
-  static uint32_t sequence_type;
-  static uint32_t chunk_type;
+  SCORE_PLUGIN_LV2_EXPORT static uint32_t sequence_type;
+  SCORE_PLUGIN_LV2_EXPORT static uint32_t chunk_type;
 
   uint32_t capacity;
   alignas(8) LV2_Atom_Sequence atoms;

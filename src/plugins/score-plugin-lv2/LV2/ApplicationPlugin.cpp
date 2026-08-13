@@ -111,6 +111,11 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
   qRegisterMetaType<PluginInfo>();
   qRegisterMetaType<std::vector<PluginInfo>>();
 
+  // rescan rebuilds the lilv index, invalidating cached LilvPlugin* in find_lv2_plugin
+  QObject::connect(
+      this, &ApplicationPlugin::descriptorsChanged, this,
+      [] { LV2::clearPluginCache(); });
+
   if(!qEnvironmentVariableIsEmpty("SCORE_DISABLE_AUDIOPLUGINS"))
     return;
 
@@ -129,11 +134,6 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
     v.reserve(65535);
     lv2_host_context.release_worker_data(std::move(v));
   }
-
-  // rescan rebuilds the lilv index, invalidating cached LilvPlugin* in find_lv2_plugin
-  QObject::connect(
-      this, &ApplicationPlugin::descriptorsChanged, this,
-      [] { LV2::clearPluginCache(); });
 
   // Coalesce disk writes + tree rebuilds: one per batch, not one per puppet
   m_persistTimer = new QTimer{this};
@@ -191,13 +191,20 @@ void ApplicationPlugin::initialize()
 
 ApplicationPlugin::~ApplicationPlugin()
 {
-  for(auto& proc : m_processes)
+  // waitForFinished delivers finished() synchronously: detach the map and
+  // drop our connections first or the handlers erase from it mid-iteration
+  // (and scanNextBatch would spawn new puppets during teardown).
+  m_bundleQueue.clear();
+  auto processes = std::move(m_processes);
+  for(auto& [id, proc] : processes)
   {
-    if(proc.second)
+    if(proc)
     {
-      proc.second->terminate();
-      if(!proc.second->waitForFinished(100))
-        proc.second->kill();
+      QObject::disconnect(proc, nullptr, this, nullptr);
+      proc->terminate();
+      if(!proc->waitForFinished(100))
+        proc->kill();
+      delete proc;
     }
   }
 
@@ -228,7 +235,20 @@ ApplicationPlugin::findDescriptor(const QString& uri_or_bundle) const noexcept
     if(bp == path)
       return &p;
   }
+
+  // Documents saved before the URI-based chooser reference plugins by display name
+  for(const auto& p : m_plugins)
+  {
+    if(p.valid && p.name == uri_or_bundle)
+      return &p;
+  }
   return nullptr;
+}
+
+void ApplicationPlugin::setCachedDescriptors(std::vector<PluginInfo> descriptors)
+{
+  m_plugins = std::move(descriptors);
+  descriptorsChanged();
 }
 
 void ApplicationPlugin::ensureBundleLoaded(const QString& uri_or_bundle)

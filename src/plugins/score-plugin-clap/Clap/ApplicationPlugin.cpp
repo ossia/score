@@ -72,13 +72,18 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& app)
 
 ApplicationPlugin::~ApplicationPlugin()
 {
-  for(auto& proc : m_processes)
+  // waitForFinished delivers finished() synchronously: detach the map and
+  // drop our connections first or the handlers erase from it mid-iteration.
+  auto processes = std::move(m_processes);
+  for(auto& [id, proc] : processes)
   {
-    if(proc.second)
+    if(proc)
     {
-      proc.second->terminate();
-      if(!proc.second->waitForFinished(100))
-        proc.second->kill();
+      QObject::disconnect(proc, nullptr, this, nullptr);
+      proc->terminate();
+      if(!proc->waitForFinished(100))
+        proc->kill();
+      delete proc;
     }
   }
 }

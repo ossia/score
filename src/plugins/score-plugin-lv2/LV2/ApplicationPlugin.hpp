@@ -15,6 +15,8 @@
 
 #include <lilv/lilvmm.hpp>
 
+#include <score_plugin_lv2_export.h>
+
 #include <map>
 #include <vector>
 #include <verdigris>
@@ -57,7 +59,7 @@ struct PluginInfo
   bool valid{};
 };
 
-class ApplicationPlugin
+class SCORE_PLUGIN_LV2_EXPORT ApplicationPlugin
     : public QObject
     , public score::ApplicationPlugin
 {
@@ -76,6 +78,9 @@ public:
 
   // Idempotent; main thread only.
   void ensureBundleLoaded(const QString& uri_or_bundle);
+
+  // Replace the descriptor cache wholesale (cache import, tests). Main thread only.
+  void setCachedDescriptors(std::vector<PluginInfo> descriptors);
 
 public:
   void descriptorsChanged() W_SIGNAL(descriptorsChanged);
