@@ -195,6 +195,19 @@ TEST_CASE("find_lv2_plugin loads the bundle on demand", "[lv2]")
     {
       CHECK(!LV2::find_lv2_plugin(plug.lilv, "No Such Plugin"));
     }
+    SECTION("descriptor pin controls which same-named plug-in binds")
+    {
+      // The bundle ships urn:score:test:gain2 with the same doap:name. When
+      // the descriptor cache pins the name to gain2, the lookup must return
+      // gain2 no matter which of the two iterates first in the world.
+      auto info2 = makeGainInfo();
+      info2.uri = "urn:score:test:gain2";
+      plug.setCachedDescriptors({info2});
+
+      auto res = LV2::find_lv2_plugin(plug.lilv, gain_name);
+      REQUIRE(res);
+      CHECK(QString(res->get_uri().as_string()) == "urn:score:test:gain2");
+    }
   });
 }
 

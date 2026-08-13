@@ -82,7 +82,12 @@ ApplicationPlugin::~ApplicationPlugin()
       QObject::disconnect(proc, nullptr, this, nullptr);
       proc->terminate();
       if(!proc->waitForFinished(100))
+      {
+        // Reap after kill: ~QProcess on a still-running process re-kills and
+        // blocks for up to 30s
         proc->kill();
+        proc->waitForFinished(100);
+      }
       delete proc;
     }
   }
@@ -250,8 +255,9 @@ void ApplicationPlugin::scanNextBatch()
       scanNextBatch();
     });
 
-    // Set up timeout
-    auto timer = new QTimer;
+    // Set up timeout; parented to proc so teardown paths that never reach a
+    // deleteLater still reap it
+    auto timer = new QTimer{proc};
     timer->setSingleShot(true);
     timer->setInterval(10000); // 10 second timeout
     connect(timer, &QTimer::timeout, proc, [this, id, proc, timer, pluginPath] {

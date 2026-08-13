@@ -203,10 +203,25 @@ ApplicationPlugin::~ApplicationPlugin()
       QObject::disconnect(proc, nullptr, this, nullptr);
       proc->terminate();
       if(!proc->waitForFinished(100))
+      {
+        // Reap after kill: ~QProcess on a still-running process re-kills and
+        // blocks for up to 30s
         proc->kill();
+        proc->waitForFinished(100);
+      }
       delete proc;
     }
   }
+
+  // Results delivered so far would otherwise be lost when quitting mid-scan:
+  // the debounced m_persistTimer dies with us. Only when a scan actually ran —
+  // in disabled mode m_plugins is empty and would wipe the on-disk cache.
+  if(m_processCount > 0)
+    persistCache();
+
+  // The plug_map memoizes LilvPlugin* into our world; another
+  // ApplicationPlugin in this process (tests) must not see stale ones
+  LV2::clearPluginCache();
 
   suil.host_free(lv2_context->ui_host);
 }
@@ -214,6 +229,10 @@ ApplicationPlugin::~ApplicationPlugin()
 const PluginInfo*
 ApplicationPlugin::findDescriptor(const QString& uri_or_bundle) const noexcept
 {
+  // Empty-bundle markers can be valid-with-empty-name; never match on ""
+  if(uri_or_bundle.isEmpty())
+    return nullptr;
+
   for(const auto& p : m_plugins)
   {
     if(p.valid && p.uri == uri_or_bundle)
@@ -236,10 +255,12 @@ ApplicationPlugin::findDescriptor(const QString& uri_or_bundle) const noexcept
       return &p;
   }
 
-  // Documents saved before the URI-based chooser reference plugins by display name
+  // Documents saved before the URI-based chooser reference plugins by display
+  // name. Names are not unique across bundles: first valid match wins, same as
+  // the pre-scanner lookup did against the lilv world.
   for(const auto& p : m_plugins)
   {
-    if(p.valid && p.name == uri_or_bundle)
+    if(p.valid && !p.name.isEmpty() && p.name == uri_or_bundle)
       return &p;
   }
   return nullptr;
@@ -549,7 +570,9 @@ void ApplicationPlugin::scanNextBatch()
       scanNextBatch();
     });
 
-    auto timer = new QTimer;
+    // Parented to proc so teardown paths that never reach the deleteLater
+    // below still reap it
+    auto timer = new QTimer{proc};
     timer->setSingleShot(true);
     // 60s: lsp-plugins (~197 plug-ins, ASan) can push past 10s
     timer->setInterval(60000);

@@ -286,7 +286,7 @@ struct Message
   ossia::small_vector<uint8_t, 32> body;
 };
 
-QString get_lv2_plugin_name(const Lilv::Plugin& node);
+SCORE_PLUGIN_LV2_EXPORT QString get_lv2_plugin_name(const Lilv::Plugin& node);
 }
 
 #if defined(__clang__) && defined(__has_warning)
