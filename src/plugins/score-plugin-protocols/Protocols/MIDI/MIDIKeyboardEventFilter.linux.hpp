@@ -60,7 +60,7 @@ public:
   {
 #if defined(__linux__)
     // X11 quirk
-    return e.nativeScanCode() - scanCodeOffset;
+    return e.nativeScanCode() + scanCodeOffset;
 #elif defined(__APPLE__)
     return e.nativeVirtualKey();
 #else
