@@ -141,23 +141,27 @@ std::optional<Lilv::Plugin> find_lv2_plugin(Lilv::World& world, QString path)
   while(!plugs.is_end(it))
   {
     auto plug = plugs.get(it);
-    const auto plugin_name = get_lv2_plugin_name(plug);
     const QString plugin_uri = QString::fromUtf8(plug.get_uri().as_string());
-    if(info && plugin_uri == info->uri)
+    if(info)
+    {
+      // Descriptor-pinned lookup: only the exact URI may match. Falling back
+      // to name matching here could bind a same-named plug-in from another
+      // bundle that happens to iterate first.
+      if(plugin_uri == info->uri)
+      {
+        plug_map[old_str] = plug;
+        return plug;
+      }
+    }
+    else if(
+        (isFile && QString(plug.get_bundle_uri().as_string()) == path)
+        || (!isFile && plugin_uri == old_str)
+        || (!isFile && get_lv2_plugin_name(plug) == path))
     {
       plug_map[old_str] = plug;
       return plug;
     }
-    if((isFile && QString(plug.get_bundle_uri().as_string()) == path)
-       || (!isFile && plugin_name == path) || (!isFile && plugin_uri == old_str))
-    {
-      plug_map[old_str] = plug;
-      return plug;
-    }
-    else
-    {
-      it = plugs.next(it);
-    }
+    it = plugs.next(it);
   }
 
   plug_map[old_str] = nullptr;

@@ -84,7 +84,21 @@ static const LV2_Descriptor descriptor
     = {SCORE_TEST_GAIN_URI, instantiate, connect_port, NULL, run, NULL,
        cleanup,             NULL};
 
+/* Same doap:name as urn:score:test:gain — regression fixture for
+ * descriptor-pinned lookup vs. display-name collisions. */
+static const LV2_Descriptor descriptor2
+    = {SCORE_TEST_GAIN_URI "2", instantiate, connect_port, NULL, run, NULL,
+       cleanup,                  NULL};
+
 LV2_SYMBOL_EXPORT const LV2_Descriptor* lv2_descriptor(uint32_t index)
 {
-  return index == 0 ? &descriptor : NULL;
+  switch(index)
+  {
+    case 0:
+      return &descriptor;
+    case 1:
+      return &descriptor2;
+    default:
+      return NULL;
+  }
 }

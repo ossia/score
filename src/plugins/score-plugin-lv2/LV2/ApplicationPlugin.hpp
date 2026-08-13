@@ -3,6 +3,7 @@
 #include <LV2/Suil.hpp>
 
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
+#include <score/serialization/DataStreamFwd.hpp>
 
 #include <ossia/detail/hash_map.hpp>
 
@@ -128,3 +129,8 @@ private:
 
 Q_DECLARE_METATYPE(LV2::PluginInfo)
 Q_DECLARE_METATYPE(std::vector<LV2::PluginInfo>)
+
+// Every TU that puts PluginInfo in a QVariant must see these, or Qt6 bakes
+// null stream handlers into its copy of the QMetaTypeInterface.
+SCORE_SERIALIZE_DATASTREAM_DECLARE(SCORE_PLUGIN_LV2_EXPORT, LV2::PluginInfo)
+SCORE_SERIALIZE_DATASTREAM_DECLARE(SCORE_PLUGIN_LV2_EXPORT, std::vector<LV2::PluginInfo>)
