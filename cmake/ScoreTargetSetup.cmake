@@ -40,6 +40,13 @@ function(score_pch TheTarget)
 
   get_target_property(hasCustomPCH "${TheTarget}" SCORE_CUSTOM_PCH)
   if(NOT hasCustomPCH)
+    # Executables compile as PIE but the PCH is built -fPIC; clang refuses the
+    # mismatch ("is pie differs in precompiled file"). Same workaround as
+    # src/app/CMakeLists.txt: compile the executable -fPIC too.
+    get_target_property(targetType "${TheTarget}" TYPE)
+    if(targetType STREQUAL "EXECUTABLE" AND UNIX AND NOT APPLE)
+      target_compile_options("${TheTarget}" PRIVATE -fPIC)
+    endif()
     target_precompile_headers("${TheTarget}" REUSE_FROM score_lib_pch)
     target_compile_definitions("${TheTarget}" PRIVATE SCORE_LIB_PCH_EXPORTS)
   endif()

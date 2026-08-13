@@ -8,6 +8,9 @@ target_include_directories(score_test_fixtures
 target_link_libraries(score_test_fixtures
   INTERFACE score_lib_base ${QT_PREFIX}::Core)
 
+# Test LV2 bundle (only when score_plugin_lv2 is built).
+add_subdirectory(lv2)
+
 # Make the headers visible in IDEs.
 file(GLOB_RECURSE _fixture_hdrs "${CMAKE_CURRENT_SOURCE_DIR}/score_test/*.hpp")
 add_custom_target(score_test_fixtures_headers SOURCES ${_fixture_hdrs})

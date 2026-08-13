@@ -14,13 +14,23 @@
 
 #include <lilv/lilvmm.hpp>
 
+#include <score_plugin_lv2_export.h>
+
+#include <optional>
+
 #include <verdigris>
 
 namespace LV2
 {
 class Model;
 // Call after a rescan: LilvPlugin* values may dangle if lilv rebuilt its index
-void clearPluginCache();
+SCORE_PLUGIN_LV2_EXPORT void clearPluginCache();
+
+// Resolve a plug-in URI, bundle path or (legacy) display name against the
+// loaded world, loading its bundle on demand. Main thread only.
+SCORE_PLUGIN_LV2_EXPORT std::optional<Lilv::Plugin>
+find_lv2_plugin(Lilv::World& world, QString path);
+SCORE_PLUGIN_LV2_EXPORT QString get_lv2_plugin_name(const Lilv::Plugin& node);
 }
 PROCESS_METADATA(
     , LV2::Model, "fd5243ba-70b5-4164-b44a-ecb0dcdc0494", "LV2", "LV2",
@@ -30,7 +40,7 @@ PROCESS_METADATA(
 DESCRIPTION_METADATA(, LV2::Model, "LV2")
 namespace LV2
 {
-class Model : public Process::ProcessModel
+class SCORE_PLUGIN_LV2_EXPORT Model : public Process::ProcessModel
 {
   W_OBJECT(Model)
   SCORE_SERIALIZE_FRIENDS

@@ -49,6 +49,7 @@
 #include <memory>
 #include <vector>
 
+#include <score_plugin_lv2_export.h>
 #include <suil-0/suil/suil.h>
 
 namespace LV2
@@ -201,7 +202,7 @@ struct EffectContext
   ossia::mpmc_queue<std::vector<char>> worker_datas;
 };
 
-struct GlobalContext
+struct SCORE_PLUGIN_LV2_EXPORT GlobalContext
 {
 public:
   GlobalContext(int buffer_size, LV2::HostContext& host);
@@ -260,7 +261,7 @@ public:
   const LV2_Feature data_feature{LV2_DATA_ACCESS_URI, &ext_data};
 };
 
-struct LV2Data
+struct SCORE_PLUGIN_LV2_EXPORT LV2Data
 {
   LV2Data(LV2::HostContext& h, LV2::EffectContext& ctx);
 
