@@ -18,6 +18,7 @@
 // scanout with no present blit anywhere.
 
 #include <QGuiApplication>
+#include <QTimer>
 
 #include <Gfx/Graph/Graph.hpp>
 #include <Gfx/Graph/KmsOutputNode.hpp>
@@ -173,7 +174,7 @@ int run(int argc, char** argv)
     if(prev > 0)
       intervals.push_back(t - prev);
     prev = t;
-    QGuiApplication::processEvents();
+    QCoreApplication::processEvents();
   }
   const double elapsed = nowMs() - t0;
   out->stopRendering();

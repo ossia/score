@@ -856,7 +856,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_include_directories(DrmOutputTest PRIVATE ${SCORE_LIBDRM_INCLUDE_DIRS})
 
     add_executable(KmsOutputTest tests/KmsOutputTest.cpp)
-    target_link_libraries(KmsOutputTest PRIVATE score_plugin_gfx)
+    target_link_libraries(KmsOutputTest PRIVATE
+      score_plugin_gfx ${QT_PREFIX}::Gui ${QT_PREFIX}::Widgets)
     target_include_directories(KmsOutputTest PRIVATE ${SCORE_LIBDRM_INCLUDE_DIRS})
     message(STATUS "score-plugin-gfx: direct DRM/KMS output enabled")
   else()
