@@ -81,7 +81,7 @@ jobs:
           # which then breaks the CMake configure.
           git config --global --add safe.directory '*'
           echo "=============== FreeBSD Start Deps ====================="
-          ./ci/common.deps.sh
+          ./ci/common.deps.sh FREEBSD
           echo "=============== FreeBSD Deps Success ====================="
           echo "=============== FreeBSD Start Build ====================="
           ./ci/freebsd.build.sh
