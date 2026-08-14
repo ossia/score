@@ -78,6 +78,10 @@ QRhiTexture::Format planeTextureFormat(VideoPixelFormat f, int plane) noexcept
     case VideoPixelFormat::BayerBGGR16:
     case VideoPixelFormat::BayerRGGB16:
     case VideoPixelFormat::BayerRG12:
+    case VideoPixelFormat::BayerBGGR10:
+    case VideoPixelFormat::BayerGBRG10:
+    case VideoPixelFormat::BayerGRBG10:
+    case VideoPixelFormat::BayerRGGB10:
       return QRhiTexture::R16;
 
     default:
