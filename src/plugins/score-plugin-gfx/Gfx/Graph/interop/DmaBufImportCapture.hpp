@@ -171,12 +171,7 @@ struct DmaBufImportFormat
 inline DmaBufImportFormat dmaBufFormatFor(QRhiTexture::Format f) noexcept
 {
   // Mesa-defined single/dual-channel fourccs, spelled out so score builds
-  // without <drm/drm_fourcc.h> (same convention as DrmFourcc.hpp).
-  constexpr std::uint32_t DRM_R8 = 0x20203852u;     // 'R8  '
-  constexpr std::uint32_t DRM_GR88 = 0x38385247u;   // 'GR88'
-  constexpr std::uint32_t DRM_R16 = 0x20363152u;    // 'R16 '
-  constexpr std::uint32_t DRM_GR1616 = 0x36315247u; // 'GR16'
-
+  // The fourccs live in DrmFourcc.hpp; this table only chooses among them.
   DmaBufImportFormat r;
   auto set = [&](std::uint32_t fourcc, std::uint32_t bpp
 #if defined(SCORE_GFX_HAS_VK_DMABUF_IMPORT)
@@ -285,6 +280,22 @@ struct DmaBufImportCapture final : VideoCaptureStrategy
   QRhiTexture* outputPlane(std::size_t i) const noexcept override
   {
     return i < m_planeInfo.size() ? m_planeTex[i] : nullptr;
+  }
+
+  /// The row pitch to import plane @p p of @p slot with.
+  ///
+  /// A single-plane frame is imported with the producer's own `bytesperline`,
+  /// not with a pitch derived from the texture width. Producers pad: the Tegra
+  /// VI reports 7168 for a 3552-wide 16-bit raster whose packed width is 7104,
+  /// and importing that as packed shifts every row by the padding, cumulatively
+  /// -- the frame shears rather than failing. The multi-plane path already
+  /// refuses a padded slot outright because it cannot derive plane offsets, so
+  /// only the single-plane case needs this.
+  std::uint32_t importPitch(const DmaBufSlotDesc& slot, std::size_t p) const noexcept
+  {
+    if(m_planeInfo.size() == 1 && slot.planeCount == 0 && slot.pitch > 0)
+      return slot.pitch;
+    return m_planeInfo[p].pitch;
   }
 
   bool init(const VideoCaptureStrategyConfig& c) override
@@ -454,7 +465,7 @@ struct DmaBufImportCapture final : VideoCaptureStrategy
           const auto& pi = m_planeInfo[p];
           if(!m_vk.importPlane(
                  m_vkSlots[i][p], s.fd, s.modifier, s.offset + pi.offset,
-                 pi.pitch, pi.fmt.vk, pi.width, pi.height))
+                 importPitch(s, p), pi.fmt.vk, pi.width, pi.height))
           {
             qDebug() << "DmaBufImportCapture: Vulkan import refused slot" << i
                      << "plane" << p << "fd" << s.fd << "modifier" << Qt::hex
@@ -541,8 +552,8 @@ struct DmaBufImportCapture final : VideoCaptureStrategy
           const auto& pi = m_planeInfo[p];
           if(!m_egl.importPlane(
                  m_eglSlots[i][p], m_glTexPlane[p], s.fd, s.modifier,
-                 s.offset + pi.offset, pi.pitch, pi.fmt.drmFourcc, pi.width,
-                 pi.height))
+                 s.offset + pi.offset, importPitch(s, p), pi.fmt.drmFourcc,
+                 pi.width, pi.height))
           {
             qDebug() << "DmaBufImportCapture: EGL import refused slot" << i
                      << "plane" << p << "fd" << s.fd << "fourcc" << Qt::hex
