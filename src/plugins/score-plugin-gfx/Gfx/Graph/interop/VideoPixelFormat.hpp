@@ -216,6 +216,15 @@ enum class ByteOrder : uint8_t
   X(BayerRGGB8, 117, Bayer, 1, 1, 1, 1, 1, false, NA, 64)                      \
   X(BayerBGGR16, 118, Bayer, 1, 1, 1, 1, 2, false, Little, 64)                 \
   X(BayerRGGB16, 119, Bayer, 1, 1, 1, 1, 2, false, Little, 64)                 \
+  /* The 10-bit CFA orders occupy a 16-bit little-endian container, so they are */ \
+  /* two bytes per sample like the 16-bit orders. V4L2 defines the ten          */ \
+  /* significant bits as right-aligned; a producer that left-aligns them        */ \
+  /* (the Tegra VI does) is a sixty-fourfold scale a demosaic must be told      */ \
+  /* about, not a distinct layout.                                             */ \
+  X(BayerBGGR10, 123, Bayer, 1, 1, 1, 1, 2, false, Little, 64)                 \
+  X(BayerGBRG10, 124, Bayer, 1, 1, 1, 1, 2, false, Little, 64)                 \
+  X(BayerGRBG10, 125, Bayer, 1, 1, 1, 1, 2, false, Little, 64)                 \
+  X(BayerRGGB10, 126, Bayer, 1, 1, 1, 1, 2, false, Little, 64)                 \
   X(Mono16BE, 86, Grey, 1, 1, 1, 1, 2, false, Big, 64)
 
 /** Comprehensive pixel format enum, generated from the table above.

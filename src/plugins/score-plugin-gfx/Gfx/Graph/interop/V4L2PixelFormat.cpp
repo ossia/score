@@ -100,6 +100,10 @@ VideoPixelFormat fromV4L2PixelFormat(uint32_t fourcc) noexcept
 #ifdef V4L2_PIX_FMT_SRGGB16
     case V4L2_PIX_FMT_SRGGB16: return V::BayerRGGB16;
 #endif
+    case V4L2_PIX_FMT_SBGGR10: return V::BayerBGGR10;
+    case V4L2_PIX_FMT_SGBRG10: return V::BayerGBRG10;
+    case V4L2_PIX_FMT_SGRBG10: return V::BayerGRBG10;
+    case V4L2_PIX_FMT_SRGGB10: return V::BayerRGGB10;
 
     default:                   return V::Unknown;
   }
@@ -170,6 +174,10 @@ uint32_t toV4L2PixelFormat(VideoPixelFormat f) noexcept
 #ifdef V4L2_PIX_FMT_SRGGB16
     case V::BayerRGGB16: return V4L2_PIX_FMT_SRGGB16;
 #endif
+    case V::BayerBGGR10: return V4L2_PIX_FMT_SBGGR10;
+    case V::BayerGBRG10: return V4L2_PIX_FMT_SGBRG10;
+    case V::BayerGRBG10: return V4L2_PIX_FMT_SGRBG10;
+    case V::BayerRGGB10: return V4L2_PIX_FMT_SRGGB10;
     default:            return 0;
   }
 }
