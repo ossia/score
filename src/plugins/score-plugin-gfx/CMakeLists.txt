@@ -478,6 +478,7 @@ set(SRCS
     Gfx/Graph/decoders/DXV.cpp
     Gfx/Graph/decoders/GPUVideoDecoder.cpp
     Gfx/Graph/decoders/NV12ExternalOES.cpp
+    Gfx/Graph/decoders/BayerExternalOES.cpp
     Gfx/Graph/decoders/GPUVideoDecoderFactory.cpp
     Gfx/Graph/decoders/HAP.cpp
     Gfx/Graph/BackgroundNode.cpp

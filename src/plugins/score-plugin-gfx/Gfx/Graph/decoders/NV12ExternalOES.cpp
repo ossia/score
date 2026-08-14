@@ -44,8 +44,6 @@ bool nv12ExternalOesUsable(QRhi::Implementation backend) noexcept
   return true;
 }
 
-namespace
-{
 /// Turn the baked GLSL into the external-sampler variant.
 ///
 /// Two surgical edits on the baked text rather than a reconstruction: the
@@ -54,7 +52,7 @@ namespace
 /// rebuilding that by hand gets it wrong. (It did: the blocks end `} renderer;`
 /// rather than `};`, so slicing to the first `};` produced malformed source and
 /// a compile error at token "renderer".)
-QByteArray externalEssl(QByteArray glsl)
+QByteArray toExternalSamplerEssl(QByteArray glsl)
 {
   // 1. the extension pragma, immediately after #version.
   const int verEnd = glsl.indexOf('\n', glsl.indexOf("#version"));
@@ -77,7 +75,6 @@ QByteArray externalEssl(QByteArray glsl)
   glsl.replace(
       lineStart, lineEnd - lineStart, "uniform samplerExternalOES tex;");
   return glsl;
-}
 }
 
 std::pair<QShader, QShader> NV12ExternalOESDecoder::init(RenderList& r)
@@ -113,7 +110,7 @@ std::pair<QShader, QShader> NV12ExternalOESDecoder::init(RenderList& r)
     if(key.source() != QShader::GlslShader)
       continue;
     const QByteArray baked = frag.shader(key).shader();
-    const QByteArray src = externalEssl(baked);
+    const QByteArray src = toExternalSamplerEssl(baked);
     if(src.isEmpty())
     {
       qWarning() << "NV12-OES: could not rewrite the baked GLSL; leaving it "
