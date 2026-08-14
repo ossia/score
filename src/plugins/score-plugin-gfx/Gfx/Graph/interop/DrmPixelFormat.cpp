@@ -121,6 +121,23 @@ uint32_t toDrmFourcc(VideoPixelFormat f) noexcept
     case V::VYUY422: return kVyuy;
     case V::Mono8:   return kR8;
     case V::Mono16:  return kR16;
+    // A colour-filter-array frame is one sample per pixel, so on the wire it is
+    // byte-identical to greyscale of the same depth -- the CFA order lives in
+    // the score-side format, not in the DRM layout. Only the to-DRM direction
+    // is given: coming back, R8/R16 stay Mono8/Mono16, since the fourcc cannot
+    // say which of the five enumerators sharing it was meant.
+    case V::BayerRGGB8:
+    case V::BayerBGGR8:
+    case V::BayerGRBG8:
+    case V::BayerGBRG8:
+    case V::BayerRG8:   return kR8;
+    case V::BayerRGGB16:
+    case V::BayerBGGR16:
+    case V::BayerRGGB10:
+    case V::BayerBGGR10:
+    case V::BayerGRBG10:
+    case V::BayerGBRG10:
+    case V::BayerRG12:  return kR16;
     default:         return 0;
   }
 }
