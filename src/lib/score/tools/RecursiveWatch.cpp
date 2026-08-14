@@ -2,6 +2,7 @@
 #include <score/tools/ThreadPool.hpp>
 
 #include <QCoreApplication>
+#include <QDebug>
 #include <QMetaObject>
 #include <QPointer>
 #include <Qt>
@@ -78,7 +79,14 @@ void for_all_files(std::string_view root, std::function<void(std::string_view)> 
   vis.contents_include_symlinks = true;
   try
   {
-    if(auto res = algorithm::contents(pp.value()))
+    // permit_racy_reads: on Windows NtQueryDirectoryFile() returns at most ~64Kb of
+    // entries per call however large a buffer it is given, so a directory holding more
+    // than that (~600 files with short names) cannot be enumerated as an atomic
+    // snapshot, and the strict default fails the whole traversal rather than returning
+    // the entries. The library is user content: it routinely has such directories, and
+    // a best-effort listing of one is worth far more to us than a snapshot of nothing.
+    if(auto res = algorithm::contents(
+           pp.value(), &vis, 0, false, directory_handle::flags::permit_racy_reads))
     {
       try
       {
@@ -135,6 +143,11 @@ void for_all_files(std::string_view root, std::function<void(std::string_view)> 
     }
     else
     {
+      // A failure here yields no files at all, which is indistinguishable from an empty
+      // library unless we say so.
+      qWarning() << "for_all_files: could not enumerate"
+                 << QString::fromUtf8(root.data(), root.size()) << ':'
+                 << QString::fromStdString(make_error_code(res.error()).message());
     }
   }
   catch(const std::exception& e)
