@@ -116,6 +116,24 @@ set(CMAKE_AUTOUIC OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS OFF)
 
+if(UNIX AND NOT APPLE AND NOT EMSCRIPTEN)
+  # Define _FILE_OFFSET_BITS globally when the libc supports it: deps like
+  # FFmpeg inject it through pkg-config into some targets only, and the
+  # mismatch makes gcc reject the PCH in those targets.
+  include(CheckCXXSourceCompiles)
+  set(CMAKE_REQUIRED_DEFINITIONS -D_FILE_OFFSET_BITS=64)
+  check_cxx_source_compiles("
+#include <sys/types.h>
+#include <cstdio>
+static_assert(sizeof(off_t) == 8, \"off_t must be 64-bit\");
+int main() { fseeko(nullptr, 0, 0); return 0; }
+" SCORE_LIBC_LARGEFILE64)
+  unset(CMAKE_REQUIRED_DEFINITIONS)
+  if(SCORE_LIBC_LARGEFILE64)
+    add_compile_definitions(_FILE_OFFSET_BITS=64)
+  endif()
+endif()
+
 set(CMAKE_ANDROID_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Android")
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
     set(CXX_IS_CLANG True)
