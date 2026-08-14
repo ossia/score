@@ -28,6 +28,24 @@
         lv2:index 3 ;
         lv2:symbol "level" ;
         lv2:name "Level"
+    ] , [
+        a lv2:ControlPort, lv2:InputPort ;
+        lv2:index 4 ;
+        lv2:symbol "mode" ;
+        lv2:name "Mode" ;
+        lv2:portProperty lv2:integer ;
+        lv2:default 0.0 ;
+        lv2:minimum 0.0 ;
+        lv2:maximum 3.0
+    ] , [
+        a lv2:ControlPort, lv2:InputPort ;
+        lv2:index 5 ;
+        lv2:symbol "bypass" ;
+        lv2:name "Bypass" ;
+        lv2:portProperty lv2:toggled ;
+        lv2:default 0.0 ;
+        lv2:minimum 0.0 ;
+        lv2:maximum 1.0
     ] .
 
 # Deliberately shares its doap:name with urn:score:test:gain: display names are

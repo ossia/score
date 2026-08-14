@@ -17,7 +17,15 @@
 #include <LV2/EffectModel.hpp>
 #include <LV2/Node.hpp>
 
+#include <Process/Dataflow/WidgetInlets.hpp>
+
+#include <score/model/EntitySerialization.hpp>
+#include <score/serialization/JSONVisitor.hpp>
+#include <score/serialization/VisitorCommon.hpp>
+
 #include <score_test/App.hpp>
+
+#include <ossia/network/value/value_conversion.hpp>
 
 #include <ossia/dataflow/exec_state_facade.hpp>
 #include <ossia/dataflow/execution_state.hpp>
@@ -48,7 +56,7 @@ LV2::PluginInfo makeGainInfo()
   info.class_label = "Amplifier";
   info.audio_in = 1;
   info.audio_out = 1;
-  info.control_in = 1;
+  info.control_in = 3;
   info.control_out = 1;
   info.valid = true;
   return info;
@@ -258,10 +266,131 @@ TEST_CASE("LV2::Model resolves a legacy name-based document reference", "[lv2]")
 
     REQUIRE(model.plugin);
     CHECK(model.effect() == gain_name);
-    // audio in + gain control
-    CHECK(model.inlets().size() == 2);
+    // audio in + gain/mode/bypass controls
+    CHECK(model.inlets().size() == 4);
     // audio out + level control
     CHECK(model.outlets().size() == 2);
+  });
+}
+
+TEST_CASE("LV2 control values survive a reload round-trip", "[lv2]")
+{
+  prepare_lv2_test_environment();
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    setupLV2(ctx);
+
+    QObject parent;
+    auto* model = new LV2::Model{
+        TimeVal::fromMsecs(1000), gain_name, Id<Process::ProcessModel>{1}, &parent};
+    REQUIRE(model->plugin);
+    REQUIRE(model->inlets().size() == 4);
+
+    // Port properties picked the matching widgets
+    auto* gain_p = dynamic_cast<Process::FloatSlider*>(model->inlets()[1]);
+    auto* mode_p = dynamic_cast<Process::IntSlider*>(model->inlets()[2]);
+    auto* byp_p = dynamic_cast<Process::Toggle*>(model->inlets()[3]);
+    REQUIRE(gain_p);
+    REQUIRE(mode_p);
+    REQUIRE(byp_p);
+
+    gain_p->setValue(0.25f);
+    mode_p->setValue(2);
+    byp_p->setValue(true);
+
+    JSONReader reader;
+    reader.readFrom(static_cast<const Process::ProcessModel&>(*model));
+    const auto doc = toValue(reader);
+
+    JSONObject::Deserializer des{doc};
+    auto* loaded = new LV2::Model{des, &parent};
+    REQUIRE(loaded->plugin);
+    REQUIRE(loaded->inlets().size() == 4);
+
+    CHECK(
+        ossia::convert<float>(
+            dynamic_cast<Process::ControlInlet*>(loaded->inlets()[1])->value())
+        == Catch::Approx(0.25));
+    CHECK(
+        ossia::convert<int>(
+            dynamic_cast<Process::ControlInlet*>(loaded->inlets()[2])->value())
+        == 2);
+    CHECK(
+        ossia::convert<bool>(
+            dynamic_cast<Process::ControlInlet*>(loaded->inlets()[3])->value())
+        == true);
+  });
+}
+
+TEST_CASE("LV2 documents with legacy all-FloatSlider controls keep values", "[lv2]")
+{
+  // Before port properties were honored, every control inlet was saved as a
+  // FloatSlider. Reloading such a document must not reset ports whose widget
+  // type changed (IntSlider / Toggle / ...) to their default value.
+  prepare_lv2_test_environment();
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    setupLV2(ctx);
+
+    QObject parent;
+    auto* model = new LV2::Model{
+        TimeVal::fromMsecs(1000), gain_name, Id<Process::ProcessModel>{1}, &parent};
+    REQUIRE(model->plugin);
+    REQUIRE(model->inlets().size() == 4);
+
+    dynamic_cast<Process::ControlInlet*>(model->inlets()[1])->setValue(0.25f);
+    dynamic_cast<Process::ControlInlet*>(model->inlets()[2])->setValue(2);
+    dynamic_cast<Process::ControlInlet*>(model->inlets()[3])->setValue(true);
+
+    JSONReader reader;
+    reader.readFrom(static_cast<const Process::ProcessModel&>(*model));
+    auto doc = toValue(reader);
+
+    // Rewrite the mode/bypass inlet entries to the FloatSlider uuid + float
+    // values, as an old document would have stored them
+    const std::string fs_uuid = [] {
+      Process::FloatSlider scratch{0.f, 1.f, 0.f, "s", Id<Process::Port>{99}, nullptr};
+      const auto sj = toValue(score::marshall<JSONObject>(
+          static_cast<const Process::Inlet&>(scratch)));
+      REQUIRE(sj.HasMember("uuid"));
+      REQUIRE(sj["uuid"].IsString());
+      return std::string{sj["uuid"].GetString()};
+    }();
+
+    REQUIRE(doc.HasMember("Inlets"));
+    auto inlets = doc["Inlets"].GetArray();
+    REQUIRE(inlets.Size() == 4);
+    int patched = 0;
+    for(rapidjson::SizeType i = 2; i < 4; ++i)
+    {
+      auto entry = inlets[i].GetObject();
+      REQUIRE(entry.HasMember("uuid"));
+      REQUIRE(entry.HasMember("Value"));
+      entry["uuid"].SetString(fs_uuid.c_str(), doc.GetAllocator());
+      // ossia::value serializes as a typed object; a FloatSlider stores Float
+      rapidjson::Value v{rapidjson::kObjectType};
+      v.AddMember("Float", i == 2 ? 2.0 : 1.0, doc.GetAllocator());
+      entry["Value"] = v;
+      patched++;
+    }
+    REQUIRE(patched == 2);
+
+    JSONObject::Deserializer des{doc};
+    auto* loaded = new LV2::Model{des, &parent};
+    REQUIRE(loaded->plugin);
+    REQUIRE(loaded->inlets().size() == 4);
+
+    // Values survive even though the current widgets are IntSlider / Toggle
+    CHECK(
+        ossia::convert<float>(
+            dynamic_cast<Process::ControlInlet*>(loaded->inlets()[1])->value())
+        == Catch::Approx(0.25));
+    CHECK(
+        ossia::convert<float>(
+            dynamic_cast<Process::ControlInlet*>(loaded->inlets()[2])->value())
+        == Catch::Approx(2.0));
+    CHECK(
+        ossia::convert<float>(
+            dynamic_cast<Process::ControlInlet*>(loaded->inlets()[3])->value())
+        == Catch::Approx(1.0));
   });
 }
 
@@ -275,13 +404,13 @@ TEST_CASE("lv2_node processes audio single-voice", "[lv2]")
     LV2::LV2Data data{plug.lv2_host_context, gain.effect};
     REQUIRE(data.audio_in_ports.size() == 1);
     REQUIRE(data.audio_out_ports.size() == 1);
-    REQUIRE(data.control_in_ports.size() == 1);
+    REQUIRE(data.control_in_ports.size() == 3);
     REQUIRE(data.control_out_ports.size() == 1);
 
     {
       test_node node{data, 48000, {LV2::voice_routing::single, 1}, {}, {}};
       REQUIRE(node.voices.size() == 1);
-      REQUIRE(node.root_inputs().size() == 2);  // audio, gain
+      REQUIRE(node.root_inputs().size() == 4);  // audio, gain, mode, bypass
       REQUIRE(node.root_outputs().size() == 2); // audio, level
 
       auto& in = node.root_inputs()[0]->cast<ossia::audio_port>();

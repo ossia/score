@@ -3,8 +3,10 @@
  * Ports:
  *   0  audio  in   "in"
  *   1  audio  out  "out"
- *   2  control in  "gain"  [0, 4] default 1
- *   3  control out "level" peak absolute value of the last block
+ *   2  control in  "gain"   [0, 4] default 1
+ *   3  control out "level"  peak absolute value of the last block
+ *   4  control in  "mode"   integer [0, 3] default 0 (ignored by run)
+ *   5  control in  "bypass" toggled default 0        (ignored by run)
  */
 #include <lv2/lv2plug.in/ns/lv2core/lv2.h>
 
