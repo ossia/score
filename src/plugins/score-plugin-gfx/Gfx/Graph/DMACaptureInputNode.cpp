@@ -191,28 +191,6 @@ public:
       m_backend->setStrategy(nullptr);
     }
 
-    // A multi-sensor backend can only be grouped if the engaged rung can bind a
-    // caller-chosen slot. If it cannot, stay on the unsynchronised path rather
-    // than mis-bind: a wrong frame is worse than an unsynchronised one, because
-    // it looks correct.
-    if(m_strategy)
-    {
-      if(const auto mem = m_backend->syncGroup();
-         mem.group && m_strategy->supportsSlotSelection())
-      {
-        m_syncGroup = mem.group;
-        m_syncMember = mem.member;
-        m_syncGroup->setRetireDepth(
-            static_cast<std::size_t>(rhi.resourceLimit(QRhi::FramesInFlight)) + 1u);
-      }
-      else if(mem.group)
-      {
-        qWarning() << "DMA capture: rung" << m_strategy->name()
-                   << "cannot bind a chosen slot; this stream will run "
-                      "unsynchronised with the rest of the rig";
-      }
-    }
-
     if(!m_strategy)
     {
       // Universal CPU-staging fallback (works on every backend).
@@ -225,6 +203,32 @@ public:
         m_backend.reset();
         m_strategy.reset();
         return;
+      }
+    }
+
+    // A multi-sensor backend can only be grouped if the engaged rung can bind a
+    // caller-chosen slot. If it cannot, stay on the unsynchronised path rather
+    // than mis-bind: a wrong frame is worse than an unsynchronised one, because
+    // it looks correct.
+    //
+    // After the CPU fallback, not before it: the ladder leaves m_strategy null
+    // when every zero-copy rung fails, so binding here earlier skipped the
+    // whole check -- and with it the warning below -- exactly in the case that
+    // needs it. A rig that fell back to CPU then ran unsynchronised in silence.
+    if(const auto mem = m_backend->syncGroup(); mem.group)
+    {
+      if(m_strategy->supportsSlotSelection())
+      {
+        m_syncGroup = mem.group;
+        m_syncMember = mem.member;
+        m_syncGroup->setRetireDepth(
+            static_cast<std::size_t>(rhi.resourceLimit(QRhi::FramesInFlight)) + 1u);
+      }
+      else
+      {
+        qWarning() << "DMA capture: rung" << m_strategy->name()
+                   << "cannot bind a chosen slot; this stream will run "
+                      "unsynchronised with the rest of the rig";
       }
     }
 
