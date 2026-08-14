@@ -16,6 +16,7 @@
  * into it); `meta` carries the VPID/InfoFrame-derived colour metadata.
  */
 
+#include <Gfx/Graph/decoders/Bayer.hpp>
 #include <Gfx/Graph/decoders/NV12.hpp>
 #include <Gfx/Graph/decoders/PackedBitfield.hpp>
 #include <Gfx/Graph/decoders/PackedBitfieldYUV.hpp>
@@ -122,6 +123,45 @@ makeWireDecoder(score::gfx::interop::VideoPixelFormat fmt, Video::ImageFormat& d
       return std::make_unique<PackedDecoder>(
           QRhiTexture::R16, 2, d,
           "processed.rgba = vec4(tex.r, tex.r, tex.r, 1.0);");
+    // -- Bayer: one sample per pixel, demosaiced on the GPU ---------------
+    // The CFA order travels with the format, so it is passed to the decoder
+    // rather than assumed. The 10- and 12-bit orders ride right-aligned in a
+    // 16-bit lane, so they carry the same rescale as Mono10 / Mono12.
+    case F::BayerRGGB8:
+    case F::BayerRG8: // PFNC spelling of the same order
+      return std::make_unique<BayerDecoder>(
+          QRhiTexture::R8, 1, d, BayerDecoder::Phase::RGGB);
+    case F::BayerBGGR8:
+      return std::make_unique<BayerDecoder>(
+          QRhiTexture::R8, 1, d, BayerDecoder::Phase::BGGR);
+    case F::BayerGRBG8:
+      return std::make_unique<BayerDecoder>(
+          QRhiTexture::R8, 1, d, BayerDecoder::Phase::GRBG);
+    case F::BayerGBRG8:
+      return std::make_unique<BayerDecoder>(
+          QRhiTexture::R8, 1, d, BayerDecoder::Phase::GBRG);
+    case F::BayerRGGB16:
+      return std::make_unique<BayerDecoder>(
+          QRhiTexture::R16, 2, d, BayerDecoder::Phase::RGGB);
+    case F::BayerBGGR16:
+      return std::make_unique<BayerDecoder>(
+          QRhiTexture::R16, 2, d, BayerDecoder::Phase::BGGR);
+    case F::BayerRGGB10:
+      return std::make_unique<BayerDecoder>(
+          QRhiTexture::R16, 2, d, BayerDecoder::Phase::RGGB, 64.0625);
+    case F::BayerBGGR10:
+      return std::make_unique<BayerDecoder>(
+          QRhiTexture::R16, 2, d, BayerDecoder::Phase::BGGR, 64.0625);
+    case F::BayerGRBG10:
+      return std::make_unique<BayerDecoder>(
+          QRhiTexture::R16, 2, d, BayerDecoder::Phase::GRBG, 64.0625);
+    case F::BayerGBRG10:
+      return std::make_unique<BayerDecoder>(
+          QRhiTexture::R16, 2, d, BayerDecoder::Phase::GBRG, 64.0625);
+    case F::BayerRG12:
+      return std::make_unique<BayerDecoder>(
+          QRhiTexture::R16, 2, d, BayerDecoder::Phase::RGGB, 16.0039);
+
     // Big-endian: sample the two bytes separately and reassemble, since R16
     // would read them in the host's order.
     case F::Mono16BE:
