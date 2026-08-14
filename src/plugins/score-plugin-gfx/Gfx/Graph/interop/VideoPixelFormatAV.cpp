@@ -114,6 +114,12 @@ AVPixelFormat toAVPixelFormat(VideoPixelFormat f) noexcept
     // enumerators claim the same AVPixelFormat.
     case V::BayerRG8:
     case V::BayerRG12:
+    // FFmpeg spells Bayer at 8 and 16 bits only; a 10-bit mosaic would have to
+    // borrow the 16-bit twin and lose the significant-bit count on the way back.
+    case V::BayerBGGR10:
+    case V::BayerGBRG10:
+    case V::BayerGRBG10:
+    case V::BayerRGGB10:
     // FFmpeg has no plane-swapped planar twin: YV12 is expressed as yuv420p
     // with the U and V pointers exchanged, so returning yuv420p here would
     // silently swap chroma -- the exact bug this bridge exists to avoid.
