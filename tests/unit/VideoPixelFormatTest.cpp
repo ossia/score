@@ -1119,6 +1119,28 @@ TEST_CASE("DRM fourccs resolve with the word-order inversion", "[gfx][pixfmt][dr
     CHECK(vpf::toDrmFourcc(p.expect) == f(p.fourcc));
     pinned.insert(p.expect);
   }
+
+  // Colour-filter-array formats map to DRM one way only. On the wire a CFA frame
+  // is one sample per pixel, byte-identical to greyscale of the same depth, so
+  // the fourcc cannot say which of the enumerators sharing it was meant and
+  // fromDrmFourcc has to keep answering Mono8/Mono16. They are pinned here
+  // rather than in kPins, which asserts a round trip these cannot make.
+  struct OneWayPin { V format; const char* fourcc; };
+  static const OneWayPin kOneWayPins[] = {
+      {V::BayerRGGB8, "R8  "},  {V::BayerBGGR8, "R8  "},
+      {V::BayerGRBG8, "R8  "},  {V::BayerGBRG8, "R8  "},
+      {V::BayerRG8, "R8  "},    {V::BayerRGGB16, "R16 "},
+      {V::BayerBGGR16, "R16 "}, {V::BayerRGGB10, "R16 "},
+      {V::BayerBGGR10, "R16 "}, {V::BayerGRBG10, "R16 "},
+      {V::BayerGBRG10, "R16 "}, {V::BayerRG12, "R16 "},
+  };
+  for(const auto& p : kOneWayPins)
+  {
+    INFO("one-way DRM fourcc " << p.fourcc);
+    CHECK(vpf::toDrmFourcc(p.format) == f(p.fourcc));
+    pinned.insert(p.format);
+  }
+
   for(const auto* i : described())
   {
     if(vpf::toDrmFourcc(i->format) != 0)

@@ -46,6 +46,13 @@ namespace score::gfx
 /// the CPU path.
 bool nv12ExternalOesUsable(QRhi::Implementation backend) noexcept;
 
+/// Rewrite baked GLSL so its `sampler2D tex` becomes `samplerExternalOES tex`,
+/// adding the required extension pragma. Shared because every external-image
+/// decoder needs exactly this edit: glslang rejects the external type, so the
+/// shader is baked with sampler2D and only the GL text is swapped. Returns an
+/// empty array when the input does not look like baked GLSL.
+QByteArray toExternalSamplerEssl(QByteArray glsl);
+
 struct NV12ExternalOESDecoder : GPUVideoDecoder
 {
   // Baked with sampler2D so glslang accepts it; the GLSL variant is swapped
