@@ -145,7 +145,11 @@ static void update_qtquick_graphics_api(const score::gfx::GraphicsApi& api)
       QQuickWindow::setGraphicsApi(QSGRendererInterface::Direct3D11);
       break;
     case D3D12:
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
       QQuickWindow::setGraphicsApi(QSGRendererInterface::Direct3D12);
+#else
+      QQuickWindow::setGraphicsApi(QSGRendererInterface::Direct3D11);
+#endif
       break;
     default:
       break;
