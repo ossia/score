@@ -6,16 +6,16 @@
  *
  * The capture-side symmetric counterpart to encoders/WireEncoderFactory.hpp:
  * turns "the on-wire pixel format a card delivers" into the GPUVideoDecoder that
- * unpacks those bytes into RGBA at sample time. Every capture-card addon
- * (AJA, and future DeckLink/Bluefish/Magewell/Deltacast) used to hand-roll the
- * same switch in its DMACaptureBackend::makeDecoder; this centralises it so an
- * addon only maps its vendor enum -> VideoPixelFormat.
+ * unpacks those bytes into RGBA at sample time. The switch lives here so that a
+ * capture-card addon (AJA, and future DeckLink/Bluefish/Magewell/Deltacast)
+ * only has to map its vendor enum -> VideoPixelFormat.
  *
  * Returns nullptr for formats with no capture decoder yet. The decoder
  * allocates an input texture sized to the wire byte layout (the strategy DMAs
  * into it); `meta` carries the VPID/InfoFrame-derived colour metadata.
  */
 
+#include <Gfx/Graph/decoders/Bayer.hpp>
 #include <Gfx/Graph/decoders/NV12.hpp>
 #include <Gfx/Graph/decoders/PackedBitfield.hpp>
 #include <Gfx/Graph/decoders/PackedBitfieldYUV.hpp>
@@ -122,6 +122,45 @@ makeWireDecoder(score::gfx::interop::VideoPixelFormat fmt, Video::ImageFormat& d
       return std::make_unique<PackedDecoder>(
           QRhiTexture::R16, 2, d,
           "processed.rgba = vec4(tex.r, tex.r, tex.r, 1.0);");
+    // -- Bayer: one sample per pixel, demosaiced on the GPU ---------------
+    // The CFA order travels with the format, so it is passed to the decoder
+    // rather than assumed. The 10- and 12-bit orders ride right-aligned in a
+    // 16-bit lane, so they carry the same rescale as Mono10 / Mono12.
+    case F::BayerRGGB8:
+    case F::BayerRG8: // PFNC spelling of the same order
+      return std::make_unique<BayerDecoder>(
+          QRhiTexture::R8, 1, d, BayerDecoder::Phase::RGGB);
+    case F::BayerBGGR8:
+      return std::make_unique<BayerDecoder>(
+          QRhiTexture::R8, 1, d, BayerDecoder::Phase::BGGR);
+    case F::BayerGRBG8:
+      return std::make_unique<BayerDecoder>(
+          QRhiTexture::R8, 1, d, BayerDecoder::Phase::GRBG);
+    case F::BayerGBRG8:
+      return std::make_unique<BayerDecoder>(
+          QRhiTexture::R8, 1, d, BayerDecoder::Phase::GBRG);
+    case F::BayerRGGB16:
+      return std::make_unique<BayerDecoder>(
+          QRhiTexture::R16, 2, d, BayerDecoder::Phase::RGGB);
+    case F::BayerBGGR16:
+      return std::make_unique<BayerDecoder>(
+          QRhiTexture::R16, 2, d, BayerDecoder::Phase::BGGR);
+    case F::BayerRGGB10:
+      return std::make_unique<BayerDecoder>(
+          QRhiTexture::R16, 2, d, BayerDecoder::Phase::RGGB, 64.0625);
+    case F::BayerBGGR10:
+      return std::make_unique<BayerDecoder>(
+          QRhiTexture::R16, 2, d, BayerDecoder::Phase::BGGR, 64.0625);
+    case F::BayerGRBG10:
+      return std::make_unique<BayerDecoder>(
+          QRhiTexture::R16, 2, d, BayerDecoder::Phase::GRBG, 64.0625);
+    case F::BayerGBRG10:
+      return std::make_unique<BayerDecoder>(
+          QRhiTexture::R16, 2, d, BayerDecoder::Phase::GBRG, 64.0625);
+    case F::BayerRG12:
+      return std::make_unique<BayerDecoder>(
+          QRhiTexture::R16, 2, d, BayerDecoder::Phase::RGGB, 16.0039);
+
     // Big-endian: sample the two bytes separately and reassemble, since R16
     // would read them in the host's order.
     case F::Mono16BE:
@@ -172,8 +211,9 @@ makeWireDecoder(score::gfx::interop::VideoPixelFormat fmt, Video::ImageFormat& d
     // documents them as "A/XYUV": alpha high, then Y, U, V downwards.
     // The high bits are NOT alpha: V4L2 documents them as "undefined when
     // reading from the driver" for the sub-8bpc packed YUV formats, unlike the
-    // 8bpc AYUV32/VUYA32 family whose alpha is meaningful. Consuming them
-    // rendered the frame fully transparent whenever a driver left them zero.
+    // 8bpc AYUV32/VUYA32 family whose alpha is meaningful. They are ignored;
+    // consuming them makes the frame fully transparent on any driver that
+    // leaves them zero.
     case F::AYUV4444:
       return std::make_unique<PackedBitfieldYUVDecoder>(
           d, PackedBitfieldYUVLayout{
@@ -195,9 +235,9 @@ makeWireDecoder(score::gfx::interop::VideoPixelFormat fmt, Video::ImageFormat& d
     case F::RGB24:
       return std::make_unique<RGB24Decoder>(d);
     case F::BGR24:
-      // Same unpacker, opposite byte order -- without the swizzle this
-      // rendered R and B exchanged. GPUVideoDecoderFactory passes the same
-      // filter for AV_PIX_FMT_BGR24.
+      // Same unpacker, opposite byte order -- without the swizzle R and B come
+      // out exchanged. GPUVideoDecoderFactory passes the same filter for
+      // AV_PIX_FMT_BGR24.
       return std::make_unique<RGB24Decoder>(
           d, "processed.rgb = tex.bgr;");
     case F::RGB48:
@@ -239,9 +279,7 @@ makeWireDecoder(score::gfx::interop::VideoPixelFormat fmt, Video::ImageFormat& d
       return std::make_unique<P010Decoder>(d);
     case F::YUV422P10:
       return std::make_unique<YUV422P10Decoder>(d);
-    // The remaining planar decoders. Each already existed and was already
-    // exercised through the ffmpeg path; only the wire mapping was missing, so
-    // a card announcing one of these fourccs was refused at open().
+    // The remaining planar decoders, shared with the ffmpeg path.
     case F::YUV422P12:
       return std::make_unique<YUV422P12Decoder>(d);
     case F::YUV420P10:
