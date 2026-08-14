@@ -45,6 +45,19 @@ constexpr uint32_t drmFourcc(char a, char b, char c, char d) noexcept
 }
 
 // clang-format off
+// Single- and dual-channel planes, used to import a planar frame one plane at a
+// time. DRM_FORMAT_GR1616 is fourcc_code('G','R','3','2') -- not 'GR16', which
+// is not a fourcc any kernel knows.
+inline constexpr uint32_t DRM_R8            = drmFourcc('R','8',' ',' ');
+inline constexpr uint32_t DRM_GR88          = drmFourcc('G','R','8','8');
+inline constexpr uint32_t DRM_R16           = drmFourcc('R','1','6',' ');
+inline constexpr uint32_t DRM_GR1616        = drmFourcc('G','R','3','2');
+
+static_assert(DRM_R8 == 0x20203852u, "DRM_FORMAT_R8");
+static_assert(DRM_GR88 == 0x38385247u, "DRM_FORMAT_GR88");
+static_assert(DRM_R16 == 0x20363152u, "DRM_FORMAT_R16");
+static_assert(DRM_GR1616 == 0x32335247u, "DRM_FORMAT_GR1616");
+
 inline constexpr uint32_t DRM_ABGR8888      = drmFourcc('A','B','2','4'); // [R,G,B,A] memory
 inline constexpr uint32_t DRM_ARGB8888      = drmFourcc('A','R','2','4'); // [B,G,R,A] memory
 inline constexpr uint32_t DRM_XBGR8888      = drmFourcc('X','B','2','4');

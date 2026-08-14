@@ -30,6 +30,7 @@
 #if defined(__linux__)
 #include <Gfx/Graph/decoders/ColorSpace.hpp>
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
+#include <Gfx/Graph/interop/DrmFourcc.hpp>
 #include <Gfx/Graph/decoders/NV12.hpp>
 #include <Gfx/Graph/decoders/P010.hpp>
 #include <Gfx/Graph/decoders/YUV420.hpp>
@@ -269,9 +270,11 @@ struct DRMPrimeDecoder : GPUVideoDecoder
           m_vk_plane_fmt[0] = VK_FORMAT_R16_UNORM;
           m_vk_plane_fmt[1] = VK_FORMAT_R16G16_UNORM;
 #endif
-          // DRM fourccs (R16, GR1616) — Mesa-defined.
-          m_gl_plane_fourcc[0] = 0x20363152u; // DRM_FORMAT_R16   'R16 '
-          m_gl_plane_fourcc[1] = 0x36315247u; // DRM_FORMAT_GR1616 'GR16'
+          // DRM_FORMAT_GR1616 is fourcc_code('G','R','3','2'); 'GR16' is not a
+          // fourcc any kernel knows, and importing the chroma plane with it
+          // fails or lands on driver-specific behaviour.
+          m_gl_plane_fourcc[0] = score::gfx::interop::DRM_R16;
+          m_gl_plane_fourcc[1] = score::gfx::interop::DRM_GR1616;
         }
         else
         {
