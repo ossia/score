@@ -889,7 +889,29 @@ static void restore_ports(const T& src, const T& dst)
     if(src[i]->type() == dst[i]->type())
     {
       // FIXME not efficient at all...
-      dst[i]->loadData(src[i]->saveData());
+      // ReloadValue: loadData defaults to keeping the current (default) value
+      // since 03ef54526; a document reload must restore the saved one.
+      dst[i]->loadData(src[i]->saveData(), Process::PortLoadDataFlags::ReloadValue);
+    }
+    else if(auto* s_in = qobject_cast<Process::ControlInlet*>(src[i]))
+    {
+      // The widget type for this port changed across versions (e.g. every
+      // control used to be a FloatSlider; ports with integer / toggled /
+      // enumeration / logarithmic properties now get matching widgets).
+      // Keep the document's value instead of resetting to the default.
+      if(auto* d_in = qobject_cast<Process::ControlInlet*>(dst[i]))
+      {
+        d_in->setValue(s_in->value());
+        d_in->setAddress(s_in->address());
+      }
+    }
+    else if(auto* s_out = qobject_cast<Process::ControlOutlet*>(src[i]))
+    {
+      if(auto* d_out = qobject_cast<Process::ControlOutlet*>(dst[i]))
+      {
+        d_out->setValue(s_out->value());
+        d_out->setAddress(s_out->address());
+      }
     }
   }
 }
