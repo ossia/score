@@ -26,6 +26,12 @@
 //   ./dmabufprobe --v4l2 /dev/video0 --width 1768 --height 1080 --runs 20
 //   v4l2-ctl -d /dev/video0 -c bypass_mode=1
 //
+// DO NOT point --v4l2-import at vivid. Its DMABUF import cannot take a foreign
+// buffer: on the dma-contig allocator QBUF refuses every length convention with
+// EINVAL even when pitch and size match exactly, and on vmalloc the release path
+// deadlocks in v4l2_release, leaving an unkillable process and a device that
+// stays wedged until reboot. Use a real capture device.
+//
 // MEASUREMENT NOTE, learned the hard way on the desktop: within one process the
 // first frames behave differently from later ones, so a sweep that runs two
 // configurations back to back credits the second with the first's warm-up. To
@@ -761,8 +767,17 @@ struct V4l2ImportSource final : Source
   {
     if(v4l2fd >= 0)
     {
+      // Release the queue's references to OUR buffers before closing the fd.
+      // Closing first leaves the driver holding attachments to dma-bufs we are
+      // about to drop, and vivid deadlocks in v4l2_release when that happens --
+      // an unkillable D-state process that wedges the device until reboot.
       int type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
       xioctl(v4l2fd, VIDIOC_STREAMOFF, &type);
+      v4l2_requestbuffers rq{};
+      rq.count = 0;
+      rq.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+      rq.memory = V4L2_MEMORY_DMABUF;
+      xioctl(v4l2fd, VIDIOC_REQBUFS, &rq);
       ::close(v4l2fd);
     }
     for(auto& s : slots)
