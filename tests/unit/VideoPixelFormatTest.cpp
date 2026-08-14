@@ -162,6 +162,10 @@ static_assert(uint16_t(V::BayerGRBG8) == 116);
 static_assert(uint16_t(V::BayerRGGB8) == 117);
 static_assert(uint16_t(V::BayerBGGR16) == 118);
 static_assert(uint16_t(V::BayerRGGB16) == 119);
+static_assert(uint16_t(V::BayerBGGR10) == 123);
+static_assert(uint16_t(V::BayerGBRG10) == 124);
+static_assert(uint16_t(V::BayerGRBG10) == 125);
+static_assert(uint16_t(V::BayerRGGB10) == 126);
 static_assert(uint16_t(V::Mono16BE) == 86);
 
 TEST_CASE("the vocabulary is non-trivial and self-consistent", "[gfx][pixfmt]")
@@ -169,7 +173,7 @@ TEST_CASE("the vocabulary is non-trivial and self-consistent", "[gfx][pixfmt]")
   const auto all = described();
   REQUIRE(all.size() == vpf::formatCount());
   // Guards against the table being accidentally emptied or halved.
-  CHECK(all.size() == 90);
+  CHECK(all.size() == 94);
 
   for(const auto* i : all)
   {
@@ -602,7 +606,7 @@ TEST_CASE("V4L2 fourccs round-trip through the vocabulary", "[gfx][pixfmt][v4l2]
     CHECK(vpf::fromV4L2PixelFormat(fourcc) == i->format);
   }
   // Exact, for the same reason as the AV count.
-  CHECK(mapped == 54);
+  CHECK(mapped == 58);
   CHECK(vpf::fromV4L2PixelFormat(0) == V::Unknown);
   CHECK(vpf::fromV4L2PixelFormat(0xDEADBEEF) == V::Unknown);
   // Compressed fourccs are on the codec axis and must not resolve to a layout.
@@ -816,6 +820,10 @@ TEST_CASE("every V4L2 mapping is pinned to a kernel constant", "[gfx][pixfmt][v4
       {V::BayerGBRG8, V4L2_PIX_FMT_SGBRG8},
       {V::BayerGRBG8, V4L2_PIX_FMT_SGRBG8},
       {V::BayerRGGB8, V4L2_PIX_FMT_SRGGB8},
+      {V::BayerBGGR10, V4L2_PIX_FMT_SBGGR10},
+      {V::BayerGBRG10, V4L2_PIX_FMT_SGBRG10},
+      {V::BayerGRBG10, V4L2_PIX_FMT_SGRBG10},
+      {V::BayerRGGB10, V4L2_PIX_FMT_SRGGB10},
 #ifdef V4L2_PIX_FMT_SBGGR16
       {V::BayerBGGR16, V4L2_PIX_FMT_SBGGR16},
 #endif
@@ -952,6 +960,10 @@ TEST_CASE("wire-only descriptors are frozen", "[gfx][pixfmt]")
       {V::RGBA32F, ColorModel::RGB, 1, 1, 1, 1, 16, true, vpf::ByteOrder::Little, 256},
       {V::BayerRG8, ColorModel::Bayer, 1, 1, 1, 1, 1, false, vpf::ByteOrder::NA, 64},
       {V::BayerRG12, ColorModel::Bayer, 1, 1, 1, 1, 2, false, vpf::ByteOrder::Little, 64},
+      {V::BayerBGGR10, ColorModel::Bayer, 1, 1, 1, 1, 2, false, vpf::ByteOrder::Little, 64},
+      {V::BayerGBRG10, ColorModel::Bayer, 1, 1, 1, 1, 2, false, vpf::ByteOrder::Little, 64},
+      {V::BayerGRBG10, ColorModel::Bayer, 1, 1, 1, 1, 2, false, vpf::ByteOrder::Little, 64},
+      {V::BayerRGGB10, ColorModel::Bayer, 1, 1, 1, 1, 2, false, vpf::ByteOrder::Little, 64},
   };
   std::set<V> frozen;
   for(const auto& g : kGolden)
@@ -979,7 +991,7 @@ TEST_CASE("wire-only descriptors are frozen", "[gfx][pixfmt]")
       CHECK(frozen.count(i->format) == 1);
     }
   }
-  CHECK(frozen.size() == 30);
+  CHECK(frozen.size() == 34);
   // and together the two sets are the whole vocabulary
   CHECK(frozen.size() + 60u == vpf::formatCount());
 }
