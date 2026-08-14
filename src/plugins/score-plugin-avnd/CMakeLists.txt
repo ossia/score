@@ -372,24 +372,38 @@ setup_score_plugin(score_plugin_avnd)
 
 if(SCORE_PCH)
 if(NOT TARGET avnd_source_parser)
-target_precompile_headers(score_plugin_avnd PRIVATE
-  Avnd/Factories.hpp
+set(SCORE_AVND_PCH_HEADERS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Avnd/Factories.hpp"
 
-  Crousti/Attributes.hpp
-  Crousti/Concepts.hpp
-  Crousti/Executor.hpp
-  Crousti/GfxNode.hpp
-  Crousti/GpuNode.hpp
-  Crousti/GpuComputeNode.hpp
-  Crousti/GpuUtils.hpp
-  Crousti/Layer.hpp
-  Crousti/Metadatas.hpp
-  Crousti/Metadata.hpp
-  Crousti/Painter.hpp
-  Crousti/ProcessModel.hpp
+  "${CMAKE_CURRENT_SOURCE_DIR}/Crousti/Attributes.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Crousti/Concepts.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Crousti/Executor.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Crousti/GfxNode.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Crousti/GpuNode.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Crousti/GpuComputeNode.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Crousti/GpuUtils.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Crousti/Layer.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Crousti/Metadatas.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Crousti/Metadata.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Crousti/Painter.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Crousti/ProcessModel.hpp"
   "${AVND_FOLDER}/include/avnd/prefix.hpp"
   ${HALP_HEADERS}
 )
+
+target_precompile_headers(score_plugin_avnd PRIVATE ${SCORE_AVND_PCH_HEADERS})
+
+# The plug-in's own PCH bakes in SCORE_PLUGIN_AVND_EXPORTS, which the export
+# header tests: gcc refuses that PCH in any other target. avnd_score_plugin
+# targets reuse this holder's PCH instead, built without the macro.
+file(CONFIGURE
+  OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/score_plugin_avnd_pch_dummy.cpp"
+  CONTENT "")
+add_library(score_plugin_avnd_pch STATIC
+  "${CMAKE_CURRENT_BINARY_DIR}/score_plugin_avnd_pch_dummy.cpp")
+target_link_libraries(score_plugin_avnd_pch PUBLIC score_plugin_avnd)
+target_precompile_headers(score_plugin_avnd_pch PUBLIC ${SCORE_AVND_PCH_HEADERS})
+set_target_properties(score_plugin_avnd_pch PROPERTIES FOLDER "Plugins")
 endif()
 endif()
 
