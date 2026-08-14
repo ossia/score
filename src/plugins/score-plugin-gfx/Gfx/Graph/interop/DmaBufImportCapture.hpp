@@ -72,8 +72,11 @@
  *
  * The imported images are created with a DRM format modifier and EXCLUSIVE
  * sharing, and no queue-family-foreign acquire barrier is issued -- same as
- * DRMPrimeDecoder. That is sound for linear modifiers, which is all a V4L2
- * exporter produces; a tiled vendor modifier would need the barrier added.
+ * DRMPrimeDecoder. Adding one does not help where this goes wrong: on NVIDIA a
+ * buffer exported by a foreign device reads back partly as zeros with the
+ * acquire barrier present or absent alike (20/30 vs 21/30 corrupted over fresh
+ * processes), which is why DmaBufOrigin, not a barrier, is what gates the rung.
+ * A tiled vendor modifier would still need the barrier added.
  */
 
 #if defined(__linux__)
@@ -111,6 +114,25 @@ struct DmaBufPlaneLayout
 {
   std::uint32_t offset{};
   std::uint32_t pitch{};
+};
+
+/// Who allocated the buffers a producer hands us.
+///
+/// NVIDIA's Vulkan imports dma-bufs that came from its own allocators exactly,
+/// and reads zeros out of parts of buffers exported by a foreign device. That
+/// holds on both the desktop driver and Tegra, so it is a property of the
+/// exporter rather than of the platform, and neither the driver id nor the CPU
+/// architecture can tell the two cases apart. Measured with
+/// tests/DmaBufImportProbe.cpp: GBM 10/10 byte-exact on both, NvBufSurface
+/// 10/10 on Tegra, V4L2 0/10 on Tegra and intermittently wrong on the desktop.
+enum class DmaBufOrigin
+{
+  /// A device that is not the GPU wrote the buffer: V4L2/vb2, a capture card's
+  /// own DMA. The Vulkan rung is refused on NVIDIA for these.
+  ForeignDevice,
+  /// The GPU stack allocated it: GBM, NvBufSurface. Safe on every driver
+  /// measured, so the Vulkan rung stays available.
+  GpuAllocated,
 };
 
 /// One producer buffer, fixed for the lifetime of the stream.
@@ -211,8 +233,11 @@ struct DmaBufImportCapture final : VideoCaptureStrategy
   /// @param slots  the producer's fixed fd ring; must outlive nothing (the fds
   ///               are dup()'d by the Vulkan importer and referenced by the EGL
   ///               importer only during init).
-  DmaBufImportCapture(const char* tag, std::vector<DmaBufSlotDesc> slots)
+  DmaBufImportCapture(
+      const char* tag, std::vector<DmaBufSlotDesc> slots,
+      DmaBufOrigin origin = DmaBufOrigin::ForeignDevice)
       : m_slots{std::move(slots)}
+      , m_origin{origin}
       , m_tag{tag}
       , m_name{m_tag + "-dmabuf"}
   {
@@ -419,10 +444,13 @@ struct DmaBufImportCapture final : VideoCaptureStrategy
 #else
       constexpr std::uint32_t kNvidiaProprietary = 4;
 #endif
-      if(DMABufPlaneImporter::driverId(*cfg.rhi) == kNvidiaProprietary)
+      if(m_origin == DmaBufOrigin::ForeignDevice
+         && DMABufPlaneImporter::driverId(*cfg.rhi) == kNvidiaProprietary)
       {
-        qDebug() << "DmaBufImportCapture: NVIDIA proprietary Vulkan does not "
-                    "hold an imported DMA-BUF still; no Vulkan rung";
+        qDebug() << "DmaBufImportCapture: NVIDIA proprietary Vulkan reads stale "
+                    "bytes out of a dma-buf exported by a foreign device; no "
+                    "Vulkan rung for"
+                 << m_tag.c_str();
         return false;
       }
       // Set before importing: release() keys its cleanup off the backend, and
@@ -750,6 +778,7 @@ private:
   static constexpr std::size_t kMaxPlanes = 3;
 
   std::vector<DmaBufSlotDesc> m_slots;
+  DmaBufOrigin m_origin{DmaBufOrigin::ForeignDevice};
   std::vector<PlaneInfo> m_planeInfo;
   /// Set by the caller when the whole frame should go in as one external
   /// image: the DRM fourcc of the frame (NV12 etc.) and its full height, which
