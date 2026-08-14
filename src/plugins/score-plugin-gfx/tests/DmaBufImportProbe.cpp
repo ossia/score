@@ -78,6 +78,9 @@
 namespace
 {
 bool g_verbose = false;
+/// Import with width*bpp instead of the producer's real stride, which is what
+/// a consumer that derives the pitch rather than asking for it ends up doing.
+bool g_tightPitch = false;
 
 int xioctl(int fd, unsigned long req, void* arg)
 {
@@ -967,7 +970,9 @@ long importAndCompare(Vk& vk, const Source& src)
 {
   VkSubresourceLayout layout{};
   layout.offset = 0;
-  layout.rowPitch = src.stride;
+  layout.rowPitch
+      = g_tightPitch ? VkDeviceSize(src.width) * VkDeviceSize(src.bpp)
+                     : VkDeviceSize(src.stride);
 
   VkImageDrmFormatModifierExplicitCreateInfoEXT modInfo{};
   modInfo.sType
@@ -1231,6 +1236,8 @@ int main(int argc, char** argv)
       w = std::atoi(next().c_str());
     else if(a == "--height")
       h = std::atoi(next().c_str());
+    else if(a == "--tight-pitch")
+      g_tightPitch = true;
     else if(a == "-v")
       g_verbose = true;
     else if(a == "--help")
