@@ -22,41 +22,53 @@ endfunction()
 function(avnd_score_plugin_finalize)
   cmake_parse_arguments(AVND "CUSTOM_PLUGIN;MODULE" "BASE_TARGET;PLUGIN_VERSION;PLUGIN_UUID" "" ${ARGN})
 
+  # Each addon's generated files live in their own directory, exposed only to
+  # targets that link the addon. score_static_plugins.hpp registers plug-ins
+  # behind `#if __has_include(<score_addon_foo.hpp>)`, so a header sitting in
+  # CMAKE_BINARY_DIR -- which is on every target's include path -- makes that
+  # guard true everywhere, and any target compiling that header then references
+  # a constructor it does not link. Small unit tests are the ones that break.
+  set(AVND_GEN_DIR "${CMAKE_BINARY_DIR}/score_addons/${AVND_BASE_TARGET}")
+
   if(NOT AVND_CUSTOM_PLUGIN)
     # Generate the score_plugin_foo.{h,c}pp
     configure_file(
       "${SCORE_AVND_SOURCE_DIR}/plugin_prototype.hpp.in"
-      "${CMAKE_BINARY_DIR}/${AVND_BASE_TARGET}.hpp"
+      "${AVND_GEN_DIR}/${AVND_BASE_TARGET}.hpp"
       @ONLY
       NEWLINE_STYLE LF
     )
     if(AVND_MODULE)
       configure_file(
         "${SCORE_AVND_SOURCE_DIR}/module_plugin_prototype.cpp.in"
-        "${CMAKE_BINARY_DIR}/${AVND_BASE_TARGET}.cpp"
+        "${AVND_GEN_DIR}/${AVND_BASE_TARGET}.cpp"
         @ONLY
         NEWLINE_STYLE LF
       )
       target_sources(${AVND_BASE_TARGET} PRIVATE FILE_SET CXX_MODULES FILES
-        "${CMAKE_BINARY_DIR}/${AVND_BASE_TARGET}.cpp"
+        "${AVND_GEN_DIR}/${AVND_BASE_TARGET}.cpp"
       )
     else()
       configure_file(
         "${SCORE_AVND_SOURCE_DIR}/plugin_prototype.cpp.in"
-        "${CMAKE_BINARY_DIR}/${AVND_BASE_TARGET}.cpp"
+        "${AVND_GEN_DIR}/${AVND_BASE_TARGET}.cpp"
         @ONLY
         NEWLINE_STYLE LF
       )
       target_sources(${AVND_BASE_TARGET} PRIVATE
-        "${CMAKE_BINARY_DIR}/${AVND_BASE_TARGET}.cpp"
+        "${AVND_GEN_DIR}/${AVND_BASE_TARGET}.cpp"
       )
     endif()
   else()
     file(CONFIGURE OUTPUT
-         "${CMAKE_BINARY_DIR}/include.${AVND_BASE_TARGET}.cpp"
+         "${AVND_GEN_DIR}/include.${AVND_BASE_TARGET}.cpp"
          CONTENT "${AVND_ADDITIONAL_CLASSES}\nstatic void all_custom_factories(auto& fx, auto& ctx, auto& key) { ${AVND_CUSTOM_FACTORIES} }\n"
          NEWLINE_STYLE LF)
   endif()
+
+  # PUBLIC: the addon's own generated .cpp includes the header, and so must the
+  # app that links it -- but nothing else.
+  target_include_directories(${AVND_BASE_TARGET} PUBLIC "${AVND_GEN_DIR}")
 
   setup_score_plugin(${AVND_BASE_TARGET})
   target_link_libraries(${AVND_BASE_TARGET} PUBLIC score_plugin_engine score_plugin_avnd)
