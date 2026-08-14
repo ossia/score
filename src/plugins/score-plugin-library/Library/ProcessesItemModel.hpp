@@ -16,6 +16,10 @@
 
 #include <QDir>
 #include <QIcon>
+#include <QTimer>
+
+#include <atomic>
+#include <memory>
 
 #include <nano_observer.hpp>
 #include <score_plugin_library_export.h>
@@ -32,6 +36,12 @@ namespace Library
 struct ProcessData : Process::ProcessData
 {
   QIcon icon;
+
+  //! Lower-case, '|'-separated search data (name, description, tags...).
+  //! Empty until the async deep scan has indexed this node; the search
+  //! filter then matches against it in-memory, without ever calling
+  //! ProcessModelFactory::descriptor() on the search path.
+  QString searchString;
 };
 
 using ProcessNode = TreeNode<ProcessData>;
@@ -54,6 +64,7 @@ public:
   using QAbstractItemModel::endResetModel;
 
   ProcessesItemModel(const score::GUIApplicationContext& ctx, QObject* parent);
+  ~ProcessesItemModel();
 
   void rescan();
   QModelIndex find(const Process::ProcessModelFactory::ConcreteKey& k);
@@ -77,8 +88,25 @@ public:
 
 private:
   ProcessNode& addCategory(const QString& cat);
+
+  //! QModelIndex pointing at \a n (invalid for the root), so that scanners can
+  //! wrap their tree mutations in begin/endInsertRows instead of resetting.
+  QModelIndex nodeToIndex(const ProcessNode& n) const;
+
+  // Second-level async scan: computes ProcessData::searchString (tags,
+  // description...) on a worker thread, off the fast name-only scan and off
+  // the search path. Results come back to the GUI thread in packets.
+  void indexForSearch();
+
   const score::GUIApplicationContext& context;
   ProcessNode m_root;
+
+  QTimer m_searchIndexTimer;
+  //! Bumped whenever ProcessNode pointers may dangle (model reset, row
+  //! removal); in-flight indexing results from older generations are dropped.
+  uint64_t m_searchIndexGeneration{};
+  bool m_searchIndexRunning{};
+  std::shared_ptr<std::atomic_bool> m_alive;
 };
 
 /** Utility class to organize a library in subcategories that depend

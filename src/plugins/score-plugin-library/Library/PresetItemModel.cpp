@@ -206,17 +206,16 @@ bool PresetItemModel::savePreset(const Process::ProcessModel& proc)
   if(!updatePresetFilename(preset))
     return false;
 
-  beginResetModel();
-  // beginInsertRows(QModelIndex(), presets.size(), presets.size());
   auto it = std::lower_bound(
       presets.begin(), presets.end(), preset,
       [](const Process::Preset& lhs, const Process::Preset& rhs) {
     return lhs.key < rhs.key;
       });
 
+  const int row = std::distance(presets.begin(), it);
+  beginInsertRows(QModelIndex(), row, row);
   presets.insert(it, std::move(preset));
-  // endInsertRows();
-  endResetModel();
+  endInsertRows();
 
   return true;
 }

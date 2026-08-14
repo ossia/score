@@ -58,17 +58,28 @@ class LibraryHandler final : public Library::LibraryInterface
 
         auto& parent = *reinterpret_cast<Library::ProcessNode*>(node.internalPointer());
 
+        // Build the subtree off to the side, then append it under a single
+        // begin/endInsertRows instead of mutating the live model silently.
+        Library::ProcessNode built;
         for(auto& category : categories)
         {
           // Already sorted through the map
-          auto& cat = parent.emplace_back(
+          auto& cat = built.emplace_back(
               Library::ProcessData{Process::ProcessData{{}, category.first, {}}, {}},
-              &parent);
+              &built);
           for(auto& plug : category.second)
           {
             Library::addToLibrary(
                 cat, Library::ProcessData{Process::ProcessData{key, plug, plug}, {}});
           }
+        }
+
+        if(const int n = built.childCount(); n > 0)
+        {
+          const int base = parent.childCount();
+          model->beginInsertRows(node, base, base + n - 1);
+          built.moveChildren(parent);
+          model->endInsertRows();
         }
       });
     });
