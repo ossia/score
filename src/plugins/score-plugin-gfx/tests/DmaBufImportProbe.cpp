@@ -1,36 +1,35 @@
 // Does this GPU correctly import a DMA-BUF into Vulkan?
 //
 // score refuses the Vulkan import rung whenever the driver reports
-// DRIVER_ID_NVIDIA_PROPRIETARY (DmaBufImportCapture.hpp, "does not hold an
-// imported DMA-BUF still"). That was measured on the desktop driver -- but
-// Tegra reports the *same* driver id, so the gate also fires on a Jetson, where
-// the raw-Bayer camera path depends on exactly this import working. This probe
-// answers whether the gate is justified there or merely over-broad.
+// DRIVER_ID_NVIDIA_PROPRIETARY (see DmaBufImportCapture.hpp). Tegra reports the
+// same driver id, and the raw-Bayer camera path there depends on that import
+// working, so this probe measures whether the gate is justified or over-broad.
 //
-// It is standalone on purpose: no Qt, no score headers, one translation unit, so
-// it cross-compiles against a Yocto sysroot with nothing but libvulkan and libgbm.
+// Standalone on purpose -- no Qt, no score headers, one translation unit -- so
+// it cross-compiles against a Yocto sysroot with only libvulkan and libgbm:
 //
-// Build (from an OE4T build tree on the Yocto host):
-//   B=~/projets/sat-mtl/cds/yocto/tegra-demo-distro/build-argus/tmp/work/armv8a-oe4t-linux/ossia-score/3.8.2+git
+//   B=.../tegra-demo-distro/build-argus/tmp/work/armv8a-oe4t-linux/ossia-score/3.8.2+git
 //   S=$B/recipe-sysroot; N=$B/recipe-sysroot-native
 //   $N/usr/bin/aarch64-oe4t-linux/aarch64-oe4t-linux-clang++ --sysroot=$S \
 //     -O1 -g -std=c++17 DmaBufImportProbe.cpp -o dmabufprobe \
 //     -I$S/usr/include -L$S/usr/lib -lvulkan -lgbm
 //
-// Run (safe form -- allocates its own buffer, never opens a camera):
+// Run (allocates its own buffer, never opens a camera):
 //   ./dmabufprobe --runs 20
 //
 // The V4L2 form needs bypass_mode=0, which stops Argus working until it is set
-// back, so it is opt-in and never the default:
+// back, so it is opt-in:
 //   v4l2-ctl -d /dev/video0 -c bypass_mode=0
 //   ./dmabufprobe --v4l2 /dev/video0 --width 1768 --height 1080 --runs 20
 //   v4l2-ctl -d /dev/video0 -c bypass_mode=1
 //
-// MEASUREMENT NOTE, learned the hard way on the desktop: within one process the
-// first frames behave differently from later ones, so a sweep that runs two
-// configurations back to back credits the second with the first's warm-up. To
-// compare configurations, run ONE run per process and count clean-vs-corrupted
-// across many fresh processes.
+// Do NOT point --v4l2-import at vivid: on dma-contig, QBUF refuses every length
+// convention with EINVAL even when pitch and size match, and on vmalloc the
+// release path deadlocks in v4l2_release, wedging the device until reboot.
+//
+// Within one process the first frames behave differently from later ones, so
+// compare configurations with ONE run per process across many fresh processes,
+// not two configurations back to back.
 
 #include <vulkan/vulkan.h>
 
@@ -762,8 +761,17 @@ struct V4l2ImportSource final : Source
   {
     if(v4l2fd >= 0)
     {
+      // Release the queue's references to OUR buffers before closing the fd.
+      // Closing first leaves the driver holding attachments to dma-bufs we are
+      // about to drop, and vivid deadlocks in v4l2_release when that happens --
+      // an unkillable D-state process that wedges the device until reboot.
       int type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
       xioctl(v4l2fd, VIDIOC_STREAMOFF, &type);
+      v4l2_requestbuffers rq{};
+      rq.count = 0;
+      rq.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+      rq.memory = V4L2_MEMORY_DMABUF;
+      xioctl(v4l2fd, VIDIOC_REQBUFS, &rq);
       ::close(v4l2fd);
     }
     for(auto& s : slots)
