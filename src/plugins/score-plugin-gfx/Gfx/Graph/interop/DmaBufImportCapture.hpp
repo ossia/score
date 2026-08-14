@@ -529,11 +529,25 @@ struct DmaBufImportCapture final : VideoCaptureStrategy
         if(m_external)
         {
           std::uint32_t offs[3]{}, pitches[3]{};
-          const auto n = std::min<std::uint32_t>(s.planeCount, 3);
-          for(std::uint32_t p = 0; p < n; ++p)
+          auto n = std::min<std::uint32_t>(s.planeCount, 3);
+          if(n == 0)
           {
-            offs[p] = s.offset + s.planes[p].offset;
-            pitches[p] = s.planes[p].pitch;
+            // "Derive it", per DmaBufSlotDesc: one plane described by the
+            // slot's own offset and pitch. Passing the zero straight through
+            // hit importExternal's planeCount guard and refused the import
+            // without ever reaching EGL -- for exactly the V4L2-style producer
+            // this path exists to serve, since those never fill planes[].
+            n = 1;
+            offs[0] = s.offset;
+            pitches[0] = s.pitch;
+          }
+          else
+          {
+            for(std::uint32_t p = 0; p < n; ++p)
+            {
+              offs[p] = s.offset + s.planes[p].offset;
+              pitches[p] = s.planes[p].pitch;
+            }
           }
           if(!m_egl.importExternal(
                  m_eglSlots[i][0], m_glTexPlane[0], s.fd, s.modifier, offs,

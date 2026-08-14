@@ -345,6 +345,35 @@ int main(int argc, char** argv)
       {"ABGR8888 (4 bytes/texel)", DRM_FORMAT_ABGR8888, 2, 4},
   };
 
+  // Does passing an explicit modifier change the answer? score always sends
+  // PLANE0_MODIFIER_LO/HI, even for a linear buffer; this probe never did, and
+  // score is the one being refused. Drivers commonly accept an implicit-modifier
+  // import and reject an explicit DRM_FORMAT_MOD_LINEAR they never advertised.
+  std::printf("\n=== modifier attribute: explicit 0 vs omitted (R16) ===\n");
+  for(int withMod = 0; withMod < 2; ++withMod)
+  {
+    EGLint a[19];
+    int n = 0;
+    a[n++] = EGL_WIDTH;                   a[n++] = EGLint(W);
+    a[n++] = EGL_HEIGHT;                  a[n++] = EGLint(H);
+    a[n++] = EGL_LINUX_DRM_FOURCC_EXT;    a[n++] = EGLint(DRM_FORMAT_R16);
+    a[n++] = EGL_DMA_BUF_PLANE0_FD_EXT;   a[n++] = dmafd;
+    a[n++] = EGL_DMA_BUF_PLANE0_OFFSET_EXT; a[n++] = 0;
+    a[n++] = EGL_DMA_BUF_PLANE0_PITCH_EXT;  a[n++] = EGLint(stride);
+    if(withMod)
+    {
+      a[n++] = EGL_DMA_BUF_PLANE0_MODIFIER_LO_EXT; a[n++] = 0;
+      a[n++] = EGL_DMA_BUF_PLANE0_MODIFIER_HI_EXT; a[n++] = 0;
+    }
+    a[n++] = EGL_NONE;
+    EGLImageKHR im
+        = pCreateImage(dpy, EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, nullptr, a);
+    std::printf("  modifier %-8s : %s\n", withMod ? "0 (explicit)" : "omitted",
+                im != EGL_NO_IMAGE_KHR ? "ACCEPTED" : "REFUSED");
+    if(im != EGL_NO_IMAGE_KHR)
+      pDestroyImage(dpy, im);
+  }
+
   std::printf("\n=== import attempts ===\n");
   for(const auto& c : cands)
   {
