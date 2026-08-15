@@ -29,7 +29,7 @@ SCORE_DECLARE_ACTION(
 SCORE_DECLARE_ACTION(
     LocateMissingFiles, "&Locate missing files...", Common, QKeySequence::UnknownKey)
 SCORE_DECLARE_ACTION(
-    TrimProjectMedia, "&Trim media to what is used...", Common,
+    TrimProjectMedia, "&Shorten media files to what is played...", Common,
     QKeySequence::UnknownKey)
 SCORE_DECLARE_ACTION(
     RemoveUnusedFiles, "&Remove unused files...", Common, QKeySequence::UnknownKey)
@@ -262,14 +262,40 @@ score::GUIElements ProjectFilesApplicationPlugin::makeGUIElements()
   if(!context.mainWindow)
     return e;
 
+  // Five entries is too many to leave loose in the File menu, and two of them
+  // -- shortening files and removing files -- read as near-synonyms until they
+  // are seen side by side. Their own submenu does both jobs.
+  auto* project = new QMenu{QObject::tr("Project &files")};
+  e.menus.emplace_back(project, score::Menus::ProjectFiles());
+
   auto& file = context.menus.get().at(score::Menus::File());
   auto& cond = context.actions.condition<score::EnableActionIfDocument>();
+
+  {
+    // A plug-in's additions land at the end of the menu, which here is after
+    // Quit. Go in above the last separator instead, beside Save As.
+    QAction* before = nullptr;
+    const auto existing = file.menu()->actions();
+    for(int i = existing.size() - 1; i >= 0; --i)
+    {
+      if(existing[i]->isSeparator())
+      {
+        before = existing[i];
+        break;
+      }
+    }
+
+    if(before)
+      file.menu()->insertMenu(before, project);
+    else
+      file.menu()->addMenu(project);
+  }
 
   const auto add = [&](QAction*& action, auto&& slot, const QString& help) {
     action = new QAction{context.mainWindow};
     score::setHelp(action, help);
     connect(action, &QAction::triggered, this, slot);
-    file.menu()->addAction(action);
+    project->addAction(action);
   };
 
   add(m_consolidate, &ProjectFilesApplicationPlugin::consolidate,
@@ -284,17 +310,22 @@ score::GUIElements ProjectFilesApplicationPlugin::makeGUIElements()
   e.actions.add<Actions::LocateMissingFiles>(m_locate);
   cond.add<Actions::LocateMissingFiles>();
 
-  add(m_trim, &ProjectFilesApplicationPlugin::trimMedia,
-      QObject::tr("Shorten the collected media down to the parts the document "
-                  "actually reads."));
-  e.actions.add<Actions::TrimProjectMedia>(m_trim);
-  cond.add<Actions::TrimProjectMedia>();
+  project->addSeparator();
 
   add(m_unused, &ProjectFilesApplicationPlugin::removeUnused,
       QObject::tr("List the files sitting in the project folder that nothing in "
                   "the document uses any more, and get rid of them."));
   e.actions.add<Actions::RemoveUnusedFiles>(m_unused);
   cond.add<Actions::RemoveUnusedFiles>();
+
+  add(m_trim, &ProjectFilesApplicationPlugin::trimMedia,
+      QObject::tr("Shorten media files that are used down to the parts that are "
+                  "played. Whole files nothing uses are removed by the entry "
+                  "above instead."));
+  e.actions.add<Actions::TrimProjectMedia>(m_trim);
+  cond.add<Actions::TrimProjectMedia>();
+
+  project->addSeparator();
 
   add(m_archive, &ProjectFilesApplicationPlugin::archive,
       QObject::tr("Collect everything and write the whole project into a single "

@@ -12,10 +12,13 @@
 #include <score_test/App.hpp>
 #include <score_test/Project.hpp>
 
+#include <Process/MediaTrim.hpp>
 #include <Process/ProjectConsolidation.hpp>
 #include <Process/UnusedFiles.hpp>
 
 #include <Media/Sound/SoundModel.hpp>
+
+#include <score/tools/File.hpp>
 
 #include <QTemporaryDir>
 
@@ -221,6 +224,62 @@ TEST_CASE("Only the folders score fills are searched by default", "[integration]
     CHECK(lists(wide, "mixdown.wav"));
     // Still never the document.
     CHECK_FALSE(lists(wide, ".score"));
+  });
+}
+
+TEST_CASE(
+    "What trimming leaves behind is what cleaning up finds",
+    "[integration][unused][trim]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir projectDir, mediaDir;
+    REQUIRE(projectDir.isValid());
+    REQUIRE(mediaDir.isValid());
+
+    const QString project = canonical(projectDir.path());
+    const QString media = canonical(mediaDir.path());
+
+    write_wav(media + "/long.wav", 60.);
+
+    auto* doc = project_document(ctx, project);
+    auto* sound = qobject_cast<Media::Sound::ProcessModel*>(
+        add_process(*doc, sound_process_uuid, media + "/long.wav"));
+    REQUIRE(sound != nullptr);
+
+    Process::consolidateProjectFiles(doc->context(), {});
+    const QString collected = project + "/Audio/long.wav";
+    REQUIRE(QFileInfo::exists(collected));
+
+    // Only a couple of seconds are played.
+    sound->setStartOffset(TimeVal::fromMsecs(10000.));
+    sound->setLoops(true);
+    sound->setLoopDuration(TimeVal::fromMsecs(2000.));
+
+    Process::TrimOptions trim;
+    trim.handles = 1.0;
+    const auto trimReport = Process::trimProjectMedia(doc->context(), trim);
+    REQUIRE(trimReport.count(Process::FileAction::Trimmed) == 1);
+
+    // The two commands are meant to be used in this order, and the untrimmed
+    // file becoming unused is the whole reason trimming can afford to keep it.
+    REQUIRE(QFileInfo::exists(collected));
+
+    const auto scan = Process::analyzeUnusedFiles(doc->context(), {});
+    REQUIRE(scan.count(Process::FileAction::Unused) == 1);
+    CHECK(scan.entries[0].sourcePath == collected);
+    // The shortened file the document now reads is not in the list.
+    CHECK_FALSE(lists(scan, "(trimmed)"));
+
+    const auto removed
+        = Process::removeUnusedFiles(doc->context(), unused_paths(scan), {});
+    CHECK(removed.count(Process::FileAction::Removed) == 1);
+    CHECK_FALSE(QFileInfo::exists(collected));
+    CHECK(QFileInfo::exists(project + "/Unused/Audio/long.wav"));
+
+    // And the document still plays what it played.
+    CHECK(sound->userFilePath().startsWith("<PROJECT>:"));
+    CHECK(QFileInfo::exists(
+        score::locateFilePath(sound->userFilePath(), doc->context())));
   });
 }
 
