@@ -1,4 +1,5 @@
 #pragma once
+#include <Gfx/Graph/decoders/CaptureAdjustGLSL.hpp>
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
 
 #include <QString>
@@ -29,8 +30,11 @@ namespace score::gfx
  * Mono10 does. A producer that instead replicates the high bits down into the
  * low ones already spans the full range and needs 1.0.
  *
- * Black level, white balance and lens shading are deliberately absent: they
- * are per-sensor corrections, not part of turning a mosaic into RGB.
+ * Black level, white balance, exposure and the transfer curve are applied
+ * after the reconstruction, from the material block rather than baked in --
+ * see CaptureAdjustGLSL.hpp. They are per-sensor corrections, not part of
+ * turning a mosaic into RGB, and every one of them is the identity by default.
+ * Lens shading is still absent.
  */
 struct BayerDecoder : GPUVideoDecoder
 {
@@ -47,7 +51,7 @@ struct BayerDecoder : GPUVideoDecoder
   // %1 = user filter, %2/%3 = red-site offset, %4 = sample scale
   static const constexpr auto frag = R"_(#version 450
 
-)_" SCORE_GFX_VIDEO_UNIFORMS R"_(
+)_" SCORE_GFX_CAPTURE_UNIFORMS SCORE_GFX_CAPTURE_ADJUST_FN R"_(
 
 layout(binding=3) uniform sampler2D u_tex;
 
@@ -97,7 +101,7 @@ void main() {
   else
     rgb = vec3(vert2, ctr, horz2);           // green, blue neighbours across
 
-  fragColor = processTexture(vec4(clamp(rgb * %4, 0.0, 1.0), 1.0));
+  fragColor = processTexture(vec4(adjustCapture(rgb * %4), 1.0));
 }
 )_";
 
@@ -157,7 +161,7 @@ void main() {
     }
 
     return score::gfx::makeShaders(
-        r.state, vertexShader(),
+        r.state, score::gfx::captureVertexShader,
         QString(frag)
             .arg("")
             .arg(px)
