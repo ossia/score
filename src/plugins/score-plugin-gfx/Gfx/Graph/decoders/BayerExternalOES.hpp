@@ -25,6 +25,7 @@
  * colour sites before the demosaic can separate them.
  */
 
+#include <Gfx/Graph/decoders/CaptureAdjustGLSL.hpp>
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
 #include <Gfx/Graph/decoders/Bayer.hpp>
 
@@ -42,7 +43,7 @@ struct BayerExternalOESDecoder : GPUVideoDecoder
   // %1 = red-site x offset, %2 = red-site y offset, %3 = sample scale.
   static const constexpr auto oes_filter = R"_(#version 450
 
-)_" SCORE_GFX_VIDEO_UNIFORMS R"_(
+)_" SCORE_GFX_CAPTURE_UNIFORMS SCORE_GFX_CAPTURE_ADJUST_FN R"_(
 
 layout(binding=3) uniform sampler2D tex;
 
@@ -85,7 +86,7 @@ void main()
   else
     rgb = vec3(vert2, ctr, horz2);
 
-  fragColor = vec4(clamp(rgb * %3, 0.0, 1.0), 1.0);
+  fragColor = vec4(adjustCapture(rgb * %3), 1.0);
 }
 )_";
 

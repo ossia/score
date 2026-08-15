@@ -42,7 +42,7 @@ std::pair<QShader, QShader> BayerExternalOESDecoder::init(RenderList& r)
   }
 
   auto shaders = score::gfx::makeShaders(
-      r.state, vertexShader(),
+      r.state, score::gfx::captureVertexShader,
       QString(oes_filter)
           .arg(px)
           .arg(py)
