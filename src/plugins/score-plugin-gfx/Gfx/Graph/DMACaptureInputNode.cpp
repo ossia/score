@@ -194,8 +194,8 @@ public:
       // The decoder is chosen before the ladder runs, so a backend that asked
       // for the whole-frame external image already has a decoder only that
       // rung can feed. If the rung declined, that decoder would sample a
-      // texture nothing ever uploads to -- a black frame from a path
-      // reporting itself engaged. Remake it for the staged rungs instead.
+      // texture nothing ever uploads to. Remake it for the staged rungs
+      // instead.
       if(m_backend->decoderNeedsExternalImage())
       {
         qWarning() << "DMA capture: the external-image rung declined; rebuilding"
