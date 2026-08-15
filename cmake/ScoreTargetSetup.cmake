@@ -136,6 +136,9 @@ function(score_wasm_batch_program TheTarget)
 endfunction()
 
 function(setup_score_common_test_features TheTarget)
+  # See the note in score_add_test: the shared score_lib_pch cannot be reused
+  # from a test executable.
+  set_target_properties(${TheTarget} PROPERTIES SCORE_CUSTOM_PCH 1)
   setup_score_common_features(${TheTarget})
   score_wasm_batch_program(${TheTarget})
   ossia_set_visibility(${TheTarget})
