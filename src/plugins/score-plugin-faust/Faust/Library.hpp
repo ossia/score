@@ -23,28 +23,21 @@ class LibraryHandler final
 
   QSet<QString> acceptedFiles() const noexcept override { return {"dsp"}; }
 
-  Library::Subcategories categories;
+  Library::CategoryPaths categories;
 
   void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
       override
   {
-    // TODO relaunch whenever library path changes...
-    const auto& key = FaustEffectFactory{}.concreteKey();
-    QModelIndex node = model.find(key);
-    if(node == QModelIndex{})
-      return;
-
     categories.init(
-        Metadata<PrettyName_k, Faust::FaustEffectModel>::get().toStdString(), node, ctx);
+        Metadata<PrettyName_k, Faust::FaustEffectModel>::get().toStdString(), ctx);
   }
 
-  std::function<void()> asyncAddPath(std::string_view path) override
+  std::optional<Library::ProcessEntry> scanPath(std::string_view path) override
   {
     score::PathInfo file{path};
     if(file.fileName == "layout.dsp")
-      return {};
+      return std::nullopt;
 
-    // We're already on a worker thread, so do the work directly
     Library::ProcessData pdata;
     pdata.prettyName = QString::fromUtf8(
         file.completeBaseName.data(), file.completeBaseName.size());
@@ -59,10 +52,8 @@ class LibraryHandler final
         pdata.prettyName = desc.prettyName;
     */
 
-    return [this, p = std::string(path), pdata = std::move(pdata)]() mutable {
-      score::PathInfo file{p};
-      categories.add(file, std::move(pdata));
-    };
+    return Library::ProcessEntry{
+        pdata.key, categories(file), {std::move(pdata), {}}};
   }
 };
 

@@ -23,23 +23,16 @@ QSet<QString> LibraryHandler::acceptedFiles() const noexcept
 void LibraryHandler::setup(
     Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
 {
-  // TODO relaunch whenever library path changes...
-  const auto& key = Metadata<ConcreteKey_k, GeometryFilter::Model>::get();
-  QModelIndex node = model.find(key);
-  if(node == QModelIndex{})
-    return;
-
-  categories.init(
-      Metadata<PrettyName_k, GeometryFilter::Model>::get().toStdString(), node, ctx);
+  categories.init(Metadata<PrettyName_k, GeometryFilter::Model>::get().toStdString(), ctx);
 }
 
-std::function<void()> LibraryHandler::asyncAddPath(std::string_view path)
+std::optional<Library::ProcessEntry> LibraryHandler::scanPath(std::string_view path)
 {
   score::PathInfo file{path};
   QFile f{file.absoluteFilePath.data()};
 
   if(!score::fileContains(f, "\"GEOMETRY_FILTER\""))
-    return {};
+    return std::nullopt;
 
   Library::ProcessData pdata;
   pdata.prettyName
@@ -47,10 +40,7 @@ std::function<void()> LibraryHandler::asyncAddPath(std::string_view path)
   pdata.key = Metadata<ConcreteKey_k, GeometryFilter::Model>::get();
   pdata.customData = QString::fromUtf8(path.data(), path.size());
 
-  return [this, p = std::string(path), pdata = std::move(pdata)]() mutable {
-    score::PathInfo file{p};
-    categories.add(file, std::move(pdata));
-  };
+  return Library::ProcessEntry{pdata.key, categories(file), {std::move(pdata), {}}};
 }
 
 QSet<QString> DropHandler::fileExtensions() const noexcept

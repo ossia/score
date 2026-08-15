@@ -14,19 +14,13 @@ class LibraryHandler final
 {
   SCORE_CONCRETE("1d6ca523-628b-431a-9f70-87df92a63551")
 
-  void registerVSTClass(
-      Library::ProcessNode& parent, const AvailablePlugin& vst,
-      const VST3::Hosting::ClassInfo& cls)
+  static Library::StagedNode stagedVSTClass(const VST3::Hosting::ClassInfo& cls)
   {
     constexpr static const auto key = Metadata<ConcreteKey_k, Model>::get();
 
     auto name = QString::fromStdString(cls.name());
     auto uid = QString::fromStdString(cls.ID().toString());
-
-    Library::ProcessData classdata{{key, name, uid}, {}};
-    if(vst.classInfo.size() == 1)
-      parent.customData = uid;
-    Library::addToLibrary(parent, std::move(classdata));
+    return Library::StagedNode{{{key, name, uid}, {}}, {}};
   }
 
   void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
@@ -34,37 +28,27 @@ class LibraryHandler final
   {
     constexpr static const auto key = Metadata<ConcreteKey_k, Model>::get();
 
-    QModelIndex node = model.find(key);
-    if(node == QModelIndex{})
-    {
-      return;
-    }
-    auto& parent = *reinterpret_cast<Library::ProcessNode*>(node.internalPointer());
-    parent.key = {};
-
     auto& plug = ctx.applicationPlugin<vst3::ApplicationPlugin>();
 
-    auto reset_plugs = [this, &plug, &parent] {
+    // Stage the whole plugin list; the model owns tree mutation and signals.
+    auto make_plugs = [&plug] {
+      std::vector<Library::StagedNode> v;
       for(const auto& vst : plug.vst_infos)
       {
         if(vst.isValid)
         {
-          Library::ProcessData parent_data{{key, vst.name, QString{}}, {}};
-
           const int numClasses = vst.classInfo.size();
           switch(numClasses)
           {
             default: {
-              auto& node = Library::addToLibrary(parent, std::move(parent_data));
-
+              Library::StagedNode p{{{key, vst.name, QString{}}, {}}, {}};
               for(const auto& cls : vst.classInfo)
-              {
-                registerVSTClass(node, vst, cls);
-              }
+                p.children.push_back(stagedVSTClass(cls));
+              v.push_back(std::move(p));
               break;
             }
             case 1: {
-              registerVSTClass(parent, vst, vst.classInfo[0]);
+              v.push_back(stagedVSTClass(vst.classInfo[0]));
               break;
             }
             case 0:
@@ -72,29 +56,21 @@ class LibraryHandler final
           }
         }
       }
+      std::sort(v.begin(), v.end(), [](const auto& lhs, const auto& rhs) {
+        return QString::compare(
+                   lhs.data.prettyName, rhs.data.prettyName, Qt::CaseInsensitive)
+               < 0;
+      });
+      return v;
     };
 
-    reset_plugs();
+    model.clearAnchorKey(key);
+    model.replaceChildren(key, make_plugs());
 
     con(plug, &vst3::ApplicationPlugin::vstChanged, this,
-        [&plug, &model, node, &parent, reset_plugs] {
-      if(parent.childCount() > 0)
-      {
-        model.beginRemoveRows(node, 0, parent.childCount() - 1);
-        parent.resize(0);
-        model.endRemoveRows();
-      }
-
-      int k = 0;
-      for(const auto& vst : plug.vst_infos)
-        if(vst.isValid)
-          k++;
-      if(k > 0)
-      {
-        model.beginInsertRows(node, 0, k - 1);
-        reset_plugs();
-        model.endInsertRows();
-      }
+        [model = QPointer{&model}, make_plugs] {
+      if(model)
+        model->replaceChildren(key, make_plugs());
     });
   }
 };

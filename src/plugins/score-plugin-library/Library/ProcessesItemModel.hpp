@@ -3,6 +3,7 @@
 #include <Process/ProcessMimeSerialization.hpp>
 
 #include <Library/LibrarySettings.hpp>
+#include <Library/ProcessEntry.hpp>
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/tree/TreeNode.hpp>
@@ -29,34 +30,48 @@ struct GUIApplicationContext;
 
 namespace Library
 {
-struct ProcessData : Process::ProcessData
-{
-  QIcon icon;
-};
-
 using ProcessNode = TreeNode<ProcessData>;
-SCORE_PLUGIN_LIBRARY_EXPORT
-ProcessNode& addToLibrary(ProcessNode& parent, Library::ProcessData&& data);
 
 class SCORE_PLUGIN_LIBRARY_EXPORT ProcessesItemModel
     : public TreeNodeBasedItemModel<ProcessNode>
     , public Nano::Observer
 {
 public:
-  using QAbstractItemModel::beginInsertRows;
-  using QAbstractItemModel::endInsertRows;
-
-  using QAbstractItemModel::beginRemoveRows;
-  using QAbstractItemModel::endRemoveRows;
-
-  // async scanners (LV2, CLAP) rebuild whole subtrees on descriptorsChanged
-  using QAbstractItemModel::beginResetModel;
-  using QAbstractItemModel::endResetModel;
-
   ProcessesItemModel(const score::GUIApplicationContext& ctx, QObject* parent);
 
   void rescan();
   QModelIndex find(const Process::ProcessModelFactory::ConcreteKey& k);
+
+  //! Queue one scanned entry for publication into the tree. The only way the
+  //! tree changes outside rescan()/replaceChildren(). Entries are buffered
+  //! and flushed on a 0-timer; consecutive entries sharing the same anchor
+  //! and category chain are inserted as one subtree / one ranged insert, so
+  //! a folder scanned in one batch costs one rowsInserted. GUI thread only.
+  void publish(ProcessEntry&& entry);
+
+  //! Same, from a scan whose generation was captured at rescan() time:
+  //! entries from a scan that predates the current rescan are dropped.
+  void publish(ProcessEntry&& entry, uint64_t generation);
+
+  //! The scan generation the model is currently accepting. Bumped by rescan().
+  uint64_t generation() const noexcept { return m_generation; }
+
+  //! Atomically replace the children of the process node identified by key
+  //! with a staged forest, given in display order (each staged node's own
+  //! children are name-sorted on insertion). For the plugin databases
+  //! (LV2/CLAP/VST/VST3) whose content is recomputed wholesale. Emits exact
+  //! remove/insert ranges — except during rescan()'s reset, where the whole
+  //! model is already inside a reset envelope. GUI thread only.
+  void replaceChildren(
+      const Process::ProcessModelFactory::ConcreteKey& key,
+      std::vector<StagedNode> children);
+
+  //! Marks a process node as a pure container: plugin databases clear the
+  //! anchor's key so only their per-plugin children are user-creatable.
+  void clearAnchorKey(const Process::ProcessModelFactory::ConcreteKey& key);
+
+  //! Immediately publish everything still buffered. Mostly for tests.
+  void flushPending();
 
   ProcessNode& rootNode() override;
   const ProcessNode& rootNode() const override;
@@ -76,119 +91,29 @@ public:
   void on_newPlugin(const score::InterfaceBase& fact);
 
 private:
+  struct PendingEntry
+  {
+    ProcessEntry entry;
+    uint64_t generation{};
+  };
+
   ProcessNode& addCategory(const QString& cat);
+  QModelIndex indexFromNode(ProcessNode& n);
+  void publishRun(PendingEntry* entries, std::size_t count);
+  void scheduleFlush();
+
   const score::GUIApplicationContext& context;
   ProcessNode m_root;
+
+  // The process nodes entries anchor to, by concrete key. Owned by the tree;
+  // rebuilt by rescan() and extended by on_newPlugin, so it never dangles.
+  ossia::hash_map<Process::ProcessModelFactory::ConcreteKey, ProcessNode*> m_anchors;
+
+  std::vector<PendingEntry> m_pending;
+  uint64_t m_generation{};
+  bool m_flushQueued{};
+  bool m_inReset{};
 };
-
-/** Utility class to organize a library in subcategories that depend
- *  on a file organization on disk, e.g. if it looks for .dsp files, it will create a subcategory
- *  for each folder which contains .dsp files.
- */
-struct Subcategories
-{
-  Library::ProcessNode* parent{};
-  QDir libraryFolder;
-  std::string libraryFolderPath{};
-  std::string defaultPresetsPath{};
-  ossia::hash_map<QString, Library::ProcessNode*> categories;
-
-  void init(
-      std::string process_name, const QModelIndex& idx,
-      const score::ApplicationContext& ctx)
-  {
-    categories.clear();
-    parent = reinterpret_cast<Library::ProcessNode*>(idx.internalPointer());
-    SCORE_ASSERT(parent);
-
-    // We use the parent folder as category...
-    libraryFolder.setPath(ctx.settings<Library::Settings::Model>().getPackagesPath());
-    libraryFolderPath = libraryFolder.absolutePath().toStdString();
-
-    // Also so that stuff in Presets/<Name of the process> does not needlessly go into a subfolder
-    defaultPresetsPath = "Presets/" + process_name;
-  }
-
-  [[deprecated]] void add(const QFileInfo& file, Library::ProcessData&& pdata)
-  {
-    SCORE_ASSERT(parent);
-    auto parentFolder = file.dir().dirName();
-    if(auto it = categories.find(parentFolder); it != categories.end())
-    {
-      Library::addToLibrary(*it->second, std::move(pdata));
-    }
-    else
-    {
-      if(file.dir() == libraryFolder
-         || file.absolutePath().endsWith(defaultPresetsPath.c_str()))
-      {
-        Library::addToLibrary(*parent, std::move(pdata));
-      }
-      else
-      {
-        auto& category = Library::addToLibrary(
-            *parent, Library::ProcessData{{{}, parentFolder, {}}, {}});
-        Library::addToLibrary(category, std::move(pdata));
-        categories[parentFolder] = &category;
-      }
-    }
-  }
-
-  void add(const score::PathInfo& file, Library::ProcessData&& pdata)
-  {
-    SCORE_ASSERT(parent);
-    auto parentFolder
-        = QString::fromUtf8(file.parentDirName.data(), file.parentDirName.size());
-    if(auto it = categories.find(parentFolder); it != categories.end())
-    {
-      Library::addToLibrary(*it->second, std::move(pdata));
-    }
-    else
-    {
-      if(file.absolutePath == libraryFolderPath
-         || file.absolutePath.ends_with(defaultPresetsPath))
-      {
-        Library::addToLibrary(*parent, std::move(pdata));
-      }
-      else
-      {
-        auto& category = Library::addToLibrary(
-            *parent, Library::ProcessData{{{}, parentFolder, {}}, {}});
-        Library::addToLibrary(category, std::move(pdata));
-        categories[parentFolder] = &category;
-      }
-    }
-  }
-};
-
-/// Typed convenience wrapper: builds a RecursiveWatch::AsyncCallbacks
-/// from a typed filter/commit pair so that consumers don't have to
-/// manually wrap closures.
-///
-/// \a filter is called on the worker thread; return std::nullopt to reject.
-/// \a commit is called on the GUI thread with the path and the accepted payload.
-template <typename T>
-score::RecursiveWatch::AsyncCallbacks makeAsyncCallbacks(
-    std::function<std::optional<T>(std::string_view)> filter,
-    std::function<void(std::string_view, T&&)> commit)
-{
-  struct State
-  {
-    std::function<std::optional<T>(std::string_view)> filter;
-    std::function<void(std::string_view, T&&)> commit;
-  };
-  auto state = std::make_shared<State>(State{std::move(filter), std::move(commit)});
-
-  return {.filter = [state = std::move(state)](std::string_view path)
-              -> std::function<void()> {
-    auto result = state->filter(path);
-    if(!result)
-      return {};
-
-    return [commit = state->commit, p = std::string(path),
-            data = std::move(*result)]() mutable { commit(p, std::move(data)); };
-  }};
-}
 
 }
 

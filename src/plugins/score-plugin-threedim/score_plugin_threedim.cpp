@@ -50,12 +50,12 @@ class RawRasterLibraryHandler final : public Library::LibraryInterface
   void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
       override;
 
-  std::function<void()> asyncAddPath(std::string_view path) override;
+  std::optional<Library::ProcessEntry> scanPath(std::string_view path) override;
   QWidget* previewWidget(const QString& path, QWidget* parent) const noexcept override;
   QWidget*
   previewWidget(const Process::Preset& path, QWidget* parent) const noexcept override;
 
-  Library::Subcategories categories;
+  Library::CategoryPaths categories;
 };
 
 QSet<QString> RawRasterLibraryHandler::acceptedFiles() const noexcept
@@ -66,33 +66,22 @@ QSet<QString> RawRasterLibraryHandler::acceptedFiles() const noexcept
 void RawRasterLibraryHandler::setup(
     Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
 {
-  // TODO relaunch whenever library path changes...
-  const auto& key = Metadata<ConcreteKey_k, Gfx::RenderPipeline::Model>::get();
-  QModelIndex node = model.find(key);
-  if(node == QModelIndex{})
-    return;
-
-  categories.init(
-      Metadata<PrettyName_k, Gfx::RenderPipeline::Model>::get().toStdString(), node,
-      ctx);
+  categories.init(Metadata<PrettyName_k, Gfx::RenderPipeline::Model>::get().toStdString(), ctx);
 }
 
-std::function<void()> RawRasterLibraryHandler::asyncAddPath(std::string_view path)
+std::optional<Library::ProcessEntry> RawRasterLibraryHandler::scanPath(std::string_view path)
 {
   score::PathInfo file{path};
   QFile f{file.absoluteFilePath.data()};
   if(!score::fileContains(f, "\"RAW_RASTER_PIPELINE\""))
-    return {};
+    return std::nullopt;
 
   Library::ProcessData pdata;
   pdata.prettyName
       = QString::fromUtf8(file.completeBaseName.data(), file.completeBaseName.size());
   pdata.key = Metadata<ConcreteKey_k, Gfx::RenderPipeline::Model>::get();
   pdata.customData = QString::fromUtf8(path.data(), path.size());
-  return [this, p = std::string{path}, pdata = std::move(pdata)]() mutable {
-    score::PathInfo file{p};
-    categories.add(file, std::move(pdata));
-  };
+  return Library::ProcessEntry{pdata.key, categories(file), {std::move(pdata), {}}};
 }
 
 QWidget* RawRasterLibraryHandler::previewWidget(
@@ -119,39 +108,29 @@ class SSynthLibraryHandler final
 
   QSet<QString> acceptedFiles() const noexcept override { return {"es"}; }
 
-  Library::Subcategories categories;
+  Library::CategoryPaths categories;
 
   using proc = oscr::ProcessModel<StrucSynth>;
   void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
       override
   {
-    // TODO relaunch whenever library path changes...
-    const auto& key = Metadata<ConcreteKey_k, proc>::get();
-    QModelIndex node = model.find(key);
-    if (node == QModelIndex{})
-    {
-      return;
-    }
-
-    categories.init("Structure Synth", node, ctx);
+    categories.init("Structure Synth", ctx);
   }
 
-  std::function<void()> asyncAddPath(std::string_view path) override
+  std::optional<Library::ProcessEntry> scanPath(std::string_view path) override
   {
-    QFileInfo file{QString::fromUtf8(path.data(), path.length())};
-    QFile f{file.absoluteFilePath()};
+    score::PathInfo file{path};
+    QFile f{QString::fromUtf8(file.absoluteFilePath.data(), file.absoluteFilePath.size())};
     if (!f.open(QIODevice::ReadOnly))
-      return {};
+      return std::nullopt;
 
     Library::ProcessData pdata;
-    pdata.prettyName = file.completeBaseName();
+    pdata.prettyName
+        = QString::fromUtf8(file.completeBaseName.data(), file.completeBaseName.size());
     pdata.key = Metadata<ConcreteKey_k, proc>::get();
     pdata.customData = score::readFileAsQString(f);
 
-    return [this, p = std::string{path}, pdata = std::move(pdata)]() mutable {
-      score::PathInfo file{p};
-      categories.add(file, std::move(pdata));
-    };
+    return Library::ProcessEntry{pdata.key, categories(file), {std::move(pdata), {}}};
   }
 };
 
@@ -192,35 +171,27 @@ class OBJLibraryHandler final
 
   QSet<QString> acceptedFiles() const noexcept override { return {"obj", "ply"}; }
 
-  Library::Subcategories categories;
+  Library::CategoryPaths categories;
 
   using proc = oscr::ProcessModel<ObjLoader>;
   void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
       override
   {
-    // TODO relaunch whenever library path changes...
-    const auto& key = Metadata<ConcreteKey_k, proc>::get();
-    QModelIndex node = model.find(key);
-    if (node == QModelIndex{})
-      return;
-
-    categories.init("Object Loader", node, ctx);
+    categories.init("Object Loader", ctx);
   }
 
-  std::function<void()> asyncAddPath(std::string_view path) override
+  std::optional<Library::ProcessEntry> scanPath(std::string_view path) override
   {
-    auto p = QString::fromUtf8(path.data(), path.length());
-    QFileInfo file{p};
+    score::PathInfo file{path};
 
     Library::ProcessData pdata;
-    pdata.prettyName = file.completeBaseName();
+    pdata.prettyName
+        = QString::fromUtf8(file.completeBaseName.data(), file.completeBaseName.size());
     pdata.key = Metadata<ConcreteKey_k, proc>::get();
-    pdata.customData = p;
+    pdata.customData
+        = QString::fromUtf8(file.absoluteFilePath.data(), file.absoluteFilePath.size());
 
-    return [this, p = std::string{path}, pdata = std::move(pdata)]() mutable {
-      score::PathInfo file{p};
-      categories.add(file, std::move(pdata));
-    };
+    return Library::ProcessEntry{pdata.key, categories(file), {std::move(pdata), {}}};
   }
 };
 
@@ -262,35 +233,27 @@ class VoxLibraryHandler final
 
   QSet<QString> acceptedFiles() const noexcept override { return {"vox"}; }
 
-  Library::Subcategories categories;
+  Library::CategoryPaths categories;
 
   using proc = oscr::ProcessModel<VoxelLoader>;
   void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
       override
   {
-    // TODO relaunch whenever library path changes...
-    const auto& key = Metadata<ConcreteKey_k, proc>::get();
-    QModelIndex node = model.find(key);
-    if(node == QModelIndex{})
-      return;
-
-    categories.init("Voxel Loader", node, ctx);
+    categories.init("Voxel Loader", ctx);
   }
 
-  std::function<void()> asyncAddPath(std::string_view path) override
+  std::optional<Library::ProcessEntry> scanPath(std::string_view path) override
   {
-    auto p = QString::fromUtf8(path.data(), path.length());
-    QFileInfo file{p};
+    score::PathInfo file{path};
 
     Library::ProcessData pdata;
-    pdata.prettyName = file.completeBaseName();
+    pdata.prettyName
+        = QString::fromUtf8(file.completeBaseName.data(), file.completeBaseName.size());
     pdata.key = Metadata<ConcreteKey_k, proc>::get();
-    pdata.customData = p;
+    pdata.customData
+        = QString::fromUtf8(file.absoluteFilePath.data(), file.absoluteFilePath.size());
 
-    return [this, p = std::string{path}, pdata = std::move(pdata)]() mutable {
-      score::PathInfo file{p};
-      categories.add(file, std::move(pdata));
-    };
+    return Library::ProcessEntry{pdata.key, categories(file), {std::move(pdata), {}}};
   }
 };
 

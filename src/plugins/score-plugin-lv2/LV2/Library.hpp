@@ -8,6 +8,7 @@
 
 #include <QCoreApplication>
 #include <QMap>
+#include <QPointer>
 
 namespace LV2
 {
@@ -20,44 +21,41 @@ class LibraryHandler final : public Library::LibraryInterface
   {
     constexpr static const auto key = Metadata<ConcreteKey_k, LV2::Model>::get();
 
-    QModelIndex node = model.find(key);
-    if(node == QModelIndex{})
-      return;
-
-    auto& parent = *reinterpret_cast<Library::ProcessNode*>(node.internalPointer());
-    parent.key = {};
-
     auto& plug = ctx.applicationPlugin<LV2::ApplicationPlugin>();
 
-    auto reset_plugs = [&plug, &parent] {
-      QMap<QString, Library::ProcessNode*> categories;
+    // Stage the whole database grouped by class; the model owns tree
+    // mutation and signals.
+    auto make_plugs = [&plug] {
+      QMap<QString, Library::StagedNode> categories;
       for(const auto& info : plug.cachedDescriptors())
       {
         if(!info.valid)
           continue;
         QString category
             = info.class_label.isEmpty() ? QStringLiteral("Other") : info.class_label;
-        if(!categories.contains(category))
-        {
-          auto& cat_node = parent.emplace_back(
-              Library::ProcessData{{{}, category, {}}, {}}, &parent);
-          categories[category] = &cat_node;
-        }
-        Library::ProcessData pdata{{key, info.name, info.uri}, {}};
-        Library::addToLibrary(*categories[category], std::move(pdata));
+        auto it = categories.find(category);
+        if(it == categories.end())
+          it = categories.insert(
+              category, Library::StagedNode{{{{}, category, {}}, {}}, {}});
+        it->children.push_back(
+            Library::StagedNode{{{key, info.name, info.uri}, {}}, {}});
       }
+
+      std::vector<Library::StagedNode> v;
+      v.reserve(categories.size());
+      for(auto& cat : categories) // QMap: already name-sorted
+        v.push_back(std::move(cat));
+      return v;
     };
 
-    reset_plugs();
+    model.clearAnchorKey(key);
+    model.replaceChildren(key, make_plugs());
 
-    // Full reset: tree edits below are plain-data; partial signals would dangle indexes
     QObject::connect(
         &plug, &LV2::ApplicationPlugin::descriptorsChanged, &model,
-        [&model, &parent, reset_plugs] {
-      model.beginResetModel();
-      parent.resize(0);
-      reset_plugs();
-      model.endResetModel();
+        [model = QPointer{&model}, make_plugs] {
+      if(model)
+        model->replaceChildren(key, make_plugs());
     });
   }
 };

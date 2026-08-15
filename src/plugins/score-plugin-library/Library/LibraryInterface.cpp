@@ -1,10 +1,12 @@
 #include <Library/LibraryInterface.hpp>
+#include <Library/LibrarySettings.hpp>
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 
 #include <core/presenter/DocumentManager.hpp>
 
+#include <QDir>
 #include <QSet>
 
 namespace Library
@@ -21,6 +23,22 @@ void LibraryInterface::setup(
 void LibraryInterface::addPath(std::string_view) { }
 
 void LibraryInterface::removePath(std::string_view) { }
+
+std::optional<ProcessEntry> LibraryInterface::scanPath(std::string_view)
+{
+  return std::nullopt;
+}
+
+void CategoryPaths::init(std::string processName, const score::ApplicationContext& ctx)
+{
+  auto p = std::make_shared<Paths>();
+  QDir packages{ctx.settings<Library::Settings::Model>().getPackagesPath()};
+  p->packagesRoot = packages.absolutePath().toStdString();
+  p->presets = "Presets/" + std::move(processName);
+
+  std::lock_guard lock{m_mutex};
+  m_paths = std::move(p);
+}
 
 std::function<void()> LibraryInterface::asyncAddPath(std::string_view path)
 {
