@@ -1,4 +1,6 @@
 #pragma once
+#include <Process/MediaRange.hpp>
+
 #include <score/tools/ProjectFiles.hpp>
 
 #include <QString>
@@ -7,6 +9,7 @@
 
 #include <functional>
 #include <memory>
+#include <optional>
 #include <vector>
 
 namespace score
@@ -42,6 +45,15 @@ struct ExternalFileRef
   bool rewritable{true};
   //! Human-readable name of the object holding the reference.
   QString owner;
+
+  /** The part of the file this reference actually reads.
+   *
+   * Left unset when the whole file is used, or when the process cannot bound
+   * the region with confidence -- a time-stretched clip whose mapping depends
+   * on a tempo curve, for instance. Trimming only ever touches references that
+   * set it, so "unsure" always means "leave the file alone".
+   */
+  std::optional<MediaRange> usedRange;
 };
 
 //! Called for every reference found. Return the path it should be rewritten

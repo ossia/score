@@ -1,22 +1,37 @@
+#include <Process/MediaTrimDialog.hpp>
+#include <Process/MissingFilesDialog.hpp>
+#include <Process/ProjectArchive.hpp>
 #include <Process/ProjectConsolidation.hpp>
 #include <Process/ProjectConsolidationDialog.hpp>
 #include <Process/ProjectFilesApplicationPlugin.hpp>
 
 #include <score/actions/ActionManager.hpp>
 #include <score/actions/MenuManager.hpp>
+#include <score/tools/Zip.hpp>
 #include <score/widgets/HelpInteraction.hpp>
 
 #include <core/document/Document.hpp>
 #include <core/presenter/DocumentManager.hpp>
 
 #include <QAction>
+#include <QFileDialog>
 #include <QFileInfo>
+#include <QLocale>
 #include <QMainWindow>
 #include <QMenu>
 #include <QMessageBox>
+#include <QProgressDialog>
+#include <QTimer>
 
 SCORE_DECLARE_ACTION(
     ConsolidateProject, "&Consolidate project...", Common, QKeySequence::UnknownKey)
+SCORE_DECLARE_ACTION(
+    LocateMissingFiles, "&Locate missing files...", Common, QKeySequence::UnknownKey)
+SCORE_DECLARE_ACTION(
+    TrimProjectMedia, "&Trim media to what is used...", Common,
+    QKeySequence::UnknownKey)
+SCORE_DECLARE_ACTION(
+    ArchiveProject, "&Archive project...", Common, QKeySequence::UnknownKey)
 
 namespace Process
 {
@@ -29,31 +44,41 @@ ProjectFilesApplicationPlugin::ProjectFilesApplicationPlugin(
 
 ProjectFilesApplicationPlugin::~ProjectFilesApplicationPlugin() = default;
 
-void ProjectFilesApplicationPlugin::consolidate()
+score::Document*
+ProjectFilesApplicationPlugin::documentWithFolder(const QString& what)
 {
   auto doc = context.docManager.currentDocument();
   if(!doc)
-    return;
+    return nullptr;
 
-  // Every path we are about to write is relative to the document's own
-  // folder, so there has to be one. This is the "save your set into its own
-  // Project folder first" rule that every DAW ends up teaching its users; ask
-  // for it up front rather than silently collecting into the wrong place.
+  // Every path this writes is relative to the document's own folder, so there
+  // has to be one. This is the "save your set into its own project folder
+  // first" rule every DAW ends up teaching its users; ask for it up front
+  // rather than silently working in the wrong place.
   if(doc->metadata().projectFolder().isEmpty())
   {
     const auto res = QMessageBox::question(
         context.mainWindow, QObject::tr("Save the document first"),
-        QObject::tr("Consolidating copies the media next to the document, so the "
-                    "document has to be saved somewhere first.\n\n"
-                    "Save it now?"),
+        QObject::tr("%1 works next to the document, so the document has to be "
+                    "saved somewhere first.\n\nSave it now?")
+            .arg(what),
         QMessageBox::Save | QMessageBox::Cancel);
     if(res != QMessageBox::Save)
-      return;
+      return nullptr;
     if(!context.docManager.saveDocumentAs(*doc))
-      return;
+      return nullptr;
     if(doc->metadata().projectFolder().isEmpty())
-      return;
+      return nullptr;
   }
+
+  return doc;
+}
+
+void ProjectFilesApplicationPlugin::consolidate()
+{
+  auto doc = documentWithFolder(QObject::tr("Consolidating"));
+  if(!doc)
+    return;
 
   ProjectConsolidationDialog dialog{doc->context(), context.mainWindow};
   if(dialog.exec() != QDialog::Accepted)
@@ -63,6 +88,117 @@ void ProjectFilesApplicationPlugin::consolidate()
   // make sense together, and a document closed without saving would leave
   // the collected files orphaned.
   context.docManager.saveDocument(*doc);
+}
+
+void ProjectFilesApplicationPlugin::locateMissingFiles()
+{
+  auto doc = context.docManager.currentDocument();
+  if(!doc)
+    return;
+
+  auto* dialog = new MissingFilesDialog{doc->context(), context.mainWindow};
+  dialog->show();
+}
+
+void ProjectFilesApplicationPlugin::trimMedia()
+{
+  auto doc = documentWithFolder(QObject::tr("Trimming"));
+  if(!doc)
+    return;
+
+  MediaTrimDialog dialog{doc->context(), context.mainWindow};
+  if(dialog.exec() != QDialog::Accepted)
+    return;
+
+  context.docManager.saveDocument(*doc);
+}
+
+void ProjectFilesApplicationPlugin::archive()
+{
+  auto doc = documentWithFolder(QObject::tr("Archiving"));
+  if(!doc)
+    return;
+
+  const QString suggested
+      = doc->metadata().projectFolder() + '/' + doc->metadata().documentName()
+        + QStringLiteral(".zip");
+  const QString destination = QFileDialog::getSaveFileName(
+      context.mainWindow, QObject::tr("Archive project as"), suggested,
+      QObject::tr("Archives (*.zip)"));
+  if(destination.isEmpty())
+    return;
+
+  // Collect first: an archive of a project whose media is scattered over the
+  // machine would be an archive of nothing.
+  const auto report = consolidateProjectFiles(doc->context(), {});
+  context.docManager.saveDocument(*doc);
+
+  const auto contents = projectArchiveContents(doc->context(), report);
+  if(contents.empty())
+  {
+    QMessageBox::warning(
+        context.mainWindow, QObject::tr("Nothing to archive"),
+        QObject::tr("No file of this project could be found on disk."));
+    return;
+  }
+
+  QProgressDialog progress{
+      QObject::tr("Archiving %1 file(s), %2...")
+          .arg(contents.size())
+          .arg(QLocale{}.formattedDataSize(archiveContentsSize(contents))),
+      QObject::tr("Cancel"), 0, int(contents.size()), context.mainWindow};
+  progress.setWindowModality(Qt::WindowModal);
+
+  QString error;
+  const bool ok = score::writeZipArchive(
+      destination, contents, /*level=*/1, error, [&](int done, int total) {
+    progress.setValue(done);
+    QCoreApplication::processEvents();
+    return !progress.wasCanceled();
+      });
+
+  progress.close();
+
+  if(!ok)
+  {
+    QMessageBox::warning(context.mainWindow, QObject::tr("Archiving failed"), error);
+    return;
+  }
+
+  const int missing = report.count(FileAction::Missing);
+  const int external = report.count(FileAction::Unsupported);
+  QString note = QObject::tr("%1 holds %2 file(s).")
+                     .arg(QFileInfo{destination}.fileName())
+                     .arg(contents.size());
+  if(missing > 0)
+    note += QObject::tr("\n\n%1 file(s) could not be found and are NOT in the "
+                        "archive.")
+                .arg(missing);
+  if(external > 0)
+    note += QObject::tr("\n\n%1 external dependency/ies (plug-ins, folders) must "
+                        "be installed on the other machine.")
+                .arg(external);
+
+  QMessageBox::information(context.mainWindow, QObject::tr("Project archived"), note);
+}
+
+void ProjectFilesApplicationPlugin::on_loadedDocument(score::Document& doc)
+{
+  if(!context.mainWindow)
+    return;
+
+  // The document is still being built: look at it once the load has settled,
+  // and never block it.
+  QPointer<score::Document> guard{&doc};
+  QTimer::singleShot(0, this, [this, guard] {
+    if(!guard)
+      return;
+    if(MissingFilesDialog::nothingMissing(guard->context()))
+      return;
+
+    auto* dialog = new MissingFilesDialog{guard->context(), context.mainWindow};
+    dialog->show();
+  });
 }
 
 void ProjectFilesApplicationPlugin::on_documentSaveAs(
@@ -113,21 +249,39 @@ score::GUIElements ProjectFilesApplicationPlugin::makeGUIElements()
   if(!context.mainWindow)
     return e;
 
-  m_action = new QAction{context.mainWindow};
-  score::setHelp(
-      m_action,
+  auto& file = context.menus.get().at(score::Menus::File());
+  auto& cond = context.actions.condition<score::EnableActionIfDocument>();
+
+  const auto add = [&](QAction*& action, auto&& slot, const QString& help) {
+    action = new QAction{context.mainWindow};
+    score::setHelp(action, help);
+    connect(action, &QAction::triggered, this, slot);
+    file.menu()->addAction(action);
+  };
+
+  add(m_consolidate, &ProjectFilesApplicationPlugin::consolidate,
       QObject::tr("Copy every file the document uses next to it, and make the "
                   "references relative to the project."));
-  connect(
-      m_action, &QAction::triggered, this,
-      &ProjectFilesApplicationPlugin::consolidate);
+  e.actions.add<Actions::ConsolidateProject>(m_consolidate);
+  cond.add<Actions::ConsolidateProject>();
 
-  auto& file = context.menus.get().at(score::Menus::File());
-  file.menu()->addAction(m_action);
+  add(m_locate, &ProjectFilesApplicationPlugin::locateMissingFiles,
+      QObject::tr("List the files this document cannot find and help point it at "
+                  "them."));
+  e.actions.add<Actions::LocateMissingFiles>(m_locate);
+  cond.add<Actions::LocateMissingFiles>();
 
-  e.actions.add<Actions::ConsolidateProject>(m_action);
-  context.actions.condition<score::EnableActionIfDocument>()
-      .add<Actions::ConsolidateProject>();
+  add(m_trim, &ProjectFilesApplicationPlugin::trimMedia,
+      QObject::tr("Shorten the collected media down to the parts the document "
+                  "actually reads."));
+  e.actions.add<Actions::TrimProjectMedia>(m_trim);
+  cond.add<Actions::TrimProjectMedia>();
+
+  add(m_archive, &ProjectFilesApplicationPlugin::archive,
+      QObject::tr("Collect everything and write the whole project into a single "
+                  "zip file."));
+  e.actions.add<Actions::ArchiveProject>(m_archive);
+  cond.add<Actions::ArchiveProject>();
 
   return e;
 }

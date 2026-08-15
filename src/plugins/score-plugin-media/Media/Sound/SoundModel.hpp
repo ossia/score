@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/Dataflow/Port.hpp>
+#include <Process/MediaRange.hpp>
 #include <Process/Process.hpp>
 
 #include <Media/MediaFileHandle.hpp>
@@ -79,6 +80,12 @@ public:
   void on_mediaChanged();
 
   void mapExternalFiles(Process::ExternalFileMap& map) override;
+
+  //! Seconds of the file per second of score's timeline.
+  double fileTempoRatio() const noexcept;
+
+  //! The region of the file this process reads, in the file's own seconds.
+  std::optional<Process::MediaRange> usedFileRange() const noexcept;
 
   std::unique_ptr<Process::AudioOutlet> outlet;
 

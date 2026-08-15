@@ -181,6 +181,38 @@ QString ProcessModel::userFilePath() const noexcept
   return m_userFilePath;
 }
 
+double ProcessModel::fileTempoRatio() const noexcept
+{
+  // The very mapping Sound::LayerPresenter uses to draw the waveform: what is
+  // trimmed is then what the user sees drawn, which is the only definition of
+  // "the part that is used" they can check.
+  const double tempo = (m_mode == ossia::audio_stretch_mode::None)
+                           ? Media::tempoAtStartDate(*this)
+                           : nativeTempo();
+  if(tempo < 0.1)
+    return 0.;
+  return ossia::root_tempo / tempo;
+}
+
+std::optional<Process::MediaRange> ProcessModel::usedFileRange() const noexcept
+{
+  const double ratio = fileTempoRatio();
+  if(ratio <= 0.)
+    return std::nullopt;
+
+  const auto seconds = [ratio](const TimeVal& t) {
+    // sec() is score's own timeline; the ratio takes it into the file's.
+    return t.sec() * ratio;
+  };
+
+  const double start = seconds(startOffset());
+  const double length = seconds(loops() ? loopDuration() : duration());
+  if(!(length > 0.) || !std::isfinite(start) || !std::isfinite(length))
+    return std::nullopt;
+
+  return Process::MediaRange{std::max(0., start), length};
+}
+
 void ProcessModel::mapExternalFiles(Process::ExternalFileMap& map)
 {
   Process::ProcessModel::mapExternalFiles(map);
@@ -194,7 +226,8 @@ void ProcessModel::mapExternalFiles(Process::ExternalFileMap& map)
        .usage = Process::FileUsage::Input,
        .directory = false,
        .rewritable = true,
-       .owner = map.owner});
+       .owner = map.owner,
+       .usedRange = usedFileRange()});
 
   if(!next.isEmpty())
     map.addCommand(new Media::RelocateAudioFile{*this, next});

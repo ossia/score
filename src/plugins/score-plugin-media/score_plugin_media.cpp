@@ -1,3 +1,4 @@
+#include <Media/AudioTrimmer.hpp>
 #include "score_plugin_media.hpp"
 
 #include <Process/Dataflow/WidgetInlets.hpp>
@@ -120,6 +121,7 @@ std::vector<score::InterfaceBase*> score_plugin_media::factories(
          Execution::StepComponentFactory, Execution::MetroComponentFactory,
          Execution::MergerComponentFactory>,
       FW<Process::ProcessDropHandler, Media::Sound::DropHandler>,
+      FW<Process::MediaTrimmer, Media::AudioTrimmer>,
       FW<score::SettingsDelegateFactory, Media::Settings::Factory>,
       FW<score::PanelDelegateFactory, Mixer::PanelDelegateFactory>,
       FW<Process::PortFactory, Dataflow::WidgetInletFactory<

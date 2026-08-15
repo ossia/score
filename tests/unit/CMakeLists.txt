@@ -10,6 +10,15 @@ score_add_test(test_unit_address
 score_add_test(test_unit_project_files
   SOURCES ProjectFilesTest.cpp)
 
+# Zip writing (miniz, vendored in 3rdparty/zipdownloader) behind score's API.
+score_add_test(test_unit_zip
+  SOURCES ZipTest.cpp)
+
+# The folder index relinking searches with.
+score_add_test(test_unit_file_index
+  SOURCES FileIndexTest.cpp
+  PLUGINS score_lib_process)
+
 # --- regression: per-app interface-list lookup in port deserialization -----
 # Boots two headless apps in one process and round-trips ControlInlet /
 # ControlOutlet through Process::load_inlet / load_outlet in each: a stale
