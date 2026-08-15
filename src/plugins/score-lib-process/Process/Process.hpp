@@ -60,6 +60,7 @@ class ProcessModelFactory;
 class LayerFactory;
 class ProcessModel;
 class LayerFactory;
+class ExternalFileMap;
 struct Inlets;
 struct Outlets;
 
@@ -158,6 +159,15 @@ public:
 
   virtual void forEachControl(
       smallfun::function<void(Process::ControlInlet&, const ossia::value&)>) const;
+
+  /** Report — and let the caller relocate — every file this process
+   * references, for project consolidation. See Process/ExternalFiles.hpp.
+   *
+   * The default implementation covers file- and folder-valued control ports,
+   * so only a process that stores a path outside of a port needs to override
+   * it; such an override must still call this base implementation.
+   */
+  virtual void mapExternalFiles(Process::ExternalFileMap& map);
 
   // Magnetism
   virtual std::optional<Process::MagneticInfo>

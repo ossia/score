@@ -32,6 +32,12 @@ ProtocolFactory::getEnumerators(const score::DocumentContext& ctx) const
   return {};
 }
 
+QVariant ProtocolFactory::relocateExternalFiles(
+    const QVariant& settings, const FileMapper& map) const
+{
+  return {};
+}
+
 bool ProtocolFactory::checkResourcesAvailable(
     const Device::DeviceSettings& a, const DeviceResourceMap&) const noexcept
 {

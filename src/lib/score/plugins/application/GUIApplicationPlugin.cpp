@@ -70,6 +70,11 @@ void GUIApplicationPlugin::on_initDocument(score::Document& doc) { }
 
 void GUIApplicationPlugin::on_closeDocument(score::Document& doc) { }
 
+void GUIApplicationPlugin::on_documentSaveAs(
+    score::Document& doc, const QString& newFileName)
+{
+}
+
 void GUIApplicationPlugin::on_newDocument(score::Document& doc) { }
 
 void GUIApplicationPlugin::on_loadedDocument(score::Document& doc) { }

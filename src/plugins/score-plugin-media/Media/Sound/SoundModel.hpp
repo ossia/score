@@ -78,6 +78,8 @@ public:
 
   void on_mediaChanged();
 
+  void mapExternalFiles(Process::ExternalFileMap& map) override;
+
   std::unique_ptr<Process::AudioOutlet> outlet;
 
 public:

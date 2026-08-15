@@ -5,6 +5,7 @@
 
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
+#include <Process/ExternalFiles.hpp>
 
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
@@ -150,6 +151,17 @@ Model::~Model()
 QString Model::prettyName() const noexcept
 {
   return metadata().getLabel();
+}
+
+void Model::mapExternalFiles(Process::ExternalFileMap& map)
+{
+  Process::ProcessModel::mapExternalFiles(map);
+
+  // A VST3 bundle is not something a project can carry: it has to be
+  // installed on the other machine. Report it so it shows up in the list of
+  // things the project needs.
+  if(!m_vstPath.isEmpty())
+    map.readOnly(m_vstPath, score::FileKind::Plugin);
 }
 
 bool Model::hasExternalUI() const noexcept

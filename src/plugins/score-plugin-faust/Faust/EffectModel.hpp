@@ -63,6 +63,8 @@ public:
 
   QString prettyName() const noexcept override;
 
+  void mapExternalFiles(Process::ExternalFileMap& map) override;
+
   bool validate(const QString& txt) const noexcept;
   const QString& script() const { return m_script; }
   [[nodiscard]] Process::ScriptChangeResult setScript(const QString& txt);

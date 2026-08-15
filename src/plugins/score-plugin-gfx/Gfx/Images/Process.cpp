@@ -3,6 +3,7 @@
 #include <Process/Dataflow/ControlWidgets.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
+#include <Process/ExternalFiles.hpp>
 
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Images/ImageListChooser.hpp>
@@ -122,6 +123,17 @@ Model::Model(
 Model::~Model()
 {
   releaseImages(m_currentImages);
+}
+
+void Model::mapExternalFiles(Process::ExternalFileMap& map)
+{
+  Process::ProcessModel::mapExternalFiles(map);
+
+  // The image list is a single control holding N paths; ExternalFileMap
+  // rewrites them element per element and emits one command for the list.
+  for(auto* inlet : m_inlets)
+    if(auto* images = dynamic_cast<ImageListChooser*>(inlet))
+      map.control(*images, score::FileKind::Image);
 }
 
 void Model::on_imagesChanged(const ossia::value& v)

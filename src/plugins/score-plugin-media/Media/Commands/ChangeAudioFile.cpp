@@ -109,6 +109,34 @@ void ChangeAudioFile::deserializeImpl(DataStreamOutput& s)
   }
 }
 
+RelocateAudioFile::RelocateAudioFile(const Sound::ProcessModel& model, QString newPath)
+    : m_model{model}
+    , m_old{model.userFilePath()}
+    , m_new{std::move(newPath)}
+    , m_stream{model.stream()}
+{
+}
+
+void RelocateAudioFile::undo(const score::DocumentContext& ctx) const
+{
+  m_model.find(ctx).setFileForced(m_old, m_stream);
+}
+
+void RelocateAudioFile::redo(const score::DocumentContext& ctx) const
+{
+  m_model.find(ctx).setFileForced(m_new, m_stream);
+}
+
+void RelocateAudioFile::serializeImpl(DataStreamInput& s) const
+{
+  s << m_model << m_old << m_new << m_stream;
+}
+
+void RelocateAudioFile::deserializeImpl(DataStreamOutput& s)
+{
+  s >> m_model >> m_old >> m_new >> m_stream;
+}
+
 LoadProcessedAudioFile::LoadProcessedAudioFile(
     const Sound::ProcessModel& model, const QString& text)
     : m_model{model}

@@ -2,6 +2,7 @@
 
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
+#include <Process/ExternalFiles.hpp>
 
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Settings/Model.hpp>
@@ -166,6 +167,12 @@ void Model::setPath(const QString& f)
       setLoopDuration(prop->duration);
   }
   pathChanged(f);
+}
+
+void Model::mapExternalFiles(Process::ExternalFileMap& map)
+{
+  Process::ProcessModel::mapExternalFiles(map);
+  map.property(*this, "path", score::FileKind::Video);
 }
 
 score::gfx::ScaleMode Model::scaleMode() const noexcept

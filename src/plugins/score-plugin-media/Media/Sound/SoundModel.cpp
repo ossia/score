@@ -1,7 +1,9 @@
 #include <Process/Dataflow/PortSerialization.hpp>
+#include <Process/ExternalFiles.hpp>
 
 #include <Audio/Settings/Model.hpp>
 #include <Media/AudioDecoder.hpp>
+#include <Media/Commands/ChangeAudioFile.hpp>
 #include <Media/Sound/SoundModel.hpp>
 #include <Media/Tempo.hpp>
 
@@ -177,6 +179,25 @@ void ProcessModel::setFile(const QString& file)
 QString ProcessModel::userFilePath() const noexcept
 {
   return m_userFilePath;
+}
+
+void ProcessModel::mapExternalFiles(Process::ExternalFileMap& map)
+{
+  Process::ProcessModel::mapExternalFiles(map);
+
+  if(m_userFilePath.isEmpty())
+    return;
+
+  const QString next = map.map(
+      {.path = m_userFilePath,
+       .kind = score::FileKind::Audio,
+       .usage = Process::FileUsage::Input,
+       .directory = false,
+       .rewritable = true,
+       .owner = map.owner});
+
+  if(!next.isEmpty())
+    map.addCommand(new Media::RelocateAudioFile{*this, next});
 }
 
 void ProcessModel::setFileForced(const QString& file, int stream)

@@ -64,6 +64,8 @@ public:
   QString prettyName() const noexcept override;
   bool hasExternalUI() const noexcept;
 
+  void mapExternalFiles(Process::ExternalFileMap& map) override;
+
   Plugin fx{};
 
   ossia::hash_map<Steinberg::Vst::ParamID, ControlInlet*> controls;

@@ -542,6 +542,27 @@ void LibavProtocolFactory::serializeProtocolSpecificSettings(
   serializeProtocolSpecificSettings_T<LibavSettings>(data, visitor);
 }
 
+QVariant LibavProtocolFactory::relocateExternalFiles(
+    const QVariant& settings, const FileMapper& map) const
+{
+  auto set = settings.value<LibavSettings>();
+  if(set.path.isEmpty())
+    return {};
+
+  // An input device reads a media file, which is a project dependency like
+  // any other; an output device writes one, so only its destination follows
+  // the project.
+  const bool output = set.direction == LibavSettings::Output;
+  const QString next = map(
+      set.path, output ? score::FileKind::Video : score::guessFileKind(set.path),
+      output);
+  if(next.isEmpty() || next == set.path)
+    return {};
+
+  set.path = next;
+  return QVariant::fromValue(set);
+}
+
 bool LibavProtocolFactory::checkCompatibility(
     const Device::DeviceSettings& a, const Device::DeviceSettings& b) const noexcept
 {

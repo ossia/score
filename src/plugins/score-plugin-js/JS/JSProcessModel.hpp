@@ -142,6 +142,8 @@ public:
   [[nodiscard]] Process::ScriptChangeResult setProgram(const QmlSource& f);
   void programChanged() W_SIGNAL(programChanged);
 
+  void mapExternalFiles(Process::ExternalFileMap& map) override;
+
   void uiToExecution(const QVariant& v) W_SIGNAL(uiToExecution, v);
   void executionToUi(const QVariant& v) W_SIGNAL(executionToUi, v);
 

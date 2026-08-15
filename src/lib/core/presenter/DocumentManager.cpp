@@ -443,6 +443,12 @@ bool DocumentManager::saveDocumentAs(Document& doc, const QString& savename)
   if(!f.open(QIODevice::WriteOnly))
     return false;
 
+  // Let the plug-ins fix up whatever the document stores relatively to its own
+  // folder before that folder changes under them. Runs while the metadata
+  // still holds the old file name, so paths can still be resolved from it.
+  for(auto* plug : score::GUIAppContext().guiApplicationPlugins())
+    plug->on_documentSaveAs(doc, savename);
+
   doc.metadata().setFileName(savename);
 
   if(savename.indexOf(".scorebin") != -1)

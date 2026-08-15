@@ -41,6 +41,8 @@ public:
   void setPath(const QString& f);
   void pathChanged(const QString& f) W_SIGNAL(pathChanged, f);
 
+  void mapExternalFiles(Process::ExternalFileMap& map) override;
+
   double nativeTempo() const noexcept;
   void setNativeTempo(double);
   void nativeTempoChanged(double t) W_SIGNAL(nativeTempoChanged, t);
