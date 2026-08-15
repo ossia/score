@@ -1,4 +1,6 @@
 #pragma once
+#include <State/Value.hpp>
+
 #include <Process/Commands/SetControlValue.hpp>
 #include <Process/Dataflow/ControlWidgetDomains.hpp>
 #include <Process/Dataflow/Port.hpp>
@@ -1449,6 +1451,16 @@ struct ComboBox
       sl->moving = false;
     });
 
+    QObject::connect(
+        sl, &score::QGraphicsCombo::valueEdited, context,
+        [values, &inlet, &ctx](const QString& text) {
+      if(auto v = parseFreeValue(text, values))
+      {
+        CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
+            inlet, *v);
+      }
+        });
+
     QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) {
       if(sl->moving)
         return;
@@ -1457,6 +1469,38 @@ struct ComboBox
     });
 
     return sl;
+  }
+
+  //! Read free-form text as a value of the enumeration's own type.
+  static std::optional<ossia::value> parseFreeValue(
+      const QString& text,
+      const std::vector<std::pair<QString, ossia::value>>& values) noexcept
+  {
+    const auto type = (!values.empty() && values.front().second.valid())
+                          ? values.front().second.get_type()
+                          : ossia::val_type::STRING;
+
+    switch(type)
+    {
+      case ossia::val_type::STRING:
+        return ossia::value{text.toStdString()};
+      case ossia::val_type::INT: {
+        bool ok = false;
+        const int v = text.toInt(&ok);
+        return ok ? std::optional<ossia::value>{v} : std::nullopt;
+      }
+      case ossia::val_type::FLOAT: {
+        bool ok = false;
+        const float v = text.toFloat(&ok);
+        return ok ? std::optional<ossia::value>{v} : std::nullopt;
+      }
+      default:
+        break;
+    }
+
+    if(auto parsed = State::parseValue(text.toStdString()))
+      return *parsed;
+    return std::nullopt;
   }
 };
 
