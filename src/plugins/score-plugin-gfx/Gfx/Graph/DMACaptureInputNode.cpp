@@ -262,6 +262,9 @@ public:
                       "unsynchronised with the rest of the rig";
       }
     }
+    // Unconditional: a backend that offered a group has to learn it was turned
+    // down, and one that never offered still has to be told nothing changed.
+    m_backend->setSyncGroupEngaged(m_syncGroup != nullptr);
 
     // Some zero-copy strategies (the Vulkan zero-copy path) allocate the renderer-facing
     // texture themselves — an exportable, CUDA-mapped VkImage — instead of
