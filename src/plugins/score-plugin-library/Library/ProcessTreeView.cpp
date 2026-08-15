@@ -94,8 +94,9 @@ void ProcessTreeView::mouseDoubleClickEvent(QMouseEvent* event)
   auto index = indexAt(event->pos());
   if(index.isValid())
   {
+    // guard against transient null internalPointer from async scan rebuild
     auto data = dataFromViewIndex(index);
-    if(data->key != UuidKey<Process::ProcessModel>{})
+    if(data && data->key != UuidKey<Process::ProcessModel>{})
     {
       doubleClicked(*data);
       event->accept();

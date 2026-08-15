@@ -21,7 +21,10 @@ void ApplicationPlugin::addPreset(Preset&& p)
       presets.begin(), presets.end(), p,
       [](const auto& lhs, const auto& rhs) { return lhs.key < rhs.key; });
 
+  const int row = int(it - presets.begin());
+  presetAboutToBeAdded(row);
   presets.insert(it, std::move(p));
+  presetAdded(row);
 }
 
 }

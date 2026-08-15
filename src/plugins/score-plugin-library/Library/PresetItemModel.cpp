@@ -11,6 +11,7 @@
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/model/path/PathSerialization.hpp>
+#include <score/tools/Bind.hpp>
 #include <score/tools/File.hpp>
 
 #include <core/document/Document.hpp>
@@ -28,7 +29,14 @@ PresetItemModel::PresetItemModel(
     const score::GUIApplicationContext& ctx, QObject* parent)
     : QAbstractItemModel{parent}
     , presets{ctx.applicationPlugin<Process::ApplicationPlugin>().presets}
+    , m_plugin{&ctx.applicationPlugin<Process::ApplicationPlugin>()}
 {
+  // `presets` belongs to the application plugin and is fed both by the
+  // library scan and by savePreset: mirror its insertions with exact ranges.
+  con(*m_plugin, &Process::ApplicationPlugin::presetAboutToBeAdded, this,
+      [this](int row) { beginInsertRows(QModelIndex{}, row, row); });
+  con(*m_plugin, &Process::ApplicationPlugin::presetAdded, this,
+      [this](int) { endInsertRows(); });
 }
 
 QModelIndex PresetItemModel::index(int row, int column, const QModelIndex& parent) const
@@ -206,18 +214,9 @@ bool PresetItemModel::savePreset(const Process::ProcessModel& proc)
   if(!updatePresetFilename(preset))
     return false;
 
-  beginResetModel();
-  // beginInsertRows(QModelIndex(), presets.size(), presets.size());
-  auto it = std::lower_bound(
-      presets.begin(), presets.end(), preset,
-      [](const Process::Preset& lhs, const Process::Preset& rhs) {
-    return lhs.key < rhs.key;
-      });
-
-  presets.insert(it, std::move(preset));
-  // endInsertRows();
-  endResetModel();
-
+  // Sorted insertion + exact insert signals through the connections made in
+  // the constructor.
+  m_plugin->addPreset(std::move(preset));
   return true;
 }
 
@@ -267,6 +266,8 @@ Qt::ItemFlags PresetItemModel::flags(const QModelIndex& index) const
 bool PresetFilterProxy::filterAcceptsRow(int srcRow, const QModelIndex& srcParent) const
 {
   PresetItemModel* model = safe_cast<PresetItemModel*>(sourceModel());
+  if(!ossia::valid_index(srcRow, model->presets))
+    return false;
   if(model->presets[srcRow].key.key != currentFilter.key)
     return false;
   if(currentFilter.effect.isEmpty())
