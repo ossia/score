@@ -57,6 +57,10 @@ SCORE_LIB_STATE_EXPORT QString toPrettyString(const ossia::value& val);
 // notation would be unreadable.
 SCORE_LIB_STATE_EXPORT QString toPrettyString(float f);
 
+// As the user reads it: a string without its quotes. Composite values keep the
+// adorned form, having no plain one.
+SCORE_LIB_STATE_EXPORT QString toDisplayString(const ossia::value& val);
+
 // We require the type to crrectly read back (e.g. int / float / char)
 // and as an optimization, since we may need it multiple times,
 // we chose to leave the caller save it however he wants. Hence the specific
