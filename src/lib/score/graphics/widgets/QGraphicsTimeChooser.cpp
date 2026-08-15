@@ -59,6 +59,7 @@ QGraphicsTimeChooser::QGraphicsTimeChooser(QGraphicsItem* parent)
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorPointingHand);
   this->setAcceptedMouseButtons(Qt::LeftButton);
+  this->setAcceptHoverEvents(true);
   m_other01 = default_sync_index / double(division_count - 1);
 }
 
@@ -157,9 +158,65 @@ void QGraphicsTimeChooser::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   auto& skin = score::Skin::instance();
+  DefaultGraphicsKnobImpl::paint(*this, skin, QString{}, painter, widget);
+
+  // Readout chip: looks like a small button so the free / sync toggle is
+  // discoverable. Filled with a note glyph when synced, outlined when free;
+  // highlighted on hover.
   const QString text
       = m_sync ? QString::fromLatin1(divisions[syncIndex()].label) : freeText();
-  DefaultGraphicsKnobImpl::paint(*this, skin, text, painter, widget);
+
+  painter->setFont(skin.Medium8Pt);
+  const double tw = painter->fontMetrics().horizontalAdvance(text);
+  const double glyph_w = m_sync ? 7. : 0.;
+  const double chip_w = std::min(m_rect.width(), tw + glyph_w + 8.);
+  const QRectF chip{
+      m_rect.x() + (m_rect.width() - chip_w) / 2., m_rect.y() + 24., chip_w, 11.};
+
+  painter->setRenderHint(QPainter::Antialiasing, true);
+  if(m_sync)
+  {
+    painter->setPen(skin.NoPen);
+    painter->setBrush(
+        m_hover ? skin.Emphasis2.lighter.brush : skin.Emphasis2.main.brush);
+  }
+  else
+  {
+    painter->setPen(m_hover ? skin.Emphasis2.lighter.pen1 : skin.Emphasis2.main.pen1);
+    painter->setBrush(Qt::NoBrush);
+  }
+  painter->drawRoundedRect(chip, 2., 2.);
+
+  if(m_sync)
+  {
+    // Note glyph, drawn (sharper than a font glyph at this size)
+    const double gx = chip.x() + 3.;
+    const double gy = chip.center().y() + 3.;
+    painter->setPen(skin.NoPen);
+    painter->setBrush(skin.Base4.lighter180.brush);
+    painter->drawEllipse(QRectF{gx, gy - 2.5, 3.5, 2.75});
+    painter->setPen(skin.Base4.lighter180.pen1);
+    painter->drawLine(QPointF{gx + 3.5, gy - 1.5}, QPointF{gx + 3.5, gy - 7.});
+  }
+
+  painter->setPen(skin.Base4.lighter180.pen1);
+  painter->drawText(
+      chip.adjusted(glyph_w, 0., 0., 0.), text, QTextOption(Qt::AlignCenter));
+  painter->setRenderHint(QPainter::Antialiasing, false);
+}
+
+void QGraphicsTimeChooser::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
+{
+  m_hover = true;
+  update();
+  QGraphicsItem::hoverEnterEvent(event);
+}
+
+void QGraphicsTimeChooser::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
+{
+  m_hover = false;
+  update();
+  QGraphicsItem::hoverLeaveEvent(event);
 }
 
 void QGraphicsTimeChooser::mousePressEvent(QGraphicsSceneMouseEvent* event)
