@@ -38,11 +38,12 @@ static constexpr bool not_display_character(unsigned char c) noexcept
   return c < ' ' && (c != '\r' && c != '\n');
 }
 
+// Indexed by ossia::value's variant order; the last entry is the fallback.
 const std::array<const QString, 11> ValuePrettyTypes{
     {QObject::tr("Float"), QObject::tr("Int"), QObject::tr("Vec2f"),
      QObject::tr("Vec3f"), QObject::tr("Vec4f"), QObject::tr("Impulse"),
      QObject::tr("Bool"), QObject::tr("String"), QObject::tr("List"),
-     QObject::tr("Char"), QObject::tr("Container")}};
+     QObject::tr("Map"), QObject::tr("None")}};
 
 const std::array<std::pair<QString, ossia::val_type>, 10> ValuePrettyTypesPairArray{
     {std::make_pair(QObject::tr("Impulse"), ossia::val_type::IMPULSE),
