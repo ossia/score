@@ -34,6 +34,11 @@ clone_addon() {
     (
       cd "$folder"
       git checkout "${ref}"
+      # The ref may add or move submodules relative to the default branch
+      # that was cloned recursively above: sync them or the addon builds
+      # (or silently skips, see the note at the top) with the wrong trees.
+      git submodule sync --recursive
+      git submodule update --init --recursive
     )
     fi
   else
@@ -47,6 +52,8 @@ clone_addon() {
         (
           cd "$folder"
           git checkout "${ref}"
+          git submodule sync --recursive
+          git submodule update --init --recursive
         )
         fi
       fi
