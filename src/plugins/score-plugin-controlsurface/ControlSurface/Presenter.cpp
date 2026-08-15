@@ -18,6 +18,7 @@
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/graphics/GraphicWidgets.hpp>
 #include <score/graphics/RectItem.hpp>
+#include <score/graphics/widgets/QGraphicsCombo.hpp>
 #include <score/graphics/TextItem.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
@@ -308,6 +309,9 @@ void Presenter::setupInlet(
        [&](int j) { return m_ports[j].rect.size(); }, [&] { return port.name(); });
   auto [item, portItem, widg, lab, itemRect]
       = Process::createControl(i, csetup, port, portFactory, doc, m_view, this);
+
+  if(auto* combo = qgraphicsitem_cast<score::QGraphicsCombo*>(widg))
+    combo->setEditable(true);
 
   // Remove button
   {

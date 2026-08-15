@@ -10,6 +10,8 @@
 
 #include <ossia/detail/hash_map.hpp>
 
+#include <score_plugin_controlsurface_export.h>
+
 namespace Device
 {
 struct FullAddressAccessorSettings;
@@ -81,6 +83,12 @@ struct NodeObserver : public QObject
   ossia::hash_map<Device::Node*, AvailableNode> available;
   std::vector<AvailableNode> missing;
 };
+
+//! The control that best fits what the device says about a parameter.
+SCORE_PLUGIN_CONTROLSURFACE_EXPORT
+Process::ControlInlet* makeControlFromType(
+    const Id<Process::Port>& id, const Device::FullAddressAccessorSettings& addr,
+    QObject* parent);
 
 class Model final : public Process::ProcessModel
 {

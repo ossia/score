@@ -1,5 +1,7 @@
 #include "Process.hpp"
 
+#include <State/ValueConversion.hpp>
+
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
@@ -15,6 +17,7 @@
 #include <ossia/network/common/destination_qualifiers.hpp>
 #include <ossia/network/dataspace/dataspace.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
+#include <ossia/network/domain/domain.hpp>
 
 #include <wobjectimpl.h>
 
@@ -38,6 +41,21 @@ Process::ControlInlet* makeControlFromType(
 {
   // SliderWithOutputAddress<Process::IntSlider>();
   // TODO make better widgets if we have more information.
+
+  // Values of the parameter's own type: a vecf_domain lists bounds per
+  // component, not values the parameter takes.
+  if(auto values = ossia::get_values(addr.domain.get());
+     !values.empty() && values.front().valid()
+     && (!addr.value.valid() || values.front().get_type() == addr.value.get_type()))
+  {
+    std::vector<std::pair<QString, ossia::value>> alternatives;
+    alternatives.reserve(values.size());
+    for(auto& v : values)
+      alternatives.emplace_back(State::convert::toDisplayString(v), v);
+
+    return new Process::ComboBox{
+        std::move(alternatives), addr.value, "Control", id, parent};
+  }
 
   auto& unit = addr.address.qualifiers.get().unit.v;
   if(unit.target<ossia::color_u>())

@@ -22,6 +22,16 @@ score_add_test(test_unit_graphics_combo
   APP
   LIBS ${QT_PREFIX}::Test)
 
+if(TARGET score_plugin_controlsurface)
+  # Control choice for a device parameter dropped on a Control surface.
+  score_add_test(test_unit_controlsurface_control
+    SOURCES ControlSurfaceControlTest.cpp
+    APP
+    PLUGINS score_plugin_controlsurface score_lib_process score_lib_device)
+  target_include_directories(test_unit_controlsurface_control PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-controlsurface")
+endif()
+
 # Device explorer tree conversion: which ossia parameters become editable
 # Device::Node values (regression #2204: audio gains).
 score_add_test(test_unit_device_explorer_node
