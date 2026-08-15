@@ -338,6 +338,12 @@ public:
   QVariantList selectedObjects();
   W_SLOT(selectedObjects)
 
+  void select(QObject* obj);
+  W_SLOT(select, (QObject*))
+
+  void select(QVariantList objs);
+  W_SLOT(select, (QVariantList))
+
   void zoom(double zx, double zy);
   W_SLOT(zoom, (double, double));
 
