@@ -3,6 +3,7 @@
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionSetup.hpp>
+#include <Process/ExternalFiles.hpp>
 #include <Process/PresetHelpers.hpp>
 
 #include <Library/LibrarySettings.hpp>
@@ -157,6 +158,23 @@ void FaustEffectModel::init() { }
 QString FaustEffectModel::prettyName() const noexcept
 {
   return m_declareName.isEmpty() ? "Faust" : m_declareName;
+}
+
+void FaustEffectModel::mapExternalFiles(Process::ExternalFileMap& map)
+{
+  Process::ProcessModel::mapExternalFiles(map);
+
+  // The .dsp source itself is inlined in the document. m_path is the folder
+  // its `import(...)` statements resolve against: collecting it would mean
+  // pulling in a whole Faust library tree, so it is only reported.
+  if(!m_path.isEmpty())
+    map.map(
+        {.path = m_path,
+         .kind = score::FileKind::Folder,
+         .usage = Process::FileUsage::Input,
+         .directory = true,
+         .rewritable = false,
+         .owner = map.owner});
 }
 
 static bool faustIsMidi(llvm_dsp& dsp)

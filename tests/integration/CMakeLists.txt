@@ -20,6 +20,16 @@ score_add_test(test_integration_scenario_roundtrip
   GUI
   PLUGINS score_plugin_scenario score_lib_process)
 
+# Project consolidation end to end: collect a document's media into its own
+# folder and repoint it. GUI because adding a process to an interval goes
+# through the document presenter.
+if(TARGET score_plugin_media)
+  score_add_test(test_integration_consolidation
+    SOURCES ProjectConsolidationTest.cpp
+    GUI
+    PLUGINS score_plugin_scenario score_plugin_media score_lib_process)
+endif()
+
 score_add_test(test_integration_js_process
   SOURCES JsProcessTest.cpp
   GUI

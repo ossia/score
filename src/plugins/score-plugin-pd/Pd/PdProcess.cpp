@@ -4,7 +4,10 @@
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
 #include <Process/ExecutionTransaction.hpp>
+#include <Process/ExternalFiles.hpp>
 #include <Process/PresetHelpers.hpp>
+
+#include <Pd/Commands/EditPd.hpp>
 
 #include <Audio/Settings/Model.hpp>
 
@@ -948,6 +951,28 @@ const QString& ProcessModel::script() const
   return m_script;
 }
 
+void ProcessModel::mapExternalFiles(Process::ExternalFileMap& map)
+{
+  Process::ProcessModel::mapExternalFiles(map);
+
+  if(m_script.isEmpty())
+    return;
+
+  const QString next = map.map(
+      {.path = m_script,
+       .kind = score::FileKind::Script,
+       .usage = Process::FileUsage::Input,
+       .directory = false,
+       .rewritable = true,
+       .owner = map.owner});
+
+  // Reloading a patch rebuilds the ports: EditPdPath is the command that saves
+  // and restores the cables around that.
+  if(!next.isEmpty())
+    map.addCommand(
+        new Pd::EditPdPath{*this, next, score::IDocument::documentContext(*this)});
+}
+
 QString ProcessModel::effect() const noexcept
 {
   return m_script;
@@ -969,8 +994,12 @@ void DataStreamReader::read(const Pd::ProcessModel& proc)
 {
   insertDelimiter();
 
-  m_stream << proc.m_script << proc.m_audioInputs << proc.m_audioOutputs
-           << proc.m_midiInput << proc.m_midiOutput;
+  // setScript() resolves the patch to an absolute path; write it back
+  // relative to the document so that the .score stays portable.
+  m_stream << score::relativizeFilePath(
+      proc.m_script, score::IDocument::documentContext(proc))
+           << proc.m_audioInputs << proc.m_audioOutputs << proc.m_midiInput
+           << proc.m_midiOutput;
 
   readPorts(*this, proc.m_inlets, proc.m_outlets);
 
@@ -997,7 +1026,8 @@ void DataStreamWriter::write(Pd::ProcessModel& proc)
 template <>
 void JSONReader::read(const Pd::ProcessModel& proc)
 {
-  obj["Script"] = proc.script();
+  obj["Script"] = score::relativizeFilePath(
+      proc.script(), score::IDocument::documentContext(proc));
   obj["AudioInputs"] = proc.audioInputs();
   obj["AudioOutputs"] = proc.audioOutputs();
   obj["MidiInput"] = proc.midiInput();

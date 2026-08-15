@@ -6,6 +6,7 @@
 #include <State/Expression.hpp>
 
 #include <Process/Dataflow/Port.hpp>
+#include <Process/ExternalFiles.hpp>
 #include <Process/PresetHelpers.hpp>
 
 #include <JS/ApplicationPlugin.hpp>
@@ -116,6 +117,46 @@ ProcessModel::~ProcessModel()
     this->externalUI->close();
     this->externalUI = nullptr;
   }
+}
+
+void ProcessModel::mapExternalFiles(Process::ExternalFileMap& map)
+{
+  Process::ProcessModel::mapExternalFiles(map);
+
+  auto& ctx = score::IDocument::documentContext(*this);
+
+  // The QML import root. Relocating it means collecting a whole include tree,
+  // which score does not attempt: report it so the user knows the other
+  // machine needs it.
+  if(!m_root.isEmpty())
+    map.readOnly(m_root, score::FileKind::Script);
+
+  // A script is stored either inline or as a path to a .qml file; only the
+  // latter is an external dependency.
+  QmlSource next = m_program;
+  bool changed = false;
+  const auto relocate = [&](QString& script) {
+    if(!Process::looksLikeExistingFile(script, ctx))
+      return;
+
+    const QString relocated = map.map(
+        {.path = script,
+         .kind = score::FileKind::Script,
+         .usage = Process::FileUsage::Input,
+         .directory = false,
+         .rewritable = true,
+         .owner = map.owner});
+    if(relocated.isEmpty())
+      return;
+
+    script = relocated;
+    changed = true;
+  };
+  relocate(next.execution);
+  relocate(next.ui);
+
+  if(changed)
+    map.addCommand(new JS::EditScript{*this, next, ctx});
 }
 
 QString ProcessModel::rootPath() const noexcept

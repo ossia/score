@@ -110,6 +110,9 @@ public:
   void serializeProtocolSpecificSettings(
       const QVariant& data, const VisitorVariant& visitor) const override;
 
+  QVariant relocateExternalFiles(
+      const QVariant& settings, const FileMapper& map) const override;
+
   bool checkCompatibility(
       const Device::DeviceSettings& a,
       const Device::DeviceSettings& b) const noexcept override;

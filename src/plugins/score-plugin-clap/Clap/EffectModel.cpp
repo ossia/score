@@ -3,6 +3,7 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
+#include <Process/ExternalFiles.hpp>
 
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 
@@ -1595,6 +1596,16 @@ void Model::createControls(bool loading)
 
   inletsChanged();
   outletsChanged();
+}
+
+void Model::mapExternalFiles(Process::ExternalFileMap& map)
+{
+  Process::ProcessModel::mapExternalFiles(map);
+
+  // Same as VST3: the plug-in binary has to exist on the other machine, it
+  // cannot travel with the project. Report it.
+  if(!m_pluginPath.isEmpty())
+    map.readOnly(m_pluginPath, score::FileKind::Plugin);
 }
 
 Process::ProcessFlags Model::flags() const noexcept

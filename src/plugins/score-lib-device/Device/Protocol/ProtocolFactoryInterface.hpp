@@ -5,9 +5,12 @@
 #include <score/plugins/Interface.hpp>
 #include <score/plugins/UuidKeySerialization.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+#include <score/tools/ProjectFiles.hpp>
 
 #include <QString>
 #include <QVariant>
+
+#include <functional>
 
 #include <score_lib_device_export.h>
 
@@ -121,6 +124,23 @@ public:
   {
     return QVariant::fromValue(score::deserialize_dyn<T>(vis));
   }
+
+  /** Callback handed to relocateExternalFiles: receives one path held in the
+   * settings and returns what it should become, or an empty string to leave
+   * it alone. `output` marks a file the device writes rather than reads.
+   */
+  using FileMapper
+      = std::function<QString(const QString& path, score::FileKind kind, bool output)>;
+
+  /** Report — and optionally rewrite — the files these protocol-specific
+   * settings reference, so that project consolidation can collect them.
+   *
+   * Returns updated settings, or an empty QVariant when nothing changed. The
+   * default implementation reports nothing, which is right for the many
+   * protocols that only ever talk to the network.
+   */
+  virtual QVariant
+  relocateExternalFiles(const QVariant& settings, const FileMapper& map) const;
 
   //! Returns true if the device can be instantiated.
   //! e.g. are the necessary ports available at the system level.

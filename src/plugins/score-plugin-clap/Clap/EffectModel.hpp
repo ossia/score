@@ -112,6 +112,8 @@ public:
   const QString& pluginId() const noexcept { return m_pluginId; }
   bool supports64() const noexcept { return m_supports64; }
 
+  void mapExternalFiles(Process::ExternalFileMap& map) override;
+
   const std::vector<clap_param_info_t>& parameterInputs() const noexcept
   {
     return m_plugin->m_parameters_ins;

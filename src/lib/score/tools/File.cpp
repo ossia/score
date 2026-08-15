@@ -1,4 +1,5 @@
 #include <score/tools/File.hpp>
+#include <score/tools/ProjectFiles.hpp>
 
 #include <core/document/Document.hpp>
 
@@ -82,75 +83,13 @@ QString addUniqueSuffix(const QString& fileName)
 QString
 locateFilePath(const QString& filename, const score::DocumentContext& ctx) noexcept
 {
-  const QFileInfo info{filename};
-  QString path = filename;
-
-  if(filename.startsWith("<PROJECT>:"))
-  {
-    const QFileInfo docroot{ctx.document.metadata().fileName()};
-    path.replace("<PROJECT>:", docroot.canonicalPath() + "/");
-  }
-  else if(filename.startsWith("<LIBRARY>:"))
-  {
-    QSettings set;
-    path.replace("<LIBRARY>:", set.value("Library/RootPath").toString() + "/");
-  }
-  else if(!info.isAbsolute())
-  {
-    const QFileInfo docroot{ctx.document.metadata().fileName()};
-    path = docroot.canonicalPath();
-    if(!path.endsWith('/'))
-      path += '/';
-    path += filename;
-  }
-
-  return QFileInfo{path}.absoluteFilePath();
+  return score::locateFilePath(filename, score::pathRoots(ctx));
 }
 
 QString
 relativizeFilePath(const QString& filename, const score::DocumentContext& ctx) noexcept
 {
-  const QFileInfo info{filename};
-
-  if(!info.isAbsolute())
-    return filename;
-
-  // Canonicalize the input path to resolve symlinks,
-  // so it matches canonicalPath() of the document root.
-  QString path = info.canonicalFilePath();
-  if(path.isEmpty())
-    path = filename; // file doesn't exist yet, use as-is
-
-  const QFileInfo docroot{ctx.document.metadata().fileName()};
-  const auto& docpath = docroot.canonicalPath();
-  // 1. Check for whether the file is in the project's folder
-  if(!docpath.isEmpty() && path.startsWith(docpath))
-  {
-    path.remove(0, docpath.length());
-    while(path.startsWith('/'))
-      path.remove(0, 1);
-
-    path.prepend("<PROJECT>:");
-  }
-  else
-  {
-    // 2. Check whether it's in the user library
-    QSettings set;
-    if(auto library = set.value("Library/RootPath").toString(); QDir{library}.exists())
-    {
-      auto canonicalLibrary = QFileInfo{library}.canonicalFilePath();
-      if(!canonicalLibrary.isEmpty() && path.startsWith(canonicalLibrary))
-      {
-        path.remove(0, canonicalLibrary.length());
-        if(path.startsWith('/'))
-          path.remove(0, 1);
-
-        path.prepend("<LIBRARY>:");
-      }
-    }
-  }
-
-  return path;
+  return score::relativizeFilePath(filename, score::pathRoots(ctx));
 }
 
 PathInfo::PathInfo(std::string_view v) noexcept

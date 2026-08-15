@@ -54,6 +54,8 @@ public:
 
   ~Model() override;
 
+  void mapExternalFiles(Process::ExternalFileMap& map) override;
+
   //std::vector<score::gfx::Image> images() const noexcept;
   //void setImages(const std::vector<score::gfx::Image>& f);
   //  void imagesChanged() W_SIGNAL(imagesChanged);

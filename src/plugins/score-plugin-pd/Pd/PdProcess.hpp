@@ -58,6 +58,8 @@ public:
   [[nodiscard]] Process::ScriptChangeResult setScript(const QString& script);
   const QString& script() const;
 
+  void mapExternalFiles(Process::ExternalFileMap& map) override;
+
   ~ProcessModel() override;
 
   const PatchSpec& patchSpec() const noexcept { return m_spec; }

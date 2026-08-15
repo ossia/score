@@ -148,6 +148,19 @@ public:
   virtual void on_closeDocument(score::Document& doc);
 
   /**
+   * @brief on_documentSaveAs
+   * Called just before a document is written to `newFileName`, while it still
+   * knows where it used to live.
+   *
+   * This is the moment at which everything the document stores relatively to
+   * its own folder becomes wrong -- media paths above all -- so it is the
+   * moment to either re-anchor those references or collect what they point
+   * at. Doing it here rather than after the save means the very same
+   * serialization writes the corrected document out.
+   */
+  virtual void on_documentSaveAs(score::Document& doc, const QString& newFileName);
+
+  /**
    * @brief on_newDocument
    * Will be called only when a new, empty document is created;
    * classes inheriting from SerializableDocumentPlugin should be

@@ -4,6 +4,12 @@ score_add_test(test_unit_address
   SOURCES AddressParseTest.cpp
   PLUGINS score_lib_state)
 
+# --- project consolidation primitives (score_lib_base) ---------------------
+# Path math against explicit roots, file-name sanitizing, destination
+# placement. No document, no app: this is the layer everything else builds on.
+score_add_test(test_unit_project_files
+  SOURCES ProjectFilesTest.cpp)
+
 # --- regression: per-app interface-list lookup in port deserialization -----
 # Boots two headless apps in one process and round-trips ControlInlet /
 # ControlOutlet through Process::load_inlet / load_outlet in each: a stale

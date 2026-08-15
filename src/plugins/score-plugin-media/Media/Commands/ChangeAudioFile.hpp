@@ -36,6 +36,33 @@ private:
   score::Command* m_resizeInterval{};
 };
 
+/**
+ * @brief Points a sound process at the same audio, in another place.
+ *
+ * Unlike ChangeAudioFile this touches nothing but the path: no interval
+ * resize, no tempo detection, no stream reset. That is what project
+ * consolidation needs — the audio is byte-identical, only its location moved.
+ */
+class SCORE_PLUGIN_MEDIA_EXPORT RelocateAudioFile final : public score::Command
+{
+  SCORE_COMMAND_DECL(
+      Media::CommandFactoryName(), RelocateAudioFile, "Relocate audio file")
+public:
+  RelocateAudioFile(const Sound::ProcessModel&, QString newPath);
+
+  void undo(const score::DocumentContext& ctx) const override;
+  void redo(const score::DocumentContext& ctx) const override;
+
+protected:
+  void serializeImpl(DataStreamInput& s) const override;
+  void deserializeImpl(DataStreamOutput& s) override;
+
+private:
+  Path<Sound::ProcessModel> m_model;
+  QString m_old, m_new;
+  int m_stream{-1};
+};
+
 class SCORE_PLUGIN_MEDIA_EXPORT LoadProcessedAudioFile final : public score::Command
 {
   SCORE_COMMAND_DECL(

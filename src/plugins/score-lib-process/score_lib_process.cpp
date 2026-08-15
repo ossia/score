@@ -8,6 +8,7 @@
 #include <Process/OfflineAction/OfflineAction.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <Process/ProcessList.hpp>
+#include <Process/ProjectFilesApplicationPlugin.hpp>
 
 #include <LocalTree/ProcessComponent.hpp>
 #include <Magnetism/MagnetismAdjuster.hpp>
@@ -69,6 +70,12 @@ score::ApplicationPlugin*
 score_lib_process::make_applicationPlugin(const score::ApplicationContext& app)
 {
   return new Process::ApplicationPlugin{app};
+}
+
+score::GUIApplicationPlugin*
+score_lib_process::make_guiApplicationPlugin(const score::GUIApplicationContext& app)
+{
+  return new Process::ProjectFilesApplicationPlugin{app};
 }
 
 std::vector<std::unique_ptr<score::InterfaceListBase>>

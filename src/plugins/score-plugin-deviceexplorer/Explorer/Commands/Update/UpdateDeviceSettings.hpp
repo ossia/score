@@ -8,6 +8,8 @@
 
 #include <QString>
 
+#include <score_plugin_deviceexplorer_export.h>
+
 struct DataStreamInput;
 struct DataStreamOutput;
 
@@ -16,7 +18,8 @@ namespace Explorer
 class DeviceDocumentPlugin;
 namespace Command
 {
-class UpdateDeviceSettings final : public score::Command
+class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT UpdateDeviceSettings final
+    : public score::Command
 {
   SCORE_COMMAND_DECL(
       DeviceExplorerCommandFactoryName(), UpdateDeviceSettings, "Update a device")
