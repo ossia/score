@@ -13,11 +13,11 @@
 namespace score
 {
 // A time value that is either free-running (seconds, continuous) or
-// tempo-synced (a musical division). One slider-sized item, two rows:
-// dragging the bar changes the value, clicking the readout row toggles the
-// mode (with per-mode memory so no value jumps). In sync mode a plain drag
-// steps through the straight divisions only; dragging with Alt or Shift
-// steps through the full list including dotted and triplet.
+// tempo-synced (a musical division). Renders as a standard knob with the
+// readout below it; dragging the knob changes the value, clicking the
+// readout toggles the mode (with per-mode memory so no value jumps). In
+// sync mode the knob steps through the whole division table: straight,
+// dotted and triplet, from 1/64th to four bars.
 //
 // The value is vec2f{x, sync}: x is a normalized 0..1 position when free
 // (the consumer maps it to seconds), a fraction of a whole note when synced.
@@ -27,6 +27,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsTimeChooser final
 {
   W_OBJECT(QGraphicsTimeChooser)
   SCORE_GRAPHICS_ITEM_TYPE(230)
+  friend struct DefaultGraphicsKnobImpl;
 
 public:
   double min{}, max{1.}, init{};
@@ -56,23 +57,18 @@ private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
 
-  void dragTo(double posX, bool fullTable);
+  int syncIndex() const noexcept;
   QString freeText() const;
 
-  QRectF m_rect{0., 0., 60., 23.};
+  QRectF m_rect{0., 0., 35., 35.};
 
-  double m_value01{};    // free mode position
-  int m_syncIndex{};     // index in the division table
+  double m_value{};     // knob position, 0..1, in the current mode
+  double m_execValue{};
+  double m_other01{};   // remembered position of the inactive mode
   bool m_sync{};
   bool m_grab{};
-
-  // Per-mode memory: toggling restores the last value of the other mode
-  double m_lastFree01{};
-  int m_lastSyncIndex{};
-
-  float m_execX{};
-  bool m_execSync{};
   bool m_hasExec{};
 };
 }
