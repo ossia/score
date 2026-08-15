@@ -48,7 +48,9 @@ Device::AddressSettings AddressStringSettingsWidget::getSettings() const
 
 Device::AddressSettings AddressStringSettingsWidget::getDefaultSettings() const
 {
-  return {};
+  Device::AddressSettings s;
+  s.value = std::string{};
+  return s;
 }
 
 void AddressStringSettingsWidget::setCanEditProperties(bool b)

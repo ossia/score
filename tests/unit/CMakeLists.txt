@@ -32,6 +32,13 @@ if(TARGET score_plugin_controlsurface)
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-controlsurface")
 endif()
 
+# Coverage of the add / edit address dialog's per-type forms.
+score_add_test(test_unit_address_settings_widgets
+  SOURCES AddressSettingsWidgetsTest.cpp
+  APP
+  PLUGINS score_plugin_deviceexplorer score_lib_device score_lib_state
+  LIBS ${QT_PREFIX}::Test)
+
 # The shared per-type value editors used by the tree, the address panel and the
 # address dialog.
 score_add_test(test_unit_value_editors

@@ -80,7 +80,7 @@ public:
     Device::AddressSettings s;
     s.value = std::array<float, N>{};
     s.domain = ossia::make_domain(float{0}, float{1});
-    return {};
+    return s;
   }
 
   void setCanEditProperties(bool b) override

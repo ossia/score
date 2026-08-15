@@ -4,7 +4,7 @@
 
 #include <Explorer/Common/AddressSettings/Widgets/AddressBoolSettingsWidget.hpp>
 #include <Explorer/Common/AddressSettings/Widgets/AddressImpulseSettingsWidget.hpp>
-#include <Explorer/Common/AddressSettings/Widgets/AddressListSettingsWidget.hpp>
+#include <Explorer/Common/AddressSettings/Widgets/AddressCompositeSettingsWidget.hpp>
 #include <Explorer/Common/AddressSettings/Widgets/AddressNoneSettingsWidget.hpp>
 #include <Explorer/Common/AddressSettings/Widgets/AddressNumericSettingsWidget.hpp>
 #include <Explorer/Common/AddressSettings/Widgets/AddressStringSettingsWidget.hpp>
@@ -31,7 +31,7 @@ AddressSettingsFactory::operator()(ossia::val_type valueType) const
     case ossia::val_type::BOOL:
       return new AddressBoolSettingsWidget;
     case ossia::val_type::LIST:
-      return new AddressListSettingsWidget;
+      return new AddressCompositeSettingsWidget{ossia::val_type::LIST};
     case ossia::val_type::IMPULSE:
       return new AddressImpulseSettingsWidget;
     case ossia::val_type::VEC2F:
@@ -41,7 +41,7 @@ AddressSettingsFactory::operator()(ossia::val_type valueType) const
     case ossia::val_type::VEC4F:
       return new AddressVecSettingsWidget<4>;
     case ossia::val_type::MAP:
-      return nullptr;
+      return new AddressCompositeSettingsWidget{ossia::val_type::MAP};
   }
   return nullptr;
 }

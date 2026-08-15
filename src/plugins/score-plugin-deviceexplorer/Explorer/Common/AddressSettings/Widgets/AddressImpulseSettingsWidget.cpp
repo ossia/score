@@ -23,7 +23,9 @@ void AddressImpulseSettingsWidget::setSettings(const Device::AddressSettings& se
 
 Device::AddressSettings AddressImpulseSettingsWidget::getDefaultSettings() const
 {
-  return {};
+  Device::AddressSettings s;
+  s.value = ossia::value{State::impulse{}};
+  return s;
 }
 
 void AddressImpulseSettingsWidget::setCanEditProperties(bool b)
