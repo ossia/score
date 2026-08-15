@@ -43,6 +43,8 @@ struct SCORE_LIB_BASE_EXPORT Menus
 {
   static StringKey<Menu> File();
   static StringKey<Menu> Export();
+  //! Submenu of File holding the whole-project file operations.
+  static StringKey<Menu> ProjectFiles();
   static StringKey<Menu> Edit();
   static StringKey<Menu> Object();
   static StringKey<Menu> Play();

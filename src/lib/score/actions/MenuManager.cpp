@@ -50,6 +50,11 @@ StringKey<Menu> Menus::Export()
   return StringKey<Menu>{"Export"};
 }
 
+StringKey<Menu> Menus::ProjectFiles()
+{
+  return StringKey<Menu>{"ProjectFiles"};
+}
+
 StringKey<Menu> Menus::Edit()
 {
   return StringKey<Menu>{"Edit"};

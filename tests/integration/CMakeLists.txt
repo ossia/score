@@ -20,6 +20,12 @@ score_add_test(test_integration_scenario_roundtrip
   GUI
   PLUGINS score_plugin_scenario score_lib_process)
 
+# The File > Project files submenu: present, placed, and unambiguous.
+score_add_test(test_integration_project_files_menu
+  SOURCES ProjectFilesMenuTest.cpp
+  GUI
+  PLUGINS score_lib_process)
+
 # Project consolidation end to end: collect a document's media into its own
 # folder and repoint it. GUI because adding a process to an interval goes
 # through the document presenter.

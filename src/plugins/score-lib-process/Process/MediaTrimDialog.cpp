@@ -45,9 +45,11 @@ MediaTrimDialog::MediaTrimDialog(const score::DocumentContext& ctx, QWidget* par
   m_removeOriginal
       = new QCheckBox{tr("Delete the untrimmed files afterwards"), this};
   m_removeOriginal->setToolTip(
-      tr("Leave this off unless disk space is the problem. Untrimmed files that "
-         "stay behind are no longer referenced, so they do not travel with the "
-         "project when it is archived -- and undo can still fall back on them."));
+      tr("Leave this off unless disk space is the problem right now. Untrimmed "
+         "files that stay behind are no longer referenced, so they do not travel "
+         "with the project when it is archived, undo can still fall back on them, "
+         "and Remove unused files can clear them out later once the edit has "
+         "settled."));
   form->addRow(m_removeOriginal);
 
   m_files = new FileReportView{this};
@@ -100,8 +102,10 @@ void MediaTrimDialog::fill(const FileReport& report)
                "be undone: undo puts the references back, but the audio is gone.")
                 .arg(trimmed);
   else if(trimmed > 0)
-    text += tr("<br/>The untrimmed files stay in the project folder, unused. "
-               "Archiving will not include them.");
+    text += tr("<br/>The untrimmed files stay in the project folder. Nothing "
+               "points at them any more, so archiving leaves them out and "
+               "<i>Remove unused files</i> will offer to clear them away — "
+               "until then, undo can fall back on them.");
 
   m_summary->setText(text);
   m_ok->setEnabled(trimmed > 0);
