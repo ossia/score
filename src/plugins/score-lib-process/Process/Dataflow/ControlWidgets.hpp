@@ -592,7 +592,7 @@ struct TimeChooser
   static Process::PortItemLayout layout() noexcept
   {
     using namespace Process;
-    return DefaultControlLayouts::slider();
+    return DefaultControlLayouts::knob();
   }
 
   template <typename T>
