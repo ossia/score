@@ -35,6 +35,14 @@ score_add_test(test_integration_scenario_create
   GUI
   PLUGINS score_plugin_scenario score_lib_process)
 
+# Device explorer address panel: editing values, accepted values, and the
+# absence of empty undo steps.
+score_add_test(test_integration_device_address_edit
+  SOURCES DeviceAddressEditTest.cpp
+  GUI
+  PLUGINS score_plugin_deviceexplorer score_lib_device score_plugin_scenario
+  LIBS ${QT_PREFIX}::Test)
+
 # --- Regression tests for the crash/robustness fixes in this tree. Each
 # test names the fix it guards; see the test
 # sources for the failure mode without the fix.

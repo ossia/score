@@ -29,6 +29,7 @@
 #include <Explorer/DeviceList.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/AddressItemModel.hpp>
+#include <Explorer/Explorer/DeviceExplorerDelegate.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Explorer/Listening/ListeningHandler.hpp>
 #include <Explorer/Panel/DeviceExplorerPanelDelegate.hpp>
@@ -241,6 +242,7 @@ void DeviceExplorerWidget::buildGUI()
 {
   m_ntView = new DeviceExplorerView(this);
   m_ntView->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
+  m_ntView->setItemDelegate(new DeviceExplorerDelegate{m_ntView});
 
   m_addressModel = new AddressItemModel{this};
   m_addressView = new QTableView{this};
