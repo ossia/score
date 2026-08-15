@@ -28,6 +28,27 @@ if(TARGET score_plugin_media)
     SOURCES ProjectConsolidationTest.cpp
     GUI
     PLUGINS score_plugin_scenario score_plugin_media score_lib_process)
+
+  # Finding, and re-finding, the media a document points at.
+  score_add_test(test_integration_missing_files
+    SOURCES MissingFilesTest.cpp
+    GUI
+    PLUGINS score_plugin_scenario score_plugin_media score_lib_process)
+
+  # Trimming is the one operation here that can destroy audio: it runs with
+  # the filesystem read-only outside /tmp so a regression cannot reach any
+  # real file. See tests/tools/sandboxed-test.sh.
+  score_add_test(test_integration_media_trim
+    SOURCES MediaTrimTest.cpp
+    GUI
+    SANDBOXED
+    PLUGINS score_plugin_scenario score_plugin_media score_lib_process)
+
+  # Packing a whole project into a single zip.
+  score_add_test(test_integration_project_archive
+    SOURCES ProjectArchiveTest.cpp
+    GUI
+    PLUGINS score_plugin_scenario score_plugin_media score_lib_process)
 endif()
 
 score_add_test(test_integration_js_process

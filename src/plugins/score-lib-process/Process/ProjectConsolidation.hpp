@@ -1,13 +1,11 @@
 #pragma once
-#include <Process/ExternalFiles.hpp>
+#include <Process/FileOperation.hpp>
 
 #include <score/tools/ProjectFiles.hpp>
 
 #include <QString>
 
 #include <score_lib_process_export.h>
-
-#include <vector>
 
 namespace score
 {
@@ -16,57 +14,6 @@ struct DocumentContext;
 
 namespace Process
 {
-
-//! What consolidation decided to do about one referenced file.
-enum class ConsolidationAction
-{
-  Collect,       //!< Copy (or link) it into the project folder and repoint it.
-  AlreadyThere,  //!< Already inside the project folder: only the reference changes.
-  KeptInLibrary, //!< Resolves through the user library and was left there.
-  Missing,       //!< The file does not exist: nothing to collect, reported instead.
-  Unsupported,   //!< A folder, or a reference score cannot relocate.
-  Failed         //!< Collecting it was attempted and did not work.
-};
-
-struct ConsolidationEntry
-{
-  //! Reference as stored in the document.
-  QString storedPath;
-  //! Absolute path the reference resolves to right now (empty when unresolved).
-  QString sourcePath;
-  //! Absolute path it will be / was collected to (empty when nothing is copied).
-  QString destinationPath;
-  //! What the reference becomes in the document ("<PROJECT>:Audio/kick.wav").
-  QString newStoredPath;
-
-  score::FileKind kind{};
-  FileUsage usage{};
-  ConsolidationAction action{};
-  QString owner;
-  //! Size of the source in bytes; 0 when unknown.
-  qint64 size{};
-  //! Bytes actually have to move. False when the destination already holds
-  //! the same content, which is what makes a second run free.
-  bool copyNeeded{};
-  //! Filled for ConsolidationAction::Failed.
-  QString error;
-};
-
-/**
- * @brief Result of analysing — or of running — a project consolidation.
- */
-struct SCORE_LIB_PROCESS_EXPORT ConsolidationReport
-{
-  QString projectFolder;
-  std::vector<ConsolidationEntry> entries;
-
-  //! Bytes that will be / were copied. Links do not count.
-  qint64 bytesToCopy() const noexcept;
-  int count(ConsolidationAction) const noexcept;
-  //! Files referenced by the document that could not be found anywhere.
-  std::vector<const ConsolidationEntry*> missing() const noexcept;
-  bool empty() const noexcept { return entries.empty(); }
-};
 
 /**
  * @brief Plan the consolidation of a document into its own folder.
@@ -80,23 +27,23 @@ struct SCORE_LIB_PROCESS_EXPORT ConsolidationReport
  * destinations are computed for the new one.
  */
 SCORE_LIB_PROCESS_EXPORT
-ConsolidationReport analyzeProjectFiles(
+FileReport analyzeProjectFiles(
     const score::DocumentContext& ctx, const score::ConsolidateOptions& opts,
     QString projectFolder = {});
 
 /**
  * @brief Perform the consolidation planned by analyzeProjectFiles.
  *
- * Copies the files, then rewrites the document in a single undoable command
- * pushed on `ctx`'s command stack. Originals are never moved or deleted, and
- * an existing destination is never overwritten.
+ * Copies the files, then rewrites the document in a single undoable command.
+ * Originals are never moved or deleted, and an existing destination is never
+ * overwritten.
  *
  * The returned report describes what actually happened, entry per entry: a
- * copy that failed comes back as ConsolidationAction::Failed with its error,
- * and its reference is left untouched.
+ * copy that failed comes back as FileAction::Failed with its reason, and its
+ * reference is left untouched.
  */
 SCORE_LIB_PROCESS_EXPORT
-ConsolidationReport consolidateProjectFiles(
+FileReport consolidateProjectFiles(
     const score::DocumentContext& ctx, const score::ConsolidateOptions& opts,
     QString projectFolder = {});
 
@@ -120,4 +67,20 @@ int countProjectRelativeFiles(const score::DocumentContext& ctx);
  */
 SCORE_LIB_PROCESS_EXPORT
 int reanchorProjectFiles(const score::DocumentContext& ctx);
+
+//! The folder a consolidation would target, and the roots the rewritten
+//! references would mean. Shared by everything that writes into the project.
+struct SCORE_LIB_PROCESS_EXPORT ProjectTarget
+{
+  //! Canonical (or lexical, when it does not exist yet) project folder.
+  QString folder;
+  //! Where references resolve from today.
+  score::PathRoots sourceRoots;
+  //! What a rewritten reference will mean once the document lives in `folder`.
+  score::PathRoots destinationRoots;
+};
+
+SCORE_LIB_PROCESS_EXPORT
+ProjectTarget
+projectTarget(const score::DocumentContext& ctx, QString projectFolder = {});
 }

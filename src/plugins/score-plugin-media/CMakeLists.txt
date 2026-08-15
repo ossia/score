@@ -65,6 +65,7 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Metro/MetroView.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioDecoder.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioTrimmer.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/MediaFileHandle.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/LibavMediaInfo.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/RMSData.hpp"
@@ -129,6 +130,7 @@ set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/SndfileDecoder.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Tempo.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioDecoder.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioTrimmer.cpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Mixer/MixerPanel.cpp"
 

@@ -168,8 +168,7 @@ QString locateFilePath(const QString& filename, const PathRoots& roots) noexcept
   return QFileInfo{path}.absoluteFilePath();
 }
 
-//! True if `path` is `root` itself or something below it.
-static bool isUnder(const QString& path, const QString& root) noexcept
+bool isUnderFolder(const QString& path, const QString& root) noexcept
 {
   if(root.isEmpty() || path.isEmpty())
     return false;
@@ -215,9 +214,9 @@ QString relativizeFilePath(const QString& filename, const PathRoots& roots) noex
     return prefix + out;
   };
 
-  if(const auto folder = roots.documentFolder(); isUnder(path, folder))
+  if(const auto folder = roots.documentFolder(); isUnderFolder(path, folder))
     return strip(folder, project_prefix);
-  if(isUnder(path, roots.library))
+  if(isUnderFolder(path, roots.library))
     return strip(roots.library, library_prefix);
 
   return path;
@@ -368,7 +367,7 @@ FilePlacement::place(const QString& absoluteSource, FileKind kind)
   }
 
   Placement out;
-  if(isUnder(key, m_canonicalRoot))
+  if(isUnderFolder(key, m_canonicalRoot))
   {
     // Already collected (or authored) in the project: leave it in place, which
     // is what makes a second consolidation a no-op.

@@ -128,8 +128,8 @@ QString control_string(const Process::ControlInlet& inlet)
   return QString::fromStdString(ossia::convert<std::string>(inlet.value()));
 }
 
-const Process::ConsolidationEntry*
-entry_for(const Process::ConsolidationReport& r, const QString& needle)
+const Process::FileEntry*
+entry_for(const Process::FileReport& r, const QString& needle)
 {
   for(const auto& e : r.entries)
     if(e.storedPath.contains(needle))
@@ -197,7 +197,7 @@ TEST_CASE(
       CHECK(report.projectFolder == project);
       const auto* kick = entry_for(report, "kick.wav");
       REQUIRE(kick != nullptr);
-      CHECK(kick->action == Process::ConsolidationAction::Collect);
+      CHECK(kick->action == Process::FileAction::Collect);
       CHECK(kick->kind == score::FileKind::Audio);
       CHECK(kick->destinationPath == project + "/Audio/kick.wav");
       CHECK(kick->newStoredPath == "<PROJECT>:Audio/kick.wav");
@@ -212,7 +212,7 @@ TEST_CASE(
     SECTION("consolidating copies the files and rewrites the references")
     {
       const auto report = Process::consolidateProjectFiles(doc->context(), opts);
-      CHECK(report.count(Process::ConsolidationAction::Failed) == 0);
+      CHECK(report.count(Process::FileAction::Failed) == 0);
 
       CHECK(QFileInfo::exists(project + "/Audio/kick.wav"));
       CHECK(score::sameFileContents(
@@ -237,7 +237,7 @@ TEST_CASE(
       SECTION("running it again changes nothing")
       {
         const auto again = Process::consolidateProjectFiles(doc->context(), opts);
-        CHECK(again.count(Process::ConsolidationAction::Collect) == 0);
+        CHECK(again.count(Process::FileAction::Collect) == 0);
         CHECK(again.bytesToCopy() == 0);
         for(const auto& e : again.entries)
           CHECK_FALSE(e.copyNeeded);
@@ -295,9 +295,9 @@ TEST_CASE(
 
     const auto* gone = entry_for(report, "gone.wav");
     REQUIRE(gone != nullptr);
-    CHECK(gone->action == Process::ConsolidationAction::Missing);
+    CHECK(gone->action == Process::FileAction::Missing);
     CHECK(gone->destinationPath.isEmpty());
-    CHECK(report.missing().size() == 1);
+    CHECK(report.with(Process::FileAction::Missing).size() == 1);
 
     // A broken reference is left exactly as it was: rewriting it would only
     // move the breakage somewhere harder to diagnose.

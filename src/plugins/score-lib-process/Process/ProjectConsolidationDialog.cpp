@@ -8,43 +8,14 @@
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QFormLayout>
-#include <QHeaderView>
 #include <QLabel>
 #include <QLocale>
 #include <QMessageBox>
 #include <QPushButton>
-#include <QTreeWidget>
 #include <QVBoxLayout>
 
 namespace Process
 {
-namespace
-{
-QString actionText(ConsolidationAction a)
-{
-  switch(a)
-  {
-    case ConsolidationAction::Collect:
-      return QObject::tr("Collect");
-    case ConsolidationAction::AlreadyThere:
-      return QObject::tr("Already in project");
-    case ConsolidationAction::KeptInLibrary:
-      return QObject::tr("Kept in library");
-    case ConsolidationAction::Missing:
-      return QObject::tr("MISSING");
-    case ConsolidationAction::Unsupported:
-      return QObject::tr("External dependency");
-    case ConsolidationAction::Failed:
-      return QObject::tr("FAILED");
-  }
-  return {};
-}
-
-QString kindText(score::FileKind k)
-{
-  return score::mediaSubfolder(k);
-}
-}
 
 ProjectConsolidationDialog::ProjectConsolidationDialog(
     const score::DocumentContext& ctx, QWidget* parent)
@@ -82,21 +53,13 @@ ProjectConsolidationDialog::ProjectConsolidationDialog(
   m_subfolders->setChecked(true);
   form->addRow(m_subfolders);
 
-  m_keepFolderName
-      = new QCheckBox{tr("Keep the name of the source folder"), this};
+  m_keepFolderName = new QCheckBox{tr("Keep the name of the source folder"), this};
   m_keepFolderName->setToolTip(
       tr("Collects Kicks/kick.wav as Audio/Kicks/kick.wav, so files coming from "
          "different sample folders stay distinguishable."));
   form->addRow(m_keepFolderName);
 
-  m_files = new QTreeWidget{this};
-  m_files->setRootIsDecorated(false);
-  m_files->setAlternatingRowColors(true);
-  m_files->setColumnCount(5);
-  m_files->setHeaderLabels(
-      {tr("Used by"), tr("File"), tr("Type"), tr("Size"), tr("Becomes")});
-  m_files->header()->setSectionResizeMode(1, QHeaderView::Stretch);
-  m_files->header()->setSectionResizeMode(4, QHeaderView::Stretch);
+  m_files = new FileReportView{this};
   lay->addWidget(m_files, 1);
 
   auto buttons
@@ -128,33 +91,13 @@ score::ConsolidateOptions ProjectConsolidationDialog::options() const noexcept
       .keepSourceFolderName = m_keepFolderName->isChecked()};
 }
 
-void ProjectConsolidationDialog::fill(const ConsolidationReport& report)
+void ProjectConsolidationDialog::fill(const FileReport& report)
 {
-  m_files->clear();
+  m_files->setReport(report);
 
-  QList<QTreeWidgetItem*> items;
-  items.reserve(report.entries.size());
-  for(const auto& e : report.entries)
-  {
-    const QString size
-        = e.size > 0 ? QLocale{}.formattedDataSize(e.size) : QStringLiteral("-");
-    auto* item = new QTreeWidgetItem{
-        {e.owner, e.storedPath, kindText(e.kind), size,
-         e.newStoredPath.isEmpty() ? actionText(e.action)
-                                   : e.newStoredPath}};
-
-    item->setToolTip(1, e.sourcePath);
-    item->setText(2, actionText(e.action));
-    item->setText(0, e.owner);
-    if(!e.error.isEmpty())
-      item->setToolTip(4, e.error);
-    items.push_back(item);
-  }
-  m_files->addTopLevelItems(items);
-
-  const int collect = report.count(ConsolidationAction::Collect);
-  const int missing = report.count(ConsolidationAction::Missing);
-  const int external = report.count(ConsolidationAction::Unsupported);
+  const int collect = report.count(FileAction::Collect);
+  const int missing = report.count(FileAction::Missing);
+  const int external = report.count(FileAction::Unsupported);
 
   QString text = tr("<b>%1</b><br/>%2 file(s) to collect, %3.")
                      .arg(report.projectFolder)
@@ -182,12 +125,11 @@ void ProjectConsolidationDialog::run()
   m_result = consolidateProjectFiles(m_ctx, options());
   fill(m_result);
 
-  if(const int failed = m_result.count(ConsolidationAction::Failed); failed > 0)
+  if(const int failed = m_result.count(FileAction::Failed); failed > 0)
   {
     QString detail;
-    for(const auto& e : m_result.entries)
-      if(e.action == ConsolidationAction::Failed)
-        detail += e.error + '\n';
+    for(const auto* e : m_result.with(FileAction::Failed))
+      detail += e->note + '\n';
 
     QMessageBox::warning(
         this, tr("Consolidation incomplete"),

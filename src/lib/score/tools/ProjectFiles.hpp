@@ -66,6 +66,12 @@ QString locateFilePath(const QString& filename, const PathRoots& roots) noexcept
 SCORE_LIB_BASE_EXPORT
 QString relativizeFilePath(const QString& filename, const PathRoots& roots) noexcept;
 
+//! True when `path` is `folder` itself or lives below it. Both must be
+//! absolute. Used as the containment guard by everything that writes or
+//! deletes inside a project.
+SCORE_LIB_BASE_EXPORT
+bool isUnderFolder(const QString& path, const QString& folder) noexcept;
+
 //! True if the path is one of the tokens score understands as a root.
 SCORE_LIB_BASE_EXPORT
 bool isProjectRelativePath(const QString& path) noexcept;

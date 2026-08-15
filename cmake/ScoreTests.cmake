@@ -50,7 +50,7 @@ function(score_setup_catch2)
 endfunction()
 
 function(score_add_test NAME)
-  cmake_parse_arguments(ARG "GUI;APP;STANDALONE" "" "SOURCES;PLUGINS;LIBS" ${ARGN})
+  cmake_parse_arguments(ARG "GUI;APP;STANDALONE;SANDBOXED" "" "SOURCES;PLUGINS;LIBS" ${ARGN})
 
   if(NOT ARG_SOURCES)
     message(FATAL_ERROR "score_add_test(${NAME}): no SOURCES given")
@@ -110,7 +110,16 @@ function(score_add_test NAME)
 
   set_target_properties(${NAME} PROPERTIES FOLDER "Tests")
 
-  add_test(NAME ${NAME} COMMAND ${NAME})
+  # A test that exercises code which deletes or overwrites media files runs
+  # with the filesystem read-only apart from /tmp, so a bug in it cannot reach
+  # anything of the developer's. See tests/tools/sandboxed-test.sh.
+  if(ARG_SANDBOXED AND UNIX AND NOT APPLE AND NOT EMSCRIPTEN)
+    add_test(NAME ${NAME}
+      COMMAND "${SCORE_ROOT_SOURCE_DIR}/tests/tools/sandboxed-test.sh"
+              "$<TARGET_FILE:${NAME}>")
+  else()
+    add_test(NAME ${NAME} COMMAND ${NAME})
+  endif()
 
   # App/integration tests rely on runtime dynamic-plugin discovery from
   # "<cwd>/plugins": run them from the build root where <build>/plugins lives.

@@ -5,6 +5,7 @@
 #include <Process/Drop/ProcessDropHandler.hpp>
 #include <Process/ExecutionAction.hpp>
 #include <Process/LayerPresenter.hpp>
+#include <Process/MediaTrimmer.hpp>
 #include <Process/OfflineAction/OfflineAction.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <Process/ProcessList.hpp>
@@ -85,7 +86,8 @@ score_lib_process::factoryFamilies()
       score::InterfaceListBase, Process::ProcessFactoryList, Process::PortFactoryList,
       Process::LayerFactoryList, Process::ProcessFactoryList,
       Process::ProcessDropHandlerList, Process::MagnetismAdjuster,
-      Process::OfflineActionList, Execution::ExecutionActionList,
+      Process::OfflineActionList, Process::MediaTrimmerList,
+      Execution::ExecutionActionList,
       LocalTree::ProcessComponentFactoryList, Process::RemoteControlProviderList,
       Process::LoadPresetCommandFactoryList>();
 }

@@ -1,4 +1,5 @@
 #pragma once
+#include <Process/FileReportView.hpp>
 #include <Process/ProjectConsolidation.hpp>
 
 #include <QDialog>
@@ -8,7 +9,6 @@
 class QCheckBox;
 class QComboBox;
 class QLabel;
-class QTreeWidget;
 class QPushButton;
 
 namespace score
@@ -32,12 +32,12 @@ public:
   ~ProjectConsolidationDialog();
 
   //! Filled once the dialog has been accepted.
-  const ConsolidationReport& result() const noexcept { return m_result; }
+  const FileReport& result() const noexcept { return m_result; }
 
 private:
   void reanalyze();
   void run();
-  void fill(const ConsolidationReport& report);
+  void fill(const FileReport& report);
   score::ConsolidateOptions options() const noexcept;
 
   const score::DocumentContext& m_ctx;
@@ -47,9 +47,9 @@ private:
   QCheckBox* m_library{};
   QCheckBox* m_subfolders{};
   QCheckBox* m_keepFolderName{};
-  QTreeWidget* m_files{};
+  FileReportView* m_files{};
   QPushButton* m_ok{};
 
-  ConsolidationReport m_result;
+  FileReport m_result;
 };
 }
