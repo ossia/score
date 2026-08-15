@@ -29,6 +29,7 @@
  * `DMACaptureInputNode`, return the backend from `makeCaptureBackend`.
  */
 
+#include <Gfx/Graph/CaptureAdjust.hpp>
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Graph/interop/GpuCapabilities.hpp>
 
@@ -209,12 +210,20 @@ struct SCORE_PLUGIN_GFX_EXPORT DMACaptureInputNode : ProcessNode
     m_capturedFrames.store(n, std::memory_order_release);
   }
 
+  /// Sensor corrections and viewport fitting, written by a control callback on
+  /// whatever thread it arrives on and picked up by the renderer when the
+  /// generation moves. Mutable because a control write does not change what the
+  /// node *is*, only how the next frame is drawn -- the same reason the
+  /// engaged-strategy fields above are mutable.
+  CaptureAdjustSlot& adjustments() const noexcept { return m_adjust; }
+
   class Renderer;
 
 private:
   mutable std::atomic<const char*> m_engagedStrategy{nullptr};
   mutable std::atomic<bool> m_pinUnmet{false};
   mutable std::atomic<std::uint64_t> m_capturedFrames{0};
+  mutable CaptureAdjustSlot m_adjust;
 
 public:
 };
