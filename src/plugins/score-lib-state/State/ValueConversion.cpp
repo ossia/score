@@ -726,6 +726,14 @@ QString toPrettyString(const ossia::value& val)
   }
 }
 
+QString toDisplayString(const ossia::value& val)
+{
+  auto plain = value<QString>(val);
+  if(!plain.isEmpty())
+    return plain;
+  return toPrettyString(val);
+}
+
 namespace
 {
 struct convert_helper
