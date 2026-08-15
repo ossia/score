@@ -206,6 +206,22 @@ getNodeFromPath(const QStringList& path, ossia::net::device_base& dev);
 SCORE_LIB_DEVICE_EXPORT ossia::net::node_base*
 createNodeFromPath(const QStringList& path, ossia::net::device_base& dev);
 
+//! Whether a parameter of that kind carries a value the explorer can show and edit.
+inline bool hasEditableValue(ossia::parameter_type t) noexcept
+{
+  switch(t)
+  {
+    case ossia::parameter_type::MESSAGE:
+    case ossia::parameter_type::AUDIO:
+      return true;
+    case ossia::parameter_type::MIDI:
+    case ossia::parameter_type::TEXTURE:
+    case ossia::parameter_type::GEOMETRY:
+      return false;
+  }
+  return false;
+}
+
 SCORE_LIB_DEVICE_EXPORT Device::Node ToDeviceExplorer(const ossia::net::node_base& node);
 
 SCORE_LIB_DEVICE_EXPORT ossia::net::node_base*

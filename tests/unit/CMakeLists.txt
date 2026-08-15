@@ -16,6 +16,12 @@ score_add_test(test_unit_port_factory_reuse
   APP
   PLUGINS score_lib_process)
 
+# Device explorer tree conversion: which ossia parameters become editable
+# Device::Node values (regression #2204: audio gains).
+score_add_test(test_unit_device_explorer_node
+  SOURCES DeviceExplorerNodeTest.cpp
+  PLUGINS score_lib_device)
+
 # --- core data model (score-lib-state / score-lib-process, P3R2) -----------
 score_add_test(test_unit_state_serialization
   SOURCES StateSerializationTest.cpp
