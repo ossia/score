@@ -122,6 +122,118 @@ public:
   simple_texture_input_node& get_root_node() override { return root; }
 };
 
+/**
+ * @brief One stream of a device that exposes several.
+ *
+ * Same parameter as the single-stream node -- a texture bound to its own
+ * score::gfx::Node -- but living as a child, so a rig of N sensors is one
+ * device addressed `rig:/cam0`, `rig:/cam1` rather than N devices that have to
+ * be configured consistently by hand.
+ */
+class texture_input_stream_node final : public ossia::net::node_base
+{
+  ossia::net::device_base& m_device;
+  ossia::net::node_base* m_parent{};
+  std::unique_ptr<simple_texture_input_parameter> m_parameter;
+
+public:
+  texture_input_stream_node(
+      score::gfx::Node* gfx_n, GfxExecutionAction* context,
+      ossia::net::device_base& dev, ossia::net::node_base& parent, std::string name)
+      : m_device{dev}
+      , m_parent{&parent}
+      , m_parameter{
+            std::make_unique<simple_texture_input_parameter>(gfx_n, context, *this)}
+  {
+    m_name = std::move(name);
+  }
+
+  simple_texture_input_parameter* get_parameter() const override
+  {
+    return m_parameter.get();
+  }
+
+private:
+  ossia::net::device_base& get_device() const override { return m_device; }
+  ossia::net::node_base* get_parent() const override { return m_parent; }
+  ossia::net::node_base& set_name(std::string) override { return *this; }
+  ossia::net::parameter_base* create_parameter(ossia::val_type) override
+  {
+    return m_parameter.get();
+  }
+  bool remove_parameter() override { return false; }
+  std::unique_ptr<ossia::net::node_base> make_child(const std::string&) override
+  {
+    return {};
+  }
+  void removing_child(ossia::net::node_base&) override { }
+};
+
+/**
+ * @brief Root of a device exposing several texture streams.
+ *
+ * Carries no parameter of its own: the root is the rig, and the frames belong
+ * to its children. Streams are added up front by the device rather than
+ * created on demand, because each one has to be handed the gfx node it renders.
+ */
+class multi_texture_input_node final : public ossia::net::node_base
+{
+  ossia::net::device_base& m_device;
+
+public:
+  multi_texture_input_node(ossia::net::device_base& dev, std::string name)
+      : m_device{dev}
+  {
+    m_name = std::move(name);
+  }
+
+  ossia::net::node_base*
+  add_stream(score::gfx::Node* gfx_n, GfxExecutionAction* context, std::string name)
+  {
+    return add_child(std::make_unique<texture_input_stream_node>(
+        gfx_n, context, m_device, *this, std::move(name)));
+  }
+
+  ossia::net::parameter_base* get_parameter() const override { return nullptr; }
+
+private:
+  ossia::net::device_base& get_device() const override { return m_device; }
+  ossia::net::node_base* get_parent() const override { return nullptr; }
+  ossia::net::node_base& set_name(std::string) override { return *this; }
+  ossia::net::parameter_base* create_parameter(ossia::val_type) override
+  {
+    return nullptr;
+  }
+  bool remove_parameter() override { return false; }
+  std::unique_ptr<ossia::net::node_base> make_child(const std::string&) override
+  {
+    return {};
+  }
+  void removing_child(ossia::net::node_base&) override { }
+};
+
+class multi_texture_input_device final : public ossia::net::device_base
+{
+  multi_texture_input_node root;
+
+public:
+  multi_texture_input_device(
+      std::unique_ptr<ossia::net::protocol_base> proto, std::string name)
+      : ossia::net::device_base{std::move(proto)}
+      , root{*this, std::move(name)}
+  {
+  }
+
+  ossia::net::node_base*
+  add_stream(score::gfx::Node* gfx_n, GfxExecutionAction* context, std::string name)
+  {
+    return root.add_stream(gfx_n, context, std::move(name));
+  }
+
+  const multi_texture_input_node& get_root_node() const override { return root; }
+  multi_texture_input_node& get_root_node() override { return root; }
+};
+
 class SCORE_PLUGIN_GFX_EXPORT video_texture_input_protocol
     : public ossia::net::protocol_base
 {
