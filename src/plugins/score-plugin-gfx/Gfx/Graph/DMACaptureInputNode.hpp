@@ -141,6 +141,17 @@ struct SCORE_PLUGIN_GFX_EXPORT DMACaptureBackend
   };
   virtual SyncMembership syncGroup() noexcept { return {}; }
 
+  /// The renderer's answer to syncGroup(): whether it is actually taking this
+  /// stream's slots from the group.
+  ///
+  /// It may decline -- a rung that cannot bind a caller-chosen slot leaves the
+  /// stream on the unsynchronised path -- and the backend cannot see that from
+  /// its side. It has to know, because the two paths disagree about who owns a
+  /// slot: ungrouped, the strategy's publisher decides when a slot may go back
+  /// to the device; grouped, the group does, and a backend still asking the
+  /// publisher hands back the very frame the group has just bound.
+  virtual void setSyncGroupEngaged(bool) noexcept { }
+
   /// True when makeDecoder() returned a decoder only the whole-frame external
   /// image can feed. The decoder has to be chosen before the ladder runs, so
   /// this is how the node learns that the choice it already made depends on a
