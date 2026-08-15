@@ -29,6 +29,7 @@
  * `DMACaptureInputNode`, return the backend from `makeCaptureBackend`.
  */
 
+#include <Gfx/Graph/CaptureAdjust.hpp>
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Graph/interop/GpuCapabilities.hpp>
 
@@ -143,7 +144,7 @@ struct SCORE_PLUGIN_GFX_EXPORT DMACaptureBackend
   /// binds the slot the group chooses rather than whatever this stream published
   /// last, which is what keeps the sensors on the same frame.
   ///
-  /// Returning no group leaves the single-stream path exactly as it was.
+  /// Returning no group keeps the stream on the single-stream path.
   struct SyncMembership
   {
     interop::CaptureSyncGroup* group{};
@@ -218,12 +219,18 @@ struct SCORE_PLUGIN_GFX_EXPORT DMACaptureInputNode : ProcessNode
     m_capturedFrames.store(n, std::memory_order_release);
   }
 
+  /// Sensor corrections and viewport fitting, written by a control callback on
+  /// whatever thread it arrives on and picked up by the renderer when the
+  /// generation moves.
+  CaptureAdjustSlot& adjustments() const noexcept { return m_adjust; }
+
   class Renderer;
 
 private:
   mutable std::atomic<const char*> m_engagedStrategy{nullptr};
   mutable std::atomic<bool> m_pinUnmet{false};
   mutable std::atomic<std::uint64_t> m_capturedFrames{0};
+  mutable CaptureAdjustSlot m_adjust;
 
 public:
 };
