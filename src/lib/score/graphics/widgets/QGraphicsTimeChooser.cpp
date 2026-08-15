@@ -169,9 +169,10 @@ void QGraphicsTimeChooser::paint(
   painter->setFont(skin.Medium8Pt);
   const double tw = painter->fontMetrics().horizontalAdvance(text);
   const double glyph_w = m_sync ? 7. : 0.;
+  // The knob chord's flat bottom sits at y ~= 24.9: start just below it
   const double chip_w = std::min(m_rect.width(), tw + glyph_w + 8.);
   const QRectF chip{
-      m_rect.x() + (m_rect.width() - chip_w) / 2., m_rect.y() + 24., chip_w, 11.};
+      m_rect.x() + (m_rect.width() - chip_w) / 2., m_rect.y() + 25.5, chip_w, 9.5};
 
   painter->setRenderHint(QPainter::Antialiasing, true);
   if(m_sync)
