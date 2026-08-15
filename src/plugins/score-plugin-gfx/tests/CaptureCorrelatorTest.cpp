@@ -170,3 +170,80 @@ TEST_CASE("concurrent producers never assemble a torn set")
     REQUIRE(b.slot >= 100);
   REQUIRE(c.setsPublished() + c.displacedFrames() <= 2 * kFrames);
 }
+
+TEST_CASE("a rig runs indefinitely without either driver running dry")
+{
+  // The whole loop the V4L2 rig runs, in one thread: each member dequeues a
+  // free buffer, offers it, the renderer takes a set, and every slot the
+  // correlator or the group hands back is requeued. If any of those three
+  // channels drops a slot the driver never sees it again, which on hardware
+  // reads as a camera that stopped delivering rather than as a leak.
+  constexpr std::size_t kMembers = 2;
+  constexpr int kSlots = 10; // what a rig member asks V4L2 for
+
+  CaptureCorrelator rig{kMembers};
+  rig.group().setRetireDepth(3); // FramesInFlight + 1, as the renderer sets it
+
+  bool lent[kMembers][kSlots]{};
+  int next[kMembers]{};
+
+  auto dequeue = [&](std::size_t m) {
+    for(int k = 0; k < kSlots; ++k)
+    {
+      const int cand = (next[m] + k) % kSlots;
+      if(!lent[m][cand])
+      {
+        next[m] = (cand + 1) % kSlots;
+        lent[m][cand] = true;
+        return cand;
+      }
+    }
+    return -1;
+  };
+  auto requeue = [&](std::size_t m, int slot) { lent[m][slot] = false; };
+
+  std::uint64_t stamp = 0;
+  long long bound = 0;
+
+  for(int pass = 1; pass <= 500; ++pass)
+  {
+    // Capture threads: two frames per render pass, so the producers outrun the
+    // renderer and every other capture is one nobody will ever bind.
+    for(int rep = 0; rep < 2; ++rep)
+    {
+      for(std::size_t m = 0; m < kMembers; ++m)
+      {
+        const int slot = dequeue(m);
+        INFO("member " << m << " starved at pass " << pass);
+        REQUIRE(slot >= 0);
+        const int displaced = rig.offer(m, slot, ++stamp);
+        if(displaced >= 0)
+          requeue(m, displaced);
+      }
+    }
+
+    // Render pass: every member latches from the same capture.
+    std::uint64_t gen = 0;
+    bool allSame = true;
+    for(std::size_t m = 0; m < kMembers; ++m)
+    {
+      const auto l = rig.group().take(m, pass);
+      if(l.slot < 0)
+        continue;
+      if(gen == 0)
+        gen = l.generation;
+      else if(l.generation != gen)
+        allSame = false;
+      if(m == 0 && l.fresh)
+        ++bound;
+    }
+    REQUIRE(allSame);
+
+    for(std::size_t m = 0; m < kMembers; ++m)
+      for(std::uint32_t mask = rig.group().takeReturned(m); mask; mask &= mask - 1u)
+        requeue(m, __builtin_ctz(mask));
+  }
+
+  CHECK(bound > 400);                        // the rig kept rendering throughout
+  CHECK(rig.group().strandedCount() == 0);   // and nothing was lost on the way
+}
