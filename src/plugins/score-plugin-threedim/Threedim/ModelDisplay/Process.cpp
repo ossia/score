@@ -109,7 +109,14 @@ void Model::init()
         ->setDomain(ossia::make_domain(0.01, 359.999));
     std::vector<std::pair<QString, ossia::value>> projmodes{
         {"Perspective", 0},
-        {"Fulldome (1-pass)", 1},
+        // Indices are the projections[] order in ModelDisplayNode.cpp. 1 stays
+        // equidistant so documents written when it was the only dome mode keep
+        // the picture they had; all four dome modes are single-pass, so the
+        // name cannot say "1-pass".
+        {"Fulldome (equidistant)", 1},
+        {"Fulldome (equisolid)", 2},
+        {"Fulldome (stereographic)", 3},
+        {"Fulldome (orthographic)", 4},
     };
 
     m_inlets.push_back(
