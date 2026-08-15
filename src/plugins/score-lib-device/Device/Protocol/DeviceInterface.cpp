@@ -16,6 +16,7 @@
 #include <ossia/network/base/protocol.hpp>
 #include <ossia/network/common/network_logger.hpp>
 #include <ossia/network/context.hpp>
+#include <ossia/network/domain/domain.hpp>
 
 #include <ossia-qt/invoke.hpp>
 #include <ossia-qt/name_utils.hpp>
@@ -138,7 +139,7 @@ static Device::AddressSettings ToAddressSettings(const ossia::net::node_base& no
 
     s.name = QString::fromStdString(node.get_name());
 
-    if(addr->get_type() == ossia::parameter_type::MESSAGE)
+    if(hasEditableValue(addr->get_type()))
     {
       s.ioType = ossia::access_mode::BI; // addr->get_access();
       s.clipMode = addr->get_bounding();
@@ -155,6 +156,9 @@ static Device::AddressSettings ToAddressSettings(const ossia::net::node_base& no
       {
         s.value = ossia::init_value(addr->get_value_type());
       }
+
+      if(addr->get_type() == ossia::parameter_type::AUDIO && !s.domain.get())
+        s.domain = ossia::make_domain(0.f, 1.f);
     }
   }
   else
