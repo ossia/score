@@ -27,7 +27,9 @@
 #include <QHBoxLayout>
 #include <QLineEdit>
 #include <QPainter>
+#include <QPointer>
 #include <QSpinBox>
+#include <QTimer>
 
 #include <wobjectimpl.h>
 
@@ -68,31 +70,50 @@ bool AddressItemModel::setData(const QModelIndex& index, const QVariant& value, 
   if(index.column() != 1)
     return false;
 
-  if(index.row() < 0 || index.row() > rowCount({}))
+  if(role != Qt::EditRole && role != Qt::CheckStateRole)
+    return false;
+
+  if(index.row() < 0 || index.row() >= rowCount({}))
     return false;
 
   if(!m_model)
     return false;
 
   if(m_settings.address.path.empty())
-    return false; // TODO just rename device ?
+    return false; // TODO rename the device itself
 
-  Device::AddressSettings before, after;
-  before.name = m_settings.address.path.last();
-  (Device::AddressSettingsCommon&)before = m_settings;
-  after = before;
+  auto* node = static_cast<Device::Node*>(
+      m_model->convertPathToIndex(m_path).internalPointer());
+  if(!node || !node->is<Device::AddressSettings>() || !node->parent())
+    return false;
+
+  const auto address = Device::address(*node).address;
+
+  const bool checked = (role == Qt::CheckStateRole)
+                           ? (static_cast<Qt::CheckState>(value.toInt()) == Qt::Checked)
+                           : value.toBool();
+
+  const Device::AddressSettings before = node->get<Device::AddressSettings>();
+  Device::AddressSettings after = before;
 
   switch(index.row())
   {
     case Rows::Value: {
-      if(value.canConvert<ossia::value>())
+      if(role == Qt::CheckStateRole && before.value.target<bool>())
+      {
+        after.value = checked;
+        m_model->deviceModel().updateProxy.updateRemoteValue(address, after.value);
+        pushedValue(address, after.value);
+        return true;
+      }
+      else if(value.canConvert<ossia::value>())
       {
         after.value = value.value<ossia::value>();
 
         // Note : if we want to disable remote updating, we have to do it
         // here (e.g. if this becomes a settings)
-        m_model->deviceModel().updateProxy.updateRemoteValue(
-            m_settings.address, after.value);
+        m_model->deviceModel().updateProxy.updateRemoteValue(address, after.value);
+        pushedValue(address, after.value);
         return true;
       }
       else
@@ -110,13 +131,26 @@ bool AddressItemModel::setData(const QModelIndex& index, const QVariant& value, 
 
         // Note : if we want to disable remote updating, we have to do it
         // here (e.g. if this becomes a settings)
-        m_model->deviceModel().updateProxy.updateRemoteValue(m_settings.address, copy);
+        m_model->deviceModel().updateProxy.updateRemoteValue(address, copy);
+        pushedValue(address, after.value);
         return true;
       }
     }
 
+    case Rows::Name: {
+      const auto name = value.toString();
+      if(name.isEmpty() || !m_model->canRenameNode(*node))
+        return false;
+      after.name = name;
+      break;
+    }
+
     case Rows::Type: {
-      after.value = ossia::convert(before.value, value.value<ossia::val_type>());
+      const auto type = value.value<ossia::val_type>();
+      after.value = ossia::convert(before.value, type);
+
+      if(after.value.get_type() != before.value.get_type())
+        after.domain = ossia::init_domain(type);
       break;
     }
 
@@ -160,6 +194,36 @@ bool AddressItemModel::setData(const QModelIndex& index, const QVariant& value, 
       }
       break;
     }
+    case Rows::Values: {
+      auto vals = State::convert::value<std::vector<ossia::value>>(
+          value.canConvert<ossia::value>() ? value.value<ossia::value>()
+                                           : State::convert::fromQVariant(value));
+
+      if(before.value.valid())
+      {
+        for(auto& v : vals)
+        {
+          if(v.get_type() != before.value.get_type())
+            State::convert::convert(before.value, v);
+        }
+      }
+
+      auto& dom = after.domain.get();
+      if(dom)
+      {
+        ossia::set_values(dom, vals);
+      }
+      else if(!vals.empty())
+      {
+        // ossia has no domain for every type, and building an unknown one throws.
+        auto fresh = ossia::init_domain(vals.front().get_type());
+        if(!fresh)
+          return false;
+        ossia::set_values(fresh, vals);
+        dom = std::move(fresh);
+      }
+      break;
+    }
     case Rows::Access: {
       after.ioType = (ossia::access_mode)value.toInt();
       break;
@@ -185,11 +249,24 @@ bool AddressItemModel::setData(const QModelIndex& index, const QVariant& value, 
         std::advance(it, idx);
         if(it->first == onet::text_description())
         {
+          if(auto* cur = ossia::any_cast<onet::description>(&it->second);
+             cur && *cur == value.toString().toStdString())
+            return false;
           it->second = value.toString().toStdString();
         }
         else if(it->first == onet::text_tags())
         {
-          // TODO
+          onet::tags tags;
+          for(const auto& tag : value.toString().split(',', Qt::SkipEmptyParts))
+          {
+            const auto trimmed = tag.trimmed();
+            if(!trimmed.isEmpty())
+              tags.push_back(trimmed.toStdString());
+          }
+
+          if(auto* cur = ossia::any_cast<onet::tags>(&it->second); cur && *cur == tags)
+            return false;
+          it->second = std::move(tags);
         }
         else if(it->first == onet::text_default_value())
         {
@@ -200,6 +277,9 @@ bool AddressItemModel::setData(const QModelIndex& index, const QVariant& value, 
         }
         else if(it->first == onet::text_refresh_rate())
         {
+          if(auto* cur = ossia::any_cast<onet::refresh_rate_attribute::type>(&it->second);
+             cur && *cur == value.toInt())
+            return false;
           it->second = value.toInt();
         }
         else if(it->first == onet::text_value_step_size())
@@ -214,11 +294,11 @@ bool AddressItemModel::setData(const QModelIndex& index, const QVariant& value, 
     }
   }
 
-  auto node = (Device::Node*)m_model->convertPathToIndex(m_path).internalPointer();
-  if(!node)
+  // Extended attributes are excluded: ossia::any does not compare.
+  if(index.row() < Rows::Count && after == before)
     return false;
 
-  if(!m_model->checkAddressEditable(*node, before, after))
+  if(!m_model->checkAddressEditable(*node->parent(), before, after))
     return false;
 
   CommandDispatcher<> disp{m_model->commandStack()};
@@ -464,6 +544,8 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
     {
       switch(index.row())
       {
+        case Rows::Name:
+          return m_settings.address.path.last();
         case Rows::Type:
           return (int)m_settings.value.get_type();
         case Rows::Access:
@@ -479,7 +561,9 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
         case Rows::Max:
           return QVariant::fromValue(ossia::get_max(m_settings.domain.get()));
         case Rows::Values:
-          return QVariant::fromValue(ossia::get_values(m_settings.domain.get()));
+          // As one value, so that the editor reads it like any other.
+          return QVariant::fromValue(
+              ossia::value{ossia::get_values(m_settings.domain.get())});
         default: {
           int idx = index.row() - Rows::Count;
           if(ossia::valid_index(idx, m_settings.extendedAttributes))
@@ -547,6 +631,43 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
   return {};
 }
 
+bool AddressItemModel::editableProperties() const
+{
+  if(!m_model)
+    return false;
+  auto* dev = m_model->deviceModel().list().findDevice(m_settings.address.device);
+  return dev && dev->capabilities().canSetProperties;
+}
+
+bool AddressItemModel::editableName() const
+{
+  if(!m_model)
+    return false;
+
+  auto* node = static_cast<Device::Node*>(
+      m_model->convertPathToIndex(m_path).internalPointer());
+  return node && m_model->canRenameNode(*node);
+}
+
+void AddressItemModel::pushedValue(const State::Address& addr, const ossia::value& v)
+{
+  m_settings.value = v;
+  const auto idx = index(Rows::Value, 1, {});
+  dataChanged(idx, idx);
+
+  // Deferred: the tree pushes the change back here and resets this model.
+  // An impulse is not a state: there is nothing to mirror.
+  if(v.get_type() == ossia::val_type::IMPULSE)
+    return;
+
+  QPointer self{this};
+  QTimer::singleShot(0, this, [self, addr, v] {
+    if(self && self->m_model)
+      self->m_model->deviceModel().updateProxy.updateLocalValue(
+          State::AddressAccessor{addr}, v);
+  });
+}
+
 int AddressItemModel::extendedCount() const noexcept
 {
   return int(m_settings.extendedAttributes.size());
@@ -559,7 +680,7 @@ Qt::ItemFlags AddressItemModel::flags(const QModelIndex& index) const
 
   Qt::ItemFlags f = QAbstractItemModel::flags(index);
   static const constexpr std::array<Qt::ItemFlags, Rows::Count> flags{{
-      {Qt::ItemIsEnabled | Qt::ItemIsSelectable} // name
+      {Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable} // name
       ,
       {Qt::ItemIsEnabled | Qt::ItemIsSelectable} // address
       ,
@@ -586,6 +707,13 @@ Qt::ItemFlags AddressItemModel::flags(const QModelIndex& index) const
     f |= flags[index.row()];
   else
     f |= Qt::ItemIsEditable;
+
+  // Every row but the value describes the parameter rather than holding it.
+  if(index.row() != Rows::Value && !editableProperties())
+    f &= ~Qt::ItemIsEditable;
+
+  if(index.row() == Rows::Name && !editableName())
+    f &= ~Qt::ItemIsEditable;
 
   if(index.row() == Value)
   {
@@ -781,7 +909,11 @@ void AddressItemDelegate::setModelData(
     case AddressItemModel::Rows::Values: {
       if(auto cb = qobject_cast<AddressValueWidget*>(editor))
       {
-        model->setData(index, QVariant::fromValue(cb->get()), Qt::EditRole);
+        if(!cb->edited())
+          return;
+
+        if(auto v = cb->get(); v.valid())
+          model->setData(index, QVariant::fromValue(v), Qt::EditRole);
         return;
       }
     }

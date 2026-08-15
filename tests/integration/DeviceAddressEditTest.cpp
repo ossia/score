@@ -129,6 +129,84 @@ QModelIndex row(const Explorer::AddressItemModel& m, int r)
 }
 }
 
+TEST_CASE("the accepted values of a parameter can be edited", "[integration][explorer]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    Fixture f{ctx};
+    auto mp = f.makeAddressModel();
+    auto& m = *mp;
+
+    // What the "Values" row displays before the edit.
+    const auto shown = ossia::get_values(f.param->get<Device::AddressSettings>()
+                                             .domain.get());
+    REQUIRE(shown.size() == 2);
+
+    // ... and what the line edit hands back: a parsed list.
+    const bool ok = m.setData(
+        row(m, Explorer::AddressItemModel::Rows::Values),
+        QVariant::fromValue(ossia::value{std::vector<ossia::value>{
+            std::string{"x"}, std::string{"y"}, std::string{"z"}}}),
+        Qt::EditRole);
+    CHECK(ok);
+
+    const auto after
+        = ossia::get_values(f.param->get<Device::AddressSettings>().domain.get());
+    REQUIRE(after.size() == 3);
+    CHECK(after[0] == ossia::value{std::string{"x"}});
+    CHECK(after[2] == ossia::value{std::string{"z"}});
+  });
+}
+
+TEST_CASE("a row that changes nothing does not land on the undo stack",
+          "[integration][explorer]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    Fixture f{ctx};
+    auto mp = f.makeAddressModel();
+    auto& m = *mp;
+
+    const auto before = f.doc->commandStack().size();
+
+    // The address row is not editable; setting it used to push an empty command.
+    CHECK_FALSE(m.setData(
+        row(m, Explorer::AddressItemModel::Rows::Address), QString{"whatever"},
+        Qt::EditRole));
+
+    // Same value as the current one.
+    CHECK_FALSE(m.setData(
+        row(m, Explorer::AddressItemModel::Rows::Access),
+        (int)ossia::access_mode::BI, Qt::EditRole));
+
+    CHECK(f.doc->commandStack().size() == before);
+  });
+}
+
+TEST_CASE("a value edited from the address panel shows up right away",
+          "[integration][explorer]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    Fixture f{ctx};
+    auto mp = f.makeAddressModel();
+    auto& m = *mp;
+
+    const auto valueRow = row(m, Explorer::AddressItemModel::Rows::Value);
+    REQUIRE(m.setData(
+        valueRow, QVariant::fromValue(ossia::value{std::string{"b"}}), Qt::EditRole));
+
+    // The panel reflects it without waiting for the device to answer.
+    CHECK(m.settings().value == ossia::value{std::string{"b"}});
+    CHECK(m.data(valueRow, Qt::DisplayRole).toString() == "b");
+
+    // ... and so does the tree, once the deferred update ran.
+    QApplication::processEvents();
+    CHECK(f.param->get<Device::AddressSettings>().value
+          == ossia::value{std::string{"b"}});
+  });
+}
+
+// Regression: editData built the index around the node's parent, so the
+// dataChanged() it emitted matched no cell in the tree and "Refresh value"
+// never repainted anything.
 TEST_CASE("a refreshed value points at the cell that changed",
           "[integration][explorer]")
 {
@@ -321,5 +399,233 @@ TEST_CASE("an impulse parameter can be fired from the tree",
         [&](QWidget*) { untouchedCommits++; });
     untouched.commit(*f.explorer);
     CHECK(untouchedCommits == 0);
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Renaming and metadata go through commands: they change the tree, so they must
+// be undoable. Values do not: they are pushed straight to the device.
+// ---------------------------------------------------------------------------
+
+TEST_CASE("a parameter can be renamed from the tree, and it undoes",
+          "[integration][explorer][undo]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    Fixture f{ctx};
+
+    const auto nameIdx
+        = f.explorer->modelIndexFromNode(*f.param, (int)Explorer::Column::Name);
+    REQUIRE(f.explorer->flags(nameIdx) & Qt::ItemIsEditable);
+
+    const auto before = f.doc->commandStack().size();
+    REQUIRE(f.explorer->setData(nameIdx, QString{"renamed"}, Qt::EditRole));
+    CHECK(f.param->get<Device::AddressSettings>().name == "renamed");
+    CHECK(f.doc->commandStack().size() == before + 1);
+
+    f.doc->commandStack().undo();
+    CHECK(f.param->get<Device::AddressSettings>().name == "mode");
+
+    f.doc->commandStack().redo();
+    CHECK(f.param->get<Device::AddressSettings>().name == "renamed");
+  });
+}
+
+TEST_CASE("a rename that would collide, or empty, is refused",
+          "[integration][explorer][undo]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    Fixture f{ctx};
+    const auto nameIdx
+        = f.explorer->modelIndexFromNode(*f.param, (int)Explorer::Column::Name);
+    const auto before = f.doc->commandStack().size();
+
+    // "pos" is a sibling.
+    CHECK_FALSE(f.explorer->setData(nameIdx, QString{"pos"}, Qt::EditRole));
+    CHECK_FALSE(f.explorer->setData(nameIdx, QString{}, Qt::EditRole));
+
+    CHECK(f.param->get<Device::AddressSettings>().name == "mode");
+    CHECK(f.doc->commandStack().size() == before);
+  });
+}
+
+TEST_CASE("a parameter can be renamed from the address panel",
+          "[integration][explorer][undo]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    Fixture f{ctx};
+    auto mp = f.makeAddressModel();
+    auto& m = *mp;
+
+    const auto nameRow = row(m, Explorer::AddressItemModel::Rows::Name);
+    REQUIRE(m.flags(nameRow) & Qt::ItemIsEditable);
+
+    // The editor opens on the current name rather than on an empty field.
+    CHECK(m.data(nameRow, Qt::EditRole).toString() == "mode");
+
+    const auto before = f.doc->commandStack().size();
+    REQUIRE(m.setData(nameRow, QString{"renamed"}, Qt::EditRole));
+    CHECK(f.param->get<Device::AddressSettings>().name == "renamed");
+    CHECK(f.doc->commandStack().size() == before + 1);
+
+    f.doc->commandStack().undo();
+    CHECK(f.param->get<Device::AddressSettings>().name == "mode");
+  });
+}
+
+TEST_CASE("changing the type drops a domain that no longer applies",
+          "[integration][explorer][undo]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    Fixture f{ctx};
+    auto mp = f.makeAddressModel();
+    auto& m = *mp;
+
+    // The enumeration is a list of strings; as an int it means nothing.
+    REQUIRE(m.setData(
+        row(m, Explorer::AddressItemModel::Rows::Type),
+        QVariant::fromValue(ossia::val_type::INT), Qt::EditRole));
+
+    const auto& after = f.param->get<Device::AddressSettings>();
+    CHECK(after.value.get_type() == ossia::val_type::INT);
+    CHECK(ossia::get_values(after.domain.get()).empty());
+
+    f.doc->commandStack().undo();
+    CHECK(f.param->get<Device::AddressSettings>().value.get_type()
+          == ossia::val_type::STRING);
+    CHECK(ossia::get_values(f.param->get<Device::AddressSettings>().domain.get()).size()
+          == 2);
+  });
+}
+
+TEST_CASE("tags can be edited from the address panel", "[integration][explorer][undo]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    Fixture f{ctx};
+    auto mp = f.makeAddressModel();
+    auto& m = *mp;
+
+    // Extended attributes come after the fixed rows; find the tags one.
+    int tagRow = -1;
+    for(int r = Explorer::AddressItemModel::Rows::Count; r < m.rowCount({}); r++)
+    {
+      if(m.data(m.index(r, 0, {}), Qt::DisplayRole).toString() == "Tags")
+        tagRow = r;
+    }
+    REQUIRE(tagRow != -1);
+
+    const auto before = f.doc->commandStack().size();
+    REQUIRE(m.setData(m.index(tagRow, 1, {}), QString{"one, two"}, Qt::EditRole));
+    CHECK(f.doc->commandStack().size() == before + 1);
+
+    const auto tags = ossia::net::get_tags(
+        f.param->get<Device::AddressSettings>().extendedAttributes);
+    REQUIRE(tags.has_value());
+    REQUIRE(tags->size() == 2);
+    CHECK((*tags)[0] == "one");
+    CHECK((*tags)[1] == "two");
+
+    // Writing the same tags again is not a change.
+    CHECK_FALSE(m.setData(m.index(tagRow, 1, {}), QString{"one,two"}, Qt::EditRole));
+    CHECK(f.doc->commandStack().size() == before + 1);
+
+    f.doc->commandStack().undo();
+    const auto restored = ossia::net::get_tags(
+        f.param->get<Device::AddressSettings>().extendedAttributes);
+    REQUIRE(restored.has_value());
+    REQUIRE(restored->size() == 1);
+    CHECK((*restored)[0] == "initial");
+  });
+}
+
+// Values are state, not structure: pushing one to a device is not something the
+// user undoes, and it must stay off the command stack.
+TEST_CASE("editing a value does not touch the undo stack",
+          "[integration][explorer][undo]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    Fixture f{ctx};
+    auto mp = f.makeAddressModel();
+    auto& m = *mp;
+
+    const auto before = f.doc->commandStack().size();
+
+    REQUIRE(m.setData(
+        row(m, Explorer::AddressItemModel::Rows::Value),
+        QVariant::fromValue(ossia::value{std::string{"b"}}), Qt::EditRole));
+    REQUIRE(f.explorer->setData(
+        f.explorer->modelIndexFromNode(*f.param, (int)Explorer::Column::Value),
+        QVariant::fromValue(ossia::value{std::string{"a"}}), Qt::EditRole));
+
+    CHECK(f.doc->commandStack().size() == before);
+  });
+}
+
+TEST_CASE("a role that is not an edit does not change anything",
+          "[integration][explorer][undo]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    Fixture f{ctx};
+    auto mp = f.makeAddressModel();
+    auto& m = *mp;
+
+    const auto before = f.doc->commandStack().size();
+    CHECK_FALSE(m.setData(
+        row(m, Explorer::AddressItemModel::Rows::Name), QString{"renamed"},
+        Qt::ToolTipRole));
+    CHECK(f.param->get<Device::AddressSettings>().name == "mode");
+    CHECK(f.doc->commandStack().size() == before);
+  });
+}
+
+TEST_CASE("a boolean is edited through its check state", "[integration][explorer]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    Fixture f{ctx};
+    f.param->get<Device::AddressSettings>().value = false;
+    f.param->get<Device::AddressSettings>().domain = ossia::domain{};
+
+    auto mp = f.makeAddressModel();
+    auto& m = *mp;
+
+    const auto valueRow = row(m, Explorer::AddressItemModel::Rows::Value);
+    REQUIRE(m.flags(valueRow) & Qt::ItemIsUserCheckable);
+
+    REQUIRE(m.setData(valueRow, (int)Qt::Checked, Qt::CheckStateRole));
+    CHECK(m.settings().value == ossia::value{true});
+
+    REQUIRE(m.setData(valueRow, (int)Qt::Unchecked, Qt::CheckStateRole));
+    CHECK(m.settings().value == ossia::value{false});
+  });
+}
+
+// Opening an editor and closing it without touching anything must not change
+// what it was showing.
+TEST_CASE("the values editor opens on the current list", "[integration][explorer]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    Fixture f{ctx};
+    auto mp = f.makeAddressModel();
+    auto& m = *mp;
+
+    Explorer::AddressItemDelegate delegate;
+    QStyledItemDelegate& iface = delegate;
+    const auto idx = row(m, Explorer::AddressItemModel::Rows::Values);
+
+    QStyleOptionViewItem opt;
+    auto* editor = iface.createEditor(nullptr, opt, idx);
+    REQUIRE(editor != nullptr);
+    iface.setEditorData(editor, idx);
+
+    auto* line = editor->findChild<QLineEdit*>();
+    REQUIRE(line != nullptr);
+    CHECK(line->text() == "[\"a\", \"b\"]");
+
+    iface.setModelData(editor, &m, idx);
+    delete editor;
+
+    const auto after
+        = ossia::get_values(f.param->get<Device::AddressSettings>().domain.get());
+    REQUIRE(after.size() == 2);
+    CHECK(after[0] == ossia::value{std::string{"a"}});
   });
 }
