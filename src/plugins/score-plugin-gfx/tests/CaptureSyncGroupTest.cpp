@@ -129,13 +129,118 @@ TEST_CASE("a render thread lapped by the producer holds rather than tearing")
 
   // Producer runs away by more than the ring depth while the render thread is
   // stalled. The pinned set no longer exists; binding whatever is in its ring
-  // slot would be a torn read of two different captures.
+  // slot would be a torn read of two different captures. Slots cycle the way a
+  // device's buffers do -- they index a fixed pool rather than counting up.
+  int last = 0;
   for(int i = 0; i < int(CaptureSyncGroup::kDepth) + 2; ++i)
-    publish(g, {10 + i, 10 + i});
+  {
+    last = 2 + (i % 6);
+    publish(g, {last, last});
+  }
 
   const auto a = g.take(0, 200);
   // The newest complete set is recent, so this pass is fine...
-  REQUIRE(a.slot == 10 + int(CaptureSyncGroup::kDepth) + 1);
+  REQUIRE(a.slot == last);
+}
+
+TEST_CASE("a capture nobody bound still gives its slots back")
+{
+  // A producer faster than the renderer publishes captures that can never be
+  // chosen: take() only ever serves the newest complete set. Their slots are
+  // on loan all the same, and a device that does not get them back stalls.
+  CaptureSyncGroup g{1};
+  g.setRetireDepth(1);
+
+  std::uint32_t returned = 0;
+  publish(g, {0});
+  REQUIRE(g.take(0, 1).slot == 0);
+  returned |= g.takeReturned(0);
+
+  publish(g, {1}); // superseded before the renderer ever asks for it
+  publish(g, {2});
+  REQUIRE(g.take(0, 2).slot == 2);
+  returned |= g.takeReturned(0);
+
+  // Slot 1 was never bound, so unlike 0 it needs no retirement delay.
+  REQUIRE((returned & (1u << 1)) != 0);
+  REQUIRE(g.strandedCount() == 0);
+
+  // The two that were bound come back later, through the retire queue, once
+  // the GPU can no longer be reading them.
+  publish(g, {3});
+  REQUIRE(g.take(0, 3).slot == 3);
+  returned |= g.takeReturned(0);
+  REQUIRE((returned & (1u << 0)) != 0);
+
+  publish(g, {4});
+  REQUIRE(g.take(0, 4).slot == 4);
+  returned |= g.takeReturned(0);
+  REQUIRE((returned & (1u << 2)) != 0);
+}
+
+TEST_CASE("a skipped capture never releases the slot being bound")
+{
+  // A producer that recycles indices rather than lending the device's own
+  // buffers can name the same slot in the capture being bound and in one that
+  // was skipped. Releasing it there would hand back the frame about to be drawn.
+  CaptureSyncGroup g{1};
+  g.setRetireDepth(1);
+
+  publish(g, {0});
+  REQUIRE(g.take(0, 1).slot == 0);
+  (void)g.takeReturned(0);
+
+  publish(g, {1});
+  publish(g, {2});
+  publish(g, {1}); // same slot as the skipped capture two back
+  REQUIRE(g.take(0, 2).slot == 1);
+
+  const auto mask = g.takeReturned(0);
+  REQUIRE((mask & (1u << 1)) == 0);
+  REQUIRE((mask & (1u << 2)) != 0);
+}
+
+TEST_CASE("every lent slot comes back when the producer outruns the renderer")
+{
+  // The whole reason the ring is as deep as the return mask is wide: a member
+  // cannot lend a slot it has not got back, so every unreturned capture is
+  // still resident and nothing is stranded no matter how far behind the render
+  // thread falls.
+  constexpr int kSlots = 8;
+  CaptureSyncGroup g{1};
+  g.setRetireDepth(1);
+
+  int lent[kSlots]{};   // how many times each slot is out on loan
+  int next = 0;
+  std::uint64_t pass = 0;
+
+  for(int round = 0; round < 200; ++round)
+  {
+    // Publish as many captures as there are free slots, then render once.
+    for(int i = 0; i < 3; ++i)
+    {
+      int slot = -1;
+      for(int k = 0; k < kSlots; ++k)
+      {
+        const int cand = (next + k) % kSlots;
+        if(lent[cand] == 0)
+        {
+          slot = cand;
+          next = (cand + 1) % kSlots;
+          break;
+        }
+      }
+      REQUIRE(slot >= 0); // a starved producer is the failure this guards
+      lent[slot] = 1;
+      publish(g, {slot});
+    }
+
+    g.take(0, std::int64_t(++pass));
+    for(std::uint32_t m = g.takeReturned(0); m; m &= m - 1u)
+      lent[__builtin_ctz(m)] = 0;
+  }
+
+  REQUIRE(g.strandedCount() == 0);
 }
 
 TEST_CASE("skew is measured from the producer stamps")
