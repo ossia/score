@@ -25,7 +25,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Common/AddressSettings/Widgets/AddressNumericSettingsWidget.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Common/AddressSettings/Widgets/AddressStringSettingsWidget.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Common/AddressSettings/Widgets/AddressListSettingsWidget.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Common/AddressSettings/Widgets/AddressCompositeSettingsWidget.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Common/AddressSettings/Widgets/AddressVecSettingsWidget.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/DocumentPlugin/DeviceDocumentPluginFactory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp"
@@ -81,7 +81,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/ReplaceDevice.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Common/AddressSettings/AddressSettingsFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Common/AddressSettings/Widgets/AddressListSettingsWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Common/AddressSettings/Widgets/AddressCompositeSettingsWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Common/AddressSettings/Widgets/AddressBoolSettingsWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Common/AddressSettings/Widgets/AddressNoneSettingsWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Common/AddressSettings/Widgets/AddressImpulseSettingsWidget.cpp"

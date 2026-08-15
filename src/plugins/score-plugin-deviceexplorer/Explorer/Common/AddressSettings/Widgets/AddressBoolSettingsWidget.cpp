@@ -36,7 +36,9 @@ Device::AddressSettings AddressBoolSettingsWidget::getSettings() const
 
 Device::AddressSettings AddressBoolSettingsWidget::getDefaultSettings() const
 {
-  return {};
+  Device::AddressSettings s;
+  s.value = false;
+  return s;
 }
 
 void AddressBoolSettingsWidget::setSettings(const Device::AddressSettings& settings)
