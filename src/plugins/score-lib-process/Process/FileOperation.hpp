@@ -34,6 +34,8 @@ enum class FileAction
   KeptInLibrary, //!< Resolves through the user library and was left there.
   Relinked,      //!< Was missing, found elsewhere, repointed.
   Trimmed,       //!< Rewritten down to the part the document actually reads.
+  Unused,        //!< Sitting in the project folder with nothing pointing at it.
+  Removed,       //!< Moved aside or deleted.
   Missing,       //!< Not found. Left untouched.
   Unsupported,   //!< A folder, or something score has no way to relocate.
   Skipped,       //!< In scope but declined; `note` says why.

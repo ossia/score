@@ -44,6 +44,13 @@ if(TARGET score_plugin_media)
     SANDBOXED
     PLUGINS score_plugin_scenario score_plugin_media score_lib_process)
 
+  # Clearing leftovers out of the project folder. Deletes files, so sandboxed.
+  score_add_test(test_integration_unused_files
+    SOURCES UnusedFilesTest.cpp
+    GUI
+    SANDBOXED
+    PLUGINS score_plugin_scenario score_plugin_media score_lib_process)
+
   # Packing a whole project into a single zip.
   score_add_test(test_integration_project_archive
     SOURCES ProjectArchiveTest.cpp

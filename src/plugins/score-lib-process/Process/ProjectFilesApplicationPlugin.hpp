@@ -32,6 +32,7 @@ private:
   void consolidate();
   void locateMissingFiles();
   void trimMedia();
+  void removeUnused();
   void archive();
 
   //! The document to act on, or nullptr; complains in the user's stead when
@@ -41,6 +42,7 @@ private:
   QAction* m_consolidate{};
   QAction* m_locate{};
   QAction* m_trim{};
+  QAction* m_unused{};
   QAction* m_archive{};
 };
 }
