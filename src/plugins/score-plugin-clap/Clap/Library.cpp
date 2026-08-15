@@ -13,19 +13,12 @@ void LibraryHandler::setup(
 {
   constexpr static const auto key = Metadata<ConcreteKey_k, Model>::get();
 
-  QModelIndex node = model.find(key);
-  if(node == QModelIndex{})
-  {
-    return;
-  }
-  auto& parent = *reinterpret_cast<Library::ProcessNode*>(node.internalPointer());
-  parent.key = {};
-
   auto& plug = ctx.guiApplicationPlugin<Clap::ApplicationPlugin>();
 
-  auto reset_plugs = [this, &plug, &parent] {
-    // Group plugins by category
-    QMap<QString, Library::ProcessNode*> categories;
+  // Stage the whole plugin list grouped by category; the model owns tree
+  // mutation and signals.
+  auto make_plugs = [this, &plug] {
+    QMap<QString, Library::StagedNode> categories;
 
     for(const auto& plugin : plug.plugins())
     {
@@ -33,30 +26,30 @@ void LibraryHandler::setup(
         continue;
       QString category = getClapCategory(plugin.features);
 
-      // Create category if it doesn't exist
-      if(!categories.contains(category))
-      {
-        auto& cat_node = parent.emplace_back(
-            Library::ProcessData{{{}, category, {}}, {}}, &parent);
-        categories[category] = &cat_node;
-      }
+      auto it = categories.find(category);
+      if(it == categories.end())
+        it = categories.insert(
+            category, Library::StagedNode{{{{}, category, {}}, {}}, {}});
 
       QString pluginIdentifier = QString("%1:::%2").arg(plugin.path, plugin.id);
-
-      Library::ProcessData pdata{{key, plugin.name, pluginIdentifier}, {}};
-      Library::addToLibrary(*categories[category], std::move(pdata));
+      it->children.push_back(
+          Library::StagedNode{{{key, plugin.name, pluginIdentifier}, {}}, {}});
     }
+
+    std::vector<Library::StagedNode> v;
+    v.reserve(categories.size());
+    for(auto& cat : categories) // QMap: already name-sorted
+      v.push_back(std::move(cat));
+    return v;
   };
 
-  reset_plugs();
+  model.clearAnchorKey(key);
+  model.replaceChildren(key, make_plugs());
 
-  // Async rescan: addToLibrary doesn't emit per-row signals, so reset whole subtree.
   con(plug, &Clap::ApplicationPlugin::pluginsChanged, this,
-      [&model, &parent, reset_plugs] {
-    model.beginResetModel();
-    parent.resize(0);
-    reset_plugs();
-    model.endResetModel();
+      [model = QPointer{&model}, make_plugs] {
+    if(model)
+      model->replaceChildren(key, make_plugs());
   });
 }
 

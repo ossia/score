@@ -23,23 +23,16 @@ class LibraryHandler final
 
   QSet<QString> acceptedFiles() const noexcept override { return {"pat"}; }
 
-  Library::Subcategories categories;
+  Library::CategoryPaths categories;
 
   void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
       override
   {
-    // TODO relaunch whenever library path changes...
-    const auto& key = Metadata<ConcreteKey_k, Patternist::ProcessModel>::get();
-    QModelIndex node = model.find(key);
-    if(node == QModelIndex{})
-      return;
-
     categories.init(
-        Metadata<PrettyName_k, Patternist::ProcessModel>::get().toStdString(), node,
-        ctx);
+        Metadata<PrettyName_k, Patternist::ProcessModel>::get().toStdString(), ctx);
   }
 
-  std::function<void()> asyncAddPath(std::string_view path) override
+  std::optional<Library::ProcessEntry> scanPath(std::string_view path) override
   {
     score::PathInfo file{path};
     Library::ProcessData pdata;
@@ -49,10 +42,7 @@ class LibraryHandler final
     pdata.customData
         = QString::fromUtf8(file.absoluteFilePath.data(), file.absoluteFilePath.size());
 
-    return [this, p = std::string(path), pdata = std::move(pdata)]() mutable {
-      score::PathInfo file{p};
-      categories.add(file, std::move(pdata));
-    };
+    return Library::ProcessEntry{pdata.key, categories(file), {std::move(pdata), {}}};
   }
 };
 

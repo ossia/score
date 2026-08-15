@@ -22,51 +22,35 @@ class LibraryHandler final
   {
     constexpr static const auto key = Metadata<ConcreteKey_k, Model>::get();
 
-    QModelIndex node = model.find(key);
-    if(node == QModelIndex{})
-    {
-      return;
-    }
-    auto& parent = *reinterpret_cast<Library::ProcessNode*>(node.internalPointer());
-    parent.key = {};
-
     auto& plug = ctx.applicationPlugin<vst::ApplicationPlugin>();
 
-    auto reset_plugs = [=, &plug, &parent] {
-      auto& fx
-          = parent.emplace_back(Library::ProcessData{{{}, "Effects", {}}, {}}, &parent);
-      auto& inst = parent.emplace_back(
-          Library::ProcessData{{{}, "Instruments", {}}, {}}, &parent);
+    // Stage the whole plugin list; the model owns tree mutation and signals.
+    auto make_plugs = [&plug] {
+      Library::StagedNode fx{{{{}, "Effects", {}}, {}}, {}};
+      Library::StagedNode inst{{{{}, "Instruments", {}}, {}}, {}};
       for(const auto& vst : plug.vst_infos)
       {
         if(vst.isValid)
         {
           const auto& name
               = vst.displayName.isEmpty() ? vst.prettyName : vst.displayName;
-          Library::ProcessData pdata{{key, name, QString::number(vst.uniqueID)}, {}};
-          if(vst.isSynth)
-          {
-            Library::addToLibrary(inst, std::move(pdata));
-          }
-          else
-          {
-            Library::addToLibrary(fx, std::move(pdata));
-          }
+          Library::StagedNode p{{{key, name, QString::number(vst.uniqueID)}, {}}, {}};
+          (vst.isSynth ? inst : fx).children.push_back(std::move(p));
         }
       }
+      std::vector<Library::StagedNode> v;
+      v.push_back(std::move(fx));
+      v.push_back(std::move(inst));
+      return v;
     };
 
-    reset_plugs();
+    model.clearAnchorKey(key);
+    model.replaceChildren(key, make_plugs());
 
     con(plug, &vst::ApplicationPlugin::vstChanged, this,
-        [&model, node, &parent, reset_plugs] {
-      model.beginRemoveRows(node, 0, 1);
-      parent.resize(0);
-      model.endRemoveRows();
-
-      model.beginInsertRows(node, 0, 1);
-      reset_plugs();
-      model.endInsertRows();
+        [model = QPointer{&model}, make_plugs] {
+      if(model)
+        model->replaceChildren(key, make_plugs());
     });
   }
 };

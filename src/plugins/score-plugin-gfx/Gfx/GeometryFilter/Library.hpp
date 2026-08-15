@@ -15,9 +15,9 @@ class LibraryHandler final : public Library::LibraryInterface
   void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
       override;
 
-  std::function<void()> asyncAddPath(std::string_view path) override;
+  std::optional<Library::ProcessEntry> scanPath(std::string_view path) override;
 
-  Library::Subcategories categories;
+  Library::CategoryPaths categories;
 };
 
 class DropHandler final : public Process::ProcessDropHandler

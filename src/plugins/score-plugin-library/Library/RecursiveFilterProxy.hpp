@@ -4,9 +4,11 @@
 #include <QFileSystemModel>
 #include <QSortFilterProxyModel>
 
+#include <score_plugin_library_export.h>
+
 namespace Library
 {
-class RecursiveFilterProxy : public QSortFilterProxyModel
+class SCORE_PLUGIN_LIBRARY_EXPORT RecursiveFilterProxy : public QSortFilterProxyModel
 {
 public:
   using QSortFilterProxyModel::QSortFilterProxyModel;
@@ -24,7 +26,7 @@ protected:
   bool hasAcceptedChildren(int srcRow, const QModelIndex& srcParent) const;
 };
 
-class ProcessFilterProxy : public RecursiveFilterProxy
+class SCORE_PLUGIN_LIBRARY_EXPORT ProcessFilterProxy : public RecursiveFilterProxy
 {
 public:
   using RecursiveFilterProxy::RecursiveFilterProxy;

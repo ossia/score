@@ -90,44 +90,40 @@ class LibraryHandler final
 
   static inline const QRegularExpression scoreImport{"import Score"};
 
-  Library::Subcategories categories;
+  Library::CategoryPaths categories;
 
   void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
       override
   {
-    // TODO relaunch whenever library path changes...
-    const auto& key = Metadata<ConcreteKey_k, JS::ProcessModel>::get();
-    QModelIndex node = model.find(key);
-    if(node == QModelIndex{})
-      return;
-
     categories.init(
-        Metadata<PrettyName_k, JS::ProcessModel>::get().toStdString(), node, ctx);
+        Metadata<PrettyName_k, JS::ProcessModel>::get().toStdString(), ctx);
   }
 
-  std::function<void()> asyncAddPath(std::string_view path) override
+  std::optional<Library::ProcessEntry> scanPath(std::string_view path) override
   {
     if(std::string_view{path}.ends_with(".ui.qml"))
-      return {};
+      return std::nullopt;
 
-    QFileInfo fileinfo{QString::fromUtf8(path.data(), path.length())};
-    QFile file{fileinfo.absoluteFilePath()};
+    score::PathInfo pathinfo{path};
+    QFile file{QString::fromUtf8(
+        pathinfo.absoluteFilePath.data(), pathinfo.absoluteFilePath.size())};
     if(!file.open(QIODevice::ReadOnly))
-      return {};
+      return std::nullopt;
 
     auto data = file.readAll().trimmed();
     auto matches = scoreImport.match(data);
     if(!matches.hasMatch())
-      return {};
+      return std::nullopt;
 
     Library::ProcessData pdata;
-    pdata.prettyName = fileinfo.completeBaseName();
+    pdata.prettyName = QString::fromUtf8(
+        pathinfo.completeBaseName.data(), pathinfo.completeBaseName.size());
     pdata.key = Metadata<ConcreteKey_k, JS::ProcessModel>::get();
-    pdata.customData = fileinfo.absoluteFilePath();
+    pdata.customData = QString::fromUtf8(
+        pathinfo.absoluteFilePath.data(), pathinfo.absoluteFilePath.size());
 
-    return [this, fileinfo, pdata = std::move(pdata)]() mutable {
-      categories.add(fileinfo, std::move(pdata));
-    };
+    return Library::ProcessEntry{
+        pdata.key, categories(pathinfo), {std::move(pdata), {}}};
   }
 };
 
