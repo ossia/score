@@ -810,8 +810,14 @@ public:
       if(magneticDropPort)
       {
         magneticDropPort->dropEvent(ev);
-        magneticDropPort->m_diam = 8;
-        magneticDropPort->update();
+
+        // Creating the cable may rebuild the process's ports, taking the item
+        // we just dropped on with them - ~PortItem clears the global.
+        if(magneticDropPort)
+        {
+          magneticDropPort->m_diam = 8;
+          magneticDropPort->update();
+        }
         portDragType = std::nullopt;
         return true;
       }

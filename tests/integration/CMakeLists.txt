@@ -30,6 +30,20 @@ score_add_test(test_integration_scenario_rename
   APP
   PLUGINS score_plugin_scenario score_lib_process)
 
+# How a node displays a process with far more controls than fits on screen.
+score_add_test(test_integration_nodal_controls
+  SOURCES NodalControlsTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process)
+
+# Where nodes land when score picks the position itself (library double-click,
+# "create after this process", drops on a cable).
+score_add_test(test_integration_nodal_placement
+  SOURCES NodalPlacementTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_plugin_automation score_plugin_library
+          score_lib_process)
+
 score_add_test(test_integration_scenario_create
   SOURCES ScenarioCreateTest.cpp
   GUI

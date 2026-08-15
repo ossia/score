@@ -26,6 +26,11 @@ score_add_test(test_unit_process_model
   SOURCES ProcessModelTest.cpp
   PLUGINS score_lib_process score_lib_state score_lib_device)
 
+# Which ports a nodal-view node shows, and how it paginates its controls.
+score_add_test(test_unit_port_visibility
+  SOURCES PortVisibilityTest.cpp
+  PLUGINS score_lib_process score_lib_state score_lib_device)
+
 score_add_test(test_unit_curve_sample
   SOURCES CurveSampleTest.cpp
   PLUGINS score_plugin_curve)
