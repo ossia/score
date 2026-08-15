@@ -871,6 +871,16 @@ add_executable(ISFTester tests/ISFTester.cpp)
 target_link_libraries(ISFTester PRIVATE score_plugin_gfx)
 endif()
 
+# The capture corrections are pure maths, a struct layout and a cross-thread
+# slot: no GPU, no camera, no display. score_add_test only exists in a build
+# with testing enabled -- a deployment build does not define it at all, which
+# is a configure-time error rather than a skipped test.
+if(SCORE_TESTING)
+  score_add_test(CaptureAdjustTest
+    SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/tests/CaptureAdjustTest.cpp"
+    PLUGINS score_plugin_gfx)
+endif()
+
 if(SCORE_VIDEO_TESTER)
 add_executable(VideoTester tests/VideoTester.cpp)
 target_link_libraries(VideoTester PRIVATE score_plugin_gfx)
