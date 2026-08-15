@@ -2,99 +2,44 @@
 #include <score/graphics/widgets/QGraphicsCombo.hpp>
 #include <score/model/Skin.hpp>
 #include <score/tools/Cursor.hpp>
+#include <score/widgets/ComboBox.hpp>
 
 #include <ossia/detail/math.hpp>
 
 #include <QApplication>
+#include <QGraphicsProxyWidget>
+#include <QGraphicsScene>
+#include <QGraphicsSceneContextMenuEvent>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
+#include <QPointer>
 #include <QScreen>
+#include <QTimer>
+
+#include <memory>
+#include <utility>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::QGraphicsCombo);
 
 namespace score
 {
-/*
-struct SCORE_LIB_BASE_EXPORT ComboBoxWithEnter final : public QComboBox
-{
-  W_OBJECT(ComboBoxWithEnter)
-
-public:
-  ComboBoxWithEnter(QWidget* parent = nullptr) : QComboBox{parent} { }
-
-  void editingFinished() W_SIGNAL(editingFinished)
-
-private:
-  bool eventFilter(QObject* watched, QEvent* event) override
-  {
-    if (event->type() == QEvent::FocusOut)
-    {
-      editingFinished();
-    }
-
-    return false;
-  }
-
-  bool event(QEvent* event) override
-  {
-    auto res = QComboBox::event(event);
-    if (event->type() == QEvent::ShortcutOverride)
-    {
-      QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
-      switch (keyEvent->key())
-      {
-        case Qt::Key_Enter:
-        case Qt::Key_Return:
-        case Qt::Key_Escape:
-          editingFinished();
-        default:
-          break;
-      }
-    }
-    return res;
-  }
-
-  void focusInEvent(QFocusEvent* event) override
-  {
-    QComboBox::focusInEvent(event);
-  }
-
-  void focusOutEvent(QFocusEvent* event) override
-  {
-    dumpObjectTree();
-    auto lvs = findChildren<QListView*>();
-
-    if (!lvs.empty())
-    {
-      auto lv = lvs.front();
-      lv->installEventFilter(this);
-      QTimer::singleShot(2000, this, [this] {
-        auto lvs = findChildren<QListView*>();
-        if(!lvs.empty())
-        {
-          auto lv = lvs.front();
-          if (!lv->hasFocus())
-          {
-            editingFinished();
-          }
-        }
-      });
-    }
-    else
-    {
-      editingFinished();
-    }
-    QComboBox::focusOutEvent(event);
-  }
-};
-*/
-
 struct DefaultComboImpl
 {
+  static bool draggable(const QGraphicsCombo& self) noexcept
+  {
+    return self.array.size() > 1;
+  }
+
+  static int positionToIndex(const QGraphicsCombo& self, double v) noexcept
+  {
+    const int last = int(self.array.size()) - 1;
+    return std::clamp(int(std::round(v * last)), 0, last);
+  }
+
   static void mousePressEvent(QGraphicsCombo& self, QGraphicsSceneMouseEvent* event)
   {
-    if(event->button() == Qt::LeftButton)
+    if(event->button() == Qt::LeftButton && draggable(self))
     {
       self.m_grab = true;
       InfiniteScroller::start(self, double(self.m_value) / (self.array.size() - 1));
@@ -107,11 +52,10 @@ struct DefaultComboImpl
   {
     if((event->buttons() & Qt::LeftButton) && self.m_grab)
     {
-      double v = InfiniteScroller::move(event);
-      int curPos = std::round(v * (self.array.size() - 1));
+      int curPos = positionToIndex(self, InfiniteScroller::move(event));
       if(curPos != self.m_value)
       {
-        self.m_value = std::clamp(curPos, 0, int(self.array.size() - 1));
+        self.m_value = curPos;
         self.sliderMoved();
         self.update();
       }
@@ -125,11 +69,10 @@ struct DefaultComboImpl
     {
       if(self.m_grab)
       {
-        double v = InfiniteScroller::move(event);
-        int curPos = std::round(v * (self.array.size() - 1));
+        int curPos = positionToIndex(self, InfiniteScroller::move(event));
         if(curPos != self.m_value)
         {
-          self.m_value = std::clamp(curPos, 0, int(self.array.size() - 1));
+          self.m_value = curPos;
           self.update();
         }
         self.m_grab = false;
@@ -138,36 +81,8 @@ struct DefaultComboImpl
       self.sliderReleased();
     }
     else if(event->button() == Qt::RightButton)
-    { /*
-      QTimer::singleShot(0, [&, pos = event->scenePos()] {
-        auto w = new ComboBoxWithEnter;
-        w->addItems(self.array);
-        w->setCurrentIndex(self.m_value);
-
-        auto obj = self.scene()->addWidget(w, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
-        obj->setPos(pos);
-
-        QTimer::singleShot(0, w, [w] { w->setFocus(); });
-
-        QObject::connect(
-            w, SignalUtils::QComboBox_currentIndexChanged_int(), &self, [=, &self](int v) {
-              self.m_value = v;
-              self.sliderMoved();
-              self.update();
-            });
-
-        QObject::connect(w, &ComboBoxWithEnter::editingFinished, &self, [obj, &self]() mutable {
-          if (obj != nullptr)
-          {
-            self.sliderReleased();
-            QTimer::singleShot(0, obj, [scene = self.scene(), obj] {
-              scene->removeItem(obj);
-              delete obj;
-            });
-          }
-          obj = nullptr;
-        });
-      });*/
+    {
+      self.openEditor(event->scenePos());
     }
     event->accept();
   }
@@ -205,6 +120,8 @@ void QGraphicsCombo::setRect(const QRectF& r)
 
 void QGraphicsCombo::setValue(int v)
 {
+  if(array.empty())
+    return;
   m_value = ossia::clamp(v, 0, int(array.size() - 1));
   update();
 }
@@ -212,6 +129,103 @@ void QGraphicsCombo::setValue(int v)
 int QGraphicsCombo::value() const
 {
   return m_value;
+}
+
+void QGraphicsCombo::setEditable(bool b)
+{
+  m_editable = b;
+}
+
+void QGraphicsCombo::openEditor(QPointF scenePos)
+{
+  auto build = [self = QPointer{this}, scenePos] {
+    if(!self || !self->scene())
+      return;
+
+    auto& item = *self;
+    auto w = new ComboBoxWithEnter;
+    w->addItems(item.array);
+    w->setEditable(item.m_editable);
+    if(item.m_editable)
+      w->setInsertPolicy(QComboBox::NoInsert);
+    w->setCurrentIndex(item.m_value);
+
+    auto* scene = item.scene();
+    auto obj = scene->addWidget(w, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
+    obj->setPos(scenePos);
+
+#if defined(__EMSCRIPTEN__)
+    w->setFocus();
+    w->showPopup();
+#else
+    QTimer::singleShot(0, w, [w] {
+      w->setFocus();
+      w->showPopup();
+    });
+#endif
+
+    auto done = std::make_shared<bool>(false);
+    auto close = [done, proxy = QPointer{obj}] {
+      if(std::exchange(*done, true) || !proxy)
+        return;
+      QTimer::singleShot(0, proxy.data(), [proxy] {
+        if(!proxy)
+          return;
+        if(auto* sc = proxy->scene())
+          sc->removeItem(proxy);
+        delete proxy.data();
+      });
+    };
+
+    auto commit = [self](int idx) {
+      if(!self || idx < 0 || idx >= self->array.size())
+        return;
+      self->m_value = idx;
+      self->update();
+      self->sliderMoved();
+      self->sliderReleased();
+    };
+
+    QObject::connect(w, &QComboBox::activated, w, [done, commit, close](int idx) {
+      if(*done)
+        return;
+      commit(idx);
+      close();
+    });
+
+    QObject::connect(w, &ComboBoxWithEnter::editingCancelled, w, [done, close] {
+      if(*done)
+        return;
+      close();
+    });
+
+    QObject::connect(
+        w, &ComboBoxWithEnter::editingFinished, w, [self, done, commit, close, w] {
+      if(*done)
+        return;
+
+      if(self && self->m_editable)
+      {
+        const QString text = w->currentText();
+        if(const int idx = self->array.indexOf(text); idx >= 0)
+          commit(idx);
+        else if(!text.isEmpty())
+          self->valueEdited(text);
+      }
+      close();
+        });
+  };
+
+#if defined(__EMSCRIPTEN__)
+  build();
+#else
+  QTimer::singleShot(0, this, build);
+#endif
+}
+
+void QGraphicsCombo::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
+{
+  event->accept();
 }
 
 void QGraphicsCombo::mousePressEvent(QGraphicsSceneMouseEvent* event)
