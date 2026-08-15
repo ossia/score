@@ -16,20 +16,7 @@ extern "C" {
 #include <fcntl.h>
 #include <unistd.h>
 
-// libv4l2.h is sometimes not here...
-extern "C"
-{
-int v4l2_open(const char *file, int oflag, ...);
-int v4l2_close(int fd);
-int v4l2_dup(int fd);
-int v4l2_ioctl(int fd, unsigned long int request, ...);
-ssize_t v4l2_read(int fd, void *buffer, size_t n);
-ssize_t v4l2_write(int fd, const void *buffer, size_t n);
-void *v4l2_mmap(void *start, size_t length, int prot, int flags,
-		int fd, int64_t offset);
-int v4l2_munmap(void *_start, size_t length);
-}
-
+#include <Gfx/Graph/interop/V4L2Loader.hpp>
 #include <Gfx/Graph/interop/V4L2PixelFormat.hpp>
 #include <Gfx/Graph/interop/VideoPixelFormatAV.hpp>
 
@@ -88,33 +75,7 @@ AVPixelFormat ff_fmt_v4l2ff(uint32_t v4l2_fmt, AVCodecID codec_id)
   return toAVPixelFormat(chromaSwappedTwin(layout));
 }
 
-class libv4l2
-{
-public:
-  decltype(&::v4l2_ioctl) ioctl{};
-  decltype(&::v4l2_open) open{};
-  decltype(&::v4l2_close) close{};
-  static const libv4l2& instance()
-  {
-    static const libv4l2 self;
-    return self;
-  }
-
-private:
-  libv4l2()
-      : library("libv4l2.so.0")
-  {
-    open = library.symbol<decltype(&::v4l2_open)>("v4l2_open");
-    close = library.symbol<decltype(&::v4l2_close)>("v4l2_close");
-    ioctl = library.symbol<decltype(&::v4l2_ioctl)>("v4l2_ioctl");
-
-    assert(open);
-    assert(close);
-    assert(ioctl);
-  }
-
-  ossia::dylib_loader library;
-};
+using libv4l2 = score::gfx::v4l2::Libv4l2;
 
 static QString v4l2_pretty_name(const AVDeviceInfo& dev)
 {
