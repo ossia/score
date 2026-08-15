@@ -5,6 +5,8 @@
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
+#include <score/selection/Selection.hpp>
+#include <score/selection/SelectionStack.hpp>
 #include <score/tools/File.hpp>
 
 #include <core/command/CommandStack.hpp>
@@ -174,6 +176,33 @@ QVariantList EditJsContext::selectedObjects()
   for(auto& c : cur)
     list.push_back(QVariant::fromValue(c.data()));
   return list;
+}
+
+void EditJsContext::select(QObject* obj)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+
+  auto identified = qobject_cast<IdentifiedObjectAbstract*>(obj);
+  if(!identified)
+    doc->selectionStack.deselect();
+  else
+    doc->selectionStack.pushNewSelection(Selection{identified});
+}
+
+void EditJsContext::select(QVariantList objs)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+
+  Selection sel;
+  for(const auto& v : objs)
+    if(auto obj = qobject_cast<IdentifiedObjectAbstract*>(v.value<QObject*>()))
+      sel.append(obj);
+
+  doc->selectionStack.pushNewSelection(sel);
 }
 
 QObject* EditJsContext::documentPlugin(QString key)
