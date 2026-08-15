@@ -33,7 +33,6 @@
 
 Q_DECLARE_METATYPE(ossia::net::tags)
 W_OBJECT_IMPL(Explorer::AddressItemModel)
-W_OBJECT_IMPL(Explorer::AddressValueWidget)
 
 namespace Explorer
 {
@@ -265,7 +264,6 @@ QVariant AddressItemModel::valueColumnData(const State::Value& val, int role) co
   {
     if(ossia::is_array(val))
     {
-      // TODO a nice editor for lists.
       return State::convert::toPrettyString(val);
     }
     else
@@ -615,249 +613,6 @@ void AddressItemDelegate::paint(
   QStyledItemDelegate::paint(painter, option, index);
 }
 
-class SliderValueWidget final : public AddressValueWidget
-{
-public:
-  SliderValueWidget(int min, int max, QWidget* parent)
-      : AddressValueWidget{parent}
-      , m_slider{this}
-  {
-    m_slider.setOrientation(Qt::Horizontal);
-    m_slider.setRange(min, max, min); // FIXME
-    m_edit.setRange(min, max);
-
-    m_slider.setContentsMargins(0, 0, 0, 0);
-    m_edit.setContentsMargins(0, 0, 0, 0);
-    this->setFocusProxy(&m_edit);
-
-    connect(&m_slider, &score::IntSlider::valueChanged, this, [this](int v) {
-      m_edit.setValue(v);
-    });
-
-    connect(&m_edit, SignalUtils::QSpinBox_valueChanged_int(), this, [this](int v) {
-      m_slider.setValue(v);
-    });
-
-    m_lay.addWidget(&m_slider);
-    m_lay.addWidget(&m_edit);
-  }
-
-  ossia::value get() const override { return m_slider.value(); }
-
-  void set(ossia::value t) override { m_slider.setValue(ossia::convert<int>(t)); }
-
-private:
-  score::MarginLess<QHBoxLayout> m_lay{this};
-  score::IntSlider m_slider;
-  QSpinBox m_edit;
-};
-
-class DoubleSliderValueWidget final : public AddressValueWidget
-{
-public:
-  DoubleSliderValueWidget(double min, double max, QWidget* parent)
-      : AddressValueWidget{parent}
-      , m_slider{this}
-  {
-    m_slider.setOrientation(Qt::Horizontal);
-    m_edit.setRange(min, max);
-
-    m_slider.setContentsMargins(0, 0, 0, 0);
-    m_edit.setContentsMargins(0, 0, 0, 0);
-    this->setFocusProxy(&m_edit);
-
-    connect(
-        &m_slider, &score::DoubleSlider::valueChanged, this,
-        [this, min, max](double v) { m_edit.setValue(min + v * (max - min)); });
-
-    connect(
-        &m_edit, SignalUtils::QDoubleSpinBox_valueChanged_double(), this,
-        [this, min, max](double v) { m_slider.setValue((v - min) / (max - min)); });
-
-    m_lay.addWidget(&m_slider);
-    m_lay.addWidget(&m_edit);
-  }
-
-  ossia::value get() const override { return m_edit.value(); }
-
-  void set(ossia::value t) override { m_edit.setValue(ossia::convert<float>(t)); }
-
-private:
-  score::MarginLess<QHBoxLayout> m_lay{this};
-  score::DoubleSlider m_slider;
-  QDoubleSpinBox m_edit;
-};
-
-class ComboValueWidget final : public AddressValueWidget
-{
-public:
-  ComboValueWidget(std::vector<ossia::value> values, QWidget* parent)
-      : AddressValueWidget{parent}
-      , m_values{std::move(values)}
-  {
-    m_edit.setContentsMargins(0, 0, 0, 0);
-    this->setFocusProxy(&m_edit);
-    m_lay.addWidget(&m_edit);
-
-    for(auto& v : m_values)
-    {
-      m_edit.addItem(State::convert::toPrettyString(v));
-    }
-  }
-
-  ossia::value get() const override
-  {
-    int idx = m_edit.currentIndex();
-    if(idx < 0)
-      return {};
-    if(idx >= std::ssize(m_values))
-      return {};
-    return m_values[idx];
-  }
-
-  void set(ossia::value t) override
-  {
-    int idx = ossia::index_in_container(m_values, t);
-    if(idx == -1)
-      return;
-    m_edit.setCurrentIndex(idx);
-  }
-
-private:
-  score::MarginLess<QHBoxLayout> m_lay{this};
-  QComboBox m_edit;
-  std::vector<ossia::value> m_values;
-};
-
-class ListValueWidget final : public AddressValueWidget
-{
-public:
-  ListValueWidget(QWidget* parent)
-      : AddressValueWidget{parent}
-  {
-    m_edit.setContentsMargins(0, 0, 0, 0);
-    this->setFocusProxy(&m_edit);
-    m_lay.addWidget(&m_edit);
-  }
-
-  ossia::value get() const override
-  {
-    auto val = State::parseValue(m_edit.text().toStdString());
-    if(val)
-      return *val;
-    return std::vector<ossia::value>{};
-  }
-
-  void set(ossia::value t) override
-  {
-    m_edit.setText(State::convert::toPrettyString(t));
-  }
-
-private:
-  score::MarginLess<QHBoxLayout> m_lay{this};
-  QLineEdit m_edit;
-};
-
-struct make_unit
-{
-  template <typename T>
-  AddressValueWidget* operator()(T unit)
-  {
-    return nullptr;
-  }
-
-  AddressValueWidget* operator()() { return nullptr; }
-};
-struct make_dataspace
-{
-  template <typename T>
-  AddressValueWidget* operator()(T ds)
-  {
-    return ossia::apply(make_unit{}, ds);
-  }
-  AddressValueWidget* operator()(ossia::color_u ds)
-  {
-    auto res = ossia::apply(make_unit{}, ds);
-    if(!res)
-      return nullptr; // TODO generic colorpicker
-    return res;
-  }
-  AddressValueWidget* operator()(ossia::position_u ds)
-  {
-    auto res = ossia::apply(make_unit{}, ds);
-    if(!res)
-      return nullptr; // TODO generic position chooser if vec2f ?
-    return res;
-  }
-
-  AddressValueWidget* operator()() { return nullptr; }
-};
-
-AddressValueWidget* make_value_widget(Device::FullAddressSettings addr, QWidget* parent)
-{
-  if(auto widg = ossia::apply(make_dataspace{}, addr.unit.get().v))
-    return widg;
-
-  auto& dom = addr.domain.get();
-  auto min = dom.get_min(), max = dom.get_max();
-  auto vals = ossia::get_values(dom);
-
-  if(!vals.empty())
-  {
-    return new ComboValueWidget{std::move(vals), parent};
-  }
-  else if(min.valid() && max.valid() && addr.value.valid())
-  {
-    switch(addr.value.get_type())
-    {
-      case ossia::val_type::FLOAT:
-        return new DoubleSliderValueWidget{
-            ossia::convert<float>(min), ossia::convert<float>(max), parent};
-      case ossia::val_type::INT:
-        return new SliderValueWidget{
-            ossia::convert<int>(min), ossia::convert<int>(max), parent};
-      default:
-        break;
-    }
-  }
-
-  switch(addr.value.get_type())
-  {
-    case ossia::val_type::LIST:
-      return new ListValueWidget{parent};
-    default:
-      break;
-  }
-
-  return nullptr;
-}
-
-AddressValueWidget* make_min_widget(Device::FullAddressSettings addr, QWidget* parent)
-{
-  switch(addr.value.get_type())
-  {
-    case ossia::val_type::LIST:
-      return new ListValueWidget{parent};
-    default:
-      break;
-  }
-
-  return nullptr;
-}
-
-AddressValueWidget* make_max_widget(Device::FullAddressSettings addr, QWidget* parent)
-{
-  switch(addr.value.get_type())
-  {
-    case ossia::val_type::LIST:
-      return new ListValueWidget{parent};
-    default:
-      break;
-  }
-
-  return nullptr;
-}
-
 QWidget* AddressItemDelegate::createEditor(
     QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const
 {
@@ -888,25 +643,27 @@ QWidget* AddressItemDelegate::createEditor(
       return t;
     }
     case AddressItemModel::Rows::Value: {
-      auto t = make_value_widget(model->settings(), parent);
-      if(t)
+      if(auto t = make_value_widget(model->settings(), parent))
+      {
+        if(t->commitsImmediately())
+        {
+          auto* self = const_cast<AddressItemDelegate*>(this);
+          connect(t, &AddressValueWidget::changed, self, [self, t](const ossia::value&) {
+            self->commitData(t);
+          });
+        }
         return t;
-      else
-        break;
+      }
+      break;
     }
-    case AddressItemModel::Rows::Min: {
-      auto t = make_min_widget(model->settings(), parent);
-      if(t)
-        return t;
-      else
-        break;
-    }
+    case AddressItemModel::Rows::Min:
     case AddressItemModel::Rows::Max: {
-      auto t = make_max_widget(model->settings(), parent);
-      if(t)
+      if(auto t = make_bound_widget(model->settings(), parent))
         return t;
-      else
-        break;
+      break;
+    }
+    case AddressItemModel::Rows::Values: {
+      return make_values_widget(model->settings(), parent);
     }
   }
 
@@ -965,7 +722,8 @@ void AddressItemDelegate::setEditorData(QWidget* editor, const QModelIndex& inde
     }
     case AddressItemModel::Rows::Value:
     case AddressItemModel::Rows::Min:
-    case AddressItemModel::Rows::Max: {
+    case AddressItemModel::Rows::Max:
+    case AddressItemModel::Rows::Values: {
       if(auto cb = qobject_cast<AddressValueWidget*>(editor))
       {
         auto cur = index.data(Qt::EditRole).value<ossia::value>();
@@ -1019,7 +777,8 @@ void AddressItemDelegate::setModelData(
     }
     case AddressItemModel::Rows::Value:
     case AddressItemModel::Rows::Min:
-    case AddressItemModel::Rows::Max: {
+    case AddressItemModel::Rows::Max:
+    case AddressItemModel::Rows::Values: {
       if(auto cb = qobject_cast<AddressValueWidget*>(editor))
       {
         model->setData(index, QVariant::fromValue(cb->get()), Qt::EditRole);

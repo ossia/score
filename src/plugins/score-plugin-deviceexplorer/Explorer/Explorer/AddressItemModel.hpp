@@ -1,6 +1,8 @@
 #pragma once
 #include <State/Widgets/Values/TypeComboBox.hpp>
 
+#include <Explorer/Explorer/ValueEditors.hpp>
+
 #include <Device/Address/AddressSettings.hpp>
 
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
@@ -30,7 +32,8 @@ class DeviceExplorerModel;
  * * Tags
  * * Extended attributes
  */
-class AddressItemModel final : public QAbstractItemModel
+class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddressItemModel final
+    : public QAbstractItemModel
 {
   W_OBJECT(AddressItemModel)
 public:
@@ -68,6 +71,7 @@ public:
   QVariant data(const QModelIndex& index, int role) const override;
 
 private:
+  void pushedValue(const State::Address& addr, const ossia::value& v);
   int extendedCount() const noexcept;
   QPointer<DeviceExplorerModel> m_model;
   Device::NodePath m_path;
@@ -92,15 +96,4 @@ private:
       const override;
 };
 
-class AddressValueWidget : public QWidget
-{
-  W_OBJECT(AddressValueWidget)
-public:
-  using QWidget::QWidget;
-  virtual ossia::value get() const = 0;
-  virtual void set(ossia::value t) = 0;
-
-public:
-  void changed(ossia::value arg_1) W_SIGNAL(changed, arg_1);
-};
 }
