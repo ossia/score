@@ -27,6 +27,7 @@ public:
 private:
   int m_value{};
   bool m_grab{};
+  bool m_editable{};
 
 public:
   template <std::size_t N>
@@ -54,11 +55,22 @@ public:
   void setValue(int v);
   int value() const;
 
+  //! Whether a value that is not in the list may be entered.
+  void setEditable(bool b);
+  bool editable() const noexcept { return m_editable; }
+
+  //! Show the drop-down at that position in scene coordinates.
+  void openEditor(QPointF scenePos);
+
   bool moving = false;
 
   void sliderMoved() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved)
   void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
 
+  //! Text matching none of the entries; only sent when editable().
+  void valueEdited(const QString& text) E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueEdited, text)
+
+  void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;

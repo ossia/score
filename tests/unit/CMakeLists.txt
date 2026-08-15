@@ -16,6 +16,12 @@ score_add_test(test_unit_port_factory_reuse
   APP
   PLUGINS score_lib_process)
 
+# Graphics-view combo box: drop-down editor and free-value entry.
+score_add_test(test_unit_graphics_combo
+  SOURCES GraphicsComboTest.cpp
+  APP
+  LIBS ${QT_PREFIX}::Test)
+
 # Device explorer tree conversion: which ossia parameters become editable
 # Device::Node values (regression #2204: audio gains).
 score_add_test(test_unit_device_explorer_node

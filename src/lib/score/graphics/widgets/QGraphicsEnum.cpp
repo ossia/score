@@ -62,7 +62,9 @@ void QGraphicsEnum::setOneLineRect() { }
 void QGraphicsEnum::setValue(int32_t v)
 {
   const int32_t sz = std::ssize(array);
-  SCORE_ASSERT(sz > 0);
+  if(sz <= 0)
+    return;
+
   m_value = ossia::clamp(v, 0, sz - 1);
   update();
 }
