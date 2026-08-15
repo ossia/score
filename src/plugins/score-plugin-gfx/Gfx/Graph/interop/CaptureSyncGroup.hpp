@@ -103,7 +103,13 @@ public:
   /// Depth of the published history. A pinned set must survive while the
   /// producer keeps publishing, so this bounds how far the render thread may
   /// lag before the set it pinned is overwritten underneath it.
-  static constexpr std::size_t kDepth = 4;
+  ///
+  /// Sized to kMaxReturnableSlot rather than to the render latency, because the
+  /// ring is also what releaseSkipped() reads to give back a capture nobody
+  /// bound. A member cannot lend a slot it has not got back, and it has at most
+  /// that many slots, so an unreturned capture is always still resident and no
+  /// slot can be stranded by the producer simply outrunning the renderer.
+  static constexpr std::size_t kDepth = 32;
 
   explicit CaptureSyncGroup(std::size_t memberCount) noexcept
       : m_members{
@@ -211,6 +217,7 @@ public:
       m_pinnedIsNew = m_pinnedGen != 0 && m_pinnedGen != m_lastHandedOut;
       if(m_pinnedIsNew)
       {
+        releaseSkipped();
         queueRetire();
         m_lastHandedOut = m_pinnedGen;
         for(std::size_t i = 0; i < m_members; ++i)
@@ -270,6 +277,14 @@ public:
   {
     return m_maxSkewNs.load(std::memory_order_relaxed);
   }
+  /// Captures whose slots could not be given back because the producer had
+  /// already overwritten their ring entry. Each one is a buffer the device will
+  /// never see again, so anything above zero means the rig is on its way to
+  /// starving and the depth is wrong for this producer.
+  std::uint64_t strandedCount() const noexcept
+  {
+    return m_stranded.load(std::memory_order_relaxed);
+  }
 
 private:
   /// takeReturned()'s mask width. A slot index at or above this cannot be
@@ -294,6 +309,58 @@ private:
     m_pinnedSet = e.set;
     std::atomic_thread_fence(std::memory_order_acquire);
     return e.seq.load(std::memory_order_acquire) == m_pinnedGen;
+  }
+
+  /// Render thread. Captures published between the one we last bound and the
+  /// one just pinned were never handed to anybody: take() only ever serves the
+  /// newest complete set, so once a newer one exists they can no longer be
+  /// chosen. Their slots are still on loan with nothing left to release them,
+  /// which drains the producer's queue a frame at a time until it stalls.
+  ///
+  /// Released outright rather than retired: retirement waits for the GPU to
+  /// finish with a texture, and no member ever bound these.
+  void releaseSkipped() noexcept
+  {
+    for(std::uint64_t gen = m_lastHandedOut + 1; gen < m_pinnedGen; ++gen)
+    {
+      // The producer has overwritten anything older than the ring; kDepth is
+      // sized so that cannot happen to a capture whose slots are still out, but
+      // count it rather than release slots read out of an entry that now
+      // describes a different capture.
+      if(m_pinnedGen - gen >= kDepth)
+      {
+        m_stranded.fetch_add(1, std::memory_order_relaxed);
+        continue;
+      }
+
+      const auto& e = m_ring[gen % kDepth];
+      if(e.seq.load(std::memory_order_acquire) != gen)
+      {
+        m_stranded.fetch_add(1, std::memory_order_relaxed);
+        continue;
+      }
+      const CaptureFrameSet s = e.set;
+      std::atomic_thread_fence(std::memory_order_acquire);
+      if(e.seq.load(std::memory_order_acquire) != gen)
+      {
+        m_stranded.fetch_add(1, std::memory_order_relaxed);
+        continue;
+      }
+
+      for(std::size_t m = 0; m < m_members; ++m)
+      {
+        const int slot = s.slot[m];
+        if(slot < 0 || slot >= int(kMaxReturnableSlot))
+          continue;
+        // The capture being bound may name the same slot -- a producer that
+        // recycles indices rather than lending the device's own buffers does
+        // exactly that -- and releasing it would hand back the frame about to
+        // be drawn.
+        if(slot == m_pinnedSet.slot[m])
+          continue;
+        m_returns[m].fetch_or(1u << unsigned(slot), std::memory_order_release);
+      }
+    }
   }
 
   /// Render thread. The capture we were holding is no longer bound, but the GPU
@@ -356,6 +423,7 @@ private:
 
   std::atomic<std::uint64_t> m_incomplete{0};
   std::atomic<std::uint64_t> m_lapped{0};
+  std::atomic<std::uint64_t> m_stranded{0};
   std::atomic<std::uint64_t> m_maxSkewNs{0};
   std::atomic<std::uint32_t> m_returns[CaptureFrameSet::kMaxMembers]{};
 
