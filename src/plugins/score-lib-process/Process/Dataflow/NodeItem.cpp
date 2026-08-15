@@ -2,6 +2,7 @@
 #include <Process/Dataflow/NodeItem.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/PortItem.hpp>
+#include <Process/Dataflow/PortVisibility.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessFactory.hpp>
@@ -25,6 +26,8 @@
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/selection/SelectionStack.hpp>
 #include <score/tools/Bind.hpp>
+
+#include <ossia/detail/ssize.hpp>
 
 #include <ossia-qt/invoke.hpp>
 
@@ -99,7 +102,7 @@ void NodeItem::createWithDecorations()
   auto& process = m_model;
   auto& ctx = m_context;
 
-  m_folded = (process.inlets().size() > 32);
+  m_folded = (std::ssize(process.inlets()) > Process::MaxUnpaginatedControls);
 
   // Title
   const auto& pixmaps = Process::Pixmaps::instance();
@@ -566,8 +569,7 @@ void NodeItem::setupItem(score::ResizeableItem* resizeable)
   m_contentSize = QSizeF{w, h};
 
   resizeAsync();
-  if(m_model.size() != m_contentSize && !m_folded)
-    const_cast<Process::ProcessModel&>(m_model).setSize(m_contentSize);
+  publishSize();
 
   if(resizeable)
   {
@@ -704,10 +706,26 @@ void NodeItem::updateSize()
     }
     updateTitlePos();
     updateContentRect();
+    publishSize();
     update();
     if(auto sc = this->scene())
       sc->update();
   }
+}
+
+void NodeItem::publishSize()
+{
+  // Node placement (e.g. creating a process after another one) reads the size
+  // off the model: keep it in sync with what is actually drawn. A folded node
+  // must not overwrite the unfolded size it will go back to.
+  if(m_folded)
+    return;
+  if(m_model.flags() & Process::ProcessFlags::FullyCustomItem)
+    return;
+  if(m_model.size() == m_contentSize)
+    return;
+
+  const_cast<Process::ProcessModel&>(m_model).setSize(m_contentSize);
 }
 
 void NodeItem::setSize(QSizeF sz)

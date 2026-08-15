@@ -12,7 +12,10 @@
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/graphics/TextItem.hpp>
 #include <score/graphics/layouts/GraphicsGridLayout.hpp>
+#include <score/graphics/widgets/QGraphicsPixmapButton.hpp>
+#include <score/model/Skin.hpp>
 #include <score/tools/Bind.hpp>
+#include <score/widgets/Pixmap.hpp>
 
 #include <ossia/detail/ssize.hpp>
 
@@ -21,6 +24,15 @@
 #include <QGraphicsScene>
 namespace Process
 {
+static const constexpr qreal PagerHeight = 13.;
+static const constexpr qreal PagerSpacing = 3.;
+
+//! Leading non-control inlets get a column of their own once there are enough
+//! of them; below that they share the control grid.
+static bool hasOwnInletColumn(int leadingInlets) noexcept
+{
+  return leadingInlets >= Process::ControlsPerColumn;
+}
 
 DefaultEffectItem::DefaultEffectItem(
     bool onlyUndisplayed, const Process::ProcessModel& effect,
@@ -67,8 +79,134 @@ void DefaultEffectItem::reset()
   m_layout = nullptr;
   m_allLayouts.clear();
 
+  delete m_pager;
+  m_pager = nullptr;
+
   m_needRecreate = true;
   ossia::qt::run_async(this, &DefaultEffectItem::recreate);
+}
+
+DefaultEffectItem::PortsToDisplay DefaultEffectItem::computeDisplayedPorts() const
+{
+  PortsToDisplay res;
+
+  // Folded, the node shows its routing: everything that is not a control, plus
+  // the controls that take part in the patch.
+  // Unfolded, the controls keep their declaration order and are walked through
+  // one page at a time. A cable landing on a control that is not on the current
+  // page is simply not drawn, as with the tabbed layouts.
+  int controlCount = 0;
+  int gridOffset = 0;
+  if(!m_onlyUndisplayed)
+  {
+    for(Process::Inlet* e : m_effect.inlets())
+      controlCount += Process::isControlPort(*e);
+    for(Process::Outlet* e : m_effect.outlets())
+      controlCount += Process::isControlPort(*e);
+
+    // The leading non-control inlets are laid out in the same grid as the
+    // controls unless there are enough of them for their own column: they take
+    // up the first slots and shift where the columns end.
+    int leading = 0;
+    for(Process::Inlet* e : m_effect.inlets())
+    {
+      if(Process::isControlPort(*e))
+        break;
+      leading++;
+    }
+    if(!hasOwnInletColumn(leading))
+      gridOffset = leading;
+  }
+
+  res.page = Process::nodeControlPage(controlCount, m_page, gridOffset);
+
+  int controlIndex = 0;
+  const auto take = [&](const Process::Port& p) {
+    if(m_onlyUndisplayed)
+      return Process::isVisibleWhenFolded(p);
+    if(!Process::isControlPort(p))
+      return true;
+    const int idx = controlIndex++;
+    return idx >= res.page.first && idx < res.page.last;
+  };
+
+  for(Process::Inlet* e : m_effect.inlets())
+    if(take(*e))
+      res.inlets.push_back(e);
+  for(Process::Outlet* e : m_effect.outlets())
+    if(take(*e))
+      res.outlets.push_back(e);
+
+  for(Process::Inlet* e : res.inlets)
+  {
+    if(Process::isControlPort(*e))
+      break;
+    res.leadingInlets++;
+  }
+
+  return res;
+}
+
+void DefaultEffectItem::updateDisplayedPorts()
+{
+  auto ports = computeDisplayedPorts();
+
+  m_shownInlets = std::move(ports.inlets);
+  m_shownOutlets = std::move(ports.outlets);
+  m_leadingInlets = ports.leadingInlets;
+  m_controlPage = ports.page;
+  m_page = m_controlPage.page;
+
+  if(m_onlyUndisplayed)
+  {
+    // Only the folded display depends on how the controls are wired up.
+    const auto follow = [this](Process::Port& p) {
+      if(!Process::isControlPort(p))
+        return;
+      QObject::connect(
+          &p, &Process::Port::cablesChanged, this,
+          &DefaultEffectItem::onPortWiringChanged, Qt::UniqueConnection);
+      QObject::connect(
+          &p, &Process::Port::addressChanged, this,
+          &DefaultEffectItem::onPortWiringChanged, Qt::UniqueConnection);
+    };
+    for(Process::Inlet* e : m_effect.inlets())
+      follow(*e);
+    for(Process::Outlet* e : m_effect.outlets())
+      follow(*e);
+  }
+}
+
+void DefaultEffectItem::onPortWiringChanged()
+{
+  // Port::cablesChanged is emitted from inside the drop that creates the cable,
+  // while the event is still being delivered to the port item: rebuilding here
+  // would delete that very item under the caller's feet. Do it once the drop is
+  // over, and only when the change actually shows.
+  // One check per batch: loading a document wires up every port in a row.
+  if(m_wiringCheckPending)
+    return;
+  m_wiringCheckPending = true;
+
+  ossia::qt::run_async(this, [this] {
+    m_wiringCheckPending = false;
+    auto ports = computeDisplayedPorts();
+    if(ports.inlets != m_shownInlets || ports.outlets != m_shownOutlets)
+      reset();
+  });
+}
+
+template <typename Port_T>
+Process::ControlLayout
+DefaultEffectItem::makeItem(Process::LayoutBuilderBase& b, Port_T& port)
+{
+  if(!m_onlyUndisplayed)
+    return b.makePort(port);
+
+  // Folded: the routing only, no control widget
+  if(auto* f = b.portFactory.get(port.concreteKey()))
+    return f->makeLabelItem(port, m_ctx, b.layout, this);
+  return {};
 }
 
 void DefaultEffectItem::recreate()
@@ -77,43 +215,32 @@ void DefaultEffectItem::recreate()
     return;
   m_needRecreate = false;
 
-  int n_i = m_effect.inlets().size();
-  int n_o = m_effect.outlets().size();
-  int num_hidden = 0;
-  for(auto& e : m_effect.inlets())
-  {
-    if(!e->displayHandledExplicitly)
-      num_hidden++;
-    else
-      break;
-  }
+  updateDisplayedPorts();
 
-  if(!m_onlyUndisplayed)
+  const bool has_i = !m_shownInlets.empty();
+  const bool has_o = !m_shownOutlets.empty();
+
+  if(has_i && has_o)
+    recreate_both();
+  else if(has_i)
   {
-    if(n_i > 0 && n_o > 0)
-      recreate_full_both(num_hidden);
-    else if(n_i > 0 && n_o == 0)
-    {
-      if(num_hidden > 5)
-        recreate_full_both(num_hidden);
-      else
-        recreate_full_onlyInlets();
-    }
-    else if(n_i == 0 && n_o > 0)
-      recreate_full_onlyOutlets();
+    // A long column of message inlets reads better next to the control grid
+    // than merged into it.
+    if(m_leadingInlets > 5)
+      recreate_both();
+    else
+      recreate_onlyInlets();
   }
-  else
-  {
-    if(n_i > 0 && n_o > 0)
-      recreate_fold_both();
-    else if(n_i > 0 && n_o == 0)
-      recreate_fold_onlyInlets();
-    else if(n_i == 0 && n_o > 0)
-      recreate_fold_onlyOutlets();
-  }
+  else if(has_o)
+    recreate_onlyOutlets();
+
+  if(m_controlPage.paginated())
+    createPager();
+
+  updateRect();
 }
 
-void DefaultEffectItem::recreate_full_onlyInlets()
+void DefaultEffectItem::recreate_onlyInlets()
 {
   auto& portFactory = m_ctx.app.interfaces<Process::PortFactoryList>();
 
@@ -123,27 +250,24 @@ void DefaultEffectItem::recreate_full_onlyInlets()
                       portFactory, m_effect.inlets(), m_effect.outlets(),
                       m_layout,    {m_layout}};
 
-  for(auto& e : m_effect.inlets())
+  for(Process::Inlet* e : m_shownInlets)
   {
     SCORE_ASSERT(e->parent());
-    {
-      auto item = b.makePort(*e);
-      SCORE_SOFT_ASSERT(item.container);
+    auto item = makeItem(b, *e);
+    SCORE_SOFT_ASSERT(item.container);
+    if(item.container)
       item.container->setParentItem(m_layout);
-      if(auto inlet = qobject_cast<Process::ControlInlet*>(e))
-        con(*inlet, &Process::ControlInlet::domainChanged, this,
-            &DefaultEffectItem::reset, Qt::UniqueConnection);
-    }
+    if(auto inlet = qobject_cast<Process::ControlInlet*>(e))
+      con(*inlet, &Process::ControlInlet::domainChanged, this,
+          &DefaultEffectItem::reset, Qt::UniqueConnection);
   }
 
   auto& lay = *m_layout;
   lay.layout();
   lay.fitChildrenRect();
-
-  this->setRect(m_layout->rect());
 }
 
-void DefaultEffectItem::recreate_full_onlyOutlets()
+void DefaultEffectItem::recreate_onlyOutlets()
 {
   auto& portFactory = m_ctx.app.interfaces<Process::PortFactoryList>();
 
@@ -153,28 +277,25 @@ void DefaultEffectItem::recreate_full_onlyOutlets()
                       portFactory, m_effect.inlets(), m_effect.outlets(),
                       m_layout,    {m_layout}};
 
-  for(auto& e : m_effect.outlets())
+  for(Process::Outlet* e : m_shownOutlets)
   {
     SCORE_ASSERT(e->parent());
-    {
-      auto item = b.makePort(*e);
-      SCORE_SOFT_ASSERT(item.container);
+    auto item = makeItem(b, *e);
+    SCORE_SOFT_ASSERT(item.container);
+    if(item.container)
       item.container->setParentItem(m_layout);
 
-      if(auto outlet = qobject_cast<Process::ControlOutlet*>(e))
-        con(*outlet, &Process::ControlOutlet::domainChanged, this,
-            &DefaultEffectItem::reset, Qt::UniqueConnection);
-    }
+    if(auto outlet = qobject_cast<Process::ControlOutlet*>(e))
+      con(*outlet, &Process::ControlOutlet::domainChanged, this,
+          &DefaultEffectItem::reset, Qt::UniqueConnection);
   }
 
   auto& lay = *m_layout;
   lay.layout();
   lay.fitChildrenRect();
-
-  this->setRect(m_layout->rect());
 }
 
-void DefaultEffectItem::recreate_full_both(int num_hidden)
+void DefaultEffectItem::recreate_both()
 {
   auto& portFactory = m_ctx.app.interfaces<Process::PortFactoryList>();
 
@@ -187,71 +308,60 @@ void DefaultEffectItem::recreate_full_both(int num_hidden)
                       portFactory, m_effect.inlets(), m_effect.outlets(),
                       m_layout,    {m_layout}};
 
-  if(num_hidden >= 5)
+  const int split = hasOwnInletColumn(m_leadingInlets) ? m_leadingInlets : 0;
+
+  if(split > 0)
   {
     auto inlet_layout = new score::GraphicsDefaultInletLayout{m_layout};
     m_allLayouts.push_back(inlet_layout);
-    for(int i = 0; i < num_hidden; i++)
+    for(int i = 0; i < split; i++)
     {
-      auto& e = *m_effect.inlets()[i];
-      auto item = b.makePort(e);
+      auto item = makeItem(b, *m_shownInlets[i]);
       SCORE_SOFT_ASSERT(item.container);
-      item.container->setParentItem(inlet_layout);
+      if(item.container)
+        item.container->setParentItem(inlet_layout);
     }
     inlet_layout->layout();
     inlet_layout->fitChildrenRect();
+  }
 
+  // Folding can leave nothing but the split-off column: no empty layout then,
+  // GraphicsIORootLayout lays out by child count.
+  if(std::ssize(m_shownInlets) > split)
+  {
     auto control_layout = new score::GraphicsDefaultLayout{m_layout};
     m_allLayouts.push_back(control_layout);
-    for(int i = num_hidden; i < m_effect.inlets().size(); i++)
+    for(int i = split, n = std::ssize(m_shownInlets); i < n; i++)
     {
-      auto& e = *m_effect.inlets()[i];
-      auto item = b.makePort(e);
+      auto* e = m_shownInlets[i];
+      SCORE_ASSERT(e->parent());
+      auto item = makeItem(b, *e);
       SCORE_SOFT_ASSERT(item.container);
-      item.container->setParentItem(control_layout);
-      if(auto inlet = qobject_cast<Process::ControlInlet*>(&e))
+      if(item.container)
+        item.container->setParentItem(control_layout);
+      if(auto inlet = qobject_cast<Process::ControlInlet*>(e))
         con(*inlet, &Process::ControlInlet::domainChanged, this,
             &DefaultEffectItem::reset, Qt::UniqueConnection);
     }
     control_layout->layout();
     control_layout->fitChildrenRect();
   }
-  else
-  {
-    auto inlet_layout = new score::GraphicsDefaultLayout{m_layout};
-    m_allLayouts.push_back(inlet_layout);
-    for(auto& e : m_effect.inlets())
-    {
-      SCORE_ASSERT(e->parent());
-      {
-        auto item = b.makePort(*e);
-        SCORE_SOFT_ASSERT(item.container);
-        item.container->setParentItem(inlet_layout);
-        if(auto inlet = qobject_cast<Process::ControlInlet*>(e))
-          con(*inlet, &Process::ControlInlet::domainChanged, this,
-              &DefaultEffectItem::reset, Qt::UniqueConnection);
-      }
-    }
-    inlet_layout->layout();
-    inlet_layout->fitChildrenRect();
-  }
 
-  if(!m_effect.outlets().empty())
+  if(!m_shownOutlets.empty())
   {
     auto outlet_layout = new score::GraphicsDefaultOutletLayout{m_layout};
     m_allLayouts.push_back(outlet_layout);
-    for(auto& e : m_effect.outlets())
+    for(Process::Outlet* e : m_shownOutlets)
     {
       SCORE_ASSERT(e->parent());
-      {
-        auto item = b.makePort(*e);
-        SCORE_SOFT_ASSERT(item.container);
+      auto item = makeItem(b, *e);
+      SCORE_SOFT_ASSERT(item.container);
+      if(item.container)
         item.container->setParentItem(outlet_layout);
 
-        if(auto outlet = qobject_cast<Process::ControlOutlet*>(e))
-          con(*outlet, &Process::ControlOutlet::domainChanged, this,
-              &DefaultEffectItem::reset, Qt::UniqueConnection);
-      }
+      if(auto outlet = qobject_cast<Process::ControlOutlet*>(e))
+        con(*outlet, &Process::ControlOutlet::domainChanged, this,
+            &DefaultEffectItem::reset, Qt::UniqueConnection);
     }
     outlet_layout->layout();
     outlet_layout->fitChildrenRect();
@@ -262,117 +372,70 @@ void DefaultEffectItem::recreate_full_both(int num_hidden)
 
   lay.setRect(lay.childrenBoundingRect());
   lay.fitChildrenRect();
-
-  this->setRect(m_layout->rect());
 }
 
-void DefaultEffectItem::recreate_fold_onlyInlets()
+void DefaultEffectItem::createPager()
 {
-  auto& portFactory = m_ctx.app.interfaces<Process::PortFactoryList>();
+  // Dimmed at rest, accented while pressed: the pager is chrome, the controls
+  // above it are what the node is about.
+  static const auto prev_on = score::get_pixmap(":/icons/arrow_left_on.png");
+  static const auto prev_off = score::get_pixmap(":/icons/arrow_left_disabled.png");
+  static const auto next_on = score::get_pixmap(":/icons/arrow_right_on.png");
+  static const auto next_off = score::get_pixmap(":/icons/arrow_right_disabled.png");
 
-  m_layout = new score::GraphicsDefaultInletLayout{this};
-  m_allLayouts.push_back(m_layout);
-  LayoutBuilderBase b{*this,       m_effect,          m_ctx,
-                      portFactory, m_effect.inlets(), m_effect.outlets(),
-                      m_layout,    {m_layout}};
+  m_pager = new score::EmptyRectItem{this};
 
-  for(auto& e : m_effect.inlets())
-  {
-    SCORE_ASSERT(e->parent());
-    //if(!e->displayHandledExplicitly)
-    if(auto* f = portFactory.get(e->concreteKey()))
-    {
-      auto item = f->makeLabelItem(*e, m_ctx, m_layout, this);
-      SCORE_SOFT_ASSERT(item.container);
-      item.container->setParentItem(m_layout);
-    }
-  }
+  auto prev = new score::QGraphicsPixmapButton{prev_on, prev_off, m_pager};
+  auto next = new score::QGraphicsPixmapButton{next_on, next_off, m_pager};
 
-  auto& lay = *m_layout;
-  lay.layout();
-  lay.fitChildrenRect();
+  // Same type as the port and control labels around it
+  auto label = new score::SimpleTextItem{Process::labelBrush().main, m_pager};
+  label->setText(
+      QStringLiteral("%1/%2").arg(m_controlPage.page + 1).arg(m_controlPage.pageCount));
 
-  this->setRect(m_layout->rect());
+  const auto lab_w = label->boundingRect().width();
+  const auto arrow_w = prev->boundingRect().width();
+
+  const auto center = [](qreal h) { return std::round((PagerHeight - h) / 2.); };
+  prev->setPos(0., center(prev->boundingRect().height()));
+  label->setPos(arrow_w + PagerSpacing, center(label->boundingRect().height()));
+  next->setPos(
+      arrow_w + 2. * PagerSpacing + lab_w, center(next->boundingRect().height()));
+
+  m_pager->setRect(
+      {0., 0., 2. * arrow_w + 2. * PagerSpacing + lab_w + 2., PagerHeight});
+
+  // The click is delivered from the button's own event handler: changing page
+  // deletes it, so it has to happen once the event is done being dispatched.
+  connect(prev, &score::QGraphicsPixmapButton::clicked, this, [this] {
+    ossia::qt::run_async(this, [this] { setPage(m_page - 1); });
+  });
+  connect(next, &score::QGraphicsPixmapButton::clicked, this, [this] {
+    ossia::qt::run_async(this, [this] { setPage(m_page + 1); });
+  });
 }
 
-void DefaultEffectItem::recreate_fold_onlyOutlets()
+void DefaultEffectItem::setPage(int page)
 {
-  auto& portFactory = m_ctx.app.interfaces<Process::PortFactoryList>();
+  page = std::clamp(page, 0, m_controlPage.pageCount - 1);
+  if(page == m_page)
+    return;
 
-  m_layout = new score::GraphicsDefaultOutletLayout{this};
-  m_allLayouts.push_back(m_layout);
-  LayoutBuilderBase b{*this,       m_effect,          m_ctx,
-                      portFactory, m_effect.inlets(), m_effect.outlets(),
-                      m_layout,    {m_layout}};
-
-  for(auto& e : m_effect.outlets())
-  {
-    SCORE_ASSERT(e->parent());
-    if(auto* f = portFactory.get(e->concreteKey()))
-    {
-      auto item = f->makeLabelItem(*e, m_ctx, m_layout, this);
-      SCORE_SOFT_ASSERT(item.container);
-      item.container->setParentItem(m_layout);
-    }
-  }
-
-  auto& lay = *m_layout;
-  lay.layout();
-  lay.fitChildrenRect();
-
-  this->setRect(m_layout->rect());
+  m_page = page;
+  reset();
 }
 
-void DefaultEffectItem::recreate_fold_both()
+void DefaultEffectItem::updateRect()
 {
-  auto& portFactory = m_ctx.app.interfaces<Process::PortFactoryList>();
-
-  auto layout = new score::GraphicsIORootLayout{this};
-  m_allLayouts.push_back(layout);
-  layout->setMinimumWidth(m_minimumWidth);
-  m_layout = layout;
-
-  LayoutBuilderBase b{*this,       m_effect,          m_ctx,
-                      portFactory, m_effect.inlets(), m_effect.outlets(),
-                      m_layout,    {m_layout}};
-
-  auto inlet_layout = new score::GraphicsDefaultInletLayout{m_layout};
-  m_allLayouts.push_back(inlet_layout);
-  for(auto& e : m_effect.inlets())
+  QRectF r = m_layout ? m_layout->rect() : QRectF{};
+  if(m_pager)
   {
-    SCORE_ASSERT(e->parent());
-    if(auto* f = portFactory.get(e->concreteKey()))
-    {
-      auto item = f->makeLabelItem(*e, m_ctx, inlet_layout, this);
-      SCORE_SOFT_ASSERT(item.container);
-      item.container->setParentItem(inlet_layout);
-    }
+    const auto pager_r = m_pager->rect();
+    m_pager->setPos(0., r.height());
+    r.setHeight(r.height() + pager_r.height());
+    r.setWidth(std::max(r.width(), pager_r.width()));
   }
-  inlet_layout->layout();
-  inlet_layout->fitChildrenRect();
-
-  auto outlet_layout = new score::GraphicsDefaultOutletLayout{m_layout};
-  m_allLayouts.push_back(outlet_layout);
-  for(auto& e : m_effect.outlets())
-  {
-    SCORE_ASSERT(e->parent());
-    if(auto* f = portFactory.get(e->concreteKey()))
-    {
-      auto item = f->makeLabelItem(*e, m_ctx, outlet_layout, this);
-      SCORE_SOFT_ASSERT(item.container);
-      item.container->setParentItem(outlet_layout);
-    }
-  }
-  outlet_layout->layout();
-  outlet_layout->fitChildrenRect();
-
-  auto& lay = *m_layout;
-  lay.layout();
-
-  lay.setRect(lay.childrenBoundingRect());
-  lay.fitChildrenRect();
-
-  this->setRect(m_layout->rect());
+  this->setRect(r);
 }
 
 void DefaultEffectItem::relayout()
@@ -386,7 +449,7 @@ void DefaultEffectItem::relayout()
       lay.fitChildrenRect();
     }
 
-    this->setRect(m_layout->rect());
+    updateRect();
   }
 }
 }

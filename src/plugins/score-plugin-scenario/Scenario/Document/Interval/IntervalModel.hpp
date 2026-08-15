@@ -328,8 +328,38 @@ SCORE_PLUGIN_SCENARIO_EXPORT
 bool isBus(
     const Scenario::IntervalModel& model, const score::DocumentContext& ctx) noexcept;
 
+//! Footprint used when placing nodes in the nodal view for a process whose
+//! on-screen size is not known yet (never displayed, or folded).
+SCORE_PLUGIN_SCENARIO_EXPORT
+QSizeF nodeFootprint(const Process::ProcessModel& process) noexcept;
+
+//! Horizontal gap left between two nodes chained one after the other.
+static const constexpr double nodeHorizontalMargin = 40.;
+
+//! Slides `desired` horizontally until a node of that size does not overlap
+//! any process of `model`. `towardsRight` picks the direction, so that a
+//! chain of processes keeps reading left-to-right.
+SCORE_PLUGIN_SCENARIO_EXPORT
+QPointF freeProcessPosition(
+    const Scenario::IntervalModel& model, QPointF desired, QSizeF size,
+    bool towardsRight = true, const Process::ProcessModel* ignore = nullptr) noexcept;
+
 SCORE_PLUGIN_SCENARIO_EXPORT
 QPointF newProcessPosition(const Scenario::IntervalModel& model) noexcept;
+
+//! Position for a node created right after `previous` in the signal chain.
+SCORE_PLUGIN_SCENARIO_EXPORT
+QPointF newProcessPositionAfter(
+    const Scenario::IntervalModel& model,
+    const Process::ProcessModel& previous) noexcept;
+
+//! Position for a node created right before `next` in the signal chain.
+//! `created` is excluded from the overlap test as it already lives in the
+//! interval by the time its final position is known.
+SCORE_PLUGIN_SCENARIO_EXPORT
+QPointF newProcessPositionBefore(
+    const Scenario::IntervalModel& model, const Process::ProcessModel& next,
+    const Process::ProcessModel* created = nullptr) noexcept;
 
 struct ParentTimeInfo
 {

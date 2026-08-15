@@ -1052,41 +1052,97 @@ ParentTimeInfo closestParentWithTempo(const IntervalModel* self)
   return {nullptr, lastFound, {}};
 }
 
+// A node that has never been laid out has a null size in the model: fall back
+// on the smallest thing Process::NodeItem can draw, title bar included.
+static const constexpr QSizeF minimumNodeFootprint{75., 42.};
+
+QSizeF nodeFootprint(const Process::ProcessModel& process) noexcept
+{
+  const auto sz = process.size();
+  return {
+      std::max(sz.width(), minimumNodeFootprint.width()),
+      std::max(sz.height(), minimumNodeFootprint.height())};
+}
+
+static const Process::ProcessModel* firstOverlappingProcess(
+    const IntervalModel& model, QRectF rect,
+    const Process::ProcessModel* ignore) noexcept
+{
+  for(const Process::ProcessModel& proc : model.processes)
+  {
+    if(&proc == ignore)
+      continue;
+    if(rect.intersects(QRectF{proc.position(), nodeFootprint(proc)}))
+      return &proc;
+  }
+  return nullptr;
+}
+
+QPointF freeProcessPosition(
+    const IntervalModel& model, QPointF desired, QSizeF size, bool towardsRight,
+    const Process::ProcessModel* ignore) noexcept
+{
+  QRectF rect{desired, size};
+
+  // Each step moves the candidate strictly past the process it overlaps, so at
+  // most one step per process is needed.
+  for(std::size_t i = 0, n = model.processes.size(); i <= n; i++)
+  {
+    const auto* hit = firstOverlappingProcess(model, rect, ignore);
+    if(!hit)
+      break;
+
+    const auto hitSize = nodeFootprint(*hit);
+    if(towardsRight)
+      rect.moveLeft(hit->position().x() + hitSize.width() + nodeHorizontalMargin);
+    else
+      rect.moveLeft(hit->position().x() - nodeHorizontalMargin - size.width());
+  }
+
+  return rect.topLeft();
+}
+
 QPointF newProcessPosition(const IntervalModel& cst) noexcept
 {
-  static ossia::flat_set<double> autoPos;
-  autoPos.clear();
-  autoPos.reserve(100);
-  for(const Process::ProcessModel& proc : cst.processes)
-  {
-    const auto p = proc.position();
-    if(p.x() - p.y() < 5)
-    {
-      autoPos.insert((p.x() + p.y()) / 2);
-    }
-  }
+  // Cascade new nodes along the diagonal, jumping past the ones already there.
+  QPointF pos{40., 40.};
 
-  double start = 40.;
-  auto it = autoPos.lower_bound(start);
-  double distance = 0.;
-  if(it != autoPos.end())
+  // Each step clears the node it hit for good - both coordinates end up past
+  // it and only ever grow - so one step per process is enough.
+  for(std::size_t i = 0, n = cst.processes.size(); i <= n; i++)
   {
-    distance = std::abs(*it - start);
-    if(distance < 10)
-    {
-      do
-      {
-        start += 10.;
-        it = autoPos.lower_bound(start);
-        if(it != autoPos.end())
-          distance = std::abs(*it - start);
-      } while(it != autoPos.end() && distance < 10);
+    const auto* hit
+        = firstOverlappingProcess(cst, QRectF{pos, minimumNodeFootprint}, nullptr);
+    if(!hit)
+      break;
 
-      if(distance < 10)
-        start += 10;
-    }
+    const auto sz = nodeFootprint(*hit);
+    const double dx = hit->position().x() + sz.width() + nodeHorizontalMargin - pos.x();
+    const double dy = hit->position().y() + sz.height() + nodeHorizontalMargin - pos.y();
+    const double d = std::max(dx, dy);
+    pos += QPointF{d, d};
   }
-  return {start, start};
+  return pos;
+}
+
+QPointF newProcessPositionAfter(
+    const IntervalModel& model, const Process::ProcessModel& previous) noexcept
+{
+  const auto prevSize = nodeFootprint(previous);
+  const QPointF desired{
+      previous.position().x() + prevSize.width() + nodeHorizontalMargin,
+      previous.position().y()};
+  return freeProcessPosition(model, desired, minimumNodeFootprint, true, nullptr);
+}
+
+QPointF newProcessPositionBefore(
+    const IntervalModel& model, const Process::ProcessModel& next,
+    const Process::ProcessModel* created) noexcept
+{
+  const auto size = created ? nodeFootprint(*created) : minimumNodeFootprint;
+  const QPointF desired{
+      next.position().x() - size.width() - nodeHorizontalMargin, next.position().y()};
+  return freeProcessPosition(model, desired, size, false, created);
 }
 
 // TODO refactor by grepping for _cast.*IntervalModel

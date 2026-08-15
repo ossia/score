@@ -80,6 +80,7 @@ private:
   void updateZoomRatio() const noexcept;
   void updateSize();
   void setSize(QSizeF sz);
+  void publishSize();
 
   bool isInSelectionCorner(QPointF f, QRectF r) const;
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)

@@ -5,6 +5,7 @@
 
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 
 #include <Library/ProcessesItemModel.hpp>
@@ -14,6 +15,17 @@
 
 namespace Scenario
 {
+// The port a cable starts from may belong to a process nested deeper than
+// `itv`: only its direct children share the interval's nodal coordinates.
+static QPointF
+positionAfterSourceOf(const IntervalModel& itv, const Process::Port& source) noexcept
+{
+  if(auto proc = qobject_cast<Process::ProcessModel*>(source.parent()))
+    if(proc->parent() == &itv)
+      return newProcessPositionAfter(itv, *proc);
+  return newProcessPosition(itv);
+}
+
 void createProcessInCable(
     const Process::Context& context, const Scenario::ScenarioDocumentModel& model,
     const Process::ProcessData& dat, std::optional<TimeVal> tv,
@@ -29,13 +41,7 @@ void createProcessInCable(
   {
     Command::Macro m{new Command::DropProcessInIntervalMacro, context};
 
-    auto pos = QPointF{};
-    if(auto parent_source_proc
-       = qobject_cast<Process::ProcessModel*>(orig_source.parent()))
-    {
-      pos = parent_source_proc->position();
-      pos.rx() += parent_source_proc->size().width() + 40;
-    }
+    const auto pos = positionAfterSourceOf(*parent_itv, orig_source);
 
     auto proc = m.createProcessInNewSlot(*parent_itv, dat, pos);
     if(proc)
@@ -85,13 +91,7 @@ void loadPresetInCable(
   {
     Command::Macro m{new Command::DropProcessInIntervalMacro, context};
 
-    auto pos = QPointF{};
-    if(auto parent_source_proc
-       = qobject_cast<Process::ProcessModel*>(orig_source.parent()))
-    {
-      pos = parent_source_proc->position();
-      pos.rx() += parent_source_proc->size().width() + 40;
-    }
+    const auto pos = positionAfterSourceOf(*parent_itv, orig_source);
 
     auto proc = m.loadProcessFromPreset(*parent_itv, dat, pos);
     if(proc)
@@ -140,8 +140,7 @@ void createProcessBeforePort(
         setup(*proc, disp);
       }
 
-      auto pos = parentProcess.position();
-      pos.rx() -= proc->size().width() + 40;
+      const auto pos = newProcessPositionBefore(*parent_itv, parentProcess, proc);
       m.setProperty<Process::ProcessModel::p_position>(*proc, pos);
 
       // TODO all of this should be made atomic...
@@ -185,8 +184,7 @@ void createProcessAfterPort(
   {
     Command::Macro m{new Command::DropProcessInIntervalMacro, parent.context()};
 
-    auto pos = parentProcess.position();
-    pos.rx() += parentProcess.size().width() + 40;
+    const auto pos = newProcessPositionAfter(*parent_itv, parentProcess);
     auto proc = m.createProcessInNewSlot(*parent_itv, dat, pos);
     if(proc)
     {
@@ -238,8 +236,7 @@ void loadPresetBeforePort(
     auto proc = m.loadProcessFromPreset(*parent_itv, dat, QPointF{});
     if(proc)
     {
-      auto pos = parentProcess.position();
-      pos.rx() -= proc->size().width() + 40;
+      const auto pos = newProcessPositionBefore(*parent_itv, parentProcess, proc);
       m.setProperty<Process::ProcessModel::p_position>(*proc, pos);
 
       // TODO all of this should be made atomic...
@@ -281,8 +278,7 @@ void loadPresetAfterPort(
   {
     Command::Macro m{new Command::DropProcessInIntervalMacro, parent.context()};
 
-    auto pos = parentProcess.position();
-    pos.rx() += parentProcess.size().width() + 40;
+    const auto pos = newProcessPositionAfter(*parent_itv, parentProcess);
     auto proc = m.loadProcessFromPreset(*parent_itv, dat, pos);
     if(proc)
     {
