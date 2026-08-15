@@ -37,7 +37,23 @@ template <typename NodeType>
 class TreeNodeBasedItemModel : public TreeModel
 {
 public:
-  using TreeModel::TreeModel;
+  explicit TreeNodeBasedItemModel(QObject* parent = nullptr)
+      : TreeModel{parent}
+  {
+    // The row caches map rows to child nodes; any structural change may
+    // shift rows or erase cached elements. These connections are made
+    // before any observer can connect, so the caches die before an
+    // observer gets to query the post-mutation model.
+    auto invalidate = [this] {
+      m_rowCache[0].parent = nullptr;
+      m_rowCache[1].parent = nullptr;
+    };
+    connect(this, &QAbstractItemModel::rowsInserted, this, invalidate);
+    connect(this, &QAbstractItemModel::rowsRemoved, this, invalidate);
+    connect(this, &QAbstractItemModel::rowsMoved, this, invalidate);
+    connect(this, &QAbstractItemModel::modelReset, this, invalidate);
+    connect(this, &QAbstractItemModel::layoutChanged, this, invalidate);
+  }
 
   using node_type = NodeType;
   virtual ~TreeNodeBasedItemModel() = default;
@@ -84,11 +100,36 @@ public:
       return QModelIndex();
 
     auto& parentItem = nodeFromModelIndex(parent);
-
-    if(parentItem.hasChild(row))
-      return createIndex(row, column, &parentItem.childAt(row));
-    else
+    if(!parentItem.hasChild(row))
       return QModelIndex();
+
+    // Children live in a std::list: childAt(row) is O(row), which makes any
+    // consumer that resolves many rows of one parent - a view painting, a
+    // QSortFilterProxyModel building a mapping, persistent-index updates
+    // after an insert - O(n²) overall. Cache the row → node table for the
+    // two most recently used parents (two, so a parent/child walk does not
+    // thrash); structural changes invalidate through the signal connections
+    // made in the constructor.
+    auto* cache = &m_rowCache[0];
+    if(m_rowCache[0].parent != &parentItem)
+    {
+      if(m_rowCache[1].parent == &parentItem)
+      {
+        cache = &m_rowCache[1];
+      }
+      else
+      {
+        // Replace the least-recently-used slot
+        cache = (m_lastUsed == 0) ? &m_rowCache[1] : &m_rowCache[0];
+        cache->parent = &parentItem;
+        cache->rows.clear();
+        cache->rows.reserve(parentItem.childCount());
+        for(auto& child : parentItem)
+          cache->rows.push_back(&child);
+      }
+    }
+    m_lastUsed = int(cache - &m_rowCache[0]);
+    return createIndex(row, column, cache->rows[row]);
   }
 
   int rowCount(const QModelIndex& parent) const final override
@@ -105,4 +146,13 @@ public:
     const auto& parentNode = nodeFromModelIndex(parent);
     return parentNode.childCount() > 0;
   }
+
+private:
+  struct RowCache
+  {
+    NodeType* parent{};
+    std::vector<NodeType*> rows;
+  };
+  mutable RowCache m_rowCache[2];
+  mutable int m_lastUsed{};
 };
