@@ -592,7 +592,7 @@ struct TimeChooser
   static Process::PortItemLayout layout() noexcept
   {
     using namespace Process;
-    return DefaultControlLayouts::knob();
+    return DefaultControlLayouts::slider();
   }
 
   template <typename T>
@@ -629,7 +629,7 @@ struct TimeChooser
   {
     auto sl = new score::QGraphicsTimeChooser{nullptr};
     initWidgetProperties(inlet, *sl);
-    bindFloatDomain(slider, inlet, sl->knob);
+    bindFloatDomain(slider, inlet, *sl);
 
     ConcreteNormalizer<LinearNormalizer, T> norm{slider};
 
@@ -638,8 +638,7 @@ struct TimeChooser
     QObject::connect(
         sl, &score::QGraphicsTimeChooser::sliderMoved, context,
         [norm, sl, &inlet, &ctx] {
-      sl->knob.moving = true;
-      sl->combo.moving = true;
+      sl->moving = true;
       ctx.dispatcher.submit<SetControlValue<Control_T>>(
           inlet, mapTimeFromUI(norm, ossia::convert<ossia::vec2f>(sl->value())));
     });
@@ -649,13 +648,12 @@ struct TimeChooser
       ctx.dispatcher.submit<SetControlValue<Control_T>>(
           inlet, mapTimeFromUI(norm, ossia::convert<ossia::vec2f>(sl->value())));
       ctx.dispatcher.commit();
-      sl->knob.moving = false;
-      sl->combo.moving = false;
+      sl->moving = false;
     });
 
     QObject::connect(
         &inlet, &Control_T::valueChanged, sl, [norm, sl](const ossia::value& val) {
-      if(!sl->knob.moving && !sl->combo.moving)
+      if(!sl->moving)
       {
         sl->setValue(mapTimeToUI(norm, ossia::convert<ossia::vec2f>(val)));
       }
