@@ -21,6 +21,12 @@ public:
   void savePreset(const Process::ProcessModel* proc)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, savePreset, proc)
 
+  //! Emitted around the sorted insertion done by addPreset, so item models
+  //! over `presets` (Library::PresetItemModel) can emit exact insert ranges.
+  void presetAboutToBeAdded(int index)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, presetAboutToBeAdded, index)
+  void presetAdded(int index) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, presetAdded, index)
+
   void addPreset(Process::Preset&& p);
 
   Process::LayerContextMenuManager& layerContextMenuRegistrar()

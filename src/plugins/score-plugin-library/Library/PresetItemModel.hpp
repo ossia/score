@@ -9,6 +9,11 @@ namespace score
 struct GUIApplicationContext;
 }
 
+namespace Process
+{
+class ApplicationPlugin;
+}
+
 namespace Library
 {
 class PresetFilterProxy;
@@ -42,6 +47,8 @@ private:
   Qt::DropActions supportedDragActions() const override;
   Qt::DropActions supportedDropActions() const override;
   Qt::ItemFlags flags(const QModelIndex& index) const override;
+
+  Process::ApplicationPlugin* m_plugin{};
 
   friend class PresetFilterProxy;
 };
