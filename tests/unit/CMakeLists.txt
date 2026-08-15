@@ -32,6 +32,13 @@ if(TARGET score_plugin_controlsurface)
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-controlsurface")
 endif()
 
+# The shared per-type value editors used by the tree, the address panel and the
+# address dialog.
+score_add_test(test_unit_value_editors
+  SOURCES ValueEditorsTest.cpp
+  APP
+  PLUGINS score_plugin_deviceexplorer score_lib_device score_lib_state)
+
 # Device explorer tree conversion: which ossia parameters become editable
 # Device::Node values (regression #2204: audio gains).
 score_add_test(test_unit_device_explorer_node

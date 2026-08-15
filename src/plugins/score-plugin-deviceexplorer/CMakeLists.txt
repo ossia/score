@@ -36,6 +36,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/DeviceExplorerModel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/ExplorerModelProvider.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/AddressItemModel.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/ValueEditors.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/DeviceExplorerView.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/DeviceExplorerWidget.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/ExplorationWorker.hpp"
@@ -97,6 +98,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/Widgets/AddressEditDialog.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/DeviceExplorerModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/AddressItemModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/ValueEditors.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/DeviceExplorerWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/ListeningManager.cpp"
 
