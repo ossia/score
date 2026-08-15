@@ -58,6 +58,8 @@ private:
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
+  void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
+  void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
 
   int syncIndex() const noexcept;
   QString freeText() const;
@@ -70,5 +72,6 @@ private:
   bool m_sync{};
   bool m_grab{};
   bool m_hasExec{};
+  bool m_hover{};
 };
 }
