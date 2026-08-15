@@ -58,6 +58,11 @@ function(score_add_test NAME)
 
   add_executable(${NAME} ${ARG_SOURCES})
 
+  # score_lib_pch is compiled for the shared libraries (-fPIC) while an
+  # executable gets -fPIE: clang refuses to reuse a PCH across that difference,
+  # so opt the tests out of it (SCORE_PCH builds only).
+  set_target_properties(${NAME} PROPERTIES SCORE_CUSTOM_PCH 1)
+
   if(ARG_STANDALONE)
     target_include_directories(${NAME} PRIVATE
       $<TARGET_PROPERTY:score_lib_base,INTERFACE_INCLUDE_DIRECTORIES>)
