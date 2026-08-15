@@ -471,7 +471,8 @@ bool DeviceExplorerModel::setData(
     {
       // In this case we don't make a command, but we directly push the
       // new value.
-      auto copy = State::convert::fromQVariant(value);
+      auto copy = value.canConvert<ossia::value>() ? value.value<ossia::value>()
+                                                   : State::convert::fromQVariant(value);
 
       // We may have to convert types.
       const ossia::value& orig = n.get<Device::AddressSettings>().value;

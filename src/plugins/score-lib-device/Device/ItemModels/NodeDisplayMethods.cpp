@@ -154,7 +154,6 @@ QVariant valueColumnData(const Device::Node& node, int role)
     const ossia::value& val = node.get<AddressSettings>().value;
     if(ossia::is_array(val))
     {
-      // TODO a nice editor for lists.
       return State::convert::toPrettyString(val);
     }
     else if(role == Qt::DisplayRole && val.get_type() == ossia::val_type::FLOAT)
