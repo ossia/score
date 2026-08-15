@@ -118,6 +118,9 @@ public:
       Device::Node& parent, const Device::AddressSettings& before,
       const Device::AddressSettings& after);
 
+  //! Whether the protocol lets this node be renamed.
+  bool canRenameNode(const Device::Node& n) const;
+
   int columnCount() const;
   QStringList getColumns() const;
   bool isEmpty() const;

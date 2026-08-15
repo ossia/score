@@ -332,6 +332,24 @@ bool DeviceExplorerModel::checkAddressEditable(
   }
 }
 
+bool DeviceExplorerModel::canRenameNode(const Device::Node& n) const
+{
+  if(!n.is<Device::AddressSettings>())
+    return false;
+
+  // Called for every visible cell: walk up to the device rather than building
+  // the whole address just to read its first component.
+  const Device::Node* root = &n;
+  while(root->parent() && !root->is<Device::DeviceSettings>())
+    root = root->parent();
+
+  if(!root->is<Device::DeviceSettings>())
+    return false;
+
+  auto* dev = m_devicePlugin.list().findDevice(root->get<Device::DeviceSettings>().name);
+  return dev && dev->capabilities().canRenameNode;
+}
+
 int DeviceExplorerModel::columnCount() const
 {
   return (int)Column::Count;
@@ -434,6 +452,12 @@ Qt::ItemFlags DeviceExplorerModel::flags(const QModelIndex& index) const
     {
       f |= Qt::ItemIsEditable;
     }
+
+    if(index.column() == (int)Column::Name && n.is<Device::AddressSettings>()
+       && canRenameNode(n))
+    {
+      f |= Qt::ItemIsEditable;
+    }
   }
   else
   {
@@ -495,10 +519,17 @@ bool DeviceExplorerModel::setData(
       if(col == Column::Name)
       {
         const QString s = value.toString();
-        if(!s.isEmpty())
-        {
-          settings.name = s;
-        }
+        auto* parent = n.parent();
+        if(s.isEmpty() || !parent || !canRenameNode(n))
+          return false;
+
+        auto renamed = n.get<Device::AddressSettings>();
+        renamed.name = s;
+
+        if(!checkAddressEditable(*parent, n.get<Device::AddressSettings>(), renamed))
+          return false;
+
+        settings.name = s;
       }
 
       if(settings != n.get<Device::AddressSettings>())

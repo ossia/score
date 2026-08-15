@@ -72,13 +72,16 @@ public:
 
 private:
   void pushedValue(const State::Address& addr, const ossia::value& v);
+  bool editableProperties() const;
+  bool editableName() const;
   int extendedCount() const noexcept;
   QPointer<DeviceExplorerModel> m_model;
   Device::NodePath m_path;
   Device::FullAddressSettings m_settings;
 };
 
-class AddressItemDelegate final : public QStyledItemDelegate
+class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddressItemDelegate final
+    : public QStyledItemDelegate
 {
 public:
   explicit AddressItemDelegate(QObject* parent = 0);
