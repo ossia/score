@@ -25,6 +25,10 @@ QString toString(FileAction a) noexcept
       return QObject::tr("Relink");
     case FileAction::Trimmed:
       return QObject::tr("Trim");
+    case FileAction::Unused:
+      return QObject::tr("Unused");
+    case FileAction::Removed:
+      return QObject::tr("Removed");
     case FileAction::Missing:
       return QObject::tr("MISSING");
     case FileAction::Unsupported:

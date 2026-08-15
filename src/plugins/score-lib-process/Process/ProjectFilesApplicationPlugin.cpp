@@ -1,6 +1,7 @@
 #include <Process/MediaTrimDialog.hpp>
 #include <Process/MissingFilesDialog.hpp>
 #include <Process/ProjectArchive.hpp>
+#include <Process/UnusedFilesDialog.hpp>
 #include <Process/ProjectConsolidation.hpp>
 #include <Process/ProjectConsolidationDialog.hpp>
 #include <Process/ProjectFilesApplicationPlugin.hpp>
@@ -30,6 +31,8 @@ SCORE_DECLARE_ACTION(
 SCORE_DECLARE_ACTION(
     TrimProjectMedia, "&Trim media to what is used...", Common,
     QKeySequence::UnknownKey)
+SCORE_DECLARE_ACTION(
+    RemoveUnusedFiles, "&Remove unused files...", Common, QKeySequence::UnknownKey)
 SCORE_DECLARE_ACTION(
     ArchiveProject, "&Archive project...", Common, QKeySequence::UnknownKey)
 
@@ -111,6 +114,16 @@ void ProjectFilesApplicationPlugin::trimMedia()
     return;
 
   context.docManager.saveDocument(*doc);
+}
+
+void ProjectFilesApplicationPlugin::removeUnused()
+{
+  auto doc = documentWithFolder(QObject::tr("Cleaning up"));
+  if(!doc)
+    return;
+
+  UnusedFilesDialog dialog{doc->context(), context.mainWindow};
+  dialog.exec();
 }
 
 void ProjectFilesApplicationPlugin::archive()
@@ -276,6 +289,12 @@ score::GUIElements ProjectFilesApplicationPlugin::makeGUIElements()
                   "actually reads."));
   e.actions.add<Actions::TrimProjectMedia>(m_trim);
   cond.add<Actions::TrimProjectMedia>();
+
+  add(m_unused, &ProjectFilesApplicationPlugin::removeUnused,
+      QObject::tr("List the files sitting in the project folder that nothing in "
+                  "the document uses any more, and get rid of them."));
+  e.actions.add<Actions::RemoveUnusedFiles>(m_unused);
+  cond.add<Actions::RemoveUnusedFiles>();
 
   add(m_archive, &ProjectFilesApplicationPlugin::archive,
       QObject::tr("Collect everything and write the whole project into a single "
