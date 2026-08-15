@@ -484,6 +484,7 @@ bool DeviceExplorerModel::setData(
       // here (e.g. if this becomes a settings)
       m_devicePlugin.updateProxy.updateRemoteValue(Device::address(n).address, copy);
 
+      dataChanged(index, index);
       return true;
     }
     else
@@ -536,36 +537,16 @@ void DeviceExplorerModel::editData(
 {
   SCORE_ASSERT(node.parent());
 
-  QModelIndex index
-      = createIndex(node.parent()->indexOfChild(&node), (int)column, node.parent());
-
-  QModelIndex changedTopLeft = index;
-  QModelIndex changedBottomRight = index;
-
   if(node.is<Device::DeviceSettings>())
     return;
 
-  if(role == Qt::EditRole)
+  if(role == Qt::EditRole && column == Column::Value)
   {
-    SCORE_TODO;
-    /*
-        if(index.column() == (int)Column::Name)
-        {
-            const QString s = value.toString();
-
-            if(! s.isEmpty())
-            {
-                node.get<Device::AddressSettings>().name = s;
-            }
-        }
-        else */
-    if(index.column() == (int)Column::Value)
-    {
-      node.get<Device::AddressSettings>().value = value;
-    }
+    node.get<Device::AddressSettings>().value = value;
   }
 
-  dataChanged(changedTopLeft, changedBottomRight);
+  const QModelIndex index = modelIndexFromNode(node, (int)column);
+  dataChanged(index, index);
 }
 
 QModelIndex DeviceExplorerModel::bottomIndex(const QModelIndex& index) const
