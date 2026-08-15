@@ -92,7 +92,7 @@ public:
     m_processUBO->create();
     m_materialUBO = rhi.newBuffer(
         QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer,
-        sizeof(score::gfx::VideoMaterialUBO));
+        sizeof(score::gfx::CaptureMaterialUBO));
     m_materialUBO->create();
 
     m_backend = node.makeCaptureBackend(m_ring);
@@ -301,8 +301,11 @@ public:
     // the output column index for chroma upsampling (UYVY) or v210 group decode.
     m_material.textureSize[0] = float(m_metadata.width);
     m_material.textureSize[1] = float(m_metadata.height);
+    node.adjustments().poll(m_adjust, m_adjustGeneration);
+    score::gfx::applyTo(m_adjust, m_material);
+    updateGeometryScale(renderer);
     res.updateDynamicBuffer(
-        m_materialUBO, 0, sizeof(score::gfx::VideoMaterialUBO), &m_material);
+        m_materialUBO, 0, sizeof(score::gfx::CaptureMaterialUBO), &m_material);
 
     {
       const auto pin
@@ -370,6 +373,18 @@ public:
         m_processUBO, 0, sizeof(score::gfx::ProcessUBO),
         &this->node.standardUBO);
 
+    // The corrections and the fit are UI-driven, so they move rarely: one
+    // relaxed load per frame, and the buffer is only rewritten when something
+    // actually changed or the viewport resized under us.
+    const bool adjusted = node.adjustments().poll(m_adjust, m_adjustGeneration);
+    if(adjusted || currentRenderSize(renderer) != m_lastRenderSize)
+    {
+      score::gfx::applyTo(m_adjust, m_material);
+      updateGeometryScale(renderer);
+      res.updateDynamicBuffer(
+          m_materialUBO, 0, sizeof(score::gfx::CaptureMaterialUBO), &m_material);
+    }
+
     // Poll the capture thread's frame counter. If it advanced since we last
     // sampled, hand the previous frame's texture back to the strategy and take
     // ownership of the new one. Doing the release on the NEXT update() — rather
@@ -435,6 +450,37 @@ public:
 
       rebindPlanes();
     }
+  }
+
+  /// The viewport this node's first output edge draws into, or an invalid size
+  /// when nothing is connected yet.
+  QSize currentRenderSize(score::gfx::RenderList& renderer) const
+  {
+    const auto& edges = this->node.output[0]->edges;
+    if(edges.empty())
+      return {};
+    return renderer.renderSize(edges.front());
+  }
+
+  /// Fits the frame to the viewport per the chosen mode, by scaling the quad --
+  /// which is what `mat.scale` multiplies in the vertex shader.
+  ///
+  /// One material buffer serves every output edge, so the first edge's size
+  /// drives it. The video path makes the same approximation; a node fanned out
+  /// to two differently-sized outputs would need a buffer per edge, which is
+  /// not worth it until something actually does that.
+  void updateGeometryScale(score::gfx::RenderList& renderer)
+  {
+    const auto rs = currentRenderSize(renderer);
+    m_lastRenderSize = rs;
+    if(!rs.isValid() || m_metadata.width <= 0 || m_metadata.height <= 0)
+      return;
+
+    const auto sz = score::gfx::computeScaleForMeshSizing(
+        m_adjust.scaleMode, QSizeF(rs),
+        QSizeF(m_metadata.width, m_metadata.height));
+    m_material.scale[0] = float(sz.width());
+    m_material.scale[1] = float(sz.height());
   }
 
   /// Double-buffered strategies (the Vulkan zero-copy path) publish a fresh
@@ -605,7 +651,10 @@ private:
   score::gfx::MeshBuffers m_meshBuffer{};
   QRhiBuffer* m_processUBO{};
   QRhiBuffer* m_materialUBO{};
-  score::gfx::VideoMaterialUBO m_material;
+  score::gfx::CaptureMaterialUBO m_material;
+  score::gfx::CaptureAdjust m_adjust;
+  std::uint32_t m_adjustGeneration{0};
+  QSize m_lastRenderSize;
   Video::VideoMetadata m_metadata;
 
   // Diagnostic: SCORE_DMACAPTURE_TIME_UPLOAD=1 times the per-frame
