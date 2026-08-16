@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QHash>
+#include <QPointer>
 
 #include <score_lib_process_export.h>
 
@@ -13,6 +14,7 @@ class QTreeWidgetItem;
 
 namespace score
 {
+class Document;
 struct DocumentContext;
 }
 
@@ -34,7 +36,7 @@ namespace Process
 class SCORE_LIB_PROCESS_EXPORT MissingFilesDialog final : public QDialog
 {
 public:
-  MissingFilesDialog(const score::DocumentContext& ctx, QWidget* parent);
+  MissingFilesDialog(score::Document& doc, QWidget* parent);
   ~MissingFilesDialog();
 
   //! True when the document has nothing missing, so the caller can skip it.
@@ -56,7 +58,15 @@ private:
 
   QTreeWidgetItem* itemFor(const QString& storedPath) const;
 
-  const score::DocumentContext& m_ctx;
+  /** The document, not its context.
+   *
+   * This dialog is deliberately not modal -- it opens beside a document that
+   * has just been loaded -- so the document can be closed while it is still
+   * on screen. A DocumentContext lives inside its Document and dies with it;
+   * a guarded pointer lets the dialog notice and close itself instead of
+   * relinking through freed memory.
+   */
+  QPointer<score::Document> m_doc;
 
   QLabel* m_summary{};
   QTreeWidget* m_files{};

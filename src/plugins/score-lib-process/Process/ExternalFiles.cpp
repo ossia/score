@@ -9,6 +9,7 @@
 #include <Explorer/Commands/Update/UpdateDeviceSettings.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/tools/File.hpp>
@@ -45,8 +46,6 @@ QString ExternalFileMap::map(ExternalFileRef ref)
     ref.owner = owner;
   if(ref.kind == score::FileKind::Unknown && !ref.directory)
     ref.kind = score::guessFileKind(ref.path);
-
-  refs.push_back(ref);
 
   if(!m_mapper || !ref.rewritable)
     return {};

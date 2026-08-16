@@ -174,7 +174,7 @@ int reanchorProjectFiles(const score::DocumentContext& ctx)
     ++n;
     return e.sourcePath;
       },
-      /*dryRun=*/false);
+      /*dryRun=*/false, FileOperationKind::Reanchor);
   return n;
 }
 }

@@ -47,7 +47,14 @@ projectArchiveContents(const score::DocumentContext& ctx, const FileReport& repo
     out.push_back({absolute, name});
   };
 
-  add(docInfo.absoluteFilePath());
+  // Unconditionally, and at the archive root: a project archived into a folder
+  // the document does not live in would otherwise come out without it.
+  if(docInfo.isFile())
+  {
+    const QString name = root + '/' + docInfo.fileName();
+    seen.insert(name);
+    out.push_back({docInfo.absoluteFilePath(), name});
+  }
 
   for(const auto& e : report.entries)
   {

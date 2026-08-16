@@ -16,6 +16,8 @@
 #include <Process/ProjectConsolidation.hpp>
 #include <Process/UnusedFiles.hpp>
 
+#include <Process/Commands/SetControlValue.hpp>
+
 #include <Media/Sound/SoundModel.hpp>
 
 #include <score/tools/File.hpp>
@@ -280,6 +282,61 @@ TEST_CASE(
     CHECK(sound->userFilePath().startsWith("<PROJECT>:"));
     CHECK(QFileInfo::exists(
         score::locateFilePath(sound->userFilePath(), doc->context())));
+  });
+}
+
+TEST_CASE(
+    "A folder the project points at protects what is inside it",
+    "[integration][unused]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir projectDir, mediaDir;
+    REQUIRE(projectDir.isValid());
+    REQUIRE(mediaDir.isValid());
+
+    const QString project = canonical(projectDir.path());
+    const QString media = canonical(mediaDir.path());
+
+    write_wav(media + "/kept.wav", 0.3);
+    auto* doc = project_document(ctx, project);
+    REQUIRE(add_process(*doc, sound_process_uuid, media + "/kept.wav") != nullptr);
+    Process::consolidateProjectFiles(doc->context(), {});
+
+    // Some processes name a folder rather than a file: a Faust process names
+    // the folder its import() statements resolve against, an avendish folder
+    // port names a folder of data. Nothing names the files inside, so without
+    // a guard every one of them looks unused -- and this is the command that
+    // deletes.
+    auto* loader = add_process(*doc, obj_loader_uuid, {});
+    if(!loader)
+    {
+      WARN("no folder-capable process available; skipping");
+      return;
+    }
+
+    // Stand in for such a reference by pointing a file port at the folder
+    // itself, which is what a folder-valued control resolves to.
+    auto* port = file_control(*loader);
+    REQUIRE(port != nullptr);
+    write_file(project + "/Data/set/a.json", "[1]");
+    write_file(project + "/Data/set/b.json", "[2]");
+    {
+      CommandDispatcher<> disp{doc->context().commandStack};
+      disp.submit<Process::SetControlValue>(
+          *port, ossia::value{QString{project + "/Data/set"}.toStdString()});
+    }
+
+    const auto scan = Process::analyzeUnusedFiles(doc->context(), {});
+    CHECK_FALSE(lists(scan, "a.json"));
+    CHECK_FALSE(lists(scan, "b.json"));
+
+    // And even named explicitly, they are refused.
+    const auto report = Process::removeUnusedFiles(
+        doc->context(),
+        {project + "/Data/set/a.json", project + "/Data/set/b.json"}, {});
+    CHECK(report.count(Process::FileAction::Removed) == 0);
+    CHECK(QFileInfo::exists(project + "/Data/set/a.json"));
+    CHECK(QFileInfo::exists(project + "/Data/set/b.json"));
   });
 }
 

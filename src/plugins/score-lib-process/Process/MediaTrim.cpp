@@ -2,7 +2,7 @@
 #include <Process/MediaTrimmer.hpp>
 #include <Process/ProjectConsolidation.hpp>
 
-#include <score/application/ApplicationContext.hpp>
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/tools/File.hpp>
 
@@ -130,6 +130,16 @@ struct Trimmer
     if(!score::isUnderFolder(e.sourcePath, target.folder))
       return skip(QObject::tr("outside the project folder"));
 
+    // Ask this first: an image or a video is not a file trimming declined to
+    // shorten, it is a file trimming has nothing to say about. Reporting it as
+    // "skipped, reason..." fills the list with rows the user cannot act on.
+    const auto* trimmer = trimmers.find(e.sourcePath);
+    if(!trimmer)
+    {
+      e.action = FileAction::Unsupported;
+      return {};
+    }
+
     if(const auto it = scan.refused.constFind(e.sourcePath);
        it != scan.refused.constEnd())
       return skip(*it);
@@ -137,10 +147,6 @@ struct Trimmer
     const auto range = scan.ranges.constFind(e.sourcePath);
     if(range == scan.ranges.constEnd())
       return skip(QObject::tr("no bounded region"));
-
-    const auto* trimmer = trimmers.find(e.sourcePath);
-    if(!trimmer)
-      return skip(QObject::tr("no trimmer for this kind of file"));
 
     e.size = QFileInfo{e.sourcePath}.size();
 
@@ -229,7 +235,7 @@ runTrim(const score::DocumentContext& ctx, const TrimOptions& opts, bool dryRun)
   auto report = runFileOperation(
       ctx,
       [&trimmer](const ExternalFileRef& r, FileEntry& e) { return trimmer(r, e); },
-      dryRun);
+      dryRun, FileOperationKind::Trim);
   report.projectFolder = target.folder;
 
   if(!dryRun && opts.removeOriginal)

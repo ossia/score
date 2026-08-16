@@ -15,6 +15,7 @@
 #include <core/presenter/DocumentManager.hpp>
 
 #include <QAction>
+#include <QCoreApplication>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QLocale>
@@ -99,7 +100,7 @@ void ProjectFilesApplicationPlugin::locateMissingFiles()
   if(!doc)
     return;
 
-  auto* dialog = new MissingFilesDialog{doc->context(), context.mainWindow};
+  auto* dialog = new MissingFilesDialog{*doc, context.mainWindow};
   dialog->show();
 }
 
@@ -209,7 +210,7 @@ void ProjectFilesApplicationPlugin::on_loadedDocument(score::Document& doc)
     if(MissingFilesDialog::nothingMissing(guard->context()))
       return;
 
-    auto* dialog = new MissingFilesDialog{guard->context(), context.mainWindow};
+    auto* dialog = new MissingFilesDialog{*guard, context.mainWindow};
     dialog->show();
   });
 }
