@@ -46,12 +46,29 @@ struct daemon_fixture
   std::string dir;
   pid_t pid{-1};
 
-  bool start()
+  // conf == nullptr: the stock daemon configuration. Otherwise the given
+  // configuration text is written to the scratch dir and used instead.
+  bool start(const char* conf = nullptr)
   {
     char tmpl[] = "/tmp/ossia-pw-test-XXXXXX";
     if (!mkdtemp(tmpl))
       return false;
     dir = tmpl;
+
+    std::string conf_path;
+    if (conf)
+    {
+      conf_path = dir + "/test.conf";
+      if (FILE* f = fopen(conf_path.c_str(), "w"))
+      {
+        fputs(conf, f);
+        fclose(f);
+      }
+      else
+      {
+        return false;
+      }
+    }
 
     // Both the daemon below and this process's own libpipewire connection
     // must resolve to the scratch socket, never to the user's session.
@@ -66,7 +83,10 @@ struct daemon_fixture
         dup2(devnull, STDOUT_FILENO);
         dup2(devnull, STDERR_FILENO);
       }
-      execlp("pipewire", "pipewire", (char*)nullptr);
+      if (conf)
+        execlp("pipewire", "pipewire", "-c", conf_path.c_str(), (char*)nullptr);
+      else
+        execlp("pipewire", "pipewire", (char*)nullptr);
       _exit(127);
     }
     if (pid < 0)
@@ -110,9 +130,25 @@ struct daemon_fixture
   {
     if (pid > 0)
     {
+      // SIGTERM with a bounded grace period, then SIGKILL: a wedged
+      // daemon must not hang the test binary in an unbounded waitpid.
       kill(pid, SIGTERM);
       int status{};
-      waitpid(pid, &status, 0);
+      bool reaped = false;
+      for (int i = 0; i < 40; i++)
+      {
+        if (waitpid(pid, &status, WNOHANG) == pid)
+        {
+          reaped = true;
+          break;
+        }
+        std::this_thread::sleep_for(50ms);
+      }
+      if (!reaped)
+      {
+        kill(pid, SIGKILL);
+        waitpid(pid, &status, 0);
+      }
       pid = -1;
     }
     unsetenv("PIPEWIRE_RUNTIME_DIR");
@@ -191,6 +227,10 @@ TEST_CASE(
 
   auto engine = std::make_shared<ossia::pipewire_audio_protocol>(ctx, setup);
   REQUIRE(engine->running());
+  // A starved CI runner can legitimately pause scheduling for seconds;
+  // keep the watchdog out of this test so stalls_detected below stays a
+  // check on spurious detection, not on runner load.
+  engine->stall_timeout_ms.store(60000);
 
   auto rec = std::make_shared<tick_recorder>();
   engine->set_tick([rec](const ossia::audio_tick_state& st) {
@@ -198,11 +238,19 @@ TEST_CASE(
   });
 
   // A 512-frame cycle must yield 4 ticks of 128 frames; the unfixed
-  // protocol never ticks at all here.
+  // protocol never ticks at all here. The join itself may deliver a few
+  // transient cycles at another quantum, so: every tick sliced to at most
+  // the block size, and a steady tail of exact 128s once settled.
   REQUIRE(wait_for([&] { return rec->count.load() >= 32; }, 5s));
   {
     const auto n = rec->stored();
     for (std::uint32_t i = 0; i < n; i++)
+    {
+      const auto size = rec->sizes[i].load();
+      REQUIRE(size <= 128u);
+      REQUIRE(size > 0u);
+    }
+    for (std::uint32_t i = n - 16; i < n; i++)
       REQUIRE(rec->sizes[i].load() == 128);
   }
 
@@ -246,6 +294,9 @@ TEST_CASE(
         return true;
       },
       5s));
+
+  // Cycles flowed the whole time: the stall watchdog must not have fired.
+  REQUIRE(engine->stalls_detected.load() == 0);
 
   engine->stop();
 }
@@ -330,6 +381,72 @@ TEST_CASE(
   // Cycles flowed, so the constructor observed a real graph rate; it must
   // have been the requested one.
   REQUIRE(engine->effective_sample_rate == 44100);
+
+  engine->stop();
+}
+
+TEST_CASE(
+    "pipewire: a graph that schedules nothing is detected and recovery is attempted",
+    "[pipewire][integration]")
+{
+  // A daemon with no driver at all: no Dummy-Driver, no devices. This is
+  // the shape of 'no soundcard and playback never starts' — the node
+  // connects and exports fine, then pw_context_recalc_graph finds no
+  // active priority driver and removes the node from any driver: it is
+  // simply never scheduled, with no error reaching the client.
+  static constexpr const char driverless_conf[] = R"(
+context.properties = {
+    core.daemon = true
+    core.name   = pipewire-0
+}
+context.spa-libs = {
+    support.* = support/libspa-support
+}
+context.modules = [
+    { name = libpipewire-module-protocol-native }
+    { name = libpipewire-module-access }
+    { name = libpipewire-module-client-node }
+    { name = libpipewire-module-metadata }
+]
+)";
+
+  daemon_fixture daemon;
+  if (!daemon.start(driverless_conf))
+    SKIP("cannot start a private pipewire daemon");
+
+  auto inst = libremidi::pipewire::shared_instance();
+  if (!inst)
+    SKIP("libpipewire is unavailable");
+  auto ctx = libremidi::pipewire::context::make(inst);
+  if (!ctx || !ctx->ok())
+    SKIP("cannot connect to the private pipewire daemon");
+
+  ossia::audio_setup setup;
+  setup.name = "ossia-stall-test";
+  setup.inputs = {"in_l", "in_r"};
+  setup.outputs = {"out_l", "out_r"};
+  setup.rate = 48000;
+  setup.buffer_size = 128;
+
+  auto engine = std::make_shared<ossia::pipewire_audio_protocol>(ctx, setup);
+  REQUIRE(engine->running());
+  engine->stall_timeout_ms.store(500);
+
+  auto rec = std::make_shared<tick_recorder>();
+  engine->set_tick([rec](const ossia::audio_tick_state& st) {
+    rec->push(static_cast<std::uint32_t>(st.frames));
+  });
+
+  // The watchdog must notice the missing cycles and try to re-export the
+  // node; with no driver in the daemon the reconnections cannot succeed,
+  // and it must eventually give up rather than retry forever.
+  REQUIRE(wait_for(
+      [&] {
+        return engine->stalls_detected.load() >= 1
+               && engine->recover_attempts.load() >= 1;
+      },
+      10s));
+  REQUIRE(rec->count.load() == 0);
 
   engine->stop();
 }
