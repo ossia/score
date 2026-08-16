@@ -2,6 +2,7 @@
 
 #include <Gfx/Window/BackgroundDevice.hpp>
 #include <Gfx/Window/MultiWindowDevice.hpp>
+#include <Gfx/Window/OffscreenDevice.hpp>
 #include <Gfx/Window/WindowDevice.hpp>
 #include <Gfx/Window/WindowSettingsWidget.hpp>
 
@@ -11,6 +12,8 @@
 #include <ossia-qt/invoke.hpp>
 
 #include <QMenu>
+#include <QScreen>
+#include <QWindow>
 
 #include <wobjectimpl.h>
 
@@ -73,6 +76,46 @@ void WindowDevice::disconnect()
   auto prev = std::move(m_dev);
   m_dev = {};
   deviceChanged(prev.get(), nullptr);
+}
+
+void WindowDevice::grabTo(const QString& path) const
+{
+  if(auto dev = dynamic_cast<offscreen_device*>(m_dev.get()))
+  {
+    auto node = dev->node();
+    if(!node || !node->shared_readback)
+    {
+      qWarning() << "grabTo: offscreen device has not rendered yet";
+      return;
+    }
+
+    const auto& rb = *node->shared_readback;
+    const int w = rb.pixelSize.width();
+    const int h = rb.pixelSize.height();
+    const int expected = w * h * 4;
+    if(w <= 0 || h <= 0 || rb.data.size() < expected)
+    {
+      qWarning() << "grabTo: readback is" << rb.data.size() << "bytes for" << w << "x"
+                 << h << "- expected" << expected;
+      return;
+    }
+
+    QImage img{
+        reinterpret_cast<const unsigned char*>(rb.data.constData()), w, h, w * 4,
+        QImage::Format_RGBA8888};
+    if(!img.save(path))
+      qWarning() << "grabTo: could not write" << path;
+  }
+  else if(auto win = this->window())
+  {
+    auto grab = win->screen()->grabWindow(win->winId());
+    if(!grab.save(path))
+      qWarning() << "grabTo: could not write" << path;
+  }
+  else
+  {
+    qWarning() << "grabTo: device has no window and is not offscreen";
+  }
 }
 
 bool WindowDevice::reconnect()
