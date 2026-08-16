@@ -196,7 +196,8 @@ bool runningUnderAnUISession() noexcept
   if(qgetenv("XDG_SESSION_TYPE") != "tty")
     return true;
   if(platform.contains("gl") || platform.contains("vkkhr")
-     || platform.contains("linuxfb") || platform.contains("vnc"))
+     || platform.contains("linuxfb") || platform.contains("vnc")
+     || platform.contains("offscreen"))
     return true;
   return false;
 #endif
