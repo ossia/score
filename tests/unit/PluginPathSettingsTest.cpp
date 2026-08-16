@@ -9,6 +9,7 @@
 
 #include <Clap/ApplicationPlugin.hpp>
 #include <Media/Effect/Settings/Model.hpp>
+#include <Media/Effect/Settings/View.hpp>
 #include <Vst3/ApplicationPlugin.hpp>
 
 #include <score_test/App.hpp>
@@ -83,6 +84,29 @@ TEST_CASE("VST3 rescans on its own path setting, not on VST2's", "[pluginscan][s
     // disk in the new paths, so it gets pruned.
     m.setVst3Paths({empty_dir.path()});
     CHECK(vst3.vst_infos.empty());
+  });
+}
+
+TEST_CASE("every plug-in format has a settings tab that builds", "[pluginscan][settings]")
+{
+  // The tab interface existed for years with only the VST implementation:
+  // the Effects settings page showed a lone "VST" tab and the other formats
+  // had no path configuration or scan feedback at all.
+  qputenv("SCORE_DISABLE_AUDIOPLUGINS", "1");
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto& tabs = ctx.interfaces<Media::Settings::PluginSettingsFactoryList>();
+
+    QStringList names;
+    for(auto& tab : tabs)
+    {
+      names.push_back(tab.name());
+      auto widget = tab.make(ctx);
+      REQUIRE(widget);
+      delete widget;
+    }
+    names.sort();
+
+    CHECK(names == QStringList{"CLAP", "LV2", "VST", "VST3"});
   });
 }
 
