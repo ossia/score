@@ -19,16 +19,17 @@ clone_addon() {
     if [[ -n "${SKIP_SUBMODULE:-}" ]]; then
       # Skip a heavy nested submodule score never compiles (SKIP_SUBMODULE is
       # "<super-path> <submodule-name>"): clone, init that super, mark it none, recurse.
+      # ${arr[@]+...} guard: macOS bash 3.2 errors on empty arrays under set -u
       local sdepth=(); [[ ${#shallow[@]} -gt 0 ]] && sdepth=(--depth 1)
-      git clone "${sdepth[@]}" "$url" "$folder"
+      git clone ${sdepth[@]+"${sdepth[@]}"} "$url" "$folder"
       (
         cd "$folder"
-        git submodule update --init "${sdepth[@]}" "${SKIP_SUBMODULE%% *}"
+        git submodule update --init ${sdepth[@]+"${sdepth[@]}"} "${SKIP_SUBMODULE%% *}"
         git -C "${SKIP_SUBMODULE%% *}" config "submodule.${SKIP_SUBMODULE#* }.update" none
-        git submodule update --init --recursive "${sdepth[@]}"
+        git submodule update --init --recursive ${sdepth[@]+"${sdepth[@]}"}
       )
     else
-      git clone --recursive -j16 "${shallow[@]}" "$url"
+      git clone --recursive -j16 ${shallow[@]+"${shallow[@]}"} "$url"
     fi
     if [[ "x${ref}" != "x" ]]; then
     (
