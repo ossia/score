@@ -323,6 +323,7 @@ include_directories(SYSTEM "${3RDPARTY_FOLDER}/avendish/include/")
 # Make the test helpers (score_add_test, Catch2) available to plugin
 # CMakeLists so per-plugin tests can be declared in place during add_subdirectory(src).
 if(SCORE_TESTING)
+  find_package(${QT_VERSION} REQUIRED COMPONENTS Test)
   include(ScoreTests)
   score_setup_catch2()
 endif()

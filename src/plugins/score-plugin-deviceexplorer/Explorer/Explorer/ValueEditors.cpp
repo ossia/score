@@ -19,9 +19,11 @@
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QHBoxLayout>
+#include <QIcon>
 #include <QLineEdit>
 #include <QMouseEvent>
 #include <QPainter>
+#include <QPixmap>
 #include <QPushButton>
 #include <QSpinBox>
 
@@ -558,7 +560,6 @@ public:
       , m_components{components}
   {
     m_button.setContentsMargins(0, 0, 0, 0);
-    m_button.setAutoFillBackground(true);
     this->setFocusProxy(&m_button);
     m_lay.addWidget(&m_button);
 
@@ -603,8 +604,24 @@ private:
   {
     m_button.setText(m_color.name(
         m_components == 4 ? QColor::HexArgb : QColor::HexRgb));
-    m_button.setStyleSheet(
-        QStringLiteral("background-color: %1;").arg(m_color.name(QColor::HexRgb)));
+
+    const qreal dpr = m_button.devicePixelRatioF();
+    const int side = m_button.fontMetrics().height();
+    const QRect area{0, 0, side, side};
+
+    QPixmap px{QSize{side, side} * dpr};
+    px.setDevicePixelRatio(dpr);
+    px.fill(Qt::transparent);
+    {
+      QPainter p{&px};
+      p.fillRect(area, Qt::white);
+      p.fillRect(area, m_color);
+      p.setPen(m_button.palette().color(QPalette::WindowText));
+      p.drawRect(area.adjusted(0, 0, -1, -1));
+    }
+
+    m_button.setIcon(QIcon{px});
+    m_button.setIconSize(QSize{side, side});
   }
 
   score::MarginLess<QHBoxLayout> m_lay{this};
