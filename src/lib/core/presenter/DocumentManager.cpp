@@ -446,7 +446,10 @@ bool DocumentManager::saveDocumentAs(Document& doc, const QString& savename)
   // Let the plug-ins fix up whatever the document stores relatively to its own
   // folder before that folder changes under them. Runs while the metadata
   // still holds the old file name, so paths can still be resolved from it.
-  for(auto* plug : score::GUIAppContext().guiApplicationPlugins())
+  //
+  // Through the components rather than GUIAppContext(): that one downcasts the
+  // running ApplicationInterface, and score::MockApplication is not a GUI one.
+  for(auto* plug : score::AppComponents().guiApplicationPlugins())
     plug->on_documentSaveAs(doc, savename);
 
   doc.metadata().setFileName(savename);

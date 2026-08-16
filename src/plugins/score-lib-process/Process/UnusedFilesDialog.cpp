@@ -12,6 +12,8 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
+#include <algorithm>
+
 namespace Process
 {
 
@@ -93,19 +95,25 @@ void UnusedFilesDialog::rescan()
   for(const auto& e : m_scan.entries)
     total += e.size;
 
+  const QString scope = m_everywhere->isChecked()
+                            ? tr("the whole project folder")
+                            : tr("the Audio/, Video/, Images/... folders");
+
   if(m_scan.empty())
   {
     m_summary->setText(
-        tr("<b>%1</b><br/>Nothing in this project folder is unused.")
-            .arg(m_scan.projectFolder));
+        tr("<b>%1</b><br/>Nothing unused was found in %2.")
+            .arg(m_scan.projectFolder)
+            .arg(scope));
   }
   else
   {
     m_summary->setText(
-        tr("<b>%1</b><br/>%2 file(s) here, %3, that nothing in this project "
+        tr("<b>%1</b><br/>%2 file(s) in %3, %4, that nothing in this project "
            "points at. Untick anything you want to keep.")
             .arg(m_scan.projectFolder)
             .arg(m_scan.entries.size())
+            .arg(scope)
             .arg(QLocale{}.formattedDataSize(total)));
   }
 

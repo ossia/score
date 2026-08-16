@@ -90,6 +90,16 @@ struct SCORE_LIB_PROCESS_EXPORT FileReport
   qint64 bytesSaved() const noexcept;
 };
 
+//! Which operation is running, so that the undo entry says what happened
+//! rather than naming whichever one was written first.
+enum class FileOperationKind
+{
+  Consolidate,
+  Reanchor,
+  Relink,
+  Trim
+};
+
 /**
  * @brief Decides what happens to one reference.
  *
@@ -108,5 +118,6 @@ using FilePolicy = std::function<QString(const ExternalFileRef&, FileEntry&)>;
  */
 SCORE_LIB_PROCESS_EXPORT
 FileReport runFileOperation(
-    const score::DocumentContext& ctx, const FilePolicy& policy, bool dryRun);
+    const score::DocumentContext& ctx, const FilePolicy& policy, bool dryRun,
+    FileOperationKind kind = FileOperationKind::Consolidate);
 }

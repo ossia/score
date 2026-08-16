@@ -3,11 +3,16 @@
 #include <QHeaderView>
 #include <QLocale>
 
+#include <algorithm>
+
 namespace Process
 {
 namespace
 {
-enum Column
+//! Scoped, and named for this widget: under a unity build every anonymous
+//! namespace in the library is merged into one, so a plain `enum Column`
+//! here redeclares both the type and its enumerators against another dialog.
+enum class ReportColumn : int
 {
   Owner = 0,
   File,
@@ -47,8 +52,8 @@ FileReportView::FileReportView(QWidget* parent)
   setColumnCount(5);
   setHeaderLabels(
       {tr("Used by"), tr("File"), tr("Action"), tr("Size"), tr("Becomes")});
-  header()->setSectionResizeMode(Column::File, QHeaderView::Stretch);
-  header()->setSectionResizeMode(Column::Becomes, QHeaderView::Stretch);
+  header()->setSectionResizeMode((int)ReportColumn::File, QHeaderView::Stretch);
+  header()->setSectionResizeMode((int)ReportColumn::Becomes, QHeaderView::Stretch);
 }
 
 FileReportView::~FileReportView() = default;
@@ -77,21 +82,21 @@ void FileReportView::setReport(
     auto* item = new QTreeWidgetItem{
         {e.owner, e.storedPath, toString(e.action), sizeText(e), outcomeText(e)}};
 
-    item->setToolTip(Column::File, e.sourcePath);
+    item->setToolTip((int)ReportColumn::File, e.sourcePath);
     if(!e.destinationPath.isEmpty())
-      item->setToolTip(Column::Becomes, e.destinationPath);
+      item->setToolTip((int)ReportColumn::Becomes, e.destinationPath);
     if(!e.note.isEmpty())
-      item->setToolTip(Column::Type, e.note);
+      item->setToolTip((int)ReportColumn::Type, e.note);
 
     // The stored path is the identity of a reference: it is what the caller
     // matches against when applying only the checked rows.
-    item->setData(Column::File, Qt::UserRole, e.storedPath);
+    item->setData((int)ReportColumn::File, Qt::UserRole, e.storedPath);
 
     if(m_checkable)
     {
       item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
       item->setCheckState(
-          Column::Owner,
+          (int)ReportColumn::Owner,
           e.action == FileAction::Missing ? Qt::Unchecked : Qt::Checked);
     }
 
@@ -106,8 +111,8 @@ std::vector<QString> FileReportView::checkedPaths() const
   for(int i = 0; i < topLevelItemCount(); i++)
   {
     auto* item = topLevelItem(i);
-    if(item->checkState(Column::Owner) == Qt::Checked)
-      out.push_back(item->data(Column::File, Qt::UserRole).toString());
+    if(item->checkState((int)ReportColumn::Owner) == Qt::Checked)
+      out.push_back(item->data((int)ReportColumn::File, Qt::UserRole).toString());
   }
   return out;
 }

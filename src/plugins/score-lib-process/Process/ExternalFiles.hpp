@@ -113,9 +113,6 @@ public:
   //! Name attributed to the references reported next. Set by the traversal.
   QString owner;
 
-  //! Every reference seen, in traversal order.
-  std::vector<ExternalFileRef> refs;
-
   //! Rewrites the mapper asked for. Ownership is transferred to the caller
   //! through takeCommands().
   std::vector<score::Command*> takeCommands() noexcept;

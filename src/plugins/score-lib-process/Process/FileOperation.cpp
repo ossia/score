@@ -77,8 +77,25 @@ qint64 FileReport::bytesSaved() const noexcept
   return total;
 }
 
+static score::AggregateCommand* makeMacro(FileOperationKind kind)
+{
+  switch(kind)
+  {
+    case FileOperationKind::Reanchor:
+      return new Process::ReanchorProjectFiles;
+    case FileOperationKind::Relink:
+      return new Process::RelinkProjectFiles;
+    case FileOperationKind::Trim:
+      return new Process::TrimProjectMedia;
+    case FileOperationKind::Consolidate:
+    default:
+      return new Process::ConsolidateProjectFiles;
+  }
+}
+
 FileReport runFileOperation(
-    const score::DocumentContext& ctx, const FilePolicy& policy, bool dryRun)
+    const score::DocumentContext& ctx, const FilePolicy& policy, bool dryRun,
+    FileOperationKind kind)
 {
   FileReport report;
 
@@ -101,7 +118,7 @@ FileReport runFileOperation(
 
   if(!dryRun && map.hasCommands())
   {
-    auto* macro = new Process::ConsolidateProjectFiles;
+    auto* macro = makeMacro(kind);
     for(auto* cmd : map.takeCommands())
       macro->addCommand(cmd);
 

@@ -2,6 +2,8 @@
 
 #include <score/document/DocumentContext.hpp>
 
+#include <core/document/Document.hpp>
+
 #include <QApplication>
 #include <QDialogButtonBox>
 #include <QFileDialog>
@@ -20,7 +22,9 @@ namespace Process
 {
 namespace
 {
-enum Column
+//! See the note in FileReportView.cpp: anonymous namespaces are merged across
+//! this library under a unity build.
+enum class MissingColumn : int
 {
   Owner = 0,
   File,
@@ -30,10 +34,9 @@ enum Column
 constexpr auto last_folder_setting = "Project/LastRelinkFolder";
 }
 
-MissingFilesDialog::MissingFilesDialog(
-    const score::DocumentContext& ctx, QWidget* parent)
+MissingFilesDialog::MissingFilesDialog(score::Document& doc, QWidget* parent)
     : QDialog{parent}
-    , m_ctx{ctx}
+    , m_doc{&doc}
 {
   setWindowTitle(tr("Missing files"));
   setAttribute(Qt::WA_DeleteOnClose);
@@ -50,8 +53,8 @@ MissingFilesDialog::MissingFilesDialog(
   m_files->setAlternatingRowColors(true);
   m_files->setColumnCount(3);
   m_files->setHeaderLabels({tr("Used by"), tr("Missing file"), tr("Found at")});
-  m_files->header()->setSectionResizeMode(Column::File, QHeaderView::Stretch);
-  m_files->header()->setSectionResizeMode(Column::Found, QHeaderView::Stretch);
+  m_files->header()->setSectionResizeMode((int)MissingColumn::File, QHeaderView::Stretch);
+  m_files->header()->setSectionResizeMode((int)MissingColumn::Found, QHeaderView::Stretch);
   lay->addWidget(m_files, 1);
 
   auto tools = new QHBoxLayout;
@@ -96,14 +99,22 @@ bool MissingFilesDialog::nothingMissing(const score::DocumentContext& ctx)
 
 void MissingFilesDialog::rescan()
 {
-  m_report = scanMissingFiles(m_ctx);
+  // The document can be closed while this window is up: it is not modal on
+  // purpose. Go away rather than read a context that no longer exists.
+  if(!m_doc)
+  {
+    close();
+    return;
+  }
+
+  m_report = scanMissingFiles(m_doc->context());
   m_files->clear();
 
   QList<QTreeWidgetItem*> items;
   for(const auto* e : m_report.with(FileAction::Missing))
   {
     auto* item = new QTreeWidgetItem{{e->owner, e->storedPath, tr("not found")}};
-    item->setData(Column::File, Qt::UserRole, e->storedPath);
+    item->setData((int)MissingColumn::File, Qt::UserRole, e->storedPath);
     items.push_back(item);
   }
   m_files->addTopLevelItems(items);
@@ -114,7 +125,7 @@ void MissingFilesDialog::rescan()
     if(it->chosen < 0)
       continue;
     if(auto* item = itemFor(it.key()))
-      item->setText(Column::Found, it->candidates[it->chosen]);
+      item->setText((int)MissingColumn::Found, it->candidates[it->chosen]);
   }
 
   updateSummary();
@@ -125,7 +136,7 @@ QTreeWidgetItem* MissingFilesDialog::itemFor(const QString& storedPath) const
   for(int i = 0; i < m_files->topLevelItemCount(); i++)
   {
     auto* item = m_files->topLevelItem(i);
-    if(item->data(Column::File, Qt::UserRole).toString() == storedPath)
+    if(item->data((int)MissingColumn::File, Qt::UserRole).toString() == storedPath)
       return item;
   }
   return nullptr;
@@ -179,7 +190,7 @@ void MissingFilesDialog::searchFolder()
   for(int i = 0; i < m_files->topLevelItemCount(); i++)
   {
     auto* item = m_files->topLevelItem(i);
-    const QString stored = item->data(Column::File, Qt::UserRole).toString();
+    const QString stored = item->data((int)MissingColumn::File, Qt::UserRole).toString();
 
     auto candidates = index.candidates(stored);
     if(candidates.empty())
@@ -187,13 +198,13 @@ void MissingFilesDialog::searchFolder()
 
     Resolution res{std::move(candidates), 0};
     item->setText(
-        Column::Found,
+        (int)MissingColumn::Found,
         res.candidates.size() == 1
             ? res.candidates[0]
             : tr("%1  (+%2 other candidate(s))")
                   .arg(res.candidates[0])
                   .arg(res.candidates.size() - 1));
-    item->setToolTip(Column::Found, res.candidates[0]);
+    item->setToolTip((int)MissingColumn::Found, res.candidates[0]);
     m_resolutions.insert(stored, std::move(res));
     ++found;
   }
@@ -219,7 +230,7 @@ void MissingFilesDialog::locateSelected()
   if(!item)
     return;
 
-  const QString stored = item->data(Column::File, Qt::UserRole).toString();
+  const QString stored = item->data((int)MissingColumn::File, Qt::UserRole).toString();
   const QString name = QFileInfo{stored}.fileName();
 
   const QString picked = QFileDialog::getOpenFileName(
@@ -229,14 +240,20 @@ void MissingFilesDialog::locateSelected()
 
   m_lastSearchFolder = QFileInfo{picked}.absolutePath();
   m_resolutions.insert(stored, Resolution{{picked}, 0});
-  item->setText(Column::Found, picked);
-  item->setToolTip(Column::Found, picked);
+  item->setText((int)MissingColumn::Found, picked);
+  item->setToolTip((int)MissingColumn::Found, picked);
 
   updateSummary();
 }
 
 void MissingFilesDialog::applyRelink()
 {
+  if(!m_doc)
+  {
+    close();
+    return;
+  }
+
   QHash<QString, QString> chosen;
   for(auto it = m_resolutions.constBegin(); it != m_resolutions.constEnd(); ++it)
     if(it->chosen >= 0 && itemFor(it.key()))
@@ -245,7 +262,7 @@ void MissingFilesDialog::applyRelink()
   if(chosen.isEmpty())
     return;
 
-  const auto report = relinkFiles(m_ctx, chosen);
+  const auto report = relinkFiles(m_doc->context(), chosen);
 
   if(const int failed = report.count(FileAction::Failed); failed > 0)
   {

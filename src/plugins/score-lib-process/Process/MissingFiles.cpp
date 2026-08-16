@@ -126,7 +126,7 @@ relinkFiles(const score::DocumentContext& ctx, const QHash<QString, QString>& ch
 
     return e.newStoredPath;
       },
-      /*dryRun=*/false);
+      /*dryRun=*/false, FileOperationKind::Relink);
 
   report.projectFolder = target.folder;
   return report;

@@ -28,10 +28,37 @@ bool isScoreDocument(const QString& path) noexcept
          || suffix == QStringLiteral("scorejson");
 }
 
-//! Every file the document resolves to right now, canonicalized.
-QSet<QString> usedFiles(const score::DocumentContext& ctx, const ProjectTarget& target)
+//! What the document points at right now.
+struct UsedFiles
 {
-  QSet<QString> used;
+  //! Individual files, by every spelling they resolve to.
+  QSet<QString> files;
+
+  /** Folders a reference points at as a whole.
+   *
+   * A Faust process names the folder its `import(...)` statements resolve
+   * against; an avendish folder port names a folder of data. Nothing in the
+   * document names the files inside them, so without this they would all look
+   * unused -- and this is the one place in score that deletes.
+   */
+  QStringList folders;
+
+  bool covers(const QString& path, const QString& canonical) const noexcept
+  {
+    if(files.contains(path) || (!canonical.isEmpty() && files.contains(canonical)))
+      return true;
+
+    for(const QString& folder : folders)
+      if(score::isUnderFolder(path, folder)
+         || (!canonical.isEmpty() && score::isUnderFolder(canonical, folder)))
+        return true;
+    return false;
+  }
+};
+
+UsedFiles usedFiles(const score::DocumentContext& ctx, const ProjectTarget& target)
+{
+  UsedFiles used;
   runFileOperation(
       ctx,
       [&](const ExternalFileRef& ref, FileEntry&) -> QString {
@@ -39,12 +66,18 @@ QSet<QString> usedFiles(const score::DocumentContext& ctx, const ProjectTarget& 
     if(abs.isEmpty())
       return {};
 
-    used.insert(abs);
+    const QString canonical = QFileInfo{abs}.canonicalFilePath();
+    if(ref.directory || QFileInfo{abs}.isDir())
+    {
+      used.folders.push_back(canonical.isEmpty() ? abs : canonical);
+      return {};
+    }
+
+    used.files.insert(abs);
     // A reference can resolve through a symlink; both spellings count as used
     // so that neither gets swept away.
-    if(const QString canonical = QFileInfo{abs}.canonicalFilePath();
-       !canonical.isEmpty())
-      used.insert(canonical);
+    if(!canonical.isEmpty())
+      used.files.insert(canonical);
     return {};
       },
       /*dryRun=*/true);
@@ -86,7 +119,7 @@ analyzeUnusedFiles(const score::DocumentContext& ctx, const UnusedFilesOptions& 
   if(target.folder.isEmpty())
     return report;
 
-  const QSet<QString> used = usedFiles(ctx, target);
+  const UsedFiles used = usedFiles(ctx, target);
   const QString aside = target.folder + '/' + unusedFolderName();
 
   const QStringList roots = opts.onlyCollectedFolders
@@ -110,8 +143,7 @@ analyzeUnusedFiles(const score::DocumentContext& ctx, const UnusedFilesOptions& 
       if(isScoreDocument(path))
         continue;
 
-      const QString canonical = QFileInfo{path}.canonicalFilePath();
-      if(used.contains(path) || (!canonical.isEmpty() && used.contains(canonical)))
+      if(used.covers(path, QFileInfo{path}.canonicalFilePath()))
         continue;
 
       FileEntry e;
@@ -194,7 +226,7 @@ FileReport removeUnusedFiles(
     return report;
 
   const QString aside = target.folder + '/' + unusedFolderName();
-  const QSet<QString> used = usedFiles(ctx, target);
+  const UsedFiles used = usedFiles(ctx, target);
 
   for(const QString& path : absolutePaths)
   {
@@ -224,8 +256,7 @@ FileReport removeUnusedFiles(
       refuse(QObject::tr("this is a score document"));
       continue;
     }
-    if(const QString canonical = QFileInfo{path}.canonicalFilePath();
-       used.contains(path) || (!canonical.isEmpty() && used.contains(canonical)))
+    if(used.covers(path, QFileInfo{path}.canonicalFilePath()))
     {
       refuse(QObject::tr("the project uses this file"));
       continue;
