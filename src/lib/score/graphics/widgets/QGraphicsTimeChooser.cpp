@@ -36,6 +36,32 @@ constexpr Division divisions[] = {
 constexpr int division_count = std::ssize(divisions);
 constexpr int default_sync_index = 8; // 1/8th
 
+// Indices of the straight (non-dotted, non-triplet) divisions: a plain drag
+// detents on these; Alt or Shift unlocks the full table.
+constexpr int straight_indices[] = {0, 2, 5, 8, 11, 14, 17, 19, 21};
+
+// Snap a 0..1 knob position onto a division detent, so that the knob angle,
+// the emitted value and the execution feedback all land on the exact same
+// positions.
+double snapSyncPosition(double v01, bool fullTable) noexcept
+{
+  const double target = ossia::clamp(v01, 0., 1.) * (division_count - 1);
+  if(fullTable)
+    return std::lround(target) / double(division_count - 1);
+  int best = straight_indices[0];
+  double bestDist = std::abs(target - best);
+  for(const int i : straight_indices)
+  {
+    const double d = std::abs(target - i);
+    if(d < bestDist)
+    {
+      bestDist = d;
+      best = i;
+    }
+  }
+  return best / double(division_count - 1);
+}
+
 int nearestDivision(float frac) noexcept
 {
   int best = 0;
@@ -235,7 +261,23 @@ void QGraphicsTimeChooser::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
 void QGraphicsTimeChooser::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  DefaultGraphicsKnobImpl::mouseMoveEvent(*this, event);
+  // Not DefaultGraphicsKnobImpl::mouseMoveEvent: in sync mode the position
+  // snaps onto the division detents before anything is emitted, so the
+  // knob angle always matches a division (and thus the execution feedback).
+  if((event->buttons() & Qt::LeftButton) && m_grab)
+  {
+    double v = InfiniteScroller::move(event);
+    if(m_sync)
+      v = snapSyncPosition(
+          v, event->modifiers() & (Qt::AltModifier | Qt::ShiftModifier));
+    if(v != m_value)
+    {
+      m_value = v;
+      sliderMoved();
+      update();
+    }
+  }
+  event->accept();
 }
 
 void QGraphicsTimeChooser::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
@@ -244,7 +286,10 @@ void QGraphicsTimeChooser::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   // needs a scalar value() which this widget does not have.
   if(m_grab)
   {
-    const double v = InfiniteScroller::move(event);
+    double v = InfiniteScroller::move(event);
+    if(m_sync)
+      v = snapSyncPosition(
+          v, event->modifiers() & (Qt::AltModifier | Qt::ShiftModifier));
     if(v != m_value)
     {
       m_value = v;
