@@ -415,7 +415,7 @@ int main(int argc, char** argv)
 
   // No stdout echo: parent pipe is never drained; large JSON would block
   return score::puppet::puppet_main(
-      argc, argv, 37590, "lv2puppet", false,
+      argc, argv, 37590, "lv2puppet", false, 60,
       [](const std::string& bundle, int id, const std::string& token) {
     return scan_bundle(bundle, id, token);
       });

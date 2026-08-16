@@ -168,6 +168,9 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& app)
 
 #if QT_CONFIG(process)
   m_scanner = std::make_unique<Media::PluginScanner>("clap-scanner");
+  // 30s: multi-plug-in files (lsp-plugins: ~200 in one .clap) and machine
+  // load during a 4-format startup scan need headroom over the old 10s
+  m_scanner->setProcessTimeout(30000);
   con(*m_scanner, &Media::PluginScanner::scanned, this, &ApplicationPlugin::onScanned);
   con(*m_scanner, &Media::PluginScanner::scanFailed, this,
       &ApplicationPlugin::onScanFailed);
@@ -187,7 +190,13 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& app)
   });
 }
 
-ApplicationPlugin::~ApplicationPlugin() = default;
+ApplicationPlugin::~ApplicationPlugin()
+{
+  // Results delivered so far would otherwise be lost when quitting mid-scan:
+  // the debounced m_persistTimer dies with us
+  if(m_scanRan)
+    persistCache();
+}
 
 void ApplicationPlugin::initialize()
 {
@@ -314,6 +323,11 @@ void ApplicationPlugin::persistCache()
 
 void ApplicationPlugin::schedulePersist()
 {
-  m_persistTimer->start();
+  m_scanRan = true;
+  // Don't restart a running timer: during a busy scan replies arrive more
+  // often than the interval and a restarting debounce would never fire,
+  // deferring both persistence and UI updates to the very end of the scan
+  if(!m_persistTimer->isActive())
+    m_persistTimer->start();
 }
 }

@@ -76,6 +76,9 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
 
 #if QT_CONFIG(process)
   m_scanner = std::make_unique<Media::PluginScanner>("vst-scanner");
+  // 30s: bridged plug-ins (yabridge) may need a cold wineserver start, and
+  // up to 4 formats x 8 puppets share the machine during a startup scan
+  m_scanner->setProcessTimeout(30000);
   con(*m_scanner, &Media::PluginScanner::scanned, this, &ApplicationPlugin::onScanned);
   con(*m_scanner, &Media::PluginScanner::scanFailed, this,
       &ApplicationPlugin::onScanFailed);
@@ -306,7 +309,12 @@ void ApplicationPlugin::persistCache()
 
 void ApplicationPlugin::schedulePersist()
 {
-  m_persistTimer->start();
+  m_scanRan = true;
+  // Don't restart a running timer: during a busy scan replies arrive more
+  // often than the interval and a restarting debounce would never fire,
+  // deferring both persistence and UI updates to the very end of the scan
+  if(!m_persistTimer->isActive())
+    m_persistTimer->start();
 }
 
 void ApplicationPlugin::timerEvent(QTimerEvent* event)
@@ -322,6 +330,11 @@ void ApplicationPlugin::timerEvent(QTimerEvent* event)
 
 ApplicationPlugin::~ApplicationPlugin()
 {
+  // Results delivered so far would otherwise be lost when quitting mid-scan:
+  // the debounced m_persistTimer dies with us
+  if(m_scanRan)
+    persistCache();
+
   for(auto& e : vst_modules)
   {
     delete e.second;

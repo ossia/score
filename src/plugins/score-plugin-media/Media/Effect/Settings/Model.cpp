@@ -51,7 +51,10 @@ SETTINGS_PARAMETER_IMPL(ClapPaths){
       + "/Library/Audio/Plug-Ins/CLAP"),
      QStringLiteral("/Library/Audio/Plug-Ins/CLAP")
 #elif defined(_WIN32)
-     (QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/CLAP"),
+     // Env vars, not QStandardPaths::App*Location: these defaults are
+     // evaluated in a static initializer where the application identity may
+     // not be set yet, and the CLAP convention is %LOCALAPPDATA%\CLAP anyway
+     (qEnvironmentVariable("LOCALAPPDATA") + "/CLAP"),
      QStringLiteral("C:/Program Files/Common Files/CLAP"),
      QStringLiteral("C:/Program Files/Common Files/Audio Plugins/CLAP")
 #else
@@ -73,10 +76,11 @@ SETTINGS_PARAMETER_IMPL(Lv2Paths){
      QStringLiteral("/usr/lib/lv2")           // lilv default
 #elif defined(_WIN32)
      QStringLiteral("C:/Program Files/Common Files/LV2"),
-     // Roaming %APPDATA%\LV2 (lilv/Carla default)
-     (QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/LV2"),
-     // Non-roaming %LOCALAPPDATA%\LV2 (legacy score path)
-     (QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/LV2")
+     // Env vars, not QStandardPaths::App*Location: these defaults are
+     // evaluated in a static initializer where the application identity may
+     // not be set yet - and %APPDATA%\LV2 is the lilv/Carla convention
+     (qEnvironmentVariable("APPDATA") + "/LV2"),
+     (qEnvironmentVariable("LOCALAPPDATA") + "/LV2")
 #else
      QStringLiteral("/usr/lib/lv2"), QStringLiteral("/usr/local/lib/lv2"),
      QStringLiteral("/usr/lib64/lv2"), QStringLiteral("/usr/local/lib64/lv2")

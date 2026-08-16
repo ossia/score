@@ -137,6 +137,9 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& ctx)
 
 #if QT_CONFIG(process)
   m_scanner = std::make_unique<Media::PluginScanner>("vst3-scanner");
+  // 30s: bridged plug-ins (yabridge) may need a cold wineserver start, and
+  // up to 4 formats x 8 puppets share the machine during a startup scan
+  m_scanner->setProcessTimeout(30000);
   con(*m_scanner, &Media::PluginScanner::scanned, this, &ApplicationPlugin::onScanned);
   con(*m_scanner, &Media::PluginScanner::scanFailed, this,
       &ApplicationPlugin::onScanFailed);
@@ -156,7 +159,13 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& ctx)
   });
 }
 
-ApplicationPlugin::~ApplicationPlugin() = default;
+ApplicationPlugin::~ApplicationPlugin()
+{
+  // Results delivered so far would otherwise be lost when quitting mid-scan:
+  // the debounced m_persistTimer dies with us
+  if(m_scanRan)
+    persistCache();
+}
 
 void ApplicationPlugin::initialize()
 {
@@ -300,10 +309,10 @@ void ApplicationPlugin::onScanned(const QString& path, const QJsonObject& obj)
   AvailablePlugin i = parseVst3Reply(path, obj);
   if(!i.isValid)
   {
-    // A reply without any audio-effect class: not an error, but nothing we
-    // can instantiate either. Record it so the file is not rescanned on
-    // every startup.
-    onScanFailed(path, QStringLiteral("no audio effect classes"));
+    // No usable class in the reply (the puppet only emits audio-effect
+    // classes, and classes with malformed UIDs are skipped): nothing we can
+    // instantiate. Record it so the file is not rescanned on every startup.
+    onScanFailed(path, QStringLiteral("no usable audio effect classes"));
     return;
   }
 
@@ -333,7 +342,12 @@ void ApplicationPlugin::persistCache()
 
 void ApplicationPlugin::schedulePersist()
 {
-  m_persistTimer->start();
+  m_scanRan = true;
+  // Don't restart a running timer: during a busy scan replies arrive more
+  // often than the interval and a restarting debounce would never fire,
+  // deferring both persistence and UI updates to the very end of the scan
+  if(!m_persistTimer->isActive())
+    m_persistTimer->start();
 }
 
 VST3::Hosting::Module::Ptr ApplicationPlugin::getModule(const std::string& path)

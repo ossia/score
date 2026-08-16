@@ -33,8 +33,9 @@ struct PluginTabSpec
 
   //! Current search paths from the settings model
   std::function<QStringList()> getPaths;
-  //! Commit an edited path list (through the settings command dispatcher so
-  //! the dialog's Cancel button reverts it)
+  //! Commit an edited path list. Note: applied (and rescanned) immediately;
+  //! the settings dialog's Cancel button does not revert it - same behavior
+  //! as the historical VST tab, whose dispatcher was never rolled back either.
   std::function<void(QStringList)> commitPaths;
   //! Called with (context, callback); must invoke callback(paths) whenever
   //! the settings model's path list changes

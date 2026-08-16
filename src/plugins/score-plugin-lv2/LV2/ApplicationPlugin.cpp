@@ -600,7 +600,8 @@ void ApplicationPlugin::addPluginsFromJson(
     m_plugins.push_back(std::move(marker));
   }
 
-  if(m_persistTimer)
+  // Don't restart a running timer: a busy scan would starve the debounce
+  if(m_persistTimer && !m_persistTimer->isActive())
     m_persistTimer->start();
 }
 
@@ -622,7 +623,8 @@ void ApplicationPlugin::markBundleInvalid(const QString& bundlePath)
   }
   m_plugins.push_back(std::move(info));
 
-  if(m_persistTimer)
+  // Don't restart a running timer: a busy scan would starve the debounce
+  if(m_persistTimer && !m_persistTimer->isActive())
     m_persistTimer->start();
 }
 

@@ -34,6 +34,20 @@ inline constexpr quint32 pluginCacheMagic = 0x53435043; // "SCPC"
 
 //! Serialize a scan cache with magic + version + count framing.
 //! T must provide QDataStream operator<< / operator>>.
+//!
+//! Each element is stored as its own length-prefixed byte blob. The score
+//! datastream operators route reads through an internal, separate
+//! QDataStream, so a read error is invisible on the stream the caller
+//! iterates with - a naive `str >> elt` loop happily returns garbage on
+//! truncation or on a layout drift (the failure mode the old VST2
+//! `vst_invalid_format` global used to catch). With the length prefix, the
+//! outer stream reads the raw bytes itself (so its status is meaningful),
+//! and each element decodes from an isolated buffer that it must consume
+//! exactly.
+//!
+//! NOTE: this cannot catch every un-versioned layout change - adding or
+//! reordering fields of a cached Info struct REQUIRES bumping that
+//! backend's cache_format_version.
 template <typename T>
 QByteArray serializePluginCache(quint32 version, const std::vector<T>& vec)
 {
@@ -42,13 +56,20 @@ QByteArray serializePluginCache(quint32 version, const std::vector<T>& vec)
     QDataStream str{&res, QIODevice::WriteOnly};
     str << pluginCacheMagic << version << (quint32)vec.size();
     for(const auto& elt : vec)
-      str << elt;
+    {
+      QByteArray blob;
+      {
+        QDataStream es{&blob, QIODevice::WriteOnly};
+        es << elt;
+      }
+      str << blob;
+    }
   }
   return res;
 }
 
 //! Returns nullopt (instead of garbage) on: wrong magic, wrong version,
-//! truncation, or trailing bytes.
+//! truncation, trailing bytes, or an element not consuming its blob exactly.
 template <typename T>
 std::optional<std::vector<T>>
 deserializePluginCache(quint32 version, const QByteArray& data)
@@ -62,18 +83,26 @@ deserializePluginCache(quint32 version, const QByteArray& data)
   if(str.status() != QDataStream::Ok || magic != pluginCacheMagic || ver != version)
     return std::nullopt;
 
-  // Each element is at least a couple of bytes; a count beyond that is a
-  // corrupt header, not a plausible plug-in collection.
-  if(count > (quint32)data.size())
+  // Each element blob costs at least its 4-byte length prefix; a larger
+  // count is a corrupt header, not a plausible plug-in collection.
+  if(count > (quint32)data.size() / 4)
     return std::nullopt;
 
   std::vector<T> res;
   res.reserve(count);
   for(quint32 i = 0; i < count; i++)
   {
-    T elt;
-    str >> elt;
+    QByteArray blob;
+    str >> blob;
     if(str.status() != QDataStream::Ok)
+      return std::nullopt;
+
+    QDataStream es{blob};
+    T elt;
+    es >> elt;
+    // An element that does not consume its blob exactly decoded with a
+    // different layout than it was written with
+    if(es.status() != QDataStream::Ok || !es.atEnd())
       return std::nullopt;
     res.push_back(std::move(elt));
   }
@@ -93,20 +122,25 @@ std::vector<T> loadPluginCache(
 {
   QSettings set;
 
+  std::optional<std::vector<T>> versioned;
   if(const auto val = set.value(key); val.canConvert<QByteArray>())
-  {
-    if(auto res = deserializePluginCache<T>(version, val.toByteArray()))
-      return *std::move(res);
-  }
+    versioned = deserializePluginCache<T>(version, val.toByteArray());
 
   std::vector<T> legacy;
   if(!legacyKey.isEmpty())
   {
-    if(const auto val = set.value(legacyKey); val.canConvert<std::vector<T>>())
-      legacy = val.value<std::vector<T>>();
+    if(!versioned)
+    {
+      if(const auto val = set.value(legacyKey); val.canConvert<std::vector<T>>())
+        legacy = val.value<std::vector<T>>();
+    }
+    // Removed even when the versioned cache won: an older score run may have
+    // rewritten it since the migration, and it must not resurrect stale
+    // entries after a future format-version bump.
     set.remove(legacyKey);
   }
-  return legacy;
+
+  return versioned ? *std::move(versioned) : legacy;
 }
 
 template <typename T>

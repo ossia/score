@@ -99,10 +99,21 @@ struct client
 //! Common main() implementation: parse args, run scan_fn(path, id, token),
 //! ship the resulting JSON. scan_fn returns the full reply object as a
 //! string; an empty string means the plug-in could not be scanned.
+//!
+//! echo_stdout only applies to manual runs (no session token): when spawned
+//! by a host the parent never drains our stdout pipe, and a large reply
+//! (lsp-plugins.clap: ~100KB for ~200 plug-ins) overflows the 64KB pipe
+//! buffer and can stall the scan.
+//!
+//! watchdog_seconds guards against a host that never becomes reachable; it
+//! should match the host-side scan timeout. It must never abort a scan that
+//! already produced a payload: the scan itself runs synchronously in a
+//! posted handler (the timer cannot fire mid-scan), and once the payload is
+//! on its way out only the 500ms flush timer remains.
 template <typename ScanFn>
 int puppet_main(
     int argc, char** argv, int default_port, const char* name, bool echo_stdout,
-    ScanFn&& scan_fn)
+    int watchdog_seconds, ScanFn&& scan_fn)
 {
   const auto args = parse_arguments(argc, argv, default_port);
   if(!args.valid)
@@ -110,16 +121,21 @@ int puppet_main(
 
   client c{args.port};
   c.log_name = name;
-  c.echo_stdout = echo_stdout;
+  c.echo_stdout = echo_stdout && args.token.empty();
 
   boost::asio::post(c.ctx, [&] {
     c.set_payload(scan_fn(args.path, args.request_id, args.token));
   });
 
   boost::asio::steady_timer watchdog{c.ctx};
-  watchdog.expires_after(std::chrono::seconds(10));
+  watchdog.expires_after(std::chrono::seconds(watchdog_seconds));
   watchdog.async_wait([&](auto ec) {
     if(ec)
+      return;
+    // The send is already in flight (a scan longer than the watchdog leaves
+    // both the expired timer and the socket ready; asio dispatches the
+    // socket first): let the flush timer finish the exit instead
+    if(c.socket_ready && c.payload_ready)
       return;
     std::fprintf(stderr, "[%s] timeout\n", name);
     std::_Exit(1);

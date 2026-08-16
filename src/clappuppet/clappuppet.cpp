@@ -204,7 +204,7 @@ int main(int argc, char** argv)
   init_invisible_window();
 
   return score::puppet::puppet_main(
-      argc, argv, 37589, "clappuppet", true,
+      argc, argv, 37589, "clappuppet", true, 30,
       [](const std::string& path, int id, const std::string& token) {
     return load_clap(path, id, token);
       });

@@ -100,7 +100,9 @@ TEST_CASE("parse_arguments: garbage numbers do not misroute the reply", "[puppet
   const char* argv[] = {"puppet", "/plug.so", "banana", "0", "tok"};
   auto args = parse_arguments(5, const_cast<char**>(argv), 37587);
   REQUIRE(args.valid);
-  REQUIRE(args.request_id == 0); // not atoi-garbage
-  REQUIRE(args.port == 37587);   // port 0 rejected, default kept
+  // -1, not 0: a malformed id must not masquerade as scan slot 0 (the host
+  // drops replies for unknown request ids)
+  REQUIRE(args.request_id == -1);
+  REQUIRE(args.port == 37587); // port 0 rejected, default kept
   REQUIRE(args.token == "tok");
 }
