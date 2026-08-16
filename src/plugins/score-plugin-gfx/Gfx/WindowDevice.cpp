@@ -22,6 +22,24 @@ W_OBJECT_IMPL(Gfx::WindowDevice)
 namespace Gfx
 {
 
+// SCORE_FORCE_OFFSCREEN_WINDOW=Name1,Name2 forces any matching WindowDevice
+// (whatever its Single/Background/MultiWindow mode) into a headless offscreen
+// render path. Used by tests that need grabTo output but must not pop a
+// platform window.
+static bool shouldForceOffscreen(const QString& name)
+{
+  static const QByteArray env = qgetenv("SCORE_FORCE_OFFSCREEN_WINDOW");
+  if(env.isEmpty())
+    return false;
+  for(const auto& part : env.split(','))
+  {
+    const auto trimmed = QString::fromUtf8(part).trimmed();
+    if(!trimmed.isEmpty() && trimmed == name)
+      return true;
+  }
+  return false;
+}
+
 score::gfx::Window* WindowDevice::window() const noexcept
 {
   if(m_dev)
@@ -93,7 +111,17 @@ void WindowDevice::grabTo(const QString& path) const
     const int w = rb.pixelSize.width();
     const int h = rb.pixelSize.height();
     const int expected = w * h * 4;
-    if(w <= 0 || h <= 0 || rb.data.size() < expected)
+
+    // BackgroundNode::render() clears the readback when its render list holds
+    // nothing but the output itself, which leaves the default-constructed
+    // QSize(-1, -1) here.
+    if(w <= 0 || h <= 0)
+    {
+      qWarning() << "grabTo: nothing rendered into" << m_settings.name
+                 << "- no process is connected to this device's input";
+      return;
+    }
+    if(rb.data.size() < expected)
     {
       qWarning() << "grabTo: readback is" << rb.data.size() << "bytes for" << w << "x"
                  << h << "- expected" << expected;
@@ -108,6 +136,12 @@ void WindowDevice::grabTo(const QString& path) const
   }
   else if(auto win = this->window())
   {
+    // QScreen::grabWindow reads the framebuffer at the window's geometry, not
+    // the window's own buffer: anything drawn on top lands in the file. Valid
+    // to eyeball an interactive session, never valid as a reference image.
+    qWarning() << "grabTo: capturing the SCREEN at" << m_settings.name
+               << "geometry, not the rendered frame. Set SCORE_FORCE_OFFSCREEN_WINDOW="
+               << m_settings.name << "for a real readback.";
     auto grab = win->screen()->grabWindow(win->winId());
     if(!grab.save(path))
       qWarning() << "grabTo: could not write" << path;
@@ -147,6 +181,18 @@ bool WindowDevice::reconnect()
       auto view = m_ctx.document.view();
       auto main_view = view ? qobject_cast<Scenario::ScenarioDocumentView*>(
           &view->viewDelegate()) : nullptr;
+
+      if(shouldForceOffscreen(m_settings.name))
+      {
+        m_dev = std::make_unique<offscreen_device>(
+            std::unique_ptr<gfx_protocol_base>(m_protocol),
+            m_settings.name.toStdString());
+
+        enableCallbacks();
+        deviceChanged(nullptr, m_dev.get());
+        return connected();
+      }
+
       switch(set.mode)
       {
         case WindowMode::Background: {
