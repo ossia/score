@@ -152,6 +152,20 @@ struct DefaultGraphicsKnobImpl
     event->accept();
   }
 
+  //! QEvent::UngrabMouse: the scene took the implicit grab away and there will
+  //! be no release to end the drag on. See DefaultGraphicsSliderImpl for what
+  //! goes wrong if the edit is left open.
+  template <typename T>
+  static void ungrabMouseEvent(T& self, QEvent* event)
+  {
+    if(!self.m_grab)
+      return;
+
+    self.m_grab = false;
+    InfiniteScroller::abort(self);
+    self.sliderReleased();
+  }
+
   template <typename T>
     requires std::is_integral_v<std::decay_t<decltype(std::declval<T>().value())>>
   static void contextMenuEvent(T& self, QPointF pos)

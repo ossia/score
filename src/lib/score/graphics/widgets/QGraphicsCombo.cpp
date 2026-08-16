@@ -86,6 +86,19 @@ struct DefaultComboImpl
     }
     event->accept();
   }
+
+  //! QEvent::UngrabMouse: the scene took the implicit grab away and there will
+  //! be no release to end the drag on. See DefaultGraphicsSliderImpl for what
+  //! goes wrong if the edit is left open.
+  static void ungrabMouseEvent(QGraphicsCombo& self, QEvent* event)
+  {
+    if(!self.m_grab)
+      return;
+
+    self.m_grab = false;
+    InfiniteScroller::abort(self);
+    self.sliderReleased();
+  }
 };
 
 QGraphicsCombo::QGraphicsCombo(QGraphicsItem* parent)
@@ -246,6 +259,17 @@ void QGraphicsCombo::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorSpin);
   event->accept();
+}
+
+bool QGraphicsCombo::sceneEvent(QEvent* event)
+{
+  if(event->type() == QEvent::UngrabMouse)
+  {
+    DefaultComboImpl::ungrabMouseEvent(*this, event);
+    auto& skin = score::Skin::instance();
+    setCursor(skin.CursorSpin);
+  }
+  return QGraphicsItem::sceneEvent(event);
 }
 
 QRectF QGraphicsCombo::boundingRect() const

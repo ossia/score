@@ -172,8 +172,27 @@ void QGraphicsRangeSlider::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 void QGraphicsRangeSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   mouseMoveEvent(event);
+  handle = NONE;
   sliderReleased();
   event->accept();
+}
+
+//! QEvent::UngrabMouse: the scene took the implicit grab away and there will be
+//! no release to end the drag on. See DefaultGraphicsSliderImpl for what goes
+//! wrong if the edit is left open. Guarded on `handle`, which this widget owns:
+//! `moving` is written by whoever consumes the signals, so relying on it would
+//! make the cleanup depend on the consumer having wired itself up correctly.
+bool QGraphicsRangeSlider::sceneEvent(QEvent* event)
+{
+  if(event->type() == QEvent::UngrabMouse)
+  {
+    if(handle != NONE)
+    {
+      handle = NONE;
+      sliderReleased();
+    }
+  }
+  return QGraphicsItem::sceneEvent(event);
 }
 
 void QGraphicsRangeSlider::paint(

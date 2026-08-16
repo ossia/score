@@ -135,6 +135,22 @@ void QGraphicsXYChooser::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 }
 
+//! QEvent::UngrabMouse: the scene took the implicit grab away and there will be
+//! no release to end the drag on. See DefaultGraphicsSliderImpl for what goes
+//! wrong if the edit is left open.
+bool QGraphicsXYChooser::sceneEvent(QEvent* event)
+{
+  if(event->type() == QEvent::UngrabMouse)
+  {
+    if(m_grab)
+    {
+      m_grab = false;
+      sliderReleased();
+    }
+  }
+  return QGraphicsItem::sceneEvent(event);
+}
+
 QRectF QGraphicsXYChooser::boundingRect() const
 {
   return QRectF{0, 0, 100, 100};

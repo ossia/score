@@ -31,17 +31,33 @@ OngoingCommandDispatcher::OngoingCommandDispatcher(
 {
 }
 OngoingCommandDispatcher::~OngoingCommandDispatcher() { }
-void OngoingCommandDispatcher::unwatch(const QObject* obj) { }
+
+void OngoingCommandDispatcher::unwatch(const QObject* obj)
+{
+  m_watched = nullptr;
+}
 
 void OngoingCommandDispatcher::watch(const QObject* obj)
 {
+  // submit() runs on every mouse move, and commit() deliberately leaves
+  // m_watched alone, so re-editing the same object costs nothing: a document
+  // ends up with at most one connection per object the user has ever edited,
+  // rather than one per mouse move.
+  if(obj == m_watched)
+    return;
+
   m_watched = obj;
   if(obj)
   {
     score::Document& doc = this->stack().context().document;
 
-    QObject::connect(obj, &QObject::destroyed, &doc.model(), [d = &doc] {
-      d->context().dispatcher.rollback_without_undo();
+    QObject::connect(obj, &QObject::destroyed, &doc.model(), [d = &doc, obj] {
+      // Only when this is still the interaction in progress. Connections from
+      // earlier, long-finished edits outlive them, and one of those objects
+      // dying must not tear down the command the user is building now.
+      auto& disp = d->context().dispatcher;
+      if(disp.watching(obj))
+        disp.rollback_without_undo();
     });
   }
 }
@@ -50,14 +66,15 @@ void OngoingCommandDispatcher::watch(const QObject* obj)
 //! For instance on mouse release.
 void OngoingCommandDispatcher::commit()
 {
-  if(m_watched)
-    unwatch(m_watched);
   if(m_cmd)
   {
     SendStrategy::Quiet::send(stack(), m_cmd.release());
     stack().enableActions();
   }
-  m_watched = nullptr;
+
+  // m_watched is kept: it makes the next edit of the same object reuse the
+  // connection watch() already made. Nothing else reads it while no command is
+  // open -- the destroyed handler's rollback_without_undo() is a no-op then.
 }
 
 //! If the command has to be reverted, for instance when pressing escape.

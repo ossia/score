@@ -27,6 +27,7 @@
 #include <score/selection/SelectionStack.hpp>
 #include <score/tools/Bind.hpp>
 
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/ssize.hpp>
 
 #include <ossia-qt/invoke.hpp>
@@ -986,7 +987,15 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
     }
     {
       const bool cumulation = event->modifiers() & Qt::ControlModifier;
-      if(m_model.selection.get())
+
+      // Membership of the selection stack, not ProcessModel::selection: the
+      // latter is also set on a process that merely *contains* the selection --
+      // clicking a port marks its parent node selected so that the node draws
+      // its frame, while the stack holds only the port. Deferring on the flag
+      // left such a node drawn as selected and yet impossible to drag, since
+      // selectedProcesses() below reads the stack and would come back empty.
+      const Selection current = m_context.selectionStack.currentSelection();
+      if(current.contains(&m_model))
       {
         nodeSelectOnRelease = true;
         nodeSelectCumulation = cumulation;
@@ -994,8 +1003,10 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
       else
       {
         nodeSelectOnRelease = false;
-        Selection sel = filterSelections(
-            &m_model, m_context.selectionStack.currentSelection(), cumulation);
+        Selection sel;
+        if(cumulation)
+          sel = current;
+        sel.append(&m_model);
         score::SelectionDispatcher{m_context.selectionStack}.select(sel);
       }
     }
@@ -1045,7 +1056,14 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
         break;
       }
       case Interaction::Move: {
-        m_dispatcher.submit<Process::MoveNodes>(selectedProcesses(m_context), p - origp);
+        auto procs = selectedProcesses(m_context);
+        // The press put this node in the selection, so it is normally already
+        // in here; a selection that somehow does not hold it would turn the
+        // whole drag into a silent no-op rather than moving the node under the
+        // mouse.
+        if(!ossia::contains(procs, &m_model))
+          procs.push_back(&m_model);
+        m_dispatcher.submit<Process::MoveNodes>(std::move(procs), p - origp);
         break;
       }
       default:
@@ -1075,6 +1093,28 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   nodeSelectOnRelease = false;
   nodeDidMove = false;
   event->accept();
+}
+
+//! QEvent::UngrabMouse: the scene took the implicit grab away and there will be
+//! no release to end the drag on -- most visibly when the button was let go
+//! outside the window and the pointer then comes back in. Without this the
+//! MoveNodes command stays open, and the next drag of this node updates *it*
+//! instead of starting fresh, moving the node relative to the previous press.
+bool NodeItem::sceneEvent(QEvent* event)
+{
+  if(event->type() == QEvent::UngrabMouse)
+  {
+    if(nodeItemInteraction != Interaction::None)
+    {
+      if(nodeDidMove)
+        m_dispatcher.commit<Process::MoveNodesMacro>();
+
+      nodeItemInteraction = Interaction::None;
+      nodeSelectOnRelease = false;
+      nodeDidMove = false;
+    }
+  }
+  return QGraphicsItem::sceneEvent(event);
 }
 
 void NodeItem::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)

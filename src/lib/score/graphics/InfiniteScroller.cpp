@@ -3,6 +3,7 @@
 #include <score/tools/PointerLock.hpp>
 
 #include <QCoreApplication>
+#include <QCursor>
 #include <QGraphicsItem>
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
@@ -29,6 +30,13 @@ bool cursorHidden{};
 bool usedPointerPositions{};
 int silentLockedMoves{};
 
+// What the item had before its cursor was blanked. unsetCursor() does not put
+// that back, it drops the item's cursor altogether -- and these controls set
+// one in their constructor (CursorPointingHand on the knobs and spinboxes), so
+// undoing the hide that way costs the widget its cursor for good.
+bool hadCursorBeforeHiding{};
+QCursor cursorBeforeHiding{};
+
 // A backend can report the lock as held and then deliver nothing -- a refused
 // Wayland constraint, a platform that never sends the motion. A lock that is
 // really held also keeps the pointer on the press point, so a pointer that has
@@ -54,8 +62,25 @@ void hideCursorForHeldPointer()
 
   cursorHidden = true;
 #if !defined(__EMSCRIPTEN__)
+  hadCursorBeforeHiding = draggedItem->hasCursor();
+  if(hadCursorBeforeHiding)
+    cursorBeforeHiding = draggedItem->cursor();
   draggedItem->setCursor(QCursor(Qt::BlankCursor));
 #endif
+}
+
+//! Counterpart of hideCursorForHeldPointer(): puts back the cursor the item
+//! had, rather than leaving it with none.
+void restoreCursorAfterHiding(QGraphicsItem& self)
+{
+#if !defined(__EMSCRIPTEN__)
+  if(hadCursorBeforeHiding)
+    self.setCursor(cursorBeforeHiding);
+  else
+    self.unsetCursor();
+#endif
+  hadCursorBeforeHiding = false;
+  cursorBeforeHiding = QCursor{};
 }
 
 void endRelativeSession()
@@ -322,6 +347,18 @@ double InfiniteScroller::move(QGraphicsSceneMouseEvent* event)
   return v;
 }
 
+void InfiniteScroller::abort(QGraphicsItem& self)
+{
+  if(draggedItem != &self)
+    return;
+
+  const bool hidden = cursorHidden;
+  cancel();
+
+  if(hidden)
+    restoreCursorAfterHiding(self);
+}
+
 void InfiniteScroller::stop(QGraphicsItem& self, QGraphicsSceneMouseEvent* event)
 {
   const bool restoreCursor = usedPointerPositions;
@@ -332,6 +369,6 @@ void InfiniteScroller::stop(QGraphicsItem& self, QGraphicsSceneMouseEvent* event
     score::setCursorPos(event->buttonDownScreenPos(Qt::LeftButton));
 
   if(hidden)
-    self.unsetCursor();
+    restoreCursorAfterHiding(self);
 }
 }

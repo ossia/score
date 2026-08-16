@@ -88,6 +88,15 @@ void QGraphicsLogKnob::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   DefaultGraphicsKnobImpl::mouseReleaseEvent(*this, event);
 }
 
+bool QGraphicsLogKnob::sceneEvent(QEvent* event)
+{
+  if(event->type() == QEvent::UngrabMouse)
+  {
+    DefaultGraphicsKnobImpl::ungrabMouseEvent(*this, event);
+  }
+  return QGraphicsItem::sceneEvent(event);
+}
+
 void QGraphicsLogKnob::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
   event->accept();
