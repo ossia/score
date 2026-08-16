@@ -17,8 +17,9 @@
 #include <ossia-qt/invoke.hpp>
 #include <ossia-qt/qml_protocols.hpp>
 
-#include <QFile>
 #include <QCommandLineParser>
+#include <QFile>
+#include <QFileInfo>
 
 #if __has_include(<QQuickWindow>)
 #include <QGuiApplication>
@@ -34,6 +35,30 @@
 
 namespace JS
 {
+// Whether --script was given a program or the path of one. An existing file is
+// always a path; anything with JS punctuation in it is a program.
+static bool stringIsScript(const QString& input)
+{
+  if(input.isEmpty())
+    return false;
+
+  if(QFileInfo fileInfo{input}; fileInfo.exists() && fileInfo.isFile())
+    return false;
+
+  if(input.length() > 4096)
+    return true;
+
+  for(QChar ch : input)
+  {
+    const char16_t c = ch.unicode();
+    if(c == '\n' || c == '\r' || c == ';' || c == '{' || c == '}' || c == '('
+       || c == ')')
+      return true;
+  }
+
+  return false;
+}
+
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
     : score::GUIApplicationPlugin{ctx}
 {
@@ -52,10 +77,12 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
       "Library", m_consoleEngine.newQObject(new JsLibrary));
   m_consoleEngine.globalObject().setProperty("Device", m_consoleEngine.newQObject(new DeviceContext{m_consoleEngine}));
   m_consoleEngine.globalObject().setProperty("View", m_consoleEngine.newQObject(new JsViewContext));
-  connect(&m_consoleEngine, &QQmlEngine::exit, this, [&] {
+  connect(&m_consoleEngine, &QQmlEngine::exit, this, [&](int retCode) {
     for(auto& doc : score::GUIAppContext().docManager.documents())
       doc->commandStack().markCurrentIndexAsSaved();
-    qApp->quit();
+    // quit() is exit(0), which discarded the code Qt.exit() was given: a script
+    // could stop the app but never report that it had failed.
+    qApp->exit(retCode);
     QTimer::singleShot(
         500, [] { score::GUIApplicationInterface::instance().forceExit(); });
   });
@@ -90,7 +117,26 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
   parser.addOption(script_opt);
 
   parser.parse(ctx.applicationSettings.arguments);
-  this->m_start_script = parser.value(script_opt);
+  const auto script = parser.value(script_opt);
+  if(stringIsScript(script))
+  {
+    this->m_start_script = script;
+  }
+  else if(!script.isEmpty())
+  {
+    QFile f{script};
+    if(f.open(QIODevice::ReadOnly))
+    {
+      this->m_start_script = f.readAll();
+      this->m_start_script_name = script;
+      this->m_start_script_path = QFileInfo{f}.canonicalPath();
+    }
+    else
+    {
+      qCritical() << "--script: cannot open" << script << ":" << f.errorString();
+      this->m_start_script_failed = true;
+    }
+  }
 }
 
 void ApplicationPlugin::on_newDocument(score::Document& doc)
@@ -133,17 +179,31 @@ void ApplicationPlugin::on_createdDocument(score::Document& doc)
   if(auto customData = doc.context().findPlugin<DocumentPlugin>(); !customData)
     score::addDocumentPlugin<DocumentPlugin>(doc);
 
+  if(m_start_script_failed)
+  {
+    qGuiApp->exit(2);
+    return;
+  }
+
   if(!m_start_script.isEmpty())
   {
     QTimer::singleShot(100, this, [this] {
-      // Either a file to run, or code passed directly
-      QString code = m_start_script;
-      if(QFile file{m_start_script}; file.exists() && file.open(QIODevice::ReadOnly))
-        code = QString::fromUtf8(file.readAll());
+      if(!m_start_script_path.isEmpty())
+        m_consoleEngine.addImportPath(m_start_script_path);
 
-      auto res = m_consoleEngine.evaluate(code, m_start_script);
+      // Report a throwing --script: an unresolvable readFile returns an empty
+      // string and eval("") is a no-op, so the process would otherwise exit
+      // reporting success and a harness could not tell that from a pass.
+      const auto res = m_consoleEngine.evaluate(m_start_script, m_start_script_name);
       if(res.isError())
-        qDebug() << "--script:" << res.toString();
+      {
+        qCritical().noquote()
+            << "--script:"
+            << (m_start_script_name.isEmpty() ? QStringLiteral("<inline>")
+                                              : m_start_script_name)
+            << "line" << res.property("lineNumber").toInt() << ":" << res.toString();
+        qGuiApp->exit(3);
+      }
     });
   }
 }
