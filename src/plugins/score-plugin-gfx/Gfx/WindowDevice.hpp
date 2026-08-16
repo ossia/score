@@ -74,6 +74,12 @@ public:
   void disconnect() override;
   bool reconnect() override;
 
+  //! Write the current frame to @p path. On an offscreen device this reads the
+  //! render target back directly, which is what makes headless pixel testing
+  //! possible; on a real window it grabs the window.
+  void grabTo(const QString& path) const;
+  W_SLOT(grabTo)
+
 private:
   gfx_protocol_base* m_protocol{};
   mutable std::unique_ptr<ossia::net::device_base> m_dev;
