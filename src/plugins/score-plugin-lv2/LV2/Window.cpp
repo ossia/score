@@ -4,6 +4,7 @@
 #include <LV2/Window.hpp>
 #include <Media/Effect/Settings/Model.hpp>
 
+#include <score/tools/ElfInspector.hpp>
 #include <score/widgets/MarginLess.hpp>
 
 #include <ossia/network/value/value_conversion.hpp>
@@ -30,23 +31,53 @@ namespace LV2
 //! (observed with qmidiarp's Qt5 UI: Qt5's QFactoryLoader ends up in Qt6's
 //! operator<(QString, QString) and dies). GTK-based hosts load these UIs
 //! fine since no other Qt lives in their process; we must refuse.
+//!
+//! On Linux this reads the actual DT_NEEDED entries; elsewhere (and for
+//! binaries the ELF reader cannot parse) it falls back to scanning for the
+//! dependency name patterns of every platform's Qt linkage.
 bool uiLinksIncompatibleQt(const QString& binary_path)
 {
+#if defined(__linux__)
+  if(const auto deps
+     = score::ElfInspector{}.try_get_dt_needed(binary_path.toStdString()))
+  {
+    for(const std::string& dep : *deps)
+    {
+      // libQt5Core.so.5, libQt5Gui.so.5, libQt5Widgets.so.5, ...
+      constexpr std::string_view prefix = "libQt";
+      if(dep.size() > prefix.size() && dep.starts_with(prefix))
+      {
+        const char c = dep[prefix.size()];
+        if(c >= '0' && c <= '9' && (c - '0') != QT_VERSION_MAJOR)
+          return true;
+      }
+    }
+    return false; // definitive answer
+  }
+#endif
+
   QFile f{binary_path};
   if(!f.open(QIODevice::ReadOnly))
     return false;
-  // DT_NEEDED sonames appear verbatim in .dynstr; a substring scan is
-  // enough and spares us an ELF/Mach-O/PE parser
+  // Dependency names appear verbatim in the binary (ELF .dynstr, Mach-O
+  // load commands, PE import table); a substring scan is enough
   const QByteArray data = f.readAll();
   static constexpr std::array others{4, 5, 6, 7};
   for(int major : others)
   {
     if(major == QT_VERSION_MAJOR)
       continue;
-    const QByteArray core = "libQt" + QByteArray::number(major) + "Core.so";
-    const QByteArray gui = "libQt" + QByteArray::number(major) + "Gui.so";
-    if(data.contains(core) || data.contains(gui))
-      return true;
+    const QByteArray n = QByteArray::number(major);
+    const QByteArray patterns[]{
+        "libQt" + n + "Core",                 // Linux .so / macOS .dylib
+        "libQt" + n + "Gui",
+        "Qt" + n + "Core.dll",                // Windows
+        "Qt" + n + "Gui.dll",
+        "QtCore.framework/Versions/" + n,     // macOS frameworks (Qt4/Qt5
+        "QtGui.framework/Versions/" + n};     // used the major as version)
+    for(const auto& pattern : patterns)
+      if(data.contains(pattern))
+        return true;
   }
   return false;
 }

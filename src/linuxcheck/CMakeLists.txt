@@ -23,6 +23,7 @@ target_compile_features(linuxcheck
 target_include_directories(linuxcheck
   PRIVATE
     "${X11_X11_INCLUDE_PATH}"
+    "${SCORE_SRC}/lib"
 )
 
 target_link_libraries(linuxcheck
