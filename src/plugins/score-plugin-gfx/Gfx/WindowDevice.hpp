@@ -80,6 +80,16 @@ public:
   void grabTo(const QString& path) const;
   W_SLOT(grabTo)
 
+  //! Render exactly @p frames times and return. See GfxContext::renderFrames.
+  void renderFrames(int frames) const;
+  W_SLOT(renderFrames)
+
+  //! Render @p frames times, then write that frame. The point of naming the
+  //! frame rather than sleeping is that frame N is the same picture on every
+  //! machine, which is what a stored reference can be compared against.
+  void grabFrame(int frames, const QString& path) const;
+  W_SLOT(grabFrame)
+
 private:
   gfx_protocol_base* m_protocol{};
   mutable std::unique_ptr<ossia::net::device_base> m_dev;
