@@ -15,7 +15,10 @@
 set -uo pipefail
 
 SCORE="${OSSIA_SCORE:-}"
-CASE="build-isf-solid-color"
+# Animated on purpose: this tester draws TIME, TIMEDELTA, PROGRESS and
+# FRAMEINDEX as bars, so it fails if any of them still follows a wall clock. A
+# static case would pass whether or not the step clock works.
+CASE="build-isf-time-uniforms"
 FRAME=30
 OUT="${TMPDIR:-/tmp}/score-frame-determinism.$$"
 
@@ -38,12 +41,20 @@ trap 'rm -rf "$OUT"' EXIT
 # thing this needs to know is the case name.
 render() {
   local n="$1"
+  # Score.play() first: the gfx nodes only exist while the score executes, so a
+  # grab on a stopped document finds nothing wired to the Window device.
   cat > "$OUT/run$n.js" <<JS
 eval(Score.readFile("<LIBRARY>:/packages/csf-examples/csf-testers/tests-scene/scripts/${CASE}.js"));
+Score.play();
 Score.device('Window').grabFrame(${FRAME}, "${OUT}/frame$n.png");
 JS
+  # Without this the Window device opens a real window and grabTo falls back to
+  # QScreen::grabWindow, which reads the framebuffer at the window's geometry --
+  # i.e. the desktop, screensaver included. Checked again below, because a
+  # screenshot of a static desktop is byte-stable and would "pass".
+  SCORE_FORCE_OFFSCREEN_WINDOW=Window \
   SCORE_AUDIO_BACKEND=dummy SCORE_DISABLE_AUDIOPLUGINS=1 DISPLAY="${DISPLAY:-:0}" \
-    timeout 120 "$SCORE" --no-gui --no-restore --script "$OUT/run$n.js" --wait 2 \
+    timeout 120 "$SCORE" --no-gui --no-restore --script "$OUT/run$n.js" --wait 2 --autoplay \
     > "$OUT/run$n.log" 2>&1
   return $?
 }
@@ -61,6 +72,23 @@ for n in 1 2; do
   fi
 done
 [ $fail -eq 1 ] && exit 1
+
+# A screen grab of a quiet desktop is byte-identical between two runs, so this
+# has to be fatal rather than cosmetic: it is the difference between comparing
+# renders and comparing wallpaper.
+for n in 1 2; do
+  if grep -q "capturing the SCREEN" "$OUT/run$n.log"; then
+    echo "FAIL: run $n grabbed the screen instead of the render."
+    echo "  The offscreen device was not selected -- SCORE_FORCE_OFFSCREEN_WINDOW"
+    echo "  must name the Window device, and this build must honour it."
+    exit 1
+  fi
+  if grep -q "nothing rendered into" "$OUT/run$n.log"; then
+    echo "FAIL: run $n rendered nothing -- no process is wired to the Window device."
+    grep "nothing rendered into" "$OUT/run$n.log" | sed 's/^/    /'
+    exit 1
+  fi
+done
 
 # Identical blank frames are identical. Without this, a case that renders
 # nothing at all is the easiest way to pass a determinism test, and the result
