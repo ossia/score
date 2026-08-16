@@ -287,3 +287,13 @@ score_add_test(test_unit_puppet_json
 score_add_test(test_unit_audio_plugin_cache
   SOURCES AudioPluginCacheTest.cpp
   PLUGINS score_plugin_media)
+
+# The shared scan state machine, end-to-end against a scriptable fake puppet:
+# session-token isolation, crash/timeout single-failure, reply-vs-exit races,
+# clean cancellation of a scan in progress.
+score_add_test(test_unit_plugin_scanner
+  SOURCES PluginScannerTest.cpp
+  PLUGINS score_plugin_media)
+add_dependencies(test_unit_plugin_scanner score_test_fake_puppet)
+target_compile_definitions(test_unit_plugin_scanner PRIVATE
+  SCORE_FAKE_PUPPET="$<TARGET_FILE:score_test_fake_puppet>")
