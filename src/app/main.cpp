@@ -247,8 +247,12 @@ static void setup_x11(int argc, char** argv)
 
   if(!x11 && !wayland)
   {
-    // Try eglfs
-    qputenv("QT_QPA_PLATFORM", "eglfs");
+    // Try eglfs -- unless a platform was asked for. Overwriting it here sent
+    // QT_QPA_PLATFORM=offscreen to eglfs, which finds no display device, and
+    // Qt then qFatal()s on the first window for having no screens. A headless
+    // machine asking for offscreen has to get offscreen.
+    if(!has_platform)
+      qputenv("QT_QPA_PLATFORM", "eglfs");
     return;
   }
   static constexpr auto setup_x11_error_handling = [] {
