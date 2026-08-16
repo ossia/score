@@ -72,6 +72,7 @@ private:
   void createWithDecorations();
   void createContentItem();
   void createFoldedItem();
+  void applyFold(bool folded);
   void setupItem(score::ResizeableItem* resizeable);
   void updateTooltip();
 

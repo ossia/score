@@ -34,7 +34,7 @@ DataStreamReader::read(const Process::ProcessModel& process)
 {
   m_stream << process.m_duration << process.m_slotHeight << process.m_startOffset
            << process.m_loopDuration << process.m_position << process.m_size
-           << process.m_loops;
+           << process.m_loops << process.m_foldMode;
 }
 
 // We only load the members of the process here.
@@ -43,7 +43,7 @@ SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write(Process::ProcessModel& pro
 {
   m_stream >> process.m_duration >> process.m_slotHeight >> process.m_startOffset
       >> process.m_loopDuration >> process.m_position >> process.m_size
-      >> process.m_loops;
+      >> process.m_loops >> process.m_foldMode;
 }
 
 template <>
@@ -56,6 +56,7 @@ SCORE_LIB_PROCESS_EXPORT void JSONReader::read(const Process::ProcessModel& proc
   obj["Pos"] = process.m_position;
   obj["Size"] = process.m_size;
   obj["Loops"] = process.loops();
+  obj["FoldMode"] = process.foldMode();
 }
 
 template <>
@@ -74,4 +75,9 @@ SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::ProcessModel& process)
   assign_with_default(process.m_loops, obj.tryGet("Loops"), false);
   assign_with_default(process.m_position, obj.tryGet("Pos"), QPointF{});
   assign_with_default(process.m_size, obj.tryGet("Size"), QSize(200, 200));
+
+  // Absent from every document written before fold state was stored: those must
+  // keep getting the heuristic, which is what Auto means.
+  assign_with_default(
+      process.m_foldMode, obj.tryGet("FoldMode"), Process::FoldMode::Auto);
 }

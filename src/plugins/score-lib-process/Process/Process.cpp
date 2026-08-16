@@ -2,6 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Process.hpp"
 
+#include <Process/Dataflow/PortVisibility.hpp>
+
 #include <Process/Dataflow/Port.hpp>
 #include <Process/ExpandMode.hpp>
 #include <Process/PresetHelpers.hpp>
@@ -325,6 +327,34 @@ void ProcessModel::setSize(const QSizeF& v)
   {
     m_size = v;
     sizeChanged(v);
+  }
+}
+
+FoldMode ProcessModel::foldMode() const noexcept
+{
+  return m_foldMode;
+}
+
+void ProcessModel::setFoldMode(FoldMode v)
+{
+  if(v != m_foldMode)
+  {
+    m_foldMode = v;
+    foldModeChanged(v);
+  }
+}
+
+bool ProcessModel::folded() const noexcept
+{
+  switch(m_foldMode)
+  {
+    case FoldMode::Folded:
+      return true;
+    case FoldMode::Unfolded:
+      return false;
+    case FoldMode::Auto:
+    default:
+      return std::ssize(m_inlets) > MaxUnpaginatedControls;
   }
 }
 
