@@ -287,6 +287,7 @@ set(HDRS
     Gfx/Window/CollapsibleSection.hpp
     Gfx/Window/DesktopLayout.hpp
     Gfx/Window/MultiWindowDevice.hpp
+    Gfx/Window/OffscreenDevice.hpp
     Gfx/Window/OutputMapping.hpp
     Gfx/Window/OutputPreview.hpp
     Gfx/Window/TestCard.hpp
