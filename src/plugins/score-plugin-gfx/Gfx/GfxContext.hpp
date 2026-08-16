@@ -79,6 +79,24 @@ public:
   void update_inputs();
   void updateGraph();
 
+  /**
+   * @brief Render exactly @p frames times, synchronously, and return.
+   *
+   * The normal path renders off wall-clock timers, so "how many frames have I
+   * drawn" depends on how long the caller happened to wait and how fast the
+   * machine is -- a harness that sleeps and then grabs gets a different frame
+   * on a Raspberry Pi than on a workstation, and an animated shader gives a
+   * different image every run.
+   *
+   * Stepping instead makes frame N mean the same thing everywhere, which is
+   * what lets a rendered frame be compared against a stored reference at all.
+   *
+   * Note that this drives the *render* side only. Anything a node derives from
+   * execution time still comes from the execution clock, so a graph whose
+   * output depends on it is only as reproducible as that clock is.
+   */
+  void renderFrames(int frames);
+
   void send_message(score::gfx::Message&& msg) noexcept
   {
     tick_messages.enqueue(std::move(msg));
