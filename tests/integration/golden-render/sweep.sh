@@ -12,6 +12,7 @@
 #   BLANK     frame written, every pixel identical
 #   NORENDER  nothing wired to the Window device, or no frame written
 #   SCREEN    the grab fell back to capturing the screen -- result is worthless
+#   CRASH     score died on a signal -- the per-case process is what contains it
 #   FAIL      score exited nonzero, or was killed by the guard
 set -uo pipefail
 
@@ -50,7 +51,7 @@ except Exception:
 PY
 }
 
-total=0; render=0; blank=0; norender=0; failed=0; screen=0
+total=0; render=0; blank=0; norender=0; failed=0; screen=0; crashed=0
 start_all=$(date +%s)
 
 for f in "$SCRIPTS_DIR"/build-$FILTER.js; do
@@ -82,6 +83,15 @@ JS
   elif [ ! -s "$png" ]; then
     if grep -q "nothing rendered into" "$log"; then
       verdict=NORENDER; norender=$((norender + 1))
+    elif [ $rc -ge 128 ]; then
+      # Killed by a signal. 124 is the timeout's own kill and is handled as
+      # FAIL below; anything else here died, most often on a SCORE_ASSERT in
+      # render-target creation. One process per case is what keeps that from
+      # ending the sweep.
+      verdict=CRASH; crashed=$((crashed + 1))
+      note="signal $((rc - 128))"
+      site=$(grep -m1 -oE '[A-Za-z]+\.cpp:[0-9]+' "$log")
+      [ -n "$site" ] && note="$note at $site"
     elif [ $rc -ne 0 ]; then
       verdict=FAIL; failed=$((failed + 1)); note="exit $rc"
     else
@@ -107,8 +117,8 @@ done
 
 echo
 echo "== $total cases in $(( $(date +%s) - start_all ))s =="
-printf '   RENDER %d   BLANK %d   NORENDER %d   FAIL %d   SCREEN %d\n' \
-  "$render" "$blank" "$norender" "$failed" "$screen"
+printf '   RENDER %d   BLANK %d   NORENDER %d   CRASH %d   FAIL %d   SCREEN %d\n' \
+  "$render" "$blank" "$norender" "$crashed" "$failed" "$screen"
 echo "   results: $OUT/results.tsv"
 
 # SCREEN means the harness measured the desktop, which is never a usable result.
