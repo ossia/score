@@ -45,6 +45,15 @@ void InvertYRenderer::init(
       renderer.state, renderer.state.renderFormat, m_inputTarget.texture->pixelSize(),
       renderer.samples(), renderer.requiresDepth(*this->node.input[0]));
 
+  // The backend can refuse the configuration -- createRenderTarget says so and
+  // hands back an empty target. There is nothing to render into, so stop here
+  // instead of building a pipeline around it.
+  if(!m_renderTarget)
+  {
+    qWarning() << "InvertYRenderer: no render target, this output will not render";
+    return;
+  }
+
   const auto& mesh = renderer.defaultTriangle();
   m_mesh = renderer.initMeshBuffer(mesh, res);
 
@@ -107,6 +116,11 @@ void InvertYRenderer::finishFrame(
     score::gfx::RenderList& renderer, QRhiCommandBuffer& cb,
     QRhiResourceUpdateBatch*& res)
 {
+  // init() gives up without a render target when the backend refused to create
+  // one. beginPass would dereference it.
+  if(!m_renderTarget.renderTarget)
+    return;
+
   cb.beginPass(m_renderTarget.renderTarget, Qt::black, {0.0f, 0}, res);
   res = nullptr;
   // m_p.pipeline is null when buildPipeline's QRhiGraphicsPipeline::create()
