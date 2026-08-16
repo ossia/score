@@ -1,7 +1,6 @@
 #include <Vst/Loader.hpp>
 
-#include <ossia/detail/fmt.hpp>
-#include <ossia/network/sockets/websocket.hpp>
+#include <score/tools/PuppetClient.hpp>
 
 #include <filesystem>
 #include <iostream>
@@ -147,15 +146,22 @@ static std::string getString(AEffect* fx, AEffectOpcodes op, int param)
   return paramName;
 }
 
-std::string load_vst(const std::string& path, int id)
+std::string load_vst(const std::string& path, int id, const std::string& token)
 {
+  using score::puppet::json_escape;
+  auto error_json = [&](std::string err) {
+    return fmt::format(
+        R"_({{"Path":"{}","Request":{},"Token":"{}","Error":"{}"}})_",
+        json_escape(path), id, json_escape(token), json_escape(err));
+  };
+
   try
   {
     const bool isFile = std::filesystem::exists(path);
     if(!isFile)
     {
       std::cerr << "Invalid path: " << path << std::endl;
-      return {};
+      return error_json("Invalid path");
     }
 
     vst::Module plugin{path};
@@ -173,100 +179,42 @@ std::string load_vst(const std::string& path, int id)
 "Version":"{}",
 "Synth":{},
 "Path":"{}",
-"Request":{}
+"Request":{},
+"Token":"{}"
 }})_",
-            p->uniqueID, p->numParams, getString(p, effGetVendorString, 0),
-            getString(p, effGetProductString, 0), getString(p, effGetVendorVersion, 0),
-            bool(p->flags & effFlagsIsSynth), path, id);
+            p->uniqueID, p->numParams, json_escape(getString(p, effGetVendorString, 0)),
+            json_escape(getString(p, effGetProductString, 0)),
+            json_escape(getString(p, effGetVendorVersion, 0)),
+            bool(p->flags & effFlagsIsSynth), json_escape(path), id,
+            json_escape(token));
 
         p->dispatcher(p, AEffectOpcodes::effClose, 0, 0, nullptr, 0.f);
         return str;
       }
     }
+    return error_json("No VST entry point");
   }
   catch(const std::runtime_error& e)
   {
     std::cerr << e.what() << std::endl;
+    return error_json(e.what());
   }
-  return {};
+  catch(...)
+  {
+    return error_json("Unknown exception");
+  }
 }
-
-struct app
-{
-
-  boost::asio::io_context ctx;
-  ossia::net::websocket_simple_client socket{{.url = "ws://127.0.0.1:37587"}, ctx};
-
-  bool socket_ready{}, vst_ready{};
-  std::string json_ret;
-
-  app()
-  {
-    socket.on_open.connect<&app::on_open>(*this);
-    socket.on_fail.connect<&app::on_error>(*this);
-    socket.on_close.connect<&app::on_error>(*this);
-
-    socket.websocket_client::connect("ws://127.0.0.1:37587");
-  }
-
-  void on_ready()
-  {
-    if(socket_ready && vst_ready)
-    {
-      socket.send_message(json_ret);
-      socket.close();
-      boost::asio::post(ctx, [&] { exit(json_ret.empty() ? 1 : 0); });
-    }
-  }
-
-  void on_error()
-  {
-    std::cerr << "Socket error\n";
-    exit(1);
-  }
-
-  void load(const std::string& vst, int id)
-  {
-    json_ret = load_vst(vst, id);
-    std::cout << json_ret << "\n";
-    vst_ready = true;
-    on_ready();
-  }
-
-  void on_open()
-  {
-    socket_ready = true;
-    on_ready();
-  }
-};
 
 void init_invisible_window();
 int main(int argc, char** argv)
 {
-  if(argc <= 1)
-    return 1;
-
   init_invisible_window();
 
-  int id = 0;
-  if(argc > 2)
-    id = std::atoi(argv[2]);
-
-  app a;
-
-  boost::asio::post(a.ctx, [&] { a.load(argv[1], id); });
-
-  boost::asio::steady_timer tm{a.ctx};
-  tm.expires_after(std::chrono::seconds(10));
-  tm.async_wait([](auto ec) {
-    std::cerr << "Timeout\n";
-    exit(1);
-  });
-
-  a.ctx.run();
-  a.ctx.restart();
-  a.ctx.run();
-  return a.json_ret.empty() ? 1 : 0;
+  return score::puppet::puppet_main(
+      argc, argv, 37587, "vstpuppet", true,
+      [](const std::string& path, int id, const std::string& token) {
+    return load_vst(path, id, token);
+      });
 }
 
 #include <score/tools/WinMainToMain.hpp>

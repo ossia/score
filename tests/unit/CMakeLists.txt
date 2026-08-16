@@ -290,3 +290,10 @@ if(TARGET pipewire::pipewire)
     target_include_directories(test_unit_pipewire_protocol_quantum SYSTEM PRIVATE ${_pw_includes})
   endif()
 endif()
+
+# --- Plug-in scanner ("puppet") protocol helpers ----------------------------
+# Unescaped plug-in metadata used to break entire scan replies; the request
+# id / port / token argv protocol routes replies to the right scan session.
+score_add_test(test_unit_puppet_json
+  SOURCES PuppetJsonTest.cpp)
+
