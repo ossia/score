@@ -52,10 +52,44 @@ void watchSceneInputMethod(QGraphicsScene& scene)
 #endif
 }
 
+namespace
+{
+// Destroying an item while the scene is still delivering an event to it
+// corrupts the scene's grabber stack. QGraphicsScenePrivate::ungrabMouse sends
+// QEvent::UngrabMouse and only *afterwards* does mouseGrabberItems.takeLast():
+// an item that removes itself from the scene in that handler is popped by
+// removeItemHelper first, so the pending takeLast() then takes somebody else's
+// grab -- or runs on an empty list. Only the current grabber is exposed to
+// this, which is what makes it cheap to detect.
+bool isDeliveringToItself(QGraphicsItem* item) noexcept
+{
+  auto* sc = item->scene();
+  return sc && sc->mouseGrabberItem() == item;
+}
+
+// Context for the deferred deletion, so that it is cancelled rather than left
+// with a dangling pointer if the item goes away by some other route first.
+// toGraphicsObject() is not enough: score's graphics widgets inherit QObject
+// and QGraphicsItem separately rather than deriving from QGraphicsObject.
+QObject* deferralContext(QGraphicsItem* item) noexcept
+{
+  if(auto* obj = dynamic_cast<QObject*>(item))
+    return obj;
+  return item->scene();
+}
+}
+
 void deleteGraphicsObject(QGraphicsObject* item)
 {
   if(item)
   {
+    if(isDeliveringToItself(item))
+    {
+      QMetaObject::invokeMethod(
+          item, [item] { deleteGraphicsObject(item); }, Qt::QueuedConnection);
+      return;
+    }
+
     auto sc = item->scene();
 
     if(sc)
@@ -71,6 +105,14 @@ void deleteGraphicsItem(QGraphicsItem* item)
 {
   if(item)
   {
+    if(isDeliveringToItself(item))
+    {
+      QMetaObject::invokeMethod(
+          deferralContext(item), [item] { deleteGraphicsItem(item); },
+          Qt::QueuedConnection);
+      return;
+    }
+
     auto sc = item->scene();
 
     if(sc)
