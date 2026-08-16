@@ -254,6 +254,24 @@ TEST_CASE("LV2 UI binaries linked against another Qt major are rejected", "[lv2]
   CHECK(!LV2::uiLinksIncompatibleQt(our_qt_ui));
   CHECK(!LV2::uiLinksIncompatibleQt(no_qt_ui));
   CHECK(!LV2::uiLinksIncompatibleQt(dir.path() + "/does_not_exist.so"));
+
+  // macOS / Windows dependency name shapes go through the generic scan
+  const auto dylib_ui = write("qt5_mac.so", "...libQt5Gui.5.dylib...");
+  const auto fw_ui = write(
+      "qt5_fw.so", "...@rpath/QtGui.framework/Versions/5/QtGui...");
+  const auto dll_ui = write("qt5_win.so", "...Qt5Gui.dll...");
+  CHECK(LV2::uiLinksIncompatibleQt(dylib_ui));
+  CHECK(LV2::uiLinksIncompatibleQt(fw_ui));
+  CHECK(LV2::uiLinksIncompatibleQt(dll_ui));
+
+#if defined(__linux__)
+  // The definitive DT_NEEDED path, against real ELFs: our own Qt6-linked
+  // plug-in must be accepted...
+  CHECK(!LV2::uiLinksIncompatibleQt(QStringLiteral(SCORE_TEST_QT6_ELF)));
+  // ...and a real Qt5-linked library rejected, when one is installed
+  if(QFile::exists("/usr/lib/libQt5Gui.so.5"))
+    CHECK(LV2::uiLinksIncompatibleQt("/usr/lib/libQt5Gui.so.5"));
+#endif
 }
 
 TEST_CASE("LV2 descriptor cache round-trips through the versioned blob", "[lv2]")

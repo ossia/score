@@ -238,7 +238,8 @@ if(TARGET score_plugin_lv2)
     LIBS Lilv)
   add_dependencies(test_unit_lv2_loading score_test_gain_lv2)
   target_compile_definitions(test_unit_lv2_loading PRIVATE
-    SCORE_TEST_LV2_BUNDLE="${SCORE_ROOT_BINARY_DIR}/tests/lv2/score-test-gain.lv2")
+    SCORE_TEST_LV2_BUNDLE="${SCORE_ROOT_BINARY_DIR}/tests/lv2/score-test-gain.lv2"
+    SCORE_TEST_QT6_ELF="$<TARGET_FILE:score_plugin_lv2>")
   target_include_directories(test_unit_lv2_loading PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-lv2"
     "${LV2_PATH}"
