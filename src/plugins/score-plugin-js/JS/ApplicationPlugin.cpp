@@ -71,10 +71,12 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
       "Library", m_consoleEngine.newQObject(new JsLibrary));
   m_consoleEngine.globalObject().setProperty("Device", m_consoleEngine.newQObject(new DeviceContext{m_consoleEngine}));
   m_consoleEngine.globalObject().setProperty("View", m_consoleEngine.newQObject(new JsViewContext));
-  connect(&m_consoleEngine, &QQmlEngine::exit, this, [&] {
+  connect(&m_consoleEngine, &QQmlEngine::exit, this, [&](int retCode) {
     for(auto& doc : score::GUIAppContext().docManager.documents())
       doc->commandStack().markCurrentIndexAsSaved();
-    qApp->quit();
+    // quit() is exit(0), which discarded the code Qt.exit() was given: a script
+    // could stop the app but never report that it had failed.
+    qApp->exit(retCode);
     QTimer::singleShot(
         500, [] { score::GUIApplicationInterface::instance().forceExit(); });
   });
