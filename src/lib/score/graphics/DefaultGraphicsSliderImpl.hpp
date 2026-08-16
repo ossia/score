@@ -46,7 +46,12 @@ struct DefaultGraphicsSliderImpl
 
     // Draw text
 #if defined(__linux__)
-    static const auto dpi_adjust = widget->devicePixelRatioF() > 1 ? 0 : -1;
+    // widget is null when painting through QGraphicsScene::render
+    static const auto dpi_adjust
+        = (widget ? widget->devicePixelRatioF() : painter->device()->devicePixelRatioF())
+                  > 1
+              ? 0
+              : -1;
 #elif defined(_WIN32)
     static const constexpr auto dpi_adjust = 0;
 #else
