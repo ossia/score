@@ -253,20 +253,23 @@ score_add_test(test_unit_graphics_item_delete
   APP)
 
 # --- PipeWire quantum handling ---------------------------------------------
-# The graph quantum is a global negotiation the engine does not control
-# (competing node.force-quantum clients, global clock.force-quantum,
-# quantum-floor/limit clamping). Pure cycle policy: chunk splitting,
-# once-per-reconfiguration logging, scratch-pointer assembly.
-score_add_test(test_unit_pipewire_quantum
-  SOURCES PipewireQuantumTest.cpp)
-
-# End-to-end against a private pipewire daemon spawned in a scratch
-# PIPEWIRE_RUNTIME_DIR (skips when unavailable): the graph is pinned to a
-# quantum the engine did not ask for and the engine must keep ticking in
-# slices of its configured block size instead of going silent.
-score_add_test(test_unit_pipewire_protocol_quantum
-  SOURCES PipewireProtocolQuantumTest.cpp)
+# Only built where pipewire headers are available (pipewire::pipewire is
+# created by libossia's deps when they are found).
 if(TARGET pipewire::pipewire)
+  # The graph quantum is a global negotiation the engine does not control
+  # (competing node.force-quantum clients, global clock.force-quantum,
+  # quantum-floor/limit clamping). Pure cycle policy: chunk splitting,
+  # once-per-reconfiguration logging, scratch-pointer assembly.
+  score_add_test(test_unit_pipewire_quantum
+    SOURCES PipewireQuantumTest.cpp)
+
+  # End-to-end against a private pipewire daemon spawned in a scratch
+  # PIPEWIRE_RUNTIME_DIR (skips when no daemon can be started): the graph
+  # is pinned to a quantum the engine did not ask for and the engine must
+  # keep ticking in slices of its configured block size instead of going
+  # silent.
+  score_add_test(test_unit_pipewire_protocol_quantum
+    SOURCES PipewireProtocolQuantumTest.cpp)
   get_target_property(_pw_includes pipewire::pipewire INTERFACE_INCLUDE_DIRECTORIES)
   if(_pw_includes)
     target_include_directories(test_unit_pipewire_protocol_quantum SYSTEM PRIVATE ${_pw_includes})
