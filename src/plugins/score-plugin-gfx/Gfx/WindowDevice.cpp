@@ -160,6 +160,14 @@ void WindowDevice::renderFrames(int frames) const
     qWarning() << "renderFrames: no gfx document plugin";
 }
 
+void WindowDevice::setStepRate(double fps) const
+{
+  if(auto plug = m_ctx.findPlugin<Gfx::DocumentPlugin>())
+    plug->context.setStepRate(fps);
+  else
+    qWarning() << "setStepRate: no gfx document plugin";
+}
+
 void WindowDevice::grabFrame(int frames, const QString& path) const
 {
   renderFrames(frames);
