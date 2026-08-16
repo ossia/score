@@ -492,6 +492,25 @@ void GfxContext::on_watchdog_timer(score::HighResolutionTimer* self)
     updateGraph();
 }
 
+void GfxContext::renderFrames(int frames)
+{
+  if(frames <= 0 || !m_graph)
+    return;
+
+  for(int i = 0; i < frames; i++)
+  {
+    // Same order as the timer-driven path: parameters first, then draw, so a
+    // value written by the script is visible in the frame that follows it.
+    updateGraph();
+
+    for(auto output : m_graph->outputs())
+    {
+      if(output && output->canRender())
+        output->render();
+    }
+  }
+}
+
 void GfxContext::on_manual_timer(score::HighResolutionTimer* self)
 {
   if(auto ptr = m_manualTimers.find(self); ptr != m_manualTimers.end())
