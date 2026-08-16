@@ -6,6 +6,7 @@
 #include <Vst3/Executor.hpp>
 #include <Vst3/Library.hpp>
 #include <Vst3/Plugin.hpp>
+#include <Vst3/Settings.hpp>
 #include <Vst3/UI/Window.hpp>
 #include <Vst3/Widgets.hpp>
 
@@ -37,7 +38,8 @@ std::vector<score::InterfaceBase*> score_plugin_vst3::factories(
       FW<Execution::ProcessComponentFactory, vst3::ExecutorFactory>,
       FW<Library::LibraryInterface, vst3::LibraryHandler>,
       FW<Process::PortFactory, vst3::VSTControlPortFactory>,
-      FW<Process::LayerFactory, vst3::LayerFactory>>(ctx, key);
+      FW<Process::LayerFactory, vst3::LayerFactory>,
+      FW<Media::Settings::PluginSettingsTab, vst3::SettingsWidget>>(ctx, key);
 }
 
 std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_vst3::make_commands()

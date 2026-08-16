@@ -1,11 +1,16 @@
 #include "PluginScanner.hpp"
 
+#if QT_CONFIG(process)
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QTimer>
 #include <QUuid>
+#if __has_include(<QWebSocketServer>)
 #include <QWebSocket>
 #include <QWebSocketServer>
+#else
+#define SCORE_PLUGIN_MEDIA_NO_WEBSOCKETS 1
+#endif
 
 #include <wobjectimpl.h>
 
@@ -42,6 +47,9 @@ PluginScanner::PluginScanner(QString serverName, QObject* parent)
 PluginScanner::~PluginScanner()
 {
   cancelCurrentScan();
+#if !defined(SCORE_PLUGIN_MEDIA_NO_WEBSOCKETS)
+  delete m_server;
+#endif
 }
 
 void PluginScanner::setPuppet(const QString& executable)
@@ -76,16 +84,22 @@ bool PluginScanner::scanning() const noexcept
 
 quint16 PluginScanner::port() const noexcept
 {
+#if defined(SCORE_PLUGIN_MEDIA_NO_WEBSOCKETS)
+  return 0;
+#else
   return m_server ? m_server->serverPort() : 0;
+#endif
 }
 
 bool PluginScanner::ensureListening()
 {
+#if defined(SCORE_PLUGIN_MEDIA_NO_WEBSOCKETS)
+  return false;
+#else
   if(m_server && m_server->isListening())
     return true;
 
-  m_server = std::make_unique<QWebSocketServer>(
-      m_serverName, QWebSocketServer::NonSecureMode);
+  m_server = new QWebSocketServer(m_serverName, QWebSocketServer::NonSecureMode);
 
   // Ephemeral port: several score-derived processes can scan concurrently
   // without ever seeing each other's replies.
@@ -93,11 +107,12 @@ bool PluginScanner::ensureListening()
   {
     qWarning() << m_serverName << ": failed to start scan server -"
                << m_server->errorString() << "- plug-in scanning unavailable";
-    m_server.reset();
+    delete m_server;
+    m_server = nullptr;
     return false;
   }
 
-  connect(m_server.get(), &QWebSocketServer::newConnection, this, [this] {
+  connect(m_server, &QWebSocketServer::newConnection, this, [this] {
     QWebSocket* ws = m_server->nextPendingConnection();
     if(!ws)
       return;
@@ -116,6 +131,7 @@ bool PluginScanner::ensureListening()
     });
   });
   return true;
+#endif
 }
 
 void PluginScanner::scan(QStringList pluginPaths)
@@ -387,3 +403,4 @@ void PluginScanner::cancelCurrentScan()
   }
 }
 }
+#endif

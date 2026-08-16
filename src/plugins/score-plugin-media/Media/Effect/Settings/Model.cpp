@@ -28,15 +28,75 @@ SETTINGS_PARAMETER_IMPL(VstPaths){
 #endif
     }};
 
+SETTINGS_PARAMETER_IMPL(Vst3Paths){
+    QStringLiteral("Effect/Vst3Paths"),
+    {(QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/.vst3"),
+#if defined(__APPLE__)
+     (QStandardPaths::writableLocation(QStandardPaths::HomeLocation)
+      + "/Library/Audio/Plug-Ins/VST3"),
+     QStringLiteral("/Library/Audio/Plug-Ins/VST3")
+#elif defined(_WIN32)
+     (qEnvironmentVariable("LOCALAPPDATA") + "/Programs/Common/VST3"),
+     QStringLiteral("C:\\Program Files\\Common Files\\VST3")
+#else
+     QStringLiteral("/usr/lib/vst3"), QStringLiteral("/usr/lib64/vst3")
+#endif
+    }};
+
+SETTINGS_PARAMETER_IMPL(ClapPaths){
+    QStringLiteral("Effect/ClapPaths"),
+    {(QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/.clap"),
+#if defined(__APPLE__)
+     (QStandardPaths::writableLocation(QStandardPaths::HomeLocation)
+      + "/Library/Audio/Plug-Ins/CLAP"),
+     QStringLiteral("/Library/Audio/Plug-Ins/CLAP")
+#elif defined(_WIN32)
+     (QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/CLAP"),
+     QStringLiteral("C:/Program Files/Common Files/CLAP"),
+     QStringLiteral("C:/Program Files/Common Files/Audio Plugins/CLAP")
+#else
+     QStringLiteral("/usr/lib/clap"), QStringLiteral("/usr/local/lib/clap"),
+     QStringLiteral("/usr/lib64/clap"), QStringLiteral("/usr/local/lib64/clap")
+#endif
+    }};
+
+SETTINGS_PARAMETER_IMPL(Lv2Paths){
+    QStringLiteral("Effect/Lv2Paths"),
+    // ~/.lv2/: Linux convention; Ardour also writes user presets here cross-platform
+    {(QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/.lv2"),
+#if defined(__APPLE__)
+     (QStandardPaths::writableLocation(QStandardPaths::HomeLocation)
+      + "/Library/Audio/Plug-Ins/LV2"),
+     QStringLiteral("/Library/Audio/Plug-Ins/LV2"),
+     QStringLiteral("/usr/local/lib/lv2"),    // lilv default, Homebrew Intel
+     QStringLiteral("/opt/homebrew/lib/lv2"), // Homebrew Apple Silicon
+     QStringLiteral("/usr/lib/lv2")           // lilv default
+#elif defined(_WIN32)
+     QStringLiteral("C:/Program Files/Common Files/LV2"),
+     // Roaming %APPDATA%\LV2 (lilv/Carla default)
+     (QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/LV2"),
+     // Non-roaming %LOCALAPPDATA%\LV2 (legacy score path)
+     (QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/LV2")
+#else
+     QStringLiteral("/usr/lib/lv2"), QStringLiteral("/usr/local/lib/lv2"),
+     QStringLiteral("/usr/lib64/lv2"), QStringLiteral("/usr/local/lib64/lv2")
+#endif
+    }};
+
 SETTINGS_PARAMETER_IMPL(VstAlwaysOnTop){
     QStringLiteral("score_plugin_engine/VstAlwaysOnTop"), true};
 static auto list()
 {
-  return std::tie(VstPaths, VstAlwaysOnTop);
+  return std::tie(VstPaths, Vst3Paths, ClapPaths, Lv2Paths, VstAlwaysOnTop);
 }
 }
 
 auto VstPathsChanged_symbol_for_shlib_bug = &Media::Settings::Model::VstPathsChanged;
+auto Vst3PathsChanged_symbol_for_shlib_bug
+    = &Media::Settings::Model::Vst3PathsChanged;
+auto ClapPathsChanged_symbol_for_shlib_bug
+    = &Media::Settings::Model::ClapPathsChanged;
+auto Lv2PathsChanged_symbol_for_shlib_bug = &Media::Settings::Model::Lv2PathsChanged;
 Model::Model(
     const UuidKey<score::SettingsDelegateFactory>& k, QSettings& set,
     const score::ApplicationContext& ctx)
@@ -46,5 +106,8 @@ Model::Model(
 }
 
 SCORE_SETTINGS_PARAMETER_CPP(QStringList, Model, VstPaths)
+SCORE_SETTINGS_PARAMETER_CPP(QStringList, Model, Vst3Paths)
+SCORE_SETTINGS_PARAMETER_CPP(QStringList, Model, ClapPaths)
+SCORE_SETTINGS_PARAMETER_CPP(QStringList, Model, Lv2Paths)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, VstAlwaysOnTop)
 }

@@ -1,4 +1,6 @@
+#include <Media/AudioPluginCache.hpp>
 #include <Media/Effect/Settings/Model.hpp>
+#include <Media/PluginScanner.hpp>
 #include <Vst3/ApplicationPlugin.hpp>
 
 #include <score/serialization/DataStreamVisitor.hpp>
@@ -17,8 +19,6 @@
 #include <QSettings>
 #include <QStandardPaths>
 #include <QTimer>
-#include <QWebSocket>
-#include <QWebSocketServer>
 
 #include <wobjectimpl.h>
 
@@ -70,67 +70,113 @@ namespace vst3
 {
 namespace
 {
-#if defined(__APPLE__)
-static const QStringList default_paths = {"/Library/Audio/Plug-Ins/VST3"};
+constexpr quint32 cache_format_version = 1;
+const QString cache_key = QStringLiteral("Effect/KnownVST3Cache");
+const QString legacy_cache_key = QStringLiteral("Effect/KnownVST3");
+
 static const constexpr auto default_filter = "*.vst3";
-static const constexpr auto default_format = QDir::Dirs;
-#elif defined(_WIN32)
-static const QStringList default_paths = {"C:\\Program Files\\Common Files\\VST3"};
-static const constexpr auto default_filter = "*.vst3";
+#if defined(_WIN32)
 static const constexpr auto default_format = QDir::Files;
-#elif defined(__linux__)
-static const QStringList default_paths
-    = {QStringLiteral("/usr/lib/vst3"), QStringLiteral("/usr/lib64/vst3")};
-static const constexpr auto default_filter = "*.vst3";
-static const constexpr auto default_format = QDir::Dirs;
 #else
-static const QStringList default_paths = {QStringLiteral("/usr/lib/vst3")};
-static const constexpr auto default_filter = "*.vst3";
 static const constexpr auto default_format = QDir::Dirs;
 #endif
 }
+
+VST3::Hosting::ClassInfo::SubCategories
+parseSubCategories(const std::string& str) noexcept
+{
+  std::vector<std::string> vec;
+  std::stringstream stream(str);
+  std::string item;
+  while(std::getline(stream, item, '|'))
+    vec.emplace_back(std::move(item));
+  return vec;
+}
+
+AvailablePlugin parseVst3Reply(const QString& path, const QJsonObject& obj)
+{
+  AvailablePlugin i;
+  i.path = path;
+  i.name = obj["Name"].toString();
+  i.url = obj["Url"].toString();
+
+  const auto& classes = obj["Classes"].toArray();
+  i.classInfo.reserve(classes.size());
+
+  for(const QJsonValue& v : classes)
+  {
+    const QJsonObject& obj = v.toObject();
+    const auto uid = VST3::UID::fromString(obj["UID"].toString().toStdString());
+    if(!uid)
+      continue;
+
+    i.classInfo.resize(i.classInfo.size() + 1);
+    VST3::Hosting::ClassInfo& cls = i.classInfo.back();
+
+    cls.get().classID = *uid;
+    cls.get().cardinality = obj["Cardinality"].toInt();
+    cls.get().category = obj["Category"].toString().toStdString();
+    cls.get().name = obj["Name"].toString().toStdString();
+    cls.get().vendor = obj["Vendor"].toString().toStdString();
+    cls.get().version = obj["Version"].toString().toStdString();
+    cls.get().sdkVersion = obj["SDKVersion"].toString().toStdString();
+    cls.get().subCategories
+        = parseSubCategories(obj["Subcategories"].toString().toStdString());
+    cls.get().classFlags = (uint32_t)obj["ClassFlags"].toDouble();
+  }
+
+  i.isValid = !i.classInfo.empty();
+  return i;
+}
+
 ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& ctx)
     : score::ApplicationPlugin{ctx}
-#if QT_CONFIG(process)
-    , m_wsServer("vst3-notification-server", QWebSocketServer::NonSecureMode)
-#endif
 {
   qRegisterMetaType<AvailablePlugin>();
   qRegisterMetaType<std::vector<AvailablePlugin>>();
 
 #if QT_CONFIG(process)
-  m_wsServer.listen(QHostAddress::LocalHost, 37588);
-  con(m_wsServer, &QWebSocketServer::newConnection, this, [this] {
-    QWebSocket* ws = m_wsServer.nextPendingConnection();
-    if(!ws)
-      return;
-
-    connect(ws, &QWebSocket::textMessageReceived, this, [this, ws](const QString& txt) {
-      processIncomingMessage(txt);
-      ws->deleteLater();
-    });
+  m_scanner = std::make_unique<Media::PluginScanner>("vst3-scanner");
+  con(*m_scanner, &Media::PluginScanner::scanned, this, &ApplicationPlugin::onScanned);
+  con(*m_scanner, &Media::PluginScanner::scanFailed, this,
+      &ApplicationPlugin::onScanFailed);
+  con(*m_scanner, &Media::PluginScanner::done, this, [this] {
+    persistCache();
+    vstChanged();
   });
 #endif
+
+  // Coalesce disk writes + UI updates: one per batch, not one per puppet
+  m_persistTimer = new QTimer{this};
+  m_persistTimer->setSingleShot(true);
+  m_persistTimer->setInterval(500);
+  connect(m_persistTimer, &QTimer::timeout, this, [this] {
+    persistCache();
+    vstChanged();
+  });
 }
+
+ApplicationPlugin::~ApplicationPlugin() = default;
 
 void ApplicationPlugin::initialize()
 {
-  // init with the database
-  QSettings s;
-  auto val = s.value("Effect/KnownVST3");
-  if(val.canConvert<std::vector<AvailablePlugin>>())
-  {
-    vst_infos = val.value<std::vector<AvailablePlugin>>();
-  }
+  // Load, and heal caches damaged by the pre-token protocol (duplicated
+  // entries, valid/invalid pairs for the same path)
+  vst_infos = Media::loadPluginCache<AvailablePlugin>(
+      cache_format_version, cache_key, legacy_cache_key);
+  Media::sanitizePluginCache(
+      vst_infos, [](const AvailablePlugin& i) { return i.path; },
+      [](const AvailablePlugin& i) { return i.path; },
+      [](const AvailablePlugin& i) { return i.isValid; });
+  // Make the migration/healing durable even if no scan runs this session
+  persistCache();
 
   vstChanged();
 
-  //! TODO
+  // Note: our own path list, not VST2's - editing the VST2 paths used to
+  // wipe and rescan the whole VST3 database
   auto& set = context.settings<Media::Settings::Model>();
-  con(set, &Media::Settings::Model::VstPathsChanged, this, [this] {
-    vst_infos.clear();
-    rescan();
-  });
+  con(set, &Media::Settings::Model::Vst3PathsChanged, this, [this] { rescan(); });
 
   if(qEnvironmentVariableIsEmpty("SCORE_DISABLE_AUDIOPLUGINS"))
   {
@@ -140,19 +186,7 @@ void ApplicationPlugin::initialize()
 
 void ApplicationPlugin::rescan()
 {
-  auto paths = default_paths;
-
-  // User folders
-#if defined(__APPLE__)
-  const QString user = qgetenv("USERNAME");
-  paths.prepend(QString("/Users/%1/Library/Audio/Plug-ins/VST3/").arg(user));
-#elif defined(_WIN32)
-  const QString local_app_data = qgetenv("LOCALAPPDATA");
-  paths.prepend(QString("%1/Programs/Common/VST3/").arg(local_app_data));
-#endif
-
-  const QString home = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
-  paths.prepend(QString("%1/.vst3/").arg(home));
+  auto paths = context.settings<Media::Settings::Model>().getVst3Paths();
 
   // VST3_PATH
   if(QFileInfo vst_env_path{QString(qgetenv("VST3_PATH"))}; vst_env_path.isDir())
@@ -192,7 +226,7 @@ static const QString& vst3PuppetPath()
     else if(QFile::exists(app + "/ossia-score-vst3puppet"))
       return QString(app + "/ossia-score-vst3puppet");
     else if(QFile::exists(app + "/../../ossia-score-vst3puppet"))
-      return QString(path + "/../../ossia-score-vst3puppet");
+      return QString(app + "/../../ossia-score-vst3puppet");
     else if(QFile::exists(app + "/../../" + bundle_path))
       return QString(app + "/../../" + bundle_path);
     else
@@ -228,13 +262,13 @@ void ApplicationPlugin::rescan(const QStringList& paths)
     }
   }
 
-  // 2. Remove plug-ins not in these paths
+  // 2. Remove plug-ins not in these paths, keep the known ones
   for(auto it = vst_infos.begin(); it != vst_infos.end();)
   {
     auto new_it = newPlugins.find(it->path);
     if(new_it != newPlugins.end())
     {
-      // plug-in is in both set, we ignore it
+      // plug-in is in both sets, no need to rescan it
       newPlugins.erase(new_it);
       ++it;
     }
@@ -246,160 +280,60 @@ void ApplicationPlugin::rescan(const QStringList& paths)
 
   vstChanged();
 
-  // 3. Add remaining plug-ins
-  m_processes.clear();
-  m_processes.reserve(newPlugins.size());
-  int i = 0;
-  for(const QString& path : newPlugins)
-  {
-    auto proc = std::make_unique<QProcess>();
-    connect(proc.get(), &QProcess::errorOccurred, this, [proc = proc.get(), path] {
-      qDebug() << " == VST3: error => " << path;
-      qDebug() << " -- VST3 out: " << proc->readAllStandardOutput().constData();
-      qDebug() << " -- VST3 error: " << proc->readAllStandardError().constData();
-    });
+  // 3. Scan the remaining ones out-of-process
+  QStringList toScan{newPlugins.begin(), newPlugins.end()};
+  toScan.sort();
 
-    proc->setProgram(vst3PuppetPath());
-    proc->setArguments({path, QString::number(i)});
-    m_processes.push_back({path, std::move(proc), false, {}});
-    i++;
-  }
-
-  scanVSTsEvent();
-  /*
-  for(const auto& vst : newPlugins)
-  {
-    try {
-      auto module = getModule(vst.toStdString());
-      auto& v = vst_infos.emplace_back(AvailablePlugin{vst});
-
-      const auto& factory = module->getFactory();
-      for (const auto& class_info : factory.classInfos())
-      {
-        if (class_info.category() == kVstAudioEffectClass)
-        {
-          v.classInfo.push_back(class_info);
-        }
-      }
-
-      v.isValid = v.classInfo.size() > 0;
-    } catch(std::exception& e) {
-      qDebug() << e.what();
-    }
-  }
-  */
+  m_scanner->setPuppet(vst3PuppetPath());
+  m_scanner->scan(std::move(toScan));
 #endif
 }
 
-static int vst3_in_flight = 0;
-void ApplicationPlugin::processIncomingMessage(const QString& txt)
+void ApplicationPlugin::removeEntriesForPath(const QString& path)
 {
-#if QT_CONFIG(process)
-  QJsonDocument doc = QJsonDocument::fromJson(txt.toUtf8());
-
-  if(doc.isObject())
-  {
-    auto obj = doc.object();
-    addVST(obj["Path"].toString(), obj);
-    int id = obj["Request"].toInt();
-
-    if(ossia::valid_index(id, m_processes))
-    {
-      if(m_processes[id].process)
-      {
-        m_processes[id].process->close();
-        if(m_processes[id].process->state() == QProcess::ProcessState::NotRunning)
-        {
-          vst3_in_flight--;
-          m_processes[id] = {};
-        }
-        else
-        {
-          connect(
-              m_processes[id].process.get(),
-              qOverload<int, QProcess::ExitStatus>(&QProcess::finished), this,
-              [this, id] {
-            m_processes[id] = {};
-            vst3_in_flight--;
-          });
-        }
-      }
-    }
-    else
-    {
-      qDebug() << "Got invalid VST3 request ID" << id;
-    }
-  }
-#endif
+  ossia::remove_erase_if(
+      vst_infos, [&](const AvailablePlugin& i) { return i.path == path; });
 }
 
-void ApplicationPlugin::addInvalidVST(const QString& path)
+void ApplicationPlugin::onScanned(const QString& path, const QJsonObject& obj)
 {
+  AvailablePlugin i = parseVst3Reply(path, obj);
+  if(!i.isValid)
+  {
+    // A reply without any audio-effect class: not an error, but nothing we
+    // can instantiate either. Record it so the file is not rescanned on
+    // every startup.
+    onScanFailed(path, QStringLiteral("no audio effect classes"));
+    return;
+  }
+
+  removeEntriesForPath(path);
+  vst_infos.push_back(std::move(i));
+  schedulePersist();
+}
+
+void ApplicationPlugin::onScanFailed(const QString& path, const QString& reason)
+{
+  qDebug() << "VST3 scan failed for" << path << ":" << reason;
+
   AvailablePlugin i;
   i.path = path;
   i.name = "invalid";
   i.isValid = false;
-  vst_infos.push_back(i);
 
-  // write in the database
-  QSettings{}.setValue("Effect/KnownVST3", QVariant::fromValue(vst_infos));
-
-  vstChanged();
-}
-
-VST3::Hosting::ClassInfo::SubCategories
-parseSubCategories(const std::string& str) noexcept
-{
-  std::vector<std::string> vec;
-  std::stringstream stream(str);
-  std::string item;
-  while(std::getline(stream, item, '|'))
-    vec.emplace_back(std::move(item));
-  return vec;
-}
-
-void ApplicationPlugin::addVST(const QString& path, const QJsonObject& obj)
-{
-  AvailablePlugin i;
-  i.path = path;
-  i.name = obj["Name"].toString();
-  i.url = obj["Url"].toString();
-  i.isValid = true;
-
-  const auto& classes = obj["Classes"].toArray();
-  i.classInfo.reserve(classes.size());
-
-  for(const QJsonValue& v : classes)
-  {
-    const QJsonObject& obj = v.toObject();
-    const auto uid = VST3::UID::fromString(obj["UID"].toString().toStdString());
-    if(!uid)
-      continue;
-
-    i.classInfo.resize(i.classInfo.size() + 1);
-    VST3::Hosting::ClassInfo& cls = i.classInfo.back();
-
-    cls.get().classID = *uid;
-    cls.get().cardinality = obj["Cardinality"].toInt();
-    cls.get().category = obj["Category"].toString().toStdString();
-    cls.get().name = obj["Name"].toString().toStdString();
-    cls.get().vendor = obj["Vendor"].toString().toStdString();
-    cls.get().version = obj["Version"].toString().toStdString();
-    cls.get().sdkVersion = obj["SDKVersion"].toString().toStdString();
-    cls.get().subCategories
-        = parseSubCategories(obj["Subcategories"].toString().toStdString());
-    cls.get().classFlags = obj["Version"].toDouble();
-  }
-
-  if(i.classInfo.empty())
-    return;
-
+  removeEntriesForPath(path);
   vst_infos.push_back(std::move(i));
+  schedulePersist();
+}
 
-  // write in the database
-  QSettings{}.setValue("Effect/KnownVST3", QVariant::fromValue(vst_infos));
+void ApplicationPlugin::persistCache()
+{
+  Media::savePluginCache(cache_format_version, cache_key, vst_infos);
+}
 
-  vstChanged();
+void ApplicationPlugin::schedulePersist()
+{
+  m_persistTimer->start();
 }
 
 VST3::Hosting::Module::Ptr ApplicationPlugin::getModule(const std::string& path)
@@ -420,49 +354,6 @@ VST3::Hosting::Module::Ptr ApplicationPlugin::getModule(const std::string& path)
     modules[path] = module;
     return module;
   }
-}
-
-void ApplicationPlugin::scanVSTsEvent()
-{
-#if QT_CONFIG(process)
-  constexpr int max_in_flight = 8;
-
-  for(auto& proc : m_processes)
-  {
-    // Already scanned processes
-    if(!proc.process)
-      continue;
-
-    if(!proc.scanning)
-    {
-      if(vst3_in_flight < max_in_flight)
-      {
-        proc.process->start(QProcess::ReadOnly);
-        proc.scanning = true;
-        proc.timer.start();
-        vst3_in_flight++;
-      }
-    }
-    else
-    {
-      if(proc.timer.elapsed() > 10000)
-      {
-        addInvalidVST(proc.path);
-        proc.process->kill();
-        proc.process.reset();
-
-        vst3_in_flight--;
-        continue;
-      }
-    }
-
-    if(vst3_in_flight == max_in_flight)
-    {
-      QTimer::singleShot(1000, this, &ApplicationPlugin::scanVSTsEvent);
-      return;
-    }
-  }
-#endif
 }
 
 std::pair<const AvailablePlugin*, const VST3::Hosting::ClassInfo*>

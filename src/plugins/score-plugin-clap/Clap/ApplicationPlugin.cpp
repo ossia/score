@@ -1,34 +1,28 @@
 #include "ApplicationPlugin.hpp"
 
+#include <Media/AudioPluginCache.hpp>
+#include <Media/Effect/Settings/Model.hpp>
+#include <Media/PluginScanner.hpp>
+
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/Bind.hpp>
+
+#include <ossia/detail/hash_map.hpp>
 
 #include <QApplication>
 #include <QDir>
 #include <QDirIterator>
+#include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QProcess>
 #include <QSettings>
 #include <QStandardPaths>
-#include <QThread>
 #include <QTimer>
-#include <QWebSocket>
 
 #include <clap/all.h>
 
 #include <wobjectimpl.h>
-
-#if defined(__APPLE__)
-#include <CoreFoundation/CoreFoundation.h>
-#endif
-
-#if defined(_WIN32)
-#include <windows.h>
-#else
-#include <dlfcn.h>
-#endif
 
 W_OBJECT_IMPL(Clap::ApplicationPlugin)
 
@@ -49,96 +43,17 @@ void DataStreamWriter::write(Clap::PluginInfo& p)
 }
 namespace Clap
 {
-
-ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& app)
-    : score::GUIApplicationPlugin{app}
-    , m_wsServer("clap-notification-server", QWebSocketServer::NonSecureMode)
+namespace
 {
-  qRegisterMetaType<PluginInfo>();
-  qRegisterMetaType<std::vector<PluginInfo>>();
+constexpr quint32 cache_format_version = 1;
+const QString cache_key = QStringLiteral("Effect/KnownCLAPCache");
+const QString legacy_cache_key = QStringLiteral("Effect/KnownCLAP");
 
-  m_wsServer.listen(QHostAddress::LocalHost, 37589);
-  con(m_wsServer, &QWebSocketServer::newConnection, this, [this] {
-    QWebSocket* ws = m_wsServer.nextPendingConnection();
-    if(!ws)
-      return;
-
-    connect(ws, &QWebSocket::textMessageReceived, this, [this, ws](const QString& txt) {
-      processIncomingMessage(txt);
-      ws->deleteLater();
-    });
-  });
-}
-
-ApplicationPlugin::~ApplicationPlugin()
+QStringList clapSearchPaths(const score::ApplicationContext& ctx)
 {
-  // waitForFinished delivers finished() synchronously: detach the map and
-  // drop our connections first or the handlers erase from it mid-iteration.
-  auto processes = std::move(m_processes);
-  for(auto& [id, proc] : processes)
-  {
-    if(proc)
-    {
-      QObject::disconnect(proc, nullptr, this, nullptr);
-      proc->terminate();
-      if(!proc->waitForFinished(100))
-      {
-        // Reap after kill: ~QProcess on a still-running process re-kills and
-        // blocks for up to 30s
-        proc->kill();
-        proc->waitForFinished(100);
-      }
-      delete proc;
-    }
-  }
-}
+  QStringList paths = ctx.settings<Media::Settings::Model>().getClapPaths();
 
-void ApplicationPlugin::initialize()
-{
-  // Load cached plugin database
-  QSettings s;
-  auto val = s.value("Effect/KnownCLAP");
-  if(val.canConvert<std::vector<PluginInfo>>())
-  {
-    m_plugins = val.value<std::vector<PluginInfo>>();
-  }
-
-  pluginsChanged();
-  
-  if(qEnvironmentVariableIsEmpty("SCORE_DISABLE_AUDIOPLUGINS"))
-    rescanPlugins();
-}
-
-void ApplicationPlugin::rescanPlugins()
-{
-  // Clear previous scan state
-  m_pluginQueue.clear();
-  m_processes.clear();
-  m_processCount = 0;
-  
-  // Collect all CLAP files to scan
-  std::vector<QString> pluginsToScan;
-  
-  // Standard CLAP plugin directories
-  QStringList paths;
-
-#if defined(__APPLE__)
-  paths << "/Library/Audio/Plug-Ins/CLAP"
-        << (QStandardPaths::writableLocation(QStandardPaths::HomeLocation)
-            + "/Library/Audio/Plug-Ins/CLAP");
-#elif defined(_WIN32)
-  paths << "C:/Program Files/Common Files/CLAP"
-        << "C:/Program Files/Common Files/Audio Plugins/CLAP"
-        << QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)
-               + "/CLAP";
-#else
-  paths << QStringLiteral("/usr/lib/clap") << QStringLiteral("/usr/local/lib/clap")
-        << QStringLiteral("/usr/lib64/clap") << QStringLiteral("/usr/local/lib64/clap");
-#endif
-
-  paths << QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/.clap";
-
-  // $CLAP_PATH (per CLAP entry.h), supplementing standard locations.
+  // $CLAP_PATH (per CLAP entry.h), supplementing the configured locations.
   if(qEnvironmentVariableIsSet("CLAP_PATH"))
   {
     const auto extra = qEnvironmentVariable("CLAP_PATH")
@@ -161,41 +76,62 @@ void ApplicationPlugin::rescanPlugins()
     }
   }
   paths.removeDuplicates();
-  ossia::hash_set<QString> known_plugins_paths;
-  for(auto& plug : this->m_plugins)
-    known_plugins_paths.insert(plug.path);
+  return paths;
+}
+}
 
-  for(const QString& searchPath : paths)
+QString resolveClapEntry(const QString& path)
+{
+  const QFileInfo fi{path};
+  if(fi.isDir())
   {
-    if(!QDir{searchPath}.isReadable())
+    // macOS bundle: the binary lives in Contents/MacOS
+    const QString inner = path + QString{"/Contents/MacOS/%1"}.arg(fi.baseName());
+    if(QFileInfo::exists(inner))
+      return inner;
+    // Linux bundle-style directory (Cardinal & other DPF plug-ins): the
+    // inner *.clap files are found by the recursive iteration themselves
+    return {};
+  }
+  return path;
+}
+
+std::vector<PluginInfo> parseClapReply(const QString& path, const QJsonObject& obj)
+{
+  std::vector<PluginInfo> res;
+
+  if(!obj.contains("Plugins") || !obj["Plugins"].isArray())
+    return res;
+
+  for(const auto& plugin : obj["Plugins"].toArray())
+  {
+    if(!plugin.isObject())
       continue;
+    const auto o = plugin.toObject();
 
-    QDirIterator it(
-        searchPath, QStringList{"*.clap"}, QDir::Files | QDir::Dirs,
-        QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
-    while(it.hasNext())
+    PluginInfo info;
+    info.path = path;
+    info.id = o["ID"].toString();
+    info.name = o["Name"].toString();
+    info.vendor = o["Vendor"].toString();
+    info.version = o["Version"].toString();
+    info.url = o["URL"].toString();
+    info.manual_url = o["ManualURL"].toString();
+    info.support_url = o["SupportURL"].toString();
+    info.description = o["Description"].toString();
+
+    if(o.contains("Features") && o["Features"].isArray())
     {
-      auto fileName = it.next();
-      if(known_plugins_paths.contains(fileName))
-        continue;
-
-#if defined(__APPLE__)
-      if(QFileInfo{fileName}.isDir())
-        fileName = fileName
-                   + QString{"/Contents/MacOS/%1"}.arg(QFileInfo{fileName}.baseName());
-#endif
-      pluginsToScan.push_back(fileName);
+      for(const auto& feature : o["Features"].toArray())
+      {
+        if(feature.isString())
+          info.features.push_back(feature.toString());
+      }
     }
+    info.valid = true;
+    res.push_back(std::move(info));
   }
-
-  // Queue all plugins for scanning
-  for(const auto& path : pluginsToScan)
-  {
-    m_pluginQueue.push_back(path);
-  }
-
-  // Start scanning processes
-  scanNextBatch();
+  return res;
 }
 
 static const QString& clapPuppetPath()
@@ -212,7 +148,7 @@ static const QString& clapPuppetPath()
     else if(QFile::exists(app + "/ossia-score-clappuppet"))
       return QString(app + "/ossia-score-clappuppet");
     else if(QFile::exists(app + "/../../ossia-score-clappuppet"))
-      return QString(path + "/../../ossia-score-clappuppet");
+      return QString(app + "/../../ossia-score-clappuppet");
     else if(QFile::exists(app + "/../../" + bundle_path))
       return QString(app + "/../../" + bundle_path);
     else
@@ -223,186 +159,161 @@ static const QString& clapPuppetPath()
   }();
   return path;
 }
-void ApplicationPlugin::scanNextBatch()
+
+ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& app)
+    : score::GUIApplicationPlugin{app}
 {
-  // Check if we're done
-  if(m_pluginQueue.empty() && m_processes.empty())
-  {
-    // Save to settings
-    QSettings{}.setValue("Effect/KnownCLAP", QVariant::fromValue(m_plugins));
+  qRegisterMetaType<PluginInfo>();
+  qRegisterMetaType<std::vector<PluginInfo>>();
+
+#if QT_CONFIG(process)
+  m_scanner = std::make_unique<Media::PluginScanner>("clap-scanner");
+  con(*m_scanner, &Media::PluginScanner::scanned, this, &ApplicationPlugin::onScanned);
+  con(*m_scanner, &Media::PluginScanner::scanFailed, this,
+      &ApplicationPlugin::onScanFailed);
+  con(*m_scanner, &Media::PluginScanner::done, this, [this] {
+    persistCache();
     pluginsChanged();
-    return;
-  }
+  });
+#endif
 
-  // Launch new processes up to max_in_flight
-  while(!m_pluginQueue.empty() && m_processes.size() < max_in_flight)
-  {
-    QString pluginPath = m_pluginQueue.back();
-    m_pluginQueue.pop_back();
-
-    int id = m_processCount++;
-    QPointer<QProcess> proc = new QProcess;
-    // proc->setProcessChannelMode(QProcess::ProcessChannelMode::ForwardedChannels);
-    m_processes[id] = proc;
-
-    connect(
-        proc, &QProcess::errorOccurred, this,
-        [this, id, pluginPath, proc](QProcess::ProcessError err) {
-      qDebug() << "CLAP scan error for:" << pluginPath << "error:" << err;
-      m_processes.erase(id);
-      proc->deleteLater();
-      addInvalidPlugin(pluginPath);
-      scanNextBatch();
-    });
-
-    // Set up timeout; parented to proc so teardown paths that never reach a
-    // deleteLater still reap it
-    auto timer = new QTimer{proc};
-    timer->setSingleShot(true);
-    timer->setInterval(10000); // 10 second timeout
-    connect(timer, &QTimer::timeout, proc, [this, id, proc, timer, pluginPath] {
-      if(m_processes.find(id) != m_processes.end())
-      {
-        qDebug() << "CLAP scan timeout for:" << pluginPath;
-        if(proc)
-        {
-          proc->terminate();
-          if(!proc->waitForFinished(100))
-            proc->kill();
-        }
-      }
-      timer->deleteLater();
-    });
-
-    connect(
-        proc, &QProcess::finished, this,
-        [this, id, pluginPath, proc, timer](int exitCode, QProcess::ExitStatus) {
-      m_processes.erase(id);
-      if(proc)
-        proc->deleteLater();
-
-      if(exitCode != 0)
-      {
-        qDebug() << "CLAP scan failed for:" << pluginPath;
-        addInvalidPlugin(pluginPath);
-      }
-
-      // Continue scanning
-      scanNextBatch();
-      timer->deleteLater();
-    });
-    timer->start();
-
-    // Launch the puppet process
-    proc->start(clapPuppetPath(), {pluginPath, QString::number(id)});
-  }
+  // Coalesce disk writes + UI updates: one per batch, not one per puppet
+  m_persistTimer = new QTimer{this};
+  m_persistTimer->setSingleShot(true);
+  m_persistTimer->setInterval(500);
+  connect(m_persistTimer, &QTimer::timeout, this, [this] {
+    persistCache();
+    pluginsChanged();
+  });
 }
 
-void ApplicationPlugin::processIncomingMessage(const QString& txt)
+ApplicationPlugin::~ApplicationPlugin() = default;
+
+void ApplicationPlugin::initialize()
 {
-  try
+  // Load, and heal caches damaged by the pre-token protocol: replies from
+  // other score instances used to be appended and persisted on every run
+  // (observed: every plug-in duplicated 200+ times)
+  m_plugins = Media::loadPluginCache<PluginInfo>(
+      cache_format_version, cache_key, legacy_cache_key);
+  Media::sanitizePluginCache(
+      m_plugins, [](const PluginInfo& i) { return i.path + "|" + i.id; },
+      [](const PluginInfo& i) { return i.path; },
+      [](const PluginInfo& i) { return i.valid; });
+  // Make the migration/healing durable even if no scan runs this session
+  persistCache();
+
+  pluginsChanged();
+
+  auto& set = context.settings<Media::Settings::Model>();
+  con(set, &Media::Settings::Model::ClapPathsChanged, this,
+      [this] { rescanPlugins(); });
+
+  if(qEnvironmentVariableIsEmpty("SCORE_DISABLE_AUDIOPLUGINS"))
+    rescanPlugins();
+}
+
+void ApplicationPlugin::forceRescan()
+{
+  m_plugins.clear();
+  rescanPlugins();
+}
+
+void ApplicationPlugin::rescanPlugins()
+{
+#if QT_CONFIG(process)
+  const QStringList paths = clapSearchPaths(context);
+
+  // 1. Discover the .clap files on disk
+  QSet<QString> onDisk;
+  for(const QString& searchPath : paths)
   {
-    auto json = QJsonDocument::fromJson(txt.toUtf8());
-    if(!json.isObject())
-      return;
+    if(!QDir{searchPath}.isReadable())
+      continue;
 
-    auto obj = json.object();
-    auto req = obj["Request"].toInt();
-
-    auto it = m_processes.find(req);
-    if(it != m_processes.end())
+    QDirIterator it(
+        searchPath, QStringList{"*.clap"}, QDir::Files | QDir::Dirs,
+        QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
+    while(it.hasNext())
     {
-      if(auto proc = it->second)
-      {
-        QObject::disconnect(proc, nullptr, this, nullptr);
-        proc->terminate();
-        if(proc)
-        {
-          QTimer::singleShot(100000, this, [proc] {
-            if(proc)
-            {
-              if(proc->state() != QProcess::NotRunning)
-                proc->kill();
-
-              if(proc)
-                proc->deleteLater();
-            }
-          });
-        }
-      }
-      m_processes.erase(req);
+      if(QString entry = resolveClapEntry(it.next()); !entry.isEmpty())
+        onDisk.insert(entry);
     }
+  }
 
-    auto path = obj["Path"].toString();
-
-    if(path.isEmpty())
-      return;
-
-    // Check if this is a valid plugin response
-    if(obj.contains("Plugins") && obj["Plugins"].isArray())
+  // 2. Drop cache entries for plug-ins removed from disk, keep the known
+  // ones (the CLAP cache historically never pruned anything)
+  ossia::hash_set<QString> known_plugins_paths;
+  for(auto it = m_plugins.begin(); it != m_plugins.end();)
+  {
+    if(onDisk.contains(it->path))
     {
-      auto plugins = obj["Plugins"].toArray();
-      for(const auto& plugin : plugins)
-      {
-        if(plugin.isObject())
-        {
-          addPlugin(path, plugin.toObject());
-        }
-      }
+      known_plugins_paths.insert(it->path);
+      ++it;
     }
     else
     {
-      addInvalidPlugin(path);
+      it = m_plugins.erase(it);
     }
   }
-  catch(...)
-  {
-    qDebug() << "Failed to parse CLAP scan result";
-  }
-}
-
-void ApplicationPlugin::addPlugin(const QString& path, const QJsonObject& obj)
-{
-  PluginInfo info;
-  info.path = path;
-  info.id = obj["ID"].toString();
-  info.name = obj["Name"].toString();
-  info.vendor = obj["Vendor"].toString();
-  info.version = obj["Version"].toString();
-  info.url = obj["URL"].toString();
-  info.manual_url = obj["ManualURL"].toString();
-  info.support_url = obj["SupportURL"].toString();
-  info.description = obj["Description"].toString();
-
-  if(obj.contains("Features") && obj["Features"].isArray())
-  {
-    auto features = obj["Features"].toArray();
-    for(const auto& feature : features)
-    {
-      if(feature.isString())
-        info.features.push_back(feature.toString());
-    }
-  }
-  info.valid = true;
-
-  m_plugins.push_back(std::move(info));
-  // write in the database
-  QSettings{}.setValue("Effect/KnownCLAP", QVariant::fromValue(m_plugins));
 
   pluginsChanged();
-  scanNextBatch();
+
+  // 3. Scan the new ones out-of-process
+  QStringList toScan;
+  for(const QString& path : onDisk)
+    if(!known_plugins_paths.contains(path))
+      toScan.push_back(path);
+  toScan.sort();
+
+  m_scanner->setPuppet(clapPuppetPath());
+  m_scanner->scan(std::move(toScan));
+#endif
 }
 
-void ApplicationPlugin::addInvalidPlugin(const QString& path)
+void ApplicationPlugin::removeEntriesForPath(const QString& path)
 {
+  ossia::remove_erase_if(
+      m_plugins, [&](const PluginInfo& i) { return i.path == path; });
+}
+
+void ApplicationPlugin::onScanned(const QString& path, const QJsonObject& obj)
+{
+  auto infos = parseClapReply(path, obj);
+  if(infos.empty())
+  {
+    onScanFailed(path, QStringLiteral("no plug-ins in file"));
+    return;
+  }
+
+  removeEntriesForPath(path);
+  for(auto& info : infos)
+    m_plugins.push_back(std::move(info));
+
+  schedulePersist();
+}
+
+void ApplicationPlugin::onScanFailed(const QString& path, const QString& reason)
+{
+  qDebug() << "CLAP scan failed for" << path << ":" << reason;
+
   PluginInfo info;
   info.path = path;
   info.name = "<Invalid>";
   info.valid = false;
-  m_plugins.push_back(info);
-  QSettings{}.setValue("Effect/KnownCLAP", QVariant::fromValue(m_plugins));
 
-  pluginsChanged();
-  scanNextBatch();
+  removeEntriesForPath(path);
+  m_plugins.push_back(std::move(info));
+  schedulePersist();
+}
+
+void ApplicationPlugin::persistCache()
+{
+  Media::savePluginCache(cache_format_version, cache_key, m_plugins);
+}
+
+void ApplicationPlugin::schedulePersist()
+{
+  m_persistTimer->start();
 }
 }

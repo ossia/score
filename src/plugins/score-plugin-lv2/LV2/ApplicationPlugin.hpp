@@ -7,20 +7,23 @@
 
 #include <ossia/detail/hash_map.hpp>
 
-#include <QPointer>
-#include <QProcess>
 #include <QString>
 #include <QStringList>
 #include <QVector>
-#include <QWebSocketServer>
+#include <QtCore/qglobal.h>
 
 #include <lilv/lilvmm.hpp>
 
 #include <score_plugin_lv2_export.h>
 
-#include <map>
+#include <memory>
 #include <vector>
 #include <verdigris>
+
+namespace Media
+{
+class PluginScanner;
+}
 
 namespace LV2
 {
@@ -84,7 +87,7 @@ public:
   void setCachedDescriptors(std::vector<PluginInfo> descriptors);
 
 public:
-  void descriptorsChanged() W_SIGNAL(descriptorsChanged);
+  void descriptorsChanged() E_SIGNAL(SCORE_PLUGIN_LV2_EXPORT, descriptorsChanged);
 
 public:
   Lilv::World lilv;
@@ -93,27 +96,25 @@ public:
 
   const libsuil& suil = libsuil::instance();
 
+  //! Forget everything and scan the configured paths again (settings UI)
+  void forceRescan();
+
 private:
   void rescanBundles();
-  void scanNextBatch();
-  void processIncomingMessage(const QString& txt);
+  void onScanned(const QString& bundlePath, const class QJsonObject& obj);
   void addPluginsFromJson(const QString& bundlePath, const class QJsonArray& arr);
   void markBundleInvalid(const QString& bundlePath);
   void persistCache();
 
-  static QStringList discoverLv2Search();
+  QStringList discoverLv2Search();
   static QStringList discoverBundles(const QStringList& search);
   // Pick out LV2 spec bundles (atom, urid, ui, ...) so puppets can skip load_all
   static QStringList discoverSpecBundles(const QStringList& bundles);
 
-  QWebSocketServer m_wsServer;
-  std::map<int, QPointer<QProcess>> m_processes;
-  std::vector<QString> m_bundleQueue;
-  int m_processCount{0};
-  static constexpr int max_in_flight = 8;
-
-  // Suppresses markBundleInvalid on post-report puppet exit (close-handshake race)
-  ossia::hash_set<QString> m_scanned_ok;
+#if QT_CONFIG(process)
+  std::unique_ptr<Media::PluginScanner> m_scanner;
+#endif
+  bool m_scanRan{};
 
   std::vector<PluginInfo> m_plugins;
 

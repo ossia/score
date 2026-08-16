@@ -5,14 +5,20 @@
 
 #include <ossia/detail/hash_map.hpp>
 
-#include <QElapsedTimer>
-#if QT_CONFIG(process)
-#include <QProcess>
-#endif
-#include <QWebSocketServer>
+#include <QtCore/qglobal.h>
+
+#include <score_plugin_vst_export.h>
 
 #include <thread>
 #include <verdigris>
+
+class QTimer;
+class QJsonObject;
+namespace Media
+{
+class PluginScanner;
+}
+
 namespace vst
 {
 struct VSTInfo
@@ -27,6 +33,11 @@ struct VSTInfo
   bool isValid{};
 };
 
+//! Build a VSTInfo from a vstpuppet scan reply. The path is the scanned
+//! file, not whatever the reply claims.
+SCORE_PLUGIN_VST_EXPORT
+VSTInfo parseVstReply(const QString& path, const QJsonObject& obj);
+
 class Model;
 class ApplicationPlugin
     : public QObject
@@ -40,17 +51,12 @@ public:
 
   void clearVSTs();
   void rescanVSTs(QStringList);
-  void processIncomingMessage(const QString& txt);
-  void addInvalidVST(const QString& path);
-  void addVST(const QString& path, const QJsonObject& json);
 
   // Used for idle timers
   void registerRunningVST(vst::Model*);
   void unregisterRunningVST(vst::Model*);
 
-  void scanVSTsEvent();
-
-  void vstChanged() W_SIGNAL(vstChanged)
+  void vstChanged() E_SIGNAL(SCORE_PLUGIN_VST_EXPORT, vstChanged);
 
   std::vector<VSTInfo> vst_infos;
   ossia::hash_map<int32_t, vst::Module*> vst_modules;
@@ -59,20 +65,17 @@ public:
   auto mainThreadId() const noexcept { return m_tid; }
   std::vector<vst::Model*> m_runningVSTs;
 
-#if QT_CONFIG(process)
-  struct ScanningProcess
-  {
-    QString path;
-    std::unique_ptr<QProcess> process;
-    bool scanning{};
-    QElapsedTimer timer;
-  };
-
-  std::vector<ScanningProcess> m_processes;
-
 private:
-  QWebSocketServer m_wsServer;
+  void onScanned(const QString& path, const QJsonObject& obj);
+  void onScanFailed(const QString& path, const QString& reason);
+  void removeEntriesForPath(const QString& path);
+  void persistCache();
+  void schedulePersist();
+
+#if QT_CONFIG(process)
+  std::unique_ptr<Media::PluginScanner> m_scanner;
 #endif
+  QTimer* m_persistTimer{};
 
   void timerEvent(QTimerEvent* event) override;
 };

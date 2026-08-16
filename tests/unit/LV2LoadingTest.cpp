@@ -17,6 +17,8 @@
 #include <LV2/EffectModel.hpp>
 #include <LV2/Node.hpp>
 
+#include <Media/AudioPluginCache.hpp>
+
 #include <Process/Dataflow/WidgetInlets.hpp>
 
 #include <score/model/EntitySerialization.hpp>
@@ -216,6 +218,26 @@ TEST_CASE("find_lv2_plugin loads the bundle on demand", "[lv2]")
       REQUIRE(res);
       CHECK(QString(res->get_uri().as_string()) == "urn:score:test:gain2");
     }
+  });
+}
+
+TEST_CASE("LV2 descriptor cache round-trips through the versioned blob", "[lv2]")
+{
+  prepare_lv2_test_environment();
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    const std::vector<LV2::PluginInfo> src{makeGainInfo()};
+
+    const auto blob = Media::serializePluginCache(1, src);
+    const auto back = Media::deserializePluginCache<LV2::PluginInfo>(1, blob);
+    REQUIRE(back.has_value());
+    REQUIRE(back->size() == 1);
+    CHECK((*back)[0].bundle == src[0].bundle);
+    CHECK((*back)[0].uri == src[0].uri);
+    CHECK((*back)[0].control_in == src[0].control_in);
+    CHECK((*back)[0].valid == src[0].valid);
+
+    // A format bump must invalidate cleanly, not decode garbage
+    CHECK(!Media::deserializePluginCache<LV2::PluginInfo>(2, blob).has_value());
   });
 }
 

@@ -10,11 +10,6 @@ if(SCORE_FAST_DEV_BUILD)
   return()
 endif()
 
-# Packages
-if(NOT TARGET ${QT_PREFIX}::WebSockets)
-  # VST support requires websockets
-  return()
-endif()
 
 # Files & main target
 set(HDRS
@@ -73,7 +68,7 @@ add_library(${PROJECT_NAME}
 
 score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 target_link_libraries(${PROJECT_NAME} PUBLIC
-                     ${QT_PREFIX}::Core ${QT_PREFIX}::Widgets ${QT_PREFIX}::WebSockets
+                     ${QT_PREFIX}::Core ${QT_PREFIX}::Widgets
                      ${CMAKE_DL_LIBS}
                      score_lib_base score_plugin_automation score_plugin_media
 )
