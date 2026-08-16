@@ -107,6 +107,12 @@ QObject* EditJsContext::createProcess(QObject* interval, QString name, QString d
   if(!doc)
     return nullptr;
 
+  // Processes that take a file open it themselves, and they do not know about
+  // the library prefixes. Without this a "<LIBRARY>:/..." shader silently loads
+  // as empty and the process is created with no content at all.
+  if(data.startsWith('<'))
+    data = locateFilePath(data);
+
   std::optional<score::uuids::uuid> maybe_uid;
   {
     if(name.trimmed().length() == 36)
