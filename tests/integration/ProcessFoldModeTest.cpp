@@ -9,10 +9,17 @@
 #include <score_test/Document.hpp>
 
 #include <Process/Commands/Properties.hpp>
+#include <Process/Dataflow/NodeItem.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortVisibility.hpp>
+#include <Process/DocumentPlugin.hpp>
+#include <Process/Focus/FocusDispatcher.hpp>
+#include <Process/Preset.hpp>
+#include <Process/ProcessContext.hpp>
+#include <Process/ProcessMimeSerialization.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
+#include <Scenario/Application/Drops/DropOnCable.hpp>
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
@@ -24,6 +31,9 @@
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 
+#include <QGraphicsScene>
+#include <QPointer>
+#include <QMimeData>
 #include <QPointF>
 
 #include <catch2/catch_test_macros.hpp>
@@ -133,8 +143,79 @@ TEST_CASE(
   });
 }
 
+namespace
+{
+//! Everything DropOnNode needs: it reads the process off a NodeItem, and the
+//! item has to live in a scene for its children to be built.
+struct DropFixture
+{
+  score::Document& doc;
+  Scenario::IntervalModel& interval;
+
+  Process::DataflowManager dfm;
+  FocusDispatcher fd;
+  Process::Context pctx{doc.context(), dfm, fd};
+
+  QGraphicsScene scene;
+  QGraphicsRectItem root{QRectF{0., 0., 1000., 1000.}};
+
+  DropFixture(score::Document& d, Scenario::IntervalModel& itv)
+      : doc{d}
+      , interval{itv}
+  {
+    scene.addItem(&root);
+  }
+
+  ~DropFixture() { scene.removeItem(&root); }
+
+  QPointer<Process::NodeItem> nodeFor(Process::ProcessModel& p)
+  {
+    auto* item = new Process::NodeItem{p, pctx, TimeVal::fromMsecs(1000.), &root};
+
+    // NodalIntervalView::on_processRemoving does this in the real view. Without
+    // it the item outlives the process the drop removes, and PortItem's own
+    // "Port destroyed before its item" assert fires.
+    QObject::connect(
+        &p, &IdentifiedObjectAbstract::identified_object_destroying, &p,
+        [item] { delete item; });
+
+    QCoreApplication::processEvents();
+    return item;
+  }
+
+  //! Drop `preset` onto `on`, the way NodalIntervalView::on_dropOnNode does.
+  //! drop() defers the real work, so the event loop has to be pumped after.
+  void dropPreset(Process::ProcessModel& on, const Process::Preset& preset)
+  {
+    QPointer<Process::NodeItem> item = nodeFor(on);
+    auto& sm = static_cast<Scenario::ScenarioDocumentModel&>(doc.model().modelDelegate());
+
+    Scenario::DropOnNode dropper{*item, sm, pctx};
+    QMimeData mime;
+    mime.setData(score::mime::processpreset(), preset.toJson());
+    dropper.drop(mime);
+
+    QCoreApplication::processEvents();
+
+    // Normally gone with its process by now; only left over if the drop
+    // decided not to replace anything.
+    delete item.data();
+  }
+
+  //! The process in the interval that is not `previous`.
+  Process::ProcessModel* replacementOf(const Process::ProcessModel& previous)
+  {
+    for(auto& p : interval.processes)
+      if(&p != &previous)
+        return &p;
+    return nullptr;
+  }
+};
+}
+
 TEST_CASE(
-    "Replacing an open node keeps the replacement open", "[integration][fold]")
+    "Dropping a preset on an open node keeps the replacement open",
+    "[integration][fold]")
 {
   score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
     score::Document* doc = score::test::new_document(ctx);
@@ -142,23 +223,50 @@ TEST_CASE(
     auto& interval = base_interval(*doc);
     auto& old = add_lfo(*doc, interval);
 
-    // The node the user is dropping onto is open -- here by the heuristic,
-    // which is the case that used to be lost.
+    // The node being dropped onto is open -- here by the heuristic, which is
+    // the case that used to be lost across the replacement.
     REQUIRE(!old.folded());
     REQUIRE(old.foldMode() == Process::FoldMode::Auto);
 
-    // What DropOnNode::keepUnfolded() does once the replacement exists.
-    auto& replacement = add_lfo(*doc, interval);
-    CommandDispatcher<> disp{doc->context().commandStack};
-    if(!old.folded())
-      disp.submit<Process::SetNodeFoldMode>(replacement, Process::FoldMode::Unfolded);
+    const auto oldId = old.id();
+    const Process::Preset preset = old.savePreset();
 
-    // Now it stays open even with more ports than the heuristic would allow.
-    CHECK(replacement.foldMode() == Process::FoldMode::Unfolded);
-    CHECK(!replacement.folded());
+    DropFixture fx{*doc, interval};
+    fx.dropPreset(old, preset);
 
-    // ... and it is undoable, like the rest of the drop macro.
-    doc->commandStack().undo();
-    CHECK(replacement.foldMode() == Process::FoldMode::Auto);
+    // The drop must actually have replaced the process rather than loading the
+    // preset into it: the whole bug only exists on the replacement path.
+    auto* replacement = fx.replacementOf(old);
+    REQUIRE(replacement != nullptr);
+    REQUIRE(replacement->id() != oldId);
+
+    CHECK(replacement->foldMode() == Process::FoldMode::Unfolded);
+    CHECK(!replacement->folded());
+  });
+}
+
+TEST_CASE(
+    "Dropping a preset on a folded node leaves the replacement to the heuristic",
+    "[integration][fold]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    score::Document* doc = score::test::new_document(ctx);
+    REQUIRE(doc != nullptr);
+    auto& interval = base_interval(*doc);
+    auto& old = add_lfo(*doc, interval);
+
+    // One-directional: a node the user had closed must not force the
+    // replacement closed, it just does not have an opinion to carry over.
+    old.setFoldMode(Process::FoldMode::Folded);
+    REQUIRE(old.folded());
+
+    const Process::Preset preset = old.savePreset();
+
+    DropFixture fx{*doc, interval};
+    fx.dropPreset(old, preset);
+
+    auto* replacement = fx.replacementOf(old);
+    REQUIRE(replacement != nullptr);
+    CHECK(replacement->foldMode() == Process::FoldMode::Auto);
   });
 }
