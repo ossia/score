@@ -45,5 +45,8 @@ public:
   ossia::net::network_context_ptr m_asioContext;
 
   QString m_start_script;
+  QString m_start_script_name; //!< path as given, for error messages
+  QString m_start_script_path; //!< directory, added as a QML import path
+  bool m_start_script_failed{};
 };
 }
