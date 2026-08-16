@@ -53,8 +53,17 @@ jobs:
 
         run: |
           set -e
+          # The workspace is NFS-shared from the Linux host and the VM runs as
+          # root, so directories created by git clone are owned by a foreign
+          # uid; without this, the post-clone `git submodule update` for
+          # score-addon-airwindows (the one addon that reopens its repo in a
+          # second git process, see SKIP_SUBMODULE in ci/common.deps.sh) dies
+          # with "detected dubious ownership" and leaves airwin2rack empty,
+          # which then breaks the CMake configure.
+          git config --global --add safe.directory '*'
           echo "=============== FreeBSD Start Deps ====================="
-          ./ci/common.deps.sh && echo "=============== FreeBSD Deps Success ====================="
+          ./ci/common.deps.sh
+          echo "=============== FreeBSD Deps Success ====================="
           echo "=============== FreeBSD Start Build ====================="
           ./ci/freebsd.build.sh
           echo "=============== FreeBSD Build Success ====================="
