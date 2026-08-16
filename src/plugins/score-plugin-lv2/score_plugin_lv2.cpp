@@ -2,6 +2,7 @@
 
 #include <LV2/EffectModel.hpp>
 #include <LV2/Library.hpp>
+#include <LV2/Settings.hpp>
 #include <LV2/Window.hpp>
 #include <Library/LibraryInterface.hpp>
 
@@ -51,7 +52,8 @@ std::vector<score::InterfaceBase*> score_plugin_lv2::factories(
       score::ApplicationContext, FW<Process::ProcessModelFactory, LV2::ProcessFactory>,
       FW<Process::LayerFactory, LV2::LayerFactory>,
       FW<Library::LibraryInterface, LV2::LibraryHandler>,
-      FW<Execution::ProcessComponentFactory, LV2::ExecutorFactory>>(ctx, key);
+      FW<Execution::ProcessComponentFactory, LV2::ExecutorFactory>,
+      FW<Media::Settings::PluginSettingsTab, LV2::SettingsWidget>>(ctx, key);
 }
 
 #include <score/plugins/PluginInstances.hpp>

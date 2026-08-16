@@ -4,7 +4,9 @@
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
+#include <Media/AudioPluginCache.hpp>
 #include <Media/Effect/Settings/Model.hpp>
+#include <Media/PluginScanner.hpp>
 #include <Vst/EffectModel.hpp>
 #include <Vst/Loader.hpp>
 
@@ -15,17 +17,13 @@
 #include <QFileInfo>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QProcess>
 #include <QTimer>
-#include <QWebSocket>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(vst::ApplicationPlugin)
 
 SCORE_SERALIZE_DATASTREAM_DEFINE(vst::VSTInfo)
 SCORE_SERALIZE_DATASTREAM_DEFINE(std::vector<vst::VSTInfo>)
-// TODO remove me in a few versions
-static bool vst_invalid_format = false;
 template <>
 void DataStreamReader::read(const vst::VSTInfo& p)
 {
@@ -35,13 +33,8 @@ void DataStreamReader::read(const vst::VSTInfo& p)
 template <>
 void DataStreamWriter::write(vst::VSTInfo& p)
 {
-  if(!vst_invalid_format)
-    m_stream >> p.path >> p.prettyName >> p.displayName >> p.author >> p.uniqueID
-        >> p.controls >> p.isSynth >> p.isValid;
-  if(m_stream.stream.status() != QDataStream::Status::Ok)
-  {
-    vst_invalid_format = true;
-  }
+  m_stream >> p.path >> p.prettyName >> p.displayName >> p.author >> p.uniqueID
+      >> p.controls >> p.isSynth >> p.isValid;
 }
 
 Q_DECLARE_METATYPE(vst::VSTInfo)
@@ -51,77 +44,14 @@ W_REGISTER_ARGTYPE(std::vector<vst::VSTInfo>)
 
 namespace vst
 {
-
-ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
-    : score::ApplicationPlugin{app}
-#if QT_CONFIG(process)
-    , m_wsServer("vst-notification-server", QWebSocketServer::NonSecureMode)
-#endif
+namespace
 {
-  qRegisterMetaType<VSTInfo>();
-  qRegisterMetaType<std::vector<VSTInfo>>();
-
-#if QT_CONFIG(process)
-  m_wsServer.listen(QHostAddress::LocalHost, 37587);
-  con(m_wsServer, &QWebSocketServer::newConnection, this, [this] {
-    QWebSocket* ws = m_wsServer.nextPendingConnection();
-    if(!ws)
-      return;
-
-    connect(ws, &QWebSocket::textMessageReceived, this, [this, ws](const QString& txt) {
-      processIncomingMessage(txt);
-      ws->deleteLater();
-    });
-  });
-#endif
-
-  // VST idle update
-  startTimer(10, Qt::PreciseTimer);
+constexpr quint32 cache_format_version = 1;
+const QString cache_key = QStringLiteral("Effect/KnownVST2Cache");
+const QString legacy_cache_key = QStringLiteral("Effect/KnownVST2");
 }
 
-void ApplicationPlugin::initialize()
-{
-  // init with the database
-  QSettings s;
-  auto val = s.value("Effect/KnownVST2");
-  if(val.canConvert<std::vector<VSTInfo>>())
-  {
-    vst_infos = val.value<std::vector<VSTInfo>>();
-  }
-
-  if(vst_invalid_format)
-  {
-    vst_infos.clear();
-    vst_invalid_format = false;
-  }
-
-  vstChanged();
-
-  auto& set = context.settings<Media::Settings::Model>();
-  con(set, &Media::Settings::Model::VstPathsChanged, this,
-      &ApplicationPlugin::rescanVSTs);
-
-  if(qEnvironmentVariableIsEmpty("SCORE_DISABLE_AUDIOPLUGINS"))
-    rescanVSTs(set.getVstPaths());
-}
-
-void ApplicationPlugin::addInvalidVST(const QString& path)
-{
-  VSTInfo i;
-  i.path = path;
-  i.prettyName = "invalid";
-  i.uniqueID = -1;
-  i.isSynth = false;
-  i.isValid = false;
-  vst_infos.push_back(i);
-
-  // write in the database
-  QSettings{}.setValue("Effect/KnownVST2", QVariant::fromValue(vst_infos));
-
-  vstChanged();
-}
-
-void ApplicationPlugin::addVST(const QString& path, const QJsonObject& obj)
+VSTInfo parseVstReply(const QString& path, const QJsonObject& obj)
 {
   VSTInfo i;
   i.path = path;
@@ -135,15 +65,60 @@ void ApplicationPlugin::addVST(const QString& path, const QJsonObject& obj)
   // Only way to get a separation between Kontakt 5 / Kontakt 5 (8
   // out) / Kontakt 5 (16 out),  etc...
   i.prettyName = QFileInfo(path).completeBaseName();
+  return i;
+}
 
-  vst_modules.insert({i.uniqueID, nullptr});
-  vst_infos.push_back(std::move(i));
+ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
+    : score::ApplicationPlugin{app}
+{
+  qRegisterMetaType<VSTInfo>();
+  qRegisterMetaType<std::vector<VSTInfo>>();
 
-  // write in the database
-  QSettings{}.setValue("Effect/KnownVST2", QVariant::fromValue(vst_infos));
+#if QT_CONFIG(process)
+  m_scanner = std::make_unique<Media::PluginScanner>("vst-scanner");
+  con(*m_scanner, &Media::PluginScanner::scanned, this, &ApplicationPlugin::onScanned);
+  con(*m_scanner, &Media::PluginScanner::scanFailed, this,
+      &ApplicationPlugin::onScanFailed);
+  con(*m_scanner, &Media::PluginScanner::done, this, [this] {
+    persistCache();
+    vstChanged();
+  });
+#endif
 
-  qDebug() << "Loaded VST " << path << "successfully";
+  // Coalesce disk writes + UI updates: one per batch, not one per puppet
+  m_persistTimer = new QTimer{this};
+  m_persistTimer->setSingleShot(true);
+  m_persistTimer->setInterval(500);
+  connect(m_persistTimer, &QTimer::timeout, this, [this] {
+    persistCache();
+    vstChanged();
+  });
+
+  // VST idle update
+  startTimer(10, Qt::PreciseTimer);
+}
+
+void ApplicationPlugin::initialize()
+{
+  // Load, and heal caches damaged by the pre-token protocol (duplicated
+  // entries, valid/invalid pairs for the same path)
+  vst_infos = Media::loadPluginCache<VSTInfo>(
+      cache_format_version, cache_key, legacy_cache_key);
+  Media::sanitizePluginCache(
+      vst_infos, [](const VSTInfo& i) { return i.path; },
+      [](const VSTInfo& i) { return i.path; },
+      [](const VSTInfo& i) { return i.isValid; });
+  // Make the migration/healing durable even if no scan runs this session
+  persistCache();
+
   vstChanged();
+
+  auto& set = context.settings<Media::Settings::Model>();
+  con(set, &Media::Settings::Model::VstPathsChanged, this,
+      &ApplicationPlugin::rescanVSTs);
+
+  if(qEnvironmentVariableIsEmpty("SCORE_DISABLE_AUDIOPLUGINS"))
+    rescanVSTs(set.getVstPaths());
 }
 
 void ApplicationPlugin::registerRunningVST(Model* m)
@@ -174,7 +149,7 @@ static const QString& vstPuppetPath()
     else if(QFile::exists(app + "/ossia-score-vstpuppet"))
       return QString(app + "/ossia-score-vstpuppet");
     else if(QFile::exists(app + "/../../ossia-score-vstpuppet"))
-      return QString(path + "/../../ossia-score-vstpuppet");
+      return QString(app + "/../../ossia-score-vstpuppet");
     else if(QFile::exists(app + "/../../" + bundle_path))
       return QString(app + "/../../" + bundle_path);
     else
@@ -256,13 +231,13 @@ void ApplicationPlugin::rescanVSTs(QStringList paths)
 #endif
   }
 
-  // 2. Remove plug-ins not in these paths
+  // 2. Remove plug-ins not in these paths, keep the known ones
   for(auto it = vst_infos.begin(); it != vst_infos.end();)
   {
     auto new_it = newPlugins.find(it->path);
     if(new_it != newPlugins.end())
     {
-      // plug-in is in both set, we ignore it
+      // plug-in is in both sets, no need to rescan it
       newPlugins.erase(new_it);
       ++it;
     }
@@ -274,114 +249,64 @@ void ApplicationPlugin::rescanVSTs(QStringList paths)
 
   vstChanged();
 
-  // 3. Add remaining plug-ins
-  m_processes.clear();
-  m_processes.reserve(newPlugins.size());
-  int i = 0;
+  // 3. Scan the remaining ones out-of-process
+  QStringList toScan;
   for(const QString& path : newPlugins)
   {
     if(path.contains("linvst.so"))
       continue;
-
-    auto proc = std::make_unique<QProcess>();
-    connect(proc.get(), &QProcess::errorOccurred, this, [proc = proc.get(), path] {
-      qDebug() << " == VST: error => " << path;
-      qDebug() << " -- VST out: " << proc->readAllStandardOutput().constData();
-      qDebug() << " -- VST error: " << proc->readAllStandardError().constData();
-    });
-
-    proc->setProgram(vstPuppetPath());
-    proc->setArguments({path, QString::number(i)});
-    m_processes.push_back({path, std::move(proc), false, {}});
-    i++;
+    toScan.push_back(path);
   }
-  scanVSTsEvent();
+  toScan.sort();
+
+  m_scanner->setPuppet(vstPuppetPath());
+  m_scanner->scan(std::move(toScan));
 #endif
 }
 
-static int vst_in_flight = 0;
-void ApplicationPlugin::processIncomingMessage(const QString& txt)
+void ApplicationPlugin::removeEntriesForPath(const QString& path)
 {
-#if QT_CONFIG(process)
-  QJsonDocument doc = QJsonDocument::fromJson(txt.toUtf8());
-  if(doc.isObject())
-  {
-    auto obj = doc.object();
-    addVST(obj["Path"].toString(), obj);
-    int id = obj["Request"].toInt();
-
-    if(id >= 0 && id < std::ssize(m_processes))
-    {
-      if(m_processes[id].process)
-      {
-        m_processes[id].process->close();
-        if(m_processes[id].process->state() == QProcess::ProcessState::NotRunning)
-        {
-          vst_in_flight--;
-          m_processes[id] = {};
-        }
-        else
-        {
-          connect(
-              m_processes[id].process.get(),
-              qOverload<int, QProcess::ExitStatus>(&QProcess::finished), this,
-              [this, id] {
-            vst_in_flight--;
-            m_processes[id] = {};
-          });
-        }
-      }
-    }
-    else
-    {
-      qDebug() << "Got invalid VST request ID" << id;
-    }
-  }
-#endif
+  ossia::remove_erase_if(
+      vst_infos, [&](const VSTInfo& i) { return i.path == path; });
 }
 
-void ApplicationPlugin::scanVSTsEvent()
+void ApplicationPlugin::onScanned(const QString& path, const QJsonObject& obj)
 {
-#if QT_CONFIG(process)
-  constexpr int max_in_flight = 8;
+  VSTInfo i = parseVstReply(path, obj);
 
-  for(auto& proc : m_processes)
-  {
-    // Already scanned processes
-    if(!proc.process)
-      continue;
+  removeEntriesForPath(path);
+  vst_modules.insert({i.uniqueID, nullptr});
+  vst_infos.push_back(std::move(i));
 
-    if(!proc.scanning)
-    {
-      if(vst_in_flight < max_in_flight)
-      {
-        proc.process->start(QProcess::ReadOnly);
-        proc.scanning = true;
-        proc.timer.start();
+  qDebug() << "Loaded VST " << path << "successfully";
+  schedulePersist();
+}
 
-        vst_in_flight++;
-      }
-    }
-    else
-    {
-      if(proc.timer.elapsed() > 10000)
-      {
-        addInvalidVST(proc.path);
-        proc.process->kill();
-        proc.process.reset();
+void ApplicationPlugin::onScanFailed(const QString& path, const QString& reason)
+{
+  qDebug() << "VST scan failed for" << path << ":" << reason;
 
-        vst_in_flight--;
-        continue;
-      }
-    }
+  VSTInfo i;
+  i.path = path;
+  i.prettyName = "invalid";
+  i.uniqueID = -1;
+  i.isSynth = false;
+  i.isValid = false;
 
-    if(vst_in_flight == max_in_flight)
-    {
-      QTimer::singleShot(1000, this, &ApplicationPlugin::scanVSTsEvent);
-      return;
-    }
-  }
-#endif
+  removeEntriesForPath(path);
+  vst_infos.push_back(std::move(i));
+
+  schedulePersist();
+}
+
+void ApplicationPlugin::persistCache()
+{
+  Media::savePluginCache(cache_format_version, cache_key, vst_infos);
+}
+
+void ApplicationPlugin::schedulePersist()
+{
+  m_persistTimer->start();
 }
 
 void ApplicationPlugin::timerEvent(QTimerEvent* event)

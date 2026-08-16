@@ -2,19 +2,25 @@
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 
 #include <QObject>
-#include <QWebSocketServer>
+#include <QtCore/qglobal.h>
+
+#include <score_plugin_clap_export.h>
 
 #include <memory>
 #include <vector>
-#include <map>
 #include <verdigris>
 
 namespace Library
 {
 class ProcessesItemModel;
 }
+namespace Media
+{
+class PluginScanner;
+}
 
-class QProcess;
+class QTimer;
+class QJsonObject;
 
 namespace Clap
 {
@@ -34,7 +40,19 @@ struct PluginInfo
   bool valid{};
 };
 
-class ApplicationPlugin
+//! The plug-ins contained in one .clap file, from a clappuppet scan reply.
+//! The path is the scanned file, not whatever the reply claims.
+SCORE_PLUGIN_CLAP_EXPORT
+std::vector<PluginInfo> parseClapReply(const QString& path, const QJsonObject& obj);
+
+//! On macOS a .clap can be a bundle directory; the actual binary to scan
+//! lives inside. Must be applied *before* comparing against known paths:
+//! resolving after the known-check made every startup rescan (and
+//! re-append) every bundle.
+SCORE_PLUGIN_CLAP_EXPORT
+QString resolveClapEntry(const QString& path);
+
+class SCORE_PLUGIN_CLAP_EXPORT ApplicationPlugin
     : public QObject
     , public score::GUIApplicationPlugin
 {
@@ -48,21 +66,24 @@ public:
 
   const std::vector<PluginInfo>& plugins() const noexcept { return m_plugins; }
 
+  void rescanPlugins();
+  //! Forget everything and scan the configured paths again (settings UI)
+  void forceRescan();
+
 public:
-  void pluginsChanged() W_SIGNAL(pluginsChanged);
+  void pluginsChanged() E_SIGNAL(SCORE_PLUGIN_CLAP_EXPORT, pluginsChanged);
 
 private:
-  void rescanPlugins();
-  void scanNextBatch();
-  void processIncomingMessage(const QString& txt);
-  void addPlugin(const QString& path, const QJsonObject& obj);
-  void addInvalidPlugin(const QString& path);
-  
-  QWebSocketServer m_wsServer;
-  std::map<int, QPointer<QProcess>> m_processes;
-  std::vector<QString> m_pluginQueue;
-  int m_processCount{0};
-  static constexpr int max_in_flight = 8;
+  void onScanned(const QString& path, const QJsonObject& obj);
+  void onScanFailed(const QString& path, const QString& reason);
+  void removeEntriesForPath(const QString& path);
+  void persistCache();
+  void schedulePersist();
+
+#if QT_CONFIG(process)
+  std::unique_ptr<Media::PluginScanner> m_scanner;
+#endif
+  QTimer* m_persistTimer{};
 
   std::vector<PluginInfo> m_plugins;
 };

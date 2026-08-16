@@ -312,3 +312,45 @@ score_add_test(test_unit_plugin_scanner
 add_dependencies(test_unit_plugin_scanner score_test_fake_puppet)
 target_compile_definitions(test_unit_plugin_scanner PRIVATE
   SCORE_FAKE_PUPPET="$<TARGET_FILE:score_test_fake_puppet>")
+
+# Per-backend scan-reply parsing + cache healing.
+if(TARGET score_plugin_vst)
+  score_add_test(test_unit_vst_scan_reply
+    SOURCES VstScanReplyTest.cpp
+    PLUGINS score_plugin_vst)
+  target_include_directories(test_unit_vst_scan_reply PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst")
+endif()
+
+if(TARGET score_plugin_vst3)
+  score_add_test(test_unit_vst3_scan_reply
+    SOURCES Vst3ScanReplyTest.cpp
+    PLUGINS score_plugin_vst3
+    LIBS sdk_common sdk_hosting)
+  target_include_directories(test_unit_vst3_scan_reply PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst3")
+endif()
+
+if(TARGET score_plugin_clap)
+  # The healing case boots the app: a legacy cache polluted with hundreds of
+  # cross-instance duplicates must come out deduplicated and migrated to the
+  # versioned format.
+  score_add_test(test_unit_clap_scan
+    SOURCES ClapScanTest.cpp
+    APP
+    PLUGINS score_plugin_clap)
+  target_include_directories(test_unit_clap_scan PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-clap")
+endif()
+
+# Per-format plug-in path settings; VST3 must react to Vst3Paths, not VstPaths.
+if(TARGET score_plugin_vst3 AND TARGET score_plugin_clap)
+  score_add_test(test_unit_plugin_path_settings
+    SOURCES PluginPathSettingsTest.cpp
+    APP
+    PLUGINS score_plugin_vst3 score_plugin_clap
+    LIBS sdk_common sdk_hosting)
+  target_include_directories(test_unit_plugin_path_settings PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst3"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-clap")
+endif()

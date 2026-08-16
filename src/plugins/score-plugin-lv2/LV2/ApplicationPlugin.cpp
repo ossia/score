@@ -8,7 +8,9 @@
 #include <Audio/Settings/Model.hpp>
 #include <LV2/Context.hpp>
 #include <LV2/EffectModel.hpp>
+#include <Media/AudioPluginCache.hpp>
 #include <Media/Effect/Settings/Model.hpp>
+#include <Media/PluginScanner.hpp>
 
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/Bind.hpp>
@@ -25,12 +27,10 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QProcess>
 #include <QSettings>
 #include <QStandardPaths>
 #include <QTimer>
 #include <QUrl>
-#include <QWebSocket>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(LV2::ApplicationPlugin)
@@ -101,12 +101,17 @@ uint32_t port_index(SuilController controller, const char* symbol)
 
 namespace LV2
 {
+namespace
+{
+constexpr quint32 cache_format_version = 1;
+const QString cache_key = QStringLiteral("Effect/KnownLV2Cache");
+const QString legacy_cache_key = QStringLiteral("Effect/KnownLV2");
+}
 
 ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
     : score::ApplicationPlugin{app}
     , lv2_context{std::make_unique<LV2::GlobalContext>(64, lv2_host_context)}
     , lv2_host_context{lv2_context.get(), nullptr, lv2_context->features(), lilv}
-    , m_wsServer("lv2-notification-server", QWebSocketServer::NonSecureMode)
 {
   qRegisterMetaType<PluginInfo>();
   qRegisterMetaType<std::vector<PluginInfo>>();
@@ -144,28 +149,27 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
     descriptorsChanged();
   });
 
-  if(!m_wsServer.listen(QHostAddress::LocalHost, 37590))
-  {
-    qWarning() << "LV2: failed to start scanner WebSocket on 127.0.0.1:37590 -"
-               << m_wsServer.errorString()
-               << "- bundle scanning will be unavailable";
-  }
-  con(m_wsServer, &QWebSocketServer::newConnection, this, [this] {
-    QWebSocket* ws = m_wsServer.nextPendingConnection();
-    if(!ws)
-      return;
-
-    // Default Qt limits reject the multi-MB payloads from large bundles (lsp-plugins, ...)
-    ws->setMaxAllowedIncomingFrameSize(64 * 1024 * 1024);
-    ws->setMaxAllowedIncomingMessageSize(64 * 1024 * 1024);
-
-    // Defer deleteLater so the puppet closes its side first; sync FIN -> spurious exit 1
-    connect(ws, &QWebSocket::textMessageReceived, this, [this, ws](const QString& txt) {
-      QObject::disconnect(ws, &QWebSocket::textMessageReceived, nullptr, nullptr);
-      processIncomingMessage(txt);
-      QTimer::singleShot(1000, ws, [ws] { ws->deleteLater(); });
-    });
+#if QT_CONFIG(process)
+  m_scanner = std::make_unique<Media::PluginScanner>("lv2-scanner");
+  // 60s: lsp-plugins (~197 plug-ins, ASan) can push past 10s
+  m_scanner->setProcessTimeout(60000);
+  con(*m_scanner, &Media::PluginScanner::scanned, this, &ApplicationPlugin::onScanned);
+  con(*m_scanner, &Media::PluginScanner::scanFailed, this,
+      [this](const QString& bundle, const QString& reason) {
+    qDebug() << "LV2 scan failed for" << bundle << ":" << reason;
+    markBundleInvalid(bundle);
+      });
+  con(*m_scanner, &Media::PluginScanner::done, this, [this] {
+    persistCache();
+    descriptorsChanged();
   });
+#endif
+}
+
+void ApplicationPlugin::forceRescan()
+{
+  m_plugins.clear();
+  rescanBundles();
 }
 
 void ApplicationPlugin::initialize()
@@ -177,46 +181,37 @@ void ApplicationPlugin::initialize()
   if(!qEnvironmentVariableIsEmpty("SCORE_DISABLE_LV2"))
     return;
 
-  {
-    QSettings s;
-    auto val = s.value("Effect/KnownLV2");
-    if(val.canConvert<std::vector<PluginInfo>>())
-      m_plugins = val.value<std::vector<PluginInfo>>();
-  }
+  // Load, and heal caches damaged by the pre-token protocol (duplicated
+  // entries, valid/invalid pairs for the same bundle)
+  m_plugins = Media::loadPluginCache<PluginInfo>(
+      cache_format_version, cache_key, legacy_cache_key);
+  Media::sanitizePluginCache(
+      m_plugins, [](const PluginInfo& i) { return i.bundle + "|" + i.uri; },
+      [](const PluginInfo& i) { return i.bundle; },
+      [](const PluginInfo& i) { return i.valid; });
+  // Make the migration/healing durable even if no scan runs this session
+  persistCache();
 
   descriptorsChanged();
+
+  auto& set = context.settings<Media::Settings::Model>();
+  con(set, &Media::Settings::Model::Lv2PathsChanged, this,
+      [this] { rescanBundles(); });
 
   rescanBundles();
 }
 
 ApplicationPlugin::~ApplicationPlugin()
 {
-  // waitForFinished delivers finished() synchronously: detach the map and
-  // drop our connections first or the handlers erase from it mid-iteration
-  // (and scanNextBatch would spawn new puppets during teardown).
-  m_bundleQueue.clear();
-  auto processes = std::move(m_processes);
-  for(auto& [id, proc] : processes)
-  {
-    if(proc)
-    {
-      QObject::disconnect(proc, nullptr, this, nullptr);
-      proc->terminate();
-      if(!proc->waitForFinished(100))
-      {
-        // Reap after kill: ~QProcess on a still-running process re-kills and
-        // blocks for up to 30s
-        proc->kill();
-        proc->waitForFinished(100);
-      }
-      delete proc;
-    }
-  }
+#if QT_CONFIG(process)
+  // Reaps any puppet still running
+  m_scanner.reset();
+#endif
 
   // Results delivered so far would otherwise be lost when quitting mid-scan:
   // the debounced m_persistTimer dies with us. Only when a scan actually ran —
   // in disabled mode m_plugins is empty and would wipe the on-disk cache.
-  if(m_processCount > 0)
+  if(m_scanRan)
     persistCache();
 
   // The plug_map memoizes LilvPlugin* into our world; another
@@ -326,30 +321,8 @@ void ApplicationPlugin::ensureBundleLoaded(const QString& uri_or_bundle)
 
 QStringList ApplicationPlugin::discoverLv2Search()
 {
-  // Linux multi-arch paths come from Context.cpp's ldconfig heuristic
-  QStringList paths;
-
-#if defined(__APPLE__)
-  paths << "/Library/Audio/Plug-Ins/LV2"
-        << (QStandardPaths::writableLocation(QStandardPaths::HomeLocation)
-            + "/Library/Audio/Plug-Ins/LV2")
-        << "/usr/local/lib/lv2"      // lilv default, Homebrew Intel
-        << "/opt/homebrew/lib/lv2"   // Homebrew Apple Silicon
-        << "/usr/lib/lv2";           // lilv default
-#elif defined(_WIN32)
-  paths << "C:/Program Files/Common Files/LV2"
-        // Roaming %APPDATA%\LV2 (lilv/Carla default)
-        << QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/LV2"
-        // Non-roaming %LOCALAPPDATA%\LV2 (legacy score path)
-        << QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)
-               + "/LV2";
-#else
-  paths << QStringLiteral("/usr/lib/lv2") << QStringLiteral("/usr/local/lib/lv2")
-        << QStringLiteral("/usr/lib64/lv2") << QStringLiteral("/usr/local/lib64/lv2");
-#endif
-
-  // ~/.lv2/: Linux convention; Ardour also writes user presets here cross-platform
-  paths << QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/.lv2";
+  // Configured search paths; defaults live in Media::Settings::Model
+  QStringList paths = context.settings<Media::Settings::Model>().getLv2Paths();
 
   if(qEnvironmentVariableIsSet("LV2_PATH"))
   {
@@ -442,12 +415,14 @@ QStringList ApplicationPlugin::discoverSpecBundles(const QStringList& bundles)
   return specs;
 }
 
+static const QString& lv2puppetPath();
+
 void ApplicationPlugin::rescanBundles()
 {
-  m_bundleQueue.clear();
-  m_processes.clear();
-  m_processCount = 0;
-  m_scanned_ok.clear();
+#if QT_CONFIG(process)
+  // Not created when LV2 support is disabled (settings UI can still call us)
+  if(!m_scanner)
+    return;
 
   const auto search = discoverLv2Search();
   const auto bundles = discoverBundles(search);
@@ -500,17 +475,27 @@ void ApplicationPlugin::rescanBundles()
     descriptorsChanged(); // stale cache entries may have been removed
   }
 
-  for(const auto& b : toScan)
-    m_bundleQueue.push_back(b);
-
-  if(m_bundleQueue.empty())
+  if(toScan.isEmpty())
   {
     persistCache();
     descriptorsChanged();
     return;
   }
 
-  scanNextBatch();
+  m_scanRan = true;
+  m_scanner->setPuppet(lv2puppetPath());
+  m_scanner->setEnvironmentProvider([specs = m_spec_bundles] {
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    // Disable LSan in the child: lilv leaks on shutdown; we'd see QProcess::Crashed
+    env.insert(
+        "ASAN_OPTIONS", env.value("ASAN_OPTIONS", "") + ":detect_leaks=0:exitcode=0");
+    env.insert("LSAN_OPTIONS", env.value("LSAN_OPTIONS", "") + ":exitcode=0");
+    if(!specs.isEmpty())
+      env.insert("LV2PUPPET_SPECS", specs.join(QDir::listSeparator()));
+    return env;
+  });
+  m_scanner->scan(toScan);
+#endif
 }
 
 static const QString& lv2puppetPath()
@@ -539,128 +524,14 @@ static const QString& lv2puppetPath()
   return path;
 }
 
-void ApplicationPlugin::scanNextBatch()
+void ApplicationPlugin::onScanned(const QString& bundlePath, const QJsonObject& obj)
 {
-  if(m_bundleQueue.empty() && m_processes.empty())
-  {
-    persistCache();
-    descriptorsChanged();
-    return;
-  }
-
-  while(!m_bundleQueue.empty() && (int)m_processes.size() < max_in_flight)
-  {
-    QString bundlePath = m_bundleQueue.back();
-    m_bundleQueue.pop_back();
-
-    int id = m_processCount++;
-    QPointer<QProcess> proc = new QProcess;
-    m_processes[id] = proc;
-
-    connect(
-        proc, &QProcess::errorOccurred, this,
-        [this, id, bundlePath, proc](QProcess::ProcessError err) {
-      qDebug() << "LV2 scan error for:" << bundlePath << "error:" << err;
-      m_processes.erase(id);
-          if(proc)
-        proc->deleteLater();
-      // websocketpp throws on close-after-server-closed even after the JSON was delivered
-      if(!m_scanned_ok.contains(bundlePath))
-        markBundleInvalid(bundlePath);
-      scanNextBatch();
-    });
-
-    // Parented to proc so teardown paths that never reach the deleteLater
-    // below still reap it
-    auto timer = new QTimer{proc};
-    timer->setSingleShot(true);
-    // 60s: lsp-plugins (~197 plug-ins, ASan) can push past 10s
-    timer->setInterval(60000);
-    connect(timer, &QTimer::timeout, proc, [this, id, proc, timer, bundlePath] {
-      if(m_processes.find(id) != m_processes.end())
-      {
-        qDebug() << "LV2 scan timeout for:" << bundlePath;
-        if(proc)
-        {
-          proc->terminate();
-          if(!proc->waitForFinished(100))
-            proc->kill();
-        }
-      }
-      timer->deleteLater();
-    });
-
-    connect(
-        proc, &QProcess::finished, this,
-        [this, id, bundlePath, proc, timer](int exitCode, QProcess::ExitStatus) {
-      m_processes.erase(id);
-          if(proc)
-        proc->deleteLater();
-
-      // Non-zero after a close-handshake race / timeout SIGTERM does not invalidate
-      if(exitCode != 0 && !m_scanned_ok.contains(bundlePath))
-      {
-        qDebug() << "LV2 scan failed for:" << bundlePath;
-        markBundleInvalid(bundlePath);
-      }
-
-      scanNextBatch();
-      timer->deleteLater();
-    });
-    timer->start();
-
-    // Disable LSan in the child: lilv leaks on shutdown; we'd see QProcess::Crashed
-    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    env.insert(
-        "ASAN_OPTIONS",
-        env.value("ASAN_OPTIONS", "") + ":detect_leaks=0:exitcode=0");
-    env.insert("LSAN_OPTIONS", env.value("LSAN_OPTIONS", "") + ":exitcode=0");
-    if(!m_spec_bundles.isEmpty())
-      env.insert("LV2PUPPET_SPECS", m_spec_bundles.join(QDir::listSeparator()));
-    proc->setProcessEnvironment(env);
-    proc->setProcessChannelMode(QProcess::ForwardedErrorChannel);
-    proc->start(lv2puppetPath(), {bundlePath, QString::number(id)});
-  }
-}
-
-void ApplicationPlugin::processIncomingMessage(const QString& txt)
-{
-  try
-  {
-    QJsonParseError err;
-    auto json = QJsonDocument::fromJson(txt.toUtf8(), &err);
-    if(!json.isObject())
-    {
-      qWarning() << "LV2: malformed scan result (" << txt.size()
-                 << "bytes):" << err.errorString();
-      return;
-    }
-
-    auto obj = json.object();
-    [[maybe_unused]] const int req = obj["Request"].toInt();
-    auto bundle = obj["Bundle"].toString();
-
-    if(bundle.isEmpty())
-      return;
-
-    if(obj.contains("Error"))
-    {
-      qDebug() << "LV2 puppet error for" << bundle << ":"
-               << obj["Error"].toString();
-      markBundleInvalid(bundle);
-      return;
-    }
-
-    if(obj.contains("Plugins") && obj["Plugins"].isArray())
-    {
-      addPluginsFromJson(bundle, obj["Plugins"].toArray());
-      m_scanned_ok.insert(bundle);
-    }
-  }
-  catch(...)
-  {
-    qDebug() << "Failed to parse LV2 scan result";
-  }
+  // The reply's own "Bundle" field is informative only; the scan session
+  // knows which bundle this reply belongs to.
+  if(obj.contains("Plugins") && obj["Plugins"].isArray())
+    addPluginsFromJson(bundlePath, obj["Plugins"].toArray());
+  else
+    markBundleInvalid(bundlePath);
 }
 
 void ApplicationPlugin::addPluginsFromJson(
@@ -757,7 +628,7 @@ void ApplicationPlugin::markBundleInvalid(const QString& bundlePath)
 
 void ApplicationPlugin::persistCache()
 {
-  QSettings{}.setValue("Effect/KnownLV2", QVariant::fromValue(m_plugins));
+  Media::savePluginCache(cache_format_version, cache_key, m_plugins);
 }
 
 }

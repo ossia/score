@@ -3,12 +3,12 @@
 
 #include <score/command/Dispatchers/SettingsCommandDispatcher.hpp>
 
-namespace vst
+namespace vst3
 {
-//! "VST" tab of the Effects settings page: search paths + scanned plug-ins.
+//! "VST3" tab of the Effects settings page: search paths + scanned plug-ins.
 class SettingsWidget final : public Media::Settings::PluginSettingsTab
 {
-  SCORE_CONCRETE("849b6420-cdc9-47c3-9cac-74897336a77a")
+  SCORE_CONCRETE("ac291b3b-b0ed-4a37-ab55-5092337b3e24")
 public:
   QString name() const noexcept override;
   QWidget* make(const score::ApplicationContext& ctx) override;

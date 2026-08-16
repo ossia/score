@@ -36,6 +36,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/LV2/Node.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/LV2/Window.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/LV2/Library.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/LV2/Settings.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_lv2.hpp")
 
 set(SRCS
@@ -43,6 +44,7 @@ set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/LV2/EffectModel.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/LV2/Context.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/LV2/Window.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/LV2/Settings.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_lv2.cpp")
 
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})

@@ -12,6 +12,7 @@
 #include <Clap/EffectModel.hpp>
 #include <Clap/Executor.hpp>
 #include <Clap/Library.hpp>
+#include <Clap/Settings.hpp>
 #include <Clap/Window.hpp>
 
 #include <score_plugin_engine.hpp>
@@ -30,11 +31,12 @@ std::vector<score::InterfaceBase*> score_plugin_clap::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   return instantiate_factories<
-      score::ApplicationContext, 
+      score::ApplicationContext,
       FW<Process::ProcessModelFactory, Clap::ProcessFactory>,
       FW<Process::LayerFactory, Clap::EffectLayerFactory>,
       FW<Execution::ProcessComponentFactory, Clap::ExecutorFactory>,
-      FW<Library::LibraryInterface, Clap::LibraryHandler>>(ctx, key);
+      FW<Library::LibraryInterface, Clap::LibraryHandler>,
+      FW<Media::Settings::PluginSettingsTab, Clap::SettingsWidget>>(ctx, key);
 }
 
 std::vector<score::PluginKey> score_plugin_clap::required() const

@@ -35,8 +35,11 @@
 
 #include <QObject>
 #include <QPointer>
+#include <QtCore/qglobal.h>
+#if QT_CONFIG(process)
 #include <QProcess>
 #include <QProcessEnvironment>
+#endif
 #include <QStringList>
 
 #include <verdigris>
@@ -50,6 +53,7 @@
 
 class QWebSocketServer;
 
+#if QT_CONFIG(process)
 namespace Media
 {
 class SCORE_PLUGIN_MEDIA_EXPORT PluginScanner : public QObject
@@ -114,7 +118,7 @@ private:
   void checkDone();
   void cancelCurrentScan();
 
-  std::unique_ptr<QWebSocketServer> m_server;
+  QWebSocketServer* m_server{};
   QString m_serverName;
   QString m_token;
   QString m_puppet;
@@ -130,3 +134,4 @@ private:
   bool m_scanRunning{};
 };
 }
+#endif

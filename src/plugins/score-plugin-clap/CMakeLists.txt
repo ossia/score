@@ -5,6 +5,7 @@ score_common_setup()
 # Files & main target
 set(HDRS
   Clap/ApplicationPlugin.hpp
+  Clap/Settings.hpp
   Clap/EffectModel.hpp
   Clap/Executor.hpp
   Clap/Library.hpp
@@ -15,6 +16,7 @@ set(HDRS
 
 set(SRCS
   Clap/ApplicationPlugin.cpp
+  Clap/Settings.cpp
   Clap/EffectModel.cpp
   Clap/Executor.cpp
   Clap/Library.cpp

@@ -11,12 +11,6 @@ if(SCORE_FAST_DEV_BUILD)
   return()
 endif()
 
-# Packages
-if(NOT TARGET "${QT_PREFIX}::WebSockets")
-  # VST3 support requires websockets
-  return()
-endif()
-
 include("${3RDPARTY_FOLDER}/vst3.cmake")
 
 # Source files
@@ -31,6 +25,7 @@ set(HDRS
   Vst3/Node.hpp
   Vst3/Plugin.hpp
   Vst3/Library.hpp
+  Vst3/Settings.hpp
   Vst3/Widgets.hpp
   Vst3/UI/Window.hpp
   Vst3/UI/PlugFrame.hpp
@@ -45,6 +40,7 @@ set(SRCS
   Vst3/EffectModel.cpp
   Vst3/Executor.cpp
   Vst3/Plugin.cpp
+  Vst3/Settings.cpp
   Vst3/Widgets.cpp
   Vst3/UI/WindowCommon.cpp
 
@@ -95,7 +91,6 @@ target_link_libraries(${PROJECT_NAME}
     score_plugin_dataflow
     score_plugin_media
     sdk_common sdk_hosting
-    ${QT_PREFIX}::WebSockets
 )
 
 if(APPLE)
