@@ -1,6 +1,5 @@
 
-#include <ossia/detail/fmt.hpp>
-#include <ossia/network/sockets/websocket.hpp>
+#include <score/tools/PuppetClient.hpp>
 
 #include <pluginterfaces/base/funknown.h>
 #include <pluginterfaces/vst/ivstaudioprocessor.h>
@@ -45,7 +44,17 @@ void throw_exception(std::exception const& e, boost::source_location const& loc)
 #endif
 
 using namespace Steinberg;
-std::string load_vst(const std::string& path, int id)
+using score::puppet::json_escape;
+
+static std::string
+error_json(const std::string& path, int id, const std::string& token, std::string err)
+{
+  return fmt::format(
+      R"_({{"Path":"{}","Request":{},"Token":"{}","Error":"{}"}})_", json_escape(path),
+      id, json_escape(token), json_escape(err));
+}
+
+std::string load_vst(const std::string& path, int id, const std::string& token)
 {
   try
   {
@@ -53,7 +62,7 @@ std::string load_vst(const std::string& path, int id)
     if(!isFile)
     {
       std::cerr << "Invalid path: " << path << std::endl;
-      return {};
+      return error_json(path, id, token, "Invalid path");
     }
 
     std::string err;
@@ -62,6 +71,7 @@ std::string load_vst(const std::string& path, int id)
     if(!module)
     {
       std::cerr << "Failed to load VST3 " << path << err << std::endl;
+      return error_json(path, id, token, "Failed to load: " + err);
     }
 
     std::string root;
@@ -85,9 +95,10 @@ std::string load_vst(const std::string& path, int id)
 "Subcategories":"{}",
 "ClassFlags":{}
 }})_",
-            cls.ID().toString(), cls.cardinality(), cls.category(), cls.name(),
-            cls.vendor(), cls.version(), cls.sdkVersion(), cls.subCategoriesString(),
-            (double)cls.classFlags());
+            cls.ID().toString(), cls.cardinality(), json_escape(cls.category()),
+            json_escape(cls.name()), json_escape(cls.vendor()),
+            json_escape(cls.version()), json_escape(cls.sdkVersion()),
+            json_escape(cls.subCategoriesString()), (uint32_t)cls.classFlags());
 
         arr.push_back(str);
       }
@@ -99,11 +110,13 @@ std::string load_vst(const std::string& path, int id)
 "Url":"{}",
 "Email":"{}",
 "Path":"{}",
-"Request":"{}",
+"Request":{},
+"Token":"{}",
 "Classes":[
 )_",
-        module->getName(), fi.url(), fi.email(), path, id);
-    for(int i = 0; i < arr.size(); i++)
+        json_escape(module->getName()), json_escape(fi.url()), json_escape(fi.email()),
+        json_escape(path), id, json_escape(token));
+    for(std::size_t i = 0; i < arr.size(); i++)
     {
       root += arr[i];
       if(i < arr.size() - 1)
@@ -116,86 +129,24 @@ std::string load_vst(const std::string& path, int id)
   catch(const std::runtime_error& e)
   {
     std::cerr << e.what() << std::endl;
+    return error_json(path, id, token, e.what());
   }
-  return {};
+  catch(...)
+  {
+    return error_json(path, id, token, "Unknown exception");
+  }
 }
-
-struct app
-{
-
-  boost::asio::io_context ctx;
-  ossia::net::websocket_simple_client socket{{.url = "ws://127.0.0.1:37588"}, ctx};
-
-  bool socket_ready{}, vst_ready{};
-  std::string json_ret;
-
-  app()
-  {
-    socket.on_open.connect<&app::on_open>(*this);
-    socket.on_fail.connect<&app::on_error>(*this);
-    socket.on_close.connect<&app::on_error>(*this);
-
-    socket.websocket_client::connect("ws://127.0.0.1:37588");
-  }
-
-  void on_ready()
-  {
-    if(socket_ready && vst_ready)
-    {
-      socket.send_message(json_ret);
-      socket.close();
-      boost::asio::post(ctx, [&] { exit(json_ret.empty() ? 1 : 0); });
-    }
-  }
-
-  void on_error()
-  {
-    std::cerr << "Socket error\n";
-    exit(1);
-  }
-
-  void load(const std::string& vst, int id)
-  {
-    json_ret = load_vst(vst, id);
-    std::cout << json_ret << "\n";
-    vst_ready = true;
-    on_ready();
-  }
-
-  void on_open()
-  {
-    socket_ready = true;
-    on_ready();
-  }
-};
 
 void init_invisible_window();
 int main(int argc, char** argv)
 {
-  if(argc <= 1)
-    return 1;
-
   init_invisible_window();
 
-  int id = 0;
-  if(argc > 2)
-    id = std::atoi(argv[2]);
-
-  app a;
-
-  boost::asio::post(a.ctx, [&] { a.load(argv[1], id); });
-
-  boost::asio::steady_timer tm{a.ctx};
-  tm.expires_after(std::chrono::seconds(10));
-  tm.async_wait([](auto ec) {
-    std::cerr << "Timeout\n";
-    exit(1);
-  });
-
-  a.ctx.run();
-  a.ctx.restart();
-  a.ctx.run();
-  return a.json_ret.empty() ? 1 : 0;
+  return score::puppet::puppet_main(
+      argc, argv, 37588, "vst3puppet", true,
+      [](const std::string& path, int id, const std::string& token) {
+    return load_vst(path, id, token);
+      });
 }
 
 #include <score/tools/WinMainToMain.hpp>

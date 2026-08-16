@@ -1,5 +1,4 @@
-#include <ossia/detail/fmt.hpp>
-#include <ossia/network/sockets/websocket.hpp>
+#include <score/tools/PuppetClient.hpp>
 
 #include <clap/all.h>
 
@@ -43,15 +42,22 @@ void throw_exception(std::exception const& e, boost::source_location const& loc)
 #include <dlfcn.h>
 #endif
 
-std::string load_clap(const std::string& path, int id)
+std::string load_clap(const std::string& path, int id, const std::string& token)
 {
+  using score::puppet::json_escape;
+  auto error_json = [&](std::string err) {
+    return fmt::format(
+        R"_({{"Path":"{}","Request":{},"Token":"{}","Error":"{}"}})_",
+        json_escape(path), id, json_escape(token), json_escape(err));
+  };
+
   try
   {
     const bool isFile = std::filesystem::exists(path);
     if(!isFile)
     {
       std::cerr << "Invalid path: " << path << std::endl;
-      return {};
+      return error_json("Invalid path");
     }
 
     // Load the plugin library
@@ -60,16 +66,18 @@ std::string load_clap(const std::string& path, int id)
     if(!handle)
     {
       std::cerr << "Failed to load library: " << path << std::endl;
-      return {};
+      return error_json("Failed to load library");
     }
-    
+
     auto entry_fn = (const clap_plugin_entry_t*)GetProcAddress(handle, "clap_entry");
 #else
     void* handle = dlopen(path.c_str(), RTLD_LAZY);
     if(!handle)
     {
-      std::cerr << "Failed to load library: " << path << " - " << dlerror() << std::endl;
-      return {};
+      const char* err = dlerror();
+      std::cerr << "Failed to load library: " << path << " - " << (err ? err : "")
+                << std::endl;
+      return error_json(std::string{"Failed to load library: "} + (err ? err : ""));
     }
     
     auto entry_fn = (const clap_plugin_entry_t*)dlsym(handle, "clap_entry");
@@ -83,7 +91,7 @@ std::string load_clap(const std::string& path, int id)
 #else
       dlclose(handle);
 #endif
-      return {};
+      return error_json("No clap_entry found");
     }
 
     if(!entry_fn->init(path.c_str()))
@@ -94,7 +102,7 @@ std::string load_clap(const std::string& path, int id)
 #else
       dlclose(handle);
 #endif
-      return {};
+      return error_json("Failed to initialize CLAP plugin");
     }
 
     auto factory = (const clap_plugin_factory_t*)entry_fn->get_factory(CLAP_PLUGIN_FACTORY_ID);
@@ -107,18 +115,20 @@ std::string load_clap(const std::string& path, int id)
 #else
       dlclose(handle);
 #endif
-      return {};
+      return error_json("No plugin factory found");
     }
 
     std::string root = fmt::format(
         R"_({{
 "Path":"{}",
 "Request":{},
+"Token":"{}",
 "Plugins":[
 )_",
-        path, id);
+        json_escape(path), id, json_escape(token));
 
     uint32_t plugin_count = factory->get_plugin_count(factory);
+    bool first_plugin = true;
     for(uint32_t i = 0; i < plugin_count; ++i)
     {
       const clap_plugin_descriptor_t* desc = factory->get_plugin_descriptor(factory, i);
@@ -132,7 +142,7 @@ std::string load_clap(const std::string& path, int id)
         for(const char* const* feature = desc->features; *feature; ++feature)
         {
           if(!first) features_str += ",";
-          features_str += fmt::format("\"{}\"", *feature);
+          features_str += fmt::format("\"{}\"", json_escape(*feature));
           first = false;
         }
       }
@@ -150,19 +160,20 @@ std::string load_clap(const std::string& path, int id)
 "Description":"{}",
 "Features":{}
 }})_",
-          desc->id ? desc->id : "",
-          desc->name ? desc->name : "",
-          desc->vendor ? desc->vendor : "",
-          desc->version ? desc->version : "",
-          desc->url ? desc->url : "",
-          desc->manual_url ? desc->manual_url : "",
-          desc->support_url ? desc->support_url : "",
-          desc->description ? desc->description : "",
+          json_escape(desc->id ? desc->id : ""),
+          json_escape(desc->name ? desc->name : ""),
+          json_escape(desc->vendor ? desc->vendor : ""),
+          json_escape(desc->version ? desc->version : ""),
+          json_escape(desc->url ? desc->url : ""),
+          json_escape(desc->manual_url ? desc->manual_url : ""),
+          json_escape(desc->support_url ? desc->support_url : ""),
+          json_escape(desc->description ? desc->description : ""),
           features_str);
 
-      if(i > 0)
+      if(!first_plugin)
         root += ",\n";
       root += plugin_json;
+      first_plugin = false;
     }
 
     root += "]\n}";
@@ -179,86 +190,24 @@ std::string load_clap(const std::string& path, int id)
   catch(const std::exception& e)
   {
     std::cerr << "Exception: " << e.what() << std::endl;
+    return error_json(std::string{"Exception: "} + e.what());
   }
-  return {};
+  catch(...)
+  {
+    return error_json("Unknown exception");
+  }
 }
-
-struct app
-{
-
-  boost::asio::io_context ctx;
-  ossia::net::websocket_simple_client socket{{.url = "ws://127.0.0.1:37589"}, ctx};
-
-  bool socket_ready{}, clap_ready{};
-  std::string json_ret;
-
-  app()
-  {
-    socket.on_open.connect<&app::on_open>(*this);
-    socket.on_fail.connect<&app::on_error>(*this);
-    socket.on_close.connect<&app::on_error>(*this);
-
-    socket.websocket_client::connect("ws://127.0.0.1:37589");
-  }
-
-  void on_ready()
-  {
-    if(socket_ready && clap_ready)
-    {
-      socket.send_message(json_ret);
-      socket.close();
-      boost::asio::post(ctx, [&] { exit(json_ret.empty() ? 1 : 0); });
-    }
-  }
-
-  void on_error()
-  {
-    std::cerr << "Socket error\n";
-    exit(1);
-  }
-
-  void load(const std::string& clap, int id)
-  {
-    json_ret = load_clap(clap, id);
-    std::cout << json_ret << "\n";
-    clap_ready = true;
-    on_ready();
-  }
-
-  void on_open()
-  {
-    socket_ready = true;
-    on_ready();
-  }
-};
 
 void init_invisible_window();
 int main(int argc, char** argv)
 {
-  if(argc <= 1)
-    return 1;
-
   init_invisible_window();
 
-  int id = 0;
-  if(argc > 2)
-    id = std::atoi(argv[2]);
-
-  app a;
-
-  boost::asio::post(a.ctx, [&] { a.load(argv[1], id); });
-
-  boost::asio::steady_timer tm{a.ctx};
-  tm.expires_after(std::chrono::seconds(10));
-  tm.async_wait([](auto ec) {
-    std::cerr << "Timeout\n";
-    exit(1);
-  });
-
-  a.ctx.run();
-  a.ctx.restart();
-  a.ctx.run();
-  return a.json_ret.empty() ? 1 : 0;
+  return score::puppet::puppet_main(
+      argc, argv, 37589, "clappuppet", true,
+      [](const std::string& path, int id, const std::string& token) {
+    return load_clap(path, id, token);
+      });
 }
 
 #include <score/tools/WinMainToMain.hpp>
