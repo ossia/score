@@ -40,6 +40,9 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Settings/View.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Settings/Factory.hpp"
 
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioPluginCache.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/PluginScanner.hpp"
+
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Commands.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Metadata.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Executor.hpp"
@@ -106,6 +109,8 @@ set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Settings/Presenter.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Settings/View.cpp"
 
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/PluginScanner.cpp"
+
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Executor.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Model.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Factory.cpp"
@@ -161,6 +166,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
                      ${QT_PREFIX}::Core ${QT_PREFIX}::Widgets
                      score_lib_base score_plugin_engine score_plugin_library score_plugin_audio score_plugin_dataflow
 )
+target_link_libraries(${PROJECT_NAME} PRIVATE ${QT_PREFIX}::WebSockets)
 
 ### FFMPEG ###
 if(EMSCRIPTEN)

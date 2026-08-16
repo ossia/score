@@ -11,6 +11,15 @@ target_link_libraries(score_test_fixtures
 # Test LV2 bundle (only when score_plugin_lv2 is built).
 add_subdirectory(lv2)
 
+# Scriptable stand-in for the plug-in scanner puppets (PluginScanner tests).
+add_executable(score_test_fake_puppet fake_puppet/fake_puppet.cpp)
+target_link_libraries(score_test_fake_puppet PRIVATE
+  ${QT_PREFIX}::Core ${QT_PREFIX}::WebSockets)
+set_target_properties(score_test_fake_puppet PROPERTIES
+  FOLDER "Tests"
+  SCORE_CUSTOM_PCH 1
+  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+
 # Make the headers visible in IDEs.
 file(GLOB_RECURSE _fixture_hdrs "${CMAKE_CURRENT_SOURCE_DIR}/score_test/*.hpp")
 add_custom_target(score_test_fixtures_headers SOURCES ${_fixture_hdrs})
