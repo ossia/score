@@ -52,8 +52,10 @@ jobs:
           echo "=============== FreeBSD End install ====================="
 
         run: |
+          set -e
           echo "=============== FreeBSD Start Deps ====================="
           ./ci/common.deps.sh && echo "=============== FreeBSD Deps Success ====================="
           echo "=============== FreeBSD Start Build ====================="
-          ./ci/freebsd.build.sh && echo "=============== FreeBSD Build Success ====================="
+          ./ci/freebsd.build.sh
+          echo "=============== FreeBSD Build Success ====================="
           echo "=============== FreeBSD End Build ====================="
