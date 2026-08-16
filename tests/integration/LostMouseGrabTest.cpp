@@ -37,6 +37,10 @@
 #include <score/graphics/InfiniteScroller.hpp>
 #include <score/graphics/widgets/QGraphicsCombo.hpp>
 #include <score/graphics/widgets/QGraphicsKnob.hpp>
+#include <score/graphics/widgets/QGraphicsMultiSliderXY.hpp>
+#include <score/graphics/widgets/QGraphicsPathGeneratorXY.hpp>
+#include <score/graphics/widgets/QGraphicsRangeSlider.hpp>
+#include <score/graphics/widgets/QGraphicsSpinbox.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/selection/SelectionStack.hpp>
 
@@ -248,6 +252,78 @@ TEST_CASE(
 // Pins the dispatcher on its own, with no widget in the picture: the test below
 // goes through real control items and would still pass on the strength of the
 // widget-side cleanup alone, so a regression here has to be caught separately.
+namespace
+{
+//! Press, drag, then have the scene take the grab away without a release, and
+//! check the control closed its edit exactly once -- and that the ungrab Qt
+//! sends after a *normal* release does not close it a second time.
+template <typename T, typename Setup>
+void checksLostGrab(Setup&& setup)
+{
+  Scene scene;
+  T item{nullptr};
+  setup(item);
+  scene.addItem(&item);
+  score::InfiniteScroller::cancel();
+
+  int released = 0;
+  QObject::connect(&item, &T::sliderReleased, &item, [&] { released++; });
+
+  // sceneBoundingRect(): boundingRect() is private on several of these.
+  const QPointF centre = item.sceneBoundingRect().center();
+
+  press(scene, centre);
+  REQUIRE(scene.mouseGrabberItem() == &item);
+  drag(scene, centre, centre - QPointF{0, 30}, centre);
+  REQUIRE(released == 0);
+
+  loseGrab(scene, centre + QPointF{400, 400});
+  CHECK(scene.mouseGrabberItem() == nullptr);
+  CHECK(released == 1);
+
+  press(scene, centre);
+  drag(scene, centre, centre - QPointF{0, 10}, centre);
+  release(scene, centre - QPointF{0, 10}, centre);
+  const int afterRelease = released;
+  loseGrab(scene, centre + QPointF{400, 400});
+  CHECK(released == afterRelease);
+
+  scene.removeItem(&item);
+}
+}
+
+TEST_CASE(
+    "every draggable control closes its edit on a lost grab",
+    "[integration][gui][controls]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext&) {
+    SECTION("spinbox")
+    {
+      checksLostGrab<score::QGraphicsSpinbox>(
+          [](auto& i) { i.setRange(0., 1., 0.5); });
+    }
+
+    // Guards on `handle`, which the widget owns, rather than on `moving`, which
+    // only its consumers write.
+    SECTION("range slider")
+    {
+      checksLostGrab<score::QGraphicsRangeSlider>(
+          [](auto& i) { i.setRange(0., 1., ossia::vec2f{0.2f, 0.8f}); });
+    }
+
+    // These two used to declare `int m_grab{-1}` and test it as a bool.
+    SECTION("multi slider xy")
+    {
+      checksLostGrab<score::QGraphicsMultiSliderXY>([](auto&) { });
+    }
+
+    SECTION("path generator xy")
+    {
+      checksLostGrab<score::QGraphicsPathGeneratorXY>([](auto&) { });
+    }
+  });
+}
+
 TEST_CASE(
     "an unfinished ongoing command is closed rather than retargeted",
     "[integration][gui][controls]")
@@ -407,6 +483,75 @@ TEST_CASE(
 
     CHECK(lfo.position() != before);
     CHECK(doc->context().selectionStack.currentSelection().contains(&lfo));
+
+    delete node;
+    scene.removeItem(root);
+    delete root;
+  });
+}
+
+TEST_CASE(
+    "a node drag that loses its grab is committed, not carried into the next one",
+    "[integration][gui][controls]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    score::Document* doc = score::test::new_document(ctx);
+    REQUIRE(doc != nullptr);
+
+    auto& interval
+        = static_cast<Scenario::ScenarioDocumentModel&>(doc->model().modelDelegate())
+              .baseInterval();
+    auto& lfo = add_lfo(*doc, interval);
+
+    Process::DataflowManager dfm;
+    FocusDispatcher fd;
+    Process::Context pctx{doc->context(), dfm, fd};
+
+    Scene scene;
+    auto* root = new QGraphicsRectItem{QRectF{0., 0., 1000., 1000.}};
+    scene.addItem(root);
+    auto* node = new Process::NodeItem{lfo, pctx, TimeVal::fromMsecs(1000.), root};
+    node->setPos(50., 50.);
+    QCoreApplication::processEvents();
+
+    const QPointF start = lfo.position();
+    const QPointF hit{4., 4.};
+
+    auto dragBy = [&](QPointF by) {
+      const QPointF down = node->mapToScene(hit);
+      sendToItem(
+          scene, *node, QEvent::GraphicsSceneMousePress, hit, down, down, Qt::LeftButton,
+          Qt::LeftButton);
+      sendToItem(
+          scene, *node, QEvent::GraphicsSceneMouseMove, hit + by, down + by, down,
+          Qt::NoButton, Qt::LeftButton);
+    };
+
+    // First drag, abandoned: the scene takes the grab away with no release.
+    const int commandsBefore = doc->commandStack().size();
+    dragBy(QPointF{60., 40.});
+    const QPointF afterFirst = lfo.position();
+    REQUIRE(afterFirst != start);
+
+    QEvent ungrab{QEvent::UngrabMouse};
+    scene.sendEvent(node, &ungrab);
+
+    // The move must have been committed *there*, not left open: the stack has
+    // to have grown, and the node must not have moved doing it.
+    CHECK(doc->commandStack().size() == commandsBefore + 1);
+    CHECK(lfo.position() == afterFirst);
+
+    // A second drag has to start a *fresh* MoveNodes. Without the commit above
+    // it would update() the first one instead, which still holds the original
+    // positions -- so the node would jump back and move relative to the first
+    // press rather than from where it now sits.
+    dragBy(QPointF{10., 10.});
+    sendToItem(
+        scene, *node, QEvent::GraphicsSceneMouseRelease, hit + QPointF{10., 10.},
+        node->mapToScene(hit) + QPointF{10., 10.}, node->mapToScene(hit),
+        Qt::LeftButton, Qt::NoButton);
+
+    CHECK(lfo.position() == afterFirst + QPointF{10., 10.});
 
     delete node;
     scene.removeItem(root);
