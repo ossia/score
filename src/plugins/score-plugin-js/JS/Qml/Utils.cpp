@@ -71,12 +71,25 @@ bool JsUtils::canWriteFile(QString path)
 
 QByteArray JsUtils::readFile(QString path)
 {
+  const QString requested = path;
   if(auto doc = score::AppContext().currentDocument())
     path = score::locateFilePath(path, *doc);
+  else
+    path = score::locateFilePath(path);
 
   QFile f(path);
   if(f.open(QIODevice::ReadOnly))
     return f.readAll();
+
+  // An empty return is otherwise indistinguishable from an empty file, and a
+  // script doing eval(readFile(...)) on a path that does not resolve simply
+  // does nothing and reports success. Say which path was tried, resolved and
+  // unresolved: the two differ exactly when a <LIBRARY>:/<PROJECT>: prefix is
+  // pointing somewhere unexpected.
+  if(requested == path)
+    qWarning().noquote() << "Score.readFile: cannot read" << path;
+  else
+    qWarning().noquote() << "Score.readFile: cannot read" << requested << "->" << path;
   return {};
 }
 

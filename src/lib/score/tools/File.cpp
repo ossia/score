@@ -80,6 +80,18 @@ QString addUniqueSuffix(const QString& fileName)
   }
 }
 
+QString locateFilePath(const QString& filename) noexcept
+{
+  if(filename.startsWith("<LIBRARY>:"))
+  {
+    QSettings set;
+    QString path = filename;
+    path.replace("<LIBRARY>:", set.value("Library/RootPath").toString() + "/");
+    return QFileInfo{path}.absoluteFilePath();
+  }
+  return filename;
+}
+
 QString
 locateFilePath(const QString& filename, const score::DocumentContext& ctx) noexcept
 {
