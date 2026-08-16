@@ -1075,47 +1075,6 @@ avnd_make_score(
   NAMESPACE ao
 )
 
-# Too much binary size for wasm. On GCC these land on the boost.pfr fallback,
-# whose instantiation exhausts the compiler's memory; GCC only leaves that
-# fallback with P1061 packs, which need g++ >= 16 in C++26 mode.
-if(NOT EMSCRIPTEN AND NOT (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
-                           AND (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 16
-                                OR NOT CXX_VERSION_FLAG STREQUAL "cxx_std_26")))
-avnd_make_score(
-  SOURCES
-    "${AVND_FOLDER}/examples/Advanced/Kabang/Kabang.hpp"
-    "${AVND_FOLDER}/examples/Advanced/Kabang/Kabang.cpp"
-    "${AVND_FOLDER}/examples/Advanced/Kabang/Sampler.hpp"
-    "${AVND_FOLDER}/examples/Advanced/Kabang/Sampler.cpp"
-  TARGET kabang
-  MAIN_CLASS Kabang
-  NAMESPACE kbng
-  OPTIMIZED
-)
-
-avnd_make_score(
-  SOURCES
-    "${AVND_FOLDER}/examples/Advanced/Kabang/Minibang.hpp"
-    "${AVND_FOLDER}/examples/Advanced/Kabang/Kabang.cpp"
-    "${AVND_FOLDER}/examples/Advanced/Kabang/Sampler.hpp"
-    "${AVND_FOLDER}/examples/Advanced/Kabang/Sampler.cpp"
-  TARGET minibang
-  MAIN_CLASS Minibang
-  NAMESPACE kbng
-  OPTIMIZED
-)
-
-# Kabang's port count puts it in the range where clang's inliner turns the
-# generated walkers into functions the backend takes hours to lower. 40 is the
-# highest threshold that still compiles quickly. Only the generated TU is
-# touched, and -fno-lto keeps the inliner here instead of at link time.
-# Minibang is the reduced variant -- 4 ports against 45 -- and does not need it.
-if("${CMAKE_CXX_COMPILER_ID}" MATCHES ".*Clang")
-  set_property(SOURCE "${CMAKE_BINARY_DIR}/kabang_avnd.cpp" APPEND PROPERTY
-    COMPILE_OPTIONS -fno-lto -mllvm -inline-threshold=40)
-endif()
-endif()
-
 avnd_make_score(
   SOURCES
     "${AVND_FOLDER}/examples/Advanced/UI/Widgets.hpp"
