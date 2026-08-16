@@ -1,5 +1,7 @@
 #include "Executor.hpp"
 
+#include "Transport.hpp"
+
 #include <Process/Dataflow/Port.hpp>
 #include <Process/ExecutionContext.hpp>
 
@@ -356,43 +358,8 @@ public:
 
   auto make_transport(const ossia::token_request& tk, ossia::exec_state_facade st)
   {
-    const double song_pos_beats = tk.musical_start_position;
-    const double song_pos_seconds = tk.prev_date.impl * st.samplesToModel();
-    uint32_t transport_flags
-        = CLAP_TRANSPORT_HAS_TEMPO | CLAP_TRANSPORT_HAS_BEATS_TIMELINE
-          | CLAP_TRANSPORT_HAS_SECONDS_TIMELINE | CLAP_TRANSPORT_HAS_TIME_SIGNATURE;
-    if(tk.prev_date != tk.date)
-      transport_flags |= CLAP_TRANSPORT_IS_PLAYING;
-
-    // Bar information
-    const double bar_start = tk.musical_start_last_bar;
-    const int32_t bar_number = static_cast<int32_t>(
-        tk.musical_start_last_bar / (4.0 * tk.signature.upper / tk.signature.lower));
-
-    clap_event_transport_t transport{
-        .header = {
-            .size = sizeof(clap_event_transport_t),
-            .time = 0,
-            .space_id = CLAP_CORE_EVENT_SPACE_ID,
-            .type = CLAP_EVENT_TRANSPORT,
-            .flags = 0,
-        },
-        .flags = transport_flags,
-        .song_pos_beats = (clap_beattime)std::floor(song_pos_beats),
-        .song_pos_seconds = (clap_sectime)std::floor(song_pos_seconds),
-        .tempo = tk.tempo,
-        .tempo_inc = 0.0, // FIXME
-        .loop_start_beats = 0,
-        .loop_end_beats = 0,
-        .loop_start_seconds = 0,
-        .loop_end_seconds = 0,
-        .bar_start = (clap_beattime) std::floor(bar_start),
-        .bar_number = bar_number,
-        .tsig_num = static_cast<uint16_t>(tk.signature.upper),
-        .tsig_denom = static_cast<uint16_t>(tk.signature.lower)
-    };
-
-    return transport;
+    (void)st;
+    return Clap::make_transport(tk);
   }
   void process_controls(uint32_t samples)
   {

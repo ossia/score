@@ -341,6 +341,15 @@ if(TARGET score_plugin_clap)
     PLUGINS score_plugin_clap)
   target_include_directories(test_unit_clap_scan PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-clap")
+
+  # The tick -> clap_event_transport_t conversion (fixed-point song positions;
+  # transport-following plug-ins froze at position 0 when this was wrong).
+  score_add_test(test_unit_clap_transport
+    SOURCES ClapTransportTest.cpp
+    PLUGINS score_lib_process)
+  target_include_directories(test_unit_clap_transport PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-clap"
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/clap/include")
 endif()
 
 # Per-format plug-in path settings; VST3 must react to Vst3Paths, not VstPaths.
