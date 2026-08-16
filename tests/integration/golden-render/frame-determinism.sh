@@ -42,7 +42,7 @@ render() {
 eval(Score.readFile("<LIBRARY>:/packages/csf-examples/csf-testers/tests-scene/scripts/${CASE}.js"));
 Score.device('Window').grabFrame(${FRAME}, "${OUT}/frame$n.png");
 JS
-  SCORE_AUDIO_BACKEND=dummy SCORE_DISABLE_AUDIOPLUGINS=1 \
+  SCORE_AUDIO_BACKEND=dummy SCORE_DISABLE_AUDIOPLUGINS=1 DISPLAY="${DISPLAY:-:0}" \
     timeout 120 "$SCORE" --no-gui --no-restore --script "$OUT/run$n.js" --wait 2 \
     > "$OUT/run$n.log" 2>&1
   return $?
@@ -61,6 +61,26 @@ for n in 1 2; do
   fi
 done
 [ $fail -eq 1 ] && exit 1
+
+# Identical blank frames are identical. Without this, a case that renders
+# nothing at all is the easiest way to pass a determinism test, and the result
+# would say the mechanism works when it has not been exercised.
+blank=$(python3 - "$OUT/frame1.png" <<'PY' 2>/dev/null
+import sys
+try:
+    from PIL import Image
+    print(len(set(Image.open(sys.argv[1]).convert('RGB').getdata())))
+except Exception:
+    print("?")
+PY
+)
+case "$blank" in
+  "?") echo "NOTE: cannot check for blankness (no PIL); result is weaker than it looks" ;;
+  1)   echo "FAIL: frame $FRAME is a single flat colour -- nothing was rendered."
+       echo "  Two blank frames match trivially; this proves nothing about determinism."
+       exit 1 ;;
+  *)   echo "  frame has $blank distinct colours (not blank)" ;;
+esac
 
 if cmp -s "$OUT/frame1.png" "$OUT/frame2.png"; then
   echo "PASS: both runs produced byte-identical frames ($(stat -c%s "$OUT/frame1.png") bytes)"
