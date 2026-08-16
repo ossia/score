@@ -118,6 +118,20 @@ void WindowDevice::grabTo(const QString& path) const
   }
 }
 
+void WindowDevice::renderFrames(int frames) const
+{
+  if(auto plug = m_ctx.findPlugin<Gfx::DocumentPlugin>())
+    plug->context.renderFrames(frames);
+  else
+    qWarning() << "renderFrames: no gfx document plugin";
+}
+
+void WindowDevice::grabFrame(int frames, const QString& path) const
+{
+  renderFrames(frames);
+  grabTo(path);
+}
+
 bool WindowDevice::reconnect()
 {
   disconnect();
