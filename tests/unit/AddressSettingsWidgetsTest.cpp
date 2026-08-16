@@ -8,6 +8,7 @@
 #include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
 
 #include <score_test/App.hpp>
+#include <score_test/Keyboard.hpp>
 
 #include <ossia/network/common/parameter_properties.hpp>
 #include <ossia/network/domain/domain.hpp>
@@ -15,7 +16,6 @@
 #include <Explorer/Explorer/ValueEditors.hpp>
 
 #include <QLineEdit>
-#include <QtTest/QTest>
 
 #include <catch2/catch_all.hpp>
 
@@ -149,7 +149,7 @@ TEST_CASE("a typo in a list form does not empty the address", "[explorer][dialog
     auto* line = form->findChild<QLineEdit*>();
     REQUIRE(line != nullptr);
     line->selectAll();
-    QTest::keyClicks(line, "5");
+    score::test::keyClicks(*line, "5");
 
     CHECK(form->getSettings().value == in.value);
   });

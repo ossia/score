@@ -4,6 +4,7 @@
 
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
+#include <score_test/Keyboard.hpp>
 
 #include <State/ValueConversion.hpp>
 
@@ -28,7 +29,6 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <QComboBox>
-#include <QtTest/QTest>
 #include <QLineEdit>
 #include <QDoubleSpinBox>
 #include <QPushButton>
@@ -338,7 +338,7 @@ TEST_CASE("a parameter without a value list gets a plain editor",
     auto* line = ed.editor->findChild<QLineEdit*>();
     REQUIRE(line != nullptr);
     line->selectAll();
-    QTest::keyClicks(line, "typed");
+    score::test::keyClicks(*line, "typed");
     ed.commit(*f.explorer);
     CHECK(f.param->get<Device::AddressSettings>().value
           == ossia::value{std::string{"typed"}});

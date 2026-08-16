@@ -7,11 +7,11 @@
 #include <score/widgets/ComboBox.hpp>
 
 #include <score_test/App.hpp>
+#include <score_test/Keyboard.hpp>
 
 #include <QGraphicsProxyWidget>
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
-#include <QtTest/QTest>
 
 #include <catch2/catch_all.hpp>
 
@@ -254,7 +254,7 @@ TEST_CASE("escape leaves the value alone")
     editor->hidePopup();
     editor->setCurrentText("zzz");
 
-    QTest::keyClick(editor, Qt::Key_Escape);
+    score::test::keyClick(*editor, Qt::Key_Escape);
 
     CHECK(edited.isEmpty());
     CHECK(moved == 0);
@@ -281,7 +281,7 @@ TEST_CASE("enter takes what is in the box")
     editor->hidePopup();
     editor->setCurrentText("zzz");
 
-    QTest::keyClick(editor, Qt::Key_Return);
+    score::test::keyClick(*editor, Qt::Key_Return);
     CHECK(edited == "zzz");
   });
 }

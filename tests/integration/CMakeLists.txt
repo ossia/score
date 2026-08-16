@@ -40,8 +40,7 @@ score_add_test(test_integration_scenario_create
 score_add_test(test_integration_device_address_edit
   SOURCES DeviceAddressEditTest.cpp
   GUI
-  PLUGINS score_plugin_deviceexplorer score_lib_device score_plugin_scenario
-  LIBS ${QT_PREFIX}::Test)
+  PLUGINS score_plugin_deviceexplorer score_lib_device score_plugin_scenario)
 
 # --- Regression tests for the crash/robustness fixes in this tree. Each
 # test names the fix it guards; see the test
