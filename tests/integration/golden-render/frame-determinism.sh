@@ -38,15 +38,20 @@ mkdir -p "$OUT"
 trap 'rm -rf "$OUT"' EXIT
 
 # The tester scripts resolve their own paths through <LIBRARY>:, so the only
-# thing this needs to know is the case name.
+# thing this needs to know is the case name. --wait defers autoplay by N seconds
+# for slow media to load; it is not an exit timer, so the script ends the run
+# itself with Qt.exit and the timeout below is only a hang guard.
 render() {
   local n="$1"
   # Score.play() first: the gfx nodes only exist while the score executes, so a
   # grab on a stopped document finds nothing wired to the Window device.
+  # Qt.exit() last, so the run ends when the work is done and the exit code is
+  # the script's rather than the timeout's.
   cat > "$OUT/run$n.js" <<JS
 eval(Score.readFile("<LIBRARY>:/packages/csf-examples/csf-testers/tests-scene/scripts/${CASE}.js"));
 Score.play();
 Score.device('Window').grabFrame(${FRAME}, "${OUT}/frame$n.png");
+Qt.exit(0);
 JS
   # Without this the Window device opens a real window and grabTo falls back to
   # QScreen::grabWindow, which reads the framebuffer at the window's geometry --
@@ -54,7 +59,7 @@ JS
   # screenshot of a static desktop is byte-stable and would "pass".
   SCORE_FORCE_OFFSCREEN_WINDOW=Window \
   SCORE_AUDIO_BACKEND=dummy SCORE_DISABLE_AUDIOPLUGINS=1 DISPLAY="${DISPLAY:-:0}" \
-    timeout 120 "$SCORE" --no-gui --no-restore --script "$OUT/run$n.js" --wait 2 --autoplay \
+    timeout 120 "$SCORE" --no-gui --no-restore --script "$OUT/run$n.js" --wait 0 --autoplay \
     > "$OUT/run$n.log" 2>&1
   return $?
 }
