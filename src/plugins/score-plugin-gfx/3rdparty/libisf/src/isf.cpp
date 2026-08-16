@@ -29,7 +29,7 @@ namespace
 {
 static constexpr struct glsl45_t
 {
-  static constexpr auto versionPrelude = R"_(#version 450
+  static constexpr auto versionPrelude = R"_(#version 460
 )_";
 
   static constexpr auto vertexPrelude = R"_(
@@ -3515,7 +3515,7 @@ void parser::parse_csf()
   m_fragment.clear();
 
   // Add version
-  m_fragment += "#version 450\n\n";
+  m_fragment += "#version 460\n\n";
 
   // Add standard ProcessUBO uniforms (same as ISF/VSA)
   m_fragment += GLSL45.defaultUniforms;
