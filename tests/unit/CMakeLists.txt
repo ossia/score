@@ -245,3 +245,9 @@ if(TARGET score_plugin_lv2)
     $<TARGET_PROPERTY:Suil,INTERFACE_INCLUDE_DIRECTORIES>
     "${OSSIA_3RDPARTY_FOLDER}/readerwriterqueue")
 endif()
+
+# An item deleted from inside its own event delivery corrupts QGraphicsScene's
+# mouse-grabber stack; deleteGraphicsItem/Object defer past the delivery.
+score_add_test(test_unit_graphics_item_delete
+  SOURCES GraphicsItemDeleteTest.cpp
+  APP)
