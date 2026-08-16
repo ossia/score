@@ -297,3 +297,8 @@ endif()
 score_add_test(test_unit_puppet_json
   SOURCES PuppetJsonTest.cpp)
 
+# Versioned scan-cache blob + healing of caches polluted by the fixed-port
+# cross-instance duplication bug (200+ copies per plug-in were observed).
+score_add_test(test_unit_audio_plugin_cache
+  SOURCES AudioPluginCacheTest.cpp
+  PLUGINS score_plugin_media)
