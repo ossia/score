@@ -38,7 +38,7 @@ Model::Model(
 
   if (m_WebUiPath.isEmpty())
   {
-    const auto path{score::AppContext()
+    const QString path{score::AppContext()
       .settings<Library::Settings::Model>()
               .getPackagesPath()
           + "/wasm-remote/"};
