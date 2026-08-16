@@ -21,6 +21,8 @@ PROPERTY_COMMAND_T(Process, MoveNode, ProcessModel::p_position, "Move node")
 SCORE_COMMAND_DECL_T(Process::MoveNode)
 PROPERTY_COMMAND_T(Process, ResizeNode, ProcessModel::p_size, "Resize node")
 SCORE_COMMAND_DECL_T(Process::ResizeNode)
+PROPERTY_COMMAND_T(Process, SetNodeFoldMode, ProcessModel::p_foldMode, "Fold node")
+SCORE_COMMAND_DECL_T(Process::SetNodeFoldMode)
 
 namespace Process
 {

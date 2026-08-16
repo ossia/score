@@ -103,7 +103,7 @@ void NodeItem::createWithDecorations()
   auto& process = m_model;
   auto& ctx = m_context;
 
-  m_folded = (std::ssize(process.inlets()) > Process::MaxUnpaginatedControls);
+  m_folded = process.folded();
 
   // Title
   const auto& pixmaps = Process::Pixmaps::instance();
@@ -164,25 +164,16 @@ void NodeItem::createWithDecorations()
   connect(
       &process, &Process::ProcessModel::outletsChanged, this, &NodeItem::resetOutlets);
 
+  // The button only states the intent; the model is what decides, so that undo,
+  // reload and a preset dropped on the node all end up drawing the same thing.
   connect(m_fold, &score::QGraphicsPixmapToggle::toggled, this, [this](bool b) {
-    resetItem();
-
-    m_folded = !b;
-    if(!m_folded)
-    {
-      createContentItem();
-    }
-    else
-    {
-      createFoldedItem();
-    }
-    QTimer::singleShot(1, this, [this] {
-      resetInlets();
-      resetOutlets();
-
-      resizeAsync();
-    });
+    CommandDispatcher<> disp{m_context.commandStack};
+    disp.submit<Process::SetNodeFoldMode>(
+        m_model, b ? Process::FoldMode::Unfolded : Process::FoldMode::Folded);
   });
+
+  con(process, &Process::ProcessModel::foldModeChanged, this,
+      [this] { applyFold(m_model.folded()); });
 
   resizeAsync();
   updateTooltip();
@@ -434,6 +425,36 @@ void NodeItem::updateContentRect()
 QRectF NodeItem::boundingRect() const
 {
   return m_contentRect.adjusted(-2., -2., 2., 2.);
+}
+
+//! Redraw for a fold state that has already been decided by the model.
+void NodeItem::applyFold(bool folded)
+{
+  if(!m_fold || folded == m_folded)
+    return;
+
+  // setState() deliberately does not re-emit toggled(), so this cannot loop
+  // back into the command that brought us here.
+  m_fold->setState(!folded);
+
+  resetItem();
+
+  m_folded = folded;
+  if(!m_folded)
+  {
+    createContentItem();
+  }
+  else
+  {
+    createFoldedItem();
+  }
+
+  QTimer::singleShot(1, this, [this] {
+    resetInlets();
+    resetOutlets();
+
+    resizeAsync();
+  });
 }
 
 void NodeItem::createFoldedItem()

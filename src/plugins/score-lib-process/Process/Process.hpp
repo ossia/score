@@ -36,6 +36,18 @@ class value;
 }
 namespace Process
 {
+//! Whether a node item shows its contents, and whether that was decided by the
+//! user or is still left to the "too many ports to draw" heuristic.
+//!
+//! Auto is the default so that documents saved before this existed, and freshly
+//! created processes, keep behaving the way they always did.
+enum class FoldMode : int8_t
+{
+  Auto,
+  Folded,
+  Unfolded
+};
+
 class Port;
 class Inlet;
 class ControlInlet;
@@ -107,6 +119,16 @@ public:
   PROPERTY(
       QPointF, position W_READ position W_WRITE setPosition W_NOTIFY positionChanged)
   PROPERTY(QSizeF, size W_READ size W_WRITE setSize W_NOTIFY sizeChanged)
+
+  FoldMode foldMode() const noexcept;
+  void setFoldMode(FoldMode v);
+  void foldModeChanged(FoldMode v) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, foldModeChanged, v)
+  PROPERTY(
+      FoldMode, foldMode W_READ foldMode W_WRITE setFoldMode W_NOTIFY foldModeChanged)
+
+  //! Whether the node item should be drawn folded: the user's choice when there
+  //! is one, the port-count heuristic otherwise.
+  bool folded() const noexcept;
 
   /// States. The process has ownership.
   virtual ProcessStateDataInterface* startStateData() const noexcept;
@@ -238,6 +260,7 @@ private:
   QSizeF m_size{};
   bool m_loops{};
   bool m_executing{};
+  FoldMode m_foldMode{FoldMode::Auto};
 };
 
 SCORE_LIB_PROCESS_EXPORT
@@ -256,6 +279,7 @@ W_REGISTER_ARGTYPE(OptionalId<Process::ProcessModel>)
 
 Q_DECLARE_METATYPE(Process::ProcessModel*)
 Q_DECLARE_METATYPE(const Process::ProcessModel*)
+W_REGISTER_ARGTYPE(Process::FoldMode)
 W_REGISTER_ARGTYPE(Process::ProcessModel*)
 W_REGISTER_ARGTYPE(const Process::ProcessModel*)
 W_REGISTER_ARGTYPE(QPointer<const Process::ProcessModel>)

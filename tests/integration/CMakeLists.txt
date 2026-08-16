@@ -151,3 +151,10 @@ score_add_test(test_integration_lost_mouse_grab
   SOURCES LostMouseGrabTest.cpp
   GUI
   PLUGINS score_plugin_scenario score_lib_process score_plugin_fx)
+
+# Fold state lives on the process so that it survives save/reload and follows a
+# preset dropped onto an open node.
+score_add_test(test_integration_process_fold_mode
+  SOURCES ProcessFoldModeTest.cpp
+  APP
+  PLUGINS score_plugin_scenario score_lib_process score_plugin_fx)

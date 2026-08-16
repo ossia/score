@@ -2,6 +2,7 @@
 
 #include <Process/Commands/EditPort.hpp>
 #include <Process/Commands/LoadPresetCommandFactory.hpp>
+#include <Process/Commands/Properties.hpp>
 #include <Process/Dataflow/CableItem.hpp>
 #include <Process/Dataflow/NodeItem.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
@@ -173,10 +174,23 @@ public:
       if(auto p = m.loadProcessFromPreset(*m_interval, *preset, old.position()))
       {
         linkNewProcess(p, m);
+        keepUnfolded(p, m);
         m.removeProcess(*m_interval, old.id());
         m.commit();
       }
     }
+  }
+
+  // A node the user had open stays open, however many ports the replacement
+  // brings: the port-count heuristic is only meant to decide for a node nobody
+  // has an opinion about yet. One-directional -- a folded node does not force
+  // the replacement folded, that is still left to the heuristic.
+  void keepUnfolded(Process::ProcessModel* p, Scenario::Command::Macro& m)
+  {
+    if(!item)
+      return;
+    if(!item->model().folded())
+      m.setProperty<Process::ProcessModel::p_foldMode>(*p, Process::FoldMode::Unfolded);
   }
 
   void createProcess(const Process::ProcessDropHandler::ProcessDrop& proc)
@@ -194,6 +208,7 @@ public:
 
       // Give the same connections that the previous process had
       linkNewProcess(p, m);
+      keepUnfolded(p, m);
 
       // Remove the previous process
       m.removeProcess(*m_interval, old.id());
