@@ -73,6 +73,15 @@ void QGraphicsSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   DefaultGraphicsSliderImpl::mouseReleaseEvent(*this, event);
 }
 
+bool QGraphicsSlider::sceneEvent(QEvent* event)
+{
+  if(event->type() == QEvent::UngrabMouse)
+  {
+    DefaultGraphicsSliderImpl::ungrabMouseEvent(*this, event);
+  }
+  return QGraphicsItem::sceneEvent(event);
+}
+
 void QGraphicsSlider::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
   event->accept();

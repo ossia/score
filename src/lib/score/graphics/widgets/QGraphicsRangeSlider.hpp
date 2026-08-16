@@ -58,6 +58,7 @@ private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  bool sceneEvent(QEvent* event) override;
   QRectF boundingRect() const override;
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
       override;
@@ -75,7 +76,9 @@ private:
     END,
     NONE
   };
-  Handle handle{};
+  // NONE, not the default START: `handle` is what says whether a drag is in
+  // progress, so an item that has never been pressed must not read as dragging.
+  Handle handle{NONE};
   QRectF m_rangeRect{};
 };
 }

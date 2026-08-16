@@ -153,6 +153,24 @@ struct DefaultGraphicsSliderImpl
     event->accept();
   }
 
+  //! QEvent::UngrabMouse. The scene drops an item's implicit grab without ever
+  //! delivering a release -- most visibly when the button was let go outside
+  //! the window and the pointer then comes back in, which
+  //! QGraphicsScenePrivate::sendMouseEvent answers by clearing the grabber and
+  //! discarding the event. The drag has to be closed here too: otherwise
+  //! `moving` stays set and this control stops following its model, and the
+  //! ongoing command it opened stays open, so the *next* control the user
+  //! touches has its edits redirected onto this one.
+  template <typename T>
+  static void ungrabMouseEvent(T& self, QEvent* event)
+  {
+    if(!self.m_grab)
+      return;
+
+    self.m_grab = false;
+    self.sliderReleased();
+  }
+
   template <typename T>
   static void contextMenuEvent(T& self, QPointF pos)
   {

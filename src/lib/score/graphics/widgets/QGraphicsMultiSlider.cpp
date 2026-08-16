@@ -263,6 +263,23 @@ void QGraphicsMultiSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
           *this, *event});
 }
 
+//! QEvent::UngrabMouse: the scene took the implicit grab away and there will be
+//! no release to end the drag on. See DefaultGraphicsSliderImpl for what goes
+//! wrong if the edit is left open. Not routed through the visitor above: there
+//! is no mouse event to hand the per-sub-slider handlers.
+bool QGraphicsMultiSlider::sceneEvent(QEvent* event)
+{
+  if(event->type() == QEvent::UngrabMouse)
+  {
+    if(m_grab != -1)
+    {
+      m_grab = -1;
+      sliderReleased();
+    }
+  }
+  return QGraphicsItem::sceneEvent(event);
+}
+
 QRectF QGraphicsMultiSlider::boundingRect() const
 {
   return m_value.apply(SizeVisitor{*this});

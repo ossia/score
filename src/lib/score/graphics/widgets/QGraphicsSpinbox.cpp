@@ -86,6 +86,15 @@ void QGraphicsSpinbox::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   DefaultGraphicsSpinboxImpl::mouseReleaseEvent(*this, event);
 }
 
+bool QGraphicsSpinbox::sceneEvent(QEvent* event)
+{
+  if(event->type() == QEvent::UngrabMouse)
+  {
+    DefaultGraphicsSpinboxImpl::ungrabMouseEvent(*this, event);
+  }
+  return QGraphicsItem::sceneEvent(event);
+}
+
 QRectF QGraphicsSpinbox::boundingRect() const
 {
   return m_rect;
@@ -166,6 +175,15 @@ void QGraphicsIntSpinbox::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 void QGraphicsIntSpinbox::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   DefaultGraphicsSpinboxImpl::mouseReleaseEvent(*this, event);
+}
+
+bool QGraphicsIntSpinbox::sceneEvent(QEvent* event)
+{
+  if(event->type() == QEvent::UngrabMouse)
+  {
+    DefaultGraphicsSpinboxImpl::ungrabMouseEvent(*this, event);
+  }
+  return QGraphicsItem::sceneEvent(event);
 }
 
 QRectF QGraphicsIntSpinbox::boundingRect() const

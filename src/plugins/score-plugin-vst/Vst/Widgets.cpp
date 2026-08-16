@@ -84,6 +84,15 @@ void GraphicsSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   score::DefaultGraphicsSliderImpl::mouseReleaseEvent(*this, event);
 }
 
+bool GraphicsSlider::sceneEvent(QEvent* event)
+{
+  if(event->type() == QEvent::UngrabMouse)
+  {
+    score::DefaultGraphicsSliderImpl::ungrabMouseEvent(*this, event);
+  }
+  return QGraphicsItem::sceneEvent(event);
+}
+
 void GraphicsSlider::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 {
   score::DefaultGraphicsSliderImpl::mouseDoubleClickEvent(*this, event);

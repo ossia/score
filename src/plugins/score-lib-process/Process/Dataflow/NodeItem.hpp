@@ -89,6 +89,7 @@ private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  bool sceneEvent(QEvent* event) override;
   void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
 
   void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;

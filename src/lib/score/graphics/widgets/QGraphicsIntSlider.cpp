@@ -90,6 +90,15 @@ void QGraphicsIntSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   DefaultGraphicsSliderImpl::mouseReleaseEvent(*this, event);
 }
 
+bool QGraphicsIntSlider::sceneEvent(QEvent* event)
+{
+  if(event->type() == QEvent::UngrabMouse)
+  {
+    DefaultGraphicsSliderImpl::ungrabMouseEvent(*this, event);
+  }
+  return QGraphicsItem::sceneEvent(event);
+}
+
 void QGraphicsIntSlider::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {

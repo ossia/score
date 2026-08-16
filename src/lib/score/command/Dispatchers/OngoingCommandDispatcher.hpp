@@ -5,6 +5,8 @@
 #include <score/tools/Debug.hpp>
 #include <score/tools/SafeCast.hpp>
 
+#include <QObject>
+
 #include <memory>
 
 /**
@@ -33,22 +35,51 @@ public:
   void watch(const QObject* obj);
   void unwatch(const QObject* obj);
 
+  //! Whether obj is the object of the current -- or, if none is in progress,
+  //! the most recent -- interaction. Kept past commit() so that re-editing the
+  //! same object does not have to re-arm its watch.
+  bool watching(const QObject* obj) const noexcept { return m_watched == obj; }
+
   //! Call this repeatedly to make the command, for instance on click and when
   //! the mouse moves.
   template <typename TheCommand, typename Watched, typename... Args>
   void submit(Watched&& watched, Args&&... args)
   {
     using decayed = std::remove_cvref_t<Watched>;
+    const QObject* target{};
     if constexpr(std::is_pointer_v<decayed>)
     {
       static_assert(std::is_base_of_v<QObject, std::remove_cvref_t<decltype(*watched)>>);
-      watch(watched);
+      target = watched;
     }
     else
     {
       static_assert(std::is_base_of_v<QObject, decayed>);
-      watch(&watched);
+      target = &watched;
     }
+
+    // An interaction that never got its end -- a drag whose mouse grab the
+    // scene took away without delivering the release, a widget hidden
+    // mid-edit -- leaves its command sitting here. update() only refreshes a
+    // command's parameters and not what it points at, so carrying that one
+    // over would send this interaction's edits to the *previous* object: the
+    // widget under the mouse would move while the value went somewhere else.
+    // The stale command has already been redone, so close it properly.
+    if(m_cmd && (m_watched != target || m_cmd->key() != TheCommand::static_key()))
+    {
+      // A different command type means the two interactions are unrelated, so
+      // whoever owned the first one never finished it. That used to throw;
+      // closing it is friendlier, but it is still worth saying out loud.
+      if(m_cmd->key() != TheCommand::static_key())
+      {
+        qDebug() << "OngoingCommandDispatcher: closing unfinished"
+                 << m_cmd->key().toString().c_str() << "to start"
+                 << TheCommand::static_key().toString().c_str();
+      }
+      commit();
+    }
+
+    watch(target);
 
     if(!m_cmd)
     {
@@ -58,13 +89,6 @@ public:
     }
     else
     {
-      if(m_cmd->key() != TheCommand::static_key())
-      {
-        throw std::runtime_error(
-            "Ongoing command mismatch: current command " + m_cmd->key().toString()
-            + " does not match new command " + TheCommand{}.key().toString());
-      }
-
       safe_cast<TheCommand*>(m_cmd.get())->update(watched, std::forward<Args>(args)...);
       m_cmd->redo(stack().context());
     }

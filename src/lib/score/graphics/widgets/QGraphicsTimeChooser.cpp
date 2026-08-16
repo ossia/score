@@ -257,6 +257,23 @@ void QGraphicsTimeChooser::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 }
 
+//! QEvent::UngrabMouse: the scene took the implicit grab away and there will be
+//! no release to end the drag on. See DefaultGraphicsSliderImpl for what goes
+//! wrong if the edit is left open.
+bool QGraphicsTimeChooser::sceneEvent(QEvent* event)
+{
+  if(event->type() == QEvent::UngrabMouse)
+  {
+    if(m_grab)
+    {
+      m_grab = false;
+      InfiniteScroller::abort(*this);
+      sliderReleased();
+    }
+  }
+  return QGraphicsItem::sceneEvent(event);
+}
+
 void QGraphicsTimeChooser::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 {
   if(m_sync)

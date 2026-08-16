@@ -119,6 +119,25 @@ void QGraphicsNoteChooser::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 }
 
+//! QEvent::UngrabMouse: the scene took the implicit grab away and there will be
+//! no release to end the drag on. See DefaultGraphicsSliderImpl for what goes
+//! wrong if the edit is left open.
+bool QGraphicsNoteChooser::sceneEvent(QEvent* event)
+{
+  if(event->type() == QEvent::UngrabMouse)
+  {
+    if(m_grab)
+    {
+      m_grab = false;
+      InfiniteScroller::abort(*this);
+      sliderReleased();
+
+      setCursor(score::Skin::instance().CursorScaleV);
+    }
+  }
+  return QGraphicsItem::sceneEvent(event);
+}
+
 static QString noteText(int n)
 {
   static constexpr QStringView lit[12]{u"C",  u"C#", u"D",  u"D#", u"E",  u"F",

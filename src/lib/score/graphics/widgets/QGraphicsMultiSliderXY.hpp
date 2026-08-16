@@ -45,7 +45,7 @@ public:
 
   double min{0.}, max{1.};
 
-  int m_grab{-1};
+  bool m_grab{};
   std::vector<ossia::value> m_value{};
   std::vector<ossia::value> m_execValue{};
   bool m_hasExec{};
@@ -71,6 +71,7 @@ private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  bool sceneEvent(QEvent* event) override;
   QRectF boundingRect() const override;
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
       override;

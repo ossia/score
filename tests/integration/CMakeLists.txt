@@ -143,3 +143,11 @@ foreach(kind ISF VSA CSF)
   target_compile_definitions(test_integration_shader_sweep_${lc} PRIVATE
     "SCORE_SHADER_SWEEP_BASELINE_${kind}=\"${_baseline}\"")
 endforeach()
+
+# Drags that never get their mouse release: QGraphicsScene drops the implicit
+# grab on a button-less move, so the control keeps its ongoing command open and
+# redirects the next control's edits onto itself.
+score_add_test(test_integration_lost_mouse_grab
+  SOURCES LostMouseGrabTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process score_plugin_fx)

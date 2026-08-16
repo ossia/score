@@ -190,6 +190,23 @@ void score::QGraphicsPathGeneratorXY::mouseReleaseEvent(QGraphicsSceneMouseEvent
   sliderReleased();
 }
 
+//! QEvent::UngrabMouse: the scene took the implicit grab away and there will be
+//! no release to end the drag on. See DefaultGraphicsSliderImpl for what goes
+//! wrong if the edit is left open.
+bool score::QGraphicsPathGeneratorXY::sceneEvent(QEvent* event)
+{
+  if(event->type() == QEvent::UngrabMouse)
+  {
+    if(m_grab)
+    {
+      m_grab = false;
+      update();
+      sliderReleased();
+    }
+  }
+  return QGraphicsItem::sceneEvent(event);
+}
+
 QRectF score::QGraphicsPathGeneratorXY::boundingRect() const
 {
   return QRectF(0, 0, 400, 400);
