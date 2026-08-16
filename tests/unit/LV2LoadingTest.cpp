@@ -16,6 +16,7 @@
 #include <LV2/Context.hpp>
 #include <LV2/EffectModel.hpp>
 #include <LV2/Node.hpp>
+#include <LV2/Window.hpp>
 
 #include <Media/AudioPluginCache.hpp>
 
@@ -219,6 +220,40 @@ TEST_CASE("find_lv2_plugin loads the bundle on demand", "[lv2]")
       CHECK(QString(res->get_uri().as_string()) == "urn:score:test:gain2");
     }
   });
+}
+
+TEST_CASE("LV2 UI binaries linked against another Qt major are rejected", "[lv2]")
+{
+  // Identical mangled symbol names across Qt majors get cross-resolved when
+  // such a UI is dlopened into this process, corrupting memory before the
+  // UI even finishes creating its QApplication (observed with qmidiarp's
+  // Qt5 X11UI: dev builds die on a QStringView assert, static-Qt release
+  // builds corrupt silently since the executable exports its Qt).
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+
+  auto write = [&](const char* name, QByteArray content) {
+    const QString p = dir.path() + "/" + name;
+    QFile f{p};
+    REQUIRE(f.open(QIODevice::WriteOnly));
+    f.write(content);
+    return p;
+  };
+
+  const auto qt5_ui
+      = write("qt5_ui.so", "\x7f" "ELF...libQt5Core.so.5...libQt5Gui.so.5...");
+  const auto qt4_ui = write("qt4_ui.so", "...libQt4Gui.so.4...");
+  const auto our_qt_ui = write(
+      "qt6_ui.so",
+      QByteArray("...libQt") + QByteArray::number(QT_VERSION_MAJOR)
+          + "Core.so...");
+  const auto no_qt_ui = write("plain_ui.so", "...libgtk-3.so.0...libX11.so...");
+
+  CHECK(LV2::uiLinksIncompatibleQt(qt5_ui));
+  CHECK(LV2::uiLinksIncompatibleQt(qt4_ui));
+  CHECK(!LV2::uiLinksIncompatibleQt(our_qt_ui));
+  CHECK(!LV2::uiLinksIncompatibleQt(no_qt_ui));
+  CHECK(!LV2::uiLinksIncompatibleQt(dir.path() + "/does_not_exist.so"));
 }
 
 TEST_CASE("LV2 descriptor cache round-trips through the versioned blob", "[lv2]")

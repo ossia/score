@@ -8,6 +8,8 @@
 
 #include <ossia/network/value/value_conversion.hpp>
 
+#include <QDebug>
+#include <QFile>
 #include <QHBoxLayout>
 #include <QTimer>
 
@@ -15,9 +17,40 @@
 
 #include <suil-0/suil/suil.h>
 
+#include <array>
+
 W_OBJECT_IMPL(LV2::Window)
 namespace LV2
 {
+//! An X11UI binary linked against another Qt major version cannot run in
+//! this process: Qt keeps the same mangled names across majors for the
+//! exported QString/QByteArray operators, so the other Qt's internal calls
+//! get resolved to *our* Qt's code operating on their objects - memory
+//! corruption before the UI even finishes creating its QApplication
+//! (observed with qmidiarp's Qt5 UI: Qt5's QFactoryLoader ends up in Qt6's
+//! operator<(QString, QString) and dies). GTK-based hosts load these UIs
+//! fine since no other Qt lives in their process; we must refuse.
+bool uiLinksIncompatibleQt(const QString& binary_path)
+{
+  QFile f{binary_path};
+  if(!f.open(QIODevice::ReadOnly))
+    return false;
+  // DT_NEEDED sonames appear verbatim in .dynstr; a substring scan is
+  // enough and spares us an ELF/Mach-O/PE parser
+  const QByteArray data = f.readAll();
+  static constexpr std::array others{4, 5, 6, 7};
+  for(int major : others)
+  {
+    if(major == QT_VERSION_MAJOR)
+      continue;
+    const QByteArray core = "libQt" + QByteArray::number(major) + "Core.so";
+    const QByteArray gui = "libQt" + QByteArray::number(major) + "Gui.so";
+    if(data.contains(core) || data.contains(gui))
+      return true;
+  }
+  return false;
+}
+
 Window::Window(const Model& fx, const score::DocumentContext& ctx, QWidget* parent)
     : PluginWindow{ctx.app.settings<Media::Settings::Model>().getVstAlwaysOnTop(), parent}
     , m_model{fx}
@@ -26,23 +59,56 @@ Window::Window(const Model& fx, const score::DocumentContext& ctx, QWidget* pare
     throw std::runtime_error("Cannot create UI");
 
   auto& p = score::GUIAppContext().applicationPlugin<LV2::ApplicationPlugin>();
+  // Not created when LV2 support is disabled (SCORE_DISABLE_AUDIOPLUGINS /
+  // SCORE_DISABLE_LV2); suil dereferences it without checking
+  if(!p.lv2_context->ui_host)
+    throw std::runtime_error("LV2 UI host not available");
   auto lay = new score::MarginLess<QHBoxLayout>;
   setLayout(lay);
 
-  // Find a relevant ui
+  // Find a relevant ui: among the ones suil can host, keep the
+  // best-supported (lowest wrapping quality, lilv semantics) whose binary
+  // actually exists on disk. A bundle may declare UIs that are not shipped -
+  // qmidiarp's ttl lists an OpenGL UI first whose .so is absent from the
+  // distribution package; picking it blindly made the whole UI fail with a
+  // missing-file error even though the X11 UI right after it works.
   const auto native_ui_type_uri = "http://lv2plug.in/ns/extensions/ui#Qt6UI";
   {
     auto the_uis = lilv_plugin_get_uis(fx.plugin);
     auto native_ui_type = lilv_new_uri(p.lilv.me, native_ui_type_uri);
+    unsigned best_quality = 0; // lilv: 0 = unsupported, 1 = native, 2+ = wrapped
     LILV_FOREACH(uis, u, the_uis)
     {
       const LilvUI* this_ui = lilv_uis_get(the_uis, u);
-      if(lilv_ui_is_supported(
-             this_ui, p.suil.ui_supported, native_ui_type, &fx.effectContext.ui_type))
+      const LilvNode* ui_type{};
+      const unsigned quality
+          = lilv_ui_is_supported(this_ui, p.suil.ui_supported, native_ui_type, &ui_type);
+      if(quality == 0 || (best_quality != 0 && quality >= best_quality))
+        continue;
+
+      if(const char* binary_uri
+         = lilv_node_as_uri(lilv_ui_get_binary_uri(this_ui)))
       {
-        fx.effectContext.ui = this_ui;
-        break;
+        char* binary_path = lilv_file_uri_parse(binary_uri, nullptr);
+        const QString path = QString::fromUtf8(binary_path ? binary_path : "");
+        lilv_free(binary_path);
+        if(path.isEmpty() || !QFile::exists(path))
+        {
+          qDebug() << "LV2: skipping UI with missing binary:" << binary_uri;
+          continue;
+        }
+        if(uiLinksIncompatibleQt(path))
+        {
+          qDebug() << "LV2: skipping UI linked against an incompatible Qt "
+                      "version (cannot be embedded in this process):"
+                   << binary_uri;
+          continue;
+        }
       }
+
+      best_quality = quality;
+      fx.effectContext.ui = this_ui;
+      fx.effectContext.ui_type = ui_type;
     }
   }
   if(!fx.effectContext.ui)

@@ -7,6 +7,11 @@
 
 namespace LV2
 {
+//! True if this UI binary links a Qt major version other than the one this
+//! process runs: such a UI cannot be loaded in-process (identical mangled
+//! symbol names across Qt majors get cross-resolved and corrupt memory).
+SCORE_PLUGIN_LV2_EXPORT
+bool uiLinksIncompatibleQt(const QString& binary_path);
 
 class Window final : public score::PluginWindow
 {
